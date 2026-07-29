@@ -12,6 +12,15 @@ const todayDateElement =
 
 const todayWeekdayElement =
     document.getElementById("todayWeekday");
+    
+const taskSummaryElement =
+    document.getElementById("taskSummary");
+
+const todayTaskListElement =
+    document.getElementById("todayTaskList");
+
+const taskProgressElement =
+    document.getElementById("taskProgress");
 
 function openMenu() {
     sideMenu.classList.add("open");
@@ -73,6 +82,133 @@ function displayToday() {
         weekdays[today.getDay()];
 }
 
+function getTodayStorageKey() {
+    const today = new Date();
+
+    const year =
+        today.getFullYear();
+
+    const month =
+        String(today.getMonth() + 1).padStart(2, "0");
+
+    const day =
+        String(today.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+}
+
+function loadTodayTasks() {
+    let tasksByDate = {};
+
+    try {
+        tasksByDate =
+            JSON.parse(
+                localStorage.getItem("arkTasksByDate")
+            ) || {};
+    } catch (error) {
+        console.error(
+            "タスクデータの読み込みに失敗しました。",
+            error
+        );
+    }
+
+    const todayKey =
+        getTodayStorageKey();
+
+    const todayTasks =
+        Array.isArray(tasksByDate[todayKey])
+            ? tasksByDate[todayKey]
+            : [];
+
+    displayTodayTasks(todayTasks);
+}
+
+function displayTodayTasks(tasks) {
+    todayTaskListElement.innerHTML = "";
+
+    if (tasks.length === 0) {
+        taskSummaryElement.textContent =
+            "今日の予定はありません。";
+
+        taskProgressElement.textContent =
+            "進捗 0%";
+
+        return;
+    }
+
+    const completedTasks =
+        tasks.filter(function (task) {
+            return (
+                task.completed === true ||
+                task.done === true ||
+                task.isCompleted === true
+            );
+        });
+
+    const remainingCount =
+        tasks.length - completedTasks.length;
+
+    const progress =
+        Math.round(
+            (completedTasks.length / tasks.length) * 100
+        );
+
+    taskSummaryElement.textContent =
+        `残り ${remainingCount}件`;
+
+    tasks
+        .slice(0, 3)
+        .forEach(function (task) {
+            const taskItem =
+                document.createElement("p");
+
+            const taskIsCompleted =
+                task.completed === true ||
+                task.done === true ||
+                task.isCompleted === true;
+
+            const taskName =
+                typeof task === "string"
+                    ? task
+                    : task.text ||
+                      task.title ||
+                      task.name ||
+                      "名称未設定";
+
+            taskItem.className =
+                "homeTaskItem";
+
+            taskItem.textContent =
+                `${taskIsCompleted ? "☑" : "□"} ${taskName}`;
+
+            if (taskIsCompleted) {
+                taskItem.classList.add("completed");
+            }
+
+            todayTaskListElement.appendChild(
+                taskItem
+            );
+        });
+
+    if (tasks.length > 3) {
+        const moreTasks =
+            document.createElement("p");
+
+        moreTasks.className =
+            "moreTasks";
+
+        moreTasks.textContent =
+            `ほか ${tasks.length - 3}件`;
+
+        todayTaskListElement.appendChild(
+            moreTasks
+        );
+    }
+
+    taskProgressElement.textContent =
+        `進捗 ${progress}%`;
+}
+
 menuButton.addEventListener(
     "click",
     toggleMenu
@@ -108,6 +244,12 @@ document
     });
 
 displayToday();
+loadTodayTasks();
+
+window.addEventListener(
+    "pageshow",
+    loadTodayTasks
+);
 
 /* PWAのService Workerを登録 */
 if ("serviceWorker" in navigator) {

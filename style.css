@@ -1,0 +1,449 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --primary-color: #2563eb;
+    --primary-dark: #1d4ed8;
+    --primary-light: #eff6ff;
+
+    --background-color: #f5f7fb;
+    --surface-color: #ffffff;
+
+    --text-color: #172033;
+    --subtext-color: #64748b;
+
+    --border-color: #e2e8f0;
+
+    --header-height: 88px;
+    --sidebar-width: 250px;
+}
+
+html {
+    min-height: 100%;
+}
+
+body {
+    min-height: 100vh;
+
+    color: var(--text-color);
+    background: var(--background-color);
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "Noto Sans JP",
+        sans-serif;
+}
+
+button,
+a {
+    font: inherit;
+}
+
+/* ヘッダー */
+
+.appHeader {
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    right: 0;
+
+    display: flex;
+    align-items: center;
+
+    height: var(--header-height);
+    padding: 0 42px;
+
+    color: white;
+    background: var(--primary-color);
+
+    box-shadow: 0 3px 14px rgba(15, 23, 42, 0.12);
+}
+
+.appHeader h1 {
+    font-size: 32px;
+    letter-spacing: -0.5px;
+}
+
+.menuButton {
+    display: none;
+
+    width: 42px;
+    height: 42px;
+    margin-right: 12px;
+
+    color: white;
+    background: transparent;
+
+    border: none;
+    border-radius: 8px;
+
+    cursor: pointer;
+    font-size: 27px;
+}
+
+.menuButton:hover {
+    background: rgba(255, 255, 255, 0.16);
+}
+
+/* 全体レイアウト */
+
+.container {
+    display: flex;
+
+    min-height: 100vh;
+    padding-top: var(--header-height);
+}
+
+/* 左メニュー */
+
+.sideMenu {
+    position: fixed;
+    top: var(--header-height);
+    bottom: 0;
+    left: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    width: var(--sidebar-width);
+    padding: 26px 18px;
+
+    overflow-y: auto;
+
+    background: var(--surface-color);
+
+    border-right: 1px solid var(--border-color);
+}
+
+.menuTitle {
+    margin: 0 10px 10px;
+
+    color: #94a3b8;
+
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+}
+
+.navLink {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    min-height: 48px;
+    padding: 11px 14px;
+
+    color: #475569;
+
+    border-radius: 10px;
+
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+
+    transition:
+        color 0.2s,
+        background 0.2s,
+        transform 0.15s;
+}
+
+.navLink:hover {
+    color: var(--primary-color);
+    background: var(--primary-light);
+
+    transform: translateX(3px);
+}
+
+.navLink.active {
+    color: var(--primary-color);
+    background: #dbeafe;
+}
+
+.navIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 24px;
+
+    font-size: 18px;
+}
+
+/* メイン画面 */
+
+.mainContent {
+    width: calc(100% - var(--sidebar-width));
+    margin-left: var(--sidebar-width);
+    padding: 42px;
+
+    background: var(--background-color);
+}
+
+.welcomeArea {
+    margin-bottom: 28px;
+}
+
+.welcomeLabel {
+    margin-bottom: 8px;
+
+    color: var(--primary-color);
+
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1.6px;
+}
+
+.welcomeArea h2 {
+    margin-bottom: 7px;
+
+    font-size: 30px;
+}
+
+.welcomeText {
+    color: var(--subtext-color);
+
+    font-size: 16px;
+}
+
+/* ダッシュボード */
+
+.dashboardGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+
+    max-width: 1100px;
+}
+
+.dashboardCard {
+    display: flex;
+    flex-direction: column;
+
+    min-height: 190px;
+    padding: 24px;
+
+    background: var(--surface-color);
+
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s,
+        border-color 0.2s;
+}
+
+.dashboardCard:hover {
+    transform: translateY(-3px);
+
+    border-color: #bfdbfe;
+
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.1);
+}
+
+.cardHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    margin-bottom: 18px;
+}
+
+.cardHeader h3 {
+    font-size: 19px;
+}
+
+.cardIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 38px;
+    height: 38px;
+
+    background: var(--primary-light);
+
+    border-radius: 10px;
+
+    font-size: 19px;
+}
+
+.cardDescription {
+    color: var(--subtext-color);
+
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.largeValue {
+    margin-bottom: 4px;
+
+    color: var(--primary-color);
+
+    font-size: 28px;
+    font-weight: 750;
+}
+
+.cardLink {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    width: 100%;
+    margin-top: auto;
+    padding: 10px 12px;
+
+    color: var(--primary-color);
+    background: var(--primary-light);
+
+    border-radius: 9px;
+
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 700;
+
+    transition:
+        color 0.2s,
+        background 0.2s;
+}
+
+.cardLink:hover {
+    color: white;
+    background: var(--primary-color);
+}
+
+.cardLink.disabled {
+    color: #94a3b8;
+    background: #f1f5f9;
+
+    cursor: default;
+    pointer-events: none;
+}
+
+.dateCard {
+    background:
+        linear-gradient(
+            135deg,
+            #ffffff 0%,
+            #eff6ff 100%
+        );
+}
+
+/* スマホメニュー用の暗い背景 */
+
+.overlay {
+    display: none;
+}
+
+/* タブレット */
+
+@media (max-width: 900px) {
+    :root {
+        --header-height: 76px;
+    }
+
+    .appHeader {
+        padding: 0 22px;
+    }
+
+    .appHeader h1 {
+        font-size: 25px;
+    }
+
+    .menuButton {
+        display: block;
+    }
+
+    .sideMenu {
+        z-index: 1100;
+        top: var(--header-height);
+
+        width: 270px;
+
+        transform: translateX(-100%);
+
+        box-shadow: 10px 0 30px rgba(15, 23, 42, 0.15);
+
+        transition: transform 0.25s ease;
+    }
+
+    .sideMenu.open {
+        transform: translateX(0);
+    }
+
+    .mainContent {
+        width: 100%;
+        margin-left: 0;
+        padding: 30px 22px;
+    }
+
+    .overlay {
+        position: fixed;
+        z-index: 1050;
+        inset: var(--header-height) 0 0 0;
+
+        background: rgba(15, 23, 42, 0.45);
+    }
+
+    .overlay.show {
+        display: block;
+    }
+}
+
+/* スマートフォン */
+
+@media (max-width: 650px) {
+    .appHeader {
+        padding: 0 14px;
+    }
+
+    .appHeader h1 {
+        font-size: 21px;
+    }
+
+    .menuButton {
+        width: 38px;
+        height: 38px;
+
+        margin-right: 7px;
+
+        font-size: 23px;
+    }
+
+    .mainContent {
+        padding: 24px 14px;
+    }
+
+    .welcomeArea h2 {
+        font-size: 25px;
+    }
+
+    .welcomeText {
+        font-size: 14px;
+    }
+
+    .dashboardGrid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .dashboardCard {
+        min-height: 175px;
+        padding: 20px;
+
+        border-radius: 13px;
+    }
+
+    .largeValue {
+        font-size: 24px;
+    }
+}

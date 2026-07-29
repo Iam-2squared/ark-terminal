@@ -1,0 +1,658 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "Noto Sans JP",
+        sans-serif;
+
+    max-width: 1500px;
+    margin: 30px auto;
+    padding: 20px;
+
+    color: #1e293b;
+    background: #f5f7fb;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+.appTitle h1 {
+    margin: 0;
+
+    color: #2563eb;
+}
+
+.appLayout {
+    display: grid;
+    grid-template-columns: 2fr 3fr;
+
+    min-height: 720px;
+    margin-top: 24px;
+
+    overflow: hidden;
+
+    background: white;
+
+    border: 1px solid #dbe3ef;
+    border-radius: 16px;
+
+    box-shadow: 0 5px 24px rgba(15, 23, 42, 0.08);
+}
+
+/* 左側 */
+
+.taskArea {
+    padding: 30px;
+
+    background: #ffffff;
+}
+
+.taskSection {
+    margin-bottom: 42px;
+}
+
+.taskSection:last-child {
+    margin-bottom: 0;
+}
+
+.taskSection h2 {
+    margin: 0 0 16px;
+
+    font-size: 21px;
+}
+
+.sectionTitleRow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    margin-bottom: 16px;
+}
+
+.sectionTitleRow h2 {
+    margin: 0;
+}
+
+#selectedDateLabel {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 5px 10px;
+
+    color: #2563eb;
+    background: #eff6ff;
+
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.completedSection {
+    padding-top: 28px;
+
+    border-top: 2px solid #dbe3ef;
+}
+
+/* 入力欄 */
+
+.inputArea {
+    display: flex;
+    gap: 10px;
+}
+
+#routineInput,
+#taskInput {
+    flex: 1;
+
+    min-width: 0;
+    padding: 11px 13px;
+
+    color: #1e293b;
+    background: white;
+
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
+}
+
+#routineInput:focus,
+#taskInput:focus {
+    border-color: #2563eb;
+
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+#addRoutineButton,
+#addButton {
+    padding: 11px 18px;
+
+    color: white;
+    background: #2563eb;
+
+    border: none;
+    border-radius: 9px;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s,
+        transform 0.15s;
+}
+
+#addRoutineButton:hover,
+#addButton:hover {
+    background: #1d4ed8;
+}
+
+#addRoutineButton:active,
+#addButton:active {
+    transform: scale(0.97);
+}
+
+/* タスクリスト */
+
+ul {
+    padding: 0;
+    margin: 14px 0 0;
+}
+
+.taskItem {
+    position: relative;
+    overflow: hidden;
+
+    display: flex;
+    align-items: center;
+
+    min-height: 52px;
+    margin: 9px 0;
+    padding: 12px 14px;
+
+    list-style: none;
+
+    background: white;
+
+    border: 1px solid #edf1f7;
+    border-radius: 9px;
+
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.07);
+
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s,
+        border-color 0.2s;
+}
+
+.taskItem::before {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    background: #bbf7d0;
+
+    transform: scaleX(0);
+    transform-origin: left;
+
+    transition: transform 0.55s ease;
+}
+
+.taskItem.completing::before,
+.taskItem.completed::before {
+    transform: scaleX(1);
+}
+
+.taskItem > * {
+    position: relative;
+    z-index: 1;
+}
+
+.taskItem:hover {
+    z-index: 2;
+
+    transform: translateY(-2px);
+
+    border-color: #dbe3ef;
+
+    box-shadow: 0 7px 18px rgba(15, 23, 42, 0.12);
+}
+
+.taskCheckbox {
+    width: 18px;
+    height: 18px;
+
+    margin: 0;
+
+    flex-shrink: 0;
+
+    cursor: pointer;
+}
+
+.taskText {
+    flex: 1;
+
+    min-width: 0;
+    margin-left: 10px;
+
+    word-break: break-word;
+}
+
+.completed .taskText {
+    color: #475569;
+}
+
+.menuButton {
+    margin-left: 8px;
+    padding: 5px 9px;
+
+    color: #64748b;
+    background: transparent;
+
+    border: none;
+    border-radius: 6px;
+
+    cursor: pointer;
+    font-size: 22px;
+    line-height: 1;
+}
+
+.menuButton:hover {
+    background: rgba(255, 255, 255, 0.58);
+}
+
+/* 右側・カレンダー */
+
+.calendarArea {
+    padding: 30px;
+
+    background: #fafcff;
+
+    border-left: 3px solid #dbe3ef;
+}
+
+.calendarHeader {
+    display: grid;
+    grid-template-columns: 44px 1fr 44px;
+    align-items: center;
+    gap: 12px;
+
+    margin-bottom: 24px;
+}
+
+.calendarHeader > button:not(.calendarTitleButton) {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+
+    color: #334155;
+    background: white;
+
+    border: 1px solid #dbe3ef;
+    border-radius: 50%;
+
+    cursor: pointer;
+    font-size: 27px;
+    line-height: 1;
+
+    transition:
+        background 0.2s,
+        transform 0.15s;
+}
+
+.calendarHeader > button:not(.calendarTitleButton):hover {
+    background: #eef4ff;
+}
+
+.calendarHeader > button:not(.calendarTitleButton):active {
+    transform: scale(0.94);
+}
+
+.calendarTitleButton {
+    justify-self: center;
+
+    padding: 7px 14px;
+
+    color: #1e293b;
+    background: transparent;
+
+    border: none;
+    border-radius: 8px;
+
+    cursor: pointer;
+    font-size: 21px;
+    font-weight: 700;
+}
+
+.calendarTitleButton:hover {
+    background: #eef4ff;
+}
+
+.calendarWeekdays,
+.calendarDays {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.calendarWeekdays {
+    margin-bottom: 8px;
+
+    text-align: center;
+
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.calendarWeekdays span {
+    padding: 7px 0;
+}
+
+.calendarWeekdays .sunday {
+    color: #dc2626;
+}
+
+.calendarWeekdays .saturday {
+    color: #2563eb;
+}
+
+/* 1日分のマス */
+
+.calendarDay {
+    position: relative;
+
+    min-width: 0;
+    min-height: 105px;
+    padding: 7px;
+
+    color: #334155;
+    background: white;
+
+    border: 1px solid #e2e8f0;
+
+    cursor: pointer;
+    text-align: left;
+
+    transition:
+        background 0.18s,
+        border-color 0.18s,
+        box-shadow 0.18s;
+}
+
+.calendarDay:hover {
+    z-index: 2;
+
+    background: #f4f8ff;
+    border-color: #93c5fd;
+
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+}
+
+.calendarDay.selected {
+    z-index: 3;
+
+    background: #eff6ff;
+
+    border: 2px solid #2563eb;
+}
+
+.calendarDay.otherMonth {
+    color: #94a3b8;
+    background: #f8fafc;
+}
+
+.calendarDay.otherMonth .calendarTask {
+    opacity: 0.62;
+}
+
+.dayNumber {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 28px;
+    height: 28px;
+
+    margin-bottom: 4px;
+
+    border-radius: 50%;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.calendarDay.today .dayNumber {
+    color: white;
+    background: #2563eb;
+}
+
+/* カレンダー上のタスク */
+
+.calendarTaskList {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+
+    min-width: 0;
+}
+
+.calendarTask {
+    overflow: hidden;
+
+    width: 100%;
+    padding: 3px 5px;
+
+    color: #1e40af;
+    background: #dbeafe;
+
+    border-radius: 4px;
+
+    font-size: 11px;
+    line-height: 1.25;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.calendarTask.done {
+    color: #166534;
+    background: #dcfce7;
+}
+
+.moreTasks {
+    padding-left: 4px;
+
+    color: #64748b;
+    font-size: 11px;
+}
+
+/* 空欄メッセージ */
+
+.emptyMessage {
+    padding: 14px 4px;
+
+    color: #94a3b8;
+
+    list-style: none;
+    font-size: 14px;
+}
+
+/* タブレット */
+
+@media (max-width: 1000px) {
+    body {
+        margin: 16px auto;
+        padding: 12px;
+    }
+
+    .appLayout {
+        grid-template-columns: 1fr;
+
+        min-height: auto;
+    }
+
+    .taskArea {
+        order: 1;
+    }
+
+    .calendarArea {
+        order: 2;
+
+        border-top: 3px solid #dbe3ef;
+        border-left: none;
+    }
+
+    .taskArea,
+    .calendarArea {
+        padding: 22px;
+    }
+
+    .calendarDay {
+        min-height: 88px;
+    }
+}
+
+@media (max-width: 650px) {
+    body {
+        margin: 0;
+        padding: 10px;
+    }
+
+    .appTitle h1 {
+        font-size: 24px;
+    }
+
+    .appLayout {
+        margin-top: 14px;
+
+        border-radius: 12px;
+    }
+
+    .taskArea,
+    .calendarArea {
+        padding: 16px;
+    }
+
+    .taskSection {
+        margin-bottom: 30px;
+    }
+
+    .taskSection h2 {
+        font-size: 18px;
+    }
+
+    .sectionTitleRow {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .inputArea {
+        flex-direction: column;
+    }
+
+    #routineInput,
+    #taskInput {
+        width: 100%;
+    }
+
+    #addRoutineButton,
+    #addButton {
+        width: 100%;
+    }
+
+    .calendarHeader {
+        grid-template-columns: 38px 1fr 38px;
+        gap: 8px;
+    }
+
+    .calendarHeader > button:not(.calendarTitleButton) {
+        width: 36px;
+        height: 36px;
+
+        font-size: 23px;
+    }
+
+    .calendarTitleButton {
+        font-size: 18px;
+    }
+
+    .calendarArea {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    .calendarWeekdays {
+        font-size: 12px;
+    }
+
+    .calendarDay {
+        min-height: 68px;
+        padding: 3px;
+    }
+
+    .dayNumber {
+        width: 23px;
+        height: 23px;
+
+        font-size: 11px;
+    }
+
+    .calendarTask {
+        padding: 2px 3px;
+
+        font-size: 8px;
+    }
+
+    .calendarTask:nth-child(n + 3) {
+        display: none;
+    }
+
+    .moreTasks {
+        font-size: 8px;
+    }
+
+    .taskItem {
+        min-height: 48px;
+        padding: 10px 11px;
+    }
+
+    .taskText {
+        font-size: 14px;
+    }
+
+    .menuButton {
+        padding: 4px 7px;
+
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 420px) {
+    .calendarDay {
+        min-height: 58px;
+    }
+
+    .calendarTask {
+        display: none;
+    }
+
+    .moreTasks {
+        display: none;
+    }
+
+    .dayNumber {
+        margin-bottom: 0;
+    }
+}

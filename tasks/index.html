@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+ <link rel="manifest" href="manifest.json">
+
+ <meta name="theme-color" content="#2563eb">
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Ark Tasks</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header class="appTitle">
+        <h1>🚀 Ark Tasks</h1>
+    </header>
+
+    <main class="appLayout">
+
+        <section class="taskArea">
+
+            <section class="taskSection">
+
+                <h2>🔁 毎日のルーティン</h2>
+
+                <div class="inputArea">
+
+                    <input
+                        id="routineInput"
+                        type="text"
+                        placeholder="新しいルーティン"
+                        autocomplete="off"
+                    >
+
+                    <button
+                        id="addRoutineButton"
+                        type="button"
+                    >
+                        追加
+                    </button>
+
+                </div>
+
+                <ul id="routineList"></ul>
+
+            </section>
+
+            <section class="taskSection">
+
+                <div class="sectionTitleRow">
+
+                    <h2>📋 今日やること</h2>
+
+                    <span id="selectedDateLabel"></span>
+
+                </div>
+
+                <div class="inputArea">
+
+                    <input
+                        id="taskInput"
+                        type="text"
+                        placeholder="選択した日のタスク"
+                        autocomplete="off"
+                    >
+
+                    <button
+                        id="addButton"
+                        type="button"
+                    >
+                        追加
+                    </button>
+
+                </div>
+
+                <ul id="taskList"></ul>
+
+            </section>
+
+            <section class="taskSection completedSection">
+
+                <h2>✅ 完了</h2>
+
+                <ul id="doneList"></ul>
+
+            </section>
+
+        </section>
+
+        <aside class="calendarArea">
+
+            <div class="calendarHeader">
+
+                <button
+                    id="previousMonthButton"
+                    type="button"
+                    aria-label="前の月"
+                >
+                    ‹
+                </button>
+
+                <button
+                    id="calendarTitle"
+                    class="calendarTitleButton"
+                    type="button"
+                    title="今日に戻る"
+                ></button>
+
+                <button
+                    id="nextMonthButton"
+                    type="button"
+                    aria-label="次の月"
+                >
+                    ›
+                </button>
+
+            </div>
+
+            <div class="calendarWeekdays">
+                <span class="sunday">日</span>
+                <span>月</span>
+                <span>火</span>
+                <span>水</span>
+                <span>木</span>
+                <span>金</span>
+                <span class="saturday">土</span>
+            </div>
+
+            <div
+                id="calendarDays"
+                class="calendarDays"
+            ></div>
+
+        </aside>
+
+    </main>
+
+    <script src="script.js"></script>
+
+</body>
+</html>

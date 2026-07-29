@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Ark Terminal</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+
+    <meta
+        name="theme-color"
+        content="#2563eb"
+    >
+</head>
+
+<body>
+
+    <header class="appHeader">
+
+        <button
+            id="menuButton"
+            class="menuButton"
+            type="button"
+            aria-label="メニューを開く"
+        >
+            ☰
+        </button>
+
+        <h1>🚀 Ark Terminal</h1>
+
+    </header>
+
+    <div
+        id="overlay"
+        class="overlay"
+    ></div>
+
+    <div class="container">
+
+        <nav
+            id="sideMenu"
+            class="sideMenu"
+        >
+
+            <div class="menuTitle">
+                MENU
+            </div>
+
+            <a
+                class="navLink active"
+                href="./index.html"
+            >
+                <span class="navIcon">🏠</span>
+                <span>Home</span>
+            </a>
+
+            <a
+                class="navLink"
+                href="./tasks/index.html"
+            >
+                <span class="navIcon">📝</span>
+                <span>Tasks</span>
+            </a>
+
+            <a
+                class="navLink"
+                href="./stocks/index.html"
+            >
+                <span class="navIcon">📈</span>
+                <span>Stocks</span>
+            </a>
+
+            <a
+                class="navLink"
+                href="./news/index.html"
+            >
+                <span class="navIcon">📰</span>
+                <span>AI News</span>
+            </a>
+
+            <a
+                class="navLink"
+                href="./study/index.html"
+            >
+                <span class="navIcon">📚</span>
+                <span>Study</span>
+            </a>
+
+            <a
+                class="navLink"
+                href="./ideas/index.html"
+            >
+                <span class="navIcon">💡</span>
+                <span>Ideas</span>
+            </a>
+
+            <a
+                class="navLink"
+                href="./settings/index.html"
+            >
+                <span class="navIcon">⚙️</span>
+                <span>Settings</span>
+            </a>
+
+        </nav>
+
+        <main class="mainContent">
+
+            <section class="welcomeArea">
+
+                <p class="welcomeLabel">
+                    HOME
+                </p>
+
+                <h2>おかえり！</h2>
+
+                <p class="welcomeText">
+                    今日もArk Terminalから始めよう。
+                </p>
+
+            </section>
+
+            <section class="dashboardGrid">
+
+                <article class="dashboardCard dateCard">
+
+                    <div class="cardHeader">
+                        <span class="cardIcon">📅</span>
+                        <h3>今日</h3>
+                    </div>
+
+                    <p
+                        id="todayDate"
+                        class="largeValue"
+                    >
+                        ----/--/--
+                    </p>
+
+                    <p
+                        id="todayWeekday"
+                        class="cardDescription"
+                    >
+                        -
+                    </p>
+
+                </article>
+
+                <article class="dashboardCard">
+
+                    <div class="cardHeader">
+                        <span class="cardIcon">📝</span>
+                        <h3>今日の予定</h3>
+                    </div>
+
+                    <p class="cardDescription">
+                        Ark Tasksで今日の予定を確認できます。
+                    </p>
+
+                    <a
+                        class="cardLink"
+                        href="./tasks/index.html"
+                    >
+                        Tasksを開く
+                        <span>→</span>
+                    </a>
+
+                </article>
+
+                <article class="dashboardCard">
+
+                    <div class="cardHeader">
+                        <span class="cardIcon">📈</span>
+                        <h3>保有株・ウォッチリスト</h3>
+                    </div>
+
+                    <p class="cardDescription">
+                        株価や保有銘柄をここに表示する予定です。
+                    </p>
+
+                    <a
+                        class="cardLink disabled"
+                        href="#"
+                        aria-disabled="true"
+                    >
+                        準備中
+                    </a>
+
+                </article>
+
+                <article class="dashboardCard">
+
+                    <div class="cardHeader">
+                        <span class="cardIcon">📰</span>
+                        <h3>AI News</h3>
+                    </div>
+
+                    <p class="cardDescription">
+                        最新のAI関連ニュースをここに表示する予定です。
+                    </p>
+
+                    <a
+                        class="cardLink disabled"
+                        href="#"
+                        aria-disabled="true"
+                    >
+                        準備中
+                    </a>
+
+                </article>
+
+                <article class="dashboardCard">
+
+                    <div class="cardHeader">
+                        <span class="cardIcon">📚</span>
+                        <h3>Study</h3>
+                    </div>
+
+                    <p class="cardDescription">
+                        勉強時間や目標を管理する予定です。
+                    </p>
+
+                    <a
+                        class="cardLink disabled"
+                        href="#"
+                        aria-disabled="true"
+                    >
+                        準備中
+                    </a>
+
+                </article>
+
+                <article class="dashboardCard">
+
+                    <div class="cardHeader">
+                        <span class="cardIcon">💡</span>
+                        <h3>Ideas</h3>
+                    </div>
+
+                    <p class="cardDescription">
+                        思いついたアイデアをすぐ保存できる場所です。
+                    </p>
+
+                    <a
+                        class="cardLink disabled"
+                        href="#"
+                        aria-disabled="true"
+                    >
+                        準備中
+                    </a>
+
+                </article>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>

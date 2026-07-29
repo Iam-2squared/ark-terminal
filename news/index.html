@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI News | Ark Terminal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <main class="newsPage">
+        <a class="backButton" href="../index.html">← Ark Terminal</a>
+
+        <header class="newsHeader">
+            <p class="eyebrow">ARK INTELLIGENCE</p>
+            <h1>AI News</h1>
+            <p class="description">
+                AI業界の重要ニュースを、要約と投資視点で整理します。
+            </p>
+        </header>
+
+        <section class="newsControls">
+            <button class="filterButton active" data-filter="all">すべて</button>
+            <button class="filterButton" data-filter="high">重要</button>
+            <button class="filterButton" data-filter="company">企業</button>
+            <button class="filterButton" data-filter="market">市場</button>
+        </section>
+
+        <section id="newsList" class="newsList"></section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

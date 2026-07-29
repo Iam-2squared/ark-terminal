@@ -656,3 +656,33 @@ ul {
         margin-bottom: 0;
     }
 }
+.backButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    margin-bottom: 20px;
+    padding: 10px 14px;
+
+    color: #2f67e8;
+    background-color: #eef4ff;
+
+    border-radius: 12px;
+
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+
+    transition:
+        transform 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.backButton:hover {
+    background-color: #dfeaff;
+    transform: translateX(-3px);
+}
+
+.backButton:active {
+    transform: scale(0.97);
+}

@@ -188,3 +188,49 @@ a {
 .newsLink:hover {
     color: #ffffff;
 }
+.newsSearch {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 680px;
+    margin-bottom: 18px;
+    padding: 0 16px;
+    background: rgba(255, 255, 255, 0.055);
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    border-radius: 16px;
+}
+
+.newsSearch:focus-within {
+    border-color: rgba(126, 145, 255, 0.7);
+    box-shadow:
+        0 0 0 3px rgba(82, 104, 255, 0.1);
+}
+
+.newsSearch span {
+    color: #8ea2ff;
+    font-size: 22px;
+}
+
+.newsSearch input {
+    flex: 1;
+    min-width: 0;
+    padding: 15px 0;
+    color: #f5f7ff;
+    font-size: 15px;
+    background: transparent;
+    border: 0;
+    outline: none;
+}
+
+.newsSearch input::placeholder {
+    color: #727d98;
+}
+
+.newsSearch button {
+    padding: 5px 8px;
+    color: #aab3ca;
+    font-size: 20px;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+}

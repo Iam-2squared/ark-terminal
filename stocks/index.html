@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stocks | Ark Terminal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<main class="stocksPage">
+
+<a class="backButton" href="../index.html">
+← Ark Terminal
+</a>
+
+<header>
+
+<p class="eyebrow">
+ARK INVESTMENT
+</p>
+
+<h1>
+Stocks
+</h1>
+
+<p class="description">
+ウォッチリストと関連ニュースをまとめて管理します。
+</p>
+
+</header>
+<section class="watchlistControls">
+    <div>
+        <p class="sectionLabel">MY WATCHLIST</p>
+        <h2>登録銘柄</h2>
+    </div>
+
+    <form id="addStockForm" class="addStockForm">
+        <input
+            id="stockNameInput"
+            type="text"
+            placeholder="企業名 例：NVIDIA"
+            maxlength="40"
+            required
+        >
+
+        <input
+            id="stockSymbolInput"
+            type="text"
+            placeholder="コード 例：NVDA"
+            maxlength="15"
+            required
+        >
+
+        <button type="submit">
+            ＋ 追加
+        </button>
+    </form>
+</section>
+
+<section id="watchlist"></section>
+
+<section id="market">
+</section>
+
+</main>
+
+<script src="script.js"></script>
+
+</body>
+</html>

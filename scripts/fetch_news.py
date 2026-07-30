@@ -9,15 +9,19 @@ from pathlib import Path
 
 
 SEARCH_WORDS = [
-    "AI",
     "OpenAI",
     "NVIDIA",
+    "エヌビディア",
+    "TSMC",
+    "AMD",
+    "Micron",
+    "マイクロン",
     "生成AI",
     "人工知能",
-    "半導体",
+    "AI 半導体",
 ]
 
-MAX_NEWS = 20
+MAX_NEWS = 60
 
 OUTPUT_PATH = Path(__file__).resolve().parent.parent / "data" / "news.json"
 

@@ -1,6 +1,21 @@
 let newsData = [];
+const newsSearchInput =
+    document.getElementById("newsSearchInput");
+
+const clearSearchButton =
+    document.getElementById("clearSearchButton");
+
+let activeFilter = "all";
+let searchKeyword = "";
 const newsList = document.getElementById("newsList");
-const filterButtons = document.querySelectorAll(".filterButton");
+const filterButtons =
+    document.querySelectorAll(".filterButton");
+
+const params =
+    new URLSearchParams(window.location.search);
+
+const selectedCompany =
+    params.get("company");
 
 function createNewsCard(news) {
     const importanceText =
@@ -55,29 +70,81 @@ function createNewsCard(news) {
 }
 
 function displayNews(filter = "all") {
-    let filteredNews = newsData;
+    let filteredNews = [...newsData];
 
+    // Stocksページから銘柄を指定して来た場合
+    if (selectedCompany) {
+        const companyAliases = {
+            NVIDIA: ["nvidia", "エヌビディア", "nvda"],
+            TSMC: ["tsmc", "台湾積体電路", "tsm"],
+            AMD: [
+                "amd",
+                "アドバンスト・マイクロ・デバイセズ"
+            ],
+            Micron: ["micron", "マイクロン", "mu"]
+        };
+
+        const keywords =
+            companyAliases[selectedCompany] ||
+            [selectedCompany.toLowerCase()];
+
+        filteredNews = filteredNews.filter(news => {
+            const text = `
+                ${news.company || ""}
+                ${news.title || ""}
+                ${news.summary || ""}
+                ${news.source || ""}
+            `.toLowerCase();
+
+            return keywords.some(keyword =>
+                text.includes(keyword.toLowerCase())
+            );
+        });
+    }
+    if (searchKeyword) {
+    const normalizedKeyword =
+        searchKeyword.toLowerCase();
+
+    filteredNews = filteredNews.filter(news => {
+        const searchableText = `
+            ${news.company || ""}
+            ${news.title || ""}
+            ${news.summary || ""}
+            ${news.source || ""}
+            ${news.impact || ""}
+        `.toLowerCase();
+
+        return searchableText.includes(
+            normalizedKeyword
+        );
+      });
+    }
+
+    // 上部ボタンのフィルター
     if (filter === "high") {
-        filteredNews = newsData.filter(
+        filteredNews = filteredNews.filter(
             news => news.importance === "high"
         );
     }
 
     if (filter === "company") {
-        filteredNews = newsData.filter(
+        filteredNews = filteredNews.filter(
             news => news.category === "company"
         );
     }
 
     if (filter === "market") {
-        filteredNews = newsData.filter(
+        filteredNews = filteredNews.filter(
             news => news.category === "market"
         );
     }
 
     if (filteredNews.length === 0) {
-        newsList.innerHTML =
-            `<p class="emptyMessage">該当するニュースはありません。</p>`;
+        newsList.innerHTML = `
+            <p class="emptyMessage">
+                該当するニュースはありません。
+            </p>
+        `;
         return;
     }
 
@@ -85,7 +152,6 @@ function displayNews(filter = "all") {
         .map(createNewsCard)
         .join("");
 }
-
 filterButtons.forEach(button => {
     button.addEventListener("click", () => {
         filterButtons.forEach(item =>
@@ -93,7 +159,9 @@ filterButtons.forEach(button => {
         );
 
         button.classList.add("active");
-        displayNews(button.dataset.filter);
+
+        activeFilter = button.dataset.filter;
+        displayNews(activeFilter);
     });
 });
 
@@ -135,5 +203,30 @@ async function loadNews() {
         `;
     }
 }
+if (selectedCompany) {
+    const pageTitle = document.getElementById("pageTitle");
 
+    if (pageTitle) {
+        pageTitle.textContent = `${selectedCompany} News`;
+    }
+}
+newsSearchInput.addEventListener("input", event => {
+    searchKeyword =
+        event.target.value.trim();
+
+    clearSearchButton.hidden =
+        searchKeyword.length === 0;
+
+    displayNews(activeFilter);
+});
+
+
+clearSearchButton.addEventListener("click", () => {
+    newsSearchInput.value = "";
+    searchKeyword = "";
+    clearSearchButton.hidden = true;
+
+    displayNews(activeFilter);
+    newsSearchInput.focus();
+});
 loadNews();

@@ -13,11 +13,30 @@
 
         <header class="newsHeader">
             <p class="eyebrow">ARK INTELLIGENCE</p>
-            <h1>AI News</h1>
+            <h1 id="pageTitle">AI News</h1>
             <p class="description">
                 AI業界の重要ニュースを、要約と投資視点で整理します。
             </p>
         </header>
+         <div class="newsSearch">
+         <span aria-hidden="true">⌕</span>
+
+         <input
+         id="newsSearchInput"
+         type="search"
+         placeholder="企業名・ニュース・キーワードを検索"
+         autocomplete="off"
+         >
+
+         <button
+         id="clearSearchButton"
+         type="button"
+         aria-label="検索を消去"
+         hidden
+         >
+         ×
+          </button>
+         </div>
 
         <section class="newsControls">
             <button class="filterButton active" data-filter="all">すべて</button>

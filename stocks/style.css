@@ -1,0 +1,312 @@
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+    color: #f5f7ff;
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(82, 104, 255, 0.2),
+            transparent 34%
+        ),
+        #080b14;
+}
+
+a {
+    color: inherit;
+}
+
+.stocksPage {
+    width: min(1100px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 32px 0 72px;
+}
+
+.backButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 42px;
+    padding: 10px 16px;
+    color: #dfe5ff;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    border-radius: 999px;
+    transition:
+        transform 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.backButton:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+header {
+    margin-bottom: 38px;
+}
+
+.eyebrow {
+    margin: 0 0 10px;
+    color: #8ea2ff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+}
+
+header h1 {
+    margin: 0;
+    font-size: clamp(42px, 8vw, 72px);
+    line-height: 1;
+    letter-spacing: -0.04em;
+}
+
+.description {
+    max-width: 620px;
+    margin: 20px 0 0;
+    color: #9ca6c1;
+    font-size: 17px;
+    line-height: 1.7;
+}
+
+#watchlist {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+}
+
+.stockCard {
+    position: relative;
+    min-height: 150px;
+    padding: 24px;
+    overflow: hidden;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255, 255, 255, 0.075),
+            rgba(255, 255, 255, 0.035)
+        );
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 22px;
+    box-shadow:
+        0 18px 40px rgba(0, 0, 0, 0.18);
+    backdrop-filter: blur(14px);
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        background-color 0.2s ease;
+        text-decoration:none;
+
+     color:inherit;
+
+     display:block;
+
+     cursor:pointer;
+}
+
+.stockCard::after {
+    content: "";
+    position: absolute;
+    top: -45px;
+    right: -45px;
+    width: 120px;
+    height: 120px;
+    background: rgba(82, 104, 255, 0.13);
+    border-radius: 50%;
+    filter: blur(4px);
+}
+
+.stockCard:hover {
+    transform: translateY(-5px);
+    border-color: rgba(126, 145, 255, 0.45);
+    background-color: rgba(255, 255, 255, 0.07);
+}
+
+.stockCard h2 {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    font-size: 24px;
+    line-height: 1.2;
+}
+
+.stockCard p {
+    position: relative;
+    z-index: 1;
+    margin: 12px 0 0;
+    color: #8ea2ff;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+#market {
+    margin-top: 30px;
+}
+
+@media (max-width: 600px) {
+    .stocksPage {
+        width: min(100% - 24px, 1100px);
+        padding-top: 20px;
+    }
+
+    .backButton {
+        margin-bottom: 32px;
+    }
+
+    header {
+        margin-bottom: 30px;
+    }
+
+    .description {
+        font-size: 15px;
+    }
+
+    #watchlist {
+        grid-template-columns: 1fr;
+    }
+
+    .stockCard {
+        min-height: 130px;
+        padding: 20px;
+        border-radius: 18px;
+    }
+}
+.watchlistControls {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 22px;
+}
+
+.sectionLabel {
+    margin: 0 0 7px;
+    color: #8ea2ff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+}
+
+.watchlistControls h2 {
+    margin: 0;
+    font-size: 26px;
+}
+
+.addStockForm {
+    display: flex;
+    gap: 10px;
+}
+
+.addStockForm input {
+    width: 180px;
+    padding: 12px 14px;
+    color: #f5f7ff;
+    background: rgba(255, 255, 255, 0.055);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    outline: none;
+}
+
+.addStockForm input:focus {
+    border-color: rgba(126, 145, 255, 0.75);
+}
+
+.addStockForm button {
+    padding: 12px 17px;
+    color: #ffffff;
+    font-weight: 700;
+    background: #5268ff;
+    border: 0;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+.stockCard {
+    padding: 0;
+}
+
+.stockCardMain {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    min-height: 150px;
+    padding: 24px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.stockCardArrow {
+    position: relative;
+    z-index: 1;
+    color: #9cacff;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.deleteStockButton {
+    position: absolute;
+    top: 13px;
+    right: 13px;
+    z-index: 3;
+    width: 31px;
+    height: 31px;
+    color: #aab3ca;
+    font-size: 20px;
+    line-height: 1;
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.deleteStockButton:hover {
+    color: #ffffff;
+    background: rgba(255, 90, 110, 0.25);
+    border-color: rgba(255, 90, 110, 0.4);
+}
+
+.emptyWatchlist {
+    grid-column: 1 / -1;
+    padding: 50px 20px;
+    color: #8f99b4;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    border-radius: 18px;
+}
+
+@media (max-width: 760px) {
+    .watchlistControls {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .addStockForm {
+        flex-direction: column;
+    }
+
+    .addStockForm input {
+        width: 100%;
+    }
+
+    .stockCardMain {
+        min-height: 130px;
+        padding: 20px;
+    }
+}

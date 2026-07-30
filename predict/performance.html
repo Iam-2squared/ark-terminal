@@ -39,42 +39,53 @@
 
       <section class="metricsGrid">
         <article class="metricCard">
-          <span>確定件数</span>
+          <span>最終テスト件数</span>
           <strong id="metricSamples">--</strong>
         </article>
 
         <article class="metricCard">
-          <span>勝率</span>
+          <span>勝率（95%信頼区間）</span>
           <strong id="metricWinRate">--</strong>
+          <small id="metricWinRateInterval">--</small>
         </article>
 
         <article class="metricCard">
-          <span>平均騰落率</span>
+          <span>平均リターン（費用後）</span>
           <strong id="metricAverageReturn">--</strong>
         </article>
 
         <article class="metricCard">
-          <span>平均利益率</span>
-          <strong id="metricAverageProfit">--</strong>
+          <span>中央値リターン（費用後）</span>
+          <strong id="metricMedianReturn">--</strong>
         </article>
 
         <article class="metricCard">
-          <span>平均損失率</span>
-          <strong id="metricAverageLoss">--</strong>
+          <span>最大ドローダウン</span>
+          <strong id="metricMaximumDrawdown">--</strong>
         </article>
 
         <article class="metricCard">
-          <span>最大連勝</span>
-          <strong id="metricWinStreak">--</strong>
+          <span>Profit Factor</span>
+          <strong id="metricProfitFactor">--</strong>
         </article>
 
         <article class="metricCard">
-          <span>最大連敗</span>
-          <strong id="metricLossStreak">--</strong>
+          <span>平均利益 / 平均損失</span>
+          <strong id="metricProfitLoss">--</strong>
         </article>
 
         <article class="metricCard">
-          <span>シャープレシオ概算</span>
+          <span>手数料・スリッページ合計</span>
+          <strong id="metricTradingCost">--</strong>
+        </article>
+
+        <article class="metricCard">
+          <span>最大連勝 / 最大連敗</span>
+          <strong id="metricStreaks">--</strong>
+        </article>
+
+        <article class="metricCard">
+          <span>シャープレシオ概算（費用後）</span>
           <strong id="metricSharpe">--</strong>
         </article>
       </section>
@@ -120,6 +131,30 @@
               JSON出力
             </button>
           </div>
+        </article>
+
+        <article class="performanceCard">
+          <p class="cardLabel">Chronological Split</p>
+
+          <h2>期間分割別成績</h2>
+
+          <div id="partitionPerformance" class="tableContainer"></div>
+        </article>
+
+        <article class="performanceCard">
+          <p class="cardLabel">Direction</p>
+
+          <h2>強気・弱気・中立別</h2>
+
+          <div id="directionPerformance" class="tableContainer"></div>
+        </article>
+
+        <article class="performanceCard">
+          <p class="cardLabel">Market Regime</p>
+
+          <h2>相場環境別成績</h2>
+
+          <div id="regimePerformance" class="tableContainer"></div>
         </article>
 
         <article class="performanceCard">
@@ -179,8 +214,9 @@
 
           <p>
             過去成績は将来の結果を保証しません。
-            サンプル数が少ない段階の勝率やシャープレシオは大きく変動します。
-            重み調整は1回あたり最大5%に制限しています。
+            主要指標は最終テスト期間だけで表示し、学習期間で調整した重みは
+            検証・最終テスト期間で固定します。費用は設定値による概算で、
+            実際の約定や税金は含みません。
           </p>
         </article>
       </section>

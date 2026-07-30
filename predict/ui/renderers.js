@@ -12,10 +12,23 @@ export function initializeRenderers() {
     "predictionPeriodLabel",
     "dataCompleteness",
     "technicalScore",
+    "categoryScoreList",
     "indicatorScoreList",
     "dataSourceBadge",
     "dataSourceDescription",
     "indicatorSnapshot",
+    "dataQualityBadge",
+    "dataQualitySummary",
+    "dataQualityList",
+    "predictionDirection",
+    "expectedMoveRange",
+    "downsideRisk",
+    "confidenceScore",
+    "confidenceBadge",
+    "confidenceComponents",
+    "marketRegimeBadge",
+    "marketEnvironmentDescription",
+    "marketEnvironmentList",
     "reasonList",
     "companySnapshot",
     "newsList",
@@ -119,6 +132,24 @@ function renderFactors(factors) {
     .join("");
 }
 
+function renderCategories(categories) {
+  elements.categoryScoreList.innerHTML = categories
+    .map(
+      (category) => `
+        <div class="categoryScoreItem">
+          <span>${escapeHtml(category.label)}</span>
+          <strong>${
+            category.available ? `${category.score} / 100` : "--"
+          }</strong>
+          <small>上限 ${formatNumber(category.weight, 0)}点・${
+            category.factorCount
+          }指標</small>
+        </div>
+      `,
+    )
+    .join("");
+}
+
 function renderReasons(factors) {
   const ordered = [...factors].sort((first, second) => {
     if (first.available !== second.available) {
@@ -197,6 +228,150 @@ function renderIndicatorSnapshot(indicators, symbol) {
         <div class="indicatorValue">
           <span>${escapeHtml(label)}</span>
           <strong>${escapeHtml(value)}</strong>
+        </div>
+      `,
+    )
+    .join("");
+}
+
+export function renderDataQualityReport(quality) {
+  if (!quality) {
+    return;
+  }
+
+  const label =
+    quality.status === "passed"
+      ? "合格"
+      : quality.status === "warning"
+        ? "警告あり"
+        : "停止";
+  elements.dataQualityBadge.textContent = label;
+  elements.dataQualityBadge.className = `dataSourceBadge ${quality.status}`;
+  elements.dataQualitySummary.textContent = quality.canScore
+    ? `品質スコア ${quality.qualityScore}/100。${quality.validRowCount}件を検証し、重大な異常はありません。`
+    : `品質スコア ${quality.qualityScore}/100。重大な異常を検出したため、スコア計算を停止しました。`;
+
+  const summaryItems = [
+    {
+      label: "調整後終値",
+      value: `${formatNumber(quality.audits.adjustedCloseCoverage, 1)}%`,
+      detail: `${quality.adjustmentMethod}・分割${quality.splitCount}件`,
+    },
+    {
+      label: "価格単位",
+      value: quality.priceUnit,
+      detail: `通貨 ${quality.currency || "不明"}`,
+    },
+    {
+      label: "出来高単位",
+      value: quality.volumeUnit,
+      detail: `取得率 ${formatNumber(quality.audits.volumeCoverage, 1)}%`,
+    },
+    {
+      label: "欠損率",
+      value: `${formatNumber(quality.missingRate, 2)}%`,
+      detail: `${quality.missingCount}件`,
+    },
+    {
+      label: "重複・異常値",
+      value: `${quality.duplicateCount} / ${quality.outlierCount}`,
+      detail: "重複 / 極端な変動",
+    },
+    {
+      label: "指標再計算",
+      value:
+        quality.calculationValidation?.status === "passed"
+          ? "一致"
+          : quality.calculationValidation
+            ? "不一致"
+            : "未実行",
+      detail: "MA・52週高安・VWAP",
+    },
+  ];
+  const issueItems = quality.issues.map((item) => ({
+    label: item.severity === "blocking" ? "計算停止理由" : "警告",
+    value: item.code,
+    detail: item.message,
+    severity: item.severity,
+  }));
+
+  elements.dataQualityList.innerHTML = [...summaryItems, ...issueItems]
+    .map(
+      (item) => `
+        <div class="qualityItem ${escapeHtml(item.severity || "")}">
+          <span>${escapeHtml(item.label)}</span>
+          <strong>${escapeHtml(item.value)}</strong>
+          <small>${escapeHtml(item.detail)}</small>
+        </div>
+      `,
+    )
+    .join("");
+}
+
+function renderPredictionOutput(prediction) {
+  if (!prediction) {
+    return;
+  }
+
+  elements.predictionDirection.textContent = prediction.direction;
+  elements.expectedMoveRange.textContent = prediction.expectedMoveRange
+    ? `${formatPercent(prediction.expectedMoveRange.lower)} ～ ${formatPercent(
+        prediction.expectedMoveRange.upper,
+      )}`
+    : "--";
+  elements.downsideRisk.textContent = finite(prediction.downsideRisk)
+    ? `-${formatNumber(prediction.downsideRisk, 2)}%`
+    : "--";
+  elements.confidenceScore.textContent = `${prediction.confidence.score} / 100`;
+  elements.confidenceBadge.textContent = `信頼度 ${prediction.confidence.label}`;
+  elements.confidenceBadge.className = "dataSourceBadge";
+  elements.confidenceComponents.innerHTML = prediction.confidence.components
+    .map(
+      (component) => `
+        <div class="confidenceComponent">
+          <span>${escapeHtml(component.label)}</span>
+          <strong>${
+            component.available
+              ? `${formatNumber(component.score, 0)} / 100`
+              : "--"
+          }</strong>
+          <small>${escapeHtml(component.detail)}</small>
+        </div>
+      `,
+    )
+    .join("");
+}
+
+function renderMarketEnvironment(environment) {
+  const regime = environment?.regime || "データなし";
+  elements.marketRegimeBadge.textContent = regime;
+  elements.marketRegimeBadge.className = `dataSourceBadge ${
+    regime === "データなし" ? "" : "passed"
+  }`;
+  elements.marketEnvironmentDescription.textContent =
+    environment?.availableCount > 0
+      ? `${environment.availableCount}/${environment.requestedCount}系列を取得。市場環境は現在の補助情報で、バックテストへ未来情報として流用しません。`
+      : "市場環境データを取得できませんでした。スコアは市場環境を除いて計算します。";
+  const activeItems = (environment?.series || []).map((series) => ({
+    label: series.label,
+    value: series.available ? series.regime : "未取得",
+    detail: series.reason || "データなし",
+  }));
+  const adapterItems = (environment?.registry || [])
+    .filter((item) => item.status === "adapter-ready")
+    .map((item) => ({
+      label: item.label,
+      value: "接続先待ち",
+      detail: "データ取得アダプターを追加できる状態です。",
+    }));
+
+  elements.marketEnvironmentList.innerHTML = [...activeItems, ...adapterItems]
+    .map(
+      (item) => `
+        <div class="marketEnvironmentItem">
+          <span>${escapeHtml(item.label)}</span>
+          <strong>${escapeHtml(item.value)}</strong>
+          <small>${escapeHtml(item.detail)}</small>
         </div>
       `,
     )
@@ -309,6 +484,9 @@ export function renderAnalysis(state) {
     symbol,
     period,
     history,
+    quality,
+    prediction,
+    marketEnvironment,
   } = state;
 
   elements.resultCompanyName.textContent =
@@ -323,11 +501,15 @@ export function renderAnalysis(state) {
     ? `${analysis.technicalScore} / 100`
     : "--";
   elements.dataSourceBadge.textContent = "実データ";
-  elements.dataSourceDescription.textContent = `${history.candles.length}本の${history.interval}足から計算しました。未接続データは総合スコアの分母から除外しています。`;
+  elements.dataSourceDescription.textContent = `${quality.validRowCount}本の${history.interval}足を、調整後終値基準で計算しました。52週高値・安値は最大252営業日、VWAPは日足20本の近似です。`;
 
+  renderCategories(analysis.categoryBreakdown);
   renderFactors(analysis.factors);
   renderReasons(analysis.factors);
   renderIndicatorSnapshot(indicators, symbol);
+  renderDataQualityReport(quality);
+  renderPredictionOutput(prediction);
+  renderMarketEnvironment(marketEnvironment);
   renderContext(context);
 }
 

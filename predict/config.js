@@ -16,6 +16,41 @@ export const SYMBOL_INPUT_DEBOUNCE_MS = 600;
 export const HISTORY_RANGE = "2y";
 export const HISTORY_INTERVAL = "1d";
 
+export const FACTOR_CATEGORIES = Object.freeze({
+  movingAverages: "trend",
+  macd: "trend",
+  adx: "trend",
+  rsi: "overheat",
+  bollingerBands: "overheat",
+  stochastic: "overheat",
+  atr: "risk",
+  volume: "volume",
+  vwap: "relativePosition",
+  high52Week: "relativePosition",
+  low52Week: "relativePosition",
+  news: "external",
+  disclosure: "external",
+  sentiment: "external",
+});
+
+export const CATEGORY_WEIGHTS = Object.freeze({
+  trend: 24,
+  overheat: 14,
+  risk: 8,
+  volume: 8,
+  relativePosition: 16,
+  external: 30,
+});
+
+export const CATEGORY_LABELS = Object.freeze({
+  trend: "トレンド系",
+  overheat: "過熱系",
+  risk: "リスク系",
+  volume: "出来高系",
+  relativePosition: "相対位置系",
+  external: "外部情報",
+});
+
 export const DEFAULT_WEIGHTS = Object.freeze({
   movingAverages: 25,
   rsi: 6,
@@ -39,3 +74,16 @@ export const STORAGE_KEYS = Object.freeze({
 });
 
 export const MINIMUM_OPTIMIZER_SAMPLES = 20;
+
+export const BACKTEST_SPLIT = Object.freeze({
+  training: 0.6,
+  validation: 0.2,
+  test: 0.2,
+  minimumHistory: 252,
+  minimumPartitionSamples: 3,
+});
+
+export const BACKTEST_COSTS = Object.freeze({
+  commissionBpsPerSide: 5,
+  slippageBpsPerSide: 10,
+});

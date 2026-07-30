@@ -53,31 +53,39 @@ export function resetWeights() {
   return copyDefaultWeights();
 }
 
-export function optimizeWeights(records, currentWeights = loadWeights()) {
+export function deriveOptimizedWeights(records, currentWeights) {
+  const hasTrainingPartition = records.some(
+    (record) => record.partition === "training",
+  );
   const resolved = records.filter(
     (record) =>
       record.status === "resolved" &&
       Number.isFinite(Number(record.actualReturn)) &&
-      record.factorScores,
+      record.factorScores &&
+      (!hasTrainingPartition || record.partition === "training"),
   );
+  const normalizedCurrent = normalizeWeights(currentWeights);
 
   if (resolved.length < MINIMUM_OPTIMIZER_SAMPLES) {
     return {
       updated: false,
-      weights: normalizeWeights(currentWeights),
+      weights: normalizedCurrent,
       sampleCount: resolved.length,
       required: MINIMUM_OPTIMIZER_SAMPLES,
-      message: `最適化には最低${MINIMUM_OPTIMIZER_SAMPLES}件の確定済みデータが必要です。`,
+      message: `重み調整には学習期間の確定済みデータが最低${MINIMUM_OPTIMIZER_SAMPLES}件必要です。`,
     };
   }
 
   const adjusted = {
-    ...currentWeights,
+    ...normalizedCurrent,
   };
 
   Object.keys(DEFAULT_WEIGHTS).forEach((key) => {
-    const samples = resolved.filter((record) =>
-      Number.isFinite(Number(record.factorScores[key])),
+    const samples = resolved.filter(
+      (record) =>
+        Number.isFinite(Number(record.factorScores[key])) &&
+        (Number(record.factorScores[key]) >= 55 ||
+          Number(record.factorScores[key]) <= 45),
     );
 
     if (samples.length < MINIMUM_OPTIMIZER_SAMPLES) {
@@ -98,18 +106,32 @@ export function optimizeWeights(records, currentWeights = loadWeights()) {
 
     const adjustment = Math.max(-0.05, Math.min(0.05, (accuracy - 0.5) * 0.2));
 
-    adjusted[key] = Number(currentWeights[key]) * (1 + adjustment);
+    adjusted[key] = Number(normalizedCurrent[key]) * (1 + adjustment);
   });
 
-  const weights = saveWeights(adjusted);
+  const weights = normalizeWeights(adjusted);
 
   return {
     updated: true,
     weights,
     sampleCount: resolved.length,
     required: MINIMUM_OPTIMIZER_SAMPLES,
-    message:
-      "確定済み実績を基に、各重みを1回あたり最大5%の範囲で調整しました。",
+    message: hasTrainingPartition
+      ? "学習期間だけを使い、各重みを1回あたり最大5%の範囲で調整しました。検証・最終テスト期間は使っていません。"
+      : "確定済み実績を基に、各重みを1回あたり最大5%の範囲で調整しました。",
+  };
+}
+
+export function optimizeWeights(records, currentWeights = loadWeights()) {
+  const result = deriveOptimizedWeights(records, currentWeights);
+
+  if (!result.updated) {
+    return result;
+  }
+
+  return {
+    ...result,
+    weights: saveWeights(result.weights),
   };
 }
 

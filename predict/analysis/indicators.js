@@ -1,3 +1,5 @@
+import { DataQualityError, validateHistoryData } from "./data-quality.js";
+
 function finite(value) {
   return Number.isFinite(Number(value));
 }
@@ -354,7 +356,7 @@ function calculateVolume(candles) {
   };
 }
 
-function sanitizeCandles(candles) {
+function normalizeCandles(candles) {
   return (Array.isArray(candles) ? candles : [])
     .map((candle) => ({
       time: Number(candle.time),
@@ -362,21 +364,48 @@ function sanitizeCandles(candles) {
       high: Number(candle.high),
       low: Number(candle.low),
       close: Number(candle.close),
-      volume: Number(candle.volume) || 0,
+      volume: Number(candle.volume),
+      rawClose: finite(candle.rawClose) ? Number(candle.rawClose) : null,
+      adjustedClose: finite(candle.adjustedClose)
+        ? Number(candle.adjustedClose)
+        : null,
+      adjustedCloseProvided: candle.adjustedCloseProvided === true,
+      adjustmentFactor: finite(candle.adjustmentFactor)
+        ? Number(candle.adjustmentFactor)
+        : null,
+      volumeAdjustmentFactor: finite(candle.volumeAdjustmentFactor)
+        ? Number(candle.volumeAdjustmentFactor)
+        : null,
     }))
-    .filter(
-      (candle) =>
-        finite(candle.time) &&
-        finite(candle.open) &&
-        finite(candle.high) &&
-        finite(candle.low) &&
-        finite(candle.close),
-    )
     .sort((first, second) => first.time - second.time);
 }
 
-export function calculateIndicators(rawCandles) {
-  const candles = sanitizeCandles(rawCandles);
+export function calculateIndicators(
+  rawCandles,
+  { qualityReport = null, validated = false } = {},
+) {
+  let report = qualityReport;
+
+  if (!report && !validated) {
+    report = validateHistoryData(
+      {
+        candles: rawCandles,
+        adjustmentMethod: "caller-provided",
+        meta: {
+          volumeUnit: "shares",
+        },
+      },
+      {
+        minimumHistory: 2,
+      },
+    );
+  }
+
+  if (report && !report.canScore) {
+    throw new DataQualityError(report);
+  }
+
+  const candles = normalizeCandles(report?.candles || rawCandles);
 
   if (candles.length < 2) {
     throw new Error("テクニカル分析に必要な株価履歴が不足しています。");
@@ -436,6 +465,14 @@ export function calculateIndicators(rawCandles) {
     recentRange: {
       high: Math.max(...candles.slice(-20).map((candle) => candle.high)),
       low: Math.min(...candles.slice(-20).map((candle) => candle.low)),
+    },
+    calculationAudit: {
+      priceBasis: "adjusted-close-scaled-ohlc",
+      volumeBasis: "split-adjusted-shares",
+      movingAverageBasis: "simple-average-adjusted-close",
+      week52Sessions: yearWindow.length,
+      vwapBasis: "20-session-daily-typical-price-volume-approximation",
+      vwapSessions: Math.min(20, candles.length),
     },
     candles,
   };

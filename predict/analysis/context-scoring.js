@@ -49,7 +49,7 @@ function createFactor({ key, label, weight, score, reason, available = true }) {
   return {
     key,
     label,
-    category: "context",
+    category: "external",
     weight: Number(weight) || 0,
     score: normalizedScore,
     contribution: available

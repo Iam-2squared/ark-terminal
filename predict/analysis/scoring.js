@@ -12,6 +12,11 @@ import {
   explainVwap,
 } from "./explanations.js";
 import { scoreContextFactors } from "./context-scoring.js";
+import {
+  CATEGORY_LABELS,
+  CATEGORY_WEIGHTS,
+  FACTOR_CATEGORIES,
+} from "../config.js";
 
 function finite(value) {
   return Number.isFinite(Number(value));
@@ -55,7 +60,7 @@ function factor({
   return {
     key,
     label,
-    category,
+    category: FACTOR_CATEGORIES[key] || category,
     weight: Number(weight) || 0,
     score: normalizedScore,
     contribution: available
@@ -463,30 +468,70 @@ export function scoreAnalysis({ indicators, context = {}, weights }) {
     0,
   );
 
-  const weightedTotal = availableFactors.reduce(
-    (sum, item) => sum + item.contribution,
-    0,
+  const categoryBreakdown = Object.entries(CATEGORY_WEIGHTS).map(
+    ([category, categoryWeight]) => {
+      const categoryFactors = availableFactors.filter(
+        (item) => item.category === category,
+      );
+      const availableFactorWeight = categoryFactors.reduce(
+        (sum, item) => sum + item.weight,
+        0,
+      );
+      const categoryScore =
+        availableFactorWeight > 0
+          ? categoryFactors.reduce(
+              (sum, item) => sum + item.score * item.weight,
+              0,
+            ) / availableFactorWeight
+          : null;
+
+      return {
+        key: category,
+        label: CATEGORY_LABELS[category] || category,
+        weight: categoryWeight,
+        score: finite(categoryScore) ? Math.round(categoryScore) : null,
+        contribution: finite(categoryScore)
+          ? (categoryScore * categoryWeight) / 100
+          : 0,
+        available: finite(categoryScore),
+        factorCount: categoryFactors.length,
+      };
+    },
   );
 
+  const availableCategories = categoryBreakdown.filter(
+    (category) => category.available,
+  );
+  const availableCategoryWeight = availableCategories.reduce(
+    (sum, category) => sum + category.weight,
+    0,
+  );
   const totalScore =
-    availableWeight > 0
-      ? Math.round((weightedTotal / availableWeight) * 100)
+    availableCategoryWeight > 0
+      ? Math.round(
+          (availableCategories.reduce(
+            (sum, category) => sum + category.contribution,
+            0,
+          ) /
+            availableCategoryWeight) *
+            100,
+        )
       : 50;
-
-  const technicalFactors = availableFactors.filter(
-    (item) => item.category === "technical",
+  const technicalCategories = availableCategories.filter(
+    (category) => category.key !== "external",
   );
-
-  const technicalWeight = technicalFactors.reduce(
-    (sum, item) => sum + item.weight,
+  const technicalCategoryWeight = technicalCategories.reduce(
+    (sum, category) => sum + category.weight,
     0,
   );
-
   const technicalScore =
-    technicalWeight > 0
+    technicalCategoryWeight > 0
       ? Math.round(
-          (technicalFactors.reduce((sum, item) => sum + item.contribution, 0) /
-            technicalWeight) *
+          (technicalCategories.reduce(
+            (sum, category) => sum + category.contribution,
+            0,
+          ) /
+            technicalCategoryWeight) *
             100,
         )
       : null;
@@ -501,6 +546,8 @@ export function scoreAnalysis({ indicators, context = {}, weights }) {
     availableWeight,
     totalWeight,
     factors,
+    categoryBreakdown,
+    categoryMethod: "カテゴリ上限内で指標を集約し、同一情報の多重加点を抑制",
     result: getOverallResult(totalScore),
   };
 }

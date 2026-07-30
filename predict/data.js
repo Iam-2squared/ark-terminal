@@ -1,4 +1,5 @@
 import { ARK_API_BASE, HISTORY_INTERVAL, HISTORY_RANGE } from "./config.js";
+import { fetchMarketEnvironment } from "./market-context/service.js";
 
 async function fetchJson(path, params, signal) {
   const url = new URL(path, ARK_API_BASE);
@@ -74,11 +75,17 @@ export async function fetchMarketContext(symbol, signal) {
 }
 
 export async function fetchAnalysisBundle(symbol, signal) {
-  const [quoteResult, historyResult, contextResult] = await Promise.allSettled([
-    fetchQuote(symbol, signal),
-    fetchHistory(symbol, { signal }),
-    fetchMarketContext(symbol, signal),
-  ]);
+  const [quoteResult, historyResult, contextResult, marketEnvironmentResult] =
+    await Promise.allSettled([
+      fetchQuote(symbol, signal),
+      fetchHistory(symbol, { signal }),
+      fetchMarketContext(symbol, signal),
+      fetchMarketEnvironment({
+        symbol,
+        signal,
+        fetchHistory,
+      }),
+    ]);
 
   if (historyResult.status === "rejected") {
     throw historyResult.reason;
@@ -103,6 +110,19 @@ export async function fetchAnalysisBundle(symbol, signal) {
             errors: [
               contextResult.reason?.message ||
                 "企業情報を取得できませんでした。",
+            ],
+          },
+    marketEnvironment:
+      marketEnvironmentResult.status === "fulfilled"
+        ? marketEnvironmentResult.value
+        : {
+            score: null,
+            regime: "データなし",
+            series: [],
+            registry: [],
+            errors: [
+              marketEnvironmentResult.reason?.message ||
+                "市場環境を取得できませんでした。",
             ],
           },
   };

@@ -214,9 +214,57 @@
             </div>
           </div>
 
+          <p class="dataSourceDescription">
+            似た指標はカテゴリ内でまとめ、同じ情報の多重加点を抑えます。
+          </p>
+
+          <div id="categoryScoreList" class="categoryScoreList">
+            <p class="emptyState">カテゴリ集約を待っています。</p>
+          </div>
+
           <div id="indicatorScoreList" class="factorList">
             <p class="emptyState">実データを読み込んでいます。</p>
           </div>
+        </article>
+
+        <article class="predictionOutputCard fullWidthCard">
+          <div class="cardHeader">
+            <div>
+              <p class="cardLabel">Prediction Output</p>
+
+              <h2>予測出力</h2>
+            </div>
+
+            <span id="confidenceBadge" class="dataSourceBadge">算出待ち</span>
+          </div>
+
+          <div class="predictionOutputGrid">
+            <div class="predictionOutputItem">
+              <span>方向予測</span>
+              <strong id="predictionDirection">--</strong>
+            </div>
+
+            <div class="predictionOutputItem">
+              <span>期待変動幅</span>
+              <strong id="expectedMoveRange">--</strong>
+            </div>
+
+            <div class="predictionOutputItem">
+              <span>下振れリスク</span>
+              <strong id="downsideRisk">--</strong>
+            </div>
+
+            <div class="predictionOutputItem">
+              <span>信頼度</span>
+              <strong id="confidenceScore">--</strong>
+            </div>
+          </div>
+
+          <p class="dataSourceDescription">
+            期待変動幅と下振れリスクはATRを基にした概算です。信頼度は的中確率ではありません。
+          </p>
+
+          <div id="confidenceComponents" class="confidenceComponents"></div>
         </article>
 
         <article class="inputCard fullWidthCard">
@@ -242,6 +290,26 @@
           </div>
         </article>
 
+        <article class="dataQualityCard fullWidthCard">
+          <div class="cardHeader">
+            <div>
+              <p class="cardLabel">Data Quality Gate</p>
+
+              <h2>データ品質</h2>
+            </div>
+
+            <span id="dataQualityBadge" class="dataSourceBadge">
+              検証待ち
+            </span>
+          </div>
+
+          <p id="dataQualitySummary" class="dataSourceDescription">
+            調整後終値、分割、価格・出来高、欠損、重複、異常値を確認します。
+          </p>
+
+          <div id="dataQualityList" class="qualityGrid"></div>
+        </article>
+
         <article class="reasonCard fullWidthCard">
           <div class="cardHeader">
             <div>
@@ -254,6 +322,26 @@
           <div id="reasonList" class="reasonList reasonGrid">
             <div class="reasonItem">データ取得後に根拠を表示します。</div>
           </div>
+        </article>
+
+        <article class="marketEnvironmentCard fullWidthCard">
+          <div class="cardHeader">
+            <div>
+              <p class="cardLabel">Market Regime</p>
+
+              <h2>市場環境</h2>
+            </div>
+
+            <span id="marketRegimeBadge" class="dataSourceBadge">
+              取得待ち
+            </span>
+          </div>
+
+          <p id="marketEnvironmentDescription" class="dataSourceDescription">
+            対象市場の指数と為替を確認します。
+          </p>
+
+          <div id="marketEnvironmentList" class="marketEnvironmentGrid"></div>
         </article>
 
         <article class="companyCard">
@@ -347,8 +435,9 @@
 
           <p>
             総合スコアは将来の価格や利益を保証するものではありません。
-            未接続データは点数を捏造せず、データ充足率へ反映します。
-            バックテスト結果には過学習や相場環境の変化による偏りがあります。
+            データ品質に重大な問題がある場合はスコア計算を停止します。
+            期待変動幅は価格レンジの保証や売買推奨ではありません。
+            バックテストには過学習や相場環境の変化による限界があります。
           </p>
         </article>
       </section>

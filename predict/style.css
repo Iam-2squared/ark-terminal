@@ -258,6 +258,9 @@ h2 {
 .newsCard,
 .disclosureCard,
 .sentimentCard,
+.predictionOutputCard,
+.dataQualityCard,
+.marketEnvironmentCard,
 .backtestCard,
 .warningCard {
   padding: 24px;
@@ -409,6 +412,90 @@ h2 {
   display: grid;
   gap: 20px;
   margin-top: 26px;
+}
+
+.categoryScoreList,
+.confidenceComponents,
+.qualityGrid,
+.marketEnvironmentGrid,
+.predictionOutputGrid {
+  margin-top: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.categoryScoreList {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.categoryScoreItem,
+.confidenceComponent,
+.qualityItem,
+.marketEnvironmentItem,
+.predictionOutputItem {
+  min-width: 0;
+  padding: 12px 13px;
+  display: grid;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+}
+
+.categoryScoreItem span,
+.confidenceComponent span,
+.qualityItem span,
+.marketEnvironmentItem span,
+.predictionOutputItem span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.categoryScoreItem small,
+.confidenceComponent small,
+.qualityItem small,
+.marketEnvironmentItem small,
+.predictionOutputItem small {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.predictionOutputGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.predictionOutputItem strong {
+  font-size: clamp(19px, 3vw, 28px);
+}
+
+.confidenceComponents,
+.qualityGrid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.marketEnvironmentGrid {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.qualityItem.blocking {
+  border-color: rgba(255, 69, 58, 0.32);
+  background: rgba(255, 69, 58, 0.08);
+}
+
+.qualityItem.warning {
+  border-color: rgba(255, 159, 10, 0.28);
+  background: rgba(255, 159, 10, 0.07);
+}
+
+.dataSourceBadge.passed {
+  color: #b7ffd0;
+  background: rgba(52, 199, 89, 0.15);
+}
+
+.dataSourceBadge.failed {
+  color: #ffb8b3;
+  background: rgba(255, 69, 58, 0.15);
 }
 
 .factorHeading,
@@ -743,6 +830,13 @@ h2 {
     grid-template-columns: 1fr;
   }
 
+  .categoryScoreList,
+  .predictionOutputGrid,
+  .confidenceComponents,
+  .qualityGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .backtestCard {
     align-items: flex-start;
     flex-direction: column;
@@ -772,6 +866,9 @@ h2 {
   .newsCard,
   .disclosureCard,
   .sentimentCard,
+  .predictionOutputCard,
+  .dataQualityCard,
+  .marketEnvironmentCard,
   .backtestCard,
   .warningCard {
     padding: 20px;
@@ -793,7 +890,11 @@ h2 {
   }
 
   .scoreStatGrid,
-  .companyFacts {
+  .companyFacts,
+  .categoryScoreList,
+  .predictionOutputGrid,
+  .confidenceComponents,
+  .qualityGrid {
     grid-template-columns: 1fr;
   }
 

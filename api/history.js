@@ -1,5 +1,4 @@
 const allowedRanges = new Set(["6mo", "1y", "2y", "5y"]);
-
 const allowedIntervals = new Set(["1d", "1wk"]);
 
 function normalizeSymbol(value) {
@@ -19,6 +18,111 @@ function finite(value) {
   return Number.isFinite(Number(value));
 }
 
+function normalizeSplits(events) {
+  return Object.values(events?.splits || {})
+    .map((event) => {
+      const [ratioNumerator, ratioDenominator] = String(event.splitRatio || "")
+        .split(":")
+        .map(Number);
+      const numerator = Number(event.numerator ?? ratioNumerator);
+      const denominator = Number(event.denominator ?? ratioDenominator);
+
+      if (
+        !finite(event.date) ||
+        !finite(numerator) ||
+        !finite(denominator) ||
+        numerator <= 0 ||
+        denominator <= 0
+      ) {
+        return null;
+      }
+
+      return {
+        time: Number(event.date),
+        numerator,
+        denominator,
+        ratio: numerator / denominator,
+        splitRatio: `${numerator}:${denominator}`,
+      };
+    })
+    .filter(Boolean)
+    .sort((first, second) => first.time - second.time);
+}
+
+function splitVolumeFactor(time, splits) {
+  return splits
+    .filter((split) => split.time > time)
+    .reduce((factor, split) => factor * split.ratio, 1);
+}
+
+function buildAdjustedCandles(result, splits) {
+  const quote = result.indicators?.quote?.[0] || {};
+  const adjusted = result.indicators?.adjclose?.[0]?.adjclose || [];
+  const timestamps = result.timestamp || [];
+
+  const rows = timestamps.map((time, index) => {
+    const rawOpen = Number(quote.open?.[index]);
+    const rawHigh = Number(quote.high?.[index]);
+    const rawLow = Number(quote.low?.[index]);
+    const rawClose = Number(quote.close?.[index]);
+    const rawVolume = Number(quote.volume?.[index]);
+    const adjustedClose = Number(adjusted[index]);
+    const adjustedCloseProvided = finite(adjustedClose) && adjustedClose > 0;
+
+    if (
+      !finite(time) ||
+      !finite(rawOpen) ||
+      !finite(rawHigh) ||
+      !finite(rawLow) ||
+      !finite(rawClose) ||
+      rawClose <= 0
+    ) {
+      return null;
+    }
+
+    const adjustmentFactor = adjustedCloseProvided
+      ? adjustedClose / rawClose
+      : 1;
+    const volumeAdjustmentFactor = splitVolumeFactor(Number(time), splits);
+
+    if (
+      !finite(adjustmentFactor) ||
+      adjustmentFactor <= 0 ||
+      !finite(volumeAdjustmentFactor) ||
+      volumeAdjustmentFactor <= 0
+    ) {
+      return null;
+    }
+
+    return {
+      time: Number(time),
+      open: rawOpen * adjustmentFactor,
+      high: rawHigh * adjustmentFactor,
+      low: rawLow * adjustmentFactor,
+      close: rawClose * adjustmentFactor,
+      volume:
+        finite(rawVolume) && rawVolume >= 0
+          ? rawVolume * volumeAdjustmentFactor
+          : null,
+      rawClose,
+      adjustedClose: adjustedCloseProvided
+        ? adjustedClose
+        : rawClose * adjustmentFactor,
+      adjustedCloseProvided,
+      adjustmentFactor,
+      volumeAdjustmentFactor,
+    };
+  });
+
+  return {
+    candles: rows.filter(Boolean),
+    sourceRowCount: rows.length,
+    droppedRowCount: rows.filter((row) => row === null).length,
+    adjustedCloseCount: rows.filter((row) => row && row.adjustedCloseProvided)
+      .length,
+  };
+}
+
 async function fetchYahooHistory({ symbol, range, interval }) {
   const url =
     "https://query2.finance.yahoo.com" +
@@ -32,7 +136,7 @@ async function fetchYahooHistory({ symbol, range, interval }) {
     cache: "no-store",
     headers: {
       Accept: "application/json",
-      "User-Agent": "Mozilla/5.0 " + "(compatible; ArkTerminal/2.0)",
+      "User-Agent": "Mozilla/5.0 " + "(compatible; ArkTerminal/3.0)",
     },
   });
 
@@ -41,7 +145,6 @@ async function fetchYahooHistory({ symbol, range, interval }) {
   }
 
   const payload = await upstream.json();
-
   const chart = payload.chart;
 
   if (chart?.error || !chart?.result?.[0]) {
@@ -49,30 +152,10 @@ async function fetchYahooHistory({ symbol, range, interval }) {
   }
 
   const result = chart.result[0];
+  const splits = normalizeSplits(result.events);
+  const adjustedData = buildAdjustedCandles(result, splits);
 
-  const quote = result.indicators?.quote?.[0] || {};
-
-  const timestamps = result.timestamp || [];
-
-  const candles = timestamps
-    .map((time, index) => ({
-      time: Number(time),
-      open: Number(quote.open?.[index]),
-      high: Number(quote.high?.[index]),
-      low: Number(quote.low?.[index]),
-      close: Number(quote.close?.[index]),
-      volume: Number(quote.volume?.[index]) || 0,
-    }))
-    .filter(
-      (candle) =>
-        finite(candle.time) &&
-        finite(candle.open) &&
-        finite(candle.high) &&
-        finite(candle.low) &&
-        finite(candle.close),
-    );
-
-  if (!candles.length) {
+  if (!adjustedData.candles.length) {
     throw new Error("有効な株価履歴がありません。");
   }
 
@@ -83,8 +166,11 @@ async function fetchYahooHistory({ symbol, range, interval }) {
     range,
     interval,
     provider: "yahoo-finance",
+    adjustmentMethod: "adjusted-close-price-and-split-adjusted-volume",
     meta: {
       currency: meta.currency || null,
+      priceUnit: meta.currency || null,
+      volumeUnit: "shares",
       exchangeName: meta.exchangeName || meta.fullExchangeName || null,
       instrumentType: meta.instrumentType || null,
       timezone: meta.exchangeTimezoneName || null,
@@ -98,16 +184,23 @@ async function fetchYahooHistory({ symbol, range, interval }) {
         ? Number(meta.regularMarketVolume)
         : null,
     },
-    candles,
+    sourceQuality: {
+      sourceRowCount: adjustedData.sourceRowCount,
+      droppedRowCount: adjustedData.droppedRowCount,
+      adjustedCloseCount: adjustedData.adjustedCloseCount,
+      splitCount: splits.length,
+    },
+    corporateActions: {
+      splits,
+    },
+    candles: adjustedData.candles,
     updatedAt: new Date().toISOString(),
   };
 }
 
 export default async function handler(request, response) {
   response.setHeader("Access-Control-Allow-Origin", "*");
-
   response.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-
   response.setHeader(
     "Cache-Control",
     "s-maxage=60, stale-while-revalidate=300",
@@ -124,11 +217,9 @@ export default async function handler(request, response) {
   }
 
   const symbol = normalizeSymbol(request.query.symbol);
-
   const range = allowedRanges.has(request.query.range)
     ? request.query.range
     : "2y";
-
   const interval = allowedIntervals.has(request.query.interval)
     ? request.query.interval
     : "1d";
@@ -159,5 +250,8 @@ export default async function handler(request, response) {
 
 export const HistoryInternals = {
   normalizeSymbol,
+  normalizeSplits,
+  splitVolumeFactor,
+  buildAdjustedCandles,
   fetchYahooHistory,
 };

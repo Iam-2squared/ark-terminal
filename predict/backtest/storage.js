@@ -36,6 +36,14 @@ export function createPredictionRecord({
   predictionPrice,
   analysisTime,
   factorScores,
+  direction,
+  expectedMoveRange,
+  downsideRisk,
+  confidence,
+  dataQuality,
+  marketRegime,
+  partition = null,
+  costAssumptions = null,
   source = "live",
 }) {
   return {
@@ -55,6 +63,14 @@ export function createPredictionRecord({
     outcome: "判定待ち",
     status: "pending",
     factorScores: factorScores || {},
+    direction: direction || null,
+    expectedMoveRange: expectedMoveRange || null,
+    downsideRisk: downsideRisk ?? null,
+    confidence: confidence || null,
+    dataQuality: dataQuality || null,
+    marketRegime: marketRegime || "未取得",
+    partition,
+    costAssumptions,
     source,
   };
 }

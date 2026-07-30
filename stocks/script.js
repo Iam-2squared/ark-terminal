@@ -1,5 +1,33 @@
 const STORAGE_KEY = "arkStockWatchlist";
+let newsData = [];
+const companyAliases = {
+    NVIDIA: ["nvidia", "エヌビディア", "nvda"],
+    TSMC: ["tsmc", "台湾積体電路", "tsm"],
+    AMD: ["amd", "アドバンスト・マイクロ・デバイセズ"],
+    Micron: ["micron", "マイクロン", "mu"]
+};
 
+function countRelatedNews(stock) {
+    const keywords =
+        companyAliases[stock.name] ||
+        [
+            stock.name.toLowerCase(),
+            stock.symbol.toLowerCase()
+        ];
+
+    return newsData.filter(news => {
+        const text = `
+            ${news.company || ""}
+            ${news.title || ""}
+            ${news.summary || ""}
+            ${news.source || ""}
+        `.toLowerCase();
+
+        return keywords.some(keyword =>
+            text.includes(keyword.toLowerCase())
+        );
+    }).length;
+}
 const defaultWatchlist = [
     {
         id: crypto.randomUUID(),
@@ -81,12 +109,18 @@ function createStockCard(stock) {
     const companyParameter =
         encodeURIComponent(stock.name);
 
+    const relatedNewsCount =
+        countRelatedNews(stock);
+
+    const detailUrl =
+        `./detail/index.html?symbol=${encodeURIComponent(stock.symbol)}&company=${encodeURIComponent(stock.name)}`;
+
     return `
         <article class="stockCard">
-            <a
-                class="stockCardMain"
-                href="../news/index.html?company=${companyParameter}"
-            >
+                 <a
+                   class="stockCardMain"
+                   href="${detailUrl}"
+                 >
                 <div>
                     <h2>${escapeHtml(stock.name)}</h2>
                     <p>${escapeHtml(stock.symbol)}</p>
@@ -95,6 +129,16 @@ function createStockCard(stock) {
                 <span class="stockCardArrow">
                     News →
                 </span>
+
+                ${
+                    relatedNewsCount > 0
+                        ? `
+                            <span class="newsBadge">
+                                ${relatedNewsCount}
+                            </span>
+                        `
+                        : ""
+                }
             </a>
 
             <button
@@ -203,4 +247,28 @@ watchlistElement.addEventListener("click", event => {
 });
 
 
-displayWatchlist();
+async function loadStocksPage() {
+    try {
+        const response = await fetch(
+            `../data/news.json?t=${Date.now()}`
+        );
+
+        if (response.ok) {
+            const loadedNews =
+                await response.json();
+
+            if (Array.isArray(loadedNews)) {
+                newsData = loadedNews;
+            }
+        }
+    } catch (error) {
+        console.error(
+            "ニュース件数の取得に失敗しました。",
+            error
+        );
+    }
+
+    displayWatchlist();
+}
+
+loadStocksPage();

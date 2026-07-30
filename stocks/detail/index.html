@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Stock Detail | Ark Terminal</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header class="detailHeader">
+        <a href="../index.html" class="backButton">
+            ← Stocks
+        </a>
+
+        <div>
+            <p class="eyebrow">Ark Terminal</p>
+            <h1 id="stockName">Stock Detail</h1>
+            <p id="stockSymbol" class="stockSymbol">
+                Loading...
+            </p>
+        </div>
+    </header>
+
+    <main class="detailGrid">
+        <section class="panel chartPanel">
+            <div class="priceHeader">
+                <div>
+                    <p class="panelLabel">Current Price</p>
+                    <p id="stockPrice" class="stockPrice">
+                        価格取得前
+                    </p>
+                </div>
+
+                <p id="stockChange" class="stockChange">
+                    --
+                </p>
+            </div>
+
+            <div class="chartToolbar">
+    <div>
+        <p id="marketStatus" class="marketStatus">
+            チャートを読み込んでいます...
+        </p>
+
+        <p id="lastUpdated" class="lastUpdated">
+            --
+        </p>
+    </div>
+
+    <button
+        id="refreshChartButton"
+        class="refreshChartButton"
+        type="button"
+    >
+        <span class="refreshIcon">↻</span>
+        更新
+    </button>
+</div>
+
+<div id="stockChart" class="stockChart">
+    <div
+        id="tradingviewChart"
+        class="tradingviewChart"
+    ></div>
+</div>
+        </section>
+
+        <section class="panel newsPanel">
+            <div class="panelHeading">
+                <div>
+                    <p class="panelLabel">Market Feed</p>
+                    <h2>Related News</h2>
+                </div>
+
+                <span id="newsCount" class="newsCount">
+                    0
+                </span>
+            </div>
+
+            <div id="relatedNews" class="relatedNews">
+                <p class="emptyMessage">
+                    ニュースを読み込んでいます...
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

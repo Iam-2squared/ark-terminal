@@ -1,330 +1,448 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Prediction Lab | Ark Terminal</title>
 
-    <link rel="stylesheet" href="style.css">
-</head>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="market.css" />
+  </head>
 
-<body>
+  <body>
     <header class="pageHeader">
-        <div class="headerInner">
-            <a href="../index.html" class="backButton">
-                ← Home
-            </a>
+      <div class="headerInner">
+        <div class="headerNavigation">
+          <a href="../index.html" class="backButton"> ← Home </a>
 
-            <div class="headerText">
-                <p class="eyebrow">Ark Terminal</p>
-                <h1>Prediction Lab</h1>
-                <p class="headerDescription">
-                    チャート・適時開示・投資家心理から、
-                    5営業日後の方向性を分析します。
-                </p>
-            </div>
+          <a href="performance.html" class="secondaryButton headerAction">
+            AI成績
+          </a>
         </div>
+
+        <div class="headerText">
+          <p class="eyebrow">Ark Terminal</p>
+
+          <h1>Prediction Lab</h1>
+
+          <p class="headerDescription">
+            株価履歴からテクニカル指標を計算し、
+            ニュースなど利用可能な情報と合わせて 現在の市場状態を評価します。
+          </p>
+        </div>
+      </div>
     </header>
 
     <main class="pageMain">
-        <section class="controlPanel">
-            <div class="controlGroup">
-                <label for="companyName">
-                    銘柄名
-                </label>
+      <section class="controlPanel">
+        <div class="controlGroup">
+          <label for="companyName"> 銘柄名 </label>
 
-                <input
-                    id="companyName"
-                    type="text"
-                    value="キオクシア"
-                    placeholder="例：キオクシア"
-                >
-            </div>
+          <input
+            id="companyName"
+            type="text"
+            value="キオクシア"
+            placeholder="例：キオクシア"
+          />
+        </div>
 
-            <div class="controlGroup">
-                <label for="stockSymbol">
-                    銘柄コード
-                </label>
+        <div class="controlGroup">
+          <label for="stockSymbol"> 銘柄コード </label>
 
-                <input
-                    id="stockSymbol"
-                    type="text"
-                    value="285A"
-                    placeholder="例：285A"
-                >
-            </div>
+          <input
+            id="stockSymbol"
+            type="text"
+            value="285A"
+            placeholder="例：285A / NVDA"
+          />
+        </div>
 
-            <div class="controlGroup">
-                <label for="predictionPeriod">
-                    予測期間
-                </label>
+        <div class="controlGroup">
+          <label for="predictionPeriod"> 評価期間 </label>
 
-                <select id="predictionPeriod">
-                    <option value="1">
-                        1営業日
-                    </option>
+          <select id="predictionPeriod">
+            <option value="1">1営業日</option>
 
-                    <option value="5" selected>
-                        5営業日
-                    </option>
+            <option value="5" selected>5営業日</option>
 
-                    <option value="20">
-                        20営業日
-                    </option>
-                </select>
-            </div>
+            <option value="20">20営業日</option>
+          </select>
+        </div>
+
+        <button id="runPredictionButton" class="primaryButton" type="button">
+          分析を実行
+        </button>
+      </section>
+
+      <p id="analysisError" class="analysisError" role="alert" hidden></p>
+
+      <section class="marketCard" aria-labelledby="marketCardTitle">
+        <div class="marketHeader">
+          <div>
+            <p class="cardLabel">Live Market</p>
+
+            <h2 id="marketCardTitle">リアルタイム株価</h2>
+
+            <p id="marketSymbolLabel" class="marketSymbolLabel">285A.T</p>
+          </div>
+
+          <div class="marketHeaderActions">
+            <span
+              id="marketStatusBadge"
+              class="marketStatusBadge loading"
+              aria-live="polite"
+            >
+              読み込み中
+            </span>
 
             <button
-                id="runPredictionButton"
-                class="primaryButton"
-                type="button"
+              id="refreshMarketButton"
+              class="secondaryButton"
+              type="button"
             >
-                分析を実行
+              更新
             </button>
-        </section>
+          </div>
+        </div>
 
-        <section class="dashboardGrid">
-            <article class="scoreCard">
-                <div class="cardHeader">
-                    <div>
-                        <p class="cardLabel">
-                            Prediction Score
-                        </p>
+        <div class="marketQuoteGrid">
+          <div class="marketQuoteMain">
+            <span>現在価格</span>
 
-                        <h2 id="resultCompanyName">
-                            キオクシア
-                        </h2>
-                    </div>
+            <strong id="marketPrice" aria-live="polite"> -- </strong>
+          </div>
 
-                    <span
-                        id="predictionBadge"
-                        class="predictionBadge neutral"
-                    >
-                        中立
-                    </span>
-                </div>
+          <div class="marketQuoteItem">
+            <span>前日比</span>
+            <strong id="marketChange">--</strong>
+          </div>
 
-                <div class="mainScoreArea">
-                    <div class="scoreCircle">
-                        <span id="totalScore">
-                            50
-                        </span>
+          <div class="marketQuoteItem">
+            <span>前日比率</span>
+            <strong id="marketChangePercent">--</strong>
+          </div>
 
-                        <small>/ 100</small>
-                    </div>
+          <div class="marketQuoteItem">
+            <span>高値</span>
+            <strong id="marketHigh">--</strong>
+          </div>
 
-                    <div class="probabilityArea">
-                        <p>
-                            上昇確率
-                        </p>
+          <div class="marketQuoteItem">
+            <span>安値</span>
+            <strong id="marketLow">--</strong>
+          </div>
 
-                        <strong id="riseProbability">
-                            50%
-                        </strong>
+          <div class="marketQuoteItem">
+            <span>出来高</span>
+            <strong id="marketVolume">--</strong>
+          </div>
 
-                        <span id="predictionPeriodLabel">
-                            5営業日後
-                        </span>
-                    </div>
-                </div>
+          <div class="marketQuoteItem">
+            <span>更新時刻</span>
+            <strong id="marketUpdatedAt">--</strong>
+          </div>
+        </div>
 
-                <div class="confidenceRow">
-                    <span>信頼度</span>
+        <p id="marketError" class="marketError" role="alert" hidden></p>
 
-                    <strong id="confidenceLabel">
-                        低
-                    </strong>
-                </div>
-            </article>
+        <div
+          id="tradingviewChart"
+          class="tradingviewChart"
+          aria-label="入力銘柄の株価チャート"
+        >
+          <div class="chartLoading">チャートを読み込んでいます。</div>
+        </div>
 
-            <article class="factorCard">
-                <div class="cardHeader">
-                    <div>
-                        <p class="cardLabel">
-                            Score Breakdown
-                        </p>
+        <p class="chartNote">
+          米国株はTradingView Advanced Chart、
+          日本株は取引所の埋め込み制限を避けるため TradingView Lightweight
+          Chartsで表示します。
+        </p>
+      </section>
 
-                        <h2>評価内訳</h2>
-                    </div>
-                </div>
+      <section class="dashboardGrid">
+        <article class="scoreCard">
+          <div class="cardHeader">
+            <div>
+              <p class="cardLabel">Prediction Score</p>
 
-                <div class="factorList">
-                    <div class="factorItem">
-                        <div class="factorHeading">
-                            <span>チャート</span>
+              <h2 id="resultCompanyName">分析待機中</h2>
+            </div>
 
-                            <strong>
-                                <span id="chartScore">20</span>
-                                / 40
-                            </strong>
-                        </div>
+            <span id="predictionBadge" class="predictionBadge neutral">
+              待機中
+            </span>
+          </div>
 
-                        <div class="scoreBar">
-                            <div
-                                id="chartScoreBar"
-                                class="scoreBarFill"
-                            ></div>
-                        </div>
-                    </div>
+          <div class="mainScoreArea">
+            <div class="scoreCircle">
+              <span id="totalScore"> -- </span>
 
-                    <div class="factorItem">
-                        <div class="factorHeading">
-                            <span>適時開示</span>
+              <small>/ 100</small>
+            </div>
 
-                            <strong>
-                                <span id="disclosureScore">20</span>
-                                / 40
-                            </strong>
-                        </div>
+            <div class="scoreSummaryArea">
+              <p>総合スコア</p>
 
-                        <div class="scoreBar">
-                            <div
-                                id="disclosureScoreBar"
-                                class="scoreBarFill"
-                            ></div>
-                        </div>
-                    </div>
+              <strong id="overallScoreLabel"> 待機中 </strong>
 
-                    <div class="factorItem">
-                        <div class="factorHeading">
-                            <span>投資家心理</span>
+              <span id="predictionPeriodLabel"> 参考期間：5営業日 </span>
+            </div>
+          </div>
 
-                            <strong>
-                                <span id="sentimentScore">10</span>
-                                / 20
-                            </strong>
-                        </div>
+          <div class="scoreStatGrid">
+            <div>
+              <span>テクニカル</span>
+              <strong id="technicalScore">--</strong>
+            </div>
 
-                        <div class="scoreBar">
-                            <div
-                                id="sentimentScoreBar"
-                                class="scoreBarFill"
-                            ></div>
-                        </div>
-                    </div>
-                </div>
-            </article>
+            <div>
+              <span>取得済み・充足率</span>
+              <strong id="dataCompleteness">0 / 14</strong>
+            </div>
+          </div>
+        </article>
 
-            <article class="inputCard">
-                <div class="cardHeader">
-                    <div>
-                        <p class="cardLabel">
-                            Manual Inputs
-                        </p>
+        <article class="factorCard">
+          <div class="cardHeader">
+            <div>
+              <p class="cardLabel">Score Breakdown</p>
 
-                        <h2>分析データ</h2>
-                    </div>
-                </div>
+              <h2>評価内訳</h2>
+            </div>
+          </div>
 
-                <div class="sliderGroup">
-                    <div class="sliderHeader">
-                        <label for="chartInput">
-                            チャート評価
-                        </label>
+          <p class="dataSourceDescription">
+            似た指標はカテゴリ内でまとめ、同じ情報の多重加点を抑えます。
+          </p>
 
-                        <span id="chartInputValue">
-                            50
-                        </span>
-                    </div>
+          <div id="categoryScoreList" class="categoryScoreList">
+            <p class="emptyState">カテゴリ集約を待っています。</p>
+          </div>
 
-                    <input
-                        id="chartInput"
-                        type="range"
-                        min="0"
-                        max="100"
-                        value="50"
-                    >
-                </div>
+          <div id="indicatorScoreList" class="factorList">
+            <p class="emptyState">実データを読み込んでいます。</p>
+          </div>
+        </article>
 
-                <div class="sliderGroup">
-                    <div class="sliderHeader">
-                        <label for="disclosureInput">
-                            適時開示評価
-                        </label>
+        <article class="predictionOutputCard fullWidthCard">
+          <div class="cardHeader">
+            <div>
+              <p class="cardLabel">Prediction Output</p>
 
-                        <span id="disclosureInputValue">
-                            50
-                        </span>
-                    </div>
+              <h2>予測出力</h2>
+            </div>
 
-                    <input
-                        id="disclosureInput"
-                        type="range"
-                        min="0"
-                        max="100"
-                        value="50"
-                    >
-                </div>
+            <span id="confidenceBadge" class="dataSourceBadge">算出待ち</span>
+          </div>
 
-                <div class="sliderGroup">
-                    <div class="sliderHeader">
-                        <label for="sentimentInput">
-                            投資家心理
-                        </label>
+          <div class="predictionOutputGrid">
+            <div class="predictionOutputItem">
+              <span>方向予測</span>
+              <strong id="predictionDirection">--</strong>
+            </div>
 
-                        <span id="sentimentInputValue">
-                            50
-                        </span>
-                    </div>
+            <div class="predictionOutputItem">
+              <span>期待変動幅</span>
+              <strong id="expectedMoveRange">--</strong>
+            </div>
 
-                    <input
-                        id="sentimentInput"
-                        type="range"
-                        min="0"
-                        max="100"
-                        value="50"
-                    >
-                </div>
-            </article>
+            <div class="predictionOutputItem">
+              <span>下振れリスク</span>
+              <strong id="downsideRisk">--</strong>
+            </div>
 
-            <article class="reasonCard">
-                <div class="cardHeader">
-                    <div>
-                        <p class="cardLabel">
-                            Analysis
-                        </p>
+            <div class="predictionOutputItem">
+              <span>信頼度</span>
+              <strong id="confidenceScore">--</strong>
+            </div>
+          </div>
 
-                        <h2>判定根拠</h2>
-                    </div>
-                </div>
+          <p class="dataSourceDescription">
+            期待変動幅と下振れリスクはATRを基にした概算です。信頼度は的中確率ではありません。
+          </p>
 
-                <div
-                    id="reasonList"
-                    class="reasonList"
-                >
-                    <div class="reasonItem">
-                        現在は中立評価です。
-                    </div>
+          <div id="confidenceComponents" class="confidenceComponents"></div>
+        </article>
 
-                    <div class="reasonItem">
-                        各項目を調整して分析を実行してください。
-                    </div>
-                </div>
-            </article>
+        <article class="inputCard fullWidthCard">
+          <div class="cardHeader">
+            <div>
+              <p class="cardLabel">Indicator Data</p>
 
-            <article class="warningCard">
-                <div>
-                    <p class="cardLabel">
-                        Important
-                    </p>
+              <h2>テクニカル指標</h2>
+            </div>
 
-                    <h2>この予測について</h2>
-                </div>
+            <span id="dataSourceBadge" class="dataSourceBadge"> 取得待ち </span>
+          </div>
 
-                <p>
-                    この画面は予測モデルの試作版です。
-                    現時点では入力した評価をもとに計算しており、
-                    将来の株価を保証するものではありません。
-                </p>
-            </article>
-        </section>
+          <p id="dataSourceDescription" class="dataSourceDescription">
+            株価履歴の取得を待っています。
+          </p>
+
+          <div id="indicatorSnapshot" class="indicatorSnapshot wide">
+            <div class="indicatorValue">
+              <span>データ待機中</span>
+              <strong>--</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="dataQualityCard fullWidthCard">
+          <div class="cardHeader">
+            <div>
+              <p class="cardLabel">Data Quality Gate</p>
+
+              <h2>データ品質</h2>
+            </div>
+
+            <span id="dataQualityBadge" class="dataSourceBadge">
+              検証待ち
+            </span>
+          </div>
+
+          <p id="dataQualitySummary" class="dataSourceDescription">
+            調整後終値、分割、価格・出来高、欠損、重複、異常値を確認します。
+          </p>
+
+          <div id="dataQualityList" class="qualityGrid"></div>
+        </article>
+
+        <article class="reasonCard fullWidthCard">
+          <div class="cardHeader">
+            <div>
+              <p class="cardLabel">Analysis</p>
+
+              <h2>分析理由</h2>
+            </div>
+          </div>
+
+          <div id="reasonList" class="reasonList reasonGrid">
+            <div class="reasonItem">データ取得後に根拠を表示します。</div>
+          </div>
+        </article>
+
+        <article class="marketEnvironmentCard fullWidthCard">
+          <div class="cardHeader">
+            <div>
+              <p class="cardLabel">Market Regime</p>
+
+              <h2>市場環境</h2>
+            </div>
+
+            <span id="marketRegimeBadge" class="dataSourceBadge">
+              取得待ち
+            </span>
+          </div>
+
+          <p id="marketEnvironmentDescription" class="dataSourceDescription">
+            対象市場の指数と為替を確認します。
+          </p>
+
+          <div id="marketEnvironmentList" class="marketEnvironmentGrid"></div>
+        </article>
+
+        <article class="companyCard">
+          <div class="cardHeader">
+            <div>
+              <p class="cardLabel">Company</p>
+
+              <h2>企業情報</h2>
+            </div>
+          </div>
+
+          <div id="companySnapshot" class="companySnapshot">
+            <p class="emptyState">企業情報を読み込んでいます。</p>
+          </div>
+        </article>
+
+        <article class="newsCard">
+          <div class="cardHeader">
+            <div>
+              <p class="cardLabel">News</p>
+
+              <h2>関連ニュース</h2>
+            </div>
+          </div>
+
+          <div id="newsList" class="newsList">
+            <p class="emptyState">ニュースを読み込んでいます。</p>
+          </div>
+        </article>
+
+        <article class="disclosureCard">
+          <div class="cardHeader">
+            <div>
+              <p class="cardLabel">Disclosure</p>
+
+              <h2>適時開示</h2>
+            </div>
+          </div>
+
+          <div id="disclosureList" class="newsList">
+            <p class="emptyState">接続状態を確認しています。</p>
+          </div>
+        </article>
+
+        <article class="sentimentCard">
+          <div class="cardHeader">
+            <div>
+              <p class="cardLabel">Sentiment</p>
+
+              <h2>投資家心理</h2>
+            </div>
+          </div>
+
+          <div id="sentimentSummary" class="sentimentSummary">
+            <p class="emptyState">接続状態を確認しています。</p>
+          </div>
+        </article>
+
+        <article class="backtestCard fullWidthCard">
+          <div>
+            <p class="cardLabel">Walk-forward Test</p>
+
+            <h2>バックテスト</h2>
+
+            <p id="backtestStatus" class="dataSourceDescription">
+              過去の各時点で、その時点までのデータだけを使って評価します。
+            </p>
+          </div>
+
+          <div class="backtestActions">
+            <button
+              id="runBacktestButton"
+              class="secondaryButton"
+              type="button"
+            >
+              過去データで検証
+            </button>
+
+            <a href="performance.html" class="secondaryButton">
+              AI成績を見る
+            </a>
+          </div>
+        </article>
+
+        <article class="warningCard">
+          <div>
+            <p class="cardLabel">Important</p>
+
+            <h2>この評価について</h2>
+          </div>
+
+          <p>
+            総合スコアは将来の価格や利益を保証するものではありません。
+            データ品質に重大な問題がある場合はスコア計算を停止します。
+            期待変動幅は価格レンジの保証や売買推奨ではありません。
+            バックテストには過学習や相場環境の変化による限界があります。
+          </p>
+        </article>
+      </section>
     </main>
 
-    <script src="script.js"></script>
-</body>
+    <script type="module" src="script.js"></script>
+  </body>
 </html>

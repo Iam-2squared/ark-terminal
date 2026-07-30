@@ -1,326 +1,292 @@
-const companyNameInput =
-    document.getElementById("companyName");
+import { calculateIndicators } from "./analysis/indicators.js";
+import {
+  DataQualityError,
+  validateIndicatorCalculations,
+  validateHistoryData,
+} from "./analysis/data-quality.js";
+import { createPredictionOutput } from "./analysis/prediction-output.js";
+import { scoreAnalysis } from "./analysis/scoring.js";
+import { loadWeights } from "./analysis/weights.js";
+import {
+  resolvePredictions,
+  runWalkForwardBacktest,
+  summarizePerformance,
+} from "./backtest/engine.js";
+import {
+  createPredictionRecord,
+  getPredictions,
+  savePrediction,
+  setPredictions,
+} from "./backtest/storage.js";
+import { fetchAnalysisBundle } from "./data.js";
+import { initMarket, setMarketHistory } from "./market.js";
+import { normalizeSymbol } from "./symbols.js";
+import {
+  clearAnalysisError,
+  finite,
+  formatNumber,
+  initializeRenderers,
+  renderAnalysis,
+  renderDataQualityReport,
+  setAnalysisLoading,
+  setBacktestLoading,
+  setBacktestStatus,
+  setDataSourceStatus,
+  showAnalysisError,
+} from "./ui/renderers.js";
 
-const stockSymbolInput =
-    document.getElementById("stockSymbol");
+const inputs = {};
 
-const predictionPeriodInput =
-    document.getElementById("predictionPeriod");
+let analysisController = null;
+let latestState = null;
 
-const runPredictionButton =
-    document.getElementById("runPredictionButton");
-
-const chartInput =
-    document.getElementById("chartInput");
-
-const disclosureInput =
-    document.getElementById("disclosureInput");
-
-const sentimentInput =
-    document.getElementById("sentimentInput");
-
-const chartInputValue =
-    document.getElementById("chartInputValue");
-
-const disclosureInputValue =
-    document.getElementById("disclosureInputValue");
-
-const sentimentInputValue =
-    document.getElementById("sentimentInputValue");
-
-function updateSliderLabels() {
-    chartInputValue.textContent =
-        chartInput.value;
-
-    disclosureInputValue.textContent =
-        disclosureInput.value;
-
-    sentimentInputValue.textContent =
-        sentimentInput.value;
+function collectInputs() {
+  [
+    "companyName",
+    "stockSymbol",
+    "predictionPeriod",
+    "runPredictionButton",
+    "runBacktestButton",
+  ].forEach((id) => {
+    inputs[id] = document.getElementById(id);
+  });
 }
 
-function calculateScores() {
-    const chartValue =
-        Number(chartInput.value);
-
-    const disclosureValue =
-        Number(disclosureInput.value);
-
-    const sentimentValue =
-        Number(sentimentInput.value);
-
-    const chartScore =
-        Math.round(chartValue * 0.4);
-
-    const disclosureScore =
-        Math.round(disclosureValue * 0.4);
-
-    const sentimentScore =
-        Math.round(sentimentValue * 0.2);
-
-    const totalScore =
-        chartScore +
-        disclosureScore +
-        sentimentScore;
-
-    return {
-        chartValue,
-        disclosureValue,
-        sentimentValue,
-        chartScore,
-        disclosureScore,
-        sentimentScore,
-        totalScore
-    };
+function factorScoreMap(factors) {
+  return Object.fromEntries(
+    factors
+      .filter((factor) => factor.available)
+      .map((factor) => [factor.key, factor.score]),
+  );
 }
 
-function getPredictionResult(totalScore) {
-    if (totalScore >= 75) {
-        return {
-            label: "強気",
-            className: "strongBullish",
-            riseProbability:
-                Math.min(82, totalScore + 5)
-        };
-    }
+function saveCurrentPrediction(state) {
+  const latestCandle = state.history.candles.at(-1);
+  const record = createPredictionRecord({
+    symbol: state.symbol,
+    companyName: state.context?.company?.name || state.companyName,
+    industry: state.context?.company?.industry,
+    period: state.period,
+    score: state.analysis.totalScore,
+    reasons: state.analysis.factors
+      .filter((factor) => factor.available)
+      .map((factor) => factor.reason),
+    predictionPrice: state.indicators.currentPrice,
+    analysisTime: latestCandle.time,
+    factorScores: factorScoreMap(state.analysis.factors),
+    direction: state.prediction.direction,
+    expectedMoveRange: state.prediction.expectedMoveRange,
+    downsideRisk: state.prediction.downsideRisk,
+    confidence: state.prediction.confidence,
+    dataQuality: {
+      status: state.quality.status,
+      qualityScore: state.quality.qualityScore,
+      missingRate: state.quality.missingRate,
+    },
+    marketRegime: state.marketEnvironment?.regime || "未取得",
+  });
 
-    if (totalScore >= 60) {
-        return {
-            label: "やや強気",
-            className: "bullish",
-            riseProbability:
-                Math.min(72, totalScore + 3)
-        };
-    }
-
-    if (totalScore >= 40) {
-        return {
-            label: "中立",
-            className: "neutral",
-            riseProbability: 50
-        };
-    }
-
-    if (totalScore >= 25) {
-        return {
-            label: "やや弱気",
-            className: "bearish",
-            riseProbability:
-                Math.max(28, totalScore - 3)
-        };
-    }
-
-    return {
-        label: "弱気",
-        className: "strongBearish",
-        riseProbability:
-            Math.max(12, totalScore - 5)
-    };
+  savePrediction(record);
+  setBacktestStatus(
+    "今回の分析を成績記録へ保存しました。判定期間経過後に実績を更新します。",
+  );
 }
 
-function getConfidenceLabel(scores) {
-    const values = [
-        scores.chartValue,
-        scores.disclosureValue,
-        scores.sentimentValue
-    ];
+function resolveStoredRecords(symbol, candles) {
+  const result = resolvePredictions(getPredictions(), symbol, candles);
 
-    const average =
-        values.reduce(
-            (sum, value) => sum + value,
-            0
-        ) / values.length;
+  if (result.changed) {
+    setPredictions(result.records);
+  }
 
-    const spread =
-        Math.max(...values) -
-        Math.min(...values);
-
-    if (
-        spread <= 15 &&
-        (
-            average >= 65 ||
-            average <= 35
-        )
-    ) {
-        return "高";
-    }
-
-    if (spread <= 35) {
-        return "中";
-    }
-
-    return "低";
+  return result.records;
 }
 
-function createReasons(scores) {
-    const reasons = [];
+async function runAnalysis({ saveRecord = false } = {}) {
+  const symbol = normalizeSymbol(inputs.stockSymbol.value);
+  const companyName = inputs.companyName.value.trim();
+  const period = Number(inputs.predictionPeriod.value);
 
-    if (scores.chartValue >= 65) {
-        reasons.push(
-            "チャートは上昇方向のシグナルが優勢です。"
-        );
-    } else if (scores.chartValue <= 35) {
-        reasons.push(
-            "チャートは下落方向のシグナルが優勢です。"
-        );
-    } else {
-        reasons.push(
-            "チャートは明確な方向感がありません。"
-        );
+  if (!symbol) {
+    showAnalysisError("銘柄コードを入力してください。");
+    return;
+  }
+
+  analysisController?.abort();
+  analysisController = new AbortController();
+  setAnalysisLoading(true);
+  clearAnalysisError();
+  setDataSourceStatus("取得中");
+
+  try {
+    const bundle = await fetchAnalysisBundle(symbol, analysisController.signal);
+    let quality = validateHistoryData(bundle.history);
+
+    renderDataQualityReport(quality);
+
+    if (!quality.canScore) {
+      throw new DataQualityError(quality);
     }
 
-    if (scores.disclosureValue >= 65) {
-        reasons.push(
-            "適時開示は業績や事業成長にプラスと評価されています。"
-        );
-    } else if (
-        scores.disclosureValue <= 35
-    ) {
-        reasons.push(
-            "適時開示には株価へ悪影響を与える可能性があります。"
-        );
-    } else {
-        reasons.push(
-            "適時開示の影響は限定的です。"
-        );
-    }
-
-    if (scores.sentimentValue >= 75) {
-        reasons.push(
-            "投資家心理は強気ですが、過熱にも注意が必要です。"
-        );
-    } else if (
-        scores.sentimentValue >= 60
-    ) {
-        reasons.push(
-            "投資家心理はやや強気です。"
-        );
-    } else if (
-        scores.sentimentValue <= 35
-    ) {
-        reasons.push(
-            "投資家心理は弱気に傾いています。"
-        );
-    } else {
-        reasons.push(
-            "投資家心理は中立です。"
-        );
-    }
-
-    return reasons;
-}
-
-function renderPrediction() {
-    const scores =
-        calculateScores();
-
-    const result =
-        getPredictionResult(
-            scores.totalScore
-        );
-
-    const companyName =
-        companyNameInput.value.trim() ||
-        stockSymbolInput.value.trim() ||
-        "未選択";
-
-    const period =
-        predictionPeriodInput.value;
-
-    document.getElementById(
-        "resultCompanyName"
-    ).textContent = companyName;
-
-    document.getElementById(
-        "totalScore"
-    ).textContent = scores.totalScore;
-
-    document.getElementById(
-        "riseProbability"
-    ).textContent =
-        `${result.riseProbability}%`;
-
-    document.getElementById(
-        "predictionPeriodLabel"
-    ).textContent =
-        `${period}営業日後`;
-
-    document.getElementById(
-        "confidenceLabel"
-    ).textContent =
-        getConfidenceLabel(scores);
-
-    const predictionBadge =
-        document.getElementById(
-            "predictionBadge"
-        );
-
-    predictionBadge.textContent =
-        result.label;
-
-    predictionBadge.className =
-        `predictionBadge ${result.className}`;
-
-    document.getElementById(
-        "chartScore"
-    ).textContent =
-        scores.chartScore;
-
-    document.getElementById(
-        "disclosureScore"
-    ).textContent =
-        scores.disclosureScore;
-
-    document.getElementById(
-        "sentimentScore"
-    ).textContent =
-        scores.sentimentScore;
-
-    document.getElementById(
-        "chartScoreBar"
-    ).style.width =
-        `${scores.chartScore / 40 * 100}%`;
-
-    document.getElementById(
-        "disclosureScoreBar"
-    ).style.width =
-        `${scores.disclosureScore / 40 * 100}%`;
-
-    document.getElementById(
-        "sentimentScoreBar"
-    ).style.width =
-        `${scores.sentimentScore / 20 * 100}%`;
-
-    const reasons =
-        createReasons(scores);
-
-    document.getElementById(
-        "reasonList"
-    ).innerHTML =
-        reasons
-            .map(reason => `
-                <div class="reasonItem">
-                    ${reason}
-                </div>
-            `)
-            .join("");
-}
-
-[
-    chartInput,
-    disclosureInput,
-    sentimentInput
-].forEach(input => {
-    input.addEventListener(
-        "input",
-        updateSliderLabels
+    const indicators = calculateIndicators(quality.candles, {
+      qualityReport: quality,
+    });
+    const calculationValidation = validateIndicatorCalculations(
+      indicators,
+      quality.candles,
     );
-});
 
-runPredictionButton.addEventListener(
-    "click",
-    renderPrediction
-);
+    quality = {
+      ...quality,
+      status: calculationValidation.canScore ? quality.status : "failed",
+      canScore: quality.canScore && calculationValidation.canScore,
+      issues: [...quality.issues, ...calculationValidation.blockingIssues],
+      blockingIssues: [
+        ...quality.blockingIssues,
+        ...calculationValidation.blockingIssues,
+      ],
+      calculationValidation,
+    };
+    renderDataQualityReport(quality);
 
-updateSliderLabels();
-renderPrediction();
+    if (!quality.canScore) {
+      throw new DataQualityError(quality);
+    }
+
+    const weights = loadWeights();
+    const analysis = scoreAnalysis({
+      indicators,
+      context: bundle.context,
+      weights,
+    });
+    const resolvedRecords = resolveStoredRecords(symbol, quality.candles);
+    const prediction = createPredictionOutput({
+      analysis,
+      indicators,
+      quality,
+      period,
+      records: resolvedRecords,
+      symbol,
+      marketEnvironment: bundle.marketEnvironment,
+    });
+
+    latestState = {
+      symbol,
+      companyName,
+      period,
+      quote: bundle.quote,
+      history: {
+        ...bundle.history,
+        candles: quality.candles,
+      },
+      context: bundle.context,
+      marketEnvironment: bundle.marketEnvironment,
+      indicators,
+      analysis,
+      quality,
+      prediction,
+      weights,
+    };
+
+    setMarketHistory(latestState.history);
+    renderAnalysis(latestState);
+
+    if (saveRecord) {
+      saveCurrentPrediction(latestState);
+    }
+  } catch (error) {
+    if (error.name !== "AbortError") {
+      console.error("Prediction analysis:", error);
+      setDataSourceStatus(
+        error instanceof DataQualityError ? "品質エラー" : "取得失敗",
+      );
+      showAnalysisError(error.message || "分析データを取得できませんでした。");
+    }
+  } finally {
+    setAnalysisLoading(false);
+  }
+}
+
+function replacePreviousBacktest(records) {
+  const existing = getPredictions().filter(
+    (record) =>
+      !(
+        record.source === "walk-forward" &&
+        record.symbol === latestState.symbol &&
+        Number(record.period) === latestState.period
+      ),
+  );
+
+  setPredictions([...existing, ...records]);
+}
+
+function runBacktest() {
+  if (!latestState) {
+    setBacktestStatus("先に分析を実行してください。");
+    return;
+  }
+
+  setBacktestLoading(true);
+
+  try {
+    const result = runWalkForwardBacktest({
+      candles: latestState.history.candles,
+      symbol: latestState.symbol,
+      companyName:
+        latestState.context?.company?.name || latestState.companyName,
+      industry: latestState.context?.company?.industry,
+      period: latestState.period,
+      weights: latestState.weights,
+      historyMetadata: {
+        adjustmentMethod: latestState.history.adjustmentMethod,
+        meta: latestState.history.meta,
+        sourceQuality: latestState.history.sourceQuality,
+        corporateActions: latestState.history.corporateActions,
+      },
+    });
+
+    replacePreviousBacktest(result.records);
+
+    const testRecords = result.records.filter(
+      (record) => record.partition === "test",
+    );
+    const metrics = summarizePerformance(testRecords);
+    const winRate = finite(metrics.winRate)
+      ? `${formatNumber(metrics.winRate, 1)}%`
+      : "--";
+    const interval = metrics.winRateConfidenceInterval;
+    const confidenceInterval =
+      finite(interval?.lower) && finite(interval?.upper)
+        ? `（95%信頼区間 ${formatNumber(interval.lower, 1)}～${formatNumber(
+            interval.upper,
+            1,
+          )}%）`
+        : "";
+
+    setBacktestStatus(
+      `学習${result.meta.partitions.training}件・検証${result.meta.partitions.validation}件・最終テスト${result.meta.partitions.test}件。` +
+        `最終テスト勝率 ${winRate}${confidenceInterval}。` +
+        '<a class="textLink" href="performance.html">成績ページを開く →</a>',
+      true,
+    );
+  } catch (error) {
+    setBacktestStatus(error.message);
+  } finally {
+    setBacktestLoading(false);
+  }
+}
+
+function init() {
+  collectInputs();
+  initializeRenderers();
+  initMarket();
+
+  inputs.runPredictionButton.addEventListener("click", () =>
+    runAnalysis({ saveRecord: true }),
+  );
+  inputs.runBacktestButton.addEventListener("click", runBacktest);
+
+  runAnalysis();
+}
+
+init();

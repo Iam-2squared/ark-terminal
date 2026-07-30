@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Prediction Lab | Ark Terminal</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header class="pageHeader">
+        <div class="headerInner">
+            <a href="../index.html" class="backButton">
+                ← Home
+            </a>
+
+            <div class="headerText">
+                <p class="eyebrow">Ark Terminal</p>
+                <h1>Prediction Lab</h1>
+                <p class="headerDescription">
+                    チャート・適時開示・投資家心理から、
+                    5営業日後の方向性を分析します。
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <main class="pageMain">
+        <section class="controlPanel">
+            <div class="controlGroup">
+                <label for="companyName">
+                    銘柄名
+                </label>
+
+                <input
+                    id="companyName"
+                    type="text"
+                    value="キオクシア"
+                    placeholder="例：キオクシア"
+                >
+            </div>
+
+            <div class="controlGroup">
+                <label for="stockSymbol">
+                    銘柄コード
+                </label>
+
+                <input
+                    id="stockSymbol"
+                    type="text"
+                    value="285A"
+                    placeholder="例：285A"
+                >
+            </div>
+
+            <div class="controlGroup">
+                <label for="predictionPeriod">
+                    予測期間
+                </label>
+
+                <select id="predictionPeriod">
+                    <option value="1">
+                        1営業日
+                    </option>
+
+                    <option value="5" selected>
+                        5営業日
+                    </option>
+
+                    <option value="20">
+                        20営業日
+                    </option>
+                </select>
+            </div>
+
+            <button
+                id="runPredictionButton"
+                class="primaryButton"
+                type="button"
+            >
+                分析を実行
+            </button>
+        </section>
+
+        <section class="dashboardGrid">
+            <article class="scoreCard">
+                <div class="cardHeader">
+                    <div>
+                        <p class="cardLabel">
+                            Prediction Score
+                        </p>
+
+                        <h2 id="resultCompanyName">
+                            キオクシア
+                        </h2>
+                    </div>
+
+                    <span
+                        id="predictionBadge"
+                        class="predictionBadge neutral"
+                    >
+                        中立
+                    </span>
+                </div>
+
+                <div class="mainScoreArea">
+                    <div class="scoreCircle">
+                        <span id="totalScore">
+                            50
+                        </span>
+
+                        <small>/ 100</small>
+                    </div>
+
+                    <div class="probabilityArea">
+                        <p>
+                            上昇確率
+                        </p>
+
+                        <strong id="riseProbability">
+                            50%
+                        </strong>
+
+                        <span id="predictionPeriodLabel">
+                            5営業日後
+                        </span>
+                    </div>
+                </div>
+
+                <div class="confidenceRow">
+                    <span>信頼度</span>
+
+                    <strong id="confidenceLabel">
+                        低
+                    </strong>
+                </div>
+            </article>
+
+            <article class="factorCard">
+                <div class="cardHeader">
+                    <div>
+                        <p class="cardLabel">
+                            Score Breakdown
+                        </p>
+
+                        <h2>評価内訳</h2>
+                    </div>
+                </div>
+
+                <div class="factorList">
+                    <div class="factorItem">
+                        <div class="factorHeading">
+                            <span>チャート</span>
+
+                            <strong>
+                                <span id="chartScore">20</span>
+                                / 40
+                            </strong>
+                        </div>
+
+                        <div class="scoreBar">
+                            <div
+                                id="chartScoreBar"
+                                class="scoreBarFill"
+                            ></div>
+                        </div>
+                    </div>
+
+                    <div class="factorItem">
+                        <div class="factorHeading">
+                            <span>適時開示</span>
+
+                            <strong>
+                                <span id="disclosureScore">20</span>
+                                / 40
+                            </strong>
+                        </div>
+
+                        <div class="scoreBar">
+                            <div
+                                id="disclosureScoreBar"
+                                class="scoreBarFill"
+                            ></div>
+                        </div>
+                    </div>
+
+                    <div class="factorItem">
+                        <div class="factorHeading">
+                            <span>投資家心理</span>
+
+                            <strong>
+                                <span id="sentimentScore">10</span>
+                                / 20
+                            </strong>
+                        </div>
+
+                        <div class="scoreBar">
+                            <div
+                                id="sentimentScoreBar"
+                                class="scoreBarFill"
+                            ></div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="inputCard">
+                <div class="cardHeader">
+                    <div>
+                        <p class="cardLabel">
+                            Manual Inputs
+                        </p>
+
+                        <h2>分析データ</h2>
+                    </div>
+                </div>
+
+                <div class="sliderGroup">
+                    <div class="sliderHeader">
+                        <label for="chartInput">
+                            チャート評価
+                        </label>
+
+                        <span id="chartInputValue">
+                            50
+                        </span>
+                    </div>
+
+                    <input
+                        id="chartInput"
+                        type="range"
+                        min="0"
+                        max="100"
+                        value="50"
+                    >
+                </div>
+
+                <div class="sliderGroup">
+                    <div class="sliderHeader">
+                        <label for="disclosureInput">
+                            適時開示評価
+                        </label>
+
+                        <span id="disclosureInputValue">
+                            50
+                        </span>
+                    </div>
+
+                    <input
+                        id="disclosureInput"
+                        type="range"
+                        min="0"
+                        max="100"
+                        value="50"
+                    >
+                </div>
+
+                <div class="sliderGroup">
+                    <div class="sliderHeader">
+                        <label for="sentimentInput">
+                            投資家心理
+                        </label>
+
+                        <span id="sentimentInputValue">
+                            50
+                        </span>
+                    </div>
+
+                    <input
+                        id="sentimentInput"
+                        type="range"
+                        min="0"
+                        max="100"
+                        value="50"
+                    >
+                </div>
+            </article>
+
+            <article class="reasonCard">
+                <div class="cardHeader">
+                    <div>
+                        <p class="cardLabel">
+                            Analysis
+                        </p>
+
+                        <h2>判定根拠</h2>
+                    </div>
+                </div>
+
+                <div
+                    id="reasonList"
+                    class="reasonList"
+                >
+                    <div class="reasonItem">
+                        現在は中立評価です。
+                    </div>
+
+                    <div class="reasonItem">
+                        各項目を調整して分析を実行してください。
+                    </div>
+                </div>
+            </article>
+
+            <article class="warningCard">
+                <div>
+                    <p class="cardLabel">
+                        Important
+                    </p>
+
+                    <h2>この予測について</h2>
+                </div>
+
+                <p>
+                    この画面は予測モデルの試作版です。
+                    現時点では入力した評価をもとに計算しており、
+                    将来の株価を保証するものではありません。
+                </p>
+            </article>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

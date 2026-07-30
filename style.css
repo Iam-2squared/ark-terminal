@@ -589,3 +589,55 @@ a {
 #homeStockChartLine {
     stroke: #ef4444;
 }
+.predictionPreview {
+    margin-top: 20px;
+    padding: 15px 16px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(79, 124, 255, 0.10),
+            rgba(124, 92, 255, 0.05)
+        );
+
+    border: 1px solid rgba(79, 124, 255, 0.15);
+    border-radius: 14px;
+}
+
+.predictionPreview > div {
+    display: grid;
+    gap: 4px;
+}
+
+.predictionPreviewLabel {
+    color: #8290ad;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.predictionPreview strong {
+    color: #172033;
+    font-size: 20px;
+}
+
+.predictionPreviewBadge {
+    min-height: 30px;
+    padding: 0 11px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #5d6881;
+    background: rgba(93, 104, 129, 0.10);
+
+    border-radius: 999px;
+
+    font-size: 12px;
+    font-weight: 800;
+}

@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>AI Performance | Ark Terminal</title>
+
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="performance.css" />
+  </head>
+
+  <body>
+    <header class="pageHeader">
+      <div class="headerInner">
+        <div class="headerNavigation">
+          <a href="index.html" class="backButton"> ← Prediction Lab </a>
+
+          <a href="../index.html" class="secondaryButton headerAction">
+            Home
+          </a>
+        </div>
+
+        <p class="eyebrow">Ark Terminal</p>
+
+        <h1>AI Performance</h1>
+
+        <p class="headerDescription">
+          保存した予測とウォークフォワード検証の結果を集計します。
+        </p>
+      </div>
+    </header>
+
+    <main class="pageMain">
+      <section id="performanceNotice" class="performanceNotice">
+        成績データを読み込んでいます。
+      </section>
+
+      <section class="metricsGrid">
+        <article class="metricCard">
+          <span>確定件数</span>
+          <strong id="metricSamples">--</strong>
+        </article>
+
+        <article class="metricCard">
+          <span>勝率</span>
+          <strong id="metricWinRate">--</strong>
+        </article>
+
+        <article class="metricCard">
+          <span>平均騰落率</span>
+          <strong id="metricAverageReturn">--</strong>
+        </article>
+
+        <article class="metricCard">
+          <span>平均利益率</span>
+          <strong id="metricAverageProfit">--</strong>
+        </article>
+
+        <article class="metricCard">
+          <span>平均損失率</span>
+          <strong id="metricAverageLoss">--</strong>
+        </article>
+
+        <article class="metricCard">
+          <span>最大連勝</span>
+          <strong id="metricWinStreak">--</strong>
+        </article>
+
+        <article class="metricCard">
+          <span>最大連敗</span>
+          <strong id="metricLossStreak">--</strong>
+        </article>
+
+        <article class="metricCard">
+          <span>シャープレシオ概算</span>
+          <strong id="metricSharpe">--</strong>
+        </article>
+      </section>
+
+      <section class="performanceGrid">
+        <article class="performanceCard">
+          <div class="cardHeader">
+            <div>
+              <p class="cardLabel">Adaptive Weights</p>
+
+              <h2>重み最適化</h2>
+            </div>
+          </div>
+
+          <p id="optimizerStatus" class="dataSourceDescription">
+            確定済み実績が20件以上になると調整できます。
+          </p>
+
+          <div id="weightList" class="weightList"></div>
+
+          <div class="performanceActions">
+            <button
+              id="optimizeWeightsButton"
+              class="primaryButton"
+              type="button"
+            >
+              実績から重みを調整
+            </button>
+
+            <button
+              id="resetWeightsButton"
+              class="secondaryButton"
+              type="button"
+            >
+              初期値へ戻す
+            </button>
+
+            <button
+              id="exportRecordsButton"
+              class="secondaryButton"
+              type="button"
+            >
+              JSON出力
+            </button>
+          </div>
+        </article>
+
+        <article class="performanceCard">
+          <p class="cardLabel">Score Accuracy</p>
+
+          <h2>スコア別勝率</h2>
+
+          <div id="scorePerformance" class="tableContainer"></div>
+        </article>
+
+        <article class="performanceCard">
+          <p class="cardLabel">Symbol</p>
+
+          <h2>銘柄別成績</h2>
+
+          <div id="symbolPerformance" class="tableContainer"></div>
+        </article>
+
+        <article class="performanceCard">
+          <p class="cardLabel">Industry</p>
+
+          <h2>業種別成績</h2>
+
+          <div id="industryPerformance" class="tableContainer"></div>
+        </article>
+
+        <article class="performanceCard">
+          <p class="cardLabel">Horizon</p>
+
+          <h2>期間別勝率</h2>
+
+          <div id="periodPerformance" class="tableContainer"></div>
+        </article>
+
+        <article class="performanceCard">
+          <p class="cardLabel">Monthly</p>
+
+          <h2>月別勝率</h2>
+
+          <div id="monthlyPerformance" class="tableContainer"></div>
+        </article>
+
+        <article class="performanceCard fullWidthCard">
+          <p class="cardLabel">Prediction Log</p>
+
+          <h2>予測・検証履歴</h2>
+
+          <div id="predictionLog" class="tableContainer"></div>
+        </article>
+
+        <article class="warningCard">
+          <div>
+            <p class="cardLabel">Important</p>
+
+            <h2>成績の見方</h2>
+          </div>
+
+          <p>
+            過去成績は将来の結果を保証しません。
+            サンプル数が少ない段階の勝率やシャープレシオは大きく変動します。
+            重み調整は1回あたり最大5%に制限しています。
+          </p>
+        </article>
+      </section>
+    </main>
+
+    <script type="module" src="performance.js"></script>
+  </body>
+</html>

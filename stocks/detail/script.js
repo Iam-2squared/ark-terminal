@@ -3,7 +3,6 @@ const params = new URLSearchParams(
 );
 const stockPriceElement =
     document.getElementById("stockPrice");
-
 const stockChangeElement =
     document.getElementById("stockChange");
 
@@ -33,7 +32,7 @@ const relatedNewsElement =
 const newsCountElement =
     document.getElementById("newsCount");
 
-stockNameElement.textContent =
+    stockNameElement.textContent =
     company || symbol || "Stock Detail";
 
 stockSymbolElement.textContent =
@@ -186,7 +185,94 @@ function setChartLoading(isLoading) {
             ? "最新データを取得しています..."
             : "チャート表示中";
 }
+const STOCK_API_BASE_URL =
+    "https://ark-terminal.vercel.app";
 
+async function loadStockPrice() {
+    if (!symbol) {
+        return;
+    }
+
+    stockPriceElement.textContent =
+        "取得中...";
+
+    stockChangeElement.textContent =
+        "--";
+
+    try {
+        const response = await fetch(
+            `${STOCK_API_BASE_URL}/api/quote` +
+            `?symbol=${encodeURIComponent(symbol)}` +
+            `&t=${Date.now()}`
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.error ||
+                "株価を取得できませんでした。"
+            );
+        }
+
+        const currencySymbol =
+            /^\d/.test(symbol)
+                ? "¥"
+                : "$";
+
+        stockPriceElement.textContent =
+            `${currencySymbol}${Number(
+                data.price
+            ).toLocaleString(
+                "ja-JP",
+                {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }
+            )}`;
+
+        const change =
+            Number(data.change);
+
+        const changePercent =
+            Number(data.changePercent);
+
+        const sign =
+            change > 0
+                ? "+"
+                : "";
+
+        stockChangeElement.textContent =
+            `${sign}${change.toFixed(2)} ` +
+            `(${sign}${changePercent.toFixed(2)}%)`;
+
+        stockChangeElement.classList.toggle(
+            "positive",
+            change > 0
+        );
+
+        stockChangeElement.classList.toggle(
+            "negative",
+            change < 0
+        );
+    } catch (error) {
+        console.error(
+            "株価の取得に失敗しました。",
+            error
+        );
+
+        stockPriceElement.textContent =
+            "取得失敗";
+
+        stockChangeElement.textContent =
+            "--";
+
+        stockChangeElement.classList.remove(
+            "positive",
+            "negative"
+        );
+    }
+}
 function loadStockChart() {
     const restrictedTradingViewSymbols = [
     "285A"
@@ -287,7 +373,15 @@ if (
 
 refreshChartButton.addEventListener(
     "click",
-    loadStockChart
+    async () => {
+        await Promise.all([
+            loadStockPrice(),
+            Promise.resolve(
+                loadStockChart()
+            )
+        ]);
+    }
 );
 loadRelatedNews();
 loadStockChart();
+loadStockPrice();

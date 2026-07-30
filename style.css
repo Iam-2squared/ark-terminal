@@ -491,3 +491,101 @@ a {
     color: #9cacff;
     font-weight: 600;
 }
+.homeStockPrice{
+    font-size:32px;
+    font-weight:700;
+    margin-top:12px;
+}
+
+.homeStockChange{
+    font-size:18px;
+    margin-top:6px;
+}
+
+.homeStockChange.up{
+    color:#38d26e;
+}
+
+.homeStockChange.down{
+    color:#ff4d4f;
+}
+
+.homeStockTime{
+    margin-top:10px;
+    font-size:13px;
+    opacity:.6;
+}
+.homeMiniChart {
+    position: relative;
+
+    width: 100%;
+    height: 110px;
+    margin-top: 16px;
+    overflow: hidden;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(59, 130, 246, 0.10),
+            rgba(59, 130, 246, 0.01)
+        );
+
+    border-radius: 16px;
+}
+
+.homeMiniChart::after {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    background:
+        linear-gradient(
+            to right,
+            rgba(15, 23, 42, 0.04) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            to bottom,
+            rgba(15, 23, 42, 0.04) 1px,
+            transparent 1px
+        );
+
+    background-size: 64px 36px;
+
+    pointer-events: none;
+}
+
+.homeMiniChart svg {
+    position: relative;
+    z-index: 1;
+
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+#homeStockChartLine {
+    fill: none;
+    stroke: #2563eb;
+    stroke-width: 3.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+
+    filter:
+        drop-shadow(
+            0 4px 8px rgba(37, 99, 235, 0.28)
+        );
+
+    vector-effect: non-scaling-stroke;
+}
+
+.homeStockChange.up ~ .homeMiniChart
+#homeStockChartLine {
+    stroke: #22c55e;
+}
+
+.homeStockChange.down ~ .homeMiniChart
+#homeStockChartLine {
+    stroke: #ef4444;
+}

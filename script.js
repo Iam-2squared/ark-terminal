@@ -21,7 +21,96 @@ const todayTaskListElement =
 
 const taskProgressElement =
     document.getElementById("taskProgress");
+const demoChartData = [
+    191.2,
+    191.6,
+    191.4,
+    192.0,
+    191.8,
+    192.6,
+    193.1,
+    192.7,
+    193.4,
+    194.2,
+    195.6,
+    194.8,
+    193.9,
+    193.2,
+    192.1,
+    191.7,
+    190.9,
+    190.01
+];
 
+function createChartPoints(values) {
+    const width = 320;
+    const height = 100;
+    const padding = 8;
+
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const range = max - min || 1;
+
+    return values
+        .map((value, index) => {
+            const x =
+                padding +
+                (
+                    index /
+                    (values.length - 1)
+                ) *
+                (width - padding * 2);
+
+            const y =
+                height -
+                padding -
+                (
+                    (value - min) /
+                    range
+                ) *
+                (height - padding * 2);
+
+            return `${x},${y}`;
+        })
+        .join(" ");
+}
+
+function renderHomeMiniChart(latestPrice) {
+    const chartLine =
+        document.getElementById(
+            "homeStockChartLine"
+        );
+
+    const chartArea =
+        document.getElementById(
+            "homeStockChartArea"
+        );
+
+    if (!chartLine || !chartArea) {
+        return;
+    }
+
+    const values = [
+        ...demoChartData.slice(0, -1),
+        Number(latestPrice)
+    ];
+
+    const linePoints =
+        createChartPoints(values);
+
+    chartLine.setAttribute(
+        "points",
+        linePoints
+    );
+
+    const areaPoints =
+        `6,94 ${linePoints} 314,94`;
+
+    chartArea.setAttribute(
+        "points",
+        areaPoints
+    );
+}
 function openMenu() {
     sideMenu.classList.add("open");
     overlay.classList.add("show");
@@ -272,3 +361,76 @@ if ("serviceWorker" in navigator) {
         }
     );
 }
+const HOME_API =
+"https://ark-terminal.vercel.app/api/quote";
+async function loadHomeStock(){
+
+    const priceElement =
+        document.getElementById("homeStockPrice");
+
+    const changeElement =
+        document.getElementById("homeStockChange");
+
+    const timeElement =
+        document.getElementById("homeStockTime");
+
+    try{
+
+        const response =
+            await fetch(`${HOME_API}?symbol=NVDA`);
+
+        const data =
+            await response.json();
+
+        priceElement.textContent =
+            `$${data.price.toFixed(2)}`;
+
+        renderHomeMiniChart(data.price);    
+
+        changeElement.textContent =
+            `${data.change.toFixed(2)} (${data.changePercent.toFixed(2)}%)`;
+
+        changeElement.className =
+            "homeStockChange " +
+            (data.change>=0 ? "up":"down");
+
+        timeElement.textContent =
+            "更新 " +
+            new Date(data.updatedAt).toLocaleTimeString();
+
+    }catch{
+
+        priceElement.textContent="取得失敗";
+
+    }
+
+}
+loadHomeStock();
+document
+    .getElementById("stocksCard")
+    .addEventListener("keydown", event => {
+        if (
+            event.key === "Enter" ||
+            event.key === " "
+        ) {
+            location.href = "./stocks/";
+        }
+    });
+    loadHomeStock();
+
+document
+    .getElementById("stocksCard")
+    .addEventListener("click", () => {
+        location.href = "./stocks/";
+    });
+
+document
+    .getElementById("stocksCard")
+    .addEventListener("keydown", event => {
+        if (
+            event.key === "Enter" ||
+            event.key === " "
+        ) {
+            location.href = "./stocks/";
+        }
+    });

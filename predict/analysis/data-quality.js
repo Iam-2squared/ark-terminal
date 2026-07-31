@@ -14,7 +14,12 @@ export class DataQualityError extends Error {
 }
 
 function finite(value) {
-  return Number.isFinite(Number(value));
+  return (
+    value !== null &&
+    value !== undefined &&
+    value !== "" &&
+    Number.isFinite(Number(value))
+  );
 }
 
 function issue(code, message, severity = "warning", count = 1) {

@@ -79,7 +79,7 @@ test("HomeとPrediction LabからDiscoveryへ移動できる", async () => {
 });
 
 test("定期更新はmainへ直接pushしない", async () => {
-  const workflow = await read("github/workflows/update-screener.yml");
+  const workflow = await read(".github/workflows/update-screener.yml");
 
   assert.match(workflow, /automation\/screener-data/);
   assert.match(workflow, /screener-progress\.json/);
@@ -91,7 +91,7 @@ test("定期更新はmainへ直接pushしない", async () => {
 test("ローカル開発ではService Workerが古いJSを返さない", async () => {
   const serviceWorker = await read("service-worker.js");
 
-  assert.match(serviceWorker, /ark-terminal-v4/);
+  assert.match(serviceWorker, /ark-terminal-v5/);
   assert.match(serviceWorker, /isLocalDevelopment/);
   assert.match(serviceWorker, /event\.respondWith\(fetch\(request\)\)/);
 });

@@ -18,6 +18,7 @@ import {
   savePrediction,
   setPredictions,
 } from "./backtest/storage.js";
+import { extractPredictionFeatures } from "./learning/feature-extractor.js";
 import { fetchAnalysisBundle } from "./data.js";
 import { initMarket, setMarketHistory } from "./market.js";
 import { normalizeSymbol } from "./symbols.js";
@@ -90,6 +91,7 @@ function saveCurrentPrediction(state) {
     factorScores: factorScoreMap(state.analysis.factors),
     direction: state.prediction.direction,
     expectedMoveRange: state.prediction.expectedMoveRange,
+    expectedReturn: state.prediction.expectedReturn,
     downsideRisk: state.prediction.downsideRisk,
     confidence: state.prediction.confidence,
     dataQuality: {
@@ -98,6 +100,8 @@ function saveCurrentPrediction(state) {
       missingRate: state.quality.missingRate,
     },
     marketRegime: state.marketEnvironment?.regime || "未取得",
+    market: state.context?.company?.exchange || "未取得",
+    features: extractPredictionFeatures(state.indicators),
   });
 
   savePrediction(record);

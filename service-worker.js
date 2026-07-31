@@ -1,4 +1,4 @@
-const CACHE_NAME = "ark-terminal-v4";
+const CACHE_NAME = "ark-terminal-v5";
 
 const APP_SHELL = [
     "./",
@@ -9,6 +9,9 @@ const APP_SHELL = [
     "./discovery/index.html",
     "./discovery/style.css",
     "./discovery/script.js",
+    "./predict/performance.html",
+    "./predict/performance.css",
+    "./predict/performance.js",
     "./icons/icon-192.png",
     "./icons/icon-512.png"
 ];

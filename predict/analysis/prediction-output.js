@@ -1,5 +1,10 @@
 function finite(value) {
-  return Number.isFinite(Number(value));
+  return (
+    value !== null &&
+    value !== undefined &&
+    value !== "" &&
+    Number.isFinite(Number(value))
+  );
 }
 
 function clamp(value, minimum = 0, maximum = 100) {
@@ -61,7 +66,8 @@ function reliableHistoryScore(records) {
 function resolvedRecords(records) {
   const resolved = records.filter(
     (record) =>
-      record.status === "resolved" && Number.isFinite(Number(record.hit)),
+      record.status === "resolved" &&
+      (record.hit === true || record.hit === false),
   );
   const testRecords = resolved.filter((record) => record.partition === "test");
 
@@ -80,6 +86,24 @@ function confidenceLabel(score) {
   return "低";
 }
 
+export function deriveExpectedMove({ score, atrPercent, period }) {
+  const horizon = Math.max(1, Number(period) || 1);
+  const amplitude = finite(atrPercent)
+    ? Number(atrPercent) * Math.sqrt(horizon)
+    : null;
+  const expectedReturn = finite(amplitude)
+    ? ((Number(score) - 50) / 50) * amplitude * 0.35
+    : null;
+
+  return {
+    expectedReturn,
+    lower: finite(amplitude) ? expectedReturn - amplitude : null,
+    upper: finite(amplitude) ? expectedReturn + amplitude : null,
+    amplitude,
+    method: `ATR×√${horizon}の概算`,
+  };
+}
+
 export function createPredictionOutput({
   analysis,
   indicators,
@@ -91,17 +115,11 @@ export function createPredictionOutput({
 }) {
   const direction = directionFromScore(analysis.totalScore);
   const atrPercent = Number(indicators.atr?.percent);
-  const expectedAmplitude = finite(atrPercent)
-    ? atrPercent * Math.sqrt(Math.max(1, Number(period) || 1))
-    : null;
-  const scoreBias =
-    ((Number(analysis.totalScore) - 50) / 50) * (expectedAmplitude || 0) * 0.35;
-  const lower = finite(expectedAmplitude)
-    ? scoreBias - expectedAmplitude
-    : null;
-  const upper = finite(expectedAmplitude)
-    ? scoreBias + expectedAmplitude
-    : null;
+  const expectedMove = deriveExpectedMove({
+    score: analysis.totalScore,
+    atrPercent,
+    period,
+  });
   const relevantRecords = resolvedRecords(records);
   const symbolRecords = relevantRecords.filter(
     (record) => record.symbol === symbol,
@@ -171,15 +189,19 @@ export function createPredictionOutput({
 
   return {
     direction,
-    expectedMoveRange: finite(lower)
+    expectedReturn: expectedMove.expectedReturn,
+    expectedMoveRange: finite(expectedMove.lower)
       ? {
-          lower,
-          upper,
-          amplitude: expectedAmplitude,
-          method: `ATR×√${Math.max(1, Number(period) || 1)}の概算`,
+          lower: expectedMove.lower,
+          upper: expectedMove.upper,
+          amplitude: expectedMove.amplitude,
+          center: expectedMove.expectedReturn,
+          method: expectedMove.method,
         }
       : null,
-    downsideRisk: finite(lower) ? Math.abs(Math.min(0, lower)) : null,
+    downsideRisk: finite(expectedMove.lower)
+      ? Math.abs(Math.min(0, expectedMove.lower))
+      : null,
     confidence: {
       score: confidenceScore,
       label: confidenceLabel(confidenceScore),
@@ -196,4 +218,5 @@ export const PredictionOutputInternals = {
   factorDirection,
   indicatorAgreement,
   reliableHistoryScore,
+  deriveExpectedMove,
 };

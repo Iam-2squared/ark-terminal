@@ -2,7 +2,6 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>AI Performance | Ark Terminal</title>
@@ -23,11 +22,9 @@
         </div>
 
         <p class="eyebrow">Ark Terminal</p>
-
         <h1>AI Performance</h1>
-
         <p class="headerDescription">
-          保存した予測とウォークフォワード検証の結果を集計します。
+          予測結果を検証し、当たりやすい条件・弱い条件・推奨重みを分析します。
         </p>
       </div>
     </header>
@@ -37,9 +34,26 @@
         成績データを読み込んでいます。
       </section>
 
+      <section class="improvementDashboard" aria-labelledby="improvementTitle">
+        <div class="cardHeader">
+          <div>
+            <p class="cardLabel">AI Improvement Dashboard</p>
+            <h2 id="improvementTitle">現在AIが改善すべきポイント</h2>
+          </div>
+
+          <span id="improvementDataBadge" class="dataSourceBadge">
+            分析中
+          </span>
+        </div>
+
+        <div id="improvementInsights" class="improvementInsights">
+          <p class="emptyState">検証履歴を分析しています。</p>
+        </div>
+      </section>
+
       <section class="metricsGrid">
         <article class="metricCard">
-          <span>最終テスト件数</span>
+          <span>評価対象件数</span>
           <strong id="metricSamples">--</strong>
         </article>
 
@@ -85,34 +99,64 @@
         </article>
 
         <article class="metricCard">
-          <span>シャープレシオ概算（費用後）</span>
+          <span>シャープレシオ概算</span>
           <strong id="metricSharpe">--</strong>
+        </article>
+
+        <article class="metricCard">
+          <span>期待変動幅 MAE</span>
+          <strong id="metricMae">--</strong>
+          <small id="metricForecastSamples">--</small>
+        </article>
+
+        <article class="metricCard">
+          <span>期待変動幅 RMSE</span>
+          <strong id="metricRmse">--</strong>
+          <small id="metricForecastBias">--</small>
         </article>
       </section>
 
       <section class="performanceGrid">
-        <article class="performanceCard">
+        <article class="performanceCard fullWidthCard">
+          <p class="cardLabel">Recent Comparison</p>
+          <h2>最近30日と全期間の比較</h2>
+          <div id="recentComparison" class="comparisonGrid"></div>
+        </article>
+
+        <article class="performanceCard fullWidthCard">
           <div class="cardHeader">
             <div>
               <p class="cardLabel">Adaptive Weights</p>
-
-              <h2>重み最適化</h2>
+              <h2>推奨重み</h2>
             </div>
+
+            <span id="weightRecommendationBadge" class="dataSourceBadge">
+              未計算
+            </span>
           </div>
 
           <p id="optimizerStatus" class="dataSourceDescription">
-            確定済み実績が20件以上になると調整できます。
+            推奨値は、採用ボタンを押すまでPrediction Scoreへ反映されません。
           </p>
 
           <div id="weightList" class="weightList"></div>
 
           <div class="performanceActions">
             <button
-              id="optimizeWeightsButton"
+              id="recommendWeightsButton"
               class="primaryButton"
               type="button"
             >
-              実績から重みを調整
+              推奨重みを計算
+            </button>
+
+            <button
+              id="applyWeightsButton"
+              class="secondaryButton"
+              type="button"
+              disabled
+            >
+              推奨重みを採用
             </button>
 
             <button
@@ -128,95 +172,208 @@
               class="secondaryButton"
               type="button"
             >
-              JSON出力
+              履歴JSON出力
+            </button>
+
+            <button
+              id="exportDatasetButton"
+              class="secondaryButton"
+              type="button"
+            >
+              ML学習データ出力
             </button>
           </div>
         </article>
 
+        <article class="performanceCard fullWidthCard">
+          <p class="cardLabel">Indicator Accuracy</p>
+          <h2>指標別勝率ランキング</h2>
+          <p class="dataSourceDescription">
+            予測時点で実際に発生していた条件だけを集計します。
+          </p>
+          <div id="indicatorPerformance" class="tableContainer"></div>
+        </article>
+
+        <article class="performanceCard fullWidthCard">
+          <p class="cardLabel">Condition Combinations</p>
+          <h2>条件の組み合わせ勝率</h2>
+          <p class="dataSourceDescription">
+            2〜3条件の組み合わせを集計し、最低3件以上の条件を表示します。
+          </p>
+          <div id="combinationPerformance" class="tableContainer"></div>
+        </article>
+
+        <article class="performanceCard fullWidthCard">
+          <p class="cardLabel">Prediction Reason Analysis</p>
+          <h2>予測理由の自動分析</h2>
+          <div id="reasonPerformance" class="reasonAnalysisGrid"></div>
+        </article>
+
+        <article class="performanceCard fullWidthCard">
+          <p class="cardLabel">Industry Models</p>
+          <h2>業種ごとに有効な指標</h2>
+          <div id="industryIndicatorPerformance" class="tableContainer"></div>
+        </article>
+
         <article class="performanceCard">
           <p class="cardLabel">Chronological Split</p>
-
           <h2>期間分割別成績</h2>
-
           <div id="partitionPerformance" class="tableContainer"></div>
         </article>
 
         <article class="performanceCard">
           <p class="cardLabel">Direction</p>
-
           <h2>強気・弱気・中立別</h2>
-
           <div id="directionPerformance" class="tableContainer"></div>
         </article>
 
         <article class="performanceCard">
           <p class="cardLabel">Market Regime</p>
-
-          <h2>相場環境別成績</h2>
-
+          <h2>Bull・Sideways・Bear別</h2>
           <div id="regimePerformance" class="tableContainer"></div>
         </article>
 
         <article class="performanceCard">
-          <p class="cardLabel">Score Accuracy</p>
-
-          <h2>スコア別勝率</h2>
-
-          <div id="scorePerformance" class="tableContainer"></div>
-        </article>
-
-        <article class="performanceCard">
-          <p class="cardLabel">Symbol</p>
-
-          <h2>銘柄別成績</h2>
-
-          <div id="symbolPerformance" class="tableContainer"></div>
+          <p class="cardLabel">Market</p>
+          <h2>市場別勝率</h2>
+          <div id="marketPerformance" class="tableContainer"></div>
         </article>
 
         <article class="performanceCard">
           <p class="cardLabel">Industry</p>
-
-          <h2>業種別成績</h2>
-
+          <h2>業種別勝率</h2>
           <div id="industryPerformance" class="tableContainer"></div>
         </article>
 
         <article class="performanceCard">
-          <p class="cardLabel">Horizon</p>
+          <p class="cardLabel">Price Band</p>
+          <h2>価格帯別勝率</h2>
+          <div id="pricePerformance" class="tableContainer"></div>
+        </article>
 
-          <h2>期間別勝率</h2>
+        <article class="performanceCard">
+          <p class="cardLabel">Score Accuracy</p>
+          <h2>AIスコア帯別勝率</h2>
+          <div id="scorePerformance" class="tableContainer"></div>
+        </article>
 
-          <div id="periodPerformance" class="tableContainer"></div>
+        <article class="performanceCard">
+          <p class="cardLabel">Confidence</p>
+          <h2>信頼度別勝率</h2>
+          <div id="confidencePerformance" class="tableContainer"></div>
+        </article>
+
+        <article class="performanceCard">
+          <p class="cardLabel">Risk</p>
+          <h2>リスク別勝率</h2>
+          <div id="riskPerformance" class="tableContainer"></div>
         </article>
 
         <article class="performanceCard">
           <p class="cardLabel">Monthly</p>
-
-          <h2>月別勝率</h2>
-
+          <h2>月別推移</h2>
           <div id="monthlyPerformance" class="tableContainer"></div>
         </article>
 
-        <article class="performanceCard fullWidthCard">
-          <p class="cardLabel">Prediction Log</p>
-
-          <h2>予測・検証履歴</h2>
-
-          <div id="predictionLog" class="tableContainer"></div>
+        <article class="performanceCard">
+          <p class="cardLabel">Symbol</p>
+          <h2>銘柄別成績</h2>
+          <div id="symbolPerformance" class="tableContainer"></div>
         </article>
+
+        <article class="performanceCard">
+          <p class="cardLabel">Horizon</p>
+          <h2>期間別勝率</h2>
+          <div id="periodPerformance" class="tableContainer"></div>
+        </article>
+
+        <details id="predictionHistoryDetails" class="historyCard fullWidthCard">
+          <summary>
+            <span class="historyArrow" aria-hidden="true">▶</span>
+            予測検証履歴（<span id="historyTotalCount">0</span>件）
+          </summary>
+
+          <div class="historyContent">
+            <div class="historyFilters">
+              <label>
+                表示件数
+                <select id="historyScope">
+                  <option value="recent30" selected>直近30件</option>
+                  <option value="all">全件</option>
+                </select>
+              </label>
+
+              <label>
+                結果
+                <select id="historyResult">
+                  <option value="all" selected>全件</option>
+                  <option value="success">成功のみ</option>
+                  <option value="failure">失敗のみ</option>
+                </select>
+              </label>
+
+              <label>
+                銘柄別
+                <select id="historySymbol">
+                  <option value="">すべて</option>
+                </select>
+              </label>
+
+              <label>
+                開始日
+                <input id="historyDateFrom" type="date" />
+              </label>
+
+              <label>
+                終了日
+                <input id="historyDateTo" type="date" />
+              </label>
+
+              <button
+                id="historyResetButton"
+                class="secondaryButton"
+                type="button"
+              >
+                条件をリセット
+              </button>
+            </div>
+
+            <p id="historyStatus" class="dataSourceDescription"></p>
+            <div id="predictionLog" class="tableContainer"></div>
+
+            <div class="historyPagination">
+              <button
+                id="historyPreviousButton"
+                class="secondaryButton"
+                type="button"
+              >
+                ← 前へ
+              </button>
+
+              <span id="historyPageStatus">1 / 1ページ</span>
+
+              <button
+                id="historyNextButton"
+                class="secondaryButton"
+                type="button"
+              >
+                次へ →
+              </button>
+            </div>
+          </div>
+        </details>
 
         <article class="warningCard">
           <div>
             <p class="cardLabel">Important</p>
-
-            <h2>成績の見方</h2>
+            <h2>成績と推奨重みの見方</h2>
           </div>
 
           <p>
-            過去成績は将来の結果を保証しません。
-            主要指標は最終テスト期間だけで表示し、学習期間で調整した重みは
-            検証・最終テスト期間で固定します。費用は設定値による概算で、
-            実際の約定や税金は含みません。
+            過去成績や推奨重みは将来の結果を保証しません。
+            推奨重みは学習期間を優先し、検証・最終テスト期間を重み調整に使わない設計です。
+            少数データの勝率は大きく変動するため、件数と信頼区間を必ず併記します。
+            この画面は検証・研究用で、売買指示や自動売買を行う機能ではありません。
           </p>
         </article>
       </section>

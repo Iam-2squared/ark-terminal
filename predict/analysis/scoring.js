@@ -19,7 +19,12 @@ import {
 } from "../config.js";
 
 function finite(value) {
-  return Number.isFinite(Number(value));
+  return (
+    value !== null &&
+    value !== undefined &&
+    value !== "" &&
+    Number.isFinite(Number(value))
+  );
 }
 
 function clamp(value, minimum = 0, maximum = 100) {

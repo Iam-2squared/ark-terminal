@@ -3,13 +3,20 @@ import {
   validateIndicatorCalculations,
 } from "../analysis/data-quality.js";
 import { calculateIndicators } from "../analysis/indicators.js";
+import { deriveExpectedMove } from "../analysis/prediction-output.js";
 import { scoreAnalysis } from "../analysis/scoring.js";
 import { deriveOptimizedWeights } from "../analysis/weights.js";
 import { BACKTEST_COSTS, BACKTEST_SPLIT } from "../config.js";
+import { extractPredictionFeatures } from "../learning/feature-extractor.js";
 import { createPredictionRecord } from "./storage.js";
 
 function finite(value) {
-  return Number.isFinite(Number(value));
+  return (
+    value !== null &&
+    value !== undefined &&
+    value !== "" &&
+    Number.isFinite(Number(value))
+  );
 }
 
 function average(values) {
@@ -143,12 +150,22 @@ export function resolvePredictions(records, symbol, candles) {
     });
 
     changed = true;
+    const forecastError = finite(record.expectedReturn)
+      ? actualReturn - Number(record.expectedReturn)
+      : null;
 
     return {
       ...record,
       actualPrice,
       actualReturn,
       ...outcome,
+      forecastError,
+      absoluteForecastError: finite(forecastError)
+        ? Math.abs(forecastError)
+        : null,
+      squaredForecastError: finite(forecastError)
+        ? forecastError ** 2
+        : null,
       status: "resolved",
       resolvedAt: new Date(ordered[targetIndex].time * 1000).toISOString(),
     };
@@ -251,6 +268,14 @@ function makeRecord({
     actualReturn,
     costs,
   });
+  const expectedMove = deriveExpectedMove({
+    score: analysis.totalScore,
+    atrPercent: indicators.atr?.percent,
+    period: horizon,
+  });
+  const forecastError = finite(expectedMove.expectedReturn)
+    ? actualReturn - expectedMove.expectedReturn
+    : null;
   const record = createPredictionRecord({
     symbol,
     companyName,
@@ -264,6 +289,20 @@ function makeRecord({
     analysisTime: candles[index].time,
     factorScores: createFactorScoreMap(analysis.factors),
     direction: outcome.direction,
+    expectedReturn: expectedMove.expectedReturn,
+    expectedMoveRange: finite(expectedMove.lower)
+      ? {
+          lower: expectedMove.lower,
+          upper: expectedMove.upper,
+          amplitude: expectedMove.amplitude,
+          center: expectedMove.expectedReturn,
+          method: expectedMove.method,
+        }
+      : null,
+    downsideRisk: finite(expectedMove.lower)
+      ? Math.abs(Math.min(0, expectedMove.lower))
+      : null,
+    features: extractPredictionFeatures(indicators),
     dataQuality: {
       status: quality.status,
       qualityScore: quality.qualityScore,
@@ -279,6 +318,13 @@ function makeRecord({
     actualPrice,
     actualReturn,
     ...outcome,
+    forecastError,
+    absoluteForecastError: finite(forecastError)
+      ? Math.abs(forecastError)
+      : null,
+    squaredForecastError: finite(forecastError)
+      ? forecastError ** 2
+      : null,
     status: "resolved",
     resolvedAt: new Date(candles[index + horizon].time * 1000).toISOString(),
     audit: {

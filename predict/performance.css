@@ -1,24 +1,73 @@
+.performanceNotice,
+.improvementDashboard,
+.metricCard,
+.performanceCard,
+.historyCard {
+  background: rgba(17, 24, 39, 0.86);
+  border: 1px solid var(--border);
+}
+
 .performanceNotice {
   padding: 14px 16px;
   color: var(--muted);
-  background: rgba(17, 24, 39, 0.86);
-  border: 1px solid var(--border);
   border-radius: 15px;
+}
+
+.improvementDashboard {
+  margin-top: 20px;
+  padding: 24px;
+  border-radius: 24px;
+}
+
+.improvementInsights {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.improvementItem {
+  min-width: 0;
+  padding: 15px 16px;
+  display: grid;
+  gap: 7px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--muted);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.improvementItem p,
+.improvementItem span {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.improvementItem.positive {
+  border-left-color: var(--green);
+}
+
+.improvementItem.warning {
+  border-left-color: var(--orange);
+}
+
+.improvementItem.neutral {
+  border-left-color: var(--blue);
 }
 
 .metricsGrid {
   margin-top: 20px;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
 }
 
 .metricCard {
+  min-width: 0;
   padding: 18px;
   display: grid;
   gap: 8px;
-  background: rgba(17, 24, 39, 0.86);
-  border: 1px solid var(--border);
   border-radius: 18px;
 }
 
@@ -29,12 +78,14 @@
 }
 
 .metricCard strong {
+  overflow-wrap: anywhere;
   font-size: 26px;
 }
 
 .metricCard small {
   color: var(--muted);
   font-size: 11px;
+  line-height: 1.45;
 }
 
 .performanceGrid {
@@ -44,12 +95,15 @@
   gap: 20px;
 }
 
-.performanceCard {
+.performanceCard,
+.historyCard {
   min-width: 0;
   padding: 24px;
-  background: rgba(17, 24, 39, 0.86);
-  border: 1px solid var(--border);
   border-radius: 24px;
+}
+
+.fullWidthCard {
+  grid-column: 1 / -1;
 }
 
 .performanceActions {
@@ -57,6 +111,44 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.performanceActions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.comparisonGrid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.comparisonItem {
+  min-width: 0;
+  padding: 14px;
+  display: grid;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+}
+
+.comparisonItem span,
+.comparisonItem small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.comparisonItem strong {
+  font-size: 20px;
+}
+
+.comparisonItem em {
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 800;
 }
 
 .weightList {
@@ -67,23 +159,76 @@
 }
 
 .weightItem {
-  padding: 9px 10px;
+  min-width: 0;
+  padding: 11px 12px;
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
+  color: var(--muted);
   background: rgba(255, 255, 255, 0.04);
   border-radius: 10px;
-  color: var(--muted);
   font-size: 12px;
 }
 
+.weightItem > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.weightItem small {
+  color: var(--muted);
+  line-height: 1.4;
+}
+
 .weightItem strong {
+  flex: 0 0 auto;
   color: var(--text);
+}
+
+.weightItem em {
+  color: var(--blue);
+  font-style: normal;
+  font-weight: 800;
+}
+
+.reasonAnalysisGrid {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.reasonAnalysisItem {
+  min-width: 0;
+  padding: 16px;
+  display: grid;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.reasonAnalysisItem span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.reasonAnalysisItem strong {
+  line-height: 1.5;
+}
+
+.reasonAnalysisItem small {
+  color: var(--muted);
+  line-height: 1.55;
 }
 
 .tableContainer {
   margin-top: 20px;
   overflow-x: auto;
+  overscroll-behavior-inline: contain;
 }
 
 .performanceTable {
@@ -112,23 +257,155 @@
   color: var(--muted);
 }
 
+.performanceTable .wrapCell {
+  min-width: 180px;
+  white-space: normal;
+  line-height: 1.45;
+}
+
 .wideTable {
   min-width: 900px;
 }
 
+.positive {
+  color: var(--green);
+}
+
+.negative {
+  color: var(--red);
+}
+
+.emptyState {
+  margin: 18px 0 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.historyCard {
+  padding: 0;
+  overflow: hidden;
+}
+
+.historyCard summary {
+  padding: 22px 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.historyCard summary::-webkit-details-marker {
+  display: none;
+}
+
+.historyCard summary:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.historyArrow {
+  color: var(--blue);
+  transition: transform 180ms ease;
+}
+
+.historyCard[open] .historyArrow {
+  transform: rotate(90deg);
+}
+
+.historyContent {
+  padding: 0 24px 24px;
+  border-top: 1px solid var(--border);
+}
+
+.historyFilters {
+  padding-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+.historyFilters label {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.historyFilters input,
+.historyFilters select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 11px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  outline: none;
+}
+
+.historyFilters input:focus,
+.historyFilters select:focus {
+  border-color: rgba(79, 124, 255, 0.65);
+}
+
+.historyPagination {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.historyPagination span {
+  min-width: 100px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 12px;
+}
+
+@media (max-width: 1050px) {
+  .metricsGrid,
+  .comparisonGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .historyFilters {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 860px) {
-  .metricsGrid {
+  .metricsGrid,
+  .comparisonGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .performanceGrid {
     grid-template-columns: 1fr;
   }
+
+  .fullWidthCard {
+    grid-column: auto;
+  }
 }
 
 @media (max-width: 560px) {
+  .improvementDashboard,
+  .performanceCard {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .improvementInsights,
   .metricsGrid,
-  .weightList {
+  .comparisonGrid,
+  .weightList,
+  .reasonAnalysisGrid,
+  .historyFilters {
     grid-template-columns: 1fr;
   }
 
@@ -138,5 +415,18 @@
 
   .performanceActions button {
     width: 100%;
+  }
+
+  .historyCard summary {
+    padding: 20px;
+  }
+
+  .historyContent {
+    padding: 0 20px 20px;
+  }
+
+  .historyPagination {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
   }
 }

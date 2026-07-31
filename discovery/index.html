@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Stock Screener | Ark Terminal</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <header class="pageHeader">
+      <div class="headerInner">
+        <nav class="headerNavigation" aria-label="ページナビゲーション">
+          <a href="../index.html" class="backButton">← Home</a>
+
+          <a href="../predict/index.html" class="secondaryButton">
+            Prediction Lab
+          </a>
+        </nav>
+
+        <div class="heroRow">
+          <div>
+            <p class="eyebrow">Discovery / AI Stock Screener</p>
+            <h1>AI Stock Screener</h1>
+            <p class="headerDescription">
+              上場銘柄を同じ品質基準とテクニカルモデルで評価し、
+              条件に合う候補をランキングします。
+            </p>
+          </div>
+
+          <button id="refreshButton" class="primaryButton" type="button">
+            候補をライブ更新
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="pageMain">
+      <p id="dataStatus" class="dataStatus loading" role="status">
+        スクリーナーデータを読み込んでいます。
+      </p>
+
+      <section class="summaryGrid" aria-label="スキャン状況">
+        <article class="summaryCard">
+          <span>分析カバレッジ</span>
+          <strong id="coverageCount">0 / 0</strong>
+          <div class="coverageTrack">
+            <div id="coverageBar" class="coverageBar"></div>
+          </div>
+          <small id="coverageDescription">準備中</small>
+        </article>
+
+        <article class="summaryCard">
+          <span>定期更新サイクル</span>
+          <strong id="refreshCycleCount">--</strong>
+          <div class="coverageTrack">
+            <div id="refreshCycleBar" class="coverageBar cycleBar"></div>
+          </div>
+          <small id="refreshCycleDescription">初回バッチ待ち</small>
+        </article>
+
+        <article class="summaryCard">
+          <span>条件一致</span>
+          <strong id="resultCount">0</strong>
+          <small>現在のフィルター結果</small>
+        </article>
+
+        <article class="summaryCard">
+          <span>品質ゲート停止</span>
+          <strong id="blockedCount">0</strong>
+          <small>異常データは採点しません</small>
+        </article>
+
+        <article class="summaryCard">
+          <span>データ更新</span>
+          <strong id="updatedAt" class="updatedValue">--</strong>
+          <small>価格は遅延する場合があります</small>
+        </article>
+      </section>
+
+      <section class="filterCard">
+        <div class="sectionHeader">
+          <div>
+            <p class="cardLabel">Discovery Filters</p>
+            <h2>銘柄を絞り込む</h2>
+          </div>
+
+          <button id="resetFilters" class="textButton" type="button">
+            条件をリセット
+          </button>
+        </div>
+
+        <div class="filterGrid">
+          <label class="filterGroup wideFilter">
+            <span>銘柄名・コード</span>
+            <input id="queryFilter" type="search" placeholder="例：半導体 / 285A" />
+          </label>
+
+          <label class="filterGroup">
+            <span>価格帯</span>
+            <select id="priceFilter">
+              <option value="all">すべて</option>
+              <option value="under300">0〜300円</option>
+              <option value="from300To500">300〜500円</option>
+              <option value="from500To1000">500〜1,000円</option>
+              <option value="from1000To3000">1,000〜3,000円</option>
+              <option value="over3000">3,000円以上</option>
+            </select>
+          </label>
+
+          <label class="filterGroup">
+            <span>予算（1単元）</span>
+            <input
+              id="budgetFilter"
+              type="number"
+              min="0"
+              step="1000"
+              placeholder="例：30000"
+            />
+          </label>
+
+          <label class="filterGroup">
+            <span>市場</span>
+            <select id="marketFilter">
+              <option value="all">すべての市場</option>
+            </select>
+          </label>
+
+          <label class="filterGroup">
+            <span>業種・テーマ</span>
+            <select id="themeFilter">
+              <option value="all">すべての業種・テーマ</option>
+            </select>
+          </label>
+
+          <label class="filterGroup">
+            <span>時価総額</span>
+            <select id="marketCapFilter">
+              <option value="all">すべて</option>
+              <option value="small">500億円未満</option>
+              <option value="medium">500〜3,000億円</option>
+              <option value="large">3,000億〜1兆円</option>
+              <option value="mega">1兆円以上</option>
+              <option value="unknown">未取得のみ</option>
+            </select>
+          </label>
+
+          <label class="filterGroup">
+            <span>出来高急増</span>
+            <select id="volumeFilter">
+              <option value="0">指定なし</option>
+              <option value="1.2">平均の1.2倍以上</option>
+              <option value="1.5">平均の1.5倍以上</option>
+              <option value="2">平均の2倍以上</option>
+            </select>
+          </label>
+
+          <label class="filterGroup">
+            <span>最低AIスコア</span>
+            <select id="scoreFilter">
+              <option value="0">指定なし</option>
+              <option value="55">55点以上</option>
+              <option value="60">60点以上</option>
+              <option value="70">70点以上</option>
+              <option value="80">80点以上</option>
+            </select>
+          </label>
+
+          <label class="filterGroup">
+            <span>最低信頼度</span>
+            <select id="confidenceFilter">
+              <option value="0">指定なし</option>
+              <option value="40">40以上</option>
+              <option value="55">55以上</option>
+              <option value="70">70以上</option>
+            </select>
+          </label>
+
+          <label class="filterGroup">
+            <span>リスク</span>
+            <select id="riskFilter">
+              <option value="all">すべて</option>
+              <option value="低">低</option>
+              <option value="中">中</option>
+              <option value="高">高</option>
+            </select>
+          </label>
+
+          <label class="filterGroup">
+            <span>並び順</span>
+            <select id="sortFilter">
+              <option value="scoreDesc">AIスコア順</option>
+              <option value="confidenceDesc">信頼度順</option>
+              <option value="volumeDesc">出来高急増順</option>
+              <option value="expectedMoveDesc">期待変動幅順</option>
+              <option value="priceAsc">価格が安い順</option>
+            </select>
+          </label>
+
+          <label class="checkGroup">
+            <input id="watchlistOnly" type="checkbox" />
+            <span>ウォッチリストのみ</span>
+          </label>
+        </div>
+
+        <p id="scanStatus" class="scanStatus" hidden></p>
+      </section>
+
+      <section class="alertCard">
+        <div>
+          <p class="cardLabel">Score Alert</p>
+          <h2>AIスコア通知</h2>
+          <p>
+            ページを開いた時またはデータ更新時に条件を判定します。
+            常時バックグラウンド通知は、将来のWeb Push接続用に分離しています。
+          </p>
+        </div>
+
+        <div class="alertControls">
+          <label class="switchLabel">
+            <input id="alertEnabled" type="checkbox" />
+            <span>通知条件を有効化</span>
+          </label>
+
+          <label>
+            <span>AIスコア</span>
+            <input id="alertScore" type="number" min="0" max="100" />
+          </label>
+
+          <label>
+            <span>信頼度</span>
+            <input id="alertConfidence" type="number" min="0" max="100" />
+          </label>
+
+          <label class="switchLabel">
+            <input id="alertWatchlistOnly" type="checkbox" />
+            <span>ウォッチ中のみ</span>
+          </label>
+
+          <button id="saveAlertButton" class="secondaryButton" type="button">
+            条件を保存
+          </button>
+
+          <button id="notificationButton" class="secondaryButton" type="button">
+            ブラウザ通知を許可
+          </button>
+        </div>
+
+        <p id="alertStatus" class="alertStatus" aria-live="polite"></p>
+      </section>
+
+      <section class="rankingCard">
+        <div class="sectionHeader">
+          <div>
+            <p class="cardLabel">AI Ranking</p>
+            <h2>銘柄ランキング</h2>
+          </div>
+
+          <span class="modelBadge">Prediction Lab共通モデル</span>
+        </div>
+
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Watch</th>
+                <th>銘柄</th>
+                <th>AI</th>
+                <th>価格</th>
+                <th>必要予算</th>
+                <th>時価総額</th>
+                <th>出来高</th>
+                <th>信頼度</th>
+                <th>期待幅</th>
+                <th>Risk</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="rankingBody">
+              <tr>
+                <td class="emptyState" colspan="12">
+                  データを読み込んでいます。
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="disclaimer">
+          AIスコア・期待変動幅・信頼度は利益や価格上昇の確率を示すものではなく、
+          売買を勧めるものでもありません。市場データの遅延・欠損・提供元の制限があります。
+        </p>
+      </section>
+    </main>
+
+    <script type="module" src="script.js"></script>
+  </body>
+</html>

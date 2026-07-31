@@ -52,6 +52,20 @@ function collectInputs() {
   });
 }
 
+function applyQueryParameters() {
+  const parameters = new URLSearchParams(globalThis.location?.search || "");
+  const symbol = parameters.get("symbol");
+  const companyName = parameters.get("name");
+
+  if (symbol) {
+    inputs.stockSymbol.value = symbol.replace(/\.T$/i, "");
+  }
+
+  if (companyName) {
+    inputs.companyName.value = companyName;
+  }
+}
+
 function factorScoreMap(factors) {
   return Object.fromEntries(
     factors
@@ -278,6 +292,7 @@ function runBacktest() {
 
 function init() {
   collectInputs();
+  applyQueryParameters();
   initializeRenderers();
   initMarket();
 

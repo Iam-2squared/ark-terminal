@@ -1,0 +1,107 @@
+name: Update AI Stock Screener
+
+on:
+  workflow_dispatch:
+    inputs:
+      batch_size:
+        description: "今回更新する銘柄数（推奨240、初回テスト30）"
+        required: false
+        default: "240"
+      reset_progress:
+        description: "更新位置を先頭に戻して新しいサイクルを開始する"
+        required: false
+        type: boolean
+        default: false
+
+  schedule:
+    - cron: "15 0,2,4,6,8,10 * * 1-5"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: update-ai-stock-screener
+  cancel-in-progress: false
+
+jobs:
+  update-screener:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restore the latest batch progress
+        env:
+          DATA_BRANCH: automation/screener-data
+        run: |
+          if git fetch origin \
+            "refs/heads/$DATA_BRANCH:refs/remotes/origin/$DATA_BRANCH"; then
+            git checkout "origin/$DATA_BRANCH" -- \
+              data/screener-snapshot.json \
+              data/screener-progress.json
+          else
+            echo "初回実行のため、main上の空スナップショットから開始します。"
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install JPX reader
+        run: python -m pip install xlrd==2.0.1
+
+      - name: Refresh JPX universe
+        run: python scripts/fetch_jpx_universe.py
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build screener snapshot
+        env:
+          SCREENER_BATCH_SIZE: ${{ inputs.batch_size || '240' }}
+          SCREENER_RESET_PROGRESS: ${{ inputs.reset_progress || 'false' }}
+          SCREENER_CONCURRENCY: "4"
+          SCREENER_DELAY_MS: "400"
+        run: node scripts/update_screener.mjs
+
+      - name: Commit updated screener data to a data branch
+        env:
+          DATA_BRANCH: automation/screener-data
+        run: |
+          git config user.name "Ark Screener Bot"
+          git config user.email "ark-screener-bot@users.noreply.github.com"
+          git switch -C "$DATA_BRANCH"
+          git add \
+            data/screener-universe.json \
+            data/screener-snapshot.json \
+            data/screener-progress.json
+
+          if git diff --cached --quiet; then
+            echo "スクリーナーデータに変更はありません。"
+          else
+            git commit -m "Update AI stock screener data"
+            git push --force-with-lease origin "$DATA_BRANCH"
+          fi
+
+      - name: Open a data update pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DATA_BRANCH: automation/screener-data
+        run: |
+          if gh pr list --head "$DATA_BRANCH" --state open --json number --jq 'length' | grep -q '^0$'; then
+            gh pr create \
+              --base main \
+              --head "$DATA_BRANCH" \
+              --title "Update AI Stock Screener data" \
+              --body "JPX銘柄一覧とAI Stock Screenerスナップショットの定期更新です。"
+          else
+            echo "既存のデータ更新PRを再利用します。"
+          fi

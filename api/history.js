@@ -171,9 +171,15 @@ async function fetchYahooHistory({ symbol, range, interval }) {
       currency: meta.currency || null,
       priceUnit: meta.currency || null,
       volumeUnit: "shares",
+      shortName: meta.shortName || null,
+      longName: meta.longName || null,
       exchangeName: meta.exchangeName || meta.fullExchangeName || null,
       instrumentType: meta.instrumentType || null,
       timezone: meta.exchangeTimezoneName || null,
+      marketCap: finite(meta.marketCap) ? Number(meta.marketCap) : null,
+      sharesOutstanding: finite(meta.sharesOutstanding)
+        ? Number(meta.sharesOutstanding)
+        : null,
       regularMarketPrice: finite(meta.regularMarketPrice)
         ? Number(meta.regularMarketPrice)
         : null,

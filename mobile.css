@@ -1,0 +1,498 @@
+/*
+ * Ark Terminal shared mobile layer
+ *
+ * This file is loaded after each page stylesheet. Desktop rules remain owned by
+ * each page; only narrow-screen layout, touch targets and overflow are adjusted
+ * here.
+ */
+
+@media (max-width: 760px) {
+  html {
+    max-width: 100%;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  img,
+  svg,
+  video,
+  canvas,
+  iframe {
+    max-width: 100%;
+  }
+
+  button,
+  input,
+  select,
+  textarea,
+  a {
+    touch-action: manipulation;
+  }
+
+  input,
+  select,
+  textarea {
+    min-width: 0;
+    font-size: 16px;
+  }
+
+  button,
+  .primaryButton,
+  .secondaryButton,
+  .backButton,
+  .textButton,
+  .cardLink,
+  .detailButton {
+    min-height: 44px;
+  }
+
+  h1 {
+    overflow-wrap: anywhere;
+    font-size: clamp(32px, 10vw, 48px);
+    line-height: 1.08;
+  }
+
+  h2,
+  h3,
+  p,
+  span,
+  strong,
+  small,
+  a,
+  button,
+  label,
+  td,
+  th {
+    overflow-wrap: anywhere;
+  }
+
+  /* Shared dark-page shell */
+  .headerInner,
+  .pageMain,
+  .stocksPage,
+  .newsPage,
+  .detailHeader,
+  .detailGrid {
+    width: min(100% - 24px, 1440px);
+  }
+
+  .headerNavigation {
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .headerNavigation .backButton,
+  .headerNavigation .secondaryButton {
+    margin: 0;
+  }
+
+  .pageHeader .headerDescription,
+  .description {
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .cardHeader {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  /* Home */
+  .appHeader {
+    padding-right: max(14px, env(safe-area-inset-right));
+    padding-left: max(14px, env(safe-area-inset-left));
+  }
+
+  .appHeader h1 {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sideMenu {
+    width: min(82vw, 300px);
+    padding-bottom: max(22px, env(safe-area-inset-bottom));
+  }
+
+  .mainContent {
+    padding-right: max(14px, env(safe-area-inset-right));
+    padding-bottom: max(28px, env(safe-area-inset-bottom));
+    padding-left: max(14px, env(safe-area-inset-left));
+  }
+
+  .dashboardCard,
+  .dashboardCardLink {
+    min-width: 0;
+  }
+
+  .dashboardCardLink {
+    height: 100%;
+  }
+
+  .homeMiniChart,
+  .homeMiniChart svg {
+    width: 100%;
+  }
+
+  /* Tasks */
+  .appLayout {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .taskArea,
+  .calendarArea,
+  .taskSection,
+  .taskItem,
+  .calendarHeader {
+    min-width: 0;
+  }
+
+  .inputArea input,
+  .inputArea button {
+    min-height: 46px;
+  }
+
+  .taskItem {
+    gap: 8px;
+  }
+
+  .taskText {
+    min-width: 0;
+  }
+
+  /* Stocks and news */
+  .watchlistControls,
+  .addStockForm,
+  .newsSearch {
+    width: 100%;
+  }
+
+  .addStockForm button {
+    min-height: 46px;
+  }
+
+  .stockCardMain {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .stockCardArrow {
+    align-self: flex-end;
+  }
+
+  .deleteStockButton {
+    width: 44px;
+    height: 44px;
+  }
+
+  .newsFilters,
+  .newsControls {
+    max-width: 100%;
+    padding-bottom: 6px;
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .newsFilters button,
+  .newsControls button {
+    flex: 0 0 auto;
+    min-height: 42px;
+  }
+
+  /* Stock detail and TradingView */
+  .priceHeader,
+  .chartToolbar {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .chartToolbar > * {
+    min-width: 0;
+  }
+
+  .stockChart,
+  .tradingviewChart,
+  .tradingviewChart iframe {
+    width: 100%;
+    min-height: 330px;
+    height: 330px;
+  }
+
+  /* Prediction Lab */
+  .controlPanel {
+    grid-template-columns: 1fr;
+  }
+
+  .controlGroup,
+  .controlGroup input,
+  .controlGroup select,
+  .controlPanel .primaryButton {
+    width: 100%;
+  }
+
+  .controlGroup input,
+  .controlGroup select,
+  .controlPanel .primaryButton {
+    min-height: 48px;
+  }
+
+  .marketHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .marketHeaderActions,
+  .marketHeaderActions .secondaryButton {
+    width: 100%;
+  }
+
+  .marketHeaderActions {
+    justify-content: space-between;
+  }
+
+  .marketQuoteGrid,
+  .scoreStatGrid,
+  .categoryScoreList,
+  .predictionOutputGrid,
+  .confidenceComponents,
+  .qualityGrid,
+  .marketEnvironmentGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .marketQuoteGrid > *,
+  .scoreStatGrid > *,
+  .categoryScoreList > *,
+  .predictionOutputGrid > *,
+  .confidenceComponents > *,
+  .qualityGrid > *,
+  .marketEnvironmentGrid > * {
+    min-width: 0;
+  }
+
+  .mainScoreArea {
+    gap: 20px;
+  }
+
+  .factorMeta {
+    overflow-wrap: anywhere;
+  }
+
+  /* AI Performance */
+  .metricsGrid,
+  .comparisonGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .performanceGrid,
+  .reasonAnalysisGrid,
+  .weightList {
+    min-width: 0;
+  }
+
+  .performanceActions {
+    align-items: stretch;
+  }
+
+  .performanceActions button {
+    min-height: 46px;
+  }
+
+  .tableContainer {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tableContainer table {
+    min-width: 760px;
+  }
+
+  .historyCard summary {
+    min-height: 58px;
+  }
+
+  .historyFilters input,
+  .historyFilters select {
+    width: 100%;
+    min-height: 46px;
+  }
+
+  .historyPagination button {
+    min-width: 44px;
+  }
+
+  /* AI Stock Screener */
+  .heroRow {
+    align-items: stretch;
+  }
+
+  .heroRow .primaryButton {
+    min-height: 50px;
+  }
+
+  .summaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .summaryCard,
+  .filterCard,
+  .alertCard,
+  .rankingCard {
+    min-width: 0;
+  }
+
+  .filterGroup input,
+  .filterGroup select,
+  .alertControls input,
+  .alertControls select {
+    min-height: 46px;
+  }
+
+  .checkGroup,
+  .switchLabel {
+    min-height: 44px;
+  }
+
+  .checkGroup input,
+  .switchLabel input,
+  .watchButton {
+    width: 22px;
+    height: 22px;
+  }
+
+  .rankingCard .companyReason {
+    max-width: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .headerInner,
+  .pageMain,
+  .stocksPage,
+  .newsPage,
+  .detailHeader,
+  .detailGrid {
+    width: min(100% - 20px, 1440px);
+  }
+
+  .headerNavigation {
+    align-items: stretch;
+  }
+
+  .headerNavigation .backButton,
+  .headerNavigation .secondaryButton {
+    flex: 1 1 auto;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .dashboardCard,
+  .taskArea,
+  .calendarArea,
+  .chartPanel,
+  .newsPanel,
+  .marketCard,
+  .scoreCard,
+  .factorCard,
+  .inputCard,
+  .reasonCard,
+  .companyCard,
+  .newsCard,
+  .disclosureCard,
+  .sentimentCard,
+  .predictionOutputCard,
+  .dataQualityCard,
+  .marketEnvironmentCard,
+  .backtestCard,
+  .warningCard,
+  .improvementDashboard,
+  .performanceCard,
+  .filterCard,
+  .alertCard,
+  .rankingCard {
+    padding: 16px;
+    border-radius: 17px;
+  }
+
+  .marketQuoteGrid,
+  .scoreStatGrid,
+  .categoryScoreList,
+  .predictionOutputGrid,
+  .confidenceComponents,
+  .qualityGrid,
+  .marketEnvironmentGrid,
+  .metricsGrid,
+  .comparisonGrid,
+  .summaryGrid,
+  .filterGrid,
+  .alertControls,
+  .historyFilters {
+    grid-template-columns: 1fr;
+  }
+
+  .mainScoreArea {
+    align-items: center;
+  }
+
+  .scoreCircle {
+    align-self: center;
+  }
+
+  .scoreSummaryArea {
+    width: 100%;
+  }
+
+  .marketHeaderActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .stockChart,
+  .tradingviewChart,
+  .tradingviewChart iframe {
+    min-height: 300px;
+    height: 300px;
+  }
+
+  .tableContainer table {
+    min-width: 680px;
+  }
+
+  .historyPagination {
+    grid-template-columns: 1fr;
+  }
+
+  .historyPagination span {
+    order: -1;
+  }
+
+}
+
+@media (hover: none) and (pointer: coarse) {
+  button:hover,
+  a:hover,
+  .dashboardCard:hover,
+  .stockCard:hover,
+  .newsCard:hover,
+  .backButton:hover {
+    transform: none;
+  }
+}

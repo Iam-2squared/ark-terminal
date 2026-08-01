@@ -228,6 +228,7 @@ function returnMetrics(returns) {
     averageReturn: average(returns),
     medianReturn: median(returns),
     compoundedReturn: compoundedReturn(returns),
+    worstReturn: returns.length ? Math.min(...returns) : null,
     maximumDrawdown: returns.length
       ? maximumDrawdown(returns)
       : null,

@@ -108,6 +108,7 @@ test("総合成績は最終テストだけを集計し見送りを0%として扱
   assert.equal(summary.coverageRate, 2 / 3 * 100);
   assert.equal(summary.winRate, 50);
   assert.equal(summary.strategy.averageReturn, 2 / 3);
+  assert.equal(summary.adoptedStrategy.worstReturn, -1);
   assert.equal(summary.benchmark.averageReturn, 7 / 3);
   assert.ok(summary.warnings.length >= 1);
 });

@@ -207,8 +207,8 @@ function renderSummary(result) {
     formatSignedPercent(summary.averageExcessReturn),
   );
   setMetric(
-    "globalMetricDrawdown",
-    formatPercent(summary.strategy.maximumDrawdown),
+    "globalMetricWorstTrade",
+    formatSignedPercent(summary.adoptedStrategy.worstReturn),
   );
 
   renderWarnings(result);
@@ -309,7 +309,7 @@ export function initGlobalEvaluation() {
     "globalMetricStrategyReturn",
     "globalMetricBenchmarkReturn",
     "globalMetricExcessReturn",
-    "globalMetricDrawdown",
+    "globalMetricWorstTrade",
   ].forEach((id) => {
     elements[id] = document.getElementById(id);
   });

@@ -78,14 +78,27 @@ test("HomeとPrediction LabからDiscoveryへ移動できる", async () => {
   assert.match(prediction, /\.\.\/discovery\/index\.html/);
 });
 
-test("定期更新はmainへ直接pushしない", async () => {
+test("定期更新はデータ専用ブランチへ公開しmainへ直接pushしない", async () => {
   const workflow = await read(".github/workflows/update-screener.yml");
 
   assert.match(workflow, /automation\/screener-data/);
   assert.match(workflow, /screener-progress\.json/);
   assert.match(workflow, /SCREENER_BATCH_SIZE/);
-  assert.match(workflow, /gh pr create/);
+  assert.match(workflow, /git push --force-with-lease origin/);
+  assert.doesNotMatch(workflow, /gh pr create/);
   assert.doesNotMatch(workflow, /git push origin main/);
+});
+
+test("Discoveryは最新データをVercel API経由で自動取得する", async () => {
+  const [config, api] = await Promise.all([
+    read("discovery/config.js"),
+    read("api/screener-data.js"),
+  ]);
+
+  assert.match(config, /api\/screener-data\?type=universe/);
+  assert.match(config, /api\/screener-data\?type=snapshot/);
+  assert.match(api, /automation\/screener-data/);
+  assert.match(api, /stale-while-revalidate/);
 });
 
 test("ローカル開発ではService Workerが古いJSを返さない", async () => {

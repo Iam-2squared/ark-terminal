@@ -9,6 +9,7 @@
 
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="market.css" />
+    <link rel="stylesheet" href="ai-analysis.css" />
   </head>
 
   <body>
@@ -79,6 +80,14 @@
 
         <button id="runPredictionButton" class="primaryButton" type="button">
           分析を実行
+        </button>
+
+        <button
+          id="runAiAnalysisButton"
+          class="secondaryButton aiAnalysisButton"
+          type="button"
+        >
+          AI分析
         </button>
       </section>
 
@@ -403,6 +412,35 @@
 
           <div id="sentimentSummary" class="sentimentSummary">
             <p class="emptyState">接続状態を確認しています。</p>
+          </div>
+        </article>
+
+        <article
+          id="aiAnalysisCard"
+          class="aiAnalysisCard fullWidthCard"
+          aria-labelledby="aiAnalysisTitle"
+        >
+          <div class="cardHeader">
+            <div>
+              <p class="cardLabel">OpenAI Analysis</p>
+
+              <h2 id="aiAnalysisTitle">AI総合分析</h2>
+            </div>
+
+            <span id="aiAnalysisStatus" class="dataSourceBadge">
+              実行待ち
+            </span>
+          </div>
+
+          <p class="dataSourceDescription">
+            Ark Terminalが計算した指標・予測・市場環境をAIが整理し、
+            買い要因、売り要因、リスク、注目ポイントを説明します。
+          </p>
+
+          <p id="aiAnalysisError" class="aiAnalysisError" role="alert" hidden></p>
+
+          <div id="aiAnalysisResult" class="aiAnalysisResult">
+            <p class="emptyState">通常分析の完了後、「AI分析」を押してください。</p>
           </div>
         </article>
 

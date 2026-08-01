@@ -19,6 +19,7 @@ import {
   setPredictions,
 } from "./backtest/storage.js";
 import { extractPredictionFeatures } from "./learning/feature-extractor.js";
+import { initAiAnalysis, resetAiAnalysis } from "./ai-analysis.js";
 import { fetchAnalysisBundle } from "./data.js";
 import { initMarket, setMarketHistory } from "./market.js";
 import { normalizeSymbol } from "./symbols.js";
@@ -208,6 +209,7 @@ async function runAnalysis({ saveRecord = false } = {}) {
 
     setMarketHistory(latestState.history);
     renderAnalysis(latestState);
+    resetAiAnalysis();
 
     if (saveRecord) {
       saveCurrentPrediction(latestState);
@@ -299,6 +301,7 @@ function init() {
   applyQueryParameters();
   initializeRenderers();
   initMarket();
+  initAiAnalysis(() => latestState);
 
   inputs.runPredictionButton.addEventListener("click", () =>
     runAnalysis({ saveRecord: true }),

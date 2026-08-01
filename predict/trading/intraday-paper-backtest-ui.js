@@ -637,6 +637,49 @@ function renderWarnings(result) {
     );
   }
 
+  const diagnostics =
+    result.diagnostics || {};
+
+  if (
+    Number(
+      result.meta
+        ?.candidateCount || 0,
+    ) === 0 &&
+    Number(
+      result.meta
+        ?.signalEvaluationCount || 0,
+    ) > 0
+  ) {
+    warnings.push(
+      `候補0件の診断：判定${result.meta.signalEvaluationCount}回、` +
+      `15分足不足${diagnostics.insufficientDataCount || 0}回、` +
+      `通常の条件待ち${diagnostics.waitSetupCount || 0}回、` +
+      `最終リスクゲート拒否${diagnostics.planRejectedCount || 0}回。`,
+    );
+
+    const topReasons =
+      Object.entries(
+        diagnostics.reasonCounts || {},
+      )
+        .sort(
+          (first, second) =>
+            second[1] - first[1],
+        )
+        .slice(0, 3);
+
+    if (topReasons.length) {
+      warnings.push(
+        "主な見送り理由：" +
+        topReasons
+          .map(
+            ([reason, count]) =>
+              `${reason}（${count}回）`,
+          )
+          .join(" / "),
+      );
+    }
+  }
+
   Array.from(
     new Set(warnings),
   ).forEach((warning) => {
@@ -656,6 +699,12 @@ export function renderIntradayBacktest(
 
   const comparison =
     result.comparison || {};
+
+  const diagnostics =
+    result.diagnostics || {};
+
+  const featurePassCounts =
+    diagnostics.featurePassCounts || {};
 
   const totalReturnState =
     valueState(
@@ -812,6 +861,96 @@ export function renderIntradayBacktest(
       formatNumber(
         result.meta
           .candidateCount,
+        0,
+      ),
+    ),
+
+    createMetric(
+      "判定回数",
+      formatNumber(
+        result.meta
+          .signalEvaluationCount,
+        0,
+      ),
+    ),
+
+    createMetric(
+      "VWAP上 / 下",
+      `${formatNumber(
+        featurePassCounts.aboveVwap || 0,
+        0,
+      )} / ${formatNumber(
+        featurePassCounts.belowVwap || 0,
+        0,
+      )}`,
+    ),
+
+    createMetric(
+      "出来高急増",
+      formatNumber(
+        featurePassCounts.volumeSurge || 0,
+        0,
+      ),
+    ),
+
+    createMetric(
+      "高値 / 安値ブレイク",
+      `${formatNumber(
+        featurePassCounts.breakoutLong || 0,
+        0,
+      )} / ${formatNumber(
+        featurePassCounts.breakoutShort || 0,
+        0,
+      )}`,
+    ),
+
+    createMetric(
+      "押し目 / 戻り売り",
+      `${formatNumber(
+        featurePassCounts.pullbackLong || 0,
+        0,
+      )} / ${formatNumber(
+        featurePassCounts.pullbackShort || 0,
+        0,
+      )}`,
+    ),
+
+    createMetric(
+      "最大出来高倍率",
+      finite(
+        diagnostics.maximumVolumeRatio,
+      )
+        ? `${formatNumber(
+            diagnostics.maximumVolumeRatio,
+            2,
+          )}倍`
+        : "--",
+    ),
+
+    createMetric(
+      "最大セットアップ強度",
+      finite(
+        diagnostics.maximumSetupStrength,
+      )
+        ? `${formatNumber(
+            diagnostics.maximumSetupStrength,
+            0,
+          )} / 100`
+        : "--",
+    ),
+
+    createMetric(
+      "最終ゲート拒否",
+      formatNumber(
+        diagnostics.planRejectedCount || 0,
+        0,
+      ),
+    ),
+
+    createMetric(
+      "15分足不足判定",
+      formatNumber(
+        diagnostics.insufficientDataCount || 0,
         0,
       ),
     ),

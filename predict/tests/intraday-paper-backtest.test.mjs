@@ -538,3 +538,104 @@ test("セッションをまたぐ次足エントリーは標準設定で拒否�
     1,
   );
 });
+
+test("候補0件でも判定ゲート診断を集計する", () => {
+  const candles = [
+    candle(0),
+    candle(1),
+    candle(2),
+  ];
+
+  const result =
+    runIntradayPaperBacktest({
+      symbol: "7203.T",
+
+      intradayHistory: {
+        candles,
+      },
+
+      policy:
+        zeroCosts(),
+
+      decisionProvider: () => ({
+        paperCandidate: false,
+        action: "wait",
+
+        analysis: {
+          ready: true,
+          setup: "wait",
+
+          aboveVwap: true,
+          belowVwap: false,
+          volumeSurge: false,
+
+          breakoutLong: true,
+          breakoutShort: false,
+
+          reclaimLong: false,
+          reclaimShort: false,
+
+          pullbackLong: false,
+          pullbackShort: false,
+
+          volumeRatio: 1.7,
+          setupStrengthScore: 60,
+          dataQualityScore: 88,
+
+          reasons: [
+            "出来高不足",
+          ],
+        },
+
+        plan: {
+          reasons: [
+            "信頼度不足",
+          ],
+        },
+
+        reasons: [
+          "出来高不足",
+          "信頼度不足",
+        ],
+      }),
+    });
+
+  assert.equal(
+    result.meta.signalEvaluationCount,
+    1,
+  );
+
+  assert.equal(
+    result.diagnostics
+      .featurePassCounts
+      .aboveVwap,
+    1,
+  );
+
+  assert.equal(
+    result.diagnostics
+      .featurePassCounts
+      .breakoutLong,
+    1,
+  );
+
+  assert.equal(
+    result.diagnostics
+      .featurePassCounts
+      .volumeSurge,
+    0,
+  );
+
+  assert.equal(
+    result.diagnostics
+      .maximumVolumeRatio,
+    1.7,
+  );
+
+  assert.equal(
+    result.diagnostics
+      .reasonCounts
+      ["出来高不足"],
+    1,
+  );
+});

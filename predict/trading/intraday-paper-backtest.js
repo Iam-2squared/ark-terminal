@@ -169,6 +169,192 @@ function directionFromSide(side) {
   return "中立";
 }
 
+function incrementCounter(
+  target,
+  key,
+) {
+  const resolvedKey =
+    String(key || "unknown");
+
+  target[resolvedKey] =
+    Number(
+      target[resolvedKey] || 0,
+    ) + 1;
+}
+
+function createDecisionDiagnostics() {
+  return {
+    setupCounts: {},
+    reasonCounts: {},
+
+    featurePassCounts: {
+      aboveVwap: 0,
+      belowVwap: 0,
+      volumeSurge: 0,
+
+      breakoutLong: 0,
+      breakoutShort: 0,
+
+      reclaimLong: 0,
+      reclaimShort: 0,
+
+      pullbackLong: 0,
+      pullbackShort: 0,
+    },
+
+    analysisReadyCount: 0,
+    marketBlockedCount: 0,
+    insufficientDataCount: 0,
+    waitSetupCount: 0,
+
+    candidateDecisionCount: 0,
+    planRejectedCount: 0,
+
+    maximumVolumeRatio: null,
+    maximumSetupStrength: null,
+    minimumDataQuality: null,
+  };
+}
+
+function observeDecisionDiagnostics(
+  diagnostics,
+  decision,
+) {
+  const analysis =
+    decision?.analysis || {};
+
+  const plan =
+    decision?.plan || {};
+
+  const setup =
+    analysis.setup || "unknown";
+
+  incrementCounter(
+    diagnostics.setupCounts,
+    setup,
+  );
+
+  if (analysis.ready === true) {
+    diagnostics.analysisReadyCount += 1;
+  }
+
+  if (
+    analysis.marketBlocked === true
+  ) {
+    diagnostics.marketBlockedCount += 1;
+  }
+
+  if (
+    setup === "insufficient_data"
+  ) {
+    diagnostics.insufficientDataCount += 1;
+  }
+
+  if (setup === "wait") {
+    diagnostics.waitSetupCount += 1;
+  }
+
+  [
+    "aboveVwap",
+    "belowVwap",
+    "volumeSurge",
+    "breakoutLong",
+    "breakoutShort",
+    "reclaimLong",
+    "reclaimShort",
+    "pullbackLong",
+    "pullbackShort",
+  ].forEach((key) => {
+    if (analysis[key] === true) {
+      diagnostics
+        .featurePassCounts[key] += 1;
+    }
+  });
+
+  if (
+    finite(analysis.volumeRatio)
+  ) {
+    diagnostics.maximumVolumeRatio =
+      diagnostics.maximumVolumeRatio === null
+        ? Number(analysis.volumeRatio)
+        : Math.max(
+            diagnostics.maximumVolumeRatio,
+            Number(analysis.volumeRatio),
+          );
+  }
+
+  if (
+    finite(
+      analysis.setupStrengthScore,
+    )
+  ) {
+    diagnostics.maximumSetupStrength =
+      diagnostics.maximumSetupStrength === null
+        ? Number(
+            analysis.setupStrengthScore,
+          )
+        : Math.max(
+            diagnostics.maximumSetupStrength,
+            Number(
+              analysis.setupStrengthScore,
+            ),
+          );
+  }
+
+  if (
+    finite(
+      analysis.dataQualityScore,
+    )
+  ) {
+    diagnostics.minimumDataQuality =
+      diagnostics.minimumDataQuality === null
+        ? Number(
+            analysis.dataQualityScore,
+          )
+        : Math.min(
+            diagnostics.minimumDataQuality,
+            Number(
+              analysis.dataQualityScore,
+            ),
+          );
+  }
+
+  if (
+    decision?.paperCandidate === true
+  ) {
+    diagnostics.candidateDecisionCount += 1;
+  } else if (
+    ![
+      "wait",
+      "stale_data",
+      "insufficient_data",
+      "unknown",
+    ].includes(setup)
+  ) {
+    diagnostics.planRejectedCount += 1;
+  }
+
+  const reasons = new Set([
+    ...(decision?.reasons || []),
+    ...(analysis.reasons || []),
+    ...(plan.reasons || []),
+  ]);
+
+  reasons.forEach((reason) => {
+    if (
+      typeof reason === "string" &&
+      reason.trim()
+    ) {
+      incrementCounter(
+        diagnostics.reasonCounts,
+        reason.trim(),
+      );
+    }
+  });
+
+  return diagnostics;
+}
+
 function resolvePositionEvent({
   position,
   candle,
@@ -534,6 +720,9 @@ export function runIntradayPaperBacktest({
 
     totalCommission: 0,
     totalImpactCost: 0,
+
+    diagnostics:
+      createDecisionDiagnostics(),
   };
 
   let runningPeak =
@@ -1204,6 +1393,11 @@ export function runIntradayPaperBacktest({
           strategyPolicy,
       });
 
+    observeDecisionDiagnostics(
+      state.diagnostics,
+      decision,
+    );
+
     if (
       decision?.paperCandidate !==
       true
@@ -1329,6 +1523,9 @@ export function runIntradayPaperBacktest({
         state.exposedBars,
     },
 
+    diagnostics:
+      state.diagnostics,
+
     account: {
       initialEquity,
       endingEquity,
@@ -1405,4 +1602,6 @@ export const IntradayPaperBacktestInternals = {
   partialExitQuantity,
   markToMarket,
   benchmarkReturnPercent,
+  createDecisionDiagnostics,
+  observeDecisionDiagnostics,
 };

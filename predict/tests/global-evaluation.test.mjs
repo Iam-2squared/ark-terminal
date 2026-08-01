@@ -5,6 +5,7 @@ import {
   buildGlobalEvaluationSummary,
   createGlobalEvaluationBatchId,
   deduplicateGlobalEvaluationRecords,
+  mergeGlobalEvaluationRecords,
   parseGlobalEvaluationSymbols,
   runGlobalEvaluation,
 } from "../global-evaluation.js";
@@ -111,7 +112,7 @@ test("総合成績は最終テストだけを集計し見送りを0%として扱
   assert.ok(summary.warnings.length >= 1);
 });
 
-test("同じバッチ・銘柄・期間・時点の記録を重複排除する", () => {
+test("バッチが違っても同じ銘柄・期間・時点を重複排除する", () => {
   const first = resolvedRecord({
     batchId: "batch-1",
     strategyReturn: 1,
@@ -119,6 +120,7 @@ test("同じバッチ・銘柄・期間・時点の記録を重複排除する",
   const second = {
     ...first,
     id: "replacement",
+    batchId: "batch-2",
     strategyReturn: 2,
   };
   const result = deduplicateGlobalEvaluationRecords([
@@ -205,5 +207,37 @@ test("複数銘柄を順番に評価し失敗銘柄があっても継続する",
   assert.equal(
     progress.filter((item) => item.status === "loading").length,
     3,
+  );
+});
+test("新しい全銘柄評価で同じ時点の古い結果を置き換える", () => {
+  const ordinary = resolvedRecord({
+    id: "ordinary",
+    source: "live",
+    partition: null,
+  });
+  const oldGlobal = resolvedRecord({
+    id: "old-global",
+    batchId: "global-old",
+    evaluationScope: "global",
+    strategyReturn: -4,
+  });
+  const newGlobal = resolvedRecord({
+    id: "new-global",
+    batchId: "global-new",
+    evaluationScope: "global",
+    strategyReturn: 5,
+  });
+  const merged = mergeGlobalEvaluationRecords(
+    [ordinary, oldGlobal],
+    [newGlobal],
+  );
+
+  assert.equal(merged.records.length, 2);
+  assert.equal(merged.duplicateCount, 1);
+  assert.equal(
+    merged.records.find(
+      (record) => record.evaluationScope === "global",
+    ).strategyReturn,
+    5,
   );
 });

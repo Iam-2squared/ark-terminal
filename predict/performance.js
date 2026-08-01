@@ -15,6 +15,7 @@ import {
   recordMonth,
 } from "./learning/analytics.js";
 import { exportMachineLearningDataset } from "./learning/dataset.js";
+import { mergeGlobalEvaluationRecords } from "./global-evaluation.js";
 import {
   filterPredictionHistory,
   paginatePredictionHistory,
@@ -764,7 +765,11 @@ function bindActions() {
 async function init() {
   bindHistoryControls();
   bindActions();
-  state.records = await getPredictionsAsync();
+  const loadedRecords = await getPredictionsAsync();
+  state.records = mergeGlobalEvaluationRecords(
+    [],
+    loadedRecords,
+  ).records;
 
   const scheduleRender = globalThis.requestIdleCallback || globalThis.setTimeout;
 

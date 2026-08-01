@@ -21,6 +21,7 @@ import {
 import { extractPredictionFeatures } from "./learning/feature-extractor.js";
 import { initAiAnalysis, resetAiAnalysis } from "./ai-analysis.js";
 import { fetchAnalysisBundle } from "./data.js";
+import { initGlobalEvaluation } from "./global-evaluation-ui.js";
 import { initMarket, setMarketHistory } from "./market.js";
 import { normalizeSymbol } from "./symbols.js";
 import {
@@ -237,6 +238,7 @@ function replacePreviousBacktest(records) {
     (record) =>
       !(
         record.source === "walk-forward" &&
+        record.evaluationScope !== "global" &&
         record.symbol === latestState.symbol &&
         Number(record.period) === latestState.period
       ),
@@ -328,6 +330,7 @@ function init() {
   initializeRenderers();
   initMarket();
   initAiAnalysis(() => latestState);
+  initGlobalEvaluation();
 
   inputs.runPredictionButton.addEventListener("click", () =>
     runAnalysis({ saveRecord: true }),

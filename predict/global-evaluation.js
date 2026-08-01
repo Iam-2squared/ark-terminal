@@ -143,7 +143,6 @@ export function createGlobalEvaluationBatchId({
 
 export function globalEvaluationRecordKey(record = {}) {
   return [
-    record.batchId || "",
     record.symbol || "",
     Number(record.period) || 0,
     Number(record.analysisTime) || 0,
@@ -171,6 +170,42 @@ export function deduplicateGlobalEvaluationRecords(records = []) {
   };
 }
 
+export function isGlobalEvaluationRecord(record = {}) {
+  return (
+    record.evaluationScope === "global" ||
+    Boolean(record.batchVersion) ||
+    String(record.batchId || "").startsWith("global-")
+  );
+}
+
+export function mergeGlobalEvaluationRecords(
+  existingRecords = [],
+  incomingRecords = [],
+) {
+  const combined = [...existingRecords, ...incomingRecords];
+  const ordinaryRecords = combined.filter(
+    (record) => !isGlobalEvaluationRecord(record),
+  );
+  const globalRecords = combined.filter(isGlobalEvaluationRecord);
+  const deduplicated =
+    deduplicateGlobalEvaluationRecords(globalRecords);
+  const timestamp = (record) => {
+    const createdAt = new Date(record.createdAt || 0).getTime();
+
+    return Number.isFinite(createdAt)
+      ? createdAt
+      : Number(record.analysisTime) || 0;
+  };
+  const records = [
+    ...ordinaryRecords,
+    ...deduplicated.records,
+  ].sort((first, second) => timestamp(first) - timestamp(second));
+
+  return {
+    records,
+    duplicateCount: deduplicated.duplicateCount,
+  };
+}
 function resolvedTestRecords(records) {
   return (records || []).filter(
     (record) =>

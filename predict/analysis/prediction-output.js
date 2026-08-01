@@ -2,6 +2,11 @@ import {
   deriveTradeDecision,
   MODEL_VERSION,
 } from "../learning/evaluation-policy.js";
+import {
+  DEFAULT_MODEL_CALIBRATION,
+  directionFromScore,
+  normalizeModelCalibration,
+} from "../learning/model-calibration.js";
 
 function finite(value) {
   return (
@@ -14,18 +19,6 @@ function finite(value) {
 
 function clamp(value, minimum = 0, maximum = 100) {
   return Math.min(maximum, Math.max(minimum, Number(value)));
-}
-
-function directionFromScore(score) {
-  if (Number(score) >= 55) {
-    return "強気";
-  }
-
-  if (Number(score) <= 45) {
-    return "弱気";
-  }
-
-  return "中立";
 }
 
 function factorDirection(score) {
@@ -117,8 +110,13 @@ export function createPredictionOutput({
   records = [],
   symbol,
   marketEnvironment,
+  calibration = DEFAULT_MODEL_CALIBRATION,
 }) {
-  const direction = directionFromScore(analysis.totalScore);
+  const normalizedCalibration = normalizeModelCalibration(calibration);
+  const direction = directionFromScore(
+    analysis.totalScore,
+    normalizedCalibration,
+  );
   const atrPercent = Number(indicators.atr?.percent);
   const expectedMove = deriveExpectedMove({
     score: analysis.totalScore,
@@ -195,10 +193,15 @@ export function createPredictionOutput({
     direction,
     confidenceScore,
     dataQualityScore: quality?.qualityScore,
+    policy: {
+      minimumConfidenceScore:
+        normalizedCalibration.minimumConfidenceScore,
+    },
   });
 
   return {
     modelVersion: MODEL_VERSION,
+    modelCalibration: normalizedCalibration,
     direction,
     decision,
     evaluationThreshold: expectedMove.amplitude,

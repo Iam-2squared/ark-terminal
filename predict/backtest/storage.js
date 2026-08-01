@@ -158,6 +158,7 @@ export function createPredictionRecord({
   evaluationPolicy = null,
   evaluationThreshold = null,
   decision = null,
+  modelCalibration = null,
 }) {
   return {
     id: createId(),
@@ -195,6 +196,7 @@ export function createPredictionRecord({
     source,
     modelVersion,
     evaluationPolicy,
+    modelCalibration,
     evaluationThreshold: finiteNumber(evaluationThreshold)
       ? Number(evaluationThreshold)
       : null,

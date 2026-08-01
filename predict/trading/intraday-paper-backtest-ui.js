@@ -3,8 +3,8 @@ import {
 } from "../data.js";
 
 import {
-  runIntradayPaperBacktest,
-} from "./intraday-paper-backtest.js";
+  runIntradayBacktestModes,
+} from "./intraday-backtest-modes.js";
 
 const SVG_NAMESPACE =
   "http://www.w3.org/2000/svg";
@@ -608,7 +608,10 @@ function renderTrades(result) {
   elements.trades.append(wrapper);
 }
 
-function renderWarnings(result) {
+function renderWarnings(
+  result,
+  executableResult = null,
+) {
   elements.warnings.replaceChildren();
 
   const warnings = [
@@ -680,6 +683,37 @@ function renderWarnings(result) {
     }
   }
 
+  warnings.push(
+    "資産曲線と売買履歴は、単元制約を外したシグナル性能モードです。",
+  );
+
+  if (executableResult) {
+    const signalTrades =
+      Number(
+        result.metrics
+          ?.tradeCount || 0,
+      );
+
+    const executableTrades =
+      Number(
+        executableResult.metrics
+          ?.tradeCount || 0,
+      );
+
+    warnings.push(
+      `実行可能性モードは${executableResult.modeConstraints?.lotSize || 1}株単位・最大投資額${executableResult.modeConstraints?.maximumPositionPercent || 20}%です。`,
+    );
+
+    if (
+      signalTrades > 0 &&
+      executableTrades === 0
+    ) {
+      warnings.push(
+        "シグナルは発生していますが、現在の資産・売買単元・投資上限では実行可能な取引がありません。",
+      );
+    }
+  }
+
   Array.from(
     new Set(warnings),
   ).forEach((warning) => {
@@ -693,6 +727,8 @@ function renderWarnings(result) {
 
 export function renderIntradayBacktest(
   result,
+  executableResult = null,
+  modeComparison = {},
 ) {
   const metrics =
     result.metrics || {};
@@ -705,6 +741,10 @@ export function renderIntradayBacktest(
 
   const featurePassCounts =
     diagnostics.featurePassCounts || {};
+
+  const executableMetrics =
+    executableResult
+      ?.metrics || {};
 
   const totalReturnState =
     valueState(
@@ -719,8 +759,10 @@ export function renderIntradayBacktest(
   );
 
   elements.description.textContent =
-    `確定済み15分足${result.meta.closedBarCount}本を時系列順に検証し、` +
-    `${metrics.tradeCount}回のPaper取引を集計しました。`;
+    `確定済み15分足${result.meta.closedBarCount}本を時系列順に検証しました。` +
+    ` シグナル性能モード${metrics.tradeCount}回、` +
+    `実行可能性モード${executableMetrics.tradeCount || 0}回。` +
+    " 資産曲線と売買履歴はシグナル性能モードです。";
 
   const profitFactor =
     metrics.profitFactorState ===
@@ -736,6 +778,73 @@ export function renderIntradayBacktest(
         : "--";
 
   elements.summary.replaceChildren(
+    createMetric(
+      "詳細表示",
+      "シグナル性能",
+    ),
+
+    createMetric(
+      "シグナル取引",
+      formatNumber(
+        metrics.tradeCount,
+        0,
+      ),
+    ),
+
+    createMetric(
+      "シグナル総リターン",
+      formatPercent(
+        metrics.totalReturnPercent,
+        true,
+      ),
+      valueState(
+        metrics.totalReturnPercent,
+      ),
+    ),
+
+    createMetric(
+      "実行可能取引",
+      formatNumber(
+        executableMetrics.tradeCount || 0,
+        0,
+      ),
+    ),
+
+    createMetric(
+      "実行可能総リターン",
+      formatPercent(
+        executableMetrics.totalReturnPercent,
+        true,
+      ),
+      valueState(
+        executableMetrics.totalReturnPercent,
+      ),
+    ),
+
+    createMetric(
+      "取引数の差",
+      formatNumber(
+        modeComparison.tradeCountDifference || 0,
+        0,
+      ),
+    ),
+
+    createMetric(
+      "シグナル候補",
+      formatNumber(
+        modeComparison.signalCandidateCount || 0,
+        0,
+      ),
+    ),
+
+    createMetric(
+      "実行可能候補",
+      formatNumber(
+        modeComparison.executableCandidateCount || 0,
+        0,
+      ),
+    ),
+
     createMetric(
       "開始資産",
       formatCurrency(
@@ -972,7 +1081,10 @@ export function renderIntradayBacktest(
 
   renderEquityCurve(result);
   renderTrades(result);
-  renderWarnings(result);
+  renderWarnings(
+    result,
+    executableResult,
+  );
 }
 
 function renderError(message) {
@@ -1084,22 +1196,31 @@ export async function runIntradayBacktestUi() {
         },
       );
 
-    const result =
-      runIntradayPaperBacktest({
+    const modes =
+      runIntradayBacktestModes({
         symbol,
 
         intradayHistory:
           history,
 
-        policy: {
-          initialEquity:
-            paperEquity(),
+        initialEquity:
+          paperEquity(),
 
-          lotSize:
-            symbol.endsWith(".T")
-              ? 100
-              : 1,
+        executableLotSize:
+          symbol.endsWith(".T")
+            ? 100
+            : 1,
 
+        signalLotSize:
+          1,
+
+        signalMaximumPositionPercent:
+          100,
+
+        executableMaximumPositionPercent:
+          20,
+
+        commonPolicy: {
           commissionPercentPerSide:
             0.05,
 
@@ -1118,10 +1239,12 @@ export async function runIntradayBacktestUi() {
       });
 
     renderIntradayBacktest(
-      result,
+      modes.signal,
+      modes.executable,
+      modes.comparison,
     );
 
-    return result;
+    return modes;
   } catch (error) {
     if (
       error.name !==

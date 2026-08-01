@@ -8,10 +8,17 @@ import { scoreAnalysis } from "../analysis/scoring.js";
 import { deriveOptimizedWeights } from "../analysis/weights.js";
 import { BACKTEST_COSTS, BACKTEST_SPLIT } from "../config.js";
 import {
+  deriveTradeDecision,
   evaluateResolvedPrediction,
-  MODEL_VERSION,
 } from "../learning/evaluation-policy.js";
 import { extractPredictionFeatures } from "../learning/feature-extractor.js";
+import {
+  DEFAULT_MODEL_CALIBRATION,
+  directionFromScore,
+  generateCalibrationCandidates,
+  normalizeModelCalibration,
+  sameCalibration,
+} from "../learning/model-calibration.js";
 import { createPredictionRecord } from "./storage.js";
 
 function finite(value) {
@@ -53,16 +60,11 @@ function standardDeviation(values) {
   return Math.sqrt(variance);
 }
 
-export function determineDirection(score) {
-  if (Number(score) >= 55) {
-    return "強気";
-  }
-
-  if (Number(score) <= 45) {
-    return "弱気";
-  }
-
-  return "中立";
+export function determineDirection(
+  score,
+  calibration = DEFAULT_MODEL_CALIBRATION,
+) {
+  return directionFromScore(score, calibration);
 }
 
 function determineHit(direction, actualReturn, strategyReturn = null) {
@@ -113,10 +115,7 @@ function outcomeFor({ score, actualReturn, costs = BACKTEST_COSTS }) {
 }
 
 function resolvedOutcomeFor(record, actualReturn) {
-  if (
-    record.modelVersion === MODEL_VERSION &&
-    finite(record.evaluationThreshold)
-  ) {
+  if (finite(record.evaluationThreshold) && record.decision) {
     return evaluateResolvedPrediction({
       direction: record.direction || determineDirection(record.score),
       actualReturn,
@@ -257,6 +256,7 @@ function makeRecord({
   partition,
   costs,
   quality,
+  calibration = DEFAULT_MODEL_CALIBRATION,
 }) {
   const visibleCandles = candles.slice(0, index + 1);
   const indicators = calculateIndicators(visibleCandles, {
@@ -288,6 +288,7 @@ function makeRecord({
     records: [],
     symbol,
     marketEnvironment: null,
+    calibration,
   });
   const predictionPrice = Number(candles[index].close);
   const actualPrice = Number(candles[index + horizon].close);
@@ -330,6 +331,7 @@ function makeRecord({
     evaluationPolicy: prediction.evaluationPolicy,
     evaluationThreshold: prediction.evaluationThreshold,
     decision: prediction.decision,
+    modelCalibration: prediction.modelCalibration,
     partition,
     costAssumptions: costs,
     source: "walk-forward",
@@ -357,14 +359,82 @@ function makeRecord({
   };
 }
 
-function buildPartitionRecords(options, indexes, weights, partition) {
+function buildPartitionRecords(
+  options,
+  indexes,
+  weights,
+  partition,
+  calibration = DEFAULT_MODEL_CALIBRATION,
+) {
   return indexes.map((index) =>
     makeRecord({
       ...options,
       index,
       weights,
       partition,
+      calibration,
     }),
+  );
+}
+
+function recalibrateRecord(
+  record,
+  calibration,
+  costs = BACKTEST_COSTS,
+) {
+  const normalized = normalizeModelCalibration(calibration);
+  const direction = directionFromScore(record.score, normalized);
+  const decision = deriveTradeDecision({
+    direction,
+    confidenceScore: record.confidence?.score,
+    dataQualityScore: record.dataQuality?.qualityScore,
+    policy: {
+      minimumConfidenceScore: normalized.minimumConfidenceScore,
+    },
+  });
+  const outcome = evaluateResolvedPrediction({
+    direction,
+    actualReturn: record.actualReturn,
+    threshold: record.evaluationThreshold,
+    decision,
+    costs: record.costAssumptions || costs,
+  });
+
+  return {
+    ...record,
+    direction,
+    decision,
+    evaluationPolicy: decision.policy,
+    modelCalibration: normalized,
+    ...outcome,
+  };
+}
+
+function recalibrateRecords(records, calibration, costs) {
+  return records.map((record) =>
+    recalibrateRecord(record, calibration, costs),
+  );
+}
+
+function isBetterCandidate(candidate, current) {
+  if (candidate.objective > current.objective + 1e-9) {
+    return true;
+  }
+
+  if (Math.abs(candidate.objective - current.objective) > 1e-9) {
+    return false;
+  }
+
+  const candidateWinRate = Number(candidate.metrics.winRate || 0);
+  const currentWinRate = Number(current.metrics.winRate || 0);
+
+  if (candidateWinRate !== currentWinRate) {
+    return candidateWinRate > currentWinRate;
+  }
+
+  return (
+    Number(candidate.metrics.coverageRate || 0) >
+    Number(current.metrics.coverageRate || 0)
   );
 }
 
@@ -388,6 +458,7 @@ export function runWalkForwardBacktest({
   maximumSamples = 300,
   costs = BACKTEST_COSTS,
   historyMetadata = {},
+  calibration = DEFAULT_MODEL_CALIBRATION,
 }) {
   const horizon = Number(period);
   const quality = validateHistoryData(
@@ -428,66 +499,139 @@ export function runWalkForwardBacktest({
     costs,
     quality,
   };
+  const baselineCalibration = normalizeModelCalibration(calibration);
   const training = buildPartitionRecords(
     shared,
     partitions.training,
     weights,
     "training",
+    baselineCalibration,
   );
   const optimizationRecords = training.filter(
     (record) => record.hit === true || record.hit === false,
   );
   const optimized = deriveOptimizedWeights(optimizationRecords, weights);
-  const candidateWeights = optimized.updated ? optimized.weights : weights;
+  const weightCandidates = [
+    {
+      key: "base",
+      weights,
+    },
+  ];
+
+  if (optimized.updated) {
+    weightCandidates.push({
+      key: "optimized",
+      weights: optimized.weights,
+    });
+  }
+
+  const calibrationCandidates =
+    generateCalibrationCandidates(baselineCalibration);
   const validationBase = buildPartitionRecords(
     shared,
     partitions.validation,
     weights,
     "validation",
-  );
-  const validationCandidate = buildPartitionRecords(
-    shared,
-    partitions.validation,
-    candidateWeights,
-    "validation",
+    baselineCalibration,
   );
   const validationBaseMetrics = summarizePerformance(validationBase);
-  const validationCandidateMetrics = summarizePerformance(validationCandidate);
   const validationBaseObjective = validationObjective(validationBase);
-  const validationCandidateObjective =
-    validationObjective(validationCandidate);
   const minimumCandidateCoverage =
     Number(validationBaseMetrics.coverageRate || 0) * 0.8;
-  const acceptedOptimizedWeights =
-    optimized.updated &&
-    validationCandidateMetrics.sampleCount >=
-      BACKTEST_SPLIT.minimumPartitionSamples &&
-    Number(validationCandidateMetrics.coverageRate || 0) >=
-      minimumCandidateCoverage &&
-    Number.isFinite(validationCandidateObjective) &&
-    validationCandidateObjective >= validationBaseObjective;
-  const selectedWeights = acceptedOptimizedWeights ? candidateWeights : weights;
-  const validation = acceptedOptimizedWeights
-    ? validationCandidate
-    : validationBase;
+  let selected = {
+    weightKey: "base",
+    weights,
+    calibration: baselineCalibration,
+    records: validationBase,
+    metrics: validationBaseMetrics,
+    objective: validationBaseObjective,
+  };
+
+  weightCandidates.forEach((weightCandidate) => {
+    const rawValidation =
+      weightCandidate.key === "base"
+        ? validationBase
+        : buildPartitionRecords(
+            shared,
+            partitions.validation,
+            weightCandidate.weights,
+            "validation",
+            baselineCalibration,
+          );
+
+    calibrationCandidates.forEach((candidateCalibration) => {
+      const records = recalibrateRecords(
+        rawValidation,
+        candidateCalibration,
+        costs,
+      );
+      const metrics = summarizePerformance(records);
+      const objective = validationObjective(records);
+
+      if (
+        metrics.sampleCount < BACKTEST_SPLIT.minimumPartitionSamples ||
+        Number(metrics.coverageRate || 0) < minimumCandidateCoverage ||
+        !Number.isFinite(objective)
+      ) {
+        return;
+      }
+
+      const candidate = {
+        weightKey: weightCandidate.key,
+        weights: weightCandidate.weights,
+        calibration: candidateCalibration,
+        records,
+        metrics,
+        objective,
+      };
+
+      if (isBetterCandidate(candidate, selected)) {
+        selected = candidate;
+      }
+    });
+  });
+
+  const selectedWeights = selected.weights;
+  const selectedCalibration = selected.calibration;
+  const validation = selected.records;
+  const acceptedOptimizedWeights = selected.weightKey === "optimized";
+  const acceptedCalibration = !sameCalibration(
+    selectedCalibration,
+    baselineCalibration,
+  );
   const test = buildPartitionRecords(
     shared,
     partitions.test,
     selectedWeights,
     "test",
+    selectedCalibration,
   );
 
   return {
     records: [...training, ...validation, ...test],
     selectedWeights,
+    selectedCalibration,
     meta: {
       method: "anchored-walk-forward",
       spacingSessions: Math.max(horizon, 5),
       chronological: true,
       featureLeakageGuard: "各評価時点以前のローソク足だけで指標を再計算",
       weightsFrozenAfterTraining: true,
+      calibrationFrozenBeforeTest: true,
       optimizedWeightsAccepted: acceptedOptimizedWeights,
       optimizerMessage: optimized.message,
+      calibration: {
+        baseline: baselineCalibration,
+        selected: selectedCalibration,
+        accepted: acceptedCalibration,
+        candidateCount: calibrationCandidates.length,
+      },
+      validationComparison: {
+        baseline: validationBaseMetrics,
+        selected: selected.metrics,
+        baselineObjective: validationBaseObjective,
+        selectedObjective: selected.objective,
+      },
       costs: {
         ...costs,
         roundTripPercent: roundTripCostPercent(costs),
@@ -685,4 +829,8 @@ export const BacktestInternals = {
   maximumDrawdown,
   wilsonInterval,
   median,
+  recalibrateRecord,
+  recalibrateRecords,
+  validationObjective,
+  isBetterCandidate,
 };

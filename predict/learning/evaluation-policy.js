@@ -1,4 +1,4 @@
-export const MODEL_VERSION = "ark-evaluation-v2";
+export const MODEL_VERSION = "ark-evaluation-v3";
 
 export const EVALUATION_POLICY = Object.freeze({
   minimumConfidenceScore: 60,
@@ -63,7 +63,12 @@ export function deriveTradeDecision({
   direction,
   confidenceScore,
   dataQualityScore,
+  policy = EVALUATION_POLICY,
 }) {
+  const resolvedPolicy = {
+    ...EVALUATION_POLICY,
+    ...(policy || {}),
+  };
   const reasons = [];
 
   if (direction === "中立") {
@@ -73,20 +78,20 @@ export function deriveTradeDecision({
   if (!finite(confidenceScore)) {
     reasons.push("信頼度を算出できません。");
   } else if (
-    Number(confidenceScore) < EVALUATION_POLICY.minimumConfidenceScore
+    Number(confidenceScore) < resolvedPolicy.minimumConfidenceScore
   ) {
     reasons.push(
-      `信頼度が${EVALUATION_POLICY.minimumConfidenceScore}未満です。`,
+      `信頼度が${resolvedPolicy.minimumConfidenceScore}未満です。`,
     );
   }
 
   if (!finite(dataQualityScore)) {
     reasons.push("データ品質を確認できません。");
   } else if (
-    Number(dataQualityScore) < EVALUATION_POLICY.minimumDataQualityScore
+    Number(dataQualityScore) < resolvedPolicy.minimumDataQualityScore
   ) {
     reasons.push(
-      `データ品質が${EVALUATION_POLICY.minimumDataQualityScore}未満です。`,
+      `データ品質が${resolvedPolicy.minimumDataQualityScore}未満です。`,
     );
   }
 
@@ -98,7 +103,7 @@ export function deriveTradeDecision({
     reasons,
     modelVersion: MODEL_VERSION,
     policy: {
-      ...EVALUATION_POLICY,
+      ...resolvedPolicy,
     },
   };
 }

@@ -107,6 +107,7 @@ function saveCurrentPrediction(state) {
     evaluationPolicy: state.prediction.evaluationPolicy,
     evaluationThreshold: state.prediction.evaluationThreshold,
     decision: state.prediction.decision,
+    modelCalibration: state.prediction.modelCalibration,
   });
 
   savePrediction(record);
@@ -289,10 +290,17 @@ function runBacktest() {
     const coverage = finite(metrics.coverageRate)
       ? `採用率 ${formatNumber(metrics.coverageRate, 1)}%（採用${metrics.sampleCount}件・見送り${metrics.abstainCount}件）。`
       : "";
+    const calibration = result.selectedCalibration;
+    const calibrationStatus = result.meta.calibration.accepted
+      ? "検証期間で候補境界を採用"
+      : "既存境界を維持";
+    const calibrationText = calibration
+      ? `${calibrationStatus}（強気${calibration.bullishThreshold}以上・弱気${calibration.bearishThreshold}以下・最低信頼度${calibration.minimumConfidenceScore}）。`
+      : "";
 
     setBacktestStatus(
       `学習${result.meta.partitions.training}件・検証${result.meta.partitions.validation}件・最終テスト${result.meta.partitions.test}件。` +
-        `最終テスト勝率 ${winRate}${confidenceInterval}。${coverage}` +
+        `${calibrationText}最終テスト勝率 ${winRate}${confidenceInterval}。${coverage}` +
         '<a class="textLink" href="performance.html">成績ページを開く →</a>',
       true,
     );

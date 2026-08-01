@@ -1,3 +1,4 @@
+import { classifyActualReturn } from "../learning/evaluation-policy.js";
 import {
   DEFAULT_WEIGHTS,
   MINIMUM_OPTIMIZER_SAMPLES,
@@ -11,6 +12,35 @@ function finiteNumber(value) {
     value !== "" &&
     Number.isFinite(Number(value))
   );
+}
+
+function actualLabelFor(record) {
+  if (["上昇", "中立", "下落"].includes(record?.actualLabel)) {
+    return record.actualLabel;
+  }
+
+  const threshold = record?.labelThreshold ?? record?.evaluationThreshold;
+
+  if (finiteNumber(record?.actualReturn) && finiteNumber(threshold)) {
+    return classifyActualReturn({
+      actualReturn: record.actualReturn,
+      threshold,
+    });
+  }
+
+  if (finiteNumber(record?.actualReturn)) {
+    if (Number(record.actualReturn) > 0) return "上昇";
+    if (Number(record.actualReturn) < 0) return "下落";
+    return "中立";
+  }
+
+  return null;
+}
+
+function predictedLabelForFactor(score) {
+  if (Number(score) >= 55) return "上昇";
+  if (Number(score) <= 45) return "下落";
+  return null;
 }
 
 function copyDefaultWeights() {
@@ -94,8 +124,8 @@ export function deriveOptimizedWeights(records, currentWeights) {
     const samples = resolved.filter(
       (record) =>
         finiteNumber(record.factorScores[key]) &&
-        (Number(record.factorScores[key]) >= 55 ||
-          Number(record.factorScores[key]) <= 45),
+        predictedLabelForFactor(record.factorScores[key]) &&
+        actualLabelFor(record),
     );
 
     if (samples.length < MINIMUM_OPTIMIZER_SAMPLES) {
@@ -103,13 +133,11 @@ export function deriveOptimizedWeights(records, currentWeights) {
     }
 
     const correct = samples.filter((record) => {
-      const factorScore = Number(record.factorScores[key]);
+      const predictedLabel = predictedLabelForFactor(
+        record.factorScores[key],
+      );
 
-      const predictedUp = factorScore >= 55;
-
-      const actualUp = Number(record.actualReturn) > 0;
-
-      return predictedUp === actualUp;
+      return predictedLabel === actualLabelFor(record);
     }).length;
 
     const accuracy = correct / samples.length;
@@ -136,14 +164,15 @@ function factorEvidence(records, key) {
   const samples = records.filter(
     (record) =>
       finiteNumber(record.factorScores?.[key]) &&
-      (Number(record.factorScores[key]) >= 55 ||
-        Number(record.factorScores[key]) <= 45),
+      predictedLabelForFactor(record.factorScores[key]) &&
+      actualLabelFor(record),
   );
   const correct = samples.filter((record) => {
-    const predictedUp = Number(record.factorScores[key]) >= 55;
-    const actualUp = Number(record.actualReturn) > 0;
+    const predictedLabel = predictedLabelForFactor(
+      record.factorScores[key],
+    );
 
-    return predictedUp === actualUp;
+    return predictedLabel === actualLabelFor(record);
   }).length;
   const accuracy = samples.length ? (correct / samples.length) * 100 : null;
   const shrinkage = samples.length / (samples.length + 30);
@@ -270,4 +299,6 @@ export const WeightInternals = {
   normalizeWeights,
   factorEvidence,
   recommendationRecords,
+  actualLabelFor,
+  predictedLabelForFactor,
 };

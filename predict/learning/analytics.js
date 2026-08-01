@@ -27,7 +27,9 @@ function average(values) {
 function resolved(records) {
   return records.filter(
     (record) =>
-      record.status === "resolved" && finite(record.actualReturn),
+      record.status === "resolved" &&
+      finite(record.actualReturn) &&
+      (record.hit === true || record.hit === false),
   );
 }
 

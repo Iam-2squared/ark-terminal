@@ -29,10 +29,12 @@ export function filterPredictionHistory(records, filters = {}) {
       !symbol || String(record.symbol || "").toUpperCase() === symbol;
     const matchesResult =
       result === "all" ||
-      (result === "success" && record.status === "resolved" && record.hit) ||
+      (result === "success" &&
+        record.status === "resolved" &&
+        record.hit === true) ||
       (result === "failure" &&
         record.status === "resolved" &&
-        !record.hit);
+        record.hit === false);
     const matchesFrom = from === null || (createdAt !== null && createdAt >= from);
     const matchesTo = to === null || (createdAt !== null && createdAt <= to);
 

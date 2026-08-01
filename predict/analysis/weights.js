@@ -70,6 +70,7 @@ export function deriveOptimizedWeights(records, currentWeights) {
     (record) =>
       record.status === "resolved" &&
       finiteNumber(record.actualReturn) &&
+      (record.hit === true || record.hit === false) &&
       record.factorScores &&
       (!hasTrainingPartition || record.partition === "training"),
   );
@@ -167,7 +168,8 @@ function recommendationRecords(records) {
       (record) =>
         record.status === "resolved" &&
         finiteNumber(record.actualReturn) &&
-        record.factorScores &&
+        (record.hit === true || record.hit === false) &&
+      record.factorScores &&
         (!hasTrainingPartition || record.partition === "training"),
     ),
   };

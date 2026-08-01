@@ -103,6 +103,10 @@ function saveCurrentPrediction(state) {
     marketRegime: state.marketEnvironment?.regime || "未取得",
     market: state.context?.company?.exchange || "未取得",
     features: extractPredictionFeatures(state.indicators),
+    modelVersion: state.prediction.modelVersion,
+    evaluationPolicy: state.prediction.evaluationPolicy,
+    evaluationThreshold: state.prediction.evaluationThreshold,
+    decision: state.prediction.decision,
   });
 
   savePrediction(record);
@@ -282,10 +286,13 @@ function runBacktest() {
             1,
           )}%）`
         : "";
+    const coverage = finite(metrics.coverageRate)
+      ? `採用率 ${formatNumber(metrics.coverageRate, 1)}%（採用${metrics.sampleCount}件・見送り${metrics.abstainCount}件）。`
+      : "";
 
     setBacktestStatus(
       `学習${result.meta.partitions.training}件・検証${result.meta.partitions.validation}件・最終テスト${result.meta.partitions.test}件。` +
-        `最終テスト勝率 ${winRate}${confidenceInterval}。` +
+        `最終テスト勝率 ${winRate}${confidenceInterval}。${coverage}` +
         '<a class="textLink" href="performance.html">成績ページを開く →</a>',
       true,
     );

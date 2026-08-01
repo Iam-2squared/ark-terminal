@@ -3,10 +3,14 @@ import {
   validateIndicatorCalculations,
 } from "../analysis/data-quality.js";
 import { calculateIndicators } from "../analysis/indicators.js";
-import { deriveExpectedMove } from "../analysis/prediction-output.js";
+import { createPredictionOutput } from "../analysis/prediction-output.js";
 import { scoreAnalysis } from "../analysis/scoring.js";
 import { deriveOptimizedWeights } from "../analysis/weights.js";
 import { BACKTEST_COSTS, BACKTEST_SPLIT } from "../config.js";
+import {
+  evaluateResolvedPrediction,
+  MODEL_VERSION,
+} from "../learning/evaluation-policy.js";
 import { extractPredictionFeatures } from "../learning/feature-extractor.js";
 import { createPredictionRecord } from "./storage.js";
 
@@ -108,6 +112,27 @@ function outcomeFor({ score, actualReturn, costs = BACKTEST_COSTS }) {
   };
 }
 
+function resolvedOutcomeFor(record, actualReturn) {
+  if (
+    record.modelVersion === MODEL_VERSION &&
+    finite(record.evaluationThreshold)
+  ) {
+    return evaluateResolvedPrediction({
+      direction: record.direction || determineDirection(record.score),
+      actualReturn,
+      threshold: record.evaluationThreshold,
+      decision: record.decision,
+      costs: record.costAssumptions || BACKTEST_COSTS,
+    });
+  }
+
+  return outcomeFor({
+    score: record.score,
+    actualReturn,
+    costs: record.costAssumptions || BACKTEST_COSTS,
+  });
+}
+
 export function resolvePredictions(records, symbol, candles) {
   const ordered = [...candles].sort(
     (first, second) => first.time - second.time,
@@ -143,11 +168,7 @@ export function resolvePredictions(records, symbol, candles) {
       ((actualPrice - Number(record.predictionPrice)) /
         Number(record.predictionPrice)) *
       100;
-    const outcome = outcomeFor({
-      score: record.score,
-      actualReturn,
-      costs: record.costAssumptions || BACKTEST_COSTS,
-    });
+    const outcome = resolvedOutcomeFor(record, actualReturn);
 
     changed = true;
     const forecastError = finite(record.expectedReturn)
@@ -259,22 +280,28 @@ function makeRecord({
     context: {},
     weights,
   });
+  const prediction = createPredictionOutput({
+    analysis,
+    indicators,
+    quality,
+    period: horizon,
+    records: [],
+    symbol,
+    marketEnvironment: null,
+  });
   const predictionPrice = Number(candles[index].close);
   const actualPrice = Number(candles[index + horizon].close);
   const actualReturn =
     ((actualPrice - predictionPrice) / predictionPrice) * 100;
-  const outcome = outcomeFor({
-    score: analysis.totalScore,
+  const outcome = evaluateResolvedPrediction({
+    direction: prediction.direction,
     actualReturn,
+    threshold: prediction.evaluationThreshold,
+    decision: prediction.decision,
     costs,
   });
-  const expectedMove = deriveExpectedMove({
-    score: analysis.totalScore,
-    atrPercent: indicators.atr?.percent,
-    period: horizon,
-  });
-  const forecastError = finite(expectedMove.expectedReturn)
-    ? actualReturn - expectedMove.expectedReturn
+  const forecastError = finite(prediction.expectedReturn)
+    ? actualReturn - prediction.expectedReturn
     : null;
   const record = createPredictionRecord({
     symbol,
@@ -288,26 +315,21 @@ function makeRecord({
     predictionPrice,
     analysisTime: candles[index].time,
     factorScores: createFactorScoreMap(analysis.factors),
-    direction: outcome.direction,
-    expectedReturn: expectedMove.expectedReturn,
-    expectedMoveRange: finite(expectedMove.lower)
-      ? {
-          lower: expectedMove.lower,
-          upper: expectedMove.upper,
-          amplitude: expectedMove.amplitude,
-          center: expectedMove.expectedReturn,
-          method: expectedMove.method,
-        }
-      : null,
-    downsideRisk: finite(expectedMove.lower)
-      ? Math.abs(Math.min(0, expectedMove.lower))
-      : null,
+    direction: prediction.direction,
+    expectedReturn: prediction.expectedReturn,
+    expectedMoveRange: prediction.expectedMoveRange,
+    downsideRisk: prediction.downsideRisk,
+    confidence: prediction.confidence,
     features: extractPredictionFeatures(indicators),
     dataQuality: {
       status: quality.status,
       qualityScore: quality.qualityScore,
       missingRate: quality.missingRate,
     },
+    modelVersion: prediction.modelVersion,
+    evaluationPolicy: prediction.evaluationPolicy,
+    evaluationThreshold: prediction.evaluationThreshold,
+    decision: prediction.decision,
     partition,
     costAssumptions: costs,
     source: "walk-forward",
@@ -363,7 +385,7 @@ export function runWalkForwardBacktest({
   industry,
   period,
   weights,
-  maximumSamples = 120,
+  maximumSamples = 300,
   costs = BACKTEST_COSTS,
   historyMetadata = {},
 }) {
@@ -412,7 +434,10 @@ export function runWalkForwardBacktest({
     weights,
     "training",
   );
-  const optimized = deriveOptimizedWeights(training, weights);
+  const optimizationRecords = training.filter(
+    (record) => record.hit === true || record.hit === false,
+  );
+  const optimized = deriveOptimizedWeights(optimizationRecords, weights);
   const candidateWeights = optimized.updated ? optimized.weights : weights;
   const validationBase = buildPartitionRecords(
     shared,
@@ -426,10 +451,21 @@ export function runWalkForwardBacktest({
     candidateWeights,
     "validation",
   );
+  const validationBaseMetrics = summarizePerformance(validationBase);
+  const validationCandidateMetrics = summarizePerformance(validationCandidate);
+  const validationBaseObjective = validationObjective(validationBase);
+  const validationCandidateObjective =
+    validationObjective(validationCandidate);
+  const minimumCandidateCoverage =
+    Number(validationBaseMetrics.coverageRate || 0) * 0.8;
   const acceptedOptimizedWeights =
     optimized.updated &&
-    validationObjective(validationCandidate) >=
-      validationObjective(validationBase);
+    validationCandidateMetrics.sampleCount >=
+      BACKTEST_SPLIT.minimumPartitionSamples &&
+    Number(validationCandidateMetrics.coverageRate || 0) >=
+      minimumCandidateCoverage &&
+    Number.isFinite(validationCandidateObjective) &&
+    validationCandidateObjective >= validationBaseObjective;
   const selectedWeights = acceptedOptimizedWeights ? candidateWeights : weights;
   const validation = acceptedOptimizedWeights
     ? validationCandidate
@@ -560,7 +596,7 @@ function wilsonInterval(wins, sampleCount, z = 1.96) {
 }
 
 export function summarizePerformance(allRecords) {
-  const records = allRecords
+  const resolved = allRecords
     .filter(
       (record) => record.status === "resolved" && finite(record.actualReturn),
     )
@@ -569,6 +605,10 @@ export function summarizePerformance(allRecords) {
         new Date(first.resolvedAt || first.createdAt) -
         new Date(second.resolvedAt || second.createdAt),
     );
+  const records = resolved.filter(
+    (record) => record.hit === true || record.hit === false,
+  );
+  const abstainCount = resolved.length - records.length;
   const wins = records.filter((record) => record.hit);
   const returns = returnsFor(records).filter(finite);
   const positiveReturns = returns.filter((value) => value > 0);
@@ -582,7 +622,12 @@ export function summarizePerformance(allRecords) {
   );
 
   return {
+    resolvedCount: resolved.length,
     sampleCount: records.length,
+    abstainCount,
+    coverageRate: resolved.length
+      ? (records.length / resolved.length) * 100
+      : null,
     winRate: records.length ? (wins.length / records.length) * 100 : null,
     winRateConfidenceInterval: wilsonInterval(wins.length, records.length),
     averageReturn: average(returns),

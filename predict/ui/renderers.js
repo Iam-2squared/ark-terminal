@@ -313,7 +313,10 @@ function renderPredictionOutput(prediction) {
     return;
   }
 
-  elements.predictionDirection.textContent = prediction.direction;
+  elements.predictionDirection.textContent =
+    prediction.decision?.isActionable === false
+      ? `見送り（${prediction.direction}シグナル）`
+      : prediction.direction;
   elements.expectedMoveRange.textContent = prediction.expectedMoveRange
     ? `${formatPercent(prediction.expectedMoveRange.lower)} ～ ${formatPercent(
         prediction.expectedMoveRange.upper,
@@ -323,7 +326,10 @@ function renderPredictionOutput(prediction) {
     ? `-${formatNumber(prediction.downsideRisk, 2)}%`
     : "--";
   elements.confidenceScore.textContent = `${prediction.confidence.score} / 100`;
-  elements.confidenceBadge.textContent = `信頼度 ${prediction.confidence.label}`;
+  elements.confidenceBadge.textContent =
+    prediction.decision?.isActionable === false
+      ? `信頼度 ${prediction.confidence.label}・見送り`
+      : `信頼度 ${prediction.confidence.label}・採用`;
   elements.confidenceBadge.className = "dataSourceBadge";
   elements.confidenceComponents.innerHTML = prediction.confidence.components
     .map(

@@ -270,6 +270,7 @@ h2 {
 .marketEnvironmentCard,
 .backtestCard,
 .globalEvaluationCard,
+.intradayTradingCard,
 .warningCard {
   padding: 24px;
 
@@ -1060,6 +1061,7 @@ h2 {
   .marketEnvironmentCard,
   .backtestCard,
   .globalEvaluationCard,
+  .intradayTradingCard,
   .warningCard {
     padding: 20px;
     border-radius: 20px;
@@ -1112,5 +1114,120 @@ h2 {
 
   .factorMeta {
     flex-direction: column;
+  }
+}
+
+.intradayTradingControls {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns:
+    minmax(200px, 0.7fr)
+    minmax(180px, 0.6fr)
+    auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.intradayTradingControls > div {
+  display: grid;
+  gap: 8px;
+}
+
+.intradayTradingControls label,
+.intradayExecutionMode span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.intradayTradingControls input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  outline: none;
+}
+
+.intradayTradingControls input:focus {
+  border-color: rgba(79, 124, 255, 0.65);
+}
+
+.intradayExecutionMode {
+  min-height: 42px;
+  padding: 9px 12px;
+  background: rgba(79, 124, 255, 0.08);
+  border: 1px solid rgba(79, 124, 255, 0.2);
+  border-radius: 11px;
+}
+
+.intradayExecutionMode strong {
+  font-size: 13px;
+}
+
+.intradayTradingSummary {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns:
+    repeat(auto-fit, minmax(145px, 1fr));
+  gap: 10px;
+}
+
+.intradayTradingMetric {
+  min-width: 0;
+  padding: 12px 13px;
+  display: grid;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+}
+
+.intradayTradingMetric span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.intradayTradingMetric strong {
+  overflow-wrap: anywhere;
+  font-size: 17px;
+}
+
+.intradayTradingReasons {
+  margin-top: 18px;
+  display: grid;
+  gap: 8px;
+}
+
+.intradayTradingReason {
+  padding: 11px 13px;
+  color: #dce3f6;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.intradayTradingNotice {
+  margin: 18px 0 0;
+  padding-top: 14px;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+@media (max-width: 760px) {
+  .intradayTradingControls {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .intradayTradingControls .secondaryButton {
+    width: 100%;
   }
 }

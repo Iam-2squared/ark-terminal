@@ -1,4 +1,4 @@
-const CACHE_NAME = "ark-terminal-v10";
+const CACHE_NAME = "ark-terminal-v11";
 
 const APP_SHELL = [
     "./",
@@ -12,6 +12,10 @@ const APP_SHELL = [
     "./predict/index.html",
     "./predict/style.css",
     "./predict/script.js",
+    "./predict/trading/intraday-market.js",
+    "./predict/trading/short-term-core.js",
+    "./predict/trading/intraday-trading-decision.js",
+    "./predict/trading/intraday-trading-ui.js",
     "./predict/global-evaluation.js",
     "./predict/global-evaluation-ui.js",
     "./predict/performance.html",

@@ -321,10 +321,15 @@ async function init() {
       );
       await liveScan(selectedUniverseSymbols(INITIAL_LIVE_SCAN_LIMIT));
     } else {
+      const sourceBranch = state.meta.delivery?.sourceBranch;
+      const automatic = sourceBranch === "automation/screener-data";
+
       setStatus(
         elements,
         "success",
-        "定期バッチで作成した全市場スナップショットを表示しています。",
+        automatic
+          ? "GitHub Actionsの最新データを自動取得して表示しています。"
+          : "定期バッチで作成した全市場スナップショットを表示しています。",
       );
       runBrowserAlerts(state.entries, state.watchlist);
     }

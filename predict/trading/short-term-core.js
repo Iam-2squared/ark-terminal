@@ -1,5 +1,5 @@
 export const SHORT_TERM_MODEL_VERSION =
-  "short-term-trading-core-v1";
+  "short-term-cash-buy-core-v2";
 
 export const POSITION_SIDES = Object.freeze({
   FLAT: "flat",
@@ -21,7 +21,7 @@ export const DEFAULT_SHORT_TERM_POLICY = Object.freeze({
   paperTradingOnly: true,
   requireSpreadData: true,
   allowLong: true,
-  allowShort: true,
+  allowShort: false,
 
   riskPerTradePercent: 0.5,
   maximumPositionPercent: 20,
@@ -226,7 +226,18 @@ export function evaluateEntryGate({
     side === POSITION_SIDES.SHORT &&
     !resolvedPolicy.allowShort
   ) {
-    reasons.push("空売り方向が無効です。");
+    return {
+      allowed: false,
+      wait: true,
+      side: POSITION_SIDES.FLAT,
+
+      reasons: [
+        "下降シグナルのため現物買いを見送ります。空売りは無効です。",
+      ],
+
+      policy:
+        resolvedPolicy,
+    };
   }
 
   if (!positive(signal.currentPrice)) {

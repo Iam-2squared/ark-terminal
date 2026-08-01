@@ -125,13 +125,17 @@ test("買い計画にATR損切り・2段階利確・数量を設定する", () =
   );
 });
 
-test("弱気シグナルから空売り計画を作成する", () => {
+test("明示的に許可した場合だけ空売り計画を作成する", () => {
   const plan = createShortTermTradePlan({
     signal: signal({
       direction: "弱気",
     }),
     account: account(),
     lotSize: 100,
+
+    policy: {
+      allowShort: true,
+    },
   });
 
   assert.equal(plan.executable, true);
@@ -296,6 +300,59 @@ test("市場停止中の中立シグナルは待機ではなく拒否する", ()
   assert.equal(
     plan.reasons.some((reason) =>
       reason.includes("市場終了"),
+    ),
+    true,
+  );
+});
+
+test("標準設定では弱気シグナルを現物買い見送りにする", () => {
+  assert.equal(
+    DEFAULT_SHORT_TERM_POLICY
+      .allowShort,
+    false,
+  );
+
+  const plan =
+    createShortTermTradePlan({
+      signal: signal({
+        direction: "弱気",
+      }),
+
+      account: account(),
+      lotSize: 100,
+    });
+
+  assert.equal(
+    plan.executable,
+    false,
+  );
+
+  assert.equal(
+    plan.action,
+    TRADE_ACTIONS.WAIT,
+  );
+
+  assert.equal(
+    plan.side,
+    POSITION_SIDES.FLAT,
+  );
+
+  assert.equal(
+    plan.reasons.some(
+      (reason) =>
+        reason.includes(
+          "現物買いを見送",
+        ),
+    ),
+    true,
+  );
+
+  assert.equal(
+    plan.reasons.some(
+      (reason) =>
+        reason.includes(
+          "空売りは無効",
+        ),
     ),
     true,
   );

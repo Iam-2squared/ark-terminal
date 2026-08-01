@@ -84,6 +84,8 @@ export function runIntradayBacktestModes({
           ?.trading || {}
       ),
 
+      allowShort: false,
+
       maximumPositionPercent:
         Number(
           executableMaximumPositionPercent,
@@ -99,6 +101,8 @@ export function runIntradayBacktestModes({
         commonStrategyPolicy
           ?.trading || {}
       ),
+
+      allowShort: false,
 
       maximumPositionPercent:
         Number(

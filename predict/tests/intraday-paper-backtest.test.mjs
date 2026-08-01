@@ -386,7 +386,7 @@ test("第1利確後に残数量を第2利確できる", () => {
   );
 });
 
-test("空売り候補も次足始値から利益を計算できる", () => {
+test("空売り候補は標準設定で取引せず現物買いを見送る", () => {
   const candles = [
     candle(0),
     candle(1),
@@ -418,12 +418,18 @@ test("空売り候補も次足始値から利益を計算できる", () => {
     });
 
   assert.equal(
-    result.trades[0].side,
-    "short",
+    result.trades.length,
+    0,
   );
 
-  assert.ok(
-    result.trades[0].netPnl > 0,
+  assert.equal(
+    result.meta.candidateCount,
+    1,
+  );
+
+  assert.equal(
+    result.meta.skippedCandidateCount,
+    1,
   );
 });
 

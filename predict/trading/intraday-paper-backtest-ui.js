@@ -687,6 +687,10 @@ function renderWarnings(
     "資産曲線と売買履歴は、単元制約を外したシグナル性能モードです。",
   );
 
+  warnings.push(
+    "現在の短期戦略は現物買いのみです。下降シグナルは空売りせず、買い見送りとして扱います。",
+  );
+
   if (executableResult) {
     const signalTrades =
       Number(

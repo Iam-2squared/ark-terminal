@@ -1,7 +1,4 @@
-import {
-  buildIntradayCandles,
-  normalizeIntradaySymbol,
-} from "../predict/trading/intraday-market.js";
+const INTRADAY_INTERVAL_SECONDS = 15 * 60;
 
 const allowedRanges = new Set([
   "1d",
@@ -12,6 +9,175 @@ const allowedRanges = new Set([
 const allowedIntervals = new Set([
   "15m",
 ]);
+
+function finite(value) {
+  return (
+    value !== null &&
+    value !== undefined &&
+    value !== "" &&
+    Number.isFinite(Number(value))
+  );
+}
+
+function positive(value) {
+  return finite(value) && Number(value) > 0;
+}
+
+function normalizeIntradaySymbol(value) {
+  const symbol = String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, "");
+
+  if (/^(?:\d{4}|\d{3}[A-Z])$/.test(symbol)) {
+    return `${symbol}.T`;
+  }
+
+  return symbol;
+}
+
+function intradaySessionDate(
+  time,
+  timeZone = "UTC",
+) {
+  if (!finite(time)) {
+    return null;
+  }
+
+  const date = new Date(Number(time) * 1000);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  try {
+    const parts = new Intl.DateTimeFormat(
+      "en-US",
+      {
+        timeZone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      },
+    ).formatToParts(date);
+
+    const values = Object.fromEntries(
+      parts
+        .filter((part) =>
+          ["year", "month", "day"].includes(
+            part.type,
+          ),
+        )
+        .map((part) => [
+          part.type,
+          part.value,
+        ]),
+    );
+
+    if (
+      values.year &&
+      values.month &&
+      values.day
+    ) {
+      return `${values.year}-${values.month}-${values.day}`;
+    }
+  } catch {
+    // 不明なタイムゾーンではUTCへフォールバックする。
+  }
+
+  return date.toISOString().slice(0, 10);
+}
+
+function buildIntradayCandles(
+  result = {},
+  {
+    nowSeconds = Math.floor(Date.now() / 1000),
+  } = {},
+) {
+  const timestamps = result.timestamp || [];
+  const quote =
+    result.indicators?.quote?.[0] || {};
+
+  const timeZone =
+    result.meta?.exchangeTimezoneName ||
+    result.meta?.timezone ||
+    "UTC";
+
+  const rows = timestamps.map(
+    (time, index) => {
+      const open = Number(quote.open?.[index]);
+      const high = Number(quote.high?.[index]);
+      const low = Number(quote.low?.[index]);
+      const close = Number(quote.close?.[index]);
+
+      const rawVolume =
+        quote.volume?.[index];
+
+      const volume = finite(rawVolume)
+        ? Number(rawVolume)
+        : null;
+
+      if (
+        !finite(time) ||
+        !positive(open) ||
+        !positive(high) ||
+        !positive(low) ||
+        !positive(close) ||
+        high < low
+      ) {
+        return null;
+      }
+
+      return {
+        time: Number(time),
+        open,
+        high,
+        low,
+        close,
+        volume:
+          finite(volume) && volume >= 0
+            ? volume
+            : null,
+
+        sessionDate:
+          intradaySessionDate(
+            time,
+            timeZone,
+          ),
+
+        isClosed:
+          Number(time) +
+            INTRADAY_INTERVAL_SECONDS <=
+          Number(nowSeconds),
+      };
+    },
+  );
+
+  const candles = rows.filter(Boolean);
+
+  return {
+    candles,
+
+    sourceRowCount:
+      rows.length,
+
+    droppedRowCount:
+      rows.length - candles.length,
+
+    closedRowCount:
+      candles.filter(
+        (candle) => candle.isClosed,
+      ).length,
+
+    volumeRowCount:
+      candles.filter(
+        (candle) =>
+          finite(candle.volume),
+      ).length,
+
+    timeZone,
+  };
+}
 
 async function fetchYahooIntraday({
   symbol,
@@ -57,6 +223,7 @@ async function fetchYahooIntraday({
   }
 
   const result = chart.result[0];
+
   const built =
     buildIntradayCandles(result);
 
@@ -72,50 +239,62 @@ async function fetchYahooIntraday({
     symbol,
     range,
     interval,
+
     provider: "yahoo-finance",
+
     adjustmentMethod:
       "raw-intraday-ohlcv",
 
     meta: {
-      currency: meta.currency || null,
+      currency:
+        meta.currency || null,
+
       exchangeName:
         meta.exchangeName ||
         meta.fullExchangeName ||
         null,
+
       instrumentType:
         meta.instrumentType || null,
+
       timezone:
         meta.exchangeTimezoneName ||
         null,
+
       regularMarketPrice:
-        Number.isFinite(
-          Number(meta.regularMarketPrice),
-        )
+        finite(meta.regularMarketPrice)
           ? Number(meta.regularMarketPrice)
           : null,
+
       regularMarketTime:
-        Number.isFinite(
-          Number(meta.regularMarketTime),
-        )
+        finite(meta.regularMarketTime)
           ? Number(meta.regularMarketTime)
           : null,
+
       dataGranularity:
-        meta.dataGranularity || interval,
+        meta.dataGranularity ||
+        interval,
     },
 
     sourceQuality: {
       sourceRowCount:
         built.sourceRowCount,
+
       droppedRowCount:
         built.droppedRowCount,
+
       closedRowCount:
         built.closedRowCount,
+
       volumeRowCount:
         built.volumeRowCount,
     },
 
-    candles: built.candles,
-    updatedAt: new Date().toISOString(),
+    candles:
+      built.candles,
+
+    updatedAt:
+      new Date().toISOString(),
   };
 }
 
@@ -148,21 +327,23 @@ export default async function handler(
     });
   }
 
-  const symbol = normalizeIntradaySymbol(
-    request.query.symbol,
-  );
+  const symbol =
+    normalizeIntradaySymbol(
+      request.query?.symbol,
+    );
 
   const range = allowedRanges.has(
-    request.query.range,
+    request.query?.range,
   )
     ? request.query.range
     : "5d";
 
-  const interval = allowedIntervals.has(
-    request.query.interval,
-  )
-    ? request.query.interval
-    : "15m";
+  const interval =
+    allowedIntervals.has(
+      request.query?.interval,
+    )
+      ? request.query.interval
+      : "15m";
 
   if (!symbol) {
     return response.status(400).json({
@@ -190,6 +371,10 @@ export default async function handler(
     return response.status(502).json({
       error:
         "15分足データの取得に失敗しました。",
+
+      detail:
+        error?.message || null,
+
       symbol,
     });
   }
@@ -198,5 +383,10 @@ export default async function handler(
 export const IntradayApiInternals = {
   allowedRanges,
   allowedIntervals,
+  finite,
+  positive,
+  normalizeIntradaySymbol,
+  intradaySessionDate,
+  buildIntradayCandles,
   fetchYahooIntraday,
 };

@@ -1575,3 +1575,77 @@ h2 {
     width: 100%;
   }
 }
+
+.tradeMemory {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.tradeMemoryHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tradeMemoryHeader h4 {
+  margin: 4px 0 0;
+}
+
+.tradeMemorySummary {
+  margin-top: 13px;
+  display: grid;
+  grid-template-columns:
+    repeat(auto-fit, minmax(100px, 1fr));
+  gap: 8px;
+}
+
+.tradeMemoryMetric {
+  padding: 10px 11px;
+  display: grid;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+}
+
+.tradeMemoryMetric span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.tradeMemoryMetric strong {
+  font-size: 17px;
+}
+
+.tradeMemoryList {
+  margin-top: 13px;
+  display: grid;
+  gap: 8px;
+}
+
+.tradeMemoryRow {
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.tradeMemoryRowHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tradeMemoryRow p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.tradeMemoryRowSummary {
+  color: var(--text) !important;
+}

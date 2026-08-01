@@ -2,6 +2,13 @@ import {
   ARK_API_BASE,
 } from "../config.js";
 
+import {
+  createTradeMemoryRecord,
+  getTradeMemory,
+  saveTradeMemoryRecord,
+  summarizeTradeMemory,
+} from "./trade-memory.js";
+
 const AI_TRADE_GATE_TIMEOUT_MS =
   35_000;
 
@@ -641,6 +648,163 @@ function renderList(
   container.append(section);
 }
 
+function formatMemoryDate(value) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "--";
+  }
+
+  return new Intl.DateTimeFormat("ja-JP", {
+    timeZone: "Asia/Tokyo",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function renderTradeMemory() {
+  if (
+    !elements.memorySummary ||
+    !elements.memoryList
+  ) {
+    return;
+  }
+
+  const records = getTradeMemory();
+  const summary =
+    summarizeTradeMemory(records);
+
+  elements.memorySummary.replaceChildren();
+
+  [
+    ["保存件数", summary.totalCount],
+    ["承認", summary.approveCount],
+    ["待機", summary.waitCount],
+    ["拒否", summary.rejectCount],
+    ["結果待ち", summary.pendingCount],
+  ].forEach(([label, value]) => {
+    const item =
+      document.createElement("div");
+
+    item.className =
+      "tradeMemoryMetric";
+
+    const caption =
+      document.createElement("span");
+
+    caption.textContent = label;
+
+    const number =
+      document.createElement("strong");
+
+    number.textContent =
+      String(value);
+
+    item.append(caption, number);
+    elements.memorySummary.append(item);
+  });
+
+  elements.memoryList.replaceChildren();
+
+  const recent =
+    records.slice(-10).reverse();
+
+  if (!recent.length) {
+    const empty =
+      document.createElement("p");
+
+    empty.className = "emptyState";
+    empty.textContent =
+      "AI審査を実行すると履歴が保存されます。";
+
+    elements.memoryList.append(empty);
+    return;
+  }
+
+  recent.forEach((record) => {
+    const row =
+      document.createElement("article");
+
+    row.className = "tradeMemoryRow";
+
+    const header =
+      document.createElement("div");
+
+    header.className =
+      "tradeMemoryRowHeader";
+
+    const title =
+      document.createElement("strong");
+
+    title.textContent =
+      [
+        record.symbol,
+        record.setupLabel,
+      ]
+        .filter(Boolean)
+        .join(" ");
+
+    const badge =
+      document.createElement("span");
+
+    badge.className =
+      "aiTradeGateDecision " +
+      gateDecisionClass(
+        record.decision,
+      );
+
+    badge.textContent =
+      gateDecisionLabel(
+        record.decision,
+      );
+
+    header.append(title, badge);
+
+    const detail =
+      document.createElement("p");
+
+    const price =
+      finite(record.entryPrice)
+        ? Number(
+            record.entryPrice,
+          ).toLocaleString(
+            "ja-JP",
+            {
+              maximumFractionDigits: 2,
+            },
+          )
+        : "--";
+
+    detail.textContent =
+      formatMemoryDate(
+        record.createdAt,
+      ) +
+      "・候補価格 " +
+      price +
+      "・" +
+      (record.model || "model不明");
+
+    const summaryText =
+      document.createElement("p");
+
+    summaryText.className =
+      "tradeMemoryRowSummary";
+
+    summaryText.textContent =
+      record.summary || "要約なし";
+
+    row.append(
+      header,
+      detail,
+      summaryText,
+    );
+
+    elements.memoryList.append(row);
+  });
+}
+
 export function renderAiTradeGate(
   result,
 ) {
@@ -871,6 +1035,24 @@ export async function runAiTradeGate() {
       result,
     );
 
+    const memoryResult =
+      saveTradeMemoryRecord(
+        createTradeMemoryRecord({
+          state,
+          decision,
+          gateResult: result,
+        }),
+      );
+
+    renderTradeMemory();
+
+    if (elements.memoryStatus) {
+      elements.memoryStatus.textContent =
+        memoryResult.saved
+          ? "保存済み"
+          : "重複記録";
+    }
+
     return result;
   } catch (error) {
     const message =
@@ -922,6 +1104,21 @@ export function initAiTradeGate(
       "aiTradeGateError",
     );
 
+  elements.memorySummary =
+    document.getElementById(
+      "tradeMemorySummary",
+    );
+
+  elements.memoryList =
+    document.getElementById(
+      "tradeMemoryList",
+    );
+
+  elements.memoryStatus =
+    document.getElementById(
+      "tradeMemoryStatus",
+    );
+
   if (
     Object.values(elements)
       .some(
@@ -946,6 +1143,7 @@ export function initAiTradeGate(
 
   initialized = true;
 
+  renderTradeMemory();
   resetAiTradeGate();
 }
 

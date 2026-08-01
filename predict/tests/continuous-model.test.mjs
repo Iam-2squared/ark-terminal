@@ -162,9 +162,79 @@ test("連続値モデルのスコアをATR評価へ接続できる", () => {
 
   assert.equal(model.ready, true);
   assert.equal(evaluated.scoringModel.key, "continuous");
+  assert.equal(evaluated.scoringModel.candidateId, "default");
   assert.equal(evaluated.ruleScore, 50);
   assert.ok(evaluated.score > 55);
   assert.equal(evaluated.direction, "強気");
   assert.equal(evaluated.actualLabel, "上昇");
   assert.equal(evaluated.hit, true);
+});
+
+test("v2はクラス数の偏りを学習重みで補正する", () => {
+  const records = [
+    ...Array.from({ length: 30 }, (_value, index) =>
+      syntheticRecord("上昇", 1, index),
+    ),
+    ...Array.from({ length: 5 }, (_value, index) =>
+      syntheticRecord("中立", 0, index),
+    ),
+    ...Array.from({ length: 5 }, (_value, index) =>
+      syntheticRecord("下落", -1, index),
+    ),
+  ];
+
+  const model = fitContinuousModel(records);
+
+  assert.equal(model.ready, true);
+  assert.equal(model.version, "continuous-robust-ridge-v2");
+  assert.ok(model.classWeights["下落"] > model.classWeights["上昇"]);
+  assert.ok(model.classWeights["中立"] > model.classWeights["上昇"]);
+  assert.equal(model.lossFunction, "class-balanced-huber-ridge");
+});
+
+test("v2の中央値MAD標準化は巨大な外れ値へ引っ張られにくい", () => {
+  const records = [
+    ...Array.from({ length: 12 }, (_value, index) =>
+      syntheticRecord("下落", -1, index),
+    ),
+    ...Array.from({ length: 12 }, (_value, index) =>
+      syntheticRecord("上昇", 1, index),
+    ),
+  ];
+
+  records[0].features.values.macdHistogram = 1000000000;
+
+  const model = fitContinuousModel(records);
+  const statistic = model.statistics.macdHistogram;
+
+  assert.equal(model.ready, true);
+  assert.equal(model.preprocessing, "median-mad-robust-scaling");
+  assert.ok(Math.abs(statistic.center) < 10);
+  assert.ok(statistic.scale < 100);
+});
+
+test("v2は複数の正則化・Huber候補を生成できる", async () => {
+  const { fitContinuousModelCandidates } = await import(
+    "../learning/continuous-model.js"
+  );
+  const records = [
+    ...Array.from({ length: 12 }, (_value, index) =>
+      syntheticRecord("下落", -1, index),
+    ),
+    ...Array.from({ length: 12 }, (_value, index) =>
+      syntheticRecord("中立", 0, index),
+    ),
+    ...Array.from({ length: 12 }, (_value, index) =>
+      syntheticRecord("上昇", 1, index),
+    ),
+  ];
+
+  const candidates = fitContinuousModelCandidates(records);
+
+  assert.equal(candidates.length, 6);
+  assert.equal(candidates.every((model) => model.ready), true);
+  assert.equal(
+    new Set(candidates.map((model) => model.candidateId)).size,
+    6,
+  );
 });

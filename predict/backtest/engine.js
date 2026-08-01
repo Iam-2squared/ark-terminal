@@ -13,7 +13,7 @@ import {
 } from "../learning/evaluation-policy.js";
 import { extractPredictionFeatures } from "../learning/feature-extractor.js";
 import {
-  fitContinuousModel,
+  fitContinuousModelCandidates,
   predictContinuousScore,
 } from "../learning/continuous-model.js";
 import {
@@ -442,6 +442,7 @@ function applyContinuousModelToRecord(
       scoringModel: {
         key: "continuous",
         version: model.version,
+        candidateId: model.candidateId || null,
         trainingSampleCount: model.sampleCount,
       },
     },
@@ -645,14 +646,17 @@ export function runWalkForwardBacktest({
     });
   });
 
-  const continuousModel = fitContinuousModel(training, {
+  const continuousModels = fitContinuousModelCandidates(training, {
     minimumSamples: Math.max(
       20,
       BACKTEST_SPLIT.minimumPartitionSamples * 2,
     ),
   });
+  const readyContinuousModels = continuousModels.filter(
+    (model) => model.ready,
+  );
 
-  if (continuousModel.ready) {
+  readyContinuousModels.forEach((continuousModel) => {
     calibrationCandidates.forEach((candidateCalibration) => {
       const records = applyContinuousModelToRecords(
         validationBase,
@@ -679,17 +683,21 @@ export function runWalkForwardBacktest({
         records,
         metrics,
         objective,
+        continuousModel,
       };
 
       if (isBetterCandidate(candidate, selected)) {
         selected = candidate;
       }
     });
-  }
-
+  });
   const selectedWeights = selected.weights;
   const selectedCalibration = selected.calibration;
   const selectedModelKey = selected.modelKey || "rule";
+  const selectedContinuousModel =
+    selectedModelKey === "continuous"
+      ? selected.continuousModel || null
+      : null;
   const validation = selected.records;
   const acceptedOptimizedWeights = selected.weightKey === "optimized";
   const acceptedCalibration = !sameCalibration(
@@ -707,7 +715,7 @@ export function runWalkForwardBacktest({
     selectedModelKey === "continuous"
       ? applyContinuousModelToRecords(
           ruleTest,
-          continuousModel,
+          selectedContinuousModel,
           selectedCalibration,
           costs,
         )
@@ -740,12 +748,28 @@ export function runWalkForwardBacktest({
           selectedModelKey === "continuous"
             ? "連続値モデル"
             : "現行ルールモデル",
-        continuousReady: continuousModel.ready,
+        continuousReady: readyContinuousModels.length > 0,
         continuousAccepted: selectedModelKey === "continuous",
-        continuousVersion: continuousModel.version,
-        trainingSampleCount: continuousModel.sampleCount,
-        trainingLoss: continuousModel.trainingLoss ?? null,
-        reason: continuousModel.reason || null,
+        continuousVersion:
+          selectedContinuousModel?.version ||
+          readyContinuousModels[0]?.version ||
+          continuousModels[0]?.version ||
+          null,
+        continuousCandidateCount: continuousModels.length,
+        continuousReadyCandidateCount: readyContinuousModels.length,
+        selectedCandidateId:
+          selectedContinuousModel?.candidateId || null,
+        trainingSampleCount:
+          selectedContinuousModel?.sampleCount ||
+          readyContinuousModels[0]?.sampleCount ||
+          continuousModels[0]?.sampleCount ||
+          0,
+        trainingLoss:
+          selectedContinuousModel?.trainingLoss ?? null,
+        reason:
+          readyContinuousModels.length > 0
+            ? null
+            : continuousModels[0]?.reason || null,
       },
       validationComparison: {
         baseline: validationBaseMetrics,

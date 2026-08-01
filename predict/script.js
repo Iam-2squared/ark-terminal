@@ -298,11 +298,15 @@ function runBacktest() {
       ? `${calibrationStatus}（強気${calibration.bullishThreshold}以上・弱気${calibration.bearishThreshold}以下・最低信頼度${calibration.minimumConfidenceScore}）。`
       : "";
     const modelSelection = result.meta.modelSelection;
+    const selectedCandidateText =
+      modelSelection?.selectedCandidateId
+        ? `「${modelSelection.selectedCandidateId}」`
+        : "";
     const modelText =
       modelSelection?.selected === "continuous"
-        ? `検証勝者は連続値モデル（学習${modelSelection.trainingSampleCount}件）です。`
+        ? `検証勝者は連続値モデル${selectedCandidateText}（学習${modelSelection.trainingSampleCount}件）です。`
         : modelSelection?.continuousReady
-          ? "検証では現行ルールモデルを維持しました。"
+          ? `検証では現行ルールモデルを維持しました（連続値候補${modelSelection.continuousReadyCandidateCount}/${modelSelection.continuousCandidateCount}件を比較）。`
           : `連続値モデルは未採用（${modelSelection?.reason || "学習不足"}）。`;
 
     setBacktestStatus(

@@ -154,6 +154,10 @@ export function createPredictionRecord({
   partition = null,
   costAssumptions = null,
   source = "live",
+  modelVersion = null,
+  evaluationPolicy = null,
+  evaluationThreshold = null,
+  decision = null,
 }) {
   return {
     id: createId(),
@@ -189,6 +193,12 @@ export function createPredictionRecord({
     partition,
     costAssumptions,
     source,
+    modelVersion,
+    evaluationPolicy,
+    evaluationThreshold: finiteNumber(evaluationThreshold)
+      ? Number(evaluationThreshold)
+      : null,
+    decision,
   };
 }
 

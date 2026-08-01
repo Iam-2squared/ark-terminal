@@ -1,4 +1,4 @@
-const CACHE_NAME = "ark-terminal-v5";
+const CACHE_NAME = "ark-terminal-v6";
 
 const APP_SHELL = [
     "./",

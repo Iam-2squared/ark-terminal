@@ -219,7 +219,7 @@ test("推奨重みは学習期間だけを使い、採用前の重みを変更�
   const current = {
     ...DEFAULT_WEIGHTS,
   };
-  const records = Array.from({ length: 24 }, (_value, index) =>
+  const records = Array.from({ length: 64 }, (_value, index) =>
     record(index, {
       partition: "training",
       actualReturn: 4,

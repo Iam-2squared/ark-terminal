@@ -41,6 +41,12 @@ function featureRow(record) {
     downsideRisk: finite(record.downsideRisk)
       ? Number(record.downsideRisk)
       : null,
+    decisionAction: record.decision?.action || null,
+    isActionable: record.decision?.isActionable ?? null,
+    evaluationThreshold: finite(record.evaluationThreshold)
+      ? Number(record.evaluationThreshold)
+      : null,
+    modelVersion: record.modelVersion || "legacy",
     marketRegime: record.marketRegime || "未取得",
     market: record.market || record.exchange || "未取得",
     industry: record.industry || "未分類",
@@ -58,7 +64,16 @@ function featureRow(record) {
 
 function labelRow(record) {
   return {
-    hit: Boolean(record.hit),
+    hit:
+      record.hit === true
+        ? true
+        : record.hit === false
+          ? false
+          : null,
+    actualLabel: record.actualLabel || null,
+    labelThreshold: finite(record.labelThreshold)
+      ? Number(record.labelThreshold)
+      : null,
     actualReturn: Number(record.actualReturn),
     strategyReturn: finite(record.strategyReturn)
       ? Number(record.strategyReturn)
@@ -96,12 +111,13 @@ export function buildMachineLearningDataset(records) {
   );
 
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     generatedAt: new Date().toISOString(),
     splitMethod: "chronological-60-20-20-or-existing-walk-forward-partition",
     featureDefinition:
       "予測時点で保存した指標値・条件・スコアだけを使用",
-    labelDefinition: "予測期間経過後の実リターンと費用後損益",
+    labelDefinition:
+      "予測期間経過後のATR基準ラベル・実リターン・費用後損益。見送りはhit=null",
     rows,
     partitions: {
       training: rows.filter((row) => row.split === "training"),

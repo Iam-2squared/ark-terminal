@@ -1,3 +1,8 @@
+import {
+  deriveTradeDecision,
+  MODEL_VERSION,
+} from "../learning/evaluation-policy.js";
+
 function finite(value) {
   return (
     value !== null &&
@@ -186,9 +191,18 @@ export function createPredictionOutput({
         ) / weightTotal,
       )
     : 0;
+  const decision = deriveTradeDecision({
+    direction,
+    confidenceScore,
+    dataQualityScore: quality?.qualityScore,
+  });
 
   return {
+    modelVersion: MODEL_VERSION,
     direction,
+    decision,
+    evaluationThreshold: expectedMove.amplitude,
+    evaluationPolicy: decision.policy,
     expectedReturn: expectedMove.expectedReturn,
     expectedMoveRange: finite(expectedMove.lower)
       ? {

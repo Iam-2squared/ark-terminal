@@ -13,7 +13,7 @@ export const ARK_API_BASE =
 
 export const QUOTE_REFRESH_MS = 15000;
 export const SYMBOL_INPUT_DEBOUNCE_MS = 600;
-export const HISTORY_RANGE = "2y";
+export const HISTORY_RANGE = "10y";
 export const HISTORY_INTERVAL = "1d";
 
 export const FACTOR_CATEGORIES = Object.freeze({
@@ -73,14 +73,14 @@ export const STORAGE_KEYS = Object.freeze({
   weights: "arkPredictionLab.weights.v2",
 });
 
-export const MINIMUM_OPTIMIZER_SAMPLES = 20;
+export const MINIMUM_OPTIMIZER_SAMPLES = 60;
 
 export const BACKTEST_SPLIT = Object.freeze({
   training: 0.6,
   validation: 0.2,
   test: 0.2,
   minimumHistory: 252,
-  minimumPartitionSamples: 3,
+  minimumPartitionSamples: 10,
 });
 
 export const BACKTEST_COSTS = Object.freeze({

@@ -22,6 +22,10 @@ import { extractPredictionFeatures } from "./learning/feature-extractor.js";
 import { initAiAnalysis, resetAiAnalysis } from "./ai-analysis.js";
 import { fetchAnalysisBundle } from "./data.js";
 import { initGlobalEvaluation } from "./global-evaluation-ui.js";
+import {
+  initIntradayTrading,
+  refreshIntradayTrading,
+} from "./trading/intraday-trading-ui.js";
 import { initMarket, setMarketHistory } from "./market.js";
 import { normalizeSymbol } from "./symbols.js";
 import {
@@ -215,6 +219,7 @@ async function runAnalysis({ saveRecord = false } = {}) {
 
     setMarketHistory(latestState.history);
     renderAnalysis(latestState);
+    void refreshIntradayTrading(latestState);
     resetAiAnalysis();
 
     if (saveRecord) {
@@ -331,6 +336,7 @@ function init() {
   initMarket();
   initAiAnalysis(() => latestState);
   initGlobalEvaluation();
+  initIntradayTrading(() => latestState);
 
   inputs.runPredictionButton.addEventListener("click", () =>
     runAnalysis({ saveRecord: true }),

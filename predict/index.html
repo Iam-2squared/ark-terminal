@@ -282,6 +282,71 @@
           <div id="confidenceComponents" class="confidenceComponents"></div>
         </article>
 
+        <article
+          id="intradayTradingCard"
+          class="intradayTradingCard fullWidthCard"
+          aria-labelledby="intradayTradingTitle"
+        >
+          <div class="cardHeader">
+            <div>
+              <p class="cardLabel">Intraday Paper Trading</p>
+
+              <h2 id="intradayTradingTitle">短期売買プラン</h2>
+            </div>
+
+            <span id="intradayTradingStatus" class="dataSourceBadge">
+              取得待ち
+            </span>
+          </div>
+
+          <p id="intradayTradingDescription" class="dataSourceDescription">
+            15分足の取得を待っています。
+          </p>
+
+          <div class="intradayTradingControls">
+            <div>
+              <label for="paperEquity">仮想口座資産</label>
+
+              <input
+                id="paperEquity"
+                type="number"
+                min="10000"
+                step="10000"
+                value="1000000"
+              />
+            </div>
+
+            <div class="intradayExecutionMode">
+              <span>実行モード</span>
+              <strong>Paper Tradingのみ</strong>
+            </div>
+
+            <button
+              id="refreshIntradayButton"
+              class="secondaryButton"
+              type="button"
+            >
+              短期判断を更新
+            </button>
+          </div>
+
+          <div id="intradayTradingSummary" class="intradayTradingSummary">
+            <p class="emptyState">
+              通常分析後に短期判断を表示します。
+            </p>
+          </div>
+
+          <div id="intradayTradingReasons" class="intradayTradingReasons">
+            <p class="emptyState">
+              ブレイク・VWAP・出来高・リスク条件を確認します。
+            </p>
+          </div>
+
+          <p class="intradayTradingNotice">
+            実注文は送信しません。未校正のPaper候補であり、
+            手数料・スプレッド・約定滑りを含む実運用成績ではありません。
+          </p>
+        </article>
         <article class="inputCard fullWidthCard">
           <div class="cardHeader">
             <div>

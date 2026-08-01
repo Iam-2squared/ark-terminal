@@ -19,6 +19,7 @@ export const TRADE_ACTIONS = Object.freeze({
 
 export const DEFAULT_SHORT_TERM_POLICY = Object.freeze({
   paperTradingOnly: true,
+  requireSpreadData: true,
   allowLong: true,
   allowShort: true,
 
@@ -194,7 +195,10 @@ export function evaluateEntryGate({
   const side = directionToSide(signal.direction);
   const reasons = [];
 
-  if (side === POSITION_SIDES.FLAT) {
+  if (
+    side === POSITION_SIDES.FLAT &&
+    signal.marketBlocked !== true
+  ) {
     return {
       allowed: false,
       wait: true,
@@ -255,9 +259,13 @@ export function evaluateEntryGate({
     );
   }
 
-  if (!finite(signal.spreadPercent)) {
+  if (
+    !finite(signal.spreadPercent) &&
+    resolvedPolicy.requireSpreadData
+  ) {
     reasons.push("スプレッドを確認できません。");
   } else if (
+    finite(signal.spreadPercent) &&
     Number(signal.spreadPercent) >
     Number(resolvedPolicy.maximumSpreadPercent)
   ) {

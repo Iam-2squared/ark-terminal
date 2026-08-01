@@ -254,3 +254,49 @@ test("Paper注文は作れるが実注文へ変更できない", () => {
     /実注文/,
   );
 });
+test("Paper分析ではスプレッド未取得を明示設定で許可できる", () => {
+  const plan = createShortTermTradePlan({
+    signal: signal({
+      spreadPercent: null,
+    }),
+    account: account(),
+    lotSize: 100,
+    policy: {
+      requireSpreadData: false,
+    },
+  });
+
+  assert.equal(plan.executable, true);
+  assert.equal(
+    plan.liveExecutionAllowed,
+    false,
+  );
+});
+
+test("市場停止中の中立シグナルは待機ではなく拒否する", () => {
+  const plan = createShortTermTradePlan({
+    signal: signal({
+      direction: "中立",
+      marketBlocked: true,
+      marketBlockReason: "市場終了",
+      spreadPercent: null,
+    }),
+    account: account(),
+    policy: {
+      requireSpreadData: false,
+    },
+  });
+
+  assert.equal(plan.executable, false);
+  assert.equal(
+    plan.action,
+    TRADE_ACTIONS.BLOCKED,
+  );
+
+  assert.equal(
+    plan.reasons.some((reason) =>
+      reason.includes("市場終了"),
+    ),
+    true,
+  );
+});

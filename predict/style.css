@@ -33,7 +33,8 @@ body {
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
 }
 
@@ -268,6 +269,7 @@ h2 {
 .dataQualityCard,
 .marketEnvironmentCard,
 .backtestCard,
+.globalEvaluationCard,
 .warningCard {
   padding: 24px;
 
@@ -788,6 +790,184 @@ h2 {
   color: var(--muted);
 }
 
+.globalEvaluationForm {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(230px, 0.6fr);
+  gap: 16px;
+}
+
+.globalEvaluationSymbolGroup,
+.globalEvaluationControls {
+  display: grid;
+  gap: 9px;
+}
+
+.globalEvaluationSymbolGroup label,
+.globalEvaluationControls label {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.globalEvaluationSymbolGroup small {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.globalEvaluationSymbolGroup textarea,
+.globalEvaluationControls select {
+  width: 100%;
+  padding: 12px 14px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  outline: none;
+}
+
+.globalEvaluationSymbolGroup textarea {
+  min-height: 96px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.globalEvaluationControls select {
+  min-height: 46px;
+}
+
+.globalEvaluationSymbolGroup textarea:focus,
+.globalEvaluationControls select:focus {
+  border-color: rgba(79, 124, 255, 0.65);
+}
+
+.globalEvaluationActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.globalEvaluationProgressArea {
+  margin-top: 20px;
+}
+
+.globalEvaluationProgressArea progress {
+  width: 100%;
+  height: 12px;
+  overflow: hidden;
+  accent-color: var(--blue);
+  background: rgba(255, 255, 255, 0.07);
+  border: 0;
+  border-radius: 999px;
+}
+
+.globalEvaluationProgressArea progress::-webkit-progress-bar {
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+}
+
+.globalEvaluationProgressArea progress::-webkit-progress-value {
+  background: var(--blue);
+  border-radius: 999px;
+}
+
+.globalEvaluationProgressArea progress::-moz-progress-bar {
+  background: var(--blue);
+  border-radius: 999px;
+}
+
+.globalEvaluationSummary {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.globalEvaluationSummary[hidden] {
+  display: none;
+}
+
+.globalEvaluationMetric {
+  min-width: 0;
+  padding: 13px;
+  display: grid;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+}
+
+.globalEvaluationMetric span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.globalEvaluationMetric strong {
+  font-size: 20px;
+}
+
+.globalEvaluationWarnings {
+  margin-top: 16px;
+  padding: 13px 15px;
+  color: #ffd59a;
+  background: rgba(255, 159, 10, 0.08);
+  border: 1px solid rgba(255, 159, 10, 0.22);
+  border-radius: 13px;
+}
+
+.globalEvaluationWarnings p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.globalEvaluationWarnings p + p {
+  margin-top: 6px;
+}
+
+.globalEvaluationResults {
+  margin-top: 18px;
+  display: grid;
+  gap: 9px;
+}
+
+.globalEvaluationResult {
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: rgba(52, 199, 89, 0.06);
+  border: 1px solid rgba(52, 199, 89, 0.2);
+  border-radius: 13px;
+}
+
+.globalEvaluationResult.failed {
+  background: rgba(255, 69, 58, 0.06);
+  border-color: rgba(255, 69, 58, 0.22);
+}
+
+.globalEvaluationResult div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.globalEvaluationResult small {
+  overflow-wrap: anywhere;
+  color: var(--muted);
+}
+
+.globalEvaluationResult span {
+  flex: 0 0 auto;
+  color: #b7ffd0;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.globalEvaluationResult.failed span {
+  color: #ffb8b3;
+}
 .backtestCard {
   display: flex;
   align-items: center;
@@ -843,6 +1023,9 @@ h2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .globalEvaluationForm {
+    grid-template-columns: 1fr;
+  }
   .backtestCard {
     align-items: flex-start;
     flex-direction: column;
@@ -876,6 +1059,7 @@ h2 {
   .dataQualityCard,
   .marketEnvironmentCard,
   .backtestCard,
+  .globalEvaluationCard,
   .warningCard {
     padding: 20px;
     border-radius: 20px;
@@ -904,6 +1088,19 @@ h2 {
     grid-template-columns: 1fr;
   }
 
+  .globalEvaluationActions {
+    flex-direction: column;
+  }
+
+  .globalEvaluationActions .primaryButton,
+  .globalEvaluationActions .secondaryButton {
+    width: 100%;
+  }
+
+  .globalEvaluationResult {
+    align-items: flex-start;
+    flex-direction: column;
+  }
   .backtestActions {
     width: 100%;
     flex-direction: column;

@@ -470,6 +470,147 @@
           </div>
         </article>
 
+        <article
+          id="globalEvaluationCard"
+          class="globalEvaluationCard fullWidthCard"
+          aria-labelledby="globalEvaluationTitle"
+        >
+          <div class="cardHeader">
+            <div>
+              <p class="cardLabel">Global Evaluation</p>
+
+              <h2 id="globalEvaluationTitle">複数銘柄で一括検証</h2>
+            </div>
+
+            <span id="globalEvaluationStatus" class="dataSourceBadge">
+              実行待ち
+            </span>
+          </div>
+
+          <p class="dataSourceDescription">
+            各銘柄を時系列分割し、最終テストだけを横断集計します。
+            AI戦略と同じ期間に保有した場合の平均リターンも比較します。
+          </p>
+
+          <div class="globalEvaluationForm">
+            <div class="globalEvaluationSymbolGroup">
+              <label for="globalEvaluationSymbols">対象銘柄</label>
+
+              <textarea
+                id="globalEvaluationSymbols"
+                rows="3"
+                placeholder="例：7203, 6758, 9984, 8035, 8306"
+              >7203, 6758, 9984, 8035, 8306</textarea>
+
+              <small>
+                カンマ・空白・改行区切り。最大50銘柄まで。
+              </small>
+            </div>
+
+            <div class="globalEvaluationControls">
+              <label for="globalEvaluationPeriod">評価期間</label>
+
+              <select id="globalEvaluationPeriod">
+                <option value="1">1営業日</option>
+                <option value="5" selected>5営業日</option>
+                <option value="20">20営業日</option>
+              </select>
+
+              <div class="globalEvaluationActions">
+                <button
+                  id="runGlobalEvaluationButton"
+                  class="primaryButton"
+                  type="button"
+                >
+                  一括検証を開始
+                </button>
+
+                <button
+                  id="stopGlobalEvaluationButton"
+                  class="secondaryButton"
+                  type="button"
+                  disabled
+                >
+                  停止
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="globalEvaluationProgressArea">
+            <progress
+              id="globalEvaluationProgress"
+              max="100"
+              value="0"
+            ></progress>
+
+            <p
+              id="globalEvaluationProgressText"
+              class="dataSourceDescription"
+              aria-live="polite"
+            >
+              銘柄を入力して一括検証を開始してください。
+            </p>
+          </div>
+
+          <div
+            id="globalEvaluationSummary"
+            class="globalEvaluationSummary"
+            hidden
+          >
+            <div class="globalEvaluationMetric">
+              <span>評価銘柄</span>
+              <strong id="globalMetricSymbols">--</strong>
+            </div>
+
+            <div class="globalEvaluationMetric">
+              <span>最終テスト件数</span>
+              <strong id="globalMetricSamples">--</strong>
+            </div>
+
+            <div class="globalEvaluationMetric">
+              <span>勝率</span>
+              <strong id="globalMetricWinRate">--</strong>
+            </div>
+
+            <div class="globalEvaluationMetric">
+              <span>採用率</span>
+              <strong id="globalMetricCoverage">--</strong>
+            </div>
+
+            <div class="globalEvaluationMetric">
+              <span>AI平均（見送り0%）</span>
+              <strong id="globalMetricStrategyReturn">--</strong>
+            </div>
+
+            <div class="globalEvaluationMetric">
+              <span>同期間保有平均</span>
+              <strong id="globalMetricBenchmarkReturn">--</strong>
+            </div>
+
+            <div class="globalEvaluationMetric">
+              <span>平均超過リターン</span>
+              <strong id="globalMetricExcessReturn">--</strong>
+            </div>
+
+            <div class="globalEvaluationMetric">
+              <span>最悪1取引損益</span>
+              <strong id="globalMetricWorstTrade">--</strong>
+            </div>
+          </div>
+
+          <div
+            id="globalEvaluationWarnings"
+            class="globalEvaluationWarnings"
+            hidden
+          ></div>
+
+          <div id="globalEvaluationResults" class="globalEvaluationResults">
+            <p class="emptyState">
+              実行後に銘柄ごとの結果を表示します。
+            </p>
+          </div>
+        </article>
         <article class="warningCard">
           <div>
             <p class="cardLabel">Important</p>

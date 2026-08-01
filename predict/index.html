@@ -342,6 +342,58 @@
             </p>
           </div>
 
+          <div class="aiTradeGate">
+            <div class="aiTradeGateHeader">
+              <div>
+                <span>OpenAI Buy Gate</span>
+                <h3>AI買い候補審査</h3>
+              </div>
+
+              <span
+                id="aiTradeGateStatus"
+                class="dataSourceBadge"
+              >
+                対象なし
+              </span>
+            </div>
+
+            <p
+              id="aiTradeGateDescription"
+              class="dataSourceDescription"
+            >
+              買い候補が出たときだけOpenAIで審査できます。
+            </p>
+
+            <button
+              id="runAiTradeGateButton"
+              class="secondaryButton"
+              type="button"
+              disabled
+            >
+              OpenAIで買い候補を審査
+            </button>
+
+            <p
+              id="aiTradeGateError"
+              class="aiTradeGateError"
+              hidden
+            ></p>
+
+            <div
+              id="aiTradeGateResult"
+              class="aiTradeGateResult"
+            >
+              <p class="emptyState">
+                現物買い候補が出たときだけAI審査を実行できます。
+              </p>
+            </div>
+
+            <p class="aiTradeGateNotice">
+              AIは買い候補を承認・待機・拒否に分類します。
+              新しい候補や実注文は作成しません。
+            </p>
+          </div>
+
           <p class="intradayTradingNotice">
             実注文は送信しません。未校正のPaper候補であり、
             手数料・スプレッド・約定滑りを含む実運用成績ではありません。

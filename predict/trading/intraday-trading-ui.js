@@ -6,6 +6,10 @@ import {
   createIntradayTradingDecision,
 } from "./intraday-trading-decision.js";
 
+import {
+  setAiTradeGateDecision,
+} from "./ai-trade-gate.js";
+
 const elements = {};
 
 let stateProvider = null;
@@ -146,6 +150,8 @@ function renderReasons(
 function renderUnavailable(
   message,
 ) {
+  setAiTradeGateDecision(null);
+
   setStatus("取得失敗", "failed");
 
   elements.description.textContent =
@@ -169,6 +175,10 @@ export function renderIntradayTrading(
 
     return;
   }
+
+  setAiTradeGateDecision(
+    decision,
+  );
 
   const analysis = decision.analysis;
   const plan = decision.plan;

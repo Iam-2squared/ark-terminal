@@ -20,6 +20,9 @@ import {
 } from "./backtest/storage.js";
 import { extractPredictionFeatures } from "./learning/feature-extractor.js";
 import { initAiAnalysis, resetAiAnalysis } from "./ai-analysis.js";
+import {
+  initAiTradeGate,
+} from "./trading/ai-trade-gate.js";
 import { fetchAnalysisBundle } from "./data.js";
 import { initGlobalEvaluation } from "./global-evaluation-ui.js";
 import {
@@ -338,6 +341,7 @@ function init() {
   initializeRenderers();
   initMarket();
   initAiAnalysis(() => latestState);
+  initAiTradeGate(() => latestState);
   initGlobalEvaluation();
   initIntradayTrading(() => latestState);
   initIntradayPaperBacktest(() => latestState);

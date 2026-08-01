@@ -1441,3 +1441,137 @@ h2 {
     border-radius: 20px;
   }
 }
+
+
+.aiTradeGate {
+  margin-top: 20px;
+  padding: 18px;
+  background: rgba(8, 15, 29, 0.46);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.aiTradeGateHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.aiTradeGateHeader span:first-child {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.aiTradeGateHeader h3 {
+  margin: 4px 0 0;
+  font-size: 17px;
+}
+
+.aiTradeGateResult {
+  margin-top: 15px;
+}
+
+.aiTradeGateHero {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.aiTradeGateHero p {
+  margin: 0;
+  line-height: 1.7;
+}
+
+.aiTradeGateHero small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+}
+
+.aiTradeGateDecision {
+  flex: 0 0 auto;
+  min-width: 62px;
+  padding: 8px 11px;
+  text-align: center;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.aiTradeGateDecision.approve {
+  color: #79f2b0;
+  background: rgba(38, 208, 124, 0.14);
+}
+
+.aiTradeGateDecision.wait {
+  color: #ffd58a;
+  background: rgba(255, 174, 66, 0.14);
+}
+
+.aiTradeGateDecision.reject {
+  color: #ff9696;
+  background: rgba(255, 88, 88, 0.14);
+}
+
+.aiTradeGateGrid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns:
+    repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+}
+
+.aiTradeGateSection {
+  padding: 13px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+}
+
+.aiTradeGateSection h4 {
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+
+.aiTradeGateSection ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.aiTradeGateError {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  color: #ff9696;
+  background: rgba(255, 88, 88, 0.08);
+  border: 1px solid rgba(255, 88, 88, 0.2);
+  border-radius: 11px;
+}
+
+.aiTradeGateFooter,
+.aiTradeGateNotice {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+@media (max-width: 620px) {
+  .aiTradeGateHeader,
+  .aiTradeGateHero {
+    flex-direction: column;
+  }
+
+  .aiTradeGate .secondaryButton {
+    width: 100%;
+  }
+}

@@ -135,11 +135,14 @@ async function fetchAiAnalysis(payload, signal) {
 
   return result;
 }
-
 function setLoading(isLoading) {
   elements.button.disabled = isLoading;
   elements.button.textContent = isLoading ? "AI分析中..." : "AI分析";
-  elements.status.textContent = isLoading ? "生成中" : "実行済み";
+
+  if (isLoading) {
+    elements.status.textContent = "生成中";
+  }
+
   elements.status.classList.toggle("loading", isLoading);
 }
 

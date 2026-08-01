@@ -179,7 +179,7 @@ function buildOpenAiRequest(payload, model) {
         schema: ANALYSIS_SCHEMA,
       },
     },
-    max_output_tokens: 1_800,
+    max_output_tokens: 3_000,
   };
 }
 
@@ -199,12 +199,35 @@ function extractResponseText(payload) {
   throw new Error("AIの応答本文がありません。");
 }
 
+function normalizeJsonText(text) {
+  const trimmed = String(text || "").trim();
+  const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  const candidate = (fenced?.[1] || trimmed).trim();
+  const objectStart = candidate.indexOf("{");
+  const objectEnd = candidate.lastIndexOf("}");
+
+  if (objectStart === -1 || objectEnd <= objectStart) {
+    throw new Error("AIの応答にJSONオブジェクトがありません。");
+  }
+
+  return candidate.slice(objectStart, objectEnd + 1);
+}
+
 function parseAnalysis(payload) {
   const text = extractResponseText(payload);
+  const normalized = normalizeJsonText(text);
 
   try {
-    return JSON.parse(text);
-  } catch {
+    return JSON.parse(normalized);
+  } catch (error) {
+    console.error("AI structured response parse failure:", {
+      responseId: payload?.id || null,
+      status: payload?.status || null,
+      incompleteDetails: payload?.incomplete_details || null,
+      outputPreview: text.slice(0, 500),
+      parseError: error.message,
+    });
+
     throw new Error("AIの構造化応答を解析できませんでした。");
   }
 }

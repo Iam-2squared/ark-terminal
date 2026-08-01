@@ -6,6 +6,7 @@ import {
   buildIntradayCandles,
   calculateIntradayVolumeRatio,
   calculateIntradayVwapSeries,
+  calculateSessionAwareVolumeRatio,
   normalizeIntradaySymbol,
   selectLatestClosedSession,
 } from "../trading/intraday-market.js";
@@ -303,5 +304,213 @@ test("確定足が不足している場合はデータ待ちにする", () => {
   assert.equal(
     result.direction,
     "中立",
+  );
+});
+
+function createMultiSessionRows({
+  currentSessionBars = 4,
+  priorPrice = 90,
+  currentPrice = 100,
+  priorSlotVolume = 200,
+  currentLatestVolume = 400,
+} = {}) {
+  const rows = [];
+  let index = 0;
+
+  [
+    "2026-07-29",
+    "2026-07-30",
+    "2026-07-31",
+  ].forEach((sessionDate) => {
+    for (
+      let slot = 0;
+      slot < 7;
+      slot += 1
+    ) {
+      const price =
+        priorPrice +
+        slot * 0.1;
+
+      rows.push(
+        candle(index, {
+          sessionDate,
+          open: price,
+          high: price + 0.2,
+          low: price - 0.2,
+          close: price,
+          volume:
+            slot === 3
+              ? priorSlotVolume
+              : 80,
+        }),
+      );
+
+      index += 1;
+    }
+  });
+
+  for (
+    let slot = 0;
+    slot < currentSessionBars;
+    slot += 1
+  ) {
+    const price =
+      currentPrice +
+      slot * 0.1;
+
+    rows.push(
+      candle(index, {
+        sessionDate:
+          "2026-08-01",
+
+        open: price,
+        high: price + 0.2,
+        low: price - 0.2,
+        close: price,
+
+        volume:
+          slot ===
+            currentSessionBars - 1
+            ? currentLatestVolume
+            : 100,
+      }),
+    );
+
+    index += 1;
+  }
+
+  return rows;
+}
+
+test("前日までの履歴があれば当日4本で判定を開始する", () => {
+  const rows =
+    createMultiSessionRows();
+
+  const latest =
+    rows.at(-1);
+
+  const result =
+    analyzeIntradayMarket(
+      rows,
+      {
+        nowSeconds:
+          latest.time + 901,
+      },
+    );
+
+  assert.equal(
+    result.ready,
+    true,
+  );
+
+  assert.notEqual(
+    result.setup,
+    "insufficient_data",
+  );
+
+  assert.equal(
+    result.sessionBarCount,
+    4,
+  );
+
+  assert.equal(
+    result.historyBarCount,
+    25,
+  );
+
+  assert.equal(
+    result.minimumSessionBars,
+    4,
+  );
+
+  assert.ok(
+    Number.isFinite(
+      result.atr,
+    ),
+  );
+});
+
+test("出来高基準は過去の同じ15分枠を優先する", () => {
+  const rows =
+    createMultiSessionRows();
+
+  const context =
+    calculateSessionAwareVolumeRatio(
+      rows,
+      {
+        lookbackSessions: 10,
+        minimumSamples: 3,
+        fallbackLookback: 20,
+      },
+    );
+
+  assert.equal(
+    context.source,
+    "same_session_slot",
+  );
+
+  assert.equal(
+    context.sampleCount,
+    3,
+  );
+
+  assert.equal(
+    context.baseline,
+    200,
+  );
+
+  assert.equal(
+    context.ratio,
+    2,
+  );
+});
+
+test("前日履歴が十分でも当日3本まではデータ待ちにする", () => {
+  const rows =
+    createMultiSessionRows({
+      currentSessionBars: 3,
+      currentLatestVolume: 300,
+    });
+
+  const latest =
+    rows.at(-1);
+
+  const result =
+    analyzeIntradayMarket(
+      rows,
+      {
+        nowSeconds:
+          latest.time + 901,
+      },
+    );
+
+  assert.equal(
+    result.ready,
+    false,
+  );
+
+  assert.equal(
+    result.setup,
+    "insufficient_data",
+  );
+
+  assert.equal(
+    result.sessionBarCount,
+    3,
+  );
+
+  assert.equal(
+    result.historyBarCount,
+    24,
+  );
+
+  assert.equal(
+    result.reasons.some(
+      (reason) =>
+        reason.includes(
+          "当日の確定済み15分足",
+        ),
+    ),
+    true,
   );
 });

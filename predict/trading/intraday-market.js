@@ -1,11 +1,16 @@
 export const INTRADAY_MARKET_VERSION =
-  "intraday-market-data-v1";
+  "intraday-market-data-v2";
 
 export const INTRADAY_INTERVAL_SECONDS = 15 * 60;
 
 export const DEFAULT_INTRADAY_POLICY = Object.freeze({
-  minimumBars: 20,
+  minimumSessionBars: 4,
+  minimumHistoryBars: 21,
+
   volumeLookback: 20,
+  volumeLookbackSessions: 10,
+  minimumVolumeBaselineSamples: 3,
+
   breakoutLookback: 20,
   atrPeriod: 14,
 
@@ -383,6 +388,184 @@ export function calculateIntradayVolumeRatio(
   );
 }
 
+export function calculateSessionAwareVolumeRatio(
+  candles = [],
+  {
+    lookbackSessions = 10,
+    minimumSamples = 3,
+    fallbackLookback = 20,
+  } = {},
+) {
+  const normalized =
+    normalizeIntradayCandles(
+      candles,
+    ).filter(
+      (candle) =>
+        candle.isClosed !== false,
+    );
+
+  if (normalized.length < 2) {
+    return {
+      ratio: null,
+      baseline: null,
+      sampleCount: 0,
+      source: "unavailable",
+      sessionSlotIndex: null,
+    };
+  }
+
+  const latest =
+    normalized.at(-1);
+
+  if (
+    !finite(latest.volume) ||
+    Number(latest.volume) < 0
+  ) {
+    return {
+      ratio: null,
+      baseline: null,
+      sampleCount: 0,
+      source: "unavailable",
+      sessionSlotIndex: null,
+    };
+  }
+
+  const rowsBySession =
+    new Map();
+
+  normalized.forEach((candle) => {
+    const key =
+      candle.sessionDate ||
+      "unknown";
+
+    if (!rowsBySession.has(key)) {
+      rowsBySession.set(key, []);
+    }
+
+    rowsBySession
+      .get(key)
+      .push(candle);
+  });
+
+  const latestSessionRows =
+    rowsBySession.get(
+      latest.sessionDate,
+    ) || [];
+
+  const sessionSlotIndex =
+    latestSessionRows.findIndex(
+      (candle) =>
+        Number(candle.time) ===
+        Number(latest.time),
+    );
+
+  const priorSessionDates =
+    Array.from(
+      rowsBySession.keys(),
+    )
+      .filter(
+        (date) =>
+          date !==
+          latest.sessionDate,
+      )
+      .slice(
+        -Math.max(
+          1,
+          Number(
+            lookbackSessions,
+          ) || 10,
+        ),
+      );
+
+  const sameSlotVolumes =
+    sessionSlotIndex >= 0
+      ? priorSessionDates
+          .map((date) => {
+            const row =
+              rowsBySession
+                .get(date)
+                ?.[sessionSlotIndex];
+
+            return row?.volume;
+          })
+          .filter(
+            (value) =>
+              finite(value) &&
+              Number(value) > 0,
+          )
+      : [];
+
+  const requiredSamples =
+    Math.max(
+      1,
+      Number(minimumSamples) || 3,
+    );
+
+  let baselineValues =
+    sameSlotVolumes;
+
+  let source =
+    "same_session_slot";
+
+  if (
+    baselineValues.length <
+    requiredSamples
+  ) {
+    baselineValues =
+      normalized
+        .slice(
+          -Math.max(
+            2,
+            Number(
+              fallbackLookback,
+            ) + 1,
+          ),
+          -1,
+        )
+        .map(
+          (candle) =>
+            candle.volume,
+        )
+        .filter(
+          (value) =>
+            finite(value) &&
+            Number(value) > 0,
+        );
+
+    source =
+      "recent_closed_bars";
+  }
+
+  const baseline =
+    average(baselineValues);
+
+  if (!positive(baseline)) {
+    return {
+      ratio: null,
+      baseline: null,
+      sampleCount:
+        baselineValues.length,
+      source: "unavailable",
+      sessionSlotIndex,
+    };
+  }
+
+  return {
+    ratio:
+      Number(latest.volume) /
+      Number(baseline),
+
+    baseline:
+      Number(baseline),
+
+    sampleCount:
+      baselineValues.length,
+
+    source,
+    sessionSlotIndex,
+  };
+}
+
 function calculateDataQuality({
   sourceCandles,
   normalizedCandles,
@@ -473,29 +656,119 @@ export function analyzeIntradayMarket(
   const normalized =
     normalizeIntradayCandles(candles);
 
+  const closedCandles =
+    normalized.filter(
+      (candle) =>
+        candle.isClosed !== false,
+    );
+
   const sessionCandles =
-    selectLatestClosedSession(normalized);
+    selectLatestClosedSession(
+      closedCandles,
+    );
+
+  const minimumSessionBars =
+    Math.max(
+      2,
+      Number(
+        resolvedPolicy
+          .minimumSessionBars,
+      ) || 4,
+    );
+
+  const requiredHistoryBars =
+    Math.max(
+      minimumSessionBars,
+
+      Math.max(
+        2,
+        Number(
+          resolvedPolicy
+            .minimumHistoryBars,
+        ) || 21,
+      ),
+
+      Math.max(
+        2,
+        Number(
+          resolvedPolicy
+            .volumeLookback,
+        ) || 20,
+      ) + 1,
+
+      Math.max(
+        2,
+        Number(
+          resolvedPolicy
+            .breakoutLookback,
+        ) || 20,
+      ) + 1,
+
+      Math.max(
+        2,
+        Number(
+          resolvedPolicy
+            .atrPeriod,
+        ) || 14,
+      ) + 1,
+    );
+
+  const historyReady =
+    closedCandles.length >=
+    requiredHistoryBars;
+
+  const sessionReady =
+    sessionCandles.length >=
+    minimumSessionBars;
 
   if (
-    sessionCandles.length <
-    Number(resolvedPolicy.minimumBars)
+    !historyReady ||
+    !sessionReady
   ) {
+    const readinessReasons = [];
+
+    if (!historyReady) {
+      readinessReasons.push(
+        `指標計算用の確定済み15分足が${requiredHistoryBars}本未満です。`,
+      );
+    }
+
+    if (!sessionReady) {
+      readinessReasons.push(
+        `当日の確定済み15分足が${minimumSessionBars}本未満です。`,
+      );
+    }
+
     return {
-      version: INTRADAY_MARKET_VERSION,
+      version:
+        INTRADAY_MARKET_VERSION,
+
       ready: false,
       marketBlocked: true,
       setup: "insufficient_data",
       direction: "中立",
       entryCondition: "データ待ち",
-      reasons: [
-        `確定済み15分足が${resolvedPolicy.minimumBars}本未満です。`,
-      ],
+
+      reasons:
+        readinessReasons,
+
       sessionBarCount:
         sessionCandles.length,
+
+      historyBarCount:
+        closedCandles.length,
+
+      minimumSessionBars,
+      requiredHistoryBars,
+
       dataQualityScore:
         calculateDataQuality({
-          sourceCandles: candles,
-          normalizedCandles: normalized,
+          sourceCandles:
+            candles,
+
+          normalizedCandles:
+            normalized,
+
           sessionCandles,
           stale: false,
         }),
@@ -532,11 +805,26 @@ export function analyzeIntradayMarket(
   const previousVwap =
     vwapSeries.at(-2)?.vwap ?? null;
 
-  const volumeRatio =
-    calculateIntradayVolumeRatio(
-      sessionCandles,
-      resolvedPolicy.volumeLookback,
+  const volumeContext =
+    calculateSessionAwareVolumeRatio(
+      closedCandles,
+      {
+        lookbackSessions:
+          resolvedPolicy
+            .volumeLookbackSessions,
+
+        minimumSamples:
+          resolvedPolicy
+            .minimumVolumeBaselineSamples,
+
+        fallbackLookback:
+          resolvedPolicy
+            .volumeLookback,
+      },
     );
+
+  const volumeRatio =
+    volumeContext.ratio;
 
   const volumeSurge =
     finite(volumeRatio) &&
@@ -546,7 +834,7 @@ export function analyzeIntradayMarket(
       );
 
   const lookbackWindow =
-    sessionCandles.slice(
+    closedCandles.slice(
       -Math.max(
         2,
         Number(
@@ -620,16 +908,48 @@ export function analyzeIntradayMarket(
       resolvedPolicy.vwapTolerancePercent,
     ) / 100;
 
+  const sessionExpansionWindow =
+    sessionCandles.slice(
+      -Math.max(
+        2,
+        Number(
+          resolvedPolicy
+            .breakoutLookback,
+        ) + 1,
+      ),
+      -1,
+    );
+
+  const sessionPriorHigh =
+    sessionExpansionWindow.length
+      ? Math.max(
+          ...sessionExpansionWindow.map(
+            (candle) =>
+              Number(candle.high),
+          ),
+        )
+      : null;
+
+  const sessionPriorLow =
+    sessionExpansionWindow.length
+      ? Math.min(
+          ...sessionExpansionWindow.map(
+            (candle) =>
+              Number(candle.low),
+          ),
+        )
+      : null;
+
   const hadLongExpansion =
     positive(currentVwap) &&
-    positive(priorHigh) &&
-    Number(priorHigh) >=
+    positive(sessionPriorHigh) &&
+    Number(sessionPriorHigh) >=
       Number(currentVwap) * 1.004;
 
   const hadShortExpansion =
     positive(currentVwap) &&
-    positive(priorLow) &&
-    Number(priorLow) <=
+    positive(sessionPriorLow) &&
+    Number(sessionPriorLow) <=
       Number(currentVwap) * 0.996;
 
   const pullbackLong =
@@ -734,7 +1054,7 @@ export function analyzeIntradayMarket(
   }
 
   const atr = calculateIntradayAtr(
-    sessionCandles,
+    closedCandles,
     resolvedPolicy.atrPeriod,
   );
 
@@ -778,6 +1098,12 @@ export function analyzeIntradayMarket(
     sessionBarCount:
       sessionCandles.length,
 
+    historyBarCount:
+      closedCandles.length,
+
+    minimumSessionBars,
+    requiredHistoryBars,
+
     currentPrice:
       Number(latest.close),
     latestBarTime:
@@ -788,6 +1114,21 @@ export function analyzeIntradayMarket(
     atr,
     volumeRatio,
     volumeSurge,
+
+    volumeBaseline: {
+      source:
+        volumeContext.source,
+
+      sampleCount:
+        volumeContext.sampleCount,
+
+      averageVolume:
+        volumeContext.baseline,
+
+      sessionSlotIndex:
+        volumeContext
+          .sessionSlotIndex,
+    },
 
     priorHigh,
     priorLow,
@@ -805,7 +1146,7 @@ export function analyzeIntradayMarket(
     dataQualityScore,
 
     scoreCalibration:
-      "rules-v1-uncalibrated",
+      "rules-v2-session-aware-uncalibrated",
 
     tradeSignal: {
       direction,

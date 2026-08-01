@@ -1,0 +1,129 @@
+.aiAnalysisButton {
+  min-width: 116px;
+}
+
+.aiAnalysisCard {
+  padding: 24px;
+  background:
+    linear-gradient(145deg, rgba(82, 104, 255, 0.12), transparent 46%),
+    rgba(17, 24, 39, 0.9);
+  border: 1px solid rgba(126, 145, 255, 0.22);
+  border-radius: 22px;
+}
+
+.aiAnalysisError {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  color: #ffd5d5;
+  background: rgba(190, 55, 55, 0.14);
+  border: 1px solid rgba(255, 105, 105, 0.24);
+  border-radius: 12px;
+}
+
+.aiAnalysisResult {
+  margin-top: 18px;
+}
+
+.aiAnalysisHero {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  align-items: start;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+}
+
+.aiAnalysisHero p,
+.aiAnalysisSection p,
+.aiAnalysisSection li,
+.aiAnalysisFooter {
+  line-height: 1.75;
+}
+
+.aiAnalysisHero p {
+  margin: 0;
+  color: #dbe1f1;
+}
+
+.aiStance {
+  display: inline-flex;
+  justify-content: center;
+  min-width: 76px;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 999px;
+}
+
+.aiStance.positive {
+  color: #bcf8d7;
+  background: rgba(45, 181, 112, 0.15);
+}
+
+.aiStance.negative {
+  color: #ffd0d0;
+  background: rgba(220, 77, 77, 0.15);
+}
+
+.aiStance.neutral {
+  color: #dde3ff;
+  background: rgba(117, 133, 229, 0.16);
+}
+
+.aiAnalysisGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.aiAnalysisSection {
+  padding: 17px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 15px;
+}
+
+.aiAnalysisSection h3 {
+  margin: 0 0 10px;
+  color: #f3f5ff;
+  font-size: 15px;
+}
+
+.aiAnalysisSection p,
+.aiAnalysisSection ul {
+  margin: 0;
+  color: #b8c0d5;
+}
+
+.aiAnalysisSection ul {
+  padding-left: 20px;
+}
+
+.aiAnalysisSection.positive {
+  border-color: rgba(54, 199, 126, 0.18);
+}
+
+.aiAnalysisSection.negative,
+.aiAnalysisSection.risk {
+  border-color: rgba(232, 91, 91, 0.18);
+}
+
+.aiAnalysisFooter {
+  margin-top: 14px;
+  color: #858faa;
+  font-size: 12px;
+}
+
+@media (max-width: 720px) {
+  .aiAnalysisHero,
+  .aiAnalysisGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .aiStance {
+    justify-self: start;
+  }
+}

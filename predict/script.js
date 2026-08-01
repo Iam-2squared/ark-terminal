@@ -26,6 +26,9 @@ import {
   initIntradayTrading,
   refreshIntradayTrading,
 } from "./trading/intraday-trading-ui.js";
+import {
+  initIntradayPaperBacktest,
+} from "./trading/intraday-paper-backtest-ui.js";
 import { initMarket, setMarketHistory } from "./market.js";
 import { normalizeSymbol } from "./symbols.js";
 import {
@@ -337,6 +340,7 @@ function init() {
   initAiAnalysis(() => latestState);
   initGlobalEvaluation();
   initIntradayTrading(() => latestState);
+  initIntradayPaperBacktest(() => latestState);
 
   inputs.runPredictionButton.addEventListener("click", () =>
     runAnalysis({ saveRecord: true }),

@@ -347,6 +347,89 @@
             手数料・スプレッド・約定滑りを含む実運用成績ではありません。
           </p>
         </article>
+        <article
+          id="intradayBacktestCard"
+          class="intradayBacktestCard fullWidthCard"
+          aria-labelledby="intradayBacktestTitle"
+        >
+          <div class="cardHeader">
+            <div>
+              <p class="cardLabel">Intraday Backtest</p>
+
+              <h2 id="intradayBacktestTitle">
+                短期Paperバックテスト
+              </h2>
+            </div>
+
+            <span id="intradayBacktestStatus" class="dataSourceBadge">
+              未実行
+            </span>
+          </div>
+
+          <p id="intradayBacktestDescription" class="dataSourceDescription">
+            過去の確定済み15分足を1本ずつ進め、
+            次足始値でのPaper約定を検証します。
+          </p>
+
+          <div class="intradayBacktestActionRow">
+            <div class="intradayBacktestAssumptions">
+              <span>手数料：片道0.05%</span>
+              <span>スプレッド：0.10%</span>
+              <span>スリッページ：片道0.05%</span>
+              <span>日またぎ：なし</span>
+            </div>
+
+            <button
+              id="runIntradayBacktestButton"
+              class="primaryButton"
+              type="button"
+            >
+              短期バックテストを実行
+            </button>
+          </div>
+
+          <div id="intradayBacktestSummary" class="intradayBacktestSummary">
+            <p class="emptyState">
+              実行後に総損益・勝率・最大ドローダウンを表示します。
+            </p>
+          </div>
+
+          <div class="intradayBacktestSection">
+            <div class="intradayBacktestSectionHeader">
+              <h3>資産曲線</h3>
+              <span>含み損益と概算決済コストを反映</span>
+            </div>
+
+            <div id="intradayBacktestChart" class="intradayBacktestChart">
+              <p class="emptyState">
+                短期バックテストを実行してください。
+              </p>
+            </div>
+          </div>
+
+          <div class="intradayBacktestSection">
+            <div class="intradayBacktestSectionHeader">
+              <h3>売買履歴</h3>
+              <span>最大100件を表示</span>
+            </div>
+
+            <div id="intradayBacktestTrades" class="intradayBacktestTrades">
+              <p class="emptyState">
+                実行後にPaper売買履歴を表示します。
+              </p>
+            </div>
+          </div>
+
+          <div
+            id="intradayBacktestWarnings"
+            class="intradayBacktestWarnings"
+          ></div>
+
+          <p class="intradayTradingNotice">
+            過去データによる概算であり、将来の利益や実際の約定を保証しません。
+            実注文・信用規制・板の厚さは未反映です。
+          </p>
+        </article>
         <article class="inputCard fullWidthCard">
           <div class="cardHeader">
             <div>

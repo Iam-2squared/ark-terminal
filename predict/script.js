@@ -297,10 +297,17 @@ function runBacktest() {
     const calibrationText = calibration
       ? `${calibrationStatus}（強気${calibration.bullishThreshold}以上・弱気${calibration.bearishThreshold}以下・最低信頼度${calibration.minimumConfidenceScore}）。`
       : "";
+    const modelSelection = result.meta.modelSelection;
+    const modelText =
+      modelSelection?.selected === "continuous"
+        ? `検証勝者は連続値モデル（学習${modelSelection.trainingSampleCount}件）です。`
+        : modelSelection?.continuousReady
+          ? "検証では現行ルールモデルを維持しました。"
+          : `連続値モデルは未採用（${modelSelection?.reason || "学習不足"}）。`;
 
     setBacktestStatus(
       `学習${result.meta.partitions.training}件・検証${result.meta.partitions.validation}件・最終テスト${result.meta.partitions.test}件。` +
-        `${calibrationText}最終テスト勝率 ${winRate}${confidenceInterval}。${coverage}` +
+        `${modelText}${calibrationText}最終テスト勝率 ${winRate}${confidenceInterval}。${coverage}` +
         '<a class="textLink" href="performance.html">成績ページを開く →</a>',
       true,
     );

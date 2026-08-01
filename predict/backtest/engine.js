@@ -13,6 +13,10 @@ import {
 } from "../learning/evaluation-policy.js";
 import { extractPredictionFeatures } from "../learning/feature-extractor.js";
 import {
+  fitContinuousModel,
+  predictContinuousScore,
+} from "../learning/continuous-model.js";
+import {
   DEFAULT_MODEL_CALIBRATION,
   directionFromScore,
   generateCalibrationCandidates,
@@ -416,6 +420,54 @@ function recalibrateRecords(records, calibration, costs) {
   );
 }
 
+function applyContinuousModelToRecord(
+  record,
+  model,
+  calibration,
+  costs = BACKTEST_COSTS,
+) {
+  const score = predictContinuousScore(model, record);
+
+  if (!finite(score)) {
+    return null;
+  }
+
+  return recalibrateRecord(
+    {
+      ...record,
+      ruleScore: finite(record.ruleScore)
+        ? Number(record.ruleScore)
+        : Number(record.score),
+      score,
+      scoringModel: {
+        key: "continuous",
+        version: model.version,
+        trainingSampleCount: model.sampleCount,
+      },
+    },
+    calibration,
+    costs,
+  );
+}
+
+function applyContinuousModelToRecords(
+  records,
+  model,
+  calibration,
+  costs = BACKTEST_COSTS,
+) {
+  return records
+    .map((record) =>
+      applyContinuousModelToRecord(
+        record,
+        model,
+        calibration,
+        costs,
+      ),
+    )
+    .filter(Boolean);
+}
+
 function isBetterCandidate(candidate, current) {
   if (candidate.objective > current.objective + 1e-9) {
     return true;
@@ -539,6 +591,7 @@ export function runWalkForwardBacktest({
   const minimumCandidateCoverage =
     Number(validationBaseMetrics.coverageRate || 0) * 0.8;
   let selected = {
+    modelKey: "rule",
     weightKey: "base",
     weights,
     calibration: baselineCalibration,
@@ -577,6 +630,7 @@ export function runWalkForwardBacktest({
       }
 
       const candidate = {
+        modelKey: "rule",
         weightKey: weightCandidate.key,
         weights: weightCandidate.weights,
         calibration: candidateCalibration,
@@ -591,21 +645,73 @@ export function runWalkForwardBacktest({
     });
   });
 
+  const continuousModel = fitContinuousModel(training, {
+    minimumSamples: Math.max(
+      20,
+      BACKTEST_SPLIT.minimumPartitionSamples * 2,
+    ),
+  });
+
+  if (continuousModel.ready) {
+    calibrationCandidates.forEach((candidateCalibration) => {
+      const records = applyContinuousModelToRecords(
+        validationBase,
+        continuousModel,
+        candidateCalibration,
+        costs,
+      );
+      const metrics = summarizePerformance(records);
+      const objective = validationObjective(records);
+
+      if (
+        metrics.sampleCount < BACKTEST_SPLIT.minimumPartitionSamples ||
+        Number(metrics.coverageRate || 0) < minimumCandidateCoverage ||
+        !Number.isFinite(objective)
+      ) {
+        return;
+      }
+
+      const candidate = {
+        modelKey: "continuous",
+        weightKey: "base",
+        weights,
+        calibration: candidateCalibration,
+        records,
+        metrics,
+        objective,
+      };
+
+      if (isBetterCandidate(candidate, selected)) {
+        selected = candidate;
+      }
+    });
+  }
+
   const selectedWeights = selected.weights;
   const selectedCalibration = selected.calibration;
+  const selectedModelKey = selected.modelKey || "rule";
   const validation = selected.records;
   const acceptedOptimizedWeights = selected.weightKey === "optimized";
   const acceptedCalibration = !sameCalibration(
     selectedCalibration,
     baselineCalibration,
   );
-  const test = buildPartitionRecords(
+  const ruleTest = buildPartitionRecords(
     shared,
     partitions.test,
     selectedWeights,
     "test",
     selectedCalibration,
   );
+  const test =
+    selectedModelKey === "continuous"
+      ? applyContinuousModelToRecords(
+          ruleTest,
+          continuousModel,
+          selectedCalibration,
+          costs,
+        )
+      : ruleTest;
 
   return {
     records: [...training, ...validation, ...test],
@@ -618,6 +724,7 @@ export function runWalkForwardBacktest({
       featureLeakageGuard: "各評価時点以前のローソク足だけで指標を再計算",
       weightsFrozenAfterTraining: true,
       calibrationFrozenBeforeTest: true,
+      scoringModelFrozenBeforeTest: true,
       optimizedWeightsAccepted: acceptedOptimizedWeights,
       optimizerMessage: optimized.message,
       calibration: {
@@ -625,6 +732,20 @@ export function runWalkForwardBacktest({
         selected: selectedCalibration,
         accepted: acceptedCalibration,
         candidateCount: calibrationCandidates.length,
+      },
+      modelSelection: {
+        baseline: "rule",
+        selected: selectedModelKey,
+        selectedLabel:
+          selectedModelKey === "continuous"
+            ? "連続値モデル"
+            : "現行ルールモデル",
+        continuousReady: continuousModel.ready,
+        continuousAccepted: selectedModelKey === "continuous",
+        continuousVersion: continuousModel.version,
+        trainingSampleCount: continuousModel.sampleCount,
+        trainingLoss: continuousModel.trainingLoss ?? null,
+        reason: continuousModel.reason || null,
       },
       validationComparison: {
         baseline: validationBaseMetrics,
@@ -831,6 +952,8 @@ export const BacktestInternals = {
   median,
   recalibrateRecord,
   recalibrateRecords,
+  applyContinuousModelToRecord,
+  applyContinuousModelToRecords,
   validationObjective,
   isBetterCandidate,
 };

@@ -1,4 +1,10 @@
-import { ARK_API_BASE, HISTORY_INTERVAL, HISTORY_RANGE } from "./config.js";
+import {
+  ARK_API_BASE,
+  HISTORY_INTERVAL,
+  HISTORY_RANGE,
+  INTRADAY_INTERVAL,
+  INTRADAY_RANGE,
+} from "./config.js";
 import { fetchMarketEnvironment } from "./market-context/service.js";
 
 async function fetchJson(path, params, signal) {
@@ -51,6 +57,24 @@ export function fetchHistory(
   );
 }
 
+export function fetchIntradayHistory(
+  symbol,
+  {
+    range = INTRADAY_RANGE,
+    interval = INTRADAY_INTERVAL,
+    signal,
+  } = {},
+) {
+  return fetchJson(
+    "/api/intraday",
+    {
+      symbol,
+      range,
+      interval,
+    },
+    signal,
+  );
+}
 export async function fetchMarketContext(symbol, signal) {
   try {
     return await fetchJson("/api/context", { symbol }, signal);

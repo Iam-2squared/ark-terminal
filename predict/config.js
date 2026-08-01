@@ -15,6 +15,8 @@ export const QUOTE_REFRESH_MS = 15000;
 export const SYMBOL_INPUT_DEBOUNCE_MS = 600;
 export const HISTORY_RANGE = "10y";
 export const HISTORY_INTERVAL = "1d";
+export const INTRADAY_RANGE = "5d";
+export const INTRADAY_INTERVAL = "15m";
 
 export const FACTOR_CATEGORIES = Object.freeze({
   movingAverages: "trend",

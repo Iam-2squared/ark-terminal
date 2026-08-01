@@ -40,17 +40,47 @@ function metadataBySymbol(universe) {
   );
 }
 
+function calculateDiscoveryScore({ aiScore, confidence, volumeRatio }) {
+  const score = Number(aiScore) || 0;
+  const confidenceBonus = Number(confidence) >= 70 ? 2 : 0;
+  let volumeBonus = 0;
+
+  if (Number(volumeRatio) >= 1.5) {
+    volumeBonus = 8;
+  } else if (Number(volumeRatio) >= 1.2) {
+    volumeBonus = 5;
+  } else if (Number(volumeRatio) >= 1.0) {
+    volumeBonus = 3;
+  } else if (Number(volumeRatio) >= 0.8) {
+    volumeBonus = 1;
+  }
+
+  return Math.min(100, Math.max(0, score + confidenceBonus + volumeBonus));
+}
+
 function mergeEntries(universe, entries) {
   const metadata = metadataBySymbol(universe);
 
-  return entries.map((entry) => ({
-    ...(metadata.get(String(entry.symbol)) || {}),
-    ...entry,
-    themes:
-      entry.themes ||
-      metadata.get(String(entry.symbol))?.themes ||
-      [],
-  }));
+  return entries.map((entry) => {
+    const merged = {
+      ...(metadata.get(String(entry.symbol)) || {}),
+      ...entry,
+      themes:
+        entry.themes ||
+        metadata.get(String(entry.symbol))?.themes ||
+        [],
+    };
+
+    if (!Object.prototype.hasOwnProperty.call(merged, "discoveryScore")) {
+      merged.discoveryScore = calculateDiscoveryScore({
+        aiScore: merged.aiScore,
+        confidence: merged.confidence,
+        volumeRatio: merged.volumeRatio,
+      });
+    }
+
+    return merged;
+  });
 }
 
 async function requestScreenerBatch(symbols, signal) {

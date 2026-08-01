@@ -73,7 +73,7 @@ function comparisonValue(entry, sort) {
     case "priceAsc":
       return finite(entry.currentPrice) ? -Number(entry.currentPrice) : -Infinity;
     default:
-      return Number(entry.aiScore) || -Infinity;
+      return Number(entry.discoveryScore ?? entry.aiScore) || -Infinity;
   }
 }
 
@@ -89,9 +89,10 @@ export function applyScreenerFilters(
   const minimumConfidence = finite(filters.minimumConfidence)
     ? Number(filters.minimumConfidence)
     : 0;
-  const minimumVolumeRatio = finite(filters.minimumVolumeRatio)
-    ? Number(filters.minimumVolumeRatio)
-    : 0;
+  const minimumVolumeRatio = Math.max(
+    0.6,
+    finite(filters.minimumVolumeRatio) ? Number(filters.minimumVolumeRatio) : 0,
+  );
   const budget = finite(filters.budget) && Number(filters.budget) > 0
     ? Number(filters.budget)
     : null;
@@ -123,7 +124,9 @@ export function applyScreenerFilters(
       (entry) => budget === null || Number(entry.purchaseAmount) <= budget,
     )
     .filter((entry) => marketCapMatches(entry.marketCap, filters.marketCap))
-    .filter((entry) => Number(entry.aiScore) >= minimumScore)
+    .filter(
+      (entry) => Number(entry.discoveryScore ?? entry.aiScore) >= minimumScore,
+    )
     .filter((entry) => Number(entry.confidence) >= minimumConfidence)
     .filter((entry) => Number(entry.volumeRatio) >= minimumVolumeRatio)
     .filter(

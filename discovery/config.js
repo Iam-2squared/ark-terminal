@@ -14,7 +14,7 @@ export const SCREENER_STORAGE_KEYS = Object.freeze({
 });
 
 export const LIVE_SCAN_BATCH_SIZE = 6;
-export const INITIAL_LIVE_SCAN_LIMIT = 18;
+export const INITIAL_LIVE_SCAN_LIMIT = 48;
 
 export const DEFAULT_ALERT_SETTINGS = Object.freeze({
   enabled: false,

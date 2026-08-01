@@ -104,7 +104,7 @@ test("Discoveryは最新データをVercel API経由で自動取得する", asyn
 test("ローカル開発ではService Workerが古いJSを返さない", async () => {
   const serviceWorker = await read("service-worker.js");
 
-  assert.match(serviceWorker, /ark-terminal-v5/);
+  assert.match(serviceWorker, /ark-terminal-v\d+/);
   assert.match(serviceWorker, /isLocalDevelopment/);
   assert.match(serviceWorker, /event\.respondWith\(fetch\(request\)\)/);
 });

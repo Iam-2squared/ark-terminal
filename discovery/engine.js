@@ -56,6 +56,45 @@ function topReasons(analysis, maximum = 3) {
     .map((factor) => factor.reason);
 }
 
+function factorScore(analysis, key, fallback = 50) {
+  return (
+    analysis.factors.find((factor) => factor.key === key)?.score ?? fallback
+  );
+}
+
+function calculateDiscoveryScore({ analysis, confidence, volumeRatio }) {
+  const trend = factorScore(analysis, "movingAverages");
+  const rsi = factorScore(analysis, "rsi");
+  const macd = factorScore(analysis, "macd");
+  const vwap = factorScore(analysis, "vwap");
+  const volume = factorScore(analysis, "volume");
+  const low52Week = factorScore(analysis, "low52Week");
+  const bollinger = factorScore(analysis, "bollingerBands");
+
+  const confidenceBonus = Number(confidence) >= 70 ? 2 : 0;
+  const volumeBoost = Number(volumeRatio) >= 1.5
+    ? 6
+    : Number(volumeRatio) >= 1.2
+      ? 4
+      : Number(volumeRatio) >= 1.0
+        ? 2
+        : 0;
+
+  const weighted =
+    trend * 0.24 +
+    rsi * 0.16 +
+    macd * 0.12 +
+    vwap * 0.16 +
+    volume * 0.14 +
+    low52Week * 0.10 +
+    bollinger * 0.08;
+
+  return Math.min(
+    100,
+    Math.max(0, Math.round(weighted / 1 + confidenceBonus + volumeBoost)),
+  );
+}
+
 function verifiedQuality(history) {
   let quality = validateHistoryData(history);
 
@@ -123,6 +162,12 @@ export function buildScreenerEntry({
       ? Number(history.meta.marketCap)
       : null;
 
+  const discoveryScore = calculateDiscoveryScore({
+    analysis,
+    confidence: prediction.confidence.score,
+    volumeRatio: indicators.volume?.ratio,
+  });
+
   return {
     symbol: history.symbol,
     code: metadata.code || String(history.symbol).replace(/\.T$/, ""),
@@ -139,6 +184,7 @@ export function buildScreenerEntry({
     volume: indicators.volume?.current ?? null,
     volumeRatio: indicators.volume?.ratio ?? null,
     aiScore: analysis.totalScore,
+    discoveryScore,
     technicalScore: analysis.technicalScore,
     direction: prediction.direction,
     confidence: prediction.confidence.score,

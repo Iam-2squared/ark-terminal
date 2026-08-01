@@ -235,15 +235,35 @@ function renderEquityCurve(result) {
       Number(point.equity),
     );
 
-  let minimum =
+  const actualMinimum =
     Math.min(...equities);
 
-  let maximum =
+  const actualMaximum =
     Math.max(...equities);
 
-  if (minimum === maximum) {
-    minimum -= 1;
-    maximum += 1;
+  let plotMinimum =
+    actualMinimum;
+
+  let plotMaximum =
+    actualMaximum;
+
+  if (
+    plotMinimum ===
+    plotMaximum
+  ) {
+    const visualPadding =
+      Math.max(
+        1,
+        Math.abs(
+          plotMinimum,
+        ) * 0.0001,
+      );
+
+    plotMinimum -=
+      visualPadding;
+
+    plotMaximum +=
+      visualPadding;
   }
 
   const usableWidth =
@@ -269,11 +289,11 @@ function renderEquityCurve(result) {
       1 -
       (
         Number(value) -
-        minimum
+        plotMinimum
       ) /
         (
-          maximum -
-          minimum
+          plotMaximum -
+          plotMinimum
         )
     ) *
       usableHeight;
@@ -405,12 +425,12 @@ function renderEquityCurve(result) {
   legend.append(
     createMetric(
       "曲線内最高資産",
-      formatCurrency(maximum),
+      formatCurrency(actualMaximum),
     ),
 
     createMetric(
       "曲線内最低資産",
-      formatCurrency(minimum),
+      formatCurrency(actualMinimum),
     ),
   );
 
@@ -918,6 +938,8 @@ export async function runIntradayBacktestUi() {
       await fetchIntradayHistory(
         symbol,
         {
+          range: "1mo",
+          interval: "15m",
           signal:
             backtestController.signal,
         },

@@ -136,6 +136,29 @@ strength (25%), and sector rotation (15%). Every level excludes unavailable
 components, renormalizes effective weights, and propagates data coverage and
 source confidence instead of creating neutral placeholder scores.
 
+## Market Intelligence news
+
+`market-intelligence/news-data-model.js` and `news-data-normalizer.js` define
+the provider-neutral Bundle 4 contract for news, company IR, TDnet disclosures,
+and earnings results. Provider aliases, timestamps, numeric actual/consensus
+metrics, source confidence, and importance are normalized without mutating the
+upstream payload. Missing text remains unavailable and duplicate URLs or stable
+identities are resolved before analysis.
+
+`news-sentiment-engine.js` reuses the existing bilingual context sentiment
+lexicon. `news-event-classifier.js`, `news-surprise-engine.js`, and
+`news-risk-engine.js` separately classify corporate events, compare actuals
+with consensus using explicit metric polarity, and surface material risk
+signals. A missing consensus never becomes an in-line result, and an unreadable
+article never becomes a zero-risk result.
+
+`news-summary-service.js` accepts an injected AI summarizer but has no hard
+dependency on a model provider. It labels source, extractive, title-only, and
+AI summaries separately and safely falls back when a summarizer fails.
+`news-score.js` combines sentiment, surprise, and inverted risk with confidence,
+importance, and time decay. `news-intelligence-engine.js` composes the complete
+pipeline while leaving data acquisition adapters independent.
+
 ## Remaining limits
 
 - Yahoo Finance is an unofficial upstream dependency and may delay, omit, or
@@ -152,4 +175,10 @@ source confidence instead of creating neutral placeholder scores.
 - Bundle 3 requires a point-in-time constituent universe from a future breadth
   provider. Current constituents must not be substituted into historical
   walk-forward samples because that would introduce survivorship bias.
+- Bundle 4 classifies and scores supplied source records but does not scrape or
+  license news, IR, or TDnet content. Each production adapter must enforce the
+  source terms, retention policy, and point-in-time timestamps independently.
+- Rule-based sentiment, event, surprise, and risk scores are features rather
+  than verified facts or calibrated return probabilities. AI summaries must
+  retain links to their source record for review.
 - Backtests and confidence scores do not guarantee future performance.

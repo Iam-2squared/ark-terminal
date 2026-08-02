@@ -10,8 +10,9 @@ calculation, scoring, testing, and rendering can evolve independently.
 5. `analysis/scoring.js`: category-capped factor scoring.
 6. `analysis/prediction-output.js`: direction, range, downside, confidence.
 7. `market-context/`: benchmark registry and market-regime adapters.
-8. `backtest/`: chronological evaluation, records, costs, and metrics.
-9. `script.js`, `market.js`, `performance.js`: UI orchestration only.
+8. `market-intelligence/`: normalized cross-market data, providers, and cache.
+9. `backtest/`: chronological evaluation, records, costs, and metrics.
+10. `script.js`, `market.js`, `performance.js`: UI orchestration only.
 
 ## Price adjustment and units
 
@@ -85,6 +86,16 @@ and USD/JPY. TOPIX, Growth Market 250, and industry indexes are registered as
 adapter-ready because a stable provider symbol/data contract still needs to be
 selected. Current market context is never reused as historical context in a
 backtest.
+
+## Market Intelligence data core
+
+`market-intelligence/market-data-model.js` is the canonical registry for the
+15 Phase 7 market series. Providers return raw source data, the normalizer
+converts it to the shared `symbol`, `price`, `change`, `changePercent`,
+`timestamp`, `source`, `status`, and `confidence` contract, and the service
+isolates source failures while deduplicating concurrent requests. TOPIX,
+JPX400, and Growth250 use explicitly labelled ETF proxies with reduced
+confidence until stable direct-index adapters are configured.
 
 ## Remaining limits
 

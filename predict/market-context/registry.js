@@ -1,8 +1,14 @@
+import { getMarketDataDefinition } from "../market-intelligence/market-data-model.js";
+
+function providerSymbol(symbol) {
+  return getMarketDataDefinition(symbol)?.providerSymbol ?? null;
+}
+
 export const MARKET_CONTEXT_REGISTRY = Object.freeze([
   {
     id: "nikkei225",
     label: "日経平均",
-    providerSymbol: "^N225",
+    providerSymbol: providerSymbol("NIKKEI225"),
     region: "JP",
     role: "broad-market",
     status: "enabled",
@@ -26,7 +32,7 @@ export const MARKET_CONTEXT_REGISTRY = Object.freeze([
   {
     id: "nasdaq",
     label: "NASDAQ",
-    providerSymbol: "^IXIC",
+    providerSymbol: providerSymbol("NASDAQ"),
     region: "US",
     role: "growth-market",
     status: "enabled",
@@ -34,7 +40,7 @@ export const MARKET_CONTEXT_REGISTRY = Object.freeze([
   {
     id: "sox",
     label: "SOX",
-    providerSymbol: "^SOX",
+    providerSymbol: providerSymbol("SOX"),
     region: "US",
     role: "semiconductor",
     status: "enabled",
@@ -42,7 +48,7 @@ export const MARKET_CONTEXT_REGISTRY = Object.freeze([
   {
     id: "usdJpy",
     label: "ドル円",
-    providerSymbol: "JPY=X",
+    providerSymbol: providerSymbol("USDJPY"),
     region: "GLOBAL",
     role: "currency",
     status: "enabled",

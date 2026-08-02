@@ -8,21 +8,21 @@ const {
   analyzeBrokerIntelligence,
 } =
   require(
-    "../../api/broker-readonly/intelligence-suite.js",
+    "../../server/broker-readonly/intelligence-suite.js",
   );
 
 const {
   createLatencyMonitor,
 } =
   require(
-    "../../api/broker-readonly/latency-monitor.js",
+    "../../server/broker-readonly/latency-monitor.js",
   );
 
 const {
   calculateAvailability,
 } =
   require(
-    "../../api/broker-readonly/availability.js",
+    "../../server/broker-readonly/availability.js",
   );
 
 test(

@@ -4,7 +4,7 @@ import test from "node:test";
 import {
   fetchFinnhubCompany,
   fetchFinnhubCompanyNews,
-} from "../../api/providers/finnhub-news-provider.js";
+} from "../../server/providers/finnhub-news-provider.js";
 
 test("Finnhub provider normalizes company and dated company news", async () => {
   const requests = [];

@@ -1,15 +1,18 @@
-// Part261 B9 Read-only Broker API
-
-const { initializeRuntime } = require("./integration");
-const { createSession } = require("./session");
-
-function initializeBrokerApi() {
-  return {
-    runtime: initializeRuntime(),
-    session: createSession(),
-  };
-}
-
-module.exports = {
-  initializeBrokerApi,
+module.exports = async function handler(req, res) {
+  res.status(200).json({
+    ok: true,
+    service: "broker-readonly",
+    mode: "read-only",
+    routes: [
+      "connection",
+      "account",
+      "positions",
+      "orders",
+      "health",
+      "availability",
+      "diagnostics"
+    ],
+    liveTradingAllowed: false,
+    orderSubmissionAllowed: false
+  });
 };

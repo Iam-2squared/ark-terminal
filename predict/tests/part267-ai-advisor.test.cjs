@@ -7,7 +7,7 @@ const assert =
 const {
   createAdvisorService,
 } = require(
-  "../../api/ai-advisor/service.js"
+  "../../server/ai-advisor/service.js"
 );
 
 test(

@@ -97,6 +97,23 @@ isolates source failures while deduplicating concurrent requests. TOPIX,
 JPX400, and Growth250 use explicitly labelled ETF proxies with reduced
 confidence until stable direct-index adapters are configured.
 
+## Market Intelligence snapshot
+
+`market-intelligence/market-snapshot-engine.js` composes the Bundle 1 data
+contract into the required `indexes`, `macro`, `regime`, `score`, and
+`timestamp` snapshot. `global-index-engine.js` scores the four Japanese and
+four US indexes, while `macro-engine.js` scores VIX, rates, currencies,
+commodities, and crypto inputs. Daily changes are normalized with
+symbol-specific scales and source confidence is included in the effective
+weight.
+
+Missing or failed series are excluded instead of being assigned a neutral
+score. The remaining weights are renormalized, and reduced data availability
+is reported separately through coverage and confidence. The composite score
+uses 70% global indexes and 30% macro inputs. Regime classification reuses the
+existing analysis regime engine and recommendation mapping, with the absolute
+VIX level retained as a high-volatility risk override.
+
 ## Remaining limits
 
 - Yahoo Finance is an unofficial upstream dependency and may delay, omit, or

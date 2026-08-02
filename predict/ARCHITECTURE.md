@@ -300,6 +300,16 @@ from that durable archive so its all-time metrics are not limited to the active
 window. Refresh reports and records remain evaluation-only and explicitly keep
 execution disabled.
 
+## Daily Market Intelligence capture
+
+`daily-market-snapshot-controller.js` reuses the browser analysis state, the
+existing AI input builder, Runtime v3, and the historical snapshot service. A
+normal Prediction Lab analysis therefore captures at most one immutable Market
+Intelligence snapshot per symbol and Tokyo market date. Reanalysis, reconnect,
+and six-hour wake checks are idempotent for the same date, while the next market
+date creates a new point-in-time record. The bounded browser retention window is
+365 snapshots and every capture remains evaluation-only.
+
 ## Interface encoding integrity
 
 `index.html` is stored and served as UTF-8, matching its explicit charset

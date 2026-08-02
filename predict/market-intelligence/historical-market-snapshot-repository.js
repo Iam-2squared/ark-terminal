@@ -8,7 +8,7 @@ import {
 
 export const DEFAULT_HISTORICAL_MARKET_SNAPSHOT_STORAGE_KEY =
   STORAGE_KEYS.marketIntelligenceSnapshots;
-export const DEFAULT_HISTORICAL_MARKET_SNAPSHOT_LIMIT = 100;
+export const DEFAULT_HISTORICAL_MARKET_SNAPSHOT_LIMIT = 365;
 
 const { normalizeSymbol, timestampMilliseconds } =
   HistoricalMarketSnapshotNormalizerInternals;

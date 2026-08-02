@@ -22,6 +22,7 @@ import { extractPredictionFeatures } from "./learning/feature-extractor.js";
 import { dispatchAnalysisReady } from "./analysis/analysis-event-bridge.js";
 import { initAIAccuracyMonitor } from "./analysis/ai-accuracy-monitor-controller.js";
 import { initPredictionOutcomeController } from "./analysis/prediction-outcome-controller.js";
+import { initDailyMarketSnapshotController } from "./analysis/daily-market-snapshot-controller.js";
 import { initAiAnalysis, resetAiAnalysis } from "./ai-analysis.js";
 import {
   initAiTradeGate,
@@ -57,6 +58,7 @@ let analysisController = null;
 let latestState = null;
 let aiAccuracyMonitorController = null;
 let predictionOutcomeController = null;
+let dailyMarketSnapshotController = null;
 
 function collectInputs() {
   [
@@ -363,6 +365,9 @@ function init() {
   initIntradayPaperBacktest(() => latestState);
   aiAccuracyMonitorController = initAIAccuracyMonitor();
   predictionOutcomeController = initPredictionOutcomeController();
+  dailyMarketSnapshotController = initDailyMarketSnapshotController({
+    stateProvider: () => latestState,
+  });
 
   inputs.runPredictionButton.addEventListener("click", () =>
     runAnalysis({ saveRecord: true }),

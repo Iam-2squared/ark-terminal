@@ -62,37 +62,189 @@ function factorScore(analysis, key, fallback = 50) {
   );
 }
 
-function calculateDiscoveryScore({ analysis, confidence, volumeRatio }) {
-  const trend = factorScore(analysis, "movingAverages");
-  const rsi = factorScore(analysis, "rsi");
-  const macd = factorScore(analysis, "macd");
-  const vwap = factorScore(analysis, "vwap");
-  const volume = factorScore(analysis, "volume");
-  const low52Week = factorScore(analysis, "low52Week");
-  const bollinger = factorScore(analysis, "bollingerBands");
+function clamp(value, minimum = 0, maximum = 100) {
+  return Math.min(maximum, Math.max(minimum, Number(value)));
+}
 
-  const confidenceBonus = Number(confidence) >= 70 ? 2 : 0;
-  const volumeBoost = Number(volumeRatio) >= 1.5
-    ? 6
-    : Number(volumeRatio) >= 1.2
-      ? 4
-      : Number(volumeRatio) >= 1.0
-        ? 2
-        : 0;
+function scoreMovingAverageAlignment(indicators) {
+  const { currentPrice } = indicators;
+  const ma = indicators.movingAverages || {};
+  const values = [currentPrice, ma.ma5, ma.ma25, ma.ma75, ma.ma200];
+
+  if (values.some((value) => !finite(value))) {
+    return 50;
+  }
+
+  const alignmentCount = [
+    currentPrice > ma.ma5,
+    ma.ma5 > ma.ma25,
+    ma.ma25 > ma.ma75,
+    ma.ma75 > ma.ma200,
+  ].filter(Boolean).length;
+
+  const alignmentScore = (alignmentCount / 4) * 100;
+  const slope = finite(ma.ma5) && finite(ma.ma25)
+    ? (ma.ma5 - ma.ma25) / Math.max(1, Math.abs(ma.ma25))
+    : 0;
+  const slopeScore = clamp(50 + slope * 140, 25, 95);
+
+  const crossedUp =
+    finite(ma.previousMa5) &&
+    finite(ma.previousMa25) &&
+    ma.previousMa5 <= ma.previousMa25 &&
+    ma.ma5 > ma.ma25;
+  const crossedDown =
+    finite(ma.previousMa5) &&
+    finite(ma.previousMa25) &&
+    ma.previousMa5 >= ma.previousMa25 &&
+    ma.ma5 < ma.ma25;
+
+  const crossBonus = crossedUp ? 6 : crossedDown ? -6 : 0;
+
+  return clamp(alignmentScore * 0.72 + slopeScore * 0.28 + crossBonus, 25, 97);
+}
+
+function scoreRsiPosition(rsi) {
+  if (!finite(rsi)) {
+    return 50;
+  }
+
+  if (rsi <= 30) {
+    return clamp(40 + (rsi / 30) * 15, 40, 55);
+  }
+
+  if (rsi <= 45) {
+    return clamp(55 + ((rsi - 30) / 15) * 15, 55, 70);
+  }
+
+  if (rsi <= 60) {
+    return clamp(70 + ((rsi - 45) / 15) * 10, 70, 80);
+  }
+
+  if (rsi <= 70) {
+    return clamp(80 - ((rsi - 60) / 10) * 15, 65, 80);
+  }
+
+  if (rsi <= 80) {
+    return clamp(65 - ((rsi - 70) / 10) * 25, 40, 65);
+  }
+
+  return 40;
+}
+
+function scoreMacdStrength(macd) {
+  if (!macd || !finite(macd.value) || !finite(macd.signal) || !finite(macd.histogram)) {
+    return 50;
+  }
+
+  const hist = clamp(macd.histogram, -5, 5);
+  const base = clamp(50 + hist * 7, 25, 90);
+
+  const crossedUp =
+    finite(macd.previousValue) &&
+    finite(macd.previousSignal) &&
+    macd.previousValue <= macd.previousSignal &&
+    macd.value > macd.signal;
+  const crossedDown =
+    finite(macd.previousValue) &&
+    finite(macd.previousSignal) &&
+    macd.previousValue >= macd.previousSignal &&
+    macd.value < macd.signal;
+
+  return clamp(base + (crossedUp ? 8 : crossedDown ? -8 : 0), 25, 92);
+}
+
+function scoreVwapDistance(indicators) {
+  if (!finite(indicators.vwap) || !finite(indicators.currentPrice)) {
+    return 50;
+  }
+
+  const diff = (indicators.currentPrice - indicators.vwap) / Math.max(1, indicators.vwap);
+  return clamp(50 + diff * 160, 20, 95);
+}
+
+function scoreVolumeRatio(ratio, priceChangePercent) {
+  if (!finite(ratio)) {
+    return 50;
+  }
+
+  const normalized = clamp((ratio - 0.6) / 1.9, 0, 1);
+  const base = 40 + normalized * 40;
+  const directionBonus = finite(priceChangePercent)
+    ? priceChangePercent >= 0
+      ? 8
+      : -4
+    : 0;
+
+  return clamp(base + directionBonus, 25, 92);
+}
+
+function score52WeekPosition(indicators) {
+  const low = indicators.distanceFrom52WeekLow;
+  const high = indicators.distanceFrom52WeekHigh;
+
+  const lowScore = finite(low)
+    ? clamp(60 + Math.min(100, low) * 0.2, 60, 90)
+    : 50;
+  const highScore = finite(high)
+    ? clamp(82 - Math.min(100, Math.max(-50, high)) * 0.35, 40, 90)
+    : 50;
+
+  return clamp(lowScore * 0.55 + highScore * 0.45, 40, 90);
+}
+
+function scoreRisk(atrPercent) {
+  if (!finite(atrPercent)) {
+    return 55;
+  }
+
+  return clamp(85 - atrPercent * 6.5, 25, 85);
+}
+
+function scoreConfidence(confidence) {
+  if (!finite(confidence)) {
+    return 50;
+  }
+
+  return clamp(30 + Number(confidence) * 0.65, 30, 95);
+}
+
+function scoreQuality(quality) {
+  if (!quality || !finite(quality.qualityScore)) {
+    return 50;
+  }
+
+  return clamp(30 + quality.qualityScore * 0.45, 30, 95);
+}
+
+function calculateDiscoveryScore({ analysis, indicators, confidence, quality }) {
+  const trendScore = scoreMovingAverageAlignment(indicators);
+  const rsiScore = scoreRsiPosition(indicators.rsi);
+  const macdScore = scoreMacdStrength(indicators.macd);
+  const vwapScore = scoreVwapDistance(indicators);
+  const volumeScore = scoreVolumeRatio(indicators.volume?.ratio, indicators.priceChangePercent);
+  const positionScore = score52WeekPosition(indicators);
+  const riskScore = scoreRisk(indicators.atr?.percent);
+  const confidenceScore = scoreConfidence(confidence);
+  const qualityScore = scoreQuality(quality);
+
+  const baselineScore = finite(analysis?.totalScore)
+    ? Number(analysis.totalScore)
+    : 60;
 
   const weighted =
-    trend * 0.24 +
-    rsi * 0.16 +
-    macd * 0.12 +
-    vwap * 0.16 +
-    volume * 0.14 +
-    low52Week * 0.10 +
-    bollinger * 0.08;
+    baselineScore * 0.48 +
+    trendScore * 0.14 +
+    rsiScore * 0.09 +
+    macdScore * 0.08 +
+    vwapScore * 0.06 +
+    volumeScore * 0.08 +
+    positionScore * 0.07 +
+    riskScore * 0.04 +
+    confidenceScore * 0.03 +
+    qualityScore * 0.01;
 
-  return Math.min(
-    100,
-    Math.max(0, Math.round(weighted / 1 + confidenceBonus + volumeBoost)),
-  );
+  return Number(clamp(weighted, 0, 100).toFixed(2));
 }
 
 function verifiedQuality(history) {
@@ -164,8 +316,9 @@ export function buildScreenerEntry({
 
   const discoveryScore = calculateDiscoveryScore({
     analysis,
+    indicators,
     confidence: prediction.confidence.score,
-    volumeRatio: indicators.volume?.ratio,
+    quality,
   });
 
   return {

@@ -40,22 +40,20 @@ function metadataBySymbol(universe) {
   );
 }
 
+function clamp(value, minimum = 0, maximum = 100) {
+  return Math.min(maximum, Math.max(minimum, Number(value)));
+}
+
 function calculateDiscoveryScore({ aiScore, confidence, volumeRatio }) {
   const score = Number(aiScore) || 0;
-  const confidenceBonus = Number(confidence) >= 70 ? 2 : 0;
-  let volumeBonus = 0;
+  const confidenceValue = Number(confidence) || 0;
+  const confidenceBonus = clamp(confidenceValue * 0.04, 0, 4);
+  const ratio = Number(volumeRatio);
+  const volumeBonus = Number.isFinite(ratio)
+    ? clamp((ratio - 0.85) * 2.5, -2, 5)
+    : 0;
 
-  if (Number(volumeRatio) >= 1.5) {
-    volumeBonus = 8;
-  } else if (Number(volumeRatio) >= 1.2) {
-    volumeBonus = 5;
-  } else if (Number(volumeRatio) >= 1.0) {
-    volumeBonus = 3;
-  } else if (Number(volumeRatio) >= 0.8) {
-    volumeBonus = 1;
-  }
-
-  return Math.min(100, Math.max(0, score + confidenceBonus + volumeBonus));
+  return Number(clamp(score + confidenceBonus + volumeBonus, 0, 100).toFixed(2));
 }
 
 function mergeEntries(universe, entries) {

@@ -1307,3 +1307,783 @@ color:#8bb8ff;
     grid-template-columns: 1fr;
   }
 }
+/* ARK_AI_RESULT_PRESENTER_V1 */
+
+.arkAIResultPresenterRoot {
+  margin-top: 24px;
+}
+
+.arkAIResultPresenter {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  border: 1px solid rgba(120, 147, 255, 0.22);
+  border-radius: 20px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(26, 37, 69, 0.98),
+      rgba(12, 19, 37, 0.98)
+    );
+}
+
+.arkAIResultHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.arkAIResultEyebrow {
+  color: #8ea8ff;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+}
+
+.arkAIResultHeader h2 {
+  margin: 6px 0 0;
+  color: #ffffff;
+}
+
+.arkAIResultAction {
+  padding: 9px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.arkAIResultAction.positive {
+  color: #6ee7ad;
+  background: rgba(43, 190, 120, 0.14);
+}
+
+.arkAIResultAction.negative {
+  color: #ff9090;
+  background: rgba(221, 74, 74, 0.14);
+}
+
+.arkAIResultAction.neutral {
+  color: #f2cb79;
+  background: rgba(216, 166, 58, 0.14);
+}
+
+.arkAIResultMetrics,
+.arkAIResultTrade {
+  display: grid;
+  gap: 10px;
+}
+
+.arkAIResultMetrics {
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+}
+
+.arkAIResultTrade {
+  grid-template-columns:
+    repeat(5, minmax(0, 1fr));
+}
+
+.arkAIResultMetrics article,
+.arkAIResultTrade article {
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.arkAIResultMetrics span,
+.arkAIResultTrade span {
+  display: block;
+  color: #929fbd;
+  font-size: 12px;
+}
+
+.arkAIResultMetrics strong,
+.arkAIResultTrade strong {
+  display: block;
+  margin-top: 6px;
+  color: #ffffff;
+  font-size: 18px;
+}
+
+.arkAIResultFactors {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.arkAIResultFactors article {
+  padding: 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.arkAIResultFactors h3 {
+  margin: 0 0 10px;
+  color: #ffffff;
+}
+
+.arkAIResultFactors ul {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding-left: 20px;
+  color: #cad3eb;
+}
+
+.arkAIResultDisclaimer {
+  margin: 0;
+  color: #7d89a7;
+  font-size: 12px;
+}
+
+.arkAIResultError {
+  padding: 18px;
+  border: 1px solid rgba(255, 95, 95, 0.28);
+  border-radius: 14px;
+  color: #ffaaaa;
+  background: rgba(190, 45, 45, 0.1);
+}
+
+@media (max-width: 900px) {
+  .arkAIResultMetrics,
+  .arkAIResultTrade {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .arkAIResultHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .arkAIResultMetrics,
+  .arkAIResultTrade,
+  .arkAIResultFactors {
+    grid-template-columns: 1fr;
+  }
+}
+/* ARK_AI_ANALYSIS_BUTTON_V1 */
+
+.arkAIAnalysisButtonWrap {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.arkAIAnalysisButton {
+  min-width: 180px;
+  padding: 12px 20px;
+  border: 1px solid rgba(116, 145, 255, 0.38);
+  border-radius: 12px;
+  color: #ffffff;
+  background:
+    linear-gradient(
+      135deg,
+      #526fe8,
+      #755ce8
+    );
+  box-shadow:
+    0 12px 30px
+    rgba(67, 83, 205, 0.24);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    opacity 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.arkAIAnalysisButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow:
+    0 16px 36px
+    rgba(67, 83, 205, 0.32);
+}
+
+.arkAIAnalysisButton:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.arkAIAnalysisButton[
+  data-ai-analysis-state="success"
+] {
+  background:
+    linear-gradient(
+      135deg,
+      #25976c,
+      #35b47f
+    );
+}
+
+.arkAIAnalysisButton[
+  data-ai-analysis-state="error"
+] {
+  background:
+    linear-gradient(
+      135deg,
+      #b84c55,
+      #d55c64
+    );
+}
+/* ARK_AI_ANALYSIS_SETTINGS_UI_V1 */
+
+.arkAISettingsOpenButton {
+  padding: 12px 18px;
+  border: 1px solid rgba(133, 153, 230, 0.28);
+  border-radius: 12px;
+  color: #dfe6ff;
+  background: rgba(255, 255, 255, 0.055);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.arkAISettingsRoot {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(5, 9, 20, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.arkAISettingsRoot[hidden] {
+  display: none;
+}
+
+.arkAISettingsPanel {
+  width: min(760px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  padding: 22px;
+  border: 1px solid rgba(119, 145, 255, 0.28);
+  border-radius: 20px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(27, 38, 72, 0.99),
+      rgba(12, 19, 38, 0.99)
+    );
+  box-shadow:
+    0 24px 70px
+    rgba(0, 0, 0, 0.42);
+}
+
+.arkAISettingsHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.arkAISettingsEyebrow {
+  color: #8ea8ff;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+}
+
+.arkAISettingsHeader h3 {
+  margin: 6px 0 0;
+  color: #ffffff;
+  font-size: 24px;
+}
+
+.arkAISettingsClose {
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 10px;
+  color: #dfe6ff;
+  background: rgba(255, 255, 255, 0.07);
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.arkAISettingsGrid,
+.arkAISettingsWeights {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.arkAISettingsWeights h4 {
+  grid-column: 1 / -1;
+  margin: 4px 0;
+  color: #ffffff;
+}
+
+.arkAISettingsPanel label {
+  display: grid;
+  gap: 7px;
+  color: #a9b4cf;
+  font-size: 12px;
+}
+
+.arkAISettingsPanel input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 10px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+  font: inherit;
+}
+
+.arkAISettingsActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.arkAISettingsActions button {
+  padding: 11px 18px;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.arkAISettingsReset {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #d8def0;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.arkAISettingsSave {
+  border: 0;
+  color: #ffffff;
+  background:
+    linear-gradient(
+      135deg,
+      #526fe8,
+      #765de8
+    );
+}
+
+.arkAISettingsMessage {
+  min-height: 18px;
+  margin: 12px 0 0;
+  color: #6ee7ad;
+  font-size: 12px;
+  text-align: right;
+}
+
+@media (max-width: 620px) {
+  .arkAISettingsGrid,
+  .arkAISettingsWeights {
+    grid-template-columns: 1fr;
+  }
+}
+/* ARK_AI_ANALYSIS_STATUS_PANEL_V1 */
+
+.arkAIAnalysisStatusRoot {
+  margin-top: 14px;
+}
+
+.arkAIAnalysisStatusRoot[hidden] {
+  display: none;
+}
+
+.arkAIStatusPanel {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(126, 150, 255, 0.2);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.arkAIStatusPanel.running {
+  border-color: rgba(113, 145, 255, 0.38);
+  background: rgba(76, 102, 213, 0.1);
+}
+
+.arkAIStatusPanel.success {
+  border-color: rgba(76, 218, 143, 0.28);
+  background: rgba(45, 170, 110, 0.08);
+}
+
+.arkAIStatusPanel.error {
+  border-color: rgba(255, 102, 102, 0.3);
+  background: rgba(205, 62, 62, 0.09);
+}
+
+.arkAIStatusIcon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+}
+
+.arkAIStatusSpinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid rgba(255, 255, 255, 0.16);
+  border-top-color: #8ea8ff;
+  border-radius: 50%;
+  animation: arkAIStatusSpin 0.8s linear infinite;
+}
+
+.arkAIStatusContent {
+  display: grid;
+  gap: 3px;
+}
+
+.arkAIStatusEyebrow {
+  color: #8ea8ff;
+  font-size: 10px;
+  letter-spacing: 0.13em;
+}
+
+.arkAIStatusContent strong {
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.arkAIStatusContent small {
+  color: #8e9ab6;
+  font-size: 11px;
+}
+
+@keyframes arkAIStatusSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* ARK_AI_EXPLAINABILITY_PANEL_V1 */
+
+.arkAIExplainabilityRoot {
+  margin-top: 22px;
+}
+
+.arkExplainabilityPanel {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  border: 1px solid rgba(123, 149, 255, 0.22);
+  border-radius: 20px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(27, 38, 71, 0.98),
+      rgba(12, 19, 37, 0.98)
+    );
+}
+
+.arkExplainabilityHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.arkExplainabilityEyebrow {
+  color: #8ea8ff;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+
+.arkExplainabilityHeader h3 {
+  margin: 6px 0 0;
+  color: #ffffff;
+  font-size: 22px;
+}
+
+.arkExplainabilityAction {
+  padding: 8px 13px;
+  border-radius: 999px;
+  color: #dfe6ff;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.arkExplainabilityMetrics {
+  display: grid;
+  gap: 12px;
+}
+
+.arkExplainabilityMetric > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #aab5ce;
+  font-size: 12px;
+}
+
+.arkExplainabilityMetric strong {
+  color: #ffffff;
+}
+
+.arkExplainabilityBar {
+  height: 7px;
+  margin-top: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.arkExplainabilityBar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      90deg,
+      #536fe8,
+      #7a61eb
+    );
+}
+
+.arkExplainabilityColumns {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.arkExplainabilityColumns article {
+  padding: 15px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.arkExplainabilityColumns h4 {
+  margin: 0 0 10px;
+  color: #ffffff;
+}
+
+.arkExplainabilityColumns ul {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding-left: 20px;
+  color: #cbd4e9;
+}
+
+.arkExplainabilityConclusion {
+  padding: 14px;
+  border-radius: 13px;
+  background: rgba(83, 111, 232, 0.09);
+}
+
+.arkExplainabilityConclusion strong {
+  color: #ffffff;
+}
+
+.arkExplainabilityConclusion p {
+  margin: 6px 0 0;
+  color: #aeb9d2;
+}
+
+.arkExplainabilitySymbol {
+  margin: 0;
+  color: #7e8aa8;
+  font-size: 12px;
+}
+
+@media (max-width: 620px) {
+  .arkExplainabilityHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .arkExplainabilityColumns {
+    grid-template-columns: 1fr;
+  }
+}
+/* ARK_AI_ANALYSIS_HISTORY_PANEL_V1 */
+
+.arkAIAnalysisHistoryRoot {
+  margin-top: 22px;
+}
+
+.arkAIHistoryPanel {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  border: 1px solid rgba(123, 149, 255, 0.2);
+  border-radius: 20px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(26, 37, 69, 0.98),
+      rgba(12, 19, 37, 0.98)
+    );
+}
+
+.arkAIHistoryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.arkAIHistoryEyebrow {
+  color: #8ea8ff;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+
+.arkAIHistoryHeader h3 {
+  margin: 6px 0 0;
+  color: #ffffff;
+  font-size: 22px;
+}
+
+.arkAIHistoryClear {
+  padding: 9px 13px;
+  border: 1px solid rgba(255, 118, 118, 0.2);
+  border-radius: 10px;
+  color: #ffaaaa;
+  background: rgba(205, 62, 62, 0.08);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.arkAIHistorySummary {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.arkAIHistorySummary article {
+  padding: 13px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.arkAIHistorySummary span,
+.arkAIHistorySummary strong {
+  display: block;
+}
+
+.arkAIHistorySummary span {
+  color: #929fbd;
+  font-size: 12px;
+}
+
+.arkAIHistorySummary strong {
+  margin-top: 5px;
+  color: #ffffff;
+  font-size: 18px;
+}
+
+.arkAIHistoryList {
+  display: grid;
+  gap: 10px;
+}
+
+.arkAIHistoryItem {
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.arkAIHistoryMain {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.arkAIHistorySymbol {
+  display: block;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.arkAIHistoryMain small {
+  display: block;
+  margin-top: 3px;
+  color: #7f8ba8;
+}
+
+.arkAIHistoryAction {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.arkAIHistoryAction.positive {
+  color: #6ee7ad;
+  background: rgba(43, 190, 120, 0.14);
+}
+
+.arkAIHistoryAction.negative {
+  color: #ff9393;
+  background: rgba(221, 74, 74, 0.14);
+}
+
+.arkAIHistoryAction.neutral {
+  color: #f1cb78;
+  background: rgba(216, 166, 58, 0.14);
+}
+
+.arkAIHistoryMetrics {
+  display: grid;
+  grid-template-columns:
+    repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.arkAIHistoryMetrics span {
+  color: #8692ae;
+  font-size: 11px;
+}
+
+.arkAIHistoryMetrics strong {
+  display: block;
+  margin-top: 3px;
+  color: #dfe6ff;
+  font-size: 13px;
+}
+
+.arkAIHistoryEmpty {
+  margin: 0;
+  padding: 18px;
+  color: #8995b0;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .arkAIHistorySummary {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .arkAIHistoryMetrics {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .arkAIHistoryHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .arkAIHistorySummary,
+  .arkAIHistoryMetrics {
+    grid-template-columns: 1fr;
+  }
+}

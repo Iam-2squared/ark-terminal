@@ -21,6 +21,7 @@ function report(id) {
     weightCandidate: { updated: false, applied: false },
     marketFeatureCandidate: { applied: false },
     audit: { resolvedCount: 1 },
+    promotionGate: { eligible: false, promotionAllowed: false },
     executionAllowed: false,
   };
 }
@@ -39,6 +40,7 @@ test("Learning feedback repository persists summaries idempotently", () => {
     ["three", "two"],
   );
   assert.equal(repository.latest().executionAllowed, false);
+  assert.equal(repository.latest().promotionGate.promotionAllowed, false);
 
   const restored = new LearningFeedbackRepository({ storage: store, limit: 2 });
   assert.deepEqual(restored.list(), repository.list());

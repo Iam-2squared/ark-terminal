@@ -321,6 +321,16 @@ existing evidence thresholds are met; this stage never calls `saveWeights`,
 never mutates the active model, and marks every candidate as requiring human
 approval.
 
+## Model promotion evidence gate
+
+`model-promotion-gate.js` exposes a candidate only when the existing 60-sample
+optimizer threshold is met, chronological validation and final-test partitions
+each retain at least ten records, a real weight change exists, active weights
+remain untouched, and every learning row is free of future information. Passing
+this evidence gate means only `eligible_for_validation`; promotion still
+requires a successful backtest and explicit human approval, and execution
+permission remains disabled.
+
 ## Interface encoding integrity
 
 `index.html` is stored and served as UTF-8, matching its explicit charset

@@ -40,6 +40,7 @@ function persistedReport(report) {
     status: report.status,
     weightCandidate: report.weightCandidate,
     marketFeatureCandidate: report.marketFeatureCandidate,
+    promotionGate: report.promotionGate,
     audit: report.audit,
     executionAllowed: false,
   };

@@ -5,6 +5,7 @@ import {
 } from "../market-intelligence/prediction-feedback-adapter.js";
 import { optimizeWeights } from "./weight-optimizer.js";
 import { PREDICTION_FEATURE_KEYS } from "../market-intelligence/prediction-feature-model.js";
+import { evaluateModelPromotionCandidate } from "./model-promotion-gate.js";
 
 export const RESOLVED_FEEDBACK_VERSION = "resolved-feedback-v1";
 
@@ -56,7 +57,7 @@ export function buildResolvedFeedback({
   });
   const id = reportId(learningDataset.rows);
 
-  return {
+  const report = {
     id,
     version: RESOLVED_FEEDBACK_VERSION,
     generatedAt,
@@ -91,6 +92,11 @@ export function buildResolvedFeedback({
       activeWeightsChanged: false,
     },
     executionAllowed: false,
+  };
+
+  return {
+    ...report,
+    promotionGate: evaluateModelPromotionCandidate(report),
   };
 }
 

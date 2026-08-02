@@ -42,6 +42,8 @@ test("Resolved feedback creates learning rows and optimizer candidates", () => {
   assert.equal(report.marketFeatureCandidate.applied, false);
   assert.equal(report.audit.futureInformationIncluded, false);
   assert.equal(report.audit.activeWeightsChanged, false);
+  assert.equal(report.promotionGate.eligible, true);
+  assert.equal(report.promotionGate.promotionAllowed, false);
   assert.equal(report.executionAllowed, false);
 });
 
@@ -56,6 +58,7 @@ test("Small resolved sample is retained for learning without changing weights", 
   assert.equal(report.weightCandidate.updated, false);
   assert.equal(report.weightCandidate.sampleCount, 2);
   assert.equal(report.weightCandidate.required, 60);
+  assert.equal(report.promotionGate.eligible, false);
 });
 
 test("Resolved feedback identity is stable for the same evidence", () => {

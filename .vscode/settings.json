@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^node -e \"const fs=require\\('fs'\\);const path=require\\('path'\\);const file=path\\.join\\(process\\.cwd\\(\\),'data','screener-snapshot\\.json'\\); const data=JSON\\.parse\\(fs\\.readFileSync\\(file,'utf8'\\)\\); const entries=Array\\.isArray\\(data\\)\\?data:data\\.entries\\|\\|\\[\\]; const stats=\\{status:\\{\\}, score:\\[\\], confidence:\\[\\], volume:\\[\\]\\}; entries\\.forEach\\(e=>\\{stats\\.status\\[e\\.status\\]=\\(stats\\.status\\[e\\.status\\]\\|\\|0\\)\\+1; if\\(typeof e\\.aiScore==='number'\\) stats\\.score\\.push\\(e\\.aiScore\\); if\\(typeof e\\.confidence==='number'\\) stats\\.confidence\\.push\\(e\\.confidence\\); if\\(typeof e\\.volumeRatio==='number'\\) stats\\.volume\\.push\\(e\\.volumeRatio\\);\\}\\); function quant\\(arr\\)\\{arr=arr\\.slice\\(\\)\\.sort\\(\\(a,b\\)=>a-b\\); return \\[0,10,25,50,75,90,100\\]\\.map\\(p=>\\{const idx=Math\\.floor\\(\\(arr\\.length-1\\)\\*p/100\\); return \\[p, arr\\[idx\\]\\];\\}\\);\\} console\\.log\\('snapshot count', entries\\.length\\); console\\.log\\(stats\\.status\\); console\\.log\\('score quantiles', quant\\(stats\\.score\\)\\); console\\.log\\('confidence quantiles', quant\\(stats\\.confidence\\)\\); console\\.log\\('volume quantiles', quant\\(stats\\.volume\\)\\);\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

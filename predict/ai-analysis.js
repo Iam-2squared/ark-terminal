@@ -1,3 +1,10 @@
+import {
+  renderTradeMemoryLearningPanel,
+} from "./learning/trade-memory-learning-ui.js";
+
+import {
+  getTradeMemory,
+} from "./trading/trade-memory.js";
 import { ARK_API_BASE } from "./config.js";
 import { createDecisionDashboard } from "./analysis/ai-decision-dashboard.js";
 
@@ -569,6 +576,19 @@ export function renderAiAnalysis(
 
   elements.result
     .append(focus);
+  const learningPanel =
+    renderTradeMemoryLearningPanel({
+      records:
+        getTradeMemory(),
+
+      baseWeights: {},
+    });
+
+  if (learningPanel) {
+    elements.result.append(
+      learningPanel,
+    );
+  }
 
   const footer =
     document.createElement(
@@ -671,3 +691,87 @@ export const AiAnalysisUiInternals = {
   summarizeFactors,
   summarizeNews,
 };
+
+export function buildLearningPanel(report={}){
+
+    const summary=report.summary??{};
+
+    return{
+
+        learningStatus:
+            summary.status??"Unknown",
+
+        learningTrend:
+            summary.trend??"NONE",
+
+        learningScore:
+            summary.score??0,
+
+        learningConfidence:
+            summary.confidence??0,
+
+        weightVersion:
+            report.dashboard?.latest?.id??"-",
+
+        lastLearning:
+            report.dashboard?.latest?.createdAt??"-"
+
+    };
+
+}
+
+export function renderLearningPanel(report={}){
+
+    const panel=
+        buildLearningPanel(report);
+
+    return`
+
+<div class="learning-panel">
+
+<div class="learning-card">
+
+<h3>Learning Status</h3>
+
+<strong>${panel.learningStatus}</strong>
+
+</div>
+
+<div class="learning-card">
+
+<h3>Trend</h3>
+
+<strong>${panel.learningTrend}</strong>
+
+</div>
+
+<div class="learning-card">
+
+<h3>Learning Score</h3>
+
+<strong>${panel.learningScore}</strong>
+
+</div>
+
+<div class="learning-card">
+
+<h3>Confidence</h3>
+
+<strong>${panel.learningConfidence}</strong>
+
+</div>
+
+<div class="learning-card">
+
+<h3>Weight Version</h3>
+
+<strong>${panel.weightVersion}</strong>
+
+</div>
+
+</div>
+
+`;
+
+}
+

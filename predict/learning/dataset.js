@@ -1,4 +1,5 @@
 import { activeConditionsForRecord } from "./feature-extractor.js";
+import { PREDICTION_FEATURE_KEYS } from "../market-intelligence/prediction-feature-model.js";
 
 function finite(value) {
   return (
@@ -30,6 +31,8 @@ function chronologicalPartitions(records) {
 
 function featureRow(record) {
   const confidence = Number(record.confidence?.score ?? record.confidence);
+  const marketIntelligence =
+    record.features?.marketIntelligence?.values || {};
 
   return {
     predictionScore: finite(record.score) ? Number(record.score) : null,
@@ -56,6 +59,14 @@ function featureRow(record) {
     indicatorValues: {
       ...(record.features?.values || {}),
     },
+    marketIntelligence: Object.fromEntries(
+      PREDICTION_FEATURE_KEYS.map((key) => [
+        key,
+        finite(marketIntelligence[key])
+          ? Number(marketIntelligence[key])
+          : null,
+      ]),
+    ),
     activeConditions: activeConditionsForRecord(record).map(
       (condition) => condition.key,
     ),
@@ -88,7 +99,10 @@ function labelRow(record) {
   };
 }
 
-export function buildMachineLearningDataset(records) {
+export function buildMachineLearningDataset(
+  records,
+  { generatedAt = new Date().toISOString() } = {},
+) {
   const eligible = records.filter(
     (record) =>
       record.status === "resolved" && finite(record.actualReturn),
@@ -105,6 +119,12 @@ export function buildMachineLearningDataset(records) {
       audit: {
         source: record.source || "legacy",
         featureSchemaVersion: record.features?.schemaVersion || 0,
+        marketIntelligenceFeatureVersion:
+          record.features?.marketIntelligence?.version || null,
+        historicalMarketSnapshot:
+          record.marketIntelligenceSnapshot
+            ? { ...record.marketIntelligenceSnapshot }
+            : null,
         futureInformationIncluded: false,
       },
     }),
@@ -112,10 +132,10 @@ export function buildMachineLearningDataset(records) {
 
   return {
     schemaVersion: 2,
-    generatedAt: new Date().toISOString(),
+    generatedAt,
     splitMethod: "chronological-60-20-20-or-existing-walk-forward-partition",
     featureDefinition:
-      "予測時点で保存した指標値・条件・スコアだけを使用",
+      "予測時点で保存した指標値・条件・市場インテリジェンス・スコアだけを使用",
     labelDefinition:
       "予測期間経過後のATR基準ラベル・実リターン・費用後損益。見送りはhit=null",
     rows,
@@ -127,6 +147,10 @@ export function buildMachineLearningDataset(records) {
   };
 }
 
-export function exportMachineLearningDataset(records) {
-  return JSON.stringify(buildMachineLearningDataset(records), null, 2);
+export function exportMachineLearningDataset(records, options = {}) {
+  return JSON.stringify(
+    buildMachineLearningDataset(records, options),
+    null,
+    2,
+  );
 }

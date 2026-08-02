@@ -271,6 +271,7 @@ h2 {
 .backtestCard,
 .globalEvaluationCard,
 .intradayTradingCard,
+.aiAccuracyMonitor,
 .warningCard {
   padding: 24px;
 
@@ -279,6 +280,244 @@ h2 {
   border-radius: 24px;
 
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.22);
+}
+
+.aiAccuracyMonitor {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(79, 124, 255, 0.26);
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(79, 124, 255, 0.16),
+      transparent 34%
+    ),
+    rgba(17, 24, 39, 0.92);
+}
+
+.aiAccuracyMonitor::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  content: "";
+  background: linear-gradient(var(--blue), #7b61ff);
+}
+
+.aiAccuracyHeader,
+.aiAccuracySectionHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.aiAccuracyHeader h2,
+.aiAccuracySectionHeader h3 {
+  margin: 4px 0 0;
+}
+
+.aiAccuracyBadges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.aiAccuracyBadge,
+.aiAccuracyStatus {
+  min-height: 30px;
+  padding: 0 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.aiAccuracyBadge.observed,
+.aiAccuracyStatus.ready {
+  color: #b7ffd0;
+  background: rgba(52, 199, 89, 0.14);
+  border: 1px solid rgba(52, 199, 89, 0.22);
+}
+
+.aiAccuracyBadge.validation,
+.aiAccuracyStatus.preliminary {
+  color: #ffd58a;
+  background: rgba(255, 159, 10, 0.14);
+  border: 1px solid rgba(255, 159, 10, 0.22);
+}
+
+.aiAccuracyBadge.unavailable,
+.aiAccuracyStatus.unavailable {
+  color: #d9dfef;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--border);
+}
+
+.aiAccuracyOverview {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: minmax(240px, 0.75fr) minmax(0, 1.8fr);
+  gap: 16px;
+}
+
+.aiAccuracyHero,
+.aiAccuracyMetric,
+.aiAccuracyHorizon,
+.aiAccuracyEvidence {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.035);
+  border-radius: 16px;
+}
+
+.aiAccuracyHero {
+  min-height: 190px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.aiAccuracyHero > span,
+.aiAccuracyMetric span,
+.aiAccuracyHorizon span,
+.aiAccuracyEvidence span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.aiAccuracyHero > strong {
+  margin-top: 8px;
+  color: #f8fbff;
+  font-size: clamp(44px, 6vw, 68px);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.aiAccuracyHero p {
+  margin: 13px 0 4px;
+  font-weight: 800;
+}
+
+.aiAccuracyHero small,
+.aiAccuracyMetric small,
+.aiAccuracyHorizon small,
+.aiAccuracyEvidence small {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.aiAccuracyMetricGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.aiAccuracyMetric {
+  min-height: 90px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.aiAccuracyMetric strong {
+  margin: 7px 0 3px;
+  font-size: 22px;
+}
+
+.aiAccuracyMessage {
+  margin: 14px 0 0;
+  padding: 11px 13px;
+  color: #dce5ff;
+  background: rgba(79, 124, 255, 0.08);
+  border: 1px solid rgba(79, 124, 255, 0.16);
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.aiAccuracySection {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.aiAccuracySectionHeader h3 {
+  font-size: 15px;
+}
+
+.aiAccuracySectionHeader span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.aiAccuracyHorizonGrid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.aiAccuracyHorizon,
+.aiAccuracyEvidence {
+  padding: 13px;
+  display: grid;
+  gap: 5px;
+}
+
+.aiAccuracyHorizon strong,
+.aiAccuracyEvidence strong {
+  font-size: 20px;
+}
+
+.aiAccuracyHorizon.unavailable,
+.aiAccuracyEvidence.unavailable {
+  opacity: 0.58;
+}
+
+.aiAccuracyEvidenceGrid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.aiAccuracyNotice {
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+@media (max-width: 860px) {
+  .aiAccuracyOverview {
+    grid-template-columns: 1fr;
+  }
+
+  .aiAccuracyHorizonGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .aiAccuracyHeader,
+  .aiAccuracySectionHeader {
+    flex-direction: column;
+  }
+
+  .aiAccuracyBadges {
+    justify-content: flex-start;
+  }
+
+  .aiAccuracyMetricGrid,
+  .aiAccuracyHorizonGrid,
+  .aiAccuracyEvidenceGrid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .fullWidthCard {

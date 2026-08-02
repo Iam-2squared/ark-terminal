@@ -19,6 +19,11 @@ import {
   setPredictions,
 } from "./backtest/storage.js";
 import { extractPredictionFeatures } from "./learning/feature-extractor.js";
+import { dispatchAnalysisReady } from "./analysis/analysis-event-bridge.js";
+import { initAIAccuracyMonitor } from "./analysis/ai-accuracy-monitor-controller.js";
+import { initPredictionOutcomeController } from "./analysis/prediction-outcome-controller.js";
+import { initDailyMarketSnapshotController } from "./analysis/daily-market-snapshot-controller.js";
+import { initResolvedFeedbackController } from "./learning/resolved-feedback-controller.js";
 import { initAiAnalysis, resetAiAnalysis } from "./ai-analysis.js";
 import {
   initAiTradeGate,
@@ -52,6 +57,10 @@ const inputs = {};
 
 let analysisController = null;
 let latestState = null;
+let aiAccuracyMonitorController = null;
+let predictionOutcomeController = null;
+let dailyMarketSnapshotController = null;
+let resolvedFeedbackController = null;
 
 function collectInputs() {
   [
@@ -122,6 +131,7 @@ function saveCurrentPrediction(state) {
   });
 
   savePrediction(record);
+  aiAccuracyMonitorController?.refresh();
   setBacktestStatus(
     "今回の分析を成績記録へ保存しました。判定期間経過後に実績を更新します。",
   );
@@ -132,6 +142,7 @@ function resolveStoredRecords(symbol, candles) {
 
   if (result.changed) {
     setPredictions(result.records);
+    aiAccuracyMonitorController?.refresh();
   }
 
   return result.records;
@@ -216,6 +227,14 @@ async function runAnalysis({ saveRecord = false } = {}) {
       },
       context: bundle.context,
       marketEnvironment: bundle.marketEnvironment,
+      marketObservations: bundle.marketBreadth?.observations?.length
+        ? bundle.marketBreadth.observations
+        : null,
+      expectedObservationCount:
+        bundle.marketBreadth?.observations?.length
+          ? bundle.marketBreadth.expectedObservationCount
+          : null,
+      marketBreadthSource: bundle.marketBreadth || null,
       indicators,
       analysis,
       quality,
@@ -223,10 +242,18 @@ async function runAnalysis({ saveRecord = false } = {}) {
       weights,
     };
 
+    globalThis.__ARK_LATEST_ANALYSIS__ =
+      latestState;
+
     setMarketHistory(latestState.history);
     renderAnalysis(latestState);
     void refreshIntradayTrading(latestState);
     resetAiAnalysis();
+
+    dispatchAnalysisReady({
+      source: latestState,
+      eventTarget: globalThis,
+    });
 
     if (saveRecord) {
       saveCurrentPrediction(latestState);
@@ -256,6 +283,7 @@ function replacePreviousBacktest(records) {
   );
 
   setPredictions([...existing, ...records]);
+  aiAccuracyMonitorController?.refresh();
 }
 
 function runBacktest() {
@@ -345,6 +373,12 @@ function init() {
   initGlobalEvaluation();
   initIntradayTrading(() => latestState);
   initIntradayPaperBacktest(() => latestState);
+  aiAccuracyMonitorController = initAIAccuracyMonitor();
+  predictionOutcomeController = initPredictionOutcomeController();
+  dailyMarketSnapshotController = initDailyMarketSnapshotController({
+    stateProvider: () => latestState,
+  });
+  resolvedFeedbackController = initResolvedFeedbackController();
 
   inputs.runPredictionButton.addEventListener("click", () =>
     runAnalysis({ saveRecord: true }),

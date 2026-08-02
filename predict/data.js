@@ -98,18 +98,46 @@ export async function fetchMarketContext(symbol, signal) {
   }
 }
 
+export async function fetchMarketBreadth(signal) {
+  try {
+    return await fetchJson("/api/market-breadth", {}, signal);
+  } catch (error) {
+    if (error.name === "AbortError") {
+      throw error;
+    }
+
+    return {
+      observations: [],
+      expectedObservationCount: 0,
+      availableCount: 0,
+      coverage: 0,
+      timestamp: null,
+      source: "ark-screener:unavailable",
+      status: "unavailable",
+      executionAllowed: false,
+      errors: [error.message],
+    };
+  }
+}
+
 export async function fetchAnalysisBundle(symbol, signal) {
-  const [quoteResult, historyResult, contextResult, marketEnvironmentResult] =
-    await Promise.allSettled([
-      fetchQuote(symbol, signal),
-      fetchHistory(symbol, { signal }),
-      fetchMarketContext(symbol, signal),
-      fetchMarketEnvironment({
-        symbol,
-        signal,
-        fetchHistory,
-      }),
-    ]);
+  const [
+    quoteResult,
+    historyResult,
+    contextResult,
+    marketEnvironmentResult,
+    marketBreadthResult,
+  ] = await Promise.allSettled([
+    fetchQuote(symbol, signal),
+    fetchHistory(symbol, { signal }),
+    fetchMarketContext(symbol, signal),
+    fetchMarketEnvironment({
+      symbol,
+      signal,
+      fetchHistory,
+    }),
+    fetchMarketBreadth(signal),
+  ]);
 
   if (historyResult.status === "rejected") {
     throw historyResult.reason;
@@ -147,6 +175,23 @@ export async function fetchAnalysisBundle(symbol, signal) {
             errors: [
               marketEnvironmentResult.reason?.message ||
                 "市場環境を取得できませんでした。",
+            ],
+          },
+    marketBreadth:
+      marketBreadthResult.status === "fulfilled"
+        ? marketBreadthResult.value
+        : {
+            observations: [],
+            expectedObservationCount: 0,
+            availableCount: 0,
+            coverage: 0,
+            timestamp: null,
+            source: "ark-screener:unavailable",
+            status: "unavailable",
+            executionAllowed: false,
+            errors: [
+              marketBreadthResult.reason?.message ||
+                "市場Breadthデータを取得できませんでした。",
             ],
           },
   };

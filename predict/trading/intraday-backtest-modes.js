@@ -2,8 +2,12 @@ import {
   runIntradayPaperBacktest,
 } from "./intraday-paper-backtest.js";
 
+import {
+  summarizeTradeAnalytics,
+} from "./trade-analytics.js";
+
 export const INTRADAY_BACKTEST_MODES_VERSION =
-  "intraday-backtest-modes-v1";
+  "intraday-backtest-modes-v2";
 
 export const BACKTEST_EVALUATION_MODES =
   Object.freeze({
@@ -21,8 +25,32 @@ function finite(value) {
 }
 
 function positive(value) {
-  return finite(value) &&
-    Number(value) > 0;
+  return (
+    finite(value) &&
+    Number(value) > 0
+  );
+}
+
+function resolveTrades(result = {}) {
+  const candidates = [
+    result.trades,
+    result.tradeHistory,
+    result.completedTrades,
+    result.executions,
+  ];
+
+  return (
+    candidates.find(
+      (value) =>
+        Array.isArray(value),
+    ) || []
+  );
+}
+
+function createAnalytics(result = {}) {
+  return summarizeTradeAnalytics(
+    resolveTrades(result),
+  );
 }
 
 export function runIntradayBacktestModes({
@@ -46,8 +74,29 @@ export function runIntradayBacktestModes({
       ? Number(initialEquity)
       : 1_000_000;
 
+  const resolvedExecutableLotSize =
+    Math.max(
+      1,
+      Math.floor(
+        Number(
+          executableLotSize,
+        ) || 1,
+      ),
+    );
+
+  const resolvedSignalLotSize =
+    Math.max(
+      1,
+      Math.floor(
+        Number(
+          signalLotSize,
+        ) || 1,
+      ),
+    );
+
   const providerOption =
-    typeof decisionProvider === "function"
+    typeof decisionProvider ===
+    "function"
       ? {
           decisionProvider,
         }
@@ -57,11 +106,14 @@ export function runIntradayBacktestModes({
     initialEquity:
       resolvedEquity,
 
-    commissionPercentPerSide: 0,
+    commissionPercentPerSide:
+      0,
 
-    spreadPercent: 0.02,
+    spreadPercent:
+      0.02,
 
-    slippagePercentPerSide: 0.01,
+    slippagePercentPerSide:
+      0.01,
 
     closeAtSessionEnd:
       true,
@@ -81,7 +133,8 @@ export function runIntradayBacktestModes({
           ?.trading || {}
       ),
 
-      allowShort: false,
+      allowShort:
+        false,
 
       maximumPositionPercent:
         Number(
@@ -99,7 +152,8 @@ export function runIntradayBacktestModes({
           ?.trading || {}
       ),
 
-      allowShort: false,
+      allowShort:
+        false,
 
       maximumPositionPercent:
         Number(
@@ -117,14 +171,7 @@ export function runIntradayBacktestModes({
         ...basePolicy,
 
         lotSize:
-          Math.max(
-            1,
-            Math.floor(
-              Number(
-                executableLotSize,
-              ) || 1,
-            ),
-          ),
+          resolvedExecutableLotSize,
       },
 
       strategyPolicy:
@@ -142,13 +189,7 @@ export function runIntradayBacktestModes({
         ...basePolicy,
 
         lotSize:
-          Math.max(
-            1,
-            Math.floor(
-              Number(signalLotSize) ||
-              1,
-            ),
-          ),
+          resolvedSignalLotSize,
       },
 
       strategyPolicy:
@@ -157,8 +198,21 @@ export function runIntradayBacktestModes({
       ...providerOption,
     });
 
+  const executableAnalytics =
+    createAnalytics(
+      executableResult,
+    );
+
+  const signalAnalytics =
+    createAnalytics(
+      signalResult,
+    );
+
   const executable = {
     ...executableResult,
+
+    analytics:
+      executableAnalytics,
 
     evaluationMode:
       BACKTEST_EVALUATION_MODES
@@ -169,14 +223,7 @@ export function runIntradayBacktestModes({
 
     modeConstraints: {
       lotSize:
-        Math.max(
-          1,
-          Math.floor(
-            Number(
-              executableLotSize,
-            ) || 1,
-          ),
-        ),
+        resolvedExecutableLotSize,
 
       maximumPositionPercent:
         Number(
@@ -188,6 +235,9 @@ export function runIntradayBacktestModes({
   const signal = {
     ...signalResult,
 
+    analytics:
+      signalAnalytics,
+
     evaluationMode:
       BACKTEST_EVALUATION_MODES
         .SIGNAL,
@@ -197,13 +247,7 @@ export function runIntradayBacktestModes({
 
     modeConstraints: {
       lotSize:
-        Math.max(
-          1,
-          Math.floor(
-            Number(signalLotSize) ||
-            1,
-          ),
-        ),
+        resolvedSignalLotSize,
 
       maximumPositionPercent:
         Number(
@@ -287,6 +331,46 @@ export function runIntradayBacktestModes({
           executable.diagnostics
             ?.planRejectedCount || 0,
         ),
+
+      signalExpectancy:
+        signalAnalytics
+          .expectancy,
+
+      executableExpectancy:
+        executableAnalytics
+          .expectancy,
+
+      signalPayoffRatio:
+        signalAnalytics
+          .payoffRatio,
+
+      executablePayoffRatio:
+        executableAnalytics
+          .payoffRatio,
+
+      signalAverageWin:
+        signalAnalytics
+          .averageWin,
+
+      signalAverageLoss:
+        signalAnalytics
+          .averageLoss,
+
+      executableAverageWin:
+        executableAnalytics
+          .averageWin,
+
+      executableAverageLoss:
+        executableAnalytics
+          .averageLoss,
+
+      signalTradingCost:
+        signalAnalytics
+          .totalTradingCost,
+
+      executableTradingCost:
+        executableAnalytics
+          .totalTradingCost,
     },
 
     interpretation: {
@@ -305,4 +389,6 @@ export function runIntradayBacktestModes({
 export const IntradayBacktestModesInternals = {
   finite,
   positive,
+  resolveTrades,
+  createAnalytics,
 };

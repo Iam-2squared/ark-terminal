@@ -69,6 +69,10 @@ test("Controller mounts, refreshes on events and removes listeners", () => {
   assert.equal(renderCalls, 1);
   assert.equal(eventTarget.listenerCount("ark:analysis-ready"), 1);
   assert.equal(eventTarget.listenerCount("storage"), 1);
+  assert.equal(
+    eventTarget.listenerCount("ark:prediction-outcomes-updated"),
+    1,
+  );
 
   eventTarget.dispatch("ark:analysis-ready");
   eventTarget.dispatch("storage");
@@ -80,6 +84,33 @@ test("Controller mounts, refreshes on events and removes listeners", () => {
 
   assert.equal(eventTarget.listenerCount("ark:analysis-ready"), 0);
   assert.equal(eventTarget.listenerCount("storage"), 0);
+  assert.equal(
+    eventTarget.listenerCount("ark:prediction-outcomes-updated"),
+    0,
+  );
+});
+
+test("Controller hydrates the monitor from the durable archive", async () => {
+  const root = { dataset: {}, innerHTML: "" };
+  const renderedCounts = [];
+  const controller = new AIAccuracyMonitorController({
+    eventTarget: createEventTarget(),
+    documentRef: {},
+    recordProvider: () => [{ id: "local" }],
+    archiveProvider: async () => [{ id: "local" }, { id: "archive" }],
+    reportBuilder: (records) => ({ count: records.length }),
+    viewModelBuilder: (report) => report,
+    mount: () => ({ mounted: true, root }),
+    renderer(viewModel) {
+      renderedCounts.push(viewModel.count);
+      return { rendered: true };
+    },
+  });
+
+  const started = controller.start();
+  await started.hydration;
+
+  assert.deepEqual(renderedCounts, [1, 2]);
 });
 
 test("Controller renders a safe error state when storage fails", () => {

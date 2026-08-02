@@ -1,4 +1,7 @@
-import { getPredictions } from "../backtest/storage.js";
+import {
+  getPredictions,
+  getPredictionsAsync,
+} from "../backtest/storage.js";
 import { buildAIAccuracyMonitorReport } from "./ai-accuracy-monitor-engine.js";
 import { buildAIAccuracyMonitorViewModel } from "./ai-accuracy-monitor-view-model.js";
 import {
@@ -9,6 +12,7 @@ import {
 export class AIAccuracyMonitorController {
   constructor({
     recordProvider = getPredictions,
+    archiveProvider = null,
     reportBuilder = buildAIAccuracyMonitorReport,
     viewModelBuilder = buildAIAccuracyMonitorViewModel,
     mount = mountAIAccuracyMonitor,
@@ -17,6 +21,7 @@ export class AIAccuracyMonitorController {
     eventTarget = globalThis.window ?? null,
   } = {}) {
     this.recordProvider = recordProvider;
+    this.archiveProvider = archiveProvider;
     this.reportBuilder = reportBuilder;
     this.viewModelBuilder = viewModelBuilder;
     this.mount = mount;
@@ -30,6 +35,21 @@ export class AIAccuracyMonitorController {
     this.handleRefresh = () => this.refresh();
   }
 
+  renderRecords(records) {
+    const report = this.reportBuilder(records);
+    const viewModel = this.viewModelBuilder(report);
+    const result = this.renderer(viewModel, this.root);
+
+    this.lastReport = report;
+    this.lastViewModel = viewModel;
+
+    return {
+      ...result,
+      report,
+      viewModel,
+    };
+  }
+
   refresh() {
     if (!this.root) {
       return {
@@ -40,18 +60,7 @@ export class AIAccuracyMonitorController {
 
     try {
       const records = this.recordProvider();
-      const report = this.reportBuilder(records);
-      const viewModel = this.viewModelBuilder(report);
-      const result = this.renderer(viewModel, this.root);
-
-      this.lastReport = report;
-      this.lastViewModel = viewModel;
-
-      return {
-        ...result,
-        report,
-        viewModel,
-      };
+      return this.renderRecords(records);
     } catch (error) {
       const viewModel = this.viewModelBuilder(null, { error });
       const result = this.renderer(viewModel, this.root);
@@ -64,6 +73,18 @@ export class AIAccuracyMonitorController {
         error,
         viewModel,
       };
+    }
+  }
+
+  async hydrate() {
+    if (!this.root || typeof this.archiveProvider !== "function") {
+      return { rendered: false, reason: "archive_unavailable" };
+    }
+
+    try {
+      return this.renderRecords(await this.archiveProvider());
+    } catch (error) {
+      return { rendered: false, reason: "archive_read_failed", error };
     }
   }
 
@@ -94,6 +115,10 @@ export class AIAccuracyMonitorController {
       this.handleRefresh,
     );
     this.eventTarget?.addEventListener?.("storage", this.handleRefresh);
+    this.eventTarget?.addEventListener?.(
+      "ark:prediction-outcomes-updated",
+      this.handleRefresh,
+    );
     this.started = true;
 
     return {
@@ -101,6 +126,7 @@ export class AIAccuracyMonitorController {
       reused: mounted.reused === true,
       controller: this,
       refresh: this.refresh(),
+      hydration: this.hydrate(),
     };
   }
 
@@ -110,6 +136,10 @@ export class AIAccuracyMonitorController {
       this.handleRefresh,
     );
     this.eventTarget?.removeEventListener?.("storage", this.handleRefresh);
+    this.eventTarget?.removeEventListener?.(
+      "ark:prediction-outcomes-updated",
+      this.handleRefresh,
+    );
     this.started = false;
 
     return {
@@ -122,7 +152,10 @@ let activeController = null;
 
 export function initAIAccuracyMonitor(options = {}) {
   activeController?.stop();
-  activeController = new AIAccuracyMonitorController(options);
+  activeController = new AIAccuracyMonitorController({
+    archiveProvider: getPredictionsAsync,
+    ...options,
+  });
   const result = activeController.start();
 
   return result.controller;

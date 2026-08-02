@@ -285,6 +285,21 @@ mounting, storage access, and refresh events separate. Prediction confidence is
 still labelled as data quality rather than hit probability. The monitor is
 evaluation-only and never grants order-execution permission.
 
+## Automatic outcome refresh and durable accuracy history
+
+`prediction-outcome-service.js` groups every pending prediction by symbol,
+fetches each history once with bounded concurrency, reuses the existing outcome
+resolver, and isolates provider failures by symbol. The browser controller runs
+the refresh on startup, reconnect, focus, and a six-hour interval while
+coalescing concurrent requests and throttling repeated wake events.
+
+Resolved records are written through the existing Prediction Storage boundary,
+which keeps the active window in local storage and the full archive in
+IndexedDB. The AI Accuracy Monitor first renders synchronously, then hydrates
+from that durable archive so its all-time metrics are not limited to the active
+window. Refresh reports and records remain evaluation-only and explicitly keep
+execution disabled.
+
 ## Interface encoding integrity
 
 `index.html` is stored and served as UTF-8, matching its explicit charset

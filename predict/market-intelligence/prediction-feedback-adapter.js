@@ -1,5 +1,10 @@
 import { createPredictionRecord } from "../backtest/storage.js";
 import { PREDICTION_FEATURE_KEYS } from "./prediction-feature-model.js";
+import {
+  HISTORICAL_MARKET_SNAPSHOT_SCHEMA_VERSION,
+  HISTORICAL_MARKET_SNAPSHOT_VERSION,
+  createHistoricalMarketSnapshotReference,
+} from "./historical-market-snapshot-model.js";
 
 function finiteOrNull(value) {
   if (value === null || value === undefined || value === "") {
@@ -112,6 +117,55 @@ function validateFeedbackInput({ symbol, predictionPrice, featureSet }) {
   }
 }
 
+function feedbackSnapshotReference(value, symbol, featureSet) {
+  if (!value) return null;
+
+  const supplied = value.reference ?? value.snapshot ?? value;
+  const reference = supplied.features
+    ? createHistoricalMarketSnapshotReference(supplied)
+    : supplied;
+
+  if (
+    Number(reference?.schemaVersion) !==
+      HISTORICAL_MARKET_SNAPSHOT_SCHEMA_VERSION ||
+    reference?.version !== HISTORICAL_MARKET_SNAPSHOT_VERSION ||
+    !String(reference?.id || "").trim() ||
+    !String(reference?.contentFingerprint || "").trim() ||
+    reference?.executionAllowed === true
+  ) {
+    throw new TypeError("Prediction feedback historical snapshot is invalid.");
+  }
+
+  if (String(reference.symbol || "").toUpperCase() !== String(symbol).toUpperCase()) {
+    throw new RangeError(
+      "Prediction feedback historical snapshot symbol does not match.",
+    );
+  }
+
+  const snapshotTime = Date.parse(reference.asOf);
+  const featureTime = Date.parse(featureSet.timestamp);
+
+  if (
+    !Number.isFinite(snapshotTime) ||
+    !Number.isFinite(featureTime) ||
+    snapshotTime !== featureTime
+  ) {
+    throw new RangeError(
+      "Prediction feedback historical snapshot timestamp does not match.",
+    );
+  }
+
+  return {
+    id: reference.id,
+    schemaVersion: reference.schemaVersion,
+    version: reference.version,
+    symbol: reference.symbol,
+    asOf: reference.asOf,
+    contentFingerprint: reference.contentFingerprint,
+    executionAllowed: false,
+  };
+}
+
 export function buildPredictionFeedbackRecords({
   symbol,
   companyName = null,
@@ -125,6 +179,7 @@ export function buildPredictionFeedbackRecords({
   market = "未取得",
   partition = null,
   analysisTime = null,
+  historicalSnapshot = null,
   recordFactory = createPredictionRecord,
 } = {}) {
   validateFeedbackInput({ symbol, predictionPrice, featureSet });
@@ -138,6 +193,11 @@ export function buildPredictionFeedbackRecords({
     Date.parse(featureSet.timestamp) / 1000;
   const snapshot = featureSnapshot(featureSet, technicalFeatures);
   const scores = factorScores(featureSet, existingFactorScores);
+  const historicalSnapshotReference = feedbackSnapshotReference(
+    historicalSnapshot,
+    symbol,
+    featureSet,
+  );
 
   return (Array.isArray(predictions) ? predictions : [])
     .filter((prediction) => finiteOrNull(prediction?.score) !== null)
@@ -178,6 +238,9 @@ export function buildPredictionFeedbackRecords({
         id: stableRecordId(symbol, resolvedAnalysisTime, prediction.horizon),
         createdAt: featureSet.timestamp,
         marketIntelligenceFactorScores: { ...featureSet.values },
+        marketIntelligenceSnapshot: historicalSnapshotReference
+          ? { ...historicalSnapshotReference }
+          : null,
         executionAllowed: false,
       };
     });
@@ -255,6 +318,8 @@ export function buildTradeMemoryMarketContext(record = {}) {
     },
     featureTimestamp:
       record?.features?.marketIntelligence?.capturedAt ?? null,
+    historicalSnapshot:
+      record?.marketIntelligenceSnapshot ?? null,
     executionAllowed: false,
   };
 }
@@ -266,6 +331,7 @@ export const PredictionFeedbackInternals = Object.freeze({
   featureSnapshot,
   factorScores,
   predictionReasons,
+  feedbackSnapshotReference,
 });
 
 export default buildPredictionFeedbackRecords;

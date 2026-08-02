@@ -7,6 +7,9 @@ import {
   normalizeRuntimeV3Input,
   PredictionLabRuntimeV3,
 } from "../analysis/runtime-v3.js";
+import {
+  historicalMarketSnapshotService,
+} from "../market-intelligence/historical-market-snapshot-service.js";
 
 function strongInput() {
   return {
@@ -350,6 +353,75 @@ test(
         .engineCount,
       3,
     );
+  },
+);
+
+test(
+  "Runtime archives Market Intelligence only when historical capture is enabled",
+  async () => {
+    historicalMarketSnapshotService.clear();
+
+    const result =
+      await executeRuntimeV3({
+        ...strongInput(),
+        symbol:
+          "MI-HISTORY",
+        forceMarketIntelligenceRefresh:
+          true,
+        captureMarketIntelligenceSnapshot:
+          true,
+        marketIntelligence: {
+          compositeMarket:
+            report(82),
+          breadth:
+            report(84),
+          liquidity:
+            report(80),
+          sectorStrength:
+            report(82),
+          newsIntelligence:
+            report(86),
+          momentum:
+            report(83),
+          technical: {
+            atrPercent:
+              2,
+          },
+        },
+      });
+
+    assert.equal(
+      result.marketIntelligenceSnapshot
+        .status,
+      "captured",
+    );
+
+    assert.equal(
+      result.marketIntelligenceSnapshot
+        .executionAllowed,
+      false,
+    );
+
+    const archived =
+      historicalMarketSnapshotService
+        .get(
+          result
+            .marketIntelligenceSnapshot
+            .reference
+            .id,
+        );
+
+    assert.equal(
+      archived.symbol,
+      "MI-HISTORY",
+    );
+
+    assert.equal(
+      archived.predictions.length,
+      5,
+    );
+
+    historicalMarketSnapshotService.clear();
   },
 );
 

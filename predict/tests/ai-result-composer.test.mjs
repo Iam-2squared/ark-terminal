@@ -60,6 +60,14 @@ test(
             predictions: [],
             executionAllowed: false,
           },
+
+          marketIntelligenceSnapshot: {
+            status: "captured",
+            reference: {
+              id: "market-intelligence-snapshot:7203.T:1",
+            },
+            executionAllowed: false,
+          },
         },
       });
 
@@ -103,6 +111,12 @@ test(
       result.marketIntelligence
         .executionAllowed,
       false,
+    );
+
+    assert.equal(
+      result.marketIntelligenceSnapshot
+        .status,
+      "captured",
     );
   },
 );

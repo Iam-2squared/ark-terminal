@@ -10,6 +10,10 @@ import {
 } from "../market-intelligence/prediction-feature-model.js";
 import { predictMultipleHorizons } from "../market-intelligence/multi-horizon-prediction-engine.js";
 import {
+  createHistoricalMarketSnapshot,
+  createHistoricalMarketSnapshotReference,
+} from "../market-intelligence/historical-market-snapshot-model.js";
+import {
   buildPredictionFeedbackRecords,
   buildPredictionWeightMetrics,
   buildTradeMemoryMarketContext,
@@ -83,6 +87,52 @@ test("Record ids are stable for symbol, timestamp and horizon", () => {
     second.map((record) => record.id),
   );
   assert.equal(new Set(first.map((record) => record.id)).size, 5);
+});
+
+test("Feedback records link to the exact point-in-time market snapshot", () => {
+  const featureSet = features();
+  const predictions = predictMultipleHorizons(featureSet, { atrPercent: 2 });
+  const snapshot = createHistoricalMarketSnapshot({
+    symbol: "7203.T",
+    asOf: TIMESTAMP,
+    capturedAt: TIMESTAMP,
+    features: featureSet,
+    predictions,
+  });
+  const records = buildPredictionFeedbackRecords({
+    symbol: "7203.T",
+    predictionPrice: 3000,
+    featureSet,
+    predictions,
+    historicalSnapshot: snapshot,
+  });
+
+  assert.equal(records[0].marketIntelligenceSnapshot.id, snapshot.id);
+  assert.equal(
+    records[0].marketIntelligenceSnapshot.contentFingerprint,
+    snapshot.contentFingerprint,
+  );
+  assert.equal(
+    buildTradeMemoryMarketContext(records[0]).historicalSnapshot.id,
+    snapshot.id,
+  );
+
+  const mismatched = {
+    ...createHistoricalMarketSnapshotReference(snapshot),
+    asOf: "2026-08-02T11:00:00Z",
+  };
+
+  assert.throws(
+    () =>
+      buildPredictionFeedbackRecords({
+        symbol: "7203.T",
+        predictionPrice: 3000,
+        featureSet,
+        predictions,
+        historicalSnapshot: mismatched,
+      }),
+    /timestamp does not match/,
+  );
 });
 
 test("Unavailable predictions are skipped instead of becoming zero scores", () => {

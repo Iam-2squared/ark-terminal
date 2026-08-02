@@ -30,6 +30,10 @@ import {
   marketIntelligenceRuntimeAdapter,
 } from "./market-intelligence-runtime-adapter.js";
 
+import {
+  historicalMarketSnapshotService,
+} from "../market-intelligence/historical-market-snapshot-service.js";
+
 function finiteNumber(
   value,
   fallback = 0,
@@ -204,6 +208,82 @@ function marketIntelligenceFactors(
   };
 }
 
+function skippedHistoricalSnapshot(reason) {
+  return {
+    version:
+      "historical-market-snapshot-capture-v1",
+    status:
+      "skipped",
+    inserted:
+      false,
+    retained:
+      false,
+    reference:
+      null,
+    error:
+      null,
+    reason,
+    executionAllowed:
+      false,
+  };
+}
+
+function captureHistoricalMarketSnapshot(
+  input,
+  marketIntelligence,
+  service = historicalMarketSnapshotService,
+) {
+  if (
+    input.captureMarketIntelligenceSnapshot !==
+    true
+  ) {
+    return null;
+  }
+
+  if (
+    !marketIntelligence.enabled ||
+    !marketIntelligence.result
+  ) {
+    return skippedHistoricalSnapshot(
+      "market_intelligence_unavailable",
+    );
+  }
+
+  const captured =
+    service.captureSafely({
+      symbol:
+        input.symbol,
+      marketIntelligence,
+      metadata: {
+        requestedHorizon:
+          input.predictionHorizon,
+        selectedHorizon:
+          marketIntelligence.selectedHorizon,
+        source:
+          "runtime-v3",
+      },
+    });
+
+  return {
+    version:
+      captured.version,
+    status:
+      captured.status,
+    inserted:
+      captured.inserted,
+    retained:
+      captured.retained,
+    reference:
+      captured.reference,
+    error:
+      captured.error,
+    reason:
+      null,
+    executionAllowed:
+      false,
+  };
+}
+
 function createRuntimeKey(
   input = {},
 ) {
@@ -260,6 +340,10 @@ function createRuntimeKey(
 
     forceMarketIntelligenceRefresh:
       input.forceMarketIntelligenceRefresh ===
+      true,
+
+    captureMarketIntelligenceSnapshot:
+      input.captureMarketIntelligenceSnapshot ===
       true,
   };
 }
@@ -444,6 +528,14 @@ export function normalizeRuntimeV3Input(
       input.forceMarketIntelligenceRefresh ===
       true,
 
+    captureMarketIntelligenceSnapshot:
+      input.captureMarketIntelligenceSnapshot ===
+      true,
+
+    marketIntelligenceSnapshot:
+      input.marketIntelligenceSnapshot ??
+      null,
+
     signal:
       input.signal,
   };
@@ -462,6 +554,13 @@ export function executeRuntimeV3Sync(
       .analyzeSync(
         normalized,
       );
+
+  const marketIntelligenceSnapshot =
+    normalized.marketIntelligenceSnapshot ??
+    captureHistoricalMarketSnapshot(
+      normalized,
+      marketIntelligence,
+    );
 
   const consensusEngines =
     marketIntelligence.engine
@@ -660,6 +759,8 @@ export function executeRuntimeV3Sync(
 
     marketIntelligence,
 
+    marketIntelligenceSnapshot,
+
     dashboard,
 
     status:
@@ -748,4 +849,6 @@ export const RuntimeV3Internals = {
   marketIntelligenceCacheKey,
   marketIntelligenceContext,
   marketIntelligenceFactors,
+  skippedHistoricalSnapshot,
+  captureHistoricalMarketSnapshot,
 };

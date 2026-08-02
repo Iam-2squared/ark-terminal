@@ -119,6 +119,12 @@ test(
       result.regime,
       "RANGE",
     );
+
+    assert.equal(
+      result
+        .captureMarketIntelligenceSnapshot,
+      false,
+    );
   },
 );
 
@@ -220,6 +226,12 @@ test(
         .technical
         .atrPercent,
       2.2,
+    );
+
+    assert.equal(
+      result
+        .captureMarketIntelligenceSnapshot,
+      true,
     );
   },
 );

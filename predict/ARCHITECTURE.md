@@ -208,7 +208,38 @@ news/disclosure records, quote momentum, ATR, and any richer precomputed Bundle
 reports without inventing missing values. Runtime output is propagated through
 the AI result composer and rendered as separate 1, 3, 5, 10, and 20 trading-day
 cards. These cards label confidence as data quality rather than probability.
-The integration never persists forecasts or grants order-execution permission.
+The runtime integration does not persist forecasts by default and never grants
+order-execution permission.
+
+## Historical Market Intelligence snapshots
+
+`historical-market-snapshot-normalizer.js` converts Runtime or orchestrator
+output into one point-in-time Bundle 2–5 record. It independently rejects any
+report, feature, prediction, or news publication timestamp later than the
+analysis timestamp. Large raw news bodies and provider payloads are excluded;
+the archive retains derived results and source references under an explicit
+retention-policy version.
+
+`historical-market-snapshot-model.js` creates a deeply immutable snapshot with
+a deterministic symbol/timestamp identity and content fingerprint. Capture
+time is not part of the fingerprint, so retrying the same logical snapshot is
+idempotent. A different payload for an existing identity is rejected instead
+of rewriting historical evidence.
+
+`historical-market-snapshot-repository.js` provides bounded browser persistence
+through the shared storage-key registry and a replaceable repository boundary.
+It isolates corrupt records, returns newest-first queries, and exposes an
+at-or-before lookup that can never select a future snapshot. The in-memory path
+uses the same contract in Node tests and can later be replaced by IndexedDB or
+a server-side time-series store without changing the model or service.
+
+`historical-market-snapshot-service.js` owns capture and retrieval. Runtime v3
+captures only when `captureMarketIntelligenceSnapshot` is explicitly enabled;
+the browser AI input builder enables it when Market Intelligence input exists.
+Persistence failures are returned as diagnostics and never affect consensus.
+Prediction Feedback stores only the verified snapshot reference, avoiding a
+second copy of the reports. Snapshot and feedback execution permission remains
+disabled.
 
 ## Remaining limits
 

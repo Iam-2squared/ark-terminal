@@ -682,6 +682,12 @@ export function buildAIAnalysisInput({
 
     marketIntelligence,
 
+    captureMarketIntelligenceSnapshot:
+      marketIntelligence !== null &&
+      settings.marketIntelligence
+        ?.captureHistoricalSnapshots !==
+        false,
+
     atrPercent:
       finiteOrNull(
         state.indicators

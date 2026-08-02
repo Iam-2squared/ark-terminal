@@ -163,3 +163,55 @@ test("15分足がない場合は取得失敗として扱う", () => {
     "blocked",
   );
 });
+
+test("下降セットアップでも空売りせず現物買いを見送る", () => {
+  const data = history();
+
+  const latest =
+    data.candles.at(-1);
+
+  latest.open = 98;
+  latest.high = 98.1;
+  latest.low = 96.8;
+  latest.close = 97;
+  latest.volume = 300;
+
+  const decision =
+    createIntradayTradingDecision({
+      symbol: "7203.T",
+
+      intradayHistory:
+        data,
+
+      account:
+        account(),
+
+      nowSeconds:
+        latest.time + 901,
+    });
+
+  assert.equal(
+    decision.analysis.setup,
+    "breakout_short",
+  );
+
+  assert.equal(
+    decision.action,
+    "wait",
+  );
+
+  assert.equal(
+    decision.paperCandidate,
+    false,
+  );
+
+  assert.equal(
+    decision.reasons.some(
+      (reason) =>
+        reason.includes(
+          "現物買いを見送",
+        ),
+    ),
+    true,
+  );
+});

@@ -62,6 +62,33 @@ function marketCapMatches(value, key) {
   return inBand(value, band);
 }
 
+function rankingVolumeAdjustment(volumeRatio) {
+  const ratio = finite(volumeRatio) ? Number(volumeRatio) : null;
+
+  if (ratio === null) {
+    return 0;
+  }
+
+  if (ratio < 1.0) {
+    return (ratio - 1.0) * 20;
+  }
+
+  return Math.min(ratio - 1.0, 2) * 1.75;
+}
+
+function scoreValue(entry) {
+  return Number(entry.discoveryScore ?? entry.aiScore) || -Infinity;
+}
+
+function weightedScoreValue(entry) {
+  const score = scoreValue(entry);
+  const ratio = Number(entry.volumeRatio);
+  if (!finite(ratio)) {
+    return score;
+  }
+  return score + rankingVolumeAdjustment(ratio);
+}
+
 function comparisonValue(entry, sort) {
   switch (sort) {
     case "confidenceDesc":
@@ -73,8 +100,15 @@ function comparisonValue(entry, sort) {
     case "priceAsc":
       return finite(entry.currentPrice) ? -Number(entry.currentPrice) : -Infinity;
     default:
-      return Number(entry.aiScore) || -Infinity;
+      return scoreValue(entry);
   }
+}
+
+function compareRisk(first, second) {
+  const firstRisk = finite(first.riskLevel) ? Number(first.riskLevel) : 99;
+  const secondRisk = finite(second.riskLevel) ? Number(second.riskLevel) : 99;
+
+  return firstRisk - secondRisk;
 }
 
 export function applyScreenerFilters(
@@ -123,7 +157,9 @@ export function applyScreenerFilters(
       (entry) => budget === null || Number(entry.purchaseAmount) <= budget,
     )
     .filter((entry) => marketCapMatches(entry.marketCap, filters.marketCap))
-    .filter((entry) => Number(entry.aiScore) >= minimumScore)
+    .filter(
+      (entry) => Number(entry.discoveryScore ?? entry.aiScore) >= minimumScore,
+    )
     .filter((entry) => Number(entry.confidence) >= minimumConfidence)
     .filter((entry) => Number(entry.volumeRatio) >= minimumVolumeRatio)
     .filter(
@@ -135,8 +171,40 @@ export function applyScreenerFilters(
         comparisonValue(second, filters.sort) -
         comparisonValue(first, filters.sort);
 
-      return difference || String(first.symbol).localeCompare(second.symbol);
-    });
+      if (difference !== 0) {
+        return difference;
+      }
+
+      if (filters.sort === "scoreDesc") {
+        const weightedDifference =
+          weightedScoreValue(second) - weightedScoreValue(first);
+        if (weightedDifference !== 0) {
+          return weightedDifference;
+        }
+      }
+
+      const secondary =
+        (Number(second.volumeRatio) || 0) -
+        (Number(first.volumeRatio) || 0);
+      if (secondary !== 0) {
+        return secondary;
+      }
+
+      const tertiary =
+        (Number(second.confidence) || 0) -
+        (Number(first.confidence) || 0);
+      if (tertiary !== 0) {
+        return tertiary;
+      }
+
+      const riskComparison = compareRisk(first, second);
+      if (riskComparison !== 0) {
+        return riskComparison;
+      }
+
+      return String(first.symbol).localeCompare(second.symbol);
+    })
+    .slice(0, 130);
 }
 
 export function collectFilterOptions(universe) {

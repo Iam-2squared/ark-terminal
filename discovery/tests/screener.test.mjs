@@ -119,6 +119,62 @@ test("価格帯の上限は次の帯と重複しない", () => {
   );
 });
 
+test("discoveryScore uses decimal precision and sorts deterministically with tie-breakers", () => {
+  const entries = [
+    {
+      symbol: "AAA.T",
+      status: "analyzed",
+      discoveryScore: 74.12,
+      confidence: 70,
+      volumeRatio: 1.3,
+      riskLevel: 2,
+      currentPrice: 1000,
+      purchaseAmount: 100000,
+      marketCap: 2000000000,
+    },
+    {
+      symbol: "BBB.T",
+      status: "analyzed",
+      discoveryScore: 74.11,
+      confidence: 80,
+      volumeRatio: 1.2,
+      riskLevel: 1,
+      currentPrice: 1000,
+      purchaseAmount: 100000,
+      marketCap: 2000000000,
+    },
+    {
+      symbol: "CCC.T",
+      status: "analyzed",
+      discoveryScore: 74.12,
+      confidence: 70,
+      volumeRatio: 1.1,
+      riskLevel: 1,
+      currentPrice: 1000,
+      purchaseAmount: 100000,
+      marketCap: 2000000000,
+    },
+  ];
+
+  const result = applyScreenerFilters(entries, {
+    priceBand: "all",
+    market: "all",
+    theme: "all",
+    marketCap: "all",
+    risk: "all",
+    sort: "scoreDesc",
+  });
+
+  assert.deepEqual(result.map((entry) => entry.symbol), [
+    "AAA.T",
+    "CCC.T",
+    "BBB.T",
+  ]);
+  assert.equal(result[0].discoveryScore, 74.12);
+  assert.equal(result[1].discoveryScore, 74.12);
+  assert.equal(result[2].discoveryScore, 74.11);
+});
+
 test("価格帯を指定しない場合は分析済み銘柄を除外しない", () => {
   const entries = [
     {

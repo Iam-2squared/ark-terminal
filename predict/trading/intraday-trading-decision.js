@@ -8,7 +8,7 @@ import {
 } from "./short-term-core.js";
 
 export const INTRADAY_TRADING_INTEGRATION_VERSION =
-  "intraday-trading-integration-v1";
+  "intraday-cash-buy-integration-v2";
 
 export const DEFAULT_INTRADAY_TRADING_POLICY =
   Object.freeze({
@@ -46,11 +46,11 @@ export function tradeActionLabel(action) {
 export function setupLabel(setup) {
   const labels = {
     breakout_long: "上方向ブレイク",
-    breakout_short: "下方向ブレイク",
+    breakout_short: "下方向ブレイク（買い見送り）",
     vwap_reclaim_long: "VWAP上抜け",
-    vwap_reclaim_short: "VWAP下抜け",
+    vwap_reclaim_short: "VWAP下抜け（買い見送り）",
     pullback_long: "押し目反発",
-    pullback_short: "戻り売り",
+    pullback_short: "下降局面（買い見送り）",
     stale_data: "市場外・データ更新待ち",
     insufficient_data: "15分足不足",
     wait: "セットアップ待ち",
@@ -185,6 +185,10 @@ export function createIntradayTradingDecision({
       "売買スプレッドをまだ取得していないため、Paper候補の計算では未反映です。",
     );
   }
+
+  warnings.push(
+    "現在の短期判断は現物買いのみです。下降シグナルでは買いを見送ります。",
+  );
 
   warnings.push(
     "手数料・税金・約定滑りは未反映です。",

@@ -20,12 +20,18 @@ import {
 } from "./backtest/storage.js";
 import { extractPredictionFeatures } from "./learning/feature-extractor.js";
 import { initAiAnalysis, resetAiAnalysis } from "./ai-analysis.js";
+import {
+  initAiTradeGate,
+} from "./trading/ai-trade-gate.js";
 import { fetchAnalysisBundle } from "./data.js";
 import { initGlobalEvaluation } from "./global-evaluation-ui.js";
 import {
   initIntradayTrading,
   refreshIntradayTrading,
 } from "./trading/intraday-trading-ui.js";
+import {
+  initIntradayPaperBacktest,
+} from "./trading/intraday-paper-backtest-ui.js";
 import { initMarket, setMarketHistory } from "./market.js";
 import { normalizeSymbol } from "./symbols.js";
 import {
@@ -335,8 +341,10 @@ function init() {
   initializeRenderers();
   initMarket();
   initAiAnalysis(() => latestState);
+  initAiTradeGate(() => latestState);
   initGlobalEvaluation();
   initIntradayTrading(() => latestState);
+  initIntradayPaperBacktest(() => latestState);
 
   inputs.runPredictionButton.addEventListener("click", () =>
     runAnalysis({ saveRecord: true }),

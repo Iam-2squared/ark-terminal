@@ -1231,3 +1231,421 @@ h2 {
     width: 100%;
   }
 }
+
+.intradayBacktestCard {
+  padding: 24px;
+  background: rgba(17, 24, 39, 0.86);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.22);
+}
+
+.intradayBacktestActionRow {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.intradayBacktestAssumptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.intradayBacktestAssumptions span {
+  padding: 7px 10px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.intradayBacktestSummary {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns:
+    repeat(auto-fit, minmax(145px, 1fr));
+  gap: 10px;
+}
+
+.intradayBacktestMetric {
+  min-width: 0;
+  padding: 12px 13px;
+  display: grid;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+}
+
+.intradayBacktestMetric span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.intradayBacktestMetric strong {
+  overflow-wrap: anywhere;
+  font-size: 17px;
+}
+
+.intradayBacktestSection {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.intradayBacktestSectionHeader {
+  margin-bottom: 14px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.intradayBacktestSectionHeader h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.intradayBacktestSectionHeader span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.intradayBacktestChart {
+  min-height: 260px;
+  padding: 14px;
+  color: #7b9bff;
+  background: rgba(0, 0, 0, 0.16);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.intradayBacktestSvg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.intradayBacktestLine {
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.intradayBacktestBaseline {
+  stroke: rgba(255, 255, 255, 0.22);
+  stroke-width: 1;
+  stroke-dasharray: 7 7;
+}
+
+.intradayBacktestPoint {
+  fill: #dce5ff;
+}
+
+.intradayBacktestPoint.ending {
+  fill: currentColor;
+}
+
+.intradayBacktestChartLegend {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  color: var(--text);
+}
+
+.intradayBacktestTableWrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.intradayBacktestTable {
+  width: 100%;
+  min-width: 920px;
+  border-collapse: collapse;
+}
+
+.intradayBacktestTable th,
+.intradayBacktestTable td {
+  padding: 11px 12px;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.intradayBacktestTable th {
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 800;
+}
+
+.intradayBacktestTable tr:last-child td {
+  border-bottom: 0;
+}
+
+.intradayBacktestWarnings {
+  margin-top: 18px;
+  padding: 13px 15px;
+  color: #ffd59a;
+  background: rgba(255, 159, 10, 0.08);
+  border: 1px solid rgba(255, 159, 10, 0.22);
+  border-radius: 13px;
+}
+
+.intradayBacktestWarnings:empty {
+  display: none;
+}
+
+.intradayBacktestWarnings p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.intradayBacktestWarnings p + p {
+  margin-top: 6px;
+}
+
+@media (max-width: 760px) {
+  .intradayBacktestActionRow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .intradayBacktestActionRow .primaryButton {
+    width: 100%;
+  }
+
+  .intradayBacktestSectionHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .intradayBacktestChartLegend {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .intradayBacktestCard {
+    padding: 20px;
+    border-radius: 20px;
+  }
+}
+
+
+.aiTradeGate {
+  margin-top: 20px;
+  padding: 18px;
+  background: rgba(8, 15, 29, 0.46);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.aiTradeGateHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.aiTradeGateHeader span:first-child {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.aiTradeGateHeader h3 {
+  margin: 4px 0 0;
+  font-size: 17px;
+}
+
+.aiTradeGateResult {
+  margin-top: 15px;
+}
+
+.aiTradeGateHero {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.aiTradeGateHero p {
+  margin: 0;
+  line-height: 1.7;
+}
+
+.aiTradeGateHero small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+}
+
+.aiTradeGateDecision {
+  flex: 0 0 auto;
+  min-width: 62px;
+  padding: 8px 11px;
+  text-align: center;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.aiTradeGateDecision.approve {
+  color: #79f2b0;
+  background: rgba(38, 208, 124, 0.14);
+}
+
+.aiTradeGateDecision.wait {
+  color: #ffd58a;
+  background: rgba(255, 174, 66, 0.14);
+}
+
+.aiTradeGateDecision.reject {
+  color: #ff9696;
+  background: rgba(255, 88, 88, 0.14);
+}
+
+.aiTradeGateGrid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns:
+    repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+}
+
+.aiTradeGateSection {
+  padding: 13px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+}
+
+.aiTradeGateSection h4 {
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+
+.aiTradeGateSection ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.aiTradeGateError {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  color: #ff9696;
+  background: rgba(255, 88, 88, 0.08);
+  border: 1px solid rgba(255, 88, 88, 0.2);
+  border-radius: 11px;
+}
+
+.aiTradeGateFooter,
+.aiTradeGateNotice {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+@media (max-width: 620px) {
+  .aiTradeGateHeader,
+  .aiTradeGateHero {
+    flex-direction: column;
+  }
+
+  .aiTradeGate .secondaryButton {
+    width: 100%;
+  }
+}
+
+.tradeMemory {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.tradeMemoryHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tradeMemoryHeader h4 {
+  margin: 4px 0 0;
+}
+
+.tradeMemorySummary {
+  margin-top: 13px;
+  display: grid;
+  grid-template-columns:
+    repeat(auto-fit, minmax(100px, 1fr));
+  gap: 8px;
+}
+
+.tradeMemoryMetric {
+  padding: 10px 11px;
+  display: grid;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+}
+
+.tradeMemoryMetric span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.tradeMemoryMetric strong {
+  font-size: 17px;
+}
+
+.tradeMemoryList {
+  margin-top: 13px;
+  display: grid;
+  gap: 8px;
+}
+
+.tradeMemoryRow {
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.tradeMemoryRowHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tradeMemoryRow p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.tradeMemoryRowSummary {
+  color: var(--text) !important;
+}

@@ -73,6 +73,7 @@ export const DEFAULT_WEIGHTS = Object.freeze({
 export const STORAGE_KEYS = Object.freeze({
   predictions: "arkPredictionLab.predictions.v2",
   weights: "arkPredictionLab.weights.v2",
+  tradeMemory: "arkTradeMemory.records.v1",
 });
 
 export const MINIMUM_OPTIMIZER_SAMPLES = 60;

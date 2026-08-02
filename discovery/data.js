@@ -40,17 +40,45 @@ function metadataBySymbol(universe) {
   );
 }
 
+function clamp(value, minimum = 0, maximum = 100) {
+  return Math.min(maximum, Math.max(minimum, Number(value)));
+}
+
+function calculateDiscoveryScore({ aiScore, confidence, volumeRatio }) {
+  const score = Number(aiScore) || 0;
+  const confidenceValue = Number(confidence) || 0;
+  const confidenceBonus = clamp(confidenceValue * 0.04, 0, 4);
+  const ratio = Number(volumeRatio);
+  const volumeBonus = Number.isFinite(ratio)
+    ? clamp((ratio - 0.85) * 2.5, -2, 5)
+    : 0;
+
+  return Number(clamp(score + confidenceBonus + volumeBonus, 0, 100).toFixed(2));
+}
+
 function mergeEntries(universe, entries) {
   const metadata = metadataBySymbol(universe);
 
-  return entries.map((entry) => ({
-    ...(metadata.get(String(entry.symbol)) || {}),
-    ...entry,
-    themes:
-      entry.themes ||
-      metadata.get(String(entry.symbol))?.themes ||
-      [],
-  }));
+  return entries.map((entry) => {
+    const merged = {
+      ...(metadata.get(String(entry.symbol)) || {}),
+      ...entry,
+      themes:
+        entry.themes ||
+        metadata.get(String(entry.symbol))?.themes ||
+        [],
+    };
+
+    if (!Object.prototype.hasOwnProperty.call(merged, "discoveryScore")) {
+      merged.discoveryScore = calculateDiscoveryScore({
+        aiScore: merged.aiScore,
+        confidence: merged.confidence,
+        volumeRatio: merged.volumeRatio,
+      });
+    }
+
+    return merged;
+  });
 }
 
 async function requestScreenerBatch(symbols, signal) {

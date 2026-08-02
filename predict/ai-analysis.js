@@ -1,4 +1,5 @@
 import { ARK_API_BASE } from "./config.js";
+import { createDecisionDashboard } from "./analysis/ai-decision-dashboard.js";
 
 const AI_ANALYSIS_TIMEOUT_MS = 35_000;
 const MAX_ARRAY_ITEMS = 12;
@@ -11,6 +12,15 @@ let getLatestState = () => null;
 
 function finite(value) {
   return Number.isFinite(Number(value));
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 function sanitizeForAi(value, depth = 0, seen = new WeakSet()) {
@@ -98,6 +108,7 @@ export function buildAiAnalysisPayload(state) {
       totalScore: state.analysis.totalScore,
       technicalScore: state.analysis.technicalScore,
       verdict: state.analysis.verdict,
+      discoveryScore: state.analysis.discoveryScore,
       categoryScores: sanitizeForAi(state.analysis.categoryScores),
       factors: summarizeFactors(state.analysis.factors),
     },
@@ -151,12 +162,12 @@ function setError(message) {
   elements.error.textContent = message || "";
 }
 
-function appendListSection(container, title, items, className = "") {
+function appendListSection(container, title, items, icon = "", className = "") {
   const section = document.createElement("section");
   section.className = `aiAnalysisSection ${className}`.trim();
 
   const heading = document.createElement("h3");
-  heading.textContent = title;
+  heading.textContent = `${icon} ${title}`.trim();
   section.append(heading);
 
   const list = document.createElement("ul");
@@ -171,9 +182,9 @@ function appendListSection(container, title, items, className = "") {
   container.append(section);
 }
 
-function appendTextSection(container, title, text) {
+function appendSection(container, title, text, className = "") {
   const section = document.createElement("section");
-  section.className = "aiAnalysisSection";
+  section.className = `aiAnalysisSection ${className}`.trim();
 
   const heading = document.createElement("h3");
   heading.textContent = title;
@@ -197,49 +208,387 @@ function stanceClass(stance) {
   return "neutral";
 }
 
-export function renderAiAnalysis(result) {
-  const analysis = result?.analysis;
+
+export function renderAiAnalysis(
+  result,
+) {
+  const analysis =
+    result?.analysis;
 
   if (!analysis) {
-    throw new Error("AI分析結果が空です。");
+    throw new Error(
+      "AI分析結果が空です。",
+    );
   }
 
-  elements.result.replaceChildren();
+  const overallScore =
+    finite(
+      analysis.overallAiScore,
+    )
+      ? `${analysis.overallAiScore} / 100`
+      : "--";
 
-  const hero = document.createElement("div");
-  hero.className = "aiAnalysisHero";
+  const confidenceText =
+    analysis.confidence
+      ? `${analysis.confidence.score} / 100（${analysis.confidence.label}）`
+      : "--";
 
-  const stance = document.createElement("span");
-  stance.className = `aiStance ${stanceClass(analysis.stance)}`;
-  stance.textContent = analysis.stance || "中立";
+  elements.result
+    .replaceChildren();
 
-  const summary = document.createElement("p");
-  summary.textContent = analysis.overallAssessment || "分析結果がありません。";
+  const decision =
+    document.createElement(
+      "section",
+    );
 
-  hero.append(stance, summary);
-  elements.result.append(hero);
+  decision.className =
+    `aiDecisionHero ${analysis.recommendation?.key || "neutral"}`;
 
-  const grid = document.createElement("div");
-  grid.className = "aiAnalysisGrid";
+  decision.innerHTML = `
+    <div class="aiDecisionMain">
+      <span class="aiDecisionEyebrow">
+        AI総合診断
+      </span>
 
-  appendListSection(grid, "買い要因", analysis.buyFactors, "positive");
-  appendListSection(grid, "売り要因", analysis.sellFactors, "negative");
-  appendListSection(grid, "主なリスク", analysis.risks, "risk");
-  appendListSection(grid, "注目ポイント", analysis.watchPoints);
-  appendTextSection(grid, "市場全体との関係", analysis.marketContext);
-  appendTextSection(grid, "信頼度の見方", analysis.confidenceComment);
+      <strong class="aiDecisionLabel">
+        ${escapeHtml(
+          analysis
+            .recommendation
+            ?.label ||
+          analysis.stance ||
+          "中立",
+        )}
+      </strong>
 
-  elements.result.append(grid);
+      <span class="aiDecisionNote">
+        ${escapeHtml(
+          analysis
+            .recommendation
+            ?.note || "",
+        )}
+      </span>
+    </div>
 
-  const footer = document.createElement("div");
-  footer.className = "aiAnalysisFooter";
-  footer.textContent = analysis.disclaimer ||
-    "この分析は参考情報であり、売買や利益を保証するものではありません。";
-  elements.result.append(footer);
+    <div class="aiDecisionScores">
+      <div>
+        <span>AIスコア</span>
+        <strong>
+          ${escapeHtml(
+            overallScore,
+          )}
+        </strong>
+      </div>
 
-  elements.status.textContent = result.meta?.model
-    ? `完了・${result.meta.model}`
-    : "完了";
+      <div>
+        <span>信頼度</span>
+        <strong>
+          ${escapeHtml(
+            confidenceText,
+          )}
+        </strong>
+      </div>
+
+      <div>
+        <span>市場環境</span>
+        <strong>
+          ${escapeHtml(
+            `${analysis.marketEnvironment?.score ?? 50} / 100`,
+          )}
+        </strong>
+      </div>
+    </div>
+
+    <p class="aiDecisionSummary">
+      ${escapeHtml(
+        analysis.overallAssessment ||
+        "",
+      )}
+    </p>
+  `;
+
+  elements.result
+    .append(decision);
+
+  const factors =
+    document.createElement(
+      "div",
+    );
+
+  factors.className =
+    "aiAnalysisGrid";
+
+  appendListSection(
+    factors,
+    "買い要因",
+    analysis.buyFactors,
+    "✅",
+    "positive",
+  );
+
+  appendListSection(
+    factors,
+    "リスク要因",
+    analysis.riskFactors,
+    "⚠",
+    "negative",
+  );
+
+  elements.result
+    .append(factors);
+
+  const scoreSection =
+    document.createElement(
+      "section",
+    );
+
+  scoreSection.className =
+    "aiIndicatorPanel";
+
+  const scoreRows =
+    (
+      analysis
+        .indicatorScores ||
+      []
+    )
+      .map(
+        (item) => `
+          <div class="aiIndicatorRow">
+            <div class="aiIndicatorMeta">
+              <strong>
+                ${escapeHtml(
+                  item.label,
+                )}
+              </strong>
+
+              <span>
+                ${escapeHtml(
+                  item.reason,
+                )}
+              </span>
+            </div>
+
+            <div class="aiIndicatorBar">
+              <i
+                class="${escapeHtml(
+                  item.status,
+                )}"
+                style="width:${Math.max(
+                  4,
+                  Math.min(
+                    100,
+                    item.score,
+                  ),
+                )}%"
+              ></i>
+            </div>
+
+            <b
+              class="aiIndicatorScore ${escapeHtml(
+                item.status,
+              )}"
+            >
+              ${escapeHtml(
+                item.score,
+              )}
+            </b>
+          </div>
+        `,
+      )
+      .join("");
+
+  scoreSection.innerHTML =
+    `
+      <h3>指標別スコア</h3>
+      <div class="aiIndicatorList">
+        ${scoreRows}
+      </div>
+    `;
+
+  elements.result
+    .append(scoreSection);
+
+  const plan =
+    analysis.tradePlan || {};
+
+  const strategy =
+    document.createElement(
+      "section",
+    );
+
+  strategy.className =
+    "aiStrategyPanel";
+
+  strategy.innerHTML = `
+    <div class="aiStrategyHeader">
+      <div>
+        <span>AI戦略</span>
+        <h3>価格シナリオ</h3>
+      </div>
+
+      <div class="aiRiskReward">
+        <span>RR</span>
+        <strong>
+          ${escapeHtml(
+            plan.riskReward ??
+            "--",
+          )}
+        </strong>
+      </div>
+    </div>
+
+    <div class="aiStrategyGrid">
+      <div>
+        <span>エントリー候補</span>
+        <strong>
+          ${escapeHtml(
+            plan.entryLabel ||
+            "--",
+          )}
+        </strong>
+      </div>
+
+      <div>
+        <span>損切り目安</span>
+        <strong class="negativeText">
+          ${escapeHtml(
+            plan.stopLossLabel ||
+            "--",
+          )}
+        </strong>
+      </div>
+
+      <div>
+        <span>第一利確</span>
+        <strong>
+          ${escapeHtml(
+            plan.firstTargetLabel ||
+            "--",
+          )}
+        </strong>
+      </div>
+
+      <div>
+        <span>第二利確</span>
+        <strong>
+          ${escapeHtml(
+            plan.secondTargetLabel ||
+            "--",
+          )}
+        </strong>
+      </div>
+    </div>
+  `;
+
+  elements.result
+    .append(strategy);
+
+  const outlook =
+    document.createElement(
+      "div",
+    );
+
+  outlook.className =
+    "aiAnalysisGrid";
+
+  appendSection(
+    outlook,
+    "短期見通し",
+    analysis
+      .shortTermOutlook,
+  );
+
+  appendSection(
+    outlook,
+    "中期見通し",
+    analysis
+      .midTermOutlook,
+  );
+
+  appendSection(
+    outlook,
+    "市場環境",
+
+    `${analysis.marketEnvironment?.regime || "中立"}：${analysis.marketEnvironment?.explanation || ""}`,
+  );
+
+  elements.result
+    .append(outlook);
+
+  const focus =
+    document.createElement(
+      "section",
+    );
+
+  focus.className =
+    "aiFocusPanel";
+
+  focus.innerHTML = `
+    <h3>AIが重視した要因</h3>
+
+    <div class="aiFocusList">
+      ${(
+        analysis
+          .focusFactors ||
+        []
+      )
+        .map(
+          (item) => `
+            <div>
+              <span class="aiFocusRank">
+                ${item.rank}
+              </span>
+
+              <p>
+                <strong>
+                  ${escapeHtml(
+                    item.label,
+                  )} ·
+                  ${escapeHtml(
+                    item.score,
+                  )}点
+                </strong>
+
+                <small>
+                  ${escapeHtml(
+                    item.reason,
+                  )}
+                </small>
+              </p>
+
+              <em class="${item.score >= 50 ? "positive" : "negative"}">
+                ${escapeHtml(
+                  item.direction,
+                )}
+              </em>
+            </div>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+
+  elements.result
+    .append(focus);
+
+  const footer =
+    document.createElement(
+      "div",
+    );
+
+  footer.className =
+    "aiAnalysisFooter";
+
+  footer.textContent =
+    analysis.disclaimer ||
+    "表示価格はテクニカル指標から算出した参考シナリオです。利益や約定を保証しません。";
+
+  elements.result
+    .append(footer);
+
+  elements.status.textContent =
+    result.meta?.model
+      ? `完了・${result.meta.model}`
+      : "完了";
 }
 
 export function resetAiAnalysis() {
@@ -271,7 +620,7 @@ async function runAiAnalysis() {
   setLoading(true);
 
   try {
-    const result = await fetchAiAnalysis(payload, controller.signal);
+    const result = { analysis: createDecisionDashboard(getLatestState()) };
     renderAiAnalysis(result);
   } catch (error) {
     const message =

@@ -57,14 +57,11 @@ export function runIntradayBacktestModes({
     initialEquity:
       resolvedEquity,
 
-    commissionPercentPerSide:
-      0.05,
+    commissionPercentPerSide: 0,
 
-    spreadPercent:
-      0.1,
+    spreadPercent: 0.02,
 
-    slippagePercentPerSide:
-      0.05,
+    slippagePercentPerSide: 0.01,
 
     closeAtSessionEnd:
       true,

@@ -1,4 +1,8 @@
 import {
+  createTradeAnalyticsRoot,
+  mountTradeAnalytics,
+} from "./trade-analytics-ui.js";
+import {
   fetchIntradayHistory,
 } from "../data.js";
 
@@ -729,6 +733,71 @@ function renderWarnings(
   });
 }
 
+function ensureTradeAnalyticsRoot() {
+  if (elements.tradeAnalytics) {
+    return elements.tradeAnalytics;
+  }
+
+  const existing =
+    document.getElementById(
+      "intraday-trade-analytics",
+    );
+
+  if (existing) {
+    elements.tradeAnalytics =
+      existing;
+
+    return existing;
+  }
+
+  const parent =
+    elements.warnings?.parentElement ||
+    elements.trades?.parentElement ||
+    elements.summary?.parentElement ||
+    null;
+
+  if (!parent) {
+    return null;
+  }
+
+  const root =
+    createTradeAnalyticsRoot({
+      documentRef: document,
+      parent,
+      rootId:
+        "intraday-trade-analytics",
+    });
+
+  if (root) {
+    root.className =
+      "intraday-trade-analytics-panel";
+
+    elements.tradeAnalytics =
+      root;
+  }
+
+  return root;
+}
+
+function renderTradeAnalytics(
+  result,
+) {
+  const root =
+    ensureTradeAnalyticsRoot();
+
+  if (!root) {
+    return {
+      mounted: false,
+      reason: "missing_root",
+    };
+  }
+
+  return mountTradeAnalytics({
+    root,
+    analytics:
+      result?.analytics || {},
+  });
+}
 export function renderIntradayBacktest(
   result,
   executableResult = null,
@@ -1088,6 +1157,10 @@ export function renderIntradayBacktest(
   renderWarnings(
     result,
     executableResult,
+  );
+
+  renderTradeAnalytics(
+    result,
   );
 }
 

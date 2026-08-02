@@ -285,6 +285,15 @@ mounting, storage access, and refresh events separate. Prediction confidence is
 still labelled as data quality rather than hit probability. The monitor is
 evaluation-only and never grants order-execution permission.
 
+## Interface encoding integrity
+
+`index.html` is stored and served as UTF-8, matching its explicit charset
+declaration. The encoding regression test uses a fatal UTF-8 decoder, rejects
+known multi-conversion mojibake markers, confirms critical Japanese interface
+labels, verifies balanced structural tags, and preserves every required module
+entry point exactly once. This prevents an encoding rewrite from silently
+shipping corrupted labels or malformed closing tags again.
+
 ## Remaining limits
 
 - Yahoo Finance is an unofficial upstream dependency and may delay, omit, or

@@ -114,6 +114,28 @@ uses 70% global indexes and 30% macro inputs. Regime classification reuses the
 existing analysis regime engine and recommendation mapping, with the absolute
 VIX level retained as a high-volatility risk override.
 
+## Market Intelligence breadth and sectors
+
+`market-intelligence/market-observation-normalizer.js` defines the immutable
+constituent-level input used by Bundle 3. It keeps missing values as `null` and
+normalizes daily change, volume and turnover ratios, moving-average
+participation, new highs/lows, sector, timestamp, source, and confidence.
+Duplicate symbols are resolved before aggregation.
+
+`market-breadth.js` combines advance/decline balance, participation above the
+20- and 50-session moving averages, and new-high/new-low balance.
+`liquidity-engine.js` separates volume activity from directional up/down
+volume and optional turnover activity. `sector-strength-engine.js` reuses both
+engines for sector momentum, participation, and liquidity; small sector
+samples receive lower confidence. `sector-rotation-engine.js` compares only a
+current sector report with an explicitly older report, and rejects a previous
+timestamp that is in the future.
+
+`composite-market-score.js` combines breadth (35%), liquidity (25%), sector
+strength (25%), and sector rotation (15%). Every level excludes unavailable
+components, renormalizes effective weights, and propagates data coverage and
+source confidence instead of creating neutral placeholder scores.
+
 ## Remaining limits
 
 - Yahoo Finance is an unofficial upstream dependency and may delay, omit, or
@@ -127,4 +149,7 @@ VIX level retained as a high-volatility risk override.
 - Historical market-regime scoring requires point-in-time aligned benchmark
   histories; until then regime confidence remains unavailable rather than
   using today's regime.
+- Bundle 3 requires a point-in-time constituent universe from a future breadth
+  provider. Current constituents must not be substituted into historical
+  walk-forward samples because that would introduce survivorship bias.
 - Backtests and confidence scores do not guarantee future performance.

@@ -162,10 +162,22 @@ export function calculateCompositeMarketScore({
     0,
     finiteOrNull(macroWeight) ?? 30,
   );
-  const configured = [
+  return calculateWeightedScore([
     { key: "indexes", report: indexes, weight: normalizedIndexWeight },
     { key: "macro", report: macro, weight: normalizedMacroWeight },
-  ];
+  ]);
+}
+
+export function calculateWeightedScore(components = []) {
+  if (!Array.isArray(components)) {
+    throw new TypeError("Weighted score components must be an array.");
+  }
+
+  const configured = components.map((component, index) => ({
+    key: String(component?.key ?? index),
+    report: component?.report ?? component,
+    weight: Math.max(0, finiteOrNull(component?.weight) ?? 1),
+  }));
   const requestedWeight = configured.reduce(
     (total, component) => total + component.weight,
     0,
@@ -174,11 +186,16 @@ export function calculateCompositeMarketScore({
   let effectiveWeight = 0;
   let weightedScore = 0;
   let weightedConfidence = 0;
+  let weightedCoverage = 0;
 
-  const components = configured.map(({ key, report, weight }) => {
-    const score = finiteOrNull(report?.score);
+  const resolvedComponents = configured.map(({ key, report, weight }) => {
+    const rawScore = finiteOrNull(report?.score);
+    const score = rawScore === null ? null : clamp(rawScore);
     const confidence = clamp(finiteOrNull(report?.confidence) ?? 0);
-    const available = score !== null && confidence > 0;
+    const available = score !== null && confidence > 0 && weight > 0;
+    const coverage = available
+      ? clamp(finiteOrNull(report?.coverage) ?? 100)
+      : 0;
     const resolvedEffectiveWeight = available
       ? weight * (confidence / 100)
       : 0;
@@ -188,12 +205,14 @@ export function calculateCompositeMarketScore({
       effectiveWeight += resolvedEffectiveWeight;
       weightedScore += score * resolvedEffectiveWeight;
       weightedConfidence += confidence * weight;
+      weightedCoverage += coverage * weight;
     }
 
     return {
       key,
       score,
       confidence,
+      coverage,
       weight,
       effectiveWeight: round(resolvedEffectiveWeight, 4),
       available,
@@ -204,12 +223,14 @@ export function calculateCompositeMarketScore({
     requestedWeight > 0 ? (availableWeight / requestedWeight) * 100 : 0;
   const sourceConfidence =
     availableWeight > 0 ? weightedConfidence / availableWeight : 0;
+  const dataCoverage =
+    requestedWeight > 0 ? weightedCoverage / requestedWeight : 0;
 
   return {
     score: effectiveWeight > 0 ? round(weightedScore / effectiveWeight) : null,
     confidence: round(sourceConfidence * (coverage / 100), 1),
-    coverage: round(coverage, 1),
-    components,
+    coverage: round(dataCoverage, 1),
+    components: resolvedComponents,
   };
 }
 

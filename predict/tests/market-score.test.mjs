@@ -7,6 +7,7 @@ import {
 } from "../market-intelligence/market-data-model.js";
 import {
   calculateCompositeMarketScore,
+  calculateWeightedScore,
   scoreDirectionalChange,
   scoreMarketSeries,
   scoreToSentiment,
@@ -129,6 +130,34 @@ test("Market sentiment thresholds are deterministic", () => {
   assert.equal(scoreToSentiment(35), "BEARISH");
   assert.equal(scoreToSentiment(50), "NEUTRAL");
   assert.equal(scoreToSentiment(undefined), "UNKNOWN");
+});
+
+test("Generic weighted scoring carries nested coverage without neutral fill", () => {
+  const report = calculateWeightedScore([
+    {
+      key: "available",
+      score: 80,
+      confidence: 80,
+      coverage: 50,
+      weight: 1,
+    },
+    {
+      key: "missing",
+      score: null,
+      confidence: 0,
+      coverage: 0,
+      weight: 1,
+    },
+  ]);
+
+  assert.equal(report.score, 80);
+  assert.equal(report.confidence, 40);
+  assert.equal(report.coverage, 25);
+  assert.equal(report.components[0].coverage, 50);
+});
+
+test("Generic weighted scoring validates its component collection", () => {
+  assert.throws(() => calculateWeightedScore({}), /must be an array/);
 });
 
 test("Unknown score symbols fail fast", () => {

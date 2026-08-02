@@ -94,3 +94,37 @@ test(
     );
   },
 );
+test(
+  "Paper Learning Bridgeを公開",
+  () => {
+    assert.match(
+      entrySource,
+      /paper-learning-bridge\.js/,
+    );
+
+    assert.match(
+      entrySource,
+      /analyzeLearning/,
+    );
+
+    assert.match(
+      entrySource,
+      /enqueueLearning/,
+    );
+
+    assert.match(
+      entrySource,
+      /reviewLearning/,
+    );
+
+    assert.match(
+      entrySource,
+      /applyLearning/,
+    );
+
+    assert.match(
+      entrySource,
+      /getLearningSummary/,
+    );
+  },
+);

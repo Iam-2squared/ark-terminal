@@ -1,4 +1,7 @@
 import {
+  createPaperLearningBridge,
+} from "./paper-learning-bridge.js";
+import {
   createPaperDashboardController,
 } from "./paper-dashboard-controller.js";
 
@@ -53,6 +56,12 @@ export function startPaperDashboard({
       root,
       storage,
       initialCash,
+    });
+
+  const learningBridge =
+    createPaperLearningBridge({
+      dashboardController:
+        controller,
     });
 
   controller.render();
@@ -119,6 +128,40 @@ export function startPaperDashboard({
       render:
         () =>
           controller.render(),
+
+      analyzeLearning:
+        () =>
+          learningBridge.analyze(),
+
+      enqueueLearning:
+        (options) =>
+          learningBridge.enqueue(
+            options,
+          ),
+
+      reviewLearning:
+        (options) =>
+          learningBridge.review(
+            options,
+          ),
+
+      applyLearning:
+        (options) =>
+          learningBridge.apply(
+            options,
+          ),
+
+      getLearningState:
+        () =>
+          learningBridge.getState(),
+
+      getLearningSummary:
+        () =>
+          learningBridge.getSummary(),
+
+      getLearningQueue:
+        () =>
+          learningBridge.getQueue(),
     };
   }
 

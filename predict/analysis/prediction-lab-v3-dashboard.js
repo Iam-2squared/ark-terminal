@@ -57,12 +57,91 @@ function actionClass(action = "HOLD") {
   return "neutral";
 }
 
+export function buildMarketIntelligenceView(
+  report = {},
+) {
+  const predictions =
+    (Array.isArray(report.predictions)
+      ? report.predictions
+      : [])
+      .map((prediction) => ({
+        horizon:
+          finiteNumber(
+            prediction?.horizon,
+            0,
+          ),
+
+        direction:
+          prediction?.direction ??
+          "判定不能",
+
+        score:
+          prediction?.score !== null &&
+          prediction?.score !== undefined &&
+          prediction?.score !== "" &&
+          Number.isFinite(
+            Number(prediction.score),
+          )
+            ? Number(
+                prediction.score,
+              )
+            : null,
+
+        confidence:
+          finiteNumber(
+            prediction?.confidence,
+            0,
+          ),
+
+        status:
+          prediction?.status ??
+          "unavailable",
+      }))
+      .filter(
+        (prediction) =>
+          prediction.horizon > 0,
+      );
+
+  return {
+    enabled:
+      report.enabled === true,
+
+    status:
+      report.status ??
+      "not_requested",
+
+    participating:
+      report.participating === true,
+
+    selectedHorizon:
+      finiteNumber(
+        report.selectedHorizon,
+        5,
+      ),
+
+    featureConfidence:
+      finiteNumber(
+        report.featureConfidence,
+        0,
+      ),
+
+    featureCoverage:
+      finiteNumber(
+        report.featureCoverage,
+        0,
+      ),
+
+    predictions,
+  };
+}
+
 export function buildPredictionLabV3ViewModel({
   analysis = {},
   tradePlan = {},
   alerts = {},
   runtime = {},
   learning = {},
+  marketIntelligence = {},
 } = {}) {
   const dashboard =
     analysis.dashboard ??
@@ -201,6 +280,11 @@ export function buildPredictionLabV3ViewModel({
         ),
     },
 
+    marketIntelligence:
+      buildMarketIntelligenceView(
+        marketIntelligence,
+      ),
+
     learning: {
       score:
         finiteNumber(
@@ -249,6 +333,57 @@ export function renderPredictionLabV3Dashboard(
           .join("")
       : "<li>重大なリスク要因なし</li>";
 
+  const marketIntelligence =
+    view.marketIntelligence.enabled
+      ? `
+        <section class="predictionLabV3MarketIntelligence">
+          <header>
+            <div>
+              <span>MARKET INTELLIGENCE</span>
+              <h3>マルチホライズン予測</h3>
+            </div>
+
+            <strong>
+              ${
+                view.marketIntelligence.participating
+                  ? "合意形成に参加"
+                  : "参考データ"
+              }
+            </strong>
+          </header>
+
+          <div class="predictionLabV3MarketGrid">
+            ${view.marketIntelligence.predictions
+              .map(
+                (prediction) => `
+                  <article class="${
+                    prediction.horizon ===
+                    view.marketIntelligence.selectedHorizon
+                      ? "selected"
+                      : ""
+                  }">
+                    <span>${formatNumber(prediction.horizon)}日先</span>
+                    <strong>${escapeHtml(prediction.direction)}</strong>
+                    <small>
+                      Score ${formatNumber(prediction.score)} ·
+                      Quality ${formatNumber(prediction.confidence)}%
+                    </small>
+                  </article>
+                `,
+              )
+              .join("") ||
+              "<p>利用可能な市場特徴量がありません。</p>"}
+          </div>
+
+          <p>
+            特徴量カバレッジ
+            ${formatNumber(view.marketIntelligence.featureCoverage)}% ·
+            信頼度は確率ではなくデータ品質です。
+          </p>
+        </section>
+      `
+      : "";
+
   return `
     <section class="predictionLabV3">
       <header class="predictionLabV3Header">
@@ -290,6 +425,8 @@ export function renderPredictionLabV3Dashboard(
           <strong>${escapeHtml(view.regime)}</strong>
         </article>
       </div>
+
+      ${marketIntelligence}
 
       <div class="predictionLabV3Columns">
         <article class="predictionLabV3Card">

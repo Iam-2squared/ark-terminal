@@ -26,6 +26,10 @@ import {
   buildPredictionLabV3ViewModel,
 } from "./prediction-lab-v3-dashboard.js";
 
+import {
+  marketIntelligenceRuntimeAdapter,
+} from "./market-intelligence-runtime-adapter.js";
+
 function finiteNumber(
   value,
   fallback = 0,
@@ -50,6 +54,154 @@ function clamp(
       finiteNumber(value),
     ),
   );
+}
+
+function marketIntelligenceCacheKey(
+  input = {},
+) {
+  const source =
+    input.marketIntelligenceResult ??
+    input.marketIntelligence ??
+    null;
+
+  if (!source) return null;
+  if (source.cacheKey !== undefined) return source.cacheKey;
+
+  return {
+    version:
+      source.version ?? null,
+
+    status:
+      source.status ?? null,
+
+    timestamp:
+      source.timestamp ??
+      source.features?.timestamp ??
+      null,
+
+    marketData:
+      source.marketData ?? null,
+
+    observations:
+      source.observations ??
+      source.marketObservations ??
+      null,
+
+    marketSnapshot:
+      source.marketSnapshot ??
+      source.snapshot ??
+      null,
+
+    compositeMarket:
+      source.compositeMarket ?? null,
+
+    breadth:
+      source.breadth ?? null,
+
+    liquidity:
+      source.liquidity ?? null,
+
+    sectorStrength:
+      source.sectorStrength ?? null,
+
+    sectorRotation:
+      source.sectorRotation ?? null,
+
+    news:
+      source.newsIntelligence ??
+      source.newsItems ??
+      source.news ??
+      null,
+
+    technical:
+      source.technical ?? null,
+
+    quote:
+      source.quote ?? null,
+
+    selectedHorizon:
+      source.selectedHorizon ?? null,
+  };
+}
+
+function marketIntelligenceContext(
+  report = {},
+) {
+  const source =
+    report.result ?? {};
+
+  const snapshot =
+    source.marketSnapshot ??
+    source.snapshot ??
+    null;
+
+  return {
+    macro:
+      snapshot?.macro?.sentiment ??
+      null,
+
+    regime:
+      snapshot?.regime?.regime ??
+      null,
+  };
+}
+
+function marketIntelligenceFactors(
+  report = {},
+) {
+  if (!report.enabled) {
+    return {
+      buyFactors: [],
+      riskFactors: [],
+    };
+  }
+
+  if (report.status === "error") {
+    return {
+      buyFactors: [],
+      riskFactors: [
+        `Market Intelligence unavailable: ${
+          report.error?.message ??
+          "unknown error"
+        }`,
+      ],
+    };
+  }
+
+  const prediction =
+    report.selectedPrediction;
+
+  if (!prediction) {
+    return {
+      buyFactors: [],
+      riskFactors: [
+        "Market Intelligence data unavailable",
+      ],
+    };
+  }
+
+  const factor =
+    `Market Intelligence ${report.selectedHorizon}d: ` +
+    `${prediction.direction} (${Math.round(
+      finiteNumber(prediction.score, 50),
+    )})`;
+
+  const action =
+    report.engine?.result?.action ??
+    "HOLD";
+
+  return {
+    buyFactors:
+      action === "BUY"
+        ? [factor]
+        : [],
+
+    riskFactors:
+      action === "SELL" ||
+      !report.participating
+        ? [factor]
+        : [],
+  };
 }
 
 function createRuntimeKey(
@@ -85,6 +237,30 @@ function createRuntimeKey(
 
     limits:
       input.limits ?? {},
+
+    predictionHorizon:
+      input.predictionHorizon ??
+      input.period ??
+      5,
+
+    marketIntelligenceWeight:
+      finiteNumber(
+        input.marketIntelligenceWeight,
+        1,
+      ),
+
+    marketIntelligence:
+      marketIntelligenceCacheKey(
+        input,
+      ),
+
+    marketIntelligenceTimestamp:
+      input.marketIntelligenceTimestamp ??
+      null,
+
+    forceMarketIntelligenceRefresh:
+      input.forceMarketIntelligenceRefresh ===
+      true,
   };
 }
 
@@ -221,6 +397,55 @@ export function normalizeRuntimeV3Input(
 
     regime:
       input.regime ?? "RANGE",
+
+    predictionHorizon:
+      Math.max(
+        1,
+        finiteNumber(
+          input.predictionHorizon ??
+          input.period,
+          5,
+        ),
+      ),
+
+    marketIntelligenceWeight:
+      Math.max(
+        0,
+        finiteNumber(
+          input.marketIntelligenceWeight,
+          1,
+        ),
+      ),
+
+    marketIntelligence:
+      input.marketIntelligence ??
+      null,
+
+    marketIntelligenceResult:
+      input.marketIntelligenceResult ??
+      null,
+
+    marketIntelligenceTimestamp:
+      input.marketIntelligenceTimestamp ??
+      null,
+
+    marketIntelligenceCalibration:
+      input.marketIntelligenceCalibration ??
+      null,
+
+    atrPercent:
+      input.atrPercent ??
+      input.marketIntelligence
+        ?.technical
+        ?.atrPercent ??
+      null,
+
+    forceMarketIntelligenceRefresh:
+      input.forceMarketIntelligenceRefresh ===
+      true,
+
+    signal:
+      input.signal,
   };
 }
 
@@ -232,10 +457,24 @@ export function executeRuntimeV3Sync(
       input,
     );
 
+  const marketIntelligence =
+    marketIntelligenceRuntimeAdapter
+      .analyzeSync(
+        normalized,
+      );
+
+  const consensusEngines =
+    marketIntelligence.engine
+      ? [
+          ...normalized.engines,
+          marketIntelligence.engine,
+        ]
+      : normalized.engines;
+
   const consensus =
     buildConsensus({
       engines:
-        normalized.engines,
+        consensusEngines,
 
       minimumEngines:
         1,
@@ -326,6 +565,16 @@ export function executeRuntimeV3Sync(
       normalized.alerts,
     );
 
+  const marketContext =
+    marketIntelligenceContext(
+      marketIntelligence,
+    );
+
+  const marketFactors =
+    marketIntelligenceFactors(
+      marketIntelligence,
+    );
+
   const analysis = {
     dashboard: {
       action:
@@ -338,9 +587,11 @@ export function executeRuntimeV3Sync(
         gatedDecision.confidence,
 
       macro:
+        marketContext.macro ??
         normalized.macro,
 
       regime:
+        marketContext.regime ??
         normalized.regime,
     },
 
@@ -350,15 +601,21 @@ export function executeRuntimeV3Sync(
           ? [
               "Consensus approved",
               `Agreement ${consensus.agreementRate}%`,
+              ...marketFactors.buyFactors,
             ]
-          : [],
+          : marketFactors.buyFactors,
 
       riskFactors:
         gatedDecision.reasons.length
-          ? gatedDecision.reasons
-          : [
-              "No critical risk detected",
-            ],
+          ? [
+              ...gatedDecision.reasons,
+              ...marketFactors.riskFactors,
+            ]
+          : marketFactors.riskFactors.length
+            ? marketFactors.riskFactors
+            : [
+                "No critical risk detected",
+              ],
     },
   };
 
@@ -376,6 +633,8 @@ export function executeRuntimeV3Sync(
 
       learning:
         normalized.learning,
+
+      marketIntelligence,
     });
 
   return {
@@ -399,11 +658,29 @@ export function executeRuntimeV3Sync(
 
     alertSummary,
 
+    marketIntelligence,
+
     dashboard,
 
     status:
       "ready",
   };
+}
+
+async function executeRuntimeV3WithMarketIntelligence(
+  normalized,
+) {
+  const marketIntelligence =
+    await marketIntelligenceRuntimeAdapter
+      .analyze(
+        normalized,
+      );
+
+  return executeRuntimeV3Sync({
+    ...normalized,
+    marketIntelligenceResult:
+      marketIntelligence,
+  });
 }
 
 export async function executeRuntimeV3(
@@ -414,6 +691,15 @@ export async function executeRuntimeV3(
       input,
     );
 
+  if (
+    normalized
+      .forceMarketIntelligenceRefresh
+  ) {
+    return executeRuntimeV3WithMarketIntelligence(
+      normalized,
+    );
+  }
+
   const key =
     createRuntimeKey(
       normalized,
@@ -421,8 +707,8 @@ export async function executeRuntimeV3(
 
   return runtimeV2.execute(
     key,
-    async () =>
-      executeRuntimeV3Sync(
+    () =>
+      executeRuntimeV3WithMarketIntelligence(
         normalized,
       ),
   );
@@ -458,4 +744,8 @@ export const RuntimeV3Internals = {
   clamp,
   createRuntimeKey,
   finiteNumber,
+  executeRuntimeV3WithMarketIntelligence,
+  marketIntelligenceCacheKey,
+  marketIntelligenceContext,
+  marketIntelligenceFactors,
 };

@@ -1253,6 +1253,71 @@ color:#8bb8ff;
   font-size: 18px;
 }
 
+.predictionLabV3MarketIntelligence {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(103, 215, 255, 0.18);
+  border-radius: 15px;
+  background: rgba(42, 157, 208, 0.07);
+}
+
+.predictionLabV3MarketIntelligence > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.predictionLabV3MarketIntelligence > header span,
+.predictionLabV3MarketIntelligence > p {
+  margin: 0;
+  color: #8ba1c8;
+  font-size: 12px;
+}
+
+.predictionLabV3MarketIntelligence > header h3 {
+  margin: 4px 0 0;
+  color: #ffffff;
+}
+
+.predictionLabV3MarketIntelligence > header strong {
+  color: #7ee3bf;
+  font-size: 13px;
+}
+
+.predictionLabV3MarketGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.predictionLabV3MarketGrid article {
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.predictionLabV3MarketGrid article.selected {
+  border-color: rgba(103, 215, 255, 0.55);
+  background: rgba(103, 215, 255, 0.1);
+}
+
+.predictionLabV3MarketGrid span,
+.predictionLabV3MarketGrid small {
+  display: block;
+  color: #8f9cba;
+  font-size: 11px;
+}
+
+.predictionLabV3MarketGrid strong {
+  display: block;
+  margin: 5px 0;
+  color: #ffffff;
+  font-size: 16px;
+}
+
 .predictionLabV3Columns {
   display: grid;
   grid-template-columns:
@@ -1292,6 +1357,11 @@ color:#8bb8ff;
     grid-template-columns:
       repeat(2, minmax(0, 1fr));
   }
+
+  .predictionLabV3MarketGrid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 620px) {
@@ -1303,8 +1373,14 @@ color:#8bb8ff;
   .predictionLabV3Hero,
   .predictionLabV3TradePlan,
   .predictionLabV3System,
+  .predictionLabV3MarketGrid,
   .predictionLabV3Columns {
     grid-template-columns: 1fr;
+  }
+
+  .predictionLabV3MarketIntelligence > header {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 /* ARK_AI_RESULT_PRESENTER_V1 */
@@ -1406,6 +1482,70 @@ color:#8bb8ff;
   font-size: 18px;
 }
 
+.arkAIResultMarketIntelligence {
+  display: grid;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid rgba(103, 215, 255, 0.18);
+  border-radius: 14px;
+  background: rgba(42, 157, 208, 0.07);
+}
+
+.arkAIResultMarketIntelligence > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.arkAIResultMarketIntelligence > header span,
+.arkAIResultMarketIntelligence > p {
+  margin: 0;
+  color: #8ba1c8;
+  font-size: 12px;
+}
+
+.arkAIResultMarketIntelligence > header h3 {
+  margin: 4px 0 0;
+  color: #ffffff;
+}
+
+.arkAIResultMarketIntelligence > header strong {
+  color: #7ee3bf;
+  font-size: 13px;
+}
+
+.arkAIResultMarketIntelligence > div {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.arkAIResultMarketIntelligence article {
+  padding: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.arkAIResultMarketIntelligence article.selected {
+  border-color: rgba(103, 215, 255, 0.55);
+  background: rgba(103, 215, 255, 0.1);
+}
+
+.arkAIResultMarketIntelligence article span,
+.arkAIResultMarketIntelligence article small {
+  display: block;
+  color: #8f9cba;
+  font-size: 11px;
+}
+
+.arkAIResultMarketIntelligence article strong {
+  display: block;
+  margin: 5px 0;
+  color: #ffffff;
+}
+
 .arkAIResultFactors {
   display: grid;
   grid-template-columns:
@@ -1452,6 +1592,11 @@ color:#8bb8ff;
     grid-template-columns:
       repeat(2, minmax(0, 1fr));
   }
+
+  .arkAIResultMarketIntelligence > div {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 620px) {
@@ -1462,8 +1607,14 @@ color:#8bb8ff;
 
   .arkAIResultMetrics,
   .arkAIResultTrade,
+  .arkAIResultMarketIntelligence > div,
   .arkAIResultFactors {
     grid-template-columns: 1fr;
+  }
+
+  .arkAIResultMarketIntelligence > header {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 /* ARK_AI_ANALYSIS_BUTTON_V1 */

@@ -1,3 +1,7 @@
+import {
+  buildMarketIntelligenceView,
+} from "./prediction-lab-v3-dashboard.js";
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -124,6 +128,12 @@ export function buildAIResultViewModel(
       )
         ? result.riskFactors
         : [],
+
+    marketIntelligence:
+      buildMarketIntelligenceView(
+        result.marketIntelligence ??
+        {},
+      ),
   };
 }
 
@@ -154,6 +164,62 @@ export function renderAIResult(
           )
           .join("")
       : "<li>重大なリスク要因なし</li>";
+
+  const marketIntelligence =
+    view.marketIntelligence.enabled
+      ? `
+        <section class="arkAIResultMarketIntelligence">
+          <header>
+            <div>
+              <span>MARKET INTELLIGENCE</span>
+              <h3>1・3・5・10・20日予測</h3>
+            </div>
+
+            <strong>
+              ${
+                view.marketIntelligence.participating
+                  ? "AI合意へ反映"
+                  : "品質確認中"
+              }
+            </strong>
+          </header>
+
+          <div>
+            ${view.marketIntelligence.predictions
+              .map(
+                (prediction) => `
+                  <article class="${
+                    prediction.horizon ===
+                    view.marketIntelligence.selectedHorizon
+                      ? "selected"
+                      : ""
+                  }">
+                    <span>${escapeHtml(prediction.horizon)}日先</span>
+                    <strong>${escapeHtml(prediction.direction)}</strong>
+                    <small>
+                      ${
+                        prediction.score === null
+                          ? "--"
+                          : escapeHtml(
+                              Math.round(prediction.score),
+                            )
+                      }点 · 品質${escapeHtml(
+                        Math.round(prediction.confidence),
+                      )}%
+                    </small>
+                  </article>
+                `,
+              )
+              .join("") ||
+              "<p>利用可能な市場特徴量がありません。</p>"}
+          </div>
+
+          <p>
+            信頼度は価格上昇確率ではなく、取得データの品質指標です。
+          </p>
+        </section>
+      `
+      : "";
 
   return `
     <section class="arkAIResultPresenter">
@@ -229,6 +295,8 @@ export function renderAIResult(
           <strong>¥${view.estimatedCost}</strong>
         </article>
       </div>
+
+      ${marketIntelligence}
 
       <div class="arkAIResultFactors">
         <article>

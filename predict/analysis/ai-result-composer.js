@@ -45,6 +45,10 @@ export function composeAIResult(
     runtime.gatedDecision ??
     {};
 
+  const marketIntelligence =
+    runtime.marketIntelligence ??
+    null;
+
   return {
     version:
       "ai-result-composer-v1",
@@ -145,10 +149,13 @@ export function composeAIResult(
         gatedDecision.reasons,
       ),
 
+    marketIntelligence,
+
     raw: {
       consensus,
       gatedDecision,
       tradePlan,
+      marketIntelligence,
     },
   };
 }

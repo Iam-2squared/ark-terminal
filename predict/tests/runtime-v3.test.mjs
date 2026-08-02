@@ -78,6 +78,38 @@ function strongInput() {
   };
 }
 
+function marketPredictionResult() {
+  return {
+    status: "ready",
+    features: {
+      status: "ready",
+      confidence: 90,
+      coverage: 100,
+    },
+    predictions: [1, 3, 5, 10, 20].map((horizon) => ({
+      horizon,
+      status: "ready",
+      direction: "上昇",
+      score: 84,
+      confidence: {
+        score: 90,
+        coverage: 100,
+        isProbability: false,
+      },
+      executionAllowed: false,
+    })),
+    executionAllowed: false,
+  };
+}
+
+function report(score) {
+  return {
+    score,
+    confidence: 100,
+    coverage: 100,
+  };
+}
+
 test(
   "Runtime v3 input is normalized",
   () => {
@@ -151,6 +183,172 @@ test(
     assert.equal(
       result.dashboard.regime,
       "BULL",
+    );
+
+    assert.equal(
+      result.marketIntelligence
+        .enabled,
+      false,
+    );
+
+    assert.equal(
+      result.consensus
+        .engineCount,
+      3,
+    );
+  },
+);
+
+test(
+  "Runtime v3 sync adds a validated Market Intelligence vote",
+  () => {
+    const result =
+      executeRuntimeV3Sync({
+        ...strongInput(),
+        symbol:
+          "MI-SYNC",
+        predictionHorizon:
+          10,
+        marketIntelligenceResult:
+          marketPredictionResult(),
+      });
+
+    assert.equal(
+      result.marketIntelligence
+        .participating,
+      true,
+    );
+
+    assert.equal(
+      result.marketIntelligence
+        .selectedHorizon,
+      10,
+    );
+
+    assert.equal(
+      result.consensus
+        .engineCount,
+      4,
+    );
+
+    assert.equal(
+      result.marketIntelligence
+        .executionAllowed,
+      false,
+    );
+  },
+);
+
+test(
+  "Async Runtime v3 executes the Market Intelligence pipeline",
+  async () => {
+    const result =
+      await executeRuntimeV3({
+        ...strongInput(),
+        symbol:
+          "MI-ASYNC",
+        predictionHorizon:
+          5,
+        marketIntelligence: {
+          marketSnapshot: {
+            indexes:
+              report(82),
+            macro: {
+              ...report(78),
+              sentiment:
+                "BULLISH",
+              vixLevel:
+                16,
+              items: [
+                {
+                  symbol:
+                    "VIX",
+                  price:
+                    16,
+                  confidence:
+                    100,
+                  available:
+                    true,
+                },
+              ],
+            },
+            regime: {
+              regime:
+                "BULL",
+            },
+          },
+          breadth:
+            report(84),
+          liquidity:
+            report(80),
+          sectorStrength:
+            report(82),
+          newsIntelligence:
+            report(86),
+          momentum:
+            report(83),
+          technical: {
+            atrPercent:
+              2,
+          },
+        },
+      });
+
+    assert.equal(
+      result.marketIntelligence
+        .status,
+      "ready",
+    );
+
+    assert.equal(
+      result.marketIntelligence
+        .participating,
+      true,
+    );
+
+    assert.equal(
+      result.consensus
+        .engineCount,
+      4,
+    );
+
+    assert.equal(
+      result.dashboard
+        .marketIntelligence
+        .predictions
+        .length,
+      5,
+    );
+  },
+);
+
+test(
+  "Market Intelligence errors do not stop the legacy Runtime v3 decision",
+  async () => {
+    const result =
+      await executeRuntimeV3({
+        ...strongInput(),
+        symbol:
+          "MI-ERROR",
+        marketIntelligence:
+          [],
+      });
+
+    assert.equal(
+      result.status,
+      "ready",
+    );
+
+    assert.equal(
+      result.marketIntelligence
+        .status,
+      "error",
+    );
+
+    assert.equal(
+      result.consensus
+        .engineCount,
+      3,
     );
   },
 );

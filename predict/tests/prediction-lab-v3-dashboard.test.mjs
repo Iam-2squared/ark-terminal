@@ -68,6 +68,22 @@ function sampleInput() {
       confidence: 0.8,
       trend: "UP",
     },
+
+    marketIntelligence: {
+      enabled: true,
+      status: "ready",
+      participating: true,
+      selectedHorizon: 5,
+      featureConfidence: 88,
+      featureCoverage: 92,
+      predictions: [1, 3, 5, 10, 20].map((horizon) => ({
+        horizon,
+        direction: "上昇",
+        score: 82,
+        confidence: 88,
+        status: "ready",
+      })),
+    },
   };
 }
 
@@ -97,6 +113,19 @@ test(
     assert.equal(
       result.alerts.unread,
       2,
+    );
+
+    assert.equal(
+      result.marketIntelligence
+        .predictions
+        .length,
+      5,
+    );
+
+    assert.equal(
+      result.marketIntelligence
+        .selectedHorizon,
+      5,
     );
   },
 );
@@ -130,6 +159,18 @@ test(
     assert.ok(
       html.includes(
         "Trend strong",
+      ),
+    );
+
+    assert.ok(
+      html.includes(
+        "MARKET INTELLIGENCE",
+      ),
+    );
+
+    assert.ok(
+      html.includes(
+        "5日先",
       ),
     );
   },

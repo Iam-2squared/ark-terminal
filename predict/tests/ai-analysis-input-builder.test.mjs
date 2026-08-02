@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   buildAIAnalysisInput,
+  buildMarketIntelligenceInput,
   installAIAnalysisInputProvider,
 } from "../analysis/ai-analysis-input-builder.js";
 
@@ -117,6 +118,128 @@ test(
     assert.equal(
       result.regime,
       "RANGE",
+    );
+  },
+);
+
+test(
+  "AI input carries point-in-time Market Intelligence sources",
+  () => {
+    const state = {
+      symbol:
+        "7203.T",
+
+      period:
+        10,
+
+      marketEnvironment: {
+        score:
+          76,
+
+        availableCount:
+          2,
+
+        requestedCount:
+          4,
+      },
+
+      context: {
+        news: [
+          {
+            title:
+              "上方修正",
+          },
+        ],
+
+        disclosures: [
+          {
+            title:
+              "決算発表",
+          },
+        ],
+      },
+
+      quote: {
+        changePercent:
+          1.5,
+      },
+
+      indicators: {
+        atr: {
+          percent:
+            2.2,
+        },
+      },
+    };
+
+    const marketIntelligence =
+      buildMarketIntelligenceInput(
+        state,
+      );
+
+    const result =
+      buildAIAnalysisInput({
+        state,
+      });
+
+    assert.equal(
+      marketIntelligence
+        .compositeMarket
+        .score,
+      76,
+    );
+
+    assert.equal(
+      marketIntelligence
+        .compositeMarket
+        .coverage,
+      50,
+    );
+
+    assert.equal(
+      marketIntelligence
+        .newsItems
+        .length,
+      2,
+    );
+
+    assert.equal(
+      marketIntelligence
+        .newsItems[1]
+        .type,
+      "tdnet",
+    );
+
+    assert.equal(
+      result.predictionHorizon,
+      10,
+    );
+
+    assert.equal(
+      result.marketIntelligence
+        .technical
+        .atrPercent,
+      2.2,
+    );
+  },
+);
+
+test(
+  "Explicit Market Intelligence input is reused without rewriting",
+  () => {
+    const explicit = {
+      breadth: {
+        score:
+          80,
+      },
+    };
+
+    assert.equal(
+      buildMarketIntelligenceInput({
+        marketIntelligenceInput:
+          explicit,
+      }),
+      explicit,
     );
   },
 );

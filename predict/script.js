@@ -19,6 +19,7 @@ import {
   setPredictions,
 } from "./backtest/storage.js";
 import { extractPredictionFeatures } from "./learning/feature-extractor.js";
+import { dispatchAnalysisReady } from "./analysis/analysis-event-bridge.js";
 import { initAiAnalysis, resetAiAnalysis } from "./ai-analysis.js";
 import {
   initAiTradeGate,
@@ -223,10 +224,18 @@ async function runAnalysis({ saveRecord = false } = {}) {
       weights,
     };
 
+    globalThis.__ARK_LATEST_ANALYSIS__ =
+      latestState;
+
     setMarketHistory(latestState.history);
     renderAnalysis(latestState);
     void refreshIntradayTrading(latestState);
     resetAiAnalysis();
+
+    dispatchAnalysisReady({
+      source: latestState,
+      eventTarget: globalThis,
+    });
 
     if (saveRecord) {
       saveCurrentPrediction(latestState);

@@ -72,8 +72,14 @@ export class MarketSnapshotEngine {
     this.now = now;
   }
 
-  analyze(marketData = []) {
-    return buildMarketSnapshot(marketData, { now: this.now });
+  analyze(marketData = [], { timestamp = null } = {}) {
+    return buildMarketSnapshot(marketData, {
+      now:
+        timestamp === null ||
+        timestamp === undefined
+          ? this.now
+          : () => timestamp,
+    });
   }
 
   async run({ marketData, forceRefresh = false, signal } = {}) {

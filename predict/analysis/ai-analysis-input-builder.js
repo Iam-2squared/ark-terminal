@@ -10,6 +10,25 @@ function finiteNumber(
     : fallback;
 }
 
+function finiteOrNull(
+  value,
+) {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+    return null;
+  }
+
+  const parsed =
+    Number(value);
+
+  return Number.isFinite(parsed)
+    ? parsed
+    : null;
+}
+
 function clamp(
   value,
   minimum = 0,
@@ -90,6 +109,221 @@ function normalizeEngine({
         ).toUpperCase(),
     },
   };
+}
+
+function marketEnvironmentReport(
+  state = {},
+) {
+  const environment =
+    state.marketEnvironment;
+
+  const score =
+    finiteOrNull(
+      environment?.score,
+    );
+
+  if (score === null) {
+    return null;
+  }
+
+  const availableCount =
+    Math.max(
+      0,
+      finiteNumber(
+        environment?.availableCount,
+      ),
+    );
+
+  const requestedCount =
+    Math.max(
+      0,
+      finiteNumber(
+        environment?.requestedCount,
+      ),
+    );
+
+  const coverage =
+    requestedCount > 0
+      ? Math.min(
+          100,
+          (availableCount /
+            requestedCount) *
+            100,
+        )
+      : 0;
+
+  return {
+    score:
+      clamp(score),
+
+    confidence:
+      coverage,
+
+    coverage,
+
+    source:
+      "market-context",
+  };
+}
+
+function marketNewsItems(
+  state = {},
+) {
+  return [
+    ...(Array.isArray(
+      state.context?.news,
+    )
+      ? state.context.news.map(
+          (item) => ({
+            ...item,
+            type:
+              item?.type ??
+              "news",
+          }),
+        )
+      : []),
+
+    ...(Array.isArray(
+      state.context?.disclosures,
+    )
+      ? state.context.disclosures.map(
+          (item) => ({
+            ...item,
+            type:
+              item?.type ??
+              "tdnet",
+          }),
+        )
+      : []),
+  ];
+}
+
+export function buildMarketIntelligenceInput(
+  state = {},
+) {
+  const explicit =
+    state.marketIntelligenceInput ??
+    state.marketIntelligence ??
+    null;
+
+  if (
+    explicit &&
+    typeof explicit === "object" &&
+    !Array.isArray(explicit)
+  ) {
+    return explicit;
+  }
+
+  const result = {};
+  const copiedReports = [
+    "marketSnapshot",
+    "breadth",
+    "liquidity",
+    "sectorStrength",
+    "sectorRotation",
+    "compositeMarket",
+    "newsIntelligence",
+    "volatility",
+    "macro",
+    "momentum",
+    "previousSectorStrength",
+  ];
+
+  for (const key of copiedReports) {
+    if (
+      state[key] !== null &&
+      state[key] !== undefined
+    ) {
+      result[key] = state[key];
+    }
+  }
+
+  const observations =
+    state.marketObservations ??
+    state.observations ??
+    null;
+
+  if (Array.isArray(observations)) {
+    result.observations =
+      observations;
+  }
+
+  const marketData =
+    state.marketData ??
+    null;
+
+  if (Array.isArray(marketData)) {
+    result.marketData =
+      marketData;
+  }
+
+  if (!result.compositeMarket) {
+    const fallbackReport =
+      marketEnvironmentReport(
+        state,
+      );
+
+    if (fallbackReport) {
+      result.compositeMarket =
+        fallbackReport;
+    }
+  }
+
+  if (!result.newsIntelligence) {
+    const newsItems =
+      marketNewsItems(
+        state,
+      );
+
+    if (newsItems.length) {
+      result.newsItems =
+        newsItems;
+    }
+  }
+
+  const quoteChange =
+    finiteOrNull(
+      state.quote?.changePercent,
+    );
+
+  if (quoteChange !== null) {
+    result.quote = {
+      ...state.quote,
+      changePercent:
+        quoteChange,
+    };
+  }
+
+  const atrPercent =
+    finiteOrNull(
+      state.indicators?.atr?.percent ??
+      state.indicators?.atrPercent,
+    );
+
+  if (atrPercent !== null) {
+    result.technical = {
+      ...(state.marketIntelligenceTechnical ?? {}),
+      atrPercent,
+    };
+  }
+
+  const hasSignal = [
+    result.marketSnapshot,
+    result.compositeMarket,
+    result.breadth,
+    result.liquidity,
+    result.sectorStrength,
+    result.newsIntelligence,
+    result.newsItems,
+    result.momentum,
+    result.quote,
+    result.marketData,
+    result.observations,
+  ].some(Boolean);
+
+  return hasSignal
+    ? result
+    : null;
 }
 
 export function buildAIAnalysisInput({
@@ -204,6 +438,11 @@ export function buildAIAnalysisInput({
         ],
         20,
       ),
+    );
+
+  const marketIntelligence =
+    buildMarketIntelligenceInput(
+      state,
     );
 
   const engines = [
@@ -414,6 +653,43 @@ export function buildAIAnalysisInput({
 
     learning:
       state.learning ?? {},
+
+    predictionHorizon:
+      Math.max(
+        1,
+        finiteNumber(
+          firstValue(
+            state,
+            [
+              "period",
+              "prediction.period",
+            ],
+            5,
+          ),
+          5,
+        ),
+      ),
+
+    marketIntelligenceWeight:
+      Math.max(
+        0,
+        finiteNumber(
+          settings.weights
+            ?.marketIntelligence,
+          1,
+        ),
+      ),
+
+    marketIntelligence,
+
+    atrPercent:
+      finiteOrNull(
+        state.indicators
+          ?.atr
+          ?.percent ??
+        state.indicators
+          ?.atrPercent,
+      ),
   };
 }
 

@@ -50,6 +50,21 @@ function sampleResult() {
     riskFactors: [
       "Earnings approaching",
     ],
+
+    marketIntelligence: {
+      enabled: true,
+      status: "ready",
+      participating: true,
+      selectedHorizon: 5,
+      featureCoverage: 90,
+      predictions: [1, 3, 5, 10, 20].map((horizon) => ({
+        horizon,
+        direction: "上昇",
+        score: 82,
+        confidence: 88,
+        status: "ready",
+      })),
+    },
   };
 }
 
@@ -79,6 +94,13 @@ test(
     assert.equal(
       view.executable,
       true,
+    );
+
+    assert.equal(
+      view.marketIntelligence
+        .predictions
+        .length,
+      5,
     );
   },
 );
@@ -112,6 +134,18 @@ test(
     assert.ok(
       html.includes(
         "推奨株数",
+      ),
+    );
+
+    assert.ok(
+      html.includes(
+        "MARKET INTELLIGENCE",
+      ),
+    );
+
+    assert.ok(
+      html.includes(
+        "20日先",
       ),
     );
   },

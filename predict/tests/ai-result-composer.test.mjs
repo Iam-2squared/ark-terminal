@@ -51,6 +51,15 @@ test(
               targetPrice: 1100,
             },
           },
+
+          marketIntelligence: {
+            enabled: true,
+            status: "ready",
+            participating: true,
+            selectedHorizon: 5,
+            predictions: [],
+            executionAllowed: false,
+          },
         },
       });
 
@@ -82,6 +91,18 @@ test(
     assert.equal(
       result.executable,
       true,
+    );
+
+    assert.equal(
+      result.marketIntelligence
+        .participating,
+      true,
+    );
+
+    assert.equal(
+      result.marketIntelligence
+        .executionAllowed,
+      false,
     );
   },
 );

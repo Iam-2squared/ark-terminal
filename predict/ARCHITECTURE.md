@@ -187,6 +187,29 @@ Trade Memory context, and generic Weight Optimizer. It never persists records
 or enables execution on its own. `market-prediction-engine.js` is the stateless
 orchestrator; record creation remains an explicit caller action.
 
+## Market Intelligence runtime integration
+
+`market-intelligence-orchestrator.js` is the Bundle 1–5 composition boundary.
+It accepts either supplied reports or raw market data, constituent observations,
+and news records; reuses the existing snapshot, breadth, liquidity, sector,
+news, and prediction engines; and returns one point-in-time prediction result.
+Raw records dated after the requested analysis timestamp are rejected before
+scoring.
+
+`market-intelligence-runtime-adapter.js` selects the supported horizon nearest
+to the Prediction Lab period and converts only a `ready` forecast into one
+weighted Runtime v3 consensus engine. Unavailable, low-confidence, or failed
+Market Intelligence remains visible for diagnosis but cannot affect consensus.
+If no Market Intelligence input is supplied, the previous Runtime v3 engine
+list and decision path are unchanged.
+
+The browser analysis input builder forwards existing market-context coverage,
+news/disclosure records, quote momentum, ATR, and any richer precomputed Bundle
+reports without inventing missing values. Runtime output is propagated through
+the AI result composer and rendered as separate 1, 3, 5, 10, and 20 trading-day
+cards. These cards label confidence as data quality rather than probability.
+The integration never persists forecasts or grants order-execution permission.
+
 ## Remaining limits
 
 - Yahoo Finance is an unofficial upstream dependency and may delay, omit, or

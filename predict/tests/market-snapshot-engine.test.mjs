@@ -104,6 +104,15 @@ test("Snapshot engine can analyze supplied data without a provider", async () =>
   assert.equal(snapshot.indexes.coverage, 100);
 });
 
+test("Snapshot engine accepts an explicit point-in-time timestamp", () => {
+  const engine = new MarketSnapshotEngine({ now: () => NOW });
+  const snapshot = engine.analyze(completeMarketData(), {
+    timestamp: "2026-08-02T01:00:00Z",
+  });
+
+  assert.equal(snapshot.timestamp, "2026-08-02T01:00:00.000Z");
+});
+
 test("Snapshot engine loads Bundle 1 data with refresh and abort options", async () => {
   const calls = [];
   const controller = new AbortController();

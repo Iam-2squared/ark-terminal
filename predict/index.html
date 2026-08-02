@@ -862,10 +862,42 @@
           </p>
         </article>
       </section>
-    </main>
+    
+      <section
+        class="paperTradingSection"
+        aria-labelledby="paperTradingTitle"
+      >
+        <div class="sectionHeader">
+          <div>
+            <p class="cardLabel">
+              PAPER TRADING
+            </p>
+
+            <h2 id="paperTradingTitle">
+              仮想売買口座
+            </h2>
+          </div>
+
+          <p class="dataSourceDescription">
+            実際の資金を使用せず、注文・約定・損益・安全制御を検証します。
+          </p>
+        </div>
+
+        <div
+          id="paper-trading-dashboard"
+          class="paperTradingDashboardRoot"
+          aria-live="polite"
+        >
+          <p class="emptyState">
+            Paper Tradingを読み込んでいます。
+          </p>
+        </div>
+      </section>
+</main>
 
     <script type="module" src="script.js"></script>
     <script type="module" src="./analysis/prediction-lab-entry.js"></script>
     <script type="module" src="./analysis/ai-analysis-entry.js"></script>
-  </body>
+    <script type="module" src="./paper/paper-dashboard-entry.js"></script>
+</body>
 </html>

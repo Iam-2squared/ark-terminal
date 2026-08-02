@@ -159,6 +159,34 @@ AI summaries separately and safely falls back when a summarizer fails.
 importance, and time decay. `news-intelligence-engine.js` composes the complete
 pipeline while leaving data acquisition adapters independent.
 
+## Market Intelligence prediction features
+
+`market-intelligence/prediction-feature-model.js` defines the immutable Bundle 5
+feature contract: MarketScore, Breadth, Liquidity, Volatility, Macro, NewsScore,
+SectorStrength, Momentum, FearGreed, and CompositeAI. Every value uses a 0–100
+scale, but Volatility is explicitly marked as risk polarity and is inverted only
+when a supportive directional score is required. Missing values remain `null`.
+
+`prediction-feature-composer.js` reuses the Bundle 2 snapshot, Bundle 3 breadth,
+liquidity and sector reports, Bundle 4 News Intelligence, the shared weighted
+score helper, the Market Regime VIX scale, and directional-change scoring.
+`fear-greed-engine.js` is a derived feature, not a separately fetched index. The
+composer rejects a source timestamp later than the feature snapshot so future
+information cannot enter a historical sample.
+
+`multi-horizon-prediction-engine.js` emits separate 1, 3, 5, 10, and 20 trading-
+day forecasts. Horizon weights increase the relative role of macro and sector
+strength over longer periods and the role of news, liquidity, and momentum over
+shorter periods. Expected movement reuses the existing ATR-by-square-root-of-
+time contract. Confidence describes source quality and coverage, never a
+calibrated probability.
+
+`prediction-feedback-adapter.js` creates records compatible with the existing
+prediction history, outcome resolver, Accuracy Dashboard, Learning Dataset,
+Trade Memory context, and generic Weight Optimizer. It never persists records
+or enables execution on its own. `market-prediction-engine.js` is the stateless
+orchestrator; record creation remains an explicit caller action.
+
 ## Remaining limits
 
 - Yahoo Finance is an unofficial upstream dependency and may delay, omit, or
@@ -181,4 +209,11 @@ pipeline while leaving data acquisition adapters independent.
 - Rule-based sentiment, event, surprise, and risk scores are features rather
   than verified facts or calibrated return probabilities. AI summaries must
   retain links to their source record for review.
+- Bundle 5 horizon weights and decision thresholds are versioned heuristics
+  until point-in-time walk-forward results provide enough samples for promotion.
+  A `ready` feature report is not permission to place an order, and every
+  generated feedback record has execution disabled.
+- Historical Bundle 5 validation must use the market, breadth, sector, news,
+  and volatility snapshots that were available at each prediction timestamp.
+  Reusing the latest snapshot in old samples would leak future information.
 - Backtests and confidence scores do not guarantee future performance.

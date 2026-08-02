@@ -58,9 +58,11 @@ function vixLevelFromMacro(macro) {
   return findVixLevel(macro);
 }
 
-function volatilityScore(vix) {
-  if (vix === null) return 50;
-  return clamp(((vix - 10) / 30) * 100);
+export function scoreVixVolatility(vix) {
+  const level = finiteOrNull(vix);
+
+  if (level === null) return null;
+  return clamp(((level - 10) / 30) * 100);
 }
 
 function calculateRegimeConfidence(score, indexes, macro, name) {
@@ -131,7 +133,7 @@ export function detectSnapshotMarketRegime({
     trendScore: marketScore,
     breadth: indexScore ?? 50,
     momentum: indexScore ?? 50,
-    volatility: volatilityScore(vix),
+    volatility: scoreVixVolatility(vix) ?? 50,
     vix: vix ?? 20,
   });
   let name =

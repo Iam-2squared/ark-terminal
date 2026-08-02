@@ -208,6 +208,31 @@ news/disclosure records, quote momentum, ATR, and any richer precomputed Bundle
 reports without inventing missing values. Runtime output is propagated through
 the AI result composer and rendered as separate 1, 3, 5, 10, and 20 trading-day
 cards. These cards label confidence as data quality rather than probability.
+
+## Production intelligence providers
+
+Server-only provider adapters keep acquisition credentials and upstream details
+outside the browser. `api/providers/finnhub-news-provider.js` supplies company
+profiles and company news through the existing Finnhub contract. The context API
+isolates company, news, and disclosure failures so one unavailable provider does
+not erase successful results from another provider.
+
+`api/providers/jquants-tdnet-provider.js` supplies the J-Quants v2 TDnet index
+contract for Japanese securities. It normalizes Tokyo symbols to five-character
+J-Quants codes, follows bounded pagination, and forwards disclosure metadata only
+when `JQUANTS_API_KEY` is configured on the server. Missing authorization is
+reported as `not_configured`; it never becomes neutral news or a fabricated
+score. The deployment owner must confirm that the account, add-on, and intended
+use comply with the current J-Quants terms before enabling this optional
+provider.
+
+`api/providers/screener-breadth-provider.js` converts the scheduled JPX universe
+screener snapshot into provider-neutral constituent observations. The API
+preserves universe coverage, source quality, timestamp, and staleness, while the
+existing Market Intelligence orchestrator remains responsible for Breadth,
+Liquidity, Sector Strength, Composite Score, and multi-horizon features. All
+provider payloads remain analysis-only and explicitly set `executionAllowed` to
+`false`.
 The runtime integration does not persist forecasts by default and never grants
 order-execution permission.
 

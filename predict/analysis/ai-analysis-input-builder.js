@@ -248,6 +248,22 @@ export function buildMarketIntelligenceInput(
       observations;
   }
 
+  const expectedObservationCount =
+    finiteOrNull(
+      state.expectedObservationCount ??
+      state.marketBreadthSource?.expectedObservationCount,
+    );
+
+  if (
+    expectedObservationCount !== null &&
+    expectedObservationCount >= 0
+  ) {
+    result.expectedObservationCount =
+      Math.floor(
+        expectedObservationCount,
+      );
+  }
+
   const marketData =
     state.marketData ??
     null;

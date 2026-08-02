@@ -227,6 +227,14 @@ async function runAnalysis({ saveRecord = false } = {}) {
       },
       context: bundle.context,
       marketEnvironment: bundle.marketEnvironment,
+      marketObservations: bundle.marketBreadth?.observations?.length
+        ? bundle.marketBreadth.observations
+        : null,
+      expectedObservationCount:
+        bundle.marketBreadth?.observations?.length
+          ? bundle.marketBreadth.expectedObservationCount
+          : null,
+      marketBreadthSource: bundle.marketBreadth || null,
       indicators,
       analysis,
       quality,

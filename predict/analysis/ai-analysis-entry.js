@@ -1,3 +1,4 @@
+import { installHistoryExportApi } from "./ai-analysis-history-export.js";
 import { connectAnalysisHistoryPanel } from "./ai-analysis-history-panel.js";
 import { connectAIAnalysisHistory } from "./ai-analysis-history.js";
 import { connectAIExplainabilityPanel } from "./ai-explainability-panel.js";
@@ -195,6 +196,10 @@ if (
       eventTarget: window,
       documentRef: document,
       store: historyConnection.store,
+    });
+
+    installHistoryExportApi({
+      windowRef: window,
     });
 
     startAIAnalysisApplication();

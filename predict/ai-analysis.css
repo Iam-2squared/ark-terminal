@@ -183,3 +183,325 @@
     justify-self: start;
   }
 }
+
+
+/* AI decision dashboard v2 */
+
+.aiDecisionHero {
+  display: grid;
+  grid-template-columns:
+    minmax(180px, 0.7fr)
+    minmax(340px, 1.5fr);
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid rgba(126, 145, 255, 0.22);
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(71, 91, 184, 0.2),
+      rgba(255, 255, 255, 0.025)
+    );
+}
+
+.aiDecisionHero.buy {
+  border-color: rgba(54, 199, 126, 0.35);
+}
+
+.aiDecisionHero.avoid {
+  border-color: rgba(232, 91, 91, 0.3);
+}
+
+.aiDecisionMain {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.aiDecisionEyebrow {
+  color: #91a4d8;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.aiDecisionLabel {
+  color: #ffffff;
+  font-size: clamp(28px, 4vw, 46px);
+  line-height: 1.1;
+}
+
+.aiDecisionNote {
+  color: #b8c0d5;
+}
+
+.aiDecisionScores {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.aiDecisionScores div {
+  padding: 13px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+}
+
+.aiDecisionScores span {
+  display: block;
+  margin-bottom: 5px;
+  color: #9ba8c8;
+  font-size: 12px;
+}
+
+.aiDecisionScores strong {
+  color: #ffffff;
+  font-size: 17px;
+}
+
+.aiDecisionSummary {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #dbe1f1;
+}
+
+.aiIndicatorPanel,
+.aiStrategyPanel,
+.aiFocusPanel {
+  margin-top: 14px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 16px;
+}
+
+.aiIndicatorPanel h3,
+.aiFocusPanel h3 {
+  margin: 0 0 14px;
+  color: #f3f5ff;
+}
+
+.aiIndicatorList {
+  display: grid;
+  gap: 11px;
+}
+
+.aiIndicatorRow {
+  display: grid;
+  grid-template-columns:
+    minmax(160px, 0.8fr)
+    minmax(180px, 1.3fr)
+    44px;
+  gap: 14px;
+  align-items: center;
+}
+
+.aiIndicatorMeta strong,
+.aiIndicatorMeta span {
+  display: block;
+}
+
+.aiIndicatorMeta strong {
+  color: #f4f6ff;
+}
+
+.aiIndicatorMeta span {
+  margin-top: 3px;
+  color: #8f9ab7;
+  font-size: 12px;
+}
+
+.aiIndicatorBar {
+  height: 8px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+}
+
+.aiIndicatorBar i {
+  display: block;
+  height: 100%;
+  background: #8798ff;
+  border-radius: inherit;
+}
+
+.aiIndicatorBar i.positive {
+  background: #38ca83;
+}
+
+.aiIndicatorBar i.negative {
+  background: #ed6868;
+}
+
+.aiIndicatorScore {
+  color: #dfe5ff;
+  text-align: right;
+}
+
+.aiIndicatorScore.positive {
+  color: #63e6a5;
+}
+
+.aiIndicatorScore.negative {
+  color: #ff8585;
+}
+
+.aiStrategyHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.aiStrategyHeader span {
+  color: #91a4d8;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+}
+
+.aiStrategyHeader h3 {
+  margin: 3px 0 0;
+  color: #ffffff;
+}
+
+.aiRiskReward {
+  min-width: 74px;
+  padding: 9px 12px;
+  text-align: center;
+  background: rgba(92, 116, 255, 0.13);
+  border-radius: 13px;
+}
+
+.aiRiskReward span,
+.aiRiskReward strong {
+  display: block;
+}
+
+.aiRiskReward strong {
+  color: #ffffff;
+  font-size: 20px;
+}
+
+.aiStrategyGrid {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.aiStrategyGrid div {
+  padding: 13px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 13px;
+}
+
+.aiStrategyGrid span,
+.aiStrategyGrid strong {
+  display: block;
+}
+
+.aiStrategyGrid span {
+  margin-bottom: 6px;
+  color: #9ba8c8;
+  font-size: 12px;
+}
+
+.aiStrategyGrid strong {
+  color: #ffffff;
+}
+
+.negativeText {
+  color: #ff8585 !important;
+}
+
+.aiFocusList {
+  display: grid;
+  gap: 9px;
+}
+
+.aiFocusList > div {
+  display: grid;
+  grid-template-columns:
+    32px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.035);
+  border-radius: 12px;
+}
+
+.aiFocusRank {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  color: #ffffff;
+  font-weight: 700;
+  background: rgba(117, 133, 229, 0.2);
+  border-radius: 50%;
+}
+
+.aiFocusList p {
+  margin: 0;
+}
+
+.aiFocusList p strong,
+.aiFocusList p small {
+  display: block;
+}
+
+.aiFocusList p strong {
+  color: #f6f7ff;
+}
+
+.aiFocusList p small {
+  margin-top: 3px;
+  color: #8f9ab7;
+}
+
+.aiFocusList em {
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.aiFocusList em.positive {
+  color: #63e6a5;
+}
+
+.aiFocusList em.negative {
+  color: #ff8585;
+}
+
+@media (max-width: 900px) {
+  .aiDecisionHero {
+    grid-template-columns: 1fr;
+  }
+
+  .aiStrategyGrid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .aiDecisionScores,
+  .aiStrategyGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .aiIndicatorRow {
+    grid-template-columns:
+      1fr 42px;
+  }
+
+  .aiIndicatorBar {
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+}

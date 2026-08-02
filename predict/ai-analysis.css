@@ -58,13 +58,19 @@
 }
 
 .aiAnalysisMetrics div {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
   padding: 12px 14px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
+}
+
+.aiAnalysisMetrics span,
+.aiAnalysisMetrics strong {
+  display: inline-block;
 }
 
 .aiAnalysisMetrics span {
@@ -73,6 +79,7 @@
 
 .aiAnalysisMetrics strong {
   color: #ffffff;
+  text-align: right;
 }
 
 .aiAnalysisHero p,
@@ -136,6 +143,15 @@
 .aiAnalysisSection ul {
   margin: 0;
   color: #b8c0d5;
+}
+
+.aiAnalysisSection ul {
+  padding-left: 20px;
+}
+
+.aiAnalysisSection ul li {
+  margin-bottom: 8px;
+  line-height: 1.6;
 }
 
 .aiAnalysisSection ul {

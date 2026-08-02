@@ -162,12 +162,12 @@ function setError(message) {
   elements.error.textContent = message || "";
 }
 
-function appendListSection(container, title, items, className = "") {
+function appendListSection(container, title, items, icon = "", className = "") {
   const section = document.createElement("section");
   section.className = `aiAnalysisSection ${className}`.trim();
 
   const heading = document.createElement("h3");
-  heading.textContent = title;
+  heading.textContent = `${icon} ${title}`.trim();
   section.append(heading);
 
   const list = document.createElement("ul");
@@ -182,9 +182,9 @@ function appendListSection(container, title, items, className = "") {
   container.append(section);
 }
 
-function appendTextSection(container, title, text) {
+function appendSection(container, title, text, className = "") {
   const section = document.createElement("section");
-  section.className = "aiAnalysisSection";
+  section.className = `aiAnalysisSection ${className}`.trim();
 
   const heading = document.createElement("h3");
   heading.textContent = title;
@@ -234,13 +234,6 @@ export function renderAiAnalysis(result) {
   stance.className = `aiStance ${stanceClass(analysis.stance)}`;
   stance.textContent = analysis.stance || "中立";
 
-  const resultHeadline = document.createElement("div");
-  resultHeadline.className = "aiAnalysisHeadline";
-  resultHeadline.innerHTML = `
-    <strong>${escapeHtml(analysis.overallAssessment || "分析結果がありません。")}</strong>
-    <p>${escapeHtml(analysis.overallSummary || "詳細なAI分析を表示します。")}</p>
-  `;
-
   const metricList = document.createElement("div");
   metricList.className = "aiAnalysisMetrics";
   metricList.innerHTML = `
@@ -254,18 +247,20 @@ export function renderAiAnalysis(result) {
     )}</strong></div>
   `;
 
-  summary.append(stance, resultHeadline);
+  summary.append(stance);
   hero.append(summary, metricList);
   elements.result.append(hero);
 
   const grid = document.createElement("div");
   grid.className = "aiAnalysisGrid";
 
-  appendListSection(grid, "買い要因", analysis.buyFactors, "positive");
-  appendListSection(grid, "リスク要因", analysis.riskFactors, "negative");
-  appendTextSection(grid, "エントリー提案", analysis.entrySuggestion);
-  appendTextSection(grid, "ストップロス提案", analysis.stopLossSuggestion);
-  appendTextSection(grid, "テイクプロフィット提案", analysis.takeProfitSuggestion);
+  appendListSection(grid, "Buy Factors", analysis.buyFactors, "✅", "positive");
+  appendListSection(grid, "Risk Factors", analysis.riskFactors, "⚠", "negative");
+  appendSection(grid, "Short-term Outlook", analysis.shortTermOutlook);
+  appendSection(grid, "Mid-term Outlook", analysis.midTermOutlook);
+  appendSection(grid, "Entry Suggestion", analysis.entrySuggestion);
+  appendSection(grid, "Stop-loss", analysis.stopLossSuggestion);
+  appendSection(grid, "Take-profit", analysis.takeProfitSuggestion);
 
   elements.result.append(grid);
 

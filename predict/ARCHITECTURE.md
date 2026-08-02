@@ -310,6 +310,17 @@ and six-hour wake checks are idempotent for the same date, while the next market
 date creates a new point-in-time record. The bounded browser retention window is
 365 snapshots and every capture remains evaluation-only.
 
+## Resolved feedback learning loop
+
+`resolved-feedback-service.js` converts the durable resolved prediction archive
+through the existing chronological Learning Dataset, technical-factor weight
+derivation, and Market Intelligence weight metrics. Its controller refreshes on
+outcome events and stores a bounded audit summary through
+`LearningFeedbackRepository`. Candidate weights are generated only after the
+existing evidence thresholds are met; this stage never calls `saveWeights`,
+never mutates the active model, and marks every candidate as requiring human
+approval.
+
 ## Interface encoding integrity
 
 `index.html` is stored and served as UTF-8, matching its explicit charset

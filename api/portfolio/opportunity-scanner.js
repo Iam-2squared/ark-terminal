@@ -9,5 +9,5 @@ function scanOpportunities(portfolios = []) {
 }
 
 module.exports = {
-  scanOpportunities,
+    scanOpportunities,
 };

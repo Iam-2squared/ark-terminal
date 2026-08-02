@@ -1,9 +1,17 @@
-// Part261 B6 Runtime
-export const BROKER_RUNTIME_VERSION = "0.1.0";
+const BROKER_RUNTIME_VERSION = "0.1.0";
 
-export function createRuntime() {
-    return {
-        startedAt: new Date().toISOString(),
-        status: "ready"
-    };
+function createRuntime() {
+  return {
+    version: BROKER_RUNTIME_VERSION,
+    startedAt: new Date().toISOString(),
+    status: "ready",
+    readOnly: true,
+    liveTradingEnabled: false,
+    orderSubmissionAvailable: false,
+  };
 }
+
+module.exports = {
+  BROKER_RUNTIME_VERSION,
+  createRuntime,
+};

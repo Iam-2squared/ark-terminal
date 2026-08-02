@@ -241,6 +241,29 @@ Prediction Feedback stores only the verified snapshot reference, avoiding a
 second copy of the reports. Snapshot and feedback execution permission remains
 disabled.
 
+## Historical accuracy feedback
+
+`historical-market-outcome-normalizer.js` creates a synthetic evaluation anchor
+from the price captured at prediction time and accepts only market candles after
+the snapshot and at or before the declared evaluation time. It never infers an
+entry price from history downloaded later, because a daily candle could contain
+information that was not complete when the prediction was made.
+
+`historical-market-accuracy-engine.js` converts an immutable snapshot back into
+the existing Prediction Feedback record schema and delegates outcome labels,
+cost treatment, and forecast error calculation to the existing backtest
+resolver. Insufficient future sessions remain pending rather than being scored.
+
+`historical-market-accuracy-composer.js` deduplicates those records and supplies
+the same resolved evidence to Accuracy Dashboard, Walk Forward summaries,
+Weight Optimizer metrics, and the chronological Learning Dataset. Snapshot
+identity and fingerprint follow each learning row for auditability.
+
+`historical-market-accuracy-service.js` evaluates batches with one shared cutoff
+time, isolates corrupt snapshots, and rejects conflicting identities or attempts
+to rewrite a resolved outcome. All outputs are evaluation-only and keep order
+execution disabled.
+
 ## Remaining limits
 
 - Yahoo Finance is an unofficial upstream dependency and may delay, omit, or

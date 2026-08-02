@@ -86,7 +86,11 @@ function factorScores(featureSet, existing = {}) {
 }
 
 function predictionReasons(prediction) {
-  return [...prediction.components]
+  const components = Array.isArray(prediction?.components)
+    ? prediction.components
+    : [];
+
+  return [...components]
     .filter((component) => component.available)
     .sort(
       (first, second) =>

@@ -255,6 +255,10 @@ function captureHistoricalMarketSnapshot(
         input.symbol,
       marketIntelligence,
       metadata: {
+        predictionPrice:
+          input.price > 0
+            ? input.price
+            : null,
         requestedHorizon:
           input.predictionHorizon,
         selectedHorizon:

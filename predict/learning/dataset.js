@@ -99,7 +99,10 @@ function labelRow(record) {
   };
 }
 
-export function buildMachineLearningDataset(records) {
+export function buildMachineLearningDataset(
+  records,
+  { generatedAt = new Date().toISOString() } = {},
+) {
   const eligible = records.filter(
     (record) =>
       record.status === "resolved" && finite(record.actualReturn),
@@ -118,6 +121,10 @@ export function buildMachineLearningDataset(records) {
         featureSchemaVersion: record.features?.schemaVersion || 0,
         marketIntelligenceFeatureVersion:
           record.features?.marketIntelligence?.version || null,
+        historicalMarketSnapshot:
+          record.marketIntelligenceSnapshot
+            ? { ...record.marketIntelligenceSnapshot }
+            : null,
         futureInformationIncluded: false,
       },
     }),
@@ -125,7 +132,7 @@ export function buildMachineLearningDataset(records) {
 
   return {
     schemaVersion: 2,
-    generatedAt: new Date().toISOString(),
+    generatedAt,
     splitMethod: "chronological-60-20-20-or-existing-walk-forward-partition",
     featureDefinition:
       "予測時点で保存した指標値・条件・市場インテリジェンス・スコアだけを使用",
@@ -140,6 +147,10 @@ export function buildMachineLearningDataset(records) {
   };
 }
 
-export function exportMachineLearningDataset(records) {
-  return JSON.stringify(buildMachineLearningDataset(records), null, 2);
+export function exportMachineLearningDataset(records, options = {}) {
+  return JSON.stringify(
+    buildMachineLearningDataset(records, options),
+    null,
+    2,
+  );
 }

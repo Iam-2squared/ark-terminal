@@ -421,6 +421,12 @@ test(
       5,
     );
 
+    assert.equal(
+      archived.metadata
+        .predictionPrice,
+      1000,
+    );
+
     historicalMarketSnapshotService.clear();
   },
 );

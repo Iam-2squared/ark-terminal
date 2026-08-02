@@ -1,4 +1,5 @@
 import { ARK_API_BASE } from "./config.js";
+import { createAiAnalysis } from "./analysis/ai-analysis.js";
 
 const AI_ANALYSIS_TIMEOUT_MS = 35_000;
 const MAX_ARRAY_ITEMS = 12;
@@ -11,6 +12,15 @@ let getLatestState = () => null;
 
 function finite(value) {
   return Number.isFinite(Number(value));
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 function sanitizeForAi(value, depth = 0, seen = new WeakSet()) {
@@ -98,6 +108,7 @@ export function buildAiAnalysisPayload(state) {
       totalScore: state.analysis.totalScore,
       technicalScore: state.analysis.technicalScore,
       verdict: state.analysis.verdict,
+      discoveryScore: state.analysis.discoveryScore,
       categoryScores: sanitizeForAi(state.analysis.categoryScores),
       factors: summarizeFactors(state.analysis.factors),
     },
@@ -204,36 +215,64 @@ export function renderAiAnalysis(result) {
     throw new Error("AI分析結果が空です。");
   }
 
+  const overallScore = finite(analysis.overallAiScore)
+    ? `${analysis.overallAiScore} / 100`
+    : "--";
+  const confidenceText = analysis.confidence
+    ? `${analysis.confidence.score} / 100 (${analysis.confidence.label})`
+    : analysis.confidenceComment || "--";
+
   elements.result.replaceChildren();
 
   const hero = document.createElement("div");
   hero.className = "aiAnalysisHero";
 
+  const summary = document.createElement("div");
+  summary.className = "aiAnalysisSummary";
+
   const stance = document.createElement("span");
   stance.className = `aiStance ${stanceClass(analysis.stance)}`;
   stance.textContent = analysis.stance || "中立";
 
-  const summary = document.createElement("p");
-  summary.textContent = analysis.overallAssessment || "分析結果がありません。";
+  const resultHeadline = document.createElement("div");
+  resultHeadline.className = "aiAnalysisHeadline";
+  resultHeadline.innerHTML = `
+    <strong>${escapeHtml(analysis.overallAssessment || "分析結果がありません。")}</strong>
+    <p>${escapeHtml(analysis.overallSummary || "詳細なAI分析を表示します。")}</p>
+  `;
 
-  hero.append(stance, summary);
+  const metricList = document.createElement("div");
+  metricList.className = "aiAnalysisMetrics";
+  metricList.innerHTML = `
+    <div><span>AI総合スコア</span><strong>${escapeHtml(overallScore)}</strong></div>
+    <div><span>信頼度</span><strong>${escapeHtml(confidenceText)}</strong></div>
+    <div><span>短期視点</span><strong>${escapeHtml(
+      analysis.shortTermOutlook || "--",
+    )}</strong></div>
+    <div><span>中期視点</span><strong>${escapeHtml(
+      analysis.midTermOutlook || "--",
+    )}</strong></div>
+  `;
+
+  summary.append(stance, resultHeadline);
+  hero.append(summary, metricList);
   elements.result.append(hero);
 
   const grid = document.createElement("div");
   grid.className = "aiAnalysisGrid";
 
   appendListSection(grid, "買い要因", analysis.buyFactors, "positive");
-  appendListSection(grid, "売り要因", analysis.sellFactors, "negative");
-  appendListSection(grid, "主なリスク", analysis.risks, "risk");
-  appendListSection(grid, "注目ポイント", analysis.watchPoints);
-  appendTextSection(grid, "市場全体との関係", analysis.marketContext);
-  appendTextSection(grid, "信頼度の見方", analysis.confidenceComment);
+  appendListSection(grid, "リスク要因", analysis.riskFactors, "negative");
+  appendTextSection(grid, "エントリー提案", analysis.entrySuggestion);
+  appendTextSection(grid, "ストップロス提案", analysis.stopLossSuggestion);
+  appendTextSection(grid, "テイクプロフィット提案", analysis.takeProfitSuggestion);
 
   elements.result.append(grid);
 
   const footer = document.createElement("div");
   footer.className = "aiAnalysisFooter";
-  footer.textContent = analysis.disclaimer ||
+  footer.textContent =
+    analysis.disclaimer ||
     "この分析は参考情報であり、売買や利益を保証するものではありません。";
   elements.result.append(footer);
 
@@ -271,7 +310,7 @@ async function runAiAnalysis() {
   setLoading(true);
 
   try {
-    const result = await fetchAiAnalysis(payload, controller.signal);
+    const result = { analysis: createAiAnalysis(getLatestState()) };
     renderAiAnalysis(result);
   } catch (error) {
     const message =

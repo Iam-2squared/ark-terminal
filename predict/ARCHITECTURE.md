@@ -365,6 +365,24 @@ labels, verifies balanced structural tags, and preserves every required module
 entry point exactly once. This prevents an encoding rewrite from silently
 shipping corrupted labels or malformed closing tags again.
 
+## Market Intelligence dashboard
+
+`market-intelligence-dashboard-view-model.js`,
+`market-intelligence-dashboard-presenter.js`, and
+`market-intelligence-dashboard-controller.js` expose the existing asynchronous
+Market Intelligence pipeline in the standard Prediction Lab analysis flow. The
+controller reuses `buildAIAnalysisInput`, `marketIntelligenceRuntimeAdapter`,
+and the shared five-horizon view instead of recalculating feature or forecast
+logic in the UI.
+
+The dashboard renders CompositeAI, six primary feature scores, 1/3/5/10/20-day
+market directions, breadth, sector strength, and provider health. Missing
+features remain unavailable rather than becoming zero scores, failures stay
+isolated from the normal analysis result, and a newer analysis aborts an older
+in-flight refresh. Scores and confidence remain analysis-quality indicators,
+not calibrated price probabilities or guarantees, and execution permission is
+always disabled.
+
 ## Remaining limits
 
 - Yahoo Finance is an unofficial upstream dependency and may delay, omit, or

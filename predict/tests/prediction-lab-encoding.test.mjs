@@ -4,6 +4,7 @@ import test from "node:test";
 import { TextDecoder } from "node:util";
 
 const INDEX_URL = new URL("../index.html", import.meta.url);
+const SCRIPT_URL = new URL("../script.js", import.meta.url);
 const MOJIBAKE_MARKERS = Object.freeze([
   "\uFFFD",
   "鬯",
@@ -54,6 +55,7 @@ test("Prediction Lab keeps its required Japanese interface labels", async () => 
     "現在価格",
     "総合スコア",
     "この評価について",
+    "市場インテリジェンス",
   ];
 
   for (const label of requiredLabels) {
@@ -109,4 +111,23 @@ test("Prediction Lab retains each required module entry exactly once", async () 
       `${source} must be loaded exactly once`,
     );
   }
+});
+
+test("Market Intelligence dashboard is mounted once in the standard flow", async () => {
+  const html = await readIndexHtml();
+  const script = await readFile(SCRIPT_URL, "utf8");
+  const predictionIndex = html.indexOf("predictionOutputCard");
+  const dashboardIndex = html.indexOf('id="marketIntelligenceDashboard"');
+  const intradayIndex = html.indexOf('id="intradayTradingCard"');
+
+  assert.equal(
+    occurrenceCount(html, /id="marketIntelligenceDashboard"/g),
+    1,
+  );
+  assert.ok(predictionIndex < dashboardIndex);
+  assert.ok(dashboardIndex < intradayIndex);
+  assert.equal(
+    script.split("initMarketIntelligenceDashboardController({").length - 1,
+    1,
+  );
 });

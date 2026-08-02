@@ -272,6 +272,7 @@ h2 {
 .globalEvaluationCard,
 .intradayTradingCard,
 .aiAccuracyMonitor,
+.marketIntelligenceDashboard,
 .warningCard {
   padding: 24px;
 
@@ -517,6 +518,424 @@ h2 {
   .aiAccuracyHorizonGrid,
   .aiAccuracyEvidenceGrid {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+.marketIntelligenceDashboard {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(63, 211, 198, 0.22);
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(63, 211, 198, 0.13),
+      transparent 34%
+    ),
+    rgba(17, 24, 39, 0.92);
+}
+
+.marketIntelligenceDashboard::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  content: "";
+  background: linear-gradient(#3fd3c6, var(--blue));
+}
+
+.marketIntelligenceHeader,
+.marketIntelligenceSectionHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.marketIntelligenceHeader h2,
+.marketIntelligenceSectionHeader h3 {
+  margin: 4px 0 0;
+}
+
+.marketIntelligenceBadges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.marketIntelligenceSymbol,
+.marketIntelligenceStatus {
+  min-height: 30px;
+  padding: 0 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.marketIntelligenceSymbol {
+  color: #dce5ff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.marketIntelligenceStatus.ready,
+.marketIntelligenceProviderState strong.available {
+  color: #b7ffd0;
+  background: rgba(52, 199, 89, 0.14);
+  border-color: rgba(52, 199, 89, 0.22);
+}
+
+.marketIntelligenceStatus.loading,
+.marketIntelligenceStatus.partial,
+.marketIntelligenceProviderState strong.partial,
+.marketIntelligenceProviderState strong.stale {
+  color: #ffd58a;
+  background: rgba(255, 159, 10, 0.14);
+  border-color: rgba(255, 159, 10, 0.22);
+}
+
+.marketIntelligenceStatus.error,
+.marketIntelligenceProviderState strong.error {
+  color: #ffb8b3;
+  background: rgba(255, 69, 58, 0.14);
+  border-color: rgba(255, 69, 58, 0.22);
+}
+
+.marketIntelligenceStatus.idle,
+.marketIntelligenceStatus.unavailable,
+.marketIntelligenceProviderState strong.unavailable,
+.marketIntelligenceProviderState strong.neutral {
+  color: #d9dfef;
+  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--border);
+}
+
+.marketIntelligenceMessage,
+.marketIntelligenceError {
+  margin: 14px 0 0;
+  padding: 11px 13px;
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.marketIntelligenceMessage {
+  color: #dce5ff;
+  background: rgba(63, 211, 198, 0.07);
+  border: 1px solid rgba(63, 211, 198, 0.14);
+}
+
+.marketIntelligenceError {
+  color: #ffcbc7;
+  background: rgba(255, 69, 58, 0.08);
+  border: 1px solid rgba(255, 69, 58, 0.18);
+}
+
+.marketIntelligenceOverview {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.8fr);
+  gap: 16px;
+}
+
+.marketIntelligenceHero,
+.marketIntelligenceMetric,
+.marketIntelligencePrediction,
+.marketIntelligenceSection {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.035);
+  border-radius: 16px;
+}
+
+.marketIntelligenceHero {
+  min-height: 190px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.marketIntelligenceHero > span,
+.marketIntelligenceMetric span,
+.marketIntelligencePrediction span,
+.marketIntelligenceProvider span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.marketIntelligenceHero > strong {
+  margin-top: 8px;
+  color: #f8fbff;
+  font-size: clamp(44px, 6vw, 68px);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.marketIntelligenceHero > div {
+  margin-top: 14px;
+  display: grid;
+  gap: 4px;
+}
+
+.marketIntelligenceHero small,
+.marketIntelligenceMetric small,
+.marketIntelligencePrediction small,
+.marketIntelligenceProvider small,
+.marketIntelligenceSectorGrid small {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.marketIntelligenceMetricGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.marketIntelligenceMetric {
+  min-height: 90px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 7px;
+}
+
+.marketIntelligenceMetricHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.marketIntelligenceMetricHeading strong {
+  font-size: 20px;
+}
+
+.marketIntelligenceMetric progress {
+  width: 100%;
+  height: 6px;
+  overflow: hidden;
+  accent-color: #3fd3c6;
+  border: 0;
+  border-radius: 999px;
+}
+
+.marketIntelligenceMetric progress::-webkit-progress-bar {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+}
+
+.marketIntelligenceMetric progress::-webkit-progress-value {
+  background: linear-gradient(90deg, #3fd3c6, var(--blue));
+  border-radius: 999px;
+}
+
+.marketIntelligenceMetric.unavailable,
+.marketIntelligencePrediction.unavailable {
+  opacity: 0.58;
+}
+
+.marketIntelligenceSection {
+  margin-top: 18px;
+  padding: 16px;
+}
+
+.marketIntelligenceSectionHeader h3 {
+  font-size: 15px;
+}
+
+.marketIntelligenceSectionHeader > span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.marketIntelligencePredictionGrid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.marketIntelligencePrediction {
+  padding: 13px;
+  display: grid;
+  gap: 5px;
+}
+
+.marketIntelligencePrediction.selected {
+  border-color: rgba(63, 211, 198, 0.45);
+  box-shadow: inset 0 0 0 1px rgba(63, 211, 198, 0.12);
+}
+
+.marketIntelligencePrediction > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.marketIntelligencePrediction .selectedLabel {
+  color: #9ff5ec;
+}
+
+.marketIntelligencePrediction > strong {
+  font-size: 19px;
+}
+
+.marketIntelligencePrediction > strong.positive {
+  color: #8cf0aa;
+}
+
+.marketIntelligencePrediction > strong.negative {
+  color: #ffaaa3;
+}
+
+.marketIntelligencePrediction > strong.neutral {
+  color: #d9dfef;
+}
+
+.marketIntelligenceDetailGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.marketIntelligenceBreadthGrid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.marketIntelligenceBreadthGrid > div {
+  padding: 11px;
+  display: grid;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.035);
+  border-radius: 12px;
+}
+
+.marketIntelligenceBreadthGrid span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.marketIntelligenceBreadthGrid strong {
+  font-size: 18px;
+}
+
+.marketIntelligenceSectorGrid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.marketIntelligenceSectorGrid h4 {
+  margin: 0 0 8px;
+  font-size: 12px;
+}
+
+.marketIntelligenceSectorGrid ul {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 7px;
+  list-style: none;
+}
+
+.marketIntelligenceSectorGrid li {
+  padding: 8px 9px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 8px;
+  background: rgba(255, 255, 255, 0.035);
+  border-radius: 10px;
+}
+
+.marketIntelligenceSectorGrid li small {
+  grid-column: 1 / -1;
+}
+
+.marketIntelligenceProviderGrid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.marketIntelligenceProvider {
+  padding: 11px 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.035);
+  border-radius: 12px;
+}
+
+.marketIntelligenceProvider > div {
+  display: grid;
+  gap: 4px;
+}
+
+.marketIntelligenceProviderState {
+  justify-items: end;
+  text-align: right;
+}
+
+.marketIntelligenceProviderState strong {
+  width: fit-content;
+  padding: 3px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 10px;
+}
+
+.marketIntelligenceNotice {
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+@media (max-width: 860px) {
+  .marketIntelligenceOverview,
+  .marketIntelligenceDetailGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .marketIntelligencePredictionGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .marketIntelligenceHeader,
+  .marketIntelligenceSectionHeader {
+    flex-direction: column;
+  }
+
+  .marketIntelligenceBadges {
+    justify-content: flex-start;
+  }
+
+  .marketIntelligenceMetricGrid,
+  .marketIntelligencePredictionGrid,
+  .marketIntelligenceProviderGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .marketIntelligenceProvider {
+    flex-direction: column;
+  }
+
+  .marketIntelligenceProviderState {
+    justify-items: start;
+    text-align: left;
   }
 }
 
@@ -1301,6 +1720,7 @@ h2 {
   .backtestCard,
   .globalEvaluationCard,
   .intradayTradingCard,
+  .marketIntelligenceDashboard,
   .warningCard {
     padding: 20px;
     border-radius: 20px;

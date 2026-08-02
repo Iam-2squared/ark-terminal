@@ -1,7 +1,7 @@
 function dateValue(value, endOfDay = false) {
   if (!value) return null;
 
-  const suffix = endOfDay ? "T23:59:59.999" : "T00:00:00.000";
+  const suffix = endOfDay ? "T23:59:59.999Z" : "T00:00:00.000Z";
   const date = new Date(`${value}${suffix}`);
 
   return Number.isNaN(date.getTime()) ? null : date.getTime();

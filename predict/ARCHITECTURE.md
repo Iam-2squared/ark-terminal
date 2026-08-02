@@ -264,6 +264,27 @@ time, isolates corrupt snapshots, and rejects conflicting identities or attempts
 to rewrite a resolved outcome. All outputs are evaluation-only and keep order
 execution disabled.
 
+## AI Accuracy Monitor
+
+`ai-accuracy-monitor-engine.js` is the single metric boundary for the main-screen
+accuracy display. It reuses `summarizePerformance`, excludes Walk Forward
+training and validation partitions, and gives resolved real prediction records
+priority over the frozen final-test partition. A final-test result is labelled as
+a validation value and is never presented as live accuracy.
+
+The primary number is the directional hit rate among actionable predictions in
+the latest 30 resolved-record window. The monitor displays its Wilson 95%
+confidence interval, evaluation coverage, pending count, all-time result,
+forecast MAE, confidence-calibration gap, and independent 1, 3, 5, 10, and 20
+trading-day results. No resolved actionable sample is rendered as unavailable,
+not as zero percent.
+
+`ai-accuracy-monitor-view-model.js`, `ai-accuracy-monitor-ui.js`, and
+`ai-accuracy-monitor-controller.js` keep formatting, non-destructive DOM
+mounting, storage access, and refresh events separate. Prediction confidence is
+still labelled as data quality rather than hit probability. The monitor is
+evaluation-only and never grants order-execution permission.
+
 ## Remaining limits
 
 - Yahoo Finance is an unofficial upstream dependency and may delay, omit, or

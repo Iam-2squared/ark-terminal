@@ -20,6 +20,7 @@ import {
 } from "./backtest/storage.js";
 import { extractPredictionFeatures } from "./learning/feature-extractor.js";
 import { dispatchAnalysisReady } from "./analysis/analysis-event-bridge.js";
+import { initAIAccuracyMonitor } from "./analysis/ai-accuracy-monitor-controller.js";
 import { initAiAnalysis, resetAiAnalysis } from "./ai-analysis.js";
 import {
   initAiTradeGate,
@@ -53,6 +54,7 @@ const inputs = {};
 
 let analysisController = null;
 let latestState = null;
+let aiAccuracyMonitorController = null;
 
 function collectInputs() {
   [
@@ -123,6 +125,7 @@ function saveCurrentPrediction(state) {
   });
 
   savePrediction(record);
+  aiAccuracyMonitorController?.refresh();
   setBacktestStatus(
     "今回の分析を成績記録へ保存しました。判定期間経過後に実績を更新します。",
   );
@@ -133,6 +136,7 @@ function resolveStoredRecords(symbol, candles) {
 
   if (result.changed) {
     setPredictions(result.records);
+    aiAccuracyMonitorController?.refresh();
   }
 
   return result.records;
@@ -265,6 +269,7 @@ function replacePreviousBacktest(records) {
   );
 
   setPredictions([...existing, ...records]);
+  aiAccuracyMonitorController?.refresh();
 }
 
 function runBacktest() {
@@ -354,6 +359,7 @@ function init() {
   initGlobalEvaluation();
   initIntradayTrading(() => latestState);
   initIntradayPaperBacktest(() => latestState);
+  aiAccuracyMonitorController = initAIAccuracyMonitor();
 
   inputs.runPredictionButton.addEventListener("click", () =>
     runAnalysis({ saveRecord: true }),

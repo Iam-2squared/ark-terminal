@@ -8,7 +8,7 @@ const {
   createBrokerIntelligenceService,
 } =
   require(
-    "../../api/broker-readonly/intelligence-service.js",
+    "../../server/broker-readonly/intelligence-service.js",
   );
 
 test(

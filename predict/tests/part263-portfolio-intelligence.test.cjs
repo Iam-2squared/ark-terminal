@@ -8,7 +8,7 @@ const {
   createPortfolioService,
 } =
   require(
-    "../../api/portfolio/service.js",
+    "../../server/portfolio/service.js",
   );
 
 test(

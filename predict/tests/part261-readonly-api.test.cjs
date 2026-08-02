@@ -8,7 +8,7 @@ const {
   initializeBrokerApi,
 } =
   require(
-    "../../api/broker-readonly/index.js",
+    "../../server/broker-readonly/index.js",
   );
 
 test(

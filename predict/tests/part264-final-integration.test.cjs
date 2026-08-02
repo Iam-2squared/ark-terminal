@@ -8,7 +8,7 @@ const {
   createIntegrationService,
 } =
   require(
-    "../../api/integration/service.js",
+    "../../server/integration/service.js",
   );
 
 test(

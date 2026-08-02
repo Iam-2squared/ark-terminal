@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createScreenerBreadthPayload } from "../../api/providers/screener-breadth-provider.js";
+import { createScreenerBreadthPayload } from "../../server/providers/screener-breadth-provider.js";
 
 function entry(symbol, changePercent, overrides = {}) {
   return {

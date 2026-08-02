@@ -1,11 +1,11 @@
 import {
   fetchFinnhubCompany,
   fetchFinnhubCompanyNews,
-} from "./providers/finnhub-news-provider.js";
+} from "../server/providers/finnhub-news-provider.js";
 import {
   fetchJquantsTdnetDisclosures,
   normalizeJquantsCode,
-} from "./providers/jquants-tdnet-provider.js";
+} from "../server/providers/jquants-tdnet-provider.js";
 
 function normalizeSymbol(value) {
   const symbol = String(value || "")

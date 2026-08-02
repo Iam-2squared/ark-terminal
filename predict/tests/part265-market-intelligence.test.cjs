@@ -8,7 +8,7 @@ const {
   createMarketIntelligenceService,
 } =
   require(
-    "../../api/market-intelligence/service.js",
+    "../../server/market-intelligence/service.js",
   );
 
 test(

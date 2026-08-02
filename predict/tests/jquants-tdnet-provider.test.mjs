@@ -4,7 +4,7 @@ import test from "node:test";
 import {
   fetchJquantsTdnetDisclosures,
   normalizeJquantsCode,
-} from "../../api/providers/jquants-tdnet-provider.js";
+} from "../../server/providers/jquants-tdnet-provider.js";
 
 test("J-Quants provider normalizes Tokyo issue codes", () => {
   assert.equal(normalizeJquantsCode("285A.T"), "285A0");

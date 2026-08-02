@@ -8,28 +8,28 @@ const {
   calculateSectorExposure,
 } =
   require(
-    "../../api/portfolio/sector-exposure.js",
+    "../../server/portfolio/sector-exposure.js",
   );
 
 const {
   calculateDiversificationScore,
 } =
   require(
-    "../../api/portfolio/diversification.js",
+    "../../server/portfolio/diversification.js",
   );
 
 const {
   analyzeDrawdown,
 } =
   require(
-    "../../api/portfolio/drawdown.js",
+    "../../server/portfolio/drawdown.js",
   );
 
 const {
   createPortfolioIntelligenceReport,
 } =
   require(
-    "../../api/portfolio/report.js",
+    "../../server/portfolio/report.js",
   );
 
 const holdings = [

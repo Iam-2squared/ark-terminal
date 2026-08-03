@@ -2,152 +2,294 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
-  SECTOR_ROTATION_STATES,
-  SectorRotationEngine,
-  analyzeSectorRotation,
+  evaluateSector,
+  rankSectorRotation,
 } from "../market-intelligence/sector-rotation-engine.js";
 
-function report(sectors, timestamp = "2026-08-02T00:00:00.000Z") {
-  return { sectors, timestamp };
-}
+test(
+  "Sector evaluator detects a leading sector",
+  () => {
+    const result =
+      evaluateSector(
+        {
+          name:
+            "Technology",
 
-test("Sector rotation identifies leading and lagging sectors", () => {
-  const rotation = analyzeSectorRotation({
-    current: report([
-      { sector: "Technology", score: 75, confidence: 90 },
-      { sector: "Energy", score: 30, confidence: 90 },
-    ]),
-    previous: report(
-      [
-        { sector: "Technology", score: 60, confidence: 80 },
-        { sector: "Energy", score: 50, confidence: 80 },
-      ],
-      "2026-08-01T00:00:00.000Z",
-    ),
-  });
+          return5d:
+            4,
 
-  assert.equal(rotation.leaders[0].sector, "Technology");
-  assert.equal(rotation.leaders[0].rotationState, SECTOR_ROTATION_STATES.LEADING);
-  assert.equal(rotation.weakening[0].sector, "Energy");
-  assert.equal(rotation.weakening[0].rotationState, SECTOR_ROTATION_STATES.LAGGING);
-  assert.equal(rotation.matchedCount, 2);
-  assert.equal(rotation.confidence, 80);
-});
+          return20d:
+            9,
 
-test("Mid-ranked sectors can improve or weaken through score momentum", () => {
-  const rotation = analyzeSectorRotation({
-    current: report([
-      { sector: "Finance", score: 55 },
-      { sector: "Materials", score: 45 },
-    ]),
-    previous: report([
-      { sector: "Finance", score: 45 },
-      { sector: "Materials", score: 60 },
-    ]),
-  });
+          return60d:
+            18,
 
-  assert.equal(
-    rotation.sectors.find((sector) => sector.sector === "Finance").rotationState,
-    SECTOR_ROTATION_STATES.IMPROVING,
-  );
-  assert.equal(
-    rotation.sectors.find((sector) => sector.sector === "Materials").rotationState,
-    SECTOR_ROTATION_STATES.WEAKENING,
-  );
-});
+          percentAbove20:
+            82,
 
-test("New sectors remain visible but cannot fabricate rotation history", () => {
-  const rotation = analyzeSectorRotation({
-    current: report([
-      { sector: "Technology", score: 70 },
-      { sector: "Healthcare", score: 65 },
-    ]),
-    previous: report([{ sector: "Technology", score: 60 }]),
-  });
-  const healthcare = rotation.sectors.find(
-    (sector) => sector.sector === "Healthcare",
-  );
+          percentAbove50:
+            76,
 
-  assert.equal(healthcare.rotationState, SECTOR_ROTATION_STATES.NEW);
-  assert.equal(healthcare.rotationScore, null);
-  assert.equal(rotation.matchedCount, 1);
-  assert.equal(rotation.coverage, 50);
-  assert.equal(rotation.confidence, 50);
-});
+          advanceDeclineRatio:
+            3.2,
 
-test("No previous report produces an explicit unavailable rotation score", () => {
-  const rotation = analyzeSectorRotation({
-    current: report([{ sector: "Technology", score: 70 }]),
-  });
+          relativeVolume:
+            1.6,
 
-  assert.equal(rotation.score, null);
-  assert.equal(rotation.direction, "UNKNOWN");
-  assert.equal(rotation.coverage, 0);
-  assert.equal(rotation.rotationStrength, null);
-});
+          upVolumeRatio:
+            0.78,
 
-test("Rotation ranks are recomputed from scores rather than trusted input", () => {
-  const rotation = analyzeSectorRotation({
-    current: report([
-      { sector: "A", score: 80, rank: 99 },
-      { sector: "B", score: 40, rank: 1 },
-    ]),
-    previous: report([
-      { sector: "A", score: 30, rank: 1 },
-      { sector: "B", score: 70, rank: 99 },
-    ]),
-  });
+          volatility20d:
+            4,
 
-  assert.equal(rotation.sectors.find((sector) => sector.sector === "A").rank, 1);
-  assert.equal(
-    rotation.sectors.find((sector) => sector.sector === "A").previousRank,
-    2,
-  );
-});
+          maxDrawdown60d:
+            -5,
+        },
+        {
+          return20d:
+            2,
+        },
+      );
 
-test("Rotation rejects a previous snapshot from the future", () => {
-  assert.throws(
-    () =>
-      analyzeSectorRotation({
-        current: report(
-          [{ sector: "A", score: 70 }],
-          "2026-08-01T00:00:00.000Z",
-        ),
-        previous: report(
-          [{ sector: "A", score: 60 }],
-          "2026-08-02T00:00:00.000Z",
-        ),
-      }),
-    /cannot be newer/,
-  );
-});
+    assert.equal(
+      result.sector,
+      "Technology",
+    );
 
-test("Duplicate sectors and zero-confidence rotation are excluded", () => {
-  const rotation = analyzeSectorRotation({
-    current: report([
-      { sector: "A", score: 60 },
-      { sector: "A", score: 70 },
-      { sector: "B", score: 30, confidence: 0 },
-    ]),
-    previous: report([
-      { sector: "A", score: 50 },
-      { sector: "B", score: 40 },
-    ]),
-  });
+    assert.equal(
+      result.signal,
+      "leading",
+    );
 
-  assert.equal(rotation.requestedCount, 2);
-  assert.equal(rotation.matchedCount, 1);
-  assert.equal(rotation.sectors.find((sector) => sector.sector === "A").score, 70);
-  assert.equal(rotation.rotationStrength, 100);
-  assert.equal(rotation.coverage, 50);
-});
+    assert.ok(
+      result.score >= 65,
+    );
 
-test("SectorRotationEngine exposes stateless comparison", () => {
-  const input = {
-    current: report([{ sector: "A", score: 70 }]),
-    previous: report([{ sector: "A", score: 60 }]),
-  };
-  const engine = new SectorRotationEngine();
+    assert.equal(
+      result.dataQuality.availableComponents,
+      5,
+    );
+  },
+);
 
-  assert.deepEqual(engine.analyze(input), analyzeSectorRotation(input));
-});
+test(
+  "Sector evaluator detects a lagging sector",
+  () => {
+    const result =
+      evaluateSector(
+        {
+          name:
+            "Utilities",
+
+          return5d:
+            -5,
+
+          return20d:
+            -10,
+
+          return60d:
+            -18,
+
+          percentAbove20:
+            18,
+
+          percentAbove50:
+            22,
+
+          advanceDeclineRatio:
+            0.25,
+
+          relativeVolume:
+            0.6,
+
+          upVolumeRatio:
+            0.2,
+
+          volatility20d:
+            18,
+
+          maxDrawdown60d:
+            -28,
+        },
+        {
+          return20d:
+            3,
+        },
+      );
+
+    assert.equal(
+      result.signal,
+      "lagging",
+    );
+
+    assert.ok(
+      result.score <= 35,
+    );
+  },
+);
+
+test(
+  "Sector rotation ranks strongest sector first",
+  () => {
+    const result =
+      rankSectorRotation({
+        benchmark: {
+          return20d:
+            2,
+        },
+
+        sectors: [
+          {
+            name:
+              "Technology",
+
+            return5d:
+              5,
+
+            return20d:
+              10,
+
+            return60d:
+              20,
+
+            percentAbove20:
+              85,
+
+            percentAbove50:
+              80,
+
+            advanceDeclineRatio:
+              4,
+
+            relativeVolume:
+              1.8,
+
+            upVolumeRatio:
+              0.82,
+
+            volatility20d:
+              4,
+
+            maxDrawdown60d:
+              -4,
+          },
+          {
+            name:
+              "Financials",
+
+            return5d:
+              1,
+
+            return20d:
+              3,
+
+            return60d:
+              5,
+
+            percentAbove20:
+              58,
+
+            percentAbove50:
+              55,
+
+            advanceDeclineRatio:
+              1.2,
+
+            relativeVolume:
+              1,
+
+            upVolumeRatio:
+              0.52,
+
+            volatility20d:
+              8,
+
+            maxDrawdown60d:
+              -10,
+          },
+          {
+            name:
+              "Utilities",
+
+            return5d:
+              -4,
+
+            return20d:
+              -8,
+
+            return60d:
+              -14,
+
+            percentAbove20:
+              20,
+
+            percentAbove50:
+              25,
+
+            advanceDeclineRatio:
+              0.3,
+
+            relativeVolume:
+              0.7,
+
+            upVolumeRatio:
+              0.25,
+
+            volatility20d:
+              16,
+
+            maxDrawdown60d:
+              -24,
+          },
+        ],
+      });
+
+    assert.equal(
+      result.version,
+      "sector-rotation-v1",
+    );
+
+    assert.equal(
+      result.sectors[0].sector,
+      "Technology",
+    );
+
+    assert.equal(
+      result.sectors[0].rank,
+      1,
+    );
+
+    assert.equal(
+      result.summary.strongest.sector,
+      "Technology",
+    );
+
+    assert.equal(
+      result.summary.weakest.sector,
+      "Utilities",
+    );
+  },
+);
+
+test(
+  "Sector rotation handles empty input",
+  () => {
+    const result =
+      rankSectorRotation();
+
+    assert.equal(
+      result.summary.sectorCount,
+      0,
+    );
+
+    assert.equal(
+      result.summary.strongest,
+      null,
+    );
+
+    assert.equal(
+      result.dispersion,
+      null,
+    );
+  },
+);

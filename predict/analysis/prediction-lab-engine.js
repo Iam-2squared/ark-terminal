@@ -1,4 +1,8 @@
-﻿import {
+import {
+createPredictionMetadata
+} from "./prediction-metadata.js";
+
+import {
 buildAnalysisCore
 } from "./analysis-core.js";
 
@@ -55,6 +59,60 @@ performance.report,
 
 sampleSize:
 performance.report.total
+
+});
+
+const predictionMetadata=
+
+createPredictionMetadata({
+
+symbol:
+state.symbol ??
+state.ticker ??
+state.code,
+
+predictedAt:
+new Date().toISOString(),
+
+timeframe:
+state.period ??
+state.prediction?.period ??
+5,
+
+direction:
+analysis.dashboard.action,
+
+confidence:
+confidence.confidence,
+
+score:
+analysis.dashboard.score,
+
+entryPrice:
+state.price ??
+state.currentPrice ??
+state.quote?.price,
+
+targetPrice:
+state.targetPrice ??
+state.prediction?.targetPrice,
+
+stopPrice:
+state.stopPrice ??
+state.prediction?.stopPrice,
+
+marketRegime:
+state.regime?.regime ??
+state.market?.regime,
+
+modelVersion:
+"prediction-lab-v2",
+
+dataQualityScore:
+state.analysis?.dataQualityScore,
+
+source:
+"prediction-lab-engine"
 
 });
 

@@ -2,18 +2,19 @@
 
 ## Scope
 
-This audit records the current integration state of Ark Terminal before additional Phase9 implementation.
+This audit records Ark Terminal's integration state before Phase9 runtime-mode implementation.
 
-The goal is to connect and refactor existing engines rather than create duplicate engines.
+The primary rule is to connect and refactor existing engines rather than introduce duplicate engines.
 
 ## Status legend
 
-- **COMPLETE**: implementation exists and has focused tests
+- **COMPLETE**: implementation exists and focused tests are confirmed
 - **CONNECTED**: data flows into the next runtime component
+- **IMPLEMENTED_NOT_MERGED**: implementation and CI exist on an open PR, but the change is not yet in `main`
 - **PARTIAL**: implementation exists, but runtime, UI, persistence, or downstream integration is incomplete
 - **DUMMY**: placeholder or simulated-only implementation
-- **NOT CONNECTED**: component exists but is not wired into the production application flow
-- **NOT IMPLEMENTED**: no confirmed implementation found
+- **NOT_CONNECTED**: component exists but is not wired into the application flow
+- **NOT_IMPLEMENTED**: no confirmed implementation found
 
 ## Current architecture
 
@@ -25,29 +26,68 @@ flowchart TD
     D --> E[Risk Management Engine v3]
     E --> F[Final Trading Orchestrator v3]
     F --> G[Execution Simulator v3]
-    G --> H[Paper Trading]
+    G --> H[Paper Trading Runtime]
     H --> I[Portfolio Engine v3]
     I --> J[Performance Analytics v3]
-    J -. missing runtime write .-> K[Trade Memory]
-    K -. partial metrics path .-> L[Accuracy Monitor]
-    L -. separate learning runtime .-> M[Self Learning]
-    M --> N[Candidate Model]
-    N --> O[Walk Forward]
-    O --> P[Human Approval]
-    P --> Q[Production Model]
+    J --> K[Execution Trade Memory Adapter]
+    K --> L[Trade Memory Persistence]
+    L --> M[Accuracy Audit v3]
+    M -. dataset handoff incomplete .-> N[Self Learning]
+    N --> O[Candidate Model]
+    O --> P[Walk Forward]
+    P --> Q[Human Approval]
+    Q --> R[Production Model]
 
     classDef complete fill:#1f7a4d,color:#fff,stroke:#145236;
+    classDef pendingMerge fill:#2b6cb0,color:#fff,stroke:#1a436b;
     classDef partial fill:#b7791f,color:#fff,stroke:#7b4d11;
     classDef disconnected fill:#9b2c2c,color:#fff,stroke:#641b1b;
-    classDef unknown fill:#4a5568,color:#fff,stroke:#2d3748;
 
     class D,E,F,G,I,J complete;
-    class A,B,C,H,K,L,M,N,O,P,Q partial;
+    class K,L,M pendingMerge;
+    class A,B,C,H,N,O,P,Q,R partial;
+```
+
+## Executive conclusion
+
+The main Phase9 problem is no longer a missing trading engine.
+
+The existing trading core already covers:
+
+```text
+Strategy Engine
+→ Risk Management
+→ Order Proposal
+→ Execution Simulator
+→ Portfolio Update
+→ Performance Analytics
+```
+
+Phase8 PR #25 adds and tests:
+
+```text
+Execution Result
+→ Execution-derived Trade Memory
+→ Persistence
+→ Accuracy Audit v3 input
+```
+
+That PR passed the `Predict Tests` GitHub Actions workflow, but it is still open and not merged into `main`. Therefore the architecture is implemented and tested on the Phase8 branch, but not yet part of the production baseline.
+
+The remaining Phase9 bottleneck is application-level runtime control:
+
+```text
+AI / Strategy decision
+→ Paper mode gate
+→ Safety checks
+→ Submit or simulate only
+→ Paper execution
+→ UI state and audit log
 ```
 
 ## Confirmed findings
 
-### 1. Trading core exists
+### 1. Trading core exists and must be reused
 
 `predict/paper/final-trading-orchestrator-v3.js` already instantiates and uses:
 
@@ -58,7 +98,7 @@ flowchart TD
 - `ExecutionSimulatorV3`
 - `TransactionCostEngineV3`
 
-The orchestrator already supports:
+It already supports:
 
 - strategy evaluation
 - risk evaluation
@@ -71,26 +111,26 @@ The orchestrator already supports:
 - kill switch
 - event logging
 
-Therefore, Phase9 should not introduce another trading orchestrator.
+Phase9 must not introduce a second orchestrator.
 
-### 2. Core trading flow is connected inside the engine
+### 2. Phase8 execution-memory integration is implemented and tested
 
-The following internal flow is confirmed:
+PR #25 adds:
 
-```text
-Strategy Engine
-→ Risk Management
-→ Order Proposal
-→ Execution Simulator
-→ Portfolio Update
-→ Performance Analytics
-```
+- `predict/trading/execution-trade-memory-v1.js`
+- `predict/paper/trade-memory-connected-orchestrator-v1.js`
+- `predict/analysis/trade-memory-accuracy-v1.js`
+- execution-memory unit tests
+- persistence-to-accuracy integration tests
+- a dedicated `Predict Tests` workflow
 
-This is currently an in-memory engine flow. The remaining issue is application-level orchestration and persistence.
+The workflow failed once because the YAML referenced a nonexistent `predict/package-lock.json` cache path. The workflow was corrected, and run #2 completed successfully.
 
-### 3. Accuracy Audit v3 exists
+Current status: **IMPLEMENTED_NOT_MERGED**.
 
-`predict/analysis/accuracy-audit-v3.js` already separates:
+### 3. Accuracy Audit v3 separates operational and trading metrics
+
+The existing audit separates:
 
 - prediction accuracy
 - trade win rate
@@ -100,89 +140,94 @@ This is currently an in-memory engine flow. The remaining issue is application-l
 - pending outcomes
 - reverse-strategy diagnostics
 
-It also emits warnings for insufficient trade samples and negative expectancy risk.
+Resolved BUY/SELL outcomes are used for trade performance. NO_TRADE remains visible but is excluded from the trade-win-rate denominator.
 
-### 4. Trade Memory exists, but serves a different input path
+### 4. Runtime owner is still incomplete at application level
 
-The current Trade Memory implementation stores AI trade-gate review history in browser local storage.
+The engine can analyze, submit, process simulated market data, and update the in-memory portfolio. However, the production UI/runtime still needs one shared owner that determines whether a decision is:
 
-Confirmed characteristics:
+- blocked
+- dry-run only
+- awaiting manual approval
+- automatically submitted to paper execution
 
-- records are generated from AI gate review results
-- duplicate AI-review records are blocked
-- records start as pending
-- current UI states that realized PnL evaluation is a later step
+This owner should wrap the existing connected orchestrator after PR #25 is merged.
 
-This is not yet the same as a complete execution-derived trade ledger.
+### 5. Learning connection remains partial
 
-### 5. Main integration gap
+The repository contains substantial learning infrastructure, including candidate evaluation, walk-forward validation, promotion gates, rollback, drift detection, and learning reports.
 
-The core missing runtime path is:
+What is not yet confirmed end-to-end is the production runtime handoff:
 
 ```text
-Final Trading Orchestrator execution
-→ persistent Paper Trade record
-→ Trade Memory execution result
-→ Accuracy Audit input
-→ Self Learning dataset
+Execution-derived closed trades
+→ approved learning dataset
+→ Candidate
+→ Walk Forward comparison
+→ Human approval
+→ Production
 ```
 
-The trading core can simulate orders and update an in-memory portfolio, but no confirmed production application path currently persists those executions and automatically feeds the downstream accuracy and learning layers.
+Automatic production promotion remains prohibited.
 
 ## Component status
 
-| Component | Implementation | Internal tests | Runtime connection | Current status |
+| Component | Implementation | Tests | Runtime connection | Status |
 |---|---:|---:|---:|---|
 | AI Analysis | Confirmed | Partial/varied | Partial | PARTIAL |
-| Technical Engine | Confirmed | Confirmed in existing analysis suite | Partial | PARTIAL |
+| Technical Engine | Confirmed | Confirmed in analysis suite | Partial | PARTIAL |
 | Market Intelligence v3 | Confirmed | Confirmed | Partial | PARTIAL |
 | Strategy Engine v3 | Confirmed | Confirmed | Connected to orchestrator | COMPLETE |
 | Risk Management v3 | Confirmed | Confirmed | Connected to orchestrator | COMPLETE |
 | Final Trading Orchestrator v3 | Confirmed | Confirmed | Connected internally | COMPLETE |
 | Execution Simulator v3 | Confirmed | Confirmed | Connected to orchestrator | COMPLETE |
-| Paper Trading UI/runtime | Exists | Not fully confirmed | Not confirmed end-to-end | PARTIAL |
+| Paper Trading runtime mode owner | Not confirmed | Not confirmed | Not connected | NOT_IMPLEMENTED |
 | Portfolio Engine v3 | Confirmed | Confirmed | Connected internally | COMPLETE |
 | Performance Analytics v3 | Confirmed | Confirmed | Connected internally | COMPLETE |
-| Trade Memory | Confirmed | Confirmed | AI-review path only | PARTIAL |
-| Accuracy Monitor | Confirmed | Accuracy audit tests confirmed | Not confirmed from executions | PARTIAL |
-| Self Learning | Confirmed | Multiple learning tests exist | Not confirmed from execution ledger | PARTIAL |
+| Execution-derived Trade Memory | PR #25 | CI success | Branch only | IMPLEMENTED_NOT_MERGED |
+| Trade Memory persistence | PR #25 | CI success | Branch only | IMPLEMENTED_NOT_MERGED |
+| Accuracy auto-refresh adapter | PR #25 | CI success | Branch only | IMPLEMENTED_NOT_MERGED |
+| Accuracy Monitor UI | Confirmed | Audit tests confirmed | Partial | PARTIAL |
+| Self Learning | Confirmed | Multiple learning tests | Execution-ledger handoff incomplete | PARTIAL |
 | Candidate/Promotion | Confirmed | Confirmed | Separate learning runtime | PARTIAL |
 
 ## Accuracy audit observations
 
-No root cause is asserted yet.
+No single root cause is asserted.
 
 ### Evaluation count
 
-The audit warns below 30 trade records. The dashboard's larger total evaluation count may include NO_TRADE and non-executed predictions, so total evaluations and resolved trades must be displayed separately.
+Total evaluations must remain separate from resolved trades. A dashboard count can be large while the actual resolved trade sample remains too small for reliable PF or win-rate conclusions.
 
 ### Win-rate calculation
 
-Trade win rate should use only resolved BUY/SELL trades. NO_TRADE, HOLD, BLOCK, PENDING, and CANCELLED should not be included in the trade-win-rate denominator.
+Trade win rate should use only resolved BUY/SELL outcomes. NO_TRADE, HOLD, BLOCK, PENDING, and CANCELLED must not enter the denominator.
 
 ### NO_TRADE
 
-NO_TRADE should remain visible as an operational metric, but it should not inflate or reduce trade win rate.
+NO_TRADE should remain visible as an operational metric because excessive NO_TRADE can indicate thresholds, data quality, market regime, or strategy selectivity issues. It must not be interpreted as a loss.
 
 ### Strategy Engine
 
-The Strategy Engine requires a separate distribution audit for:
+Phase9 should add distribution reporting for:
 
 - BUY / SELL / HOLD / NO_TRADE / BLOCK frequency
 - blocker frequency
 - confidence distribution
-- score thresholds
+- AI score distribution
+- threshold rejection reasons
 - regime-specific outcomes
 
-## Phase9 implementation priority
+## Phase9 implementation order
 
-### Part 1 — Architecture audit
+### Part 1 — Architecture Audit
 
-- Preserve this document as the baseline
-- Verify production entry points and UI imports
-- Identify the actual Paper Trading runtime owner
+- Update this document after Phase8 CI completion
+- Distinguish branch-complete work from `main`
+- Confirm the runtime bottleneck
+- Freeze the rule that existing engines must be wrapped, not duplicated
 
-### Part 2 — Paper Trading modes
+### Part 2 — Paper Trading Modes
 
 Add one shared runtime mode:
 
@@ -191,11 +236,18 @@ Add one shared runtime mode:
 - `MANUAL_APPROVAL`
 - `AUTO_PAPER`
 
-Default: `DRY_RUN`
+Default: `DRY_RUN`.
 
-The mode must wrap the existing `FinalTradingOrchestratorV3`; it must not duplicate it.
+Expected behavior:
 
-### Part 3 — Safety and audit layer
+| Mode | Analyze | Create proposal | Submit paper order | Require approval |
+|---|---:|---:|---:|---:|
+| OFF | No | No | No | No |
+| DRY_RUN | Yes | Yes | No | No |
+| MANUAL_APPROVAL | Yes | Yes | Only after approval | Yes |
+| AUTO_PAPER | Yes | Yes | Yes | No |
+
+### Part 3 — Safety Layer
 
 Connect or verify:
 
@@ -210,57 +262,71 @@ Connect or verify:
 - anomaly stop
 - persistent order audit log
 
-### Part 4 — Execution-derived Trade Memory
+### Part 4 — Execution Integration
 
-Extend the current Trade Memory schema to support actual simulated executions:
-
-- symbol
-- action
-- quantity
-- entry
-- exit
-- pnl
-- holding period
-- AI score
-- confidence
-- risk
-- strategy reasons
-- technical snapshot
-- market intelligence snapshot
-- model version
-- order id
-- cycle id
-- timestamps
-
-Do not delete the existing AI-review memory path. Normalize both paths behind one shared record model where practical.
-
-### Part 5 — Accuracy and learning connection
-
-Execution-derived closed trades should feed:
+Connect the mode owner to the existing orchestrator and the Phase8 adapter:
 
 ```text
-Trade Memory
+Mode Owner
+→ FinalTradingOrchestratorV3
+→ ExecutionSimulatorV3
+→ PortfolioEngineV3
+→ TradeMemoryConnectedOrchestratorV1
 → Accuracy Audit
-→ Candidate Dataset
+```
+
+### Part 5 — Accuracy Dashboard v4
+
+Display:
+
+- Prediction Accuracy
+- Trade Win Rate
+- BUY Win Rate
+- SELL Win Rate
+- Pending
+- NO_TRADE
+- PF
+- Sharpe
+- DD
+- Reverse Strategy
+- resolved-trade sample warning
+
+### Part 6 — Learning Pipeline
+
+Connect execution-derived closed trades to:
+
+```text
+Candidate Dataset
 → Walk Forward
-→ Human Approval
-→ Production Model
+→ Candidate comparison
+→ Human approval
+→ Production
 ```
 
 No automatic Production update is allowed.
 
-## Definition of Done for the next implementation PR
+### Part 7 — System Integration Test
 
-- Existing engines are reused
-- No second orchestrator is introduced
-- Runtime mode defaults to `DRY_RUN`
-- No broker or real-account code is called
-- Duplicate orders are blocked
-- Simulated fills update Portfolio
-- Closed simulated trades persist to Trade Memory
-- Accuracy Audit consumes execution-derived records
-- Unit tests pass
-- Integration tests pass
-- Regression tests pass
-- CI result is reported
-- PR summary lists changed files and known limitations
+Required coverage:
+
+- OFF blocks all actions
+- DRY_RUN creates no order
+- MANUAL_APPROVAL requires approval
+- AUTO_PAPER submits only paper orders
+- safety gates block invalid orders
+- simulated fills update Portfolio
+- fills persist to Trade Memory
+- Accuracy refreshes from persisted records
+- no broker or real-account path is reachable
+
+## Part 1 Definition of Done
+
+- Architecture diagram updated
+- Components classified by implementation and connection status
+- Phase8 branch-complete work distinguished from `main`
+- Runtime bottleneck identified
+- No new engine introduced
+- Phase9 Parts 2-7 ordered
+- Known limitations documented
+- PR summary updated
+- Documentation-only change reviewed

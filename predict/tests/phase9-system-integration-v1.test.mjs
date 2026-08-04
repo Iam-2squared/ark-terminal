@@ -25,7 +25,7 @@ class FakeConnectedOrchestrator {
 
   analyze(input = {}) {
     return {
-      id: `cycle-${input.symbol}`,
+      id: `cycle-${input.symbol}-${input.price}`,
       symbol: input.symbol,
       state: "ORDER_READY",
       decision: "BUY",
@@ -50,7 +50,7 @@ class FakeConnectedOrchestrator {
 
   processMarket(snapshot) {
     const result = [{
-      execution: { orderId: "order-cycle-7203", symbol: snapshot.symbol, side: "BUY" },
+      execution: { orderId: "paper-order", symbol: snapshot.symbol, side: "BUY" },
       portfolio: { equity: 1001000 },
       tradeMemory: { saved: true, source: "EXECUTION" },
     }];
@@ -94,9 +94,14 @@ test("Phase9 runtime modes preserve paper-only boundaries end to end", () => {
   assert.equal(orchestrator.submitted.length, 1);
 
   owner.setMode(PAPER_TRADING_MODES.AUTO_PAPER);
-  const auto = owner.analyze({ symbol: "7203", price: 1000, requestedQuantity: 10 });
+  const auto = owner.analyze({ symbol: "7203", price: 1010, requestedQuantity: 10 });
   assert.equal(auto.status, "PAPER_ORDER_SUBMITTED");
-  const market = owner.processMarket({ symbol: "7203", bid: 999, ask: 1001, last: 1000 });
+  assert.equal(orchestrator.submitted.length, 2);
+
+  const duplicate = owner.analyze({ symbol: "7203", price: 1010, requestedQuantity: 10 });
+  assert.equal(duplicate.status, "BLOCKED");
+
+  const market = owner.processMarket({ symbol: "7203", bid: 1009, ask: 1011, last: 1010 });
   assert.equal(market.status, "MARKET_PROCESSED");
   assert.equal(market.processed[0].tradeMemory.saved, true);
 

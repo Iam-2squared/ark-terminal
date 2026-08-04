@@ -1,872 +1,363 @@
 import {
-  combineRegimeAdaptivePredictions,
-} from "../analysis/regime-adaptive-ensemble-v2.js";
+  runLearningCycle,
+} from "./learning-orchestrator-v2.js";
 
 import {
-  learnRegimePerformance,
-  createEnsembleLearningPatch,
-} from "./regime-performance-learning-v2.js";
+  evaluateLearningCandidate,
+} from "./learning-candidate-evaluator-v2.js";
 
 import {
-  updateOnlineModelWeights,
-  createWeightPatch,
-} from "./online-weight-updater-v2.js";
+  createLearningPromotionRequest,
+} from "./learning-promotion-controller-v2.js";
 
 import {
-  detectModelDriftBatch,
-} from "./concept-drift-detector-v2.js";
+  LearningAuditV2,
+} from "./learning-audit-v2.js";
 
 import {
-  evaluateModelPromotion,
-} from "./model-promotion-gate-v2.js";
-
-import {
-  evaluateChampionChallenger,
-} from "./champion-challenger-v2.js";
-
-import {
-  evaluateModelRollback,
-} from "./model-rollback-manager-v2.js";
+  buildLearningReport,
+} from "./learning-report-v2.js";
 
 export const LEARNING_RUNTIME_INTEGRATION_V2_VERSION =
   "learning-runtime-integration-v2";
 
-function finiteOrNull(value) {
-  if (
-    value === null ||
-    value === undefined ||
-    value === ""
-  ) {
-    return null;
-  }
-
-  const number =
-    Number(value);
-
-  return Number.isFinite(number)
-    ? number
-    : null;
+function clone(value) {
+  return value === undefined
+    ? undefined
+    : structuredClone(value);
 }
 
-function round(
+function normalizeTimestamp(
   value,
-  digits = 4,
 ) {
-  if (!Number.isFinite(value)) {
-    return value;
+  const milliseconds =
+    typeof value === "number"
+      ? value
+      : Date.parse(
+          value ??
+          new Date().toISOString(),
+        );
+
+  if (!Number.isFinite(milliseconds)) {
+    throw new TypeError(
+      "Learning runtime timestamp is invalid.",
+    );
   }
 
-  const factor =
-    10 ** digits;
-
-  return (
-    Math.round(
-      value * factor,
-    ) / factor
-  );
+  return new Date(
+    milliseconds,
+  ).toISOString();
 }
 
-function safeArray(value) {
-  return Array.isArray(value)
-    ? value
-    : [];
-}
-
-function modelIdOf(model) {
-  return String(
-    model?.id ??
-    model?.modelId ??
-    model?.name ??
-    "",
-  ).trim();
-}
-
-function mergeModelPatches({
-  models,
-  learningPatch,
-  weightPatch,
+function createAudit({
+  audit,
+  eventType,
+  payload,
+  timestamp,
 }) {
-  const learningById =
-    new Map(
-      safeArray(
-        learningPatch?.models,
-      ).map(
-        (
-          model,
-        ) => [
-          modelIdOf(model),
-          model,
-        ],
-      ),
+  audit.append({
+    eventType,
+    actor:
+      "learning-runtime",
+
+    payload,
+
+    timestamp,
+  });
+}
+
+export function runLearningRuntime({
+  predictions = [],
+  outcomes = [],
+  currentState = null,
+  modelId = "default-model",
+  modelVersion = "unknown",
+  now = new Date().toISOString(),
+  dryRun = false,
+  requireHumanApproval = true,
+  qualityConfig = {},
+  feedbackConfig = {},
+  learningConfig = {},
+  evaluationConfig = {},
+  requestedBy = "learning-runtime",
+} = {}) {
+  const timestamp =
+    normalizeTimestamp(
+      now,
     );
 
-  const weightById =
-    new Map(
-      safeArray(
-        weightPatch?.models,
-      ).map(
-        (
-          model,
-        ) => [
-          modelIdOf(model),
-          model,
-        ],
-      ),
-    );
+  const audit =
+    new LearningAuditV2();
 
-  return safeArray(models).map(
-    (
-      model,
-    ) => {
-      const id =
-        modelIdOf(model);
+  createAudit({
+    audit,
 
-      const learned =
-        learningById.get(id) ??
-        {};
+    eventType:
+      "LEARNING_RUNTIME_STARTED",
 
-      const weighted =
-        weightById.get(id) ??
-        {};
-
-      return {
-        ...model,
-
-        id,
-
-        historicalAccuracy:
-          finiteOrNull(
-            learned.historicalAccuracy,
-          ) ??
-          finiteOrNull(
-            model.historicalAccuracy,
-          ) ??
-          50,
-
-        regimePerformance: {
-          ...(
-            model.regimePerformance ??
-            {}
-          ),
-
-          ...(
-            learned.regimePerformance ??
-            {}
-          ),
-        },
-
-        regimeMultipliers: {
-          ...(
-            model.regimeMultipliers ??
-            {}
-          ),
-
-          ...(
-            learned.regimeMultipliers ??
-            {}
-          ),
-
-          ...(
-            weighted.regimeWeights ??
-            {}
-          ),
-        },
-
-        weight:
-          finiteOrNull(
-            weighted.weight,
-          ) ??
-          finiteOrNull(
-            model.weight,
-          ) ??
-          1,
-
-        enabled:
-          weighted.enabled ??
-          model.enabled ??
-          true,
-
-        learningRecommendation:
-          learned.recommendation ??
-          null,
-
-        performanceScore:
-          finiteOrNull(
-            learned.performanceScore,
-          ),
-      };
-    },
-  );
-}
-
-function applyLearningToEnsembleModels(
-  models,
-) {
-  return safeArray(models).map(
-    (
-      model,
-    ) => {
-      const regimePerformance = {
-        ...(
-          model.regimePerformance ??
-          {}
-        ),
-      };
-
-      for (
-        const [
-          regime,
-          multiplier,
-        ]
-        of Object.entries(
-          model.regimeMultipliers ??
-          {},
-        )
-      ) {
-        if (
-          finiteOrNull(
-            regimePerformance[
-              regime
-            ],
-          ) === null
-        ) {
-          regimePerformance[
-            regime
-          ] =
-            (
-              finiteOrNull(
-                multiplier,
-              ) ??
-              1
-            ) *
-            50;
-        }
-      }
-
-      return {
-        ...model,
-
-        regimePerformance,
-      };
-    },
-  );
-}
-
-function findDriftForModel(
-  driftBatch,
-  modelId,
-) {
-  return safeArray(
-    driftBatch?.results,
-  ).find(
-    (
-      result,
-    ) =>
-      result.modelId ===
+    payload: {
       modelId,
-  ) ?? {
-    ready:
-      false,
-
-    driftDetected:
-      false,
-
-    driftScore:
-      0,
-
-    driftLevel:
-      "UNKNOWN",
-
-    recommendation: {
-      allowPromotion:
-        false,
-
-      action:
-        "COLLECT_MORE_DATA",
+      modelVersion,
+      predictionCount:
+        predictions.length,
+      outcomeCount:
+        outcomes.length,
+      dryRun,
     },
-  };
-}
 
-function findLearningForModel(
-  learning,
-  modelId,
-) {
-  return safeArray(
-    learning?.models,
-  ).find(
-    (
-      model,
-    ) =>
-      model.modelId ===
+    timestamp,
+  });
+
+  const cycle =
+    runLearningCycle({
+      predictions,
+      outcomes,
+      state:
+        currentState,
       modelId,
-  ) ?? {
-    ready:
-      false,
+      modelVersion,
+      now:
+        timestamp,
+      dryRun,
+      qualityConfig,
+      feedbackConfig,
+      learningConfig,
+    });
 
-    recommendation: {
-      action:
-        "HOLD",
-    },
+  createAudit({
+    audit,
 
-    overall: {
-      sampleCount:
-        0,
+    eventType:
+      "LEARNING_CYCLE_COMPLETED",
 
-      performanceScore:
+    payload: {
+      cycleId:
+        cycle.cycleId,
+      status:
+        cycle.status,
+      applied:
+        cycle.applied,
+      revision:
+        cycle.state?.revision ??
         null,
     },
-  };
-}
 
-function buildPromotionMetrics({
-  learningModel,
-  validationMetrics,
-}) {
-  const overall =
-    learningModel?.overall ??
-    {};
+    timestamp,
+  });
 
-  return {
-    accuracy:
-      finiteOrNull(
-        validationMetrics?.accuracy ??
-        overall.weightedAccuracy ??
-        overall.rawAccuracy,
-      ),
+  let evaluation = null;
+  let promotion = null;
 
-    confidenceCalibrationError:
-      finiteOrNull(
-        validationMetrics
-          ?.confidenceCalibrationError ??
-        overall.calibrationError,
-      ),
+  const candidateState =
+    cycle.candidateState ??
+    (
+      cycle.applied
+        ? cycle.state
+        : null
+    );
 
-    profitFactor:
-      finiteOrNull(
-        validationMetrics
-          ?.profitFactor ??
-        overall.profitFactor,
-      ),
-
-    maximumDrawdown:
-      finiteOrNull(
-        validationMetrics
-          ?.maximumDrawdown ??
-        overall.maximumDrawdown,
-      ),
-
-    averageReturn:
-      finiteOrNull(
-        validationMetrics
-          ?.averageReturn ??
-        overall.averageReturn,
-      ),
-
-    sampleCount:
-      finiteOrNull(
-        validationMetrics
-          ?.sampleCount ??
-        overall.sampleCount,
-      ) ?? 0,
-
-    stabilityScore:
-      finiteOrNull(
-        validationMetrics
-          ?.stabilityScore ??
-        overall.performanceScore,
-      ),
-
-    monteCarloSuccessRate:
-      finiteOrNull(
-        validationMetrics
-          ?.monteCarloSuccessRate,
-      ),
-  };
-}
-
-function buildRuntimeDecision({
-  ensemble,
-  promotion,
-  challenger,
-  rollback,
-  driftBatch,
-}) {
-  const blockers = [];
+  const baselineState =
+    cycle.previousState ??
+    currentState ??
+    cycle.state;
 
   if (
-    ensemble.ready !== true
+    candidateState &&
+    baselineState &&
+    candidateState.revision >
+      baselineState.revision
   ) {
-    blockers.push(
-      "ENSEMBLE_NOT_READY",
-    );
-  }
+    evaluation =
+      evaluateLearningCandidate({
+        currentState:
+          baselineState,
 
-  if (
-    ensemble.approved !== true
-  ) {
-    blockers.push(
-      "ENSEMBLE_NOT_APPROVED",
-    );
-  }
+        candidateState,
 
-  if (
-    driftBatch.driftedModelCount > 0
-  ) {
-    blockers.push(
-      "MODEL_DRIFT_DETECTED",
-    );
-  }
+        requireHumanApproval,
 
-  if (
-    promotion &&
-    promotion.decision !==
-      "PROMOTE"
-  ) {
-    blockers.push(
-      "PROMOTION_GATE_BLOCKED",
-    );
-  }
+        ...evaluationConfig,
+      });
 
-  if (
-    challenger &&
-    challenger.decision ===
-      "REJECT_CHALLENGER"
-  ) {
-    blockers.push(
-      "CHALLENGER_REJECTED",
-    );
-  }
+    createAudit({
+      audit,
 
-  if (
-    rollback &&
-    rollback.action ===
-      "ROLLBACK"
-  ) {
-    blockers.push(
-      "ROLLBACK_REQUIRED",
-    );
-  }
+      eventType:
+        "LEARNING_CANDIDATE_EVALUATED",
 
-  let action =
-    "CONTINUE";
-
-  if (
-    rollback?.action ===
-    "ROLLBACK"
-  ) {
-    action =
-      "ROLLBACK";
-  } else if (
-    rollback?.action ===
-      "FREEZE" ||
-    driftBatch.driftedModelCount > 0
-  ) {
-    action =
-      "FREEZE";
-  } else if (
-    promotion?.decision ===
-      "PROMOTE" &&
-    challenger?.decision ===
-      "PROMOTE_CHALLENGER"
-  ) {
-    action =
-      "PROMOTION_READY";
-  } else if (
-    ensemble.approved !== true
-  ) {
-    action =
-      "HOLD";
-  }
-
-  return {
-    action,
-
-    approved:
-      blockers.length === 0,
-
-    blockerCount:
-      blockers.length,
-
-    blockers,
-  };
-}
-
-export function runLearningRuntimeIntegration({
-  models = [],
-  learningRecords = [],
-  outcomes = [],
-  driftRecords = [],
-  marketContext = {},
-  regime = null,
-
-  candidateModel = null,
-  championModel = null,
-  fallbackModel = null,
-
-  promotionMetrics = {},
-  benchmarkMetrics = {},
-
-  championChallengerRecords = [],
-
-  activeMetrics = {},
-  baselineMetrics = {},
-
-  learningConfig = {},
-  weightConfig = {},
-  driftConfig = {},
-  ensembleConfig = {},
-  promotionConfig = {},
-  challengerConfig = {},
-  rollbackConfig = {},
-} = {}) {
-  if (!Array.isArray(models)) {
-    throw new TypeError(
-      "Learning runtime models must be an array.",
-    );
-  }
-
-  if (!models.length) {
-    return {
-      version:
-        LEARNING_RUNTIME_INTEGRATION_V2_VERSION,
-
-      ready:
-        false,
-
-      action:
-        "HOLD",
-
-      reason:
-        "NO_MODELS",
-
-      models:
-        [],
-
-      summary: {
-        modelCount:
-          0,
-
-        outcomeCount:
-          safeArray(
-            outcomes,
-          ).length,
-
-        learningRecordCount:
-          safeArray(
-            learningRecords,
-          ).length,
-
-        driftRecordCount:
-          safeArray(
-            driftRecords,
-          ).length,
+      payload: {
+        decision:
+          evaluation.decision,
+        score:
+          evaluation.evaluationScore,
+        blockers:
+          evaluation.blockers,
+        warnings:
+          evaluation.warnings,
       },
-    };
-  }
 
-  const learning =
-    learnRegimePerformance({
-      ...learningConfig,
-
-      records:
-        safeArray(
-          learningRecords,
-        ),
+      timestamp,
     });
 
-  const learningPatch =
-    createEnsembleLearningPatch(
-      learning,
-    );
+    if (
+      [
+        "PROMOTE",
+        "REQUIRE_HUMAN_APPROVAL",
+      ].includes(
+        evaluation.decision,
+      ) &&
+      evaluation.blockers.length ===
+        0
+    ) {
+      promotion =
+        createLearningPromotionRequest({
+          evaluation,
+          currentState:
+            baselineState,
+          candidateState,
+          requestedBy,
+          createdAt:
+            timestamp,
+          metadata: {
+            cycleId:
+              cycle.cycleId,
+          },
+        });
 
-  const weightUpdate =
-    updateOnlineModelWeights({
-      ...weightConfig,
+      createAudit({
+        audit,
 
-      models,
+        eventType:
+          "LEARNING_PROMOTION_REQUESTED",
 
-      outcomes:
-        safeArray(
-          outcomes,
-        ),
-    });
+        payload: {
+          requestId:
+            promotion.id,
+          status:
+            promotion.status,
+          currentRevision:
+            promotion.current.revision,
+          candidateRevision:
+            promotion.candidate.revision,
+        },
 
-  const weightPatch =
-    createWeightPatch(
-      weightUpdate,
-    );
-
-  const learnedModels =
-    mergeModelPatches({
-      models,
-
-      learningPatch,
-
-      weightPatch,
-    });
-
-  const ensembleModels =
-    applyLearningToEnsembleModels(
-      learnedModels,
-    );
-
-  const ensemble =
-    combineRegimeAdaptivePredictions({
-      ...ensembleConfig,
-
-      models:
-        ensembleModels,
-
-      marketContext,
-
-      regime,
-    });
-
-  const driftBatch =
-    detectModelDriftBatch({
-      models:
-        learnedModels,
-
-      records:
-        safeArray(
-          driftRecords,
-        ),
-
-      config:
-        driftConfig,
-    });
-
-  let promotion =
-    null;
-
-  if (candidateModel) {
-    const candidateId =
-      modelIdOf(
-        candidateModel,
-      );
-
-    const candidateLearning =
-      findLearningForModel(
-        learning,
-        candidateId,
-      );
-
-    const candidateDrift =
-      findDriftForModel(
-        driftBatch,
-        candidateId,
-      );
-
-    promotion =
-      evaluateModelPromotion({
-        ...promotionConfig,
-
-        candidate:
-          candidateModel,
-
-        metrics:
-          buildPromotionMetrics({
-            learningModel:
-              candidateLearning,
-
-            validationMetrics:
-              promotionMetrics,
-          }),
-
-        benchmark:
-          benchmarkMetrics,
-
-        drift:
-          candidateDrift,
-
-        learning:
-          candidateLearning,
+        timestamp,
       });
+    }
   }
 
-  let challenger =
-    null;
+  const auditSummary =
+    audit.summary();
 
-  if (
-    championModel &&
-    candidateModel
-  ) {
-    challenger =
-      evaluateChampionChallenger({
-        ...challengerConfig,
+  const report =
+    buildLearningReport({
+      state:
+        candidateState ??
+        cycle.state,
 
-        champion:
-          championModel,
+      evaluation:
+        evaluation ??
+        {},
 
-        challenger:
-          candidateModel,
+      promotion:
+        promotion ??
+        {},
 
-        records:
-          safeArray(
-            championChallengerRecords,
-          ),
-      });
-  }
+      audit:
+        auditSummary,
 
-  let rollback =
-    null;
+      feedback:
+        cycle.feedback ??
+        {},
 
-  if (
-    championModel &&
-    fallbackModel
-  ) {
-    const championId =
-      modelIdOf(
-        championModel,
-      );
+      quality:
+        cycle.quality ??
+        {},
 
-    rollback =
-      evaluateModelRollback({
-        ...rollbackConfig,
+      generatedAt:
+        timestamp,
 
-        activeModel:
-          championModel,
-
-        fallbackModel,
-
-        activeMetrics,
-
-        baselineMetrics,
-
-        drift:
-          findDriftForModel(
-            driftBatch,
-            championId,
-          ),
-      });
-  }
-
-  const decision =
-    buildRuntimeDecision({
-      ensemble,
-
-      promotion,
-
-      challenger,
-
-      rollback,
-
-      driftBatch,
+      generatedBy:
+        "learning-runtime-v2",
     });
+
+  createAudit({
+    audit,
+
+    eventType:
+      "LEARNING_REPORT_CREATED",
+
+    payload: {
+      health:
+        report.health.status,
+      recommendation:
+        report.recommendation.action,
+    },
+
+    timestamp,
+  });
+
+  const finalAudit =
+    audit.summary();
 
   return {
     version:
       LEARNING_RUNTIME_INTEGRATION_V2_VERSION,
 
-    ready:
-      true,
+    status:
+      cycle.status,
 
-    action:
-      decision.action,
+    applied:
+      cycle.applied,
 
-    approved:
-      decision.approved,
+    cycle:
+      clone(cycle),
 
-    blockers:
-      decision.blockers,
+    evaluation:
+      clone(evaluation),
 
-    models:
-      learnedModels,
+    promotion:
+      clone(promotion),
 
-    ensemble,
+    report:
+      clone(report),
 
-    learning,
+    audit: {
+      entries:
+        audit.list(),
 
-    learningPatch,
-
-    weightUpdate,
-
-    weightPatch,
-
-    drift:
-      driftBatch,
-
-    promotion,
-
-    championChallenger:
-      challenger,
-
-    rollback,
+      summary:
+        finalAudit,
+    },
 
     summary: {
-      modelCount:
-        learnedModels.length,
+      cycleStatus:
+        cycle.status,
 
-      activeModelCount:
-        learnedModels.filter(
-          (
-            model,
-          ) =>
-            model.enabled !== false,
-        ).length,
+      learningApplied:
+        cycle.applied,
 
-      learningRecordCount:
-        safeArray(
-          learningRecords,
-        ).length,
+      candidateEvaluated:
+        evaluation !== null,
 
-      outcomeCount:
-        safeArray(
-          outcomes,
-        ).length,
+      promotionRequested:
+        promotion !== null,
 
-      driftRecordCount:
-        safeArray(
-          driftRecords,
-        ).length,
-
-      driftedModelCount:
-        driftBatch.driftedModelCount,
-
-      blockedModelCount:
-        driftBatch.blockedModelCount,
-
-      ensembleDirection:
-        ensemble.direction,
-
-      ensembleConfidence:
-        ensemble.confidence,
-
-      ensembleAgreement:
-        ensemble.agreement,
-
-      promotionDecision:
-        promotion?.decision ??
+      promotionStatus:
+        promotion?.status ??
         null,
 
-      challengerDecision:
-        challenger?.decision ??
-        null,
+      health:
+        report.health.status,
 
-      rollbackAction:
-        rollback?.action ??
-        null,
+      recommendation:
+        report.recommendation.action,
 
-      blockerCount:
-        decision.blockerCount,
+      auditValid:
+        finalAudit.valid,
 
-      totalWeight:
-        round(
-          learnedModels.reduce(
-            (
-              sum,
-              model,
-            ) =>
-              sum +
-              (
-                finiteOrNull(
-                  model.weight,
-                ) ??
-                0
-              ),
-            0,
-          ),
-        ),
+      auditEntryCount:
+        finalAudit.entryCount,
     },
   };
 }
@@ -876,18 +367,56 @@ export class LearningRuntimeIntegrationV2 {
     this.config = {
       ...config,
     };
+
+    this.history = [];
   }
 
   run(input = {}) {
-    return runLearningRuntimeIntegration({
-      ...this.config,
+    const result =
+      runLearningRuntime({
+        ...this.config,
+        ...input,
+      });
 
-      ...input,
+    this.history.push({
+      timestamp:
+        result.report.generatedAt,
+
+      status:
+        result.status,
+
+      applied:
+        result.applied,
+
+      revision:
+        result.cycle.state
+          ?.revision ??
+        null,
+
+      health:
+        result.summary.health,
+
+      recommendation:
+        result.summary
+          .recommendation,
     });
+
+    return clone(result);
+  }
+
+  getHistory() {
+    return clone(
+      this.history,
+    );
+  }
+
+  resetHistory() {
+    this.history = [];
+    return [];
   }
 }
 
 export const learningRuntimeIntegrationV2 =
   new LearningRuntimeIntegrationV2();
 
-export default runLearningRuntimeIntegration;
+export default runLearningRuntime;

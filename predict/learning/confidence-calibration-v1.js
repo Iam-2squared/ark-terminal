@@ -6,6 +6,13 @@ function probability(value) {
   return Math.max(0, Math.min(1, n > 1 ? n / 100 : n));
 }
 
+function isTrade(record = {}) {
+  const action = String(
+    record.action ?? record.decision ?? record.signal ?? "",
+  ).trim().toUpperCase();
+  return ["BUY", "SELL"].includes(action);
+}
+
 function outcome(record = {}) {
   const status = String(record.status ?? record.outcome ?? "").toUpperCase();
   if (status === "WIN") return 1;
@@ -14,10 +21,13 @@ function outcome(record = {}) {
 }
 
 export function buildConfidenceCalibration(records = [], { bins = 10 } = {}) {
-  const valid = (Array.isArray(records) ? records : []).map((record) => ({
-    confidence: probability(record.confidence ?? record.predictionConfidence),
-    outcome: outcome(record),
-  })).filter((r) => r.confidence !== null && r.outcome !== null);
+  const valid = (Array.isArray(records) ? records : [])
+    .filter(isTrade)
+    .map((record) => ({
+      confidence: probability(record.confidence ?? record.predictionConfidence),
+      outcome: outcome(record),
+    }))
+    .filter((row) => row.confidence !== null && row.outcome !== null);
 
   const bucketCount = Math.max(2, Math.floor(Number(bins) || 10));
   const buckets = Array.from({ length: bucketCount }, (_, index) => ({
@@ -47,10 +57,19 @@ export function buildConfidenceCalibration(records = [], { bins = 10 } = {}) {
   }));
 
   const ece = valid.length
-    ? curve.reduce((sum, bucket) => sum + (bucket.count / valid.length) * Math.abs((bucket.predicted ?? 0) - (bucket.observed ?? 0)), 0)
+    ? curve.reduce(
+        (sum, bucket) =>
+          sum +
+          (bucket.count / valid.length) *
+            Math.abs((bucket.predicted ?? 0) - (bucket.observed ?? 0)),
+        0,
+      )
     : null;
   const brier = valid.length
-    ? valid.reduce((sum, row) => sum + (row.confidence - row.outcome) ** 2, 0) / valid.length
+    ? valid.reduce(
+        (sum, row) => sum + (row.confidence - row.outcome) ** 2,
+        0,
+      ) / valid.length
     : null;
 
   return {

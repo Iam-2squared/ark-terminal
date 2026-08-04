@@ -132,7 +132,12 @@ export class PaperTradingModeOwnerV1 {
       return clone(result);
     }
 
-    return this.#submitCycle(cycle.id, input.timestamp, safetyResult);
+    return this.#submitCycle(
+      cycle.id,
+      input.timestamp,
+      safetyResult,
+      cycle.order,
+    );
   }
 
   approve({ cycleId, approved = true, timestamp = new Date().toISOString() } = {}) {
@@ -158,7 +163,12 @@ export class PaperTradingModeOwnerV1 {
       return clone(result);
     }
 
-    return this.#submitCycle(cycleId, timestamp, { allowed: true, blockers: [] });
+    return this.#submitCycle(
+      cycleId,
+      timestamp,
+      { allowed: true, blockers: [] },
+      pending.order,
+    );
   }
 
   processMarket(snapshot = {}) {
@@ -209,11 +219,13 @@ export class PaperTradingModeOwnerV1 {
     };
   }
 
-  #submitCycle(cycleId, timestamp, safety) {
+  #submitCycle(cycleId, timestamp, safety, proposalOrder = null) {
     const submission = this.orchestrator.submit({ cycleId, timestamp });
+    const safetyOrder = proposalOrder ?? submission.order;
+
     this.safety?.recordSubmission?.({
       cycleId,
-      order: submission.order,
+      order: safetyOrder,
       timestamp,
     });
 

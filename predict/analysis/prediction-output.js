@@ -1,4 +1,7 @@
 import {
+  createPredictionMetadata,
+} from "./prediction-metadata.js";
+import {
   deriveTradeDecision,
   MODEL_VERSION,
 } from "../learning/evaluation-policy.js";
@@ -189,6 +192,36 @@ export function createPredictionOutput({
         ) / weightTotal,
       )
     : 0;
+  const predictionMetadata =
+    createPredictionMetadata({
+      symbol,
+      predictedAt:
+        new Date().toISOString(),
+      timeframe:
+        period,
+      direction,
+      confidence:
+        confidenceScore,
+      score:
+        analysis.totalScore,
+      entryPrice:
+        analysis.price ??
+        analysis.currentPrice ??
+        null,
+      targetPrice:
+        null,
+      stopPrice:
+        null,
+      marketRegime:
+        regime,
+      modelVersion:
+        MODEL_VERSION,
+      dataQualityScore:
+        quality?.qualityScore,
+      source:
+        "prediction-output",
+    });
+
   const decision = deriveTradeDecision({
     direction,
     confidenceScore,

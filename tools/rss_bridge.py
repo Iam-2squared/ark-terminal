@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from threading import Lock
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from tools.rss_account_bridge import (
@@ -44,6 +44,25 @@ app.add_middleware(
     allow_methods=["GET", "POST", "DELETE"],
     allow_headers=["Accept", "Content-Type", "X-Ark-Read-Only"],
 )
+
+
+@app.middleware("http")
+async def allow_restricted_private_network_access(
+    request: Request,
+    call_next,
+):
+    response = await call_next(request)
+    origin = request.headers.get("origin")
+    private_network_requested = (
+        request.headers.get("access-control-request-private-network", "").lower()
+        == "true"
+    )
+
+    if origin in ALLOWED_ORIGINS and private_network_requested:
+        response.headers["Access-Control-Allow-Private-Network"] = "true"
+
+    return response
+
 
 READ_ONLY_SAFETY = {
     "mode": "read_only",

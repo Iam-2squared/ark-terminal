@@ -1,427 +1,151 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Ark Terminal</title>
-
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-
-    <meta
-        name="theme-color"
-        content="#2563eb"
-    >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ark Terminal</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2563eb">
 </head>
-
 <body>
+  <header class="appHeader">
+    <button id="menuButton" class="menuButton" type="button" aria-label="メニューを開く">☰</button>
+    <h1>🚀 Ark Terminal</h1>
+  </header>
 
-    <header class="appHeader">
+  <div id="overlay" class="overlay"></div>
 
-        <button
-            id="menuButton"
-            class="menuButton"
-            type="button"
-            aria-label="メニューを開く"
-        >
-            ☰
-        </button>
+  <div class="container">
+    <nav id="sideMenu" class="sideMenu">
+      <div class="menuTitle">MENU</div>
+      <a class="navLink active" href="./index.html"><span class="navIcon">🏠</span><span>Home</span></a>
+      <a class="navLink" href="./tasks/index.html"><span class="navIcon">📝</span><span>Tasks</span></a>
+      <a class="navLink" href="./stocks/index.html"><span class="navIcon">📈</span><span>Stocks</span></a>
+      <a class="navLink" href="predict/index.html"><span class="navIcon">🔮</span><span>Prediction Lab</span></a>
+      <a class="navLink" href="./discovery/index.html"><span class="navIcon">🧭</span><span>AI Stock Screener</span></a>
+      <a class="navLink" href="./news/index.html"><span class="navIcon">📰</span><span>AI News</span></a>
+      <a class="navLink" href="./study/index.html"><span class="navIcon">📚</span><span>Study</span></a>
+      <a class="navLink" href="./ideas/index.html"><span class="navIcon">💡</span><span>Ideas</span></a>
+      <a class="navLink" href="./settings/index.html"><span class="navIcon">⚙️</span><span>Settings</span></a>
 
-        <h1>🚀 Ark Terminal</h1>
+      <a class="paperSidebarCard" href="predict/index.html#paperTradingTitle">
+        <div class="paperSidebarHeader">
+          <strong>仮想口座</strong>
+          <span>稼働中</span>
+        </div>
+        <p>総資産</p>
+        <strong>¥1,000,000</strong>
+        <p>現金残高</p>
+        <strong>¥1,000,000</strong>
+      </a>
+    </nav>
 
-    </header>
+    <main class="mainContent">
+      <section class="welcomeArea">
+        <p class="welcomeLabel">HOME</p>
+        <h2>おかえり！</h2>
+        <p class="welcomeText">市場・予測・仮想運用をひとつの画面で確認できます。</p>
+      </section>
 
-    <div
-        id="overlay"
-        class="overlay"
-    ></div>
+      <section class="homeTopGrid">
+        <article class="dashboardCard dateCard">
+          <div class="cardHeader"><span class="cardIcon">📅</span><h3>今日</h3></div>
+          <p id="todayDate" class="largeValue">----/--/--</p>
+          <p id="todayWeekday" class="cardDescription">-</p>
+        </article>
 
-    <div class="container">
+        <article class="dashboardCard taskCard" id="todayTasksCard">
+          <div class="cardHeader"><span class="cardIcon">📝</span><h3>今日の予定</h3></div>
+          <p id="taskSummary" class="cardDescription">今日の予定を読み込んでいます。</p>
+          <div id="todayTaskList"></div>
+          <p id="taskProgress" class="cardDescription"></p>
+          <a class="cardLink" href="./tasks/index.html">Tasksを開く <span>→</span></a>
+        </article>
+      </section>
 
-        <nav
-            id="sideMenu"
-            class="sideMenu"
-        >
-
-            <div class="menuTitle">
-                MENU
+      <section class="homeHeroGrid">
+        <article class="dashboardCard predictionHeroCard">
+          <div class="cardHeader homeCardHeaderSpread">
+            <div class="homeTitleGroup"><span class="cardIcon">🔮</span><div><p class="homeEyebrow">Prediction Lab</p><h2>AI市場分析</h2></div></div>
+            <a class="compactLink" href="predict/index.html">開く →</a>
+          </div>
+          <p class="cardDescription">AIによる株価予測と投資シグナルを確認できます。</p>
+          <div class="predictionHeroPanel">
+            <div class="predictionHeroTop">
+              <div><span class="predictionPreviewLabel">Prediction Score</span><strong>50 / 100</strong></div>
+              <span class="predictionPreviewBadge">中立</span>
             </div>
-
-            <a
-                class="navLink active"
-                href="./index.html"
-            >
-                <span class="navIcon">🏠</span>
-                <span>Home</span>
-            </a>
-
-            <a
-                class="navLink"
-                href="./tasks/index.html"
-            >
-                <span class="navIcon">📝</span>
-                <span>Tasks</span>
-            </a>
-
-            <a
-                class="navLink"
-                href="./stocks/index.html"
-            >
-                <span class="navIcon">📈</span>
-                <span>Stocks</span>
-            </a>
-
-            <a  
-                class="navLink" 
-                href="predict/index.html"
-            >
-                <span class="navIcon">🔮</span>
-                <span>Prediction Lab</span>
-            </a>
-
-            <a
-                class="navLink"
-                href="./discovery/index.html"
-            >
-                <span class="navIcon">🧭</span>
-                <span>AI Stock Screener</span>
-            </a>
-
-            <a
-                class="navLink"
-                href="./news/index.html"
-            >
-                <span class="navIcon">📰</span>
-                <span>AI News</span>
-            </a>
-
-            <a
-                class="navLink"
-                href="./study/index.html"
-            >
-                <span class="navIcon">📚</span>
-                <span>Study</span>
-            </a>
-
-            <a
-                class="navLink"
-                href="./ideas/index.html"
-            >
-                <span class="navIcon">💡</span>
-                <span>Ideas</span>
-            </a>
-
-            <a
-                class="navLink"
-                href="./settings/index.html"
-            >
-                <span class="navIcon">⚙️</span>
-                <span>Settings</span>
-            </a>
-
-        </nav>
-
-        <main class="mainContent">
-
-            <section class="welcomeArea">
-
-                <p class="welcomeLabel">
-                    HOME
-                </p>
-
-                <h2>おかえり！</h2>
-
-                <p class="welcomeText">
-                    今日もArk Terminalから始めよう。
-                </p>
-
-            </section>
-
-            <section class="dashboardGrid">
-
-                <article class="dashboardCard dateCard">
-
-                    <div class="cardHeader">
-                        <span class="cardIcon">📅</span>
-                        <h3>今日</h3>
-                    </div>
-
-                    <p
-                        id="todayDate"
-                        class="largeValue"
-                    >
-                        ----/--/--
-                    </p>
-
-                    <p
-                        id="todayWeekday"
-                        class="cardDescription"
-                    >
-                        -
-                    </p>
-
-                </article>
-
-                <article
-                 class="dashboardCard taskCard"
-                    id="todayTasksCard"
-                 >
-                 <div class="cardHeader">
-                 <span class="cardIcon">📝</span>
-                 <h3>今日の予定</h3>
-                 </div>
-
-                 <p
-                 id="taskSummary"
-                 class="cardDescription"
-                 >
-                 今日の予定を読み込んでいます。
-                 </p>
-
-                 <div id="todayTaskList"></div>
-
-                 <p
-                 id="taskProgress"
-                 class="cardDescription"
-                 ></p>
-
-                 <a
-                 class="cardLink"
-                 href="./tasks/index.html"
-                 >
-                 Tasksを開く
-                 <span>→</span>
-                 </a>
-                </article>
-
- <article class="dashboardCard">
-    <div
-        class="dashboardCardLink"
-        id="stocksCard"
-        role="link"
-        tabindex="0"
-    >
-        <div class="cardHeader">
-            <div class="cardIcon">📈</div>
-            <h2>Stocks</h2>
-        </div>
-
-        <div
-            class="homeStockPrice"
-            id="homeStockPrice"
-        >
-            Loading...
-        </div>
-
-        <div
-            class="homeStockChange"
-            id="homeStockChange"
-        >
-            --
-        </div>
-
-        <div class="homeMiniChart">
-            <svg
-                id="homeStockChart"
-                viewBox="0 0 320 100"
-                preserveAspectRatio="none"
-                aria-label="NVIDIA簡易チャート"
-            >
-                <defs>
-                    <linearGradient
-                        id="chartAreaGradient"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                    >
-                        <stop
-                            offset="0%"
-                            stop-color="#2563eb"
-                            stop-opacity="0.22"
-                        ></stop>
-
-                        <stop
-                            offset="100%"
-                            stop-color="#2563eb"
-                            stop-opacity="0"
-                        ></stop>
-                    </linearGradient>
-                </defs>
-
-                <polygon
-                    id="homeStockChartArea"
-                    fill="url(#chartAreaGradient)"
-                    points=""
-                ></polygon>
-
-                <polyline
-                    id="homeStockChartLine"
-                    points=""
-                ></polyline>
-            </svg>
-        </div>
-
-        <div
-            class="homeStockTime"
-            id="homeStockTime"
-        >
-            更新 --
-        </div>
-
-        <div class="cardAction">
-            Stocksを開く
-            <span>→</span>
-        </div>
-    </div>
-</article>
-<article class="dashboardCard">
-    <a
-        href="predict/index.html"
-        class="dashboardCardLink"
-    >
-        <div class="cardHeader">
-            <div class="cardIcon">
-                🔮
+            <div class="predictionScale"><span></span></div>
+            <div class="predictionSentimentGrid">
+              <div><span>強気</span><strong>25%</strong></div>
+              <div><span>中立</span><strong>50%</strong></div>
+              <div><span>弱気</span><strong>25%</strong></div>
             </div>
+          </div>
+          <div class="aiCommentBox">
+            <span>AIコメント</span>
+            <p>市場は中立的な地合いです。テクニカル指標は方向感に乏しく、需給バランスも拮抗しています。</p>
+          </div>
+        </article>
 
-            <h2>
-                Prediction Lab
-            </h2>
-        </div>
+        <article class="dashboardCard signalCard">
+          <div class="cardHeader homeCardHeaderSpread">
+            <div class="homeTitleGroup"><span class="cardIcon">🧾</span><div><p class="homeEyebrow">Recent Signals</p><h2>最近のシグナル</h2></div></div>
+            <a class="compactLink" href="predict/performance.html">すべて見る →</a>
+          </div>
+          <div class="signalTable">
+            <div class="signalRow signalHead"><span>銘柄</span><span>シグナル</span><span>AI Score</span><span>Confidence</span></div>
+            <div class="signalRow"><strong>AAPL</strong><span class="signalBadge buy">BUY</span><span>78 / 100</span><span>85%</span></div>
+            <div class="signalRow"><strong>MSFT</strong><span class="signalBadge buy">BUY</span><span>72 / 100</span><span>80%</span></div>
+            <div class="signalRow"><strong>NVDA</strong><span class="signalBadge buy">BUY</span><span>70 / 100</span><span>78%</span></div>
+            <div class="signalRow"><strong>TSLA</strong><span class="signalBadge wait">NO TRADE</span><span>50 / 100</span><span>60%</span></div>
+            <div class="signalRow"><strong>AMZN</strong><span class="signalBadge sell">SELL</span><span>32 / 100</span><span>55%</span></div>
+          </div>
+        </article>
+      </section>
 
-        <p class="cardDescription">
-            チャート・適時開示・投資家心理から、
-            株価の方向性を分析します。
-        </p>
-
-        <div class="predictionPreview">
-            <div>
-                <span class="predictionPreviewLabel">
-                    Prediction Score
-                </span>
-
-                <strong>
-                    50 / 100
-                </strong>
+      <section class="homeBottomGrid">
+        <article class="dashboardCard stocksSummaryCard">
+          <div id="stocksCard" class="dashboardCardLink" role="link" tabindex="0">
+            <div class="cardHeader"><div class="cardIcon">📈</div><h2>Stocks</h2></div>
+            <div id="homeStockPrice" class="homeStockPrice">Loading...</div>
+            <div id="homeStockChange" class="homeStockChange">--</div>
+            <div class="homeMiniChart">
+              <svg id="homeStockChart" viewBox="0 0 320 100" preserveAspectRatio="none" aria-label="株価簡易チャート">
+                <defs><linearGradient id="chartAreaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2563eb" stop-opacity="0.22"></stop><stop offset="100%" stop-color="#2563eb" stop-opacity="0"></stop></linearGradient></defs>
+                <polygon id="homeStockChartArea" fill="url(#chartAreaGradient)" points=""></polygon>
+                <polyline id="homeStockChartLine" points=""></polyline>
+              </svg>
             </div>
+            <div id="homeStockTime" class="homeStockTime">更新 --</div>
+          </div>
+        </article>
 
-            <span class="predictionPreviewBadge">
-                中立
-            </span>
-        </div>
+        <article class="dashboardCard paperAccountCard">
+          <div class="cardHeader homeCardHeaderSpread">
+            <div class="homeTitleGroup"><span class="cardIcon">💼</span><div><p class="homeEyebrow">Paper Trading</p><h2>仮想口座</h2></div></div>
+            <span class="statusPill">稼働中</span>
+          </div>
+          <div class="paperMetricGrid">
+            <div><span>総資産</span><strong>¥1,000,000</strong></div>
+            <div><span>現金残高</span><strong>¥1,000,000</strong></div>
+            <div><span>保有時価</span><strong>¥0</strong></div>
+            <div><span>評価損益</span><strong>¥0</strong></div>
+          </div>
+          <a class="cardLink" href="predict/index.html#paperTradingTitle">仮想口座を開く <span>→</span></a>
+        </article>
+      </section>
 
-        <div class="cardAction">
-            分析を開く
-            <span>→</span>
-        </div>
-    </a>
-</article>
-<article class="dashboardCard">
-    <a
-        href="discovery/index.html"
-        class="dashboardCardLink"
-    >
-        <div class="cardHeader">
-            <div class="cardIcon">
-                🧭
-            </div>
+      <section class="systemStatusBar">
+        <span>🛡 システムステータス: <strong>正常稼働中</strong></span>
+        <span>データ更新: 2026/08/05 08:30</span>
+        <span>予測モデル: v18.1</span>
+        <span>次回更新: 2026/08/06 08:30</span>
+      </section>
+    </main>
+  </div>
 
-            <h2>
-                AI Stock Screener
-            </h2>
-        </div>
-
-        <p class="cardDescription">
-            全市場を横断し、予算・市場・テーマ・AIスコアから
-            個別分析する候補を見つけます。
-        </p>
-
-        <div class="discoveryPreview">
-            <span>Discovery</span>
-            <strong>ランキング・ウォッチ・通知条件</strong>
-        </div>
-
-        <div class="cardAction">
-            銘柄を探す
-            <span>→</span>
-        </div>
-    </a>
-</article>
-                <a
-                  href="news/index.html"
-                  class="dashboardCard dashboardCardLink"
-                >
-                 <div class="cardHeader">
-                 <span class="cardIcon">📰</span>
-                 <h3>AI News</h3>
-                 </div>
-
-                 <p class="cardDescription">
-                  最新のAI関連ニュースを確認できます。
-                 </p>
-
-                 <span class="cardLinkText">
-                     開く →
-                 </span>
-                </a>
-
-                <article class="dashboardCard">
-
-                    <div class="cardHeader">
-                        <span class="cardIcon">📚</span>
-                        <h3>Study</h3>
-                    </div>
-
-                    <p class="cardDescription">
-                        勉強時間や目標を管理する予定です。
-                    </p>
-
-                    <a
-                        class="cardLink disabled"
-                        href="#"
-                        aria-disabled="true"
-                    >
-                        準備中
-                    </a>
-
-                </article>
-
-                <article class="dashboardCard">
-
-                    <div class="cardHeader">
-                        <span class="cardIcon">💡</span>
-                        <h3>Ideas</h3>
-                    </div>
-
-                    <p class="cardDescription">
-                        思いついたアイデアをすぐ保存できる場所です。
-                    </p>
-
-                    <a
-                        class="cardLink disabled"
-                        href="#"
-                        aria-disabled="true"
-                    >
-                        準備中
-                    </a>
-
-                </article>
-
-            </section>
-
-        </main>
-
-    </div>
-
-    <script src="script.js"></script>
-
+  <script src="script.js"></script>
 </body>
-
 </html>

@@ -55,11 +55,16 @@ function compare(candidate, production, thresholds) {
     drawdown: deltas.maxDrawdown !== null && deltas.maxDrawdown <= thresholds.maximumDrawdownDeterioration,
     sampleSize: (candidate.sampleSize ?? 0) >= thresholds.minimumSampleSize,
   };
+  const promotable = checks.accuracy
+    && checks.profitFactor
+    && checks.sharpe
+    && checks.drawdown
+    && checks.sampleSize;
 
   return {
     deltas,
     checks,
-    promotable: Object.values(checks).every(Boolean),
+    promotable,
     humanApprovalRequired: true,
     productionUpdateAllowed: false,
   };

@@ -65,15 +65,6 @@ function compare(candidate, production, thresholds) {
   };
 }
 
-function normalizeSplitterOptions(splitterOptions = {}) {
-  const options = { ...splitterOptions };
-  if (options.minTrainSize == null && options.trainingSize != null) {
-    options.minTrainSize = options.trainingSize;
-  }
-  delete options.trainingSize;
-  return options;
-}
-
 export async function runBacktestForwardValidation({
   records = [],
   candidateModel,
@@ -96,18 +87,18 @@ export async function runBacktestForwardValidation({
     ...thresholds,
   };
 
-  const windows = createWalkForwardWindows(records, normalizeSplitterOptions(splitterOptions));
+  const windows = createWalkForwardWindows(records, splitterOptions);
   const windowResults = [];
   for (const window of windows) {
     const result = await evaluator({
       candidateModel,
-      training: window.train,
+      training: window.training,
       validation: window.validation,
       test: window.test,
       window,
     });
     windowResults.push({
-      windowId: window.windowId,
+      windowId: window.id,
       metrics: normalizeMetrics(result?.metrics ?? result),
       futureLeakChecked: Boolean(result?.futureLeakChecked ?? futureLeakChecked),
       outOfSample: true,

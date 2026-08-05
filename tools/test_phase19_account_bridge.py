@@ -30,7 +30,71 @@ class DummyWorkbook:
         return self.sheets[name]
 
 
-def create_workbook():
+def create_native_workbook():
+    account = DummySheet(
+        {
+            "A1": "=RssCapacityList()",
+            "A2": "現物買付可能額",
+            "B2": "信用口座_保証金余裕額",
+            "A3": "118,000",
+            "B3": "－",
+        }
+    )
+
+    positions = DummySheet(
+        {
+            "A1": '=RssPositionList(,,"A")',
+            "A2": "銘柄コード",
+            "B2": "銘柄名称",
+            "C2": "口座区分",
+            "D2": "保有数量",
+            "E2": "発注数量",
+            "F2": "平均取得価額",
+            "G2": "時価",
+            "H2": "前日比",
+            "I2": "前日比率",
+            "J2": "時価評価額",
+            "K2": "評価損益額",
+            "L2": "評価損益率",
+            "M2": "銘柄情報等",
+            "N2": "JAX時価",
+            "O2": "JNX時価",
+            "P2": "PER",
+            "Q2": "PBR",
+            "R2": "配当利回り",
+            "A3": "4755",
+            "B3": "楽天グループ",
+            "C3": "特定",
+            "D3": 100,
+            "E3": 0,
+            "F3": 800,
+            "G3": 840,
+            "J3": 84000,
+            "K3": 4000,
+            "L3": 5,
+            "A4": "9432",
+            "B4": "NTT",
+            "C4": "特定",
+            "D4": 1000,
+            "E4": 100,
+            "F4": 150,
+            "G4": 151,
+            "J4": 151000,
+            "K4": 1000,
+            "L4": 0.6667,
+            "A5": None,
+        }
+    )
+
+    return DummyWorkbook(
+        {
+            "ArkAccount": account,
+            "ArkPositions": positions,
+        }
+    )
+
+
+def create_legacy_workbook():
     account = DummySheet(
         {
             "B2": "120,000",
@@ -59,19 +123,7 @@ def create_workbook():
             "J2": "JPY",
             "K2": "特定",
             "L2": "2026-08-05T12:30:00+00:00",
-            "A3": "9432.T",
-            "B3": "NTT",
-            "C3": 1000,
-            "D3": 1000,
-            "E3": 150,
-            "F3": 151,
-            "G3": None,
-            "H3": None,
-            "I3": None,
-            "J3": "JPY",
-            "K3": "特定",
-            "L3": None,
-            "A4": None,
+            "A3": None,
         }
     )
 
@@ -83,27 +135,31 @@ def create_workbook():
     )
 
 
-def test_account_snapshot_is_normalized_and_private():
+def test_native_rss_snapshot_is_normalized_and_private():
     snapshot = rss_account_bridge.read_broker_snapshot(
-        create_workbook(),
+        create_native_workbook(),
         now="2026-08-05T12:30:00+00:00",
     )
 
     assert snapshot["readOnly"] is True
+    assert snapshot["sourceMode"] == "marketspeed-native-rss"
     assert snapshot["connection"]["connected"] is True
     assert snapshot["connection"]["authenticated"] is True
     assert snapshot["connection"]["accountId"] is None
     assert snapshot["account"]["accountId"] is None
-    assert snapshot["account"]["cash"] == 120000
-    assert snapshot["account"]["marketValue"] == 230000
-    assert snapshot["account"]["equity"] == 350000
-    assert snapshot["account"]["unrealizedPnl"] == -4500
+    assert snapshot["account"]["cash"] is None
+    assert snapshot["account"]["buyingPower"] == 118000
+    assert snapshot["account"]["marketValue"] == 235000
+    assert snapshot["account"]["equity"] is None
+    assert snapshot["account"]["unrealizedPnl"] == 5000
+    assert snapshot["account"]["availableMetrics"]["cash"] is False
+    assert snapshot["account"]["availableMetrics"]["buyingPower"] is True
     assert snapshot["orders"] == []
 
 
-def test_positions_are_read_from_excel_rows():
+def test_native_positions_are_read_from_rss_list_rows():
     positions = rss_account_bridge.read_positions(
-        create_workbook(),
+        create_native_workbook(),
         now="2026-08-05T12:30:00+00:00",
     )
 
@@ -113,8 +169,44 @@ def test_positions_are_read_from_excel_rows():
     assert positions[0]["unrealizedPnl"] == 4000
     assert positions[1]["symbol"] == "9432.T"
     assert positions[1]["marketValue"] == 151000
-    assert positions[1]["unrealizedPnl"] == 1000
+    assert positions[1]["orderQuantity"] == 100
+    assert positions[1]["availableQuantity"] == 1000
     assert all(position["readOnly"] is True for position in positions)
+    assert all(
+        position["sourceMode"] == "marketspeed-native-rss"
+        for position in positions
+    )
+
+
+def test_legacy_normalized_sheet_remains_supported():
+    snapshot = rss_account_bridge.read_broker_snapshot(
+        create_legacy_workbook(),
+        now="2026-08-05T12:30:00+00:00",
+    )
+
+    assert snapshot["sourceMode"] == "legacy-normalized-sheet"
+    assert snapshot["account"]["cash"] == 120000
+    assert snapshot["account"]["equity"] == 350000
+    assert len(snapshot["positions"]) == 1
+
+
+def test_description_text_does_not_fake_a_connected_account():
+    workbook = DummyWorkbook(
+        {
+            "ArkAccount": DummySheet(
+                {
+                    "B2": "実際の現金残高",
+                    "B3": "実際の買付可能額",
+                    "B4": "保有株の時価総額",
+                    "B5": "総資産",
+                }
+            ),
+            "ArkPositions": DummySheet({"A2": None}),
+        }
+    )
+
+    with pytest.raises(RuntimeError, match="有効な数値"):
+        rss_account_bridge.read_broker_snapshot(workbook)
 
 
 def test_missing_account_sheet_fails_closed():
@@ -128,9 +220,9 @@ def test_missing_account_sheet_fails_closed():
         rss_account_bridge.read_broker_snapshot(workbook)
 
 
-def test_broker_endpoints_return_read_only_snapshot(monkeypatch):
+def test_broker_endpoints_return_read_only_native_snapshot(monkeypatch):
     snapshot = rss_account_bridge.read_broker_snapshot(
-        create_workbook(),
+        create_native_workbook(),
         now="2026-08-05T12:30:00+00:00",
     )
 
@@ -149,7 +241,8 @@ def test_broker_endpoints_return_read_only_snapshot(monkeypatch):
 
     account = client.get("/broker/account")
     assert account.status_code == 200
-    assert account.json()["account"]["equity"] == 350000
+    assert account.json()["account"]["buyingPower"] == 118000
+    assert account.json()["account"]["equity"] is None
     assert account.json()["account"]["accountId"] is None
 
     positions = client.get("/broker/positions")
@@ -166,7 +259,9 @@ def test_broker_endpoints_return_read_only_snapshot(monkeypatch):
 
 def test_connection_reports_configuration_error_without_fake_values(monkeypatch):
     def fail():
-        raise RuntimeError("ArkAccountシートに口座データがありません。")
+        raise RuntimeError(
+            "ArkAccountのRssCapacityList出力に現物買付可能額がありません。"
+        )
 
     monkeypatch.setattr(
         rss_bridge,
@@ -183,7 +278,7 @@ def test_connection_reports_configuration_error_without_fake_values(monkeypatch)
     assert body["authenticated"] is False
     assert body["accountId"] is None
     assert body["lastSyncAt"] is None
-    assert "ArkAccount" in body["message"]
+    assert "RssCapacityList" in body["message"]
 
 
 def test_cors_is_restricted_to_known_origins():

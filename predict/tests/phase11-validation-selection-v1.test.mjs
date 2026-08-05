@@ -63,11 +63,20 @@ test("Part2 integrates walk-forward and forward metrics without production updat
     thresholds: { minimumSampleSize: 100 },
   });
 
-  assert.ok(result.windowCount > 0);
-  assert.equal(result.futureLeakChecked, true);
-  assert.equal(result.outOfSample, true);
-  assert.equal(result.comparison.promotable, true);
-  assert.equal(result.status, "PROMOTABLE_REQUIRES_HUMAN_APPROVAL");
+  const diagnostic = JSON.stringify({
+    windowCount: result.windowCount,
+    futureLeakChecked: result.futureLeakChecked,
+    outOfSample: result.outOfSample,
+    candidateMetrics: result.candidateMetrics,
+    productionMetrics: result.productionMetrics,
+    comparison: result.comparison,
+    warnings: result.warnings,
+  });
+  assert.ok(result.windowCount > 0, diagnostic);
+  assert.equal(result.futureLeakChecked, true, diagnostic);
+  assert.equal(result.outOfSample, true, diagnostic);
+  assert.equal(result.comparison.promotable, true, diagnostic);
+  assert.equal(result.status, "PROMOTABLE_REQUIRES_HUMAN_APPROVAL", diagnostic);
   assert.equal(result.safety.productionUpdateAllowed, false);
   assert.equal(result.safety.humanApprovalRequired, true);
 });

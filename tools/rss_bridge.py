@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from threading import Lock
@@ -7,6 +8,11 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+
+from tools.rss_account_bridge import (
+    PROVIDER_NAME as ACCOUNT_PROVIDER_NAME,
+    read_broker_snapshot,
+)
 
 try:
     import pythoncom
@@ -17,12 +23,26 @@ except ImportError:  # CI and non-Windows environments
 
 app = FastAPI(title="Ark Terminal RSS Bridge")
 
+DEFAULT_ALLOWED_ORIGINS = [
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+    "https://ark-terminal.vercel.app",
+]
+
+extra_origins = [
+    origin.strip()
+    for origin in os.getenv("ARK_RSS_ALLOWED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+
+ALLOWED_ORIGINS = list(dict.fromkeys(DEFAULT_ALLOWED_ORIGINS + extra_origins))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5500", "http://127.0.0.1:5500"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=False,
     allow_methods=["GET", "POST", "DELETE"],
-    allow_headers=["*"],
+    allow_headers=["Accept", "Content-Type", "X-Ark-Read-Only"],
 )
 
 READ_ONLY_SAFETY = {
@@ -66,7 +86,7 @@ def require_windows_com() -> None:
         )
 
 
-def read_sheet_snapshot() -> tuple[Any, Any]:
+def read_workbook_snapshot() -> tuple[Any, Any]:
     require_windows_com()
     pythoncom.CoInitialize()
     try:
@@ -74,7 +94,7 @@ def read_sheet_snapshot() -> tuple[Any, Any]:
         workbook = excel.ActiveWorkbook
         if workbook is None:
             raise RuntimeError("Excelでブックが開かれていません。")
-        return excel, workbook.Worksheets("Sheet1")
+        return excel, workbook
     except RuntimeError:
         pythoncom.CoUninitialize()
         raise
@@ -82,6 +102,17 @@ def read_sheet_snapshot() -> tuple[Any, Any]:
         pythoncom.CoUninitialize()
         raise RuntimeError(
             "ExcelまたはMARKETSPEED II RSSに接続できません。"
+        ) from exc
+
+
+def read_sheet_snapshot() -> tuple[Any, Any]:
+    excel, workbook = read_workbook_snapshot()
+    try:
+        return excel, workbook.Worksheets("Sheet1")
+    except Exception as exc:
+        release_com()
+        raise RuntimeError(
+            "ExcelにSheet1シートが見つかりません。"
         ) from exc
 
 
@@ -126,6 +157,14 @@ def read_quotes(symbols: list[str]) -> list[Quote]:
         release_com()
 
 
+def read_account_snapshot_from_excel() -> dict[str, Any]:
+    _, workbook = read_workbook_snapshot()
+    try:
+        return read_broker_snapshot(workbook)
+    finally:
+        release_com()
+
+
 def quote_payload(quote: Quote) -> dict[str, Any]:
     return {
         "symbol": quote.symbol,
@@ -137,14 +176,30 @@ def quote_payload(quote: Quote) -> dict[str, Any]:
     }
 
 
+def disconnected_account_payload(message: str) -> dict[str, Any]:
+    return {
+        "connected": False,
+        "authenticated": False,
+        "provider": ACCOUNT_PROVIDER_NAME,
+        "accountId": None,
+        "connectedAt": None,
+        "lastSyncAt": None,
+        "message": message,
+        "readOnly": True,
+    }
+
+
 @app.get("/health")
 def health() -> dict[str, object]:
     return {
         "status": "ok",
         **READ_ONLY_SAFETY,
         "registered_symbols": sorted(SYMBOL_CELLS.keys()),
-        "phase": 18,
-        "parts": [1, 2, 3, 4, 5],
+        "phase": 19,
+        "parts": [1, 2, 3, 4, 5, 6],
+        "market_data_phase": 18,
+        "account_bridge": True,
+        "allowed_origins": ALLOWED_ORIGINS,
     }
 
 
@@ -251,6 +306,51 @@ def portfolio_realtime(symbols: str = Query(..., description="Comma-separated sy
         "valuation_source": "MARKETSPEED II RSS",
         **READ_ONLY_SAFETY,
     }
+
+
+@app.get("/broker/connection")
+def broker_connection() -> dict[str, Any]:
+    try:
+        snapshot = read_account_snapshot_from_excel()
+    except RuntimeError as exc:
+        return disconnected_account_payload(str(exc))
+
+    return snapshot["connection"]
+
+
+@app.get("/broker/account")
+def broker_account() -> dict[str, Any]:
+    try:
+        snapshot = read_account_snapshot_from_excel()
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    return {
+        "account": snapshot["account"],
+        "readOnly": True,
+    }
+
+
+@app.get("/broker/positions")
+def broker_positions() -> dict[str, Any]:
+    try:
+        snapshot = read_account_snapshot_from_excel()
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    return {
+        "positions": snapshot["positions"],
+        "count": len(snapshot["positions"]),
+        "readOnly": True,
+    }
+
+
+@app.get("/broker/snapshot")
+def broker_snapshot() -> dict[str, Any]:
+    try:
+        return read_account_snapshot_from_excel()
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @app.get("/watchlist")

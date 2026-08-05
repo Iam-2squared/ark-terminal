@@ -142,7 +142,9 @@ test(
       },
     });
 
-    assert.equal(dashboard.version, 2);
+    assert.equal(dashboard.version, 1);
+    assert.equal(dashboard.metricsPolicyVersion, 2);
+    assert.equal(dashboard.metadata.rowCount, 7);
     assert.equal(dashboard.metadata.sourceRowCount, 7);
     assert.equal(dashboard.metadata.accuracyDenominatorCount, 3);
     assert.equal(dashboard.metadata.tradePerformanceCount, 3);

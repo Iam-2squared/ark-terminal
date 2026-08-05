@@ -88,6 +88,11 @@ test(
     );
 
     assert.equal(
+      view.metrics.buyingPower,
+      100000,
+    );
+
+    assert.equal(
       view.metrics.marketValue,
       80000,
     );
@@ -107,6 +112,74 @@ test(
         "SENSITIVE-ACCOUNT-ID",
       ),
       false,
+    );
+  },
+);
+
+test(
+  "MARKETSPEED native RSSで取得不能な指標はゼロ表示しない",
+  () => {
+    const view =
+      createRealAccountHomeView({
+        connection: {
+          connected: true,
+          authenticated: true,
+          provider: "MARKETSPEED II RSS / Excel",
+          message:
+            "MARKETSPEED II RSSの保有銘柄一覧と現物買付可能額を読み取り専用で同期しています。",
+        },
+        account: {
+          currency: "JPY",
+          cash: null,
+          buyingPower: 118000,
+          marketValue: 235000,
+          equity: null,
+          unrealizedPnl: 5000,
+          availableMetrics: {
+            cash: false,
+            buyingPower: true,
+            marketValue: true,
+            equity: false,
+            unrealizedPnl: true,
+          },
+        },
+        positions: [
+          {
+            symbol: "4755.T",
+            quantity: 100,
+          },
+          {
+            symbol: "9432.T",
+            quantity: 1000,
+          },
+        ],
+      });
+
+    assert.equal(
+      view.metrics.equity,
+      null,
+    );
+    assert.equal(
+      view.metrics.cash,
+      null,
+    );
+    assert.equal(
+      view.metrics.buyingPower,
+      118000,
+    );
+    assert.equal(
+      view.metrics.marketValue,
+      235000,
+    );
+    assert.equal(
+      view.metrics.unrealizedPnl,
+      5000,
+    );
+    assert.equal(
+      view.status.message.includes(
+        "現物買付可能額",
+      ),
+      true,
     );
   },
 );

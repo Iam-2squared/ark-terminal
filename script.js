@@ -434,3 +434,11 @@ document
             location.href = "./stocks/";
         }
     });
+
+import("./real-account-home.js")
+    .catch(function (error) {
+        console.error(
+            "Real account Home module failed to load:",
+            error
+        );
+    });

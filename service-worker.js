@@ -1,10 +1,14 @@
-const CACHE_NAME = "ark-terminal-v19";
+const CACHE_NAME = "ark-terminal-v20";
 
 const APP_SHELL = [
     "./",
     "./index.html",
     "./style.css",
     "./script.js",
+    "./real-account-home.js",
+    "./real-account-home.css",
+    "./predict/broker/real-account-home-view-v1.js",
+    "./predict/broker/readonly-broker-normalizer.js",
     "./manifest.json",
     "./discovery/index.html",
     "./discovery/style.css",

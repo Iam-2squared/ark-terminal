@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from threading import Lock
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from tools.rss_account_bridge import (
@@ -45,18 +45,74 @@ app.add_middleware(
     allow_headers=["Accept", "Content-Type", "X-Ark-Read-Only"],
 )
 
+PRIVATE_NETWORK_ALLOWED_HEADERS = {
+    "accept",
+    "content-type",
+    "x-ark-read-only",
+}
+
 
 @app.middleware("http")
 async def allow_restricted_private_network_access(
     request: Request,
     call_next,
 ):
-    response = await call_next(request)
     origin = request.headers.get("origin")
     private_network_requested = (
         request.headers.get("access-control-request-private-network", "").lower()
         == "true"
     )
+
+    is_broker_preflight = (
+        request.method == "OPTIONS"
+        and request.url.path.startswith("/broker/")
+        and private_network_requested
+    )
+
+    if is_broker_preflight:
+        requested_method = request.headers.get(
+            "access-control-request-method",
+            "",
+        ).upper()
+        requested_headers = {
+            item.strip().lower()
+            for item in request.headers.get(
+                "access-control-request-headers",
+                "",
+            ).split(",")
+            if item.strip()
+        }
+
+        allowed = (
+            origin in ALLOWED_ORIGINS
+            and requested_method == "GET"
+            and requested_headers.issubset(
+                PRIVATE_NETWORK_ALLOWED_HEADERS,
+            )
+        )
+
+        if not allowed:
+            return Response(
+                content="Private network request denied",
+                status_code=400,
+                media_type="text/plain",
+            )
+
+        return Response(
+            status_code=204,
+            headers={
+                "Access-Control-Allow-Origin": origin,
+                "Access-Control-Allow-Methods": "GET",
+                "Access-Control-Allow-Headers": (
+                    "Accept, Content-Type, X-Ark-Read-Only"
+                ),
+                "Access-Control-Allow-Private-Network": "true",
+                "Access-Control-Max-Age": "600",
+                "Vary": "Origin",
+            },
+        )
+
+    response = await call_next(request)
 
     if origin in ALLOWED_ORIGINS and private_network_requested:
         response.headers["Access-Control-Allow-Private-Network"] = "true"

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { runBacktestForwardValidation } from "../validation/backtest-forward-validation-v1.js";
+import { runBacktestForwardValidation } from "../validation/backtest-forward-validation-v2.js";
 import { selectProductionCandidate } from "../validation/model-selection-v1.js";
 
 function records(count = 180) {
@@ -64,6 +64,7 @@ test("Part2 integrates walk-forward and forward metrics without production updat
   });
 
   const diagnostic = JSON.stringify({
+    version: result.version,
     windowCount: result.windowCount,
     futureLeakChecked: result.futureLeakChecked,
     outOfSample: result.outOfSample,
@@ -72,6 +73,7 @@ test("Part2 integrates walk-forward and forward metrics without production updat
     comparison: result.comparison,
     warnings: result.warnings,
   });
+  assert.equal(result.version, "backtest-forward-validation-v2", diagnostic);
   assert.ok(result.windowCount > 0, diagnostic);
   assert.equal(result.futureLeakChecked, true, diagnostic);
   assert.equal(result.outOfSample, true, diagnostic);

@@ -1,6 +1,14 @@
-﻿const EPSILON = 1e-12;
+const EPSILON = 1e-12;
 
-function toFiniteNumber(value, fallback = 0) {
+function toFiniteNumber(value, fallback = null) {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+    return fallback;
+  }
+
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
 }
@@ -15,7 +23,10 @@ function round(value, digits = 6) {
 }
 
 function normalizeSignal(value) {
-  const signal = String(value ?? "").trim().toUpperCase();
+  const signal = String(value ?? "")
+    .trim()
+    .toUpperCase()
+    .replaceAll(" ", "_");
 
   if (signal === "BUY" || signal === "LONG") {
     return "BUY";
@@ -29,6 +40,37 @@ function normalizeSignal(value) {
     return "HOLD";
   }
 
+  if (
+    signal === "NO_TRADE" ||
+    signal === "NO-TRADE" ||
+    signal === "BLOCK" ||
+    signal === "WAIT" ||
+    signal === "REJECT"
+  ) {
+    return "NO_TRADE";
+  }
+
+  return "UNKNOWN";
+}
+
+function normalizeStatus(value) {
+  const status = String(value ?? "")
+    .trim()
+    .toUpperCase()
+    .replaceAll(" ", "_");
+
+  if (["WIN", "LOSS", "FLAT"].includes(status)) {
+    return status;
+  }
+
+  if (["PENDING", "OPEN", "UNRESOLVED"].includes(status)) {
+    return "PENDING";
+  }
+
+  if (["CANCELLED", "CANCELED", "VOID"].includes(status)) {
+    return "CANCELLED";
+  }
+
   return "UNKNOWN";
 }
 
@@ -38,6 +80,8 @@ function readProfit(row) {
     row?.pnl,
     row?.return,
     row?.returnRate,
+    row?.returnPercent,
+    row?.actualReturnPercent,
     row?.result?.profit,
     row?.result?.pnl,
     row?.outcome?.profit,
@@ -45,21 +89,22 @@ function readProfit(row) {
   ];
 
   for (const candidate of candidates) {
-    const number = Number(candidate);
+    const number = toFiniteNumber(candidate);
 
-    if (Number.isFinite(number)) {
+    if (number !== null) {
       return number;
     }
   }
 
-  return 0;
+  return null;
 }
 
-function readCorrect(row, profit) {
+function readExplicitCorrect(row) {
   const candidates = [
     row?.correct,
     row?.isCorrect,
     row?.hit,
+    row?.evaluation?.hit,
     row?.result?.correct,
     row?.outcome?.correct,
   ];
@@ -70,26 +115,78 @@ function readCorrect(row, profit) {
     }
   }
 
-  const predicted = normalizeSignal(
-    row?.signal ??
-      row?.prediction ??
-      row?.action ??
-      row?.decision ??
-      row?.result?.signal,
-  );
+  return null;
+}
 
-  const actual = normalizeSignal(
+function readActualSignal(row) {
+  return normalizeSignal(
     row?.actual ??
       row?.actualSignal ??
       row?.outcome?.signal ??
       row?.result?.actual,
   );
+}
 
-  if (predicted !== "UNKNOWN" && actual !== "UNKNOWN") {
-    return predicted === actual;
+function readCorrect(row, { signal, profit, status }) {
+  const explicit = readExplicitCorrect(row);
+
+  if (explicit !== null) {
+    return explicit;
   }
 
-  return profit > 0;
+  if (status === "WIN") {
+    return true;
+  }
+
+  if (status === "LOSS") {
+    return false;
+  }
+
+  if (status === "FLAT") {
+    return false;
+  }
+
+  const actual = readActualSignal(row);
+
+  if (
+    ["BUY", "SELL"].includes(signal) &&
+    ["BUY", "SELL"].includes(actual)
+  ) {
+    return signal === actual;
+  }
+
+  if (
+    ["BUY", "SELL"].includes(signal) &&
+    profit !== null
+  ) {
+    return profit > 0;
+  }
+
+  return null;
+}
+
+function isResolvedRow(row, { status, correct, profit, signal }) {
+  if (status === "PENDING" || status === "CANCELLED") {
+    return false;
+  }
+
+  if (row?.resolved === false) {
+    return false;
+  }
+
+  if (["WIN", "LOSS", "FLAT"].includes(status)) {
+    return true;
+  }
+
+  if (correct !== null) {
+    return true;
+  }
+
+  return (
+    row?.resolved === true &&
+    ["BUY", "SELL"].includes(signal) &&
+    profit !== null
+  );
 }
 
 function safeRate(numerator, denominator) {
@@ -132,13 +229,40 @@ export function normalizeAccuracyRows(rows = []) {
         row?.decision ??
         row?.result?.signal,
     );
+    const status = normalizeStatus(
+      row?.status ??
+        row?.outcome?.status ??
+        row?.result?.status ??
+        row?.outcome,
+    );
+    const correct = readCorrect(row, {
+      signal,
+      profit,
+      status,
+    });
+    const resolved = isResolvedRow(row, {
+      status,
+      correct,
+      profit,
+      signal,
+    });
 
     return {
       ...row,
       index,
       signal,
+      status,
       profit,
-      correct: readCorrect(row, profit),
+      correct,
+      resolved,
+      accuracyEligible:
+        resolved &&
+        ["BUY", "SELL"].includes(signal) &&
+        correct !== null,
+      tradePerformanceEligible:
+        resolved &&
+        ["BUY", "SELL"].includes(signal) &&
+        profit !== null,
     };
   });
 }
@@ -146,33 +270,64 @@ export function normalizeAccuracyRows(rows = []) {
 export function calculateAccuracyMetrics(rows = []) {
   const normalizedRows = normalizeAccuracyRows(rows);
 
-  const total = normalizedRows.length;
-  const correct = normalizedRows.filter((row) => row.correct).length;
+  const accuracyRows = normalizedRows.filter(
+    (row) => row.accuracyEligible,
+  );
+  const tradeRows = normalizedRows.filter(
+    (row) => row.tradePerformanceEligible,
+  );
+
+  const total = accuracyRows.length;
+  const correct = accuracyRows.filter(
+    (row) => row.correct === true,
+  ).length;
   const incorrect = total - correct;
 
-  const buyRows = normalizedRows.filter((row) => row.signal === "BUY");
-  const sellRows = normalizedRows.filter((row) => row.signal === "SELL");
-  const holdRows = normalizedRows.filter((row) => row.signal === "HOLD");
+  const buyRows = accuracyRows.filter(
+    (row) => row.signal === "BUY",
+  );
+  const sellRows = accuracyRows.filter(
+    (row) => row.signal === "SELL",
+  );
+  const holdRows = normalizedRows.filter(
+    (row) => row.signal === "HOLD",
+  );
+  const noTradeRows = normalizedRows.filter(
+    (row) => row.signal === "NO_TRADE",
+  );
+  const pendingRows = normalizedRows.filter(
+    (row) => !row.resolved,
+  );
+  const unknownRows = normalizedRows.filter(
+    (row) => row.signal === "UNKNOWN",
+  );
 
-  const winners = normalizedRows.filter((row) => row.profit > 0);
-  const losers = normalizedRows.filter((row) => row.profit < 0);
-  const flat = normalizedRows.filter(
+  const winners = tradeRows.filter(
+    (row) => row.profit > EPSILON,
+  );
+  const losers = tradeRows.filter(
+    (row) => row.profit < -EPSILON,
+  );
+  const flat = tradeRows.filter(
     (row) => Math.abs(row.profit) <= EPSILON,
   );
 
-  const grossProfit = winners.reduce((sum, row) => sum + row.profit, 0);
+  const grossProfit = winners.reduce(
+    (sum, row) => sum + row.profit,
+    0,
+  );
   const grossLoss = Math.abs(
     losers.reduce((sum, row) => sum + row.profit, 0),
   );
 
-  const netProfit = normalizedRows.reduce(
+  const netProfit = tradeRows.reduce(
     (sum, row) => sum + row.profit,
     0,
   );
 
   const averageProfit = safeRate(grossProfit, winners.length);
   const averageLoss = safeRate(grossLoss, losers.length);
-  const expectancy = safeRate(netProfit, total);
+  const expectancy = safeRate(netProfit, tradeRows.length);
 
   const profitFactor =
     grossLoss > EPSILON
@@ -181,13 +336,52 @@ export function calculateAccuracyMetrics(rows = []) {
         ? Number.POSITIVE_INFINITY
         : 0;
 
-  const buyCorrect = buyRows.filter((row) => row.correct).length;
-  const sellCorrect = sellRows.filter((row) => row.correct).length;
+  const buyCorrect = buyRows.filter(
+    (row) => row.correct === true,
+  ).length;
+  const sellCorrect = sellRows.filter(
+    (row) => row.correct === true,
+  ).length;
 
   return {
+    sourceTotal: normalizedRows.length,
     total,
     correct,
     incorrect,
+
+    denominatorPolicy: {
+      accuracy:
+        "Resolved BUY/SELL predictions with a known correctness result only.",
+      tradePerformance:
+        "Resolved BUY/SELL rows with a finite realized or evaluated P&L only.",
+      excludes: [
+        "PENDING",
+        "CANCELLED",
+        "NO_TRADE",
+        "HOLD",
+        "UNKNOWN",
+        "MISSING_OUTCOME",
+      ],
+    },
+
+    excluded: {
+      pending: pendingRows.length,
+      noTrade: noTradeRows.length,
+      hold: holdRows.length,
+      unknown: unknownRows.length,
+      missingCorrectness: normalizedRows.filter(
+        (row) =>
+          row.resolved &&
+          ["BUY", "SELL"].includes(row.signal) &&
+          row.correct === null,
+      ).length,
+      missingProfit: normalizedRows.filter(
+        (row) =>
+          row.resolved &&
+          ["BUY", "SELL"].includes(row.signal) &&
+          row.profit === null,
+      ).length,
+    },
 
     accuracy: round(safeRate(correct, total)),
     accuracyPercent: round(safeRate(correct, total) * 100),
@@ -214,13 +408,20 @@ export function calculateAccuracyMetrics(rows = []) {
       total: holdRows.length,
     },
 
+    noTrade: {
+      total: noTradeRows.length,
+    },
+
     trades: {
+      total: tradeRows.length,
       winners: winners.length,
       losers: losers.length,
       flat: flat.length,
-      winRate: round(safeRate(winners.length, total)),
+      winRate: round(
+        safeRate(winners.length, tradeRows.length),
+      ),
       winRatePercent: round(
-        safeRate(winners.length, total) * 100,
+        safeRate(winners.length, tradeRows.length) * 100,
       ),
     },
 
@@ -237,10 +438,20 @@ export function calculateAccuracyMetrics(rows = []) {
 
     maxDrawdown: round(
       calculateMaxDrawdown(
-        normalizedRows.map((row) => toFiniteNumber(row.profit)),
+        tradeRows.map((row) =>
+          toFiniteNumber(row.profit, 0),
+        ),
       ),
     ),
   };
 }
+
+export const AccuracyMetricsInternals = {
+  normalizeSignal,
+  normalizeStatus,
+  readProfit,
+  readCorrect,
+  isResolvedRow,
+};
 
 export default calculateAccuracyMetrics;

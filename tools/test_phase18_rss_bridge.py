@@ -25,7 +25,11 @@ def test_health_is_read_only():
     assert data['mode'] == 'read_only'
     assert data['order_creation'] is False
     assert data['order_transmission'] is False
-    assert data['parts'] == [1, 2, 3, 4, 5]
+    assert data['order_cancellation'] is False
+    assert data['phase'] == 19
+    assert data['parts'] == [1, 2, 3, 4, 5, 6]
+    assert data['market_data_phase'] == 18
+    assert data['account_bridge'] is True
 
 
 def test_price_and_batch(monkeypatch):

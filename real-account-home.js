@@ -2,8 +2,39 @@ import {
   createRealAccountHomeView,
 } from "./predict/broker/real-account-home-view-v1.js";
 
-const REAL_ACCOUNT_API_BASE =
+const REMOTE_REAL_ACCOUNT_API_BASE =
   "/api/broker-readonly";
+
+const DEFAULT_LOCAL_REAL_ACCOUNT_API_BASE =
+  "http://127.0.0.1:8000/broker";
+
+const CONNECTION_TIMEOUT_MS = 3500;
+const SNAPSHOT_TIMEOUT_MS = 5000;
+
+function getLocalApiBase() {
+  const runtimeValue =
+    globalThis.ARK_REAL_ACCOUNT_BRIDGE_URL;
+
+  let storedValue = null;
+
+  try {
+    storedValue =
+      globalThis.localStorage?.getItem(
+        "arkRealAccountBridgeUrl",
+      );
+  }
+  catch {
+    storedValue = null;
+  }
+
+  return String(
+    runtimeValue ||
+    storedValue ||
+    DEFAULT_LOCAL_REAL_ACCOUNT_API_BASE,
+  )
+    .trim()
+    .replace(/\/+$/, "");
+}
 
 function ensureStylesheet() {
   if (
@@ -117,32 +148,110 @@ function createCard() {
   );
 }
 
-async function fetchJson(path) {
-  const response =
-    await fetch(
-      `${REAL_ACCOUNT_API_BASE}/${path}`,
-      {
-        method: "GET",
-        credentials: "same-origin",
-        cache: "no-store",
-        headers: {
-          Accept: "application/json",
-          "X-Ark-Read-Only": "true",
-        },
-      },
+async function fetchJson(
+  apiBase,
+  path,
+  {
+    timeoutMs = SNAPSHOT_TIMEOUT_MS,
+  } = {},
+) {
+  const controller =
+    new AbortController();
+
+  const timeoutId =
+    setTimeout(
+      () => controller.abort(),
+      timeoutMs,
     );
 
-  const body =
-    await response.json();
+  const isSameOrigin =
+    apiBase.startsWith("/");
 
-  if (!response.ok) {
-    throw new Error(
-      body?.message ||
-      `Read-only broker request failed: ${response.status}`,
+  try {
+    const response =
+      await fetch(
+        `${apiBase}/${path}`,
+        {
+          method: "GET",
+          credentials:
+            isSameOrigin
+              ? "same-origin"
+              : "omit",
+          cache: "no-store",
+          signal:
+            controller.signal,
+          headers: {
+            Accept: "application/json",
+            "X-Ark-Read-Only": "true",
+          },
+        },
+      );
+
+    const body =
+      await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        body?.message ||
+        body?.detail ||
+        `Read-only broker request failed: ${response.status}`,
+      );
+    }
+
+    return body;
+  }
+  finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function resolveConnectionSource() {
+  const localApiBase =
+    getLocalApiBase();
+
+  try {
+    const connection =
+      await fetchJson(
+        localApiBase,
+        "connection",
+        {
+          timeoutMs:
+            CONNECTION_TIMEOUT_MS,
+        },
+      );
+
+    return {
+      apiBase:
+        localApiBase,
+      connection,
+      local:
+        true,
+    };
+  }
+  catch (localError) {
+    console.info(
+      "Local RSS account bridge is unavailable. Falling back to remote read-only status.",
+      localError,
     );
   }
 
-  return body;
+  const connection =
+    await fetchJson(
+      REMOTE_REAL_ACCOUNT_API_BASE,
+      "connection",
+      {
+        timeoutMs:
+          CONNECTION_TIMEOUT_MS,
+      },
+    );
+
+  return {
+    apiBase:
+      REMOTE_REAL_ACCOUNT_API_BASE,
+    connection,
+    local:
+      false,
+  };
 }
 
 function formatCurrency(
@@ -362,10 +471,16 @@ export async function loadRealAccountHome() {
   }
 
   try {
+    const source =
+      await resolveConnectionSource();
+
     const connection =
-      await fetchJson(
-        "connection",
-      );
+      source.connection;
+
+    card.dataset.accountSource =
+      source.local
+        ? "local-rss-bridge"
+        : "remote-readonly-status";
 
     if (
       connection?.connected !== true ||
@@ -385,8 +500,14 @@ export async function loadRealAccountHome() {
       positionsResponse,
     ] =
       await Promise.all([
-        fetchJson("account"),
-        fetchJson("positions"),
+        fetchJson(
+          source.apiBase,
+          "account",
+        ),
+        fetchJson(
+          source.apiBase,
+          "positions",
+        ),
       ]);
 
     render(
@@ -413,4 +534,6 @@ loadRealAccountHome();
 export const RealAccountHomeInternals = {
   formatCurrency,
   formatSyncTime,
+  getLocalApiBase,
+  resolveConnectionSource,
 };

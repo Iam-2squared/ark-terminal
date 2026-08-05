@@ -112,30 +112,12 @@ export function createPredictionLabRuntime({
     render(initialState);
   }
 
-  cleanupModelPerformanceUi?.();
-  const modelPerformanceUi =
-    startModelPerformanceUiV1({
-      windowRef,
-      documentRef,
-    });
-  cleanupModelPerformanceUi =
-    modelPerformanceUi.stop;
-
   const stop = () => {
     for (const eventName of eventNames) {
       windowRef.removeEventListener(
         eventName,
         handleAnalysis,
       );
-    }
-
-    modelPerformanceUi.stop();
-
-    if (
-      cleanupModelPerformanceUi ===
-      modelPerformanceUi.stop
-    ) {
-      cleanupModelPerformanceUi = null;
     }
   };
 
@@ -185,6 +167,13 @@ if (
 
   const start = () => {
     startPredictionLabRuntime();
+
+    cleanupModelPerformanceUi?.();
+    cleanupModelPerformanceUi =
+      startModelPerformanceUiV1({
+        windowRef: window,
+        documentRef: document,
+      }).stop;
   };
 
   if (

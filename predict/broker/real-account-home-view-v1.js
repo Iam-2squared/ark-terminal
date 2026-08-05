@@ -22,6 +22,7 @@ function createStatus({
   connected,
   authenticated,
   synchronized,
+  readyMessage = null,
 } = {}) {
   if (!connected) {
     return {
@@ -58,8 +59,26 @@ function createStatus({
     label: "READ ONLY",
     tone: "safe",
     message:
+      readyMessage ||
       "実口座データを読み取り専用で表示しています。",
   };
+}
+
+function metricIsAvailable(
+  normalizedAccount,
+  metric,
+) {
+  const availableMetrics =
+    normalizedAccount?.raw?.availableMetrics;
+
+  if (
+    !availableMetrics ||
+    typeof availableMetrics !== "object"
+  ) {
+    return true;
+  }
+
+  return availableMetrics[metric] !== false;
 }
 
 export function createRealAccountHomeView({
@@ -106,7 +125,23 @@ export function createRealAccountHomeView({
       connected,
       authenticated,
       synchronized,
+      readyMessage:
+        textOrNull(
+          connection?.message,
+        ),
     });
+
+  const metric = (
+    name,
+    value,
+  ) =>
+    synchronized &&
+    metricIsAvailable(
+      normalizedAccount,
+      name,
+    )
+      ? value
+      : null;
 
   return {
     version:
@@ -136,29 +171,34 @@ export function createRealAccountHomeView({
 
     metrics: {
       equity:
-        synchronized
-          ? normalizedAccount.equity
-          : null,
+        metric(
+          "equity",
+          normalizedAccount?.equity,
+        ),
 
       cash:
-        synchronized
-          ? normalizedAccount.cash
-          : null,
+        metric(
+          "cash",
+          normalizedAccount?.cash,
+        ),
 
       buyingPower:
-        synchronized
-          ? normalizedAccount.buyingPower
-          : null,
+        metric(
+          "buyingPower",
+          normalizedAccount?.buyingPower,
+        ),
 
       marketValue:
-        synchronized
-          ? normalizedAccount.marketValue
-          : null,
+        metric(
+          "marketValue",
+          normalizedAccount?.marketValue,
+        ),
 
       unrealizedPnl:
-        synchronized
-          ? normalizedAccount.unrealizedPnl
-          : null,
+        metric(
+          "unrealizedPnl",
+          normalizedAccount?.unrealizedPnl,
+        ),
 
       positionsCount:
         synchronized
@@ -180,4 +220,5 @@ export function createRealAccountHomeView({
 export const RealAccountHomeViewInternals = {
   textOrNull,
   createStatus,
+  metricIsAvailable,
 };

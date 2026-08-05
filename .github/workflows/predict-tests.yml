@@ -6,6 +6,8 @@ on:
       - "predict/**"
       - "discovery/**"
       - "tools/**"
+      - "real-account-home.js"
+      - "service-worker.js"
       - ".github/workflows/predict-tests.yml"
   workflow_dispatch:
 
@@ -51,4 +53,7 @@ jobs:
         run: npm test
 
       - name: Run RSS bridge tests
-        run: python -m pytest tools/test_phase18_rss_bridge.py
+        run: >-
+          python -m pytest
+          tools/test_phase18_rss_bridge.py
+          tools/test_phase19_account_bridge.py

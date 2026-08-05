@@ -121,6 +121,37 @@ test(
 );
 
 test(
+  "実口座カードは公式RSSの現物買付可能額を表示する",
+  async () => {
+    const source =
+      await readRootFile(
+        "real-account-home.js",
+      );
+
+    assert.equal(
+      source.includes(
+        "現物買付可能額",
+      ),
+      true,
+    );
+
+    assert.equal(
+      source.includes(
+        'id="realAccountBuyingPower"',
+      ),
+      true,
+    );
+
+    assert.equal(
+      source.includes(
+        'id="realAccountCash"',
+      ),
+      false,
+    );
+  },
+);
+
+test(
   "実口座カードには注文操作を置かない",
   async () => {
     const source =

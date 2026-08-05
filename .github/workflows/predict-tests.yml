@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "predict/**"
+      - "discovery/**"
       - ".github/workflows/predict-tests.yml"
   workflow_dispatch:
 
@@ -23,7 +24,7 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
+      - name: Install prediction dependencies
         working-directory: predict
         run: |
           if [ -f package-lock.json ]; then
@@ -32,6 +33,10 @@ jobs:
             npm install --ignore-scripts
           fi
 
-      - name: Run tests
+      - name: Run prediction tests
         working-directory: predict
+        run: npm test
+
+      - name: Run discovery tests
+        working-directory: discovery
         run: npm test

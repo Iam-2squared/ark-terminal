@@ -3,6 +3,11 @@ import { rankDiscoveryEntries } from "./ranking-adapter-v2.js";
 
 export const DISCOVERY_FINAL_V1 = "discovery-final-v1";
 
+function finiteOr(value, fallback = 0) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+}
+
 export function createDiscoveryFinalView({
   entries = [],
   filters = {},
@@ -14,6 +19,7 @@ export function createDiscoveryFinalView({
     ranked.map((entry) => ({
       ...entry,
       discoveryScore: entry.rankingScore,
+      volumeRatio: finiteOr(entry.volumeRatio, 0),
     })),
     filters,
     watchlist,

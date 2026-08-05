@@ -41,18 +41,25 @@ export function evaluateBrokerWriteLock({
       .trim()
       .toLowerCase();
 
-  const allowed =
-    BROKER_WRITE_LOCK.permittedWriteModes
-      .includes(mode);
+  const reportsLiveExecution =
+    adapterInfo?.liveTradingEnabled === true;
 
   const isLive =
-    mode === BROKER_MODES.LIVE;
+    mode === BROKER_MODES.LIVE ||
+    reportsLiveExecution;
+
+  const allowed =
+    !isLive &&
+    BROKER_WRITE_LOCK.permittedWriteModes
+      .includes(mode);
 
   return {
     allowed,
     blocked: !allowed,
     operation: normalizeOperation(operation),
     mode: mode || null,
+    adapterReportsLiveExecution:
+      reportsLiveExecution,
     reason: allowed
       ? null
       : isLive

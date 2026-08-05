@@ -109,7 +109,10 @@ export function composeAccuracyDashboardData({
   );
 
   return {
-    version: 2,
+    // Keep the public dashboard contract at v1 so existing UI consumers do
+    // not break. The denominator policy has its own explicit version below.
+    version: 1,
+    metricsPolicyVersion: 2,
 
     summary,
 
@@ -139,6 +142,8 @@ export function composeAccuracyDashboardData({
       generatedAt:
         options.generatedAt ??
         new Date().toISOString(),
+      // Backward-compatible alias used by the existing dashboard tests/UI.
+      rowCount: rows.length,
       sourceRowCount: rows.length,
       accuracyDenominatorCount: accuracyRows.length,
       tradePerformanceCount: tradeRows.length,

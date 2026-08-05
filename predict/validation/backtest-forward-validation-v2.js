@@ -49,30 +49,20 @@ function compare(candidate, production, thresholds) {
     cagr: candidate.cagr === null || production.cagr === null ? null : candidate.cagr - production.cagr,
   };
 
-  const accuracyPassed = deltas.accuracy !== null && deltas.accuracy >= thresholds.minimumAccuracyImprovement;
-  const profitFactorPassed = deltas.profitFactor !== null && deltas.profitFactor >= thresholds.minimumProfitFactorImprovement;
-  const sharpePassed = deltas.sharpe !== null && deltas.sharpe >= thresholds.minimumSharpeImprovement;
-  const drawdownPassed = deltas.maxDrawdown !== null && deltas.maxDrawdown <= thresholds.maximumDrawdownDeterioration;
-  const sampleSizePassed = (candidate.sampleSize ?? 0) >= thresholds.minimumSampleSize;
   const checks = {
-    accuracy: accuracyPassed,
-    profitFactor: profitFactorPassed,
-    sharpe: sharpePassed,
-    drawdown: drawdownPassed,
-    sampleSize: sampleSizePassed,
+    accuracy: deltas.accuracy !== null && deltas.accuracy >= thresholds.minimumAccuracyImprovement,
+    profitFactor: deltas.profitFactor !== null && deltas.profitFactor >= thresholds.minimumProfitFactorImprovement,
+    sharpe: deltas.sharpe !== null && deltas.sharpe >= thresholds.minimumSharpeImprovement,
+    drawdown: deltas.maxDrawdown !== null && deltas.maxDrawdown <= thresholds.maximumDrawdownDeterioration,
+    sampleSize: (candidate.sampleSize ?? 0) >= thresholds.minimumSampleSize,
   };
   const failedChecks = Object.keys(checks).filter((name) => checks[name] !== true);
-  const promotable = accuracyPassed === true
-    && profitFactorPassed === true
-    && sharpePassed === true
-    && drawdownPassed === true
-    && sampleSizePassed === true;
 
   return {
     deltas,
     checks,
     failedChecks,
-    promotable,
+    promotable: failedChecks.length === 0,
     humanApprovalRequired: true,
     productionUpdateAllowed: false,
   };
@@ -100,8 +90,10 @@ export async function runBacktestForwardValidationV2({
     ...thresholds,
   };
 
-  const windows = createWalkForwardWindows(records, splitterOptions);
+  const splitReport = createWalkForwardWindows(records, splitterOptions);
+  const windows = Array.isArray(splitReport?.windows) ? splitReport.windows : [];
   const windowResults = [];
+
   for (const window of windows) {
     const result = await evaluator({
       candidateModel,
@@ -135,7 +127,9 @@ export async function runBacktestForwardValidationV2({
   const productionMetrics = normalizeMetrics(productionBaseline?.overall ?? productionBaseline?.metrics ?? productionBaseline ?? {});
   const comparison = compare(candidateMetrics, productionMetrics, resolvedThresholds);
   const allFutureLeakChecked = futureLeakChecked === true && windowResults.every((result) => result.futureLeakChecked === true);
-  const outOfSample = windows.length > 0 && windowResults.every((result) => result.outOfSample === true);
+  const outOfSample = splitReport?.ready === true
+    && windows.length > 0
+    && windowResults.every((result) => result.outOfSample === true);
   const promotable = allFutureLeakChecked === true && outOfSample === true && comparison.promotable === true;
 
   return {
@@ -143,6 +137,14 @@ export async function runBacktestForwardValidationV2({
     generatedAt: new Date().toISOString(),
     candidateVersion: candidateModel.version,
     productionVersion: productionBaseline?.modelVersion ?? productionBaseline?.version ?? null,
+    splitter: {
+      version: splitReport?.version ?? null,
+      config: splitReport?.config ?? null,
+      inputSize: splitReport?.inputSize ?? records.length,
+      validRecordCount: splitReport?.validRecordCount ?? null,
+      invalidRecordCount: splitReport?.invalidRecordCount ?? null,
+      ready: splitReport?.ready === true,
+    },
     windows: windowResults,
     windowCount: windows.length,
     backtest,
@@ -159,7 +161,7 @@ export async function runBacktestForwardValidationV2({
       brokerExecutionAllowed: false,
     },
     warnings: [
-      ...(windows.length === 0 ? ["INSUFFICIENT_WALK_FORWARD_DATA"] : []),
+      ...(windows.length === 0 || splitReport?.ready !== true ? ["INSUFFICIENT_WALK_FORWARD_DATA"] : []),
       ...(!allFutureLeakChecked ? ["FUTURE_LEAK_CHECK_REQUIRED"] : []),
       ...(!outOfSample ? ["OUT_OF_SAMPLE_VALIDATION_REQUIRED"] : []),
       ...comparison.failedChecks.map((check) => `PROMOTION_CHECK_FAILED:${check}`),

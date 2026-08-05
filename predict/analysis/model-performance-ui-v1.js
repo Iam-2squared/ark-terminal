@@ -104,6 +104,7 @@ function metricCard(documentRef, label, production, candidate, options = {}) {
 
 function injectStyles(documentRef) {
   if (documentRef.getElementById("modelPerformanceUiV1Styles")) return;
+  if (typeof documentRef.createElement !== "function") return;
   const style = documentRef.createElement("style");
   style.id = "modelPerformanceUiV1Styles";
   style.textContent = `
@@ -125,7 +126,7 @@ function injectStyles(documentRef) {
     .modelPerformanceSafety strong{color:var(--orange)}
     @media(max-width:720px){.modelPerformanceVersions,.modelPerformanceGrid{grid-template-columns:1fr}.modelPerformanceMetricValues{grid-template-columns:1fr 1fr}}
   `;
-  documentRef.head?.append(style);
+  documentRef.head?.append?.(style);
 }
 
 export function mountModelPerformanceUiV1({
@@ -133,7 +134,13 @@ export function mountModelPerformanceUiV1({
   documentRef = globalThis.document,
   source = null,
 } = {}) {
-  if (!windowRef || !documentRef) return { mounted: false, reason: "environment_unavailable" };
+  const domAvailable =
+    Boolean(windowRef && documentRef) &&
+    typeof documentRef.createElement === "function" &&
+    typeof documentRef.getElementById === "function" &&
+    typeof documentRef.querySelector === "function";
+
+  if (!domAvailable) return { mounted: false, reason: "dom_unavailable" };
   injectStyles(documentRef);
 
   const savedBaseline = readJson(windowRef.localStorage, BASELINE_STORAGE_KEY);
@@ -150,8 +157,8 @@ export function mountModelPerformanceUiV1({
     root = text(documentRef, "article", "", "modelPerformanceCard fullWidthCard");
     root.id = "modelPerformanceCard";
     const anchor = documentRef.getElementById("globalEvaluationCard");
-    anchor?.parentNode?.insertBefore(root, anchor);
-    if (!root.parentNode) documentRef.querySelector(".dashboardGrid")?.append(root);
+    anchor?.parentNode?.insertBefore?.(root, anchor);
+    if (!root.parentNode) documentRef.querySelector(".dashboardGrid")?.append?.(root);
   }
   root.replaceChildren();
 

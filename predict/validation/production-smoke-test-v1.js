@@ -1,9 +1,13 @@
 export const PRODUCTION_SMOKE_TEST_V1 = "production-smoke-test-v1";
 
 function normalizeStatus(value) {
-  const status = String(value ?? "UNKNOWN").toUpperCase();
-  if (["READY", "HEALTHY", "OK", "SUCCESS"].includes(status)) return "PASS";
-  if (["DEGRADED", "WARNING", "PARTIAL"].includes(status)) return "WARN";
+  const source = value && typeof value === "object"
+    ? value.status ?? value.health ?? value.ready
+    : value;
+  if (source === true) return "PASS";
+  const status = String(source ?? "UNKNOWN").toUpperCase();
+  if (["READY", "HEALTHY", "OK", "SUCCESS", "PASS"].includes(status)) return "PASS";
+  if (["DEGRADED", "WARNING", "PARTIAL", "WARN"].includes(status)) return "WARN";
   return "FAIL";
 }
 
@@ -35,7 +39,7 @@ export function runProductionSmokeTest({
     ["live-trading-disabled", safety.liveExecutionAllowed === false ? "PASS" : "FAIL"],
     ["broker-disabled", safety.brokerConnected === false ? "PASS" : "FAIL"],
   ].map(([id, raw]) => {
-    const result = raw === "PASS" || raw === "WARN" || raw === "FAIL" ? raw : normalizeStatus(raw);
+    const result = normalizeStatus(raw);
     return { id, result, raw };
   });
 

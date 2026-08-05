@@ -1,11 +1,14 @@
 import {
   assertBrokerAdapter,
-  BROKER_MODES,
   validateBrokerOrder,
 } from "./broker-adapter-contract.js";
+import {
+  BROKER_WRITE_LOCK,
+  evaluateBrokerWriteLock,
+} from "./broker-write-lock.js";
 
 export const EXECUTION_BRIDGE_VERSION =
-  "execution-bridge-v1";
+  "execution-bridge-v2";
 
 function clone(value) {
   return structuredClone(value);
@@ -42,6 +45,9 @@ export function createExecutionBridge({
 
       policy: {
         allowLiveTrading:
+          false,
+
+        requestedAllowLiveTrading:
           Boolean(
             allowLiveTrading,
           ),
@@ -50,81 +56,42 @@ export function createExecutionBridge({
           Boolean(
             requireHumanApproval,
           ),
+
+        approvalProviderConfigured:
+          typeof approvalProvider ===
+          "function",
+
+        brokerWriteLock:
+          clone(
+            BROKER_WRITE_LOCK,
+          ),
       },
     };
   }
 
-  function verifyLiveSafety({
-    order,
-    approvalToken = null,
+  function verifyWriteSafety({
+    operation,
   } = {}) {
-    const info =
-      adapter.getInfo();
+    const lock =
+      evaluateBrokerWriteLock({
+        adapterInfo:
+          adapter.getInfo(),
 
-    if (
-      info.mode !==
-      BROKER_MODES.LIVE
-    ) {
-      return {
-        passed: true,
-        reason: null,
-      };
-    }
+        operation,
+      });
 
-    if (!allowLiveTrading) {
+    if (lock.blocked) {
       return {
         passed: false,
-        reason:
-          "live_trading_disabled",
+        reason: lock.reason,
+        lock,
       };
-    }
-
-    if (
-      !info.liveTradingEnabled
-    ) {
-      return {
-        passed: false,
-        reason:
-          "adapter_live_trading_disabled",
-      };
-    }
-
-    if (
-      requireHumanApproval
-    ) {
-      if (
-        typeof approvalProvider !==
-        "function"
-      ) {
-        return {
-          passed: false,
-          reason:
-            "approval_provider_missing",
-        };
-      }
-
-      const approved =
-        approvalProvider({
-          order:
-            clone(order),
-
-          approvalToken,
-        });
-
-      if (
-        approved !== true
-      ) {
-        return {
-          passed: false,
-          reason:
-            "human_approval_required",
-        };
-      }
     }
 
     return {
       passed: true,
       reason: null,
+      lock,
     };
   }
 
@@ -149,11 +116,16 @@ export function createExecutionBridge({
         validation,
 
         brokerOrder: null,
+
+        transmitted: false,
       };
     }
 
     const safety =
-      verifyLiveSafety({
+      verifyWriteSafety({
+        operation:
+          "SUBMIT_ORDER",
+
         order:
           validation
             .normalizedOrder,
@@ -171,6 +143,10 @@ export function createExecutionBridge({
         validation,
 
         brokerOrder: null,
+
+        transmitted: false,
+
+        safety,
       };
     }
 
@@ -193,12 +169,37 @@ export function createExecutionBridge({
         clone(
           brokerOrder,
         ),
+
+      transmitted:
+        brokerOrder?.transmitted ===
+        true,
+
+      safety,
     };
   }
 
   function cancelOrder({
     adapterOrderId,
   } = {}) {
+    const safety =
+      verifyWriteSafety({
+        operation:
+          "CANCEL_ORDER",
+      });
+
+    if (!safety.passed) {
+      return {
+        adapterOrderId:
+          adapterOrderId ||
+          null,
+
+        cancelled: false,
+        transmitted: false,
+        reason: safety.reason,
+        safety,
+      };
+    }
+
     return adapter.cancelOrder({
       adapterOrderId,
     });

@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cloud Sync | Ark Terminal</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <header class="pageHeader">
+      <div class="headerInner">
+        <div class="headerNavigation">
+          <a href="index.html" class="backButton">← Prediction Lab</a>
+          <div class="headerActionGroup">
+            <a href="performance.html" class="secondaryButton headerAction">
+              AI成績
+            </a>
+          </div>
+        </div>
+
+        <div class="headerText">
+          <p class="eyebrow">Ark Terminal</p>
+          <h1>Cloud Sync</h1>
+          <p class="headerDescription">
+            予測・判定結果・学習履歴を端末内とクラウドへ二重保存します。
+            実口座情報、証券会社の認証情報、APIキーは保存対象外です。
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <main class="pageMain">
+      <section
+        id="cloudSyncPanel"
+        class="marketCard"
+        aria-labelledby="cloudSyncTitle"
+      >
+        <div class="marketHeader">
+          <div>
+            <p class="cardLabel">Secure Persistence</p>
+            <h2 id="cloudSyncTitle">クラウド保存</h2>
+            <p class="marketSymbolLabel">
+              保存先：Vercel API → REST KV
+            </p>
+          </div>
+
+          <span
+            id="cloudSyncStatus"
+            class="marketStatusBadge loading"
+            aria-live="polite"
+          >
+            確認中
+          </span>
+        </div>
+
+        <div class="dataSourceDescription">
+          <p>
+            同期パスフレーズは接続時だけVercelへ送信され、
+            ブラウザのlocalStorageには保存されません。
+            認証後はHttpOnly Cookieを使います。
+          </p>
+        </div>
+
+        <form id="cloudSyncForm" class="controlPanel">
+          <div class="controlGroup">
+            <label for="cloudSyncSecret">同期パスフレーズ</label>
+            <input
+              id="cloudSyncSecret"
+              name="cloudSyncSecret"
+              type="password"
+              autocomplete="current-password"
+              placeholder="Vercelに設定したパスフレーズ"
+              required
+            />
+          </div>
+
+          <button
+            id="cloudSyncConnectButton"
+            class="primaryButton"
+            type="submit"
+          >
+            接続して同期
+          </button>
+
+          <button
+            id="cloudSyncDisconnectButton"
+            class="secondaryButton"
+            type="button"
+            hidden
+          >
+            切断
+          </button>
+        </form>
+
+        <p
+          id="cloudSyncMessage"
+          class="chartNote"
+          aria-live="polite"
+        >
+          接続状態を確認しています。
+        </p>
+
+        <div class="scoreStatGrid">
+          <div>
+            <span>端末内の予測</span>
+            <strong id="cloudLocalPredictionCount">--</strong>
+          </div>
+          <div>
+            <span>クラウド同期対象</span>
+            <strong id="cloudEligiblePredictionCount">--</strong>
+          </div>
+        </div>
+
+        <button
+          id="cloudSyncNowButton"
+          class="secondaryButton"
+          type="button"
+        >
+          今すぐ再同期
+        </button>
+      </section>
+
+      <section class="marketCard">
+        <div class="cardHeader">
+          <div>
+            <p class="cardLabel">Safety Boundary</p>
+            <h2>保存しないもの</h2>
+          </div>
+        </div>
+
+        <div class="predictionOutputGrid">
+          <div class="predictionOutputItem">
+            <span>楽天証券のログイン情報</span>
+            <strong>保存禁止</strong>
+          </div>
+          <div class="predictionOutputItem">
+            <span>実口座番号・認証情報</span>
+            <strong>保存禁止</strong>
+          </div>
+          <div class="predictionOutputItem">
+            <span>OpenAI・市場データAPIキー</span>
+            <strong>保存禁止</strong>
+          </div>
+          <div class="predictionOutputItem">
+            <span>実注文・取消</span>
+            <strong>常時無効</strong>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="cloud/cloud-sync-page.js"></script>
+  </body>
+</html>

@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from typing import Any
-
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+import pythoncom
 import win32com.client
 
 app = FastAPI(title="Ark Terminal RSS Bridge")
@@ -24,17 +23,29 @@ SYMBOLS: dict[str, str] = {
 }
 
 
-def get_sheet() -> Any:
+def read_price_from_excel(cell: str) -> float:
+    pythoncom.CoInitialize()
     try:
         excel = win32com.client.GetActiveObject("Excel.Application")
         workbook = excel.ActiveWorkbook
         if workbook is None:
             raise RuntimeError("Excelでブックが開かれていません。")
-        return workbook.Worksheets("Sheet1")
+
+        sheet = workbook.Worksheets("Sheet1")
+        value = sheet.Range(cell).Value
+
+        if value is None:
+            raise RuntimeError("価格を取得できません。")
+
+        return float(value)
+    except RuntimeError:
+        raise
     except Exception as exc:
         raise RuntimeError(
             "ExcelまたはMARKETSPEED II RSSに接続できません。"
         ) from exc
+    finally:
+        pythoncom.CoUninitialize()
 
 
 @app.get("/health")
@@ -55,17 +66,13 @@ def get_price(symbol: str) -> dict[str, object]:
         raise HTTPException(status_code=404, detail="未登録の銘柄です。")
 
     try:
-        sheet = get_sheet()
-        value = sheet.Range(SYMBOLS[normalized]).Value
+        value = read_price_from_excel(SYMBOLS[normalized])
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
-    if value is None:
-        raise HTTPException(status_code=503, detail="価格を取得できません。")
-
     return {
         "symbol": normalized,
-        "price": float(value),
+        "price": value,
         "source": "MARKETSPEED II RSS",
         "read_only": True,
         "order_transmission": False,

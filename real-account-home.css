@@ -1,0 +1,102 @@
+.realAccountCard {
+  grid-column: 1 / -1;
+  min-height: 0;
+  background:
+    linear-gradient(135deg, #ffffff 0%, #f7fbff 100%);
+  border-color: #cfe0f6;
+}
+
+.realAccountStatus.warning {
+  color: #a16207;
+  background: #fef3c7;
+}
+
+.realAccountStatus.safe {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.realAccountStatus.error {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.realAccountMeta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 16px;
+}
+
+.realAccountMeta > span {
+  display: grid;
+  gap: 5px;
+  padding: 12px 14px;
+  color: #7b879b;
+  background: rgba(248, 250, 252, 0.92);
+  border: 1px solid #e5ebf3;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.realAccountMeta strong {
+  overflow: hidden;
+  color: #172033;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.realAccountMetricGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.realAccountMetricGrid strong.positive {
+  color: #15803d;
+}
+
+.realAccountMetricGrid strong.negative {
+  color: #b91c1c;
+}
+
+.realAccountSafetyNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 2px;
+  padding: 14px 16px;
+  color: #475569;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 13px;
+}
+
+.realAccountSafetyNotice > span {
+  font-size: 18px;
+}
+
+.realAccountSafetyNotice strong {
+  display: block;
+  margin-bottom: 3px;
+  color: #1d4ed8;
+  font-size: 13px;
+}
+
+.realAccountSafetyNotice p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .realAccountMetricGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .realAccountMeta,
+  .realAccountMetricGrid {
+    grid-template-columns: 1fr;
+  }
+}

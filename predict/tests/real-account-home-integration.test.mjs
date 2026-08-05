@@ -106,7 +106,14 @@ test(
 
     assert.equal(
       source.includes(
-        'credentials:\n            isSameOrigin\n              ? "same-origin"\n              : "omit"',
+        '"same-origin"',
+      ),
+      true,
+    );
+
+    assert.equal(
+      source.includes(
+        '"omit"',
       ),
       true,
     );

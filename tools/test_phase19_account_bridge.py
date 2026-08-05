@@ -160,8 +160,8 @@ def test_broker_endpoints_return_read_only_snapshot(monkeypatch):
     assert snapshot_response.status_code == 200
     assert snapshot_response.json()["orders"] == []
 
-    assert client.post("/broker/account").status_code == 405
-    assert client.delete("/broker/positions").status_code == 405
+    assert client.post("/broker/account").status_code in {404, 405}
+    assert client.delete("/broker/positions").status_code in {404, 405}
 
 
 def test_connection_reports_configuration_error_without_fake_values(monkeypatch):

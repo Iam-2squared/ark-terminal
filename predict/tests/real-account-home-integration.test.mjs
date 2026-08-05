@@ -76,6 +76,51 @@ test(
 );
 
 test(
+  "HomeはローカルRSS Bridgeを優先して遠隔状態へフォールバックする",
+  async () => {
+    const source =
+      await readRootFile(
+        "real-account-home.js",
+      );
+
+    assert.equal(
+      source.includes(
+        "http://127.0.0.1:8000/broker",
+      ),
+      true,
+    );
+
+    assert.equal(
+      source.includes(
+        '"/api/broker-readonly"',
+      ),
+      true,
+    );
+
+    assert.equal(
+      source.includes(
+        "resolveConnectionSource",
+      ),
+      true,
+    );
+
+    assert.equal(
+      source.includes(
+        '"same-origin"',
+      ),
+      true,
+    );
+
+    assert.equal(
+      source.includes(
+        '"omit"',
+      ),
+      true,
+    );
+  },
+);
+
+test(
   "実口座カードには注文操作を置かない",
   async () => {
     const source =

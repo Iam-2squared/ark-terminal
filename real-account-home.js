@@ -117,8 +117,8 @@ function createCard() {
             <strong id="realAccountEquity">--</strong>
           </div>
           <div>
-            <span>現金残高</span>
-            <strong id="realAccountCash">--</strong>
+            <span>現物買付可能額</span>
+            <strong id="realAccountBuyingPower">--</strong>
           </div>
           <div>
             <span>保有時価</span>
@@ -361,9 +361,9 @@ function render(view) {
   );
 
   setText(
-    "realAccountCash",
+    "realAccountBuyingPower",
     formatCurrency(
-      view.metrics.cash,
+      view.metrics.buyingPower,
       view.currency,
     ),
   );

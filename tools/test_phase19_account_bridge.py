@@ -189,3 +189,35 @@ def test_connection_reports_configuration_error_without_fake_values(monkeypatch)
 def test_cors_is_restricted_to_known_origins():
     assert "https://ark-terminal.vercel.app" in rss_bridge.ALLOWED_ORIGINS
     assert "*" not in rss_bridge.ALLOWED_ORIGINS
+
+
+def test_private_network_preflight_is_allowed_only_for_known_origin():
+    client = TestClient(rss_bridge.app)
+
+    allowed = client.options(
+        "/broker/connection",
+        headers={
+            "Origin": "https://ark-terminal.vercel.app",
+            "Access-Control-Request-Method": "GET",
+            "Access-Control-Request-Headers": "x-ark-read-only",
+            "Access-Control-Request-Private-Network": "true",
+        },
+    )
+
+    assert allowed.status_code == 200
+    assert allowed.headers["access-control-allow-origin"] == (
+        "https://ark-terminal.vercel.app"
+    )
+    assert allowed.headers["access-control-allow-private-network"] == "true"
+
+    denied = client.options(
+        "/broker/connection",
+        headers={
+            "Origin": "https://example.invalid",
+            "Access-Control-Request-Method": "GET",
+            "Access-Control-Request-Headers": "x-ark-read-only",
+            "Access-Control-Request-Private-Network": "true",
+        },
+    )
+
+    assert "access-control-allow-private-network" not in denied.headers

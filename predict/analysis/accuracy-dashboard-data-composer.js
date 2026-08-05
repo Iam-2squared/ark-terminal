@@ -1,5 +1,6 @@
-﻿import {
+import {
   calculateAccuracyMetrics,
+  normalizeAccuracyRows,
 } from "./accuracy-metrics.js";
 
 import {
@@ -14,38 +15,31 @@ import {
   aggregatePeriodPerformance,
 } from "./period-performance.js";
 
-function readReturn(row) {
-  const candidates = [
-    row?.return,
-    row?.returnRate,
-    row?.profitRate,
-    row?.profit,
-    row?.pnl,
-    row?.result?.return,
-    row?.result?.profit,
-  ];
-
-  for (const candidate of candidates) {
-    const number = Number(candidate);
-
-    if (Number.isFinite(number)) {
-      return number;
-    }
-  }
-
-  return 0;
-}
-
 function createHealth(summary, risk, calibration) {
   const warnings = [];
 
   if (summary.total === 0) {
-    warnings.push("No accuracy data is available.");
+    warnings.push("No resolved BUY/SELL accuracy data is available.");
   }
 
   if (summary.total > 0 && summary.total < 30) {
     warnings.push(
-      "The sample size is too small for reliable conclusions.",
+      "The resolved directional sample is too small for reliable conclusions.",
+    );
+  }
+
+  if (summary.excluded.pending > 0) {
+    warnings.push(
+      "Pending outcomes are excluded from the accuracy denominator.",
+    );
+  }
+
+  if (
+    summary.excluded.noTrade > 0 ||
+    summary.excluded.hold > 0
+  ) {
+    warnings.push(
+      "NO_TRADE and HOLD decisions are reported separately and excluded from directional accuracy.",
     );
   }
 
@@ -84,21 +78,29 @@ export function composeAccuracyDashboardData({
     throw new TypeError("rows must be an array");
   }
 
+  const normalizedRows = normalizeAccuracyRows(rows);
   const summary = calculateAccuracyMetrics(rows);
 
+  const accuracyRows = normalizedRows.filter(
+    (row) => row.accuracyEligible,
+  );
+  const tradeRows = normalizedRows.filter(
+    (row) => row.tradePerformanceEligible,
+  );
+
   const riskAdjusted = calculateRiskAdjustedMetrics(
-    rows.map(readReturn),
+    tradeRows.map((row) => row.profit),
     options.riskAdjusted,
   );
 
   const confidenceCalibration =
     calculateConfidenceCalibration(
-      rows,
+      accuracyRows,
       options.confidenceCalibration,
     );
 
   const periodPerformance =
-    aggregatePeriodPerformance(rows);
+    aggregatePeriodPerformance(tradeRows);
 
   const health = createHealth(
     summary,
@@ -107,12 +109,15 @@ export function composeAccuracyDashboardData({
   );
 
   return {
+    // Keep the public dashboard contract at v1 so existing UI consumers do
+    // not break. The denominator policy has its own explicit version below.
     version: 1,
+    metricsPolicyVersion: 2,
 
     summary,
 
     tradePerformance: {
-      totalTrades: summary.total,
+      totalTrades: summary.trades.total,
       winningTrades: summary.trades.winners,
       losingTrades: summary.trades.losers,
       flatTrades: summary.trades.flat,
@@ -137,7 +142,12 @@ export function composeAccuracyDashboardData({
       generatedAt:
         options.generatedAt ??
         new Date().toISOString(),
+      // Backward-compatible alias used by the existing dashboard tests/UI.
       rowCount: rows.length,
+      sourceRowCount: rows.length,
+      accuracyDenominatorCount: accuracyRows.length,
+      tradePerformanceCount: tradeRows.length,
+      excluded: { ...summary.excluded },
       source:
         options.source ??
         "accuracy-dashboard-data-composer",
@@ -146,4 +156,3 @@ export function composeAccuracyDashboardData({
 }
 
 export default composeAccuracyDashboardData;
-

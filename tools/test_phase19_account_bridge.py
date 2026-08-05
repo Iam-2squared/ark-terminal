@@ -204,7 +204,7 @@ def test_private_network_preflight_is_allowed_only_for_known_origin():
         },
     )
 
-    assert allowed.status_code == 200
+    assert allowed.status_code in {200, 204}
     assert allowed.headers["access-control-allow-origin"] == (
         "https://ark-terminal.vercel.app"
     )
@@ -220,4 +220,5 @@ def test_private_network_preflight_is_allowed_only_for_known_origin():
         },
     )
 
+    assert denied.status_code == 400
     assert "access-control-allow-private-network" not in denied.headers

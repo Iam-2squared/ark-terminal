@@ -39,51 +39,71 @@ MARKETSPEED II、Excel、RSSアドインを起動し、対象ブックをExcel�
 - A3: 7203.T
 - A4: 9984.T
 
-## 実口座サマリーシート
+## 実保有銘柄シート（公式RSS関数）
 
-`ArkAccount`という名前のシートを作り、既存のRSS出力または参照式を次のセルへ配置します。
+`ArkPositions`という名前のシートを作ります。
 
-| セル | 内容 | 必須 |
-|---|---|---|
-| B2 | 現金残高 | いずれか1つ以上 |
-| B3 | 買付可能額 | 任意 |
-| B4 | 保有時価 | いずれか1つ以上 |
-| B5 | 総資産 | いずれか1つ以上 |
-| B6 | 実現損益 | 任意 |
-| B7 | 評価損益 | 任意 |
-| B8 | 通貨（通常`JPY`） | 任意 |
-| B9 | 更新日時 | 任意 |
-| B10 | 口座種別 | 任意 |
+1. `マーケットスピード II`タブを開く
+2. `注文約定`を選ぶ
+3. 関数指定で`保有銘柄一覧（RssPositionList）`を選ぶ
+4. 銘柄コードは空欄にする（全保有銘柄）
+5. 口座区分は`全て`を選ぶ
+6. 表示開始セルを`A1`にして登録する
 
-口座番号、ログインID、パスワードはこのシートへ入れません。
+MARKETSPEED II RSSは次の形式で展開します。
 
-## 実保有銘柄シート
+```text
+1行目: RssPositionList関数
+2行目: 取得項目ヘッダー
+3行目以降: 実保有銘柄
+```
 
-`ArkPositions`という名前のシートを作り、1行目を見出し、2行目以降へ保有銘柄を連続して配置します。
+Bridgeは公式の戻り値から次を読み取ります。
 
-| 列 | 内容 |
-|---|---|
-| A | 銘柄コード（例: `4755`または`4755.T`） |
-| B | 銘柄名 |
-| C | 保有数量 |
-| D | 売却可能数量 |
-| E | 平均取得価額 |
-| F | 現在値 |
-| G | 保有時価 |
-| H | 評価損益 |
-| I | 評価損益率 |
-| J | 通貨 |
-| K | 口座種別 |
-| L | 更新日時 |
+- 銘柄コード
+- 銘柄名称
+- 口座区分
+- 保有数量
+- 発注数量
+- 平均取得価額
+- 時価
+- 時価評価額
+- 評価損益額
+- 評価損益率
 
-A列が空になった行で読み取りを終了します。数量が0の行は無視されます。
+`RssMarket`は市況情報用であり、実口座の保有数量や平均取得価額は返しません。
+
+## 現物買付可能額シート（公式RSS関数）
+
+`ArkAccount`という名前のシートを作ります。
+
+1. `マーケットスピード II`タブを開く
+2. `注文約定`を選ぶ
+3. 関数指定で`余力・保証金率（RssCapacityList）`を選ぶ
+4. 表示開始セルを`A1`にして登録する
+
+Bridgeは`現物買付可能額`を読み取ります。
+
+公式RSS関数では、現金残高と総資産そのものは返されません。そのためHomeでは次の扱いになります。
+
+- 現物買付可能額: `RssCapacityList`から表示
+- 保有時価: `RssPositionList`の時価評価額を合計
+- 評価損益: `RssPositionList`の評価損益額を合計
+- 総資産: 公式データがないため`--`
+- 現金残高: 公式データがないため表示対象外
+
+買付可能額と現金残高は同じとは限らないため、Bridgeは両者を同一値として偽装しません。
+
+## 旧シート形式との互換性
+
+以前の正規化済みレイアウトも互換用として残しています。ただし、新規設定では公式の`RssPositionList`と`RssCapacityList`を使用してください。
 
 ## 起動
 
 リポジトリのルートで実行します。
 
 ```powershell
-py -m uvicorn tools.rss_bridge:app --host 127.0.0.1 --port 8000
+py -m uvicorn tools.rss_bridge:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 ## 確認URL
@@ -95,7 +115,7 @@ py -m uvicorn tools.rss_bridge:app --host 127.0.0.1 --port 8000
 - http://127.0.0.1:8000/broker/positions
 - http://127.0.0.1:8000/broker/snapshot
 
-`/broker/connection`が`connected: true`かつ`authenticated: true`になれば、Homeの実口座カードがローカルBridgeを優先して読み取ります。
+`/broker/connection`が`connected: true`かつ`authenticated: true`になり、`/broker/snapshot`の`sourceMode`が`marketspeed-native-rss`なら、公式RSS関数の出力を読み取れています。
 
 ## Ark Terminalの接続先
 
@@ -138,4 +158,7 @@ $env:ARK_RSS_ALLOWED_ORIGINS="http://localhost:3000"
 
 ## 注意
 
-このコードはExcelに既に表示されている値を読み取ります。楽天証券側の実口座情報をExcelへ出すRSS関数や既存シート構成そのものは、使用中のMARKETSPEED II RSSブックで確認が必要です。Bridgeは存在しない値を推測したり、`0`で偽装したりしません。
+- 注文関数は使用しません
+- `RssStockOrder`、`RssModifyOrder`、`RssCancelOrder`などはBridgeから呼びません
+- `発注不可`のままで問題ありません
+- Bridgeは存在しない値を推測したり、`0`で偽装したりしません

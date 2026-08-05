@@ -7,8 +7,13 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-import pythoncom
-import win32com.client
+
+try:
+    import pythoncom
+    import win32com.client as win32_client
+except ImportError:  # CI and non-Windows environments
+    pythoncom = None
+    win32_client = None
 
 app = FastAPI(title="Ark Terminal RSS Bridge")
 
@@ -54,10 +59,18 @@ def normalize_symbol(symbol: str) -> str:
     return normalized
 
 
+def require_windows_com() -> None:
+    if pythoncom is None or win32_client is None:
+        raise RuntimeError(
+            "MARKETSPEED II RSS BridgeはWindows環境でのみ利用できます。"
+        )
+
+
 def read_sheet_snapshot() -> tuple[Any, Any]:
+    require_windows_com()
     pythoncom.CoInitialize()
     try:
-        excel = win32com.client.GetActiveObject("Excel.Application")
+        excel = win32_client.GetActiveObject("Excel.Application")
         workbook = excel.ActiveWorkbook
         if workbook is None:
             raise RuntimeError("Excelでブックが開かれていません。")
@@ -73,7 +86,8 @@ def read_sheet_snapshot() -> tuple[Any, Any]:
 
 
 def release_com() -> None:
-    pythoncom.CoUninitialize()
+    if pythoncom is not None:
+        pythoncom.CoUninitialize()
 
 
 def read_price_from_excel(symbol: str) -> float:

@@ -6,7 +6,12 @@ import {
   normalizeAnalysisEventSource,
 } from "./analysis-event-bridge.js";
 
+import {
+  startModelPerformanceUiV1,
+} from "./model-performance-ui-v1.js";
+
 let cleanupCurrentListeners = null;
+let cleanupModelPerformanceUi = null;
 
 export function createPredictionLabRuntime({
   windowRef = globalThis.window,
@@ -144,6 +149,8 @@ export function startPredictionLabRuntime({
 export function stopPredictionLabRuntime() {
   cleanupCurrentListeners?.();
   cleanupCurrentListeners = null;
+  cleanupModelPerformanceUi?.();
+  cleanupModelPerformanceUi = null;
 }
 
 if (
@@ -160,6 +167,13 @@ if (
 
   const start = () => {
     startPredictionLabRuntime();
+
+    cleanupModelPerformanceUi?.();
+    cleanupModelPerformanceUi =
+      startModelPerformanceUiV1({
+        windowRef: window,
+        documentRef: document,
+      }).stop;
   };
 
   if (

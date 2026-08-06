@@ -111,10 +111,15 @@ const STORAGE_MAP = Object.freeze({
 
 export function createSafeBackup({
   storage = globalThis.localStorage,
+  predictionReader = getPredictions,
   now = () => new Date(),
 } = {}) {
+  if (typeof predictionReader !== "function") {
+    throw new TypeError("predictionReader must be a function");
+  }
+
   const data = {
-    predictions: getPredictions(),
+    predictions: predictionReader(),
     learningReports: parseStoredArray(storage, STORAGE_MAP.learningReports),
     candidates: parseStoredArray(storage, STORAGE_MAP.candidates),
     forwardTests: parseStoredArray(storage, STORAGE_MAP.forwardTests),
@@ -158,19 +163,31 @@ export function validateSafeBackup(input) {
 
 export function importSafeBackup(input, {
   storage = globalThis.localStorage,
+  predictionReader = getPredictions,
+  predictionWriter = setPredictions,
   mode = "replace",
 } = {}) {
+  if (typeof predictionReader !== "function") {
+    throw new TypeError("predictionReader must be a function");
+  }
+  if (typeof predictionWriter !== "function") {
+    throw new TypeError("predictionWriter must be a function");
+  }
+
   const backup = validateSafeBackup(input);
   const merge = mode === "merge";
 
   const predictions = Array.isArray(backup.data.predictions) ? backup.data.predictions : [];
+  const currentPredictions = merge ? predictionReader() : [];
   const nextPredictions = merge
     ? [
-        ...getPredictions().filter((item) => !predictions.some((candidate) => candidate?.id === item?.id)),
+        ...currentPredictions.filter(
+          (item) => !predictions.some((candidate) => candidate?.id === item?.id),
+        ),
         ...predictions,
       ]
     : predictions;
-  setPredictions(nextPredictions);
+  predictionWriter(nextPredictions);
 
   for (const [section, key] of Object.entries(STORAGE_MAP)) {
     const incoming = Array.isArray(backup.data[section]) ? backup.data[section] : [];

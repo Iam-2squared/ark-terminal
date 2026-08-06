@@ -42,13 +42,17 @@ class FakeWorkbook:
         self.Worksheets = FakeWorksheets(worksheet)
 
 
-def test_runner_writes_preview_and_keeps_trigger_false(monkeypatch):
+def test_runner_writes_preview_and_keeps_trigger_false():
     worksheet = FakeWorksheet()
     workbook = FakeWorkbook(worksheet)
-    monkeypatch.setattr(runner, "read_workbook_snapshot", lambda: (SimpleNamespace(), workbook))
-    monkeypatch.setattr(runner, "release_com", lambda: None)
 
-    result = runner.run_excel_preview("7203.T", 100, 1.0)
+    result = runner.run_excel_preview(
+        "7203.T",
+        100,
+        1.0,
+        workbook_reader=lambda: (SimpleNamespace(), workbook),
+        com_releaser=lambda: None,
+    )
 
     assert result["status"] == "PREVIEW_WRITTEN"
     assert worksheet.store["B2"] == "7203.T"
@@ -61,17 +65,20 @@ def test_runner_writes_preview_and_keeps_trigger_false(monkeypatch):
     assert result["safety"]["liveTradingAllowed"] is False
 
 
-def test_runner_reports_missing_order_sheet(monkeypatch):
+def test_runner_reports_missing_order_sheet():
     class MissingWorkbook:
         class Worksheets:
             def __new__(cls, name: str):
                 raise KeyError(name)
 
-    monkeypatch.setattr(runner, "read_workbook_snapshot", lambda: (SimpleNamespace(), MissingWorkbook()))
-    monkeypatch.setattr(runner, "release_com", lambda: None)
-
     try:
-        runner.run_excel_preview("7203.T", 100, 1.0)
+        runner.run_excel_preview(
+            "7203.T",
+            100,
+            1.0,
+            workbook_reader=lambda: (SimpleNamespace(), MissingWorkbook()),
+            com_releaser=lambda: None,
+        )
     except RuntimeError as exc:
         assert "ARK_ORDER" in str(exc)
     else:

@@ -13,6 +13,9 @@
         <div class="headerNavigation">
           <a href="index.html" class="backButton">← Prediction Lab</a>
           <div class="headerActionGroup">
+            <a href="learning-dashboard.html" class="secondaryButton headerAction">
+              Learning Dashboard
+            </a>
             <a href="operations.html" class="secondaryButton headerAction">
               Operations
             </a>
@@ -34,33 +37,19 @@
     </header>
 
     <main class="pageMain">
-      <section
-        id="cloudSyncPanel"
-        class="marketCard"
-        aria-labelledby="cloudSyncTitle"
-      >
+      <section id="cloudSyncPanel" class="marketCard" aria-labelledby="cloudSyncTitle">
         <div class="marketHeader">
           <div>
             <p class="cardLabel">Secure Persistence</p>
             <h2 id="cloudSyncTitle">クラウド保存</h2>
-            <p class="marketSymbolLabel">
-              保存先：Vercel API → REST KV
-            </p>
+            <p class="marketSymbolLabel">保存先：Vercel API → REST KV</p>
           </div>
-
-          <span
-            id="cloudSyncStatus"
-            class="marketStatusBadge loading"
-            aria-live="polite"
-          >
-            確認中
-          </span>
+          <span id="cloudSyncStatus" class="marketStatusBadge loading" aria-live="polite">確認中</span>
         </div>
 
         <div class="dataSourceDescription">
           <p>
-            同期パスフレーズは接続時だけVercelへ送信され、
-            ブラウザのlocalStorageには保存されません。
+            同期パスフレーズは接続時だけVercelへ送信され、ブラウザのlocalStorageには保存されません。
             認証後はHttpOnly Cookieを使います。
           </p>
         </div>
@@ -68,60 +57,50 @@
         <form id="cloudSyncForm" class="controlPanel">
           <div class="controlGroup">
             <label for="cloudSyncSecret">同期パスフレーズ</label>
-            <input
-              id="cloudSyncSecret"
-              name="cloudSyncSecret"
-              type="password"
-              autocomplete="current-password"
-              placeholder="Vercelに設定したパスフレーズ"
-              required
-            />
+            <input id="cloudSyncSecret" name="cloudSyncSecret" type="password" autocomplete="current-password" placeholder="Vercelに設定したパスフレーズ" required />
           </div>
-
-          <button
-            id="cloudSyncConnectButton"
-            class="primaryButton"
-            type="submit"
-          >
-            接続して同期
-          </button>
-
-          <button
-            id="cloudSyncDisconnectButton"
-            class="secondaryButton"
-            type="button"
-            hidden
-          >
-            切断
-          </button>
+          <button id="cloudSyncConnectButton" class="primaryButton" type="submit">接続して同期</button>
+          <button id="cloudSyncDisconnectButton" class="secondaryButton" type="button" hidden>切断</button>
         </form>
 
-        <p
-          id="cloudSyncMessage"
-          class="chartNote"
-          aria-live="polite"
-        >
-          接続状態を確認しています。
-        </p>
+        <p id="cloudSyncMessage" class="chartNote" aria-live="polite">接続状態を確認しています。</p>
 
         <div class="scoreStatGrid">
-          <div>
-            <span>端末内の予測</span>
-            <strong id="cloudLocalPredictionCount">--</strong>
-          </div>
-          <div>
-            <span>クラウド同期対象</span>
-            <strong id="cloudEligiblePredictionCount">--</strong>
-          </div>
+          <div><span>端末内の予測</span><strong id="cloudLocalPredictionCount">--</strong></div>
+          <div><span>クラウド同期対象</span><strong id="cloudEligiblePredictionCount">--</strong></div>
+          <div><span>再送待ち</span><strong id="cloudOfflineQueueCount">0件</strong></div>
+          <div><span>最終同期</span><strong id="cloudLastSyncAt">--</strong></div>
+          <div><span>最終成功</span><strong id="cloudLastSuccessAt">--</strong></div>
+          <div><span>応答時間</span><strong id="cloudLatencyMs">--</strong></div>
         </div>
 
-        <button
-          id="cloudSyncNowButton"
-          class="secondaryButton"
-          type="button"
-        >
-          今すぐ再同期
-        </button>
+        <div class="performanceActions">
+          <button id="cloudSyncNowButton" class="secondaryButton" type="button">今すぐ再同期</button>
+          <button id="cloudRetryQueueButton" class="secondaryButton" type="button">再送待ちを処理</button>
+        </div>
+      </section>
+
+      <section class="marketCard">
+        <div class="cardHeader">
+          <div>
+            <p class="cardLabel">Safe Backup</p>
+            <h2>JSONバックアップ・復元</h2>
+          </div>
+        </div>
+        <p class="dataSourceDescription">
+          予測・学習・Candidate・Forward Test・モデル監査履歴だけを保存します。
+          APIキー、Cookie、証券会社認証、実口座番号、実注文は含めません。
+        </p>
+        <div class="performanceActions">
+          <button id="cloudExportBackupButton" class="primaryButton" type="button">安全なJSONを出力</button>
+          <label class="secondaryButton" for="cloudImportBackupInput">JSONを読み込む</label>
+          <input id="cloudImportBackupInput" type="file" accept="application/json,.json" hidden />
+          <select id="cloudImportMode" aria-label="復元方法">
+            <option value="merge">既存データと統合</option>
+            <option value="replace">端末内データを置換</option>
+          </select>
+        </div>
+        <p id="cloudBackupMessage" class="chartNote" aria-live="polite">バックアップ操作はまだ実行されていません。</p>
       </section>
 
       <section class="marketCard">
@@ -133,22 +112,10 @@
         </div>
 
         <div class="predictionOutputGrid">
-          <div class="predictionOutputItem">
-            <span>楽天証券のログイン情報</span>
-            <strong>保存禁止</strong>
-          </div>
-          <div class="predictionOutputItem">
-            <span>実口座番号・認証情報</span>
-            <strong>保存禁止</strong>
-          </div>
-          <div class="predictionOutputItem">
-            <span>OpenAI・市場データAPIキー</span>
-            <strong>保存禁止</strong>
-          </div>
-          <div class="predictionOutputItem">
-            <span>実注文・取消</span>
-            <strong>常時無効</strong>
-          </div>
+          <div class="predictionOutputItem"><span>楽天証券のログイン情報</span><strong>保存禁止</strong></div>
+          <div class="predictionOutputItem"><span>実口座番号・認証情報</span><strong>保存禁止</strong></div>
+          <div class="predictionOutputItem"><span>OpenAI・市場データAPIキー</span><strong>保存禁止</strong></div>
+          <div class="predictionOutputItem"><span>実注文・取消</span><strong>常時無効</strong></div>
         </div>
       </section>
     </main>

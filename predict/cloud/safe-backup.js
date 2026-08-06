@@ -4,9 +4,8 @@ import {
 } from "../backtest/storage.js";
 
 import {
-  loadOfflineQueue,
-  replaceOfflineQueue,
-} from "./cloud-operations-store.js";
+  DEFAULT_OFFLINE_SYNC_QUEUE_KEY,
+} from "./offline-sync-queue.js";
 
 export const SAFE_BACKUP_VERSION = "ark-safe-backup-v1";
 
@@ -48,20 +47,12 @@ function clone(value) {
 }
 
 export function assertBackupSafe(value, path = "backup", seen = new WeakSet()) {
-  if (value === null || value === undefined || typeof value !== "object") {
-    return;
-  }
-
-  if (seen.has(value)) {
-    throw new Error("BACKUP_CYCLIC_DATA_REJECTED");
-  }
-
+  if (value === null || value === undefined || typeof value !== "object") return;
+  if (seen.has(value)) throw new Error("BACKUP_CYCLIC_DATA_REJECTED");
   seen.add(value);
 
   if (Array.isArray(value)) {
-    value.forEach((item, index) =>
-      assertBackupSafe(item, `${path}[${index}]`, seen),
-    );
+    value.forEach((item, index) => assertBackupSafe(item, `${path}[${index}]`, seen));
     seen.delete(value);
     return;
   }
@@ -90,6 +81,27 @@ function writeStoredArray(storage, key, value) {
   storage?.setItem?.(key, JSON.stringify(Array.isArray(value) ? value : []));
 }
 
+function loadOfflineQueue(storage) {
+  try {
+    const parsed = JSON.parse(storage?.getItem?.(DEFAULT_OFFLINE_SYNC_QUEUE_KEY) ?? "null");
+    return Array.isArray(parsed?.items) ? parsed.items : [];
+  }
+  catch {
+    return [];
+  }
+}
+
+function writeOfflineQueue(storage, items) {
+  storage?.setItem?.(
+    DEFAULT_OFFLINE_SYNC_QUEUE_KEY,
+    JSON.stringify({
+      version: "offline-sync-queue-v1",
+      updatedAt: new Date().toISOString(),
+      items: Array.isArray(items) ? items : [],
+    }),
+  );
+}
+
 const STORAGE_MAP = Object.freeze({
   learningReports: "ark.learning.reports.v1",
   candidates: "ark.learning.candidates.v1",
@@ -107,7 +119,7 @@ export function createSafeBackup({
     candidates: parseStoredArray(storage, STORAGE_MAP.candidates),
     forwardTests: parseStoredArray(storage, STORAGE_MAP.forwardTests),
     modelVersions: parseStoredArray(storage, STORAGE_MAP.modelVersions),
-    offlineQueue: loadOfflineQueue({ storage }),
+    offlineQueue: loadOfflineQueue(storage),
   };
 
   assertBackupSafe(data);
@@ -132,22 +144,12 @@ export function serializeSafeBackup(options = {}) {
 }
 
 export function validateSafeBackup(input) {
-  const parsed = typeof input === "string"
-    ? JSON.parse(input)
-    : clone(input);
-
-  if (parsed?.version !== SAFE_BACKUP_VERSION) {
-    throw new Error("UNSUPPORTED_BACKUP_VERSION");
-  }
-
-  if (!parsed?.data || typeof parsed.data !== "object") {
-    throw new Error("BACKUP_DATA_REQUIRED");
-  }
+  const parsed = typeof input === "string" ? JSON.parse(input) : clone(input);
+  if (parsed?.version !== SAFE_BACKUP_VERSION) throw new Error("UNSUPPORTED_BACKUP_VERSION");
+  if (!parsed?.data || typeof parsed.data !== "object") throw new Error("BACKUP_DATA_REQUIRED");
 
   for (const key of Object.keys(parsed.data)) {
-    if (!ALLOWED_SECTIONS.includes(key)) {
-      throw new Error(`BACKUP_SECTION_NOT_ALLOWED:${key}`);
-    }
+    if (!ALLOWED_SECTIONS.includes(key)) throw new Error(`BACKUP_SECTION_NOT_ALLOWED:${key}`);
   }
 
   assertBackupSafe(parsed);
@@ -161,42 +163,35 @@ export function importSafeBackup(input, {
   const backup = validateSafeBackup(input);
   const merge = mode === "merge";
 
-  const predictions = Array.isArray(backup.data.predictions)
-    ? backup.data.predictions
-    : [];
+  const predictions = Array.isArray(backup.data.predictions) ? backup.data.predictions : [];
   const nextPredictions = merge
     ? [
-        ...getPredictions().filter(
-          (item) => !predictions.some((candidate) => candidate?.id === item?.id),
-        ),
+        ...getPredictions().filter((item) => !predictions.some((candidate) => candidate?.id === item?.id)),
         ...predictions,
       ]
     : predictions;
   setPredictions(nextPredictions);
 
   for (const [section, key] of Object.entries(STORAGE_MAP)) {
-    const incoming = Array.isArray(backup.data[section])
-      ? backup.data[section]
-      : [];
+    const incoming = Array.isArray(backup.data[section]) ? backup.data[section] : [];
     const current = merge ? parseStoredArray(storage, key) : [];
     const merged = merge
       ? [
-          ...current.filter(
-            (item) => !incoming.some((candidate) => candidate?.id === item?.id),
-          ),
+          ...current.filter((item) => !incoming.some((candidate) => candidate?.id === item?.id)),
           ...incoming,
         ]
       : incoming;
     writeStoredArray(storage, key, merged);
   }
 
-  const queue = Array.isArray(backup.data.offlineQueue)
-    ? backup.data.offlineQueue
-    : [];
-  replaceOfflineQueue(
-    merge ? [...loadOfflineQueue({ storage }), ...queue] : queue,
-    { storage },
-  );
+  const incomingQueue = Array.isArray(backup.data.offlineQueue) ? backup.data.offlineQueue : [];
+  const currentQueue = merge ? loadOfflineQueue(storage) : [];
+  const queueByKey = new Map();
+  [...currentQueue, ...incomingQueue].forEach((item) => {
+    const key = item?.dedupeKey ?? item?.queueId;
+    if (key) queueByKey.set(key, item);
+  });
+  writeOfflineQueue(storage, [...queueByKey.values()]);
 
   return {
     imported: true,
@@ -206,7 +201,7 @@ export function importSafeBackup(input, {
     candidateCount: parseStoredArray(storage, STORAGE_MAP.candidates).length,
     forwardTestCount: parseStoredArray(storage, STORAGE_MAP.forwardTests).length,
     modelVersionCount: parseStoredArray(storage, STORAGE_MAP.modelVersions).length,
-    queueCount: loadOfflineQueue({ storage }).length,
+    queueCount: loadOfflineQueue(storage).length,
   };
 }
 
@@ -215,6 +210,8 @@ export const SafeBackupInternals = Object.freeze({
   FORBIDDEN_KEYS,
   STORAGE_MAP,
   clone,
+  loadOfflineQueue,
   normalizedKey,
   parseStoredArray,
+  writeOfflineQueue,
 });

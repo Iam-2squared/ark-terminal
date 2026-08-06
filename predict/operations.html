@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Operations | Ark Terminal</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="operations.css" />
+  </head>
+  <body>
+    <header class="pageHeader">
+      <div class="headerInner">
+        <div class="headerNavigation">
+          <a href="index.html" class="backButton">← Prediction Lab</a>
+          <div class="headerActionGroup">
+            <a href="performance.html" class="secondaryButton headerAction">AI成績</a>
+            <a href="cloud-sync.html" class="secondaryButton headerAction">Cloud Sync</a>
+          </div>
+        </div>
+        <div class="headerText">
+          <p class="eyebrow">Ark Terminal</p>
+          <h1>Operations</h1>
+          <p class="headerDescription">
+            Cloud Sync、再送キュー、学習状態、バックアップを一つの画面で管理します。
+            実口座情報・認証情報・APIキー・実注文は対象外です。
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <main class="pageMain operationsMain">
+      <section class="operationsHero" aria-labelledby="operationsHealthTitle">
+        <div>
+          <p class="cardLabel">System Health</p>
+          <h2 id="operationsHealthTitle">Ark AI Health</h2>
+          <p id="operationsHealthMessage" class="dataSourceDescription">状態を確認しています。</p>
+        </div>
+        <span id="operationsHealthBadge" class="operationsHealthBadge checking">Checking</span>
+      </section>
+
+      <section class="operationsGrid">
+        <article class="operationsCard">
+          <div class="cardHeader">
+            <div>
+              <p class="cardLabel">Part 8A</p>
+              <h2>Cloud Sync Status</h2>
+            </div>
+            <span id="cloudOperationsBadge" class="dataSourceBadge">確認中</span>
+          </div>
+          <div class="operationsMetricGrid">
+            <div><span>接続状態</span><strong id="cloudConnectionState">--</strong></div>
+            <div><span>保存先</span><strong id="cloudStorageState">--</strong></div>
+            <div><span>最終確認</span><strong id="cloudLastCheckedAt">--</strong></div>
+            <div><span>同期待ち</span><strong id="cloudQueueCount">0件</strong></div>
+          </div>
+          <p id="cloudOperationsMessage" class="dataSourceDescription"></p>
+          <div class="operationsActions">
+            <button id="refreshOperationsButton" class="primaryButton" type="button">状態を更新</button>
+            <a href="cloud-sync.html" class="secondaryButton">接続設定</a>
+          </div>
+        </article>
+
+        <article class="operationsCard">
+          <div class="cardHeader">
+            <div>
+              <p class="cardLabel">Part 8B</p>
+              <h2>Offline Queue</h2>
+            </div>
+            <span id="queueOperationsBadge" class="dataSourceBadge">0件</span>
+          </div>
+          <div class="operationsMetricGrid">
+            <div><span>再送待ち</span><strong id="queuePendingCount">0件</strong></div>
+            <div><span>失敗履歴</span><strong id="queueFailedCount">0件</strong></div>
+            <div><span>最終再送</span><strong id="queueLastFlushAt">--</strong></div>
+            <div><span>保存方式</span><strong>Local-first</strong></div>
+          </div>
+          <div class="operationsActions">
+            <button id="flushQueueButton" class="primaryButton" type="button">今すぐ再送</button>
+            <button id="clearQueueButton" class="secondaryButton" type="button">キューを消去</button>
+          </div>
+          <div id="queuePreview" class="operationsList"></div>
+        </article>
+      </section>
+
+      <section class="operationsCard fullWidthCard">
+        <div class="cardHeader">
+          <div>
+            <p class="cardLabel">Part 8C</p>
+            <h2>Learning Dashboard</h2>
+          </div>
+          <span id="learningOperationsBadge" class="dataSourceBadge">Local</span>
+        </div>
+        <div class="operationsMetricGrid learningMetrics">
+          <div><span>予測履歴</span><strong id="learningPredictionCount">0件</strong></div>
+          <div><span>確定済み</span><strong id="learningResolvedCount">0件</strong></div>
+          <div><span>Candidate</span><strong id="learningCandidateCount">0件</strong></div>
+          <div><span>Forward Test</span><strong id="learningForwardCount">0件</strong></div>
+          <div><span>モデル監査</span><strong id="learningModelCount">0件</strong></div>
+          <div><span>人間承認待ち</span><strong id="learningReviewCount">0件</strong></div>
+        </div>
+        <div class="operationsColumns">
+          <div>
+            <h3>Current Model / Candidate</h3>
+            <div id="learningCandidateList" class="operationsList"></div>
+          </div>
+          <div>
+            <h3>Forward / Model Timeline</h3>
+            <div id="learningTimeline" class="operationsList"></div>
+          </div>
+        </div>
+        <p class="dataSourceDescription">
+          クラウドから復元した学習履歴は監査専用です。Production設定やモデル重みへ自動適用しません。
+        </p>
+      </section>
+
+      <section class="operationsCard fullWidthCard">
+        <div class="cardHeader">
+          <div>
+            <p class="cardLabel">Part 8D</p>
+            <h2>Safe Backup / Restore</h2>
+          </div>
+          <span class="dataSourceBadge">JSON</span>
+        </div>
+        <div class="operationsBackupGrid">
+          <div>
+            <h3>バックアップ</h3>
+            <p class="dataSourceDescription">
+              予測・結果・学習・Candidate・Forward・モデル監査だけを出力します。
+            </p>
+            <button id="exportBackupButton" class="primaryButton" type="button">安全なJSONを出力</button>
+          </div>
+          <div>
+            <h3>復元</h3>
+            <p class="dataSourceDescription">
+              認証情報や実口座情報を含むファイルは拒否します。予測履歴はIDと更新日時で統合します。
+            </p>
+            <input id="importBackupInput" type="file" accept="application/json,.json" />
+            <button id="importBackupButton" class="secondaryButton" type="button">JSONを検証して復元</button>
+          </div>
+        </div>
+        <p id="backupOperationsMessage" class="dataSourceDescription" aria-live="polite"></p>
+      </section>
+    </main>
+
+    <script type="module" src="cloud/operations-page.js"></script>
+  </body>
+</html>

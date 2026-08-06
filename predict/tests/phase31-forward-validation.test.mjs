@@ -68,8 +68,8 @@ test("integrity rejects empty paired samples", () => {
 
 test("comparison continues forward test when samples are insufficient", () => {
   const run = createPhase31ForwardRun({
-    championRows: [row("BUY", 0.01)],
-    candidateRows: [row("BUY", 0.02)],
+    championRows: [row("BUY", 0.02, 0.01)],
+    candidateRows: [row("BUY", 0.02, 0.02)],
     context,
   });
   const comparison = comparePhase31ForwardPerformance(run, { minPairedSamples: 5 });
@@ -79,12 +79,13 @@ test("comparison continues forward test when samples are insufficient", () => {
 
 test("full runner stays review-only with zero broker activity", () => {
   const result = runPhase31ForwardValidation({
-    championRows: [row("BUY", 0.01)],
-    candidateRows: [row("BUY", 0.02)],
+    championRows: [row("SELL", 0.02, -0.01)],
+    candidateRows: [row("BUY", 0.02, 0.02)],
     context,
     options: { minPairedSamples: 1 },
   });
   assert.equal(result.status, "READY_FOR_STATISTICAL_REVIEW");
+  assert.equal(result.comparison.deltas.accuracy, 1);
   assert.equal(result.automaticPromotionAllowed, false);
   assert.equal(result.productionUpdateAllowed, false);
   assert.equal(result.brokerWrites, 0);

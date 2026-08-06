@@ -4,12 +4,12 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-import { prepareHistoricalBacktestDataset } from "../predict/backtest/phase40-historical-data.js";
+import { runPhase40HistoricalDataFoundation } from "../predict/backtest/phase40-historical-data.js";
 import {
   buildPhase40ResumeCheckpoint,
   runPhase40BatchBacktest,
 } from "../predict/backtest/phase40-batch-runner.js";
-import { buildPhase40AnalysisDashboard } from "../predict/backtest/phase40-analysis.js";
+import { runPhase40Analysis } from "../predict/backtest/phase40-analysis.js";
 
 const SAFETY = Object.freeze({
   mode: "HISTORICAL_BACKTEST_ONLY",
@@ -135,6 +135,24 @@ async function writeJson(filePath, value) {
   await fs.writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
 }
 
+function collectAnalysisRecords(rawResults) {
+  return rawResults.flatMap((item) => {
+    const raw = item.result;
+    return [
+      ...(raw?.training ?? raw?.partitions?.training ?? []),
+      ...(raw?.validation ?? raw?.partitions?.validation ?? []),
+      ...(raw?.test ?? raw?.partitions?.test ?? []),
+    ].map((record) => ({
+      ...record,
+      symbol: record.symbol ?? raw?.symbol ?? "UNKNOWN",
+      horizonDays: record.horizonDays ?? record.period ?? raw?.period ?? 1,
+      netReturn: record.netReturn ?? record.strategyReturn ?? record.actualReturn ?? 0,
+      drawdown: record.drawdown ?? 0,
+      modelRole: record.modelRole ?? "CHAMPION",
+    }));
+  });
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const dataDir = path.resolve(String(args["data-dir"] ?? "data/historical/prices"));
@@ -155,14 +173,18 @@ async function main() {
   for (const filePath of files) {
     const symbol = path.basename(filePath, path.extname(filePath)).toUpperCase();
     const rows = normalizeRows(await loadRows(filePath), symbol);
-    const prepared = prepareHistoricalBacktestDataset({ symbol, rows });
+    const prepared = runPhase40HistoricalDataFoundation({
+      symbol,
+      rows,
+      source: filePath,
+    });
     datasetAudits.push({
       symbol,
       sourceFile: filePath,
       audit: prepared.audit,
-      readyForBacktest: prepared.readyForBacktest,
+      readyForBacktest: prepared.status === "READY_FOR_BATCH_BACKTEST",
     });
-    if (!prepared.readyForBacktest) continue;
+    if (prepared.status !== "READY_FOR_BATCH_BACKTEST") continue;
     for (const period of periods) {
       tasks.push({
         taskId: `${symbol}:${period}`,
@@ -173,7 +195,11 @@ async function main() {
         candles: prepared.candles,
         weights: {},
         maximumSamples,
-        historyMetadata: prepared.metadata,
+        historyMetadata: {
+          source: filePath,
+          datasetId: prepared.dataset.datasetId,
+          audit: prepared.audit,
+        },
       });
     }
   }
@@ -208,16 +234,7 @@ async function main() {
   });
 
   const checkpoint = buildPhase40ResumeCheckpoint(result);
-  const analysis = buildPhase40AnalysisDashboard({
-    records: result.rawResults.flatMap((item) => {
-      const raw = item.result;
-      return [
-        ...(raw?.training ?? raw?.partitions?.training ?? []),
-        ...(raw?.validation ?? raw?.partitions?.validation ?? []),
-        ...(raw?.test ?? raw?.partitions?.test ?? []),
-      ];
-    }),
-  });
+  const analysis = runPhase40Analysis(collectAnalysisRecords(result.rawResults));
 
   await Promise.all([
     writeJson(checkpointPath, checkpoint),
@@ -256,4 +273,4 @@ if (directRun) {
   });
 }
 
-export { findDataFiles, loadRows, parseArgs, parseCsv };
+export { collectAnalysisRecords, findDataFiles, loadRows, parseArgs, parseCsv };

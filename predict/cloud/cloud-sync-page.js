@@ -11,11 +11,14 @@ import {
 } from "./prediction-cloud-repository.js";
 
 import {
-  flushOfflineQueue,
   loadCloudOperationsStatus,
-  loadOfflineQueue,
   saveCloudOperationsStatus,
 } from "./cloud-operations-store.js";
+
+import {
+  flushSharedOfflineQueue,
+  getSharedOfflineQueue,
+} from "./queued-cloud-writer.js";
 
 import {
   importSafeBackup,
@@ -38,12 +41,12 @@ function dateText(value) {
 function updateCounts() {
   const records = getPredictions();
   const eligible = selectCloudPredictions(records);
-  const queue = loadOfflineQueue();
+  const queue = getSharedOfflineQueue();
   const status = loadCloudOperationsStatus();
 
   text("cloudLocalPredictionCount", `${records.length}件`);
   text("cloudEligiblePredictionCount", `${eligible.length}件`);
-  text("cloudOfflineQueueCount", `${queue.length}件`);
+  text("cloudOfflineQueueCount", `${queue.count()}件`);
   text("cloudLastSyncAt", dateText(status.lastSyncAt));
   text("cloudLastSuccessAt", dateText(status.lastSuccessAt));
   text(
@@ -82,6 +85,7 @@ const importMode = document.getElementById("cloudImportMode");
 
 syncNowButton?.addEventListener("click", async () => {
   const startedAt = performance.now();
+  saveCloudOperationsStatus({ syncing: true });
   const result = await controller.synchronize();
   const latencyMs = Math.round(performance.now() - startedAt);
   saveCloudOperationsStatus({
@@ -98,20 +102,19 @@ syncNowButton?.addEventListener("click", async () => {
 });
 
 retryQueueButton?.addEventListener("click", async () => {
-  const result = await flushOfflineQueue({
-    handlers: {
-      prediction: (payload) => controller.mirrorPrediction(payload),
-      predictions: (payload) => controller.mirrorRecords(payload.records ?? []),
-      outcome: (payload) => controller.mirrorRecords(payload.records ?? []),
-    },
-  });
-
+  const result = await flushSharedOfflineQueue();
   showBackupMessage(
     result.remaining === 0
-      ? `再送完了：${result.completed}件`
-      : `再送結果：成功${result.completed}件・残り${result.remaining}件`,
+      ? `再送完了：${result.sent}件`
+      : `再送結果：成功${result.sent}件・失敗${result.failed}件・残り${result.remaining}件`,
     result.remaining === 0 ? "success" : "error",
   );
+  saveCloudOperationsStatus({
+    queueCount: result.remaining,
+    lastSyncAt: new Date().toISOString(),
+    lastSuccessAt: result.failed === 0 ? new Date().toISOString() : undefined,
+    lastError: result.failed === 0 ? null : "queue_flush_failed",
+  });
   updateCounts();
 });
 

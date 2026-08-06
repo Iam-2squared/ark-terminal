@@ -29,6 +29,48 @@ function cloudReady(status) {
   );
 }
 
+function claimsExecutionPermission(value = {}) {
+  const safety = value?.safety ?? {};
+
+  return [
+    value?.automaticPromotionAllowed,
+    value?.runtimeActivationAllowed,
+    value?.productionUpdateAllowed,
+    value?.brokerWriteAllowed,
+    value?.liveTradingAllowed,
+    value?.liveBrokerAllowed,
+    safety?.automaticPromotionAllowed,
+    safety?.runtimeActivationAllowed,
+    safety?.productionUpdateAllowed,
+    safety?.brokerWriteAllowed,
+    safety?.liveTradingAllowed,
+    safety?.liveBrokerAllowed,
+  ].some((permission) => permission === true);
+}
+
+function archiveIsSafe(archive = {}) {
+  if (
+    archive?.readOnly !== true ||
+    archive?.appliedToRuntime !== false ||
+    archive?.automaticPromotionAllowed !== false ||
+    archive?.productionUpdateAllowed !== false ||
+    archive?.brokerWriteAllowed !== false
+  ) {
+    return false;
+  }
+
+  const entries = [
+    ...(Array.isArray(archive?.candidates) ? archive.candidates : []),
+    ...(Array.isArray(archive?.forwardTests) ? archive.forwardTests : []),
+    ...(Array.isArray(archive?.modelVersions) ? archive.modelVersions : []),
+  ];
+
+  return entries.every((entry) => {
+    const data = entry?.data ?? entry;
+    return !claimsExecutionPermission(data);
+  });
+}
+
 export class LearningCloudAutoSyncController {
   constructor({
     statusProvider = getCloudSyncStatus,
@@ -57,6 +99,7 @@ export class LearningCloudAutoSyncController {
     this.modelWriter = modelWriter;
     this.eventTarget = eventTarget;
     this.activeRestore = null;
+    this.activeStatusRefresh = null;
 
     this.state = {
       version: LEARNING_CLOUD_AUTO_SYNC_VERSION,
@@ -97,19 +140,33 @@ export class LearningCloudAutoSyncController {
   }
 
   async refreshStatus() {
-    try {
-      const status = await this.statusProvider();
-      this.state.configured = status?.configured === true;
-      this.state.storageConfigured = status?.storageConfigured === true;
-      this.state.authenticated = status?.authenticated === true;
-      this.state.lastError = null;
-      return status;
-    }
-    catch (error) {
-      this.state.authenticated = false;
-      this.state.lastError = error?.code ?? "learning_cloud_status_failed";
-      return null;
-    }
+    if (this.activeStatusRefresh) return this.activeStatusRefresh;
+
+    this.activeStatusRefresh = Promise.resolve()
+      .then(async () => {
+        const status = await this.statusProvider();
+        this.state.configured = status?.configured === true;
+        this.state.storageConfigured = status?.storageConfigured === true;
+        this.state.authenticated = status?.authenticated === true;
+        this.state.lastError = null;
+        return status;
+      })
+      .catch((error) => {
+        this.state.authenticated = false;
+        this.state.lastError = error?.code ?? "learning_cloud_status_failed";
+        return null;
+      })
+      .finally(() => {
+        this.activeStatusRefresh = null;
+      });
+
+    return this.activeStatusRefresh;
+  }
+
+  async ensureReady() {
+    if (this.ready()) return true;
+    await this.refreshStatus();
+    return this.ready();
   }
 
   handleCloudError(error, fallbackCode) {
@@ -126,7 +183,7 @@ export class LearningCloudAutoSyncController {
 
     this.activeRestore = Promise.resolve()
       .then(async () => {
-        if (!this.ready()) {
+        if (!(await this.ensureReady())) {
           return {
             restored: false,
             reason: "cloud_not_ready",
@@ -136,13 +193,7 @@ export class LearningCloudAutoSyncController {
 
         const archive = await this.archiveLoader();
 
-        if (
-          archive?.readOnly !== true ||
-          archive?.appliedToRuntime !== false ||
-          archive?.automaticPromotionAllowed !== false ||
-          archive?.productionUpdateAllowed !== false ||
-          archive?.brokerWriteAllowed !== false
-        ) {
+        if (!archiveIsSafe(archive)) {
           throw new Error("UNSAFE_LEARNING_ARCHIVE_RESTORE_REJECTED");
         }
 
@@ -188,7 +239,7 @@ export class LearningCloudAutoSyncController {
   }
 
   async mirrorCandidate(detail = {}) {
-    if (!this.ready()) {
+    if (!(await this.ensureReady())) {
       return { saved: false, reason: "cloud_not_ready" };
     }
 
@@ -213,7 +264,7 @@ export class LearningCloudAutoSyncController {
   }
 
   async mirrorForwardValidation(detail = {}) {
-    if (!this.ready()) {
+    if (!(await this.ensureReady())) {
       return { saved: false, reason: "cloud_not_ready" };
     }
 
@@ -238,7 +289,7 @@ export class LearningCloudAutoSyncController {
   }
 
   async mirrorModelVersion(detail = {}) {
-    if (!this.ready()) {
+    if (!(await this.ensureReady())) {
       return { saved: false, reason: "cloud_not_ready" };
     }
 
@@ -347,6 +398,8 @@ export function stopLearningCloudAutoSync() {
 }
 
 export const LearningCloudAutoSyncInternals = Object.freeze({
+  archiveIsSafe,
+  claimsExecutionPermission,
   cloudReady,
   eventWithDetail,
 });

@@ -1,4 +1,5 @@
 import { STORAGE_KEYS } from "../config.js";
+import { mirrorPredictionToCloud } from "../cloud/prediction-cloud-repository.js";
 
 function finiteNumber(value) {
   return (
@@ -210,6 +211,10 @@ export function savePrediction(record) {
   records.push(record);
 
   setPredictions(records);
+
+  if (globalThis.window && globalThis.location) {
+    void mirrorPredictionToCloud(record).catch(() => null);
+  }
 
   return record;
 }

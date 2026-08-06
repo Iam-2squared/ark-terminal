@@ -56,9 +56,22 @@ jobs:
             python - <<'PY'
           from pathlib import Path
 
-          path = Path("prediction-test-output.log")
-          lines = path.read_text(encoding="utf-8", errors="replace").splitlines()[-120:]
-          message = "\n".join(lines)
+          lines = Path("prediction-test-output.log").read_text(
+              encoding="utf-8",
+              errors="replace",
+          ).splitlines()
+          failed = [index for index, line in enumerate(lines) if line.startswith("not ok ")]
+
+          if failed:
+              chunks = []
+              for index in failed:
+                  start = max(0, index - 3)
+                  end = min(len(lines), index + 35)
+                  chunks.append("\n".join(lines[start:end]))
+              message = "\n\n".join(chunks)
+          else:
+              message = "\n".join(lines[-160:])
+
           message = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
           print(f"::error title=Prediction test failure::{message}")
           PY

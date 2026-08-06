@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildModelSegment, segmentRows } from "../strategy/model-segmentation.js";
-import { evaluateLiquidity } from "../strategy/liquidity-gate.js";
-import { evaluateCostAwareStrategy } from "../strategy/cost-aware-evaluation.js";
+import { buildModelSegment, segmentRows } from "../strategy-selection/model-segmentation.js";
+import { evaluateLiquidity } from "../strategy-selection/liquidity-gate.js";
+import { evaluateCostAwareStrategy } from "../strategy-selection/cost-aware-evaluation.js";
 
 test("buildModelSegment separates action horizon regime and industry", () => {
   const segment = buildModelSegment({ signal: "buy", evaluationHorizon: 5, marketRegime: "bull", industry: "AI" });

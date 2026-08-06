@@ -7,6 +7,10 @@ import {
   initAutomaticCloudSync,
   stopAutomaticCloudSync,
 } from "../cloud/automatic-cloud-sync.js";
+import {
+  initLearningCloudAutoSync,
+  stopLearningCloudAutoSync,
+} from "../cloud/learning-cloud-auto-sync.js";
 import { refreshPredictionOutcomes } from "./prediction-outcome-service.js";
 
 export const DEFAULT_OUTCOME_REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000;
@@ -160,6 +164,7 @@ let activeController = null;
 export function initPredictionOutcomeController(options = {}) {
   const {
     automaticCloudSync = Boolean(globalThis.window),
+    learningCloudSync = automaticCloudSync,
     ...controllerOptions
   } = options;
 
@@ -171,6 +176,10 @@ export function initPredictionOutcomeController(options = {}) {
     initAutomaticCloudSync();
   }
 
+  if (learningCloudSync) {
+    initLearningCloudAutoSync();
+  }
+
   return activeController;
 }
 
@@ -178,6 +187,7 @@ export function stopPredictionOutcomeController() {
   activeController?.stop();
   activeController = null;
   stopAutomaticCloudSync();
+  stopLearningCloudAutoSync();
 }
 
 export const PredictionOutcomeControllerInternals = Object.freeze({

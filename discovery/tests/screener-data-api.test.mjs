@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { ScreenerDataApiInternals } from "../../api/screener-data.js";
+import { ScreenerDataApiInternals } from "../../server/screener-data.js";
 
 test("データ専用ブランチを優先しmainをフォールバックにする", () => {
   const candidates = ScreenerDataApiInternals.buildCandidateUrls(
@@ -18,9 +18,7 @@ test("データ専用ブランチを優先しmainをフォールバックにす�
 test("取得データへ自動配信元を付与する", () => {
   const payload = ScreenerDataApiInternals.normalizePayload(
     {
-      meta: {
-        generatedAt: "2026-08-01T00:00:00.000Z",
-      },
+      meta: { generatedAt: "2026-08-01T00:00:00.000Z" },
       entries: [],
     },
     {
@@ -29,10 +27,7 @@ test("取得データへ自動配信元を付与する", () => {
     },
   );
 
-  assert.equal(
-    payload.meta.delivery.sourceBranch,
-    "automation/screener-data",
-  );
+  assert.equal(payload.meta.delivery.sourceBranch, "automation/screener-data");
   assert.equal(payload.meta.delivery.mode, "automatic-data-branch");
 });
 
@@ -48,20 +43,16 @@ test("データ専用ブランチ失敗時はmainへフォールバックする"
     requested.push(url);
 
     if (url.includes("automation/screener-data")) {
-      return {
-        ok: false,
-        status: 404,
-      };
+      return { ok: false, status: 404 };
     }
 
     return {
       ok: true,
       status: 200,
-      async json() {
-        return { entries: [] };
-      },
+      json: async () => ({ entries: [] }),
     };
   };
+
   const payload = await ScreenerDataApiInternals.loadScreenerData(
     "snapshot",
     fetchImpl,

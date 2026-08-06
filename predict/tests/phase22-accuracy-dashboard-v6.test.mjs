@@ -77,7 +77,7 @@ test("Accuracy Dashboard v6 exposes calibration buckets, ECE and Brier score", (
   assert.ok(Number.isFinite(dashboard.calibrationError));
   assert.ok(Number.isFinite(dashboard.brierScore));
   assert.equal(dashboard.byConfidenceBucket["80-90%"].sampleCount, 2);
-  assert.equal(dashboard.byConfidenceBucket["50-60%"].sampleCount, 1);
+  assert.equal(dashboard.byConfidenceBucket["50-60%""].sampleCount, 1);
 });
 
 test("Accuracy Dashboard v6 includes a Wilson confidence interval and performance metrics", () => {
@@ -92,7 +92,7 @@ test("Accuracy Dashboard v6 includes a Wilson confidence interval and performanc
   assert.ok(dashboard.overall.confidenceInterval.lower >= 0);
   assert.ok(dashboard.overall.confidenceInterval.upper <= 1);
   assert.equal(dashboard.overall.medianReturn, 2);
-  assert.equal(dashboard.overall.averageReturn, 1.666667);
+  assert.equal(dashboard.overall.averageReturn, 5 / 3);
   assert.equal(dashboard.overall.profitFactor, 6);
   assert.ok("sharpe" in dashboard.overall);
   assert.ok("maxDrawdown" in dashboard.overall);

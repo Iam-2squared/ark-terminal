@@ -13,6 +13,7 @@ from tools.rss_account_bridge import (
     PROVIDER_NAME as ACCOUNT_PROVIDER_NAME,
     read_broker_snapshot,
 )
+from tools.run_phase28_excel_preview import run_excel_preview
 
 try:
     import pythoncom
@@ -274,8 +275,21 @@ def health() -> dict[str, object]:
         "parts": [1, 2, 3, 4, 5, 6],
         "market_data_phase": 18,
         "account_bridge": True,
+        "phase28_5_excel_preview": True,
         "allowed_origins": ALLOWED_ORIGINS,
     }
+
+
+@app.post("/dry-run/order-preview")
+def dry_run_order_preview(
+    symbol: str = Query("7203.T"),
+    quantity: int = Query(100, ge=1),
+    limit_price: float = Query(1.0, gt=0),
+) -> dict[str, Any]:
+    try:
+        return run_excel_preview(symbol, quantity, limit_price)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @app.get("/symbols")

@@ -33,7 +33,7 @@ test("Accuracy Dashboard v6 separates overall, BUY, SELL and high-confidence met
 
   assert.equal(dashboard.version, "accuracy-dashboard-v6");
   assert.equal(dashboard.overall.sampleCount, 3);
-  assert.equal(dashboard.overall.accuracy, 2 / 3);
+  assert.equal(dashboard.overall.accuracy, 0.666667);
   assert.equal(dashboard.buy.sampleCount, 2);
   assert.equal(dashboard.buy.accuracy, 0.5);
   assert.equal(dashboard.sell.sampleCount, 1);
@@ -92,7 +92,7 @@ test("Accuracy Dashboard v6 includes a Wilson confidence interval and performanc
   assert.ok(dashboard.overall.confidenceInterval.lower >= 0);
   assert.ok(dashboard.overall.confidenceInterval.upper <= 1);
   assert.equal(dashboard.overall.medianReturn, 2);
-  assert.equal(dashboard.overall.averageReturn, 5 / 3);
+  assert.equal(dashboard.overall.averageReturn, 1.666667);
   assert.equal(dashboard.overall.profitFactor, 6);
   assert.ok("sharpe" in dashboard.overall);
   assert.ok("maxDrawdown" in dashboard.overall);

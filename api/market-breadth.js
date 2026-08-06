@@ -1,4 +1,4 @@
-import { ScreenerDataApiInternals } from "./screener-data.js";
+import { ScreenerDataApiInternals } from "./screener.js";
 import { createScreenerBreadthPayload } from "../server/providers/screener-breadth-provider.js";
 
 export async function loadMarketBreadth({

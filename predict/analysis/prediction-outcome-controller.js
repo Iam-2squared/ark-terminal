@@ -3,6 +3,10 @@ import {
   getPredictionsAsync,
   setPredictions,
 } from "../backtest/storage.js";
+import {
+  initAutomaticCloudSync,
+  stopAutomaticCloudSync,
+} from "../cloud/automatic-cloud-sync.js";
 import { refreshPredictionOutcomes } from "./prediction-outcome-service.js";
 
 export const DEFAULT_OUTCOME_REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000;
@@ -60,6 +64,7 @@ export class PredictionOutcomeController {
     this.intervalHandle = null;
     this.started = false;
     this.handleWake = () => void this.refresh();
+    this.handleCloudRestore = () => void this.refresh({ force: true });
   }
 
   async runRefresh() {
@@ -112,6 +117,10 @@ export class PredictionOutcomeController {
     this.started = true;
     this.eventTarget?.addEventListener?.("focus", this.handleWake);
     this.eventTarget?.addEventListener?.("online", this.handleWake);
+    this.eventTarget?.addEventListener?.(
+      "ark:cloud-history-restored",
+      this.handleCloudRestore,
+    );
 
     if (this.intervalMs > 0 && typeof this.setIntervalFn === "function") {
       this.intervalHandle = this.setIntervalFn(
@@ -131,6 +140,10 @@ export class PredictionOutcomeController {
   stop() {
     this.eventTarget?.removeEventListener?.("focus", this.handleWake);
     this.eventTarget?.removeEventListener?.("online", this.handleWake);
+    this.eventTarget?.removeEventListener?.(
+      "ark:cloud-history-restored",
+      this.handleCloudRestore,
+    );
 
     if (this.intervalHandle !== null && typeof this.clearIntervalFn === "function") {
       this.clearIntervalFn(this.intervalHandle);
@@ -145,15 +158,26 @@ export class PredictionOutcomeController {
 let activeController = null;
 
 export function initPredictionOutcomeController(options = {}) {
+  const {
+    automaticCloudSync = Boolean(globalThis.window),
+    ...controllerOptions
+  } = options;
+
   activeController?.stop();
-  activeController = new PredictionOutcomeController(options);
+  activeController = new PredictionOutcomeController(controllerOptions);
   activeController.start();
+
+  if (automaticCloudSync) {
+    initAutomaticCloudSync();
+  }
+
   return activeController;
 }
 
 export function stopPredictionOutcomeController() {
   activeController?.stop();
   activeController = null;
+  stopAutomaticCloudSync();
 }
 
 export const PredictionOutcomeControllerInternals = Object.freeze({

@@ -109,15 +109,17 @@ export function buildCandidateArchiveRecord({
     throw new Error("CANDIDATE_HUMAN_APPROVAL_REQUIRED");
   }
 
-  const id = normalizedRecordId(candidate.id, "candidate");
+  const rawCandidateId = cleanText(candidate.id, 160);
   const version = cleanText(
     candidate.version ?? candidate.candidateVersion,
     120,
   );
 
-  if (!id || !version) {
+  if (!rawCandidateId || !version) {
     throw new Error("CANDIDATE_ID_AND_VERSION_REQUIRED");
   }
+
+  const id = normalizedRecordId(rawCandidateId, "candidate");
 
   const data = cloneJson({
     archiveVersion: LEARNING_CLOUD_ARCHIVE_VERSION,

@@ -3,7 +3,7 @@ import {
   buildScreenerEntry,
 } from "../discovery/engine.js";
 import { DEFAULT_WEIGHTS } from "../predict/config.js";
-import { HistoryInternals } from "./history.js";
+import { HistoryInternals } from "../api/history.js";
 
 const MAXIMUM_SYMBOLS = 6;
 

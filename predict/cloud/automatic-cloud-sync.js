@@ -16,8 +16,13 @@ import {
   syncPredictionRecordsToCloud,
 } from "./prediction-cloud-repository.js";
 
+import {
+  flushSharedOfflineQueue,
+  getSharedOfflineQueue,
+} from "./queued-cloud-writer.js";
+
 export const AUTOMATIC_CLOUD_SYNC_VERSION =
-  "automatic-cloud-sync-v1";
+  "automatic-cloud-sync-v2";
 
 const LEARNING_REPORT_COLLECTION = "learning_reports";
 
@@ -89,6 +94,8 @@ export class AutomaticCloudSyncController {
     cloudBulkWriter = syncPredictionRecordsToCloud,
     predictionWriter = savePredictionToCloud,
     cloudRecordWriter = saveCloudRecord,
+    queue = getSharedOfflineQueue(),
+    queueFlusher = flushSharedOfflineQueue,
     eventTarget = globalThis.window ?? null,
   } = {}) {
     for (const [name, value] of Object.entries({
@@ -99,10 +106,15 @@ export class AutomaticCloudSyncController {
       cloudBulkWriter,
       predictionWriter,
       cloudRecordWriter,
+      queueFlusher,
     })) {
       if (typeof value !== "function") {
         throw new TypeError(`${name} must be a function.`);
       }
+    }
+
+    if (typeof queue?.enqueue !== "function") {
+      throw new TypeError("queue.enqueue must be a function.");
     }
 
     this.statusProvider = statusProvider;
@@ -112,6 +124,8 @@ export class AutomaticCloudSyncController {
     this.cloudBulkWriter = cloudBulkWriter;
     this.predictionWriter = predictionWriter;
     this.cloudRecordWriter = cloudRecordWriter;
+    this.queue = queue;
+    this.queueFlusher = queueFlusher;
     this.eventTarget = eventTarget;
 
     this.state = {
@@ -133,7 +147,10 @@ export class AutomaticCloudSyncController {
     };
     this.handleOnline = () => {
       void this.refreshStatus()
-        .then(() => this.restore());
+        .then(async () => {
+          if (this.ready()) await this.queueFlusher();
+          return this.restore();
+        });
     };
   }
 
@@ -164,6 +181,20 @@ export class AutomaticCloudSyncController {
 
   ready() {
     return cloudReady(this.state);
+  }
+
+  queueRecord(record, reason) {
+    const queued = this.queue.enqueue(record);
+    const result = {
+      saved: false,
+      queued: true,
+      reason,
+      queueId: queued.queueId,
+      collection: record.collection,
+      id: record.id,
+    };
+    this.emit("ark:cloud-record-queued", result);
+    return result;
   }
 
   async restore() {
@@ -231,11 +262,14 @@ export class AutomaticCloudSyncController {
   }
 
   async mirrorPrediction(record) {
+    const payload = {
+      collection: "predictions",
+      id: normalizedRecordId(record?.id),
+      data: record,
+    };
+
     if (!this.ready()) {
-      return {
-        saved: false,
-        reason: "cloud_not_ready",
-      };
+      return this.queueRecord(payload, "cloud_not_ready");
     }
 
     try {
@@ -253,21 +287,16 @@ export class AutomaticCloudSyncController {
         error?.code ??
         "cloud_prediction_save_failed";
 
-      return {
-        saved: false,
-        reason: this.state.lastError,
-      };
+      return this.queueRecord(payload, this.state.lastError);
     }
   }
 
   async mirrorOutcomeReport(report = {}) {
-    if (!this.ready() || report?.changed !== true) {
+    if (report?.changed !== true) {
       return {
         savedPredictions: 0,
         savedOutcomes: 0,
-        reason: this.ready()
-          ? "no_resolved_changes"
-          : "cloud_not_ready",
+        reason: "no_resolved_changes",
       };
     }
 
@@ -278,6 +307,22 @@ export class AutomaticCloudSyncController {
         savedPredictions: 0,
         savedOutcomes: 0,
         reason: "no_resolved_records",
+      };
+    }
+
+    if (!this.ready()) {
+      records.forEach((record) => {
+        this.queueRecord({
+          collection: "prediction_outcomes",
+          id: normalizedRecordId(record.id),
+          data: record,
+        }, "cloud_not_ready");
+      });
+      return {
+        savedPredictions: 0,
+        savedOutcomes: 0,
+        queuedOutcomes: records.length,
+        reason: "cloud_not_ready",
       };
     }
 
@@ -299,22 +344,24 @@ export class AutomaticCloudSyncController {
         error?.code ??
         "cloud_outcome_save_failed";
 
+      records.forEach((record) => {
+        this.queueRecord({
+          collection: "prediction_outcomes",
+          id: normalizedRecordId(record.id),
+          data: record,
+        }, this.state.lastError);
+      });
+
       return {
         savedPredictions: 0,
         savedOutcomes: 0,
+        queuedOutcomes: records.length,
         reason: this.state.lastError,
       };
     }
   }
 
   async mirrorLearningReport(report) {
-    if (!this.ready()) {
-      return {
-        saved: false,
-        reason: "cloud_not_ready",
-      };
-    }
-
     if (!report?.id || report?.executionAllowed !== false) {
       return {
         saved: false,
@@ -322,17 +369,23 @@ export class AutomaticCloudSyncController {
       };
     }
 
+    const payload = {
+      collection: LEARNING_REPORT_COLLECTION,
+      id: normalizedRecordId(report.id),
+      data: report,
+    };
+
+    if (!this.ready()) {
+      return this.queueRecord(payload, "cloud_not_ready");
+    }
+
     try {
-      await this.cloudRecordWriter({
-        collection: LEARNING_REPORT_COLLECTION,
-        id: normalizedRecordId(report.id),
-        data: report,
-      });
+      await this.cloudRecordWriter(payload);
 
       this.state.lastError = null;
       const result = {
         saved: true,
-        id: normalizedRecordId(report.id),
+        id: payload.id,
       };
       this.emit("ark:cloud-learning-report-saved", result);
       return result;
@@ -346,10 +399,7 @@ export class AutomaticCloudSyncController {
         error?.code ??
         "cloud_learning_save_failed";
 
-      return {
-        saved: false,
-        reason: this.state.lastError,
-      };
+      return this.queueRecord(payload, this.state.lastError);
     }
   }
 
@@ -381,7 +431,10 @@ export class AutomaticCloudSyncController {
     );
 
     const ready = this.refreshStatus()
-      .then(() => this.restore());
+      .then(async () => {
+        if (this.ready()) await this.queueFlusher();
+        return this.restore();
+      });
 
     return {
       started: true,

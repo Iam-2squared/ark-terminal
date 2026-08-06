@@ -4,14 +4,22 @@ import {
 } from "./cloud-sync-client.js";
 
 import {
+  buildCandidateArchiveRecord,
+  buildForwardValidationArchiveRecord,
+  buildModelVersionArchiveRecord,
   loadLearningArchiveFromCloud,
   saveCandidateArchiveToCloud,
   saveForwardValidationArchiveToCloud,
   saveModelVersionArchiveToCloud,
 } from "./learning-cloud-repository.js";
 
+import {
+  flushSharedOfflineQueue,
+  getSharedOfflineQueue,
+} from "./queued-cloud-writer.js";
+
 export const LEARNING_CLOUD_AUTO_SYNC_VERSION =
-  "learning-cloud-auto-sync-v1";
+  "learning-cloud-auto-sync-v2";
 
 function eventWithDetail(name, detail) {
   if (typeof globalThis.CustomEvent === "function") {
@@ -78,6 +86,8 @@ export class LearningCloudAutoSyncController {
     candidateWriter = saveCandidateArchiveToCloud,
     forwardWriter = saveForwardValidationArchiveToCloud,
     modelWriter = saveModelVersionArchiveToCloud,
+    queue = getSharedOfflineQueue(),
+    queueFlusher = flushSharedOfflineQueue,
     eventTarget = globalThis.window ?? null,
   } = {}) {
     for (const [name, value] of Object.entries({
@@ -86,10 +96,15 @@ export class LearningCloudAutoSyncController {
       candidateWriter,
       forwardWriter,
       modelWriter,
+      queueFlusher,
     })) {
       if (typeof value !== "function") {
         throw new TypeError(`${name} must be a function.`);
       }
+    }
+
+    if (typeof queue?.enqueue !== "function") {
+      throw new TypeError("queue.enqueue must be a function.");
     }
 
     this.statusProvider = statusProvider;
@@ -97,6 +112,8 @@ export class LearningCloudAutoSyncController {
     this.candidateWriter = candidateWriter;
     this.forwardWriter = forwardWriter;
     this.modelWriter = modelWriter;
+    this.queue = queue;
+    this.queueFlusher = queueFlusher;
     this.eventTarget = eventTarget;
     this.activeRestore = null;
     this.activeStatusRefresh = null;
@@ -122,7 +139,11 @@ export class LearningCloudAutoSyncController {
       void this.mirrorModelVersion(event?.detail);
     };
     this.handleOnline = () => {
-      void this.refreshStatus().then(() => this.restore());
+      void this.refreshStatus()
+        .then(async () => {
+          if (this.ready()) await this.queueFlusher();
+          return this.restore();
+        });
     };
   }
 
@@ -176,6 +197,20 @@ export class LearningCloudAutoSyncController {
 
     this.state.lastError = error?.code ?? fallbackCode;
     return this.state.lastError;
+  }
+
+  queueRecord(record, reason) {
+    const queued = this.queue.enqueue(record);
+    const result = {
+      saved: false,
+      queued: true,
+      reason,
+      queueId: queued.queueId,
+      collection: record.collection,
+      id: record.id,
+    };
+    this.emit("ark:learning-cloud-queued", result);
+    return result;
   }
 
   async restore() {
@@ -239,8 +274,13 @@ export class LearningCloudAutoSyncController {
   }
 
   async mirrorCandidate(detail = {}) {
+    const record = buildCandidateArchiveRecord({
+      candidate: detail?.candidate,
+      action: detail?.action,
+    });
+
     if (!(await this.ensureReady())) {
-      return { saved: false, reason: "cloud_not_ready" };
+      return this.queueRecord(record, "cloud_not_ready");
     }
 
     try {
@@ -253,19 +293,22 @@ export class LearningCloudAutoSyncController {
       return result;
     }
     catch (error) {
-      return {
-        saved: false,
-        reason: this.handleCloudError(
-          error,
-          "learning_cloud_candidate_save_failed",
-        ),
-      };
+      const reason = this.handleCloudError(
+        error,
+        "learning_cloud_candidate_save_failed",
+      );
+      return this.queueRecord(record, reason);
     }
   }
 
   async mirrorForwardValidation(detail = {}) {
+    const record = buildForwardValidationArchiveRecord({
+      result: detail?.result,
+      candidateId: detail?.candidateId,
+    });
+
     if (!(await this.ensureReady())) {
-      return { saved: false, reason: "cloud_not_ready" };
+      return this.queueRecord(record, "cloud_not_ready");
     }
 
     try {
@@ -278,19 +321,19 @@ export class LearningCloudAutoSyncController {
       return result;
     }
     catch (error) {
-      return {
-        saved: false,
-        reason: this.handleCloudError(
-          error,
-          "learning_cloud_forward_save_failed",
-        ),
-      };
+      const reason = this.handleCloudError(
+        error,
+        "learning_cloud_forward_save_failed",
+      );
+      return this.queueRecord(record, reason);
     }
   }
 
   async mirrorModelVersion(detail = {}) {
+    const record = buildModelVersionArchiveRecord(detail);
+
     if (!(await this.ensureReady())) {
-      return { saved: false, reason: "cloud_not_ready" };
+      return this.queueRecord(record, "cloud_not_ready");
     }
 
     try {
@@ -300,13 +343,11 @@ export class LearningCloudAutoSyncController {
       return result;
     }
     catch (error) {
-      return {
-        saved: false,
-        reason: this.handleCloudError(
-          error,
-          "learning_cloud_model_version_save_failed",
-        ),
-      };
+      const reason = this.handleCloudError(
+        error,
+        "learning_cloud_model_version_save_failed",
+      );
+      return this.queueRecord(record, reason);
     }
   }
 
@@ -342,7 +383,10 @@ export class LearningCloudAutoSyncController {
       this.handleOnline,
     );
 
-    const ready = this.refreshStatus().then(() => this.restore());
+    const ready = this.refreshStatus().then(async () => {
+      if (this.ready()) await this.queueFlusher();
+      return this.restore();
+    });
 
     return {
       started: true,

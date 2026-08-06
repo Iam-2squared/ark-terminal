@@ -56,9 +56,16 @@ function prediction(overrides = {}) {
   };
 }
 
-test("Automatic cloud sync is a safe no-op when cloud is unavailable", async () => {
+test("Automatic cloud sync queues safely when cloud is unavailable", async () => {
   let cloudLoads = 0;
   let localWrites = 0;
+  const queued = [];
+  const queue = {
+    enqueue(record) {
+      queued.push(record);
+      return { queueId: `queue-${queued.length}` };
+    },
+  };
 
   const controller = new AutomaticCloudSyncController({
     statusProvider: async () => ({
@@ -77,6 +84,8 @@ test("Automatic cloud sync is a safe no-op when cloud is unavailable", async () 
     cloudBulkWriter: async () => ({}),
     predictionWriter: async () => ({ saved: true }),
     cloudRecordWriter: async () => ({ saved: true }),
+    queue,
+    queueFlusher: async () => ({ sent: 0, failed: 0, remaining: 0 }),
     eventTarget: createEventTarget(),
   });
 
@@ -91,8 +100,16 @@ test("Automatic cloud sync is a safe no-op when cloud is unavailable", async () 
   const mirrored = await controller.mirrorPrediction(prediction());
   assert.deepEqual(mirrored, {
     saved: false,
+    queued: true,
     reason: "cloud_not_ready",
+    queueId: "queue-1",
+    collection: "predictions",
+    id: "prediction-1",
   });
+  assert.equal(queued.length, 1);
+  assert.equal(queued[0].collection, "predictions");
+  assert.equal(queued[0].id, "prediction-1");
+  assert.equal(queued[0].data.executionAllowed, false);
 });
 
 test("Automatic cloud sync restores and converges prediction history", async () => {

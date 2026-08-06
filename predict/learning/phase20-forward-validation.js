@@ -18,6 +18,18 @@ function finiteNumber(value, fallback = null) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function eventWithDetail(name, detail) {
+  if (typeof globalThis.CustomEvent === "function") {
+    return new globalThis.CustomEvent(name, { detail });
+  }
+
+  return { type: name, detail };
+}
+
+function cloneJson(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
 function normalizeAction(value) {
   const action = String(value ?? "")
     .trim()
@@ -310,6 +322,7 @@ export function recordCandidateForwardValidation({
   result,
   orchestrator,
   candidateId,
+  eventTarget = globalThis.window ?? null,
 } = {}) {
   if (!result || result.version !== PHASE20_FORWARD_VALIDATION_VERSION) {
     throw new Error("VALID_FORWARD_VALIDATION_RESULT_REQUIRED");
@@ -321,7 +334,7 @@ export function recordCandidateForwardValidation({
 
   const challenger = result.evaluation?.challenger ?? {};
 
-  return orchestrator.recordWalkForward(candidateId, {
+  const recorded = orchestrator.recordWalkForward(candidateId, {
     metrics: {
       accuracy: finiteNumber(challenger.accuracy),
       winRate: finiteNumber(challenger.accuracy),
@@ -333,9 +346,26 @@ export function recordCandidateForwardValidation({
     futureLeakChecked: result.validationContext?.futureLeakChecked === true,
     passed: result.status === "READY_FOR_HUMAN_REVIEW",
   });
+
+  eventTarget?.dispatchEvent?.(
+    eventWithDetail("ark:forward-validation-recorded", {
+      version: PHASE20_FORWARD_VALIDATION_VERSION,
+      candidateId,
+      result: cloneJson(result),
+      recordedCandidate: cloneJson(recorded),
+      runtimeActivationAllowed: false,
+      automaticPromotionAllowed: false,
+      productionUpdateAllowed: false,
+      brokerWriteAllowed: false,
+    }),
+  );
+
+  return recorded;
 }
 
 export const Phase20ForwardValidationInternals = {
+  cloneJson,
+  eventWithDetail,
   finiteNumber,
   normalizeAction,
   predictionKey,

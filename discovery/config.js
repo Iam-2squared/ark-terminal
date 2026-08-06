@@ -3,8 +3,8 @@ import { ARK_API_BASE, DEFAULT_WEIGHTS } from "../predict/config.js";
 export { ARK_API_BASE, DEFAULT_WEIGHTS };
 
 export const SCREENER_PATHS = Object.freeze({
-  universe: `${ARK_API_BASE}/api/screener-data?type=universe`,
-  snapshot: `${ARK_API_BASE}/api/screener-data?type=snapshot`,
+  universe: `${ARK_API_BASE}/api/screener?mode=data&type=universe`,
+  snapshot: `${ARK_API_BASE}/api/screener?mode=data&type=snapshot`,
 });
 
 export const SCREENER_STORAGE_KEYS = Object.freeze({

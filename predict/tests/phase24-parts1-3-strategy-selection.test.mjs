@@ -5,6 +5,10 @@ import { buildModelSegment, segmentRows } from "../strategy/model-segmentation.j
 import { evaluateLiquidity } from "../strategy/liquidity-gate.js";
 import { evaluateCostAwareStrategy } from "../strategy/cost-aware-evaluation.js";
 
+function assertClose(actual, expected, tolerance = 1e-12) {
+  assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected}`);
+}
+
 test("buildModelSegment separates action horizon regime and industry", () => {
   const segment = buildModelSegment({ signal: "buy", evaluationHorizon: 5, marketRegime: "bull", industry: "AI" });
   assert.equal(segment.action, "BUY");
@@ -41,9 +45,9 @@ test("cost-aware evaluation separates gross and net performance", () => {
     { grossReturn: -1, feePercent: 0.1, slippagePercent: 0.2 },
   ]);
   assert.equal(result.sampleCount, 2);
-  assert.equal(result.grossAverageReturn, 0.5);
-  assert.equal(result.netAverageReturn, 0.2);
-  assert.equal(result.profitFactor, 1.7 / 1.3);
+  assertClose(result.grossAverageReturn, 0.5);
+  assertClose(result.netAverageReturn, 0.2);
+  assertClose(result.profitFactor, 1.7 / 1.3);
   assert.equal(result.safety.automaticPromotionAllowed, false);
   assert.equal(result.safety.productionUpdateAllowed, false);
 });

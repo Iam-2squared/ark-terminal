@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Learning Dashboard | Ark Terminal</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="learning-dashboard.css" />
+  </head>
+  <body>
+    <header class="pageHeader">
+      <div class="headerInner">
+        <div class="headerNavigation">
+          <a href="index.html" class="backButton">← Prediction Lab</a>
+          <div class="headerActionGroup">
+            <a href="performance.html" class="secondaryButton headerAction">AI成績</a>
+            <a href="cloud-sync.html" class="secondaryButton headerAction">Cloud Sync</a>
+          </div>
+        </div>
+        <p class="eyebrow">Ark Terminal</p>
+        <h1>Learning Dashboard</h1>
+        <p class="headerDescription">
+          Production・Candidate・Forward Test・学習履歴・クラウド状態をまとめて確認します。
+          この画面からモデルを自動昇格したり、実注文を出したりすることはありません。
+        </p>
+      </div>
+    </header>
+
+    <main class="pageMain learningDashboardMain">
+      <section class="learningHeroGrid">
+        <article class="marketCard">
+          <p class="cardLabel">Production Model</p>
+          <h2 id="learningProductionVersion">未設定</h2>
+          <div class="learningMetricGrid">
+            <div><span>Accuracy</span><strong id="learningAccuracy">--</strong></div>
+            <div><span>Win Rate</span><strong id="learningWinRate">--</strong></div>
+            <div><span>Profit Factor</span><strong id="learningProfitFactor">--</strong></div>
+            <div><span>Sharpe</span><strong id="learningSharpe">--</strong></div>
+            <div><span>Max DD</span><strong id="learningMaxDrawdown">--</strong></div>
+            <div><span>Average Return</span><strong id="learningAverageReturn">--</strong></div>
+          </div>
+        </article>
+
+        <article class="marketCard">
+          <div class="marketHeader">
+            <div>
+              <p class="cardLabel">AI Health</p>
+              <h2 id="learningHealthLabel">確認中</h2>
+            </div>
+            <span id="learningCloudBadge" class="marketStatusBadge loading">確認中</span>
+          </div>
+          <div id="learningHealthGrid" class="learningHealthGrid"></div>
+        </article>
+      </section>
+
+      <section class="learningSummaryGrid">
+        <article class="metricCard"><span>Candidate</span><strong id="learningCandidateCount">0</strong></article>
+        <article class="metricCard"><span>人間レビュー待ち</span><strong id="learningReviewCount">0</strong></article>
+        <article class="metricCard"><span>Forward Test</span><strong id="learningForwardCount">0</strong></article>
+        <article class="metricCard"><span>学習レポート</span><strong id="learningReportCount">0</strong></article>
+        <article class="metricCard"><span>再送待ち</span><strong id="learningQueueCount">0</strong></article>
+        <article class="metricCard"><span>最終同期</span><strong id="learningLastSync">--</strong></article>
+      </section>
+
+      <section class="marketCard">
+        <div class="cardHeader">
+          <div>
+            <p class="cardLabel">Champion vs Candidate</p>
+            <h2>モデル比較</h2>
+          </div>
+        </div>
+        <div id="learningCandidateComparison" class="learningComparison"></div>
+      </section>
+
+      <section class="marketCard">
+        <div class="cardHeader">
+          <div>
+            <p class="cardLabel">Learning Timeline</p>
+            <h2>学習・検証・承認履歴</h2>
+          </div>
+        </div>
+        <div id="learningTimeline" class="learningTimeline"></div>
+      </section>
+
+      <section class="warningCard">
+        <div>
+          <p class="cardLabel">Safety</p>
+          <h2>自動昇格と実注文は常時無効</h2>
+        </div>
+        <p>
+          CandidateやForward Testが良好でも、Productionへ自動適用しません。
+          復元されたクラウド履歴は監査専用で、brokerWriteAllowed・liveTradingAllowedは常にfalseです。
+        </p>
+      </section>
+    </main>
+
+    <script type="module" src="learning-dashboard.js"></script>
+  </body>
+</html>

@@ -10,8 +10,10 @@ const PHASE42_SAFETY = Object.freeze({
   orderModificationAllowed: false,
   excelOrderWriteAllowed: false,
   orderTriggerWriteAllowed: false,
+  automaticCandidateCreationAllowed: false,
   automaticPromotionAllowed: false,
   productionUpdateAllowed: false,
+  humanApprovalRequired: true,
 });
 
 const FEATURE_SCHEMA_VERSION = 1;
@@ -38,6 +40,7 @@ function normalizeUpdatedAt(value) {
 }
 
 function finiteOrNull(value) {
+  if (value === null || value === undefined || value === "") return null;
   const numeric = Number(value);
   return Number.isFinite(numeric) ? numeric : null;
 }

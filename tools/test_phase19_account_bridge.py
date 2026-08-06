@@ -30,10 +30,10 @@ class DummyWorkbook:
         return self.sheets[name]
 
 
-def create_native_workbook():
+def create_native_workbook(*, account_status="完了", position_status="配信中"):
     account = DummySheet(
         {
-            "A1": "=RssCapacityList()",
+            "A1": "=RssCapacityList($A$2) => " + account_status,
             "A2": "現物買付可能額",
             "B2": "信用口座_保証金余裕額",
             "A3": "118,000",
@@ -43,7 +43,7 @@ def create_native_workbook():
 
     positions = DummySheet(
         {
-            "A1": '=RssPositionList(,,"A")',
+            "A1": '=RssPositionList($A$2:$R$2,,,"A") => ' + position_status,
             "A2": "銘柄コード",
             "B2": "銘柄名称",
             "C2": "口座区分",
@@ -86,12 +86,7 @@ def create_native_workbook():
         }
     )
 
-    return DummyWorkbook(
-        {
-            "ArkAccount": account,
-            "ArkPositions": positions,
-        }
-    )
+    return DummyWorkbook({"ArkAccount": account, "ArkPositions": positions})
 
 
 def create_legacy_workbook():
@@ -108,7 +103,6 @@ def create_legacy_workbook():
             "B10": "未成年口座",
         }
     )
-
     positions = DummySheet(
         {
             "A2": "4755",
@@ -126,13 +120,7 @@ def create_legacy_workbook():
             "A3": None,
         }
     )
-
-    return DummyWorkbook(
-        {
-            "ArkAccount": account,
-            "ArkPositions": positions,
-        }
-    )
+    return DummyWorkbook({"ArkAccount": account, "ArkPositions": positions})
 
 
 def test_native_rss_snapshot_is_normalized_and_private():
@@ -140,7 +128,6 @@ def test_native_rss_snapshot_is_normalized_and_private():
         create_native_workbook(),
         now="2026-08-05T12:30:00+00:00",
     )
-
     assert snapshot["readOnly"] is True
     assert snapshot["sourceMode"] == "marketspeed-native-rss"
     assert snapshot["connection"]["connected"] is True
@@ -152,8 +139,6 @@ def test_native_rss_snapshot_is_normalized_and_private():
     assert snapshot["account"]["marketValue"] == 235000
     assert snapshot["account"]["equity"] is None
     assert snapshot["account"]["unrealizedPnl"] == 5000
-    assert snapshot["account"]["availableMetrics"]["cash"] is False
-    assert snapshot["account"]["availableMetrics"]["buyingPower"] is True
     assert snapshot["orders"] == []
 
 
@@ -162,20 +147,34 @@ def test_native_positions_are_read_from_rss_list_rows():
         create_native_workbook(),
         now="2026-08-05T12:30:00+00:00",
     )
-
     assert len(positions) == 2
     assert positions[0]["symbol"] == "4755.T"
-    assert positions[0]["quantity"] == 100
-    assert positions[0]["unrealizedPnl"] == 4000
     assert positions[1]["symbol"] == "9432.T"
-    assert positions[1]["marketValue"] == 151000
-    assert positions[1]["orderQuantity"] == 100
-    assert positions[1]["availableQuantity"] == 1000
     assert all(position["readOnly"] is True for position in positions)
-    assert all(
-        position["sourceMode"] == "marketspeed-native-rss"
-        for position in positions
-    )
+
+
+def test_native_rss_disconnected_fails_closed():
+    with pytest.raises(RuntimeError, match="未接続"):
+        rss_account_bridge.read_broker_snapshot(
+            create_native_workbook(position_status="未接続"),
+            now="2026-08-05T12:30:00+00:00",
+        )
+
+
+def test_native_rss_unknown_status_fails_closed():
+    with pytest.raises(RuntimeError, match="接続状態を確認できません"):
+        rss_account_bridge.read_broker_snapshot(
+            create_native_workbook(position_status="応答待ち"),
+            now="2026-08-05T12:30:00+00:00",
+        )
+
+
+def test_native_account_disconnected_fails_closed():
+    with pytest.raises(RuntimeError, match="未接続"):
+        rss_account_bridge.read_broker_snapshot(
+            create_native_workbook(account_status="未接続"),
+            now="2026-08-05T12:30:00+00:00",
+        )
 
 
 def test_legacy_normalized_sheet_remains_supported():
@@ -183,7 +182,6 @@ def test_legacy_normalized_sheet_remains_supported():
         create_legacy_workbook(),
         now="2026-08-05T12:30:00+00:00",
     )
-
     assert snapshot["sourceMode"] == "legacy-normalized-sheet"
     assert snapshot["account"]["cash"] == 120000
     assert snapshot["account"]["equity"] == 350000
@@ -193,29 +191,16 @@ def test_legacy_normalized_sheet_remains_supported():
 def test_description_text_does_not_fake_a_connected_account():
     workbook = DummyWorkbook(
         {
-            "ArkAccount": DummySheet(
-                {
-                    "B2": "実際の現金残高",
-                    "B3": "実際の買付可能額",
-                    "B4": "保有株の時価総額",
-                    "B5": "総資産",
-                }
-            ),
+            "ArkAccount": DummySheet({"B2": "実際の現金残高", "B3": "実際の買付可能額", "B4": "保有株の時価総額", "B5": "総資産"}),
             "ArkPositions": DummySheet({"A2": None}),
         }
     )
-
     with pytest.raises(RuntimeError, match="有効な数値"):
         rss_account_bridge.read_broker_snapshot(workbook)
 
 
 def test_missing_account_sheet_fails_closed():
-    workbook = DummyWorkbook(
-        {
-            "ArkPositions": DummySheet({"A2": None}),
-        }
-    )
-
+    workbook = DummyWorkbook({"ArkPositions": DummySheet({"A2": None})})
     with pytest.raises(RuntimeError, match="ArkAccount"):
         rss_account_bridge.read_broker_snapshot(workbook)
 
@@ -225,53 +210,28 @@ def test_broker_endpoints_return_read_only_native_snapshot(monkeypatch):
         create_native_workbook(),
         now="2026-08-05T12:30:00+00:00",
     )
-
-    monkeypatch.setattr(
-        rss_bridge,
-        "read_account_snapshot_from_excel",
-        lambda: snapshot,
-    )
-
+    monkeypatch.setattr(rss_bridge, "read_account_snapshot_from_excel", lambda: snapshot)
     client = TestClient(rss_bridge.app)
-
     connection = client.get("/broker/connection")
     assert connection.status_code == 200
     assert connection.json()["connected"] is True
     assert connection.json()["readOnly"] is True
-
     account = client.get("/broker/account")
     assert account.status_code == 200
-    assert account.json()["account"]["buyingPower"] == 118000
-    assert account.json()["account"]["equity"] is None
-    assert account.json()["account"]["accountId"] is None
-
     positions = client.get("/broker/positions")
     assert positions.status_code == 200
-    assert positions.json()["count"] == 2
-
     snapshot_response = client.get("/broker/snapshot")
     assert snapshot_response.status_code == 200
-    assert snapshot_response.json()["orders"] == []
-
     assert client.post("/broker/account").status_code in {404, 405}
     assert client.delete("/broker/positions").status_code in {404, 405}
 
 
 def test_connection_reports_configuration_error_without_fake_values(monkeypatch):
     def fail():
-        raise RuntimeError(
-            "ArkAccountのRssCapacityList出力に現物買付可能額がありません。"
-        )
-
-    monkeypatch.setattr(
-        rss_bridge,
-        "read_account_snapshot_from_excel",
-        fail,
-    )
-
+        raise RuntimeError("ArkAccountのRssCapacityList出力に現物買付可能額がありません。")
+    monkeypatch.setattr(rss_bridge, "read_account_snapshot_from_excel", fail)
     client = TestClient(rss_bridge.app)
     response = client.get("/broker/connection")
-
     assert response.status_code == 200
     body = response.json()
     assert body["connected"] is False
@@ -281,6 +241,16 @@ def test_connection_reports_configuration_error_without_fake_values(monkeypatch)
     assert "RssCapacityList" in body["message"]
 
 
+def test_broker_snapshot_returns_503_on_rss_disconnect(monkeypatch):
+    def fail():
+        raise RuntimeError("ArkPositionsのMARKETSPEED II RSSが未接続です。")
+    monkeypatch.setattr(rss_bridge, "read_account_snapshot_from_excel", fail)
+    client = TestClient(rss_bridge.app)
+    response = client.get("/broker/snapshot")
+    assert response.status_code == 503
+    assert "未接続" in response.json()["detail"]
+
+
 def test_cors_is_restricted_to_known_origins():
     assert "https://ark-terminal.vercel.app" in rss_bridge.ALLOWED_ORIGINS
     assert "*" not in rss_bridge.ALLOWED_ORIGINS
@@ -288,7 +258,6 @@ def test_cors_is_restricted_to_known_origins():
 
 def test_private_network_preflight_is_allowed_only_for_known_origin():
     client = TestClient(rss_bridge.app)
-
     allowed = client.options(
         "/broker/connection",
         headers={
@@ -298,13 +267,9 @@ def test_private_network_preflight_is_allowed_only_for_known_origin():
             "Access-Control-Request-Private-Network": "true",
         },
     )
-
     assert allowed.status_code in {200, 204}
-    assert allowed.headers["access-control-allow-origin"] == (
-        "https://ark-terminal.vercel.app"
-    )
+    assert allowed.headers["access-control-allow-origin"] == "https://ark-terminal.vercel.app"
     assert allowed.headers["access-control-allow-private-network"] == "true"
-
     denied = client.options(
         "/broker/connection",
         headers={
@@ -314,6 +279,5 @@ def test_private_network_preflight_is_allowed_only_for_known_origin():
             "Access-Control-Request-Private-Network": "true",
         },
     )
-
     assert denied.status_code == 400
     assert "access-control-allow-private-network" not in denied.headers

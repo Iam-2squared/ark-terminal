@@ -37,11 +37,29 @@ function defaultId(prefix = "candidate") {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function eventWithDetail(name, detail) {
+  if (typeof globalThis.CustomEvent === "function") {
+    return new globalThis.CustomEvent(name, { detail });
+  }
+
+  return { type: name, detail };
+}
+
+function cloneJson(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
 export class ContinuousLearningOrchestratorV1 {
-  constructor({ storage = null, storageKey = "ark.continuous-learning.v1", maxHistory = 100 } = {}) {
+  constructor({
+    storage = null,
+    storageKey = "ark.continuous-learning.v1",
+    maxHistory = 100,
+    eventTarget = globalThis.window ?? null,
+  } = {}) {
     this.storage = storage;
     this.storageKey = storageKey;
     this.maxHistory = Math.max(1, Number(maxHistory) || 100);
+    this.eventTarget = eventTarget;
     this.state = this.#load();
   }
 
@@ -65,6 +83,47 @@ export class ContinuousLearningOrchestratorV1 {
     this.storage?.setItem?.(this.storageKey, JSON.stringify(this.state));
   }
 
+  emit(name, detail) {
+    this.eventTarget?.dispatchEvent?.(
+      eventWithDetail(name, {
+        version: CONTINUOUS_LEARNING_V1_VERSION,
+        ...detail,
+      }),
+    );
+  }
+
+  emitCandidate(candidate, action) {
+    this.emit("ark:candidate-state-changed", {
+      action,
+      candidate: cloneJson(candidate),
+      productionUpdateAllowed: false,
+      brokerWriteAllowed: false,
+      automaticPromotionAllowed: false,
+    });
+  }
+
+  emitModelAudit({
+    action,
+    model,
+    candidateId = null,
+    approvedBy = null,
+    note = null,
+    at = null,
+  }) {
+    this.emit("ark:model-version-audit", {
+      action,
+      model: cloneJson(model),
+      candidateId,
+      approvedBy,
+      note,
+      at,
+      runtimeActivationAllowed: false,
+      productionUpdateAllowed: false,
+      brokerWriteAllowed: false,
+      automaticPromotionAllowed: false,
+    });
+  }
+
   setProduction(model) {
     if (!model?.version) throw new Error("PRODUCTION_VERSION_REQUIRED");
     this.state.production = {
@@ -75,6 +134,14 @@ export class ContinuousLearningOrchestratorV1 {
       updatedAt: new Date().toISOString(),
     };
     this.#save();
+    this.emitModelAudit({
+      action: "PRODUCTION_SET",
+      model: this.state.production,
+      candidateId: this.state.production.candidateId ?? null,
+      approvedBy: this.state.production.approvedBy ?? model.setBy ?? null,
+      note: this.state.production.approvalNote ?? null,
+      at: this.state.production.updatedAt,
+    });
     return this.state.production;
   }
 
@@ -97,6 +164,7 @@ export class ContinuousLearningOrchestratorV1 {
     this.state.candidates.push(candidate);
     this.state.history.push({ type: "CANDIDATE_CREATED", candidateId: candidate.id, at: candidate.createdAt });
     this.#save();
+    this.emitCandidate(candidate, "CANDIDATE_CREATED");
     return candidate;
   }
 
@@ -111,8 +179,10 @@ export class ContinuousLearningOrchestratorV1 {
       completedAt: new Date().toISOString(),
     };
     candidate.status = candidate.walkForward.passed ? "VALIDATED" : "REJECTED";
+    candidate.updatedAt = candidate.walkForward.completedAt;
     this.state.history.push({ type: "WALK_FORWARD_RECORDED", candidateId, passed: candidate.walkForward.passed, at: candidate.walkForward.completedAt });
     this.#save();
+    this.emitCandidate(candidate, "WALK_FORWARD_RECORDED");
     return candidate;
   }
 
@@ -122,13 +192,17 @@ export class ContinuousLearningOrchestratorV1 {
     if (!candidate.walkForward?.passed || !candidate.walkForward.outOfSample || !candidate.walkForward.futureLeakChecked) {
       candidate.status = "REJECTED";
       candidate.comparison = { readyForReview: false, reason: "VALIDATION_REQUIREMENTS_NOT_MET" };
+      candidate.updatedAt = new Date().toISOString();
       this.#save();
+      this.emitCandidate(candidate, "COMPARISON_REJECTED");
       return candidate.comparison;
     }
     if (!this.state.production) {
       candidate.comparison = { readyForReview: true, reason: "NO_PRODUCTION_MODEL", deltas: null };
       candidate.status = "READY_FOR_REVIEW";
+      candidate.updatedAt = new Date().toISOString();
       this.#save();
+      this.emitCandidate(candidate, "READY_FOR_REVIEW");
       return candidate.comparison;
     }
     const productionMetrics = normalizeMetrics(this.state.production.metrics);
@@ -140,7 +214,12 @@ export class ContinuousLearningOrchestratorV1 {
       comparedAt: new Date().toISOString(),
     };
     candidate.status = comparison.improved ? "READY_FOR_REVIEW" : "REJECTED";
+    candidate.updatedAt = candidate.comparison.comparedAt;
     this.#save();
+    this.emitCandidate(
+      candidate,
+      comparison.improved ? "READY_FOR_REVIEW" : "COMPARISON_REJECTED",
+    );
     return candidate.comparison;
   }
 
@@ -166,8 +245,18 @@ export class ContinuousLearningOrchestratorV1 {
     candidate.status = "APPROVED";
     candidate.approvedBy = approvedBy;
     candidate.approvedAt = this.state.production.approvedAt;
+    candidate.updatedAt = candidate.approvedAt;
     this.state.history.push({ type: "CANDIDATE_APPROVED", candidateId, approvedBy, previousProductionVersion: previous?.version ?? null, at: candidate.approvedAt });
     this.#save();
+    this.emitCandidate(candidate, "CANDIDATE_APPROVED");
+    this.emitModelAudit({
+      action: "HUMAN_APPROVED",
+      model: this.state.production,
+      candidateId: candidate.id,
+      approvedBy,
+      note,
+      at: candidate.approvedAt,
+    });
     return this.state.production;
   }
 
@@ -191,6 +280,14 @@ export class ContinuousLearningOrchestratorV1 {
     };
     this.state.history.push({ type: "ROLLBACK", targetVersion, approvedBy, previousProductionVersion: previous?.version ?? null, reason, at: this.state.production.approvedAt });
     this.#save();
+    this.emitModelAudit({
+      action: "ROLLBACK",
+      model: this.state.production,
+      candidateId: source.id,
+      approvedBy,
+      note: reason,
+      at: this.state.production.approvedAt,
+    });
     return this.state.production;
   }
 
@@ -202,5 +299,13 @@ export class ContinuousLearningOrchestratorV1 {
     return JSON.parse(JSON.stringify({ ...this.state, version: CONTINUOUS_LEARNING_V1_VERSION }));
   }
 }
+
+export const ContinuousLearningV1Internals = Object.freeze({
+  cloneJson,
+  compareMetrics,
+  eventWithDetail,
+  finiteNumber,
+  normalizeMetrics,
+});
 
 export default ContinuousLearningOrchestratorV1;

@@ -115,6 +115,7 @@ test("Part8D creates a local-only backup with explicit safety flags", () => {
   const storage = memoryStorage();
   const backup = createSafeBackup({
     storage,
+    predictionReader: () => [],
     now: () => new Date("2026-08-06T03:20:00.000Z"),
   });
   assert.equal(backup.source, "ARK_TERMINAL_LOCAL_ONLY");
@@ -125,6 +126,7 @@ test("Part8D creates a local-only backup with explicit safety flags", () => {
 
 test("Part8D merges backup arrays by id and queue items by dedupe key", () => {
   const storage = memoryStorage();
+  let predictions = [];
   storage.setItem("ark.learning.candidates.v1", JSON.stringify([
     { id: "candidate-a", status: "CANDIDATE" },
   ]));
@@ -171,7 +173,15 @@ test("Part8D merges backup arrays by id and queue items by dedupe key", () => {
         },
       ],
     },
-  }, { storage, mode: "merge" });
+  }, {
+    storage,
+    mode: "merge",
+    predictionReader: () => predictions,
+    predictionWriter: (records) => {
+      predictions = [...records];
+      return predictions;
+    },
+  });
 
   assert.equal(result.candidateCount, 2);
   assert.equal(result.queueCount, 1);

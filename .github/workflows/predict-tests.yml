@@ -81,7 +81,38 @@ jobs:
 
       - name: Run discovery tests
         working-directory: discovery
-        run: npm test
+        shell: bash
+        run: |
+          set +e
+          npm test 2>&1 | tee discovery-test-output.log
+          status=${PIPESTATUS[0]}
+
+          if [ "$status" -ne 0 ]; then
+            python - <<'PY'
+          from pathlib import Path
+
+          lines = Path("discovery-test-output.log").read_text(
+              encoding="utf-8",
+              errors="replace",
+          ).splitlines()
+          failed = [index for index, line in enumerate(lines) if line.startswith("not ok ")]
+
+          if failed:
+              chunks = []
+              for index in failed:
+                  start = max(0, index - 3)
+                  end = min(len(lines), index + 35)
+                  chunks.append("\n".join(lines[start:end]))
+              message = "\n\n".join(chunks)
+          else:
+              message = "\n".join(lines[-160:])
+
+          message = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+          print(f"::error title=Discovery test failure::{message}")
+          PY
+          fi
+
+          exit "$status"
 
       - name: Run RSS bridge tests
         run: >-

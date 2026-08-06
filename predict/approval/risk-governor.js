@@ -4,12 +4,21 @@ const finite = (value) => Number.isFinite(Number(value));
 const number = (value, fallback = 0) => finite(value) ? Number(value) : fallback;
 const normalize = (value, fallback = "UNKNOWN") => String(value ?? fallback).trim().toUpperCase() || fallback;
 
+function resolveLocalHour(value) {
+  if (typeof value === "string") {
+    const match = value.match(/T(\d{2}):\d{2}/);
+    if (match) return Number(match[1]);
+  }
+  const date = new Date(value ?? Date.now());
+  return Number.isNaN(date.getTime()) ? null : date.getHours();
+}
+
 export function evaluateRiskGovernor(input = {}, options = {}) {
   const symbol = normalize(input.symbol, "");
   const side = normalize(input.side ?? input.signal, "HOLD");
   const instrumentType = normalize(input.instrumentType, "CASH_EQUITY");
   const allowedSymbols = new Set((options.allowedSymbols ?? []).map((value) => normalize(value, "")));
-  const now = new Date(input.now ?? Date.now());
+  const localHour = resolveLocalHour(input.now);
   const startHour = number(options.startHour, 9);
   const endHour = number(options.endHour, 15);
   const blockers = [];
@@ -42,8 +51,8 @@ export function evaluateRiskGovernor(input = {}, options = {}) {
   if (consecutiveLosses >= maxConsecutiveLosses) blockers.push("CONSECUTIVE_LOSS_LIMIT");
   if (maxDrawdown >= maxDrawdownLimit) blockers.push("MAX_DRAWDOWN_LIMIT");
   if (ordersToday >= maxOrdersPerDay) blockers.push("DAILY_ORDER_COUNT_LIMIT");
-  if (Number.isNaN(now.getTime())) blockers.push("INVALID_TIME");
-  else if (now.getHours() < startHour || now.getHours() >= endHour) blockers.push("OUTSIDE_TRADING_WINDOW");
+  if (localHour === null) blockers.push("INVALID_TIME");
+  else if (localHour < startHour || localHour >= endHour) blockers.push("OUTSIDE_TRADING_WINDOW");
 
   return {
     version: RISK_GOVERNOR_VERSION,
@@ -62,6 +71,7 @@ export function evaluateRiskGovernor(input = {}, options = {}) {
       consecutiveLosses,
       maxDrawdown,
       ordersToday,
+      localHour,
     },
     limits: {
       maxSymbolExposure,

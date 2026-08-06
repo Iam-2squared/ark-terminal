@@ -3,9 +3,8 @@ from __future__ import annotations
 import argparse
 import json
 from dataclasses import asdict
-from typing import Any
+from typing import Any, Callable
 
-from tools.rss_bridge import read_workbook_snapshot, release_com
 from tools.rss_order_preparation import (
     ORDER_SHEET_NAME,
     build_order_preparation,
@@ -33,7 +32,21 @@ def build_validation_payload(symbol: str, quantity: int, limit_price: float) -> 
     }
 
 
-def run_excel_preview(symbol: str, quantity: int, limit_price: float) -> dict[str, Any]:
+def _bridge_accessors() -> tuple[Callable[[], tuple[Any, Any]], Callable[[], None]]:
+    # Delayed import prevents rss_bridge <-> preview runner circular imports.
+    from tools.rss_bridge import read_workbook_snapshot, release_com
+
+    return read_workbook_snapshot, release_com
+
+
+def run_excel_preview(
+    symbol: str,
+    quantity: int,
+    limit_price: float,
+    *,
+    workbook_reader: Callable[[], tuple[Any, Any]] | None = None,
+    com_releaser: Callable[[], None] | None = None,
+) -> dict[str, Any]:
     payload = build_validation_payload(symbol, quantity, limit_price)
     preparation = build_order_preparation(payload)
     if preparation.status != "PREPARED_FOR_LOCAL_REVIEW":
@@ -45,7 +58,12 @@ def run_excel_preview(symbol: str, quantity: int, limit_price: float) -> dict[st
             "safety": dict(preparation.safety),
         }
 
-    _, workbook = read_workbook_snapshot()
+    if workbook_reader is None or com_releaser is None:
+        default_reader, default_releaser = _bridge_accessors()
+        workbook_reader = workbook_reader or default_reader
+        com_releaser = com_releaser or default_releaser
+
+    _, workbook = workbook_reader()
     try:
         try:
             worksheet = workbook.Worksheets(ORDER_SHEET_NAME)
@@ -67,7 +85,7 @@ def run_excel_preview(symbol: str, quantity: int, limit_price: float) -> dict[st
             },
         }
     finally:
-        release_com()
+        com_releaser()
 
 
 def parse_args() -> argparse.Namespace:

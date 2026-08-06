@@ -89,16 +89,19 @@ test("定期更新はデータ専用ブランチへ公開しmainへ直接pushし
   assert.doesNotMatch(workflow, /git push origin main/);
 });
 
-test("Discoveryは最新データをVercel API経由で自動取得する", async () => {
-  const [config, api] = await Promise.all([
+test("Discoveryは最新データを統合Vercel API経由で自動取得する", async () => {
+  const [config, router, implementation] = await Promise.all([
     read("discovery/config.js"),
-    read("api/screener-data.js"),
+    read("api/screener.js"),
+    read("server/screener-data.js"),
   ]);
 
-  assert.match(config, /api\/screener-data\?type=universe/);
-  assert.match(config, /api\/screener-data\?type=snapshot/);
-  assert.match(api, /automation\/screener-data/);
-  assert.match(api, /stale-while-revalidate/);
+  assert.match(config, /api\/screener\?mode=data&type=universe/);
+  assert.match(config, /api\/screener\?mode=data&type=snapshot/);
+  assert.match(router, /ScreenerDataApiInternals/);
+  assert.match(router, /screenerDataHandler/);
+  assert.match(implementation, /automation\/screener-data/);
+  assert.match(implementation, /stale-while-revalidate/);
 });
 
 test("ローカル開発ではService Workerが古いJSを返さない", async () => {

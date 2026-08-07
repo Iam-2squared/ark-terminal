@@ -78,8 +78,8 @@ function groupBySessionDate(predictions) {
 }
 
 function thresholdFor(item, entryThreshold) {
-  if (Number.isFinite(Number(item.selectedThreshold))) return Number(item.selectedThreshold);
-  if (Number.isFinite(Number(entryThreshold))) return Number(entryThreshold);
+  if (item.selectedThreshold !== null && item.selectedThreshold !== undefined && Number.isFinite(Number(item.selectedThreshold))) return Number(item.selectedThreshold);
+  if (entryThreshold !== null && entryThreshold !== undefined && Number.isFinite(Number(entryThreshold))) return Number(entryThreshold);
   return 0.55;
 }
 
@@ -241,6 +241,54 @@ export function buildEqualWeightBenchmark(predictions) {
 }
 
 function buildPredictions(model, rows, costRate) {
+  const normalized = rows.length >= 20 ? null : rows;
+  if (normalized) {
+    const probabilities = normalized.map((row) => clamp(model.predict(row), 0.001, 0.999));
+    const labels = normalized.map((row) => row.label);
+    const predictions = normalized.map((row, rowIndex) => Object.freeze({
+      id: row.id,
+      symbol: row.symbol,
+      sessionDate: row.sessionDate,
+      probability: probabilities[rowIndex],
+      label: row.label,
+      actualReturn: row.actualReturn,
+    }));
+    let tp = 0; let fp = 0; let tn = 0; let fn = 0;
+    labels.forEach((label, index) => {
+      const predicted = probabilities[index] >= 0.5 ? 1 : 0;
+      if (label === 1 && predicted === 1) tp += 1;
+      else if (label === 0 && predicted === 1) fp += 1;
+      else if (label === 0 && predicted === 0) tn += 1;
+      else fn += 1;
+    });
+    const positives = labels.filter((label) => label === 1).length;
+    const negatives = labels.length - positives;
+    let auc = 0.5;
+    if (positives && negatives) {
+      const ranked = probabilities.map((probability, index) => ({ probability, label: labels[index] }))
+        .sort((a, b) => a.probability - b.probability);
+      let rankSum = 0;
+      for (let i = 0; i < ranked.length;) {
+        let j = i + 1;
+        while (j < ranked.length && ranked[j].probability === ranked[i].probability) j += 1;
+        const averageRank = (i + 1 + j) / 2;
+        for (let k = i; k < j; k += 1) if (ranked[k].label === 1) rankSum += averageRank;
+        i = j;
+      }
+      auc = (rankSum - positives * (positives + 1) / 2) / (positives * negatives);
+    }
+    const metrics = Object.freeze({
+      accuracy: labels.length ? (tp + tn) / labels.length : 0,
+      precision: tp + fp ? tp / (tp + fp) : 0,
+      recall: tp + fn ? tp / (tp + fn) : 0,
+      auc,
+      brierScore: mean(probabilities.map((value, index) => (value - labels[index]) ** 2)),
+      sampleCount: labels.length,
+      probabilities: Object.freeze(probabilities),
+      safety: PHASE47_SAFETY,
+    });
+    return { metrics, predictions };
+  }
   const metrics = evaluateModel({ model, rows, costRate });
   const predictions = rows.map((row, rowIndex) => Object.freeze({
     id: row.id,

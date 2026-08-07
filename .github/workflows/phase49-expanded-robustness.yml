@@ -75,6 +75,9 @@ jobs:
       - name: Run Phase49.8 nested causal policy selection
         run: node tools/run_phase49_8_nested_policy_selection.mjs data/phase49-robustness data/phase49-guard-robustness/summary.json data/phase49-nested-policy-selection
 
+      - name: Run Phase49.9 causal promotion/demotion validation
+        run: node tools/run_phase49_9_promotion_demotion.mjs data/phase49-robustness data/phase49-guard-robustness/summary.json data/phase49-promotion-demotion
+
       - name: Upload Phase49 robustness artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -92,5 +95,6 @@ jobs:
             data/phase49-portfolio-guard-oos/summary.json
             data/phase49-policy-portfolio-oos/summary.json
             data/phase49-nested-policy-selection/summary.json
+            data/phase49-promotion-demotion/summary.json
             data/data-lake/manifest.json
             data/data-lake/rejected.json

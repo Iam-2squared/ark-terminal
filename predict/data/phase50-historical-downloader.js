@@ -7,6 +7,7 @@ export const PHASE50_DOWNLOADER_SAFETY = Object.freeze({
 });
 
 export const YAHOO_MINOR_RANGE_TOLERANCE = 0.11;
+export const YAHOO_QUARANTINE_RELATIVE_TOLERANCE = 0.001;
 
 export const DEFAULT_BENCHMARK_MAP = Object.freeze({
   NIKKEI225: { providerSymbol: "^N225", kind: "INDEX", currency: "JPY" },
@@ -108,6 +109,68 @@ function normalizeMinorYahooRangeDrift(record, tolerance = YAHOO_MINOR_RANGE_TOL
   };
 }
 
+function findResidualYahooRangeViolation(record) {
+  if (record.kind !== "OHLCV" || record.source !== "YAHOO_CHART") return null;
+
+  const violations = [];
+  for (const [field, value] of [["open", record.open], ["close", record.close]]) {
+    if (value < record.low) {
+      violations.push({ field, boundary: "low", delta: record.low - value });
+    }
+    if (value > record.high) {
+      violations.push({ field, boundary: "high", delta: value - record.high });
+    }
+  }
+  if (violations.length === 0) return null;
+
+  const scale = Math.max(
+    Math.abs(record.open),
+    Math.abs(record.high),
+    Math.abs(record.low),
+    Math.abs(record.close),
+    1,
+  );
+  const maxDelta = Math.max(...violations.map((violation) => violation.delta));
+  return {
+    violations,
+    maxDelta,
+    relativeDelta: maxDelta / scale,
+  };
+}
+
+function quarantineSingleResidualYahooRow(records, relativeTolerance = YAHOO_QUARANTINE_RELATIVE_TOLERANCE) {
+  const candidates = records
+    .map((record, index) => ({ record, index, violation: findResidualYahooRangeViolation(record) }))
+    .filter((item) => item.violation !== null);
+
+  if (candidates.length !== 1) {
+    return { records, warnings: [], quarantined: [] };
+  }
+
+  const candidate = candidates[0];
+  if (candidate.violation.relativeDelta > relativeTolerance) {
+    return { records, warnings: [], quarantined: [] };
+  }
+
+  const audit = Object.freeze({
+    code: "QUARANTINED_RANGE_DRIFT",
+    symbol: candidate.record.symbol,
+    sessionDate: candidate.record.sessionDate,
+    source: candidate.record.source,
+    relativeTolerance,
+    maxDelta: candidate.violation.maxDelta,
+    relativeDelta: candidate.violation.relativeDelta,
+    violations: Object.freeze(candidate.violation.violations.map((item) => Object.freeze({ ...item }))),
+    originalRecord: Object.freeze({ ...candidate.record }),
+  });
+
+  return {
+    records: records.filter((_, index) => index !== candidate.index),
+    warnings: [audit],
+    quarantined: [candidate.record],
+  };
+}
+
 export function normalizeYahooChartPayload(payload, { symbol, outputSymbol = symbol, kind = "OHLCV", currency = "JPY", source = "YAHOO_CHART" } = {}) {
   const result = payload?.chart?.result?.[0];
   const timestamps = result?.timestamp;
@@ -157,18 +220,28 @@ export async function downloadHistoricalSeries({ symbol, outputSymbol = symbol, 
   if (!rawRecords.length) throw new Error("historical download returned no valid records");
 
   const adjustmentWarnings = [];
-  const records = rawRecords.map((record) => {
+  const adjustedRecords = rawRecords.map((record) => {
     const normalized = normalizeMinorYahooRangeDrift(record);
     adjustmentWarnings.push(...normalized.warnings);
     return normalized.record;
   });
 
-  const inspection = inspectHistoricalRecords(records);
+  const quarantine = quarantineSingleResidualYahooRow(adjustedRecords);
+  if (!quarantine.records.length) {
+    throw new Error("historical download returned no valid records after quarantine");
+  }
+
+  const inspection = inspectHistoricalRecords(quarantine.records);
+  const warnings = Object.freeze([
+    ...adjustmentWarnings,
+    ...quarantine.warnings,
+    ...inspection.warnings,
+  ]);
   if (inspection.status !== "VALID") {
     const error = new Error("DOWNLOADED_DATA_BLOCKED");
     error.inspection = {
       ...inspection,
-      warnings: Object.freeze([...adjustmentWarnings, ...inspection.warnings]),
+      warnings,
     };
     throw error;
   }
@@ -177,7 +250,8 @@ export async function downloadHistoricalSeries({ symbol, outputSymbol = symbol, 
     providerSymbol: symbol,
     url,
     records: inspection.normalizedRecords,
-    warnings: Object.freeze([...adjustmentWarnings, ...inspection.warnings]),
+    warnings,
+    quarantined: Object.freeze([...quarantine.quarantined]),
     safety: PHASE50_DOWNLOADER_SAFETY,
   });
 }
@@ -216,6 +290,7 @@ export async function downloadHistoricalUniverse({ instruments, start, end, inte
     records: Object.freeze(results.flatMap((item) => item.records)),
     symbols: Object.freeze(results.map((item) => item.symbol)),
     warnings: Object.freeze(results.flatMap((item) => item.warnings)),
+    quarantined: Object.freeze(results.flatMap((item) => item.quarantined)),
     safety: PHASE50_DOWNLOADER_SAFETY,
   });
 }

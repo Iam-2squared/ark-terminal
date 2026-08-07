@@ -6,7 +6,7 @@ import {
   validateDataLakeManifest,
 } from "./phase41-data-lake.js";
 
-const PROVIDERS = new Set(["GENERIC", "CSV", "JSON", "MARKETSPEED_RSS"]);
+const PROVIDERS = new Set(["GENERIC", "CSV", "JSON", "MARKETSPEED_RSS", "YAHOO_CHART"]);
 
 function text(value) {
   return String(value ?? "").trim();

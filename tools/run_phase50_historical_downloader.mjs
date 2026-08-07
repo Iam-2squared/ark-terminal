@@ -66,6 +66,8 @@ async function main() {
       status: plan.status,
       blockers: plan.batch?.inspection?.blockers ?? [],
       warnings: plan.batch?.inspection?.warnings ?? [],
+      ingestionRejected: plan.ingestionPlan?.rejected ?? [],
+      integrity: plan.ingestionPlan?.integrity ?? null,
       safety: plan.safety,
     });
     throw new Error("PHASE50_DOWNLOADER_PIPELINE_BLOCKED");

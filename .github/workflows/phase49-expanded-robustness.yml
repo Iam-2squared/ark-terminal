@@ -12,7 +12,7 @@ permissions:
 jobs:
   expanded-robustness:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 50
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -57,6 +57,9 @@ jobs:
       - name: Run Phase49.2 regime-gate diagnostics
         run: node tools/run_phase49_regime_gate_diagnostics.mjs data/training/phase49-expanded.json data/phase49-diagnostics/summary.json data/phase49-regime-gate
 
+      - name: Run Phase49.3 causal regime-gate walk-forward
+        run: node tools/run_phase49_regime_gate_walkforward.mjs data/training/phase49-expanded.json data/phase49-diagnostics/summary.json data/phase49-regime-gate-walkforward
+
       - name: Upload Phase49 robustness artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -68,5 +71,6 @@ jobs:
             data/phase49-robustness/*-model.json
             data/phase49-diagnostics/summary.json
             data/phase49-regime-gate/summary.json
+            data/phase49-regime-gate-walkforward/summary.json
             data/data-lake/manifest.json
             data/data-lake/rejected.json

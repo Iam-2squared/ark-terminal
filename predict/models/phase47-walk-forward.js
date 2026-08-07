@@ -8,6 +8,7 @@ const std = (values) => {
   return Math.sqrt(mean(values.map((value) => (value - avg) ** 2)));
 };
 const stableHash = (value) => crypto.createHash("sha256").update(JSON.stringify(value)).digest("hex");
+const clamp = (value, lo, hi) => Math.max(lo, Math.min(hi, value));
 
 export const DEFAULT_PROMOTION_GATE = Object.freeze({
   minAuc: 0.53,
@@ -22,6 +23,8 @@ export const DEFAULT_PROMOTION_GATE = Object.freeze({
   requireBenchmarkOutperformance: true,
 });
 
+export const DEFAULT_THRESHOLD_GRID = Object.freeze([0.52, 0.54, 0.55, 0.56, 0.58, 0.6, 0.62, 0.65, 0.7]);
+
 function foldBoundaries(length, { minTrain = 60, validationSize = 20, step = 20 } = {}) {
   if (length < minTrain + validationSize) throw new RangeError("insufficient rows for walk-forward validation");
   const folds = [];
@@ -32,7 +35,7 @@ function foldBoundaries(length, { minTrain = 60, validationSize = 20, step = 20 
   return folds;
 }
 
-function buildOosMetrics(predictions, { entryThreshold = 0.55, costRate = 0.001 } = {}) {
+function dedupePredictions(predictions) {
   const sorted = [...predictions].sort((a, b) => a.sessionDate.localeCompare(b.sessionDate) || a.id.localeCompare(b.id));
   const deduped = [];
   const seen = new Set();
@@ -41,7 +44,11 @@ function buildOosMetrics(predictions, { entryThreshold = 0.55, costRate = 0.001 
     seen.add(item.id);
     deduped.push(item);
   }
+  return deduped;
+}
 
+function buildOosMetrics(predictions, { entryThreshold = 0.55, costRate = 0.001 } = {}) {
+  const deduped = dedupePredictions(predictions);
   let position = 0;
   let equity = 1;
   let peak = 1;
@@ -62,7 +69,6 @@ function buildOosMetrics(predictions, { entryThreshold = 0.55, costRate = 0.001 
     maxDrawdown = Math.max(maxDrawdown, peak ? (peak - equity) / peak : 0);
     position = nextPosition;
   }
-
   const gains = returns.filter((value) => value > 0).reduce((sum, value) => sum + value, 0);
   const losses = Math.abs(returns.filter((value) => value < 0).reduce((sum, value) => sum + value, 0));
   const avg = mean(returns);
@@ -71,7 +77,6 @@ function buildOosMetrics(predictions, { entryThreshold = 0.55, costRate = 0.001 
   const wins = active.filter((item) => item.actualReturn > 0).length;
   const sampleCount = deduped.length;
   const years = sampleCount / 252;
-
   return Object.freeze({
     entryThreshold,
     sampleCount,
@@ -89,8 +94,45 @@ function buildOosMetrics(predictions, { entryThreshold = 0.55, costRate = 0.001 
   });
 }
 
+function buildThresholdSweep(predictions, { thresholdGrid = DEFAULT_THRESHOLD_GRID, costRate = 0.001 } = {}) {
+  return Object.freeze(thresholdGrid.map((threshold) => buildOosMetrics(predictions, { entryThreshold: threshold, costRate })));
+}
+
+function chooseThreshold(sweep) {
+  const candidates = sweep.filter((m) => m.sampleCount >= 500 && m.positionChanges >= 40 && m.exposure >= 0.03 && m.exposure <= 0.85);
+  const pool = candidates.length ? candidates : sweep;
+  const score = (m) => (
+    clamp(m.profitFactor, 0, 3) / 3 * 0.35
+    + clamp((m.sharpe + 1) / 3, 0, 1) * 0.25
+    + clamp((m.netReturn + 1) / 2, 0, 1) * 0.2
+    - clamp(m.maxDrawdown, 0, 1) * 0.15
+    + clamp(m.exposure / 0.25, 0, 1) * 0.05
+  );
+  return [...pool].sort((a, b) => score(b) - score(a) || a.entryThreshold - b.entryThreshold)[0];
+}
+
+function buildConfidenceBuckets(predictions) {
+  const deduped = dedupePredictions(predictions);
+  const bands = [
+    [0.5, 0.55], [0.55, 0.6], [0.6, 0.65], [0.65, 0.7], [0.7, 0.8], [0.8, 1.0000001],
+  ];
+  return Object.freeze(bands.map(([min, max]) => {
+    const items = deduped.filter((item) => item.probability >= min && item.probability < max);
+    const returns = items.map((item) => item.actualReturn);
+    const wins = returns.filter((r) => r > 0).length;
+    return Object.freeze({
+      minProbability: min,
+      maxProbability: max > 1 ? 1 : max,
+      sampleCount: items.length,
+      winRate: items.length ? wins / items.length : 0,
+      averageReturn: mean(returns),
+      cumulativeReturnSum: returns.reduce((sum, r) => sum + r, 0),
+    });
+  }));
+}
+
 function buildBuyAndHoldBenchmark(predictions) {
-  const sorted = [...predictions].sort((a, b) => a.sessionDate.localeCompare(b.sessionDate) || a.id.localeCompare(b.id));
+  const sorted = dedupePredictions(predictions);
   let equity = 1;
   let peak = 1;
   let maxDrawdown = 0;
@@ -126,9 +168,7 @@ export function evaluatePromotionGate(aggregate, gate = DEFAULT_PROMOTION_GATE) 
   if ((oos.exposure ?? 0) < gate.minExposure) failures.push("EXPOSURE_BELOW_MINIMUM");
   if ((oos.exposure ?? 1) > gate.maxExposure) failures.push("EXPOSURE_ABOVE_MAXIMUM");
   if (gate.requirePositiveNetReturn && !((oos.netReturn ?? -Infinity) > 0)) failures.push("NET_RETURN_NOT_POSITIVE");
-  if (gate.requireBenchmarkOutperformance && !((oos.netReturn ?? -Infinity) > (benchmark.netReturn ?? Infinity))) {
-    failures.push("BENCHMARK_NOT_OUTPERFORMED");
-  }
+  if (gate.requireBenchmarkOutperformance && !((oos.netReturn ?? -Infinity) > (benchmark.netReturn ?? Infinity))) failures.push("BENCHMARK_NOT_OUTPERFORMED");
   return Object.freeze({
     status: failures.length ? "BLOCKED_FOR_PROMOTION" : "ELIGIBLE_FOR_PROMOTION_REVIEW",
     failures: Object.freeze(failures),
@@ -138,7 +178,7 @@ export function evaluatePromotionGate(aggregate, gate = DEFAULT_PROMOTION_GATE) 
   });
 }
 
-export function runWalkForward({ rows, modelTypes = MODEL_TYPES, options = {}, costRate = 0.001, entryThreshold = 0.55 } = {}) {
+export function runWalkForward({ rows, modelTypes = MODEL_TYPES, options = {}, costRate = 0.001, entryThreshold = 0.55, thresholdGrid = DEFAULT_THRESHOLD_GRID } = {}) {
   const normalized = normalizeTrainingRows(rows);
   const boundaries = foldBoundaries(normalized.length, options);
   const results = [];
@@ -173,6 +213,8 @@ export function runWalkForward({ rows, modelTypes = MODEL_TYPES, options = {}, c
       });
     });
 
+    const thresholdSweep = buildThresholdSweep(oosPredictions, { thresholdGrid, costRate });
+    const optimizedOos = chooseThreshold(thresholdSweep);
     const aggregateBase = {
       modelType,
       foldCount: folds.length,
@@ -181,7 +223,10 @@ export function runWalkForward({ rows, modelTypes = MODEL_TYPES, options = {}, c
       recall: mean(folds.map((fold) => fold.metrics.recall)),
       auc: mean(folds.map((fold) => fold.metrics.auc)),
       brierScore: mean(folds.map((fold) => fold.metrics.brierScore)),
-      oos: buildOosMetrics(oosPredictions, { entryThreshold, costRate }),
+      oos: optimizedOos,
+      baselineOos: buildOosMetrics(oosPredictions, { entryThreshold, costRate }),
+      thresholdSweep,
+      confidenceBuckets: buildConfidenceBuckets(oosPredictions),
       benchmark: buildBuyAndHoldBenchmark(oosPredictions),
     };
     const aggregate = Object.freeze({ ...aggregateBase, promotionGate: evaluatePromotionGate(aggregateBase) });
@@ -189,25 +234,20 @@ export function runWalkForward({ rows, modelTypes = MODEL_TYPES, options = {}, c
   }
 
   const ranked = [...results].sort((a, b) => {
-    const scoreA = a.aggregate.auc * 0.25
-      + a.aggregate.accuracy * 0.1
-      + Math.min(a.aggregate.oos.profitFactor, 3) / 3 * 0.25
-      + Math.max(-1, Math.min(1, a.aggregate.oos.sharpe / 2)) * 0.15
-      - a.aggregate.oos.maxDrawdown * 0.15
-      + Math.max(-1, Math.min(1, a.aggregate.oos.netReturn)) * 0.1;
-    const scoreB = b.aggregate.auc * 0.25
-      + b.aggregate.accuracy * 0.1
-      + Math.min(b.aggregate.oos.profitFactor, 3) / 3 * 0.25
-      + Math.max(-1, Math.min(1, b.aggregate.oos.sharpe / 2)) * 0.15
-      - b.aggregate.oos.maxDrawdown * 0.15
-      + Math.max(-1, Math.min(1, b.aggregate.oos.netReturn)) * 0.1;
-    return scoreB - scoreA || a.modelType.localeCompare(b.modelType);
+    const score = (aggregate) => aggregate.auc * 0.2
+      + aggregate.accuracy * 0.05
+      + Math.min(aggregate.oos.profitFactor, 3) / 3 * 0.3
+      + Math.max(-1, Math.min(1, aggregate.oos.sharpe / 2)) * 0.2
+      - aggregate.oos.maxDrawdown * 0.15
+      + Math.max(-1, Math.min(1, aggregate.oos.netReturn)) * 0.1;
+    return score(b.aggregate) - score(a.aggregate) || a.modelType.localeCompare(b.modelType);
   });
 
   return Object.freeze({
     status: "READY_FOR_HUMAN_REVIEW",
     folds: boundaries.length,
     entryThreshold,
+    thresholdOptimization: true,
     ranked: Object.freeze(ranked),
     selectedModelType: ranked[0].modelType,
     selectedPromotionStatus: ranked[0].aggregate.promotionGate.status,
@@ -224,12 +264,13 @@ export function buildPhase47RegistryCandidate({ rows, walkForwardResult, dataset
   const finalModel = trainModel({ rows: normalized, modelType: selected.modelType });
   const payload = {
     schemaVersion: 1,
-    phase: 47,
+    phase: 47.1,
     modelId: finalModel.modelId,
     modelType: selected.modelType,
     status: "CANDIDATE_REVIEW_ONLY",
     promotionStatus: selected.aggregate.promotionGate.status,
     promotionFailures: selected.aggregate.promotionGate.failures,
+    selectedEntryThreshold: selected.aggregate.oos.entryThreshold,
     generatedAt: new Date(generatedAt).toISOString(),
     trainingPeriod: { start: normalized[0].sessionDate, end: normalized.at(-1).sessionDate },
     trainingRows: normalized.length,

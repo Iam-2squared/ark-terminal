@@ -73,7 +73,38 @@ test("Yahoo chart records pass Phase45 persistence provider validation", () => {
   assert.equal(plan.ingestionPlan.acceptedRecordCount, 2);
 });
 
-test("universe failures include inspection diagnostics", async () => {
+test("minor Yahoo close-low drift is adjusted with an audit warning", async () => {
+  const driftPayload = {
+    chart: {
+      result: [{
+        timestamp: [1652745600],
+        indicators: {
+          quote: [{
+            open: [738],
+            high: [739.2999877929688],
+            low: [717.2000122070312],
+            close: [717.0999755859375],
+            volume: [64714400],
+          }],
+          adjclose: [{ adjclose: [623.1179809570312] }],
+        },
+      }],
+    },
+  };
+  const fetchImpl = async () => ({ ok: true, status: 200, json: async () => driftPayload });
+  const result = await downloadHistoricalSeries({
+    symbol: "8306.T",
+    start: "2022-05-17",
+    end: "2022-05-18",
+    fetchImpl,
+  });
+  assert.equal(result.records.length, 1);
+  assert.equal(result.records[0].low, result.records[0].close);
+  assert.equal(result.warnings[0].code, "MINOR_RANGE_ADJUSTMENT");
+  assert.equal(result.warnings[0].field, "close");
+});
+
+test("material Yahoo range errors still fail closed", async () => {
   const invalidPayload = {
     chart: {
       result: [{

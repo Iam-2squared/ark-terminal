@@ -1,0 +1,64 @@
+name: Phase49 Expanded Robustness
+
+on:
+  push:
+    branches:
+      - phase49/expanded-robustness
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  expanded-robustness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install prediction dependencies
+        working-directory: predict
+        run: npm install --ignore-scripts
+
+      - name: Run regression tests
+        working-directory: predict
+        run: npm test
+
+      - name: Download expanded historical universe
+        run: >-
+          node tools/run_phase50_historical_downloader.mjs
+          --symbols 7203.T,6758.T,9984.T,8306.T,8035.T,8316.T,8411.T,7267.T,7201.T,6501.T,6954.T,8058.T,8001.T,8031.T
+          --start 2020-01-01
+          --end 2026-08-08
+
+      - name: Build Phase49 expanded dataset
+        shell: bash
+        run: |
+          set -euo pipefail
+          MANIFEST_SHA=$(sha256sum data/data-lake/manifest.json | awk '{print $1}')
+          node tools/run_phase46_dataset_pipeline.mjs \
+            --input data/historical/downloaded.phase45.json \
+            --output data/training/phase49-expanded.json \
+            --dataset-version phase49-expanded-v1 \
+            --source-manifest-checksum "$MANIFEST_SHA"
+
+      - name: Run Phase49 expanded robustness matrix
+        run: node tools/run_phase49_expanded_robustness.mjs data/training/phase49-expanded.json data/phase49-robustness
+
+      - name: Upload Phase49 robustness artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase49-expanded-robustness
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            data/phase49-robustness/summary.json
+            data/phase49-robustness/*-model.json
+            data/data-lake/manifest.json
+            data/data-lake/rejected.json

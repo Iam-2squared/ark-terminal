@@ -116,13 +116,20 @@ function normalizeMinorYahooRangeDrift(record, tolerance = YAHOO_MINOR_RANGE_TOL
 }
 
 function quarantineSingleMinorYahooRangeRow(records, relativeTolerance = YAHOO_QUARANTINE_RELATIVE_TOLERANCE) {
-  const candidates = records
+  const violations = records
     .map((record, index) => ({ record, index, violation: yahooRangeViolation(record) }))
-    .filter((item) => item.violation && item.violation.relativeDelta <= relativeTolerance);
+    .filter((item) => item.violation);
 
-  if (candidates.length !== 1) return { records, warnings: [], quarantined: [] };
+  // Quarantine is intentionally stricter than the legacy absolute adjustment:
+  // exactly one Yahoo OHLCV row in the entire series may be inconsistent, and that
+  // one row must remain within the relative drift tolerance. Any second violation,
+  // even if individually tiny, is left untouched so Phase45 blocks fail-closed.
+  if (violations.length !== 1) return { records, warnings: [], quarantined: [] };
+  const candidate = violations[0];
+  if (candidate.violation.relativeDelta > relativeTolerance) {
+    return { records, warnings: [], quarantined: [] };
+  }
 
-  const candidate = candidates[0];
   const remaining = records.filter((_, index) => index !== candidate.index);
   return {
     records: remaining,

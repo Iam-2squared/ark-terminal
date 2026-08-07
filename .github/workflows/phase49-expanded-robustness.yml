@@ -69,6 +69,9 @@ jobs:
       - name: Run Phase49.6 canonical portfolio guarded OOS
         run: node tools/run_phase49_6_portfolio_guard_oos.mjs data/phase49-robustness data/phase49-guard-robustness/summary.json data/phase49-portfolio-guard-oos
 
+      - name: Run Phase49.7 canonical guard policy sweep
+        run: node tools/run_phase49_7_policy_portfolio_oos.mjs data/phase49-robustness data/phase49-guard-robustness/summary.json data/phase49-policy-portfolio-oos
+
       - name: Upload Phase49 robustness artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -84,5 +87,6 @@ jobs:
             data/phase49-gate-promotion-guard/summary.json
             data/phase49-guard-robustness/summary.json
             data/phase49-portfolio-guard-oos/summary.json
+            data/phase49-policy-portfolio-oos/summary.json
             data/data-lake/manifest.json
             data/data-lake/rejected.json

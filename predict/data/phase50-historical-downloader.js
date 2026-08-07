@@ -36,6 +36,19 @@ function isoDateFromUnix(seconds) {
   return new Date(seconds * 1000).toISOString().slice(0, 10);
 }
 
+function yahooRangeViolation(record) {
+  if (record.kind !== "OHLCV" || record.source !== "YAHOO_CHART") return null;
+  const violations = [];
+  for (const [field, value] of [["open", record.open], ["close", record.close]]) {
+    if (value < record.low) violations.push({ field, boundary: "low", delta: record.low - value });
+    if (value > record.high) violations.push({ field, boundary: "high", delta: value - record.high });
+  }
+  if (!violations.length) return null;
+  const scale = Math.max(Math.abs(record.open), Math.abs(record.high), Math.abs(record.low), Math.abs(record.close), 1);
+  const maxDelta = Math.max(...violations.map((item) => item.delta));
+  return { violations, maxDelta, relativeDelta: maxDelta / scale };
+}
+
 function normalizeMinorYahooRangeDrift(record, tolerance = YAHOO_MINOR_RANGE_TOLERANCE) {
   if (record.kind !== "OHLCV" || record.source !== "YAHOO_CHART") return { record, warnings: [] };
 
@@ -100,19 +113,6 @@ function normalizeMinorYahooRangeDrift(record, tolerance = YAHOO_MINOR_RANGE_TOL
     },
     warnings,
   };
-}
-
-function yahooRangeViolation(record) {
-  if (record.kind !== "OHLCV" || record.source !== "YAHOO_CHART") return null;
-  const violations = [];
-  for (const [field, value] of [["open", record.open], ["close", record.close]]) {
-    if (value < record.low) violations.push({ field, boundary: "low", delta: record.low - value });
-    if (value > record.high) violations.push({ field, boundary: "high", delta: value - record.high });
-  }
-  if (!violations.length) return null;
-  const scale = Math.max(Math.abs(record.open), Math.abs(record.high), Math.abs(record.low), Math.abs(record.close), 1);
-  const maxDelta = Math.max(...violations.map((item) => item.delta));
-  return { violations, maxDelta, relativeDelta: maxDelta / scale };
 }
 
 function quarantineSingleMinorYahooRangeRow(records, relativeTolerance = YAHOO_QUARANTINE_RELATIVE_TOLERANCE) {
@@ -188,18 +188,21 @@ export async function downloadHistoricalSeries({ symbol, outputSymbol = symbol, 
   const rawRecords = normalizeYahooChartPayload(payload, { symbol, outputSymbol, kind, currency });
   if (!rawRecords.length) throw new Error("historical download returned no valid records");
 
+  // First preserve strict fail-closed behavior for materially inconsistent rows while
+  // quarantining a single small Yahoo-specific relative drift. Only after quarantine
+  // do we apply the legacy absolute float adjustment for sub-0.11 price-unit noise.
+  const quarantine = quarantineSingleMinorYahooRangeRow(rawRecords);
+  if (!quarantine.records.length) throw new Error("historical download returned no valid records after quarantine");
+
   const adjustmentWarnings = [];
-  const adjustedRecords = rawRecords.map((record) => {
+  const adjustedRecords = quarantine.records.map((record) => {
     const normalized = normalizeMinorYahooRangeDrift(record);
     adjustmentWarnings.push(...normalized.warnings);
     return normalized.record;
   });
 
-  const quarantine = quarantineSingleMinorYahooRangeRow(adjustedRecords);
-  if (!quarantine.records.length) throw new Error("historical download returned no valid records after quarantine");
-
-  const inspection = inspectHistoricalRecords(quarantine.records);
-  const allWarnings = Object.freeze([...adjustmentWarnings, ...quarantine.warnings, ...inspection.warnings]);
+  const inspection = inspectHistoricalRecords(adjustedRecords);
+  const allWarnings = Object.freeze([...quarantine.warnings, ...adjustmentWarnings, ...inspection.warnings]);
   if (inspection.status !== "VALID") {
     const error = new Error("DOWNLOADED_DATA_BLOCKED");
     error.inspection = { ...inspection, warnings: allWarnings };

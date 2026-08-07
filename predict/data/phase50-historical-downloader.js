@@ -6,6 +6,8 @@ export const PHASE50_DOWNLOADER_SAFETY = Object.freeze({
   externalWriteAllowed: false,
 });
 
+export const YAHOO_MINOR_RANGE_TOLERANCE = 0.11;
+
 export const DEFAULT_BENCHMARK_MAP = Object.freeze({
   NIKKEI225: { providerSymbol: "^N225", kind: "INDEX", currency: "JPY" },
   TOPIX: { providerSymbol: "^TOPX", kind: "INDEX", currency: "JPY" },
@@ -31,6 +33,79 @@ export function buildYahooChartUrl({ symbol, start, end, interval = "1d" }) {
 
 function isoDateFromUnix(seconds) {
   return new Date(seconds * 1000).toISOString().slice(0, 10);
+}
+
+function normalizeMinorYahooRangeDrift(record, tolerance = YAHOO_MINOR_RANGE_TOLERANCE) {
+  if (record.kind !== "OHLCV" || record.source !== "YAHOO_CHART") {
+    return { record, warnings: [] };
+  }
+
+  const original = {
+    open: record.open,
+    high: record.high,
+    low: record.low,
+    close: record.close,
+  };
+  let { open, high, low, close } = record;
+  const warnings = [];
+
+  const adjustLow = (field, value) => {
+    const delta = low - value;
+    if (delta > 0 && delta <= tolerance) {
+      warnings.push({
+        code: "MINOR_RANGE_ADJUSTMENT",
+        symbol: record.symbol,
+        sessionDate: record.sessionDate,
+        field,
+        boundary: "low",
+        delta,
+        originalValue: value,
+        originalBoundary: low,
+        adjustedBoundary: value,
+      });
+      low = value;
+    }
+  };
+
+  const adjustHigh = (field, value) => {
+    const delta = value - high;
+    if (delta > 0 && delta <= tolerance) {
+      warnings.push({
+        code: "MINOR_RANGE_ADJUSTMENT",
+        symbol: record.symbol,
+        sessionDate: record.sessionDate,
+        field,
+        boundary: "high",
+        delta,
+        originalValue: value,
+        originalBoundary: high,
+        adjustedBoundary: value,
+      });
+      high = value;
+    }
+  };
+
+  adjustLow("open", open);
+  adjustHigh("open", open);
+  adjustLow("close", close);
+  adjustHigh("close", close);
+
+  if (warnings.length === 0) return { record, warnings };
+  return {
+    record: {
+      ...record,
+      open,
+      high,
+      low,
+      close,
+      normalizationAudit: {
+        rule: "YAHOO_MINOR_RANGE_TOLERANCE",
+        tolerance,
+        original,
+      },
+    },
+    warnings,
+  };
 }
 
 export function normalizeYahooChartPayload(payload, { symbol, outputSymbol = symbol, kind = "OHLCV", currency = "JPY", source = "YAHOO_CHART" } = {}) {
@@ -78,15 +153,33 @@ export async function downloadHistoricalSeries({ symbol, outputSymbol = symbol, 
   const response = await fetchImpl(url, { method: "GET", headers: { accept: "application/json" } });
   if (!response?.ok) throw new Error(`historical download failed: ${response?.status ?? "unknown"}`);
   const payload = await response.json();
-  const records = normalizeYahooChartPayload(payload, { symbol, outputSymbol, kind, currency });
-  if (!records.length) throw new Error("historical download returned no valid records");
+  const rawRecords = normalizeYahooChartPayload(payload, { symbol, outputSymbol, kind, currency });
+  if (!rawRecords.length) throw new Error("historical download returned no valid records");
+
+  const adjustmentWarnings = [];
+  const records = rawRecords.map((record) => {
+    const normalized = normalizeMinorYahooRangeDrift(record);
+    adjustmentWarnings.push(...normalized.warnings);
+    return normalized.record;
+  });
+
   const inspection = inspectHistoricalRecords(records);
   if (inspection.status !== "VALID") {
     const error = new Error("DOWNLOADED_DATA_BLOCKED");
-    error.inspection = inspection;
+    error.inspection = {
+      ...inspection,
+      warnings: Object.freeze([...adjustmentWarnings, ...inspection.warnings]),
+    };
     throw error;
   }
-  return Object.freeze({ symbol: outputSymbol, providerSymbol: symbol, url, records: inspection.normalizedRecords, warnings: inspection.warnings, safety: PHASE50_DOWNLOADER_SAFETY });
+  return Object.freeze({
+    symbol: outputSymbol,
+    providerSymbol: symbol,
+    url,
+    records: inspection.normalizedRecords,
+    warnings: Object.freeze([...adjustmentWarnings, ...inspection.warnings]),
+    safety: PHASE50_DOWNLOADER_SAFETY,
+  });
 }
 
 export async function downloadHistoricalUniverse({ instruments, start, end, interval = "1d", fetchImpl = fetch, concurrency = 3 }) {
@@ -122,6 +215,7 @@ export async function downloadHistoricalUniverse({ instruments, start, end, inte
     status: "READY_FOR_PHASE45",
     records: Object.freeze(results.flatMap((item) => item.records)),
     symbols: Object.freeze(results.map((item) => item.symbol)),
+    warnings: Object.freeze(results.flatMap((item) => item.warnings)),
     safety: PHASE50_DOWNLOADER_SAFETY,
   });
 }

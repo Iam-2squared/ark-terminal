@@ -56,7 +56,13 @@ async function main() {
     interval: args.interval || "1d",
     concurrency: Number(args.concurrency || 3),
   });
-  await atomicWriteJson(rawPath, { status: downloaded.status, records: downloaded.records, safety: downloaded.safety });
+  await atomicWriteJson(rawPath, {
+    status: downloaded.status,
+    records: downloaded.records,
+    warnings: downloaded.warnings,
+    quarantined: downloaded.quarantined,
+    safety: downloaded.safety,
+  });
 
   const shardPath = path.join(outputDir, "shards", "latest.json");
   const existingShard = await readJsonIfExists(shardPath);
@@ -82,6 +88,8 @@ async function main() {
     status: "READY_TO_PERSIST",
     downloadedSymbols: downloaded.symbols.length,
     downloadedRecords: downloaded.records.length,
+    quarantinedRecords: downloaded.quarantined.length,
+    warningCount: downloaded.warnings.length,
     totalRecordCount: plan.ingestionPlan.merged.shard.recordCount,
     insertedCount: plan.ingestionPlan.merged.insertedKeys.length,
     updatedCount: plan.ingestionPlan.merged.updatedKeys.length,

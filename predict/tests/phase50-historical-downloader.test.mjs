@@ -4,6 +4,7 @@ import {
   buildYahooChartUrl,
   normalizeYahooChartPayload,
   downloadHistoricalSeries,
+  downloadHistoricalUniverse,
   PHASE50_DOWNLOADER_SAFETY,
 } from "../data/phase50-historical-downloader.js";
 import { buildPhase45PersistencePlan } from "../data/phase45-persistence.js";
@@ -70,6 +71,37 @@ test("Yahoo chart records pass Phase45 persistence provider validation", () => {
   assert.equal(plan.status, "READY_TO_PERSIST");
   assert.equal(plan.ingestionPlan.rejected.length, 0);
   assert.equal(plan.ingestionPlan.acceptedRecordCount, 2);
+});
+
+test("universe failures include inspection diagnostics", async () => {
+  const invalidPayload = {
+    chart: {
+      result: [{
+        timestamp: [1722470400],
+        indicators: {
+          quote: [{ open: [2600], high: [2550], low: [2480], close: [2530], volume: [1200000] }],
+          adjclose: [{ adjclose: [2530] }],
+        },
+      }],
+    },
+  };
+  const fetchImpl = async () => ({ ok: true, status: 200, json: async () => invalidPayload });
+  await assert.rejects(
+    async () => downloadHistoricalUniverse({
+      instruments: [{ symbol: "6758.T", outputSymbol: "6758.T", kind: "OHLCV", currency: "JPY" }],
+      start: "2024-01-01",
+      end: "2024-12-31",
+      fetchImpl,
+    }),
+    (error) => {
+      assert.equal(error.message, "HISTORICAL_UNIVERSE_DOWNLOAD_BLOCKED");
+      assert.equal(error.failures[0].symbol, "6758.T");
+      assert.equal(error.failures[0].message, "DOWNLOADED_DATA_BLOCKED");
+      assert.equal(error.failures[0].blockers[0].code, "OPEN_OUTSIDE_RANGE");
+      assert.equal(error.failures[0].recordCount, 1);
+      return true;
+    },
+  );
 });
 
 test("invalid provider response fails closed", async () => {

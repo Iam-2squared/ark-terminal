@@ -6,6 +6,7 @@ import {
   downloadHistoricalSeries,
   PHASE50_DOWNLOADER_SAFETY,
 } from "../data/phase50-historical-downloader.js";
+import { buildPhase45PersistencePlan } from "../data/phase45-persistence.js";
 
 const payload = {
   chart: {
@@ -61,6 +62,14 @@ test("downloadHistoricalSeries is fixture-testable without network", async () =>
   assert.equal(result.records.length, 2);
   assert.equal(result.safety.brokerWriteAllowed, false);
   assert.equal(result.safety.liveTradingAllowed, false);
+});
+
+test("Yahoo chart records pass Phase45 persistence provider validation", () => {
+  const records = normalizeYahooChartPayload(payload, { symbol: "7203.T" });
+  const plan = buildPhase45PersistencePlan({ records, provider: "YAHOO_CHART" });
+  assert.equal(plan.status, "READY_TO_PERSIST");
+  assert.equal(plan.ingestionPlan.rejected.length, 0);
+  assert.equal(plan.ingestionPlan.acceptedRecordCount, 2);
 });
 
 test("invalid provider response fails closed", async () => {

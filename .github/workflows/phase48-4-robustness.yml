@@ -1,0 +1,64 @@
+name: Phase48.4 Feature Selection Robustness
+
+on:
+  push:
+    branches:
+      - phase48-4/feature-selection-robustness
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  robustness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install prediction dependencies
+        working-directory: predict
+        run: npm install --ignore-scripts
+
+      - name: Run regression tests
+        working-directory: predict
+        run: npm test
+
+      - name: Download five-symbol historical universe
+        run: >-
+          node tools/run_phase50_historical_downloader.mjs
+          --symbols 7203.T,6758.T,9984.T,8306.T,8035.T
+          --start 2020-01-01
+          --end 2026-08-08
+
+      - name: Build Phase48 alpha/regime dataset
+        shell: bash
+        run: |
+          set -euo pipefail
+          MANIFEST_SHA=$(sha256sum data/data-lake/manifest.json | awk '{print $1}')
+          node tools/run_phase46_dataset_pipeline.mjs \
+            --input data/historical/downloaded.phase45.json \
+            --output data/training/phase48-alpha-regime-v2.json \
+            --dataset-version phase48-alpha-regime-v2 \
+            --source-manifest-checksum "$MANIFEST_SHA"
+
+      - name: Run Phase48.4 robustness matrix
+        run: node tools/run_phase48_robustness.mjs data/training/phase48-alpha-regime-v2.json data/robustness
+
+      - name: Upload robustness artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase48-4-feature-robustness
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            data/robustness/summary.json
+            data/robustness/*-model.json
+            data/data-lake/manifest.json
+            data/data-lake/rejected.json

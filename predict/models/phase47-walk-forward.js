@@ -9,6 +9,19 @@ const std = (values) => {
 };
 const stableHash = (value) => crypto.createHash("sha256").update(JSON.stringify(value)).digest("hex");
 
+export const DEFAULT_PROMOTION_GATE = Object.freeze({
+  minAuc: 0.53,
+  minProfitFactor: 1.2,
+  minSharpe: 0.25,
+  maxDrawdown: 0.25,
+  minOosSamples: 500,
+  minPositionChanges: 40,
+  minExposure: 0.05,
+  maxExposure: 0.85,
+  requirePositiveNetReturn: true,
+  requireBenchmarkOutperformance: true,
+});
+
 function foldBoundaries(length, { minTrain = 60, validationSize = 20, step = 20 } = {}) {
   if (length < minTrain + validationSize) throw new RangeError("insufficient rows for walk-forward validation");
   const folds = [];
@@ -100,6 +113,31 @@ function buildBuyAndHoldBenchmark(predictions) {
   });
 }
 
+export function evaluatePromotionGate(aggregate, gate = DEFAULT_PROMOTION_GATE) {
+  const failures = [];
+  const oos = aggregate?.oos ?? {};
+  const benchmark = aggregate?.benchmark ?? {};
+  if ((aggregate?.auc ?? 0) < gate.minAuc) failures.push("AUC_BELOW_MINIMUM");
+  if ((oos.profitFactor ?? 0) < gate.minProfitFactor) failures.push("PROFIT_FACTOR_BELOW_MINIMUM");
+  if ((oos.sharpe ?? -Infinity) < gate.minSharpe) failures.push("SHARPE_BELOW_MINIMUM");
+  if ((oos.maxDrawdown ?? Infinity) > gate.maxDrawdown) failures.push("MAX_DRAWDOWN_ABOVE_LIMIT");
+  if ((oos.sampleCount ?? 0) < gate.minOosSamples) failures.push("OOS_SAMPLE_COUNT_BELOW_MINIMUM");
+  if ((oos.positionChanges ?? 0) < gate.minPositionChanges) failures.push("POSITION_CHANGES_BELOW_MINIMUM");
+  if ((oos.exposure ?? 0) < gate.minExposure) failures.push("EXPOSURE_BELOW_MINIMUM");
+  if ((oos.exposure ?? 1) > gate.maxExposure) failures.push("EXPOSURE_ABOVE_MAXIMUM");
+  if (gate.requirePositiveNetReturn && !((oos.netReturn ?? -Infinity) > 0)) failures.push("NET_RETURN_NOT_POSITIVE");
+  if (gate.requireBenchmarkOutperformance && !((oos.netReturn ?? -Infinity) > (benchmark.netReturn ?? Infinity))) {
+    failures.push("BENCHMARK_NOT_OUTPERFORMED");
+  }
+  return Object.freeze({
+    status: failures.length ? "BLOCKED_FOR_PROMOTION" : "ELIGIBLE_FOR_PROMOTION_REVIEW",
+    failures: Object.freeze(failures),
+    gate: Object.freeze({ ...gate }),
+    automaticPromotionAllowed: false,
+    humanApprovalRequired: true,
+  });
+}
+
 export function runWalkForward({ rows, modelTypes = MODEL_TYPES, options = {}, costRate = 0.001, entryThreshold = 0.55 } = {}) {
   const normalized = normalizeTrainingRows(rows);
   const boundaries = foldBoundaries(normalized.length, options);
@@ -135,7 +173,7 @@ export function runWalkForward({ rows, modelTypes = MODEL_TYPES, options = {}, c
       });
     });
 
-    const aggregate = Object.freeze({
+    const aggregateBase = {
       modelType,
       foldCount: folds.length,
       accuracy: mean(folds.map((fold) => fold.metrics.accuracy)),
@@ -145,7 +183,8 @@ export function runWalkForward({ rows, modelTypes = MODEL_TYPES, options = {}, c
       brierScore: mean(folds.map((fold) => fold.metrics.brierScore)),
       oos: buildOosMetrics(oosPredictions, { entryThreshold, costRate }),
       benchmark: buildBuyAndHoldBenchmark(oosPredictions),
-    });
+    };
+    const aggregate = Object.freeze({ ...aggregateBase, promotionGate: evaluatePromotionGate(aggregateBase) });
     results.push(Object.freeze({ modelType, folds: Object.freeze(folds), aggregate }));
   }
 
@@ -171,6 +210,7 @@ export function runWalkForward({ rows, modelTypes = MODEL_TYPES, options = {}, c
     entryThreshold,
     ranked: Object.freeze(ranked),
     selectedModelType: ranked[0].modelType,
+    selectedPromotionStatus: ranked[0].aggregate.promotionGate.status,
     automaticPromotionAllowed: false,
     productionUpdateAllowed: false,
     safety: PHASE47_SAFETY,
@@ -188,6 +228,8 @@ export function buildPhase47RegistryCandidate({ rows, walkForwardResult, dataset
     modelId: finalModel.modelId,
     modelType: selected.modelType,
     status: "CANDIDATE_REVIEW_ONLY",
+    promotionStatus: selected.aggregate.promotionGate.status,
+    promotionFailures: selected.aggregate.promotionGate.failures,
     generatedAt: new Date(generatedAt).toISOString(),
     trainingPeriod: { start: normalized[0].sessionDate, end: normalized.at(-1).sessionDate },
     trainingRows: normalized.length,
@@ -210,6 +252,7 @@ export function auditPhase47Candidate(candidate) {
   if (candidate?.humanApprovalRequired !== true) blockers.push("HUMAN_APPROVAL_REQUIRED");
   if ((candidate?.walkForward?.foldCount ?? 0) < 2) blockers.push("INSUFFICIENT_WALK_FORWARD_FOLDS");
   if ((candidate?.walkForward?.oos?.sampleCount ?? 0) < 20) blockers.push("INSUFFICIENT_OOS_SAMPLE_COUNT");
+  if (!candidate?.promotionStatus) blockers.push("PROMOTION_STATUS_REQUIRED");
   if (candidate?.checksum) {
     const { checksum, ...payload } = candidate;
     if (stableHash(payload) !== checksum) blockers.push("CHECKSUM_MISMATCH");

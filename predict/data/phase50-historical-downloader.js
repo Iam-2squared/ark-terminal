@@ -7,6 +7,7 @@ export const PHASE50_DOWNLOADER_SAFETY = Object.freeze({
 });
 
 export const YAHOO_MINOR_RANGE_TOLERANCE = 0.11;
+export const YAHOO_QUARANTINE_RELATIVE_TOLERANCE = 0.001;
 
 export const DEFAULT_BENCHMARK_MAP = Object.freeze({
   NIKKEI225: { providerSymbol: "^N225", kind: "INDEX", currency: "JPY" },
@@ -108,6 +109,57 @@ function normalizeMinorYahooRangeDrift(record, tolerance = YAHOO_MINOR_RANGE_TOL
   };
 }
 
+function getYahooRangeViolation(record) {
+  if (record.kind !== "OHLCV" || record.source !== "YAHOO_CHART") return null;
+
+  const violations = [];
+  for (const [field, value] of [["open", record.open], ["close", record.close]]) {
+    if (value < record.low) violations.push({ field, boundary: "low", delta: record.low - value });
+    if (value > record.high) violations.push({ field, boundary: "high", delta: value - record.high });
+  }
+  if (violations.length === 0) return null;
+
+  const priceScale = Math.max(Math.abs(record.open), Math.abs(record.high), Math.abs(record.low), Math.abs(record.close), 1);
+  const maxDelta = Math.max(...violations.map((item) => item.delta));
+  return Object.freeze({
+    violations: Object.freeze(violations),
+    maxDelta,
+    relativeDelta: maxDelta / priceScale,
+  });
+}
+
+function quarantineSingleResidualYahooRangeRow(records, relativeTolerance = YAHOO_QUARANTINE_RELATIVE_TOLERANCE) {
+  const candidates = records
+    .map((record, index) => ({ record, index, violation: getYahooRangeViolation(record) }))
+    .filter((item) => item.violation !== null);
+
+  // Only one isolated residual inconsistency may be quarantined. Multiple rows or
+  // a larger inconsistency remain untouched so Phase45 validation blocks them.
+  if (candidates.length !== 1) return { records, warnings: [], quarantined: [] };
+  const candidate = candidates[0];
+  if (candidate.violation.relativeDelta > relativeTolerance) {
+    return { records, warnings: [], quarantined: [] };
+  }
+
+  const audit = Object.freeze({
+    code: "QUARANTINED_RANGE_DRIFT",
+    symbol: candidate.record.symbol,
+    sessionDate: candidate.record.sessionDate,
+    source: candidate.record.source,
+    relativeTolerance,
+    maxDelta: candidate.violation.maxDelta,
+    relativeDelta: candidate.violation.relativeDelta,
+    violations: candidate.violation.violations,
+    originalRecord: candidate.record,
+  });
+
+  return {
+    records: records.filter((_, index) => index !== candidate.index),
+    warnings: [audit],
+    quarantined: [audit],
+  };
+}
+
 export function normalizeYahooChartPayload(payload, { symbol, outputSymbol = symbol, kind = "OHLCV", currency = "JPY", source = "YAHOO_CHART" } = {}) {
   const result = payload?.chart?.result?.[0];
   const timestamps = result?.timestamp;
@@ -156,20 +208,32 @@ export async function downloadHistoricalSeries({ symbol, outputSymbol = symbol, 
   const rawRecords = normalizeYahooChartPayload(payload, { symbol, outputSymbol, kind, currency });
   if (!rawRecords.length) throw new Error("historical download returned no valid records");
 
+  // Preserve the established <= 0.11 price-unit normalization first. Only then
+  // consider quarantining exactly one residual Yahoo range inconsistency.
   const adjustmentWarnings = [];
-  const records = rawRecords.map((record) => {
+  const adjustedRecords = rawRecords.map((record) => {
     const normalized = normalizeMinorYahooRangeDrift(record);
     adjustmentWarnings.push(...normalized.warnings);
     return normalized.record;
   });
-
-  const inspection = inspectHistoricalRecords(records);
-  if (inspection.status !== "VALID") {
+  const quarantine = quarantineSingleResidualYahooRangeRow(adjustedRecords);
+  if (quarantine.records.length === 0) {
     const error = new Error("DOWNLOADED_DATA_BLOCKED");
     error.inspection = {
-      ...inspection,
-      warnings: Object.freeze([...adjustmentWarnings, ...inspection.warnings]),
+      status: "BLOCKED",
+      recordCount: 0,
+      normalizedRecords: Object.freeze([]),
+      blockers: Object.freeze([{ code: "NO_RECORDS_AFTER_QUARANTINE" }]),
+      warnings: Object.freeze([...adjustmentWarnings, ...quarantine.warnings]),
     };
+    throw error;
+  }
+
+  const inspection = inspectHistoricalRecords(quarantine.records);
+  const warnings = Object.freeze([...adjustmentWarnings, ...quarantine.warnings, ...inspection.warnings]);
+  if (inspection.status !== "VALID") {
+    const error = new Error("DOWNLOADED_DATA_BLOCKED");
+    error.inspection = { ...inspection, warnings };
     throw error;
   }
   return Object.freeze({
@@ -177,7 +241,8 @@ export async function downloadHistoricalSeries({ symbol, outputSymbol = symbol, 
     providerSymbol: symbol,
     url,
     records: inspection.normalizedRecords,
-    warnings: Object.freeze([...adjustmentWarnings, ...inspection.warnings]),
+    warnings,
+    quarantined: Object.freeze(quarantine.quarantined),
     safety: PHASE50_DOWNLOADER_SAFETY,
   });
 }
@@ -216,6 +281,7 @@ export async function downloadHistoricalUniverse({ instruments, start, end, inte
     records: Object.freeze(results.flatMap((item) => item.records)),
     symbols: Object.freeze(results.map((item) => item.symbol)),
     warnings: Object.freeze(results.flatMap((item) => item.warnings)),
+    quarantined: Object.freeze(results.flatMap((item) => item.quarantined)),
     safety: PHASE50_DOWNLOADER_SAFETY,
   });
 }

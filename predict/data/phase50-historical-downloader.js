@@ -120,10 +120,9 @@ function quarantineSingleMinorYahooRangeRow(records, relativeTolerance = YAHOO_Q
     .map((record, index) => ({ record, index, violation: yahooRangeViolation(record) }))
     .filter((item) => item.violation);
 
-  // Quarantine is intentionally stricter than the legacy absolute adjustment:
-  // exactly one Yahoo OHLCV row in the entire series may be inconsistent, and that
-  // one row must remain within the relative drift tolerance. Any second violation,
-  // even if individually tiny, is left untouched so Phase45 blocks fail-closed.
+  // Quarantine only when exactly one residual Yahoo OHLCV row is inconsistent.
+  // Any second residual violation, even if individually tiny, remains untouched so
+  // Phase45 validation blocks the series fail-closed.
   if (violations.length !== 1) return { records, warnings: [], quarantined: [] };
   const candidate = violations[0];
   if (candidate.violation.relativeDelta > relativeTolerance) {
@@ -195,21 +194,22 @@ export async function downloadHistoricalSeries({ symbol, outputSymbol = symbol, 
   const rawRecords = normalizeYahooChartPayload(payload, { symbol, outputSymbol, kind, currency });
   if (!rawRecords.length) throw new Error("historical download returned no valid records");
 
-  // First preserve strict fail-closed behavior for materially inconsistent rows while
-  // quarantining a single small Yahoo-specific relative drift. Only after quarantine
-  // do we apply the legacy absolute float adjustment for sub-0.11 price-unit noise.
-  const quarantine = quarantineSingleMinorYahooRangeRow(rawRecords);
-  if (!quarantine.records.length) throw new Error("historical download returned no valid records after quarantine");
-
+  // Preserve the legacy absolute float adjustment first (for example the 8306.T
+  // sub-0.11 price-unit Yahoo drift), then quarantine at most one residual small
+  // relative inconsistency such as the 8035.T row. Material or multiple residual
+  // inconsistencies remain fail-closed under Phase45 validation.
   const adjustmentWarnings = [];
-  const adjustedRecords = quarantine.records.map((record) => {
+  const adjustedRecords = rawRecords.map((record) => {
     const normalized = normalizeMinorYahooRangeDrift(record);
     adjustmentWarnings.push(...normalized.warnings);
     return normalized.record;
   });
 
-  const inspection = inspectHistoricalRecords(adjustedRecords);
-  const allWarnings = Object.freeze([...quarantine.warnings, ...adjustmentWarnings, ...inspection.warnings]);
+  const quarantine = quarantineSingleMinorYahooRangeRow(adjustedRecords);
+  if (!quarantine.records.length) throw new Error("historical download returned no valid records after quarantine");
+
+  const inspection = inspectHistoricalRecords(quarantine.records);
+  const allWarnings = Object.freeze([...adjustmentWarnings, ...quarantine.warnings, ...inspection.warnings]);
   if (inspection.status !== "VALID") {
     const error = new Error("DOWNLOADED_DATA_BLOCKED");
     error.inspection = { ...inspection, warnings: allWarnings };

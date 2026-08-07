@@ -75,7 +75,7 @@ function standardizer(rows, names) {
 function trainLogistic(rows, names, options = {}) {
   const scaler = standardizer(rows, names);
   const learningRate = Number(options.learningRate ?? 0.08);
-  const iterations = Number(options.iterations ?? 250);
+  const iterations = Number(options.iterations ?? 120);
   const l2 = Number(options.l2 ?? 0.001);
   const weights = Array(names.length).fill(0);
   let bias = 0;
@@ -107,18 +107,39 @@ function trainLogistic(rows, names, options = {}) {
   };
 }
 
-function bestStump(rows, names, residualSelector = (row) => row.label) {
+function candidateThresholds(sorted, maxCandidates = 12) {
+  if (sorted.length < 3) return [];
+  const count = Math.min(maxCandidates, sorted.length - 2);
+  const thresholds = [];
+  for (let i = 1; i <= count; i += 1) {
+    const index = Math.min(sorted.length - 2, Math.max(1, Math.floor((i * (sorted.length - 1)) / (count + 1))));
+    thresholds.push(sorted[index]);
+  }
+  return [...new Set(thresholds)];
+}
+
+function bestStump(rows, names, residualSelector = (row) => row.label, options = {}) {
   let best = null;
+  const maxCandidates = Number(options.maxThresholdCandidates ?? 12);
   for (const name of names) {
-    const sorted = rows.map((row) => Number(row.features[name] ?? 0)).sort((a, b) => a - b);
-    const candidates = sorted.filter((_, index) => index > 0 && index < sorted.length - 1).filter((_, index) => index % Math.max(1, Math.floor(sorted.length / 12)) === 0);
-    for (const threshold of candidates) {
-      const left = rows.filter((row) => Number(row.features[name] ?? 0) <= threshold);
-      const right = rows.filter((row) => Number(row.features[name] ?? 0) > threshold);
-      if (!left.length || !right.length) continue;
-      const leftValue = mean(left.map(residualSelector));
-      const rightValue = mean(right.map(residualSelector));
-      const loss = [...left.map((row) => (residualSelector(row) - leftValue) ** 2), ...right.map((row) => (residualSelector(row) - rightValue) ** 2)].reduce((a, b) => a + b, 0);
+    const paired = rows.map((row) => ({ value: Number(row.features[name] ?? 0), residual: residualSelector(row) }))
+      .sort((a, b) => a.value - b.value);
+    const thresholds = candidateThresholds(paired.map((item) => item.value), maxCandidates);
+    for (const threshold of thresholds) {
+      let leftCount = 0; let rightCount = 0;
+      let leftSum = 0; let rightSum = 0;
+      for (const item of paired) {
+        if (item.value <= threshold) { leftCount += 1; leftSum += item.residual; }
+        else { rightCount += 1; rightSum += item.residual; }
+      }
+      if (!leftCount || !rightCount) continue;
+      const leftValue = leftSum / leftCount;
+      const rightValue = rightSum / rightCount;
+      let loss = 0;
+      for (const item of paired) {
+        const predicted = item.value <= threshold ? leftValue : rightValue;
+        loss += (item.residual - predicted) ** 2;
+      }
       if (!best || loss < best.loss) best = { name, threshold, leftValue, rightValue, loss };
     }
   }
@@ -126,12 +147,12 @@ function bestStump(rows, names, residualSelector = (row) => row.label) {
 }
 
 function trainRandomForest(rows, names, options = {}) {
-  const treeCount = Number(options.treeCount ?? 25);
+  const treeCount = Number(options.treeCount ?? 12);
   const trees = [];
   for (let treeIndex = 0; treeIndex < treeCount; treeIndex += 1) {
     const subset = rows.filter((_, index) => ((index * 17 + treeIndex * 13) % 7) < 5);
     const chosenNames = names.filter((_, index) => ((index + treeIndex) % 3) !== 0);
-    trees.push(bestStump(subset.length >= 10 ? subset : rows, chosenNames.length ? chosenNames : names));
+    trees.push(bestStump(subset.length >= 10 ? subset : rows, chosenNames.length ? chosenNames : names, undefined, options));
   }
   return {
     type: "RANDOM_FOREST",
@@ -144,13 +165,13 @@ function trainRandomForest(rows, names, options = {}) {
 }
 
 function trainGradientBoosting(rows, names, options = {}) {
-  const rounds = Number(options.rounds ?? 30);
+  const rounds = Number(options.rounds ?? 12);
   const learningRate = Number(options.learningRate ?? 0.08);
   const base = clamp(mean(rows.map((row) => row.label)), 0.001, 0.999);
   const scores = new Map(rows.map((row) => [row.id, Math.log(base / (1 - base))]));
   const stumps = [];
   for (let round = 0; round < rounds; round += 1) {
-    const stump = bestStump(rows, names, (row) => row.label - sigmoid(scores.get(row.id)));
+    const stump = bestStump(rows, names, (row) => row.label - sigmoid(scores.get(row.id)), options);
     stumps.push(stump);
     for (const row of rows) {
       const update = Number(row.features[stump.name] ?? 0) <= stump.threshold ? stump.leftValue : stump.rightValue;

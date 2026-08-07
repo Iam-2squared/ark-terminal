@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { MODEL_TYPES, PHASE47_SAFETY, evaluateModel, trainModel } from "../models/phase47-real-training.js";
-import { DEFAULT_PROMOTION_GATE, auditPhase47Candidate, buildPhase47RegistryCandidate, evaluatePromotionGate, runWalkForward } from "../models/phase47-walk-forward.js";
+import { DEFAULT_PROMOTION_GATE, DEFAULT_THRESHOLD_GRID, auditPhase47Candidate, buildPhase47RegistryCandidate, evaluatePromotionGate, runWalkForward } from "../models/phase47-walk-forward.js";
 
 function rows(count = 140) {
   const start = Date.UTC(2024, 0, 1);
@@ -48,6 +48,7 @@ test("walk-forward compares models without future overlap", () => {
   assert.equal(result.ranked.length, 3);
   assert.ok(result.folds >= 2);
   assert.equal(result.entryThreshold, 0.55);
+  assert.equal(result.thresholdOptimization, true);
   assert.equal(result.automaticPromotionAllowed, false);
   assert.ok(["BLOCKED_FOR_PROMOTION", "ELIGIBLE_FOR_PROMOTION_REVIEW"].includes(result.selectedPromotionStatus));
   for (const model of result.ranked) {
@@ -60,17 +61,29 @@ test("walk-forward compares models without future overlap", () => {
     assert.ok(model.aggregate.oos.maxDrawdown >= 0);
     assert.ok(Number.isFinite(model.aggregate.oos.netReturn));
     assert.equal(model.aggregate.benchmark.sampleCount, model.aggregate.oos.sampleCount);
+    assert.equal(model.aggregate.thresholdSweep.length, DEFAULT_THRESHOLD_GRID.length);
+    assert.equal(model.aggregate.confidenceBuckets.length, 6);
+    assert.ok(DEFAULT_THRESHOLD_GRID.includes(model.aggregate.oos.entryThreshold));
     assert.ok(model.aggregate.promotionGate.status);
     assert.equal(model.aggregate.promotionGate.automaticPromotionAllowed, false);
   }
 });
 
 test("walk-forward OOS evaluator supports a no-trade zone", () => {
-  const result = runWalkForward({ rows: rows(140), modelTypes: ["LOGISTIC_REGRESSION"], entryThreshold: 0.999, options: { minTrain: 60, validationSize: 20, step: 20 } });
+  const result = runWalkForward({ rows: rows(140), modelTypes: ["LOGISTIC_REGRESSION"], entryThreshold: 0.999, thresholdGrid: [0.999], options: { minTrain: 60, validationSize: 20, step: 20 } });
   const oos = result.ranked[0].aggregate.oos;
   assert.equal(oos.entryThreshold, 0.999);
   assert.ok(oos.activeDays <= oos.sampleCount);
   assert.ok(oos.positionChanges <= oos.sampleCount);
+});
+
+test("threshold sweep remains diagnostic and deterministic", () => {
+  const options = { minTrain: 60, validationSize: 20, step: 20 };
+  const first = runWalkForward({ rows: rows(180), modelTypes: ["GRADIENT_BOOSTING"], thresholdGrid: [0.52, 0.55, 0.6], options });
+  const second = runWalkForward({ rows: rows(180), modelTypes: ["GRADIENT_BOOSTING"], thresholdGrid: [0.52, 0.55, 0.6], options });
+  assert.deepEqual(first.ranked[0].aggregate.thresholdSweep, second.ranked[0].aggregate.thresholdSweep);
+  assert.deepEqual(first.ranked[0].aggregate.confidenceBuckets, second.ranked[0].aggregate.confidenceBuckets);
+  assert.ok([0.52, 0.55, 0.6].includes(first.ranked[0].aggregate.oos.entryThreshold));
 });
 
 test("promotion gate blocks weak real-world metrics", () => {
@@ -81,9 +94,7 @@ test("promotion gate blocks weak real-world metrics", () => {
   };
   const gate = evaluatePromotionGate(aggregate);
   assert.equal(gate.status, "BLOCKED_FOR_PROMOTION");
-  for (const expected of ["AUC_BELOW_MINIMUM", "PROFIT_FACTOR_BELOW_MINIMUM", "SHARPE_BELOW_MINIMUM", "MAX_DRAWDOWN_ABOVE_LIMIT", "NET_RETURN_NOT_POSITIVE", "BENCHMARK_NOT_OUTPERFORMED"]) {
-    assert.ok(gate.failures.includes(expected));
-  }
+  for (const expected of ["AUC_BELOW_MINIMUM", "PROFIT_FACTOR_BELOW_MINIMUM", "SHARPE_BELOW_MINIMUM", "MAX_DRAWDOWN_ABOVE_LIMIT", "NET_RETURN_NOT_POSITIVE", "BENCHMARK_NOT_OUTPERFORMED"]) assert.ok(gate.failures.includes(expected));
 });
 
 test("promotion gate can become review-eligible but never auto-promotes", () => {
@@ -103,6 +114,8 @@ test("registry candidate is review-only, promotion-aware and checksum protected"
   const dataset = rows(140);
   const walkForward = runWalkForward({ rows: dataset, options: { minTrain: 60, validationSize: 20, step: 20 } });
   const candidate = buildPhase47RegistryCandidate({ rows: dataset, walkForwardResult: walkForward, datasetLineage: { datasetVersion: "phase46-v3", checksum: "fixture" }, generatedAt: "2026-08-06T00:00:00.000Z" });
+  assert.equal(candidate.phase, 47.1);
+  assert.ok(DEFAULT_THRESHOLD_GRID.includes(candidate.selectedEntryThreshold));
   assert.equal(auditPhase47Candidate(candidate).status, "READY_FOR_HUMAN_REVIEW");
   assert.ok(candidate.walkForward.oos.sampleCount >= 20);
   assert.ok(candidate.promotionStatus);

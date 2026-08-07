@@ -26,7 +26,7 @@ function sampleRecords(count = 120) {
   return rows;
 }
 
-test("generates Phase48 alpha/regime point-in-time rows", () => {
+test("generates Phase48.1 alpha/regime interaction point-in-time rows", () => {
   const rows = generateExtendedFeatures(sampleRecords());
   assert.ok(rows.length > 0);
   assert.equal(rows.length, 44);
@@ -35,7 +35,7 @@ test("generates Phase48 alpha/regime point-in-time rows", () => {
   assert.ok(rows[0].labelAvailableAt > rows[0].sessionDate);
   assert.ok([0, 1].includes(rows[0].label));
   assert.ok(Number.isFinite(rows[0].actualReturn));
-  for (const key of ["rsi14", "atr14", "vwapGap20", "ma5Gap", "ma25Gap", "ma75Gap", "macd", "macdHistogram", "stochastic14", "adx14Approx", "return1", "return20", "gapOpenPrevClose", "rangePosition52w", "closePosition20", "closePosition60", "breakoutUp20", "breakdownDown20", "regimeTrend", "regimeVolatility", "regimeCode"]) {
+  for (const key of ["rsi14", "atr14", "vwapGap20", "ma5Gap", "ma25Gap", "ma75Gap", "macd", "macdHistogram", "stochastic14", "adx14Approx", "return1", "return20", "gapOpenPrevClose", "rangePosition52w", "closePosition20", "closePosition60", "breakoutUp20", "breakdownDown20", "regimeTrend", "regimeVolatility", "regimeCode", "trendReturn5Interaction", "trendReturn20Interaction", "trendBreakoutInteraction", "trendBreakdownInteraction", "highVolBreakoutInteraction", "highVolVolumeInteraction", "highVolMomentumInteraction", "trendVolatilityInteraction"]) {
     assert.ok(Number.isFinite(rows[0].features[key]), `${key} should be finite`);
   }
 });
@@ -53,7 +53,7 @@ test("chart structure uses only information available at the feature cutoff", ()
   assert.equal(first.futureDataUsed, false);
 });
 
-test("regime features are deterministic and finite", () => {
+test("regime interaction features are deterministic and algebraically tied to point-in-time inputs", () => {
   const first = generateExtendedFeatures(sampleRecords(160));
   const second = generateExtendedFeatures(sampleRecords(160));
   assert.equal(first.length, second.length);
@@ -61,6 +61,10 @@ test("regime features are deterministic and finite", () => {
     assert.equal(first[i].regimeTrend, second[i].regimeTrend);
     assert.equal(first[i].regimeVolatility, second[i].regimeVolatility);
     assert.equal(first[i].regimeCode, second[i].regimeCode);
+    assert.equal(first[i].trendReturn5Interaction, first[i].regimeTrend * first[i].return5);
+    assert.equal(first[i].trendReturn20Interaction, first[i].regimeTrend * first[i].return20);
+    assert.equal(first[i].trendBreakoutInteraction, first[i].regimeTrend * first[i].breakoutUp20);
+    assert.equal(first[i].highVolBreakoutInteraction, first[i].regimeVolatility * first[i].breakoutUp20);
     assert.ok([-1, 0, 1].includes(first[i].regimeTrend));
     assert.ok([0, 1].includes(first[i].regimeVolatility));
   }
@@ -94,17 +98,17 @@ test("splits dataset in temporal order", () => {
   assert.ok(split.validation.at(-1).sessionDate <= split.test[0].sessionDate);
 });
 
-test("builds Phase48 lineage and passes audit", () => {
+test("builds Phase48.1 lineage and passes audit", () => {
   const rows = generateExtendedFeatures(sampleRecords(160));
   const split = splitDatasetByTime(rows);
   const lineage = buildDatasetLineage({
-    datasetVersion: "phase48-test-v1",
+    datasetVersion: "phase48-test-v2",
     sourceManifestChecksum: "abc123",
     rows,
   });
   const audit = auditAdvancedDataset({ rows, split, lineage });
   assert.equal(audit.status, "VALID");
-  assert.equal(lineage.featureVersion, "phase48-alpha-regime-v1");
+  assert.equal(lineage.featureVersion, "phase48-alpha-regime-v2");
   assert.equal(lineage.lineageChecksum.length, 64);
 });
 

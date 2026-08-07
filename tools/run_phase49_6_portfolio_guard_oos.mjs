@@ -58,15 +58,20 @@ function reconstructOosPredictions(groupName, model) {
 }
 
 function intervalDecision(groupPolicy, sessionDate, policyName = 'balanced') {
-  const policy = groupPolicy?.policies?.find((p) => p.name === policyName)
-    || groupPolicy?.policyResults?.find((p) => p.name === policyName)
+  const policy = groupPolicy?.policies?.find((p) => (p.name ?? p.policy?.name) === policyName)
+    || groupPolicy?.policyResults?.find((p) => (p.name ?? p.policy?.name) === policyName)
     || groupPolicy?.[policyName]
     || null;
   const decisions = policy?.decisions || groupPolicy?.decisions || [];
   const d = decisions.find((x) => String(sessionDate) >= String(x.testStart) && String(sessionDate) <= String(x.testEnd));
-  if (!d) return { guardedAllowed: true, metaActive: false, reason: 'NO_GUARD_DECISION' };
+  if (!d) return { matched: false, guardedAllowed: true, robustnessActive: false, reason: 'NO_GUARD_DECISION' };
   const allowed = d.guardedAllowed ?? d.allowed ?? true;
-  return { guardedAllowed: Boolean(allowed), metaActive: Boolean(d.metaActive), reason: d.metaReason || d.reason || null };
+  return {
+    matched: true,
+    guardedAllowed: Boolean(allowed),
+    robustnessActive: Boolean(d.robustnessActive ?? d.metaActive),
+    reason: d.robustnessReason || d.metaReason || d.reason || null,
+  };
 }
 
 function metricView(metrics) {
@@ -90,10 +95,17 @@ for (const file of fs.readdirSync(robustnessDir).filter((f) => f.endsWith('-mode
   const { selectedModelType, aggregate } = selectedResult(model);
   const predictions = reconstructOosPredictions(name, model);
   const groupPolicy = policiesByGroup.get(name);
+  if (!groupPolicy) throw new Error(`PHASE49_6_GUARD_GROUP_MISSING:${name}`);
+
+  let matchedGuardDecisionCount = 0;
+  let blockedPredictionCount = 0;
   const balancedPredictions = predictions.map((p) => {
     const decision = intervalDecision(groupPolicy, p.sessionDate, 'balanced');
+    if (decision.matched) matchedGuardDecisionCount += 1;
+    if (!decision.guardedAllowed) blockedPredictionCount += 1;
     return decision.guardedAllowed ? p : { ...p, probability: -Infinity };
   });
+  if (!matchedGuardDecisionCount) throw new Error(`PHASE49_6_BALANCED_GUARD_DECISIONS_NOT_MATCHED:${name}`);
 
   const baseline = buildPortfolioOosMetrics(predictions, { entryThreshold: null, costRate: 0.001 });
   const balancedGuard = buildPortfolioOosMetrics(balancedPredictions, { entryThreshold: null, costRate: 0.001 });
@@ -115,6 +127,9 @@ for (const file of fs.readdirSync(robustnessDir).filter((f) => f.endsWith('-mode
     selectedModelType,
     sourceAggregate: metricView(source),
     reconstructedPredictionCount: predictions.length,
+    matchedGuardDecisionCount,
+    blockedPredictionCount,
+    blockedPredictionRate: predictions.length ? blockedPredictionCount / predictions.length : 0,
     canonicalReproduction: reproduction,
     baseline: metricView(baseline),
     balancedGuard: metricView(balancedGuard),
@@ -144,7 +159,8 @@ const output = {
   limitations: [
     'Guard decisions remain fold-level diagnostics derived only from prior folds.',
     'No live trading or promotion actions are permitted.',
-    'Canonical reproduction is fail-closed: evaluation stops if reconstructed baseline metrics differ from the source aggregate.'
+    'Canonical reproduction is fail-closed: evaluation stops if reconstructed baseline metrics differ from the source aggregate.',
+    'Balanced guard integration is fail-closed: evaluation stops if no serialized guard interval matches reconstructed OOS predictions.'
   ],
   groups,
   safety: {

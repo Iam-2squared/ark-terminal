@@ -72,6 +72,9 @@ jobs:
       - name: Run Phase49.7 canonical guard policy sweep
         run: node tools/run_phase49_7_policy_portfolio_oos.mjs data/phase49-robustness data/phase49-guard-robustness/summary.json data/phase49-policy-portfolio-oos
 
+      - name: Run Phase49.8 nested causal policy selection
+        run: node tools/run_phase49_8_nested_policy_selection.mjs data/phase49-robustness data/phase49-guard-robustness/summary.json data/phase49-nested-policy-selection
+
       - name: Upload Phase49 robustness artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -88,5 +91,6 @@ jobs:
             data/phase49-guard-robustness/summary.json
             data/phase49-portfolio-guard-oos/summary.json
             data/phase49-policy-portfolio-oos/summary.json
+            data/phase49-nested-policy-selection/summary.json
             data/data-lake/manifest.json
             data/data-lake/rejected.json

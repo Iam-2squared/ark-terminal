@@ -1,0 +1,121 @@
+name: Phase47.2 Real OOS Reevaluation
+
+on:
+  push:
+    branches:
+      - phase47-2/reevaluate-oos
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reevaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install prediction dependencies
+        working-directory: predict
+        run: npm install --ignore-scripts
+
+      - name: Run regression tests
+        working-directory: predict
+        run: npm test
+
+      - name: Download five-symbol historical universe
+        run: >-
+          node tools/run_phase50_historical_downloader.mjs
+          --symbols 7203.T,6758.T,9984.T,8306.T,8035.T
+          --start 2020-01-01
+          --end 2026-08-08
+          --include-benchmarks true
+
+      - name: Build Phase46 Feature v3 dataset
+        shell: bash
+        run: |
+          set -euo pipefail
+          MANIFEST_SHA=$(sha256sum data/data-lake/manifest.json | awk '{print $1}')
+          node tools/run_phase46_dataset_pipeline.mjs \
+            --input data/historical/downloaded.phase45.json \
+            --output data/training/phase46-v3.json \
+            --dataset-version phase46-v3 \
+            --source-manifest-checksum "$MANIFEST_SHA"
+
+      - name: Run Phase47.2 nested multi-asset OOS reevaluation
+        run: >-
+          node tools/run_phase47_training_pipeline.mjs
+          --input data/training/phase46-v3.json
+          --output data/models/phase47-2-candidate.json
+          --cost-rate 0.001
+          --min-train 60
+          --validation-size 20
+          --step 20
+
+      - name: Write compact reevaluation summary
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const parsed = JSON.parse(fs.readFileSync('data/models/phase47-2-candidate.json', 'utf8'));
+          const wf = parsed.walkForward;
+          const summary = {
+            phase: 47.2,
+            status: parsed.audit?.status,
+            datasetVersion: parsed.candidate?.datasetLineage?.datasetVersion ?? null,
+            rowCount: parsed.candidate?.trainingRows ?? null,
+            folds: wf?.folds ?? null,
+            selectedModelType: wf?.selectedModelType ?? null,
+            selectedPromotionStatus: wf?.selectedPromotionStatus ?? null,
+            safety: {
+              brokerWrites: parsed.audit?.brokerWrites ?? 0,
+              excelOrderWrites: parsed.audit?.excelOrderWrites ?? 0,
+              rssOrderCalls: parsed.audit?.rssOrderCalls ?? 0,
+              liveOrders: parsed.audit?.liveOrders ?? 0,
+              automaticPromotionAllowed: wf?.automaticPromotionAllowed ?? false,
+              productionUpdateAllowed: wf?.productionUpdateAllowed ?? false,
+            },
+            models: (wf?.ranked ?? []).map((item, rank) => ({
+              rank: rank + 1,
+              modelType: item.modelType,
+              auc: item.aggregate?.auc,
+              accuracy: item.aggregate?.accuracy,
+              brierScore: item.aggregate?.brierScore,
+              profitFactor: item.aggregate?.oos?.profitFactor,
+              sharpe: item.aggregate?.oos?.sharpe,
+              maxDrawdown: item.aggregate?.oos?.maxDrawdown,
+              netReturn: item.aggregate?.oos?.netReturn,
+              cagr: item.aggregate?.oos?.cagr,
+              exposure: item.aggregate?.oos?.exposure,
+              positionChanges: item.aggregate?.oos?.positionChanges,
+              portfolioDays: item.aggregate?.oos?.portfolioDays,
+              benchmarkNetReturn: item.aggregate?.benchmark?.netReturn,
+              promotionStatus: item.aggregate?.promotionGate?.status,
+              promotionFailures: item.aggregate?.promotionGate?.failures,
+              thresholdHistory: item.aggregate?.thresholdHistory,
+              confidenceBuckets: item.aggregate?.confidenceBuckets,
+            })),
+          };
+          fs.writeFileSync('phase47-2-reevaluation-summary.json', JSON.stringify(summary, null, 2) + '\n');
+          console.log(JSON.stringify(summary, null, 2));
+          NODE
+
+      - name: Upload reevaluation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase47-2-reevaluation
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            phase47-2-reevaluation-summary.json
+            data/training/phase46-v3.json
+            data/models/phase47-2-candidate.json
+            data/data-lake/manifest.json
+            data/data-lake/rejected.json

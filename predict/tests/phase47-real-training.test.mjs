@@ -50,13 +50,32 @@ test("walk-forward compares models without future overlap", () => {
   assert.equal(result.status, "READY_FOR_HUMAN_REVIEW");
   assert.equal(result.ranked.length, 3);
   assert.ok(result.folds >= 2);
+  assert.equal(result.entryThreshold, 0.55);
   for (const model of result.ranked) {
     for (const fold of model.folds) {
       assert.ok(fold.trainEnd < fold.testStart);
       assert.equal(fold.testCount, 20);
     }
+    assert.ok(model.aggregate.oos.sampleCount >= 20);
+    assert.ok(model.aggregate.oos.exposure >= 0 && model.aggregate.oos.exposure <= 1);
+    assert.ok(model.aggregate.oos.maxDrawdown >= 0);
+    assert.ok(Number.isFinite(model.aggregate.oos.netReturn));
+    assert.equal(model.aggregate.benchmark.sampleCount, model.aggregate.oos.sampleCount);
   }
   assert.equal(result.automaticPromotionAllowed, false);
+});
+
+test("walk-forward OOS evaluator supports a no-trade zone", () => {
+  const result = runWalkForward({
+    rows: rows(140),
+    modelTypes: ["LOGISTIC_REGRESSION"],
+    entryThreshold: 0.999,
+    options: { minTrain: 60, validationSize: 20, step: 20 },
+  });
+  const oos = result.ranked[0].aggregate.oos;
+  assert.equal(oos.entryThreshold, 0.999);
+  assert.ok(oos.activeDays <= oos.sampleCount);
+  assert.ok(oos.positionChanges <= oos.sampleCount);
 });
 
 test("registry candidate is review-only and checksum protected", () => {
@@ -69,6 +88,7 @@ test("registry candidate is review-only and checksum protected", () => {
     generatedAt: "2026-08-06T00:00:00.000Z",
   });
   assert.equal(auditPhase47Candidate(candidate).status, "READY_FOR_HUMAN_REVIEW");
+  assert.ok(candidate.walkForward.oos.sampleCount >= 20);
   const tampered = { ...candidate, automaticPromotionAllowed: true };
   const audit = auditPhase47Candidate(tampered);
   assert.equal(audit.status, "BLOCKED");

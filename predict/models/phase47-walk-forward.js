@@ -2,6 +2,11 @@ import crypto from "node:crypto";
 import { MODEL_TYPES, PHASE47_SAFETY, evaluateModel, normalizeTrainingRows, trainModel } from "./phase47-real-training.js";
 
 const mean = (values) => values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0;
+const std = (values) => {
+  if (values.length < 2) return 0;
+  const avg = mean(values);
+  return Math.sqrt(mean(values.map((value) => (value - avg) ** 2)));
+};
 const stableHash = (value) => crypto.createHash("sha256").update(JSON.stringify(value)).digest("hex");
 
 function foldBoundaries(length, { minTrain = 60, validationSize = 20, step = 20 } = {}) {
@@ -14,17 +19,109 @@ function foldBoundaries(length, { minTrain = 60, validationSize = 20, step = 20 
   return folds;
 }
 
-export function runWalkForward({ rows, modelTypes = MODEL_TYPES, options = {}, costRate = 0.001 } = {}) {
+function buildOosMetrics(predictions, { entryThreshold = 0.55, costRate = 0.001 } = {}) {
+  const sorted = [...predictions].sort((a, b) => a.sessionDate.localeCompare(b.sessionDate) || a.id.localeCompare(b.id));
+  const deduped = [];
+  const seen = new Set();
+  for (const item of sorted) {
+    if (seen.has(item.id)) continue;
+    seen.add(item.id);
+    deduped.push(item);
+  }
+
+  let position = 0;
+  let equity = 1;
+  let peak = 1;
+  let maxDrawdown = 0;
+  let trades = 0;
+  const returns = [];
+  const grossReturns = [];
+  for (const item of deduped) {
+    const nextPosition = item.probability >= entryThreshold ? 1 : 0;
+    const turnover = Math.abs(nextPosition - position);
+    const gross = nextPosition * item.actualReturn;
+    const net = gross - turnover * costRate;
+    if (turnover > 0) trades += 1;
+    grossReturns.push(gross);
+    returns.push(net);
+    equity *= 1 + net;
+    peak = Math.max(peak, equity);
+    maxDrawdown = Math.max(maxDrawdown, peak ? (peak - equity) / peak : 0);
+    position = nextPosition;
+  }
+
+  const gains = returns.filter((value) => value > 0).reduce((sum, value) => sum + value, 0);
+  const losses = Math.abs(returns.filter((value) => value < 0).reduce((sum, value) => sum + value, 0));
+  const avg = mean(returns);
+  const sigma = std(returns);
+  const active = deduped.filter((item) => item.probability >= entryThreshold);
+  const wins = active.filter((item) => item.actualReturn > 0).length;
+  const sampleCount = deduped.length;
+  const years = sampleCount / 252;
+
+  return Object.freeze({
+    entryThreshold,
+    sampleCount,
+    activeDays: active.length,
+    exposure: sampleCount ? active.length / sampleCount : 0,
+    positionChanges: trades,
+    winRate: active.length ? wins / active.length : 0,
+    profitFactor: losses ? gains / losses : gains > 0 ? 999 : 0,
+    sharpe: sigma ? (avg / sigma) * Math.sqrt(252) : 0,
+    maxDrawdown,
+    cagr: years > 0 ? equity ** (1 / years) - 1 : 0,
+    netReturn: equity - 1,
+    averageDailyReturn: avg,
+    grossReturnSum: grossReturns.reduce((sum, value) => sum + value, 0),
+  });
+}
+
+function buildBuyAndHoldBenchmark(predictions) {
+  const sorted = [...predictions].sort((a, b) => a.sessionDate.localeCompare(b.sessionDate) || a.id.localeCompare(b.id));
+  let equity = 1;
+  let peak = 1;
+  let maxDrawdown = 0;
+  const returns = [];
+  for (const item of sorted) {
+    returns.push(item.actualReturn);
+    equity *= 1 + item.actualReturn;
+    peak = Math.max(peak, equity);
+    maxDrawdown = Math.max(maxDrawdown, peak ? (peak - equity) / peak : 0);
+  }
+  const sigma = std(returns);
+  const avg = mean(returns);
+  const years = sorted.length / 252;
+  return Object.freeze({
+    sampleCount: sorted.length,
+    sharpe: sigma ? (avg / sigma) * Math.sqrt(252) : 0,
+    maxDrawdown,
+    cagr: years > 0 ? equity ** (1 / years) - 1 : 0,
+    netReturn: equity - 1,
+  });
+}
+
+export function runWalkForward({ rows, modelTypes = MODEL_TYPES, options = {}, costRate = 0.001, entryThreshold = 0.55 } = {}) {
   const normalized = normalizeTrainingRows(rows);
   const boundaries = foldBoundaries(normalized.length, options);
   const results = [];
 
   for (const modelType of modelTypes) {
+    const oosPredictions = [];
     const folds = boundaries.map((boundary, index) => {
       const trainRows = normalized.slice(boundary.trainStart, boundary.trainEnd);
       const testRows = normalized.slice(boundary.testStart, boundary.testEnd);
       const model = trainModel({ rows: trainRows, modelType, options: options[modelType] ?? {} });
       const metrics = evaluateModel({ model, rows: testRows, costRate });
+      testRows.forEach((row, rowIndex) => {
+        oosPredictions.push(Object.freeze({
+          id: row.id,
+          symbol: row.symbol,
+          sessionDate: row.sessionDate,
+          probability: metrics.probabilities[rowIndex],
+          label: row.label,
+          actualReturn: row.actualReturn,
+        }));
+      });
       return Object.freeze({
         fold: index + 1,
         modelType,
@@ -45,25 +142,33 @@ export function runWalkForward({ rows, modelTypes = MODEL_TYPES, options = {}, c
       precision: mean(folds.map((fold) => fold.metrics.precision)),
       recall: mean(folds.map((fold) => fold.metrics.recall)),
       auc: mean(folds.map((fold) => fold.metrics.auc)),
-      profitFactor: mean(folds.map((fold) => Math.min(10, fold.metrics.profitFactor))),
-      sharpe: mean(folds.map((fold) => fold.metrics.sharpe)),
-      maxDrawdown: Math.max(...folds.map((fold) => fold.metrics.maxDrawdown)),
-      cagr: mean(folds.map((fold) => fold.metrics.cagr)),
-      tradeCount: folds.reduce((sum, fold) => sum + fold.metrics.tradeCount, 0),
       brierScore: mean(folds.map((fold) => fold.metrics.brierScore)),
+      oos: buildOosMetrics(oosPredictions, { entryThreshold, costRate }),
+      benchmark: buildBuyAndHoldBenchmark(oosPredictions),
     });
     results.push(Object.freeze({ modelType, folds: Object.freeze(folds), aggregate }));
   }
 
   const ranked = [...results].sort((a, b) => {
-    const scoreA = a.aggregate.auc * 0.35 + a.aggregate.accuracy * 0.2 + Math.min(a.aggregate.profitFactor, 3) / 3 * 0.25 + Math.max(-1, Math.min(1, a.aggregate.sharpe / 2)) * 0.1 - a.aggregate.maxDrawdown * 0.1;
-    const scoreB = b.aggregate.auc * 0.35 + b.aggregate.accuracy * 0.2 + Math.min(b.aggregate.profitFactor, 3) / 3 * 0.25 + Math.max(-1, Math.min(1, b.aggregate.sharpe / 2)) * 0.1 - b.aggregate.maxDrawdown * 0.1;
+    const scoreA = a.aggregate.auc * 0.25
+      + a.aggregate.accuracy * 0.1
+      + Math.min(a.aggregate.oos.profitFactor, 3) / 3 * 0.25
+      + Math.max(-1, Math.min(1, a.aggregate.oos.sharpe / 2)) * 0.15
+      - a.aggregate.oos.maxDrawdown * 0.15
+      + Math.max(-1, Math.min(1, a.aggregate.oos.netReturn)) * 0.1;
+    const scoreB = b.aggregate.auc * 0.25
+      + b.aggregate.accuracy * 0.1
+      + Math.min(b.aggregate.oos.profitFactor, 3) / 3 * 0.25
+      + Math.max(-1, Math.min(1, b.aggregate.oos.sharpe / 2)) * 0.15
+      - b.aggregate.oos.maxDrawdown * 0.15
+      + Math.max(-1, Math.min(1, b.aggregate.oos.netReturn)) * 0.1;
     return scoreB - scoreA || a.modelType.localeCompare(b.modelType);
   });
 
   return Object.freeze({
     status: "READY_FOR_HUMAN_REVIEW",
     folds: boundaries.length,
+    entryThreshold,
     ranked: Object.freeze(ranked),
     selectedModelType: ranked[0].modelType,
     automaticPromotionAllowed: false,
@@ -104,7 +209,7 @@ export function auditPhase47Candidate(candidate) {
   if (candidate?.productionUpdateAllowed !== false) blockers.push("PRODUCTION_UPDATE_MUST_BE_FALSE");
   if (candidate?.humanApprovalRequired !== true) blockers.push("HUMAN_APPROVAL_REQUIRED");
   if ((candidate?.walkForward?.foldCount ?? 0) < 2) blockers.push("INSUFFICIENT_WALK_FORWARD_FOLDS");
-  if ((candidate?.walkForward?.tradeCount ?? 0) < 20) blockers.push("INSUFFICIENT_TRADE_COUNT");
+  if ((candidate?.walkForward?.oos?.sampleCount ?? 0) < 20) blockers.push("INSUFFICIENT_OOS_SAMPLE_COUNT");
   if (candidate?.checksum) {
     const { checksum, ...payload } = candidate;
     if (stableHash(payload) !== checksum) blockers.push("CHECKSUM_MISMATCH");

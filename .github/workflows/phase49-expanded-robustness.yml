@@ -54,6 +54,9 @@ jobs:
       - name: Run Phase49.1 temporal OOS diagnostics
         run: node tools/run_phase49_oos_diagnostics.mjs data/phase49-robustness data/phase49-diagnostics
 
+      - name: Run Phase49.2 regime-gate diagnostics
+        run: node tools/run_phase49_regime_gate_diagnostics.mjs data/training/phase49-expanded.json data/phase49-diagnostics/summary.json data/phase49-regime-gate
+
       - name: Upload Phase49 robustness artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -64,5 +67,6 @@ jobs:
             data/phase49-robustness/summary.json
             data/phase49-robustness/*-model.json
             data/phase49-diagnostics/summary.json
+            data/phase49-regime-gate/summary.json
             data/data-lake/manifest.json
             data/data-lake/rejected.json

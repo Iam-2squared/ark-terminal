@@ -101,7 +101,13 @@ export async function downloadHistoricalUniverse({ instruments, start, end, inte
       try {
         results.push(await downloadHistoricalSeries({ ...current, start, end, interval, fetchImpl }));
       } catch (error) {
-        failures.push({ symbol: current.outputSymbol ?? current.symbol, message: String(error?.message || error) });
+        failures.push({
+          symbol: current.outputSymbol ?? current.symbol,
+          message: String(error?.message || error),
+          blockers: error?.inspection?.blockers ?? [],
+          warnings: error?.inspection?.warnings ?? [],
+          recordCount: error?.inspection?.recordCount ?? null,
+        });
       }
     }
   }

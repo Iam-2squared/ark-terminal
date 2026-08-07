@@ -100,6 +100,36 @@ function computeAdxApprox(rows, index, period = 14) {
   return mean(dx);
 }
 
+function computeChartStructure(rows, index, currentClose) {
+  const lookback20 = rows.slice(index - 19, index + 1);
+  const prior20 = rows.slice(index - 20, index);
+  const lookback60 = rows.slice(index - 59, index + 1);
+  const high20 = Math.max(...lookback20.map((row) => Number(row.high)));
+  const low20 = Math.min(...lookback20.map((row) => Number(row.low)));
+  const priorHigh20 = Math.max(...prior20.map((row) => Number(row.high)));
+  const priorLow20 = Math.min(...prior20.map((row) => Number(row.low)));
+  const high60 = Math.max(...lookback60.map((row) => Number(row.high)));
+  const low60 = Math.min(...lookback60.map((row) => Number(row.low)));
+  const range20 = high20 - low20;
+  const range60 = high60 - low60;
+  const closePosition20 = range20 === 0 ? 0.5 : (currentClose - low20) / range20;
+  const closePosition60 = range60 === 0 ? 0.5 : (currentClose - low60) / range60;
+  const breakoutUp20 = priorHigh20 === 0 ? 0 : Math.max(0, currentClose / priorHigh20 - 1);
+  const breakdownDown20 = priorLow20 === 0 ? 0 : Math.max(0, priorLow20 / currentClose - 1);
+  return { closePosition20, closePosition60, breakoutUp20, breakdownDown20 };
+}
+
+function classifyRegime({ ma20Gap, ma75Gap, adx14Approx, volatility20, atr14 }) {
+  const trendScore = (Math.abs(ma20Gap) + Math.abs(ma75Gap)) * 100 + (adx14Approx / 100);
+  const highVol = volatility20 >= 0.025 || atr14 >= 0.03;
+  const trending = adx14Approx >= 25 || trendScore >= 0.08;
+  const direction = ma20Gap >= 0 && ma75Gap >= 0 ? 1 : (ma20Gap <= 0 && ma75Gap <= 0 ? -1 : 0);
+  if (trending && highVol) return { regimeTrend: direction, regimeVolatility: 1, regimeCode: direction > 0 ? 3 : direction < 0 ? -3 : 2 };
+  if (trending) return { regimeTrend: direction, regimeVolatility: 0, regimeCode: direction > 0 ? 2 : direction < 0 ? -2 : 1 };
+  if (highVol) return { regimeTrend: 0, regimeVolatility: 1, regimeCode: 4 };
+  return { regimeTrend: 0, regimeVolatility: 0, regimeCode: 0 };
+}
+
 export function generateExtendedFeatures(records = []) {
   if (!Array.isArray(records)) throw new TypeError("records must be an array");
   const bySymbol = new Map();
@@ -153,25 +183,32 @@ export function generateExtendedFeatures(records = []) {
       const prevClose = Number(rows[index - 1].close);
       const open = Number(current.open);
       const actualReturn = (nextClose / currentClose) - 1;
+      const ma20Gap = currentClose / ma20 - 1;
+      const ma75Gap = currentClose / ma75 - 1;
+      const atr14 = computeAtr(rows, index, 14);
+      const volatility20 = std(recentReturns20);
+      const adx14Approx = computeAdxApprox(rows, index, 14);
+      const chartStructure = computeChartStructure(rows, index, currentClose);
+      const regime = classifyRegime({ ma20Gap, ma75Gap, adx14Approx, volatility20, atr14 });
 
       const featureValues = Object.freeze({
         rsi14: computeRsi(closes, 14),
-        atr14: computeAtr(rows, index, 14),
+        atr14,
         vwapGap20: currentClose ? (currentClose / vwap20) - 1 : 0,
         bollingerZ20: sigma20 === 0 ? 0 : (currentClose - sma20) / sigma20,
         volumeRatio20: mean(volumes20) === 0 ? 0 : Number(current.volume) / mean(volumes20),
-        volatility20: std(recentReturns20),
+        volatility20,
         ma5Gap: currentClose / ma5 - 1,
         ma10Gap: currentClose / ma10 - 1,
-        ma20Gap: currentClose / ma20 - 1,
+        ma20Gap,
         ma25Gap: currentClose / ma25 - 1,
         ma50Gap: currentClose / ma50 - 1,
-        ma75Gap: currentClose / ma75 - 1,
+        ma75Gap,
         macd,
         macdSignal,
         macdHistogram: macd - macdSignal,
         stochastic14: computeStochastic(rows, index, 14),
-        adx14Approx: computeAdxApprox(rows, index, 14),
+        adx14Approx,
         return1: pctChange(currentClose, Number(rows[index - 1].close)),
         return3: pctChange(currentClose, Number(rows[index - 3].close)),
         return5: pctChange(currentClose, Number(rows[index - 5].close)),
@@ -180,6 +217,8 @@ export function generateExtendedFeatures(records = []) {
         gapOpenPrevClose: prevClose ? open / prevClose - 1 : 0,
         intradayReturn: open ? currentClose / open - 1 : 0,
         rangePosition52w: range52 === 0 ? 0.5 : (currentClose - low52) / range52,
+        ...chartStructure,
+        ...regime,
       });
 
       output.push(Object.freeze({
@@ -217,7 +256,7 @@ export function splitDatasetByTime(rows = [], { trainRatio = 0.6, validationRati
   return Object.freeze({ status: temporalOrderValid ? "VALID" : "BLOCKED", train: Object.freeze(train), validation: Object.freeze(validation), test: Object.freeze(test), temporalOrderValid, safety: PHASE46_ADVANCED_SAFETY });
 }
 
-export function buildDatasetLineage({ datasetVersion, sourceManifestChecksum, featureVersion = "phase46-advanced-v3", rows = [] } = {}) {
+export function buildDatasetLineage({ datasetVersion, sourceManifestChecksum, featureVersion = "phase48-alpha-regime-v1", rows = [] } = {}) {
   if (!datasetVersion || !sourceManifestChecksum) throw new TypeError("datasetVersion and sourceManifestChecksum are required");
   const payload = { schemaVersion: 1, datasetVersion, sourceManifestChecksum, featureVersion, rowCount: rows.length, generatedAt: new Date().toISOString() };
   return Object.freeze({ ...payload, lineageChecksum: checksum(payload), safety: PHASE46_ADVANCED_SAFETY });

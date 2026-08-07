@@ -25,18 +25,39 @@ export const DEFAULT_PROMOTION_GATE = Object.freeze({
 
 export const DEFAULT_THRESHOLD_GRID = Object.freeze([0.52, 0.54, 0.55, 0.56, 0.58, 0.6, 0.62, 0.65, 0.7]);
 
-function foldBoundaries(length, { minTrain = 60, validationSize = 20, step = 20 } = {}) {
-  if (length < minTrain + validationSize) throw new RangeError("insufficient rows for walk-forward validation");
+function sessionDates(rows) {
+  return [...new Set(rows.map((row) => row.sessionDate))].sort();
+}
+
+function foldBoundaries(rows, { minTrain = 60, validationSize = 20, step = 20 } = {}) {
+  const dates = sessionDates(rows);
+  if (dates.length < minTrain + validationSize) throw new RangeError("insufficient session dates for walk-forward validation");
   const folds = [];
-  for (let trainEnd = minTrain; trainEnd + validationSize <= length; trainEnd += step) {
-    folds.push({ trainStart: 0, trainEnd, testStart: trainEnd, testEnd: trainEnd + validationSize });
+  for (let trainDateCount = minTrain; trainDateCount + validationSize <= dates.length; trainDateCount += step) {
+    const trainDates = new Set(dates.slice(0, trainDateCount));
+    const testDates = new Set(dates.slice(trainDateCount, trainDateCount + validationSize));
+    const trainIndexes = rows.map((row, index) => trainDates.has(row.sessionDate) ? index : -1).filter((index) => index >= 0);
+    const testIndexes = rows.map((row, index) => testDates.has(row.sessionDate) ? index : -1).filter((index) => index >= 0);
+    folds.push({
+      trainStart: trainIndexes[0],
+      trainEnd: trainIndexes.at(-1) + 1,
+      testStart: testIndexes[0],
+      testEnd: testIndexes.at(-1) + 1,
+      trainDates: Object.freeze([...trainDates]),
+      testDates: Object.freeze([...testDates]),
+    });
   }
   if (!folds.length) throw new RangeError("no walk-forward folds generated");
   return folds;
 }
 
+function rowsForDates(rows, dates) {
+  const allowed = dates instanceof Set ? dates : new Set(dates);
+  return rows.filter((row) => allowed.has(row.sessionDate));
+}
+
 function dedupePredictions(predictions) {
-  const sorted = [...predictions].sort((a, b) => a.sessionDate.localeCompare(b.sessionDate) || a.id.localeCompare(b.id));
+  const sorted = [...predictions].sort((a, b) => a.sessionDate.localeCompare(b.sessionDate) || a.symbol.localeCompare(b.symbol) || a.id.localeCompare(b.id));
   const deduped = [];
   const seen = new Set();
   for (const item of sorted) {
@@ -47,55 +68,113 @@ function dedupePredictions(predictions) {
   return deduped;
 }
 
-function buildOosMetrics(predictions, { entryThreshold = 0.55, costRate = 0.001 } = {}) {
+function groupBySessionDate(predictions) {
+  const grouped = new Map();
+  for (const item of dedupePredictions(predictions)) {
+    if (!grouped.has(item.sessionDate)) grouped.set(item.sessionDate, []);
+    grouped.get(item.sessionDate).push(item);
+  }
+  return [...grouped.entries()].sort(([a], [b]) => a.localeCompare(b));
+}
+
+function thresholdFor(item, entryThreshold) {
+  if (Number.isFinite(Number(item.selectedThreshold))) return Number(item.selectedThreshold);
+  if (Number.isFinite(Number(entryThreshold))) return Number(entryThreshold);
+  return 0.55;
+}
+
+export function buildPortfolioOosMetrics(predictions, { entryThreshold = 0.55, costRate = 0.001 } = {}) {
   const deduped = dedupePredictions(predictions);
-  let position = 0;
+  const groups = groupBySessionDate(deduped);
+  const positions = new Map();
   let equity = 1;
   let peak = 1;
   let maxDrawdown = 0;
-  let trades = 0;
-  const returns = [];
-  const grossReturns = [];
-  for (const item of deduped) {
-    const nextPosition = item.probability >= entryThreshold ? 1 : 0;
-    const turnover = Math.abs(nextPosition - position);
-    const gross = nextPosition * item.actualReturn;
-    const net = gross - turnover * costRate;
-    if (turnover > 0) trades += 1;
-    grossReturns.push(gross);
-    returns.push(net);
+  let positionChanges = 0;
+  let activeSymbolDays = 0;
+  let winningActiveSymbolDays = 0;
+  let totalSymbolDays = 0;
+  let transactionCostSum = 0;
+  const dailyReturns = [];
+  const dailyGrossReturns = [];
+  const dailyTurnovers = [];
+  const dailyExposures = [];
+
+  for (const [, items] of groups) {
+    const denominator = items.length || 1;
+    let grossSum = 0;
+    let turnoverSum = 0;
+    let activeCount = 0;
+    for (const item of items) {
+      const previousPosition = positions.get(item.symbol) ?? 0;
+      const nextPosition = item.probability >= thresholdFor(item, entryThreshold) ? 1 : 0;
+      const turnover = Math.abs(nextPosition - previousPosition);
+      if (turnover > 0) positionChanges += 1;
+      if (nextPosition > 0) {
+        activeCount += 1;
+        activeSymbolDays += 1;
+        if (item.actualReturn > 0) winningActiveSymbolDays += 1;
+      }
+      grossSum += nextPosition * item.actualReturn;
+      turnoverSum += turnover;
+      positions.set(item.symbol, nextPosition);
+    }
+    totalSymbolDays += items.length;
+    const gross = grossSum / denominator;
+    const turnover = turnoverSum / denominator;
+    const cost = turnover * costRate;
+    const net = gross - cost;
+    transactionCostSum += cost;
+    dailyGrossReturns.push(gross);
+    dailyReturns.push(net);
+    dailyTurnovers.push(turnover);
+    dailyExposures.push(activeCount / denominator);
     equity *= 1 + net;
     peak = Math.max(peak, equity);
     maxDrawdown = Math.max(maxDrawdown, peak ? (peak - equity) / peak : 0);
-    position = nextPosition;
   }
-  const gains = returns.filter((value) => value > 0).reduce((sum, value) => sum + value, 0);
-  const losses = Math.abs(returns.filter((value) => value < 0).reduce((sum, value) => sum + value, 0));
-  const avg = mean(returns);
-  const sigma = std(returns);
-  const active = deduped.filter((item) => item.probability >= entryThreshold);
-  const wins = active.filter((item) => item.actualReturn > 0).length;
-  const sampleCount = deduped.length;
-  const years = sampleCount / 252;
+
+  const gains = dailyReturns.filter((value) => value > 0).reduce((sum, value) => sum + value, 0);
+  const losses = Math.abs(dailyReturns.filter((value) => value < 0).reduce((sum, value) => sum + value, 0));
+  const avg = mean(dailyReturns);
+  const sigma = std(dailyReturns);
+  const portfolioDays = groups.length;
+  const years = portfolioDays / 252;
+  const thresholds = [...new Set(deduped.map((item) => thresholdFor(item, entryThreshold)))];
+  const portfolioWinDays = dailyReturns.filter((value) => value > 0).length;
+
   return Object.freeze({
-    entryThreshold,
-    sampleCount,
-    activeDays: active.length,
-    exposure: sampleCount ? active.length / sampleCount : 0,
-    positionChanges: trades,
-    winRate: active.length ? wins / active.length : 0,
+    entryThreshold: thresholds.length === 1 ? thresholds[0] : null,
+    thresholdMode: thresholds.length === 1 ? "FIXED" : "NESTED_PER_FOLD",
+    sampleCount: deduped.length,
+    portfolioDays,
+    activeDays: activeSymbolDays,
+    activeSymbolDays,
+    exposureDefinition: "active symbol-days / observed symbol-days",
+    exposure: totalSymbolDays ? activeSymbolDays / totalSymbolDays : 0,
+    averageGrossExposure: mean(dailyExposures),
+    positionChanges,
+    turnover: mean(dailyTurnovers),
+    transactionCostSum,
+    winRate: activeSymbolDays ? winningActiveSymbolDays / activeSymbolDays : 0,
+    portfolioWinRate: portfolioDays ? portfolioWinDays / portfolioDays : 0,
+    profitFactorDefinition: "portfolio daily net returns",
     profitFactor: losses ? gains / losses : gains > 0 ? 999 : 0,
     sharpe: sigma ? (avg / sigma) * Math.sqrt(252) : 0,
     maxDrawdown,
     cagr: years > 0 ? equity ** (1 / years) - 1 : 0,
     netReturn: equity - 1,
     averageDailyReturn: avg,
-    grossReturnSum: grossReturns.reduce((sum, value) => sum + value, 0),
+    grossReturnSum: dailyGrossReturns.reduce((sum, value) => sum + value, 0),
+    dailyReturns: Object.freeze(dailyReturns),
   });
 }
 
 function buildThresholdSweep(predictions, { thresholdGrid = DEFAULT_THRESHOLD_GRID, costRate = 0.001 } = {}) {
-  return Object.freeze(thresholdGrid.map((threshold) => buildOosMetrics(predictions, { entryThreshold: threshold, costRate })));
+  return Object.freeze(thresholdGrid.map((threshold) => buildPortfolioOosMetrics(
+    predictions.map((item) => ({ ...item, selectedThreshold: undefined })),
+    { entryThreshold: threshold, costRate },
+  )));
 }
 
 function chooseThreshold(sweep) {
@@ -127,31 +206,94 @@ function buildConfidenceBuckets(predictions) {
       winRate: items.length ? wins / items.length : 0,
       averageReturn: mean(returns),
       cumulativeReturnSum: returns.reduce((sum, r) => sum + r, 0),
+      diagnosticsOnly: true,
     });
   }));
 }
 
-function buildBuyAndHoldBenchmark(predictions) {
-  const sorted = dedupePredictions(predictions);
+export function buildEqualWeightBenchmark(predictions) {
+  const deduped = dedupePredictions(predictions);
+  const groups = groupBySessionDate(deduped);
   let equity = 1;
   let peak = 1;
   let maxDrawdown = 0;
   const returns = [];
-  for (const item of sorted) {
-    returns.push(item.actualReturn);
-    equity *= 1 + item.actualReturn;
+  for (const [, items] of groups) {
+    const dailyReturn = mean(items.map((item) => item.actualReturn));
+    returns.push(dailyReturn);
+    equity *= 1 + dailyReturn;
     peak = Math.max(peak, equity);
     maxDrawdown = Math.max(maxDrawdown, peak ? (peak - equity) / peak : 0);
   }
   const sigma = std(returns);
   const avg = mean(returns);
-  const years = sorted.length / 252;
+  const years = groups.length / 252;
   return Object.freeze({
-    sampleCount: sorted.length,
+    type: "EQUAL_WEIGHT_BUY_AND_HOLD",
+    sampleCount: deduped.length,
+    portfolioDays: groups.length,
     sharpe: sigma ? (avg / sigma) * Math.sqrt(252) : 0,
     maxDrawdown,
     cagr: years > 0 ? equity ** (1 / years) - 1 : 0,
     netReturn: equity - 1,
+    dailyReturns: Object.freeze(returns),
+  });
+}
+
+function buildPredictions(model, rows, costRate) {
+  const metrics = evaluateModel({ model, rows, costRate });
+  const predictions = rows.map((row, rowIndex) => Object.freeze({
+    id: row.id,
+    symbol: row.symbol,
+    sessionDate: row.sessionDate,
+    probability: metrics.probabilities[rowIndex],
+    label: row.label,
+    actualReturn: row.actualReturn,
+  }));
+  return { metrics, predictions };
+}
+
+function selectNestedThreshold({ trainRows, modelType, thresholdGrid, costRate, entryThreshold, options }) {
+  const dates = sessionDates(trainRows);
+  const requested = Math.max(1, Number(options.innerValidationSize ?? Math.min(20, Math.max(5, Math.floor(dates.length * 0.25)))));
+  let validationDateCount = Math.min(requested, Math.max(1, dates.length - 1));
+  let innerTrainRows = [];
+  let innerValidationRows = [];
+
+  while (validationDateCount >= 1) {
+    const split = dates.length - validationDateCount;
+    innerTrainRows = rowsForDates(trainRows, dates.slice(0, split));
+    innerValidationRows = rowsForDates(trainRows, dates.slice(split));
+    if (innerTrainRows.length >= 20 && innerValidationRows.length > 0) break;
+    validationDateCount -= 1;
+  }
+
+  if (innerTrainRows.length < 20 || !innerValidationRows.length) {
+    return Object.freeze({
+      status: "FALLBACK_INSUFFICIENT_INNER_DATA",
+      selectedThreshold: entryThreshold,
+      validation: null,
+      sweep: Object.freeze([]),
+      innerTrainStart: null,
+      innerTrainEnd: null,
+      validationStart: null,
+      validationEnd: null,
+    });
+  }
+
+  const innerModel = trainModel({ rows: innerTrainRows, modelType, options: options[modelType] ?? {} });
+  const { predictions } = buildPredictions(innerModel, innerValidationRows, costRate);
+  const sweep = buildThresholdSweep(predictions, { thresholdGrid, costRate });
+  const selected = chooseThreshold(sweep);
+  return Object.freeze({
+    status: "SELECTED_ON_INNER_VALIDATION",
+    selectedThreshold: selected.entryThreshold,
+    validation: selected,
+    sweep,
+    innerTrainStart: innerTrainRows[0].sessionDate,
+    innerTrainEnd: innerTrainRows.at(-1).sessionDate,
+    validationStart: innerValidationRows[0].sessionDate,
+    validationEnd: innerValidationRows.at(-1).sessionDate,
   });
 }
 
@@ -180,24 +322,22 @@ export function evaluatePromotionGate(aggregate, gate = DEFAULT_PROMOTION_GATE) 
 
 export function runWalkForward({ rows, modelTypes = MODEL_TYPES, options = {}, costRate = 0.001, entryThreshold = 0.55, thresholdGrid = DEFAULT_THRESHOLD_GRID } = {}) {
   const normalized = normalizeTrainingRows(rows);
-  const boundaries = foldBoundaries(normalized.length, options);
+  const boundaries = foldBoundaries(normalized, options);
   const results = [];
 
   for (const modelType of modelTypes) {
     const oosPredictions = [];
     const folds = boundaries.map((boundary, index) => {
-      const trainRows = normalized.slice(boundary.trainStart, boundary.trainEnd);
-      const testRows = normalized.slice(boundary.testStart, boundary.testEnd);
+      const trainRows = rowsForDates(normalized, boundary.trainDates);
+      const testRows = rowsForDates(normalized, boundary.testDates);
+      const thresholdSelection = selectNestedThreshold({ trainRows, modelType, thresholdGrid, costRate, entryThreshold, options });
       const model = trainModel({ rows: trainRows, modelType, options: options[modelType] ?? {} });
-      const metrics = evaluateModel({ model, rows: testRows, costRate });
-      testRows.forEach((row, rowIndex) => {
+      const { metrics, predictions } = buildPredictions(model, testRows, costRate);
+      predictions.forEach((prediction) => {
         oosPredictions.push(Object.freeze({
-          id: row.id,
-          symbol: row.symbol,
-          sessionDate: row.sessionDate,
-          probability: metrics.probabilities[rowIndex],
-          label: row.label,
-          actualReturn: row.actualReturn,
+          ...prediction,
+          outerFold: index + 1,
+          selectedThreshold: thresholdSelection.selectedThreshold,
         }));
       });
       return Object.freeze({
@@ -209,12 +349,16 @@ export function runWalkForward({ rows, modelTypes = MODEL_TYPES, options = {}, c
         testEnd: testRows.at(-1).sessionDate,
         trainCount: trainRows.length,
         testCount: testRows.length,
+        trainSessionCount: boundary.trainDates.length,
+        testSessionCount: boundary.testDates.length,
+        selectedThreshold: thresholdSelection.selectedThreshold,
+        thresholdSelection,
         metrics,
       });
     });
 
-    const thresholdSweep = buildThresholdSweep(oosPredictions, { thresholdGrid, costRate });
-    const optimizedOos = chooseThreshold(thresholdSweep);
+    const nestedOos = buildPortfolioOosMetrics(oosPredictions, { entryThreshold: null, costRate });
+    const diagnosticThresholdSweep = buildThresholdSweep(oosPredictions, { thresholdGrid, costRate });
     const aggregateBase = {
       modelType,
       foldCount: folds.length,
@@ -223,11 +367,25 @@ export function runWalkForward({ rows, modelTypes = MODEL_TYPES, options = {}, c
       recall: mean(folds.map((fold) => fold.metrics.recall)),
       auc: mean(folds.map((fold) => fold.metrics.auc)),
       brierScore: mean(folds.map((fold) => fold.metrics.brierScore)),
-      oos: optimizedOos,
-      baselineOos: buildOosMetrics(oosPredictions, { entryThreshold, costRate }),
-      thresholdSweep,
+      oos: nestedOos,
+      baselineOos: buildPortfolioOosMetrics(oosPredictions.map((item) => ({ ...item, selectedThreshold: undefined })), { entryThreshold, costRate }),
+      thresholdSweep: diagnosticThresholdSweep,
+      thresholdSweepDiagnosticsOnly: true,
+      thresholdHistory: Object.freeze(folds.map((fold) => Object.freeze({
+        fold: fold.fold,
+        selectedThreshold: fold.selectedThreshold,
+        selectionStatus: fold.thresholdSelection.status,
+        validationProfitFactor: fold.thresholdSelection.validation?.profitFactor ?? null,
+        validationSharpe: fold.thresholdSelection.validation?.sharpe ?? null,
+        validationMaxDrawdown: fold.thresholdSelection.validation?.maxDrawdown ?? null,
+        validationSamples: fold.thresholdSelection.validation?.sampleCount ?? 0,
+        innerTrainEnd: fold.thresholdSelection.innerTrainEnd,
+        validationStart: fold.thresholdSelection.validationStart,
+        validationEnd: fold.thresholdSelection.validationEnd,
+        outerTestStart: fold.testStart,
+      }))),
       confidenceBuckets: buildConfidenceBuckets(oosPredictions),
-      benchmark: buildBuyAndHoldBenchmark(oosPredictions),
+      benchmark: buildEqualWeightBenchmark(oosPredictions),
     };
     const aggregate = Object.freeze({ ...aggregateBase, promotionGate: evaluatePromotionGate(aggregateBase) });
     results.push(Object.freeze({ modelType, folds: Object.freeze(folds), aggregate }));
@@ -245,9 +403,12 @@ export function runWalkForward({ rows, modelTypes = MODEL_TYPES, options = {}, c
 
   return Object.freeze({
     status: "READY_FOR_HUMAN_REVIEW",
+    phase: 47.2,
     folds: boundaries.length,
     entryThreshold,
     thresholdOptimization: true,
+    thresholdSelectionMode: "NESTED_INNER_VALIDATION",
+    portfolioEvaluationMode: "SESSION_DATE_EQUAL_WEIGHT_MULTI_ASSET",
     ranked: Object.freeze(ranked),
     selectedModelType: ranked[0].modelType,
     selectedPromotionStatus: ranked[0].aggregate.promotionGate.status,
@@ -262,15 +423,18 @@ export function buildPhase47RegistryCandidate({ rows, walkForwardResult, dataset
   if (!walkForwardResult?.selectedModelType) throw new TypeError("walkForwardResult is required");
   const selected = walkForwardResult.ranked.find((item) => item.modelType === walkForwardResult.selectedModelType);
   const finalModel = trainModel({ rows: normalized, modelType: selected.modelType });
+  const thresholds = selected.aggregate.thresholdHistory.map((item) => item.selectedThreshold).filter(Number.isFinite);
   const payload = {
-    schemaVersion: 1,
-    phase: 47.1,
+    schemaVersion: 2,
+    phase: 47.2,
     modelId: finalModel.modelId,
     modelType: selected.modelType,
     status: "CANDIDATE_REVIEW_ONLY",
     promotionStatus: selected.aggregate.promotionGate.status,
     promotionFailures: selected.aggregate.promotionGate.failures,
-    selectedEntryThreshold: selected.aggregate.oos.entryThreshold,
+    selectedEntryThreshold: thresholds.length && thresholds.every((value) => value === thresholds[0]) ? thresholds[0] : null,
+    thresholdSelectionMode: "NESTED_INNER_VALIDATION",
+    thresholdHistory: selected.aggregate.thresholdHistory,
     generatedAt: new Date(generatedAt).toISOString(),
     trainingPeriod: { start: normalized[0].sessionDate, end: normalized.at(-1).sessionDate },
     trainingRows: normalized.length,
@@ -291,6 +455,7 @@ export function auditPhase47Candidate(candidate) {
   if (candidate?.automaticPromotionAllowed !== false) blockers.push("AUTOMATIC_PROMOTION_MUST_BE_FALSE");
   if (candidate?.productionUpdateAllowed !== false) blockers.push("PRODUCTION_UPDATE_MUST_BE_FALSE");
   if (candidate?.humanApprovalRequired !== true) blockers.push("HUMAN_APPROVAL_REQUIRED");
+  if (candidate?.thresholdSelectionMode !== "NESTED_INNER_VALIDATION") blockers.push("NESTED_THRESHOLD_SELECTION_REQUIRED");
   if ((candidate?.walkForward?.foldCount ?? 0) < 2) blockers.push("INSUFFICIENT_WALK_FORWARD_FOLDS");
   if ((candidate?.walkForward?.oos?.sampleCount ?? 0) < 20) blockers.push("INSUFFICIENT_OOS_SAMPLE_COUNT");
   if (!candidate?.promotionStatus) blockers.push("PROMOTION_STATUS_REQUIRED");
@@ -302,6 +467,8 @@ export function auditPhase47Candidate(candidate) {
     status: blockers.length ? "BLOCKED" : "READY_FOR_HUMAN_REVIEW",
     blockers: Object.freeze(blockers),
     brokerWrites: 0,
+    excelOrderWrites: 0,
+    rssOrderCalls: 0,
     liveOrders: 0,
     safety: PHASE47_SAFETY,
   });

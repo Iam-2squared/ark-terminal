@@ -1,0 +1,50 @@
+name: Phase51 Semi-Auto Safety Foundation
+
+on:
+  pull_request:
+    paths:
+      - 'predict/semi-auto/phase51-foundation.js'
+      - 'predict/tests/phase51-semi-auto-safety.test.mjs'
+      - '.github/workflows/phase51-semi-auto-safety.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  safety-foundation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install prediction dependencies
+        working-directory: predict
+        run: npm install --ignore-scripts
+
+      - name: Run regression tests
+        working-directory: predict
+        run: npm test
+
+      - name: Run Phase51 safety tests
+        run: node --test predict/tests/phase51-semi-auto-safety.test.mjs
+
+      - name: Verify fail-closed execution contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "executionAllowed: false" predict/semi-auto/phase51-foundation.js
+          grep -q "brokerWriteAllowed: false" predict/semi-auto/phase51-foundation.js
+          grep -q "excelOrderWriteAllowed: false" predict/semi-auto/phase51-foundation.js
+          grep -q "rssOrderFunctionAllowed: false" predict/semi-auto/phase51-foundation.js
+          grep -q "liveTradingAllowed: false" predict/semi-auto/phase51-foundation.js
+          grep -q "automaticPromotionAllowed: false" predict/semi-auto/phase51-foundation.js
+          grep -q "productionUpdateAllowed: false" predict/semi-auto/phase51-foundation.js
+          grep -q "humanApprovalRequired: true" predict/semi-auto/phase51-foundation.js
+          grep -q "killSwitchRequired: true" predict/semi-auto/phase51-foundation.js

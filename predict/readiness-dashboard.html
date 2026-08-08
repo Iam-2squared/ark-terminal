@@ -65,6 +65,22 @@
         <article class="performanceCard fullWidthCard">
           <div class="cardHeader">
             <div>
+              <p class="cardLabel">Phase53.1</p>
+              <h2>Adaptive Horizon Operational View</h2>
+            </div>
+          </div>
+          <p class="dataSourceDescription">OOSデータから選ばれた候補ホライズンを評価用途だけに接続します。売買・送信・自動昇格には使いません。</p>
+          <div class="metricsGrid">
+            <article class="metricCard"><span>状態</span><strong id="adaptiveHorizonStatus">読み込み中</strong></article>
+            <article class="metricCard"><span>選択ホライズン</span><strong id="adaptiveHorizonSelected">--</strong></article>
+            <article class="metricCard"><span>1位との差</span><strong id="adaptiveHorizonLead">--</strong></article>
+            <article class="metricCard"><span>比較対象数</span><strong id="adaptiveHorizonEligible">--</strong></article>
+          </div>
+        </article>
+
+        <article class="performanceCard fullWidthCard">
+          <div class="cardHeader">
+            <div>
               <p class="cardLabel">Multi-Horizon OOS</p>
               <h2>1 / 3 / 5 / 10 / 20営業日 成績比較</h2>
             </div>
@@ -83,7 +99,7 @@
 
         <article class="warningCard fullWidthCard">
           <div><p class="cardLabel">Read Only</p><h2>この画面から売買はできません</h2></div>
-          <p>PRE_LIVE_REVIEW_READYは「人間レビューに進める候補」という意味であり、実注文許可ではありません。Broker write、Excel注文、RSS注文、live trading、自動昇格、本番更新は引き続き無効です。</p>
+          <p>PRE_LIVE_REVIEW_READYやAdaptive Horizon候補は「人間レビュー・評価に進める候補」という意味であり、実注文許可ではありません。Broker write、Excel注文、RSS注文、live trading、自動昇格、本番更新は引き続き無効です。</p>
         </article>
       </section>
     </main>

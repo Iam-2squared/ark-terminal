@@ -33,6 +33,9 @@ function statusLabel(status) {
     PRE_LIVE_NOT_READY: 'まだ準備不足',
     BLOCKED: '安全ゲートで停止',
     NO_OPERATIONAL_DATA: '運用データ蓄積待ち',
+    STABLE: '安定',
+    NOT_READY: '準備不足',
+    PASS: '通過',
   })[status] || String(status || '不明');
 }
 
@@ -46,8 +49,64 @@ function blockerLabel(value) {
     EVIDENCE_INVALID: '安全証拠データが無効です',
     BROKER_BOUNDARY_INVALID: 'Broker境界監査が無効です',
     APPROVAL_INTEGRITY_INVALID: '承認整合性監査が無効です',
+    ANOMALY_GATE_NOT_PASSED: '異常率ゲートが未通過です',
   };
   return labels[value] || value;
+}
+
+function normalizePersistedSnapshot(raw) {
+  const evidence = raw?.evidence || {};
+  const anomalyEvaluation = raw?.anomalyEvaluation || {};
+  const sustainedSafety = raw?.sustainedSafety || {};
+  const stability = raw?.stability || {};
+
+  if (!raw || raw.status === 'NO_OPERATIONAL_DATA') {
+    return {
+      ...raw,
+      status: 'NO_OPERATIONAL_DATA',
+      metrics: {
+        dryRunSamples: Number(raw?.historyCount || 0),
+        simulatedCount: 0,
+        blockedCount: 0,
+        anomalyRate: null,
+        blockedRate: null,
+        consecutiveSafeDays: 0,
+        requiredSafeDays: 10,
+        safetyViolationCount: 0,
+      },
+      blockers: ['OPERATIONAL_DATA_NOT_PERSISTED_YET'],
+      safety: raw || {},
+    };
+  }
+
+  const blockers = [
+    ...(Array.isArray(anomalyEvaluation.blockers) ? anomalyEvaluation.blockers : []),
+    ...(Array.isArray(sustainedSafety.blockers) ? sustainedSafety.blockers : []),
+  ];
+
+  const status = evidence.status === 'BLOCKED'
+    ? 'BLOCKED'
+    : anomalyEvaluation.status === 'PASS' && sustainedSafety.status === 'STABLE'
+      ? 'PRE_LIVE_REVIEW_READY'
+      : 'PRE_LIVE_NOT_READY';
+
+  return {
+    ...raw,
+    status,
+    blockers: [...new Set(blockers)],
+    metrics: {
+      dryRunSamples: Number(evidence.sampleCount || raw.historyCount || 0),
+      simulatedCount: Number(evidence.simulatedCount || 0),
+      blockedCount: Number(evidence.blockedCount || 0),
+      anomalyRate: finite(anomalyEvaluation.anomalyRate) ? Number(anomalyEvaluation.anomalyRate) : null,
+      blockedRate: finite(anomalyEvaluation.blockedRate) ? Number(anomalyEvaluation.blockedRate) : null,
+      consecutiveSafeDays: Number(sustainedSafety.consecutiveSafeDays || 0),
+      requiredSafeDays: Number(sustainedSafety.requiredSafeDays || 10),
+      safetyViolationCount: Number(evidence.safetyViolationCount || 0),
+      operationalDays: Number(stability?.metrics?.dayCount || raw.historyCount || 0),
+    },
+    safety: raw,
+  };
 }
 
 function renderSnapshot(snapshot) {
@@ -65,7 +124,9 @@ function renderSnapshot(snapshot) {
   setText('dryRunBlockedRate', percentRatio(metrics.blockedRate));
   setText('dryRunSafeDays', `${Number(metrics.consecutiveSafeDays || 0)} / ${Number(metrics.requiredSafeDays || 10)}日`);
   setText('dryRunSafetyViolations', Number(metrics.safetyViolationCount || 0).toLocaleString('ja-JP'));
+  setText('dryRunOperationalDays', Number(metrics.operationalDays || 0).toLocaleString('ja-JP'));
   setText('snapshotGeneratedAt', snapshot?.generatedAt ? new Date(snapshot.generatedAt).toLocaleString('ja-JP') : '未生成');
+  setText('snapshotSource', snapshot?.source || '未生成');
 
   const blockers = Array.isArray(snapshot?.blockers) ? snapshot.blockers : [];
   const host = document.getElementById('preLiveBlockers');
@@ -84,6 +145,7 @@ function renderSnapshot(snapshot) {
     ['Live trading', safety.liveTradingAllowed === false],
     ['自動昇格', safety.automaticPromotionAllowed === false],
     ['本番更新', safety.productionUpdateAllowed === false],
+    ['送信済み注文', safety.transmitted === false],
   ];
   const safetyHost = document.getElementById('safetyBoundaryTable');
   if (safetyHost) {
@@ -110,11 +172,29 @@ async function renderPredictionMetrics() {
   setText('predictionScope', test.length ? '最終テスト期間' : '確定済み全期間');
 }
 
+async function loadPersistedReadiness() {
+  const candidates = [
+    '../data/phase52-dry-run/readiness.json',
+    './data/phase52-readiness.json',
+  ];
+
+  let lastError = null;
+  for (const url of candidates) {
+    try {
+      const response = await fetch(url, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = await response.json();
+      return normalizePersistedSnapshot(payload);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error('readiness snapshot not found');
+}
+
 async function init() {
   try {
-    const response = await fetch('./data/phase52-readiness.json', { cache: 'no-store' });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    renderSnapshot(await response.json());
+    renderSnapshot(await loadPersistedReadiness());
   } catch (error) {
     setText('snapshotGeneratedAt', '読み込み失敗');
     const host = document.getElementById('preLiveBlockers');

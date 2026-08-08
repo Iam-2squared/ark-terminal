@@ -15,13 +15,14 @@ function row(period, value, hit = value > 0) {
 
 test('selects only a sufficiently separated OOS horizon candidate', () => {
   const records = [
-    ...Array.from({ length: 10 }, () => row(1, 0.1, true)),
+    ...Array.from({ length: 10 }, (_, i) => row(1, i < 6 ? 0.1 : -0.1, i < 6)),
     ...Array.from({ length: 10 }, () => row(3, 1.0, true)),
     ...Array.from({ length: 10 }, (_, i) => row(5, i < 6 ? 0.2 : -0.2, i < 6)),
   ];
   const result = evaluateAdaptiveHorizon(records, { minimumSamples: 10, minimumLead: 0.1 });
   assert.equal(result.status, 'ADAPTIVE_HORIZON_CANDIDATE');
   assert.equal(result.selectedHorizon, 3);
+  assert.ok(result.lead >= 0.1);
   assert.equal(result.executionAllowed, false);
   assert.equal(result.liveTradingAllowed, false);
   assert.equal(result.transmitted, false);

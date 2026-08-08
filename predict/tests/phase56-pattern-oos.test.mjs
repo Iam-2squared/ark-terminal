@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';import{buildPatternOosEvidence,PHASE56_OOS_SAFETY}from'../chart/phase56-pattern-oos.js';
+function rows(n=36,ret=.01){return Array.from({length:n},(_,i)=>({timestamp:`2026-01-${String(1+(i%28)).padStart(2,'0')}T${String(Math.floor(i/28)).padStart(2,'0')}:00:00Z`,pattern:'ASCENDING_TRIANGLE',market:'JP',timeframe:'5m',regime:'UPTREND',liquidityBucket:'LIQUID',horizon:'15m',direction:'BULLISH',forwardReturn:ret+(i%3)*.001}));}
+test('creates stable chronological OOS evidence candidate',()=>{const r=buildPatternOosEvidence({observations:rows()});assert.equal(r.status,'PATTERN_OOS_EVIDENCE_READY');assert.equal(r.evidence[0].status,'OOS_EDGE_CANDIDATE');assert.ok(r.evidence[0].folds.length>=3);assert.equal(r.executionAllowed,false);});
+test('rejects insufficient evidence',()=>{const r=buildPatternOosEvidence({observations:rows(8)});assert.equal(r.evidence[0].status,'INSUFFICIENT_EVIDENCE');});
+test('does not call losing pattern an edge',()=>{const r=buildPatternOosEvidence({observations:rows(36,-.02)});assert.equal(r.evidence[0].status,'NO_STABLE_OOS_EDGE');});
+test('OOS database remains research only',()=>{assert.equal(PHASE56_OOS_SAFETY.brokerWriteAllowed,false);assert.equal(PHASE56_OOS_SAFETY.liveTradingAllowed,false);});

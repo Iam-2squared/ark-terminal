@@ -10,6 +10,7 @@ function normalizedPeriod(record) {
 function qualityScore(metrics) {
   const sampleCount = Number(metrics?.sampleCount || 0);
   const winRate = Number(metrics?.winRate || 0);
+  const averageReturn = Number(metrics?.averageReturn || 0);
   const profitFactor = Number(metrics?.profitFactor);
   const sharpe = Number(metrics?.sharpe || 0);
   const drawdown = Math.abs(Number(metrics?.maximumDrawdown || 0));
@@ -18,7 +19,13 @@ function qualityScore(metrics) {
 
   const sampleWeight = Math.min(1, sampleCount / 30);
   const pf = Number.isFinite(profitFactor) ? Math.min(3, Math.max(0, profitFactor)) : 3;
-  return Number((sampleWeight * (winRate * 0.45 + pf * 10 * 0.25 + sharpe * 10 * 0.2 - drawdown * 0.1)).toFixed(3));
+  return Number((sampleWeight * (
+    winRate * 0.4 +
+    pf * 10 * 0.2 +
+    sharpe * 10 * 0.15 +
+    averageReturn * 5 * 0.2 -
+    drawdown * 0.1
+  )).toFixed(3));
 }
 
 export function compareHorizonPerformance(records = [], { minimumSamples = 5 } = {}) {

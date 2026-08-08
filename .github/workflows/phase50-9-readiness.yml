@@ -1,0 +1,46 @@
+name: Phase50.9 Semi-Auto Readiness Gate
+
+on:
+  pull_request:
+    paths:
+      - 'predict/shadow/phase50-9-readiness-gate.js'
+      - 'predict/tests/phase50-9-readiness-gate.test.mjs'
+      - '.github/workflows/phase50-9-readiness.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  readiness-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install prediction dependencies
+        working-directory: predict
+        run: npm install --ignore-scripts
+
+      - name: Run prediction regression tests
+        working-directory: predict
+        run: npm test
+
+      - name: Run Phase50.9 readiness tests
+        run: node --test predict/tests/phase50-9-readiness-gate.test.mjs
+
+      - name: Verify execution remains blocked
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'semiAutoExecutionAllowed: false' predict/shadow/phase50-9-readiness-gate.js
+          grep -q 'liveTradingAllowed: false' predict/shadow/phase50-9-readiness-gate.js
+          grep -q 'automaticPromotionAllowed: false' predict/shadow/phase50-9-readiness-gate.js
+          grep -q 'productionUpdateAllowed: false' predict/shadow/phase50-9-readiness-gate.js
+          grep -q 'humanApprovalRequired: true' predict/shadow/phase50-9-readiness-gate.js

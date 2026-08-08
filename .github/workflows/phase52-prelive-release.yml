@@ -1,0 +1,35 @@
+name: Phase52 Pre-Live Release Gate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'predict/prelive/phase52-release-gate.js'
+      - 'predict/tests/phase52-prelive-release.test.mjs'
+      - '.github/workflows/phase52-prelive-release.yml'
+      - 'docs/PHASE52_6_9_PRELIVE_RELEASE.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  phase52-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run Phase52 release tests
+        run: node --test predict/tests/phase52-prelive-release.test.mjs
+      - name: Verify fail-closed safety contract
+        run: |
+          grep -q "executionAllowed: false" predict/prelive/phase52-release-gate.js
+          grep -q "brokerWriteAllowed: false" predict/prelive/phase52-release-gate.js
+          grep -q "excelOrderWriteAllowed: false" predict/prelive/phase52-release-gate.js
+          grep -q "rssOrderFunctionAllowed: false" predict/prelive/phase52-release-gate.js
+          grep -q "liveTradingAllowed: false" predict/prelive/phase52-release-gate.js
+          grep -q "automaticPromotionAllowed: false" predict/prelive/phase52-release-gate.js
+          grep -q "productionUpdateAllowed: false" predict/prelive/phase52-release-gate.js
+          grep -q "humanApprovalRequired: true" predict/prelive/phase52-release-gate.js

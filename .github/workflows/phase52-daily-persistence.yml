@@ -1,0 +1,69 @@
+name: Phase52 Daily Dry-Run Persistence
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '20 8 * * 1-5'
+
+permissions:
+  contents: write
+
+jobs:
+  persist-dry-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'schedule' && 'phase52/6-9-prelive-release' || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install prediction dependencies
+        working-directory: predict
+        run: npm install --ignore-scripts
+
+      - name: Run prediction regression suite
+        working-directory: predict
+        run: npm test
+
+      - name: Generate fail-closed daily record
+        run: node tools/run_phase52_daily_persistence.mjs
+
+      - name: Verify no execution surface is enabled
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q '"executionAllowed": false' data/phase52-dry-run/readiness.json
+          grep -q '"brokerWriteAllowed": false' data/phase52-dry-run/readiness.json
+          grep -q '"excelOrderWriteAllowed": false' data/phase52-dry-run/readiness.json
+          grep -q '"rssOrderFunctionAllowed": false' data/phase52-dry-run/readiness.json
+          grep -q '"liveTradingAllowed": false' data/phase52-dry-run/readiness.json
+          grep -q '"automaticPromotionAllowed": false' data/phase52-dry-run/readiness.json
+          grep -q '"productionUpdateAllowed": false' data/phase52-dry-run/readiness.json
+          grep -q '"transmitted": false' data/phase52-dry-run/readiness.json
+
+      - name: Persist generated read-only evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- data/phase52-dry-run; then
+            echo 'No data changes to commit.'
+            exit 0
+          fi
+          git config user.name 'ark-terminal-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add data/phase52-dry-run
+          git commit -m "chore: persist Phase52 daily dry-run evidence"
+          git push
+
+      - name: Upload evidence artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase52-daily-dry-run
+          retention-days: 30
+          path: data/phase52-dry-run/

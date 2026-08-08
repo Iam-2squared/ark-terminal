@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Operational Readiness | Ark Terminal</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="performance.css" />
+  </head>
+  <body>
+    <header class="pageHeader">
+      <div class="headerInner">
+        <div class="headerNavigation">
+          <a href="performance.html" class="backButton">← AI Performance</a>
+          <div class="headerActionGroup">
+            <a href="index.html" class="secondaryButton headerAction">Prediction Lab</a>
+            <a href="../index.html" class="secondaryButton headerAction">Home</a>
+          </div>
+        </div>
+        <p class="eyebrow">Ark Terminal</p>
+        <h1>Operational Readiness</h1>
+        <p class="headerDescription">Shadow / Dry-Run / Phase52 pre-live gateをread-onlyで可視化します。ここから注文送信はできません。</p>
+      </div>
+    </header>
+
+    <main class="pageMain">
+      <section class="performanceCard fullWidthCard">
+        <div class="cardHeader">
+          <div>
+            <p class="cardLabel">Phase52.9</p>
+            <h2>Pre-Live Readiness Gate</h2>
+          </div>
+          <span id="preLiveStatusBadge" class="dataSourceBadge">読み込み中</span>
+        </div>
+        <p class="dataSourceDescription">最終更新: <span id="snapshotGeneratedAt">--</span></p>
+        <p class="dataSourceDescription">データソース: <span id="snapshotSource">--</span></p>
+        <div id="preLiveBlockers"><p class="emptyState">ゲート状態を読み込んでいます。</p></div>
+      </section>
+
+      <section class="metricsGrid">
+        <article class="metricCard"><span>Dry-Runサンプル</span><strong id="dryRunSamples">--</strong></article>
+        <article class="metricCard"><span>運用日数</span><strong id="dryRunOperationalDays">--</strong></article>
+        <article class="metricCard"><span>SIMULATED_ONLY</span><strong id="dryRunSimulated">--</strong></article>
+        <article class="metricCard"><span>BLOCKED</span><strong id="dryRunBlocked">--</strong></article>
+        <article class="metricCard"><span>異常率</span><strong id="dryRunAnomalyRate">--</strong></article>
+        <article class="metricCard"><span>ブロック率</span><strong id="dryRunBlockedRate">--</strong></article>
+        <article class="metricCard"><span>連続安全日数</span><strong id="dryRunSafeDays">--</strong></article>
+        <article class="metricCard"><span>安全違反件数</span><strong id="dryRunSafetyViolations">--</strong></article>
+      </section>
+
+      <section class="performanceGrid">
+        <article class="performanceCard fullWidthCard">
+          <p class="cardLabel">OOS Performance</p>
+          <h2>現在の予測成績</h2>
+          <p class="dataSourceDescription">表示対象: <span id="predictionScope">読み込み中</span></p>
+          <div class="metricsGrid">
+            <article class="metricCard"><span>評価件数</span><strong id="predictionSamples">--</strong></article>
+            <article class="metricCard"><span>勝率</span><strong id="predictionWinRate">--</strong></article>
+            <article class="metricCard"><span>Profit Factor</span><strong id="predictionProfitFactor">--</strong></article>
+            <article class="metricCard"><span>Sharpe</span><strong id="predictionSharpe">--</strong></article>
+            <article class="metricCard"><span>最大DD</span><strong id="predictionMaxDrawdown">--</strong></article>
+          </div>
+        </article>
+
+        <article class="performanceCard fullWidthCard">
+          <p class="cardLabel">Safety Boundary</p>
+          <h2>注文系境界</h2>
+          <p class="dataSourceDescription">すべて無効・安全側であることを可視化します。</p>
+          <div id="safetyBoundaryTable" class="tableContainer"></div>
+        </article>
+
+        <article class="warningCard fullWidthCard">
+          <div><p class="cardLabel">Read Only</p><h2>この画面から売買はできません</h2></div>
+          <p>PRE_LIVE_REVIEW_READYは「人間レビューに進める候補」という意味であり、実注文許可ではありません。Broker write、Excel注文、RSS注文、live trading、自動昇格、本番更新は引き続き無効です。</p>
+        </article>
+      </section>
+    </main>
+
+    <script type="module" src="readiness-dashboard.js"></script>
+  </body>
+</html>

@@ -48,6 +48,7 @@ export function buildOrderCandidate({ readiness, symbol, side, referencePrice, q
     rationale: Array.isArray(rationale) ? rationale.map(String) : [],
     approved: false,
     executable: false,
+    executionAllowed: false,
     transmitted: false,
     safety: PHASE51_SAFETY,
   };
@@ -73,6 +74,7 @@ export function evaluatePreTradeRisk({ candidate, limits = {}, killSwitch = fals
     limits: { maxNotional, maxQuantity, minConfidence },
     candidateId: candidate?.candidateId ?? null,
     executionAllowed: false,
+    transmitted: false,
     safety: PHASE51_SAFETY,
   });
 }

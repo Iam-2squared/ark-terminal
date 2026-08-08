@@ -1,0 +1,51 @@
+name: Phase51.6-51.9 Dry-Run Operations
+
+on:
+  pull_request:
+    paths:
+      - 'predict/semi-auto/phase51-6-9-operations.js'
+      - 'predict/tests/phase51-6-9-operations.test.mjs'
+      - '.github/workflows/phase51-6-9-operations.yml'
+  workflow_dispatch:
+  schedule:
+    - cron: '20 8 * * 1-5'
+
+permissions:
+  contents: read
+
+jobs:
+  operations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install prediction dependencies
+        working-directory: predict
+        run: npm install --ignore-scripts
+
+      - name: Run prediction regression tests
+        working-directory: predict
+        run: npm test
+
+      - name: Run Phase51.6-51.9 tests
+        run: node --test predict/tests/phase51-6-9-operations.test.mjs
+
+      - name: Verify fail-closed release contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "mode: 'DRY_RUN_ONLY'" predict/semi-auto/phase51-6-9-operations.js
+          grep -q 'executionAllowed: false' predict/semi-auto/phase51-6-9-operations.js
+          grep -q 'brokerWriteAllowed: false' predict/semi-auto/phase51-6-9-operations.js
+          grep -q 'excelOrderWriteAllowed: false' predict/semi-auto/phase51-6-9-operations.js
+          grep -q 'rssOrderFunctionAllowed: false' predict/semi-auto/phase51-6-9-operations.js
+          grep -q 'liveTradingAllowed: false' predict/semi-auto/phase51-6-9-operations.js
+          grep -q 'automaticPromotionAllowed: false' predict/semi-auto/phase51-6-9-operations.js
+          grep -q 'productionUpdateAllowed: false' predict/semi-auto/phase51-6-9-operations.js

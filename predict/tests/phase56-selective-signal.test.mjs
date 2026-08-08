@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';import{evaluateSelectiveSignal,PHASE56_SELECTIVE_SAFETY}from'../chart/phase56-selective-signal.js';
+function trendBars(){const closes=[100,102,101,104,103,106,105,108,107,110,109,112,111,114,113,116,115,118,117,121];return closes.map((c,i)=>({time:i,open:c-.5,high:c+1,low:c-1,close:c,volume:i===closes.length-1?3000:1000,vwap:c-.8}));}
+test('emits only high-confluence research signal',()=>{const r=evaluateSelectiveSignal({bars:trendBars(),minimumScore:4,minimumMargin:1});assert.equal(r.status,'SELECTIVE_SIGNAL');assert.equal(r.signal,1);assert.equal(r.executionAllowed,false);});
+test('abstains when score threshold is deliberately too high',()=>{const r=evaluateSelectiveSignal({bars:trendBars(),minimumScore:99});assert.equal(r.status,'ABSTAIN');assert.equal(r.signal,0);});
+test('safety remains evaluation only',()=>{assert.equal(PHASE56_SELECTIVE_SAFETY.liveTradingAllowed,false);assert.equal(PHASE56_SELECTIVE_SAFETY.brokerWriteAllowed,false);});

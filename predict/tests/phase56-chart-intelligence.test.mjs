@@ -1,0 +1,6 @@
+import test from 'node:test'; import assert from 'node:assert/strict';
+import { analyzeChartStructure, PHASE56_SAFETY } from '../chart/phase56-chart-intelligence.js';
+function bars(){ const closes=[100,102,101,104,103,106,105,108,107,110,109,112,111,114,113,116,115,118,117,120]; return closes.map((c,i)=>({time:i,open:c-.4,high:c+1,low:c-1,close:c,volume:1000+i*10,vwap:c-.5})); }
+test('reads swing structure and VWAP context without trading',()=>{const r=analyzeChartStructure({bars:bars(),swingRadius:1});assert.equal(r.status,'CHART_CONTEXT_READY');assert.equal(r.marketStructure.regime,'UPTREND');assert.equal(r.marketStructure.highState,'HH');assert.equal(r.marketStructure.lowState,'HL');assert.equal(r.vwap.position,'ABOVE');assert.equal(r.executionAllowed,false);assert.equal(r.transmitted,false);});
+test('fails closed with insufficient chart history',()=>{const r=analyzeChartStructure({bars:bars().slice(0,5)});assert.equal(r.status,'OBSERVE');assert.ok(r.blockers.includes('INSUFFICIENT_BARS'));});
+test('Phase56 safety boundary is read only',()=>{assert.equal(PHASE56_SAFETY.brokerWriteAllowed,false);assert.equal(PHASE56_SAFETY.excelOrderWriteAllowed,false);assert.equal(PHASE56_SAFETY.rssOrderFunctionAllowed,false);assert.equal(PHASE56_SAFETY.liveTradingAllowed,false);});

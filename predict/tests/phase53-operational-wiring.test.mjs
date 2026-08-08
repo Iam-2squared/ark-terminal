@@ -16,7 +16,7 @@ function row(period, value, hit = value > 0) {
 
 test('exposes the selected horizon for evaluation only', () => {
   const records = [
-    ...Array.from({ length: 10 }, () => row(1, 0.1, true)),
+    ...Array.from({ length: 10 }, (_, i) => row(1, i < 6 ? 0.1 : -0.1, i < 6)),
     ...Array.from({ length: 10 }, () => row(3, 2.0, true)),
     ...Array.from({ length: 10 }, (_, i) => row(5, i < 6 ? 0.2 : -0.2, i < 6)),
   ];

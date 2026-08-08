@@ -1,0 +1,7 @@
+import test from'node:test';import assert from'node:assert/strict';import{discoverUnknownStructures,PHASE56_DISCOVERY_SAFETY}from'../chart/phase56-unknown-structure.js';
+const feature={upperSlope:-.25,lowerSlope:.25,convergence:.5,rangeCompression:.5,relativeVolume:1.5,vwapDistance:.25,atrNormalized:.5,swingDensity:.5,breakoutDistance:.25};
+function rows(n=36,ret=.01){return Array.from({length:n},(_,i)=>({timestamp:i,features:feature,forwardReturn:ret+(i%3)*.001}));}
+test('discovers repeated unnamed structure without classic pattern label',()=>{const r=discoverUnknownStructures({observations:rows()});assert.equal(r.status,'UNKNOWN_STRUCTURES_FOUND');assert.equal(r.structures[0].status,'DISCOVERY_OOS_CANDIDATE');assert.equal(r.namedPatternRequired,false);assert.equal(r.executionAllowed,false);});
+test('requires evidence before retaining a structure',()=>{const r=discoverUnknownStructures({observations:rows(5)});assert.equal(r.structures[0].status,'INSUFFICIENT_EVIDENCE');});
+test('does not manufacture directional edge from mixed outcomes',()=>{const mixed=rows(40).map((x,i)=>({...x,forwardReturn:i%2?.01:-.01}));const r=discoverUnknownStructures({observations:mixed});assert.equal(r.structures[0].status,'NO_DIRECTIONAL_EDGE');});
+test('discovery safety is read only',()=>{assert.equal(PHASE56_DISCOVERY_SAFETY.brokerWriteAllowed,false);assert.equal(PHASE56_DISCOVERY_SAFETY.liveTradingAllowed,false);});

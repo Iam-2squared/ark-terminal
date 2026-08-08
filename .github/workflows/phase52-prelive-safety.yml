@@ -1,0 +1,24 @@
+name: Phase52 Pre-Live Safety
+
+on:
+  pull_request:
+    paths:
+      - 'predict/prelive/**'
+      - 'predict/tests/phase52-prelive-safety.test.mjs'
+      - 'docs/PHASE52_0_5_PRELIVE_SAFETY.md'
+      - '.github/workflows/phase52-prelive-safety.yml'
+  workflow_dispatch:
+
+jobs:
+  phase52-prelive-safety:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: predict
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run Phase52.0-52.5 safety tests
+        run: node --test tests/phase52-prelive-safety.test.mjs

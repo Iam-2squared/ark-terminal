@@ -30,6 +30,15 @@ test('52.6 aggregates valid dry-run evidence and preserves zero execution', () =
   assert.equal(evidence.transmitted, false);
 });
 
+test('52.6 uses explicit simulatedCount instead of inferring a simulation from a valid day', () => {
+  const evidence = aggregateDryRunEvidence([
+    safeRecord({ simulatedCount: 0 }),
+    safeRecord({ simulatedCount: 3 }),
+  ]);
+  assert.equal(evidence.sampleCount, 2);
+  assert.equal(evidence.simulatedCount, 3);
+});
+
 test('52.6 blocks on any write/transmission violation', () => {
   const evidence = aggregateDryRunEvidence([safeRecord({ brokerWriteCount: 1 })]);
   assert.equal(evidence.status, 'BLOCKED');

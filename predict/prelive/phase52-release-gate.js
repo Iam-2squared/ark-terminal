@@ -20,7 +20,15 @@ export function aggregateDryRunEvidence(records = []) {
   const items = Array.isArray(records) ? records : [];
   const valid = items.filter((r) => r && r.mode === 'DRY_RUN_ONLY');
   const blocked = valid.filter((r) => r.status === 'BLOCKED').length;
-  const simulated = valid.filter((r) => r.status === 'SIMULATED_ONLY').length;
+  const simulated = valid.reduce((sum, r) => {
+    const hasExplicitCount = r.simulatedCount !== undefined && r.simulatedCount !== null;
+    const count = hasExplicitCount
+      ? Math.max(0, Math.floor(finite(r.simulatedCount)))
+      : r.status === 'SIMULATED_ONLY'
+        ? 1
+        : 0;
+    return sum + count;
+  }, 0);
   const anomalies = valid.reduce((sum, r) => sum + Math.max(0, finite(r.anomalyCount)), 0);
   const safetyViolations = valid.filter((r) => r.executionAllowed !== false || r.transmitted === true || finite(r.brokerWriteCount) !== 0 || finite(r.excelOrderWriteCount) !== 0 || finite(r.rssOrderFunctionCallCount) !== 0 || finite(r.liveOrderCount) !== 0).length;
   return Object.freeze({

@@ -2,24 +2,42 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluatePhase53Finalization } from '../adaptive/phase53-finalization.js';
 
-function record(index, winner = 3) {
-  const horizons = [1, 3, 5, 10, 20];
+function row(period, strategyReturn, createdAt) {
   return {
     status: 'resolved',
-    resolvedAt: new Date(Date.UTC(2026, 0, index + 1)).toISOString(),
-    horizons: Object.fromEntries(horizons.map((h) => [h, {
-      directionCorrect: h === winner,
-      returnPct: h === winner ? 0.02 : -0.005,
-    }])),
+    period,
+    actualReturn: strategyReturn,
+    strategyReturn,
+    hit: strategyReturn > 0,
+    createdAt,
   };
 }
 
+function windowWithWinner(day, winner = 3) {
+  const horizons = [1, 3, 5, 10, 20];
+  const stamp = (offset) => new Date(Date.UTC(2026, 7, day, 0, offset, 0)).toISOString();
+  return horizons.flatMap((horizon, horizonIndex) =>
+    Array.from({ length: 5 }, (_, sampleIndex) => {
+      const strategyReturn = horizon === winner
+        ? 1.0
+        : (sampleIndex < 2 ? 0.2 : -0.2);
+      return row(horizon, strategyReturn, stamp(horizonIndex * 5 + sampleIndex));
+    }),
+  );
+}
+
 test('Phase53.x exposes stable horizon only as review candidate', () => {
-  const records = Array.from({ length: 90 }, (_, index) => record(index, 3));
+  const records = [
+    ...windowWithWinner(1, 3),
+    ...windowWithWinner(2, 3),
+    ...windowWithWinner(3, 3),
+  ];
   const result = evaluatePhase53Finalization(records, {
-    windowSize: 30,
+    windowSize: 25,
     minimumSamples: 5,
     minimumComparableWindows: 3,
+    minimumDominance: 0.6,
+    maximumSwitches: 1,
   });
   assert.equal(result.reviewStatus, 'REVIEW_CANDIDATE');
   assert.equal(result.candidateHorizon, 3);
@@ -31,15 +49,16 @@ test('Phase53.x exposes stable horizon only as review candidate', () => {
 
 test('Phase53.x remains observe when horizon stability is not proven', () => {
   const records = [
-    ...Array.from({ length: 30 }, (_, i) => record(i, 1)),
-    ...Array.from({ length: 30 }, (_, i) => record(i + 30, 3)),
-    ...Array.from({ length: 30 }, (_, i) => record(i + 60, 5)),
+    ...windowWithWinner(1, 1),
+    ...windowWithWinner(2, 3),
+    ...windowWithWinner(3, 5),
   ];
   const result = evaluatePhase53Finalization(records, {
-    windowSize: 30,
+    windowSize: 25,
     minimumSamples: 5,
     minimumComparableWindows: 3,
     minimumDominance: 0.6,
+    maximumSwitches: 1,
   });
   assert.equal(result.reviewStatus, 'OBSERVE');
   assert.ok(result.blockers.length > 0);

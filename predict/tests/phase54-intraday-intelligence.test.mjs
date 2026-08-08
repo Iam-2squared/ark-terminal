@@ -6,16 +6,15 @@ import {
   PHASE54_SAFETY,
 } from '../trading/phase54-intraday-intelligence.js';
 
-const START = 1_785_000_000;
+const END = 1_785_200_000;
 
 function buildTimeframe(minutes, direction = 'bull') {
   const rows = [];
-  let index = 0;
   const push = (sessionDate, count, current = false) => {
     for (let slot = 0; slot < count; slot += 1) {
       const base = current ? 101 + slot * 0.03 : 100 + slot * 0.01;
       rows.push({
-        time: START + index * minutes * 60,
+        time: 0,
         open: base - 0.05,
         high: base + 0.2,
         low: base - 0.2,
@@ -24,12 +23,15 @@ function buildTimeframe(minutes, direction = 'bull') {
         sessionDate,
         isClosed: true,
       });
-      index += 1;
     }
   };
 
   push('2026-08-06', 40, false);
   push('2026-08-07', 8, true);
+  rows.forEach((row, index) => {
+    row.time = END - (rows.length - 1 - index) * minutes * 60;
+  });
+
   const latest = rows.at(-1);
   if (direction === 'bull') {
     latest.open = 102.5;
@@ -64,9 +66,9 @@ test('Phase54 combines 5m, 15m and 60m intelligence without enabling execution',
     15: buildTimeframe(15, 'bull'),
     60: buildTimeframe(60, 'bull'),
   };
-  const latest60 = candlesByTimeframe[60].at(-1);
+  const latest = candlesByTimeframe[60].at(-1);
   const result = analyzePhase54IntradayIntelligence(candlesByTimeframe, {
-    nowSeconds: latest60.time + 60 * 60 + 60,
+    nowSeconds: latest.time + 60 * 60 + 60,
     policy: {
       marketPolicy: {
         5: { maximumBarAgeSeconds: 5 * 60 * 60 },
@@ -93,9 +95,9 @@ test('Phase54 exposes conflict instead of pretending multi-timeframe agreement',
     15: buildTimeframe(15, 'bear'),
     60: buildTimeframe(60, 'bull'),
   };
-  const latest60 = candlesByTimeframe[60].at(-1);
+  const latest = candlesByTimeframe[60].at(-1);
   const result = analyzePhase54IntradayIntelligence(candlesByTimeframe, {
-    nowSeconds: latest60.time + 60 * 60 + 60,
+    nowSeconds: latest.time + 60 * 60 + 60,
     policy: {
       marketPolicy: {
         5: { maximumBarAgeSeconds: 5 * 60 * 60 },

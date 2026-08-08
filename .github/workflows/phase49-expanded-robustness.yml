@@ -1,0 +1,100 @@
+name: Phase49 Expanded Robustness
+
+on:
+  push:
+    branches:
+      - phase49/expanded-robustness
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  expanded-robustness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install prediction dependencies
+        working-directory: predict
+        run: npm install --ignore-scripts
+
+      - name: Run regression tests
+        working-directory: predict
+        run: npm test
+
+      - name: Download expanded historical universe
+        run: >-
+          node tools/run_phase50_historical_downloader.mjs
+          --symbols 7203.T,6758.T,9984.T,8306.T,8035.T,8316.T,8411.T,7267.T,7201.T,6501.T,6954.T,8058.T,8001.T,8031.T
+          --start 2020-01-01
+          --end 2026-08-08
+
+      - name: Build Phase49 expanded dataset
+        shell: bash
+        run: |
+          set -euo pipefail
+          MANIFEST_SHA=$(sha256sum data/data-lake/manifest.json | awk '{print $1}')
+          node tools/run_phase46_dataset_pipeline.mjs \
+            --input data/historical/downloaded.phase45.json \
+            --output data/training/phase49-expanded.json \
+            --dataset-version phase49-expanded-v1 \
+            --source-manifest-checksum "$MANIFEST_SHA"
+
+      - name: Run Phase49 expanded robustness matrix
+        run: node tools/run_phase49_expanded_robustness.mjs data/training/phase49-expanded.json data/phase49-robustness
+
+      - name: Run Phase49.1 temporal OOS diagnostics
+        run: node tools/run_phase49_oos_diagnostics.mjs data/phase49-robustness data/phase49-diagnostics
+
+      - name: Run Phase49.2 regime-gate diagnostics
+        run: node tools/run_phase49_regime_gate_diagnostics.mjs data/training/phase49-expanded.json data/phase49-diagnostics/summary.json data/phase49-regime-gate
+
+      - name: Run Phase49.3 causal regime-gate walk-forward
+        run: node tools/run_phase49_regime_gate_walkforward.mjs data/training/phase49-expanded.json data/phase49-diagnostics/summary.json data/phase49-regime-gate-walkforward
+
+      - name: Run Phase49.4 causal gate-promotion guard
+        run: node tools/run_phase49_gate_promotion_guard.mjs data/phase49-regime-gate-walkforward/summary.json data/phase49-gate-promotion-guard
+
+      - name: Run Phase49.5 guard robustness evaluation
+        run: node tools/run_phase49_guard_robustness.mjs data/phase49-regime-gate-walkforward/summary.json data/phase49-guard-robustness
+
+      - name: Run Phase49.6 canonical portfolio guarded OOS
+        run: node tools/run_phase49_6_portfolio_guard_oos.mjs data/phase49-robustness data/phase49-guard-robustness/summary.json data/phase49-portfolio-guard-oos
+
+      - name: Run Phase49.7 canonical guard policy sweep
+        run: node tools/run_phase49_7_policy_portfolio_oos.mjs data/phase49-robustness data/phase49-guard-robustness/summary.json data/phase49-policy-portfolio-oos
+
+      - name: Run Phase49.8 nested causal policy selection
+        run: node tools/run_phase49_8_nested_policy_selection.mjs data/phase49-robustness data/phase49-guard-robustness/summary.json data/phase49-nested-policy-selection
+
+      - name: Run Phase49.9 causal promotion/demotion validation
+        run: node tools/run_phase49_9_promotion_demotion.mjs data/phase49-robustness data/phase49-guard-robustness/summary.json data/phase49-promotion-demotion
+
+      - name: Upload Phase49 robustness artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase49-expanded-robustness
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            data/phase49-robustness/summary.json
+            data/phase49-robustness/*-model.json
+            data/phase49-diagnostics/summary.json
+            data/phase49-regime-gate/summary.json
+            data/phase49-regime-gate-walkforward/summary.json
+            data/phase49-gate-promotion-guard/summary.json
+            data/phase49-guard-robustness/summary.json
+            data/phase49-portfolio-guard-oos/summary.json
+            data/phase49-policy-portfolio-oos/summary.json
+            data/phase49-nested-policy-selection/summary.json
+            data/phase49-promotion-demotion/summary.json
+            data/data-lake/manifest.json
+            data/data-lake/rejected.json

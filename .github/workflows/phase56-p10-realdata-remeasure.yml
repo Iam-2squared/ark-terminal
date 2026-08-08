@@ -1,0 +1,27 @@
+name: Phase56 P10 Real-Data Remeasure
+on:
+  pull_request:
+    paths:
+      - 'predict/scripts/phase56-p10-realdata-remeasure.mjs'
+      - 'predict/chart/phase56-nested-walkforward-oos.js'
+      - 'predict/chart/phase56-precision-search.js'
+      - 'predict/chart/phase56-oos-adaptive-fusion.js'
+      - '.github/workflows/phase56-p10-realdata-remeasure.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  remeasure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run nested outer-only real-data precision remeasurement
+        run: node predict/scripts/phase56-p10-realdata-remeasure.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase56-p10-realdata-remeasure
+          path: phase56-p10-realdata-remeasure.json

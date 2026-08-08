@@ -111,7 +111,16 @@ export function analyzePhase54IntradayIntelligence(
 ) {
   const weights = { ...DEFAULT_PHASE54_POLICY.timeframeWeights, ...(policy.timeframeWeights || {}) };
   const openingRangeBars = { ...DEFAULT_PHASE54_POLICY.openingRangeBars, ...(policy.openingRangeBars || {}) };
-  const marketPolicy = { ...DEFAULT_PHASE54_POLICY.marketPolicy, ...(policy.marketPolicy || {}) };
+  const policyOverrides = policy.marketPolicy || {};
+  const marketPolicy = Object.fromEntries(
+    PHASE54_TIMEFRAMES.map((timeframe) => [
+      timeframe,
+      {
+        ...(DEFAULT_PHASE54_POLICY.marketPolicy[timeframe] || {}),
+        ...(policyOverrides[timeframe] || policyOverrides[String(timeframe)] || {}),
+      },
+    ]),
+  );
 
   const timeframes = PHASE54_TIMEFRAMES.map((timeframe) => {
     const rows = candlesByTimeframe?.[timeframe] || candlesByTimeframe?.[String(timeframe)] || [];

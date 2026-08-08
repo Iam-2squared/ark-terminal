@@ -63,6 +63,18 @@
         </article>
 
         <article class="performanceCard fullWidthCard">
+          <div class="cardHeader">
+            <div>
+              <p class="cardLabel">Multi-Horizon OOS</p>
+              <h2>1 / 3 / 5 / 10 / 20営業日 成績比較</h2>
+            </div>
+            <span id="bestHorizonBadge" class="dataSourceBadge">分析中</span>
+          </div>
+          <p id="horizonPerformanceNote" class="dataSourceDescription">時間軸別の確定データを集計しています。</p>
+          <div id="horizonPerformanceTable" class="tableContainer"></div>
+        </article>
+
+        <article class="performanceCard fullWidthCard">
           <p class="cardLabel">Safety Boundary</p>
           <h2>注文系境界</h2>
           <p class="dataSourceDescription">すべて無効・安全側であることを可視化します。</p>
@@ -77,5 +89,6 @@
     </main>
 
     <script type="module" src="readiness-dashboard.js"></script>
+    <script type="module" src="horizon-dashboard.js"></script>
   </body>
 </html>

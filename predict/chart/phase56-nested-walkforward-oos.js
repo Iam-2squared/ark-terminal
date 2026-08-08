@@ -1,0 +1,20 @@
+export const PHASE56_NESTED_OOS_SAFETY=Object.freeze({mode:'NESTED_WALK_FORWARD_RESEARCH_ONLY',executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,rssOrderFunctionAllowed:false,liveTradingAllowed:false,paperTradingAllowed:false,automaticPromotionAllowed:false,productionUpdateAllowed:false,humanApprovalRequired:true});
+const mean=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:null;
+const finite=v=>Number.isFinite(Number(v));
+const uniqueDates=rows=>[...new Set(rows.map(r=>r.sessionDate).filter(Boolean))].sort();
+const forDates=(rows,dates)=>{const set=new Set(dates);return rows.filter(r=>set.has(r.sessionDate));};
+function chooseConfig(configs,innerValidation,scoreFn){if(!configs.length)return null;const scored=configs.map(config=>({config,score:Number(scoreFn({config,rows:innerValidation}))})).filter(x=>Number.isFinite(x.score));return scored.sort((a,b)=>b.score-a.score)[0]?.config??null;}
+export function buildNestedWalkForwardOos({rows=[],candidateConfigs=[],minTrainDates=60,innerValidationDates=20,outerTestDates=20,stepDates=20,scoreConfig=()=>0,evaluateConfig=()=>[]}={}){
+ const clean=[...rows].filter(r=>r&&r.sessionDate).sort((a,b)=>a.sessionDate.localeCompare(b.sessionDate)); const dates=uniqueDates(clean);
+ if(dates.length<minTrainDates+outerTestDates||!candidateConfigs.length)return Object.freeze({phase:'56.p9',status:'INSUFFICIENT_DATA',folds:Object.freeze([]),outerPredictions:Object.freeze([]),selectionLeakBlocked:true,oosOnly:true,edgeClaimAllowed:false,safety:PHASE56_NESTED_OOS_SAFETY});
+ const folds=[]; const all=[];
+ for(let outerStart=minTrainDates;outerStart+outerTestDates<=dates.length;outerStart+=stepDates){
+  const developmentDates=dates.slice(0,outerStart), outerDates=dates.slice(outerStart,outerStart+outerTestDates); const innerCount=Math.min(innerValidationDates,Math.max(1,developmentDates.length-1)); const innerTrainDates=developmentDates.slice(0,-innerCount), innerValDates=developmentDates.slice(-innerCount); const innerTrain=forDates(clean,innerTrainDates), innerValidation=forDates(clean,innerValDates), outerTest=forDates(clean,outerDates);
+  const selected=chooseConfig(candidateConfigs,innerValidation,({config,rows})=>scoreConfig({config,trainRows:innerTrain,validationRows:rows}));
+  if(!selected)continue; const predictions=(evaluateConfig({config:selected,trainRows:forDates(clean,developmentDates),testRows:outerTest})||[]).map(x=>Object.freeze({...x,selectedConfigId:selected.id??selected.name??'anonymous',outerFold:folds.length})); all.push(...predictions);
+  folds.push(Object.freeze({fold:folds.length,innerTrainStart:innerTrainDates[0]??null,innerTrainEnd:innerTrainDates.at(-1)??null,innerValidationStart:innerValDates[0]??null,innerValidationEnd:innerValDates.at(-1)??null,outerTestStart:outerDates[0]??null,outerTestEnd:outerDates.at(-1)??null,selectedConfigId:selected.id??selected.name??'anonymous',innerTrainSamples:innerTrain.length,innerValidationSamples:innerValidation.length,outerTestSamples:outerTest.length}));
+ }
+ const returns=all.map(x=>Number(x.alignedReturn??x.return)).filter(Number.isFinite); const hits=all.map(x=>x.hit).filter(v=>typeof v==='boolean');
+ return Object.freeze({phase:'56.p9',status:folds.length?'NESTED_WALK_FORWARD_OOS_READY':'INSUFFICIENT_DATA',folds:Object.freeze(folds),outerPredictions:Object.freeze(all),metrics:Object.freeze({sampleCount:all.length,foldCount:folds.length,hitRate:hits.length?mean(hits.map(Boolean).map(Number)):null,meanAlignedReturn:returns.length?mean(returns):null}),selectionLeakBlocked:true,outerTestUntouchedBySelection:true,oosOnly:true,probabilityIsCalibrated:false,edgeClaimAllowed:false,recommendationAllowed:false,paperTradingAllowed:false,executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,rssOrderFunctionAllowed:false,liveTradingAllowed:false,automaticPromotionAllowed:false,productionUpdateAllowed:false,transmitted:false,humanApprovalRequired:true,safety:PHASE56_NESTED_OOS_SAFETY});
+}
+export default buildNestedWalkForwardOos;

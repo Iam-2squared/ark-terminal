@@ -1,0 +1,56 @@
+name: Phase50.8 Daily Shadow Evaluation
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '20 8 * * 1-5'
+
+permissions:
+  contents: read
+
+jobs:
+  shadow-evaluation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install prediction dependencies
+        working-directory: predict
+        run: npm install --ignore-scripts
+
+      - name: Run regression tests
+        working-directory: predict
+        run: npm test
+
+      - name: Verify Phase50 safety contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'executionAllowed: false' predict/shadow/phase50-shadow-live.js
+          grep -q 'brokerWriteAllowed: false' predict/shadow/phase50-shadow-live.js
+          grep -q 'excelOrderWriteAllowed: false' predict/shadow/phase50-shadow-live.js
+          grep -q 'rssOrderFunctionAllowed: false' predict/shadow/phase50-shadow-live.js
+          grep -q 'liveTradingAllowed: false' predict/shadow/phase50-shadow-live.js
+          grep -q 'automaticPromotionAllowed: false' predict/shadow/phase50-shadow-live.js
+          grep -q 'productionUpdateAllowed: false' predict/shadow/phase50-shadow-live.js
+          grep -q 'humanApprovalRequired: true' predict/shadow/phase50-shadow-live.js
+
+      - name: Dry-run Phase50.7-50.8 evaluator
+        run: node --test predict/tests/phase50-7-8-shadow-evaluation.test.mjs
+
+      - name: Upload verification artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase50-8-shadow-verification
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            data/phase50-shadow/history.json
+            data/phase50-shadow/stability.json

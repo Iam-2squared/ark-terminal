@@ -1,9 +1,15 @@
 name: Phase52 Daily Dry-Run Persistence
 
 on:
+  pull_request:
   workflow_dispatch:
   schedule:
     - cron: '20 8 * * 1-5'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/phase52-daily-persistence.yml'
 
 permissions:
   contents: write
@@ -16,7 +22,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'schedule' && 'phase52/6-9-prelive-release' || github.ref }}
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || 'main' }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -48,6 +54,7 @@ jobs:
           grep -q '"transmitted": false' data/phase52-dry-run/readiness.json
 
       - name: Persist generated read-only evidence
+        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
@@ -59,7 +66,7 @@ jobs:
           git config user.email 'actions@users.noreply.github.com'
           git add data/phase52-dry-run
           git commit -m "chore: persist Phase52 daily dry-run evidence"
-          git push
+          git push origin HEAD:main
 
       - name: Upload evidence artifact
         uses: actions/upload-artifact@v4

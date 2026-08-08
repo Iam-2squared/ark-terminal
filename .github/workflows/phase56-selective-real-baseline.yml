@@ -1,0 +1,25 @@
+name: Phase56 Selective Real Baseline
+on:
+  pull_request:
+    paths:
+      - 'predict/scripts/phase56-selective-real-baseline.mjs'
+      - 'predict/chart/phase56-selective-signal.js'
+      - '.github/workflows/phase56-selective-real-baseline.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run selective real-data chart baseline
+        run: node predict/scripts/phase56-selective-real-baseline.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase56-selective-real-baseline
+          path: phase56-selective-real-baseline.json

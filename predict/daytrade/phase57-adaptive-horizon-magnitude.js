@@ -8,6 +8,7 @@ export const PHASE57_P21_SAFETY = Object.freeze({
   paperTradingAllowed:false,
   automaticPromotionAllowed:false,
   productionUpdateAllowed:false,
+  overnightHoldingAllowed:false,
   humanApprovalRequired:true,
 });
 
@@ -37,9 +38,9 @@ export function buildMultiHorizonMagnitudeRows({symbol,sessionDate,bars=[],horiz
       const minLow=Math.min(...future.map(b=>b.low));
       const mfePct=entry?(maxHigh/entry-1)*100:0;
       const maePct=entry?(minLow/entry-1)*100:0;
-      targets[h]=Object.freeze({horizonBars:h,outcomeAt:exit.timestamp,actualReturnPct,absMovePct:Math.abs(actualReturnPct),direction:actualReturnPct>=0?1:0,mfePct,maePct});
+      targets[h]=Object.freeze({horizonBars:h,outcomeAt:exit.timestamp,outcomeSessionDate:sessionDate,actualReturnPct,absMovePct:Math.abs(actualReturnPct),direction:actualReturnPct>=0?1:0,mfePct,maePct});
     }
-    if(Object.keys(targets).length) out.push(Object.freeze({symbol,sessionDate,featureCutoff:cur.timestamp,entryPrice:cur.close,targets:Object.freeze(targets),pointInTimeValid:true,sourceMode:'historical_intraday_ohlcv'}));
+    if(Object.keys(targets).length) out.push(Object.freeze({symbol,sessionDate,featureCutoff:cur.timestamp,entryPrice:cur.close,targets:Object.freeze(targets),pointInTimeValid:true,intradayOnly:true,sourceMode:'historical_intraday_ohlcv'}));
   }
   return Object.freeze(out);
 }
@@ -49,7 +50,7 @@ export function materializeHorizonRows(baseRows=[],horizonBars){
   return baseRows.flatMap(row=>{
     const t=row?.targets?.[h];
     if(!t) return [];
-    return [Object.freeze({...row,horizonBars:h,outcomeAt:t.outcomeAt,label:t.direction,actualReturnPct:t.actualReturnPct,absMovePct:t.absMovePct,mfePct:t.mfePct,maePct:t.maePct,barrierBps:Math.abs(t.actualReturnPct)*100})];
+    return [Object.freeze({...row,horizonBars:h,outcomeAt:t.outcomeAt,outcomeSessionDate:t.outcomeSessionDate??row.sessionDate,intradayOnly:true,label:t.direction,actualReturnPct:t.actualReturnPct,absMovePct:t.absMovePct,mfePct:t.mfePct,maePct:t.maePct,barrierBps:Math.abs(t.actualReturnPct)*100})];
   });
 }
 

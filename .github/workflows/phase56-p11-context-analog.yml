@@ -1,0 +1,30 @@
+name: Phase56 P11.4 Context Analog Fusion
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'predict/scripts/phase56-p11-context-analog-fusion.mjs'
+      - '.github/workflows/phase56-p11-context-analog.yml'
+      - 'predict/models/phase47-real-training.js'
+      - 'predict/chart/phase56-precision-search.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run context + analog nested OOS evaluation
+        run: node predict/scripts/phase56-p11-context-analog-fusion.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase56-p11-context-analog-fusion
+          path: phase56-p11-context-analog-fusion.json

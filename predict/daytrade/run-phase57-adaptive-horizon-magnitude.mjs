@@ -1,6 +1,5 @@
 import fs from 'node:fs';
-import { buildHistoricalIntradayRows } from './phase57-historical-intraday-baseline.js';
-import { enrichHistoricalIntradayBars, attachMultiFactorFeatures } from './phase57-intraday-multifactor.js';
+import { enrichHistoricalIntradayBars } from './phase57-intraday-multifactor.js';
 import { buildMultiHorizonMagnitudeRows } from './phase57-adaptive-horizon-magnitude.js';
 import { buildIntradayHorizonDatasets, evaluateNestedAdaptiveHorizon } from './phase57-nested-adaptive-horizon.js';
 import { evaluateNestedMagnitudePrediction } from './phase57-magnitude-prediction.js';
@@ -70,6 +69,30 @@ async function fetchBars(symbol){
   return [...new Map(all.map(bar=>[bar.timestamp,bar])).values()].sort((a,b)=>a.timestamp.localeCompare(b.timestamp));
 }
 
+function featureRowsForMagnitude(symbol,sessionDate,sessionBars,enriched,magnitudeBase){
+  const indexByTimestamp=new Map(sessionBars.map((bar,index)=>[new Date(bar.timestamp).toISOString(),index]));
+  const enrichedByTimestamp=new Map(enriched.map(bar=>[new Date(bar.timestamp).toISOString(),bar]));
+  const open0=Number(sessionBars[0]?.open||0);
+  return magnitudeBase.flatMap(row=>{
+    const timestamp=new Date(row.featureCutoff).toISOString();
+    const index=indexByTimestamp.get(timestamp);
+    const current=index===undefined?null:sessionBars[index];
+    const enrichedBar=enrichedByTimestamp.get(timestamp);
+    if(!current||!enrichedBar) return [];
+    const previous=index>0?sessionBars[index-1]:current;
+    const priorVolumes=sessionBars.slice(Math.max(0,index-5),index).map(bar=>Number(bar.volume||0));
+    const avgPriorVolume=priorVolumes.length?priorVolumes.reduce((a,b)=>a+b,0)/priorVolumes.length:0;
+    const features={
+      returnFromOpen:open0?(Number(current.close)/open0-1)*100:0,
+      rangePosition:Number(current.high)>Number(current.low)?(Number(current.close)-Number(current.low))/(Number(current.high)-Number(current.low)):0.5,
+      shortMomentum:Number(previous.close)?(Number(current.close)/Number(previous.close)-1)*100:0,
+      relativeVolume:avgPriorVolume>0?Number(current.volume||0)/avgPriorVolume:1,
+      ...(enrichedBar.multiFactor||{}),
+    };
+    return [{symbol,sessionDate,featureCutoff:row.featureCutoff,features}];
+  });
+}
+
 function weightedBySignals(rows,field){
   const eligible=rows.filter(row=>Number(row?.signalCount)>0&&Number.isFinite(Number(row?.[field])));
   const count=eligible.reduce((s,row)=>s+Number(row.signalCount),0);
@@ -106,12 +129,9 @@ for(const symbol of symbols){
     if(sessionBars.length<30) continue;
     sessionCount++;
     const enriched=enrichHistoricalIntradayBars(sessionBars);
-    const baseFeatureRows=attachMultiFactorFeatures(
-      buildHistoricalIntradayRows({symbol,sessionDate,bars:sessionBars,horizonBars:1,barrierBps:20}),
-      enriched,
-    );
     const magnitudeBase=buildMultiHorizonMagnitudeRows({symbol,sessionDate,bars:sessionBars,horizons:horizonsBars});
-    const sessionDatasets=buildIntradayHorizonDatasets(magnitudeBase,{horizons:horizonsBars,featureRows:baseFeatureRows});
+    const featureRows=featureRowsForMagnitude(symbol,sessionDate,sessionBars,enriched,magnitudeBase);
+    const sessionDatasets=buildIntradayHorizonDatasets(magnitudeBase,{horizons:horizonsBars,featureRows});
     for(const horizonBars of horizonsBars) datasets[horizonBars].push(...(sessionDatasets[horizonBars]||[]));
   }
 }

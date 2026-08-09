@@ -1,0 +1,29 @@
+name: Phase56 P11.7 Event Barrier Labels
+
+on:
+  pull_request:
+    paths:
+      - 'predict/scripts/phase56-p11-event-barrier-labels.mjs'
+      - '.github/workflows/phase56-p11-event-barrier-labels.yml'
+      - 'predict/models/phase47-real-training.js'
+      - 'predict/chart/phase56-precision-search.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run nested event-barrier evaluation
+        run: node predict/scripts/phase56-p11-event-barrier-labels.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase56-p11-event-barrier-labels
+          path: phase56-p11-event-barrier-labels.json

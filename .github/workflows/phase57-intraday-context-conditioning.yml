@@ -14,13 +14,13 @@ permissions:
 
 jobs:
   measure:
+    name: measure-${{ matrix.scope }}
     runs-on: ubuntu-24.04
-    # P20.4 performs a fully nested context -> feature family -> model -> threshold
-    # search across five symbols plus the combined universe. Two prior attempts were
-    # cancelled by the former 20-minute job limit while the measurement step was
-    # still running, not by a test failure. Keep the research protocol unchanged
-    # and give the untouched OOS measurement enough wall-clock time to finish.
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        scope: [7203.T, 6758.T, 9984.T, 8306.T, 8035.T, COMBINED]
     defaults:
       run:
         working-directory: predict
@@ -36,9 +36,10 @@ jobs:
       - name: Run historical 5m context-conditioned nested OOS
         env:
           PHASE57_SYMBOLS: 7203.T,6758.T,9984.T,8306.T,8035.T
+          PHASE57_SCOPE: ${{ matrix.scope }}
         run: node daytrade/run-phase57-intraday-context-conditioning.mjs
       - name: Upload P20.4 artifact
         uses: actions/upload-artifact@v4
         with:
-          name: phase57-intraday-context-conditioning
-          path: predict/artifacts/phase57-intraday-context-conditioning.json
+          name: phase57-intraday-context-conditioning-${{ matrix.scope }}
+          path: predict/artifacts/phase57-intraday-context-conditioning-${{ matrix.scope }}.json

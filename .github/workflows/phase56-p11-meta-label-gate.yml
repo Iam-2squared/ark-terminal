@@ -1,0 +1,29 @@
+name: Phase56 P11.6 Meta Label Gate
+
+on:
+  pull_request:
+    paths:
+      - 'predict/scripts/phase56-p11-meta-label-gate.mjs'
+      - '.github/workflows/phase56-p11-meta-label-gate.yml'
+      - 'predict/models/**'
+      - 'predict/chart/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run nested meta-label evaluation
+        run: node predict/scripts/phase56-p11-meta-label-gate.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase56-p11-meta-label-gate
+          path: phase56-p11-meta-label-gate.json

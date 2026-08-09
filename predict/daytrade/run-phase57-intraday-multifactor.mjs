@@ -5,6 +5,7 @@ import { enrichHistoricalIntradayBars, attachMultiFactorFeatures } from './phase
 const symbols=(process.env.PHASE57_SYMBOLS||'7203.T,6758.T,9984.T,8306.T,8035.T').split(',').map(s=>s.trim()).filter(Boolean);
 const interval=process.env.PHASE57_INTERVAL||'5m';
 const range=process.env.PHASE57_RANGE||'60d';
+const actualWindowDays=58;
 const horizonBars=Number(process.env.PHASE57_HORIZON_BARS||5);
 const barrierBps=Number(process.env.PHASE57_BARRIER_BPS||20);
 const evalOptions={trainFraction:0.6,testFraction:0.1,minTrainRows:200,innerTrainFraction:0.6,innerTestFraction:0.15,innerMinTrainRows:100,thresholds:[0.55,0.60,0.65],minInnerSignals:20,feePercent:0,slippagePercent:0.05,delayCostPercent:0};
@@ -51,9 +52,10 @@ function parseChart(json,symbol){
 }
 
 async function fetchBars(symbol){
-  const end=Math.floor(Date.now()/1000);
+  const end=Math.floor(Date.now()/1000)-300;
   const day=86400;
-  const windows=[[end-60*day,end-30*day],[end-30*day,end]];
+  const split=end-29*day;
+  const windows=[[end-actualWindowDays*day,split],[split,end]];
   const merged=[];
   for(const [period1,period2] of windows){
     const qs=`period1=${period1}&period2=${period2}&interval=${encodeURIComponent(interval)}&includePrePost=false&events=div%2Csplits`;
@@ -89,7 +91,7 @@ const combinedOptions={...evalOptions,minTrainRows:500,innerMinTrainRows:200,min
 const baseCombined=evaluateHistoricalIntradayBaseline(baselineAll,combinedOptions);
 const multiCombined=evaluateHistoricalIntradayBaseline(multiAll,combinedOptions);
 const b=metrics(baseCombined),m=metrics(multiCombined);
-const summary={phase:'57.p20',status:'INTRADAY_MULTIFACTOR_5M_OOS_MEASURED',source:'Yahoo Finance historical 5m OHLCV (two 30d period chunks)',range,interval,horizonBars,barrierBps,symbols,features:['MA5/10/20 distance','MA5 slope','RSI14','MACD','MACD signal gap','ATR%','VWAP distance','Bollinger position','relative volume20','20-bar range position','JST time-of-day buckets'],bySymbol,combined:{rowCount:multiAll.length,baseline:b,multiFactor:m,deltaHitRate:(m.hitRate??0)-(b.hitRate??0),deltaNetAverageReturn:(m.netAverageReturn??0)-(b.netAverageReturn??0),selectionIntegrity:multiCombined.result.selectionIntegrity},limitations:['Historical order-book/tick-flow not reconstructed','Yahoo intraday availability provider-limited','Slippage fixed at 0.05%','P20 evaluates predeclared feature expansion; outer results are not used to choose a new threshold/model'],executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,rssOrderFunctionAllowed:false,liveTradingAllowed:false,paperTradingAllowed:false,automaticPromotionAllowed:false,productionUpdateAllowed:false};
+const summary={phase:'57.p20',status:'INTRADAY_MULTIFACTOR_5M_OOS_MEASURED',source:'Yahoo Finance historical 5m OHLCV (two 29d period chunks)',requestedRange:range,actualWindowDays,interval,horizonBars,barrierBps,symbols,features:['MA5/10/20 distance','MA5 slope','RSI14','MACD','MACD signal gap','ATR%','VWAP distance','Bollinger position','relative volume20','20-bar range position','JST time-of-day buckets'],bySymbol,combined:{rowCount:multiAll.length,baseline:b,multiFactor:m,deltaHitRate:(m.hitRate??0)-(b.hitRate??0),deltaNetAverageReturn:(m.netAverageReturn??0)-(b.netAverageReturn??0),selectionIntegrity:multiCombined.result.selectionIntegrity},limitations:['Historical order-book/tick-flow not reconstructed','Yahoo 5m provider window kept to 58 days to avoid boundary rejection','Slippage fixed at 0.05%','P20 evaluates predeclared feature expansion; outer results are not used to choose a new threshold/model'],executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,rssOrderFunctionAllowed:false,liveTradingAllowed:false,paperTradingAllowed:false,automaticPromotionAllowed:false,productionUpdateAllowed:false};
 fs.mkdirSync('artifacts',{recursive:true});
 fs.writeFileSync('artifacts/phase57-intraday-multifactor.json',JSON.stringify(summary,null,2));
 console.log('PHASE57_P20_JSON_START'); console.log(JSON.stringify(summary,null,2)); console.log('PHASE57_P20_JSON_END');

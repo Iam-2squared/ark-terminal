@@ -1,0 +1,43 @@
+name: Phase57 Intraday Multi-Factor OOS
+
+on:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-intraday-multifactor.js'
+      - 'predict/daytrade/phase57-intraday-multifactor.test.js'
+      - 'predict/daytrade/run-phase57-intraday-multifactor.mjs'
+      - '.github/workflows/phase57-intraday-multifactor.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: predict
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+      - name: Install predict dependencies
+        run: if [ -f package-lock.json ]; then npm ci; else npm install --ignore-scripts; fi
+      - name: Test P20 point-in-time multi-factor features
+        run: node --test daytrade/phase57-intraday-multifactor.test.js
+      - name: Run historical 5m multi-factor nested OOS
+        env:
+          PHASE57_SYMBOLS: 7203.T,6758.T,9984.T,8306.T,8035.T
+          PHASE57_INTERVAL: 5m
+          PHASE57_RANGE: 60d
+          PHASE57_HORIZON_BARS: 5
+          PHASE57_BARRIER_BPS: 20
+        run: node daytrade/run-phase57-intraday-multifactor.mjs
+      - name: Upload P20 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-intraday-multifactor
+          path: predict/artifacts/phase57-intraday-multifactor.json

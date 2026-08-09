@@ -1,0 +1,26 @@
+name: Phase56 P11.2 Model Family Selection
+on:
+  pull_request:
+    paths:
+      - 'predict/scripts/phase56-p11-model-family-selection.mjs'
+      - 'predict/models/phase47-real-training.js'
+      - 'predict/chart/phase56-precision-search.js'
+      - '.github/workflows/phase56-p11-model-family-selection.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run nested model-family selection
+        run: node predict/scripts/phase56-p11-model-family-selection.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase56-p11-model-family-selection
+          path: phase56-p11-model-family-selection.json

@@ -1,0 +1,23 @@
+name: Phase56 P11.3 Selective Consensus
+on:
+  pull_request:
+    paths:
+      - 'predict/scripts/phase56-p11-selective-consensus.mjs'
+      - '.github/workflows/phase56-p11-selective-consensus.yml'
+  workflow_dispatch:
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run nested selective consensus
+        run: node predict/scripts/phase56-p11-selective-consensus.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase56-p11-selective-consensus
+          path: phase56-p11-selective-consensus.json

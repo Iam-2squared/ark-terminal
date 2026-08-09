@@ -1,0 +1,47 @@
+name: Phase57 Adaptive Horizon Magnitude OOS
+
+on:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-adaptive-horizon-magnitude.js'
+      - 'predict/daytrade/phase57-nested-adaptive-horizon.js'
+      - 'predict/daytrade/phase57-magnitude-prediction.js'
+      - 'predict/daytrade/run-phase57-adaptive-horizon-magnitude.mjs'
+      - 'predict/tests/p21-1-nested-adaptive-horizon.test.mjs'
+      - 'predict/tests/p21-2-magnitude-prediction.test.mjs'
+      - '.github/workflows/phase57-adaptive-horizon-magnitude.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    name: measure-${{ matrix.scope }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        scope: [7203.T, 6758.T, 9984.T, 8306.T, 8035.T, COMBINED]
+    defaults:
+      run:
+        working-directory: predict
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+      - name: Install predict dependencies
+        run: if [ -f package-lock.json ]; then npm ci; else npm install --ignore-scripts; fi
+      - name: Test P21.1 and P21.2 integrity
+        run: node --test tests/p21-1-nested-adaptive-horizon.test.mjs tests/p21-2-magnitude-prediction.test.mjs
+      - name: Run historical 5m adaptive-horizon and magnitude OOS
+        env:
+          PHASE57_SCOPE: ${{ matrix.scope }}
+        run: node daytrade/run-phase57-adaptive-horizon-magnitude.mjs
+      - name: Upload P21.2 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-adaptive-horizon-magnitude-${{ matrix.scope }}
+          path: predict/artifacts/phase57-adaptive-horizon-magnitude-${{ matrix.scope }}.json

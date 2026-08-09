@@ -9,6 +9,8 @@ const horizonBars=Number(process.env.PHASE57_HORIZON_BARS||5);
 const barrierBps=Number(process.env.PHASE57_BARRIER_BPS||20);
 const evalOptions={trainFraction:0.6,testFraction:0.1,minTrainRows:200,innerTrainFraction:0.6,innerTestFraction:0.15,innerMinTrainRows:100,thresholds:[0.55,0.60,0.65],minInnerSignals:20,feePercent:0,slippagePercent:0.05,delayCostPercent:0};
 
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+
 function jstParts(tsMs){
   const d=new Date(tsMs);
   const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(d);
@@ -16,11 +18,33 @@ function jstParts(tsMs){
   return {date:`${o.year}-${o.month}-${o.day}`,hm:`${o.hour}:${o.minute}`};
 }
 
+async function fetchJsonWithRetry(url,symbol,{attempts=5,baseDelayMs=1500}={}){
+  let lastError;
+  for(let attempt=1;attempt<=attempts;attempt++){
+    try{
+      const controller=new AbortController();
+      const timeout=setTimeout(()=>controller.abort(),30000);
+      const res=await fetch(url,{headers:{'User-Agent':'Mozilla/5.0 ArkTerminalResearch/1.0','Accept':'application/json'},signal:controller.signal});
+      clearTimeout(timeout);
+      if(!res.ok){
+        const retriable=res.status===408||res.status===429||res.status>=500;
+        if(!retriable) throw new Error(`${symbol} Yahoo chart HTTP ${res.status}`);
+        throw new Error(`${symbol} Yahoo chart transient HTTP ${res.status}`);
+      }
+      return await res.json();
+    }catch(error){
+      lastError=error;
+      if(attempt===attempts) break;
+      await sleep(baseDelayMs*attempt);
+    }
+  }
+  throw lastError;
+}
+
 async function fetchBars(symbol){
   const url=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${encodeURIComponent(range)}&interval=${encodeURIComponent(interval)}&includePrePost=false&events=div%2Csplits`;
-  const res=await fetch(url,{headers:{'User-Agent':'Mozilla/5.0 ArkTerminalResearch/1.0'}});
-  if(!res.ok) throw new Error(`${symbol} Yahoo chart HTTP ${res.status}`);
-  const json=await res.json(); const r=json?.chart?.result?.[0]; if(!r) throw new Error(`${symbol} no chart result`);
+  const json=await fetchJsonWithRetry(url,symbol);
+  const r=json?.chart?.result?.[0]; if(!r) throw new Error(`${symbol} no chart result`);
   const q=r.indicators?.quote?.[0]||{}; const out=[];
   for(let i=0;i<(r.timestamp||[]).length;i++){
     const t=Number(r.timestamp[i])*1000; const {date,hm}=jstParts(t);

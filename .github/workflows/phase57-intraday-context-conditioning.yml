@@ -15,7 +15,12 @@ permissions:
 jobs:
   measure:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    # P20.4 performs a fully nested context -> feature family -> model -> threshold
+    # search across five symbols plus the combined universe. Two prior attempts were
+    # cancelled by the former 20-minute job limit while the measurement step was
+    # still running, not by a test failure. Keep the research protocol unchanged
+    # and give the untouched OOS measurement enough wall-clock time to finish.
+    timeout-minutes: 45
     defaults:
       run:
         working-directory: predict

@@ -1,0 +1,42 @@
+name: Phase57 Historical 5m Baseline
+
+on:
+  pull_request:
+    paths:
+      - "predict/daytrade/run-phase57-historical-5m-baseline.mjs"
+      - "predict/daytrade/phase57-historical-intraday-baseline.js"
+      - ".github/workflows/phase57-historical-5m-baseline.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+      - name: Install predict dependencies
+        working-directory: predict
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install --ignore-scripts; fi
+      - name: Run real historical 5m nested OOS baseline
+        working-directory: predict
+        env:
+          PHASE57_SYMBOLS: 7203.T,6758.T,9984.T,8306.T,8035.T
+          PHASE57_INTERVAL: 5m
+          PHASE57_RANGE: 60d
+          PHASE57_HORIZON_BARS: 5
+          PHASE57_BARRIER_BPS: 20
+        run: node daytrade/run-phase57-historical-5m-baseline.mjs
+      - name: Upload baseline artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-historical-5m-baseline
+          path: predict/artifacts/phase57-historical-5m-baseline.json

@@ -1,0 +1,40 @@
+name: Phase57 P23.9E Pooled 30 Opportunity
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'predict/daytrade/run-phase57-pooled-30-opportunity.mjs'
+      - '.github/workflows/phase57-pooled-30-opportunity.yml'
+permissions: { contents: read, actions: read }
+jobs:
+  pooled-30:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env: { PHASE57_FROZEN_ARTIFACT_DIR: frozen-source }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: Run inherited rolling-gate unit tests
+        run: node predict/tests/p23-9d-rolling-regime-opportunity.test.mjs
+      - name: Download frozen shard 0
+        uses: actions/download-artifact@v4
+        with: { artifact-ids: 9060006163, run-id: 31379583578, github-token: '${{ secrets.GITHUB_TOKEN }}', path: frozen-source/0 }
+      - name: Download frozen shard 1
+        uses: actions/download-artifact@v4
+        with: { artifact-ids: 9060012597, run-id: 31379583578, github-token: '${{ secrets.GITHUB_TOKEN }}', path: frozen-source/1 }
+      - name: Download frozen shard 2
+        uses: actions/download-artifact@v4
+        with: { artifact-ids: 9059646754, run-id: 31379583578, github-token: '${{ secrets.GITHUB_TOKEN }}', path: frozen-source/2 }
+      - name: Run pooled 30-symbol historical opportunity measurement
+        run: node predict/daytrade/run-phase57-pooled-30-opportunity.mjs
+      - name: Verify pooled causal integrity and safety
+        run: |
+          node - <<'NODE'
+          const fs=require('fs'),p='artifacts/phase57-p23-9e-pooled-30-opportunity.json';if(!fs.existsSync(p))throw new Error('missing pooled result');const d=JSON.parse(fs.readFileSync(p,'utf8'));
+          if(d.frozenSource?.exactFrozenTradeCountReconciled!==true||d.frozenSource?.totalTradeCount!==186)throw new Error('frozen reconciliation');if(d.symbols?.length!==30||d.policy?.pooledThirtySymbolModel!==true||d.policy?.independentShardModels!==false)throw new Error('not pooled 30');
+          if(d.policy?.testOutcomesUsedForSelection!==false||d.policy?.futureExtremaUsedAsPredictor!==false)throw new Error('selection leakage');const i=d.evaluation?.integrity;if(i?.rollingFitUsesOnlyPriorSessions!==true||i?.rollingCalibrationUsesOnlyPriorSessions!==true||i?.testOutcomesUsedForGateSelection!==false)throw new Error('causal integrity');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed','transmitted'])if(d[k]!==false)throw new Error(`${k} must remain false`);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with: { name: phase57-p23-9e-pooled-30-opportunity, path: artifacts/phase57-p23-9e-pooled-30-opportunity.json, if-no-files-found: error }

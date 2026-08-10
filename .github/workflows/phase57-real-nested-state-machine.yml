@@ -17,6 +17,7 @@ permissions:
 jobs:
   real-5m-nested-state-machine:
     runs-on: ubuntu-latest
+    timeout-minutes: 50
     strategy:
       fail-fast: false
       matrix:
@@ -53,6 +54,8 @@ jobs:
             if (data[key] !== false) throw new Error(`${key} must remain false`);
           }
           if (scope !== 'COMBINED') throw new Error('P23.6 primary nested selection must be pooled COMBINED, not per-symbol tuned');
+          if (data.interpretationRules?.sessionGateRevisionUsedOutcomeMetrics !== false) throw new Error('session-gate revision must not use outcome metrics');
+          if (data.interpretationRules?.sessionGateRevisionUsedSampleCardinalityOnly !== true) throw new Error('session-gate revision must be sample-cardinality only');
           const nested = data.nestedStateMachine;
           if (!nested || nested.status !== 'REAL_5M_NESTED_STATE_MACHINE_DEVELOPMENT_OOS_EVALUATED') {
             throw new Error(`P23.6 must produce non-empty nested outer evidence; status=${nested?.status}`);
@@ -73,6 +76,7 @@ jobs:
           NODE
 
       - name: Upload P23.6 evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: phase57-real-nested-state-machine-${{ matrix.symbol }}

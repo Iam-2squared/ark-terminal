@@ -74,8 +74,8 @@ test('profit protection uses only PRIOR favorable extreme, never current-bar hig
   const futureBars = [
     bar(3, 100.3, 102.0, 100.2, 101.8),
     // If the current high 110 were illegitimately used first, a same-bar trailing stop could be created above 104.
-    // Prior peak is only 102, so this bar must not trigger PRIOR_PEAK_PROFIT_PROTECTION.
-    bar(4, 101.8, 110.0, 104.0, 109.0),
+    // Prior peak is only 102, so this valid gap-up bar must not trigger PRIOR_PEAK_PROFIT_PROTECTION.
+    bar(4, 104.5, 110.0, 104.0, 109.0),
     // A later bar may legitimately protect the 110 prior peak established after bar 4 completed.
     bar(5, 109.0, 109.4, 108.5, 109.2),
   ];

@@ -1,0 +1,67 @@
+name: Phase57 Real Dynamic Exit OOS
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-dynamic-trade-management.js'
+      - 'predict/daytrade/phase57-real-dynamic-exit-oos.js'
+      - 'predict/daytrade/run-phase57-real-dynamic-exit-oos.mjs'
+      - 'predict/tests/p23-3-real-dynamic-exit-oos.test.mjs'
+      - '.github/workflows/phase57-real-dynamic-exit-oos.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  real-5m-dynamic-exit-oos:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        symbol: ['7203.T', '6758.T', '9984.T', '8306.T', '8035.T']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run real 5m chart-aware dynamic exit OOS
+        env:
+          PHASE57_SCOPE: ${{ matrix.symbol }}
+        run: node predict/daytrade/run-phase57-real-dynamic-exit-oos.mjs
+
+      - name: Verify research-only safety and selection integrity
+        env:
+          PHASE57_SCOPE: ${{ matrix.symbol }}
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const scope = process.env.PHASE57_SCOPE;
+          const path = `artifacts/phase57-real-dynamic-exit-oos-${scope}.json`;
+          if (!fs.existsSync(path)) throw new Error(`missing P23.3 artifact: ${path}`);
+          const data = JSON.parse(fs.readFileSync(path, 'utf8'));
+          for (const key of [
+            'executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed',
+            'liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed',
+            'overnightHoldingAllowed','transmitted'
+          ]) {
+            if (data[key] !== false) throw new Error(`${key} must remain false`);
+          }
+          const integrity = data.dynamicExit?.selectionIntegrity;
+          if (!integrity) throw new Error('selection integrity missing');
+          if (integrity.outerOosUsedForDynamicExitConfigSelection !== false) throw new Error('outer OOS config selection must remain false');
+          if (integrity.postSelectionAcrossExitVariantsAllowed !== false) throw new Error('exit post-selection must remain false');
+          if (integrity.matchedBaselineUsesExactSameSignalRows !== true) throw new Error('matched baseline rows must reconcile exactly');
+          if (data.interpretationRules?.fixedElapsedTimeIsMatchedBaselineOnly !== true) throw new Error('fixed elapsed time must be baseline only');
+          NODE
+
+      - name: Upload P23.3 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-real-dynamic-exit-oos-${{ matrix.symbol }}
+          path: artifacts/phase57-real-dynamic-exit-oos-${{ matrix.symbol }}.json
+          if-no-files-found: error

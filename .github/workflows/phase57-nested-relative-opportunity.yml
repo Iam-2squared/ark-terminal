@@ -1,0 +1,85 @@
+name: Phase57 P23.9C Nested Relative Opportunity
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-nested-relative-opportunity-gate.js'
+      - 'predict/daytrade/run-phase57-nested-relative-opportunity-shard.mjs'
+      - 'predict/tests/p23-9c-nested-relative-opportunity.test.mjs'
+      - '.github/workflows/phase57-nested-relative-opportunity.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: node predict/tests/p23-9c-nested-relative-opportunity.test.mjs
+  nested-relative-shard:
+    needs: unit
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { shard: 0, artifact_id: 9060006163 }
+          - { shard: 1, artifact_id: 9060012597 }
+          - { shard: 2, artifact_id: 9059646754 }
+    name: nested-relative-shard-${{ matrix.shard }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PHASE57_SHARD_INDEX: ${{ matrix.shard }}
+      PHASE57_FROZEN_ARTIFACT_DIR: frozen-source
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: Download exact frozen P23.8 entry source
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ matrix.artifact_id }}
+          run-id: 31379583578
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: frozen-source
+      - name: Run nested prior-session calibration and frozen development evaluation
+        run: node predict/daytrade/run-phase57-nested-relative-opportunity-shard.mjs
+      - name: Verify selection integrity and safety
+        run: |
+          node - <<'NODE'
+          const fs=require('fs');const s=Number(process.env.PHASE57_SHARD_INDEX)+1,p=`artifacts/phase57-p23-9c-nested-relative-opportunity-shard-${s}.json`;if(!fs.existsSync(p))throw new Error(`missing ${p}`);const d=JSON.parse(fs.readFileSync(p,'utf8'));
+          if(d.frozenSource?.exactFrozenTradeCountReconciled!==true)throw new Error('frozen count mismatch');
+          if(d.policy?.frozenOuterOutcomesUsedForGateSelection!==false||d.policy?.futureExtremaUsedAsPredictor!==false)throw new Error('selection leakage');
+          if(d.evaluation?.integrity?.frozenOuterOutcomesUsedForSelection!==false)throw new Error('outer outcome selected gate');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed','transmitted'])if(d[k]!==false)throw new Error(`${k} must remain false`);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-9c-relative-shard-${{ matrix.shard }}
+          path: artifacts/phase57-p23-9c-nested-relative-opportunity-shard-*.json
+          if-no-files-found: error
+  aggregate:
+    needs: nested-relative-shard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-p23-9c-relative-shard-*
+          path: shards
+          merge-multiple: true
+      - name: Aggregate nested relative gate evidence
+        run: |
+          node - <<'NODE'
+          const fs=require('fs');const files=fs.readdirSync('shards').filter(x=>/^phase57-p23-9c-nested-relative-opportunity-shard-\d+\.json$/.test(x)).sort();if(files.length!==3)throw new Error(`expected 3 shards got ${files.length}`);const shards=files.map(f=>JSON.parse(fs.readFileSync(`shards/${f}`,'utf8')));const rows=shards.flatMap(s=>s.evaluation?.predictions||[]);const sum=a=>{const x=a.map(Number).filter(Number.isFinite),pos=x.filter(v=>v>0).reduce((s,v)=>s+v,0),neg=-x.filter(v=>v<0).reduce((s,v)=>s+v,0);return{signalCount:x.length,hitRate:x.length?x.filter(v=>v>0).length/x.length:null,netAverageReturnPct:x.length?x.reduce((s,v)=>s+v,0)/x.length:null,profitFactor:neg>0?pos/neg:(pos>0?Infinity:null)}};const all=sum(rows.map(r=>r.realizedRatchetNetReturnPct)),grows=rows.filter(r=>r.gatePass),gated=sum(grows.map(r=>r.realizedRatchetNetReturnPct));const result={phase:'57.p23.9c-nested-relative-opportunity-aggregate',status:'NESTED_RELATIVE_OPPORTUNITY_AGGREGATED',predictionCount:rows.length,gateCount:grows.length,gateCoverage:rows.length?grows.length/rows.length:0,allFrozenRatchet:all,gatedFrozenRatchet:gated,deltas:{netAverageReturnPct:gated.netAverageReturnPct==null||all.netAverageReturnPct==null?null:gated.netAverageReturnPct-all.netAverageReturnPct,profitFactor:Number.isFinite(gated.profitFactor)&&Number.isFinite(all.profitFactor)?gated.profitFactor-all.profitFactor:null,hitRate:gated.hitRate==null||all.hitRate==null?null:gated.hitRate-all.hitRate},byShard:shards.map(s=>({shardNumber:s.shardNumber,status:s.evaluation?.status,selected:s.evaluation?.calibration?.selected??null,all:s.evaluation?.allFrozenRatchet,gated:s.evaluation?.gatedFrozenRatchet,gateCoverage:s.evaluation?.gateCoverage??0})),integrity:{frozenOuterOutcomesUsedForSelection:false,priorSessionCalibrationOnly:true,profitFactorRecomputedFromUnderlyingReturns:true,candidateFamilyInformedByPriorDevelopmentDiagnostics:true,developmentOnly:true,finalUntouchedOosEdgeClaimAllowed:false},edgeClaimAllowed:false,recommendationAllowed:false,executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,rssOrderFunctionAllowed:false,liveTradingAllowed:false,paperTradingAllowed:false,automaticPromotionAllowed:false,productionUpdateAllowed:false,overnightHoldingAllowed:false,transmitted:false};fs.mkdirSync('artifacts',{recursive:true});fs.writeFileSync('artifacts/phase57-p23-9c-nested-relative-opportunity-aggregate.json',JSON.stringify(result,null,2));console.log(JSON.stringify(result,null,2));
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-9c-nested-relative-opportunity-aggregate
+          path: artifacts/phase57-p23-9c-nested-relative-opportunity-aggregate.json
+          if-no-files-found: error

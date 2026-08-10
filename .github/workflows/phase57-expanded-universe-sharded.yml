@@ -1,0 +1,69 @@
+name: Phase57 Expanded Universe Sharded Diagnostic
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'predict/daytrade/run-phase57-expanded-universe-shard.mjs'
+      - '.github/workflows/phase57-expanded-universe-sharded.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  shard:
+    name: shard-${{ matrix.shard }}-of-3
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    env:
+      PHASE57_SHARD_COUNT: '3'
+      PHASE57_SHARD_INDEX: ${{ matrix.shard_index }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Resolve zero-based shard index
+        run: echo "PHASE57_SHARD_INDEX=$(( ${{ matrix.shard }} - 1 ))" >> "$GITHUB_ENV"
+
+      - name: Run frozen 10-symbol shard OOS diagnostic
+        run: node predict/daytrade/run-phase57-expanded-universe-shard.mjs
+
+      - name: Verify shard integrity and research-only safety
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const shard = Number(process.env.PHASE57_SHARD_INDEX) + 1;
+          const path = `artifacts/phase57-expanded-universe-shard-${shard}.json`;
+          if (!fs.existsSync(path)) throw new Error(`missing shard artifact: ${path}`);
+          const data = JSON.parse(fs.readFileSync(path, 'utf8'));
+          for (const key of [
+            'executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed',
+            'liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed',
+            'overnightHoldingAllowed','transmitted'
+          ]) {
+            if (data[key] !== false) throw new Error(`${key} must remain false`);
+          }
+          const policy = data.shardPolicy;
+          if (!policy || policy.shardCount !== 3 || policy.shardSize !== 10) throw new Error('expected frozen 3x10 partition');
+          if (policy.exactFrozenShard !== true) throw new Error('runtime symbols must exactly match frozen shard');
+          if (policy.pooledThirtySymbolReplacement !== false || policy.diagnosticOnly !== true) throw new Error('shard must remain diagnostic-only');
+          if (policy.signalThresholdsRelaxed !== false || policy.exitThresholdsRelaxed !== false) throw new Error('thresholds must not be relaxed');
+          if (policy.outcomeDrivenPartitioning !== false) throw new Error('partition must not use outcomes');
+          NODE
+
+      - name: Upload shard evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-expanded-universe-shard-${{ matrix.shard }}
+          path: artifacts/phase57-expanded-universe-shard-${{ matrix.shard }}.json
+          if-no-files-found: error

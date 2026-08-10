@@ -1,3 +1,4 @@
+# P23.10A adaptive-signal meta-label development workflow
 name: Phase57 P23.10A Adaptive Signal Meta Label
 on:
   workflow_dispatch:
@@ -29,7 +30,9 @@ jobs:
     name: meta-shard-${{ matrix.shard }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    env: { PHASE57_SHARD_INDEX: '${{ matrix.shard }}', PHASE57_FROZEN_ARTIFACT_DIR: frozen-source }
+    env:
+      PHASE57_SHARD_INDEX: ${{ matrix.shard }}
+      PHASE57_FROZEN_ARTIFACT_DIR: frozen-source
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -50,7 +53,10 @@ jobs:
           for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed','transmitted'])if(d[k]!==false)throw new Error(`${k} must remain false`);
           NODE
       - uses: actions/upload-artifact@v4
-        with: { name: phase57-p23-10a-meta-shard-${{ matrix.shard }}, path: artifacts/phase57-p23-10a-adaptive-signal-meta-label-shard-*.json, if-no-files-found: error }
+        with:
+          name: phase57-p23-10a-meta-shard-${{ matrix.shard }}
+          path: artifacts/phase57-p23-10a-adaptive-signal-meta-label-shard-*.json
+          if-no-files-found: error
   aggregate:
     needs: meta-shard
     runs-on: ubuntu-latest
@@ -58,11 +64,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
-        with: { pattern: 'phase57-p23-10a-meta-shard-*', path: shards, merge-multiple: true }
+        with:
+          pattern: phase57-p23-10a-meta-shard-*
+          path: shards
+          merge-multiple: true
       - name: Aggregate adaptive-signal meta-label evidence
         run: |
           node - <<'NODE'
           const fs=require('fs'),files=fs.readdirSync('shards').filter(x=>/^phase57-p23-10a-adaptive-signal-meta-label-shard-\d+\.json$/.test(x)).sort();if(files.length!==3)throw new Error(`expected3 got${files.length}`);const shards=files.map(f=>JSON.parse(fs.readFileSync(`shards/${f}`,'utf8'))),rows=shards.flatMap(s=>s.evaluation?.evaluation?.predictions||[]),grows=rows.filter(r=>r.gatePass);const sum=a=>{const x=a.map(Number).filter(Number.isFinite),p=x.filter(v=>v>0).reduce((s,v)=>s+v,0),n=-x.filter(v=>v<0).reduce((s,v)=>s+v,0);return{signalCount:x.length,hitRate:x.length?x.filter(v=>v>0).length/x.length:null,netAverageReturnPct:x.length?x.reduce((s,v)=>s+v,0)/x.length:null,profitFactor:n>0?p/n:(p>0?Infinity:null)}};const all=sum(rows.map(r=>r.realizedRatchetNetReturnPct)),gated=sum(grows.map(r=>r.realizedRatchetNetReturnPct));const result={phase:'57.p23.10a-adaptive-signal-meta-label-aggregate',status:'ADAPTIVE_SIGNAL_META_LABEL_AGGREGATED',predictionCount:rows.length,gateCount:grows.length,gateCoverage:rows.length?grows.length/rows.length:0,allActiveMetaBaseline:all,gatedMeta:gated,deltas:{netAverageReturnPct:gated.netAverageReturnPct==null||all.netAverageReturnPct==null?null:gated.netAverageReturnPct-all.netAverageReturnPct,profitFactor:Number.isFinite(gated.profitFactor)&&Number.isFinite(all.profitFactor)?gated.profitFactor-all.profitFactor:null,hitRate:gated.hitRate==null||all.hitRate==null?null:gated.hitRate-all.hitRate},byShard:shards.map(s=>({shardNumber:s.shardNumber,historicalMetaRows:s.source?.historicalMetaRows,status:s.evaluation?.evaluation?.status,all:s.evaluation?.evaluation?.allFrozenRatchet,gated:s.evaluation?.evaluation?.gatedFrozenRatchet,gateCoverage:s.evaluation?.evaluation?.gateCoverage})),integrity:{baseSignalsOuterOosOnly:true,frozenOuterOutcomesUsedForSelection:false,independentShardMetaModels:true,developmentOnly:true,finalUntouchedOosEdgeClaimAllowed:false},edgeClaimAllowed:false,recommendationAllowed:false,executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,rssOrderFunctionAllowed:false,liveTradingAllowed:false,paperTradingAllowed:false,automaticPromotionAllowed:false,productionUpdateAllowed:false,overnightHoldingAllowed:false,transmitted:false};fs.mkdirSync('artifacts',{recursive:true});fs.writeFileSync('artifacts/phase57-p23-10a-adaptive-signal-meta-label-aggregate.json',JSON.stringify(result,null,2));console.log(JSON.stringify(result,null,2));
           NODE
       - uses: actions/upload-artifact@v4
-        with: { name: phase57-p23-10a-adaptive-signal-meta-label-aggregate, path: artifacts/phase57-p23-10a-adaptive-signal-meta-label-aggregate.json, if-no-files-found: error }
+        with:
+          name: phase57-p23-10a-adaptive-signal-meta-label-aggregate
+          path: artifacts/phase57-p23-10a-adaptive-signal-meta-label-aggregate.json
+          if-no-files-found: error

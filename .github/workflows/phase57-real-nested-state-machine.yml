@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        symbol: ['7203.T', '6758.T', '9984.T', '8306.T', '8035.T']
+        symbol: ['COMBINED']
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -52,14 +52,23 @@ jobs:
           ]) {
             if (data[key] !== false) throw new Error(`${key} must remain false`);
           }
+          if (scope !== 'COMBINED') throw new Error('P23.6 primary nested selection must be pooled COMBINED, not per-symbol tuned');
           const nested = data.nestedStateMachine;
-          const integrity = nested?.selectionIntegrity;
+          if (!nested || nested.status !== 'REAL_5M_NESTED_STATE_MACHINE_DEVELOPMENT_OOS_EVALUATED') {
+            throw new Error(`P23.6 must produce non-empty nested outer evidence; status=${nested?.status}`);
+          }
+          if (!(Number(nested.matchedOuterTestRowCount) > 0)) throw new Error('P23.6 matched outer-test rows must be > 0');
+          if (!(Number(nested.matchedOuterTestSymbolCount) >= 2)) throw new Error('P23.6 pooled outer evidence must span at least two symbols');
+          const integrity = nested.selectionIntegrity;
           if (!integrity) throw new Error('P23.6 selection integrity missing');
           if (integrity.outerOutcomesUsedForConfigSelection !== false) throw new Error('outer outcomes must not select state-machine config');
           if (integrity.postSelectionAcrossOuterResultsAllowed !== false) throw new Error('post-selection across outer results must remain false');
+          if (integrity.matchedStateReplayUsesExactNestedOuterRows !== true) throw new Error('matched state replay rows must reconcile exactly');
           if (integrity.matchedComparatorUsesExactNestedOuterRows !== true) throw new Error('matched comparator rows must reconcile exactly');
+          if (integrity.perSymbolDiagnosticsUsedForStateMachineConfigSelection !== false) throw new Error('per-symbol diagnostics must not select state-machine config');
           if (integrity.comparatorsUsedForStateMachineConfigSelection !== false) throw new Error('comparators must not select state-machine config');
-          if (nested?.interpretation?.finalUntouchedOosEdgeClaimAllowed !== false) throw new Error('final untouched OOS edge claim must remain false');
+          if (nested.interpretation?.pooledCrossSymbolSelectionPreferredOverPerSymbolExitTuning !== true) throw new Error('P23.6 must prefer pooled selection over per-symbol exit tuning');
+          if (nested.interpretation?.finalUntouchedOosEdgeClaimAllowed !== false) throw new Error('final untouched OOS edge claim must remain false');
           if (data.interpretationRules?.postSelectFromOuterOutcomesAllowed !== false) throw new Error('outer outcome post-selection must remain false');
           NODE
 

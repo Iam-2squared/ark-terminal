@@ -1,0 +1,96 @@
+name: Phase57 P23.14 Blind Reasoner Benchmark
+
+on:
+  pull_request:
+    branches:
+      - phase57/p23-8d-frozen-exit-isolation
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  blind-source-shard:
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        include:
+          - shard: 0
+            symbols: 7203.T,6758.T,9984.T,8306.T,8035.T,6501.T,6861.T,6098.T,9432.T,9433.T
+          - shard: 1
+            symbols: 9983.T,4063.T,6367.T,6954.T,7011.T,8058.T,8001.T,8316.T,8411.T,8766.T
+          - shard: 2
+            symbols: 7741.T,7974.T,6902.T,7267.T,6594.T,4502.T,4519.T,2914.T,4661.T,6273.T
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test blind reasoner core
+        run: node predict/tests/p23-14-blind-reasoner-benchmark.test.mjs
+      - name: Rebuild causal P23.12 visual records
+        env:
+          PHASE57_SYMBOLS: ${{ matrix.symbols }}
+          PHASE57_MIN_HISTORY_BARS: '1600'
+          PHASE57_STEP_BARS: '3'
+          PHASE57_MAX_CONTEXT_BARS: '2600'
+        run: node predict/daytrade/run-phase57-p23-12-visual-reasoning-dev.mjs
+      - name: Verify source boundary
+        env:
+          EXPECTED_SYMBOLS: ${{ matrix.symbols }}
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const p='artifacts/phase57-p23-12-visual-reasoning-dev.json';
+          const r=JSON.parse(fs.readFileSync(p,'utf8'));
+          const expected=process.env.EXPECTED_SYMBOLS.split(',').sort();
+          if(r.status!=='VISUAL_CHART_REASONING_DEVELOPMENT_MEASURED') throw new Error('wrong source status');
+          if(JSON.stringify([...r.symbols].sort())!==JSON.stringify(expected)) throw new Error('source symbol mismatch');
+          if(r.methodology?.currentSessionFutureBarsNotUsedByVisualReasoning!==true) throw new Error('causal prefix violation');
+          if(r.methodology?.futureOutcomesEvaluationOnly!==true || r.methodology?.visualScoreUsedAsEntryGate!==false) throw new Error('source methodology violation');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed','transmitted']) if(r[k]!==false) throw new Error(`${k} must remain false`);
+          NODE
+          mv artifacts/phase57-p23-12-visual-reasoning-dev.json artifacts/phase57-p23-14-source-shard-${{ matrix.shard }}.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-14-source-shard-${{ matrix.shard }}
+          path: artifacts/phase57-p23-14-source-shard-${{ matrix.shard }}.json
+          if-no-files-found: error
+
+  aggregate-blind-benchmark:
+    needs: blind-source-shard
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-p23-14-source-shard-*
+          path: artifacts/p23-14-input
+          merge-multiple: true
+      - name: Build frozen blind predictions then join outcomes
+        run: node predict/daytrade/aggregate-phase57-p23-14-blind-reasoner-benchmark.mjs artifacts/p23-14-input
+      - name: Verify blind benchmark methodology and safety
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const r=JSON.parse(fs.readFileSync('artifacts/phase57-p23-14-blind-reasoner-benchmark.json','utf8'));
+          if(r.status!=='BLIND_REASONER_BENCHMARK_MEASURED') throw new Error('wrong P23.14 status');
+          if(r.symbolCount!==30 || r.sourceShardCount!==3) throw new Error('expected exact 30-symbol development universe');
+          if(r.methodology?.causalVisualFieldsOnlyAtPredictionTime!==true || r.methodology?.outcomeFieldsStrippedBeforeReasoning!==true || r.methodology?.predictionFrozenBeforeOutcomeJoin!==true || r.methodology?.outcomeJoinedAfterPredictionFreeze!==true) throw new Error('blind protocol violation');
+          if(r.methodology?.thresholdSearchPerformed!==false || r.methodology?.predictionUsedAsEntryGate!==false) throw new Error('selection violation');
+          if(r.methodology?.externalVisionModelCalled!==false || r.methodology?.deterministicManifestReasonerOnly!==true) throw new Error('model binding declaration mismatch');
+          if(r.edgeClaimAllowed!==false || r.recommendationAllowed!==false || r.transmitted!==false) throw new Error('research boundary violation');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed']) if(r[k]!==false) throw new Error(`${k} must remain false`);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-14-blind-reasoner-benchmark
+          path: artifacts/phase57-p23-14-blind-reasoner-benchmark.json
+          if-no-files-found: error

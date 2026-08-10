@@ -1,0 +1,101 @@
+name: Phase57 P23.10G Setup-Specific Management Holdout
+
+on:
+  pull_request:
+    branches:
+      - phase57/p23-8d-frozen-exit-isolation
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  setup-management-shard:
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        include:
+          - shard: 0
+            symbols: 1332.T,2002.T,2267.T,2801.T,2871.T,3086.T,3289.T,3626.T,3861.T,4005.T
+          - shard: 1
+            symbols: 4091.T,4151.T,4324.T,4523.T,4543.T,4578.T,4689.T,4751.T,4755.T,4911.T
+          - shard: 2
+            symbols: 5019.T,5406.T,5631.T,5831.T,5838.T,6471.T,6472.T,6473.T,6645.T,6674.T
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test setup-specific management policy
+        run: node predict/tests/p23-10g-setup-specific-management.test.mjs
+      - name: Remeasure paired baseline and setup-management exits
+        env:
+          PHASE57_SYMBOLS: ${{ matrix.symbols }}
+          PHASE57_MIN_HISTORY_BARS: '1600'
+          PHASE57_STEP_BARS: '3'
+          PHASE57_MAX_CONTEXT_BARS: '2600'
+        run: node predict/daytrade/run-phase57-p23-10g-setup-management-holdout.mjs
+      - name: Verify shard methodology and safety
+        env:
+          EXPECTED_SYMBOLS: ${{ matrix.symbols }}
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const p='artifacts/phase57-p23-10g-setup-management-holdout.json';
+          const r=JSON.parse(fs.readFileSync(p,'utf8'));
+          const expected=process.env.EXPECTED_SYMBOLS.split(',').sort();
+          if(r.status!=='SETUP_SPECIFIC_MANAGEMENT_PAIRED_HOLDOUT_COMPLETE') throw new Error('wrong status');
+          if(JSON.stringify([...r.symbols].sort())!==JSON.stringify(expected)) throw new Error('shard symbol mismatch');
+          if(!r.methodology?.exactPairedEntrySet) throw new Error('paired entry set required');
+          if(!r.methodology?.entrySetFrozenByBaselineOccupancy) throw new Error('baseline occupancy freeze required');
+          if(r.methodology?.setupSpecificNumericParameterSearch!==false) throw new Error('numeric parameter search forbidden');
+          if(r.methodology?.futureOutcomeUsedForSelection!==false) throw new Error('outcome selection leakage');
+          if(!(r.baseline?.tradeCount>0) || r.baseline.tradeCount!==r.managed.tradeCount) throw new Error('paired trade counts mismatch');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed','transmitted']) if(r[k]!==false) throw new Error(`${k} must remain false`);
+          NODE
+          mv artifacts/phase57-p23-10g-setup-management-holdout.json artifacts/phase57-p23-10g-setup-management-shard-${{ matrix.shard }}.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-10g-setup-management-shard-${{ matrix.shard }}
+          path: artifacts/phase57-p23-10g-setup-management-shard-${{ matrix.shard }}.json
+          if-no-files-found: error
+
+  aggregate:
+    needs: setup-management-shard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-p23-10g-setup-management-shard-*
+          path: artifacts/p23-10g-input
+          merge-multiple: true
+      - name: Aggregate exact paired exits
+        env:
+          PHASE57_ARTIFACT_ROOT: artifacts/p23-10g-input
+        run: node predict/daytrade/aggregate-phase57-p23-10g-setup-management.mjs
+      - name: Verify aggregate methodology and safety
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const r=JSON.parse(fs.readFileSync('artifacts/phase57-p23-10g-setup-management-aggregate.json','utf8'));
+          if(r.status!=='SETUP_SPECIFIC_MANAGEMENT_PAIRED_HOLDOUT_AGGREGATED') throw new Error('wrong aggregate status');
+          if(r.symbolCount!==30 || r.shardCount!==3) throw new Error('expected 30 symbols / 3 shards');
+          if(!r.methodology?.exactFourthHoldoutSymbolSet || !r.methodology?.exactPairedEntrySet) throw new Error('holdout/pair integrity failed');
+          if(r.methodology?.setupSpecificNumericParameterSearch!==false) throw new Error('parameter search forbidden');
+          if(r.methodology?.untouchedTemporalOos!==false) throw new Error('must not mislabel temporal OOS');
+          if(r.baseline?.tradeCount!==r.managed?.tradeCount || r.pairCount!==r.baseline?.tradeCount) throw new Error('paired aggregate count mismatch');
+          if(r.edgeClaimAllowed!==false || r.recommendationAllowed!==false || r.transmitted!==false) throw new Error('research-only flags violated');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed']) if(r[k]!==false) throw new Error(`${k} must remain false`);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-10g-setup-specific-management-holdout
+          path: artifacts/phase57-p23-10g-setup-management-aggregate.json
+          if-no-files-found: error

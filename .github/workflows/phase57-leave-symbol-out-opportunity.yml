@@ -1,0 +1,45 @@
+name: Phase57 P23.9F Leave Symbol Out Opportunity
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-leave-symbol-out-opportunity.js'
+      - 'predict/daytrade/run-phase57-pooled-leave-symbol-out-opportunity.mjs'
+      - 'predict/tests/p23-9f-leave-symbol-out-opportunity.test.mjs'
+      - '.github/workflows/phase57-leave-symbol-out-opportunity.yml'
+permissions: { contents: read, actions: read }
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: node predict/tests/p23-9f-leave-symbol-out-opportunity.test.mjs
+  pooled-leave-symbol-out:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env: { PHASE57_FROZEN_ARTIFACT_DIR: frozen-source }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - uses: actions/download-artifact@v4
+        with: { artifact-ids: 9060006163, run-id: 31379583578, github-token: '${{ secrets.GITHUB_TOKEN }}', path: frozen-source/0 }
+      - uses: actions/download-artifact@v4
+        with: { artifact-ids: 9060012597, run-id: 31379583578, github-token: '${{ secrets.GITHUB_TOKEN }}', path: frozen-source/1 }
+      - uses: actions/download-artifact@v4
+        with: { artifact-ids: 9059646754, run-id: 31379583578, github-token: '${{ secrets.GITHUB_TOKEN }}', path: frozen-source/2 }
+      - run: node predict/daytrade/run-phase57-pooled-leave-symbol-out-opportunity.mjs
+      - name: Verify leave-symbol-out integrity and safety
+        run: |
+          node - <<'NODE'
+          const fs=require('fs'),p='artifacts/phase57-p23-9f-pooled-leave-symbol-out.json';if(!fs.existsSync(p))throw new Error('missing result');const d=JSON.parse(fs.readFileSync(p,'utf8'));
+          if(d.frozenSource?.exactFrozenTradeCountReconciled!==true||d.frozenSource?.totalTradeCount!==186)throw new Error('frozen mismatch');if(d.symbols?.length!==30||d.policy?.sameSymbolOutcomeNeighborsForbidden!==true)throw new Error('leave-symbol-out policy missing');
+          const i=d.evaluation?.integrity;if(i?.sameSymbolOutcomeNeighborsForbidden!==true||i?.testOutcomesUsedForSelection!==false||i?.futureExtremaUsedAsFeatures!==false)throw new Error('integrity failed');for(const r of d.evaluation?.predictions||[]){if(r.sameSymbolOutcomeNeighborsExcluded!==true||Number(r.neighborSameSymbolWeight)!==0)throw new Error('same-symbol outcome neighbor detected');}
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed','transmitted'])if(d[k]!==false)throw new Error(`${k} must remain false`);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with: { name: phase57-p23-9f-pooled-leave-symbol-out, path: artifacts/phase57-p23-9f-pooled-leave-symbol-out.json, if-no-files-found: error }

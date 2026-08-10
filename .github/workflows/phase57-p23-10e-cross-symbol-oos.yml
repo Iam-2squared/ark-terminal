@@ -1,0 +1,94 @@
+name: Phase57 P23.10E Cross-Symbol OOS Chart Quality
+
+on:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-chart-quality-holdout-universe.js'
+      - 'predict/daytrade/aggregate-phase57-chart-quality-holdout.mjs'
+      - 'predict/daytrade/run-phase57-chart-setup-quality-remeasurement.mjs'
+      - 'predict/daytrade/phase57-chart-setup-quality.js'
+      - 'predict/tests/p23-10e-cross-symbol-oos.test.mjs'
+      - '.github/workflows/phase57-p23-10e-cross-symbol-oos.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  holdout-shard:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: 0
+            symbols: '1605.T,1925.T,2502.T,2802.T,3382.T,3402.T,3659.T,4307.T,4452.T,4568.T'
+          - shard: 1
+            symbols: '4901.T,5108.T,5401.T,5713.T,5802.T,6146.T,6178.T,6301.T,6326.T,6702.T'
+          - shard: 2
+            symbols: '6723.T,6981.T,7182.T,7733.T,7751.T,7832.T,8801.T,9020.T,9101.T,9202.T'
+    env:
+      PHASE57_SYMBOLS: ${{ matrix.symbols }}
+      PHASE57_MIN_HISTORY_BARS: '1600'
+      PHASE57_STEP_BARS: '3'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify frozen disjoint holdout
+        run: node predict/tests/p23-10e-cross-symbol-oos.test.mjs
+      - name: Remeasure frozen quality rules on holdout shard
+        run: node predict/daytrade/run-phase57-chart-setup-quality-remeasurement.mjs
+      - name: Verify shard safety and fixed symbol membership
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import { CHART_QUALITY_HOLDOUT_UNIVERSE } from './predict/daytrade/phase57-chart-quality-holdout-universe.js';
+          const p='artifacts/phase57-p23-10d-setup-quality.json';
+          const r=JSON.parse(fs.readFileSync(p,'utf8'));
+          const expected=process.env.PHASE57_SYMBOLS.split(',');
+          if (JSON.stringify(r.symbols)!==JSON.stringify(expected)) throw new Error('shard symbols differ from frozen matrix');
+          for (const s of r.symbols) if(!CHART_QUALITY_HOLDOUT_UNIVERSE.includes(s)) throw new Error(`non-holdout symbol ${s}`);
+          for (const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed']) if(r[k]!==false) throw new Error(`${k} must stay false`);
+          if(r.edgeClaimAllowed!==false || r.recommendationAllowed!==false || r.transmitted!==false) throw new Error('research-only flags violated');
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-10e-holdout-shard-${{ matrix.shard }}
+          path: artifacts/phase57-p23-10d-setup-quality.json
+          if-no-files-found: error
+
+  aggregate:
+    runs-on: ubuntu-24.04
+    needs: holdout-shard
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-p23-10e-holdout-shard-*
+          path: artifacts/p23-10e-shards
+      - name: Aggregate exact counts and frozen quality evidence
+        run: node predict/daytrade/aggregate-phase57-chart-quality-holdout.mjs artifacts/p23-10e-shards
+      - name: Verify OOS methodology and safety
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const r=JSON.parse(fs.readFileSync('artifacts/phase57-p23-10e-cross-symbol-oos.json','utf8'));
+          if(r.symbolCount!==30) throw new Error('expected 30 holdout symbols');
+          if(!r.methodology.crossSymbolOos || r.methodology.temporalFreshOos) throw new Error('OOS role mislabeled');
+          if(!r.methodology.disjointFromDevelopment30) throw new Error('development overlap not allowed');
+          if(r.methodology.outcomeBasedRetuningAllowed) throw new Error('holdout retuning forbidden');
+          for (const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed']) if(r[k]!==false) throw new Error(`${k} must stay false`);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-10e-cross-symbol-oos
+          path: artifacts/phase57-p23-10e-cross-symbol-oos.json
+          if-no-files-found: error

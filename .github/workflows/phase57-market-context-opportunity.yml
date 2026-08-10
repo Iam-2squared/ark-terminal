@@ -1,0 +1,46 @@
+# P24A historical market-context development workflow
+name: Phase57 P24A Market Context Opportunity
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-market-context-opportunity.js'
+      - 'predict/daytrade/run-phase57-market-context-opportunity.mjs'
+      - 'predict/tests/p24a-market-context-opportunity.test.mjs'
+      - '.github/workflows/phase57-market-context-opportunity.yml'
+permissions: { contents: read, actions: read }
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: node predict/tests/p24a-market-context-opportunity.test.mjs
+  market-context:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    env: { PHASE57_FROZEN_ARTIFACT_DIR: frozen-source }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - uses: actions/download-artifact@v4
+        with: { artifact-ids: 9060006163, run-id: 31379583578, github-token: '${{ secrets.GITHUB_TOKEN }}', path: frozen-source/0 }
+      - uses: actions/download-artifact@v4
+        with: { artifact-ids: 9060012597, run-id: 31379583578, github-token: '${{ secrets.GITHUB_TOKEN }}', path: frozen-source/1 }
+      - uses: actions/download-artifact@v4
+        with: { artifact-ids: 9059646754, run-id: 31379583578, github-token: '${{ secrets.GITHUB_TOKEN }}', path: frozen-source/2 }
+      - run: node predict/daytrade/run-phase57-market-context-opportunity.mjs
+      - name: Verify market-context causal integrity and safety
+        run: |
+          node - <<'NODE'
+          const fs=require('fs'),p='artifacts/phase57-p24a-market-context-opportunity.json';if(!fs.existsSync(p))throw new Error('missing result');const d=JSON.parse(fs.readFileSync(p,'utf8'));
+          if(d.frozenSource?.exactFrozenTradeCountReconciled!==true||d.frozenSource?.totalTradeCount!==186)throw new Error('frozen mismatch');if(d.policy?.marketContextPointInTimeOnly!==true||d.policy?.crossSectionBreadthPointInTimeOnly!==true||d.policy?.sameSymbolOutcomeNeighborsForbidden!==true||d.policy?.testOutcomesUsedForSelection!==false||d.policy?.futureExtremaUsedAsPredictor!==false)throw new Error('policy integrity failed');
+          const i=d.evaluation?.integrity;if(i?.marketContextPointInTimeOnly!==true||i?.rollingFitUsesOnlyPriorSessions!==true||i?.rollingCalibrationUsesOnlyPriorSessions!==true||i?.testOutcomesUsedForSelection!==false)throw new Error('evaluation integrity failed');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed','transmitted'])if(d[k]!==false)throw new Error(`${k} must remain false`);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with: { name: phase57-p24a-market-context-opportunity, path: artifacts/phase57-p24a-market-context-opportunity.json, if-no-files-found: error }

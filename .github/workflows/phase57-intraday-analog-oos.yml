@@ -1,0 +1,50 @@
+name: Phase57 Intraday Analog OOS
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-intraday-historical-analog.js'
+      - 'predict/daytrade/phase57-intraday-analog-oos.js'
+      - 'predict/daytrade/run-phase57-intraday-analog-oos.mjs'
+      - 'predict/daytrade/phase57-intraday-multifactor.js'
+      - 'predict/daytrade/phase57-adaptive-horizon-magnitude.js'
+      - 'predict/tests/p23-1-intraday-analog-oos.test.mjs'
+      - '.github/workflows/phase57-intraday-analog-oos.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  real-5m-analog-oos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        symbol: ['7203.T', '6758.T', '9984.T', '8306.T', '8035.T']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run real 5m intraday analog OOS
+        env:
+          PHASE57_SCOPE: ${{ matrix.symbol }}
+        run: node predict/daytrade/run-phase57-intraday-analog-oos.mjs
+      - name: Verify fail-closed safety flags
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const path = fs.readdirSync('artifacts').find(name => name.startsWith('phase57-intraday-analog-oos-'));
+          if (!path) throw new Error('P23.1 artifact missing');
+          const data = JSON.parse(fs.readFileSync(`artifacts/${path}`, 'utf8'));
+          const keys = ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed'];
+          for (const key of keys) if (data[key] !== false) throw new Error(`${key} must remain false`);
+          if (data.interpretationRules?.postSelectBestHorizonFromTheseOuterResults !== false) throw new Error('outer horizon post-selection must remain disabled');
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-intraday-analog-oos-${{ matrix.symbol }}
+          path: artifacts/phase57-intraday-analog-oos-${{ matrix.symbol }}.json
+          if-no-files-found: error

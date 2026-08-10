@@ -115,8 +115,10 @@ const sessionStore = new Map();
 let rawBars = 0;
 let sessionCount = 0;
 
+// Fetch symbols concurrently to keep the pooled research run practical. This is read-only market-data retrieval only.
+const fetchedBarsBySymbol = new Map(await Promise.all(symbols.map(async symbol => [symbol, await fetchBars(symbol)])));
 for (const symbol of symbols) {
-  const bars = await fetchBars(symbol);
+  const bars = fetchedBarsBySymbol.get(symbol) || [];
   rawBars += bars.length;
   const sessions = new Map();
   for (const bar of bars) {

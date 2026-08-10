@@ -57,10 +57,11 @@ function defaultFitPredictor(rows,config){
   return row=>model.predict(row);
 }
 
-function scoreActualMagnitude(rows,predictor,{threshold=0.55,roundTripCostPct=0.05}={}){
+function signalsFromProbabilities(rows,probabilities,{threshold=0.55,roundTripCostPct=0.05}={}){
   const signals=[];
-  for(const row of rows){
-    const raw=Number(predictor(row));
+  for(let index=0;index<rows.length;index++){
+    const row=rows[index];
+    const raw=Number(probabilities[index]);
     if(!Number.isFinite(raw)) continue;
     const probability=Math.max(0.001,Math.min(0.999,raw));
     const confidence=Math.max(probability,1-probability);
@@ -74,6 +75,12 @@ function scoreActualMagnitude(rows,predictor,{threshold=0.55,roundTripCostPct=0.
       grossAlignedReturnPct:alignedReturnPct,netReturnPct,horizonBars:Number(row.horizonBars),
     }));
   }
+  return signals;
+}
+
+function scoreActualMagnitude(rows,predictor,{threshold=0.55,roundTripCostPct=0.05}={}){
+  const probabilities=rows.map(row=>Number(predictor(row)));
+  const signals=signalsFromProbabilities(rows,probabilities,{threshold,roundTripCostPct});
   const signalCount=signals.length;
   const positive=signals.filter(x=>x.netReturnPct>0).reduce((s,x)=>s+x.netReturnPct,0);
   const negative=-signals.filter(x=>x.netReturnPct<0).reduce((s,x)=>s+x.netReturnPct,0);
@@ -147,6 +154,7 @@ export function selectInnerAdaptiveHorizon(horizonRowsByBars={},options={}){
   const thresholds=options.thresholds??[0.55,0.60,0.65];
   const fitPredictor=options.fitPredictor??defaultFitPredictor;
   const candidates=[];
+  const thresholdIndependentFit=options.fitPredictor==null;
 
   for(const [horizonBars,rows] of horizonMap){
     const innerFolds=buildIntradayWalkForwardFolds(rows,{
@@ -156,6 +164,29 @@ export function selectInnerAdaptiveHorizon(horizonRowsByBars={},options={}){
     });
     for(const [featureFamily,featureKeys] of Object.entries(featureFamilies)){
       for(const config of modelConfigs){
+        if(thresholdIndependentFit){
+          const cachedFolds=[];
+          for(const fold of innerFolds){
+            const train=projectRows(fold.train,featureKeys);
+            const test=projectRows(fold.test,featureKeys);
+            const predictor=fitPredictor(train,config,{horizonBars,featureFamily,threshold:null,fold:fold.fold,stage:'INNER_THRESHOLD_INDEPENDENT'});
+            if(typeof predictor!=='function') throw new TypeError('fitPredictor must return a predictor function');
+            cachedFolds.push(Object.freeze({test,probabilities:Object.freeze(test.map(row=>Number(predictor(row))))}));
+          }
+          for(const threshold of thresholds){
+            const allSignals=[];
+            for(const cached of cachedFolds){
+              allSignals.push(...signalsFromProbabilities(cached.test,cached.probabilities,{threshold,roundTripCostPct:options.roundTripCostPct??0.05}));
+            }
+            const summary=summarizeSignals(allSignals);
+            candidates.push(Object.freeze({
+              horizonBars,featureFamily,featureKeys,configId:config.id,modelType:config.type,modelOptions:config.options,
+              threshold,innerFoldCount:innerFolds.length,...summary,selectionSource:'INNER_WALK_FORWARD_ONLY',
+            }));
+          }
+          continue;
+        }
+
         for(const threshold of thresholds){
           const allSignals=[];
           for(const fold of innerFolds){

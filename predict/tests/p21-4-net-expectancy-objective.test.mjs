@@ -82,18 +82,22 @@ test('tiny high-return sample is rejected instead of being treated as a hero res
 });
 
 test('positive point estimate still abstains when conservative confidence lower bound is not positive', () => {
-  const rows = Array.from({ length: 120 }, (_, index) => ({
-    symbol: ['A', 'B', 'C'][index % 3],
-    fold: Math.floor(index / 24),
-    featureCutoff: new Date(Date.UTC(2026, 0, 5, 0, index * 5)).toISOString(),
-    netReturnPct: index % 2 === 0 ? 1.0 : -0.94,
-  }));
+  const foldMeans = [0.50, -0.40, 0.50, -0.40, 0.10];
+  const rows = Array.from({ length: 120 }, (_, index) => {
+    const fold = Math.floor(index / 24);
+    return {
+      symbol: ['A', 'B', 'C'][index % 3],
+      fold,
+      featureCutoff: new Date(Date.UTC(2026, 0, 5, 0, index * 5)).toISOString(),
+      netReturnPct: foldMeans[fold],
+    };
+  });
   const result = evaluateNetExpectancyEvidence(rows, {
     minSignals: 100,
     minimumProfitFactor: 0.5,
     maximumDrawdownPct: 100,
     minimumPositiveFoldFraction: 0,
-    bootstrap: { iterations: 1000, seed: 17 },
+    bootstrap: { iterations: 2000, seed: 17 },
   });
   assert.ok(result.metrics.netAverageReturnPct > 0);
   assert.ok(result.metrics.confidenceInterval.lowerPct <= 0);

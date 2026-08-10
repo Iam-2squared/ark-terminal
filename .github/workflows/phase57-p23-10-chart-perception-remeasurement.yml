@@ -1,0 +1,71 @@
+name: Phase57 P23.10 Chart Perception Remeasurement
+
+on:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-chart-perception-2.js'
+      - 'predict/daytrade/phase57-chart-perception-session-aware.js'
+      - 'predict/daytrade/phase57-chart-perception-measurement.js'
+      - 'predict/daytrade/run-phase57-chart-perception-remeasurement.mjs'
+      - 'predict/tests/p23-10-session-aware-measurement.test.mjs'
+      - '.github/workflows/phase57-p23-10-chart-perception-remeasurement.yml'
+  workflow_dispatch:
+    inputs:
+      symbols:
+        description: 'Comma-separated symbols; blank uses the first 3 frozen expanded-universe symbols'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+env:
+  PHASE57_SYMBOLS: ${{ github.event.inputs.symbols || '' }}
+  PHASE57_MIN_HISTORY_BARS: '1600'
+  PHASE57_STEP_BARS: '3'
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test session-aware chart perception
+        run: node predict/tests/p23-10-session-aware-measurement.test.mjs
+
+  real-history-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: unit
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run causal historical chart remeasurement smoke
+        run: node predict/daytrade/run-phase57-chart-perception-remeasurement.mjs
+      - name: Verify remeasurement integrity and safety
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const p = 'artifacts/phase57-p23-10-chart-perception-remeasurement.json';
+          const result = JSON.parse(fs.readFileSync(p, 'utf8'));
+          if (result.status !== 'REAL_HISTORICAL_CHART_PERCEPTION_REMEASUREMENT_COMPLETE') throw new Error('measurement did not complete');
+          if (!(result.totalDirectionalSetups > 0)) throw new Error('no directional chart setups');
+          if (result.integrity?.perceptionBuiltFromPrefixOnly !== true) throw new Error('prefix-only integrity missing');
+          if (result.integrity?.futureOutcomesEvaluationOnly !== true) throw new Error('future outcome isolation missing');
+          if (result.integrity?.sessionAwareHigherTimeframes !== true) throw new Error('session-aware aggregation missing');
+          for (const key of [
+            'executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed',
+            'liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed'
+          ]) if (result[key] !== false) throw new Error(`${key} must remain false`);
+          console.log('P23.10 remeasurement integrity verified');
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-10-chart-perception-remeasurement
+          path: artifacts/phase57-p23-10-chart-perception-remeasurement.json
+          retention-days: 90

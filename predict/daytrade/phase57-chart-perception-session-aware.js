@@ -116,19 +116,22 @@ export function resampleCompletedTokyoDaily(input = []) {
     groups.get(session.date).push(bar);
   }
 
+  // Point-in-time rule: the latest session in the prefix is still developing.
+  // Drop it unconditionally rather than guessing completeness from a vendor's
+  // bar timestamp convention. Earlier dates are fully in the past at cutoff.
+  const dates = [...groups.keys()].sort();
+  const activeSessionDate = dates.at(-1) ?? null;
   const out = [];
   for (const [sessionDate, chunk] of groups) {
+    if (sessionDate === activeSessionDate) continue;
     chunk.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
-    const first = jstParts(chunk[0].timestamp).minutes;
-    const last = jstParts(chunk.at(-1).timestamp).minutes;
-    const hasMorningOpen = first <= 9 * 60;
-    const hasOfficialCloseBar = last >= 15 * 60 + 25;
-    if (!hasMorningOpen || !hasOfficialCloseBar) continue;
+    if (!chunk.length) continue;
     out.push(aggregateChunk(chunk, {
       sessionDate,
       timeframeMinutes: 24 * 60,
       fullyCompletedBucket: true,
       currentPartialSessionExcluded: true,
+      vendorTimestampConventionIndependent: true,
     }));
   }
   return Object.freeze(out.sort((a, b) => a.timestamp.localeCompare(b.timestamp)));

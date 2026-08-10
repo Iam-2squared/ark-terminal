@@ -124,6 +124,8 @@ for (const symbol of symbols) {
   console.log(JSON.stringify({
     symbol,
     sourceBarCount: measurement.sourceBarCount,
+    evaluatedCutoffs: measurement.evaluatedCutoffs,
+    observationCounts: measurement.observationCounts,
     directionalSetupCount: measurement.directionalSetupCount,
     coverage: measurement.directionalSetupCoverage,
     outcome30m: measurement.aggregate.outcome30m,
@@ -149,6 +151,8 @@ const result = {
   bySetup: bySetup(records),
   bySymbol: Object.fromEntries(measurements.map(item => [item.symbol, {
     sourceBarCount: item.sourceBarCount,
+    evaluatedCutoffs: item.evaluatedCutoffs,
+    observationCounts: item.observationCounts,
     directionalSetupCount: item.directionalSetupCount,
     directionalSetupCoverage: item.directionalSetupCoverage,
     aggregate: item.aggregate,
@@ -174,7 +178,6 @@ const result = {
   safety: PHASE57_CHART_PERCEPTION_SAFETY,
 };
 
-if (result.totalDirectionalSetups < 1) throw new Error('remeasurement produced no directional chart setups');
 for (const key of [
   'executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed',
   'liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed',
@@ -190,3 +193,4 @@ console.log(JSON.stringify({
   aggregate: result.aggregate,
   bySetup: result.bySetup,
 }, null, 2));
+if (result.totalDirectionalSetups < 1) throw new Error('remeasurement produced no directional chart setups');

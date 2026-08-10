@@ -84,7 +84,7 @@ test('P22.2 converts RSS time-of-day in JST and rejects future or cross-session 
     /outside sessionDate/,
   );
   assert.throws(
-    () => normalizeRssTimeOfDay('09:29:59', { sessionDate, capturedAt: '2026-08-09T23:59:00.000Z' }),
+    () => normalizeRssTimeOfDay('09:29:59', { sessionDate, capturedAt: '2026-08-09T14:59:00.000Z' }),
     /capturedAt is outside sessionDate/,
   );
 });

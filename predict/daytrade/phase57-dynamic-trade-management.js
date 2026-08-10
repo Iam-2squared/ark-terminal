@@ -47,7 +47,19 @@ function normalizeBar(raw) {
 }
 
 function normalizeBars(rows = []) {
-  return (Array.isArray(rows) ? rows : []).map(normalizeBar).sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+  const bars = (Array.isArray(rows) ? rows : []).map(normalizeBar).sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+  for (let index = 1; index < bars.length; index += 1) {
+    if (bars[index - 1].timestamp === bars[index].timestamp) throw new Error('duplicate bar timestamp is forbidden');
+  }
+  return bars;
+}
+
+function jstDate(timestamp) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(new Date(timestamp));
+  const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
 }
 
 function trueRange(bar, previousClose) {
@@ -121,11 +133,47 @@ function stopFill(bar, stopPrice, sign) {
   return null;
 }
 
-function summarizeExit({ entryPrice, sign, observed, exitPrice, exitReason, exitTimestamp, roundTripCostPct, decisions }) {
+function activePreBarStop({ entryPrice, sign, priorAtr, priorBest, priorBestReturnPct, config }) {
+  const hardStopPrice = sign === 1
+    ? entryPrice - priorAtr * Number(config.hardStopAtr)
+    : entryPrice + priorAtr * Number(config.hardStopAtr);
+  const priorAtrPct = priorAtr / entryPrice * 100;
+  const protectionActive = priorBestReturnPct >= priorAtrPct * Number(config.profitProtectActivationAtr);
+  const protectionStop = protectionActive
+    ? (sign === 1
+      ? priorBest - priorAtr * Number(config.profitProtectGivebackAtr)
+      : priorBest + priorAtr * Number(config.profitProtectGivebackAtr))
+    : null;
+
+  if (!finite(protectionStop)) return Object.freeze({ stopPrice: hardStopPrice, reason: 'ATR_HARD_STOP', hardStopPrice, protectionStop: null, protectionActive: false });
+  const protectionIsTighter = sign === 1 ? protectionStop > hardStopPrice : protectionStop < hardStopPrice;
+  return Object.freeze({
+    stopPrice: protectionIsTighter ? protectionStop : hardStopPrice,
+    reason: protectionIsTighter ? 'PRIOR_PEAK_PROFIT_PROTECTION' : 'ATR_HARD_STOP',
+    hardStopPrice,
+    protectionStop,
+    protectionActive: true,
+  });
+}
+
+function summarizeExit({
+  entryPrice,
+  sign,
+  observed,
+  excursionBars = observed,
+  exitPrice,
+  exitReason,
+  exitTimestamp,
+  roundTripCostPct,
+  decisions,
+  intrabarExit = false,
+}) {
   const grossReturnPct = directionalReturnPct(entryPrice, exitPrice, sign);
   const netReturnPct = grossReturnPct - Number(roundTripCostPct || 0);
-  const favorable = sign === 1 ? Math.max(entryPrice, ...observed.map(bar => bar.high)) : Math.min(entryPrice, ...observed.map(bar => bar.low));
-  const adverse = sign === 1 ? Math.min(entryPrice, ...observed.map(bar => bar.low)) : Math.max(entryPrice, ...observed.map(bar => bar.high));
+  const favorablePrices = [entryPrice, exitPrice, ...excursionBars.map(bar => sign === 1 ? bar.high : bar.low)];
+  const adversePrices = [entryPrice, exitPrice, ...excursionBars.map(bar => sign === 1 ? bar.low : bar.high)];
+  const favorable = sign === 1 ? Math.max(...favorablePrices) : Math.min(...favorablePrices);
+  const adverse = sign === 1 ? Math.min(...adversePrices) : Math.max(...adversePrices);
   const mfePct = Math.max(0, directionalReturnPct(entryPrice, favorable, sign));
   const maePct = Math.min(0, directionalReturnPct(entryPrice, adverse, sign));
   return Object.freeze({
@@ -147,6 +195,9 @@ function summarizeExit({ entryPrice, sign, observed, exitPrice, exitReason, exit
     chartAware: true,
     pointInTimeSequential: true,
     currentBarCloseUsedForSoftExit: true,
+    preBarStopsUseCompletedBarsOnly: true,
+    intrabarExit,
+    intrabarExcursionUsesCompletedBarsOnly: intrabarExit,
     futureBarsUsedBeforeDecision: false,
     executionAllowed: false,
     transmitted: false,
@@ -162,8 +213,11 @@ export function simulateDynamicTradeManagement(row = {}, options = {}) {
   const contextBars = normalizeBars(row?.contextBars ?? row?.historyBars ?? []);
   const futureBars = normalizeBars(row?.futureBars ?? row?.path ?? []);
   if (!futureBars.length) return null;
+  if (contextBars.length && contextBars.at(-1).timestamp >= futureBars[0].timestamp) throw new Error('context bars must be strictly earlier than managed future bars');
 
   const sessionDate = row?.sessionDate == null ? null : String(row.sessionDate);
+  if (sessionDate && futureBars.some(bar => jstDate(bar.timestamp) !== sessionDate)) throw new Error('dynamic trade management forbids cross-session future bars');
+
   const maxHoldBars = Math.max(1, Number(config.maxHoldBars) || futureBars.length);
   const roundTripCostPct = Math.max(0, Number(config.roundTripCostPct) || 0);
   const decisions = [];
@@ -173,33 +227,45 @@ export function simulateDynamicTradeManagement(row = {}, options = {}) {
 
   for (let index = 0; index < Math.min(futureBars.length, maxHoldBars); index += 1) {
     const bar = futureBars[index];
+    const priorHistory = [...contextBars, ...observed];
+    const priorAtrRaw = rollingAtr(priorHistory, Math.max(2, config.atrBars));
+    const priorAtr = finite(priorAtrRaw) && priorAtrRaw > 0 ? priorAtrRaw : entryPrice * 0.005;
+    const activeStop = activePreBarStop({ entryPrice, sign, priorAtr, priorBest, priorBestReturnPct, config });
+    const preBarStopFill = stopFill(bar, activeStop.stopPrice, sign);
+
+    if (finite(preBarStopFill)) {
+      observed.push(bar);
+      decisions.push(Object.freeze({
+        index,
+        timestamp: bar.timestamp,
+        action: 'EXIT',
+        reason: activeStop.reason,
+        preBarAtr: priorAtr,
+        priorBest,
+        hardStopPrice: activeStop.hardStopPrice,
+        protectionStop: activeStop.protectionStop,
+        stopPrice: activeStop.stopPrice,
+        stopWasFixedBeforeCurrentBar: true,
+      }));
+      return summarizeExit({
+        entryPrice,
+        sign,
+        observed,
+        excursionBars: observed.slice(0, -1),
+        exitPrice: Number(preBarStopFill),
+        exitReason: activeStop.reason,
+        exitTimestamp: bar.timestamp,
+        roundTripCostPct,
+        decisions,
+        intrabarExit: true,
+      });
+    }
+
+    // The whole current 5m bar has now completed without hitting a pre-existing stop. Only at this
+    // point may its close/high/low update chart state and the favorable extreme for later bars.
     observed.push(bar);
     const history = [...contextBars, ...observed];
     const state = chartState(history, sign, config);
-    const atr = finite(state.atr) && state.atr > 0 ? state.atr : entryPrice * 0.005;
-    const atrPct = atr / entryPrice * 100;
-
-    const hardStopPrice = sign === 1
-      ? entryPrice - atr * Number(config.hardStopAtr)
-      : entryPrice + atr * Number(config.hardStopAtr);
-    const hardStopFill = stopFill(bar, hardStopPrice, sign);
-    if (finite(hardStopFill)) {
-      decisions.push(Object.freeze({ index, timestamp: bar.timestamp, action: 'EXIT', reason: 'ATR_HARD_STOP', state }));
-      return summarizeExit({ entryPrice, sign, observed, exitPrice: Number(hardStopFill), exitReason: 'ATR_HARD_STOP', exitTimestamp: bar.timestamp, roundTripCostPct, decisions });
-    }
-
-    // Profit protection is deliberately based on the PRIOR favorable extreme. The current bar cannot
-    // create a new peak and trigger a stop from that same unseen intrabar ordering.
-    if (priorBestReturnPct >= atrPct * Number(config.profitProtectActivationAtr)) {
-      const giveback = atr * Number(config.profitProtectGivebackAtr);
-      const protectionStop = sign === 1 ? priorBest - giveback : priorBest + giveback;
-      const protectionFill = stopFill(bar, protectionStop, sign);
-      if (finite(protectionFill)) {
-        decisions.push(Object.freeze({ index, timestamp: bar.timestamp, action: 'EXIT', reason: 'PRIOR_PEAK_PROFIT_PROTECTION', state, priorBest, protectionStop }));
-        return summarizeExit({ entryPrice, sign, observed, exitPrice: Number(protectionFill), exitReason: 'PRIOR_PEAK_PROFIT_PROTECTION', exitTimestamp: bar.timestamp, roundTripCostPct, decisions });
-      }
-    }
-
     const breakdownVotes = [
       state.structureBroken,
       !state.fastTrendHealthy,
@@ -242,6 +308,7 @@ export function evaluateDynamicTradeManagement(rows = [], options = {}) {
   const negative = -outcomes.filter(row => row.netReturnPct < 0).reduce((sum, row) => sum + row.netReturnPct, 0);
   const exitReasonCounts = {};
   for (const outcome of outcomes) exitReasonCounts[outcome.exitReason] = (exitReasonCounts[outcome.exitReason] || 0) + 1;
+  const captureRatios = outcomes.map(row => row.captureRatio).filter(finite);
   return Object.freeze({
     phase: '57.p23.2',
     status: n ? 'DYNAMIC_TRADE_MANAGEMENT_RESEARCH_READY' : 'NO_DYNAMIC_EXIT_OUTCOMES',
@@ -253,13 +320,15 @@ export function evaluateDynamicTradeManagement(rows = [], options = {}) {
     averageHoldingBars: n ? avg(outcomes.map(row => row.barsHeld)) : null,
     averageMfePct: n ? avg(outcomes.map(row => row.mfePct)) : null,
     averageMaePct: n ? avg(outcomes.map(row => row.maePct)) : null,
-    averageCaptureRatio: n ? avg(outcomes.map(row => row.captureRatio).filter(finite)) : null,
+    averageCaptureRatio: captureRatios.length ? avg(captureRatios) : null,
     exitReasonCounts: Object.freeze(exitReasonCounts),
     outcomes: Object.freeze(outcomes),
     fixedTimeExitPrimary: false,
     maxHoldOnlySafetyGuard: true,
     chartAware: true,
     pointInTimeSequential: true,
+    preBarStopsUseCompletedBarsOnly: true,
+    sameSessionOnly: true,
     edgeClaimAllowed: false,
     recommendationAllowed: false,
     executionAllowed: false,

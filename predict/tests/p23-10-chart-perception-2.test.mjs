@@ -28,8 +28,8 @@ function barsFrom(values, { start = '2026-01-05T00:00:00.000Z', volume = 1000 } 
 function trendWithSwings({ start = 100, steps = 80, direction = 1 } = {}) {
   const values = [];
   for (let i = 0; i < steps; i += 1) {
-    const trend = direction * i * 0.16;
-    const wave = direction * Math.sin(i / 2.5) * 0.65;
+    const trend = direction * i * 0.08;
+    const wave = direction * Math.sin(i / 2.2) * 1.8;
     values.push(start + trend + wave);
   }
   return barsFrom(values);

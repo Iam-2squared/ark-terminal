@@ -1,0 +1,208 @@
+name: Phase57 P23.9A Entry Opportunity Intelligence
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-entry-opportunity-intelligence.js'
+      - 'predict/daytrade/run-phase57-entry-opportunity-shard.mjs'
+      - 'predict/tests/p23-9a-entry-opportunity.test.mjs'
+      - '.github/workflows/phase57-entry-opportunity.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run P23.9A unit tests
+        run: node predict/tests/p23-9a-entry-opportunity.test.mjs
+
+  opportunity-shard:
+    needs: unit
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: 0
+            artifact_id: 9060006163
+          - shard: 1
+            artifact_id: 9060012597
+          - shard: 2
+            artifact_id: 9059646754
+    name: opportunity-shard-${{ matrix.shard }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      PHASE57_SHARD_INDEX: ${{ matrix.shard }}
+      PHASE57_FROZEN_ARTIFACT_DIR: frozen-source
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download exact frozen P23.8 entry source
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ matrix.artifact_id }}
+          run-id: 31379583578
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: frozen-source
+
+      - name: Run P23.9A historical entry opportunity shard
+        run: node predict/daytrade/run-phase57-entry-opportunity-shard.mjs
+
+      - name: Verify P23.9A causal integrity and safety
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const shard = Number(process.env.PHASE57_SHARD_INDEX) + 1;
+          const path = `artifacts/phase57-p23-9a-entry-opportunity-shard-${shard}.json`;
+          if (!fs.existsSync(path)) throw new Error(`missing P23.9A artifact ${path}`);
+          const data = JSON.parse(fs.readFileSync(path, 'utf8'));
+          if (data.frozenSource?.exactFrozenTradeCountReconciled !== true) throw new Error('frozen test count changed');
+          if (data.frozenSource?.entryDirectionAndTimestampFrozen !== true) throw new Error('entry stream not frozen');
+          if (data.opportunityPolicy?.trainingSessionsStrictlyEarlierThanEachTestSession !== true) throw new Error('same-session training permitted');
+          if (data.opportunityPolicy?.gateThresholdTunedOnFrozenOuterOutcomes !== false) throw new Error('outer outcome tuned the gate');
+          if (data.opportunityPolicy?.futureExtremaUsedAsPredictor !== false) throw new Error('future extrema leaked into predictor');
+          if (data.evaluation?.integrity?.outerOutcomeUsedForGateSelection !== false) throw new Error('outer outcomes selected gate');
+          if (data.evaluation?.integrity?.futureExtremaUsedAsFeatures !== false) throw new Error('future extrema used as features');
+          if (data.evaluation?.predictionCount !== data.evaluation?.frozenTestCount) throw new Error('not all frozen signals were evaluated');
+          for (const prediction of data.evaluation?.predictions || []) {
+            if (prediction.outerOutcomeUsedForModelFit !== false) throw new Error('outer outcome entered model fit');
+            if (prediction.futureOutcomeUsedForPrediction !== false) throw new Error('future outcome entered prediction');
+          }
+          for (const key of [
+            'executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed',
+            'liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed',
+            'overnightHoldingAllowed','transmitted'
+          ]) if (data[key] !== false) throw new Error(`${key} must remain false`);
+          NODE
+
+      - name: Upload P23.9A shard evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-9a-entry-opportunity-shard-${{ matrix.shard }}
+          path: artifacts/phase57-p23-9a-*.json
+          if-no-files-found: error
+
+  aggregate:
+    needs: opportunity-shard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download current P23.9A shards
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-p23-9a-entry-opportunity-shard-*
+          path: p23-9a-shards
+          merge-multiple: true
+
+      - name: Aggregate historical entry opportunity evidence
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+          const files = fs.readdirSync('p23-9a-shards').filter(name => /^phase57-p23-9a-entry-opportunity-shard-\d+\.json$/.test(name)).sort();
+          if (files.length !== 3) throw new Error(`expected 3 shard files, found ${files.length}`);
+          const shards = files.map(name => JSON.parse(fs.readFileSync(path.join('p23-9a-shards', name), 'utf8')));
+          const predictions = shards.flatMap(shard => shard.evaluation?.predictions || []);
+          if (predictions.length !== 186) throw new Error(`expected 186 frozen predictions, found ${predictions.length}`);
+          const mean = xs => xs.length ? xs.reduce((a,b) => a + Number(b), 0) / xs.length : null;
+          const summary = rows => {
+            const values = rows.map(row => Number(row.realizedRatchetNetReturnPct));
+            const positive = values.filter(x => x > 0).reduce((a,b) => a+b, 0);
+            const negative = -values.filter(x => x < 0).reduce((a,b) => a+b, 0);
+            return {
+              signalCount: values.length,
+              hitRate: values.length ? values.filter(x => x > 0).length / values.length : null,
+              netAverageReturnPct: mean(values),
+              profitFactor: negative > 0 ? positive / negative : (positive > 0 ? Infinity : null),
+            };
+          };
+          const pearson = (xs, ys) => {
+            if (xs.length !== ys.length || xs.length < 2) return null;
+            const mx = mean(xs), my = mean(ys); let n=0, dx=0, dy=0;
+            for (let i=0;i<xs.length;i++) { const a=Number(xs[i])-mx, b=Number(ys[i])-my; n+=a*b; dx+=a*a; dy+=b*b; }
+            return dx > 0 && dy > 0 ? n / Math.sqrt(dx*dy) : null;
+          };
+          const gated = predictions.filter(row => row.gatePass === true);
+          const all = summary(predictions);
+          const gate = summary(gated);
+          const result = {
+            phase: '57.p23.9a-entry-opportunity-aggregate',
+            status: 'HISTORICAL_ENTRY_OPPORTUNITY_AGGREGATED',
+            frozenSignalCount: predictions.length,
+            gateSignalCount: gated.length,
+            gateCoverage: gated.length / predictions.length,
+            allFrozenRatchet: all,
+            gatedFrozenRatchet: gate,
+            deltas: {
+              netAverageReturnPct: gate.netAverageReturnPct == null ? null : gate.netAverageReturnPct - all.netAverageReturnPct,
+              profitFactor: gate.profitFactor == null || all.profitFactor == null || !Number.isFinite(gate.profitFactor) || !Number.isFinite(all.profitFactor) ? null : gate.profitFactor - all.profitFactor,
+              hitRate: gate.hitRate == null ? null : gate.hitRate - all.hitRate,
+            },
+            correlations: {
+              expectedMfeVsRealizedMfe: pearson(predictions.map(x=>x.expectedMfePct), predictions.map(x=>x.realizedMfePct)),
+              expectedAdverseVsRealizedAdverse: pearson(predictions.map(x=>x.expectedAdversePct), predictions.map(x=>x.realizedAdversePct)),
+              expectedNetVsRealizedEndpointNet: pearson(predictions.map(x=>x.expectedNetReturnPct), predictions.map(x=>x.realizedEndpointNetReturnPct)),
+              expectedOpportunityVsRealizedOpportunity: pearson(predictions.map(x=>x.expectedOpportunityScorePct), predictions.map(x=>x.realizedOpportunityScorePct)),
+              expectedNetVsRealizedRatchetNet: pearson(predictions.map(x=>x.expectedNetReturnPct), predictions.map(x=>x.realizedRatchetNetReturnPct)),
+            },
+            byShard: shards.map(shard => ({
+              shardNumber: shard.shardNumber,
+              frozenTestCount: shard.evaluation.frozenTestCount,
+              gateCoverage: shard.evaluation.gateCoverage,
+              allFrozenRatchet: shard.evaluation.allFrozenRatchet,
+              gatedFrozenRatchet: shard.evaluation.gatedFrozenRatchet,
+              deltas: shard.evaluation.deltas,
+              correlations: shard.evaluation.correlations,
+            })),
+            integrity: {
+              exactFrozenEntrySet: true,
+              priorSessionsOnlyForTraining: true,
+              sameSessionTrainingForbidden: true,
+              futureExtremaUsedAsPredictors: false,
+              gateRuleTunedOnOuterOutcomes: false,
+              reusedDevelopmentWindow: true,
+              finalUntouchedOosEdgeClaimAllowed: false,
+            },
+            edgeClaimAllowed: false,
+            recommendationAllowed: false,
+            executionAllowed: false,
+            brokerWriteAllowed: false,
+            excelOrderWriteAllowed: false,
+            rssOrderFunctionAllowed: false,
+            liveTradingAllowed: false,
+            paperTradingAllowed: false,
+            automaticPromotionAllowed: false,
+            productionUpdateAllowed: false,
+            overnightHoldingAllowed: false,
+            transmitted: false,
+          };
+          fs.mkdirSync('artifacts', { recursive: true });
+          fs.writeFileSync('artifacts/phase57-p23-9a-entry-opportunity-aggregate.json', JSON.stringify(result, null, 2));
+          console.log(JSON.stringify({ all, gate, gateCoverage: result.gateCoverage, deltas: result.deltas, correlations: result.correlations }, null, 2));
+          NODE
+
+      - name: Upload P23.9A aggregate evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-9a-entry-opportunity-aggregate
+          path: artifacts/phase57-p23-9a-entry-opportunity-aggregate.json
+          if-no-files-found: error

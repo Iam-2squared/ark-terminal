@@ -1,0 +1,71 @@
+name: Phase57 Real Nested State Machine
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-trade-management-state-machine.js'
+      - 'predict/daytrade/phase57-nested-trade-management-selection.js'
+      - 'predict/daytrade/phase57-real-nested-state-machine.js'
+      - 'predict/daytrade/run-phase57-real-nested-state-machine.mjs'
+      - 'predict/tests/p23-6-real-nested-state-machine.test.mjs'
+      - '.github/workflows/phase57-real-nested-state-machine.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  real-5m-nested-state-machine:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        symbol: ['7203.T', '6758.T', '9984.T', '8306.T', '8035.T']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run real 5m nested state-machine development OOS
+        env:
+          PHASE57_SCOPE: ${{ matrix.symbol }}
+        run: node predict/daytrade/run-phase57-real-nested-state-machine.mjs
+
+      - name: Verify research-only safety and nested selection integrity
+        env:
+          PHASE57_SCOPE: ${{ matrix.symbol }}
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const scope = process.env.PHASE57_SCOPE;
+          const path = `artifacts/phase57-real-nested-state-machine-${scope}.json`;
+          if (!fs.existsSync(path)) throw new Error(`missing P23.6 artifact: ${path}`);
+          const data = JSON.parse(fs.readFileSync(path, 'utf8'));
+          for (const key of [
+            'executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed',
+            'liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed',
+            'overnightHoldingAllowed','transmitted'
+          ]) {
+            if (data[key] !== false) throw new Error(`${key} must remain false`);
+          }
+          const nested = data.nestedStateMachine;
+          const integrity = nested?.selectionIntegrity;
+          if (!integrity) throw new Error('P23.6 selection integrity missing');
+          if (integrity.outerOutcomesUsedForConfigSelection !== false) throw new Error('outer outcomes must not select state-machine config');
+          if (integrity.postSelectionAcrossOuterResultsAllowed !== false) throw new Error('post-selection across outer results must remain false');
+          if (integrity.matchedComparatorUsesExactNestedOuterRows !== true) throw new Error('matched comparator rows must reconcile exactly');
+          if (integrity.comparatorsUsedForStateMachineConfigSelection !== false) throw new Error('comparators must not select state-machine config');
+          if (nested?.interpretation?.finalUntouchedOosEdgeClaimAllowed !== false) throw new Error('final untouched OOS edge claim must remain false');
+          if (data.interpretationRules?.postSelectFromOuterOutcomesAllowed !== false) throw new Error('outer outcome post-selection must remain false');
+          NODE
+
+      - name: Upload P23.6 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-real-nested-state-machine-${{ matrix.symbol }}
+          path: artifacts/phase57-real-nested-state-machine-${{ matrix.symbol }}.json
+          if-no-files-found: error

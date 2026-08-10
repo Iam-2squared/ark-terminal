@@ -1,0 +1,45 @@
+name: Phase57 Real Exit OOS
+
+on:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-adaptive-oos-signal-replay.js'
+      - 'predict/daytrade/phase57-real-exit-oos.js'
+      - 'predict/daytrade/run-phase57-real-exit-oos.mjs'
+      - 'predict/tests/p21-3-real-exit-oos.test.mjs'
+      - '.github/workflows/phase57-real-exit-oos.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    name: measure-${{ matrix.scope }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        scope: [7203.T, 6758.T, 9984.T, 8306.T, 8035.T, COMBINED]
+    defaults:
+      run:
+        working-directory: predict
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+      - name: Install predict dependencies
+        run: if [ -f package-lock.json ]; then npm ci; else npm install --ignore-scripts; fi
+      - name: Test P21.1/P21.3 replay and exit integrity
+        run: node --test tests/p21-1-nested-adaptive-horizon.test.mjs tests/p21-3-exit-optimization.test.mjs tests/p21-3-real-exit-oos.test.mjs
+      - name: Run real historical 5m adaptive-signal exit OOS
+        env:
+          PHASE57_SCOPE: ${{ matrix.scope }}
+        run: node daytrade/run-phase57-real-exit-oos.mjs
+      - name: Upload P21.3 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-real-exit-oos-${{ matrix.scope }}
+          path: predict/artifacts/phase57-real-exit-oos-${{ matrix.scope }}.json

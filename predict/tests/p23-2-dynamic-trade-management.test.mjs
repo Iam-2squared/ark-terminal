@@ -6,7 +6,8 @@ import {
   evaluateDynamicTradeManagement,
 } from '../daytrade/phase57-dynamic-trade-management.js';
 
-const ts = index => `2026-08-10T00:${String(index * 5).padStart(2, '0')}:00.000Z`;
+const BASE_TS = Date.parse('2026-08-10T00:00:00.000Z');
+const ts = index => new Date(BASE_TS + index * 5 * 60 * 1000).toISOString();
 const bar = (index, open, high, low, close, volume = 1000) => ({ timestamp: ts(index), open, high, low, close, volume });
 const context = [
   bar(0, 99.0, 99.6, 98.8, 99.4),
@@ -75,6 +76,7 @@ test('profit protection uses only PRIOR favorable extreme, never current-bar hig
     // If the current high 110 were illegitimately used first, a same-bar trailing stop could be created above 104.
     // Prior peak is only 102, so this bar must not trigger PRIOR_PEAK_PROFIT_PROTECTION.
     bar(4, 101.8, 110.0, 104.0, 109.0),
+    // A later bar may legitimately protect the 110 prior peak established after bar 4 completed.
     bar(5, 109.0, 109.4, 108.5, 109.2),
   ];
   const result = simulateDynamicTradeManagement({
@@ -88,7 +90,6 @@ test('profit protection uses only PRIOR favorable extreme, never current-bar hig
   });
   const bar4Exit = result.decisions.find(row => row.timestamp === ts(4) && row.action === 'EXIT');
   assert.equal(bar4Exit?.reason === 'PRIOR_PEAK_PROFIT_PROTECTION', false);
-  assert.notEqual(result.exitReason, 'PRIOR_PEAK_PROFIT_PROTECTION');
 });
 
 test('dynamic trade management is symmetric for a deteriorating short', () => {

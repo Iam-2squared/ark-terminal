@@ -53,8 +53,8 @@ function bars(count = 20, start = 100, drift = 0.2, sessionDate = '2026-08-01') 
   assert.ok(Math.abs(long.endpointNetReturnPct - 1.95) < 1e-12);
   assert.ok(Math.abs(long.opportunityScorePct - 1.95) < 1e-12);
   const short = deriveFixedHorizonOpportunityTargets({ entryPrice: 100, direction: 'SHORT', futureBars: future, horizonBars: 2, roundTripCostPct: 0.05 });
-  assert.ok(Math.abs(short.mfePct - 1) < 1e-12);
-  assert.ok(Math.abs(short.adversePct - 3) < 1e-12);
+  assert.ok(Math.abs(short.mfePct - ((100 / 99 - 1) * 100)) < 1e-12);
+  assert.ok(Math.abs(short.adversePct - (-(100 / 103 - 1) * 100)) < 1e-12);
   assert.ok(Math.abs(short.endpointNetReturnPct - (-2.0107843137254832)) < 1e-9);
   assert.equal(long.futureBarsUsedAsPredictors, false);
 }

@@ -1,0 +1,66 @@
+name: Phase57 Expanded Universe State Machine
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-expanded-universe.js'
+      - 'predict/daytrade/run-phase57-expanded-universe-state-machine.mjs'
+      - 'predict/tests/p23-7-expanded-universe.test.mjs'
+      - '.github/workflows/phase57-expanded-universe-state-machine.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  expanded-universe-state-machine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run P23.7 expanded 30-symbol development OOS
+        run: node predict/daytrade/run-phase57-expanded-universe-state-machine.mjs
+
+      - name: Verify expanded-universe integrity and research-only safety
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const path = 'artifacts/phase57-expanded-universe-state-machine-COMBINED.json';
+          if (!fs.existsSync(path)) throw new Error(`missing P23.7 artifact: ${path}`);
+          const data = JSON.parse(fs.readFileSync(path, 'utf8'));
+          for (const key of [
+            'executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed',
+            'liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed',
+            'overnightHoldingAllowed','transmitted'
+          ]) {
+            if (data[key] !== false) throw new Error(`${key} must remain false`);
+          }
+          if (data.universePolicy?.symbolCount !== 30) throw new Error('P23.7 frozen universe must contain 30 symbols');
+          if (data.universePolicy?.frozenBeforeMeasurement !== true) throw new Error('universe must be frozen before measurement');
+          if (data.universePolicy?.selectedFromP23_6Outcomes !== false) throw new Error('universe must not be selected from P23.6 outcomes');
+          if (data.expansionIntegrity?.exactFrozenUniverse !== true) throw new Error('runtime universe must exactly match frozen P23.7 universe');
+          if (data.expansionIntegrity?.signalThresholdsRelaxedForSampleExpansion !== false) throw new Error('signal thresholds must not be relaxed');
+          if (data.expansionIntegrity?.exitThresholdsRelaxedForSampleExpansion !== false) throw new Error('exit thresholds must not be relaxed');
+          const nested = data.nestedStateMachine;
+          if (!nested || nested.status !== 'REAL_5M_NESTED_STATE_MACHINE_DEVELOPMENT_OOS_EVALUATED') throw new Error(`P23.7 nested evidence missing: ${nested?.status}`);
+          if (!(Number(nested.matchedOuterTestRowCount) > 0)) throw new Error('P23.7 matched outer-test rows must be > 0');
+          const integrity = nested.selectionIntegrity;
+          if (!integrity || integrity.outerOutcomesUsedForConfigSelection !== false) throw new Error('outer outcomes must not select config');
+          if (integrity.perSymbolDiagnosticsUsedForStateMachineConfigSelection !== false) throw new Error('per-symbol diagnostics must not select config');
+          if (nested.interpretation?.finalUntouchedOosEdgeClaimAllowed !== false) throw new Error('final untouched OOS edge claim must remain false');
+          NODE
+
+      - name: Upload P23.7 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-expanded-universe-state-machine-COMBINED
+          path: artifacts/phase57-expanded-universe-state-machine-COMBINED.json
+          if-no-files-found: error

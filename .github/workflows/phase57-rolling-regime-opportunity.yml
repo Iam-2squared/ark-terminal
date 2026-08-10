@@ -1,0 +1,71 @@
+name: Phase57 P23.9D Rolling Regime Opportunity
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-rolling-regime-opportunity-gate.js'
+      - 'predict/daytrade/run-phase57-rolling-regime-opportunity-shard.mjs'
+      - 'predict/tests/p23-9d-rolling-regime-opportunity.test.mjs'
+      - '.github/workflows/phase57-rolling-regime-opportunity.yml'
+permissions: { contents: read, actions: read }
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: node predict/tests/p23-9d-rolling-regime-opportunity.test.mjs
+  rolling-shard:
+    needs: unit
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { shard: 0, artifact_id: 9060006163 }
+          - { shard: 1, artifact_id: 9060012597 }
+          - { shard: 2, artifact_id: 9059646754 }
+    name: rolling-shard-${{ matrix.shard }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env: { PHASE57_SHARD_INDEX: '${{ matrix.shard }}', PHASE57_FROZEN_ARTIFACT_DIR: frozen-source }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ matrix.artifact_id }}
+          run-id: 31379583578
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: frozen-source
+      - run: node predict/daytrade/run-phase57-rolling-regime-opportunity-shard.mjs
+      - name: Verify rolling causal integrity and safety
+        run: |
+          node - <<'NODE'
+          const fs=require('fs'),s=Number(process.env.PHASE57_SHARD_INDEX)+1,p=`artifacts/phase57-p23-9d-rolling-regime-opportunity-shard-${s}.json`;if(!fs.existsSync(p))throw new Error('missing result');const d=JSON.parse(fs.readFileSync(p,'utf8'));
+          if(d.frozenSource?.exactFrozenTradeCountReconciled!==true)throw new Error('frozen mismatch');if(d.policy?.testOutcomesUsedForSelection!==false||d.policy?.futureExtremaUsedAsPredictor!==false)throw new Error('selection leakage');
+          const i=d.evaluation?.integrity;if(i?.rollingFitUsesOnlyPriorSessions!==true||i?.rollingCalibrationUsesOnlyPriorSessions!==true||i?.testOutcomesUsedForGateSelection!==false||i?.sameSessionTrainingForbidden!==true)throw new Error('rolling integrity');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed','transmitted'])if(d[k]!==false)throw new Error(`${k} must remain false`);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-9d-rolling-shard-${{ matrix.shard }}
+          path: artifacts/phase57-p23-9d-rolling-regime-opportunity-shard-*.json
+          if-no-files-found: error
+  aggregate:
+    needs: rolling-shard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { pattern: 'phase57-p23-9d-rolling-shard-*', path: shards, merge-multiple: true }
+      - name: Aggregate rolling gate evidence
+        run: |
+          node - <<'NODE'
+          const fs=require('fs'),files=fs.readdirSync('shards').filter(x=>/^phase57-p23-9d-rolling-regime-opportunity-shard-\d+\.json$/.test(x)).sort();if(files.length!==3)throw new Error(`expected3 got${files.length}`);const shards=files.map(f=>JSON.parse(fs.readFileSync(`shards/${f}`,'utf8')));const gatedRows=shards.flatMap(s=>(s.evaluation?.predictions||[]).filter(r=>r.gatePass));const sumRows=a=>{const x=a.map(r=>Number(r.realizedRatchetNetReturnPct)).filter(Number.isFinite),p=x.filter(v=>v>0).reduce((s,v)=>s+v,0),n=-x.filter(v=>v<0).reduce((s,v)=>s+v,0);return{signalCount:x.length,hitRate:x.length?x.filter(v=>v>0).length/x.length:null,netAverageReturnPct:x.length?x.reduce((s,v)=>s+v,0)/x.length:null,profitFactor:n>0?p/n:(p>0?Infinity:null)}};const gated=sumRows(gatedRows);const totalN=shards.reduce((s,x)=>s+Number(x.evaluation.allFrozenRatchet.signalCount||0),0),totalSum=shards.reduce((s,x)=>s+Number(x.evaluation.allFrozenRatchet.netAverageReturnPct||0)*Number(x.evaluation.allFrozenRatchet.signalCount||0),0),wins=shards.reduce((s,x)=>s+Number(x.evaluation.allFrozenRatchet.hitRate||0)*Number(x.evaluation.allFrozenRatchet.signalCount||0),0);let P=0,N=0;for(const x of shards){const z=x.evaluation.allFrozenRatchet,n=Number(z.signalCount),avg=Number(z.netAverageReturnPct),pf=Number(z.profitFactor),net=n*avg;if(Number.isFinite(pf)&&Math.abs(pf-1)>1e-12){const loss=net/(pf-1),profit=pf*loss;N+=loss;P+=profit;}}const all={signalCount:totalN,hitRate:totalN?wins/totalN:null,netAverageReturnPct:totalN?totalSum/totalN:null,profitFactor:N>0?P/N:null};const result={phase:'57.p23.9d-rolling-regime-opportunity-aggregate',status:'ROLLING_REGIME_OPPORTUNITY_AGGREGATED',allFrozenRatchet:all,gatedFrozenRatchet:gated,gateCount:gated.signalCount,gateCoverage:totalN?gated.signalCount/totalN:0,deltas:{netAverageReturnPct:gated.netAverageReturnPct==null?null:gated.netAverageReturnPct-all.netAverageReturnPct,profitFactor:Number.isFinite(gated.profitFactor)&&Number.isFinite(all.profitFactor)?gated.profitFactor-all.profitFactor:null,hitRate:gated.hitRate==null?null:gated.hitRate-all.hitRate},byShard:shards.map(s=>({shardNumber:s.shardNumber,all:s.evaluation.allFrozenRatchet,gated:s.evaluation.gatedFrozenRatchet,gateCoverage:s.evaluation.gateCoverage,activeDayCoverage:s.evaluation.activeDayCoverage,days:s.evaluation.dayDiagnostics.map(d=>({date:d.sessionDate,status:d.status,selected:d.selection?.selected?.id??null,calNet:d.selection?.selected?.netAverageReturnPct??null,calPf:d.selection?.selected?.profitFactor??null}))})),integrity:{testOutcomesUsedForSelection:false,rollingPriorSessionCalibrationOnly:true,candidateFamilyInformedByPriorDevelopmentDiagnostics:true,developmentOnly:true,finalUntouchedOosEdgeClaimAllowed:false},edgeClaimAllowed:false,recommendationAllowed:false,executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,rssOrderFunctionAllowed:false,liveTradingAllowed:false,paperTradingAllowed:false,automaticPromotionAllowed:false,productionUpdateAllowed:false,overnightHoldingAllowed:false,transmitted:false};fs.mkdirSync('artifacts',{recursive:true});fs.writeFileSync('artifacts/phase57-p23-9d-rolling-regime-opportunity-aggregate.json',JSON.stringify(result,null,2));console.log(JSON.stringify(result,null,2));
+          NODE
+      - uses: actions/upload-artifact@v4
+        with: { name: phase57-p23-9d-rolling-regime-opportunity-aggregate, path: artifacts/phase57-p23-9d-rolling-regime-opportunity-aggregate.json, if-no-files-found: error }

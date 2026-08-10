@@ -3,7 +3,7 @@ import { PHASE57_P23_12_SAFETY } from './phase57-visual-chart-reasoning.js';
 
 export const P23_13_VISUAL_ANALOG_FEATURE_KEYS = Object.freeze([
   'structureCoherence',
-  'directionalPressure',
+  'candlePressureAligned',
   'wickControl',
   'participation',
   'extensionHealth',
@@ -87,7 +87,7 @@ export function visualRecordFeatures(record = {}) {
   const sign = signFromRecord(record);
   return Object.freeze({
     structureCoherence: finite(components.structureCoherence) ? Number(components.structureCoherence) : null,
-    directionalPressure: finite(components.directionalPressure) ? Number(components.directionalPressure) : null,
+    candlePressureAligned: finite(components.directionalPressure) ? Number(components.directionalPressure) : null,
     wickControl: finite(components.wickControl) ? Number(components.wickControl) : null,
     participation: finite(components.participation) ? Number(components.participation) : null,
     extensionHealth: finite(components.extensionHealth) ? Number(components.extensionHealth) : null,

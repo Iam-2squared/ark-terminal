@@ -209,17 +209,24 @@ for (const signal of replay.signals) {
 }
 exitRows.sort((a, b) => a.featureCutoff.localeCompare(b.featureCutoff));
 
-const nestedStateMachine = evaluateRealNestedStateMachine(exitRows, {
+// The adaptive entry stream is intentionally selective, so the number of signal-bearing market dates can be
+// much smaller than the raw-data session count. These minimums are sample-cardinality gates only; they were
+// revised after the prior run exposed 12 signal-bearing dates and zero folds. No return, PF, hit-rate, or exit
+// outcome was used to choose these values. This remains development nested evidence, never a final edge claim.
+const signalSessionCount = new Set(exitRows.map(row => String(row.sessionDate))).size;
+const nestedSessionPolicy = Object.freeze({
   outerTrainFraction: 0.6,
   outerTestFraction: 0.1,
-  outerMinTrainSessions: 15,
+  outerMinTrainSessions: 6,
   innerTrainFraction: 0.55,
   innerTestFraction: 0.2,
-  innerMinTrainSessions: 8,
+  innerMinTrainSessions: 4,
   minInnerSignals: scope === 'COMBINED' ? 20 : 5,
   minInnerSignalBearingFolds: 2,
   roundTripCostPct: 0.05,
 });
+
+const nestedStateMachine = evaluateRealNestedStateMachine(exitRows, nestedSessionPolicy);
 
 const summary = {
   phase: '57.p23.6-real',
@@ -232,6 +239,8 @@ const summary = {
   horizonsMinutes: horizonsBars.map(value => value * 5),
   rawBars,
   sessionCount,
+  signalSessionCount,
+  nestedSessionPolicy,
   rowCountByHorizon: Object.fromEntries(horizonsBars.map(horizon => [horizon, datasets[horizon].length])),
   adaptiveReference: {
     status: adaptive.status,
@@ -257,12 +266,16 @@ const summary = {
     primaryObjective: 'NET_EXPECTANCY_AFTER_EXPLICIT_COST',
     stateMachineConfigSelectedOnlyInsideEarlierOuterTrainData: true,
     matchedP23_3AndFixedComparatorsUsedForSelection: false,
+    sessionGateRevisionUsedOutcomeMetrics: false,
+    sessionGateRevisionUsedSampleCardinalityOnly: true,
     reusedRecentResearchWindow: true,
     finalUntouchedOosEdgeClaimAllowed: false,
     postSelectFromOuterOutcomesAllowed: false,
   },
   limitations: [
     'This is development nested evidence on the already-used recent research window, not a final untouched OOS claim.',
+    'The selective adaptive-entry replay can contain far fewer signal-bearing market dates than raw-data sessions; fold gates are therefore based on the sparse signal-session count.',
+    'The P23.6 session-count gates were revised only because the prior pooled run produced zero folds with 12 signal-bearing dates; no return, PF, hit-rate, or exit outcome was used to choose the revised gates.',
     'Historical order-book/tick-flow microstructure is unavailable in Yahoo 5m OHLCV and remains excluded.',
     'Yahoo Finance 5m history is limited to a recent ~58 day window.',
     'Base entry is modeled at the signal bar close; a separate next-bar execution-delay model is not applied here.',

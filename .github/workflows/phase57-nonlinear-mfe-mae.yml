@@ -1,0 +1,98 @@
+name: Phase57 P23.9B Nonlinear MFE MAE
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-nonlinear-mfe-mae-intelligence.js'
+      - 'predict/daytrade/run-phase57-nonlinear-mfe-mae-shard.mjs'
+      - 'predict/tests/p23-9b-nonlinear-mfe-mae.test.mjs'
+      - '.github/workflows/phase57-nonlinear-mfe-mae.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run P23.9B unit tests
+        run: node predict/tests/p23-9b-nonlinear-mfe-mae.test.mjs
+
+  nonlinear-shard:
+    needs: unit
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: 0
+            artifact_id: 9060006163
+          - shard: 1
+            artifact_id: 9060012597
+          - shard: 2
+            artifact_id: 9059646754
+    name: nonlinear-shard-${{ matrix.shard }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PHASE57_SHARD_INDEX: ${{ matrix.shard }}
+      PHASE57_FROZEN_ARTIFACT_DIR: frozen-source
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Download exact frozen P23.8 entry source
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ matrix.artifact_id }}
+          run-id: 31379583578
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: frozen-source
+      - name: Run P23.9B nonlinear MFE MAE shard
+        run: node predict/daytrade/run-phase57-nonlinear-mfe-mae-shard.mjs
+      - name: Verify causal integrity and fail-closed safety
+        run: |
+          node - <<'NODE'
+          const fs=require('fs');const s=Number(process.env.PHASE57_SHARD_INDEX)+1;const p=`artifacts/phase57-p23-9b-nonlinear-mfe-mae-shard-${s}.json`;if(!fs.existsSync(p))throw new Error(`missing ${p}`);const d=JSON.parse(fs.readFileSync(p,'utf8'));
+          if(d.frozenSource?.exactFrozenTradeCountReconciled!==true)throw new Error('frozen count mismatch');
+          if(d.policy?.historicalRatchetOutcomeLabelOnly!==true||d.policy?.futureExtremaUsedAsPredictor!==false||d.policy?.thresholdsTunedOnFrozenOuterOutcomes!==false)throw new Error('causal integrity failed');
+          if(d.evaluation?.integrity?.trainingUsesPriorSessionsOnly!==true||d.evaluation?.integrity?.sameSessionTrainingForbidden!==true)throw new Error('walk-forward integrity failed');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed','transmitted'])if(d[k]!==false)throw new Error(`${k} must remain false`);
+          NODE
+      - name: Upload P23.9B shard evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-9b-nonlinear-shard-${{ matrix.shard }}
+          path: artifacts/phase57-p23-9b-nonlinear-mfe-mae-shard-*.json
+          if-no-files-found: error
+
+  aggregate:
+    needs: nonlinear-shard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download P23.9B shards
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-p23-9b-nonlinear-shard-*
+          path: shards
+          merge-multiple: true
+      - name: Aggregate P23.9B evidence
+        run: |
+          node - <<'NODE'
+          const fs=require('fs');const files=fs.readdirSync('shards').filter(x=>/^phase57-p23-9b-nonlinear-mfe-mae-shard-\d+\.json$/.test(x)).sort();if(files.length!==3)throw new Error(`expected 3 shards got ${files.length}`);const shards=files.map(f=>JSON.parse(fs.readFileSync(`shards/${f}`,'utf8')));const rows=shards.flatMap(s=>s.evaluation?.predictions||[]);const summarize=a=>{const r=a.map(Number).filter(Number.isFinite),pos=r.filter(x=>x>0).reduce((s,x)=>s+x,0),neg=-r.filter(x=>x<0).reduce((s,x)=>s+x,0);return{signalCount:r.length,hitRate:r.length?r.filter(x=>x>0).length/r.length:null,netAverageReturnPct:r.length?r.reduce((s,x)=>s+x,0)/r.length:null,profitFactor:neg>0?pos/neg:(pos>0?Infinity:null)}};const all=summarize(rows.map(r=>r.realizedRatchetNetReturnPct)),gatedRows=rows.filter(r=>r.gatePass),gated=summarize(gatedRows.map(r=>r.realizedRatchetNetReturnPct));const byShard=shards.map(s=>({shardNumber:s.shardNumber,all:s.evaluation.allFrozenRatchet,gated:s.evaluation.gatedFrozenRatchet,gateCoverage:s.evaluation.gateCoverage,correlations:s.evaluation.correlations}));const result={phase:'57.p23.9b-nonlinear-mfe-mae-aggregate',status:'NONLINEAR_MFE_MAE_AGGREGATED',predictionCount:rows.length,gateCount:gatedRows.length,gateCoverage:rows.length?gatedRows.length/rows.length:0,allFrozenRatchet:all,gatedFrozenRatchet:gated,deltas:{netAverageReturnPct:gated.netAverageReturnPct==null?null:gated.netAverageReturnPct-all.netAverageReturnPct,profitFactor:Number.isFinite(gated.profitFactor)&&Number.isFinite(all.profitFactor)?gated.profitFactor-all.profitFactor:null,hitRate:gated.hitRate==null?null:gated.hitRate-all.hitRate},byShard,integrity:{independentShardModels:true,profitFactorRecomputedFromUnderlyingReturns:true,thresholdsTunedOnFrozenOuterOutcomes:false,developmentOnly:true,finalUntouchedOosEdgeClaimAllowed:false},edgeClaimAllowed:false,recommendationAllowed:false,executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,rssOrderFunctionAllowed:false,liveTradingAllowed:false,paperTradingAllowed:false,automaticPromotionAllowed:false,productionUpdateAllowed:false,overnightHoldingAllowed:false,transmitted:false};fs.mkdirSync('artifacts',{recursive:true});fs.writeFileSync('artifacts/phase57-p23-9b-nonlinear-mfe-mae-aggregate.json',JSON.stringify(result,null,2));console.log(JSON.stringify(result,null,2));
+          NODE
+      - name: Upload P23.9B aggregate evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-9b-nonlinear-mfe-mae-aggregate
+          path: artifacts/phase57-p23-9b-nonlinear-mfe-mae-aggregate.json
+          if-no-files-found: error

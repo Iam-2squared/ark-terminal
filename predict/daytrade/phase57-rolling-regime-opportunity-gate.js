@@ -1,0 +1,41 @@
+import { fitHistoricalAnalogOpportunity,P23_9B_CONFIG,PHASE57_P23_9B_SAFETY } from './phase57-nonlinear-mfe-mae-intelligence.js';
+import { P23_9C_CANDIDATES,opportunityScore } from './phase57-nested-relative-opportunity-gate.js';
+
+export const PHASE57_P23_9D_SAFETY=Object.freeze({...PHASE57_P23_9B_SAFETY,mode:'PHASE57_ROLLING_REGIME_OPPORTUNITY_RESEARCH_ONLY'});
+export const P23_9D_CONFIG=Object.freeze({
+  fitLookbackSessions:20,
+  calibrationSessionCount:3,
+  maxCalibrationRows:360,
+  minimumCalibrationSignals:20,
+  minimumCalibrationNetPct:0.01,
+  minimumCalibrationProfitFactor:1.05,
+  analogConfig:Object.freeze({...P23_9B_CONFIG,expectedRatchetNetFloorPct:-Infinity,winProbabilityFloor:0,opportunityProbabilityFloor:0,mfeMinusAdverseFloorPct:-Infinity}),
+});
+const finite=v=>v!==null&&v!==undefined&&Number.isFinite(Number(v));
+const mean=a=>a.length?a.reduce((s,x)=>s+Number(x),0)/a.length:0;
+const quantile=(a,p)=>{const x=a.map(Number).filter(Number.isFinite).sort((u,v)=>u-v);if(!x.length)return null;const i=(x.length-1)*p,l=Math.floor(i),h=Math.ceil(i);return l===h?x[l]:x[l]+(x[h]-x[l])*(i-l);};
+function summarize(a){const x=a.map(Number).filter(Number.isFinite),pos=x.filter(v=>v>0).reduce((s,v)=>s+v,0),neg=-x.filter(v=>v<0).reduce((s,v)=>s+v,0);return Object.freeze({signalCount:x.length,hitRate:x.length?x.filter(v=>v>0).length/x.length:null,netAverageReturnPct:x.length?mean(x):null,profitFactor:neg>0?pos/neg:(pos>0?Infinity:null)});}
+function sample(rows,maxRows){const sorted=[...rows].sort((a,b)=>`${a.featureCutoff}|${a.symbol}|${a.direction}`.localeCompare(`${b.featureCutoff}|${b.symbol}|${b.direction}`));if(sorted.length<=maxRows)return sorted;const stride=Math.ceil(sorted.length/maxRows),out=[];for(let i=0;i<sorted.length;i+=stride)out.push(sorted[i]);return out.slice(0,maxRows);}
+
+function selectRollingGate(historicalRows,config){
+  const cfg={...P23_9D_CONFIG,...config,analogConfig:{...P23_9D_CONFIG.analogConfig,...(config?.analogConfig||{})}};
+  const dates=[...new Set(historicalRows.map(r=>String(r.sessionDate)))].sort();
+  const need=Number(cfg.calibrationSessionCount)+4;if(dates.length<need)return{model:null,evidence:Object.freeze({status:'INSUFFICIENT_ROLLING_SESSIONS',selected:null})};
+  const calibrationDates=dates.slice(-Number(cfg.calibrationSessionCount));const calibrationStart=calibrationDates[0];
+  const beforeCalibration=dates.filter(d=>d<calibrationStart);const fitDates=beforeCalibration.slice(-Number(cfg.fitLookbackSessions));
+  const fitRows=historicalRows.filter(r=>fitDates.includes(String(r.sessionDate)));const calibrationRows=sample(historicalRows.filter(r=>calibrationDates.includes(String(r.sessionDate))),Number(cfg.maxCalibrationRows));
+  if(fitRows.length<Number(cfg.analogConfig.minTrainRows)||calibrationRows.length<Number(cfg.minimumCalibrationSignals))return{model:null,evidence:Object.freeze({status:'INSUFFICIENT_ROLLING_ROWS',selected:null,fitRows:fitRows.length,calibrationRows:calibrationRows.length,fitDates,calibrationDates})};
+  const model=fitHistoricalAnalogOpportunity(fitRows,cfg.analogConfig);const preds=[];for(const row of calibrationRows){const p=model.predict(row);if(p)preds.push({row,p,realized:Number(row.realizedRatchetNetReturnPct)});}const candidates=[];
+  for(const spec of P23_9C_CANDIDATES){const scores=preds.map(x=>opportunityScore(x.p,spec.kind)),threshold=quantile(scores,spec.percentile),selectedRows=preds.filter(x=>opportunityScore(x.p,spec.kind)>=threshold),summary=summarize(selectedRows.map(x=>x.realized));const utility=finite(summary.netAverageReturnPct)?Number(summary.netAverageReturnPct)*Math.sqrt(Math.max(1,summary.signalCount)):null;candidates.push(Object.freeze({...spec,threshold,...summary,utility,coverage:preds.length?selectedRows.length/preds.length:0}));}
+  const eligible=candidates.filter(c=>c.signalCount>=Number(cfg.minimumCalibrationSignals)&&finite(c.netAverageReturnPct)&&Number(c.netAverageReturnPct)>=Number(cfg.minimumCalibrationNetPct)&&finite(c.profitFactor)&&Number(c.profitFactor)>=Number(cfg.minimumCalibrationProfitFactor));eligible.sort((a,b)=>Number(b.utility)-Number(a.utility)||Number(b.profitFactor)-Number(a.profitFactor)||Number(b.signalCount)-Number(a.signalCount));
+  const observed=[...candidates].sort((a,b)=>(Number(b.utility)||-Infinity)-(Number(a.utility)||-Infinity));
+  return{model,evidence:Object.freeze({status:eligible.length?'ROLLING_GATE_SELECTED':'NO_ELIGIBLE_ROLLING_GATE',selected:eligible[0]??null,bestObserved:observed[0]??null,fitRows:fitRows.length,calibrationRows:preds.length,fitDates:Object.freeze(fitDates),calibrationDates:Object.freeze(calibrationDates),candidates:Object.freeze(candidates),integrity:Object.freeze({fitPrecedesCalibration:true,calibrationPrecedesTestDate:true,testOutcomesUsedForSelection:false,sameSessionTrainingForbidden:true})})};
+}
+
+export function evaluateRollingRegimeOpportunity({trainingExamples=[],frozenTestExamples=[],config={}}={}){
+  const cfg={...P23_9D_CONFIG,...config,analogConfig:{...P23_9D_CONFIG.analogConfig,...(config?.analogConfig||{})}};const dates=[...new Set(frozenTestExamples.map(r=>String(r.sessionDate)))].sort(),predictions=[],dayDiagnostics=[];
+  for(const date of dates){const historical=trainingExamples.filter(r=>String(r.sessionDate)<date),test=frozenTestExamples.filter(r=>String(r.sessionDate)===date),{model,evidence}=selectRollingGate(historical,cfg);if(!model||!evidence.selected){dayDiagnostics.push(Object.freeze({sessionDate:date,status:'ABSTAIN_NO_PRIOR_ROLLING_GATE',frozenSignalCount:test.length,selection:evidence}));continue;}const sel=evidence.selected;for(const row of test){const p=model.predict(row);if(!p)continue;const score=opportunityScore(p,sel.kind);predictions.push(Object.freeze({symbol:row.symbol,sessionDate:row.sessionDate,featureCutoff:row.featureCutoff,direction:row.direction,...p,rollingGateKind:sel.kind,rollingGatePercentile:sel.percentile,rollingGateThreshold:sel.threshold,rollingGateScore:score,gatePass:score>=Number(sel.threshold),realizedRatchetNetReturnPct:Number(row.realizedRatchetNetReturnPct),testOutcomeUsedForSelection:false}));}dayDiagnostics.push(Object.freeze({sessionDate:date,status:'ROLLING_GATE_APPLIED',frozenSignalCount:test.length,selection:evidence}));}
+  const gated=predictions.filter(r=>r.gatePass),allSummary=summarize(frozenTestExamples.map(r=>r.realizedRatchetNetReturnPct)),activeSummary=summarize(predictions.map(r=>r.realizedRatchetNetReturnPct)),gatedSummary=summarize(gated.map(r=>r.realizedRatchetNetReturnPct));
+  return Object.freeze({phase:'57.p23.9d-rolling-regime-opportunity',status:'ROLLING_REGIME_OPPORTUNITY_EVALUATED',frozenTestCount:frozenTestExamples.length,predictionCount:predictions.length,gateCount:gated.length,activeDayCoverage:frozenTestExamples.length?predictions.length/frozenTestExamples.length:0,gateCoverage:frozenTestExamples.length?gated.length/frozenTestExamples.length:0,allFrozenRatchet:allSummary,activeDayBaseline:activeSummary,gatedFrozenRatchet:gatedSummary,deltasVsAll:Object.freeze({netAverageReturnPct:gatedSummary.netAverageReturnPct==null?null:gatedSummary.netAverageReturnPct-allSummary.netAverageReturnPct,profitFactor:finite(gatedSummary.profitFactor)&&finite(allSummary.profitFactor)?gatedSummary.profitFactor-allSummary.profitFactor:null,hitRate:gatedSummary.hitRate==null?null:gatedSummary.hitRate-allSummary.hitRate}),dayDiagnostics:Object.freeze(dayDiagnostics),predictions:Object.freeze(predictions),integrity:Object.freeze({rollingFitUsesOnlyPriorSessions:true,rollingCalibrationUsesOnlyPriorSessions:true,testOutcomesUsedForGateSelection:false,sameSessionTrainingForbidden:true,futureExtremaUsedAsFeatures:false,candidateFamilyInformedByPriorDevelopmentDiagnostics:true,developmentOnly:true,finalUntouchedOosEdgeClaimAllowed:false}),edgeClaimAllowed:false,recommendationAllowed:false,executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,rssOrderFunctionAllowed:false,liveTradingAllowed:false,paperTradingAllowed:false,automaticPromotionAllowed:false,productionUpdateAllowed:false,overnightHoldingAllowed:false,transmitted:false,safety:PHASE57_P23_9D_SAFETY});
+}
+export default {PHASE57_P23_9D_SAFETY,P23_9D_CONFIG,evaluateRollingRegimeOpportunity};

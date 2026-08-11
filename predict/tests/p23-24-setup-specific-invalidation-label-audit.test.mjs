@@ -1,0 +1,4 @@
+import assert from 'node:assert/strict';import {setupSpecificInvalidationLabel,genericP2322Label,P23_24_LABEL_POLICY} from '../daytrade/phase57-setup-specific-invalidation-labels.js';
+const signal={open:100,high:102,low:99,close:101},pre=[{low:98,high:101},{low:99,high:102},{low:99.5,high:102.5}],future=[{open:101,high:101.2,low:98.5,close:98.8},{open:98.8,high:99,low:98,close:98.4},{open:98.4,high:98.8,low:97.8,close:98}];
+const x=setupSpecificInvalidationLabel({setup:'BREAKOUT_CONTINUATION_UP',direction:'UP',entryPrice:101,signalBar:signal,preSignalBars:pre,futureBars:future});assert.equal(x.invalidated,true);assert.equal(x.reason,'BREAKOUT_BAR_ADVERSE_EXTREME_RECLAIMED');assert.equal(P23_24_LABEL_POLICY.thresholdSearchAllowed,false);
+const g=genericP2322Label({entryPrice:101,direction:'UP',currentBestReturnPct:0,futureBars:future});assert.equal(typeof g.invalidated,'boolean');console.log('p23.24 setup-specific invalidation label invariants OK');

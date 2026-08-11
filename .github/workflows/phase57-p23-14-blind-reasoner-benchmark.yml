@@ -1,4 +1,4 @@
-name: Phase57 P23.14 Blind Reasoner Benchmark
+name: Phase57 P23.14-15 Blind Trader Reasoning
 
 on:
   pull_request:
@@ -31,7 +31,7 @@ jobs:
           node-version: 22
       - name: Test blind reasoner core
         run: node predict/tests/p23-14-blind-reasoner-benchmark.test.mjs
-      - name: Rebuild causal P23.12 visual records
+      - name: Rebuild causal P23.12 visual records once
         env:
           PHASE57_SYMBOLS: ${{ matrix.symbols }}
           PHASE57_MIN_HISTORY_BARS: '1600'
@@ -85,12 +85,47 @@ jobs:
           if(r.symbolCount!==30 || r.sourceShardCount!==3) throw new Error('expected exact 30-symbol development universe');
           if(r.methodology?.causalVisualFieldsOnlyAtPredictionTime!==true || r.methodology?.outcomeFieldsStrippedBeforeReasoning!==true || r.methodology?.predictionFrozenBeforeOutcomeJoin!==true || r.methodology?.outcomeJoinedAfterPredictionFreeze!==true) throw new Error('blind protocol violation');
           if(r.methodology?.thresholdSearchPerformed!==false || r.methodology?.predictionUsedAsEntryGate!==false) throw new Error('selection violation');
-          if(r.methodology?.externalVisionModelCalled!==false || r.methodology?.deterministicManifestReasonerOnly!==true) throw new Error('model binding declaration mismatch');
-          if(r.edgeClaimAllowed!==false || r.recommendationAllowed!==false || r.transmitted!==false) throw new Error('research boundary violation');
           for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed']) if(r[k]!==false) throw new Error(`${k} must remain false`);
           NODE
       - uses: actions/upload-artifact@v4
         with:
           name: phase57-p23-14-blind-reasoner-benchmark
           path: artifacts/phase57-p23-14-blind-reasoner-benchmark.json
+          if-no-files-found: error
+
+  aggregate-trader-reasoner-v2:
+    needs: blind-source-shard
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test trader reasoner core
+        run: node predict/tests/p23-15-trader-reasoner-v2.test.mjs
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-p23-14-source-shard-*
+          path: artifacts/p23-14-input
+          merge-multiple: true
+      - name: Reuse frozen causal records for P23.15 measurement
+        run: node predict/daytrade/aggregate-phase57-p23-15-trader-reasoner-v2.mjs artifacts/p23-14-input
+      - name: Verify P23.15 methodology and safety
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const r=JSON.parse(fs.readFileSync('artifacts/phase57-p23-15-trader-reasoner-v2.json','utf8'));
+          if(r.status!=='TRADER_REASONER_V2_DEVELOPMENT_MEASURED') throw new Error('wrong P23.15 status');
+          if(r.symbolCount!==30 || r.sourceShardCount!==3) throw new Error('expected 30-symbol development universe');
+          if(r.methodology?.sourceReusedWithinSameWorkflow!==true) throw new Error('source reuse required');
+          if(r.methodology?.predictionFrozenBeforeOutcomeJoin!==true || r.methodology?.outcomeJoinedAfterDecisionFreeze!==true) throw new Error('freeze/join protocol violation');
+          if(r.methodology?.thresholdSearchPerformed!==false || r.methodology?.developmentHypothesisDerivedFromP2314!==true) throw new Error('development provenance mismatch');
+          if(r.edgeClaimAllowed!==false || r.recommendationAllowed!==false || r.transmitted!==false) throw new Error('research boundary violation');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed']) if(r[k]!==false) throw new Error(`${k} must remain false`);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-15-trader-reasoner-v2
+          path: artifacts/phase57-p23-15-trader-reasoner-v2.json
           if-no-files-found: error

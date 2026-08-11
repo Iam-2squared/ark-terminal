@@ -1,0 +1,59 @@
+name: Phase57 P23.17 Exit Quality Recovery
+
+on:
+  pull_request:
+    branches:
+      - phase57/p23-8d-frozen-exit-isolation
+    paths:
+      - 'predict/daytrade/run-phase57-p23-17-exit-quality-recovery.mjs'
+      - 'predict/tests/p23-17-exit-quality-recovery.test.mjs'
+      - '.github/workflows/phase57-p23-17-exit-quality-recovery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  paired-exit-shard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        include:
+          - shard: 0
+            symbols: '1605.T,1925.T,2502.T,2802.T,3382.T,3402.T,3659.T,4307.T,4452.T,4568.T'
+          - shard: 1
+            symbols: '4901.T,5108.T,5401.T,5713.T,5802.T,6146.T,6178.T,6301.T,6326.T,6702.T'
+          - shard: 2
+            symbols: '6723.T,6981.T,7182.T,7733.T,7751.T,7832.T,8801.T,9020.T,9101.T,9202.T'
+    env:
+      PHASE57_SYMBOLS: ${{ matrix.symbols }}
+      PHASE57_MIN_HISTORY_BARS: '1600'
+      PHASE57_STEP_BARS: '3'
+      PHASE57_MAX_CONTEXT_BARS: '2600'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test frozen-entry patient-exit hypothesis
+        run: node predict/tests/p23-17-exit-quality-recovery.test.mjs
+      - name: Run paired strong-entry exit remeasurement
+        run: node predict/daytrade/run-phase57-p23-17-exit-quality-recovery.mjs
+      - name: Verify methodology and safety
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const r=JSON.parse(fs.readFileSync('artifacts/phase57-p23-17-exit-quality-recovery.json','utf8'));
+          if(r.status!=='STRONG_ENTRY_PAIRED_EXIT_REMEASUREMENT_COMPLETE') throw new Error('wrong status');
+          if(!r.methodology?.strongEntryFrozenQ4 || !r.methodology?.exactSameEntriesPaired || !r.methodology?.baselineOccupancyFreezesEntrySet) throw new Error('entry isolation violation');
+          if(r.methodology?.noExitThresholdSweep!==true || r.methodology?.noEntryRetuning!==true) throw new Error('selection violation');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed','transmitted']) if(r[k]!==false) throw new Error(`${k} must remain false`);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-17-exit-shard-${{ matrix.shard }}
+          path: artifacts/phase57-p23-17-exit-quality-recovery.json
+          if-no-files-found: error

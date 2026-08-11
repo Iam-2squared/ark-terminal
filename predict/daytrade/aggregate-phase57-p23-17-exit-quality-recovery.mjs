@@ -1,0 +1,15 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { summarizeEconomicTrades } from './phase57-chart-economic-validation.js';
+
+const root=process.argv[2]??'artifacts/p23-17-shards';
+function filesRec(dir){if(!fs.existsSync(dir))return[];const out=[];for(const e of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,e.name);if(e.isDirectory())out.push(...filesRec(p));else if(e.isFile()&&e.name.endsWith('.json'))out.push(p);}return out;}
+const files=filesRec(root).filter(f=>f.includes('phase57-p23-17-exit-quality-recovery'));
+if(files.length!==3)throw new Error(`expected 3 shard files, got ${files.length}`);
+const shards=files.map(f=>JSON.parse(fs.readFileSync(f,'utf8')));
+const pairs=shards.flatMap(s=>s.pairs??[]);if(!pairs.length)throw new Error('no paired trades');
+const baselineRows=pairs.map(x=>x.baseline),patientRows=pairs.map(x=>x.patient);
+const baseline=summarizeEconomicTrades(baselineRows),patient=summarizeEconomicTrades(patientRows);
+function group(rows,keyFn){const m=new Map();for(const r of rows){const k=keyFn(r);if(!m.has(k))m.set(k,[]);m.get(k).push(r);}return Object.fromEntries([...m].map(([k,v])=>[k,summarizeEconomicTrades(v)]));}
+const result={phase:'57.p23.17-exit-quality-recovery',status:'STRONG_ENTRY_PAIRED_EXIT_REMEASUREMENT_AGGREGATED',symbolCount:new Set(pairs.map(x=>x.baseline.symbol)).size,pairedTradeCount:pairs.length,baseline,patient,delta:{averageNetReturnPct:patient.averageNetReturnPct-baseline.averageNetReturnPct,profitFactor:patient.profitFactor-baseline.profitFactor,averageGivebackPctPoints:patient.averageGivebackPctPoints-baseline.averageGivebackPctPoints,averageCaptureRatio:patient.averageCaptureRatio-baseline.averageCaptureRatio,averageBarsHeld:patient.averageBarsHeld-baseline.averageBarsHeld,winRate:patient.winRate-baseline.winRate},bySetup:{baseline:group(baselineRows,r=>r.setup),patient:group(patientRows,r=>r.setup)},byDirection:{baseline:group(baselineRows,r=>r.direction),patient:group(patientRows,r=>r.direction)},methodology:{strongEntryFrozenQ4:true,exactSameEntriesPaired:true,baselineOccupancyFreezesEntrySet:true,singlePreRegisteredPatientExit:true,noExitThresholdSweep:true,noEntryRetuning:true,noSymbolFiltering:true,freshHoldoutConsumed:false,developmentRemeasurement:true,transactionCostPct:0.05},executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,rssOrderFunctionAllowed:false,liveTradingAllowed:false,paperTradingAllowed:false,automaticPromotionAllowed:false,productionUpdateAllowed:false,overnightHoldingAllowed:false,transmitted:false,edgeClaimAllowed:false,recommendationAllowed:false};
+fs.mkdirSync('artifacts',{recursive:true});fs.writeFileSync('artifacts/phase57-p23-17-exit-quality-recovery-aggregate.json',JSON.stringify(result,null,2));console.log(JSON.stringify(result,null,2));

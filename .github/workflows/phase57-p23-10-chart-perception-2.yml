@@ -1,0 +1,37 @@
+name: Phase57 P23.10 Chart Perception 2
+
+on:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-chart-perception-2.js'
+      - 'predict/tests/p23-10-chart-perception-2.test.mjs'
+      - 'docs/PHASE57_P23_10_CHART_PERCEPTION_2.md'
+      - '.github/workflows/phase57-p23-10-chart-perception-2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  chart-perception-unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run P23.10 chart perception tests
+        run: node predict/tests/p23-10-chart-perception-2.test.mjs
+      - name: Verify research-only safety
+        run: |
+          node --input-type=module <<'NODE'
+          import { PHASE57_CHART_PERCEPTION_SAFETY } from './predict/daytrade/phase57-chart-perception-2.js';
+          for (const key of [
+            'executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed',
+            'liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed'
+          ]) {
+            if (PHASE57_CHART_PERCEPTION_SAFETY[key] !== false) throw new Error(`${key} must remain false`);
+          }
+          console.log('research-only safety verified');
+          NODE

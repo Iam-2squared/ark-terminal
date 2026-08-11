@@ -1,0 +1,57 @@
+name: Phase57 P23.21 Structural Survival Exit
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-structural-survival-exit.js'
+      - 'predict/daytrade/run-phase57-p23-21-structural-survival-exit.mjs'
+      - 'predict/daytrade/aggregate-phase57-p23-21-structural-survival-exit.mjs'
+      - 'predict/tests/p23-21-structural-survival-exit.test.mjs'
+      - '.github/workflows/phase57-p23-21-structural-survival-exit.yml'
+jobs:
+  shard:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        include:
+          - id: 0
+            symbols: '1605.T,1925.T,2502.T,2802.T,3382.T,3402.T,3659.T,4307.T,4452.T,4568.T'
+          - id: 1
+            symbols: '4901.T,5108.T,5401.T,5713.T,5802.T,6146.T,6178.T,6301.T,6326.T,6702.T'
+          - id: 2
+            symbols: '6723.T,6981.T,7182.T,7733.T,7751.T,7832.T,8801.T,9020.T,9101.T,9202.T'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '20'}
+      - name: Test structural survival invariants
+        run: node predict/tests/p23-21-structural-survival-exit.test.mjs
+      - name: Run paired structural survival remeasurement
+        env:
+          PHASE57_SYMBOLS: ${{ matrix.symbols }}
+        run: node predict/daytrade/run-phase57-p23-21-structural-survival-exit.mjs
+      - name: Verify safety and methodology
+        run: node -e "const x=require('./artifacts/phase57-p23-21-structural-survival-exit.json'); for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed','transmitted']) if(x[k]!==false) throw Error(k); if(!x.methodology.strongEntryFrozenQ4||!x.methodology.noThresholdSweep) throw Error('methodology');"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-21-shard-${{ matrix.id }}
+          path: artifacts/phase57-p23-21-structural-survival-exit.json
+  aggregate:
+    needs: shard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '20'}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-p23-21-shard-*
+          path: artifacts/p23-21-shards
+      - name: Aggregate exact paired evidence
+        run: node predict/daytrade/aggregate-phase57-p23-21-structural-survival-exit.mjs artifacts/p23-21-shards
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-21-structural-survival-exit-aggregate
+          path: artifacts/phase57-p23-21-structural-survival-exit-aggregate.json

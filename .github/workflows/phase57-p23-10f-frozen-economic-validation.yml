@@ -1,0 +1,100 @@
+name: Phase57 P23.10F Frozen Economic Validation
+
+on:
+  pull_request:
+    branches:
+      - phase57/p23-8d-frozen-exit-isolation
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  economic-shard:
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        include:
+          - shard: 0
+            symbols: 1801.T,1802.T,1803.T,1808.T,1812.T,2269.T,2282.T,2413.T,2587.T,2768.T
+          - shard: 1
+            symbols: 3092.T,4188.T,5020.T,5201.T,5332.T,5411.T,6503.T,6504.T,6506.T,6508.T
+          - shard: 2
+            symbols: 6701.T,6703.T,6752.T,6753.T,6762.T,6841.T,6857.T,6920.T,6971.T,7012.T
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test frozen economic policy
+        run: node predict/tests/p23-10f-economic-validation.test.mjs
+      - name: Remeasure frozen Q4 economics on fresh-symbol shard
+        env:
+          PHASE57_SYMBOLS: ${{ matrix.symbols }}
+          PHASE57_MIN_HISTORY_BARS: '1600'
+          PHASE57_STEP_BARS: '3'
+          PHASE57_MAX_CONTEXT_BARS: '2600'
+        run: node predict/daytrade/run-phase57-p23-10f-economic-validation.mjs
+      - name: Verify shard methodology and safety
+        env:
+          EXPECTED_SYMBOLS: ${{ matrix.symbols }}
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const p='artifacts/phase57-p23-10f-economic-validation.json';
+          const r=JSON.parse(fs.readFileSync(p,'utf8'));
+          const expected=process.env.EXPECTED_SYMBOLS.split(',').sort();
+          if(r.status!=='FROZEN_CHART_ECONOMIC_VALIDATION_COMPLETE') throw new Error('wrong status');
+          if(JSON.stringify([...r.symbols].sort())!==JSON.stringify(expected)) throw new Error('shard symbol mismatch');
+          if(!r.methodology?.newSymbolsFrozenBeforeOutcomeRetrieval) throw new Error('holdout not frozen');
+          if(!r.methodology?.nextBarOpenEntry) throw new Error('entry timing realism missing');
+          if(!r.methodology?.oneActiveTradePerSymbol) throw new Error('overlap control missing');
+          if(!r.methodology?.p23_8dExitFrozen) throw new Error('exit not frozen');
+          if(r.methodology?.futureOutcomeUsedForSelection!==false) throw new Error('outcome selection leakage');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed','transmitted']) if(r[k]!==false) throw new Error(`${k} must remain false`);
+          if(!(r.aggregate?.tradeCount>0)) throw new Error('no accepted economic trades');
+          NODE
+          mv artifacts/phase57-p23-10f-economic-validation.json artifacts/phase57-p23-10f-economic-shard-${{ matrix.shard }}.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-10f-economic-shard-${{ matrix.shard }}
+          path: artifacts/phase57-p23-10f-economic-shard-${{ matrix.shard }}.json
+          if-no-files-found: error
+
+  aggregate:
+    needs: economic-shard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-p23-10f-economic-shard-*
+          path: artifacts/p23-10f-input
+          merge-multiple: true
+      - name: Aggregate exact economic trade records
+        run: node predict/daytrade/aggregate-phase57-p23-10f-economic-validation.mjs artifacts/p23-10f-input
+      - name: Verify aggregate safety and methodology
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const r=JSON.parse(fs.readFileSync('artifacts/phase57-p23-10f-economic-validation-aggregate.json','utf8'));
+          if(r.status!=='FROZEN_CHART_ECONOMIC_VALIDATION_AGGREGATED') throw new Error('wrong aggregate status');
+          if(r.symbolCount!==30) throw new Error(`expected 30 symbols, got ${r.symbolCount}`);
+          if(r.shardCount!==3) throw new Error(`expected 3 shards, got ${r.shardCount}`);
+          if(!r.methodology?.exactFrozenEconomicUniverse) throw new Error('universe integrity failed');
+          if(!r.methodology?.ratiosRecomputedFromTradeRecords) throw new Error('ratio recomputation required');
+          if(r.methodology?.untouchedTemporalOos!==false) throw new Error('must not mislabel temporal OOS');
+          if(r.edgeClaimAllowed!==false || r.recommendationAllowed!==false || r.transmitted!==false) throw new Error('research-only flags violated');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed']) if(r[k]!==false) throw new Error(`${k} must remain false`);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-10f-frozen-economic-validation
+          path: artifacts/phase57-p23-10f-economic-validation-aggregate.json
+          if-no-files-found: error

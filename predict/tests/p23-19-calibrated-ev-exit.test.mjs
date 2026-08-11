@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {estimateRawExitDistribution,calibrateContinuationProbability,decideCalibratedEvExit,P23_19_POLICY} from '../daytrade/phase57-calibrated-ev-exit.js';
+const state={currentReturnPct:0.2,bestReturnPct:0.5,givebackPctPoints:0.3,atrPct:0.4,momentumPct:-0.1,bodyPressure:-0.4,directionalRangePos:0.7};
+const pool=[];for(let i=0;i<40;i++)pool.push({setup:'BREAKOUT_CONTINUATION_UP',direction:'UP',sessionDate:'2026-08-01',fullyRealizedAt:`2026-08-01T0${i%9}:00:00Z`,state,nextDirectionalReturnPct:i<28?-0.2:0.15});
+const query={setup:'BREAKOUT_CONTINUATION_UP',direction:'UP',sessionDate:'2026-08-10',timestamp:'2026-08-10T01:00:00Z',state};
+const raw=estimateRawExitDistribution(query,pool);assert.equal(raw.ready,true);assert.equal(raw.neighborCount,40);
+const futureOnly=estimateRawExitDistribution(query,pool.map(x=>({...x,sessionDate:'2026-08-10'})));assert.equal(futureOnly.ready,false);
+const calibration=[];for(let i=0;i<40;i++)calibration.push({setup:query.setup,direction:'UP',sessionDate:'2026-08-02',fullyRealizedAt:'2026-08-02T03:00:00Z',rawPContinuation:raw.rawPContinuation,actualContinuation:i<8?1:0});
+const cal=calibrateContinuationProbability(raw.rawPContinuation,query,calibration);assert.equal(cal.ready,true);assert.ok(cal.pReversal>0.5);const decision=decideCalibratedEvExit({raw,calibration:cal});assert.equal(decision.ready,true);assert.equal(P23_19_POLICY.thresholdSearchAllowed,false);assert.equal(P23_19_POLICY.outcomeTuningAllowed,false);
+const sameSession=calibrateContinuationProbability(raw.rawPContinuation,query,calibration.map(x=>({...x,sessionDate:'2026-08-10'})));assert.equal(sameSession.ready,false);
+console.log('P23.19 calibrated EV exit tests passed');

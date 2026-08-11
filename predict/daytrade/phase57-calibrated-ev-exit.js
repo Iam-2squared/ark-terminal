@@ -13,6 +13,7 @@ export const P23_19_POLICY=Object.freeze({
   confidenceZ:1.645,
   exactSetup:true,
   exactDirection:true,
+  priorSessionAnalogOnly:true,
   priorSessionCalibrationOnly:true,
   fullyRealizedHistoricalLabelsOnly:true,
   decisionRule:'EXIT only if calibrated reversal lower-90% > 0.50 and calibrated expected next-15m directional return < 0; otherwise HOLD',
@@ -34,6 +35,7 @@ export function estimateRawExitDistribution(query,pool,policy=P23_19_POLICY){
   const rows=(pool??[]).filter(x=>{
     if(policy.exactSetup&&x.setup!==query.setup)return false;
     if(policy.exactDirection&&x.direction!==query.direction)return false;
+    if(policy.priorSessionAnalogOnly&&String(x.sessionDate)>=String(query.sessionDate))return false;
     if(policy.fullyRealizedHistoricalLabelsOnly&&String(x.fullyRealizedAt)>=String(query.timestamp))return false;
     return x.state&&finite(x.nextDirectionalReturnPct);
   }).map(x=>({...x,d:stateDistance(query.state,x.state)})).sort((a,b)=>a.d-b.d).slice(0,policy.maxNeighbors);
@@ -42,18 +44,11 @@ export function estimateRawExitDistribution(query,pool,policy=P23_19_POLICY){
   const a=policy.betaPriorAlpha+pos.length,b=policy.betaPriorBeta+neg.length+flat;
   const rawPContinuation=a/(a+b);
   return Object.freeze({
-    ready:true,
-    neighborCount:rows.length,
-    rawPContinuation,
-    rawPReversal:1-rawPContinuation,
+    ready:true,neighborCount:rows.length,rawPContinuation,rawPReversal:1-rawPContinuation,
     meanContinuationReturnPct:pos.length?mean(pos.map(x=>x.nextDirectionalReturnPct)):0,
     meanReversalReturnPct:neg.length?mean(neg.map(x=>x.nextDirectionalReturnPct)):0,
-    rawExpectedReturnPct:mean(rows.map(x=>x.nextDirectionalReturnPct)),
-    nearestDistance:rows[0]?.d??null,
-    furthestDistance:rows.at(-1)?.d??null,
-    positiveCount:pos.length,
-    negativeCount:neg.length,
-    flatCount:flat,
+    rawExpectedReturnPct:mean(rows.map(x=>x.nextDirectionalReturnPct)),nearestDistance:rows[0]?.d??null,furthestDistance:rows.at(-1)?.d??null,
+    positiveCount:pos.length,negativeCount:neg.length,flatCount:flat,
   });
 }
 
@@ -67,8 +62,7 @@ export function calibrateContinuationProbability(rawP,query,calibrationRows,poli
     return Math.abs(Number(r.rawPContinuation)-Number(rawP))<=policy.calibrationHalfWidth;
   });
   if(eligible.length<policy.minCalibrationRows)return Object.freeze({ready:false,count:eligible.length,reason:'INSUFFICIENT_PRIOR_CALIBRATION'});
-  const successes=eligible.filter(r=>Number(r.actualContinuation)===1).length;
-  const failures=eligible.length-successes;
+  const successes=eligible.filter(r=>Number(r.actualContinuation)===1).length,failures=eligible.length-successes;
   const alpha=policy.betaPriorAlpha+successes,beta=policy.betaPriorBeta+failures;
   const pContinuation=alpha/(alpha+beta),pReversal=1-pContinuation;
   const se=Math.sqrt(pReversal*(1-pReversal)/(alpha+beta+1));
@@ -86,16 +80,7 @@ export function decideCalibratedEvExit({raw,calibration}){
   if(!calibration?.ready)return Object.freeze({decision:'HOLD',ready:false,reason:calibration?.reason??'CALIBRATION_NOT_READY'});
   const expectedReturnPct=calibratedExpectedValue(raw,calibration);
   const exit=Number(calibration.lowerReversal90)>0.50&&Number(expectedReturnPct)<0;
-  return Object.freeze({
-    decision:exit?'EXIT':'HOLD',ready:true,
-    reason:exit?'CALIBRATED_REVERSAL_EV_CONFIRMED':'HOLD_EDGE_NOT_BROKEN',
-    expectedReturnPct,
-    pContinuation:calibration.pContinuation,
-    pReversal:calibration.pReversal,
-    lowerReversal90:calibration.lowerReversal90,
-    rawPContinuation:raw.rawPContinuation,
-    calibrationCount:calibration.count,
-  });
+  return Object.freeze({decision:exit?'EXIT':'HOLD',ready:true,reason:exit?'CALIBRATED_REVERSAL_EV_CONFIRMED':'HOLD_EDGE_NOT_BROKEN',expectedReturnPct,pContinuation:calibration.pContinuation,pReversal:calibration.pReversal,lowerReversal90:calibration.lowerReversal90,rawPContinuation:raw.rawPContinuation,calibrationCount:calibration.count});
 }
 
 export function summarizeCalibration(rows=[]){
@@ -103,11 +88,7 @@ export function summarizeCalibration(rows=[]){
   if(!valid.length)return {count:0,brier:null,ece:null,bins:[]};
   const brier=mean(valid.map(r=>(Number(r.pContinuation)-Number(r.actualContinuation))**2));
   const bins=[];
-  for(let lo=0;lo<1;lo+=0.1){
-    const hi=lo+0.1;
-    const xs=valid.filter(r=>Number(r.pContinuation)>=lo&&(hi>=1?Number(r.pContinuation)<=hi:Number(r.pContinuation)<hi));
-    if(xs.length)bins.push({bin:`${lo.toFixed(1)}-${hi.toFixed(1)}`,count:xs.length,meanPredicted:mean(xs.map(r=>r.pContinuation)),actualRate:mean(xs.map(r=>r.actualContinuation))});
-  }
+  for(let lo=0;lo<1;lo+=0.1){const hi=lo+0.1;const xs=valid.filter(r=>Number(r.pContinuation)>=lo&&(hi>=1?Number(r.pContinuation)<=hi:Number(r.pContinuation)<hi));if(xs.length)bins.push({bin:`${lo.toFixed(1)}-${hi.toFixed(1)}`,count:xs.length,meanPredicted:mean(xs.map(r=>r.pContinuation)),actualRate:mean(xs.map(r=>r.actualContinuation))});}
   const ece=bins.reduce((s,b)=>s+(b.count/valid.length)*Math.abs(b.meanPredicted-b.actualRate),0);
   return {count:valid.length,brier,ece,bins};
 }

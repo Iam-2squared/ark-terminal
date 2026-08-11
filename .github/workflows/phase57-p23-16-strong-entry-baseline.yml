@@ -1,0 +1,91 @@
+name: Phase57 P23.16 Strong Entry Baseline
+
+on:
+  pull_request:
+    branches:
+      - phase57/p23-8d-frozen-exit-isolation
+    paths:
+      - 'predict/daytrade/aggregate-phase57-p23-16-strong-entry-baseline.mjs'
+      - '.github/workflows/phase57-p23-16-strong-entry-baseline.yml'
+      - 'predict/daytrade/run-phase57-chart-setup-quality-remeasurement.mjs'
+      - 'predict/daytrade/phase57-chart-setup-quality.js'
+      - 'predict/daytrade/phase57-chart-quality-holdout-universe.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-shard:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        include:
+          - shard: 0
+            symbols: '1605.T,1925.T,2502.T,2802.T,3382.T,3402.T,3659.T,4307.T,4452.T,4568.T'
+          - shard: 1
+            symbols: '4901.T,5108.T,5401.T,5713.T,5802.T,6146.T,6178.T,6301.T,6326.T,6702.T'
+          - shard: 2
+            symbols: '6723.T,6981.T,7182.T,7733.T,7751.T,7832.T,8801.T,9020.T,9101.T,9202.T'
+    env:
+      PHASE57_SYMBOLS: ${{ matrix.symbols }}
+      PHASE57_MIN_HISTORY_BARS: '1600'
+      PHASE57_STEP_BARS: '3'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Rebuild frozen P23.10E quality records
+        run: node predict/daytrade/run-phase57-chart-setup-quality-remeasurement.mjs
+      - name: Verify no research boundary drift
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const r=JSON.parse(fs.readFileSync('artifacts/phase57-p23-10d-setup-quality.json','utf8'));
+          const expected=process.env.PHASE57_SYMBOLS.split(',');
+          if(JSON.stringify(r.symbols)!==JSON.stringify(expected)) throw new Error('symbol mismatch');
+          if(r.methodology?.futureOutcomesEvaluationOnly!==true) throw new Error('future outcome boundary changed');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed']) if(r[k]!==false) throw new Error(`${k} must remain false`);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-16-source-${{ matrix.shard }}
+          path: artifacts/phase57-p23-10d-setup-quality.json
+          if-no-files-found: error
+
+  aggregate:
+    runs-on: ubuntu-24.04
+    needs: source-shard
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-p23-16-source-*
+          path: artifacts/p23-16-shards
+      - name: Aggregate restored strong-entry baseline
+        run: node predict/daytrade/aggregate-phase57-p23-16-strong-entry-baseline.mjs artifacts/p23-16-shards
+      - name: Verify restored-baseline methodology and safety
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const r=JSON.parse(fs.readFileSync('artifacts/phase57-p23-16-strong-entry-baseline.json','utf8'));
+          if(r.status!=='STRONG_ENTRY_BASELINE_REMEASURED') throw new Error('wrong status');
+          if(r.symbolCount!==30) throw new Error('expected 30 symbols');
+          if(r.methodology?.freshHoldoutConsumed!==false || r.methodology?.outcomeBasedRetuningAllowed!==false) throw new Error('methodology drift');
+          if(r.methodology?.setupRulesFrozen!==true || r.methodology?.qualityScoreFrozen!==true || r.methodology?.q4ThresholdFrozen!==true) throw new Error('entry baseline not frozen');
+          if(r.edgeClaimAllowed!==false || r.recommendationAllowed!==false || r.transmitted!==false) throw new Error('research boundary violation');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed']) if(r[k]!==false) throw new Error(`${k} must remain false`);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-16-strong-entry-baseline
+          path: artifacts/phase57-p23-16-strong-entry-baseline.json
+          if-no-files-found: error

@@ -6,6 +6,7 @@ on:
       - phase57/p23-8d-frozen-exit-isolation
     paths:
       - 'predict/daytrade/run-phase57-p23-17-exit-quality-recovery.mjs'
+      - 'predict/daytrade/aggregate-phase57-p23-17-exit-quality-recovery.mjs'
       - 'predict/tests/p23-17-exit-quality-recovery.test.mjs'
       - '.github/workflows/phase57-p23-17-exit-quality-recovery.yml'
   workflow_dispatch:
@@ -56,4 +57,33 @@ jobs:
         with:
           name: phase57-p23-17-exit-shard-${{ matrix.shard }}
           path: artifacts/phase57-p23-17-exit-quality-recovery.json
+          if-no-files-found: error
+
+  aggregate:
+    needs: paired-exit-shard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-p23-17-exit-shard-*
+          path: artifacts/p23-17-shards
+      - name: Aggregate paired exit evidence
+        run: node predict/daytrade/aggregate-phase57-p23-17-exit-quality-recovery.mjs artifacts/p23-17-shards
+      - name: Verify aggregate safety
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const r=JSON.parse(fs.readFileSync('artifacts/phase57-p23-17-exit-quality-recovery-aggregate.json','utf8'));
+          if(r.status!=='STRONG_ENTRY_PAIRED_EXIT_REMEASUREMENT_AGGREGATED') throw new Error('wrong aggregate status');
+          if(r.methodology?.exactSameEntriesPaired!==true || r.methodology?.noExitThresholdSweep!==true) throw new Error('aggregate methodology violation');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed','transmitted']) if(r[k]!==false) throw new Error(`${k} must remain false`);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-17-exit-quality-recovery
+          path: artifacts/phase57-p23-17-exit-quality-recovery-aggregate.json
           if-no-files-found: error

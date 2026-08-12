@@ -1,0 +1,16 @@
+import {fitDynamicModel,scoreDynamic,walkForwardDynamic,orderingAuc} from './phase57-dynamic-walkforward-risk.js';
+import {fitCdfContrastModel,scoreCdfContrast,walkForwardCdfContrastExact} from './phase57-prior-cdf-contrast-risk.js';
+
+export const P23_49_POLICY=Object.freeze({phase:'57.p23.49',priorSessionsOnly:true,baselineCoveragePreserved:true,fullPriorAndLeaveSymbolOutConsensus:true,gateUsesCurrentOos:false,thresholdSearchAllowed:false,exitPolicyChangeAllowed:false,entryRetuningAllowed:false,symbolFilteringAllowed:false,freshHoldoutConsumed:false,purpose:'TEST_CONSENSUS_GATE_REQUIRING_FULL_PRIOR_AND_LEAVE_SYMBOL_OUT_P2344_SUPPORT'});
+const key=r=>`${r.symbol}|${r.setup}|${r.direction}|${r.timestamp}|${r.offsetBars}`;
+function evidence(hist=[]){const b=walkForwardDynamic(hist);if(b.length<8)return{family:'P2330',baselineAuc:null,cdfAuc:null,evidenceCount:b.length};const c=walkForwardCdfContrastExact(hist,b).rows,ba=orderingAuc(b),ca=orderingAuc(c);if(!Number.isFinite(ba)||!Number.isFinite(ca))return{family:'P2330',baselineAuc:ba,cdfAuc:ca,evidenceCount:b.length};return{family:ca>ba?'P2344':'P2330',baselineAuc:ba,cdfAuc:ca,evidenceCount:b.length};}
+export function walkForwardConsensusPriorFamilyGatedExact(rows=[],baselineRows=[]){
+ const xs=[...rows].sort((a,b)=>a.timestamp.localeCompare(b.timestamp)||a.symbol.localeCompare(b.symbol)),byKey=new Map(xs.map(r=>[key(r),r])),cache=new Map(),out=[];let cdfSelectedCount=0,baselineSelectedCount=0,baselinePreservedCount=0;
+ for(const b of baselineRows){const q=byKey.get(key(b));if(!q){out.push({...b,scoreSource:'EXACT_P23_30_BASELINE'});baselinePreservedCount++;continue;}
+  const hist=xs.filter(r=>r.setup===q.setup&&r.direction===q.direction&&r.sessionDate<q.sessionDate&&String(r.fullyRealizedAt)<String(q.timestamp));const loo=hist.filter(r=>r.symbol!==q.symbol);const gk=`${q.setup}|${q.direction}|${q.symbol}|${q.sessionDate}`;let g=cache.get(gk);if(!g){g={full:evidence(hist),loo:evidence(loo)};cache.set(gk,g);}
+  const useCdf=g.full.family==='P2344'&&g.loo.family==='P2344';
+  if(useCdf){const m=fitCdfContrastModel(hist),riskScore=scoreCdfContrast(q,m);if(Number.isFinite(riskScore)){out.push({...b,riskScore,scoreSource:'CONSENSUS_PRIOR_GATE_P2344',gateFullBaselineAuc:g.full.baselineAuc,gateFullCdfAuc:g.full.cdfAuc,gateLooBaselineAuc:g.loo.baselineAuc,gateLooCdfAuc:g.loo.cdfAuc});cdfSelectedCount++;continue;}}
+  const m=fitDynamicModel(hist),riskScore=scoreDynamic(q,m);if(Number.isFinite(riskScore)){out.push({...b,riskScore,scoreSource:'CONSENSUS_PRIOR_GATE_P2330',gateFullBaselineAuc:g.full.baselineAuc,gateFullCdfAuc:g.full.cdfAuc,gateLooBaselineAuc:g.loo.baselineAuc,gateLooCdfAuc:g.loo.cdfAuc});baselineSelectedCount++;}else{out.push({...b,scoreSource:'EXACT_P23_30_BASELINE'});baselinePreservedCount++;}
+ }
+ if(out.length!==baselineRows.length)throw Error('P23.49 baseline coverage changed');return{rows:out,cdfSelectedCount,baselineSelectedCount,baselinePreservedCount};
+}

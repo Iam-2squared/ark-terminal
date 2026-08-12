@@ -1,0 +1,32 @@
+name: Phase57 P23.47 Byte-Frozen Stability
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'predict/daytrade/aggregate-phase57-p23-47-byte-frozen-stability.mjs'
+      - '.github/workflows/phase57-p23-47-byte-frozen-stability.yml'
+jobs:
+  stability:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '20'}
+      - name: Download exact P23.46 replay outputs
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-p23-46-result-*
+          path: artifacts/p23-47-results
+          run-id: 31578843981
+          github-token: ${{ github.token }}
+      - name: Audit P23.45 cross-shard stability without retuning
+        run: node predict/daytrade/aggregate-phase57-p23-47-byte-frozen-stability.mjs artifacts/p23-47-results
+      - name: Verify safety and untouched holdout
+        run: node -e "const x=require('./artifacts/phase57-p23-47-byte-frozen-stability.json');if(x.methodology.freshHoldoutConsumed)throw Error('holdout consumed');for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted'])if(x[k]!==false)throw Error(k);"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-47-byte-frozen-stability
+          path: artifacts/phase57-p23-47-byte-frozen-stability.json

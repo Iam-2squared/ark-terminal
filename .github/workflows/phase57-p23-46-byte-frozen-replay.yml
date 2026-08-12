@@ -46,7 +46,7 @@ jobs:
           ID: ${{ matrix.id }}
         run: |
           cmp artifacts/p23-46-capture-${ID}.json artifacts/p23-46-replay-${ID}.json
-          node -e "const fs=require('fs');const id=process.env.ID;const x=require('./artifacts/p23-46-replay-'+id+'.json');const s=require('./artifacts/p23-46-snapshot-'+id+'.json');if(!x.methodology.fixedAbsoluteWindow||!x.methodology.priorSessionsOnly||x.methodology.freshHoldoutConsumed)throw Error('methodology');if(s.responseCount<1||s.freshUntouchedHoldoutConsumed)throw Error('snapshot');for(const o of [x,s])for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted'])if(o[k]!==false)throw Error(k);"
+          node -e "const id=process.env.ID;const x=require('./artifacts/p23-46-replay-'+id+'.json');const s=require('./artifacts/p23-46-snapshot-'+id+'.json');if(!x.models.p2348)throw Error('p2348 missing from shard');if(!x.methodology.fixedAbsoluteWindow||!x.methodology.priorSessionsOnly||x.methodology.freshHoldoutConsumed)throw Error('methodology');if(s.responseCount<1||s.freshUntouchedHoldoutConsumed)throw Error('snapshot');for(const o of [x,s])for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted'])if(o[k]!==false)throw Error(k);"
       - name: Stage replay result
         env:
           ID: ${{ matrix.id }}
@@ -74,8 +74,8 @@ jobs:
           path: artifacts/p23-46-results
       - name: Aggregate replay-only benchmark
         run: node predict/daytrade/aggregate-phase57-p23-42-frozen-development-benchmark.mjs artifacts/p23-46-results
-      - name: Verify P23.45 is present and execution remains disabled
-        run: node -e "const x=require('./artifacts/phase57-p23-42-frozen-development-benchmark-aggregate.json');if(!x.models.p2345)throw Error('p2345 missing');for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted'])if(x[k]!==false)throw Error(k);"
+      - name: Verify P23.45/P23.48 are present and execution remains disabled
+        run: node -e "const x=require('./artifacts/phase57-p23-42-frozen-development-benchmark-aggregate.json');if(!x.models.p2345)throw Error('p2345 missing');if(!x.models.p2348)throw Error('p2348 missing');for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted'])if(x[k]!==false)throw Error(k);"
       - uses: actions/upload-artifact@v4
         with:
           name: phase57-p23-46-byte-frozen-replay-aggregate

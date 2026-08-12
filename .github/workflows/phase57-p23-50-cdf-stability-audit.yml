@@ -1,0 +1,32 @@
+name: Phase57 P23.50 CDF Stability Audit
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'predict/daytrade/aggregate-phase57-p23-50-cdf-stability-audit.mjs'
+      - '.github/workflows/phase57-p23-50-cdf-stability-audit.yml'
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '20'}
+      - name: Download exact byte-frozen replay shards
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-p23-46-result-*
+          path: artifacts/p23-50-results
+          run-id: 31624826460
+          github-token: ${{ github.token }}
+      - name: Audit P23.44 against P23.30
+        run: node predict/daytrade/aggregate-phase57-p23-50-cdf-stability-audit.mjs artifacts/p23-50-results
+      - name: Verify safety and development-only status
+        run: node -e "const x=require('./artifacts/phase57-p23-50-byte-frozen-cdf-stability-audit.json');if(!x.developmentImprovementConfirmed||x.promotionCandidate||x.methodology.freshHoldoutConsumed)throw Error('audit gate');for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted'])if(x[k]!==false)throw Error(k);"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-50-byte-frozen-cdf-stability-audit
+          path: artifacts/phase57-p23-50-byte-frozen-cdf-stability-audit.json

@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {P23_41_POLICY,directionAdaptiveFeatureModel} from '../daytrade/phase57-direction-adaptive-stability-risk.js';
+const f=(weight,polarity=1)=>({weight,polarity,midpoint:0,sd:1});
+const full={ready:true,n:100,features:{x:f(1),y:f(.6)},weightSum:1.6};
+const recent={ready:true,n:60,features:{x:f(.5),y:f(.3)},weightSum:.8};
+const m=directionAdaptiveFeatureModel(full,recent);assert.ok(m?.ready);assert.equal(m.stableFeatureCount,2);assert.ok(m.meanReliability>0&&m.meanReliability<=1);assert.ok(m.directionInstability>=0&&m.directionInstability<1);assert.ok(m.features.x.weight<=full.features.x.weight);assert.ok(m.features.x.weight>=full.features.x.weight*.5);assert.ok(m.features.y.weight<=full.features.y.weight);assert.ok(m.features.y.weight>=full.features.y.weight*.5);
+const disagree=directionAdaptiveFeatureModel(full,{...recent,features:{x:f(.5,-1),y:f(.3,-1)}});assert.equal(disagree,null);
+for(const k of ['thresholdSearchAllowed','selectionAllowed','exitPolicyChangeAllowed','entryRetuningAllowed','symbolFilteringAllowed','freshHoldoutConsumed'])assert.equal(P23_41_POLICY[k],false);
+assert.equal(P23_41_POLICY.priorSessionsOnly,true);assert.equal(P23_41_POLICY.baselineCoveragePreserved,true);assert.equal(P23_41_POLICY.directionAdaptiveShrinkage,true);assert.equal(P23_41_POLICY.continuousNoThreshold,true);
+console.log('P23.41 direction-adaptive stability invariants: OK');

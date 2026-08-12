@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import {combineConditionalTrustedFallback,fallbackTrustEvidence,P23_34_POLICY,p2334Key} from '../daytrade/phase57-conditional-trusted-fallback-risk.js';
+
+const base=(symbol,score,extra={})=>({symbol,setup:'A',direction:'DOWN',timestamp:`2026-08-01T0${symbol.length}:00:00.000Z`,offsetBars:2,riskScore:score,actual:0,nextDirectionalReturnPct:0,...extra});
+const exactA=base('X',.7),exactB=base('YY',-.2);
+const trusted=base('ZZZ',.4,{exactReady:false,directionReady:true,directionScore:.45,directionHistoryCount:60,directionInvalidatedCount:20,directionSurvivedCount:40});
+const thin=base('WWWW',.9,{exactReady:false,directionReady:true,directionScore:.9,directionHistoryCount:20,directionInvalidatedCount:9,directionSurvivedCount:11});
+const imbalanced=base('VVVVV',.6,{exactReady:false,directionReady:true,directionScore:.6,directionHistoryCount:80,directionInvalidatedCount:4,directionSurvivedCount:76});
+const overlap={...exactA,riskScore:-9,exactReady:false,directionReady:true,directionScore:-9,directionHistoryCount:100,directionInvalidatedCount:30,directionSurvivedCount:70};
+
+const out=combineConditionalTrustedFallback([exactA,exactB],[overlap,trusted,thin,imbalanced]);
+assert.equal(out.exactCount,2);
+assert.equal(out.fallbackCandidateCount,3);
+assert.equal(out.trustedFallbackCount,1);
+assert.equal(out.rejectedFallbackCount,2);
+assert.equal(out.rows.length,3);
+const byKey=new Map(out.rows.map(r=>[p2334Key(r),r]));
+assert.equal(byKey.get(p2334Key(exactA)).riskScore,.7);
+assert.equal(byKey.get(p2334Key(exactA)).scoreSource,'EXACT_P23_30');
+assert.equal(byKey.get(p2334Key(trusted)).riskScore,.45);
+assert.equal(byKey.get(p2334Key(trusted)).scoreSource,'TRUSTED_DIRECTION_FALLBACK');
+assert.equal(byKey.has(p2334Key(thin)),false);
+assert.equal(byKey.has(p2334Key(imbalanced)),false);
+assert.equal(fallbackTrustEvidence(trusted).trusted,true);
+assert.equal(fallbackTrustEvidence(thin).trusted,false);
+assert.equal(fallbackTrustEvidence(imbalanced).trusted,false);
+for(const k of ['thresholdSearchAllowed','selectionAllowed','exitPolicyChangeAllowed','entryRetuningAllowed','symbolFilteringAllowed','freshHoldoutConsumed'])assert.equal(P23_34_POLICY[k],false);
+assert.equal(P23_34_POLICY.priorSessionsOnly,true);
+assert.equal(P23_34_POLICY.exactP2330Preserved,true);
+assert.equal(P23_34_POLICY.fallbackOnlyWhenExactUnavailable,true);
+console.log('P23.34 conditional trusted fallback invariants: OK');

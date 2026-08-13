@@ -1,0 +1,39 @@
+name: Phase57 P24 Risk Conditioned Integration
+on:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-p24-p2350-risk-bridge.js'
+      - 'predict/daytrade/run-phase57-p24-risk-conditioned-integration.mjs'
+      - 'predict/tests/p24-6-risk-bridge.test.mjs'
+      - '.github/workflows/phase57-p24-risk-conditioned.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run P24.6 P23.50 risk-conditioned integration
+        env:
+          PHASE57_SCOPE: COMBINED
+          PHASE57_DATA_END: '2026-08-12T06:30:00.000Z'
+        run: node predict/daytrade/run-phase57-p24-risk-conditioned-integration.mjs
+      - name: Verify methodology and fail-closed safety
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const x=JSON.parse(fs.readFileSync('artifacts/phase57-p24-risk-conditioned-COMBINED.json','utf8'));
+          if(!x.methodology?.entryAndHorizonFrozen||!x.methodology?.p23RiskPriorSessionsOnly||x.methodology?.parameterSweep||x.methodology?.postHocSymbolFiltering||x.methodology?.freshHoldoutConsumed)throw Error('P24.6 methodology violation');
+          if(x.methodology?.riskTriggerQuantile!==0.75)throw Error('risk quantile changed');
+          if(!(x.entryRows>0)||!(x.dynamicTrainingRows>0))throw Error('missing research rows');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted'])if(x.safety?.[k]!==false)throw Error(k);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p24-risk-conditioned
+          path: artifacts/phase57-p24-risk-conditioned-COMBINED.json

@@ -1,0 +1,15 @@
+name: Phase57 P23.51 Fresh Holdout Policy
+on:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-p23-51-fresh-holdout-policy.js'
+      - '.github/workflows/phase57-p23-51-fresh-holdout-policy.yml'
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '20'}
+      - name: Verify frozen holdout policy and safety
+        run: node --input-type=module -e "import {P23_51_FRESH_HOLDOUT_POLICY as p,assertP2351Safety} from './predict/daytrade/phase57-p23-51-fresh-holdout-policy.js';assertP2351Safety(p);if(p.candidate!=='P23.44_CDF_CONTRAST'||p.baseline!=='P23.30_DYNAMIC_RISK')throw Error('candidate/baseline changed');if(p.minimumCompletedSessions!==10||p.minimumScoredRows!==100||p.minimumRowsPerDirection!==20)throw Error('pre-registered sample gates changed');console.log(JSON.stringify(p,null,2));"

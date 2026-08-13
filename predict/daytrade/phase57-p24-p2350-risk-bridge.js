@@ -20,7 +20,7 @@ export const P24_6_POLICY=Object.freeze({
 });
 
 const finite=x=>Number.isFinite(Number(x));
-const qkey=r=>`${r.setup}|${r.direction}`;
+const quantile=(xs,q)=>{const z=xs.filter(Number.isFinite).sort((a,b)=>a-b);if(z.length<20)return{value:null,n:z.length};const i=Math.max(0,Math.min(z.length-1,Math.ceil(q*z.length)-1));return{value:z[i],n:z.length};};
 function evidence(hist=[]){
   const b=walkForwardDynamic(hist);
   if(b.length<8)return{family:'P2330',baselineAuc:null,cdfAuc:null,evidenceCount:b.length};
@@ -35,25 +35,16 @@ export function scoreP2350PriorQuery(query,allHistoricalRows=[]){
   );
   const loo=hist.filter(r=>r.symbol!==query.symbol),pooledEvidence=evidence(hist),looEvidence=evidence(loo);
   const useCdf=pooledEvidence.family==='P2344'&&looEvidence.family==='P2344';
-  let score=null,family='P2330';
-  if(useCdf){const m=fitCdfContrastModel(hist);score=scoreCdfContrast(query,m);family='P2344';}
-  if(!finite(score)){const m=fitDynamicModel(hist);score=scoreDynamic(query,m);family='P2330';}
-  return{riskScore:finite(score)?Number(score):null,family,historyCount:hist.length,pooledEvidence,looEvidence};
+  let score=null,family='P2330',model=null,scoreFn=null;
+  if(useCdf){model=fitCdfContrastModel(hist);score=scoreCdfContrast(query,model);scoreFn=scoreCdfContrast;family='P2344';}
+  if(!finite(score)){model=fitDynamicModel(hist);score=scoreDynamic(query,model);scoreFn=scoreDynamic;family='P2330';}
+  const priorScores=model?.ready&&scoreFn?hist.map(r=>scoreFn(r,model)).map(Number).filter(Number.isFinite):[];
+  const threshold=quantile(priorScores,P24_6_POLICY.riskTriggerQuantile);
+  return{riskScore:finite(score)?Number(score):null,family,historyCount:hist.length,pooledEvidence,looEvidence,riskThreshold:threshold.value,thresholdHistoryCount:threshold.n};
 }
 
-export function buildPriorRiskThresholds(scoredHistoricalRows=[],quantile=P24_6_POLICY.riskTriggerQuantile){
-  const groups=new Map();
-  for(const r of scoredHistoricalRows){if(!finite(r.riskScore))continue;const k=qkey(r);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r);}
-  return function thresholdFor(query){
-    const xs=(groups.get(qkey(query))||[]).filter(r=>r.sessionDate<query.sessionDate&&String(r.timestamp)<String(query.timestamp)).map(r=>Number(r.riskScore)).filter(Number.isFinite).sort((a,b)=>a-b);
-    if(xs.length<20)return{threshold:null,n:xs.length};
-    const i=Math.max(0,Math.min(xs.length-1,Math.ceil(quantile*xs.length)-1));
-    return{threshold:xs[i],n:xs.length};
-  };
-}
-
-export function riskConditionedExitDecision({query,allHistoricalRows,thresholdFor}){
-  const scored=scoreP2350PriorQuery(query,allHistoricalRows),t=thresholdFor(query);
-  const triggered=finite(scored.riskScore)&&finite(t.threshold)&&scored.riskScore>=t.threshold;
-  return Object.freeze({...scored,riskThreshold:t.threshold,thresholdHistoryCount:t.n,triggered});
+export function riskConditionedExitDecision({query,allHistoricalRows}){
+  const scored=scoreP2350PriorQuery(query,allHistoricalRows);
+  const triggered=finite(scored.riskScore)&&finite(scored.riskThreshold)&&scored.riskScore>=scored.riskThreshold;
+  return Object.freeze({...scored,triggered});
 }

@@ -1,0 +1,38 @@
+name: Phase57 P24 Historical Integrated Backtest
+on:
+  pull_request:
+    paths:
+      - 'predict/daytrade/run-phase57-p24-historical-integrated-backtest.mjs'
+      - 'predict/daytrade/phase57-p24-integrated-trade-evaluator.js'
+      - 'predict/daytrade/phase57-trade-management-state-machine.js'
+      - '.github/workflows/phase57-p24-historical-integrated.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run P24.2 historical integrated backtest
+        env:
+          PHASE57_SCOPE: COMBINED
+        run: node predict/daytrade/run-phase57-p24-historical-integrated-backtest.mjs
+      - name: Fail closed safety guard
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const x=JSON.parse(fs.readFileSync('artifacts/phase57-p24-historical-integrated-COMBINED.json','utf8'));
+          const forbidden=['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed'];
+          for(const k of forbidden) if(x.safety?.[k]!==false) throw new Error(`${k} must remain false`);
+          if(x.safety?.freshHoldoutConsumed!==false) throw new Error('fresh holdout must remain untouched');
+          if(!(x.entryRows>0)) throw new Error('no frozen historical entry rows were integrated');
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p24-historical-integrated
+          path: artifacts/phase57-p24-historical-integrated-COMBINED.json

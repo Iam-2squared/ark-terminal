@@ -1,0 +1,182 @@
+name: Phase57 P23.8D Frozen Exit Isolation
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-p23-8-frozen-outer-trades.json'
+      - 'predict/daytrade/phase57-frozen-ratchet-exit.js'
+      - 'predict/daytrade/run-phase57-frozen-exit-isolation-shard.mjs'
+      - 'predict/tests/p23-8d-frozen-ratchet-exit.test.mjs'
+      - '.github/workflows/phase57-frozen-exit-isolation.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  frozen-exit-shard:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: 0
+            artifact_id: 9060006163
+          - shard: 1
+            artifact_id: 9060012597
+          - shard: 2
+            artifact_id: 9059646754
+    name: frozen-exit-shard-${{ matrix.shard }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PHASE57_SHARD_INDEX: ${{ matrix.shard }}
+      PHASE57_FROZEN_ARTIFACT_DIR: frozen-source
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download exact frozen P23.8 source artifact
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ matrix.artifact_id }}
+          run-id: 31379583578
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: frozen-source
+
+      - name: Run frozen-entry ratchet exit isolation
+        run: node predict/daytrade/run-phase57-frozen-exit-isolation-shard.mjs
+
+      - name: Verify frozen-entry and research-only integrity
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const shard = Number(process.env.PHASE57_SHARD_INDEX) + 1;
+          const path = `artifacts/phase57-p23-8d-frozen-exit-shard-${shard}.json`;
+          if (!fs.existsSync(path)) throw new Error(`missing P23.8D artifact: ${path}`);
+          const data = JSON.parse(fs.readFileSync(path, 'utf8'));
+          if (data.frozenSource?.exactTradeCountReconciled !== true) throw new Error('frozen trade count did not reconcile');
+          if (data.frozenSource?.baselineReplayExact !== true) throw new Error('baseline replay was not exact');
+          if (data.entryPolicy?.frozen !== true || data.entryPolicy?.changedForP23_8D !== false) throw new Error('entry stream changed');
+          if (data.exitPolicy?.onePreRegisteredV3ConfigOnly !== true) throw new Error('P23.8D must use one frozen V3 config');
+          if (data.exitPolicy?.configSelectedFromOuterOutcomes !== false) throw new Error('outer outcomes selected exit config');
+          if (data.exitPolicy?.futureExtremaUsedForDecision !== false) throw new Error('future extrema leaked into exit decision');
+          if (data.ratchetSummary?.ratchetNeverLoosenedForAllTrades !== true) throw new Error('ratchet loosened');
+          if ((data.paired || []).length !== Number(data.frozenSource?.expectedTradeCount)) throw new Error('paired count mismatch');
+          for (const key of [
+            'executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed',
+            'liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed',
+            'overnightHoldingAllowed','transmitted'
+          ]) {
+            if (data[key] !== false) throw new Error(`${key} must remain false`);
+          }
+          NODE
+
+      - name: Upload P23.8D shard evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-8d-frozen-exit-shard-${{ matrix.shard }}
+          path: artifacts/phase57-p23-8d-*.json
+          if-no-files-found: error
+
+  aggregate:
+    needs: frozen-exit-shard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download current P23.8D shard evidence
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-p23-8d-frozen-exit-shard-*
+          path: p23-8d-shards
+          merge-multiple: true
+
+      - name: Aggregate exact paired frozen-entry comparison
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+          const meta = JSON.parse(fs.readFileSync('predict/daytrade/phase57-p23-8-frozen-outer-trades.json', 'utf8'));
+          const files = fs.readdirSync('p23-8d-shards').filter(name => /^phase57-p23-8d-frozen-exit-shard-\d+\.json$/.test(name)).sort();
+          if (files.length !== 3) throw new Error(`expected 3 shard files, found ${files.length}`);
+          const shards = files.map(name => JSON.parse(fs.readFileSync(path.join('p23-8d-shards', name), 'utf8')));
+          const pairs = shards.flatMap(shard => shard.paired || []);
+          if (pairs.length !== meta.totalTradeCount) throw new Error(`aggregate count mismatch ${pairs.length} != ${meta.totalTradeCount}`);
+          const summarize = (side) => {
+            const returns = pairs.map(pair => Number(pair[side].netReturnPct));
+            const gross = pairs.map(pair => Number(pair[side].grossReturnPct));
+            const bars = pairs.map(pair => Number(pair[side].barsHeld));
+            const positive = returns.filter(x => x > 0).reduce((a,b) => a+b, 0);
+            const negative = -returns.filter(x => x < 0).reduce((a,b) => a+b, 0);
+            return {
+              signalCount: returns.length,
+              hitRate: returns.filter(x => x > 0).length / returns.length,
+              netAverageReturnPct: returns.reduce((a,b) => a+b, 0) / returns.length,
+              grossAverageReturnPct: gross.reduce((a,b) => a+b, 0) / gross.length,
+              profitFactor: negative > 0 ? positive / negative : (positive > 0 ? Infinity : null),
+              averageHoldingBars: bars.reduce((a,b) => a+b, 0) / bars.length,
+            };
+          };
+          const baseline = summarize('baseline');
+          const ratchet = summarize('ratchet');
+          const close = (a,b,t=1e-10) => Math.abs(Number(a)-Number(b)) <= t;
+          if (!close(baseline.netAverageReturnPct, meta.aggregateBaseline.netAverageReturnPct)) throw new Error('aggregate frozen baseline Net mismatch');
+          if (!close(baseline.profitFactor, meta.aggregateBaseline.profitFactor)) throw new Error('aggregate frozen baseline PF mismatch');
+          if (!close(baseline.hitRate, meta.aggregateBaseline.hitRate, 1e-12)) throw new Error('aggregate frozen baseline hit mismatch');
+          const result = {
+            phase: '57.p23.8d-frozen-exit-aggregate',
+            status: 'FROZEN_ENTRY_EXIT_ISOLATION_AGGREGATED',
+            sourceWorkflowRunId: meta.sourceWorkflowRunId,
+            tradeCount: pairs.length,
+            shardCount: shards.length,
+            baseline,
+            ratchet,
+            deltas: {
+              netAverageReturnPct: ratchet.netAverageReturnPct - baseline.netAverageReturnPct,
+              profitFactor: ratchet.profitFactor == null || baseline.profitFactor == null ? null : ratchet.profitFactor - baseline.profitFactor,
+              hitRate: ratchet.hitRate - baseline.hitRate,
+              averageHoldingBars: ratchet.averageHoldingBars - baseline.averageHoldingBars,
+            },
+            integrity: {
+              exactFrozenTradeSet: true,
+              baselineReplayExactAcrossAllShards: shards.every(x => x.frozenSource?.baselineReplayExact === true),
+              entryChanged: false,
+              onePreRegisteredV3ConfigOnly: true,
+              outerOutcomesUsedForConfigSelection: false,
+              futureExtremaUsedForDecision: false,
+              developmentOnly: true,
+              finalUntouchedOosEdgeClaimAllowed: false,
+            },
+            edgeClaimAllowed: false,
+            recommendationAllowed: false,
+            executionAllowed: false,
+            brokerWriteAllowed: false,
+            excelOrderWriteAllowed: false,
+            rssOrderFunctionAllowed: false,
+            liveTradingAllowed: false,
+            paperTradingAllowed: false,
+            automaticPromotionAllowed: false,
+            productionUpdateAllowed: false,
+            overnightHoldingAllowed: false,
+            transmitted: false,
+          };
+          fs.mkdirSync('artifacts', { recursive: true });
+          fs.writeFileSync('artifacts/phase57-p23-8d-frozen-exit-aggregate.json', JSON.stringify(result, null, 2));
+          console.log(JSON.stringify({ baseline, ratchet, deltas: result.deltas }, null, 2));
+          NODE
+
+      - name: Upload P23.8D aggregate evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-8d-frozen-exit-aggregate
+          path: artifacts/phase57-p23-8d-frozen-exit-aggregate.json
+          if-no-files-found: error

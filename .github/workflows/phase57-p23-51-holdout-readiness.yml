@@ -1,0 +1,23 @@
+name: Phase57 P23.51 Holdout Readiness
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-p23-51-fresh-holdout-policy.js'
+      - 'predict/daytrade/run-phase57-p23-51-holdout-readiness.mjs'
+      - '.github/workflows/phase57-p23-51-holdout-readiness.yml'
+jobs:
+  readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '20'}
+      - name: Check calendar readiness without reading outcomes
+        run: node predict/daytrade/run-phase57-p23-51-holdout-readiness.mjs
+      - name: Verify no holdout consumption
+        run: node -e "const x=require('./artifacts/phase57-p23-51-holdout-readiness.json');if(x.outcomeDataRead||x.scoresComputed||x.freshHoldoutConsumed)throw Error('holdout consumed');for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed'])if(x[k]!==false)throw Error(k);"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-51-holdout-readiness
+          path: artifacts/phase57-p23-51-holdout-readiness.json

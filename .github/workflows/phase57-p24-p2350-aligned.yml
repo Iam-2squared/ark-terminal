@@ -1,0 +1,94 @@
+name: Phase57 P24 P23.50 Aligned Integration
+# Superseded live-provider research workflow. P24.10 pinned/offline replay is the Phase57 performance gate.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  training:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        include:
+          - id: 0
+            symbols: '1605.T,1925.T,2502.T,2802.T,3382.T,3402.T,3659.T,4307.T,4452.T,4568.T'
+          - id: 1
+            symbols: '4901.T,5108.T,5401.T,5713.T,5802.T,6146.T,6178.T,6301.T,6326.T,6702.T'
+          - id: 2
+            symbols: '6723.T,6981.T,7182.T,7733.T,7751.T,7832.T,8801.T,9020.T,9101.T,9202.T'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build exact frozen P23.50 training rows
+        env:
+          PHASE57_SYMBOLS: ${{ matrix.symbols }}
+          P24_7_SHARD_ID: ${{ matrix.id }}
+        run: node predict/daytrade/run-phase57-p24-p2350-training-shard.mjs
+      - name: Verify training shard safety
+        env:
+          ID: ${{ matrix.id }}
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const x=JSON.parse(fs.readFileSync(`artifacts/p24-p2350-training-${process.env.ID}.json`,'utf8'));
+          if(!x.methodology?.exactP2342RowGenerationSemantics||x.methodology?.freshHoldoutConsumed)throw Error('training methodology');
+          if(!(x.rowCount>0)||x.symbols.length!==10)throw Error('training coverage');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'])if(x.safety?.[k]!==false)throw Error(k);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p24-p2350-training-${{ matrix.id }}
+          path: artifacts/p24-p2350-training-${{ matrix.id }}.json
+  integration:
+    needs: training
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: p24-p2350-training-*
+          path: artifacts/p24-p2350-training
+      - name: Run P24.7 aligned P23.50 integration
+        env:
+          PHASE57_SCOPE: COMBINED
+          PHASE57_DATA_END: '2026-08-12T06:30:00.000Z'
+          P24_7_TRAINING_DIR: artifacts/p24-p2350-training
+        run: node predict/daytrade/run-phase57-p24-p2350-aligned-integration.mjs
+      - name: Verify genuine risk activation and safety
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const x=JSON.parse(fs.readFileSync('artifacts/phase57-p24-p2350-aligned-COMBINED.json','utf8'));
+          if(!x.methodology?.entryAndHorizonFrozen||!x.methodology?.p2350RowGenerationReused||!x.methodology?.p2350TrainingUniversePredeclared30||!x.methodology?.p23RiskPriorSessionsOnly)throw Error('P24.7 methodology');
+          if(x.methodology?.parameterSweep||x.methodology?.postHocSymbolFiltering||x.methodology?.entryRetuning||x.methodology?.freshHoldoutConsumed)throw Error('P24.7 methodology violation');
+          if(x.p23Training?.symbolCount!==30||!(x.p23Training?.rowCount>0))throw Error('P23.50 training coverage incomplete');
+          if(!(x.exitCounts?.riskReadyObservations>0)||!(x.exitCounts?.riskReadyTrades>0)||!(x.exitCounts?.riskTriggeredTrades>0))throw Error('P23.50 risk path still inactive');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'])if(x.safety?.[k]!==false)throw Error(k);
+          NODE
+      - name: Run P24.8 Phase57 finalization gate
+        run: node predict/daytrade/run-phase57-p24-finalization.mjs
+      - name: Verify Phase57 development completion decision
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const x=JSON.parse(fs.readFileSync('artifacts/phase57-p24-finalization-COMBINED.json','utf8'));
+          if(x.status!=='PHASE57_DEVELOPMENT_COMPLETE'||x.phase57DevelopmentComplete!==true)throw Error('Phase57 finalization blocked');
+          if(!['DEFER_TO_FIXED_HORIZON_BASELINE','PROMOTE_INTEGRATED_ONLY_TO_FRESH_VALIDATION'].includes(x.decision))throw Error('missing explicit final decision');
+          if(x.productionReady!==false||x.methodology?.freshHoldoutConsumed!==false)throw Error('production/fresh holdout safety violation');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'])if(x.safety?.[k]!==false)throw Error(k);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p24-p2350-aligned
+          path: |
+            artifacts/phase57-p24-p2350-aligned-COMBINED.json
+            artifacts/phase57-p24-finalization-COMBINED.json

@@ -1,0 +1,133 @@
+name: Phase57 P24.10 Pinned Canonical Replay
+# Selected Phase57 performance gate: deterministic, byte-pinned, offline replay.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-p24-10-pinned-repro.yml'
+      - 'predict/daytrade/run-phase57-p24-byte-snapshot-replay.mjs'
+      - 'predict/daytrade/run-phase57-p24-p2350-training-shard.mjs'
+      - 'predict/daytrade/run-phase57-p24-p2350-aligned-integration.mjs'
+      - 'predict/daytrade/run-phase57-p24-finalization.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  training:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        include:
+          - {id: 0, symbols: '1605.T,1925.T,2502.T,2802.T,3382.T,3402.T,3659.T,4307.T,4452.T,4568.T'}
+          - {id: 1, symbols: '4901.T,5108.T,5401.T,5713.T,5802.T,6146.T,6178.T,6301.T,6326.T,6702.T'}
+          - {id: 2, symbols: '6723.T,6981.T,7182.T,7733.T,7751.T,7832.T,8801.T,9020.T,9101.T,9202.T'}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-p23-46-snapshot-${{ matrix.id }}
+          path: artifacts/p23-46
+          github-token: ${{ github.token }}
+          run-id: 31639594728
+      - name: Replay frozen P23.50 training rows offline
+        env:
+          PHASE57_SYMBOLS: ${{ matrix.symbols }}
+          P24_7_SHARD_ID: ${{ matrix.id }}
+          P24_9_SNAPSHOT_PATH: artifacts/p23-46/p23-46-snapshot-${{ matrix.id }}.json
+          P24_9_TARGET: './run-phase57-p24-p2350-training-shard.mjs'
+        run: node predict/daytrade/run-phase57-p24-byte-snapshot-replay.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p24-10-training-${{ matrix.id }}
+          path: artifacts/p24-p2350-training-${{ matrix.id }}.json
+
+  replay:
+    needs: training
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      matrix: {replica: [a, b]}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Download first successful pre-performance canonical capture
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-p24-9-oos-canonical-candidate
+          path: artifacts/oos
+          github-token: ${{ github.token }}
+          run-id: 31785422471
+      - name: Pin canonical snapshot identity
+        run: |
+          test "$(sha256sum artifacts/oos/phase57-p24-9-oos-byte-snapshot.json | cut -d' ' -f1)" = "10ec0b89893823f9e2f7ba720db2d0fad8e76d642fe00f7b77d387ae6be6b12a"
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const x=JSON.parse(fs.readFileSync('artifacts/oos/phase57-p24-9-oos-byte-snapshot.json','utf8'));
+          if(x.canonicalWindowDays!==56||x.dataEndIso!=='2026-08-12T06:30:00.000Z'||x.methodology?.performanceObservedBeforeFreeze!==false||x.methodology?.canonicalWindowChosenBeforePerformance!==true||x.methodology?.freshHoldoutConsumed)throw Error('canonical snapshot contract');
+          NODE
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: p24-10-training-*
+          path: artifacts/p24-p2350-training
+      - name: Offline pinned replay
+        env:
+          PHASE57_SCOPE: COMBINED
+          PHASE57_DATA_END: '2026-08-12T06:30:00.000Z'
+          P24_7_TRAINING_DIR: artifacts/p24-p2350-training
+          P24_9_SNAPSHOT_PATH: artifacts/oos/phase57-p24-9-oos-byte-snapshot.json
+          P24_9_TARGET: './run-phase57-p24-p2350-aligned-integration.mjs'
+          P24_9_ATTESTATION_PATH: artifacts/p24-10-attestation-${{ matrix.replica }}.json
+        run: node predict/daytrade/run-phase57-p24-byte-snapshot-replay.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p24-10-replay-${{ matrix.replica }}
+          path: |
+            artifacts/phase57-p24-p2350-aligned-COMBINED.json
+            artifacts/p24-10-attestation-${{ matrix.replica }}.json
+
+  verify:
+    needs: replay
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: {name: p24-10-replay-a, path: artifacts/a}
+      - uses: actions/download-artifact@v4
+        with: {name: p24-10-replay-b, path: artifacts/b}
+      - name: Require byte-identical pinned results
+        run: |
+          cmp artifacts/a/phase57-p24-p2350-aligned-COMBINED.json artifacts/b/phase57-p24-p2350-aligned-COMBINED.json
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';import crypto from 'node:crypto';
+          const result=fs.readFileSync('artifacts/a/phase57-p24-p2350-aligned-COMBINED.json');
+          const x=JSON.parse(result),a=JSON.parse(fs.readFileSync('artifacts/a/p24-10-attestation-a.json')),b=JSON.parse(fs.readFileSync('artifacts/b/p24-10-attestation-b.json'));
+          const expected='10ec0b89893823f9e2f7ba720db2d0fad8e76d642fe00f7b77d387ae6be6b12a';
+          if(a.snapshotSha256!==expected||b.snapshotSha256!==expected||a.networkAccessAllowed!==false||b.networkAccessAllowed!==false||a.replayRequests!==b.replayRequests)throw Error('pinned replay attestation');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'])if(x.safety?.[k]!==false)throw Error(k);
+          fs.writeFileSync('artifacts/phase57-p24-10-proof.json',JSON.stringify({phase:'57.p24.10',status:'PINNED_CANONICAL_BYTE_IDENTICAL',canonicalSourceRunId:31785422471,oosSnapshotSha256:expected,resultSha256:crypto.createHash('sha256').update(result).digest('hex'),independentReplicas:2,entryRows:x.entryRows,fixedHorizonBaseline:x.fixedHorizonBaseline,riskConditioned:x.riskConditioned,exitCounts:x.exitCounts,stability:x.stability,methodology:x.methodology,safety:x.safety},null,2));
+          NODE
+      - name: Run fail-closed Phase57 development completion gate
+        env:
+          P24_8_INPUT: artifacts/a/phase57-p24-p2350-aligned-COMBINED.json
+          P24_8_OUTPUT: artifacts/phase57-p24-finalization-COMBINED.json
+        run: |
+          node predict/daytrade/run-phase57-p24-finalization.mjs
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const x=JSON.parse(fs.readFileSync('artifacts/phase57-p24-finalization-COMBINED.json','utf8'));
+          if(x.status!=='PHASE57_DEVELOPMENT_COMPLETE'||x.phase57DevelopmentComplete!==true)throw Error('Phase57 completion gate not satisfied');
+          if(x.decision!=='DEFER_TO_FIXED_HORIZON_BASELINE'||x.frozenDefault!=='FIXED_HORIZON_BASELINE')throw Error('unexpected default decision');
+          if(x.productionReady!==false||x.liveTradingAllowed!==false||x.methodology?.freshHoldoutConsumed!==false)throw Error('safety/fresh holdout violation');
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p24-10-pinned-proof
+          path: |
+            artifacts/phase57-p24-10-proof.json
+            artifacts/phase57-p24-finalization-COMBINED.json

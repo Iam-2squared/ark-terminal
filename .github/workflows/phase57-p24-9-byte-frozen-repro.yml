@@ -1,0 +1,14 @@
+name: Phase57 P24.9 Byte-Frozen Reproducibility (superseded capture)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  superseded:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explain superseded path
+        run: |
+          echo 'P24.9 one-time pre-performance capture is frozen and must not be repeated for model selection.'
+          echo 'Use Phase57 P24.10 Pinned Canonical Replay against canonical source run 31785422471.'

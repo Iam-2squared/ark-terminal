@@ -1,0 +1,79 @@
+name: Phase57 Entry Exit Quality
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-entry-exit-quality.js'
+      - 'predict/daytrade/run-phase57-entry-exit-quality-shard.mjs'
+      - 'predict/tests/p23-8-entry-exit-quality.test.mjs'
+      - '.github/workflows/phase57-entry-exit-quality.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  entry-exit-quality:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2]
+    name: quality-shard-${{ matrix.shard }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      PHASE57_SHARD_COUNT: '3'
+      PHASE57_SHARD_INDEX: ${{ matrix.shard }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run P23.8 entry/exit quality shard
+        run: node predict/daytrade/run-phase57-entry-exit-quality-shard.mjs
+
+      - name: Verify quality integrity and research-only safety
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const shardNumber = Number(process.env.PHASE57_SHARD_INDEX) + 1;
+          const path = `artifacts/phase57-entry-exit-quality-shard-${shardNumber}.json`;
+          if (!fs.existsSync(path)) throw new Error(`missing P23.8 artifact: ${path}`);
+          const data = JSON.parse(fs.readFileSync(path, 'utf8'));
+          for (const key of [
+            'executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed',
+            'liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed',
+            'overnightHoldingAllowed','transmitted'
+          ]) {
+            if (data[key] !== false) throw new Error(`${key} must remain false`);
+          }
+          if (data.qualityShardPolicy?.exactFrozenShard !== true) throw new Error('runtime shard must match frozen shard');
+          if (data.qualityShardPolicy?.entryThresholdsChanged !== false) throw new Error('entry thresholds must not change in P23.8 diagnostics');
+          if (data.qualityShardPolicy?.exitThresholdsChanged !== false) throw new Error('exit thresholds must not change in P23.8 diagnostics');
+          if (data.qualityShardPolicy?.futureExtremaUsedForDecision !== false) throw new Error('future extrema must never drive decisions');
+          const quality = data.entryExitQuality;
+          if (!quality) throw new Error('entryExitQuality evidence missing');
+          if (quality.countReconciled !== true) throw new Error('P23.8 quality replay must reconcile exactly to nested outer outcomes');
+          if (quality.edgeClaimAllowed !== false || quality.recommendationAllowed !== false) throw new Error('P23.8 diagnostics cannot make an edge/recommendation claim');
+          if (quality.interpretation?.evaluationOnlyFutureExtrema !== true) throw new Error('future extrema must be evaluation-only');
+          if (quality.interpretation?.futureExtremaUsedForEntrySelection !== false) throw new Error('future extrema used for entry selection');
+          if (quality.interpretation?.futureExtremaUsedForExitSelection !== false) throw new Error('future extrema used for exit selection');
+          if (quality.interpretation?.futureExtremaEligibleAsModelFeatures !== false) throw new Error('future extrema cannot become features');
+          for (const record of quality.records || []) {
+            if (record.evaluationOnly !== true) throw new Error('quality record must be evaluation-only');
+            if (record.futureExtremaUsedForDecision !== false) throw new Error('quality record leaked future extrema into a decision');
+            if (record.eligibleForModelFeatures !== false) throw new Error('quality record cannot be a model feature');
+          }
+          NODE
+
+      - name: Upload P23.8 quality evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-entry-exit-quality-shard-${{ matrix.shard }}
+          path: artifacts/phase57-entry-exit-quality-shard-*.json
+          if-no-files-found: error

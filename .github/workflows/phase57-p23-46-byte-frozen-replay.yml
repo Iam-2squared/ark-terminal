@@ -1,0 +1,83 @@
+name: Phase57 P23.46 Byte-Frozen Replay
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'predict/daytrade/run-phase57-p23-46-byte-frozen-replay.mjs'
+      - 'predict/daytrade/run-phase57-p23-42-frozen-development-benchmark.mjs'
+      - 'predict/daytrade/aggregate-phase57-p23-42-frozen-development-benchmark.mjs'
+      - 'predict/daytrade/phase57-prior-family-gated-risk.js'
+      - 'predict/daytrade/phase57-cross-symbol-prior-family-gated-risk.js'
+      - 'predict/daytrade/phase57-consensus-prior-family-gated-risk.js'
+      - '.github/workflows/phase57-p23-46-byte-frozen-replay.yml'
+jobs:
+  shard:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        include:
+          - id: 0
+            symbols: '1605.T,1925.T,2502.T,2802.T,3382.T,3402.T,3659.T,4307.T,4452.T,4568.T'
+          - id: 1
+            symbols: '4901.T,5108.T,5401.T,5713.T,5802.T,6146.T,6178.T,6301.T,6326.T,6702.T'
+          - id: 2
+            symbols: '6723.T,6981.T,7182.T,7733.T,7751.T,7832.T,8801.T,9020.T,9101.T,9202.T'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '20'}
+      - name: Capture provider bytes and run benchmark
+        env:
+          PHASE57_SYMBOLS: ${{ matrix.symbols }}
+          P23_46_MODE: capture
+          P23_46_SNAPSHOT_PATH: artifacts/p23-46-snapshot-${{ matrix.id }}.json
+          P23_46_RESULT_COPY: artifacts/p23-46-capture-${{ matrix.id }}.json
+        run: node predict/daytrade/run-phase57-p23-46-byte-frozen-replay.mjs
+      - name: Replay exact captured bytes with network disabled by fetch interception
+        env:
+          PHASE57_SYMBOLS: ${{ matrix.symbols }}
+          P23_46_MODE: replay
+          P23_46_SNAPSHOT_PATH: artifacts/p23-46-snapshot-${{ matrix.id }}.json
+          P23_46_RESULT_COPY: artifacts/p23-46-replay-${{ matrix.id }}.json
+        run: node predict/daytrade/run-phase57-p23-46-byte-frozen-replay.mjs
+      - name: Verify byte-identical model output and safety
+        env:
+          ID: ${{ matrix.id }}
+        run: |
+          cmp artifacts/p23-46-capture-${ID}.json artifacts/p23-46-replay-${ID}.json
+          node -e "const id=process.env.ID;const x=require('./artifacts/p23-46-replay-'+id+'.json');const s=require('./artifacts/p23-46-snapshot-'+id+'.json');for(const m of ['p2348','p2349'])if(!x.models[m])throw Error(m+' missing from shard');if(!x.methodology.fixedAbsoluteWindow||!x.methodology.priorSessionsOnly||x.methodology.freshHoldoutConsumed)throw Error('methodology');if(s.responseCount<1||s.freshUntouchedHoldoutConsumed)throw Error('snapshot');for(const o of [x,s])for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted'])if(o[k]!==false)throw Error(k);"
+      - name: Stage replay result
+        env:
+          ID: ${{ matrix.id }}
+        run: |
+          mkdir -p artifacts/p23-46-result
+          cp artifacts/p23-46-replay-${ID}.json artifacts/p23-46-result/phase57-p23-42-frozen-development-benchmark.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-46-snapshot-${{ matrix.id }}
+          path: artifacts/p23-46-snapshot-${{ matrix.id }}.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-46-result-${{ matrix.id }}
+          path: artifacts/p23-46-result/phase57-p23-42-frozen-development-benchmark.json
+  aggregate:
+    needs: shard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '20'}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-p23-46-result-*
+          path: artifacts/p23-46-results
+      - name: Aggregate replay-only benchmark
+        run: node predict/daytrade/aggregate-phase57-p23-42-frozen-development-benchmark.mjs artifacts/p23-46-results
+      - name: Verify P23.45/P23.48/P23.49 are present and execution remains disabled
+        run: node -e "const x=require('./artifacts/phase57-p23-42-frozen-development-benchmark-aggregate.json');for(const m of ['p2345','p2348','p2349'])if(!x.models[m])throw Error(m+' missing');for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted'])if(x[k]!==false)throw Error(k);"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-46-byte-frozen-replay-aggregate
+          path: artifacts/phase57-p23-42-frozen-development-benchmark-aggregate.json

@@ -19,7 +19,9 @@ export const P24_6_POLICY=Object.freeze({
   liveTradingAllowed:false,paperTradingAllowed:false,automaticPromotionAllowed:false,productionUpdateAllowed:false,transmitted:false,
 });
 
-const finite=x=>Number.isFinite(Number(x));
+// Null/missing scores must remain unavailable. Number(null) === 0, so coercive
+// finiteness checks would incorrectly mark an unscored P23.30 fallback as ready.
+const finite=x=>x!==null&&x!==undefined&&x!==''&&Number.isFinite(Number(x));
 const quantile=(xs,q)=>{const z=xs.filter(Number.isFinite).sort((a,b)=>a-b);if(z.length<20)return{value:null,n:z.length};const i=Math.max(0,Math.min(z.length-1,Math.ceil(q*z.length)-1));return{value:z[i],n:z.length};};
 function evidence(hist=[]){
   const b=walkForwardDynamic(hist);

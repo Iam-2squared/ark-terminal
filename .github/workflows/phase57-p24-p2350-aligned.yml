@@ -1,12 +1,6 @@
 name: Phase57 P24 P23.50 Aligned Integration
+# Superseded live-provider research workflow. P24.10 pinned/offline replay is the Phase57 performance gate.
 on:
-  pull_request:
-    paths:
-      - 'predict/daytrade/run-phase57-p24-p2350-training-shard.mjs'
-      - 'predict/daytrade/run-phase57-p24-p2350-aligned-integration.mjs'
-      - 'predict/daytrade/run-phase57-p24-finalization.mjs'
-      - 'predict/daytrade/phase57-p24-p2350-risk-bridge.js'
-      - '.github/workflows/phase57-p24-p2350-aligned.yml'
   workflow_dispatch:
 permissions:
   contents: read

@@ -8,7 +8,8 @@ const hist=[];
 for(let i=0;i<40;i++){
   const day=String(i+1).padStart(2,'0');
   const bad=i%4===0;
-  hist.push({symbol:i%2?'AAA.T':'BBB.T',setup:'TEST_SETUP',direction:'UP',sessionDate:`2026-06-${day}`,timestamp:`2026-06-${day}T00:20:00.000Z`,fullyRealizedAt:`2026-06-${day}T01:00:00.000Z`,offsetBars:1,velocity:velocity(bad?1:-.3),actual:bad?1:0,nextDirectionalReturnPct:bad?-.2:.2});
+  const classJitter=(i%7)*.01;
+  hist.push({symbol:i%2?'AAA.T':'BBB.T',setup:'TEST_SETUP',direction:'UP',sessionDate:`2026-06-${day}`,timestamp:`2026-06-${day}T00:20:00.000Z`,fullyRealizedAt:`2026-06-${day}T01:00:00.000Z`,offsetBars:1,velocity:velocity(bad?1+classJitter:-.3-classJitter),actual:bad?1:0,nextDirectionalReturnPct:bad?-.2:.2});
 }
 const query={symbol:'CCC.T',setup:'TEST_SETUP',direction:'UP',sessionDate:'2026-07-15',timestamp:'2026-07-15T00:20:00.000Z',offsetBars:1,velocity:velocity(1.2)};
 

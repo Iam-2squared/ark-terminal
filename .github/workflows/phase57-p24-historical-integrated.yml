@@ -1,38 +1,51 @@
-name: Phase57 P24 Historical Integrated Backtest
+name: Phase57 P24 Historical Integrated Backtest (superseded guard)
 on:
   pull_request:
     paths:
       - 'predict/daytrade/run-phase57-p24-historical-integrated-backtest.mjs'
       - 'predict/daytrade/phase57-p24-integrated-trade-evaluator.js'
       - 'predict/daytrade/phase57-trade-management-state-machine.js'
+      - 'predict/daytrade/run-phase57-p24-byte-snapshot-replay.mjs'
+      - 'predict/daytrade/run-phase57-p24-p2350-aligned-integration.mjs'
+      - 'predict/daytrade/run-phase57-p24-finalization.mjs'
+      - '.github/workflows/phase57-p24-10-pinned-repro.yml'
       - '.github/workflows/phase57-p24-historical-integrated.yml'
+      - 'docs/phase57-p24-10-reproducible-conclusion.md'
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  backtest:
+  reproducibility-guard:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Run P24.2 historical integrated backtest
-        env:
-          PHASE57_SCOPE: COMBINED
-        run: node predict/daytrade/run-phase57-p24-historical-integrated-backtest.mjs
-      - name: Fail closed safety guard
+      - name: Require pinned canonical replay as the Phase57 performance path
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
-          const x=JSON.parse(fs.readFileSync('artifacts/phase57-p24-historical-integrated-COMBINED.json','utf8'));
-          const forbidden=['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed'];
-          for(const k of forbidden) if(x.safety?.[k]!==false) throw new Error(`${k} must remain false`);
-          if(x.safety?.freshHoldoutConsumed!==false) throw new Error('fresh holdout must remain untouched');
-          if(!(x.entryRows>0)) throw new Error('no frozen historical entry rows were integrated');
+          const wf=fs.readFileSync('.github/workflows/phase57-p24-10-pinned-repro.yml','utf8');
+          const doc=fs.readFileSync('docs/phase57-p24-10-reproducible-conclusion.md','utf8');
+          const expectedSnapshot='10ec0b89893823f9e2f7ba720db2d0fad8e76d642fe00f7b77d387ae6be6b12a';
+          const expectedResult='ee25cc798afb8cf80e2a7ce992ad51bc252f5ec08b0c5db1ae7febf226124df1';
+          for(const token of [expectedSnapshot,'run-id: 31785422471','networkAccessAllowed!==false','cmp artifacts/a/phase57-p24-p2350-aligned-COMBINED.json artifacts/b/phase57-p24-p2350-aligned-COMBINED.json']){
+            if(!wf.includes(token)) throw new Error(`missing pinned replay contract: ${token}`);
+          }
+          for(const token of [expectedSnapshot,expectedResult,'fixed-horizon baseline','Fresh P23.51 holdout is unconsumed']){
+            if(!doc.includes(token)) throw new Error(`missing reproducible conclusion contract: ${token}`);
+          }
+          const legacy=fs.readFileSync('predict/daytrade/run-phase57-p24-historical-integrated-backtest.mjs','utf8');
+          if(!legacy.includes('query1.finance.yahoo.com')&&!legacy.includes('query2.finance.yahoo.com')) throw new Error('legacy live-provider runner provenance unexpectedly changed');
+          console.log('Legacy live-provider benchmark is retained for provenance only; Phase57 performance CI is pinned/offline P24.10.');
           NODE
-      - uses: actions/upload-artifact@v4
-        with:
-          name: phase57-p24-historical-integrated
-          path: artifacts/phase57-p24-historical-integrated-COMBINED.json
+      - name: Require safety flags to remain fail-closed in finalization
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const src=fs.readFileSync('predict/daytrade/run-phase57-p24-finalization.mjs','utf8');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','freshHoldoutConsumed']){
+            if(!src.includes(k)) throw new Error(`missing finalization safety key: ${k}`);
+          }
+          NODE

@@ -1,0 +1,192 @@
+name: Phase57 P24.9 Byte-Frozen Reproducibility
+on:
+  pull_request:
+    paths:
+      - 'predict/daytrade/capture-phase57-p24-oos-byte-snapshot.mjs'
+      - 'predict/daytrade/run-phase57-p24-byte-snapshot-replay.mjs'
+      - 'predict/daytrade/run-phase57-p24-p2350-training-shard.mjs'
+      - 'predict/daytrade/run-phase57-p24-p2350-aligned-integration.mjs'
+      - 'predict/daytrade/run-phase57-p24-finalization.mjs'
+      - '.github/workflows/phase57-p24-9-byte-frozen-repro.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  capture_oos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Capture canonical OOS provider bytes before any performance computation
+        env:
+          PHASE57_DATA_END: '2026-08-12T06:30:00.000Z'
+          P24_9_SNAPSHOT_PATH: artifacts/phase57-p24-9-oos-byte-snapshot.json
+        run: node predict/daytrade/capture-phase57-p24-oos-byte-snapshot.mjs
+      - name: Verify capture is pre-performance and safe
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const x=JSON.parse(fs.readFileSync('artifacts/phase57-p24-9-oos-byte-snapshot.json','utf8'));
+          if(x.phase!=='57.p24.9-oos-byte-snapshot'||x.responseCount!==20)throw Error('snapshot coverage');
+          if(x.methodology?.performanceObservedBeforeFreeze!==false||x.methodology?.parameterSweep||x.methodology?.postHocSymbolFiltering||x.methodology?.entryRetuning||x.methodology?.freshHoldoutConsumed)throw Error('snapshot methodology');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'])if(x.safety?.[k]!==false)throw Error(k);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p24-9-oos-canonical-candidate
+          path: artifacts/phase57-p24-9-oos-byte-snapshot.json
+
+  training:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        include:
+          - id: 0
+            symbols: '1605.T,1925.T,2502.T,2802.T,3382.T,3402.T,3659.T,4307.T,4452.T,4568.T'
+          - id: 1
+            symbols: '4901.T,5108.T,5401.T,5713.T,5802.T,6146.T,6178.T,6301.T,6326.T,6702.T'
+          - id: 2
+            symbols: '6723.T,6981.T,7182.T,7733.T,7751.T,7832.T,8801.T,9020.T,9101.T,9202.T'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Download pre-existing P23.46 byte-frozen training snapshot
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-p23-46-snapshot-${{ matrix.id }}
+          path: artifacts/p23-46
+          github-token: ${{ github.token }}
+          run-id: 31639594728
+      - name: Replay P24.7 training rows from immutable P23.46 bytes
+        env:
+          PHASE57_SYMBOLS: ${{ matrix.symbols }}
+          P24_7_SHARD_ID: ${{ matrix.id }}
+          P24_9_SNAPSHOT_PATH: artifacts/p23-46/p23-46-snapshot-${{ matrix.id }}.json
+          P24_9_TARGET: './run-phase57-p24-p2350-training-shard.mjs'
+          P24_9_ATTESTATION_PATH: artifacts/p24-9-training-attestation-${{ matrix.id }}.json
+        run: node predict/daytrade/run-phase57-p24-byte-snapshot-replay.mjs
+      - name: Verify training replay is offline and safe
+        env: {ID: '${{ matrix.id }}'}
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const id=process.env.ID,a=JSON.parse(fs.readFileSync(`artifacts/p24-9-training-attestation-${id}.json`,'utf8')),x=JSON.parse(fs.readFileSync(`artifacts/p24-p2350-training-${id}.json`,'utf8'));
+          if(a.networkAccessAllowed!==false||!(a.replayRequests>0)||a.snapshotPhase!=='57.p23.46-byte-snapshot')throw Error('training replay');
+          if(!x.methodology?.exactP2342RowGenerationSemantics||x.methodology?.freshHoldoutConsumed||!(x.rowCount>0))throw Error('training methodology');
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p24-9-training-${{ matrix.id }}
+          path: |
+            artifacts/p24-p2350-training-${{ matrix.id }}.json
+            artifacts/p24-9-training-attestation-${{ matrix.id }}.json
+
+  integration_a:
+    needs: [capture_oos, training]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-p24-9-oos-canonical-candidate
+          path: artifacts/oos
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: p24-9-training-*
+          path: artifacts/p24-p2350-training
+      - name: Replay integrated system A from frozen bytes only
+        env:
+          PHASE57_SCOPE: COMBINED
+          PHASE57_DATA_END: '2026-08-12T06:30:00.000Z'
+          P24_7_TRAINING_DIR: artifacts/p24-p2350-training
+          P24_9_SNAPSHOT_PATH: artifacts/oos/phase57-p24-9-oos-byte-snapshot.json
+          P24_9_TARGET: './run-phase57-p24-p2350-aligned-integration.mjs'
+          P24_9_ATTESTATION_PATH: artifacts/p24-9-integration-a-attestation.json
+        run: node predict/daytrade/run-phase57-p24-byte-snapshot-replay.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p24-9-replay-a
+          path: |
+            artifacts/phase57-p24-p2350-aligned-COMBINED.json
+            artifacts/p24-9-integration-a-attestation.json
+
+  integration_b:
+    needs: [capture_oos, training]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-p24-9-oos-canonical-candidate
+          path: artifacts/oos
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: p24-9-training-*
+          path: artifacts/p24-p2350-training
+      - name: Replay integrated system B independently from same frozen bytes
+        env:
+          PHASE57_SCOPE: COMBINED
+          PHASE57_DATA_END: '2026-08-12T06:30:00.000Z'
+          P24_7_TRAINING_DIR: artifacts/p24-p2350-training
+          P24_9_SNAPSHOT_PATH: artifacts/oos/phase57-p24-9-oos-byte-snapshot.json
+          P24_9_TARGET: './run-phase57-p24-p2350-aligned-integration.mjs'
+          P24_9_ATTESTATION_PATH: artifacts/p24-9-integration-b-attestation.json
+        run: node predict/daytrade/run-phase57-p24-byte-snapshot-replay.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p24-9-replay-b
+          path: |
+            artifacts/phase57-p24-p2350-aligned-COMBINED.json
+            artifacts/p24-9-integration-b-attestation.json
+
+  verify_repro:
+    needs: [integration_a, integration_b]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-p24-9-replay-a
+          path: artifacts/a
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-p24-9-replay-b
+          path: artifacts/b
+      - name: Require byte-identical independent replay outputs
+        run: |
+          cmp artifacts/a/phase57-p24-p2350-aligned-COMBINED.json artifacts/b/phase57-p24-p2350-aligned-COMBINED.json
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';import crypto from 'node:crypto';
+          const a=JSON.parse(fs.readFileSync('artifacts/a/p24-9-integration-a-attestation.json','utf8')),b=JSON.parse(fs.readFileSync('artifacts/b/p24-9-integration-b-attestation.json','utf8'));
+          if(a.snapshotSha256!==b.snapshotSha256||a.networkAccessAllowed!==false||b.networkAccessAllowed!==false||a.replayRequests!==b.replayRequests)throw Error('replay attestation mismatch');
+          const result=fs.readFileSync('artifacts/a/phase57-p24-p2350-aligned-COMBINED.json');
+          const x=JSON.parse(result);
+          const proof={phase:'57.p24.9-repro-proof',status:'BYTE_IDENTICAL_REPLAY_CONFIRMED',oosSnapshotSha256:a.snapshotSha256,resultSha256:crypto.createHash('sha256').update(result).digest('hex'),replayRequests:a.replayRequests,independentReplayCount:2,metrics:x.metrics,baseline:x.fixedHorizonBaseline,exitCounts:x.exitCounts,methodology:{sameFrozenBytes:true,networkDisabledDuringMeasurement:true,freshHoldoutConsumed:false},safety:x.safety};
+          fs.writeFileSync('artifacts/phase57-p24-9-repro-proof.json',JSON.stringify(proof));
+          NODE
+      - name: Run Phase57 finalization gate on reproducible result
+        run: |
+          cp artifacts/a/phase57-p24-p2350-aligned-COMBINED.json artifacts/phase57-p24-p2350-aligned-COMBINED.json
+          node predict/daytrade/run-phase57-p24-finalization.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-p24-9-repro-proof
+          path: |
+            artifacts/phase57-p24-9-repro-proof.json
+            artifacts/phase57-p24-finalization-COMBINED.json

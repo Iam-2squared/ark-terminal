@@ -4,6 +4,7 @@ on:
     paths:
       - 'predict/daytrade/run-phase57-p24-p2350-training-shard.mjs'
       - 'predict/daytrade/run-phase57-p24-p2350-aligned-integration.mjs'
+      - 'predict/daytrade/run-phase57-p24-finalization.mjs'
       - 'predict/daytrade/phase57-p24-p2350-risk-bridge.js'
       - '.github/workflows/phase57-p24-p2350-aligned.yml'
   workflow_dispatch:
@@ -76,10 +77,24 @@ jobs:
           if(!x.methodology?.entryAndHorizonFrozen||!x.methodology?.p2350RowGenerationReused||!x.methodology?.p2350TrainingUniversePredeclared30||!x.methodology?.p23RiskPriorSessionsOnly)throw Error('P24.7 methodology');
           if(x.methodology?.parameterSweep||x.methodology?.postHocSymbolFiltering||x.methodology?.entryRetuning||x.methodology?.freshHoldoutConsumed)throw Error('P24.7 methodology violation');
           if(x.p23Training?.symbolCount!==30||!(x.p23Training?.rowCount>0))throw Error('P23.50 training coverage incomplete');
-          if(!(x.exitCounts?.riskReadyObservations>0)||!(x.exitCounts?.riskReadyTrades>0))throw Error('P23.50 risk path still inactive');
+          if(!(x.exitCounts?.riskReadyObservations>0)||!(x.exitCounts?.riskReadyTrades>0)||!(x.exitCounts?.riskTriggeredTrades>0))throw Error('P23.50 risk path still inactive');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'])if(x.safety?.[k]!==false)throw Error(k);
+          NODE
+      - name: Run P24.8 Phase57 finalization gate
+        run: node predict/daytrade/run-phase57-p24-finalization.mjs
+      - name: Verify Phase57 development completion decision
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const x=JSON.parse(fs.readFileSync('artifacts/phase57-p24-finalization-COMBINED.json','utf8'));
+          if(x.status!=='PHASE57_DEVELOPMENT_COMPLETE'||x.phase57DevelopmentComplete!==true)throw Error('Phase57 finalization blocked');
+          if(!['DEFER_TO_FIXED_HORIZON_BASELINE','PROMOTE_INTEGRATED_ONLY_TO_FRESH_VALIDATION'].includes(x.decision))throw Error('missing explicit final decision');
+          if(x.productionReady!==false||x.methodology?.freshHoldoutConsumed!==false)throw Error('production/fresh holdout safety violation');
           for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'])if(x.safety?.[k]!==false)throw Error(k);
           NODE
       - uses: actions/upload-artifact@v4
         with:
           name: phase57-p24-p2350-aligned
-          path: artifacts/phase57-p24-p2350-aligned-COMBINED.json
+          path: |
+            artifacts/phase57-p24-p2350-aligned-COMBINED.json
+            artifacts/phase57-p24-finalization-COMBINED.json

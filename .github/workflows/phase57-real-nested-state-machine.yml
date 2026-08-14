@@ -1,15 +1,7 @@
 name: Phase57 Real Nested State Machine
-
+# Superseded live-provider development workflow. Retained for explicit manual provenance runs only.
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - 'predict/daytrade/phase57-trade-management-state-machine.js'
-      - 'predict/daytrade/phase57-nested-trade-management-selection.js'
-      - 'predict/daytrade/phase57-real-nested-state-machine.js'
-      - 'predict/daytrade/run-phase57-real-nested-state-machine.mjs'
-      - 'predict/tests/p23-6-real-nested-state-machine.test.mjs'
-      - '.github/workflows/phase57-real-nested-state-machine.yml'
 
 permissions:
   contents: read
@@ -79,6 +71,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: phase57-real-nested-state-machine-${{ matrix.symbol }}
-          path: artifacts/phase57-real-nested-state-machine-${{ matrix.symbol }}.json
+          name: phase57-real-nested-state-machine-COMBINED
+          path: artifacts/phase57-real-nested-state-machine-COMBINED.json
           if-no-files-found: error

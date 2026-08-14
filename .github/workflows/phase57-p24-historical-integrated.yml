@@ -37,7 +37,7 @@ jobs:
             if(!doc.includes(token)) throw new Error(`missing reproducible conclusion contract: ${token}`);
           }
           const legacy=fs.readFileSync('predict/daytrade/run-phase57-p24-historical-integrated-backtest.mjs','utf8');
-          if(!legacy.includes('query1.finance.yahoo.com')&&!legacy.includes('query2.finance.yahoo.com')) throw new Error('legacy live-provider runner provenance unexpectedly changed');
+          if(!legacy.includes('finance.yahoo.com/v8/finance/chart')) throw new Error('legacy live-provider runner provenance unexpectedly changed');
           console.log('Legacy live-provider benchmark is retained for provenance only; Phase57 performance CI is pinned/offline P24.10.');
           NODE
       - name: Require safety flags to remain fail-closed in finalization

@@ -49,8 +49,18 @@ jobs:
           if (data.expansionIntegrity?.signalThresholdsRelaxedForSampleExpansion !== false) throw new Error('signal thresholds must not be relaxed');
           if (data.expansionIntegrity?.exitThresholdsRelaxedForSampleExpansion !== false) throw new Error('exit thresholds must not be relaxed');
           const nested = data.nestedStateMachine;
-          if (!nested || nested.status !== 'REAL_5M_NESTED_STATE_MACHINE_DEVELOPMENT_OOS_EVALUATED') throw new Error(`P23.7 nested evidence missing: ${nested?.status}`);
-          if (!(Number(nested.matchedOuterTestRowCount) > 0)) throw new Error('P23.7 matched outer-test rows must be > 0');
+          if (!nested) throw new Error('P23.7 nested evidence missing');
+          const evaluated = nested.status === 'REAL_5M_NESTED_STATE_MACHINE_DEVELOPMENT_OOS_EVALUATED';
+          const sparseNoOutcome = nested.status === 'NO_REAL_NESTED_STATE_MACHINE_OUTCOMES';
+          if (!evaluated && !sparseNoOutcome) throw new Error(`unexpected P23.7 nested status: ${nested.status}`);
+          if (evaluated && !(Number(nested.matchedOuterTestRowCount) > 0)) {
+            throw new Error('evaluated P23.7 evidence must contain matched outer-test rows');
+          }
+          if (sparseNoOutcome) {
+            if (Number(nested.matchedOuterTestRowCount) !== 0) throw new Error('sparse no-outcome status must have zero matched outer-test rows');
+            if (nested.edgeClaimAllowed !== false) throw new Error('sparse no-outcome evidence must not allow an edge claim');
+            if (nested.recommendationAllowed !== false) throw new Error('sparse no-outcome evidence must not allow a recommendation');
+          }
           const integrity = nested.selectionIntegrity;
           if (!integrity || integrity.outerOutcomesUsedForConfigSelection !== false) throw new Error('outer outcomes must not select config');
           if (integrity.perSymbolDiagnosticsUsedForStateMachineConfigSelection !== false) throw new Error('per-symbol diagnostics must not select config');

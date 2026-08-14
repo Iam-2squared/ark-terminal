@@ -1,11 +1,6 @@
 name: Phase57 P24 Risk Conditioned Integration
+# Superseded live-provider research workflow. P24.10 pinned/offline replay is the Phase57 performance gate.
 on:
-  pull_request:
-    paths:
-      - 'predict/daytrade/phase57-p24-p2350-risk-bridge.js'
-      - 'predict/daytrade/run-phase57-p24-risk-conditioned-integration.mjs'
-      - 'predict/tests/p24-6-risk-bridge.test.mjs'
-      - '.github/workflows/phase57-p24-risk-conditioned.yml'
   workflow_dispatch:
 permissions:
   contents: read

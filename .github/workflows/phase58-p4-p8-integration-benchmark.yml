@@ -1,0 +1,17 @@
+name: Phase58 P4-P8 Integration Benchmark
+on:
+  pull_request:
+    paths:
+      - 'predict/scalping/phase58-integration-benchmark.js'
+      - 'predict/tests/p58-4-p58-8-integration-benchmark.test.mjs'
+      - '.github/workflows/phase58-p4-p8-integration-benchmark.yml'
+  workflow_dispatch:
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test predict/tests/p58-4-p58-8-integration-benchmark.test.mjs

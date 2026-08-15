@@ -1,0 +1,26 @@
+name: Phase58 P2-P3 OrderBook TickFlow
+on:
+  pull_request:
+    paths:
+      - 'predict/scalping/phase58-orderbook-tickflow.js'
+      - 'predict/tests/p58-2-p58-3-orderbook-tickflow.test.mjs'
+      - '.github/workflows/phase58-p2-p3-orderbook-tickflow.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test Phase58 P2-P3
+        run: node --test predict/tests/p58-2-p58-3-orderbook-tickflow.test.mjs
+      - name: Fail closed safety scan
+        run: |
+          node --input-type=module <<'NODE'
+          const {PHASE58_P2P3_SAFETY}=await import('./predict/scalping/phase58-orderbook-tickflow.js');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted']) if(PHASE58_P2P3_SAFETY[k]!==false) throw Error(k);
+          NODE

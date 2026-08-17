@@ -74,6 +74,20 @@ def test_skips_zero_volume_no_price_placeholders_in_history_sheets():
     assert all(out["perSymbol"][symbol]["skippedUnpopulatedOhlcvRowCount"] == 1 for symbol in FROZEN_P24_COMBINED_UNIVERSE)
 
 
+def test_skips_no_price_history_placeholder_before_timeframe_display_marker_validation():
+    matrices = _matrices()
+    for symbol in FROZEN_P24_COMBINED_UNIVERSE:
+        matrices[symbol].insert(2, [symbol, "東証", "--------", "2026/08/13", "09:02", "", "", "", "", 0])
+    out = build_history_pack_from_matrices(
+        matrices,
+        captured_at="2026-08-17T01:00:00Z",
+        as_of_session_date="2026-08-17",
+    )
+    assert out["sessionCount"] == 10
+    assert out["skippedUnpopulatedOhlcvRowCount"] == 5
+    assert out["methodology"]["timeframeValidatedOnlyForPopulatedBars"] is True
+
+
 def test_rejects_partially_populated_history_row_fail_closed():
     matrices = _matrices()
     matrices["7203.T"].insert(2, ["7203.T", "東証", "5M", "2026/08/13", "09:02", "", 101, 99, 100.5, 1000])

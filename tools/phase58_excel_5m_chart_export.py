@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+from collections import defaultdict
 from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -34,9 +35,6 @@ PHASE58_5M_EXPORT_SAFETY = {
 REQUIRED_HEADERS = ("日付", "時刻", "始値", "高値", "安値", "終値", "出来高")
 OPTIONAL_HEADERS = ("銘柄名称", "市場名称", "足種")
 OHLCV_HEADERS = ("始値", "高値", "安値", "終値", "出来高")
-# MARKETSPEED II uses dash-only display markers such as "--------" for cells
-# belonging to preallocated/no-data RssChart rows. Accept common Unicode dash
-# variants too, but only when the whole cell consists of dash characters.
 RSS_DASH_PLACEHOLDER_CHARS = frozenset("-‐‑‒–—−－")
 
 
@@ -54,7 +52,6 @@ def _finite(value: Any) -> bool:
 
 
 def _is_rss_display_placeholder(value: Any) -> bool:
-    """True only for empty or dash-only MARKETSPEED II display placeholders."""
     text = _text(value)
     if text == "":
         return True
@@ -147,14 +144,7 @@ def _numeric(value: Any, field: str) -> float:
 
 
 def _complete_ohlcv_or_none(raw: list[Any], columns: dict[str, int]) -> tuple[float, float, float, float, float] | None:
-    """Return a complete OHLCV tuple, skip no-data rows, fail on ambiguous partial rows.
-
-    MARKETSPEED II RssChart can expose preallocated rows where OHLC cells are blank
-    or dash-only display markers such as "--------". If all four OHLC cells are
-    placeholders and volume is also a placeholder or numeric zero, the row contains
-    no price bar and is safe to skip. Mixed numeric/placeholder OHLCV remains a hard
-    error so genuine malformed market data cannot be silently discarded.
-    """
+    """Return a complete OHLCV tuple, skip no-data rows, fail on ambiguous partial rows."""
     try:
         values = [raw[columns[header]] for header in OHLCV_HEADERS]
     except IndexError as exc:
@@ -175,6 +165,68 @@ def _complete_ohlcv_or_none(raw: list[Any], columns: dict[str, int]) -> tuple[fl
         raise ValueError("RssChart partially populated OHLCV row; missing/placeholder: " + ",".join(missing_headers))
 
     return tuple(_numeric(value, header) for value, header in zip(values, OHLCV_HEADERS))  # type: ignore[return-value]
+
+
+def _validate_populated_timeframe_cell(
+    raw: list[Any],
+    columns: dict[str, int],
+    *,
+    error_prefix: str,
+) -> bool:
+    """Validate explicit 足種 metadata.
+
+    MARKETSPEED II can leave 足種 blank on otherwise populated RssChart rows. Blank
+    or dash-only metadata is therefore treated as unavailable, not as proof of a
+    different timeframe. Any explicit non-placeholder value must still be exactly
+    5M. The caller must additionally validate the timestamp grid before accepting
+    missing metadata.
+
+    Returns True when this row contains explicit `5M` evidence, False when the
+    metadata is unavailable.
+    """
+    if "足種" not in columns:
+        return False
+    value = raw[columns["足種"]] if columns["足種"] < len(raw) else ""
+    if _is_rss_display_placeholder(value):
+        return False
+    timeframe = _text(value)
+    if timeframe != "5M":
+        raise ValueError(f"{error_prefix}timeframe must be 5M for a populated bar, got {timeframe!r}")
+    return True
+
+
+def _validate_5m_timestamp_grid(rows: list[dict[str, Any]], *, error_prefix: str = "RssChart: ") -> None:
+    """Fail closed unless populated bars provide structural evidence of a 5m grid.
+
+    Every populated bar must land on a five-minute boundary in JST. For each session
+    containing multiple rows, at least one adjacent pair must be exactly five minutes
+    apart. This rejects 1m/10m/15m data when 足種 metadata is missing while allowing
+    normal market gaps such as lunch or intervals with no printed bar.
+    """
+    grouped: dict[str, list[datetime]] = defaultdict(list)
+    for row in rows:
+        timestamp = str(row.get("timestamp") or "")
+        try:
+            instant = datetime.fromisoformat(timestamp.replace("Z", "+00:00")).astimezone(JST)
+        except ValueError as exc:
+            raise ValueError(f"{error_prefix}invalid timestamp while proving 5M grid: {timestamp!r}") from exc
+        if instant.second != 0 or instant.microsecond != 0 or instant.minute % 5 != 0:
+            raise ValueError(
+                f"{error_prefix}populated bar is not aligned to a 5-minute JST boundary: {timestamp}"
+            )
+        grouped[instant.date().isoformat()].append(instant)
+
+    for session_date, instants in grouped.items():
+        instants.sort()
+        if len(instants) < 2:
+            continue
+        deltas = [int((right - left).total_seconds()) for left, right in zip(instants, instants[1:])]
+        if any(delta <= 0 or delta % 300 != 0 for delta in deltas):
+            raise ValueError(f"{error_prefix}{session_date}: timestamps do not form a 5-minute grid")
+        if 300 not in deltas:
+            raise ValueError(
+                f"{error_prefix}{session_date}: no adjacent 5-minute bars; cannot prove 5M when 足種 metadata is missing"
+            )
 
 
 def parse_rss_chart_matrix(
@@ -198,6 +250,8 @@ def parse_rss_chart_matrix(
 
     rows: list[dict[str, Any]] = []
     skipped_unpopulated = 0
+    explicit_5m_count = 0
+    missing_timeframe_metadata_count = 0
     for excel_row_number, raw in enumerate(matrix[header_row + 1 :], start=header_row + 2):
         if not raw or all(_text(cell) == "" for cell in raw):
             continue
@@ -217,16 +271,25 @@ def parse_rss_chart_matrix(
             skipped_unpopulated += 1
             continue
 
-        if "足種" in columns:
-            tf = _text(raw[columns["足種"]]) if columns["足種"] < len(raw) else ""
-            if tf != "5M":
-                raise ValueError(
-                    f"RssChart Excel row {excel_row_number}: timeframe must be 5M for a populated bar, got {tf!r}"
-                )
+        try:
+            has_explicit_5m = _validate_populated_timeframe_cell(
+                raw,
+                columns,
+                error_prefix=f"RssChart Excel row {excel_row_number}: ",
+            )
+        except ValueError:
+            raise
+        if has_explicit_5m:
+            explicit_5m_count += 1
+        else:
+            missing_timeframe_metadata_count += 1
 
         open_, high, low, close, volume = ohlcv
-        day = _parse_date(day_value)
-        clock = _parse_time(time_value)
+        try:
+            day = _parse_date(day_value)
+            clock = _parse_time(time_value)
+        except ValueError as exc:
+            raise ValueError(f"RssChart Excel row {excel_row_number}: {exc}") from exc
         timestamp = _iso_timestamp(day, clock)
         if datetime.fromisoformat(timestamp.replace("Z", "+00:00")) > captured:
             raise ValueError(f"RssChart Excel row {excel_row_number}: timestamp is in the future: {timestamp}")
@@ -252,6 +315,7 @@ def parse_rss_chart_matrix(
     timestamps = [row["timestamp"] for row in rows]
     if len(timestamps) != len(set(timestamps)):
         raise ValueError("duplicate RssChart timestamps detected")
+    _validate_5m_timestamp_grid(rows, error_prefix="RssChart: ")
 
     target_session = session_date or _session_date_from_iso(rows[-1]["timestamp"])
     if not isinstance(target_session, str) or len(target_session) != 10:
@@ -283,6 +347,8 @@ def parse_rss_chart_matrix(
         "sameSessionSourceBarCount": len(same_session),
         "closedBarCount": len(closed_rows),
         "skippedUnpopulatedOhlcvRowCount": skipped_unpopulated,
+        "explicit5mTimeframeCellCount": explicit_5m_count,
+        "missingTimeframeMetadataCount": missing_timeframe_metadata_count,
         "droppedNewestTimestamp": dropped_newest,
         "methodology": {
             "source": "MARKETSPEED_II_RSS_RssChart",
@@ -291,7 +357,9 @@ def parse_rss_chart_matrix(
             "fullyUnpopulatedOhlcvRowsSkipped": True,
             "zeroVolumeNoPricePlaceholderRowsSkipped": True,
             "dashOnlyDisplayPlaceholdersTreatedAsMissing": True,
-            "timeframeValidatedOnlyForPopulatedBars": True,
+            "blankOrPlaceholderTimeframeMetadataAllowedWithGridProof": True,
+            "explicitNon5mTimeframeRejected": True,
+            "timestampGridValidatedAs5m": True,
             "partiallyPopulatedOhlcvRowsRejected": True,
             "newestVisibleRowDroppedForClosureSafety": bool(drop_newest_row_for_closure_safety),
             "currentOrFutureOutcomeUsed": False,
@@ -346,6 +414,8 @@ def main() -> int:
         "sessionDate": payload["sessionDate"],
         "closedBarCount": payload["closedBarCount"],
         "skippedUnpopulatedOhlcvRowCount": payload["skippedUnpopulatedOhlcvRowCount"],
+        "explicit5mTimeframeCellCount": payload["explicit5mTimeframeCellCount"],
+        "missingTimeframeMetadataCount": payload["missingTimeframeMetadataCount"],
         "droppedNewestTimestamp": payload["droppedNewestTimestamp"],
         "safety": PHASE58_5M_EXPORT_SAFETY,
     }, ensure_ascii=False))

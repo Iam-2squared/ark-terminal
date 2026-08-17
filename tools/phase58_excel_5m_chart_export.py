@@ -6,11 +6,13 @@ import math
 from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable
-from zoneinfo import ZoneInfo
 
 from phase58_excel_microstructure_capture import _find_workbook
 
-JST = ZoneInfo("Asia/Tokyo")
+# Japan Standard Time has been UTC+09:00 without DST for the modern market-data
+# period covered here. A fixed offset avoids Python's optional tzdata package on
+# Windows while preserving the exact conversion required by MARKETSPEED II RSS.
+JST = timezone(timedelta(hours=9), name="JST")
 UTC = timezone.utc
 
 PHASE58_5M_EXPORT_SAFETY = {

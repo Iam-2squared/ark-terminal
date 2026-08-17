@@ -18,9 +18,18 @@ function jstTickIso(capturedAt,time){
   const date=`${jst.getUTCFullYear()}-${String(jst.getUTCMonth()+1).padStart(2,'0')}-${String(jst.getUTCDate()).padStart(2,'0')}`;
   return `${date}T${String(time).slice(0,8)}+09:00`;
 }
+function normalizeMarket(market={}){
+  const out={...market};
+  // Phase58 foundation consumes askPriceN/bidPriceN aliases; captured RSS uses askN/bidN.
+  for(let level=1;level<=10;level++){
+    if(out[`askPrice${level}`]==null&&out[`ask${level}`]!=null)out[`askPrice${level}`]=out[`ask${level}`];
+    if(out[`bidPrice${level}`]==null&&out[`bid${level}`]!=null)out[`bidPrice${level}`]=out[`bid${level}`];
+  }
+  return out;
+}
 function normalizeInput(row,historyRows){
-  const snap={...row.market,timestamp:row.capturedAt,capturedAt:row.capturedAt};
-  const quoteSnapshots=historyRows.map(r=>({...r.market,timestamp:r.capturedAt,capturedAt:r.capturedAt}));
+  const snap={...normalizeMarket(row.market),timestamp:row.capturedAt,capturedAt:row.capturedAt};
+  const quoteSnapshots=historyRows.map(r=>({...normalizeMarket(r.market),timestamp:r.capturedAt,capturedAt:r.capturedAt}));
   const ticks=(row.ticks??[]).map(t=>({timestamp:jstTickIso(row.capturedAt,t.time),price:t.price,volume:t.volume,size:t.volume}));
   return {snapshot:snap,quoteSnapshots,ticks,asOf:row.capturedAt};
 }
@@ -35,6 +44,8 @@ const raw=parseJsonl(bytes);
 if(raw.length<100){console.log(JSON.stringify({status:'BLOCKED_INSUFFICIENT_PINNED_ROWS',rowCount:raw.length},null,2));process.exit(2);}
 
 const evalRows=[]; let ready=0,zeroPressure=0;
+const qualityFailureCounts={}; const orderBookStatusCounts={}; const tickFlowStatusCounts={};
+let classifiedFractionMin=null,classifiedFractionMax=null,classifiedFractionSum=0,classifiedFractionN=0;
 for(let i=LOOKBACK-1;i+HORIZON<raw.length;i++){
   const inputs=[];
   for(let j=i-LOOKBACK+1;j<=i;j++){
@@ -42,7 +53,13 @@ for(let i=LOOKBACK-1;i+HORIZON<raw.length;i++){
     inputs.push(normalizeInput(raw[j],hist));
   }
   const intel=buildPhase58P2P3(inputs,{maxQuoteStalenessMs:5000,maxTickStalenessMs:15000,minClassifiedTickFraction:.5,minQuoteSnapshots:2});
-  if(intel.orderBook?.status!=='ORDER_BOOK_INTELLIGENCE_READY'||intel.tickFlow?.status!=='TICK_FLOW_INTELLIGENCE_READY')continue;
+  const obStatus=intel.orderBook?.status??'NULL'; orderBookStatusCounts[obStatus]=(orderBookStatusCounts[obStatus]??0)+1;
+  const tfStatus=intel.tickFlow?.status??'NULL'; tickFlowStatusCounts[tfStatus]=(tickFlowStatusCounts[tfStatus]??0)+1;
+  const latestFrame=intel.frames?.at(-1);
+  for(const [name,passed] of Object.entries(latestFrame?.quality?.checks??{}))if(!passed)qualityFailureCounts[name]=(qualityFailureCounts[name]??0)+1;
+  const cf=Number(latestFrame?.features?.classifiedTickFraction);
+  if(Number.isFinite(cf)){classifiedFractionMin=classifiedFractionMin===null?cf:Math.min(classifiedFractionMin,cf);classifiedFractionMax=classifiedFractionMax===null?cf:Math.max(classifiedFractionMax,cf);classifiedFractionSum+=cf;classifiedFractionN++;}
+  if(obStatus!=='ORDER_BOOK_INTELLIGENCE_READY'||tfStatus!=='TICK_FLOW_INTELLIGENCE_READY')continue;
   ready++;
   const b=intel.orderBook.features??{},f=intel.tickFlow.features??{};
   const votes=[b.pressureConsensus,f.signedVolumeImbalance,f.flowMomentum,b.micropriceEdgeBps].filter(finite).map(Number);
@@ -56,6 +73,11 @@ for(let i=LOOKBACK-1;i+HORIZON<raw.length;i++){
   evalRows.push({index:i,capturedAt:raw[i].capturedAt,direction,grossReturn:gross,costBps:cost.totalRoundTripBps,netReturn});
 }
 const result=evaluatePinnedWalkForward({datasetBytes:bytes,datasetSha256:actual,rows:evalRows});
-const diagnostics={method:'PREDECLARED_MICROSTRUCTURE_ONLY_DIAGNOSTIC',lookbackSnapshots:LOOKBACK,horizonSnapshots:HORIZON,approxHorizonSeconds:10,thresholdSweep:false,postHocSymbolFilter:false,phase57DirectionIntegrated:false,readyObservations:ready,zeroPressureObservations:zeroPressure,evaluableRows:evalRows.length};
+const diagnostics={
+  method:'PREDECLARED_MICROSTRUCTURE_ONLY_DIAGNOSTIC',lookbackSnapshots:LOOKBACK,horizonSnapshots:HORIZON,approxHorizonSeconds:10,
+  thresholdSweep:false,postHocSymbolFilter:false,phase57DirectionIntegrated:false,readyObservations:ready,zeroPressureObservations:zeroPressure,evaluableRows:evalRows.length,
+  orderBookStatusCounts,tickFlowStatusCounts,qualityFailureCounts,
+  classifiedTickFraction:{min:classifiedFractionMin,max:classifiedFractionMax,mean:classifiedFractionN?classifiedFractionSum/classifiedFractionN:null,n:classifiedFractionN},
+};
 console.log(JSON.stringify({datasetSha256:actual,diagnostics,result},null,2));
 process.exit(result.complete?0:2);

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {buildProspectiveP21HistoricalRows} from '../daytrade/phase57-p21-prospective-history.js';
-import {buildPhase57ProspectiveSnapshotPipeline,PHASE58_P13_SAFETY} from '../scalping/phase58-phase57-prospective-pipeline.js';
+import {buildPhase57ProspectiveSnapshotPipeline,PHASE58_P13_FROZEN_POLICY,PHASE58_P13_SAFETY} from '../scalping/phase58-phase57-prospective-pipeline.js';
 
 function sessionBars(date,{count=32,start=100}={}){
   const startMs=Date.parse(`${date}T00:00:00.000Z`); // 09:00 JST
@@ -67,6 +67,14 @@ test('materializes P21 historical horizon rows with P24-parity features and real
   }
 });
 
+test('rejects historical sessions containing bars from a different JST session date',()=>{
+  const sessions=historicalSessions();
+  sessions[0]={...sessions[0],bars5m:[...sessions[0].bars5m,{...sessions[0].bars5m[0],timestamp:'2026-08-11T00:00:00.000Z'}]};
+  const out=buildProspectiveP21HistoricalRows({sessions,horizons:[1]});
+  assert.equal(out.complete,false);
+  assert.equal(out.status,'BLOCKED_INVALID_OR_CROSS_SESSION_HISTORY');
+});
+
 test('composes historical rows plus an outcome-free completed 5m prefix into a frozen Phase57 snapshot',()=>{
   const out=buildPhase57ProspectiveSnapshotPipeline({historicalSessions:historicalSessions(),currentPrefix:currentPrefix(),policy:TEST_POLICY});
   assert.equal(out.complete,true);
@@ -83,6 +91,17 @@ test('composes historical rows plus an outcome-free completed 5m prefix into a f
   for(const key of ['label','actualReturnPct','outcomeAt','futureBars','mfePct','maePct']){
     assert.equal(Object.prototype.hasOwnProperty.call(out.snapshot,key),false,key);
   }
+});
+
+test('policy id alone cannot spoof the frozen production-research policy',()=>{
+  const spoofed={
+    policyId:PHASE58_P13_FROZEN_POLICY.policyId,
+    horizonsBars:[1],
+    selectionOptions:TEST_POLICY.selectionOptions,
+  };
+  const out=buildPhase57ProspectiveSnapshotPipeline({historicalSessions:historicalSessions(),currentPrefix:currentPrefix(),policy:spoofed});
+  assert.equal(out.complete,true);
+  assert.equal(out.policyFrozen,false);
 });
 
 test('fails closed when the current prefix is not explicitly completed-bar safe',()=>{

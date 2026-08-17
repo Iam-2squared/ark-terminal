@@ -42,6 +42,25 @@ function blocked(status,extra={}){
   });
 }
 
+function sameArray(a,b){
+  return Array.isArray(a)&&Array.isArray(b)&&a.length===b.length&&a.every((value,index)=>Number(value)===Number(b[index]));
+}
+
+function isFrozenPolicy(policy){
+  if(!policy||policy.policyId!==PHASE58_P13_FROZEN_POLICY.policyId)return false;
+  if(!sameArray(policy.horizonsBars,PHASE58_P13_FROZEN_POLICY.horizonsBars))return false;
+  const actual=policy.selectionOptions??{};
+  const frozen=PHASE58_P13_FROZEN_POLICY.selectionOptions;
+  if(!sameArray(actual.thresholds,frozen.thresholds))return false;
+  for(const key of ['innerTrainFraction','innerTestFraction','innerMinTrainRows','minInnerSignals','minimumInnerNetReturnPct','roundTripCostPct']){
+    if(Number(actual[key])!==Number(frozen[key]))return false;
+  }
+  for(const overrideKey of ['featureFamilies','modelConfigs','fitPredictor']){
+    if(Object.prototype.hasOwnProperty.call(actual,overrideKey))return false;
+  }
+  return true;
+}
+
 /**
  * End-to-end READ ONLY composition used before Phase58 synchronized capture.
  * Historical outcomes may exist only in the historical materialization. The live
@@ -53,7 +72,7 @@ export function buildPhase57ProspectiveSnapshotPipeline({
   currentPrefix={},
   policy=PHASE58_P13_FROZEN_POLICY,
 }={}){
-  const policyFrozen=policy===PHASE58_P13_FROZEN_POLICY||policy?.policyId===PHASE58_P13_FROZEN_POLICY.policyId;
+  const policyFrozen=isFrozenPolicy(policy);
   const horizons=Array.isArray(policy?.horizonsBars)?policy.horizonsBars:PHASE58_P13_FROZEN_POLICY.horizonsBars;
   const selectionOptions=policy?.selectionOptions??PHASE58_P13_FROZEN_POLICY.selectionOptions;
 

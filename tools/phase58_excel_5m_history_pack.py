@@ -9,10 +9,10 @@ from pathlib import Path
 from typing import Any
 
 from phase58_excel_5m_chart_export import (
+    _complete_ohlcv_or_none,
     _find_workbook,
     _iso_timestamp,
     _matrix,
-    _numeric,
     _parse_date,
     _parse_time,
     _session_date_from_iso,
@@ -42,7 +42,7 @@ PHASE58_P14_SAFETY = {
 }
 
 
-def _parse_all_rows(values: Any, *, symbol: str, captured_at: str) -> list[dict[str, Any]]:
+def _parse_all_rows(values: Any, *, symbol: str, captured_at: str) -> tuple[list[dict[str, Any]], int]:
     matrix = _matrix(values)
     header_row, columns = find_rss_chart_header(matrix)
     captured = datetime.fromisoformat(captured_at.replace("Z", "+00:00"))
@@ -50,6 +50,7 @@ def _parse_all_rows(values: Any, *, symbol: str, captured_at: str) -> list[dict[
         raise ValueError("captured_at must be timezone-aware")
     captured = captured.astimezone(UTC)
     rows: list[dict[str, Any]] = []
+    skipped_unpopulated = 0
 
     for raw in matrix[header_row + 1 :]:
         if not raw or all(_text(cell) == "" for cell in raw):
@@ -66,18 +67,19 @@ def _parse_all_rows(values: Any, *, symbol: str, captured_at: str) -> list[dict[
             if timeframe and timeframe != "5M":
                 raise ValueError(f"{symbol}: RssChart timeframe must be 5M, got {timeframe!r}")
 
+        try:
+            ohlcv = _complete_ohlcv_or_none(raw, columns)
+        except ValueError as exc:
+            raise ValueError(f"{symbol}: {exc}") from exc
+        if ohlcv is None:
+            skipped_unpopulated += 1
+            continue
+        open_, high, low, close, volume = ohlcv
+
         timestamp = _iso_timestamp(_parse_date(day_value), _parse_time(time_value))
         instant = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
         if instant > captured:
             raise ValueError(f"{symbol}: RssChart timestamp is in the future: {timestamp}")
-        try:
-            open_ = _numeric(raw[columns["始値"]], "始値")
-            high = _numeric(raw[columns["高値"]], "高値")
-            low = _numeric(raw[columns["安値"]], "安値")
-            close = _numeric(raw[columns["終値"]], "終値")
-            volume = _numeric(raw[columns["出来高"]], "出来高")
-        except IndexError as exc:
-            raise ValueError(f"{symbol}: RssChart row shorter than OHLCV header") from exc
         if min(open_, high, low, close) <= 0:
             raise ValueError(f"{symbol}: OHLC must be positive")
         if high < low or high < max(open_, close) or low > min(open_, close):
@@ -95,7 +97,7 @@ def _parse_all_rows(values: Any, *, symbol: str, captured_at: str) -> list[dict[
     timestamps = [row["timestamp"] for row in rows]
     if len(timestamps) != len(set(timestamps)):
         raise ValueError(f"{symbol}: duplicate RssChart timestamps")
-    return rows
+    return rows, skipped_unpopulated
 
 
 def build_history_pack_from_matrices(
@@ -119,9 +121,13 @@ def build_history_pack_from_matrices(
     per_symbol: dict[str, Any] = {}
     dropped_current_or_future = 0
     dropped_short_sessions = 0
+    skipped_unpopulated_total = 0
 
     for symbol in expected_universe:
-        rows = _parse_all_rows(matrices_by_symbol[symbol], symbol=symbol, captured_at=captured_at)
+        rows, skipped_unpopulated = _parse_all_rows(
+            matrices_by_symbol[symbol], symbol=symbol, captured_at=captured_at
+        )
+        skipped_unpopulated_total += skipped_unpopulated
         grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
         for row in rows:
             session_date = _session_date_from_iso(row["timestamp"])
@@ -151,6 +157,7 @@ def build_history_pack_from_matrices(
             raise ValueError(f"{symbol}: no eligible completed historical sessions before {as_of_session_date}")
         per_symbol[symbol] = {
             "sourceRowCount": len(rows),
+            "skippedUnpopulatedOhlcvRowCount": skipped_unpopulated,
             "acceptedSessionCount": len(accepted_dates),
             "acceptedBarCount": accepted_bar_count,
             "firstAcceptedSession": accepted_dates[0],
@@ -168,6 +175,7 @@ def build_history_pack_from_matrices(
         "minBarsPerHistoricalSession": min_bars_per_session,
         "sessionCount": len(sessions),
         "perSymbol": per_symbol,
+        "skippedUnpopulatedOhlcvRowCount": skipped_unpopulated_total,
         "droppedCurrentOrFutureRowCount": dropped_current_or_future,
         "droppedShortSessionCount": dropped_short_sessions,
         "sessions": sessions,
@@ -175,6 +183,8 @@ def build_history_pack_from_matrices(
             "source": "MARKETSPEED_II_RSS_RssChart",
             "timeframe": "5M",
             "excelReadOnly": True,
+            "fullyUnpopulatedOhlcvRowsSkipped": True,
+            "partiallyPopulatedOhlcvRowsRejected": True,
             "currentSessionExcludedFromTrainingHistory": True,
             "onlySessionsStrictlyBeforeAsOfSession": True,
             "frozenP24CombinedUniverseRequired": True,
@@ -252,6 +262,7 @@ def main() -> int:
         "sha256": _sha256(output),
         "asOfSessionDate": payload["asOfSessionDate"],
         "sessionCount": payload["sessionCount"],
+        "skippedUnpopulatedOhlcvRowCount": payload["skippedUnpopulatedOhlcvRowCount"],
         "perSymbol": payload["perSymbol"],
         "safety": PHASE58_P14_SAFETY,
     }, ensure_ascii=False))

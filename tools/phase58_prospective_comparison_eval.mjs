@@ -45,12 +45,10 @@ function main(){
     input:args.input,
     datasetSha256,
     datasetHashComputedFromExactInputBytes:true,
+    promotionEvidence:false,
     report,
     safety:PHASE58_P26_SAFETY,
   };
-  if(args.output){
-    fs.mkdirSync(new URL('.',`file://${process.cwd().replaceAll('\\','/')}/${args.output.replaceAll('\\','/')}`).pathname,{recursive:true});
-  }
   if(args.output){
     const path=args.output;
     const slash=Math.max(path.lastIndexOf('/'),path.lastIndexOf('\\'));

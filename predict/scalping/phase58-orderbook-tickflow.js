@@ -5,8 +5,15 @@ const finite=x=>Number.isFinite(Number(x));
 const mean=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:null;
 const sign=x=>x>0?1:x<0?-1:0;
 
+// Order-book readiness must not be invalidated solely because RssTickList aggressor-side
+// classification is weak. MARKETSPEED II RSS does not expose native aggressor side.
+function orderBookQualityPassed(frame){
+  const c=frame?.quality?.checks??{};
+  return c.topOfBookValid===true&&c.quoteHistoryAdequate===true&&c.noFutureQuoteAssignments===true&&c.quoteFresh===true;
+}
+
 export function buildOrderBookIntelligence(frames=[]){
-  const valid=(Array.isArray(frames)?frames:[]).filter(f=>f&&f.features&&f.quality?.passed);
+  const valid=(Array.isArray(frames)?frames:[]).filter(f=>f&&f.features&&orderBookQualityPassed(f));
   for(const f of valid)assertPhase58ReadOnly(f);
   const latest=valid.at(-1)?.features??{};
   const spreads=valid.map(f=>Number(f.features.spreadBps)).filter(finite);
@@ -35,7 +42,8 @@ export function buildTickFlowIntelligence(frame,history=[]){
   const flowMomentum=signed.length>=2?signed.at(-1)-signed.at(-2):null;
   const intensityBurst=intensity.length>=2&&intensity.at(-2)>0?intensity.at(-1)/intensity.at(-2):null;
   const directionalPersistence=signed.length?Math.abs(mean(signed.map(sign))):null;
-  const reliable=(frame.quality?.passed===true)&&(!finite(current.classifiedTickFraction)||Number(current.classifiedTickFraction)>=.5);
+  const checks=frame.quality?.checks??{};
+  const reliable=checks.tickFresh===true&&checks.tickClassificationAdequate===true&&checks.noFutureQuoteAssignments===true;
   return Object.freeze({phase:'58.p3',status:reliable?'TICK_FLOW_INTELLIGENCE_READY':'TICK_FLOW_DEGRADED',features:Object.freeze({signedVolumeImbalance:finite(current.signedVolumeImbalance)?Number(current.signedVolumeImbalance):null,aggressiveBuyRatio:finite(current.aggressiveBuyRatio)?Number(current.aggressiveBuyRatio):null,tradeIntensityPerSecond:finite(current.tradeIntensityPerSecond)?Number(current.tradeIntensityPerSecond):null,flowMomentum,intensityBurst,directionalPersistence,classifiedTickFraction:classified.at(-1)??null,averageClassifiedTickFraction:mean(classified)}),sampleCount:rows.length,researchOnly:true,safety:PHASE58_P2P3_SAFETY});
 }
 

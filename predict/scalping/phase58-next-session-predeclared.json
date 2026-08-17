@@ -1,0 +1,65 @@
+{
+  "phase": "58.p8.next-session-predeclared",
+  "createdAfterExploratorySession": "2026-08-17",
+  "purpose": "Freeze the next independent-session validation before observing that session.",
+  "researchOnly": true,
+  "promotionEvidence": false,
+  "source": "MARKETSPEED_II_RSS_READ_ONLY",
+  "signal": {
+    "name": "weightedDepthImbalance",
+    "directionRule": "sign(weightedDepthImbalance)",
+    "threshold": 0,
+    "thresholdSweepAllowed": false,
+    "postHocSymbolFilterAllowed": false
+  },
+  "horizonsSeconds": [60, 120, 180, 300],
+  "primaryHorizonSeconds": 120,
+  "secondaryHorizonsExploratory": [60, 180, 300],
+  "capture": {
+    "symbol": "7203",
+    "intervalSeconds": 2,
+    "minimumSamples": 1200,
+    "preferredSamples": 1800,
+    "minimumDurationMinutes": 40,
+    "preferredDurationMinutes": 60,
+    "requireContinuousMarketSession": true,
+    "requireBytePinnedSha256": true
+  },
+  "costModel": {
+    "slippageBpsOneWay": 0.5,
+    "feesBpsOneWay": 0,
+    "marketImpactBpsOneWay": 0.25,
+    "spreadTreatment": "half-spread per side",
+    "sameAs2026_08_17Diagnostic": true
+  },
+  "evaluation": {
+    "requireOrderBookReady": true,
+    "reportGrossDirectionalHitRateOnMoved": true,
+    "reportFlatRate": true,
+    "reportAverageAbsoluteFutureMoveBps": true,
+    "reportAverageGrossEdgeBps": true,
+    "reportAverageCostBps": true,
+    "reportAverageNetEdgeBps": true,
+    "reportNonOverlapping": true,
+    "minimumNonOverlappingRowsForClaim": 100,
+    "successRequiresAverageNetEdgeBpsPositive": true,
+    "noParameterChangesAfterCapture": true
+  },
+  "tickFlow": {
+    "strictClassificationThreshold": 0.5,
+    "relaxThresholdOnSameSession": false,
+    "status": "SEPARATE_RESEARCH_UNTIL_CLASSIFICATION_IMPROVES"
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "freshHoldoutConsumed": false
+  }
+}

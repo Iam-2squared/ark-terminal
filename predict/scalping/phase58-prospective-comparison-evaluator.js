@@ -53,8 +53,7 @@ function midFromRow(row){
 
 function spreadBpsFromRow(row){
   if(finite(row?.market?.spreadBps))return Math.max(0,Number(row.market.spreadBps));
-  const bid=Number(row?.market?.bestBid),ask=Number(row?.market?.bestAsk);
-  const mid=midFromRow(row);
+  const bid=Number(row?.market?.bestBid),ask=Number(row?.market?.bestAsk),mid=midFromRow(row);
   return Number.isFinite(bid)&&Number.isFinite(ask)&&finite(mid)&&mid>0?Math.max(0,(ask-bid)/mid*10000):null;
 }
 
@@ -103,17 +102,22 @@ function causalTicks(row){
   return ticks;
 }
 
+function sameSymbolIndices(rows,index,limit=PHASE58_P26_EVIDENCE_POLICY.microstructureHistoryRows){
+  const symbol=rows[index]?.symbol;
+  const out=[];
+  for(let i=index;i>=0&&out.length<limit;i-=1)if(rows[i]?.symbol===symbol)out.push(i);
+  return out.reverse();
+}
+
 function microInput(rows,index){
-  const first=Math.max(0,index-PHASE58_P26_EVIDENCE_POLICY.microstructureHistoryRows+1);
-  const quoteSnapshots=rows.slice(first,index+1).map(quoteSnapshot);
+  const quoteSnapshots=sameSymbolIndices(rows,index).map(i=>quoteSnapshot(rows[i]));
   const row=rows[index];
   return {snapshot:quoteSnapshot(row),quoteSnapshots,ticks:causalTicks(row),asOf:row?.capturedAt??null};
 }
 
 function defaultOverlayAction(rows,index,direction){
-  const first=Math.max(0,index-PHASE58_P26_EVIDENCE_POLICY.microstructureHistoryRows+1);
-  const inputSeries=[];
-  for(let i=first;i<=index;i+=1)inputSeries.push(microInput(rows,i));
+  const indices=sameSymbolIndices(rows,index);
+  const inputSeries=indices.map(i=>microInput(rows,i));
   const decision=buildFrozenPhase57MicrostructureDecision({
     phase57Context:{direction,frozenByPhase57:true,sourceTimestamp:rows[index]?.phase57Snapshot?.asOf??null},
     inputSeries,
@@ -157,13 +161,12 @@ function tradeResult({entryRow,exitRow,direction}){
   const entryMid=midFromRow(entryRow),exitMid=midFromRow(exitRow),spreadBps=spreadBpsFromRow(entryRow);
   const cost=estimateScalpingCostBps({spreadBps});
   if(!finite(entryMid)||!finite(exitMid)||entryMid<=0||!cost.ready)return null;
-  const grossReturn=direction*(exitMid/entryMid-1);
-  const costReturn=cost.totalRoundTripBps/10000;
+  const grossReturn=direction*(exitMid/entryMid-1),costReturn=cost.totalRoundTripBps/10000,netReturn=grossReturn-costReturn;
   return Object.freeze({
     entryAt:entryRow.capturedAt,exitAt:exitRow.capturedAt,direction,entryMid,exitMid,
-    grossReturn,costReturn,netReturn:grossReturn-costReturn,
-    grossReturnPct:pct(grossReturn),costPct:pct(costReturn),netReturnPct:pct(grossReturn-costReturn),
-    spreadBps,costRoundTripBps:cost.totalRoundTripBps,directionalHit:grossReturn>0,netWin:grossReturn-costReturn>0,
+    grossReturn,costReturn,netReturn,
+    grossReturnPct:pct(grossReturn),costPct:pct(costReturn),netReturnPct:pct(netReturn),
+    spreadBps,costRoundTripBps:cost.totalRoundTripBps,directionalHit:grossReturn>0,netWin:netReturn>0,
   });
 }
 
@@ -179,7 +182,7 @@ function metrics(trades){
     hitRatePct:valid.length?100*valid.filter(x=>x.directionalHit).length/valid.length:null,
     winRate:valid.length?wins.length/valid.length:null,
     winRatePct:valid.length?100*wins.length/valid.length:null,
-    profitFactor:grossLoss>0?grossWin/grossLoss:grossWin>0?Infinity:null,
+    profitFactor:grossLoss>0?grossWin/grossLoss:null,
     netReturn:valid.length?equity-1:null,
     netReturnPct:valid.length?100*(equity-1):null,
     meanNetReturnPct:valid.length?100*returns.reduce((s,x)=>s+x,0)/valid.length:null,
@@ -188,17 +191,20 @@ function metrics(trades){
   });
 }
 
-function buildEvents(rows,overlayActionForIndex){
-  const groups=[];
-  let current=null;
+function groupedSnapshotIndices(rows){
+  const map=new Map();
   for(let i=0;i<rows.length;i+=1){
     const key=snapshotKey(rows[i]);
-    if(!current||current.key!==key){current={key,indices:[]};groups.push(current);}
-    current.indices.push(i);
+    if(!map.has(key))map.set(key,[]);
+    map.get(key).push(i);
   }
+  return [...map.entries()].map(([key,indices])=>({key,indices}));
+}
+
+function buildEvents(rows,overlayActionForIndex){
   const events=[];
   let waitDecisionCount=0;
-  for(const group of groups){
+  for(const group of groupedSnapshotIndices(rows)){
     const firstIndex=group.indices[0],firstRow=rows[firstIndex],snapshot=firstRow.phase57Snapshot??{};
     const direction=Number(snapshot.direction);
     if(direction!==1&&direction!==-1){waitDecisionCount+=1;continue;}
@@ -222,14 +228,14 @@ function buildEvents(rows,overlayActionForIndex){
     const baseline=baselineExitIndex===null?null:tradeResult({entryRow:firstRow,exitRow:rows[baselineExitIndex],direction});
     const overlay=overlayEntryIndex===null||overlayExitIndex===null?null:tradeResult({entryRow:rows[overlayEntryIndex],exitRow:rows[overlayExitIndex],direction});
     const pending=baselineExitIndex===null||(overlayEntryIndex!==null&&overlayExitIndex===null);
+    const boundaries=[baselineExitIndex,overlayExitIndex].filter(x=>x!==null).map(x=>parseMs(rows[x].capturedAt)).filter(x=>x!==null);
     events.push(Object.freeze({
       status:pending?'PENDING_OUTCOME':'MATURED',key:group.key,symbol:firstRow.symbol,direction,
       modelId:snapshot.modelId,artifactSha256:snapshot.artifactSha256,phase57AsOf:snapshot.asOf,
       sessionDate:jstDate(firstRow.capturedAt),horizonBars,horizonMinutes:horizonBars*PHASE58_P26_EVIDENCE_POLICY.barMinutes,
       baselineEntryIndex,baselineExitIndex,overlayEntryIndex,overlayExitIndex,overlayAction,liquidityShockSeen,
-      baseline,overlay,
-      overlayFiltered:overlayEntryIndex===null,
-      outcomeBoundaryMs:Math.max(baselineExitIndex===null?0:parseMs(rows[baselineExitIndex].capturedAt),overlayExitIndex===null?0:parseMs(rows[overlayExitIndex].capturedAt)),
+      baseline,overlay,overlayFiltered:overlayEntryIndex===null,
+      outcomeBoundaryMs:boundaries.length?Math.max(...boundaries):0,
     }));
   }
   return {events,waitDecisionCount};
@@ -249,13 +255,9 @@ function nonOverlapping(events){
 
 function comparison(events){
   const comparable=events.filter(x=>x.status==='MATURED'&&x.baseline);
-  const baselineTrades=comparable.map(x=>x.baseline);
-  const overlayTrades=comparable.map(x=>x.overlay).filter(Boolean);
-  const baselineLosers=comparable.filter(x=>x.baseline.netReturn<=0);
-  const baselineWinners=comparable.filter(x=>x.baseline.netReturn>0);
-  const filtered=comparable.filter(x=>x.overlayFiltered);
-  const filteredLosers=baselineLosers.filter(x=>x.overlayFiltered);
-  const filteredWinners=baselineWinners.filter(x=>x.overlayFiltered);
+  const baselineTrades=comparable.map(x=>x.baseline),overlayTrades=comparable.map(x=>x.overlay).filter(Boolean);
+  const baselineLosers=comparable.filter(x=>x.baseline.netReturn<=0),baselineWinners=comparable.filter(x=>x.baseline.netReturn>0);
+  const filtered=comparable.filter(x=>x.overlayFiltered),filteredLosers=baselineLosers.filter(x=>x.overlayFiltered),filteredWinners=baselineWinners.filter(x=>x.overlayFiltered);
   const base=metrics(baselineTrades),overlay=metrics(overlayTrades);
   return Object.freeze({
     comparableEventCount:comparable.length,
@@ -278,16 +280,29 @@ function comparison(events){
   });
 }
 
-function stability(events){
+function countBy(events,keyFn){
   const counts=new Map();
-  for(const event of events){const key=event.sessionDate??'UNKNOWN';counts.set(key,(counts.get(key)??0)+1);}
-  const total=events.length,maxCount=counts.size?Math.max(...counts.values()):0;
+  for(const event of events){const key=String(keyFn(event)??'UNKNOWN');counts.set(key,(counts.get(key)??0)+1);}
+  return Object.fromEntries([...counts].sort(([a],[b])=>a.localeCompare(b)));
+}
+
+function maxConcentration(counts,total){
+  const values=Object.values(counts);
+  return total&&values.length?Math.max(...values)/total:null;
+}
+
+function stability(events){
+  const total=events.length;
+  const eventsPerSession=countBy(events,x=>x.sessionDate),eventsPerSymbol=countBy(events,x=>x.symbol),eventsPerModel=countBy(events,x=>x.modelId);
+  const distinctSessions=Object.keys(eventsPerSession).length;
+  const sessionConcentration=maxConcentration(eventsPerSession,total),symbolConcentration=maxConcentration(eventsPerSymbol,total),modelConcentration=maxConcentration(eventsPerModel,total);
   return Object.freeze({
-    distinctSessions:counts.size,
-    eventsPerSession:Object.freeze(Object.fromEntries([...counts].sort())),
-    maxSessionConcentration:total?maxCount/total:null,
-    maxSessionConcentrationPct:total?100*maxCount/total:null,
-    stabilityEvidenceReady:counts.size>=PHASE58_P26_EVIDENCE_POLICY.minDistinctSessions,
+    distinctSessions,distinctSymbols:Object.keys(eventsPerSymbol).length,distinctModels:Object.keys(eventsPerModel).length,
+    eventsPerSession:Object.freeze(eventsPerSession),eventsPerSymbol:Object.freeze(eventsPerSymbol),eventsPerModel:Object.freeze(eventsPerModel),
+    maxSessionConcentration:sessionConcentration,maxSessionConcentrationPct:pct(sessionConcentration),
+    maxSymbolConcentration:symbolConcentration,maxSymbolConcentrationPct:pct(symbolConcentration),
+    maxModelConcentration:modelConcentration,maxModelConcentrationPct:pct(modelConcentration),
+    stabilityEvidenceReady:distinctSessions>=PHASE58_P26_EVIDENCE_POLICY.minDistinctSessions,
   });
 }
 
@@ -324,9 +339,7 @@ export function evaluatePhase58ProspectiveComparison({rows=[],datasetSha256=null
     complete:true,datasetSha256,resultSha256:sha256Text(JSON.stringify(resultMaterial)),
     rowCount:input.length,decisionEventCount:events.length,waitDecisionCount,maturedEventCount:matured.length,pendingEventCount:pending.length,
     formalNonOverlappingEventCount:formalEvents.length,
-    allOverlappingDescriptive:allComparison,
-    formalNonOverlapping:formalComparison,
-    stability:formalStability,
+    allOverlappingDescriptive:allComparison,formalNonOverlapping:formalComparison,stability:formalStability,
     evidence:Object.freeze({...PHASE58_P26_EVIDENCE_POLICY,ready:evidenceReady,promotionEvidence:false}),
     eventAudit:Object.freeze(events.map(x=>Object.freeze({
       status:x.status,key:x.key,symbol:x.symbol,direction:x.direction,sessionDate:x.sessionDate,horizonBars:x.horizonBars,
@@ -336,7 +349,7 @@ export function evaluatePhase58ProspectiveComparison({rows=[],datasetSha256=null
     methodology:Object.freeze({
       phase57DirectionIsFrozenBase:true,phase58MayConfirmDeferOrAbstainOnly:true,phase58MayReverseDirection:false,
       waitMayBecomeEntry:false,prospectiveOnly:true,futureOutcomeJoinedOnlyAfterFrozenHorizon:true,
-      overlappingResultsDescriptiveOnly:true,formalResultsNonOverlapping:true,
+      sameSymbolMicrostructureHistoryOnly:true,overlappingResultsDescriptiveOnly:true,formalResultsNonOverlapping:true,
       tickOrderNormalizedCausally:true,thresholdSearchAllowed:false,postHocOptimizationAllowed:false,
       automaticPromotionAllowed:false,freshHoldoutConsumed:false,
     }),

@@ -82,9 +82,12 @@ def test_skips_timestamped_rows_when_all_ohlc_blank_and_volume_is_zero():
     assert out["methodology"]["zeroVolumeNoPricePlaceholderRowsSkipped"] is True
 
 
-def test_skips_no_price_placeholder_before_validating_timeframe_display_marker():
+def test_skips_dash_display_placeholders_in_timeframe_and_ohlcv():
     values = _matrix()
-    values.insert(3, ["トヨタ自動車", "東証", "--------", "2026/08/17", "09:02", "", "", "", "", 0])
+    values.insert(3, [
+        "トヨタ自動車", "東証", "--------", "2026/08/17", "09:02",
+        "--------", "--------", "--------", "--------", "--------",
+    ])
     out = parse_rss_chart_matrix(
         values,
         symbol="7203.T",
@@ -93,13 +96,46 @@ def test_skips_no_price_placeholder_before_validating_timeframe_display_marker()
     )
     assert out["sourceBarCount"] == 8
     assert out["skippedUnpopulatedOhlcvRowCount"] == 1
-    assert out["methodology"]["timeframeValidatedOnlyForPopulatedBars"] is True
+    assert out["methodology"]["dashOnlyDisplayPlaceholdersTreatedAsMissing"] is True
 
 
-def test_rejects_all_blank_ohlc_with_positive_volume_fail_closed():
+def test_skips_dash_ohlc_placeholders_with_numeric_zero_volume():
     values = _matrix()
-    values.insert(3, ["トヨタ自動車", "東証", "5M", "2026/08/17", "09:02", "", "", "", "", 10])
-    with pytest.raises(ValueError, match="partially populated OHLCV row"):
+    values.insert(3, [
+        "トヨタ自動車", "東証", "--------", "2026/08/17", "09:02",
+        "--------", "--------", "--------", "--------", 0,
+    ])
+    out = parse_rss_chart_matrix(
+        values,
+        symbol="7203.T",
+        captured_at="2026-08-17T01:00:00Z",
+        session_date="2026-08-17",
+    )
+    assert out["skippedUnpopulatedOhlcvRowCount"] == 1
+
+
+def test_skips_unicode_dash_only_display_placeholders():
+    values = _matrix()
+    values.insert(3, [
+        "トヨタ自動車", "東証", "－－－－", "2026/08/17", "09:02",
+        "－－－－", "－－－－", "－－－－", "－－－－", "－－－－",
+    ])
+    out = parse_rss_chart_matrix(
+        values,
+        symbol="7203.T",
+        captured_at="2026-08-17T01:00:00Z",
+        session_date="2026-08-17",
+    )
+    assert out["skippedUnpopulatedOhlcvRowCount"] == 1
+
+
+def test_rejects_placeholder_ohlc_with_positive_volume_fail_closed():
+    values = _matrix()
+    values.insert(3, [
+        "トヨタ自動車", "東証", "5M", "2026/08/17", "09:02",
+        "--------", "--------", "--------", "--------", 10,
+    ])
+    with pytest.raises(ValueError, match=r"Excel row 4:.*partially populated OHLCV row"):
         parse_rss_chart_matrix(
             values,
             symbol="7203.T",
@@ -110,8 +146,8 @@ def test_rejects_all_blank_ohlc_with_positive_volume_fail_closed():
 
 def test_rejects_partially_populated_ohlcv_rows_fail_closed():
     values = _matrix()
-    values.insert(3, ["トヨタ自動車", "東証", "5M", "2026/08/17", "09:02", "", 101, 99, 100.5, 1000])
-    with pytest.raises(ValueError, match="partially populated OHLCV row"):
+    values.insert(3, ["トヨタ自動車", "東証", "5M", "2026/08/17", "09:02", "--------", 101, 99, 100.5, 1000])
+    with pytest.raises(ValueError, match=r"Excel row 4:.*partially populated OHLCV row"):
         parse_rss_chart_matrix(
             values,
             symbol="7203.T",
@@ -124,6 +160,18 @@ def test_rejects_non_5m_chart_rows():
     with pytest.raises(ValueError, match="timeframe must be 5M"):
         parse_rss_chart_matrix(
             _matrix("1M"),
+            symbol="7203.T",
+            captured_at="2026-08-17T01:00:00Z",
+            session_date="2026-08-17",
+        )
+
+
+def test_rejects_timeframe_placeholder_on_populated_bar():
+    values = _matrix()
+    values[2][2] = "--------"
+    with pytest.raises(ValueError, match="timeframe must be 5M for a populated bar"):
+        parse_rss_chart_matrix(
+            values,
             symbol="7203.T",
             captured_at="2026-08-17T01:00:00Z",
             session_date="2026-08-17",

@@ -34,6 +34,10 @@ PHASE58_5M_EXPORT_SAFETY = {
 REQUIRED_HEADERS = ("日付", "時刻", "始値", "高値", "安値", "終値", "出来高")
 OPTIONAL_HEADERS = ("銘柄名称", "市場名称", "足種")
 OHLCV_HEADERS = ("始値", "高値", "安値", "終値", "出来高")
+# MARKETSPEED II uses dash-only display markers such as "--------" for cells
+# belonging to preallocated/no-data RssChart rows. Accept common Unicode dash
+# variants too, but only when the whole cell consists of dash characters.
+RSS_DASH_PLACEHOLDER_CHARS = frozenset("-‐‑‒–—−－")
 
 
 def _text(value: Any) -> str:
@@ -47,6 +51,14 @@ def _finite(value: Any) -> bool:
         return math.isfinite(float(value))
     except (TypeError, ValueError):
         return False
+
+
+def _is_rss_display_placeholder(value: Any) -> bool:
+    """True only for empty or dash-only MARKETSPEED II display placeholders."""
+    text = _text(value)
+    if text == "":
+        return True
+    return all(char in RSS_DASH_PLACEHOLDER_CHARS for char in text)
 
 
 def _matrix(values: Any) -> list[list[Any]]:
@@ -135,13 +147,13 @@ def _numeric(value: Any, field: str) -> float:
 
 
 def _complete_ohlcv_or_none(raw: list[Any], columns: dict[str, int]) -> tuple[float, float, float, float, float] | None:
-    """Return a complete OHLCV tuple, skip unpopulated RSS rows, fail on ambiguous partial rows.
+    """Return a complete OHLCV tuple, skip no-data rows, fail on ambiguous partial rows.
 
-    MARKETSPEED II RssChart can expose timestamped/preallocated grid rows where all
-    four OHLC cells are blank while 出来高 is either blank or numeric zero. Those
-    rows contain no price bar and are safe to ignore. If any OHLC value is present,
-    all OHLCV fields must be present and finite. A positive/non-zero volume with all
-    OHLC blank is also rejected fail-closed rather than silently discarded.
+    MARKETSPEED II RssChart can expose preallocated rows where OHLC cells are blank
+    or dash-only display markers such as "--------". If all four OHLC cells are
+    placeholders and volume is also a placeholder or numeric zero, the row contains
+    no price bar and is safe to skip. Mixed numeric/placeholder OHLCV remains a hard
+    error so genuine malformed market data cannot be silently discarded.
     """
     try:
         values = [raw[columns[header]] for header in OHLCV_HEADERS]
@@ -150,17 +162,17 @@ def _complete_ohlcv_or_none(raw: list[Any], columns: dict[str, int]) -> tuple[fl
 
     ohlc_values = values[:4]
     volume_value = values[4]
-    ohlc_blank = [_text(value) == "" for value in ohlc_values]
-    volume_blank = _text(volume_value) == ""
+    ohlc_missing = [_is_rss_display_placeholder(value) for value in ohlc_values]
+    volume_missing = _is_rss_display_placeholder(volume_value)
     volume_zero = _finite(volume_value) and float(volume_value) == 0.0
 
-    if all(ohlc_blank) and (volume_blank or volume_zero):
+    if all(ohlc_missing) and (volume_missing or volume_zero):
         return None
 
-    blank = [*ohlc_blank, volume_blank]
-    if any(blank):
-        missing = [header for header, is_blank in zip(OHLCV_HEADERS, blank) if is_blank]
-        raise ValueError("RssChart partially populated OHLCV row; missing: " + ",".join(missing))
+    missing = [*ohlc_missing, volume_missing]
+    if any(missing):
+        missing_headers = [header for header, is_missing in zip(OHLCV_HEADERS, missing) if is_missing]
+        raise ValueError("RssChart partially populated OHLCV row; missing/placeholder: " + ",".join(missing_headers))
 
     return tuple(_numeric(value, header) for value, header in zip(values, OHLCV_HEADERS))  # type: ignore[return-value]
 
@@ -186,43 +198,44 @@ def parse_rss_chart_matrix(
 
     rows: list[dict[str, Any]] = []
     skipped_unpopulated = 0
-    for raw in matrix[header_row + 1 :]:
+    for excel_row_number, raw in enumerate(matrix[header_row + 1 :], start=header_row + 2):
         if not raw or all(_text(cell) == "" for cell in raw):
             continue
         try:
             day_value = raw[columns["日付"]]
             time_value = raw[columns["時刻"]]
         except IndexError as exc:
-            raise ValueError("RssChart row shorter than detected header") from exc
+            raise ValueError(f"RssChart Excel row {excel_row_number}: row shorter than detected header") from exc
         if _text(day_value) == "" or _text(time_value) == "":
             continue
 
-        # Classify an actual price bar before validating display-only metadata.
-        # MARKETSPEED II may put placeholders such as "--------" in 足種 on
-        # preallocated rows that contain no OHLC price bar. Those rows are safe to
-        # skip, while every populated bar still has to prove that it is 5M.
-        ohlcv = _complete_ohlcv_or_none(raw, columns)
+        try:
+            ohlcv = _complete_ohlcv_or_none(raw, columns)
+        except ValueError as exc:
+            raise ValueError(f"RssChart Excel row {excel_row_number}: {exc}") from exc
         if ohlcv is None:
             skipped_unpopulated += 1
             continue
 
         if "足種" in columns:
             tf = _text(raw[columns["足種"]]) if columns["足種"] < len(raw) else ""
-            if tf and tf != "5M":
-                raise ValueError(f"RssChart timeframe must be 5M, got {tf!r}")
+            if tf != "5M":
+                raise ValueError(
+                    f"RssChart Excel row {excel_row_number}: timeframe must be 5M for a populated bar, got {tf!r}"
+                )
 
         open_, high, low, close, volume = ohlcv
         day = _parse_date(day_value)
         clock = _parse_time(time_value)
         timestamp = _iso_timestamp(day, clock)
         if datetime.fromisoformat(timestamp.replace("Z", "+00:00")) > captured:
-            raise ValueError(f"RssChart timestamp is in the future relative to capture: {timestamp}")
+            raise ValueError(f"RssChart Excel row {excel_row_number}: timestamp is in the future: {timestamp}")
         if min(open_, high, low, close) <= 0:
-            raise ValueError("RssChart OHLC values must be positive")
+            raise ValueError(f"RssChart Excel row {excel_row_number}: OHLC values must be positive")
         if high < low or high < max(open_, close) or low > min(open_, close):
-            raise ValueError("RssChart OHLC relationship is invalid")
+            raise ValueError(f"RssChart Excel row {excel_row_number}: OHLC relationship is invalid")
         if volume < 0:
-            raise ValueError("RssChart volume must be non-negative")
+            raise ValueError(f"RssChart Excel row {excel_row_number}: volume must be non-negative")
 
         rows.append({
             "timestamp": timestamp,
@@ -277,6 +290,7 @@ def parse_rss_chart_matrix(
             "headerDetectedByLabels": True,
             "fullyUnpopulatedOhlcvRowsSkipped": True,
             "zeroVolumeNoPricePlaceholderRowsSkipped": True,
+            "dashOnlyDisplayPlaceholdersTreatedAsMissing": True,
             "timeframeValidatedOnlyForPopulatedBars": True,
             "partiallyPopulatedOhlcvRowsRejected": True,
             "newestVisibleRowDroppedForClosureSafety": bool(drop_newest_row_for_closure_safety),

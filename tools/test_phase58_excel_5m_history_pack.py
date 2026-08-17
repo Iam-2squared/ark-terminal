@@ -40,9 +40,35 @@ def test_builds_frozen_universe_history_pack_and_excludes_current_session_rows()
     assert out["frozenUniverse"] == list(FROZEN_P24_COMBINED_UNIVERSE)
     assert out["sessionCount"] == 10
     assert out["droppedCurrentOrFutureRowCount"] == 8 * 5
+    assert out["skippedUnpopulatedOhlcvRowCount"] == 0
     assert all(session["sessionDate"] < "2026-08-17" for session in out["sessions"])
     assert set(session["symbol"] for session in out["sessions"]) == set(FROZEN_P24_COMBINED_UNIVERSE)
     assert all(len(session["bars5m"]) == 32 for session in out["sessions"])
+
+
+def test_skips_fully_unpopulated_timestamped_rows_in_history_sheets():
+    matrices = _matrices()
+    for symbol in FROZEN_P24_COMBINED_UNIVERSE:
+        matrices[symbol].insert(2, [symbol, "東証", "5M", "2026/08/13", "09:02", "", "", "", "", ""])
+    out = build_history_pack_from_matrices(
+        matrices,
+        captured_at="2026-08-17T01:00:00Z",
+        as_of_session_date="2026-08-17",
+    )
+    assert out["sessionCount"] == 10
+    assert out["skippedUnpopulatedOhlcvRowCount"] == 5
+    assert all(out["perSymbol"][symbol]["skippedUnpopulatedOhlcvRowCount"] == 1 for symbol in FROZEN_P24_COMBINED_UNIVERSE)
+
+
+def test_rejects_partially_populated_history_row_fail_closed():
+    matrices = _matrices()
+    matrices["7203.T"].insert(2, ["7203.T", "東証", "5M", "2026/08/13", "09:02", "", 101, 99, 100.5, 1000])
+    with pytest.raises(ValueError, match="partially populated OHLCV row"):
+        build_history_pack_from_matrices(
+            matrices,
+            captured_at="2026-08-17T01:00:00Z",
+            as_of_session_date="2026-08-17",
+        )
 
 
 def test_drops_partial_oldest_sessions_below_p24_minimum_bar_count():

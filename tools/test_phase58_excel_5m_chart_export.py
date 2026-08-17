@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
 import pytest
 
 from phase58_excel_5m_chart_export import PHASE58_5M_EXPORT_SAFETY, parse_rss_chart_matrix
@@ -36,6 +34,7 @@ def test_parses_rsschart_headers_and_drops_newest_visible_row_for_closure_safety
     assert out["latestBarClosed"] is True
     assert out["sameSessionSourceBarCount"] == 8
     assert out["closedBarCount"] == 7
+    assert out["skippedUnpopulatedOhlcvRowCount"] == 0
     assert out["bars5m"][-1]["timestamp"] == "2026-08-17T00:30:00Z"
     assert out["droppedNewestTimestamp"] == "2026-08-17T00:35:00Z"
     assert out["methodology"]["newestVisibleRowDroppedForClosureSafety"] is True
@@ -53,6 +52,32 @@ def test_filters_older_sessions_before_conservative_newest_row_drop():
     assert out["sourceBarCount"] == 9
     assert out["sameSessionSourceBarCount"] == 8
     assert all(row["timestamp"].startswith("2026-08-17T") for row in out["bars5m"])
+
+
+def test_skips_timestamped_rows_when_all_ohlcv_cells_are_unpopulated():
+    values = _matrix()
+    values.insert(3, ["トヨタ自動車", "東証", "5M", "2026/08/17", "09:02", "", "", "", "", ""])
+    out = parse_rss_chart_matrix(
+        values,
+        symbol="7203.T",
+        captured_at="2026-08-17T01:00:00Z",
+        session_date="2026-08-17",
+    )
+    assert out["sourceBarCount"] == 8
+    assert out["skippedUnpopulatedOhlcvRowCount"] == 1
+    assert out["methodology"]["fullyUnpopulatedOhlcvRowsSkipped"] is True
+
+
+def test_rejects_partially_populated_ohlcv_rows_fail_closed():
+    values = _matrix()
+    values.insert(3, ["トヨタ自動車", "東証", "5M", "2026/08/17", "09:02", "", 101, 99, 100.5, 1000])
+    with pytest.raises(ValueError, match="partially populated OHLCV row"):
+        parse_rss_chart_matrix(
+            values,
+            symbol="7203.T",
+            captured_at="2026-08-17T01:00:00Z",
+            session_date="2026-08-17",
+        )
 
 
 def test_rejects_non_5m_chart_rows():
@@ -78,7 +103,6 @@ def test_rejects_duplicate_timestamps():
 
 
 def test_accepts_excel_numeric_date_and_time_values():
-    # 2026-08-17 is Excel serial 46251 with the conventional 1899-12-30 origin.
     values = [["日付", "時刻", "始値", "高値", "安値", "終値", "出来高", "足種"]]
     for index in range(8):
         values.append([46251, (9 * 60 + index * 5) / 1440, 100, 101, 99, 100.5, 1000, "5M"])

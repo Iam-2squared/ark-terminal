@@ -35,7 +35,7 @@ function normalizeInput(row,historyRows){
 function mid(row){const b=Number(row?.market?.bestBid),a=Number(row?.market?.bestAsk);return finite(a)&&finite(b)&&a>=b?(a+b)/2:null;}
 function makeEvalRow(raw,i,direction,costBps){
   const m0=mid(raw[i]),m1=mid(raw[i+HORIZON]); if(!finite(m0)||!finite(m1)||m0<=0||!direction)return null;
-  const gross=direction*(m1/m0-1); return {index:i,capturedAt:raw[i].capturedAt,direction,grossReturn:gross,costBps,netReturn:gross-costBps/10000};
+  const rawMove=m1/m0-1; const gross=direction*rawMove; return {index:i,capturedAt:raw[i].capturedAt,direction,rawMove,grossReturn:gross,costBps,netReturn:gross-costBps/10000};
 }
 function pushDirectional(rows,raw,i,value,costBps,multiplier=1){
   if(!finite(value))return;
@@ -43,6 +43,25 @@ function pushDirectional(rows,raw,i,value,costBps,multiplier=1){
   const row=makeEvalRow(raw,i,direction,costBps); if(row)rows.push(row);
 }
 function summarize(rows,bytes,actual){return evaluatePinnedWalkForward({datasetBytes:bytes,datasetSha256:actual,rows});}
+function executionDiagnostics(rows){
+  if(!rows.length)return {rowCount:0};
+  const moved=rows.filter(r=>Math.abs(r.rawMove)>1e-12);
+  const flats=rows.length-moved.length;
+  const grossWins=moved.filter(r=>r.grossReturn>0).length;
+  const grossLosses=moved.filter(r=>r.grossReturn<0).length;
+  const grossSum=rows.reduce((s,r)=>s+r.grossReturn,0);
+  const netSum=rows.reduce((s,r)=>s+r.netReturn,0);
+  const avgCostBps=rows.reduce((s,r)=>s+r.costBps,0)/rows.length;
+  const avgAbsMoveBps=rows.reduce((s,r)=>s+Math.abs(r.rawMove)*10000,0)/rows.length;
+  const avgGrossEdgeBps=grossSum/rows.length*10000;
+  const avgNetEdgeBps=netSum/rows.length*10000;
+  return {rowCount:rows.length,movedRows:moved.length,flatRows:flats,flatRate:flats/rows.length,grossDirectionalHitRateOnMoved:moved.length?grossWins/moved.length:null,grossDirectionalLossRateOnMoved:moved.length?grossLosses/moved.length:null,averageAbsoluteFutureMoveBps:avgAbsMoveBps,averageGrossEdgeBps:avgGrossEdgeBps,averageCostBps:avgCostBps,averageNetEdgeBps:avgNetEdgeBps};
+}
+function nonOverlapping(rows){
+  const out=[]; let nextAllowed=-Infinity;
+  for(const row of rows){if(row.index<nextAllowed)continue;out.push(row);nextAllowed=row.index+HORIZON;}
+  return out;
+}
 
 const [path='data/phase58/phase58-canonical-microstructure.jsonl',expected=EXPECTED_DEFAULT]=process.argv.slice(2);
 const bytes=fs.readFileSync(path); const actual=sha256(bytes);
@@ -63,7 +82,6 @@ for(let i=LOOKBACK-1;i+HORIZON<raw.length;i++){
   for(let j=i-LOOKBACK+1;j<=i;j++){
     const hist=raw.slice(Math.max(0,j-LOOKBACK+1),j+1); inputs.push(normalizeInput(raw[j],hist));
   }
-  // Keep the original 50% tick-classification requirement. No post-hoc threshold relaxation.
   const intel=buildPhase58P2P3(inputs,{maxQuoteStalenessMs:5000,maxTickStalenessMs:15000,minClassifiedTickFraction:.5,minQuoteSnapshots:2});
   const obStatus=intel.orderBook?.status??'NULL'; orderBookStatusCounts[obStatus]=(orderBookStatusCounts[obStatus]??0)+1;
   const tfStatus=intel.tickFlow?.status??'NULL'; tickFlowStatusCounts[tfStatus]=(tickFlowStatusCounts[tfStatus]??0)+1;
@@ -100,8 +118,10 @@ for(let i=LOOKBACK-1;i+HORIZON<raw.length;i++){
 }
 const strictResult=summarize(strictRows,bytes,actual);
 const bookOnlyResult=summarize(bookOnlyRows,bytes,actual);
+const bookNonOverlapRows=nonOverlapping(bookOnlyRows);
+const bookNonOverlapResult=summarize(bookNonOverlapRows,bytes,actual);
 const componentDiagnostics={};
-for(const [name,rows] of Object.entries(componentRows))componentDiagnostics[name]={rowCount:rows.length,result:summarize(rows,bytes,actual)};
-const diagnostics={method:'PREDECLARED_MICROSTRUCTURE_DIAGNOSTICS',lookbackSnapshots:LOOKBACK,horizonSnapshots:HORIZON,approxHorizonSeconds:10,thresholdSweep:false,postHocSymbolFilter:false,phase57DirectionIntegrated:false,strictTickClassificationThreshold:.5,componentSignTestsAreDebugDiagnostics:true,componentSignTestsNotPromotionEvidence:true,strictReadyObservations:strictReady,bookReadyObservations:bookReady,zeroPressureObservations:zeroPressure,strictEvaluableRows:strictRows.length,bookOnlyEvaluableRows:bookOnlyRows.length,orderBookStatusCounts,tickFlowStatusCounts,qualityFailureCounts,classifiedTickFraction:{min:classifiedFractionMin,max:classifiedFractionMax,mean:classifiedFractionN?classifiedFractionSum/classifiedFractionN:null,n:classifiedFractionN}};
-console.log(JSON.stringify({datasetSha256:actual,diagnostics,strictTickAndBookResult:strictResult,bookOnlyDiagnosticResult:bookOnlyResult,componentDiagnostics},null,2));
+for(const [name,rows] of Object.entries(componentRows))componentDiagnostics[name]={rowCount:rows.length,execution:executionDiagnostics(rows),result:summarize(rows,bytes,actual)};
+const diagnostics={method:'PREDECLARED_MICROSTRUCTURE_DIAGNOSTICS',lookbackSnapshots:LOOKBACK,horizonSnapshots:HORIZON,approxHorizonSeconds:10,thresholdSweep:false,postHocSymbolFilter:false,phase57DirectionIntegrated:false,strictTickClassificationThreshold:.5,componentSignTestsAreDebugDiagnostics:true,componentSignTestsNotPromotionEvidence:true,strictReadyObservations:strictReady,bookReadyObservations:bookReady,zeroPressureObservations:zeroPressure,strictEvaluableRows:strictRows.length,bookOnlyEvaluableRows:bookOnlyRows.length,bookOnlyExecution:executionDiagnostics(bookOnlyRows),bookOnlyNonOverlappingExecution:executionDiagnostics(bookNonOverlapRows),bookOnlyNonOverlappingRows:bookNonOverlapRows.length,orderBookStatusCounts,tickFlowStatusCounts,qualityFailureCounts,classifiedTickFraction:{min:classifiedFractionMin,max:classifiedFractionMax,mean:classifiedFractionN?classifiedFractionSum/classifiedFractionN:null,n:classifiedFractionN}};
+console.log(JSON.stringify({datasetSha256:actual,diagnostics,strictTickAndBookResult:strictResult,bookOnlyDiagnosticResult:bookOnlyResult,bookOnlyNonOverlappingResult:bookNonOverlapResult,componentDiagnostics},null,2));
 process.exit(bookOnlyResult.complete?0:2);

@@ -102,11 +102,8 @@ def read_market_sheet(workbook: Any) -> dict[str, Any]:
     return row
 
 
-def read_tick_sheet(workbook: Any, max_rows: int = 300) -> list[dict[str, Any]]:
-    matrix = _used_matrix(workbook.Worksheets("ArkTicks"))
-    if len(matrix) < 2:
-        return []
-    headers = [str(value or "").strip() for value in matrix[0]]
+def _tick_header_indices(row: list[Any]) -> dict[str, int] | None:
+    headers = [str(value or "").strip() for value in row]
     aliases = {
         "time": {"時刻", "time", "timestamp"},
         "volume": {"出来高", "volume", "size"},
@@ -118,10 +115,30 @@ def read_tick_sheet(workbook: Any, max_rows: int = 300) -> list[dict[str, Any]]:
             if header in names:
                 indices[canonical] = index
                 break
-    if set(indices) != {"time", "volume", "price"}:
-        raise RuntimeError("ArkTicks row 1 must contain 時刻 / 出来高 / 約定値")
+    return indices if set(indices) == {"time", "volume", "price"} else None
+
+
+def read_tick_sheet(workbook: Any, max_rows: int = 300) -> list[dict[str, Any]]:
+    matrix = _used_matrix(workbook.Worksheets("ArkTicks"))
+    if len(matrix) < 2:
+        return []
+
+    # MARKETSPEED II GUI registration can place the RssTickList formula in A2
+    # and spill a second header row (e.g. row 3) before the live tick rows.
+    # Locate the last valid header row near the top instead of assuming row 1.
+    header_row_index: int | None = None
+    indices: dict[str, int] | None = None
+    for row_index, row in enumerate(matrix[:10]):
+        candidate = _tick_header_indices(row)
+        if candidate is not None:
+            header_row_index = row_index
+            indices = candidate
+    if header_row_index is None or indices is None:
+        raise RuntimeError("ArkTicks must contain a 時刻 / 出来高 / 約定値 header row in the first 10 rows")
+
     ticks: list[dict[str, Any]] = []
-    for row in matrix[1 : max_rows + 1]:
+    start = header_row_index + 1
+    for row in matrix[start : start + max_rows]:
         raw_time = row[indices["time"]] if indices["time"] < len(row) else None
         raw_volume = row[indices["volume"]] if indices["volume"] < len(row) else None
         raw_price = row[indices["price"]] if indices["price"] < len(row) else None

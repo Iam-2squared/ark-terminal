@@ -197,17 +197,21 @@ def parse_rss_chart_matrix(
         if _text(day_value) == "" or _text(time_value) == "":
             continue
 
+        # Classify an actual price bar before validating display-only metadata.
+        # MARKETSPEED II may put placeholders such as "--------" in 足種 on
+        # preallocated rows that contain no OHLC price bar. Those rows are safe to
+        # skip, while every populated bar still has to prove that it is 5M.
+        ohlcv = _complete_ohlcv_or_none(raw, columns)
+        if ohlcv is None:
+            skipped_unpopulated += 1
+            continue
+
         if "足種" in columns:
             tf = _text(raw[columns["足種"]]) if columns["足種"] < len(raw) else ""
             if tf and tf != "5M":
                 raise ValueError(f"RssChart timeframe must be 5M, got {tf!r}")
 
-        ohlcv = _complete_ohlcv_or_none(raw, columns)
-        if ohlcv is None:
-            skipped_unpopulated += 1
-            continue
         open_, high, low, close, volume = ohlcv
-
         day = _parse_date(day_value)
         clock = _parse_time(time_value)
         timestamp = _iso_timestamp(day, clock)
@@ -273,6 +277,7 @@ def parse_rss_chart_matrix(
             "headerDetectedByLabels": True,
             "fullyUnpopulatedOhlcvRowsSkipped": True,
             "zeroVolumeNoPricePlaceholderRowsSkipped": True,
+            "timeframeValidatedOnlyForPopulatedBars": True,
             "partiallyPopulatedOhlcvRowsRejected": True,
             "newestVisibleRowDroppedForClosureSafety": bool(drop_newest_row_for_closure_safety),
             "currentOrFutureOutcomeUsed": False,

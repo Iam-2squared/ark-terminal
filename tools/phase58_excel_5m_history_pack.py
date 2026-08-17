@@ -62,10 +62,6 @@ def _parse_all_rows(values: Any, *, symbol: str, captured_at: str) -> tuple[list
             raise ValueError(f"{symbol}: RssChart row shorter than detected header") from exc
         if _text(day_value) == "" or _text(time_value) == "":
             continue
-        if "足種" in columns:
-            timeframe = _text(raw[columns["足種"]]) if columns["足種"] < len(raw) else ""
-            if timeframe and timeframe != "5M":
-                raise ValueError(f"{symbol}: RssChart timeframe must be 5M, got {timeframe!r}")
 
         try:
             ohlcv = _complete_ohlcv_or_none(raw, columns)
@@ -74,8 +70,13 @@ def _parse_all_rows(values: Any, *, symbol: str, captured_at: str) -> tuple[list
         if ohlcv is None:
             skipped_unpopulated += 1
             continue
-        open_, high, low, close, volume = ohlcv
 
+        if "足種" in columns:
+            timeframe = _text(raw[columns["足種"]]) if columns["足種"] < len(raw) else ""
+            if timeframe and timeframe != "5M":
+                raise ValueError(f"{symbol}: RssChart timeframe must be 5M, got {timeframe!r}")
+
+        open_, high, low, close, volume = ohlcv
         timestamp = _iso_timestamp(_parse_date(day_value), _parse_time(time_value))
         instant = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
         if instant > captured:
@@ -184,6 +185,8 @@ def build_history_pack_from_matrices(
             "timeframe": "5M",
             "excelReadOnly": True,
             "fullyUnpopulatedOhlcvRowsSkipped": True,
+            "zeroVolumeNoPricePlaceholderRowsSkipped": True,
+            "timeframeValidatedOnlyForPopulatedBars": True,
             "partiallyPopulatedOhlcvRowsRejected": True,
             "currentSessionExcludedFromTrainingHistory": True,
             "onlySessionsStrictlyBeforeAsOfSession": True,

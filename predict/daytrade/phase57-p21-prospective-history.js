@@ -20,6 +20,12 @@ export const PHASE57_P21_PROSPECTIVE_HISTORY_SAFETY = Object.freeze({
 });
 
 const finite=value=>value!==null&&value!==undefined&&value!==''&&Number.isFinite(Number(value));
+const JST_DATE=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'});
+
+function jstDate(timestamp){
+  const parts=Object.fromEntries(JST_DATE.formatToParts(new Date(timestamp)).map(part=>[part.type,part.value]));
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
 
 function normalizeBar(bar){
   const timestamp=bar?.timestamp??bar?.time??bar?.datetime;
@@ -40,7 +46,7 @@ function normalizeSession(session){
   if(!symbol||!/^\d{4}-\d{2}-\d{2}$/.test(sessionDate))return null;
   const bars=(Array.isArray(session?.bars5m)?session.bars5m:[]).map(normalizeBar).filter(Boolean)
     .sort((a,b)=>a.timestamp.localeCompare(b.timestamp));
-  if(!bars.length)return null;
+  if(!bars.length||bars.some(bar=>jstDate(bar.timestamp)!==sessionDate))return null;
   const timestamps=bars.map(bar=>bar.timestamp);
   if(new Set(timestamps).size!==timestamps.length)return null;
   return {symbol,sessionDate,bars};
@@ -77,18 +83,18 @@ function featureRowsForSession(symbol,sessionDate,bars,baseRows){
   });
 }
 
-/**
- * Re-materializes the fully realized historical P21 horizon rows from local 5m
- * sessions using the same feature definitions as the P24 historical integrated
- * baseline. No current/live row is accepted here.
- */
 export function buildProspectiveP21HistoricalRows({sessions=[],horizons=[1,3,6,12,24]}={}){
   const hs=[...new Set((Array.isArray(horizons)?horizons:[]).map(Number).filter(value=>Number.isInteger(value)&&value>0))].sort((a,b)=>a-b);
   if(!hs.length)return Object.freeze({
     phase:'57.p21.prospective-history',status:'BLOCKED_NO_VALID_HORIZONS',complete:false,
     blockers:Object.freeze(['NO_VALID_HORIZONS']),safety:PHASE57_P21_PROSPECTIVE_HISTORY_SAFETY,
   });
-  const normalized=(Array.isArray(sessions)?sessions:[]).map(normalizeSession).filter(Boolean);
+  const rawSessions=Array.isArray(sessions)?sessions:[];
+  const normalized=rawSessions.map(normalizeSession).filter(Boolean);
+  if(normalized.length!==rawSessions.length)return Object.freeze({
+    phase:'57.p21.prospective-history',status:'BLOCKED_INVALID_OR_CROSS_SESSION_HISTORY',complete:false,
+    blockers:Object.freeze(['INVALID_OR_CROSS_SESSION_HISTORY']),safety:PHASE57_P21_PROSPECTIVE_HISTORY_SAFETY,
+  });
   if(!normalized.length)return Object.freeze({
     phase:'57.p21.prospective-history',status:'BLOCKED_NO_VALID_HISTORICAL_SESSIONS',complete:false,
     blockers:Object.freeze(['NO_VALID_HISTORICAL_SESSIONS']),safety:PHASE57_P21_PROSPECTIVE_HISTORY_SAFETY,
@@ -143,6 +149,7 @@ export function buildProspectiveP21HistoricalRows({sessions=[],horizons=[1,3,6,1
       currentLiveRowIncluded:false,
       laterProspectiveScorerMustRequireOutcomeAtOnOrBeforeCurrentCutoff:true,
       sameSessionRowsBuiltIndependently:true,
+      crossSessionBarsRejected:true,
       freshHoldoutConsumed:false,
     }),
     safety:PHASE57_P21_PROSPECTIVE_HISTORY_SAFETY,

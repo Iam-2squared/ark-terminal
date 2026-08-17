@@ -5,13 +5,12 @@ import json
 import math
 from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 from phase58_excel_microstructure_capture import _find_workbook
 
-# Japan Standard Time has been UTC+09:00 without DST for the modern market-data
-# period covered here. A fixed offset avoids Python's optional tzdata package on
-# Windows while preserving the exact conversion required by MARKETSPEED II RSS.
+# Japan Standard Time is UTC+09:00 for the modern market-data period covered here.
+# A fixed offset avoids Python's optional tzdata dependency on Windows.
 JST = timezone(timedelta(hours=9), name="JST")
 UTC = timezone.utc
 
@@ -34,6 +33,7 @@ PHASE58_5M_EXPORT_SAFETY = {
 
 REQUIRED_HEADERS = ("日付", "時刻", "始値", "高値", "安値", "終値", "出来高")
 OPTIONAL_HEADERS = ("銘柄名称", "市場名称", "足種")
+OHLCV_HEADERS = ("始値", "高値", "安値", "終値", "出来高")
 
 
 def _text(value: Any) -> str:
@@ -73,12 +73,15 @@ def find_rss_chart_header(matrix: list[list[Any]], max_rows: int = 25) -> tuple[
     for row_index, row in enumerate(matrix[:max_rows]):
         mapping = {_text(value): index for index, value in enumerate(row) if _text(value)}
         if all(header in mapping for header in REQUIRED_HEADERS):
-            return row_index, {header: mapping[header] for header in (*REQUIRED_HEADERS, *OPTIONAL_HEADERS) if header in mapping}
+            return row_index, {
+                header: mapping[header]
+                for header in (*REQUIRED_HEADERS, *OPTIONAL_HEADERS)
+                if header in mapping
+            }
     raise ValueError("RssChart header row not found; required headers: " + ",".join(REQUIRED_HEADERS))
 
 
 def _excel_serial_to_date(value: float) -> date:
-    # Excel's practical serial-date origin including the historical 1900 leap-year quirk.
     return (datetime(1899, 12, 30) + timedelta(days=float(value))).date()
 
 
@@ -131,6 +134,27 @@ def _numeric(value: Any, field: str) -> float:
     return float(value)
 
 
+def _complete_ohlcv_or_none(raw: list[Any], columns: dict[str, int]) -> tuple[float, float, float, float, float] | None:
+    """Return a complete OHLCV tuple, skip fully-unpopulated RSS rows, fail on partial rows.
+
+    MARKETSPEED II RssChart may expose timestamped grid rows whose OHLCV cells are all
+    blank (for example preallocated/unpopulated intervals). These carry no market bar
+    and are safe to ignore. A partially populated OHLCV row is ambiguous/corrupt and
+    remains fail-closed.
+    """
+    try:
+        values = [raw[columns[header]] for header in OHLCV_HEADERS]
+    except IndexError as exc:
+        raise ValueError("RssChart row shorter than detected OHLCV columns") from exc
+    blank = [_text(value) == "" for value in values]
+    if all(blank):
+        return None
+    if any(blank):
+        missing = [header for header, is_blank in zip(OHLCV_HEADERS, blank) if is_blank]
+        raise ValueError("RssChart partially populated OHLCV row; missing: " + ",".join(missing))
+    return tuple(_numeric(value, header) for value, header in zip(values, OHLCV_HEADERS))  # type: ignore[return-value]
+
+
 def parse_rss_chart_matrix(
     values: Any,
     *,
@@ -151,6 +175,7 @@ def parse_rss_chart_matrix(
     captured = captured.astimezone(UTC)
 
     rows: list[dict[str, Any]] = []
+    skipped_unpopulated = 0
     for raw in matrix[header_row + 1 :]:
         if not raw or all(_text(cell) == "" for cell in raw):
             continue
@@ -167,20 +192,17 @@ def parse_rss_chart_matrix(
             if tf and tf != "5M":
                 raise ValueError(f"RssChart timeframe must be 5M, got {tf!r}")
 
+        ohlcv = _complete_ohlcv_or_none(raw, columns)
+        if ohlcv is None:
+            skipped_unpopulated += 1
+            continue
+        open_, high, low, close, volume = ohlcv
+
         day = _parse_date(day_value)
         clock = _parse_time(time_value)
         timestamp = _iso_timestamp(day, clock)
         if datetime.fromisoformat(timestamp.replace("Z", "+00:00")) > captured:
             raise ValueError(f"RssChart timestamp is in the future relative to capture: {timestamp}")
-
-        try:
-            open_ = _numeric(raw[columns["始値"]], "始値")
-            high = _numeric(raw[columns["高値"]], "高値")
-            low = _numeric(raw[columns["安値"]], "安値")
-            close = _numeric(raw[columns["終値"]], "終値")
-            volume = _numeric(raw[columns["出来高"]], "出来高")
-        except IndexError as exc:
-            raise ValueError("RssChart row shorter than detected OHLCV columns") from exc
         if min(open_, high, low, close) <= 0:
             raise ValueError("RssChart OHLC values must be positive")
         if high < low or high < max(open_, close) or low > min(open_, close):
@@ -233,11 +255,14 @@ def parse_rss_chart_matrix(
         "sourceBarCount": len(rows),
         "sameSessionSourceBarCount": len(same_session),
         "closedBarCount": len(closed_rows),
+        "skippedUnpopulatedOhlcvRowCount": skipped_unpopulated,
         "droppedNewestTimestamp": dropped_newest,
         "methodology": {
             "source": "MARKETSPEED_II_RSS_RssChart",
             "timeframe": "5M",
             "headerDetectedByLabels": True,
+            "fullyUnpopulatedOhlcvRowsSkipped": True,
+            "partiallyPopulatedOhlcvRowsRejected": True,
             "newestVisibleRowDroppedForClosureSafety": bool(drop_newest_row_for_closure_safety),
             "currentOrFutureOutcomeUsed": False,
             "sameSessionOnly": True,
@@ -290,6 +315,7 @@ def main() -> int:
         "symbol": payload["symbol"],
         "sessionDate": payload["sessionDate"],
         "closedBarCount": payload["closedBarCount"],
+        "skippedUnpopulatedOhlcvRowCount": payload["skippedUnpopulatedOhlcvRowCount"],
         "droppedNewestTimestamp": payload["droppedNewestTimestamp"],
         "safety": PHASE58_5M_EXPORT_SAFETY,
     }, ensure_ascii=False))

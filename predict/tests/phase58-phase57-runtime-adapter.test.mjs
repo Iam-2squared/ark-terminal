@@ -36,7 +36,7 @@ test('blocks historical realized rows instead of reconstructing a Phase57 decisi
   });
   assert.equal(out.complete,false);
   assert.ok(out.blockers.includes('OUTCOME_FIELDS_PRESENT_IN_PHASE57_RUNTIME_DECISION'));
-  assert.deepEqual(out.forbiddenOutcomeFields.sort(),['futureBars','netReturnPct']);
+  assert.deepEqual([...out.forbiddenOutcomeFields].sort(),['futureBars','netReturnPct']);
 });
 
 test('blocks missing provenance and anti-retune guards',()=>{

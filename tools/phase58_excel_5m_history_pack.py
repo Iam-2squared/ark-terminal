@@ -1,0 +1,262 @@
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+from collections import defaultdict
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+from phase58_excel_5m_chart_export import (
+    _find_workbook,
+    _iso_timestamp,
+    _matrix,
+    _numeric,
+    _parse_date,
+    _parse_time,
+    _session_date_from_iso,
+    _text,
+    find_rss_chart_header,
+)
+
+UTC = timezone.utc
+FROZEN_P24_COMBINED_UNIVERSE = ("7203.T", "6758.T", "9984.T", "8306.T", "8035.T")
+MIN_BARS_PER_HISTORICAL_SESSION = 30
+
+PHASE58_P14_SAFETY = {
+    "phase": "58.p14.rsschart-history-pack",
+    "mode": "MARKETSPEED_II_RSS_RSSCHART_MULTI_SYMBOL_READ_ONLY",
+    "researchOnly": True,
+    "executionAllowed": False,
+    "brokerWriteAllowed": False,
+    "excelOrderWriteAllowed": False,
+    "rssOrderFunctionAllowed": False,
+    "liveTradingAllowed": False,
+    "paperTradingAllowed": False,
+    "automaticPromotionAllowed": False,
+    "productionUpdateAllowed": False,
+    "overnightHoldingAllowed": False,
+    "transmitted": False,
+    "freshHoldoutConsumed": False,
+}
+
+
+def _parse_all_rows(values: Any, *, symbol: str, captured_at: str) -> list[dict[str, Any]]:
+    matrix = _matrix(values)
+    header_row, columns = find_rss_chart_header(matrix)
+    captured = datetime.fromisoformat(captured_at.replace("Z", "+00:00"))
+    if captured.tzinfo is None:
+        raise ValueError("captured_at must be timezone-aware")
+    captured = captured.astimezone(UTC)
+    rows: list[dict[str, Any]] = []
+
+    for raw in matrix[header_row + 1 :]:
+        if not raw or all(_text(cell) == "" for cell in raw):
+            continue
+        try:
+            day_value = raw[columns["日付"]]
+            time_value = raw[columns["時刻"]]
+        except IndexError as exc:
+            raise ValueError(f"{symbol}: RssChart row shorter than detected header") from exc
+        if _text(day_value) == "" or _text(time_value) == "":
+            continue
+        if "足種" in columns:
+            timeframe = _text(raw[columns["足種"]]) if columns["足種"] < len(raw) else ""
+            if timeframe and timeframe != "5M":
+                raise ValueError(f"{symbol}: RssChart timeframe must be 5M, got {timeframe!r}")
+
+        timestamp = _iso_timestamp(_parse_date(day_value), _parse_time(time_value))
+        instant = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+        if instant > captured:
+            raise ValueError(f"{symbol}: RssChart timestamp is in the future: {timestamp}")
+        try:
+            open_ = _numeric(raw[columns["始値"]], "始値")
+            high = _numeric(raw[columns["高値"]], "高値")
+            low = _numeric(raw[columns["安値"]], "安値")
+            close = _numeric(raw[columns["終値"]], "終値")
+            volume = _numeric(raw[columns["出来高"]], "出来高")
+        except IndexError as exc:
+            raise ValueError(f"{symbol}: RssChart row shorter than OHLCV header") from exc
+        if min(open_, high, low, close) <= 0:
+            raise ValueError(f"{symbol}: OHLC must be positive")
+        if high < low or high < max(open_, close) or low > min(open_, close):
+            raise ValueError(f"{symbol}: invalid OHLC relationship")
+        if volume < 0:
+            raise ValueError(f"{symbol}: volume must be non-negative")
+        rows.append({
+            "timestamp": timestamp,
+            "open": open_, "high": high, "low": low, "close": close, "volume": volume,
+        })
+
+    if not rows:
+        raise ValueError(f"{symbol}: no RssChart OHLCV rows")
+    rows.sort(key=lambda row: row["timestamp"])
+    timestamps = [row["timestamp"] for row in rows]
+    if len(timestamps) != len(set(timestamps)):
+        raise ValueError(f"{symbol}: duplicate RssChart timestamps")
+    return rows
+
+
+def build_history_pack_from_matrices(
+    matrices_by_symbol: dict[str, Any],
+    *,
+    captured_at: str,
+    as_of_session_date: str,
+    expected_universe: tuple[str, ...] = FROZEN_P24_COMBINED_UNIVERSE,
+    min_bars_per_session: int = MIN_BARS_PER_HISTORICAL_SESSION,
+) -> dict[str, Any]:
+    if not isinstance(as_of_session_date, str) or len(as_of_session_date) != 10:
+        raise ValueError("as_of_session_date must be YYYY-MM-DD")
+    expected = set(expected_universe)
+    actual = set(matrices_by_symbol)
+    if actual != expected:
+        raise ValueError(f"frozen universe mismatch: expected={sorted(expected)} actual={sorted(actual)}")
+    if min_bars_per_session < 1:
+        raise ValueError("min_bars_per_session must be positive")
+
+    sessions: list[dict[str, Any]] = []
+    per_symbol: dict[str, Any] = {}
+    dropped_current_or_future = 0
+    dropped_short_sessions = 0
+
+    for symbol in expected_universe:
+        rows = _parse_all_rows(matrices_by_symbol[symbol], symbol=symbol, captured_at=captured_at)
+        grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
+        for row in rows:
+            session_date = _session_date_from_iso(row["timestamp"])
+            if session_date >= as_of_session_date:
+                dropped_current_or_future += 1
+                continue
+            grouped[session_date].append(row)
+
+        accepted_dates: list[str] = []
+        accepted_bar_count = 0
+        for session_date in sorted(grouped):
+            bars = grouped[session_date]
+            if len(bars) < min_bars_per_session:
+                dropped_short_sessions += 1
+                continue
+            accepted_dates.append(session_date)
+            accepted_bar_count += len(bars)
+            sessions.append({
+                "symbol": symbol,
+                "sessionDate": session_date,
+                "bars5m": bars,
+                "source": "MARKETSPEED_II_RSS_RssChart",
+                "timeframe": "5M",
+                "fullyPriorToAsOfSession": True,
+            })
+        if not accepted_dates:
+            raise ValueError(f"{symbol}: no eligible completed historical sessions before {as_of_session_date}")
+        per_symbol[symbol] = {
+            "sourceRowCount": len(rows),
+            "acceptedSessionCount": len(accepted_dates),
+            "acceptedBarCount": accepted_bar_count,
+            "firstAcceptedSession": accepted_dates[0],
+            "lastAcceptedSession": accepted_dates[-1],
+        }
+
+    sessions.sort(key=lambda row: (row["sessionDate"], row["symbol"]))
+    return {
+        "schemaVersion": 1,
+        "phase": "58.p14.rsschart-history-pack",
+        "status": "PHASE58_FROZEN_UNIVERSE_5M_HISTORY_PACK_READY",
+        "capturedAt": captured_at,
+        "asOfSessionDate": as_of_session_date,
+        "frozenUniverse": list(expected_universe),
+        "minBarsPerHistoricalSession": min_bars_per_session,
+        "sessionCount": len(sessions),
+        "perSymbol": per_symbol,
+        "droppedCurrentOrFutureRowCount": dropped_current_or_future,
+        "droppedShortSessionCount": dropped_short_sessions,
+        "sessions": sessions,
+        "methodology": {
+            "source": "MARKETSPEED_II_RSS_RssChart",
+            "timeframe": "5M",
+            "excelReadOnly": True,
+            "currentSessionExcludedFromTrainingHistory": True,
+            "onlySessionsStrictlyBeforeAsOfSession": True,
+            "frozenP24CombinedUniverseRequired": True,
+            "sameSessionRowsOnly": True,
+            "outcomesNotReadFromExcel": True,
+            "freshHoldoutConsumed": False,
+        },
+        "safety": PHASE58_P14_SAFETY,
+    }
+
+
+def _parse_sheet_map(values: list[str]) -> dict[str, str]:
+    result: dict[str, str] = {}
+    for value in values:
+        if "=" not in value:
+            raise ValueError(f"--sheet-map must be SYMBOL=SHEET, got {value!r}")
+        symbol, sheet = value.split("=", 1)
+        symbol, sheet = symbol.strip(), sheet.strip()
+        if not symbol or not sheet or symbol in result:
+            raise ValueError(f"invalid or duplicate --sheet-map: {value!r}")
+        result[symbol] = sheet
+    return result
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="READ ONLY multi-symbol MARKETSPEED II RSS RssChart 5M history pack builder")
+    parser.add_argument("--current-prefix", required=True, help="P12 current RssChart prefix JSON; its sessionDate becomes the strict history cutoff")
+    parser.add_argument("--sheet-map", action="append", default=[], help="repeat SYMBOL=SHEET for each frozen-universe symbol")
+    parser.add_argument("--workbook", default=None)
+    parser.add_argument("--output", default="data/phase58/phase57-p21-history-sessions.json")
+    args = parser.parse_args()
+
+    prefix = json.loads(Path(args.current_prefix).read_text(encoding="utf-8"))
+    as_of_session_date = str(prefix.get("sessionDate") or "")
+    if prefix.get("latestBarClosed") is not True:
+        raise SystemExit("current prefix is not completed-bar safe")
+    sheet_map = _parse_sheet_map(args.sheet_map)
+    if set(sheet_map) != set(FROZEN_P24_COMBINED_UNIVERSE):
+        raise SystemExit(
+            "sheet map must contain exactly frozen P24 combined universe: "
+            + ",".join(FROZEN_P24_COMBINED_UNIVERSE)
+        )
+
+    try:
+        import win32com.client  # type: ignore
+    except ImportError as exc:
+        raise SystemExit("pywin32 is required: py -m pip install -r tools/requirements-rss.txt") from exc
+
+    excel = win32com.client.GetActiveObject("Excel.Application")
+    workbook = _find_workbook(excel, args.workbook)
+    matrices: dict[str, Any] = {}
+    for symbol in FROZEN_P24_COMBINED_UNIVERSE:
+        try:
+            sheet = workbook.Worksheets(sheet_map[symbol])
+        except Exception as exc:  # pragma: no cover - COM-specific
+            raise SystemExit(f"worksheet not found for {symbol}: {sheet_map[symbol]}") from exc
+        matrices[symbol] = sheet.UsedRange.Value
+
+    captured_at = datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z")
+    payload = build_history_pack_from_matrices(
+        matrices,
+        captured_at=captured_at,
+        as_of_session_date=as_of_session_date,
+    )
+    output = Path(args.output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps({
+        "status": payload["status"],
+        "output": str(output),
+        "sha256": _sha256(output),
+        "asOfSessionDate": payload["asOfSessionDate"],
+        "sessionCount": payload["sessionCount"],
+        "perSymbol": payload["perSymbol"],
+        "safety": PHASE58_P14_SAFETY,
+    }, ensure_ascii=False))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

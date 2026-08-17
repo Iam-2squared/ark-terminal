@@ -82,6 +82,20 @@ def test_skips_timestamped_rows_when_all_ohlc_blank_and_volume_is_zero():
     assert out["methodology"]["zeroVolumeNoPricePlaceholderRowsSkipped"] is True
 
 
+def test_skips_no_price_placeholder_before_validating_timeframe_display_marker():
+    values = _matrix()
+    values.insert(3, ["トヨタ自動車", "東証", "--------", "2026/08/17", "09:02", "", "", "", "", 0])
+    out = parse_rss_chart_matrix(
+        values,
+        symbol="7203.T",
+        captured_at="2026-08-17T01:00:00Z",
+        session_date="2026-08-17",
+    )
+    assert out["sourceBarCount"] == 8
+    assert out["skippedUnpopulatedOhlcvRowCount"] == 1
+    assert out["methodology"]["timeframeValidatedOnlyForPopulatedBars"] is True
+
+
 def test_rejects_all_blank_ohlc_with_positive_volume_fail_closed():
     values = _matrix()
     values.insert(3, ["トヨタ自動車", "東証", "5M", "2026/08/17", "09:02", "", "", "", "", 10])

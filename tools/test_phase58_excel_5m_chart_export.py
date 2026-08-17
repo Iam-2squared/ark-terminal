@@ -68,6 +68,32 @@ def test_skips_timestamped_rows_when_all_ohlcv_cells_are_unpopulated():
     assert out["methodology"]["fullyUnpopulatedOhlcvRowsSkipped"] is True
 
 
+def test_skips_timestamped_rows_when_all_ohlc_blank_and_volume_is_zero():
+    values = _matrix()
+    values.insert(3, ["トヨタ自動車", "東証", "5M", "2026/08/17", "09:02", "", "", "", "", 0])
+    out = parse_rss_chart_matrix(
+        values,
+        symbol="7203.T",
+        captured_at="2026-08-17T01:00:00Z",
+        session_date="2026-08-17",
+    )
+    assert out["sourceBarCount"] == 8
+    assert out["skippedUnpopulatedOhlcvRowCount"] == 1
+    assert out["methodology"]["zeroVolumeNoPricePlaceholderRowsSkipped"] is True
+
+
+def test_rejects_all_blank_ohlc_with_positive_volume_fail_closed():
+    values = _matrix()
+    values.insert(3, ["トヨタ自動車", "東証", "5M", "2026/08/17", "09:02", "", "", "", "", 10])
+    with pytest.raises(ValueError, match="partially populated OHLCV row"):
+        parse_rss_chart_matrix(
+            values,
+            symbol="7203.T",
+            captured_at="2026-08-17T01:00:00Z",
+            session_date="2026-08-17",
+        )
+
+
 def test_rejects_partially_populated_ohlcv_rows_fail_closed():
     values = _matrix()
     values.insert(3, ["トヨタ自動車", "東証", "5M", "2026/08/17", "09:02", "", 101, 99, 100.5, 1000])

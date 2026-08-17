@@ -8,6 +8,8 @@ const finite=x=>Number.isFinite(Number(x));
 const sign=x=>x>0?1:x<0?-1:0;
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 const parse=b=>b.toString('utf8').split(/\r?\n/).filter(Boolean).map(JSON.parse);
+const tickOrderOf=r=>String(r?.tickOrder??'').toUpperCase();
+function tickFlow(r){const order=tickOrderOf(r);if(order!=='ASC'&&order!=='DESC')throw new Error(`row missing valid tickOrder: ${order||'EMPTY'}`);return buildZeroTickFlow(r?.ticks??[],{inputOrder:order});}
 function weightedDepth(m={}){
   let bid=0,ask=0;
   for(let i=1;i<=10;i++){
@@ -37,6 +39,9 @@ if(!path||!expected)throw new Error('usage: node tools/phase58_conditional_fusio
 const bytes=fs.readFileSync(path),actual=sha(bytes);
 if(actual.toLowerCase()!==expected.toLowerCase()){console.log(JSON.stringify({status:'BLOCKED_DATASET_HASH_MISMATCH',actualSha256:actual,expectedSha256:expected},null,2));process.exit(2);}
 const raw=parse(bytes);
+const invalidTickOrderRows=raw.filter(r=>!['ASC','DESC'].includes(tickOrderOf(r))).length;
+if(invalidTickOrderRows){console.log(JSON.stringify({status:'BLOCKED_TICK_ORDER_METADATA',invalidTickOrderRows,datasetSha256:actual},null,2));process.exit(2);}
+const normalizedRows=raw.filter(r=>tickOrderOf(r)==='DESC').length;
 const rules=['UNANIMOUS','DEPTH_WITH_NONOPPOSING_FLOW','FLOW_WITH_NONOPPOSING_DEPTH'];
 const out={};
 for(const h of HORIZONS){
@@ -44,7 +49,7 @@ for(const h of HORIZONS){
   for(let i=0;i+h<raw.length;i++){
     const r=raw[i],m=r.market??{};
     const depth=weightedDepth(m);
-    const flow=buildZeroTickFlow(r.ticks??[]).features.signedVolumeImbalance;
+    const flow=tickFlow(r).features.signedVolumeImbalance;
     const spreadBps=finite(m.bestAsk)&&finite(m.bestBid)&&Number(m.bestAsk)>=Number(m.bestBid)?(Number(m.bestAsk)-Number(m.bestBid))/((Number(m.bestAsk)+Number(m.bestBid))/2)*10000:null;
     const cost=estimateScalpingCostBps({spreadBps,slippageBps:.5,feesBps:0,marketImpactBps:.25});
     const m0=mid(raw[i]),m1=mid(raw[i+h]); if(!cost.ready||!finite(m0)||!finite(m1)||m0<=0)continue;
@@ -57,4 +62,4 @@ for(const h of HORIZONS){
   out[`${h*2}s`]={};
   for(const rule of rules){const rows=byRule[rule],non=nonOverlap(rows,h);out[`${h*2}s`][rule]={coverage:raw.length?rows.length/raw.length:null,all:summarize(rows),nonOverlapping:summarize(non),nonOverlappingRows:non.length};}
 }
-console.log(JSON.stringify({phase:'58.conditional-fusion.research',datasetSha256:actual,researchOnly:true,promotionEvidence:false,postHocOptimizationAllowed:false,thresholdSweep:false,notes:['Same-session exploratory diagnostic only','No result from this run may be treated as OOS promotion evidence','Any candidate must be frozen before a future independent session'],rules,horizonDiagnostics:out,safety:{executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,rssOrderFunctionAllowed:false,liveTradingAllowed:false,paperTradingAllowed:false,automaticPromotionAllowed:false,productionUpdateAllowed:false,transmitted:false,freshHoldoutConsumed:false}},null,2));
+console.log(JSON.stringify({phase:'58.conditional-fusion.research',datasetSha256:actual,researchOnly:true,promotionEvidence:false,postHocOptimizationAllowed:false,thresholdSweep:false,tickOrdering:{requiredMetadata:true,providerObservedOrder:'DESC',causalProcessingOrder:'OLDEST_TO_NEWEST',normalizedRows,invalidTickOrderRows,equalTimestampOrderingPolicy:'PRESERVE_PROVIDER_SEQUENCE_AFTER_ORDER_NORMALIZATION',futureLeakageDetected:false},notes:['Same-session exploratory diagnostic only','No result from this run may be treated as OOS promotion evidence','Any candidate must be frozen before a future independent session'],rules,horizonDiagnostics:out,safety:{executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,rssOrderFunctionAllowed:false,liveTradingAllowed:false,paperTradingAllowed:false,automaticPromotionAllowed:false,productionUpdateAllowed:false,transmitted:false,freshHoldoutConsumed:false}},null,2));

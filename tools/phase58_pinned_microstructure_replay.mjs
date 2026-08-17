@@ -37,6 +37,12 @@ function makeEvalRow(raw,i,direction,costBps){
   const m0=mid(raw[i]),m1=mid(raw[i+HORIZON]); if(!finite(m0)||!finite(m1)||m0<=0||!direction)return null;
   const gross=direction*(m1/m0-1); return {index:i,capturedAt:raw[i].capturedAt,direction,grossReturn:gross,costBps,netReturn:gross-costBps/10000};
 }
+function pushDirectional(rows,raw,i,value,costBps,multiplier=1){
+  if(!finite(value))return;
+  const direction=sign(Number(value))*multiplier; if(!direction)return;
+  const row=makeEvalRow(raw,i,direction,costBps); if(row)rows.push(row);
+}
+function summarize(rows,bytes,actual){return evaluatePinnedWalkForward({datasetBytes:bytes,datasetSha256:actual,rows});}
 
 const [path='data/phase58/phase58-canonical-microstructure.jsonl',expected=EXPECTED_DEFAULT]=process.argv.slice(2);
 const bytes=fs.readFileSync(path); const actual=sha256(bytes);
@@ -46,6 +52,12 @@ const raw=parseJsonl(bytes); if(raw.length<100){console.log(JSON.stringify({stat
 const strictRows=[],bookOnlyRows=[]; let strictReady=0,bookReady=0,zeroPressure=0;
 const qualityFailureCounts={},orderBookStatusCounts={},tickFlowStatusCounts={};
 let classifiedFractionMin=null,classifiedFractionMax=null,classifiedFractionSum=0,classifiedFractionN=0;
+const componentRows={
+  pressureConsensus:[],pressureConsensusReversed:[],
+  topBookImbalance:[],topBookImbalanceReversed:[],
+  weightedDepthImbalance:[],weightedDepthImbalanceReversed:[],
+  micropriceEdgeBps:[],micropriceEdgeBpsReversed:[],
+};
 for(let i=LOOKBACK-1;i+HORIZON<raw.length;i++){
   const inputs=[];
   for(let j=i-LOOKBACK+1;j<=i;j++){
@@ -62,11 +74,21 @@ for(let i=LOOKBACK-1;i+HORIZON<raw.length;i++){
   if(obStatus==='ORDER_BOOK_INTELLIGENCE_READY'){
     bookReady++;
     const b=intel.orderBook.features??{};
-    const bookVotes=[b.pressureConsensus,b.micropriceEdgeBps].filter(finite).map(Number);
-    const bookPressure=bookVotes.length?bookVotes.reduce((s,x)=>s+sign(x),0)/bookVotes.length:0;
-    const bookDirection=sign(bookPressure);
     const cost=estimateScalpingCostBps({spreadBps:b.latestSpreadBps,slippageBps:.5,feesBps:0,marketImpactBps:.25});
-    if(bookDirection&&cost.ready){const row=makeEvalRow(raw,i,bookDirection,cost.totalRoundTripBps);if(row)bookOnlyRows.push(row);}
+    if(cost.ready){
+      const bookVotes=[b.pressureConsensus,b.micropriceEdgeBps].filter(finite).map(Number);
+      const bookPressure=bookVotes.length?bookVotes.reduce((s,x)=>s+sign(x),0)/bookVotes.length:0;
+      const bookDirection=sign(bookPressure);
+      if(bookDirection){const row=makeEvalRow(raw,i,bookDirection,cost.totalRoundTripBps);if(row)bookOnlyRows.push(row);}
+      pushDirectional(componentRows.pressureConsensus,raw,i,b.pressureConsensus,cost.totalRoundTripBps,1);
+      pushDirectional(componentRows.pressureConsensusReversed,raw,i,b.pressureConsensus,cost.totalRoundTripBps,-1);
+      pushDirectional(componentRows.topBookImbalance,raw,i,b.topBookImbalance,cost.totalRoundTripBps,1);
+      pushDirectional(componentRows.topBookImbalanceReversed,raw,i,b.topBookImbalance,cost.totalRoundTripBps,-1);
+      pushDirectional(componentRows.weightedDepthImbalance,raw,i,b.weightedDepthImbalance,cost.totalRoundTripBps,1);
+      pushDirectional(componentRows.weightedDepthImbalanceReversed,raw,i,b.weightedDepthImbalance,cost.totalRoundTripBps,-1);
+      pushDirectional(componentRows.micropriceEdgeBps,raw,i,b.micropriceEdgeBps,cost.totalRoundTripBps,1);
+      pushDirectional(componentRows.micropriceEdgeBpsReversed,raw,i,b.micropriceEdgeBps,cost.totalRoundTripBps,-1);
+    }
   }
   if(obStatus!=='ORDER_BOOK_INTELLIGENCE_READY'||tfStatus!=='TICK_FLOW_INTELLIGENCE_READY')continue;
   strictReady++;
@@ -76,8 +98,10 @@ for(let i=LOOKBACK-1;i+HORIZON<raw.length;i++){
   const cost=estimateScalpingCostBps({spreadBps:b.latestSpreadBps,slippageBps:.5,feesBps:0,marketImpactBps:.25});
   if(cost.ready){const row=makeEvalRow(raw,i,direction,cost.totalRoundTripBps);if(row)strictRows.push(row);}
 }
-const strictResult=evaluatePinnedWalkForward({datasetBytes:bytes,datasetSha256:actual,rows:strictRows});
-const bookOnlyResult=evaluatePinnedWalkForward({datasetBytes:bytes,datasetSha256:actual,rows:bookOnlyRows});
-const diagnostics={method:'PREDECLARED_MICROSTRUCTURE_DIAGNOSTICS',lookbackSnapshots:LOOKBACK,horizonSnapshots:HORIZON,approxHorizonSeconds:10,thresholdSweep:false,postHocSymbolFilter:false,phase57DirectionIntegrated:false,strictTickClassificationThreshold:.5,strictReadyObservations:strictReady,bookReadyObservations:bookReady,zeroPressureObservations:zeroPressure,strictEvaluableRows:strictRows.length,bookOnlyEvaluableRows:bookOnlyRows.length,orderBookStatusCounts,tickFlowStatusCounts,qualityFailureCounts,classifiedTickFraction:{min:classifiedFractionMin,max:classifiedFractionMax,mean:classifiedFractionN?classifiedFractionSum/classifiedFractionN:null,n:classifiedFractionN}};
-console.log(JSON.stringify({datasetSha256:actual,diagnostics,strictTickAndBookResult:strictResult,bookOnlyDiagnosticResult:bookOnlyResult},null,2));
+const strictResult=summarize(strictRows,bytes,actual);
+const bookOnlyResult=summarize(bookOnlyRows,bytes,actual);
+const componentDiagnostics={};
+for(const [name,rows] of Object.entries(componentRows))componentDiagnostics[name]={rowCount:rows.length,result:summarize(rows,bytes,actual)};
+const diagnostics={method:'PREDECLARED_MICROSTRUCTURE_DIAGNOSTICS',lookbackSnapshots:LOOKBACK,horizonSnapshots:HORIZON,approxHorizonSeconds:10,thresholdSweep:false,postHocSymbolFilter:false,phase57DirectionIntegrated:false,strictTickClassificationThreshold:.5,componentSignTestsAreDebugDiagnostics:true,componentSignTestsNotPromotionEvidence:true,strictReadyObservations:strictReady,bookReadyObservations:bookReady,zeroPressureObservations:zeroPressure,strictEvaluableRows:strictRows.length,bookOnlyEvaluableRows:bookOnlyRows.length,orderBookStatusCounts,tickFlowStatusCounts,qualityFailureCounts,classifiedTickFraction:{min:classifiedFractionMin,max:classifiedFractionMax,mean:classifiedFractionN?classifiedFractionSum/classifiedFractionN:null,n:classifiedFractionN}};
+console.log(JSON.stringify({datasetSha256:actual,diagnostics,strictTickAndBookResult:strictResult,bookOnlyDiagnosticResult:bookOnlyResult,componentDiagnostics},null,2));
 process.exit(bookOnlyResult.complete?0:2);

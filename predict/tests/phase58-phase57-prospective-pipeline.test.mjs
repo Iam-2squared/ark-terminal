@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {buildProspectiveP21HistoricalRows} from '../daytrade/phase57-p21-prospective-history.js';
-import {buildPhase57ProspectiveSnapshotPipeline,PHASE58_P13_FROZEN_POLICY,PHASE58_P13_SAFETY} from '../scalping/phase58-phase57-prospective-pipeline.js';
+import {buildPhase57ProspectiveSnapshotPipeline,PHASE58_P13_FROZEN_POLICY,PHASE58_TARGET_MODES,PHASE58_P13_SAFETY} from '../scalping/phase58-phase57-prospective-pipeline.js';
 
 function sessionBars(date,{count=32,start=100}={}){
   const startMs=Date.parse(`${date}T00:00:00.000Z`); // 09:00 JST
@@ -91,6 +91,28 @@ test('composes historical rows plus an outcome-free completed 5m prefix into a f
   for(const key of ['label','actualReturnPct','outcomeAt','futureBars','mfePct','maePct']){
     assert.equal(Object.prototype.hasOwnProperty.call(out.snapshot,key),false,key);
   }
+});
+
+test('reusable research target mode can score a different target without changing the training history',()=>{
+  const prefix={...currentPrefix(),symbol:'285A.T'};
+  const out=buildPhase57ProspectiveSnapshotPipeline({
+    historicalSessions:historicalSessions(),
+    currentPrefix:prefix,
+    policy:TEST_POLICY,
+    targetMode:PHASE58_TARGET_MODES.REUSABLE_RESEARCH_TARGET,
+  });
+  assert.equal(out.complete,true);
+  assert.equal(out.targetMode,PHASE58_TARGET_MODES.REUSABLE_RESEARCH_TARGET);
+  assert.equal(out.provenance.currentSymbol,'285A.T');
+  assert.equal(out.methodology.reusableTargetChangesTrainingUniverse,false);
+  assert.equal(out.promotionEvidence,false);
+  assert.equal(out.targetGeneralizationClaimAllowed,false);
+});
+
+test('invalid target mode fails closed',()=>{
+  const out=buildPhase57ProspectiveSnapshotPipeline({historicalSessions:historicalSessions(),currentPrefix:currentPrefix(),policy:TEST_POLICY,targetMode:'ANYTHING'});
+  assert.equal(out.complete,false);
+  assert.equal(out.status,'BLOCKED_INVALID_TARGET_MODE');
 });
 
 test('policy id alone cannot spoof the frozen production-research policy',()=>{

@@ -35,6 +35,11 @@ export const PHASE58_P13_FROZEN_POLICY=Object.freeze({
   }),
 });
 
+export const PHASE58_TARGET_MODES=Object.freeze({
+  FROZEN_UNIVERSE_ONLY:'FROZEN_UNIVERSE_ONLY',
+  REUSABLE_RESEARCH_TARGET:'REUSABLE_RESEARCH_TARGET',
+});
+
 function blocked(status,extra={}){
   return Object.freeze({
     phase:'58.p13.phase57-prospective-pipeline',status,complete:false,
@@ -82,30 +87,40 @@ function sameSymbolSet(actual,expected){
  * Historical outcomes may exist only in the historical materialization. The live
  * 5m prefix is outcome-free and the P21 scorer independently filters history to
  * rows whose outcomeAt is fully realized by the live feature cutoff.
+ *
+ * REUSABLE_RESEARCH_TARGET keeps the exact frozen P24 training universe/policy but
+ * permits scoring a different Japanese-equity target from one reusable RssChart
+ * sheet. This is research-only generalization and never promotion evidence.
  */
 export function buildPhase57ProspectiveSnapshotPipeline({
   historicalSessions=[],
   currentPrefix={},
   policy=PHASE58_P13_FROZEN_POLICY,
+  targetMode=PHASE58_TARGET_MODES.FROZEN_UNIVERSE_ONLY,
 }={}){
   const policyFrozen=isFrozenPolicy(policy);
   const horizons=Array.isArray(policy?.horizonsBars)?policy.horizonsBars:PHASE58_P13_FROZEN_POLICY.horizonsBars;
   const selectionOptions=policy?.selectionOptions??PHASE58_P13_FROZEN_POLICY.selectionOptions;
+  const reusableTarget=targetMode===PHASE58_TARGET_MODES.REUSABLE_RESEARCH_TARGET;
+  if(!Object.values(PHASE58_TARGET_MODES).includes(targetMode))return blocked('BLOCKED_INVALID_TARGET_MODE',{targetMode});
 
   if(currentPrefix?.latestBarClosed!==true)return blocked('BLOCKED_CURRENT_PREFIX_NOT_COMPLETED_BAR_SAFE');
   if(!Array.isArray(currentPrefix?.bars5m)||!currentPrefix.bars5m.length)return blocked('BLOCKED_CURRENT_PREFIX_BARS_MISSING');
   if(typeof currentPrefix?.symbol!=='string'||!currentPrefix.symbol.trim())return blocked('BLOCKED_CURRENT_PREFIX_SYMBOL_MISSING');
   if(typeof currentPrefix?.sessionDate!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(currentPrefix.sessionDate))return blocked('BLOCKED_CURRENT_PREFIX_SESSION_INVALID');
 
+  const currentSymbol=currentPrefix.symbol.trim();
+  const targetWithinFrozenHistoricalUniverse=PHASE58_P13_FROZEN_POLICY.historicalUniverse.includes(currentSymbol);
   if(policyFrozen){
     const actualUniverse=uniqueSortedSymbols(historicalSessions);
     if(!sameSymbolSet(actualUniverse,PHASE58_P13_FROZEN_POLICY.historicalUniverse))return blocked('BLOCKED_FROZEN_HISTORICAL_UNIVERSE_MISMATCH',{
       expectedHistoricalUniverse:PHASE58_P13_FROZEN_POLICY.historicalUniverse,
       actualHistoricalUniverse:Object.freeze(actualUniverse),
     });
-    if(!PHASE58_P13_FROZEN_POLICY.historicalUniverse.includes(currentPrefix.symbol.trim()))return blocked('BLOCKED_CURRENT_SYMBOL_OUTSIDE_FROZEN_UNIVERSE',{
-      currentSymbol:currentPrefix.symbol.trim(),
+    if(!targetWithinFrozenHistoricalUniverse&&!reusableTarget)return blocked('BLOCKED_CURRENT_SYMBOL_OUTSIDE_FROZEN_UNIVERSE',{
+      currentSymbol,
       frozenHistoricalUniverse:PHASE58_P13_FROZEN_POLICY.historicalUniverse,
+      reusableResearchTargetModeAvailable:true,
     });
   }
 
@@ -113,7 +128,7 @@ export function buildPhase57ProspectiveSnapshotPipeline({
   if(!history.complete)return blocked('BLOCKED_P21_HISTORY_MATERIALIZATION',{history});
 
   const feed=buildProspectiveP21FeatureFeed({
-    symbol:currentPrefix.symbol,
+    symbol:currentSymbol,
     sessionDate:currentPrefix.sessionDate,
     bars5m:currentPrefix.bars5m,
     horizons,
@@ -153,7 +168,11 @@ export function buildPhase57ProspectiveSnapshotPipeline({
     complete:true,
     policyId:policy?.policyId??null,
     policyFrozen,
+    targetMode,
+    targetWithinFrozenHistoricalUniverse,
+    outOfTrainingUniverseResearch:policyFrozen&&!targetWithinFrozenHistoricalUniverse,
     promotionEvidence:false,
+    targetGeneralizationClaimAllowed:false,
     snapshot:built.snapshot,
     phase57:Object.freeze({
       status:base.status,
@@ -169,6 +188,7 @@ export function buildPhase57ProspectiveSnapshotPipeline({
       historicalUniverse:Object.freeze(uniqueSortedSymbols(historicalSessions)),
       historicalSessionCount:history.sessionCount,
       historicalRowCounts:history.rowCounts,
+      currentSymbol,
       currentFeatureCutoff:feed.featureCutoff,
       currentSourceBarCount:feed.sourceBarCount,
       currentPrefixStatus:currentPrefix?.status??null,
@@ -176,6 +196,8 @@ export function buildPhase57ProspectiveSnapshotPipeline({
     methodology:Object.freeze({
       historicalFeatureParityTarget:'PHASE57_P24_HISTORICAL_INTEGRATED_FEATURE_ROWS',
       frozenHistoricalUniverseRequiredForFrozenPolicy:true,
+      reusableTargetChangesTrainingUniverse:false,
+      outOfTrainingUniverseTargetIsResearchOnly:true,
       historicalOutcomesAllowedOnlyForFullyRealizedPriorRows:true,
       currentOutcomeFieldsForbidden:true,
       currentPrefixCompletedBarSafe:true,
@@ -190,4 +212,4 @@ export function buildPhase57ProspectiveSnapshotPipeline({
   });
 }
 
-export default {buildPhase57ProspectiveSnapshotPipeline,PHASE58_P13_FROZEN_POLICY,PHASE58_P13_SAFETY};
+export default {buildPhase57ProspectiveSnapshotPipeline,PHASE58_P13_FROZEN_POLICY,PHASE58_TARGET_MODES,PHASE58_P13_SAFETY};

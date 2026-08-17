@@ -104,6 +104,17 @@ test('policy id alone cannot spoof the frozen production-research policy',()=>{
   assert.equal(out.policyFrozen,false);
 });
 
+test('frozen P24 prospective policy fails closed if the historical combined universe is incomplete',()=>{
+  const out=buildPhase57ProspectiveSnapshotPipeline({
+    historicalSessions:historicalSessions(),
+    currentPrefix:currentPrefix(),
+    policy:PHASE58_P13_FROZEN_POLICY,
+  });
+  assert.equal(out.complete,false);
+  assert.equal(out.status,'BLOCKED_FROZEN_HISTORICAL_UNIVERSE_MISMATCH');
+  assert.deepEqual([...out.expectedHistoricalUniverse],['7203.T','6758.T','9984.T','8306.T','8035.T']);
+});
+
 test('fails closed when the current prefix is not explicitly completed-bar safe',()=>{
   const prefix={...currentPrefix(),latestBarClosed:false};
   const out=buildPhase57ProspectiveSnapshotPipeline({historicalSessions:historicalSessions(),currentPrefix:prefix,policy:TEST_POLICY});

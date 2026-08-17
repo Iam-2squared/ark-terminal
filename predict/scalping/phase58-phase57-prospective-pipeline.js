@@ -22,6 +22,7 @@ export const PHASE58_P13_SAFETY=Object.freeze({
 
 export const PHASE58_P13_FROZEN_POLICY=Object.freeze({
   policyId:'PHASE57_P24_COMBINED_PROSPECTIVE_V1',
+  historicalUniverse:Object.freeze(['7203.T','6758.T','9984.T','8306.T','8035.T']),
   horizonsBars:Object.freeze([1,3,6,12,24]),
   selectionOptions:Object.freeze({
     innerTrainFraction:0.6,
@@ -42,16 +43,21 @@ function blocked(status,extra={}){
   });
 }
 
-function sameArray(a,b){
+function sameNumberArray(a,b){
   return Array.isArray(a)&&Array.isArray(b)&&a.length===b.length&&a.every((value,index)=>Number(value)===Number(b[index]));
+}
+
+function sameStringArray(a,b){
+  return Array.isArray(a)&&Array.isArray(b)&&a.length===b.length&&a.every((value,index)=>String(value)===String(b[index]));
 }
 
 function isFrozenPolicy(policy){
   if(!policy||policy.policyId!==PHASE58_P13_FROZEN_POLICY.policyId)return false;
-  if(!sameArray(policy.horizonsBars,PHASE58_P13_FROZEN_POLICY.horizonsBars))return false;
+  if(!sameStringArray(policy.historicalUniverse,PHASE58_P13_FROZEN_POLICY.historicalUniverse))return false;
+  if(!sameNumberArray(policy.horizonsBars,PHASE58_P13_FROZEN_POLICY.horizonsBars))return false;
   const actual=policy.selectionOptions??{};
   const frozen=PHASE58_P13_FROZEN_POLICY.selectionOptions;
-  if(!sameArray(actual.thresholds,frozen.thresholds))return false;
+  if(!sameNumberArray(actual.thresholds,frozen.thresholds))return false;
   for(const key of ['innerTrainFraction','innerTestFraction','innerMinTrainRows','minInnerSignals','minimumInnerNetReturnPct','roundTripCostPct']){
     if(Number(actual[key])!==Number(frozen[key]))return false;
   }
@@ -59,6 +65,16 @@ function isFrozenPolicy(policy){
     if(Object.prototype.hasOwnProperty.call(actual,overrideKey))return false;
   }
   return true;
+}
+
+function uniqueSortedSymbols(sessions=[]){
+  return [...new Set((Array.isArray(sessions)?sessions:[]).map(session=>String(session?.symbol??'').trim()).filter(Boolean))].sort();
+}
+
+function sameSymbolSet(actual,expected){
+  const a=[...(actual??[])].map(String).sort();
+  const b=[...(expected??[])].map(String).sort();
+  return a.length===b.length&&a.every((value,index)=>value===b[index]);
 }
 
 /**
@@ -80,6 +96,18 @@ export function buildPhase57ProspectiveSnapshotPipeline({
   if(!Array.isArray(currentPrefix?.bars5m)||!currentPrefix.bars5m.length)return blocked('BLOCKED_CURRENT_PREFIX_BARS_MISSING');
   if(typeof currentPrefix?.symbol!=='string'||!currentPrefix.symbol.trim())return blocked('BLOCKED_CURRENT_PREFIX_SYMBOL_MISSING');
   if(typeof currentPrefix?.sessionDate!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(currentPrefix.sessionDate))return blocked('BLOCKED_CURRENT_PREFIX_SESSION_INVALID');
+
+  if(policyFrozen){
+    const actualUniverse=uniqueSortedSymbols(historicalSessions);
+    if(!sameSymbolSet(actualUniverse,PHASE58_P13_FROZEN_POLICY.historicalUniverse))return blocked('BLOCKED_FROZEN_HISTORICAL_UNIVERSE_MISMATCH',{
+      expectedHistoricalUniverse:PHASE58_P13_FROZEN_POLICY.historicalUniverse,
+      actualHistoricalUniverse:Object.freeze(actualUniverse),
+    });
+    if(!PHASE58_P13_FROZEN_POLICY.historicalUniverse.includes(currentPrefix.symbol.trim()))return blocked('BLOCKED_CURRENT_SYMBOL_OUTSIDE_FROZEN_UNIVERSE',{
+      currentSymbol:currentPrefix.symbol.trim(),
+      frozenHistoricalUniverse:PHASE58_P13_FROZEN_POLICY.historicalUniverse,
+    });
+  }
 
   const history=buildProspectiveP21HistoricalRows({sessions:historicalSessions,horizons});
   if(!history.complete)return blocked('BLOCKED_P21_HISTORY_MATERIALIZATION',{history});
@@ -138,6 +166,7 @@ export function buildPhase57ProspectiveSnapshotPipeline({
       selectedThreshold:base.decision?.context?.selectedThreshold??null,
     }),
     provenance:Object.freeze({
+      historicalUniverse:Object.freeze(uniqueSortedSymbols(historicalSessions)),
       historicalSessionCount:history.sessionCount,
       historicalRowCounts:history.rowCounts,
       currentFeatureCutoff:feed.featureCutoff,
@@ -146,6 +175,7 @@ export function buildPhase57ProspectiveSnapshotPipeline({
     }),
     methodology:Object.freeze({
       historicalFeatureParityTarget:'PHASE57_P24_HISTORICAL_INTEGRATED_FEATURE_ROWS',
+      frozenHistoricalUniverseRequiredForFrozenPolicy:true,
       historicalOutcomesAllowedOnlyForFullyRealizedPriorRows:true,
       currentOutcomeFieldsForbidden:true,
       currentPrefixCompletedBarSafe:true,

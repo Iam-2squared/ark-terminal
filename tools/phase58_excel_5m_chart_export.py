@@ -135,23 +135,33 @@ def _numeric(value: Any, field: str) -> float:
 
 
 def _complete_ohlcv_or_none(raw: list[Any], columns: dict[str, int]) -> tuple[float, float, float, float, float] | None:
-    """Return a complete OHLCV tuple, skip fully-unpopulated RSS rows, fail on partial rows.
+    """Return a complete OHLCV tuple, skip unpopulated RSS rows, fail on ambiguous partial rows.
 
-    MARKETSPEED II RssChart may expose timestamped grid rows whose OHLCV cells are all
-    blank (for example preallocated/unpopulated intervals). These carry no market bar
-    and are safe to ignore. A partially populated OHLCV row is ambiguous/corrupt and
-    remains fail-closed.
+    MARKETSPEED II RssChart can expose timestamped/preallocated grid rows where all
+    four OHLC cells are blank while 出来高 is either blank or numeric zero. Those
+    rows contain no price bar and are safe to ignore. If any OHLC value is present,
+    all OHLCV fields must be present and finite. A positive/non-zero volume with all
+    OHLC blank is also rejected fail-closed rather than silently discarded.
     """
     try:
         values = [raw[columns[header]] for header in OHLCV_HEADERS]
     except IndexError as exc:
         raise ValueError("RssChart row shorter than detected OHLCV columns") from exc
-    blank = [_text(value) == "" for value in values]
-    if all(blank):
+
+    ohlc_values = values[:4]
+    volume_value = values[4]
+    ohlc_blank = [_text(value) == "" for value in ohlc_values]
+    volume_blank = _text(volume_value) == ""
+    volume_zero = _finite(volume_value) and float(volume_value) == 0.0
+
+    if all(ohlc_blank) and (volume_blank or volume_zero):
         return None
+
+    blank = [*ohlc_blank, volume_blank]
     if any(blank):
         missing = [header for header, is_blank in zip(OHLCV_HEADERS, blank) if is_blank]
         raise ValueError("RssChart partially populated OHLCV row; missing: " + ",".join(missing))
+
     return tuple(_numeric(value, header) for value, header in zip(values, OHLCV_HEADERS))  # type: ignore[return-value]
 
 
@@ -262,6 +272,7 @@ def parse_rss_chart_matrix(
             "timeframe": "5M",
             "headerDetectedByLabels": True,
             "fullyUnpopulatedOhlcvRowsSkipped": True,
+            "zeroVolumeNoPricePlaceholderRowsSkipped": True,
             "partiallyPopulatedOhlcvRowsRejected": True,
             "newestVisibleRowDroppedForClosureSafety": bool(drop_newest_row_for_closure_safety),
             "currentOrFutureOutcomeUsed": False,

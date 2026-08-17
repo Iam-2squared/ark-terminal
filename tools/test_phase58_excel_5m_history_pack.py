@@ -57,7 +57,6 @@ def test_skips_fully_unpopulated_timestamped_rows_in_history_sheets():
     )
     assert out["sessionCount"] == 10
     assert out["skippedUnpopulatedOhlcvRowCount"] == 5
-    assert all(out["perSymbol"][symbol]["skippedUnpopulatedOhlcvRowCount"] == 1 for symbol in FROZEN_P24_COMBINED_UNIVERSE)
 
 
 def test_skips_zero_volume_no_price_placeholders_in_history_sheets():
@@ -71,13 +70,15 @@ def test_skips_zero_volume_no_price_placeholders_in_history_sheets():
     )
     assert out["sessionCount"] == 10
     assert out["skippedUnpopulatedOhlcvRowCount"] == 5
-    assert all(out["perSymbol"][symbol]["skippedUnpopulatedOhlcvRowCount"] == 1 for symbol in FROZEN_P24_COMBINED_UNIVERSE)
 
 
-def test_skips_no_price_history_placeholder_before_timeframe_display_marker_validation():
+def test_skips_dash_display_placeholders_across_frozen_history_universe():
     matrices = _matrices()
     for symbol in FROZEN_P24_COMBINED_UNIVERSE:
-        matrices[symbol].insert(2, [symbol, "東証", "--------", "2026/08/13", "09:02", "", "", "", "", 0])
+        matrices[symbol].insert(2, [
+            symbol, "東証", "--------", "2026/08/13", "09:02",
+            "--------", "--------", "--------", "--------", "--------",
+        ])
     out = build_history_pack_from_matrices(
         matrices,
         captured_at="2026-08-17T01:00:00Z",
@@ -85,13 +86,42 @@ def test_skips_no_price_history_placeholder_before_timeframe_display_marker_vali
     )
     assert out["sessionCount"] == 10
     assert out["skippedUnpopulatedOhlcvRowCount"] == 5
-    assert out["methodology"]["timeframeValidatedOnlyForPopulatedBars"] is True
+    assert out["methodology"]["dashOnlyDisplayPlaceholdersTreatedAsMissing"] is True
+    assert all(out["perSymbol"][symbol]["skippedUnpopulatedOhlcvRowCount"] == 1 for symbol in FROZEN_P24_COMBINED_UNIVERSE)
 
 
-def test_rejects_partially_populated_history_row_fail_closed():
+def test_skips_dash_ohlc_placeholders_with_zero_volume_in_history():
     matrices = _matrices()
-    matrices["7203.T"].insert(2, ["7203.T", "東証", "5M", "2026/08/13", "09:02", "", 101, 99, 100.5, 1000])
-    with pytest.raises(ValueError, match="partially populated OHLCV row"):
+    matrices["7203.T"].insert(2, [
+        "7203.T", "東証", "--------", "2026/08/13", "09:02",
+        "--------", "--------", "--------", "--------", 0,
+    ])
+    out = build_history_pack_from_matrices(
+        matrices,
+        captured_at="2026-08-17T01:00:00Z",
+        as_of_session_date="2026-08-17",
+    )
+    assert out["perSymbol"]["7203.T"]["skippedUnpopulatedOhlcvRowCount"] == 1
+
+
+def test_rejects_mixed_placeholder_and_numeric_history_row_fail_closed():
+    matrices = _matrices()
+    matrices["7203.T"].insert(2, [
+        "7203.T", "東証", "5M", "2026/08/13", "09:02",
+        "--------", 101, 99, 100.5, 1000,
+    ])
+    with pytest.raises(ValueError, match=r"7203.T: Excel row 3:.*partially populated OHLCV row"):
+        build_history_pack_from_matrices(
+            matrices,
+            captured_at="2026-08-17T01:00:00Z",
+            as_of_session_date="2026-08-17",
+        )
+
+
+def test_rejects_placeholder_timeframe_on_populated_history_bar():
+    matrices = _matrices()
+    matrices["7203.T"][1][2] = "--------"
+    with pytest.raises(ValueError, match="timeframe must be 5M for a populated bar"):
         build_history_pack_from_matrices(
             matrices,
             captured_at="2026-08-17T01:00:00Z",

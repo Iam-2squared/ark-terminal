@@ -35,6 +35,8 @@ def test_parses_rsschart_headers_and_drops_newest_visible_row_for_closure_safety
     assert out["sameSessionSourceBarCount"] == 8
     assert out["closedBarCount"] == 7
     assert out["skippedUnpopulatedOhlcvRowCount"] == 0
+    assert out["explicit5mTimeframeCellCount"] == 8
+    assert out["missingTimeframeMetadataCount"] == 0
     assert out["bars5m"][-1]["timestamp"] == "2026-08-17T00:30:00Z"
     assert out["droppedNewestTimestamp"] == "2026-08-17T00:35:00Z"
     assert out["methodology"]["newestVisibleRowDroppedForClosureSafety"] is True
@@ -129,6 +131,58 @@ def test_skips_unicode_dash_only_display_placeholders():
     assert out["skippedUnpopulatedOhlcvRowCount"] == 1
 
 
+def test_accepts_blank_timeframe_metadata_on_populated_5m_grid():
+    values = _matrix("")
+    out = parse_rss_chart_matrix(
+        values,
+        symbol="7203.T",
+        captured_at="2026-08-17T01:00:00Z",
+        session_date="2026-08-17",
+    )
+    assert out["closedBarCount"] == 7
+    assert out["explicit5mTimeframeCellCount"] == 0
+    assert out["missingTimeframeMetadataCount"] == 8
+    assert out["methodology"]["blankOrPlaceholderTimeframeMetadataAllowedWithGridProof"] is True
+    assert out["methodology"]["timestampGridValidatedAs5m"] is True
+
+
+def test_accepts_dash_timeframe_metadata_on_populated_5m_grid():
+    values = _matrix("--------")
+    out = parse_rss_chart_matrix(
+        values,
+        symbol="7203.T",
+        captured_at="2026-08-17T01:00:00Z",
+        session_date="2026-08-17",
+    )
+    assert out["missingTimeframeMetadataCount"] == 8
+
+
+def test_rejects_missing_timeframe_metadata_when_timestamps_are_not_5m_grid():
+    values = _matrix("")
+    for index, row in enumerate(values[2:]):
+        row[4] = f"09:{index:02d}"
+    with pytest.raises(ValueError, match="not aligned to a 5-minute JST boundary"):
+        parse_rss_chart_matrix(
+            values,
+            symbol="7203.T",
+            captured_at="2026-08-17T01:00:00Z",
+            session_date="2026-08-17",
+        )
+
+
+def test_rejects_missing_timeframe_metadata_when_grid_is_10m_not_5m():
+    values = _matrix("")
+    for index, row in enumerate(values[2:]):
+        row[4] = f"{9 + (index * 10) // 60:02d}:{(index * 10) % 60:02d}"
+    with pytest.raises(ValueError, match="no adjacent 5-minute bars"):
+        parse_rss_chart_matrix(
+            values,
+            symbol="7203.T",
+            captured_at="2026-08-17T02:00:00Z",
+            session_date="2026-08-17",
+        )
+
+
 def test_rejects_placeholder_ohlc_with_positive_volume_fail_closed():
     values = _matrix()
     values.insert(3, [
@@ -156,22 +210,10 @@ def test_rejects_partially_populated_ohlcv_rows_fail_closed():
         )
 
 
-def test_rejects_non_5m_chart_rows():
+def test_rejects_explicit_non_5m_chart_rows():
     with pytest.raises(ValueError, match="timeframe must be 5M"):
         parse_rss_chart_matrix(
             _matrix("1M"),
-            symbol="7203.T",
-            captured_at="2026-08-17T01:00:00Z",
-            session_date="2026-08-17",
-        )
-
-
-def test_rejects_timeframe_placeholder_on_populated_bar():
-    values = _matrix()
-    values[2][2] = "--------"
-    with pytest.raises(ValueError, match="timeframe must be 5M for a populated bar"):
-        parse_rss_chart_matrix(
-            values,
             symbol="7203.T",
             captured_at="2026-08-17T01:00:00Z",
             session_date="2026-08-17",

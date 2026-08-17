@@ -9,7 +9,13 @@ from phase58_excel_5m_history_pack import (
 )
 
 
-def _matrix(symbol: str, *, include_current: bool = True, short_first: bool = False):
+def _matrix(
+    symbol: str,
+    *,
+    include_current: bool = True,
+    short_first: bool = False,
+    timeframe: str = "5M",
+):
     rows = [["銘柄名称", "市場名称", "足種", "日付", "時刻", "始値", "高値", "安値", "終値", "出来高"]]
     sessions = ["2026/08/13", "2026/08/14"]
     for session_index, day in enumerate(sessions):
@@ -18,11 +24,11 @@ def _matrix(symbol: str, *, include_current: bool = True, short_first: bool = Fa
             hour = 9 + (index * 5) // 60
             minute = (index * 5) % 60
             base = 100 + session_index + index * 0.05
-            rows.append([symbol, "東証", "5M", day, f"{hour:02d}:{minute:02d}", base, base + 0.5, base - 0.4, base + 0.1, 1000 + index])
+            rows.append([symbol, "東証", timeframe, day, f"{hour:02d}:{minute:02d}", base, base + 0.5, base - 0.4, base + 0.1, 1000 + index])
     if include_current:
         for index in range(8):
             base = 110 + index * 0.05
-            rows.append([symbol, "東証", "5M", "2026/08/17", f"09:{index * 5:02d}", base, base + 0.5, base - 0.4, base + 0.1, 2000 + index])
+            rows.append([symbol, "東証", timeframe, "2026/08/17", f"09:{index * 5:02d}", base, base + 0.5, base - 0.4, base + 0.1, 2000 + index])
     return rows
 
 
@@ -41,9 +47,34 @@ def test_builds_frozen_universe_history_pack_and_excludes_current_session_rows()
     assert out["sessionCount"] == 10
     assert out["droppedCurrentOrFutureRowCount"] == 8 * 5
     assert out["skippedUnpopulatedOhlcvRowCount"] == 0
+    assert out["explicit5mTimeframeCellCount"] > 0
+    assert out["missingTimeframeMetadataCount"] == 0
     assert all(session["sessionDate"] < "2026-08-17" for session in out["sessions"])
     assert set(session["symbol"] for session in out["sessions"]) == set(FROZEN_P24_COMBINED_UNIVERSE)
     assert all(len(session["bars5m"]) == 32 for session in out["sessions"])
+
+
+def test_accepts_blank_timeframe_metadata_across_frozen_history_universe_with_5m_grid_proof():
+    out = build_history_pack_from_matrices(
+        _matrices(timeframe=""),
+        captured_at="2026-08-17T01:00:00Z",
+        as_of_session_date="2026-08-17",
+    )
+    assert out["sessionCount"] == 10
+    assert out["explicit5mTimeframeCellCount"] == 0
+    assert out["missingTimeframeMetadataCount"] > 0
+    assert out["methodology"]["blankOrPlaceholderTimeframeMetadataAllowedWithGridProof"] is True
+    assert out["methodology"]["timestampGridValidatedAs5m"] is True
+
+
+def test_accepts_dash_timeframe_metadata_on_populated_history_bars_with_5m_grid_proof():
+    out = build_history_pack_from_matrices(
+        _matrices(timeframe="--------"),
+        captured_at="2026-08-17T01:00:00Z",
+        as_of_session_date="2026-08-17",
+    )
+    assert out["sessionCount"] == 10
+    assert out["missingTimeframeMetadataCount"] > 0
 
 
 def test_skips_fully_unpopulated_timestamped_rows_in_history_sheets():
@@ -118,10 +149,13 @@ def test_rejects_mixed_placeholder_and_numeric_history_row_fail_closed():
         )
 
 
-def test_rejects_placeholder_timeframe_on_populated_history_bar():
-    matrices = _matrices()
-    matrices["7203.T"][1][2] = "--------"
-    with pytest.raises(ValueError, match="timeframe must be 5M for a populated bar"):
+def test_rejects_missing_timeframe_metadata_when_history_timestamps_are_not_5m_grid():
+    matrices = _matrices(timeframe="")
+    for row in matrices["7203.T"][1:]:
+        if row[3] == "2026/08/13":
+            row[4] = "09:01"
+            break
+    with pytest.raises(ValueError, match="not aligned to a 5-minute JST boundary"):
         build_history_pack_from_matrices(
             matrices,
             captured_at="2026-08-17T01:00:00Z",
@@ -151,7 +185,7 @@ def test_rejects_missing_or_extra_symbols_in_frozen_combined_universe():
         )
 
 
-def test_rejects_non_5m_rows():
+def test_rejects_explicit_non_5m_rows():
     matrices = _matrices()
     matrices["7203.T"][1][2] = "1M"
     with pytest.raises(ValueError, match="timeframe must be 5M"):

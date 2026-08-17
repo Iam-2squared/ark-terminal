@@ -17,6 +17,8 @@ from phase58_excel_5m_chart_export import (
     _parse_time,
     _session_date_from_iso,
     _text,
+    _validate_5m_timestamp_grid,
+    _validate_populated_timeframe_cell,
     find_rss_chart_header,
 )
 
@@ -42,7 +44,12 @@ PHASE58_P14_SAFETY = {
 }
 
 
-def _parse_all_rows(values: Any, *, symbol: str, captured_at: str) -> tuple[list[dict[str, Any]], int]:
+def _parse_all_rows(
+    values: Any,
+    *,
+    symbol: str,
+    captured_at: str,
+) -> tuple[list[dict[str, Any]], int, int, int]:
     matrix = _matrix(values)
     header_row, columns = find_rss_chart_header(matrix)
     captured = datetime.fromisoformat(captured_at.replace("Z", "+00:00"))
@@ -51,6 +58,8 @@ def _parse_all_rows(values: Any, *, symbol: str, captured_at: str) -> tuple[list
     captured = captured.astimezone(UTC)
     rows: list[dict[str, Any]] = []
     skipped_unpopulated = 0
+    explicit_5m_count = 0
+    missing_timeframe_metadata_count = 0
 
     for excel_row_number, raw in enumerate(matrix[header_row + 1 :], start=header_row + 2):
         if not raw or all(_text(cell) == "" for cell in raw):
@@ -71,12 +80,15 @@ def _parse_all_rows(values: Any, *, symbol: str, captured_at: str) -> tuple[list
             skipped_unpopulated += 1
             continue
 
-        if "足種" in columns:
-            timeframe = _text(raw[columns["足種"]]) if columns["足種"] < len(raw) else ""
-            if timeframe != "5M":
-                raise ValueError(
-                    f"{symbol}: Excel row {excel_row_number}: RssChart timeframe must be 5M for a populated bar, got {timeframe!r}"
-                )
+        has_explicit_5m = _validate_populated_timeframe_cell(
+            raw,
+            columns,
+            error_prefix=f"{symbol}: Excel row {excel_row_number}: RssChart ",
+        )
+        if has_explicit_5m:
+            explicit_5m_count += 1
+        else:
+            missing_timeframe_metadata_count += 1
 
         open_, high, low, close, volume = ohlcv
         try:
@@ -94,7 +106,11 @@ def _parse_all_rows(values: Any, *, symbol: str, captured_at: str) -> tuple[list
             raise ValueError(f"{symbol}: Excel row {excel_row_number}: volume must be non-negative")
         rows.append({
             "timestamp": timestamp,
-            "open": open_, "high": high, "low": low, "close": close, "volume": volume,
+            "open": open_,
+            "high": high,
+            "low": low,
+            "close": close,
+            "volume": volume,
         })
 
     if not rows:
@@ -103,7 +119,8 @@ def _parse_all_rows(values: Any, *, symbol: str, captured_at: str) -> tuple[list
     timestamps = [row["timestamp"] for row in rows]
     if len(timestamps) != len(set(timestamps)):
         raise ValueError(f"{symbol}: duplicate RssChart timestamps")
-    return rows, skipped_unpopulated
+    _validate_5m_timestamp_grid(rows, error_prefix=f"{symbol}: RssChart: ")
+    return rows, skipped_unpopulated, explicit_5m_count, missing_timeframe_metadata_count
 
 
 def build_history_pack_from_matrices(
@@ -128,12 +145,16 @@ def build_history_pack_from_matrices(
     dropped_current_or_future = 0
     dropped_short_sessions = 0
     skipped_unpopulated_total = 0
+    explicit_5m_total = 0
+    missing_timeframe_metadata_total = 0
 
     for symbol in expected_universe:
-        rows, skipped_unpopulated = _parse_all_rows(
+        rows, skipped_unpopulated, explicit_5m_count, missing_timeframe_metadata_count = _parse_all_rows(
             matrices_by_symbol[symbol], symbol=symbol, captured_at=captured_at
         )
         skipped_unpopulated_total += skipped_unpopulated
+        explicit_5m_total += explicit_5m_count
+        missing_timeframe_metadata_total += missing_timeframe_metadata_count
         grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
         for row in rows:
             session_date = _session_date_from_iso(row["timestamp"])
@@ -164,6 +185,8 @@ def build_history_pack_from_matrices(
         per_symbol[symbol] = {
             "sourceRowCount": len(rows),
             "skippedUnpopulatedOhlcvRowCount": skipped_unpopulated,
+            "explicit5mTimeframeCellCount": explicit_5m_count,
+            "missingTimeframeMetadataCount": missing_timeframe_metadata_count,
             "acceptedSessionCount": len(accepted_dates),
             "acceptedBarCount": accepted_bar_count,
             "firstAcceptedSession": accepted_dates[0],
@@ -182,6 +205,8 @@ def build_history_pack_from_matrices(
         "sessionCount": len(sessions),
         "perSymbol": per_symbol,
         "skippedUnpopulatedOhlcvRowCount": skipped_unpopulated_total,
+        "explicit5mTimeframeCellCount": explicit_5m_total,
+        "missingTimeframeMetadataCount": missing_timeframe_metadata_total,
         "droppedCurrentOrFutureRowCount": dropped_current_or_future,
         "droppedShortSessionCount": dropped_short_sessions,
         "sessions": sessions,
@@ -192,7 +217,9 @@ def build_history_pack_from_matrices(
             "fullyUnpopulatedOhlcvRowsSkipped": True,
             "zeroVolumeNoPricePlaceholderRowsSkipped": True,
             "dashOnlyDisplayPlaceholdersTreatedAsMissing": True,
-            "timeframeValidatedOnlyForPopulatedBars": True,
+            "blankOrPlaceholderTimeframeMetadataAllowedWithGridProof": True,
+            "explicitNon5mTimeframeRejected": True,
+            "timestampGridValidatedAs5m": True,
             "partiallyPopulatedOhlcvRowsRejected": True,
             "currentSessionExcludedFromTrainingHistory": True,
             "onlySessionsStrictlyBeforeAsOfSession": True,
@@ -272,6 +299,8 @@ def main() -> int:
         "asOfSessionDate": payload["asOfSessionDate"],
         "sessionCount": payload["sessionCount"],
         "skippedUnpopulatedOhlcvRowCount": payload["skippedUnpopulatedOhlcvRowCount"],
+        "explicit5mTimeframeCellCount": payload["explicit5mTimeframeCellCount"],
+        "missingTimeframeMetadataCount": payload["missingTimeframeMetadataCount"],
         "perSymbol": payload["perSymbol"],
         "safety": PHASE58_P14_SAFETY,
     }, ensure_ascii=False))

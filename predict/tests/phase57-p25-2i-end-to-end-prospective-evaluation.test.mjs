@@ -88,7 +88,7 @@ test('end-to-end evaluator composes prefix replay, frozen ledger, outcomes and f
   assert.deepEqual(result.evidence.missingExpectedSessions,['2026-08-20']);
   assert.equal(result.evidence.operationalTradeFrequency.DYNAMIC_30.validFrozenEntries,3);
   assert.equal(result.evidence.operationalTradeFrequency.DYNAMIC_30.tradingSessions,2);
-  assert.equal(result.evidence.comparison.results.DYNAMIC_30.trades,2);
+  assert.equal(result.evidence.comparison.results.DYNAMIC_30.validFrozenEntries,2);
   assert.equal(result.methodology.dailyMarketSpeedRequired,false);
   assert.equal(result.methodology.microstructureUsed,false);
   assert.equal(result.methodology.currentOuterOosDoesNotSelectDynamicN,true);

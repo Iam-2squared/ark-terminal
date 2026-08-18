@@ -23,6 +23,26 @@ function normalizeDirection(x){
   throw new Error('phase57 direction must be LONG/SHORT/UP/DOWN/+1/-1 or WAIT/ABSTAIN/0');
 }
 
+function freshnessBoundary(x,asOfMs,captureMs,blockers){
+  const context=x?.context&&typeof x.context==='object'?x.context:{};
+  const closeRaw=context.sourceBarCloseAt;
+  if(closeRaw===null||closeRaw===undefined||closeRaw==='')return asOfMs;
+  const closeMs=parseMs(closeRaw);
+  const duration=Number(context.sourceBarDurationMinutes);
+  if(closeMs===null){
+    blockers.push('INVALID_PHASE57_SOURCE_BAR_CLOSE_AT');
+    return asOfMs;
+  }
+  if(!Number.isFinite(duration)||duration<=0){
+    blockers.push('INVALID_PHASE57_SOURCE_BAR_DURATION');
+    return asOfMs;
+  }
+  if(duration!==5)blockers.push('PHASE57_SOURCE_BAR_DURATION_NOT_5M');
+  if(asOfMs!==null&&closeMs-asOfMs!==duration*60_000)blockers.push('PHASE57_SOURCE_BAR_CLOSE_MISMATCH');
+  if(captureMs!==null&&closeMs>captureMs)blockers.push('PHASE57_SOURCE_BAR_CLOSE_IN_FUTURE');
+  return closeMs;
+}
+
 export function validateFrozenPhase57Snapshot(snapshot,{captureAsOf,maxAgeMs=300000}={}){
   const blockers=[];
   if(!snapshot||typeof snapshot!=='object')blockers.push('MISSING_PHASE57_SNAPSHOT');
@@ -33,7 +53,8 @@ export function validateFrozenPhase57Snapshot(snapshot,{captureAsOf,maxAgeMs=300
   if(asOfMs===null)blockers.push('INVALID_PHASE57_ASOF');
   if(captureMs===null)blockers.push('INVALID_CAPTURE_ASOF');
   if(asOfMs!==null&&captureMs!==null&&asOfMs>captureMs)blockers.push('PHASE57_FUTURE_TIMESTAMP');
-  if(asOfMs!==null&&captureMs!==null&&captureMs-asOfMs>maxAgeMs)blockers.push('STALE_PHASE57_SNAPSHOT');
+  const freshnessMs=freshnessBoundary(x,asOfMs,captureMs,blockers);
+  if(freshnessMs!==null&&captureMs!==null&&captureMs-freshnessMs>maxAgeMs)blockers.push('STALE_PHASE57_SNAPSHOT');
   if(x.frozen!==true)blockers.push('PHASE57_NOT_FROZEN');
   if(typeof x.modelId!=='string'||!x.modelId.trim())blockers.push('MISSING_PHASE57_MODEL_ID');
   if(typeof x.artifactSha256!=='string'||!/^[a-f0-9]{64}$/i.test(x.artifactSha256))blockers.push('INVALID_PHASE57_ARTIFACT_SHA256');
@@ -47,6 +68,12 @@ export function validateFrozenPhase57Snapshot(snapshot,{captureAsOf,maxAgeMs=300
     status:blockers.length?'BLOCKED':'FROZEN_PHASE57_SNAPSHOT_READY',
     complete:blockers.length===0,
     blockers:Object.freeze(blockers),
+    freshness:Object.freeze({
+      featureCutoffAsOf:x.asOf??null,
+      freshnessAsOf:freshnessMs===null?null:new Date(freshnessMs).toISOString(),
+      sourceBarCloseMetadataUsed:freshnessMs!==null&&asOfMs!==null&&freshnessMs!==asOfMs,
+      maxAgeMs,
+    }),
     normalized:Object.freeze({
       direction,
       confidence:confidence===null?null:confidence,

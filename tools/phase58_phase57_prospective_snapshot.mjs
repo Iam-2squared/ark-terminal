@@ -24,6 +24,8 @@ const SAFETY=Object.freeze({
   freshHoldoutConsumed:false,
 });
 
+const SOURCE_BAR_MINUTES=5;
+
 function arg(name,fallback=null){
   const i=process.argv.indexOf(name);
   return i>=0&&i+1<process.argv.length?process.argv[i+1]:fallback;
@@ -36,6 +38,10 @@ function readJson(file,label){
   let parsed;
   try{parsed=JSON.parse(bytes.toString('utf8'));}catch(error){throw new Error(`${label} JSON failed: ${error?.message??error}`);}
   return {bytes,parsed,sha256:sha(bytes)};
+}
+function addMinutesIso(timestamp,minutes){
+  const ms=Date.parse(timestamp??'');
+  return Number.isFinite(ms)?new Date(ms+minutes*60_000).toISOString():null;
 }
 
 const historyPath=arg('--history-pack');
@@ -86,6 +92,26 @@ if(!result.complete){
   process.exit(1);
 }
 
+// RssChart 5M timestamps identify the five-minute source interval. The exporter
+// drops the newest visible interval and only marks the retained prefix as closed.
+// Freshness therefore starts when the retained source bar is fully available
+// (timestamp + 5 minutes), not at the interval's opening timestamp.
+const sourceBarTimestamp=result.snapshot?.asOf??null;
+const sourceBarCloseAt=addMinutesIso(sourceBarTimestamp,SOURCE_BAR_MINUTES);
+if(!sourceBarCloseAt){
+  console.error(JSON.stringify({status:'BLOCKED_PHASE57_SOURCE_BAR_FRESHNESS_METADATA',sourceBarTimestamp,safety:SAFETY},null,2));
+  process.exit(1);
+}
+const snapshot=Object.freeze({
+  ...result.snapshot,
+  context:Object.freeze({
+    ...(result.snapshot?.context??{}),
+    sourceBarTimestamp,
+    sourceBarDurationMinutes:SOURCE_BAR_MINUTES,
+    sourceBarCloseAt,
+  }),
+});
+
 const payload={
   schemaVersion:1,
   phase:'58.p16.phase57-prospective-snapshot-cli',
@@ -101,13 +127,16 @@ const payload={
   currentPrefixSha256:current.sha256,
   policyId:result.policyId,
   policyFrozen:result.policyFrozen,
-  snapshot:result.snapshot,
+  snapshot,
   phase57:result.phase57,
   provenance:result.provenance,
   methodology:{
     ...result.methodology,
     reusableSingleRssChartTargetSupported:true,
     targetSheetMayBeReusedAcrossSymbols:true,
+    sourceBarTimestampRepresentsFiveMinuteIntervalStart:true,
+    snapshotFreshnessUsesCompletedSourceBarClose:true,
+    sourceBarDurationMinutes:SOURCE_BAR_MINUTES,
     excelWritePerformed:false,
   },
   safety:SAFETY,
@@ -117,4 +146,4 @@ const tmp=`${outputPath}.tmp-${process.pid}`;
 fs.writeFileSync(tmp,JSON.stringify(payload,null,2)+'\n','utf8');
 fs.renameSync(tmp,outputPath);
 const outputSha256=sha(fs.readFileSync(outputPath));
-console.log(JSON.stringify({status:payload.status,output:outputPath,outputSha256,currentSymbol:payload.currentSymbol,targetMode,phase57Direction:payload.snapshot.direction,phase57Confidence:payload.snapshot.confidence,selectedHorizonBars:payload.phase57.selectedHorizonBars,selectedFeatureFamily:payload.phase57.selectedFeatureFamily,selectedModelType:payload.phase57.selectedModelType,selectedThreshold:payload.phase57.selectedThreshold,targetWithinFrozenHistoricalUniverse:payload.targetWithinFrozenHistoricalUniverse,outOfTrainingUniverseResearch:payload.outOfTrainingUniverseResearch,safety:SAFETY},null,2));
+console.log(JSON.stringify({status:payload.status,output:outputPath,outputSha256,currentSymbol:payload.currentSymbol,targetMode,phase57Direction:payload.snapshot.direction,phase57Confidence:payload.snapshot.confidence,selectedHorizonBars:payload.phase57.selectedHorizonBars,selectedFeatureFamily:payload.phase57.selectedFeatureFamily,selectedModelType:payload.phase57.selectedModelType,selectedThreshold:payload.phase57.selectedThreshold,sourceBarTimestamp,sourceBarCloseAt,targetWithinFrozenHistoricalUniverse:payload.targetWithinFrozenHistoricalUniverse,outOfTrainingUniverseResearch:payload.outOfTrainingUniverseResearch,safety:SAFETY},null,2));

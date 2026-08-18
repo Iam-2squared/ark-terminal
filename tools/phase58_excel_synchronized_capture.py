@@ -78,6 +78,33 @@ def _normalize_direction(value: Any) -> int | None:
     return None
 
 
+def _freshness_boundary(snapshot: dict[str, Any], as_of: datetime, capture_time: datetime) -> datetime:
+    context = snapshot.get("context") if isinstance(snapshot.get("context"), dict) else {}
+    close_raw = context.get("sourceBarCloseAt")
+    if close_raw in (None, ""):
+        return as_of
+
+    close_at = _parse_iso(close_raw)
+    if close_at is None:
+        raise RuntimeError("Phase57 snapshot sourceBarCloseAt must be a valid ISO timestamp")
+    try:
+        duration_minutes = float(context.get("sourceBarDurationMinutes"))
+    except (TypeError, ValueError) as exc:
+        raise RuntimeError("Phase57 snapshot sourceBarDurationMinutes must be numeric") from exc
+    if duration_minutes != 5.0:
+        raise RuntimeError("Phase57 prospective sourceBarDurationMinutes must remain exactly 5")
+
+    expected_seconds = duration_minutes * 60.0
+    actual_seconds = (close_at - as_of).total_seconds()
+    if abs(actual_seconds - expected_seconds) > 1e-6:
+        raise RuntimeError(
+            "Phase57 snapshot sourceBarCloseAt does not match asOf + sourceBarDurationMinutes"
+        )
+    if close_at > capture_time:
+        raise RuntimeError("Phase57 snapshot sourceBarCloseAt is in the future")
+    return close_at
+
+
 def read_and_validate_phase57_snapshot(path: Path, captured_at: str, max_age_seconds: float) -> tuple[dict[str, Any], str]:
     raw = path.read_bytes()
     file_sha256 = _sha256_bytes(raw)
@@ -122,11 +149,18 @@ def read_and_validate_phase57_snapshot(path: Path, captured_at: str, max_age_sec
     capture_time = _parse_iso(captured_at)
     if as_of is None or capture_time is None:
         raise RuntimeError("Phase57 snapshot asOf/capturedAt must be valid ISO timestamps")
-    age = (capture_time - as_of).total_seconds()
-    if age < 0:
+    if capture_time < as_of:
         raise RuntimeError("Phase57 snapshot timestamp is in the future")
+
+    freshness_as_of = _freshness_boundary(snapshot, as_of, capture_time)
+    age = (capture_time - freshness_as_of).total_seconds()
+    if age < 0:
+        raise RuntimeError("Phase57 snapshot freshness boundary is in the future")
     if age > max_age_seconds:
-        raise RuntimeError(f"Phase57 snapshot is stale: ageSeconds={age:.3f} maxAgeSeconds={max_age_seconds:.3f}")
+        raise RuntimeError(
+            f"Phase57 snapshot is stale: ageSeconds={age:.3f} maxAgeSeconds={max_age_seconds:.3f} "
+            f"freshnessAsOf={freshness_as_of.isoformat()}"
+        )
 
     canonical = {
         "direction": direction,
@@ -162,6 +196,7 @@ def synchronized_capture_once(workbook: Any, snapshot_path: Path, max_age_second
             "futureOutcomeUsed": False,
             "historicalDecisionReconstructionAllowed": False,
             "sameCaptureBoundary": True,
+            "snapshotFreshnessUsesCompletedSourceBarCloseWhenPresent": True,
             "freshHoldoutConsumed": False,
         },
         "safety": PHASE58_SYNC_SAFETY,

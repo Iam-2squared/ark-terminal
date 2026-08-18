@@ -120,6 +120,14 @@ jobs:
             --lineage-manifest /tmp/p25-evidence-lineage-manifest.json \
             --output /tmp/p25-autonomous-evidence-evaluation.json
 
+      - name: Build all-five trade-pace scorecard
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/build_p25_trade_pace_scorecard.mjs \
+            --evaluation /tmp/p25-autonomous-evidence-evaluation.json \
+            --output /tmp/p25-trade-pace-scorecard.json
+
       - name: Persist dated evaluation without rewriting lineage
         shell: bash
         run: |
@@ -150,9 +158,32 @@ jobs:
             git push origin HEAD:automation/p25-evaluation-data
           fi
 
-      - name: Upload evaluation artifact
+      - name: Persist dated trade-pace scorecard without selecting a winner
+        shell: bash
+        run: |
+          set -euo pipefail
+          incoming_head="$(node -e "const x=require('/tmp/p25-trade-pace-scorecard.json'); console.log(x.inputs.lineageManifestHeadSha256)")"
+          mkdir -p data/p25-scorecards
+          target="data/p25-scorecards/${EVIDENCE_DATE}.json"
+          if [ -f "$target" ]; then
+            existing_head="$(node -e "const x=require('./$target'); console.log(x.inputs.lineageManifestHeadSha256)")"
+            if [ "$existing_head" != "$incoming_head" ]; then
+              echo "dated scorecard already exists with a different lineage head: $EVIDENCE_DATE" >&2
+              exit 1
+            fi
+            echo "same lineage head already has a scorecard for $EVIDENCE_DATE; refusing unnecessary rewrite"
+          else
+            cp /tmp/p25-trade-pace-scorecard.json "$target"
+            git add "$target"
+            git commit -m "Phase57 P25 trade pace scorecard ${EVIDENCE_DATE}"
+            git push origin HEAD:automation/p25-evaluation-data
+          fi
+
+      - name: Upload evaluation and scorecard artifacts
         uses: actions/upload-artifact@v4
         with:
           name: phase57-p25-evidence-evaluation-${{ env.EVIDENCE_DATE }}
-          path: /tmp/p25-autonomous-evidence-evaluation.json
+          path: |
+            /tmp/p25-autonomous-evidence-evaluation.json
+            /tmp/p25-trade-pace-scorecard.json
           retention-days: 90

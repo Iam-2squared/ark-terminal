@@ -78,6 +78,44 @@ test('outcome is pending until a synchronized same-symbol row reaches the frozen
   assert.equal(measured.eventAudit[0].baselineExitAt,'2026-08-18T00:05:00.000Z');
 });
 
+test('frozen 5m horizon counts TSE trading minutes and skips the lunch break',()=>{
+  const candidate=row({at:'2026-08-18T02:25:00.000Z',direction:1,seed:'lunch',horizonBars:2}); // 11:25 JST
+  const lunchResume=row({at:'2026-08-18T03:30:00.000Z',direction:0,seed:'resume',price:100.5}); // 12:30 JST
+  const pending=evaluate([candidate,lunchResume]);
+  assert.equal(pending.pendingEventCount,1);
+  assert.equal(pending.eventAudit[0].frozenOutcomeTargetAt,'2026-08-18T03:35:00.000Z');
+
+  const mature=row({at:'2026-08-18T03:35:00.000Z',direction:0,seed:'after-lunch',price:101});
+  const measured=evaluate([candidate,lunchResume,mature]);
+  assert.equal(measured.maturedEventCount,1);
+  assert.equal(measured.eventAudit[0].baselineExitAt,'2026-08-18T03:35:00.000Z');
+  assert.equal(measured.methodology.tseLunchBreakExcludedFromHorizonClock,true);
+});
+
+test('Phase58 delayed confirmation keeps the same frozen outcome boundary as Phase57',()=>{
+  const candidate=row({at:'2026-08-18T00:00:00.000Z',direction:1,seed:'shared',horizonBars:1,testAction:'DEFER_TO_PHASE57'});
+  const delayed=row({at:'2026-08-18T00:02:00.000Z',direction:1,seed:'ignored',horizonBars:1,testAction:'CONFIRM_PHASE57_ENTRY',price:100.2});
+  delayed.phase57Snapshot={...candidate.phase57Snapshot};
+  const outcome=row({at:'2026-08-18T00:05:00.000Z',direction:0,seed:'outcome',price:101});
+  const result=evaluate([candidate,delayed,outcome]);
+  assert.equal(result.maturedEventCount,1);
+  assert.equal(result.eventAudit[0].overlayEntryAt,'2026-08-18T00:02:00.000Z');
+  assert.equal(result.eventAudit[0].baselineExitAt,'2026-08-18T00:05:00.000Z');
+  assert.equal(result.eventAudit[0].overlayExitAt,'2026-08-18T00:05:00.000Z');
+  assert.equal(result.methodology.baselineAndOverlayShareFrozenOutcomeBoundary,true);
+  assert.equal(result.methodology.overlayMayNotExtendFrozenHorizon,true);
+});
+
+test('MARKETSPEED numeric symbol and canonical .T ticker join as one lineage',()=>{
+  const candidate=row({at:'2026-08-18T00:00:00.000Z',direction:1,seed:'numeric-symbol',horizonBars:1,symbol:'7203.0'});
+  const outcome=row({at:'2026-08-18T00:05:00.000Z',direction:0,seed:'ticker-symbol',price:101,symbol:'7203.T'});
+  const result=evaluate([candidate,outcome]);
+  assert.equal(result.maturedEventCount,1);
+  assert.equal(result.eventAudit[0].symbol,'7203.T');
+  assert.equal(result.stability.eventsPerSymbol['7203.T'],1);
+  assert.equal(result.methodology.symbolCanonicalizationApplied,true);
+});
+
 test('Phase58 filtering is measured against the same frozen Phase57 direction without reversal',()=>{
   const losing=row({at:'2026-08-18T00:00:00.000Z',direction:1,seed:'lose',horizonBars:1,testAction:'ABSTAIN_LIQUIDITY_SHOCK'});
   const outcome=row({at:'2026-08-18T00:05:00.000Z',direction:0,seed:'outcome',price:99});
@@ -144,6 +182,7 @@ test('unsafe flags and unknown tick order fail closed',()=>{
 });
 
 test('P26 safety and methodology remain READ ONLY research only',()=>{
+  assert.equal(PHASE58_P26_EVIDENCE_POLICY.horizonClock,'TSE_TRADING_MINUTES_SAME_SESSION');
   assert.equal(PHASE58_P26_EVIDENCE_POLICY.thresholdSearchAllowed,false);
   assert.equal(PHASE58_P26_EVIDENCE_POLICY.postHocOptimizationAllowed,false);
   for(const key of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed','transmitted','freshHoldoutConsumed']){

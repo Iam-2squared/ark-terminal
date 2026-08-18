@@ -39,14 +39,14 @@ jobs:
         shell: bash
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "P25_BATCH_SIZE=${{ inputs.batch_size || '620' }}" >> "$GITHUB_ENV"
-            echo "P25_RESET_PROGRESS=${{ inputs.reset_progress || 'false' }}" >> "$GITHUB_ENV"
+            echo "SCREENER_BATCH_SIZE=${{ inputs.batch_size || '620' }}" >> "$GITHUB_ENV"
+            echo "SCREENER_RESET_PROGRESS=${{ inputs.reset_progress || 'false' }}" >> "$GITHUB_ENV"
           else
-            echo "P25_BATCH_SIZE=620" >> "$GITHUB_ENV"
+            echo "SCREENER_BATCH_SIZE=620" >> "$GITHUB_ENV"
             if [[ "${{ github.event.schedule }}" == "15 13 * * 0-4" ]]; then
-              echo "P25_RESET_PROGRESS=true" >> "$GITHUB_ENV"
+              echo "SCREENER_RESET_PROGRESS=true" >> "$GITHUB_ENV"
             else
-              echo "P25_RESET_PROGRESS=false" >> "$GITHUB_ENV"
+              echo "SCREENER_RESET_PROGRESS=false" >> "$GITHUB_ENV"
             fi
           fi
 
@@ -85,8 +85,6 @@ jobs:
 
       - name: Build dedicated P25 screener batch
         env:
-          SCREENER_BATCH_SIZE: ${{ env.P25_BATCH_SIZE }}
-          SCREENER_RESET_PROGRESS: ${{ env.P25_RESET_PROGRESS }}
           SCREENER_CONCURRENCY: "4"
           SCREENER_DELAY_MS: "400"
         run: node scripts/update_screener.mjs

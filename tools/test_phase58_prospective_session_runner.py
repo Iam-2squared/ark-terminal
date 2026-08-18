@@ -1,4 +1,15 @@
-from tools.phase58_prospective_session_runner import SAFETY, build_cycle_commands
+from __future__ import annotations
+
+import json
+from datetime import datetime, timezone
+from pathlib import Path
+
+from tools.phase58_prospective_session_runner import (
+    MIN_MICROSTRUCTURE_SAMPLES_PER_CYCLE,
+    SAFETY,
+    build_cycle_commands,
+    freshness_adjusted_samples,
+)
 
 
 def test_build_cycle_commands_keeps_read_only_refresh_order():
@@ -44,6 +55,63 @@ def test_reusable_target_flag_is_explicit_and_does_not_change_training_history()
     assert commands[1][commands[1].index("--history-pack") + 1] == "history.json"
     assert commands[0][-2:] == ["--workbook", "Ark Terminal.xlsx"]
     assert commands[2][-2:] == ["--workbook", "Ark Terminal.xlsx"]
+
+
+def _snapshot_file(tmp_path: Path) -> Path:
+    path = tmp_path / "snapshot.json"
+    path.write_text(
+        json.dumps(
+            {
+                "snapshot": {
+                    "asOf": "2026-08-18T00:30:00.000Z",
+                    "context": {
+                        "sourceBarDurationMinutes": 5,
+                        "sourceBarCloseAt": "2026-08-18T00:35:00.000Z",
+                    },
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    return path
+
+
+def test_freshness_budget_shrinks_capture_instead_of_expiring_mid_cycle(tmp_path: Path):
+    result = freshness_adjusted_samples(
+        snapshot_path=_snapshot_file(tmp_path),
+        requested_samples=110,
+        interval_seconds=2.0,
+        max_age_seconds=300.0,
+        now=datetime(2026, 8, 18, 0, 36, 32, 169000, tzinfo=timezone.utc),
+    )
+    assert result["actualSamples"] == 94
+    assert result["adjusted"] is True
+    assert result["captureSpanSeconds"] == 186.0
+    assert result["actualSamples"] >= MIN_MICROSTRUCTURE_SAMPLES_PER_CYCLE
+
+
+def test_freshness_budget_keeps_requested_samples_when_room_is_available(tmp_path: Path):
+    result = freshness_adjusted_samples(
+        snapshot_path=_snapshot_file(tmp_path),
+        requested_samples=110,
+        interval_seconds=2.0,
+        max_age_seconds=300.0,
+        now=datetime(2026, 8, 18, 0, 35, 10, tzinfo=timezone.utc),
+    )
+    assert result["actualSamples"] == 110
+    assert result["adjusted"] is False
+
+
+def test_freshness_budget_exposes_when_too_few_samples_remain(tmp_path: Path):
+    result = freshness_adjusted_samples(
+        snapshot_path=_snapshot_file(tmp_path),
+        requested_samples=110,
+        interval_seconds=2.0,
+        max_age_seconds=300.0,
+        now=datetime(2026, 8, 18, 0, 39, 30, tzinfo=timezone.utc),
+    )
+    assert result["actualSamples"] == 6
+    assert result["actualSamples"] < MIN_MICROSTRUCTURE_SAMPLES_PER_CYCLE
 
 
 def test_all_execution_and_write_flags_remain_false():

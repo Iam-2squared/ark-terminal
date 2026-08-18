@@ -26,6 +26,7 @@ export const PHASE58_P26_EVIDENCE_POLICY=Object.freeze({
   barMinutes:5,
   microstructureHistoryRows:20,
   maxSnapshotAgeMs:300000,
+  horizonClock:'TSE_TRADING_MINUTES_SAME_SESSION',
   thresholdSearchAllowed:false,
   postHocOptimizationAllowed:false,
   promotionEvidence:false,
@@ -40,10 +41,23 @@ const finite=x=>x!==null&&x!==undefined&&x!==''&&Number.isFinite(Number(x));
 const pct=x=>finite(x)?Number(x)*100:null;
 const parseMs=x=>{const ms=Date.parse(x??'');return Number.isFinite(ms)?ms:null;};
 const sha256Text=text=>crypto.createHash('sha256').update(text).digest('hex');
+const MINUTE_MS=60_000;
+const DAY_MS=24*60*MINUTE_MS;
+const JST_OFFSET_MS=9*60*MINUTE_MS;
+
+function canonicalSymbol(row){
+  const raw=String(row?.phase57Snapshot?.symbol??row?.symbol??'').trim().toUpperCase();
+  if(!raw)return '';
+  if(raw.endsWith('.T'))return raw;
+  const numeric=raw.match(/^(\d{4,5})(?:\.0+)?$/);
+  if(numeric)return `${numeric[1]}.T`;
+  if(/^[0-9A-Z]{4,5}$/.test(raw))return `${raw}.T`;
+  return raw;
+}
 
 function snapshotKey(row){
   const s=row?.phase57Snapshot??{};
-  return [row?.symbol??'',s.modelId??'',s.artifactSha256??'',s.asOf??'',s.direction??''].join('|');
+  return [canonicalSymbol(row),s.modelId??'',s.artifactSha256??'',s.asOf??'',s.direction??''].join('|');
 }
 
 function midFromRow(row){
@@ -60,7 +74,40 @@ function spreadBpsFromRow(row){
 function jstDate(capturedAt){
   const ms=parseMs(capturedAt);
   if(ms===null)return null;
-  return new Date(ms+9*60*60*1000).toISOString().slice(0,10);
+  return new Date(ms+JST_OFFSET_MS).toISOString().slice(0,10);
+}
+
+function addTseTradingMinutesSameSession(startMs,minutes){
+  if(!Number.isFinite(startMs)||!Number.isFinite(minutes)||minutes<0)return null;
+  const local=startMs+JST_OFFSET_MS;
+  const day=Math.floor(local/DAY_MS)*DAY_MS;
+  const morningOpen=day+9*60*MINUTE_MS;
+  const morningClose=day+(11*60+30)*MINUTE_MS;
+  const afternoonOpen=day+(12*60+30)*MINUTE_MS;
+  const afternoonClose=day+(15*60+30)*MINUTE_MS;
+  let cursor=local;
+  let remaining=minutes*MINUTE_MS;
+  if(cursor<morningOpen)cursor=morningOpen;
+  if(cursor>afternoonClose)return null;
+  if(cursor>=morningClose&&cursor<afternoonOpen)cursor=afternoonOpen;
+  if(cursor<morningClose){
+    const available=morningClose-cursor;
+    if(remaining<=available)return cursor+remaining-JST_OFFSET_MS;
+    remaining-=available;
+    cursor=afternoonOpen;
+  }
+  if(cursor<afternoonOpen)cursor=afternoonOpen;
+  const available=afternoonClose-cursor;
+  if(remaining<=available)return cursor+remaining-JST_OFFSET_MS;
+  return null;
+}
+
+function frozenHorizonTargetMs(firstRow,snapshot,horizonBars){
+  const explicitClose=parseMs(snapshot?.sourceBarCloseAt);
+  const fallback=parseMs(firstRow?.capturedAt);
+  const anchor=explicitClose??fallback;
+  if(anchor===null)return null;
+  return addTseTradingMinutesSameSession(anchor,horizonBars*PHASE58_P26_EVIDENCE_POLICY.barMinutes);
 }
 
 function datedTickTimestamp(value,capturedAt){
@@ -103,9 +150,9 @@ function causalTicks(row){
 }
 
 function sameSymbolIndices(rows,index,limit=PHASE58_P26_EVIDENCE_POLICY.microstructureHistoryRows){
-  const symbol=rows[index]?.symbol;
+  const symbol=canonicalSymbol(rows[index]);
   const out=[];
-  for(let i=index;i>=0&&out.length<limit;i-=1)if(rows[i]?.symbol===symbol)out.push(i);
+  for(let i=index;i>=0&&out.length<limit;i-=1)if(canonicalSymbol(rows[i])===symbol)out.push(i);
   return out.reverse();
 }
 
@@ -133,6 +180,7 @@ function validateRows(rows){
     if(row?.schemaVersion!==2)blockers.push(`ROW_${n}_SCHEMA_VERSION_NOT_2`);
     if(row?.phase!=='58.p9.sync-capture')blockers.push(`ROW_${n}_WRONG_PHASE`);
     if(row?.sourceMode!=='MARKETSPEED_II_RSS_READ_ONLY')blockers.push(`ROW_${n}_WRONG_SOURCE_MODE`);
+    if(!canonicalSymbol(row))blockers.push(`ROW_${n}_MISSING_SYMBOL`);
     const capturedMs=parseMs(row?.capturedAt);
     if(capturedMs===null)blockers.push(`ROW_${n}_INVALID_CAPTURE_TIMESTAMP`);
     if(previousMs!==null&&capturedMs!==null&&capturedMs<previousMs)blockers.push(`ROW_${n}_NON_MONOTONIC_CAPTURE_TIME`);
@@ -152,7 +200,7 @@ function validateRows(rows){
 function outcomeRowIndex(rows,startIndex,targetMs,symbol){
   for(let i=startIndex+1;i<rows.length;i+=1){
     const ms=parseMs(rows[i]?.capturedAt);
-    if(rows[i]?.symbol===symbol&&ms!==null&&ms>=targetMs&&midFromRow(rows[i])!==null)return i;
+    if(canonicalSymbol(rows[i])===symbol&&ms!==null&&ms>=targetMs&&midFromRow(rows[i])!==null)return i;
   }
   return null;
 }
@@ -206,33 +254,42 @@ function buildEvents(rows,overlayActionForIndex){
   let waitDecisionCount=0;
   for(const group of groupedSnapshotIndices(rows)){
     const firstIndex=group.indices[0],firstRow=rows[firstIndex],snapshot=firstRow.phase57Snapshot??{};
+    const symbol=canonicalSymbol(firstRow);
     const direction=Number(snapshot.direction);
     if(direction!==1&&direction!==-1){waitDecisionCount+=1;continue;}
     const horizonBars=Number(snapshot?.context?.selectedHorizonBars);
     if(!Number.isInteger(horizonBars)||horizonBars<1){events.push({status:'BLOCKED_MISSING_HORIZON',key:group.key});continue;}
-    const horizonMs=horizonBars*PHASE58_P26_EVIDENCE_POLICY.barMinutes*60*1000;
-    const baselineEntryIndex=firstIndex,baselineTargetMs=parseMs(firstRow.capturedAt)+horizonMs;
-    const baselineExitIndex=outcomeRowIndex(rows,baselineEntryIndex,baselineTargetMs,firstRow.symbol);
+    const frozenTargetMs=frozenHorizonTargetMs(firstRow,snapshot,horizonBars);
+    if(frozenTargetMs===null){
+      events.push(Object.freeze({
+        status:'INELIGIBLE_HORIZON_EXCEEDS_SESSION',key:group.key,symbol,direction,
+        modelId:snapshot.modelId,artifactSha256:snapshot.artifactSha256,phase57AsOf:snapshot.asOf,
+        sessionDate:jstDate(firstRow.capturedAt),horizonBars,horizonMinutes:horizonBars*PHASE58_P26_EVIDENCE_POLICY.barMinutes,
+        horizonAnchorAt:snapshot?.sourceBarCloseAt??firstRow.capturedAt,frozenOutcomeTargetAt:null,
+      }));
+      continue;
+    }
+    const baselineEntryIndex=firstIndex;
+    const baselineExitIndex=outcomeRowIndex(rows,baselineEntryIndex,frozenTargetMs,symbol);
     let overlayEntryIndex=null,overlayAction='DEFER_TO_PHASE57',liquidityShockSeen=false;
     for(const index of group.indices){
+      const capturedMs=parseMs(rows[index]?.capturedAt);
+      if(capturedMs===null||capturedMs>=frozenTargetMs)break;
       const result=overlayActionForIndex(rows,index,direction);
       const action=result?.action??'DEFER_TO_PHASE57';
       if(action==='ABSTAIN_LIQUIDITY_SHOCK'){liquidityShockSeen=true;overlayAction='ABSTAIN_LIQUIDITY_SHOCK';break;}
       if(action==='CONFIRM_PHASE57_ENTRY'){overlayEntryIndex=index;overlayAction='CONFIRM_PHASE57_ENTRY';break;}
     }
-    let overlayExitIndex=null;
-    if(overlayEntryIndex!==null){
-      const target=parseMs(rows[overlayEntryIndex].capturedAt)+horizonMs;
-      overlayExitIndex=outcomeRowIndex(rows,overlayEntryIndex,target,firstRow.symbol);
-    }
+    const overlayExitIndex=overlayEntryIndex===null?null:baselineExitIndex;
     const baseline=baselineExitIndex===null?null:tradeResult({entryRow:firstRow,exitRow:rows[baselineExitIndex],direction});
     const overlay=overlayEntryIndex===null||overlayExitIndex===null?null:tradeResult({entryRow:rows[overlayEntryIndex],exitRow:rows[overlayExitIndex],direction});
-    const pending=baselineExitIndex===null||(overlayEntryIndex!==null&&overlayExitIndex===null);
-    const boundaries=[baselineExitIndex,overlayExitIndex].filter(x=>x!==null).map(x=>parseMs(rows[x].capturedAt)).filter(x=>x!==null);
+    const pending=baselineExitIndex===null;
+    const boundaries=[baselineExitIndex].filter(x=>x!==null).map(x=>parseMs(rows[x].capturedAt)).filter(x=>x!==null);
     events.push(Object.freeze({
-      status:pending?'PENDING_OUTCOME':'MATURED',key:group.key,symbol:firstRow.symbol,direction,
+      status:pending?'PENDING_OUTCOME':'MATURED',key:group.key,symbol,direction,
       modelId:snapshot.modelId,artifactSha256:snapshot.artifactSha256,phase57AsOf:snapshot.asOf,
       sessionDate:jstDate(firstRow.capturedAt),horizonBars,horizonMinutes:horizonBars*PHASE58_P26_EVIDENCE_POLICY.barMinutes,
+      horizonAnchorAt:snapshot?.sourceBarCloseAt??firstRow.capturedAt,frozenOutcomeTargetAt:new Date(frozenTargetMs).toISOString(),
       baselineEntryIndex,baselineExitIndex,overlayEntryIndex,overlayExitIndex,overlayAction,liquidityShockSeen,
       baseline,overlay,overlayFiltered:overlayEntryIndex===null,
       outcomeBoundaryMs:boundaries.length?Math.max(...boundaries):0,
@@ -306,11 +363,6 @@ function stability(events){
   });
 }
 
-/**
- * Frozen, prospective-only comparison. Phase57 supplies direction; Phase58 can only
- * confirm, defer or abstain. Outcomes are joined strictly to later synchronized
- * captures after the predeclared Phase57 horizon. No thresholds are searched here.
- */
 export function evaluatePhase58ProspectiveComparison({rows=[],datasetSha256=null,overlayActionForIndex=defaultOverlayAction}={}){
   const input=Array.isArray(rows)?rows:[];
   const blockers=validateRows(input);
@@ -329,6 +381,7 @@ export function evaluatePhase58ProspectiveComparison({rows=[],datasetSha256=null
     datasetSha256,blockers:Object.freeze(horizonBlockers.map(x=>`MISSING_HORIZON:${x.key}`)),promotionEvidence:false,safety:PHASE58_P26_SAFETY,
   });
   const matured=events.filter(x=>x.status==='MATURED'),pending=events.filter(x=>x.status==='PENDING_OUTCOME');
+  const ineligible=events.filter(x=>x.status==='INELIGIBLE_HORIZON_EXCEEDS_SESSION');
   const formalEvents=nonOverlapping(events);
   const allComparison=comparison(matured),formalComparison=comparison(formalEvents),formalStability=stability(formalEvents);
   const evidenceReady=formalEvents.length>=PHASE58_P26_EVIDENCE_POLICY.minFormalNonOverlappingEvents&&formalStability.stabilityEvidenceReady;
@@ -338,18 +391,22 @@ export function evaluatePhase58ProspectiveComparison({rows=[],datasetSha256=null
     status:evidenceReady?'PHASE58_PROSPECTIVE_COMPARISON_EVIDENCE_READY':'PHASE58_PROSPECTIVE_COMPARISON_INSUFFICIENT_EVIDENCE',
     complete:true,datasetSha256,resultSha256:sha256Text(JSON.stringify(resultMaterial)),
     rowCount:input.length,decisionEventCount:events.length,waitDecisionCount,maturedEventCount:matured.length,pendingEventCount:pending.length,
-    formalNonOverlappingEventCount:formalEvents.length,
+    ineligibleHorizonEventCount:ineligible.length,formalNonOverlappingEventCount:formalEvents.length,
     allOverlappingDescriptive:allComparison,formalNonOverlapping:formalComparison,stability:formalStability,
     evidence:Object.freeze({...PHASE58_P26_EVIDENCE_POLICY,ready:evidenceReady,promotionEvidence:false}),
     eventAudit:Object.freeze(events.map(x=>Object.freeze({
       status:x.status,key:x.key,symbol:x.symbol,direction:x.direction,sessionDate:x.sessionDate,horizonBars:x.horizonBars,
-      overlayAction:x.overlayAction,overlayFiltered:x.overlayFiltered,baselineEntryAt:x.baseline?.entryAt??null,baselineExitAt:x.baseline?.exitAt??null,
+      horizonAnchorAt:x.horizonAnchorAt??null,frozenOutcomeTargetAt:x.frozenOutcomeTargetAt??null,
+      overlayAction:x.overlayAction??null,overlayFiltered:x.overlayFiltered??null,baselineEntryAt:x.baseline?.entryAt??null,baselineExitAt:x.baseline?.exitAt??null,
       overlayEntryAt:x.overlay?.entryAt??null,overlayExitAt:x.overlay?.exitAt??null,
     }))),
     methodology:Object.freeze({
       phase57DirectionIsFrozenBase:true,phase58MayConfirmDeferOrAbstainOnly:true,phase58MayReverseDirection:false,
       waitMayBecomeEntry:false,prospectiveOnly:true,futureOutcomeJoinedOnlyAfterFrozenHorizon:true,
-      sameSymbolMicrostructureHistoryOnly:true,overlappingResultsDescriptiveOnly:true,formalResultsNonOverlapping:true,
+      frozenHorizonUsesTseTradingMinutes:true,tseLunchBreakExcludedFromHorizonClock:true,
+      baselineAndOverlayShareFrozenOutcomeBoundary:true,overlayMayNotExtendFrozenHorizon:true,
+      sameSymbolMicrostructureHistoryOnly:true,symbolCanonicalizationApplied:true,
+      overlappingResultsDescriptiveOnly:true,formalResultsNonOverlapping:true,
       tickOrderNormalizedCausally:true,thresholdSearchAllowed:false,postHocOptimizationAllowed:false,
       automaticPromotionAllowed:false,freshHoldoutConsumed:false,
     }),

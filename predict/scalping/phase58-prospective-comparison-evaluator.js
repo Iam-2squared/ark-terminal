@@ -102,10 +102,13 @@ function addTseTradingMinutesSameSession(startMs,minutes){
   return null;
 }
 
+function frozenHorizonAnchorAt(firstRow,snapshot){
+  const explicit=snapshot?.context?.sourceBarCloseAt??snapshot?.sourceBarCloseAt??null;
+  return parseMs(explicit)!==null?explicit:(firstRow?.capturedAt??null);
+}
+
 function frozenHorizonTargetMs(firstRow,snapshot,horizonBars){
-  const explicitClose=parseMs(snapshot?.sourceBarCloseAt);
-  const fallback=parseMs(firstRow?.capturedAt);
-  const anchor=explicitClose??fallback;
+  const anchor=parseMs(frozenHorizonAnchorAt(firstRow,snapshot));
   if(anchor===null)return null;
   return addTseTradingMinutesSameSession(anchor,horizonBars*PHASE58_P26_EVIDENCE_POLICY.barMinutes);
 }
@@ -259,13 +262,14 @@ function buildEvents(rows,overlayActionForIndex){
     if(direction!==1&&direction!==-1){waitDecisionCount+=1;continue;}
     const horizonBars=Number(snapshot?.context?.selectedHorizonBars);
     if(!Number.isInteger(horizonBars)||horizonBars<1){events.push({status:'BLOCKED_MISSING_HORIZON',key:group.key});continue;}
+    const horizonAnchorAt=frozenHorizonAnchorAt(firstRow,snapshot);
     const frozenTargetMs=frozenHorizonTargetMs(firstRow,snapshot,horizonBars);
     if(frozenTargetMs===null){
       events.push(Object.freeze({
         status:'INELIGIBLE_HORIZON_EXCEEDS_SESSION',key:group.key,symbol,direction,
         modelId:snapshot.modelId,artifactSha256:snapshot.artifactSha256,phase57AsOf:snapshot.asOf,
         sessionDate:jstDate(firstRow.capturedAt),horizonBars,horizonMinutes:horizonBars*PHASE58_P26_EVIDENCE_POLICY.barMinutes,
-        horizonAnchorAt:snapshot?.sourceBarCloseAt??firstRow.capturedAt,frozenOutcomeTargetAt:null,
+        horizonAnchorAt,frozenOutcomeTargetAt:null,
       }));
       continue;
     }
@@ -289,7 +293,7 @@ function buildEvents(rows,overlayActionForIndex){
       status:pending?'PENDING_OUTCOME':'MATURED',key:group.key,symbol,direction,
       modelId:snapshot.modelId,artifactSha256:snapshot.artifactSha256,phase57AsOf:snapshot.asOf,
       sessionDate:jstDate(firstRow.capturedAt),horizonBars,horizonMinutes:horizonBars*PHASE58_P26_EVIDENCE_POLICY.barMinutes,
-      horizonAnchorAt:snapshot?.sourceBarCloseAt??firstRow.capturedAt,frozenOutcomeTargetAt:new Date(frozenTargetMs).toISOString(),
+      horizonAnchorAt,frozenOutcomeTargetAt:new Date(frozenTargetMs).toISOString(),
       baselineEntryIndex,baselineExitIndex,overlayEntryIndex,overlayExitIndex,overlayAction,liquidityShockSeen,
       baseline,overlay,overlayFiltered:overlayEntryIndex===null,
       outcomeBoundaryMs:boundaries.length?Math.max(...boundaries):0,
@@ -404,6 +408,7 @@ export function evaluatePhase58ProspectiveComparison({rows=[],datasetSha256=null
       phase57DirectionIsFrozenBase:true,phase58MayConfirmDeferOrAbstainOnly:true,phase58MayReverseDirection:false,
       waitMayBecomeEntry:false,prospectiveOnly:true,futureOutcomeJoinedOnlyAfterFrozenHorizon:true,
       frozenHorizonUsesTseTradingMinutes:true,tseLunchBreakExcludedFromHorizonClock:true,
+      frozenHorizonAnchoredToCompletedSourceBarClose:true,
       baselineAndOverlayShareFrozenOutcomeBoundary:true,overlayMayNotExtendFrozenHorizon:true,
       sameSymbolMicrostructureHistoryOnly:true,symbolCanonicalizationApplied:true,
       overlappingResultsDescriptiveOnly:true,formalResultsNonOverlapping:true,

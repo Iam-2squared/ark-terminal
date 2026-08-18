@@ -1,0 +1,142 @@
+name: Phase57 P25 Prospective Preopen Universe
+
+on:
+  workflow_dispatch:
+    inputs:
+      batch_size:
+        description: "Dedicated P25 overnight batch size"
+        required: false
+        default: "620"
+      reset_progress:
+        description: "Start a new dedicated P25 screener cycle"
+        required: false
+        type: boolean
+        default: false
+  schedule:
+    # 22:15 JST on Sun-Thu: start a clean six-batch cycle for the next JPX session.
+    - cron: "15 13 * * 0-4"
+    # 00:15, 02:15, 04:15, 06:15, 08:15 JST: finish before the 08:50 frozen cutoff.
+    - cron: "15 15,17,19,21,23 * * 0-4"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: phase57-p25-prospective-universe
+  cancel-in-progress: false
+
+jobs:
+  build-preopen-universe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout research code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve frozen batch controls
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "SCREENER_BATCH_SIZE=${{ inputs.batch_size || '620' }}" >> "$GITHUB_ENV"
+            echo "SCREENER_RESET_PROGRESS=${{ inputs.reset_progress || 'false' }}" >> "$GITHUB_ENV"
+          else
+            echo "SCREENER_BATCH_SIZE=620" >> "$GITHUB_ENV"
+            if [[ "${{ github.event.schedule }}" == "15 13 * * 0-4" ]]; then
+              echo "SCREENER_RESET_PROGRESS=true" >> "$GITHUB_ENV"
+            else
+              echo "SCREENER_RESET_PROGRESS=false" >> "$GITHUB_ENV"
+            fi
+          fi
+
+      - name: Restore dedicated P25 rolling source state
+        env:
+          DATA_BRANCH: automation/p25-universe-data
+        shell: bash
+        run: |
+          if git fetch origin "refs/heads/$DATA_BRANCH:refs/remotes/origin/$DATA_BRANCH"; then
+            git checkout "origin/$DATA_BRANCH" -- \
+              data/screener-snapshot.json \
+              data/screener-progress.json
+            if git cat-file -e "origin/$DATA_BRANCH:data/p25-prospective-universe-timeline.ndjson" 2>/dev/null; then
+              git checkout "origin/$DATA_BRANCH" -- data/p25-prospective-universe-timeline.ndjson
+            fi
+          else
+            echo "No dedicated P25 data branch yet; starting from main research fixtures."
+          fi
+          touch data/p25-prospective-universe-timeline.ndjson
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install JPX reader
+        run: python -m pip install xlrd==2.0.1
+
+      - name: Refresh official JPX universe
+        run: python scripts/fetch_jpx_universe.py
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Build dedicated P25 screener batch
+        env:
+          SCREENER_CONCURRENCY: "4"
+          SCREENER_DELAY_MS: "400"
+        run: node scripts/update_screener.mjs
+
+      - name: Freeze prospective universe only on a completed cycle
+        shell: bash
+        run: |
+          if node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const p=JSON.parse(fs.readFileSync('data/screener-progress.json','utf8'));
+          process.exit(p.cycleComplete===true?0:1);
+          NODE
+          then
+            node scripts/capture_p25_prospective_universe.mjs
+          else
+            echo "P25 cycle is incomplete; no session universe is frozen from this partial cross-section."
+          fi
+
+      - name: Verify P25 capture safety lock
+        run: |
+          node --input-type=module <<'NODE'
+          import {PHASE57_P25_2C_SAFETY} from './predict/daytrade/phase57-p25-2c-prospective-preopen-universe-capture.js';
+          for (const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed']) {
+            if (PHASE57_P25_2C_SAFETY[k] !== false) throw new Error(`P25 safety violation: ${k}`);
+          }
+          NODE
+
+      - name: Persist dedicated P25 research data
+        env:
+          DATA_BRANCH: automation/p25-universe-data
+        shell: bash
+        run: |
+          git config user.name "Ark P25 Research Bot"
+          git config user.email "ark-p25-research-bot@users.noreply.github.com"
+          git switch -C "$DATA_BRANCH"
+          git add \
+            data/screener-universe.json \
+            data/screener-snapshot.json \
+            data/screener-progress.json \
+            data/p25-prospective-universe-timeline.ndjson
+          if git diff --cached --quiet; then
+            echo "No P25 research data changes."
+          else
+            git commit -m "Update Phase57 P25 prospective universe data"
+            git push --force-with-lease origin "$DATA_BRANCH"
+          fi
+
+      - name: Upload compact P25 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-prospective-universe-${{ github.run_id }}
+          retention-days: 30
+          path: |
+            data/screener-progress.json
+            data/p25-prospective-universe-timeline.ndjson

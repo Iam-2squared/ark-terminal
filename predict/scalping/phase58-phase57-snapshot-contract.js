@@ -37,6 +37,7 @@ function freshnessBoundary(x,asOfMs,captureMs,blockers){
     blockers.push('INVALID_PHASE57_SOURCE_BAR_DURATION');
     return asOfMs;
   }
+  if(duration!==5)blockers.push('PHASE57_SOURCE_BAR_DURATION_NOT_5M');
   if(asOfMs!==null&&closeMs-asOfMs!==duration*60_000)blockers.push('PHASE57_SOURCE_BAR_CLOSE_MISMATCH');
   if(captureMs!==null&&closeMs>captureMs)blockers.push('PHASE57_SOURCE_BAR_CLOSE_IN_FUTURE');
   return closeMs;

@@ -91,8 +91,8 @@ def _freshness_boundary(snapshot: dict[str, Any], as_of: datetime, capture_time:
         duration_minutes = float(context.get("sourceBarDurationMinutes"))
     except (TypeError, ValueError) as exc:
         raise RuntimeError("Phase57 snapshot sourceBarDurationMinutes must be numeric") from exc
-    if duration_minutes <= 0:
-        raise RuntimeError("Phase57 snapshot sourceBarDurationMinutes must be positive")
+    if duration_minutes != 5.0:
+        raise RuntimeError("Phase57 prospective sourceBarDurationMinutes must remain exactly 5")
 
     expected_seconds = duration_minutes * 60.0
     actual_seconds = (close_at - as_of).total_seconds()

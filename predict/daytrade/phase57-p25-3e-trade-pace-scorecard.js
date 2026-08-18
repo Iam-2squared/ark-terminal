@@ -88,9 +88,13 @@ export function buildP253TradePaceScorecard({evaluationArtifact}={}){
     const performance=comparison?.results?.[variant];
     if(!operational)throw new Error(`P25.3E operational frequency missing ${variant}`);
     if(!performance)throw new Error(`P25.3E performance summary missing ${variant}`);
+    if(Number(operational.target)!==targetTradeCount)throw new Error(`P25.3E ${variant} Days-to-target must remain ${targetTradeCount}`);
     const frozenEntries=numberOrNull(operational.validFrozenEntries);
     const resolvedEntries=numberOrNull(performance.validFrozenEntries);
     const entriesPerSession=numberOrNull(operational.validFrozenEntriesPerTradingSession);
+    if(frozenEntries===null||frozenEntries<0)throw new Error(`P25.3E ${variant} frozen Entry count invalid`);
+    if(resolvedEntries===null||resolvedEntries<0)throw new Error(`P25.3E ${variant} resolved Entry count invalid`);
+    if(resolvedEntries>frozenEntries)throw new Error(`P25.3E ${variant} resolved Entries exceed frozen Entries`);
     const targetProgress=Object.freeze(paceTargets.map(target=>Object.freeze({
       ...target,
       currentEntriesPerTradingSession:entriesPerSession,
@@ -103,7 +107,7 @@ export function buildP253TradePaceScorecard({evaluationArtifact}={}){
       commonReadyTradingSessions:numberOrNull(performance.evaluatedTradingSessions),
       frozenEntries,
       resolvedEntries,
-      unresolvedFrozenEntries:frozenEntries===null||resolvedEntries===null?null:Math.max(0,frozenEntries-resolvedEntries),
+      unresolvedFrozenEntries:frozenEntries-resolvedEntries,
       entriesPerTradingSession:entriesPerSession,
       observedDaysTo400:numberOrNull(operational.observedDaysToTarget),
       paceEstimatedDaysTo400:numberOrNull(operational.paceEstimatedDaysToTarget),

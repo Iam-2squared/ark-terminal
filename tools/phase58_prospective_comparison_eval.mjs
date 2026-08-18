@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import crypto from 'node:crypto';
 import {evaluatePhase58ProspectiveComparison,PHASE58_P26_SAFETY} from '../predict/scalping/phase58-prospective-comparison-evaluator.js';
+import {validateProspectiveOutcomeBoundaryJoins} from '../predict/scalping/phase58-prospective-outcome-boundary-guard.js';
 
 function argsOf(argv){
   const out={input:null,output:null};
@@ -37,7 +38,24 @@ function main(){
       return 1;
     }
   }
-  const report=evaluatePhase58ProspectiveComparison({rows,datasetSha256});
+  const rawReport=evaluatePhase58ProspectiveComparison({rows,datasetSha256});
+  const outcomeIntegrity=validateProspectiveOutcomeBoundaryJoins(rawReport);
+  const report=outcomeIntegrity.complete?Object.freeze({
+    ...rawReport,
+    outcomeJoinIntegrity:outcomeIntegrity,
+  }):Object.freeze({
+    ...rawReport,
+    status:'BLOCKED_OUTCOME_CAPTURE_LAG',
+    complete:false,
+    maturedEventCount:0,
+    formalNonOverlappingEventCount:0,
+    allOverlappingDescriptive:null,
+    formalNonOverlapping:null,
+    comparisonSuppressed:true,
+    outcomeJoinIntegrity:outcomeIntegrity,
+    promotionEvidence:false,
+    recommendationAllowed:false,
+  });
   const out={
     phase:'58.p26.prospective-comparison-cli',
     status:report.status,

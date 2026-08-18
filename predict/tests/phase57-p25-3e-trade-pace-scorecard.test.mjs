@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import test from 'node:test';
 import {
   buildP253TradePaceScorecard,
@@ -118,4 +119,14 @@ test('scorecard safety stays read-only and does not require MARKETSPEED, board o
   assert.equal(PHASE57_P25_3E_POLICY.microstructureUsed,false);
   assert.equal(PHASE57_P25_3E_POLICY.variantRankingAllowed,false);
   assert.equal(PHASE57_P25_3E_POLICY.winnerSelectionAllowed,false);
+});
+
+test('daily evidence evaluation workflow builds, persists and uploads the descriptive scorecard',()=>{
+  const workflowUrl=new URL('../../.github/workflows/phase57-p25-evidence-evaluate.yml',import.meta.url);
+  const workflow=fs.readFileSync(workflowUrl,'utf8');
+  assert.match(workflow,/build_p25_trade_pace_scorecard\.mjs/);
+  assert.match(workflow,/data\/p25-scorecards/);
+  assert.match(workflow,/same lineage head already has a scorecard/);
+  assert.match(workflow,/p25-trade-pace-scorecard\.json/);
+  assert.doesNotMatch(workflow,/RssMarket|RssTickList|ARK_ORDER|win32com|phase58_excel/i);
 });

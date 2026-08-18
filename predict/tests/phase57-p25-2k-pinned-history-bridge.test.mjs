@@ -52,7 +52,8 @@ test('conflicting duplicate provider bytes fail closed instead of picking a host
   const snapshot=syntheticSnapshot();
   const key=Object.keys(snapshot.responses).find(x=>x.includes('query2')&&x.includes('7203.T'));
   const parsed=JSON.parse(snapshot.responses[key].body);
-  parsed.chart.result[0].indicators.quote[0].close[0]+=10;
+  // Keep the alternate row OHLC-valid so the duplicate reaches the conflict check.
+  parsed.chart.result[0].indicators.quote[0].close[0]+=0.01;
   snapshot.responses[key].body=JSON.stringify(parsed);
   assert.throws(()=>extractP252HistoricalSessionsFromP24Snapshot({snapshot}),/conflicting duplicate pinned bar/);
 });

@@ -1,0 +1,156 @@
+name: Phase57 P25 Evidence Lineage Prep
+
+on:
+  schedule:
+    # 17:30 JST on weekdays, after the 16:45 routine 5m capture.
+    - cron: '30 8 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      evidence_date:
+        description: 'Evidence snapshot date (YYYY-MM-DD); blank = current JST date'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: phase57-p25-evidence-lineage-prep
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Resolve evidence date
+        shell: bash
+        env:
+          REQUESTED_DATE: ${{ inputs.evidence_date }}
+        run: |
+          set -euo pipefail
+          if [ -n "${REQUESTED_DATE:-}" ]; then
+            EVIDENCE_DATE="$REQUESTED_DATE"
+          else
+            EVIDENCE_DATE="$(TZ=Asia/Tokyo date +%F)"
+          fi
+          if ! [[ "$EVIDENCE_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+            echo "invalid evidence date: $EVIDENCE_DATE" >&2
+            exit 1
+          fi
+          echo "EVIDENCE_DATE=$EVIDENCE_DATE" >> "$GITHUB_ENV"
+
+      - name: Copy immutable routine capture artifacts from data branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin automation/p25-day-data:refs/remotes/origin/automation/p25-day-data
+          mkdir -p /tmp/p25-day-sessions
+          mapfile -t files < <(git ls-tree -r --name-only origin/automation/p25-day-data -- data/p25-day-sessions | grep '\.json$' || true)
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "no immutable P25 routine capture artifacts are available" >&2
+            exit 1
+          fi
+          for file in "${files[@]}"; do
+            base="$(basename "$file")"
+            git show "origin/automation/p25-day-data:$file" > "/tmp/p25-day-sessions/$base"
+          done
+          echo "copied ${#files[@]} immutable capture artifacts"
+
+      - name: Download exact pinned P24 canonical byte snapshot
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p24-canonical
+          gh run download 31785422471 \
+            --repo "$GH_REPO" \
+            --name phase57-p24-9-oos-canonical-candidate \
+            --dir /tmp/p24-canonical
+          snapshot="$(find /tmp/p24-canonical -type f -name 'phase57-p24-9-oos-byte-snapshot.json' -print -quit)"
+          if [ -z "$snapshot" ]; then
+            echo "pinned P24 canonical byte snapshot missing from downloaded artifact" >&2
+            exit 1
+          fi
+          echo "P24_CANONICAL_SNAPSHOT=$snapshot" >> "$GITHUB_ENV"
+
+      - name: Build exact pinned historical training pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/build_p25_pinned_history_pack.mjs \
+            --snapshot "$P24_CANONICAL_SNAPSHOT" \
+            --output /tmp/p25-pinned-history-pack.json
+
+      - name: Build conservative session-integrity ledger
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/build_p25_session_integrity_ledger.mjs \
+            --capture-dir /tmp/p25-day-sessions \
+            --output /tmp/p25-session-integrity-ledger.json
+
+      - name: Build immutable evidence lineage manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/build_p25_evidence_lineage_manifest.mjs \
+            --history-pack /tmp/p25-pinned-history-pack.json \
+            --capture-dir /tmp/p25-day-sessions \
+            --integrity-ledger /tmp/p25-session-integrity-ledger.json \
+            --output /tmp/p25-evidence-lineage-manifest.json
+
+      - name: Persist dated evidence snapshot on dedicated branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          incoming_head="$(node -e "const x=require('/tmp/p25-evidence-lineage-manifest.json'); console.log(x.manifest.manifestHeadSha256)")"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin automation/p25-evidence-data >/dev/null 2>&1; then
+            git fetch origin automation/p25-evidence-data:refs/remotes/origin/automation/p25-evidence-data
+            git switch -C automation/p25-evidence-data origin/automation/p25-evidence-data
+          else
+            git switch --orphan automation/p25-evidence-data
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+          mkdir -p data/p25-evidence-lineage
+          manifest_target="data/p25-evidence-lineage/${EVIDENCE_DATE}-manifest.json"
+          integrity_target="data/p25-evidence-lineage/${EVIDENCE_DATE}-integrity.json"
+          if [ -f "$manifest_target" ]; then
+            existing_head="$(node -e "const x=require('./$manifest_target'); console.log(x.manifest.manifestHeadSha256)")"
+            if [ "$existing_head" != "$incoming_head" ]; then
+              echo "dated evidence snapshot already exists with different lineage head: $EVIDENCE_DATE" >&2
+              exit 1
+            fi
+            echo "same lineage head already persisted for $EVIDENCE_DATE; refusing unnecessary rewrite"
+          else
+            cp /tmp/p25-evidence-lineage-manifest.json "$manifest_target"
+            cp /tmp/p25-session-integrity-ledger.json "$integrity_target"
+            git add "$manifest_target" "$integrity_target"
+            git commit -m "Phase57 P25 evidence lineage ${EVIDENCE_DATE}"
+            git push origin HEAD:automation/p25-evidence-data
+          fi
+
+      - name: Upload evidence-preparation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-evidence-lineage-${{ env.EVIDENCE_DATE }}
+          path: |
+            /tmp/p25-pinned-history-pack.json
+            /tmp/p25-session-integrity-ledger.json
+            /tmp/p25-evidence-lineage-manifest.json
+          retention-days: 90

@@ -1,0 +1,158 @@
+name: Phase57 P25 Evidence Evaluation
+
+on:
+  workflow_run:
+    workflows: ["Phase57 P25 Evidence Lineage Prep"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      evidence_date:
+        description: 'Evidence snapshot date (YYYY-MM-DD); blank = current JST date'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: phase57-p25-evidence-evaluation
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Resolve evidence date
+        shell: bash
+        env:
+          REQUESTED_DATE: ${{ inputs.evidence_date }}
+        run: |
+          set -euo pipefail
+          if [ -n "${REQUESTED_DATE:-}" ]; then
+            EVIDENCE_DATE="$REQUESTED_DATE"
+          else
+            EVIDENCE_DATE="$(TZ=Asia/Tokyo date +%F)"
+          fi
+          if ! [[ "$EVIDENCE_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+            echo "invalid evidence date: $EVIDENCE_DATE" >&2
+            exit 1
+          fi
+          echo "EVIDENCE_DATE=$EVIDENCE_DATE" >> "$GITHUB_ENV"
+
+      - name: Load immutable evidence snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin automation/p25-evidence-data:refs/remotes/origin/automation/p25-evidence-data
+          manifest_path="data/p25-evidence-lineage/${EVIDENCE_DATE}-manifest.json"
+          integrity_path="data/p25-evidence-lineage/${EVIDENCE_DATE}-integrity.json"
+          git show "origin/automation/p25-evidence-data:$manifest_path" > /tmp/p25-evidence-lineage-manifest.json
+          git show "origin/automation/p25-evidence-data:$integrity_path" > /tmp/p25-session-integrity-ledger.json
+
+      - name: Copy only captures frozen into the lineage manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin automation/p25-day-data:refs/remotes/origin/automation/p25-day-data
+          mkdir -p /tmp/p25-day-sessions
+          mapfile -t dates < <(node -e "const x=require('/tmp/p25-evidence-lineage-manifest.json'); for (const n of x.manifest?.nodes ?? []) console.log(n.sessionDate)")
+          if [ "${#dates[@]}" -eq 0 ]; then
+            echo "lineage manifest contains no frozen capture nodes" >&2
+            exit 1
+          fi
+          for date in "${dates[@]}"; do
+            if ! [[ "$date" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+              echo "invalid session date in lineage manifest: $date" >&2
+              exit 1
+            fi
+            git show "origin/automation/p25-day-data:data/p25-day-sessions/${date}.json" > "/tmp/p25-day-sessions/${date}.json"
+          done
+          echo "copied ${#dates[@]} lineage-pinned capture artifacts"
+
+      - name: Download exact pinned P24 canonical byte snapshot
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p24-canonical
+          gh run download 31785422471 \
+            --repo "$GH_REPO" \
+            --name phase57-p24-9-oos-canonical-candidate \
+            --dir /tmp/p24-canonical
+          snapshot="$(find /tmp/p24-canonical -type f -name 'phase57-p24-9-oos-byte-snapshot.json' -print -quit)"
+          if [ -z "$snapshot" ]; then
+            echo "pinned P24 canonical byte snapshot missing from downloaded artifact" >&2
+            exit 1
+          fi
+          echo "P24_CANONICAL_SNAPSHOT=$snapshot" >> "$GITHUB_ENV"
+
+      - name: Rebuild exact pinned historical training pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/build_p25_pinned_history_pack.mjs \
+            --snapshot "$P24_CANONICAL_SNAPSHOT" \
+            --output /tmp/p25-pinned-history-pack.json
+
+      - name: Run all-five lineage-pinned prospective evaluation
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/run_p25_autonomous_evidence_evaluation.mjs \
+            --history-pack /tmp/p25-pinned-history-pack.json \
+            --capture-dir /tmp/p25-day-sessions \
+            --integrity-ledger /tmp/p25-session-integrity-ledger.json \
+            --lineage-manifest /tmp/p25-evidence-lineage-manifest.json \
+            --output /tmp/p25-autonomous-evidence-evaluation.json
+
+      - name: Persist dated evaluation without rewriting lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          incoming_head="$(node -e "const x=require('/tmp/p25-autonomous-evidence-evaluation.json'); console.log(x.inputs.lineageManifestHeadSha256)")"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin automation/p25-evaluation-data >/dev/null 2>&1; then
+            git fetch origin automation/p25-evaluation-data:refs/remotes/origin/automation/p25-evaluation-data
+            git switch -C automation/p25-evaluation-data origin/automation/p25-evaluation-data
+          else
+            git switch --orphan automation/p25-evaluation-data
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+          mkdir -p data/p25-evaluations
+          target="data/p25-evaluations/${EVIDENCE_DATE}.json"
+          if [ -f "$target" ]; then
+            existing_head="$(node -e "const x=require('./$target'); console.log(x.inputs.lineageManifestHeadSha256)")"
+            if [ "$existing_head" != "$incoming_head" ]; then
+              echo "dated evaluation already exists with a different lineage head: $EVIDENCE_DATE" >&2
+              exit 1
+            fi
+            echo "same lineage head already evaluated for $EVIDENCE_DATE; refusing unnecessary rewrite"
+          else
+            cp /tmp/p25-autonomous-evidence-evaluation.json "$target"
+            git add "$target"
+            git commit -m "Phase57 P25 evidence evaluation ${EVIDENCE_DATE}"
+            git push origin HEAD:automation/p25-evaluation-data
+          fi
+
+      - name: Upload evaluation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-evidence-evaluation-${{ env.EVIDENCE_DATE }}
+          path: /tmp/p25-autonomous-evidence-evaluation.json
+          retention-days: 90

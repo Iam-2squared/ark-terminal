@@ -1,0 +1,116 @@
+name: Phase57 P25 Routine 5m Capture
+
+on:
+  schedule:
+    # 16:45 JST on JPX weekdays. Holiday/no-universe days fail closed and never fabricate bars.
+    - cron: '45 7 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      session_date:
+        description: 'JPX session date (YYYY-MM-DD); blank = current JST date'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: phase57-p25-routine-5m
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Resolve session and frozen universe timeline
+        id: session
+        shell: bash
+        env:
+          REQUESTED_SESSION: ${{ inputs.session_date }}
+        run: |
+          set -euo pipefail
+          if [ -n "${REQUESTED_SESSION:-}" ]; then
+            SESSION_DATE="$REQUESTED_SESSION"
+          else
+            SESSION_DATE="$(TZ=Asia/Tokyo date +%F)"
+          fi
+          if ! [[ "$SESSION_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+            echo "invalid session date: $SESSION_DATE" >&2
+            exit 1
+          fi
+          git fetch origin automation/p25-universe-data:refs/remotes/origin/automation/p25-universe-data
+          git show origin/automation/p25-universe-data:data/p25-prospective-universe-timeline.ndjson > /tmp/p25-universe-timeline.ndjson
+          echo "session_date=$SESSION_DATE" >> "$GITHUB_OUTPUT"
+          echo "SESSION_DATE=$SESSION_DATE" >> "$GITHUB_ENV"
+
+      - name: Capture whole frozen target union from routine non-RSS 5m source
+        id: capture5m
+        shell: bash
+        run: |
+          set +e
+          node scripts/capture_p25_routine_5m.mjs \
+            --universe-file /tmp/p25-universe-timeline.ndjson \
+            --session-date "$SESSION_DATE" \
+            --output "/tmp/p25-day-${SESSION_DATE}.json"
+          code=$?
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          if [ ! -f "/tmp/p25-day-${SESSION_DATE}.json" ]; then
+            echo "capture produced no auditable artifact" >&2
+            exit 1
+          fi
+
+      - name: Persist immutable session artifact to dedicated data branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin automation/p25-day-data >/dev/null 2>&1; then
+            git fetch origin automation/p25-day-data:refs/remotes/origin/automation/p25-day-data
+            git switch -C automation/p25-day-data origin/automation/p25-day-data
+          else
+            git switch --orphan automation/p25-day-data
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+          mkdir -p data/p25-day-sessions
+          target="data/p25-day-sessions/${SESSION_DATE}.json"
+          if [ -f "$target" ]; then
+            existing="$(sha256sum "$target" | awk '{print $1}')"
+            incoming="$(sha256sum "/tmp/p25-day-${SESSION_DATE}.json" | awk '{print $1}')"
+            if [ "$existing" != "$incoming" ]; then
+              echo "immutable P25 day artifact already exists with different SHA: $SESSION_DATE" >&2
+              exit 1
+            fi
+            echo "identical immutable session artifact already present"
+          else
+            cp "/tmp/p25-day-${SESSION_DATE}.json" "$target"
+            git add "$target"
+            git commit -m "Phase57 P25 routine 5m ${SESSION_DATE}"
+            git push origin HEAD:automation/p25-day-data
+          fi
+
+      - name: Upload session artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-routine-5m-${{ steps.session.outputs.session_date }}
+          path: /tmp/p25-day-${{ steps.session.outputs.session_date }}.json
+          retention-days: 30
+
+      - name: Fail closed if provider capture was incomplete
+        if: steps.capture5m.outputs.exit_code != '0'
+        shell: bash
+        run: |
+          echo "Routine 5m capture was incomplete. Artifact was preserved, but the session is not eligible for P25.2 performance comparison." >&2
+          exit 1

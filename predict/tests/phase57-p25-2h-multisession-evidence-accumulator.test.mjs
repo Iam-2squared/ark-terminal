@@ -57,8 +57,8 @@ test('multi-session accumulator keeps performance on ready sessions but operatio
 test('eligible-decision denominators are summed without changing variant definitions',()=>{
   const result=accumulateP252MultiSessionEvidence({sessionPackets:[packet('2026-08-19'),packet('2026-08-20')]});
   assert.deepEqual(result.aggregateEligibleDecisionCountsByVariant,{FIXED_5:10,OLD_FIXED_30:60,DYNAMIC_30:60,DYNAMIC_40:80,DYNAMIC_50:100});
-  assert.equal(result.comparison.results.DYNAMIC_30.coverage,2/60);
-  assert.equal(result.comparison.results.FIXED_5.coverage,2/10);
+  assert.equal(result.comparison.results.DYNAMIC_30.coverage,0.033333);
+  assert.equal(result.comparison.results.FIXED_5.coverage,0.2);
   assert.equal(result.methodology.currentOuterOosDoesNotSelectDynamicN,true);
 });
 

@@ -1,8 +1,6 @@
 name: Phase57 P25 Evaluation Fallback
 
 on:
-  # One-shot recovery path when this fallback is changed on main.
-  # The path filter prevents unrelated pushes from re-dispatching evaluation.
   push:
     branches: [main]
     paths:
@@ -10,9 +8,8 @@ on:
   schedule:
     # Normal fallback after the 17:30 JST evidence-prep schedule.
     - cron: '15 9 * * 1-5'
-    # One-time recovery for the first immutable 2026-08-19 evidence session.
-    # 2026-08-19 21:30 UTC = 2026-08-20 06:30 JST.
-    - cron: '30 21 19 8 *'
+    # One-time recovery retry: 2026-08-20 09:05 JST.
+    - cron: '5 0 20 8 *'
   workflow_dispatch:
 
 permissions:
@@ -26,7 +23,7 @@ concurrency:
 jobs:
   dispatch-evaluation:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Resolve JST evidence date
         shell: bash
@@ -35,7 +32,7 @@ jobs:
           echo "EVIDENCE_DATE=$(TZ=Asia/Tokyo date +%F)" >> "$GITHUB_ENV"
 
       - name: Resolve latest immutable evidence date for recovery
-        if: github.event_name == 'push' || github.event.schedule == '30 21 19 8 *'
+        if: github.event_name == 'push' || github.event.schedule == '5 0 20 8 *'
         shell: bash
         run: |
           set -euo pipefail
@@ -57,14 +54,34 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
+          dispatched_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "DISPATCHED_AT=$dispatched_at" >> "$GITHUB_ENV"
           gh workflow run phase57-p25-evidence-evaluate.yml \
             --repo "$GH_REPO" \
             --ref main \
             -f evidence_date="$EVIDENCE_DATE"
 
+      - name: Verify evaluator run was created
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5 6; do
+            run_id="$(gh run list --repo "$GH_REPO" --workflow phase57-p25-evidence-evaluate.yml --event workflow_dispatch --limit 5 --json databaseId,createdAt --jq '[.[] | select(.createdAt >= env.DISPATCHED_AT)][0].databaseId // empty')"
+            if [ -n "$run_id" ]; then
+              echo "verified evaluator workflow_dispatch run_id=$run_id evidence_date=$EVIDENCE_DATE"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "evaluator dispatch returned but no workflow_dispatch run was observable" >&2
+          exit 1
+
       - name: Safety boundary
         shell: bash
         run: |
           set -euo pipefail
-          echo 'Fallback only dispatches the existing immutable P25 evidence evaluator.'
+          echo 'Fallback only dispatches and verifies the existing immutable P25 evidence evaluator.'
           echo 'No broker, Excel, RSS order, MARKETSPEED, board, Tick, paper/live trading, promotion, production update, or fresh holdout action is enabled.'

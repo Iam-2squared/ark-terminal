@@ -1,0 +1,48 @@
+name: Phase57 P25 Evaluation Fallback
+
+on:
+  schedule:
+    # Normal fallback after the 17:30 JST evidence-prep schedule.
+    - cron: '15 9 * * 1-5'
+    # Temporary same-day recovery window for the first 2026-08-19 prospective session.
+    # The dispatched evaluator is immutable/idempotent for an already-evaluated lineage head.
+    - cron: '30 13 19 8 *'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: phase57-p25-evaluation-fallback
+  cancel-in-progress: false
+
+jobs:
+  dispatch-evaluation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Resolve JST evidence date
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "EVIDENCE_DATE=$(TZ=Asia/Tokyo date +%F)" >> "$GITHUB_ENV"
+
+      - name: Dispatch lineage-pinned evaluator
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh workflow run phase57-p25-evidence-evaluate.yml \
+            --repo "$GH_REPO" \
+            --ref main \
+            -f evidence_date="$EVIDENCE_DATE"
+
+      - name: Safety boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'Fallback only dispatches the existing immutable P25 evidence evaluator.'
+          echo 'No broker, Excel, RSS order, MARKETSPEED, board, Tick, paper/live trading, promotion, production update, or fresh holdout action is enabled.'

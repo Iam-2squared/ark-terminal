@@ -1,7 +1,7 @@
 name: Phase57 P25 Evaluation Fallback
 
 on:
-  # One-shot recovery path when this fallback is first merged to main.
+  # One-shot recovery path when this fallback is changed on main.
   # The path filter prevents unrelated pushes from re-dispatching evaluation.
   push:
     branches: [main]
@@ -10,6 +10,9 @@ on:
   schedule:
     # Normal fallback after the 17:30 JST evidence-prep schedule.
     - cron: '15 9 * * 1-5'
+    # One-time recovery for the first immutable 2026-08-19 evidence session.
+    # 2026-08-19 21:30 UTC = 2026-08-20 06:30 JST.
+    - cron: '30 21 19 8 *'
   workflow_dispatch:
 
 permissions:
@@ -31,8 +34,8 @@ jobs:
           set -euo pipefail
           echo "EVIDENCE_DATE=$(TZ=Asia/Tokyo date +%F)" >> "$GITHUB_ENV"
 
-      - name: Resolve latest immutable evidence date for merge recovery
-        if: github.event_name == 'push'
+      - name: Resolve latest immutable evidence date for recovery
+        if: github.event_name == 'push' || github.event.schedule == '30 21 19 8 *'
         shell: bash
         run: |
           set -euo pipefail

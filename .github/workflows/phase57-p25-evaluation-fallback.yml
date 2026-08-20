@@ -5,82 +5,72 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/phase57-p25-evaluation-fallback.yml"
+      - ".github/workflows/phase57-p25-evidence-evaluate.yml"
   schedule:
     - cron: '15 9 * * 1-5'
-    # One-time recovery retry: 2026-08-20 09:15 JST.
-    - cron: '15 0 20 8 *'
   workflow_dispatch:
+    inputs:
+      evidence_date:
+        description: 'Immutable evidence snapshot date (YYYY-MM-DD); blank = latest available'
+        required: false
+        type: string
 
 permissions:
-  actions: write
-  contents: read
+  contents: write
+  actions: read
 
 concurrency:
   group: phase57-p25-evaluation-fallback
   cancel-in-progress: false
 
 jobs:
-  dispatch-evaluation:
+  resolve-evidence-date:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
+    outputs:
+      evidence_date: ${{ steps.resolve.outputs.evidence_date }}
     steps:
-      - name: Resolve JST evidence date
+      - name: Resolve immutable evidence date
+        id: resolve
         shell: bash
+        env:
+          REQUESTED_DATE: ${{ inputs.evidence_date }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          echo "EVIDENCE_DATE=$(TZ=Asia/Tokyo date +%F)" >> "$GITHUB_ENV"
+          if [ -n "${REQUESTED_DATE:-}" ]; then
+            evidence_date="$REQUESTED_DATE"
+          elif [ "${{ github.event_name }}" = "schedule" ]; then
+            evidence_date="$(TZ=Asia/Tokyo date +%F)"
+          else
+            git init /tmp/p25-evidence-recovery >/dev/null
+            cd /tmp/p25-evidence-recovery
+            git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GH_REPO}.git"
+            git fetch --depth=1 origin automation/p25-evidence-data
+            evidence_date="$(git ls-tree -r --name-only FETCH_HEAD -- data/p25-evidence-lineage | sed -n 's#data/p25-evidence-lineage/\([0-9][0-9-]*\)-manifest.json#\1#p' | sort | tail -1)"
+          fi
 
-      - name: Resolve latest immutable evidence date for recovery
-        if: github.event_name == 'push' || github.event.schedule == '15 0 20 8 *'
-        shell: bash
-        run: |
-          set -euo pipefail
-          git init /tmp/p25-evidence-recovery >/dev/null
-          cd /tmp/p25-evidence-recovery
-          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
-          git fetch --depth=1 origin automation/p25-evidence-data
-          latest="$(git ls-tree -r --name-only FETCH_HEAD -- data/p25-evidence-lineage | sed -n 's#data/p25-evidence-lineage/\([0-9][0-9-]*\)-manifest.json#\1#p' | sort | tail -1)"
-          if ! [[ "$latest" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
-            echo "no immutable P25 evidence manifest available for recovery" >&2
+          if ! [[ "$evidence_date" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+            echo "invalid or unavailable immutable evidence date: $evidence_date" >&2
             exit 1
           fi
-          echo "EVIDENCE_DATE=$latest" >> "$GITHUB_ENV"
 
-      - name: Dispatch lineage-pinned evaluator
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          set -euo pipefail
-          dispatched_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          echo "DISPATCHED_AT=$dispatched_at" >> "$GITHUB_ENV"
-          gh workflow run phase57-p25-evidence-evaluate.yml \
-            --repo "$GH_REPO" \
-            --ref main \
-            -f evidence_date="$EVIDENCE_DATE"
-
-      - name: Verify evaluator run was created
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          set -euo pipefail
-          for attempt in 1 2 3 4 5 6; do
-            run_id="$(gh run list --repo "$GH_REPO" --workflow phase57-p25-evidence-evaluate.yml --event workflow_dispatch --limit 5 --json databaseId,createdAt --jq '[.[] | select(.createdAt >= env.DISPATCHED_AT)][0].databaseId // empty')"
-            if [ -n "$run_id" ]; then
-              echo "verified evaluator workflow_dispatch run_id=$run_id evidence_date=$EVIDENCE_DATE"
-              exit 0
-            fi
-            sleep 10
-          done
-          echo "evaluator dispatch returned but no workflow_dispatch run was observable" >&2
-          exit 1
+          echo "resolved immutable evidence date=$evidence_date"
+          echo "evidence_date=$evidence_date" >> "$GITHUB_OUTPUT"
 
       - name: Safety boundary
         shell: bash
         run: |
           set -euo pipefail
-          echo 'Fallback only dispatches and verifies the existing immutable P25 evidence evaluator.'
-          echo 'No broker, Excel, RSS order, MARKETSPEED, board, Tick, paper/live trading, promotion, production update, or fresh holdout action is enabled.'
+          echo 'Date resolution reads immutable P25 evidence lineage only.'
+          echo 'No model/Entry/universe/threshold change and no broker, Excel, RSS order, MARKETSPEED, board, Tick, paper/live trading, promotion, production update, or fresh holdout action is enabled.'
+
+  evaluate:
+    needs: resolve-evidence-date
+    uses: ./.github/workflows/phase57-p25-evidence-evaluate.yml
+    with:
+      evidence_date: ${{ needs.resolve-evidence-date.outputs.evidence_date }}
+    permissions:
+      contents: write
+      actions: read

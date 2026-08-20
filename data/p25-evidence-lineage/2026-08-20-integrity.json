@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.p25.3a.session-integrity-ledger-cli",
+  "status": "P25_3_SESSION_INTEGRITY_ARTIFACT_WRITTEN",
+  "createdAt": "2026-08-20T09:03:24.423Z",
+  "captureArtifactCount": 2,
+  "verifiedNonTradingSha256": null,
+  "ledger": {
+    "phase": "57.p25.3a.session-integrity-ledger",
+    "status": "SESSION_INTEGRITY_CLASSIFIED",
+    "captureArtifactCount": 2,
+    "readyTradingSessionCount": 2,
+    "blockedConfirmedTradingSessionCount": 0,
+    "unresolvedSessionCount": 0,
+    "verifiedNonTradingSessionCount": 0,
+    "rows": [
+      {
+        "sessionDate": "2026-08-19",
+        "classification": "READY_CONFIRMED_TRADING_SESSION",
+        "captureReady": true,
+        "targetSymbolCount": 80,
+        "collectedSymbolCount": 80,
+        "failedSymbolCount": 0,
+        "captureStatus": "ROUTINE_NONRSS_5M_SESSION_READY",
+        "artifactSha256": "b465dc60fb2033ae20772be9fffecb493dcb46dd4f09011899bf5736c29ba261",
+        "artifactPath": "2026-08-19.json",
+        "verifiedNonTradingEvidence": null
+      },
+      {
+        "sessionDate": "2026-08-20",
+        "classification": "READY_CONFIRMED_TRADING_SESSION",
+        "captureReady": true,
+        "targetSymbolCount": 80,
+        "collectedSymbolCount": 80,
+        "failedSymbolCount": 0,
+        "captureStatus": "ROUTINE_NONRSS_5M_SESSION_READY",
+        "artifactSha256": "d53e0e2fabf8ededbd6b805ddb9008b827e3168f1ab48f6a7c1a6b1f459659d6",
+        "artifactPath": "2026-08-20.json",
+        "verifiedNonTradingEvidence": null
+      }
+    ],
+    "readyTradingSessionDates": [
+      "2026-08-19",
+      "2026-08-20"
+    ],
+    "blockedConfirmedTradingSessionDates": [],
+    "confirmedTradingSessionDates": [
+      "2026-08-19",
+      "2026-08-20"
+    ],
+    "unresolvedSessionDates": [],
+    "verifiedNonTradingSessionDates": [],
+    "optimisticConfirmedTradingSessionDates": [
+      "2026-08-19",
+      "2026-08-20"
+    ],
+    "conservativeExpectedTradingSessionDates": [
+      "2026-08-19",
+      "2026-08-20"
+    ],
+    "recommendedExpectedSessionDatesForP252H": [
+      "2026-08-19",
+      "2026-08-20"
+    ],
+    "methodology": {
+      "readyWholeUnionCaptureConfirmsTradingDay": true,
+      "partialValidBarsConfirmTradingDay": true,
+      "blockedConfirmedTradingDayCountsAsZeroEntryOperationalDay": true,
+      "zeroValidBarsNeverAutomaticallyMeansHoliday": true,
+      "unresolvedDateIncludedInConservativeDaysTo400": true,
+      "verifiedNonTradingDateRequiresIndependentEvidenceId": true,
+      "outerOosPerformanceUsedForClassification": false,
+      "dailyMarketSpeedRequired": false,
+      "boardOrTickUsed": false,
+      "microstructureUsed": false,
+      "freshHoldoutConsumed": false
+    },
+    "safety": {
+      "phase": "57.p25.3a.session-integrity-ledger",
+      "mode": "READ_ONLY_PROSPECTIVE_SESSION_INTEGRITY",
+      "researchOnly": true,
+      "executionAllowed": false,
+      "brokerWriteAllowed": false,
+      "excelOrderWriteAllowed": false,
+      "rssOrderFunctionAllowed": false,
+      "liveTradingAllowed": false,
+      "paperTradingAllowed": false,
+      "automaticPromotionAllowed": false,
+      "productionUpdateAllowed": false,
+      "transmitted": false,
+      "freshHoldoutConsumed": false
+    }
+  },
+  "safety": {
+    "phase": "57.p25.3a.session-integrity-ledger",
+    "mode": "READ_ONLY_PROSPECTIVE_SESSION_INTEGRITY",
+    "researchOnly": true,
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "freshHoldoutConsumed": false
+  }
+}

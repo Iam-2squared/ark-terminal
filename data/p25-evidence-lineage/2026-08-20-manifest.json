@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.p25.3b.evidence-lineage-manifest-cli",
+  "status": "P25_3_EVIDENCE_LINEAGE_ARTIFACT_WRITTEN",
+  "createdAt": "2026-08-20T09:03:24.510Z",
+  "inputs": {
+    "historyPack": "/tmp/p25-pinned-history-pack.json",
+    "historyPackSha256": "ad6dab87ec4373a0ca884de24666d1efee5d37acad89215197d03c14cf99cffd",
+    "integrityLedger": "/tmp/p25-session-integrity-ledger.json",
+    "integrityLedgerSha256": "e6384617f0c1c020e34a68b4cf3add1e693ca0a723e1fa2bcde5a1f734145824",
+    "captureArtifactCount": 2
+  },
+  "manifest": {
+    "phase": "57.p25.3b.evidence-lineage-manifest",
+    "status": "P25_3_EVIDENCE_LINEAGE_MANIFEST_READY",
+    "historyIdentity": {
+      "canonicalSourceRunId": 31785422471,
+      "canonicalSnapshotSha256": "10ec0b89893823f9e2f7ba720db2d0fad8e76d642fe00f7b77d387ae6be6b12a",
+      "sessionCount": 190,
+      "perSymbolSessionCount": {
+        "7203.T": 38,
+        "6758.T": 38,
+        "9984.T": 38,
+        "8306.T": 38,
+        "8035.T": 38
+      }
+    },
+    "chainSeedSha256": "c52d869ce43e3829df2d8b774ca506e864399ef20974d8e687495aed1f7bd4e3",
+    "manifestHeadSha256": "5f3e453f75f93c310f17de841ce6488d77d9a6479a9f97867ae46e4f80598e5d",
+    "nodeCount": 2,
+    "nodes": [
+      {
+        "sessionDate": "2026-08-19",
+        "captureArtifactSha256": "b465dc60fb2033ae20772be9fffecb493dcb46dd4f09011899bf5736c29ba261",
+        "classification": "READY_CONFIRMED_TRADING_SESSION",
+        "captureReady": true,
+        "targetSymbolCount": 80,
+        "universeFingerprint": "bae40745b6343b58ed8fd5693bb9da3d6834f05ec9bbbe73c361a236bb40df57",
+        "artifactPath": "2026-08-19.json",
+        "previousChainSha256": "c52d869ce43e3829df2d8b774ca506e864399ef20974d8e687495aed1f7bd4e3",
+        "chainSha256": "d0ddd589a769fbc4ebed3909c95a7c7f6d340922453eb5984ac5ebabfffd86cb"
+      },
+      {
+        "sessionDate": "2026-08-20",
+        "captureArtifactSha256": "d53e0e2fabf8ededbd6b805ddb9008b827e3168f1ab48f6a7c1a6b1f459659d6",
+        "classification": "READY_CONFIRMED_TRADING_SESSION",
+        "captureReady": true,
+        "targetSymbolCount": 80,
+        "universeFingerprint": "3f4760ce8bd9ca887d90e8da4bc84b3a05654b5443071870eeea29a2907a73a1",
+        "artifactPath": "2026-08-20.json",
+        "previousChainSha256": "d0ddd589a769fbc4ebed3909c95a7c7f6d340922453eb5984ac5ebabfffd86cb",
+        "chainSha256": "5f3e453f75f93c310f17de841ce6488d77d9a6479a9f97867ae46e4f80598e5d"
+      }
+    ],
+    "sessionSets": {
+      "confirmedTradingSessionDates": [
+        "2026-08-19",
+        "2026-08-20"
+      ],
+      "unresolvedSessionDates": [],
+      "verifiedNonTradingSessionDates": [],
+      "recommendedExpectedSessionDatesForP252H": [
+        "2026-08-19",
+        "2026-08-20"
+      ]
+    },
+    "methodology": {
+      "chronologicalHashChain": true,
+      "pinnedHistoryIdentityIncluded": true,
+      "captureArtifactShaRequired": true,
+      "sessionClassificationOutcomeIndependent": true,
+      "performanceMetricsExcludedFromLineageIdentity": true,
+      "outerOosMayRewriteLineage": false,
+      "dailyMarketSpeedRequired": false,
+      "boardOrTickUsed": false,
+      "microstructureUsed": false,
+      "freshHoldoutConsumed": false
+    },
+    "safety": {
+      "phase": "57.p25.3b.evidence-lineage-manifest",
+      "mode": "READ_ONLY_IMMUTABLE_PROSPECTIVE_LINEAGE",
+      "researchOnly": true,
+      "executionAllowed": false,
+      "brokerWriteAllowed": false,
+      "excelOrderWriteAllowed": false,
+      "rssOrderFunctionAllowed": false,
+      "liveTradingAllowed": false,
+      "paperTradingAllowed": false,
+      "automaticPromotionAllowed": false,
+      "productionUpdateAllowed": false,
+      "transmitted": false,
+      "freshHoldoutConsumed": false
+    }
+  },
+  "safety": {
+    "phase": "57.p25.3b.evidence-lineage-manifest",
+    "mode": "READ_ONLY_IMMUTABLE_PROSPECTIVE_LINEAGE",
+    "researchOnly": true,
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "freshHoldoutConsumed": false
+  }
+}

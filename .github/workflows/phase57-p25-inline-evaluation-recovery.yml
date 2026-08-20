@@ -1,0 +1,188 @@
+name: Phase57 P25 Inline Evaluation Recovery
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/phase57-p25-inline-evaluation-recovery.yml'
+  workflow_dispatch:
+    inputs:
+      evidence_date:
+        description: 'Immutable evidence date YYYY-MM-DD; blank = latest available'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: phase57-p25-inline-evaluation-recovery
+  cancel-in-progress: false
+
+jobs:
+  evaluate-inline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Resolve immutable evidence date
+        shell: bash
+        env:
+          REQUESTED_DATE: ${{ inputs.evidence_date }}
+        run: |
+          set -euo pipefail
+          git fetch origin automation/p25-evidence-data:refs/remotes/origin/automation/p25-evidence-data
+          if [ -n "${REQUESTED_DATE:-}" ]; then
+            evidence_date="$REQUESTED_DATE"
+          else
+            evidence_date="$(git ls-tree -r --name-only origin/automation/p25-evidence-data -- data/p25-evidence-lineage | sed -n 's#data/p25-evidence-lineage/\([0-9][0-9-]*\)-manifest.json#\1#p' | sort | tail -1)"
+          fi
+          if ! [[ "$evidence_date" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+            echo "invalid or unavailable immutable evidence date: $evidence_date" >&2
+            exit 1
+          fi
+          echo "EVIDENCE_DATE=$evidence_date" >> "$GITHUB_ENV"
+          echo "resolved immutable evidence date=$evidence_date"
+
+      - name: Load immutable evidence snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest_path="data/p25-evidence-lineage/${EVIDENCE_DATE}-manifest.json"
+          integrity_path="data/p25-evidence-lineage/${EVIDENCE_DATE}-integrity.json"
+          git show "origin/automation/p25-evidence-data:$manifest_path" > /tmp/p25-evidence-lineage-manifest.json
+          git show "origin/automation/p25-evidence-data:$integrity_path" > /tmp/p25-session-integrity-ledger.json
+
+      - name: Copy lineage-pinned captures only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin automation/p25-day-data:refs/remotes/origin/automation/p25-day-data
+          mkdir -p /tmp/p25-day-sessions
+          mapfile -t dates < <(node -e "const x=require('/tmp/p25-evidence-lineage-manifest.json'); for (const n of x.manifest?.nodes ?? []) console.log(n.sessionDate)")
+          if [ "${#dates[@]}" -eq 0 ]; then
+            echo 'lineage manifest contains no frozen capture nodes' >&2
+            exit 1
+          fi
+          for date in "${dates[@]}"; do
+            if ! [[ "$date" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+              echo "invalid session date in lineage manifest: $date" >&2
+              exit 1
+            fi
+            git show "origin/automation/p25-day-data:data/p25-day-sessions/${date}.json" > "/tmp/p25-day-sessions/${date}.json"
+          done
+          echo "copied ${#dates[@]} lineage-pinned capture artifacts"
+
+      - name: Download exact pinned P24 canonical byte snapshot
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p24-canonical
+          gh run download 31785422471 \
+            --repo "$GH_REPO" \
+            --name phase57-p24-9-oos-canonical-candidate \
+            --dir /tmp/p24-canonical
+          snapshot="$(find /tmp/p24-canonical -type f -name 'phase57-p24-9-oos-byte-snapshot.json' -print -quit)"
+          if [ -z "$snapshot" ]; then
+            echo 'pinned P24 canonical byte snapshot missing' >&2
+            exit 1
+          fi
+          echo "P24_CANONICAL_SNAPSHOT=$snapshot" >> "$GITHUB_ENV"
+
+      - name: Rebuild exact pinned historical training pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/build_p25_pinned_history_pack.mjs \
+            --snapshot "$P24_CANONICAL_SNAPSHOT" \
+            --output /tmp/p25-pinned-history-pack.json
+
+      - name: Run all-five lineage-pinned prospective evaluation
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/run_p25_autonomous_evidence_evaluation.mjs \
+            --history-pack /tmp/p25-pinned-history-pack.json \
+            --capture-dir /tmp/p25-day-sessions \
+            --integrity-ledger /tmp/p25-session-integrity-ledger.json \
+            --lineage-manifest /tmp/p25-evidence-lineage-manifest.json \
+            --output /tmp/p25-autonomous-evidence-evaluation.json
+
+      - name: Build all-five trade-pace scorecard
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/build_p25_trade_pace_scorecard.mjs \
+            --evaluation /tmp/p25-autonomous-evidence-evaluation.json \
+            --output /tmp/p25-trade-pace-scorecard.json
+
+      - name: Persist evaluation and scorecard atomically on research branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          eval_head="$(node -e "const x=require('/tmp/p25-autonomous-evidence-evaluation.json'); console.log(x.inputs.lineageManifestHeadSha256)")"
+          score_head="$(node -e "const x=require('/tmp/p25-trade-pace-scorecard.json'); console.log(x.inputs.lineageManifestHeadSha256)")"
+          if [ "$eval_head" != "$score_head" ]; then
+            echo 'evaluation/scorecard lineage head mismatch' >&2
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git ls-remote --exit-code --heads origin automation/p25-evaluation-data >/dev/null 2>&1; then
+            git fetch origin automation/p25-evaluation-data:refs/remotes/origin/automation/p25-evaluation-data
+            git switch -C automation/p25-evaluation-data origin/automation/p25-evaluation-data
+          else
+            git switch --orphan automation/p25-evaluation-data
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+          mkdir -p data/p25-evaluations data/p25-scorecards
+          eval_target="data/p25-evaluations/${EVIDENCE_DATE}.json"
+          score_target="data/p25-scorecards/${EVIDENCE_DATE}.json"
+          if [ -f "$eval_target" ] || [ -f "$score_target" ]; then
+            if [ ! -f "$eval_target" ] || [ ! -f "$score_target" ]; then
+              echo 'partial dated evaluation state exists; refusing rewrite' >&2
+              exit 1
+            fi
+            existing_eval_head="$(node -e "const x=require('./$eval_target'); console.log(x.inputs.lineageManifestHeadSha256)")"
+            existing_score_head="$(node -e "const x=require('./$score_target'); console.log(x.inputs.lineageManifestHeadSha256)")"
+            if [ "$existing_eval_head" != "$eval_head" ] || [ "$existing_score_head" != "$eval_head" ]; then
+              echo 'dated outputs already exist with a different lineage head' >&2
+              exit 1
+            fi
+            echo 'same lineage already persisted; no rewrite needed'
+          else
+            cp /tmp/p25-autonomous-evidence-evaluation.json "$eval_target"
+            cp /tmp/p25-trade-pace-scorecard.json "$score_target"
+            git add "$eval_target" "$score_target"
+            git commit -m "Phase57 P25 evaluation and scorecard ${EVIDENCE_DATE}"
+            git push origin HEAD:automation/p25-evaluation-data
+          fi
+
+      - name: Upload evaluation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-inline-evaluation-${{ env.EVIDENCE_DATE }}
+          path: |
+            /tmp/p25-autonomous-evidence-evaluation.json
+            /tmp/p25-trade-pace-scorecard.json
+          retention-days: 90
+
+      - name: Safety boundary
+        shell: bash
+        run: |
+          echo 'Research-only immutable evidence recovery.'
+          echo 'No model/Entry/universe/threshold selection and no fresh holdout consumption.'
+          echo 'No broker, Excel, RSS order, MARKETSPEED, board, Tick, paper/live trading, promotion, or production-update action is enabled.'

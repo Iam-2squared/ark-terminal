@@ -10,6 +10,12 @@ on:
         description: 'Evidence snapshot date (YYYY-MM-DD); blank = current JST date'
         required: false
         type: string
+  workflow_call:
+    inputs:
+      evidence_date:
+        description: 'Immutable evidence snapshot date (YYYY-MM-DD)'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -21,7 +27,7 @@ concurrency:
 
 jobs:
   evaluate:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:

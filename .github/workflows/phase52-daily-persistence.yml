@@ -13,11 +13,12 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 jobs:
   persist-dry-run:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -52,6 +53,83 @@ jobs:
           grep -q '"automaticPromotionAllowed": false' data/phase52-dry-run/readiness.json
           grep -q '"productionUpdateAllowed": false' data/phase52-dry-run/readiness.json
           grep -q '"transmitted": false' data/phase52-dry-run/readiness.json
+
+      - name: P25.3N load immutable 2026-08-19 evidence
+        if: github.event_name == 'pull_request' && github.head_ref == 'phase57/p25-3n-pr-ci-evaluation'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin automation/p25-evidence-data:refs/remotes/origin/automation/p25-evidence-data
+          git fetch origin automation/p25-day-data:refs/remotes/origin/automation/p25-day-data
+          git show origin/automation/p25-evidence-data:data/p25-evidence-lineage/2026-08-19-manifest.json > /tmp/p25-evidence-lineage-manifest.json
+          git show origin/automation/p25-evidence-data:data/p25-evidence-lineage/2026-08-19-integrity.json > /tmp/p25-session-integrity-ledger.json
+          mkdir -p /tmp/p25-day-sessions
+          mapfile -t dates < <(node -e "const x=require('/tmp/p25-evidence-lineage-manifest.json'); for (const n of x.manifest?.nodes ?? []) console.log(n.sessionDate)")
+          if [ "${#dates[@]}" -eq 0 ]; then
+            echo 'lineage manifest contains no frozen capture nodes' >&2
+            exit 1
+          fi
+          for date in "${dates[@]}"; do
+            git show "origin/automation/p25-day-data:data/p25-day-sessions/${date}.json" > "/tmp/p25-day-sessions/${date}.json"
+          done
+          echo "loaded ${#dates[@]} immutable capture node(s)"
+
+      - name: P25.3N download exact pinned P24 canonical snapshot
+        if: github.event_name == 'pull_request' && github.head_ref == 'phase57/p25-3n-pr-ci-evaluation'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p24-canonical
+          gh run download 31785422471 \
+            --repo "$GH_REPO" \
+            --name phase57-p24-9-oos-canonical-candidate \
+            --dir /tmp/p24-canonical
+          snapshot="$(find /tmp/p24-canonical -type f -name 'phase57-p24-9-oos-byte-snapshot.json' -print -quit)"
+          test -n "$snapshot"
+          echo "P24_CANONICAL_SNAPSHOT=$snapshot" >> "$GITHUB_ENV"
+
+      - name: P25.3N rebuild pinned history pack
+        if: github.event_name == 'pull_request' && github.head_ref == 'phase57/p25-3n-pr-ci-evaluation'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/build_p25_pinned_history_pack.mjs \
+            --snapshot "$P24_CANONICAL_SNAPSHOT" \
+            --output /tmp/p25-pinned-history-pack.json
+
+      - name: P25.3N run all-five immutable prospective evaluation
+        if: github.event_name == 'pull_request' && github.head_ref == 'phase57/p25-3n-pr-ci-evaluation'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/run_p25_autonomous_evidence_evaluation.mjs \
+            --history-pack /tmp/p25-pinned-history-pack.json \
+            --capture-dir /tmp/p25-day-sessions \
+            --integrity-ledger /tmp/p25-session-integrity-ledger.json \
+            --lineage-manifest /tmp/p25-evidence-lineage-manifest.json \
+            --output /tmp/p25-autonomous-evidence-evaluation.json
+
+      - name: P25.3N build trade-pace scorecard
+        if: github.event_name == 'pull_request' && github.head_ref == 'phase57/p25-3n-pr-ci-evaluation'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/build_p25_trade_pace_scorecard.mjs \
+            --evaluation /tmp/p25-autonomous-evidence-evaluation.json \
+            --output /tmp/p25-trade-pace-scorecard.json
+
+      - name: P25.3N upload immutable evaluation artifact
+        if: github.event_name == 'pull_request' && github.head_ref == 'phase57/p25-3n-pr-ci-evaluation'
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-3n-immutable-evaluation-2026-08-19
+          retention-days: 30
+          path: |
+            /tmp/p25-autonomous-evidence-evaluation.json
+            /tmp/p25-trade-pace-scorecard.json
 
       - name: Persist generated read-only evidence
         if: github.event_name != 'pull_request'

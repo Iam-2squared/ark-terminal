@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.p25.3b.evidence-lineage-manifest-cli",
+  "status": "P25_3_EVIDENCE_LINEAGE_ARTIFACT_WRITTEN",
+  "createdAt": "2026-08-21T09:05:15.684Z",
+  "inputs": {
+    "historyPack": "/tmp/p25-pinned-history-pack.json",
+    "historyPackSha256": "3723978a5976221d3b2c7360be1e7ed581618055a32d35723e51bb80c47b2c95",
+    "integrityLedger": "/tmp/p25-session-integrity-ledger.json",
+    "integrityLedgerSha256": "3683c7707f1b3276b76ba98b823e8486e1099454b52f191c8714d7ede78b753d",
+    "captureArtifactCount": 3
+  },
+  "manifest": {
+    "phase": "57.p25.3b.evidence-lineage-manifest",
+    "status": "P25_3_EVIDENCE_LINEAGE_MANIFEST_READY",
+    "historyIdentity": {
+      "canonicalSourceRunId": 31785422471,
+      "canonicalSnapshotSha256": "10ec0b89893823f9e2f7ba720db2d0fad8e76d642fe00f7b77d387ae6be6b12a",
+      "sessionCount": 190,
+      "perSymbolSessionCount": {
+        "7203.T": 38,
+        "6758.T": 38,
+        "9984.T": 38,
+        "8306.T": 38,
+        "8035.T": 38
+      }
+    },
+    "chainSeedSha256": "c52d869ce43e3829df2d8b774ca506e864399ef20974d8e687495aed1f7bd4e3",
+    "manifestHeadSha256": "14f10c0fb446bc0fbaff52cb4ccd78c9193839e560541d404c71808a3e0ad7c4",
+    "nodeCount": 3,
+    "nodes": [
+      {
+        "sessionDate": "2026-08-19",
+        "captureArtifactSha256": "b465dc60fb2033ae20772be9fffecb493dcb46dd4f09011899bf5736c29ba261",
+        "classification": "READY_CONFIRMED_TRADING_SESSION",
+        "captureReady": true,
+        "targetSymbolCount": 80,
+        "universeFingerprint": "bae40745b6343b58ed8fd5693bb9da3d6834f05ec9bbbe73c361a236bb40df57",
+        "artifactPath": "2026-08-19.json",
+        "previousChainSha256": "c52d869ce43e3829df2d8b774ca506e864399ef20974d8e687495aed1f7bd4e3",
+        "chainSha256": "d0ddd589a769fbc4ebed3909c95a7c7f6d340922453eb5984ac5ebabfffd86cb"
+      },
+      {
+        "sessionDate": "2026-08-20",
+        "captureArtifactSha256": "d53e0e2fabf8ededbd6b805ddb9008b827e3168f1ab48f6a7c1a6b1f459659d6",
+        "classification": "READY_CONFIRMED_TRADING_SESSION",
+        "captureReady": true,
+        "targetSymbolCount": 80,
+        "universeFingerprint": "3f4760ce8bd9ca887d90e8da4bc84b3a05654b5443071870eeea29a2907a73a1",
+        "artifactPath": "2026-08-20.json",
+        "previousChainSha256": "d0ddd589a769fbc4ebed3909c95a7c7f6d340922453eb5984ac5ebabfffd86cb",
+        "chainSha256": "5f3e453f75f93c310f17de841ce6488d77d9a6479a9f97867ae46e4f80598e5d"
+      },
+      {
+        "sessionDate": "2026-08-21",
+        "captureArtifactSha256": "06581a8cd22539e9f821bfeb4cb280f873c04a20bc7c445f0486aaf06a01d725",
+        "classification": "READY_CONFIRMED_TRADING_SESSION",
+        "captureReady": true,
+        "targetSymbolCount": 79,
+        "universeFingerprint": "8b3eeb9860a23229086570fbb6b5a7aaa891af80ff1f28bdea1fc6644f2516c8",
+        "artifactPath": "2026-08-21.json",
+        "previousChainSha256": "5f3e453f75f93c310f17de841ce6488d77d9a6479a9f97867ae46e4f80598e5d",
+        "chainSha256": "14f10c0fb446bc0fbaff52cb4ccd78c9193839e560541d404c71808a3e0ad7c4"
+      }
+    ],
+    "sessionSets": {
+      "confirmedTradingSessionDates": [
+        "2026-08-19",
+        "2026-08-20",
+        "2026-08-21"
+      ],
+      "unresolvedSessionDates": [],
+      "verifiedNonTradingSessionDates": [],
+      "recommendedExpectedSessionDatesForP252H": [
+        "2026-08-19",
+        "2026-08-20",
+        "2026-08-21"
+      ]
+    },
+    "methodology": {
+      "chronologicalHashChain": true,
+      "pinnedHistoryIdentityIncluded": true,
+      "captureArtifactShaRequired": true,
+      "sessionClassificationOutcomeIndependent": true,
+      "performanceMetricsExcludedFromLineageIdentity": true,
+      "outerOosMayRewriteLineage": false,
+      "dailyMarketSpeedRequired": false,
+      "boardOrTickUsed": false,
+      "microstructureUsed": false,
+      "freshHoldoutConsumed": false
+    },
+    "safety": {
+      "phase": "57.p25.3b.evidence-lineage-manifest",
+      "mode": "READ_ONLY_IMMUTABLE_PROSPECTIVE_LINEAGE",
+      "researchOnly": true,
+      "executionAllowed": false,
+      "brokerWriteAllowed": false,
+      "excelOrderWriteAllowed": false,
+      "rssOrderFunctionAllowed": false,
+      "liveTradingAllowed": false,
+      "paperTradingAllowed": false,
+      "automaticPromotionAllowed": false,
+      "productionUpdateAllowed": false,
+      "transmitted": false,
+      "freshHoldoutConsumed": false
+    }
+  },
+  "safety": {
+    "phase": "57.p25.3b.evidence-lineage-manifest",
+    "mode": "READ_ONLY_IMMUTABLE_PROSPECTIVE_LINEAGE",
+    "researchOnly": true,
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "freshHoldoutConsumed": false
+  }
+}

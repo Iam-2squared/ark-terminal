@@ -1,0 +1,193 @@
+name: Phase57 P25 Checkpointed Evaluation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/phase57-p25-checkpointed-evaluation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: phase57-p25-checkpointed-evaluation-2026-08-19
+  cancel-in-progress: false
+
+env:
+  EVIDENCE_DATE: '2026-08-19'
+  BATCH_SIZE: '5'
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Load immutable evidence and capture
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin automation/p25-evidence-data:refs/remotes/origin/automation/p25-evidence-data
+          git fetch origin automation/p25-day-data:refs/remotes/origin/automation/p25-day-data
+          mkdir -p /tmp/p25-inputs/captures
+          git show "origin/automation/p25-evidence-data:data/p25-evidence-lineage/${EVIDENCE_DATE}-manifest.json" > /tmp/p25-inputs/lineage.json
+          git show "origin/automation/p25-evidence-data:data/p25-evidence-lineage/${EVIDENCE_DATE}-integrity.json" > /tmp/p25-inputs/integrity.json
+          git show "origin/automation/p25-day-data:data/p25-day-sessions/${EVIDENCE_DATE}.json" > "/tmp/p25-inputs/captures/${EVIDENCE_DATE}.json"
+      - name: Download exact pinned P24 canonical byte snapshot
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p24-canonical
+          gh run download 31785422471 --repo "$GH_REPO" --name phase57-p24-9-oos-canonical-candidate --dir /tmp/p24-canonical
+          snapshot="$(find /tmp/p24-canonical -type f -name 'phase57-p24-9-oos-byte-snapshot.json' -print -quit)"
+          test -n "$snapshot"
+          node scripts/build_p25_pinned_history_pack.mjs --snapshot "$snapshot" --output /tmp/p25-inputs/history.json
+      - name: Build deterministic checkpoint matrix
+        id: plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE' > /tmp/p25-inputs/matrix.json
+          import fs from 'node:fs';
+          import {buildP253PCheckpointPlan} from './predict/daytrade/phase57-p25-3p-checkpoint-plan.js';
+          const capture=JSON.parse(fs.readFileSync(`/tmp/p25-inputs/captures/${process.env.EVIDENCE_DATE}.json`,'utf8'));
+          const session=capture.sessions?.[0];
+          if(!session)throw new Error('ready session missing');
+          const plan=buildP253PCheckpointPlan({universeRecord:session.universeRecord,batchSize:Number(process.env.BATCH_SIZE)});
+          fs.writeFileSync('/tmp/p25-inputs/plan.json',JSON.stringify(plan,null,2)+'\n');
+          process.stdout.write(JSON.stringify({batchIndex:plan.batches.map(x=>x.batchIndex)}));
+          NODE
+          echo "matrix=$(cat /tmp/p25-inputs/matrix.json)" >> "$GITHUB_OUTPUT"
+      - name: Upload frozen evaluation inputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-3q-inputs
+          path: /tmp/p25-inputs
+          retention-days: 30
+
+  shard:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download frozen inputs
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-p25-3q-inputs
+          path: /tmp/p25-inputs
+      - name: Run immutable scorer shard
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p25-checkpoint
+          node scripts/run_p25_checkpoint_shard.mjs \
+            --history-pack /tmp/p25-inputs/history.json \
+            --capture "/tmp/p25-inputs/captures/${EVIDENCE_DATE}.json" \
+            --batch-index "${{ matrix.batchIndex }}" \
+            --batch-size "$BATCH_SIZE" \
+            --output "/tmp/p25-checkpoint/checkpoint-${{ matrix.batchIndex }}.json"
+      - name: Upload immutable checkpoint
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-3q-checkpoint-${{ matrix.batchIndex }}
+          path: /tmp/p25-checkpoint/*.json
+          retention-days: 30
+
+  recombine:
+    needs: [prepare, shard]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download frozen inputs
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-p25-3q-inputs
+          path: /tmp/p25-inputs
+      - name: Download all immutable checkpoints
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-p25-3q-checkpoint-*
+          path: /tmp/p25-checkpoints
+          merge-multiple: true
+      - name: Recombine full-union ledger and evaluate
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/recombine_p25_checkpoint_evaluation.mjs \
+            --history-pack /tmp/p25-inputs/history.json \
+            --capture-dir /tmp/p25-inputs/captures \
+            --integrity-ledger /tmp/p25-inputs/integrity.json \
+            --lineage-manifest /tmp/p25-inputs/lineage.json \
+            --checkpoint-dir /tmp/p25-checkpoints \
+            --output /tmp/p25-evaluation.json
+          node scripts/build_p25_trade_pace_scorecard.mjs --evaluation /tmp/p25-evaluation.json --output /tmp/p25-scorecard.json
+      - name: Persist evaluation and scorecard atomically
+        shell: bash
+        run: |
+          set -euo pipefail
+          eval_head="$(node -e "const x=require('/tmp/p25-evaluation.json'); console.log(x.inputs.lineageManifestHeadSha256)")"
+          score_head="$(node -e "const x=require('/tmp/p25-scorecard.json'); console.log(x.inputs.lineageManifestHeadSha256)")"
+          test "$eval_head" = "$score_head"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git ls-remote --exit-code --heads origin automation/p25-evaluation-data >/dev/null 2>&1; then
+            git fetch origin automation/p25-evaluation-data:refs/remotes/origin/automation/p25-evaluation-data
+            git switch -C automation/p25-evaluation-data origin/automation/p25-evaluation-data
+          else
+            git switch --orphan automation/p25-evaluation-data
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+          mkdir -p data/p25-evaluations data/p25-scorecards
+          eval_target="data/p25-evaluations/${EVIDENCE_DATE}.json"
+          score_target="data/p25-scorecards/${EVIDENCE_DATE}.json"
+          if [ -e "$eval_target" ] || [ -e "$score_target" ]; then
+            echo 'dated evaluation already exists; refusing rewrite'
+            test -f "$eval_target" -a -f "$score_target"
+          else
+            cp /tmp/p25-evaluation.json "$eval_target"
+            cp /tmp/p25-scorecard.json "$score_target"
+            git add "$eval_target" "$score_target"
+            git commit -m "Phase57 P25 checkpointed evaluation ${EVIDENCE_DATE}"
+            git push origin HEAD:automation/p25-evaluation-data
+          fi
+      - name: Upload final evaluation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-checkpointed-evaluation-${{ env.EVIDENCE_DATE }}
+          path: |
+            /tmp/p25-evaluation.json
+            /tmp/p25-scorecard.json
+          retention-days: 90
+      - name: Safety boundary
+        run: echo 'Research-only; no broker/Excel/RSS writes, MARKETSPEED/board/Tick, paper/live trading, promotion, production update, or fresh holdout.'

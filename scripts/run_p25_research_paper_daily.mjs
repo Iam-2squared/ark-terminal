@@ -29,7 +29,8 @@ try{
   if(!verifyResearchPaperLedger(ledger))throw new Error('existing research Paper ledger integrity failure');
   const processed=new Set(ledger.sessions.map(row=>row.sessionDate));
   const shadowObservations=shadowPath&&fs.existsSync(shadowPath)?load(shadowPath):null;
-  const reports=[];
+  const reports=Array.isArray(previous?.reports)?previous.reports.map(row=>({...row})):[];
+  const reported=new Set(reports.map(row=>String(row?.sessionDate??'')).filter(Boolean));
 
   for(const session of exported.sessions){
     const sessionDate=String(session?.sessionDate??'');
@@ -43,13 +44,15 @@ try{
     const killSwitch=evaluateP25PaperKillSwitch({account,shadowReport,safety:P25_SIGNAL_INTENT_SAFETY});
     ledger=appendResearchPaperSession({ledger,sessionDate,replayResult:replay,sourceEvaluationSha256:session?.sourceEvaluationSha256??null});
     if(!verifyResearchPaperLedger(ledger))throw new Error('research Paper ledger integrity failure after append');
+    if(reported.has(sessionDate))throw new Error(`duplicate research Paper report for ${sessionDate}`);
     reports.push({sessionDate,replayEventCount:replay.events.length,shadowReport,killSwitch});
+    reported.add(sessionDate);
     if(killSwitch.tripped)break;
   }
 
   const payload={
     schemaVersion:1,
-    phase:'57.p25.3ab.daily-research-paper-runner',
+    phase:'57.p25.3ah.daily-research-paper-runner',
     status:'P25_RESEARCH_PAPER_STATE_WRITTEN',
     createdAt:new Date().toISOString(),
     mode:'research_offline_only',
@@ -60,7 +63,7 @@ try{
     account,
     ledger,
     reports,
-    methodology:{prospectiveScoringUnchanged:true,currentOuterOosDoesNotSelectDynamicN:true,futureBarsUsedForSignalGeneration:false,freshHoldoutConsumed:false,shadowOptionalUntilObservationFeedExists:true},
+    methodology:{prospectiveScoringUnchanged:true,currentOuterOosDoesNotSelectDynamicN:true,futureBarsUsedForSignalGeneration:false,freshHoldoutConsumed:false,shadowOptionalUntilObservationFeedExists:true,cumulativeReportsPreserved:true},
     safety:P25_SIGNAL_INTENT_SAFETY,
   };
   write(outputPath,payload);

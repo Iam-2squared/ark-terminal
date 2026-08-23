@@ -1,0 +1,156 @@
+name: Phase57 P25 Research Paper
+
+on:
+  workflow_run:
+    workflows: ['Phase57 P25 Checkpointed Evaluation']
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: 'Successful Phase57 P25 Checkpointed Evaluation run id; blank = latest successful run'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: phase57-p25-research-paper
+  cancel-in-progress: false
+
+jobs:
+  research-paper:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Resolve successful source evaluation run
+        id: source
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_RUN_ID: ${{ github.event.workflow_run.id }}
+          REQUESTED_RUN_ID: ${{ inputs.source_run_id }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = 'workflow_run' ]; then
+            RUN_ID="$EVENT_RUN_ID"
+          elif [ -n "${REQUESTED_RUN_ID:-}" ]; then
+            RUN_ID="$REQUESTED_RUN_ID"
+          else
+            RUN_ID="$(gh run list --repo "$GH_REPO" --workflow 'phase57-p25-checkpointed-evaluation.yml' --status success --limit 1 --json databaseId --jq '.[0].databaseId')"
+          fi
+          test -n "$RUN_ID"
+          CONCLUSION="$(gh run view "$RUN_ID" --repo "$GH_REPO" --json conclusion --jq '.conclusion')"
+          test "$CONCLUSION" = 'success'
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+      - name: Download immutable evaluation inputs and checkpoints
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_ID: ${{ steps.source.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p25-source /tmp/p25-inputs/captures /tmp/p25-checkpoints
+          gh run download "$RUN_ID" --repo "$GH_REPO" --dir /tmp/p25-source
+          history="$(find /tmp/p25-source -type f -name history.json -print -quit)"
+          integrity="$(find /tmp/p25-source -type f -name integrity.json -print -quit)"
+          lineage="$(find /tmp/p25-source -type f -name lineage.json -print -quit)"
+          capture="$(find /tmp/p25-source -type f -path '*/captures/*.json' -print -quit)"
+          test -n "$history" -a -n "$integrity" -a -n "$lineage" -a -n "$capture"
+          cp "$history" /tmp/p25-inputs/history.json
+          cp "$integrity" /tmp/p25-inputs/integrity.json
+          cp "$lineage" /tmp/p25-inputs/lineage.json
+          cp "$capture" /tmp/p25-inputs/captures/
+          find /tmp/p25-source -type f -name 'checkpoint-*.json' -exec cp {} /tmp/p25-checkpoints/ \;
+          test "$(find /tmp/p25-checkpoints -type f -name 'checkpoint-*.json' | wc -l)" -gt 0
+      - name: Export checkpointed frozen ledgers to research Paper inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/export_p25_checkpoint_research_paper_inputs.mjs \
+            --history-pack /tmp/p25-inputs/history.json \
+            --capture-dir /tmp/p25-inputs/captures \
+            --integrity-ledger /tmp/p25-inputs/integrity.json \
+            --lineage-manifest /tmp/p25-inputs/lineage.json \
+            --checkpoint-dir /tmp/p25-checkpoints \
+            --output /tmp/p25-paper-export.json
+          SESSION_DATE="$(node -e "const x=require('/tmp/p25-paper-export.json'); const s=x.sessions||[]; if(s.length!==1)process.exit(2); process.stdout.write(String(s[0].sessionDate||''));")"
+          [[ "$SESSION_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]
+          echo "SESSION_DATE=$SESSION_DATE" >> "$GITHUB_ENV"
+      - name: Load prior cumulative research Paper state
+        id: prior
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --heads origin automation/p25-paper-data >/dev/null 2>&1; then
+            git fetch origin automation/p25-paper-data:refs/remotes/origin/automation/p25-paper-data
+            if git cat-file -e 'origin/automation/p25-paper-data:data/p25-paper/state.json' 2>/dev/null; then
+              git show 'origin/automation/p25-paper-data:data/p25-paper/state.json' > /tmp/p25-paper-previous-state.json
+              if node -e "const x=require('/tmp/p25-paper-previous-state.json'); process.exit(x.ledger?.sessions?.some(r=>r.sessionDate===process.env.SESSION_DATE)?0:1)"; then
+                echo 'already_persisted=true' >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+            fi
+          fi
+          echo 'already_persisted=false' >> "$GITHUB_OUTPUT"
+      - name: Run cumulative research-only Paper simulation
+        if: steps.prior.outputs.already_persisted != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=(--paper-export /tmp/p25-paper-export.json --output /tmp/p25-paper-state.json --quantity 100 --commission-per-fill 0 --slippage-bps 0)
+          if [ -f /tmp/p25-paper-previous-state.json ]; then args+=(--state /tmp/p25-paper-previous-state.json); fi
+          node scripts/run_p25_research_paper_daily.mjs "${args[@]}"
+          node - <<'NODE'
+          const fs=require('fs');
+          const state=JSON.parse(fs.readFileSync('/tmp/p25-paper-state.json','utf8'));
+          const forbidden=['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','freshHoldoutConsumed'];
+          if(state.mode!=='research_offline_only'||state.executable!==false)throw new Error('research Paper state is executable');
+          for(const key of forbidden)if(state.safety?.[key]!==false)throw new Error(`unsafe Paper state flag: ${key}`);
+          NODE
+      - name: Persist cumulative and dated Paper state atomically
+        if: steps.prior.outputs.already_persisted != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin automation/p25-paper-data:refs/remotes/origin/automation/p25-paper-data || true
+          if git show-ref --verify --quiet refs/remotes/origin/automation/p25-paper-data; then
+            git switch -C automation/p25-paper-data origin/automation/p25-paper-data
+          else
+            git switch --orphan automation/p25-paper-data
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+          mkdir -p data/p25-paper/daily
+          dated="data/p25-paper/daily/${SESSION_DATE}.json"
+          test ! -e "$dated"
+          cp /tmp/p25-paper-state.json data/p25-paper/state.json
+          cp /tmp/p25-paper-state.json "$dated"
+          git add data/p25-paper/state.json "$dated"
+          git commit -m "Phase57 P25 research Paper ${SESSION_DATE}"
+          git push origin HEAD:automation/p25-paper-data
+      - name: Upload research Paper audit artifact
+        if: steps.prior.outputs.already_persisted != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-research-paper-${{ env.SESSION_DATE }}
+          path: |
+            /tmp/p25-paper-export.json
+            /tmp/p25-paper-state.json
+          retention-days: 90
+      - name: Safety boundary
+        run: echo 'Research-only offline Paper simulation. No broker/Excel/RSS writes, no MARKETSPEED orders, no paper/live order transmission, no promotion, no production update, no fresh holdout.'

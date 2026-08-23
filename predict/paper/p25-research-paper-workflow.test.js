@@ -17,6 +17,13 @@ test('research Paper workflow has a weekday fallback schedule without changing s
   assert.match(workflow, /--status success/);
 });
 
+test('research Paper workflow uses the predeclared baseline and persists scoreboard separately', () => {
+  assert.match(workflow, /--commission-per-fill 0 --slippage-bps 10/);
+  assert.match(workflow, /build_p25_research_paper_scoreboard\.mjs/);
+  assert.match(workflow, /data\/p25-paper\/scoreboard\.json/);
+  assert.match(workflow, /data\/p25-paper\/scoreboards\/\$\{SESSION_DATE\}\.json/);
+});
+
 test('research Paper workflow persists to a separate research-only branch', () => {
   assert.match(workflow, /automation\/p25-paper-data/);
   assert.match(workflow, /data\/p25-paper\/state\.json/);

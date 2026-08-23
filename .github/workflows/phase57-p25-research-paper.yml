@@ -108,12 +108,12 @@ jobs:
             fi
           fi
           echo 'already_persisted=false' >> "$GITHUB_OUTPUT"
-      - name: Run cumulative research-only Paper simulation
+      - name: Run cumulative research-only Paper simulation with predeclared costs
         if: steps.prior.outputs.already_persisted != 'true'
         shell: bash
         run: |
           set -euo pipefail
-          args=(--paper-export /tmp/p25-paper-export.json --output /tmp/p25-paper-state.json --quantity 100 --commission-per-fill 0 --slippage-bps 0)
+          args=(--paper-export /tmp/p25-paper-export.json --output /tmp/p25-paper-state.json --quantity 100 --commission-per-fill 0 --slippage-bps 10)
           if [ -f /tmp/p25-paper-previous-state.json ]; then args+=(--state /tmp/p25-paper-previous-state.json); fi
           node scripts/run_p25_research_paper_daily.mjs "${args[@]}"
           node - <<'NODE'
@@ -123,7 +123,13 @@ jobs:
           if(state.mode!=='research_offline_only'||state.executable!==false)throw new Error('research Paper state is executable');
           for(const key of forbidden)if(state.safety?.[key]!==false)throw new Error(`unsafe Paper state flag: ${key}`);
           NODE
-      - name: Persist cumulative and dated Paper state atomically
+      - name: Build predeclared-cost cumulative Paper scoreboard
+        if: steps.prior.outputs.already_persisted != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/build_p25_research_paper_scoreboard.mjs --state /tmp/p25-paper-state.json --output /tmp/p25-paper-scoreboard.json
+      - name: Persist cumulative and dated Paper state and scoreboard atomically
         if: steps.prior.outputs.already_persisted != 'true'
         shell: bash
         run: |
@@ -137,12 +143,16 @@ jobs:
             git switch --orphan automation/p25-paper-data
             git rm -rf . >/dev/null 2>&1 || true
           fi
-          mkdir -p data/p25-paper/daily
+          mkdir -p data/p25-paper/daily data/p25-paper/scoreboards
           dated="data/p25-paper/daily/${SESSION_DATE}.json"
+          board_dated="data/p25-paper/scoreboards/${SESSION_DATE}.json"
           test ! -e "$dated"
+          test ! -e "$board_dated"
           cp /tmp/p25-paper-state.json data/p25-paper/state.json
           cp /tmp/p25-paper-state.json "$dated"
-          git add data/p25-paper/state.json "$dated"
+          cp /tmp/p25-paper-scoreboard.json data/p25-paper/scoreboard.json
+          cp /tmp/p25-paper-scoreboard.json "$board_dated"
+          git add data/p25-paper/state.json "$dated" data/p25-paper/scoreboard.json "$board_dated"
           git commit -m "Phase57 P25 research Paper ${SESSION_DATE}"
           git push origin HEAD:automation/p25-paper-data
       - name: Upload research Paper audit artifact
@@ -153,6 +163,7 @@ jobs:
           path: |
             /tmp/p25-paper-export.json
             /tmp/p25-paper-state.json
+            /tmp/p25-paper-scoreboard.json
           retention-days: 90
       - name: Safety boundary
         run: echo 'Research-only offline Paper simulation. No broker/Excel/RSS writes, no MARKETSPEED orders, no paper/live order transmission, no promotion, no production update, no fresh holdout.'

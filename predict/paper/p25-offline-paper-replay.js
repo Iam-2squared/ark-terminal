@@ -1,4 +1,4 @@
-import { createPaperAccount } from './paper-account.js';
+import { createPaperAccount, assertPaperAccount, clonePaperAccount } from './paper-account.js';
 import { submitPaperOrder, executePaperOrder, markPaperAccount } from './paper-engine.js';
 import { createP25ResearchIntent, toPaperOrderResearchDraft, P25_SIGNAL_INTENT_SAFETY } from './p25-signal-intent-adapter.js';
 
@@ -24,13 +24,20 @@ export function replayP25ResearchSignals({
   commissionPerFill = 0,
   slippageBps = 0,
   accountId = 'p25-research-paper',
+  startingAccount = null,
 } = {}) {
   assertOfflineSafety();
   if (!Array.isArray(signals)) throw new Error('signals must be an array.');
   if (!Number.isFinite(Number(slippageBps)) || Number(slippageBps) < 0) throw new Error('slippageBps must be non-negative.');
   if (!Number.isFinite(Number(commissionPerFill)) || Number(commissionPerFill) < 0) throw new Error('commissionPerFill must be non-negative.');
 
-  let account = createPaperAccount({ accountId, initialCash });
+  let account;
+  if (startingAccount !== null) {
+    assertPaperAccount(startingAccount);
+    account = clonePaperAccount(startingAccount);
+  } else {
+    account = createPaperAccount({ accountId, initialCash });
+  }
   const events = [];
 
   for (const row of signals) {
@@ -43,27 +50,14 @@ export function replayP25ResearchSignals({
 
     const referencePrice = finitePositive(row.referencePrice, 'referencePrice');
     const fillPrice = referencePrice * (1 + Number(slippageBps) / 10_000);
-    const submitted = submitPaperOrder({
-      account,
-      orderInput: draft.orderInput,
-      estimatedPrice: fillPrice,
-      riskPolicy,
-      submittedAt: intent.sourceTimestamp,
-    });
+    const submitted = submitPaperOrder({ account, orderInput: draft.orderInput, estimatedPrice: fillPrice, riskPolicy, submittedAt: intent.sourceTimestamp });
     account = submitted.account;
-
     if (!submitted.risk.passed) {
       events.push({ intentId: intent.intentId, symbol: intent.symbol, status: 'risk_rejected', reasons: submitted.risk.reasons });
       continue;
     }
 
-    const executed = executePaperOrder({
-      account,
-      orderId: submitted.order.orderId,
-      fillPrice,
-      commission: Number(commissionPerFill),
-      filledAt: intent.sourceTimestamp,
-    });
+    const executed = executePaperOrder({ account, orderId: submitted.order.orderId, fillPrice, commission: Number(commissionPerFill), filledAt: intent.sourceTimestamp });
     account = executed.account;
     events.push({
       intentId: intent.intentId,
@@ -93,7 +87,7 @@ export function replayP25ResearchSignals({
     mode: 'research_offline_only',
     executable: false,
     safety: P25_SIGNAL_INTENT_SAFETY,
-    assumptions: Object.freeze({ initialCash: Number(initialCash), quantity: Number(quantity), commissionPerFill: Number(commissionPerFill), slippageBps: Number(slippageBps) }),
+    assumptions: Object.freeze({ initialCash: Number(account.initialCash), quantity: Number(quantity), commissionPerFill: Number(commissionPerFill), slippageBps: Number(slippageBps) }),
     events: Object.freeze(events),
     account: Object.freeze(account),
   });

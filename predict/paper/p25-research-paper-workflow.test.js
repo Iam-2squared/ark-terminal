@@ -10,6 +10,13 @@ test('research Paper workflow is downstream of completed checkpoint evaluation',
   assert.match(workflow, /conclusion == 'success'/);
 });
 
+test('research Paper workflow has a weekday fallback schedule without changing source evaluation rules', () => {
+  assert.match(workflow, /schedule:/);
+  assert.match(workflow, /0 12 \* \* 1-5/);
+  assert.match(workflow, /github\.event_name == 'schedule'/);
+  assert.match(workflow, /--status success/);
+});
+
 test('research Paper workflow persists to a separate research-only branch', () => {
   assert.match(workflow, /automation\/p25-paper-data/);
   assert.match(workflow, /data\/p25-paper\/state\.json/);

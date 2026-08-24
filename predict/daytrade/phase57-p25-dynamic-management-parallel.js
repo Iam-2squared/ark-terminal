@@ -31,14 +31,18 @@ export const P25_DYNAMIC_MANAGEMENT_POLICY = Object.freeze({
 const keyOf=row=>`${String(row?.sessionDate??'')}|${String(row?.entryTimestamp??'')}|${String(row?.symbol??'').toUpperCase()}`;
 const finite=value=>Number.isFinite(Number(value));
 
+export function assertP25DynamicManagementFrozenEntry(row={}){
+  if(row?.entryAccepted!==true)throw new Error('dynamic management accepts only entryAccepted=true frozen rows');
+  if(row?.frozenBeforeOutcome!==true)throw new Error('dynamic management requires outcome-free frozen Entry rows: frozenBeforeOutcome must be true');
+  if(row?.currentOutcomeUsed!==false)throw new Error('dynamic management requires outcome-free frozen Entry rows: currentOutcomeUsed must be false');
+  if(!Array.isArray(row?.futureBars)||!row.futureBars.length)throw new Error(`futureBars required for sequential management: ${keyOf(row)}`);
+  if(!Array.isArray(row?.contextBars))throw new Error(`contextBars required for point-in-time management: ${keyOf(row)}`);
+  return true;
+}
+
 export function evaluateP25DynamicManagementParallel({frozenEntryRows=[],fixedResolvedTrades=[]}={}){
   const rows=Array.isArray(frozenEntryRows)?frozenEntryRows:[];
-  for(const row of rows){
-    if(row?.entryAccepted!==true)throw new Error('dynamic management accepts only entryAccepted=true frozen rows');
-    if(row?.frozenBeforeOutcome!==true||row?.currentOutcomeUsed!==false)throw new Error('dynamic management requires outcome-free frozen Entry rows');
-    if(!Array.isArray(row?.futureBars)||!row.futureBars.length)throw new Error(`futureBars required for sequential management: ${keyOf(row)}`);
-    if(!Array.isArray(row?.contextBars))throw new Error(`contextBars required for point-in-time management: ${keyOf(row)}`);
-  }
+  for(const row of rows)assertP25DynamicManagementFrozenEntry(row);
 
   const dynamic=evaluateIntegratedTradeResearch(rows,{respectFrozenEntryHorizon:false});
   const fixedByKey=new Map((Array.isArray(fixedResolvedTrades)?fixedResolvedTrades:[]).map(row=>[keyOf(row),row]));
@@ -85,4 +89,4 @@ export function evaluateP25DynamicManagementParallel({frozenEntryRows=[],fixedRe
   });
 }
 
-export default {evaluateP25DynamicManagementParallel,P25_DYNAMIC_MANAGEMENT_POLICY,P25_DYNAMIC_MANAGEMENT_SAFETY};
+export default {evaluateP25DynamicManagementParallel,assertP25DynamicManagementFrozenEntry,P25_DYNAMIC_MANAGEMENT_POLICY,P25_DYNAMIC_MANAGEMENT_SAFETY};

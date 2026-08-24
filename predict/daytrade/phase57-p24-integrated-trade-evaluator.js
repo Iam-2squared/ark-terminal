@@ -35,6 +35,7 @@ export function evaluateIntegratedTradeResearch(rows=[],options={}){
       barsHeld:out.barsHeld,barsHeldBucket:barsBucket(out.barsHeld), grossReturnPct:out.grossReturnPct, netReturnPct:out.netReturnPct,
       mfePct:out.mfePct, maePct:out.maePct, captureRatio:out.captureRatio,
       givebackPct:Number(out.mfePct)-Number(out.grossReturnPct),stateVisitCounts:out.stateVisitCounts,
+      managementDecisions:Object.freeze(Array.isArray(out.decisions)?out.decisions:[]),
     }));
   }
   const returns=outcomes.map(x=>Number(x.netReturnPct)).filter(Number.isFinite);

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { evaluateP25DynamicManagementParallel, P25_DYNAMIC_MANAGEMENT_SAFETY } from '../daytrade/phase57-p25-dynamic-management-parallel.js';
+import { evaluateP25DynamicManagementParallel, assertP25DynamicManagementFrozenEntry, P25_DYNAMIC_MANAGEMENT_SAFETY } from '../daytrade/phase57-p25-dynamic-management-parallel.js';
 
 const base='2026-08-24T00:';
 const bars=[
@@ -15,7 +15,12 @@ const row={
   frozenBeforeOutcome:true,currentOutcomeUsed:false,entryPrice:101.8,signalDirection:'LONG',baseHorizonBars:3,
   contextBars:bars.slice(0,2),futureBars:bars.slice(3),
 };
-const fixed={symbol:'7203.T',sessionDate:'2026-08-24',entryTimestamp:row.entryTimestamp,exitTimestamp:`${base}25:00.000Z`,exitReason:'FROZEN_HORIZON',netReturnPct:-2.112, barsHeld:3};
+const fixed={symbol:'7203.T',sessionDate:'2026-08-24',entryTimestamp:row.entryTimestamp,exitTimestamp:`${base}25:00.000Z`,exitReason:'FROZEN_HORIZON',netReturnPct:-2.112,barsHeld:3};
+
+assert.equal(assertP25DynamicManagementFrozenEntry(row),true);
+assert.throws(()=>assertP25DynamicManagementFrozenEntry({...row,currentOutcomeUsed:true}),/currentOutcomeUsed must be false/);
+assert.throws(()=>assertP25DynamicManagementFrozenEntry({...row,frozenBeforeOutcome:false}),/frozenBeforeOutcome must be true/);
+
 const out=evaluateP25DynamicManagementParallel({frozenEntryRows:[row],fixedResolvedTrades:[fixed]});
 assert.equal(out.mode,'research_parallel_only');
 assert.equal(out.executable,false);
@@ -25,9 +30,6 @@ assert.equal(out.pairedCount,1);
 assert.equal(out.methodology.fixedBaselineUntouched,true);
 assert.equal(out.methodology.pointInTimeSequentialManagement,true);
 assert.equal(out.methodology.performanceConclusionAllowed,false);
-for(const value of Object.values(P25_DYNAMIC_MANAGEMENT_SAFETY)){
-  if(typeof value==='boolean'&&['humanApprovalRequired'].includes('')) continue;
-}
 for(const key of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed']) assert.equal(out.safety[key],false,key);
-assert.throws(()=>evaluateP25DynamicManagementParallel({frozenEntryRows:[{...row,currentOutcomeUsed:true}],fixedResolvedTrades:[fixed]}),/outcome-free frozen Entry/);
+assert.throws(()=>evaluateP25DynamicManagementParallel({frozenEntryRows:[{...row,currentOutcomeUsed:true}],fixedResolvedTrades:[fixed]}),/currentOutcomeUsed must be false/);
 console.log('P25 dynamic management parallel regression test passed');

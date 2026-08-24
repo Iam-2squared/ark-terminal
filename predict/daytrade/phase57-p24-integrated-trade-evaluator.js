@@ -28,7 +28,7 @@ export function evaluateIntegratedTradeResearch(rows=[],options={}){
     const out=simulateTradeManagementStateMachine(row,tradeManagement);
     if(!out)continue;
     outcomes.push(Object.freeze({
-      symbol:row.symbol??null, setup:row.setup??null, entryBand:row.entryBand??null,
+      symbol:row.symbol??null, sessionDate:row.sessionDate??null, setup:row.setup??null, entryBand:row.entryBand??null,
       entryTimestamp:row.entryTimestamp??row.futureBars?.[0]?.timestamp??null,
       baseHorizonBars:frozenHorizon,timeBucket:timeBucket(row.entryTimestamp??row.futureBars?.[0]?.timestamp),
       direction:out.direction, exitTimestamp:out.outcomeAt, exitReason:out.exitReason,

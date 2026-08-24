@@ -75,7 +75,7 @@ export function summarizeP253ALPairs(pairs=[]){
   });
 }
 
-function byVariant(pairs=[]){
+export function summarizeP253ALByVariant(pairs=[]){
   const variants=['FIXED_5','OLD_FIXED_30','DYNAMIC_30','DYNAMIC_40','DYNAMIC_50'];
   return Object.freeze(Object.fromEntries(variants.map(variant=>[
     variant,
@@ -86,17 +86,27 @@ function byVariant(pairs=[]){
 /**
  * Reconstructs the same lineage-pinned P25.3D inputs, then evaluates Dynamic HOLD/EXIT
  * only after Entry has already been frozen. Fixed outcomes remain the formal baseline.
+ * sessionDates is an execution-only shard selector applied after immutable input assembly;
+ * it cannot alter the frozen evidence chain or any Entry/model/universe/threshold decision.
  */
 export function runP253ALDynamicManagementMultisession({
   historyPack,
   captureArtifacts=[],
   sessionIntegrityLedger,
   lineageManifest,
+  sessionDates=null,
 }={}){
   const assembled=assembleP253AutonomousEvidenceInputs({historyPack,captureArtifacts,sessionIntegrityLedger,lineageManifest});
+  const requested=sessionDates==null?null:new Set((Array.isArray(sessionDates)?sessionDates:[sessionDates]).map(String));
+  const selectedInputs=requested==null?assembled.sessionInputs:assembled.sessionInputs.filter(input=>requested.has(String(input?.universeRecord?.sessionDate??'')));
+  if(requested&&selectedInputs.length!==requested.size){
+    const found=new Set(selectedInputs.map(input=>String(input?.universeRecord?.sessionDate??'')));
+    const missing=[...requested].filter(date=>!found.has(date));
+    throw new Error(`P25.3AL requested session shard not ready: ${missing.join(',')}`);
+  }
   const sessions=[];
   const pairs=[];
-  for(const input of assembled.sessionInputs){
+  for(const input of selectedInputs){
     const result=runP253AKDynamicManagementSession({
       universeRecord:input.universeRecord,
       historicalSessions:assembled.historicalSessions,
@@ -130,11 +140,12 @@ export function runP253ALDynamicManagementMultisession({
     lineageManifestHeadSha256:assembled.lineageManifestHeadSha256,
     lineageNodeCount:assembled.lineageNodeCount,
     expectedSessionCount:assembled.expectedSessionDates.length,
-    readySessionCount:assembled.sessionInputs.length,
+    readySessionCount:selectedInputs.length,
+    shardSessionDates:Object.freeze(selectedInputs.map(input=>String(input?.universeRecord?.sessionDate??''))),
     sessions:Object.freeze(sessions),
     pairs:Object.freeze(pairs),
     summary:summarizeP253ALPairs(pairs),
-    byVariant:byVariant(pairs),
+    byVariant:summarizeP253ALByVariant(pairs),
     methodology:Object.freeze({
       sameFrozenEvidenceChainAsP253D:true,
       sameFrozenUniverseAndEntryAsFixedBaseline:true,
@@ -142,6 +153,7 @@ export function runP253ALDynamicManagementMultisession({
       scorerReceivesPrefixOnly:true,
       futureBarsUsedForEntryDecision:false,
       managementFutureBarsSequentialOnly:true,
+      executionShardSelectionOnly:true,
       postOutcomeRuleSelection:false,
       entryRetuning:false,
       modelRetuning:false,
@@ -156,4 +168,4 @@ export function runP253ALDynamicManagementMultisession({
   });
 }
 
-export default {runP253ALDynamicManagementMultisession,summarizeP253ALPairs,PHASE57_P25_3AL_POLICY,PHASE57_P25_3AL_SAFETY};
+export default {runP253ALDynamicManagementMultisession,summarizeP253ALPairs,summarizeP253ALByVariant,PHASE57_P25_3AL_POLICY,PHASE57_P25_3AL_SAFETY};

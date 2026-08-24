@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.p25.3af.research-paper-scoreboard-cli",
+  "status": "P25_RESEARCH_PAPER_SCOREBOARD_WRITTEN",
+  "createdAt": "2026-08-24T12:53:13.173Z",
+  "costPolicy": {
+    "version": "p25-research-cost-policy-v1",
+    "id": "PREDECLARED_2026_08_23_V1",
+    "currency": "JPY",
+    "commissionPerFill": 0,
+    "slippageBps": 10,
+    "sensitivitySlippageBps": [
+      0,
+      5,
+      10,
+      20
+    ],
+    "brokerTariffClaimed": false,
+    "tunedFromProspectivePerformance": false,
+    "effectiveForNewResearchPaperSessionsOnly": true,
+    "executable": false
+  },
+  "version": "p25-research-paper-scoreboard-v1",
+  "mode": "research_offline_only",
+  "executable": false,
+  "completedSessionCount": 1,
+  "totalReplayEvents": 13,
+  "averageReplayEventsPerSession": 13,
+  "initialCash": 1000000,
+  "endingEquity": 1000000,
+  "cumulativeReturnPct": 0,
+  "maximumDrawdownPct": 0,
+  "equityCurve": [
+    {
+      "sessionDate": "2026-08-19",
+      "equity": 1000000,
+      "eventCount": 13
+    }
+  ],
+  "shadowObservedSessionCount": 0,
+  "killSwitchTripped": false,
+  "latestKillSwitch": {
+    "version": "p25-paper-kill-switch-v1",
+    "tripped": false,
+    "status": "RESEARCH_PIPELINE_HEALTHY",
+    "reasons": [],
+    "metrics": {
+      "equity": 1000000,
+      "initialCash": 1000000,
+      "drawdownPct": 0
+    },
+    "policy": {
+      "maximumDrawdownPct": 10,
+      "minimumEquity": 0,
+      "maximumBlockedShadowShare": 0.5,
+      "requirePaperTradingDisabled": true,
+      "requireLiveTradingDisabled": true
+    },
+    "executable": false
+  },
+  "assumptions": {
+    "quantity": 100,
+    "commissionPerFill": 0,
+    "slippageBps": 10
+  },
+  "methodology": {
+    "cumulativeEquityFromAppendOnlyLedger": true,
+    "noModelSelectionFromScoreboard": true,
+    "noDynamicNSelectionFromScoreboard": true,
+    "performanceConclusionAllowed": false,
+    "freshHoldoutConsumed": false
+  }
+}

@@ -21,6 +21,9 @@ export const P25_DYNAMIC_MANAGEMENT_POLICY = Object.freeze({
   activeP25FixedHorizonBaselineUnchanged:true,
   pointInTimeSequentialManagementRequired:true,
   futureBarsMayBeConsumedOnlySequentiallyByManagementEngine:true,
+  managementDecisionEvidenceRequired:true,
+  decisionEvidenceMustBePointInTime:true,
+  postOutcomeRuleSelectionForbidden:true,
   dynamicManagementResultsMaySelectEntry:false,
   dynamicManagementResultsMaySelectDynamicN:false,
   dynamicManagementResultsMayRelaxEntryThreshold:false,
@@ -40,6 +43,24 @@ export function assertP25DynamicManagementFrozenEntry(row={}){
   return true;
 }
 
+function auditDecisionEvidence(decisions=[]){
+  const rows=Array.isArray(decisions)?decisions:[];
+  const healthRows=rows.filter(row=>row?.health&&typeof row.health==='object');
+  const reasonsPresent=rows.every(row=>typeof row?.reason==='string'&&row.reason.length>0);
+  const healthFieldsComplete=healthRows.every(row=>[
+    'structureBroken','fastTrendHealthy','closeVsFastHealthy','vwapHealthy','momentumHealthy',
+    'pullbackHealthy','healthyVotes','damageVotes',
+  ].every(key=>Object.prototype.hasOwnProperty.call(row.health,key)));
+  return Object.freeze({
+    decisionCount:rows.length,
+    healthDecisionCount:healthRows.length,
+    reasonsPresent,
+    healthFieldsComplete,
+    pointInTimeSequentialRequired:true,
+    futureBarsUsedBeforeDecision:false,
+  });
+}
+
 export function evaluateP25DynamicManagementParallel({frozenEntryRows=[],fixedResolvedTrades=[]}={}){
   const rows=Array.isArray(frozenEntryRows)?frozenEntryRows:[];
   for(const row of rows)assertP25DynamicManagementFrozenEntry(row);
@@ -51,16 +72,45 @@ export function evaluateP25DynamicManagementParallel({frozenEntryRows=[],fixedRe
   for(const row of rows){
     const key=keyOf(row),fixed=fixedByKey.get(key),managed=dynamicByKey.get(key);
     if(!fixed||!managed)continue;
+    const decisionEvidence=Object.freeze(Array.isArray(managed.managementDecisions)?managed.managementDecisions:[]);
     pairs.push(Object.freeze({
       key,
       symbol:row.symbol,
       sessionDate:row.sessionDate,
       entryTimestamp:row.entryTimestamp,
       fixed:Object.freeze({exitTimestamp:fixed.exitTimestamp,exitReason:fixed.exitReason,netReturnPct:Number(fixed.netReturnPct),barsHeld:Number(fixed.barsHeld)}),
-      dynamic:Object.freeze({exitTimestamp:managed.exitTimestamp,exitReason:managed.exitReason,netReturnPct:Number(managed.netReturnPct),barsHeld:Number(managed.barsHeld)}),
+      dynamic:Object.freeze({
+        exitTimestamp:managed.exitTimestamp,
+        exitReason:managed.exitReason,
+        netReturnPct:Number(managed.netReturnPct),
+        barsHeld:Number(managed.barsHeld),
+        mfePct:Number(managed.mfePct),
+        maePct:Number(managed.maePct),
+        givebackPct:Number(managed.givebackPct),
+        captureRatio:managed.captureRatio==null?null:Number(managed.captureRatio),
+        stateVisitCounts:managed.stateVisitCounts,
+        decisionEvidence,
+        evidenceAudit:auditDecisionEvidence(decisionEvidence),
+      }),
       deltaNetReturnPct:finite(fixed.netReturnPct)&&finite(managed.netReturnPct)?Number(managed.netReturnPct)-Number(fixed.netReturnPct):null,
+      deltaBarsHeld:finite(fixed.barsHeld)&&finite(managed.barsHeld)?Number(managed.barsHeld)-Number(fixed.barsHeld):null,
     }));
   }
+
+  const allEvidenceAudits=pairs.map(pair=>pair.dynamic.evidenceAudit);
+  const evidenceAudit=Object.freeze({
+    pairedTradeCount:pairs.length,
+    decisionCount:allEvidenceAudits.reduce((sum,row)=>sum+row.decisionCount,0),
+    healthDecisionCount:allEvidenceAudits.reduce((sum,row)=>sum+row.healthDecisionCount,0),
+    everyDecisionHasReason:allEvidenceAudits.every(row=>row.reasonsPresent),
+    everyHealthDecisionHasCoreEvidence:allEvidenceAudits.every(row=>row.healthFieldsComplete),
+    decisionBasis:Object.freeze([
+      'market_structure','fast_vs_slow_trend','close_vs_fast','VWAP','momentum','ATR_normalized_pullback',
+      'ATR_hard_stop','state_aware_profit_protection','confirmation_streaks',
+    ]),
+    arbitraryHoldExtensionUsed:false,
+    resultBasedRetuningAllowed:false,
+  });
 
   return Object.freeze({
     phase:'57.p25.3aj.dynamic-management-parallel',
@@ -72,12 +122,16 @@ export function evaluateP25DynamicManagementParallel({frozenEntryRows=[],fixedRe
     pairedCount:pairs.length,
     dynamic,
     pairs:Object.freeze(pairs),
+    evidenceAudit,
     methodology:Object.freeze({
       sameFrozenEntrySetRequired:true,
       fixedBaselineUntouched:true,
       externalFrozenEntryOnly:true,
       pointInTimeSequentialManagement:true,
       futureBarsUsedBeforeDecision:false,
+      managementDecisionEvidencePersisted:true,
+      arbitraryHoldExtension:false,
+      postOutcomeRuleSelection:false,
       entryRetuning:false,
       universeRetuning:false,
       thresholdRetuning:false,

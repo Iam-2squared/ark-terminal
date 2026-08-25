@@ -2,94 +2,111 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Detail | Ark Terminal</title>
-
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-    <header class="detailHeader">
-        <a href="../index.html" class="backButton">
-            ← Stocks
-        </a>
+    <div class="terminalShell">
+        <header class="terminalTopbar">
+            <a href="../index.html" class="brandLockup" aria-label="Stocksへ戻る">
+                <span class="brandMark">A</span>
+                <span><strong>ARK TERMINAL</strong><small>MARKET WORKSPACE</small></span>
+            </a>
+            <div class="topbarStatus">
+                <span class="statusChip live">DATA LIVE</span>
+                <span class="statusChip research">RESEARCH</span>
+                <span class="statusChip locked">EXECUTION LOCKED</span>
+            </div>
+        </header>
 
-        <div>
-            <p class="eyebrow">Ark Terminal</p>
-            <h1 id="stockName">Stock Detail</h1>
-            <p id="stockSymbol" class="stockSymbol">
-                Loading...
-            </p>
-        </div>
-    </header>
+        <section class="instrumentHeader">
+            <div class="instrumentIdentity">
+                <a href="../index.html" class="backButton">← STOCKS</a>
+                <p class="eyebrow">INSTRUMENT</p>
+                <div class="instrumentTitleRow">
+                    <div>
+                        <h1 id="stockName">Stock Detail</h1>
+                        <p id="stockSymbol" class="stockSymbol">Loading...</p>
+                    </div>
+                    <span class="marketPill">EQUITY</span>
+                </div>
+            </div>
+            <div class="priceBlock">
+                <span class="panelLabel">LAST PRICE</span>
+                <p id="stockPrice" class="stockPrice">価格取得前</p>
+                <p id="stockChange" class="stockChange">--</p>
+            </div>
+        </section>
 
-    <main class="detailGrid">
-        <section class="panel chartPanel">
-            <div class="priceHeader">
-                <div>
-                    <p class="panelLabel">Current Price</p>
-                    <p id="stockPrice" class="stockPrice">
-                        価格取得前
-                    </p>
+        <main class="detailGrid">
+            <section class="panel chartPanel">
+                <div class="panelHeading terminalHeading">
+                    <div>
+                        <p class="panelLabel">PRIMARY MARKET VIEW</p>
+                        <h2>Price Action</h2>
+                    </div>
+                    <div class="chartToolbar">
+                        <div class="marketMeta">
+                            <p id="marketStatus" class="marketStatus">チャートを読み込んでいます...</p>
+                            <p id="lastUpdated" class="lastUpdated">--</p>
+                        </div>
+                        <button id="refreshChartButton" class="refreshChartButton" type="button">
+                            <span class="refreshIcon">↻</span> REFRESH
+                        </button>
+                    </div>
                 </div>
 
-                <p id="stockChange" class="stockChange">
-                    --
-                </p>
-            </div>
+                <div class="chartContextBar">
+                    <span>PRICE</span><span>VOLUME</span><span>STRUCTURE</span><span>READ ONLY</span>
+                </div>
 
-            <div class="chartToolbar">
-    <div>
-        <p id="marketStatus" class="marketStatus">
-            チャートを読み込んでいます...
-        </p>
+                <div id="stockChart" class="stockChart">
+                    <div id="tradingviewChart" class="tradingviewChart"></div>
+                </div>
+            </section>
 
-        <p id="lastUpdated" class="lastUpdated">
-            --
-        </p>
+            <aside class="rightRail">
+                <section class="panel intelligencePanel">
+                    <div class="panelHeading">
+                        <div>
+                            <p class="panelLabel">ARK INTELLIGENCE</p>
+                            <h2>Decision Context</h2>
+                        </div>
+                        <span class="systemDot"></span>
+                    </div>
+                    <div class="intelligenceGrid">
+                        <div><span>Direction</span><strong>WAIT</strong></div>
+                        <div><span>Confidence</span><strong>--</strong></div>
+                        <div><span>Horizon</span><strong>--</strong></div>
+                        <div><span>Regime</span><strong>--</strong></div>
+                    </div>
+                    <div class="researchNotice">
+                        <span>RESEARCH MODE</span>
+                        <p>Prediction / model values are intentionally not synthesized on this surface.</p>
+                    </div>
+                </section>
+
+                <section class="panel newsPanel">
+                    <div class="panelHeading">
+                        <div>
+                            <p class="panelLabel">MARKET FEED</p>
+                            <h2>Related News</h2>
+                        </div>
+                        <span id="newsCount" class="newsCount">0</span>
+                    </div>
+                    <div id="relatedNews" class="relatedNews">
+                        <p class="emptyMessage">ニュースを読み込んでいます...</p>
+                    </div>
+                </section>
+            </aside>
+        </main>
+
+        <footer class="terminalFooter">
+            <span>ARK TERMINAL / STOCK WORKSPACE</span>
+            <span>READ ONLY · NO BROKER WRITE · NO ORDER ROUTING</span>
+        </footer>
     </div>
-
-    <button
-        id="refreshChartButton"
-        class="refreshChartButton"
-        type="button"
-    >
-        <span class="refreshIcon">↻</span>
-        更新
-    </button>
-</div>
-
-<div id="stockChart" class="stockChart">
-    <div
-        id="tradingviewChart"
-        class="tradingviewChart"
-    ></div>
-</div>
-        </section>
-
-        <section class="panel newsPanel">
-            <div class="panelHeading">
-                <div>
-                    <p class="panelLabel">Market Feed</p>
-                    <h2>Related News</h2>
-                </div>
-
-                <span id="newsCount" class="newsCount">
-                    0
-                </span>
-            </div>
-
-            <div id="relatedNews" class="relatedNews">
-                <p class="emptyMessage">
-                    ニュースを読み込んでいます...
-                </p>
-            </div>
-        </section>
-    </main>
 
     <script src="script.js"></script>
 </body>

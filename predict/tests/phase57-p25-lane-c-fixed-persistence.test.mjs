@@ -25,6 +25,7 @@ function artifactFixture(){
     const results={
       CURRENT_EXISTING:{
         status:'REFERENCE_ONLY_NOT_CAUSAL_PORTFOLIO',max10Equivalent:null,
+        eligibleForCapitalAllocationWinnerSelection:false,comparableWithEventDrivenProfiles:false,
         safety,
       },
     };
@@ -49,7 +50,10 @@ function artifactFixture(){
     }
     comparisons[variant]={
       status:'LANE_C_PAIRED_ALLOCATION_PROFILES_SIMULATED',
-      resultOrder:[...profiles],results,safety,
+      resultOrder:[...profiles],results,
+      pairedAudit:{sameFrozenEntryCandidates:true,sameManagementResult:true,onlyCausalAllocationProfileChanged:true},
+      interpretation:{winnerSelectionAllowed:false,prospectiveSampleSufficient:false},
+      safety,
     };
   }
   const result={
@@ -58,6 +62,7 @@ function artifactFixture(){
     sourceReconciliation:{
       exactCheckpointRecomputationMatch:true,packetSummariesMatch:true,
       sourceEvaluationCanonicalSha256:'b'.repeat(64),recomputedEvaluationCanonicalSha256:'b'.repeat(64),
+      byUniverseVariant:Object.fromEntries(variants.map(variant=>[variant,{currentReferenceMatchesFormalP25:true}])),
     },
     inputAudit:{
       readySessionCount:1,expectedSessionCount:1,expectedSessionDates:['2026-08-25'],

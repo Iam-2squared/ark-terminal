@@ -142,9 +142,20 @@ export function validateLaneCFixedPortfolioArtifact(artifact){
     if(comparison?.status!=='LANE_C_PAIRED_ALLOCATION_PROFILES_SIMULATED')throw new Error(`Lane C Fixed persistence comparison missing for ${variant}`);
     assertSafetyFalse(comparison.safety,`comparison ${variant}`);
     assertExactOrder(comparison.resultOrder,PHASE57_P25_LANE_C_FIXED_PERSISTENCE_PROFILES,`comparison ${variant} profiles`);
-    if(comparison.results?.CURRENT_EXISTING?.status!=='REFERENCE_ONLY_NOT_CAUSAL_PORTFOLIO'||comparison.results.CURRENT_EXISTING.max10Equivalent!==null){
+    if(artifact.result.sourceReconciliation?.byUniverseVariant?.[variant]?.currentReferenceMatchesFormalP25!==true){
+      throw new Error(`Lane C Fixed persistence Current reference does not match formal P25 for ${variant}`);
+    }
+    if(comparison.pairedAudit?.sameFrozenEntryCandidates!==true||comparison.pairedAudit?.sameManagementResult!==true||comparison.pairedAudit?.onlyCausalAllocationProfileChanged!==true){
+      throw new Error(`Lane C Fixed persistence paired audit failed for ${variant}`);
+    }
+    if(comparison.interpretation?.winnerSelectionAllowed!==false||comparison.interpretation?.prospectiveSampleSufficient!==false){
+      throw new Error(`Lane C Fixed persistence interpretation lock failed for ${variant}`);
+    }
+    const current=comparison.results?.CURRENT_EXISTING;
+    if(current?.status!=='REFERENCE_ONLY_NOT_CAUSAL_PORTFOLIO'||current.max10Equivalent!==null||current.eligibleForCapitalAllocationWinnerSelection!==false||current.comparableWithEventDrivenProfiles!==false){
       throw new Error(`Lane C Fixed persistence Current must remain separate from Max10 for ${variant}`);
     }
+    assertSafetyFalse(current.safety,`Current reference ${variant}`);
     curves[variant]={};
     for(const profileId of PHASE57_P25_LANE_C_FIXED_PERSISTENCE_PROFILES.slice(1)){
       const result=comparison.results?.[profileId];

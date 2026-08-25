@@ -1,6 +1,6 @@
 # Phase57 P25 Lane C — Portfolio / Capital Allocation Foundation
 
-Status: **RESEARCH ONLY — FIXED-HORIZON CHECKPOINT RUNNER IMPLEMENTED; WINNER LOCKED**
+Status: **RESEARCH ONLY — FIXED-HORIZON RUNNER AND INDEPENDENT PERSISTENCE IMPLEMENTED; WINNER LOCKED**
 
 Progress is tracked independently:
 
@@ -97,6 +97,19 @@ The Fixed runner consumes the existing P25.3Q lineage-pinned inputs and checkpoi
 
 The first integration verification used successful GitHub Actions run `32831810521` and its five session checkpoints for 2026-08-19, 20, 21, 24, and 25. The exact checkpoint recomputation matched the formal evaluation, with lineage head `40a68403d9a2befa6155a781041cef916ed33836dcbeec3c938352d1537061fe`. It reconstructed 29 Frozen Entries, of which 27 had resolved Fixed outcomes and 2 remained unresolved. This is pipeline validation and early descriptive evidence only; it does not authorize a profile winner.
 
+## Independent Fixed persistence
+
+`Phase57 P25 Lane C Fixed Portfolio` is a downstream, research-only workflow. It runs after a successful main-branch `Phase57 P25 Checkpointed Evaluation`, on an independent fallback schedule/manual dispatch, and on relevant main-branch implementation changes. It does not modify or wait for the Dynamic management persistence workflow.
+
+The workflow fails closed unless the selected source run is the successful main-branch checkpointed-evaluation workflow. It downloads exactly one history pack, integrity ledger, lineage manifest, and formal evaluation; it copies every capture and every checkpoint while rejecting duplicate filenames. The Fixed runner must then reproduce the formal evaluation exactly before the portfolio matrix is accepted.
+
+For each immutable evidence date it saves two append-only files on `automation/p25-lane-c-data`:
+
+- `data/p25-lane-c/fixed/YYYY-MM-DD.summary.json`: reviewable input audit, five-by-five matrix, curve cardinality audit, hashes, methodology, and safety locks;
+- `data/p25-lane-c/fixed/YYYY-MM-DD.json.gz`: the complete JSON, including every 5-minute MTM equity and concentration curve.
+
+The uncompressed JSON is also retained as the GitHub Actions artifact for 90 days. Compression only changes storage representation; decompression must reproduce the recorded raw SHA-256. An existing date is never overwritten. The workflow accepts an idempotent no-op only when the lineage head, result hash, and formal-evaluation hash match the stored summary; otherwise it fails for investigation.
+
 ### Required session input
 
 Each session bundle contains:
@@ -175,7 +188,7 @@ Sector concentration is measured only. It is not a v1 allocation constraint.
 
 1. **Foundation — complete:** source audit, immutable safety contract, Fixed adapter, causal event engine, baseline profiles, KPI schema, deterministic tests.
 2. **Fixed artifact runner — complete:** reconstruct resolved Fixed rows and bars from the lineage-pinned P25 capture/checkpoint path without changing the existing evaluator.
-3. **Fixed artifact verification — integration verified, persistence next:** exact formal-evaluation reconciliation and real JSON/equity-curve generation are verified; add the independent research-only persistence workflow and confirm its stored artifact.
+3. **Fixed artifact verification and persistence — implemented:** exact formal-evaluation reconciliation, real JSON/equity-curve generation, compressed full-curve retention, and immutable dated summary persistence are wired independently. A post-merge workflow run and stored artifact inspection remain mandatory operational checks for every workflow change.
 4. **Prospective accumulation:** append sessions without tuning profiles and keep `winnerSelectionAllowed=false` until the predeclared evidence threshold is met.
 5. **Dynamic connector:** after the formal Dynamic artifact is stable, map its same-key EXIT rows into the identical simulator contract.
 6. **Fixed/Dynamic matrix:** report both management modes across the same profile list and separate Management, Allocation, and interaction interpretations.

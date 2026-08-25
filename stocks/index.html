@@ -3,70 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stocks | Ark Terminal</title>
+    <title>Markets | Ark Terminal</title>
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+    <div class="marketsShell">
+        <header class="marketsTopbar">
+            <a href="../index.html" class="brandLockup" aria-label="Ark Terminal Home">
+                <img class="brandIcon" src="../icons/icon-192.png" alt="">
+                <span><strong>ARK TERMINAL</strong><small>MARKET WORKSPACE</small></span>
+            </a>
+            <div class="topbarStatus">
+                <span class="statusChip live">DATA LIVE</span>
+                <span class="statusChip research">RESEARCH</span>
+                <span class="statusChip locked">EXECUTION LOCKED</span>
+            </div>
+        </header>
 
-<main class="stocksPage">
+        <main class="stocksPage">
+            <section class="marketsHero">
+                <div>
+                    <a class="backButton" href="../index.html">← COMMAND CENTER</a>
+                    <p class="eyebrow">MARKETS</p>
+                    <h1>Watchlist</h1>
+                    <p class="description">監視銘柄・関連ニュース・個別ワークスペースへの入口を1画面に集約。</p>
+                </div>
+                <div class="heroStatePanel">
+                    <span>MODE</span><strong>RESEARCH</strong>
+                    <small>Read only · No order routing</small>
+                </div>
+            </section>
 
-<a class="backButton" href="../index.html">
-← Ark Terminal
-</a>
+            <section class="watchlistControls terminalPanel">
+                <div>
+                    <p class="sectionLabel">MY WATCHLIST</p>
+                    <h2>登録銘柄</h2>
+                </div>
+                <form id="addStockForm" class="addStockForm">
+                    <input id="stockNameInput" type="text" placeholder="企業名 例：NVIDIA" maxlength="40" required>
+                    <input id="stockSymbolInput" type="text" placeholder="コード 例：NVDA" maxlength="15" required>
+                    <button type="submit">＋ ADD SYMBOL</button>
+                </form>
+            </section>
 
-<header>
+            <section id="watchlist" class="watchlistGrid"></section>
+            <section id="market"></section>
 
-<p class="eyebrow">
-ARK INVESTMENT
-</p>
-
-<h1>
-Stocks
-</h1>
-
-<p class="description">
-ウォッチリストと関連ニュースをまとめて管理します。
-</p>
-
-</header>
-<section class="watchlistControls">
-    <div>
-        <p class="sectionLabel">MY WATCHLIST</p>
-        <h2>登録銘柄</h2>
+            <footer class="marketsFooter">
+                <span>ARK TERMINAL / MARKETS</span>
+                <span>READ ONLY · BROKER WRITE OFF · RSS ORDER OFF</span>
+            </footer>
+        </main>
     </div>
-
-    <form id="addStockForm" class="addStockForm">
-        <input
-            id="stockNameInput"
-            type="text"
-            placeholder="企業名 例：NVIDIA"
-            maxlength="40"
-            required
-        >
-
-        <input
-            id="stockSymbolInput"
-            type="text"
-            placeholder="コード 例：NVDA"
-            maxlength="15"
-            required
-        >
-
-        <button type="submit">
-            ＋ 追加
-        </button>
-    </form>
-</section>
-
-<section id="watchlist"></section>
-
-<section id="market">
-</section>
-
-</main>
-
-<script src="script.js"></script>
-
+    <script src="script.js"></script>
 </body>
 </html>

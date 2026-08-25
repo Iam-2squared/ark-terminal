@@ -1,0 +1,90 @@
+name: Home Entry-only Equity Daily
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 7 * * 1-5' # 16:30 JST, weekdays
+
+permissions:
+  contents: write
+
+concurrency:
+  group: home-entry-only-equity-daily
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Resolve latest formal Entry-only scorecard
+        id: scorecard
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin automation/p25-evaluation-data
+          latest="$(git ls-tree -r --name-only origin/automation/p25-evaluation-data data/p25-scorecards \
+            | grep -E '^data/p25-scorecards/[0-9]{4}-[0-9]{2}-[0-9]{2}\.json$' \
+            | sort | tail -n 1)"
+          test -n "$latest"
+          evidence_date="$(basename "$latest" .json)"
+          git show "origin/automation/p25-evaluation-data:$latest" > /tmp/p25-scorecard.json
+          echo "evidence_date=$evidence_date" >> "$GITHUB_OUTPUT"
+          echo "scorecard_path=$latest" >> "$GITHUB_OUTPUT"
+
+      - name: Load current research equity state
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git fetch origin automation/home-paper-equity-data 2>/dev/null \
+            && git show origin/automation/home-paper-equity-data:data/home/paper-equity.json > /tmp/paper-equity-current.json 2>/dev/null; then
+            echo "Loaded automation/home-paper-equity-data"
+          else
+            cp data/home/paper-equity.json /tmp/paper-equity-current.json
+            echo "Using seeded main data"
+          fi
+
+      - name: Append new dated equity point
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/update_home_paper_equity.mjs \
+            --scorecard /tmp/p25-scorecard.json \
+            --date "${{ steps.scorecard.outputs.evidence_date }}" \
+            --input /tmp/paper-equity-current.json \
+            --output /tmp/paper-equity-next.json
+
+      - name: Persist append-only Home equity data branch
+        shell: bash
+        env:
+          EVIDENCE_DATE: ${{ steps.scorecard.outputs.evidence_date }}
+        run: |
+          set -euo pipefail
+          if cmp -s /tmp/paper-equity-current.json /tmp/paper-equity-next.json; then
+            echo "No new dated scorecard; nothing to persist."
+            exit 0
+          fi
+
+          if git show-ref --verify --quiet refs/remotes/origin/automation/home-paper-equity-data; then
+            git switch -C automation/home-paper-equity-data origin/automation/home-paper-equity-data
+          else
+            git switch -c automation/home-paper-equity-data
+          fi
+
+          mkdir -p data/home
+          cp /tmp/paper-equity-next.json data/home/paper-equity.json
+          git config user.name "Ark Equity Bot"
+          git config user.email "ark-equity-bot@users.noreply.github.com"
+          git add data/home/paper-equity.json
+          git commit -m "Append Entry-only Home equity ${EVIDENCE_DATE}"
+          git push origin automation/home-paper-equity-data
+
+      - name: Safety boundary
+        shell: bash
+        run: |
+          echo "Research display only. No broker/RSS/Excel/order/paper/live trading action is performed."

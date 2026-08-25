@@ -74,7 +74,7 @@ jobs:
       matrix:
         session_date: ${{ fromJSON(needs.prepare.outputs.session_dates) }}
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 180
     steps:
       - name: Checkout main
         uses: actions/checkout@v4

@@ -269,6 +269,47 @@ select:focus-visible {
   padding: 18px 20px;
 }
 
+/* Cloud Sync spacing fix: every top-level panel needs its own interior padding. */
+.pageMain > .marketCard {
+  margin-top: 0;
+  padding: 30px 32px;
+}
+
+.pageMain > .marketCard + .marketCard {
+  margin-top: 24px;
+}
+
+#cloudSyncPanel .scoreStatGrid {
+  margin-top: 24px;
+}
+
+#cloudSyncPanel .scoreStatGrid > div {
+  padding: 15px 16px;
+}
+
+#cloudSyncPanel .performanceActions {
+  margin-top: 20px;
+}
+
+.pageMain > .marketCard .cardHeader,
+.pageMain > .marketCard .marketHeader {
+  margin-bottom: 16px;
+}
+
+.pageMain > .marketCard .dataSourceDescription {
+  margin-bottom: 18px;
+  line-height: 1.7;
+}
+
+.pageMain > .marketCard .predictionOutputGrid {
+  margin-top: 18px;
+  gap: 14px;
+}
+
+.pageMain > .marketCard .predictionOutputItem {
+  padding: 18px 20px;
+}
+
 @media (max-width: 860px) {
   .headerInner,
   .pageMain { width: min(100% - 28px, 1320px); }
@@ -279,6 +320,8 @@ select:focus-visible {
   .pageMain { padding-top: 32px; padding-bottom: 56px; }
   #cloudSyncPanel,
   .learningDashboardMain .marketCard { padding: 24px; }
+  .pageMain > .marketCard { padding: 26px; }
+  .pageMain > .marketCard + .marketCard { margin-top: 20px; }
 }
 
 @media (max-width: 620px) {
@@ -303,4 +346,6 @@ select:focus-visible {
   .learningMetricGrid { grid-template-columns: 1fr !important; }
   .learningDashboardMain { gap: 20px; }
   .tableContainer { border-radius: 6px; }
+  .pageMain > .marketCard { padding: 20px; }
+  .pageMain > .marketCard + .marketCard { margin-top: 16px; }
 }

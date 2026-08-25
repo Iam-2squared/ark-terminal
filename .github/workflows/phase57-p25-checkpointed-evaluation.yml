@@ -21,12 +21,13 @@ permissions:
 
 concurrency:
   group: phase57-p25-checkpointed-evaluation
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 env:
-  # Five symbols per shard keeps the cumulative lineage matrix well below GitHub's 256-job matrix cap
-  # while preserving the exact same scorer, frozen inputs, fair-cutoff grid, and full-union recombination.
-  BATCH_SIZE: '5'
+  # Two symbols per shard is the finest single-matrix split that keeps the current
+  # four-session cumulative lineage under GitHub's 256-job matrix cap while preserving
+  # the exact same scorer, frozen inputs, fair-cutoff grid, and full-union recombination.
+  BATCH_SIZE: '2'
 
 jobs:
   prepare:

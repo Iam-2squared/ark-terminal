@@ -64,7 +64,9 @@ function render(data){
   }).join("");
   const dates=variants.flatMap(v=>data.series[v].map(p=>p.date)).filter(Boolean).sort();
   const first=dates[0],last=dates.at(-1);
-  const xLabels=first?`<text x="118" y="688" fill="#60758f" font-size="20">${monthLabel(first)}</text>${last!==first?`<text x="1358" y="688" text-anchor="end" fill="#60758f" font-size="20">${monthLabel(last)}</text>`:""}`:"";
+  const firstMonth=first?monthLabel(first):null;
+  const lastMonth=last?monthLabel(last):null;
+  const xLabels=first?`<text x="118" y="688" fill="#60758f" font-size="20">${firstMonth}</text>${lastMonth&&lastMonth!==firstMonth?`<text x="1358" y="688" text-anchor="end" fill="#60758f" font-size="20">${lastMonth}</text>`:""}`:"";
   shell.innerHTML=`<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" role="img" aria-label="Entry-only research equity curve with monthly x axis and yen y axis">${guides}<line x1="118" y1="648" x2="1358" y2="648" stroke="rgba(148,163,184,.16)"/><line x1="118" y1="46" x2="118" y2="648" stroke="rgba(148,163,184,.16)"/>${xLabels}${lines}</svg>`;
   const d50=data.series?.DYNAMIC_50??[],latest=d50.at(-1),firstPoint=d50[0];
   summary.innerHTML=`

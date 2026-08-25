@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ark Terminal — Research Equity</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="ui-polish.css">
+  <meta name="theme-color" content="#07111f">
+  <style>
+    body{background:#07111f;color:#eaf7ff}
+    .equityPage{max-width:1500px;margin:0 auto;padding:28px 24px 48px}
+    .equityPageHeader{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;margin-bottom:18px}
+    .equityPageHeader h1{margin:4px 0 0;font-size:clamp(28px,4vw,48px);letter-spacing:-.04em}
+    .equityPageHeader p{margin:0;color:#60758f;font-size:11px;letter-spacing:.08em}
+    .equityBack{color:#8aa4bf;text-decoration:none;border:1px solid rgba(148,163,184,.12);padding:8px 11px;border-radius:7px;font-size:10px;font-weight:800}
+    .equityPanel{border:1px solid rgba(34,211,238,.16);background:rgba(5,13,24,.74);border-radius:12px;padding:18px;box-shadow:0 18px 50px rgba(0,0,0,.24)}
+    .equitySummary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+    .equitySummary div{padding:12px;border:1px solid rgba(148,163,184,.08);border-radius:8px;background:rgba(255,255,255,.012)}
+    .equitySummary span{display:block;color:#526981;font-size:8px;font-weight:900;letter-spacing:.12em}
+    .equitySummary strong{display:block;margin-top:6px;font-size:16px;font-variant-numeric:tabular-nums}
+    .equityChartShell{position:relative;height:min(68vh,720px);min-height:420px;border:1px solid rgba(148,163,184,.08);border-radius:10px;overflow:hidden;background:rgba(3,10,18,.6)}
+    .equityChartShell svg{width:100%;height:100%}
+    .equityLegend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;color:#71859d;font-size:10px;font-weight:800}
+    .equityLegend span{display:inline-flex;align-items:center;gap:6px}.equityLegend i{width:8px;height:8px;border-radius:50%;display:inline-block}
+    .equityLegend .d30{background:#60a5fa}.equityLegend .d40{background:#22d3ee}.equityLegend .d50{background:#a78bfa}
+    .equityNote{margin:12px 0 0;color:#52667d;font-size:10px;line-height:1.7}
+    @media(max-width:800px){.equityPage{padding:18px 12px 36px}.equityPageHeader{align-items:flex-start;flex-direction:column}.equitySummary{grid-template-columns:1fr 1fr}.equityChartShell{min-height:360px;height:58vh}}
+  </style>
+</head>
+<body>
+  <main class="equityPage">
+    <header class="equityPageHeader">
+      <div><p>ARK TERMINAL / RESEARCH EQUITY</p><h1>Entry-only 仮想資産推移</h1></div>
+      <a class="equityBack" href="./index.html">← COMMAND CENTER</a>
+    </header>
+    <section class="equityPanel">
+      <div class="equitySummary" id="equitySummary"></div>
+      <div class="equityChartShell" id="equityChartShell" aria-label="Entry-only research equity enlarged chart"></div>
+      <div class="equityLegend"><span><i class="d30"></i>D30</span><span><i class="d40"></i>D40</span><span><i class="d50"></i>D50 FULL PREFIX</span></div>
+      <p class="equityNote">正式なP25 Entry-only scorecardだけを使用。各日のsessionEqualWeightAfterCostNetPctを前日の仮想資産に複利反映する研究表示です。実注文・Paper Trading・broker writeは有効化しません。</p>
+    </section>
+  </main>
+  <script type="module" src="./paper-equity-page.js"></script>
+</body>
+</html>

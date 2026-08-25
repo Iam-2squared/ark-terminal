@@ -21,6 +21,7 @@ export const PHASE57_P25_3AL_POLICY=Object.freeze({
   sameFrozenEvidenceChainAsP253D:true,
   sameFrozenUniverseAndEntryAsFixedBaseline:true,
   fixedBaselineMutationAllowed:false,
+  computeCachedScorePrefixAllowed:true,
   dynamicManagementMaySelectDynamicN:false,
   dynamicManagementMayRetuneEntry:false,
   dynamicManagementMayRetuneModel:false,
@@ -88,6 +89,8 @@ export function summarizeP253ALByVariant(pairs=[]){
  * only after Entry has already been frozen. Fixed outcomes remain the formal baseline.
  * sessionDates is an execution-only shard selector applied after immutable input assembly;
  * it cannot alter the frozen evidence chain or any Entry/model/universe/threshold decision.
+ * scorePrefix may replace only the compute implementation of the same frozen scorer;
+ * it receives the exact same prefix-only arguments and cannot change the frozen policy.
  */
 export function runP253ALDynamicManagementMultisession({
   historyPack,
@@ -95,7 +98,9 @@ export function runP253ALDynamicManagementMultisession({
   sessionIntegrityLedger,
   lineageManifest,
   sessionDates=null,
+  scorePrefix=null,
 }={}){
+  if(scorePrefix!==null&&typeof scorePrefix!=='function')throw new TypeError('P25.3AL scorePrefix must be a function when provided');
   const assembled=assembleP253AutonomousEvidenceInputs({historyPack,captureArtifacts,sessionIntegrityLedger,lineageManifest});
   const requested=sessionDates==null?null:new Set((Array.isArray(sessionDates)?sessionDates:[sessionDates]).map(String));
   const selectedInputs=requested==null?assembled.sessionInputs:assembled.sessionInputs.filter(input=>requested.has(String(input?.universeRecord?.sessionDate??'')));
@@ -111,6 +116,7 @@ export function runP253ALDynamicManagementMultisession({
       universeRecord:input.universeRecord,
       historicalSessions:assembled.historicalSessions,
       sessionBarsBySymbol:input.sessionBarsBySymbol??{},
+      ...(typeof scorePrefix==='function'?{scorePrefix}:{}),
     });
     const ledgerByKey=new Map((result?.replay?.ledger?.frozenTrades??[]).map(row=>[
       `${String(row.sessionDate)}|${String(row.entryTimestamp)}|${String(row.symbol).toUpperCase()}`,
@@ -151,6 +157,7 @@ export function runP253ALDynamicManagementMultisession({
       sameFrozenUniverseAndEntryAsFixedBaseline:true,
       fixedBaselineUntouched:true,
       scorerReceivesPrefixOnly:true,
+      computeCachedScorePrefixUsed:typeof scorePrefix==='function',
       futureBarsUsedForEntryDecision:false,
       managementFutureBarsSequentialOnly:true,
       executionShardSelectionOnly:true,

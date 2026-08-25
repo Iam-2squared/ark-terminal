@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {summarizeP253ALPairs,PHASE57_P25_3AL_POLICY,PHASE57_P25_3AL_SAFETY} from '../daytrade/phase57-p25-3al-dynamic-management-multisession.js';
+import {summarizeP253ALPairs,runP253ALDynamicManagementMultisession,PHASE57_P25_3AL_POLICY,PHASE57_P25_3AL_SAFETY} from '../daytrade/phase57-p25-3al-dynamic-management-multisession.js';
 
 const pairs=[
   {fixed:{netReturnPct:1,barsHeld:3},dynamic:{netReturnPct:1.5,barsHeld:4,givebackPct:0.2,captureRatio:0.8},deltaNetReturnPct:0.5,deltaBarsHeld:1},
@@ -19,7 +19,9 @@ assert.ok(out.fixed.maxDrawdownPct>=0);
 assert.ok(out.dynamic.maxDrawdownPct>=0);
 assert.equal(PHASE57_P25_3AL_POLICY.sameFrozenEvidenceChainAsP253D,true);
 assert.equal(PHASE57_P25_3AL_POLICY.fixedBaselineMutationAllowed,false);
+assert.equal(PHASE57_P25_3AL_POLICY.computeCachedScorePrefixAllowed,true);
 assert.equal(PHASE57_P25_3AL_POLICY.resultBasedRuleSelectionAllowed,false);
 assert.equal(PHASE57_P25_3AL_POLICY.performanceConclusionAllowed,false);
+assert.throws(()=>runP253ALDynamicManagementMultisession({scorePrefix:'not-a-function'}),/scorePrefix must be a function/);
 for(const key of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed']) assert.equal(PHASE57_P25_3AL_SAFETY[key],false,key);
 console.log('P25.3AL dynamic management multisession regression test passed');

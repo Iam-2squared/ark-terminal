@@ -6,6 +6,7 @@
   <title>Ark Terminal</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="ui-polish.css">
+  <link rel="stylesheet" href="home-portfolio-v12.css">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#07111f">
 </head>
@@ -56,8 +57,8 @@
       <section class="commandHero">
         <div>
           <p class="welcomeLabel">COMMAND CENTER</p>
-          <h2>Market Intelligence</h2>
-          <p class="welcomeText">市場・予測・シグナル・研究状態を1つの画面で監視。</p>
+          <h2>Portfolio Intelligence</h2>
+          <p class="welcomeText">仮想口座と実口座の資産推移を中心に、ARKの状態を1画面で監視。</p>
         </div>
         <div class="heroClockPanel">
           <span>JST</span>
@@ -74,28 +75,74 @@
         <div class="marketTile accent"><span>ARK STATUS</span><strong>HEALTHY</strong><small>All guards active</small></div>
       </section>
 
-      <section class="commandGrid commandGridPrimary">
-        <article class="terminalPanel marketPanel">
+      <section class="portfolioCommandGrid" aria-label="ポートフォリオ概要">
+        <article class="terminalPanel portfolioPanel paperPortfolio">
           <div class="panelHeader">
-            <div><p class="panelEyebrow">MARKET OVERVIEW</p><h3>Live Structure</h3></div>
-            <a class="terminalLink" href="./stocks/index.html">OPEN MARKETS ↗</a>
+            <div><p class="panelEyebrow">PAPER PORTFOLIO</p><h3>仮想口座 資産推移</h3></div>
+            <span class="portfolioMode"><i class="statusDot research"></i> SIMULATION</span>
           </div>
-          <div id="stocksCard" class="marketChartArea" role="link" tabindex="0">
-            <div class="marketPriceRow">
-              <div><span>NVDA</span><strong id="homeStockPrice">Loading...</strong></div>
-              <div id="homeStockChange" class="homeStockChange">--</div>
+
+          <div class="portfolioTopline">
+            <div class="portfolioIdentity">
+              <span class="portfolioValueLabel">CURRENT EQUITY</span>
+              <strong class="portfolioValue">¥ —</strong>
+              <span class="portfolioSubValue">STARTING CAPITAL ¥1,000,000</span>
             </div>
-            <div class="homeMiniChart">
-              <svg id="homeStockChart" viewBox="0 0 320 100" preserveAspectRatio="none" aria-label="株価簡易チャート">
-                <defs><linearGradient id="chartAreaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#22d3ee" stop-opacity="0.22"></stop><stop offset="100%" stop-color="#22d3ee" stop-opacity="0"></stop></linearGradient></defs>
-                <polygon id="homeStockChartArea" fill="url(#chartAreaGradient)" points=""></polygon>
-                <polyline id="homeStockChartLine" points=""></polyline>
-              </svg>
-            </div>
-            <div class="chartMeta"><span>Realtime quote surface</span><span id="homeStockTime">更新 --</span></div>
+            <span class="portfolioChange">TOTAL RETURN —</span>
           </div>
+
+          <div class="portfolioChart" aria-label="仮想口座の資産推移グラフ予定領域">
+            <span class="portfolioChartBaseline"></span>
+            <div class="portfolioChartPlaceholder">
+              <strong>EQUITY CURVE</strong>
+              <span>Paper trading data will appear here</span>
+            </div>
+          </div>
+
+          <div class="portfolioFooterStats">
+            <div><span>START</span><strong>¥1,000,000</strong></div>
+            <div><span>DAILY P/L</span><strong>—</strong></div>
+            <div><span>MAX DRAWDOWN</span><strong>—</strong></div>
+          </div>
+
+          <div class="portfolioStatusLine"><span>仮想売買の開始後に自動表示予定</span><strong>NO DATA</strong></div>
         </article>
 
+        <article class="terminalPanel portfolioPanel livePortfolio">
+          <div class="panelHeader">
+            <div><p class="panelEyebrow">LIVE PORTFOLIO</p><h3>実口座 資産推移</h3></div>
+            <span class="portfolioMode"><i class="statusDot live"></i> READ ONLY</span>
+          </div>
+
+          <div class="portfolioTopline">
+            <div class="portfolioIdentity">
+              <span class="portfolioValueLabel">TOTAL ASSETS</span>
+              <strong class="portfolioValue">¥ —</strong>
+              <span class="portfolioSubValue">保有資産の評価額と推移</span>
+            </div>
+            <span class="portfolioChange">TOTAL P/L —</span>
+          </div>
+
+          <div class="portfolioChart" aria-label="実口座の資産推移グラフ予定領域">
+            <span class="portfolioChartBaseline"></span>
+            <div class="portfolioChartPlaceholder">
+              <strong>ASSET CURVE</strong>
+              <span>Broker read-only data will appear here</span>
+            </div>
+          </div>
+
+          <div class="holdingsShell" aria-label="保有銘柄の上昇率表示予定領域">
+            <div class="holdingsHeader"><span>HOLDING</span><span>VALUE</span><span>RETURN</span></div>
+            <div class="holdingRow"><strong>—</strong><span class="placeholderBar"></span><span class="placeholderBar short"></span></div>
+            <div class="holdingRow"><strong>—</strong><span class="placeholderBar"></span><span class="placeholderBar short"></span></div>
+            <div class="holdingRow"><strong>—</strong><span class="placeholderBar"></span><span class="placeholderBar short"></span></div>
+          </div>
+
+          <div class="portfolioStatusLine"><span>保有銘柄ごとの上昇率を表示予定</span><strong>READ ONLY</strong></div>
+        </article>
+      </section>
+
+      <section class="homeDecisionRow">
         <article class="terminalPanel intelligencePanel">
           <div class="panelHeader">
             <div><p class="panelEyebrow">AI STATE</p><h3>Decision Engine</h3></div>
@@ -113,9 +160,7 @@
             <p>現在は研究モード。低確信局面では無理にエントリーせず、シグナル品質を優先します。</p>
           </div>
         </article>
-      </section>
 
-      <section class="commandGrid commandGridSecondary">
         <article class="terminalPanel opportunitiesPanel">
           <div class="panelHeader">
             <div><p class="panelEyebrow">OPPORTUNITY FEED</p><h3>Top Signals</h3></div>
@@ -130,7 +175,9 @@
             <div class="terminalRow"><strong>AMZN</strong><span class="signalBadge sell">SELL</span><span>32</span><span>55%</span><span>SWING</span></div>
           </div>
         </article>
+      </section>
 
+      <section class="commandGrid commandGridSecondary">
         <article class="terminalPanel taskPanel" id="todayTasksCard">
           <div class="panelHeader">
             <div><p class="panelEyebrow">TODAY</p><h3>Mission Queue</h3></div>
@@ -149,6 +196,18 @@
         <span>BROKER WRITE <strong>OFF</strong></span>
         <span>RSS ORDER <strong>OFF</strong></span>
       </section>
+
+      <div class="legacyHomeQuoteHooks" aria-hidden="true">
+        <div id="stocksCard" tabindex="-1">
+          <span id="homeStockPrice">—</span>
+          <span id="homeStockChange">—</span>
+          <span id="homeStockTime">—</span>
+          <svg id="homeStockChart" viewBox="0 0 320 100" preserveAspectRatio="none">
+            <polygon id="homeStockChartArea" points=""></polygon>
+            <polyline id="homeStockChartLine" points=""></polyline>
+          </svg>
+        </div>
+      </div>
     </main>
   </div>
 

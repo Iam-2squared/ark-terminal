@@ -1,0 +1,295 @@
+/* Ark Terminal Home v12 — portfolio-first command center */
+.portfolioCommandGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.portfolioPanel {
+  min-height: 390px;
+  padding: 20px;
+}
+
+.portfolioPanel.paperPortfolio {
+  border-color: rgba(34, 211, 238, .18);
+}
+
+.portfolioPanel.livePortfolio {
+  border-color: rgba(96, 165, 250, .18);
+}
+
+.portfolioTopline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.portfolioIdentity {
+  min-width: 0;
+}
+
+.portfolioMode {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 22px;
+  padding: 0 8px;
+  margin-bottom: 8px;
+  color: #89e8f8;
+  background: rgba(34, 211, 238, .07);
+  border: 1px solid rgba(34, 211, 238, .14);
+  border-radius: 999px;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.livePortfolio .portfolioMode {
+  color: #9fc9ff;
+  background: rgba(96, 165, 250, .07);
+  border-color: rgba(96, 165, 250, .15);
+}
+
+.portfolioValueLabel {
+  display: block;
+  color: #566c86;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.portfolioValue {
+  display: block;
+  margin-top: 5px;
+  color: #edf9ff;
+  font-size: clamp(27px, 3vw, 36px);
+  line-height: 1;
+  letter-spacing: -.045em;
+  font-variant-numeric: tabular-nums;
+}
+
+.portfolioSubValue {
+  display: block;
+  margin-top: 7px;
+  color: #6f839c;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.portfolioChange {
+  flex: 0 0 auto;
+  padding: 7px 9px;
+  color: #67809b;
+  background: rgba(255,255,255,.018);
+  border: 1px solid rgba(148,163,184,.08);
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.portfolioChart {
+  position: relative;
+  height: 190px;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(34, 211, 238, .025), rgba(34, 211, 238, 0)),
+    rgba(4, 11, 20, .34);
+  border: 1px solid rgba(148,163,184,.08);
+  border-radius: 8px;
+}
+
+.livePortfolio .portfolioChart {
+  background:
+    linear-gradient(180deg, rgba(96, 165, 250, .024), rgba(96, 165, 250, 0)),
+    rgba(4, 11, 20, .34);
+}
+
+.portfolioChart::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, rgba(148,163,184,.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148,163,184,.035) 1px, transparent 1px);
+  background-size: 72px 42px;
+}
+
+.portfolioChartPlaceholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.portfolioChartPlaceholder strong {
+  color: #5b718a;
+  font-size: 10px;
+  letter-spacing: .15em;
+}
+
+.portfolioChartPlaceholder span {
+  color: #3f5065;
+  font-size: 9px;
+}
+
+.portfolioChartBaseline {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 38%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(34,211,238,.28), transparent);
+}
+
+.livePortfolio .portfolioChartBaseline {
+  background: linear-gradient(90deg, transparent, rgba(96,165,250,.28), transparent);
+}
+
+.portfolioFooterStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.portfolioFooterStats > div {
+  min-width: 0;
+  padding: 10px 11px;
+  background: rgba(255,255,255,.014);
+  border: 1px solid rgba(148,163,184,.07);
+  border-radius: 7px;
+}
+
+.portfolioFooterStats span,
+.holdingsHeader span {
+  display: block;
+  color: #50647c;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.portfolioFooterStats strong {
+  display: block;
+  margin-top: 5px;
+  color: #a9bbcf;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.holdingsShell {
+  margin-top: 12px;
+  border: 1px solid rgba(148,163,184,.08);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.holdingsHeader,
+.holdingRow {
+  display: grid;
+  grid-template-columns: 1.35fr .85fr .75fr;
+  gap: 12px;
+  align-items: center;
+  padding: 0 12px;
+}
+
+.holdingsHeader {
+  min-height: 29px;
+  background: rgba(255,255,255,.012);
+  border-bottom: 1px solid rgba(148,163,184,.07);
+}
+
+.holdingRow {
+  min-height: 39px;
+  color: #8397af;
+  border-bottom: 1px solid rgba(148,163,184,.06);
+  font-size: 9px;
+}
+
+.holdingRow:last-child {
+  border-bottom: 0;
+}
+
+.holdingRow strong {
+  color: #aebfd2;
+  font-size: 10px;
+}
+
+.placeholderBar {
+  display: block;
+  width: 64px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(148,163,184,.08);
+}
+
+.placeholderBar.short { width: 42px; }
+
+.portfolioStatusLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  color: #4f6278;
+  font-size: 8px;
+  letter-spacing: .05em;
+}
+
+.portfolioStatusLine strong {
+  color: #7288a1;
+  font-size: 8px;
+}
+
+.homeDecisionRow {
+  display: grid;
+  grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.legacyHomeQuoteHooks {
+  display: none !important;
+}
+
+@media (max-width: 1180px) {
+  .portfolioCommandGrid,
+  .homeDecisionRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 650px) {
+  .portfolioPanel {
+    min-height: auto;
+    padding: 16px;
+  }
+  .portfolioTopline {
+    gap: 10px;
+  }
+  .portfolioValue {
+    font-size: 28px;
+  }
+  .portfolioChart {
+    height: 155px;
+  }
+  .portfolioFooterStats {
+    grid-template-columns: 1fr 1fr;
+  }
+  .portfolioFooterStats > div:last-child {
+    grid-column: 1 / -1;
+  }
+  .holdingsHeader,
+  .holdingRow {
+    grid-template-columns: 1.1fr .8fr .7fr;
+    gap: 7px;
+    padding-inline: 9px;
+  }
+}

@@ -1,6 +1,6 @@
 # Phase57 P25 Lane C — Portfolio / Capital Allocation Foundation
 
-Status: **RESEARCH ONLY — FIXED-HORIZON SIMULATOR FOUNDATION**
+Status: **RESEARCH ONLY — FIXED-HORIZON CHECKPOINT RUNNER IMPLEMENTED; WINNER LOCKED**
 
 Progress is tracked independently:
 
@@ -83,6 +83,20 @@ flowchart TD
 
 The Dynamic connector is deliberately downstream. The active Dynamic persistence workflow is not changed or delayed by Lane C.
 
+## Formal Fixed artifact bridge
+
+The Fixed runner consumes the existing P25.3Q lineage-pinned inputs and checkpoints; it does not score Entry again. Before any portfolio simulation, it:
+
+1. rebuilds the frozen evidence input set from the history pack, captures, integrity ledger, and lineage manifest;
+2. validates checkpoint session, capture SHA, batch membership, methodology, and safety identities;
+3. recombines the complete frozen-universe shard set;
+4. materializes the unchanged 0.05%-cost Fixed-Horizon outcomes;
+5. recomputes the formal P25.3Q evaluation and requires an exact canonical match with the supplied formal evaluation artifact;
+6. reconciles `CURRENT_EXISTING` to the formal `sessionEqualWeightPortfolio` separately for every universe variant;
+7. only then runs Current reference plus Max10/4/3/2.
+
+The first integration verification used successful GitHub Actions run `32831810521` and its five session checkpoints for 2026-08-19, 20, 21, 24, and 25. The exact checkpoint recomputation matched the formal evaluation, with lineage head `40a68403d9a2befa6155a781041cef916ed33836dcbeec3c938352d1537061fe`. It reconstructed 29 Frozen Entries, of which 27 had resolved Fixed outcomes and 2 remained unresolved. This is pipeline validation and early descriptive evidence only; it does not authorize a profile winner.
+
 ### Required session input
 
 Each session bundle contains:
@@ -159,9 +173,9 @@ Sector concentration is measured only. It is not a v1 allocation constraint.
 
 ## Implementation roadmap
 
-1. **Foundation (this change):** source audit, immutable safety contract, Fixed adapter, causal event engine, baseline profiles, KPI schema, deterministic tests.
-2. **Fixed artifact runner:** reconstruct resolved Fixed rows and bars from the lineage-pinned P25 capture/checkpoint path without changing the existing evaluator.
-3. **Fixed artifact verification:** persist research-only JSON/equity curves; verify hashes, safety flags, and real values for Current reference plus Max10/4/3/2.
+1. **Foundation — complete:** source audit, immutable safety contract, Fixed adapter, causal event engine, baseline profiles, KPI schema, deterministic tests.
+2. **Fixed artifact runner — complete:** reconstruct resolved Fixed rows and bars from the lineage-pinned P25 capture/checkpoint path without changing the existing evaluator.
+3. **Fixed artifact verification — integration verified, persistence next:** exact formal-evaluation reconciliation and real JSON/equity-curve generation are verified; add the independent research-only persistence workflow and confirm its stored artifact.
 4. **Prospective accumulation:** append sessions without tuning profiles and keep `winnerSelectionAllowed=false` until the predeclared evidence threshold is met.
 5. **Dynamic connector:** after the formal Dynamic artifact is stable, map its same-key EXIT rows into the identical simulator contract.
 6. **Fixed/Dynamic matrix:** report both management modes across the same profile list and separate Management, Allocation, and interaction interpretations.

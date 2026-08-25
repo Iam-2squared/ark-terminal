@@ -85,17 +85,46 @@ function artifactHash({selection,trainingRows,asOf}){
   return crypto.createHash('sha256').update(JSON.stringify(payload)).digest('hex');
 }
 
+function buildPriorOnlyBundle({historicalHorizonRowsByBars,options,asOf,asOfMs}){
+  const priorMap=normalizedPriorMap(historicalHorizonRowsByBars,asOfMs);
+  if(!priorMap.size)return Object.freeze({status:'BLOCKED_NO_FULLY_REALIZED_PRIOR_HISTORY',complete:false,asOf});
+
+  const selection=selectInnerAdaptiveHorizon(Object.fromEntries(priorMap),options);
+  if(!selection.selected)return Object.freeze({status:'ABSTAIN_NO_ELIGIBLE_PRIOR_ONLY_SELECTION',complete:true,asOf,selection});
+
+  const picked=selection.selected;
+  const trainRows=(priorMap.get(Number(picked.horizonBars))??[]).map(row=>projectRow(row,picked.featureKeys));
+  if(!trainRows.length)return Object.freeze({status:'BLOCKED_NO_SELECTED_HORIZON_TRAINING_ROWS',complete:false,asOf,selection,picked});
+
+  const config={id:picked.configId,type:picked.modelType,options:picked.modelOptions};
+  const fitPredictor=options.fitPredictor??defaultFitPredictor;
+  const predictor=fitPredictor(trainRows,config,{horizonBars:picked.horizonBars,featureFamily:picked.featureFamily,threshold:picked.threshold,stage:'PROSPECTIVE_REFIT_PRIOR_ONLY'});
+  if(typeof predictor!=='function')throw new TypeError('fitPredictor must return a predictor function');
+  const maxPriorOutcomeAt=trainRows.map(row=>row.outcomeAt).filter(Boolean).sort().at(-1)??null;
+  const artifactSha256=artifactHash({selection:picked,trainingRows:trainRows,asOf});
+  const modelId=`phase57-p21-prospective-${String(picked.configId).toLowerCase()}-h${Number(picked.horizonBars)}`;
+  return Object.freeze({status:'PRIOR_ONLY_MODEL_READY',complete:true,asOf,selection,picked,trainRows,predictor,maxPriorOutcomeAt,artifactSha256,modelId});
+}
+
 /**
  * Prospective analogue of the frozen P21 nested-adaptive OOS base used by P24.
  * All model/horizon/feature/threshold selection is performed only on fully-realized
  * rows whose outcomeAt is <= the current feature cutoff. The current row must be
  * outcome-free and is scored exactly once after the prior-only selection/refit.
+ *
+ * priorOnlyCache is an optional caller-owned Map scoped to one immutable history pack
+ * and one frozen selection-options object. Cache entries are keyed only by the exact
+ * current feature cutoff because the prior-only selection/refit inputs are identical
+ * across symbols at that cutoff. The current feature row is never cached or used for
+ * selection/refit, preserving point-in-time and outer-OOS isolation.
  */
 export function buildProspectiveP21FrozenDecision({
   historicalHorizonRowsByBars={},
   currentRowsByHorizon={},
   options={},
+  priorOnlyCache=null,
 }={}){
+  if(priorOnlyCache!==null&&!(priorOnlyCache instanceof Map))throw new TypeError('priorOnlyCache must be a Map when provided');
   const candidateRows=[];
   const currentEntries=currentRowsByHorizon instanceof Map?[...currentRowsByHorizon.entries()]:Object.entries(currentRowsByHorizon??{});
   for(const [h,value] of currentEntries){
@@ -117,41 +146,36 @@ export function buildProspectiveP21FrozenDecision({
   }
   if(blockers.length)return Object.freeze({phase:'57.p21.prospective-frozen-base',status:'BLOCKED_CURRENT_ROW_INTEGRITY',complete:false,blockers:Object.freeze(blockers),safety:PHASE57_P21_PROSPECTIVE_SAFETY});
 
-  const priorMap=normalizedPriorMap(historicalHorizonRowsByBars,asOfMs);
-  if(!priorMap.size)return Object.freeze({phase:'57.p21.prospective-frozen-base',status:'BLOCKED_NO_FULLY_REALIZED_PRIOR_HISTORY',complete:false,asOf,safety:PHASE57_P21_PROSPECTIVE_SAFETY});
-
-  const selection=selectInnerAdaptiveHorizon(Object.fromEntries(priorMap),options);
-  if(!selection.selected)return Object.freeze({
-    phase:'57.p21.prospective-frozen-base',status:'ABSTAIN_NO_ELIGIBLE_PRIOR_ONLY_SELECTION',complete:true,decision:Object.freeze({
+  let bundle=priorOnlyCache?.get(asOf)??null;
+  const priorOnlyCacheHit=Boolean(bundle);
+  if(!bundle){
+    bundle=buildPriorOnlyBundle({historicalHorizonRowsByBars,options,asOf,asOfMs});
+    if(priorOnlyCache)priorOnlyCache.set(asOf,bundle);
+  }
+  if(bundle.status==='BLOCKED_NO_FULLY_REALIZED_PRIOR_HISTORY')return Object.freeze({phase:'57.p21.prospective-frozen-base',status:bundle.status,complete:false,asOf,safety:PHASE57_P21_PROSPECTIVE_SAFETY});
+  if(bundle.status==='ABSTAIN_NO_ELIGIBLE_PRIOR_ONLY_SELECTION')return Object.freeze({
+    phase:'57.p21.prospective-frozen-base',status:bundle.status,complete:true,decision:Object.freeze({
       direction:0,confidence:null,setup:null,context:Object.freeze({reason:'NO_ELIGIBLE_PRIOR_ONLY_SELECTION'}),asOf,
       frozenByPhase57:true,pointInTimeOnly:true,futureOutcomeUsed:false,thresholdSearchAfterCapture:false,entryRetunedAfterCapture:false,
-    }),selection,safety:PHASE57_P21_PROSPECTIVE_SAFETY,
+    }),selection:bundle.selection,priorOnlyCacheHit,safety:PHASE57_P21_PROSPECTIVE_SAFETY,
   });
+  if(bundle.status==='BLOCKED_NO_SELECTED_HORIZON_TRAINING_ROWS')return Object.freeze({phase:'57.p21.prospective-frozen-base',status:bundle.status,complete:false,safety:PHASE57_P21_PROSPECTIVE_SAFETY});
 
-  const picked=selection.selected;
+  const {selection,picked,trainRows,predictor,maxPriorOutcomeAt,artifactSha256,modelId}=bundle;
   const current=currentRowForHorizon(currentRowsByHorizon,Number(picked.horizonBars));
   if(!current)return Object.freeze({phase:'57.p21.prospective-frozen-base',status:'BLOCKED_MISSING_CURRENT_SELECTED_HORIZON_ROW',complete:false,selectedHorizonBars:picked.horizonBars,safety:PHASE57_P21_PROSPECTIVE_SAFETY});
   const currentForbidden=FORBIDDEN_CURRENT_OUTCOME_KEYS.filter(key=>Object.prototype.hasOwnProperty.call(current,key));
   if(currentForbidden.length)return Object.freeze({phase:'57.p21.prospective-frozen-base',status:'BLOCKED_CURRENT_SELECTED_ROW_HAS_OUTCOME',complete:false,forbiddenOutcomeFields:Object.freeze(currentForbidden),safety:PHASE57_P21_PROSPECTIVE_SAFETY});
 
-  const trainRows=(priorMap.get(Number(picked.horizonBars))??[]).map(row=>projectRow(row,picked.featureKeys));
-  if(!trainRows.length)return Object.freeze({phase:'57.p21.prospective-frozen-base',status:'BLOCKED_NO_SELECTED_HORIZON_TRAINING_ROWS',complete:false,safety:PHASE57_P21_PROSPECTIVE_SAFETY});
   const projectedCurrent=projectRow(current,picked.featureKeys);
   if(!Object.keys(projectedCurrent.features??{}).length)return Object.freeze({phase:'57.p21.prospective-frozen-base',status:'BLOCKED_CURRENT_FEATURE_FAMILY_UNAVAILABLE',complete:false,safety:PHASE57_P21_PROSPECTIVE_SAFETY});
 
-  const config={id:picked.configId,type:picked.modelType,options:picked.modelOptions};
-  const fitPredictor=options.fitPredictor??defaultFitPredictor;
-  const predictor=fitPredictor(trainRows,config,{horizonBars:picked.horizonBars,featureFamily:picked.featureFamily,threshold:picked.threshold,stage:'PROSPECTIVE_REFIT_PRIOR_ONLY'});
-  if(typeof predictor!=='function')throw new TypeError('fitPredictor must return a predictor function');
   const raw=Number(predictor(projectedCurrent));
   if(!Number.isFinite(raw))return Object.freeze({phase:'57.p21.prospective-frozen-base',status:'ABSTAIN_NONFINITE_PROSPECTIVE_SCORE',complete:true,asOf,safety:PHASE57_P21_PROSPECTIVE_SAFETY});
   const probability=Math.max(0.001,Math.min(0.999,raw));
   const confidence=Math.max(probability,1-probability);
   const eligible=confidence>=Number(picked.threshold);
   const direction=eligible?(probability>=0.5?1:-1):0;
-  const maxPriorOutcomeAt=trainRows.map(row=>row.outcomeAt).filter(Boolean).sort().at(-1)??null;
-  const artifactSha256=artifactHash({selection:picked,trainingRows:trainRows,asOf});
-  const modelId=`phase57-p21-prospective-${String(picked.configId).toLowerCase()}-h${Number(picked.horizonBars)}`;
   const decision=Object.freeze({
     direction,
     confidence,
@@ -183,12 +207,15 @@ export function buildProspectiveP21FrozenDecision({
     modelId,
     artifactSha256,
     selection,
+    priorOnlyCacheHit,
     integrity:Object.freeze({
       currentOutcomeFieldsForbidden:true,
       currentOutcomeUsed:false,
       priorRowsFullyRealizedBeforeCurrentCutoff:true,
       horizonFeatureModelThresholdSelectionPriorOnly:true,
       refitPriorOnly:true,
+      priorOnlySelectionAndRefitCacheKey:'EXACT_FEATURE_CUTOFF',
+      currentRowExcludedFromPriorOnlyCache:true,
       directionEncoding:'LONG=1,SHORT=-1,WAIT=0',
       freshHoldoutConsumed:false,
     }),

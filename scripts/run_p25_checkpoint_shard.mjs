@@ -41,8 +41,11 @@ try{
   const cachedHistory=buildProspectiveP21HistoricalRows({sessions:history.json.sessions,horizons:PHASE58_P13_FROZEN_POLICY.horizonsBars});
   if(cachedHistory.complete!==true)throw new Error(`P25.3P historical materialization blocked: ${cachedHistory.status}`);
   const historicalMaterializationMs=Date.now()-historyStartedAt;
+  const priorOnlyCache=new Map();
   let scorerCallCount=0;
   let scorerElapsedMs=0;
+  let priorOnlyCacheHitCount=0;
+  let priorOnlyCacheMissCount=0;
 
   const scorePrefix=({currentPrefix})=>{
     const startedAt=Date.now();
@@ -60,7 +63,10 @@ try{
         historicalHorizonRowsByBars:cachedHistory.historicalHorizonRowsByBars,
         currentRowsByHorizon:feed.currentRowsByHorizon,
         options:PHASE58_P13_FROZEN_POLICY.selectionOptions,
+        priorOnlyCache,
       });
+      if(base.priorOnlyCacheHit===true)priorOnlyCacheHitCount+=1;
+      else if(base.complete===true||String(base.status??'').startsWith('BLOCKED_NO_')||String(base.status??'').startsWith('ABSTAIN_NO_'))priorOnlyCacheMissCount+=1;
       if(!base.complete)return {complete:false,status:'BLOCKED_P21_PROSPECTIVE_BASE'};
       if(!base.decision||typeof base.modelId!=='string'||!/^[a-f0-9]{64}$/i.test(String(base.artifactSha256??'')))return {complete:false,status:'BLOCKED_P21_PROVENANCE_NOT_READY'};
       const built=buildFrozenPhase57SnapshotFromRuntimeDecision({decision:base.decision,modelId:base.modelId,artifactSha256:base.artifactSha256});
@@ -95,8 +101,27 @@ try{
     shardSymbols:[...batch.shardSymbols],
     identities:{historyPackSha256:history.sha256,captureSha256:capture.sha256,sessionDate:String(session.sessionDate??session.universeRecord?.sessionDate??'')},
     shard,
-    computeDiagnostics:{historicalMaterializationCount:1,historicalMaterializationMs,scorerCallCount,scorerElapsedMs},
-    methodology:{computePlacementOnly:true,historicalMaterializationCachedPerShard:true,fullUnionFairCutoffGridPreserved:true,currentOuterOosUsedForPartitioning:false,entryThresholdRelaxed:false,modelChanged:false,universeChanged:false,freshHoldoutConsumed:false},
+    computeDiagnostics:{
+      historicalMaterializationCount:1,
+      historicalMaterializationMs,
+      scorerCallCount,
+      scorerElapsedMs,
+      priorOnlyCacheEntries:priorOnlyCache.size,
+      priorOnlyCacheHitCount,
+      priorOnlyCacheMissCount,
+    },
+    methodology:{
+      computePlacementOnly:true,
+      historicalMaterializationCachedPerShard:true,
+      priorOnlySelectionAndRefitCachedByExactFeatureCutoff:true,
+      currentFeatureRowsExcludedFromPriorOnlyCache:true,
+      fullUnionFairCutoffGridPreserved:true,
+      currentOuterOosUsedForPartitioning:false,
+      entryThresholdRelaxed:false,
+      modelChanged:false,
+      universeChanged:false,
+      freshHoldoutConsumed:false,
+    },
     safety:{executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,rssOrderFunctionAllowed:false,liveTradingAllowed:false,paperTradingAllowed:false,automaticPromotionAllowed:false,productionUpdateAllowed:false,freshHoldoutConsumed:false},
   };
   fs.mkdirSync(path.dirname(outputPath),{recursive:true});

@@ -134,6 +134,7 @@ jobs:
           [[ "$evidence_date" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]
           echo "EVIDENCE_DATE=$evidence_date" >> "$GITHUB_ENV"
       - name: Verify packaged artifact integrity and safety locks
+        id: verify
         shell: bash
         run: |
           set -euo pipefail
@@ -173,13 +174,13 @@ jobs:
           archive_target="data/p25-lane-c/fixed/${EVIDENCE_DATE}.json.gz"
           if [ -e "$summary_target" ] || [ -e "$archive_target" ]; then
             test -f "$summary_target" -a -f "$archive_target"
-            CURRENT_SUMMARY=/tmp/p25-lane-c-fixed-portfolio-summary.json EXISTING_SUMMARY="$summary_target" node - <<'NODE'
-            const current=require(process.env.CURRENT_SUMMARY);
-            const existing=require(`./${process.env.EXISTING_SUMMARY}`);
-            for(const key of ['evidenceDate','lineageManifestHeadSha256','resultCanonicalSha256','sourceEvaluationCanonicalSha256']){
-              if(current[key]!==existing[key])throw new Error(`immutable Lane C summary mismatch: ${key}`);
-            }
-            NODE
+            CURRENT_SUMMARY=/tmp/p25-lane-c-fixed-portfolio-summary.json EXISTING_SUMMARY="$summary_target" node -e '
+              const current=require(process.env.CURRENT_SUMMARY);
+              const existing=require(`./${process.env.EXISTING_SUMMARY}`);
+              for(const key of ["evidenceDate","lineageManifestHeadSha256","resultCanonicalSha256","sourceEvaluationCanonicalSha256"]){
+                if(current[key]!==existing[key])throw new Error(`immutable Lane C summary mismatch: ${key}`);
+              }
+            '
             gzip -t "$archive_target"
             existing_raw_sha="$(gzip -dc "$archive_target" | sha256sum | cut -d' ' -f1)"
             expected_raw_sha="$(node -e "const x=require('./$summary_target'); process.stdout.write(x.fullArtifact.rawSha256)")"
@@ -193,6 +194,7 @@ jobs:
             git push origin HEAD:"$branch"
           fi
       - name: Upload raw and packaged Lane C Fixed artifacts
+        if: always() && steps.verify.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: phase57-p25-lane-c-fixed-portfolio-${{ env.EVIDENCE_DATE }}
@@ -202,6 +204,7 @@ jobs:
             /tmp/p25-lane-c-fixed-portfolio.json.gz
           retention-days: 90
       - name: Safety boundary
+        if: always()
         run: |
           echo 'Research-only Lane C Fixed portfolio persistence using already-frozen Entry and unchanged Fixed-Horizon EXIT.'
           echo 'Current is reference-only; Max10 remains separate; no profile winner is selected.'

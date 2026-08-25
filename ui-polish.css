@@ -1,0 +1,66 @@
+/* Ark Terminal UI polish: preserve the installed-app icon as the product mark
+   and make native scrollbars disappear into the terminal chrome. */
+html,
+body,
+.sideMenu,
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #26384d #050914;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #050914;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #26384d, #172538);
+  border: 2px solid #050914;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #31506b, #1f354c);
+}
+
+.sideMenu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sideMenu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sideMenu::-webkit-scrollbar-thumb {
+  background: #223247;
+  border: 1px solid rgba(5, 9, 20, .8);
+}
+
+.brandMark {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 10px;
+  background-color: transparent;
+  background-image: url("./icons/icon-192.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  color: transparent;
+  font-size: 0;
+  overflow: visible;
+  box-shadow: none;
+  filter: invert(79%) sepia(67%) saturate(1412%) hue-rotate(145deg) brightness(103%) contrast(97%) drop-shadow(0 0 8px rgba(34, 211, 238, .24));
+}
+
+@media (max-width: 900px) {
+  .brandMark {
+    width: 34px;
+    height: 34px;
+  }
+}

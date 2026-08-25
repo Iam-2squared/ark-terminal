@@ -60,6 +60,9 @@ function labelDate(value){
 function monthLabel(value){
   const [y,m]=String(value).split("-"); return `${String(y).slice(2)}年${Number(m)}月`;
 }
+function ratioPct(value){
+  const n=Number(value); return Number.isFinite(n)?`${(n*100).toFixed(1)}%`:"—";
+}
 
 function withVisualLeadIn(points){
   if(!Array.isArray(points)||points.length===0) return [];
@@ -119,7 +122,7 @@ function renderChart(container,data){
       <line class="axis" x1="92" y1="32" x2="92" y2="212"></line>
       ${xLabels}${lines}${dots}
     </svg>
-    <div class="paperEquityMeta">START ${yen(data.startingCapitalJpy)} · LATEST ${labelDate(latestDate)}</div>
+    <div class="paperEquityMeta">START ${yen(data.startingCapitalJpy)} · LATEST DAILY ${labelDate(latestDate)}</div>
     <a class="paperEquityOpen" href="./paper-equity.html" aria-label="仮想口座資産推移を拡大表示">EXPAND ↗</a>
     <div class="paperEquityLegend"><span><i class="d30"></i>D30</span><span><i class="d40"></i>D40</span><span><i class="d50"></i>D50 FULL PREFIX</span></div>`;
   container.addEventListener("click",event=>{
@@ -135,6 +138,8 @@ function render(data){
   const latest=series.at(-1);
   const previous=series.at(-2)??{equityJpy:data.startingCapitalJpy};
   if(!latest) return;
+  const cumulative=data.latestCumulative;
+  const cumulativeDefault=cumulative?.variants?.[DEFAULT_VARIANT];
 
   const value=panel.querySelector(".portfolioValue");
   const sub=panel.querySelector(".portfolioSubValue");
@@ -145,22 +150,39 @@ function render(data){
   const statusStrong=panel.querySelector(".portfolioStatusLine strong");
 
   if(value) value.textContent=yen(latest.equityJpy);
-  if(sub) sub.textContent=`ENTRY-ONLY · ${DEFAULT_VARIANT.replace("_"," ")} (full precommitted prefix, not winner-selected)`;
-  if(change){change.textContent=`DAILY ${pct(latest.dailyReturnPct)}`;change.style.color=Number(latest.dailyReturnPct)>=0?"#7dd3fc":"#fda4af";}
+  if(sub) sub.textContent=cumulativeDefault
+    ?`ENTRY-ONLY · ${DEFAULT_VARIANT.replace("_"," ")} · ${cumulative.expectedSessionCount} SESSION CUMULATIVE`
+    :`ENTRY-ONLY · ${DEFAULT_VARIANT.replace("_"," ")} (full precommitted prefix, not winner-selected)`;
+  if(change){
+    if(cumulativeDefault){
+      change.textContent=`${cumulative.expectedSessionCount}S STRATEGY NET ${pct(cumulativeDefault.afterCostNetPct)}`;
+      change.style.color=Number(cumulativeDefault.afterCostNetPct)>=0?"#7dd3fc":"#fda4af";
+    }else{
+      change.textContent=`DAILY ${pct(latest.dailyReturnPct)}`;
+      change.style.color=Number(latest.dailyReturnPct)>=0?"#7dd3fc":"#fda4af";
+    }
+  }
   if(chart) renderChart(chart,data);
   if(stats[0]) stats[0].textContent=yen(data.startingCapitalJpy);
   if(stats[1]) stats[1].textContent=yen(Number(latest.equityJpy)-Number(previous.equityJpy));
-  if(stats[2]) stats[2].textContent=`${Number(latest.maxDrawdownPct??0).toFixed(2)}%`;
-  if(statusText) statusText.textContent=`Formal Entry-only scorecard · ${latest.date} · ${latest.resolvedEntries} resolved · PF ${Number(latest.profitFactor??0).toFixed(2)}`;
+  if(stats[2]) stats[2].textContent=`${Number(cumulativeDefault?.maxDrawdownPct??latest.maxDrawdownPct??0).toFixed(2)}%`;
+  if(statusText) statusText.textContent=cumulativeDefault
+    ?`Formal Entry-only cumulative · through ${cumulative.evidenceDate} · ${cumulativeDefault.resolvedEntries} resolved · Hit ${ratioPct(cumulativeDefault.hitRate)} · PF ${Number(cumulativeDefault.profitFactor??0).toFixed(2)}`
+    :`Formal Entry-only scorecard · ${latest.date} · ${latest.resolvedEntries} resolved · PF ${Number(latest.profitFactor??0).toFixed(2)}`;
   if(statusStrong){statusStrong.textContent="RESEARCH EQUITY";statusStrong.classList.add("ready");}
 
   const identity=panel.querySelector(".portfolioIdentity");
   if(identity&&!identity.querySelector(".paperEquityVariants")){
     const row=document.createElement("div");row.className="paperEquityVariants";
     for(const variant of VARIANTS){
-      const p=data.series?.[variant]?.at(-1); if(!p) continue;
+      const c=cumulative?.variants?.[variant];
+      const p=data.series?.[variant]?.at(-1);
+      if(!c&&!p) continue;
       const pill=document.createElement("span");pill.className="paperEquityPill";
-      pill.textContent=`${variant.replace("DYNAMIC_","D")} ${yen(p.equityJpy)} · ${pct(p.dailyReturnPct)}`;row.appendChild(pill);
+      pill.textContent=c
+        ?`${variant.replace("DYNAMIC_","D")} HIT ${ratioPct(c.hitRate)} · NET ${pct(c.afterCostNetPct)} · PF ${Number(c.profitFactor??0).toFixed(2)}`
+        :`${variant.replace("DYNAMIC_","D")} ${yen(p.equityJpy)} · ${pct(p.dailyReturnPct)}`;
+      row.appendChild(pill);
     }
     identity.appendChild(row);
   }

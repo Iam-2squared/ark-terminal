@@ -1,6 +1,10 @@
 name: Phase57 P25 Checkpointed Evaluation
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/phase57-p25-checkpointed-evaluation.yml'
   schedule:
     # 18:00 JST weekdays, after routine 5m capture (16:45) and evidence-lineage prep (17:30).
     - cron: '0 9 * * 1-5'
@@ -20,7 +24,9 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  BATCH_SIZE: '1'
+  # Five symbols per shard keeps the cumulative lineage matrix well below GitHub's 256-job matrix cap
+  # while preserving the exact same scorer, frozen inputs, fair-cutoff grid, and full-union recombination.
+  BATCH_SIZE: '5'
 
 jobs:
   prepare:
@@ -75,7 +81,7 @@ jobs:
             fi
           fi
           echo "already_persisted=false" >> "$GITHUB_OUTPUT"
-      - name: Load immutable evidence and capture
+      - name: Load full lineage-pinned immutable evidence set
         if: steps.existing.outputs.already_persisted != 'true'
         shell: bash
         run: |
@@ -84,7 +90,19 @@ jobs:
           mkdir -p /tmp/p25-inputs/captures
           git show "origin/automation/p25-evidence-data:data/p25-evidence-lineage/${EVIDENCE_DATE}-manifest.json" > /tmp/p25-inputs/lineage.json
           git show "origin/automation/p25-evidence-data:data/p25-evidence-lineage/${EVIDENCE_DATE}-integrity.json" > /tmp/p25-inputs/integrity.json
-          git show "origin/automation/p25-day-data:data/p25-day-sessions/${EVIDENCE_DATE}.json" > "/tmp/p25-inputs/captures/${EVIDENCE_DATE}.json"
+          mapfile -t dates < <(node -e "const x=require('/tmp/p25-inputs/lineage.json'); for (const n of x.manifest?.nodes ?? []) console.log(n.sessionDate)")
+          if [ "${#dates[@]}" -eq 0 ]; then
+            echo 'lineage manifest contains no frozen capture nodes' >&2
+            exit 1
+          fi
+          for date in "${dates[@]}"; do
+            if ! [[ "$date" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+              echo "invalid session date in lineage manifest: $date" >&2
+              exit 1
+            fi
+            git show "origin/automation/p25-day-data:data/p25-day-sessions/${date}.json" > "/tmp/p25-inputs/captures/${date}.json"
+          done
+          echo "copied ${#dates[@]} lineage-pinned capture artifacts"
       - name: Download exact pinned P24 canonical byte snapshot
         if: steps.existing.outputs.already_persisted != 'true'
         shell: bash
@@ -98,7 +116,7 @@ jobs:
           snapshot="$(find /tmp/p24-canonical -type f -name 'phase57-p24-9-oos-byte-snapshot.json' -print -quit)"
           test -n "$snapshot"
           node scripts/build_p25_pinned_history_pack.mjs --snapshot "$snapshot" --output /tmp/p25-inputs/history.json
-      - name: Build deterministic checkpoint matrix
+      - name: Build deterministic cumulative checkpoint matrix
         if: steps.existing.outputs.already_persisted != 'true'
         id: plan
         shell: bash
@@ -106,16 +124,27 @@ jobs:
           set -euo pipefail
           node --input-type=module <<'NODE' > /tmp/p25-inputs/matrix.json
           import fs from 'node:fs';
+          import path from 'node:path';
           import {buildP253PCheckpointPlan} from './predict/daytrade/phase57-p25-3p-checkpoint-plan.js';
-          const capture=JSON.parse(fs.readFileSync(`/tmp/p25-inputs/captures/${process.env.EVIDENCE_DATE}.json`,'utf8'));
-          const session=capture.sessions?.[0];
-          if(!session)throw new Error('ready session missing');
-          const plan=buildP253PCheckpointPlan({universeRecord:session.universeRecord,batchSize:Number(process.env.BATCH_SIZE)});
-          fs.writeFileSync('/tmp/p25-inputs/plan.json',JSON.stringify(plan,null,2)+'\n');
-          process.stdout.write(JSON.stringify({batchIndex:plan.batches.map(x=>x.batchIndex)}));
+          const lineage=JSON.parse(fs.readFileSync('/tmp/p25-inputs/lineage.json','utf8'));
+          const dates=[...new Set((lineage.manifest?.nodes ?? []).map(x=>String(x.sessionDate??'')))].sort();
+          const include=[];
+          for(const sessionDate of dates){
+            if(!/^\d{4}-\d{2}-\d{2}$/.test(sessionDate))throw new Error(`invalid session date ${sessionDate}`);
+            const capture=JSON.parse(fs.readFileSync(path.join('/tmp/p25-inputs/captures',`${sessionDate}.json`),'utf8'));
+            const session=capture.sessions?.[0];
+            if(!session)throw new Error(`ready session missing for ${sessionDate}`);
+            const plan=buildP253PCheckpointPlan({universeRecord:session.universeRecord,batchSize:Number(process.env.BATCH_SIZE)});
+            for(const batch of plan.batches)include.push({sessionDate,batchIndex:batch.batchIndex});
+          }
+          if(include.length===0)throw new Error('empty cumulative checkpoint matrix');
+          if(include.length>256)throw new Error(`checkpoint matrix exceeds GitHub limit: ${include.length}`);
+          fs.writeFileSync('/tmp/p25-inputs/plan-summary.json',JSON.stringify({schemaVersion:1,evidenceDate:process.env.EVIDENCE_DATE,batchSize:Number(process.env.BATCH_SIZE),sessionDates:dates,jobCount:include.length},null,2)+'\n');
+          process.stdout.write(JSON.stringify({include}));
           NODE
           echo "matrix=$(cat /tmp/p25-inputs/matrix.json)" >> "$GITHUB_OUTPUT"
-      - name: Upload frozen evaluation inputs
+          cat /tmp/p25-inputs/plan-summary.json
+      - name: Upload frozen cumulative evaluation inputs
         if: steps.existing.outputs.already_persisted != 'true'
         uses: actions/upload-artifact@v4
         with:
@@ -127,9 +156,10 @@ jobs:
     needs: prepare
     if: needs.prepare.outputs.matrix != ''
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 60
     strategy:
       fail-fast: false
+      max-parallel: 8
       matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
     env:
       EVIDENCE_DATE: ${{ needs.prepare.outputs.evidence_date }}
@@ -152,14 +182,14 @@ jobs:
           mkdir -p /tmp/p25-checkpoint
           node scripts/run_p25_checkpoint_shard.mjs \
             --history-pack /tmp/p25-inputs/history.json \
-            --capture "/tmp/p25-inputs/captures/${EVIDENCE_DATE}.json" \
+            --capture "/tmp/p25-inputs/captures/${{ matrix.sessionDate }}.json" \
             --batch-index "${{ matrix.batchIndex }}" \
             --batch-size "$BATCH_SIZE" \
-            --output "/tmp/p25-checkpoint/checkpoint-${{ matrix.batchIndex }}.json"
+            --output "/tmp/p25-checkpoint/checkpoint-${{ matrix.sessionDate }}-${{ matrix.batchIndex }}.json"
       - name: Upload immutable checkpoint
         uses: actions/upload-artifact@v4
         with:
-          name: phase57-p25-3q-checkpoint-${{ env.EVIDENCE_DATE }}-${{ matrix.batchIndex }}
+          name: phase57-p25-3q-checkpoint-${{ env.EVIDENCE_DATE }}-${{ matrix.sessionDate }}-${{ matrix.batchIndex }}
           path: /tmp/p25-checkpoint/*.json
           retention-days: 30
 
@@ -202,6 +232,22 @@ jobs:
             --checkpoint-dir /tmp/p25-checkpoints \
             --output /tmp/p25-evaluation.json
           node scripts/build_p25_trade_pace_scorecard.mjs --evaluation /tmp/p25-evaluation.json --output /tmp/p25-scorecard.json
+      - name: Verify cumulative full-union lineage before persistence
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const lineage=JSON.parse(fs.readFileSync('/tmp/p25-inputs/lineage.json','utf8'));
+          const evaluation=JSON.parse(fs.readFileSync('/tmp/p25-evaluation.json','utf8'));
+          const expected=[...new Set((lineage.manifest?.nodes ?? []).map(x=>String(x.sessionDate??'')))].filter(Boolean).sort();
+          const captured=fs.readdirSync('/tmp/p25-inputs/captures').filter(x=>x.endsWith('.json')).map(x=>x.replace(/\.json$/,'')).sort();
+          if(JSON.stringify(expected)!==JSON.stringify(captured))throw new Error(`capture full-union mismatch expected=${expected} captured=${captured}`);
+          if(Number(evaluation.inputs?.captureArtifactCount)!==expected.length)throw new Error(`evaluation capture count mismatch ${evaluation.inputs?.captureArtifactCount}/${expected.length}`);
+          if(evaluation.methodology?.checkpointedComputeOnly!==true)throw new Error('checkpointed compute marker missing');
+          if(evaluation.methodology?.freshHoldoutConsumed!==false)throw new Error('fresh holdout safety mismatch');
+          console.log(JSON.stringify({status:'CUMULATIVE_FULL_UNION_VERIFIED',sessionDates:expected,captureArtifactCount:evaluation.inputs.captureArtifactCount,checkpointArtifactCount:evaluation.inputs.checkpointArtifactCount},null,2));
+          NODE
       - name: Persist evaluation and scorecard atomically
         shell: bash
         run: |
@@ -228,7 +274,7 @@ jobs:
             cp /tmp/p25-evaluation.json "$eval_target"
             cp /tmp/p25-scorecard.json "$score_target"
             git add "$eval_target" "$score_target"
-            git commit -m "Phase57 P25 checkpointed evaluation ${EVIDENCE_DATE}"
+            git commit -m "Phase57 P25 cumulative checkpointed evaluation ${EVIDENCE_DATE}"
             git push origin HEAD:automation/p25-evaluation-data
           fi
       - name: Upload final evaluation artifacts
@@ -238,6 +284,7 @@ jobs:
           path: |
             /tmp/p25-evaluation.json
             /tmp/p25-scorecard.json
+            /tmp/p25-inputs/plan-summary.json
           retention-days: 90
       - name: Safety boundary
         run: echo 'Research-only; no broker/Excel/RSS writes, MARKETSPEED/board/Tick, paper/live trading, promotion, production update, or fresh holdout.'

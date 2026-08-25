@@ -24,10 +24,12 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Two symbols per shard is the finest single-matrix split that keeps the current
-  # four-session cumulative lineage under GitHub's 256-job matrix cap while preserving
-  # the exact same scorer, frozen inputs, fair-cutoff grid, and full-union recombination.
-  BATCH_SIZE: '2'
+  # Prior-only selection/refit is now cached by exact feature cutoff inside one shard.
+  # Score the full frozen target union in one session job so every symbol shares those
+  # same 37-ish expensive prior-only bundles instead of rebuilding them in 40 shards.
+  # This is compute-placement only: scorer, frozen inputs, fair-cutoff grid, full-union
+  # semantics, model, thresholds, universe, and safety boundaries remain unchanged.
+  BATCH_SIZE: '80'
 
 jobs:
   prepare:
@@ -157,7 +159,7 @@ jobs:
     needs: prepare
     if: needs.prepare.outputs.matrix != ''
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       max-parallel: 8

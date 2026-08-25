@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "mode": "ENTRY_ONLY_RESEARCH_EQUITY",
+  "startingCapitalJpy": 1000000,
+  "portfolioRule": "DAILY_EQUAL_WEIGHT_RESOLVED_ENTRIES",
+  "sourceBranch": "automation/p25-evaluation-data",
+  "sourceNote": "Uses the formal dated P25 Entry-only scorecard. Daily portfolio return is sessionEqualWeightAfterCostNetPct, then compounded from the prior equity. This is research visualization only and does not enable paper/live trading.",
+  "variants": ["DYNAMIC_30", "DYNAMIC_40", "DYNAMIC_50"],
+  "series": {
+    "DYNAMIC_30": [
+      {"date":"2026-08-18","equityJpy":1000000,"dailyReturnPct":0,"resolvedEntries":0,"source":"START"},
+      {"date":"2026-08-19","equityJpy":1019483.59,"dailyReturnPct":1.948359,"resolvedEntries":5,"hitRate":0.8,"profitFactor":5.552443,"maxDrawdownPct":2.139905,"source":"data/p25-scorecards/2026-08-19.json"}
+    ],
+    "DYNAMIC_40": [
+      {"date":"2026-08-18","equityJpy":1000000,"dailyReturnPct":0,"resolvedEntries":0,"source":"START"},
+      {"date":"2026-08-19","equityJpy":1009896.12,"dailyReturnPct":0.989612,"resolvedEntries":6,"hitRate":0.666667,"profitFactor":1.99893,"maxDrawdownPct":5.862626,"source":"data/p25-scorecards/2026-08-19.json"}
+    ],
+    "DYNAMIC_50": [
+      {"date":"2026-08-18","equityJpy":1000000,"dailyReturnPct":0,"resolvedEntries":0,"source":"START"},
+      {"date":"2026-08-19","equityJpy":1013811.81,"dailyReturnPct":1.381181,"resolvedEntries":12,"hitRate":0.666667,"profitFactor":2.795815,"maxDrawdownPct":3.804125,"source":"data/p25-scorecards/2026-08-19.json"}
+    ]
+  },
+  "lastUpdatedAt":"2026-08-25T00:00:00+09:00",
+  "safety":{"researchOnly":true,"executionAllowed":false,"brokerWriteAllowed":false,"excelOrderWriteAllowed":false,"rssOrderFunctionAllowed":false,"liveTradingAllowed":false,"paperTradingAllowed":false,"automaticPromotionAllowed":false,"productionUpdateAllowed":false,"transmitted":false,"freshHoldoutConsumed":false}
+}

@@ -156,5 +156,8 @@ test('workflow consumes every exact checkpoint artifact and persists summary plu
   assert.match(workflow,/test ! -e \"\$target\"/);
   assert.match(workflow,/immutable no-op/);
   assert.match(workflow,/winnerEligible!==false/);
+  assert.match(workflow,/id: verify/);
+  assert.match(workflow,/if: always\(\) && steps\.verify\.outcome == 'success'/);
+  assert.doesNotMatch(workflow,/EXISTING_SUMMARY=.*node - <<'NODE'/);
   assert.doesNotMatch(workflow,/run_p25_dynamic_management_persistence|RssMarket|RssTickList|ARK_ORDER|win32com|phase58_excel/i);
 });

@@ -12,10 +12,46 @@ if(!scorecardPath||!evidenceDate){
 
 const data=JSON.parse(fs.readFileSync(inputPath,'utf8'));
 const scorecardArtifact=JSON.parse(fs.readFileSync(scorecardPath,'utf8'));
-const rows=scorecardArtifact?.scorecard?.rows;
+const scorecard=scorecardArtifact?.scorecard;
+const rows=scorecard?.rows;
 if(!Array.isArray(rows)) throw new Error('P25 scorecard rows missing');
 
 const variants=['DYNAMIC_30','DYNAMIC_40','DYNAMIC_50'];
+const expectedSessionCount=Number(scorecard?.expectedSessionCount??1);
+
+if(expectedSessionCount>1){
+  const cumulative={
+    evidenceDate,
+    expectedSessionCount,
+    blockedSessionCount:Number(scorecard?.blockedSessionCount??0),
+    source:`data/p25-scorecards/${evidenceDate}.json`,
+    variants:{},
+  };
+  for(const variant of variants){
+    const row=rows.find(x=>x?.variant===variant);
+    if(!row) throw new Error(`Missing ${variant} in scorecard`);
+    cumulative.variants[variant]={
+      frozenEntries:Number(row.frozenEntries??0),
+      resolvedEntries:Number(row.resolvedEntries??0),
+      unresolvedFrozenEntries:Number(row.unresolvedFrozenEntries??0),
+      entriesPerTradingSession:Number(row.entriesPerTradingSession??0),
+      hitRate:row.hitRate??null,
+      tradeWinRate:row.tradeWinRate??null,
+      afterCostNetPct:Number(row.afterCostNetPct??0),
+      profitFactor:row.profitFactor??null,
+      maxDrawdownPct:Number(row.maxDrawdownPct??0),
+      meanNetReturnPct:row.meanNetReturnPct??null,
+      sessionEqualWeightAfterCostNetPct:Number(row.sessionEqualWeightAfterCostNetPct??0),
+      conservativeEffectiveIndependentEntries:Number(row.conservativeEffectiveIndependentEntries??0),
+    };
+  }
+  data.latestCumulative=cumulative;
+  data.lastUpdatedAt=new Date().toISOString();
+  fs.writeFileSync(outputPath,JSON.stringify(data,null,2)+'\n','utf8');
+  console.log(JSON.stringify({status:'HOME_PAPER_EQUITY_CUMULATIVE_UPDATED',evidenceDate,expectedSessionCount,variants},null,2));
+  process.exit(0);
+}
+
 for(const variant of variants){
   const row=rows.find(x=>x?.variant===variant);
   if(!row) throw new Error(`Missing ${variant} in scorecard`);

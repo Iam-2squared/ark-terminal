@@ -74,8 +74,17 @@ try{
       return {
         complete:true,
         status:'PHASE57_PROSPECTIVE_SNAPSHOT_READY',
+        policyId:PHASE58_P13_FROZEN_POLICY.policyId,
+        currentSymbol:currentPrefix.symbol,
         snapshot:built.snapshot,
         phase57:{status:base.status,decision:base.decision,modelId:base.modelId,artifactSha256:base.artifactSha256},
+        provenance:{
+          currentSymbol:currentPrefix.symbol,
+          currentFeatureCutoff:feed.featureCutoff,
+          currentSessionDate:currentPrefix.sessionDate,
+          currentSourceBarCount:feed.sourceBarCount,
+          currentPrefixStatus:currentPrefix.status??null,
+        },
       };
     }finally{
       scorerElapsedMs+=Date.now()-startedAt;

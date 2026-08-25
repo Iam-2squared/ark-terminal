@@ -232,6 +232,43 @@ select:focus-visible {
   outline-offset: 2px;
 }
 
+/* Final audit: restore deliberate breathing room on system workspaces. */
+.pageMain {
+  padding-top: 42px;
+  padding-bottom: 72px;
+}
+
+#cloudSyncPanel,
+.learningDashboardMain .marketCard {
+  padding: 28px 30px;
+}
+
+#cloudSyncPanel .controlPanel {
+  margin-top: 26px;
+  padding: 22px;
+  gap: 16px;
+}
+
+#cloudSyncPanel .scoreStatGrid,
+.learningMetricGrid,
+.learningSummaryGrid {
+  gap: 16px;
+}
+
+.learningDashboardMain {
+  gap: 26px;
+}
+
+.learningHeroGrid,
+.learningSummaryGrid {
+  gap: 20px;
+}
+
+.learningSummaryGrid .metricCard {
+  min-height: 108px;
+  padding: 18px 20px;
+}
+
 @media (max-width: 860px) {
   .headerInner,
   .pageMain { width: min(100% - 28px, 1320px); }
@@ -239,11 +276,14 @@ select:focus-visible {
   .headerActionGroup { gap: 7px; }
   #cloudSyncPanel .controlPanel { grid-template-columns: 1fr 1fr; }
   #cloudSyncPanel .controlGroup { grid-column: 1 / -1; }
+  .pageMain { padding-top: 32px; padding-bottom: 56px; }
+  #cloudSyncPanel,
+  .learningDashboardMain .marketCard { padding: 24px; }
 }
 
 @media (max-width: 620px) {
   .headerInner { padding-top: 20px; }
-  .pageMain { padding-top: 18px; }
+  .pageMain { padding-top: 24px; padding-bottom: 44px; }
   .headerNavigation { flex-direction: column; gap: 10px; }
   .headerActionGroup { width: 100%; justify-content: flex-start; }
   .headerAction { flex: 1 1 auto; }
@@ -251,7 +291,9 @@ select:focus-visible {
   .marketCard,
   .performanceCard,
   .warningCard { padding: 17px; border-radius: 9px; }
-  #cloudSyncPanel .controlPanel { grid-template-columns: 1fr; padding: 14px; }
+  #cloudSyncPanel,
+  .learningDashboardMain .marketCard { padding: 20px; }
+  #cloudSyncPanel .controlPanel { grid-template-columns: 1fr; padding: 16px; gap: 14px; }
   #cloudSyncPanel .controlGroup { grid-column: auto; }
   #cloudSyncPanel .controlPanel button { width: 100%; }
   .performanceActions { display: grid; grid-template-columns: 1fr; }
@@ -259,5 +301,6 @@ select:focus-visible {
   .learningHeroGrid,
   .learningSummaryGrid,
   .learningMetricGrid { grid-template-columns: 1fr !important; }
+  .learningDashboardMain { gap: 20px; }
   .tableContainer { border-radius: 6px; }
 }

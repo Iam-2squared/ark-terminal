@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import {assembleP253AutonomousEvidenceInputs} from '../predict/daytrade/phase57-p25-3d-autonomous-evidence-evaluation.js';
 import {runP253AKDynamicManagementSession,buildP253AKManagementRows} from '../predict/daytrade/phase57-p25-3ak-dynamic-management-prospective.js';
 import {evaluateP25HoldExitRecoveryDiagnostic,P25_HOLD_EXIT_RECOVERY_SAFETY} from '../predict/daytrade/phase57-p25-hold-exit-recovery-diagnostic.js';
@@ -11,6 +12,7 @@ import {PHASE58_P13_FROZEN_POLICY} from '../predict/scalping/phase58-phase57-pro
 
 const arg=(name,fallback=null)=>{const i=process.argv.indexOf(name);return i>=0&&i+1<process.argv.length?process.argv[i+1]:fallback;};
 const read=file=>JSON.parse(fs.readFileSync(file,'utf8'));
+const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 const uniqueSortedSymbols=sessions=>[...new Set((sessions??[]).map(s=>String(s?.symbol??'').trim()).filter(Boolean))].sort();
 const sameArray=(a,b)=>a.length===b.length&&a.every((v,i)=>v===b[i]);
 
@@ -34,7 +36,7 @@ function buildCachedScorePrefix(historySessions){
 const historyPath=arg('--history-pack'),captureDir=arg('--capture-dir'),integrityPath=arg('--integrity-ledger'),lineagePath=arg('--lineage-manifest'),sessionDate=arg('--session-date'),outputPath=arg('--output','/tmp/p25-hold-exit-recovery.json');
 if(!historyPath||!captureDir||!integrityPath||!lineagePath||!sessionDate)throw new Error('missing required diagnostic inputs');
 const history=read(historyPath),integrity=read(integrityPath),lineage=read(lineagePath);
-const captures=fs.readdirSync(captureDir).filter(n=>n.endsWith('.json')).sort().map(name=>({artifact:read(path.join(captureDir,name)),artifactPath:name}));
+const captures=fs.readdirSync(captureDir).filter(n=>n.endsWith('.json')).sort().map(name=>{const file=path.join(captureDir,name),bytes=fs.readFileSync(file);return {artifact:JSON.parse(bytes.toString('utf8')),artifactSha256:sha(bytes),artifactPath:name};});
 const assembled=assembleP253AutonomousEvidenceInputs({historyPack:history,captureArtifacts:captures,sessionIntegrityLedger:integrity,lineageManifest:lineage});
 const input=assembled.sessionInputs.find(x=>String(x?.universeRecord?.sessionDate??'')===String(sessionDate));
 if(!input)throw new Error(`session not ready ${sessionDate}`);

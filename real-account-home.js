@@ -1,3 +1,4 @@
+import "./paper-equity-home.js";
 import {
   createRealAccountHomeView,
 } from "./predict/broker/real-account-home-view-v1.js";

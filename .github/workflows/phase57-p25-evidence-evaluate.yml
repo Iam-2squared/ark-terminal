@@ -1,13 +1,17 @@
 name: Phase57 P25 Evidence Evaluation
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/phase57-p25-evidence-evaluate.yml'
   workflow_run:
     workflows: ["Phase57 P25 Evidence Lineage Prep"]
     types: [completed]
   workflow_dispatch:
     inputs:
       evidence_date:
-        description: 'Evidence snapshot date (YYYY-MM-DD); blank = current JST date'
+        description: 'Evidence snapshot date (YYYY-MM-DD); blank = latest immutable evidence snapshot'
         required: false
         type: string
   workflow_call:
@@ -27,9 +31,9 @@ concurrency:
 
 jobs:
   evaluate:
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.workflow_run.conclusion == 'success'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 120
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
@@ -41,28 +45,32 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Resolve evidence date
+      - name: Resolve latest immutable evidence date
         shell: bash
         env:
           REQUESTED_DATE: ${{ inputs.evidence_date }}
         run: |
           set -euo pipefail
+          git fetch origin automation/p25-evidence-data:refs/remotes/origin/automation/p25-evidence-data
           if [ -n "${REQUESTED_DATE:-}" ]; then
             EVIDENCE_DATE="$REQUESTED_DATE"
           else
-            EVIDENCE_DATE="$(TZ=Asia/Tokyo date +%F)"
+            EVIDENCE_DATE="$(git ls-tree -r --name-only origin/automation/p25-evidence-data -- data/p25-evidence-lineage \
+              | sed -n 's#data/p25-evidence-lineage/\([0-9][0-9-]*\)-manifest.json#\1#p' \
+              | sort \
+              | tail -1)"
           fi
           if ! [[ "$EVIDENCE_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
-            echo "invalid evidence date: $EVIDENCE_DATE" >&2
+            echo "invalid or missing immutable evidence date: $EVIDENCE_DATE" >&2
             exit 1
           fi
           echo "EVIDENCE_DATE=$EVIDENCE_DATE" >> "$GITHUB_ENV"
+          echo "resolved cumulative Entry evidence date: $EVIDENCE_DATE"
 
       - name: Load immutable evidence snapshot
         shell: bash
         run: |
           set -euo pipefail
-          git fetch origin automation/p25-evidence-data:refs/remotes/origin/automation/p25-evidence-data
           manifest_path="data/p25-evidence-lineage/${EVIDENCE_DATE}-manifest.json"
           integrity_path="data/p25-evidence-lineage/${EVIDENCE_DATE}-integrity.json"
           git show "origin/automation/p25-evidence-data:$manifest_path" > /tmp/p25-evidence-lineage-manifest.json

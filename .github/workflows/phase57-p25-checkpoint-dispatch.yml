@@ -1,0 +1,36 @@
+name: Phase57 P25 Checkpointed Evaluation Dispatch
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/phase57-p25-checkpoint-dispatch.yml'
+      - 'scripts/run_p25_checkpoint_shard.mjs'
+      - 'scripts/recombine_p25_checkpoint_evaluation.mjs'
+      - 'scripts/build_p25_pinned_history_pack.mjs'
+      - 'scripts/build_p25_trade_pace_scorecard.mjs'
+      - 'predict/daytrade/phase57-p25-3o-sharded-prefix-replay.js'
+      - 'predict/daytrade/phase57-p25-3p-checkpoint-plan.js'
+      - 'predict/daytrade/phase57-p21-prospective-history.js'
+      - 'predict/daytrade/phase57-p21-prospective-feature-feed.js'
+      - 'predict/daytrade/phase57-p21-prospective-frozen-base.js'
+      - 'predict/scalping/phase58-phase57-runtime-adapter.js'
+      - 'predict/scalping/phase58-phase57-prospective-pipeline.js'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Dispatch current-main checkpointed evaluation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow run phase57-p25-checkpointed-evaluation.yml --repo "$GH_REPO" --ref main
+      - name: Safety boundary
+        run: echo 'Dispatcher only; research evaluation remains READ ONLY and all trading/write/promotion flags remain false.'

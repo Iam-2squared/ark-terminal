@@ -6,142 +6,146 @@
   <title>Ark Terminal</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#2563eb">
+  <meta name="theme-color" content="#07111f">
 </head>
 <body>
   <header class="appHeader">
     <button id="menuButton" class="menuButton" type="button" aria-label="メニューを開く">☰</button>
-    <h1>🚀 Ark Terminal</h1>
+    <div class="brandLockup">
+      <span class="brandMark">A</span>
+      <div><h1>ARK TERMINAL</h1><p>MARKET INTELLIGENCE OS</p></div>
+    </div>
+    <div class="headerStatusCluster" aria-label="システム状態">
+      <span class="statusDot live"></span><span>DATA LIVE</span>
+      <span class="statusDivider"></span>
+      <span class="statusDot research"></span><span>RESEARCH</span>
+      <span class="statusDivider"></span>
+      <span class="readonlyBadge">READ ONLY</span>
+    </div>
   </header>
 
   <div id="overlay" class="overlay"></div>
 
   <div class="container">
     <nav id="sideMenu" class="sideMenu">
-      <div class="menuTitle">MENU</div>
-      <a class="navLink active" href="./index.html"><span class="navIcon">🏠</span><span>Home</span></a>
-      <a class="navLink" href="./tasks/index.html"><span class="navIcon">📝</span><span>Tasks</span></a>
-      <a class="navLink" href="./stocks/index.html"><span class="navIcon">📈</span><span>Stocks</span></a>
-      <a class="navLink" href="predict/index.html"><span class="navIcon">🔮</span><span>Prediction Lab</span></a>
-      <a class="navLink" href="./discovery/index.html"><span class="navIcon">🧭</span><span>AI Stock Screener</span></a>
-      <a class="navLink" href="./news/index.html"><span class="navIcon">📰</span><span>AI News</span></a>
-      <a class="navLink" href="./study/index.html"><span class="navIcon">📚</span><span>Study</span></a>
-      <a class="navLink" href="./ideas/index.html"><span class="navIcon">💡</span><span>Ideas</span></a>
-      <a class="navLink" href="./settings/index.html"><span class="navIcon">⚙️</span><span>Settings</span></a>
+      <div class="menuTitle">COMMAND</div>
+      <a class="navLink active" href="./index.html"><span class="navIcon">⌂</span><span>Command Center</span></a>
+      <a class="navLink" href="./stocks/index.html"><span class="navIcon">⌁</span><span>Markets</span></a>
+      <a class="navLink" href="./discovery/index.html"><span class="navIcon">◈</span><span>Discovery</span></a>
+      <a class="navLink" href="predict/index.html"><span class="navIcon">◇</span><span>Prediction</span></a>
+      <a class="navLink" href="predict/performance.html"><span class="navIcon">◫</span><span>Performance</span></a>
+      <a class="navLink" href="./news/index.html"><span class="navIcon">≋</span><span>Intelligence</span></a>
+      <a class="navLink" href="./tasks/index.html"><span class="navIcon">✓</span><span>Tasks</span></a>
 
-      <a class="paperSidebarCard" href="predict/index.html#paperTradingTitle">
-        <div class="paperSidebarHeader">
-          <strong>仮想口座</strong>
-          <span>稼働中</span>
-        </div>
-        <p>総資産</p>
-        <strong>¥1,000,000</strong>
-        <p>現金残高</p>
-        <strong>¥1,000,000</strong>
-      </a>
+      <div class="menuTitle navSectionTitle">SYSTEM</div>
+      <a class="navLink" href="predict/readiness-dashboard.html"><span class="navIcon">◎</span><span>Readiness</span></a>
+      <a class="navLink" href="predict/operations.html"><span class="navIcon">◉</span><span>Operations</span></a>
+      <a class="navLink" href="./settings/index.html"><span class="navIcon">⚙</span><span>Settings</span></a>
+
+      <div class="sidebarSystemCard">
+        <div class="sidebarSystemTop"><span>ARK CORE</span><span class="miniStatus">HEALTHY</span></div>
+        <div class="sidebarMetric"><span>Execution</span><strong>LOCKED</strong></div>
+        <div class="sidebarMetric"><span>Broker Write</span><strong>OFF</strong></div>
+        <div class="sidebarMetric"><span>Mode</span><strong>RESEARCH</strong></div>
+      </div>
     </nav>
 
     <main class="mainContent">
-      <section class="welcomeArea">
-        <p class="welcomeLabel">HOME</p>
-        <h2>おかえり！</h2>
-        <p class="welcomeText">市場・予測・仮想運用をひとつの画面で確認できます。</p>
+      <section class="commandHero">
+        <div>
+          <p class="welcomeLabel">COMMAND CENTER</p>
+          <h2>Market Intelligence</h2>
+          <p class="welcomeText">市場・予測・シグナル・研究状態を1つの画面で監視。</p>
+        </div>
+        <div class="heroClockPanel">
+          <span>JST</span>
+          <strong id="todayDate">----/--/--</strong>
+          <small id="todayWeekday">-</small>
+        </div>
       </section>
 
-      <section class="homeTopGrid">
-        <article class="dashboardCard dateCard">
-          <div class="cardHeader"><span class="cardIcon">📅</span><h3>今日</h3></div>
-          <p id="todayDate" class="largeValue">----/--/--</p>
-          <p id="todayWeekday" class="cardDescription">-</p>
-        </article>
-
-        <article class="dashboardCard taskCard" id="todayTasksCard">
-          <div class="cardHeader"><span class="cardIcon">📝</span><h3>今日の予定</h3></div>
-          <p id="taskSummary" class="cardDescription">今日の予定を読み込んでいます。</p>
-          <div id="todayTaskList"></div>
-          <p id="taskProgress" class="cardDescription"></p>
-          <a class="cardLink" href="./tasks/index.html">Tasksを開く <span>→</span></a>
-        </article>
+      <section class="marketStrip" aria-label="マーケット概要">
+        <div class="marketTile"><span>NIKKEI</span><strong>—</strong><small>Market feed</small></div>
+        <div class="marketTile"><span>TOPIX</span><strong>—</strong><small>Market feed</small></div>
+        <div class="marketTile"><span>USD / JPY</span><strong>—</strong><small>FX context</small></div>
+        <div class="marketTile"><span>REGIME</span><strong>NEUTRAL</strong><small>Research state</small></div>
+        <div class="marketTile accent"><span>ARK STATUS</span><strong>HEALTHY</strong><small>All guards active</small></div>
       </section>
 
-      <section class="homeHeroGrid">
-        <article class="dashboardCard predictionHeroCard">
-          <div class="cardHeader homeCardHeaderSpread">
-            <div class="homeTitleGroup"><span class="cardIcon">🔮</span><div><p class="homeEyebrow">Prediction Lab</p><h2>AI市場分析</h2></div></div>
-            <a class="compactLink" href="predict/index.html">開く →</a>
+      <section class="commandGrid commandGridPrimary">
+        <article class="terminalPanel marketPanel">
+          <div class="panelHeader">
+            <div><p class="panelEyebrow">MARKET OVERVIEW</p><h3>Live Structure</h3></div>
+            <a class="terminalLink" href="./stocks/index.html">OPEN MARKETS ↗</a>
           </div>
-          <p class="cardDescription">AIによる株価予測と投資シグナルを確認できます。</p>
-          <div class="predictionHeroPanel">
-            <div class="predictionHeroTop">
-              <div><span class="predictionPreviewLabel">Prediction Score</span><strong>50 / 100</strong></div>
-              <span class="predictionPreviewBadge">中立</span>
+          <div id="stocksCard" class="marketChartArea" role="link" tabindex="0">
+            <div class="marketPriceRow">
+              <div><span>NVDA</span><strong id="homeStockPrice">Loading...</strong></div>
+              <div id="homeStockChange" class="homeStockChange">--</div>
             </div>
-            <div class="predictionScale"><span></span></div>
-            <div class="predictionSentimentGrid">
-              <div><span>強気</span><strong>25%</strong></div>
-              <div><span>中立</span><strong>50%</strong></div>
-              <div><span>弱気</span><strong>25%</strong></div>
-            </div>
-          </div>
-          <div class="aiCommentBox">
-            <span>AIコメント</span>
-            <p>市場は中立的な地合いです。テクニカル指標は方向感に乏しく、需給バランスも拮抗しています。</p>
-          </div>
-        </article>
-
-        <article class="dashboardCard signalCard">
-          <div class="cardHeader homeCardHeaderSpread">
-            <div class="homeTitleGroup"><span class="cardIcon">🧾</span><div><p class="homeEyebrow">Recent Signals</p><h2>最近のシグナル</h2></div></div>
-            <a class="compactLink" href="predict/performance.html">すべて見る →</a>
-          </div>
-          <div class="signalTable">
-            <div class="signalRow signalHead"><span>銘柄</span><span>シグナル</span><span>AI Score</span><span>Confidence</span></div>
-            <div class="signalRow"><strong>AAPL</strong><span class="signalBadge buy">BUY</span><span>78 / 100</span><span>85%</span></div>
-            <div class="signalRow"><strong>MSFT</strong><span class="signalBadge buy">BUY</span><span>72 / 100</span><span>80%</span></div>
-            <div class="signalRow"><strong>NVDA</strong><span class="signalBadge buy">BUY</span><span>70 / 100</span><span>78%</span></div>
-            <div class="signalRow"><strong>TSLA</strong><span class="signalBadge wait">NO TRADE</span><span>50 / 100</span><span>60%</span></div>
-            <div class="signalRow"><strong>AMZN</strong><span class="signalBadge sell">SELL</span><span>32 / 100</span><span>55%</span></div>
-          </div>
-        </article>
-      </section>
-
-      <section class="homeBottomGrid">
-        <article class="dashboardCard stocksSummaryCard">
-          <div id="stocksCard" class="dashboardCardLink" role="link" tabindex="0">
-            <div class="cardHeader"><div class="cardIcon">📈</div><h2>Stocks</h2></div>
-            <div id="homeStockPrice" class="homeStockPrice">Loading...</div>
-            <div id="homeStockChange" class="homeStockChange">--</div>
             <div class="homeMiniChart">
               <svg id="homeStockChart" viewBox="0 0 320 100" preserveAspectRatio="none" aria-label="株価簡易チャート">
-                <defs><linearGradient id="chartAreaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2563eb" stop-opacity="0.22"></stop><stop offset="100%" stop-color="#2563eb" stop-opacity="0"></stop></linearGradient></defs>
+                <defs><linearGradient id="chartAreaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#22d3ee" stop-opacity="0.22"></stop><stop offset="100%" stop-color="#22d3ee" stop-opacity="0"></stop></linearGradient></defs>
                 <polygon id="homeStockChartArea" fill="url(#chartAreaGradient)" points=""></polygon>
                 <polyline id="homeStockChartLine" points=""></polyline>
               </svg>
             </div>
-            <div id="homeStockTime" class="homeStockTime">更新 --</div>
+            <div class="chartMeta"><span>Realtime quote surface</span><span id="homeStockTime">更新 --</span></div>
           </div>
         </article>
 
-        <article class="dashboardCard paperAccountCard">
-          <div class="cardHeader homeCardHeaderSpread">
-            <div class="homeTitleGroup"><span class="cardIcon">💼</span><div><p class="homeEyebrow">Paper Trading</p><h2>仮想口座</h2></div></div>
-            <span class="statusPill">稼働中</span>
+        <article class="terminalPanel intelligencePanel">
+          <div class="panelHeader">
+            <div><p class="panelEyebrow">AI STATE</p><h3>Decision Engine</h3></div>
+            <a class="terminalLink" href="predict/index.html">OPEN LAB ↗</a>
           </div>
-          <div class="paperMetricGrid">
-            <div><span>総資産</span><strong>¥1,000,000</strong></div>
-            <div><span>現金残高</span><strong>¥1,000,000</strong></div>
-            <div><span>保有時価</span><strong>¥0</strong></div>
-            <div><span>評価損益</span><strong>¥0</strong></div>
+          <div class="decisionMatrix">
+            <div class="decisionPrimary"><span>DIRECTION</span><strong>WAIT</strong><small>No forced trade</small></div>
+            <div><span>CONFIDENCE</span><strong>50%</strong></div>
+            <div><span>HORIZON</span><strong>ADAPTIVE</strong></div>
+            <div><span>REGIME</span><strong>NEUTRAL</strong></div>
+            <div><span>MODEL HEALTH</span><strong class="goodText">HEALTHY</strong></div>
           </div>
-          <a class="cardLink" href="predict/index.html#paperTradingTitle">仮想口座を開く <span>→</span></a>
+          <div class="aiNarrative">
+            <span>ARK COMMENTARY</span>
+            <p>現在は研究モード。低確信局面では無理にエントリーせず、シグナル品質を優先します。</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="commandGrid commandGridSecondary">
+        <article class="terminalPanel opportunitiesPanel">
+          <div class="panelHeader">
+            <div><p class="panelEyebrow">OPPORTUNITY FEED</p><h3>Top Signals</h3></div>
+            <a class="terminalLink" href="./discovery/index.html">DISCOVERY ↗</a>
+          </div>
+          <div class="terminalTable">
+            <div class="terminalRow terminalHead"><span>SYMBOL</span><span>STATE</span><span>SCORE</span><span>CONF.</span><span>HORIZON</span></div>
+            <div class="terminalRow"><strong>AAPL</strong><span class="signalBadge buy">BUY</span><span>78</span><span>85%</span><span>DAY</span></div>
+            <div class="terminalRow"><strong>MSFT</strong><span class="signalBadge buy">BUY</span><span>72</span><span>80%</span><span>SWING</span></div>
+            <div class="terminalRow"><strong>NVDA</strong><span class="signalBadge buy">BUY</span><span>70</span><span>78%</span><span>DAY</span></div>
+            <div class="terminalRow"><strong>TSLA</strong><span class="signalBadge wait">WAIT</span><span>50</span><span>60%</span><span>—</span></div>
+            <div class="terminalRow"><strong>AMZN</strong><span class="signalBadge sell">SELL</span><span>32</span><span>55%</span><span>SWING</span></div>
+          </div>
+        </article>
+
+        <article class="terminalPanel taskPanel" id="todayTasksCard">
+          <div class="panelHeader">
+            <div><p class="panelEyebrow">TODAY</p><h3>Mission Queue</h3></div>
+            <a class="terminalLink" href="./tasks/index.html">TASKS ↗</a>
+          </div>
+          <p id="taskSummary" class="cardDescription">今日の予定を読み込んでいます。</p>
+          <div id="todayTaskList" class="terminalTaskList"></div>
+          <p id="taskProgress" class="taskProgress"></p>
         </article>
       </section>
 
       <section class="systemStatusBar">
-        <span>🛡 システムステータス: <strong>正常稼働中</strong></span>
-        <span>データ更新: 2026/08/05 08:30</span>
-        <span>予測モデル: v18.1</span>
-        <span>次回更新: 2026/08/06 08:30</span>
+        <span><i class="statusDot live"></i> SYSTEM <strong>HEALTHY</strong></span>
+        <span>MODE <strong>RESEARCH</strong></span>
+        <span>EXECUTION <strong>LOCKED</strong></span>
+        <span>BROKER WRITE <strong>OFF</strong></span>
+        <span>RSS ORDER <strong>OFF</strong></span>
       </section>
     </main>
   </div>

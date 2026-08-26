@@ -1,0 +1,45 @@
+name: Phase57 HOLD EXIT R3-R5 Historical Walk-Forward
+
+on:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-hold-exit-r3-r5-walkforward.js'
+      - 'predict/daytrade/run-phase57-hold-exit-r3-r5-historical.mjs'
+      - 'predict/tests/phase57-hold-exit-r3-r5-walkforward.test.mjs'
+      - '.github/workflows/phase57-hold-exit-r3-r5.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  guards:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run R3-R5 causal and safety guards
+        run: node predict/tests/phase57-hold-exit-r3-r5-walkforward.test.mjs
+
+  historical-walk-forward:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    needs: guards
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Measure frozen-end historical HOLD PROTECT EXIT research
+        env:
+          PHASE57_DATA_END: '2026-08-12T06:30:00.000Z'
+        run: node predict/daytrade/run-phase57-hold-exit-r3-r5-historical.mjs
+      - name: Upload R3-R5 historical artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-hold-exit-r3-r5-historical
+          path: artifacts/phase57-hold-exit-r3-r5-historical.json
+          if-no-files-found: error

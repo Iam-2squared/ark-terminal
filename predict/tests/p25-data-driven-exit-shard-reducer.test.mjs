@@ -20,7 +20,7 @@ test('shard reducer deterministically reproduces union summary and preserves gua
   const out=path.join(dir,'out.json');
   try{
     const a=shard('2026-08-19','2026-08-19|01:00|1111.T',1.0,0.5);
-    const b=shard('2026-08-20','2026-08-20|01:00|2222.T',-0.5,0.25);
+    const b=shard('2026-08-20','2026-08-20|01:00|2222.T',-0.5,-0.25);
     fs.writeFileSync(path.join(dir,'b.json'),JSON.stringify(b));
     fs.writeFileSync(path.join(dir,'a.json'),JSON.stringify(a));
     execFileSync(process.execPath,[reducer,'--input-dir',dir,'--output',out],{stdio:'pipe'});

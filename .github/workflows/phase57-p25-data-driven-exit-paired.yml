@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       evidence_date:
-        description: 'Immutable evidence date YYYY-MM-DD; blank = latest available'
+        description: 'Immutable evidence date YYYY-MM-DD; blank = formal five-session pin'
         required: false
         type: string
 
@@ -23,6 +23,9 @@ permissions:
 concurrency:
   group: phase57-p25-data-driven-exit-paired
   cancel-in-progress: false
+
+env:
+  FORMAL_EVIDENCE_DATE: '2026-08-25'
 
 jobs:
   prepare:
@@ -42,11 +45,12 @@ jobs:
         run: |
           set -euo pipefail
           git fetch origin automation/p25-evidence-data:refs/remotes/origin/automation/p25-evidence-data
-          if [ -n "${REQUESTED_DATE:-}" ]; then evidence_date="$REQUESTED_DATE"; else evidence_date="$(git ls-tree -r --name-only origin/automation/p25-evidence-data -- data/p25-evidence-lineage | sed -n 's#data/p25-evidence-lineage/\([0-9][0-9-]*\)-manifest.json#\1#p' | sort | tail -1)"; fi
+          if [ -n "${REQUESTED_DATE:-}" ]; then evidence_date="$REQUESTED_DATE"; else evidence_date="$FORMAL_EVIDENCE_DATE"; fi
           [[ "$evidence_date" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]
           git show "origin/automation/p25-evidence-data:data/p25-evidence-lineage/${evidence_date}-manifest.json" > /tmp/manifest.json
           session_dates="$(node -e "const x=require('/tmp/manifest.json'); console.log(JSON.stringify((x.manifest?.nodes??[]).map(n=>n.sessionDate)))")"
           test "$session_dates" != '[]'
+          test "$session_dates" = '["2026-08-19","2026-08-20","2026-08-21","2026-08-24","2026-08-25"]' || { echo "formal five-session lineage mismatch: $session_dates"; exit 1; }
           echo "evidence_date=$evidence_date" >> "$GITHUB_OUTPUT"
           echo "session_dates=$session_dates" >> "$GITHUB_OUTPUT"
 
@@ -132,7 +136,10 @@ jobs:
           node scripts/reduce_p25_data_driven_exit_shards.mjs --input-dir /tmp/shards --output /tmp/p25-data-driven-exit-paired.json
           node - <<'NODE'
           const x=require('/tmp/p25-data-driven-exit-paired.json');
-          if(!(Number(x.result?.readySessionCount)>0)) throw new Error('ready session count missing');
+          if(Number(x.result?.readySessionCount)!==5) throw new Error('formal five-session count mismatch');
+          const dates=(x.result?.sessions??[]).map(s=>s.sessionDate);
+          const expected=['2026-08-19','2026-08-20','2026-08-21','2026-08-24','2026-08-25'];
+          if(JSON.stringify(dates)!==JSON.stringify(expected)) throw new Error(`formal session lineage mismatch ${JSON.stringify(dates)}`);
           if(x.safety?.executionAllowed!==false||x.safety?.brokerWriteAllowed!==false||x.safety?.excelOrderWriteAllowed!==false||x.safety?.rssOrderFunctionAllowed!==false||x.safety?.liveTradingAllowed!==false||x.safety?.paperTradingAllowed!==false||x.safety?.automaticPromotionAllowed!==false||x.safety?.productionUpdateAllowed!==false||x.safety?.transmitted!==false||x.safety?.freshHoldoutConsumed!==false) throw new Error('safety flag violation');
           if(x.methodology?.exactDynamic50Only!==true||x.methodology?.resultBasedRetuning!==false||x.methodology?.shardedComputeOnly!==true) throw new Error('methodology guard violation');
           NODE
@@ -158,5 +165,6 @@ jobs:
       - name: Safety boundary
         run: |
           echo 'Research-only sharded exact DYNAMIC_50 Fixed vs data-driven EXIT paired evaluation.'
-          echo 'Compute is split only; Entry/model/universe/threshold/Dynamic-N/fair-cutoff/historical pool/EXIT semantics unchanged.'
+          echo 'Formal evidence pinned to 2026-08-19..2026-08-25; no new-session contamination.'
+          echo 'Compute is split/cached only; Entry/model/universe/threshold/Dynamic-N/fair-cutoff/historical pool/EXIT semantics unchanged.'
           echo 'No broker, Excel, RSS order, MARKETSPEED, paper/live trading, promotion, transmission, or production update.'

@@ -1,0 +1,113 @@
+name: Phase57 P25 HOLD EXIT Recovery Diagnostic
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-p25-hold-exit-recovery-diagnostic.yml'
+      - 'scripts/run_p25_hold_exit_recovery_diagnostic.mjs'
+      - 'scripts/recombine_p25_hold_exit_recovery_diagnostic.mjs'
+      - 'predict/daytrade/phase57-p25-hold-exit-recovery-diagnostic.js'
+      - 'predict/tests/p25-hold-exit-recovery-diagnostic.test.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node predict/tests/p25-hold-exit-recovery-diagnostic.test.mjs
+
+  shard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        session_date: ['2026-08-19','2026-08-20','2026-08-21','2026-08-24','2026-08-25']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Load immutable five-session evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin automation/p25-evidence-data:refs/remotes/origin/automation/p25-evidence-data
+          git fetch origin automation/p25-day-data:refs/remotes/origin/automation/p25-day-data
+          git show 'origin/automation/p25-evidence-data:data/p25-evidence-lineage/2026-08-25-manifest.json' > /tmp/p25-evidence-lineage-manifest.json
+          git show 'origin/automation/p25-evidence-data:data/p25-evidence-lineage/2026-08-25-integrity.json' > /tmp/p25-session-integrity-ledger.json
+          mkdir -p /tmp/p25-day-sessions
+          for date in 2026-08-19 2026-08-20 2026-08-21 2026-08-24 2026-08-25; do
+            git show "origin/automation/p25-day-data:data/p25-day-sessions/${date}.json" > "/tmp/p25-day-sessions/${date}.json"
+          done
+      - name: Download exact pinned P24 canonical snapshot
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p24-canonical
+          gh run download 31785422471 --repo "$GH_REPO" --name phase57-p24-9-oos-canonical-candidate --dir /tmp/p24-canonical
+          snapshot="$(find /tmp/p24-canonical -type f -name 'phase57-p24-9-oos-byte-snapshot.json' -print -quit)"
+          test -n "$snapshot"
+          node scripts/build_p25_pinned_history_pack.mjs --snapshot "$snapshot" --output /tmp/p25-pinned-history-pack.json
+      - name: Run R1-R2 session diagnostic
+        shell: bash
+        env:
+          SESSION_DATE: ${{ matrix.session_date }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/recovery
+          node scripts/run_p25_hold_exit_recovery_diagnostic.mjs \
+            --history-pack /tmp/p25-pinned-history-pack.json \
+            --capture-dir /tmp/p25-day-sessions \
+            --integrity-ledger /tmp/p25-session-integrity-ledger.json \
+            --lineage-manifest /tmp/p25-evidence-lineage-manifest.json \
+            --session-date "$SESSION_DATE" \
+            --output "/tmp/recovery/${SESSION_DATE}.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p25-hold-exit-recovery-${{ matrix.session_date }}
+          path: /tmp/recovery/${{ matrix.session_date }}.json
+          retention-days: 30
+
+  combine:
+    needs: [unit, shard]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: p25-hold-exit-recovery-*
+          path: /tmp/recovery-shards
+          merge-multiple: true
+      - name: Recombine and verify R1-R2 diagnosis
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/recombine_p25_hold_exit_recovery_diagnostic.mjs --shard-dir /tmp/recovery-shards --output /tmp/p25-hold-exit-recovery-combined.json
+          node -e "const x=require('/tmp/p25-hold-exit-recovery-combined.json'); if(x.pairedCount!==27) throw Error('expected 27 paired rows'); if(x.methodology.p2350DynamicRiskExactReplay!==false) throw Error('must not overclaim P23.50 exact replay');"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p25-hold-exit-recovery-combined
+          path: /tmp/p25-hold-exit-recovery-combined.json
+          retention-days: 30
+      - name: Safety boundary
+        run: echo 'Diagnostic only. No Entry/model/universe/threshold/Dynamic-N changes; no fresh holdout; all trading/write flags remain false.'

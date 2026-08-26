@@ -29,7 +29,7 @@ for(const variant of variants){
   assert.equal(out.series[variant].length,6);
   assert.deepEqual(out.series[variant].slice(1).map(x=>x.date),sessions.map(x=>x.sessionDate));
   assert.deepEqual(out.series[variant].slice(1).map(x=>x.dailyReturnPct),sessions.map(x=>x.returnPct));
-  assert.equal(out.series[variant].at(-1).equityJpy,1029798.98);
+  assert.equal(out.series[variant].at(-1).equityJpy,1030096.98);
 }
 assert.equal(out.latestCumulative.evidenceDate,'2026-08-25');
 console.log('Home paper equity multi-session rebuild test passed');

@@ -8,3 +8,9 @@ test('paired CLI invokes exact data-driven multisession evaluator and emits safe
   assert.match(cli,/P25_DATA_DRIVEN_PAIRED_SAFETY/);
   assert.match(cli,/resultBasedRetuning:false/);
 });
+
+test('paired CLI fingerprints exact capture bytes for lineage reconciliation',()=>{
+  assert.match(cli,/createHash\('sha256'\)/);
+  assert.match(cli,/readJsonWithSha/);
+  assert.match(cli,/artifactSha256:loaded\.sha256/);
+});

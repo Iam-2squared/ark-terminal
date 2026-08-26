@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   guards:
@@ -33,9 +34,21 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Measure frozen-end historical HOLD PROTECT EXIT research
+      - name: Download exact pinned P24 canonical byte snapshot
+        shell: bash
         env:
-          PHASE57_DATA_END: '2026-08-12T06:30:00.000Z'
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p24-canonical
+          gh run download 31785422471 --repo "$GH_REPO" --name phase57-p24-9-oos-canonical-candidate --dir /tmp/p24-canonical
+          snapshot="$(find /tmp/p24-canonical -type f -name 'phase57-p24-9-oos-byte-snapshot.json' -print -quit)"
+          test -n "$snapshot"
+          node scripts/build_p25_pinned_history_pack.mjs --snapshot "$snapshot" --output /tmp/p25-pinned-history-pack.json
+      - name: Measure canonical historical HOLD PROTECT EXIT research
+        env:
+          PHASE57_PINNED_HISTORY_PACK: /tmp/p25-pinned-history-pack.json
         run: node predict/daytrade/run-phase57-hold-exit-r3-r5-historical.mjs
       - name: Upload R3-R5 historical artifact
         uses: actions/upload-artifact@v4

@@ -132,7 +132,7 @@ jobs:
           node scripts/reduce_p25_data_driven_exit_shards.mjs --input-dir /tmp/shards --output /tmp/p25-data-driven-exit-paired.json
           node - <<'NODE'
           const x=require('/tmp/p25-data-driven-exit-paired.json');
-          if(x.result?.readySessionCount!==${{ strategy.job-total || 0 }}) console.log('session count checked by reducer/artifact set');
+          if(!(Number(x.result?.readySessionCount)>0)) throw new Error('ready session count missing');
           if(x.safety?.executionAllowed!==false||x.safety?.brokerWriteAllowed!==false||x.safety?.excelOrderWriteAllowed!==false||x.safety?.rssOrderFunctionAllowed!==false||x.safety?.liveTradingAllowed!==false||x.safety?.paperTradingAllowed!==false||x.safety?.automaticPromotionAllowed!==false||x.safety?.productionUpdateAllowed!==false||x.safety?.transmitted!==false||x.safety?.freshHoldoutConsumed!==false) throw new Error('safety flag violation');
           if(x.methodology?.exactDynamic50Only!==true||x.methodology?.resultBasedRetuning!==false||x.methodology?.shardedComputeOnly!==true) throw new Error('methodology guard violation');
           NODE

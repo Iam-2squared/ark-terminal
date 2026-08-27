@@ -1,4 +1,4 @@
-const CACHE_NAME = "ark-terminal-v28";
+const CACHE_NAME = "ark-terminal-v29";
 
 const APP_SHELL = [
     "./",
@@ -6,6 +6,7 @@ const APP_SHELL = [
     "./style.css",
     "./script.js",
     "./paper-equity-home.js",
+    "./paper-equity-split.js",
     "./paper-equity.html",
     "./paper-equity-page.js",
     "./real-account-home.js",

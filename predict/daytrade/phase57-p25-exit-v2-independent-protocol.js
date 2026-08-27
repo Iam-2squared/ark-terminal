@@ -3,12 +3,14 @@ export const P25_EXIT_V2_INDEPENDENT_PROTOCOL=Object.freeze({
   developmentCutoff:'2026-08-12',
   legacyDiagnosticWindow:Object.freeze(['2026-08-19','2026-08-20','2026-08-21','2026-08-24','2026-08-25']),
   firstEligibleFreshSession:'2026-08-26',
+  freshSessionOpenUtc:'00:00:00.000Z',
   existing27AllowedForDiagnosticsOnly:true,
   existing27AllowedForThresholdTuning:false,
   existing27AllowedForFeatureTuning:false,
   existing27AllowedForHorizonTuning:false,
   existing27AllowedForCoefficientTuning:false,
   candidateMustFreezeBeforeFreshEvaluation:true,
+  candidateMustFreezeBeforeFreshSessionOpen:true,
   incompleteFreshSessionAllowed:false,
   freshHoldoutConsumed:false,
   automaticPromotionAllowed:false,
@@ -28,14 +30,16 @@ export function validateP25ExitV2DevelopmentDates(sessionDates=[]){
 
 export function validateP25ExitV2FreshCandidate({candidateFrozenAt,freshSessionDate,freshSessionComplete,freshSessionImmutable}={}){
   const frozen=String(candidateFrozenAt??''),fresh=String(freshSessionDate??'');
-  if(!frozen||Number.isNaN(Date.parse(frozen)))return Object.freeze({ready:false,status:'BLOCKED_V2_CANDIDATE_NOT_FROZEN'});
+  const frozenMs=Date.parse(frozen);
+  if(!frozen||Number.isNaN(frozenMs))return Object.freeze({ready:false,status:'BLOCKED_V2_CANDIDATE_NOT_FROZEN'});
   if(!isoDate(fresh)||fresh<P25_EXIT_V2_INDEPENDENT_PROTOCOL.firstEligibleFreshSession)return Object.freeze({ready:false,status:'BLOCKED_V2_NOT_FRESH_SESSION'});
   if(P25_EXIT_V2_INDEPENDENT_PROTOCOL.legacyDiagnosticWindow.includes(fresh))return Object.freeze({ready:false,status:'BLOCKED_V2_LEGACY_DIAGNOSTIC_WINDOW'});
   if(freshSessionComplete!==true)return Object.freeze({ready:false,status:'BLOCKED_V2_FRESH_SESSION_INCOMPLETE'});
   if(freshSessionImmutable!==true)return Object.freeze({ready:false,status:'BLOCKED_V2_FRESH_SESSION_NOT_IMMUTABLE'});
-  const frozenDate=frozen.slice(0,10);
-  if(frozenDate>fresh)return Object.freeze({ready:false,status:'BLOCKED_V2_FROZEN_AFTER_FRESH_SESSION'});
-  return Object.freeze({ready:true,status:'V2_FRESH_EVALUATION_ELIGIBLE',freshSessionDate:fresh,candidateFrozenAt:frozen});
+  const sessionOpenIso=`${fresh}T${P25_EXIT_V2_INDEPENDENT_PROTOCOL.freshSessionOpenUtc}`;
+  const sessionOpenMs=Date.parse(sessionOpenIso);
+  if(!(frozenMs<sessionOpenMs))return Object.freeze({ready:false,status:'BLOCKED_V2_CANDIDATE_NOT_FROZEN_BEFORE_SESSION_OPEN',freshSessionDate:fresh,sessionOpenAt:sessionOpenIso,candidateFrozenAt:frozen});
+  return Object.freeze({ready:true,status:'V2_FRESH_EVALUATION_ELIGIBLE',freshSessionDate:fresh,sessionOpenAt:sessionOpenIso,candidateFrozenAt:frozen});
 }
 
 export default {P25_EXIT_V2_INDEPENDENT_PROTOCOL,validateP25ExitV2DevelopmentDates,validateP25ExitV2FreshCandidate};

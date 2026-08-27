@@ -6,6 +6,7 @@ const read=file=>JSON.parse(fs.readFileSync(file,'utf8'));
 const write=(file,value)=>{fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,JSON.stringify(value,null,2)+'\n','utf8');};
 const mean=xs=>xs.length?xs.reduce((s,x)=>s+x,0)/xs.length:null;
 const round=(x,d=6)=>Number.isFinite(x)?Number(x.toFixed(d)):x;
+const maxPositionsOf=profileId=>{const m=/^MAX_(\d+)$/.exec(String(profileId));return m?Number(m[1]):null;};
 
 function profileDiagnostic(profileId,result){
   const decisions=Array.isArray(result?.allocationDecisions)?result.allocationDecisions:[];
@@ -20,7 +21,7 @@ function profileDiagnostic(profileId,result){
     return Number.isFinite(actual)&&Number.isFinite(target)&&target>0?actual/target:null;
   }).filter(Number.isFinite);
   const averageOpenPositionCount=mean(curve.map(x=>Number(x.openPositionCount)).filter(Number.isFinite));
-  const maxPositions=Number(result?.input?.profile?.maxPositions);
+  const maxPositions=maxPositionsOf(profileId);
   const occupancyRatio=Number.isFinite(averageOpenPositionCount)&&Number.isFinite(maxPositions)&&maxPositions>0?averageOpenPositionCount/maxPositions:null;
   const zeroExposurePoints=curve.filter(x=>Number(x.grossExposureJpy)===0).length;
   const cashHeavyPoints=curve.filter(x=>Number(x.cashRatio)>=0.8).length;
@@ -43,7 +44,7 @@ function profileDiagnostic(profileId,result){
     capitalRecyclingCount:Number(result?.capitalEfficiency?.capitalRecyclingCount),
     turnover:Number(result?.capitalEfficiency?.turnover),
     averageOpenPositionCount:round(averageOpenPositionCount),
-    maxPositions:Number.isFinite(maxPositions)?maxPositions:null,
+    maxPositions,
     averageSlotOccupancyRatio:round(occupancyRatio),
     zeroExposurePointRatio:curve.length?round(zeroExposurePoints/curve.length):null,
     cashAtLeast80PctPointRatio:curve.length?round(cashHeavyPoints/curve.length):null,

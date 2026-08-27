@@ -33,8 +33,8 @@
 
 /* Internal navigation back to Home: show Home immediately, without replaying the app boot. */
 .arkBootSkipped .arkBoot { display:none !important; animation:none !important; }
+.arkBootSkipped .sideMenu { animation:none !important; opacity:1 !important; }
 .arkBootSkipped .appHeader,
-.arkBootSkipped .sideMenu,
 .arkBootSkipped .commandHero,
 .arkBootSkipped .marketStrip,
 .arkBootSkipped .portfolioCommandGrid,
@@ -62,5 +62,6 @@
 @media (max-width:900px) { .sideMenu { animation:none; } }
 @media (prefers-reduced-motion:reduce) {
   .arkBoot { animation-duration:.01ms; animation-delay:0s; }
-  .arkBootCore,.arkBootMark,.arkBoot::after,.arkBootRail::after,.appHeader,.sideMenu,.commandHero,.marketStrip,.portfolioCommandGrid,.homeDecisionRow,.commandGridSecondary,.systemStatusBar,.portfolioChart::after,.headerStatusCluster .statusDot.live,.sidebarSystemTop .miniStatus { animation:none !important; opacity:1; transform:none; }
+  .sideMenu { animation:none !important; opacity:1; }
+  .arkBootCore,.arkBootMark,.arkBoot::after,.arkBootRail::after,.appHeader,.commandHero,.marketStrip,.portfolioCommandGrid,.homeDecisionRow,.commandGridSecondary,.systemStatusBar,.portfolioChart::after,.headerStatusCluster .statusDot.live,.sidebarSystemTop .miniStatus { animation:none !important; opacity:1; transform:none; }
 }

@@ -1,0 +1,63 @@
+name: Phase57 P25 Lane C EXIT v3 Diagnostic
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/run_p25_lane_c_exit_v3_diagnostic.mjs'
+      - 'predict/portfolio/phase57-p25-lane-c-exit-v3-connector.js'
+      - 'predict/portfolio/phase57-p25-lane-c-portfolio-simulator.js'
+      - '.github/workflows/phase57-p25-lane-c-exit-v3-diagnostic.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Download immutable EXIT v3 replay
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p tmp/v3
+          gh run download 33037297017 -n phase57-p25-exit-v3-historical-replay-legacy27 -D tmp/v3
+      - name: Download lineage-pinned P25 captures
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p tmp/inputs
+          gh run download 32831810521 -n phase57-p25-3q-inputs-2026-08-25 -D tmp/inputs
+      - name: Read immutable Fixed Lane C baseline summary
+        run: |
+          git fetch origin automation/p25-lane-c-data --depth=1
+          git show FETCH_HEAD:data/p25-lane-c/fixed/2026-08-25.summary.json > tmp/fixed-summary.json
+      - name: Run EXIT v3 allocation diagnostic
+        run: |
+          node scripts/run_p25_lane_c_exit_v3_diagnostic.mjs \
+            --replay tmp/v3/p25-exit-v3-historical-replay-legacy27.json \
+            --captures-dir tmp/inputs/captures \
+            --fixed-summary tmp/fixed-summary.json \
+            --output tmp/lane-c-exit-v3-diagnostic.json | tee tmp/lane-c-exit-v3-diagnostic.console.json
+      - name: Guard diagnostic classification and safety
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const x=JSON.parse(fs.readFileSync('tmp/lane-c-exit-v3-diagnostic.json','utf8'));
+          if(x.source?.pairedCount!==27) throw new Error('paired count must remain 27');
+          if(x.interpretation?.winnerSelectionAllowed!==false||x.interpretation?.formalOos!==false||x.interpretation?.promotionEligible!==false) throw new Error('diagnostic classification guard failed');
+          for(const key of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed']) if(x.safety?.[key]!==false) throw new Error(`safety guard ${key}`);
+          if((x.exitV3Rows??[]).length!==4) throw new Error('expected four causal allocation profiles');
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-lane-c-exit-v3-diagnostic-legacy27
+          path: |
+            tmp/lane-c-exit-v3-diagnostic.json
+            tmp/lane-c-exit-v3-diagnostic.console.json
+          retention-days: 90

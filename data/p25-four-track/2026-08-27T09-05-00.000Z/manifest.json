@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.p25.four-track-durable-persistence",
+  "status": "FOUR_TRACK_DURABLE_EVIDENCE_READY",
+  "bucket": "2026-08-27T09:05:00.000Z",
+  "durableKey": "2026-08-27T09-05-00.000Z",
+  "sourceRunId": 33057172256,
+  "tracks": {
+    "entry": {
+      "status": "DURABLE_EXISTING",
+      "ref": "automation/p25-evaluation-data@700285eea275c71d74f96283307a8af54601925c",
+      "role": "Frozen DYNAMIC_50 Entry / formal evidence lineage"
+    },
+    "dynamic5m": {
+      "status": "DURABLE_APPEND_ONLY",
+      "ref": "automation/p25-four-track-data",
+      "inputSymbols": 3697,
+      "selectedCount": 36,
+      "measurementSha256": "2f300192bc0c5da404f32e9dd112271410744ffa39960587052cfcf90ab9115b",
+      "snapshotStateHash": "9bcd9d56b4c9673bf472d9964a3b416353ec8faa6913d7cc321f1ca3000125f0",
+      "snapshotSha256": "cba1b2c7d8fd4b1c7aeac6146219b7ddb1f955b501e8f48656da416f239e9fe4"
+    },
+    "exitV3": {
+      "status": "DURABLE_EXISTING",
+      "ref": "automation/p25-exit-v3-data@40f45e82505c741bce80195f4cb34cd3f09cad0b",
+      "role": "Frozen EXIT v3 append-only evidence"
+    },
+    "capitalAllocation": {
+      "status": "DURABLE_APPEND_ONLY",
+      "ref": "automation/p25-lane-c-data@b91958027656e978e0c19d255d9229a9f3233e08",
+      "diagnosticSha256": "901bf36590176dd0b527b1ffcdca06990f51e120f73be04ecb4a78133b352c7d",
+      "evidenceClass": "LEGACY27_DIAGNOSTIC_ONLY"
+    }
+  },
+  "interpretation": {
+    "researchOnly": true,
+    "formalOos": false,
+    "promotionEligible": false,
+    "winnerSelectionAllowed": false,
+    "retuningAllowed": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "freshHoldoutConsumed": false
+  }
+}

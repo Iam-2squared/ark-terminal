@@ -1,3 +1,34 @@
+/* Mobile Home sidebar: keep navigation usable without covering most of the screen. */
+(function applyCompactMobileSidebar() {
+    const style = document.createElement("style");
+    style.textContent = `
+        @media (max-width: 900px) {
+            .sideMenu {
+                width: min(220px, 64vw) !important;
+                padding: 18px 10px !important;
+            }
+            .navLink {
+                gap: 9px !important;
+                min-height: 40px !important;
+                padding: 8px 10px !important;
+                font-size: 11px !important;
+            }
+            .menuTitle {
+                margin-left: 8px !important;
+                margin-right: 8px !important;
+            }
+            .sidebarSystemCard {
+                padding: 11px !important;
+            }
+            .overlay {
+                background: rgba(1,5,12,.58) !important;
+                backdrop-filter: blur(1.5px) !important;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+})();
+
 /*
  * Home boot guard.
  * iOS/PWA can isolate or reset sessionStorage between page navigations,

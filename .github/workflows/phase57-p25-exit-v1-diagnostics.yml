@@ -1,0 +1,76 @@
+name: Phase57 P25 EXIT v1 Diagnostics
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/phase57-p25-exit-v1-diagnostics.yml'
+      - 'scripts/analyze_p25_data_driven_exit_v1.mjs'
+      - 'predict/daytrade/phase57-p25-data-driven-exit-diagnostics.js'
+  workflow_dispatch:
+    inputs:
+      evidence_date:
+        description: 'Existing formal paired evidence date YYYY-MM-DD'
+        required: false
+        default: '2026-08-25'
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  FORMAL_EVIDENCE_DATE: '2026-08-25'
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Load immutable formal paired evidence
+        shell: bash
+        env:
+          REQUESTED_DATE: ${{ inputs.evidence_date }}
+        run: |
+          set -euo pipefail
+          if [ -n "${REQUESTED_DATE:-}" ]; then evidence_date="$REQUESTED_DATE"; else evidence_date="$FORMAL_EVIDENCE_DATE"; fi
+          [[ "$evidence_date" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]
+          echo "EVIDENCE_DATE=$evidence_date" >> "$GITHUB_ENV"
+          git fetch origin automation/p25-data-driven-exit-data:refs/remotes/origin/automation/p25-data-driven-exit-data
+          git show "origin/automation/p25-data-driven-exit-data:data/p25-data-driven-exit/${evidence_date}.json" > /tmp/p25-data-driven-exit-paired.json
+      - name: Build diagnostic evidence only
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/analyze_p25_data_driven_exit_v1.mjs --input /tmp/p25-data-driven-exit-paired.json --output /tmp/p25-exit-v1-diagnostics.json
+          node - <<'NODE'
+          const x=require('/tmp/p25-exit-v1-diagnostics.json');
+          if(x.methodology?.diagnosticOnly!==true||x.methodology?.changesDecisionSemantics!==false||x.methodology?.thresholdSearchAllowed!==false||x.methodology?.outcomeTuningAllowed!==false||x.methodology?.promotionAllowed!==false) throw new Error('diagnostic methodology guard violation');
+          if(x.sourcePairedCount!==27) throw new Error(`formal paired count mismatch ${x.sourcePairedCount}`);
+          if(x.safety?.executionAllowed!==false||x.safety?.brokerWriteAllowed!==false||x.safety?.excelOrderWriteAllowed!==false||x.safety?.rssOrderFunctionAllowed!==false||x.safety?.liveTradingAllowed!==false||x.safety?.paperTradingAllowed!==false||x.safety?.automaticPromotionAllowed!==false||x.safety?.productionUpdateAllowed!==false||x.safety?.transmitted!==false||x.safety?.freshHoldoutConsumed!==false) throw new Error('safety violation');
+          NODE
+      - name: Persist append-only diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          branch='automation/p25-exit-diagnostics-data'
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then git fetch origin "$branch":refs/remotes/origin/"$branch"; git switch -C "$branch" origin/"$branch"; else git switch --orphan "$branch"; git rm -rf . >/dev/null 2>&1 || true; fi
+          mkdir -p data/p25-exit-diagnostics
+          target="data/p25-exit-diagnostics/${EVIDENCE_DATE}-v1.json"
+          if [ -f "$target" ]; then cmp -s "$target" /tmp/p25-exit-v1-diagnostics.json || { echo 'append-only conflict'; exit 1; }; else cp /tmp/p25-exit-v1-diagnostics.json "$target"; git add "$target"; git commit -m "Phase57 P25 EXIT v1 diagnostics ${EVIDENCE_DATE}"; git push origin HEAD:"$branch"; fi
+      - name: Upload diagnostic artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-exit-v1-diagnostics-${{ env.EVIDENCE_DATE }}
+          path: /tmp/p25-exit-v1-diagnostics.json
+          retention-days: 90
+      - name: Safety boundary
+        run: |
+          echo 'Post-hoc diagnostics only. Existing 27 paired outcomes are not used to tune or promote an EXIT policy.'
+          echo 'No Entry/model/universe/threshold/Dynamic-N/fair-cutoff/historical pool/EXIT decision semantics changed.'
+          echo 'No broker, Excel, RSS order, paper/live trading, transmission, promotion, or production update.'

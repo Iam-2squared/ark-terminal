@@ -1,0 +1,123 @@
+name: Phase57 P25 EXIT v3 Persist + Home
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/phase57-p25-exit-v3-persist-home.yml'
+      - 'scripts/persist_p25_exit_v3_home.mjs'
+      - 'paper-equity-home.js'
+      - 'paper-equity-page.js'
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: phase57-p25-exit-v3-persist-home
+  cancel-in-progress: false
+
+env:
+  SOURCE_RUN_ID: '33037297017'
+  SOURCE_ARTIFACT: 'phase57-p25-exit-v3-historical-replay-legacy27'
+
+jobs:
+  persist:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download exact frozen EXIT v3 evidence
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/v3-source
+          gh run download "$SOURCE_RUN_ID" --repo "$GH_REPO" --name "$SOURCE_ARTIFACT" --dir /tmp/v3-source
+          test -f /tmp/v3-source/p25-exit-v3-historical-replay-legacy27.json
+      - name: Load current Home research equity
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git fetch origin automation/home-paper-equity-data 2>/dev/null \
+            && git show origin/automation/home-paper-equity-data:data/home/paper-equity.json > /tmp/paper-equity-current.json 2>/dev/null; then
+            echo 'Loaded current Home research equity branch'
+          else
+            cp data/home/paper-equity.json /tmp/paper-equity-current.json
+            echo 'Using main fallback Home research equity'
+          fi
+      - name: Validate, materialize durable v3 evidence, and update Home data
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/persist_p25_exit_v3_home.mjs \
+            --evidence /tmp/v3-source/p25-exit-v3-historical-replay-legacy27.json \
+            --input /tmp/paper-equity-current.json \
+            --output /tmp/paper-equity-next.json \
+            --durable-evidence /tmp/durable/data/p25-exit-v3/evidence/legacy27-2026-08-25.json
+          node - <<'NODE'
+          const h=require('/tmp/paper-equity-next.json');
+          if(h.mode!=='ARK_RESEARCH_EQUITY') throw new Error('Home mode not upgraded');
+          if(!Array.isArray(h.series?.EXIT_V3)||h.series.EXIT_V3.length!==5) throw new Error('EXIT_V3 Home series missing');
+          if(h.latestExitV3?.pairedCount!==27||h.latestExitV3?.primaryFrozenCandidate!==true) throw new Error('EXIT v3 metadata guard failed');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed']) if(h.safety?.[k]!==false) throw new Error(`Home safety violation ${k}`);
+          NODE
+      - name: Persist append-only EXIT v3 evidence branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git fetch origin automation/p25-exit-v3-data 2>/dev/null; then
+            git switch -C automation/p25-exit-v3-data origin/automation/p25-exit-v3-data
+          else
+            git switch -C automation/p25-exit-v3-data main
+          fi
+          mkdir -p data/p25-exit-v3/evidence
+          target=data/p25-exit-v3/evidence/legacy27-2026-08-25.json
+          if test -f "$target"; then
+            cmp -s "$target" /tmp/durable/$target || { echo 'Append-only evidence conflict'; exit 1; }
+            echo 'Durable EXIT v3 evidence already present and identical'
+          else
+            cp /tmp/durable/$target "$target"
+            git config user.name 'Ark EXIT v3 Evidence Bot'
+            git config user.email 'ark-exit-v3@users.noreply.github.com'
+            git add "$target"
+            git commit -m 'Persist frozen EXIT v3 legacy27 evidence'
+            git push origin automation/p25-exit-v3-data
+          fi
+      - name: Persist Home D30 D40 D50 + EXIT v3 data
+        shell: bash
+        run: |
+          set -euo pipefail
+          git switch main
+          git fetch origin automation/home-paper-equity-data 2>/dev/null || true
+          if git show-ref --verify --quiet refs/remotes/origin/automation/home-paper-equity-data; then
+            git switch -C automation/home-paper-equity-data origin/automation/home-paper-equity-data
+          else
+            git switch -C automation/home-paper-equity-data main
+          fi
+          mkdir -p data/home
+          cp /tmp/paper-equity-next.json data/home/paper-equity.json
+          git config user.name 'Ark Equity Bot'
+          git config user.email 'ark-equity-bot@users.noreply.github.com'
+          git add data/home/paper-equity.json
+          if git diff --cached --quiet; then
+            echo 'Home research equity already up to date'
+          else
+            git commit -m 'Persist EXIT v3 Home research equity'
+            git push origin automation/home-paper-equity-data
+          fi
+      - name: Safety boundary
+        run: |
+          echo 'Research display/evidence persistence only.'
+          echo 'D30/D40/D50 remain Entry research series; EXIT v3 is the Lane B primary frozen candidate.'
+          echo 'No v1/v2 forward persistence. No broker, RSS, Excel, order, paper/live trading, promotion, transmission, or production update.'

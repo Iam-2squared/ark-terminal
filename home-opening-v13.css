@@ -1,0 +1,227 @@
+/* Ark Terminal v13 — home opening motion. Visual-only; no app state or trading logic. */
+
+.arkBoot {
+  position: fixed;
+  z-index: 3000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(34,211,238,.12), transparent 24%),
+    radial-gradient(circle at 50% 50%, rgba(12,65,86,.18), transparent 42%),
+    #030812;
+  animation: arkBootExit .72s cubic-bezier(.77,0,.18,1) 1.65s forwards;
+}
+
+.arkBoot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.014) 1px, transparent 1px);
+  background-size: 42px 42px;
+  opacity: .6;
+}
+
+.arkBoot::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -18%;
+  height: 18%;
+  background: linear-gradient(180deg, transparent, rgba(34,211,238,.12), transparent);
+  filter: blur(2px);
+  animation: arkScan 1.35s cubic-bezier(.2,.65,.2,1) .12s both;
+}
+
+.arkBootCore {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 11px;
+  min-width: min(420px, calc(100vw - 40px));
+  padding: 38px 42px 32px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(12px) scale(.985);
+  animation: arkBootCoreIn .55s ease-out .12s forwards;
+}
+
+.arkBootMark {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  background: url("./icons/icon-192.png") center/cover no-repeat;
+  box-shadow:
+    0 0 0 1px rgba(53,216,255,.2),
+    0 0 34px rgba(34,211,238,.16),
+    0 18px 50px rgba(0,0,0,.34);
+  animation: arkMarkPulse 1.25s ease-in-out .18s both;
+}
+
+.arkBootTitle {
+  margin-top: 7px;
+  color: #f2fbff;
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: .24em;
+}
+
+.arkBootSub {
+  color: #5f788e;
+  font: 800 9px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: .22em;
+}
+
+.arkBootRail {
+  position: relative;
+  width: min(260px, 72vw);
+  height: 2px;
+  margin-top: 9px;
+  overflow: hidden;
+  background: rgba(126,171,190,.13);
+}
+
+.arkBootRail::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 34%;
+  background: linear-gradient(90deg, transparent, #22d3ee, #7de8ff);
+  box-shadow: 0 0 12px rgba(34,211,238,.55);
+  animation: arkRail 1.12s cubic-bezier(.65,0,.35,1) .32s both;
+}
+
+.arkBootState {
+  margin-top: 2px;
+  color: #6f879c;
+  font: 800 8px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: .16em;
+}
+
+.arkBootState strong { color: #63e6be; font-weight: 900; }
+
+/* The app itself resolves in layers after the boot mark appears. */
+.appHeader {
+  animation: arkHeaderIn .52s cubic-bezier(.22,.9,.28,1) 1.55s both;
+}
+.sideMenu {
+  animation: arkSideIn .58s cubic-bezier(.22,.9,.28,1) 1.62s both;
+}
+.commandHero,
+.marketStrip,
+.portfolioCommandGrid,
+.homeDecisionRow,
+.commandGridSecondary,
+.systemStatusBar {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: arkSectionIn .52s cubic-bezier(.22,.9,.28,1) both;
+}
+.commandHero { animation-delay: 1.66s; }
+.marketStrip { animation-delay: 1.72s; }
+.portfolioCommandGrid { animation-delay: 1.79s; }
+.homeDecisionRow { animation-delay: 1.86s; }
+.commandGridSecondary { animation-delay: 1.93s; }
+.systemStatusBar { animation-delay: 2s; }
+
+.portfolioPanel {
+  transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+.portfolioPanel:hover {
+  transform: translateY(-2px);
+  border-color: rgba(53,216,255,.24);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025), 0 16px 44px rgba(0,0,0,.24), 0 0 28px rgba(34,211,238,.035);
+}
+
+.portfolioChart {
+  position: relative;
+}
+.portfolioChart::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 28%, rgba(53,216,255,.025) 48%, transparent 67%);
+  transform: translateX(-75%);
+  animation: arkChartSweep 5.2s ease-in-out 2.35s infinite;
+}
+
+.headerStatusCluster .statusDot.live,
+.sidebarSystemTop .miniStatus {
+  animation: arkStatusBreath 2.8s ease-in-out 2.2s infinite;
+}
+
+@keyframes arkBootCoreIn {
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes arkBootExit {
+  0% { opacity: 1; visibility: visible; transform: scale(1); }
+  68% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; transform: scale(1.012); }
+}
+@keyframes arkScan {
+  from { transform: translateY(0); opacity: 0; }
+  14% { opacity: .65; }
+  to { transform: translateY(760%); opacity: 0; }
+}
+@keyframes arkMarkPulse {
+  0% { opacity: 0; transform: scale(.9); filter: saturate(.75); }
+  36% { opacity: 1; transform: scale(1.035); filter: saturate(1.15); }
+  100% { opacity: 1; transform: scale(1); filter: saturate(1); }
+}
+@keyframes arkRail {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(300%); }
+}
+@keyframes arkHeaderIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes arkSideIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes arkSectionIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes arkChartSweep {
+  0%, 70%, 100% { transform: translateX(-78%); opacity: 0; }
+  78% { opacity: 1; }
+  91% { transform: translateX(78%); opacity: .8; }
+}
+@keyframes arkStatusBreath {
+  0%,100% { opacity: .82; filter: brightness(.95); }
+  50% { opacity: 1; filter: brightness(1.22); }
+}
+
+@media (max-width: 900px) {
+  .sideMenu { animation: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arkBoot { animation-duration: .01ms; animation-delay: 0s; }
+  .arkBootCore,
+  .arkBootMark,
+  .arkBoot::after,
+  .arkBootRail::after,
+  .appHeader,
+  .sideMenu,
+  .commandHero,
+  .marketStrip,
+  .portfolioCommandGrid,
+  .homeDecisionRow,
+  .commandGridSecondary,
+  .systemStatusBar,
+  .portfolioChart::after,
+  .headerStatusCluster .statusDot.live,
+  .sidebarSystemTop .miniStatus {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+}

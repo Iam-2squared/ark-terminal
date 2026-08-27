@@ -6,14 +6,32 @@
   <title>Ark Terminal</title>
   <script>
     (function () {
+      var marker = "arkTerminalAppActive";
+      var skipBoot = false;
+
       try {
-        if (sessionStorage.getItem("arkBootShown") === "1") {
-          document.documentElement.classList.add("arkBootSkipped");
-        } else {
-          sessionStorage.setItem("arkBootShown", "1");
+        skipBoot = window.name.indexOf(marker) !== -1;
+
+        if (!skipBoot) {
+          window.name = window.name
+            ? window.name + " " + marker
+            : marker;
         }
       } catch (error) {
-        /* If sessionStorage is unavailable, keep the normal opening sequence. */
+        /* Fall through to the secondary guard. */
+      }
+
+      if (!skipBoot) {
+        try {
+          skipBoot = sessionStorage.getItem("arkBootShown") === "1";
+          sessionStorage.setItem("arkBootShown", "1");
+        } catch (error) {
+          /* Keep the browsing-context decision. */
+        }
+      }
+
+      if (skipBoot) {
+        document.documentElement.classList.add("arkBootSkipped");
       }
     })();
   </script>

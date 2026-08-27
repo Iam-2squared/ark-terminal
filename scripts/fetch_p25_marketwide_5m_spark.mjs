@@ -1,0 +1,12 @@
+import fs from 'node:fs';import path from 'node:path';
+const arg=(n,f=null)=>{const i=process.argv.indexOf(n);return i>=0&&i+1<process.argv.length?process.argv[i+1]:f};
+const universePath=arg('--universe','data/screener-universe.json');const output=arg('--output','tmp/p25-marketwide-5m-input.json');
+const u=JSON.parse(fs.readFileSync(universePath,'utf8'));const entries=Array.isArray(u)?u:(u.entries??[]);if(entries.length<3000)throw new Error(`JPX universe too small: ${entries.length}`);
+const byCode=new Map(entries.map(x=>[String(x.code??String(x.symbol??'').replace(/\.T$/i,'')),x]));
+const observedAt=new Date().toISOString();
+const body={filter:[{left:'exchange',operation:'equal',right:'TSE'}],options:{lang:'en'},markets:['japan'],symbols:{query:{types:[]},tickers:[]},columns:['name','close','volume','change'],range:[0,5000]};
+const res=await fetch('https://scanner.tradingview.com/japan/scan',{method:'POST',headers:{'content-type':'application/json','user-agent':'Mozilla/5.0 ArkTerminal/3.0','accept':'application/json'},body:JSON.stringify(body)});
+if(!res.ok)throw new Error(`TradingView scanner HTTP ${res.status}: ${(await res.text()).slice(0,200)}`);
+const json=await res.json();const out=[];const seen=new Set();
+for(const item of json?.data??[]){const raw=String(item?.s??'');const code=raw.includes(':')?raw.split(':').pop():String(item?.d?.[0]??'');const md=byCode.get(code);if(!md||seen.has(code))continue;const d=item?.d??[];const price=Number(d[1]);const volume=Number(d[2]);const change=Number(d[3]);if(!Number.isFinite(price)||price<=0||!Number.isFinite(volume)||volume<=0)continue;seen.add(code);out.push({symbol:String(md.symbol).toUpperCase(),sector:md.sector??'未分類',market:md.market??null,status:'analyzed',currentPrice:price,volume,dailyChangePercent:Number.isFinite(change)?change:0,scannedAt:observedAt});}
+fs.mkdirSync(path.dirname(output),{recursive:true});fs.writeFileSync(output,JSON.stringify({meta:{provider:'tradingview-japan-scanner',observedAt,inputSymbols:entries.length,scannerRows:Number(json?.totalCount??json?.data?.length??0),validSymbols:out.length,pointInTime:true},entries:out},null,2)+'\n');console.log(JSON.stringify({status:'MARKETWIDE_5M_SOURCE_READY',inputSymbols:entries.length,scannerRows:Number(json?.totalCount??json?.data?.length??0),validSymbols:out.length,coverage:out.length/entries.length,output},null,2));if(out.length<3000)throw new Error(`marketwide coverage below 3000 valid symbols: ${out.length}`);

@@ -1,0 +1,43 @@
+name: Phase57 P25 Marketwide 5m Measurement
+on:
+  pull_request:
+    paths:
+      - 'scripts/fetch_p25_marketwide_5m_spark.mjs'
+      - 'scripts/capture_p25_marketwide_5m_snapshot.mjs'
+      - 'scripts/measure_p25_intraday_dynamic_universe_snapshot.mjs'
+      - 'predict/daytrade/phase57-p25-intraday-dynamic-universe.js'
+      - '.github/workflows/phase57-p25-marketwide-5m-measurement.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Fetch JPX-wide 5m point-in-time snapshot
+        run: node scripts/fetch_p25_marketwide_5m_spark.mjs --output tmp/marketwide.json
+      - name: Persist point-in-time snapshot contract
+        run: node scripts/capture_p25_marketwide_5m_snapshot.mjs --input tmp/marketwide.json --as-of "$(node -p "require('./tmp/marketwide.json').meta.observedAt")" --output tmp/marketwide.ndjson
+      - name: Measure dynamic 5m selection
+        run: node scripts/measure_p25_intraday_dynamic_universe_snapshot.mjs --input tmp/marketwide.json --output tmp/measurement.json
+      - name: Guard research-only safety
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const x=JSON.parse(fs.readFileSync('tmp/measurement.json','utf8'));
+          if(x.status!=='MARKETWIDE_DYNAMIC_5M_MEASUREMENT_READY')throw new Error('measurement not ready');
+          if(x.inputSymbols<3000)throw new Error('not marketwide');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'])if(x.safety?.[k]!==false)throw new Error(`safety ${k}`);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-marketwide-5m-measurement
+          path: |
+            tmp/marketwide.ndjson
+            tmp/measurement.json
+          retention-days: 30

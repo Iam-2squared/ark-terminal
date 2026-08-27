@@ -10,8 +10,8 @@ function loadJson(file){return JSON.parse(fs.readFileSync(file,'utf8'));}
 function canonicalRows(payload){
   const rows=Array.isArray(payload)?payload:(Array.isArray(payload?.entries)?payload.entries:(Array.isArray(payload?.records)?payload.records:[]));
   const seen=new Set();
-  return rows.map(row=>({symbol:String(row?.symbol??'').trim(),price:Number(row?.price??row?.lastPrice),volume:Number(row?.volume??0),changePct:Number(row?.changePct??0),turnover:Number(row?.turnover??0),sector:String(row?.sector??'')}))
-    .filter(row=>row.symbol&&Number.isFinite(row.price)&&row.price>0&&!seen.has(row.symbol)&&(seen.add(row.symbol),true))
+  return rows.map(row=>({symbol:String(row?.symbol??'').trim(),price:Number(row?.currentPrice??row?.price??row?.lastPrice),volume:Number(row?.volume??0),changePct:Number(row?.dailyChangePercent??row?.changePct??0),turnover:Number(row?.turnover??0),sector:String(row?.sector??'')}))
+    .filter(row=>row.symbol&&Number.isFinite(row.price)&&row.price>0&&Number.isFinite(row.volume)&&row.volume>0&&!seen.has(row.symbol)&&(seen.add(row.symbol),true))
     .sort((a,b)=>a.symbol.localeCompare(b.symbol));
 }
 const input=arg('--input');const output=arg('--output','data/p25-marketwide-5m-snapshots.ndjson');const asOf=arg('--as-of',new Date().toISOString());

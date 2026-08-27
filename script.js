@@ -1,3 +1,29 @@
+/*
+ * Home boot guard.
+ * iOS/PWA can isolate or reset sessionStorage between page navigations,
+ * so also use the same-origin referrer as the authoritative signal for
+ * an in-app return to Home. Fresh app launches normally have no referrer.
+ */
+(function applyInternalHomeBootGuard() {
+    try {
+        if (!document.referrer) {
+            return;
+        }
+
+        const referrerUrl = new URL(document.referrer);
+        if (referrerUrl.origin === window.location.origin) {
+            document.documentElement.classList.add("arkBootSkipped");
+            try {
+                sessionStorage.setItem("arkBootShown", "1");
+            } catch (error) {
+                /* sessionStorage is only a secondary hint. */
+            }
+        }
+    } catch (error) {
+        /* Fail open: a true external launch may still show the boot. */
+    }
+})();
+
 const menuButton =
     document.getElementById("menuButton");
 

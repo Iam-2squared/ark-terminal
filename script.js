@@ -102,10 +102,24 @@ function displayTodayTasks(tasks){
 menuButton.addEventListener("click",toggleMenu);
 overlay.addEventListener("click",closeMenu);
 window.addEventListener("resize",()=>{if(window.innerWidth>900)closeMenu();});
+
+/*
+ * iOS/PWA may restore Home from the back-forward cache with the sidebar's
+ * previous DOM classes intact. Always leave and restore Home in a closed
+ * navigation state so the menu cannot become visually stuck after returning.
+ */
+sideMenu.querySelectorAll("a.navLink").forEach(link=>{
+    link.addEventListener("click",closeMenu);
+});
+window.addEventListener("pagehide",closeMenu);
+window.addEventListener("pageshow",()=>{
+    closeMenu();
+    loadTodayTasks();
+});
+
 document.querySelectorAll(".cardLink.disabled").forEach(link=>link.addEventListener("click",event=>event.preventDefault()));
 displayToday();
 loadTodayTasks();
-window.addEventListener("pageshow",loadTodayTasks);
 
 if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("./service-worker.js").then(()=>console.log("Service Worker registered")).catch(error=>console.error("Service Worker registration failed:",error));});}
 const HOME_API="https://ark-terminal.vercel.app/api/quote";

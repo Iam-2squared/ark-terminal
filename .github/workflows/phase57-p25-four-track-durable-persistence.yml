@@ -23,6 +23,8 @@ concurrency:
 env:
   LANE_C_DIAGNOSTIC_RUN_ID: '33052262546'
   LANE_C_DIAGNOSTIC_ARTIFACT: 'phase57-p25-lane-c-capital-efficiency-legacy27'
+  BOOTSTRAP_MARKETWIDE_RUN_ID: '33057172256'
+  BOOTSTRAP_MARKETWIDE_HEAD_SHA: 'bb37a14c9e9f4c08fdf253e768df10196180e0be'
 
 jobs:
   persist:
@@ -38,7 +40,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Resolve successful main marketwide measurement
+      - name: Resolve successful marketwide measurement
         id: source
         shell: bash
         env:
@@ -48,17 +50,28 @@ jobs:
           EVENT_RUN_ID: ${{ github.event.workflow_run.id }}
         run: |
           set -euo pipefail
+          bootstrap=0
           if [ "$EVENT_NAME" = workflow_run ]; then
             run_id="$EVENT_RUN_ID"
           else
-            run_id="$(gh run list --repo "$GH_REPO" --workflow 'phase57-p25-marketwide-5m-measurement.yml' --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId')"
+            run_id="$(gh run list --repo "$GH_REPO" --workflow 'phase57-p25-marketwide-5m-measurement.yml' --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId' || true)"
+            if [ -z "${run_id:-}" ]; then
+              run_id="$BOOTSTRAP_MARKETWIDE_RUN_ID"
+              bootstrap=1
+            fi
           fi
           [[ "$run_id" =~ ^[0-9]+$ ]]
           meta="$(gh api "repos/$GH_REPO/actions/runs/$run_id")"
           test "$(jq -r .conclusion <<<"$meta")" = success
           test "$(jq -r .path <<<"$meta")" = '.github/workflows/phase57-p25-marketwide-5m-measurement.yml'
-          test "$(jq -r .head_branch <<<"$meta")" = main
+          if [ "$bootstrap" = 1 ]; then
+            test "$run_id" = "$BOOTSTRAP_MARKETWIDE_RUN_ID"
+            test "$(jq -r .head_sha <<<"$meta")" = "$BOOTSTRAP_MARKETWIDE_HEAD_SHA"
+          else
+            test "$(jq -r .head_branch <<<"$meta")" = main
+          fi
           echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+          echo "bootstrap=$bootstrap" >> "$GITHUB_OUTPUT"
       - name: Download exact marketwide 5m artifact
         shell: bash
         env:

@@ -8,6 +8,14 @@ on:
       - 'predict/daytrade/phase57-p25-intraday-dynamic-universe.js'
       - '.github/workflows/phase57-p25-marketwide-5m-measurement.yml'
   workflow_dispatch:
+  schedule:
+    # TSE continuous sessions in UTC: 09:00-11:30 / 12:30-15:30 JST.
+    # These runs only capture read-only point-in-time research evidence.
+    - cron: '*/5 0-1 * * 1-5'
+    - cron: '0-30/5 2 * * 1-5'
+    - cron: '30-55/5 3 * * 1-5'
+    - cron: '*/5 4-5 * * 1-5'
+    - cron: '0-30/5 6 * * 1-5'
 permissions:
   contents: read
 jobs:
@@ -40,4 +48,4 @@ jobs:
           path: |
             tmp/marketwide.ndjson
             tmp/measurement.json
-          retention-days: 30
+          retention-days: 90

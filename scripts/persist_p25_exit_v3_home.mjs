@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import path from 'node:path';
 import crypto from 'node:crypto';
 
 const arg=(name,fallback=null)=>{const i=process.argv.indexOf(name);return i>=0&&i+1<process.argv.length?process.argv[i+1]:fallback;};
@@ -76,6 +77,6 @@ home.safety={researchOnly:true,executionAllowed:false,brokerWriteAllowed:false,e
 fs.writeFileSync(outputPath,JSON.stringify(home,null,2)+'\n','utf8');
 
 const durable={schemaVersion:1,phase:'57.p25.exit-v3.durable-evidence',status:'P25_EXIT_V3_DURABLY_PERSISTED',createdAt:new Date().toISOString(),source:{runId:EXPECTED_SOURCE_RUN_ID,artifact:'phase57-p25-exit-v3-historical-replay-legacy27',jsonSha256:sourceJsonSha256},result:r,methodology:{...r.methodology,primaryFrozenCandidate:true,noV1V2ForwardPersistence:true},safety:home.safety};
-fs.mkdirSync(new URL('.',`file://${process.cwd()}/${durableEvidencePath}`).pathname,{recursive:true});
+fs.mkdirSync(path.dirname(durableEvidencePath),{recursive:true});
 fs.writeFileSync(durableEvidencePath,JSON.stringify(durable,null,2)+'\n','utf8');
 console.log(JSON.stringify({status:durable.status,pairedCount:r.summary.pairedCount,v3:r.summary.v3,homeExitV3Points:series.length,sourceJsonSha256},null,2));

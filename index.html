@@ -4,6 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ark Terminal</title>
+  <script>
+    (function () {
+      try {
+        if (sessionStorage.getItem("arkBootShown") === "1") {
+          document.documentElement.classList.add("arkBootSkipped");
+        } else {
+          sessionStorage.setItem("arkBootShown", "1");
+        }
+      } catch (error) {
+        /* If sessionStorage is unavailable, keep the normal opening sequence. */
+      }
+    })();
+  </script>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="ui-polish.css">
   <link rel="stylesheet" href="home-portfolio-v12.css">

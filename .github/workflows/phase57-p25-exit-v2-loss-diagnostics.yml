@@ -1,0 +1,51 @@
+name: Phase57 P25 EXIT v2 Loss Diagnostics
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'predict/daytrade/phase57-p25-exit-v2-loss-diagnostics.js'
+      - 'scripts/run_p25_exit_v2_loss_diagnostics.mjs'
+      - '.github/workflows/phase57-p25-exit-v2-loss-diagnostics.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Download immutable legacy27 combined replay artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-p25-exit-v2-historical-replay-legacy27
+          run-id: 33031759458
+          github-token: ${{ github.token }}
+          path: input
+      - name: Verify pinned source artifact digest metadata
+        run: |
+          test -f input/p25-exit-v2-historical-replay-legacy27.json
+      - name: Run frozen Fixed-relative v2 diagnostics
+        run: |
+          node scripts/run_p25_exit_v2_loss_diagnostics.mjs \
+            --input input/p25-exit-v2-historical-replay-legacy27.json \
+            --out evidence/phase57-p25-exit-v2-loss-diagnostics.json \
+            --source-run-id 33031759458 \
+            --source-artifact phase57-p25-exit-v2-historical-replay-legacy27 \
+            --source-digest sha256:3b8d7d81f37391c568376eccfaaf105c70f39403bb5a2b7bdb8e420a200e05be
+      - name: Safety boundary
+        run: |
+          node -e "const x=require('./evidence/phase57-p25-exit-v2-loss-diagnostics.json');for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'])if(x.safety[k]!==false)throw new Error(k+' must remain false');if(x.methodology.resultBasedRetuning!==false||x.methodology.formalOosEvidence!==false||x.methodology.promotionEligible!==false)throw new Error('diagnostic methodology boundary violated')"
+      - name: Upload diagnostic evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-exit-v2-loss-diagnostics
+          path: evidence/phase57-p25-exit-v2-loss-diagnostics.json
+          if-no-files-found: error

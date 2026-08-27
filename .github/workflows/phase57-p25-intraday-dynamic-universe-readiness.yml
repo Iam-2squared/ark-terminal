@@ -1,0 +1,51 @@
+name: Phase57 P25 Intraday Dynamic Universe Readiness
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/measure_p25_intraday_dynamic_universe_readiness.mjs'
+      - 'predict/tests/phase57-p25-intraday-dynamic-universe-readiness.test.mjs'
+      - 'predict/daytrade/phase57-p25-intraday-dynamic-universe.js'
+      - '.github/workflows/phase57-p25-intraday-dynamic-universe-readiness.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Download lineage-pinned P25 captures
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p tmp/inputs
+          gh run download 32831810521 -n phase57-p25-3q-inputs-2026-08-25 -D tmp/inputs
+      - name: Measure market-wide intraday replay readiness
+        run: |
+          node scripts/measure_p25_intraday_dynamic_universe_readiness.mjs \
+            --captures-dir tmp/inputs/captures \
+            --output tmp/intraday-dynamic-universe-readiness.json \
+            | tee tmp/intraday-dynamic-universe-readiness.console.json
+      - name: Guard classification and safety
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const x=JSON.parse(fs.readFileSync('tmp/intraday-dynamic-universe-readiness.json','utf8'));
+          if(!['READY_FOR_MARKET_WIDE_INTRADAY_MEASUREMENT','BLOCKED_MARKET_WIDE_POINT_IN_TIME_DATA_MISSING'].includes(x.status)) throw new Error('unexpected status');
+          if(x.interpretation?.winnerSelectionAllowed!==false||x.interpretation?.formalOos!==false||x.interpretation?.promotionEligible!==false) throw new Error('classification guard failed');
+          for(const key of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed']) if(x.safety?.[key]!==false) throw new Error(`safety guard ${key}`);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-intraday-dynamic-universe-readiness
+          path: |
+            tmp/intraday-dynamic-universe-readiness.json
+            tmp/intraday-dynamic-universe-readiness.console.json
+          retention-days: 90

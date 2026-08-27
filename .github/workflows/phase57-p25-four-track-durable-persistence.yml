@@ -1,0 +1,170 @@
+name: Phase57 P25 Four-Track Durable Persistence
+
+on:
+  workflow_run:
+    workflows: ['Phase57 P25 Marketwide 5m Measurement']
+    types: [completed]
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/phase57-p25-four-track-durable-persistence.yml'
+      - 'scripts/package_p25_four_track_durable.mjs'
+      - 'predict/tests/phase57-p25-four-track-durable-persistence.test.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: phase57-p25-four-track-durable-persistence
+  cancel-in-progress: false
+
+env:
+  LANE_C_DIAGNOSTIC_RUN_ID: '33052262546'
+  LANE_C_DIAGNOSTIC_ARTIFACT: 'phase57-p25-lane-c-capital-efficiency-legacy27'
+
+jobs:
+  persist:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Resolve successful main marketwide measurement
+        id: source
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = workflow_run ]; then
+            run_id="$EVENT_RUN_ID"
+          else
+            run_id="$(gh run list --repo "$GH_REPO" --workflow 'phase57-p25-marketwide-5m-measurement.yml' --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId')"
+          fi
+          [[ "$run_id" =~ ^[0-9]+$ ]]
+          meta="$(gh api "repos/$GH_REPO/actions/runs/$run_id")"
+          test "$(jq -r .conclusion <<<"$meta")" = success
+          test "$(jq -r .path <<<"$meta")" = '.github/workflows/phase57-p25-marketwide-5m-measurement.yml'
+          test "$(jq -r .head_branch <<<"$meta")" = main
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+      - name: Download exact marketwide 5m artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_ID: ${{ steps.source.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/four-track/marketwide
+          gh run download "$RUN_ID" --repo "$GH_REPO" --name phase57-p25-marketwide-5m-measurement --dir /tmp/four-track/marketwide
+          test -f /tmp/four-track/marketwide/measurement.json
+          test -f /tmp/four-track/marketwide/marketwide.ndjson
+      - name: Download immutable Lane C EXIT v3 diagnostic
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/four-track/lane-c
+          gh run download "$LANE_C_DIAGNOSTIC_RUN_ID" --repo "$GH_REPO" --name "$LANE_C_DIAGNOSTIC_ARTIFACT" --dir /tmp/four-track/lane-c
+          test -f /tmp/four-track/lane-c/lane-c-capital-efficiency.json
+      - name: Resolve durable source branch identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          entry_sha="$(git ls-remote origin refs/heads/automation/p25-evaluation-data | cut -f1)"
+          exit_sha="$(git ls-remote origin refs/heads/automation/p25-exit-v3-data | cut -f1)"
+          lanec_sha="$(git ls-remote origin refs/heads/automation/p25-lane-c-data | cut -f1)"
+          test -n "$entry_sha"; test -n "$exit_sha"; test -n "$lanec_sha"
+          echo "ENTRY_REF=automation/p25-evaluation-data@$entry_sha" >> "$GITHUB_ENV"
+          echo "EXIT_REF=automation/p25-exit-v3-data@$exit_sha" >> "$GITHUB_ENV"
+          echo "LANEC_REF=automation/p25-lane-c-data@$lanec_sha" >> "$GITHUB_ENV"
+      - name: Build four-track immutable manifest
+        shell: bash
+        env:
+          SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          node scripts/package_p25_four_track_durable.mjs \
+            --measurement /tmp/four-track/marketwide/measurement.json \
+            --marketwide-ndjson /tmp/four-track/marketwide/marketwide.ndjson \
+            --lane-c /tmp/four-track/lane-c/lane-c-capital-efficiency.json \
+            --entry-ref "$ENTRY_REF" \
+            --exit-ref "$EXIT_REF" \
+            --selection-ref automation/p25-four-track-data \
+            --lane-c-ref "$LANEC_REF" \
+            --source-run-id "$SOURCE_RUN_ID" \
+            --output /tmp/four-track/manifest.json
+          key="$(node -e "const x=require('/tmp/four-track/manifest.json');process.stdout.write(x.durableKey)")"
+          test -n "$key"
+          echo "DURABLE_KEY=$key" >> "$GITHUB_ENV"
+      - name: Verify all four safety and interpretation locks
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const x=require('/tmp/four-track/manifest.json');
+          if(x.status!=='FOUR_TRACK_DURABLE_EVIDENCE_READY')throw new Error('manifest not ready');
+          for(const track of ['entry','dynamic5m','exitV3','capitalAllocation'])if(!String(x.tracks?.[track]?.status||'').startsWith('DURABLE_'))throw new Error(`track not durable: ${track}`);
+          if(x.interpretation?.formalOos!==false||x.interpretation?.promotionEligible!==false||x.interpretation?.winnerSelectionAllowed!==false)throw new Error('interpretation lock failed');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'])if(x.safety?.[k]!==false)throw new Error(`unsafe ${k}`);
+          NODE
+      - name: Persist append-only four-track evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'Ark Four Track Evidence Bot'
+          git config user.email 'ark-four-track@users.noreply.github.com'
+          branch=automation/p25-four-track-data
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+            git fetch origin "$branch":refs/remotes/origin/"$branch"
+            git switch -C "$branch" origin/"$branch"
+          else
+            git switch --orphan "$branch"
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+          base="data/p25-four-track/$DURABLE_KEY"
+          mkdir -p "$base"
+          for pair in \
+            "/tmp/four-track/marketwide/measurement.json:$base/dynamic5m-measurement.json" \
+            "/tmp/four-track/marketwide/marketwide.ndjson:$base/marketwide-snapshot.ndjson" \
+            "/tmp/four-track/lane-c/lane-c-capital-efficiency.json:$base/lane-c-capital-efficiency.json" \
+            "/tmp/four-track/manifest.json:$base/manifest.json"; do
+            src="${pair%%:*}"; dst="${pair#*:}"
+            if test -e "$dst"; then
+              cmp -s "$src" "$dst" || { echo "append-only conflict: $dst"; exit 1; }
+            else
+              cp "$src" "$dst"
+            fi
+          done
+          git add data/p25-four-track
+          if git diff --cached --quiet; then
+            echo 'Four-track evidence already durable and identical'
+          else
+            git commit -m "Persist Phase57 four-track evidence $DURABLE_KEY"
+            git push origin HEAD:"$branch"
+          fi
+      - name: Upload review artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-four-track-durable-${{ env.DURABLE_KEY }}
+          path: /tmp/four-track/manifest.json
+          retention-days: 90
+      - name: Safety boundary
+        if: always()
+        run: |
+          echo 'Durable evidence persistence only. No broker/RSS/Excel/order/live/paper execution.'
+          echo 'No winner selection, retuning, promotion, or fresh holdout consumption.'

@@ -1,14 +1,15 @@
 {
-  "schemaVersion": 1,
-  "mode": "ENTRY_ONLY_RESEARCH_EQUITY",
+  "schemaVersion": 2,
+  "mode": "ARK_RESEARCH_EQUITY",
   "startingCapitalJpy": 1000000,
   "portfolioRule": "DAILY_EQUAL_WEIGHT_RESOLVED_ENTRIES",
   "sourceBranch": "automation/p25-evaluation-data",
-  "sourceNote": "Uses the formal dated P25 Entry-only scorecard. Daily portfolio return is sessionEqualWeightAfterCostNetPct, then compounded from the prior equity. This is research visualization only and does not enable paper/live trading.",
+  "sourceNote": "D30/D40/D50 remain formal Entry-only research series. EXIT_V3 is the frozen Lane B primary candidate and is shown from immutable diagnostic replay evidence; it is not formal OOS or promotion eligible until fresh prospective evidence accumulates.",
   "variants": [
     "DYNAMIC_30",
     "DYNAMIC_40",
-    "DYNAMIC_50"
+    "DYNAMIC_50",
+    "EXIT_V3"
   ],
   "series": {
     "DYNAMIC_30": [
@@ -67,6 +68,43 @@
         "maxDrawdownPct": 3.804125,
         "source": "data/p25-scorecards/2026-08-19.json"
       }
+    ],
+    "EXIT_V3": [
+      {
+        "date": "2026-08-18",
+        "equityJpy": 1000000,
+        "dailyReturnPct": 0,
+        "resolvedEntries": 0,
+        "source": "START"
+      },
+      {
+        "date": "2026-08-19",
+        "equityJpy": 1019538.82,
+        "dailyReturnPct": 1.9538820717175331,
+        "resolvedEntries": 12,
+        "source": "EXIT_V3_RUN_33037297017"
+      },
+      {
+        "date": "2026-08-20",
+        "equityJpy": 1007196.39,
+        "dailyReturnPct": -1.210589482176296,
+        "resolvedEntries": 3,
+        "source": "EXIT_V3_RUN_33037297017"
+      },
+      {
+        "date": "2026-08-24",
+        "equityJpy": 977737.03,
+        "dailyReturnPct": -2.92488769719032,
+        "resolvedEntries": 6,
+        "source": "EXIT_V3_RUN_33037297017"
+      },
+      {
+        "date": "2026-08-25",
+        "equityJpy": 1037832.1,
+        "dailyReturnPct": 6.146342344397553,
+        "resolvedEntries": 6,
+        "source": "EXIT_V3_RUN_33037297017"
+      }
     ]
   },
   "latestCumulative": {
@@ -119,7 +157,7 @@
       }
     }
   },
-  "lastUpdatedAt": "2026-08-26T08:07:39.672Z",
+  "lastUpdatedAt": "2026-08-27T05:34:10.943Z",
   "safety": {
     "researchOnly": true,
     "executionAllowed": false,
@@ -131,6 +169,24 @@
     "automaticPromotionAllowed": false,
     "productionUpdateAllowed": false,
     "transmitted": false,
+    "freshHoldoutConsumed": false
+  },
+  "latestExitV3": {
+    "evidenceDate": "2026-08-25",
+    "sourceRunId": 33037297017,
+    "sourceArtifact": "phase57-p25-exit-v3-historical-replay-legacy27",
+    "sourceJsonSha256": "fd6bdc7ed186459057655a779e39ec339dc7a8beaa0e11af3791273a9bbdef15",
+    "policySha256": "634514abac1ea1129ecf669e677d677a18378b1f75b7ba872bae781b82c401f2",
+    "pairedCount": 27,
+    "afterCostNetPct": 42.78970046457577,
+    "profitFactor": 2.230667537959687,
+    "maxDrawdownPct": 20.59266339340053,
+    "winRate": 0.5185185185185185,
+    "meanNetReturnPct": 1.4497608999009226,
+    "diagnosticOnly": true,
+    "formalOos": false,
+    "promotionEligible": false,
+    "primaryFrozenCandidate": true,
     "freshHoldoutConsumed": false
   }
 }

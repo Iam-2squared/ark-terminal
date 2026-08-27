@@ -57,9 +57,15 @@ function renderHomeMiniChart(latestPrice) {
     chartLine.setAttribute("points",linePoints);
     chartArea.setAttribute("points",`6,94 ${linePoints} 314,94`);
 }
-function openMenu(){sideMenu.classList.add("open");overlay.classList.add("show");menuButton.setAttribute("aria-label","メニューを閉じる");}
-function closeMenu(){sideMenu.classList.remove("open");overlay.classList.remove("show");menuButton.setAttribute("aria-label","メニューを開く");}
-function toggleMenu(){sideMenu.classList.contains("open")?closeMenu():openMenu();}
+function setMenuState(isOpen){
+    sideMenu.classList.toggle("open",isOpen);
+    overlay.classList.toggle("show",isOpen);
+    menuButton.setAttribute("aria-label",isOpen?"メニューを閉じる":"メニューを開く");
+    menuButton.setAttribute("aria-expanded",isOpen?"true":"false");
+}
+function openMenu(){setMenuState(true);}
+function closeMenu(){setMenuState(false);}
+function toggleMenu(){setMenuState(!sideMenu.classList.contains("open"));}
 function displayToday(){
     const today=new Date();
     const year=today.getFullYear();
@@ -99,9 +105,10 @@ function displayTodayTasks(tasks){
     taskProgressElement.textContent=`進捗 ${progress}%`;
 }
 
-menuButton.addEventListener("click",toggleMenu);
-overlay.addEventListener("click",closeMenu);
+menuButton.onclick=toggleMenu;
+overlay.onclick=closeMenu;
 window.addEventListener("resize",()=>{if(window.innerWidth>900)closeMenu();});
+document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMenu();});
 
 /*
  * iOS/PWA may restore Home from the back-forward cache with the sidebar's
@@ -114,6 +121,8 @@ sideMenu.querySelectorAll("a.navLink").forEach(link=>{
 window.addEventListener("pagehide",closeMenu);
 window.addEventListener("pageshow",()=>{
     closeMenu();
+    requestAnimationFrame(closeMenu);
+    setTimeout(closeMenu,0);
     loadTodayTasks();
 });
 

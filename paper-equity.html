@@ -23,7 +23,7 @@
     .equityChartShell svg{width:100%;height:100%}
     .equityLegend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;color:#71859d;font-size:10px;font-weight:800}
     .equityLegend span{display:inline-flex;align-items:center;gap:6px}.equityLegend i{width:8px;height:8px;border-radius:50%;display:inline-block}
-    .equityLegend .d30{background:#60a5fa}.equityLegend .d40{background:#22d3ee}.equityLegend .d50{background:#a78bfa}
+    .equityLegend .d30{background:#60a5fa}.equityLegend .d40{background:#22d3ee}.equityLegend .d50{background:#a78bfa}.equityLegend .v3{background:#fbbf24}
     .equityNote{margin:12px 0 0;color:#52667d;font-size:10px;line-height:1.7}
     @media(max-width:800px){.equityPage{padding:18px 12px 36px}.equityPageHeader{align-items:flex-start;flex-direction:column}.equitySummary{grid-template-columns:1fr 1fr}.equityChartShell{min-height:360px;height:58vh}}
   </style>
@@ -31,16 +31,16 @@
 <body>
   <main class="equityPage">
     <header class="equityPageHeader">
-      <div><p>ARK TERMINAL / RESEARCH EQUITY</p><h1>Entry-only 仮想資産推移</h1></div>
+      <div><p>ARK TERMINAL / RESEARCH EQUITY</p><h1>D30 / D40 / D50 / EXIT v3 資産推移</h1></div>
       <a class="equityBack" href="./index.html">← COMMAND CENTER</a>
     </header>
     <section class="equityPanel">
       <div class="equitySummary" id="equitySummary"></div>
-      <div class="equityChartShell" id="equityChartShell" aria-label="Entry-only research equity enlarged chart"></div>
-      <div class="equityLegend"><span><i class="d30"></i>D30</span><span><i class="d40"></i>D40</span><span><i class="d50"></i>D50 FULL PREFIX</span></div>
-      <p class="equityNote">正式なP25 Entry-only scorecardだけを使用。各日のsessionEqualWeightAfterCostNetPctを前日の仮想資産に複利反映する研究表示です。実注文・Paper Trading・broker writeは有効化しません。</p>
+      <div class="equityChartShell" id="equityChartShell" aria-label="Ark research equity enlarged chart"></div>
+      <div class="equityLegend"><span><i class="d30"></i>D30</span><span><i class="d40"></i>D40</span><span><i class="d50"></i>D50</span><span><i class="v3"></i>EXIT V3</span></div>
+      <p class="equityNote">D30/D40/D50は正式なP25 Entry-only研究系列。EXIT v3はLane BのPrimary Frozen Candidateで、現時点の表示値はimmutable diagnostic replay由来です。fresh OOSでの正式採用前であり、実注文・Paper Trading・broker writeは有効化しません。</p>
     </section>
   </main>
-  <script type="module" src="./paper-equity-page.js"></script>
+  <script type="module" src="./paper-equity-page.js?v=3"></script>
 </body>
 </html>

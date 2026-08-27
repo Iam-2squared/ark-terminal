@@ -132,3 +132,4 @@ if(stocksCard){
 
 import("./real-account-home.js").catch(error=>console.error("Real account Home module failed to load:",error));
 import("./paper-equity-home.js?v=3").catch(error=>console.error("Paper research equity Home module failed to load:",error));
+import("./paper-equity-split.js?v=1").catch(error=>console.error("D50 / EXIT v3 equity split module failed to load:",error));

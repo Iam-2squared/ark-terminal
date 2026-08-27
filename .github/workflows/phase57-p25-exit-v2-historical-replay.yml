@@ -1,0 +1,123 @@
+name: Phase57 P25 EXIT v2 Historical Replay
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/phase57-p25-exit-v2-historical-replay.yml'
+      - 'scripts/run_p25_exit_v2_historical_replay.mjs'
+      - 'scripts/reduce_p25_exit_v2_historical_replay_shards.mjs'
+      - 'predict/daytrade/phase57-p25-exit-v2-historical-replay.js'
+      - 'predict/daytrade/phase57-p25-exit-v2-state-conditioned.js'
+      - 'predict/daytrade/phase57-p25-exit-v2-freeze.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-p25-exit-v2-historical-replay
+  cancel-in-progress: false
+
+env:
+  EVIDENCE_DATE: '2026-08-25'
+  SESSION_DATES: '["2026-08-19","2026-08-20","2026-08-21","2026-08-24","2026-08-25"]'
+
+jobs:
+  evaluate-shard:
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        session_date: ['2026-08-19','2026-08-20','2026-08-21','2026-08-24','2026-08-25']
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Load immutable lineage and captures
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin automation/p25-evidence-data:refs/remotes/origin/automation/p25-evidence-data
+          git fetch origin automation/p25-day-data:refs/remotes/origin/automation/p25-day-data
+          git show "origin/automation/p25-evidence-data:data/p25-evidence-lineage/${EVIDENCE_DATE}-manifest.json" > /tmp/p25-evidence-lineage-manifest.json
+          git show "origin/automation/p25-evidence-data:data/p25-evidence-lineage/${EVIDENCE_DATE}-integrity.json" > /tmp/p25-session-integrity-ledger.json
+          actual="$(node -e "const x=require('/tmp/p25-evidence-lineage-manifest.json'); console.log(JSON.stringify((x.manifest?.nodes??[]).map(n=>n.sessionDate)))")"
+          test "$actual" = "$SESSION_DATES" || { echo "legacy27 lineage mismatch: $actual"; exit 1; }
+          mkdir -p /tmp/p25-day-sessions
+          for date in 2026-08-19 2026-08-20 2026-08-21 2026-08-24 2026-08-25; do git show "origin/automation/p25-day-data:data/p25-day-sessions/${date}.json" > "/tmp/p25-day-sessions/${date}.json"; done
+      - name: Download exact pinned P24 canonical byte snapshot
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p24-canonical
+          gh run download 31785422471 --repo "$GH_REPO" --name phase57-p24-9-oos-canonical-candidate --dir /tmp/p24-canonical
+          snapshot="$(find /tmp/p24-canonical -type f -name 'phase57-p24-9-oos-byte-snapshot.json' -print -quit)"
+          test -n "$snapshot"
+          node scripts/build_p25_pinned_history_pack.mjs --snapshot "$snapshot" --output /tmp/p25-pinned-history-pack.json
+      - name: Evaluate frozen EXIT v2 diagnostic shard
+        shell: bash
+        env:
+          SESSION_DATE: ${{ matrix.session_date }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/shard
+          node scripts/run_p25_exit_v2_historical_replay.mjs \
+            --history-pack /tmp/p25-pinned-history-pack.json \
+            --capture-dir /tmp/p25-day-sessions \
+            --integrity-ledger /tmp/p25-session-integrity-ledger.json \
+            --lineage-manifest /tmp/p25-evidence-lineage-manifest.json \
+            --session-date "$SESSION_DATE" \
+            --output "/tmp/shard/${SESSION_DATE}.json"
+      - name: Upload replay shard
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-exit-v2-replay-shard-${{ matrix.session_date }}
+          path: /tmp/shard/${{ matrix.session_date }}.json
+          retention-days: 90
+
+  reduce:
+    needs: evaluate-shard
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Download all replay shards
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-p25-exit-v2-replay-shard-*
+          path: /tmp/shards
+          merge-multiple: true
+      - name: Deterministic reduce and guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/reduce_p25_exit_v2_historical_replay_shards.mjs --input-dir /tmp/shards --output /tmp/p25-exit-v2-historical-replay-legacy27.json
+          node - <<'NODE'
+          const x=require('/tmp/p25-exit-v2-historical-replay-legacy27.json');
+          const expected=['2026-08-19','2026-08-20','2026-08-21','2026-08-24','2026-08-25'];
+          if(JSON.stringify(x.result?.sessions?.map(s=>s.sessionDate))!==JSON.stringify(expected)) throw new Error('replay session mismatch');
+          if(x.result?.classification?.formalOos!==false||x.result?.classification?.diagnosticOnly!==true||x.result?.classification?.promotionEligible!==false) throw new Error('classification guard violation');
+          if(x.result?.methodology?.resultBasedRetuning!==false||x.result?.methodology?.freshHoldoutConsumed!==false) throw new Error('methodology guard violation');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed']) if(x.safety?.[k]!==false) throw new Error(`safety violation ${k}`);
+          NODE
+      - name: Upload combined diagnostic artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-exit-v2-historical-replay-legacy27
+          path: /tmp/p25-exit-v2-historical-replay-legacy27.json
+          retention-days: 90
+      - name: Safety boundary
+        run: |
+          echo 'Diagnostic historical replay only; not OOS and not promotion eligible.'
+          echo 'Exact DYNAMIC_50 Frozen Entry, Fixed baseline, frozen v2 policy and pre-2026-08-12 analog pool remain unchanged.'
+          echo 'No broker, Excel, RSS order, paper/live trading, promotion, transmission, or production update.'

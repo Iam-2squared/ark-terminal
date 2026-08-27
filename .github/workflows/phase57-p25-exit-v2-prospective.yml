@@ -1,0 +1,148 @@
+name: Phase57 P25 EXIT v2 Prospective Paired
+
+on:
+  workflow_dispatch:
+    inputs:
+      fresh_session_date:
+        description: 'Complete immutable fresh TSE session YYYY-MM-DD; must be prospectively eligible'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: phase57-p25-exit-v2-prospective
+  cancel-in-progress: false
+
+jobs:
+  evaluate-and-persist:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+
+      - name: Validate requested fresh session and frozen candidate eligibility
+        shell: bash
+        env:
+          FRESH_SESSION_DATE: ${{ inputs.fresh_session_date }}
+        run: |
+          set -euo pipefail
+          [[ "$FRESH_SESSION_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]
+          node --input-type=module - <<'NODE'
+          import {P25_EXIT_V2_FROZEN_CANDIDATE,validateP25ExitV2FrozenCandidateIdentity} from './predict/daytrade/phase57-p25-exit-v2-freeze.js';
+          import {validateP25ExitV2FreshCandidate} from './predict/daytrade/phase57-p25-exit-v2-independent-protocol.js';
+          const d=process.env.FRESH_SESSION_DATE;
+          const identity=validateP25ExitV2FrozenCandidateIdentity();
+          if(!identity.ready)throw new Error(identity.status);
+          const fresh=validateP25ExitV2FreshCandidate({candidateFrozenAt:P25_EXIT_V2_FROZEN_CANDIDATE.candidateFrozenAt,freshSessionDate:d,freshSessionComplete:true,freshSessionImmutable:true});
+          if(!fresh.ready)throw new Error(fresh.status);
+          if(d<P25_EXIT_V2_FROZEN_CANDIDATE.firstProspectivelyEligibleSession)throw new Error('fresh session predates frozen candidate eligibility');
+          NODE
+
+      - name: Load immutable lineage and fresh capture
+        shell: bash
+        env:
+          FRESH_SESSION_DATE: ${{ inputs.fresh_session_date }}
+        run: |
+          set -euo pipefail
+          git fetch origin automation/p25-evidence-data:refs/remotes/origin/automation/p25-evidence-data
+          git fetch origin automation/p25-day-data:refs/remotes/origin/automation/p25-day-data
+          git show "origin/automation/p25-evidence-data:data/p25-evidence-lineage/${FRESH_SESSION_DATE}-manifest.json" > /tmp/p25-evidence-lineage-manifest.json
+          git show "origin/automation/p25-evidence-data:data/p25-evidence-lineage/${FRESH_SESSION_DATE}-integrity.json" > /tmp/p25-session-integrity-ledger.json
+          mkdir -p /tmp/p25-day-sessions
+          git show "origin/automation/p25-day-data:data/p25-day-sessions/${FRESH_SESSION_DATE}.json" > "/tmp/p25-day-sessions/${FRESH_SESSION_DATE}.json"
+          node - <<'NODE'
+          const fs=require('fs');
+          const d=process.env.FRESH_SESSION_DATE;
+          const m=JSON.parse(fs.readFileSync('/tmp/p25-evidence-lineage-manifest.json','utf8'));
+          const dates=[...new Set((m.manifest?.nodes??[]).map(x=>String(x.sessionDate)))];
+          if(dates.length!==1||dates[0]!==d)throw new Error(`fresh lineage must contain exactly ${d}; got ${JSON.stringify(dates)}`);
+          const i=JSON.parse(fs.readFileSync('/tmp/p25-session-integrity-ledger.json','utf8'));
+          const text=JSON.stringify(i);
+          if(/BLOCKED|INCOMPLETE/i.test(text))throw new Error('fresh integrity ledger is not complete');
+          NODE
+
+      - name: Download exact pinned P24 canonical byte snapshot
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p24-canonical
+          gh run download 31785422471 --repo "$GH_REPO" --name phase57-p24-9-oos-canonical-candidate --dir /tmp/p24-canonical
+          snapshot="$(find /tmp/p24-canonical -type f -name 'phase57-p24-9-oos-byte-snapshot.json' -print -quit)"
+          test -n "$snapshot"
+          node scripts/build_p25_pinned_history_pack.mjs --snapshot "$snapshot" --output /tmp/p25-pinned-history-pack.json
+
+      - name: Evaluate frozen exact DYNAMIC_50 Fixed vs EXIT v2
+        shell: bash
+        env:
+          FRESH_SESSION_DATE: ${{ inputs.fresh_session_date }}
+        run: |
+          set -euo pipefail
+          node scripts/run_p25_exit_v2_prospective.mjs \
+            --history-pack /tmp/p25-pinned-history-pack.json \
+            --capture-dir /tmp/p25-day-sessions \
+            --integrity-ledger /tmp/p25-session-integrity-ledger.json \
+            --lineage-manifest /tmp/p25-evidence-lineage-manifest.json \
+            --fresh-session-date "$FRESH_SESSION_DATE" \
+            --output /tmp/p25-exit-v2-prospective.json
+
+      - name: Verify frozen methodology and safety boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const x=require('/tmp/p25-exit-v2-prospective.json');
+          const m=x.result?.methodology??{};
+          const s=x.safety??{};
+          if(m.exactDynamic50Only!==true||m.sameFrozenEntryAsFixed!==true||m.fixedBaselineUntouched!==true||m.developmentCutoff!=='2026-08-12'||m.legacy27UsedForTuning!==false||m.currentFreshOutcomeUsedForFitting!==false||m.resultBasedRetuning!==false||m.fixedHorizonUsedAsDecisionInput!==false||m.candidateFrozenBeforeFreshSessionOpen!==true||m.freshHoldoutConsumed!==false)throw new Error('v2 methodology guard violation');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'])if(s[k]!==false)throw new Error(`safety flag violation ${k}`);
+          if(x.result?.policySha256!==x.result?.candidate?.policySha256)throw new Error('frozen policy identity mismatch');
+          NODE
+
+      - name: Persist append-only prospective evidence
+        shell: bash
+        env:
+          FRESH_SESSION_DATE: ${{ inputs.fresh_session_date }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          branch='automation/p25-exit-v2-prospective-data'
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+            git fetch origin "$branch":refs/remotes/origin/"$branch"
+            git switch -C "$branch" origin/"$branch"
+          else
+            git switch --orphan "$branch"
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+          mkdir -p data/p25-exit-v2-prospective
+          target="data/p25-exit-v2-prospective/${FRESH_SESSION_DATE}.json"
+          if [ -f "$target" ]; then
+            cmp -s "$target" /tmp/p25-exit-v2-prospective.json || { echo 'append-only conflict'; exit 1; }
+          else
+            cp /tmp/p25-exit-v2-prospective.json "$target"
+            git add "$target"
+            git commit -m "Phase57 P25 EXIT v2 prospective ${FRESH_SESSION_DATE}"
+            git push origin HEAD:"$branch"
+          fi
+
+      - name: Upload prospective artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-exit-v2-prospective-${{ inputs.fresh_session_date }}
+          path: /tmp/p25-exit-v2-prospective.json
+          retention-days: 90
+
+      - name: Safety boundary
+        run: |
+          echo 'Research-only frozen exact DYNAMIC_50 Fixed vs EXIT v2 prospective evaluation.'
+          echo 'Development cutoff remains 2026-08-12; legacy 27 outcomes are diagnostics-only.'
+          echo 'No broker, Excel, RSS order, MARKETSPEED, paper/live trading, promotion, transmission, or production update.'

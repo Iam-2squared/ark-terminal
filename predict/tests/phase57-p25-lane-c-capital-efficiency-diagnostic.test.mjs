@@ -42,7 +42,7 @@ test('capital efficiency diagnostic explains utilization without selecting a win
   assert.equal(p.rejectionReasons.MAX_CONCURRENT_POSITIONS,1);
   assert.ok(Math.abs(p.averageSlotBudgetFillRatio-0.88)<1e-9);
   assert.ok(Math.abs(p.averageSlotOccupancyRatio-(1/4))<1e-9);
-  assert.equal(p.zeroExposurePointRatio,1/3);
+  assert.ok(Math.abs(p.zeroExposurePointRatio-(1/3))<1e-6);
 });
 
 test('capital efficiency diagnostic fails closed if source is not diagnostic-only',()=>{

@@ -50,15 +50,15 @@ jobs:
           git fetch origin automation/p25-universe-data:refs/remotes/origin/automation/p25-universe-data || true
           frozen=0
           if git show-ref --verify --quiet refs/remotes/origin/automation/p25-universe-data; then
-            if git show origin/automation/p25-universe-data:data/p25-prospective-universe-timeline.ndjson 2>/dev/null \
-              | node --input-type=module - "$session" <<'NODE'
+            if git show origin/automation/p25-universe-data:data/p25-prospective-universe-timeline.ndjson > /tmp/p25-universe-timeline.ndjson 2>/dev/null; then
+              if TARGET_SESSION="$session" node --input-type=module <<'NODE'
           import fs from 'node:fs';
-          const target=process.argv[2];
-          const text=fs.readFileSync(0,'utf8');
-          const rows=text.split(/\r?\n/).filter(Boolean).map(line=>JSON.parse(line));
+          const target=process.env.TARGET_SESSION;
+          const rows=fs.readFileSync('/tmp/p25-universe-timeline.ndjson','utf8').split(/\r?\n/).filter(Boolean).map(line=>JSON.parse(line));
           process.exit(rows.some(x=>x?.sessionDate===target&&x?.status==='PROSPECTIVE_PREOPEN_UNIVERSE_FROZEN'&&x?.ready===true)?0:1);
           NODE
-            then frozen=1; fi
+              then frozen=1; fi
+            fi
           fi
           if [ "$frozen" -ne 1 ] && [ "$hm" -lt 850 ]; then
             echo "Missing pre-open frozen universe; dispatching continuation immediately."
@@ -91,33 +91,34 @@ jobs:
 
           # Stage 3: cumulative A/Entry checkpoint evaluation dated for this session.
           git fetch origin automation/p25-evaluation-data:refs/remotes/origin/automation/p25-evaluation-data || true
-          if ! git cat-file -e "origin/automation/p25-evaluation-data:data/p25-evaluations/${session}.json" 2>/dev/null; then
+          if ! git cat-file -e "origin/automation/p25-evaluation-data:data/p25-evaluations/${session}.json" 2>/dev/null \
+            || ! git cat-file -e "origin/automation/p25-evaluation-data:data/p25-scorecards/${session}.json" 2>/dev/null; then
             echo "Missing checkpoint evaluation; dispatching exact dated evaluator."
             gh workflow run phase57-p25-checkpointed-evaluation.yml --repo "$GH_REPO" --ref main -f evidence_date="$session"
             exit 0
           fi
 
-          # Stage 4: Fixed Portfolio persistence must have at least one successful artifact-bearing checkpoint.
-          latest_checkpoint=''
-          mapfile -t candidates < <(gh run list --repo "$GH_REPO" --workflow 'phase57-p25-checkpointed-evaluation.yml' --branch main --status success --limit 20 --json databaseId --jq '.[].databaseId')
-          for candidate in "${candidates[@]}"; do
-            artifact_count="$(gh api "repos/$GH_REPO/actions/runs/$candidate/artifacts" --jq '.total_count')"
-            if [ "${artifact_count:-0}" -gt 0 ]; then latest_checkpoint="$candidate"; break; fi
-          done
-          if [ -n "$latest_checkpoint" ]; then
-            recent_lanec="$(gh run list --repo "$GH_REPO" --workflow 'phase57-p25-lane-c-fixed-portfolio.yml' --branch main --status success --limit 1 --json createdAt --jq '.[0].createdAt // empty' || true)"
-            if [ -z "$recent_lanec" ]; then
-              echo "No successful Fixed Portfolio run found; dispatching from artifact-bearing checkpoint $latest_checkpoint."
-              gh workflow run phase57-p25-lane-c-fixed-portfolio.yml --repo "$GH_REPO" --ref main -f source_run_id="$latest_checkpoint"
-              exit 0
-            fi
+          # Stage 4: Fixed Portfolio persistence must be dated to the same immutable evidence day.
+          git fetch origin automation/p25-lane-c-data:refs/remotes/origin/automation/p25-lane-c-data || true
+          if ! git cat-file -e "origin/automation/p25-lane-c-data:data/p25-lane-c/fixed/${session}.summary.json" 2>/dev/null; then
+            latest_checkpoint=''
+            mapfile -t candidates < <(gh run list --repo "$GH_REPO" --workflow 'phase57-p25-checkpointed-evaluation.yml' --branch main --status success --limit 20 --json databaseId --jq '.[].databaseId')
+            for candidate in "${candidates[@]}"; do
+              artifact_count="$(gh api "repos/$GH_REPO/actions/runs/$candidate/artifacts" --jq '.total_count')"
+              if [ "${artifact_count:-0}" -gt 0 ]; then latest_checkpoint="$candidate"; break; fi
+            done
+            test -n "$latest_checkpoint"
+            echo "Missing dated Fixed Portfolio summary; dispatching from artifact-bearing checkpoint $latest_checkpoint."
+            gh workflow run phase57-p25-lane-c-fixed-portfolio.yml --repo "$GH_REPO" --ref main -f source_run_id="$latest_checkpoint"
+            exit 0
           fi
 
-          # Stage 5: Four-track durable packaging. This is safe/idempotent and binds the newest
-          # successful marketwide point-in-time evidence to frozen Entry/EXIT/allocation refs.
-          recent_four="$(gh run list --repo "$GH_REPO" --workflow 'phase57-p25-four-track-durable-persistence.yml' --branch main --status success --limit 1 --json createdAt --jq '.[0].createdAt // empty' || true)"
-          if [ -z "$recent_four" ]; then
-            echo "No successful four-track durable run found; dispatching packaging."
+          # Stage 5: after a successful main-branch marketwide run, Four-Track persistence must
+          # be at least as recent. workflow_run is primary; this is the recovery fallback.
+          market_created="$(gh run list --repo "$GH_REPO" --workflow 'phase57-p25-marketwide-5m-measurement.yml' --branch main --status success --limit 1 --json createdAt --jq '.[0].createdAt // empty' || true)"
+          four_created="$(gh run list --repo "$GH_REPO" --workflow 'phase57-p25-four-track-durable-persistence.yml' --branch main --status success --limit 1 --json createdAt --jq '.[0].createdAt // empty' || true)"
+          if [ -n "$market_created" ] && { [ -z "$four_created" ] || [[ "$four_created" < "$market_created" ]]; }; then
+            echo "Four-track durable persistence lags marketwide evidence; dispatching packaging."
             gh workflow run phase57-p25-four-track-durable-persistence.yml --repo "$GH_REPO" --ref main
             exit 0
           fi

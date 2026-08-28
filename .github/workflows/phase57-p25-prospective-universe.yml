@@ -13,10 +13,12 @@ on:
         type: boolean
         default: false
   schedule:
-    # 22:15 JST on Sun-Thu: start a clean six-batch cycle for the next JPX session.
-    - cron: "15 13 * * 0-4"
-    # 00:15, 02:15, 04:15, 06:15, 08:15 JST: finish before the 08:50 frozen cutoff.
-    - cron: "15 15,17,19,21,23 * * 0-4"
+    # Start two hours earlier than the old 22:15 JST reset. With six 620-symbol
+    # batches, the normal cycle now completes around 06:15 JST, leaving >2h
+    # of buffer before the immutable 08:50 pre-open cutoff.
+    - cron: "15 11 * * 0-4" # 20:15 JST Sun-Thu: clean reset for next JPX session
+    - cron: "15 13 * * 0-4" # 22:15 JST continuation
+    - cron: "15 15,17,19,21,22,23 * * 0-4" # 00:15..08:15 JST continuation/recovery
 
 permissions:
   contents: write
@@ -38,12 +40,13 @@ jobs:
       - name: Resolve frozen batch controls
         shell: bash
         run: |
+          set -euo pipefail
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "SCREENER_BATCH_SIZE=${{ inputs.batch_size || '620' }}" >> "$GITHUB_ENV"
             echo "SCREENER_RESET_PROGRESS=${{ inputs.reset_progress || 'false' }}" >> "$GITHUB_ENV"
           else
             echo "SCREENER_BATCH_SIZE=620" >> "$GITHUB_ENV"
-            if [[ "${{ github.event.schedule }}" == "15 13 * * 0-4" ]]; then
+            if [[ "${{ github.event.schedule }}" == "15 11 * * 0-4" ]]; then
               echo "SCREENER_RESET_PROGRESS=true" >> "$GITHUB_ENV"
             else
               echo "SCREENER_RESET_PROGRESS=false" >> "$GITHUB_ENV"
@@ -55,6 +58,7 @@ jobs:
           DATA_BRANCH: automation/p25-universe-data
         shell: bash
         run: |
+          set -euo pipefail
           if git fetch origin "refs/heads/$DATA_BRANCH:refs/remotes/origin/$DATA_BRANCH"; then
             git checkout "origin/$DATA_BRANCH" -- \
               data/screener-snapshot.json \
@@ -67,15 +71,45 @@ jobs:
           fi
           touch data/p25-prospective-universe-timeline.ndjson
 
+      - name: Resolve target session and skip redundant post-freeze batches
+        shell: bash
+        run: |
+          set -euo pipefail
+          hour="$(TZ=Asia/Tokyo date +%H)"
+          if [ $((10#$hour)) -ge 18 ]; then
+            target_session="$(TZ=Asia/Tokyo date -d tomorrow +%F)"
+          else
+            target_session="$(TZ=Asia/Tokyo date +%F)"
+          fi
+          echo "P25_TARGET_SESSION=$target_session" >> "$GITHUB_ENV"
+          if node --input-type=module - "$target_session" <<'NODE'
+          import fs from 'node:fs';
+          const target=process.argv[2];
+          const rows=fs.readFileSync('data/p25-prospective-universe-timeline.ndjson','utf8')
+            .split(/\r?\n/).filter(Boolean).map(line=>JSON.parse(line));
+          const frozen=rows.some(row=>row?.sessionDate===target&&row?.status==='PROSPECTIVE_PREOPEN_UNIVERSE_FROZEN'&&row?.ready===true);
+          process.exit(frozen?0:1);
+          NODE
+          then
+            echo "P25_ALREADY_FROZEN=true" >> "$GITHUB_ENV"
+            echo "Target $target_session is already frozen; skipping redundant screener work."
+          else
+            echo "P25_ALREADY_FROZEN=false" >> "$GITHUB_ENV"
+            echo "Target $target_session is not frozen yet; continuing the same overnight cycle."
+          fi
+
       - name: Set up Python
+        if: env.P25_ALREADY_FROZEN != 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
       - name: Install JPX reader
+        if: env.P25_ALREADY_FROZEN != 'true'
         run: python -m pip install xlrd==2.0.1
 
       - name: Refresh official JPX universe
+        if: env.P25_ALREADY_FROZEN != 'true'
         run: python scripts/fetch_jpx_universe.py
 
       - name: Set up Node
@@ -84,14 +118,17 @@ jobs:
           node-version: "22"
 
       - name: Build dedicated P25 screener batch
+        if: env.P25_ALREADY_FROZEN != 'true'
         env:
           SCREENER_CONCURRENCY: "4"
           SCREENER_DELAY_MS: "400"
         run: node scripts/update_screener.mjs
 
       - name: Freeze prospective universe only on a completed cycle
+        if: env.P25_ALREADY_FROZEN != 'true'
         shell: bash
         run: |
+          set -euo pipefail
           if node --input-type=module <<'NODE'
           import fs from 'node:fs';
           const p=JSON.parse(fs.readFileSync('data/screener-progress.json','utf8'));
@@ -103,6 +140,23 @@ jobs:
             echo "P25 cycle is incomplete; no session universe is frozen from this partial cross-section."
           fi
 
+      - name: Verify target freeze if cycle completed
+        if: env.P25_ALREADY_FROZEN != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const progress=JSON.parse(fs.readFileSync('data/screener-progress.json','utf8'));
+          if(progress.cycleComplete!==true) process.exit(0);
+          const target=process.env.P25_TARGET_SESSION;
+          const rows=fs.readFileSync('data/p25-prospective-universe-timeline.ndjson','utf8')
+            .split(/\r?\n/).filter(Boolean).map(line=>JSON.parse(line));
+          const row=rows.find(x=>x?.sessionDate===target&&x?.status==='PROSPECTIVE_PREOPEN_UNIVERSE_FROZEN'&&x?.ready===true);
+          if(!row) throw new Error(`completed screener cycle did not freeze target session ${target}`);
+          if(String(row.captureHmJst||'')>='08:50') throw new Error(`target session froze after cutoff: ${row.captureHmJst}`);
+          NODE
+
       - name: Verify P25 capture safety lock
         run: |
           node --input-type=module <<'NODE'
@@ -113,10 +167,12 @@ jobs:
           NODE
 
       - name: Persist dedicated P25 research data
+        if: env.P25_ALREADY_FROZEN != 'true'
         env:
           DATA_BRANCH: automation/p25-universe-data
         shell: bash
         run: |
+          set -euo pipefail
           git config user.name "Ark P25 Research Bot"
           git config user.email "ark-p25-research-bot@users.noreply.github.com"
           git switch -C "$DATA_BRANCH"
@@ -133,6 +189,7 @@ jobs:
           fi
 
       - name: Upload compact P25 evidence
+        if: env.P25_ALREADY_FROZEN != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: phase57-p25-prospective-universe-${{ github.run_id }}

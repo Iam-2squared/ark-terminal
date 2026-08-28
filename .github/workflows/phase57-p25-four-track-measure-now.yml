@@ -1,0 +1,60 @@
+name: Phase57 P25 Four-Track Measure Now
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/phase57-p25-four-track-measure-now.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: phase57-p25-four-track-measure-now
+  cancel-in-progress: false
+
+jobs:
+  dispatch-safe-measurements:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Dispatch current-main checkpointed evaluation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow run phase57-p25-checkpointed-evaluation.yml --repo "$GH_REPO" --ref main
+
+      - name: Dispatch current-main fixed portfolio measurement
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow run phase57-p25-lane-c-fixed-portfolio.yml --repo "$GH_REPO" --ref main
+
+      - name: Dispatch latest four-track durable packaging
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow run phase57-p25-four-track-durable-persistence.yml --repo "$GH_REPO" --ref main
+
+      - name: Dispatch marketwide snapshot only inside live TSE session
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          dow="$(TZ=Asia/Tokyo date +%u)"
+          hm="$(TZ=Asia/Tokyo date +%H%M)"
+          if [ "$dow" -le 5 ] && { { [ "$hm" -ge 0900 ] && [ "$hm" -le 1130 ]; } || { [ "$hm" -ge 1230 ] && [ "$hm" -le 1530 ]; }; }; then
+            gh workflow run phase57-p25-marketwide-5m-measurement.yml --repo "$GH_REPO" --ref main
+            echo 'Dispatched marketwide point-in-time snapshot inside TSE continuous session.'
+          else
+            echo 'Skipped marketwide point-in-time snapshot outside TSE continuous session; no post-close/backfilled fresh evidence.'
+          fi
+
+      - name: Safety boundary
+        run: |
+          echo 'Research measurement dispatcher only.'
+          echo 'No broker/RSS/Excel/order/live/paper execution, no retuning, no promotion, no fresh-holdout consumption.'

@@ -1,0 +1,98 @@
+name: Phase57 P25 Dynamic 5m B/D Daily
+
+on:
+  workflow_run:
+    workflows: ['Phase57 P25 Dynamic 5m Daily Bundle']
+    types: [completed]
+  schedule:
+    - cron: '0 8 * * 1-5'  # 17:00 JST fallback
+    - cron: '45 11 * * 1-5' # 20:45 JST recovery fallback
+  workflow_dispatch:
+    inputs:
+      evidence_date:
+        description: 'Immutable Dynamic5m bundle date YYYY-MM-DD; blank=latest durable bundle'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: phase57-p25-dynamic5m-bd-daily
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Resolve immutable Dynamic5m day
+        shell: bash
+        env:
+          REQUESTED: ${{ inputs.evidence_date }}
+        run: |
+          set -euo pipefail
+          git fetch origin automation/p25-dynamic5m-day-data:refs/remotes/origin/automation/p25-dynamic5m-day-data
+          if [ -n "${REQUESTED:-}" ]; then date="$REQUESTED"; else date="$(git ls-tree -r --name-only origin/automation/p25-dynamic5m-day-data -- data/p25-dynamic5m-day | sed -n 's#data/p25-dynamic5m-day/\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\).json#\1#p' | sort | tail -n1)"; fi
+          [[ "$date" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]
+          git show "origin/automation/p25-dynamic5m-day-data:data/p25-dynamic5m-day/${date}.json" > /tmp/p25-dynamic5m-day.json
+          echo "EVIDENCE_DATE=$date" >> "$GITHUB_ENV"
+      - name: Skip if B/D daily result already durable
+        id: existing
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git fetch origin automation/p25-bd-data:refs/remotes/origin/automation/p25-bd-data 2>/dev/null && git cat-file -e "origin/automation/p25-bd-data:data/p25-bd/${EVIDENCE_DATE}.json" 2>/dev/null; then echo 'exists=true' >> "$GITHUB_OUTPUT"; else echo 'exists=false' >> "$GITHUB_OUTPUT"; fi
+      - name: Build exact pinned Entry/EXIT history pack
+        if: steps.existing.outputs.exists != 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p24-canonical
+          gh run download 31785422471 --repo "$GH_REPO" --name phase57-p24-9-oos-canonical-candidate --dir /tmp/p24-canonical
+          snapshot="$(find /tmp/p24-canonical -type f -name 'phase57-p24-9-oos-byte-snapshot.json' -print -quit)"; test -n "$snapshot"
+          node scripts/build_p25_pinned_history_pack.mjs --snapshot "$snapshot" --output /tmp/p25-history.json
+      - name: Evaluate combined B and D from actual Dynamic5m membership
+        if: steps.existing.outputs.exists != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/run_p25_dynamic5m_exitv3_portfolio_daily.mjs --bundle /tmp/p25-dynamic5m-day.json --history-pack /tmp/p25-history.json --output /tmp/p25-bd.json
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';const x=JSON.parse(fs.readFileSync('/tmp/p25-bd.json','utf8'));
+          if(x.sessionDate!==process.env.EVIDENCE_DATE)throw new Error('B/D date mismatch');
+          if(x.B?.route!=='Dynamic 5m Selection -> Frozen Entry -> EXIT v3')throw new Error('B route mismatch');
+          if(x.D?.initialEquityJpy!==1000000||x.D?.profileWinnerSelected!==false)throw new Error('D allocation guard mismatch');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'])if(x.safety?.[k]!==false)throw new Error(`unsafe ${k}`);
+          NODE
+      - name: Persist append-only combined B/D daily result
+        if: steps.existing.outputs.exists != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'Ark B-D Prospective Bot'; git config user.email 'ark-bd-prospective@users.noreply.github.com'
+          git fetch origin automation/p25-bd-data:refs/remotes/origin/automation/p25-bd-data || true
+          if git show-ref --verify --quiet refs/remotes/origin/automation/p25-bd-data; then git switch -C automation/p25-bd-data origin/automation/p25-bd-data; else git switch --orphan automation/p25-bd-data; git rm -rf . >/dev/null 2>&1 || true; fi
+          mkdir -p data/p25-bd; target="data/p25-bd/${EVIDENCE_DATE}.json"; test ! -e "$target"; cp /tmp/p25-bd.json "$target"
+          git add "$target" && git commit -m "Persist combined B-D daily $EVIDENCE_DATE" && git push origin HEAD:automation/p25-bd-data
+      - uses: actions/upload-artifact@v4
+        if: steps.existing.outputs.exists != 'true'
+        with:
+          name: phase57-p25-dynamic5m-bd-${{ env.EVIDENCE_DATE }}
+          path: /tmp/p25-bd.json
+          retention-days: 90
+      - name: Safety boundary
+        if: always()
+        run: echo 'B/D research measurement only. Dynamic membership is point-in-time, Entry uses closed prefixes, EXIT v3/allocation are frozen; no order or promotion surface.'

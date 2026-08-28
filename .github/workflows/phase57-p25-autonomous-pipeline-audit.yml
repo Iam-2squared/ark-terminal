@@ -1,0 +1,86 @@
+name: Phase57 P25 Autonomous Pipeline Audit
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-p25-prospective-universe.yml'
+      - '.github/workflows/phase57-p25-routine-5m.yml'
+      - '.github/workflows/phase57-p25-evidence-prep.yml'
+      - '.github/workflows/phase57-p25-checkpointed-evaluation.yml'
+      - '.github/workflows/phase57-p25-marketwide-5m-measurement.yml'
+      - '.github/workflows/phase57-p25-four-track-durable-persistence.yml'
+      - '.github/workflows/phase57-p25-autonomous-recovery.yml'
+      - '.github/workflows/phase57-p25-autonomous-pipeline-audit.yml'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/phase57-p25-prospective-universe.yml'
+      - '.github/workflows/phase57-p25-autonomous-recovery.yml'
+      - '.github/workflows/phase57-p25-autonomous-pipeline-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify autonomous A/B/C/D collection wiring
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const read=p=>fs.readFileSync(p,'utf8');
+          const must=(ok,msg)=>{if(!ok)throw new Error(msg)};
+          const pre=read('.github/workflows/phase57-p25-prospective-universe.yml');
+          const routine=read('.github/workflows/phase57-p25-routine-5m.yml');
+          const evidence=read('.github/workflows/phase57-p25-evidence-prep.yml');
+          const checkpoint=read('.github/workflows/phase57-p25-checkpointed-evaluation.yml');
+          const market=read('.github/workflows/phase57-p25-marketwide-5m-measurement.yml');
+          const durable=read('.github/workflows/phase57-p25-four-track-durable-persistence.yml');
+          const recovery=read('.github/workflows/phase57-p25-autonomous-recovery.yml');
+
+          // A/C prerequisite: DYNAMIC_50 must be frozen well before the 08:50 cutoff.
+          must(pre.includes('15 11 * * 0-4'),'missing 20:15 JST preopen reset');
+          must(pre.includes('15 15,17,19,21,22,23 * * 0-4'),'missing preopen continuation/recovery cadence');
+          must(pre.includes('P25_ALREADY_FROZEN'),'missing redundant-batch freeze guard');
+          must(pre.includes("captureHmJst||'')>='08:50'"),'missing pre-open cutoff verification');
+
+          // A/C end-of-day immutable chain.
+          must(routine.includes("cron: '45 7 * * 1-5'"),'routine 16:45 JST capture schedule missing');
+          must(routine.includes('automation/p25-day-data'),'routine immutable data branch missing');
+          must(evidence.includes("cron: '30 8 * * 1-5'"),'17:30 evidence prep schedule missing');
+          must(evidence.includes('automation/p25-evidence-data'),'evidence immutable branch missing');
+          must(checkpoint.includes("cron: '0 9 * * 1-5'"),'18:00 checkpoint schedule missing');
+          must(checkpoint.includes('automation/p25-evaluation-data'),'evaluation durable branch missing');
+
+          // B/D point-in-time Dynamic 5m collection.
+          for(const cron of ["*/5 0-1 * * 1-5","0-30/5 2,6 * * 1-5","30-55/5 3 * * 1-5","*/5 4-5 * * 1-5"])
+            must(market.includes(cron),`marketwide schedule missing: ${cron}`);
+          must(market.includes('inputSymbols<3000'),'marketwide coverage fail-closed guard missing');
+          must(market.includes('marketwide.ndjson'),'point-in-time snapshot artifact missing');
+          must(durable.includes("workflows: ['Phase57 P25 Marketwide 5m Measurement']"),'four-track workflow_run binding missing');
+          must(durable.includes('automation/p25-four-track-data'),'four-track durable branch missing');
+
+          // Recovery must cover every immutable stage without creating orders.
+          for(const wf of ['phase57-p25-prospective-universe.yml','phase57-p25-routine-5m.yml','phase57-p25-evidence-prep.yml','phase57-p25-checkpointed-evaluation.yml','phase57-p25-lane-c-fixed-portfolio.yml','phase57-p25-four-track-durable-persistence.yml'])
+            must(recovery.includes(wf),`recovery missing ${wf}`);
+          for(const forbidden of ['RssStockOrder','RssCancelOrder','RssModifyOrder'])
+            must(!recovery.includes(forbidden),`forbidden order surface in recovery: ${forbidden}`);
+
+          // Safety locks across active code paths.
+          const safetyKeys=['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'];
+          const safetySource=read('predict/daytrade/phase57-p25-2c-prospective-preopen-universe-capture.js');
+          for(const key of safetyKeys) must(new RegExp(`${key}\\s*:\\s*false`).test(safetySource),`safety lock not false: ${key}`);
+
+          console.log(JSON.stringify({status:'P25_AUTONOMOUS_PIPELINE_STRUCTURE_HEALTHY',tracks:{A:'D50->Frozen Entry->Fixed',B:'Dynamic5m evidence path',C:'D50->Frozen Entry->EXITv3 input path',D:'Dynamic5m->allocation evidence path'},safety:'ALL_FALSE'},null,2));
+          NODE
+      - name: Safety boundary
+        run: echo 'Static workflow/evidence audit only; no trading or write surface is invoked.'

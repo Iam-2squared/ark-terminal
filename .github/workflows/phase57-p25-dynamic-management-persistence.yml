@@ -58,8 +58,11 @@ jobs:
           git show "origin/automation/p25-evidence-data:$manifest_path" > /tmp/manifest.json
           session_dates="$(node - <<'NODE'
           const x=require('/tmp/manifest.json');
-          const dates=[...new Set((x.manifest?.nodes??[]).map(n=>String(n.sessionDate??'')).filter(Boolean))].sort();
+          const nodes=(x.manifest?.nodes??[]);
+          const dates=[...new Set(nodes.filter(n=>n?.captureReady===true).map(n=>String(n.sessionDate??'')).filter(Boolean))].sort();
+          const blocked=nodes.filter(n=>n?.captureReady!==true).map(n=>({sessionDate:n?.sessionDate,classification:n?.classification}));
           if(!dates.length) process.exit(2);
+          if(blocked.length) console.error(`excluding blocked/non-ready lineage nodes from dynamic shards: ${JSON.stringify(blocked)}`);
           process.stdout.write(JSON.stringify(dates));
           NODE
           )"
@@ -98,7 +101,7 @@ jobs:
           git show "origin/automation/p25-evidence-data:$manifest_path" > /tmp/p25-evidence-lineage-manifest.json
           git show "origin/automation/p25-evidence-data:$integrity_path" > /tmp/p25-session-integrity-ledger.json
           mkdir -p /tmp/p25-day-sessions
-          mapfile -t dates < <(node -e "const x=require('/tmp/p25-evidence-lineage-manifest.json'); for (const n of x.manifest?.nodes ?? []) console.log(n.sessionDate)")
+          mapfile -t dates < <(node -e "const x=require('/tmp/p25-evidence-lineage-manifest.json'); for (const n of x.manifest?.nodes ?? []) if(n?.captureReady===true) console.log(n.sessionDate)")
           for date in "${dates[@]}"; do
             [[ "$date" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]
             git show "origin/automation/p25-day-data:data/p25-day-sessions/${date}.json" > "/tmp/p25-day-sessions/${date}.json"
@@ -216,5 +219,6 @@ jobs:
       - name: Safety boundary
         run: |
           echo 'Research-only Fixed vs Dynamic HOLD/EXIT sharded persistence.'
+          echo 'Blocked/non-ready lineage nodes are preserved in lineage but excluded from compute shards.'
           echo 'Sharding changes execution only; frozen Entry/model/universe/threshold/Dynamic-N/fair-cutoff are untouched.'
           echo 'No fresh holdout, broker, Excel, RSS order, MARKETSPEED, board, Tick, paper/live trading, promotion, or production update.'

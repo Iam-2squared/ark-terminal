@@ -9,14 +9,24 @@ on:
       - '.github/workflows/phase57-p25-checkpointed-evaluation.yml'
       - '.github/workflows/phase57-p25-exit-v3-prospective-daily.yml'
       - '.github/workflows/phase57-p25-marketwide-5m-measurement.yml'
+      - '.github/workflows/phase57-p25-marketwide-session-redundant.yml'
+      - '.github/workflows/phase57-p25-dynamic5m-daily-bundle.yml'
+      - '.github/workflows/phase57-p25-dynamic5m-bd-daily.yml'
       - '.github/workflows/phase57-p25-four-track-durable-persistence.yml'
       - '.github/workflows/phase57-p25-autonomous-recovery.yml'
       - '.github/workflows/phase57-p25-autonomous-pipeline-audit.yml'
+      - 'scripts/build_p25_dynamic5m_daily_bundle.mjs'
+      - 'scripts/run_p25_dynamic5m_exitv3_portfolio_daily.mjs'
+      - 'scripts/measure_p25_intraday_dynamic_universe_snapshot.mjs'
+      - 'predict/daytrade/phase57-p25-jpx-opportunity-universe.js'
   push:
     branches: [main]
     paths:
       - '.github/workflows/phase57-p25-prospective-universe.yml'
       - '.github/workflows/phase57-p25-exit-v3-prospective-daily.yml'
+      - '.github/workflows/phase57-p25-marketwide-session-redundant.yml'
+      - '.github/workflows/phase57-p25-dynamic5m-daily-bundle.yml'
+      - '.github/workflows/phase57-p25-dynamic5m-bd-daily.yml'
       - '.github/workflows/phase57-p25-autonomous-recovery.yml'
       - '.github/workflows/phase57-p25-autonomous-pipeline-audit.yml'
   workflow_dispatch:
@@ -31,69 +41,72 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
+        with: {node-version: '22'}
       - name: Verify autonomous A/B/C/D collection wiring
         shell: bash
         run: |
           set -euo pipefail
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
-          const read=p=>fs.readFileSync(p,'utf8');
-          const must=(ok,msg)=>{if(!ok)throw new Error(msg)};
+          const read=p=>fs.readFileSync(p,'utf8'); const must=(ok,msg)=>{if(!ok)throw new Error(msg)};
           const pre=read('.github/workflows/phase57-p25-prospective-universe.yml');
           const routine=read('.github/workflows/phase57-p25-routine-5m.yml');
           const evidence=read('.github/workflows/phase57-p25-evidence-prep.yml');
           const checkpoint=read('.github/workflows/phase57-p25-checkpointed-evaluation.yml');
           const exitv3=read('.github/workflows/phase57-p25-exit-v3-prospective-daily.yml');
           const market=read('.github/workflows/phase57-p25-marketwide-5m-measurement.yml');
+          const redundant=read('.github/workflows/phase57-p25-marketwide-session-redundant.yml');
+          const bundle=read('.github/workflows/phase57-p25-dynamic5m-daily-bundle.yml');
+          const bd=read('.github/workflows/phase57-p25-dynamic5m-bd-daily.yml');
           const durable=read('.github/workflows/phase57-p25-four-track-durable-persistence.yml');
           const recovery=read('.github/workflows/phase57-p25-autonomous-recovery.yml');
+          const bdScript=read('scripts/run_p25_dynamic5m_exitv3_portfolio_daily.mjs');
+          const bundleScript=read('scripts/build_p25_dynamic5m_daily_bundle.mjs');
+          const measureScript=read('scripts/measure_p25_intraday_dynamic_universe_snapshot.mjs');
 
-          // A/C prerequisite: DYNAMIC_50 must be frozen well before the 08:50 cutoff.
+          // A/C selection and daily persistence.
           must(pre.includes('15 11 * * 0-4'),'missing 20:15 JST preopen reset');
-          must(pre.includes('15 15,17,19,21,22,23 * * 0-4'),'missing preopen continuation/recovery cadence');
-          must(pre.includes('P25_ALREADY_FROZEN'),'missing redundant-batch freeze guard');
-          must(pre.includes("captureHmJst||'')>='08:50'"),'missing pre-open cutoff verification');
+          must(pre.includes('15 15,17,19,21,22,23 * * 0-4'),'missing buffered continuation cadence');
+          must(pre.includes('P25_ALREADY_FROZEN'),'missing one-freeze-per-session guard');
+          must(pre.includes("captureHmJst||'')>='08:50'"),'missing 08:50 cutoff verification');
+          must(routine.includes("cron: '45 7 * * 1-5'")&&routine.includes('automation/p25-day-data'),'A/C routine persistence missing');
+          must(evidence.includes("cron: '30 8 * * 1-5'")&&evidence.includes('automation/p25-evidence-data'),'lineage persistence missing');
+          must(checkpoint.includes("cron: '0 9 * * 1-5'")&&checkpoint.includes('automation/p25-evaluation-data'),'A checkpoint persistence missing');
+          must(exitv3.includes("workflows: ['Phase57 P25 Checkpointed Evaluation']")&&exitv3.includes("cron: '0 11 * * 1-5'"),'C daily v3 triggers missing');
+          must(exitv3.includes('data/p25-exit-v3/prospective/${EVIDENCE_DATE}.json')&&exitv3.includes('--session-date "$EVIDENCE_DATE"'),'A/C exact-day paired persistence missing');
 
-          // A/C end-of-day immutable chain.
-          must(routine.includes("cron: '45 7 * * 1-5'"),'routine 16:45 JST capture schedule missing');
-          must(routine.includes('automation/p25-day-data'),'routine immutable data branch missing');
-          must(evidence.includes("cron: '30 8 * * 1-5'"),'17:30 evidence prep schedule missing');
-          must(evidence.includes('automation/p25-evidence-data'),'evidence immutable branch missing');
-          must(checkpoint.includes("cron: '0 9 * * 1-5'"),'18:00 checkpoint schedule missing');
-          must(checkpoint.includes('automation/p25-evaluation-data'),'evaluation durable branch missing');
-          must(exitv3.includes("workflows: ['Phase57 P25 Checkpointed Evaluation']"),'daily v3 workflow_run binding missing');
-          must(exitv3.includes("cron: '0 11 * * 1-5'"),'daily v3 fallback schedule missing');
-          must(exitv3.includes('data/p25-exit-v3/prospective/${EVIDENCE_DATE}.json'),'daily v3 append-only target missing');
-          must(exitv3.includes('--session-date "$EVIDENCE_DATE"'),'daily v3 single-session boundary missing');
+          // B/D have two independent point-in-time capture mechanisms.
+          for(const cron of ["*/5 0-1 * * 1-5","0-30/5 2,6 * * 1-5","30-55/5 3 * * 1-5","*/5 4-5 * * 1-5"])must(market.includes(cron),`primary Dynamic5m cron missing ${cron}`);
+          must(market.includes('inputSymbols<3000')&&market.includes('marketwide.ndjson'),'primary marketwide fail-closed/artifact guard missing');
+          must(redundant.includes("58 23 * * 0-4")&&redundant.includes("28 3 * * 1-5"),'redundant morning/afternoon collector missing');
+          must(redundant.includes('sleep "$wait"')&&redundant.includes('marketwide.ndjson'),'redundant five-minute loop/evidence missing');
+          must(measureScript.includes('currentPrice:x.currentPrice'),'Dynamic5m point-in-time entry reference not retained');
+          must(bundle.includes('automation/p25-dynamic5m-day-data')&&bundle.includes('build_p25_dynamic5m_daily_bundle.mjs'),'Dynamic5m daily immutable bundle missing');
+          must(bundleScript.includes('missingIntradayBucketsNeverBackfilledOrFabricated:true')&&bundleScript.includes('completeFiveMinuteCoverage'),'Dynamic5m completeness/no-backfill guard missing');
 
-          // B/D point-in-time Dynamic 5m collection.
-          for(const cron of ["*/5 0-1 * * 1-5","0-30/5 2,6 * * 1-5","30-55/5 3 * * 1-5","*/5 4-5 * * 1-5"])
-            must(market.includes(cron),`marketwide schedule missing: ${cron}`);
-          must(market.includes('inputSymbols<3000'),'marketwide coverage fail-closed guard missing');
-          must(market.includes('marketwide.ndjson'),'point-in-time snapshot artifact missing');
-          must(durable.includes("workflows: ['Phase57 P25 Marketwide 5m Measurement']"),'four-track workflow_run binding missing');
-          must(durable.includes('automation/p25-four-track-data'),'four-track durable branch missing');
+          // Real combined B and D evaluator, not component packaging.
+          must(bd.includes("workflows: ['Phase57 P25 Dynamic 5m Daily Bundle']")&&bd.includes('automation/p25-bd-data'),'B/D evaluator trigger/persistence missing');
+          must(bd.includes('run_p25_dynamic5m_exitv3_portfolio_daily.mjs'),'combined B/D evaluator invocation missing');
+          must(bdScript.includes("route:'Dynamic 5m Selection -> Frozen Entry -> EXIT v3'")||bdScript.includes("route:'Dynamic 5m Selection -> Frozen Entry -> EXIT v3'"),'B combined route marker missing');
+          must(bdScript.includes("route:'Dynamic 5m Selection -> Frozen Entry -> EXIT v3 -> Capital Allocation'")||bdScript.includes("route:'Dynamic 5m Selection -> Frozen Entry -> EXIT v3 -> Capital Allocation'"),'D combined route marker missing');
+          must(bdScript.includes('entryScorerReceivesClosedPrefixOnly:true')&&bdScript.includes('futureBarsExcludedFromEntryScorer:true'),'B Entry causal-prefix guards missing');
+          must(bdScript.includes('profileWinnerSelected:false')&&bdScript.includes('initialEquityJpy:1_000_000'),'D portfolio precommit/no-winner guard missing');
+          must(durable.includes("workflows: ['Phase57 P25 Marketwide 5m Measurement']")&&durable.includes('automation/p25-four-track-data'),'component durability fallback missing');
 
-          // Recovery must cover every immutable stage and must refuse post-cutoff A/C backfill.
-          for(const wf of ['phase57-p25-prospective-universe.yml','phase57-p25-routine-5m.yml','phase57-p25-evidence-prep.yml','phase57-p25-checkpointed-evaluation.yml','phase57-p25-exit-v3-prospective-daily.yml','phase57-p25-lane-c-fixed-portfolio.yml','phase57-p25-four-track-durable-persistence.yml'])
-            must(recovery.includes(wf),`recovery missing ${wf}`);
-          must(recovery.includes('refusing post-close A/C backfill'),'missing no-backfill recovery guard');
-          for(const forbidden of ['RssStockOrder','RssCancelOrder','RssModifyOrder'])
-            must(!recovery.includes(forbidden),`forbidden order surface in recovery: ${forbidden}`);
+          // Recovery covers every independent chain and refuses A/C retro-backfill.
+          for(const wf of ['phase57-p25-prospective-universe.yml','phase57-p25-dynamic5m-daily-bundle.yml','phase57-p25-dynamic5m-bd-daily.yml','phase57-p25-routine-5m.yml','phase57-p25-evidence-prep.yml','phase57-p25-checkpointed-evaluation.yml','phase57-p25-exit-v3-prospective-daily.yml','phase57-p25-lane-c-fixed-portfolio.yml','phase57-p25-four-track-durable-persistence.yml'])must(recovery.includes(wf),`recovery missing ${wf}`);
+          must(recovery.includes('refusing post-close A/C backfill'),'no-backfill recovery guard missing');
+          for(const forbidden of ['RssStockOrder','RssCancelOrder','RssModifyOrder'])must(!recovery.includes(forbidden),`forbidden order surface ${forbidden}`);
 
-          // Safety locks across active code paths.
           const safetyKeys=['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'];
-          for(const source of [
-            read('predict/daytrade/phase57-p25-2c-prospective-preopen-universe-capture.js'),
-            read('predict/daytrade/phase57-p25-intraday-dynamic-universe.js'),
-            read('predict/daytrade/phase57-p25-exit-v3-independent-protocol.js'),
-          ]){
-            for(const key of safetyKeys) must(new RegExp(`${key}\\s*:\\s*false`).test(source),`safety lock not false: ${key}`);
-          }
+          for(const source of [read('predict/daytrade/phase57-p25-2c-prospective-preopen-universe-capture.js'),read('predict/daytrade/phase57-p25-intraday-dynamic-universe.js'),read('predict/daytrade/phase57-p25-exit-v3-independent-protocol.js')])for(const key of safetyKeys)must(new RegExp(`${key}\\s*:\\s*false`).test(source),`safety lock not false: ${key}`);
 
-          console.log(JSON.stringify({status:'P25_AUTONOMOUS_PIPELINE_STRUCTURE_HEALTHY',tracks:{A:'D50->Frozen Entry->Fixed',B:'Dynamic5m evidence path',C:'D50->Frozen Entry->EXITv3 daily',D:'Dynamic5m->allocation evidence path'},safety:'ALL_FALSE'},null,2));
+          console.log(JSON.stringify({status:'P25_AUTONOMOUS_PIPELINE_STRUCTURE_HEALTHY',tracks:{A:'D50->Frozen Entry->Fixed exact-day',B:'Dynamic5m->Frozen Entry->EXITv3 exact-day',C:'D50->Frozen Entry->EXITv3 exact-day',D:'Dynamic5m->Frozen Entry->EXITv3->Capital Allocation exact-day'},dynamic5mCaptureRedundancy:2,noBackfill:true,safety:'ALL_FALSE'},null,2));
           NODE
+      - name: Syntax-check new JavaScript entry points
+        run: |
+          node --check scripts/build_p25_dynamic5m_daily_bundle.mjs
+          node --check scripts/run_p25_dynamic5m_exitv3_portfolio_daily.mjs
+          node --check scripts/measure_p25_intraday_dynamic_universe_snapshot.mjs
       - name: Safety boundary
         run: echo 'Static workflow/evidence audit only; no trading or write surface is invoked.'

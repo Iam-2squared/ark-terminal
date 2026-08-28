@@ -72,6 +72,12 @@ jobs:
             exit 0
           fi
 
+          # A/C must never be retro-created after the cutoff if the pre-open universe was missed.
+          if [ "$frozen" -ne 1 ]; then
+            echo "No immutable pre-open universe exists for $session; refusing post-close A/C backfill."
+            exit 0
+          fi
+
           # Stage 1: immutable routine 5m session capture.
           git fetch origin automation/p25-day-data:refs/remotes/origin/automation/p25-day-data || true
           if ! git cat-file -e "origin/automation/p25-day-data:data/p25-day-sessions/${session}.json" 2>/dev/null; then
@@ -98,7 +104,15 @@ jobs:
             exit 0
           fi
 
-          # Stage 4: Fixed Portfolio persistence must be dated to the same immutable evidence day.
+          # Stage 4: frozen EXIT v3 must also be evaluated/persisted for this exact immutable day.
+          git fetch origin automation/p25-exit-v3-data:refs/remotes/origin/automation/p25-exit-v3-data || true
+          if ! git cat-file -e "origin/automation/p25-exit-v3-data:data/p25-exit-v3/prospective/${session}.json" 2>/dev/null; then
+            echo "Missing dated frozen EXIT v3 result; dispatching daily v3 measurement."
+            gh workflow run phase57-p25-exit-v3-prospective-daily.yml --repo "$GH_REPO" --ref main -f evidence_date="$session"
+            exit 0
+          fi
+
+          # Stage 5: Fixed Portfolio persistence must be dated to the same immutable evidence day.
           git fetch origin automation/p25-lane-c-data:refs/remotes/origin/automation/p25-lane-c-data || true
           if ! git cat-file -e "origin/automation/p25-lane-c-data:data/p25-lane-c/fixed/${session}.summary.json" 2>/dev/null; then
             latest_checkpoint=''
@@ -113,7 +127,7 @@ jobs:
             exit 0
           fi
 
-          # Stage 5: after a successful main-branch marketwide run, Four-Track persistence must
+          # Stage 6: after a successful main-branch marketwide run, Four-Track persistence must
           # be at least as recent. workflow_run is primary; this is the recovery fallback.
           market_created="$(gh run list --repo "$GH_REPO" --workflow 'phase57-p25-marketwide-5m-measurement.yml' --branch main --status success --limit 1 --json createdAt --jq '.[0].createdAt // empty' || true)"
           four_created="$(gh run list --repo "$GH_REPO" --workflow 'phase57-p25-four-track-durable-persistence.yml' --branch main --status success --limit 1 --json createdAt --jq '.[0].createdAt // empty' || true)"

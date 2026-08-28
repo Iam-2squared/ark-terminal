@@ -7,6 +7,7 @@ on:
       - '.github/workflows/phase57-p25-routine-5m.yml'
       - '.github/workflows/phase57-p25-evidence-prep.yml'
       - '.github/workflows/phase57-p25-checkpointed-evaluation.yml'
+      - '.github/workflows/phase57-p25-exit-v3-prospective-daily.yml'
       - '.github/workflows/phase57-p25-marketwide-5m-measurement.yml'
       - '.github/workflows/phase57-p25-four-track-durable-persistence.yml'
       - '.github/workflows/phase57-p25-autonomous-recovery.yml'
@@ -15,6 +16,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/phase57-p25-prospective-universe.yml'
+      - '.github/workflows/phase57-p25-exit-v3-prospective-daily.yml'
       - '.github/workflows/phase57-p25-autonomous-recovery.yml'
       - '.github/workflows/phase57-p25-autonomous-pipeline-audit.yml'
   workflow_dispatch:
@@ -43,6 +45,7 @@ jobs:
           const routine=read('.github/workflows/phase57-p25-routine-5m.yml');
           const evidence=read('.github/workflows/phase57-p25-evidence-prep.yml');
           const checkpoint=read('.github/workflows/phase57-p25-checkpointed-evaluation.yml');
+          const exitv3=read('.github/workflows/phase57-p25-exit-v3-prospective-daily.yml');
           const market=read('.github/workflows/phase57-p25-marketwide-5m-measurement.yml');
           const durable=read('.github/workflows/phase57-p25-four-track-durable-persistence.yml');
           const recovery=read('.github/workflows/phase57-p25-autonomous-recovery.yml');
@@ -60,6 +63,10 @@ jobs:
           must(evidence.includes('automation/p25-evidence-data'),'evidence immutable branch missing');
           must(checkpoint.includes("cron: '0 9 * * 1-5'"),'18:00 checkpoint schedule missing');
           must(checkpoint.includes('automation/p25-evaluation-data'),'evaluation durable branch missing');
+          must(exitv3.includes("workflows: ['Phase57 P25 Checkpointed Evaluation']"),'daily v3 workflow_run binding missing');
+          must(exitv3.includes("cron: '0 11 * * 1-5'"),'daily v3 fallback schedule missing');
+          must(exitv3.includes('data/p25-exit-v3/prospective/${EVIDENCE_DATE}.json'),'daily v3 append-only target missing');
+          must(exitv3.includes('--session-date "$EVIDENCE_DATE"'),'daily v3 single-session boundary missing');
 
           // B/D point-in-time Dynamic 5m collection.
           for(const cron of ["*/5 0-1 * * 1-5","0-30/5 2,6 * * 1-5","30-55/5 3 * * 1-5","*/5 4-5 * * 1-5"])
@@ -69,18 +76,24 @@ jobs:
           must(durable.includes("workflows: ['Phase57 P25 Marketwide 5m Measurement']"),'four-track workflow_run binding missing');
           must(durable.includes('automation/p25-four-track-data'),'four-track durable branch missing');
 
-          // Recovery must cover every immutable stage without creating orders.
-          for(const wf of ['phase57-p25-prospective-universe.yml','phase57-p25-routine-5m.yml','phase57-p25-evidence-prep.yml','phase57-p25-checkpointed-evaluation.yml','phase57-p25-lane-c-fixed-portfolio.yml','phase57-p25-four-track-durable-persistence.yml'])
+          // Recovery must cover every immutable stage and must refuse post-cutoff A/C backfill.
+          for(const wf of ['phase57-p25-prospective-universe.yml','phase57-p25-routine-5m.yml','phase57-p25-evidence-prep.yml','phase57-p25-checkpointed-evaluation.yml','phase57-p25-exit-v3-prospective-daily.yml','phase57-p25-lane-c-fixed-portfolio.yml','phase57-p25-four-track-durable-persistence.yml'])
             must(recovery.includes(wf),`recovery missing ${wf}`);
+          must(recovery.includes('refusing post-close A/C backfill'),'missing no-backfill recovery guard');
           for(const forbidden of ['RssStockOrder','RssCancelOrder','RssModifyOrder'])
             must(!recovery.includes(forbidden),`forbidden order surface in recovery: ${forbidden}`);
 
           // Safety locks across active code paths.
           const safetyKeys=['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'];
-          const safetySource=read('predict/daytrade/phase57-p25-2c-prospective-preopen-universe-capture.js');
-          for(const key of safetyKeys) must(new RegExp(`${key}\\s*:\\s*false`).test(safetySource),`safety lock not false: ${key}`);
+          for(const source of [
+            read('predict/daytrade/phase57-p25-2c-prospective-preopen-universe-capture.js'),
+            read('predict/daytrade/phase57-p25-intraday-dynamic-universe.js'),
+            read('predict/daytrade/phase57-p25-exit-v3-independent-protocol.js'),
+          ]){
+            for(const key of safetyKeys) must(new RegExp(`${key}\\s*:\\s*false`).test(source),`safety lock not false: ${key}`);
+          }
 
-          console.log(JSON.stringify({status:'P25_AUTONOMOUS_PIPELINE_STRUCTURE_HEALTHY',tracks:{A:'D50->Frozen Entry->Fixed',B:'Dynamic5m evidence path',C:'D50->Frozen Entry->EXITv3 input path',D:'Dynamic5m->allocation evidence path'},safety:'ALL_FALSE'},null,2));
+          console.log(JSON.stringify({status:'P25_AUTONOMOUS_PIPELINE_STRUCTURE_HEALTHY',tracks:{A:'D50->Frozen Entry->Fixed',B:'Dynamic5m evidence path',C:'D50->Frozen Entry->EXITv3 daily',D:'Dynamic5m->allocation evidence path'},safety:'ALL_FALSE'},null,2));
           NODE
       - name: Safety boundary
         run: echo 'Static workflow/evidence audit only; no trading or write surface is invoked.'

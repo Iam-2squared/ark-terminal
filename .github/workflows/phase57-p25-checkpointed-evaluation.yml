@@ -135,6 +135,10 @@ jobs:
           for(const sessionDate of dates){
             if(!/^\d{4}-\d{2}-\d{2}$/.test(sessionDate))throw new Error(`invalid session date ${sessionDate}`);
             const capture=JSON.parse(fs.readFileSync(path.join('/tmp/p25-inputs/captures',`${sessionDate}.json`),'utf8'));
+            if(capture?.collection?.ready!==true){
+              if(Array.isArray(capture?.sessions)&&capture.sessions.length)throw new Error(`blocked capture exposes session bars for ${sessionDate}`);
+              continue;
+            }
             const session=capture.sessions?.[0];
             if(!session)throw new Error(`ready session missing for ${sessionDate}`);
             const plan=buildP253PCheckpointPlan({universeRecord:session.universeRecord,batchSize:Number(process.env.BATCH_SIZE)});

@@ -1,224 +1,25 @@
-name: Phase57 P25 Dynamic Management Persistence
+name: Phase57 P25 Legacy Dynamic EXIT Persistence (Retired)
+
+# RETIRED from the active four-track validation on 2026-08-28.
+# Historical artifacts on automation/p25-dynamic-management-data remain immutable.
+# Active Track B is now Dynamic 5m Selection -> Frozen Entry -> EXIT v3.
+# It is represented by the marketwide 5m measurement and four-track durable evidence pipelines.
+# No schedule/push trigger remains here so the rejected legacy Dynamic HOLD/EXIT is not
+# recomputed as an active research track.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/phase57-p25-dynamic-management-persistence.yml'
-      - 'scripts/run_p25_dynamic_management_persistence.mjs'
-      - 'scripts/recombine_p25_dynamic_management_shards.mjs'
-      - 'predict/daytrade/phase57-p25-3al-dynamic-management-multisession.js'
-      - 'predict/daytrade/phase57-p25-3ak-dynamic-management-prospective.js'
-      - 'predict/daytrade/phase57-p25-dynamic-management-parallel.js'
-      - 'predict/daytrade/phase57-p25-2f-postsession-point-in-time-replay.js'
-  schedule:
-    - cron: '37 * * * *'
   workflow_dispatch:
-    inputs:
-      evidence_date:
-        description: 'Immutable evidence date YYYY-MM-DD; blank = latest available'
-        required: false
-        type: string
 
 permissions:
-  contents: write
-  actions: read
-
-concurrency:
-  group: phase57-p25-dynamic-management-persistence
-  cancel-in-progress: false
+  contents: read
 
 jobs:
-  prepare:
+  retired:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    outputs:
-      evidence_date: ${{ steps.plan.outputs.evidence_date }}
-      session_dates: ${{ steps.plan.outputs.session_dates }}
     steps:
-      - name: Checkout main
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Resolve immutable evidence and shard plan
-        id: plan
-        shell: bash
-        env:
-          REQUESTED_DATE: ${{ inputs.evidence_date }}
+      - name: Legacy B retirement boundary
         run: |
-          set -euo pipefail
-          git fetch origin automation/p25-evidence-data:refs/remotes/origin/automation/p25-evidence-data
-          if [ -n "${REQUESTED_DATE:-}" ]; then
-            evidence_date="$REQUESTED_DATE"
-          else
-            evidence_date="$(git ls-tree -r --name-only origin/automation/p25-evidence-data -- data/p25-evidence-lineage | sed -n 's#data/p25-evidence-lineage/\([0-9][0-9-]*\)-manifest.json#\1#p' | sort | tail -1)"
-          fi
-          [[ "$evidence_date" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]
-          manifest_path="data/p25-evidence-lineage/${evidence_date}-manifest.json"
-          git show "origin/automation/p25-evidence-data:$manifest_path" > /tmp/manifest.json
-          session_dates="$(node - <<'NODE'
-          const x=require('/tmp/manifest.json');
-          const nodes=(x.manifest?.nodes??[]);
-          const dates=[...new Set(nodes.filter(n=>n?.captureReady===true).map(n=>String(n.sessionDate??'')).filter(Boolean))].sort();
-          const blocked=nodes.filter(n=>n?.captureReady!==true).map(n=>({sessionDate:n?.sessionDate,classification:n?.classification}));
-          if(!dates.length) process.exit(2);
-          if(blocked.length) console.error(`excluding blocked/non-ready lineage nodes from dynamic shards: ${JSON.stringify(blocked)}`);
-          process.stdout.write(JSON.stringify(dates));
-          NODE
-          )"
-          echo "evidence_date=$evidence_date" >> "$GITHUB_OUTPUT"
-          echo "session_dates=$session_dates" >> "$GITHUB_OUTPUT"
-          echo "dynamic shard plan evidence=$evidence_date sessions=$session_dates"
-
-  shard:
-    needs: prepare
-    strategy:
-      fail-fast: false
-      max-parallel: 4
-      matrix:
-        session_date: ${{ fromJSON(needs.prepare.outputs.session_dates) }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 180
-    steps:
-      - name: Checkout main
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Load immutable lineage and captures
-        shell: bash
-        env:
-          EVIDENCE_DATE: ${{ needs.prepare.outputs.evidence_date }}
-        run: |
-          set -euo pipefail
-          git fetch origin automation/p25-evidence-data:refs/remotes/origin/automation/p25-evidence-data
-          git fetch origin automation/p25-day-data:refs/remotes/origin/automation/p25-day-data
-          manifest_path="data/p25-evidence-lineage/${EVIDENCE_DATE}-manifest.json"
-          integrity_path="data/p25-evidence-lineage/${EVIDENCE_DATE}-integrity.json"
-          git show "origin/automation/p25-evidence-data:$manifest_path" > /tmp/p25-evidence-lineage-manifest.json
-          git show "origin/automation/p25-evidence-data:$integrity_path" > /tmp/p25-session-integrity-ledger.json
-          mkdir -p /tmp/p25-day-sessions
-          mapfile -t dates < <(node -e "const x=require('/tmp/p25-evidence-lineage-manifest.json'); for (const n of x.manifest?.nodes ?? []) console.log(n.sessionDate)")
-          for date in "${dates[@]}"; do
-            [[ "$date" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]
-            git show "origin/automation/p25-day-data:data/p25-day-sessions/${date}.json" > "/tmp/p25-day-sessions/${date}.json"
-          done
-      - name: Download exact pinned P24 canonical byte snapshot
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          set -euo pipefail
-          mkdir -p /tmp/p24-canonical
-          gh run download 31785422471 --repo "$GH_REPO" --name phase57-p24-9-oos-canonical-candidate --dir /tmp/p24-canonical
-          snapshot="$(find /tmp/p24-canonical -type f -name 'phase57-p24-9-oos-byte-snapshot.json' -print -quit)"
-          test -n "$snapshot"
-          echo "P24_CANONICAL_SNAPSHOT=$snapshot" >> "$GITHUB_ENV"
-      - name: Rebuild exact pinned historical training pack
-        shell: bash
-        run: |
-          set -euo pipefail
-          node scripts/build_p25_pinned_history_pack.mjs --snapshot "$P24_CANONICAL_SNAPSHOT" --output /tmp/p25-pinned-history-pack.json
-      - name: Evaluate one immutable session shard
-        shell: bash
-        env:
-          SESSION_DATE: ${{ matrix.session_date }}
-        run: |
-          set -euo pipefail
-          mkdir -p /tmp/p25-dynamic-shard
-          node scripts/run_p25_dynamic_management_persistence.mjs \
-            --history-pack /tmp/p25-pinned-history-pack.json \
-            --capture-dir /tmp/p25-day-sessions \
-            --integrity-ledger /tmp/p25-session-integrity-ledger.json \
-            --lineage-manifest /tmp/p25-evidence-lineage-manifest.json \
-            --session-date "$SESSION_DATE" \
-            --output "/tmp/p25-dynamic-shard/${SESSION_DATE}-evaluation.json" \
-            --scorecard "/tmp/p25-dynamic-shard/${SESSION_DATE}-scorecard.json"
-      - name: Upload immutable session shard
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase57-p25-dynamic-shard-${{ matrix.session_date }}
-          path: /tmp/p25-dynamic-shard
-          retention-days: 90
-
-  recombine-and-persist:
-    needs: [prepare, shard]
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout main
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Download all completed session shards
-        uses: actions/download-artifact@v4
-        with:
-          pattern: phase57-p25-dynamic-shard-*
-          path: /tmp/p25-dynamic-shards
-          merge-multiple: true
-      - name: Deterministically recombine full union
-        shell: bash
-        run: |
-          set -euo pipefail
-          node scripts/recombine_p25_dynamic_management_shards.mjs \
-            --shard-dir /tmp/p25-dynamic-shards \
-            --output /tmp/p25-dynamic-management-evaluation.json \
-            --scorecard /tmp/p25-dynamic-management-scorecard.json
-      - name: Persist dated evaluation and scorecard append-only
-        shell: bash
-        env:
-          EVIDENCE_DATE: ${{ needs.prepare.outputs.evidence_date }}
-        run: |
-          set -euo pipefail
-          eval_head="$(node -e "const x=require('/tmp/p25-dynamic-management-evaluation.json'); console.log(x.inputs.lineageManifestHeadSha256)")"
-          score_head="$(node -e "const x=require('/tmp/p25-dynamic-management-scorecard.json'); console.log(x.lineageManifestHeadSha256)")"
-          test "$eval_head" = "$score_head"
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          branch='automation/p25-dynamic-management-data'
-          if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
-            git fetch origin "$branch":refs/remotes/origin/"$branch"
-            git switch -C "$branch" origin/"$branch"
-          else
-            git switch --orphan "$branch"
-            git rm -rf . >/dev/null 2>&1 || true
-          fi
-          mkdir -p data/p25-dynamic-management-evaluations data/p25-dynamic-management-scorecards
-          eval_target="data/p25-dynamic-management-evaluations/${EVIDENCE_DATE}.json"
-          score_target="data/p25-dynamic-management-scorecards/${EVIDENCE_DATE}.json"
-          if [ -f "$eval_target" ] || [ -f "$score_target" ]; then
-            test -f "$eval_target" -a -f "$score_target"
-            existing_eval_head="$(node -e "const x=require('./$eval_target'); console.log(x.inputs.lineageManifestHeadSha256)")"
-            existing_score_head="$(node -e "const x=require('./$score_target'); console.log(x.lineageManifestHeadSha256)")"
-            test "$existing_eval_head" = "$eval_head"
-            test "$existing_score_head" = "$eval_head"
-            echo 'same dynamic lineage already persisted; idempotent no-op'
-          else
-            cp /tmp/p25-dynamic-management-evaluation.json "$eval_target"
-            cp /tmp/p25-dynamic-management-scorecard.json "$score_target"
-            git add "$eval_target" "$score_target"
-            git commit -m "Phase57 P25 dynamic management ${EVIDENCE_DATE}"
-            git push origin HEAD:"$branch"
-          fi
-      - name: Upload recombined dynamic management artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase57-p25-dynamic-management-${{ needs.prepare.outputs.evidence_date }}
-          path: |
-            /tmp/p25-dynamic-management-evaluation.json
-            /tmp/p25-dynamic-management-scorecard.json
-          retention-days: 90
-      - name: Safety boundary
-        run: |
-          echo 'Research-only Fixed vs Dynamic HOLD/EXIT sharded persistence.'
-          echo 'Blocked/non-ready lineage nodes are preserved in lineage validation but excluded from compute shards.'
-          echo 'Sharding changes execution only; frozen Entry/model/universe/threshold/Dynamic-N/fair-cutoff are untouched.'
-          echo 'No fresh holdout, broker, Excel, RSS order, MARKETSPEED, board, Tick, paper/live trading, promotion, or production update.'
+          echo 'Legacy Fixed vs Dynamic HOLD/EXIT Track B is retired from active parallel validation.'
+          echo 'Historical automation/p25-dynamic-management-data evidence is preserved and not rewritten.'
+          echo 'Active B = Dynamic 5m Selection -> Frozen Entry -> EXIT v3.'
+          echo 'No broker/RSS/Excel/order/live/paper execution, promotion, production update, or fresh holdout consumption.'

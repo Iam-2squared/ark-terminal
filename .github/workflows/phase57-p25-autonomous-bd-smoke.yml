@@ -33,12 +33,18 @@ jobs:
           import fs from 'node:fs';
           const cap=JSON.parse(fs.readFileSync('/tmp/session.json','utf8'));
           if(cap?.collection?.ready!==true)throw new Error('fixture source not READY');
-          const s=cap.sessions?.[0],date='2026-08-25',observedAt='2026-08-25T01:35:01.000Z',priceBar='2026-08-25T01:30:00.000Z';
+          const s=cap.sessions?.[0],date='2026-08-25';
           const members=s.universeRecord.variants.DYNAMIC_50;
           const sector=new Map((s.universeRecord.rankAudit?.day50??[]).map(x=>[x.symbol,x.sector]));
-          const selected=members.map(symbol=>{const bars=s.sessionBarsBySymbol[symbol];const bar=bars.find(x=>x.timestamp===priceBar);if(!bar)throw new Error(`fixture bar missing ${symbol}`);return {symbol,sector:sector.get(symbol)??'UNKNOWN',currentPrice:bar.close,sourceScannedAt:observedAt,opportunityScore:0.5,turnoverYen:1};});
-          const bundle={schemaVersion:1,phase:'57.p25.dynamic5m-daily-bundle-smoke-fixture',status:'P25_DYNAMIC5M_DAILY_BUNDLE_READY',sessionDate:date,pointCount:1,expectedPointCount:68,missingExpectedBucketCount:67,missingExpectedBuckets:[],completeFiveMinuteCoverage:false,selectedSymbolUnionCount:members.length,selectedSymbolUnion:members,points:[{bucket:'2026-08-25T01:35:00.000Z',observedAt,inputSymbols:3700,selected}],barsReady:true,barFailureCount:0,barFailures:[],sessionBarsBySymbol:Object.fromEntries(members.map(symbol=>[symbol,s.sessionBarsBySymbol[symbol]])),methodology:{integrationSmokeOnly:true,notPerformanceEvidence:true,missingIntradayBucketsNeverBackfilledOrFabricated:true},safety:cap.safety};
+          const timestampSets=members.map(symbol=>new Set((s.sessionBarsBySymbol[symbol]??[]).map(x=>x.timestamp)));
+          const common=[...timestampSets[0]].filter(ts=>timestampSets.every(set=>set.has(ts))).sort();
+          const priceBar=common.find(ts=>members.every(symbol=>(s.sessionBarsBySymbol[symbol]??[]).filter(x=>x.timestamp<=ts).length>=6));
+          if(!priceBar)throw new Error('no fair common fixture cutoff with >=6 closed bars');
+          const observedAt=new Date(Date.parse(priceBar)+5*60_000+1_000).toISOString();
+          const selected=members.map(symbol=>{const bars=s.sessionBarsBySymbol[symbol]??[];const bar=bars.find(x=>x.timestamp===priceBar);if(!bar)throw new Error(`fair fixture bar missing ${symbol}`);return {symbol,sector:sector.get(symbol)??'UNKNOWN',currentPrice:bar.close,sourceScannedAt:observedAt,opportunityScore:0.5,turnoverYen:1};});
+          const bundle={schemaVersion:1,phase:'57.p25.dynamic5m-daily-bundle-smoke-fixture',status:'P25_DYNAMIC5M_DAILY_BUNDLE_READY',sessionDate:date,pointCount:1,expectedPointCount:68,missingExpectedBucketCount:67,missingExpectedBuckets:[],completeFiveMinuteCoverage:false,selectedSymbolUnionCount:members.length,selectedSymbolUnion:members,points:[{bucket:new Date(Math.floor(Date.parse(observedAt)/(5*60_000))*5*60_000).toISOString(),observedAt,inputSymbols:3700,selected}],barsReady:true,barFailureCount:0,barFailures:[],sessionBarsBySymbol:Object.fromEntries(members.map(symbol=>[symbol,s.sessionBarsBySymbol[symbol]])),methodology:{integrationSmokeOnly:true,notPerformanceEvidence:true,commonFairCutoff:true,missingIntradayBucketsNeverBackfilledOrFabricated:true},safety:cap.safety};
           fs.writeFileSync('/tmp/bundle.json',JSON.stringify(bundle));
+          console.log(JSON.stringify({fixtureDate:date,priceBar,observedAt,memberCount:members.length},null,2));
           NODE
       - name: Build the exact frozen historical pack used by Entry and EXIT v3
         shell: bash

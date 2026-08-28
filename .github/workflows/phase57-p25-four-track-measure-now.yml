@@ -26,11 +26,25 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: gh workflow run phase57-p25-checkpointed-evaluation.yml --repo "$GH_REPO" --ref main
 
-      - name: Dispatch current-main fixed portfolio measurement
+      - name: Dispatch fixed portfolio from latest artifact-bearing checkpoint
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-        run: gh workflow run phase57-p25-lane-c-fixed-portfolio.yml --repo "$GH_REPO" --ref main
+        run: |
+          set -euo pipefail
+          run_id=''
+          mapfile -t candidates < <(gh run list --repo "$GH_REPO" --workflow 'phase57-p25-checkpointed-evaluation.yml' --branch main --status success --limit 20 --json databaseId --jq '.[].databaseId')
+          for candidate in "${candidates[@]}"; do
+            artifact_count="$(gh api "repos/$GH_REPO/actions/runs/$candidate/artifacts" --jq '.total_count')"
+            if [ "${artifact_count:-0}" -gt 0 ]; then
+              run_id="$candidate"
+              break
+            fi
+          done
+          test -n "$run_id"
+          echo "Using artifact-bearing checkpoint run $run_id for fixed portfolio remeasurement."
+          gh workflow run phase57-p25-lane-c-fixed-portfolio.yml --repo "$GH_REPO" --ref main -f source_run_id="$run_id"
 
       - name: Dispatch latest four-track durable packaging
         env:

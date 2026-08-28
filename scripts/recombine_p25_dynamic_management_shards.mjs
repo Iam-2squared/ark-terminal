@@ -21,12 +21,22 @@ try{
   if(heads.size!==1||heads.has(undefined)||heads.has(null))throw new Error('dynamic shard lineage head mismatch');
   const expectedCounts=new Set(evaluations.map(x=>Number(x?.evaluation?.expectedSessionCount)));
   if(expectedCounts.size!==1)throw new Error('dynamic shard expected-session mismatch');
+  for(const shard of evaluations){
+    if(Number(shard?.evaluation?.readySessionCount)!==1)throw new Error('dynamic shard must contain exactly one ready session');
+    if(!Array.isArray(shard?.evaluation?.shardSessionDates)||shard.evaluation.shardSessionDates.length!==1)throw new Error('dynamic shard session-date marker mismatch');
+  }
   const sessions=evaluations.flatMap(x=>x.evaluation.sessions??[]).sort((a,b)=>String(a.sessionDate).localeCompare(String(b.sessionDate)));
   const pairs=evaluations.flatMap(x=>x.evaluation.pairs??[]).sort((a,b)=>String(a.key).localeCompare(String(b.key)));
   const sessionDates=sessions.map(x=>String(x.sessionDate));
   if(new Set(sessionDates).size!==sessionDates.length)throw new Error('duplicate session shard detected');
   const expectedSessionCount=[...expectedCounts][0];
-  if(sessionDates.length!==expectedSessionCount)throw new Error(`incomplete dynamic shard union: ${sessionDates.length}/${expectedSessionCount}`);
+  const readySessionCount=evaluations.length;
+  if(sessionDates.length!==readySessionCount)throw new Error(`incomplete dynamic ready-shard union: ${sessionDates.length}/${readySessionCount}`);
+  for(const shard of evaluations){
+    const marker=String(shard.evaluation.shardSessionDates[0]);
+    const actual=String(shard.evaluation.sessions?.[0]?.sessionDate??'');
+    if(marker!==actual)throw new Error(`dynamic shard session marker mismatch: ${marker}/${actual}`);
+  }
   const pairKeys=pairs.map(x=>String(x.key));
   if(new Set(pairKeys).size!==pairKeys.length)throw new Error('duplicate dynamic pair detected during recombine');
   const lineageManifestHeadSha256=[...heads][0];
@@ -44,7 +54,7 @@ try{
       status:'P25_3AL_DYNAMIC_MANAGEMENT_MULTISESSION_EVALUATED',
       lineageManifestHeadSha256,
       expectedSessionCount,
-      readySessionCount:sessions.length,
+      readySessionCount,
       sessions,
       pairs,
       summary,
@@ -62,7 +72,7 @@ try{
     createdAt,
     lineageManifestHeadSha256,
     expectedSessionCount,
-    readySessionCount:sessions.length,
+    readySessionCount,
     sessions,
     summary,
     byVariant,
@@ -71,5 +81,5 @@ try{
   };
   writeAtomic(outputPath,evaluation);
   writeAtomic(scorecardPath,scorecard);
-  console.log(JSON.stringify({status:evaluation.status,shardCount:evaluations.length,readySessionCount:sessions.length,pairedCount:summary.pairedCount,lineageManifestHeadSha256,output:outputPath,scorecard:scorecardPath},null,2));
+  console.log(JSON.stringify({status:evaluation.status,shardCount:evaluations.length,readySessionCount,expectedSessionCount,pairedCount:summary.pairedCount,lineageManifestHeadSha256,output:outputPath,scorecard:scorecardPath},null,2));
 }catch(error){console.error(JSON.stringify({status:'BLOCKED_P25_3AM_DYNAMIC_MANAGEMENT_RECOMBINE',error:String(error?.message??error),safety:PHASE57_P25_3AL_SAFETY},null,2));process.exit(1);}

@@ -1,0 +1,4383 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.p25.3am.dynamic-management-sharded-recombine",
+  "status": "P25_3AM_DYNAMIC_MANAGEMENT_FULL_UNION_RECOMBINED",
+  "createdAt": "2026-08-28T10:32:46.815Z",
+  "inputs": {
+    "lineageManifestHeadSha256": "f4c297a3ae63067e4fffc5cd52188f4db3f51d2de54b01d0f66394a97a0c9433",
+    "shardCount": 5,
+    "expectedSessionCount": 6
+  },
+  "evaluation": {
+    "phase": "57.p25.3al.dynamic-management-multisession",
+    "status": "P25_3AL_DYNAMIC_MANAGEMENT_MULTISESSION_EVALUATED",
+    "lineageManifestHeadSha256": "f4c297a3ae63067e4fffc5cd52188f4db3f51d2de54b01d0f66394a97a0c9433",
+    "expectedSessionCount": 6,
+    "readySessionCount": 5,
+    "sessions": [
+      {
+        "sessionDate": "2026-08-19",
+        "frozenTradeCount": 13,
+        "fixedResolvedCount": 12,
+        "managementReadyCount": 12,
+        "pairedCount": 12,
+        "missingDynamicPairCount": 0
+      },
+      {
+        "sessionDate": "2026-08-20",
+        "frozenTradeCount": 3,
+        "fixedResolvedCount": 3,
+        "managementReadyCount": 3,
+        "pairedCount": 3,
+        "missingDynamicPairCount": 0
+      },
+      {
+        "sessionDate": "2026-08-21",
+        "frozenTradeCount": 0,
+        "fixedResolvedCount": 0,
+        "managementReadyCount": 0,
+        "pairedCount": 0,
+        "missingDynamicPairCount": 0
+      },
+      {
+        "sessionDate": "2026-08-24",
+        "frozenTradeCount": 6,
+        "fixedResolvedCount": 6,
+        "managementReadyCount": 6,
+        "pairedCount": 6,
+        "missingDynamicPairCount": 0
+      },
+      {
+        "sessionDate": "2026-08-25",
+        "frozenTradeCount": 7,
+        "fixedResolvedCount": 6,
+        "managementReadyCount": 6,
+        "pairedCount": 6,
+        "missingDynamicPairCount": 0
+      }
+    ],
+    "pairs": [
+      {
+        "key": "2026-08-19|2026-08-19T01:15:00.000Z|6834.T",
+        "symbol": "6834.T",
+        "sessionDate": "2026-08-19",
+        "entryTimestamp": "2026-08-19T01:15:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-19T02:15:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": -2.139905362776023,
+          "barsHeld": 12
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-19T01:45:00.000Z",
+          "exitReason": "ATR_HARD_STOP",
+          "netReturnPct": -1.5952484227129304,
+          "barsHeld": 6,
+          "mfePct": 0.5520504731861164,
+          "maePct": -1.5452484227129304,
+          "givebackPct": 2.097298895899047,
+          "captureRatio": -2.7991071428571543,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 1,
+            "HOLD": 0,
+            "CAUTION": 4
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-19T01:20:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 25450,
+                "fast": 25510,
+                "slow": 25415,
+                "vwap": 24860.927947598248,
+                "momentumPct": -0.9342156481121022,
+                "swingReference": 25100,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": true,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": true,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 5,
+                "damageVotes": 2,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": true,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": true,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 1,
+                "severeStreak": 0,
+                "recoveryStreak": 1,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 1,
+              "timestamp": "2026-08-19T01:25:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "STRONG_HOLD",
+              "action": "HOLD",
+              "reason": "CAUTION_RECOVERED",
+              "health": {
+                "close": 25420,
+                "fast": 25410,
+                "slow": 25445,
+                "vwap": 24879.743859649116,
+                "momentumPct": -1.1664074650077794,
+                "swingReference": 25300,
+                "pullbackAtr": 0.28444444444444444,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": true,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 5,
+                "damageVotes": 2,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": true,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "STRONG_HOLD",
+                "reason": "CAUTION_RECOVERED",
+                "exit": false,
+                "warningStreak": 2,
+                "severeStreak": 0,
+                "recoveryStreak": 2,
+                "barsInCaution": 0
+              }
+            },
+            {
+              "index": 2,
+              "timestamp": "2026-08-19T01:30:00.000Z",
+              "priorState": "STRONG_HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 25200,
+                "fast": 25356.666666666668,
+                "slow": 25437.5,
+                "vwap": 24888.4089347079,
+                "momentumPct": -0.6309148264984188,
+                "swingReference": 25240,
+                "pullbackAtr": 1.0572687224669604,
+                "structureBroken": true,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": true,
+                "momentumHealthy": false,
+                "positiveFromEntry": false,
+                "pullbackHealthy": true,
+                "healthyVotes": 2,
+                "damageVotes": 5,
+                "healthyFlags": {
+                  "structureHealthy": false,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": true,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": false
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 3,
+                "severeStreak": 1,
+                "recoveryStreak": 0,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 3,
+              "timestamp": "2026-08-19T01:35:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "CAUTION_PERSISTS",
+              "health": {
+                "close": 25260,
+                "fast": 25293.333333333332,
+                "slow": 25443.75,
+                "vwap": 24891.940197077805,
+                "momentumPct": -0.7465618860510781,
+                "swingReference": 25200,
+                "pullbackAtr": 0.810126582278481,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": true,
+                "momentumHealthy": false,
+                "positiveFromEntry": false,
+                "pullbackHealthy": true,
+                "healthyVotes": 3,
+                "damageVotes": 3,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": true,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": false
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "CAUTION_PERSISTS",
+                "exit": false,
+                "warningStreak": 4,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 2
+              }
+            },
+            {
+              "index": 4,
+              "timestamp": "2026-08-19T01:40:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "CAUTION_PERSISTS",
+              "health": {
+                "close": 25200,
+                "fast": 25220,
+                "slow": 25412.5,
+                "vwap": 24896.884422110543,
+                "momentumPct": -0.865460267505902,
+                "swingReference": 25090,
+                "pullbackAtr": 1.0389610389610389,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": true,
+                "momentumHealthy": false,
+                "positiveFromEntry": false,
+                "pullbackHealthy": true,
+                "healthyVotes": 3,
+                "damageVotes": 3,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": true,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": false
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "CAUTION_PERSISTS",
+                "exit": false,
+                "warningStreak": 5,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 3
+              }
+            },
+            {
+              "index": 5,
+              "timestamp": "2026-08-19T01:45:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "ATR_HARD_STOP",
+              "stopPrice": 24968.125,
+              "hardStopPrice": 24968.125,
+              "protectionStop": null,
+              "stopWasFixedBeforeCurrentBar": true
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 6,
+            "healthDecisionCount": 5,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": 0.5446569400630927,
+        "deltaBarsHeld": -6,
+        "variantMemberships": [
+          "DYNAMIC_30",
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "sector": "電気機器"
+      },
+      {
+        "key": "2026-08-19|2026-08-19T02:25:00.000Z|2962.T",
+        "symbol": "2962.T",
+        "sessionDate": "2026-08-19",
+        "entryTimestamp": "2026-08-19T02:25:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-19T04:20:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": 4.774784154393092,
+          "barsHeld": 12
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-19T03:35:00.000Z",
+          "exitReason": "STATE_AWARE_PROFIT_PROTECTION",
+          "netReturnPct": 2.3877856780091413,
+          "barsHeld": 3,
+          "mfePct": 5.078720162519046,
+          "maePct": 0,
+          "givebackPct": 2.6409344845099048,
+          "captureRatio": 0.4799999999999998,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 0,
+            "HOLD": 0,
+            "CAUTION": 2
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-19T02:30:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 1959,
+                "fast": 1946,
+                "slow": 1883.125,
+                "vwap": 1884.142861250072,
+                "momentumPct": -4.535752401280679,
+                "swingReference": 1985,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 3,
+                "damageVotes": 4,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 1,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 1,
+              "timestamp": "2026-08-19T03:30:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "CAUTION_PERSISTS",
+              "health": {
+                "close": 1919,
+                "fast": 1949,
+                "slow": 1891,
+                "vwap": 1887.001019607843,
+                "momentumPct": -0.47120418848167755,
+                "swingReference": 1985,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 4,
+                "damageVotes": 3,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "CAUTION_PERSISTS",
+                "exit": false,
+                "warningStreak": 2,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 2
+              }
+            },
+            {
+              "index": 2,
+              "timestamp": "2026-08-19T03:35:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "STATE_AWARE_PROFIT_PROTECTION",
+              "stopPrice": 1912.7625,
+              "hardStopPrice": 2041.9375,
+              "protectionStop": 1912.7625,
+              "stopWasFixedBeforeCurrentBar": true
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 3,
+            "healthDecisionCount": 2,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": -2.3869984763839502,
+        "deltaBarsHeld": -9,
+        "variantMemberships": [
+          "DYNAMIC_50"
+        ],
+        "sector": "金属製品"
+      },
+      {
+        "key": "2026-08-19|2026-08-19T03:30:00.000Z|5985.T",
+        "symbol": "5985.T",
+        "sessionDate": "2026-08-19",
+        "entryTimestamp": "2026-08-19T03:30:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-19T04:30:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": -3.8041254125412536,
+          "barsHeld": 12
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-19T03:40:00.000Z",
+          "exitReason": "PERSISTENT_CHART_BREAKDOWN",
+          "netReturnPct": -0.05,
+          "barsHeld": 2,
+          "mfePct": 0.9488448844884534,
+          "maePct": -0.8663366336633671,
+          "givebackPct": 0.9488448844884534,
+          "captureRatio": 0,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 0,
+            "HOLD": 0,
+            "CAUTION": 1
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-19T03:35:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 2447,
+                "fast": 2458.3333333333335,
+                "slow": 2483.875,
+                "vwap": 2460.362535754674,
+                "momentumPct": -2.2763578274760388,
+                "swingReference": 2422,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 3,
+                "damageVotes": 4,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 1,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 1,
+              "timestamp": "2026-08-19T03:40:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "PERSISTENT_CHART_BREAKDOWN",
+              "health": {
+                "close": 2424,
+                "fast": 2431.6666666666665,
+                "slow": 2472.75,
+                "vwap": 2459.664135514019,
+                "momentumPct": -3.194888178913735,
+                "swingReference": 2403,
+                "pullbackAtr": 0.7634854771784232,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 3,
+                "damageVotes": 4,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "EXIT",
+                "reason": "PERSISTENT_CHART_BREAKDOWN",
+                "exit": true,
+                "warningStreak": 2,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 2
+              }
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 2,
+            "healthDecisionCount": 2,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": 3.7541254125412538,
+        "deltaBarsHeld": -10,
+        "variantMemberships": [
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "sector": "金属製品"
+      },
+      {
+        "key": "2026-08-19|2026-08-19T04:10:00.000Z|3895.T",
+        "symbol": "3895.T",
+        "sessionDate": "2026-08-19",
+        "entryTimestamp": "2026-08-19T04:10:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-19T05:10:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": 4.082231404958686,
+          "barsHeld": 12
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-19T04:15:00.000Z",
+          "exitReason": "ATR_HARD_STOP",
+          "netReturnPct": -1.5608471074380181,
+          "barsHeld": 1,
+          "mfePct": 0,
+          "maePct": -1.510847107438018,
+          "givebackPct": 1.510847107438018,
+          "captureRatio": null,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 0,
+            "HOLD": 0,
+            "CAUTION": 0
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-19T04:15:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "ATR_HARD_STOP",
+              "stopPrice": 476.6875,
+              "hardStopPrice": 476.6875,
+              "protectionStop": null,
+              "stopWasFixedBeforeCurrentBar": true
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 1,
+            "healthDecisionCount": 0,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": -5.643078512396705,
+        "deltaBarsHeld": -11,
+        "variantMemberships": [
+          "DYNAMIC_50"
+        ],
+        "sector": "パルプ・紙"
+      },
+      {
+        "key": "2026-08-19|2026-08-19T04:10:00.000Z|7256.T",
+        "symbol": "7256.T",
+        "sessionDate": "2026-08-19",
+        "entryTimestamp": "2026-08-19T04:10:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-19T05:10:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": 3.512945368171011,
+          "barsHeld": 12
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-19T04:35:00.000Z",
+          "exitReason": "PERSISTENT_CHART_BREAKDOWN",
+          "netReturnPct": 0.6625890736342066,
+          "barsHeld": 5,
+          "mfePct": 1.6627078384798155,
+          "maePct": 0,
+          "givebackPct": 0.9501187648456089,
+          "captureRatio": 0.42857142857142855,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 1,
+            "HOLD": 0,
+            "CAUTION": 3
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-19T04:15:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 422,
+                "fast": 424.3333333333333,
+                "slow": 429.25,
+                "vwap": 437.586380128384,
+                "momentumPct": -1.8604651162790753,
+                "swingReference": 419,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 3,
+                "damageVotes": 4,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 1,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 1,
+              "timestamp": "2026-08-19T04:20:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "CAUTION_PERSISTS",
+              "health": {
+                "close": 426,
+                "fast": 423,
+                "slow": 428.25,
+                "vwap": 437.23760498509887,
+                "momentumPct": -0.9302325581395321,
+                "swingReference": 419,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 4,
+                "damageVotes": 3,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "CAUTION_PERSISTS",
+                "exit": false,
+                "warningStreak": 2,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 2
+              }
+            },
+            {
+              "index": 2,
+              "timestamp": "2026-08-19T04:25:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "STRONG_HOLD",
+              "action": "HOLD",
+              "reason": "CAUTION_RECOVERED",
+              "health": {
+                "close": 427,
+                "fast": 425,
+                "slow": 427.375,
+                "vwap": 437.2209899918853,
+                "momentumPct": 1.4251781472684133,
+                "swingReference": 419,
+                "pullbackAtr": 0.25,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": false,
+                "momentumHealthy": true,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 5,
+                "damageVotes": 2,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": false,
+                  "momentumHealthy": true,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "STRONG_HOLD",
+                "reason": "CAUTION_RECOVERED",
+                "exit": false,
+                "warningStreak": 3,
+                "severeStreak": 0,
+                "recoveryStreak": 1,
+                "barsInCaution": 0
+              }
+            },
+            {
+              "index": 3,
+              "timestamp": "2026-08-19T04:30:00.000Z",
+              "priorState": "STRONG_HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 425,
+                "fast": 426,
+                "slow": 426.5,
+                "vwap": 437.04360955679897,
+                "momentumPct": 0.7109004739336511,
+                "swingReference": 419,
+                "pullbackAtr": 0.7741935483870968,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": true,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 4,
+                "damageVotes": 3,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": true,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 4,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 4,
+              "timestamp": "2026-08-19T04:35:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "PERSISTENT_CHART_BREAKDOWN",
+              "health": {
+                "close": 424,
+                "fast": 425.3333333333333,
+                "slow": 425.625,
+                "vwap": 436.96212923728814,
+                "momentumPct": -0.46948356807511304,
+                "swingReference": 421,
+                "pullbackAtr": 0.9411764705882353,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 3,
+                "damageVotes": 4,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "EXIT",
+                "reason": "PERSISTENT_CHART_BREAKDOWN",
+                "exit": true,
+                "warningStreak": 5,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 2
+              }
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 5,
+            "healthDecisionCount": 5,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": -2.8503562945368044,
+        "deltaBarsHeld": -7,
+        "variantMemberships": [
+          "DYNAMIC_50"
+        ],
+        "sector": "輸送用機器"
+      },
+      {
+        "key": "2026-08-19|2026-08-19T05:00:00.000Z|7256.T",
+        "symbol": "7256.T",
+        "sessionDate": "2026-08-19",
+        "entryTimestamp": "2026-08-19T05:00:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-19T06:00:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": 1.5518306636155554,
+          "barsHeld": 12
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-19T05:05:00.000Z",
+          "exitReason": "ATR_HARD_STOP",
+          "netReturnPct": -1.8806636155606349,
+          "barsHeld": 1,
+          "mfePct": 0,
+          "maePct": -1.8306636155606348,
+          "givebackPct": 1.8306636155606348,
+          "captureRatio": null,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 0,
+            "HOLD": 0,
+            "CAUTION": 0
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-19T05:05:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "ATR_HARD_STOP",
+              "stopPrice": 444.875,
+              "hardStopPrice": 444.875,
+              "protectionStop": null,
+              "stopWasFixedBeforeCurrentBar": true
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 1,
+            "healthDecisionCount": 0,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": -3.4324942791761903,
+        "deltaBarsHeld": -11,
+        "variantMemberships": [
+          "DYNAMIC_50"
+        ],
+        "sector": "輸送用機器"
+      },
+      {
+        "key": "2026-08-19|2026-08-19T06:00:00.000Z|2962.T",
+        "symbol": "2962.T",
+        "sessionDate": "2026-08-19",
+        "entryTimestamp": "2026-08-19T06:00:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-19T06:30:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": -3.0059397657557216,
+          "barsHeld": 5
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-19T06:10:00.000Z",
+          "exitReason": "PERSISTENT_CHART_BREAKDOWN",
+          "netReturnPct": 0.2846346904629094,
+          "barsHeld": 2,
+          "mfePct": 1.3943112102621225,
+          "maePct": -1.5616285554935883,
+          "givebackPct": 1.059676519799213,
+          "captureRatio": 0.24,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 0,
+            "HOLD": 0,
+            "CAUTION": 1
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-19T06:05:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 1809,
+                "fast": 1820.6666666666667,
+                "slow": 1847.375,
+                "vwap": 1885.2150937274166,
+                "momentumPct": -2.532327586206895,
+                "swingReference": 1766,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 3,
+                "damageVotes": 4,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 1,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 1,
+              "timestamp": "2026-08-19T06:10:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "PERSISTENT_CHART_BREAKDOWN",
+              "health": {
+                "close": 1799,
+                "fast": 1800.3333333333333,
+                "slow": 1836.5,
+                "vwap": 1884.1501581609602,
+                "momentumPct": -3.279569892473122,
+                "swingReference": 1765,
+                "pullbackAtr": 0.4393063583815029,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 3,
+                "damageVotes": 4,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "EXIT",
+                "reason": "PERSISTENT_CHART_BREAKDOWN",
+                "exit": true,
+                "warningStreak": 2,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 2
+              }
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 2,
+            "healthDecisionCount": 2,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": 3.290574456218631,
+        "deltaBarsHeld": -3,
+        "variantMemberships": [
+          "DYNAMIC_50"
+        ],
+        "sector": "金属製品"
+      },
+      {
+        "key": "2026-08-19|2026-08-19T06:05:00.000Z|9425.T",
+        "symbol": "9425.T",
+        "sessionDate": "2026-08-19",
+        "entryTimestamp": "2026-08-19T06:05:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-19T06:30:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": 0.7532128514056213,
+          "barsHeld": 4
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-19T06:10:00.000Z",
+          "exitReason": "ATR_HARD_STOP",
+          "netReturnPct": -3.062048192771077,
+          "barsHeld": 1,
+          "mfePct": 0,
+          "maePct": -3.0120481927710774,
+          "givebackPct": 3.0120481927710774,
+          "captureRatio": null,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 0,
+            "HOLD": 0,
+            "CAUTION": 0
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-19T06:10:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "ATR_HARD_STOP",
+              "stopPrice": 256.5,
+              "hardStopPrice": 256.5,
+              "protectionStop": null,
+              "stopWasFixedBeforeCurrentBar": true
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 1,
+            "healthDecisionCount": 0,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": -3.8152610441766983,
+        "deltaBarsHeld": -3,
+        "variantMemberships": [
+          "DYNAMIC_30",
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "sector": "情報・通信業"
+      },
+      {
+        "key": "2026-08-19|2026-08-19T06:10:00.000Z|9425.T",
+        "symbol": "9425.T",
+        "sessionDate": "2026-08-19",
+        "entryTimestamp": "2026-08-19T06:10:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-19T06:30:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": 4.583204633204635,
+          "barsHeld": 3
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-19T06:30:00.000Z",
+          "exitReason": "SESSION_OR_DATA_END",
+          "netReturnPct": 4.583204633204635,
+          "barsHeld": 3,
+          "mfePct": 8.4942084942085,
+          "maePct": -0.38610038610038533,
+          "givebackPct": 3.8610038610038657,
+          "captureRatio": 0.5454545454545452,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 1,
+            "HOLD": 0,
+            "CAUTION": 2
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-19T06:15:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 255,
+                "fast": 254.33333333333334,
+                "slow": 244,
+                "vwap": 239.11841364679395,
+                "momentumPct": -5.371900826446274,
+                "swingReference": 259,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 3,
+                "damageVotes": 4,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 1,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 1,
+              "timestamp": "2026-08-19T06:20:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "STRONG_HOLD",
+              "action": "HOLD",
+              "reason": "CAUTION_RECOVERED",
+              "health": {
+                "close": 237,
+                "fast": 250.33333333333334,
+                "slow": 244.25,
+                "vwap": 239.59136844147025,
+                "momentumPct": 4.81927710843374,
+                "swingReference": 260,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": true,
+                "momentumHealthy": true,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 6,
+                "damageVotes": 1,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": true,
+                  "momentumHealthy": true,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "STRONG_HOLD",
+                "reason": "CAUTION_RECOVERED",
+                "exit": false,
+                "warningStreak": 0,
+                "severeStreak": 0,
+                "recoveryStreak": 1,
+                "barsInCaution": 0
+              }
+            },
+            {
+              "index": 2,
+              "timestamp": "2026-08-19T06:30:00.000Z",
+              "priorState": "STRONG_HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 247,
+                "fast": 246.33333333333334,
+                "slow": 246,
+                "vwap": 239.59136844147025,
+                "momentumPct": 4.633204633204635,
+                "swingReference": 260,
+                "pullbackAtr": 1.2307692307692308,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": true,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 4,
+                "damageVotes": 3,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": true,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 1,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 2,
+              "timestamp": "2026-08-19T06:30:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "SESSION_OR_DATA_END"
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 4,
+            "healthDecisionCount": 3,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": 0,
+        "deltaBarsHeld": 0,
+        "variantMemberships": [
+          "DYNAMIC_30",
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "sector": "情報・通信業"
+      },
+      {
+        "key": "2026-08-19|2026-08-19T06:20:00.000Z|150A.T",
+        "symbol": "150A.T",
+        "sessionDate": "2026-08-19",
+        "entryTimestamp": "2026-08-19T06:20:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-19T06:30:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": 2.375876010781669,
+          "barsHeld": 1
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-19T06:30:00.000Z",
+          "exitReason": "SESSION_OR_DATA_END",
+          "netReturnPct": 2.375876010781669,
+          "barsHeld": 1,
+          "mfePct": 2.425876010781669,
+          "maePct": 0,
+          "givebackPct": 0,
+          "captureRatio": 1,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 0,
+            "HOLD": 0,
+            "CAUTION": 1
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-19T06:30:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 724,
+                "fast": 725.3333333333334,
+                "slow": 716.375,
+                "vwap": 744.1145451698764,
+                "momentumPct": -1.9718309859154903,
+                "swingReference": 752,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": true,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 5,
+                "damageVotes": 2,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": true,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 1,
+                "severeStreak": 0,
+                "recoveryStreak": 1,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 0,
+              "timestamp": "2026-08-19T06:30:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "SESSION_OR_DATA_END"
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 2,
+            "healthDecisionCount": 1,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": 0,
+        "deltaBarsHeld": 0,
+        "variantMemberships": [
+          "DYNAMIC_30",
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "sector": "サービス業"
+      },
+      {
+        "key": "2026-08-19|2026-08-19T06:20:00.000Z|2962.T",
+        "symbol": "2962.T",
+        "sessionDate": "2026-08-19",
+        "entryTimestamp": "2026-08-19T06:20:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-19T06:30:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": -0.2793577981651418,
+          "barsHeld": 1
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-19T06:30:00.000Z",
+          "exitReason": "SESSION_OR_DATA_END",
+          "netReturnPct": -0.2793577981651418,
+          "barsHeld": 1,
+          "mfePct": 0,
+          "maePct": -0.2293577981651418,
+          "givebackPct": 0.2293577981651418,
+          "captureRatio": null,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 0,
+            "HOLD": 0,
+            "CAUTION": 1
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-19T06:30:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 1740,
+                "fast": 1763,
+                "slow": 1800.75,
+                "vwap": 1881.5575835110171,
+                "momentumPct": -3.279599777654252,
+                "swingReference": 1743,
+                "pullbackAtr": 0.07729468599033816,
+                "structureBroken": true,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": false,
+                "pullbackHealthy": true,
+                "healthyVotes": 1,
+                "damageVotes": 6,
+                "healthyFlags": {
+                  "structureHealthy": false,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": false
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 1,
+                "severeStreak": 1,
+                "recoveryStreak": 0,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 0,
+              "timestamp": "2026-08-19T06:30:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "SESSION_OR_DATA_END"
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 2,
+            "healthDecisionCount": 1,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": 0,
+        "deltaBarsHeld": 0,
+        "variantMemberships": [
+          "DYNAMIC_50"
+        ],
+        "sector": "金属製品"
+      },
+      {
+        "key": "2026-08-19|2026-08-19T06:20:00.000Z|9425.T",
+        "symbol": "9425.T",
+        "sessionDate": "2026-08-19",
+        "entryTimestamp": "2026-08-19T06:20:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-19T06:30:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": 4.169409282700415,
+          "barsHeld": 1
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-19T06:30:00.000Z",
+          "exitReason": "SESSION_OR_DATA_END",
+          "netReturnPct": 4.169409282700415,
+          "barsHeld": 1,
+          "mfePct": 4.219409282700415,
+          "maePct": 0,
+          "givebackPct": 0,
+          "captureRatio": 1,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 1,
+            "HOLD": 0,
+            "CAUTION": 0
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-19T06:30:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "STRONG_HOLD",
+              "action": "HOLD",
+              "reason": "TREND_HEALTHY",
+              "health": {
+                "close": 247,
+                "fast": 246.33333333333334,
+                "slow": 246,
+                "vwap": 239.59136844147025,
+                "momentumPct": -4.633204633204635,
+                "swingReference": 237,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": true,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": true,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 6,
+                "damageVotes": 1,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": true,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": true,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "STRONG_HOLD",
+                "reason": "TREND_HEALTHY",
+                "exit": false,
+                "warningStreak": 0,
+                "severeStreak": 0,
+                "recoveryStreak": 1,
+                "barsInCaution": 0
+              }
+            },
+            {
+              "index": 0,
+              "timestamp": "2026-08-19T06:30:00.000Z",
+              "priorState": "STRONG_HOLD",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "SESSION_OR_DATA_END"
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 2,
+            "healthDecisionCount": 1,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": 0,
+        "deltaBarsHeld": 0,
+        "variantMemberships": [
+          "DYNAMIC_30",
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "sector": "情報・通信業"
+      },
+      {
+        "key": "2026-08-20|2026-08-20T00:50:00.000Z|8995.T",
+        "symbol": "8995.T",
+        "sessionDate": "2026-08-20",
+        "entryTimestamp": "2026-08-20T00:50:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-20T01:50:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": -1.955829596412556,
+          "barsHeld": 12
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-20T01:00:00.000Z",
+          "exitReason": "PERSISTENT_CHART_BREAKDOWN",
+          "netReturnPct": -1.115022421524664,
+          "barsHeld": 2,
+          "mfePct": 0.5605381165919354,
+          "maePct": -2.802690582959644,
+          "givebackPct": 1.6255605381165994,
+          "captureRatio": -1.8999999999999762,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 0,
+            "HOLD": 0,
+            "CAUTION": 1
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-20T00:55:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 1771,
+                "fast": 1810.3333333333333,
+                "slow": 1882.125,
+                "vwap": 1992.886652367596,
+                "momentumPct": -5.243445692883897,
+                "swingReference": 1763,
+                "pullbackAtr": 0.10710607621009269,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": false,
+                "pullbackHealthy": true,
+                "healthyVotes": 2,
+                "damageVotes": 4,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": false
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 1,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 1,
+              "timestamp": "2026-08-20T01:00:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "PERSISTENT_CHART_BREAKDOWN",
+              "health": {
+                "close": 1765,
+                "fast": 1773.3333333333333,
+                "slow": 1844.625,
+                "vwap": 1987.6754272815222,
+                "momentumPct": -5.916844349680172,
+                "swingReference": 1734,
+                "pullbackAtr": 0.24786324786324787,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": false,
+                "pullbackHealthy": true,
+                "healthyVotes": 2,
+                "damageVotes": 4,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": false
+                }
+              },
+              "transition": {
+                "nextState": "EXIT",
+                "reason": "PERSISTENT_CHART_BREAKDOWN",
+                "exit": true,
+                "warningStreak": 2,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 2
+              }
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 2,
+            "healthDecisionCount": 2,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": 0.840807174887892,
+        "deltaBarsHeld": -10,
+        "variantMemberships": [
+          "DYNAMIC_30",
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "sector": "不動産業"
+      },
+      {
+        "key": "2026-08-20|2026-08-20T02:15:00.000Z|2962.T",
+        "symbol": "2962.T",
+        "sessionDate": "2026-08-20",
+        "entryTimestamp": "2026-08-20T02:15:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-20T04:10:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": -3.8735294117647032,
+          "barsHeld": 12
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-20T02:25:00.000Z",
+          "exitReason": "PERSISTENT_CHART_BREAKDOWN",
+          "netReturnPct": -1.7558823529411793,
+          "barsHeld": 2,
+          "mfePct": 1.4705882352941124,
+          "maePct": -2.352941176470591,
+          "givebackPct": 3.1764705882352917,
+          "captureRatio": -1.1600000000000061,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 0,
+            "HOLD": 0,
+            "CAUTION": 1
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-20T02:20:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 1679,
+                "fast": 1711,
+                "slow": 1754,
+                "vwap": 1872.354883879781,
+                "momentumPct": -3.671830177854274,
+                "swingReference": 1688,
+                "pullbackAtr": 0.6363636363636364,
+                "structureBroken": true,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": false,
+                "pullbackHealthy": true,
+                "healthyVotes": 1,
+                "damageVotes": 6,
+                "healthyFlags": {
+                  "structureHealthy": false,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": false
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 1,
+                "severeStreak": 1,
+                "recoveryStreak": 0,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 1,
+              "timestamp": "2026-08-20T02:25:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "PERSISTENT_CHART_BREAKDOWN",
+              "health": {
+                "close": 1671,
+                "fast": 1683.3333333333333,
+                "slow": 1736.75,
+                "vwap": 1867.236511898818,
+                "momentumPct": -4.732041049030789,
+                "swingReference": 1669,
+                "pullbackAtr": 1.4744027303754266,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": false,
+                "pullbackHealthy": true,
+                "healthyVotes": 2,
+                "damageVotes": 4,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": false
+                }
+              },
+              "transition": {
+                "nextState": "EXIT",
+                "reason": "PERSISTENT_CHART_BREAKDOWN",
+                "exit": true,
+                "warningStreak": 2,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 2
+              }
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 2,
+            "healthDecisionCount": 2,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": 2.1176470588235237,
+        "deltaBarsHeld": -10,
+        "variantMemberships": [
+          "DYNAMIC_30",
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "sector": "金属製品"
+      },
+      {
+        "key": "2026-08-20|2026-08-20T03:35:00.000Z|3054.T",
+        "symbol": "3054.T",
+        "sessionDate": "2026-08-20",
+        "entryTimestamp": "2026-08-20T03:35:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-20T04:35:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": 1.0799435028248483,
+          "barsHeld": 12
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-20T04:25:00.000Z",
+          "exitReason": "STATE_AWARE_PROFIT_PROTECTION",
+          "netReturnPct": 0.5149717514124352,
+          "barsHeld": 10,
+          "mfePct": 1.6949152542372836,
+          "maePct": -1.1299435028248594,
+          "givebackPct": 1.1299435028248483,
+          "captureRatio": 0.3333333333333377,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 4,
+            "HOLD": 0,
+            "CAUTION": 5
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-20T03:40:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 354,
+                "fast": 356.3333333333333,
+                "slow": 360.875,
+                "vwap": 364.07819481680076,
+                "momentumPct": -2.4793388429752095,
+                "swingReference": 345,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 3,
+                "damageVotes": 4,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 1,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 1,
+              "timestamp": "2026-08-20T03:45:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "CAUTION_PERSISTS",
+              "health": {
+                "close": 356,
+                "fast": 354.6666666666667,
+                "slow": 359.875,
+                "vwap": 364.02977777777784,
+                "momentumPct": -1.3850415512465353,
+                "swingReference": 345,
+                "pullbackAtr": 0.7619047619047619,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 4,
+                "damageVotes": 3,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "CAUTION_PERSISTS",
+                "exit": false,
+                "warningStreak": 2,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 2
+              }
+            },
+            {
+              "index": 2,
+              "timestamp": "2026-08-20T03:50:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "STRONG_HOLD",
+              "action": "HOLD",
+              "reason": "CAUTION_RECOVERED",
+              "health": {
+                "close": 360,
+                "fast": 356.6666666666667,
+                "slow": 359.125,
+                "vwap": 363.9194689302427,
+                "momentumPct": 1.6949152542372836,
+                "swingReference": 345,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": false,
+                "momentumHealthy": true,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 5,
+                "damageVotes": 2,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": false,
+                  "momentumHealthy": true,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "STRONG_HOLD",
+                "reason": "CAUTION_RECOVERED",
+                "exit": false,
+                "warningStreak": 3,
+                "severeStreak": 0,
+                "recoveryStreak": 1,
+                "barsInCaution": 0
+              }
+            },
+            {
+              "index": 3,
+              "timestamp": "2026-08-20T03:55:00.000Z",
+              "priorState": "STRONG_HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 357,
+                "fast": 357.6666666666667,
+                "slow": 358.25,
+                "vwap": 363.7908789917762,
+                "momentumPct": 0.8474576271186418,
+                "swingReference": 345,
+                "pullbackAtr": 0.5333333333333333,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": true,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 4,
+                "damageVotes": 3,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": true,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 4,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 4,
+              "timestamp": "2026-08-20T04:00:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "STRONG_HOLD",
+              "action": "HOLD",
+              "reason": "CAUTION_RECOVERED",
+              "health": {
+                "close": 357,
+                "fast": 358,
+                "slow": 357.75,
+                "vwap": 363.77522105038884,
+                "momentumPct": 0.2808988764045006,
+                "swingReference": 350,
+                "pullbackAtr": 0.5106382978723404,
+                "structureBroken": false,
+                "fastTrendHealthy": true,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": true,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 5,
+                "damageVotes": 2,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": true,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": true,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "STRONG_HOLD",
+                "reason": "CAUTION_RECOVERED",
+                "exit": false,
+                "warningStreak": 5,
+                "severeStreak": 0,
+                "recoveryStreak": 1,
+                "barsInCaution": 0
+              }
+            },
+            {
+              "index": 5,
+              "timestamp": "2026-08-20T04:05:00.000Z",
+              "priorState": "STRONG_HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 356,
+                "fast": 356.6666666666667,
+                "slow": 356.875,
+                "vwap": 363.75387720416404,
+                "momentumPct": -1.1111111111111072,
+                "swingReference": 353,
+                "pullbackAtr": 0.6956521739130435,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 3,
+                "damageVotes": 4,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 6,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 6,
+              "timestamp": "2026-08-20T04:10:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "STRONG_HOLD",
+              "action": "HOLD",
+              "reason": "CAUTION_RECOVERED",
+              "health": {
+                "close": 358,
+                "fast": 357,
+                "slow": 356.5,
+                "vwap": 363.6646750524109,
+                "momentumPct": 0.2801120448179262,
+                "swingReference": 355,
+                "pullbackAtr": 0.35555555555555557,
+                "structureBroken": false,
+                "fastTrendHealthy": true,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": false,
+                "momentumHealthy": true,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 6,
+                "damageVotes": 1,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": true,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": false,
+                  "momentumHealthy": true,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "STRONG_HOLD",
+                "reason": "CAUTION_RECOVERED",
+                "exit": false,
+                "warningStreak": 0,
+                "severeStreak": 0,
+                "recoveryStreak": 1,
+                "barsInCaution": 0
+              }
+            },
+            {
+              "index": 7,
+              "timestamp": "2026-08-20T04:15:00.000Z",
+              "priorState": "STRONG_HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 357,
+                "fast": 357,
+                "slow": 356.875,
+                "vwap": 363.6514961288973,
+                "momentumPct": 0,
+                "swingReference": 355,
+                "pullbackAtr": 0.5333333333333333,
+                "structureBroken": false,
+                "fastTrendHealthy": true,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 5,
+                "damageVotes": 2,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": true,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 1,
+                "severeStreak": 0,
+                "recoveryStreak": 2,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 8,
+              "timestamp": "2026-08-20T04:20:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "STRONG_HOLD",
+              "action": "HOLD",
+              "reason": "CAUTION_RECOVERED",
+              "health": {
+                "close": 357,
+                "fast": 357.3333333333333,
+                "slow": 357.25,
+                "vwap": 363.6317271589487,
+                "momentumPct": 0.2808988764045006,
+                "swingReference": 355,
+                "pullbackAtr": 0.8,
+                "structureBroken": false,
+                "fastTrendHealthy": true,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": true,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 5,
+                "damageVotes": 2,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": true,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": true,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "STRONG_HOLD",
+                "reason": "CAUTION_RECOVERED",
+                "exit": false,
+                "warningStreak": 2,
+                "severeStreak": 0,
+                "recoveryStreak": 3,
+                "barsInCaution": 0
+              }
+            },
+            {
+              "index": 9,
+              "timestamp": "2026-08-20T04:25:00.000Z",
+              "priorState": "STRONG_HOLD",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "STATE_AWARE_PROFIT_PROTECTION",
+              "stopPrice": 356.0625,
+              "hardStopPrice": 350.0625,
+              "protectionStop": 356.0625,
+              "stopWasFixedBeforeCurrentBar": true
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 10,
+            "healthDecisionCount": 9,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": -0.5649717514124131,
+        "deltaBarsHeld": -2,
+        "variantMemberships": [
+          "DYNAMIC_30",
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "sector": "卸売業"
+      },
+      {
+        "key": "2026-08-24|2026-08-24T03:55:00.000Z|6085.T",
+        "symbol": "6085.T",
+        "sessionDate": "2026-08-24",
+        "entryTimestamp": "2026-08-24T03:55:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-24T04:55:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": -9.140909090909094,
+          "barsHeld": 12
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-24T04:00:00.000Z",
+          "exitReason": "ATR_HARD_STOP",
+          "netReturnPct": -6.259415584415589,
+          "barsHeld": 1,
+          "mfePct": 0,
+          "maePct": -6.20941558441559,
+          "givebackPct": 6.20941558441559,
+          "captureRatio": null,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 0,
+            "HOLD": 0,
+            "CAUTION": 0
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-24T04:00:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "ATR_HARD_STOP",
+              "stopPrice": 144.4375,
+              "hardStopPrice": 144.4375,
+              "protectionStop": null,
+              "stopWasFixedBeforeCurrentBar": true
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 1,
+            "healthDecisionCount": 0,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": 2.8814935064935048,
+        "deltaBarsHeld": -11,
+        "variantMemberships": [
+          "DYNAMIC_30",
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "sector": "サービス業"
+      },
+      {
+        "key": "2026-08-24|2026-08-24T04:00:00.000Z|6085.T",
+        "symbol": "6085.T",
+        "sessionDate": "2026-08-24",
+        "entryTimestamp": "2026-08-24T04:00:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-24T05:00:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": -2.8472027972028022,
+          "barsHeld": 12
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-24T04:05:00.000Z",
+          "exitReason": "ATR_HARD_STOP",
+          "netReturnPct": -7.654895104895104,
+          "barsHeld": 1,
+          "mfePct": 0,
+          "maePct": -7.604895104895104,
+          "givebackPct": 7.604895104895104,
+          "captureRatio": null,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 0,
+            "HOLD": 0,
+            "CAUTION": 0
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-24T04:05:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "ATR_HARD_STOP",
+              "stopPrice": 132.125,
+              "hardStopPrice": 132.125,
+              "protectionStop": null,
+              "stopWasFixedBeforeCurrentBar": true
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 1,
+            "healthDecisionCount": 0,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": -4.807692307692301,
+        "deltaBarsHeld": -11,
+        "variantMemberships": [
+          "DYNAMIC_30",
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "sector": "サービス業"
+      },
+      {
+        "key": "2026-08-24|2026-08-24T04:05:00.000Z|6085.T",
+        "symbol": "6085.T",
+        "sessionDate": "2026-08-24",
+        "entryTimestamp": "2026-08-24T04:05:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-24T05:05:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": 2.1722222222222145,
+          "barsHeld": 12
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-24T04:30:00.000Z",
+          "exitReason": "PERSISTENT_CHART_BREAKDOWN",
+          "netReturnPct": -3.012962962962967,
+          "barsHeld": 5,
+          "mfePct": 3.703703703703698,
+          "maePct": -3.703703703703709,
+          "givebackPct": 6.666666666666665,
+          "captureRatio": -0.8000000000000024,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 1,
+            "HOLD": 0,
+            "CAUTION": 3
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-24T04:10:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 137,
+                "fast": 138.33333333333334,
+                "slow": 155.75,
+                "vwap": 157.78315831081414,
+                "momentumPct": -11.038961038961038,
+                "swingReference": 131,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 3,
+                "damageVotes": 4,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 1,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 1,
+              "timestamp": "2026-08-24T04:15:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "CAUTION_PERSISTS",
+              "health": {
+                "close": 137,
+                "fast": 136.33333333333334,
+                "slow": 152,
+                "vwap": 157.1181274106088,
+                "momentumPct": -4.1958041958041985,
+                "swingReference": 131,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 4,
+                "damageVotes": 3,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "CAUTION_PERSISTS",
+                "exit": false,
+                "warningStreak": 2,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 2
+              }
+            },
+            {
+              "index": 2,
+              "timestamp": "2026-08-24T04:20:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "STRONG_HOLD",
+              "action": "HOLD",
+              "reason": "CAUTION_RECOVERED",
+              "health": {
+                "close": 138,
+                "fast": 137.33333333333334,
+                "slow": 148.25,
+                "vwap": 156.50523864751855,
+                "momentumPct": 2.2222222222222143,
+                "swingReference": 131,
+                "pullbackAtr": 0.25,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": false,
+                "momentumHealthy": true,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 5,
+                "damageVotes": 2,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": false,
+                  "momentumHealthy": true,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "STRONG_HOLD",
+                "reason": "CAUTION_RECOVERED",
+                "exit": false,
+                "warningStreak": 3,
+                "severeStreak": 0,
+                "recoveryStreak": 1,
+                "barsInCaution": 0
+              }
+            },
+            {
+              "index": 3,
+              "timestamp": "2026-08-24T04:25:00.000Z",
+              "priorState": "STRONG_HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 139,
+                "fast": 138,
+                "slow": 144.375,
+                "vwap": 155.9420692917355,
+                "momentumPct": 1.4598540145985384,
+                "swingReference": 131,
+                "pullbackAtr": 0.125,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": false,
+                "momentumHealthy": true,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 5,
+                "damageVotes": 2,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": false,
+                  "momentumHealthy": true,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 4,
+                "severeStreak": 0,
+                "recoveryStreak": 2,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 4,
+              "timestamp": "2026-08-24T04:30:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "PERSISTENT_CHART_BREAKDOWN",
+              "health": {
+                "close": 131,
+                "fast": 136,
+                "slow": 139.25,
+                "vwap": 154.47886634891108,
+                "momentumPct": -4.379562043795615,
+                "swingReference": 134,
+                "pullbackAtr": 1.125,
+                "structureBroken": true,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": false,
+                "pullbackHealthy": true,
+                "healthyVotes": 1,
+                "damageVotes": 6,
+                "healthyFlags": {
+                  "structureHealthy": false,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": false
+                }
+              },
+              "transition": {
+                "nextState": "EXIT",
+                "reason": "PERSISTENT_CHART_BREAKDOWN",
+                "exit": true,
+                "warningStreak": 5,
+                "severeStreak": 1,
+                "recoveryStreak": 0,
+                "barsInCaution": 2
+              }
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 5,
+            "healthDecisionCount": 5,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": -5.185185185185182,
+        "deltaBarsHeld": -7,
+        "variantMemberships": [
+          "DYNAMIC_30",
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "sector": "サービス業"
+      },
+      {
+        "key": "2026-08-24|2026-08-24T05:55:00.000Z|9115.T",
+        "symbol": "9115.T",
+        "sessionDate": "2026-08-24",
+        "entryTimestamp": "2026-08-24T05:55:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-24T06:30:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": -3.398909657320864,
+          "barsHeld": 6
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-24T06:10:00.000Z",
+          "exitReason": "PERSISTENT_CHART_BREAKDOWN",
+          "netReturnPct": -0.9845794392523255,
+          "barsHeld": 3,
+          "mfePct": 2.9595015576323935,
+          "maePct": -1.7133956386292892,
+          "givebackPct": 3.894080996884719,
+          "captureRatio": -0.31578947368420734,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 0,
+            "HOLD": 0,
+            "CAUTION": 2
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-24T06:00:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 1252,
+                "fast": 1253.6666666666667,
+                "slow": 1217.625,
+                "vwap": 1156.7202136400986,
+                "momentumPct": -1.7059301380990988,
+                "swingReference": 1295,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 4,
+                "damageVotes": 3,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 1,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 1,
+              "timestamp": "2026-08-24T06:05:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "CAUTION_PERSISTS",
+              "health": {
+                "close": 1260,
+                "fast": 1265.3333333333333,
+                "slow": 1227.125,
+                "vwap": 1159.527178257394,
+                "momentumPct": -2.857142857142847,
+                "swingReference": 1295,
+                "pullbackAtr": 0.32142857142857145,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 4,
+                "damageVotes": 3,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "CAUTION_PERSISTS",
+                "exit": false,
+                "warningStreak": 2,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 2
+              }
+            },
+            {
+              "index": 2,
+              "timestamp": "2026-08-24T06:10:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "PERSISTENT_CHART_BREAKDOWN",
+              "health": {
+                "close": 1296,
+                "fast": 1269.3333333333333,
+                "slow": 1240,
+                "vwap": 1171.2757663528844,
+                "momentumPct": -0.9345794392523255,
+                "swingReference": 1295,
+                "pullbackAtr": 1.646090534979424,
+                "structureBroken": true,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": false,
+                "pullbackHealthy": false,
+                "healthyVotes": 0,
+                "damageVotes": 7,
+                "healthyFlags": {
+                  "structureHealthy": false,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": false,
+                  "positiveFromEntry": false
+                }
+              },
+              "transition": {
+                "nextState": "EXIT",
+                "reason": "PERSISTENT_CHART_BREAKDOWN",
+                "exit": true,
+                "warningStreak": 3,
+                "severeStreak": 1,
+                "recoveryStreak": 0,
+                "barsInCaution": 3
+              }
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 3,
+            "healthDecisionCount": 3,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": 2.414330218068539,
+        "deltaBarsHeld": -3,
+        "variantMemberships": [
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "sector": "海運業"
+      },
+      {
+        "key": "2026-08-24|2026-08-24T06:10:00.000Z|9115.T",
+        "symbol": "9115.T",
+        "sessionDate": "2026-08-24",
+        "entryTimestamp": "2026-08-24T06:10:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-24T06:30:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": -2.441975308641969,
+          "barsHeld": 3
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-24T06:20:00.000Z",
+          "exitReason": "PERSISTENT_CHART_BREAKDOWN",
+          "netReturnPct": -3.599382716049387,
+          "barsHeld": 2,
+          "mfePct": 0.462962962962965,
+          "maePct": -4.552469135802473,
+          "givebackPct": 4.012345679012352,
+          "captureRatio": -5,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 0,
+            "HOLD": 0,
+            "CAUTION": 1
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-24T06:15:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 1339,
+                "fast": 1298.3333333333333,
+                "slow": 1259.25,
+                "vwap": 1182.4492559024281,
+                "momentumPct": -6.948881789137373,
+                "swingReference": 1306,
+                "pullbackAtr": 1.1903114186851211,
+                "structureBroken": true,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": false,
+                "pullbackHealthy": true,
+                "healthyVotes": 1,
+                "damageVotes": 6,
+                "healthyFlags": {
+                  "structureHealthy": false,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": false
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 1,
+                "severeStreak": 1,
+                "recoveryStreak": 0,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 1,
+              "timestamp": "2026-08-24T06:20:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "PERSISTENT_CHART_BREAKDOWN",
+              "health": {
+                "close": 1342,
+                "fast": 1325.6666666666667,
+                "slow": 1278.625,
+                "vwap": 1191.982229232387,
+                "momentumPct": -6.507936507936507,
+                "swingReference": 1345,
+                "pullbackAtr": 1.2492492492492493,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": false,
+                "pullbackHealthy": true,
+                "healthyVotes": 2,
+                "damageVotes": 4,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": false
+                }
+              },
+              "transition": {
+                "nextState": "EXIT",
+                "reason": "PERSISTENT_CHART_BREAKDOWN",
+                "exit": true,
+                "warningStreak": 2,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 2
+              }
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 2,
+            "healthDecisionCount": 2,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": -1.157407407407418,
+        "deltaBarsHeld": -1,
+        "variantMemberships": [
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "sector": "海運業"
+      },
+      {
+        "key": "2026-08-24|2026-08-24T06:15:00.000Z|9115.T",
+        "symbol": "9115.T",
+        "sessionDate": "2026-08-24",
+        "entryTimestamp": "2026-08-24T06:15:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-24T06:30:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": 0.8461911874533212,
+          "barsHeld": 2
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-24T06:30:00.000Z",
+          "exitReason": "SESSION_OR_DATA_END",
+          "netReturnPct": 0.8461911874533212,
+          "barsHeld": 2,
+          "mfePct": 1.0455563853622118,
+          "maePct": -1.1949215832711024,
+          "givebackPct": 0.14936519790889058,
+          "captureRatio": 0.8571428571428541,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 0,
+            "HOLD": 0,
+            "CAUTION": 2
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-24T06:20:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 1342,
+                "fast": 1325.6666666666667,
+                "slow": 1278.625,
+                "vwap": 1191.982229232387,
+                "momentumPct": -6.507936507936507,
+                "swingReference": 1345,
+                "pullbackAtr": 0.07207207207207207,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": false,
+                "pullbackHealthy": true,
+                "healthyVotes": 2,
+                "damageVotes": 4,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": false
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 1,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 1,
+              "timestamp": "2026-08-24T06:30:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "CAUTION_PERSISTS",
+              "health": {
+                "close": 1327,
+                "fast": 1336,
+                "slow": 1290.625,
+                "vwap": 1191.982229232387,
+                "momentumPct": -2.3919753086419693,
+                "swingReference": 1355,
+                "pullbackAtr": 0.045584045584045586,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 4,
+                "damageVotes": 3,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "CAUTION_PERSISTS",
+                "exit": false,
+                "warningStreak": 2,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 2
+              }
+            },
+            {
+              "index": 1,
+              "timestamp": "2026-08-24T06:30:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "SESSION_OR_DATA_END"
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 3,
+            "healthDecisionCount": 2,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": 0,
+        "deltaBarsHeld": 0,
+        "variantMemberships": [
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "sector": "海運業"
+      },
+      {
+        "key": "2026-08-25|2026-08-25T03:30:00.000Z|4588.T",
+        "symbol": "4588.T",
+        "sessionDate": "2026-08-25",
+        "entryTimestamp": "2026-08-25T03:30:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-25T04:30:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": 0.7028230865746499,
+          "barsHeld": 12
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-25T04:10:00.000Z",
+          "exitReason": "STATE_AWARE_PROFIT_PROTECTION",
+          "netReturnPct": 0.45972396486825834,
+          "barsHeld": 8,
+          "mfePct": 2.1329987452948562,
+          "maePct": -0.25094102885820924,
+          "givebackPct": 1.623274780426598,
+          "captureRatio": 0.23897058823529518,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 3,
+            "HOLD": 0,
+            "CAUTION": 4
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-25T03:35:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 3985,
+                "fast": 3941.6666666666665,
+                "slow": 3897.5,
+                "vwap": 3879.3716603997636,
+                "momentumPct": -3.506493506493502,
+                "swingReference": 3995,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 3,
+                "damageVotes": 4,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 1,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 1,
+              "timestamp": "2026-08-25T03:40:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "CAUTION_PERSISTS",
+              "health": {
+                "close": 3970,
+                "fast": 3980,
+                "slow": 3909.375,
+                "vwap": 3882.7192565102937,
+                "momentumPct": -2.98313878080414,
+                "swingReference": 3995,
+                "pullbackAtr": 0.1568627450980392,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 4,
+                "damageVotes": 3,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "CAUTION_PERSISTS",
+                "exit": false,
+                "warningStreak": 2,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 2
+              }
+            },
+            {
+              "index": 2,
+              "timestamp": "2026-08-25T03:45:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "STRONG_HOLD",
+              "action": "HOLD",
+              "reason": "CAUTION_RECOVERED",
+              "health": {
+                "close": 3935,
+                "fast": 3963.3333333333335,
+                "slow": 3915,
+                "vwap": 3885.5109633138977,
+                "momentumPct": 1.2547051442910906,
+                "swingReference": 3995,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": false,
+                "momentumHealthy": true,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 5,
+                "damageVotes": 2,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": false,
+                  "momentumHealthy": true,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "STRONG_HOLD",
+                "reason": "CAUTION_RECOVERED",
+                "exit": false,
+                "warningStreak": 3,
+                "severeStreak": 0,
+                "recoveryStreak": 1,
+                "barsInCaution": 0
+              }
+            },
+            {
+              "index": 3,
+              "timestamp": "2026-08-25T03:50:00.000Z",
+              "priorState": "STRONG_HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 3915,
+                "fast": 3940,
+                "slow": 3919.375,
+                "vwap": 3886.7953544019383,
+                "momentumPct": 1.7565872020075313,
+                "swingReference": 3995,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": false,
+                "momentumHealthy": true,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 5,
+                "damageVotes": 2,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": false,
+                  "momentumHealthy": true,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 4,
+                "severeStreak": 0,
+                "recoveryStreak": 2,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 4,
+              "timestamp": "2026-08-25T03:55:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "STRONG_HOLD",
+              "action": "HOLD",
+              "reason": "CAUTION_RECOVERED",
+              "health": {
+                "close": 3920,
+                "fast": 3923.3333333333335,
+                "slow": 3926.875,
+                "vwap": 3887.039159503344,
+                "momentumPct": 1.2594458438287104,
+                "swingReference": 3995,
+                "pullbackAtr": 0.47761194029850745,
+                "structureBroken": false,
+                "fastTrendHealthy": true,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": false,
+                "momentumHealthy": true,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 6,
+                "damageVotes": 1,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": true,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": false,
+                  "momentumHealthy": true,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "STRONG_HOLD",
+                "reason": "CAUTION_RECOVERED",
+                "exit": false,
+                "warningStreak": 0,
+                "severeStreak": 0,
+                "recoveryStreak": 3,
+                "barsInCaution": 0
+              }
+            },
+            {
+              "index": 5,
+              "timestamp": "2026-08-25T04:00:00.000Z",
+              "priorState": "STRONG_HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 3930,
+                "fast": 3921.6666666666665,
+                "slow": 3936.875,
+                "vwap": 3887.1929217822358,
+                "momentumPct": 0.12706480304955914,
+                "swingReference": 3985,
+                "pullbackAtr": 0.7164179104477612,
+                "structureBroken": false,
+                "fastTrendHealthy": true,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": true,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 5,
+                "damageVotes": 2,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": true,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": true,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 1,
+                "severeStreak": 0,
+                "recoveryStreak": 4,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 6,
+              "timestamp": "2026-08-25T04:05:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "STRONG_HOLD",
+              "action": "HOLD",
+              "reason": "CAUTION_RECOVERED",
+              "health": {
+                "close": 3925,
+                "fast": 3925,
+                "slow": 3945.625,
+                "vwap": 3887.6007294694255,
+                "momentumPct": -0.25542784163474774,
+                "swingReference": 3975,
+                "pullbackAtr": 0.5970149253731343,
+                "structureBroken": false,
+                "fastTrendHealthy": true,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 5,
+                "damageVotes": 2,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": true,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "STRONG_HOLD",
+                "reason": "CAUTION_RECOVERED",
+                "exit": false,
+                "warningStreak": 2,
+                "severeStreak": 0,
+                "recoveryStreak": 5,
+                "barsInCaution": 0
+              }
+            },
+            {
+              "index": 7,
+              "timestamp": "2026-08-25T04:10:00.000Z",
+              "priorState": "STRONG_HOLD",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "STATE_AWARE_PROFIT_PROTECTION",
+              "stopPrice": 3964.6875,
+              "hardStopPrice": 4049.6875,
+              "protectionStop": 3964.6875,
+              "stopWasFixedBeforeCurrentBar": true
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 8,
+            "healthDecisionCount": 7,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": -0.24309912170639153,
+        "deltaBarsHeld": -4,
+        "variantMemberships": [
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "sector": "医薬品"
+      },
+      {
+        "key": "2026-08-25|2026-08-25T03:30:00.000Z|8918.T",
+        "symbol": "8918.T",
+        "sessionDate": "2026-08-25",
+        "entryTimestamp": "2026-08-25T03:30:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-25T05:30:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": 9.040909090909093,
+          "barsHeld": 12
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-25T03:40:00.000Z",
+          "exitReason": "STATE_AWARE_PROFIT_PROTECTION",
+          "netReturnPct": -0.05,
+          "barsHeld": 2,
+          "mfePct": 9.090909090909093,
+          "maePct": 0,
+          "givebackPct": 9.090909090909093,
+          "captureRatio": 0,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 1,
+            "HOLD": 0,
+            "CAUTION": 0
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-25T03:35:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "STRONG_HOLD",
+              "action": "HOLD",
+              "reason": "TREND_HEALTHY",
+              "health": {
+                "close": 10,
+                "fast": 10.333333333333334,
+                "slow": 10.375,
+                "vwap": 10.510718705016714,
+                "momentumPct": 0,
+                "swingReference": 11,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": true,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": true,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 6,
+                "damageVotes": 1,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": true,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": true,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "STRONG_HOLD",
+                "reason": "TREND_HEALTHY",
+                "exit": false,
+                "warningStreak": 0,
+                "severeStreak": 0,
+                "recoveryStreak": 1,
+                "barsInCaution": 0
+              }
+            },
+            {
+              "index": 1,
+              "timestamp": "2026-08-25T03:40:00.000Z",
+              "priorState": "STRONG_HOLD",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "STATE_AWARE_PROFIT_PROTECTION",
+              "stopPrice": 10.75,
+              "hardStopPrice": 11.75,
+              "protectionStop": 10.75,
+              "stopWasFixedBeforeCurrentBar": true
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 2,
+            "healthDecisionCount": 1,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": -9.090909090909093,
+        "deltaBarsHeld": -10,
+        "variantMemberships": [
+          "DYNAMIC_30",
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "sector": "不動産業"
+      },
+      {
+        "key": "2026-08-25|2026-08-25T03:35:00.000Z|8918.T",
+        "symbol": "8918.T",
+        "sessionDate": "2026-08-25",
+        "entryTimestamp": "2026-08-25T03:35:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-25T05:35:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": 9.950000000000008,
+          "barsHeld": 12
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-25T04:05:00.000Z",
+          "exitReason": "STATE_AWARE_PROFIT_PROTECTION",
+          "netReturnPct": 5.450000000000016,
+          "barsHeld": 2,
+          "mfePct": 10.000000000000009,
+          "maePct": 0,
+          "givebackPct": 4.499999999999993,
+          "captureRatio": 0.5500000000000012,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 0,
+            "HOLD": 0,
+            "CAUTION": 1
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-25T03:40:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 10,
+                "fast": 10.333333333333334,
+                "slow": 10.25,
+                "vwap": 10.5104879817192,
+                "momentumPct": 0,
+                "swingReference": 10,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": true,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 4,
+                "damageVotes": 3,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": true,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 1,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 1,
+              "timestamp": "2026-08-25T04:05:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "STATE_AWARE_PROFIT_PROTECTION",
+              "stopPrice": 10.55,
+              "hardStopPrice": 9.25,
+              "protectionStop": 10.55,
+              "stopWasFixedBeforeCurrentBar": true
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 2,
+            "healthDecisionCount": 1,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": -4.499999999999992,
+        "deltaBarsHeld": -10,
+        "variantMemberships": [
+          "DYNAMIC_30",
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "sector": "不動産業"
+      },
+      {
+        "key": "2026-08-25|2026-08-25T05:45:00.000Z|8918.T",
+        "symbol": "8918.T",
+        "sessionDate": "2026-08-25",
+        "entryTimestamp": "2026-08-25T05:45:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-25T06:30:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": -0.05,
+          "barsHeld": 8
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-25T05:55:00.000Z",
+          "exitReason": "STATE_AWARE_PROFIT_PROTECTION",
+          "netReturnPct": -0.05,
+          "barsHeld": 2,
+          "mfePct": 10.000000000000009,
+          "maePct": 0,
+          "givebackPct": 10.000000000000009,
+          "captureRatio": 0,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 1,
+            "HOLD": 0,
+            "CAUTION": 0
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-25T05:50:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "STRONG_HOLD",
+              "action": "HOLD",
+              "reason": "TREND_HEALTHY",
+              "health": {
+                "close": 11,
+                "fast": 10.666666666666666,
+                "slow": 10.625,
+                "vwap": 10.510466071278447,
+                "momentumPct": 0,
+                "swingReference": 10,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": true,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": true,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 6,
+                "damageVotes": 1,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": true,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": true,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "STRONG_HOLD",
+                "reason": "TREND_HEALTHY",
+                "exit": false,
+                "warningStreak": 0,
+                "severeStreak": 0,
+                "recoveryStreak": 1,
+                "barsInCaution": 0
+              }
+            },
+            {
+              "index": 1,
+              "timestamp": "2026-08-25T05:55:00.000Z",
+              "priorState": "STRONG_HOLD",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "STATE_AWARE_PROFIT_PROTECTION",
+              "stopPrice": 10.25,
+              "hardStopPrice": 9.25,
+              "protectionStop": 10.25,
+              "stopWasFixedBeforeCurrentBar": true
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 2,
+            "healthDecisionCount": 1,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": 0,
+        "deltaBarsHeld": -6,
+        "variantMemberships": [
+          "DYNAMIC_30",
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "sector": "不動産業"
+      },
+      {
+        "key": "2026-08-25|2026-08-25T06:10:00.000Z|8918.T",
+        "symbol": "8918.T",
+        "sessionDate": "2026-08-25",
+        "entryTimestamp": "2026-08-25T06:10:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-25T06:30:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": 9.040909090909093,
+          "barsHeld": 3
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-25T06:30:00.000Z",
+          "exitReason": "SESSION_OR_DATA_END",
+          "netReturnPct": 9.040909090909093,
+          "barsHeld": 3,
+          "mfePct": 9.090909090909093,
+          "maePct": 0,
+          "givebackPct": 0,
+          "captureRatio": 1,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 1,
+            "HOLD": 0,
+            "CAUTION": 2
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-25T06:15:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 11,
+                "fast": 10.666666666666666,
+                "slow": 10.5,
+                "vwap": 10.510437518858572,
+                "momentumPct": -10.000000000000009,
+                "swingReference": 11,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 3,
+                "damageVotes": 4,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 1,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 1,
+              "timestamp": "2026-08-25T06:20:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "CAUTION_PERSISTS",
+              "health": {
+                "close": 11,
+                "fast": 11,
+                "slow": 10.5,
+                "vwap": 10.510438151939974,
+                "momentumPct": -10.000000000000009,
+                "swingReference": 11,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 4,
+                "damageVotes": 3,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "CAUTION_PERSISTS",
+                "exit": false,
+                "warningStreak": 2,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 2
+              }
+            },
+            {
+              "index": 2,
+              "timestamp": "2026-08-25T06:30:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "STRONG_HOLD",
+              "action": "HOLD",
+              "reason": "CAUTION_RECOVERED",
+              "health": {
+                "close": 10,
+                "fast": 10.666666666666666,
+                "slow": 10.5,
+                "vwap": 10.510438151939974,
+                "momentumPct": 9.090909090909093,
+                "swingReference": 11,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": true,
+                "vwapHealthy": true,
+                "momentumHealthy": true,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 6,
+                "damageVotes": 1,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": true,
+                  "vwapHealthy": true,
+                  "momentumHealthy": true,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "STRONG_HOLD",
+                "reason": "CAUTION_RECOVERED",
+                "exit": false,
+                "warningStreak": 0,
+                "severeStreak": 0,
+                "recoveryStreak": 1,
+                "barsInCaution": 0
+              }
+            },
+            {
+              "index": 2,
+              "timestamp": "2026-08-25T06:30:00.000Z",
+              "priorState": "STRONG_HOLD",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "SESSION_OR_DATA_END"
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 4,
+            "healthDecisionCount": 3,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": 0,
+        "deltaBarsHeld": 0,
+        "variantMemberships": [
+          "DYNAMIC_30",
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "sector": "不動産業"
+      },
+      {
+        "key": "2026-08-25|2026-08-25T06:20:00.000Z|6085.T",
+        "symbol": "6085.T",
+        "sessionDate": "2026-08-25",
+        "entryTimestamp": "2026-08-25T06:20:00.000Z",
+        "fixed": {
+          "exitTimestamp": "2026-08-25T06:30:00.000Z",
+          "exitReason": "FROZEN_HORIZON",
+          "netReturnPct": -0.05,
+          "barsHeld": 1
+        },
+        "dynamic": {
+          "exitTimestamp": "2026-08-25T06:30:00.000Z",
+          "exitReason": "SESSION_OR_DATA_END",
+          "netReturnPct": -0.05,
+          "barsHeld": 1,
+          "mfePct": 0,
+          "maePct": 0,
+          "givebackPct": 0,
+          "captureRatio": null,
+          "stateVisitCounts": {
+            "STRONG_HOLD": 0,
+            "HOLD": 0,
+            "CAUTION": 1
+          },
+          "decisionEvidence": [
+            {
+              "index": 0,
+              "timestamp": "2026-08-25T06:30:00.000Z",
+              "priorState": "HOLD",
+              "nextState": "CAUTION",
+              "action": "HOLD",
+              "reason": "ENTER_CAUTION",
+              "health": {
+                "close": 185,
+                "fast": 183,
+                "slow": 181.625,
+                "vwap": 170.28076022158797,
+                "momentumPct": -2.20994475138121,
+                "swingReference": 186,
+                "pullbackAtr": 0,
+                "structureBroken": false,
+                "fastTrendHealthy": false,
+                "closeVsFastHealthy": false,
+                "vwapHealthy": false,
+                "momentumHealthy": false,
+                "positiveFromEntry": true,
+                "pullbackHealthy": true,
+                "healthyVotes": 3,
+                "damageVotes": 4,
+                "healthyFlags": {
+                  "structureHealthy": true,
+                  "fastTrendHealthy": false,
+                  "closeVsFastHealthy": false,
+                  "vwapHealthy": false,
+                  "momentumHealthy": false,
+                  "pullbackHealthy": true,
+                  "positiveFromEntry": true
+                }
+              },
+              "transition": {
+                "nextState": "CAUTION",
+                "reason": "ENTER_CAUTION",
+                "exit": false,
+                "warningStreak": 1,
+                "severeStreak": 0,
+                "recoveryStreak": 0,
+                "barsInCaution": 1
+              }
+            },
+            {
+              "index": 0,
+              "timestamp": "2026-08-25T06:30:00.000Z",
+              "priorState": "CAUTION",
+              "nextState": "EXIT",
+              "action": "EXIT",
+              "reason": "SESSION_OR_DATA_END"
+            }
+          ],
+          "evidenceAudit": {
+            "decisionCount": 2,
+            "healthDecisionCount": 1,
+            "reasonsPresent": true,
+            "healthFieldsComplete": true,
+            "pointInTimeSequentialRequired": true,
+            "futureBarsUsedBeforeDecision": false
+          }
+        },
+        "deltaNetReturnPct": 0,
+        "deltaBarsHeld": 0,
+        "variantMemberships": [
+          "DYNAMIC_30",
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "sector": "サービス業"
+      }
+    ],
+    "summary": {
+      "pairedCount": 27,
+      "fixed": {
+        "n": 27,
+        "netReturnPct": 25.961837871771355,
+        "meanNetReturnPct": 0.9499558647642141,
+        "medianNetReturnPct": 0.7532128514056213,
+        "winRate": 0.5555555555555556,
+        "profitFactor": 1.777526794302074,
+        "maxDrawdownPct": 19.028660113240097
+      },
+      "dynamic": {
+        "n": 27,
+        "netReturnPct": -3.6410411601483172,
+        "meanNetReturnPct": -0.08092630945381184,
+        "medianNetReturnPct": -0.05,
+        "winRate": 0.4074074074074074,
+        "profitFactor": 0.9337078249849492,
+        "maxDrawdownPct": 21.746186741763257
+      },
+      "delta": {
+        "meanNetReturnPct": -1.0308821742180259,
+        "medianNetReturnPct": 0,
+        "dynamicBetterCount": 7,
+        "dynamicWorseCount": 12,
+        "equalCount": 8,
+        "meanBarsHeldDelta": -5.37037037037037,
+        "meanDynamicGivebackPct": 2.8823600686954345,
+        "meanDynamicCaptureRatio": -0.26507119319019423
+      }
+    },
+    "byVariant": {
+      "FIXED_5": {
+        "pairedCount": 0,
+        "fixed": {
+          "n": 0,
+          "netReturnPct": 0,
+          "meanNetReturnPct": null,
+          "medianNetReturnPct": null,
+          "winRate": null,
+          "profitFactor": null,
+          "maxDrawdownPct": 0
+        },
+        "dynamic": {
+          "n": 0,
+          "netReturnPct": 0,
+          "meanNetReturnPct": null,
+          "medianNetReturnPct": null,
+          "winRate": null,
+          "profitFactor": null,
+          "maxDrawdownPct": 0
+        },
+        "delta": {
+          "meanNetReturnPct": null,
+          "medianNetReturnPct": null,
+          "dynamicBetterCount": 0,
+          "dynamicWorseCount": 0,
+          "equalCount": 0,
+          "meanBarsHeldDelta": null,
+          "meanDynamicGivebackPct": null,
+          "meanDynamicCaptureRatio": null
+        }
+      },
+      "OLD_FIXED_30": {
+        "pairedCount": 0,
+        "fixed": {
+          "n": 0,
+          "netReturnPct": 0,
+          "meanNetReturnPct": null,
+          "medianNetReturnPct": null,
+          "winRate": null,
+          "profitFactor": null,
+          "maxDrawdownPct": 0
+        },
+        "dynamic": {
+          "n": 0,
+          "netReturnPct": 0,
+          "meanNetReturnPct": null,
+          "medianNetReturnPct": null,
+          "winRate": null,
+          "profitFactor": null,
+          "maxDrawdownPct": 0
+        },
+        "delta": {
+          "meanNetReturnPct": null,
+          "medianNetReturnPct": null,
+          "dynamicBetterCount": 0,
+          "dynamicWorseCount": 0,
+          "equalCount": 0,
+          "meanBarsHeldDelta": null,
+          "meanDynamicGivebackPct": null,
+          "meanDynamicCaptureRatio": null
+        }
+      },
+      "DYNAMIC_30": {
+        "pairedCount": 16,
+        "fixed": {
+          "n": 16,
+          "netReturnPct": 23.39295651230431,
+          "meanNetReturnPct": 1.444269401618276,
+          "medianNetReturnPct": 0.9165781771152348,
+          "winRate": 0.5625,
+          "profitFactor": 2.1521103322498787,
+          "maxDrawdownPct": 15.908236560412298
+        },
+        "dynamic": {
+          "n": 16,
+          "netReturnPct": 0.14216763275491928,
+          "meanNetReturnPct": 0.09555598292404692,
+          "medianNetReturnPct": -0.05,
+          "winRate": 0.375,
+          "profitFactor": 1.0621364035508818,
+          "maxDrawdownPct": 18.05817037554594
+        },
+        "delta": {
+          "meanNetReturnPct": -1.3487134186942291,
+          "medianNetReturnPct": 0,
+          "dynamicBetterCount": 4,
+          "dynamicWorseCount": 6,
+          "equalCount": 6,
+          "meanBarsHeldDelta": -5.375,
+          "meanDynamicGivebackPct": 3.685888251608574,
+          "meanDynamicCaptureRatio": -0.18585993867243797
+        }
+      },
+      "DYNAMIC_40": {
+        "pairedCount": 21,
+        "fixed": {
+          "n": 21,
+          "netReturnPct": 13.60383441276114,
+          "meanNetReturnPct": 0.7148721105436334,
+          "medianNetReturnPct": 0.7028230865746499,
+          "winRate": 0.5238095238095238,
+          "profitFactor": 1.5054245136795803,
+          "maxDrawdownPct": 19.028660113240093
+        },
+        "dynamic": {
+          "n": 21,
+          "netReturnPct": -3.209235943988853,
+          "meanNetReturnPct": -0.0856738702950183,
+          "medianNetReturnPct": -0.05,
+          "winRate": 0.38095238095238093,
+          "profitFactor": 0.9384683342555014,
+          "maxDrawdownPct": 21.746186741763253
+        },
+        "delta": {
+          "meanNetReturnPct": -0.8005459808386516,
+          "medianNetReturnPct": 0,
+          "dynamicBetterCount": 6,
+          "dynamicWorseCount": 8,
+          "equalCount": 7,
+          "meanBarsHeldDelta": -4.9523809523809526,
+          "meanDynamicGivebackPct": 3.3143868364027713,
+          "meanDynamicCaptureRatio": -0.3794114877867832
+        }
+      },
+      "DYNAMIC_50": {
+        "pairedCount": 27,
+        "fixed": {
+          "n": 27,
+          "netReturnPct": 25.961837871771355,
+          "meanNetReturnPct": 0.9499558647642141,
+          "medianNetReturnPct": 0.7532128514056213,
+          "winRate": 0.5555555555555556,
+          "profitFactor": 1.777526794302074,
+          "maxDrawdownPct": 19.028660113240097
+        },
+        "dynamic": {
+          "n": 27,
+          "netReturnPct": -3.6410411601483172,
+          "meanNetReturnPct": -0.08092630945381184,
+          "medianNetReturnPct": -0.05,
+          "winRate": 0.4074074074074074,
+          "profitFactor": 0.9337078249849492,
+          "maxDrawdownPct": 21.746186741763257
+        },
+        "delta": {
+          "meanNetReturnPct": -1.0308821742180259,
+          "medianNetReturnPct": 0,
+          "dynamicBetterCount": 7,
+          "dynamicWorseCount": 12,
+          "equalCount": 8,
+          "meanBarsHeldDelta": -5.37037037037037,
+          "meanDynamicGivebackPct": 2.8823600686954345,
+          "meanDynamicCaptureRatio": -0.26507119319019423
+        }
+      }
+    },
+    "methodology": {
+      "sameFrozenEvidenceChainAsP253D": true,
+      "sameFrozenUniverseAndEntryAsFixedBaseline": true,
+      "fixedBaselineUntouched": true,
+      "deterministicShardUnion": true,
+      "postOutcomeRuleSelection": false,
+      "entryRetuning": false,
+      "modelRetuning": false,
+      "universeRetuning": false,
+      "thresholdRetuning": false,
+      "dynamicNSelectionFromResults": false,
+      "freshHoldoutConsumed": false,
+      "performanceConclusionAllowed": false
+    },
+    "safety": {
+      "phase": "57.p25.3al.dynamic-management-multisession",
+      "mode": "P25_DYNAMIC_HOLD_EXIT_MULTISESSION_RESEARCH_ONLY",
+      "executionAllowed": false,
+      "brokerWriteAllowed": false,
+      "excelOrderWriteAllowed": false,
+      "rssOrderFunctionAllowed": false,
+      "liveTradingAllowed": false,
+      "paperTradingAllowed": false,
+      "automaticPromotionAllowed": false,
+      "productionUpdateAllowed": false,
+      "transmitted": false,
+      "freshHoldoutConsumed": false
+    }
+  },
+  "methodology": {
+    "appendOnlyTarget": true,
+    "idempotentByEvidenceDateAndLineage": true,
+    "deterministicShardUnion": true,
+    "fixedBaselineUntouched": true,
+    "resultBasedRetuning": false,
+    "winnerSelection": false,
+    "freshHoldoutConsumed": false
+  },
+  "safety": {
+    "phase": "57.p25.3al.dynamic-management-multisession",
+    "mode": "P25_DYNAMIC_HOLD_EXIT_MULTISESSION_RESEARCH_ONLY",
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "freshHoldoutConsumed": false
+  }
+}

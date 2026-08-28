@@ -10,12 +10,13 @@ on:
   workflow_dispatch:
   schedule:
     # TSE continuous sessions in UTC: 09:00-11:30 / 12:30-15:30 JST.
-    # These runs only capture read-only point-in-time research evidence.
+    # Keep the schedule explicit so no lunch/post-close snapshot can enter fresh evidence.
+    # This schedule block is intentionally re-registered on the default branch after the
+    # first prospective session showed no scheduled marketwide runs.
     - cron: '*/5 0-1 * * 1-5'
-    - cron: '0-30/5 2 * * 1-5'
+    - cron: '0-30/5 2,6 * * 1-5'
     - cron: '30-55/5 3 * * 1-5'
     - cron: '*/5 4-5 * * 1-5'
-    - cron: '0-30/5 6 * * 1-5'
 permissions:
   contents: read
 jobs:

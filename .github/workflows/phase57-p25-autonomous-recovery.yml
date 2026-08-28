@@ -1,0 +1,131 @@
+name: Phase57 P25 Autonomous Recovery
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 08:30 JST Mon-Fri: verify the pre-open DYNAMIC_50 freeze exists.
+    - cron: '30 23 * * 0-4'
+    # 17:05 / 17:45 JST Mon-Fri: recover routine capture then evidence prep.
+    - cron: '5,45 8 * * 1-5'
+    # 18:30 / 20:30 JST Mon-Fri: recover evaluation and downstream persistence.
+    - cron: '30 9,11 * * 1-5'
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: phase57-p25-autonomous-recovery
+  cancel-in-progress: false
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Resolve current JPX session date/time
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "SESSION_DATE=$(TZ=Asia/Tokyo date +%F)" >> "$GITHUB_ENV"
+          echo "JST_HM=$(TZ=Asia/Tokyo date +%H%M)" >> "$GITHUB_ENV"
+
+      - name: Audit and recover missing stage only
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          session="$SESSION_DATE"
+          hm="$JST_HM"
+          echo "Autonomous recovery audit session=$session JST=$hm"
+
+          # Stage 0: pre-open frozen DYNAMIC_50 universe.
+          git fetch origin automation/p25-universe-data:refs/remotes/origin/automation/p25-universe-data || true
+          frozen=0
+          if git show-ref --verify --quiet refs/remotes/origin/automation/p25-universe-data; then
+            if git show origin/automation/p25-universe-data:data/p25-prospective-universe-timeline.ndjson 2>/dev/null \
+              | node --input-type=module - "$session" <<'NODE'
+          import fs from 'node:fs';
+          const target=process.argv[2];
+          const text=fs.readFileSync(0,'utf8');
+          const rows=text.split(/\r?\n/).filter(Boolean).map(line=>JSON.parse(line));
+          process.exit(rows.some(x=>x?.sessionDate===target&&x?.status==='PROSPECTIVE_PREOPEN_UNIVERSE_FROZEN'&&x?.ready===true)?0:1);
+          NODE
+            then frozen=1; fi
+          fi
+          if [ "$frozen" -ne 1 ] && [ "$hm" -lt 850 ]; then
+            echo "Missing pre-open frozen universe; dispatching continuation immediately."
+            gh workflow run phase57-p25-prospective-universe.yml --repo "$GH_REPO" --ref main
+            exit 0
+          fi
+
+          # Before close, there is nothing else to recover safely.
+          if [ "$hm" -lt 1600 ]; then
+            echo "Pre-open stage healthy or already outside safe recovery; no post-close action yet."
+            exit 0
+          fi
+
+          # Stage 1: immutable routine 5m session capture.
+          git fetch origin automation/p25-day-data:refs/remotes/origin/automation/p25-day-data || true
+          if ! git cat-file -e "origin/automation/p25-day-data:data/p25-day-sessions/${session}.json" 2>/dev/null; then
+            echo "Missing immutable routine capture; dispatching it."
+            gh workflow run phase57-p25-routine-5m.yml --repo "$GH_REPO" --ref main -f session_date="$session"
+            exit 0
+          fi
+
+          # Stage 2: immutable lineage/integrity snapshot.
+          git fetch origin automation/p25-evidence-data:refs/remotes/origin/automation/p25-evidence-data || true
+          if ! git cat-file -e "origin/automation/p25-evidence-data:data/p25-evidence-lineage/${session}-manifest.json" 2>/dev/null \
+            || ! git cat-file -e "origin/automation/p25-evidence-data:data/p25-evidence-lineage/${session}-integrity.json" 2>/dev/null; then
+            echo "Missing evidence lineage snapshot; dispatching prep."
+            gh workflow run phase57-p25-evidence-prep.yml --repo "$GH_REPO" --ref main -f evidence_date="$session"
+            exit 0
+          fi
+
+          # Stage 3: cumulative A/Entry checkpoint evaluation dated for this session.
+          git fetch origin automation/p25-evaluation-data:refs/remotes/origin/automation/p25-evaluation-data || true
+          if ! git cat-file -e "origin/automation/p25-evaluation-data:data/p25-evaluations/${session}.json" 2>/dev/null; then
+            echo "Missing checkpoint evaluation; dispatching exact dated evaluator."
+            gh workflow run phase57-p25-checkpointed-evaluation.yml --repo "$GH_REPO" --ref main -f evidence_date="$session"
+            exit 0
+          fi
+
+          # Stage 4: Fixed Portfolio persistence must have at least one successful artifact-bearing checkpoint.
+          latest_checkpoint=''
+          mapfile -t candidates < <(gh run list --repo "$GH_REPO" --workflow 'phase57-p25-checkpointed-evaluation.yml' --branch main --status success --limit 20 --json databaseId --jq '.[].databaseId')
+          for candidate in "${candidates[@]}"; do
+            artifact_count="$(gh api "repos/$GH_REPO/actions/runs/$candidate/artifacts" --jq '.total_count')"
+            if [ "${artifact_count:-0}" -gt 0 ]; then latest_checkpoint="$candidate"; break; fi
+          done
+          if [ -n "$latest_checkpoint" ]; then
+            recent_lanec="$(gh run list --repo "$GH_REPO" --workflow 'phase57-p25-lane-c-fixed-portfolio.yml' --branch main --status success --limit 1 --json createdAt --jq '.[0].createdAt // empty' || true)"
+            if [ -z "$recent_lanec" ]; then
+              echo "No successful Fixed Portfolio run found; dispatching from artifact-bearing checkpoint $latest_checkpoint."
+              gh workflow run phase57-p25-lane-c-fixed-portfolio.yml --repo "$GH_REPO" --ref main -f source_run_id="$latest_checkpoint"
+              exit 0
+            fi
+          fi
+
+          # Stage 5: Four-track durable packaging. This is safe/idempotent and binds the newest
+          # successful marketwide point-in-time evidence to frozen Entry/EXIT/allocation refs.
+          recent_four="$(gh run list --repo "$GH_REPO" --workflow 'phase57-p25-four-track-durable-persistence.yml' --branch main --status success --limit 1 --json createdAt --jq '.[0].createdAt // empty' || true)"
+          if [ -z "$recent_four" ]; then
+            echo "No successful four-track durable run found; dispatching packaging."
+            gh workflow run phase57-p25-four-track-durable-persistence.yml --repo "$GH_REPO" --ref main
+            exit 0
+          fi
+
+          echo "All currently automatable immutable stages are present for $session."
+
+      - name: Safety boundary
+        if: always()
+        run: |
+          echo 'Recovery dispatches research-only evidence/evaluation workflows only.'
+          echo 'No broker/RSS/Excel/order/live/paper execution, retuning, promotion, production update, or fresh-holdout consumption.'

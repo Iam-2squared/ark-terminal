@@ -174,6 +174,8 @@ export function selectJpxOpportunityUniverse({
       sector:row.sector,
       market:row.market,
       modes:Object.freeze([...modes].sort()),
+      currentPrice:Number(row.currentPrice),
+      sourceScannedAt:row.sourceScannedAt??null,
       opportunityScore:Math.max(previous?.opportunityScore??0,row.opportunityScore),
       turnoverYen:Math.max(previous?.turnoverYen??0,row.turnoverYen),
     }));

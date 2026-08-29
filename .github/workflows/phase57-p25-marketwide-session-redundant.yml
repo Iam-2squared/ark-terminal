@@ -1,0 +1,95 @@
+name: Phase57 P25 Marketwide 5m Redundant Session Collector
+
+on:
+  workflow_dispatch:
+    inputs:
+      session_part:
+        description: 'MORNING or AFTERNOON'
+        required: true
+        default: 'MORNING'
+        type: choice
+        options: [MORNING, AFTERNOON]
+  schedule:
+    - cron: '58 23 * * 0-4' # 08:58 JST Mon-Fri
+    - cron: '28 3 * * 1-5'  # 12:28 JST Mon-Fri
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase57-p25-marketwide-5m-redundant-${{ github.event.schedule || inputs.session_part }}
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 195
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Resolve session half
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = 'workflow_dispatch' ]; then
+            part='${{ inputs.session_part }}'
+          elif [ "${{ github.event.schedule }}" = '58 23 * * 0-4' ]; then
+            part='MORNING'
+          else
+            part='AFTERNOON'
+          fi
+          echo "SESSION_PART=$part" >> "$GITHUB_ENV"
+          echo "SESSION_DATE=$(TZ=Asia/Tokyo date +%F)" >> "$GITHUB_ENV"
+      - name: Collect independent point-in-time snapshots every five minutes
+        shell: bash
+        run: |
+          set -u
+          mkdir -p tmp/redundant
+          if [ "$SESSION_PART" = 'MORNING' ]; then
+            start_hm=0900; end_hm=1130
+          else
+            start_hm=1230; end_hm=1530
+          fi
+          attempt=0; success=0
+          while true; do
+            hm="$(TZ=Asia/Tokyo date +%H%M)"
+            if [ "$hm" -gt "$end_hm" ]; then break; fi
+            now="$(date +%s)"; next="$(( (now + 299) / 300 * 300 ))"; wait="$((next-now))"
+            [ "$wait" -gt 0 ] && sleep "$wait"
+            hm="$(TZ=Asia/Tokyo date +%H%M)"
+            if [ "$hm" -lt "$start_hm" ]; then continue; fi
+            if [ "$hm" -gt "$end_hm" ]; then break; fi
+            attempt=$((attempt+1)); stamp="$(date -u +%Y%m%dT%H%M%SZ)"; dir="tmp/redundant/$stamp"; mkdir -p "$dir"
+            echo "[$stamp] redundant Dynamic5m attempt $attempt ($SESSION_PART)"
+            if node scripts/fetch_p25_marketwide_5m_spark.mjs --output "$dir/marketwide.json" \
+              && node scripts/capture_p25_marketwide_5m_snapshot.mjs --input "$dir/marketwide.json" --as-of "$(node -p "require('./$dir/marketwide.json').meta.observedAt")" --output "$dir/marketwide.ndjson" \
+              && node scripts/measure_p25_intraday_dynamic_universe_snapshot.mjs --input "$dir/marketwide.json" --output "$dir/measurement.json"; then
+              success=$((success+1))
+            else
+              echo "Point failed closed; keeping no fabricated measurement for $stamp"
+              rm -f "$dir/measurement.json"
+            fi
+          done
+          echo "attempts=$attempt successes=$success"
+          test "$success" -gt 0
+      - name: Verify all retained measurements are marketwide and safe
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';import path from 'node:path';
+          const files=[];const walk=d=>{for(const e of fs.readdirSync(d,{withFileTypes:true})){const p=path.join(d,e.name);if(e.isDirectory())walk(p);else if(e.name==='measurement.json')files.push(p);}};walk('tmp/redundant');
+          if(!files.length)throw new Error('no redundant measurements');
+          for(const f of files){const x=JSON.parse(fs.readFileSync(f,'utf8'));if(x.status!=='MARKETWIDE_DYNAMIC_5M_MEASUREMENT_READY'||x.inputSymbols<3000)throw new Error(`invalid ${f}`);for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'])if(x.safety?.[k]!==false)throw new Error(`unsafe ${k} in ${f}`);}
+          console.log(`verified ${files.length} redundant point-in-time measurements`);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-marketwide-5m-redundant-${{ env.SESSION_DATE }}-${{ env.SESSION_PART }}
+          path: tmp/redundant
+          retention-days: 90
+      - name: Safety boundary
+        if: always()
+        run: echo 'Redundant point-in-time research capture only; no broker/RSS/Excel/order/paper/live/promotion/production action.'

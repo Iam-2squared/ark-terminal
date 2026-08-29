@@ -1,0 +1,77 @@
+name: Phase57 P25 Autonomous B-D Integration Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/run_p25_dynamic5m_exitv3_portfolio_daily.mjs'
+      - 'scripts/build_p25_dynamic5m_daily_bundle.mjs'
+      - 'scripts/measure_p25_intraday_dynamic_universe_snapshot.mjs'
+      - 'predict/daytrade/phase57-p25-jpx-opportunity-universe.js'
+      - '.github/workflows/phase57-p25-dynamic5m-bd-daily.yml'
+      - '.github/workflows/phase57-p25-autonomous-bd-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Build outcome-free integration fixture from an existing immutable READY session
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin automation/p25-day-data:refs/remotes/origin/automation/p25-day-data
+          git show origin/automation/p25-day-data:data/p25-day-sessions/2026-08-25.json > /tmp/session.json
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const cap=JSON.parse(fs.readFileSync('/tmp/session.json','utf8'));
+          if(cap?.collection?.ready!==true)throw new Error('fixture source not READY');
+          const s=cap.sessions?.[0],date='2026-08-25';
+          const members=s.universeRecord.variants.DYNAMIC_50;
+          const sector=new Map((s.universeRecord.rankAudit?.day50??[]).map(x=>[x.symbol,x.sector]));
+          const timestampSets=members.map(symbol=>new Set((s.sessionBarsBySymbol[symbol]??[]).map(x=>x.timestamp)));
+          const common=[...timestampSets[0]].filter(ts=>timestampSets.every(set=>set.has(ts))).sort();
+          const priceBar=common.find(ts=>members.every(symbol=>(s.sessionBarsBySymbol[symbol]??[]).filter(x=>x.timestamp<=ts).length>=6));
+          if(!priceBar)throw new Error('no fair common fixture cutoff with >=6 closed bars');
+          const observedAt=new Date(Date.parse(priceBar)+5*60_000+1_000).toISOString();
+          const selected=members.map(symbol=>{const bars=s.sessionBarsBySymbol[symbol]??[];const bar=bars.find(x=>x.timestamp===priceBar);if(!bar)throw new Error(`fair fixture bar missing ${symbol}`);return {symbol,sector:sector.get(symbol)??'UNKNOWN',currentPrice:bar.close,sourceScannedAt:observedAt,opportunityScore:0.5,turnoverYen:1};});
+          const bundle={schemaVersion:1,phase:'57.p25.dynamic5m-daily-bundle-smoke-fixture',status:'P25_DYNAMIC5M_DAILY_BUNDLE_READY',sessionDate:date,pointCount:1,expectedPointCount:68,missingExpectedBucketCount:67,missingExpectedBuckets:[],completeFiveMinuteCoverage:false,selectedSymbolUnionCount:members.length,selectedSymbolUnion:members,points:[{bucket:new Date(Math.floor(Date.parse(observedAt)/(5*60_000))*5*60_000).toISOString(),observedAt,inputSymbols:3700,selected}],barsReady:true,barFailureCount:0,barFailures:[],sessionBarsBySymbol:Object.fromEntries(members.map(symbol=>[symbol,s.sessionBarsBySymbol[symbol]])),methodology:{integrationSmokeOnly:true,notPerformanceEvidence:true,commonFairCutoff:true,missingIntradayBucketsNeverBackfilledOrFabricated:true},safety:cap.safety};
+          fs.writeFileSync('/tmp/bundle.json',JSON.stringify(bundle));
+          console.log(JSON.stringify({fixtureDate:date,priceBar,observedAt,memberCount:members.length},null,2));
+          NODE
+      - name: Build the exact frozen historical pack used by Entry and EXIT v3
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p24
+          gh run download 31785422471 --repo "$GH_REPO" --name phase57-p24-9-oos-canonical-candidate --dir /tmp/p24
+          snapshot="$(find /tmp/p24 -name phase57-p24-9-oos-byte-snapshot.json -print -quit)"; test -n "$snapshot"
+          node scripts/build_p25_pinned_history_pack.mjs --snapshot "$snapshot" --output /tmp/history.json
+      - name: Execute combined B/D evaluator end-to-end
+        run: node scripts/run_p25_dynamic5m_exitv3_portfolio_daily.mjs --bundle /tmp/bundle.json --history-pack /tmp/history.json --output /tmp/bd.json
+      - name: Verify combined route, allocation matrix, incompleteness label, and safety
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';const x=JSON.parse(fs.readFileSync('/tmp/bd.json','utf8'));
+          if(x.status!=='P25_DYNAMIC5M_BD_DAILY_EVALUATED')throw new Error('B/D smoke status');
+          if(x.freshCompleteDay!==false)throw new Error('synthetic incomplete fixture must never become Fresh complete');
+          if(x.B?.route!=='Dynamic 5m Selection -> Frozen Entry -> EXIT v3')throw new Error('B route');
+          if(x.D?.route!=='Dynamic 5m Selection -> Frozen Entry -> EXIT v3 -> Capital Allocation')throw new Error('D route');
+          for(const id of ['MAX_10','MAX_4','MAX_3','MAX_2'])if(x.D?.profiles?.[id]?.status!=='LANE_C_EVENT_TIME_PORTFOLIO_SIMULATED')throw new Error(`D profile ${id}`);
+          if(x.D?.profileWinnerSelected!==false)throw new Error('winner selection must remain false');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'])if(x.safety?.[k]!==false)throw new Error(`unsafe ${k}`);
+          console.log(JSON.stringify({status:'P25_AUTONOMOUS_BD_INTEGRATION_SMOKE_GREEN',frozenEntries:x.B.frozenEntryCount,resolved:x.B.resolvedCount,profiles:Object.keys(x.D.profiles),freshCompleteDay:x.freshCompleteDay},null,2));
+          NODE
+      - name: Safety boundary
+        if: always()
+        run: echo 'Integration fixture only, not performance evidence. No persistence, order, paper/live, promotion, or tuning action.'

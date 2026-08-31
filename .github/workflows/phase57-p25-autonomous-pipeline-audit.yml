@@ -69,6 +69,10 @@ jobs:
           must(pre.includes('15 15,17,19,21,22,23 * * 0-4'),'missing buffered continuation cadence');
           must(pre.includes('P25_ALREADY_FROZEN'),'missing one-freeze-per-session guard');
           must(pre.includes("captureHmJst||'')>='08:50'"),'missing 08:50 cutoff verification');
+          must(pre.includes('MAX_BATCH_PASSES: "8"'),'missing bounded single-run full-cycle drain');
+          must(pre.includes('P25 full-cycle pass')&&pre.includes('export SCREENER_RESET_PROGRESS=false'),'single-run batch advancement missing');
+          must(pre.includes('full cycle incomplete after bounded drain')&&pre.includes('cycle cardinality mismatch'),'full-cycle fail-closed verification missing');
+          must(pre.includes('refusing retroactive A/C freeze'),'missed-cutoff no-backfill guard missing');
           must(routine.includes("cron: '45 7 * * 1-5'")&&routine.includes('automation/p25-day-data'),'A/C routine persistence missing');
           must(evidence.includes("cron: '30 8 * * 1-5'")&&evidence.includes('automation/p25-evidence-data'),'lineage persistence missing');
           must(checkpoint.includes("cron: '0 9 * * 1-5'")&&checkpoint.includes('automation/p25-evaluation-data'),'A checkpoint persistence missing');
@@ -87,8 +91,8 @@ jobs:
           // Real combined B and D evaluator, not component packaging.
           must(bd.includes("workflows: ['Phase57 P25 Dynamic 5m Daily Bundle']")&&bd.includes('automation/p25-bd-data'),'B/D evaluator trigger/persistence missing');
           must(bd.includes('run_p25_dynamic5m_exitv3_portfolio_daily.mjs'),'combined B/D evaluator invocation missing');
-          must(bdScript.includes("route:'Dynamic 5m Selection -> Frozen Entry -> EXIT v3'")||bdScript.includes("route:'Dynamic 5m Selection -> Frozen Entry -> EXIT v3'"),'B combined route marker missing');
-          must(bdScript.includes("route:'Dynamic 5m Selection -> Frozen Entry -> EXIT v3 -> Capital Allocation'")||bdScript.includes("route:'Dynamic 5m Selection -> Frozen Entry -> EXIT v3 -> Capital Allocation'"),'D combined route marker missing');
+          must(bdScript.includes("route:'Dynamic 5m Selection -> Frozen Entry -> EXIT v3'"),'B combined route marker missing');
+          must(bdScript.includes("route:'Dynamic 5m Selection -> Frozen Entry -> EXIT v3 -> Capital Allocation'"),'D combined route marker missing');
           must(bdScript.includes('entryScorerReceivesClosedPrefixOnly:true')&&bdScript.includes('futureBarsExcludedFromEntryScorer:true'),'B Entry causal-prefix guards missing');
           must(bdScript.includes('profileWinnerSelected:false')&&bdScript.includes('initialEquityJpy:1_000_000'),'D portfolio precommit/no-winner guard missing');
           must(durable.includes("workflows: ['Phase57 P25 Marketwide 5m Measurement']")&&durable.includes('automation/p25-four-track-data'),'component durability fallback missing');
@@ -101,7 +105,7 @@ jobs:
           const safetyKeys=['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'];
           for(const source of [read('predict/daytrade/phase57-p25-2c-prospective-preopen-universe-capture.js'),read('predict/daytrade/phase57-p25-intraday-dynamic-universe.js'),read('predict/daytrade/phase57-p25-exit-v3-independent-protocol.js')])for(const key of safetyKeys)must(new RegExp(`${key}\\s*:\\s*false`).test(source),`safety lock not false: ${key}`);
 
-          console.log(JSON.stringify({status:'P25_AUTONOMOUS_PIPELINE_STRUCTURE_HEALTHY',tracks:{A:'D50->Frozen Entry->Fixed exact-day',B:'Dynamic5m->Frozen Entry->EXITv3 exact-day',C:'D50->Frozen Entry->EXITv3 exact-day',D:'Dynamic5m->Frozen Entry->EXITv3->Capital Allocation exact-day'},dynamic5mCaptureRedundancy:2,noBackfill:true,safety:'ALL_FALSE'},null,2));
+          console.log(JSON.stringify({status:'P25_AUTONOMOUS_PIPELINE_STRUCTURE_HEALTHY',tracks:{A:'D50->Frozen Entry->Fixed exact-day',B:'Dynamic5m->Frozen Entry->EXITv3 exact-day',C:'D50->Frozen Entry->EXITv3 exact-day',D:'Dynamic5m->Frozen Entry->EXITv3->Capital Allocation exact-day'},preopenSingleRunFullCycle:true,dynamic5mCaptureRedundancy:2,noBackfill:true,safety:'ALL_FALSE'},null,2));
           NODE
       - name: Syntax-check new JavaScript entry points
         run: |

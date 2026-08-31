@@ -76,7 +76,7 @@ async function worker(){while(cursor<allSymbols.length){const symbol=allSymbols[
 await Promise.all(Array.from({length:Math.min(10,allSymbols.length)},()=>worker()));
 if(failures.length||Object.keys(sessionBarsBySymbol).length!==allSymbols.length)throw new Error(`post-close sparse 5m collection incomplete ${Object.keys(sessionBarsBySymbol).length}/${allSymbols.length}: ${JSON.stringify(failures.slice(0,12))}`);
 
-const actualHist=uniq(historyPack.sessions??[]),expectedHist=[...PHASE58_P13_FROZEN_POLICY.historicalUniverse].sort();
+const actualHist=uniq((historyPack.sessions??[]).map(x=>x?.symbol)),expectedHist=[...PHASE58_P13_FROZEN_POLICY.historicalUniverse].sort();
 if(JSON.stringify(actualHist)!==JSON.stringify(expectedHist))throw new Error('partial ABCD frozen historical universe mismatch');
 const cached=buildProspectiveP21HistoricalRows({sessions:historyPack.sessions??[],horizons:PHASE58_P13_FROZEN_POLICY.horizonsBars});
 if(cached.complete!==true)throw new Error(`historical materialization blocked: ${cached.status}`);

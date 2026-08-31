@@ -1,0 +1,31 @@
+name: Phase57 Adaptive Allocation V2 Tests
+
+on:
+  pull_request:
+    paths:
+      - 'predict/portfolio/phase57-p25-adaptive-allocation-v2.js'
+      - 'predict/tests/phase57-p25-adaptive-allocation-v2.test.mjs'
+      - 'scripts/append_p25_adaptive_allocation_v2_to_matrix.mjs'
+      - '.github/workflows/phase57-p25-dynamic5m-challenger-matrix-daily.yml'
+      - '.github/workflows/phase57-adaptive-allocation-v2-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run Adaptive Allocation v2 tests
+        run: node --test predict/tests/phase57-p25-adaptive-allocation-v2.test.mjs
+      - name: Syntax check matrix attachment
+        run: node --check scripts/append_p25_adaptive_allocation_v2_to_matrix.mjs
+      - name: Safety boundary
+        if: always()
+        run: echo 'Research-only adaptive capital allocation; no broker/RSS/Excel/order/paper/live execution, promotion, or production updates.'

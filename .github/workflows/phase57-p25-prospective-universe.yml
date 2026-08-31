@@ -13,12 +13,12 @@ on:
         type: boolean
         default: false
   schedule:
-    # Start two hours earlier than the old 22:15 JST reset. With six 620-symbol
-    # batches, the normal cycle now completes around 06:15 JST, leaving >2h
-    # of buffer before the immutable 08:50 pre-open cutoff.
+    # Every scheduled invocation is now capable of completing the full JPX cycle
+    # by draining successive 620-symbol batches inside one job. The later slots
+    # remain as independent recovery opportunities before the immutable 08:50 cutoff.
     - cron: "15 11 * * 0-4" # 20:15 JST Sun-Thu: clean reset for next JPX session
-    - cron: "15 13 * * 0-4" # 22:15 JST continuation
-    - cron: "15 15,17,19,21,22,23 * * 0-4" # 00:15..08:15 JST continuation/recovery
+    - cron: "15 13 * * 0-4" # 22:15 JST recovery
+    - cron: "15 15,17,19,21,22,23 * * 0-4" # 00:15..08:15 JST recovery
 
 permissions:
   contents: write
@@ -95,7 +95,19 @@ jobs:
             echo "Target $target_session is already frozen; skipping redundant screener work."
           else
             echo "P25_ALREADY_FROZEN=false" >> "$GITHUB_ENV"
-            echo "Target $target_session is not frozen yet; continuing the same overnight cycle."
+            echo "Target $target_session is not frozen yet; this job must complete the full cycle before cutoff."
+          fi
+
+      - name: Refuse a missed same-day preopen cutoff
+        if: env.P25_ALREADY_FROZEN != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          today="$(TZ=Asia/Tokyo date +%F)"
+          hm="$(TZ=Asia/Tokyo date +%H%M)"
+          if [[ "$P25_TARGET_SESSION" == "$today" ]] && [ $((10#$hm)) -ge 850 ]; then
+            echo "::error::P25 preopen cutoff already missed for $P25_TARGET_SESSION; refusing retroactive A/C freeze."
+            exit 1
           fi
 
       - name: Set up Python
@@ -117,30 +129,45 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Build dedicated P25 screener batch
+      - name: Complete dedicated P25 screener cycle in this run
         if: env.P25_ALREADY_FROZEN != 'true'
         env:
           SCREENER_CONCURRENCY: "4"
           SCREENER_DELAY_MS: "400"
-        run: node scripts/update_screener.mjs
-
-      - name: Freeze prospective universe only on a completed cycle
-        if: env.P25_ALREADY_FROZEN != 'true'
+          MAX_BATCH_PASSES: "8"
         shell: bash
         run: |
           set -euo pipefail
-          if node --input-type=module <<'NODE'
+          pass=0
+          while [ "$pass" -lt "$MAX_BATCH_PASSES" ]; do
+            pass=$((pass+1))
+            echo "P25 full-cycle pass $pass/$MAX_BATCH_PASSES"
+            node scripts/update_screener.mjs
+            if node --input-type=module <<'NODE'
           import fs from 'node:fs';
           const p=JSON.parse(fs.readFileSync('data/screener-progress.json','utf8'));
           process.exit(p.cycleComplete===true?0:1);
           NODE
-          then
-            node scripts/capture_p25_prospective_universe.mjs
-          else
-            echo "P25 cycle is incomplete; no session universe is frozen from this partial cross-section."
-          fi
+            then
+              echo "P25 full screener cycle completed on pass $pass."
+              break
+            fi
+            # A reset applies only to the first pass; all subsequent passes must
+            # advance the same immutable overnight cycle rather than restart it.
+            export SCREENER_RESET_PROGRESS=false
+          done
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const p=JSON.parse(fs.readFileSync('data/screener-progress.json','utf8'));
+          if(p.cycleComplete!==true) throw new Error(`P25 full cycle incomplete after bounded drain: ${p.processedInCycle}/${p.universeCount}`);
+          if(Number(p.processedInCycle)!==Number(p.universeCount)) throw new Error(`P25 cycle cardinality mismatch: ${p.processedInCycle}/${p.universeCount}`);
+          NODE
 
-      - name: Verify target freeze if cycle completed
+      - name: Freeze prospective universe after completed cycle
+        if: env.P25_ALREADY_FROZEN != 'true'
+        run: node scripts/capture_p25_prospective_universe.mjs
+
+      - name: Verify target freeze and cutoff
         if: env.P25_ALREADY_FROZEN != 'true'
         shell: bash
         run: |
@@ -148,7 +175,8 @@ jobs:
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           const progress=JSON.parse(fs.readFileSync('data/screener-progress.json','utf8'));
-          if(progress.cycleComplete!==true) process.exit(0);
+          if(progress.cycleComplete!==true) throw new Error('target freeze attempted without a completed screener cycle');
+          if(Number(progress.processedInCycle)!==Number(progress.universeCount)) throw new Error('target freeze cycle cardinality mismatch');
           const target=process.env.P25_TARGET_SESSION;
           const rows=fs.readFileSync('data/p25-prospective-universe-timeline.ndjson','utf8')
             .split(/\r?\n/).filter(Boolean).map(line=>JSON.parse(line));

@@ -1,0 +1,52 @@
+name: Phase57 P25 Challenger Registry Persistence
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'predict/daytrade/phase57-p25-exit-v4-structural-risk.js'
+      - 'predict/daytrade/phase57-p25-intraday-dynamic-universe-v2.js'
+      - 'scripts/build_p25_challenger_registry.mjs'
+      - '.github/workflows/phase57-p25-challenger-registry-persistence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: phase57-p25-challenger-registry-persistence
+  cancel-in-progress: false
+
+jobs:
+  persist:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build frozen challenger registry
+        run: node scripts/build_p25_challenger_registry.mjs /tmp/p25-challenger-registry.json
+      - name: Persist registry by immutable policy hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          exit_sha="$(node -e "const x=require('/tmp/p25-challenger-registry.json');process.stdout.write(x.challengers.EXIT_V4.policySha256)")"
+          dyn_sha="$(node -e "const x=require('/tmp/p25-challenger-registry.json');process.stdout.write(x.challengers.DYNAMIC5M_V2.policySha256)")"
+          key="${exit_sha:0:16}-${dyn_sha:0:16}"
+          git config user.name 'Ark Challenger Registry Bot'
+          git config user.email 'ark-challenger-registry@users.noreply.github.com'
+          git fetch origin automation/p25-challenger-registry:refs/remotes/origin/automation/p25-challenger-registry || true
+          if git show-ref --verify --quiet refs/remotes/origin/automation/p25-challenger-registry; then git switch -C automation/p25-challenger-registry origin/automation/p25-challenger-registry; else git switch --orphan automation/p25-challenger-registry; git rm -rf . >/dev/null 2>&1 || true; fi
+          mkdir -p data/p25-challengers
+          target="data/p25-challengers/${key}.json"
+          if [ -e "$target" ]; then echo "registry already durable: $target"; exit 0; fi
+          cp /tmp/p25-challenger-registry.json "$target"
+          git add "$target" && git commit -m "Persist Phase57 challenger registry ${key}" && git push origin HEAD:automation/p25-challenger-registry
+      - name: Safety boundary
+        if: always()
+        run: echo 'Policy registry persistence only; no market orders, broker/RSS/Excel writes, paper/live execution, promotion, or production mutation.'

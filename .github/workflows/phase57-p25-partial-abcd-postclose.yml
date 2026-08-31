@@ -1,0 +1,122 @@
+name: Phase57 P25 Partial ABCD Post-close
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/phase57-p25-partial-abcd-postclose.yml'
+      - 'scripts/run_p25_partial_abcd_postclose.mjs'
+  workflow_dispatch:
+    inputs:
+      session_date:
+        description: 'Partial session date YYYY-MM-DD; blank = latest durable partial session'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: phase57-p25-partial-abcd-postclose
+  cancel-in-progress: false
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Resolve immutable partial session
+        shell: bash
+        env:
+          REQUESTED: ${{ inputs.session_date }}
+        run: |
+          set -euo pipefail
+          git fetch origin automation/p25-partial-data:refs/remotes/origin/automation/p25-partial-data
+          if [ -n "${REQUESTED:-}" ]; then
+            date="$REQUESTED"
+          else
+            date="$(git ls-tree -d -r --name-only origin/automation/p25-partial-data -- data/p25-partial | sed -n 's#data/p25-partial/\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\)$#\1#p' | sort | tail -n1)"
+          fi
+          [[ "$date" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]
+          dir="data/p25-partial/$date"
+          for f in freeze.json partial-manifest.json partial-measurements.ndjson; do git cat-file -e "origin/automation/p25-partial-data:$dir/$f"; done
+          mkdir -p /tmp/partial
+          for f in freeze.json partial-manifest.json partial-measurements.ndjson; do git show "origin/automation/p25-partial-data:$dir/$f" > "/tmp/partial/$f"; done
+          echo "SESSION_DATE=$date" >> "$GITHUB_ENV"
+
+      - name: Skip if immutable partial ABCD result already exists
+        id: existing
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git cat-file -e "origin/automation/p25-partial-data:data/p25-partial/${SESSION_DATE}/abcd-result.json" 2>/dev/null; then
+            echo 'exists=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'exists=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build exact pinned pre-cutoff history pack
+        if: steps.existing.outputs.exists != 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p24-canonical
+          gh run download 31785422471 --repo "$GH_REPO" --name phase57-p24-9-oos-canonical-candidate --dir /tmp/p24-canonical
+          snapshot="$(find /tmp/p24-canonical -type f -name 'phase57-p24-9-oos-byte-snapshot.json' -print -quit)"
+          test -n "$snapshot"
+          node scripts/build_p25_pinned_history_pack.mjs --snapshot "$snapshot" --output /tmp/p25-history.json
+
+      - name: Measure complete A B C D chain from causal partial substrate
+        if: steps.existing.outputs.exists != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/run_p25_partial_abcd_postclose.mjs --partial-dir /tmp/partial --history-pack /tmp/p25-history.json --output /tmp/p25-partial-abcd.json
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const x=JSON.parse(fs.readFileSync('/tmp/p25-partial-abcd.json','utf8'));
+          if(x.status!=='P25_PARTIAL_ABCD_POSTCLOSE_EVALUATED')throw new Error('partial ABCD status mismatch');
+          if(x.classification?.sessionType!=='PARTIAL_LATE_START'||x.classification?.formalFullSession!==false)throw new Error('partial classification mismatch');
+          if(x.sessionDate!==process.env.SESSION_DATE)throw new Error('partial date mismatch');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'])if(x.safety?.[k]!==false)throw new Error(`unsafe ${k}`);
+          NODE
+
+      - name: Persist append-only partial ABCD result
+        if: steps.existing.outputs.exists != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp /tmp/p25-partial-abcd.json /tmp/abcd-copy.json
+          git config user.name 'Ark P25 Partial ABCD Bot'
+          git config user.email 'ark-p25-partial-abcd@users.noreply.github.com'
+          git fetch origin automation/p25-partial-data:refs/remotes/origin/automation/p25-partial-data
+          git switch -C automation/p25-partial-data origin/automation/p25-partial-data
+          target="data/p25-partial/${SESSION_DATE}/abcd-result.json"
+          test ! -e "$target"
+          cp /tmp/abcd-copy.json "$target"
+          git add "$target"
+          git commit -m "Persist P25 partial ABCD post-close ${SESSION_DATE}"
+          git push origin HEAD:automation/p25-partial-data
+
+      - uses: actions/upload-artifact@v4
+        if: steps.existing.outputs.exists != 'true'
+        with:
+          name: phase57-p25-partial-abcd-${{ env.SESSION_DATE }}
+          path: /tmp/p25-partial-abcd.json
+          retention-days: 90
+
+      - name: Safety boundary
+        if: always()
+        run: echo 'Partial late-start research measurement only; no backfill, no broker/RSS/Excel/order/paper/live execution, no tuning, no promotion.'

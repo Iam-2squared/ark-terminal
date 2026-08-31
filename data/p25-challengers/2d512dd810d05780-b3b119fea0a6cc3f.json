@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.p25.challenger-registry",
+  "status": "P25_CHALLENGER_REGISTRY_FROZEN",
+  "createdAt": "2026-08-31T08:34:14.909Z",
+  "challengers": {
+    "EXIT_V4": {
+      "policy": {
+        "candidateFamily": "STRUCTURAL_RISK_TRAJECTORY_EXIT_V4",
+        "inheritedAnalogCutoff": "2026-08-12",
+        "firstFreshEligibleDate": "2026-09-01",
+        "developmentEvidence": {
+          "august31PartialRole": "FAILURE_ANALYSIS_ONLY",
+          "august31UsedForThresholdSearch": false,
+          "august31UsedForCoefficientSearch": false,
+          "august31EligibleForV4PerformanceClaim": false
+        },
+        "loserRisk": {
+          "rule": "Require causal analog edge rejection plus non-improving downside trajectory before rescue; emergency deterioration may exit on the first structurally confirmed bar.",
+          "upper90MaxPct": 0,
+          "downsideProbabilityMin": 0.5,
+          "trajectoryBars": 2,
+          "emergencyAdverseExcursionMultiple": 1.5
+        },
+        "winnerProtection": {
+          "rule": "Protect only an established winner after causal edge rejection and at least half of observed MFE has been given back; require two confirmations.",
+          "minimumPositiveMfe": true,
+          "maxCaptureRatio": 0.5,
+          "consecutiveConfirmations": 2
+        },
+        "neutralRisk": {
+          "rule": "Neutral state stays HOLD unless directional close deterioration persists for three consecutive managed bars.",
+          "consecutiveDirectionalLossBars": 3
+        },
+        "fixedBaselineUntouched": true,
+        "sameFrozenEntryAsV3": true,
+        "entryRetuningAllowed": false,
+        "universeRetuningAllowed": false,
+        "resultBasedRetuning": false,
+        "freshOutcomeUsedForFitting": false,
+        "promotionEligible": false
+      },
+      "policySha256": "2d512dd810d057807bc59a0138a3db98035e57ff2c23c186ba096beeb6be26cb",
+      "firstFreshEligibleDate": "2026-09-01",
+      "safety": {
+        "executionAllowed": false,
+        "brokerWriteAllowed": false,
+        "excelOrderWriteAllowed": false,
+        "rssOrderFunctionAllowed": false,
+        "liveTradingAllowed": false,
+        "paperTradingAllowed": false,
+        "automaticPromotionAllowed": false,
+        "productionUpdateAllowed": false,
+        "transmitted": false,
+        "freshHoldoutConsumed": false
+      }
+    },
+    "DYNAMIC5M_V2": {
+      "policy": {
+        "candidateId": "INTRADAY_DYNAMIC_5M_UNIVERSE_V2",
+        "baseCandidateId": "INTRADAY_DYNAMIC_5M_UNIVERSE_V1",
+        "finalUniverseSize": 30,
+        "maxPerSector": 3,
+        "persistenceWindowPoints": 3,
+        "weights": {
+          "baseOpportunity": 0.42,
+          "liquidityQuality": 0.23,
+          "persistence": 0.2,
+          "signalQuality": 0.15
+        },
+        "firstFreshEligibleDate": "2026-09-01",
+        "august31PartialRole": "FAILURE_ANALYSIS_ONLY",
+        "august31UsedForWeightSearch": false,
+        "august31UsedForThresholdSearch": false,
+        "futureOutcomeSelectionAllowed": false,
+        "entryCompatibilityOutcomeFitAllowed": false,
+        "postHocWinnerFilteringAllowed": false,
+        "replaceFrozenDynamic50": false,
+        "formalOos": false,
+        "promotionEligible": false
+      },
+      "policySha256": "b3b119fea0a6cc3f299623fd54ec3f65ad5181c74a8ed4b67a37036e59a163a7",
+      "firstFreshEligibleDate": "2026-09-01",
+      "safety": {
+        "phase": "57.p25.intraday-dynamic-universe-v2",
+        "mode": "READ_ONLY_5M_DYNAMIC_UNIVERSE_V2_RESEARCH_CHALLENGER",
+        "researchOnly": true,
+        "executionAllowed": false,
+        "brokerWriteAllowed": false,
+        "excelOrderWriteAllowed": false,
+        "rssOrderFunctionAllowed": false,
+        "liveTradingAllowed": false,
+        "paperTradingAllowed": false,
+        "automaticPromotionAllowed": false,
+        "productionUpdateAllowed": false,
+        "overnightHoldingAllowed": false,
+        "transmitted": false,
+        "freshHoldoutConsumed": false
+      }
+    }
+  },
+  "methodology": {
+    "august31FailureAnalysisOnly": true,
+    "resultBasedRetuning": false,
+    "postHocWinnerFiltering": false,
+    "appendOnlyPersistence": true,
+    "baselineV3AndDynamic5mV1Untouched": true
+  }
+}

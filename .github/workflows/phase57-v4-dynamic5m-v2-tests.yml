@@ -11,8 +11,10 @@ on:
       - 'predict/tests/phase57-p25-intraday-dynamic-universe-v2.test.mjs'
       - 'scripts/run_p25_exit_v4_prospective_replay.mjs'
       - 'scripts/build_p25_challenger_registry.mjs'
+      - 'scripts/run_p25_dynamic5m_challenger_matrix_daily.mjs'
       - '.github/workflows/phase57-p25-exit-v4-prospective-daily.yml'
       - '.github/workflows/phase57-p25-challenger-registry-persistence.yml'
+      - '.github/workflows/phase57-p25-dynamic5m-challenger-matrix-daily.yml'
       - '.github/workflows/phase57-v4-dynamic5m-v2-tests.yml'
   workflow_dispatch:
 
@@ -30,6 +32,8 @@ jobs:
           node-version: '22'
       - name: Run focused research challenger tests
         run: node --test predict/tests/phase57-p25-exit-v4-structural-risk.test.mjs predict/tests/phase57-p25-exit-v4-prospective-replay.test.mjs predict/tests/phase57-p25-intraday-dynamic-universe-v2.test.mjs
+      - name: Check challenger matrix evaluator syntax
+        run: node --check scripts/run_p25_dynamic5m_challenger_matrix_daily.mjs
       - name: Build durable challenger registry contract
         run: node scripts/build_p25_challenger_registry.mjs /tmp/p25-challenger-registry.json
       - name: Safety boundary

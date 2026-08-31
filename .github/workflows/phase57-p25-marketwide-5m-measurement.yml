@@ -6,19 +6,17 @@ on:
       - 'scripts/capture_p25_marketwide_5m_snapshot.mjs'
       - 'scripts/measure_p25_intraday_dynamic_universe_snapshot.mjs'
       - 'predict/daytrade/phase57-p25-intraday-dynamic-universe.js'
+      - 'predict/daytrade/phase57-p25-intraday-dynamic-universe-v2.js'
       - '.github/workflows/phase57-p25-marketwide-5m-measurement.yml'
   workflow_dispatch:
   schedule:
-    # TSE continuous sessions in UTC: 09:00-11:30 / 12:30-15:30 JST.
-    # Keep the schedule explicit so no lunch/post-close snapshot can enter fresh evidence.
-    # This schedule block is intentionally re-registered on the default branch after the
-    # first prospective session showed no scheduled marketwide runs.
     - cron: '*/5 0-1 * * 1-5'
     - cron: '0-30/5 2,6 * * 1-5'
     - cron: '30-55/5 3 * * 1-5'
     - cron: '*/5 4-5 * * 1-5'
 permissions:
   contents: read
+  actions: read
 jobs:
   measure:
     runs-on: ubuntu-latest
@@ -32,16 +30,34 @@ jobs:
         run: node scripts/fetch_p25_marketwide_5m_spark.mjs --output tmp/marketwide.json
       - name: Persist point-in-time snapshot contract
         run: node scripts/capture_p25_marketwide_5m_snapshot.mjs --input tmp/marketwide.json --as-of "$(node -p "require('./tmp/marketwide.json').meta.observedAt")" --output tmp/marketwide.ndjson
-      - name: Measure dynamic 5m selection
-        run: node scripts/measure_p25_intraday_dynamic_universe_snapshot.mjs --input tmp/marketwide.json --output tmp/measurement.json
+      - name: Load causal prior Dynamic5m v2 memberships
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p tmp/prior-v2
+          ids="$(gh run list --repo "$GH_REPO" --workflow phase57-p25-marketwide-5m-measurement.yml --branch main --status success --limit 4 --json databaseId --jq '.[].databaseId' || true)"
+          n=0
+          while read -r id; do
+            [ -z "$id" ] && continue
+            d="tmp/prior-v2/$id"; mkdir -p "$d"
+            gh run download "$id" --repo "$GH_REPO" --name phase57-p25-marketwide-5m-measurement --dir "$d" >/dev/null 2>&1 || true
+            n=$((n+1))
+          done <<< "$ids"
+          echo "inspected $n prior successful measurement runs"
+      - name: Measure dynamic 5m v1 and v2 selection
+        run: node scripts/measure_p25_intraday_dynamic_universe_snapshot.mjs --input tmp/marketwide.json --prior-dir tmp/prior-v2 --output tmp/measurement.json
       - name: Guard research-only safety
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           const x=JSON.parse(fs.readFileSync('tmp/measurement.json','utf8'));
           if(x.status!=='MARKETWIDE_DYNAMIC_5M_MEASUREMENT_READY')throw new Error('measurement not ready');
-          if(x.inputSymbols<3000)throw new Error('not marketwide');
-          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'])if(x.safety?.[k]!==false)throw new Error(`safety ${k}`);
+          if(x.inputSymbols<3000||x.selectedSymbols<20||x.selectedV2Symbols<15)throw new Error('marketwide/v2 selection incomplete');
+          if(x.dynamic5mV2?.policy?.candidateId!=='INTRADAY_DYNAMIC_5M_UNIVERSE_V2')throw new Error('v2 policy missing');
+          for(const s of [x.safety,x.dynamic5mV2?.safety])for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'])if(s?.[k]!==false)throw new Error(`safety ${k}`);
           NODE
       - uses: actions/upload-artifact@v4
         with:

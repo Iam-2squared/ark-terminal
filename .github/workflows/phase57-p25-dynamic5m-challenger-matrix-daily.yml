@@ -89,7 +89,7 @@ jobs:
           snapshot="$(find /tmp/p24-canonical -type f -name 'phase57-p24-9-oos-byte-snapshot.json' -print -quit)"
           test -n "$snapshot"
           node scripts/build_p25_pinned_history_pack.mjs --snapshot "$snapshot" --output /tmp/p25-history.json
-      - name: Evaluate v1 v2 x EXIT v3 v4 x all allocation profiles
+      - name: Evaluate v1 v2 x EXIT v3 v4 x legacy and adaptive allocations
         if: steps.existing.outputs.exists != 'true'
         shell: bash
         run: |
@@ -98,16 +98,26 @@ jobs:
             --bundle /tmp/p25-dynamic5m-day.json \
             --history-pack /tmp/p25-history.json \
             --output /tmp/p25-dynamic5m-matrix.json
+          node scripts/append_p25_adaptive_allocation_v2_to_matrix.mjs \
+            --matrix /tmp/p25-dynamic5m-matrix.json \
+            --bundle /tmp/p25-dynamic5m-day.json \
+            --output /tmp/p25-dynamic5m-matrix.json
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           const x=JSON.parse(fs.readFileSync('/tmp/p25-dynamic5m-matrix.json','utf8'));
           if(x.status!=='P25_DYNAMIC5M_CHALLENGER_MATRIX_EVALUATED'||x.sessionDate!==process.env.EVIDENCE_DATE)throw new Error('matrix result contract mismatch');
+          if(x.adaptiveAllocationV2?.status!=='P25_ADAPTIVE_ALLOCATION_V2_ATTACHED'||x.adaptiveAllocationV2?.profileWinnerSelected!==false)throw new Error('adaptive allocation v2 contract mismatch');
           for(const id of ['V1_V3','V1_V4','V2_V3','V2_V4']){
             const cell=x.matrix?.[id];if(!cell)throw new Error(`missing matrix cell ${id}`);
             if(cell.allocation?.profileWinnerSelected!==false)throw new Error(`winner selection enabled ${id}`);
             for(const p of ['MAX_10','MAX_4','MAX_3','MAX_2'])if(!cell.allocation?.profiles?.[p])throw new Error(`missing allocation ${id}/${p}`);
+            if(cell.adaptiveAllocationV2?.profileWinnerSelected!==false)throw new Error(`adaptive winner selection enabled ${id}`);
+            for(const p of ['ADAPTIVE_EQUAL','ADAPTIVE_RANK','ADAPTIVE_SCORE'])if(!cell.adaptiveAllocationV2?.profiles?.[p])throw new Error(`missing adaptive allocation ${id}/${p}`);
           }
-          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'])if(x.safety?.[k]!==false)throw new Error(`unsafe ${k}`);
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed']){
+            if(x.safety?.[k]!==false)throw new Error(`unsafe ${k}`);
+            if(x.adaptiveAllocationV2?.safety?.[k]!==false)throw new Error(`unsafe adaptive v2 ${k}`);
+          }
           NODE
       - name: Persist append-only challenger matrix
         if: steps.existing.outputs.exists != 'true'
@@ -139,5 +149,5 @@ jobs:
       - name: Safety boundary
         if: always()
         run: |
-          echo 'Research-only paired matrix: Dynamic5m v1/v2 x EXIT v3/v4 x MAX10/MAX4/MAX3/MAX2.'
+          echo 'Research-only paired matrix: Dynamic5m v1/v2 x EXIT v3/v4 x legacy MAX profiles + Adaptive Allocation v2.'
           echo 'No order, broker, RSS, Excel, live, paper, automatic promotion, production update, or outcome-based tuning.'

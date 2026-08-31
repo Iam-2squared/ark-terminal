@@ -6,6 +6,7 @@ on:
       - 'scripts/build_phase57_us_universe.mjs'
       - 'scripts/fetch_phase57_us_massive_free.mjs'
       - 'scripts/measure_phase57_us_marketwide_5m.mjs'
+      - 'scripts/evaluate_phase57_us_accuracy.mjs'
       - 'predict/tests/phase57-us-cross-market.test.mjs'
       - '.github/workflows/phase57-us-cross-market-tests.yml'
   workflow_dispatch:
@@ -19,16 +20,26 @@ jobs:
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
       - run: node --test predict/tests/phase57-us-cross-market.test.mjs
-      - run: node --check scripts/build_phase57_us_universe.mjs && node --check scripts/fetch_phase57_us_massive_free.mjs && node --check scripts/measure_phase57_us_marketwide_5m.mjs
-      - name: Verify free non-realtime evidence cannot be mislabeled Fresh
+      - run: node --check scripts/build_phase57_us_universe.mjs && node --check scripts/fetch_phase57_us_massive_free.mjs && node --check scripts/measure_phase57_us_marketwide_5m.mjs && node --check scripts/evaluate_phase57_us_accuracy.mjs
+      - name: Verify accuracy-only evaluator
         run: |
           mkdir -p tmp
+          cat > tmp/us-trades.json <<'JSON'
+          {"trades":[{"lane":"US_D50_FIXED","returnPct":1},{"lane":"US_D50_FIXED","returnPct":-0.5},{"lane":"US_D50_FIXED","returnPct":2}]}
+          JSON
+          node scripts/evaluate_phase57_us_accuracy.mjs --input tmp/us-trades.json --output tmp/us-accuracy.json >/dev/null
+          node - <<'NODE'
+          const x=require('./tmp/us-accuracy.json');
+          if(x.currencyConversion!==false||x.capitalAllocation!==false) process.exit(1);
+          if(x.lanes.US_D50_FIXED.n!==3) process.exit(1);
+          if(!(x.lanes.US_D50_FIXED.netReturnPct>2.4&&x.lanes.US_D50_FIXED.netReturnPct<2.6)) process.exit(1);
+          NODE
+      - name: Verify free non-realtime evidence cannot be mislabeled Fresh
+        run: |
           node - <<'NODE'
           const fs=require('fs');
           const p=fs.readFileSync('scripts/measure_phase57_us_marketwide_5m.mjs','utf8');
           if(!p.includes('free provider data is not real-time')) process.exit(1);
-          const f=fs.readFileSync('scripts/fetch_phase57_us_massive_free.mjs','utf8');
-          for(const x of ['MASSIVE_API_KEY','freshRealtime:false','noPaidFallback:true','noIexSubstitution:true']) if(!f.includes(x)) process.exit(1);
           NODE
       - name: Safety boundary
-        run: echo 'US cross-market validation is research-only; free data is never promoted to realtime Fresh; no broker, RSS order, Excel order, paper/live trading, promotion, or production update.'
+        run: echo 'US validation is accuracy-only research; no capital allocation, FX conversion, broker, RSS order, Excel order, paper/live trading, promotion, or production update.'

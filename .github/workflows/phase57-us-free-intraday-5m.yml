@@ -1,0 +1,129 @@
+name: Phase57 US Free Intraday 5m
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/fetch_phase57_us_free_reference.mjs'
+      - 'scripts/fetch_phase57_us_free_5m.mjs'
+      - 'scripts/measure_phase57_us_marketwide_5m.mjs'
+      - '.github/workflows/phase57-us-free-intraday-5m.yml'
+  schedule:
+    - cron: '*/5 13-22 * * 1-5'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: phase57-us-free-intraday-5m
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Resolve US session guard
+        id: session
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const now=new Date();
+          const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',weekday:'short',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(now);
+          const o=Object.fromEntries(parts.map(x=>[x.type,x.value]));
+          const date=`${o.year}-${o.month}-${o.day}`;
+          const hm=`${o.hour}:${o.minute}`;
+          const regular=['Mon','Tue','Wed','Thu','Fri'].includes(o.weekday)&&hm>='09:30'&&hm<'16:00';
+          fs.appendFileSync(process.env.GITHUB_OUTPUT,`session_date=${date}\nregular=${regular?'true':'false'}\n`);
+          console.log(JSON.stringify({date,hm,weekday:o.weekday,regular}));
+          NODE
+
+      - name: Skip outside regular session
+        if: steps.session.outputs.regular != 'true'
+        run: echo 'Outside US regular session; no collection.'
+
+      - name: Fetch free US collection universe
+        if: steps.session.outputs.regular == 'true'
+        run: node scripts/fetch_phase57_us_free_reference.mjs --output tmp/us-free-reference.json
+
+      - name: Fetch batched free 5m evidence
+        if: steps.session.outputs.regular == 'true'
+        run: node scripts/fetch_phase57_us_free_5m.mjs --universe tmp/us-free-reference.json --session-date '${{ steps.session.outputs.session_date }}' --output tmp/us-free-5m.json
+
+      - name: Measure Dynamic5m diagnostic substrate
+        if: steps.session.outputs.regular == 'true'
+        run: node scripts/measure_phase57_us_marketwide_5m.mjs --universe tmp/us-free-reference.json --snapshot tmp/us-free-5m.json --output tmp/us-free-measurement.json
+
+      - name: Verify safety and diagnostic labeling
+        if: steps.session.outputs.regular == 'true'
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const raw=JSON.parse(fs.readFileSync('tmp/us-free-5m.json','utf8'));
+          const m=JSON.parse(fs.readFileSync('tmp/us-free-measurement.json','utf8'));
+          if(raw.freshRealtime!==false||raw.formalFreshEligible!==false||raw.researchIntraday5m!==true) throw new Error('free 5m evidence mislabeled');
+          if(m.status!=='US_MARKETWIDE_5M_DIAGNOSTIC_MEASURED'||m.classification.fullFresh!==false) throw new Error('measurement mislabeled');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed']) if(m.safety[k]!==false) throw new Error(`unsafe ${k}`);
+          NODE
+
+      - name: Prepare compact durable evidence
+        if: steps.session.outputs.regular == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          bucket="$(TZ=America/New_York date +%H%M)"
+          date='${{ steps.session.outputs.session_date }}'
+          file="data/us-free-5m/$date/${bucket}.json"
+          mkdir -p "$(dirname "$file")"
+          cp tmp/us-free-measurement.json "$file"
+          cp "$file" /tmp/us-free-measurement-durable.json
+          echo "US_BUCKET=$bucket" >> "$GITHUB_ENV"
+
+      - name: Persist compact diagnostic evidence
+        if: steps.session.outputs.regular == 'true'
+        env:
+          DATA_BRANCH: automation/p57-us-free-5m-data
+        shell: bash
+        run: |
+          set -euo pipefail
+          date='${{ steps.session.outputs.session_date }}'
+          file="data/us-free-5m/$date/${US_BUCKET}.json"
+          git config user.name 'Ark US Research Bot'
+          git config user.email 'ark-us-research-bot@users.noreply.github.com'
+          if git fetch origin "refs/heads/$DATA_BRANCH:refs/remotes/origin/$DATA_BRANCH" 2>/dev/null; then
+            git switch -C "$DATA_BRANCH" "origin/$DATA_BRANCH"
+          else
+            git switch --orphan "$DATA_BRANCH"
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+          mkdir -p "$(dirname "$file")"
+          cp /tmp/us-free-measurement-durable.json "$file"
+          git add "$file"
+          if git diff --cached --quiet; then
+            echo 'No compact evidence changes.'
+          else
+            git commit -m "Persist US free 5m diagnostic $date $US_BUCKET"
+            git push origin "$DATA_BRANCH"
+          fi
+
+      - name: Upload raw short-retention evidence
+        if: steps.session.outputs.regular == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-us-free-5m-${{ steps.session.outputs.session_date }}-${{ github.run_id }}
+          retention-days: 7
+          path: |
+            tmp/us-free-reference.json
+            tmp/us-free-5m.json
+            tmp/us-free-measurement.json

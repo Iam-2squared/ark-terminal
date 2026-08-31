@@ -1,7 +1,7 @@
 import {createHash} from 'node:crypto';
 
 export const PHASE57_US_CROSS_MARKET_SAFETY=Object.freeze({
-  phase:'57.us-cross-market',mode:'READ_ONLY_US_CROSS_MARKET_PROSPECTIVE_RESEARCH',researchOnly:true,
+  phase:'57.us-cross-market',mode:'READ_ONLY_US_ACCURACY_RESEARCH',researchOnly:true,
   executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,rssOrderFunctionAllowed:false,
   liveTradingAllowed:false,paperTradingAllowed:false,automaticPromotionAllowed:false,productionUpdateAllowed:false,
   transmitted:false,freshHoldoutConsumed:false,
@@ -11,21 +11,12 @@ export const PHASE57_US_CROSS_MARKET_POLICY=Object.freeze({
   candidateId:'US_CROSS_MARKET_V1',market:'US',
   exchanges:Object.freeze(['NASDAQ','NYSE','NYSE_ARCA','NYSE_AMERICAN']),timezone:'America/New_York',
   regularSession:Object.freeze({open:'09:30',close:'16:00',barMinutes:5,expectedBars:78}),
-  purpose:'CROSS_MARKET_PROSPECTIVE_VALIDATION_NOT_JPX_OOS_SUBSTITUTE',
+  purpose:'CROSS_MARKET_ACCURACY_VALIDATION_NOT_JPX_OOS_SUBSTITUTE',
   universe:Object.freeze({commonStocksOnly:true,etfs:false,otc:false,preferred:false,warrants:false,rights:false,units:false,requireUsdQuote:true,requireActiveListing:true,minimumPriceUsd:1,minimumMedianDollarVolumeUsd:5_000_000,freezeBeforeRegularOpen:true}),
-  selection:Object.freeze({
-    preOpenFrozenD50:true,d50Size:50,
-    dynamic5mMarketwideRescan:true,dynamic5mEveryMinutes:5,dynamicV1Size:50,dynamicV2Size:30,
-    d50AndDynamic5mAreSeparate:true,
-  }),
+  selection:Object.freeze({preOpenFrozenD50:true,d50Size:50,dynamic5mMarketwideRescan:true,dynamic5mEveryMinutes:5,dynamicV1Size:50,dynamicV2Size:30,d50AndDynamic5mAreSeparate:true}),
   lanes:Object.freeze(['US_D50_FIXED','US_D50_V3','US_D50_V4','US_DYNAMIC5M_V1_V3','US_DYNAMIC5M_V1_V4','US_DYNAMIC5M_V2_V3','US_DYNAMIC5M_V2_V4']),
-  allocationProfiles:Object.freeze(['MAX_10','MAX_4','MAX_3','MAX_2','ADAPTIVE_EQUAL','ADAPTIVE_RANK','ADAPTIVE_SCORE']),
-  reporting:Object.freeze({
-    nativeReturnUnit:'PERCENT',currencyConversion:false,jpyConversion:false,fxExposureModel:false,
-    primaryMetrics:Object.freeze(['netReturnPct','meanReturnPctPerTrade','medianReturnPctPerTrade','winRatePct','profitFactor','maxDrawdownPct','coveragePct']),
-    priceCurrency:'USD',note:'USD prices may be retained as source evidence; performance comparison is percentage-native and is not converted to JPY.',
-  }),
-  methodology:Object.freeze({jpxEvidenceUntouched:true,jpxFormalOosSubstitution:false,crossMarketEvidenceSeparate:true,sameFrozenEntryLogicRequested:true,exitV3Frozen:true,exitV4Frozen:true,adaptiveAllocationV2Frozen:true,usOutcomeUsedForFitting:false,resultBasedRetuning:false,postHocWinnerFiltering:false,missingBucketsNeverFabricated:true,regularSessionOnly:true,preMarketAndAfterHoursExcluded:true}),
+  reporting:Object.freeze({returnUnit:'PERCENT',currencyConversion:false,metrics:Object.freeze(['n','netReturnPct','meanReturnPctPerTrade','medianReturnPctPerTrade','winRatePct','profitFactor','maxDrawdownPct'])}),
+  methodology:Object.freeze({jpxEvidenceUntouched:true,jpxFormalOosSubstitution:false,crossMarketEvidenceSeparate:true,sameFrozenEntryLogicRequested:true,exitV3Frozen:true,exitV4Frozen:true,usOutcomeUsedForFitting:false,resultBasedRetuning:false,postHocWinnerFiltering:false,missingBucketsNeverFabricated:true,regularSessionOnly:true,preMarketAndAfterHoursExcluded:true,capitalAllocationExcluded:true,fxModelExcluded:true}),
 });
 
 export const PHASE57_US_CROSS_MARKET_POLICY_SHA256=createHash('sha256').update(JSON.stringify(PHASE57_US_CROSS_MARKET_POLICY)).digest('hex');

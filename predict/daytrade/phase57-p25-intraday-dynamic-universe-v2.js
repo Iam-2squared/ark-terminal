@@ -43,8 +43,12 @@ function signalQualityScore(row){
   return clamp(discovery*0.30+technical*0.30+conf01(row?.confidence)*0.20+quality01(row?.qualityScore)*0.20);
 }
 function diversify(rows,count,maxPerSector){const out=[],counts=new Map();for(const row of rows){if(out.length>=count)break;const s=row.sector,n=counts.get(s)??0;if(n>=maxPerSector)continue;out.push(row);counts.set(s,n+1);}return out;}
+function normalizePriorSelections(priorSelections=[]){
+  if(!Array.isArray(priorSelections))throw new TypeError('priorSelections must be an array');
+  return priorSelections.map(x=>new Set((Array.isArray(x)?x:[]).map(v=>sym(typeof v==='string'?v:v?.symbol)).filter(Boolean)));
+}
 
-export function buildIntradayDynamicUniverseTimelineV2({snapshots=[],heldSymbolsByCutoff={},policy={}}={}){
+export function buildIntradayDynamicUniverseTimelineV2({snapshots=[],heldSymbolsByCutoff={},priorSelections=[],policy={}}={}){
   const cfg={...PHASE57_INTRADAY_UNIVERSE_V2_POLICY,...policy,weights:{...PHASE57_INTRADAY_UNIVERSE_V2_POLICY.weights,...policy?.weights}};
   if(!Number.isInteger(Number(cfg.finalUniverseSize))||Number(cfg.finalUniverseSize)<1)throw new TypeError('finalUniverseSize must be positive integer');
   if(!Number.isInteger(Number(cfg.maxPerSector))||Number(cfg.maxPerSector)<1)throw new TypeError('maxPerSector must be positive integer');
@@ -54,7 +58,7 @@ export function buildIntradayDynamicUniverseTimelineV2({snapshots=[],heldSymbols
 
   const base=buildIntradayDynamicUniverseTimeline({snapshots,heldSymbolsByCutoff,policy:{finalUniverseSize:50}});
   const snapshotBySource=new Map(snapshots.map(s=>[String(s?.asOf??''),s]));
-  const recentSelections=[];const points=[];
+  const recentSelections=normalizePriorSelections(priorSelections).slice(-Number(cfg.persistenceWindowPoints));const points=[];
   for(const point of base.points){
     const source=snapshotBySource.get(point.sourceAsOf);const bySymbol=new Map((source?.entries??[]).map(r=>[sym(r.symbol),r]));
     const previous=recentSelections.slice(-Number(cfg.persistenceWindowPoints));
@@ -70,12 +74,13 @@ export function buildIntradayDynamicUniverseTimelineV2({snapshots=[],heldSymbols
     const held=new Set((heldSymbolsByCutoff?.[point.sourceAsOf]??heldSymbolsByCutoff?.[point.asOf]??[]).map(sym));
     const allocationEligible=selected.filter(x=>!held.has(sym(x.symbol)));
     recentSelections.push(new Set(selected.map(x=>sym(x.symbol))));
+    while(recentSelections.length>Number(cfg.persistenceWindowPoints))recentSelections.shift();
     points.push(Object.freeze({...point,rawUniverse:Object.freeze(selected),allocationEligibleUniverse:Object.freeze(allocationEligible),heldExcludedCount:selected.length-allocationEligible.length,v2RankedUniverse:Object.freeze(scored)}));
   }
   return Object.freeze({
     phase:'57.p25.intraday-dynamic-universe-v2',status:'INTRADAY_DYNAMIC_5M_UNIVERSE_V2_TIMELINE_READY',candidateId:cfg.candidateId,
     points:Object.freeze(points),baseDiagnostics:base.diagnostics,
-    methodology:Object.freeze({marketWideRefreshEachFiveMinutes:true,baseV1PrescreenRetained:true,causalPersistenceOnly:true,liquidityQualityGate:true,directionalEfficiencyProxy:true,sectorConcentrationCap:true,futureOutcomeUsed:false,entryOutcomeFitUsed:false,postHocWinnerFiltering:false,formalOos:false,promotionEligible:false}),
+    methodology:Object.freeze({marketWideRefreshEachFiveMinutes:true,baseV1PrescreenRetained:true,causalPersistenceOnly:true,priorSelectionsConsumedOnlyFromEarlierBuckets:true,liquidityQualityGate:true,directionalEfficiencyProxy:true,sectorConcentrationCap:true,futureOutcomeUsed:false,entryOutcomeFitUsed:false,postHocWinnerFiltering:false,formalOos:false,promotionEligible:false}),
     policy:Object.freeze(cfg),safety:PHASE57_INTRADAY_UNIVERSE_V2_SAFETY,
   });
 }

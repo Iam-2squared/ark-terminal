@@ -1,0 +1,143 @@
+name: Phase57 P25 Dynamic5m Challenger Matrix Daily
+
+on:
+  workflow_run:
+    workflows: ['Phase57 P25 Dynamic 5m Daily Bundle']
+    types: [completed]
+  schedule:
+    - cron: '20 8 * * 1-5'   # 17:20 JST fallback
+    - cron: '10 12 * * 1-5'  # 21:10 JST recovery fallback
+  workflow_dispatch:
+    inputs:
+      evidence_date:
+        description: 'Immutable Dynamic5m bundle date YYYY-MM-DD; blank=latest durable bundle'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: phase57-p25-dynamic5m-challenger-matrix-daily
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Resolve immutable Dynamic5m day
+        shell: bash
+        env:
+          REQUESTED: ${{ inputs.evidence_date }}
+        run: |
+          set -euo pipefail
+          git fetch origin automation/p25-dynamic5m-day-data:refs/remotes/origin/automation/p25-dynamic5m-day-data
+          if [ -n "${REQUESTED:-}" ]; then
+            date="$REQUESTED"
+          else
+            date="$(git ls-tree -r --name-only origin/automation/p25-dynamic5m-day-data -- data/p25-dynamic5m-day | sed -n 's#data/p25-dynamic5m-day/\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\).json#\1#p' | sort | tail -n1)"
+          fi
+          [[ "$date" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]
+          git show "origin/automation/p25-dynamic5m-day-data:data/p25-dynamic5m-day/${date}.json" > /tmp/p25-dynamic5m-day.json
+          echo "EVIDENCE_DATE=$date" >> "$GITHUB_ENV"
+      - name: Skip if challenger matrix already durable
+        id: existing
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git fetch origin automation/p25-dynamic5m-matrix-data:refs/remotes/origin/automation/p25-dynamic5m-matrix-data 2>/dev/null \
+            && git cat-file -e "origin/automation/p25-dynamic5m-matrix-data:data/p25-dynamic5m-matrix/${EVIDENCE_DATE}.json" 2>/dev/null; then
+            echo 'exists=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'exists=false' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Require complete causal v1/v2 point-in-time bundle
+        if: steps.existing.outputs.exists != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const x=JSON.parse(fs.readFileSync('/tmp/p25-dynamic5m-day.json','utf8'));
+          if(x.sessionDate!==process.env.EVIDENCE_DATE)throw new Error('matrix bundle date mismatch');
+          if(x.barsReady!==true)throw new Error('matrix bundle bars not ready');
+          if(x.completeFiveMinuteCoverage!==true)throw new Error('matrix requires full-session 5m coverage');
+          if(x.hasDynamic5mV2EveryPoint!==true)throw new Error('matrix requires v2 membership at every retained point');
+          if(!Array.isArray(x.points)||x.points.length!==x.expectedPointCount)throw new Error('matrix point count mismatch');
+          for(const p of x.points){if(!Array.isArray(p.selected)||p.selected.length<20||!Array.isArray(p.selectedV2)||p.selectedV2.length<15)throw new Error(`matrix incomplete point ${p.observedAt}`);}
+          NODE
+      - name: Build exact pinned Entry and EXIT history pack
+        if: steps.existing.outputs.exists != 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p24-canonical
+          gh run download 31785422471 --repo "$GH_REPO" --name phase57-p24-9-oos-canonical-candidate --dir /tmp/p24-canonical
+          snapshot="$(find /tmp/p24-canonical -type f -name 'phase57-p24-9-oos-byte-snapshot.json' -print -quit)"
+          test -n "$snapshot"
+          node scripts/build_p25_pinned_history_pack.mjs --snapshot "$snapshot" --output /tmp/p25-history.json
+      - name: Evaluate v1 v2 x EXIT v3 v4 x all allocation profiles
+        if: steps.existing.outputs.exists != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/run_p25_dynamic5m_challenger_matrix_daily.mjs \
+            --bundle /tmp/p25-dynamic5m-day.json \
+            --history-pack /tmp/p25-history.json \
+            --output /tmp/p25-dynamic5m-matrix.json
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const x=JSON.parse(fs.readFileSync('/tmp/p25-dynamic5m-matrix.json','utf8'));
+          if(x.status!=='P25_DYNAMIC5M_CHALLENGER_MATRIX_EVALUATED'||x.sessionDate!==process.env.EVIDENCE_DATE)throw new Error('matrix result contract mismatch');
+          for(const id of ['V1_V3','V1_V4','V2_V3','V2_V4']){
+            const cell=x.matrix?.[id];if(!cell)throw new Error(`missing matrix cell ${id}`);
+            if(cell.allocation?.profileWinnerSelected!==false)throw new Error(`winner selection enabled ${id}`);
+            for(const p of ['MAX_10','MAX_4','MAX_3','MAX_2'])if(!cell.allocation?.profiles?.[p])throw new Error(`missing allocation ${id}/${p}`);
+          }
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'])if(x.safety?.[k]!==false)throw new Error(`unsafe ${k}`);
+          NODE
+      - name: Persist append-only challenger matrix
+        if: steps.existing.outputs.exists != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'Ark Dynamic5m Matrix Bot'
+          git config user.email 'ark-dynamic5m-matrix@users.noreply.github.com'
+          git fetch origin automation/p25-dynamic5m-matrix-data:refs/remotes/origin/automation/p25-dynamic5m-matrix-data || true
+          if git show-ref --verify --quiet refs/remotes/origin/automation/p25-dynamic5m-matrix-data; then
+            git switch -C automation/p25-dynamic5m-matrix-data origin/automation/p25-dynamic5m-matrix-data
+          else
+            git switch --orphan automation/p25-dynamic5m-matrix-data
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+          mkdir -p data/p25-dynamic5m-matrix
+          target="data/p25-dynamic5m-matrix/${EVIDENCE_DATE}.json"
+          test ! -e "$target"
+          cp /tmp/p25-dynamic5m-matrix.json "$target"
+          git add "$target"
+          git commit -m "Persist Dynamic5m challenger matrix $EVIDENCE_DATE"
+          git push origin HEAD:automation/p25-dynamic5m-matrix-data
+      - uses: actions/upload-artifact@v4
+        if: steps.existing.outputs.exists != 'true'
+        with:
+          name: phase57-p25-dynamic5m-challenger-matrix-${{ env.EVIDENCE_DATE }}
+          path: /tmp/p25-dynamic5m-matrix.json
+          retention-days: 90
+      - name: Safety boundary
+        if: always()
+        run: |
+          echo 'Research-only paired matrix: Dynamic5m v1/v2 x EXIT v3/v4 x MAX10/MAX4/MAX3/MAX2.'
+          echo 'No order, broker, RSS, Excel, live, paper, automatic promotion, production update, or outcome-based tuning.'

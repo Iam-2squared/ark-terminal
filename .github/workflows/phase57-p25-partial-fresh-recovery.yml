@@ -1,0 +1,171 @@
+name: Phase57 P25 Partial Fresh Recovery
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/phase57-p25-partial-fresh-recovery.yml'
+      - 'scripts/capture_p25_partial_late_start.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: phase57-p25-partial-fresh-recovery
+  cancel-in-progress: false
+
+jobs:
+  freeze-d50:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    outputs:
+      session_date: ${{ steps.meta.outputs.session_date }}
+      start_time_jst: ${{ steps.meta.outputs.start_time_jst }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: main, fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: python -m pip install xlrd==2.0.1
+      - name: Refresh JPX universe
+        run: python scripts/fetch_jpx_universe.py
+      - name: Restore rolling screener state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin automation/p25-universe-data:refs/remotes/origin/automation/p25-universe-data || true
+          if git show-ref --verify --quiet refs/remotes/origin/automation/p25-universe-data; then
+            git checkout origin/automation/p25-universe-data -- data/screener-snapshot.json data/screener-progress.json || true
+          fi
+      - name: Complete a fresh JPX screener cycle inside this run
+        shell: bash
+        run: |
+          set -euo pipefail
+          for pass in $(seq 1 8); do
+            if [ "$pass" -eq 1 ]; then reset=true; else reset=false; fi
+            echo "partial recovery screener pass=$pass reset=$reset"
+            SCREENER_BATCH_SIZE=620 SCREENER_RESET_PROGRESS="$reset" SCREENER_CONCURRENCY=4 SCREENER_DELAY_MS=350 node scripts/update_screener.mjs
+            complete="$(node -p "require('./data/screener-progress.json').cycleComplete===true?'true':'false'")"
+            if [ "$complete" = true ]; then break; fi
+          done
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';const p=JSON.parse(fs.readFileSync('data/screener-progress.json','utf8'));
+          if(p.cycleComplete!==true)throw new Error(`partial recovery failed to complete JPX cycle: ${p.processedInCycle}/${p.universeCount}`);
+          if(Number(p.processedInCycle)!==Number(p.universeCount))throw new Error('completed cycle cardinality mismatch');
+          NODE
+      - name: Freeze causal late-start D50 and define exact partial window
+        run: node scripts/capture_p25_partial_late_start.mjs --input data/screener-snapshot.json --output /tmp/p25-partial-freeze.json
+      - name: Verify freeze contract and safety
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';const x=JSON.parse(fs.readFileSync('/tmp/p25-partial-freeze.json','utf8'));
+          if(x.status!=='PARTIAL_LATE_START_D50_FROZEN'||x.ready!==true||x.sessionType!=='PARTIAL_LATE_START')throw new Error('invalid partial freeze');
+          if(x.methodology?.historicalBackfill!==false||x.methodology?.missingEarlierBucketsNeverBackfilledOrFabricated!==true)throw new Error('partial no-backfill contract missing');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'])if(x.safety?.[k]!==false)throw new Error(`unsafe ${k}`);
+          NODE
+          session="$(node -p "require('/tmp/p25-partial-freeze.json').sessionDate")"
+          start="$(node -p "require('/tmp/p25-partial-freeze.json').startTimeJst")"
+          echo "session_date=$session" >> "$GITHUB_OUTPUT"
+          echo "start_time_jst=$start" >> "$GITHUB_OUTPUT"
+      - name: Persist immutable partial D50 freeze
+        shell: bash
+        run: |
+          set -euo pipefail
+          session="${{ steps.meta.outputs.session_date }}"
+          cp /tmp/p25-partial-freeze.json /tmp/freeze-copy.json
+          git config user.name 'Ark P25 Partial Bot'
+          git config user.email 'ark-p25-partial@users.noreply.github.com'
+          git fetch origin automation/p25-partial-data:refs/remotes/origin/automation/p25-partial-data || true
+          if git show-ref --verify --quiet refs/remotes/origin/automation/p25-partial-data; then git switch -C automation/p25-partial-data origin/automation/p25-partial-data; else git switch --orphan automation/p25-partial-data; git rm -rf . >/dev/null 2>&1 || true; fi
+          mkdir -p data/p25-partial/$session
+          target="data/p25-partial/$session/freeze.json"
+          test ! -e "$target"
+          cp /tmp/freeze-copy.json "$target"
+          git add "$target" && git commit -m "Persist P25 partial Fresh freeze $session" && git push origin HEAD:automation/p25-partial-data
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-partial-freeze
+          path: /tmp/p25-partial-freeze.json
+          retention-days: 90
+
+  collect-dynamic5m:
+    needs: freeze-d50
+    runs-on: ubuntu-latest
+    timeout-minutes: 155
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: main, fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-p25-partial-freeze
+          path: /tmp/freeze
+      - name: Collect causal Dynamic5m snapshots from frozen partial start through 11:30 JST
+        shell: bash
+        run: |
+          set -u
+          mkdir -p tmp/partial-dynamic
+          expected_session='${{ needs.freeze-d50.outputs.session_date }}'
+          start_hm="$(node -p "require('/tmp/freeze/p25-partial-freeze.json').startTimeJst.replace(':','')")"
+          attempt=0; success=0
+          while true; do
+            today="$(TZ=Asia/Tokyo date +%F)"; hm="$(TZ=Asia/Tokyo date +%H%M)"
+            [ "$today" != "$expected_session" ] && break
+            [ "$hm" -gt 1130 ] && break
+            now="$(date +%s)"; next="$(( (now + 299) / 300 * 300 ))"; wait="$((next-now))"; [ "$wait" -gt 0 ] && sleep "$wait"
+            hm="$(TZ=Asia/Tokyo date +%H%M)"; [ "$hm" -lt "$start_hm" ] && continue; [ "$hm" -gt 1130 ] && break
+            attempt=$((attempt+1)); stamp="$(date -u +%Y%m%dT%H%M%SZ)"; dir="tmp/partial-dynamic/$stamp"; mkdir -p "$dir"
+            echo "[$stamp] partial Dynamic5m attempt=$attempt"
+            if node scripts/fetch_p25_marketwide_5m_spark.mjs --output "$dir/marketwide.json" \
+              && node scripts/capture_p25_marketwide_5m_snapshot.mjs --input "$dir/marketwide.json" --as-of "$(node -p "require('./$dir/marketwide.json').meta.observedAt")" --output "$dir/marketwide.ndjson" \
+              && node scripts/measure_p25_intraday_dynamic_universe_snapshot.mjs --input "$dir/marketwide.json" --output "$dir/measurement.json"; then
+              success=$((success+1))
+            else
+              echo "failed closed at $stamp"; rm -f "$dir/measurement.json" "$dir/marketwide.ndjson"
+            fi
+          done
+          echo "partial attempts=$attempt successes=$success"
+          test "$success" -ge 2
+      - name: Verify retained marketwide points and build durable partial streams
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';import path from 'node:path';
+          const root='tmp/partial-dynamic';const dirs=fs.readdirSync(root).sort();let n=0;const mw=[];const mm=[];
+          for(const d of dirs){const m=path.join(root,d,'measurement.json'),w=path.join(root,d,'marketwide.ndjson');if(!fs.existsSync(m)||!fs.existsSync(w))continue;const x=JSON.parse(fs.readFileSync(m,'utf8'));if(x.status!=='MARKETWIDE_DYNAMIC_5M_MEASUREMENT_READY'||x.inputSymbols<3000)throw new Error(`invalid point ${d}`);for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'])if(x.safety?.[k]!==false)throw new Error(`unsafe ${k}`);mw.push(fs.readFileSync(w,'utf8').trim());mm.push(JSON.stringify(x));n++;}
+          if(n<2)throw new Error('insufficient causal partial Dynamic5m points');
+          fs.writeFileSync('/tmp/partial-marketwide.ndjson',mw.join('\n')+'\n');fs.writeFileSync('/tmp/partial-measurements.ndjson',mm.join('\n')+'\n');
+          const freeze=JSON.parse(fs.readFileSync('/tmp/freeze/p25-partial-freeze.json','utf8'));
+          fs.writeFileSync('/tmp/partial-manifest.json',JSON.stringify({status:'PARTIAL_FRESH_SUBSTRATE_READY',sessionType:'PARTIAL_LATE_START',sessionDate:freeze.sessionDate,startTimeJst:freeze.startTimeJst,endTimeJst:'11:30',dynamicPointCount:n,tracks:['A','B','C','D'],formalFullSession:false,missingEarlierBucketsNeverBackfilledOrFabricated:true,safety:freeze.safety},null,2)+'\n');
+          NODE
+      - name: Persist partial point-in-time substrate durably
+        shell: bash
+        run: |
+          set -euo pipefail
+          session='${{ needs.freeze-d50.outputs.session_date }}'
+          mkdir -p /tmp/partial-copy; cp /tmp/partial-marketwide.ndjson /tmp/partial-measurements.ndjson /tmp/partial-manifest.json /tmp/partial-copy/
+          git config user.name 'Ark P25 Partial Bot'; git config user.email 'ark-p25-partial@users.noreply.github.com'
+          git fetch origin automation/p25-partial-data:refs/remotes/origin/automation/p25-partial-data
+          git switch -C automation/p25-partial-data origin/automation/p25-partial-data
+          dir="data/p25-partial/$session"; mkdir -p "$dir"
+          for f in partial-marketwide.ndjson partial-measurements.ndjson partial-manifest.json; do test ! -e "$dir/$f"; cp "/tmp/partial-copy/$f" "$dir/$f"; done
+          git add "$dir" && git commit -m "Persist P25 partial Dynamic5m Fresh substrate $session" && git push origin HEAD:automation/p25-partial-data
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-partial-dynamic5m-${{ needs.freeze-d50.outputs.session_date }}
+          path: |
+            /tmp/partial-marketwide.ndjson
+            /tmp/partial-measurements.ndjson
+            /tmp/partial-manifest.json
+          retention-days: 90
+      - name: Safety boundary
+        if: always()
+        run: echo 'Partial Fresh research capture only; no backfill, no broker/RSS/Excel/order/paper/live/promotion/production action.'

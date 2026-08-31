@@ -1,0 +1,41 @@
+name: Phase57 P25 Preopen Single-Run Smoke
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-p25-prospective-universe.yml'
+      - '.github/workflows/phase57-p25-preopen-single-run-smoke.yml'
+      - 'scripts/screener-progress.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  progression-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Prove one bounded job can drain a JPX-sized cycle
+        run: |
+          node --input-type=module <<'NODE'
+          import {planScreenerBatch,finalizeScreenerBatch} from './scripts/screener-progress.mjs';
+          const universe=Array.from({length:3706},(_,i)=>({symbol:String(1000+i)}));
+          let progress={};
+          const batchSize=620,maxPasses=8;
+          let passes=0;
+          while(passes<maxPasses){
+            const plan=planScreenerBatch({universe,progress,batchSize,reset:passes===0});
+            progress=finalizeScreenerBatch({plan,counts:{analyzed:plan.selected.length}});
+            passes++;
+            if(progress.cycleComplete)break;
+          }
+          if(!progress.cycleComplete)throw new Error('cycle did not complete');
+          if(progress.processedInCycle!==3706)throw new Error(`cardinality ${progress.processedInCycle}`);
+          if(passes!==6)throw new Error(`expected six passes, got ${passes}`);
+          console.log(JSON.stringify({status:'P25_PREOPEN_SINGLE_RUN_PROGRESSION_GREEN',universe:3706,batchSize,passes,processed:progress.processedInCycle},null,2));
+          NODE
+      - name: Verify no execution surface
+        run: echo 'Progression simulation only; no market fetch, broker, order, paper/live, or persistence action.'

@@ -81,8 +81,19 @@ jobs:
           cp /tmp/p25-partial-freeze.json /tmp/freeze-copy.json
           git config user.name 'Ark P25 Partial Bot'
           git config user.email 'ark-p25-partial@users.noreply.github.com'
+          # The screener intentionally modifies tracked research files. They are not part
+          # of the partial-data branch, so discard those working-tree changes only after
+          # the verified freeze has been copied to /tmp. This makes the first orphan
+          # branch creation and all later branch switches deterministic.
+          git reset --hard HEAD
+          git clean -fd
           git fetch origin automation/p25-partial-data:refs/remotes/origin/automation/p25-partial-data || true
-          if git show-ref --verify --quiet refs/remotes/origin/automation/p25-partial-data; then git switch -C automation/p25-partial-data origin/automation/p25-partial-data; else git switch --orphan automation/p25-partial-data; git rm -rf . >/dev/null 2>&1 || true; fi
+          if git show-ref --verify --quiet refs/remotes/origin/automation/p25-partial-data; then
+            git switch -C automation/p25-partial-data origin/automation/p25-partial-data
+          else
+            git switch --orphan automation/p25-partial-data
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
           mkdir -p data/p25-partial/$session
           target="data/p25-partial/$session/freeze.json"
           test ! -e "$target"

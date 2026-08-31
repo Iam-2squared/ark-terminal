@@ -1,0 +1,94 @@
+name: Phase57 US Postclose Selection Diagnostic
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/evaluate_phase57_us_postclose_selection.mjs'
+      - '.github/workflows/phase57-us-postclose-selection.yml'
+  schedule:
+    - cron: '15 21 * * 1-5'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: phase57-us-postclose-selection
+  cancel-in-progress: false
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Resolve latest durable sampled snapshot
+        id: source
+        shell: bash
+        env:
+          DATA_BRANCH: automation/p57-us-free-5m-data
+        run: |
+          set -euo pipefail
+          git fetch origin "refs/heads/$DATA_BRANCH:refs/remotes/origin/$DATA_BRANCH"
+          session_date="$(TZ=America/New_York date +%F)"
+          latest="$(git ls-tree -r --name-only "origin/$DATA_BRANCH" -- "data/us-free-5m/$session_date" | grep -E '/[0-9]{4}\.json$' | sort | tail -n 1 || true)"
+          if [ -z "$latest" ]; then
+            echo "No sampled snapshot for $session_date" >&2
+            exit 3
+          fi
+          mkdir -p tmp
+          git show "origin/$DATA_BRANCH:$latest" > tmp/us-snapshot.json
+          echo "session_date=$session_date" >> "$GITHUB_OUTPUT"
+          echo "source_path=$latest" >> "$GITHUB_OUTPUT"
+          echo "Using $latest"
+
+      - name: Evaluate snapshot to regular-session close
+        run: node scripts/evaluate_phase57_us_postclose_selection.mjs --snapshot tmp/us-snapshot.json --output tmp/us-postclose.json
+
+      - name: Verify research-only classification and safety
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const x=JSON.parse(fs.readFileSync('tmp/us-postclose.json','utf8'));
+          if(x.status!=='US_SAMPLED_POSTCLOSE_SELECTION_DIAGNOSTIC_MEASURED') throw new Error(`unexpected ${x.status}`);
+          if(x.evidenceClass!=='SAMPLED_POSTCLOSE_DIAGNOSTIC'||x.fullFresh!==false||x.formalOos!==false||x.promotionEligible!==false||x.marketwide!==false) throw new Error('classification mismatch');
+          if(x.methodology.measurement!=='SNAPSHOT_CURRENT_PRICE_TO_REGULAR_SESSION_FINAL_5M_CLOSE') throw new Error('measurement mismatch');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed']) if(x.safety[k]!==false) throw new Error(`unsafe ${k}`);
+          NODE
+
+      - name: Persist post-close diagnostic
+        shell: bash
+        env:
+          DATA_BRANCH: automation/p57-us-free-5m-data
+        run: |
+          set -euo pipefail
+          session_date='${{ steps.source.outputs.session_date }}'
+          out="data/us-free-5m/$session_date/postclose-selection.json"
+          cp tmp/us-postclose.json /tmp/us-postclose.json
+          git config user.name 'Ark US Research Bot'
+          git config user.email 'ark-us-research-bot@users.noreply.github.com'
+          git switch -C "$DATA_BRANCH" "origin/$DATA_BRANCH"
+          mkdir -p "$(dirname "$out")"
+          cp /tmp/us-postclose.json "$out"
+          git add "$out"
+          if git diff --cached --quiet; then
+            echo 'No post-close changes.'
+          else
+            git commit -m "Persist US post-close selection diagnostic $session_date"
+            git push origin "$DATA_BRANCH"
+          fi
+
+      - name: Upload diagnostic result
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-us-postclose-selection-${{ steps.source.outputs.session_date }}-${{ github.run_id }}
+          retention-days: 7
+          path: tmp/us-postclose.json

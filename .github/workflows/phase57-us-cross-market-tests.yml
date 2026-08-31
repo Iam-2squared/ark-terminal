@@ -1,0 +1,23 @@
+name: Phase57 US Cross-Market Tests
+on:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-us-cross-market-policy.js'
+      - 'scripts/build_phase57_us_universe.mjs'
+      - 'scripts/measure_phase57_us_marketwide_5m.mjs'
+      - 'predict/tests/phase57-us-cross-market.test.mjs'
+      - '.github/workflows/phase57-us-cross-market-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: node --test predict/tests/phase57-us-cross-market.test.mjs
+      - run: node --check scripts/build_phase57_us_universe.mjs && node --check scripts/measure_phase57_us_marketwide_5m.mjs
+      - name: Safety boundary
+        run: echo 'US cross-market validation is research-only; no broker, RSS order, Excel order, paper/live trading, promotion, or production update.'

@@ -57,11 +57,11 @@ jobs:
         if: steps.session.outputs.regular == 'true'
         run: node scripts/fetch_phase57_us_free_reference.mjs --output tmp/us-free-reference.json
 
-      - name: Fetch batched free 5m evidence
+      - name: Fetch sampled free 5m evidence
         if: steps.session.outputs.regular == 'true'
         run: node scripts/fetch_phase57_us_free_5m.mjs --universe tmp/us-free-reference.json --session-date '${{ steps.session.outputs.session_date }}' --output tmp/us-free-5m.json
 
-      - name: Measure Dynamic5m diagnostic substrate
+      - name: Measure sampled Dynamic5m diagnostic substrate
         if: steps.session.outputs.regular == 'true'
         run: node scripts/measure_phase57_us_marketwide_5m.mjs --universe tmp/us-free-reference.json --snapshot tmp/us-free-5m.json --output tmp/us-free-measurement.json
 
@@ -73,7 +73,9 @@ jobs:
           const raw=JSON.parse(fs.readFileSync('tmp/us-free-5m.json','utf8'));
           const m=JSON.parse(fs.readFileSync('tmp/us-free-measurement.json','utf8'));
           if(raw.freshRealtime!==false||raw.formalFreshEligible!==false||raw.researchIntraday5m!==true) throw new Error('free 5m evidence mislabeled');
-          if(m.status!=='US_MARKETWIDE_5M_DIAGNOSTIC_MEASURED'||m.classification.fullFresh!==false) throw new Error('measurement mislabeled');
+          if(raw.sampleDiagnostic!==true||raw.marketwide!==false) throw new Error('raw sample classification missing');
+          if(m.status!=='US_SAMPLED_5M_DIAGNOSTIC_MEASURED') throw new Error(`unexpected measurement status ${m.status}`);
+          if(m.classification.fullFresh!==false||m.classification.formalOos!==false||m.classification.promotionEligible!==false||m.classification.sampledDiagnostic!==true||m.marketwide!==false) throw new Error('measurement mislabeled');
           for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed']) if(m.safety[k]!==false) throw new Error(`unsafe ${k}`);
           NODE
 

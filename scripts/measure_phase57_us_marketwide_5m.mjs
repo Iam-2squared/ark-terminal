@@ -17,23 +17,26 @@ if(!Array.isArray(rows))throw new Error('US snapshot must be array or provider e
 const freeNonRealtime=envelope?.plan==='FREE'&&envelope?.freshRealtime!==true;
 const diagnostic5m=freeNonRealtime&&envelope?.researchIntraday5m===true&&envelope?.feedClassification==='FREE_INTRADAY_5M_DIAGNOSTIC';
 if(freeNonRealtime&&!diagnostic5m)throw new Error('US Fresh blocked: free provider data is not real-time; preserve as diagnostic/EOD only');
+const sampleDiagnostic=diagnostic5m&&envelope?.sampleDiagnostic===true&&envelope?.marketwide===false;
 const allowed=new Set((u.universe??[]).map(x=>String(x.symbol??'').toUpperCase()));
 const valid=rows.filter(x=>allowed.has(String(x.symbol??'').toUpperCase())&&Number.isFinite(Number(x.currentPrice))&&Number(x.currentPrice)>0&&Number.isFinite(Number(x.volume))&&Number(x.volume)>=0);
-const denominator=Number(u.eligibleCount??allowed.size);const coveragePct=denominator?100*valid.length/denominator:0;
-const minCoverage=diagnostic5m?60:80;
-if(valid.length<500||coveragePct<minCoverage)throw new Error(`US marketwide snapshot incomplete ${valid.length}/${denominator} (${coveragePct.toFixed(2)}%)`);
+const denominator=sampleDiagnostic?Number(envelope?.sampleSize??0):Number(u.eligibleCount??allowed.size);
+const coveragePct=denominator?100*valid.length/denominator:0;
+const minCoverage=sampleDiagnostic?40:(diagnostic5m?60:80),minRows=sampleDiagnostic?120:500;
+if(valid.length<minRows||coveragePct<minCoverage)throw new Error(`US ${sampleDiagnostic?'sample':'marketwide'} snapshot incomplete ${valid.length}/${denominator} (${coveragePct.toFixed(2)}%)`);
 const score=x=>{const ch=Math.abs(Number(x.changePct??0)),vr=Math.max(0,Number(x.volumeRatio??1)),turn=Math.max(0,Number(x.dollarVolume??0));return 0.45*Math.min(1,ch/5)+0.30*Math.min(1,vr/3)+0.25*Math.min(1,Math.log10(1+turn)/9);};
 const ranked=valid.map(x=>({...x,usOpportunityScore:score(x)})).sort((a,b)=>b.usOpportunityScore-a.usOpportunityScore||String(a.symbol).localeCompare(String(b.symbol)));
-const selected=ranked.slice(0,50),selectedV2=ranked.filter((x,i)=>i<80).sort((a,b)=>{const aq=Math.min(1,Number(a.volumeRatio??1)/3),bq=Math.min(1,Number(b.volumeRatio??1)/3);return (b.usOpportunityScore*0.65+bq*0.35)-(a.usOpportunityScore*0.65+aq*0.35);}).slice(0,30);
+const selected=ranked.slice(0,Math.min(50,ranked.length)),selectedV2=ranked.filter((x,i)=>i<80).sort((a,b)=>{const aq=Math.min(1,Number(a.volumeRatio??1)/3),bq=Math.min(1,Number(b.volumeRatio??1)/3);return (b.usOpportunityScore*0.65+bq*0.35)-(a.usOpportunityScore*0.65+aq*0.35);}).slice(0,Math.min(30,ranked.length));
 const payload={
-  schemaVersion:3,phase:'57.us-cross-market.marketwide-5m',
-  status:diagnostic5m?'US_MARKETWIDE_5M_DIAGNOSTIC_MEASURED':'US_MARKETWIDE_5M_MEASURED',
+  schemaVersion:4,phase:'57.us-cross-market.intraday-5m',
+  status:sampleDiagnostic?'US_SAMPLED_5M_DIAGNOSTIC_MEASURED':(diagnostic5m?'US_MARKETWIDE_5M_DIAGNOSTIC_MEASURED':'US_MARKETWIDE_5M_MEASURED'),
   sessionDate:u.sessionDate??envelope?.sessionDate??null,observedAt:new Date().toISOString(),inputSymbols:valid.length,coveragePct,
+  sampleDiagnostic,marketwide:!sampleDiagnostic,sampleSize:sampleDiagnostic?denominator:null,sampleMethod:sampleDiagnostic?envelope?.sampleMethod:null,
   selectedSymbols:selected.length,selectedV2Symbols:selectedV2.length,selected,selectedV2,
-  provider:envelope?{name:envelope.provider,plan:envelope.plan,feedClassification:envelope.feedClassification,sourceObservedAt:envelope.observedAt,rawDigest:envelope.rawDigest,medianAgeSeconds:envelope.medianAgeSeconds}:null,
-  classification:{crossMarketProspective:!diagnostic5m,diagnosticIntraday5m:diagnostic5m,fullFresh:false,jpxOosSubstitute:false,formalOos:false,promotionEligible:false},
-  methodology:{universeFrozenBeforeOpen:frozen,rawCollectionUniverse:collection,pointInTimeOnly:!collection,futureOutcomeUsed:false,missingSymbolsNeverFabricated:true,selectionScoringIsDiagnosticSubstrate:true},
+  provider:envelope?{name:envelope.provider,plan:envelope.plan,feedClassification:envelope.feedClassification,sourceContract:envelope.sourceContract,sourceObservedAt:envelope.observedAt,rawDigest:envelope.rawDigest,medianAgeSeconds:envelope.medianAgeSeconds}:null,
+  classification:{crossMarketProspective:!diagnostic5m,diagnosticIntraday5m:diagnostic5m,sampledDiagnostic:sampleDiagnostic,fullFresh:false,jpxOosSubstitute:false,formalOos:false,promotionEligible:false},
+  methodology:{universeFrozenBeforeOpen:frozen,rawCollectionUniverse:collection,pointInTimeOnly:!collection,futureOutcomeUsed:false,missingSymbolsNeverFabricated:true,selectionScoringIsDiagnosticSubstrate:true,marketwideSelectionEquivalent:false},
   policySha256:PHASE57_US_CROSS_MARKET_POLICY_SHA256,safety:PHASE57_US_CROSS_MARKET_SAFETY,
 };
 fs.mkdirSync(path.dirname(output),{recursive:true});fs.writeFileSync(output,JSON.stringify(payload,null,2)+'\n');
-console.log(JSON.stringify({status:payload.status,inputSymbols:payload.inputSymbols,coveragePct:Number(coveragePct.toFixed(2)),v1:selected.length,v2:selectedV2.length},null,2));
+console.log(JSON.stringify({status:payload.status,inputSymbols:payload.inputSymbols,coveragePct:Number(coveragePct.toFixed(2)),sampleDiagnostic,v1:selected.length,v2:selectedV2.length},null,2));

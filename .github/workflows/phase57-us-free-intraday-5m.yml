@@ -10,8 +10,6 @@ on:
       - 'scripts/measure_phase57_us_marketwide_5m.mjs'
       - '.github/workflows/phase57-us-free-intraday-5m.yml'
   schedule:
-    # Broad UTC window covering US regular hours in EDT/EST.
-    # The session guard below is authoritative.
     - cron: '*/5 13-22 * * 1-5'
 
 permissions:
@@ -40,15 +38,15 @@ jobs:
         run: |
           set -euo pipefail
           node --input-type=module <<'NODE'
+          import fs from 'node:fs';
           const now=new Date();
           const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',weekday:'short',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(now);
           const o=Object.fromEntries(parts.map(x=>[x.type,x.value]));
           const date=`${o.year}-${o.month}-${o.day}`;
           const hm=`${o.hour}:${o.minute}`;
-          const weekday=o.weekday;
-          const regular=['Mon','Tue','Wed','Thu','Fri'].includes(weekday)&&hm>='09:30'&&hm<'16:00';
-          require('fs').appendFileSync(process.env.GITHUB_OUTPUT,`session_date=${date}\nregular=${regular?'true':'false'}\n`);
-          console.log(JSON.stringify({date,hm,weekday,regular}));
+          const regular=['Mon','Tue','Wed','Thu','Fri'].includes(o.weekday)&&hm>='09:30'&&hm<'16:00';
+          fs.appendFileSync(process.env.GITHUB_OUTPUT,`session_date=${date}\nregular=${regular?'true':'false'}\n`);
+          console.log(JSON.stringify({date,hm,weekday:o.weekday,regular}));
           NODE
 
       - name: Skip outside regular session
@@ -76,9 +74,7 @@ jobs:
           const m=JSON.parse(fs.readFileSync('tmp/us-free-measurement.json','utf8'));
           if(raw.freshRealtime!==false||raw.formalFreshEligible!==false||raw.researchIntraday5m!==true) throw new Error('free 5m evidence mislabeled');
           if(m.status!=='US_MARKETWIDE_5M_DIAGNOSTIC_MEASURED'||m.classification.fullFresh!==false) throw new Error('measurement mislabeled');
-          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed']){
-            if(m.safety[k]!==false) throw new Error(`unsafe ${k}`);
-          }
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed']) if(m.safety[k]!==false) throw new Error(`unsafe ${k}`);
           NODE
 
       - name: Prepare compact durable evidence
@@ -88,8 +84,10 @@ jobs:
           set -euo pipefail
           bucket="$(TZ=America/New_York date +%H%M)"
           date='${{ steps.session.outputs.session_date }}'
-          mkdir -p "data/us-free-5m/$date"
-          cp tmp/us-free-measurement.json "data/us-free-5m/$date/${bucket}.json"
+          file="data/us-free-5m/$date/${bucket}.json"
+          mkdir -p "$(dirname "$file")"
+          cp tmp/us-free-measurement.json "$file"
+          cp "$file" /tmp/us-free-measurement-durable.json
           echo "US_BUCKET=$bucket" >> "$GITHUB_ENV"
 
       - name: Persist compact diagnostic evidence
@@ -105,14 +103,12 @@ jobs:
           git config user.email 'ark-us-research-bot@users.noreply.github.com'
           if git fetch origin "refs/heads/$DATA_BRANCH:refs/remotes/origin/$DATA_BRANCH" 2>/dev/null; then
             git switch -C "$DATA_BRANCH" "origin/$DATA_BRANCH"
-            git checkout "${GITHUB_SHA}" -- "$file" || true
-            if [ ! -f "$file" ]; then cp "${GITHUB_WORKSPACE}/$file" "$file"; fi
           else
             git switch --orphan "$DATA_BRANCH"
             git rm -rf . >/dev/null 2>&1 || true
-            mkdir -p "$(dirname "$file")"
-            cp "${GITHUB_WORKSPACE}/$file" "$file"
           fi
+          mkdir -p "$(dirname "$file")"
+          cp /tmp/us-free-measurement-durable.json "$file"
           git add "$file"
           if git diff --cached --quiet; then
             echo 'No compact evidence changes.'

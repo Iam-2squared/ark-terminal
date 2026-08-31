@@ -1,0 +1,29 @@
+name: Phase57 V4 Dynamic5m V2 Tests
+
+on:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-p25-exit-v4-structural-risk.js'
+      - 'predict/daytrade/phase57-p25-intraday-dynamic-universe-v2.js'
+      - 'predict/tests/phase57-p25-exit-v4-structural-risk.test.mjs'
+      - 'predict/tests/phase57-p25-intraday-dynamic-universe-v2.test.mjs'
+      - '.github/workflows/phase57-v4-dynamic5m-v2-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run focused research challenger tests
+        run: node --test predict/tests/phase57-p25-exit-v4-structural-risk.test.mjs predict/tests/phase57-p25-intraday-dynamic-universe-v2.test.mjs
+      - name: Safety boundary
+        if: always()
+        run: echo 'Research-only CI; no broker/RSS/Excel/order/paper/live execution, promotion, or production updates.'

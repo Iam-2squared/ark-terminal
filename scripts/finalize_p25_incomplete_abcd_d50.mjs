@@ -5,16 +5,85 @@ import {buildP253AKManagementRows} from '../predict/daytrade/phase57-p25-3ak-dyn
 import {buildP25DataDrivenExitAnalogPool} from '../predict/daytrade/phase57-p25-data-driven-exit.js';
 import {simulateP25ExitV3DualGate,P25_EXIT_V3_DUAL_GATE_POLICY_SHA256} from '../predict/daytrade/phase57-p25-exit-v3-dual-gate.js';
 import {P25_EXIT_V3_INDEPENDENT_PROTOCOL} from '../predict/daytrade/phase57-p25-exit-v3-independent-protocol.js';
+
 const arg=(n,f=null)=>{const i=process.argv.indexOf(n);return i>=0&&i+1<process.argv.length?process.argv[i+1]:f;};
-const partialDir=arg('--partial-dir');const historyPath=arg('--history-pack');const barsPath=arg('--bars');const shardDir=arg('--shard-dir');const output=arg('--output');if(!partialDir||!historyPath||!barsPath||!shardDir||!output)throw new Error('usage: --partial-dir <dir> --history-pack <json> --bars <json> --shard-dir <dir> --output <json>');
-const finite=v=>v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v));const mean=xs=>xs.length?xs.reduce((s,x)=>s+x,0)/xs.length:null;const median=xs=>{if(!xs.length)return null;const a=[...xs].sort((x,y)=>x-y),m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2;};const profitFactor=xs=>{const gp=xs.filter(x=>x>0).reduce((s,x)=>s+x,0),gl=-xs.filter(x=>x<0).reduce((s,x)=>s+x,0);return gl>0?gp/gl:(gp>0?Infinity:null);};const maxDD=xs=>{let e=1,p=1,m=0;for(const r of xs){e*=1+r/100;p=Math.max(p,e);m=Math.max(m,(p-e)/p*100);}return m;};const summary=xs=>{const r=xs.filter(finite).map(Number);let e=1;for(const x of r)e*=1+x/100;return {n:r.length,netReturnPct:(e-1)*100,meanNetReturnPct:mean(r),medianNetReturnPct:median(r),winRate:r.length?r.filter(x=>x>0).length/r.length:null,profitFactor:profitFactor(r),maxDrawdownPct:maxDD(r)};};const sym=v=>String(v??'').trim().toUpperCase();const keyOf=row=>`${String(row?.sessionDate??'')}|${String(row?.entryTimestamp??'')}|${sym(row?.symbol)}`;
-const freeze=JSON.parse(fs.readFileSync(path.join(partialDir,'freeze.json'),'utf8'));const measurements=fs.readFileSync(path.join(partialDir,'partial-measurements.ndjson'),'utf8').split(/\r?\n/).filter(Boolean).map(line=>JSON.parse(line));const historyPack=JSON.parse(fs.readFileSync(historyPath,'utf8'));const barsCombined=JSON.parse(fs.readFileSync(barsPath,'utf8'));const sessionBarsBySymbol=barsCombined.sessionBarsBySymbol??{};
-const files=fs.readdirSync(shardDir).filter(x=>x.endsWith('.json')).sort();if(!files.length)throw new Error('no D50 shard files');const shards=files.map(file=>JSON.parse(fs.readFileSync(path.join(shardDir,file),'utf8')));for(const s of shards)if(s.status!=='P25_INCOMPLETE_ABCD_D50_SHARD_READY'||s.sessionDate!==freeze.sessionDate)throw new Error('invalid D50 shard');
-const d50=(freeze.variants?.DYNAMIC_50??[]).map(sym);const assignedIndices=shards.flatMap(s=>s.assigned.map(x=>x.index)).sort((a,b)=>a-b);if(JSON.stringify(assignedIndices)!==JSON.stringify([...d50.keys()]))throw new Error('D50 shard index coverage mismatch');
-const byObserved=new Map();for(const m of measurements)byObserved.set(String(m.observedAt),[]);for(const shard of shards){if(shard.points.length!==measurements.length)throw new Error(`D50 shard point count mismatch ${shard.shardIndex}`);for(const p of shard.points){if(!byObserved.has(p.observedAt))throw new Error(`unexpected D50 shard point ${p.observedAt}`);byObserved.get(p.observedAt).push(p);}}
-const frozenD50=[],d50PointAudit=[],seenD50=new Set();for(const point of measurements){const observedAt=String(point.observedAt),parts=byObserved.get(observedAt)??[];if(parts.length!==shards.length)throw new Error(`missing D50 shard point ${observedAt}`);const blocked=parts.find(p=>p.blockedReason);if(blocked){d50PointAudit.push({observedAt,status:'BLOCKED_D50_POINT_ENTRY_SET',reason:blocked.blockedReason});continue;}const signals=parts.flatMap(p=>p.signals).sort((a,b)=>a.d50Index-b.d50Index);let accepted=0;for(const s of signals){const trade=s.entry,key=`${freeze.sessionDate}|${trade.featureCutoff}|${trade.symbol}`;if(seenD50.has(key))continue;seenD50.add(key);frozenD50.push(trade);accepted++;}d50PointAudit.push({observedAt,status:'D50_POINT_ENTRY_SET_FROZEN',scoredCount:parts.reduce((n,p)=>n+Number(p.scoredCount||0),0),signalCount:accepted});}
+const partialDir=arg('--partial-dir');const historyPath=arg('--history-pack');const barsPath=arg('--bars');const shardDir=arg('--shard-dir');const output=arg('--output');
+if(!partialDir||!historyPath||!barsPath||!shardDir||!output)throw new Error('usage: --partial-dir <dir> --history-pack <json> --bars <json> --shard-dir <dir> --output <json>');
+const finite=v=>v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v));
+const mean=xs=>xs.length?xs.reduce((s,x)=>s+x,0)/xs.length:null;
+const median=xs=>{if(!xs.length)return null;const a=[...xs].sort((x,y)=>x-y),m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2;};
+const profitFactor=xs=>{const gp=xs.filter(x=>x>0).reduce((s,x)=>s+x,0),gl=-xs.filter(x=>x<0).reduce((s,x)=>s+x,0);return gl>0?gp/gl:(gp>0?Infinity:null);};
+const maxDD=xs=>{let e=1,p=1,m=0;for(const r of xs){e*=1+r/100;p=Math.max(p,e);m=Math.max(m,(p-e)/p*100);}return m;};
+const summary=xs=>{const r=xs.filter(finite).map(Number);let e=1;for(const x of r)e*=1+x/100;return {n:r.length,netReturnPct:(e-1)*100,meanNetReturnPct:mean(r),medianNetReturnPct:median(r),winRate:r.length?r.filter(x=>x>0).length/r.length:null,profitFactor:profitFactor(r),maxDrawdownPct:maxDD(r)};};
+const sym=v=>String(v??'').trim().toUpperCase();
+const keyOf=row=>`${String(row?.sessionDate??'')}|${String(row?.entryTimestamp??'')}|${sym(row?.symbol)}`;
+
+const freeze=JSON.parse(fs.readFileSync(path.join(partialDir,'freeze.json'),'utf8'));
+const measurements=fs.readFileSync(path.join(partialDir,'partial-measurements.ndjson'),'utf8').split(/\r?\n/).filter(Boolean).map(line=>JSON.parse(line));
+const historyPack=JSON.parse(fs.readFileSync(historyPath,'utf8'));
+const barsCombined=JSON.parse(fs.readFileSync(barsPath,'utf8'));
+const sessionBarsBySymbol=barsCombined.sessionBarsBySymbol??{};
+const files=fs.readdirSync(shardDir).filter(x=>x.endsWith('.json')).sort();
+if(!files.length)throw new Error('no D50 shard files');
+const shards=files.map(file=>JSON.parse(fs.readFileSync(path.join(shardDir,file),'utf8')));
+for(const s of shards)if(s.status!=='P25_INCOMPLETE_ABCD_D50_SHARD_READY'||s.sessionDate!==freeze.sessionDate||s.schemaVersion!==2)throw new Error('invalid D50 pair shard');
+
+const d50=(freeze.variants?.DYNAMIC_50??[]).map(sym);
+if(d50.length!==50)throw new Error('DYNAMIC_50 cardinality mismatch');
+const totalPairs=measurements.length*d50.length;
+const assignedFlat=shards.flatMap(s=>s.assignedPairs??[]).map(x=>Number(x.flatIndex)).sort((a,b)=>a-b);
+const expectedFlat=Array.from({length:totalPairs},(_,i)=>i);
+if(JSON.stringify(assignedFlat)!==JSON.stringify(expectedFlat))throw new Error(`D50 point-symbol pair coverage mismatch ${assignedFlat.length}/${totalPairs}`);
+
+const byObserved=new Map();
+for(const m of measurements)byObserved.set(String(m.observedAt),[]);
+for(const shard of shards){
+  for(const p of shard.points??[]){
+    if(!byObserved.has(p.observedAt))throw new Error(`unexpected D50 shard point ${p.observedAt}`);
+    byObserved.get(p.observedAt).push(p);
+  }
+}
+
+const frozenD50=[],d50PointAudit=[],seenD50=new Set();
+for(let pointIndex=0;pointIndex<measurements.length;pointIndex++){
+  const point=measurements[pointIndex];
+  const observedAt=String(point.observedAt),parts=byObserved.get(observedAt)??[];
+  const expectedPairIndices=Array.from({length:d50.length},(_,symbolIndex)=>pointIndex*d50.length+symbolIndex);
+  const actualPairIndices=parts.flatMap(p=>p.pairIndices??[]).map(Number).sort((a,b)=>a-b);
+  if(JSON.stringify(actualPairIndices)!==JSON.stringify(expectedPairIndices))throw new Error(`missing D50 point-symbol pair coverage ${observedAt}`);
+  const blocked=parts.find(p=>p.blockedReason);
+  if(blocked){d50PointAudit.push({observedAt,status:'BLOCKED_D50_POINT_ENTRY_SET',reason:blocked.blockedReason});continue;}
+  const signals=parts.flatMap(p=>p.signals??[]).sort((a,b)=>a.d50Index-b.d50Index);
+  let accepted=0;
+  for(const s of signals){
+    const trade=s.entry,key=`${freeze.sessionDate}|${trade.featureCutoff}|${trade.symbol}`;
+    if(seenD50.has(key))continue;
+    seenD50.add(key);frozenD50.push(trade);accepted++;
+  }
+  d50PointAudit.push({observedAt,status:'D50_POINT_ENTRY_SET_FROZEN',scoredCount:parts.reduce((n,p)=>n+Number(p.scoredCount||0),0),signalCount:accepted});
+}
 if(!d50PointAudit.some(x=>x.status==='D50_POINT_ENTRY_SET_FROZEN'))throw new Error(`no causally complete D50 partial point: ${JSON.stringify(d50PointAudit)}`);
-const fixed=materializeP252FixedHorizonOutcomes({frozenTrades:frozenD50,sessionBarsBySymbol});const fixedByKey=new Map(fixed.resolvedTrades.map(r=>[keyOf(r),r]));const managed=buildP253AKManagementRows({frozenTrades:frozenD50,sessionBarsBySymbol}),managedByKey=new Map(managed.rows.map(r=>[keyOf(r),r]));const analogPool=buildP25DataDrivenExitAnalogPool({historicalSessions:historyPack.sessions??[]}).filter(x=>String(x.sessionDate)<=P25_EXIT_V3_INDEPENDENT_PROTOCOL.developmentCutoff);if(!analogPool.length)throw new Error('frozen EXIT v3 analog pool empty');
-const aRows=[...fixed.resolvedTrades],cRows=[],cBlocked=[],acPairs=[];for(const trade of frozenD50){const key=keyOf(trade),row=managedByKey.get(key),fixedRow=fixedByKey.get(key);if(!row){cBlocked.push({key,reason:'MANAGEMENT_ROW_MISSING'});continue;}try{const v3=simulateP25ExitV3DualGate({row,analogPool,roundTripCostPct:0.05});if(v3.policySha256!==P25_EXIT_V3_DUAL_GATE_POLICY_SHA256)throw new Error('EXIT v3 policy hash mismatch');cRows.push({key,symbol:trade.symbol,entry:trade,v3});if(fixedRow)acPairs.push({key,symbol:trade.symbol,fixedNetReturnPct:Number(fixedRow.netReturnPct),v3NetReturnPct:Number(v3.netReturnPct),deltaNetReturnPct:Number(v3.netReturnPct)-Number(fixedRow.netReturnPct)});}catch(error){cBlocked.push({key,reason:String(error?.message??error)});}}
-const A={route:'DYNAMIC_50 -> Frozen Entry -> Fixed EXIT',frozenEntryCount:frozenD50.length,resolvedCount:aRows.length,unresolvedCount:fixed.unresolvedCount,summary:summary(aRows.map(x=>x.netReturnPct)),rows:aRows,pointAudit:d50PointAudit};const C={route:'DYNAMIC_50 -> Frozen Entry -> EXIT v3',frozenEntryCount:frozenD50.length,resolvedCount:cRows.length,blockedCount:cBlocked.length,summary:summary(cRows.map(x=>x.v3.netReturnPct)),rows:cRows,blocked:cBlocked,pointAudit:d50PointAudit};const deltas=acPairs.map(x=>x.deltaNetReturnPct),ACComparison={pairedCount:acPairs.length,meanDeltaNetReturnPct:mean(deltas),medianDeltaNetReturnPct:median(deltas),v3BetterCount:deltas.filter(x=>x>0).length,v3WorseCount:deltas.filter(x=>x<0).length,equalCount:deltas.filter(x=>x===0).length,pairs:acPairs};
-const payload={schemaVersion:1,phase:'57.p25.incomplete-abcd-d50-final',status:'P25_INCOMPLETE_ABCD_D50_FINAL_READY',sessionDate:freeze.sessionDate,A,C,ACComparison,frozenD50,d50PointAudit,methodology:{exactOriginalPointOrder:true,exactOriginalD50OrderWithinPoint:true,globalPointBlockedIfAnyShardBlocked:true,globalSeenD50AppliedAfterShardRecombine:true,fixedExitUntouched:true,exitV3PolicyFrozen:true,resultBasedRetuning:false},safety:{executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,rssOrderFunctionAllowed:false,liveTradingAllowed:false,paperTradingAllowed:false,automaticPromotionAllowed:false,productionUpdateAllowed:false,transmitted:false,freshHoldoutConsumed:false}};fs.mkdirSync(path.dirname(output),{recursive:true});fs.writeFileSync(output,JSON.stringify(payload,null,2)+'\n');console.log(JSON.stringify({status:payload.status,A:A.summary,C:C.summary,paired:ACComparison.pairedCount},null,2));
+
+const fixed=materializeP252FixedHorizonOutcomes({frozenTrades:frozenD50,sessionBarsBySymbol});
+const fixedByKey=new Map(fixed.resolvedTrades.map(r=>[keyOf(r),r]));
+const managed=buildP253AKManagementRows({frozenTrades:frozenD50,sessionBarsBySymbol}),managedByKey=new Map(managed.rows.map(r=>[keyOf(r),r]));
+const analogPool=buildP25DataDrivenExitAnalogPool({historicalSessions:historyPack.sessions??[]}).filter(x=>String(x.sessionDate)<=P25_EXIT_V3_INDEPENDENT_PROTOCOL.developmentCutoff);
+if(!analogPool.length)throw new Error('frozen EXIT v3 analog pool empty');
+const aRows=[...fixed.resolvedTrades],cRows=[],cBlocked=[],acPairs=[];
+for(const trade of frozenD50){
+  const key=keyOf(trade),row=managedByKey.get(key),fixedRow=fixedByKey.get(key);
+  if(!row){cBlocked.push({key,reason:'MANAGEMENT_ROW_MISSING'});continue;}
+  try{
+    const v3=simulateP25ExitV3DualGate({row,analogPool,roundTripCostPct:0.05});
+    if(v3.policySha256!==P25_EXIT_V3_DUAL_GATE_POLICY_SHA256)throw new Error('EXIT v3 policy hash mismatch');
+    cRows.push({key,symbol:trade.symbol,entry:trade,v3});
+    if(fixedRow)acPairs.push({key,symbol:trade.symbol,fixedNetReturnPct:Number(fixedRow.netReturnPct),v3NetReturnPct:Number(v3.netReturnPct),deltaNetReturnPct:Number(v3.netReturnPct)-Number(fixedRow.netReturnPct)});
+  }catch(error){cBlocked.push({key,reason:String(error?.message??error)});}
+}
+const A={route:'DYNAMIC_50 -> Frozen Entry -> Fixed EXIT',frozenEntryCount:frozenD50.length,resolvedCount:aRows.length,unresolvedCount:fixed.unresolvedCount,summary:summary(aRows.map(x=>x.netReturnPct)),rows:aRows,pointAudit:d50PointAudit};
+const C={route:'DYNAMIC_50 -> Frozen Entry -> EXIT v3',frozenEntryCount:frozenD50.length,resolvedCount:cRows.length,blockedCount:cBlocked.length,summary:summary(cRows.map(x=>x.v3.netReturnPct)),rows:cRows,blocked:cBlocked,pointAudit:d50PointAudit};
+const deltas=acPairs.map(x=>x.deltaNetReturnPct),ACComparison={pairedCount:acPairs.length,meanDeltaNetReturnPct:mean(deltas),medianDeltaNetReturnPct:median(deltas),v3BetterCount:deltas.filter(x=>x>0).length,v3WorseCount:deltas.filter(x=>x<0).length,equalCount:deltas.filter(x=>x===0).length,pairs:acPairs};
+const payload={schemaVersion:2,phase:'57.p25.incomplete-abcd-d50-final',status:'P25_INCOMPLETE_ABCD_D50_FINAL_READY',sessionDate:freeze.sessionDate,A,C,ACComparison,frozenD50,d50PointAudit,methodology:{exactOriginalPointOrder:true,exactOriginalD50OrderWithinPoint:true,pointSymbolPairCoverageRequired:true,globalPointBlockedIfAnyPairBlocked:true,globalSeenD50AppliedAfterShardRecombine:true,fixedExitUntouched:true,exitV3PolicyFrozen:true,resultBasedRetuning:false},safety:{executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,rssOrderFunctionAllowed:false,liveTradingAllowed:false,paperTradingAllowed:false,automaticPromotionAllowed:false,productionUpdateAllowed:false,transmitted:false,freshHoldoutConsumed:false}};
+fs.mkdirSync(path.dirname(output),{recursive:true});
+fs.writeFileSync(output,JSON.stringify(payload,null,2)+'\n');
+console.log(JSON.stringify({status:payload.status,A:A.summary,C:C.summary,paired:ACComparison.pairedCount},null,2));

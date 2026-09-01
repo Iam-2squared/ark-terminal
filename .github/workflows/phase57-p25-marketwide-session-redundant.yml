@@ -14,11 +14,14 @@ on:
         type: choice
         options: [MORNING, AFTERNOON]
   schedule:
-    - cron: '58 23 * * 0-4' # 08:58 JST Mon-Fri
-    - cron: '28 3 * * 1-5'  # 12:28 JST Mon-Fri
+    - cron: '58 23 * * 0-4' # 08:58 JST Mon-Fri primary morning kickoff
+    - cron: '3 0 * * 1-5'   # 09:03 JST Mon-Fri backup morning kickoff
+    - cron: '28 3 * * 1-5'  # 12:28 JST Mon-Fri primary afternoon kickoff
+    - cron: '33 3 * * 1-5'  # 12:33 JST Mon-Fri backup afternoon kickoff
 
 permissions:
   contents: write
+  actions: read
 
 concurrency:
   group: phase57-p25-marketwide-5m-redundant-${{ github.event.schedule || inputs.session_part || github.ref }}
@@ -45,7 +48,22 @@ jobs:
           fi
           echo "SESSION_PART=$part" >> "$GITHUB_ENV"
           echo "SESSION_DATE=$(TZ=Asia/Tokyo date +%F)" >> "$GITHUB_ENV"
+      - name: Avoid duplicate long-running collector
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          other="$(gh run list --repo "$GH_REPO" --workflow phase57-p25-marketwide-session-redundant.yml --status in_progress --limit 20 --json databaseId --jq ".[] | select(.databaseId != ${GITHUB_RUN_ID}) | .databaseId" | head -n1 || true)"
+          if [ -n "$other" ]; then
+            echo "Another redundant session collector is already in progress: $other"
+            echo "SKIP_DUPLICATE=true" >> "$GITHUB_ENV"
+          else
+            echo "SKIP_DUPLICATE=false" >> "$GITHUB_ENV"
+          fi
       - name: Collect independent point-in-time snapshots every five minutes
+        if: env.SKIP_DUPLICATE != 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -107,6 +125,7 @@ jobs:
           echo "attempts=$attempt successes=$success"
           test "$success" -gt 0
       - name: Verify all retained measurements are marketwide and safe
+        if: env.SKIP_DUPLICATE != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -118,6 +137,7 @@ jobs:
           console.log(`verified ${files.length} redundant point-in-time measurements`);
           NODE
       - uses: actions/upload-artifact@v4
+        if: env.SKIP_DUPLICATE != 'true'
         with:
           name: phase57-p25-marketwide-5m-redundant-${{ env.SESSION_DATE }}-${{ env.SESSION_PART }}
           path: tmp/redundant

@@ -19,6 +19,12 @@ mustReplace(
 );
 
 mustReplace(
+  "const response=await fetch(url,{headers:{'User-Agent':'Mozilla/5.0 ArkTerminalResearch/1.0','Accept':'application/json'},cache:'no-store'});",
+  "const response=await fetch(url,{headers:{'User-Agent':'Mozilla/5.0 ArkTerminalResearch/1.0','Accept':'application/json'},cache:'no-store',signal:AbortSignal.timeout(12000)});",
+  'bounded Yahoo 5m fetch timeout',
+);
+
+mustReplace(
   "if(failures.length||Object.keys(sessionBarsBySymbol).length!==allSymbols.length)throw new Error(`post-close sparse 5m collection incomplete ${Object.keys(sessionBarsBySymbol).length}/${allSymbols.length}: ${JSON.stringify(failures.slice(0,12))}`);",
   "const unavailableSymbols=failures.map(x=>sym(x.symbol)).sort();\nconst usableSymbolSet=new Set(Object.keys(sessionBarsBySymbol));\nif((failures.length||Object.keys(sessionBarsBySymbol).length!==allSymbols.length)&&!allowIncompleteOutcomeCoverage)throw new Error(`post-close sparse 5m collection incomplete ${Object.keys(sessionBarsBySymbol).length}/${allSymbols.length}: ${JSON.stringify(failures.slice(0,12))}`);\nif(allowIncompleteOutcomeCoverage&&Object.keys(sessionBarsBySymbol).length===0)throw new Error('post-close sparse 5m collection has zero usable symbols');",
   'strict post-close coverage gate',
@@ -62,9 +68,10 @@ mustReplace(
 
 fs.writeFileSync(tmpPath,src);
 try{
-  const child=spawnSync(process.execPath,[tmpPath,...args,'--allow-incomplete-outcome-coverage','true'],{encoding:'utf8',stdio:['ignore','pipe','pipe']});
+  const child=spawnSync(process.execPath,[tmpPath,...args,'--allow-incomplete-outcome-coverage','true'],{encoding:'utf8',stdio:['ignore','pipe','pipe'],timeout:8*60*1000,killSignal:'SIGKILL'});
   process.stdout.write(child.stdout??'');
   process.stderr.write(child.stderr??'');
+  if(child.error)throw child.error;
   if(child.status!==0)process.exit(child.status??1);
 }finally{
   try{fs.unlinkSync(tmpPath);}catch{}

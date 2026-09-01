@@ -25,6 +25,12 @@ mustReplace(
 );
 
 mustReplace(
+  "await Promise.all(Array.from({length:Math.min(10,allSymbols.length)},()=>worker()));",
+  "await Promise.all(Array.from({length:Math.min(20,allSymbols.length)},()=>worker()));",
+  'bounded Yahoo 5m fetch concurrency',
+);
+
+mustReplace(
   "if(failures.length||Object.keys(sessionBarsBySymbol).length!==allSymbols.length)throw new Error(`post-close sparse 5m collection incomplete ${Object.keys(sessionBarsBySymbol).length}/${allSymbols.length}: ${JSON.stringify(failures.slice(0,12))}`);",
   "const unavailableSymbols=failures.map(x=>sym(x.symbol)).sort();\nconst usableSymbolSet=new Set(Object.keys(sessionBarsBySymbol));\nif((failures.length||Object.keys(sessionBarsBySymbol).length!==allSymbols.length)&&!allowIncompleteOutcomeCoverage)throw new Error(`post-close sparse 5m collection incomplete ${Object.keys(sessionBarsBySymbol).length}/${allSymbols.length}: ${JSON.stringify(failures.slice(0,12))}`);\nif(allowIncompleteOutcomeCoverage&&Object.keys(sessionBarsBySymbol).length===0)throw new Error('post-close sparse 5m collection has zero usable symbols');",
   'strict post-close coverage gate',
@@ -68,7 +74,7 @@ mustReplace(
 
 fs.writeFileSync(tmpPath,src);
 try{
-  const child=spawnSync(process.execPath,[tmpPath,...args,'--allow-incomplete-outcome-coverage','true'],{encoding:'utf8',stdio:['ignore','pipe','pipe'],timeout:8*60*1000,killSignal:'SIGKILL'});
+  const child=spawnSync(process.execPath,[tmpPath,...args,'--allow-incomplete-outcome-coverage','true'],{encoding:'utf8',stdio:['ignore','pipe','pipe'],timeout:24*60*1000,killSignal:'SIGKILL'});
   process.stdout.write(child.stdout??'');
   process.stderr.write(child.stderr??'');
   if(child.error)throw child.error;

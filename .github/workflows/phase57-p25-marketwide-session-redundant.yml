@@ -14,10 +14,10 @@ on:
         type: choice
         options: [MORNING, AFTERNOON]
   schedule:
-    - cron: '58 23 * * 0-4' # 08:58 JST Mon-Fri primary morning kickoff
-    - cron: '3 0 * * 1-5'   # 09:03 JST Mon-Fri backup morning kickoff
-    - cron: '28 3 * * 1-5'  # 12:28 JST Mon-Fri primary afternoon kickoff
-    - cron: '33 3 * * 1-5'  # 12:33 JST Mon-Fri backup afternoon kickoff
+    - cron: '50 23 * * 0-4' # 08:50 JST Mon-Fri primary morning warmup; waits for 09:00 boundary
+    - cron: '55 23 * * 0-4' # 08:55 JST Mon-Fri backup morning warmup
+    - cron: '20 3 * * 1-5'  # 12:20 JST Mon-Fri primary afternoon warmup; waits for 12:30 boundary
+    - cron: '25 3 * * 1-5'  # 12:25 JST Mon-Fri backup afternoon warmup
 
 permissions:
   contents: write
@@ -30,7 +30,7 @@ concurrency:
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 195
+    timeout-minutes: 205
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -110,7 +110,7 @@ jobs:
             echo "[$stamp] redundant Dynamic5m attempt $attempt ($SESSION_PART)"
             if node scripts/fetch_p25_marketwide_5m_spark.mjs --output "$dir/marketwide.json" \
               && node scripts/capture_p25_marketwide_5m_snapshot.mjs --input "$dir/marketwide.json" --as-of "$(node -p "require('./$dir/marketwide.json').meta.observedAt")" --output "$dir/marketwide.ndjson" \
-              && node scripts/measure_p25_intraday_dynamic_universe_snapshot.mjs --input "$dir/marketwide.json" --output "$dir/measurement.json"; then
+              && node scripts/measure_p25_intraday_dynamic_universe_snapshot.mjs --input "$dir/marketwide.json" --prior-dir tmp/redundant --output "$dir/measurement.json"; then
               if persist_point "$dir"; then
                 success=$((success+1))
               else

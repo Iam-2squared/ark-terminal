@@ -1,10 +1,6 @@
 name: Phase57 P25 Marketwide 5m Redundant Session Collector
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/phase57-p25-marketwide-session-redundant.yml'
   workflow_dispatch:
     inputs:
       session_part:
@@ -55,9 +51,9 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          other="$(gh run list --repo "$GH_REPO" --workflow phase57-p25-marketwide-session-redundant.yml --status in_progress --limit 20 --json databaseId --jq ".[] | select(.databaseId != ${GITHUB_RUN_ID}) | .databaseId" | head -n1 || true)"
+          other="$(gh run list --repo "$GH_REPO" --workflow phase57-p25-marketwide-session-redundant.yml --status in_progress --limit 20 --json databaseId,event --jq ".[] | select(.databaseId != ${GITHUB_RUN_ID}) | select(.event == \"schedule\" or .event == \"workflow_dispatch\") | .databaseId" | head -n1 || true)"
           if [ -n "$other" ]; then
-            echo "Another redundant session collector is already in progress: $other"
+            echo "Another scheduled/manual redundant session collector is already in progress: $other"
             echo "SKIP_DUPLICATE=true" >> "$GITHUB_ENV"
           else
             echo "SKIP_DUPLICATE=false" >> "$GITHUB_ENV"

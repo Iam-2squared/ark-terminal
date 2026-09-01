@@ -53,15 +53,39 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p tmp/prior-v2
-          ids="$(gh run list --repo "$GH_REPO" --workflow phase57-p25-marketwide-5m-measurement.yml --branch main --status success --limit 4 --json databaseId --jq '.[].databaseId' || true)"
           n=0
-          while read -r id; do
-            [ -z "$id" ] && continue
-            d="tmp/prior-v2/$id"; mkdir -p "$d"
-            gh run download "$id" --repo "$GH_REPO" --name phase57-p25-marketwide-5m-measurement --dir "$d" >/dev/null 2>&1 || true
-            n=$((n+1))
-          done <<< "$ids"
-          echo "inspected $n prior successful measurement runs"
+
+          # Primary source: append-only durable point evidence. This is causal because
+          # measure_p25_intraday_dynamic_universe_snapshot.mjs accepts only observations
+          # strictly earlier than the current asOf and no more than 30 minutes old.
+          if git fetch origin automation/p25-marketwide-5m-data:refs/remotes/origin/automation/p25-marketwide-5m-data 2>/dev/null \
+            && git show-ref --verify --quiet refs/remotes/origin/automation/p25-marketwide-5m-data; then
+            mapfile -t files < <(git ls-tree -r --name-only origin/automation/p25-marketwide-5m-data -- data/p25-marketwide-5m \
+              | grep '/measurement.json$' | sort | tail -n 12)
+            for f in "${files[@]}"; do
+              out="tmp/prior-v2/durable-${n}-measurement.json"
+              if git show "origin/automation/p25-marketwide-5m-data:${f}" > "$out" 2>/dev/null; then
+                n=$((n+1))
+              else
+                rm -f "$out"
+              fi
+            done
+          fi
+
+          # Artifact fallback remains for resilience, but durable append-only evidence is
+          # authoritative and avoids the priorV2PointCount=0 failure mode caused by Actions
+          # run/artifact indexing lag between adjacent 5-minute captures.
+          if [ "$n" -eq 0 ]; then
+            ids="$(gh run list --repo "$GH_REPO" --workflow phase57-p25-marketwide-5m-measurement.yml --branch main --status success --limit 4 --json databaseId --jq '.[].databaseId' || true)"
+            while read -r id; do
+              [ -z "$id" ] && continue
+              d="tmp/prior-v2/run-$id"; mkdir -p "$d"
+              if gh run download "$id" --repo "$GH_REPO" --name phase57-p25-marketwide-5m-measurement --dir "$d" >/dev/null 2>&1; then
+                n=$((n+1))
+              fi
+            done <<< "$ids"
+          fi
+          echo "loaded $n causal prior measurement sources"
       - name: Measure dynamic 5m v1 and v2 selection
         run: node scripts/measure_p25_intraday_dynamic_universe_snapshot.mjs --input tmp/marketwide.json --prior-dir tmp/prior-v2 --output tmp/measurement.json
       - name: Guard research-only safety

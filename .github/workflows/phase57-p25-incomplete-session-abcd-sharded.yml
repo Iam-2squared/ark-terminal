@@ -177,7 +177,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0,1,2,3,4,5,6,7,8,9]
+        shard: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49]
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -195,7 +195,7 @@ jobs:
           path: /tmp/combined
       - run: |
           mkdir -p /tmp/d50-out
-          node scripts/run_p25_incomplete_abcd_d50_shard.mjs --partial-dir /tmp/prep/p25-partial --history-pack /tmp/prep/p25-history.json --bars /tmp/combined/bars.json --output /tmp/d50-out/d50-${{ matrix.shard }}.json --shard-index ${{ matrix.shard }} --shard-count 10
+          node scripts/run_p25_incomplete_abcd_d50_shard.mjs --partial-dir /tmp/prep/p25-partial --history-pack /tmp/prep/p25-history.json --bars /tmp/combined/bars.json --output /tmp/d50-out/d50-${{ matrix.shard }}.json --shard-index ${{ matrix.shard }} --shard-count 50
       - uses: actions/upload-artifact@v4
         with:
           name: p25-d50-shard-${{ matrix.shard }}
@@ -208,7 +208,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0,1,2,3,4,5,6,7,8,9]
+        shard: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49]
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -226,7 +226,7 @@ jobs:
           path: /tmp/combined
       - run: |
           mkdir -p /tmp/dynamic-out
-          node scripts/run_p25_incomplete_abcd_dynamic_point_shard.mjs --partial-dir /tmp/prep/p25-partial --history-pack /tmp/prep/p25-history.json --bars /tmp/combined/bars.json --output /tmp/dynamic-out/dynamic-${{ matrix.shard }}.json --shard-index ${{ matrix.shard }} --shard-count 10
+          node scripts/run_p25_incomplete_abcd_dynamic_point_shard.mjs --partial-dir /tmp/prep/p25-partial --history-pack /tmp/prep/p25-history.json --bars /tmp/combined/bars.json --output /tmp/dynamic-out/dynamic-${{ matrix.shard }}.json --shard-index ${{ matrix.shard }} --shard-count 50
       - uses: actions/upload-artifact@v4
         with:
           name: p25-abcd-dynamic-shard-${{ matrix.shard }}

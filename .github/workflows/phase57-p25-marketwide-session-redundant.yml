@@ -39,10 +39,6 @@ jobs:
           set -euo pipefail
           if [ "${{ github.event_name }}" = 'workflow_dispatch' ]; then
             part='${{ inputs.session_part }}'
-          elif [ "${{ github.event.schedule }}" = '58 23 * * 0-4' ]; then
-            part='MORNING'
-          elif [ "${{ github.event.schedule }}" = '28 3 * * 1-5' ]; then
-            part='AFTERNOON'
           else
             hm="$(TZ=Asia/Tokyo date +%H%M)"
             if [ "$hm" -lt 1200 ]; then part='MORNING'; else part='AFTERNOON'; fi

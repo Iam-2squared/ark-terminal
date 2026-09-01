@@ -1,5 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import {spawn} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 import {buildProspectiveP21HistoricalRows} from '../predict/daytrade/phase57-p21-prospective-history.js';
 import {buildProspectiveP21FeatureFeed} from '../predict/daytrade/phase57-p21-prospective-feature-feed.js';
 import {buildProspectiveP21FrozenDecision} from '../predict/daytrade/phase57-p21-prospective-frozen-base.js';
@@ -13,7 +15,53 @@ const barsPath=arg('--bars');
 const output=arg('--output');
 const shardIndex=Number(arg('--shard-index','0'));
 const shardCount=Number(arg('--shard-count','1'));
+const atomicChild=arg('--atomic-child','0')==='1';
 if(!partialDir||!historyPath||!barsPath||!output||!Number.isInteger(shardIndex)||!Number.isInteger(shardCount)||shardCount<1||shardIndex<0||shardIndex>=shardCount)throw new Error('usage: --partial-dir <dir> --history-pack <json> --bars <json> --output <json> --shard-index <n> --shard-count <n>');
+
+const safety={executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,rssOrderFunctionAllowed:false,liveTradingAllowed:false,paperTradingAllowed:false,automaticPromotionAllowed:false,productionUpdateAllowed:false,transmitted:false,freshHoldoutConsumed:false};
+
+async function runLogicalShardParallel(){
+  const factor=3;
+  const script=fileURLToPath(import.meta.url);
+  const childDir=path.join(path.dirname(output),`.virtual-${shardIndex}`);
+  fs.mkdirSync(childDir,{recursive:true});
+  const children=[];
+  for(let k=0;k<factor;k++){
+    const virtualIndex=shardIndex+k*shardCount;
+    const virtualCount=shardCount*factor;
+    const childOutput=path.join(childDir,`part-${virtualIndex}.json`);
+    const args=[script,'--partial-dir',partialDir,'--history-pack',historyPath,'--bars',barsPath,'--output',childOutput,'--shard-index',String(virtualIndex),'--shard-count',String(virtualCount),'--atomic-child','1'];
+    children.push(new Promise((resolve,reject)=>{
+      const cp=spawn(process.execPath,args,{stdio:'inherit'});
+      cp.on('error',reject);
+      cp.on('exit',code=>code===0?resolve(childOutput):reject(new Error(`virtual D50 shard ${virtualIndex} exited ${code}`)));
+    }));
+  }
+  const files=await Promise.all(children);
+  const parts=files.map(f=>JSON.parse(fs.readFileSync(f,'utf8')));
+  const pointMap=new Map();
+  for(const part of parts){
+    for(const p of part.points??[]){
+      let out=pointMap.get(p.observedAt);
+      if(!out){out={observedAt:p.observedAt,blockedReason:null,scoredCount:0,signals:[],pairIndices:[]};pointMap.set(p.observedAt,out);}
+      if(!out.blockedReason&&p.blockedReason)out.blockedReason=p.blockedReason;
+      out.scoredCount+=Number(p.scoredCount||0);
+      out.signals.push(...(p.signals??[]));
+      out.pairIndices.push(...(p.pairIndices??[]));
+    }
+  }
+  const assignedPairs=parts.flatMap(p=>p.assignedPairs??[]).sort((a,b)=>a.flatIndex-b.flatIndex);
+  const points=[...pointMap.values()].map(p=>({...p,pairIndices:[...p.pairIndices].sort((a,b)=>a-b),signals:[...p.signals].sort((a,b)=>a.d50Index-b.d50Index)})).sort((a,b)=>String(a.observedAt).localeCompare(String(b.observedAt)));
+  const payload={schemaVersion:2,phase:'57.p25.incomplete-abcd-d50-shard',status:'P25_INCOMPLETE_ABCD_D50_SHARD_READY',sessionDate:parts[0]?.sessionDate,shardIndex,shardCount,totalPairs:parts[0]?.totalPairs,assignedPairs,points,methodology:{partitionByFlattenedPointSymbolPairModuloShardCount:true,logicalShardParallelFactor:factor,virtualShardCount:shardCount*factor,flattenOrder:'pointIndex*50+symbolIndex',unavailablePostCloseSymbolsSkippedExactlyAsIncompleteWrapper:true,pointBlockPropagatedToFinalRecombiner:true,entryScorerReceivesPrefixOnly:true,futureBarsExcludedFromEntryScorer:true,resultBasedRetuning:false},safety};
+  fs.mkdirSync(path.dirname(output),{recursive:true});
+  fs.writeFileSync(output,JSON.stringify(payload,null,2)+'\n');
+  console.log(JSON.stringify({status:payload.status,shardIndex,parallelFactor:factor,assignedPairs:assignedPairs.length,points:points.length,blocked:points.filter(x=>x.blockedReason).length,signals:points.reduce((s,x)=>s+x.signals.length,0)},null,2));
+}
+
+if(!atomicChild&&shardCount===50){
+  await runLogicalShardParallel();
+  process.exit(0);
+}
 
 const finite=v=>v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v));
 const sym=v=>String(v??'').trim().toUpperCase();
@@ -81,7 +129,6 @@ for(const pair of assignedPairs){
   out.signals.push({d50Index:pair.symbolIndex,entry:{entryAccepted:true,symbol,sessionDate:freeze.sessionDate,entryTimestamp:featureCutoff,featureCutoff,signalDirection:direction,direction:direction===1?'LONG':'SHORT',baseHorizonBars:Number(context.selectedHorizonBars),confidence:finite(d.confidence)?Number(d.confidence):null,probability:finite(context.probability)?Number(context.probability):null,selectedFeatureFamily:context.selectedFeatureFamily??d.setup??null,selectedModelType:context.selectedModelType??null,selectedConfigId:context.selectedConfigId??null,selectedThreshold:finite(context.selectedThreshold)?Number(context.selectedThreshold):null,modelId:result.modelId,artifactSha256:result.artifactSha256,sector:sectorMap.get(symbol)??'UNKNOWN',variantMemberships:['DYNAMIC_50'],selectionObservedAt:observedAt,outcomePending:true,frozenBeforeOutcome:true,currentOutcomeUsed:false}});
 }
 const points=[...pointMap.values()].sort((a,b)=>String(a.observedAt).localeCompare(String(b.observedAt)));
-const safety={executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,rssOrderFunctionAllowed:false,liveTradingAllowed:false,paperTradingAllowed:false,automaticPromotionAllowed:false,productionUpdateAllowed:false,transmitted:false,freshHoldoutConsumed:false};
 const payload={schemaVersion:2,phase:'57.p25.incomplete-abcd-d50-shard',status:'P25_INCOMPLETE_ABCD_D50_SHARD_READY',sessionDate:freeze.sessionDate,shardIndex,shardCount,totalPairs,assignedPairs,points,methodology:{partitionByFlattenedPointSymbolPairModuloShardCount:true,flattenOrder:'pointIndex*50+symbolIndex',unavailablePostCloseSymbolsSkippedExactlyAsIncompleteWrapper:true,pointBlockPropagatedToFinalRecombiner:true,entryScorerReceivesPrefixOnly:true,futureBarsExcludedFromEntryScorer:true,resultBasedRetuning:false},safety};
 fs.mkdirSync(path.dirname(output),{recursive:true});
 fs.writeFileSync(output,JSON.stringify(payload,null,2)+'\n');

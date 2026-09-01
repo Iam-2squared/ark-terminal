@@ -82,7 +82,10 @@ jobs:
           // B/D have two independent point-in-time capture mechanisms.
           for(const cron of ["*/5 0-1 * * 1-5","0-30/5 2,6 * * 1-5","30-55/5 3 * * 1-5","*/5 4-5 * * 1-5"])must(market.includes(cron),`primary Dynamic5m cron missing ${cron}`);
           must(market.includes('inputSymbols<3000')&&market.includes('marketwide.ndjson'),'primary marketwide fail-closed/artifact guard missing');
-          must(redundant.includes("58 23 * * 0-4")&&redundant.includes("28 3 * * 1-5"),'redundant morning/afternoon collector missing');
+          must(redundant.includes("50 23 * * 0-4")&&redundant.includes("55 23 * * 0-4"),'redundant morning warmup collectors missing');
+          must(redundant.includes("20 3 * * 1-5")&&redundant.includes("25 3 * * 1-5"),'redundant afternoon warmup collectors missing');
+          must(redundant.includes('start_hm=0900; end_hm=1130')&&redundant.includes('start_hm=1230; end_hm=1530'),'full JPX session boundaries missing');
+          must(redundant.includes('--prior-dir tmp/redundant'),'redundant Dynamic5m v2 causal prior locality missing');
           must(redundant.includes('sleep "$wait"')&&redundant.includes('marketwide.ndjson'),'redundant five-minute loop/evidence missing');
           must(measureScript.includes('currentPrice:x.currentPrice'),'Dynamic5m point-in-time entry reference not retained');
           must(bundle.includes('automation/p25-dynamic5m-day-data')&&bundle.includes('build_p25_dynamic5m_daily_bundle.mjs'),'Dynamic5m daily immutable bundle missing');

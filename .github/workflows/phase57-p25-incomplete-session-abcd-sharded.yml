@@ -1,0 +1,311 @@
+name: Phase57 P25 Incomplete Session ABCD Sharded
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-p25-incomplete-session-abcd-sharded.yml'
+      - 'scripts/run_p25_incomplete_abcd_bar_shard.mjs'
+      - 'scripts/combine_p25_incomplete_abcd_bar_shards.mjs'
+      - 'scripts/run_p25_incomplete_abcd_d50_shard.mjs'
+      - 'scripts/finalize_p25_incomplete_abcd_d50.mjs'
+      - 'scripts/run_p25_incomplete_abcd_dynamic.mjs'
+      - 'scripts/recombine_p25_incomplete_abcd.mjs'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/phase57-p25-incomplete-session-abcd-sharded.yml'
+      - 'scripts/run_p25_incomplete_abcd_bar_shard.mjs'
+      - 'scripts/combine_p25_incomplete_abcd_bar_shards.mjs'
+      - 'scripts/run_p25_incomplete_abcd_d50_shard.mjs'
+      - 'scripts/finalize_p25_incomplete_abcd_d50.mjs'
+      - 'scripts/run_p25_incomplete_abcd_dynamic.mjs'
+      - 'scripts/recombine_p25_incomplete_abcd.mjs'
+  workflow_dispatch:
+    inputs:
+      session_date:
+        description: 'Incomplete JPX session date YYYY-MM-DD; blank = current JST date'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: phase57-p25-incomplete-session-abcd-sharded-${{ inputs.session_date || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and safety contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in \
+            scripts/run_p25_incomplete_abcd_bar_shard.mjs \
+            scripts/combine_p25_incomplete_abcd_bar_shards.mjs \
+            scripts/run_p25_incomplete_abcd_d50_shard.mjs \
+            scripts/finalize_p25_incomplete_abcd_d50.mjs \
+            scripts/run_p25_incomplete_abcd_dynamic.mjs \
+            scripts/recombine_p25_incomplete_abcd.mjs; do node --check "$f"; done
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const files=['scripts/run_p25_incomplete_abcd_bar_shard.mjs','scripts/combine_p25_incomplete_abcd_bar_shards.mjs','scripts/run_p25_incomplete_abcd_d50_shard.mjs','scripts/finalize_p25_incomplete_abcd_d50.mjs','scripts/run_p25_incomplete_abcd_dynamic.mjs','scripts/recombine_p25_incomplete_abcd.mjs'];
+          for(const f of files){const s=fs.readFileSync(f,'utf8');for(const k of ['executionAllowed:false','brokerWriteAllowed:false','excelOrderWriteAllowed:false','rssOrderFunctionAllowed:false','liveTradingAllowed:false','paperTradingAllowed:false','automaticPromotionAllowed:false','productionUpdateAllowed:false'])if(!s.includes(k))throw new Error(`${f} missing ${k}`);}
+          console.log('max-sharded ABCD safety contract OK');
+          NODE
+
+  prepare:
+    if: github.event_name != 'pull_request'
+    needs: contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Resolve session and build immutable shared inputs
+        shell: bash
+        env:
+          REQUESTED: ${{ inputs.session_date }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ -n "${REQUESTED:-}" ]; then SESSION_DATE="$REQUESTED"; else SESSION_DATE="$(TZ=Asia/Tokyo date +%F)"; fi
+          [[ "$SESSION_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]
+          echo "SESSION_DATE=$SESSION_DATE" >> "$GITHUB_ENV"
+          git fetch origin automation/p25-universe-data:refs/remotes/origin/automation/p25-universe-data
+          git fetch origin automation/p25-marketwide-5m-data:refs/remotes/origin/automation/p25-marketwide-5m-data
+          git show origin/automation/p25-universe-data:data/p25-prospective-universe-timeline.ndjson > /tmp/p25-universe-timeline.ndjson
+          git worktree add --detach /tmp/p25-marketwide origin/automation/p25-marketwide-5m-data
+          node scripts/build_p25_incomplete_session_partial_substrate.mjs --timeline /tmp/p25-universe-timeline.ndjson --marketwide-root /tmp/p25-marketwide/data/p25-marketwide-5m --session-date "$SESSION_DATE" --output-dir /tmp/p25-partial
+          mkdir -p /tmp/p24-canonical
+          gh run download 31785422471 --repo "$GH_REPO" --name phase57-p24-9-oos-canonical-candidate --dir /tmp/p24-canonical
+          snapshot="$(find /tmp/p24-canonical -type f -name 'phase57-p24-9-oos-byte-snapshot.json' -print -quit)"
+          test -n "$snapshot"
+          node scripts/build_p25_pinned_history_pack.mjs --snapshot "$snapshot" --output /tmp/p25-history.json
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const m=JSON.parse(fs.readFileSync('/tmp/p25-partial/partial-manifest.json','utf8'));
+          if(m.status!=='PARTIAL_FRESH_SUBSTRATE_READY'||m.formalFullSession!==false||m.formalOos!==false||m.missingExpectedBucketCount<1)throw new Error('incomplete-session classification failed');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'])if(m.safety?.[k]!==false)throw new Error(`unsafe ${k}`);
+          NODE
+          mkdir -p /tmp/prep-upload
+          cp -r /tmp/p25-partial /tmp/prep-upload/p25-partial
+          cp /tmp/p25-history.json /tmp/prep-upload/p25-history.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p25-abcd-shared-inputs
+          path: /tmp/prep-upload
+          retention-days: 7
+
+  bar_shard:
+    if: github.event_name != 'pull_request'
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: p25-abcd-shared-inputs
+          path: /tmp/prep
+      - name: Fetch post-close bars shard
+        run: |
+          mkdir -p /tmp/bar-out
+          node scripts/run_p25_incomplete_abcd_bar_shard.mjs --partial-dir /tmp/prep/p25-partial --output /tmp/bar-out/bar-${{ matrix.shard }}.json --shard-index ${{ matrix.shard }} --shard-count 16
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p25-bar-shard-${{ matrix.shard }}
+          path: /tmp/bar-out
+          retention-days: 7
+
+  combine_bars:
+    if: github.event_name != 'pull_request'
+    needs: bar_shard
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: p25-abcd-shared-inputs
+          path: /tmp/prep
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: p25-bar-shard-*
+          path: /tmp/bar-shards
+          merge-multiple: true
+      - run: |
+          mkdir -p /tmp/combined
+          node scripts/combine_p25_incomplete_abcd_bar_shards.mjs --input-dir /tmp/bar-shards --partial-dir /tmp/prep/p25-partial --output /tmp/combined/bars.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p25-abcd-combined-bars
+          path: /tmp/combined
+          retention-days: 7
+
+  d50_shard:
+    if: github.event_name != 'pull_request'
+    needs: combine_bars
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0,1,2,3,4,5,6,7,8,9]
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: p25-abcd-shared-inputs
+          path: /tmp/prep
+      - uses: actions/download-artifact@v4
+        with:
+          name: p25-abcd-combined-bars
+          path: /tmp/combined
+      - run: |
+          mkdir -p /tmp/d50-out
+          node scripts/run_p25_incomplete_abcd_d50_shard.mjs --partial-dir /tmp/prep/p25-partial --history-pack /tmp/prep/p25-history.json --bars /tmp/combined/bars.json --output /tmp/d50-out/d50-${{ matrix.shard }}.json --shard-index ${{ matrix.shard }} --shard-count 10
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p25-d50-shard-${{ matrix.shard }}
+          path: /tmp/d50-out
+          retention-days: 7
+
+  dynamic_bd:
+    if: github.event_name != 'pull_request'
+    needs: combine_bars
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: p25-abcd-shared-inputs
+          path: /tmp/prep
+      - uses: actions/download-artifact@v4
+        with:
+          name: p25-abcd-combined-bars
+          path: /tmp/combined
+      - run: |
+          mkdir -p /tmp/dynamic-out
+          node scripts/run_p25_incomplete_abcd_dynamic.mjs --partial-dir /tmp/prep/p25-partial --history-pack /tmp/prep/p25-history.json --bars /tmp/combined/bars.json --output /tmp/dynamic-out/dynamic.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p25-abcd-dynamic-bd
+          path: /tmp/dynamic-out
+          retention-days: 7
+
+  finalize_d50:
+    if: github.event_name != 'pull_request'
+    needs: d50_shard
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: p25-abcd-shared-inputs
+          path: /tmp/prep
+      - uses: actions/download-artifact@v4
+        with:
+          name: p25-abcd-combined-bars
+          path: /tmp/combined
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: p25-d50-shard-*
+          path: /tmp/d50-shards
+          merge-multiple: true
+      - run: |
+          mkdir -p /tmp/d50-final
+          node scripts/finalize_p25_incomplete_abcd_d50.mjs --partial-dir /tmp/prep/p25-partial --history-pack /tmp/prep/p25-history.json --bars /tmp/combined/bars.json --shard-dir /tmp/d50-shards --output /tmp/d50-final/d50-final.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p25-abcd-d50-final
+          path: /tmp/d50-final
+          retention-days: 7
+
+  recombine:
+    if: github.event_name != 'pull_request'
+    needs: [finalize_d50, dynamic_bd]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: p25-abcd-shared-inputs
+          path: /tmp/prep
+      - uses: actions/download-artifact@v4
+        with:
+          name: p25-abcd-combined-bars
+          path: /tmp/combined
+      - uses: actions/download-artifact@v4
+        with:
+          name: p25-abcd-d50-final
+          path: /tmp/d50-final
+      - uses: actions/download-artifact@v4
+        with:
+          name: p25-abcd-dynamic-bd
+          path: /tmp/dynamic
+      - run: |
+          mkdir -p /tmp/final
+          node scripts/recombine_p25_incomplete_abcd.mjs --partial-dir /tmp/prep/p25-partial --bars /tmp/combined/bars.json --d50 /tmp/d50-final/d50-final.json --dynamic /tmp/dynamic/dynamic.json --output /tmp/final/abcd-result-v3-sharded.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-incomplete-session-abcd-sharded-${{ github.run_id }}
+          path: /tmp/final
+          retention-days: 90
+      - name: Persist append-only sharded evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          SESSION_DATE="$(node -e "console.log(require('/tmp/final/abcd-result-v3-sharded.json').sessionDate)")"
+          cp /tmp/final/abcd-result-v3-sharded.json /tmp/result.json
+          git config user.name 'Ark P25 Sharded ABCD Bot'
+          git config user.email 'ark-p25-sharded-abcd@users.noreply.github.com'
+          git fetch origin automation/p25-partial-data:refs/remotes/origin/automation/p25-partial-data
+          git switch -C automation/p25-partial-data origin/automation/p25-partial-data
+          target="data/p25-incomplete-session/${SESSION_DATE}"
+          mkdir -p "$target"
+          test ! -e "$target/abcd-result-v3-sharded.json"
+          cp /tmp/result.json "$target/abcd-result-v3-sharded.json"
+          git add "$target/abcd-result-v3-sharded.json"
+          git commit -m "Persist P25 maximally sharded incomplete ABCD ${SESSION_DATE}"
+          git push origin HEAD:automation/p25-partial-data
+      - name: Safety boundary
+        if: always()
+        run: echo 'Sharding changes execution topology only; no backfill/fabrication, tuning, promotion, broker/RSS/Excel/order/paper/live execution, or production update.'

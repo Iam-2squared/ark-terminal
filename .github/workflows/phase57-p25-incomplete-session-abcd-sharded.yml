@@ -9,6 +9,8 @@ on:
       - 'scripts/run_p25_incomplete_abcd_d50_shard.mjs'
       - 'scripts/finalize_p25_incomplete_abcd_d50.mjs'
       - 'scripts/run_p25_incomplete_abcd_dynamic.mjs'
+      - 'scripts/run_p25_incomplete_abcd_dynamic_point_shard.mjs'
+      - 'scripts/combine_p25_incomplete_abcd_dynamic_point_shards.mjs'
       - 'scripts/recombine_p25_incomplete_abcd.mjs'
   push:
     branches: [main]
@@ -19,6 +21,8 @@ on:
       - 'scripts/run_p25_incomplete_abcd_d50_shard.mjs'
       - 'scripts/finalize_p25_incomplete_abcd_d50.mjs'
       - 'scripts/run_p25_incomplete_abcd_dynamic.mjs'
+      - 'scripts/run_p25_incomplete_abcd_dynamic_point_shard.mjs'
+      - 'scripts/combine_p25_incomplete_abcd_dynamic_point_shards.mjs'
       - 'scripts/recombine_p25_incomplete_abcd.mjs'
   workflow_dispatch:
     inputs:
@@ -53,10 +57,12 @@ jobs:
             scripts/run_p25_incomplete_abcd_d50_shard.mjs \
             scripts/finalize_p25_incomplete_abcd_d50.mjs \
             scripts/run_p25_incomplete_abcd_dynamic.mjs \
+            scripts/run_p25_incomplete_abcd_dynamic_point_shard.mjs \
+            scripts/combine_p25_incomplete_abcd_dynamic_point_shards.mjs \
             scripts/recombine_p25_incomplete_abcd.mjs; do node --check "$f"; done
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
-          const files=['scripts/run_p25_incomplete_abcd_bar_shard.mjs','scripts/combine_p25_incomplete_abcd_bar_shards.mjs','scripts/run_p25_incomplete_abcd_d50_shard.mjs','scripts/finalize_p25_incomplete_abcd_d50.mjs','scripts/run_p25_incomplete_abcd_dynamic.mjs','scripts/recombine_p25_incomplete_abcd.mjs'];
+          const files=['scripts/run_p25_incomplete_abcd_bar_shard.mjs','scripts/combine_p25_incomplete_abcd_bar_shards.mjs','scripts/run_p25_incomplete_abcd_d50_shard.mjs','scripts/finalize_p25_incomplete_abcd_d50.mjs','scripts/run_p25_incomplete_abcd_dynamic.mjs','scripts/run_p25_incomplete_abcd_dynamic_point_shard.mjs','scripts/combine_p25_incomplete_abcd_dynamic_point_shards.mjs','scripts/recombine_p25_incomplete_abcd.mjs'];
           for(const f of files){const s=fs.readFileSync(f,'utf8');for(const k of ['executionAllowed:false','brokerWriteAllowed:false','excelOrderWriteAllowed:false','rssOrderFunctionAllowed:false','liveTradingAllowed:false','paperTradingAllowed:false','automaticPromotionAllowed:false','productionUpdateAllowed:false'])if(!s.includes(k))throw new Error(`${f} missing ${k}`);}
           console.log('max-sharded ABCD safety contract OK');
           NODE
@@ -196,11 +202,15 @@ jobs:
           path: /tmp/d50-out
           retention-days: 7
 
-  dynamic_bd:
+  dynamic_shard:
     if: github.event_name != 'pull_request'
     needs: combine_bars
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0,1,2,3,4,5,6,7,8,9]
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -216,11 +226,11 @@ jobs:
           path: /tmp/combined
       - run: |
           mkdir -p /tmp/dynamic-out
-          node scripts/run_p25_incomplete_abcd_dynamic.mjs --partial-dir /tmp/prep/p25-partial --history-pack /tmp/prep/p25-history.json --bars /tmp/combined/bars.json --output /tmp/dynamic-out/dynamic.json
+          node scripts/run_p25_incomplete_abcd_dynamic_point_shard.mjs --partial-dir /tmp/prep/p25-partial --history-pack /tmp/prep/p25-history.json --bars /tmp/combined/bars.json --output /tmp/dynamic-out/dynamic-${{ matrix.shard }}.json --shard-index ${{ matrix.shard }} --shard-count 10
       - uses: actions/upload-artifact@v4
         with:
-          name: p25-abcd-dynamic-bd
-          path: /tmp/dynamic-out
+          name: p25-abcd-dynamic-shard-${{ matrix.shard }}
+          path: /tmp/dynamic-out/dynamic-${{ matrix.shard }}.json
           retention-days: 7
 
   finalize_d50:
@@ -255,9 +265,41 @@ jobs:
           path: /tmp/d50-final
           retention-days: 7
 
+  finalize_dynamic:
+    if: github.event_name != 'pull_request'
+    needs: dynamic_shard
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: p25-abcd-shared-inputs
+          path: /tmp/prep
+      - uses: actions/download-artifact@v4
+        with:
+          name: p25-abcd-combined-bars
+          path: /tmp/combined
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: p25-abcd-dynamic-shard-*
+          path: /tmp/dynamic-shards
+          merge-multiple: true
+      - run: |
+          mkdir -p /tmp/dynamic-final
+          node scripts/combine_p25_incomplete_abcd_dynamic_point_shards.mjs --partial-dir /tmp/prep/p25-partial --bars /tmp/combined/bars.json --shard-dir /tmp/dynamic-shards --output /tmp/dynamic-final/dynamic.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p25-abcd-dynamic-final
+          path: /tmp/dynamic-final
+          retention-days: 7
+
   recombine:
     if: github.event_name != 'pull_request'
-    needs: [finalize_d50, dynamic_bd]
+    needs: [finalize_d50, finalize_dynamic]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -279,7 +321,7 @@ jobs:
           path: /tmp/d50-final
       - uses: actions/download-artifact@v4
         with:
-          name: p25-abcd-dynamic-bd
+          name: p25-abcd-dynamic-final
           path: /tmp/dynamic
       - run: |
           mkdir -p /tmp/final

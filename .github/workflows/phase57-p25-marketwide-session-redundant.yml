@@ -1,6 +1,10 @@
 name: Phase57 P25 Marketwide 5m Redundant Session Collector
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/phase57-p25-marketwide-session-redundant.yml'
   workflow_dispatch:
     inputs:
       session_part:
@@ -14,10 +18,10 @@ on:
     - cron: '28 3 * * 1-5'  # 12:28 JST Mon-Fri
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: phase57-p25-marketwide-5m-redundant-${{ github.event.schedule || inputs.session_part }}
+  group: phase57-p25-marketwide-5m-redundant-${{ github.event.schedule || inputs.session_part || github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -37,13 +41,19 @@ jobs:
             part='${{ inputs.session_part }}'
           elif [ "${{ github.event.schedule }}" = '58 23 * * 0-4' ]; then
             part='MORNING'
-          else
+          elif [ "${{ github.event.schedule }}" = '28 3 * * 1-5' ]; then
             part='AFTERNOON'
+          else
+            hm="$(TZ=Asia/Tokyo date +%H%M)"
+            if [ "$hm" -lt 1200 ]; then part='MORNING'; else part='AFTERNOON'; fi
           fi
           echo "SESSION_PART=$part" >> "$GITHUB_ENV"
           echo "SESSION_DATE=$(TZ=Asia/Tokyo date +%F)" >> "$GITHUB_ENV"
       - name: Collect independent point-in-time snapshots every five minutes
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           set -u
           mkdir -p tmp/redundant
@@ -52,6 +62,27 @@ jobs:
           else
             start_hm=1230; end_hm=1530
           fi
+          persist_point() {
+            local dir="$1"
+            local observed session_date stamp remote_dir path payload
+            observed="$(node -p "require('./$dir/measurement.json').observedAt")"
+            session_date="$(TZ=Asia/Tokyo date -d "$observed" +%F)"
+            stamp="$(date -u -d "$observed" +%Y%m%dT%H%M%SZ)"
+            remote_dir="data/p25-marketwide-5m/${session_date}/${stamp}"
+            for spec in "measurement.json:$dir/measurement.json" "marketwide.ndjson:$dir/marketwide.ndjson"; do
+              path="${spec%%:*}"; local_file="${spec#*:}"
+              if gh api "repos/$GH_REPO/contents/$remote_dir/$path?ref=automation/p25-marketwide-5m-data" >/dev/null 2>&1; then
+                echo "durable exists: $remote_dir/$path"
+                continue
+              fi
+              payload="$(base64 -w0 "$local_file")"
+              gh api --method PUT "repos/$GH_REPO/contents/$remote_dir/$path" \
+                -f message="Persist redundant Dynamic5m point ${session_date} ${stamp} ${path}" \
+                -f content="$payload" \
+                -f branch='automation/p25-marketwide-5m-data' >/dev/null
+            done
+            echo "durably persisted redundant point=$remote_dir"
+          }
           attempt=0; success=0
           while true; do
             hm="$(TZ=Asia/Tokyo date +%H%M)"
@@ -66,7 +97,12 @@ jobs:
             if node scripts/fetch_p25_marketwide_5m_spark.mjs --output "$dir/marketwide.json" \
               && node scripts/capture_p25_marketwide_5m_snapshot.mjs --input "$dir/marketwide.json" --as-of "$(node -p "require('./$dir/marketwide.json').meta.observedAt")" --output "$dir/marketwide.ndjson" \
               && node scripts/measure_p25_intraday_dynamic_universe_snapshot.mjs --input "$dir/marketwide.json" --output "$dir/measurement.json"; then
-              success=$((success+1))
+              if persist_point "$dir"; then
+                success=$((success+1))
+              else
+                echo "Durable persistence failed closed for $stamp"
+                rm -f "$dir/measurement.json"
+              fi
             else
               echo "Point failed closed; keeping no fabricated measurement for $stamp"
               rm -f "$dir/measurement.json"
@@ -92,4 +128,4 @@ jobs:
           retention-days: 90
       - name: Safety boundary
         if: always()
-        run: echo 'Redundant point-in-time research capture only; no broker/RSS/Excel/order/paper/live/promotion/production action.'
+        run: echo 'Redundant point-in-time research capture only; append-only evidence, no broker/RSS/Excel/order/paper/live/promotion/production action.'

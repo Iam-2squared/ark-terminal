@@ -13,7 +13,8 @@ function currentPriceOf(position) { return Number(position?.lastMarkPrice ?? pos
 function positionReturnPercent(position) {
   const entry = Number(position?.entryReferencePrice ?? 0), current = currentPriceOf(position), direction = Number(position?.signalDirection ?? 1);
   if (!(entry > 0) || !(current > 0)) return null;
-  return ((current / entry) - 1) * 100 * (direction === -1 ? -1 : 1);
+  const value = ((current / entry) - 1) * 100 * (direction === -1 ? -1 : 1);
+  return Number(value.toFixed(10));
 }
 function openPositionRows(state) {
   const rows = [];

@@ -11,6 +11,7 @@ const FALSE_KEYS = [
   "executionAllowed", "brokerWriteAllowed", "excelOrderWriteAllowed", "rssOrderFunctionAllowed",
   "liveTradingAllowed", "paperTradingAllowed", "automaticPromotionAllowed", "productionUpdateAllowed",
 ];
+const FIVE_MINUTES_MS = 5 * 60_000;
 
 function assertSafety() {
   for (const key of FALSE_KEYS) if (SAFETY[key] !== false) throw new Error(`unsafe realtime orchestrator ${key}`);
@@ -26,12 +27,27 @@ function normalizeSymbol(value) { return String(value ?? "").trim().toUpperCase(
 function marksFromBars(bars) {
   return Object.fromEntries((bars ?? []).map((row) => [normalizeSymbol(row.symbol), Number(row.bar?.close)]));
 }
-function currentBarsFromRows(rows, at) {
+function currentBarsFromRows(rows, decisionAt) {
   return Object.fromEntries((rows ?? []).map((row) => {
     const symbol = normalizeSymbol(row.symbol);
     const bar = row.bar ?? {};
-    return [symbol, { ...bar, timestamp: at }];
+    return [symbol, { ...bar, timestamp: decisionAt }];
   }));
+}
+function mergedEntryHistory(source, marketBars) {
+  const out = {};
+  const symbols = new Set([
+    ...Object.keys(source ?? {}),
+    ...(marketBars ?? []).map((row) => normalizeSymbol(row?.symbol)).filter(Boolean),
+  ]);
+  for (const symbol of symbols) {
+    const prior = Array.isArray(source?.[symbol]) ? source[symbol] : [];
+    const current = (marketBars ?? [])
+      .filter((row) => normalizeSymbol(row?.symbol) === symbol)
+      .map((row) => ({ ...row.bar, timestamp: atOf(row.bar) }));
+    out[symbol] = [...prior, ...current];
+  }
+  return out;
 }
 function openSymbols(state) {
   const out = new Set();
@@ -47,7 +63,8 @@ export function ensureRealtimePipelineState(state) {
 
 /**
  * One finalized 5-minute research cycle. No order payload is ever created.
- * Ordering is intentionally fixed: Bars/Features -> Selection -> Frozen Entry -> EXIT existing positions -> Allocation -> Dashboard.
+ * `marketBars[].bar` timestamps are bar-start S; `at` is the decision time T=S+5m.
+ * Ordering is fixed: finalized Bars/Features -> Selection -> Frozen Entry -> EXIT existing positions -> Allocation -> Dashboard.
  */
 export function processRealtimeFiveMinutePoint(state, {
   at,
@@ -62,14 +79,15 @@ export function processRealtimeFiveMinutePoint(state, {
   expectedBucketCount = 68,
 } = {}) {
   assertSafety();
-  if (!at || !Number.isFinite(Date.parse(String(at)))) throw new Error("realtime point timestamp required");
+  const decisionMs = Date.parse(String(at ?? ""));
+  if (!at || !Number.isFinite(decisionMs)) throw new Error("realtime point timestamp required");
   if (!Array.isArray(marketBars) || !Array.isArray(selectionEntries)) throw new Error("marketBars[] and selectionEntries[] required");
   if (typeof scoreEntry !== "function") throw new Error("scoreEntry function required");
 
   const pipeline = ensureRealtimePipelineState(state);
   const requestSha256 = sha256({ at, marketBars, selectionEntries, sessionEnd, sessionQuality, missingBucketCount, expectedBucketCount });
   if (pipeline.lastPointTime) {
-    const current = Date.parse(String(at));
+    const current = decisionMs;
     const previous = Date.parse(String(pipeline.lastPointTime));
     if (current < previous) throw new Error("realtime pipeline timestamp cannot move backward");
     if (current === previous) {
@@ -82,7 +100,10 @@ export function processRealtimeFiveMinutePoint(state, {
     const symbol = normalizeSymbol(row?.symbol);
     if (!symbol) throw new Error("market bar symbol required");
     const barAt = atOf(row?.bar);
-    if (Date.parse(String(barAt ?? "")) !== Date.parse(String(at))) throw new Error(`market bar timestamp mismatch for ${symbol}`);
+    const barStartMs = Date.parse(String(barAt ?? ""));
+    if (!Number.isFinite(barStartMs) || barStartMs + FIVE_MINUTES_MS !== decisionMs) {
+      throw new Error(`finalized market bar must satisfy decisionAt = barStart + 5m for ${symbol}`);
+    }
     applyMarketFiveMinuteBar(state, { symbol, bar: row.bar });
   }
 
@@ -96,8 +117,10 @@ export function processRealtimeFiveMinutePoint(state, {
   });
 
   const selection = applyRealtimeDynamic5mSelection(state, { at, entries: selectionEntries, heldSymbols: openSymbols(state) });
-  const entries = evaluateRealtimeFrozenEntries(state, { at, selectionPoint: selection, barsBySymbol: barsBySymbolHistory, scoreEntry });
+  const entryHistory = mergedEntryHistory(barsBySymbolHistory, marketBars);
+  const entries = evaluateRealtimeFrozenEntries(state, { at, selectionPoint: selection, barsBySymbol: entryHistory, scoreEntry });
 
+  // EXIT's frozen adapter keys the finalized observation to decision time T.
   const finalizedBarsBySymbol = currentBarsFromRows(marketBars, at);
   const exits = applyRealtimeExitBar(state, { at, barsBySymbol: finalizedBarsBySymbol, analogPool, sessionEnd });
   const marksBySymbol = marksFromBars(marketBars);

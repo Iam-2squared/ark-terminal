@@ -69,20 +69,30 @@ export function ensureRealtimeDashboardState(state) {
   return state.dashboard;
 }
 
-export function buildRealtimeDashboardSnapshot(state, { at = state.lastBarTime, sessionQuality = "UNKNOWN", missingBucketCount = 0 } = {}) {
+export function buildRealtimeDashboardSnapshot(state, {
+  at = state.lastBarTime,
+  sessionQuality = "UNKNOWN",
+  missingBucketCount = 0,
+  expectedBucketCount = null,
+} = {}) {
   assertSafety();
   if (!at || !Number.isFinite(Date.parse(String(at)))) throw new Error("dashboard timestamp required");
   verifyRealtimeLedger(state.ledger, { sessionDate: state.sessionDate });
   const strategies = Object.freeze(STRATEGY_IDS.map((id) => Object.freeze({ ...strategySnapshot(state.strategies[id], at), cash: Number(state.strategies[id].cash) })));
   const openPositions = openPositionRows(state);
   const closedPositions = closedPositionRows(state);
+  const missing = Math.max(0, Number(missingBucketCount) || 0);
+  const expected = finite(expectedBucketCount) && Number(expectedBucketCount) > 0 ? Number(expectedBucketCount) : null;
+  const coveragePercent = expected === null ? null : Math.max(0, Math.min(100, ((expected - missing) / expected) * 100));
   return Object.freeze({
-    schemaVersion: 1,
+    schemaVersion: 2,
     status: "PHASE57_REALTIME_DASHBOARD_READY",
     sessionDate: state.sessionDate,
     at,
     sessionQuality,
-    missingBucketCount: Number(missingBucketCount),
+    missingBucketCount: missing,
+    expectedBucketCount: expected,
+    coveragePercent,
     strategyCount: STRATEGY_IDS.length,
     strategies,
     openPositions,
@@ -104,9 +114,15 @@ export function commitRealtimeDashboardSnapshot(state, options = {}) {
     eventId: `${state.sessionDate}:${snapshot.at}:REALTIME_DASHBOARD_SNAPSHOT`,
     at: snapshot.at,
     type: "STRATEGY_SNAPSHOT_COMMITTED",
+    schemaVersion: snapshot.schemaVersion,
     strategyCount: snapshot.strategyCount,
+    strategies: snapshot.strategies,
+    openPositions: snapshot.openPositions,
+    closedPositions: snapshot.closedPositions,
     sessionQuality: snapshot.sessionQuality,
     missingBucketCount: snapshot.missingBucketCount,
+    expectedBucketCount: snapshot.expectedBucketCount,
+    coveragePercent: snapshot.coveragePercent,
   });
   return snapshot;
 }

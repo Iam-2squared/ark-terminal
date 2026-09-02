@@ -45,6 +45,34 @@ test("V2 persistence consumes only earlier realtime selection points", () => {
   assert.equal(session.selection.priorV2.length, 2);
 });
 
+test("V2 persistence matches the frozen batch selector across at least four causal points", () => {
+  const session = createRealtimeSessionState({ sessionDate: "2026-09-03" });
+  const prior = [];
+  const times = ["09:35", "09:40", "09:45", "09:50", "09:55"];
+  for (let point = 0; point < times.length; point += 1) {
+    const at = `2026-09-03T${times[point]}:00+09:00`;
+    const entries = rows().map((row, i) => ({
+      ...row,
+      volumeRatio: row.volumeRatio + ((i + point) % 5) * 0.07,
+      dailyChangePercent: row.dailyChangePercent + ((i + point) % 3) * 0.05,
+    }));
+    const batch = buildIntradayDynamicUniverseTimelineV2({
+      snapshots: [{ asOf: at, entries }],
+      priorSelections: prior,
+    }).points[0];
+    const realtime = applyRealtimeDynamic5mSelection(session, { at, entries });
+    assert.deepEqual(
+      realtime.selectedV2.map((x) => x.symbol),
+      batch.rawUniverse.map((x) => x.symbol),
+      `V2 mismatch at point ${point + 1}`,
+    );
+    prior.push(realtime.selectedV2.map((x) => x.symbol));
+    while (prior.length > 3) prior.shift();
+  }
+  assert.equal(session.selection.history.length, 5);
+  assert.equal(session.selection.priorV2.length, 3);
+});
+
 test("duplicate/backward selection points cannot overwrite committed history", () => {
   const session = createRealtimeSessionState({ sessionDate: "2026-09-03" });
   const entries = rows();

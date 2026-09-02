@@ -1,6 +1,9 @@
 name: Phase57 P25 Dynamic 5m Daily Bundle
 
 on:
+  workflow_run:
+    workflows: ['Phase57 P25 Four-Track Durable Persistence']
+    types: [completed]
   schedule:
     - cron: '0 7 * * 1-5' # 16:00 JST weekdays
     - cron: '20 7 * * 1-5' # 16:20 JST recovery fallback
@@ -21,6 +24,7 @@ concurrency:
 
 jobs:
   bundle:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:

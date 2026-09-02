@@ -4,6 +4,7 @@ import { createRealtimeSessionState, STRATEGY_IDS } from "../realtime/phase57-st
 import { processRealtimeFiveMinutePoint, PHASE57_REALTIME_ORCHESTRATOR_SAFETY } from "../realtime/phase57-realtime-orchestrator.js";
 
 const AT = "2026-09-03T09:35:00+09:00";
+const BAR_START = "2026-09-03T09:30:00+09:00";
 
 function selectionRows() {
   return Array.from({ length: 160 }, (_, i) => ({
@@ -25,12 +26,13 @@ function historyFor(rows) {
 
 function currentBars(rows) {
   return rows.map((row, i) => ({ symbol: row.symbol, bar: {
-    at: AT, open: row.currentPrice - 1, high: row.currentPrice + 1, low: row.currentPrice - 2,
+    at: BAR_START, open: row.currentPrice - 1, high: row.currentPrice + 1, low: row.currentPrice - 2,
     close: row.currentPrice, volume: 20000 + i,
   }}));
 }
 
-function mockFrozenScore({ at }) {
+function mockFrozenScore({ at, bars5m }) {
+  assert.equal(bars5m.at(-1).timestamp, new Date(BAR_START).toISOString());
   return {
     complete: true,
     modelId: "TEST_FROZEN_MODEL",
@@ -56,7 +58,7 @@ function mockFrozenScore({ at }) {
   };
 }
 
-test("one finalized point runs Bars -> Selection -> Entry -> EXIT -> 28-way Allocation -> Dashboard", () => {
+test("one finalized point uses S bar only at T=S+5m then runs the full 28-way shadow pipeline", () => {
   const rows = selectionRows();
   const state = createRealtimeSessionState({ sessionDate: "2026-09-03" });
   const input = {
@@ -76,6 +78,7 @@ test("one finalized point runs Bars -> Selection -> Entry -> EXIT -> 28-way Allo
   assert.equal(result.frozenEntryCount > 0, true);
   assert.equal(result.allocation.strategyCount, 28);
   assert.deepEqual(new Set(result.dashboard.strategies.map((x) => x.strategyId)), new Set(STRATEGY_IDS));
+  assert.equal(state.lastBarTime, BAR_START);
   assert.equal(state.ledger.some((x) => x.type === "BAR_FINALIZED"), true);
   assert.equal(state.ledger.some((x) => x.type === "FEATURES_UPDATED"), true);
   assert.equal(state.ledger.some((x) => x.type === "DYNAMIC5M_SELECTION_COMMITTED"), true);
@@ -85,6 +88,20 @@ test("one finalized point runs Bars -> Selection -> Entry -> EXIT -> 28-way Allo
   const duplicate = processRealtimeFiveMinutePoint(state, input);
   assert.equal(duplicate, result);
   assert.equal(state.pipeline.history.length, 1);
+});
+
+test("orchestrator rejects a bar that is not finalized at the decision timestamp", () => {
+  const rows = selectionRows();
+  const state = createRealtimeSessionState({ sessionDate: "2026-09-03" });
+  const bars = currentBars(rows);
+  bars[0] = { ...bars[0], bar: { ...bars[0].bar, at: AT } };
+  assert.throws(() => processRealtimeFiveMinutePoint(state, {
+    at: AT,
+    marketBars: bars,
+    selectionEntries: rows,
+    barsBySymbolHistory: historyFor(rows),
+    scoreEntry: mockFrozenScore,
+  }), /decisionAt = barStart \+ 5m/);
 });
 
 test("orchestrator remains research/shadow-only", () => {

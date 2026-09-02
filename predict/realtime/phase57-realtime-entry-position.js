@@ -384,6 +384,7 @@ export function commitShadowPositionEntry(sessionState, {
     status: POSITION_STATUS.OPEN,
     strategyId,
     symbol,
+    sessionDate: entry.sessionDate,
     positionId: `${strategyId}|${entry.candidateId}`,
     entryEventId: eventId,
     entrySha256,
@@ -406,7 +407,7 @@ export function commitShadowPositionEntry(sessionState, {
     openedInShadowOnly: true,
     lastEventTime: at,
     lastMarkPrice: entryReferencePrice,
-    unrealizedPnl: -entryCostJpy,
+    unrealizedPnl: 0,
     exitState: null,
   });
   strategy.positions[symbol] = position;

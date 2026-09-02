@@ -12,12 +12,12 @@ on:
   schedule:
     - cron: '50 23 * * 0-4' # 08:50 JST Mon-Fri primary morning warmup; waits for 09:00 boundary
     - cron: '55 23 * * 0-4' # 08:55 JST Mon-Fri backup morning warmup
-    - cron: '20 3 * * 1-5'  # 12:20 JST Mon-Fri primary afternoon warmup; waits for 12:30 boundary
-    - cron: '25 3 * * 1-5'  # 12:25 JST Mon-Fri backup afternoon warmup
+    - cron: '20 3 * * 1-5'  # 12:20 JST Mon-Fri primary afternoon fallback; morning run hands off directly
+    - cron: '25 3 * * 1-5'  # 12:25 JST Mon-Fri backup afternoon fallback
 
 permissions:
   contents: write
-  actions: read
+  actions: write
 
 concurrency:
   group: phase57-p25-marketwide-5m-redundant-${{ github.event.schedule || inputs.session_part || github.ref }}
@@ -51,9 +51,17 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          other="$(gh run list --repo "$GH_REPO" --workflow phase57-p25-marketwide-session-redundant.yml --status in_progress --limit 20 --json databaseId,event --jq ".[] | select(.databaseId != ${GITHUB_RUN_ID}) | select(.event == \"schedule\" or .event == \"workflow_dispatch\") | .databaseId" | head -n1 || true)"
+          cutoff="$(date -u -d "$(TZ=Asia/Tokyo date +%F) 12:00 JST" +%Y-%m-%dT%H:%M:%SZ)"
+          if [ "$SESSION_PART" = 'AFTERNOON' ]; then
+            # A workflow_dispatch run is the deterministic 11:30 handoff and is
+            # therefore afternoon even though it starts before 12:00 JST.
+            jq_filter=".[] | select(.databaseId != ${GITHUB_RUN_ID}) | select(.event == \"workflow_dispatch\" or (.event == \"schedule\" and .createdAt >= \"$cutoff\")) | .databaseId"
+          else
+            jq_filter=".[] | select(.databaseId != ${GITHUB_RUN_ID}) | select(.event == \"workflow_dispatch\" or (.event == \"schedule\" and .createdAt < \"$cutoff\")) | .databaseId"
+          fi
+          other="$(gh run list --repo "$GH_REPO" --workflow phase57-p25-marketwide-session-redundant.yml --status in_progress --limit 20 --json databaseId,event,createdAt --jq "$jq_filter" | head -n1 || true)"
           if [ -n "$other" ]; then
-            echo "Another scheduled/manual redundant session collector is already in progress: $other"
+            echo "Another $SESSION_PART redundant session collector is already in progress: $other"
             echo "SKIP_DUPLICATE=true" >> "$GITHUB_ENV"
           else
             echo "SKIP_DUPLICATE=false" >> "$GITHUB_ENV"
@@ -120,6 +128,20 @@ jobs:
           done
           echo "attempts=$attempt successes=$success"
           test "$success" -gt 0
+      - name: Hand off afternoon collector before lunch restart
+        if: env.SKIP_DUPLICATE != 'true' && env.SESSION_PART == 'MORNING'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          # Do not depend on GitHub's best-effort cron firing close to 12:30.
+          # The morning collector finishes around 11:30 and launches a separate
+          # afternoon process early enough to wait causally for the 12:30 boundary.
+          gh workflow run phase57-p25-marketwide-session-redundant.yml \
+            --repo "$GH_REPO" --ref main -f session_part=AFTERNOON
+          echo 'Dispatched deterministic AFTERNOON collector from completed morning capture.'
       - name: Verify all retained measurements are marketwide and safe
         if: env.SKIP_DUPLICATE != 'true'
         shell: bash

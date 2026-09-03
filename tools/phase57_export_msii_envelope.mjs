@@ -48,6 +48,11 @@ function timestamp(value, label) {
   if (!Number.isFinite(parsed)) throw new Error(`${label} must be a valid absolute timestamp`);
   return new Date(parsed).toISOString();
 }
+function finiteNumber(value, label, { min = -Infinity, integer = false } = {}) {
+  const number = Number(value);
+  if (!Number.isFinite(number) || number < min || (integer && !Number.isInteger(number))) throw new Error(`${label} is invalid`);
+  return number;
+}
 function assertSafety(value, label) {
   if (!value || typeof value !== "object") throw new Error(`${label} safety contract is required`);
   for (const key of FALSE_KEYS) if (value[key] !== false) throw new Error(`${label}.${key} must remain false`);
@@ -70,7 +75,7 @@ function laneYEntryDecisions(state, point) {
       symbol: row.symbol,
       decisionAt: point.at,
       intentKind: "ENTRY",
-      referencePrice: Number(position.entryReferencePrice),
+      referencePrice: finiteNumber(position.entryReferencePrice, `entry reference price ${row.strategyId}/${row.symbol}`, { min: Number.MIN_VALUE }),
     });
   });
 }
@@ -80,7 +85,7 @@ function laneYExitDecisions(point) {
     symbol: row.symbol,
     decisionAt: point.at,
     intentKind: "EXIT",
-    referencePrice: Number(row.exitReferencePrice ?? row.lastMarkPrice),
+    referencePrice: finiteNumber(row.exitReferencePrice ?? row.lastMarkPrice, `exit reference price ${row.strategyId}/${row.symbol}`, { min: Number.MIN_VALUE }),
   }));
 }
 
@@ -106,6 +111,13 @@ export function buildMsiiEnvelopeFromRealtimeState(state, {
   assertSafety(point.safety, "pointResult");
   const declared = timestamp(predeclaredStartAt, "predeclaredStartAt");
   const actual = timestamp(actualStartAt, "actualStartAt");
+  const missing = finiteNumber(missingCaptureCount, "missingCaptureCount", { min: 0, integer: true });
+  const capital = finiteNumber(initialCapital, "initialCapital", { min: Number.MIN_VALUE });
+  const referenceAge = finiteNumber(referenceMaxAgeMs, "referenceMaxAgeMs", { min: 0 });
+  const ttl = finiteNumber(ttlMs, "ttlMs", { min: 0 });
+  const latency = finiteNumber(decisionLatencyMs, "decisionLatencyMs", { min: 0 });
+  const requiredVersions = ["selectorVersion", "entryVersion", "exitV3Version", "exitV4Version", "allocationVersion"];
+  for (const key of requiredVersions) if (!String(versions?.[key] ?? "").trim()) throw new Error(`versions.${key} required`);
   const laneYDecisions = Object.freeze([
     ...laneYEntryDecisions(state, point),
     ...laneYExitDecisions(point),
@@ -117,17 +129,17 @@ export function buildMsiiEnvelopeFromRealtimeState(state, {
     sessionDate: state.sessionDate,
     predeclaredStartAt: declared,
     actualStartAt: actual,
-    missingCaptureCount: Math.max(0, Number(missingCaptureCount) || 0),
+    missingCaptureCount: missing,
     backfillUsed: false,
-    initialCapital: Number(initialCapital),
+    initialCapital: capital,
     phase57State: state,
     pointResult: point,
     versions: Object.freeze({ ...versions }),
     laneYDecisions,
     orderStyleResearchLabel: "MARKETABLE_QUOTE",
-    referenceMaxAgeMs: Number(referenceMaxAgeMs),
-    ttlMs: Number(ttlMs),
-    decisionLatencyMs: Number(decisionLatencyMs),
+    referenceMaxAgeMs: referenceAge,
+    ttlMs: ttl,
+    decisionLatencyMs: latency,
     methodology: Object.freeze({
       sourceDecisionAlreadyFrozen: true,
       selectorRetunedForLaneM: false,
@@ -156,11 +168,11 @@ function main() {
   const envelope = buildMsiiEnvelopeFromRealtimeState(state, {
     predeclaredStartAt: required(args, "predeclared-start-at"),
     actualStartAt: required(args, "actual-start-at"),
-    missingCaptureCount: Number(args["missing-capture-count"] ?? 0),
-    initialCapital: Number(args["initial-capital"] ?? 1_000_000),
-    referenceMaxAgeMs: Number(args["reference-max-age-ms"] ?? 5_000),
-    ttlMs: Number(args["ttl-ms"] ?? 5_000),
-    decisionLatencyMs: Number(args["decision-latency-ms"] ?? 100),
+    missingCaptureCount: args["missing-capture-count"] ?? 0,
+    initialCapital: args["initial-capital"] ?? 1_000_000,
+    referenceMaxAgeMs: args["reference-max-age-ms"] ?? 5_000,
+    ttlMs: args["ttl-ms"] ?? 5_000,
+    decisionLatencyMs: args["decision-latency-ms"] ?? 100,
   });
   atomicWrite(output, envelope);
   process.stdout.write(`${JSON.stringify({ status: envelope.status, sessionDate: envelope.sessionDate, decisionAt: envelope.pointResult.at, laneYDecisionCount: envelope.laneYDecisions.length, output, safety: SAFETY })}\n`);

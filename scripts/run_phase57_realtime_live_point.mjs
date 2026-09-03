@@ -71,7 +71,7 @@ if(!state)state=createRealtimeSessionState({sessionDate});
 state.liveMeasurement??={startedAt:at,source:'TRADINGVIEW_MARKETWIDE_PLUS_YAHOO_5M_FINALIZED',partialLateStart:jstHm(at)>'09:05'};
 state.liveMeasurement.startedAt??=at;
 
-// Preview the exact frozen selectors only to know which symbols require a finalized Yahoo 5m bar.
+// Preview the exact frozen selectors only to know which symbols require Yahoo 5m prefixes.
 // R10 executes the same selectors again and commits the actual decision to the append-only ledger.
 const held=openSymbols(state);
 const heldSymbolsByCutoff={[at]:held};
@@ -120,20 +120,23 @@ function parseYahooPrefix(json,symbol){
   return bars;
 }
 async function fetchSymbolPrefix(symbol){
-  let lastError='no finalized bar';
-  for(let attempt=0;attempt<4;attempt++){
+  let lastError='no usable finalized prefix';
+  for(let attempt=0;attempt<2;attempt++){
     for(const url of buildP252Yahoo5mUrls({symbol,sessionDate})){
       try{
         const response=await fetch(url,{headers:{'User-Agent':'Mozilla/5.0 ArkTerminalResearch/1.0','Accept':'application/json'},cache:'no-store'});
         if(!response.ok)throw new Error(`HTTP ${response.status}`);
         const bars=parseYahooPrefix(await response.json(),symbol);
-        if(bars.some(x=>x.timestamp===targetStart))return bars;
-        lastError=`finalized ${targetStart} absent`;
+        // Yahoo omits 5m buckets with no trade. That is sparse observed data, not a missing/future bar.
+        // Frozen Entry consumes the complete causal prefix; incremental/EXIT updates only receive a bar
+        // when the exact just-finalized bucket exists. No OHLCV value is fabricated or forward-filled.
+        if(bars.length>=6)return bars;
+        lastError=`only ${bars.length} finalized bars`;
       }catch(error){lastError=String(error?.message??error);}
     }
-    if(attempt<3)await new Promise(r=>setTimeout(r,15000));
+    if(attempt<1)await new Promise(r=>setTimeout(r,5000));
   }
-  throw new Error(`Yahoo finalized 5m fetch failed ${symbol}: ${lastError}`);
+  throw new Error(`Yahoo finalized 5m prefix failed ${symbol}: ${lastError}`);
 }
 async function mapLimit(values,limit,fn){
   const out=new Array(values.length);let next=0;
@@ -144,11 +147,11 @@ async function mapLimit(values,limit,fn){
 
 const prefixes=await mapLimit(symbols,8,async symbol=>[symbol,await fetchSymbolPrefix(symbol)]);
 const barsBySymbolHistory=Object.fromEntries(prefixes);
-const marketBars=prefixes.map(([symbol,bars])=>{
+const marketBars=prefixes.flatMap(([symbol,bars])=>{
   const bar=bars.find(x=>x.timestamp===targetStart);
-  if(!bar)throw new Error(`missing finalized bar ${symbol} ${targetStart}`);
-  return {symbol,bar:{...bar,at:bar.timestamp}};
+  return bar?[{symbol,bar:{...bar,at:bar.timestamp}}]:[];
 });
+const sparseNoTradeSymbolCount=prefixes.length-marketBars.length;
 
 const priorPointCount=state.pipeline?.history?.length??0;
 const missingBucketCount=Math.max(0,expectedSoFar-(priorPointCount+1));
@@ -182,12 +185,14 @@ const snapshot={
   expectedBucketCount:expectedTimes.length,
   processedPointCount:state.pipeline?.history?.length??0,
   source:{selection:'TRADINGVIEW_JAPAN_SCANNER_POINT_IN_TIME',bars:'YAHOO_FINANCE_5M_FINALIZED_PREFIX'},
+  finalizedBarSymbolCount:marketBars.length,
+  sparseNoTradeSymbolCount,
   selection:{v1:result.selection.v1,v2:result.selection.v2},
   frozenEntryCount:result.frozenEntryCount,
   dashboard:result.dashboard,
   ledgerEventCount:verified.eventCount,
   ledgerHeadHash:verified.headHash,
-  methodology:{backfillUsed:false,futureOutcomeUsed:false,frozenResearchSemanticsChanged:false,postCloseDecisionRecompute:false},
+  methodology:{backfillUsed:false,futureOutcomeUsed:false,frozenResearchSemanticsChanged:false,postCloseDecisionRecompute:false,noTradeFiveMinuteBucketsForwardFilled:false},
   safety:SAFETY,
 };
 fs.mkdirSync(path.dirname(outputState),{recursive:true});
@@ -200,4 +205,4 @@ if(sessionEnd&&outputPostClose){
   fs.mkdirSync(path.dirname(outputPostClose),{recursive:true});
   fs.writeFileSync(outputPostClose,JSON.stringify({...postclose,replay},null,2)+'\n');
 }
-console.log(JSON.stringify({status:snapshot.status,sessionDate,at,sessionQuality,selection:snapshot.selection,frozenEntryCount:snapshot.frozenEntryCount,processedPointCount:snapshot.processedPointCount,ledgerEventCount:snapshot.ledgerEventCount,strategies:snapshot.dashboard.strategies.map(x=>({strategyId:x.strategyId,netPercent:x.netPercent,openPositions:x.openPositions,closedTrades:x.closedTrades,winRate:x.winRate,profitFactor:x.profitFactor,maxDrawdownPercent:x.maxDrawdownPercent}))},null,2));
+console.log(JSON.stringify({status:snapshot.status,sessionDate,at,sessionQuality,selection:snapshot.selection,finalizedBarSymbolCount:snapshot.finalizedBarSymbolCount,sparseNoTradeSymbolCount:snapshot.sparseNoTradeSymbolCount,frozenEntryCount:snapshot.frozenEntryCount,processedPointCount:snapshot.processedPointCount,ledgerEventCount:snapshot.ledgerEventCount,strategies:snapshot.dashboard.strategies.map(x=>({strategyId:x.strategyId,netPercent:x.netPercent,openPositions:x.openPositions,closedTrades:x.closedTrades,winRate:x.winRate,profitFactor:x.profitFactor,maxDrawdownPercent:x.maxDrawdownPercent}))},null,2));

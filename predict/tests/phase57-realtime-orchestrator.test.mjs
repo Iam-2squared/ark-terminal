@@ -91,7 +91,20 @@ test("one finalized point uses S bar only at T=S+5m then runs the full 28-way sh
   assert.equal(state.pipeline.history.length, 1);
 });
 
-test("orchestrator rejects a bar that is not finalized at the decision timestamp", () => {
+test("orchestrator accepts small source latency after a bar has causally finalized", () => {
+  const rows = selectionRows();
+  const state = createRealtimeSessionState({ sessionDate: "2026-09-03" });
+  const result = processRealtimeFiveMinutePoint(state, {
+    at: "2026-09-03T09:35:00.690+09:00",
+    marketBars: currentBars(rows),
+    selectionEntries: rows,
+    barsBySymbolHistory: historyFor(rows),
+    scoreEntry: mockFrozenScore,
+  });
+  assert.equal(result.dashboard.strategyCount, 28);
+});
+
+test("orchestrator rejects a bar that is not yet causally finalized", () => {
   const rows = selectionRows();
   const state = createRealtimeSessionState({ sessionDate: "2026-09-03" });
   const bars = currentBars(rows);
@@ -102,7 +115,7 @@ test("orchestrator rejects a bar that is not finalized at the decision timestamp
     selectionEntries: rows,
     barsBySymbolHistory: historyFor(rows),
     scoreEntry: mockFrozenScore,
-  }), /decisionAt = barStart \+ 5m/);
+  }), /latest causally finalized 5m bar/);
 });
 
 test("orchestrator remains research/shadow-only", () => {

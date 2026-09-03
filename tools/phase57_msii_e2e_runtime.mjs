@@ -2,6 +2,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import {
   PHASE57_MSII_RUNTIME_VERSION,
   processMsiiShadowRuntimePoint,
@@ -52,6 +53,13 @@ function iso(value, label) {
   if (!Number.isFinite(parsed)) throw new Error(`${label} must be a valid absolute timestamp`);
   return new Date(parsed).toISOString();
 }
+function jstSessionDate(value) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(new Date(iso(value, "timestamp")));
+  const fields = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${fields.year}-${fields.month}-${fields.day}`;
+}
 function canonical(value) {
   if (Array.isArray(value)) return value.map(canonical);
   if (value && typeof value === "object") return Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonical(value[key])]));
@@ -74,7 +82,9 @@ function atomicWrite(file, value) {
   fs.renameSync(temp, file);
 }
 function assertSafety(value, label) {
-  for (const key of FALSE_KEYS) if (value?.[key] !== false) throw new Error(`${label}.${key} must remain false`);
+  if (!value || typeof value !== "object") throw new Error(`${label} contract is required`);
+  for (const key of FALSE_KEYS) if (value[key] !== false) throw new Error(`${label}.${key} must remain false`);
+  if (value.transmitted !== undefined && value.transmitted !== false) throw new Error(`${label}.transmitted must remain false`);
 }
 function safeStamp(value) { return iso(value, "decisionAt").replace(/[-:.]/g, ""); }
 function eventSymbol(row) { return String(row?.symbol ?? "").trim().toUpperCase().replace(/\.0+$/, "").replace(/^(\d+)$/, "$1.T"); }
@@ -88,14 +98,18 @@ function decisionSymbols(envelope) {
 }
 
 export function validateLaneMEnvelope(envelope, { priorDecisionAt = null } = {}) {
-  if (!envelope || typeof envelope !== "object") throw new Error("Lane M envelope must be an object");
-  assertSafety(envelope.safety ?? SAFETY, "envelope.safety");
+  if (!envelope || typeof envelope !== "object" || Array.isArray(envelope)) throw new Error("Lane M envelope must be an object");
+  assertSafety(envelope.safety, "envelope.safety");
   if (envelope.backfillUsed === true) throw new Error("Lane M prospective coordinator forbids backfillUsed=true");
   if (!String(envelope.sessionDate ?? "").match(/^\d{4}-\d{2}-\d{2}$/)) throw new Error("envelope.sessionDate must be YYYY-MM-DD");
   const decisionAt = iso(envelope?.pointResult?.at, "pointResult.at");
+  if (jstSessionDate(decisionAt) !== envelope.sessionDate) throw new Error("envelope.sessionDate must match pointResult.at in Asia/Tokyo");
   if (priorDecisionAt && Date.parse(decisionAt) <= Date.parse(priorDecisionAt)) throw new Error("Lane M decisionAt must move strictly forward");
   if (!envelope.phase57State?.strategies) throw new Error("envelope.phase57State.strategies required");
+  if (envelope.phase57State.sessionDate !== envelope.sessionDate) throw new Error("phase57State.sessionDate mismatch");
   if (!envelope.pointResult?.allocation || !envelope.pointResult?.exitEvaluation) throw new Error("pointResult allocation/exitEvaluation required");
+  iso(envelope.predeclaredStartAt, "predeclaredStartAt");
+  iso(envelope.actualStartAt, "actualStartAt");
   const requiredVersions = ["selectorVersion", "entryVersion", "exitV3Version", "exitV4Version", "allocationVersion"];
   for (const key of requiredVersions) if (!String(envelope?.versions?.[key] ?? "").trim()) throw new Error(`envelope.versions.${key} required`);
   return Object.freeze({ decisionAt, requiredSymbols: Object.freeze(decisionSymbols(envelope)) });
@@ -103,6 +117,7 @@ export function validateLaneMEnvelope(envelope, { priorDecisionAt = null } = {})
 
 export function validateCaptureBundle(captureRows, { decisionAt, requiredSymbols, referenceMaxAgeMs = 5_000 } = {}) {
   if (!Array.isArray(captureRows) || !captureRows.length) throw new Error("Lane M capture bundle must contain rows");
+  if (!(Number(referenceMaxAgeMs) >= 0)) throw new Error("referenceMaxAgeMs must be >= 0");
   const decisionMs = Date.parse(iso(decisionAt, "decisionAt"));
   const bySymbol = new Map();
   let hasPostDecision = false;
@@ -134,6 +149,7 @@ export function processLaneMEnvelope({ envelope, captureRows, priorState = {}, m
   assertSafety(SAFETY, "coordinator.safety");
   if (marketSizeUnit !== "SHARES" || tickSizeUnit !== "SHARES") throw new Error("Lane M size units must be explicitly attested as SHARES");
   const validated = validateLaneMEnvelope(envelope, { priorDecisionAt: priorState.lastDecisionAt ?? null });
+  if (priorState.sessionDate && priorState.sessionDate !== envelope.sessionDate) throw new Error("Lane M prior state sessionDate mismatch");
   validateCaptureBundle(captureRows, { decisionAt: validated.decisionAt, requiredSymbols: validated.requiredSymbols, referenceMaxAgeMs });
   const envelopeHash = sha256(envelope);
   const captureHash = sha256(captureRows);
@@ -216,7 +232,8 @@ function main() {
   return 0;
 }
 
-if (import.meta.url === `file://${process.argv[1]?.replace(/\\/g, "/")}`) {
+const isDirectRun = process.argv[1] ? import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href : false;
+if (isDirectRun) {
   try { process.exitCode = main(); }
   catch (error) {
     process.stderr.write(`${JSON.stringify({ status: "BLOCKED_PHASE57_MSII_E2E_RUNTIME", error: String(error?.message ?? error), safety: SAFETY })}\n`);

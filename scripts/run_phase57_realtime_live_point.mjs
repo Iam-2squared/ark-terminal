@@ -58,6 +58,9 @@ const expectedTimes=expectedDecisionTimes(sessionDate);
 const atMs=Date.parse(at);
 const expectedSoFar=expectedTimes.filter(x=>Date.parse(x)<=atMs).length;
 const sessionEnd=jstHm(at)>='15:30';
+const FIVE_MINUTES_MS=5*60_000;
+const finalizedCloseMs=Math.floor(atMs/FIVE_MINUTES_MS)*FIVE_MINUTES_MS;
+const targetStart=new Date(finalizedCloseMs-FIVE_MINUTES_MS).toISOString();
 
 let state=null;
 if(statePath&&fs.existsSync(statePath)){
@@ -110,14 +113,13 @@ function parseYahooPrefix(json,symbol){
     const localDate=JST_DATE.format(new Date(timestamp));
     const hm=jstHm(timestamp);
     if(localDate!==sessionDate||hm<'09:00'||hm>='15:30')continue;
-    if(Date.parse(timestamp)+5*60_000>atMs)continue;
+    if(Date.parse(timestamp)+FIVE_MINUTES_MS>atMs)continue;
     bars.push({timestamp,open,high,low,close,volume});
   }
   bars.sort((a,b)=>a.timestamp.localeCompare(b.timestamp));
   return bars;
 }
 async function fetchSymbolPrefix(symbol){
-  const targetStart=new Date(atMs-5*60_000).toISOString();
   let lastError='no finalized bar';
   for(let attempt=0;attempt<4;attempt++){
     for(const url of buildP252Yahoo5mUrls({symbol,sessionDate})){
@@ -142,7 +144,6 @@ async function mapLimit(values,limit,fn){
 
 const prefixes=await mapLimit(symbols,8,async symbol=>[symbol,await fetchSymbolPrefix(symbol)]);
 const barsBySymbolHistory=Object.fromEntries(prefixes);
-const targetStart=new Date(atMs-5*60_000).toISOString();
 const marketBars=prefixes.map(([symbol,bars])=>{
   const bar=bars.find(x=>x.timestamp===targetStart);
   if(!bar)throw new Error(`missing finalized bar ${symbol} ${targetStart}`);

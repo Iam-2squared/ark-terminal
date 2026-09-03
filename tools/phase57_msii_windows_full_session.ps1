@@ -9,7 +9,7 @@ param(
   [int]$CaptureSamples = 30000,
   [string]$DataRoot = "data/phase57-msii-live",
   [string]$DurableRef = "origin/automation/phase57-realtime-live-data",
-  [string]$StopAtJst = "15:40"
+  [string]$StopAtJst = "16:10"
 )
 
 $ErrorActionPreference = 'Stop'
@@ -120,8 +120,10 @@ try {
   $repoRoot = (Get-Location).Path
   $syncJob = Start-Job -FilePath $syncScript -ArgumentList $repoRoot,$DurableRef,$remoteEnvelopePrefix,$envelopeDir,$EnvelopePollSeconds,$stopAtIso,$syncLog
 
-  # Foreground watcher consumes local prospective MarketSpeed JSONL plus newly synced capsules.
-  # It permanently blocks expired causal windows; later evidence cannot backfill them.
+  # Lane Y intentionally ingests Yahoo's finalized bar with an approximately 960-second
+  # source delay. Keep this local watcher alive after the JPX close so the final 15:30
+  # causal capsule can arrive from the durable branch; MarketSpeed evidence itself was
+  # already captured prospectively around the original decision timestamp.
   $watcherArgs = @(
     'tools/phase57_msii_full_session_runner.mjs',
     '--envelope-dir',$envelopeDir,

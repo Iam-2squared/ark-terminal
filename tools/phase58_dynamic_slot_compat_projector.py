@@ -104,7 +104,7 @@ def main() -> int:
     parser.add_argument("--source", required=True)
     parser.add_argument("--output", required=True)
     parser.add_argument("--state", required=True)
-    parser.add_argument("--poll-seconds", type=float, default=0.5)
+    parser.add_argument("--poll-seconds", type=float, default=1.0)
     parser.add_argument("--iterations", type=int, default=30000)
     args = parser.parse_args()
     if args.poll_seconds < 0.2:
@@ -113,12 +113,13 @@ def main() -> int:
         raise SystemExit("--iterations must be >= 1")
     source, output, state = Path(args.source), Path(args.output), Path(args.state)
     total_written = 0
-    print(json.dumps({"status": "PHASE58_DYNAMIC_SLOT_PROJECTOR_START", "source": str(source), "output": str(output)}, ensure_ascii=False))
+    effective_poll_seconds = max(1.0, args.poll_seconds)
+    print(json.dumps({"status": "PHASE58_DYNAMIC_SLOT_PROJECTOR_START", "source": str(source), "output": str(output), "effectivePollSeconds": effective_poll_seconds}, ensure_ascii=False))
     for index in range(args.iterations):
         result = project_new_lines(source, output, state)
         total_written += result["written"]
         if index + 1 < args.iterations:
-            time.sleep(args.poll_seconds)
+            time.sleep(effective_poll_seconds)
     print(json.dumps({"status": "PHASE58_DYNAMIC_SLOT_PROJECTOR_COMPLETE", "rowsWritten": total_written, "output": str(output)}, ensure_ascii=False))
     return 0
 

@@ -29,6 +29,28 @@ class DynamicSlotTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "forbidden"):
             setup.assert_formula_is_market_data_only("=RssStockOrder(A1,B1)")
 
+    def test_watchlist_validator_preserves_variable_frozen_selector_cardinality(self):
+        v1 = [f"{1000 + index}.T" for index in range(47)]
+        v2 = v1[:28]
+        payload = {
+            "complete": True,
+            "status": "PHASE57_MSII_DYNAMIC_WATCHLIST_READY",
+            "futureOutcomeUsed": False,
+            "currentV1Symbols": v1,
+            "currentV2Symbols": v2,
+            "pinnedSymbols": ["7203.T"],
+            "assignedSymbols": [*v1, "7203.T"],
+        }
+        validated = capture.validate_watchlist(payload, 80)
+        self.assertEqual(len(validated["currentV1Symbols"]), 47)
+        self.assertEqual(len(validated["currentV2Symbols"]), 28)
+        self.assertIn("7203.T", validated["assignedSymbols"])
+
+        bad = dict(payload)
+        bad["currentV2Symbols"] = [*v2, "9999.T"]
+        with self.assertRaisesRegex(ValueError, "V2 must remain inside"):
+            capture.validate_watchlist(bad, 80)
+
     def test_slot_planner_preserves_existing_desired_symbols_and_reuses_empty_slots(self):
         current = ["7203.T", "6758.T", "", "9984.T", ""]
         desired = ["7203.T", "9984.T", "8306.T"]

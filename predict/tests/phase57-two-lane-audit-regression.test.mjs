@@ -94,11 +94,13 @@ function runtimeBase(overrides = {}) {
   };
 }
 
-test("Lane Y accepts the first finalized same-session bar and serializes afternoon writers", () => {
+test("Lane Y accepts early and zero-bar sparse prefixes while serializing afternoon writers", () => {
   const live = fs.readFileSync(new URL("../../scripts/run_phase57_realtime_live_point.mjs", import.meta.url), "utf8");
-  assert.match(live, /if\(bars\.length>=1\)return bars;/);
   assert.doesNotMatch(live, /if\(bars\.length>=6\)return bars;/);
-  assert.match(live, /Frozen Entry itself owns the >=6 closed-bar readiness gate/);
+  assert.match(live, /let bestBars=null;/);
+  assert.match(live, /if\(bestBars!==null\)return bestBars;/, "valid Yahoo responses may preserve a zero-bar no-trade prefix");
+  assert.match(live, /bars\.some\(bar=>bar\.timestamp===targetStart\)/, "exact target publication still short-circuits retry");
+  assert.match(live, /marketBars\.length===0/, "provider readiness remains a market-wide exact-target fail-closed gate");
 
   const workflow = fs.readFileSync(new URL("../../.github/workflows/phase57-realtime-live.yml", import.meta.url), "utf8");
   assert.doesNotMatch(workflow, /^  push:/m, "code pushes must not start a second live writer");

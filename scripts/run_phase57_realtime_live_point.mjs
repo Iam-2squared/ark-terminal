@@ -100,10 +100,12 @@ function parseYahooPrefix(json,symbol){
   if(json?.chart?.error||!result)throw new Error(`Yahoo chart missing for ${symbol}`);
   const ts=Array.isArray(result.timestamp)?result.timestamp:[];
   const q=result.indicators?.quote?.[0]??{};
-  const bars=[];
+  const byTimestamp=new Map();
   for(let i=0;i<ts.length;i++){
+    const rawValues=[q.open?.[i],q.high?.[i],q.low?.[i],q.close?.[i],q.volume?.[i]];
+    if(rawValues.some(v=>v===null||v===undefined||v===''))continue;
     const epoch=Number(ts[i]);
-    const values=[q.open?.[i],q.high?.[i],q.low?.[i],q.close?.[i],q.volume?.[i]].map(Number);
+    const values=rawValues.map(Number);
     if(!Number.isFinite(epoch)||values.some(v=>!Number.isFinite(v)))continue;
     const timestamp=new Date(epoch*1000).toISOString();
     const [open,high,low,close,volume]=values;
@@ -112,28 +114,32 @@ function parseYahooPrefix(json,symbol){
     const hm=jstHm(timestamp);
     if(localDate!==sessionDate||hm<'09:00'||hm>='15:30')continue;
     if(Date.parse(timestamp)+FIVE_MINUTES_MS>atMs)continue;
-    bars.push({timestamp,open,high,low,close,volume});
+    const bar={timestamp,open,high,low,close,volume};
+    const prior=byTimestamp.get(timestamp);
+    if(prior&&JSON.stringify(prior)!==JSON.stringify(bar))throw new Error(`Yahoo conflicting duplicate 5m bar ${symbol} ${timestamp}`);
+    if(!prior)byTimestamp.set(timestamp,bar);
   }
-  bars.sort((a,b)=>a.timestamp.localeCompare(b.timestamp));
-  return bars;
+  return [...byTimestamp.values()].sort((a,b)=>a.timestamp.localeCompare(b.timestamp));
 }
 async function fetchSymbolPrefix(symbol){
-  let lastError='no usable finalized prefix';
+  let lastError='no valid Yahoo response';
+  let bestBars=null;
   for(let attempt=0;attempt<2;attempt++){
     for(const url of buildP252Yahoo5mUrls({symbol,sessionDate})){
       try{
         const response=await fetch(url,{headers:{'User-Agent':'Mozilla/5.0 ArkTerminalResearch/1.0','Accept':'application/json'},cache:'no-store'});
         if(!response.ok)throw new Error(`HTTP ${response.status}`);
         const bars=parseYahooPrefix(await response.json(),symbol);
-        // Realtime state must be allowed to commit the first causal 5m points.
-        // Frozen Entry itself owns the >=6 closed-bar readiness gate; imposing it here
-        // made 09:05-09:25 impossible and therefore made FULL_FRESH unreachable.
-        if(bars.length>=1)return bars;
-        lastError='no finalized same-session bars';
+        if(bestBars===null||bars.length>bestBars.length)bestBars=bars;
+        // Exact target publication is sufficient to stop retrying this symbol. A valid
+        // zero-bar prefix is also legitimate (no trade yet) and is preserved below;
+        // the market-wide exact-target guard decides provider readiness globally.
+        if(bars.some(bar=>bar.timestamp===targetStart))return bars;
       }catch(error){lastError=String(error?.message??error);}
     }
     if(attempt<1)await new Promise(r=>setTimeout(r,5000));
   }
+  if(bestBars!==null)return bestBars;
   throw new Error(`Yahoo finalized 5m prefix failed ${symbol}: ${lastError}`);
 }
 async function mapLimit(values,limit,fn){

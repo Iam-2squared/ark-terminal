@@ -31,15 +31,9 @@ const FORBIDDEN_RSS_ORDER_FUNCTIONS = [
 ];
 
 test("Windows Lane M launcher is read-only and cannot mutate the repository remote", () => {
-  for (const key of FALSE_KEYS) {
-    assert.match(source, new RegExp(`${key}\\s*=\\s*\\$false`, "i"));
-  }
-  for (const token of FORBIDDEN_RSS_ORDER_FUNCTIONS) {
-    assert.equal(source.toLowerCase().includes(token.toLowerCase()), false, `forbidden RSS function ${token}`);
-  }
-  for (const command of ["git push", "git checkout", "git switch", "git reset", "git commit"]) {
-    assert.equal(source.toLowerCase().includes(command), false, `launcher must not contain ${command}`);
-  }
+  for (const key of FALSE_KEYS) assert.match(source, new RegExp(`${key}\\s*=\\s*\\$false`, "i"));
+  for (const token of FORBIDDEN_RSS_ORDER_FUNCTIONS) assert.equal(source.toLowerCase().includes(token.toLowerCase()), false, `forbidden RSS function ${token}`);
+  for (const command of ["git push", "git checkout", "git switch", "git reset", "git commit"]) assert.equal(source.toLowerCase().includes(command), false, `launcher must not contain ${command}`);
 });
 
 test("Windows Lane M launcher starts prospective capture before consuming durable causal capsules", () => {
@@ -52,10 +46,11 @@ test("Windows Lane M launcher starts prospective capture before consuming durabl
   assert.match(source, /phase58_excel_multisymbol_microstructure_capture\.py/);
   assert.match(source, /automation\/phase57-realtime-live-data/);
   assert.match(source, /msii-envelopes/);
+  assert.match(source, /\[string\]\$StopAtJst = "16:10"/);
 });
 
 test("Windows Lane M launcher synchronizes immutable envelopes without touching main", () => {
-  assert.match(source, /git fetch --quiet origin automation\/phase57-realtime-live-data/);
+  assert.match(source, /git fetch --quiet origin 'refs\/heads\/automation\/phase57-realtime-live-data:refs\/remotes\/origin\/automation\/phase57-realtime-live-data'/);
   assert.match(source, /git ls-tree -r --name-only \$DurableRef/);
   assert.match(source, /git show "\$\{DurableRef\}:\$remotePath"/);
   assert.match(source, /if\(Test-Path \$destination\)\{ continue \}/);

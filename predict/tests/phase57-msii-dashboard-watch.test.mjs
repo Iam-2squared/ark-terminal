@@ -72,6 +72,32 @@ test("dashboard watcher waits for score/pair and persists monotonic latest/histo
   }
 });
 
+test("dashboard watcher refuses a mixed new-score old-pair handoff", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "phase57-msii-dashboard-race-"));
+  try {
+    const firstAt = "2026-09-04T00:35:00.000Z";
+    const secondAt = "2026-09-04T00:40:00.000Z";
+    const scoreFile = path.join(dir, "latest-score.json"), pairFile = path.join(dir, "latest-pair.json");
+    write(scoreFile, score(firstAt));
+    write(pairFile, pair(firstAt));
+    assert.equal(rebuildPhase57MsiiDashboardArtifacts(dir).status, "PHASE57_MSII_DASHBOARD_UPDATED");
+    write(scoreFile, score(secondAt));
+    const now = Date.now();
+    fs.utimesSync(pairFile, new Date(now - 2000), new Date(now - 2000));
+    fs.utimesSync(scoreFile, new Date(now), new Date(now));
+    const waiting = rebuildPhase57MsiiDashboardArtifacts(dir);
+    assert.equal(waiting.status, "WAITING_FOR_COHERENT_LANE_M_SCORE_PAIR");
+    assert.equal(JSON.parse(fs.readFileSync(path.join(dir, "dashboard-history.json"), "utf8")).length, 1);
+    write(pairFile, pair(secondAt));
+    fs.utimesSync(pairFile, new Date(now + 1000), new Date(now + 1000));
+    const resumed = rebuildPhase57MsiiDashboardArtifacts(dir);
+    assert.equal(resumed.status, "PHASE57_MSII_DASHBOARD_UPDATED");
+    assert.equal(resumed.historyPointCount, 2);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("dashboard watcher safety remains read-only", () => {
   for (const key of ["executionAllowed","brokerWriteAllowed","excelOrderWriteAllowed","rssOrderFunctionAllowed","liveTradingAllowed","paperTradingAllowed","automaticPromotionAllowed","productionUpdateAllowed"]) assert.equal(PHASE57_MSII_DASHBOARD_WATCH_SAFETY[key], false);
 });

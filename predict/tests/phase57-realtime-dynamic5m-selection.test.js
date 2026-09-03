@@ -10,6 +10,7 @@ function rows() {
     symbol: String(1000 + i),
     sector: `S${i % 20}`,
     status: "analyzed",
+    scannedAt: "2026-09-03T09:30:00+09:00",
     currentPrice: 500 + i,
     volume: 100000 + i * 1000,
     volumeRatio: 1 + (i % 7) * 0.2,
@@ -29,6 +30,8 @@ test("realtime V1/V2 matches frozen batch selectors for the same causal snapshot
   const realtime = applyRealtimeDynamic5mSelection(session, { at, entries });
   const v1 = buildIntradayDynamicUniverseTimeline({ snapshots: [{ asOf: at, entries }] }).points[0];
   const v2 = buildIntradayDynamicUniverseTimelineV2({ snapshots: [{ asOf: at, entries }], priorSelections: [] }).points[0];
+  assert.equal(v1.rawUniverse.length >= 20, true);
+  assert.equal(v2.rawUniverse.length >= 15, true);
   assert.deepEqual(realtime.selectedV1.map((x) => x.symbol), v1.rawUniverse.map((x) => x.symbol));
   assert.deepEqual(realtime.selectedV2.map((x) => x.symbol), v2.rawUniverse.map((x) => x.symbol));
 });
@@ -61,6 +64,7 @@ test("V2 persistence matches the frozen batch selector across at least four caus
       priorSelections: prior,
     }).points[0];
     const realtime = applyRealtimeDynamic5mSelection(session, { at, entries });
+    assert.equal(batch.rawUniverse.length >= 15, true, `V2 fixture must clear the frozen Entry gate at point ${point + 1}`);
     assert.deepEqual(
       realtime.selectedV2.map((x) => x.symbol),
       batch.rawUniverse.map((x) => x.symbol),

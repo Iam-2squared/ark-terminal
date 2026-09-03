@@ -2,104 +2,127 @@
 
 This runbook is for the READ ONLY / shadow-research Lane M path. It does not create, modify, cancel, or transmit orders.
 
-## What is automatic
+## Recommended architecture: dynamic market-data slots
 
-Lane Y runs independently in GitHub Actions and persists immutable per-point Lane M capsules to:
+Lane Y runs independently in GitHub Actions. At each 5-minute boundary it durably stores the point-in-time TradingView raw snapshot immediately, and later stores the immutable Lane M decision capsule after Yahoo finalized-bar ingestion.
 
-`automation/phase57-realtime-live-data/data/phase57-realtime-live/<YYYY-MM-DD>/msii-envelopes/`
+The Windows dynamic launcher:
 
-The recommended Windows dashboard wrapper:
+1. starts MarketSpeed II/Excel capture before the first 09:05 decision and writes a session heartbeat,
+2. syncs Lane Y raw TradingView snapshots from the durable branch as soon as they appear,
+3. runs the same frozen Dynamic5m V1/V2 selector locally on that raw snapshot,
+4. writes only the selected market-data query symbols into bounded `ArkControl` observation slots,
+5. keeps RssMarket/RssTickList formulas fixed and waits until each slot reports the newly assigned symbol,
+6. captures only settled MarketSpeed evidence prospectively,
+7. retains recent selections as coverage buffer and pins already-observed Lane M inventory when possible,
+8. syncs the later immutable Lane Y decision capsules,
+9. runs the existing ShadowOrderIntent / ShadowFill / execution-aware trade engine,
+10. updates the 28-strategy dashboard,
+11. stays alive through the 16:10 JST delayed final drain.
 
-1. starts a local read-only dashboard watcher,
-2. invokes the core Phase57 Lane M full-session launcher,
-3. starts the preconfigured Phase58 p31 MarketSpeed II multi-symbol capture,
-4. verifies that the new capture process is producing fresh raw evidence,
-5. polls the durable Lane Y branch for immutable causal capsules,
-6. runs the Lane M full-session watcher locally,
-7. preserves permanent no-backfill blocking when evidence is missing,
-8. updates the 28-strategy dashboard from already-scored Lane M artifacts only,
-9. keeps running until 16:10 JST by default so Lane Y's delayed Yahoo final drain can deliver the 15:30 capsule.
+A newly selected symbol that had no pre-decision MarketSpeed observation can still fail the existing stale-reference rule. The system does not fabricate an earlier quote. Retention improves coverage but does not change Selection, Entry, EXIT, or Allocation decisions.
+
+## Safety boundary
+
+The dynamic path deliberately permits one narrow Excel write surface:
+
+`excelMarketDataQueryWriteAllowed=true`
+
+This permission applies only to `ArkControl` symbol cells that feed READ ONLY market-data formulas. The following remain false:
+
+- `executionAllowed`
+- `brokerWriteAllowed`
+- `excelOrderWriteAllowed`
+- `rssOrderFunctionAllowed`
+- `liveTradingAllowed`
+- `paperTradingAllowed`
+- `automaticPromotionAllowed`
+- `productionUpdateAllowed`
+
+The generated workbook contains only `ArkControl`, `ArkMarket`, and `ArkTicks`. Runtime does not write formulas. Order-capable RSS functions such as RssStockOrder / RssModifyOrder / RssCancelOrder are rejected by formula-surface validation.
+
+## One-time clean workbook creation
+
+From the repository root, create a fresh Lane M workbook. The default is 80 dynamic slots with 100 recent ticks per slot:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\phase57_msii_setup_dynamic_workbook.ps1 `
+  -WorkbookPath "$HOME\Desktop\ArkLaneM.xlsx" `
+  -Slots 80 `
+  -TickRows 100
+```
+
+Use `-Overwrite` only when intentionally replacing an existing Lane M workbook.
+
+The setup process creates:
+
+- `ArkControl` — the only runtime-writable market-data query symbol cells,
+- `ArkMarket` — fixed RssMarket formulas for top-of-book and depth,
+- `ArkTicks` — fixed RssTickList spill blocks.
+
+Keep the generated workbook dedicated to Lane M. Do not add order sheets or order-capable RSS formulas.
 
 ## Prerequisites before the session
 
 - Windows PC is awake and connected.
 - MarketSpeed II is open and connected.
-- Excel is open with the RSS add-in active.
-- The workbook already contains the preconfigured READ ONLY market/tick sheets referenced by the registry.
-- The registry uses only dedicated `marketSheet` / `tickSheet` mappings; runtime symbol switching is not used.
+- Excel is open with the generated `ArkLaneM.xlsx` workbook.
+- MarketSpeed II RSS add-in is active.
 - Python RSS dependencies are installed from `tools/requirements-rss.txt`.
-- Repository is up to date before starting the prospective session.
+- Repository is on the latest `main`.
+- Start the launcher before 09:05 JST if the session is intended to be eligible for full-fresh classification.
 
-A registry has this shape:
+## Start the dynamic prospective session
 
-```json
-{
-  "schemaVersion": 1,
-  "workbook": "ArkMarketSpeed.xlsx",
-  "symbols": [
-    {"symbol": "7203", "marketSheet": "Market7203", "tickSheet": "Ticks7203"}
-  ]
-}
-```
-
-Do not interpret a valid registry as proof of future Dynamic5m coverage. A symbol selected later by Lane Y but absent from the preconfigured MarketSpeed capture must remain missing and the affected Lane M point must fail closed.
-
-## Offline registry freeze / preflight
-
-This validates the registry without opening Excel and produces a canonical registry hash:
+From the repository root:
 
 ```powershell
-py tools/phase58_validate_msii_multisymbol_registry.py `
-  --registry .\path\to\msii-registry.json `
-  --manifest .\data\phase57-msii-live\registry-preflight.json
+powershell -ExecutionPolicy Bypass -File tools\phase57_msii_windows_dynamic_session.ps1 `
+  -Workbook ArkLaneM.xlsx
 ```
 
-Expected status:
+The default launcher uses 80 slots, 100 tick rows per slot, one-second MarketSpeed capture, three recent V1 points as best-effort coverage retention, and a 16:10 JST final drain.
 
-`PHASE58_MSII_REGISTRY_PREFLIGHT_READY`
+The launcher fails closed if the dynamic capture cannot attach to the active Excel workbook, if a forbidden RSS order-capable formula is detected, if current V1 plus pinned Lane M inventory exceeds slot capacity, or if the existing causal evidence requirements are not met.
 
-The preflight explicitly reports `futureDynamicSelectionCoverageGuaranteed=false`. Actual coverage is measured prospectively during the session.
+## Causal dynamic-selection timing
 
-## Start the prospective Lane M session
+The dynamic watchlist is built from the immediate point-in-time TradingView raw snapshot, not from the later Yahoo-finalized Lane Y result. Therefore the Excel symbol change itself is causal with respect to the observed selection snapshot.
 
-Start before 09:05 JST if the session is intended to be eligible for `FULL_FRESH_MSII` classification. Starting later is allowed operationally, but the session remains partial.
+However, a symbol that first appears at the current 5-minute decision cannot have a MarketSpeed quote from before that same decision unless it was already retained in a slot. The current Lane M engine keeps its pre-decision reference requirement; first-appearance symbols may therefore be blocked rather than receiving invented evidence.
 
-From the repository root, use the dashboard wrapper:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File tools\phase57_msii_windows_full_session_dashboard.ps1 `
-  -Registry .\path\to\msii-registry.json `
-  -Workbook ArkMarketSpeed.xlsx
-```
-
-The wrapper starts `phase57_msii_dashboard_watch.mjs` and then invokes the existing `phase57_msii_windows_full_session.ps1` core launcher. The core launcher fails immediately if the new MarketSpeed capture process exits or does not append fresh raw evidence within the startup timeout. A per-session exclusive lock prevents two core launchers from running accidentally at the same time.
-
-The dashboard is presentation-only. It reads `latest-score.json`, `latest-pair.json`, and the point coverage already attached to the score. It does not recompute Selection, Entry, EXIT, Allocation, or Shadow Fill outcomes.
+Recent-selection retention is coverage-only. It does not keep a symbol selected for research, create an Entry, prevent an EXIT, or alter Capital Allocation.
 
 ## Keep running
 
-For Lane M prospective evidence, the Windows PC, MarketSpeed II, Excel/RSS, capture process, and launcher must remain running through the market session. The launcher remains alive after the 15:30 close until 16:10 JST by default only to receive Lane Y's delayed causal capsules; MarketSpeed evidence for those points must already have been captured at the original event times.
+For Lane M prospective evidence, the Windows PC, MarketSpeed II, Excel/RSS, dynamic capture, and launcher must remain running through the market session. Lane Y itself remains independent because it runs in GitHub Actions.
 
-Lane Y itself is independent of the Windows PC because it runs in GitHub Actions.
+After 15:30, the launcher stays alive until 16:10 JST by default only to receive the delayed immutable Lane Y capsules. MarketSpeed evidence for those event times must already have been captured prospectively.
 
-## Outputs
+## Dynamic outputs
 
-Local Lane M output root:
+Local root:
 
-`data/phase57-msii-live/<YYYY-MM-DD>/lane-m-output/`
+`data/phase57-msii-dynamic-live/<YYYY-MM-DD>/`
 
-Important files:
+Important files include:
 
-- `full-session-state.json` — durable local Lane M state
-- `latest-score.json` — latest execution-aware score, including session quality
-- `latest-pair.json` — exact-timestamp Lane Y / Lane M pair diagnostics
-- `coverage-latest.json` — current required/observed symbol coverage
-- `coverage-final.json` — final coverage summary
-- `dashboard-latest.json` — latest operator snapshot with aggregate execution metrics plus all 28 strategy rows
-- `dashboard-history.json` — monotonic committed dashboard points suitable for an intraday graph
-- `full-session-final.json` — final session summary
-- `session-points/*-COMMITTED.json` — committed causal points
-- `session-points/*-BLOCKED.json` — permanently blocked points
+- `lane-y-raw/*.json` — immediate point-in-time TradingView snapshots synced from the durable branch,
+- `dynamic-watchlist-latest.json` — current V1/V2/pinned/retained observation set,
+- `dynamic-watchlist-state.json` — causal prior-selection state,
+- `msii-dynamic-p32.jsonl` — original dynamic-slot capture with assignment provenance,
+- `msii-runtime-p31.jsonl` — settled compatibility projection consumed by the existing Lane M runtime,
+- `lane-m-output/full-session-state.json` — durable local Lane M execution state,
+- `lane-m-output/latest-score.json` — execution-aware score,
+- `lane-m-output/latest-pair.json` — exact Lane Y/M pair diagnostics,
+- `lane-m-output/coverage-latest.json` and `coverage-final.json`,
+- `lane-m-output/dashboard-latest.json`,
+- `lane-m-output/dashboard-history.json`,
+- `lane-m-output/full-session-final.json`.
+
+The p32 source row hash is retained in every p31 compatibility projection. Unsettled slots are not projected as MarketSpeed market evidence.
+
+## Dashboard
 
 `dashboard-latest.json` exposes, without decision recomputation:
 
@@ -108,7 +131,7 @@ Important files:
 - spread cost and slippage,
 - execution-aware closed trades and Net PnL,
 - exact Lane Y / Lane M pair counts,
-- current MarketSpeed symbol coverage,
+- MarketSpeed symbol coverage,
 - all 28 `matrixCell × allocationProfile` strategy rows with Net%, PF, MaxDD, WinRate, open positions and pair/fill counts.
 
 Coverage and dashboard diagnostics are descriptive only. They cannot rescue, backfill, retune, promote, or upgrade a blocked point.
@@ -121,17 +144,15 @@ Coverage and dashboard diagnostics are descriptive only. They cannot rescue, bac
 
 A later file arriving after a causal deadline cannot convert a blocked or partial point into Full Fresh.
 
-## Safety invariant
+## Legacy preconfigured registry path
 
-The following remain false throughout this path:
+The earlier fixed preconfigured multi-symbol path remains available for diagnostics and backward compatibility:
 
-- `executionAllowed`
-- `brokerWriteAllowed`
-- `excelOrderWriteAllowed`
-- `rssOrderFunctionAllowed`
-- `liveTradingAllowed`
-- `paperTradingAllowed`
-- `automaticPromotionAllowed`
-- `productionUpdateAllowed`
+- `phase58_excel_multisymbol_microstructure_capture.py`
+- `phase58_validate_msii_multisymbol_registry.py`
+- `phase57_msii_windows_full_session.ps1`
+- `phase57_msii_windows_full_session_dashboard.ps1`
 
-Only MarketSpeed II READ ONLY market/tick evidence is consumed. Frozen selector, Frozen Entry, EXIT v3/v4, and allocation research semantics are unchanged.
+For the current Dynamic5m research lane, the dynamic slot launcher above is the recommended path.
+
+Frozen selector, Frozen Entry, EXIT v3/v4, Capital Allocation, thresholds, weights, and Lane Y behavior are unchanged.

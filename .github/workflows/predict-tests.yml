@@ -81,6 +81,14 @@ jobs:
 
           exit "$status"
 
+      - name: Upload prediction failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prediction-test-failure-${{ github.run_id }}
+          retention-days: 3
+          path: predict/prediction-test-output.log
+
       - name: Run discovery tests
         working-directory: discovery
         shell: bash
@@ -133,3 +141,4 @@ jobs:
           tools/test_phase58_excel_synchronized_capture_freshness.py
           tools/test_phase58_excel_multisymbol_microstructure_capture.py
           tools/test_phase58_validate_msii_multisymbol_registry.py
+          tools/test_phase58_excel_dynamic_slots.py

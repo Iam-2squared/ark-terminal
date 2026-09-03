@@ -1,7 +1,7 @@
 import { buildIntradayDynamicUniverseTimeline } from "../daytrade/phase57-p25-intraday-dynamic-universe.js";
 import { buildIntradayDynamicUniverseTimelineV2 } from "../daytrade/phase57-p25-intraday-dynamic-universe-v2.js";
 
-export const PHASE57_MSII_DYNAMIC_WATCHLIST_VERSION = "phase57-msii-dynamic-watchlist-r1";
+export const PHASE57_MSII_DYNAMIC_WATCHLIST_VERSION = "phase57-msii-dynamic-watchlist-r2";
 export const PHASE57_MSII_DYNAMIC_WATCHLIST_SAFETY = Object.freeze({
   mode: "LANE_M_DYNAMIC_MARKET_DATA_QUERY_ONLY",
   executionAllowed: false,
@@ -20,6 +20,10 @@ const FALSE_KEYS = Object.freeze([
   "executionAllowed", "brokerWriteAllowed", "excelOrderWriteAllowed", "rssOrderFunctionAllowed",
   "liveTradingAllowed", "paperTradingAllowed", "automaticPromotionAllowed", "productionUpdateAllowed",
 ]);
+const V1_MIN_READY = 20;
+const V2_MIN_READY = 15;
+const V1_MAX_FROZEN = 50;
+const V2_MAX_FROZEN = 30;
 
 function assertSafety() {
   for (const key of FALSE_KEYS) if (PHASE57_MSII_DYNAMIC_WATCHLIST_SAFETY[key] !== false) throw new Error(`unsafe dynamic watchlist ${key}`);
@@ -49,6 +53,11 @@ function validateSnapshot(snapshot) {
  * Build the prospective MarketSpeed observation set from the same point-in-time TradingView
  * snapshot used by Lane Y. V2 is computed with its frozen prior-selection state. No result,
  * fill, outcome or later Yahoo bar is used here.
+ *
+ * Important: the frozen V1 selector has a maximum combined size of 50, not a guarantee that
+ * the DAY/SWING merged-and-diversified result is always exactly 50. Likewise V2 is capped at 30.
+ * Requiring exact cardinalities here would silently redefine the frozen selector. Lane M instead
+ * uses the same readiness floors already enforced by the realtime runner (V1 >=20, V2 >=15).
  */
 export function buildPhase57MsiiDynamicWatchlist({
   snapshot,
@@ -68,8 +77,8 @@ export function buildPhase57MsiiDynamicWatchlist({
   const v2Result = buildIntradayDynamicUniverseTimelineV2({ snapshots, heldSymbolsByCutoff, priorSelections: priorV2Selections });
   const v1 = unique((v1Result.points?.[0]?.rawUniverse ?? []).map((row) => row.symbol));
   const v2 = unique((v2Result.points?.[0]?.rawUniverse ?? []).map((row) => row.symbol));
-  if (v1.length !== 50) throw new Error(`dynamic V1 prospective watchlist expected 50 symbols, observed ${v1.length}`);
-  if (v2.length !== 30) throw new Error(`dynamic V2 prospective watchlist expected 30 symbols, observed ${v2.length}`);
+  if (v1.length < V1_MIN_READY || v1.length > V1_MAX_FROZEN) throw new Error(`dynamic V1 prospective watchlist outside frozen readiness range: observed ${v1.length}`);
+  if (v2.length < V2_MIN_READY || v2.length > V2_MAX_FROZEN) throw new Error(`dynamic V2 prospective watchlist outside frozen readiness range: observed ${v2.length}`);
   const v1Set = new Set(v1);
   const v2OutsideV1 = v2.filter((symbol) => !v1Set.has(symbol));
   if (v2OutsideV1.length) throw new Error(`dynamic V2 escaped V1 base universe: ${v2OutsideV1.join(",")}`);
@@ -130,6 +139,11 @@ export function buildPhase57MsiiDynamicWatchlist({
       pinnedSymbolsOnlyFromAlreadyObservedLaneMInventory: true,
       retentionIsCoverageOnly: true,
       retentionChangesResearchDecision: false,
+      selectorCardinalityPreservedExactly: true,
+      v1FrozenMaximum: V1_MAX_FROZEN,
+      v2FrozenMaximum: V2_MAX_FROZEN,
+      v1ReadinessFloor: V1_MIN_READY,
+      v2ReadinessFloor: V2_MIN_READY,
       futureOutcomeUsed: false,
     }),
     futureOutcomeUsed: false,

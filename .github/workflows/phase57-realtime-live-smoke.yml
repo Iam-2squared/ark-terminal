@@ -1,0 +1,58 @@
+name: Phase57 Realtime Live One-Shot Smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/phase57-realtime-live-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build exact pinned Frozen Entry and EXIT history pack
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p24-canonical /tmp/realtime-smoke
+          gh run download 31785422471 --repo "$GH_REPO" --name phase57-p24-9-oos-canonical-candidate --dir /tmp/p24-canonical
+          snapshot="$(find /tmp/p24-canonical -type f -name 'phase57-p24-9-oos-byte-snapshot.json' -print -quit)"
+          test -n "$snapshot"
+          node scripts/build_p25_pinned_history_pack.mjs --snapshot "$snapshot" --output /tmp/p25-history.json
+      - name: Capture point-in-time marketwide snapshot
+        run: node scripts/fetch_p25_marketwide_5m_spark.mjs --output /tmp/realtime-smoke/marketwide.json
+      - name: Execute one causal finalized-5m realtime point
+        run: |
+          set -euo pipefail
+          node scripts/run_phase57_realtime_live_point.mjs \
+            --marketwide /tmp/realtime-smoke/marketwide.json \
+            --history-pack /tmp/p25-history.json \
+            --output-state /tmp/realtime-smoke/state.json \
+            --output-snapshot /tmp/realtime-smoke/snapshot.json \
+            --output-postclose /tmp/realtime-smoke/postclose.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-realtime-live-smoke
+          path: /tmp/realtime-smoke
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Safety boundary
+        if: always()
+        run: echo 'One-shot research/shadow smoke only; no broker, RSS order, Excel order, paper/live trading, promotion, or production writes.'

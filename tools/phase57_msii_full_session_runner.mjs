@@ -1,0 +1,88 @@
+#!/usr/bin/env node
+import fs from "node:fs";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+import { processRawEnvelopeFile, PHASE57_MSII_RAW_E2E_SAFETY } from "./phase57_msii_raw_e2e_runtime.mjs";
+
+const SAFETY = Object.freeze({ ...PHASE57_MSII_RAW_E2E_SAFETY, mode: "LANE_M_FULL_SESSION_WATCHER_READ_ONLY" });
+const FALSE_KEYS = Object.freeze([
+  "executionAllowed", "brokerWriteAllowed", "excelOrderWriteAllowed", "rssOrderFunctionAllowed",
+  "liveTradingAllowed", "paperTradingAllowed", "automaticPromotionAllowed", "productionUpdateAllowed",
+]);
+function assertSafety(value,label){if(!value||typeof value!=="object")throw new Error(`${label} safety required`);for(const key of FALSE_KEYS)if(value[key]!==false)throw new Error(`${label}.${key} must remain false`);}
+function parseArgs(argv){const out={};for(let i=0;i<argv.length;i+=1){const token=argv[i];if(!token.startsWith("--"))throw new Error(`unexpected argument ${token}`);const key=token.slice(2),next=argv[i+1];if(next===undefined||next.startsWith("--"))out[key]=true;else{out[key]=next;i+=1;}}return out;}
+function required(args,key){const value=args[key];if(value===undefined||value===true||String(value).trim()==="")throw new Error(`--${key} is required`);return String(value);}
+function numeric(args,key,fallback){if(args[key]===undefined)return fallback;const value=Number(args[key]);if(!Number.isFinite(value))throw new Error(`--${key} must be numeric`);return value;}
+function iso(value,label="timestamp"){const parsed=Date.parse(String(value??""));if(!Number.isFinite(parsed))throw new Error(`${label} invalid`);return new Date(parsed).toISOString();}
+function readJson(file){return JSON.parse(fs.readFileSync(file,"utf8"));}
+function readJsonl(file){if(!fs.existsSync(file))return [];return fs.readFileSync(file,"utf8").split(/\r?\n/).filter((line)=>line.trim()).map((line,index)=>{try{return JSON.parse(line);}catch(error){throw new Error(`invalid JSONL ${file}:${index+1}: ${error.message}`);}});}
+function atomicWrite(file,value){fs.mkdirSync(path.dirname(file),{recursive:true});const temp=`${file}.tmp-${process.pid}`;fs.writeFileSync(temp,`${JSON.stringify(value,null,2)}\n`,"utf8");fs.renameSync(temp,file);}
+function sleep(ms){return new Promise((resolve)=>setTimeout(resolve,ms));}
+function listEnvelopeFiles(directory){if(!fs.existsSync(directory))return [];return fs.readdirSync(directory,{withFileTypes:true}).filter((entry)=>entry.isFile()&&entry.name.toLowerCase().endsWith(".json")).map((entry)=>path.join(directory,entry.name));}
+function envelopeMeta(file){const envelope=readJson(file);assertSafety(envelope.safety,"envelope");const decisionAt=iso(envelope?.pointResult?.at,"pointResult.at");return {file,envelope,decisionAt};}
+function loadSessionState(file,sessionDate){if(!fs.existsSync(file))return {schemaVersion:1,version:"phase57-msii-full-session-r1",sessionDate,lastDecisionAt:null,ledger:[],processedEvidenceHashes:[],blockedPoints:[],committedPoints:[],safety:SAFETY};const state=readJson(file);assertSafety(state.safety,"sessionState");if(state.sessionDate!==sessionDate)throw new Error("Lane M full-session state sessionDate mismatch");return state;}
+function pointArtifactPath(outputDir,decisionAt,status){const stamp=decisionAt.replace(/[-:.]/g,"");return path.join(outputDir,"session-points",`${stamp}-${status}.json`);}
+function evidenceDeadlineMs(envelope,{ttlMs,decisionLatencyMs,settleGraceMs}){return Date.parse(iso(envelope.pointResult.at))+Math.max(ttlMs,decisionLatencyMs)+settleGraceMs;}
+
+/** Process all newly visible immutable Lane Y envelopes once. Missing evidence waits until the causal evidence window closes;
+ * after that the point is permanently marked blocked and the watcher moves forward. No later backfill can upgrade it.
+ */
+export function stepFullSession({envelopes,captureRows,sessionState,nowMs=Date.now(),referenceMaxAgeMs=5_000,ttlMs=5_000,decisionLatencyMs=100,settleGraceMs=1_000,transactionCostJpy=0}={}){
+  assertSafety(SAFETY,"watcher");
+  const ordered=[...(envelopes??[])].map((item)=>item.envelope?item:{envelope:item,decisionAt:iso(item?.pointResult?.at)}).sort((a,b)=>Date.parse(a.decisionAt)-Date.parse(b.decisionAt));
+  let state={...sessionState,ledger:[...(sessionState?.ledger??[])],processedEvidenceHashes:[...(sessionState?.processedEvidenceHashes??[])],blockedPoints:[...(sessionState?.blockedPoints??[])],committedPoints:[...(sessionState?.committedPoints??[])],safety:SAFETY};
+  const events=[];
+  for(const item of ordered){
+    const envelope=item.envelope; const decisionAt=iso(item.decisionAt??envelope?.pointResult?.at);
+    if(envelope.sessionDate!==state.sessionDate)continue;
+    if(state.lastDecisionAt&&Date.parse(decisionAt)<=Date.parse(state.lastDecisionAt))continue;
+    try{
+      const processed=processRawEnvelopeFile({envelope,captureRows,priorState:state,referenceMaxAgeMs,ttlMs,decisionLatencyMs,transactionCostJpy});
+      state={...processed.nextState,blockedPoints:state.blockedPoints,committedPoints:[...state.committedPoints,{decisionAt,evidenceHash:processed.evidenceHash,captureRowCount:processed.captureRowCount}],safety:SAFETY};
+      events.push({status:"COMMITTED",decisionAt,evidenceHash:processed.evidenceHash,captureRowCount:processed.captureRowCount,result:processed.result});
+    }catch(error){
+      const deadline=evidenceDeadlineMs(envelope,{ttlMs,decisionLatencyMs,settleGraceMs});
+      const message=String(error?.message??error);
+      if(nowMs<deadline){events.push({status:"WAITING_FOR_CAUSAL_EVIDENCE",decisionAt,error:message,deadline:new Date(deadline).toISOString()});break;}
+      const blocked={decisionAt,status:"BLOCKED_CAUSAL_EVIDENCE_MISSING",reason:message,blockedAt:new Date(nowMs).toISOString(),backfillAllowed:false};
+      state={...state,lastDecisionAt:decisionAt,blockedPoints:[...state.blockedPoints,blocked],safety:SAFETY};
+      events.push({status:"BLOCKED",decisionAt,error:message,blocked});
+    }
+  }
+  return Object.freeze({state:Object.freeze(state),events:Object.freeze(events)});
+}
+
+async function main(){
+  const args=parseArgs(process.argv.slice(2));
+  const envelopeDir=required(args,"envelope-dir"),captureFile=required(args,"captures"),outputDir=required(args,"output-dir"),sessionDate=required(args,"session-date");
+  const stateFile=String(args.state??path.join(outputDir,"full-session-state.json"));
+  const pollMs=numeric(args,"poll-ms",1_000),referenceMaxAgeMs=numeric(args,"reference-max-age-ms",5_000),ttlMs=numeric(args,"ttl-ms",5_000),decisionLatencyMs=numeric(args,"decision-latency-ms",100),settleGraceMs=numeric(args,"settle-grace-ms",1_000),transactionCostJpy=numeric(args,"transaction-cost-jpy",0);
+  const stopAt=args["stop-at"]?Date.parse(iso(args["stop-at"],"stop-at")):null;
+  if(pollMs<200)throw new Error("--poll-ms must be >= 200");
+  process.stdout.write(`${JSON.stringify({status:"PHASE57_MSII_FULL_SESSION_START",sessionDate,envelopeDir,captureFile,outputDir,pollMs,safety:SAFETY})}\n`);
+  while(true){
+    const now=Date.now(); if(stopAt!==null&&now>=stopAt)break;
+    const state=loadSessionState(stateFile,sessionDate);
+    const envelopes=listEnvelopeFiles(envelopeDir).map(envelopeMeta);
+    const captureRows=readJsonl(captureFile);
+    const stepped=stepFullSession({envelopes,captureRows,sessionState:state,nowMs:now,referenceMaxAgeMs,ttlMs,decisionLatencyMs,settleGraceMs,transactionCostJpy});
+    if(stepped.events.length){
+      atomicWrite(stateFile,stepped.state);
+      for(const event of stepped.events){
+        if(event.status==="COMMITTED"){
+          atomicWrite(path.join(outputDir,"latest-score.json"),event.result.score); atomicWrite(path.join(outputDir,"latest-pair.json"),event.result.pair);
+          atomicWrite(pointArtifactPath(outputDir,event.decisionAt,"COMMITTED"),{schemaVersion:1,...event,result:undefined,score:event.result.score,pair:event.result.pair,safety:SAFETY});
+        }else if(event.status==="BLOCKED") atomicWrite(pointArtifactPath(outputDir,event.decisionAt,"BLOCKED"),{schemaVersion:1,...event,safety:SAFETY});
+        process.stdout.write(`${JSON.stringify({status:event.status,decisionAt:event.decisionAt,error:event.error??null,safety:SAFETY})}\n`);
+      }
+    }
+    await sleep(pollMs);
+  }
+  const state=loadSessionState(stateFile,sessionDate);
+  atomicWrite(path.join(outputDir,"full-session-final.json"),{schemaVersion:1,status:"PHASE57_MSII_FULL_SESSION_STOPPED",sessionDate,lastDecisionAt:state.lastDecisionAt,committedPointCount:state.committedPoints.length,blockedPointCount:state.blockedPoints.length,ledgerEventCount:state.ledger.length,backfillAllowed:false,safety:SAFETY});
+  process.stdout.write(`${JSON.stringify({status:"PHASE57_MSII_FULL_SESSION_STOPPED",sessionDate,committedPointCount:state.committedPoints.length,blockedPointCount:state.blockedPoints.length,safety:SAFETY})}\n`);
+  return 0;
+}
+const direct=process.argv[1]?import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href:false;
+if(direct){main().then((code)=>{process.exitCode=code;}).catch((error)=>{process.stderr.write(`${JSON.stringify({status:"BLOCKED_PHASE57_MSII_FULL_SESSION",error:String(error?.message??error),safety:SAFETY})}\n`);process.exitCode=1;});}
+export const PHASE57_MSII_FULL_SESSION_SAFETY=SAFETY;

@@ -27,13 +27,14 @@ function snapshot(at = "2026-09-04T00:05:00.000Z") {
   };
 }
 
-test("dynamic watchlist uses frozen V1/V2 selection and fits the current 50 in slots", () => {
+test("dynamic watchlist preserves frozen V1/V2 selector output inside existing readiness ranges", () => {
   const result = buildPhase57MsiiDynamicWatchlist({ snapshot: snapshot(), slotCount: 80, retentionPoints: 3 });
   assert.equal(result.complete, true);
-  assert.equal(result.currentV1Symbols.length, 50);
-  assert.equal(result.currentV2Symbols.length, 30);
+  assert.ok(result.currentV1Symbols.length >= 20 && result.currentV1Symbols.length <= 50);
+  assert.ok(result.currentV2Symbols.length >= 15 && result.currentV2Symbols.length <= 30);
   assert.ok(result.currentV2Symbols.every((symbol) => result.currentV1Symbols.includes(symbol)));
   assert.ok(result.assignedSymbols.length <= 80);
+  assert.equal(result.methodology.selectorCardinalityPreservedExactly, true);
   assert.equal(result.methodology.laterYahooBarUsed, false);
   assert.equal(result.futureOutcomeUsed, false);
 });

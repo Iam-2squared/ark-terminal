@@ -31,6 +31,20 @@ function captureSlice(rows,envelope,{referenceMaxAgeMs,ttlMs,decisionLatencyMs})
   return rows.filter((row)=>symbols.has(normalizeSymbol(row?.symbol))&&Number.isFinite(Date.parse(row?.capturedAt))&&Date.parse(row.capturedAt)>=min&&Date.parse(row.capturedAt)<=max)
     .sort((a,b)=>Date.parse(a.capturedAt)-Date.parse(b.capturedAt)||normalizeSymbol(a.symbol).localeCompare(normalizeSymbol(b.symbol)));
 }
+function continuity(envelope,priorState){
+  const predeclaredStartAt=iso(envelope.predeclaredStartAt,"predeclaredStartAt");
+  const actualStartAt=iso(envelope.actualStartAt,"actualStartAt");
+  const initialCapital=Number(envelope.initialCapital??1_000_000);
+  if(!Number.isFinite(initialCapital)||initialCapital<=0)throw new Error("initialCapital must be positive");
+  if(priorState.predeclaredStartAt&&iso(priorState.predeclaredStartAt)!==predeclaredStartAt)throw new Error("raw Lane M predeclaredStartAt cannot change within session");
+  if(priorState.actualStartAt&&iso(priorState.actualStartAt)!==actualStartAt)throw new Error("raw Lane M actualStartAt cannot change within session");
+  if(priorState.initialCapital!==undefined&&Number(priorState.initialCapital)!==initialCapital)throw new Error("raw Lane M initialCapital cannot change within session");
+  const requestedMissing=Math.max(0,Number(envelope.missingCaptureCount??0)||0);
+  const priorMissing=Math.max(0,Number(priorState.missingCaptureCount??0)||0);
+  const permanentBlocked=Math.max(0,Number(priorState.blockedPoints?.length??0)||0);
+  const missingCaptureCount=Math.max(requestedMissing,priorMissing,permanentBlocked);
+  return {predeclaredStartAt,actualStartAt,initialCapital,missingCaptureCount};
+}
 
 export function processRawEnvelopeFile({envelope,captureRows,priorState={},referenceMaxAgeMs=5000,ttlMs=5000,decisionLatencyMs=100,transactionCostJpy=0}={}){
   assertSafety(SAFETY,"coordinator");
@@ -39,20 +53,26 @@ export function processRawEnvelopeFile({envelope,captureRows,priorState={},refer
   const decisionAt=iso(envelope?.pointResult?.at,"pointResult.at");
   if(priorState.lastDecisionAt&&Date.parse(decisionAt)<=Date.parse(priorState.lastDecisionAt))throw new Error("raw Lane M decisionAt must move strictly forward");
   if(priorState.sessionDate&&priorState.sessionDate!==envelope.sessionDate)throw new Error("raw Lane M prior session mismatch");
+  const session=continuity(envelope,priorState);
   const slice=captureSlice(captureRows,envelope,{referenceMaxAgeMs,ttlMs,decisionLatencyMs});
   if(!slice.length)throw new Error("no raw MarketSpeed evidence in causal decision window");
   const evidenceHash=sha256({decisionAt,rows:slice});
   if((priorState.processedEvidenceHashes??[]).includes(evidenceHash))throw new Error("raw Lane M evidence already processed");
   const result=processRawProspectiveMsiiPoint({
-    sessionDate:envelope.sessionDate, predeclaredStartAt:envelope.predeclaredStartAt, actualStartAt:envelope.actualStartAt,
-    missingCaptureCount:Number(envelope.missingCaptureCount??0), initialCapital:Number(envelope.initialCapital??1_000_000),
+    sessionDate:envelope.sessionDate, predeclaredStartAt:session.predeclaredStartAt, actualStartAt:session.actualStartAt,
+    missingCaptureCount:session.missingCaptureCount, initialCapital:session.initialCapital,
     priorLedger:Array.isArray(priorState.ledger)?priorState.ledger:[], captureRows:slice,
     phase57State:envelope.phase57State, pointResult:envelope.pointResult, versions:envelope.versions,
     orderStyleResearchLabel:envelope.orderStyleResearchLabel??"MARKETABLE_QUOTE", ttlMs, decisionLatencyMs, referenceMaxAgeMs,
     transactionCostJpy, laneYDecisions:Array.isArray(envelope.laneYDecisions)?envelope.laneYDecisions:[],
   });
   if(result.complete!==true)throw new Error(`raw Lane M runtime blocked: ${result.status} ${(result.missingReferenceSymbols??[]).join(",")}`);
-  const nextState=Object.freeze({schemaVersion:1,version:"phase57-msii-raw-e2e-r1",sessionDate:envelope.sessionDate,lastDecisionAt:decisionAt,processedEvidenceHashes:Object.freeze([...(priorState.processedEvidenceHashes??[]),evidenceHash]),ledger:result.ledger,safety:SAFETY});
+  const nextState=Object.freeze({
+    schemaVersion:1,version:"phase57-msii-raw-e2e-r1",sessionDate:envelope.sessionDate,lastDecisionAt:decisionAt,
+    predeclaredStartAt:session.predeclaredStartAt,actualStartAt:session.actualStartAt,initialCapital:session.initialCapital,
+    missingCaptureCount:session.missingCaptureCount,processedEvidenceHashes:Object.freeze([...(priorState.processedEvidenceHashes??[]),evidenceHash]),
+    ledger:result.ledger,safety:SAFETY,
+  });
   return Object.freeze({result,nextState,evidenceHash,captureRowCount:slice.length});
 }
 

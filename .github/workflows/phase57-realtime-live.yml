@@ -30,7 +30,7 @@ concurrency:
 jobs:
   live:
     runs-on: ubuntu-latest
-    timeout-minutes: 210
+    timeout-minutes: 230
     steps:
       - uses: actions/checkout@v4
         with:
@@ -87,7 +87,7 @@ jobs:
           cd /tmp/realtime-data
           git config user.name 'Ark Realtime Research Bot'
           git config user.email 'ark-realtime-research@users.noreply.github.com'
-          mkdir -p "data/phase57-realtime-live/$SESSION_DATE/points"
+          mkdir -p "data/phase57-realtime-live/$SESSION_DATE/points" "data/phase57-realtime-live/$SESSION_DATE/raw"
           if [ -f "data/phase57-realtime-live/$SESSION_DATE/state.json" ]; then
             cp "data/phase57-realtime-live/$SESSION_DATE/state.json" /tmp/realtime-prior-state.json
             echo 'Restored same-session realtime state.'
@@ -103,30 +103,49 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           set -u
+          # Yahoo Japan public chart data is empirically ~15 minutes delayed intraday.
+          # We therefore capture the selector snapshot at event time, durably queue it,
+          # and only evaluate that immutable snapshot after its exact closed 5m bar has
+          # become observable. This is delayed ingestion, not a post-close recomputation:
+          # selection/entry/exit event time remains the original snapshot timestamp.
+          SOURCE_DELAY_SECONDS=960
           if [ "$SESSION_PART" = 'MORNING' ]; then
-            start_hm=0905; end_hm=1130
+            capture_start_hm=0905; capture_end_hm=1130; loop_end_hm=1150
           else
-            start_hm=1235; end_hm=1530
+            capture_start_hm=1235; capture_end_hm=1530; loop_end_hm=1550
           fi
           mkdir -p /tmp/realtime-live
-          attempts=0; successes=0; failures=0
-          while true; do
-            hm="$(TZ=Asia/Tokyo date +%H%M)"
-            if [ "$hm" -gt "$end_hm" ]; then break; fi
-            now="$(date +%s)"
-            next="$(( (now + 299) / 300 * 300 ))"
-            wait="$((next-now))"
-            [ "$wait" -gt 0 ] && sleep "$wait"
-            hm="$(TZ=Asia/Tokyo date +%H%M)"
-            if [ "$hm" -lt "$start_hm" ]; then continue; fi
-            if [ "$hm" -gt "$end_hm" ]; then break; fi
-            attempts=$((attempts+1))
-            stamp="$(date -u +%Y%m%dT%H%M%SZ)"
-            dir="/tmp/realtime-live/$stamp"
-            mkdir -p "$dir"
-            echo "[$stamp] Phase57 realtime finalized-5m point attempt $attempts"
+          attempts=0; successes=0; failures=0; captures=0
+          data_root="/tmp/realtime-data/data/phase57-realtime-live/$SESSION_DATE"
 
-            if node scripts/fetch_p25_marketwide_5m_spark.mjs --output "$dir/marketwide.json"; then
+          persist_data_branch(){
+            cd /tmp/realtime-data
+            git add "data/phase57-realtime-live/$SESSION_DATE"
+            if ! git diff --cached --quiet; then
+              git commit -m "$1"
+              if ! git push origin HEAD:automation/phase57-realtime-live-data; then
+                echo 'Realtime persistence push failed closed.'
+                exit 1
+              fi
+            fi
+            cd "$GITHUB_WORKSPACE"
+          }
+
+          process_eligible_raw(){
+            now_epoch="$(date +%s)"
+            for raw in $(find "$data_root/raw" -maxdepth 1 -type f -name '*.json' | sort); do
+              observed="$(node -p "require('$raw').meta.observedAt")"
+              observed_epoch="$(date -u -d "$observed" +%s)"
+              age="$((now_epoch-observed_epoch))"
+              if [ "$age" -lt "$SOURCE_DELAY_SECONDS" ]; then continue; fi
+              point_stamp="$(date -u -d "$observed" +%Y%m%dT%H%M%SZ)"
+              if [ -f "$data_root/points/${point_stamp}.json" ]; then continue; fi
+
+              attempts=$((attempts+1))
+              dir="/tmp/realtime-live/process-${point_stamp}"
+              mkdir -p "$dir"
+              cp "$raw" "$dir/marketwide.json"
+              echo "[$point_stamp] evaluating immutable point-in-time snapshot after source publication delay (${age}s)"
               args=(
                 --marketwide "$dir/marketwide.json"
                 --history-pack /tmp/p25-history.json
@@ -138,36 +157,52 @@ jobs:
               if node scripts/run_phase57_realtime_live_point.mjs "${args[@]}"; then
                 successes=$((successes+1))
                 cp "$dir/state.json" /tmp/realtime-prior-state.json
-                observed="$(node -p "require('$dir/snapshot.json').at")"
-                point_stamp="$(date -u -d "$observed" +%Y%m%dT%H%M%SZ)"
-                data_root="/tmp/realtime-data/data/phase57-realtime-live/$SESSION_DATE"
-                mkdir -p "$data_root/points"
                 cp "$dir/state.json" "$data_root/state.json"
                 cp "$dir/snapshot.json" "$data_root/latest.json"
                 cp "$dir/snapshot.json" "$data_root/points/${point_stamp}.json"
                 node -e "const fs=require('fs');const s=require('$dir/state.json');fs.writeFileSync('$data_root/ledger.json',JSON.stringify(s.ledger,null,2)+'\\n')"
                 if [ -f "$dir/postclose.json" ]; then cp "$dir/postclose.json" "$data_root/postclose.json"; fi
-                cd /tmp/realtime-data
-                git add "data/phase57-realtime-live/$SESSION_DATE"
-                if ! git diff --cached --quiet; then
-                  git commit -m "Persist Phase57 realtime point $SESSION_DATE $point_stamp"
-                  if ! git push origin HEAD:automation/phase57-realtime-live-data; then
-                    echo 'Realtime persistence push failed closed.'
-                    exit 1
-                  fi
-                fi
-                cd "$GITHUB_WORKSPACE"
+                persist_data_branch "Persist Phase57 delayed-ingestion realtime point $SESSION_DATE $point_stamp"
               else
                 failures=$((failures+1))
-                echo "Realtime point failed closed at $stamp; no fabricated state or snapshot persisted."
+                echo "Realtime point failed closed for immutable snapshot $point_stamp; retained raw evidence for retry."
               fi
-            else
-              failures=$((failures+1))
-              echo "Marketwide point failed closed at $stamp."
+            done
+          }
+
+          while true; do
+            hm="$(TZ=Asia/Tokyo date +%H%M)"
+            if [ "$hm" -gt "$loop_end_hm" ]; then break; fi
+            now="$(date +%s)"
+            next="$(( (now + 299) / 300 * 300 ))"
+            wait="$((next-now))"
+            [ "$wait" -gt 0 ] && sleep "$wait"
+            hm="$(TZ=Asia/Tokyo date +%H%M)"
+            if [ "$hm" -gt "$loop_end_hm" ]; then break; fi
+
+            if [ "$hm" -ge "$capture_start_hm" ] && [ "$hm" -le "$capture_end_hm" ]; then
+              stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+              dir="/tmp/realtime-live/capture-$stamp"
+              mkdir -p "$dir"
+              if node scripts/fetch_p25_marketwide_5m_spark.mjs --output "$dir/marketwide.json"; then
+                observed="$(node -p "require('$dir/marketwide.json').meta.observedAt")"
+                raw_stamp="$(date -u -d "$observed" +%Y%m%dT%H%M%SZ)"
+                cp "$dir/marketwide.json" "$data_root/raw/${raw_stamp}.json"
+                captures=$((captures+1))
+                persist_data_branch "Queue Phase57 realtime raw snapshot $SESSION_DATE $raw_stamp"
+              else
+                failures=$((failures+1))
+                echo "Marketwide capture failed closed at $stamp."
+              fi
             fi
+
+            process_eligible_raw
           done
-          echo "attempts=$attempts successes=$successes failures=$failures"
-          test "$successes" -gt 0
+
+          # Final drain for every raw snapshot whose provider-delay window has elapsed.
+          process_eligible_raw
+          echo "captures=$captures attempts=$attempts successes=$successes failures=$failures sourceDelaySeconds=$SOURCE_DELAY_SECONDS"
+          test "$captures" -gt 0
 
       - name: Hand off afternoon live measurement
         if: env.SESSION_PART == 'MORNING'
@@ -178,7 +213,7 @@ jobs:
         run: |
           set -euo pipefail
           gh workflow run phase57-realtime-live.yml --repo "$GH_REPO" --ref main -f session_part=AFTERNOON
-          echo 'Dispatched causal AFTERNOON continuation; morning state is restored from durable realtime data.'
+          echo 'Dispatched causal AFTERNOON continuation; state and immutable raw snapshots are restored from durable realtime data.'
 
       - uses: actions/upload-artifact@v4
         if: always()

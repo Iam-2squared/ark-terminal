@@ -22,6 +22,7 @@ test("full-session watcher waits before causal deadline, then commits when evide
  assert.equal(committed.state.lastDecisionAt,AT);
  assert.equal(committed.state.committedPoints.length,1);
  assert.equal(committed.state.actualStartAt,"2026-09-04T00:00:00.000Z");
+ assert.equal(committed.state.sessionQuality,"FULL_FRESH_MSII");
  assert.equal(committed.events[0].captureStartAttestation.startedOnTime,true);
 });
 
@@ -35,7 +36,8 @@ test("MarketSpeed start attestation downgrades a late local capture instead of i
  const committed=stepFullSession({envelopes:[env],captureRows:rows,sessionState:emptyState(),nowMs:Date.parse(AT)+2000});
  assert.equal(committed.events[0].status,"COMMITTED");
  assert.equal(committed.state.actualStartAt,"2026-09-04T00:10:00.000Z");
- assert.equal(committed.events[0].result.score.sessionQuality,"PARTIAL_INCOMPLETE_MSII");
+ assert.equal(committed.state.sessionQuality,"PARTIAL_INCOMPLETE_MSII");
+ assert.equal(committed.events[0].result.sessionQuality,"PARTIAL_INCOMPLETE_MSII");
 });
 
 test("full-session watcher permanently blocks after deadline and cannot backfill same decision",()=>{

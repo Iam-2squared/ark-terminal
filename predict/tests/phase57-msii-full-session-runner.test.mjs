@@ -2,21 +2,22 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { allocateRealtimeFrozenEntries } from "../realtime/phase57-realtime-allocation.js";
 import { STRATEGY_IDS, createRealtimeSessionState } from "../realtime/phase57-stateful-contract.js";
-import { stepFullSession, attestPhase57MsiiCaptureStart, PHASE57_MSII_FULL_SESSION_SAFETY } from "../../tools/phase57_msii_full_session_runner.mjs";
+import { diagnosePhase57MsiiPointCoverage, stepFullSession, attestPhase57MsiiCaptureStart, PHASE57_MSII_FULL_SESSION_SAFETY } from "../../tools/phase57_msii_full_session_runner.mjs";
 
 const DATE="2026-09-04",AT="2026-09-04T00:35:00.000Z";
 const SAFE={executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,rssOrderFunctionAllowed:false,liveTradingAllowed:false,paperTradingAllowed:false,automaticPromotionAllowed:false,productionUpdateAllowed:false,transmitted:false};
 const VERSIONS={selectorVersion:"PHASE57_DYNAMIC5M_FROZEN_SELECTOR",entryVersion:"PHASE57_FROZEN_ENTRY",exitV3Version:"PHASE57_EXIT_V3_FROZEN",exitV4Version:"PHASE57_EXIT_V4_FROZEN",allocationVersion:"PHASE57_CAPITAL_ALLOCATION_FROZEN"};
 function entry(){const cells=["V1_V3","V1_V4"];return {candidateId:`${DATE}|${AT}|V1|7203`,entryAccepted:true,frozenBeforeOutcome:true,currentOutcomeUsed:false,symbol:"7203",sessionDate:DATE,entryTimestamp:AT,signalDirection:1,entryPrice:100,confidence:.8,probability:.75,sector:"TEST",contextBars:[],selectionLineage:{variant:"V1"},strategyLineage:{cells,strategyIds:STRATEGY_IDS.filter((id)=>cells.some((cell)=>id.startsWith(`${cell}__`)))}};}
 function envelope({declared="2026-09-04T00:00:00.000Z",actual="2026-09-04T00:00:00.000Z"}={}){const state=createRealtimeSessionState({sessionDate:DATE});const allocation=allocateRealtimeFrozenEntries(state,{at:AT,entries:[entry()],marksBySymbol:{"7203":100}});return {schemaVersion:2,sessionDate:DATE,predeclaredStartAt:declared,actualStartAt:actual,missingCaptureCount:0,backfillUsed:false,initialCapital:1_000_000,phase57State:state,pointResult:{at:AT,allocation,exitEvaluation:{at:AT,closed:[]}},versions:VERSIONS,laneYDecisions:allocation.decisions.filter((x)=>x.status==="ACCEPTED").map((x)=>({strategyId:x.strategyId,symbol:x.symbol,decisionAt:AT,intentKind:"ENTRY",referencePrice:100})),methodology:{sourceDecisionAlreadyFrozen:true},safety:SAFE};}
-function capture(capturedAt){return {schemaVersion:1,phase:"58.p31.multi-symbol-capture",sourceMode:"MARKETSPEED_II_RSS_READ_ONLY",batchId:`b-${capturedAt}`,capturedAt,symbol:"7203.T",market:{symbol:"7203",bestBid:99.9,bestAsk:100.1,bestBidSize:10000,bestAskSize:10000},ticks:[],sourceFunctions:["RssMarket","RssTickList"],marketSizeUnit:"SHARES",tickSizeUnit:"SHARES",methodology:{preconfiguredSheetsOnly:true,excelFormulaWritePerformed:false,symbolSwitchWritePerformed:false,pointInTimeOnly:true,futureOutcomeUsed:false},safety:SAFE};}
-function emptyState(){return {schemaVersion:1,version:"phase57-msii-full-session-r2",sessionDate:DATE,lastDecisionAt:null,ledger:[],processedEvidenceHashes:[],blockedPoints:[],committedPoints:[],safety:PHASE57_MSII_FULL_SESSION_SAFETY};}
+function capture(capturedAt,symbol="7203.T"){const bare=String(symbol).replace(/\.T$/i,"");return {schemaVersion:1,phase:"58.p31.multi-symbol-capture",sourceMode:"MARKETSPEED_II_RSS_READ_ONLY",batchId:`b-${capturedAt}-${symbol}`,capturedAt,symbol,market:{symbol:bare,bestBid:99.9,bestAsk:100.1,bestBidSize:10000,bestAskSize:10000},ticks:[],sourceFunctions:["RssMarket","RssTickList"],marketSizeUnit:"SHARES",tickSizeUnit:"SHARES",methodology:{preconfiguredSheetsOnly:true,excelFormulaWritePerformed:false,symbolSwitchWritePerformed:false,pointInTimeOnly:true,futureOutcomeUsed:false},safety:SAFE};}
+function emptyState(){return {schemaVersion:2,version:"phase57-msii-full-session-r3-coverage",sessionDate:DATE,lastDecisionAt:null,ledger:[],processedEvidenceHashes:[],blockedPoints:[],committedPoints:[],safety:PHASE57_MSII_FULL_SESSION_SAFETY};}
 
 test("full-session watcher waits before causal deadline, then commits when evidence arrives",()=>{
  const env=envelope();
  const waiting=stepFullSession({envelopes:[env],captureRows:[],sessionState:emptyState(),nowMs:Date.parse(AT)+1000});
  assert.equal(waiting.events[0].status,"WAITING_FOR_CAUSAL_EVIDENCE");
  assert.equal(waiting.state.lastDecisionAt,null);
+ assert.deepEqual(waiting.events[0].coverage.missingSymbols,["7203.T"]);
  const committed=stepFullSession({envelopes:[env],captureRows:[capture("2026-09-04T00:00:00.000Z"),capture("2026-09-04T00:34:59.500Z"),capture("2026-09-04T00:35:00.200Z")],sessionState:waiting.state,nowMs:Date.parse(AT)+2000});
  assert.equal(committed.events[0].status,"COMMITTED");
  assert.equal(committed.state.lastDecisionAt,AT);
@@ -24,6 +25,8 @@ test("full-session watcher waits before causal deadline, then commits when evide
  assert.equal(committed.state.actualStartAt,"2026-09-04T00:00:00.000Z");
  assert.equal(committed.state.sessionQuality,"FULL_FRESH_MSII");
  assert.equal(committed.events[0].captureStartAttestation.startedOnTime,true);
+ assert.equal(committed.events[0].coverage.coveragePercent,100);
+ assert.equal(committed.coverageSummary.missingCoveragePointCount,0);
 });
 
 test("MarketSpeed start attestation downgrades a late local capture instead of inheriting Lane Y start",()=>{
@@ -40,13 +43,29 @@ test("MarketSpeed start attestation downgrades a late local capture instead of i
  assert.equal(committed.events[0].result.sessionQuality,"PARTIAL_INCOMPLETE_MSII");
 });
 
-test("full-session watcher permanently blocks after deadline and cannot backfill same decision",()=>{
+test("coverage diagnostics expose a dynamically required symbol that MarketSpeed did not capture",()=>{
  const env=envelope();
- const blocked=stepFullSession({envelopes:[env],captureRows:[],sessionState:emptyState(),nowMs:Date.parse(AT)+7000,ttlMs:5000,settleGraceMs:1000});
+ const rows=[capture("2026-09-04T00:34:59.500Z","9984.T"),capture("2026-09-04T00:35:00.200Z","9984.T")];
+ const coverage=diagnosePhase57MsiiPointCoverage(env,rows);
+ assert.equal(coverage.requiredSymbolCount,1);
+ assert.equal(coverage.observedRequiredSymbolCount,0);
+ assert.equal(coverage.coveragePercent,0);
+ assert.deepEqual(coverage.requiredSymbols,["7203.T"]);
+ assert.deepEqual(coverage.missingSymbols,["7203.T"]);
+ assert.equal(coverage.diagnosticOnly,true);
+});
+
+test("full-session watcher permanently blocks missing symbol coverage and cannot backfill same decision",()=>{
+ const env=envelope();
+ const wrongSymbol=[capture("2026-09-04T00:34:59.500Z","9984.T"),capture("2026-09-04T00:35:00.200Z","9984.T")];
+ const blocked=stepFullSession({envelopes:[env],captureRows:wrongSymbol,sessionState:emptyState(),nowMs:Date.parse(AT)+7000,ttlMs:5000,settleGraceMs:1000});
  assert.equal(blocked.events[0].status,"BLOCKED");
  assert.equal(blocked.state.lastDecisionAt,AT);
  assert.equal(blocked.state.blockedPoints[0].backfillAllowed,false);
  assert.equal(blocked.state.missingCaptureCount,1);
+ assert.deepEqual(blocked.state.blockedPoints[0].coverage.missingSymbols,["7203.T"]);
+ assert.equal(blocked.coverageSummary.missingCoveragePointCount,1);
+ assert.deepEqual(blocked.coverageSummary.distinctMissingSymbols,["7203.T"]);
  const late=stepFullSession({envelopes:[env],captureRows:[capture("2026-09-04T00:34:59.500Z"),capture("2026-09-04T00:35:00.200Z")],sessionState:blocked.state,nowMs:Date.parse(AT)+8000});
  assert.equal(late.events.length,0);
  assert.equal(late.state.committedPoints.length,0);

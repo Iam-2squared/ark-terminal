@@ -16,7 +16,7 @@ permissions:
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -39,6 +39,19 @@ jobs:
           node scripts/build_p25_pinned_history_pack.mjs --snapshot "$snapshot" --output /tmp/p25-history.json
       - name: Capture point-in-time marketwide snapshot
         run: node scripts/fetch_p25_marketwide_5m_spark.mjs --output /tmp/realtime-smoke/marketwide.json
+      - name: Wait for source publication window
+        shell: bash
+        run: |
+          set -euo pipefail
+          observed="$(node -p "require('/tmp/realtime-smoke/marketwide.json').meta.observedAt")"
+          observed_epoch="$(date -u -d "$observed" +%s)"
+          ready_epoch="$((observed_epoch+960))"
+          now_epoch="$(date +%s)"
+          wait_seconds="$((ready_epoch-now_epoch))"
+          if [ "$wait_seconds" -gt 0 ]; then
+            echo "Waiting ${wait_seconds}s for the immutable snapshot's Yahoo 5m source publication window."
+            sleep "$wait_seconds"
+          fi
       - name: Execute one causal finalized-5m realtime point
         run: |
           set -euo pipefail

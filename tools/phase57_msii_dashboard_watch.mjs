@@ -53,6 +53,15 @@ function atomicWrite(file, value) {
   fs.renameSync(temp, file);
 }
 function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
+function pairDecisionTimes(pair) {
+  const times = new Set();
+  for (const row of pair?.pairs ?? []) if (row?.decisionAt) times.add(iso(row.decisionAt, "pair decisionAt"));
+  for (const key of pair?.unmatchedLaneY ?? []) {
+    const parts = String(key).split("|");
+    if (parts[2]) times.add(iso(parts[2], "unmatched Lane Y decisionAt"));
+  }
+  return Object.freeze([...times].sort());
+}
 
 export function rebuildPhase57MsiiDashboardArtifacts(outputDir) {
   assertSafety(SAFETY, "dashboard watcher");
@@ -63,10 +72,25 @@ export function rebuildPhase57MsiiDashboardArtifacts(outputDir) {
   if (!fs.existsSync(scoreFile) || !fs.existsSync(pairFile)) {
     return Object.freeze({ status: "WAITING_FOR_LANE_M_SCORE_PAIR", updated: false, safety: SAFETY });
   }
+
+  // The full-session runner writes latest-score.json and latest-pair.json atomically but sequentially.
+  // Never combine a newly written score with a stale pair from the previous point.
+  const scoreMtimeMs = fs.statSync(scoreFile).mtimeMs;
+  const pairMtimeMs = fs.statSync(pairFile).mtimeMs;
+  if (pairMtimeMs < scoreMtimeMs) {
+    return Object.freeze({ status: "WAITING_FOR_COHERENT_LANE_M_SCORE_PAIR", updated: false, scoreMtimeMs, pairMtimeMs, safety: SAFETY });
+  }
+
   const score = readJson(scoreFile), pair = readJson(pairFile);
   assertSafety(score.safety, "score");
   assertSafety(pair.safety, "pair");
   const coverage = score.coverage ?? null;
+  const scoreAt = coverage?.decisionAt ? iso(coverage.decisionAt, "score coverage decisionAt") : null;
+  const pairTimes = pairDecisionTimes(pair);
+  if (scoreAt && pairTimes.some((value) => value !== scoreAt)) {
+    return Object.freeze({ status: "WAITING_FOR_COHERENT_LANE_M_SCORE_PAIR", updated: false, scoreAt, pairDecisionTimes: pairTimes, safety: SAFETY });
+  }
+
   const snapshot = buildPhase57MsiiDashboardSnapshot({ score, pair, coverage });
   const history = fs.existsSync(historyFile) ? readJson(historyFile) : [];
   const nextHistory = appendPhase57MsiiDashboardHistory(history, snapshot);

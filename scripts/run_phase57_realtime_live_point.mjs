@@ -118,22 +118,24 @@ function parseYahooPrefix(json,symbol){
   return bars;
 }
 async function fetchSymbolPrefix(symbol){
-  let lastError='no usable finalized prefix';
+  let lastError='no valid Yahoo response';
+  let bestBars=null;
   for(let attempt=0;attempt<2;attempt++){
     for(const url of buildP252Yahoo5mUrls({symbol,sessionDate})){
       try{
         const response=await fetch(url,{headers:{'User-Agent':'Mozilla/5.0 ArkTerminalResearch/1.0','Accept':'application/json'},cache:'no-store'});
         if(!response.ok)throw new Error(`HTTP ${response.status}`);
         const bars=parseYahooPrefix(await response.json(),symbol);
-        // Realtime state must be allowed to commit the first causal 5m points.
-        // Frozen Entry itself owns the >=6 closed-bar readiness gate; imposing it here
-        // made 09:05-09:25 impossible and therefore made FULL_FRESH unreachable.
-        if(bars.length>=1)return bars;
-        lastError='no finalized same-session bars';
+        if(bestBars===null||bars.length>bestBars.length)bestBars=bars;
+        // Exact target publication is sufficient to stop retrying this symbol. A valid
+        // zero-bar prefix is also legitimate (no trade yet) and is preserved below;
+        // the market-wide exact-target guard decides provider readiness globally.
+        if(bars.some(bar=>bar.timestamp===targetStart))return bars;
       }catch(error){lastError=String(error?.message??error);}
     }
     if(attempt<1)await new Promise(r=>setTimeout(r,5000));
   }
+  if(bestBars!==null)return bestBars;
   throw new Error(`Yahoo finalized 5m prefix failed ${symbol}: ${lastError}`);
 }
 async function mapLimit(values,limit,fn){

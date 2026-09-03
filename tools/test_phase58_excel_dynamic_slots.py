@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 
+import phase57_msii_windows_dynamic_preflight as preflight
 import phase58_dynamic_slot_compat_projector as projector
 import phase58_excel_dynamic_slot_capture as capture
 import phase58_excel_dynamic_slot_setup as setup
@@ -47,6 +48,13 @@ class DynamicSlotTest(unittest.TestCase):
         self.assertIn("'--tick-size-unit',$TickSizeUnit", script)
         self.assertNotIn("MarketSizeUnit = 'SHARES'", script)
         self.assertNotIn("TickSizeUnit = 'SHARES'", script)
+
+    def test_read_only_preflight_expected_formula_counts_match_generated_workbook(self):
+        expected = preflight.expected_rss_formula_counts(80)
+        self.assertEqual(expected["RSSMARKET"], 80 * sum(1 for _, item in setup.MARKET_FIELDS if item))
+        self.assertEqual(expected["RSSTICKLIST"], 80)
+        with self.assertRaisesRegex(ValueError, ">= 50"):
+            preflight.expected_rss_formula_counts(49)
 
     def test_watchlist_validator_preserves_variable_frozen_selector_cardinality(self):
         v1 = [f"{1000 + index}.T" for index in range(47)]

@@ -72,18 +72,51 @@ Keep the generated workbook dedicated to Lane M. Do not add order sheets or orde
 - Repository is on the latest `main`.
 - Start the launcher before 09:05 JST if the session is intended to be eligible for full-fresh classification.
 
+## Explicit quantity-unit attestation
+
+Lane M does not silently infer the units of MarketSpeed quantity fields. The dynamic capture and Windows launcher require the operator to explicitly attest both quantity streams as `SHARES`:
+
+- `MarketSizeUnit=SHARES`
+- `TickSizeUnit=SHARES`
+
+Only `SHARES` is accepted. Missing, `UNKNOWN`, `LOTS`, or any other value fails closed before the session starts. This attestation is research provenance; it does not enable any execution surface.
+
+## Read-only Windows preflight
+
+Before the market session, with Excel already open on the generated workbook, run:
+
+```powershell
+py tools\phase57_msii_windows_dynamic_preflight.py `
+  --workbook ArkLaneM.xlsx `
+  --market-size-unit SHARES `
+  --tick-size-unit SHARES `
+  --slots 80
+```
+
+Expected terminal status:
+
+`PHASE57_MSII_WINDOWS_DYNAMIC_PREFLIGHT_READY`
+
+The preflight performs no Excel writes. It verifies the required sheets, `ArkControl` header/slot contract, exact expected RssMarket/RssTickList formula counts, forbidden/unapproved RSS-function absence, all order/trading safety flags, explicit quantity-unit attestation, and emits the workbook formula-surface SHA256 attestation.
+
+The preflight deliberately reports `marketSpeedConnectivityProven=false`: static workbook/formula verification does not prove that live MarketSpeed II RSS values will update during the session. That final COM/Excel/RSS readiness proof must come from the actual Windows prospective run.
+
 ## Start the dynamic prospective session
 
 From the repository root:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools\phase57_msii_windows_dynamic_session.ps1 `
-  -Workbook ArkLaneM.xlsx
+  -Workbook ArkLaneM.xlsx `
+  -MarketSizeUnit SHARES `
+  -TickSizeUnit SHARES
 ```
+
+The two quantity-unit parameters are mandatory; the launcher has no silent unit defaults.
 
 The default launcher uses 80 slots, 100 tick rows per slot, one-second MarketSpeed capture, three recent V1 points as best-effort coverage retention, and a 16:10 JST final drain.
 
-The launcher fails closed if the dynamic capture cannot attach to the active Excel workbook, if a forbidden RSS order-capable formula is detected, if current V1 plus pinned Lane M inventory exceeds slot capacity, or if the existing causal evidence requirements are not met.
+The launcher fails closed if the dynamic capture cannot attach to the active Excel workbook, if a forbidden RSS order-capable formula is detected, if the unit attestation is absent/unsupported, if current V1 plus pinned Lane M inventory exceeds slot capacity, or if the existing causal evidence requirements are not met.
 
 ## Causal dynamic-selection timing
 
@@ -110,7 +143,7 @@ Important files include:
 - `lane-y-raw/*.json` — immediate point-in-time TradingView snapshots synced from the durable branch,
 - `dynamic-watchlist-latest.json` — current V1/V2/pinned/retained observation set,
 - `dynamic-watchlist-state.json` — causal prior-selection state,
-- `msii-dynamic-p32.jsonl` — original dynamic-slot capture with assignment provenance,
+- `msii-dynamic-p32.jsonl` — original dynamic-slot capture with assignment provenance, explicit quantity-unit attestation, and formula-surface attestation,
 - `msii-runtime-p31.jsonl` — settled compatibility projection consumed by the existing Lane M runtime,
 - `lane-m-output/full-session-state.json` — durable local Lane M execution state,
 - `lane-m-output/latest-score.json` — execution-aware score,
@@ -120,7 +153,7 @@ Important files include:
 - `lane-m-output/dashboard-history.json`,
 - `lane-m-output/full-session-final.json`.
 
-The p32 source row hash is retained in every p31 compatibility projection. Unsettled slots are not projected as MarketSpeed market evidence.
+The p32 source row hash is retained in every p31 compatibility projection. p32 schemaVersion 2 attestation fields remain bound by that source hash while the projected row remains compatible with the existing p31 schemaVersion 1 Lane M normalization contract. Unsettled slots are not projected as MarketSpeed market evidence.
 
 ## Dashboard
 

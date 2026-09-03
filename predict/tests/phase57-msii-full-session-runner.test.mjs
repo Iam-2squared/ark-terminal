@@ -55,14 +55,15 @@ test("coverage diagnostics expose a dynamically required symbol that MarketSpeed
  assert.equal(coverage.diagnosticOnly,true);
 });
 
-test("full-session watcher permanently blocks missing symbol coverage and cannot backfill same decision",()=>{
+test("full-session watcher permanently blocks missing symbol coverage, downgrades quality, and cannot backfill",()=>{
  const env=envelope();
- const wrongSymbol=[capture("2026-09-04T00:34:59.500Z","9984.T"),capture("2026-09-04T00:35:00.200Z","9984.T")];
+ const wrongSymbol=[capture("2026-09-04T00:00:00.000Z","9984.T"),capture("2026-09-04T00:34:59.500Z","9984.T"),capture("2026-09-04T00:35:00.200Z","9984.T")];
  const blocked=stepFullSession({envelopes:[env],captureRows:wrongSymbol,sessionState:emptyState(),nowMs:Date.parse(AT)+7000,ttlMs:5000,settleGraceMs:1000});
  assert.equal(blocked.events[0].status,"BLOCKED");
  assert.equal(blocked.state.lastDecisionAt,AT);
  assert.equal(blocked.state.blockedPoints[0].backfillAllowed,false);
  assert.equal(blocked.state.missingCaptureCount,1);
+ assert.equal(blocked.state.sessionQuality,"PARTIAL_INCOMPLETE_MSII");
  assert.deepEqual(blocked.state.blockedPoints[0].coverage.missingSymbols,["7203.T"]);
  assert.equal(blocked.coverageSummary.missingCoveragePointCount,1);
  assert.deepEqual(blocked.coverageSummary.distinctMissingSymbols,["7203.T"]);
@@ -70,6 +71,14 @@ test("full-session watcher permanently blocks missing symbol coverage and cannot
  assert.equal(late.events.length,0);
  assert.equal(late.state.committedPoints.length,0);
  assert.equal(late.state.blockedPoints.length,1);
+ assert.equal(late.state.sessionQuality,"PARTIAL_INCOMPLETE_MSII");
+});
+
+test("a block with no MarketSpeed evidence remains SOURCE_NOT_READY rather than claiming partial capture",()=>{
+ const blocked=stepFullSession({envelopes:[envelope()],captureRows:[],sessionState:emptyState(),nowMs:Date.parse(AT)+7000,ttlMs:5000,settleGraceMs:1000});
+ assert.equal(blocked.events[0].status,"BLOCKED");
+ assert.equal(blocked.state.sessionQuality,"SOURCE_NOT_READY");
+ assert.equal(blocked.state.missingCaptureCount,1);
 });
 
 test("full-session watcher safety remains read-only",()=>{

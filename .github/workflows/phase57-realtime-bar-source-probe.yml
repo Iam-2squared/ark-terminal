@@ -18,19 +18,28 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Probe TradingView 5m OHLC fields
+      - name: Probe TradingView 5m OHLC fields and Yahoo lag
         shell: bash
         run: |
           node --input-type=module <<'NODE'
-          const queries=[
-            ['current',['name','open|5','high|5','low|5','close|5','volume|5']],
-            ['previous',['name','open|5[1]','high|5[1]','low|5[1]','close|5[1]','volume|5[1]']],
-          ];
           const out={observedAt:new Date().toISOString(),results:{}};
+          const queries=[
+            ['tvCurrent',['name','open|5','high|5','low|5','close|5','volume|5']],
+            ['tvPrevious',['name','open|5[1]','high|5[1]','low|5[1]','close|5[1]','volume|5[1]']],
+          ];
           for(const [name,columns] of queries){
             const body={filter:[{left:'exchange',operation:'equal',right:'TSE'}],options:{lang:'en'},markets:['japan'],symbols:{query:{types:[]},tickers:['TSE:7203']},columns,range:[0,10]};
             const r=await fetch('https://scanner.tradingview.com/japan/scan',{method:'POST',headers:{'content-type':'application/json','user-agent':'Mozilla/5.0 ArkTerminalResearch/1.0','accept':'application/json'},body:JSON.stringify(body)});
             out.results[name]={status:r.status,ok:r.ok,body:(await r.text()).slice(0,4000),columns};
+          }
+          for(const interval of ['1m','5m']){
+            const url=`https://query1.finance.yahoo.com/v8/finance/chart/7203.T?range=1d&interval=${interval}&includePrePost=false&events=div%2Csplits`;
+            const r=await fetch(url,{headers:{'user-agent':'Mozilla/5.0 ArkTerminalResearch/1.0','accept':'application/json'},cache:'no-store'});
+            const j=await r.json();
+            const result=j?.chart?.result?.[0];
+            const ts=result?.timestamp??[];
+            const latest=ts.length?new Date(Number(ts.at(-1))*1000).toISOString():null;
+            out.results[`yahoo_${interval}`]={status:r.status,ok:r.ok,latestTimestamp:latest,rowCount:ts.length,meta:{regularMarketTime:result?.meta?.regularMarketTime?new Date(Number(result.meta.regularMarketTime)*1000).toISOString():null,dataGranularity:result?.meta?.dataGranularity??null}};
           }
           console.log(JSON.stringify(out,null,2));
           NODE

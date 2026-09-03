@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from pathlib import Path
 
 import phase58_dynamic_slot_compat_projector as projector
 import phase58_excel_dynamic_slot_capture as capture
@@ -37,6 +38,15 @@ class DynamicSlotTest(unittest.TestCase):
             capture.attest_size_units("LOTS", "SHARES")
         with self.assertRaisesRegex(ValueError, "SHARES"):
             capture.attest_size_units("SHARES", "UNKNOWN")
+
+    def test_windows_launcher_requires_and_forwards_explicit_unit_attestation(self):
+        script = Path(__file__).with_name("phase57_msii_windows_dynamic_session.ps1").read_text(encoding="utf-8")
+        self.assertIn("[Parameter(Mandatory=$true)][ValidateSet('SHARES')][string]$MarketSizeUnit", script)
+        self.assertIn("[Parameter(Mandatory=$true)][ValidateSet('SHARES')][string]$TickSizeUnit", script)
+        self.assertIn("'--market-size-unit',$MarketSizeUnit", script)
+        self.assertIn("'--tick-size-unit',$TickSizeUnit", script)
+        self.assertNotIn("MarketSizeUnit = 'SHARES'", script)
+        self.assertNotIn("TickSizeUnit = 'SHARES'", script)
 
     def test_watchlist_validator_preserves_variable_frozen_selector_cardinality(self):
         v1 = [f"{1000 + index}.T" for index in range(47)]

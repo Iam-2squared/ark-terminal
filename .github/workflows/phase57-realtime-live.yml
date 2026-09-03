@@ -1,0 +1,195 @@
+name: Phase57 Realtime Stateful Live Measurement
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/phase57-realtime-live.yml'
+      - 'scripts/run_phase57_realtime_live_point.mjs'
+      - 'predict/realtime/phase57-realtime-orchestrator.js'
+  workflow_dispatch:
+    inputs:
+      session_part:
+        description: 'AUTO, MORNING, or AFTERNOON'
+        required: true
+        default: 'AUTO'
+        type: choice
+        options: [AUTO, MORNING, AFTERNOON]
+  schedule:
+    - cron: '55 23 * * 0-4' # 08:55 JST Mon-Fri
+    - cron: '25 3 * * 1-5'  # 12:25 JST Mon-Fri fallback
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: phase57-realtime-live-${{ inputs.session_part || github.event.schedule || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 210
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Resolve causal session half
+        shell: bash
+        run: |
+          set -euo pipefail
+          requested='${{ inputs.session_part }}'
+          hm="$(TZ=Asia/Tokyo date +%H%M)"
+          if [ "${{ github.event_name }}" = 'workflow_dispatch' ] && [ "$requested" != 'AUTO' ] && [ -n "$requested" ]; then
+            part="$requested"
+          elif [ "$hm" -le 1130 ]; then
+            part='MORNING'
+          else
+            part='AFTERNOON'
+          fi
+          echo "SESSION_PART=$part" >> "$GITHUB_ENV"
+          echo "SESSION_DATE=$(TZ=Asia/Tokyo date +%F)" >> "$GITHUB_ENV"
+          echo "Resolved $part for $(TZ=Asia/Tokyo date --iso-8601=seconds)"
+
+      - name: Build exact pinned Frozen Entry and EXIT history pack
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p24-canonical
+          gh run download 31785422471 --repo "$GH_REPO" --name phase57-p24-9-oos-canonical-candidate --dir /tmp/p24-canonical
+          snapshot="$(find /tmp/p24-canonical -type f -name 'phase57-p24-9-oos-byte-snapshot.json' -print -quit)"
+          test -n "$snapshot"
+          node scripts/build_p25_pinned_history_pack.mjs --snapshot "$snapshot" --output /tmp/p25-history.json
+
+      - name: Prepare durable realtime data worktree
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          branch='automation/phase57-realtime-live-data'
+          if git fetch origin "$branch:refs/remotes/origin/$branch" 2>/dev/null; then
+            git worktree add -B "$branch" /tmp/realtime-data "origin/$branch"
+          else
+            git branch "$branch" main
+            git push origin "$branch"
+            git worktree add -B "$branch" /tmp/realtime-data "$branch"
+          fi
+          cd /tmp/realtime-data
+          git config user.name 'Ark Realtime Research Bot'
+          git config user.email 'ark-realtime-research@users.noreply.github.com'
+          mkdir -p "data/phase57-realtime-live/$SESSION_DATE/points"
+          if [ -f "data/phase57-realtime-live/$SESSION_DATE/state.json" ]; then
+            cp "data/phase57-realtime-live/$SESSION_DATE/state.json" /tmp/realtime-prior-state.json
+            echo 'Restored same-session realtime state.'
+          else
+            rm -f /tmp/realtime-prior-state.json
+            echo 'No same-session state: first committed point will be causal late-start if after 09:05.'
+          fi
+
+      - name: Run finalized 5m stateful measurement loop
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -u
+          if [ "$SESSION_PART" = 'MORNING' ]; then
+            start_hm=0905; end_hm=1130
+          else
+            start_hm=1235; end_hm=1530
+          fi
+          mkdir -p /tmp/realtime-live
+          attempts=0; successes=0; failures=0
+          while true; do
+            hm="$(TZ=Asia/Tokyo date +%H%M)"
+            if [ "$hm" -gt "$end_hm" ]; then break; fi
+            now="$(date +%s)"
+            next="$(( (now + 299) / 300 * 300 ))"
+            wait="$((next-now))"
+            [ "$wait" -gt 0 ] && sleep "$wait"
+            hm="$(TZ=Asia/Tokyo date +%H%M)"
+            if [ "$hm" -lt "$start_hm" ]; then continue; fi
+            if [ "$hm" -gt "$end_hm" ]; then break; fi
+            attempts=$((attempts+1))
+            stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+            dir="/tmp/realtime-live/$stamp"
+            mkdir -p "$dir"
+            echo "[$stamp] Phase57 realtime finalized-5m point attempt $attempts"
+
+            if node scripts/fetch_p25_marketwide_5m_spark.mjs --output "$dir/marketwide.json"; then
+              args=(
+                --marketwide "$dir/marketwide.json"
+                --history-pack /tmp/p25-history.json
+                --output-state "$dir/state.json"
+                --output-snapshot "$dir/snapshot.json"
+                --output-postclose "$dir/postclose.json"
+              )
+              if [ -f /tmp/realtime-prior-state.json ]; then args+=(--state /tmp/realtime-prior-state.json); fi
+              if node scripts/run_phase57_realtime_live_point.mjs "${args[@]}"; then
+                successes=$((successes+1))
+                cp "$dir/state.json" /tmp/realtime-prior-state.json
+                observed="$(node -p "require('$dir/snapshot.json').at")"
+                point_stamp="$(date -u -d "$observed" +%Y%m%dT%H%M%SZ)"
+                data_root="/tmp/realtime-data/data/phase57-realtime-live/$SESSION_DATE"
+                mkdir -p "$data_root/points"
+                cp "$dir/state.json" "$data_root/state.json"
+                cp "$dir/snapshot.json" "$data_root/latest.json"
+                cp "$dir/snapshot.json" "$data_root/points/${point_stamp}.json"
+                node -e "const fs=require('fs');const s=require('$dir/state.json');fs.writeFileSync('$data_root/ledger.json',JSON.stringify(s.ledger,null,2)+'\\n')"
+                if [ -f "$dir/postclose.json" ]; then cp "$dir/postclose.json" "$data_root/postclose.json"; fi
+                cd /tmp/realtime-data
+                git add "data/phase57-realtime-live/$SESSION_DATE"
+                if ! git diff --cached --quiet; then
+                  git commit -m "Persist Phase57 realtime point $SESSION_DATE $point_stamp"
+                  if ! git push origin HEAD:automation/phase57-realtime-live-data; then
+                    echo 'Realtime persistence push failed closed.'
+                    exit 1
+                  fi
+                fi
+                cd "$GITHUB_WORKSPACE"
+              else
+                failures=$((failures+1))
+                echo "Realtime point failed closed at $stamp; no fabricated state or snapshot persisted."
+              fi
+            else
+              failures=$((failures+1))
+              echo "Marketwide point failed closed at $stamp."
+            fi
+          done
+          echo "attempts=$attempts successes=$successes failures=$failures"
+          test "$successes" -gt 0
+
+      - name: Hand off afternoon live measurement
+        if: env.SESSION_PART == 'MORNING'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh workflow run phase57-realtime-live.yml --repo "$GH_REPO" --ref main -f session_part=AFTERNOON
+          echo 'Dispatched causal AFTERNOON continuation; morning state is restored from durable realtime data.'
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-realtime-live-${{ env.SESSION_DATE }}-${{ env.SESSION_PART }}
+          path: /tmp/realtime-live
+          if-no-files-found: ignore
+          retention-days: 90
+
+      - name: Safety boundary
+        if: always()
+        run: |
+          echo 'Realtime research/shadow measurement only.'
+          echo 'No broker write, Excel order write, RSS order function, paper/live trading, auto-promotion, or production update.'

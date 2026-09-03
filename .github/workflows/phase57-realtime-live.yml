@@ -1,12 +1,6 @@
 name: Phase57 Realtime Stateful Live Measurement
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/phase57-realtime-live.yml'
-      - 'scripts/run_phase57_realtime_live_point.mjs'
-      - 'predict/realtime/phase57-realtime-orchestrator.js'
   workflow_dispatch:
     inputs:
       session_part:
@@ -23,8 +17,10 @@ permissions:
   contents: write
   actions: read
 
+# Scheduled afternoon and the morning handoff must share one concurrency key.
+# Otherwise both can write the durable data branch at the same time.
 concurrency:
-  group: phase57-realtime-live-${{ inputs.session_part || github.event.schedule || github.ref }}
+  group: phase57-realtime-live-${{ inputs.session_part || (github.event.schedule == '55 23 * * 0-4' && 'MORNING') || (github.event.schedule == '25 3 * * 1-5' && 'AFTERNOON') || 'AUTO' }}
   cancel-in-progress: true
 
 jobs:
@@ -213,7 +209,7 @@ jobs:
         run: |
           set -euo pipefail
           gh workflow run phase57-realtime-live.yml --repo "$GH_REPO" --ref main -f session_part=AFTERNOON
-          echo 'Dispatched causal AFTERNOON continuation; state and immutable raw snapshots are restored from durable realtime data.'
+          echo 'Dispatched causal AFTERNOON continuation; scheduled afternoon fallback shares the same concurrency key.'
 
       - uses: actions/upload-artifact@v4
         if: always()

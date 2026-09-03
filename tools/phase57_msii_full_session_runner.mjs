@@ -29,20 +29,14 @@ export function diagnosePhase57MsiiPointCoverage(envelope,captureRows,{reference
   const decisionAt=iso(envelope?.pointResult?.at,"pointResult.at");
   const decisionMs=Date.parse(decisionAt),minMs=decisionMs-referenceMaxAgeMs,maxMs=decisionMs+Math.max(ttlMs,decisionLatencyMs);
   const required=requiredSymbols(envelope),requiredSet=new Set(required),observedSet=new Set();
-  for(const row of captureRows??[]){
-    const symbol=normalizeSymbol(row?.symbol),capturedMs=Date.parse(String(row?.capturedAt??""));
-    if(requiredSet.has(symbol)&&Number.isFinite(capturedMs)&&capturedMs>=minMs&&capturedMs<=maxMs)observedSet.add(symbol);
-  }
+  for(const row of captureRows??[]){const symbol=normalizeSymbol(row?.symbol),capturedMs=Date.parse(String(row?.capturedAt??""));if(requiredSet.has(symbol)&&Number.isFinite(capturedMs)&&capturedMs>=minMs&&capturedMs<=maxMs)observedSet.add(symbol);}
   const observed=[...observedSet].sort(),missing=required.filter((symbol)=>!observedSet.has(symbol));
-  const coveragePercent=required.length?100*observed.length/required.length:100;
-  return Object.freeze({decisionAt,requiredSymbolCount:required.length,observedRequiredSymbolCount:observed.length,missingSymbolCount:missing.length,coveragePercent,requiredSymbols:Object.freeze(required),observedRequiredSymbols:Object.freeze(observed),missingSymbols:Object.freeze(missing),diagnosticOnly:true,backfillAllowed:false});
+  return Object.freeze({decisionAt,requiredSymbolCount:required.length,observedRequiredSymbolCount:observed.length,missingSymbolCount:missing.length,coveragePercent:required.length?100*observed.length/required.length:100,requiredSymbols:Object.freeze(required),observedRequiredSymbols:Object.freeze(observed),missingSymbols:Object.freeze(missing),diagnosticOnly:true,backfillAllowed:false});
 }
 function summarizeCoverage(state){
-  const points=[...(state?.committedPoints??[]),...(state?.blockedPoints??[])].filter((row)=>row?.coverage);
-  const missingSymbols=[...new Set(points.flatMap((row)=>row.coverage.missingSymbols??[]))].sort();
-  const requiredOccurrences=points.reduce((sum,row)=>sum+Number(row.coverage.requiredSymbolCount??0),0);
-  const observedOccurrences=points.reduce((sum,row)=>sum+Number(row.coverage.observedRequiredSymbolCount??0),0);
-  return Object.freeze({pointCount:points.length,fullCoveragePointCount:points.filter((row)=>Number(row.coverage.missingSymbolCount??0)===0).length,missingCoveragePointCount:points.filter((row)=>Number(row.coverage.missingSymbolCount??0)>0).length,requiredSymbolOccurrences:requiredOccurrences,observedRequiredSymbolOccurrences:observedOccurrences,occurrenceCoveragePercent:requiredOccurrences?100*observedOccurrences/requiredOccurrences:100,distinctMissingSymbolCount:missingSymbols.length,distinctMissingSymbols:Object.freeze(missingSymbols),diagnosticOnly:true});
+  const points=[...(state?.committedPoints??[]),...(state?.blockedPoints??[])].filter((row)=>row?.coverage),missingSymbols=[...new Set(points.flatMap((row)=>row.coverage.missingSymbols??[]))].sort();
+  const requiredOccurrences=points.reduce((sum,row)=>sum+Number(row.coverage.requiredSymbolCount??0),0),observedOccurrences=points.reduce((sum,row)=>sum+Number(row.coverage.observedRequiredSymbolCount??0),0);
+  return Object.freeze({pointCount:points.length,fullCoveragePointCount:points.filter((row)=>Number(row.coverage.missingSymbolCount??0)===0).length,missingCoveragePointCount:points.filter((row)=>Number(row.coverage.missingSymbolCount??0)>0).length,requiredSymbolOccurrences:requiredOccurrences,observedRequiredSymbolOccurrences:observedOccurrences,occurrenceCoveragePercent:requiredOccurrences?100*observedOccurrences/requiredOccurrences:null,distinctMissingSymbolCount:missingSymbols.length,distinctMissingSymbols:Object.freeze(missingSymbols),diagnosticOnly:true});
 }
 function captureStartAttestation(captureRows,envelope){
   const declared=iso(envelope.predeclaredStartAt,"predeclaredStartAt");
@@ -52,6 +46,7 @@ function captureStartAttestation(captureRows,envelope){
   return Object.freeze({firstObservedAt,effectiveActualStartAt,predeclaredStartAt:declared,startedOnTime:effectiveActualStartAt===declared});
 }
 function envelopeWithCaptureAttestation(envelope,captureRows){const attestation=captureStartAttestation(captureRows,envelope);if(!attestation)return {envelope,attestation:null};return {envelope:{...envelope,actualStartAt:attestation.effectiveActualStartAt,methodology:{...(envelope.methodology??{}),laneMActualStartAttestedFromRawCapture:true,laneMFirstObservedCaptureAt:attestation.firstObservedAt,laneMStartedOnTime:attestation.startedOnTime}},attestation};}
+function blockedSessionQuality(state,attestation){return (state?.actualStartAt||attestation?.effectiveActualStartAt)?"PARTIAL_INCOMPLETE_MSII":"SOURCE_NOT_READY";}
 
 /** Missing evidence waits until the causal window closes, then blocks permanently. Diagnostics never upgrade a point. */
 export function stepFullSession({envelopes,captureRows,sessionState,nowMs=Date.now(),referenceMaxAgeMs=5_000,ttlMs=5_000,decisionLatencyMs=100,settleGraceMs=1_000,transactionCostJpy=0}={}){
@@ -63,8 +58,7 @@ export function stepFullSession({envelopes,captureRows,sessionState,nowMs=Date.n
     const sourceEnvelope=item.envelope,decisionAt=iso(item.decisionAt??sourceEnvelope?.pointResult?.at);
     if(sourceEnvelope.sessionDate!==state.sessionDate)continue;
     if(state.lastDecisionAt&&Date.parse(decisionAt)<=Date.parse(state.lastDecisionAt))continue;
-    const {envelope,attestation}=envelopeWithCaptureAttestation(sourceEnvelope,captureRows);
-    const coverage=diagnosePhase57MsiiPointCoverage(sourceEnvelope,captureRows,{referenceMaxAgeMs,ttlMs,decisionLatencyMs});
+    const {envelope,attestation}=envelopeWithCaptureAttestation(sourceEnvelope,captureRows),coverage=diagnosePhase57MsiiPointCoverage(sourceEnvelope,captureRows,{referenceMaxAgeMs,ttlMs,decisionLatencyMs});
     try{
       const processed=processRawEnvelopeFile({envelope,captureRows,priorState:state,referenceMaxAgeMs,ttlMs,decisionLatencyMs,transactionCostJpy});
       state={...processed.nextState,blockedPoints:state.blockedPoints,committedPoints:[...state.committedPoints,{decisionAt,evidenceHash:processed.evidenceHash,captureRowCount:processed.captureRowCount,captureStartAttestation:attestation,coverage}],safety:SAFETY};
@@ -73,8 +67,9 @@ export function stepFullSession({envelopes,captureRows,sessionState,nowMs=Date.n
       const deadline=evidenceDeadlineMs(sourceEnvelope,{ttlMs,decisionLatencyMs,settleGraceMs}),message=String(error?.message??error);
       if(nowMs<deadline){events.push({status:"WAITING_FOR_CAUSAL_EVIDENCE",decisionAt,error:message,deadline:new Date(deadline).toISOString(),captureStartAttestation:attestation,coverage});break;}
       const blocked={decisionAt,status:"BLOCKED_CAUSAL_EVIDENCE_MISSING",reason:message,blockedAt:new Date(nowMs).toISOString(),backfillAllowed:false,captureStartAttestation:attestation,coverage};
-      state={...state,lastDecisionAt:decisionAt,blockedPoints:[...state.blockedPoints,blocked],missingCaptureCount:Math.max(Number(state.missingCaptureCount??0),state.blockedPoints.length+1),safety:SAFETY};
-      events.push({status:"BLOCKED",decisionAt,error:message,blocked,coverage});
+      const missingCaptureCount=Math.max(Number(state.missingCaptureCount??0),state.blockedPoints.length+1),sessionQuality=blockedSessionQuality(state,attestation);
+      state={...state,lastDecisionAt:decisionAt,actualStartAt:state.actualStartAt??attestation?.effectiveActualStartAt??null,blockedPoints:[...state.blockedPoints,blocked],missingCaptureCount,sessionQuality,safety:SAFETY};
+      events.push({status:"BLOCKED",decisionAt,error:message,blocked,coverage,sessionQuality});
     }
   }
   return Object.freeze({state:Object.freeze(state),events:Object.freeze(events),coverageSummary:summarizeCoverage(state)});
@@ -100,7 +95,7 @@ async function main(){
           atomicWrite(path.join(outputDir,"latest-pair.json"),event.result.pair);
           atomicWrite(pointArtifactPath(outputDir,event.decisionAt,"COMMITTED"),{schemaVersion:3,...event,result:undefined,sessionQuality:event.result.sessionQuality??stepped.state.sessionQuality??null,score:event.result.score,pair:event.result.pair,safety:SAFETY});
         }else if(event.status==="BLOCKED")atomicWrite(pointArtifactPath(outputDir,event.decisionAt,"BLOCKED"),{schemaVersion:3,...event,safety:SAFETY});
-        process.stdout.write(`${JSON.stringify({status:event.status,decisionAt:event.decisionAt,error:event.error??null,coverage:event.coverage,captureStartAttestation:event.captureStartAttestation??event.blocked?.captureStartAttestation??null,safety:SAFETY})}\n`);
+        process.stdout.write(`${JSON.stringify({status:event.status,decisionAt:event.decisionAt,error:event.error??null,sessionQuality:event.sessionQuality??event.result?.sessionQuality??stepped.state.sessionQuality??null,coverage:event.coverage,captureStartAttestation:event.captureStartAttestation??event.blocked?.captureStartAttestation??null,safety:SAFETY})}\n`);
       }
     }
     await sleep(pollMs);

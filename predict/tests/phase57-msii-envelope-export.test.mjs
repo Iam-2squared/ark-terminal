@@ -33,7 +33,7 @@ function frozenEntry() {
   });
 }
 
-test("Lane Y realtime state exports an immutable exact-timestamp Lane M envelope", () => {
+function stateWithPoint() {
   const state = createRealtimeSessionState({ sessionDate: DATE });
   const allocation = allocateRealtimeFrozenEntries(state, {
     at: AT,
@@ -47,12 +47,18 @@ test("Lane Y realtime state exports an immutable exact-timestamp Lane M envelope
     safety: state.safety,
   });
   state.pipeline = { lastPointTime: AT, lastRequestSha256: "fixture", history: [point] };
+  return state;
+}
 
+test("Lane Y realtime state exports an immutable exact-timestamp Lane M envelope", () => {
+  const state = stateWithPoint();
   const envelope = buildMsiiEnvelopeFromRealtimeState(state, {
     predeclaredStartAt: "2026-09-04T00:00:00.000Z",
     actualStartAt: "2026-09-04T00:00:00.000Z",
   });
   assert.equal(envelope.status, "PHASE57_MSII_RUNTIME_ENVELOPE_READY");
+  assert.equal(envelope.schemaVersion, 2);
+  assert.equal(envelope.phase, "57.msii.runtime-envelope.r2-causal-capsule");
   assert.equal(envelope.sessionDate, DATE);
   assert.equal(envelope.pointResult.at, AT);
   assert.equal(envelope.backfillUsed, false);
@@ -60,19 +66,35 @@ test("Lane Y realtime state exports an immutable exact-timestamp Lane M envelope
   assert.ok(envelope.laneYDecisions.every((row) => row.intentKind === "ENTRY" && row.decisionAt === AT));
   assert.deepEqual(envelope.versions, PHASE57_MSII_DEFAULT_VERSIONS);
   assert.equal(envelope.methodology.exactLaneYDecisionTimestampPreserved, true);
+  assert.equal(envelope.methodology.detachedFromMutableRealtimeState, true);
   assert.equal(envelope.methodology.futureOutcomeUsed, false);
   assert.equal(envelope.safety.liveTradingAllowed, false);
   assert.equal(envelope.safety.rssOrderFunctionAllowed, false);
 });
 
-test("Lane M envelope export fails closed on unsafe or inconsistent Lane Y state", () => {
-  const state = createRealtimeSessionState({ sessionDate: DATE });
-  const allocation = allocateRealtimeFrozenEntries(state, {
-    at: AT,
-    entries: [frozenEntry()],
-    marksBySymbol: { "7203": 100 },
+test("Lane M causal capsule cannot be contaminated by a later realtime point", () => {
+  const state = stateWithPoint();
+  const envelope = buildMsiiEnvelopeFromRealtimeState(state, {
+    predeclaredStartAt: "2026-09-04T00:00:00.000Z",
+    actualStartAt: "2026-09-04T00:00:00.000Z",
   });
-  state.pipeline = { lastPointTime: AT, lastRequestSha256: "fixture", history: [{ at: AT, allocation, exitEvaluation: { at: AT, closed: [] }, safety: state.safety }] };
+  const serializedBefore = JSON.stringify(envelope);
+
+  const later = "2026-09-04T00:40:00.000Z";
+  state.pipeline.history.push({ at: later, allocation: { decisions: [] }, exitEvaluation: { at: later, closed: [] }, safety: state.safety });
+  state.pipeline.lastPointTime = later;
+  state.liveMeasurement = { startedAt: AT, syntheticLaterMutation: true };
+
+  assert.equal(envelope.pointResult.at, AT);
+  assert.equal(envelope.phase57State.pipeline.history.length, 1);
+  assert.equal(envelope.phase57State.liveMeasurement?.syntheticLaterMutation, undefined);
+  assert.equal(JSON.stringify(envelope), serializedBefore);
+  assert.equal(Object.isFrozen(envelope.phase57State), true);
+  assert.equal(Object.isFrozen(envelope.phase57State.pipeline), true);
+});
+
+test("Lane M envelope export fails closed on unsafe or inconsistent Lane Y state", () => {
+  const state = stateWithPoint();
   const unsafe = structuredClone(state);
   unsafe.safety.paperTradingAllowed = true;
   assert.throws(() => buildMsiiEnvelopeFromRealtimeState(unsafe, {

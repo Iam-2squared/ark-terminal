@@ -44,6 +44,11 @@ function Get-StopAtIso([string]$Date, [string]$Hm) {
   return "${Date}T${Hm}:00+09:00"
 }
 
+function Quote-ProcessArgument([string]$Value) {
+  if ($Value -notmatch '[\s"]') { return $Value }
+  return '"' + ($Value -replace '(\\*)"','$1$1\"' -replace '(\\+)$','$1$1') + '"'
+}
+
 Assert-ReadOnlySafety
 if ($CaptureIntervalSeconds -lt 0.2) { throw 'CaptureIntervalSeconds must be >= 0.2' }
 if ($EnvelopePollSeconds -lt 1.0) { throw 'EnvelopePollSeconds must be >= 1.0' }
@@ -98,17 +103,18 @@ while([DateTimeOffset]::Now -lt $stop){
 
 $captureArgs = @('-u','tools/phase58_excel_multisymbol_microstructure_capture.py','--registry',(Resolve-AbsolutePath $Registry),'--output',$captureFile,'--interval-seconds',[string]$CaptureIntervalSeconds,'--samples',[string]$CaptureSamples)
 if ($Workbook) { $captureArgs += @('--workbook',$Workbook) }
+$captureArgumentLine = (($captureArgs | ForEach-Object { Quote-ProcessArgument ([string]$_) }) -join ' ')
 $captureStdout = Join-Path $logDir 'capture.stdout.log'
 $captureStderr = Join-Path $logDir 'capture.stderr.log'
 
 $syncJob = $null
 $captureProcess = $null
 try {
-  Write-Host ([System.Text.Json.JsonSerializer]::Serialize([ordered]@{status='PHASE57_MSII_WINDOWS_FULL_SESSION_START';sessionDate=$SessionDate;captureFile=$captureFile;envelopeDir=$envelopeDir;outputDir=$outputDir;stopAt=$stopAtIso;safety=$Safety}))
+  Write-Host (([ordered]@{status='PHASE57_MSII_WINDOWS_FULL_SESSION_START';sessionDate=$SessionDate;captureFile=$captureFile;envelopeDir=$envelopeDir;outputDir=$outputDir;stopAt=$stopAtIso;safety=$Safety} | ConvertTo-Json -Depth 5 -Compress))
 
   # Start prospective MarketSpeed capture first. It must already be running before a point
   # can be classified FULL_FRESH_MSII; late starts are preserved as partial by the watcher.
-  $captureProcess = Start-Process -FilePath $Python -ArgumentList $captureArgs -PassThru -NoNewWindow -RedirectStandardOutput $captureStdout -RedirectStandardError $captureStderr
+  $captureProcess = Start-Process -FilePath $Python -ArgumentList $captureArgumentLine -PassThru -NoNewWindow -RedirectStandardOutput $captureStdout -RedirectStandardError $captureStderr
 
   # Sync only immutable Lane Y -> M capsules from the durable branch. The job never writes GitHub.
   $repoRoot = (Get-Location).Path
@@ -116,17 +122,20 @@ try {
 
   # Foreground watcher consumes local prospective MarketSpeed JSONL plus newly synced capsules.
   # It permanently blocks expired causal windows; later evidence cannot backfill them.
-  & $Node 'tools/phase57_msii_full_session_runner.mjs' \
-    '--envelope-dir' $envelopeDir \
-    '--captures' $captureFile \
-    '--output-dir' $outputDir \
-    '--session-date' $SessionDate \
-    '--poll-ms' '1000' \
-    '--reference-max-age-ms' '5000' \
-    '--ttl-ms' '5000' \
-    '--decision-latency-ms' '100' \
-    '--settle-grace-ms' '1000' \
-    '--stop-at' $stopAtIso
+  $watcherArgs = @(
+    'tools/phase57_msii_full_session_runner.mjs',
+    '--envelope-dir',$envelopeDir,
+    '--captures',$captureFile,
+    '--output-dir',$outputDir,
+    '--session-date',$SessionDate,
+    '--poll-ms','1000',
+    '--reference-max-age-ms','5000',
+    '--ttl-ms','5000',
+    '--decision-latency-ms','100',
+    '--settle-grace-ms','1000',
+    '--stop-at',$stopAtIso
+  )
+  & $Node @watcherArgs
   if ($LASTEXITCODE -ne 0) { throw "Lane M full-session watcher exited $LASTEXITCODE" }
 }
 finally {
@@ -143,4 +152,4 @@ finally {
 $finalFile = Join-Path $outputDir 'full-session-final.json'
 if (-not (Test-Path $finalFile -PathType Leaf)) { throw 'Lane M final session artifact was not produced.' }
 $final = Get-Content $finalFile -Raw | ConvertFrom-Json
-Write-Host ([System.Text.Json.JsonSerializer]::Serialize([ordered]@{status='PHASE57_MSII_WINDOWS_FULL_SESSION_COMPLETE';sessionDate=$SessionDate;committedPointCount=$final.committedPointCount;blockedPointCount=$final.blockedPointCount;missingCaptureCount=$final.missingCaptureCount;finalArtifact=$finalFile;safety=$Safety}))
+Write-Host (([ordered]@{status='PHASE57_MSII_WINDOWS_FULL_SESSION_COMPLETE';sessionDate=$SessionDate;committedPointCount=$final.committedPointCount;blockedPointCount=$final.blockedPointCount;missingCaptureCount=$final.missingCaptureCount;finalArtifact=$finalFile;safety=$Safety} | ConvertTo-Json -Depth 5 -Compress))

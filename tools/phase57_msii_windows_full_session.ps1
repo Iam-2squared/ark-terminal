@@ -7,6 +7,7 @@ param(
   [double]$CaptureIntervalSeconds = 1.0,
   [double]$EnvelopePollSeconds = 10.0,
   [int]$CaptureSamples = 30000,
+  [int]$CaptureStartupTimeoutSeconds = 20,
   [string]$DataRoot = "data/phase57-msii-live",
   [string]$DurableRef = "origin/automation/phase57-realtime-live-data",
   [string]$StopAtJst = "16:10"
@@ -33,17 +34,12 @@ function Assert-ReadOnlySafety {
     if ($Safety[$key] -ne $false) { throw "Unsafe Lane M launcher flag: $key" }
   }
 }
-
-function Resolve-AbsolutePath([string]$PathValue) {
-  return [System.IO.Path]::GetFullPath((Join-Path (Get-Location) $PathValue))
-}
-
-function Get-StopAtIso([string]$Date, [string]$Hm) {
+function Resolve-AbsolutePath([string]$PathValue) { return [System.IO.Path]::GetFullPath((Join-Path (Get-Location) $PathValue)) }
+function Get-StopAtIso([string]$Date,[string]$Hm) {
   if ($Date -notmatch '^\d{4}-\d{2}-\d{2}$') { throw 'SessionDate must be YYYY-MM-DD' }
   if ($Hm -notmatch '^([01]\d|2[0-3]):[0-5]\d$') { throw 'StopAtJst must be HH:mm' }
   return "${Date}T${Hm}:00+09:00"
 }
-
 function Quote-ProcessArgument([string]$Value) {
   if ($Value -notmatch '[\s"]') { return $Value }
   return '"' + ($Value -replace '(\\*)"','$1$1\"' -replace '(\\+)$','$1$1') + '"'
@@ -53,6 +49,7 @@ Assert-ReadOnlySafety
 if ($CaptureIntervalSeconds -lt 0.2) { throw 'CaptureIntervalSeconds must be >= 0.2' }
 if ($EnvelopePollSeconds -lt 1.0) { throw 'EnvelopePollSeconds must be >= 1.0' }
 if ($CaptureSamples -lt 1) { throw 'CaptureSamples must be >= 1' }
+if ($CaptureStartupTimeoutSeconds -lt 5) { throw 'CaptureStartupTimeoutSeconds must be >= 5' }
 if (-not (Test-Path $Registry -PathType Leaf)) { throw "Registry not found: $Registry" }
 if (-not (Test-Path '.git')) { throw 'Run this launcher from the ark-terminal repository root.' }
 
@@ -62,15 +59,27 @@ $captureFile = Join-Path $sessionRoot 'msii-multisymbol-live.jsonl'
 $envelopeDir = Join-Path $sessionRoot 'msii-envelopes'
 $outputDir = Join-Path $sessionRoot 'lane-m-output'
 $logDir = Join-Path $sessionRoot 'logs'
+$lockFile = Join-Path $sessionRoot 'lane-m-session.lock'
 New-Item -ItemType Directory -Force -Path $sessionRoot,$envelopeDir,$outputDir,$logDir | Out-Null
+
+$lockHandle = $null
+try {
+  $lockHandle = [System.IO.File]::Open($lockFile,[System.IO.FileMode]::OpenOrCreate,[System.IO.FileAccess]::ReadWrite,[System.IO.FileShare]::None)
+  $lockHandle.SetLength(0)
+  $lockBytes = [System.Text.Encoding]::UTF8.GetBytes("pid=$PID started=$(Get-Date -Format o)`n")
+  $lockHandle.Write($lockBytes,0,$lockBytes.Length)
+  $lockHandle.Flush()
+} catch {
+  throw "Another Lane M full-session launcher appears to own $lockFile"
+}
 
 $stopAtIso = Get-StopAtIso $SessionDate $StopAtJst
 $remoteEnvelopePrefix = "data/phase57-realtime-live/$SessionDate/msii-envelopes"
 $syncScript = Join-Path $sessionRoot 'sync-envelopes.generated.ps1'
 $syncLog = Join-Path $logDir 'envelope-sync.log'
 
-# The generated sync worker only reads the durable research branch with git fetch/show.
-# It never checks out or modifies main and copies each immutable capsule at most once.
+# Generated worker reads the durable research branch only. Explicit source:destination
+# refspec refreshes the remote-tracking ref used by ls-tree/show; main is never checked out.
 $syncBody = @'
 param($RepoRoot,$DurableRef,$RemotePrefix,$EnvelopeDir,$PollSeconds,$StopAtIso,$LogFile)
 $ErrorActionPreference='Stop'
@@ -112,18 +121,31 @@ $captureProcess = $null
 try {
   Write-Host (([ordered]@{status='PHASE57_MSII_WINDOWS_FULL_SESSION_START';sessionDate=$SessionDate;captureFile=$captureFile;envelopeDir=$envelopeDir;outputDir=$outputDir;stopAt=$stopAtIso;safety=$Safety} | ConvertTo-Json -Depth 5 -Compress))
 
-  # Start prospective MarketSpeed capture first. It must already be running before a point
-  # can be classified FULL_FRESH_MSII; late starts are preserved as partial by the watcher.
+  # Start prospective MarketSpeed capture first, then require fresh bytes from this launch.
+  # Existing JSONL is allowed for crash recovery, but the file length must increase while
+  # this new capture process is alive before the watcher is started.
+  $priorCaptureLength = if (Test-Path $captureFile -PathType Leaf) { (Get-Item $captureFile).Length } else { 0L }
   $captureProcess = Start-Process -FilePath $Python -ArgumentList $captureArgumentLine -PassThru -NoNewWindow -RedirectStandardOutput $captureStdout -RedirectStandardError $captureStderr
+  $startupDeadline = (Get-Date).AddSeconds($CaptureStartupTimeoutSeconds)
+  $captureReady = $false
+  while ((Get-Date) -lt $startupDeadline) {
+    $captureProcess.Refresh()
+    if ($captureProcess.HasExited) {
+      $detail = if (Test-Path $captureStderr) { (Get-Content $captureStderr -Raw -ErrorAction SilentlyContinue) } else { '' }
+      throw "MarketSpeed capture exited before producing fresh evidence. $detail"
+    }
+    if ((Test-Path $captureFile -PathType Leaf) -and (Get-Item $captureFile).Length -gt $priorCaptureLength) { $captureReady = $true; break }
+    Start-Sleep -Milliseconds 250
+  }
+  if (-not $captureReady) { throw "MarketSpeed capture produced no fresh evidence within $CaptureStartupTimeoutSeconds seconds." }
 
   # Sync only immutable Lane Y -> M capsules from the durable branch. The job never writes GitHub.
   $repoRoot = (Get-Location).Path
   $syncJob = Start-Job -FilePath $syncScript -ArgumentList $repoRoot,$DurableRef,$remoteEnvelopePrefix,$envelopeDir,$EnvelopePollSeconds,$stopAtIso,$syncLog
 
-  # Lane Y intentionally ingests Yahoo's finalized bar with an approximately 960-second
-  # source delay. Keep this local watcher alive after the JPX close so the final 15:30
-  # causal capsule can arrive from the durable branch; MarketSpeed evidence itself was
-  # already captured prospectively around the original decision timestamp.
+  # Lane Y ingests Yahoo's finalized bar with an approximately 960-second source delay.
+  # Keep this watcher alive after JPX close so the final 15:30 causal capsule can arrive;
+  # MarketSpeed evidence was already captured prospectively near the original timestamp.
   $watcherArgs = @(
     'tools/phase57_msii_full_session_runner.mjs',
     '--envelope-dir',$envelopeDir,
@@ -145,10 +167,10 @@ finally {
     Stop-Job $syncJob -ErrorAction SilentlyContinue
     Remove-Job $syncJob -Force -ErrorAction SilentlyContinue
   }
-  if ($captureProcess -and -not $captureProcess.HasExited) {
-    Stop-Process -Id $captureProcess.Id -ErrorAction SilentlyContinue
-  }
+  if ($captureProcess -and -not $captureProcess.HasExited) { Stop-Process -Id $captureProcess.Id -ErrorAction SilentlyContinue }
   Remove-Item -LiteralPath $syncScript -Force -ErrorAction SilentlyContinue
+  if ($lockHandle) { $lockHandle.Dispose() }
+  Remove-Item -LiteralPath $lockFile -Force -ErrorAction SilentlyContinue
 }
 
 $finalFile = Join-Path $outputDir 'full-session-final.json'

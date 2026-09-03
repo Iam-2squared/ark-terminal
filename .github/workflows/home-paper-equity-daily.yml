@@ -22,7 +22,7 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Resolve latest formal Entry-only scorecard
+      - name: Resolve latest formal Entry-only scorecard and evaluation
         id: scorecard
         shell: bash
         run: |
@@ -33,9 +33,12 @@ jobs:
             | sort | tail -n 1)"
           test -n "$latest"
           evidence_date="$(basename "$latest" .json)"
+          evaluation="data/p25-evaluations/${evidence_date}.json"
           git show "origin/automation/p25-evaluation-data:$latest" > /tmp/p25-scorecard.json
+          git show "origin/automation/p25-evaluation-data:$evaluation" > /tmp/p25-evaluation.json
           echo "evidence_date=$evidence_date" >> "$GITHUB_OUTPUT"
           echo "scorecard_path=$latest" >> "$GITHUB_OUTPUT"
+          echo "evaluation_path=$evaluation" >> "$GITHUB_OUTPUT"
 
       - name: Load current research equity state
         shell: bash
@@ -49,24 +52,25 @@ jobs:
             echo "Using seeded main data"
           fi
 
-      - name: Append new dated equity point
+      - name: Rebuild formal dated equity series
         shell: bash
         run: |
           set -euo pipefail
           node scripts/update_home_paper_equity.mjs \
             --scorecard /tmp/p25-scorecard.json \
+            --evaluation /tmp/p25-evaluation.json \
             --date "${{ steps.scorecard.outputs.evidence_date }}" \
             --input /tmp/paper-equity-current.json \
             --output /tmp/paper-equity-next.json
 
-      - name: Persist append-only Home equity data branch
+      - name: Persist Home equity data branch
         shell: bash
         env:
           EVIDENCE_DATE: ${{ steps.scorecard.outputs.evidence_date }}
         run: |
           set -euo pipefail
           if cmp -s /tmp/paper-equity-current.json /tmp/paper-equity-next.json; then
-            echo "No new dated scorecard; nothing to persist."
+            echo "No Home equity change; nothing to persist."
             exit 0
           fi
 
@@ -81,7 +85,7 @@ jobs:
           git config user.name "Ark Equity Bot"
           git config user.email "ark-equity-bot@users.noreply.github.com"
           git add data/home/paper-equity.json
-          git commit -m "Append Entry-only Home equity ${EVIDENCE_DATE}"
+          git commit -m "Rebuild Entry-only Home equity through ${EVIDENCE_DATE}"
           git push origin automation/home-paper-equity-data
 
       - name: Safety boundary

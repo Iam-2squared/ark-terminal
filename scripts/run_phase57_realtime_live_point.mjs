@@ -125,8 +125,11 @@ async function fetchSymbolPrefix(symbol){
         const response=await fetch(url,{headers:{'User-Agent':'Mozilla/5.0 ArkTerminalResearch/1.0','Accept':'application/json'},cache:'no-store'});
         if(!response.ok)throw new Error(`HTTP ${response.status}`);
         const bars=parseYahooPrefix(await response.json(),symbol);
-        if(bars.length>=6)return bars;
-        lastError=`only ${bars.length} finalized bars`;
+        // Realtime state must be allowed to commit the first causal 5m points.
+        // Frozen Entry itself owns the >=6 closed-bar readiness gate; imposing it here
+        // made 09:05-09:25 impossible and therefore made FULL_FRESH unreachable.
+        if(bars.length>=1)return bars;
+        lastError='no finalized same-session bars';
       }catch(error){lastError=String(error?.message??error);}
     }
     if(attempt<1)await new Promise(r=>setTimeout(r,5000));

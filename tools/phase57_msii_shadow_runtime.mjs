@@ -94,6 +94,7 @@ function main() {
     orderStyleResearchLabel: envelope.orderStyleResearchLabel ?? "MARKETABLE_QUOTE",
     ttlMs: numberOption(args, "ttl-ms", Number(envelope.ttlMs ?? 5_000)),
     decisionLatencyMs: numberOption(args, "decision-latency-ms", Number(envelope.decisionLatencyMs ?? 100)),
+    referenceMaxAgeMs: numberOption(args, "reference-max-age-ms", Number(envelope.referenceMaxAgeMs ?? 5_000)),
     marketSizeUnit,
     tickSizeUnit,
     transactionCostJpy: numberOption(args, "transaction-cost-jpy", Number(envelope.transactionCostJpy ?? 0)),
@@ -102,7 +103,7 @@ function main() {
 
   atomicWriteJson(stateFile, {
     schemaVersion: 1,
-    version: result.version ?? "phase57-msii-shadow-runtime-r2",
+    version: result.version ?? "phase57-msii-shadow-runtime-r3-audit",
     sessionDate: envelope.sessionDate,
     ledger: result.ledger,
     safety: SAFETY,
@@ -113,6 +114,7 @@ function main() {
     status: result.status,
     complete: result.complete,
     decisionAt: result.decisionAt,
+    referenceMaxAgeMs: result.referenceMaxAgeMs ?? numberOption(args, "reference-max-age-ms", Number(envelope.referenceMaxAgeMs ?? 5_000)),
     entryIntentCount: result.entryIntentCount ?? 0,
     exitIntentCount: result.exitIntentCount ?? 0,
     closedTradesCommitted: result.closedTradesCommitted ?? 0,

@@ -18,7 +18,7 @@ import {
   verifyMsiiShadowLedger,
 } from "./phase57-msii-shadow-execution.js";
 
-export const PHASE57_MSII_RUNTIME_VERSION = "phase57-msii-shadow-runtime-r2";
+export const PHASE57_MSII_RUNTIME_VERSION = "phase57-msii-shadow-runtime-r3-audit";
 
 const FALSE_KEYS = Object.freeze([
   "executionAllowed", "brokerWriteAllowed", "excelOrderWriteAllowed", "rssOrderFunctionAllowed",
@@ -55,14 +55,17 @@ function requiredVersions(versions = {}) {
   return Object.freeze(Object.fromEntries(fields.map((field) => [field, String(versions[field]).trim()])));
 }
 
-function latestReferenceEvents(events, decisionAt) {
+function latestReferenceEvents(events, decisionAt, referenceMaxAgeMs) {
   const cutoff = ms(decisionAt, "decisionAt");
+  const maxAge = Number(referenceMaxAgeMs);
+  if (!Number.isFinite(maxAge) || maxAge < 0) throw new Error("referenceMaxAgeMs must be non-negative");
   const bySymbol = new Map();
   for (const event of events) {
-    if (ms(event.capturedAt) > cutoff) continue;
+    const observed = ms(event.capturedAt);
+    if (observed > cutoff || cutoff - observed > maxAge) continue;
     const key = normalizeSymbol(event.symbol);
     const prior = bySymbol.get(key);
-    if (!prior || ms(event.capturedAt) > ms(prior.capturedAt)) bySymbol.set(key, event);
+    if (!prior || observed > ms(prior.capturedAt)) bySymbol.set(key, event);
   }
   return bySymbol;
 }
@@ -96,6 +99,31 @@ function nextDecisionSequence(ledger) {
 function exitVersionFor(strategyId, versions) {
   const cell = String(strategyId).split("__")[0];
   return cell.endsWith("_V4") ? versions.exitV4Version : versions.exitV3Version;
+}
+
+function executionInventory(ledger) {
+  const fills = latestFillByIntent(ledger);
+  const open = new Map();
+  for (const intent of committedIntents(ledger)) {
+    const filledQuantity = Number(fills.get(intent.intentId)?.filledQuantity ?? 0);
+    if (!(filledQuantity > 0)) continue;
+    const key = `${intent.strategyId}|${normalizeSymbol(intent.symbol)}`;
+    const prior = Number(open.get(key) ?? 0);
+    if (intent.intentKind === "ENTRY") open.set(key, prior + filledQuantity);
+    else open.set(key, Math.max(0, prior - filledQuantity));
+  }
+  return open;
+}
+
+function capClosedPositionsToLaneMInventory(ledger, closed = []) {
+  const inventory = executionInventory(ledger);
+  return closed.map((position) => {
+    const key = `${position.strategyId}|${normalizeSymbol(position.symbol)}`;
+    const available = Number(inventory.get(key) ?? 0);
+    const laneYQuantity = Number(position.quantity ?? 0);
+    const quantity = Math.min(available, laneYQuantity);
+    return quantity > 0 ? Object.freeze({ ...position, quantity }) : null;
+  }).filter(Boolean);
 }
 
 export function buildExitShadowOrderIntentsFromPhase57({
@@ -184,26 +212,31 @@ function commitEventsInRange(state, events, predicate) {
   return rows.length;
 }
 
-function pairPositiveEntryForExit(ledger, exitIntent, fillsByIntent) {
+function pairPositiveEntryForExit(ledger, exitIntent, fillsByIntent, consumedEntryIntentIds) {
   const candidates = committedIntents(ledger).filter((intent) =>
     intent.intentKind === "ENTRY"
     && intent.strategyId === exitIntent.strategyId
     && intent.symbol === exitIntent.symbol
     && ms(intent.decisionAt) < ms(exitIntent.decisionAt)
-    && Number(fillsByIntent.get(intent.intentId)?.filledQuantity ?? 0) > 0)
+    && Number(fillsByIntent.get(intent.intentId)?.filledQuantity ?? 0) > 0
+    && !consumedEntryIntentIds.has(intent.intentId))
     .sort((left, right) => ms(right.decisionAt) - ms(left.decisionAt));
   return candidates[0] ?? null;
 }
 
 function commitClosedTrades(state, { transactionCostJpy = 0 } = {}) {
   const fills = latestFillByIntent(state.ledger);
-  const existing = new Set(state.ledger.filter((row) => row.eventType === "SHADOW_EXECUTION_TRADE_CLOSED").map((row) => row.trade.exitIntentId));
+  const priorTrades = state.ledger
+    .filter((row) => row.eventType === "SHADOW_EXECUTION_TRADE_CLOSED")
+    .map((row) => row.trade);
+  const existingExitIntentIds = new Set(priorTrades.map((trade) => trade.exitIntentId));
+  const consumedEntryIntentIds = new Set(priorTrades.map((trade) => trade.entryIntentId));
   let committed = 0;
   for (const exitIntent of committedIntents(state.ledger).filter((row) => row.intentKind === "EXIT")) {
-    if (existing.has(exitIntent.intentId)) continue;
+    if (existingExitIntentIds.has(exitIntent.intentId)) continue;
     const exitFill = fills.get(exitIntent.intentId);
     if (!(Number(exitFill?.filledQuantity) > 0)) continue;
-    const entryIntent = pairPositiveEntryForExit(state.ledger, exitIntent, fills);
+    const entryIntent = pairPositiveEntryForExit(state.ledger, exitIntent, fills, consumedEntryIntentIds);
     if (!entryIntent) continue;
     const entryFill = fills.get(entryIntent.intentId);
     const trade = buildExecutionAwareClosedTrade({
@@ -214,6 +247,8 @@ function commitClosedTrades(state, { transactionCostJpy = 0 } = {}) {
       transactionCostJpy,
     });
     commitExecutionAwareClosedTrade(state, trade);
+    existingExitIntentIds.add(exitIntent.intentId);
+    consumedEntryIntentIds.add(entryIntent.intentId);
     committed += 1;
   }
   return committed;
@@ -238,6 +273,7 @@ export function processMsiiShadowRuntimePoint({
   orderStyleResearchLabel = PHASE57_MSII_ORDER_STYLE.MARKETABLE_QUOTE,
   ttlMs = 5_000,
   decisionLatencyMs = 100,
+  referenceMaxAgeMs = 5_000,
   marketSizeUnit,
   tickSizeUnit,
   transactionCostJpy = 0,
@@ -252,6 +288,9 @@ export function processMsiiShadowRuntimePoint({
   if (marketSizeUnit !== "SHARES" || tickSizeUnit !== "SHARES") {
     throw new Error("Lane M runtime requires explicit verified marketSizeUnit=SHARES and tickSizeUnit=SHARES attestation");
   }
+  if (!Number.isFinite(Number(referenceMaxAgeMs)) || Number(referenceMaxAgeMs) < 0) {
+    throw new Error("Lane M runtime referenceMaxAgeMs must be non-negative");
+  }
 
   const state = rehydrateState({
     sessionDate,
@@ -264,19 +303,25 @@ export function processMsiiShadowRuntimePoint({
   });
   const normalized = captureRows.map((row) => normalizeMarketSpeedReadOnlyEvent(row, { marketSizeUnit, tickSizeUnit }))
     .sort((left, right) => ms(left.capturedAt) - ms(right.capturedAt) || left.symbol.localeCompare(right.symbol) || left.eventId.localeCompare(right.eventId));
-  const referenceEvents = latestReferenceEvents([...eventRowsFromLedger(state.ledger), ...normalized], decisionAt);
+  const referenceEvents = latestReferenceEvents(
+    [...eventRowsFromLedger(state.ledger), ...normalized],
+    decisionAt,
+    Number(referenceMaxAgeMs),
+  );
 
   const acceptedSymbols = new Set(pointResult.allocation.decisions
     .filter((row) => row.status === "ACCEPTED")
     .map((row) => normalizeSymbol(row.symbol)));
-  const exitSymbols = new Set((pointResult.exitEvaluation.closed ?? []).map((row) => normalizeSymbol(row.symbol)));
+  const laneMClosed = capClosedPositionsToLaneMInventory(state.ledger, pointResult.exitEvaluation.closed ?? []);
+  const exitSymbols = new Set(laneMClosed.map((row) => normalizeSymbol(row.symbol)));
   const requiredSymbols = [...new Set([...acceptedSymbols, ...exitSymbols])].sort();
   const missingReferenceSymbols = requiredSymbols.filter((symbol) => !referenceEvents.has(symbol));
   if (missingReferenceSymbols.length) {
     return Object.freeze({
       complete: false,
-      status: "BLOCKED_MSII_REFERENCE_CAPTURE_MISSING",
+      status: "BLOCKED_MSII_REFERENCE_CAPTURE_MISSING_OR_STALE",
       decisionAt,
+      referenceMaxAgeMs: Number(referenceMaxAgeMs),
       missingReferenceSymbols: Object.freeze(missingReferenceSymbols),
       ledger: Object.freeze(state.ledger),
       score: scoreMsiiShadowExecutionLedger(state.ledger, { sessionDate }),
@@ -299,7 +344,7 @@ export function processMsiiShadowRuntimePoint({
     versions: frozenVersions,
   });
   const exitIntents = buildExitShadowOrderIntentsFromPhase57({
-    exitEvaluation: pointResult.exitEvaluation,
+    exitEvaluation: { ...pointResult.exitEvaluation, closed: laneMClosed },
     marketEventsBySymbol: referenceEvents,
     decisionAt,
     decisionSequenceStart: sequenceStart + entryIntents.length,
@@ -330,6 +375,7 @@ export function processMsiiShadowRuntimePoint({
     version: PHASE57_MSII_RUNTIME_VERSION,
     decisionAt,
     normalizedCaptureCount: normalized.length,
+    referenceMaxAgeMs: Number(referenceMaxAgeMs),
     requiredSymbols: Object.freeze(requiredSymbols),
     entryIntentCount: entryIntents.length,
     exitIntentCount: exitIntents.length,

@@ -9,6 +9,7 @@ const BAR_START = "2026-09-03T09:30:00+09:00";
 function selectionRows() {
   return Array.from({ length: 160 }, (_, i) => ({
     symbol: String(1000 + i), sector: `S${i % 20}`, status: "analyzed", currentPrice: 500 + i,
+    scannedAt: BAR_START,
     volume: 100000 + i * 1000, volumeRatio: 1 + (i % 7) * 0.2,
     dailyChangePercent: ((i % 11) - 5) * 0.4, atrPercent: 1.5 + (i % 5) * 0.2,
     discoveryScore: 40 + (i % 21), technicalScore: 42 + (i % 17),

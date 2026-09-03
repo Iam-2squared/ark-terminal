@@ -110,6 +110,8 @@ export function validateLaneMEnvelope(envelope, { priorDecisionAt = null } = {})
   if (!envelope.pointResult?.allocation || !envelope.pointResult?.exitEvaluation) throw new Error("pointResult allocation/exitEvaluation required");
   iso(envelope.predeclaredStartAt, "predeclaredStartAt");
   iso(envelope.actualStartAt, "actualStartAt");
+  if (!Number.isFinite(Number(envelope.initialCapital ?? 1_000_000)) || Number(envelope.initialCapital ?? 1_000_000) <= 0) throw new Error("initialCapital must be positive");
+  if (!Number.isFinite(Number(envelope.missingCaptureCount ?? 0)) || Number(envelope.missingCaptureCount ?? 0) < 0) throw new Error("missingCaptureCount must be >= 0");
   const requiredVersions = ["selectorVersion", "entryVersion", "exitV3Version", "exitV4Version", "allocationVersion"];
   for (const key of requiredVersions) if (!String(envelope?.versions?.[key] ?? "").trim()) throw new Error(`envelope.versions.${key} required`);
   return Object.freeze({ decisionAt, requiredSymbols: Object.freeze(decisionSymbols(envelope)) });
@@ -145,11 +147,25 @@ export function validateCaptureBundle(captureRows, { decisionAt, requiredSymbols
   return Object.freeze({ rowCount: captureRows.length, hasPostDecision, referenceSymbols: Object.freeze([...bySymbol.keys()].sort()) });
 }
 
+function assertSessionContinuity(priorState, envelope) {
+  if (!priorState || !Object.keys(priorState).length) return;
+  assertSafety(priorState.safety, "priorState.safety");
+  if (priorState.sessionDate && priorState.sessionDate !== envelope.sessionDate) throw new Error("Lane M prior state sessionDate mismatch");
+  const priorDeclared = priorState.predeclaredStartAt ? iso(priorState.predeclaredStartAt, "priorState.predeclaredStartAt") : null;
+  const priorActual = priorState.actualStartAt ? iso(priorState.actualStartAt, "priorState.actualStartAt") : null;
+  if (priorDeclared && priorDeclared !== iso(envelope.predeclaredStartAt, "predeclaredStartAt")) throw new Error("Lane M predeclaredStartAt changed within session");
+  if (priorActual && priorActual !== iso(envelope.actualStartAt, "actualStartAt")) throw new Error("Lane M actualStartAt changed within session");
+  if (priorState.initialCapital !== undefined && Number(priorState.initialCapital) !== Number(envelope.initialCapital ?? 1_000_000)) throw new Error("Lane M initialCapital changed within session");
+  const priorMissing = Number(priorState.missingCaptureCount ?? 0);
+  const currentMissing = Number(envelope.missingCaptureCount ?? 0);
+  if (currentMissing < priorMissing) throw new Error("Lane M missingCaptureCount cannot decrease within session");
+}
+
 export function processLaneMEnvelope({ envelope, captureRows, priorState = {}, marketSizeUnit = "SHARES", tickSizeUnit = "SHARES", referenceMaxAgeMs = 5_000, ttlMs = 5_000, decisionLatencyMs = 100, transactionCostJpy = 0 } = {}) {
   assertSafety(SAFETY, "coordinator.safety");
   if (marketSizeUnit !== "SHARES" || tickSizeUnit !== "SHARES") throw new Error("Lane M size units must be explicitly attested as SHARES");
   const validated = validateLaneMEnvelope(envelope, { priorDecisionAt: priorState.lastDecisionAt ?? null });
-  if (priorState.sessionDate && priorState.sessionDate !== envelope.sessionDate) throw new Error("Lane M prior state sessionDate mismatch");
+  assertSessionContinuity(priorState, envelope);
   validateCaptureBundle(captureRows, { decisionAt: validated.decisionAt, requiredSymbols: validated.requiredSymbols, referenceMaxAgeMs });
   const envelopeHash = sha256(envelope);
   const captureHash = sha256(captureRows);
@@ -183,6 +199,10 @@ export function processLaneMEnvelope({ envelope, captureRows, priorState = {}, m
     schemaVersion: 1,
     version: PHASE57_MSII_RUNTIME_VERSION,
     sessionDate: envelope.sessionDate,
+    predeclaredStartAt: iso(envelope.predeclaredStartAt, "predeclaredStartAt"),
+    actualStartAt: iso(envelope.actualStartAt, "actualStartAt"),
+    missingCaptureCount: Number(envelope.missingCaptureCount ?? 0),
+    initialCapital: Number(envelope.initialCapital ?? 1_000_000),
     lastDecisionAt: validated.decisionAt,
     processedEvidenceHashes: Object.freeze([...(priorState.processedEvidenceHashes ?? []), evidenceHash]),
     ledger: result.ledger,

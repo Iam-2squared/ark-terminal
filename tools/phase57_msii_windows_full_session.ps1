@@ -78,7 +78,7 @@ Set-Location $RepoRoot
 $stop=[DateTimeOffset]::Parse($StopAtIso)
 while([DateTimeOffset]::Now -lt $stop){
   try {
-    git fetch --quiet origin automation/phase57-realtime-live-data
+    git fetch --quiet origin 'refs/heads/automation/phase57-realtime-live-data:refs/remotes/origin/automation/phase57-realtime-live-data'
     if($LASTEXITCODE -ne 0){ throw 'git fetch durable branch failed' }
     $paths = @(git ls-tree -r --name-only $DurableRef -- $RemotePrefix 2>$null)
     foreach($remotePath in $paths){

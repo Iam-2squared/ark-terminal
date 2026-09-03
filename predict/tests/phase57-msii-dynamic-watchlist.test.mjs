@@ -13,6 +13,7 @@ function snapshot(at = "2026-09-04T00:05:00.000Z") {
       symbol: `${1000 + i}.T`,
       sector: `S${i % 40}`,
       status: "analyzed",
+      scannedAt: at,
       currentPrice: 100 + (i % 500),
       volume: 100000 + i * 100,
       volumeRatio: 1 + (i % 20) / 10,

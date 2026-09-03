@@ -71,8 +71,6 @@ if(!state)state=createRealtimeSessionState({sessionDate});
 state.liveMeasurement??={startedAt:at,source:'TRADINGVIEW_MARKETWIDE_PLUS_YAHOO_5M_FINALIZED',partialLateStart:jstHm(at)>'09:05'};
 state.liveMeasurement.startedAt??=at;
 
-// Preview the exact frozen selectors only to know which symbols require Yahoo 5m prefixes.
-// R10 executes the same selectors again and commits the actual decision to the append-only ledger.
 const held=openSymbols(state);
 const heldSymbolsByCutoff={[at]:held};
 const snapshots=[{asOf:at,entries}];
@@ -127,9 +125,6 @@ async function fetchSymbolPrefix(symbol){
         const response=await fetch(url,{headers:{'User-Agent':'Mozilla/5.0 ArkTerminalResearch/1.0','Accept':'application/json'},cache:'no-store'});
         if(!response.ok)throw new Error(`HTTP ${response.status}`);
         const bars=parseYahooPrefix(await response.json(),symbol);
-        // Yahoo omits 5m buckets with no trade. That is sparse observed data, not a missing/future bar.
-        // Frozen Entry consumes the complete causal prefix; incremental/EXIT updates only receive a bar
-        // when the exact just-finalized bucket exists. No OHLCV value is fabricated or forward-filled.
         if(bars.length>=6)return bars;
         lastError=`only ${bars.length} finalized bars`;
       }catch(error){lastError=String(error?.message??error);}
@@ -152,6 +147,15 @@ const marketBars=prefixes.flatMap(([symbol,bars])=>{
   return bar?[{symbol,bar:{...bar,at:bar.timestamp}}]:[];
 });
 const sparseNoTradeSymbolCount=prefixes.length-marketBars.length;
+
+// Source-readiness guard: a delayed provider can temporarily expose a valid historical prefix
+// while still not publishing the exact target bucket. Committing that point would incorrectly
+// turn publication delay into a synthetic "all symbols had no trade" interval. Fail closed and
+// keep the immutable raw selector snapshot queued for retry instead. A genuine sparse interval is
+// still accepted once at least one selected/held symbol proves the target bucket is published.
+if(symbols.length>0&&marketBars.length===0){
+  throw new Error(`SOURCE_NOT_READY target=${targetStart} selectedOrHeld=${symbols.length}; retain raw snapshot for retry`);
+}
 
 const priorPointCount=state.pipeline?.history?.length??0;
 const missingBucketCount=Math.max(0,expectedSoFar-(priorPointCount+1));

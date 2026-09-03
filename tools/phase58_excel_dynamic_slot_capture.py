@@ -70,6 +70,18 @@ def assert_dynamic_workbook_formula_surface(workbook: Any) -> None:
                     raise RuntimeError(f"unapproved RSS function in {sheet.Name}: {value}")
 
 
+def _normalized_unique_symbols(values: Any) -> list[str]:
+    out: list[str] = []
+    seen: set[str] = set()
+    for raw in values or []:
+        symbol = normalize_symbol(raw)
+        if not symbol or symbol in seen:
+            continue
+        seen.add(symbol)
+        out.append(symbol)
+    return out
+
+
 def validate_watchlist(payload: Any, slot_count: int) -> dict[str, Any]:
     if not isinstance(payload, dict) or payload.get("complete") is not True:
         raise ValueError("dynamic watchlist must be complete")
@@ -77,20 +89,32 @@ def validate_watchlist(payload: Any, slot_count: int) -> dict[str, Any]:
         raise ValueError("unexpected dynamic watchlist status")
     if payload.get("futureOutcomeUsed") is not False:
         raise ValueError("dynamic watchlist futureOutcomeUsed must be false")
-    symbols = []
-    seen = set()
-    for raw in payload.get("assignedSymbols") or []:
-        symbol = normalize_symbol(raw)
-        if not symbol or symbol in seen:
-            continue
-        seen.add(symbol)
-        symbols.append(symbol)
+
+    symbols = _normalized_unique_symbols(payload.get("assignedSymbols"))
+    v1_symbols = _normalized_unique_symbols(payload.get("currentV1Symbols"))
+    v2_symbols = _normalized_unique_symbols(payload.get("currentV2Symbols"))
+    pinned_symbols = _normalized_unique_symbols(payload.get("pinnedSymbols"))
+
     if len(symbols) > slot_count:
         raise ValueError("dynamic watchlist exceeds workbook slot capacity")
-    if len(payload.get("currentV1Symbols") or []) != 50:
-        raise ValueError("dynamic watchlist must contain the frozen 50-symbol V1 selection")
+    # Preserve the frozen selector semantics: V1/V2 are maximum-cardinality universes,
+    # not guaranteed exact cardinalities after DAY/SWING merge and sector diversification.
+    # These are the same readiness floors already used by the Phase57 realtime live runner.
+    if not 20 <= len(v1_symbols) <= 50:
+        raise ValueError("dynamic watchlist V1 selection outside frozen readiness range")
+    if not 15 <= len(v2_symbols) <= 30:
+        raise ValueError("dynamic watchlist V2 selection outside frozen readiness range")
+    if not set(v2_symbols).issubset(set(v1_symbols)):
+        raise ValueError("dynamic watchlist V2 must remain inside the frozen V1 base universe")
+    hard_required = set(v1_symbols) | set(pinned_symbols)
+    if not hard_required.issubset(set(symbols)):
+        raise ValueError("dynamic watchlist assignedSymbols dropped a hard-required V1 or Lane M inventory symbol")
+
     out = dict(payload)
     out["assignedSymbols"] = symbols
+    out["currentV1Symbols"] = v1_symbols
+    out["currentV2Symbols"] = v2_symbols
+    out["pinnedSymbols"] = pinned_symbols
     return out
 
 

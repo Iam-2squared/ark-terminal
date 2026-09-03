@@ -39,3 +39,16 @@ test("keeps per-symbol state inside the realtime session", () => {
   assert.equal(session.symbols["8306"].barsSeen, 1);
   assert.equal(session.lastBarTime, "2026-09-02T09:05:00+09:00");
 });
+
+test("rejects market-wide cross-symbol timestamp regression while allowing a shared bucket", () => {
+  const session = createRealtimeSessionState({ sessionDate: "2026-09-02" });
+  const bar = (at, price) => ({ at, open: price, high: price + 1, low: price - 1, close: price, volume: 10 });
+  applyMarketFiveMinuteBar(session, { symbol: "7203", bar: bar("2026-09-02T10:35:00+09:00", 100) });
+  applyMarketFiveMinuteBar(session, { symbol: "8306", bar: bar("2026-09-02T10:35:00+09:00", 200) });
+  assert.throws(
+    () => applyMarketFiveMinuteBar(session, { symbol: "9984", bar: bar("2026-09-02T10:30:00+09:00", 300) }),
+    /cannot move backward across symbols/,
+  );
+  assert.equal(session.symbols["9984"], undefined);
+  assert.equal(session.lastBarTime, "2026-09-02T10:35:00+09:00");
+});

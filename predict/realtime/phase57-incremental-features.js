@@ -107,9 +107,18 @@ export function applyFiveMinuteBar(symbolState, bar) {
 export function applyMarketFiveMinuteBar(sessionState, { symbol, bar, windows = DEFAULT_WINDOWS } = {}) {
   if (!sessionState?.symbols) throw new Error("realtime session state required");
   if (!symbol) throw new Error("symbol required");
+  const at = barTime(bar);
+  if (!at) throw new Error("bar requires at/time/timestamp");
+  // Market-wide causal clock: all symbols may share the current bucket, but a
+  // later accepted bucket makes any older cross-symbol arrival invalid.
+  if (sessionState.lastBarTime && Date.parse(String(at)) < Date.parse(String(sessionState.lastBarTime))) {
+    throw new Error("market bar timestamp cannot move backward across symbols");
+  }
   sessionState.symbols[symbol] ??= createSymbolFeatureState(symbol, { windows });
   const features = applyFiveMinuteBar(sessionState.symbols[symbol], bar);
-  if (!sessionState.lastBarTime || features.at > sessionState.lastBarTime) sessionState.lastBarTime = features.at;
+  if (!sessionState.lastBarTime || Date.parse(String(features.at)) > Date.parse(String(sessionState.lastBarTime))) {
+    sessionState.lastBarTime = features.at;
+  }
   return features;
 }
 

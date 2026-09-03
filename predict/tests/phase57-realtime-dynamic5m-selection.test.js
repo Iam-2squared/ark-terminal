@@ -10,6 +10,7 @@ function rows() {
     symbol: String(1000 + i),
     sector: `S${i % 20}`,
     status: "analyzed",
+    scannedAt: "2026-09-03T09:30:00+09:00",
     currentPrice: 500 + i,
     volume: 100000 + i * 1000,
     volumeRatio: 1 + (i % 7) * 0.2,
@@ -29,6 +30,8 @@ test("realtime V1/V2 matches frozen batch selectors for the same causal snapshot
   const realtime = applyRealtimeDynamic5mSelection(session, { at, entries });
   const v1 = buildIntradayDynamicUniverseTimeline({ snapshots: [{ asOf: at, entries }] }).points[0];
   const v2 = buildIntradayDynamicUniverseTimelineV2({ snapshots: [{ asOf: at, entries }], priorSelections: [] }).points[0];
+  assert.equal(v1.rawUniverse.length >= 20, true);
+  assert.equal(v2.rawUniverse.length >= 15, true);
   assert.deepEqual(realtime.selectedV1.map((x) => x.symbol), v1.rawUniverse.map((x) => x.symbol));
   assert.deepEqual(realtime.selectedV2.map((x) => x.symbol), v2.rawUniverse.map((x) => x.symbol));
 });
@@ -43,6 +46,35 @@ test("V2 persistence consumes only earlier realtime selection points", () => {
   assert.equal(p2.priorV2PointCount, 1);
   assert.equal(session.selection.history.length, 2);
   assert.equal(session.selection.priorV2.length, 2);
+});
+
+test("V2 persistence matches the frozen batch selector across at least four causal points", () => {
+  const session = createRealtimeSessionState({ sessionDate: "2026-09-03" });
+  const prior = [];
+  const times = ["09:35", "09:40", "09:45", "09:50", "09:55"];
+  for (let point = 0; point < times.length; point += 1) {
+    const at = `2026-09-03T${times[point]}:00+09:00`;
+    const entries = rows().map((row, i) => ({
+      ...row,
+      volumeRatio: row.volumeRatio + ((i + point) % 5) * 0.07,
+      dailyChangePercent: row.dailyChangePercent + ((i + point) % 3) * 0.05,
+    }));
+    const batch = buildIntradayDynamicUniverseTimelineV2({
+      snapshots: [{ asOf: at, entries }],
+      priorSelections: prior,
+    }).points[0];
+    const realtime = applyRealtimeDynamic5mSelection(session, { at, entries });
+    assert.equal(batch.rawUniverse.length >= 15, true, `V2 fixture must clear the frozen Entry gate at point ${point + 1}`);
+    assert.deepEqual(
+      realtime.selectedV2.map((x) => x.symbol),
+      batch.rawUniverse.map((x) => x.symbol),
+      `V2 mismatch at point ${point + 1}`,
+    );
+    prior.push(realtime.selectedV2.map((x) => x.symbol));
+    while (prior.length > 3) prior.shift();
+  }
+  assert.equal(session.selection.history.length, 5);
+  assert.equal(session.selection.priorV2.length, 3);
 });
 
 test("duplicate/backward selection points cannot overwrite committed history", () => {

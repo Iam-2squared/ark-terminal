@@ -30,10 +30,17 @@ $Safety = [ordered]@{
   transmitted = $false
 }
 
+function Quote-ProcessArgument([string]$Value) {
+  if ($Value -notmatch '[\s"]') { return $Value }
+  return '"' + ($Value -replace '(\\*)"','$1$1\"' -replace '(\\+)$','$1$1') + '"'
+}
+
 foreach ($key in @('executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed')) {
   if ($Safety[$key] -ne $false) { throw "Unsafe Lane M dashboard wrapper flag: $key" }
 }
 if ($DashboardPollMs -lt 200) { throw 'DashboardPollMs must be >= 200' }
+if ($SessionDate -notmatch '^\d{4}-\d{2}-\d{2}$') { throw 'SessionDate must be YYYY-MM-DD' }
+if ($StopAtJst -notmatch '^([01]\d|2[0-3]):[0-5]\d$') { throw 'StopAtJst must be HH:mm' }
 if (-not (Test-Path 'tools/phase57_msii_windows_full_session.ps1' -PathType Leaf)) { throw 'Core Lane M Windows launcher not found.' }
 if (-not (Test-Path 'tools/phase57_msii_dashboard_watch.mjs' -PathType Leaf)) { throw 'Lane M dashboard watcher not found.' }
 
@@ -51,11 +58,12 @@ $dashboardArgs = @(
   '--poll-ms', [string]$DashboardPollMs,
   '--stop-at', $stopAtIso
 )
+$dashboardArgumentLine = (($dashboardArgs | ForEach-Object { Quote-ProcessArgument ([string]$_) }) -join ' ')
 $dashboardProcess = $null
 
 try {
   Write-Host (([ordered]@{status='PHASE57_MSII_WINDOWS_DASHBOARD_SESSION_START';sessionDate=$SessionDate;outputDir=$outputDir;stopAt=$stopAtIso;safety=$Safety} | ConvertTo-Json -Depth 5 -Compress))
-  $dashboardProcess = Start-Process -FilePath $Node -ArgumentList $dashboardArgs -PassThru -NoNewWindow -RedirectStandardOutput $dashboardStdout -RedirectStandardError $dashboardStderr
+  $dashboardProcess = Start-Process -FilePath $Node -ArgumentList $dashboardArgumentLine -PassThru -NoNewWindow -RedirectStandardOutput $dashboardStdout -RedirectStandardError $dashboardStderr
 
   $coreArgs = @(
     '-ExecutionPolicy','Bypass',

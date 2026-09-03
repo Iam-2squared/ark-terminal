@@ -83,7 +83,10 @@ jobs:
           cd /tmp/realtime-data
           git config user.name 'Ark Realtime Research Bot'
           git config user.email 'ark-realtime-research@users.noreply.github.com'
-          mkdir -p "data/phase57-realtime-live/$SESSION_DATE/points" "data/phase57-realtime-live/$SESSION_DATE/raw"
+          mkdir -p \
+            "data/phase57-realtime-live/$SESSION_DATE/points" \
+            "data/phase57-realtime-live/$SESSION_DATE/raw" \
+            "data/phase57-realtime-live/$SESSION_DATE/msii-envelopes"
           if [ -f "data/phase57-realtime-live/$SESSION_DATE/state.json" ]; then
             cp "data/phase57-realtime-live/$SESSION_DATE/state.json" /tmp/realtime-prior-state.json
             echo 'Restored same-session realtime state.'
@@ -127,6 +130,33 @@ jobs:
             cd "$GITHUB_WORKSPACE"
           }
 
+          export_msii_capsule(){
+            state_file="$1"
+            point_stamp="$2"
+            envelope="$data_root/msii-envelopes/${point_stamp}.json"
+            if [ -e "$envelope" ]; then
+              echo "Immutable Lane M envelope already exists for $point_stamp; refusing overwrite."
+              return 1
+            fi
+            actual_start="$(node -p "require('$state_file').liveMeasurement.startedAt")"
+            if [ -z "$actual_start" ] || [ "$actual_start" = 'undefined' ] || [ "$actual_start" = 'null' ]; then
+              echo 'Lane M envelope export blocked: missing immutable liveMeasurement.startedAt.'
+              return 1
+            fi
+            predeclared_start="${SESSION_DATE}T09:05:00+09:00"
+            node tools/phase57_export_msii_envelope.mjs \
+              --state "$state_file" \
+              --output "$envelope" \
+              --predeclared-start-at "$predeclared_start" \
+              --actual-start-at "$actual_start" \
+              --missing-capture-count 0 \
+              --initial-capital 1000000 \
+              --reference-max-age-ms 5000 \
+              --ttl-ms 5000 \
+              --decision-latency-ms 100
+            node -e "const e=require('$envelope'); const stamp=new Date(e.pointResult.at).toISOString().replace(/[-:.]/g,'').replace('000Z','Z'); if(stamp!=='$point_stamp') throw new Error('Lane M envelope timestamp mismatch '+stamp+' != $point_stamp'); if(e.methodology?.sourceDecisionAlreadyFrozen!==true||e.methodology?.futureOutcomeUsed!==false||e.backfillUsed!==false) throw new Error('Lane M envelope methodology invariant failed'); for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed']) if(e.safety?.[k]!==false) throw new Error('unsafe Lane M envelope '+k);"
+          }
+
           process_eligible_raw(){
             now_epoch="$(date +%s)"
             for raw in $(find "$data_root/raw" -maxdepth 1 -type f -name '*.json' | sort); do
@@ -151,6 +181,12 @@ jobs:
               )
               if [ -f /tmp/realtime-prior-state.json ]; then args+=(--state /tmp/realtime-prior-state.json); fi
               if node scripts/run_phase57_realtime_live_point.mjs "${args[@]}"; then
+                if ! export_msii_capsule "$dir/state.json" "$point_stamp"; then
+                  failures=$((failures+1))
+                  rm -f "$data_root/msii-envelopes/${point_stamp}.json"
+                  echo "Realtime point blocked because its immutable Lane M envelope could not be committed."
+                  continue
+                fi
                 successes=$((successes+1))
                 cp "$dir/state.json" /tmp/realtime-prior-state.json
                 cp "$dir/state.json" "$data_root/state.json"
@@ -158,7 +194,7 @@ jobs:
                 cp "$dir/snapshot.json" "$data_root/points/${point_stamp}.json"
                 node -e "const fs=require('fs');const s=require('$dir/state.json');fs.writeFileSync('$data_root/ledger.json',JSON.stringify(s.ledger,null,2)+'\\n')"
                 if [ -f "$dir/postclose.json" ]; then cp "$dir/postclose.json" "$data_root/postclose.json"; fi
-                persist_data_branch "Persist Phase57 delayed-ingestion realtime point $SESSION_DATE $point_stamp"
+                persist_data_branch "Persist Phase57 delayed-ingestion realtime point and Lane M capsule $SESSION_DATE $point_stamp"
               else
                 failures=$((failures+1))
                 echo "Realtime point failed closed for immutable snapshot $point_stamp; retained raw evidence for retry."

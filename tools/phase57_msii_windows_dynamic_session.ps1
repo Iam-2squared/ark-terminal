@@ -1,5 +1,7 @@
 param(
   [Parameter(Mandatory=$true)][string]$Workbook,
+  [Parameter(Mandatory=$true)][ValidateSet('SHARES')][string]$MarketSizeUnit,
+  [Parameter(Mandatory=$true)][ValidateSet('SHARES')][string]$TickSizeUnit,
   [string]$SessionDate = (Get-Date -Format 'yyyy-MM-dd'),
   [string]$Python = "py",
   [string]$Node = "node",
@@ -36,6 +38,7 @@ foreach ($key in @('executionAllowed','brokerWriteAllowed','excelOrderWriteAllow
   if ($Safety[$key] -ne $false) { throw "Unsafe dynamic Lane M flag: $key" }
 }
 if ($Safety.excelMarketDataQueryWriteAllowed -ne $true) { throw 'Dynamic market-data query writes must be explicitly scoped.' }
+if ($MarketSizeUnit -ne 'SHARES' -or $TickSizeUnit -ne 'SHARES') { throw 'MarketSpeed quantity units must be explicitly attested as SHARES.' }
 if ($Slots -lt 50) { throw 'Slots must be >= 50.' }
 if ($TickRows -lt 20) { throw 'TickRows must be >= 20.' }
 if ($CaptureIntervalSeconds -lt 0.2) { throw 'CaptureIntervalSeconds must be >= 0.2.' }
@@ -127,13 +130,13 @@ while([DateTimeOffset]::Now -lt $stop){
 
 $syncJob=$null; $capture=$null; $projector=$null; $watcher=$null; $dashboard=$null
 try {
-  Write-Host (([ordered]@{status='PHASE57_MSII_WINDOWS_DYNAMIC_SESSION_START';sessionDate=$SessionDate;workbook=$Workbook;slots=$Slots;tickRows=$TickRows;stopAt=$stopAt;safety=$Safety} | ConvertTo-Json -Depth 5 -Compress))
+  Write-Host (([ordered]@{status='PHASE57_MSII_WINDOWS_DYNAMIC_SESSION_START';sessionDate=$SessionDate;workbook=$Workbook;slots=$Slots;tickRows=$TickRows;marketSizeUnit=$MarketSizeUnit;tickSizeUnit=$TickSizeUnit;sizeUnitAttestation=@{explicit=$true;inferred=$false;operatorProvided=$true};stopAt=$stopAt;safety=$Safety} | ConvertTo-Json -Depth 5 -Compress))
 
   $syncJob = Start-Job -FilePath $syncScript -ArgumentList $repoRoot,$DurableRef,$SessionDate,$rawDir,$envelopeDir,$SyncPollSeconds,$stopAt,$syncLog
 
   # Capture starts before the first 09:05 selection and emits a heartbeat. Only ArkControl symbol cells
   # may be changed later; no formula/order/account cells are writable at runtime.
-  $captureArgs=@('-u','tools/phase58_excel_dynamic_slot_capture.py','--workbook',$Workbook,'--watchlist',$watchlist,'--output',$dynamicRaw,'--slots',[string]$Slots,'--tick-rows',[string]$TickRows,'--interval-seconds',[string]$CaptureIntervalSeconds,'--samples',[string]$CaptureSamples)
+  $captureArgs=@('-u','tools/phase58_excel_dynamic_slot_capture.py','--workbook',$Workbook,'--watchlist',$watchlist,'--output',$dynamicRaw,'--market-size-unit',$MarketSizeUnit,'--tick-size-unit',$TickSizeUnit,'--slots',[string]$Slots,'--tick-rows',[string]$TickRows,'--interval-seconds',[string]$CaptureIntervalSeconds,'--samples',[string]$CaptureSamples)
   $capture=StartLoggedProcess $Python $captureArgs (Join-Path $logDir 'capture.stdout.log') (Join-Path $logDir 'capture.stderr.log')
   $deadline=(Get-Date).AddSeconds($StartupTimeoutSeconds)
   while((Get-Date)-lt $deadline){
@@ -162,7 +165,7 @@ try {
   $finalFile=Join-Path $outputDir 'full-session-final.json'
   if(-not (Test-Path $finalFile -PathType Leaf)){throw 'Lane M final session artifact was not produced.'}
   $final=Get-Content $finalFile -Raw | ConvertFrom-Json
-  Write-Host (([ordered]@{status='PHASE57_MSII_WINDOWS_DYNAMIC_SESSION_COMPLETE';sessionDate=$SessionDate;committedPointCount=$final.committedPointCount;blockedPointCount=$final.blockedPointCount;missingCaptureCount=$final.missingCaptureCount;coverage=$final.coverageSummary;safety=$Safety} | ConvertTo-Json -Depth 8 -Compress))
+  Write-Host (([ordered]@{status='PHASE57_MSII_WINDOWS_DYNAMIC_SESSION_COMPLETE';sessionDate=$SessionDate;committedPointCount=$final.committedPointCount;blockedPointCount=$final.blockedPointCount;missingCaptureCount=$final.missingCaptureCount;coverage=$final.coverageSummary;marketSizeUnit=$MarketSizeUnit;tickSizeUnit=$TickSizeUnit;safety=$Safety} | ConvertTo-Json -Depth 8 -Compress))
 }
 finally {
   if($syncJob){Stop-Job $syncJob -ErrorAction SilentlyContinue;Remove-Job $syncJob -Force -ErrorAction SilentlyContinue}

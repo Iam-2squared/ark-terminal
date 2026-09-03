@@ -33,6 +33,19 @@ SAFETY = {
     "transmitted": False,
 }
 
+ATTESTED_SIZE_UNIT = "SHARES"
+
+
+def attest_size_units(market_size_unit: Any, tick_size_unit: Any) -> tuple[str, str]:
+    """Require an explicit operator attestation; never infer MarketSpeed quantity units."""
+    market = str(market_size_unit or "").strip().upper()
+    ticks = str(tick_size_unit or "").strip().upper()
+    if not market or not ticks:
+        raise ValueError("explicit --market-size-unit and --tick-size-unit attestations are required")
+    if market != ATTESTED_SIZE_UNIT or ticks != ATTESTED_SIZE_UNIT:
+        raise ValueError("MarketSpeed quantity units must be explicitly attested as SHARES")
+    return market, ticks
+
 
 def normalize_symbol(value: Any) -> str:
     raw = str(value or "").strip().upper()
@@ -55,6 +68,23 @@ def _formula_values(sheet: Any) -> list[list[Any]]:
     if rows and not isinstance(rows[0], (tuple, list)):
         return [list(rows)]
     return [list(row) for row in rows]
+
+
+def formula_surface_attestation(workbook: Any) -> dict[str, Any]:
+    """Hash the verified formula surface so capture rows can prove the workbook read path."""
+    normalized: list[dict[str, Any]] = []
+    for index in range(1, int(workbook.Worksheets.Count) + 1):
+        sheet = workbook.Worksheets(index)
+        rows = _formula_values(sheet)
+        normalized.append({"sheet": str(sheet.Name), "formulaGrid": rows})
+    canonical = json.dumps(normalized, ensure_ascii=False, sort_keys=True, separators=(",", ":"), default=str)
+    return {
+        "algorithm": "SHA256",
+        "sha256": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
+        "sheetNames": [row["sheet"] for row in normalized],
+        "allowedRssFunctions": list(ALLOWED_RSS_FUNCTIONS),
+        "verifiedAt": datetime.now(timezone.utc).isoformat(timespec="milliseconds"),
+    }
 
 
 def assert_dynamic_workbook_formula_surface(workbook: Any) -> None:
@@ -97,9 +127,6 @@ def validate_watchlist(payload: Any, slot_count: int) -> dict[str, Any]:
 
     if len(symbols) > slot_count:
         raise ValueError("dynamic watchlist exceeds workbook slot capacity")
-    # Preserve the frozen selector semantics: V1/V2 are maximum-cardinality universes,
-    # not guaranteed exact cardinalities after DAY/SWING merge and sector diversification.
-    # These are the same readiness floors already used by the Phase57 realtime live runner.
     if not 20 <= len(v1_symbols) <= 50:
         raise ValueError("dynamic watchlist V1 selection outside frozen readiness range")
     if not 15 <= len(v2_symbols) <= 30:
@@ -202,9 +229,10 @@ def _extract_ticks(tick_matrix: list[list[Any]], start_col_zero: int, max_rows: 
     return ticks
 
 
-def heartbeat_row(*, watchlist_as_of: str | None = None) -> dict[str, Any]:
+def heartbeat_row(*, watchlist_as_of: str | None = None, market_size_unit: Any, tick_size_unit: Any, formula_attestation: dict[str, Any]) -> dict[str, Any]:
+    market_unit, tick_unit = attest_size_units(market_size_unit, tick_size_unit)
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "phase": "58.p32.dynamic-slot-capture",
         "recordType": "SESSION_HEARTBEAT",
         "sourceMode": "MARKETSPEED_II_RSS_READ_ONLY",
@@ -212,8 +240,14 @@ def heartbeat_row(*, watchlist_as_of: str | None = None) -> dict[str, Any]:
         "symbol": None,
         "watchlistAsOf": watchlist_as_of,
         "sourceFunctions": ["RssMarket", "RssTickList"],
-        "marketSizeUnit": "SHARES",
-        "tickSizeUnit": "SHARES",
+        "marketSizeUnit": market_unit,
+        "tickSizeUnit": tick_unit,
+        "sizeUnitAttestation": {
+            "explicit": True,
+            "inferred": False,
+            "operatorProvided": True,
+        },
+        "formulaSurfaceAttestation": formula_attestation,
         "methodology": {
             "dynamicSlotMode": True,
             "excelFormulaWritePerformed": False,
@@ -227,7 +261,18 @@ def heartbeat_row(*, watchlist_as_of: str | None = None) -> dict[str, Any]:
     }
 
 
-def capture_batch(workbook: Any, assignments: list[str], watchlist: dict[str, Any], *, tick_rows: int, generation: int) -> list[dict[str, Any]]:
+def capture_batch(
+    workbook: Any,
+    assignments: list[str],
+    watchlist: dict[str, Any],
+    *,
+    tick_rows: int,
+    generation: int,
+    market_size_unit: Any,
+    tick_size_unit: Any,
+    formula_attestation: dict[str, Any],
+) -> list[dict[str, Any]]:
+    market_unit, tick_unit = attest_size_units(market_size_unit, tick_size_unit)
     captured_at = datetime.now(timezone.utc).isoformat(timespec="milliseconds")
     market_matrix = _used_matrix(workbook.Worksheets(SHEET_MARKET))
     tick_matrix = _used_matrix(workbook.Worksheets(SHEET_TICKS))
@@ -255,7 +300,7 @@ def capture_batch(workbook: Any, assignments: list[str], watchlist: dict[str, An
         }
         ticks = _extract_ticks(tick_matrix, slot_index * 4, tick_rows) if ready else []
         rows.append({
-            "schemaVersion": 1,
+            "schemaVersion": 2,
             "phase": "58.p32.dynamic-slot-capture",
             "recordType": "MARKET_OBSERVATION",
             "sourceMode": "MARKETSPEED_II_RSS_READ_ONLY",
@@ -274,8 +319,14 @@ def capture_batch(workbook: Any, assignments: list[str], watchlist: dict[str, An
             },
             "ticks": ticks,
             "sourceFunctions": ["RssMarket", "RssTickList"],
-            "marketSizeUnit": "SHARES",
-            "tickSizeUnit": "SHARES",
+            "marketSizeUnit": market_unit,
+            "tickSizeUnit": tick_unit,
+            "sizeUnitAttestation": {
+                "explicit": True,
+                "inferred": False,
+                "operatorProvided": True,
+            },
+            "formulaSurfaceAttestation": formula_attestation,
             "methodology": {
                 "dynamicSlotMode": True,
                 "excelFormulaWritePerformed": False,
@@ -311,6 +362,8 @@ def main() -> int:
     parser.add_argument("--workbook", required=True)
     parser.add_argument("--watchlist", required=True)
     parser.add_argument("--output", required=True)
+    parser.add_argument("--market-size-unit", required=True, help="Explicit operator attestation; only SHARES is accepted")
+    parser.add_argument("--tick-size-unit", required=True, help="Explicit operator attestation; only SHARES is accepted")
     parser.add_argument("--slots", type=int, default=80)
     parser.add_argument("--tick-rows", type=int, default=100)
     parser.add_argument("--interval-seconds", type=float, default=1.0)
@@ -327,6 +380,7 @@ def main() -> int:
         raise SystemExit("--samples must be >= 1")
     if args.settle_seconds < 0:
         raise SystemExit("--settle-seconds must be >= 0")
+    market_size_unit, tick_size_unit = attest_size_units(args.market_size_unit, args.tick_size_unit)
 
     try:
         import win32com.client  # type: ignore
@@ -337,6 +391,7 @@ def main() -> int:
     assert_dynamic_workbook_formula_surface(workbook)
     for sheet_name in (SHEET_CONTROL, SHEET_MARKET, SHEET_TICKS):
         workbook.Worksheets(sheet_name)
+    formula_attestation = formula_surface_attestation(workbook)
 
     output = Path(args.output)
     watchlist_file = Path(args.watchlist)
@@ -345,8 +400,23 @@ def main() -> int:
     last_watchlist_as_of = None
     last_switch_monotonic = None
     current_watchlist: dict[str, Any] | None = None
-    append_rows(output, [heartbeat_row()])
-    print(json.dumps({"status": "PHASE58_MSII_DYNAMIC_SLOT_CAPTURE_START", "workbook": workbook.Name, "slots": args.slots, "tickRows": args.tick_rows, "output": str(output), "safety": SAFETY}, ensure_ascii=False))
+    append_rows(output, [heartbeat_row(
+        market_size_unit=market_size_unit,
+        tick_size_unit=tick_size_unit,
+        formula_attestation=formula_attestation,
+    )])
+    print(json.dumps({
+        "status": "PHASE58_MSII_DYNAMIC_SLOT_CAPTURE_START",
+        "workbook": workbook.Name,
+        "slots": args.slots,
+        "tickRows": args.tick_rows,
+        "output": str(output),
+        "marketSizeUnit": market_size_unit,
+        "tickSizeUnit": tick_size_unit,
+        "sizeUnitAttestation": {"explicit": True, "inferred": False, "operatorProvided": True},
+        "formulaSurfaceAttestation": formula_attestation,
+        "safety": SAFETY,
+    }, ensure_ascii=False))
 
     for index in range(args.samples):
         if watchlist_file.exists():
@@ -359,10 +429,24 @@ def main() -> int:
                 last_watchlist_as_of = candidate_as_of
                 if changed:
                     last_switch_monotonic = time.monotonic()
-        rows = [heartbeat_row(watchlist_as_of=last_watchlist_as_of)]
+        rows = [heartbeat_row(
+            watchlist_as_of=last_watchlist_as_of,
+            market_size_unit=market_size_unit,
+            tick_size_unit=tick_size_unit,
+            formula_attestation=formula_attestation,
+        )]
         settled = last_switch_monotonic is None or (time.monotonic() - last_switch_monotonic) >= args.settle_seconds
         if current_watchlist is not None and settled:
-            rows.extend(capture_batch(workbook, assignments, current_watchlist, tick_rows=args.tick_rows, generation=generation))
+            rows.extend(capture_batch(
+                workbook,
+                assignments,
+                current_watchlist,
+                tick_rows=args.tick_rows,
+                generation=generation,
+                market_size_unit=market_size_unit,
+                tick_size_unit=tick_size_unit,
+                formula_attestation=formula_attestation,
+            ))
         append_rows(output, rows)
         if index + 1 < args.samples:
             time.sleep(args.interval_seconds)

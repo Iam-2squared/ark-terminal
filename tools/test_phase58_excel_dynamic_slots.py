@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from pathlib import Path
 
 import phase58_dynamic_slot_compat_projector as projector
 import phase58_excel_dynamic_slot_capture as capture
@@ -28,6 +29,24 @@ class DynamicSlotTest(unittest.TestCase):
         setup.assert_formula_is_market_data_only(ticks)
         with self.assertRaisesRegex(ValueError, "forbidden"):
             setup.assert_formula_is_market_data_only("=RssStockOrder(A1,B1)")
+
+    def test_size_units_require_explicit_shares_attestation(self):
+        self.assertEqual(capture.attest_size_units("SHARES", "shares"), ("SHARES", "SHARES"))
+        with self.assertRaisesRegex(ValueError, "explicit"):
+            capture.attest_size_units(None, "SHARES")
+        with self.assertRaisesRegex(ValueError, "SHARES"):
+            capture.attest_size_units("LOTS", "SHARES")
+        with self.assertRaisesRegex(ValueError, "SHARES"):
+            capture.attest_size_units("SHARES", "UNKNOWN")
+
+    def test_windows_launcher_requires_and_forwards_explicit_unit_attestation(self):
+        script = Path(__file__).with_name("phase57_msii_windows_dynamic_session.ps1").read_text(encoding="utf-8")
+        self.assertIn("[Parameter(Mandatory=$true)][ValidateSet('SHARES')][string]$MarketSizeUnit", script)
+        self.assertIn("[Parameter(Mandatory=$true)][ValidateSet('SHARES')][string]$TickSizeUnit", script)
+        self.assertIn("'--market-size-unit',$MarketSizeUnit", script)
+        self.assertIn("'--tick-size-unit',$TickSizeUnit", script)
+        self.assertNotIn("MarketSizeUnit = 'SHARES'", script)
+        self.assertNotIn("TickSizeUnit = 'SHARES'", script)
 
     def test_watchlist_validator_preserves_variable_frozen_selector_cardinality(self):
         v1 = [f"{1000 + index}.T" for index in range(47)]
@@ -60,9 +79,9 @@ class DynamicSlotTest(unittest.TestCase):
         self.assertIn("8306.T", planned)
         self.assertEqual({x for x in planned if x}, set(desired))
 
-    def test_dynamic_ready_observation_projects_to_existing_lane_m_contract_without_hiding_prior_switch(self):
+    def test_dynamic_ready_observation_projects_to_existing_lane_m_contract_with_attestation(self):
         row = {
-            "schemaVersion": 1,
+            "schemaVersion": 2,
             "phase": "58.p32.dynamic-slot-capture",
             "recordType": "MARKET_OBSERVATION",
             "sourceMode": "MARKETSPEED_II_RSS_READ_ONLY",
@@ -77,6 +96,8 @@ class DynamicSlotTest(unittest.TestCase):
             "sourceFunctions": ["RssMarket", "RssTickList"],
             "marketSizeUnit": "SHARES",
             "tickSizeUnit": "SHARES",
+            "sizeUnitAttestation": {"explicit": True, "inferred": False, "operatorProvided": True},
+            "formulaSurfaceAttestation": {"algorithm": "SHA256", "sha256": "a" * 64, "sheetNames": ["ArkControl", "ArkMarket", "ArkTicks"]},
             "methodology": {
                 "dynamicSlotMode": True,
                 "excelFormulaWritePerformed": False,
@@ -91,11 +112,34 @@ class DynamicSlotTest(unittest.TestCase):
         }
         projected = projector.project_dynamic_slot_row(row)
         self.assertIsNotNone(projected)
+        self.assertEqual(projected["schemaVersion"], 1)
         self.assertEqual(projected["phase"], "58.p31.multi-symbol-capture")
         self.assertFalse(projected["methodology"]["symbolSwitchWritePerformed"])
         self.assertTrue(projected["methodology"]["priorMarketDataQuerySwitchObserved"])
         self.assertEqual(projected["dynamicSlotProvenance"]["sourcePhase"], "58.p32.dynamic-slot-capture")
+        self.assertEqual(projected["dynamicSlotProvenance"]["sourceSchemaVersion"], 2)
+        self.assertTrue(projected["dynamicSlotProvenance"]["sizeUnitAttestationPreserved"])
+        self.assertTrue(projected["dynamicSlotProvenance"]["formulaSurfaceAttestationPreserved"])
+        self.assertEqual(projected["marketSizeUnit"], "SHARES")
         self.assertFalse(projected["safety"]["excelOrderWriteAllowed"])
+
+    def test_schema2_projection_fails_closed_without_unit_or_formula_attestation(self):
+        base = {
+            "schemaVersion": 2,
+            "phase": "58.p32.dynamic-slot-capture",
+            "recordType": "SESSION_HEARTBEAT",
+            "sourceMode": "MARKETSPEED_II_RSS_READ_ONLY",
+            "marketSizeUnit": "SHARES",
+            "tickSizeUnit": "SHARES",
+            "methodology": {"pointInTimeOnly": True, "futureOutcomeUsed": False, "excelOrderWritePerformed": False},
+            "safety": capture.SAFETY,
+        }
+        with self.assertRaisesRegex(ValueError, "size-unit attestation"):
+            projector.project_dynamic_slot_row(base)
+        with_units = dict(base)
+        with_units["sizeUnitAttestation"] = {"explicit": True, "inferred": False, "operatorProvided": True}
+        with self.assertRaisesRegex(ValueError, "formula-surface"):
+            projector.project_dynamic_slot_row(with_units)
 
     def test_unsettled_slot_is_not_projected_as_market_evidence(self):
         row = {

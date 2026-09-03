@@ -28,10 +28,26 @@ def assert_safety(value: Any) -> None:
         raise ValueError("dynamic slot market-data query write scope must be explicit")
 
 
+def assert_size_unit_attestation(row: dict[str, Any]) -> None:
+    if row.get("schemaVersion") < 2:
+        return
+    attestation = row.get("sizeUnitAttestation")
+    if not isinstance(attestation, dict):
+        raise ValueError("p32 schemaVersion 2 requires explicit size-unit attestation")
+    if attestation.get("explicit") is not True or attestation.get("inferred") is not False or attestation.get("operatorProvided") is not True:
+        raise ValueError("p32 size-unit attestation must be explicit, operator-provided and non-inferred")
+    if row.get("marketSizeUnit") != "SHARES" or row.get("tickSizeUnit") != "SHARES":
+        raise ValueError("p32 attested quantity units must be SHARES")
+    formula = row.get("formulaSurfaceAttestation")
+    if not isinstance(formula, dict) or formula.get("algorithm") != "SHA256" or not isinstance(formula.get("sha256"), str) or len(formula["sha256"]) != 64:
+        raise ValueError("p32 schemaVersion 2 requires verified workbook formula-surface attestation")
+
+
 def project_dynamic_slot_row(row: Any) -> dict[str, Any] | None:
-    if not isinstance(row, dict) or row.get("schemaVersion") != 1 or row.get("phase") != "58.p32.dynamic-slot-capture":
-        raise ValueError("Phase58 p32 dynamic-slot row required")
+    if not isinstance(row, dict) or row.get("schemaVersion") not in (1, 2) or row.get("phase") != "58.p32.dynamic-slot-capture":
+        raise ValueError("Phase58 p32 dynamic-slot schemaVersion 1 or 2 row required")
     assert_safety(row.get("safety"))
+    assert_size_unit_attestation(row)
     methodology = row.get("methodology") or {}
     if methodology.get("futureOutcomeUsed") is not False or methodology.get("pointInTimeOnly") is not True:
         raise ValueError("dynamic slot row must be prospective and outcome-free")
@@ -42,23 +58,28 @@ def project_dynamic_slot_row(row: Any) -> dict[str, Any] | None:
     if row.get("recordType") not in ("MARKET_OBSERVATION", "SESSION_HEARTBEAT"):
         return None
     raw_hash = canonical_sha256(row)
+    source_schema_version = row.get("schemaVersion")
     projected = dict(row)
+    # The existing Lane M normalization contract remains p31/schemaVersion 1. New p32
+    # attestation fields are additive and are carried through while the raw row hash binds them.
+    projected["schemaVersion"] = 1
     projected["phase"] = "58.p31.multi-symbol-capture"
     projected["dynamicSlotProvenance"] = {
         "sourcePhase": "58.p32.dynamic-slot-capture",
+        "sourceSchemaVersion": source_schema_version,
         "sourceRowSha256": raw_hash,
         "slotId": row.get("slotId"),
         "assignmentGeneration": row.get("assignmentGeneration"),
         "watchlistAsOf": row.get("watchlistAsOf"),
         "priorMarketDataQuerySwitchObserved": row.get("recordType") == "MARKET_OBSERVATION",
+        "sizeUnitAttestationPreserved": source_schema_version >= 2,
+        "formulaSurfaceAttestationPreserved": source_schema_version >= 2,
     }
     projected["methodology"] = {
         **methodology,
         "preconfiguredSheetsOnly": False,
         "dynamicSlotMode": True,
         "priorMarketDataQuerySwitchObserved": row.get("recordType") == "MARKET_OBSERVATION",
-        # The projected observation itself performs no Excel write. The earlier p32 assignment
-        # remains auditable through dynamicSlotProvenance/sourceRowSha256.
         "symbolSwitchWritePerformed": False,
         "excelFormulaWritePerformed": False,
         "excelOrderWritePerformed": False,

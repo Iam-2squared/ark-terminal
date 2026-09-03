@@ -1,0 +1,3648 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.p25.exit-v4.prospective-replay",
+  "status": "P25_EXIT_V4_PROSPECTIVE_REPLAY_EVALUATED",
+  "createdAt": "2026-09-03T15:24:56.764Z",
+  "result": {
+    "phase": "57.p25.exit-v4.prospective-replay",
+    "status": "P25_EXIT_V4_PROSPECTIVE_REPLAY_EVALUATED",
+    "classification": {
+      "bucket": "FRESH_CHALLENGER_PROSPECTIVE",
+      "freshEligible": true,
+      "formalOos": false,
+      "promotionEligible": false
+    },
+    "policySha256": "2d512dd810d057807bc59a0138a3db98035e57ff2c23c186ba096beeb6be26cb",
+    "sessionDate": "2026-09-03",
+    "lineageManifestHeadSha256": "a12f83e6cea9066e6c565e3d735ae77ad5e18c089d82aba2bc4c13aacdd8a580",
+    "analogPoolCount": 762250,
+    "dynamic50FrozenCount": 3,
+    "pairedCount": 3,
+    "managementBlockedCount": 0,
+    "pairs": [
+      {
+        "key": "2026-09-03|2026-09-03T01:15:00.000Z|4667.T",
+        "sessionDate": "2026-09-03",
+        "symbol": "4667.T",
+        "variantMemberships": [
+          "DYNAMIC_30",
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "fixed": {
+          "entryAccepted": true,
+          "symbol": "4667.T",
+          "sessionDate": "2026-09-03",
+          "entryTimestamp": "2026-09-03T01:15:00.000Z",
+          "featureCutoff": "2026-09-03T01:15:00.000Z",
+          "signalDirection": -1,
+          "direction": "SHORT",
+          "baseHorizonBars": 12,
+          "confidence": 0.6040511941999289,
+          "probability": 0.395948805800071,
+          "selectedFeatureFamily": "MOMENTUM",
+          "selectedModelType": "LOGISTIC_REGRESSION",
+          "selectedConfigId": "LOGIT",
+          "selectedThreshold": 0.6,
+          "modelId": "phase57-p21-prospective-logit-h12",
+          "artifactSha256": "d1b77251933ad98cfdd76ba27400d3dada4832bdc80415bf48488f154a0e2761",
+          "sector": "情報・通信業",
+          "variantMemberships": [
+            "DYNAMIC_30",
+            "DYNAMIC_40",
+            "DYNAMIC_50"
+          ],
+          "outcomePending": false,
+          "frozenBeforeOutcome": true,
+          "currentOutcomeUsed": false,
+          "entryPrice": 3590,
+          "barsHeld": 12,
+          "exitTimestamp": "2026-09-03T02:15:00.000Z",
+          "exitPrice": 3770,
+          "exitReason": "FROZEN_HORIZON",
+          "horizonTruncatedAtSessionEnd": false,
+          "grossReturnPct": -5.013927576601662,
+          "alignedReturnPct": -5.013927576601662,
+          "netReturnPct": -5.063927576601662,
+          "hit": false,
+          "timeBucket": "10:00-11:29",
+          "regime": "UNKNOWN",
+          "outcomeStatus": "FROZEN_FIXED_HORIZON_RESOLVED"
+        },
+        "v4": {
+          "exitTimestamp": "2026-09-03T05:35:00.000Z",
+          "exitPrice": 3620,
+          "exitReason": "V4_CONFIRMED_DOWNSIDE_TRAJECTORY",
+          "barsHeld": 35,
+          "grossReturnPct": -0.8356545961002881,
+          "netReturnPct": -0.8856545961002882,
+          "mfePct": 5.84958217270195,
+          "maePct": -7.1030640668523715,
+          "givebackPct": 6.6852367688022385,
+          "captureRatio": -0.1428571428571445,
+          "policySha256": "2d512dd810d057807bc59a0138a3db98035e57ff2c23c186ba096beeb6be26cb",
+          "managementDecisions": [
+            {
+              "timestamp": "2026-09-03T01:20:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "WINNER_PROTECTION",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": 1.9498607242339872,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 2.0891364902506866,
+                  "atrPct": 4.3175487465181055,
+                  "momentumPct": 0,
+                  "bodyPressure": 0.3870967741935484,
+                  "directionalRangePos": 0.5161290322580645,
+                  "elapsedBars": 1
+                },
+                "bestHorizonBars": 6,
+                "bestUpper90Pct": 0.44799005543584586,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.01911341954438011,
+                    "standardErrorPct": 0.06680552671768653,
+                    "upper90Pct": 0.09078167190621422,
+                    "downsideProbability": 0.4625
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.068300476827486,
+                    "standardErrorPct": 0.10960690402920774,
+                    "upper90Pct": 0.24860383395553273,
+                    "downsideProbability": 0.5125
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.21453750512702746,
+                    "standardErrorPct": 0.1419164439567285,
+                    "upper90Pct": 0.44799005543584586,
+                    "downsideProbability": 0.45
+                  }
+                ],
+                "nearestDistance": 0.6909893633108246,
+                "furthestDistance": 1.2195610265447923,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_WINNER_CONTINUE",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "WINNER_PROTECTION",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": -0.01911341954438011,
+                  "standardErrorPct": 0.06680552671768653,
+                  "upper90Pct": 0.09078167190621422,
+                  "downsideProbability": 0.4625
+                }
+              },
+              "currentReturnPct": 1.9498607242339872,
+              "mfePct": 4.038997214484674,
+              "captureRatio": 0.48275862068965686
+            },
+            {
+              "timestamp": "2026-09-03T01:25:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -1.532033426183843,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 5.571030640668517,
+                  "atrPct": 5.222841225626741,
+                  "momentumPct": -3.5511363636363535,
+                  "bodyPressure": -0.5227272727272727,
+                  "directionalRangePos": 0.11111111111111116,
+                  "elapsedBars": 2
+                },
+                "bestHorizonBars": 3,
+                "bestUpper90Pct": 0.2845169312875247,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.05063450234443073,
+                    "standardErrorPct": 0.06564427054252953,
+                    "upper90Pct": 0.1586193273868918,
+                    "downsideProbability": 0.525
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 78,
+                    "expectedDirectionalReturnPct": 0.107218548516216,
+                    "standardErrorPct": 0.1077801718974521,
+                    "upper90Pct": 0.2845169312875247,
+                    "downsideProbability": 0.5128205128205128
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 78,
+                    "expectedDirectionalReturnPct": 0.03860924803082049,
+                    "standardErrorPct": 0.1308210511697809,
+                    "upper90Pct": 0.25380987720511006,
+                    "downsideProbability": 0.5
+                  }
+                ],
+                "nearestDistance": 0.8773949119170383,
+                "furthestDistance": 1.1672017909022745,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.05063450234443073,
+                  "standardErrorPct": 0.06564427054252953,
+                  "upper90Pct": 0.1586193273868918,
+                  "downsideProbability": 0.525
+                },
+                "downsideHistory": [
+                  0.4625,
+                  0.525
+                ]
+              },
+              "currentReturnPct": -1.532033426183843,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -0.3793103448275865
+            },
+            {
+              "timestamp": "2026-09-03T01:30:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -0.278551532033422,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 4.317548746518096,
+                  "atrPct": 4.549675023212628,
+                  "momentumPct": -2.2727272727272707,
+                  "bodyPressure": 0.391304347826087,
+                  "directionalRangePos": 0.38,
+                  "elapsedBars": 3
+                },
+                "bestHorizonBars": 6,
+                "bestUpper90Pct": 0.11616378967234317,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.029551163969011158,
+                    "standardErrorPct": 0.05559320700599036,
+                    "upper90Pct": 0.06189966155584299,
+                    "downsideProbability": 0.6
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 79,
+                    "expectedDirectionalReturnPct": -0.04120281057859674,
+                    "standardErrorPct": 0.08335468951183189,
+                    "upper90Pct": 0.09591565366836674,
+                    "downsideProbability": 0.5316455696202531
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 79,
+                    "expectedDirectionalReturnPct": -0.06946563809575984,
+                    "standardErrorPct": 0.11284463694109606,
+                    "upper90Pct": 0.11616378967234317,
+                    "downsideProbability": 0.5569620253164557
+                  }
+                ],
+                "nearestDistance": 0.8205196819808941,
+                "furthestDistance": 1.196017349131111,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": -0.029551163969011158,
+                  "standardErrorPct": 0.05559320700599036,
+                  "upper90Pct": 0.06189966155584299,
+                  "downsideProbability": 0.6
+                },
+                "downsideHistory": [
+                  0.4625,
+                  0.525,
+                  0.6
+                ]
+              },
+              "currentReturnPct": -0.278551532033422,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -0.06896551724137837
+            },
+            {
+              "timestamp": "2026-09-03T01:35:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "WINNER_PROTECTION",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": 0.5571030640668551,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 3.4818941504178187,
+                  "atrPct": 3.934540389972145,
+                  "momentumPct": -1.4204545454545414,
+                  "bodyPressure": 0.4,
+                  "directionalRangePos": 0.5,
+                  "elapsedBars": 4
+                },
+                "bestHorizonBars": 6,
+                "bestUpper90Pct": 0.22481352981358071,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.06303415984378198,
+                    "standardErrorPct": 0.0474799198056827,
+                    "upper90Pct": 0.015070308236566049,
+                    "downsideProbability": 0.4375
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 75,
+                    "expectedDirectionalReturnPct": -0.07338973155286214,
+                    "standardErrorPct": 0.09790147779112254,
+                    "upper90Pct": 0.08765819941353444,
+                    "downsideProbability": 0.4666666666666667
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 75,
+                    "expectedDirectionalReturnPct": -0.002306991273344773,
+                    "standardErrorPct": 0.13806718607107932,
+                    "upper90Pct": 0.22481352981358071,
+                    "downsideProbability": 0.4666666666666667
+                  }
+                ],
+                "nearestDistance": 0.7166274987165504,
+                "furthestDistance": 1.0411424041134538,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_WINNER_CONTINUE",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "WINNER_PROTECTION",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": -0.06303415984378198,
+                  "standardErrorPct": 0.0474799198056827,
+                  "upper90Pct": 0.015070308236566049,
+                  "downsideProbability": 0.4375
+                }
+              },
+              "currentReturnPct": 0.5571030640668551,
+              "mfePct": 4.038997214484674,
+              "captureRatio": 0.13793103448275948
+            },
+            {
+              "timestamp": "2026-09-03T01:40:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "WINNER_PROTECTION",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": 1.532033426183843,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 2.5069637883008307,
+                  "atrPct": 3.6211699164345403,
+                  "momentumPct": 3.017832647462282,
+                  "bodyPressure": 0.47058823529411764,
+                  "directionalRangePos": 0.64,
+                  "elapsedBars": 5
+                },
+                "bestHorizonBars": 3,
+                "bestUpper90Pct": 0.19159887203304438,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.2400533718219468,
+                    "standardErrorPct": 0.05422797230528885,
+                    "upper90Pct": -0.15084835737974664,
+                    "downsideProbability": 0.7
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.0002309419325631723,
+                    "standardErrorPct": 0.11633308820697945,
+                    "upper90Pct": 0.19159887203304438,
+                    "downsideProbability": 0.5375
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.06520726820187768,
+                    "standardErrorPct": 0.1174862081125788,
+                    "upper90Pct": 0.12805754414331444,
+                    "downsideProbability": 0.6125
+                  }
+                ],
+                "nearestDistance": 0.719924914940783,
+                "furthestDistance": 1.0255285179608067,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_WINNER_CONTINUE",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "WINNER_PROTECTION",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": -0.2400533718219468,
+                  "standardErrorPct": 0.05422797230528885,
+                  "upper90Pct": -0.15084835737974664,
+                  "downsideProbability": 0.7
+                }
+              },
+              "currentReturnPct": 1.532033426183843,
+              "mfePct": 4.038997214484674,
+              "captureRatio": 0.3793103448275865
+            },
+            {
+              "timestamp": "2026-09-03T01:45:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "WINNER_PROTECTION",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": 0.278551532033422,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 3.7604456824512518,
+                  "atrPct": 3.2729805013927575,
+                  "momentumPct": 0.5555555555555536,
+                  "bodyPressure": -0.9090909090909091,
+                  "directionalRangePos": 0.45999999999999996,
+                  "elapsedBars": 6
+                },
+                "bestHorizonBars": 3,
+                "bestUpper90Pct": 0.11129825863177445,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.045848469695436427,
+                    "standardErrorPct": 0.05180590712594722,
+                    "upper90Pct": 0.03937224752674676,
+                    "downsideProbability": 0.575
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.022242554868590336,
+                    "standardErrorPct": 0.08117982583608802,
+                    "upper90Pct": 0.11129825863177445,
+                    "downsideProbability": 0.5375
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.17638899666545613,
+                    "standardErrorPct": 0.11303128659271068,
+                    "upper90Pct": 0.009547469779552953,
+                    "downsideProbability": 0.575
+                  }
+                ],
+                "nearestDistance": 0.8617240185923601,
+                "furthestDistance": 1.091598389676246,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_WINNER_CONTINUE",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "WINNER_PROTECTION",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": -0.045848469695436427,
+                  "standardErrorPct": 0.05180590712594722,
+                  "upper90Pct": 0.03937224752674676,
+                  "downsideProbability": 0.575
+                }
+              },
+              "currentReturnPct": 0.278551532033422,
+              "mfePct": 4.038997214484674,
+              "captureRatio": 0.06896551724137837
+            },
+            {
+              "timestamp": "2026-09-03T01:50:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -0.41782729805013297,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 4.456824512534807,
+                  "atrPct": 3.1436530043772386,
+                  "momentumPct": -0.9803921568627416,
+                  "bodyPressure": -0.17647058823529413,
+                  "directionalRangePos": 0.36,
+                  "elapsedBars": 7
+                },
+                "bestHorizonBars": 6,
+                "bestUpper90Pct": 0.2886019175996639,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.006499885856538767,
+                    "standardErrorPct": 0.051974264247010876,
+                    "upper90Pct": 0.09199755054287166,
+                    "downsideProbability": 0.525
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.04169914664268123,
+                    "standardErrorPct": 0.07674374358596266,
+                    "upper90Pct": 0.1679426048415898,
+                    "downsideProbability": 0.4625
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.08004183845015807,
+                    "standardErrorPct": 0.1267842426440765,
+                    "upper90Pct": 0.2886019175996639,
+                    "downsideProbability": 0.475
+                  }
+                ],
+                "nearestDistance": 0.6374267891111964,
+                "furthestDistance": 0.9272487966015588,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.006499885856538767,
+                  "standardErrorPct": 0.051974264247010876,
+                  "upper90Pct": 0.09199755054287166,
+                  "downsideProbability": 0.525
+                },
+                "downsideHistory": [
+                  0.4375,
+                  0.7,
+                  0.575,
+                  0.525
+                ]
+              },
+              "currentReturnPct": -0.41782729805013297,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -0.10344827586206755
+            },
+            {
+              "timestamp": "2026-09-03T01:55:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -2.646239554317553,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 6.685236768802227,
+                  "atrPct": 3.046657381615599,
+                  "momentumPct": -4.243281471004234,
+                  "bodyPressure": -0.9411764705882353,
+                  "directionalRangePos": 0.040000000000000036,
+                  "elapsedBars": 8
+                },
+                "bestHorizonBars": 6,
+                "bestUpper90Pct": 0.4552286514645538,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.07360955895374693,
+                    "standardErrorPct": 0.0394337447824282,
+                    "upper90Pct": 0.13847806912084132,
+                    "downsideProbability": 0.6125
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 77,
+                    "expectedDirectionalReturnPct": 0.15587603466176284,
+                    "standardErrorPct": 0.06581161084110732,
+                    "upper90Pct": 0.26413613449538437,
+                    "downsideProbability": 0.4025974025974026
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 77,
+                    "expectedDirectionalReturnPct": 0.29393642468680165,
+                    "standardErrorPct": 0.09804998588313205,
+                    "upper90Pct": 0.4552286514645538,
+                    "downsideProbability": 0.37662337662337664
+                  }
+                ],
+                "nearestDistance": 0.7133913903341732,
+                "furthestDistance": 0.9877077745972876,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.07360955895374693,
+                  "standardErrorPct": 0.0394337447824282,
+                  "upper90Pct": 0.13847806912084132,
+                  "downsideProbability": 0.6125
+                },
+                "downsideHistory": [
+                  0.7,
+                  0.575,
+                  0.525,
+                  0.6125
+                ]
+              },
+              "currentReturnPct": -2.646239554317553,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -0.6551724137931055
+            },
+            {
+              "timestamp": "2026-09-03T02:00:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -2.646239554317553,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 6.685236768802227,
+                  "atrPct": 2.907381615598886,
+                  "momentumPct": -2.9329608938547524,
+                  "bodyPressure": 0.08695652173913043,
+                  "directionalRangePos": 0.1724137931034483,
+                  "elapsedBars": 9
+                },
+                "bestHorizonBars": 6,
+                "bestUpper90Pct": 0.7647729755086755,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.1313679629466516,
+                    "standardErrorPct": 0.06312669796553974,
+                    "upper90Pct": 0.23521138109996448,
+                    "downsideProbability": 0.525
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.3522689516850827,
+                    "standardErrorPct": 0.08741734587092397,
+                    "upper90Pct": 0.49607048564275263,
+                    "downsideProbability": 0.3375
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.5434918940557321,
+                    "standardErrorPct": 0.13451737474343067,
+                    "upper90Pct": 0.7647729755086755,
+                    "downsideProbability": 0.2625
+                  }
+                ],
+                "nearestDistance": 0.7905000992819804,
+                "furthestDistance": 0.9786887643220824,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.1313679629466516,
+                  "standardErrorPct": 0.06312669796553974,
+                  "upper90Pct": 0.23521138109996448,
+                  "downsideProbability": 0.525
+                },
+                "downsideHistory": [
+                  0.575,
+                  0.525,
+                  0.6125,
+                  0.525
+                ]
+              },
+              "currentReturnPct": -2.646239554317553,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -0.6551724137931055
+            },
+            {
+              "timestamp": "2026-09-03T02:05:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -4.178272980501396,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 8.217270194986071,
+                  "atrPct": 2.402506963788301,
+                  "momentumPct": -3.7447988904299567,
+                  "bodyPressure": -0.8,
+                  "directionalRangePos": 0.048387096774193505,
+                  "elapsedBars": 10
+                },
+                "bestHorizonBars": 6,
+                "bestUpper90Pct": 0.7145629851450757,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.24083555386938754,
+                    "standardErrorPct": 0.06307589168155232,
+                    "upper90Pct": 0.3445953956855411,
+                    "downsideProbability": 0.45
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 76,
+                    "expectedDirectionalReturnPct": 0.27181927289419666,
+                    "standardErrorPct": 0.0977567155337033,
+                    "upper90Pct": 0.43262906994713857,
+                    "downsideProbability": 0.4868421052631579
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 76,
+                    "expectedDirectionalReturnPct": 0.47236550026582497,
+                    "standardErrorPct": 0.14723251360440767,
+                    "upper90Pct": 0.7145629851450757,
+                    "downsideProbability": 0.3684210526315789
+                  }
+                ],
+                "nearestDistance": 0.7048013916730249,
+                "furthestDistance": 0.9653147835495418,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.24083555386938754,
+                  "standardErrorPct": 0.06307589168155232,
+                  "upper90Pct": 0.3445953956855411,
+                  "downsideProbability": 0.45
+                },
+                "downsideHistory": [
+                  0.525,
+                  0.6125,
+                  0.525,
+                  0.45
+                ]
+              },
+              "currentReturnPct": -4.178272980501396,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -1.034482758620692
+            },
+            {
+              "timestamp": "2026-09-03T02:10:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -5.84958217270195,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 9.888579387186624,
+                  "atrPct": 2.298050139275766,
+                  "momentumPct": -3.1207598371777445,
+                  "bodyPressure": -0.7647058823529411,
+                  "directionalRangePos": 0.04054054054054057,
+                  "elapsedBars": 11
+                },
+                "bestHorizonBars": 6,
+                "bestUpper90Pct": 0.7512585567979596,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.30711679794617525,
+                    "standardErrorPct": 0.06596950080853087,
+                    "upper90Pct": 0.4156366267762085,
+                    "downsideProbability": 0.35
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 79,
+                    "expectedDirectionalReturnPct": 0.31147611079952914,
+                    "standardErrorPct": 0.09830456157928251,
+                    "upper90Pct": 0.4731871145974489,
+                    "downsideProbability": 0.5063291139240507
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 79,
+                    "expectedDirectionalReturnPct": 0.5063138614308251,
+                    "standardErrorPct": 0.14890255037515776,
+                    "upper90Pct": 0.7512585567979596,
+                    "downsideProbability": 0.35443037974683544
+                  }
+                ],
+                "nearestDistance": 0.6975540788474107,
+                "furthestDistance": 0.9939665422931739,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.30711679794617525,
+                  "standardErrorPct": 0.06596950080853087,
+                  "upper90Pct": 0.4156366267762085,
+                  "downsideProbability": 0.35
+                },
+                "downsideHistory": [
+                  0.6125,
+                  0.525,
+                  0.45,
+                  0.35
+                ]
+              },
+              "currentReturnPct": -5.84958217270195,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -1.4482758620689677
+            },
+            {
+              "timestamp": "2026-09-03T02:15:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -5.013927576601662,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 9.052924791086337,
+                  "atrPct": 2.2284122562674096,
+                  "momentumPct": -2.3066485753052923,
+                  "bodyPressure": 0.6363636363636364,
+                  "directionalRangePos": 0.1333333333333333,
+                  "elapsedBars": 12
+                },
+                "bestHorizonBars": 6,
+                "bestUpper90Pct": 0.8437302858593763,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.13362210796554552,
+                    "standardErrorPct": 0.05998738897624363,
+                    "upper90Pct": 0.2323013628314663,
+                    "downsideProbability": 0.4875
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.43827409740505896,
+                    "standardErrorPct": 0.09059372129764971,
+                    "upper90Pct": 0.5873007689396927,
+                    "downsideProbability": 0.275
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.6356443394160595,
+                    "standardErrorPct": 0.1264960160749646,
+                    "upper90Pct": 0.8437302858593763,
+                    "downsideProbability": 0.2875
+                  }
+                ],
+                "nearestDistance": 0.7734898258842939,
+                "furthestDistance": 1.0406274941987197,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.13362210796554552,
+                  "standardErrorPct": 0.05998738897624363,
+                  "upper90Pct": 0.2323013628314663,
+                  "downsideProbability": 0.4875
+                },
+                "downsideHistory": [
+                  0.525,
+                  0.45,
+                  0.35,
+                  0.4875
+                ]
+              },
+              "currentReturnPct": -5.013927576601662,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -1.2413793103448272
+            },
+            {
+              "timestamp": "2026-09-03T02:20:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -4.317548746518107,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 8.35654596100278,
+                  "atrPct": 2.1413649025069637,
+                  "momentumPct": -0.13368983957218195,
+                  "bodyPressure": 0.4166666666666667,
+                  "directionalRangePos": 0.20270270270270274,
+                  "elapsedBars": 13
+                },
+                "bestHorizonBars": 6,
+                "bestUpper90Pct": 0.3172880498085449,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.0051376683325327025,
+                    "standardErrorPct": 0.044922857412458564,
+                    "upper90Pct": 0.07903576877602704,
+                    "downsideProbability": 0.5375
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.07302211315242421,
+                    "standardErrorPct": 0.05375471362512557,
+                    "upper90Pct": 0.16144861706575578,
+                    "downsideProbability": 0.55
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.1735979727452741,
+                    "standardErrorPct": 0.08734959091992146,
+                    "upper90Pct": 0.3172880498085449,
+                    "downsideProbability": 0.35
+                  }
+                ],
+                "nearestDistance": 0.729170075567852,
+                "furthestDistance": 0.9827922294999657,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.0051376683325327025,
+                  "standardErrorPct": 0.044922857412458564,
+                  "upper90Pct": 0.07903576877602704,
+                  "downsideProbability": 0.5375
+                },
+                "downsideHistory": [
+                  0.45,
+                  0.35,
+                  0.4875,
+                  0.5375
+                ]
+              },
+              "currentReturnPct": -4.317548746518107,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -1.0689655172413812
+            },
+            {
+              "timestamp": "2026-09-03T02:25:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -4.456824512534818,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 8.495821727019493,
+                  "atrPct": 2.1761838440111423,
+                  "momentumPct": 1.3157894736842146,
+                  "bodyPressure": -0.07692307692307693,
+                  "directionalRangePos": 0.2295081967213115,
+                  "elapsedBars": 14
+                },
+                "bestHorizonBars": 3,
+                "bestUpper90Pct": 0.6789686324050908,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.3861908383765552,
+                    "standardErrorPct": 0.042198207158603944,
+                    "upper90Pct": 0.4556068891524587,
+                    "downsideProbability": 0.1125
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.5531566867255739,
+                    "standardErrorPct": 0.07648142594499506,
+                    "upper90Pct": 0.6789686324050908,
+                    "downsideProbability": 0.1625
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 77,
+                    "expectedDirectionalReturnPct": 0.32615912877144865,
+                    "standardErrorPct": 0.12705234849631894,
+                    "upper90Pct": 0.5351602420478934,
+                    "downsideProbability": 0.5194805194805194
+                  }
+                ],
+                "nearestDistance": 0.7563722812755806,
+                "furthestDistance": 1.0207234837209451,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.3861908383765552,
+                  "standardErrorPct": 0.042198207158603944,
+                  "upper90Pct": 0.4556068891524587,
+                  "downsideProbability": 0.1125
+                },
+                "downsideHistory": [
+                  0.35,
+                  0.4875,
+                  0.5375,
+                  0.1125
+                ]
+              },
+              "currentReturnPct": -4.456824512534818,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -1.1034482758620705
+            },
+            {
+              "timestamp": "2026-09-03T02:30:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -4.596100278551529,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 8.635097493036202,
+                  "atrPct": 1.897632311977716,
+                  "momentumPct": 0.3978779840848823,
+                  "bodyPressure": 0,
+                  "directionalRangePos": 0.21311475409836067,
+                  "elapsedBars": 15
+                },
+                "bestHorizonBars": 3,
+                "bestUpper90Pct": 0.31430267263697287,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.09951681898184539,
+                    "standardErrorPct": 0.04684605306225602,
+                    "upper90Pct": 0.17657857626925655,
+                    "downsideProbability": 0.275
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.1776057146047296,
+                    "standardErrorPct": 0.08309845473084698,
+                    "upper90Pct": 0.31430267263697287,
+                    "downsideProbability": 0.2125
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 66,
+                    "expectedDirectionalReturnPct": -0.31269968890651845,
+                    "standardErrorPct": 0.13549800891182193,
+                    "upper90Pct": -0.08980546424657138,
+                    "downsideProbability": 0.6363636363636364
+                  }
+                ],
+                "nearestDistance": 0.6632187036423662,
+                "furthestDistance": 0.9740280131711266,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.09951681898184539,
+                  "standardErrorPct": 0.04684605306225602,
+                  "upper90Pct": 0.17657857626925655,
+                  "downsideProbability": 0.275
+                },
+                "downsideHistory": [
+                  0.4875,
+                  0.5375,
+                  0.1125,
+                  0.275
+                ]
+              },
+              "currentReturnPct": -4.596100278551529,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -1.1379310344827596
+            },
+            {
+              "timestamp": "2026-09-03T03:30:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -5.292479108635106,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 9.33147632311978,
+                  "atrPct": 1.8454038997214484,
+                  "momentumPct": -0.9345794392523255,
+                  "bodyPressure": 0.2857142857142857,
+                  "directionalRangePos": 0.1311475409836066,
+                  "elapsedBars": 16
+                },
+                "bestHorizonBars": 6,
+                "bestUpper90Pct": 0.36879594338705163,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.05758319188364099,
+                    "standardErrorPct": 0.04186863942618142,
+                    "upper90Pct": 0.011290719972427442,
+                    "downsideProbability": 0.525
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.05853305017251231,
+                    "standardErrorPct": 0.08825922680908582,
+                    "upper90Pct": 0.2037194782734585,
+                    "downsideProbability": 0.4125
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.1698931752586402,
+                    "standardErrorPct": 0.12091353685617716,
+                    "upper90Pct": 0.36879594338705163,
+                    "downsideProbability": 0.375
+                  }
+                ],
+                "nearestDistance": 0.6430449940147918,
+                "furthestDistance": 0.9220036813214876,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": -0.05758319188364099,
+                  "standardErrorPct": 0.04186863942618142,
+                  "upper90Pct": 0.011290719972427442,
+                  "downsideProbability": 0.525
+                },
+                "downsideHistory": [
+                  0.5375,
+                  0.1125,
+                  0.275,
+                  0.525
+                ]
+              },
+              "currentReturnPct": -5.292479108635106,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -1.310344827586211
+            },
+            {
+              "timestamp": "2026-09-03T03:35:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -4.456824512534818,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 8.495821727019493,
+                  "atrPct": 1.549442896935933,
+                  "momentumPct": 0,
+                  "bodyPressure": 0.6666666666666666,
+                  "directionalRangePos": 0.24137931034482762,
+                  "elapsedBars": 17
+                },
+                "bestHorizonBars": 3,
+                "bestUpper90Pct": 0.2756481613631127,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.06269541343478263,
+                    "standardErrorPct": 0.024143469039766146,
+                    "upper90Pct": 0.10241142000519794,
+                    "downsideProbability": 0.475
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.15376187893244378,
+                    "standardErrorPct": 0.07409500451712396,
+                    "upper90Pct": 0.2756481613631127,
+                    "downsideProbability": 0.3125
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.10292042402311052,
+                    "standardErrorPct": 0.09196559708502772,
+                    "upper90Pct": 0.2542038312279811,
+                    "downsideProbability": 0.25
+                  }
+                ],
+                "nearestDistance": 0.7257873393298949,
+                "furthestDistance": 1.0958342845244118,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.06269541343478263,
+                  "standardErrorPct": 0.024143469039766146,
+                  "upper90Pct": 0.10241142000519794,
+                  "downsideProbability": 0.475
+                },
+                "downsideHistory": [
+                  0.1125,
+                  0.275,
+                  0.525,
+                  0.475
+                ]
+              },
+              "currentReturnPct": -4.456824512534818,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -1.1034482758620705
+            },
+            {
+              "timestamp": "2026-09-03T03:40:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -4.73537604456824,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 8.774373259052915,
+                  "atrPct": 1.41016713091922,
+                  "momentumPct": -0.13315579227697327,
+                  "bodyPressure": -0.2857142857142857,
+                  "directionalRangePos": 0.2264150943396226,
+                  "elapsedBars": 18
+                },
+                "bestHorizonBars": 3,
+                "bestUpper90Pct": 0.337049187798389,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.1108459935183479,
+                    "standardErrorPct": 0.04331942769493553,
+                    "upper90Pct": 0.18210645207651685,
+                    "downsideProbability": 0.225
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.23209927467910907,
+                    "standardErrorPct": 0.06379933928223702,
+                    "upper90Pct": 0.337049187798389,
+                    "downsideProbability": 0.25
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.07449174762951884,
+                    "standardErrorPct": 0.10898890241325905,
+                    "upper90Pct": 0.25377849209932996,
+                    "downsideProbability": 0.45
+                  }
+                ],
+                "nearestDistance": 0.565454521028143,
+                "furthestDistance": 0.8700240841248253,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.1108459935183479,
+                  "standardErrorPct": 0.04331942769493553,
+                  "upper90Pct": 0.18210645207651685,
+                  "downsideProbability": 0.225
+                },
+                "downsideHistory": [
+                  0.275,
+                  0.525,
+                  0.475,
+                  0.225
+                ]
+              },
+              "currentReturnPct": -4.73537604456824,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -1.1724137931034488
+            },
+            {
+              "timestamp": "2026-09-03T03:45:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -5.84958217270195,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 9.888579387186624,
+                  "atrPct": 1.392757660167131,
+                  "momentumPct": -0.5291005291005346,
+                  "bodyPressure": -0.5625,
+                  "directionalRangePos": 0.11363636363636365,
+                  "elapsedBars": 19
+                },
+                "bestHorizonBars": 6,
+                "bestUpper90Pct": 0.75150944248608,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.14380987104733398,
+                    "standardErrorPct": 0.05199510139856625,
+                    "upper90Pct": 0.22934181284797545,
+                    "downsideProbability": 0.3
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.24020446599224657,
+                    "standardErrorPct": 0.10196673273913245,
+                    "upper90Pct": 0.40793974134811944,
+                    "downsideProbability": 0.3625
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.45948057004431125,
+                    "standardErrorPct": 0.1775251504205281,
+                    "upper90Pct": 0.75150944248608,
+                    "downsideProbability": 0.3875
+                  }
+                ],
+                "nearestDistance": 0.5675510551235275,
+                "furthestDistance": 0.7850283941928858,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.14380987104733398,
+                  "standardErrorPct": 0.05199510139856625,
+                  "upper90Pct": 0.22934181284797545,
+                  "downsideProbability": 0.3
+                },
+                "downsideHistory": [
+                  0.525,
+                  0.475,
+                  0.225,
+                  0.3
+                ]
+              },
+              "currentReturnPct": -5.84958217270195,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -1.4482758620689677
+            },
+            {
+              "timestamp": "2026-09-03T03:50:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -5.84958217270195,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 9.888579387186624,
+                  "atrPct": 1.2534818941504178,
+                  "momentumPct": -1.333333333333342,
+                  "bodyPressure": 0,
+                  "directionalRangePos": 0.12195121951219512,
+                  "elapsedBars": 20
+                },
+                "bestHorizonBars": 3,
+                "bestUpper90Pct": 0.12240022449070284,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.06128743336789866,
+                    "standardErrorPct": 0.04602598092768048,
+                    "upper90Pct": 0.014425305258135734,
+                    "downsideProbability": 0.5625
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.02797774212811649,
+                    "standardErrorPct": 0.09141517727587802,
+                    "upper90Pct": 0.12240022449070284,
+                    "downsideProbability": 0.55
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.15396992394931572,
+                    "standardErrorPct": 0.12916121274358752,
+                    "upper90Pct": 0.058500271013885746,
+                    "downsideProbability": 0.575
+                  }
+                ],
+                "nearestDistance": 0.5392904041781988,
+                "furthestDistance": 0.8331516057768117,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": -0.06128743336789866,
+                  "standardErrorPct": 0.04602598092768048,
+                  "upper90Pct": 0.014425305258135734,
+                  "downsideProbability": 0.5625
+                },
+                "downsideHistory": [
+                  0.475,
+                  0.225,
+                  0.3,
+                  0.5625
+                ]
+              },
+              "currentReturnPct": -5.84958217270195,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -1.4482758620689677
+            },
+            {
+              "timestamp": "2026-09-03T03:55:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -6.267409470752083,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 10.306406685236757,
+                  "atrPct": 1.149025069637883,
+                  "momentumPct": -1.46276595744681,
+                  "bodyPressure": -0.5,
+                  "directionalRangePos": 0.09999999999999998,
+                  "elapsedBars": 21
+                },
+                "bestHorizonBars": 1,
+                "bestUpper90Pct": 0.07823547125665918,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.00865685140149064,
+                    "standardErrorPct": 0.04229703334660702,
+                    "upper90Pct": 0.07823547125665918,
+                    "downsideProbability": 0.55
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.14865043473005352,
+                    "standardErrorPct": 0.07164995329994125,
+                    "upper90Pct": -0.03078626155165015,
+                    "downsideProbability": 0.75
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.21937515103137467,
+                    "standardErrorPct": 0.13276564541128333,
+                    "upper90Pct": -0.0009756643298135803,
+                    "downsideProbability": 0.6
+                  }
+                ],
+                "nearestDistance": 0.43576757744608574,
+                "furthestDistance": 0.7743900656611358,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.00865685140149064,
+                  "standardErrorPct": 0.04229703334660702,
+                  "upper90Pct": 0.07823547125665918,
+                  "downsideProbability": 0.55
+                },
+                "downsideHistory": [
+                  0.225,
+                  0.3,
+                  0.5625,
+                  0.55
+                ]
+              },
+              "currentReturnPct": -6.267409470752083,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -1.5517241379310354
+            },
+            {
+              "timestamp": "2026-09-03T04:00:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -7.1030640668523715,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 11.142061281337046,
+                  "atrPct": 1.027158774373259,
+                  "momentumPct": -1.1842105263157876,
+                  "bodyPressure": -1,
+                  "directionalRangePos": 0,
+                  "elapsedBars": 22
+                },
+                "bestHorizonBars": 1,
+                "bestUpper90Pct": 0.13404085204417432,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.05656449504658016,
+                    "standardErrorPct": 0.047098089360239605,
+                    "upper90Pct": 0.13404085204417432,
+                    "downsideProbability": 0.525
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 77,
+                    "expectedDirectionalReturnPct": -0.14411212238434454,
+                    "standardErrorPct": 0.07594571202422895,
+                    "upper90Pct": -0.019181426104487906,
+                    "downsideProbability": 0.6623376623376623
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 76,
+                    "expectedDirectionalReturnPct": -0.11424377513627774,
+                    "standardErrorPct": 0.12215790830782995,
+                    "upper90Pct": 0.08670598403010253,
+                    "downsideProbability": 0.5394736842105263
+                  }
+                ],
+                "nearestDistance": 0.4340998901359233,
+                "furthestDistance": 0.8069483411659888,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.05656449504658016,
+                  "standardErrorPct": 0.047098089360239605,
+                  "upper90Pct": 0.13404085204417432,
+                  "downsideProbability": 0.525
+                },
+                "downsideHistory": [
+                  0.3,
+                  0.5625,
+                  0.55,
+                  0.525
+                ]
+              },
+              "currentReturnPct": -7.1030640668523715,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -1.758620689655176
+            },
+            {
+              "timestamp": "2026-09-03T04:35:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -7.1030640668523715,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 11.142061281337046,
+                  "atrPct": 1.270891364902507,
+                  "momentumPct": -1.1842105263157876,
+                  "bodyPressure": 0,
+                  "directionalRangePos": 0,
+                  "elapsedBars": 23
+                },
+                "bestHorizonBars": 3,
+                "bestUpper90Pct": 0.13458285576262882,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.04982016839234023,
+                    "standardErrorPct": 0.053603155089692385,
+                    "upper90Pct": 0.03835702173020375,
+                    "downsideProbability": 0.55
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.03080222857795813,
+                    "standardErrorPct": 0.10053804519184618,
+                    "upper90Pct": 0.13458285576262882,
+                    "downsideProbability": 0.575
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.1863296623532017,
+                    "standardErrorPct": 0.13622290485707508,
+                    "upper90Pct": 0.037757016136686805,
+                    "downsideProbability": 0.625
+                  }
+                ],
+                "nearestDistance": 0.5568753669860853,
+                "furthestDistance": 0.8708691835398866,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": -0.04982016839234023,
+                  "standardErrorPct": 0.053603155089692385,
+                  "upper90Pct": 0.03835702173020375,
+                  "downsideProbability": 0.55
+                },
+                "downsideHistory": [
+                  0.5625,
+                  0.55,
+                  0.525,
+                  0.55
+                ]
+              },
+              "currentReturnPct": -7.1030640668523715,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -1.758620689655176
+            },
+            {
+              "timestamp": "2026-09-03T04:40:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -6.545961002785505,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 10.584958217270179,
+                  "atrPct": 1.1142061281337048,
+                  "momentumPct": -0.2621231979030192,
+                  "bodyPressure": 0.8,
+                  "directionalRangePos": 0.13793103448275867,
+                  "elapsedBars": 24
+                },
+                "bestHorizonBars": 6,
+                "bestUpper90Pct": 0.24086271764517003,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.0769592344772574,
+                    "standardErrorPct": 0.04991341614412493,
+                    "upper90Pct": 0.005148335079828106,
+                    "downsideProbability": 0.65
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 71,
+                    "expectedDirectionalReturnPct": -0.08437597993805458,
+                    "standardErrorPct": 0.05835298971368329,
+                    "upper90Pct": 0.011614688140954427,
+                    "downsideProbability": 0.5352112676056338
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 71,
+                    "expectedDirectionalReturnPct": 0.08619371851861939,
+                    "standardErrorPct": 0.09402370767571468,
+                    "upper90Pct": 0.24086271764517003,
+                    "downsideProbability": 0.39436619718309857
+                  }
+                ],
+                "nearestDistance": 0.7493163983471852,
+                "furthestDistance": 0.9741409898603722,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": -0.0769592344772574,
+                  "standardErrorPct": 0.04991341614412493,
+                  "upper90Pct": 0.005148335079828106,
+                  "downsideProbability": 0.65
+                },
+                "downsideHistory": [
+                  0.55,
+                  0.525,
+                  0.55,
+                  0.65
+                ]
+              },
+              "currentReturnPct": -6.545961002785505,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -1.6206896551724137
+            },
+            {
+              "timestamp": "2026-09-03T04:45:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -4.317548746518107,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 8.35654596100278,
+                  "atrPct": 1.3231197771587744,
+                  "momentumPct": 2.6007802340702213,
+                  "bodyPressure": 0.8888888888888888,
+                  "directionalRangePos": 0.6896551724137931,
+                  "elapsedBars": 25
+                },
+                "bestHorizonBars": 3,
+                "bestUpper90Pct": 0.32954804719493364,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.06823744384483285,
+                    "standardErrorPct": 0.046000920299921186,
+                    "upper90Pct": 0.1439089577382032,
+                    "downsideProbability": 0.5625
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.17814633120129747,
+                    "standardErrorPct": 0.09203751732135937,
+                    "upper90Pct": 0.32954804719493364,
+                    "downsideProbability": 0.4625
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 76,
+                    "expectedDirectionalReturnPct": 0.11381973384648263,
+                    "standardErrorPct": 0.11661225709216866,
+                    "upper90Pct": 0.3056468967631001,
+                    "downsideProbability": 0.5263157894736842
+                  }
+                ],
+                "nearestDistance": 0.7887029724538058,
+                "furthestDistance": 1.010754933162872,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.06823744384483285,
+                  "standardErrorPct": 0.046000920299921186,
+                  "upper90Pct": 0.1439089577382032,
+                  "downsideProbability": 0.5625
+                },
+                "downsideHistory": [
+                  0.525,
+                  0.55,
+                  0.65,
+                  0.5625
+                ]
+              },
+              "currentReturnPct": -4.317548746518107,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -1.0689655172413812
+            },
+            {
+              "timestamp": "2026-09-03T04:50:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -3.203342618384397,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 7.242339832869071,
+                  "atrPct": 1.6190807799442894,
+                  "momentumPct": 3.6410923276983143,
+                  "bodyPressure": 0.3333333333333333,
+                  "directionalRangePos": 0.7777777777777778,
+                  "elapsedBars": 26
+                },
+                "bestHorizonBars": 3,
+                "bestUpper90Pct": 0.32136979962606793,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.15780964848317114,
+                    "standardErrorPct": 0.057933502997132645,
+                    "upper90Pct": 0.25311026091345434,
+                    "downsideProbability": 0.3625
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.13804308864135645,
+                    "standardErrorPct": 0.1114448091092471,
+                    "upper90Pct": 0.32136979962606793,
+                    "downsideProbability": 0.4
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.10540619860741626,
+                    "standardErrorPct": 0.10327348112242607,
+                    "upper90Pct": 0.2752910750538071,
+                    "downsideProbability": 0.6375
+                  }
+                ],
+                "nearestDistance": 0.7349357839198378,
+                "furthestDistance": 1.0313651397057506,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.15780964848317114,
+                  "standardErrorPct": 0.057933502997132645,
+                  "upper90Pct": 0.25311026091345434,
+                  "downsideProbability": 0.3625
+                },
+                "downsideHistory": [
+                  0.55,
+                  0.65,
+                  0.5625,
+                  0.3625
+                ]
+              },
+              "currentReturnPct": -3.203342618384397,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -0.7931034482758622
+            },
+            {
+              "timestamp": "2026-09-03T04:55:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -3.62116991643453,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 7.660167130919204,
+                  "atrPct": 1.7583565459610029,
+                  "momentumPct": 2.7450980392156876,
+                  "bodyPressure": -0.041666666666666664,
+                  "directionalRangePos": 0.5555555555555556,
+                  "elapsedBars": 27
+                },
+                "bestHorizonBars": 3,
+                "bestUpper90Pct": 0.5989656795287943,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.30616213661826974,
+                    "standardErrorPct": 0.0540716986991231,
+                    "upper90Pct": 0.3951100809783272,
+                    "downsideProbability": 0.2
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.4422797935307522,
+                    "standardErrorPct": 0.09524977872221405,
+                    "upper90Pct": 0.5989656795287943,
+                    "downsideProbability": 0.2
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 77,
+                    "expectedDirectionalReturnPct": 0.2990650418164178,
+                    "standardErrorPct": 0.10912616403683764,
+                    "upper90Pct": 0.4785775816570157,
+                    "downsideProbability": 0.5454545454545454
+                  }
+                ],
+                "nearestDistance": 0.6908759239790486,
+                "furthestDistance": 1.0252681028552462,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.30616213661826974,
+                  "standardErrorPct": 0.0540716986991231,
+                  "upper90Pct": 0.3951100809783272,
+                  "downsideProbability": 0.2
+                },
+                "downsideHistory": [
+                  0.65,
+                  0.5625,
+                  0.3625,
+                  0.2
+                ]
+              },
+              "currentReturnPct": -3.62116991643453,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -0.8965517241379298
+            },
+            {
+              "timestamp": "2026-09-03T05:00:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -4.73537604456824,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 8.774373259052915,
+                  "atrPct": 1.9846796657381613,
+                  "momentumPct": -0.4005340453938633,
+                  "bodyPressure": -0.375,
+                  "directionalRangePos": 0.37777777777777777,
+                  "elapsedBars": 28
+                },
+                "bestHorizonBars": 6,
+                "bestUpper90Pct": 0.3683622937825402,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.08440925632999002,
+                    "standardErrorPct": 0.052857274989540994,
+                    "upper90Pct": 0.17135947368778495,
+                    "downsideProbability": 0.275
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.18150325255181438,
+                    "standardErrorPct": 0.0962269005030956,
+                    "upper90Pct": 0.33979650387940663,
+                    "downsideProbability": 0.3
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 76,
+                    "expectedDirectionalReturnPct": 0.10968538041304114,
+                    "standardErrorPct": 0.15725040326413317,
+                    "upper90Pct": 0.3683622937825402,
+                    "downsideProbability": 0.4473684210526316
+                  }
+                ],
+                "nearestDistance": 0.7056716628906506,
+                "furthestDistance": 0.8562509100091285,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.08440925632999002,
+                  "standardErrorPct": 0.052857274989540994,
+                  "upper90Pct": 0.17135947368778495,
+                  "downsideProbability": 0.275
+                },
+                "downsideHistory": [
+                  0.5625,
+                  0.3625,
+                  0.2,
+                  0.275
+                ]
+              },
+              "currentReturnPct": -4.73537604456824,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -1.1724137931034488
+            },
+            {
+              "timestamp": "2026-09-03T05:05:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -2.785515320334264,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 6.824512534818938,
+                  "atrPct": 2.1761838440111423,
+                  "momentumPct": 0.4048582995951455,
+                  "bodyPressure": 0.8,
+                  "directionalRangePos": 0.6888888888888889,
+                  "elapsedBars": 29
+                },
+                "bestHorizonBars": 3,
+                "bestUpper90Pct": 0.06786569651278695,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.008454334711832517,
+                    "standardErrorPct": 0.03263727230510626,
+                    "upper90Pct": 0.045233978230067286,
+                    "downsideProbability": 0.6
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 73,
+                    "expectedDirectionalReturnPct": -0.05390390621730353,
+                    "standardErrorPct": 0.07402407460795775,
+                    "upper90Pct": 0.06786569651278695,
+                    "downsideProbability": 0.6986301369863014
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 73,
+                    "expectedDirectionalReturnPct": -0.10713563736157954,
+                    "standardErrorPct": 0.10276606231178617,
+                    "upper90Pct": 0.06191453514130872,
+                    "downsideProbability": 0.726027397260274
+                  }
+                ],
+                "nearestDistance": 0.730925979063912,
+                "furthestDistance": 0.8964829613660693,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": -0.008454334711832517,
+                  "standardErrorPct": 0.03263727230510626,
+                  "upper90Pct": 0.045233978230067286,
+                  "downsideProbability": 0.6
+                },
+                "downsideHistory": [
+                  0.3625,
+                  0.2,
+                  0.275,
+                  0.6
+                ]
+              },
+              "currentReturnPct": -2.785515320334264,
+              "mfePct": 4.038997214484674,
+              "captureRatio": -0.6896551724137947
+            },
+            {
+              "timestamp": "2026-09-03T05:10:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "EXIT",
+                "reason": "NO_POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_AT_90CI",
+                "stateBucket": "WINNER_PROTECTION",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": 2.36768802228412,
+                  "bestReturnPct": 4.038997214484674,
+                  "givebackPctPoints": 1.6713091922005536,
+                  "atrPct": 2.8377437325905293,
+                  "momentumPct": 5.779569892473113,
+                  "bodyPressure": 0.8409090909090909,
+                  "directionalRangePos": 0.9066666666666666,
+                  "elapsedBars": 30
+                },
+                "bestHorizonBars": 1,
+                "bestUpper90Pct": -0.3743974183163358,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.44548741457243607,
+                    "standardErrorPct": 0.043215803195197744,
+                    "upper90Pct": -0.3743974183163358,
+                    "downsideProbability": 0.825
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.86434673933458,
+                    "standardErrorPct": 0.06842315830449655,
+                    "upper90Pct": -0.7517906439236831,
+                    "downsideProbability": 0.975
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 59,
+                    "expectedDirectionalReturnPct": -0.6660518776666267,
+                    "standardErrorPct": 0.0495520778602743,
+                    "upper90Pct": -0.5845387095864755,
+                    "downsideProbability": 0.9661016949152542
+                  }
+                ],
+                "nearestDistance": 0.8531467602906174,
+                "furthestDistance": 0.9994586020949691,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_WINNER_CONTINUE",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "WINNER_PROTECTION",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": -0.44548741457243607,
+                  "standardErrorPct": 0.043215803195197744,
+                  "upper90Pct": -0.3743974183163358,
+                  "downsideProbability": 0.825
+                }
+              },
+              "currentReturnPct": 2.36768802228412,
+              "mfePct": 4.038997214484674,
+              "captureRatio": 0.5862068965517244
+            },
+            {
+              "timestamp": "2026-09-03T05:15:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "WINNER_PROTECTION",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": 4.038997214484674,
+                  "bestReturnPct": 5.84958217270195,
+                  "givebackPctPoints": 1.8105849582172766,
+                  "atrPct": 3.290389972144847,
+                  "momentumPct": 8.377659574468089,
+                  "bodyPressure": 0.2926829268292683,
+                  "directionalRangePos": 0.8602150537634409,
+                  "elapsedBars": 31
+                },
+                "bestHorizonBars": 6,
+                "bestUpper90Pct": 0.07275667681960862,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.24527407599192555,
+                    "standardErrorPct": 0.0577522585011492,
+                    "upper90Pct": -0.15027161075753512,
+                    "downsideProbability": 0.5375
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.17373161074304333,
+                    "standardErrorPct": 0.09684420570041974,
+                    "upper90Pct": -0.014422892365852868,
+                    "downsideProbability": 0.7
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 71,
+                    "expectedDirectionalReturnPct": -0.0455113449154382,
+                    "standardErrorPct": 0.0718954539422777,
+                    "upper90Pct": 0.07275667681960862,
+                    "downsideProbability": 0.6619718309859155
+                  }
+                ],
+                "nearestDistance": 0.9371857727330373,
+                "furthestDistance": 1.0623608451984345,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_WINNER_CONTINUE",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "WINNER_PROTECTION",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": -0.24527407599192555,
+                  "standardErrorPct": 0.0577522585011492,
+                  "upper90Pct": -0.15027161075753512,
+                  "downsideProbability": 0.5375
+                }
+              },
+              "currentReturnPct": 4.038997214484674,
+              "mfePct": 5.84958217270195,
+              "captureRatio": 0.6904761904761894
+            },
+            {
+              "timestamp": "2026-09-03T05:20:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "WINNER_PROTECTION",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": 2.506963788300831,
+                  "bestReturnPct": 5.84958217270195,
+                  "givebackPctPoints": 3.3426183844011192,
+                  "atrPct": 3.6908077994428967,
+                  "momentumPct": 5.1490514905149,
+                  "bodyPressure": -0.42857142857142855,
+                  "directionalRangePos": 0.7419354838709677,
+                  "elapsedBars": 32
+                },
+                "bestHorizonBars": 6,
+                "bestUpper90Pct": 1.1106982045932385,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.15083824565017614,
+                    "standardErrorPct": 0.07745195655013733,
+                    "upper90Pct": -0.023429777125200252,
+                    "downsideProbability": 0.625
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 71,
+                    "expectedDirectionalReturnPct": 0.9059672771659317,
+                    "standardErrorPct": 0.07988995873890477,
+                    "upper90Pct": 1.03738625929143,
+                    "downsideProbability": 0.18309859154929578
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 71,
+                    "expectedDirectionalReturnPct": 1.0302000975822136,
+                    "standardErrorPct": 0.0489350194595896,
+                    "upper90Pct": 1.1106982045932385,
+                    "downsideProbability": 0
+                  }
+                ],
+                "nearestDistance": 0.8676205601976745,
+                "furthestDistance": 1.0641943375963772,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_WINNER_CONTINUE",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "WINNER_PROTECTION",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": -0.15083824565017614,
+                  "standardErrorPct": 0.07745195655013733,
+                  "upper90Pct": -0.023429777125200252,
+                  "downsideProbability": 0.625
+                }
+              },
+              "currentReturnPct": 2.506963788300831,
+              "mfePct": 5.84958217270195,
+              "captureRatio": 0.42857142857142777
+            },
+            {
+              "timestamp": "2026-09-03T05:25:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "WINNER_PROTECTION",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": 0.41782729805014407,
+                  "bestReturnPct": 5.84958217270195,
+                  "givebackPctPoints": 5.431754874651807,
+                  "atrPct": 3.7778551532033426,
+                  "momentumPct": -1.9971469329529201,
+                  "bodyPressure": -0.6086956521739131,
+                  "directionalRangePos": 0.5806451612903225,
+                  "elapsedBars": 33
+                },
+                "bestHorizonBars": 6,
+                "bestUpper90Pct": 0.3014240330993107,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.10353571245343138,
+                    "standardErrorPct": 0.047204193750567246,
+                    "upper90Pct": 0.1811866111731145,
+                    "downsideProbability": 0.3375
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.04396023941046979,
+                    "standardErrorPct": 0.06490920782148327,
+                    "upper90Pct": 0.15073588627680976,
+                    "downsideProbability": 0.3
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 79,
+                    "expectedDirectionalReturnPct": 0.1646872216786095,
+                    "standardErrorPct": 0.08312268171471199,
+                    "upper90Pct": 0.3014240330993107,
+                    "downsideProbability": 0.25316455696202533
+                  }
+                ],
+                "nearestDistance": 0.8662334138090226,
+                "furthestDistance": 1.0247966720461343,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_WINNER_CONTINUE",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "WINNER_PROTECTION",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.10353571245343138,
+                  "standardErrorPct": 0.047204193750567246,
+                  "upper90Pct": 0.1811866111731145,
+                  "downsideProbability": 0.3375
+                }
+              },
+              "currentReturnPct": 0.41782729805014407,
+              "mfePct": 5.84958217270195,
+              "captureRatio": 0.07142857142857224
+            },
+            {
+              "timestamp": "2026-09-03T05:30:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -1.810584958217265,
+                  "bestReturnPct": 5.84958217270195,
+                  "givebackPctPoints": 7.660167130919215,
+                  "atrPct": 3.83008356545961,
+                  "momentumPct": -6.095791001451389,
+                  "bodyPressure": -0.5555555555555556,
+                  "directionalRangePos": 0.4086021505376344,
+                  "elapsedBars": 34
+                },
+                "bestHorizonBars": 6,
+                "bestUpper90Pct": 1.1363431838227862,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.2558264618455556,
+                    "standardErrorPct": 0.05145614463563243,
+                    "upper90Pct": 0.3404718197711709,
+                    "downsideProbability": 0.25
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 47,
+                    "expectedDirectionalReturnPct": 0.3770761357501504,
+                    "standardErrorPct": 0.11777159813615619,
+                    "upper90Pct": 0.5708104146841273,
+                    "downsideProbability": 0.3191489361702128
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 47,
+                    "expectedDirectionalReturnPct": 0.9148598229190683,
+                    "standardErrorPct": 0.13464034097490452,
+                    "upper90Pct": 1.1363431838227862,
+                    "downsideProbability": 0.1276595744680851
+                  }
+                ],
+                "nearestDistance": 1.0082613582382844,
+                "furthestDistance": 1.1560388030881383,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.2558264618455556,
+                  "standardErrorPct": 0.05145614463563243,
+                  "upper90Pct": 0.3404718197711709,
+                  "downsideProbability": 0.25
+                },
+                "downsideHistory": [
+                  0.5375,
+                  0.625,
+                  0.3375,
+                  0.25
+                ]
+              },
+              "currentReturnPct": -1.810584958217265,
+              "mfePct": 5.84958217270195,
+              "captureRatio": -0.30952380952380865
+            },
+            {
+              "timestamp": "2026-09-03T05:35:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -0.8356545961002881,
+                  "bestReturnPct": 5.84958217270195,
+                  "givebackPctPoints": 6.6852367688022385,
+                  "atrPct": 3.7082172701949863,
+                  "momentumPct": -3.4285714285714253,
+                  "bodyPressure": 0.4117647058823529,
+                  "directionalRangePos": 0.4838709677419355,
+                  "elapsedBars": 35
+                },
+                "bestHorizonBars": 6,
+                "bestUpper90Pct": 0.810726126060469,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.10329388113788292,
+                    "standardErrorPct": 0.04969928366171717,
+                    "upper90Pct": -0.021538559514358166,
+                    "downsideProbability": 0.7625
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 74,
+                    "expectedDirectionalReturnPct": 0.2707631696789832,
+                    "standardErrorPct": 0.06502846815598616,
+                    "upper90Pct": 0.3777349997955804,
+                    "downsideProbability": 0.25675675675675674
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 72,
+                    "expectedDirectionalReturnPct": 0.6728554328861613,
+                    "standardErrorPct": 0.08381197153453351,
+                    "upper90Pct": 0.810726126060469,
+                    "downsideProbability": 0.2777777777777778
+                  }
+                ],
+                "nearestDistance": 0.9076589534767115,
+                "furthestDistance": 1.143871444418952,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "EXIT",
+                "reason": "V4_CONFIRMED_DOWNSIDE_TRAJECTORY",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": -0.10329388113788292,
+                  "standardErrorPct": 0.04969928366171717,
+                  "upper90Pct": -0.021538559514358166,
+                  "downsideProbability": 0.7625
+                },
+                "downsideHistory": [
+                  0.625,
+                  0.3375,
+                  0.25,
+                  0.7625
+                ]
+              },
+              "currentReturnPct": -0.8356545961002881,
+              "mfePct": 5.84958217270195,
+              "captureRatio": -0.1428571428571445
+            }
+          ],
+          "methodology": {
+            "candidateFamily": "STRUCTURAL_RISK_TRAJECTORY_EXIT_V4",
+            "inheritedAnalogCutoff": "2026-08-12",
+            "firstFreshEligibleDate": "2026-09-01",
+            "developmentEvidence": {
+              "august31PartialRole": "FAILURE_ANALYSIS_ONLY",
+              "august31UsedForThresholdSearch": false,
+              "august31UsedForCoefficientSearch": false,
+              "august31EligibleForV4PerformanceClaim": false
+            },
+            "loserRisk": {
+              "rule": "Require causal analog edge rejection plus non-improving downside trajectory before rescue; emergency deterioration may exit on the first structurally confirmed bar.",
+              "upper90MaxPct": 0,
+              "downsideProbabilityMin": 0.5,
+              "trajectoryBars": 2,
+              "emergencyAdverseExcursionMultiple": 1.5
+            },
+            "winnerProtection": {
+              "rule": "Protect only an established winner after causal edge rejection and at least half of observed MFE has been given back; require two confirmations.",
+              "minimumPositiveMfe": true,
+              "maxCaptureRatio": 0.5,
+              "consecutiveConfirmations": 2
+            },
+            "neutralRisk": {
+              "rule": "Neutral state stays HOLD unless directional close deterioration persists for three consecutive managed bars.",
+              "consecutiveDirectionalLossBars": 3
+            },
+            "fixedBaselineUntouched": true,
+            "sameFrozenEntryAsV3": true,
+            "entryRetuningAllowed": false,
+            "universeRetuningAllowed": false,
+            "resultBasedRetuning": false,
+            "freshOutcomeUsedForFitting": false,
+            "promotionEligible": false
+          },
+          "safety": {
+            "executionAllowed": false,
+            "brokerWriteAllowed": false,
+            "excelOrderWriteAllowed": false,
+            "rssOrderFunctionAllowed": false,
+            "liveTradingAllowed": false,
+            "paperTradingAllowed": false,
+            "automaticPromotionAllowed": false,
+            "productionUpdateAllowed": false,
+            "transmitted": false,
+            "freshHoldoutConsumed": false
+          }
+        },
+        "deltaNetReturnPct": 4.178272980501374
+      },
+      {
+        "key": "2026-09-03|2026-09-03T05:10:00.000Z|336A.T",
+        "sessionDate": "2026-09-03",
+        "symbol": "336A.T",
+        "variantMemberships": [
+          "DYNAMIC_30",
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "fixed": {
+          "entryAccepted": true,
+          "symbol": "336A.T",
+          "sessionDate": "2026-09-03",
+          "entryTimestamp": "2026-09-03T05:10:00.000Z",
+          "featureCutoff": "2026-09-03T05:10:00.000Z",
+          "signalDirection": 1,
+          "direction": "LONG",
+          "baseHorizonBars": 12,
+          "confidence": 0.6186693549360129,
+          "probability": 0.6186693549360129,
+          "selectedFeatureFamily": "MOMENTUM",
+          "selectedModelType": "LOGISTIC_REGRESSION",
+          "selectedConfigId": "LOGIT",
+          "selectedThreshold": 0.6,
+          "modelId": "phase57-p21-prospective-logit-h12",
+          "artifactSha256": "513ec4bdec63226e0d83e895d0df50dd7ed66780df96bdb9bd808fc976a0c672",
+          "sector": "情報・通信業",
+          "variantMemberships": [
+            "DYNAMIC_30",
+            "DYNAMIC_40",
+            "DYNAMIC_50"
+          ],
+          "outcomePending": false,
+          "frozenBeforeOutcome": true,
+          "currentOutcomeUsed": false,
+          "entryPrice": 1719,
+          "barsHeld": 7,
+          "exitTimestamp": "2026-09-03T06:30:00.000Z",
+          "exitPrice": 1779,
+          "exitReason": "FROZEN_HORIZON",
+          "horizonTruncatedAtSessionEnd": true,
+          "grossReturnPct": 3.4904013961605695,
+          "alignedReturnPct": 3.4904013961605695,
+          "netReturnPct": 3.4404013961605697,
+          "hit": true,
+          "timeBucket": "14:00-15:30",
+          "regime": "UNKNOWN",
+          "outcomeStatus": "FROZEN_FIXED_HORIZON_RESOLVED"
+        },
+        "v4": {
+          "exitTimestamp": "2026-09-03T06:30:00.000Z",
+          "exitPrice": 1779,
+          "exitReason": "SESSION_END",
+          "barsHeld": 7,
+          "grossReturnPct": 3.4904013961605695,
+          "netReturnPct": 3.4404013961605697,
+          "mfePct": 3.4904013961605695,
+          "maePct": -2.210587550901688,
+          "givebackPct": 0,
+          "captureRatio": 1,
+          "policySha256": "2d512dd810d057807bc59a0138a3db98035e57ff2c23c186ba096beeb6be26cb",
+          "managementDecisions": [
+            {
+              "timestamp": "2026-09-03T05:15:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -1.105293775450844,
+                  "bestReturnPct": 1.4543339150669077,
+                  "givebackPctPoints": 2.5596276905177517,
+                  "atrPct": 2.966841186736475,
+                  "momentumPct": 0,
+                  "bodyPressure": -0.37254901960784315,
+                  "directionalRangePos": 0.13725490196078433,
+                  "elapsedBars": 1
+                },
+                "bestHorizonBars": 6,
+                "bestUpper90Pct": 0.20636611862373544,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.04946026739033342,
+                    "standardErrorPct": 0.06949851780551433,
+                    "upper90Pct": 0.1637853291804045,
+                    "downsideProbability": 0.5
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 79,
+                    "expectedDirectionalReturnPct": -0.009625187206527386,
+                    "standardErrorPct": 0.1133438393373836,
+                    "upper90Pct": 0.17682542850346863,
+                    "downsideProbability": 0.5316455696202531
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 79,
+                    "expectedDirectionalReturnPct": -0.03124723950170348,
+                    "standardErrorPct": 0.14444581041060117,
+                    "upper90Pct": 0.20636611862373544,
+                    "downsideProbability": 0.5063291139240507
+                  }
+                ],
+                "nearestDistance": 0.24060051690990317,
+                "furthestDistance": 0.970661968857892,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.04946026739033342,
+                  "standardErrorPct": 0.06949851780551433,
+                  "upper90Pct": 0.1637853291804045,
+                  "downsideProbability": 0.5
+                },
+                "downsideHistory": [
+                  0.5
+                ]
+              },
+              "currentReturnPct": -1.105293775450844,
+              "mfePct": 1.4543339150669077,
+              "captureRatio": -0.759999999999996
+            },
+            {
+              "timestamp": "2026-09-03T05:20:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "WINNER_PROTECTION",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": 1.512507271669583,
+                  "bestReturnPct": 1.8033740546829602,
+                  "givebackPctPoints": 0.2908667830133771,
+                  "atrPct": 3.4904013961605584,
+                  "momentumPct": 2.6470588235294024,
+                  "bodyPressure": 0.7101449275362319,
+                  "directionalRangePos": 0.927536231884058,
+                  "elapsedBars": 2
+                },
+                "bestHorizonBars": 6,
+                "bestUpper90Pct": 0.11060844058950792,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.0788642484019235,
+                    "standardErrorPct": 0.0663363007540125,
+                    "upper90Pct": 0.030258966338427062,
+                    "downsideProbability": 0.55
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 74,
+                    "expectedDirectionalReturnPct": -0.11949822446195807,
+                    "standardErrorPct": 0.10742088160456863,
+                    "upper90Pct": 0.057209125777557324,
+                    "downsideProbability": 0.5675675675675675
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 71,
+                    "expectedDirectionalReturnPct": -0.08588031936707674,
+                    "standardErrorPct": 0.11944605468485389,
+                    "upper90Pct": 0.11060844058950792,
+                    "downsideProbability": 0.6056338028169014
+                  }
+                ],
+                "nearestDistance": 0.4064403929193831,
+                "furthestDistance": 0.7988798096050632,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_WINNER_CONTINUE",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "WINNER_PROTECTION",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": -0.0788642484019235,
+                  "standardErrorPct": 0.0663363007540125,
+                  "upper90Pct": 0.030258966338427062,
+                  "downsideProbability": 0.55
+                }
+              },
+              "currentReturnPct": 1.512507271669583,
+              "mfePct": 1.8033740546829602,
+              "captureRatio": 0.8387096774193569
+            },
+            {
+              "timestamp": "2026-09-03T05:25:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "WINNER_PROTECTION",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": 2.617801047120416,
+                  "bestReturnPct": 2.734147760325767,
+                  "givebackPctPoints": 0.11634671320535084,
+                  "atrPct": 3.3546635640876477,
+                  "momentumPct": 3.7647058823529367,
+                  "bodyPressure": 0.33962264150943394,
+                  "directionalRangePos": 0.9764705882352941,
+                  "elapsedBars": 3
+                },
+                "bestHorizonBars": 6,
+                "bestUpper90Pct": 0.32411293900813143,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.06362407437062984,
+                    "standardErrorPct": 0.05134834141471135,
+                    "upper90Pct": 0.020843947256570336,
+                    "downsideProbability": 0.4625
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 76,
+                    "expectedDirectionalReturnPct": -0.08181970566906598,
+                    "standardErrorPct": 0.0934692520301209,
+                    "upper90Pct": 0.0719372139204829,
+                    "downsideProbability": 0.5263157894736842
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 74,
+                    "expectedDirectionalReturnPct": 0.0996140609104193,
+                    "standardErrorPct": 0.13647348212626878,
+                    "upper90Pct": 0.32411293900813143,
+                    "downsideProbability": 0.44594594594594594
+                  }
+                ],
+                "nearestDistance": 0.5127354832631,
+                "furthestDistance": 0.8495318036084193,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_WINNER_CONTINUE",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "WINNER_PROTECTION",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": -0.06362407437062984,
+                  "standardErrorPct": 0.05134834141471135,
+                  "upper90Pct": 0.020843947256570336,
+                  "downsideProbability": 0.4625
+                }
+              },
+              "currentReturnPct": 2.617801047120416,
+              "mfePct": 2.734147760325767,
+              "captureRatio": 0.9574468085106387
+            },
+            {
+              "timestamp": "2026-09-03T05:30:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "EXIT",
+                "reason": "NO_POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_AT_90CI",
+                "stateBucket": "WINNER_PROTECTION",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": 3.141361256544495,
+                  "bestReturnPct": 3.4904013961605695,
+                  "givebackPctPoints": 0.3490401396160747,
+                  "atrPct": 2.821407795229785,
+                  "momentumPct": 4.294117647058826,
+                  "bodyPressure": 0.47619047619047616,
+                  "directionalRangePos": 0.9387755102040817,
+                  "elapsedBars": 4
+                },
+                "bestHorizonBars": 1,
+                "bestUpper90Pct": -0.06265915971300275,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.1788806209122798,
+                    "standardErrorPct": 0.07065134419408939,
+                    "upper90Pct": -0.06265915971300275,
+                    "downsideProbability": 0.5
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 70,
+                    "expectedDirectionalReturnPct": -0.5009085315277341,
+                    "standardErrorPct": 0.10469854472687658,
+                    "upper90Pct": -0.3286794254520221,
+                    "downsideProbability": 0.7714285714285715
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 70,
+                    "expectedDirectionalReturnPct": -0.45685166146567663,
+                    "standardErrorPct": 0.13567671588617375,
+                    "upper90Pct": -0.2336634638329208,
+                    "downsideProbability": 0.6
+                  }
+                ],
+                "nearestDistance": 0.3743961747273871,
+                "furthestDistance": 0.7978791464596519,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_WINNER_CONTINUE",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "WINNER_PROTECTION",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": -0.1788806209122798,
+                  "standardErrorPct": 0.07065134419408939,
+                  "upper90Pct": -0.06265915971300275,
+                  "downsideProbability": 0.5
+                }
+              },
+              "currentReturnPct": 3.141361256544495,
+              "mfePct": 3.4904013961605695,
+              "captureRatio": 0.8999999999999949
+            },
+            {
+              "timestamp": "2026-09-03T05:35:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "WINNER_PROTECTION",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": 3.4904013961605695,
+                  "bestReturnPct": 3.4904013961605695,
+                  "givebackPctPoints": 0,
+                  "atrPct": 2.3734729493891793,
+                  "momentumPct": 1.9484240687679177,
+                  "bodyPressure": 0.7,
+                  "directionalRangePos": 1,
+                  "elapsedBars": 5
+                },
+                "bestHorizonBars": 1,
+                "bestUpper90Pct": 0.14985260137908638,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.047133979851330936,
+                    "standardErrorPct": 0.06244293101991213,
+                    "upper90Pct": 0.14985260137908638,
+                    "downsideProbability": 0.4125
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.1539141925515292,
+                    "standardErrorPct": 0.07294928623236158,
+                    "upper90Pct": -0.03391261669929439,
+                    "downsideProbability": 0.5375
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.3587002380820105,
+                    "standardErrorPct": 0.06039080926818778,
+                    "upper90Pct": -0.2593573568358416,
+                    "downsideProbability": 0.85
+                  }
+                ],
+                "nearestDistance": 0.4198359318284609,
+                "furthestDistance": 0.7798343726007629,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_WINNER_CONTINUE",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "WINNER_PROTECTION",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.047133979851330936,
+                  "standardErrorPct": 0.06244293101991213,
+                  "upper90Pct": 0.14985260137908638,
+                  "downsideProbability": 0.4125
+                }
+              },
+              "currentReturnPct": 3.4904013961605695,
+              "mfePct": 3.4904013961605695,
+              "captureRatio": 1
+            },
+            {
+              "timestamp": "2026-09-03T05:40:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "WINNER_PROTECTION",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": 3.4904013961605695,
+                  "bestReturnPct": 3.4904013961605695,
+                  "givebackPctPoints": 0,
+                  "atrPct": 2.0166763622261006,
+                  "momentumPct": 0.8503401360544283,
+                  "bodyPressure": 0,
+                  "directionalRangePos": 1,
+                  "elapsedBars": 6
+                },
+                "bestHorizonBars": 1,
+                "bestUpper90Pct": 0.14276410477509416,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.05836222874370121,
+                    "standardErrorPct": 0.05130813132607474,
+                    "upper90Pct": 0.14276410477509416,
+                    "downsideProbability": 0.3875
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.06603619303799546,
+                    "standardErrorPct": 0.043124971804578076,
+                    "upper90Pct": 0.13697677165652639,
+                    "downsideProbability": 0.375
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.15947273554947672,
+                    "standardErrorPct": 0.07404403492642841,
+                    "upper90Pct": -0.03767029809550197,
+                    "downsideProbability": 0.8125
+                  }
+                ],
+                "nearestDistance": 0.6752382358019118,
+                "furthestDistance": 0.9760360993925471,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_WINNER_CONTINUE",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "WINNER_PROTECTION",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.05836222874370121,
+                  "standardErrorPct": 0.05130813132607474,
+                  "upper90Pct": 0.14276410477509416,
+                  "downsideProbability": 0.3875
+                }
+              },
+              "currentReturnPct": 3.4904013961605695,
+              "mfePct": 3.4904013961605695,
+              "captureRatio": 1
+            },
+            {
+              "timestamp": "2026-09-03T06:30:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "WINNER_PROTECTION",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": 3.4904013961605695,
+                  "bestReturnPct": 3.4904013961605695,
+                  "givebackPctPoints": 0,
+                  "atrPct": 1.7285797390509432,
+                  "momentumPct": 0.33840947546530664,
+                  "bodyPressure": 0,
+                  "directionalRangePos": 1,
+                  "elapsedBars": 7
+                },
+                "bestHorizonBars": 3,
+                "bestUpper90Pct": 0.16621410350967775,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.03184851982538123,
+                    "standardErrorPct": 0.033136927983222146,
+                    "upper90Pct": 0.08635876635778165,
+                    "downsideProbability": 0.3125
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.1060788490161163,
+                    "standardErrorPct": 0.036556385710371696,
+                    "upper90Pct": 0.16621410350967775,
+                    "downsideProbability": 0.375
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.05151418083575179,
+                    "standardErrorPct": 0.06872814682658163,
+                    "upper90Pct": 0.06154362069397499,
+                    "downsideProbability": 0.775
+                  }
+                ],
+                "nearestDistance": 0.7093014949380907,
+                "furthestDistance": 1.007780684114221,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_WINNER_CONTINUE",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "WINNER_PROTECTION",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.03184851982538123,
+                  "standardErrorPct": 0.033136927983222146,
+                  "upper90Pct": 0.08635876635778165,
+                  "downsideProbability": 0.3125
+                }
+              },
+              "currentReturnPct": 3.4904013961605695,
+              "mfePct": 3.4904013961605695,
+              "captureRatio": 1
+            }
+          ],
+          "methodology": {
+            "candidateFamily": "STRUCTURAL_RISK_TRAJECTORY_EXIT_V4",
+            "inheritedAnalogCutoff": "2026-08-12",
+            "firstFreshEligibleDate": "2026-09-01",
+            "developmentEvidence": {
+              "august31PartialRole": "FAILURE_ANALYSIS_ONLY",
+              "august31UsedForThresholdSearch": false,
+              "august31UsedForCoefficientSearch": false,
+              "august31EligibleForV4PerformanceClaim": false
+            },
+            "loserRisk": {
+              "rule": "Require causal analog edge rejection plus non-improving downside trajectory before rescue; emergency deterioration may exit on the first structurally confirmed bar.",
+              "upper90MaxPct": 0,
+              "downsideProbabilityMin": 0.5,
+              "trajectoryBars": 2,
+              "emergencyAdverseExcursionMultiple": 1.5
+            },
+            "winnerProtection": {
+              "rule": "Protect only an established winner after causal edge rejection and at least half of observed MFE has been given back; require two confirmations.",
+              "minimumPositiveMfe": true,
+              "maxCaptureRatio": 0.5,
+              "consecutiveConfirmations": 2
+            },
+            "neutralRisk": {
+              "rule": "Neutral state stays HOLD unless directional close deterioration persists for three consecutive managed bars.",
+              "consecutiveDirectionalLossBars": 3
+            },
+            "fixedBaselineUntouched": true,
+            "sameFrozenEntryAsV3": true,
+            "entryRetuningAllowed": false,
+            "universeRetuningAllowed": false,
+            "resultBasedRetuning": false,
+            "freshOutcomeUsedForFitting": false,
+            "promotionEligible": false
+          },
+          "safety": {
+            "executionAllowed": false,
+            "brokerWriteAllowed": false,
+            "excelOrderWriteAllowed": false,
+            "rssOrderFunctionAllowed": false,
+            "liveTradingAllowed": false,
+            "paperTradingAllowed": false,
+            "automaticPromotionAllowed": false,
+            "productionUpdateAllowed": false,
+            "transmitted": false,
+            "freshHoldoutConsumed": false
+          }
+        },
+        "deltaNetReturnPct": 0
+      },
+      {
+        "key": "2026-09-03|2026-09-03T05:10:00.000Z|4667.T",
+        "sessionDate": "2026-09-03",
+        "symbol": "4667.T",
+        "variantMemberships": [
+          "DYNAMIC_30",
+          "DYNAMIC_40",
+          "DYNAMIC_50"
+        ],
+        "fixed": {
+          "entryAccepted": true,
+          "symbol": "4667.T",
+          "sessionDate": "2026-09-03",
+          "entryTimestamp": "2026-09-03T05:10:00.000Z",
+          "featureCutoff": "2026-09-03T05:10:00.000Z",
+          "signalDirection": 1,
+          "direction": "LONG",
+          "baseHorizonBars": 12,
+          "confidence": 0.6831369709964037,
+          "probability": 0.6831369709964037,
+          "selectedFeatureFamily": "MOMENTUM",
+          "selectedModelType": "LOGISTIC_REGRESSION",
+          "selectedConfigId": "LOGIT",
+          "selectedThreshold": 0.6,
+          "modelId": "phase57-p21-prospective-logit-h12",
+          "artifactSha256": "513ec4bdec63226e0d83e895d0df50dd7ed66780df96bdb9bd808fc976a0c672",
+          "sector": "情報・通信業",
+          "variantMemberships": [
+            "DYNAMIC_30",
+            "DYNAMIC_40",
+            "DYNAMIC_50"
+          ],
+          "outcomePending": false,
+          "frozenBeforeOutcome": true,
+          "currentOutcomeUsed": false,
+          "entryPrice": 3505,
+          "barsHeld": 12,
+          "exitTimestamp": "2026-09-03T06:10:00.000Z",
+          "exitPrice": 3560,
+          "exitReason": "FROZEN_HORIZON",
+          "horizonTruncatedAtSessionEnd": false,
+          "grossReturnPct": 1.5691868758915817,
+          "alignedReturnPct": 1.5691868758915817,
+          "netReturnPct": 1.5191868758915816,
+          "hit": true,
+          "timeBucket": "14:00-15:30",
+          "regime": "UNKNOWN",
+          "outcomeStatus": "FROZEN_FIXED_HORIZON_RESOLVED"
+        },
+        "v4": {
+          "exitTimestamp": "2026-09-03T05:20:00.000Z",
+          "exitPrice": 3500,
+          "exitReason": "V4_CONFIRMED_DOWNSIDE_TRAJECTORY",
+          "barsHeld": 2,
+          "grossReturnPct": -0.14265335235378318,
+          "netReturnPct": -0.19265335235378317,
+          "mfePct": 2.2824536376604865,
+          "maePct": -3.566333808844513,
+          "givebackPct": 2.4251069900142697,
+          "captureRatio": -0.06250000000000122,
+          "policySha256": "2d512dd810d057807bc59a0138a3db98035e57ff2c23c186ba096beeb6be26cb",
+          "managementDecisions": [
+            {
+              "timestamp": "2026-09-03T05:15:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -1.7118402282453649,
+                  "bestReturnPct": 2.2824536376604865,
+                  "givebackPctPoints": 3.9942938659058513,
+                  "atrPct": 5.848787446504993,
+                  "momentumPct": 0,
+                  "bodyPressure": -0.2926829268292683,
+                  "directionalRangePos": 0.3170731707317073,
+                  "elapsedBars": 1
+                },
+                "bestHorizonBars": 6,
+                "bestUpper90Pct": 0.28225965511288986,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": 0.06897869641231927,
+                    "standardErrorPct": 0.07315719083021116,
+                    "upper90Pct": 0.18932227532801663,
+                    "downsideProbability": 0.475
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 78,
+                    "expectedDirectionalReturnPct": 0.030352789315571168,
+                    "standardErrorPct": 0.12181433682031272,
+                    "upper90Pct": 0.2307373733849856,
+                    "downsideProbability": 0.5256410256410257
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 78,
+                    "expectedDirectionalReturnPct": 0.030303090602812468,
+                    "standardErrorPct": 0.1531650848085577,
+                    "upper90Pct": 0.28225965511288986,
+                    "downsideProbability": 0.48717948717948717
+                  }
+                ],
+                "nearestDistance": 0.6829667729370598,
+                "furthestDistance": 1.2836445632944862,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "HOLD",
+                "reason": "V4_LOSER_RISK_NOT_CONFIRMED",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": 0.06897869641231927,
+                  "standardErrorPct": 0.07315719083021116,
+                  "upper90Pct": 0.18932227532801663,
+                  "downsideProbability": 0.475
+                },
+                "downsideHistory": [
+                  0.475
+                ]
+              },
+              "currentReturnPct": -1.7118402282453649,
+              "mfePct": 2.2824536376604865,
+              "captureRatio": -0.75
+            },
+            {
+              "timestamp": "2026-09-03T05:20:00.000Z",
+              "baseScore": {
+                "ready": true,
+                "decision": "HOLD",
+                "reason": "POSITIVE_STATE_CONDITIONED_REMAINING_EDGE_NOT_REJECTED",
+                "stateBucket": "LOSER_RESCUE",
+                "neighborCount": 80,
+                "state": {
+                  "currentReturnPct": -0.14265335235378318,
+                  "bestReturnPct": 2.2824536376604865,
+                  "givebackPctPoints": 2.4251069900142697,
+                  "atrPct": 4.921540656205421,
+                  "momentumPct": 1.59651669085632,
+                  "bodyPressure": 0.42857142857142855,
+                  "directionalRangePos": 0.5853658536585366,
+                  "elapsedBars": 2
+                },
+                "bestHorizonBars": 3,
+                "bestUpper90Pct": 0.03765866544302919,
+                "horizonScores": [
+                  {
+                    "horizonBars": 1,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.09899046953010444,
+                    "standardErrorPct": 0.05901374418757462,
+                    "upper90Pct": -0.0019128603415441842,
+                    "downsideProbability": 0.65
+                  },
+                  {
+                    "horizonBars": 3,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.11513844157597024,
+                    "standardErrorPct": 0.0928857793428568,
+                    "upper90Pct": 0.03765866544302919,
+                    "downsideProbability": 0.5875
+                  },
+                  {
+                    "horizonBars": 6,
+                    "n": 80,
+                    "expectedDirectionalReturnPct": -0.25411875676176565,
+                    "standardErrorPct": 0.12831344708579526,
+                    "upper90Pct": -0.043043136305632446,
+                    "downsideProbability": 0.6
+                  }
+                ],
+                "nearestDistance": 1.0416913502353489,
+                "furthestDistance": 1.2701370478133829,
+                "policySha256": "127a7ba21698605836e5c4e0c0ad38f0f9d5e743a7e0c708a56a600745f09ace"
+              },
+              "gate": {
+                "decision": "EXIT",
+                "reason": "V4_CONFIRMED_DOWNSIDE_TRAJECTORY",
+                "neutralLossStreak": 0,
+                "winnerExitStreak": 0,
+                "stateBucket": "LOSER_RESCUE",
+                "horizon1": {
+                  "horizonBars": 1,
+                  "n": 80,
+                  "expectedDirectionalReturnPct": -0.09899046953010444,
+                  "standardErrorPct": 0.05901374418757462,
+                  "upper90Pct": -0.0019128603415441842,
+                  "downsideProbability": 0.65
+                },
+                "downsideHistory": [
+                  0.475,
+                  0.65
+                ]
+              },
+              "currentReturnPct": -0.14265335235378318,
+              "mfePct": 2.2824536376604865,
+              "captureRatio": -0.06250000000000122
+            }
+          ],
+          "methodology": {
+            "candidateFamily": "STRUCTURAL_RISK_TRAJECTORY_EXIT_V4",
+            "inheritedAnalogCutoff": "2026-08-12",
+            "firstFreshEligibleDate": "2026-09-01",
+            "developmentEvidence": {
+              "august31PartialRole": "FAILURE_ANALYSIS_ONLY",
+              "august31UsedForThresholdSearch": false,
+              "august31UsedForCoefficientSearch": false,
+              "august31EligibleForV4PerformanceClaim": false
+            },
+            "loserRisk": {
+              "rule": "Require causal analog edge rejection plus non-improving downside trajectory before rescue; emergency deterioration may exit on the first structurally confirmed bar.",
+              "upper90MaxPct": 0,
+              "downsideProbabilityMin": 0.5,
+              "trajectoryBars": 2,
+              "emergencyAdverseExcursionMultiple": 1.5
+            },
+            "winnerProtection": {
+              "rule": "Protect only an established winner after causal edge rejection and at least half of observed MFE has been given back; require two confirmations.",
+              "minimumPositiveMfe": true,
+              "maxCaptureRatio": 0.5,
+              "consecutiveConfirmations": 2
+            },
+            "neutralRisk": {
+              "rule": "Neutral state stays HOLD unless directional close deterioration persists for three consecutive managed bars.",
+              "consecutiveDirectionalLossBars": 3
+            },
+            "fixedBaselineUntouched": true,
+            "sameFrozenEntryAsV3": true,
+            "entryRetuningAllowed": false,
+            "universeRetuningAllowed": false,
+            "resultBasedRetuning": false,
+            "freshOutcomeUsedForFitting": false,
+            "promotionEligible": false
+          },
+          "safety": {
+            "executionAllowed": false,
+            "brokerWriteAllowed": false,
+            "excelOrderWriteAllowed": false,
+            "rssOrderFunctionAllowed": false,
+            "liveTradingAllowed": false,
+            "paperTradingAllowed": false,
+            "automaticPromotionAllowed": false,
+            "productionUpdateAllowed": false,
+            "transmitted": false,
+            "freshHoldoutConsumed": false
+          }
+        },
+        "deltaNetReturnPct": -1.7118402282453649
+      }
+    ],
+    "summary": {
+      "pairedCount": 3,
+      "fixed": {
+        "n": 3,
+        "netReturnPct": -0.3058698550478578,
+        "meanNetReturnPct": -0.034779768183170225,
+        "medianNetReturnPct": 1.5191868758915816,
+        "winRate": 0.6666666666666666,
+        "profitFactor": 0.9793955772527988,
+        "maxDrawdownPct": 5.063927576601657
+      },
+      "v4": {
+        "n": 3,
+        "netReturnPct": 2.326760270879946,
+        "meanNetReturnPct": 0.787364482568833,
+        "medianNetReturnPct": -0.19265335235378317,
+        "winRate": 0.3333333333333333,
+        "profitFactor": 3.1905555375836196,
+        "maxDrawdownPct": 0.8856545961002826
+      },
+      "delta": {
+        "meanNetReturnPct": 0.822144250752003,
+        "medianNetReturnPct": 0,
+        "v4BetterCount": 1,
+        "v4WorseCount": 1,
+        "equalCount": 1
+      }
+    },
+    "methodology": {
+      "exactDynamic50Only": true,
+      "sameFrozenEntryAsFixed": true,
+      "fixedBaselineUntouched": true,
+      "developmentCutoff": "2026-08-12",
+      "august31UsedForV4PerformanceClaim": false,
+      "replayOutcomeUsedForFitting": false,
+      "resultBasedRetuning": false,
+      "formalOosEvidence": false,
+      "promotionEligible": false,
+      "freshHoldoutConsumed": false
+    },
+    "safety": {
+      "executionAllowed": false,
+      "brokerWriteAllowed": false,
+      "excelOrderWriteAllowed": false,
+      "rssOrderFunctionAllowed": false,
+      "liveTradingAllowed": false,
+      "paperTradingAllowed": false,
+      "automaticPromotionAllowed": false,
+      "productionUpdateAllowed": false,
+      "transmitted": false,
+      "freshHoldoutConsumed": false,
+      "mode": "PROSPECTIVE_RESEARCH_CHALLENGER_ONLY"
+    }
+  },
+  "methodology": {
+    "exactDynamic50Only": true,
+    "sameFrozenEntryAsFixed": true,
+    "fixedBaselineUntouched": true,
+    "developmentCutoff": "2026-08-12",
+    "august31UsedForV4PerformanceClaim": false,
+    "replayOutcomeUsedForFitting": false,
+    "resultBasedRetuning": false,
+    "formalOosEvidence": false,
+    "promotionEligible": false,
+    "freshHoldoutConsumed": false,
+    "appendOnlyProspective": true
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "freshHoldoutConsumed": false,
+    "mode": "PROSPECTIVE_RESEARCH_CHALLENGER_ONLY"
+  }
+}

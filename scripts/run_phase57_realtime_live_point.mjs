@@ -100,10 +100,12 @@ function parseYahooPrefix(json,symbol){
   if(json?.chart?.error||!result)throw new Error(`Yahoo chart missing for ${symbol}`);
   const ts=Array.isArray(result.timestamp)?result.timestamp:[];
   const q=result.indicators?.quote?.[0]??{};
-  const bars=[];
+  const byTimestamp=new Map();
   for(let i=0;i<ts.length;i++){
+    const rawValues=[q.open?.[i],q.high?.[i],q.low?.[i],q.close?.[i],q.volume?.[i]];
+    if(rawValues.some(v=>v===null||v===undefined||v===''))continue;
     const epoch=Number(ts[i]);
-    const values=[q.open?.[i],q.high?.[i],q.low?.[i],q.close?.[i],q.volume?.[i]].map(Number);
+    const values=rawValues.map(Number);
     if(!Number.isFinite(epoch)||values.some(v=>!Number.isFinite(v)))continue;
     const timestamp=new Date(epoch*1000).toISOString();
     const [open,high,low,close,volume]=values;
@@ -112,10 +114,12 @@ function parseYahooPrefix(json,symbol){
     const hm=jstHm(timestamp);
     if(localDate!==sessionDate||hm<'09:00'||hm>='15:30')continue;
     if(Date.parse(timestamp)+FIVE_MINUTES_MS>atMs)continue;
-    bars.push({timestamp,open,high,low,close,volume});
+    const bar={timestamp,open,high,low,close,volume};
+    const prior=byTimestamp.get(timestamp);
+    if(prior&&JSON.stringify(prior)!==JSON.stringify(bar))throw new Error(`Yahoo conflicting duplicate 5m bar ${symbol} ${timestamp}`);
+    if(!prior)byTimestamp.set(timestamp,bar);
   }
-  bars.sort((a,b)=>a.timestamp.localeCompare(b.timestamp));
-  return bars;
+  return [...byTimestamp.values()].sort((a,b)=>a.timestamp.localeCompare(b.timestamp));
 }
 async function fetchSymbolPrefix(symbol){
   let lastError='no valid Yahoo response';

@@ -62,8 +62,9 @@ export function ensureRealtimePipelineState(state) {
 }
 
 /**
- * One finalized 5-minute research cycle. No order payload is ever created.
- * `marketBars[].bar` timestamps are bar-start S; `at` is the decision time T=S+5m.
+ * One causal finalized 5-minute research cycle. No order payload is ever created.
+ * `marketBars[].bar` timestamps are bar-start S. The observation/decision time T may
+ * include source latency, therefore the latest supplied bar must satisfy S+5m <= T < S+10m.
  * Ordering is fixed: finalized Bars/Features -> Selection -> Frozen Entry -> EXIT existing positions -> Allocation -> Dashboard.
  */
 export function processRealtimeFiveMinutePoint(state, {
@@ -101,8 +102,9 @@ export function processRealtimeFiveMinutePoint(state, {
     if (!symbol) throw new Error("market bar symbol required");
     const barAt = atOf(row?.bar);
     const barStartMs = Date.parse(String(barAt ?? ""));
-    if (!Number.isFinite(barStartMs) || barStartMs + FIVE_MINUTES_MS !== decisionMs) {
-      throw new Error(`finalized market bar must satisfy decisionAt = barStart + 5m for ${symbol}`);
+    const barCloseMs = barStartMs + FIVE_MINUTES_MS;
+    if (!Number.isFinite(barStartMs) || barCloseMs > decisionMs || decisionMs - barCloseMs >= FIVE_MINUTES_MS) {
+      throw new Error(`market bar must be the latest causally finalized 5m bar for ${symbol}`);
     }
     applyMarketFiveMinuteBar(state, { symbol, bar: row.bar });
   }

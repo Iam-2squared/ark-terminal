@@ -30,6 +30,8 @@ export const PHASE57_EXIT_V5_DATASET_POLICY = Object.freeze({
   primaryHorizonBars: 3,
   futureDataAllowedInFeatures: false,
   futureDataAllowedInLabelsOnly: true,
+  sessionAwareSplitRequired: true,
+  boundarySessionTreatment: 'PURGE_ENTIRE_SESSION',
   outerOosRetuningAllowed: false,
   prospectiveRetuningAllowed: false,
   selectorFrozen: true,
@@ -216,10 +218,80 @@ export function buildExitV5Labels({ currentBar, futureBars, direction, horizonsB
   });
 }
 
-export function buildExitV5TrainingSample({ entryPrice, direction, observedBars, futureBars }) {
+export function buildExitV5TrainingSample({
+  entryPrice,
+  direction,
+  observedBars,
+  futureBars,
+  symbol = null,
+  sessionDate = null,
+  entryTimestamp = null,
+}) {
   const features = buildExitV5Features({ entryPrice, direction, observedBars });
   const labels = buildExitV5Labels({ currentBar: observedBars.at(-1), futureBars, direction });
-  return Object.freeze({ features, labels });
+  const provenance = symbol || sessionDate || entryTimestamp
+    ? Object.freeze({
+      symbol: symbol === null ? null : String(symbol),
+      sessionDate: sessionDate === null ? null : String(sessionDate),
+      entryTimestamp: entryTimestamp === null ? null : String(entryTimestamp),
+    })
+    : null;
+  return Object.freeze({ features, labels, ...(provenance ? { provenance } : {}) });
+}
+
+function normalizedDirection(direction) {
+  return directionSign(direction) === 1 ? 'LONG' : 'SHORT';
+}
+
+/**
+ * Materializes one causal training sample per actionable finalized bar of each
+ * outcome-free Frozen Entry. Samples without a complete primary 3-bar label are
+ * omitted; 1/6-bar labels remain optional diagnostics for v5.0.
+ */
+export function buildExitV5TrainingSamplesFromFrozenRows(rows, { minimumObservedBars = 2 } = {}) {
+  if (!Array.isArray(rows)) throw new Error('rows must be an array');
+  if (!Number.isInteger(minimumObservedBars) || minimumObservedBars < 2) throw new Error('minimumObservedBars must be an integer >= 2');
+  const samples = [];
+
+  for (const [rowIndex, row] of rows.entries()) {
+    if (row?.entryAccepted !== true || row?.frozenBeforeOutcome !== true || row?.currentOutcomeUsed !== false) {
+      throw new Error(`rows[${rowIndex}] requires outcome-free frozen Entry`);
+    }
+    if (!(Number(row?.entryPrice) > 0)) throw new Error(`rows[${rowIndex}].entryPrice must be positive`);
+    const direction = normalizedDirection(row?.signalDirection ?? row?.direction);
+    const futureBars = Array.isArray(row?.futureBars) ? row.futureBars : [];
+    if (!futureBars.length) throw new Error(`rows[${rowIndex}].futureBars must contain finalized bars`);
+    futureBars.forEach((bar, barIndex) => assertBar(bar, `rows[${rowIndex}].futureBars[${barIndex}]`));
+    for (let barIndex = 1; barIndex < futureBars.length; barIndex += 1) {
+      if (Date.parse(futureBars[barIndex].timestamp) <= Date.parse(futureBars[barIndex - 1].timestamp)) {
+        throw new Error(`rows[${rowIndex}].futureBars timestamps must be strictly increasing`);
+      }
+    }
+
+    for (let currentIndex = minimumObservedBars - 1; currentIndex < futureBars.length; currentIndex += 1) {
+      const observedBars = futureBars.slice(0, currentIndex + 1);
+      const futureAfterCurrent = futureBars.slice(currentIndex + 1);
+      if (!futureAfterCurrent[PHASE57_EXIT_V5_DATASET_POLICY.primaryHorizonBars - 1]) continue;
+      samples.push(buildExitV5TrainingSample({
+        entryPrice: Number(row.entryPrice),
+        direction,
+        observedBars,
+        futureBars: futureAfterCurrent,
+        symbol: row.symbol,
+        sessionDate: row.sessionDate,
+        entryTimestamp: row.entryTimestamp,
+      }));
+    }
+  }
+
+  samples.sort((left, right) => {
+    const byTime = String(left.features.featureAt).localeCompare(String(right.features.featureAt));
+    if (byTime) return byTime;
+    const leftKey = `${left.provenance?.sessionDate ?? ''}|${left.provenance?.symbol ?? ''}|${left.provenance?.entryTimestamp ?? ''}`;
+    const rightKey = `${right.provenance?.sessionDate ?? ''}|${right.provenance?.symbol ?? ''}|${right.provenance?.entryTimestamp ?? ''}`;
+    return leftKey.localeCompare(rightKey);
+  });
+  return Object.freeze(samples);
 }
 
 function parseBoundary(value, name) {
@@ -240,24 +312,52 @@ export function buildPurgedExitV5Split(samples, { developmentEnd, validationEnd,
 
   const result = { development: [], validation: [], oos: [], prospective: [], purged: [] };
   const ordered = [...samples].sort((a, b) => Date.parse(a.features.featureAt) - Date.parse(b.features.featureAt));
+  const staged = [];
 
   for (const sample of ordered) {
     const at = parseBoundary(sample.features.featureAt, 'featureAt');
     const through = parseBoundary(sample.labels.labelThrough, 'labelThrough');
     if (through < at) throw new Error('labelThrough cannot precede featureAt');
 
-    if (at <= devEnd) {
-      (through <= devEnd ? result.development : result.purged).push(sample);
-    } else if (at <= valEnd) {
-      (through <= valEnd ? result.validation : result.purged).push(sample);
-    } else if (at <= outEnd) {
-      (through <= outEnd ? result.oos : result.purged).push(sample);
-    } else {
-      result.prospective.push(sample);
-    }
+    let splitName;
+    if (at <= devEnd) splitName = through <= devEnd ? 'development' : 'purged';
+    else if (at <= valEnd) splitName = through <= valEnd ? 'validation' : 'purged';
+    else if (at <= outEnd) splitName = through <= outEnd ? 'oos' : 'purged';
+    else splitName = 'prospective';
+    const explicitSession = sample?.provenance?.sessionDate ?? sample?.sessionDate ?? sample?.features?.sessionDate;
+    const sessionKey = String(explicitSession ?? new Date(at).toISOString().slice(0, 10));
+    staged.push({ sample, splitName, sessionKey });
   }
 
-  return Object.freeze(Object.fromEntries(Object.entries(result).map(([key, value]) => [key, Object.freeze(value)])));
+  const sessionAssignments = new Map();
+  for (const item of staged) {
+    if (!sessionAssignments.has(item.sessionKey)) sessionAssignments.set(item.sessionKey, new Set());
+    sessionAssignments.get(item.sessionKey).add(item.splitName);
+  }
+  const boundarySessions = new Set([...sessionAssignments.entries()]
+    .filter(([, assignments]) => assignments.size > 1 || assignments.has('purged'))
+    .map(([sessionKey]) => sessionKey));
+
+  for (const item of staged) {
+    const destination = boundarySessions.has(item.sessionKey) ? 'purged' : item.splitName;
+    result[destination].push(item.sample);
+  }
+
+  return Object.freeze({
+    ...Object.fromEntries(Object.entries(result).map(([key, value]) => [key, Object.freeze(value)])),
+    splitPolicy: Object.freeze({
+      chronological: true,
+      labelBoundaryPurged: true,
+      sessionAware: true,
+      boundarySessionTreatment: PHASE57_EXIT_V5_DATASET_POLICY.boundarySessionTreatment,
+      purgedSessionKeys: Object.freeze([...boundarySessions].sort()),
+    }),
+    boundaries: Object.freeze({
+      developmentEnd: new Date(devEnd).toISOString(),
+      validationEnd: new Date(valEnd).toISOString(),
+      oosEnd: new Date(outEnd).toISOString(),
+    }),
+  });
 }
 
 export function assertExitV5ResearchSafety() {

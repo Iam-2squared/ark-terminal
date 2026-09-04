@@ -7,6 +7,7 @@ import {
   buildExitV5Features,
   buildExitV5Labels,
   buildExitV5TrainingSample,
+  buildExitV5TrainingSamplesFromFrozenRows,
   buildPurgedExitV5Split,
 } from '../daytrade/phase57-exit-v5-continuation-dataset.js';
 
@@ -31,8 +32,9 @@ function futures(last = 104) {
   return [bar(5, 102), bar(6, 103), bar(7, last), bar(8, 105), bar(9, 106), bar(10, 107)];
 }
 
-function sampleAt(featureAt, labelThrough) {
+function sampleAt(featureAt, labelThrough, sessionDate = featureAt.slice(0, 10)) {
   return {
+    provenance: { sessionDate },
     features: { featureAt },
     labels: { labelThrough, incrementalLiquidationReturnPctByHorizon: { 3: 0.1 } },
   };
@@ -71,17 +73,41 @@ test('changing future labels cannot alter features at t', () => {
   assert.notDeepEqual(before.labels, after.labels);
 });
 
+test('frozen Entry rows materialize causal per-bar samples only when the primary label is complete', () => {
+  const row = {
+    entryAccepted: true,
+    frozenBeforeOutcome: true,
+    currentOutcomeUsed: false,
+    symbol: '7203.T',
+    sessionDate: '2026-09-03',
+    entryTimestamp: '2026-09-03T00:00:00.000Z',
+    entryPrice: 100,
+    direction: 'LONG',
+    futureBars: [...observed(), ...futures()],
+  };
+  const samples = buildExitV5TrainingSamplesFromFrozenRows([row]);
+  assert.equal(samples.length, row.futureBars.length - 4);
+  assert.equal(samples[0].provenance.symbol, '7203.T');
+  assert.equal(samples[0].provenance.sessionDate, '2026-09-03');
+  assert.equal(samples[0].features.featureAt, row.futureBars[1].timestamp);
+  assert.ok(Number.isFinite(samples[0].labels.incrementalLiquidationReturnPctByHorizon[3]));
+  assert.throws(
+    () => buildExitV5TrainingSamplesFromFrozenRows([{ ...row, currentOutcomeUsed: true }]),
+    /outcome-free frozen Entry/,
+  );
+});
+
 test('purged split rejects samples whose forward label window crosses a boundary', () => {
   const devEnd = '2026-09-03T01:00:00.000Z';
   const valEnd = '2026-09-03T02:00:00.000Z';
   const oosEnd = '2026-09-03T03:00:00.000Z';
   const samples = [
-    sampleAt('2026-09-03T00:30:00.000Z', '2026-09-03T00:45:00.000Z'),
-    sampleAt('2026-09-03T00:55:00.000Z', '2026-09-03T01:10:00.000Z'),
-    sampleAt('2026-09-03T01:10:00.000Z', '2026-09-03T01:25:00.000Z'),
-    sampleAt('2026-09-03T01:55:00.000Z', '2026-09-03T02:10:00.000Z'),
-    sampleAt('2026-09-03T02:10:00.000Z', '2026-09-03T02:25:00.000Z'),
-    sampleAt('2026-09-03T03:10:00.000Z', '2026-09-03T03:25:00.000Z'),
+    sampleAt('2026-09-03T00:30:00.000Z', '2026-09-03T00:45:00.000Z', 'SESSION_A'),
+    sampleAt('2026-09-03T00:55:00.000Z', '2026-09-03T01:10:00.000Z', 'SESSION_B'),
+    sampleAt('2026-09-03T01:10:00.000Z', '2026-09-03T01:25:00.000Z', 'SESSION_C'),
+    sampleAt('2026-09-03T01:55:00.000Z', '2026-09-03T02:10:00.000Z', 'SESSION_D'),
+    sampleAt('2026-09-03T02:10:00.000Z', '2026-09-03T02:25:00.000Z', 'SESSION_E'),
+    sampleAt('2026-09-03T03:10:00.000Z', '2026-09-03T03:25:00.000Z', 'SESSION_F'),
   ];
   const split = buildPurgedExitV5Split(samples, { developmentEnd: devEnd, validationEnd: valEnd, oosEnd });
   assert.equal(split.development.length, 1);
@@ -89,6 +115,25 @@ test('purged split rejects samples whose forward label window crosses a boundary
   assert.equal(split.oos.length, 1);
   assert.equal(split.prospective.length, 1);
   assert.equal(split.purged.length, 2);
+  assert.equal(split.splitPolicy.sessionAware, true);
+  assert.equal(split.splitPolicy.boundarySessionTreatment, 'PURGE_ENTIRE_SESSION');
+});
+
+test('session-aware split purges an entire session rather than placing it in two partitions', () => {
+  const split = buildPurgedExitV5Split([
+    sampleAt('2026-09-03T00:30:00.000Z', '2026-09-03T00:40:00.000Z', 'BOUNDARY_SESSION'),
+    sampleAt('2026-09-03T01:10:00.000Z', '2026-09-03T01:20:00.000Z', 'BOUNDARY_SESSION'),
+    sampleAt('2026-09-03T02:10:00.000Z', '2026-09-03T02:20:00.000Z', 'SAFE_OOS_SESSION'),
+  ], {
+    developmentEnd: '2026-09-03T01:00:00.000Z',
+    validationEnd: '2026-09-03T02:00:00.000Z',
+    oosEnd: '2026-09-03T03:00:00.000Z',
+  });
+  assert.equal(split.development.length, 0);
+  assert.equal(split.validation.length, 0);
+  assert.equal(split.oos.length, 1);
+  assert.equal(split.purged.length, 2);
+  assert.deepEqual(split.splitPolicy.purgedSessionKeys, ['BOUNDARY_SESSION']);
 });
 
 test('v5 research safety remains fully non-executing', () => {

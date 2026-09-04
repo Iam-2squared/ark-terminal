@@ -57,6 +57,12 @@ test('harness rejects shuffled/non-chronological samples and development evaluat
   assert.throws(() => scoreExitV5Split([sample(20, 0.2)], model, { splitName: 'development' }), /validation, oos, or prospective/);
 });
 
+test('same-timestamp samples from different symbols are valid chronological development observations', () => {
+  const model = fitExitV5DevelopmentBaseline([sample(5, -0.1), sample(5, 0.3)]);
+  assert.equal(model.sampleCount, 2);
+  assert.ok(Math.abs(model.meanIncrementalReturnPct - 0.1) < 1e-12);
+});
+
 test('walk-forward harness never auto-promotes research output', () => {
   const split = Object.freeze({
     development: Object.freeze([sample(5, -0.3), sample(10, 0.4)]),

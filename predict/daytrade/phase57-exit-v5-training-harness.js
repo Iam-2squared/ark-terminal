@@ -28,8 +28,8 @@ function assertChronological(samples, label) {
   for (let i = 1; i < samples.length; i += 1) {
     const prev = Date.parse(samples[i - 1]?.features?.featureAt);
     const next = Date.parse(samples[i]?.features?.featureAt);
-    if (!Number.isFinite(prev) || !Number.isFinite(next) || next <= prev) {
-      throw new Error(`${label} samples must be strictly chronological`);
+    if (!Number.isFinite(prev) || !Number.isFinite(next) || next < prev) {
+      throw new Error(`${label} samples must be chronological`);
     }
   }
 }

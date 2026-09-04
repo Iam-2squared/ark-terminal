@@ -102,7 +102,7 @@ test('changing bars strictly after both exits changes evaluation diagnostics but
   assert.equal(favorable.v4.exitTimestamp, adverse.v4.exitTimestamp);
   assert.equal(favorable.v3.netReturnPct, adverse.v3.netReturnPct);
   assert.equal(favorable.v4.netReturnPct, adverse.v4.netReturnPct);
-  assert.notDeepEqual(favorable.v3.postExitWindows, adverse.v3.postExitWindows);
+  assert.notDeepEqual(favorable.v4.postExitWindows, adverse.v4.postExitWindows);
 });
 
 test('aggregate diagnostics report model metrics and paired deltas without promotion or execution', () => {

@@ -57,7 +57,7 @@ function canonical(value) {
 }
 
 function sha256(value) {
-  return createHash("sha256").update(JSON.stringify(canonical(value))).digest("hex");
+  return createHash("node:crypto").update(JSON.stringify(canonical(value))).digest("hex");
 }
 
 function normalizeBar(bar) {
@@ -326,6 +326,7 @@ export function applyRealtimeExitBar(sessionState, {
     for (const symbol of Object.keys(strategy.positions).sort()) openAtStart.push({ strategyId, symbol });
   }
   const evaluated = [];
+  const skipped = [];
   const closed = [];
   for (const { strategyId, symbol } of openAtStart) {
     const strategy = sessionState.strategies[strategyId];
@@ -333,7 +334,11 @@ export function applyRealtimeExitBar(sessionState, {
     if (!position || position.status !== POSITION_STATUS.OPEN) continue;
     if (atMs <= ms(position.entryTimestamp, "position Entry timestamp")) continue;
     const source = barFor(normalizedBars, symbol);
-    if (!source) throw new Error(`missing finalized EXIT bar for open position ${strategyId}/${symbol}`);
+    if (!source) {
+      if (sessionEnd === true) throw new Error(`missing finalized EXIT bar at session end for open position ${strategyId}/${symbol}`);
+      skipped.push(Object.freeze({ strategyId, symbol, decision: "NO_OBSERVATION", reason: "NO_FINALIZED_BAR" }));
+      continue;
+    }
     const bar = normalizeBar(source);
     const model = exitModelForStrategy(strategyId);
     const advanced = advanceExitState({ position, model, bar, analogPool });
@@ -368,6 +373,7 @@ export function applyRealtimeExitBar(sessionState, {
     at,
     requestSha256,
     evaluated: Object.freeze(evaluated),
+    skipped: Object.freeze(skipped),
     closed: Object.freeze(closed),
     sessionEnd: sessionEnd === true,
     safety: SAFETY,
@@ -380,6 +386,7 @@ export function applyRealtimeExitBar(sessionState, {
     type: "REALTIME_EXIT_EVALUATION_COMMITTED",
     requestSha256,
     evaluatedPositionCount: evaluated.length,
+    skippedPositionCount: skipped.length,
     closedPositionIds: closed.map((position) => position.positionId),
   });
   return result;

@@ -19,7 +19,9 @@ $outputDir=Join-Path $sessionRoot 'lane-m-output'
 $laneMState=Join-Path $outputDir 'full-session-state.json'
 New-Item -ItemType Directory -Force -Path $sessionRoot,$rawDir,$outputDir | Out-Null
 
-# Start from the next JPX 5-minute decision bucket after this launcher is invoked.
+# Standard late-start mode. Collection starts at the next JPX 5-minute decision bucket
+# after invocation. Earlier same-day raw/envelopes are skipped for Lane M evidence instead
+# of being converted into missing-evidence blocks. This cohort stays separate from FULL_FRESH.
 $startAt=[DateTimeOffset]::Now.ToString('o')
 & $Python 'tools/phase57_msii_prepare_mid_session.py' `
   '--raw-dir' $rawDir `

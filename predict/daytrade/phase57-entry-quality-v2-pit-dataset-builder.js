@@ -9,6 +9,7 @@ import {
   buildEntryQualityV2PairedDataset,
 } from './phase57-entry-quality-v2-paired-dataset.js';
 import {
+  sliceEntryV2DailyArchivePriorToAsOf,
   buildEntryV2PriorDailyHistoryFeed,
 } from './phase57-entry-quality-v2-daily-history-feed.js';
 
@@ -64,13 +65,14 @@ function sortBaselineEntries(entries) {
 function resolveDailyInput({ dailyBarsBySymbol, dailyRecordsBySymbol, symbol, asOf }) {
   const rawRecords = sourceRows(dailyRecordsBySymbol, symbol);
   if (Array.isArray(rawRecords) && rawRecords.length) {
-    const feed = buildEntryV2PriorDailyHistoryFeed({ symbol, asOf, records: rawRecords });
+    const archiveSlice = sliceEntryV2DailyArchivePriorToAsOf({ symbol, asOf, records: rawRecords });
+    const feed = buildEntryV2PriorDailyHistoryFeed({ symbol, asOf, records: archiveSlice.records });
     return Object.freeze({
       bars: feed.bars,
-      lineage: feed.lineage,
+      lineage: Object.freeze({ ...feed.lineage, archiveSlice: archiveSlice.lineage }),
       sourceFingerprintSha256: feed.sourceFingerprintSha256,
       retainedBarsFingerprintSha256: feed.retainedBarsFingerprintSha256,
-      mode: 'PERSISTED_DAILY_RECORDS_RESOLVED_PER_ENTRY',
+      mode: 'PERSISTED_DAILY_ARCHIVE_RESOLVED_PER_ENTRY',
     });
   }
 
@@ -86,16 +88,9 @@ function resolveDailyInput({ dailyBarsBySymbol, dailyRecordsBySymbol, symbol, as
 
 /**
  * Build a leakage-separated paired research dataset from already-frozen P21 Entry candidates.
- *
- * Critical invariant: NEW research intraday features are built from baselineEntry.contextBars,
- * not from an independently fetched intraday series. This makes the OLD/NEW current market
- * data prefix identical by construction.
- *
- * Daily context may be supplied as persisted Phase50/Phase45 records. When records are supplied,
- * the prior-session prefix is resolved separately for every Entry timestamp, preventing a later
- * session's daily bar from leaking into an earlier candidate in a multi-day dataset. Prebuilt
- * dailyBarsBySymbol remains as a compatibility path and is still checked by the strict PIT layer.
- * Future bars are used only by the offline label builder after the feature vector is frozen.
+ * NEW intraday features use baselineEntry.contextBars exactly. Persisted daily archives are
+ * sliced independently at every Entry timestamp with an auditable sessionDate rule before the
+ * strict prior-session feed is built. Future path labels are created only after feature freeze.
  */
 export function buildEntryV2StrictPitPairedDataset({
   baselineEntries = [],
@@ -110,15 +105,9 @@ export function buildEntryV2StrictPitPairedDataset({
   roundTripCostBps = 0,
   horizonsBars = [1, 2, 3, 6, 12],
 } = {}) {
-  if (!Array.isArray(baselineEntries) || !baselineEntries.length) {
-    throw new Error('ENTRY_V2_BUILDER_BASELINE_ENTRIES_REQUIRED');
-  }
-  if (!fixedExitId || !fixedCapitalAllocationId) {
-    throw new Error('ENTRY_V2_BUILDER_FIXED_EXPERIMENT_IDS_REQUIRED');
-  }
-  if (!costAssumptions || typeof costAssumptions !== 'object') {
-    throw new Error('ENTRY_V2_BUILDER_COST_ASSUMPTIONS_REQUIRED');
-  }
+  if (!Array.isArray(baselineEntries) || !baselineEntries.length) throw new Error('ENTRY_V2_BUILDER_BASELINE_ENTRIES_REQUIRED');
+  if (!fixedExitId || !fixedCapitalAllocationId) throw new Error('ENTRY_V2_BUILDER_FIXED_EXPERIMENT_IDS_REQUIRED');
+  if (!costAssumptions || typeof costAssumptions !== 'object') throw new Error('ENTRY_V2_BUILDER_COST_ASSUMPTIONS_REQUIRED');
 
   const previousIntradayBySymbol = new Map();
   const pairedRows = [];
@@ -127,16 +116,10 @@ export function buildEntryV2StrictPitPairedDataset({
     assertBaselineEntry(baselineEntry);
     const symbol = sym(baselineEntry.symbol);
     if (!symbol) throw new Error('ENTRY_V2_BUILDER_SYMBOL_REQUIRED');
-
     const asOf = baselineEntry.entryTimestamp;
     const market = keyed(marketByEntryTimestamp, asOf, {});
     const universe = keyed(universeBySymbol, symbol, {});
-    const dailyInput = resolveDailyInput({
-      dailyBarsBySymbol,
-      dailyRecordsBySymbol,
-      symbol,
-      asOf,
-    });
+    const dailyInput = resolveDailyInput({ dailyBarsBySymbol, dailyRecordsBySymbol, symbol, asOf });
 
     const researchVector = buildStrictPointInTimeEntryV2ResearchVector({
       symbol,
@@ -147,12 +130,10 @@ export function buildEntryV2StrictPitPairedDataset({
       universe,
       previousIntradayContext: previousIntradayBySymbol.get(symbol) ?? null,
     });
-
     if (researchVector.pointInTime?.strict !== true || researchVector.pointInTime?.futureOutcomeUsed !== false) {
       throw new Error('ENTRY_V2_BUILDER_PIT_ATTESTATION_FAILED');
     }
 
-    // Only after the current feature vector is frozen do we construct future path labels.
     const pathLabels = buildEntryQualityV2PathLabels({
       entryTimestamp: asOf,
       entryPrice: baselineEntry.entryPrice,
@@ -203,7 +184,4 @@ export function buildEntryV2StrictPitPairedDataset({
   });
 }
 
-export default {
-  ENTRY_V2_PIT_DATASET_POLICY,
-  buildEntryV2StrictPitPairedDataset,
-};
+export default { ENTRY_V2_PIT_DATASET_POLICY, buildEntryV2StrictPitPairedDataset };

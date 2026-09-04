@@ -65,7 +65,10 @@ function QuoteArg([string]$Value) {
   return '"' + ($Value -replace '(\\*)"','$1$1\"' -replace '(\\+)$','$1$1') + '"'
 }
 function StartLoggedProcess([string]$FilePath,[string[]]$Args,[string]$Stdout,[string]$Stderr) {
+  if ([string]::IsNullOrWhiteSpace($FilePath)) { throw 'StartLoggedProcess FilePath cannot be empty.' }
+  if ($null -eq $Args -or $Args.Count -eq 0) { throw "StartLoggedProcess ArgumentList cannot be empty for $FilePath" }
   $line = (($Args | ForEach-Object { QuoteArg ([string]$_) }) -join ' ')
+  if ([string]::IsNullOrWhiteSpace($line)) { throw "StartLoggedProcess rendered ArgumentList cannot be empty for $FilePath" }
   return Start-Process -FilePath $FilePath -ArgumentList $line -PassThru -NoNewWindow -RedirectStandardOutput $Stdout -RedirectStandardError $Stderr
 }
 
@@ -128,11 +131,15 @@ while([DateTimeOffset]::Now -lt $stop){
 '@
 [System.IO.File]::WriteAllText($syncScript,$syncBody,[System.Text.UTF8Encoding]::new($false))
 
-$syncJob=$null; $capture=$null; $projector=$null; $watcher=$null; $dashboard=$null
+$syncProcess=$null; $capture=$null; $projector=$null; $watcher=$null; $dashboard=$null
 try {
   Write-Host (([ordered]@{status='PHASE57_MSII_WINDOWS_DYNAMIC_SESSION_START';sessionDate=$SessionDate;workbook=$Workbook;slots=$Slots;tickRows=$TickRows;marketSizeUnit=$MarketSizeUnit;tickSizeUnit=$TickSizeUnit;sizeUnitAttestation=@{explicit=$true;inferred=$false;operatorProvided=$true};stopAt=$stopAt;safety=$Safety} | ConvertTo-Json -Depth 5 -Compress))
 
-  $syncJob = Start-Job -FilePath $syncScript -ArgumentList $repoRoot,$DurableRef,$SessionDate,$rawDir,$envelopeDir,$SyncPollSeconds,$stopAt,$syncLog
+  # Windows PowerShell 5.1 can reject Start-Job -FilePath ... -ArgumentList even when the
+  # individual values are populated. Run the durable read-only sync as a tracked child
+  # PowerShell process instead; this also gives deterministic lifecycle/cleanup semantics.
+  $syncArgs=@('-NoProfile','-ExecutionPolicy','Bypass','-File',$syncScript,$repoRoot,$DurableRef,$SessionDate,$rawDir,$envelopeDir,[string]$SyncPollSeconds,$stopAt,$syncLog)
+  $syncProcess=StartLoggedProcess 'powershell.exe' $syncArgs (Join-Path $logDir 'durable-sync.stdout.log') (Join-Path $logDir 'durable-sync.stderr.log')
 
   # Capture starts before the first 09:05 selection and emits a heartbeat. Only ArkControl symbol cells
   # may be changed later; no formula/order/account cells are writable at runtime.
@@ -168,8 +175,7 @@ try {
   Write-Host (([ordered]@{status='PHASE57_MSII_WINDOWS_DYNAMIC_SESSION_COMPLETE';sessionDate=$SessionDate;committedPointCount=$final.committedPointCount;blockedPointCount=$final.blockedPointCount;missingCaptureCount=$final.missingCaptureCount;coverage=$final.coverageSummary;marketSizeUnit=$MarketSizeUnit;tickSizeUnit=$TickSizeUnit;safety=$Safety} | ConvertTo-Json -Depth 8 -Compress))
 }
 finally {
-  if($syncJob){Stop-Job $syncJob -ErrorAction SilentlyContinue;Remove-Job $syncJob -Force -ErrorAction SilentlyContinue}
-  foreach($process in @($capture,$projector,$watcher,$dashboard)){if($process -and -not $process.HasExited){Stop-Process -Id $process.Id -ErrorAction SilentlyContinue}}
+  foreach($process in @($syncProcess,$capture,$projector,$watcher,$dashboard)){if($process -and -not $process.HasExited){Stop-Process -Id $process.Id -ErrorAction SilentlyContinue}}
   Remove-Item -LiteralPath $syncScript -Force -ErrorAction SilentlyContinue
   if($lockHandle){$lockHandle.Dispose()}
   Remove-Item -LiteralPath $lockFile -Force -ErrorAction SilentlyContinue

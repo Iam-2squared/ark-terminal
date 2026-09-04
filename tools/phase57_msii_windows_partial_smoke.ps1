@@ -13,6 +13,7 @@ Set-StrictMode -Version Latest
 if (-not (Test-Path '.git')) { throw 'Run from the ark-terminal repository root.' }
 if ($MarketSizeUnit -ne 'SHARES' -or $TickSizeUnit -ne 'SHARES') { throw 'MarketSpeed quantity units must be explicitly attested as SHARES.' }
 
+Write-Warning 'PARTIAL_SMOKE is retained only for explicit smoke tests. For normal late starts use tools\phase57_msii_windows_mid_session.ps1.'
 $sessionRoot = Join-Path $DataRoot $SessionDate
 $rawDir = Join-Path $sessionRoot 'lane-y-raw'
 $stateFile = Join-Path $sessionRoot 'dynamic-watchlist-state.json'

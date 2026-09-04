@@ -61,13 +61,13 @@ function StopIso([string]$Date,[string]$Hm) {
   return "${Date}T${Hm}:00+09:00"
 }
 function QuoteArg([string]$Value) {
-  if ($Value -notmatch '[\s"]') { return $Value }
+  if ($Value -notmatch '[\s\"]') { return $Value }
   return '"' + ($Value -replace '(\\*)"','$1$1\"' -replace '(\\+)$','$1$1') + '"'
 }
-function StartLoggedProcess([string]$FilePath,[string[]]$Args,[string]$Stdout,[string]$Stderr) {
+function StartLoggedProcess([string]$FilePath,[string[]]$ProcessArgs,[string]$Stdout,[string]$Stderr) {
   if ([string]::IsNullOrWhiteSpace($FilePath)) { throw 'StartLoggedProcess FilePath cannot be empty.' }
-  if ($null -eq $Args -or $Args.Count -eq 0) { throw "StartLoggedProcess ArgumentList cannot be empty for $FilePath" }
-  $line = (($Args | ForEach-Object { QuoteArg ([string]$_) }) -join ' ')
+  if ($null -eq $ProcessArgs -or $ProcessArgs.Count -eq 0) { throw "StartLoggedProcess ArgumentList cannot be empty for $FilePath" }
+  $line = (($ProcessArgs | ForEach-Object { QuoteArg ([string]$_) }) -join ' ')
   if ([string]::IsNullOrWhiteSpace($line)) { throw "StartLoggedProcess rendered ArgumentList cannot be empty for $FilePath" }
   return Start-Process -FilePath $FilePath -ArgumentList $line -PassThru -NoNewWindow -RedirectStandardOutput $Stdout -RedirectStandardError $Stderr
 }

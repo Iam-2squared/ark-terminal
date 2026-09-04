@@ -2,22 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ENTRY_V2_DAILY_HISTORY_POLICY,
+  sliceEntryV2DailyArchivePriorToAsOf,
   buildEntryV2PriorDailyHistoryFeed,
 } from '../daytrade/phase57-entry-quality-v2-daily-history-feed.js';
 
 function record(sessionDate, close, extra = {}) {
   return {
-    kind: 'OHLCV',
-    symbol: '7203.T',
-    sessionDate,
-    source: 'YAHOO_CHART',
-    currency: 'JPY',
-    open: close - 2,
-    high: close + 5,
-    low: close - 5,
-    close,
-    adjustedClose: close - 1,
-    volume: 1000000,
+    kind: 'OHLCV', symbol: '7203.T', sessionDate, source: 'YAHOO_CHART', currency: 'JPY',
+    open: close - 2, high: close + 5, low: close - 5, close, adjustedClose: close - 1, volume: 1000000,
     ...extra,
   };
 }
@@ -30,16 +22,10 @@ test('daily history policy is research-only and does not use adjusted close as a
 
 test('builds a bounded prior-session daily prefix with deterministic lineage', () => {
   const result = buildEntryV2PriorDailyHistoryFeed({
-    symbol: '7203.T',
-    asOf: '2026-09-04T01:30:00.000Z',
-    records: [
-      record('2026-09-01', 1000),
-      record('2026-09-02', 1010),
-      record('2026-09-03', 1020),
-    ],
+    symbol: '7203.T', asOf: '2026-09-04T01:30:00.000Z',
+    records: [record('2026-09-01', 1000), record('2026-09-02', 1010), record('2026-09-03', 1020)],
     retentionBars: 2,
   });
-
   assert.equal(result.status, 'ENTRY_V2_PRIOR_DAILY_HISTORY_READY');
   assert.equal(result.bars.length, 2);
   assert.equal(result.bars[0].close, 1010);
@@ -52,40 +38,46 @@ test('builds a bounded prior-session daily prefix with deterministic lineage', (
   assert.match(result.retainedBarsFingerprintSha256, /^[a-f0-9]{64}$/);
 });
 
-test('same-session daily records are rejected rather than silently filtered', () => {
+test('archive slicing is explicit and records excluded same/future sessions', () => {
+  const sliced = sliceEntryV2DailyArchivePriorToAsOf({
+    symbol: '7203.T', asOf: '2026-09-04T01:30:00.000Z',
+    records: [
+      record('2026-09-02', 1010), record('2026-09-03', 1020),
+      record('2026-09-04', 1030), record('2026-09-05', 1040),
+    ],
+  });
+  assert.deepEqual(sliced.records.map(row => row.sessionDate), ['2026-09-02', '2026-09-03']);
+  assert.equal(sliced.lineage.archiveRecordCount, 4);
+  assert.equal(sliced.lineage.eligiblePriorRecordCount, 2);
+  assert.equal(sliced.lineage.excludedSameOrFutureRecordCount, 2);
+  assert.equal(sliced.lineage.selectionRule, 'sessionDate < decisionSessionDate');
+});
+
+test('strict feed still rejects same-session daily records rather than silently filtering', () => {
   assert.throws(() => buildEntryV2PriorDailyHistoryFeed({
-    symbol: '7203.T',
-    asOf: '2026-09-04T01:30:00.000Z',
+    symbol: '7203.T', asOf: '2026-09-04T01:30:00.000Z',
     records: [record('2026-09-03', 1020), record('2026-09-04', 1030)],
   }), /ENTRY_V2_DAILY_FEED_NOT_PRIOR_SESSION/);
 });
 
-test('future session records are rejected', () => {
+test('future session records are rejected by strict feed', () => {
   assert.throws(() => buildEntryV2PriorDailyHistoryFeed({
-    symbol: '7203.T',
-    asOf: '2026-09-04T01:30:00.000Z',
-    records: [record('2026-09-05', 1030)],
+    symbol: '7203.T', asOf: '2026-09-04T01:30:00.000Z', records: [record('2026-09-05', 1030)],
   }), /ENTRY_V2_DAILY_FEED_NOT_PRIOR_SESSION/);
 });
 
 test('duplicate sessions and symbol mismatches fail closed', () => {
   assert.throws(() => buildEntryV2PriorDailyHistoryFeed({
-    symbol: '7203.T',
-    asOf: '2026-09-04T01:30:00.000Z',
+    symbol: '7203.T', asOf: '2026-09-04T01:30:00.000Z',
     records: [record('2026-09-03', 1020), record('2026-09-03', 1021)],
   }), /ENTRY_V2_DAILY_FEED_DUPLICATE_SESSION/);
-
   assert.throws(() => buildEntryV2PriorDailyHistoryFeed({
-    symbol: '7203.T',
-    asOf: '2026-09-04T01:30:00.000Z',
-    records: [record('2026-09-03', 1020, { symbol: '6758.T' })],
+    symbol: '7203.T', asOf: '2026-09-04T01:30:00.000Z', records: [record('2026-09-03', 1020, { symbol: '6758.T' })],
   }), /ENTRY_V2_DAILY_FEED_SYMBOL_MISMATCH/);
 });
 
 test('unsupported providers are rejected', () => {
   assert.throws(() => buildEntryV2PriorDailyHistoryFeed({
-    symbol: '7203.T',
-    asOf: '2026-09-04T01:30:00.000Z',
-    records: [record('2026-09-03', 1020, { source: 'UNKNOWN' })],
+    symbol: '7203.T', asOf: '2026-09-04T01:30:00.000Z', records: [record('2026-09-03', 1020, { source: 'UNKNOWN' })],
   }), /ENTRY_V2_DAILY_FEED_SOURCE_NOT_ALLOWED/);
 });

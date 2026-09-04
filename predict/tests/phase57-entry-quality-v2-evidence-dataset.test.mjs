@@ -80,7 +80,11 @@ test('frozen evidence flows through strict prior-daily PIT pairing without emitt
     },
     futureBarsBySymbol: { 'LOW.T': futureBars },
     marketByEntryTimestamp: {
-      [entryTimestamp]: { topixReturnPct: -0.4, breadthUpRatio: 0.42 },
+      [entryTimestamp]: {
+        observedAt: entryTimestamp,
+        topixReturnPct: -0.4,
+        breadthUpRatio: 0.42,
+      },
     },
     universeBySymbol: {
       'LOW.T': { tickSize: 1, averageTurnover: 10000000, spreadProxy: 1 },
@@ -116,6 +120,8 @@ test('frozen evidence flows through strict prior-daily PIT pairing without emitt
   assert.equal(row.newResearch.features.universe.price, 10);
   assert.equal(row.newResearch.features.universe.tickToPricePct, 10);
   assert.equal(row.newResearch.features.universe.hardEligibilityApplied, false);
+  assert.equal(row.newResearch.pointInTime.marketLineageChecked, true);
+  assert.equal(row.newResearch.features.market.observedAt, entryTimestamp);
 
   const h1 = row.offlineLabels.labels.find(label => label.horizonBars === 1);
   const h3 = row.offlineLabels.labels.find(label => label.horizonBars === 3);

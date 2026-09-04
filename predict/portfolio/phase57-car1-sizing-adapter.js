@@ -56,11 +56,12 @@ export function buildCausalSizingGroup({profileId,entries,barsBySymbol}={}){
   const source=barsBySymbol instanceof Map?barsBySymbol:new Map(Object.entries(barsBySymbol??{}));
   const candidates=ordered.map(row=>{
     const symbol=symbolOf(row),key=keyOf(row);
-    const bars=source.get(symbol)??source.get(symbol.replace(/\.T$/,''));
-    if(!Array.isArray(bars))throw new Error(`CAR-1 bars missing for ${symbol}`);
-    const riskSnapshot=profileId==='EQUAL_NOTIONAL'
-      ?null
-      :buildCausalRiskSnapshot({bars:causalBars(bars,entryTimestamp),entryTimestamp});
+    let riskSnapshot=null;
+    if(profileId!=='EQUAL_NOTIONAL'){
+      const bars=source.get(symbol)??source.get(symbol.replace(/\.T$/,''));
+      if(!Array.isArray(bars))throw new Error(`CAR-1 bars missing for ${symbol}`);
+      riskSnapshot=buildCausalRiskSnapshot({bars:causalBars(bars,entryTimestamp),entryTimestamp});
+    }
     return Object.freeze({key,symbol,entryTimestamp,riskSnapshot});
   });
   const weights=normalizeSizingWeights({profileId,candidates});

@@ -32,6 +32,21 @@ function currentBars(rows) {
   }}));
 }
 
+function historyIncludingCurrent(rows) {
+  const history = historyFor(rows);
+  for (const [i, row] of rows.entries()) {
+    history[row.symbol].push({
+      timestamp: BAR_START,
+      open: row.currentPrice - 1,
+      high: row.currentPrice + 1,
+      low: row.currentPrice - 2,
+      close: row.currentPrice,
+      volume: 20000 + i,
+    });
+  }
+  return history;
+}
+
 function mockFrozenScore({ at, bars5m }) {
   assert.equal(bars5m.at(-1).timestamp, new Date(BAR_START).toISOString());
   return {
@@ -89,6 +104,54 @@ test("one finalized point uses S bar only at T=S+5m then runs the full 28-way sh
   const duplicate = processRealtimeFiveMinutePoint(state, input);
   assert.equal(duplicate, result);
   assert.equal(state.pipeline.history.length, 1);
+});
+
+test("live-shaped Yahoo prefix may already contain the current finalized bar without duplicating Entry history", () => {
+  const rows = selectionRows();
+  const state = createRealtimeSessionState({ sessionDate: "2026-09-03" });
+  let scoreCalls = 0;
+  const result = processRealtimeFiveMinutePoint(state, {
+    at: AT,
+    marketBars: currentBars(rows),
+    selectionEntries: rows,
+    barsBySymbolHistory: historyIncludingCurrent(rows),
+    scoreEntry: (input) => {
+      scoreCalls += 1;
+      const timestamps = input.bars5m.map((bar) => bar.timestamp);
+      assert.equal(new Set(timestamps).size, timestamps.length);
+      assert.equal(timestamps.filter((value) => value === new Date(BAR_START).toISOString()).length, 1);
+      return mockFrozenScore(input);
+    },
+  });
+  assert.equal(scoreCalls > 0, true);
+  assert.equal(result.frozenEntryCount > 0, true);
+});
+
+test("conflicting duplicate current bar fails closed instead of silently changing Entry input", () => {
+  const rows = selectionRows();
+  const history = historyIncludingCurrent(rows);
+  history[rows[0].symbol].at(-1).close += 1;
+  const state = createRealtimeSessionState({ sessionDate: "2026-09-03" });
+  assert.throws(() => processRealtimeFiveMinutePoint(state, {
+    at: AT,
+    marketBars: currentBars(rows),
+    selectionEntries: rows,
+    barsBySymbolHistory: history,
+    scoreEntry: mockFrozenScore,
+  }), /conflicting duplicate entry history bar/);
+});
+
+test("blocked Entry evaluation fails closed instead of being reported as a valid zero-entry point", () => {
+  const rows = selectionRows();
+  const state = createRealtimeSessionState({ sessionDate: "2026-09-03" });
+  assert.throws(() => processRealtimeFiveMinutePoint(state, {
+    at: AT,
+    marketBars: currentBars(rows),
+    selectionEntries: rows,
+    barsBySymbolHistory: historyFor(rows),
+    scoreEntry: () => ({ complete: false, status: "BLOCKED_P21_CURRENT_FEATURE_FEED" }),
+  }), /refusing synthetic zero-entry point/);
+  assert.equal(state.pipeline.history.length, 0);
 });
 
 test("orchestrator accepts small source latency after a bar has causally finalized", () => {

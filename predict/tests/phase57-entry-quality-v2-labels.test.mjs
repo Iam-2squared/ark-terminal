@@ -13,13 +13,11 @@ const bars = [
 ];
 
 const assertClose = (actual, expected, tolerance = 1e-12) => {
-  assert.ok(
-    Math.abs(actual - expected) <= tolerance,
-    `expected ${actual} to be within ${tolerance} of ${expected}`,
-  );
+  assert.ok(Math.abs(actual - expected) <= tolerance, `expected ${actual} to be within ${tolerance} of ${expected}`);
 };
 
-test('future labels are explicitly forbidden from current feature vectors and realtime scorer', () => {
+test('future labels are offline-only and same-session-only', () => {
+  assert.equal(PHASE57_ENTRY_QUALITY_V2_LABEL_POLICY.sameSessionOnly, true);
   assert.equal(PHASE57_ENTRY_QUALITY_V2_LABEL_POLICY.mayEnterCurrentFeatureVector, false);
   assert.equal(PHASE57_ENTRY_QUALITY_V2_LABEL_POLICY.mayRunInRealtimeScorer, false);
   assert.equal(PHASE57_ENTRY_QUALITY_V2_LABEL_POLICY.mayChangeExitBehavior, false);
@@ -27,29 +25,20 @@ test('future labels are explicitly forbidden from current feature vectors and re
 });
 
 test('path labels compute asymmetric LONG and SHORT return/MFE/MAE', () => {
-  const result = buildEntryQualityV2PathLabels({
-    entryTimestamp,
-    entryPrice: 100,
-    futureBars: bars,
-    horizonsBars: [1, 3],
-  });
-
+  const result = buildEntryQualityV2PathLabels({ entryTimestamp, entryPrice: 100, futureBars: bars, horizonsBars: [1, 3] });
   const h1 = result.labels.find(label => label.horizonBars === 1);
   const h3 = result.labels.find(label => label.horizonBars === 3);
-
   assert.equal(h1.complete, true);
   assertClose(h1.long.grossReturnPct, 1);
   assertClose(h1.short.grossReturnPct, -1);
   assertClose(h1.long.mfePct, 2);
   assertClose(h1.long.maePct, -1);
-
   assert.equal(h3.complete, true);
   assertClose(h3.long.grossReturnPct, -2);
   assertClose(h3.long.mfePct, 4);
   assertClose(h3.long.maePct, -3);
   assert.equal(h3.long.timeToMfeBars, 2);
   assert.equal(h3.long.timeToMaeBars, 3);
-
   assertClose(h3.short.grossReturnPct, 2);
   assertClose(h3.short.mfePct, 3.0927835051546393);
   assertClose(h3.short.maePct, -4);
@@ -57,11 +46,7 @@ test('path labels compute asymmetric LONG and SHORT return/MFE/MAE', () => {
 
 test('cost is reported separately as fixed round-trip bps', () => {
   const result = buildEntryQualityV2PathLabels({
-    entryTimestamp,
-    entryPrice: 100,
-    futureBars: bars,
-    horizonsBars: [1],
-    roundTripCostBps: 20,
+    entryTimestamp, entryPrice: 100, futureBars: bars, horizonsBars: [1], roundTripCostBps: 20,
   });
   const h1 = result.labels[0];
   assertClose(h1.long.grossReturnPct, 1);
@@ -70,12 +55,29 @@ test('cost is reported separately as fixed round-trip bps', () => {
 
 test('incomplete horizons are marked incomplete rather than padded', () => {
   const result = buildEntryQualityV2PathLabels({
-    entryTimestamp,
-    entryPrice: 100,
-    futureBars: bars.slice(0, 2),
-    horizonsBars: [3],
+    entryTimestamp, entryPrice: 100, futureBars: bars.slice(0, 2), horizonsBars: [3],
   });
   assert.equal(result.labels[0].complete, false);
   assert.equal(result.labels[0].long, null);
   assert.equal(result.labels[0].short, null);
+});
+
+test('next-session bars never complete an intraday horizon', () => {
+  const lateEntry = '2026-09-04T06:20:00.000Z'; // 15:20 JST
+  const sameDay = [
+    { timestamp: '2026-09-04T06:25:00.000Z', high: 101, low: 99, close: 100.5 },
+  ];
+  const nextDay = [
+    { timestamp: '2026-09-05T00:05:00.000Z', high: 110, low: 109, close: 109.5 },
+    { timestamp: '2026-09-05T00:10:00.000Z', high: 112, low: 110, close: 111 },
+  ];
+  const result = buildEntryQualityV2PathLabels({
+    entryTimestamp: lateEntry,
+    entryPrice: 100,
+    futureBars: [...sameDay, ...nextDay],
+    horizonsBars: [1, 3],
+  });
+  assert.equal(result.availableFutureBars, 1);
+  assert.equal(result.labels.find(x => x.horizonBars === 1).complete, true);
+  assert.equal(result.labels.find(x => x.horizonBars === 3).complete, false);
 });

@@ -61,9 +61,26 @@ async function main(){
   const slotCount=numeric(args,"slot-count",80),retentionPoints=numeric(args,"retention-points",3),pollMs=numeric(args,"poll-ms",1000),laneMStateFile=args["lane-m-state"]?String(args["lane-m-state"]):null,stopAt=args["stop-at"]?Date.parse(iso(args["stop-at"],"stop-at")):null;
   if(pollMs<200)throw new Error("--poll-ms must be >= 200");
   process.stdout.write(`${JSON.stringify({status:"PHASE57_MSII_DYNAMIC_WATCHLIST_WATCH_START",sessionDate,rawDirectory,slotCount,retentionPoints,safety:SAFETY})}\n`);
+  let lastTransientJsonError=null;
   while(true){
     const now=Date.now();if(stopAt!==null&&now>=stopAt)break;
-    const state=loadState(stateFile,sessionDate),processed=processAvailableRawSnapshots({rawDirectory,sessionDate,state,slotCount,retentionPoints,laneMStateFile});
+    let processed;
+    try{
+      const state=loadState(stateFile,sessionDate);
+      processed=processAvailableRawSnapshots({rawDirectory,sessionDate,state,slotCount,retentionPoints,laneMStateFile});
+      lastTransientJsonError=null;
+    }catch(error){
+      if(error instanceof SyntaxError){
+        const message=String(error?.message??error);
+        if(message!==lastTransientJsonError){
+          process.stderr.write(`${JSON.stringify({status:"WAIT_PHASE57_MSII_DYNAMIC_JSON_REPAIR",error:message,failClosed:true,safety:SAFETY})}\n`);
+          lastTransientJsonError=message;
+        }
+        await sleep(pollMs);
+        continue;
+      }
+      throw error;
+    }
     if(processed.outputs.length){
       atomicWrite(stateFile,processed.state);
       for(const item of processed.outputs){

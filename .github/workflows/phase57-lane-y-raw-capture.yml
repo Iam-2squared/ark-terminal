@@ -28,28 +28,30 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Gate to JPX Phase57 decision buckets
+      - name: Gate to JPX Phase57 decision windows
         id: gate
         shell: bash
         run: |
           set -euo pipefail
           hm="$(TZ=Asia/Tokyo date +%H%M)"
           session_date="$(TZ=Asia/Tokyo date +%F)"
-          minute="${hm:2:2}"
           should_capture=false
 
-          # Exact Phase57 decision windows:
-          # morning 09:05..11:30, afternoon 12:35..15:30 JST.
+          # GitHub scheduled jobs are not guaranteed to start on the exact cron
+          # minute. Gate only by the causal JPX decision windows, never by the
+          # runner's actual minute modulo 5. The raw snapshot keeps its real
+          # meta.observedAt; downstream Lane M floors that observed time to the
+          # corresponding five-minute bucket without rewriting the evidence time.
+          # The same rule makes workflow_dispatch useful for immediate diagnosis
+          # while the market is inside an active Phase57 decision window.
           if { [ "$hm" -ge 0905 ] && [ "$hm" -le 1130 ]; } || \
              { [ "$hm" -ge 1235 ] && [ "$hm" -le 1530 ]; }; then
-            case "$minute" in
-              00|05|10|15|20|25|30|35|40|45|50|55) should_capture=true ;;
-            esac
+            should_capture=true
           fi
 
           echo "SESSION_DATE=$session_date" >> "$GITHUB_ENV"
           echo "should_capture=$should_capture" >> "$GITHUB_OUTPUT"
-          echo "Phase57 Lane Y raw gate: JST=$hm date=$session_date capture=$should_capture"
+          echo "Phase57 Lane Y raw gate: JST=$hm date=$session_date event=${{ github.event_name }} capture=$should_capture"
 
       - name: Capture immutable TradingView point-in-time raw snapshot
         if: steps.gate.outputs.should_capture == 'true'

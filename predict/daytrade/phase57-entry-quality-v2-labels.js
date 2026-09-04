@@ -1,6 +1,7 @@
 export const PHASE57_ENTRY_QUALITY_V2_LABEL_POLICY = Object.freeze({
   mode: 'OFFLINE_FUTURE_LABELS_ONLY',
   allowedHorizonsBars: Object.freeze([1, 2, 3, 6, 12]),
+  sameSessionOnly: true,
   mayEnterCurrentFeatureVector: false,
   mayRunInRealtimeScorer: false,
   mayChangeExitBehavior: false,
@@ -9,9 +10,20 @@ export const PHASE57_ENTRY_QUALITY_V2_LABEL_POLICY = Object.freeze({
 
 const pct = (a, b) => Number.isFinite(a) && Number.isFinite(b) && b !== 0 ? (a / b - 1) * 100 : 0;
 
+function jstSessionDate(value) {
+  const ms = Date.parse(String(value ?? ''));
+  if (!Number.isFinite(ms)) throw new Error('ENTRY_V2_LABEL_INVALID_ENTRY_TIMESTAMP');
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(new Date(ms));
+  const map = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return `${map.year}-${map.month}-${map.day}`;
+}
+
 function normalizeFutureBars(bars = [], after) {
-  const cutoff = new Date(after).getTime();
+  const cutoff = Date.parse(String(after ?? ''));
   if (!Number.isFinite(cutoff)) throw new Error('ENTRY_V2_LABEL_INVALID_ENTRY_TIMESTAMP');
+  const entrySessionDate = jstSessionDate(after);
   return bars
     .map(bar => ({
       timestamp: new Date(bar.timestamp).toISOString(),
@@ -20,8 +32,9 @@ function normalizeFutureBars(bars = [], after) {
       close: Number(bar.close),
     }))
     .filter(bar => [bar.high, bar.low, bar.close].every(Number.isFinite))
-    .filter(bar => new Date(bar.timestamp).getTime() > cutoff)
-    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    .filter(bar => Date.parse(bar.timestamp) > cutoff)
+    .filter(bar => jstSessionDate(bar.timestamp) === entrySessionDate)
+    .sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
 }
 
 function pathForDirection({ entryPrice, bars, direction, costBps = 0 }) {
@@ -43,7 +56,6 @@ function pathForDirection({ entryPrice, bars, direction, costBps = 0 }) {
 
   const grossReturnPct = closeReturns.at(-1) ?? 0;
   const roundTripCostPct = Number(costBps) / 100;
-
   return Object.freeze({
     direction,
     grossReturnPct,
@@ -75,6 +87,7 @@ export function buildEntryQualityV2PathLabels({
   return Object.freeze({
     policy: PHASE57_ENTRY_QUALITY_V2_LABEL_POLICY,
     entryTimestamp: new Date(entryTimestamp).toISOString(),
+    entrySessionDate: jstSessionDate(entryTimestamp),
     entryPrice: price,
     availableFutureBars: bars.length,
     labels: Object.freeze(horizons.map(horizonBars => {

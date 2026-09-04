@@ -1,0 +1,131 @@
+name: Phase57 Lane Y 5m Raw Capture
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * 1-5'
+
+permissions:
+  contents: write
+
+# Keep this capture path short-lived and independent from the delayed Yahoo
+# evaluator. A delayed/failed long evaluator must not stop point-in-time raw
+# evidence from being persisted for Lane M.
+concurrency:
+  group: phase57-lane-y-raw-capture
+  cancel-in-progress: true
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Gate to JPX Phase57 decision buckets
+        id: gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          hm="$(TZ=Asia/Tokyo date +%H%M)"
+          session_date="$(TZ=Asia/Tokyo date +%F)"
+          minute="${hm:2:2}"
+          should_capture=false
+
+          # Exact Phase57 decision windows:
+          # morning 09:05..11:30, afternoon 12:35..15:30 JST.
+          if { [ "$hm" -ge 0905 ] && [ "$hm" -le 1130 ]; } || \
+             { [ "$hm" -ge 1235 ] && [ "$hm" -le 1530 ]; }; then
+            case "$minute" in
+              00|05|10|15|20|25|30|35|40|45|50|55) should_capture=true ;;
+            esac
+          fi
+
+          echo "SESSION_DATE=$session_date" >> "$GITHUB_ENV"
+          echo "should_capture=$should_capture" >> "$GITHUB_OUTPUT"
+          echo "Phase57 Lane Y raw gate: JST=$hm date=$session_date capture=$should_capture"
+
+      - name: Capture immutable TradingView point-in-time raw snapshot
+        if: steps.gate.outputs.should_capture == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          durable_branch='automation/phase57-realtime-live-data'
+          data_root="data/phase57-realtime-live/$SESSION_DATE"
+          tmp_capture='/tmp/phase57-lane-y-raw-capture'
+          rm -rf "$tmp_capture" /tmp/phase57-raw-data
+          mkdir -p "$tmp_capture"
+
+          # Fetch first. meta.observedAt is the causal observation time and is
+          # never rewritten to an earlier scheduled bucket if Actions started late.
+          node scripts/fetch_p25_marketwide_5m_spark.mjs --output "$tmp_capture/marketwide.json"
+          observed="$(node -p "require('$tmp_capture/marketwide.json').meta.observedAt")"
+          test -n "$observed"
+          raw_stamp="$(date -u -d "$observed" +%Y%m%dT%H%M%SZ)"
+          raw_rel="$data_root/raw/${raw_stamp}.json"
+
+          git fetch origin "$durable_branch:refs/remotes/origin/$durable_branch"
+          git worktree add -B "$durable_branch" /tmp/phase57-raw-data "origin/$durable_branch"
+          cd /tmp/phase57-raw-data
+          git config user.name 'Ark Realtime Research Bot'
+          git config user.email 'ark-realtime-research@users.noreply.github.com'
+          mkdir -p "$data_root/raw"
+
+          # Append-only evidence: an existing exact observation timestamp wins.
+          if [ -e "$raw_rel" ]; then
+            echo "Raw snapshot already exists; immutable evidence retained: $raw_rel"
+            exit 0
+          fi
+
+          cp "$tmp_capture/marketwide.json" "$raw_rel"
+          node -e "const r=require('./$raw_rel'); if(!r.meta?.observedAt) throw new Error('missing meta.observedAt'); if(r.meta.observedAt!=='$observed') throw new Error('observedAt changed during persistence');"
+          git add "$raw_rel"
+          git commit -m "Queue Phase57 5m raw snapshot $SESSION_DATE $raw_stamp"
+
+          # The delayed evaluator may push the same durable branch concurrently.
+          # Rebase/retry for unrelated commits; never force-push or overwrite raw.
+          pushed=false
+          for attempt in 1 2 3 4; do
+            if git push origin HEAD:"$durable_branch"; then
+              pushed=true
+              break
+            fi
+            echo "Durable push race, retry $attempt/4"
+            git fetch origin "$durable_branch"
+            if ! git rebase "origin/$durable_branch"; then
+              git rebase --abort || true
+              # A competing writer may have persisted this exact immutable point.
+              remote_has="$(git show "origin/$durable_branch:$raw_rel" 2>/dev/null || true)"
+              if [ -n "$remote_has" ]; then
+                echo "Competing writer already persisted $raw_rel; retaining remote immutable evidence."
+                exit 0
+              fi
+              echo 'Unexpected durable-branch conflict; failing closed.'
+              exit 1
+            fi
+          done
+          test "$pushed" = true
+          echo "PHASE57_LANE_Y_RAW_CAPTURE_PERSISTED observedAt=$observed raw=$raw_rel"
+
+      - name: Safety boundary
+        if: always()
+        shell: bash
+        run: |
+          echo 'Phase57 Lane Y market-data research capture only.'
+          echo 'executionAllowed=false'
+          echo 'brokerWriteAllowed=false'
+          echo 'excelOrderWriteAllowed=false'
+          echo 'rssOrderFunctionAllowed=false'
+          echo 'liveTradingAllowed=false'
+          echo 'paperTradingAllowed=false'
+          echo 'automaticPromotionAllowed=false'
+          echo 'productionUpdateAllowed=false'
+          echo 'orderTransmitted=false'

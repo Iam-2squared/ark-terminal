@@ -1,0 +1,107 @@
+name: Phase57 2026-09-04 Recovery Replay
+
+on:
+  push:
+    branches: [recovery/phase57-20260904]
+    paths: [.github/workflows/phase57-recovery-20260904.yml]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build exact pinned Frozen Entry and EXIT history pack
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p24-canonical
+          gh run download 31785422471 --repo "$GH_REPO" --name phase57-p24-9-oos-canonical-candidate --dir /tmp/p24-canonical
+          snapshot="$(find /tmp/p24-canonical -type f -name 'phase57-p24-9-oos-byte-snapshot.json' -print -quit)"
+          test -n "$snapshot"
+          node scripts/build_p25_pinned_history_pack.mjs --snapshot "$snapshot" --output /tmp/p25-history.json
+
+      - name: Download immutable 2026-09-04 Morning evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/morning
+          gh api -H 'Accept: application/vnd.github+json' "/repos/$GH_REPO/actions/artifacts/9921703318/zip" > /tmp/morning.zip
+          unzip -q /tmp/morning.zip -d /tmp/morning
+          test "$(find /tmp/morning -path '*/capture-*/marketwide.json' | wc -l)" -gt 0
+
+      - name: Replay captured points with fixed realtime Entry path
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/recovery
+          state=''
+          count=0
+          while IFS= read -r raw; do
+            observed="$(node -p "require('$raw').meta.observedAt")"
+            stamp="$(date -u -d "$observed" +%Y%m%dT%H%M%SZ)"
+            dir="/tmp/recovery/$stamp"
+            mkdir -p "$dir"
+            args=(
+              --marketwide "$raw"
+              --history-pack /tmp/p25-history.json
+              --output-state "$dir/state.json"
+              --output-snapshot "$dir/snapshot.json"
+            )
+            if [ -n "$state" ]; then args+=(--state "$state"); fi
+            echo "=== RECOVERY $stamp $observed ==="
+            node scripts/run_phase57_realtime_live_point.mjs "${args[@]}" | tee "$dir/stdout.txt"
+            state="$dir/state.json"
+            count=$((count+1))
+          done < <(find /tmp/morning -path '*/capture-*/marketwide.json' | sort)
+          test "$count" -eq 13
+          cp "$state" /tmp/recovery/final-state.json
+
+      - name: Summarize recovery replay
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs=require('fs');
+          const s=require('/tmp/recovery/final-state.json');
+          const entries=(s.entry?.history??[]).flatMap(x=>x.frozenEntries??[]);
+          const unique=[...new Map(entries.map(x=>[x.candidateId,x])).values()];
+          const byVariant={V1:0,V2:0};
+          for(const e of unique){
+            if(String(e.candidateId).includes('DYNAMIC5M_V1')) byVariant.V1++;
+            if(String(e.candidateId).includes('DYNAMIC5M_V2')) byVariant.V2++;
+          }
+          const strategies=Object.values(s.strategies??{});
+          const summary={
+            classification:'RECOVERY_REPLAY_NON_PROSPECTIVE',
+            sessionDate:s.sessionDate,
+            processedPoints:s.pipeline?.history?.length??0,
+            frozenEntryCandidates:unique.length,
+            frozenEntryCandidatesByVariant:byVariant,
+            uniqueSymbols:[...new Set(unique.map(x=>x.symbol))].sort(),
+            entryCandidates:unique.map(x=>({at:x.entryTimestamp,symbol:x.symbol,variant:x.variantMemberships?.[0]??null,direction:x.direction,entryPrice:x.entryPrice,confidence:x.confidence,probability:x.probability})),
+            strategyClosedTradesTotal:strategies.reduce((n,x)=>n+Number(x.closedTrades||0),0),
+            strategyOpenPositionsTotal:strategies.reduce((n,x)=>n+Object.keys(x.positions??{}).length,0),
+            strategies:strategies.map(x=>({strategyId:x.strategyId,closedTrades:x.closedTrades,openPositions:Object.keys(x.positions??{}).length,netPercent:x.netPercent,wins:x.wins,grossProfit:x.grossProfit,grossLoss:x.grossLoss,maxDrawdownPercent:x.maxDrawdownPercent})),
+            methodology:{officialProspectiveCount:false,recoveredFromImmutableTradingViewRaw:true,yahooBarsRefetchedAfterSession:true,missingBucketsBackfilled:false,frozenResearchSemanticsChanged:false},
+            safety:s.safety,
+          };
+          fs.writeFileSync('/tmp/recovery/recovery-summary.json',JSON.stringify(summary,null,2)+'\n');
+          console.log(JSON.stringify(summary,null,2));
+          NODE
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-recovery-replay-2026-09-04
+          path: /tmp/recovery
+          retention-days: 90

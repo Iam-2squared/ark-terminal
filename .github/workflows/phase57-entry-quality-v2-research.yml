@@ -1,0 +1,41 @@
+name: Phase57 Entry Quality v2 Research
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'predict/daytrade/phase57-entry-quality-v2-*.js'
+      - 'predict/daytrade/PHASE57_ENTRY_QUALITY_V2_RESEARCH.md'
+      - 'predict/tests/phase57-entry-quality-v2-*.test.mjs'
+      - '.github/workflows/phase57-entry-quality-v2-research.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase57-entry-quality-v2-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  isolated-research-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify isolated Entry v2 research tests
+        working-directory: predict
+        run: |
+          set -euo pipefail
+          node --test \
+            tests/phase57-entry-quality-v2-research.test.mjs \
+            tests/phase57-entry-quality-v2-labels.test.mjs \
+            tests/phase57-entry-quality-v2-point-in-time.test.mjs
+      - name: Safety boundary
+        if: always()
+        run: |
+          echo 'Entry Quality v2 is isolated research only.'
+          echo 'No selector, EXIT, capital allocation, broker/RSS write, paper/live trading, auto-promotion, or production update.'

@@ -108,6 +108,9 @@ jobs:
           # become observable. This is delayed ingestion, not a post-close recomputation:
           # selection/entry/exit event time remains the original snapshot timestamp.
           SOURCE_DELAY_SECONDS=960
+          # Lane M is intentionally paused while Lane Y is validated. Keep the capsule
+          # adapter available for later, but never let it gate or alter Lane Y durability.
+          LANE_M_CAPSULE_ENABLED=0
           if [ "$SESSION_PART" = 'MORNING' ]; then
             capture_start_hm=0905; capture_end_hm=1130; loop_end_hm=1150
           else
@@ -181,11 +184,12 @@ jobs:
               )
               if [ -f /tmp/realtime-prior-state.json ]; then args+=(--state /tmp/realtime-prior-state.json); fi
               if node scripts/run_phase57_realtime_live_point.mjs "${args[@]}"; then
-                if ! export_msii_capsule "$dir/state.json" "$point_stamp"; then
-                  failures=$((failures+1))
-                  rm -f "$data_root/msii-envelopes/${point_stamp}.json"
-                  echo "Realtime point blocked because its immutable Lane M envelope could not be committed."
-                  continue
+                if [ "$LANE_M_CAPSULE_ENABLED" = '1' ]; then
+                  if ! export_msii_capsule "$dir/state.json" "$point_stamp"; then
+                    failures=$((failures+1))
+                    rm -f "$data_root/msii-envelopes/${point_stamp}.json"
+                    echo "Optional Lane M capsule export failed; Lane Y point remains eligible for durable commit."
+                  fi
                 fi
                 successes=$((successes+1))
                 cp "$dir/state.json" /tmp/realtime-prior-state.json
@@ -194,7 +198,7 @@ jobs:
                 cp "$dir/snapshot.json" "$data_root/points/${point_stamp}.json"
                 node -e "const fs=require('fs');const s=require('$dir/state.json');fs.writeFileSync('$data_root/ledger.json',JSON.stringify(s.ledger,null,2)+'\\n')"
                 if [ -f "$dir/postclose.json" ]; then cp "$dir/postclose.json" "$data_root/postclose.json"; fi
-                persist_data_branch "Persist Phase57 delayed-ingestion realtime point and Lane M capsule $SESSION_DATE $point_stamp"
+                persist_data_branch "Persist Phase57 delayed-ingestion Lane Y realtime point $SESSION_DATE $point_stamp"
               else
                 failures=$((failures+1))
                 echo "Realtime point failed closed for immutable snapshot $point_stamp; retained raw evidence for retry."
@@ -233,8 +237,13 @@ jobs:
 
           # Final drain for every raw snapshot whose provider-delay window has elapsed.
           process_eligible_raw
-          echo "captures=$captures attempts=$attempts successes=$successes failures=$failures sourceDelaySeconds=$SOURCE_DELAY_SECONDS"
+          echo "captures=$captures attempts=$attempts successes=$successes failures=$failures sourceDelaySeconds=$SOURCE_DELAY_SECONDS laneMCapsuleEnabled=$LANE_M_CAPSULE_ENABLED"
           test "$captures" -gt 0
+          test "$attempts" -gt 0
+          test "$successes" -gt 0
+          test -f "$data_root/state.json"
+          test -f "$data_root/latest.json"
+          test -f "$data_root/ledger.json"
 
       - name: Hand off afternoon live measurement
         if: env.SESSION_PART == 'MORNING'

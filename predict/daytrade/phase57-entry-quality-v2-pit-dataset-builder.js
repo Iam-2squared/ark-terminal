@@ -8,11 +8,15 @@ import {
   buildEntryQualityV2PairedRow,
   buildEntryQualityV2PairedDataset,
 } from './phase57-entry-quality-v2-paired-dataset.js';
+import {
+  buildEntryV2PriorDailyHistoryFeed,
+} from './phase57-entry-quality-v2-daily-history-feed.js';
 
 export const ENTRY_V2_PIT_DATASET_POLICY = Object.freeze({
   mode: 'ENTRY_V2_STRICT_PIT_PAIRED_DATASET_RESEARCH_ONLY',
   baselineIntradayContextIsCanonical: true,
   dailyMustBePriorSessionOnly: true,
+  dailyHistoryResolvedPerEntryTimestamp: true,
   futureLabelsOfflineOnly: true,
   selectorChangesAllowed: false,
   exitChangesAllowed: false,
@@ -57,18 +61,46 @@ function sortBaselineEntries(entries) {
   });
 }
 
+function resolveDailyInput({ dailyBarsBySymbol, dailyRecordsBySymbol, symbol, asOf }) {
+  const rawRecords = sourceRows(dailyRecordsBySymbol, symbol);
+  if (Array.isArray(rawRecords) && rawRecords.length) {
+    const feed = buildEntryV2PriorDailyHistoryFeed({ symbol, asOf, records: rawRecords });
+    return Object.freeze({
+      bars: feed.bars,
+      lineage: feed.lineage,
+      sourceFingerprintSha256: feed.sourceFingerprintSha256,
+      retainedBarsFingerprintSha256: feed.retainedBarsFingerprintSha256,
+      mode: 'PERSISTED_DAILY_RECORDS_RESOLVED_PER_ENTRY',
+    });
+  }
+
+  const bars = sourceRows(dailyBarsBySymbol, symbol);
+  return Object.freeze({
+    bars,
+    lineage: null,
+    sourceFingerprintSha256: null,
+    retainedBarsFingerprintSha256: null,
+    mode: 'PREBUILT_DAILY_BARS_COMPATIBILITY',
+  });
+}
+
 /**
  * Build a leakage-separated paired research dataset from already-frozen P21 Entry candidates.
  *
  * Critical invariant: NEW research intraday features are built from baselineEntry.contextBars,
  * not from an independently fetched intraday series. This makes the OLD/NEW current market
- * data prefix identical by construction. Daily context is supplied separately and is rejected
- * by the strict PIT builder unless every bar is from a prior JST session. Future bars are used
- * only by the offline label builder after the feature vector has already been frozen.
+ * data prefix identical by construction.
+ *
+ * Daily context may be supplied as persisted Phase50/Phase45 records. When records are supplied,
+ * the prior-session prefix is resolved separately for every Entry timestamp, preventing a later
+ * session's daily bar from leaking into an earlier candidate in a multi-day dataset. Prebuilt
+ * dailyBarsBySymbol remains as a compatibility path and is still checked by the strict PIT layer.
+ * Future bars are used only by the offline label builder after the feature vector is frozen.
  */
 export function buildEntryV2StrictPitPairedDataset({
   baselineEntries = [],
   dailyBarsBySymbol = {},
+  dailyRecordsBySymbol = {},
   futureBarsBySymbol = {},
   marketByEntryTimestamp = {},
   universeBySymbol = {},
@@ -99,11 +131,17 @@ export function buildEntryV2StrictPitPairedDataset({
     const asOf = baselineEntry.entryTimestamp;
     const market = keyed(marketByEntryTimestamp, asOf, {});
     const universe = keyed(universeBySymbol, symbol, {});
+    const dailyInput = resolveDailyInput({
+      dailyBarsBySymbol,
+      dailyRecordsBySymbol,
+      symbol,
+      asOf,
+    });
 
     const researchVector = buildStrictPointInTimeEntryV2ResearchVector({
       symbol,
       asOf,
-      dailyBars: sourceRows(dailyBarsBySymbol, symbol),
+      dailyBars: dailyInput.bars,
       intradayBars: baselineEntry.contextBars,
       market,
       universe,
@@ -137,7 +175,11 @@ export function buildEntryV2StrictPitPairedDataset({
       lineage: Object.freeze({
         baselineIntradayContextIsCanonical: true,
         baselineContextBarCount: baselineEntry.contextBars.length,
-        dailySourceBars: sourceRows(dailyBarsBySymbol, symbol).length,
+        dailySourceBars: dailyInput.bars.length,
+        dailyResolutionMode: dailyInput.mode,
+        dailyHistoryLineage: dailyInput.lineage,
+        dailySourceFingerprintSha256: dailyInput.sourceFingerprintSha256,
+        dailyRetainedBarsFingerprintSha256: dailyInput.retainedBarsFingerprintSha256,
         futureLabelSourceBars: sourceRows(futureBarsBySymbol, symbol).length,
         featureFrozenBeforeOfflineLabels: true,
       }),

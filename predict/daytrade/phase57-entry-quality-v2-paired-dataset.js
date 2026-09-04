@@ -183,6 +183,7 @@ export function buildEntryQualityV2PairedRow({
       status: researchVector.status,
       featureSha256: sha256(featurePayload),
       features: featurePayload,
+      pointInTime: researchVector.pointInTime ?? null,
       signalEligible: null,
       direction: null,
       longQuality: null,

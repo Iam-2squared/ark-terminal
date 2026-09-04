@@ -143,6 +143,8 @@ test('strict vector remains feature-only and attests no future outcome use', () 
   assert.equal(vector.pointInTime.strict, true);
   assert.equal(vector.pointInTime.dailyBarsArePriorSessionOnly, true);
   assert.equal(vector.pointInTime.intradayBarsAreCompletedPrefixOnly, true);
+  assert.equal(vector.pointInTime.marketLineageChecked, true);
+  assert.equal(vector.pointInTime.marketObservedAt, '2026-09-04T00:29:00.000Z');
   assert.equal(vector.pointInTime.futureOutcomeUsed, false);
   assert.equal(vector.safety.executionAllowed, false);
 });

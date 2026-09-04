@@ -121,7 +121,7 @@ test('frozen evidence flows through strict prior-daily PIT pairing without emitt
   assert.equal(row.newResearch.features.universe.tickToPricePct, 10);
   assert.equal(row.newResearch.features.universe.hardEligibilityApplied, false);
   assert.equal(row.newResearch.pointInTime.marketLineageChecked, true);
-  assert.equal(row.newResearch.features.market.observedAt, entryTimestamp);
+  assert.equal(row.newResearch.pointInTime.marketObservedAt, entryTimestamp);
 
   const h1 = row.offlineLabels.labels.find(label => label.horizonBars === 1);
   const h3 = row.offlineLabels.labels.find(label => label.horizonBars === 3);

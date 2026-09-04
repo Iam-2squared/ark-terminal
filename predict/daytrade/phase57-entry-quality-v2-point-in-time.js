@@ -117,6 +117,12 @@ export function buildStrictPointInTimeEntryV2ResearchVector({
   const priorDailyBars = prepareEntryV2PriorDailyBars({ dailyBars, asOf });
   const closedIntradayBars = prepareEntryV2ClosedIntradayPrefix({ intradayBars, asOf });
   const marketPointInTime = assertPointInTimeMarketInput(market, asOf);
+  const marketObservedAt = Object.keys(marketPointInTime).length > 0
+    ? new Date(parseTimestamp(
+      marketPointInTime.observedAt ?? marketPointInTime.asOf ?? marketPointInTime.timestamp,
+      'ENTRY_V2_MARKET',
+    )).toISOString()
+    : null;
 
   if (!priorDailyBars.length) throw new Error('ENTRY_V2_PRIOR_DAILY_BARS_REQUIRED');
   if (!closedIntradayBars.length) throw new Error('ENTRY_V2_CLOSED_INTRADAY_BARS_REQUIRED');
@@ -139,6 +145,7 @@ export function buildStrictPointInTimeEntryV2ResearchVector({
       dailyBarsArePriorSessionOnly: true,
       intradayBarsAreCompletedPrefixOnly: true,
       marketLineageChecked: Object.keys(marketPointInTime).length > 0,
+      marketObservedAt,
       futureOutcomeUsed: false,
     }),
   });

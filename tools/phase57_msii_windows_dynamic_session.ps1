@@ -176,7 +176,7 @@ while([DateTimeOffset]::Now -lt $stop){
       }
     }
   } catch { Add-Content -Path $LogFile -Value "$(Get-Date -Format o) SYNC_WAIT $($_.Exception.Message)" }
-  Start-Sleep -Milliseconds ([int]($PollSeconds*1000))
+  Start-Sleep -Milliseconds ([int]([double]$PollSeconds * 1000))
 }
 '@
 [System.IO.File]::WriteAllText($syncScript,$syncBody,[System.Text.UTF8Encoding]::new($false))

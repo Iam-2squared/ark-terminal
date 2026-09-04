@@ -24,6 +24,21 @@ function canonical(value) {
 function sha256(value) { return createHash("sha256").update(JSON.stringify(canonical(value))).digest("hex"); }
 function atOf(bar) { return bar?.at ?? bar?.time ?? bar?.timestamp; }
 function normalizeSymbol(value) { return String(value ?? "").trim().toUpperCase(); }
+function normalizeHistoryBar(bar) {
+  const at = atOf(bar);
+  const parsed = Date.parse(String(at ?? ""));
+  if (!Number.isFinite(parsed)) throw new Error("entry history bar timestamp required");
+  return {
+    ...bar,
+    timestamp: new Date(parsed).toISOString(),
+  };
+}
+function sameHistoryBar(left, right) {
+  return ["timestamp", "open", "high", "low", "close", "volume"].every((key) => {
+    if (key === "timestamp") return String(left?.[key] ?? "") === String(right?.[key] ?? "");
+    return Number(left?.[key]) === Number(right?.[key]);
+  });
+}
 function marksFromBars(bars) {
   return Object.fromEntries((bars ?? []).map((row) => [normalizeSymbol(row.symbol), Number(row.bar?.close)]));
 }
@@ -45,7 +60,16 @@ function mergedEntryHistory(source, marketBars) {
     const current = (marketBars ?? [])
       .filter((row) => normalizeSymbol(row?.symbol) === symbol)
       .map((row) => ({ ...row.bar, timestamp: atOf(row.bar) }));
-    out[symbol] = [...prior, ...current];
+    const byTimestamp = new Map();
+    for (const raw of [...prior, ...current]) {
+      const bar = normalizeHistoryBar(raw);
+      const existing = byTimestamp.get(bar.timestamp);
+      if (existing && !sameHistoryBar(existing, bar)) {
+        throw new Error(`conflicting duplicate entry history bar ${symbol} ${bar.timestamp}`);
+      }
+      if (!existing) byTimestamp.set(bar.timestamp, bar);
+    }
+    out[symbol] = [...byTimestamp.values()].sort((a, b) => a.timestamp.localeCompare(b.timestamp));
   }
   return out;
 }
@@ -121,6 +145,11 @@ export function processRealtimeFiveMinutePoint(state, {
   const selection = applyRealtimeDynamic5mSelection(state, { at, entries: selectionEntries, heldSymbols: openSymbols(state) });
   const entryHistory = mergedEntryHistory(barsBySymbolHistory, marketBars);
   const entries = evaluateRealtimeFrozenEntries(state, { at, selectionPoint: selection, barsBySymbol: entryHistory, scoreEntry });
+  const blockedEntryAudits = (entries.audits ?? []).filter((audit) => String(audit?.status ?? "").startsWith("BLOCKED_"));
+  if (blockedEntryAudits.length) {
+    const detail = blockedEntryAudits.map((audit) => `${audit.variant}:${audit.status}:${audit.reason ?? "UNKNOWN"}`).join(" | ");
+    throw new Error(`realtime Entry evaluation blocked; refusing synthetic zero-entry point: ${detail}`);
+  }
 
   // EXIT's frozen adapter keys the finalized observation to decision time T.
   const finalizedBarsBySymbol = currentBarsFromRows(marketBars, at);

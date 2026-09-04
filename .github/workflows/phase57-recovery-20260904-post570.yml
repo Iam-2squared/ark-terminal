@@ -91,7 +91,7 @@ jobs:
             frozenEntryCandidatesByVariant:byVariant,
             uniqueEntrySymbols:[...new Set(unique.map(x=>x.symbol))].sort(),
             entryCandidates:unique.map(x=>({at:x.entryTimestamp,symbol:x.symbol,variant:x.variantMemberships?.[0]??null,direction:x.direction,entryPrice:x.entryPrice,confidence:x.confidence,probability:x.probability})),
-            sparseExitObservations:exitHistory.flatMap(x=>(x.skipped??[]).map(y=>({at:x.at,...y})),
+            sparseExitObservations:exitHistory.flatMap(x=>(x.skipped??[]).map(y=>({at:x.at,...y}))),
             strategyClosedTradesTotal:strategies.reduce((n,x)=>n+Number(x.closedTrades||0),0),
             strategyOpenPositionsTotal:strategies.reduce((n,x)=>n+Object.keys(x.positions??{}).length,0),
             strategies:strategies.map(x=>({strategyId:x.strategyId,closedTrades:x.closedTrades,openPositions:Object.keys(x.positions??{}).length,netPercent:x.netPercent,wins:x.wins,grossProfit:x.grossProfit,grossLoss:x.grossLoss,maxDrawdownPercent:x.maxDrawdownPercent})),

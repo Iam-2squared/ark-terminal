@@ -154,7 +154,7 @@ jobs:
               --reference-max-age-ms 5000 \
               --ttl-ms 5000 \
               --decision-latency-ms 100
-            node -e "const e=require('$envelope'); const stamp=new Date(e.pointResult.at).toISOString().replace(/[-:.]/g,'').replace('000Z','Z'); if(stamp!=='$point_stamp') throw new Error('Lane M envelope timestamp mismatch '+stamp+' != $point_stamp'); if(e.methodology?.sourceDecisionAlreadyFrozen!==true||e.methodology?.futureOutcomeUsed!==false||e.backfillUsed!==false) throw new Error('Lane M envelope methodology invariant failed'); for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed']) if(e.safety?.[k]!==false) throw new Error('unsafe Lane M envelope '+k);"
+            node -e "const e=require('$envelope'); const stamp=new Date(e.pointResult.at).toISOString().replace(/\.\d{3}Z$/,'Z').replace(/[-:]/g,''); if(stamp!=='$point_stamp') throw new Error('Lane M envelope timestamp mismatch '+stamp+' != $point_stamp'); if(e.methodology?.sourceDecisionAlreadyFrozen!==true||e.methodology?.futureOutcomeUsed!==false||e.backfillUsed!==false) throw new Error('Lane M envelope methodology invariant failed'); for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed']) if(e.safety?.[k]!==false) throw new Error('unsafe Lane M envelope '+k);"
           }
 
           process_eligible_raw(){

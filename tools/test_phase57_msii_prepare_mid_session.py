@@ -18,11 +18,13 @@ def test_mid_session_starts_at_next_bucket_and_skips_earlier_raw(tmp_path):
     assert result["stateInitialization"]=="COLD_START"
     assert result["eligibleForMidSessionScore"] is True
     assert result["notEligibleForFullFreshScore"] is True
+    assert result["futureOutcomeUsed"] is False
     assert result["processedRaw"]==["1030.json","1345.json"]
     lane_state=json.loads(lane.read_text(encoding="utf-8"))
     assert lane_state["lastDecisionAt"]=="2026-09-04T04:49:59.999Z"
     assert lane_state["sessionQuality"]=="MID_SESSION_CAUSAL_COLD_START"
-    assert lane_state["safety"]["executionAllowed"] is False
+    for key in ("executionAllowed","brokerWriteAllowed","excelOrderWriteAllowed","rssOrderFunctionAllowed","liveTradingAllowed","paperTradingAllowed","automaticPromotionAllowed","productionUpdateAllowed"):
+        assert lane_state["safety"][key] is False
     assert lane_state["safety"]["transmitted"] is False
 
 

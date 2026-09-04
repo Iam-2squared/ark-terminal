@@ -57,7 +57,7 @@ function canonical(value) {
 }
 
 function sha256(value) {
-  return createHash("node:crypto").update(JSON.stringify(canonical(value))).digest("hex");
+  return createHash("sha256").update(JSON.stringify(canonical(value))).digest("hex");
 }
 
 function normalizeBar(bar) {

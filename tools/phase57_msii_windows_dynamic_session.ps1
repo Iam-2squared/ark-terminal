@@ -101,9 +101,51 @@ $syncLog = Join-Path $logDir 'durable-sync.log'
 $syncBody = @'
 param($RepoRoot,$DurableRef,$SessionDate,$RawDir,$EnvelopeDir,$PollSeconds,$StopAtIso,$LogFile)
 $ErrorActionPreference='Stop'
+Set-StrictMode -Version Latest
 Set-Location $RepoRoot
 $stop=[DateTimeOffset]::Parse($StopAtIso)
 $prefix="data/phase57-realtime-live/$SessionDate"
+
+function Get-GitBlobId([string]$ObjectSpec) {
+  $id = (& git rev-parse $ObjectSpec 2>$null)
+  if ($LASTEXITCODE -ne 0 -or -not $id) { throw "git rev-parse failed: $ObjectSpec" }
+  return ([string]$id).Trim()
+}
+function Get-FileGitBlobId([string]$Path) {
+  if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { return $null }
+  $id = (& git hash-object -- $Path 2>$null)
+  if ($LASTEXITCODE -ne 0 -or -not $id) { throw "git hash-object failed: $Path" }
+  return ([string]$id).Trim()
+}
+function Write-GitBlobBytes([string]$ObjectSpec,[string]$Destination) {
+  $psi = New-Object System.Diagnostics.ProcessStartInfo
+  $psi.FileName = 'git.exe'
+  $psi.UseShellExecute = $false
+  $psi.CreateNoWindow = $true
+  $psi.RedirectStandardOutput = $true
+  $psi.RedirectStandardError = $true
+  $psi.Arguments = 'show ' + ('"' + ($ObjectSpec -replace '"','\"') + '"')
+  $process = New-Object System.Diagnostics.Process
+  $process.StartInfo = $psi
+  if (-not $process.Start()) { throw "git show failed to start: $ObjectSpec" }
+  $stream = [System.IO.File]::Open($Destination,[System.IO.FileMode]::Create,[System.IO.FileAccess]::Write,[System.IO.FileShare]::None)
+  try {
+    $process.StandardOutput.BaseStream.CopyTo($stream)
+  } finally {
+    $stream.Dispose()
+  }
+  $stderr = $process.StandardError.ReadToEnd()
+  $process.WaitForExit()
+  if ($process.ExitCode -ne 0) {
+    Remove-Item -LiteralPath $Destination -Force -ErrorAction SilentlyContinue
+    throw "git show failed: $ObjectSpec $stderr"
+  }
+}
+function Assert-JsonUtf8([string]$Path) {
+  & node -e "JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'))" $Path
+  if ($LASTEXITCODE -ne 0) { throw "UTF-8 JSON validation failed: $Path" }
+}
+
 while([DateTimeOffset]::Now -lt $stop){
   try {
     git fetch --quiet origin 'refs/heads/automation/phase57-realtime-live-data:refs/remotes/origin/automation/phase57-realtime-live-data'
@@ -116,13 +158,21 @@ while([DateTimeOffset]::Now -lt $stop){
         if(-not $remotePath.EndsWith('.json')){ continue }
         $name=[System.IO.Path]::GetFileName($remotePath)
         $destination=Join-Path $destRoot $name
-        if(Test-Path $destination){ continue }
+        $objectSpec="${DurableRef}:$remotePath"
+        $remoteBlob=Get-GitBlobId $objectSpec
+        $localBlob=Get-FileGitBlobId $destination
+        if($localBlob -and $localBlob -eq $remoteBlob){ continue }
         $temp="$destination.tmp-$PID"
-        $payload=git show "${DurableRef}:$remotePath" 2>$null
-        if($LASTEXITCODE -ne 0 -or -not $payload){ throw "git show failed: $remotePath" }
-        [System.IO.File]::WriteAllText($temp,($payload -join "`n")+"`n",[System.Text.UTF8Encoding]::new($false))
-        Move-Item -LiteralPath $temp -Destination $destination
-        Add-Content -Path $LogFile -Value "$(Get-Date -Format o) SYNCED $kind/$name"
+        Write-GitBlobBytes $objectSpec $temp
+        $tempBlob=Get-FileGitBlobId $temp
+        if($tempBlob -ne $remoteBlob){
+          Remove-Item -LiteralPath $temp -Force -ErrorAction SilentlyContinue
+          throw "byte-exact durable sync mismatch: $remotePath remote=$remoteBlob local=$tempBlob"
+        }
+        Assert-JsonUtf8 $temp
+        Move-Item -LiteralPath $temp -Destination $destination -Force
+        $verb=if($localBlob){'REPAIRED'}else{'SYNCED'}
+        Add-Content -Path $LogFile -Value "$(Get-Date -Format o) $verb byte-exact $kind/$name blob=$remoteBlob"
       }
     }
   } catch { Add-Content -Path $LogFile -Value "$(Get-Date -Format o) SYNC_WAIT $($_.Exception.Message)" }

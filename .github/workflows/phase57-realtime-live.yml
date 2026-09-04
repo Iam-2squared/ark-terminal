@@ -101,7 +101,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          set -u
+          set -euo pipefail
           # Yahoo Japan public chart data is empirically ~15 minutes delayed intraday.
           # We therefore capture the selector snapshot at event time, durably queue it,
           # and only evaluate that immutable snapshot after its exact closed 5m bar has

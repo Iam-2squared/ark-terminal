@@ -12,6 +12,13 @@ const bars = [
   { timestamp: '2026-09-04T01:15:00.000Z', high: 103, low: 97, close: 98 },
 ];
 
+const assertClose = (actual, expected, tolerance = 1e-12) => {
+  assert.ok(
+    Math.abs(actual - expected) <= tolerance,
+    `expected ${actual} to be within ${tolerance} of ${expected}`,
+  );
+};
+
 test('future labels are explicitly forbidden from current feature vectors and realtime scorer', () => {
   assert.equal(PHASE57_ENTRY_QUALITY_V2_LABEL_POLICY.mayEnterCurrentFeatureVector, false);
   assert.equal(PHASE57_ENTRY_QUALITY_V2_LABEL_POLICY.mayRunInRealtimeScorer, false);
@@ -31,21 +38,21 @@ test('path labels compute asymmetric LONG and SHORT return/MFE/MAE', () => {
   const h3 = result.labels.find(label => label.horizonBars === 3);
 
   assert.equal(h1.complete, true);
-  assert.equal(h1.long.grossReturnPct, 1);
-  assert.equal(h1.short.grossReturnPct, -1);
-  assert.equal(h1.long.mfePct, 2);
-  assert.equal(h1.long.maePct, -1);
+  assertClose(h1.long.grossReturnPct, 1);
+  assertClose(h1.short.grossReturnPct, -1);
+  assertClose(h1.long.mfePct, 2);
+  assertClose(h1.long.maePct, -1);
 
   assert.equal(h3.complete, true);
-  assert.equal(h3.long.grossReturnPct, -2);
-  assert.equal(h3.long.mfePct, 4);
-  assert.equal(h3.long.maePct, -3);
+  assertClose(h3.long.grossReturnPct, -2);
+  assertClose(h3.long.mfePct, 4);
+  assertClose(h3.long.maePct, -3);
   assert.equal(h3.long.timeToMfeBars, 2);
   assert.equal(h3.long.timeToMaeBars, 3);
 
-  assert.equal(h3.short.grossReturnPct, 2);
-  assert.equal(h3.short.mfePct, 3.0927835051546393);
-  assert.equal(h3.short.maePct, -4);
+  assertClose(h3.short.grossReturnPct, 2);
+  assertClose(h3.short.mfePct, 3.0927835051546393);
+  assertClose(h3.short.maePct, -4);
 });
 
 test('cost is reported separately as fixed round-trip bps', () => {
@@ -57,8 +64,8 @@ test('cost is reported separately as fixed round-trip bps', () => {
     roundTripCostBps: 20,
   });
   const h1 = result.labels[0];
-  assert.equal(h1.long.grossReturnPct, 1);
-  assert.equal(h1.long.costAdjustedReturnPct, 0.8);
+  assertClose(h1.long.grossReturnPct, 1);
+  assertClose(h1.long.costAdjustedReturnPct, 0.8);
 });
 
 test('incomplete horizons are marked incomplete rather than padded', () => {

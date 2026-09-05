@@ -28,6 +28,11 @@ test('CAR-1 CLI emits development evidence only and keeps interpretation locks c
   assert.match(cli,/sameFrozenEntry:true/);
   assert.match(cli,/sameFrozenExit:true/);
   assert.match(cli,/sameCandidatePriority:true/);
+  assert.match(cli,/executionSetDriftDiagnosedPostReplay:true/);
+  assert.match(cli,/executionSetDiagnosticFeedsSizer:false/);
+  assert.match(cli,/sameAcceptedTradeSet/);
+  assert.match(cli,/allocationInducedEligibilityChange/);
+  assert.match(cli,/POSITION_SIZE_PLUS_ROUND_LOT_OR_CASH_ELIGIBILITY_EFFECT/);
   assert.match(cli,/parameterSearchAllowed:false/);
   assert.match(cli,/winnerSelectionAllowed:false/);
   assert.match(cli,/promotionEligible:false/);

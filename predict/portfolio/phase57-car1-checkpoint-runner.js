@@ -54,7 +54,11 @@ const FALSE_KEYS=Object.freeze([
   'executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed',
   'liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted',
 ]);
-const close=(a,b,tolerance=1e-6)=>Math.abs(Number(a)-Number(b))<=tolerance;
+const metricEqual=(a,b,tolerance=1e-6)=>{
+  if(a===b)return true;
+  const left=Number(a),right=Number(b);
+  return Number.isFinite(left)&&Number.isFinite(right)&&Math.abs(left-right)<=tolerance;
+};
 const round=(value,digits=6)=>Number.isFinite(Number(value))?Number(Number(value).toFixed(digits)):value;
 
 function assertSafety(){
@@ -97,9 +101,9 @@ function assertBaselineParity({fixedComparison,baselineProfileId,attribution}){
   if(Number(fixed.input?.candidateEntryCount)!==Number(attribution.pairedAudit?.candidateEntryCount)){
     throw new Error(`CAR-1 candidate cardinality mismatch for ${baselineProfileId}`);
   }
-  if(!close(fixed.return?.totalReturnPct,attribution.baseline?.totalReturnPct)||
-     !close(fixed.risk?.maxDrawdownPct,attribution.baseline?.maxDrawdownPct)||
-     !close(fixed.trade?.profitFactor,attribution.baseline?.profitFactor)||
+  if(!metricEqual(fixed.return?.totalReturnPct,attribution.baseline?.totalReturnPct)||
+     !metricEqual(fixed.risk?.maxDrawdownPct,attribution.baseline?.maxDrawdownPct)||
+     !metricEqual(fixed.trade?.profitFactor,attribution.baseline?.profitFactor)||
      Number(fixed.trade?.accepted)!==Number(attribution.baseline?.acceptedTradeCount)){
     throw new Error(`CAR-1 fixed baseline metric parity failed for ${baselineProfileId}`);
   }

@@ -34,6 +34,8 @@ test('shards become a compact global-symbol survivorship-limited dataset',()=>{
   assert.equal(result.sessions[0].memberSymbols.length,2);
   assert.equal(result.sessions[0].decisionCutoffs.length,44);
   assert.equal(result.manifest.evidenceClassification,'SURVIVORSHIP_LIMITED_RECONSTRUCTION');
+  assert.equal(result.manifest.benchmarkScope,'REDUCED_UNIVERSE_PIPELINE_PILOT');
+  assert.equal(result.manifest.requestedSampleSize,200);
   assert.equal(result.manifest.claimsExactTradingViewReplay,false);
   assert.equal(result.manifest.currentUniverseAppliedHistorically,true);
   assert.equal(result.manifest.safety.executionAllowed,false);
@@ -57,4 +59,3 @@ test('insufficient covered sessions cannot be mislabeled large-scale',()=>{
     /at least 30 required/,
   );
 });
-

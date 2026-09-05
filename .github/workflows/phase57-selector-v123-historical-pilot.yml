@@ -87,28 +87,33 @@ jobs:
           node scripts/build_phase57_selector_historical_dataset.mjs             --shard-dir artifacts/shards             --min-symbols-per-session 120             --output artifacts/phase57-selector-historical-dataset.json
       - name: Run Development and Validation benchmark with OOS sealed
         run: |
-          node scripts/run_phase57_selector_v123_historical_benchmark.mjs             --dataset artifacts/phase57-selector-historical-dataset.json             --output artifacts/phase57-selector-v123-benchmark-sealed.json
+          node scripts/run_phase57_selector_v123_historical_benchmark.mjs             --dataset artifacts/phase57-selector-historical-dataset.json             --output artifacts/phase57-selector-v123-benchmark-sealed.json             --selection-ledger-output artifacts/phase57-selector-v123-selection-outcomes.ndjson.gz
       - name: Guard labels, OOS seal and safety
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           const value=JSON.parse(fs.readFileSync('artifacts/phase57-selector-v123-benchmark-sealed.json','utf8'));
+          if(value.schemaVersion!==2)throw new Error('selection outcome schema is not v2');
           if(value.status!=='SELECTOR_V1_V2_V3_BENCHMARK_OOS_SEALED'||value.outerOosConsumed!==false)throw new Error('outer OOS was not sealed');
           if(value.dataset.evidenceClassification!=='SURVIVORSHIP_LIMITED_RECONSTRUCTION')throw new Error('reconstruction label drift');
+          if(value.dataset.benchmarkScope!=='REDUCED_UNIVERSE_PIPELINE_PILOT')throw new Error('pilot scope label drift');
           if(value.dataset.sessionCount<30)throw new Error('large-sample session floor not met');
           for(const key of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted']){
             if(value.safety?.[key]!==false)throw new Error(`safety ${key}`);
           }
+          if(!fs.existsSync('artifacts/phase57-selector-v123-selection-outcomes.ndjson.gz'))throw new Error('selection outcome ledger missing');
+          if((value.development.selectionOutcomeRecordCount??0)<1||(value.validation.selectionOutcomeRecordCount??0)<1)throw new Error('selection outcome rows missing');
           NODE
       - name: Compress immutable input and record digests
         run: |
           gzip -9 artifacts/phase57-selector-historical-dataset.json
-          sha256sum             artifacts/phase57-selector-historical-dataset.json.gz             artifacts/phase57-selector-v123-benchmark-sealed.json             predict/research/phase57-selector-v3-freeze.json             > artifacts/phase57-selector-v123-digests.sha256
+          sha256sum             artifacts/phase57-selector-historical-dataset.json.gz             artifacts/phase57-selector-v123-benchmark-sealed.json             artifacts/phase57-selector-v123-selection-outcomes.ndjson.gz             predict/research/phase57-selector-v3-freeze.json             > artifacts/phase57-selector-v123-digests.sha256
       - uses: actions/upload-artifact@v4
         with:
           name: phase57-selector-v123-historical-pilot-sealed
           path: |
             artifacts/phase57-selector-historical-dataset.json.gz
             artifacts/phase57-selector-v123-benchmark-sealed.json
+            artifacts/phase57-selector-v123-selection-outcomes.ndjson.gz
             artifacts/phase57-selector-v123-digests.sha256
           retention-days: 90

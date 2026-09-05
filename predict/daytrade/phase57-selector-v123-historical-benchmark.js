@@ -103,6 +103,9 @@ export function validatePhase57SelectorHistoricalDataset(dataset){
   return Object.freeze({
     status:'SELECTOR_HISTORICAL_DATASET_VALID',
     datasetId:String(manifest.datasetId??'UNNAMED_DATASET'),
+    benchmarkScope:String(manifest.benchmarkScope??'UNSPECIFIED'),
+    requestedSampleSize:finite(manifest.requestedSampleSize)?Number(manifest.requestedSampleSize):null,
+    actualSymbolCount:finite(manifest.actualSymbolCount)?Number(manifest.actualSymbolCount):(globalSymbols?.length??null),
     sessionCount:dataset.sessions.length,
     evidenceClassification:manifest.evidenceClassification,
     universeStatus:manifest.universeStatus,
@@ -215,6 +218,17 @@ function jstTimeOfDay(timestamp){
   return `${values.hour}:${values.minute}`;
 }
 
+function timeOfDayBucket(timestamp){
+  const [hour,minute]=jstTimeOfDay(timestamp).split(':').map(Number);
+  const value=hour*60+minute;
+  if(value<9*60+30)return '09:00-09:30';
+  if(value<10*60+30)return '09:30-10:30';
+  if(value<11*60+30)return '10:30-11:30';
+  if(value<13*60+30)return '12:30-13:30';
+  if(value<14*60+30)return '13:30-14:30';
+  return '14:30-CLOSE';
+}
+
 function priceBand(price){
   if(price<100)return 'LT_100';
   if(price<500)return '100_TO_499';
@@ -237,26 +251,122 @@ function marketRegime(snapshot){
   return 'FLAT';
 }
 
+function snapshotContext(entries){
+  const marketMoves=entries.map(row=>Number(row.dailyChangePercent)).filter(Number.isFinite);
+  const sectors=new Map();
+  for(const row of entries){
+    const move=Number(row.dailyChangePercent);
+    if(!Number.isFinite(move))continue;
+    const sector=sectorOf(row.sector);
+    if(!sectors.has(sector))sectors.set(sector,[]);
+    sectors.get(sector).push(move);
+  }
+  return Object.freeze({
+    marketMedianMovePct:median(marketMoves),
+    marketBreadthPositive:marketMoves.length?marketMoves.filter(value=>value>0).length/marketMoves.length:null,
+    sectors,
+  });
+}
+
+function contextForSymbol(context,entry){
+  const sectorMoves=context.sectors.get(sectorOf(entry.sector))??[];
+  const sectorMedianMovePct=median(sectorMoves);
+  const stockMovePct=finite(entry.dailyChangePercent)?Number(entry.dailyChangePercent):null;
+  return Object.freeze({
+    marketMedianMovePct:context.marketMedianMovePct,
+    marketBreadthPositive:context.marketBreadthPositive,
+    sectorMedianMovePct,
+    sectorBreadthPositive:sectorMoves.length?sectorMoves.filter(value=>value>0).length/sectorMoves.length:null,
+    stockVsSectorResidualPct:stockMovePct!==null&&sectorMedianMovePct!==null?stockMovePct-sectorMedianMovePct:null,
+  });
+}
+
+function trueRange(bar,previousClose){
+  return Math.max(Number(bar.high)-Number(bar.low),Math.abs(Number(bar.high)-previousClose),Math.abs(Number(bar.low)-previousClose));
+}
+
+function preSelectionDiagnostics(symbol,sessionDate,featureCutoff){
+  const closed=barsClosedBy(symbol,timestampMs(featureCutoff,'featureCutoff'));
+  const sessionBars=closed.filter(bar=>bar.sessionDate===sessionDate);
+  if(!sessionBars.length)return null;
+  const anchorPrice=Number(sessionBars.at(-1).close);
+  const preReturns=Object.fromEntries(PHASE57_SELECTOR_V3_FREEZE.targets.horizonBars.map(horizon=>{
+    const priorIndex=sessionBars.length-1-horizon;
+    return [String(horizon),priorIndex>=0?round6(anchorPrice/Number(sessionBars[priorIndex].close)-1):null];
+  }));
+  const sessionVolume=sessionBars.reduce((sum,bar)=>sum+Number(bar.volume),0);
+  const sessionTurnover=sessionBars.reduce((sum,bar)=>sum+Number(bar.close)*Number(bar.volume),0);
+  const vwapNumerator=sessionBars.reduce((sum,bar)=>sum+((Number(bar.high)+Number(bar.low)+Number(bar.close))/3)*Number(bar.volume),0);
+  const vwap=sessionVolume>0?vwapNumerator/sessionVolume:null;
+  const intradayHigh=Math.max(...sessionBars.map(bar=>Number(bar.high)));
+  const intradayLow=Math.min(...sessionBars.map(bar=>Number(bar.low)));
+  const ranges=closed.map((bar,index)=>trueRange(bar,index?Number(closed[index-1].close):Number(bar.open)))
+    .slice(-PHASE57_SELECTOR_V3_FREEZE.featureDefinitions.atrLookbackBars);
+  const atrPrice=ranges.length?mean(ranges):null;
+  return Object.freeze({
+    returnsByBars:Object.freeze(preReturns),
+    returnFromSessionOpen:round6(anchorPrice/Number(sessionBars[0].open)-1),
+    distanceFromVwap:vwap&&vwap>0?round6(anchorPrice/vwap-1):null,
+    distanceFromIntradayHigh:intradayHigh>0?round6(anchorPrice/intradayHigh-1):null,
+    distanceFromIntradayLow:intradayLow>0?round6(anchorPrice/intradayLow-1):null,
+    atrPrice:Number.isFinite(atrPrice)?round6(atrPrice):null,
+    atrNormalizedVwapExtension:vwap&&atrPrice>0?round6(Math.abs(anchorPrice-vwap)/atrPrice):null,
+    cumulativeVolume:sessionVolume,
+    cumulativeTurnoverYen:round6(sessionTurnover),
+    rvol:null,
+    rvolStatus:'UNAVAILABLE_NO_CAUSAL_SAME_TIME_HISTORY',
+  });
+}
+
+function futureReturn(symbol,sessionDate,featureCutoff,anchorPrice,horizon){
+  const cutoffMs=timestampMs(featureCutoff,'featureCutoff');
+  const future=symbol.bars.filter(bar=>bar.sessionDate===sessionDate&&timestampMs(bar.availableAt,'bar.availableAt')>cutoffMs)
+    .sort((a,b)=>timestampMs(a.availableAt,'bar.availableAt')-timestampMs(b.availableAt,'bar.availableAt'));
+  if(future.length<horizon)return null;
+  return round6(Number(future[horizon-1].close)/anchorPrice-1);
+}
+
+function rankBucket(rank){
+  if(!Number.isFinite(rank))return 'NOT_RANKED';
+  if(rank<=10)return 'RANK_01_10';
+  if(rank<=20)return 'RANK_11_20';
+  if(rank<=30)return 'RANK_21_30';
+  if(rank<=40)return 'RANK_31_40';
+  if(rank<=50)return 'RANK_41_50';
+  return 'RANK_GT_50';
+}
+
+function persistenceBucket(value){
+  if(!Number.isFinite(value))return 'UNKNOWN';
+  if(Math.abs(value)<1e-9)return 'PERSISTENCE_0';
+  if(Math.abs(value-1/3)<1e-6)return 'PERSISTENCE_1_3';
+  if(Math.abs(value-1/2)<1e-6)return 'PERSISTENCE_WARMUP_1_2';
+  if(Math.abs(value-2/3)<1e-6)return 'PERSISTENCE_2_3';
+  if(Math.abs(value-1)<1e-9)return 'PERSISTENCE_1';
+  return 'PERSISTENCE_OTHER';
+}
+
 function rankDecile(rank,total){
   if(!Number.isFinite(rank)||!Number.isFinite(total)||total<1)return 'NOT_RANKED';
   return `D${Math.min(10,Math.max(1,Math.ceil(rank/total*10)))}`;
 }
 
 function recordForSymbol({
-  session,featureCutoff,symbol,snapshotEntry,v1Point,v2Point,v3Result,selectionMaps,regime,
+  session,featureCutoff,symbol,snapshotEntry,v1Point,v2Point,v3Result,selectionMaps,regime,context,v2Transition,
 }){
   const v1Index=selectionMaps.v1.get(symbol.symbol)??-1;
   const v2Index=selectionMaps.v2.get(symbol.symbol)??-1;
   const v1Row=v1Index>=0?v1Point.rawUniverse[v1Index]:null;
-  const v2Row=v2Index>=0?v2Point.rawUniverse[v2Index]:null;
+  const v2SelectedRow=v2Index>=0?v2Point.rawUniverse[v2Index]:null;
+  const v2ScoredIndex=selectionMaps.v2Scored.get(symbol.symbol)??-1;
+  const v2Row=v2ScoredIndex>=0?v2Point.v2RankedUniverse[v2ScoredIndex]:v2SelectedRow;
   const v3Index=selectionMaps.v3.get(symbol.symbol)??-1;
   const v3Row=v3Index>=0?v3Result.ranked[v3Index]:null;
   const closed=barsClosedBy(symbol,timestampMs(featureCutoff,'featureCutoff'));
   const current=closed.filter(bar=>bar.sessionDate===session.sessionDate).at(-1);
   if(!current)return null;
-  const currentSession=closed.filter(bar=>bar.sessionDate===session.sessionDate);
-  const sessionOpen=Number(currentSession[0].open);
   const anchorPrice=Number(current.close);
+  const pre=preSelectionDiagnostics(symbol,session.sessionDate,featureCutoff);
   const targets=buildPhase57SelectorNativeTargets({
     featureCutoff,anchorPrice,sessionDate:session.sessionDate,futureBars:symbol.bars,
   });
@@ -269,19 +379,29 @@ function recordForSymbol({
       downExcursion:value.downExcursion,
       twoSidedOpportunity:value.twoSidedOpportunity,
       costAdjustedTwoSidedUtility:value.costAdjustedTwoSidedUtility,
+      futureReturn:futureReturn(symbol,session.sessionDate,featureCutoff,anchorPrice,horizon),
       barriers:value.barriers===null?null:Object.fromEntries(Object.entries(value.barriers).map(([bps,barrier])=>[bps,barrier.status])),
     }];
   }));
   const turnoverYen=anchorPrice*Number(snapshotEntry.volume);
+  const persistence=finite(v2Row?.components?.persistence)?Number(v2Row.components.persistence):null;
   return Object.freeze({
-    sessionDate:session.sessionDate,featureCutoff,timeOfDay:jstTimeOfDay(featureCutoff),
+    sessionDate:session.sessionDate,featureCutoff,timeOfDay:jstTimeOfDay(featureCutoff),timeOfDayBucket:timeOfDayBucket(featureCutoff),
     symbol:symbol.symbol,sector:symbol.sector,market:symbol.market??null,marketRegime:regime,
-    currentPrice:anchorPrice,turnoverYen,priceBand:priceBand(anchorPrice),liquidityBand:liquidityBand(turnoverYen),
-    preSelectionMove:Math.abs(anchorPrice/sessionOpen-1),
+    currentPrice:anchorPrice,cumulativeVolume:Number(snapshotEntry.volume),dailyChangePercent:Number(snapshotEntry.dailyChangePercent),
+    turnoverYen,priceBand:priceBand(anchorPrice),liquidityBand:liquidityBand(turnoverYen),
+    preSelectionMove:Math.abs(pre.returnFromSessionOpen),preSelection:pre,context,
     v1Selected:v1Index>=0,v1Rank:v1Index>=0?v1Index+1:null,v1Score:v1Row?.opportunityScore??null,
+    v1RankBucket:rankBucket(v1Index>=0?v1Index+1:null),v1Modes:v1Row?.modes??null,
     v2Selected:v2Index>=0,v2Rank:v2Index>=0?v2Index+1:null,v2Score:v2Row?.v2Score??null,
+    v2ScoredRank:v2ScoredIndex>=0?v2ScoredIndex+1:null,v2RankBucket:rankBucket(v2Index>=0?v2Index+1:null),
+    v2Persistence:persistence,v2PersistenceBucket:persistenceBucket(persistence),v2Transition,
+    v2Components:v2Row?.components??null,
     v3Eligible:v3Index>=0,v3Rank:v3Index>=0?v3Index+1:null,v3Score:v3Row?.utilityScore??null,
+    v3RankBucket:rankBucket(v3Index>=0?v3Index+1:null),
     v3StructuralTradability:v3Row?.structuralTradability??null,
+    v3Momentum:v3Row?.momentum??null,v3RemainingHeadroom:v3Row?.remainingHeadroom??null,
+    v3MarketSectorContext:v3Row?.marketSectorContext??null,v3Components:v3Row?.components??null,
     v3SectorContextStatus:v3Row?.components?.sectorContextStatus??null,
     v1RankDecile:rankDecile(v1Index>=0?v1Index+1:null,v1Point?.rawUniverse?.length??0),
     v2RankDecile:rankDecile(v2Index>=0?v2Index+1:null,v2Point?.rawUniverse?.length??0),
@@ -291,6 +411,12 @@ function recordForSymbol({
     primaryDownExcursion:primary.downExcursion,
     primaryTwoSidedOpportunity:primary.twoSidedOpportunity,
     primaryCostAdjustedUtility:primary.costAdjustedTwoSidedUtility,
+    primaryFutureReturn:horizonTargets[String(PHASE57_SELECTOR_V3_FREEZE.targets.primaryHorizonBars)].futureReturn,
+    featureAvailability:Object.freeze({
+      reconstructedRealtime:Object.freeze({currentPrice:true,cumulativeVolume:true,dailyChangePercent:true,sector:true,market:snapshotEntry.market!==null}),
+      unavailableRealtime:Object.freeze({volumeRatio:false,rvol:false,atrPercent:false,discoveryScore:false,technicalScore:false,confidence:false,qualityScore:false,microstructure:false}),
+      missingValuesZeroFilled:false,
+    }),
     horizonTargets,
   });
 }
@@ -318,6 +444,8 @@ export function replayPhase57SelectorHistoricalDataset(dataset){
     assertSafety(v2.safety,'V2');
     const v1BySource=pointBySource(v1);
     const v2BySource=pointBySource(v2);
+    let previousV2Selected=new Set();
+    const everV2Selected=new Set();
     for(const snapshot of snapshots){
       const v3=scorePhase57SelectorV3CrossSection({
         featureCutoff:snapshot.asOf,
@@ -328,15 +456,29 @@ export function replayPhase57SelectorHistoricalDataset(dataset){
       const selectionMaps={
         v1:new Map((v1Point?.rawUniverse??[]).map((row,index)=>[row.symbol,index])),
         v2:new Map((v2Point?.rawUniverse??[]).map((row,index)=>[row.symbol,index])),
+        v2Scored:new Map((v2Point?.v2RankedUniverse??[]).map((row,index)=>[row.symbol,index])),
         v3:new Map(v3.ranked.map((row,index)=>[row.symbol,index])),
       };
       const regime=marketRegime(snapshot.entries);
+      const pointContext=snapshotContext(snapshot.entries);
+      const currentV2Selected=new Set(selectionMaps.v2.keys());
       const bySymbol=new Map(symbols.map(symbol=>[symbol.symbol,symbol]));
       for(const snapshotEntry of snapshot.entries){
         const symbol=bySymbol.get(snapshotEntry.symbol);
-        const record=recordForSymbol({session,featureCutoff:snapshot.asOf,symbol,snapshotEntry,v1Point,v2Point,v3Result:v3,selectionMaps,regime});
+        const isCurrent=currentV2Selected.has(snapshotEntry.symbol);
+        const wasPrevious=previousV2Selected.has(snapshotEntry.symbol);
+        const wasEver=everV2Selected.has(snapshotEntry.symbol);
+        const v2Transition=isCurrent
+          ?(wasPrevious?'INCUMBENT':wasEver?'RE_ENTERED':'NEW_ENTRANT')
+          :(wasPrevious?'DROPPED':'NOT_SELECTED');
+        const record=recordForSymbol({
+          session,featureCutoff:snapshot.asOf,symbol,snapshotEntry,v1Point,v2Point,v3Result:v3,
+          selectionMaps,regime,context:contextForSymbol(pointContext,snapshotEntry),v2Transition,
+        });
         if(record)records.push(record);
       }
+      for(const selected of currentV2Selected)everV2Selected.add(selected);
+      previousV2Selected=currentV2Selected;
       pointAudits.push(Object.freeze({
         sessionDate:session.sessionDate,featureCutoff:snapshot.asOf,inputSymbols:snapshot.entries.length,
         v1Selected:v1Point?.rawUniverse?.length??0,v2Selected:v2Point?.rawUniverse?.length??0,
@@ -430,6 +572,11 @@ function simpleGroupSummary(rows,predicate){
   const selected=rows.filter(predicate).filter(row=>finite(row.primaryCostAdjustedUtility));
   return {
     selectedTargetReady:selected.length,
+    meanReturnFromSessionOpenBps:selected.length?round6(mean(selected.map(row=>row.preSelection.returnFromSessionOpen))*10000):null,
+    meanPreSelectionMoveBps:selected.length?round6(mean(selected.map(row=>row.preSelectionMove))*10000):null,
+    meanPostSelectionReturnBps:selected.length?round6(mean(selected.map(row=>row.primaryFutureReturn))*10000):null,
+    meanUpExcursionBps:selected.length?round6(mean(selected.map(row=>row.primaryUpExcursion))*10000):null,
+    meanDownExcursionBps:selected.length?round6(mean(selected.map(row=>row.primaryDownExcursion))*10000):null,
     meanCostAdjustedUtilityBps:selected.length?round6(mean(selected.map(row=>row.primaryCostAdjustedUtility))*10000):null,
     meanTwoSidedOpportunityBps:selected.length?round6(mean(selected.map(row=>row.primaryTwoSidedOpportunity))*10000):null,
   };
@@ -474,6 +621,12 @@ function selectorRankDecile(selector,row){
   return row.v3RankDecile;
 }
 
+function selectorRankBucket(selector,row){
+  if(selector==='V1')return row.v1RankBucket;
+  if(selector==='V2')return row.v2RankBucket;
+  return row.v3RankBucket;
+}
+
 function summarizeSelector(rows,selector,v3Selected){
   const predicate=selectedPredicate(selector,v3Selected);
   const selected=rows.filter(predicate);
@@ -494,6 +647,8 @@ function summarizeSelector(rows,selector,v3Selected){
     coverage:rows.length?round6(selected.length/rows.length):0,
     meanSelectedPerTimestamp:timestamps.size?round6(selected.length/timestamps.size):0,
     meanPreSelectionMoveBps:targetReady.length?round6(mean(pre)*10000):null,
+    meanReturnFromSessionOpenBps:targetReady.length?round6(mean(targetReady.map(row=>row.preSelection.returnFromSessionOpen))*10000):null,
+    meanPostSelectionReturnBps:targetReady.length?round6(mean(targetReady.map(row=>row.primaryFutureReturn))*10000):null,
     meanUpExcursionBps:targetReady.length?round6(mean(targetReady.map(row=>row.primaryUpExcursion))*10000):null,
     meanDownExcursionBps:targetReady.length?round6(mean(targetReady.map(row=>row.primaryDownExcursion))*10000):null,
     meanTwoSidedOpportunityBps:targetReady.length?round6(mean(post)*10000):null,
@@ -505,13 +660,154 @@ function summarizeSelector(rows,selector,v3Selected){
       String(horizon),horizonSummary(rows,predicate,horizon),
     ]))),
     slices:Object.freeze({
-      timeOfDay:groupedSlices(rows,predicate,row=>row.timeOfDay),
+      timeOfDayBucket:groupedSlices(rows,predicate,row=>row.timeOfDayBucket),
       sector:groupedSlices(rows,predicate,row=>row.sector),
       marketRegime:groupedSlices(rows,predicate,row=>row.marketRegime),
       priceBand:groupedSlices(rows,predicate,row=>row.priceBand),
       liquidityBand:groupedSlices(rows,predicate,row=>row.liquidityBand),
       rankDecile:groupedSlices(rows,predicate,row=>selectorRankDecile(selector,row)),
+      rankBucket:groupedSlices(rows,predicate,row=>selectorRankBucket(selector,row)),
     }),
+  });
+}
+
+function selectionFlags(row,index,v3Selected){
+  return Object.freeze({V1:Boolean(row.v1Selected),V2:Boolean(row.v2Selected),V3:v3Selected.has(index)});
+}
+
+function overlapCategory(flags){
+  const selected=Object.entries(flags).filter(([,value])=>value).map(([key])=>key);
+  if(!selected.length)return 'NONE';
+  return selected.length===1?`${selected[0]}_ONLY`:selected.join('_');
+}
+
+function selectorRank(selector,row){
+  if(selector==='V1')return row.v1Rank;
+  if(selector==='V2')return row.v2Rank;
+  return row.v3Rank;
+}
+
+function selectorScore(selector,row){
+  if(selector==='V1')return row.v1Score;
+  if(selector==='V2')return row.v2Score;
+  return row.v3Score;
+}
+
+function selectorFeatureSnapshot(selector,row){
+  const shared=Object.freeze({
+    currentPrice:row.currentPrice,cumulativeVolume:row.cumulativeVolume,dailyChangePercent:row.dailyChangePercent,
+    turnoverYen:row.turnoverYen,recentReturn3Bars:row.preSelection.returnsByBars['3'],
+    rvol:row.preSelection.rvol,distanceFromVwap:row.preSelection.distanceFromVwap,
+    atrNormalizedVwapExtension:row.preSelection.atrNormalizedVwapExtension,
+    marketContext:row.context.marketMedianMovePct,sectorContext:row.context.sectorMedianMovePct,
+  });
+  if(selector==='V1')return Object.freeze({
+    ...shared,modes:row.v1Modes,
+    volumeRatio:null,atrPercent:null,discoveryScore:null,technicalScore:null,confidence:null,qualityScore:null,
+    unavailableRealtimeFeaturesExplicit:true,
+  });
+  if(selector==='V2')return Object.freeze({
+    ...shared,baseOpportunity:row.v2Components?.baseOpportunity??null,
+    liquidityQuality:row.v2Components?.liquidityQuality??null,
+    persistence:row.v2Persistence,signalQuality:row.v2Components?.signalQuality??null,
+    transition:row.v2Transition,unavailableRealtimeFeaturesExplicit:true,
+  });
+  return Object.freeze({
+    ...shared,structuralTradability:row.v3StructuralTradability,momentum:row.v3Momentum,
+    remainingHeadroom:row.v3RemainingHeadroom,marketSectorContext:row.v3MarketSectorContext,
+    components:row.v3Components,missingValuesZeroFilled:false,
+  });
+}
+
+export function buildPhase57SelectorSelectionArtifacts(records,v3Selected){
+  const groups=new Map();
+  records.forEach((row,index)=>{
+    const key=`${row.sessionDate}|${row.featureCutoff}`;
+    if(!groups.has(key))groups.set(key,[]);
+    groups.get(key).push({row,index,flags:selectionFlags(row,index,v3Selected)});
+  });
+  const points=[];
+  const outcomes=[];
+  for(const group of groups.values()){
+    const first=group[0].row;
+    const selectedBy={};
+    for(const selector of ['V1','V2','V3']){
+      selectedBy[selector]=group.filter(item=>item.flags[selector]).sort((a,b)=>
+        selectorRank(selector,a.row)-selectorRank(selector,b.row)||a.row.symbol.localeCompare(b.row.symbol)
+      );
+    }
+    const sets=Object.fromEntries(Object.entries(selectedBy).map(([selector,items])=>[selector,new Set(items.map(item=>item.row.symbol))]));
+    const intersection=(...selectors)=>[...sets[selectors[0]]].filter(symbol=>selectors.every(selector=>sets[selector].has(symbol))).sort();
+    const union=new Set([...sets.V1,...sets.V2,...sets.V3]);
+    const categorySymbols={V1_ONLY:[],V2_ONLY:[],V3_ONLY:[],V1_V2:[],V1_V3:[],V2_V3:[],V1_V2_V3:[]};
+    for(const symbol of union){
+      const item=group.find(candidate=>candidate.row.symbol===symbol);
+      const category=overlapCategory(item.flags);
+      if(categorySymbols[category])categorySymbols[category].push(symbol);
+    }
+    for(const values of Object.values(categorySymbols))values.sort();
+    points.push(Object.freeze({
+      sessionDate:first.sessionDate,selectionTimestamp:first.featureCutoff,timeOfDay:first.timeOfDay,timeOfDayBucket:first.timeOfDayBucket,
+      selectedSymbols:Object.freeze(Object.fromEntries(Object.entries(selectedBy).map(([selector,items])=>[selector,Object.freeze(items.map(item=>item.row.symbol))]))),
+      selectedCounts:Object.freeze(Object.fromEntries(Object.entries(selectedBy).map(([selector,items])=>[selector,items.length]))),
+      overlaps:Object.freeze({
+        v1V2:Object.freeze(intersection('V1','V2')),v1V3:Object.freeze(intersection('V1','V3')),
+        v2V3:Object.freeze(intersection('V2','V3')),v1V2V3:Object.freeze(intersection('V1','V2','V3')),
+        categories:Object.freeze(Object.fromEntries(Object.entries(categorySymbols).map(([key,value])=>[key,Object.freeze(value)]))),
+      }),
+    }));
+    for(const item of group){
+      const category=overlapCategory(item.flags);
+      for(const selector of ['V1','V2','V3']){
+        if(!item.flags[selector])continue;
+        const row=item.row;
+        outcomes.push(Object.freeze({
+          recordType:'SELECTOR_SELECTION_OUTCOME',sessionDate:row.sessionDate,selectionTimestamp:row.featureCutoff,
+          symbol:row.symbol,selectorVersion:selector,rank:selectorRank(selector,row),score:selectorScore(selector,row),
+          selectedCount:selectedBy[selector].length,overlapCategory:category,
+          priceAtSelection:row.currentPrice,sector:row.sector,market:row.market,
+          selectorFeatures:selectorFeatureSnapshot(selector,row),featureAvailability:row.featureAvailability,
+          preSelection:row.preSelection,postSelection:row.horizonTargets,
+          primaryOutcome:Object.freeze({
+            horizonBars:PHASE57_SELECTOR_V3_FREEZE.targets.primaryHorizonBars,
+            futureReturn:row.primaryFutureReturn,upExcursion:row.primaryUpExcursion,
+            downExcursion:row.primaryDownExcursion,twoSidedOpportunity:row.primaryTwoSidedOpportunity,
+            costAdjustedTradableUtility:row.primaryCostAdjustedUtility,
+          }),
+          v2Transition:row.v2Transition,v2Persistence:row.v2Persistence,v2PersistenceBucket:row.v2PersistenceBucket,
+          evidence:Object.freeze({selectionFrozenBeforeOutcome:true,futureUsedOnlyForOutcome:true}),
+        }));
+      }
+    }
+  }
+  outcomes.sort((a,b)=>a.selectionTimestamp.localeCompare(b.selectionTimestamp)||a.selectorVersion.localeCompare(b.selectorVersion)||a.rank-b.rank||a.symbol.localeCompare(b.symbol));
+  return Object.freeze({points:Object.freeze(points),outcomes:Object.freeze(outcomes)});
+}
+
+function overlapSummary(points){
+  const categories={V1_ONLY:0,V2_ONLY:0,V3_ONLY:0,V1_V2:0,V1_V3:0,V2_V3:0,V1_V2_V3:0};
+  const counts={V1:[],V2:[],V3:[],v1V2:[],v1V3:[],v2V3:[],v1V2V3:[]};
+  for(const point of points){
+    for(const selector of ['V1','V2','V3'])counts[selector].push(point.selectedCounts[selector]);
+    for(const key of ['v1V2','v1V3','v2V3','v1V2V3'])counts[key].push(point.overlaps[key].length);
+    for(const [key,symbols] of Object.entries(point.overlaps.categories))categories[key]+=symbols.length;
+  }
+  return Object.freeze({
+    decisionTimestamps:points.length,
+    meanCounts:Object.freeze(Object.fromEntries(Object.entries(counts).map(([key,values])=>[key,values.length?round6(mean(values)):null]))),
+    symbolTimestampCategories:Object.freeze(categories),
+  });
+}
+
+function v2PersistenceSummary(rows){
+  const selected=row=>row.v2Selected;
+  const transition=row=>row.v2Transition!=='NOT_SELECTED';
+  return Object.freeze({
+    selectedByPersistence:groupedSlices(rows,selected,row=>row.v2PersistenceBucket),
+    byTransition:groupedSlices(rows,transition,row=>row.v2Transition),
+    transitionCounts:Object.freeze(Object.fromEntries(['NEW_ENTRANT','INCUMBENT','DROPPED','RE_ENTERED'].map(key=>[
+      key,rows.filter(row=>row.v2Transition===key).length,
+    ]))),
   });
 }
 
@@ -519,36 +815,62 @@ function leadTimeSummary(records,v3Selected){
   const selectors=['V1','V2','V3'];
   const first=new Map();
   records.forEach((row,index)=>{
-    if(!(Number(row.primaryCostAdjustedUtility)>0))return;
     const key=`${row.sessionDate}|${row.symbol}`;
     if(!first.has(key))first.set(key,{});
     const value=first.get(key);
     for(const selector of selectors){
       const selected=selector==='V1'?row.v1Selected:selector==='V2'?row.v2Selected:v3Selected.has(index);
-      if(selected&&!value[selector])value[selector]=row.featureCutoff;
+      if(selected&&!value[selector])value[selector]={timestamp:row.featureCutoff,utility:row.primaryCostAdjustedUtility,opportunity:row.primaryTwoSidedOpportunity};
     }
   });
-  const deltas={v3VsV1:[],v3VsV2:[]};
-  for(const value of first.values()){
-    if(value.V3&&value.V1)deltas.v3VsV1.push((Date.parse(value.V1)-Date.parse(value.V3))/60000);
-    if(value.V3&&value.V2)deltas.v3VsV2.push((Date.parse(value.V2)-Date.parse(value.V3))/60000);
-  }
-  const summarize=values=>({pairedEpisodes:values.length,meanMinutes:values.length?round6(mean(values)):null,medianMinutes:values.length?round6(median(values)):null,positiveMeansV3Earlier:true});
-  return Object.freeze({v3VsV1:summarize(deltas.v3VsV1),v3VsV2:summarize(deltas.v3VsV2)});
+  const compare=other=>{
+    const pairs=[];
+    for(const value of first.values()){
+      if(!value.V3||!value[other])continue;
+      pairs.push({
+        minutes:(Date.parse(value[other].timestamp)-Date.parse(value.V3.timestamp))/60000,
+        v3Utility:Number(value.V3.utility),v3Opportunity:Number(value.V3.opportunity),otherUtility:Number(value[other].utility),
+      });
+    }
+    const earlier=pairs.filter(pair=>pair.minutes>0);
+    return Object.freeze({
+      pairedSessionSymbols:pairs.length,
+      meanMinutes:pairs.length?round6(mean(pairs.map(pair=>pair.minutes))):null,
+      medianMinutes:pairs.length?round6(median(pairs.map(pair=>pair.minutes))):null,
+      v3EarlierCount:earlier.length,
+      v3EarlierWithPositiveUtilityCount:earlier.filter(pair=>pair.v3Utility>0).length,
+      falseEarlyDetectionCount:earlier.filter(pair=>!(pair.v3Utility>0)).length,
+      meanV3OpportunityWhenEarlierBps:earlier.length?round6(mean(earlier.map(pair=>pair.v3Opportunity))*10000):null,
+      positiveMinutesMeanV3Earlier:true,
+    });
+  };
+  return Object.freeze({
+    episodeDefinition:'SESSION_SYMBOL_FIRST_DETECTION_PILOT_PROXY',
+    v3VsV1:compare('V1'),v3VsV2:compare('V2'),
+  });
 }
 
-function foldSummary(records,threshold){
+function foldSummary(records,threshold,{includeSelectionOutcomes=false}={}){
   const v3Selected=applyV3Threshold(records,threshold);
+  const selectionArtifacts=buildPhase57SelectorSelectionArtifacts(records,v3Selected);
   return Object.freeze({
     recordCount:records.length,
     V1:summarizeSelector(records,'V1',v3Selected),
     V2:summarizeSelector(records,'V2',v3Selected),
     V3:summarizeSelector(records,'V3',v3Selected),
+    overlap:overlapSummary(selectionArtifacts.points),
+    v2Persistence:v2PersistenceSummary(records),
     opportunityDetectionLeadTime:leadTimeSummary(records,v3Selected),
+    selectionOutcomeRecordCount:selectionArtifacts.outcomes.length,
+    selectionPointRecordCount:selectionArtifacts.points.length,
+    ...(includeSelectionOutcomes?{
+      selectionOutcomes:selectionArtifacts.outcomes,
+      selectionPoints:selectionArtifacts.points,
+    }:{}),
   });
 }
 
-export function evaluatePhase57SelectorHistoricalBenchmark(dataset,{releaseOuterOos=false}={}){
+export function evaluatePhase57SelectorHistoricalBenchmark(dataset,{releaseOuterOos=false,includeSelectionOutcomes=false}={}){
   const replay=replayPhase57SelectorHistoricalDataset(dataset);
   const split=splitPhase57SelectorHistoricalSessions(dataset.sessions);
   const setOf=dates=>new Set(dates);
@@ -561,19 +883,21 @@ export function evaluatePhase57SelectorHistoricalBenchmark(dataset,{releaseOuter
   const calibration=calibratePhase57SelectorV3Threshold(validation);
   const threshold=calibration.selectedThreshold;
   const output={
-    schemaVersion:1,
+    schemaVersion:2,
     phase:'57.selector-v1-v2-v3.large-scale-historical-benchmark',
     status:releaseOuterOos?'SELECTOR_V1_V2_V3_BENCHMARK_WITH_OOS_RELEASED':'SELECTOR_V1_V2_V3_BENCHMARK_OOS_SEALED',
     dataset:replay.validation,split,calibration,
-    development:foldSummary(development,threshold),
-    validation:foldSummary(validation,threshold),
+    development:foldSummary(development,threshold,{includeSelectionOutcomes}),
+    validation:foldSummary(validation,threshold,{includeSelectionOutcomes}),
     untouchedOos:releaseOuterOos
-      ?foldSummary(untouchedOos,threshold)
+      ?foldSummary(untouchedOos,threshold,{includeSelectionOutcomes})
       :Object.freeze({status:'SEALED_UNTOUCHED_OOS',sessionCount:split.untouchedOos.length,recordCount:untouchedOos.length}),
     outerOosConsumed:Boolean(releaseOuterOos),
     methodology:Object.freeze({
       completeTimestampCrossSectionsAtomic:true,sessionChronologicalSplit:true,purgeApplied:true,
       sameHistoricalStatePaired:true,thresholdSelectedOnValidationOnly:true,
+      selectionThenFreezeThenOutcome:true,continuousLateDetectionDiagnostics:true,
+      outcomeRowsRetainedWhenRequested:true,
       v1V2Changed:false,v3PostFreezeChanged:false,automaticWinnerPromotion:false,
     }),
     safety:PHASE57_SELECTOR_V3_SAFETY,
@@ -587,5 +911,6 @@ export default {
   splitPhase57SelectorHistoricalSessions,
   replayPhase57SelectorHistoricalDataset,
   calibratePhase57SelectorV3Threshold,
+  buildPhase57SelectorSelectionArtifacts,
   evaluatePhase57SelectorHistoricalBenchmark,
 };

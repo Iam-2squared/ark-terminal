@@ -101,6 +101,9 @@ export function buildPhase57SelectorHistoricalDatasetFromShards(shards,{minimumS
   return Object.freeze({
     manifest:Object.freeze({
       schemaVersion:1,datasetId,
+      benchmarkScope:'REDUCED_UNIVERSE_PIPELINE_PILOT',
+      requestedSampleSize:200,
+      actualSymbolCount:symbols.length,
       evidenceClassification:'SURVIVORSHIP_LIMITED_RECONSTRUCTION',
       universeStatus:'SURVIVORSHIP_LIMITED',
       claimsExactTradingViewReplay:false,
@@ -125,4 +128,3 @@ export function buildPhase57SelectorHistoricalDatasetFromShards(shards,{minimumS
 }
 
 export default {buildPhase57SelectorHistoricalDatasetFromShards,PHASE57_SELECTOR_DATASET_SAFETY};
-

@@ -1,5 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {spawnSync} from 'node:child_process';
+import {gunzipSync} from 'node:zlib';
+import {fileURLToPath} from 'node:url';
 import {
   validatePhase57SelectorHistoricalDataset,
   splitPhase57SelectorHistoricalSessions,
@@ -106,6 +112,12 @@ test('V1 V2 and frozen V3 replay the same symbol-timestamp market states',()=>{
   assert.equal(typeof first.v1Rank,'number');
   assert.equal(first.v3Eligible,true);
   assert.equal(first.targetStatus,'TARGET_READY');
+  assert.equal(first.timeOfDayBucket,'09:00-09:30');
+  assert.equal(typeof first.preSelection.returnsByBars['1'],'number');
+  assert.equal(first.preSelection.returnsByBars['3'],null);
+  assert.equal(typeof first.primaryFutureReturn,'number');
+  assert.equal(first.featureAvailability.missingValuesZeroFilled,false);
+  assert.ok(['NEW_ENTRANT','NOT_SELECTED'].includes(first.v2Transition));
   assert.equal(replay.methodology.sameReconstructedMarketState,true);
   assert.equal(replay.methodology.v1V2RealtimeExactReplayClaimed,false);
 });
@@ -140,4 +152,50 @@ test('outer OOS is sealed by default and released only explicitly',()=>{
   assert.equal(released.untouchedOos.V1.selector,'V1');
   assert.equal(released.untouchedOos.V2.selector,'V2');
   assert.equal(released.untouchedOos.V3.selector,'V3');
+});
+
+test('selection outcome ledger preserves point sets, overlap, persistence and pre/post measurements',()=>{
+  const result=evaluatePhase57SelectorHistoricalBenchmark(dataset(),{includeSelectionOutcomes:true});
+  assert.equal(result.schemaVersion,2);
+  assert.equal(result.development.selectionPoints.length,result.development.selectionPointRecordCount);
+  assert.equal(result.development.selectionOutcomes.length,result.development.selectionOutcomeRecordCount);
+  assert.ok(result.development.selectionOutcomes.length>0);
+  const point=result.development.selectionPoints[0];
+  assert.deepEqual(Object.keys(point.selectedSymbols),['V1','V2','V3']);
+  assert.ok(Array.isArray(point.overlaps.v1V2));
+  const row=result.development.selectionOutcomes[0];
+  assert.equal(row.recordType,'SELECTOR_SELECTION_OUTCOME');
+  assert.equal(row.evidence.selectionFrozenBeforeOutcome,true);
+  assert.equal(row.featureAvailability.missingValuesZeroFilled,false);
+  assert.equal(typeof row.preSelection.returnFromSessionOpen,'number');
+  assert.equal(typeof row.postSelection['6'].futureReturn,'number');
+  assert.ok(['V1','V2','V3'].includes(row.selectorVersion));
+  assert.equal(result.development.overlap.decisionTimestamps,result.development.selectionPointRecordCount);
+  assert.ok(result.development.v2Persistence.transitionCounts.NEW_ENTRANT>0);
+  assert.equal(result.untouchedOos.selectionOutcomes,undefined);
+});
+
+test('benchmark CLI externalizes Development and Validation selection outcomes while OOS stays sealed',()=>{
+  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'phase57-selector-outcomes-'));
+  try{
+    const datasetPath=path.join(directory,'dataset.json');
+    const outputPath=path.join(directory,'summary.json');
+    const ledgerPath=path.join(directory,'selection-outcomes.ndjson.gz');
+    fs.writeFileSync(datasetPath,JSON.stringify(dataset()));
+    const script=fileURLToPath(new URL('../../scripts/run_phase57_selector_v123_historical_benchmark.mjs',import.meta.url));
+    const result=spawnSync(process.execPath,[script,'--dataset',datasetPath,'--output',outputPath,'--selection-ledger-output',ledgerPath],{
+      encoding:'utf8',timeout:30_000,
+    });
+    assert.equal(result.status,0,result.stderr||result.stdout);
+    const summary=JSON.parse(fs.readFileSync(outputPath,'utf8'));
+    assert.equal(summary.outerOosConsumed,false);
+    assert.equal(summary.development.selectionOutcomes,undefined);
+    assert.equal(summary.provenance.selectionLedgerSha256.length,64);
+    const lines=gunzipSync(fs.readFileSync(ledgerPath)).toString('utf8').trim().split('\n').map(line=>JSON.parse(line));
+    assert.ok(lines.some(row=>row.recordType==='SELECTOR_SELECTION_POINT'&&row.fold==='development'));
+    assert.ok(lines.some(row=>row.recordType==='SELECTOR_SELECTION_OUTCOME'&&row.fold==='validation'));
+    assert.equal(lines.some(row=>row.fold==='untouchedOos'),false);
+  }finally{
+    fs.rmSync(directory,{recursive:true,force:true});
+  }
 });

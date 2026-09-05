@@ -51,21 +51,49 @@ test('Inverse ATR reallocates only within the same simultaneous slot-budget tota
   const high=budgets.find(row=>row.key.endsWith('|HIGH.T'));
   assert.ok(low.targetBudgetJpy>high.targetBudgetJpy);
   assert.ok(Math.abs(budgets.reduce((sum,row)=>sum+row.targetBudgetJpy,0)-500_000)<1e-8);
+  assert.equal(group.audit.riskWeightingApplied,true);
   assert.equal(group.audit.futureBarUsed,false);
   assert.equal(group.audit.futureOutcomeUsed,false);
 });
 
-test('future bars in the full session source are excluded before risk calculation',()=>{
-  const allBars=bars({range:2,count:20});
-  allBars.push({timestamp:at(19).replace('00:19','00:59'),open:999,high:1000,low:998,close:999});
+test('singleton groups do not require an irrelevant risk estimate because normalized weight is identically one',()=>{
+  const group=buildCausalSizingGroup({
+    profileId:'INVERSE_ATR',
+    entries:[entry('1001.T',5)],
+    barsBySymbol:{'1001.T':bars({count:6})},
+  });
+  assert.equal(group.weights.length,1);
+  assert.equal(group.weights[0].weight,1);
+  assert.equal(group.candidates[0].riskSnapshot,null);
+  assert.equal(group.audit.singletonRiskBypass,true);
+  assert.equal(group.audit.riskWeightingApplied,false);
+  const budgets=targetBudgetsFromGroup({group,equityBeforeEntry:1_000_000,maxPositions:4});
+  assert.equal(budgets[0].targetBudgetJpy,250_000);
+});
+
+test('multi-candidate inverse-risk groups still fail closed when causal history is insufficient',()=>{
+  assert.throws(()=>buildCausalSizingGroup({
+    profileId:'INVERSE_REALIZED_VOL',
+    entries:[entry('1001.T',5),entry('1002.T',5)],
+    barsBySymbol:{'1001.T':bars({count:6}),'1002.T':bars({count:6})},
+  }),/insufficient causal history/);
+});
+
+test('future bars in a multi-candidate full-session source are excluded before risk calculation',()=>{
+  const leftBars=bars({range:2,count:20});
+  const rightBars=bars({base:120,range:3,count:20});
+  leftBars.push({timestamp:at(19).replace('00:19','00:59'),open:999,high:1000,low:998,close:999});
+  rightBars.push({timestamp:at(19).replace('00:19','00:59'),open:888,high:889,low:887,close:888});
   const group=buildCausalSizingGroup({
     profileId:'INVERSE_REALIZED_VOL',
-    entries:[entry('1001.T')],
-    barsBySymbol:{'1001.T':allBars},
+    entries:[entry('1001.T'),entry('1002.T')],
+    barsBySymbol:{'1001.T':leftBars,'1002.T':rightBars},
   });
-  assert.equal(group.candidates[0].riskSnapshot.asOfTimestamp,at(15));
-  assert.equal(group.candidates[0].riskSnapshot.futureBarUsed,false);
-  assert.equal(group.candidates[0].riskSnapshot.futureOutcomeUsed,false);
+  for(const candidate of group.candidates){
+    assert.equal(candidate.riskSnapshot.asOfTimestamp,at(15));
+    assert.equal(candidate.riskSnapshot.futureBarUsed,false);
+    assert.equal(candidate.riskSnapshot.futureOutcomeUsed,false);
+  }
 });
 
 test('mixed Entry timestamps are rejected rather than silently changing priority semantics',()=>{

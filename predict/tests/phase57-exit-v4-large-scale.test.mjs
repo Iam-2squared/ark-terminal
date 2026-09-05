@@ -33,13 +33,17 @@ function bars(){
   });
 }
 
+function marketCounts(rows){
+  return rows.reduce((counts,row)=>({...counts,[row.market]:(counts[row.market]??0)+1}),{});
+}
+
 test('large-scale universe is deterministic, quota-frozen, and nested only by common deterministic ranking',()=>{
   const a=buildFrozenExitV4Universe({universe:universe()}),b=buildFrozenExitV4Universe({universe:universe().reverse()});
   assert.equal(a.manifestSha256,b.manifestSha256);
   assert.equal(a.pilot.length,50);
   assert.equal(a.expansion.length,500);
-  assert.deepEqual(Object.fromEntries(Object.entries(Object.groupBy(a.pilot,x=>x.market)).map(([k,v])=>[k,v.length])),{'プライム':24,'スタンダード':16,'グロース':10});
-  assert.deepEqual(Object.fromEntries(Object.entries(Object.groupBy(a.expansion,x=>x.market)).map(([k,v])=>[k,v.length])),{'プライム':240,'スタンダード':160,'グロース':100});
+  assert.deepEqual(marketCounts(a.pilot),{'プライム':24,'スタンダード':16,'グロース':10});
+  assert.deepEqual(marketCounts(a.expansion),{'プライム':240,'スタンダード':160,'グロース':100});
   assert.equal(new Set(a.expansion.map(x=>x.symbol)).size,500);
   assert.equal(a.methodology.outcomeBasedUniverseSelection,false);
   assert.equal(a.methodology.analogPoolRefitAllowed,false);

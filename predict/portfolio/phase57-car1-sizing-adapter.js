@@ -54,17 +54,24 @@ export function buildCausalSizingGroup({profileId,entries,barsBySymbol}={}){
     throw new Error('CAR-1 sizing group must contain one simultaneous Entry timestamp');
   }
   const source=barsBySymbol instanceof Map?barsBySymbol:new Map(Object.entries(barsBySymbol??{}));
+  const singleton=ordered.length===1;
   const candidates=ordered.map(row=>{
     const symbol=symbolOf(row),key=keyOf(row);
     let riskSnapshot=null;
-    if(profileId!=='EQUAL_NOTIONAL'){
+    // For a singleton simultaneous-Entry group, every positive relative-risk score
+    // normalizes to weight=1. Requiring a 14-bar risk estimate cannot change sizing,
+    // so it would only exclude otherwise valid Frozen Entries with sparse/early history.
+    // Multi-candidate groups still require the full causal risk snapshot and fail closed.
+    if(profileId!=='EQUAL_NOTIONAL'&&!singleton){
       const bars=source.get(symbol)??source.get(symbol.replace(/\.T$/,''));
       if(!Array.isArray(bars))throw new Error(`CAR-1 bars missing for ${symbol}`);
       riskSnapshot=buildCausalRiskSnapshot({bars:causalBars(bars,entryTimestamp),entryTimestamp});
     }
     return Object.freeze({key,symbol,entryTimestamp,riskSnapshot});
   });
-  const weights=normalizeSizingWeights({profileId,candidates});
+  const weights=singleton
+    ?Object.freeze([Object.freeze({key:candidates[0].key,weight:1})])
+    :normalizeSizingWeights({profileId,candidates});
   return Object.freeze({
     profileId,
     entryTimestamp,
@@ -72,6 +79,8 @@ export function buildCausalSizingGroup({profileId,entries,barsBySymbol}={}){
     weights,
     audit:Object.freeze({
       simultaneousEntryOrder:'TIMESTAMP_THEN_SYMBOL',
+      singletonRiskBypass:singleton&&profileId!=='EQUAL_NOTIONAL',
+      riskWeightingApplied:profileId!=='EQUAL_NOTIONAL'&&!singleton,
       futureBarUsed:false,
       futureOutcomeUsed:false,
       rankingChanged:false,

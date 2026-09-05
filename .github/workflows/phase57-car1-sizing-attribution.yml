@@ -108,7 +108,14 @@ jobs:
               if(x.result.baselineParity?.[variant]?.[baseline]?.passed!==true)throw new Error(`legacy parity failed: ${variant}/${baseline}`);
             }
           }
+          if(x.executionSetDiagnostics?.status!=='CAR1_EXECUTION_SET_DIAGNOSTIC_READY')throw new Error('execution-set diagnostic missing');
+          if(x.executionSetDiagnostics?.outcomeUsedBySizer!==false||x.executionSetDiagnostics?.diagnosticComputedPostReplay!==true)throw new Error('execution-set diagnostic causal boundary failed');
+          for(const row of x.executionSetDiagnostics.rows??[]){
+            if(row.pnlDecompositionReconciled!==true||Math.abs(Number(row.pnlDecompositionResidualJpy))>1e-3)throw new Error(`PnL decomposition failed: ${row.universeVariant}/${row.baselineProfileId}/${row.sizingProfileId}`);
+            if(typeof row.sameAcceptedTradeSet!=='boolean'||typeof row.allocationInducedEligibilityChange!=='boolean')throw new Error('execution-set classification missing');
+          }
           if(x.result?.methodology?.sameFrozenEntry!==true||x.result?.methodology?.sameFrozenExit!==true||x.result?.methodology?.sameCandidatePriority!==true)throw new Error('paired methodology lock failed');
+          if(x.methodology?.executionSetDiagnosticFeedsSizer!==false||x.methodology?.executionSetPnlDecompositionReconciled!==true)throw new Error('post-replay diagnostic isolation failed');
           if(x.result?.methodology?.parameterSearchAllowed!==false||x.result?.methodology?.winnerSelectionAllowed!==false||x.result?.methodology?.promotionEligible!==false)throw new Error('research interpretation lock failed');
           if(x.result?.methodology?.formalOos!==false||x.result?.methodology?.prospectiveSampleSufficient!==false)throw new Error('evidence classification changed');
           for(const key of falseKeys)if(x.safety?.[key]!==false)throw new Error(`unsafe CAR-1 flag: ${key}`);
@@ -119,6 +126,7 @@ jobs:
             resolvedTradeCount:x.result.inputAudit.resolvedTradeCount,
             unresolvedTradeCount:x.result.inputAudit.unresolvedTradeCount,
             matrixRows:x.result.matrixRows,
+            executionSetDiagnostics:x.executionSetDiagnostics.rows,
           },null,2));
           NODE
       - name: Upload CAR-1 development evidence

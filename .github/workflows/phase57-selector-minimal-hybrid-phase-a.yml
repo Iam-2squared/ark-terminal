@@ -16,8 +16,12 @@ on:
       - 'predict/research/phase57-selector-minimal-hybrid-phase-a-amendment-v1.1.sha256'
       - 'predict/research/phase57-selector-minimal-hybrid-dataset-readiness-2026-09-05.json'
       - 'predict/research/phase57-selector-minimal-hybrid-dataset-readiness-2026-09-05.sha256'
+      - 'predict/research/phase57-selector-minimal-hybrid-source-resolution-2026-09-06.json'
+      - 'predict/research/phase57-selector-minimal-hybrid-source-resolution-2026-09-06.sha256'
+      - 'docs/phase57-selector-minimal-hybrid-source-resolution-2026-09-06.md'
       - 'predict/tests/phase57-selector-minimal-hybrid-phase-a.test.mjs'
       - 'predict/tests/phase57-selector-minimal-hybrid-dataset-audit.test.mjs'
+      - 'predict/tests/phase57-selector-minimal-hybrid-source-resolution.test.mjs'
       - 'predict/tests/phase57-selector-minimal-hybrid-implementation.test.mjs'
       - 'predict/tests/phase57-selector-jquants-minute.test.mjs'
       - 'scripts/lib/phase57-selector-jquants-minute.mjs'
@@ -43,5 +47,7 @@ jobs:
         run: (cd predict/research && sha256sum --check phase57-selector-minimal-hybrid-phase-a-amendment-v1.1.sha256)
       - name: Verify Fresh Dataset readiness evidence
         run: (cd predict/research && sha256sum --check phase57-selector-minimal-hybrid-dataset-readiness-2026-09-05.sha256)
+      - name: Verify Fresh Source resolution evidence
+        run: (cd predict/research && sha256sum --check phase57-selector-minimal-hybrid-source-resolution-2026-09-06.sha256)
       - name: Verify architecture and dataset contamination guards
-        run: node --test predict/tests/phase57-selector-minimal-hybrid-phase-a.test.mjs predict/tests/phase57-selector-minimal-hybrid-dataset-audit.test.mjs predict/tests/phase57-selector-minimal-hybrid-implementation.test.mjs predict/tests/phase57-selector-jquants-minute.test.mjs
+        run: node --test predict/tests/phase57-selector-minimal-hybrid-phase-a.test.mjs predict/tests/phase57-selector-minimal-hybrid-dataset-audit.test.mjs predict/tests/phase57-selector-minimal-hybrid-source-resolution.test.mjs predict/tests/phase57-selector-minimal-hybrid-implementation.test.mjs predict/tests/phase57-selector-jquants-minute.test.mjs

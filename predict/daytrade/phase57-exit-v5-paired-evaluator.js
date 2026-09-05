@@ -12,6 +12,7 @@ import {
   fitExitV5ConditionalModel,
   predictExitV5Conditional,
 } from './phase57-exit-v5-conditional-model.js';
+import { predictExitV5Gbm } from './phase57-exit-v5-gbm-model.js';
 
 const FALSE_SAFETY_KEYS = Object.freeze([
   'executionAllowed',
@@ -360,7 +361,7 @@ export function simulateExitV5FrozenPolicy({
   incrementalCostPct = 0,
 } = {}) {
   const validated = assertFrozenResearchRow(row);
-  if (!['V5_UNCONDITIONAL', 'V5_CONDITIONAL'].includes(modelId)) throw new Error('modelId must be a v5 paired model');
+  if (!['V5_UNCONDITIONAL', 'V5_CONDITIONAL', 'V5_GBM'].includes(modelId)) throw new Error('modelId must be a supported v5 paired model');
   const roundTripCost = finite(roundTripCostPct, 'roundTripCostPct');
   const differentialCost = finite(incrementalCostPct, 'incrementalCostPct');
   if (roundTripCost < 0 || differentialCost < 0) throw new Error('EXIT v5 costs must be non-negative');
@@ -385,16 +386,21 @@ export function simulateExitV5FrozenPolicy({
     }
 
     const features = buildExitV5Features({ entryPrice: validated.entryPrice, direction: validated.direction, observedBars: observed });
-    const prediction = modelId === 'V5_UNCONDITIONAL'
-      ? Object.freeze({
+    let prediction;
+    if (modelId === 'V5_UNCONDITIONAL') {
+      prediction = Object.freeze({
         ready: true,
         ...scoreExitV5Continuation({
           meanIncrementalReturnPct: fittedModel.meanIncrementalReturnPct,
           q10IncrementalReturnPct: fittedModel.q10IncrementalReturnPct,
           incrementalCostPct: differentialCost,
         }, fittedModel.spec),
-      })
-      : predictExitV5Conditional(features, fittedModel, { incrementalCostPct: differentialCost });
+      });
+    } else if (modelId === 'V5_CONDITIONAL') {
+      prediction = predictExitV5Conditional(features, fittedModel, { incrementalCostPct: differentialCost });
+    } else {
+      prediction = predictExitV5Gbm(features, fittedModel, { incrementalCostPct: differentialCost });
+    }
     const decision = prediction.ready === true ? prediction.decision : 'HOLD';
     const reason = prediction.ready !== true
       ? String(prediction.reason ?? 'V5_MODEL_NOT_READY')
@@ -426,7 +432,7 @@ export function simulateExitV5FrozenPolicy({
   });
 }
 
-function assertOutcomeUsesInvariant(outcome, futureBars, invariant, modelId) {
+export function assertExitV5OutcomeUsesInvariant(outcome, futureBars, invariant, modelId) {
   const exitIndex = futureBars.findIndex((bar) => bar.timestamp === outcome?.exitTimestamp);
   if (exitIndex < 0) throw new Error(`${modelId} exited outside the frozen market-data path`);
   if (Math.abs(Number(outcome.exitPrice) - futureBars[exitIndex].close) > 1e-12) throw new Error(`${modelId} exit price is not the frozen finalized close`);
@@ -436,7 +442,7 @@ function assertOutcomeUsesInvariant(outcome, futureBars, invariant, modelId) {
   return Object.freeze({ ...outcome, invariantSha256: invariant.invariantSha256 });
 }
 
-function evaluationWindows({ row, outcome, futureBars, direction, horizons, roundTripCostPct }) {
+export function evaluateExitV5OutcomeWindows({ row, outcome, futureBars, direction, horizons, roundTripCostPct }) {
   const exitIndex = futureBars.findIndex((bar) => bar.timestamp === outcome.exitTimestamp);
   const windows = [];
   for (const horizonBars of horizons) {
@@ -464,7 +470,7 @@ function evaluationWindows({ row, outcome, futureBars, direction, horizons, roun
   });
 }
 
-function calibrationRows(outcome, futureBars, direction) {
+export function buildExitV5CalibrationRows(outcome, futureBars, direction) {
   const rows = [];
   for (const decision of outcome.managementDecisions ?? []) {
     if (decision?.ready !== true || !Number.isFinite(Number(decision.meanIncrementalReturnPct))) continue;
@@ -595,7 +601,10 @@ function groupedSummary(rows, field) {
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(row);
   }
-  return Object.freeze(Object.fromEntries([...groups.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([key, values]) => [key, coreModelSummary(values)])));
+  return Object.freeze(Object.fromEntries([...groups.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([key, values]) => [
+    key,
+    coreModelSummary(values, values.flatMap((row) => row.calibration ?? [])),
+  ])));
 }
 
 function summarizeModel(pairs, modelId) {
@@ -604,8 +613,9 @@ function summarizeModel(pairs, modelId) {
     metadata: pair.metadata,
     outcome: pair.outcomes[modelId],
     evaluation: pair.evaluation[modelId],
+    calibration: pair.calibration[modelId] ?? [],
   }));
-  const calibration = pairs.flatMap((pair) => pair.calibration[modelId] ?? []);
+  const calibration = rows.flatMap((row) => row.calibration);
   return Object.freeze({
     ...coreModelSummary(rows, calibration),
     segments: Object.freeze({
@@ -640,15 +650,19 @@ function summarizeDelta(pairs, leftModel, rightModel) {
  * intentionally exported so independently computed validation-session shards can
  * be reduced without rerunning any EXIT decision.
  */
-export function summarizeExitV5FourWayPairs(pairs) {
+export function summarizeExitV5Pairs(pairs, { modelIds, deltaPairs = [] } = {}) {
   if (!Array.isArray(pairs) || pairs.length === 0) throw new Error('paired summary requires non-empty pairs');
+  if (!Array.isArray(modelIds) || modelIds.length === 0 || new Set(modelIds).size !== modelIds.length) {
+    throw new Error('paired summary requires unique modelIds');
+  }
+  if (!Array.isArray(deltaPairs)) throw new Error('deltaPairs must be an array');
   const seen = new Set();
   for (const [index, pair] of pairs.entries()) {
     if (!String(pair?.pairKey ?? '').trim()) throw new Error(`pairs[${index}].pairKey is required`);
     if (seen.has(pair.pairKey)) throw new Error(`duplicate paired summary key: ${pair.pairKey}`);
     seen.add(pair.pairKey);
     if (!pair?.invariant?.invariantSha256) throw new Error(`pairs[${index}] invariant hash is required`);
-    for (const modelId of PHASE57_EXIT_V5_PAIRED_MODEL_IDS) {
+    for (const modelId of modelIds) {
       if (!pair?.outcomes?.[modelId] || !pair?.evaluation?.[modelId] || !Array.isArray(pair?.calibration?.[modelId])) {
         throw new Error(`pairs[${index}] is missing ${modelId} paired evidence`);
       }
@@ -659,16 +673,27 @@ export function summarizeExitV5FourWayPairs(pairs) {
   }
 
   const frozenPairs = Object.freeze([...pairs]);
-  const models = Object.freeze(Object.fromEntries(PHASE57_EXIT_V5_PAIRED_MODEL_IDS.map((modelId) => [modelId, summarizeModel(frozenPairs, modelId)])));
-  const pairedDeltas = Object.freeze({
-    V4_MINUS_V3: summarizeDelta(frozenPairs, 'V4', 'V3'),
-    V5_UNCONDITIONAL_MINUS_V3: summarizeDelta(frozenPairs, 'V5_UNCONDITIONAL', 'V3'),
-    V5_UNCONDITIONAL_MINUS_V4: summarizeDelta(frozenPairs, 'V5_UNCONDITIONAL', 'V4'),
-    V5_CONDITIONAL_MINUS_V3: summarizeDelta(frozenPairs, 'V5_CONDITIONAL', 'V3'),
-    V5_CONDITIONAL_MINUS_V4: summarizeDelta(frozenPairs, 'V5_CONDITIONAL', 'V4'),
-    V5_CONDITIONAL_MINUS_V5_UNCONDITIONAL: summarizeDelta(frozenPairs, 'V5_CONDITIONAL', 'V5_UNCONDITIONAL'),
-  });
+  const models = Object.freeze(Object.fromEntries(modelIds.map((modelId) => [modelId, summarizeModel(frozenPairs, modelId)])));
+  const pairedDeltas = Object.freeze(Object.fromEntries(deltaPairs.map(([name, leftModel, rightModel]) => {
+    if (!modelIds.includes(leftModel) || !modelIds.includes(rightModel)) throw new Error(`paired delta ${name} references an unknown model`);
+    return [name, summarizeDelta(frozenPairs, leftModel, rightModel)];
+  })));
   return Object.freeze({ models, pairedDeltas });
+}
+
+/** Preserves the original four-model evidence contract and delta names. */
+export function summarizeExitV5FourWayPairs(pairs) {
+  return summarizeExitV5Pairs(pairs, {
+    modelIds: PHASE57_EXIT_V5_PAIRED_MODEL_IDS,
+    deltaPairs: Object.freeze([
+      Object.freeze(['V4_MINUS_V3', 'V4', 'V3']),
+      Object.freeze(['V5_UNCONDITIONAL_MINUS_V3', 'V5_UNCONDITIONAL', 'V3']),
+      Object.freeze(['V5_UNCONDITIONAL_MINUS_V4', 'V5_UNCONDITIONAL', 'V4']),
+      Object.freeze(['V5_CONDITIONAL_MINUS_V3', 'V5_CONDITIONAL', 'V3']),
+      Object.freeze(['V5_CONDITIONAL_MINUS_V4', 'V5_CONDITIONAL', 'V4']),
+      Object.freeze(['V5_CONDITIONAL_MINUS_V5_UNCONDITIONAL', 'V5_CONDITIONAL', 'V5_UNCONDITIONAL']),
+    ]),
+  });
 }
 
 function assertChronologicalEvaluationRows(rows) {
@@ -729,11 +754,11 @@ export function runExitV5FourWayPairedEvaluation({
     });
     const outcomes = Object.freeze(Object.fromEntries(PHASE57_EXIT_V5_PAIRED_MODEL_IDS.map((modelId) => [
       modelId,
-      assertOutcomeUsesInvariant(rawOutcomes[modelId], validated.futureBars, invariant, modelId),
+      assertExitV5OutcomeUsesInvariant(rawOutcomes[modelId], validated.futureBars, invariant, modelId),
     ])));
     const evaluation = Object.freeze(Object.fromEntries(PHASE57_EXIT_V5_PAIRED_MODEL_IDS.map((modelId) => [
       modelId,
-      evaluationWindows({
+      evaluateExitV5OutcomeWindows({
         row,
         outcome: outcomes[modelId],
         futureBars: validated.futureBars,
@@ -745,8 +770,8 @@ export function runExitV5FourWayPairedEvaluation({
     const calibration = Object.freeze({
       V3: Object.freeze([]),
       V4: Object.freeze([]),
-      V5_UNCONDITIONAL: calibrationRows(outcomes.V5_UNCONDITIONAL, validated.futureBars, validated.direction),
-      V5_CONDITIONAL: calibrationRows(outcomes.V5_CONDITIONAL, validated.futureBars, validated.direction),
+      V5_UNCONDITIONAL: buildExitV5CalibrationRows(outcomes.V5_UNCONDITIONAL, validated.futureBars, validated.direction),
+      V5_CONDITIONAL: buildExitV5CalibrationRows(outcomes.V5_CONDITIONAL, validated.futureBars, validated.direction),
     });
     pairs.push(Object.freeze({
       pairKey: invariant.pairKey,
@@ -812,6 +837,10 @@ export default {
   fitExitV5PairedDevelopmentModels,
   fitExitV5PairedModelsFromPurgedSplit,
   simulateExitV5FrozenPolicy,
+  assertExitV5OutcomeUsesInvariant,
+  evaluateExitV5OutcomeWindows,
+  buildExitV5CalibrationRows,
+  summarizeExitV5Pairs,
   summarizeExitV5FourWayPairs,
   runExitV5FourWayPairedEvaluation,
 };

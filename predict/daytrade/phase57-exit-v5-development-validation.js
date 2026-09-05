@@ -15,6 +15,12 @@ import {
   summarizeExitV5FourWayPairs,
 } from './phase57-exit-v5-paired-evaluator.js';
 import { runExitV5AuditedSplitPairedEvaluation } from './phase57-exit-v5-audited-split-evaluator.js';
+import {
+  PHASE57_EXIT_V5_GBM_CHALLENGER_MODEL_IDS,
+  fitExitV5GbmChallengerModelsFromPurgedSplit,
+  runExitV5GbmChallengerPairedEvaluation,
+  summarizeExitV5GbmChallengerPairs,
+} from './phase57-exit-v5-gbm-challenger.js';
 
 const SAFETY_FALSE_KEYS = Object.freeze([
   'executionAllowed',
@@ -80,6 +86,14 @@ export const PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_POLICY = Object.freeze({
     lowerQuantile: 0.10,
     k: 40,
     minNeighbors: 20,
+  }),
+  gbmModelOptions: Object.freeze({
+    rounds: 32,
+    learningRate: 0.05,
+    maxThresholdCandidates: 16,
+    minLeafSize: 64,
+    lambda: 1,
+    lowerQuantile: 0.10,
   }),
   roundTripCostPct: 0.05,
   incrementalCostPct: 0,
@@ -486,6 +500,17 @@ export function fitExitV5DevelopmentModelsFromSubstrate(substrate) {
   return Object.freeze({ samples, split, fittedModels });
 }
 
+export function fitExitV5DevelopmentGbmChallengerModelsFromSubstrate(substrate) {
+  assertExitV5DevelopmentValidationSubstrate(substrate);
+  const { samples, split } = buildExitV5DevelopmentValidationSplit(substrate.frozenRows);
+  if (split.development.length !== PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_POLICY.expectedDevelopmentSampleCount) throw new Error('development sample count mismatch');
+  const fittedModels = fitExitV5GbmChallengerModelsFromPurgedSplit(split, {
+    baseModelOptions: PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_POLICY.v5ModelOptions,
+    gbmModelOptions: PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_POLICY.gbmModelOptions,
+  });
+  return Object.freeze({ samples, split, fittedModels });
+}
+
 export function runExitV5DevelopmentValidationShard({ historyPack, substrate, validationSessionDate }) {
   assertExitV5DevelopmentValidationSafety();
   const canonical = assertExitV5CanonicalHistoryPack(historyPack);
@@ -538,6 +563,73 @@ export function runExitV5DevelopmentValidationShard({ historyPack, substrate, va
       strictAuditedSplitEntrypoint: true,
       v5FitSplit: 'development',
       v5RefitOnValidation: false,
+      outerOosRead: false,
+      outerOosRetuning: false,
+      prospectiveRetuning: false,
+      resultBasedRetuning: false,
+    }),
+    safety: PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_SAFETY,
+  });
+}
+
+export function runExitV5DevelopmentValidationGbmShard({ historyPack, substrate, validationSessionDate }) {
+  assertExitV5DevelopmentValidationSafety();
+  const canonical = assertExitV5CanonicalHistoryPack(historyPack);
+  assertExitV5DevelopmentValidationSubstrate(substrate);
+  const sessionDate = String(validationSessionDate ?? '');
+  const expectedCount = EXPECTED_VALIDATION_COUNTS[sessionDate];
+  if (!Number.isInteger(expectedCount)) throw new Error('validationSessionDate is not a frozen Validation session');
+  const evaluationRows = substrate.frozenRows.filter((row) => row.sessionDate === sessionDate);
+  if (evaluationRows.length !== expectedCount) throw new Error('GBM validation shard Frozen Entry count mismatch');
+  const { split, fittedModels } = fitExitV5DevelopmentGbmChallengerModelsFromSubstrate(substrate);
+  const analogPool = buildP25DataDrivenExitAnalogPool({ historicalSessions: canonical.sessions })
+    .filter((row) => String(row.sessionDate) < sessionDate);
+  if (!analogPool.length || analogPool.some((row) => String(row.sessionDate) >= sessionDate)) throw new Error('causal analog GBM shard pruning failed');
+  const evaluation = runExitV5GbmChallengerPairedEvaluation({
+    evaluationRows,
+    purgedSplit: split,
+    analogPool,
+    fittedModels,
+    splitName: 'validation',
+    pairedContract: PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_CONTRACT,
+    roundTripCostPct: PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_POLICY.roundTripCostPct,
+    incrementalCostPct: PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_POLICY.incrementalCostPct,
+    evaluationHorizons: PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_POLICY.evaluationHorizons,
+  });
+  return Object.freeze({
+    schemaVersion: 1,
+    phase: '57.exit-v5.gbm-development-validation.shard.v1',
+    status: 'EXIT_V5_GBM_VALIDATION_SHARD_EVALUATED',
+    splitName: 'validation',
+    sessionDate,
+    pairedCount: evaluation.pairedCount,
+    validationStateSampleCount: split.validation.filter((sample) => sample.provenance?.sessionDate === sessionDate).length,
+    causalAnalogCount: analogPool.length,
+    entrySetFingerprint: substrate.entrySetFingerprint,
+    marketDataFingerprint: substrate.marketDataFingerprint,
+    pairedSubstrateFingerprint: substrate.pairedSubstrateFingerprint,
+    developmentFingerprint: fittedModels.developmentFingerprint,
+    gbmModelFingerprint: fittedModels.gbm.modelFingerprint,
+    developmentSampleCount: fittedModels.sampleCount,
+    pairedContract: PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_CONTRACT,
+    evaluation,
+    classification: Object.freeze({
+      developmentOrValidationOnly: true,
+      formalOos: false,
+      prospective: false,
+      promotionEligible: false,
+    }),
+    methodology: Object.freeze({
+      fixedGbmSpecBeforeValidation: true,
+      gbmSpec: PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_POLICY.gbmModelOptions,
+      sameDevelopmentSamplesForAllV5Models: true,
+      exactSameFrozenInputForAllFiveModels: true,
+      analogPoolPrunedToPriorSessionsOnly: true,
+      analogPruningChangesBaselineDecision: false,
+      strictAuditedSplitEntrypoint: true,
+      v5FitSplit: 'development',
+      v5RefitOnValidation: false,
+      validationRetuning: false,
       outerOosRead: false,
       outerOosRetuning: false,
       prospectiveRetuning: false,
@@ -624,6 +716,90 @@ export function reduceExitV5DevelopmentValidationShards(shards) {
   });
 }
 
+export function reduceExitV5DevelopmentValidationGbmShards(shards) {
+  assertExitV5DevelopmentValidationSafety();
+  if (!Array.isArray(shards) || !shards.length) throw new Error('GBM validation shards are required');
+  const ordered = [...shards].sort((left, right) => String(left?.sessionDate).localeCompare(String(right?.sessionDate)));
+  const expectedDates = Object.keys(EXPECTED_VALIDATION_COUNTS);
+  if (!sameArray(ordered.map((shard) => String(shard?.sessionDate)), expectedDates)) throw new Error('GBM validation shard session lineage mismatch');
+  const first = ordered[0];
+  const pairs = [];
+  for (const shard of ordered) {
+    if (shard?.status !== 'EXIT_V5_GBM_VALIDATION_SHARD_EVALUATED' || shard?.splitName !== 'validation') throw new Error('invalid GBM validation shard status');
+    if (Number(shard.pairedCount) !== EXPECTED_VALIDATION_COUNTS[shard.sessionDate]) throw new Error(`GBM validation shard pair count mismatch: ${shard.sessionDate}`);
+    for (const key of ['entrySetFingerprint', 'marketDataFingerprint', 'pairedSubstrateFingerprint', 'developmentFingerprint', 'gbmModelFingerprint']) {
+      if (shard[key] !== first[key]) throw new Error(`GBM validation shard ${key} mismatch`);
+    }
+    if (canonicalJson(shard.pairedContract) !== canonicalJson(PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_CONTRACT)) throw new Error('GBM validation shard paired contract mismatch');
+    const splitAudit = shard?.evaluation?.splitAudit;
+    if (splitAudit?.status !== 'EXIT_V5_AUDITED_SPLIT_ROWS_CONFIRMED'
+      || splitAudit?.splitName !== 'validation'
+      || Number(splitAudit?.rowCount) !== Number(shard.pairedCount)
+      || splitAudit?.fullTradeTrajectoryContained !== true
+      || splitAudit?.purgedBoundarySessionsExcluded !== true
+      || shard?.evaluation?.methodology?.exactOuterSplitMembershipEnforced !== true
+      || shard?.evaluation?.methodology?.exactSameFrozenInputForAllFiveModels !== true
+      || shard?.methodology?.fixedGbmSpecBeforeValidation !== true
+      || canonicalJson(shard?.methodology?.gbmSpec) !== canonicalJson(PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_POLICY.gbmModelOptions)) {
+      throw new Error(`GBM validation shard audited methodology mismatch: ${shard.sessionDate}`);
+    }
+    for (const key of SAFETY_FALSE_KEYS) if (shard?.safety?.[key] !== false) throw new Error(`GBM validation shard safety violation: ${key}`);
+    pairs.push(...(shard?.evaluation?.pairs ?? []));
+  }
+  pairs.sort((left, right) => left.invariant.entryTimestamp.localeCompare(right.invariant.entryTimestamp) || left.pairKey.localeCompare(right.pairKey));
+  if (pairs.length !== PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_POLICY.expectedValidationEntryCount) throw new Error('combined GBM Validation pair count mismatch');
+  const summary = summarizeExitV5GbmChallengerPairs(pairs);
+  return Object.freeze({
+    schemaVersion: 1,
+    phase: '57.exit-v5.gbm-development-validation.combined.v1',
+    status: 'EXIT_V5_GBM_DEVELOPMENT_VALIDATION_EVIDENCE_READY',
+    splitName: 'validation',
+    sessionDates: Object.freeze(expectedDates),
+    pairedCount: pairs.length,
+    comparisonModels: PHASE57_EXIT_V5_GBM_CHALLENGER_MODEL_IDS,
+    entrySetFingerprint: first.entrySetFingerprint,
+    marketDataFingerprint: first.marketDataFingerprint,
+    pairedSubstrateFingerprint: first.pairedSubstrateFingerprint,
+    developmentFingerprint: first.developmentFingerprint,
+    gbmModelFingerprint: first.gbmModelFingerprint,
+    developmentSampleCount: first.developmentSampleCount,
+    pairedContract: PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_CONTRACT,
+    gbmSpec: PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_POLICY.gbmModelOptions,
+    pairs: Object.freeze(pairs),
+    summary,
+    classification: Object.freeze({
+      developmentOrValidationOnly: true,
+      formalOos: false,
+      prospective: false,
+      promotionEligible: false,
+      performanceConclusion: 'VALIDATION_RESEARCH_EVIDENCE_ONLY',
+    }),
+    methodology: Object.freeze({
+      fixedGbmSpecBeforeValidation: true,
+      completeFrozenValidationLineage: true,
+      exactSameFrozenInputForAllFiveModels: true,
+      strictOuterSplitMembershipEnforced: true,
+      fullTradeTrajectoryContainedInValidation: true,
+      purgedBoundarySessionsExcluded: true,
+      developmentOnlyV5Fit: true,
+      validationRefit: false,
+      validationRetuning: false,
+      outerOosRead: false,
+      outerOosEvaluation: false,
+      outerOosRetuning: false,
+      prospectiveEvaluation: false,
+      prospectiveRetuning: false,
+      resultBasedRetuning: false,
+      bestResultOnlyReporting: false,
+      automaticPromotion: false,
+    }),
+    automaticPromotionAllowed: false,
+    productionUpdateAllowed: false,
+    transmitted: false,
+    safety: PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_SAFETY,
+  });
+}
+
 export function assertExitV5DevelopmentValidationSafety() {
   for (const key of SAFETY_FALSE_KEYS) {
     if (PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_SAFETY[key] !== false) throw new Error(`EXIT v5 development/validation safety violation: ${key}`);
@@ -649,6 +825,9 @@ export default {
   buildExitV5DevelopmentValidationSplit,
   prepareExitV5DevelopmentValidationSubstrate,
   fitExitV5DevelopmentModelsFromSubstrate,
+  fitExitV5DevelopmentGbmChallengerModelsFromSubstrate,
   runExitV5DevelopmentValidationShard,
+  runExitV5DevelopmentValidationGbmShard,
   reduceExitV5DevelopmentValidationShards,
+  reduceExitV5DevelopmentValidationGbmShards,
 };

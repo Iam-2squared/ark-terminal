@@ -237,6 +237,9 @@ test('four-way evaluator uses one fully asserted invariant for v3, v4 and both v
     assert.equal(result.summary.models[modelId].segments.direction.LONG.tradeCount, 1);
     assert.equal(result.summary.models[modelId].segments.direction.SHORT.tradeCount, 1);
   }
+  assert.equal(result.summary.models.V3.segments.direction.LONG.calibration.sampleCount, 0);
+  assert.ok(result.summary.models.V5_UNCONDITIONAL.segments.direction.LONG.calibration.sampleCount > 0);
+  assert.ok(result.summary.models.V5_CONDITIONAL.segments.direction.SHORT.calibration.sampleCount > 0);
   assert.equal(result.summary.pairedDeltas.V5_CONDITIONAL_MINUS_V4.pairedCount, 2);
   assert.deepEqual(summarizeExitV5FourWayPairs(result.pairs), result.summary);
   assert.throws(

@@ -8,6 +8,7 @@ import {
   assertExitV5DevelopmentValidationSafety,
   buildExitV5FrozenRowsFromP21Replay,
   hashExitV5DevelopmentValidationObject,
+  reduceExitV5DevelopmentValidationGbmShards,
   reduceExitV5DevelopmentValidationShards,
 } from '../daytrade/phase57-exit-v5-development-validation.js';
 
@@ -128,6 +129,14 @@ test('Development Validation policy is byte-frozen, non-OOS, and research-only',
   assert.equal(PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_POLICY.expectedEntrySetFingerprint.length, 64);
   assert.equal(PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_POLICY.expectedMarketDataFingerprint.length, 64);
   assert.equal(PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_POLICY.expectedPairedSubstrateFingerprint.length, 64);
+  assert.deepEqual(PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_POLICY.gbmModelOptions, {
+    rounds: 32,
+    learningRate: 0.05,
+    maxThresholdCandidates: 16,
+    minLeafSize: 64,
+    lambda: 1,
+    lowerQuantile: 0.10,
+  });
   for (const key of [
     'executionAllowed', 'brokerWriteAllowed', 'excelOrderWriteAllowed', 'rssOrderFunctionAllowed',
     'liveTradingAllowed', 'paperTradingAllowed', 'automaticPromotionAllowed', 'productionUpdateAllowed',
@@ -135,6 +144,7 @@ test('Development Validation policy is byte-frozen, non-OOS, and research-only',
   ]) assert.equal(PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_SAFETY[key], false, key);
   assert.equal(hashExitV5DevelopmentValidationObject({ b: 2, a: 1 }), hashExitV5DevelopmentValidationObject({ a: 1, b: 2 }));
   assert.throws(() => reduceExitV5DevelopmentValidationShards([]), /validation shards are required/);
+  assert.throws(() => reduceExitV5DevelopmentValidationGbmShards([]), /GBM validation shards are required/);
 });
 
 test('Development Validation workflow has read-only GitHub permissions and no push path', () => {
@@ -145,4 +155,12 @@ test('Development Validation workflow has read-only GitHub permissions and no pu
   assert.match(workflow, /formalOos!==false/);
   assert.match(workflow, /strictOuterSplitMembershipEnforced/);
   assert.match(workflow, /freshHoldoutConsumed/);
+
+  const gbmWorkflow = fs.readFileSync(new URL('../../.github/workflows/phase57-exit-v5-gbm-development-validation.yml', import.meta.url), 'utf8');
+  assert.match(gbmWorkflow, /permissions:\n  contents: read\n  actions: read/);
+  assert.doesNotMatch(gbmWorkflow, /contents: write|pull-requests: write|git push/);
+  assert.match(gbmWorkflow, /CANONICAL_SOURCE_RUN_ID: '31785422471'/);
+  assert.match(gbmWorkflow, /fixedGbmSpecBeforeValidation/);
+  assert.match(gbmWorkflow, /formalOos!==false/);
+  assert.match(gbmWorkflow, /freshHoldoutConsumed/);
 });

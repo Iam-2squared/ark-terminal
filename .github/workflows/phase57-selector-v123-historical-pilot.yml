@@ -8,6 +8,9 @@ on:
       - 'predict/daytrade/phase57-selector-v123-historical-benchmark.js'
       - 'predict/research/phase57-selector-v3-freeze.json'
       - 'predict/research/phase57-selector-v3-freeze.sha256'
+      - 'predict/research/phase57-selector-oos-analysis-contract.json'
+      - 'predict/research/phase57-selector-oos-analysis-contract.sha256'
+      - 'docs/phase57-selector-oos-analysis-contract.md'
       - 'predict/tests/phase57-selector-*.test.mjs'
       - 'scripts/lib/phase57-selector-*.mjs'
       - 'scripts/fetch_phase57_selector_yahoo_5m_shard.mjs'
@@ -41,7 +44,8 @@ jobs:
       - name: Verify frozen Selector research
         run: |
           (cd predict/research && sha256sum --check phase57-selector-v3-freeze.sha256)
-          node --test             predict/tests/phase57-selector-v3-freeze.test.mjs             predict/tests/phase57-selector-v3.test.mjs             predict/tests/phase57-selector-v3-targets.test.mjs             predict/tests/phase57-selector-v123-historical-benchmark.test.mjs             predict/tests/phase57-selector-yahoo-5m.test.mjs             predict/tests/phase57-selector-dataset-builder.test.mjs             predict/tests/phase57-selector-workflow.test.mjs
+          (cd predict/research && sha256sum --check phase57-selector-oos-analysis-contract.sha256)
+          node --test             predict/tests/phase57-selector-v3-freeze.test.mjs             predict/tests/phase57-selector-v3.test.mjs             predict/tests/phase57-selector-v3-targets.test.mjs             predict/tests/phase57-selector-v123-historical-benchmark.test.mjs             predict/tests/phase57-selector-oos-analysis-contract.test.mjs             predict/tests/phase57-selector-yahoo-5m.test.mjs             predict/tests/phase57-selector-dataset-builder.test.mjs             predict/tests/phase57-selector-workflow.test.mjs
 
   fetch_yahoo_pilot_shards:
     if: github.event_name == 'workflow_dispatch' && inputs.acknowledge_provider_terms == true
@@ -93,7 +97,7 @@ jobs:
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           const value=JSON.parse(fs.readFileSync('artifacts/phase57-selector-v123-benchmark-sealed.json','utf8'));
-          if(value.schemaVersion!==2)throw new Error('selection outcome schema is not v2');
+          if(value.schemaVersion!==3)throw new Error('selection outcome schema is not v3');
           if(value.status!=='SELECTOR_V1_V2_V3_BENCHMARK_OOS_SEALED'||value.outerOosConsumed!==false)throw new Error('outer OOS was not sealed');
           if(value.dataset.evidenceClassification!=='SURVIVORSHIP_LIMITED_RECONSTRUCTION')throw new Error('reconstruction label drift');
           if(value.dataset.benchmarkScope!=='REDUCED_UNIVERSE_PIPELINE_PILOT')throw new Error('pilot scope label drift');
@@ -107,7 +111,7 @@ jobs:
       - name: Compress immutable input and record digests
         run: |
           gzip -9 artifacts/phase57-selector-historical-dataset.json
-          sha256sum             artifacts/phase57-selector-historical-dataset.json.gz             artifacts/phase57-selector-v123-benchmark-sealed.json             artifacts/phase57-selector-v123-selection-outcomes.ndjson.gz             predict/research/phase57-selector-v3-freeze.json             > artifacts/phase57-selector-v123-digests.sha256
+          sha256sum             artifacts/phase57-selector-historical-dataset.json.gz             artifacts/phase57-selector-v123-benchmark-sealed.json             artifacts/phase57-selector-v123-selection-outcomes.ndjson.gz             predict/research/phase57-selector-v3-freeze.json             predict/research/phase57-selector-oos-analysis-contract.json             predict/research/phase57-selector-oos-analysis-contract.sha256             > artifacts/phase57-selector-v123-digests.sha256
       - uses: actions/upload-artifact@v4
         with:
           name: phase57-selector-v123-historical-pilot-sealed
@@ -116,4 +120,6 @@ jobs:
             artifacts/phase57-selector-v123-benchmark-sealed.json
             artifacts/phase57-selector-v123-selection-outcomes.ndjson.gz
             artifacts/phase57-selector-v123-digests.sha256
+            predict/research/phase57-selector-oos-analysis-contract.json
+            predict/research/phase57-selector-oos-analysis-contract.sha256
           retention-days: 90

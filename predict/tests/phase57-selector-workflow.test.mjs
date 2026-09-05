@@ -14,7 +14,10 @@ test('historical pilot is manual, read-only and cannot release outer OOS',()=>{
   assert.match(workflow,/BENCHMARK_OOS_SEALED/);
   assert.match(workflow,/--sample-seed PHASE57_SELECTOR_V3_0_20260905/);
   assert.match(workflow,/phase57-selector-v123-selection-outcomes\.ndjson\.gz/);
+  assert.match(workflow,/phase57-selector-oos-analysis-contract\.sha256/);
+  assert.match(workflow,/phase57-selector-oos-analysis-contract\.test\.mjs/);
   assert.match(workflow,/REDUCED_UNIVERSE_PIPELINE_PILOT/);
+  assert.doesNotMatch(workflow,/--oos-release-confirmation/);
 });
 
 test('pilot is explicitly survivorship-limited and safety-guarded',()=>{

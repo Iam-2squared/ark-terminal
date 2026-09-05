@@ -9,6 +9,13 @@ import {
 import {buildPhase57SelectorNativeTargets} from './phase57-selector-v3-targets.js';
 
 const EVIDENCE_LABELS=new Set(PHASE57_SELECTOR_V3_FREEZE.benchmark.historicalReplayLabels);
+const SELECTORS=Object.freeze(['V1','V2','V3']);
+const STUDENT_T_975=Object.freeze([
+  null,12.706205,4.302653,3.182446,2.776445,2.570582,2.446912,2.364624,2.306004,2.262157,
+  2.228139,2.200985,2.178813,2.160369,2.144787,2.13145,2.119905,2.109816,2.100922,2.093024,
+  2.085963,2.079614,2.073873,2.068658,2.063899,2.059539,2.055529,2.051831,2.048407,2.04523,
+  2.042272,
+]);
 const finite=value=>value!==null&&value!==undefined&&value!==''&&Number.isFinite(Number(value));
 const round6=value=>Number(Number(value).toFixed(6));
 const mean=values=>values.length?values.reduce((sum,value)=>sum+value,0)/values.length:null;
@@ -18,6 +25,23 @@ function median(values){
   if(!xs.length)return null;
   const middle=Math.floor(xs.length/2);
   return xs.length%2?xs[middle]:(xs[middle-1]+xs[middle])/2;
+}
+
+function nearestRank(values,probability){
+  const xs=values.filter(Number.isFinite).sort((a,b)=>a-b);
+  if(!xs.length)return null;
+  return xs[Math.max(0,Math.ceil(probability*xs.length)-1)];
+}
+
+function sampleStandardDeviation(values){
+  if(values.length<2)return null;
+  const center=mean(values);
+  return Math.sqrt(values.reduce((sum,value)=>sum+(value-center)**2,0)/(values.length-1));
+}
+
+function studentTCritical975(degreesOfFreedom){
+  if(degreesOfFreedom<1)return null;
+  return STUDENT_T_975[degreesOfFreedom]??1.959964;
 }
 
 function timestampMs(value,label){
@@ -570,6 +594,7 @@ function selectedPredicate(selector,v3Selected){
 
 function simpleGroupSummary(rows,predicate){
   const selected=rows.filter(predicate).filter(row=>finite(row.primaryCostAdjustedUtility));
+  const late=selected.filter(row=>Number(row.preSelectionMove)>Number(row.primaryTwoSidedOpportunity)).length;
   return {
     selectedTargetReady:selected.length,
     meanReturnFromSessionOpenBps:selected.length?round6(mean(selected.map(row=>row.preSelection.returnFromSessionOpen))*10000):null,
@@ -579,6 +604,7 @@ function simpleGroupSummary(rows,predicate){
     meanDownExcursionBps:selected.length?round6(mean(selected.map(row=>row.primaryDownExcursion))*10000):null,
     meanCostAdjustedUtilityBps:selected.length?round6(mean(selected.map(row=>row.primaryCostAdjustedUtility))*10000):null,
     meanTwoSidedOpportunityBps:selected.length?round6(mean(selected.map(row=>row.primaryTwoSidedOpportunity))*10000):null,
+    lateDetectionCandidateRate:selected.length?round6(late/selected.length):null,
   };
 }
 
@@ -599,6 +625,7 @@ function horizonSummary(rows,predicate,horizon){
   const selected=rows.filter(predicate);
   const ready=selected.filter(row=>row.horizonTargets?.[String(horizon)]?.status==='TARGET_READY');
   const values=ready.map(row=>row.horizonTargets[String(horizon)]);
+  const futureReturns=values.map(value=>value.futureReturn).filter(finite).map(Number);
   const barriers=Object.fromEntries(PHASE57_SELECTOR_V3_FREEZE.targets.barrierBps.map(bps=>{
     const statuses=values.map(value=>value.barriers?.[String(bps)]).filter(Boolean);
     const counts={UP_FIRST:0,DOWN_FIRST:0,AMBIGUOUS_SAME_BAR:0,NOT_REACHED:0};
@@ -611,6 +638,7 @@ function horizonSummary(rows,predicate,horizon){
     meanDownExcursionBps:ready.length?round6(mean(values.map(value=>value.downExcursion))*10000):null,
     meanTwoSidedOpportunityBps:ready.length?round6(mean(values.map(value=>value.twoSidedOpportunity))*10000):null,
     meanCostAdjustedUtilityBps:ready.length?round6(mean(values.map(value=>value.costAdjustedTwoSidedUtility))*10000):null,
+    meanPostSelectionReturnBps:futureReturns.length?round6(mean(futureReturns)*10000):null,
     barriers:Object.freeze(barriers),
   });
 }
@@ -627,8 +655,7 @@ function selectorRankBucket(selector,row){
   return row.v3RankBucket;
 }
 
-function summarizeSelector(rows,selector,v3Selected){
-  const predicate=selectedPredicate(selector,v3Selected);
+function summarizeSelection(rows,selector,predicate){
   const selected=rows.filter(predicate);
   const targetReady=selected.filter(row=>finite(row.primaryCostAdjustedUtility));
   const timestamps=new Set(rows.map(row=>row.featureCutoff));
@@ -669,6 +696,10 @@ function summarizeSelector(rows,selector,v3Selected){
       rankBucket:groupedSlices(rows,predicate,row=>selectorRankBucket(selector,row)),
     }),
   });
+}
+
+function summarizeSelector(rows,selector,v3Selected){
+  return summarizeSelection(rows,selector,selectedPredicate(selector,v3Selected));
 }
 
 function selectionFlags(row,index,v3Selected){
@@ -784,6 +815,154 @@ export function buildPhase57SelectorSelectionArtifacts(records,v3Selected){
   return Object.freeze({points:Object.freeze(points),outcomes:Object.freeze(outcomes)});
 }
 
+export function summarizePhase57PairedSessionDeltas({
+  leftSelector,rightSelector,sessionDeltasBps,expectedSessionCount,
+}){
+  if(!SELECTORS.includes(leftSelector)||!SELECTORS.includes(rightSelector)||leftSelector===rightSelector){
+    throw new TypeError('paired delta requires two different frozen selectors');
+  }
+  if(!Array.isArray(sessionDeltasBps))throw new TypeError('sessionDeltasBps must be an array');
+  const deltas=sessionDeltasBps.map(item=>({
+    sessionDate:String(item.sessionDate),deltaBps:Number(item.deltaBps),
+  }));
+  if(deltas.some(item=>!Number.isFinite(item.deltaBps)))throw new TypeError('paired session delta must be finite');
+  const values=deltas.map(item=>item.deltaBps);
+  const center=mean(values);
+  const standardDeviation=sampleStandardDeviation(values);
+  const standardError=standardDeviation===null?null:standardDeviation/Math.sqrt(values.length);
+  const critical=studentTCritical975(values.length-1);
+  const margin=standardError===null||critical===null?null:critical*standardError;
+  const positive=values.filter(value=>value>0).length;
+  const negative=values.filter(value=>value<0).length;
+  const tie=values.length-positive-negative;
+  return Object.freeze({
+    leftSelector,rightSelector,orientation:'LEFT_SELECTOR_MINUS_RIGHT_SELECTOR',
+    expectedSessionCount:Number(expectedSessionCount),pairedSessionCount:values.length,
+    completeExpectedSessions:values.length===Number(expectedSessionCount),
+    meanDeltaBps:center===null?null:round6(center),
+    sampleStandardDeviationBps:standardDeviation===null?null:round6(standardDeviation),
+    standardErrorBps:standardError===null?null:round6(standardError),
+    confidenceLevel:0.95,intervalMethod:'TWO_SIDED_STUDENT_T_PAIRED_SESSION_DELTAS',
+    degreesOfFreedom:values.length>=2?values.length-1:null,
+    criticalValue:critical===null?null:round6(critical),
+    ci95Bps:margin===null?null:Object.freeze({lower:round6(center-margin),upper:round6(center+margin)}),
+    zeroIncluded:margin===null?null:center-margin<=0&&center+margin>=0,
+    direction:Object.freeze({
+      positiveSessions:positive,negativeSessions:negative,tiedSessions:tie,
+      positiveRate:values.length?round6(positive/values.length):null,
+    }),
+    sessionDeltasBps:Object.freeze(deltas.map(item=>Object.freeze({...item,deltaBps:round6(item.deltaBps)}))),
+  });
+}
+
+function sessionPrimaryMeans(rows,predicate){
+  const groups=new Map();
+  rows.forEach((row,index)=>{
+    if(!predicate(row,index)||!finite(row.primaryCostAdjustedUtility))return;
+    if(!groups.has(row.sessionDate))groups.set(row.sessionDate,[]);
+    groups.get(row.sessionDate).push(Number(row.primaryCostAdjustedUtility)*10000);
+  });
+  return new Map([...groups.entries()].map(([sessionDate,values])=>[sessionDate,mean(values)]));
+}
+
+function pairedPrimaryUtility(rows,leftSelector,rightSelector,predicates){
+  const sessions=[...new Set(rows.map(row=>row.sessionDate))].sort();
+  const left=sessionPrimaryMeans(rows,predicates[leftSelector]);
+  const right=sessionPrimaryMeans(rows,predicates[rightSelector]);
+  const paired=sessions.filter(sessionDate=>left.has(sessionDate)&&right.has(sessionDate)).map(sessionDate=>({
+    sessionDate,deltaBps:left.get(sessionDate)-right.get(sessionDate),
+  }));
+  const summary=summarizePhase57PairedSessionDeltas({
+    leftSelector,rightSelector,sessionDeltasBps:paired,expectedSessionCount:sessions.length,
+  });
+  return Object.freeze({
+    ...summary,
+    leftMissingSessions:Object.freeze(sessions.filter(sessionDate=>!left.has(sessionDate))),
+    rightMissingSessions:Object.freeze(sessions.filter(sessionDate=>!right.has(sessionDate))),
+  });
+}
+
+function primaryInference(rows,predicates){
+  const pairwise={};
+  for(const left of SELECTORS){
+    for(const right of SELECTORS){
+      if(left===right)continue;
+      pairwise[`${left}_MINUS_${right}`]=pairedPrimaryUtility(rows,left,right,predicates);
+    }
+  }
+  const qualifies=SELECTORS.filter(selector=>SELECTORS.filter(other=>other!==selector).every(other=>{
+    const comparison=pairwise[`${selector}_MINUS_${other}`];
+    return comparison.completeExpectedSessions&&comparison.meanDeltaBps>0&&
+      comparison.ci95Bps?.lower>0&&comparison.direction.positiveSessions>comparison.direction.negativeSessions;
+  }));
+  return Object.freeze({
+    metric:'COST_ADJUSTED_TWO_SIDED_OPPORTUNITY_UTILITY',horizonBars:6,horizonMinutes:30,
+    sessionWeighting:'EQUAL',pairwise:Object.freeze(pairwise),
+    winnerDecision:Object.freeze({
+      status:qualifies.length===1?'STATISTICALLY_ESTABLISHED_WINNER':'NO_STATISTICALLY_ESTABLISHED_WINNER',
+      winner:qualifies.length===1?qualifies[0]:null,
+      qualifyingSelectors:Object.freeze(qualifies),
+      secondaryOrDiagnosticOverrideAllowed:false,automaticPromotionAllowed:false,
+    }),
+  });
+}
+
+function distribution(values){
+  const xs=values.filter(Number.isFinite);
+  return Object.freeze({
+    observations:xs.length,min:xs.length?Math.min(...xs):null,
+    p10NearestRank:nearestRank(xs,0.1),median:median(xs),p90NearestRank:nearestRank(xs,0.9),
+    max:xs.length?Math.max(...xs):null,zeroTimestampCount:xs.filter(value=>value===0).length,
+  });
+}
+
+function dynamicNDistribution(points){
+  return Object.freeze(Object.fromEntries(SELECTORS.map(selector=>[
+    selector,distribution(points.map(point=>Number(point.selectedCounts[selector]))),
+  ])));
+}
+
+function overlapOutcomeGroups(rows,v3Selected){
+  const categories=['V1_ONLY','V2_ONLY','V3_ONLY','V1_V2','V1_V3','V2_V3','V1_V2_V3'];
+  return Object.freeze(Object.fromEntries(categories.map(category=>[
+    category,Object.freeze(simpleGroupSummary(rows,(row,index)=>overlapCategory(selectionFlags(row,index,v3Selected))===category)),
+  ])));
+}
+
+function sameCapacitySummary(rows,v3Selected){
+  const selectedSets=Object.fromEntries(SELECTORS.map(selector=>[selector,new Set()]));
+  const groups=new Map();
+  rows.forEach((row,index)=>{
+    if(!groups.has(row.featureCutoff))groups.set(row.featureCutoff,[]);
+    groups.get(row.featureCutoff).push({row,index});
+  });
+  const kValues=[];
+  for(const group of groups.values()){
+    const selectedV3=group.filter(item=>v3Selected.has(item.index));
+    const k=selectedV3.length;
+    kValues.push(k);
+    for(const item of selectedV3)selectedSets.V3.add(item.index);
+    for(const selector of ['V1','V2']){
+      const ranked=group.filter(item=>selector==='V1'?item.row.v1Selected:item.row.v2Selected)
+        .sort((a,b)=>selectorRank(selector,a.row)-selectorRank(selector,b.row)||a.row.symbol.localeCompare(b.row.symbol));
+      for(const item of ranked.slice(0,k))selectedSets[selector].add(item.index);
+    }
+  }
+  const predicates=Object.freeze(Object.fromEntries(SELECTORS.map(selector=>[
+    selector,(row,index)=>selectedSets[selector].has(index),
+  ])));
+  return Object.freeze({
+    definition:'V1_TOP_K_V2_TOP_K_VS_V3_AT_EACH_TIMESTAMP',
+    kDefinition:'FROZEN_V3_SELECTED_COUNT',kZeroPolicy:'SELECT_NONE_FOR_ALL_ARMS',
+    kDistribution:distribution(kValues),
+    V1:summarizeSelection(rows,'V1',predicates.V1),
+    V2:summarizeSelection(rows,'V2',predicates.V2),
+    V3:summarizeSelection(rows,'V3',predicates.V3),
+    primaryInference:primaryInference(rows,predicates),
+    primaryWinnerOverrideAllowed:false,
+  });
+}
+
 function overlapSummary(points){
   const categories={V1_ONLY:0,V2_ONLY:0,V3_ONLY:0,V1_V2:0,V1_V3:0,V2_V3:0,V1_V2_V3:0};
   const counts={V1:[],V2:[],V3:[],v1V2:[],v1V3:[],v2V3:[],v1V2V3:[]};
@@ -853,14 +1032,23 @@ function leadTimeSummary(records,v3Selected){
 function foldSummary(records,threshold,{includeSelectionOutcomes=false}={}){
   const v3Selected=applyV3Threshold(records,threshold);
   const selectionArtifacts=buildPhase57SelectorSelectionArtifacts(records,v3Selected);
+  const predicates=Object.freeze({
+    V1:selectedPredicate('V1',v3Selected),
+    V2:selectedPredicate('V2',v3Selected),
+    V3:selectedPredicate('V3',v3Selected),
+  });
   return Object.freeze({
     recordCount:records.length,
     V1:summarizeSelector(records,'V1',v3Selected),
     V2:summarizeSelector(records,'V2',v3Selected),
     V3:summarizeSelector(records,'V3',v3Selected),
+    primaryInference:primaryInference(records,predicates),
+    sameCapacity:sameCapacitySummary(records,v3Selected),
     overlap:overlapSummary(selectionArtifacts.points),
+    overlapOutcomeGroups:overlapOutcomeGroups(records,v3Selected),
     v2Persistence:v2PersistenceSummary(records),
     opportunityDetectionLeadTime:leadTimeSummary(records,v3Selected),
+    dynamicN:dynamicNDistribution(selectionArtifacts.points),
     selectionOutcomeRecordCount:selectionArtifacts.outcomes.length,
     selectionPointRecordCount:selectionArtifacts.points.length,
     ...(includeSelectionOutcomes?{
@@ -883,7 +1071,7 @@ export function evaluatePhase57SelectorHistoricalBenchmark(dataset,{releaseOuter
   const calibration=calibratePhase57SelectorV3Threshold(validation);
   const threshold=calibration.selectedThreshold;
   const output={
-    schemaVersion:2,
+    schemaVersion:3,
     phase:'57.selector-v1-v2-v3.large-scale-historical-benchmark',
     status:releaseOuterOos?'SELECTOR_V1_V2_V3_BENCHMARK_WITH_OOS_RELEASED':'SELECTOR_V1_V2_V3_BENCHMARK_OOS_SEALED',
     dataset:replay.validation,split,calibration,
@@ -898,6 +1086,8 @@ export function evaluatePhase57SelectorHistoricalBenchmark(dataset,{releaseOuter
       sameHistoricalStatePaired:true,thresholdSelectedOnValidationOnly:true,
       selectionThenFreezeThenOutcome:true,continuousLateDetectionDiagnostics:true,
       outcomeRowsRetainedWhenRequested:true,
+      primarySessionEqualWeighting:true,primaryPairedStudentT95Interval:true,
+      sameCapacityPreRegisteredBeforeOos:true,analysisContractRequiredByCliForOos:true,
       v1V2Changed:false,v3PostFreezeChanged:false,automaticWinnerPromotion:false,
     }),
     safety:PHASE57_SELECTOR_V3_SAFETY,
@@ -912,5 +1102,6 @@ export default {
   replayPhase57SelectorHistoricalDataset,
   calibratePhase57SelectorV3Threshold,
   buildPhase57SelectorSelectionArtifacts,
+  summarizePhase57PairedSessionDeltas,
   evaluatePhase57SelectorHistoricalBenchmark,
 };

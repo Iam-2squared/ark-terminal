@@ -12,6 +12,7 @@ import {
   replayPhase57SelectorHistoricalDataset,
   calibratePhase57SelectorV3Threshold,
   evaluatePhase57SelectorHistoricalBenchmark,
+  summarizePhase57PairedSessionDeltas,
 } from '../daytrade/phase57-selector-v123-historical-benchmark.js';
 
 const SAFETY=Object.freeze({
@@ -156,7 +157,7 @@ test('outer OOS is sealed by default and released only explicitly',()=>{
 
 test('selection outcome ledger preserves point sets, overlap, persistence and pre/post measurements',()=>{
   const result=evaluatePhase57SelectorHistoricalBenchmark(dataset(),{includeSelectionOutcomes:true});
-  assert.equal(result.schemaVersion,2);
+  assert.equal(result.schemaVersion,3);
   assert.equal(result.development.selectionPoints.length,result.development.selectionPointRecordCount);
   assert.equal(result.development.selectionOutcomes.length,result.development.selectionOutcomeRecordCount);
   assert.ok(result.development.selectionOutcomes.length>0);
@@ -172,7 +173,27 @@ test('selection outcome ledger preserves point sets, overlap, persistence and pr
   assert.ok(['V1','V2','V3'].includes(row.selectorVersion));
   assert.equal(result.development.overlap.decisionTimestamps,result.development.selectionPointRecordCount);
   assert.ok(result.development.v2Persistence.transitionCounts.NEW_ENTRANT>0);
+  assert.equal(result.development.primaryInference.sessionWeighting,'EQUAL');
+  assert.equal(result.development.primaryInference.winnerDecision.automaticPromotionAllowed,false);
+  assert.equal(result.development.sameCapacity.kDefinition,'FROZEN_V3_SELECTED_COUNT');
+  assert.equal(result.development.sameCapacity.primaryWinnerOverrideAllowed,false);
+  assert.equal(result.development.dynamicN.V3.observations,result.development.selectionPointRecordCount);
+  assert.equal(typeof result.development.overlapOutcomeGroups.V1_ONLY.selectedTargetReady,'number');
+  assert.equal(typeof result.development.V1.horizons['1'].meanPostSelectionReturnBps,'number');
   assert.equal(result.untouchedOos.selectionOutcomes,undefined);
+});
+
+test('paired session inference uses equal-weight Student t intervals and direction counts',()=>{
+  const summary=summarizePhase57PairedSessionDeltas({
+    leftSelector:'V3',rightSelector:'V1',expectedSessionCount:19,
+    sessionDeltasBps:Array.from({length:19},(_,index)=>({sessionDate:isoDate(index),deltaBps:1})),
+  });
+  assert.equal(summary.pairedSessionCount,19);
+  assert.equal(summary.completeExpectedSessions,true);
+  assert.equal(summary.meanDeltaBps,1);
+  assert.deepEqual(summary.ci95Bps,{lower:1,upper:1});
+  assert.equal(summary.zeroIncluded,false);
+  assert.deepEqual(summary.direction,{positiveSessions:19,negativeSessions:0,tiedSessions:0,positiveRate:1});
 });
 
 test('benchmark CLI externalizes Development and Validation selection outcomes while OOS stays sealed',()=>{
@@ -189,12 +210,32 @@ test('benchmark CLI externalizes Development and Validation selection outcomes w
     assert.equal(result.status,0,result.stderr||result.stdout);
     const summary=JSON.parse(fs.readFileSync(outputPath,'utf8'));
     assert.equal(summary.outerOosConsumed,false);
+    assert.equal(summary.schemaVersion,3);
     assert.equal(summary.development.selectionOutcomes,undefined);
     assert.equal(summary.provenance.selectionLedgerSha256.length,64);
+    assert.equal(summary.provenance.oosAnalysisContractSha256.length,64);
+    assert.equal(summary.provenance.outerOosAnalysisContractVerified,false);
     const lines=gunzipSync(fs.readFileSync(ledgerPath)).toString('utf8').trim().split('\n').map(line=>JSON.parse(line));
     assert.ok(lines.some(row=>row.recordType==='SELECTOR_SELECTION_POINT'&&row.fold==='development'));
     assert.ok(lines.some(row=>row.recordType==='SELECTOR_SELECTION_OUTCOME'&&row.fold==='validation'));
     assert.equal(lines.some(row=>row.fold==='untouchedOos'),false);
+  }finally{
+    fs.rmSync(directory,{recursive:true,force:true});
+  }
+});
+
+test('benchmark CLI refuses OOS release without the exact frozen Analysis Contract digest',()=>{
+  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'phase57-selector-oos-guard-'));
+  try{
+    const datasetPath=path.join(directory,'dataset.json');
+    fs.writeFileSync(datasetPath,JSON.stringify(dataset()));
+    const script=fileURLToPath(new URL('../../scripts/run_phase57_selector_v123_historical_benchmark.mjs',import.meta.url));
+    const result=spawnSync(process.execPath,[
+      script,'--dataset',datasetPath,'--release-outer-oos','true',
+      '--oos-release-confirmation','I_UNDERSTAND_THIS_CONSUMES_THE_UNTOUCHED_OOS',
+    ],{encoding:'utf8',timeout:30_000});
+    assert.notEqual(result.status,0);
+    assert.match(result.stderr,/exact frozen OOS Analysis Contract SHA-256/);
   }finally{
     fs.rmSync(directory,{recursive:true,force:true});
   }

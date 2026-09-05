@@ -22,7 +22,11 @@ export const ENTRY_V2_HISTORICAL_REPLAY_POLICY = Object.freeze({
   frozenEntryBaseline: 'PHASE57_P21_FROZEN_ENTRY',
   acceptedRawSnapshotPhase: '57.p25.marketwide-5m-fresh-capture',
   minimumMarketwideSymbols: 3000,
+  minimumClosedPrefixBars: 6,
   completedBarRule: 'bar.timestamp + 5 minutes <= decisionTimestamp',
+  archivedPitSourceClass: ENTRY_V2_SOURCE_CLASS.historicalReplayArchivedPit,
+  laterFetchedSourceClass: ENTRY_V2_SOURCE_CLASS.historicalReconstructionLaterFetched,
+  sourceLineageRequired: true,
   missingInputsMayBeBackfilled: false,
   oldSelectorMembershipMayBeReused: false,
   selectorChangesAllowed: false,
@@ -65,6 +69,11 @@ const FORBIDDEN_RAW_KEYS = Object.freeze([
   'netReturnPct',
   'target',
   'label',
+]);
+
+const DETAILED_HISTORICAL_SOURCE_CLASSES = Object.freeze([
+  ENTRY_V2_SOURCE_CLASS.historicalReplayArchivedPit,
+  ENTRY_V2_SOURCE_CLASS.historicalReconstructionLaterFetched,
 ]);
 
 const sha256 = value => createHash('sha256').update(typeof value === 'string' ? value : JSON.stringify(value)).digest('hex');
@@ -112,6 +121,98 @@ function reasonCounts(rows) {
   const counts = {};
   for (const row of rows) counts[row.reason] = (counts[row.reason] ?? 0) + 1;
   return counts;
+}
+
+function normalizeArchiveLineage(archive, sessionDate) {
+  const sourceClass = String(archive?.sourceClass ?? '');
+  if (!DETAILED_HISTORICAL_SOURCE_CLASSES.includes(sourceClass)) {
+    throw new Error('ENTRY_V2_REPLAY_BAR_ARCHIVE_SOURCE_CLASS_INVALID');
+  }
+  if (archive?.prospective === true || archive?.formalOos === true
+    || archive?.classification?.prospective === true || archive?.classification?.formalOos === true) {
+    throw new Error('ENTRY_V2_REPLAY_BAR_ARCHIVE_FALSE_PROSPECTIVE_CLASSIFICATION');
+  }
+  const lineage = archive?.sourceLineage;
+  if (!lineage || typeof lineage !== 'object') throw new Error('ENTRY_V2_REPLAY_BAR_ARCHIVE_LINEAGE_REQUIRED');
+  const sourceArtifact = String(lineage.sourceArtifact ?? '').trim();
+  const sourceArtifactSha256 = String(lineage.sourceArtifactSha256 ?? '').trim().toLowerCase();
+  const retrievedAt = iso(lineage.retrievedAt, 'BAR_ARCHIVE_RETRIEVED_AT');
+  if (!sourceArtifact) throw new Error('ENTRY_V2_REPLAY_BAR_ARCHIVE_ARTIFACT_REQUIRED');
+  if (!/^[0-9a-f]{64}$/.test(sourceArtifactSha256)) {
+    throw new Error('ENTRY_V2_REPLAY_BAR_ARCHIVE_ARTIFACT_SHA256_INVALID');
+  }
+  if (lineage.sessionDate !== undefined && String(lineage.sessionDate) !== sessionDate) {
+    throw new Error('ENTRY_V2_REPLAY_BAR_ARCHIVE_LINEAGE_DATE_MISMATCH');
+  }
+  if (lineage.sourceClass !== undefined && String(lineage.sourceClass) !== sourceClass) {
+    throw new Error('ENTRY_V2_REPLAY_BAR_ARCHIVE_LINEAGE_CLASS_MISMATCH');
+  }
+  if (sourceClass === ENTRY_V2_SOURCE_CLASS.historicalReplayArchivedPit
+    && (lineage.archivedPointInTimeCapture !== true || lineage.reconstructionFetchedAfterDecision === true)) {
+    throw new Error('ENTRY_V2_REPLAY_ARCHIVED_PIT_ATTESTATION_REQUIRED');
+  }
+  if (sourceClass === ENTRY_V2_SOURCE_CLASS.historicalReconstructionLaterFetched
+    && (lineage.reconstructionFetchedAfterDecision !== true || lineage.archivedPointInTimeCapture === true)) {
+    throw new Error('ENTRY_V2_REPLAY_LATER_FETCHED_ATTESTATION_REQUIRED');
+  }
+  return Object.freeze({
+    sourceClass,
+    sourceArtifact,
+    sourceArtifactSha256,
+    sourceArtifactHashScope: lineage.sourceArtifactHashScope ?? null,
+    retrievedAt,
+    sessionDate,
+    provider: lineage.provider ?? null,
+    actionRunId: lineage.actionRunId ?? null,
+    actionArtifactId: lineage.actionArtifactId ?? null,
+    sourceRef: lineage.sourceRef ?? null,
+    sourceCommitSha: lineage.sourceCommitSha ?? null,
+    archivedPointInTimeCapture: lineage.archivedPointInTimeCapture === true,
+    reconstructionFetchedAfterDecision: lineage.reconstructionFetchedAfterDecision === true,
+    prospective: false,
+    formalOos: false,
+    developmentOnly: true,
+  });
+}
+
+function expectedClosedBarTimestamps(sessionDate, decisionTimestamp) {
+  const decisionMs = Date.parse(decisionTimestamp);
+  const starts = [
+    Date.parse(`${sessionDate}T09:00:00+09:00`),
+    Date.parse(`${sessionDate}T12:30:00+09:00`),
+  ];
+  const ends = [
+    Date.parse(`${sessionDate}T11:30:00+09:00`),
+    Date.parse(`${sessionDate}T15:30:00+09:00`),
+  ];
+  const timestamps = [];
+  for (let segment = 0; segment < starts.length; segment += 1) {
+    for (let cursor = starts[segment]; cursor < ends[segment]; cursor += 5 * 60_000) {
+      if (cursor + 5 * 60_000 <= decisionMs) timestamps.push(new Date(cursor).toISOString());
+    }
+  }
+  return timestamps;
+}
+
+function collapseMissingIntervals(timestamps) {
+  if (!timestamps.length) return Object.freeze([]);
+  const ranges = [];
+  let start = timestamps[0];
+  let end = timestamps[0];
+  let count = 1;
+  for (const timestamp of timestamps.slice(1)) {
+    if (Date.parse(timestamp) - Date.parse(end) === 5 * 60_000) {
+      end = timestamp;
+      count += 1;
+    } else {
+      ranges.push(Object.freeze({ start, end, count }));
+      start = timestamp;
+      end = timestamp;
+      count = 1;
+    }
+  }
+  ranges.push(Object.freeze({ start, end, count }));
+  return Object.freeze(ranges);
 }
 
 function normalizeSelected(rows = []) {
@@ -198,7 +299,13 @@ function archiveIndex(barArchives) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(sessionDate)) throw new Error('ENTRY_V2_REPLAY_BAR_ARCHIVE_DATE_INVALID');
     if (index.has(sessionDate)) throw new Error('ENTRY_V2_REPLAY_DUPLICATE_BAR_ARCHIVE');
     assertSafety(archive.safety, 'BAR_ARCHIVE');
-    index.set(sessionDate, archive);
+    const sourceLineage = normalizeArchiveLineage(archive, sessionDate);
+    index.set(sessionDate, Object.freeze({
+      ...archive,
+      sourceClass: sourceLineage.sourceClass,
+      sourceLineage,
+      sessionBarsSha256: sha256(JSON.stringify(archive.sessionBarsBySymbol ?? {})),
+    }));
   }
   return index;
 }
@@ -247,6 +354,7 @@ export function auditEntryV2HistoricalReplayInputs({
   const measurements = measurementIndex(storedMeasurements);
   const archives = archiveIndex(barArchives);
   const seenObservedAt = new Set();
+  const seenBuckets = new Set();
   const blockedPoints = [];
   const readyPoints = [];
   const allPoints = [];
@@ -259,6 +367,9 @@ export function auditEntryV2HistoricalReplayInputs({
   for (const source of normalizedSnapshots) {
     if (seenObservedAt.has(source.observedAt)) throw new Error('ENTRY_V2_REPLAY_DUPLICATE_RAW_POINT');
     seenObservedAt.add(source.observedAt);
+    const bucketKey = `${source.sessionDate}|${iso(source.snapshot.bucket, 'BUCKET')}`;
+    if (seenBuckets.has(bucketKey)) throw new Error('ENTRY_V2_REPLAY_DUPLICATE_RAW_BUCKET');
+    seenBuckets.add(bucketKey);
     const timeline = buildIntradayDynamicUniverseTimeline({
       snapshots: [{ asOf: source.observedAt, entries: source.entries }],
     });
@@ -283,9 +394,25 @@ export function auditEntryV2HistoricalReplayInputs({
     let insufficientPrefixSymbolCount = 0;
     const prefixes = {};
     const fullBarsBySymbol = {};
+    const requiredSymbols = replaySelected.map(row => row.symbol).sort();
+    const availableSymbols = [];
+    const prefixReadySymbols = [];
+    const symbolCoverage = [];
+    const expectedClosedBars = expectedClosedBarTimestamps(source.sessionDate, source.observedAt);
     if (!archive || !archive.sessionBarsBySymbol || !Object.keys(archive.sessionBarsBySymbol).length) {
       reason = 'MISSING_SESSION_BAR_ARCHIVE';
       missingBarSymbolCount = replaySelected.length;
+      for (const symbol of requiredSymbols) {
+        symbolCoverage.push(Object.freeze({
+          symbol,
+          requiredPrefixBarCount: ENTRY_V2_HISTORICAL_REPLAY_POLICY.minimumClosedPrefixBars,
+          nominalClosedIntervalCount: expectedClosedBars.length,
+          availablePrefixBarCount: 0,
+          missingBarIntervals: collapseMissingIntervals(expectedClosedBars),
+          barArchiveAvailable: false,
+          minimumPrefixSatisfied: false,
+        }));
+      }
     } else {
       for (const selected of replaySelected) {
         const cacheKey = `${source.sessionDate}|${selected.symbol}`;
@@ -295,13 +422,36 @@ export function auditEntryV2HistoricalReplayInputs({
         const fullBars = barCache.get(cacheKey);
         if (!fullBars) {
           missingBarSymbolCount += 1;
+          symbolCoverage.push(Object.freeze({
+            symbol: selected.symbol,
+            requiredPrefixBarCount: ENTRY_V2_HISTORICAL_REPLAY_POLICY.minimumClosedPrefixBars,
+            nominalClosedIntervalCount: expectedClosedBars.length,
+            availablePrefixBarCount: 0,
+            missingBarIntervals: collapseMissingIntervals(expectedClosedBars),
+            barArchiveAvailable: false,
+            minimumPrefixSatisfied: false,
+          }));
           continue;
         }
+        availableSymbols.push(selected.symbol);
         const prefix = fullBars.filter(bar => Date.parse(bar.timestamp) + 5 * 60_000 <= Date.parse(source.observedAt));
-        if (prefix.length < 6) {
+        const availableTimestamps = new Set(prefix.map(bar => bar.timestamp));
+        const missingTimestamps = expectedClosedBars.filter(timestamp => !availableTimestamps.has(timestamp));
+        const minimumPrefixSatisfied = prefix.length >= ENTRY_V2_HISTORICAL_REPLAY_POLICY.minimumClosedPrefixBars;
+        symbolCoverage.push(Object.freeze({
+          symbol: selected.symbol,
+          requiredPrefixBarCount: ENTRY_V2_HISTORICAL_REPLAY_POLICY.minimumClosedPrefixBars,
+          nominalClosedIntervalCount: expectedClosedBars.length,
+          availablePrefixBarCount: prefix.length,
+          missingBarIntervals: collapseMissingIntervals(missingTimestamps),
+          barArchiveAvailable: true,
+          minimumPrefixSatisfied,
+        }));
+        if (!minimumPrefixSatisfied) {
           insufficientPrefixSymbolCount += 1;
           continue;
         }
+        prefixReadySymbols.push(selected.symbol);
         fullBarsBySymbol[selected.symbol] = fullBars;
         prefixes[selected.symbol] = Object.freeze(prefix);
       }
@@ -310,7 +460,8 @@ export function auditEntryV2HistoricalReplayInputs({
     }
 
     const point = Object.freeze({
-      sourceClass: ENTRY_V2_SOURCE_CLASS.historicalReplay,
+      sourceClass: archive?.sourceClass ?? ENTRY_V2_SOURCE_CLASS.historicalReplay,
+      aggregateSourceClass: ENTRY_V2_SOURCE_CLASS.historicalReplay,
       datasetRole: 'DEVELOPMENT_ONLY',
       prospective: false,
       formalOos: false,
@@ -322,11 +473,19 @@ export function auditEntryV2HistoricalReplayInputs({
       selectedCount: replaySelected.length,
       selected: Object.freeze(replaySelected.map(row => Object.freeze(row))),
       selectionSha256: sha256(JSON.stringify(replaySelected)),
+      barArchiveAvailable: Boolean(archive),
+      barArchiveSha256: archive?.sessionBarsSha256 ?? null,
+      sourceLineage: archive?.sourceLineage ?? null,
       storedMeasurementAvailable: Boolean(measurement),
       exactSelectorParity,
       measurement,
       prefixes: Object.freeze(prefixes),
       fullBarsBySymbol: Object.freeze(fullBarsBySymbol),
+      requiredSymbols: Object.freeze(requiredSymbols),
+      availableSymbols: Object.freeze(availableSymbols.sort()),
+      missingSymbols: Object.freeze(requiredSymbols.filter(symbol => !availableSymbols.includes(symbol))),
+      prefixReadySymbols: Object.freeze(prefixReadySymbols.sort()),
+      symbolCoverage: Object.freeze(symbolCoverage.sort((a, b) => a.symbol.localeCompare(b.symbol))),
       missingBarSymbolCount,
       insufficientPrefixSymbolCount,
       status: reason ? 'ENTRY_V2_HISTORICAL_REPLAY_POINT_BLOCKED' : 'ENTRY_V2_HISTORICAL_REPLAY_POINT_INPUT_READY',
@@ -347,6 +506,10 @@ export function auditEntryV2HistoricalReplayInputs({
     selectedMembershipCount,
     storedMeasurementCount: measurements.size,
     exactSelectorParityCount,
+    sourceClassBreakdown: Object.freeze(allPoints.reduce((counts, point) => {
+      counts[point.sourceClass] = (counts[point.sourceClass] ?? 0) + 1;
+      return counts;
+    }, {})),
     blockedReasonDistribution: Object.freeze(reasonCounts(blockedPoints)),
     pitViolationCount: 0,
     points: Object.freeze(allPoints),
@@ -497,7 +660,8 @@ export function buildEntryV2HistoricalRetrospectiveReplay({
         v2Score: v2Membership?.v2Score ?? null,
       });
       candidates.push(Object.freeze({
-        sourceClass: ENTRY_V2_SOURCE_CLASS.historicalReplay,
+        sourceClass: point.sourceClass,
+        aggregateSourceClass: ENTRY_V2_SOURCE_CLASS.historicalReplay,
         datasetRole: 'DEVELOPMENT_ONLY',
         prospective: false,
         formalOos: false,
@@ -549,6 +713,8 @@ export function buildEntryV2HistoricalRetrospectiveReplay({
         }),
         rawSnapshotSha256: point.rawSnapshotSha256,
         selectionSha256: point.selectionSha256,
+        barArchiveSha256: point.barArchiveSha256,
+        sourceLineage: point.sourceLineage,
         pointInTimeValid: true,
         pitViolationCount: 0,
       }));
@@ -559,12 +725,14 @@ export function buildEntryV2HistoricalRetrospectiveReplay({
   const countsByDirection = { LONG: 0, SHORT: 0 };
   const symbolSet = new Set();
   const sessionSet = new Set();
+  const sourceClassBreakdown = {};
   const labelCompletenessByHorizon = Object.fromEntries([...new Set(horizonsBars.map(Number))]
     .sort((a, b) => a - b).map(horizon => [horizon, { complete: 0, incomplete: 0, total: candidates.length }]));
   for (const candidate of candidates) {
     countsByDirection[candidate.direction] += 1;
     symbolSet.add(candidate.symbol);
     sessionSet.add(candidate.sessionDate);
+    sourceClassBreakdown[candidate.sourceClass] = (sourceClassBreakdown[candidate.sourceClass] ?? 0) + 1;
     for (const [horizon, stats] of Object.entries(labelCompletenessByHorizon)) {
       if (candidate.labelCompleteness[horizon] === true) stats.complete += 1;
       else stats.incomplete += 1;
@@ -582,6 +750,7 @@ export function buildEntryV2HistoricalRetrospectiveReplay({
     uniqueSymbolCount: symbolSet.size,
     sessionCount: sessionSet.size,
     countsByDirection: Object.freeze(countsByDirection),
+    countsBySourceClass: Object.freeze(sourceClassBreakdown),
     labelCompletenessByHorizon: Object.freeze(Object.fromEntries(Object.entries(labelCompletenessByHorizon)
       .map(([horizon, stats]) => [horizon, Object.freeze(stats)]))),
     candidates: Object.freeze(candidates),
@@ -614,6 +783,9 @@ export function separateEntryV2ActualAndHistoricalSources({ actualInventory, his
   const overlap = [];
   const independentHistorical = [];
   for (const candidate of historicalReplay.candidates ?? []) {
+    if (!DETAILED_HISTORICAL_SOURCE_CLASSES.includes(candidate?.sourceClass)) {
+      throw new Error('ENTRY_V2_SOURCE_SEPARATION_DETAILED_HISTORICAL_CLASS_REQUIRED');
+    }
     if (actualEventIds.has(candidate.candidateEventId)) overlap.push(candidate);
     else independentHistorical.push(candidate);
   }

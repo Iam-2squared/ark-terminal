@@ -5,8 +5,10 @@ on:
     branches: [main]
     paths:
       - 'predict/daytrade/phase57-entry-quality-v2-*.js'
+      - 'predict/daytrade/phase57-entry-quality-v2-*.json'
       - 'predict/daytrade/PHASE57_ENTRY_QUALITY_V2_RESEARCH.md'
       - 'predict/tests/phase57-entry-quality-v2-*.test.mjs'
+      - 'scripts/build_entry_v2_later_fetched_bar_archive.mjs'
       - '.github/workflows/phase57-entry-quality-v2-research.yml'
   workflow_dispatch:
 
@@ -31,6 +33,8 @@ jobs:
         run: |
           set -euo pipefail
           node --test tests/phase57-entry-quality-v2-*.test.mjs
+      - name: Verify later-fetched reconstruction tool syntax
+        run: node --check scripts/build_entry_v2_later_fetched_bar_archive.mjs
       - name: Safety boundary
         if: always()
         run: |

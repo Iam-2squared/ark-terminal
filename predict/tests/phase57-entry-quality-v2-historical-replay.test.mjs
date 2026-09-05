@@ -7,6 +7,7 @@ import {
   auditEntryV2HistoricalReplayInputs,
   separateEntryV2ActualAndHistoricalSources,
 } from '../daytrade/phase57-entry-quality-v2-historical-replay.js';
+import { ENTRY_V2_SOURCE_CLASS } from '../daytrade/phase57-entry-quality-v2-candidate-inventory.js';
 
 const observedAt = '2026-09-04T01:25:00.000Z';
 const safety = () => ({
@@ -88,6 +89,17 @@ function archiveFor(measurement) {
   return {
     sessionDate: '2026-09-04',
     status: 'P25_DYNAMIC5M_DAILY_BUNDLE_READY',
+    sourceClass: ENTRY_V2_SOURCE_CLASS.historicalReconstructionLaterFetched,
+    sourceLineage: {
+      sourceClass: ENTRY_V2_SOURCE_CLASS.historicalReconstructionLaterFetched,
+      sourceArtifact: 'test-session-bars.json',
+      sourceArtifactSha256: 'a'.repeat(64),
+      retrievedAt: '2026-09-04T08:00:00.000Z',
+      sessionDate: '2026-09-04',
+      provider: 'TEST_ONLY',
+      archivedPointInTimeCapture: false,
+      reconstructionFetchedAfterDecision: true,
+    },
     safety: safety(),
     sessionBarsBySymbol: Object.fromEntries(measurement.selected.map(row => [row.symbol, bars()])),
   };
@@ -107,6 +119,10 @@ test('replays the current Dynamic5m selector from raw PIT rows and verifies exac
   assert.equal(audit.exactSelectorParityCount, 1);
   assert.equal(audit.points[0].currentSelectorCandidateId, 'INTRADAY_DYNAMIC_5M_UNIVERSE_V1');
   assert.equal(audit.points[0].exactSelectorParity, true);
+  assert.equal(audit.points[0].sourceClass, 'HISTORICAL_RECONSTRUCTION_LATER_FETCHED');
+  assert.equal(audit.points[0].requiredSymbols.length, measurement.selected.length);
+  assert.equal(audit.points[0].availableSymbols.length, measurement.selected.length);
+  assert.equal(audit.points[0].symbolCoverage[0].requiredPrefixBarCount, 6);
   assert.equal(audit.points[0].prefixes[measurement.selected[0].symbol].at(-1).timestamp, '2026-09-04T01:20:00.000Z');
   assert.equal(audit.pitViolationCount, 0);
   assert.equal(audit.classification.prospective, false);
@@ -127,7 +143,53 @@ test('blocks the whole replay point when any current-selector symbol lacks store
   assert.equal(audit.blockedPointCount, 1);
   assert.equal(audit.points[0].reason, 'INCOMPLETE_CURRENT_SELECTOR_BAR_COVERAGE');
   assert.equal(audit.points[0].missingBarSymbolCount, 1);
+  assert.deepEqual(audit.points[0].missingSymbols, [measurement.selected[0].symbol].sort());
+  const missingCoverage = audit.points[0].symbolCoverage.find(row => row.symbol === measurement.selected[0].symbol);
+  assert.equal(missingCoverage.availablePrefixBarCount, 0);
+  assert.equal(missingCoverage.minimumPrefixSatisfied, false);
+  assert.ok(missingCoverage.missingBarIntervals.length > 0);
   assert.equal(audit.blockedReasonDistribution.INCOMPLETE_CURRENT_SELECTOR_BAR_COVERAGE, 1);
+});
+
+test('rejects ambiguous archive lineage and duplicate raw five-minute buckets', () => {
+  const raw = snapshot();
+  const measurement = currentMeasurement(raw);
+  const archive = archiveFor(measurement);
+  const missingLineage = structuredClone(archive);
+  delete missingLineage.sourceLineage;
+  assert.throws(() => auditEntryV2HistoricalReplayInputs({
+    marketSnapshots: [raw], storedMeasurements: [measurement], barArchives: [missingLineage],
+  }), /BAR_ARCHIVE_LINEAGE_REQUIRED/);
+
+  const duplicateBucket = structuredClone(raw);
+  duplicateBucket.observedAt = '2026-09-04T01:25:01.000Z';
+  duplicateBucket.rows = duplicateBucket.rows.map(row => ({ ...row }));
+  duplicateBucket.stateHash = createHash('sha256').update(JSON.stringify(duplicateBucket.rows)).digest('hex');
+  assert.throws(() => auditEntryV2HistoricalReplayInputs({
+    marketSnapshots: [raw, duplicateBucket], storedMeasurements: [measurement], barArchives: [archive],
+  }), /DUPLICATE_RAW_BUCKET/);
+
+  const falselyArchived = structuredClone(archive);
+  falselyArchived.sourceClass = ENTRY_V2_SOURCE_CLASS.historicalReplayArchivedPit;
+  falselyArchived.sourceLineage.sourceClass = ENTRY_V2_SOURCE_CLASS.historicalReplayArchivedPit;
+  falselyArchived.sourceLineage.reconstructionFetchedAfterDecision = false;
+  delete falselyArchived.sourceLineage.archivedPointInTimeCapture;
+  assert.throws(() => auditEntryV2HistoricalReplayInputs({
+    marketSnapshots: [raw], storedMeasurements: [measurement], barArchives: [falselyArchived],
+  }), /ARCHIVED_PIT_ATTESTATION_REQUIRED/);
+
+  falselyArchived.sourceLineage.archivedPointInTimeCapture = true;
+  const archivedAudit = auditEntryV2HistoricalReplayInputs({
+    marketSnapshots: [raw], storedMeasurements: [measurement], barArchives: [falselyArchived],
+  });
+  assert.equal(archivedAudit.points[0].sourceClass, ENTRY_V2_SOURCE_CLASS.historicalReplayArchivedPit);
+  assert.equal(archivedAudit.points[0].sourceLineage.archivedPointInTimeCapture, true);
+
+  const ambiguousReconstruction = structuredClone(archive);
+  delete ambiguousReconstruction.sourceLineage.reconstructionFetchedAfterDecision;
+  assert.throws(() => auditEntryV2HistoricalReplayInputs({
+    marketSnapshots: [raw], storedMeasurements: [measurement], barArchives: [ambiguousReconstruction],
+  }), /LATER_FETCHED_ATTESTATION_REQUIRED/);
 });
 
 test('rejects old selector outputs, raw outcome contamination, and selector parity drift', () => {
@@ -165,8 +227,11 @@ test('keeps Actual Durable and Historical Replay separate and excludes overlappi
     sourceClass: 'HISTORICAL_RETROSPECTIVE_REPLAY',
     classification: { prospective: false, developmentOnly: true },
     candidates: [
-      { candidateEventId: eventId },
-      { candidateEventId: '2026-09-02|2026-09-02T01:30:00.000Z|4440.T' },
+      { candidateEventId: eventId, sourceClass: 'HISTORICAL_REPLAY_ARCHIVED_PIT' },
+      {
+        candidateEventId: '2026-09-02|2026-09-02T01:30:00.000Z|4440.T',
+        sourceClass: 'HISTORICAL_RECONSTRUCTION_LATER_FETCHED',
+      },
     ],
   };
   const separated = separateEntryV2ActualAndHistoricalSources({ actualInventory, historicalReplay });

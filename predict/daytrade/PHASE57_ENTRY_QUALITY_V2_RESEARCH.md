@@ -71,12 +71,13 @@ The initial module is deliberately feature-vector-only. It emits no LONG/SHORT s
 
 ## Large-sample source contract
 
-Entry Quality v2 now keeps two evidence tracks structurally separate:
+Entry Quality v2 keeps Actual Durable evidence and Historical Development evidence structurally separate:
 
 - `ACTUAL_DURABLE` contains only Frozen P21 Entry events already present in durable Dynamic5m B/D evidence. The source artifact's completeness and formal-OOS classification are preserved without upgrade.
-- `HISTORICAL_RETROSPECTIVE_REPLAY` reapplies the current `INTRADAY_DYNAMIC_5M_UNIVERSE_V1` selector to retained point-in-time marketwide rows, then applies the unchanged Frozen P21 Entry. It is always `DEVELOPMENT_ONLY`, `NON_PROSPECTIVE`, and excluded from every prospective denominator.
+- `HISTORICAL_REPLAY_ARCHIVED_PIT` requires an explicit archived-point-in-time attestation plus artifact lineage and SHA-256. It reapplies the current `INTRADAY_DYNAMIC_5M_UNIVERSE_V1` selector to retained point-in-time marketwide rows, then applies the unchanged Frozen P21 Entry.
+- `HISTORICAL_RECONSTRUCTION_LATER_FETCHED` is used when historical bars were obtained after the decision time. It remains `DEVELOPMENT_ONLY`, `NON_PROSPECTIVE`, and non-formal OOS. Later-fetched bars can support offline reconstruction only when the archived point-in-time marketwide selector input exists and current-selector replay parity succeeds.
 
-Old `DYNAMIC_30`, `DYNAMIC_40`, `DYNAMIC_50`, and `FIXED_5` memberships are never accepted as current Dynamic5m replay results. A replay point is blocked in full if any symbol selected by the current selector lacks a stored session-bar history or a six-bar closed prefix. Missing bars are not refetched, interpolated, or filled with current values.
+Old `DYNAMIC_30`, `DYNAMIC_40`, `DYNAMIC_50`, and `FIXED_5` memberships are never accepted as current Dynamic5m replay results. A replay point is blocked in full if any symbol selected by the current selector lacks session-bar history or a six-bar closed prefix. Archived-PIT replay never backfills missing inputs. A later fetch must use the separate reconstruction class; it may not be relabelled as archived PIT, may not interpolate or fabricate bars, and cannot compensate for a missing point-in-time marketwide selector snapshot.
 
 Candidate events and selector memberships are different units. One `(sessionDate, selectionTimestamp, symbol)` event is stored once; V1/V2 membership is attached as diagnostic lineage and must not duplicate the candidate or its labels. Actual and replay events with the same event identity are retained in their respective audit trails, but the replay copy is excluded from the independent historical Development count.
 
@@ -86,8 +87,14 @@ The first all-candidate audit found six `ACTUAL_DURABLE` Frozen Entry events acr
 
 Both source sessions remain incomplete and non-formal: 2026-09-03 has 13/68 captured points and 2026-09-04 has 15/68. These rows are diagnostics, not formal OOS or prospective performance evidence.
 
-GitHub Actions retained 111 raw marketwide snapshots across 2026-09-01 through 2026-09-04. Reapplying the current Dynamic5m V1 selector reproduces all 111 stored measurements exactly. Strict bar coverage is available for 26 points (12 on 2026-09-03 and 14 on 2026-09-04). The other 85 points fail closed: all 49 points on 2026-09-01 lack a stored session-bar archive, and all 36 points on 2026-09-02 lack bars for part of the current selector membership. No old-selector result is substituted.
+The expanded raw audit covers 132 current-selector decision points across 2026-08-31 through 2026-09-04. Current Dynamic5m parity is verified for all 132 points: 116 at the exact observation timestamp and 16 against the same canonical five-minute bucket. Strict bar inputs are ready for 102 points. The other 30 remain fail-closed: 28 points lack 6522.T coverage and two points do not have the fixed six completed-prefix bars.
 
-Applying the unchanged Frozen P21 Entry to the 26 replayable points reproduces six candidates, with zero scorer-blocked points and zero PIT violations. All six candidate-event identities match the six `ACTUAL_DURABLE` events, so all six replay copies are excluded from the independent historical Development set. The current independent Historical Replay increment is therefore zero, not six.
+For 2026-09-01, Actions run 33510241393 artifact 9801375444 recovered 154 of 155 required session-bar symbols without interpolation. Of 50 audited points, 21 are replayable and 29 remain blocked: 28 because 6522.T is unavailable and one because fewer than six completed prefix bars exist. The unchanged Frozen P21 Entry yields seven independent Development candidates.
 
-No Entry Quality model fitting or threshold tuning has started. The next admissible expansion is additional retained current-selector bar coverage or newly accumulated durable Frozen Entry evidence, followed by the same integrity audit.
+For 2026-09-02, the retained archive contained 78 symbols and a separate later-fetched reconstruction recovered the 52 missing current-selector symbols with no fetch failures. Sparse 338A.T bars remain sparse rather than padded. Of 37 audited points, 36 are replayable and one remains blocked by the fixed six-bar minimum. The unchanged Frozen P21 Entry yields 17 independent Development candidates. The integrity artifact inventories every point, required/available/missing symbol, prefix count, missing interval, and source fingerprint.
+
+The 2026-08-31 archived point-in-time raw snapshots support 17 replay points after same-bucket parity verification; later-fetched bars are explicitly reconstruction-only. These points add 11 independent candidates. Older 2026-08-19 through 2026-08-26 bar archives cannot be admitted because no matching point-in-time marketwide raw snapshot was found for current Dynamic5m replay. Old selector outputs are not substituted.
+
+The current substrate therefore contains 41 independent candidate events: six `ACTUAL_DURABLE` and 35 `HISTORICAL_RECONSTRUCTION_LATER_FETCHED`; `HISTORICAL_REPLAY_ARCHIVED_PIT` contributes zero independent candidates. Six replay copies overlapping Actual Durable are excluded. The 41 events span five sessions, eight symbols, 27 LONG and 14 SHORT. Membership is 14 V1-only and 27 V1+V2. Label completeness is 40/41 at +1, 39/41 at +2, 37/41 at +3, 35/41 at +6, and 34/41 at +12. PIT violations and within-source duplicates are both zero.
+
+Real Daily Context and point-in-time Market Context coverage remain 0/41, and tick-to-price lineage is missing rather than synthesized. The 200-event checkpoint has not been reached. No Entry Quality model fitting, threshold tuning, performance claim, or promotion is permitted from this substrate. The next admissible expansion is additional complete raw current-selector capture plus its bar lineage, followed by real prior-session Daily Context and the same integrity audit.

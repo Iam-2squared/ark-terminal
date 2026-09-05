@@ -5,6 +5,8 @@ import { PHASE57_ENTRY_QUALITY_V2_SAFETY } from './phase57-entry-quality-v2-rese
 export const ENTRY_V2_SOURCE_CLASS = Object.freeze({
   actualDurable: 'ACTUAL_DURABLE',
   historicalReplay: 'HISTORICAL_RETROSPECTIVE_REPLAY',
+  historicalReplayArchivedPit: 'HISTORICAL_REPLAY_ARCHIVED_PIT',
+  historicalReconstructionLaterFetched: 'HISTORICAL_RECONSTRUCTION_LATER_FETCHED',
 });
 
 export const ENTRY_V2_CANDIDATE_INVENTORY_POLICY = Object.freeze({

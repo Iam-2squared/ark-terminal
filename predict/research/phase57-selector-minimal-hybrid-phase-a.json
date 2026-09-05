@@ -1,0 +1,276 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.selector-v1-v3-minimal-hybrid.phase-a",
+  "candidateId": "SELECTOR_V1_V3_MINIMAL_HYBRID",
+  "status": "ARCHITECTURE_FROZEN_BEFORE_NEW_DATASET_OUTCOMES",
+  "freezeDate": "2026-09-05",
+  "parentResearchBranch": "research/phase57-selector-v3-large-scale",
+  "parentResearchSha": "be7a976b851dde572850d6317ab04ee0f260dab4",
+  "purpose": "Retain V1-like broad opportunity recall while using V3-derived extension and context evidence to estimate remaining opportunity through soft adjustment rather than hard rejection.",
+  "scope": {
+    "researchOnly": true,
+    "laneYMainChangeAllowed": false,
+    "currentV1ChangeAllowed": false,
+    "currentV2ChangeAllowed": false,
+    "frozenV3ChangeAllowed": false,
+    "frozenEntryChangeAllowed": false,
+    "exitChangeAllowed": false,
+    "capitalAllocationChangeAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "frozenBaselines": {
+    "primaryComparison": [
+      "CURRENT_V1_FROZEN",
+      "SELECTOR_V3_0_FROZEN",
+      "SELECTOR_V1_V3_MINIMAL_HYBRID"
+    ],
+    "v2Disposition": "PRESERVED_ON_HOLD_REFERENCE_BASELINE",
+    "selectorV3FreezeCommit": "5a2edced801a31c8cb578f7f765fca50937b3f4a",
+    "selectorV3FreezeSha256": "4f4b02fd7b115759c246bdd0927be09b45f1bbbc41774d9d80e1a6834923c93f",
+    "v123OosAnalysisContractSha256": "1afe5e702088a04e7a5930d653c6e6cc92ba1853bbd5dabb752594844f9b0350"
+  },
+  "consumedEvidence": {
+    "usage": "HYPOTHESIS_GENERATION_ONLY",
+    "forbiddenForHybridDevelopmentValidationOrOos": true,
+    "datasets": [
+      {
+        "datasetId": "PHASE57_SELECTOR_YAHOO_5M_24626FD37F8633F4",
+        "canonicalSha256": "931e600bd13a491bd8ac12d90548d2ee40f17d092193d85a628fb8003827f43b",
+        "firstSession": "2026-06-12",
+        "lastSession": "2026-09-04",
+        "reason": "V1/V2/V3 Development, Validation and Untouched OOS outcomes were already inspected."
+      }
+    ],
+    "forbiddenRuleMining": [
+      "V1_AND_V3_INTERSECTION_GATE",
+      "OVERLAP_GROUP_FILTER",
+      "CASE_WHERE_V3_WAS_EARLIER_FILTER",
+      "OBSERVED_RANK_BUCKET_FILTER",
+      "OBSERVED_SYMBOL_FILTER",
+      "OBSERVED_TIME_BUCKET_FILTER"
+    ]
+  },
+  "architecture": {
+    "stage1": {
+      "name": "V1_LIKE_BROAD_RECALL",
+      "source": "CURRENT_V1_FROZEN_OUTPUT_AND_CAUSAL_INPUTS",
+      "purpose": "Generate an intentionally broad activity-based candidate pool without applying exhaustion rejection.",
+      "retainedInformation": [
+        "activity",
+        "turnover",
+        "crossSectionalRank",
+        "v1Score",
+        "v1Rank"
+      ],
+      "extensionHardRejectionAllowed": false,
+      "v3MembershipRequired": false
+    },
+    "stage2": {
+      "name": "REMAINING_OPPORTUNITY_ASSESSMENT",
+      "purpose": "Estimate opportunity remaining after the selection cutoff and adjust the Stage 1 rank softly.",
+      "featureFamilies": {
+        "momentumQuality": [
+          "maSlope",
+          "vwapSlope",
+          "momentumAcceleration",
+          "pathEfficiency",
+          "breakoutPersistence",
+          "rvolPersistenceOrDecay"
+        ],
+        "extension": [
+          "vwapDistance",
+          "atrNormalizedExtension",
+          "maDistance",
+          "intradayRangePosition",
+          "distanceFromIntradayHigh",
+          "distanceFromIntradayLow",
+          "breakoutAge",
+          "consecutiveExpansion"
+        ],
+        "pathStructure": [
+          "trendPersistence",
+          "swingStructureQuality",
+          "reversalFrequency",
+          "directionIndependentPathEfficiency"
+        ],
+        "marketSectorContext": [
+          "marketBreadth",
+          "sectorBreadth",
+          "sectorRelativeStrength",
+          "stockVsSectorResidual"
+        ],
+        "tradabilityWhenObserved": [
+          "spread",
+          "depth",
+          "observedPriceGrid",
+          "liquidity",
+          "turnoverStability",
+          "staleness"
+        ]
+      },
+      "bullishBearishPathsMustRemainSeparate": true,
+      "unavailableMicrostructurePolicy": "UNKNOWN_WITH_EXPLICIT_AVAILABILITY_MASK",
+      "missingToZeroAllowed": false,
+      "alreadyMovedEqualsRejectAllowed": false
+    },
+    "combination": {
+      "sequence": [
+        "BROAD_STAGE1_POOL",
+        "STAGE2_SCORE",
+        "SOFT_RANK_ADJUSTMENT",
+        "MINIMUM_QUALITY",
+        "DYNAMIC_N"
+      ],
+      "stage1SignalMayBeDirectlyPenalized": false,
+      "extensionMayOnlyActConditionally": true,
+      "hardV1V3IntersectionAllowed": false,
+      "fixedWideNRequired": false,
+      "strongV3StyleHardGateRequired": false
+    }
+  },
+  "causality": {
+    "intervalMinutes": 5,
+    "featureCutoffRule": "availableAt <= featureCutoff",
+    "targetStartRule": "availableAt > featureCutoff",
+    "futureFeaturesAllowed": false,
+    "sameSessionTargetsOnly": true,
+    "completeCrossSectionAtomic": true,
+    "outerGrouping": "TRADING_SESSION",
+    "purgeMinimum": "AT_LEAST_MAXIMUM_TARGET_HORIZON",
+    "purgeSessionsAtEachBoundary": 1,
+    "duplicateConflictPolicy": "FAIL_CLOSED",
+    "missingFeaturePolicy": "UNKNOWN_OR_INELIGIBLE_NEVER_ZERO_FILL"
+  },
+  "targetCandidates": {
+    "anchor": "LAST_CAUSALLY_CLOSED_BAR_CLOSE",
+    "horizonBars": [
+      1,
+      2,
+      3,
+      6,
+      12
+    ],
+    "candidates": {
+      "expectedUpExcursion": "max(0, maxFutureHigh / anchorPrice - 1)",
+      "expectedDownExcursion": "max(0, 1 - minFutureLow / anchorPrice)",
+      "expectedTwoSidedOpportunity": "max(expectedUpExcursion, expectedDownExcursion)",
+      "pathPersistence": "abs(finalFutureClose / anchorPrice - 1) / sum(abs(close_i / close_i_minus_1 - 1))",
+      "featureDirectionContinuation": "sign(preCutoffMomentum) * (finalFutureClose / anchorPrice - 1)",
+      "featureDirectionReversalRisk": "adverse excursion relative to sign(preCutoffMomentum); null when the pre-cutoff sign is zero"
+    },
+    "simpleRemainingMovePositiveBinaryAllowedAsPrimary": false,
+    "primaryTargetSelectedNow": false,
+    "primaryTargetSelectionDataset": "NEW_DEVELOPMENT_ONLY",
+    "targetSuiteMustFreezeBeforeValidation": true,
+    "outerOosTargetChangesAllowed": false
+  },
+  "developmentProtocol": {
+    "dataset": "COMPLETELY_NEW_AND_ADMITTED_BY_CONTAMINATION_GUARD",
+    "nestedWalkForwardRequired": true,
+    "allowedInitialModelComplexity": [
+      "INTERPRETABLE_REGULARIZED_LINEAR",
+      "INTERPRETABLE_ADDITIVE_SCORE"
+    ],
+    "advancedMultitaskAllowed": false,
+    "featureSetSelectionOnDevelopmentOnly": true,
+    "targetSelectionOnDevelopmentOnly": true,
+    "weightsOrModelSelectionOnDevelopmentOnly": true,
+    "minimumQualitySelectionOnDevelopmentOnly": true,
+    "dynamicNSelectionOnDevelopmentOnly": true,
+    "allChoicesFreezeBeforeValidation": true,
+    "validationRetuningAllowed": false,
+    "outerOosRetuningAllowed": false
+  },
+  "newDataset": {
+    "minimumTradingSessions": 120,
+    "developmentFraction": 0.6,
+    "validationFraction": 0.2,
+    "untouchedOosFraction": 0.2,
+    "preferredUniverse": "SESSION_POINT_IN_TIME_JPX",
+    "preferredSource": "JQUANTS_MINUTE_OHLC_ADD_ON",
+    "preferredSourceEndpoint": "/v2/equities/bars/minute",
+    "preferredRawIntervalMinutes": 1,
+    "requiredResearchIntervalMinutes": 5,
+    "resamplingRule": "FIXED_JST_SESSION_ALIGNED_NON_OVERLAPPING_5M_BARS",
+    "noTradeMinutePolicy": "RETAIN_AS_MISSING_NEVER_FABRICATE",
+    "providerEntitlementMustBeVerified": true,
+    "rawDigestRequired": true,
+    "pointInTimeUniverseRequiredForStrongClaim": true,
+    "outerOosDefaultSealed": true
+  },
+  "evaluation": {
+    "pairedSameMarketStateRequired": true,
+    "selectorNative": [
+      "selectedCount",
+      "preSelectionMove",
+      "lateDetection",
+      "horizon1Bar",
+      "horizon2Bars",
+      "horizon3Bars",
+      "horizon6Bars",
+      "horizon12Bars",
+      "upExcursion",
+      "downExcursion",
+      "twoSidedOpportunity",
+      "remainingOpportunity",
+      "rankCalibration",
+      "sameCapacity",
+      "detectionLeadTime"
+    ],
+    "downstreamFrozenPipeline": [
+      "entryAcceptance",
+      "net",
+      "profitFactor",
+      "maxDrawdown",
+      "winRate",
+      "mfe",
+      "mae",
+      "tradesPerSession"
+    ],
+    "sameFrozenEntryRequired": true,
+    "sameExitRequired": true,
+    "sameCapitalAllocationRequired": true
+  },
+  "responsibilityBoundary": {
+    "selector": [
+      "candidateGeneration",
+      "opportunityDetection",
+      "remainingOpportunityEstimate",
+      "exhaustionOrContinuationQuality",
+      "tradability",
+      "rank",
+      "abstain"
+    ],
+    "entry": [
+      "direction",
+      "entryTiming",
+      "entryOrNoEntry"
+    ],
+    "exit": [
+      "exitTiming",
+      "exitPolicy"
+    ],
+    "capitalAllocation": [
+      "positionSizing",
+      "capitalDistribution",
+      "portfolioConstraints"
+    ]
+  },
+  "unprovenClaims": [
+    "V1 captures institutional order flow",
+    "JPX 5-to-30-minute momentum continuation is generally dominant",
+    "The hybrid should achieve 75-to-80 bps"
+  ]
+}

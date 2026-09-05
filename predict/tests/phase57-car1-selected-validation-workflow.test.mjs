@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 
-const workflow=fs.readFileSync('.github/workflows/phase57-car1-selected-validation-replay.yml','utf8');
-const script=fs.readFileSync('scripts/run_phase57_car1_selected_validation_replay.mjs','utf8');
+const workflow=fs.readFileSync('../.github/workflows/phase57-car1-selected-validation-replay.yml','utf8');
+const script=fs.readFileSync('../scripts/run_phase57_car1_selected_validation_replay.mjs','utf8');
 
 test('CAR-1 selected validation workflow is manual and read-only',()=>{
   assert.match(workflow,/on:\s*\n\s*workflow_dispatch:/);

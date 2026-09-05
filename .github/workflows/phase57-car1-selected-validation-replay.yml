@@ -1,0 +1,208 @@
+name: Phase57 CAR-1 Selected Validation Replay
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: 'Successful main Phase57 P25 Checkpointed Evaluation run ID containing the precommitted five-session window'
+        required: true
+        type: string
+      source_run_head_sha:
+        description: 'Exact main head SHA of source_run_id'
+        required: true
+        type: string
+      candidate_run_id:
+        description: 'Successful metadata-only CAR-1 validation candidate run built from the same source run and same research head'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-car1-selected-validation-replay-${{ inputs.source_run_id }}
+  cancel-in-progress: false
+
+jobs:
+  selected-session-only-validation-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      DEV_CAR1_RUN_ID: '33943395885'
+      DEV_CAR1_RUN_HEAD_SHA: '59d1f93e288d414d912d9ddfd1c91815c4ae8a90'
+      DEV_CAR1_ARTIFACT_NAME: 'phase57-car1-sizing-attribution-pinned-2026-09-03'
+      DEV_CAR1_ARTIFACT_DIGEST: 'sha256:658853e3d257d30b95f919dc86bf131cd4b0ef7ab66e7a688a080973ac9a7ac7'
+    steps:
+      - name: Checkout CAR-1 research branch
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify selected replay branch and immutable development lock
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'research/phase57-car1-sizing-attribution'
+          mapfile -t metadata < <(gh api "repos/$GH_REPO/actions/runs/$DEV_CAR1_RUN_ID" --jq '.conclusion, .name, .head_branch, .head_sha')
+          test "${#metadata[@]}" -eq 4
+          test "${metadata[0]}" = 'success'
+          test "${metadata[1]}" = 'Phase57 CAR-1 Sizing Attribution'
+          test "${metadata[2]}" = 'research/phase57-car1-sizing-attribution'
+          test "${metadata[3]}" = "$DEV_CAR1_RUN_HEAD_SHA"
+          mapfile -t artifacts < <(gh api "repos/$GH_REPO/actions/runs/$DEV_CAR1_RUN_ID/artifacts" --jq ".artifacts[] | select(.name == \"$DEV_CAR1_ARTIFACT_NAME\") | [.id,.digest] | @tsv")
+          test "${#artifacts[@]}" -eq 1
+          IFS=$'\t' read -r artifact_id artifact_digest <<< "${artifacts[0]}"
+          test -n "$artifact_id"
+          test "$artifact_digest" = "$DEV_CAR1_ARTIFACT_DIGEST"
+      - name: Verify future formal checkpoint source run
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          SOURCE_RUN_HEAD_SHA: ${{ inputs.source_run_head_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$SOURCE_RUN_ID" =~ ^[0-9]+$ ]]
+          [[ "$SOURCE_RUN_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
+          mapfile -t metadata < <(gh api "repos/$GH_REPO/actions/runs/$SOURCE_RUN_ID" --jq '.conclusion, .path, .head_branch, .head_sha')
+          test "${#metadata[@]}" -eq 4
+          test "${metadata[0]}" = 'success'
+          test "${metadata[1]}" = '.github/workflows/phase57-p25-checkpointed-evaluation.yml'
+          test "${metadata[2]}" = 'main'
+          test "${metadata[3]}" = "$SOURCE_RUN_HEAD_SHA"
+      - name: Verify metadata-only candidate provenance
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          CANDIDATE_RUN_ID: ${{ inputs.candidate_run_id }}
+          CURRENT_RESEARCH_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          [[ "$CANDIDATE_RUN_ID" =~ ^[0-9]+$ ]]
+          mapfile -t metadata < <(gh api "repos/$GH_REPO/actions/runs/$CANDIDATE_RUN_ID" --jq '.conclusion, .path, .head_branch, .head_sha, .event')
+          test "${#metadata[@]}" -eq 5
+          test "${metadata[0]}" = 'success'
+          test "${metadata[1]}" = '.github/workflows/phase57-car1-independent-validation-candidate.yml'
+          test "${metadata[2]}" = 'research/phase57-car1-sizing-attribution'
+          test "${metadata[3]}" = "$CURRENT_RESEARCH_SHA"
+          test "${metadata[4]}" = 'workflow_dispatch'
+      - name: Download pinned development lock artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/car1-development
+          gh run download "$DEV_CAR1_RUN_ID" --repo "$GH_REPO" --name "$DEV_CAR1_ARTIFACT_NAME" --dir /tmp/car1-development
+          mapfile -t development < <(find /tmp/car1-development -type f -name 'phase57-car1-sizing-attribution.json' | sort)
+          test "${#development[@]}" -eq 1
+          cp "${development[0]}" /tmp/car1-development.json
+      - name: Download metadata-only validation gate
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          CANDIDATE_RUN_ID: ${{ inputs.candidate_run_id }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/car1-validation-candidate
+          gh run download "$CANDIDATE_RUN_ID" --repo "$GH_REPO" --name "phase57-car1-validation-candidate-metadata-$SOURCE_RUN_ID" --dir /tmp/car1-validation-candidate
+          mapfile -t candidates < <(find /tmp/car1-validation-candidate -type f -name 'phase57-car1-validation-candidate-metadata.json' | sort)
+          test "${#candidates[@]}" -eq 1
+          cp "${candidates[0]}" /tmp/car1-validation-candidate.json
+      - name: Download exact future checkpoint inputs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/car1-selected-source /tmp/car1-selected-inputs/captures /tmp/car1-selected-checkpoints
+          gh run download "$SOURCE_RUN_ID" --repo "$GH_REPO" --dir /tmp/car1-selected-source
+          mapfile -t histories < <(find /tmp/car1-selected-source -type f -name history.json | sort)
+          mapfile -t integrities < <(find /tmp/car1-selected-source -type f -name integrity.json | sort)
+          mapfile -t lineages < <(find /tmp/car1-selected-source -type f -name lineage.json | sort)
+          mapfile -t evaluations < <(find /tmp/car1-selected-source -type f -name p25-evaluation.json | sort)
+          mapfile -t captures < <(find /tmp/car1-selected-source -type f -path '*/captures/*.json' | sort)
+          mapfile -t checkpoints < <(find /tmp/car1-selected-source -type f -name 'checkpoint-*.json' | sort)
+          test "${#histories[@]}" -eq 1
+          test "${#integrities[@]}" -eq 1
+          test "${#lineages[@]}" -eq 1
+          test "${#evaluations[@]}" -eq 1
+          test "${#captures[@]}" -gt 0
+          test "${#checkpoints[@]}" -gt 0
+          cp "${histories[0]}" /tmp/car1-selected-inputs/history.json
+          cp "${integrities[0]}" /tmp/car1-selected-inputs/integrity.json
+          cp "${lineages[0]}" /tmp/car1-selected-inputs/lineage.json
+          cp "${evaluations[0]}" /tmp/car1-selected-inputs/source-evaluation.json
+          for source in "${captures[@]}"; do
+            target="/tmp/car1-selected-inputs/captures/$(basename "$source")"
+            test ! -e "$target"
+            cp "$source" "$target"
+          done
+          for source in "${checkpoints[@]}"; do
+            target="/tmp/car1-selected-checkpoints/$(basename "$source")"
+            test ! -e "$target"
+            cp "$source" "$target"
+          done
+      - name: Run selected-session-only independent validation replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/run_phase57_car1_selected_validation_replay.mjs \
+            --history-pack /tmp/car1-selected-inputs/history.json \
+            --capture-dir /tmp/car1-selected-inputs/captures \
+            --integrity-ledger /tmp/car1-selected-inputs/integrity.json \
+            --lineage-manifest /tmp/car1-selected-inputs/lineage.json \
+            --checkpoint-dir /tmp/car1-selected-checkpoints \
+            --source-evaluation /tmp/car1-selected-inputs/source-evaluation.json \
+            --development-artifact /tmp/car1-development.json \
+            --validation-candidate /tmp/car1-validation-candidate.json \
+            --output /tmp/phase57-car1-selected-validation-replay.json
+      - name: Verify selected-session-only interpretation and safety locks
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs=require('fs');
+          const x=JSON.parse(fs.readFileSync('/tmp/phase57-car1-selected-validation-replay.json','utf8'));
+          const r=x.result??{};
+          const falseKeys=['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted'];
+          if(x.status!=='CAR1_SELECTED_SESSION_ONLY_VALIDATION_ARTIFACT_WRITTEN')throw new Error('selected validation artifact not ready');
+          if(r.status!=='CAR1_SELECTED_SESSION_ONLY_VALIDATION_REPLAY_READY')throw new Error('selected validation replay not ready');
+          if(r.inputAudit?.selectedSessionOnly!==true||r.inputAudit?.selectedSessionCount!==5)throw new Error('selected validation did not remain five-session-only');
+          if(JSON.stringify(r.inputAudit?.consumedSessionDates)!==JSON.stringify(x.gateIdentity?.selectedSessionDates))throw new Error('selected validation consumed a different session window');
+          if(r.methodology?.independentValidation!==true||r.methodology?.precommittedProspectiveWindow!==true)throw new Error('independent validation classification missing');
+          if(r.methodology?.performanceExtractionAllowed!==true||r.methodology?.performanceExtractionScope!=='SELECTED_PRECOMMITTED_SESSIONS_ONLY')throw new Error('performance extraction scope widened');
+          if(r.methodology?.parameterSearchAllowed!==false||r.methodology?.winnerSelectionAllowed!==false||r.methodology?.promotionEligible!==false)throw new Error('selected validation interpretation lock failed');
+          if(x.methodology?.cumulativeChallengerPerformanceConsumed!==false||x.methodology?.winnerSelectionAllowed!==false||x.methodology?.promotionEligible!==false)throw new Error('selected validation CLI boundary failed');
+          for(const row of r.matrixRows??[])if(row.independentValidation!==true||row.winnerEligible!==false||row.promotionEligible!==false)throw new Error('selected validation row interpretation drift');
+          for(const key of falseKeys)if(x.safety?.[key]!==false)throw new Error(`unsafe CAR-1 selected validation flag: ${key}`);
+          console.log(JSON.stringify({
+            status:x.status,
+            selectedSessionDates:r.selectedSessionDates,
+            matrixRows:r.matrixRows,
+            winnerSelectionAllowed:false,
+            promotionEligible:false,
+          },null,2));
+          NODE
+      - name: Upload selected-session-only validation evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-car1-selected-validation-${{ inputs.source_run_id }}
+          path: /tmp/phase57-car1-selected-validation-replay.json
+          retention-days: 30
+      - name: Safety boundary
+        if: always()
+        run: |
+          echo 'Selected five-session CAR-1 validation only; no cumulative challenger performance, winner selection, parameter search, promotion, main integration, persistence, broker/Excel/RSS order write, paper/live trading, or transmission.'

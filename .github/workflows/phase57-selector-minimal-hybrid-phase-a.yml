@@ -1,0 +1,32 @@
+name: Phase57 Selector Minimal Hybrid Phase A
+
+on:
+  pull_request:
+    paths:
+      - 'docs/phase57-selector-v1-v3-minimal-hybrid-spec.md'
+      - 'docs/phase57-selector-minimal-hybrid-new-dataset-plan.md'
+      - 'predict/daytrade/phase57-selector-minimal-hybrid-dataset-guard.js'
+      - 'predict/research/phase57-selector-minimal-hybrid-phase-a.json'
+      - 'predict/research/phase57-selector-minimal-hybrid-phase-a.sha256'
+      - 'predict/tests/phase57-selector-minimal-hybrid-phase-a.test.mjs'
+      - 'predict/tests/phase57-selector-jquants-minute.test.mjs'
+      - 'scripts/lib/phase57-selector-jquants-minute.mjs'
+      - '.github/workflows/phase57-selector-minimal-hybrid-phase-a.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-phase-a:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify frozen Phase A contract
+        run: (cd predict/research && sha256sum --check phase57-selector-minimal-hybrid-phase-a.sha256)
+      - name: Verify architecture and dataset contamination guards
+        run: node --test predict/tests/phase57-selector-minimal-hybrid-phase-a.test.mjs predict/tests/phase57-selector-jquants-minute.test.mjs

@@ -751,7 +751,7 @@ const integrity = {
       ...(goldenBarAudits.some(row => !row.exactContextBars) ? ['GOLDEN_OHLCV_PARITY_INCOMPLETE_PROVIDER_REVISION_PRESENT'] : []),
       'DEVELOPMENT_VALIDATION_UNTOUCHED_OOS_BOUNDARIES_NOT_YET_FROZEN',
       ...(candidates.length < 200 ? ['INDEPENDENT_CANDIDATE_COUNT_BELOW_200'] : []),
-      ...(candidates.length < 500 ? ['INDEPENDENT_CANDIDATE_COUNT_BELOW_500_CHECKPOINT'] : []),
+      'DATASET_READINESS_PHASE0_REQUIRED_BEFORE_MODEL_FITTING',
       ...(pitViolationCount > 0 ? ['PIT_VIOLATIONS_PRESENT'] : []),
     ],
     optionalContextGaps: [

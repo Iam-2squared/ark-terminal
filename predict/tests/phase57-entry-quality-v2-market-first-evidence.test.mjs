@@ -69,7 +69,7 @@ test('labels, strict Daily Context, missing optional contexts, source class, and
   assert.equal(integrity.marketDataset.universeAudit.claimedAsCompleteHistoricalJpxUniverse, false);
   assert.equal(integrity.riskAudit.historicalUniverseClaimedComplete, false);
   assert.match(integrity.riskAudit.checkpoint500PhysicalConstraint, /OLDER_FROZEN_P21_HISTORY_OR_A_NEW_PROVIDER/);
-  assert.ok(integrity.modelReadiness.reasons.includes('INDEPENDENT_CANDIDATE_COUNT_BELOW_500_CHECKPOINT'));
+  assert.ok(integrity.modelReadiness.reasons.includes('DATASET_READINESS_PHASE0_REQUIRED_BEFORE_MODEL_FITTING'));
   for (const key of falseSafetyKeys) assert.equal(integrity.safety[key], false, key);
 });
 

@@ -12,6 +12,7 @@ on:
       - 'scripts/build_entry_v2_historical_daily_archive.mjs'
       - 'scripts/build_entry_v2_historical_market_archive.mjs'
       - 'scripts/run_entry_v2_historical_market_replay.mjs'
+      - 'scripts/run_entry_v2_dataset_readiness_phase0.mjs'
       - '.github/workflows/phase57-entry-quality-v2-research.yml'
       - '.github/workflows/phase57-entry-quality-v2-historical-daily-archive.yml'
   workflow_dispatch:
@@ -44,6 +45,7 @@ jobs:
           node --check scripts/build_entry_v2_historical_daily_archive.mjs
           node --check scripts/build_entry_v2_historical_market_archive.mjs
           node --check scripts/run_entry_v2_historical_market_replay.mjs
+          node --check scripts/run_entry_v2_dataset_readiness_phase0.mjs
       - name: Safety boundary
         if: always()
         run: |

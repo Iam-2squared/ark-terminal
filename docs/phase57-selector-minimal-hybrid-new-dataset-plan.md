@@ -56,3 +56,15 @@ Lunch cannot be bridged. Empty bins remain missing. Partial bins, duplicates wit
 - J-Quants parser, pagination client, and sparse one-minute-to-five-minute aggregation: implemented and mock-tested.
 - Historical payload acquisition: not started.
 - Hybrid model training: correctly blocked until a new dataset is admitted.
+
+## 2026-09-05 source admission decision
+
+Status: `DATASET_NOT_READY`.
+
+No provider credential is configured in the Work environment, no provider entitlement or research-storage permission has been attested, and no committed dataset satisfies the unused 120-session requirement. Therefore no data were acquired, no dataset was admitted, and no Development training or tuning was performed.
+
+J-Quants Minute Stock Prices remains the technically preferred bounded pilot because it documents TSE minute OHLC, volume, turnover, two years of history, date-wide retrieval, sparse no-trade minutes, and a separate add-on rate limit. It is blocked until the minute/tick add-on, API key, permitted private research storage, timestamp meaning, corporate-action basis, and historical universe coverage are verified.
+
+The existing Yahoo five-minute path is rejected as a Fresh source: its available interval window overlaps the consumed Selector pilot, it shares that pilot's ancestry, provider terms still require operator verification, and the current-universe reconstruction is survivorship-limited. Alpha Vantage, Twelve Data, and licensed JPX historical products are not admitted without credentials/contracts plus bounded JPX coverage and semantics pilots.
+
+The machine-readable readiness evidence is `predict/research/phase57-selector-minimal-hybrid-dataset-readiness-2026-09-05.json`. When an authorized payload becomes available, `scripts/audit_phase57_selector_minimal_hybrid_dataset.mjs` emits the required fail-closed Admission Report. It releases Development only; Validation and untouched OOS remain sealed.

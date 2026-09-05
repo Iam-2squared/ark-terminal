@@ -89,7 +89,7 @@ function selectedSizingProfiles(profileIds){
 
 function assertBaselineParity({fixedComparison,baselineProfileId,attribution}){
   const fixed=fixedComparison?.results?.[baselineProfileId];
-  if(!fixed||fixed.status!=='LANE_C_PORTFOLIO_SIMULATED')throw new Error(`CAR-1 fixed baseline missing for ${baselineProfileId}`);
+  if(!fixed||fixed.status!=='LANE_C_EVENT_TIME_PORTFOLIO_SIMULATED')throw new Error(`CAR-1 fixed baseline missing for ${baselineProfileId}`);
   if(attribution?.legacyReplayParity?.passed!==true)throw new Error(`CAR-1 legacy replay parity missing for ${baselineProfileId}`);
   if(fixed.input?.candidateKeySha256!==attribution.pairedAudit?.candidateKeySha256){
     throw new Error(`CAR-1 candidate identity mismatch for ${baselineProfileId}`);

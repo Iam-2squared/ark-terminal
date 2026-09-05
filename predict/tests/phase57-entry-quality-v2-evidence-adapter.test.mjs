@@ -67,6 +67,34 @@ test('adapter accepts realtime session entry history and preserves selector line
   assert.match(result.entries[0].contextBarsSha256, /^[a-f0-9]{64}$/);
 });
 
+test('adapter inventories all historical Frozen Entry points when latest and history coexist', () => {
+  const latest = baselineEntry();
+  const earlierTimestamp = '2026-09-04T01:25:00.000Z';
+  const earlier = baselineEntry({
+    candidateId: '2026-09-04|2026-09-04T01:25:00.000Z|DYNAMIC5M_V1|TEST.T',
+    batchEntryKey: '2026-09-04|2026-09-04T01:25:00.000Z|TEST.T',
+    entryTimestamp: earlierTimestamp,
+    contextBars: baselineEntry().contextBars.slice(0, 2),
+    selectionLineage: {
+      ...baselineEntry().selectionLineage,
+      selectionTimestamp: earlierTimestamp,
+      sourceAsOf: earlierTimestamp,
+      selectorCandidateId: 'selector-v1-0125',
+    },
+  });
+  const result = extractEntryQualityV2FrozenEvidence({
+    entry: {
+      latest: [latest],
+      history: [
+        { at: earlier.entryTimestamp, frozenEntries: [earlier] },
+        { at: latest.entryTimestamp, frozenEntries: [latest] },
+      ],
+    },
+  });
+  assert.equal(result.entryCount, 2);
+  assert.deepEqual(result.entries.map(row => row.entryTimestamp), [earlierTimestamp, latest.entryTimestamp]);
+});
+
 test('adapter fails closed when baseline was not frozen before outcome', () => {
   assert.throws(
     () => extractEntryQualityV2FrozenEvidence([baselineEntry({ frozenBeforeOutcome: false })]),

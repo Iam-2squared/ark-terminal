@@ -41,6 +41,16 @@ function keyed(source, key, fallback = {}) {
   return source?.[key] ?? fallback;
 }
 
+function entryScoped(source, { candidateId, asOf, symbol }, fallback = {}) {
+  const scopedKey = `${asOf}|${symbol}`;
+  for (const key of [candidateId, scopedKey, asOf, symbol]) {
+    if (!key) continue;
+    const value = keyed(source, key, null);
+    if (value !== null && value !== undefined) return value;
+  }
+  return fallback;
+}
+
 function assertBaselineEntry(entry) {
   if (!entry || entry.entryAccepted !== true) throw new Error('ENTRY_V2_BUILDER_BASELINE_ENTRY_REQUIRED');
   if (!entry.entryTimestamp) throw new Error('ENTRY_V2_BUILDER_ENTRY_TIMESTAMP_REQUIRED');
@@ -99,6 +109,7 @@ export function buildEntryV2StrictPitPairedDataset({
   futureBarsBySymbol = {},
   marketByEntryTimestamp = {},
   universeBySymbol = {},
+  sourceLineageByEntry = {},
   fixedExitId,
   fixedCapitalAllocationId,
   costAssumptions,
@@ -109,7 +120,9 @@ export function buildEntryV2StrictPitPairedDataset({
   if (!fixedExitId || !fixedCapitalAllocationId) throw new Error('ENTRY_V2_BUILDER_FIXED_EXPERIMENT_IDS_REQUIRED');
   if (!costAssumptions || typeof costAssumptions !== 'object') throw new Error('ENTRY_V2_BUILDER_COST_ASSUMPTIONS_REQUIRED');
 
-  const previousIntradayBySymbol = new Map();
+  const latestIntradayBySymbol = new Map();
+  const activeTimestampBySymbol = new Map();
+  const previousIntradayForTimestampBySymbol = new Map();
   const pairedRows = [];
 
   for (const baselineEntry of sortBaselineEntries(baselineEntries)) {
@@ -117,9 +130,16 @@ export function buildEntryV2StrictPitPairedDataset({
     const symbol = sym(baselineEntry.symbol);
     if (!symbol) throw new Error('ENTRY_V2_BUILDER_SYMBOL_REQUIRED');
     const asOf = baselineEntry.entryTimestamp;
-    const market = keyed(marketByEntryTimestamp, asOf, {});
-    const universe = keyed(universeBySymbol, symbol, {});
+    const scope = { candidateId: baselineEntry.candidateId, asOf, symbol };
+    const market = entryScoped(marketByEntryTimestamp, scope, {});
+    const universe = entryScoped(universeBySymbol, scope, {});
+    const sourceLineage = entryScoped(sourceLineageByEntry, scope, null);
     const dailyInput = resolveDailyInput({ dailyBarsBySymbol, dailyRecordsBySymbol, symbol, asOf });
+
+    if (activeTimestampBySymbol.get(symbol) !== asOf) {
+      activeTimestampBySymbol.set(symbol, asOf);
+      previousIntradayForTimestampBySymbol.set(symbol, latestIntradayBySymbol.get(symbol) ?? null);
+    }
 
     const researchVector = buildStrictPointInTimeEntryV2ResearchVector({
       symbol,
@@ -128,7 +148,7 @@ export function buildEntryV2StrictPitPairedDataset({
       intradayBars: baselineEntry.contextBars,
       market,
       universe,
-      previousIntradayContext: previousIntradayBySymbol.get(symbol) ?? null,
+      previousIntradayContext: previousIntradayForTimestampBySymbol.get(symbol) ?? null,
     });
     if (researchVector.pointInTime?.strict !== true || researchVector.pointInTime?.futureOutcomeUsed !== false) {
       throw new Error('ENTRY_V2_BUILDER_PIT_ATTESTATION_FAILED');
@@ -163,10 +183,11 @@ export function buildEntryV2StrictPitPairedDataset({
         dailyRetainedBarsFingerprintSha256: dailyInput.retainedBarsFingerprintSha256,
         futureLabelSourceBars: sourceRows(futureBarsBySymbol, symbol).length,
         featureFrozenBeforeOfflineLabels: true,
+        sourceLineage,
       }),
     }));
 
-    previousIntradayBySymbol.set(symbol, researchVector.intraday);
+    latestIntradayBySymbol.set(symbol, researchVector.intraday);
   }
 
   const dataset = buildEntryQualityV2PairedDataset(pairedRows);

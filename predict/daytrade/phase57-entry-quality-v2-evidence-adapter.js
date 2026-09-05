@@ -105,13 +105,13 @@ function validateBaselineEntry(entry) {
 function entrySetsFromEvidence(evidence) {
   if (Array.isArray(evidence)) return [evidence];
   if (Array.isArray(evidence?.frozenEntries)) return [evidence.frozenEntries];
-  if (Array.isArray(evidence?.entry?.latest)) return [evidence.entry.latest];
   if (Array.isArray(evidence?.entry?.history)) {
     return evidence.entry.history.map(point => {
       if (!Array.isArray(point?.frozenEntries)) throw new Error('ENTRY_V2_EVIDENCE_HISTORY_POINT_MALFORMED');
       return point.frozenEntries;
     });
   }
+  if (Array.isArray(evidence?.entry?.latest)) return [evidence.entry.latest];
   throw new Error('ENTRY_V2_EVIDENCE_FROZEN_ENTRY_SET_REQUIRED');
 }
 

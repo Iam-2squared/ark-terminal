@@ -68,3 +68,26 @@ No automatic promotion is permitted regardless of measured performance.
 ## Current implementation stage
 
 The initial module is deliberately feature-vector-only. It emits no LONG/SHORT signal and cannot be wired into Lane Y without a separate explicit research step. This allows data lineage and feature semantics to be tested before choosing the model architecture or thresholds.
+
+## Large-sample source contract
+
+Entry Quality v2 now keeps two evidence tracks structurally separate:
+
+- `ACTUAL_DURABLE` contains only Frozen P21 Entry events already present in durable Dynamic5m B/D evidence. The source artifact's completeness and formal-OOS classification are preserved without upgrade.
+- `HISTORICAL_RETROSPECTIVE_REPLAY` reapplies the current `INTRADAY_DYNAMIC_5M_UNIVERSE_V1` selector to retained point-in-time marketwide rows, then applies the unchanged Frozen P21 Entry. It is always `DEVELOPMENT_ONLY`, `NON_PROSPECTIVE`, and excluded from every prospective denominator.
+
+Old `DYNAMIC_30`, `DYNAMIC_40`, `DYNAMIC_50`, and `FIXED_5` memberships are never accepted as current Dynamic5m replay results. A replay point is blocked in full if any symbol selected by the current selector lacks a stored session-bar history or a six-bar closed prefix. Missing bars are not refetched, interpolated, or filled with current values.
+
+Candidate events and selector memberships are different units. One `(sessionDate, selectionTimestamp, symbol)` event is stored once; V1/V2 membership is attached as diagnostic lineage and must not duplicate the candidate or its labels. Actual and replay events with the same event identity are retained in their respective audit trails, but the replay copy is excluded from the independent historical Development count.
+
+## 2026-09-05 integrity evidence
+
+The first all-candidate audit found six `ACTUAL_DURABLE` Frozen Entry events across 2026-09-03 and 2026-09-04: four unique symbols, three LONG and three SHORT. All six are both V1 and V2 selector members, but remain six events rather than twelve rows. Canonical daily-bundle bars reproduce every feature cutoff under `bar.timestamp + 5 minutes <= decisionTimestamp`; PIT violations are zero and +1/+2/+3/+6/+12 labels are complete for all six events.
+
+Both source sessions remain incomplete and non-formal: 2026-09-03 has 13/68 captured points and 2026-09-04 has 15/68. These rows are diagnostics, not formal OOS or prospective performance evidence.
+
+GitHub Actions retained 111 raw marketwide snapshots across 2026-09-01 through 2026-09-04. Reapplying the current Dynamic5m V1 selector reproduces all 111 stored measurements exactly. Strict bar coverage is available for 26 points (12 on 2026-09-03 and 14 on 2026-09-04). The other 85 points fail closed: all 49 points on 2026-09-01 lack a stored session-bar archive, and all 36 points on 2026-09-02 lack bars for part of the current selector membership. No old-selector result is substituted.
+
+Applying the unchanged Frozen P21 Entry to the 26 replayable points reproduces six candidates, with zero scorer-blocked points and zero PIT violations. All six candidate-event identities match the six `ACTUAL_DURABLE` events, so all six replay copies are excluded from the independent historical Development set. The current independent Historical Replay increment is therefore zero, not six.
+
+No Entry Quality model fitting or threshold tuning has started. The next admissible expansion is additional retained current-selector bar coverage or newly accumulated durable Frozen Entry evidence, followed by the same integrity audit.

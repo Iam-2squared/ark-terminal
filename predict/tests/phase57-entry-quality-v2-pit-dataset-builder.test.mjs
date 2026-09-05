@@ -145,3 +145,58 @@ test('builder requires fixed paired controls and cannot silently vary EXIT/alloc
   assert.equal(ENTRY_V2_PIT_DATASET_POLICY.capitalAllocationChangesAllowed, false);
   assert.equal(ENTRY_V2_PIT_DATASET_POLICY.automaticPromotionAllowed, false);
 });
+
+test('same-symbol variants at one timestamp share one previous state while a later entry sees the prior timestamp', () => {
+  const v2Entry = {
+    ...baselineEntry,
+    candidateId: '2026-09-04|2026-09-04T00:35:00.000Z|DYNAMIC5M_V2|336A.T',
+    selectionLineage: {
+      ...baselineEntry.selectionLineage,
+      variant: 'V2',
+      selectorCandidateId: 'selector-v2-0035',
+      v2Score: 0.8,
+    },
+  };
+  const laterTimestamp = '2026-09-04T00:45:00.000Z';
+  const laterEntry = {
+    ...baselineEntry,
+    candidateId: '2026-09-04|2026-09-04T00:45:00.000Z|DYNAMIC5M_V1|336A.T',
+    batchEntryKey: '2026-09-04|2026-09-04T00:45:00.000Z|336A.T',
+    entryTimestamp: laterTimestamp,
+    entryPrice: 1008,
+    contextBars: [...contextBars, bar(35, 1007), bar(40, 1008)],
+    selectionLineage: {
+      ...baselineEntry.selectionLineage,
+      selectionTimestamp: laterTimestamp,
+      sourceAsOf: laterTimestamp,
+      selectorCandidateId: 'selector-v1-0045',
+    },
+  };
+  const sourceLineage = { sourceId: 'immutable-marketwide-snapshot' };
+  const result = buildEntryV2StrictPitPairedDataset({
+    ...baseArgs,
+    baselineEntries: [v2Entry, laterEntry, baselineEntry],
+    marketByEntryTimestamp: {
+      ...baseArgs.marketByEntryTimestamp,
+      [laterTimestamp]: {
+        observedAt: laterTimestamp,
+        topixReturnPct: -0.3,
+        nikkeiReturnPct: -0.4,
+        breadthUpRatio: 0.45,
+      },
+    },
+    sourceLineageByEntry: {
+      [baselineEntry.candidateId]: sourceLineage,
+    },
+  });
+
+  const firstV1 = result.rows.find(row => row.baseline.candidateId === baselineEntry.candidateId);
+  const firstV2 = result.rows.find(row => row.baseline.candidateId === v2Entry.candidateId);
+  const later = result.rows.find(row => row.baseline.candidateId === laterEntry.candidateId);
+  assert.equal(firstV1.newResearch.featureSha256, firstV2.newResearch.featureSha256);
+  assert.equal(firstV1.newResearch.features.novelty.hasPreviousState, false);
+  assert.equal(firstV2.newResearch.features.novelty.hasPreviousState, false);
+  assert.equal(later.newResearch.features.novelty.hasPreviousState, true);
+  assert.deepEqual(firstV1.lineage.sourceLineage, sourceLineage);
+  assert.equal(firstV2.lineage.sourceLineage, null);
+});

@@ -1,0 +1,114 @@
+name: Phase57 Selector V1 V2 V3 Historical Pilot
+
+on:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-selector-v3.js'
+      - 'predict/daytrade/phase57-selector-v3-targets.js'
+      - 'predict/daytrade/phase57-selector-v123-historical-benchmark.js'
+      - 'predict/research/phase57-selector-v3-freeze.json'
+      - 'predict/research/phase57-selector-v3-freeze.sha256'
+      - 'predict/tests/phase57-selector-*.test.mjs'
+      - 'scripts/lib/phase57-selector-*.mjs'
+      - 'scripts/fetch_phase57_selector_yahoo_5m_shard.mjs'
+      - 'scripts/build_phase57_selector_historical_dataset.mjs'
+      - 'scripts/run_phase57_selector_v123_historical_benchmark.mjs'
+      - '.github/workflows/phase57-selector-v123-historical-pilot.yml'
+  workflow_dispatch:
+    inputs:
+      acknowledge_provider_terms:
+        description: 'I verified that this research use complies with the historical data provider terms'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase57-selector-v123-historical-pilot-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify frozen Selector research
+        run: |
+          (cd predict/research && sha256sum --check phase57-selector-v3-freeze.sha256)
+          node --test             predict/tests/phase57-selector-v3-freeze.test.mjs             predict/tests/phase57-selector-v3.test.mjs             predict/tests/phase57-selector-v3-targets.test.mjs             predict/tests/phase57-selector-v123-historical-benchmark.test.mjs             predict/tests/phase57-selector-yahoo-5m.test.mjs             predict/tests/phase57-selector-dataset-builder.test.mjs             predict/tests/phase57-selector-workflow.test.mjs
+
+  fetch_yahoo_pilot_shards:
+    if: github.event_name == 'workflow_dispatch' && inputs.acknowledge_provider_terms == true
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        start: [0, 50, 100, 150]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Fetch later-retrieved 5m reconstruction shard
+        run: |
+          node scripts/fetch_phase57_selector_yahoo_5m_shard.mjs             --universe data/screener-universe.json             --start "${{ matrix.start }}"             --count 50             --range 60d             --concurrency 2             --delay-ms 350             --output "artifacts/shard-${{ matrix.start }}.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-selector-yahoo-shard-${{ matrix.start }}
+          path: artifacts/shard-${{ matrix.start }}.json
+          retention-days: 30
+
+  sealed_benchmark:
+    needs: fetch_yahoo_pilot_shards
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      NODE_OPTIONS: --max-old-space-size=6144
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-selector-yahoo-shard-*
+          path: artifacts/shards
+          merge-multiple: true
+      - name: Build survivorship-limited paired dataset
+        run: |
+          node scripts/build_phase57_selector_historical_dataset.mjs             --shard-dir artifacts/shards             --min-symbols-per-session 120             --output artifacts/phase57-selector-historical-dataset.json
+      - name: Run Development and Validation benchmark with OOS sealed
+        run: |
+          node scripts/run_phase57_selector_v123_historical_benchmark.mjs             --dataset artifacts/phase57-selector-historical-dataset.json             --output artifacts/phase57-selector-v123-benchmark-sealed.json
+      - name: Guard labels, OOS seal and safety
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const value=JSON.parse(fs.readFileSync('artifacts/phase57-selector-v123-benchmark-sealed.json','utf8'));
+          if(value.status!=='SELECTOR_V1_V2_V3_BENCHMARK_OOS_SEALED'||value.outerOosConsumed!==false)throw new Error('outer OOS was not sealed');
+          if(value.dataset.evidenceClassification!=='SURVIVORSHIP_LIMITED_RECONSTRUCTION')throw new Error('reconstruction label drift');
+          if(value.dataset.sessionCount<30)throw new Error('large-sample session floor not met');
+          for(const key of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted']){
+            if(value.safety?.[key]!==false)throw new Error(`safety ${key}`);
+          }
+          NODE
+      - name: Compress immutable input and record digests
+        run: |
+          gzip -9 artifacts/phase57-selector-historical-dataset.json
+          sha256sum             artifacts/phase57-selector-historical-dataset.json.gz             artifacts/phase57-selector-v123-benchmark-sealed.json             predict/research/phase57-selector-v3-freeze.json             > artifacts/phase57-selector-v123-digests.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-selector-v123-historical-pilot-sealed
+          path: |
+            artifacts/phase57-selector-historical-dataset.json.gz
+            artifacts/phase57-selector-v123-benchmark-sealed.json
+            artifacts/phase57-selector-v123-digests.sha256
+          retention-days: 90

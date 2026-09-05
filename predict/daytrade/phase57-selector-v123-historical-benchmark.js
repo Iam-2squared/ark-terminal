@@ -155,7 +155,9 @@ function normalizedSymbols(items,manifest){
     ...item,
     symbol:symbolOf(item.symbol),
     sector:sectorOf(item.sector),
-    bars:item.bars.map(bar=>normalizeDatasetBar(bar,manifest)),
+    bars:item.bars.map(bar=>normalizeDatasetBar(bar,manifest)).sort((a,b)=>
+      timestampMs(a.availableAt,'bar.availableAt')-timestampMs(b.availableAt,'bar.availableAt')
+    ),
   }));
 }
 

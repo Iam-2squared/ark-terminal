@@ -59,7 +59,7 @@ jobs:
           node-version: 22
       - name: Fetch later-retrieved 5m reconstruction shard
         run: |
-          node scripts/fetch_phase57_selector_yahoo_5m_shard.mjs             --universe data/screener-universe.json             --start "${{ matrix.start }}"             --count 50             --range 60d             --concurrency 2             --delay-ms 350             --output "artifacts/shard-${{ matrix.start }}.json"
+          node scripts/fetch_phase57_selector_yahoo_5m_shard.mjs --universe data/screener-universe.json --start "${{ matrix.start }}" --count 50 --sample-seed PHASE57_SELECTOR_V3_0_20260905 --range 60d --concurrency 2 --delay-ms 350 --output "artifacts/shard-${{ matrix.start }}.json"
       - uses: actions/upload-artifact@v4
         with:
           name: phase57-selector-yahoo-shard-${{ matrix.start }}

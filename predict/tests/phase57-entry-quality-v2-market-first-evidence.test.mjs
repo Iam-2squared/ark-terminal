@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
+import { fingerprintEntryV2SelectionScope } from '../daytrade/phase57-entry-quality-v2-historical-market-data.js';
 
 const integrityPath = new URL(
   '../daytrade/phase57-entry-quality-v2-market-first-integrity-2026-09-05.json',
@@ -43,7 +44,7 @@ test('market-first evidence reaches Checkpoint A without counting golden events 
   assert.equal(integrity.modelReadiness.modelFittingAllowed, false);
 });
 
-test('labels, missing contexts, source class, and safety remain explicit', () => {
+test('labels, strict Daily Context, missing optional contexts, source class, and safety remain explicit', () => {
   for (const stats of Object.values(integrity.eventDataset.labelCompletenessByHorizon)) {
     assert.equal(stats.complete + stats.incomplete, 445);
   }
@@ -52,18 +53,32 @@ test('labels, missing contexts, source class, and safety remain explicit', () =>
   });
   assert.equal(integrity.classification.prospective, false);
   assert.equal(integrity.classification.formalOos, false);
-  assert.equal(integrity.eventDataset.dailyContextCoverage.covered, 0);
-  assert.match(integrity.eventDataset.dailyContextCoverage.status, /NO_VALUE_FABRICATED/);
+  assert.equal(integrity.eventDataset.dailyContextCoverage.covered, 445);
+  assert.equal(integrity.eventDataset.dailyContextCoverage.missingOrBlocked, 0);
+  assert.equal(integrity.eventDataset.dailyContextCoverage.archiveDailyRecordCount, 189_735);
+  assert.equal(integrity.eventDataset.dailyContextCoverage.availablePriorSessionsPerCandidate.min, 111);
+  assert.equal(integrity.eventDataset.dailyContextCoverage.availablePriorSessionsPerCandidate.median, 479);
+  assert.equal(integrity.eventDataset.dailyContextCoverage.corporateActionAudit.adjustedCloseUsedAsFeature, false);
+  assert.equal(integrity.eventDataset.dailyContextCoverage.corporateActionAudit.providerQuoteCorporateActionSemanticsResolved, false);
+  assert.match(integrity.eventDataset.dailyContextCoverage.status, /STRICT_PRIOR_SESSION/);
   assert.equal(integrity.eventDataset.marketContextCoverage.marketWideBreadthCovered, 445);
   assert.equal(integrity.eventDataset.marketContextCoverage.benchmarkIndexCovered, 0);
+  assert.equal(integrity.eventDataset.marketContextCoverage.topixCovered, 0);
+  assert.equal(integrity.eventDataset.marketContextCoverage.nikkei225Covered, 0);
+  assert.match(integrity.eventDataset.tickToPriceCoverage.status, /NO_VALUE_FABRICATED/);
   assert.equal(integrity.marketDataset.universeAudit.claimedAsCompleteHistoricalJpxUniverse, false);
+  assert.equal(integrity.riskAudit.historicalUniverseClaimedComplete, false);
+  assert.match(integrity.riskAudit.checkpoint500PhysicalConstraint, /OLDER_FROZEN_P21_HISTORY_OR_A_NEW_PROVIDER/);
+  assert.ok(integrity.modelReadiness.reasons.includes('INDEPENDENT_CANDIDATE_COUNT_BELOW_500_CHECKPOINT'));
   for (const key of falseSafetyKeys) assert.equal(integrity.safety[key], false, key);
 });
 
 test('daily acquisition scope is bound to all Current Dynamic5m selected symbols', () => {
-  const core = structuredClone(scope);
-  delete core.selectionScopeContentSha256;
-  assert.equal(sha256(Buffer.from(JSON.stringify(core))), scope.selectionScopeContentSha256);
+  assert.equal(fingerprintEntryV2SelectionScope(scope), scope.selectionScopeContentSha256);
+  assert.equal(
+    fingerprintEntryV2SelectionScope({ ...scope, generatedAt: '2099-01-01T00:00:00.000Z' }),
+    scope.selectionScopeContentSha256,
+  );
   assert.equal(scope.sourceClass, 'HISTORICAL_RECONSTRUCTION_LATER_FETCHED');
   assert.equal(scope.symbolCount, 397);
   assert.equal(new Set(scope.symbols).size, scope.symbolCount);

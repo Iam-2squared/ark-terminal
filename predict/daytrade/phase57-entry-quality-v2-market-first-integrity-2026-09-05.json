@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "phase": "57.entry-quality-v2.market-first-integrity",
   "status": "CHECKPOINT_A_200_REACHED",
-  "generatedAt": "2026-09-05T10:12:45.868Z",
+  "generatedAt": "2026-09-05T11:26:12.542Z",
   "classification": {
     "datasetRole": "DEVELOPMENT_ONLY",
     "historicalReconstruction": true,
@@ -20898,21 +20898,51 @@
       "HISTORICAL_RECONSTRUCTION_LATER_FETCHED": 445
     },
     "dailyContextCoverage": {
-      "archiveConnected": false,
-      "covered": 0,
-      "missingOrBlocked": 445,
+      "archiveConnected": true,
+      "covered": 445,
+      "missingOrBlocked": 0,
       "total": 445,
-      "status": "NOT_YET_CONNECTED_NO_VALUE_FABRICATED",
+      "status": "STRICT_PRIOR_SESSION_DAILY_CONTEXT_CONNECTED",
       "statusDistribution": {
-        "ENTRY_V2_HISTORICAL_DAILY_ARCHIVE_NOT_CONNECTED": 445
+        "ENTRY_V2_HISTORICAL_PRIOR_DAILY_CONTEXT_READY": 445
       },
-      "requestedSelectionSymbolCount": 0,
-      "fetchedSelectionSymbolCount": 0,
+      "requestedSelectionSymbolCount": 397,
+      "fetchedSelectionSymbolCount": 397,
+      "failedSelectionSymbolCount": 0,
+      "archiveDailyRecordCount": 189735,
+      "archiveRecordsPerSymbol": {
+        "count": 397,
+        "min": 52,
+        "median": 488,
+        "max": 488,
+        "mean": 477.9219143576826
+      },
+      "availablePriorSessionsPerCandidate": {
+        "count": 445,
+        "min": 111,
+        "median": 479,
+        "max": 487,
+        "mean": 454.09213483146067
+      },
+      "requiredPriorSessions": 101,
+      "retainedPriorSessionTarget": 250,
+      "blockedReasonDistribution": {},
+      "corporateActionAudit": {
+        "dividendEventCount": 1080,
+        "splitEventCount": 81,
+        "symbolsWithDividendEvents": 314,
+        "symbolsWithSplitEvents": 77,
+        "adjustedCloseStoredForAuditOnly": true,
+        "adjustedCloseUsedAsFeature": false,
+        "providerQuoteCorporateActionSemanticsResolved": false
+      },
       "providerQuoteCorporateActionSemanticsResolved": false
     },
     "marketContextCoverage": {
       "marketWideBreadthCovered": 445,
       "benchmarkIndexCovered": 0,
+      "topixCovered": 0,
+      "nikkei225Covered": 0,
       "total": 445,
       "status": "MARKETWIDE_BREADTH_CONNECTED;TOPIX_NIKKEI_NOT_YET_CONNECTED_NO_VALUE_FABRICATED"
     },
@@ -21979,13 +22009,24 @@
       "INSUFFICIENT_CLOSED_PREFIX_COVERAGE": 176
     }
   },
+  "riskAudit": {
+    "survivorshipBiasRisk": "PARTIAL_PRIOR_SNAPSHOT;POST_SNAPSHOT_IPOS_MISSING_AND_CORPORATE_ACTIONS_REQUIRE_AUDIT",
+    "historicalUniverseClaimedComplete": false,
+    "corporateActionRisk": "PROVIDER_QUOTE_OHLC_SEMANTICS_UNRESOLVED;ADJUSTED_CLOSE_AUDIT_ONLY",
+    "providerRevisionRisk": "PRESENT_GOLDEN_OHLCV_PARITY_INCOMPLETE",
+    "yahooFiveMinuteObservedRetention": "APPROXIMATELY_60_DAYS_AS_OF_2026-09-05",
+    "fixedFrozenHistoryEndSessionDate": "2026-08-12",
+    "earliestLeakageFreeReplaySessionDate": "2026-08-13",
+    "checkpoint500PhysicalConstraint": "NO_ADDITIONAL_COMPLETED_SESSION_IN_ARCHIVE_AFTER_FROZEN_HISTORY_BOUNDARY;OLDER_REPLAY_REQUIRES_STRICTLY_CAUSAL_OLDER_FROZEN_P21_HISTORY_OR_A_NEW_PROVIDER"
+  },
   "modelReadiness": {
     "modelFittingAllowed": false,
     "reasons": [
-      "DAILY_CONTEXT_COVERAGE_INCOMPLETE",
+      "DAILY_PROVIDER_QUOTE_CORPORATE_ACTION_SEMANTICS_UNRESOLVED",
       "UNIVERSE_COMPLETENESS_AND_SURVIVORSHIP_AUDIT_INCOMPLETE",
       "GOLDEN_OHLCV_PARITY_INCOMPLETE_PROVIDER_REVISION_PRESENT",
-      "DEVELOPMENT_VALIDATION_UNTOUCHED_OOS_BOUNDARIES_NOT_YET_FROZEN"
+      "DEVELOPMENT_VALIDATION_UNTOUCHED_OOS_BOUNDARIES_NOT_YET_FROZEN",
+      "INDEPENDENT_CANDIDATE_COUNT_BELOW_500_CHECKPOINT"
     ],
     "optionalContextGaps": [
       "TOPIX_NIKKEI_POINT_IN_TIME_CONTEXT_NOT_YET_CONNECTED",
@@ -22002,15 +22043,15 @@
     "frozenHistoryEndSessionDate": "2026-08-12",
     "goldenSubstrate": "predict/daytrade/phase57-entry-quality-v2-development-candidate-substrate-2026-09-05.json",
     "goldenSubstrateSha256": "c3121091a81227c926ea15c56ac9f7e040ebadbc689173182471c673c2d5efb3",
-    "selectionScope": "predict/daytrade/phase57-entry-quality-v2-market-first-selection-symbols-2026-09-05.json",
-    "selectionScopeContentSha256": "b55f808dc6cfc16b2beae7a960072a4c618ba8573ee3d3fab3159ee8e7e5df9b",
-    "dailyArchiveManifest": null,
-    "dailyArchiveManifestContentSha256": null
+    "selectionScope": "tmp/entry-v2-market-first-selection-symbols-v3.json",
+    "selectionScopeContentSha256": "3d19c7623d108de0ab0361e1a54081a9604c565f19cca5171b1c62dc207f04af",
+    "dailyArchiveManifest": "tmp/entry-v2-historical-daily/manifest.json",
+    "dailyArchiveManifestContentSha256": "af75c21e4536f59f7667b90e44f1fb0b03dc102ee10efb6feb7795fdaa382437"
   },
-  "datasetOutput": "tmp/entry-v2-market-first-development-dataset.json",
-  "selectionSymbolsOutput": "predict/daytrade/phase57-entry-quality-v2-market-first-selection-symbols-2026-09-05.json",
-  "selectionScopeContentSha256": "b55f808dc6cfc16b2beae7a960072a4c618ba8573ee3d3fab3159ee8e7e5df9b",
-  "datasetContentSha256": "36778a8d27bb6db7d36b6f76641744d721d34a3f599206e9f43435714d0aa307",
+  "datasetOutput": "tmp/entry-v2-market-first-development-dataset-v3.json",
+  "selectionSymbolsOutput": "tmp/entry-v2-market-first-selection-symbols-v3.json",
+  "selectionScopeContentSha256": "3d19c7623d108de0ab0361e1a54081a9604c565f19cca5171b1c62dc207f04af",
+  "datasetContentSha256": "5aee1183c3e52dc25ebd70cab7b0cfa3cc32577a030c971be49c34eeb300edba",
   "safety": {
     "phase": "57.entry-quality-v2.historical-market-reconstruction",
     "mode": "READ_ONLY_OFFLINE_HISTORICAL_MARKET_RESEARCH",

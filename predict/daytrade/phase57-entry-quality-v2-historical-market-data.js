@@ -69,6 +69,20 @@ const sha256 = value => createHash('sha256')
   .update(typeof value === 'string' || Buffer.isBuffer(value) ? value : JSON.stringify(value))
   .digest('hex');
 
+export function buildEntryV2SelectionScopeIdentity(scope = {}) {
+  if (!scope || typeof scope !== 'object' || Array.isArray(scope)) {
+    throw new Error('ENTRY_V2_SELECTION_SCOPE_OBJECT_REQUIRED');
+  }
+  const identity = structuredClone(scope);
+  delete identity.selectionScopeContentSha256;
+  delete identity.generatedAt;
+  return Object.freeze(identity);
+}
+
+export function fingerprintEntryV2SelectionScope(scope = {}) {
+  return sha256(Buffer.from(JSON.stringify(buildEntryV2SelectionScopeIdentity(scope))));
+}
+
 const finite = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
 const symbolOf = value => String(value ?? '').trim().toUpperCase();
 const mean = values => values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;

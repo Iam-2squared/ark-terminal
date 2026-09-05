@@ -9,6 +9,7 @@ import {
   buildEntryV2HistoricalMarketContext,
   buildEntryV2HistoricalSelectorMeasurements,
   buildEntryV2HistoricalSessionBarArchive,
+  fingerprintEntryV2SelectionScope,
 } from '../predict/daytrade/phase57-entry-quality-v2-historical-market-data.js';
 import { buildEntryV2HistoricalRetrospectiveReplay } from '../predict/daytrade/phase57-entry-quality-v2-historical-replay.js';
 import {
@@ -61,6 +62,21 @@ const sumObject = (target, source) => {
   for (const [key, value] of Object.entries(source ?? {})) target[key] = (target[key] ?? 0) + Number(value ?? 0);
 };
 const increment = (object, key) => { object[key] = (object[key] ?? 0) + 1; };
+const numericSummary = values => {
+  const sorted = values.map(Number).filter(Number.isFinite).sort((left, right) => left - right);
+  if (!sorted.length) return { count: 0, min: null, median: null, max: null, mean: null };
+  const middle = Math.floor(sorted.length / 2);
+  const median = sorted.length % 2 === 0
+    ? (sorted[middle - 1] + sorted[middle]) / 2
+    : sorted[middle];
+  return {
+    count: sorted.length,
+    min: sorted[0],
+    median,
+    max: sorted.at(-1),
+    mean: sorted.reduce((sum, value) => sum + value, 0) / sorted.length,
+  };
+};
 const stripBar = bar => ({
   timestamp: bar.timestamp,
   open: Number(bar.open),
@@ -98,6 +114,8 @@ const frozenHistoryDates = frozenHistorySessions.map(row => String(row?.sessionD
 if (frozenHistoryDates.at(-1) !== ENTRY_V2_HISTORICAL_MARKET_POLICY.frozenP21HistoryEndSessionDate) {
   throw new Error('ENTRY_V2_MARKET_REPLAY_FROZEN_HISTORY_END_MISMATCH');
 }
+const earliestLeakageFreeReplaySessionDate = new Date(`${frozenHistoryDates.at(-1)}T00:00:00.000Z`);
+earliestLeakageFreeReplaySessionDate.setUTCDate(earliestLeakageFreeReplaySessionDate.getUTCDate() + 1);
 const historyPackSha256 = sha256(fs.readFileSync(historyPackPath));
 
 let dailyManifest = null;
@@ -491,6 +509,21 @@ const sessions = [...new Set(candidates.map(row => row.sessionDate))].sort();
 const dailyContextStatusDistribution = {};
 for (const candidate of candidates) increment(dailyContextStatusDistribution, candidate.dailyContext?.status ?? 'MISSING');
 const dailyContextCovered = candidates.filter(candidate => candidate.dailyContext?.available === true).length;
+const availablePriorSessionSummary = numericSummary(candidates
+  .filter(candidate => candidate.dailyContext?.available === true)
+  .map(candidate => candidate.dailyContext.availablePriorSessions));
+const dailyArchiveRecordSummary = numericSummary((dailyManifest?.receipts ?? [])
+  .map(receipt => receipt.acceptedDailyRecordCount));
+const dailyCorporateActionAudit = (dailyManifest?.receipts ?? []).reduce((audit, receipt) => {
+  const actions = receipt.corporateActionEventCounts ?? {};
+  const dividends = Number(actions.dividends ?? 0);
+  const splits = Number(actions.splits ?? 0);
+  audit.dividendEventCount += dividends;
+  audit.splitEventCount += splits;
+  if (dividends > 0) audit.symbolsWithDividendEvents += 1;
+  if (splits > 0) audit.symbolsWithSplitEvents += 1;
+  return audit;
+}, { dividendEventCount: 0, splitEventCount: 0, symbolsWithDividendEvents: 0, symbolsWithSplitEvents: 0 });
 const replayBlockedPointCount = perSession.reduce((sum, row) => sum + Number(row.replayBlockedPoints ?? 0), 0);
 const checkpoint = candidates.length >= 1000 ? 'CHECKPOINT_C_1000_REACHED'
   : candidates.length >= 500 ? 'CHECKPOINT_B_500_REACHED'
@@ -516,7 +549,7 @@ const selectionScopeCore = {
 };
 const selectionScope = {
   ...selectionScopeCore,
-  selectionScopeContentSha256: sha256(Buffer.from(JSON.stringify(selectionScopeCore))),
+  selectionScopeContentSha256: fingerprintEntryV2SelectionScope(selectionScopeCore),
 };
 if (dailyManifest && (
   dailyManifest.selectionScope?.selectionScopeContentSha256 !== selectionScope.selectionScopeContentSha256
@@ -634,12 +667,31 @@ const integrity = {
       statusDistribution: dailyContextStatusDistribution,
       requestedSelectionSymbolCount: dailyManifest?.requestedSymbolCount ?? 0,
       fetchedSelectionSymbolCount: dailyManifest?.fetchedSymbolCount ?? 0,
+      failedSelectionSymbolCount: dailyManifest?.failedSymbolCount ?? 0,
+      archiveDailyRecordCount: dailyArchiveRecordSummary.count > 0
+        ? (dailyManifest.receipts ?? []).reduce((sum, receipt) => sum + Number(receipt.acceptedDailyRecordCount ?? 0), 0)
+        : 0,
+      archiveRecordsPerSymbol: dailyArchiveRecordSummary,
+      availablePriorSessionsPerCandidate: availablePriorSessionSummary,
+      requiredPriorSessions: 101,
+      retainedPriorSessionTarget: 250,
+      blockedReasonDistribution: Object.fromEntries(Object.entries(dailyContextStatusDistribution)
+        .filter(([status]) => status !== 'ENTRY_V2_HISTORICAL_PRIOR_DAILY_CONTEXT_READY')),
+      corporateActionAudit: {
+        ...dailyCorporateActionAudit,
+        adjustedCloseStoredForAuditOnly: dailyManifest?.dataSemantics?.adjustedCloseStoredForAuditOnly ?? false,
+        adjustedCloseUsedAsFeature: dailyManifest?.dataSemantics?.adjustedCloseUsedAsFeature ?? false,
+        providerQuoteCorporateActionSemanticsResolved:
+          dailyManifest?.dataSemantics?.providerQuoteCorporateActionSemanticsResolved ?? false,
+      },
       providerQuoteCorporateActionSemanticsResolved:
         dailyManifest?.dataSemantics?.providerQuoteCorporateActionSemanticsResolved ?? false,
     },
     marketContextCoverage: {
       marketWideBreadthCovered: candidates.filter(row => row.marketContext?.marketBreadthContextAvailable === true).length,
       benchmarkIndexCovered: candidates.filter(row => row.marketContext?.benchmarkIndexContextAvailable === true).length,
+      topixCovered: 0,
+      nikkei225Covered: 0,
       total: candidates.length,
       status: 'MARKETWIDE_BREADTH_CONNECTED;TOPIX_NIKKEI_NOT_YET_CONNECTED_NO_VALUE_FABRICATED',
     },
@@ -674,6 +726,21 @@ const integrity = {
     replayBlockedPointCount,
     replayBlockedReasons,
   },
+  riskAudit: {
+    survivorshipBiasRisk: manifest.universe?.survivorshipBiasRisk ?? 'UNKNOWN',
+    historicalUniverseClaimedComplete: manifest.universe?.claimedAsCompleteHistoricalJpxUniverse ?? false,
+    corporateActionRisk: dailyManifest?.dataSemantics?.providerQuoteCorporateActionSemanticsResolved === true
+      ? 'RESOLVED' : 'PROVIDER_QUOTE_OHLC_SEMANTICS_UNRESOLVED;ADJUSTED_CLOSE_AUDIT_ONLY',
+    providerRevisionRisk: goldenBarAudits.some(row => !row.exactContextBars)
+      ? 'PRESENT_GOLDEN_OHLCV_PARITY_INCOMPLETE' : 'NO_DIFFERENCE_OBSERVED_IN_GOLDEN_OVERLAP',
+    yahooFiveMinuteObservedRetention: 'APPROXIMATELY_60_DAYS_AS_OF_2026-09-05',
+    fixedFrozenHistoryEndSessionDate: frozenHistoryDates.at(-1),
+    earliestLeakageFreeReplaySessionDate: earliestLeakageFreeReplaySessionDate.toISOString().slice(0, 10),
+    checkpoint500PhysicalConstraint:
+      candidates.length >= 500
+        ? null
+        : 'NO_ADDITIONAL_COMPLETED_SESSION_IN_ARCHIVE_AFTER_FROZEN_HISTORY_BOUNDARY;OLDER_REPLAY_REQUIRES_STRICTLY_CAUSAL_OLDER_FROZEN_P21_HISTORY_OR_A_NEW_PROVIDER',
+  },
   modelReadiness: {
     modelFittingAllowed: false,
     reasons: [
@@ -684,6 +751,7 @@ const integrity = {
       ...(goldenBarAudits.some(row => !row.exactContextBars) ? ['GOLDEN_OHLCV_PARITY_INCOMPLETE_PROVIDER_REVISION_PRESENT'] : []),
       'DEVELOPMENT_VALIDATION_UNTOUCHED_OOS_BOUNDARIES_NOT_YET_FROZEN',
       ...(candidates.length < 200 ? ['INDEPENDENT_CANDIDATE_COUNT_BELOW_200'] : []),
+      ...(candidates.length < 500 ? ['INDEPENDENT_CANDIDATE_COUNT_BELOW_500_CHECKPOINT'] : []),
       ...(pitViolationCount > 0 ? ['PIT_VIOLATIONS_PRESENT'] : []),
     ],
     optionalContextGaps: [

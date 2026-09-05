@@ -8,6 +8,7 @@ import {
   buildYahooDailyChartUrl,
   normalizeYahooDailyChartPayload,
 } from '../predict/daytrade/phase57-entry-quality-v2-historical-daily-data.js';
+import { fingerprintEntryV2SelectionScope } from '../predict/daytrade/phase57-entry-quality-v2-historical-market-data.js';
 
 const arg = (name, fallback = null) => {
   const index = process.argv.indexOf(name);
@@ -58,14 +59,12 @@ const writeAtomicJson = (file, value) => writeAtomicBytes(file, Buffer.from(`${J
 
 const scopeBytes = fs.readFileSync(scopePath);
 const scope = JSON.parse(scopeBytes.toString('utf8'));
-const scopeCore = structuredClone(scope);
-delete scopeCore.selectionScopeContentSha256;
 if (scope.phase !== '57.entry-quality-v2.market-first-selection-symbol-scope'
   || scope.sourceClass !== 'HISTORICAL_RECONSTRUCTION_LATER_FETCHED'
   || scope.prospective !== false || scope.formalOos !== false
   || scope.dailyDataMayInfluenceHistoricalSelectorReplay !== false
   || scope.candidateOutcomeUsedToChooseSymbols !== false
-  || sha256(Buffer.from(JSON.stringify(scopeCore))) !== scope.selectionScopeContentSha256) {
+  || fingerprintEntryV2SelectionScope(scope) !== scope.selectionScopeContentSha256) {
   throw new Error('ENTRY_V2_HISTORICAL_DAILY_SELECTION_SCOPE_INVALID');
 }
 for (const key of FALSE_KEYS) {

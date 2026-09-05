@@ -11,6 +11,8 @@ import {
   buildEntryV2HistoricalMarketContext,
   buildEntryV2HistoricalSelectorMeasurements,
   buildEntryV2HistoricalSessionBarArchive,
+  buildEntryV2SelectionScopeIdentity,
+  fingerprintEntryV2SelectionScope,
 } from '../daytrade/phase57-entry-quality-v2-historical-market-data.js';
 
 const epoch = value => Date.parse(value) / 1000;
@@ -70,6 +72,20 @@ test('Yahoo Chart URL is read-only, single-symbol, five-minute historical data',
   assert.equal(allFalse(ENTRY_V2_HISTORICAL_MARKET_SAFETY), true);
   assert.equal(ENTRY_V2_HISTORICAL_MARKET_POLICY.sourceClass, 'HISTORICAL_RECONSTRUCTION_LATER_FETCHED');
   assert.equal(ENTRY_V2_HISTORICAL_MARKET_POLICY.prospective, false);
+});
+
+test('selection scope fingerprint ignores generatedAt but binds substantive lineage', () => {
+  const scope = {
+    phase: '57.entry-quality-v2.market-first-selection-symbol-scope',
+    generatedAt: '2026-09-05T00:00:00.000Z',
+    symbols: ['7203.T'],
+    marketArchiveManifestContentSha256: 'a'.repeat(64),
+    safety: ENTRY_V2_HISTORICAL_MARKET_SAFETY,
+  };
+  const first = fingerprintEntryV2SelectionScope(scope);
+  assert.equal(fingerprintEntryV2SelectionScope({ ...scope, generatedAt: '2026-09-05T01:00:00.000Z' }), first);
+  assert.notEqual(fingerprintEntryV2SelectionScope({ ...scope, symbols: ['6758.T'] }), first);
+  assert.equal('generatedAt' in buildEntryV2SelectionScopeIdentity(scope), false);
 });
 
 test('Yahoo payload keeps provider timestamps and requires complete OHLCV arrays', () => {

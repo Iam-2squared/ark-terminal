@@ -69,32 +69,53 @@ No automatic promotion is permitted regardless of measured performance.
 
 The initial module is deliberately feature-vector-only. It emits no LONG/SHORT signal and cannot be wired into Lane Y without a separate explicit research step. This allows data lineage and feature semantics to be tested before choosing the model architecture or thresholds.
 
-## Large-sample source contract
+## Zero-based, market-first Development contract
 
-Entry Quality v2 keeps Actual Durable evidence and Historical Development evidence structurally separate:
+The main Development population is reconstructed from market data before either Selection or Entry is known:
 
-- `ACTUAL_DURABLE` contains only Frozen P21 Entry events already present in durable Dynamic5m B/D evidence. The source artifact's completeness and formal-OOS classification are preserved without upgrade.
-- `HISTORICAL_REPLAY_ARCHIVED_PIT` requires an explicit archived-point-in-time attestation plus artifact lineage and SHA-256. It reapplies the current `INTRADAY_DYNAMIC_5M_UNIVERSE_V1` selector to retained point-in-time marketwide rows, then applies the unchanged Frozen P21 Entry.
-- `HISTORICAL_RECONSTRUCTION_LATER_FETCHED` is used when historical bars were obtained after the decision time. It remains `DEVELOPMENT_ONLY`, `NON_PROSPECTIVE`, and non-formal OOS. Later-fetched bars can support offline reconstruction only when the archived point-in-time marketwide selector input exists and current-selector replay parity succeeds.
+1. acquire the widest defensible historical JPX universe and raw five-minute OHLCV;
+2. build each decision-time market snapshot using completed bars only;
+3. run the current Dynamic5m V1/V2 implementation on that snapshot;
+4. apply the unchanged `PHASE57_P21_FROZEN_ENTRY` to each selected event;
+5. freeze Entry v2 features;
+6. build same-session future-only labels offline.
 
-Old `DYNAMIC_30`, `DYNAMIC_40`, `DYNAMIC_50`, and `FIXED_5` memberships are never accepted as current Dynamic5m replay results. A replay point is blocked in full if any symbol selected by the current selector lacks session-bar history or a six-bar closed prefix. Archived-PIT replay never backfills missing inputs. A later fetch must use the separate reconstruction class; it may not be relabelled as archived PIT, may not interpolate or fabricate bars, and cannot compensate for a missing point-in-time marketwide selector snapshot.
+Downloading only symbols that later became P21 candidates is forbidden because it creates selection bias. The dataset therefore keeps `selectionEligible` and `oldP21SignalEligible` at separate levels. Phase 1 remains anchored to Frozen P21 candidates, while the broader selected-event layer is preserved for a later, explicitly approved filter-only versus full-replacement study.
 
-Candidate events and selector memberships are different units. One `(sessionDate, selectionTimestamp, symbol)` event is stored once; V1/V2 membership is attached as diagnostic lineage and must not duplicate the candidate or its labels. Actual and replay events with the same event identity are retained in their respective audit trails, but the replay copy is excluded from the independent historical Development count.
+The previous 41-event substrate is not discarded, but it is no longer the main Development population. It is a golden/parity/regression set for timestamp boundaries, selector parity, Frozen P21 parity, source lineage, Yahoo revisions, and leakage checks. It must not be mined for case-specific Entry rules, weighted specially in Development performance, or added to overlapping reconstructed events to inflate sample size.
 
-## 2026-09-05 integrity evidence
+## Source classification
 
-The first all-candidate audit found six `ACTUAL_DURABLE` Frozen Entry events across 2026-09-03 and 2026-09-04: four unique symbols, three LONG and three SHORT. All six are both V1 and V2 selector members, but remain six events rather than twelve rows. Canonical daily-bundle bars reproduce every feature cutoff under `bar.timestamp + 5 minutes <= decisionTimestamp`; PIT violations are zero and +1/+2/+3/+6/+12 labels are complete for all six events.
+Entry Quality v2 keeps these classes structurally separate:
 
-Both source sessions remain incomplete and non-formal: 2026-09-03 has 13/68 captured points and 2026-09-04 has 15/68. These rows are diagnostics, not formal OOS or prospective performance evidence.
+- `ACTUAL_DURABLE`: evidence captured by the production measurement path. Its original completeness and formal-OOS classification are preserved without upgrade.
+- `HISTORICAL_REPLAY_ARCHIVED_PIT`: a retained point-in-time artifact with explicit acquisition lineage and SHA-256.
+- `HISTORICAL_RECONSTRUCTION_LATER_FETCHED`: historical data fetched after the decision time. It is always `DEVELOPMENT_ONLY`, `NON_PROSPECTIVE`, non-formal OOS, and not an archived point-in-time capture.
 
-The expanded raw audit covers 132 current-selector decision points across 2026-08-31 through 2026-09-04. Current Dynamic5m parity is verified for all 132 points: 116 at the exact observation timestamp and 16 against the same canonical five-minute bucket. Strict bar inputs are ready for 102 points. The other 30 remain fail-closed: 28 points lack 6522.T coverage and two points do not have the fixed six completed-prefix bars.
+A later-fetched series may be replayed point-in-time by slicing at each historical decision timestamp, but that does not turn its source into contemporaneously captured evidence. No class may be promoted or renamed based on good results. Raw and normalized provider responses, query range, fetch timestamp, timezone, provider timestamp, adjusted/unadjusted semantics, parser/normalization version, and SHA-256 are retained so provider revisions can be detected.
 
-For 2026-09-01, Actions run 33510241393 artifact 9801375444 recovered 154 of 155 required session-bar symbols without interpolation. Of 50 audited points, 21 are replayable and 29 remain blocked: 28 because 6522.T is unavailable and one because fewer than six completed prefix bars exist. The unchanged Frozen P21 Entry yields seven independent Development candidates.
+Old `DYNAMIC_30`, `DYNAMIC_40`, `DYNAMIC_50`, and `FIXED_5` outputs are never reused as current Dynamic5m selections. Missing bars are not interpolated, fabricated, or replaced by current values. A replay point is blocked in full if a current-selector symbol lacks the fixed six completed-prefix bars. One `(sessionDate, decisionTimestamp, symbol)` is one event; V1/V2 memberships are lineage rather than duplicate rows.
 
-For 2026-09-02, the retained archive contained 78 symbols and a separate later-fetched reconstruction recovered the 52 missing current-selector symbols with no fetch failures. Sparse 338A.T bars remain sparse rather than padded. Of 37 audited points, 36 are replayable and one remains blocked by the fixed six-bar minimum. The unchanged Frozen P21 Entry yields 17 independent Development candidates. The integrity artifact inventories every point, required/available/missing symbol, prefix count, missing interval, and source fingerprint.
+## Historical universe and provider limitations
 
-The 2026-08-31 archived point-in-time raw snapshots support 17 replay points after same-bucket parity verification; later-fetched bars are explicitly reconstruction-only. These points add 11 independent candidates. Older 2026-08-19 through 2026-08-26 bar archives cannot be admitted because no matching point-in-time marketwide raw snapshot was found for current Dynamic5m replay. Old selector outputs are not substituted.
+The first market-first archive uses Yahoo Finance Chart five-minute data, whose observed maximum range is 60 days. Yahoo is a first source, not a permanent requirement. If it cannot supply a defensible history, delisted-symbol coverage, market breadth, or corporate-action semantics, another lawful source must be evaluated with source-specific lineage instead of falling back to the 41 golden events.
 
-The current substrate therefore contains 41 independent candidate events: six `ACTUAL_DURABLE` and 35 `HISTORICAL_RECONSTRUCTION_LATER_FETCHED`; `HISTORICAL_REPLAY_ARCHIVED_PIT` contributes zero independent candidates. Six replay copies overlapping Actual Durable are excluded. The 41 events span five sessions, eight symbols, 27 LONG and 14 SHORT. Membership is 14 V1-only and 27 V1+V2. Label completeness is 40/41 at +1, 39/41 at +2, 37/41 at +3, 35/41 at +6, and 34/41 at +12. PIT violations and within-source duplicates are both zero.
+The current universe is a JPX snapshot dated 2026-06-30 with 3,709 symbols, known before the replay start. It is explicitly not claimed as a complete historical JPX universe: post-snapshot IPOs can be missing, and delistings, symbol changes, halts, and corporate actions remain separate audit items. Current-listed symbols must not silently be projected backward for longer histories.
 
-Real Daily Context and point-in-time Market Context coverage remain 0/41, and tick-to-price lineage is missing rather than synthesized. The 200-event checkpoint has not been reached. No Entry Quality model fitting, threshold tuning, performance claim, or promotion is permitted from this substrate. The next admissible expansion is additional complete raw current-selector capture plus its bar lineage, followed by real prior-session Daily Context and the same integrity audit.
+Replay starts on 2026-08-13 because the Frozen P21 history pack ends on 2026-08-12. Starting earlier with that pack would expose the scorer to outcomes that were still future at the earlier decision, even if Yahoo can return those bars. Extending the market window therefore requires a date-appropriate frozen prior-history artifact, not merely another data query.
+
+## 2026-09-05 market-first integrity evidence
+
+The immutable Yahoo archive requested all 3,709 universe symbols and fetched 3,705. Four remain explicit failures: 3681.T returned a provider not-found/delisted response; 5903.T, 7317.T, and 7940.T returned no usable five-minute series. The archive covers 17 sessions from 2026-08-13 through 2026-09-04 and contains 2,512,365 normalized regular-session bars.
+
+The replay built 1,156 five-minute market snapshots. Of these, 1,074 met strict universe coverage and 82 were blocked as `HISTORICAL_UNIVERSE_COVERAGE_INSUFFICIENT`. Current Dynamic5m was recomputed on every ready snapshot with 1,074/1,074 internal deterministic parity. It produced 41,232 independent selected events over 397 symbols. No old selector output was substituted.
+
+Applying the unchanged Frozen P21 Entry produced 445 independent candidate events across 16 sessions and 48 symbols: 297 LONG and 148 SHORT. Candidate membership is 107 V1-only, 338 V1+V2, and zero V2-only. There are zero duplicate events and zero PIT violations. Label completeness is 436/445 at +1, 421/445 at +2, 410/445 at +3, 382/445 at +6, and 327/445 at +12; the remainder stay incomplete rather than crossing the JST session boundary.
+
+There are 176 Frozen P21 replay points blocked by `INSUFFICIENT_CLOSED_PREFIX_COVERAGE`. On 2026-08-14, all 63 ready market snapshots are blocked because 4478.T is selected but has at most four completed five-minute bars; 4480.T is also sparse at part of the session. The fixed six-bar policy is not relaxed and no synthetic no-trade bars are added.
+
+The golden audit compares 41 prior events without adding them to the 445 Development count. Provider timestamp sequences match 41/41 golden prefixes, supporting provider-native interval-start semantics. Exact OHLCV context matches only 21/41 and exact completed-bar reference price matches 13/41; Yahoo revision and live-versus-historical differences therefore remain explicit. Twenty-five golden events are independently reconstructed with matching direction. These results establish data lineage and parity limits, not Entry performance.
+
+Market-wide point-in-time breadth context is available for 445/445 candidates. TOPIX/Nikkei context and tick-schedule lineage remain unavailable and are stored as missing, never as zero or neutral. A strict Yahoo daily-history archive and per-decision prior-session slicer are implemented, including raw/normalized hashes and adjusted-close audit fields, but no daily archive is connected to this evidence snapshot; Daily Context coverage is therefore 0/445 rather than fabricated.
+
+Checkpoint A (200 events) is reached; Checkpoint B (500) is 55 events short and Checkpoint C (1,000) is not reached. No Entry v2 model has been fitted and no threshold has been tuned. Model research remains blocked by incomplete Daily Context, incomplete universe/survivorship and corporate-action audits, incomplete golden OHLCV parity, and unfrozen Development/Validation/Untouched-OOS time boundaries. CI success or candidate count alone is not evidence of better trading performance.

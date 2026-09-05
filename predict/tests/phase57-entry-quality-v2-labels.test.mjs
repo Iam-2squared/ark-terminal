@@ -81,3 +81,19 @@ test('next-session bars never complete an intraday horizon', () => {
   assert.equal(result.labels.find(x => x.horizonBars === 1).complete, true);
   assert.equal(result.labels.find(x => x.horizonBars === 3).complete, false);
 });
+
+test('a provider bar starting at the entry decision is the first future-only path bar', () => {
+  const result = buildEntryQualityV2PathLabels({
+    entryTimestamp,
+    entryPrice: 100,
+    futureBars: [
+      { timestamp: entryTimestamp, high: 103, low: 99, close: 102 },
+      ...bars,
+    ],
+    horizonsBars: [1],
+  });
+  assert.equal(result.availableFutureBars, 4);
+  assert.equal(result.labels[0].complete, true);
+  assertClose(result.labels[0].long.grossReturnPct, 2);
+  assertClose(result.labels[0].long.mfePct, 3);
+});

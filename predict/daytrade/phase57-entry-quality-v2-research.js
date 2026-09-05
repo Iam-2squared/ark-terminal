@@ -131,7 +131,9 @@ export function buildEntryV2DailyContext({ dailyBars = [], asOf }) {
     dailyVolatility20Pct: stdev(closes.slice(-20).map((close, index, xs) => index ? pct(close, xs[index - 1]) : 0).slice(1)),
     volume20Ratio: priorVolume20 > 0 ? current.volume / priorVolume20 : 1,
     averageVolume20: volume20,
-    priorClose: previous.close,
+    // At an intraday decision, the latest retained daily bar is the preceding
+    // completed session, so its close is the point-in-time prior close.
+    priorClose: current.close,
   });
 }
 
@@ -190,19 +192,25 @@ export function buildEntryV2UniverseDiagnostics({ price, tickSize = null, averag
 }
 
 export function buildEntryV2MarketContext(input = {}) {
-  const topixReturnPct = Number(input.topixReturnPct ?? 0);
-  const nikkeiReturnPct = Number(input.nikkeiReturnPct ?? 0);
-  const breadthUpRatio = Number(input.breadthUpRatio ?? 0.5);
-  const marketVolatility = Number(input.marketVolatility ?? 0);
-  const sectorRelativeStrengthPct = Number(input.sectorRelativeStrengthPct ?? 0);
+  const optionalFinite = value => {
+    if (value === null || value === undefined || value === '') return null;
+    const number = Number(value);
+    return Number.isFinite(number) ? number : null;
+  };
+  const topixReturnPct = optionalFinite(input.topixReturnPct);
+  const nikkeiReturnPct = optionalFinite(input.nikkeiReturnPct);
+  const breadthUpRatio = optionalFinite(input.breadthUpRatio);
+  const marketVolatility = optionalFinite(input.marketVolatility);
+  const sectorRelativeStrengthPct = optionalFinite(input.sectorRelativeStrengthPct);
+  const fields = { topixReturnPct, nikkeiReturnPct, breadthUpRatio, marketVolatility, sectorRelativeStrengthPct };
 
   return Object.freeze({
     source: 'ENTRY_V2_MARKET_CONTEXT',
-    topixReturnPct: Number.isFinite(topixReturnPct) ? topixReturnPct : 0,
-    nikkeiReturnPct: Number.isFinite(nikkeiReturnPct) ? nikkeiReturnPct : 0,
-    breadthUpRatio: Number.isFinite(breadthUpRatio) ? breadthUpRatio : 0.5,
-    marketVolatility: Number.isFinite(marketVolatility) ? marketVolatility : 0,
-    sectorRelativeStrengthPct: Number.isFinite(sectorRelativeStrengthPct) ? sectorRelativeStrengthPct : 0,
+    ...fields,
+    availableFields: Object.freeze(Object.keys(fields).filter(key => fields[key] !== null)),
+    missingFields: Object.freeze(Object.keys(fields).filter(key => fields[key] === null)),
+    complete: Object.values(fields).every(value => value !== null),
+    missingValuesFabricated: false,
   });
 }
 

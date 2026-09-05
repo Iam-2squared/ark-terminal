@@ -9,7 +9,11 @@ on:
       - 'predict/daytrade/PHASE57_ENTRY_QUALITY_V2_RESEARCH.md'
       - 'predict/tests/phase57-entry-quality-v2-*.test.mjs'
       - 'scripts/build_entry_v2_later_fetched_bar_archive.mjs'
+      - 'scripts/build_entry_v2_historical_daily_archive.mjs'
+      - 'scripts/build_entry_v2_historical_market_archive.mjs'
+      - 'scripts/run_entry_v2_historical_market_replay.mjs'
       - '.github/workflows/phase57-entry-quality-v2-research.yml'
+      - '.github/workflows/phase57-entry-quality-v2-historical-daily-archive.yml'
   workflow_dispatch:
 
 permissions:
@@ -33,8 +37,13 @@ jobs:
         run: |
           set -euo pipefail
           node --test tests/phase57-entry-quality-v2-*.test.mjs
-      - name: Verify later-fetched reconstruction tool syntax
-        run: node --check scripts/build_entry_v2_later_fetched_bar_archive.mjs
+      - name: Verify historical reconstruction tool syntax
+        run: |
+          set -euo pipefail
+          node --check scripts/build_entry_v2_later_fetched_bar_archive.mjs
+          node --check scripts/build_entry_v2_historical_daily_archive.mjs
+          node --check scripts/build_entry_v2_historical_market_archive.mjs
+          node --check scripts/run_entry_v2_historical_market_replay.mjs
       - name: Safety boundary
         if: always()
         run: |

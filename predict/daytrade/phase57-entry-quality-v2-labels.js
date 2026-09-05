@@ -32,7 +32,9 @@ function normalizeFutureBars(bars = [], after) {
       close: Number(bar.close),
     }))
     .filter(bar => [bar.high, bar.low, bar.close].every(Number.isFinite))
-    .filter(bar => Date.parse(bar.timestamp) > cutoff)
+    // Five-minute bars are represented by interval-start timestamps. The bar whose
+    // start equals the entry decision is therefore future-only and is the +1 path bar.
+    .filter(bar => Date.parse(bar.timestamp) >= cutoff)
     .filter(bar => jstSessionDate(bar.timestamp) === entrySessionDate)
     .sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
 }

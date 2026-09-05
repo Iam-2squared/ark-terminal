@@ -20,7 +20,10 @@ export const ENTRY_V2_HISTORICAL_REPLAY_POLICY = Object.freeze({
   formalOos: false,
   currentSelectorCandidateId: 'INTRADAY_DYNAMIC_5M_UNIVERSE_V1',
   frozenEntryBaseline: 'PHASE57_P21_FROZEN_ENTRY',
-  acceptedRawSnapshotPhase: '57.p25.marketwide-5m-fresh-capture',
+  acceptedRawSnapshotPhases: Object.freeze([
+    '57.p25.marketwide-5m-fresh-capture',
+    '57.entry-quality-v2.historical-market-reconstruction',
+  ]),
   minimumMarketwideSymbols: 3000,
   minimumClosedPrefixBars: 6,
   completedBarRule: 'bar.timestamp + 5 minutes <= decisionTimestamp',
@@ -29,6 +32,7 @@ export const ENTRY_V2_HISTORICAL_REPLAY_POLICY = Object.freeze({
   sourceLineageRequired: true,
   missingInputsMayBeBackfilled: false,
   oldSelectorMembershipMayBeReused: false,
+  byteEquivalentFrozenPriorModelReuseAllowed: true,
   selectorChangesAllowed: false,
   entryChangesAllowed: false,
   exitChangesAllowed: false,
@@ -77,6 +81,31 @@ const DETAILED_HISTORICAL_SOURCE_CLASSES = Object.freeze([
 ]);
 
 const sha256 = value => createHash('sha256').update(typeof value === 'string' ? value : JSON.stringify(value)).digest('hex');
+const frozenRowKey = row => `${row?.symbol ?? ''}|${row?.sessionDate ?? ''}|${row?.featureCutoff ?? ''}`;
+
+function frozenArtifactHashForAsOf({ picked, trainRows, asOf }) {
+  const payload = {
+    lineage: 'PHASE57_P21_NESTED_ADAPTIVE_PROSPECTIVE_V1',
+    asOf,
+    selection: {
+      horizonBars: picked.horizonBars,
+      featureFamily: picked.featureFamily,
+      featureKeys: picked.featureKeys,
+      configId: picked.configId,
+      modelType: picked.modelType,
+      modelOptions: picked.modelOptions,
+      threshold: picked.threshold,
+    },
+    trainingRows: trainRows.map(row => ({
+      key: frozenRowKey(row),
+      outcomeAt: row.outcomeAt,
+      label: Number(row.label),
+      actualReturnPct: Number(row.actualReturnPct),
+      features: row.features,
+    })),
+  };
+  return sha256(payload);
+}
 
 function iso(value, code) {
   const ms = Date.parse(String(value ?? ''));
@@ -228,11 +257,24 @@ function normalizeSelected(rows = []) {
 
 function normalizeSnapshot(snapshot) {
   if (!snapshot || typeof snapshot !== 'object') throw new Error('ENTRY_V2_REPLAY_RAW_SNAPSHOT_REQUIRED');
-  if (snapshot.phase !== ENTRY_V2_HISTORICAL_REPLAY_POLICY.acceptedRawSnapshotPhase) {
+  if (!ENTRY_V2_HISTORICAL_REPLAY_POLICY.acceptedRawSnapshotPhases.includes(snapshot.phase)) {
     throw new Error('ENTRY_V2_REPLAY_RAW_SNAPSHOT_PHASE_MISMATCH');
   }
   assertSafety(snapshot.safety, 'RAW_SNAPSHOT');
   if (snapshot?.methodology?.pointInTimeOnly !== true) throw new Error('ENTRY_V2_REPLAY_RAW_SNAPSHOT_NOT_POINT_IN_TIME');
+  if (snapshot.phase === '57.entry-quality-v2.historical-market-reconstruction') {
+    if (snapshot.sourceClass !== ENTRY_V2_SOURCE_CLASS.historicalReconstructionLaterFetched
+      || snapshot.datasetRole !== 'DEVELOPMENT_ONLY'
+      || snapshot.prospective !== false
+      || snapshot.formalOos !== false
+      || snapshot?.sourceLineage?.reconstructionFetchedAfterDecision !== true
+      || snapshot?.sourceLineage?.archivedPointInTimeCapture === true
+      || snapshot?.methodology?.marketDataBeforeSelector !== true
+      || snapshot?.methodology?.futureBarsUsed !== false
+      || snapshot?.methodology?.missingBarsInterpolated !== false) {
+      throw new Error('ENTRY_V2_REPLAY_LATER_FETCHED_RAW_ATTESTATION_FAILED');
+    }
+  }
   const observedAt = iso(snapshot.observedAt, 'OBSERVED_AT');
   const sessionDate = assertTradingSession(observedAt);
   const bucketMs = Math.floor(Date.parse(observedAt) / (5 * 60_000)) * (5 * 60_000);
@@ -258,7 +300,7 @@ function normalizeSnapshot(snapshot) {
     return Object.freeze({
       symbol,
       sector: String(row?.sector ?? '未分類'),
-      market: null,
+      market: row?.market ?? null,
       status: 'analyzed',
       currentPrice: Number(row.price),
       volume: Number(row.volume),
@@ -526,7 +568,10 @@ export function auditEntryV2HistoricalReplayInputs({
   });
 }
 
-function buildFrozenP21Scorer(historySessions) {
+function buildFrozenP21Scorer(historySessions, reusablePriorModelCache = null) {
+  if (reusablePriorModelCache !== null && !(reusablePriorModelCache instanceof Map)) {
+    throw new TypeError('ENTRY_V2_REPLAY_REUSABLE_PRIOR_MODEL_CACHE_MUST_BE_MAP');
+  }
   const actualHistorySymbols = [...new Set((historySessions ?? [])
     .map(session => String(session?.symbol ?? '').trim().toUpperCase()).filter(Boolean))].sort();
   const expectedHistorySymbols = [...PHASE58_P13_FROZEN_POLICY.historicalUniverse].sort();
@@ -539,6 +584,11 @@ function buildFrozenP21Scorer(historySessions) {
   });
   if (cached.complete !== true) throw new Error(`ENTRY_V2_REPLAY_FROZEN_HISTORY_${cached.status}`);
   const priorOnlyCache = new Map();
+  const historicalOutcomeTimes = Object.values(cached.historicalHorizonRowsByBars ?? {})
+    .flat().map(row => Date.parse(row?.outcomeAt ?? '')).filter(Number.isFinite);
+  const maxFrozenHistoricalOutcomeMs = historicalOutcomeTimes.length ? Math.max(...historicalOutcomeTimes) : null;
+  const frozenHistoryFingerprint = sha256(JSON.stringify(historySessions));
+  let byteEquivalentReusableBundle = reusablePriorModelCache?.get(frozenHistoryFingerprint) ?? null;
   return currentPrefix => {
     const feed = buildProspectiveP21FeatureFeed({
       symbol: currentPrefix.symbol,
@@ -548,12 +598,36 @@ function buildFrozenP21Scorer(historySessions) {
       latestBarClosed: true,
     });
     if (!feed.complete) return { complete: false, status: 'BLOCKED_P21_CURRENT_FEATURE_FEED' };
+    const currentFeatureCutoffs = [...new Set(Object.values(feed.currentRowsByHorizon ?? {})
+      .flat().map(row => String(row?.featureCutoff ?? '')).filter(Boolean))];
+    const currentAsOf = currentFeatureCutoffs.length === 1 ? currentFeatureCutoffs[0] : null;
+    if (byteEquivalentReusableBundle && currentAsOf
+      && maxFrozenHistoricalOutcomeMs !== null && maxFrozenHistoricalOutcomeMs <= Date.parse(currentAsOf)
+      && !priorOnlyCache.has(currentAsOf)) {
+      priorOnlyCache.set(currentAsOf, Object.freeze({
+        ...byteEquivalentReusableBundle,
+        asOf: currentAsOf,
+        artifactSha256: frozenArtifactHashForAsOf({
+          picked: byteEquivalentReusableBundle.picked,
+          trainRows: byteEquivalentReusableBundle.trainRows,
+          asOf: currentAsOf,
+        }),
+      }));
+    }
     const base = buildProspectiveP21FrozenDecision({
       historicalHorizonRowsByBars: cached.historicalHorizonRowsByBars,
       currentRowsByHorizon: feed.currentRowsByHorizon,
       options: PHASE58_P13_FROZEN_POLICY.selectionOptions,
       priorOnlyCache,
     });
+    if (!byteEquivalentReusableBundle && currentAsOf
+      && maxFrozenHistoricalOutcomeMs !== null && maxFrozenHistoricalOutcomeMs <= Date.parse(currentAsOf)) {
+      const fitted = priorOnlyCache.get(currentAsOf);
+      if (fitted?.status === 'PRIOR_ONLY_MODEL_READY' && typeof fitted.predictor === 'function') {
+        byteEquivalentReusableBundle = fitted;
+        reusablePriorModelCache?.set(frozenHistoryFingerprint, fitted);
+      }
+    }
     if (!base.complete) return { complete: false, status: 'BLOCKED_P21_PROSPECTIVE_BASE' };
     const built = buildFrozenPhase57SnapshotFromRuntimeDecision({
       decision: base.decision,
@@ -579,9 +653,10 @@ export function buildEntryV2HistoricalRetrospectiveReplay({
   frozenHistorySessions = [],
   horizonsBars = [1, 2, 3, 6, 12],
   roundTripCostBps = 0,
+  reusablePriorModelCache = null,
 } = {}) {
   const audit = auditEntryV2HistoricalReplayInputs({ marketSnapshots, storedMeasurements, barArchives });
-  const scorePrefix = buildFrozenP21Scorer(frozenHistorySessions);
+  const scorePrefix = buildFrozenP21Scorer(frozenHistorySessions, reusablePriorModelCache);
   const candidates = [];
   const scorerBlockedPoints = [];
   const seen = new Set();
@@ -636,7 +711,10 @@ export function buildEntryV2HistoricalRetrospectiveReplay({
       }
       const direction = directionSign === 1 ? 'LONG' : 'SHORT';
       const fullBars = point.fullBarsBySymbol[scoredRow.row.symbol];
-      const futureBars = fullBars.filter(bar => Date.parse(bar.timestamp) > Date.parse(point.observedAt));
+      // Provider timestamps are five-minute interval starts. At a decision made at t,
+      // the bar starting at t is the first label-only future bar; the feature prefix
+      // remains limited to bars whose start + 5 minutes <= t.
+      const futureBars = fullBars.filter(bar => Date.parse(bar.timestamp) >= Date.parse(point.observedAt));
       const labels = buildEntryQualityV2PathLabels({
         entryTimestamp: point.observedAt,
         entryPrice: scoredRow.row.currentPrice,
@@ -755,6 +833,7 @@ export function buildEntryV2HistoricalRetrospectiveReplay({
       .map(([horizon, stats]) => [horizon, Object.freeze(stats)]))),
     candidates: Object.freeze(candidates),
     scorerBlockedPointCount: scorerBlockedPoints.length,
+    scorerBlockedPoints: Object.freeze(scorerBlockedPoints),
     totalBlockedPointCount: allBlocked.length,
     blockedReasonDistribution: Object.freeze(reasonCounts(allBlocked)),
     pitViolationCount: 0,

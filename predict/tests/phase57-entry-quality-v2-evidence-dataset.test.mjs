@@ -116,7 +116,7 @@ test('frozen evidence flows through strict prior-daily PIT pairing without emitt
   assert.equal(row.lineage.dailyResolutionMode, 'PERSISTED_DAILY_ARCHIVE_RESOLVED_PER_ENTRY');
   assert.equal(row.lineage.dailyHistoryLineage.archiveSlice.excludedSameOrFutureRecordCount, 2);
   assert.equal(row.lineage.dailyHistoryLineage.lastRetainedSessionDate, '2026-09-03');
-  assert.equal(row.newResearch.features.daily.priorClose, priorDaily.at(-2).close);
+  assert.equal(row.newResearch.features.daily.priorClose, priorDaily.at(-1).close);
   assert.equal(row.newResearch.features.universe.price, 10);
   assert.equal(row.newResearch.features.universe.tickToPricePct, 10);
   assert.equal(row.newResearch.features.universe.hardEligibilityApplied, false);

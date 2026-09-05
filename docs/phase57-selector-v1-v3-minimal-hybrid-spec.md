@@ -8,6 +8,10 @@ This is not `V1 selected AND V3 selected`. V3 membership is not required, and `A
 
 The normative machine-readable contract is `predict/research/phase57-selector-minimal-hybrid-phase-a.json`. Its adjacent SHA-256 file seals the Phase A bytes before any new-dataset outcomes are inspected.
 
+## Phase A amendment v1.1
+
+The original Phase A bytes and SHA remain unchanged. Before Fresh Development outcomes were used, the implementation-critical clarifications from independent review were frozen separately in `predict/research/phase57-selector-minimal-hybrid-phase-a-amendment-v1.1.json` and its adjacent SHA-256 file. For Minimal implementation, v1.1 requires five-minute-only inputs, separate Up/Down targets, bounded soft rank adjustment, no direct extension coefficient or threshold, and no microstructure dependency. The original file remains the historical Phase A record; the amendment is additive and does not admit any previously consumed dataset.
+
 ## Evidence boundary
 
 The 59 sessions from 2026-06-12 through 2026-09-04, dataset `PHASE57_SELECTOR_YAHOO_5M_24626FD37F8633F4`, are consumed hypothesis-generation evidence. They cannot supply Hybrid Development, Validation, or OOS rows and cannot be used for weights, targets, thresholds, Dynamic N, rank-band filters, symbol rules, time filters, overlap rules, or case-derived gates.

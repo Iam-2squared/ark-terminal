@@ -15,6 +15,52 @@ const load=file=>{
   const bytes=fs.readFileSync(file);
   return {bytes,sha256:sha(bytes),json:JSON.parse(bytes.toString('utf8'))};
 };
+const acceptedKeys=replay=>new Set((replay?.allocationDecisions??[]).filter(row=>row?.status==='ACCEPTED').map(row=>String(row.key)).sort());
+const setDelta=(reference,candidate)=>({
+  addedAcceptedTradeKeys:[...candidate].filter(key=>!reference.has(key)).sort(),
+  removedAcceptedTradeKeys:[...reference].filter(key=>!candidate.has(key)).sort(),
+});
+function buildExecutionSetDiagnostics(result){
+  const rows=[];
+  for(const universeVariant of result.universeVariantOrder??[]){
+    for(const baselineProfileId of result.baselineProfileOrder??[]){
+      const attribution=result.attributions?.[universeVariant]?.[baselineProfileId];
+      const reference=attribution?.results?.EQUAL_NOTIONAL;
+      if(!reference)throw new Error(`CAR-1 Equal Notional execution-set reference missing: ${universeVariant}/${baselineProfileId}`);
+      const referenceKeys=acceptedKeys(reference);
+      for(const sizingProfileId of result.sizingProfileOrder??[]){
+        const replay=attribution?.results?.[sizingProfileId];
+        if(!replay)throw new Error(`CAR-1 replay missing for execution-set diagnostic: ${universeVariant}/${baselineProfileId}/${sizingProfileId}`);
+        const candidateKeys=acceptedKeys(replay),delta=setDelta(referenceKeys,candidateKeys);
+        const sameAcceptedTradeSet=delta.addedAcceptedTradeKeys.length===0&&delta.removedAcceptedTradeKeys.length===0;
+        rows.push({
+          universeVariant,
+          baselineProfileId,
+          sizingProfileId,
+          referenceSizingProfileId:'EQUAL_NOTIONAL',
+          sameAcceptedTradeSet,
+          allocationInducedEligibilityChange:!sameAcceptedTradeSet,
+          referenceAcceptedTradeCount:referenceKeys.size,
+          acceptedTradeCount:candidateKeys.size,
+          acceptedTradeCountDelta:candidateKeys.size-referenceKeys.size,
+          addedAcceptedTradeKeys:delta.addedAcceptedTradeKeys,
+          removedAcceptedTradeKeys:delta.removedAcceptedTradeKeys,
+          interpretation:sameAcceptedTradeSet
+            ?'PURE_EXECUTED_SET_POSITION_SIZE_COMPARISON'
+            :'POSITION_SIZE_PLUS_ROUND_LOT_OR_CASH_ELIGIBILITY_EFFECT',
+        });
+      }
+    }
+  }
+  return {
+    status:'CAR1_EXECUTION_SET_DIAGNOSTIC_READY',
+    referenceSizingProfileId:'EQUAL_NOTIONAL',
+    winnerSelectionAllowed:false,
+    parameterSearchAllowed:false,
+    outcomeUsedBySizer:false,
+    rows,
+  };
+}
 
 const historyPath=arg('--history-pack');
 const captureDir=arg('--capture-dir');
@@ -60,9 +106,10 @@ try{
     checkpointsBySession,
     sourceEvaluationArtifact:sourceEvaluation.json,
   });
+  const executionSetDiagnostics=buildExecutionSetDiagnostics(result);
 
   const payload={
-    schemaVersion:1,
+    schemaVersion:2,
     phase:'57.car1.checkpointed-sizing-attribution-cli',
     status:'CAR1_CHECKPOINTED_PAIRED_SIZING_ARTIFACT_WRITTEN',
     createdAt:new Date().toISOString(),
@@ -75,6 +122,7 @@ try{
       checkpointArtifactCount:checkpointFiles.length,
     },
     result,
+    executionSetDiagnostics,
     methodology:{
       developmentEvidenceOnly:true,
       sameFrozenEntry:true,
@@ -84,6 +132,8 @@ try{
       sameCostAssumption:true,
       sameCandidatePriority:true,
       baselineBudgetEnvelopeAnchored:true,
+      executionSetDriftDiagnosedPostReplay:true,
+      executionSetDiagnosticFeedsSizer:false,
       parameterSearchAllowed:false,
       winnerSelectionAllowed:false,
       promotionEligible:false,
@@ -112,6 +162,7 @@ try{
     baselineProfileOrder:result.baselineProfileOrder,
     sizingProfileOrder:result.sizingProfileOrder,
     matrixRows:result.matrixRows,
+    executionSetDiagnostics:executionSetDiagnostics.rows,
     safety:PHASE57_CAR1_CHECKPOINT_SAFETY,
   },null,2));
 }catch(error){

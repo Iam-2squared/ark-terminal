@@ -81,12 +81,16 @@ test('CAR-1 bridge anchors all sizing challengers to the exact Lane C legacy tar
   }
 });
 
-test('CAR-1 bridge fails closed when a risk-weighted challenger lacks causal pre-entry history',()=>{
-  const short=bars({range:2,wiggle:0.2,count:10});
+test('CAR-1 bridge fails closed when a multi-candidate risk-weighted group lacks causal pre-entry history',()=>{
+  const left=bars({range:2,wiggle:0.2,count:10});
+  const right=bars({range:4,wiggle:0.4,count:10});
   const session={
     sessionDate:DATE,
-    trades:[trade('SHORT.T',short,{entryMinute:8,exitMinute:9})],
-    sessionBarsBySymbol:{'SHORT.T':short},
+    trades:[
+      trade('SHORT1.T',left,{entryMinute:8,exitMinute:9}),
+      trade('SHORT2.T',right,{entryMinute:8,exitMinute:9}),
+    ],
+    sessionBarsBySymbol:{'SHORT1.T':left,'SHORT2.T':right},
   };
   assert.throws(()=>buildCar1PairedBudgetAttribution({
     sessions:[session],baselineProfile:profile,profileIds:['INVERSE_ATR'],

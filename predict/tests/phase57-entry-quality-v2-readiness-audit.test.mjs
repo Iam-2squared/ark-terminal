@@ -14,6 +14,12 @@ import {
 const evidence = JSON.parse(fs.readFileSync(new URL(
   '../daytrade/phase57-entry-quality-v2-dataset-readiness-phase0-2026-09-05.json', import.meta.url,
 ), 'utf8'));
+const goldenInventory = evidence.goldenMismatchAudit.eventInventory.flatMap(part => JSON.parse(fs.readFileSync(new URL(
+  `../daytrade/${part.path.split('/').at(-1)}`, import.meta.url,
+), 'utf8')).events);
+const corporateOverlapInventory = JSON.parse(fs.readFileSync(new URL(
+  `../daytrade/${evidence.corporateActionAudit.candidateOverlapInventory.path.split('/').at(-1)}`, import.meta.url,
+), 'utf8'));
 const falseSafetyKeys = [
   'executionAllowed', 'brokerWriteAllowed', 'excelOrderWriteAllowed', 'rssOrderFunctionAllowed',
   'liveTradingAllowed', 'paperTradingAllowed', 'automaticPromotionAllowed', 'productionUpdateAllowed', 'transmitted',
@@ -70,9 +76,11 @@ test('Phase 0 evidence quantifies dependence and remains a model NO-GO', () => {
   assert.equal(evidence.datasetSummary.nominalCandidateCount, 445);
   assert.equal(evidence.datasetSummary.sessionCount, 16);
   assert.equal(evidence.goldenMismatchAudit.eventCount, 41);
+  assert.equal(goldenInventory.length, 41);
   assert.equal(evidence.goldenMismatchAudit.exactOhlcvContextCount, 21);
   assert.equal(evidence.goldenMismatchAudit.exactEntryReferenceCount, 13);
   assert.equal(evidence.corporateActionAudit.actionCounts.splits, 81);
+  assert.equal(corporateOverlapInventory.eventCount, 445);
   assert.equal(evidence.corporateActionAudit.candidateOverlapCounts.split.prior20Sessions, 0);
   assert.equal(evidence.corporateActionAudit.empiricalSplitContinuity.providerQuoteContinuousBasisCount, 81);
   assert.ok(evidence.effectiveSampleSizeAudit['h6.grossReturnPct'].approximateEffectiveN < 382);

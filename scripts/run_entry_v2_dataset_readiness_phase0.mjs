@@ -28,10 +28,10 @@ const dailyArchiveDir = path.resolve(arg('--daily-archive-dir', 'tmp/entry-v2-hi
 const outputPath = path.resolve(arg('--output', 'predict/daytrade/phase57-entry-quality-v2-dataset-readiness-phase0-2026-09-05.json'));
 
 const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8'));
-const writeAtomicJson = (file, value) => {
+const writeAtomicJson = (file, value, { compact = false } = {}) => {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   const temporary = `${file}.tmp-${process.pid}`;
-  fs.writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`);
+  fs.writeFileSync(temporary, `${JSON.stringify(value, null, compact ? 0 : 2)}\n`);
   fs.renameSync(temporary, file);
 };
 const fiveMinuteBucket = value => new Date(Math.floor(Date.parse(value) / 300_000) * 300_000).toISOString();
@@ -400,6 +400,45 @@ if (new Set(sessionRows.map(row => row.directionRegime)).size < 3) blockers.push
 if (new Set(sessionRows.map(row => row.volatilityRegime)).size < 2) blockers.push('VOLATILITY_REGIME_DIVERSITY_INCOMPLETE');
 blockers.push('NO_CURRENT_SESSION_CAN_BE_CLAIMED_AS_UNTOUCHED_OOS_AFTER_GOLDEN_AND_PHASE0_INSPECTION');
 
+const evidenceStem = outputPath.replace(/\.json$/u, '');
+const goldenEventChunks = [goldenMismatchAudit.events.slice(0, 21), goldenMismatchAudit.events.slice(21)];
+const goldenInventoryReferences = goldenEventChunks.map((events, index) => {
+  const file = `${evidenceStem}-golden-events-${String(index + 1).padStart(2, '0')}.json`;
+  const core = {
+    schemaVersion: 1,
+    phase: ENTRY_V2_READINESS_PHASE0_POLICY.phase,
+    inventory: 'GOLDEN_EVENT_MISMATCH',
+    part: index + 1,
+    partCount: goldenEventChunks.length,
+    eventCount: events.length,
+    events,
+  };
+  const value = { ...core, contentSha256: sha256(core) };
+  writeAtomicJson(file, value, { compact: true });
+  return { path: path.relative(process.cwd(), file), eventCount: events.length, contentSha256: value.contentSha256 };
+});
+const corporateOverlapPath = `${evidenceStem}-corporate-action-overlaps.json`;
+const corporateOverlapCore = {
+  schemaVersion: 1,
+  phase: ENTRY_V2_READINESS_PHASE0_POLICY.phase,
+  inventory: 'CANDIDATE_CORPORATE_ACTION_OVERLAP',
+  eventCount: corporateActionAudit.candidateOverlaps.length,
+  events: corporateActionAudit.candidateOverlaps,
+};
+const corporateOverlapInventory = { ...corporateOverlapCore, contentSha256: sha256(corporateOverlapCore) };
+writeAtomicJson(corporateOverlapPath, corporateOverlapInventory, { compact: true });
+
+const goldenMismatchSummary = { ...goldenMismatchAudit };
+delete goldenMismatchSummary.events;
+goldenMismatchSummary.eventInventory = goldenInventoryReferences;
+const corporateActionSummary = { ...corporateActionAudit };
+delete corporateActionSummary.candidateOverlaps;
+corporateActionSummary.candidateOverlapInventory = {
+  path: path.relative(process.cwd(), corporateOverlapPath),
+  eventCount: corporateOverlapInventory.eventCount,
+  contentSha256: corporateOverlapInventory.contentSha256,
+};
+
 const outputCore = {
   schemaVersion: 1,
   phase: ENTRY_V2_READINESS_PHASE0_POLICY.phase,
@@ -426,8 +465,8 @@ const outputCore = {
     longCount: dataset.candidates.filter(row => row.direction === 'LONG').length,
     shortCount: dataset.candidates.filter(row => row.direction === 'SHORT').length,
   },
-  goldenMismatchAudit,
-  corporateActionAudit,
+  goldenMismatchAudit: goldenMismatchSummary,
+  corporateActionAudit: corporateActionSummary,
   clusteringAudit: {
     methodology: 'CANDIDATE_LABELS_USED_FOR_DATASET_DEPENDENCE_DIAGNOSTICS_ONLY;NO_MODEL_OR_THRESHOLD_SELECTION',
     byLabelAndCluster: clustering,

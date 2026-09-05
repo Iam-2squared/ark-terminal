@@ -11,11 +11,14 @@ const arg=(name,fallback=null)=>{
   return index>=0&&index+1<process.argv.length?process.argv[index+1]:fallback;
 };
 const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+const round=(value,digits=6)=>Number.isFinite(Number(value))?Number(Number(value).toFixed(digits)):value;
 const load=file=>{
   const bytes=fs.readFileSync(file);
   return {bytes,sha256:sha(bytes),json:JSON.parse(bytes.toString('utf8'))};
 };
 const acceptedKeys=replay=>new Set((replay?.allocationDecisions??[]).filter(row=>row?.status==='ACCEPTED').map(row=>String(row.key)).sort());
+const pnlByKey=replay=>new Map((replay?.closedTrades??[]).map(row=>[String(row.key),Number(row.realizedPnlJpy)]));
+const sum=values=>values.reduce((total,value)=>total+Number(value),0);
 const setDelta=(reference,candidate)=>({
   addedAcceptedTradeKeys:[...candidate].filter(key=>!reference.has(key)).sort(),
   removedAcceptedTradeKeys:[...reference].filter(key=>!candidate.has(key)).sort(),
@@ -27,12 +30,23 @@ function buildExecutionSetDiagnostics(result){
       const attribution=result.attributions?.[universeVariant]?.[baselineProfileId];
       const reference=attribution?.results?.EQUAL_NOTIONAL;
       if(!reference)throw new Error(`CAR-1 Equal Notional execution-set reference missing: ${universeVariant}/${baselineProfileId}`);
-      const referenceKeys=acceptedKeys(reference);
+      const referenceKeys=acceptedKeys(reference),referencePnl=pnlByKey(reference);
       for(const sizingProfileId of result.sizingProfileOrder??[]){
         const replay=attribution?.results?.[sizingProfileId];
         if(!replay)throw new Error(`CAR-1 replay missing for execution-set diagnostic: ${universeVariant}/${baselineProfileId}/${sizingProfileId}`);
-        const candidateKeys=acceptedKeys(replay),delta=setDelta(referenceKeys,candidateKeys);
+        const candidateKeys=acceptedKeys(replay),candidatePnl=pnlByKey(replay),delta=setDelta(referenceKeys,candidateKeys);
+        const commonKeys=[...candidateKeys].filter(key=>referenceKeys.has(key)).sort();
         const sameAcceptedTradeSet=delta.addedAcceptedTradeKeys.length===0&&delta.removedAcceptedTradeKeys.length===0;
+        const commonTradeRealizedPnlDeltaJpy=sum(commonKeys.map(key=>(candidatePnl.get(key)??0)-(referencePnl.get(key)??0)));
+        const addedTradeRealizedPnlJpy=sum(delta.addedAcceptedTradeKeys.map(key=>candidatePnl.get(key)??0));
+        const removedReferenceTradeRealizedPnlJpy=sum(delta.removedAcceptedTradeKeys.map(key=>referencePnl.get(key)??0));
+        const eligibilityRealizedPnlContributionJpy=addedTradeRealizedPnlJpy-removedReferenceTradeRealizedPnlJpy;
+        const decomposedRealizedPnlDeltaJpy=commonTradeRealizedPnlDeltaJpy+eligibilityRealizedPnlContributionJpy;
+        const finalEquityDeltaJpy=Number(replay.finalEquityJpy)-Number(reference.finalEquityJpy);
+        const pnlDecompositionResidualJpy=finalEquityDeltaJpy-decomposedRealizedPnlDeltaJpy;
+        if(Math.abs(pnlDecompositionResidualJpy)>1e-3){
+          throw new Error(`CAR-1 PnL decomposition failed: ${universeVariant}/${baselineProfileId}/${sizingProfileId} residual=${pnlDecompositionResidualJpy}`);
+        }
         rows.push({
           universeVariant,
           baselineProfileId,
@@ -43,8 +57,18 @@ function buildExecutionSetDiagnostics(result){
           referenceAcceptedTradeCount:referenceKeys.size,
           acceptedTradeCount:candidateKeys.size,
           acceptedTradeCountDelta:candidateKeys.size-referenceKeys.size,
+          commonAcceptedTradeCount:commonKeys.length,
           addedAcceptedTradeKeys:delta.addedAcceptedTradeKeys,
           removedAcceptedTradeKeys:delta.removedAcceptedTradeKeys,
+          commonTradeRealizedPnlDeltaJpy:round(commonTradeRealizedPnlDeltaJpy),
+          addedTradeRealizedPnlJpy:round(addedTradeRealizedPnlJpy),
+          removedReferenceTradeRealizedPnlJpy:round(removedReferenceTradeRealizedPnlJpy),
+          eligibilityRealizedPnlContributionJpy:round(eligibilityRealizedPnlContributionJpy),
+          decomposedRealizedPnlDeltaJpy:round(decomposedRealizedPnlDeltaJpy),
+          finalEquityDeltaJpy:round(finalEquityDeltaJpy),
+          pnlDecompositionResidualJpy:round(pnlDecompositionResidualJpy),
+          pnlDecompositionReconciled:true,
+          commonTradeSizingPnlIsPathDependent:true,
           interpretation:sameAcceptedTradeSet
             ?'PURE_EXECUTED_SET_POSITION_SIZE_COMPARISON'
             :'POSITION_SIZE_PLUS_ROUND_LOT_OR_CASH_ELIGIBILITY_EFFECT',
@@ -58,6 +82,7 @@ function buildExecutionSetDiagnostics(result){
     winnerSelectionAllowed:false,
     parameterSearchAllowed:false,
     outcomeUsedBySizer:false,
+    diagnosticComputedPostReplay:true,
     rows,
   };
 }
@@ -109,7 +134,7 @@ try{
   const executionSetDiagnostics=buildExecutionSetDiagnostics(result);
 
   const payload={
-    schemaVersion:2,
+    schemaVersion:3,
     phase:'57.car1.checkpointed-sizing-attribution-cli',
     status:'CAR1_CHECKPOINTED_PAIRED_SIZING_ARTIFACT_WRITTEN',
     createdAt:new Date().toISOString(),
@@ -133,6 +158,7 @@ try{
       sameCandidatePriority:true,
       baselineBudgetEnvelopeAnchored:true,
       executionSetDriftDiagnosedPostReplay:true,
+      executionSetPnlDecompositionReconciled:true,
       executionSetDiagnosticFeedsSizer:false,
       parameterSearchAllowed:false,
       winnerSelectionAllowed:false,

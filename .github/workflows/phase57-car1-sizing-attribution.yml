@@ -1,0 +1,133 @@
+name: Phase57 CAR-1 Sizing Attribution
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/phase57-car1-sizing-attribution.yml'
+      - 'scripts/run_phase57_car1_checkpointed_sizing.mjs'
+      - 'predict/portfolio/phase57-car1-*.js'
+      - 'predict/tests/phase57-car1-*.test.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-car1-sizing-attribution-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  paired-sizing-attribution:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SOURCE_RUN_ID: '33762588162'
+      SOURCE_RUN_HEAD_SHA: '725aa956c30710de43de13110763476a4a6f1a9c'
+    steps:
+      - name: Checkout CAR-1 research branch
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify pinned immutable source run
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mapfile -t metadata < <(gh api "repos/$GH_REPO/actions/runs/$SOURCE_RUN_ID" --jq '.conclusion, .path, .head_branch, .head_sha')
+          test "${#metadata[@]}" -eq 4
+          test "${metadata[0]}" = 'success'
+          test "${metadata[1]}" = '.github/workflows/phase57-p25-checkpointed-evaluation.yml'
+          test "${metadata[2]}" = 'main'
+          test "${metadata[3]}" = "$SOURCE_RUN_HEAD_SHA"
+      - name: Download exact checkpointed evidence inputs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/car1-source /tmp/car1-inputs/captures /tmp/car1-checkpoints
+          gh run download "$SOURCE_RUN_ID" --repo "$GH_REPO" --dir /tmp/car1-source
+          mapfile -t histories < <(find /tmp/car1-source -type f -name history.json | sort)
+          mapfile -t integrities < <(find /tmp/car1-source -type f -name integrity.json | sort)
+          mapfile -t lineages < <(find /tmp/car1-source -type f -name lineage.json | sort)
+          mapfile -t evaluations < <(find /tmp/car1-source -type f -name p25-evaluation.json | sort)
+          mapfile -t captures < <(find /tmp/car1-source -type f -path '*/captures/*.json' | sort)
+          mapfile -t checkpoints < <(find /tmp/car1-source -type f -name 'checkpoint-*.json' | sort)
+          test "${#histories[@]}" -eq 1
+          test "${#integrities[@]}" -eq 1
+          test "${#lineages[@]}" -eq 1
+          test "${#evaluations[@]}" -eq 1
+          test "${#captures[@]}" -gt 0
+          test "${#checkpoints[@]}" -gt 0
+          cp "${histories[0]}" /tmp/car1-inputs/history.json
+          cp "${integrities[0]}" /tmp/car1-inputs/integrity.json
+          cp "${lineages[0]}" /tmp/car1-inputs/lineage.json
+          cp "${evaluations[0]}" /tmp/car1-inputs/source-evaluation.json
+          for source in "${captures[@]}"; do
+            target="/tmp/car1-inputs/captures/$(basename "$source")"
+            test ! -e "$target"
+            cp "$source" "$target"
+          done
+          for source in "${checkpoints[@]}"; do
+            target="/tmp/car1-checkpoints/$(basename "$source")"
+            test ! -e "$target"
+            cp "$source" "$target"
+          done
+      - name: Run CAR-1 checkpointed paired sizing attribution
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/run_phase57_car1_checkpointed_sizing.mjs \
+            --history-pack /tmp/car1-inputs/history.json \
+            --capture-dir /tmp/car1-inputs/captures \
+            --integrity-ledger /tmp/car1-inputs/integrity.json \
+            --lineage-manifest /tmp/car1-inputs/lineage.json \
+            --checkpoint-dir /tmp/car1-checkpoints \
+            --source-evaluation /tmp/car1-inputs/source-evaluation.json \
+            --output /tmp/phase57-car1-sizing-attribution.json
+      - name: Verify attribution discipline and safety locks
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs=require('fs');
+          const x=JSON.parse(fs.readFileSync('/tmp/phase57-car1-sizing-attribution.json','utf8'));
+          const falseKeys=['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted'];
+          if(x.status!=='CAR1_CHECKPOINTED_PAIRED_SIZING_ARTIFACT_WRITTEN')throw new Error('CAR-1 artifact not ready');
+          if(x.result?.status!=='CAR1_CHECKPOINTED_PAIRED_SIZING_ATTRIBUTION_READY')throw new Error('CAR-1 result not ready');
+          if(x.result?.sourceReconciliation?.exactCheckpointRecomputationMatch!==true)throw new Error('formal checkpoint reconciliation failed');
+          for(const variant of x.result.universeVariantOrder){
+            for(const baseline of x.result.baselineProfileOrder){
+              if(x.result.baselineParity?.[variant]?.[baseline]?.passed!==true)throw new Error(`legacy parity failed: ${variant}/${baseline}`);
+            }
+          }
+          if(x.result?.methodology?.sameFrozenEntry!==true||x.result?.methodology?.sameFrozenExit!==true||x.result?.methodology?.sameCandidatePriority!==true)throw new Error('paired methodology lock failed');
+          if(x.result?.methodology?.parameterSearchAllowed!==false||x.result?.methodology?.winnerSelectionAllowed!==false||x.result?.methodology?.promotionEligible!==false)throw new Error('research interpretation lock failed');
+          if(x.result?.methodology?.formalOos!==false||x.result?.methodology?.prospectiveSampleSufficient!==false)throw new Error('evidence classification changed');
+          for(const key of falseKeys)if(x.safety?.[key]!==false)throw new Error(`unsafe CAR-1 flag: ${key}`);
+          console.log(JSON.stringify({
+            status:x.status,
+            readySessionCount:x.result.inputAudit.readySessionCount,
+            frozenTradeCount:x.result.inputAudit.frozenTradeCount,
+            resolvedTradeCount:x.result.inputAudit.resolvedTradeCount,
+            unresolvedTradeCount:x.result.inputAudit.unresolvedTradeCount,
+            matrixRows:x.result.matrixRows,
+          },null,2));
+          NODE
+      - name: Upload CAR-1 development evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-car1-sizing-attribution-pinned-2026-09-03
+          path: /tmp/phase57-car1-sizing-attribution.json
+          retention-days: 30
+      - name: Safety boundary
+        if: always()
+        run: |
+          echo 'CAR-1 development evidence only; no winner selection, promotion, main integration, broker/Excel/RSS order write, paper/live trading, or transmission.'

@@ -635,6 +635,42 @@ function summarizeDelta(pairs, leftModel, rightModel) {
   });
 }
 
+/**
+ * Rebuilds the complete four-way summary from already-audited pair rows. This is
+ * intentionally exported so independently computed validation-session shards can
+ * be reduced without rerunning any EXIT decision.
+ */
+export function summarizeExitV5FourWayPairs(pairs) {
+  if (!Array.isArray(pairs) || pairs.length === 0) throw new Error('paired summary requires non-empty pairs');
+  const seen = new Set();
+  for (const [index, pair] of pairs.entries()) {
+    if (!String(pair?.pairKey ?? '').trim()) throw new Error(`pairs[${index}].pairKey is required`);
+    if (seen.has(pair.pairKey)) throw new Error(`duplicate paired summary key: ${pair.pairKey}`);
+    seen.add(pair.pairKey);
+    if (!pair?.invariant?.invariantSha256) throw new Error(`pairs[${index}] invariant hash is required`);
+    for (const modelId of PHASE57_EXIT_V5_PAIRED_MODEL_IDS) {
+      if (!pair?.outcomes?.[modelId] || !pair?.evaluation?.[modelId] || !Array.isArray(pair?.calibration?.[modelId])) {
+        throw new Error(`pairs[${index}] is missing ${modelId} paired evidence`);
+      }
+      if (pair.outcomes[modelId].invariantSha256 !== pair.invariant.invariantSha256) {
+        throw new Error(`pairs[${index}] ${modelId} invariant hash mismatch`);
+      }
+    }
+  }
+
+  const frozenPairs = Object.freeze([...pairs]);
+  const models = Object.freeze(Object.fromEntries(PHASE57_EXIT_V5_PAIRED_MODEL_IDS.map((modelId) => [modelId, summarizeModel(frozenPairs, modelId)])));
+  const pairedDeltas = Object.freeze({
+    V4_MINUS_V3: summarizeDelta(frozenPairs, 'V4', 'V3'),
+    V5_UNCONDITIONAL_MINUS_V3: summarizeDelta(frozenPairs, 'V5_UNCONDITIONAL', 'V3'),
+    V5_UNCONDITIONAL_MINUS_V4: summarizeDelta(frozenPairs, 'V5_UNCONDITIONAL', 'V4'),
+    V5_CONDITIONAL_MINUS_V3: summarizeDelta(frozenPairs, 'V5_CONDITIONAL', 'V3'),
+    V5_CONDITIONAL_MINUS_V4: summarizeDelta(frozenPairs, 'V5_CONDITIONAL', 'V4'),
+    V5_CONDITIONAL_MINUS_V5_UNCONDITIONAL: summarizeDelta(frozenPairs, 'V5_CONDITIONAL', 'V5_UNCONDITIONAL'),
+  });
+  return Object.freeze({ models, pairedDeltas });
+}
+
 function assertChronologicalEvaluationRows(rows) {
   let previous = -Infinity;
   for (const [index, row] of rows.entries()) {
@@ -723,15 +759,7 @@ export function runExitV5FourWayPairedEvaluation({
   }
 
   const frozenPairs = Object.freeze(pairs);
-  const models = Object.freeze(Object.fromEntries(PHASE57_EXIT_V5_PAIRED_MODEL_IDS.map((modelId) => [modelId, summarizeModel(frozenPairs, modelId)])));
-  const deltas = Object.freeze({
-    V4_MINUS_V3: summarizeDelta(frozenPairs, 'V4', 'V3'),
-    V5_UNCONDITIONAL_MINUS_V3: summarizeDelta(frozenPairs, 'V5_UNCONDITIONAL', 'V3'),
-    V5_UNCONDITIONAL_MINUS_V4: summarizeDelta(frozenPairs, 'V5_UNCONDITIONAL', 'V4'),
-    V5_CONDITIONAL_MINUS_V3: summarizeDelta(frozenPairs, 'V5_CONDITIONAL', 'V3'),
-    V5_CONDITIONAL_MINUS_V4: summarizeDelta(frozenPairs, 'V5_CONDITIONAL', 'V4'),
-    V5_CONDITIONAL_MINUS_V5_UNCONDITIONAL: summarizeDelta(frozenPairs, 'V5_CONDITIONAL', 'V5_UNCONDITIONAL'),
-  });
+  const summary = summarizeExitV5FourWayPairs(frozenPairs);
 
   return Object.freeze({
     phase: PHASE57_EXIT_V5_PAIRED_POLICY.phase,
@@ -744,7 +772,7 @@ export function runExitV5FourWayPairedEvaluation({
     pairedContract: contract,
     evaluationHorizons: Object.freeze(horizons),
     pairs: frozenPairs,
-    summary: Object.freeze({ models, pairedDeltas: deltas }),
+    summary,
     methodology: Object.freeze({
       exactSameFrozenInputForAllModels: true,
       marketDataFingerprintAsserted: true,
@@ -784,5 +812,6 @@ export default {
   fitExitV5PairedDevelopmentModels,
   fitExitV5PairedModelsFromPurgedSplit,
   simulateExitV5FrozenPolicy,
+  summarizeExitV5FourWayPairs,
   runExitV5FourWayPairedEvaluation,
 };

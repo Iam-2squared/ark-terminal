@@ -10,6 +10,7 @@ import {
   fitExitV5PairedModelsFromPurgedSplit,
   runExitV5FourWayPairedEvaluation,
   simulateExitV5FrozenPolicy,
+  summarizeExitV5FourWayPairs,
 } from '../daytrade/phase57-exit-v5-paired-evaluator.js';
 import { buildPurgedExitV5Split } from '../daytrade/phase57-exit-v5-continuation-dataset.js';
 
@@ -237,6 +238,11 @@ test('four-way evaluator uses one fully asserted invariant for v3, v4 and both v
     assert.equal(result.summary.models[modelId].segments.direction.SHORT.tradeCount, 1);
   }
   assert.equal(result.summary.pairedDeltas.V5_CONDITIONAL_MINUS_V4.pairedCount, 2);
+  assert.deepEqual(summarizeExitV5FourWayPairs(result.pairs), result.summary);
+  assert.throws(
+    () => summarizeExitV5FourWayPairs([result.pairs[0], result.pairs[0]]),
+    /duplicate paired summary key/,
+  );
 });
 
 test('paired invariant rejects policy drift and evaluator rejects development overlap', () => {
@@ -307,6 +313,30 @@ test('post-exit future changes may alter calibration diagnostics but never the f
   const adverseOutcome = adverse.pairs[0].outcomes.V5_UNCONDITIONAL;
   assert.deepEqual(favorableOutcome.managementDecisions.slice(0, 2), adverseOutcome.managementDecisions.slice(0, 2));
   assert.notDeepEqual(favorable.pairs[0].calibration.V5_UNCONDITIONAL, adverse.pairs[0].calibration.V5_UNCONDITIONAL);
+});
+
+test('removing non-causal future-session analogs leaves v3 and v4 decisions unchanged', () => {
+  const priorOnly = analogPool();
+  const withFutureSessions = [
+    ...priorOnly,
+    ...priorOnly.slice(0, 8).map((row) => ({
+      ...row,
+      sessionDate: '2026-08-07',
+      timestamp: '2026-08-07T00:30:00.000Z',
+      fullyRealizedAt: '2026-08-07T01:00:00.000Z',
+      labels: { 1: 99, 3: 99, 6: 99 },
+    })),
+  ];
+  const shared = {
+    evaluationRows: [{ ...evaluationRow(), sessionDate: '2026-08-06' }],
+    fittedModels: fittedModels(),
+    splitName: 'validation',
+    pairedContract: CONTRACT,
+  };
+  const pruned = runExitV5FourWayPairedEvaluation({ ...shared, analogPool: priorOnly });
+  const unpruned = runExitV5FourWayPairedEvaluation({ ...shared, analogPool: withFutureSessions });
+  assert.deepEqual(unpruned.pairs[0].outcomes.V3, pruned.pairs[0].outcomes.V3);
+  assert.deepEqual(unpruned.pairs[0].outcomes.V4, pruned.pairs[0].outcomes.V4);
 });
 
 test('paired evaluator remains research/shadow only with no promotion path', () => {

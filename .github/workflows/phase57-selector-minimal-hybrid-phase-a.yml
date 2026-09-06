@@ -24,7 +24,9 @@ on:
       - 'predict/tests/phase57-selector-minimal-hybrid-source-resolution.test.mjs'
       - 'predict/tests/phase57-selector-minimal-hybrid-implementation.test.mjs'
       - 'predict/tests/phase57-selector-jquants-minute.test.mjs'
+      - 'predict/tests/phase57-selector-jquants-free-probe.test.mjs'
       - 'scripts/lib/phase57-selector-jquants-minute.mjs'
+      - 'scripts/probe_phase57_selector_jquants_free.mjs'
       - 'scripts/audit_phase57_selector_minimal_hybrid_dataset.mjs'
       - '.github/workflows/phase57-selector-minimal-hybrid-phase-a.yml'
   workflow_dispatch:
@@ -50,4 +52,27 @@ jobs:
       - name: Verify Fresh Source resolution evidence
         run: (cd predict/research && sha256sum --check phase57-selector-minimal-hybrid-source-resolution-2026-09-06.sha256)
       - name: Verify architecture and dataset contamination guards
-        run: node --test predict/tests/phase57-selector-minimal-hybrid-phase-a.test.mjs predict/tests/phase57-selector-minimal-hybrid-dataset-audit.test.mjs predict/tests/phase57-selector-minimal-hybrid-source-resolution.test.mjs predict/tests/phase57-selector-minimal-hybrid-implementation.test.mjs predict/tests/phase57-selector-jquants-minute.test.mjs
+        run: node --test predict/tests/phase57-selector-minimal-hybrid-phase-a.test.mjs predict/tests/phase57-selector-minimal-hybrid-dataset-audit.test.mjs predict/tests/phase57-selector-minimal-hybrid-source-resolution.test.mjs predict/tests/phase57-selector-minimal-hybrid-implementation.test.mjs predict/tests/phase57-selector-jquants-minute.test.mjs predict/tests/phase57-selector-jquants-free-probe.test.mjs
+
+  jquants-free-entitlement:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    env:
+      JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Probe authentication and Free entitlement without exposing the secret
+        run: node scripts/probe_phase57_selector_jquants_free.mjs --output artifacts/jquants-free-entitlement.json
+      - name: Upload sanitized SOURCE_VALIDATION_ONLY evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-jquants-free-entitlement-${{ github.run_id }}
+          path: artifacts/jquants-free-entitlement.json
+          if-no-files-found: error
+          retention-days: 7

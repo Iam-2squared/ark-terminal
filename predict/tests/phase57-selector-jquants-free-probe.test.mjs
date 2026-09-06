@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import fs from 'node:fs';
 import test from 'node:test';
 import {probeJquantsFree} from '../../scripts/probe_phase57_selector_jquants_free.mjs';
 
@@ -33,4 +35,23 @@ test('minute access runs only a bounded SOURCE_VALIDATION_ONLY pilot',async()=>{
   assert.equal(report.admission.validationReleased,false);
   assert.equal(report.admission.untouchedOosReleased,false);
   for(const value of Object.values(report.safety))assert.equal(value,false);
+});
+
+test('real Free entitlement evidence is frozen and keeps every split sealed',()=>{
+  const url=new URL('../research/phase57-selector-jquants-free-entitlement-2026-09-06.json',import.meta.url);
+  const bytes=fs.readFileSync(url);
+  const evidence=JSON.parse(bytes);
+  const expected=fs.readFileSync(new URL('../research/phase57-selector-jquants-free-entitlement-2026-09-06.sha256',import.meta.url),'utf8').trim().split(/\s+/)[0];
+  assert.equal(createHash('sha256').update(bytes).digest('hex'),expected);
+  assert.equal(evidence.status,'BLOCKED_ENTITLEMENT');
+  assert.equal(evidence.observations.authentication.httpStatus,200);
+  assert.equal(evidence.observations.minuteStockPrices.httpStatus,403);
+  assert.equal(evidence.observations.freeHistoricalFallback.httpStatus,200);
+  assert.equal(evidence.observations.freeHistoricalFallback.canConstructFiveMinute,false);
+  assert.equal(evidence.secretHandling.secretLogged,false);
+  assert.equal(evidence.decision.smallAdmissionPilotExecuted,false);
+  assert.equal(evidence.decision.developmentReleased,false);
+  assert.equal(evidence.decision.validationReleased,false);
+  assert.equal(evidence.decision.untouchedOosReleased,false);
+  for(const value of Object.values(evidence.safety))assert.equal(value,false);
 });

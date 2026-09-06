@@ -25,11 +25,13 @@ test('free entitlement rejection is sanitized and fails closed',async()=>{
 test('minute access runs only a bounded SOURCE_VALIDATION_ONLY pilot',async()=>{
   const rows=[{Date:'2025-01-06',Time:'09:00',Code:'72030',O:100,H:102,L:99,C:101,Vo:1000,Va:100500}];
   let calls=0;
-  const report=await probeJquantsFree({apiKey:'test-key',fetchImpl:async()=>{calls+=1;return response(200,{data:calls===1?[{Code:'86970'}]:rows});}});
+  const report=await probeJquantsFree({apiKey:'test-key',fetchImpl:async url=>{calls+=1;if(calls===1)return response(200,{data:[{Code:'86970'}]});const query=new URL(url);return response(200,{data:[{...rows[0],Date:query.searchParams.get('date'),Code:query.searchParams.get('code')} ]});}});
   assert.equal(calls,5);
   assert.equal(report.minuteEntitlement.status,'AVAILABLE');
   assert.equal(report.pilot.requestCount,4);
-  assert.equal(report.pilot.status,'PILOT_DATA_OBSERVED_SEMANTICS_NOT_FULLY_PROVEN');
+  assert.equal(report.pilot.status,'SOURCE_VALIDATION_ONLY_PASS');
+  assert.equal(report.pilot.deterministicAggregationPass,true);
+  assert.equal(report.pilot.fabricatedMinuteCount,0);
   assert.equal(report.pilot.payloadPersisted,false);
   assert.equal(report.admission.developmentReleased,false);
   assert.equal(report.admission.validationReleased,false);

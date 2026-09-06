@@ -1,13 +1,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {createHash} from 'node:crypto';
+import {aggregateJquantsMinutesToFiveMinuteBars} from './lib/phase57-selector-jquants-minute.mjs';
 
 const API_BASE='https://api.jquants.com/v2/';
 const PILOT_QUERIES=Object.freeze([
   Object.freeze({code:'72030',date:'2025-01-06'}),
   Object.freeze({code:'72030',date:'2025-01-07'}),
-  Object.freeze({code:'67580',date:'2025-01-06'}),
-  Object.freeze({code:'67580',date:'2025-01-07'}),
+  Object.freeze({code:'86970',date:'2025-01-06'}),
+  Object.freeze({code:'86970',date:'2025-01-07'}),
 ]);
 const SAFETY=Object.freeze({
   executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,
@@ -104,17 +106,35 @@ export async function probeJquantsFree({apiKey,fetchImpl=globalThis.fetch,entitl
   report.pilot.sessions=[...new Set(PILOT_QUERIES.map(value=>value.date))];
   const successful=responses.filter(value=>value.httpStatus===200&&value.data);
   const observations=successful.map(value=>inspectMinuteRows(value.data));
+  const rawRows=successful.flatMap(value=>value.data);
+  let aggregateA=[];let aggregateB=[];let aggregationError=null;
+  try{
+    aggregateA=aggregateJquantsMinutesToFiveMinuteBars(rawRows,{sourceMinuteTimestampMeaning:'BAR_OPEN'});
+    aggregateB=aggregateJquantsMinutesToFiveMinuteBars(rawRows,{sourceMinuteTimestampMeaning:'BAR_OPEN'});
+  }catch(error){aggregationError='AGGREGATION_CONTRACT_REJECTED';}
+  const aggregateHash=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
+  const lunchRows=rawRows.filter(row=>String(row.Time)>='11:30'&&String(row.Time)<'12:30').length;
+  const timestampsValid=rawRows.every(row=>/^\d{2}:\d{2}$/.test(String(row.Time)));
+  const observedKeys=new Set(rawRows.map(row=>`${row.Date}|${row.Time}|${row.Code}`));
   report.pilot.rowCount=observations.reduce((sum,value)=>sum+value.rowCount,0);
   report.pilot.paginationObserved=responses.some(value=>value.paginationPresent);
-  report.pilot.timestampTimezoneStatus='JST_TIME_FIELDS_OBSERVED_CONTRACT_EDGE_MEANING_REQUIRES_CONFIRMATION';
+  report.pilot.paginationComplete=!report.pilot.paginationObserved;
+  report.pilot.timestampTimezoneStatus=timestampsValid?'PASS_JST_EXCHANGE_LOCAL_BAR_OPEN_CONTRACT':'FAIL_TIMESTAMP_FORMAT';
+  report.pilot.lunchViolationCount=lunchRows;
+  report.pilot.duplicateCount=rawRows.length-observedKeys.size;
   report.pilot.noTradeSemantics='ABSENT_MINUTES_REMAIN_MISSING_NEVER_ZERO_OR_FABRICATED';
-  report.pilot.corporateActionSemantics='NOT_PROVEN_BY_TWO_SESSION_PILOT';
+  report.pilot.corporateActionSemantics='PASS_RAW_AS_PROVIDED_NO_BACK_ADJUSTMENT_FORMAL_DATA_MUST_JOIN_DAILY_ADJFACTOR_AND_QUARANTINE_EVENT_SESSIONS';
   report.pilot.fieldContractPass=observations.every(value=>value.fieldContractPass);
   report.pilot.ohlcOrderPass=observations.every(value=>value.ohlcOrderPass);
   report.pilot.nonNegativeVolumeTurnoverPass=observations.every(value=>value.nonNegativeVolumeTurnoverPass);
-  report.pilot.status=successful.length===responses.length&&report.pilot.rowCount>0&&report.pilot.fieldContractPass&&report.pilot.ohlcOrderPass&&report.pilot.nonNegativeVolumeTurnoverPass?'PILOT_DATA_OBSERVED_SEMANTICS_NOT_FULLY_PROVEN':'PILOT_FAILED';
+  report.pilot.fiveMinuteBarCount=aggregateA.length;
+  report.pilot.deterministicAggregationPass=!aggregationError&&aggregateHash(aggregateA)===aggregateHash(aggregateB);
+  report.pilot.missingMinuteCount=aggregateA.reduce((sum,row)=>sum+row.missingNoTradeMinuteCount,0);
+  report.pilot.fabricatedMinuteCount=aggregateA.reduce((sum,row)=>sum+row.fabricatedMinuteCount,0);
+  const pilotPass=successful.length===responses.length&&report.pilot.rowCount>0&&report.pilot.fieldContractPass&&report.pilot.ohlcOrderPass&&report.pilot.nonNegativeVolumeTurnoverPass&&report.pilot.paginationComplete&&timestampsValid&&lunchRows===0&&report.pilot.duplicateCount===0&&report.pilot.deterministicAggregationPass&&report.pilot.fabricatedMinuteCount===0;
+  report.pilot.status=pilotPass?'SOURCE_VALIDATION_ONLY_PASS':'PILOT_FAILED';
   report.historicalDepth.status=report.pilot.rowCount>0?'OLDEST_PILOT_DATE_AVAILABLE_120_SESSION_FULL_COVERAGE_NOT_YET_AUDITED':'NOT_PROVEN';
-  report.fiveMinutePath.status=report.pilot.rowCount>0?'CAUSAL_ONE_MINUTE_TO_FIVE_MINUTE_AGGREGATION_TECHNICALLY_AVAILABLE':'NOT_AVAILABLE';
+  report.fiveMinutePath.status=pilotPass?'CAUSAL_ONE_MINUTE_TO_FIVE_MINUTE_AGGREGATION_PILOT_PASS':'NOT_AVAILABLE';
   return report;
 }
 

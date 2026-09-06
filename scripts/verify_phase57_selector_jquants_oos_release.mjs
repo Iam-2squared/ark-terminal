@@ -4,7 +4,9 @@ import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 
 const ROOT=new URL('../predict/research/',import.meta.url);
-const allocation=JSON.parse(fs.readFileSync(new URL('phase57-selector-jquants-fresh120-allocation.json',ROOT),'utf8'));
+const allocationUrl=new URL('phase57-selector-jquants-fresh120-allocation.json',ROOT);
+const allocationBytes=fs.readFileSync(allocationUrl);
+const allocation=JSON.parse(allocationBytes.toString('utf8'));
 const release=JSON.parse(fs.readFileSync(new URL('phase57-selector-minimal-hybrid-oos-release.json',ROOT),'utf8'));
 const model=JSON.parse(fs.readFileSync(new URL('phase57-selector-minimal-hybrid-development-model.json',ROOT),'utf8'));
 const freeze=JSON.parse(fs.readFileSync(new URL('phase57-selector-minimal-hybrid-development-freeze.json',ROOT),'utf8'));
@@ -28,7 +30,8 @@ export function verifyOosRelease({inputRoot}={}){
   invariant(release.status==='UNTOUCHED_OOS_RELEASE_AUTHORIZED','OOS release is not authorized');
   invariant(release.datasetId===allocation.datasetId&&manifest.datasetId===allocation.datasetId,'dataset identity drift');
   invariant(allocation.status==='FRESH_120_ALLOCATION_FROZEN','Fresh allocation is not frozen');
-  invariant(release.expectedAllocationSha256===allocation.allocationSha256,'allocation digest drift');
+  const computedAllocationSha256=createHash('sha256').update(allocationBytes).digest('hex');
+  invariant(release.expectedAllocationSha256===computedAllocationSha256,'allocation digest drift');
 
   const modelCore={...model};delete modelCore.modelDigest;
   const computedModelDigest=sha256(modelCore);
@@ -87,7 +90,7 @@ export function verifyOosRelease({inputRoot}={}){
     fiveMinuteSha256:row.fiveMinuteSha256,memberSetSha256:row.memberSetSha256,rawMinuteRows:row.rawMinuteRows,
     fiveMinuteBars:row.fiveMinuteBars,eligibleJpxSymbolCount:row.eligibleJpxSymbolCount}));
   const core={schemaVersion:1,phase:'57.selector-minimal-hybrid.untouched-oos-integrity-gate',status:'UNTOUCHED_OOS_INTEGRITY_PASS',
-    datasetId:allocation.datasetId,sourceAcquisitionRunId:release.sourceAcquisitionRunId,allocationSha256:allocation.allocationSha256,
+    datasetId:allocation.datasetId,sourceAcquisitionRunId:release.sourceAcquisitionRunId,allocationSha256:computedAllocationSha256,
     computedModelDigest,computedFreezeSha256,validationEvidenceSha256:validation.validationEvidenceSha256,oosSessionCount:compact.length,
     oosFeaturesPreviouslyGenerated:false,oosLabelsPreviouslyGenerated:false,oosScoresPreviouslyGenerated:false,oosOutcomesPreviouslyInspected:false,
     reserveAccessAllowed:false,reserveSessionsTouched:0,validationRetuningAllowed:false,modelMutationAllowed:false,

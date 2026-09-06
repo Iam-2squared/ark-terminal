@@ -8,6 +8,7 @@ const SAFETY=Object.freeze({
 
 const DATE=/^\d{4}-\d{2}-\d{2}$/;
 const TIME=/^\d{2}:\d{2}$/;
+const ISSUE_CODE=/^[0-9A-Z]{4,5}$/;
 const finite=value=>value!==null&&value!==undefined&&value!==''&&Number.isFinite(Number(value));
 
 function requireApiKey(value){
@@ -41,6 +42,10 @@ function sameMinute(left,right){
   return ['date','time','code','open','high','low','close','volume','turnover'].every(key=>left[key]===right[key]);
 }
 
+function sourceCodeToSymbol(code){
+  return `${code.length===5?code.slice(0,-1):code}.T`;
+}
+
 export function normalizeJquantsMinuteRow(raw,index=0){
   const date=String(raw?.Date??'');
   const time=String(raw?.Time??'');
@@ -49,7 +54,7 @@ export function normalizeJquantsMinuteRow(raw,index=0){
   const {total}=timeParts(time);
   const segment=sourceMinuteSegment(total);
   if(!segment)throw new Error(`minute row[${index}] is outside the supported TSE source session`);
-  if(!/^(?:\d{5}|\d{3}[A-Z]\d)$/.test(code))throw new Error(`minute row[${index}] has invalid Code`);
+  if(!ISSUE_CODE.test(code))throw new Error(`minute row[${index}] has invalid Code`);
   for(const key of ['O','H','L','C','Vo','Va']){
     if(!finite(raw?.[key]))throw new Error(`minute row[${index}] requires finite ${key}`);
   }
@@ -108,7 +113,7 @@ export function aggregateJquantsMinutesToFiveMinuteBars(rows,{sourceMinuteTimest
     const first=ordered[0];
     const last=ordered.at(-1);
     return Object.freeze({
-      symbol:`${bin.code.slice(0,-1)}.T`,
+      symbol:sourceCodeToSymbol(bin.code),
       sourceCode:bin.code,
       sessionDate:bin.date,
       sessionSegment:bin.segment,
@@ -177,7 +182,7 @@ export async function fetchJquantsMinuteRows({
 }
 
 export const PHASE57_SELECTOR_JQUANTS_MINUTE_SAFETY=SAFETY;
-export const Phase57SelectorJquantsMinuteInternals=Object.freeze({API_BASE,MINUTE_PATH,sourceMinuteSegment,timestampIso});
+export const Phase57SelectorJquantsMinuteInternals=Object.freeze({API_BASE,MINUTE_PATH,ISSUE_CODE,sourceMinuteSegment,timestampIso,sourceCodeToSymbol});
 
 export default {
   normalizeJquantsMinuteRow,

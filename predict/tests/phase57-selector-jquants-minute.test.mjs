@@ -34,6 +34,14 @@ test('timestamp meaning must be verified before aggregation',()=>{
   assert.throws(()=>aggregateJquantsMinutesToFiveMinuteBars([row('09:00')]),/Tick-proven frozen contract/);
 });
 
+test('legacy five-character and alphanumeric four-character issue codes map deterministically',()=>{
+  const bars=aggregateJquantsMinutesToFiveMinuteBars([
+    row('09:00',{Code:'130A'}),
+    row('09:00',{Code:'72030'}),
+  ],{sourceMinuteTimestampMeaning:'BAR_START_HALF_OPEN_INCLUDING_TERMINAL_AUCTION_MINUTES'});
+  assert.deepEqual(bars.map(item=>item.symbol),['130A.T','7203.T']);
+});
+
 test('terminal auctions are classified but never mixed into regular five-minute decision bars',()=>{
   const raw=[
     row('11:29',{O:100,H:101,L:99,C:100,Vo:10,Va:1000}),

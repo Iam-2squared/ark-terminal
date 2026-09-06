@@ -68,9 +68,28 @@ function assertAtomicSessions(sessions){
   }
 }
 
-export function planPhase57MinimalHybridSessionSplit(sessions){
+export function planPhase57MinimalHybridFrozen120Split(sessions){
   if(!Array.isArray(sessions))throw new TypeError('sessions must be an array');
   assertAtomicSessions(sessions);
+  if(sessions.length!==122)throw new Error('Fresh-120 allocation requires 122 chronological sessions including two purge sessions');
+  const dates=list=>Object.freeze(list.map(session=>session.sessionDate));
+  return Object.freeze({
+    development:dates(sessions.slice(0,72)),
+    purgeDevelopmentValidation:dates(sessions.slice(72,73)),
+    validation:dates(sessions.slice(73,97)),
+    purgeValidationOos:dates(sessions.slice(97,98)),
+    untouchedOos:dates(sessions.slice(98,122)),
+    usableSessionCount:120,purgeSessionCount:2,
+    allocationPolicy:'FRESH_120_PLUS_TWO_ONE_SESSION_PURGES',
+    atomicUnit:'COMPLETE_5M_CROSS_SECTION',outerGrouping:'TRADING_SESSION',
+    validationReleased:false,untouchedOosReleased:false,
+  });
+}
+
+export function planPhase57MinimalHybridSessionSplit(sessions,{allocationPolicy=null}={}){
+  if(!Array.isArray(sessions))throw new TypeError('sessions must be an array');
+  assertAtomicSessions(sessions);
+  if(allocationPolicy==='FRESH_120_PLUS_TWO_ONE_SESSION_PURGES')return planPhase57MinimalHybridFrozen120Split(sessions);
   const cfg=PHASE57_SELECTOR_MINIMAL_HYBRID_PHASE_A.newDataset;
   if(sessions.length<cfg.minimumTradingSessions)throw new Error(`new Minimal Hybrid dataset requires at least ${cfg.minimumTradingSessions} sessions`);
   const purge=PHASE57_SELECTOR_MINIMAL_HYBRID_PHASE_A.causality.purgeSessionsAtEachBoundary;
@@ -118,7 +137,7 @@ export function validatePhase57MinimalHybridDatasetAdmission(dataset){
   assertSafety(manifest.safety,'dataset manifest');
   assertAtomicSessions(dataset.sessions);
   assertUnconsumedDataset(manifest,dataset.sessions);
-  const split=planPhase57MinimalHybridSessionSplit(dataset.sessions);
+  const split=planPhase57MinimalHybridSessionSplit(dataset.sessions,{allocationPolicy:manifest.datasetAllocationPolicy??null});
   return Object.freeze({
     status:'MINIMAL_HYBRID_NEW_DATASET_ADMITTED_DEVELOPMENT_ONLY',
     datasetId:manifest.datasetId,
@@ -138,6 +157,7 @@ export function validatePhase57MinimalHybridDatasetAdmission(dataset){
 export default {
   validatePhase57MinimalHybridDatasetAdmission,
   planPhase57MinimalHybridSessionSplit,
+  planPhase57MinimalHybridFrozen120Split,
   PHASE57_SELECTOR_MINIMAL_HYBRID_PHASE_A,
   PHASE57_SELECTOR_MINIMAL_HYBRID_SAFETY,
 };

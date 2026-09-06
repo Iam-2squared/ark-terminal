@@ -47,6 +47,8 @@ on:
       - 'docs/phase57-selector-jquants-minute-reconstruction-pilot-2026-09-06.md'
       - 'scripts/profile_phase57_selector_jquants_date_capacity.mjs'
       - 'predict/tests/phase57-selector-jquants-date-capacity.test.mjs'
+      - 'scripts/allocate_phase57_selector_jquants_fresh_sessions.mjs'
+      - 'predict/tests/phase57-selector-jquants-allocation.test.mjs'
       - 'scripts/audit_phase57_selector_minimal_hybrid_dataset.mjs'
       - '.github/workflows/phase57-selector-minimal-hybrid-phase-a.yml'
   workflow_dispatch:
@@ -80,7 +82,7 @@ jobs:
       - name: Verify architecture and dataset contamination guards
         run: node --test predict/tests/phase57-selector-minimal-hybrid-phase-a.test.mjs predict/tests/phase57-selector-minimal-hybrid-dataset-audit.test.mjs predict/tests/phase57-selector-minimal-hybrid-source-resolution.test.mjs predict/tests/phase57-selector-minimal-hybrid-implementation.test.mjs predict/tests/phase57-selector-jquants-minute.test.mjs predict/tests/phase57-selector-jquants-free-probe.test.mjs
       - name: Verify timestamp evidence cannot manufacture a PASS
-        run: node --test predict/tests/phase57-selector-jquants-edges.test.mjs predict/tests/phase57-selector-jquants-tick-minute-reconciliation.test.mjs predict/tests/phase57-selector-jquants-minute-reconstruction-pilot.test.mjs predict/tests/phase57-selector-jquants-date-capacity.test.mjs
+        run: node --test predict/tests/phase57-selector-jquants-edges.test.mjs predict/tests/phase57-selector-jquants-tick-minute-reconciliation.test.mjs predict/tests/phase57-selector-jquants-minute-reconstruction-pilot.test.mjs predict/tests/phase57-selector-jquants-date-capacity.test.mjs predict/tests/phase57-selector-jquants-allocation.test.mjs
 
   jquants-source-edges:
     if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/research/phase57-selector-v1-v3-minimal-hybrid') || (github.event.pull_request.number == 577 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'research/phase57-selector-v1-v3-minimal-hybrid')
@@ -253,5 +255,31 @@ jobs:
         with:
           name: phase57-jquants-date-capacity-${{ github.run_id }}
           path: artifacts/phase57-jquants-date-capacity/
+          if-no-files-found: error
+          retention-days: 7
+
+  jquants-fresh-session-allocation:
+    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/research/phase57-selector-v1-v3-minimal-hybrid') || (github.event.pull_request.number == 577 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'research/phase57-selector-v1-v3-minimal-hybrid')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Allocate Fresh 120 before any outcome access
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: node scripts/allocate_phase57_selector_jquants_fresh_sessions.mjs
+      - name: Upload allocation dates and guards only
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-jquants-fresh-allocation-${{ github.run_id }}
+          path: artifacts/phase57-jquants-fresh-allocation/
           if-no-files-found: error
           retention-days: 7

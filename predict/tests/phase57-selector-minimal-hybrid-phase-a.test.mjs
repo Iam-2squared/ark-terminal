@@ -5,6 +5,7 @@ import {createHash} from 'node:crypto';
 import {
   PHASE57_SELECTOR_MINIMAL_HYBRID_PHASE_A,
   planPhase57MinimalHybridSessionSplit,
+  planPhase57MinimalHybridFrozen120Split,
   validatePhase57MinimalHybridDatasetAdmission,
 } from '../daytrade/phase57-selector-minimal-hybrid-dataset-guard.js';
 
@@ -77,6 +78,17 @@ test('a new point-in-time dataset is admitted for Development only',()=>{
   assert.equal(admitted.split.validation.length,23);
   assert.equal(admitted.split.purgeValidationOos.length,1);
   assert.equal(admitted.split.untouchedOos.length,24);
+});
+
+test('the explicit Fresh-120 allocation preserves 72/24/24 plus two purge sessions',()=>{
+  const rows=sessions(122);
+  const split=planPhase57MinimalHybridFrozen120Split(rows);
+  assert.equal(split.development.length,72);assert.equal(split.validation.length,24);assert.equal(split.untouchedOos.length,24);
+  assert.equal(split.purgeDevelopmentValidation.length,1);assert.equal(split.purgeValidationOos.length,1);
+  const value=dataset({datasetAllocationPolicy:'FRESH_120_PLUS_TWO_ONE_SESSION_PURGES'});value.sessions=rows;
+  const admitted=validatePhase57MinimalHybridDatasetAdmission(value);
+  assert.equal(admitted.split.development.length,72);assert.equal(admitted.split.validation.length,24);
+  assert.equal(admitted.split.untouchedOos.length,24);assert.equal(admitted.untouchedOosReleaseAllowed,false);
 });
 
 test('the consumed V1/V2/V3 window is rejected even under a new dataset id',()=>{

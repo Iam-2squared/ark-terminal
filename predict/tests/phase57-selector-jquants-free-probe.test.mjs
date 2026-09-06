@@ -6,12 +6,15 @@ const response=(status,payload)=>({status,ok:status>=200&&status<300,json:async(
 
 test('free entitlement rejection is sanitized and fails closed',async()=>{
   const secret='never-log-this-key';let calls=0;
-  const report=await probeJquantsFree({apiKey:secret,fetchImpl:async()=>++calls===1?response(200,{data:[{Code:'86970'}]}):response(403,{message:`denied ${secret}`})});
+  const report=await probeJquantsFree({apiKey:secret,fetchImpl:async()=>{calls+=1;if(calls===1)return response(200,{data:[{Code:'86970'}]});if(calls===2)return response(403,{message:`denied ${secret}`});return response(200,{data:[{Date:'2025-01-06',Code:'72030'}]});}});
   const serialized=JSON.stringify(report);
   assert.equal(report.authentication.status,'AUTHENTICATED');
   assert.equal(report.minuteEntitlement.status,'BLOCKED_ENTITLEMENT');
   assert.equal(report.admission.status,'BLOCKED_ENTITLEMENT');
   assert.equal(report.pilot.status,'NOT_RUN');
+  assert.equal(report.freeFallback.status,'HISTORICAL_DAILY_AVAILABLE_BUT_NOT_INTRADAY');
+  assert.equal(report.freeFallback.canConstructFiveMinute,false);
+  assert.equal(calls,3);
   assert.equal(serialized.includes(secret),false);
   assert.equal(report.secretValueObserved,false);
   assert.equal(report.secretPersisted,false);

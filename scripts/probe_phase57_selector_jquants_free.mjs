@@ -59,6 +59,7 @@ export async function probeJquantsFree({apiKey,fetchImpl=globalThis.fetch}={}){
     evidenceClass:'SOURCE_VALIDATION_ONLY',secretValueObserved:false,secretPersisted:false,
     authentication:{status:'NOT_RUN',endpoint:'/v2/equities/master',httpStatus:null},
     minuteEntitlement:{status:'NOT_RUN',endpoint:'/v2/equities/bars/minute',httpStatus:null},
+    freeFallback:{status:'NOT_RUN',endpoint:'/v2/equities/bars/daily',httpStatus:null,interval:'1d',canConstructFiveMinute:false},
     pilot:{status:'NOT_RUN',symbols:[],sessions:[],requestCount:0,rowCount:0,payloadPersisted:false},
     historicalDepth:{requiredSessions:120,status:'NOT_PROVEN'},
     fiveMinutePath:{status:'NOT_AVAILABLE',oneMinuteRequired:false},
@@ -79,6 +80,11 @@ export async function probeJquantsFree({apiKey,fetchImpl=globalThis.fetch}={}){
   if(minute.httpStatus!==200||!minute.data){
     report.minuteEntitlement.status=minute.httpStatus===401?'AUTH_REJECTED':minute.httpStatus===403?'BLOCKED_ENTITLEMENT':'ENDPOINT_UNAVAILABLE_OR_ERROR';
     report.fiveMinutePath.status='FREE_PLAN_CANNOT_CONSTRUCT_INTRADAY_5M';
+    const daily=await requestJson({apiKey:key,endpoint:'equities/bars/daily',query:{code:'72030',date:'2025-01-06'},fetchImpl});
+    report.freeFallback.httpStatus=daily.httpStatus;
+    report.freeFallback.status=daily.httpStatus===200&&daily.data?.length>0?'HISTORICAL_DAILY_AVAILABLE_BUT_NOT_INTRADAY':'HISTORICAL_DAILY_NOT_PROVEN';
+    report.freeFallback.rowCount=daily.data?.length??0;
+    report.freeFallback.responseBodyPersisted=false;
     report.admission.status=report.minuteEntitlement.status==='BLOCKED_ENTITLEMENT'?'BLOCKED_ENTITLEMENT':'DATASET_NOT_READY';
     return report;
   }

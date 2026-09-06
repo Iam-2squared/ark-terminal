@@ -37,6 +37,17 @@ test('minute access runs only a bounded SOURCE_VALIDATION_ONLY pilot',async()=>{
   for(const value of Object.values(report.safety))assert.equal(value,false);
 });
 
+test('entitlement-only mode stops after exactly one Minute request',async()=>{
+  let calls=0;
+  const report=await probeJquantsFree({apiKey:'test-key',entitlementOnly:true,fetchImpl:async()=>{calls+=1;return response(200,{data:[{Code:'86970'}]});}});
+  assert.equal(calls,2);
+  assert.equal(report.authentication.status,'AUTHENTICATED');
+  assert.equal(report.minuteEntitlement.status,'AVAILABLE');
+  assert.equal(report.pilot.status,'NOT_RUN_ENTITLEMENT_ONLY');
+  assert.equal(report.admission.status,'DATASET_NOT_READY_AWAITING_SOURCE_VALIDATION_PILOT');
+  assert.equal(report.admission.developmentReleased,false);
+});
+
 test('real Free entitlement evidence is frozen and keeps every split sealed',()=>{
   const url=new URL('../research/phase57-selector-jquants-free-entitlement-2026-09-06.json',import.meta.url);
   const bytes=fs.readFileSync(url);

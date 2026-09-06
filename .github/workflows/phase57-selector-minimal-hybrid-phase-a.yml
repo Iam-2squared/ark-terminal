@@ -71,7 +71,7 @@ jobs:
         with:
           node-version: 22
       - name: Probe authentication and Free entitlement without exposing the secret
-        run: node scripts/probe_phase57_selector_jquants_free.mjs --output artifacts/jquants-free-entitlement.json
+        run: node scripts/probe_phase57_selector_jquants_free.mjs --entitlement-only --output artifacts/jquants-free-entitlement.json
       - name: Upload sanitized SOURCE_VALIDATION_ONLY evidence
         if: always()
         uses: actions/upload-artifact@v4

@@ -16,6 +16,7 @@ const SAFETY=Object.freeze({
 });
 
 function outputArg(argv){const index=argv.indexOf('--output');return index>=0?argv[index+1]:null;}
+function entitlementOnlyArg(argv){return argv.includes('--entitlement-only');}
 function finite(value){return value!==null&&value!==''&&Number.isFinite(Number(value));}
 
 async function requestJson({apiKey,endpoint,query={},fetchImpl}){
@@ -50,7 +51,7 @@ function inspectMinuteRows(rows){
   return observations;
 }
 
-export async function probeJquantsFree({apiKey,fetchImpl=globalThis.fetch}={}){
+export async function probeJquantsFree({apiKey,fetchImpl=globalThis.fetch,entitlementOnly=false}={}){
   const key=String(apiKey??'').trim();
   if(!key)throw new Error('JQUANTS_API_KEY_MISSING');
   if(typeof fetchImpl!=='function')throw new TypeError('fetch is required');
@@ -90,6 +91,12 @@ export async function probeJquantsFree({apiKey,fetchImpl=globalThis.fetch}={}){
   }
 
   report.minuteEntitlement.status='AVAILABLE';
+  if(entitlementOnly){
+    report.pilot.status='NOT_RUN_ENTITLEMENT_ONLY';
+    report.fiveMinutePath.status='MINUTE_ENDPOINT_AVAILABLE_PILOT_NOT_STARTED';
+    report.admission.status='DATASET_NOT_READY_AWAITING_SOURCE_VALIDATION_PILOT';
+    return report;
+  }
   const responses=[minute];
   for(const query of PILOT_QUERIES.slice(1))responses.push(await requestJson({apiKey:key,endpoint:'equities/bars/minute',query,fetchImpl}));
   report.pilot.requestCount=responses.length;
@@ -112,7 +119,7 @@ export async function probeJquantsFree({apiKey,fetchImpl=globalThis.fetch}={}){
 }
 
 async function main(){
-  const report=await probeJquantsFree({apiKey:process.env.JQUANTS_API_KEY});
+  const report=await probeJquantsFree({apiKey:process.env.JQUANTS_API_KEY,entitlementOnly:entitlementOnlyArg(process.argv)});
   const output=outputArg(process.argv);
   if(output){fs.mkdirSync(path.dirname(output),{recursive:true});fs.writeFileSync(output,JSON.stringify(report,null,2)+'\n',{mode:0o600});}
   console.log(JSON.stringify(report));

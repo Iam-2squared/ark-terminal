@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 import {
   PHASE57_SELECTOR_MINIMAL_HYBRID_PHASE_A,
+  planPhase57MinimalHybridSessionSplit,
   validatePhase57MinimalHybridDatasetAdmission,
 } from '../daytrade/phase57-selector-minimal-hybrid-dataset-guard.js';
 
@@ -13,7 +14,7 @@ const SAFETY=Object.freeze({
   automaticPromotionAllowed:false,productionUpdateAllowed:false,transmitted:false,
 });
 
-function sessions(count,{start='2025-01-06'}={}){
+function sessions(count,{start='2025-02-03'}={}){
   const rows=[];
   let timestamp=Date.parse(`${start}T00:00:00.000Z`);
   while(rows.length<count){
@@ -87,6 +88,18 @@ test('the consumed V1/V2/V3 window is rejected even under a new dataset id',()=>
 test('consumed dataset ancestry is rejected',()=>{
   const value=dataset({parentDatasetIds:['PHASE57_SELECTOR_YAHOO_5M_24626FD37F8633F4']});
   assert.throws(()=>validatePhase57MinimalHybridDatasetAdmission(value),/consumed dataset identity is forbidden/);
+});
+
+test('source-validation sessions remain permanently excluded under new dataset identities',()=>{
+  const registry=JSON.parse(fs.readFileSync(new URL('../research/phase57-selector-source-validation-only-registry.json',import.meta.url),'utf8'));
+  assert.equal(registry.policy,'APPEND_ONLY_PERMANENT_EXCLUSION_FROM_ALL_RESEARCH_SPLITS');
+  for(const date of ['2025-01-06','2025-01-07','2025-01-08','2025-01-09']){
+    assert.ok(registry.sessions.some(row=>row.sessionDate===date&&row.classification==='SOURCE_VALIDATION_ONLY'),date);
+    const value=dataset({datasetId:`OTHER_PROVIDER_NEW_ID_${date}`,parentDatasetIds:[]});
+    value.sessions=sessions(120,{start:date});
+    assert.throws(()=>validatePhase57MinimalHybridDatasetAdmission(value),/permanently SOURCE_VALIDATION_ONLY/);
+    assert.throws(()=>planPhase57MinimalHybridSessionSplit(value.sessions),/permanently SOURCE_VALIDATION_ONLY/);
+  }
 });
 
 test('unavailable microstructure must stay unknown rather than zero-filled',()=>{

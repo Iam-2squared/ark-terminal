@@ -29,7 +29,7 @@ test('minute access runs only a bounded SOURCE_VALIDATION_ONLY pilot',async()=>{
   assert.equal(calls,5);
   assert.equal(report.minuteEntitlement.status,'AVAILABLE');
   assert.equal(report.pilot.requestCount,4);
-  assert.equal(report.pilot.status,'SOURCE_VALIDATION_ONLY_PASS');
+  assert.equal(report.pilot.status,'PILOT_BLOCKED_SEMANTICS_UNKNOWN');
   assert.equal(report.pilot.deterministicAggregationPass,true);
   assert.equal(report.pilot.fabricatedMinuteCount,0);
   assert.equal(report.pilot.payloadPersisted,false);

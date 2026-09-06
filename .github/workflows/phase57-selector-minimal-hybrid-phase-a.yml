@@ -29,6 +29,9 @@ on:
       - 'predict/tests/phase57-selector-jquants-free-probe.test.mjs'
       - 'scripts/lib/phase57-selector-jquants-minute.mjs'
       - 'scripts/probe_phase57_selector_jquants_free.mjs'
+      - 'scripts/probe_phase57_selector_jquants_edges.mjs'
+      - 'predict/tests/phase57-selector-jquants-edges.test.mjs'
+      - 'predict/research/phase57-selector-source-validation-only-registry.json'
       - 'scripts/audit_phase57_selector_minimal_hybrid_dataset.mjs'
       - '.github/workflows/phase57-selector-minimal-hybrid-phase-a.yml'
   workflow_dispatch:
@@ -57,26 +60,49 @@ jobs:
         run: (cd predict/research && sha256sum --check phase57-selector-jquants-free-entitlement-2026-09-06.sha256)
       - name: Verify architecture and dataset contamination guards
         run: node --test predict/tests/phase57-selector-minimal-hybrid-phase-a.test.mjs predict/tests/phase57-selector-minimal-hybrid-dataset-audit.test.mjs predict/tests/phase57-selector-minimal-hybrid-source-resolution.test.mjs predict/tests/phase57-selector-minimal-hybrid-implementation.test.mjs predict/tests/phase57-selector-jquants-minute.test.mjs predict/tests/phase57-selector-jquants-free-probe.test.mjs
+      - name: Verify timestamp evidence cannot manufacture a PASS
+        run: node --test predict/tests/phase57-selector-jquants-edges.test.mjs
 
-  jquants-free-entitlement:
+  jquants-source-edges:
+    if: github.event_name == 'workflow_dispatch' || (github.event.pull_request.number == 577 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'research/phase57-selector-v1-v3-minimal-hybrid')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
       contents: read
-    env:
-      JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+    concurrency:
+      group: phase57-jquants-source-edges
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Run API only when edge-probe code changes or explicitly dispatched
+        id: scope
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] || git diff --name-only HEAD^ HEAD -- scripts/probe_phase57_selector_jquants_edges.mjs | rg -q '^scripts/'; then
+            echo 'run=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'run=false' >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-node@v4
+        if: steps.scope.outputs.run == 'true'
         with:
           node-version: 22
-      - name: Probe authentication and Free entitlement without exposing the secret
-        run: node scripts/probe_phase57_selector_jquants_free.mjs --output artifacts/jquants-source-validation.json
+      - name: Bounded source-only edge audit (no prices or credentials emitted)
+        if: steps.scope.outputs.run == 'true'
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: node scripts/probe_phase57_selector_jquants_edges.mjs
       - name: Upload sanitized SOURCE_VALIDATION_ONLY evidence
-        if: always()
+        if: steps.scope.outputs.run == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: phase57-jquants-source-validation-${{ github.run_id }}
-          path: artifacts/jquants-source-validation.json
+          name: phase57-jquants-source-edges-${{ github.run_id }}
+          path: artifacts/phase57-jquants-edge/
           if-no-files-found: error
           retention-days: 7

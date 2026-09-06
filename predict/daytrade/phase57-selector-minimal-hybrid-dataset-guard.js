@@ -7,6 +7,14 @@ export const PHASE57_SELECTOR_MINIMAL_HYBRID_SAFETY=Object.freeze(PHASE57_SELECT
 const ISO_DATE=/^\d{4}-\d{2}-\d{2}$/;
 const SHA256=/^[a-f0-9]{64}$/i;
 const finite=value=>value!==null&&value!==undefined&&value!==''&&Number.isFinite(Number(value));
+const sourceValidationRegistry=JSON.parse(fs.readFileSync(new URL('../research/phase57-selector-source-validation-only-registry.json',import.meta.url),'utf8'));
+if(sourceValidationRegistry.policy!=='APPEND_ONLY_PERMANENT_EXCLUSION_FROM_ALL_RESEARCH_SPLITS'
+  ||!Array.isArray(sourceValidationRegistry.sessions)||!sourceValidationRegistry.sessions.length
+  ||sourceValidationRegistry.sessions.some(row=>!ISO_DATE.test(String(row?.sessionDate??''))||row.classification!=='SOURCE_VALIDATION_ONLY')){
+  throw new Error('SOURCE_VALIDATION_ONLY exclusion registry is invalid');
+}
+const sourceValidationSessions=new Set(sourceValidationRegistry.sessions.map(row=>row.sessionDate));
+if(sourceValidationSessions.size!==sourceValidationRegistry.sessions.length)throw new Error('SOURCE_VALIDATION_ONLY exclusion registry has duplicate sessions');
 
 function assertSafety(safety,label){
   for(const [key,value] of Object.entries(PHASE57_SELECTOR_MINIMAL_HYBRID_SAFETY)){
@@ -46,6 +54,7 @@ function assertAtomicSessions(sessions){
   const seen=new Set();
   for(const [index,session] of sessions.entries()){
     const date=sessionDateOf(session,index);
+    if(sourceValidationSessions.has(date))throw new Error(`session ${date} is permanently SOURCE_VALIDATION_ONLY and cannot enter any research split`);
     if(seen.has(date)||previous&&date<=previous)throw new Error('sessions must be unique and strictly chronological');
     seen.add(date);previous=date;
     if(!Array.isArray(session.decisionCutoffs)||!session.decisionCutoffs.length)throw new Error(`${date} requires decisionCutoffs[]`);

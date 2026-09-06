@@ -15,7 +15,7 @@ const SAFETY=Object.freeze({
 });
 
 function tradingDates(count){
-  const dates=[];let cursor=Date.UTC(2025,0,6);
+  const dates=[];let cursor=Date.UTC(2025,1,3);
   while(dates.length<count){const day=new Date(cursor).getUTCDay();if(day!==0&&day!==6)dates.push(new Date(cursor).toISOString().slice(0,10));cursor+=86_400_000;}
   return dates;
 }
@@ -42,7 +42,7 @@ function datasetFixture(){
     manifest:{
       datasetId:'PHASE57_MINIMAL_HYBRID_FRESH_FIXTURE',parentDatasetIds:[],rawSourceSha256:'a'.repeat(64),
       sourceProvider:'AUTHORIZED_FIXTURE_PROVIDER',sourceEndpoint:'OFFLINE_FIXTURE',acquisitionMethod:'IMMUTABLE_IMPORT',
-      acquiredAt:'2025-07-01T00:00:00.000Z',reconstructionMethod:'EXACT_POINT_IN_TIME_FIXTURE',
+      acquiredAt:'2025-08-01T00:00:00.000Z',reconstructionMethod:'EXACT_POINT_IN_TIME_FIXTURE',
       evidenceClassification:'EXACT_POINT_IN_TIME',providerEntitlementVerified:true,
       previouslyUsedForSelectorOutcomeInspection:false,intervalMinutes:5,barTimestampMeaning:'BAR_OPEN',
       availableAtRule:'BAR_OPEN_PLUS_INTERVAL',noTradeMinutePolicy:'MISSING_NEVER_FABRICATE',
@@ -112,4 +112,42 @@ test('availability violations, duplicates, and consumed ancestry reject admissio
   assert.equal(report.status,'MINIMAL_HYBRID_DATASET_ADMISSION_REJECTED');
   assert.ok(report.blockers.some(value=>value.includes('consumed dataset identity is forbidden')));
   assert.throws(()=>requirePhase57MinimalHybridDatasetAdmission(ancestry),/admission failed/);
+});
+
+test('empty symbol rows and zero-observation sessions cannot pass admission',()=>{
+  const empty=datasetFixture();
+  empty.symbols[0].bars=[];
+  let report=auditPhase57MinimalHybridDataset(empty);
+  assert.equal(report.status,'MINIMAL_HYBRID_DATASET_ADMISSION_REJECTED');
+  assert.ok(report.blockers.includes('OBSERVED_BARS_REQUIRED'));
+  assert.ok(report.blockers.includes('SYMBOL_1001.T_BARS_REQUIRED'));
+  assert.equal(report.release.developmentReleased,false);
+
+  const missingSession=datasetFixture();
+  const excluded=missingSession.sessions[0].sessionDate;
+  missingSession.symbols[0].bars=missingSession.symbols[0].bars.filter(bar=>bar.sessionDate!==excluded);
+  report=auditPhase57MinimalHybridDataset(missingSession);
+  assert.ok(report.blockers.includes(`SESSION_${excluded}_OBSERVED_MEMBER_BARS_REQUIRED`));
+  assert.equal(report.release.developmentReleased,false);
+});
+
+test('observed bars require finite positive turnover, without zero filling sparse minutes',()=>{
+  for(const turnover of [undefined,null,'',NaN,Infinity,0,-1]){
+    const value=datasetFixture();
+    value.symbols[0].bars[0].turnover=turnover;
+    const report=auditPhase57MinimalHybridDataset(value);
+    assert.equal(report.status,'MINIMAL_HYBRID_DATASET_ADMISSION_REJECTED',String(turnover));
+    assert.ok(report.blockers.includes(Number.isFinite(turnover)&&turnover<=0?'NONPOSITIVE_TURNOVER_PRESENT':'MISSING_OR_NONFINITE_TURNOVER_PRESENT'));
+    assert.equal(report.release.developmentReleased,false);
+  }
+});
+
+test('an absent sparse bar remains absent and is not fabricated by admission',()=>{
+  const value=datasetFixture();
+  value.symbols[0].bars.splice(1,1);
+  const original=JSON.stringify(value);
+  const report=auditPhase57MinimalHybridDataset(value);
+  assert.equal(report.counts.totalBars,7919);
+  assert.equal(report.counts.missingBars,1);
+  assert.equal(JSON.stringify(value),original);
 });

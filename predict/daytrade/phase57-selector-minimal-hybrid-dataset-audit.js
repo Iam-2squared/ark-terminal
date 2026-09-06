@@ -80,13 +80,14 @@ export function auditPhase57MinimalHybridDataset(dataset){
 
   const symbolSeen=new Set(),barSeen=new Map(),symbolStats=new Map();
   let totalBars=0,duplicateBars=0,timestampConflicts=0,lunchViolations=0;
-  let futureAvailabilityViolations=0,invalidBars=0,missingTurnoverBars=0;
+  let futureAvailabilityViolations=0,invalidBars=0,missingTurnoverBars=0,invalidTurnoverBars=0;
   for(const item of symbols){
     const symbol=symbolOf(item?.symbol);
     if(!symbol){blockers.push('SYMBOL_ID_REQUIRED');continue;}
     if(symbolSeen.has(symbol)){blockers.push(`DUPLICATE_SYMBOL_${symbol}`);continue;}
     symbolSeen.add(symbol);
     const bars=Array.isArray(item?.bars)?item.bars:[];
+    if(!bars.length)blockers.push(`SYMBOL_${symbol}_BARS_REQUIRED`);
     const seenSessions=new Set();let validCount=0;
     for(const bar of bars){
       totalBars+=1;
@@ -111,6 +112,7 @@ export function auditPhase57MinimalHybridDataset(dataset){
       if(!regularBarOpen(parts.time)||Number(parts.time.slice(3))%5!==0||parts.second!=='00')lunchViolations+=1;
       if(availableAt!==timestamp+5*60_000)futureAvailabilityViolations+=1;
       if(!finite(bar?.turnover))missingTurnoverBars+=1;
+      else if(Number(bar.turnover)<=0)invalidTurnoverBars+=1;
       validCount+=1;seenSessions.add(String(bar.sessionDate));
       const session=sessionMap.get(String(bar.sessionDate));
       if(session?.members.has(symbol)){
@@ -124,10 +126,14 @@ export function auditPhase57MinimalHybridDataset(dataset){
   if(lunchViolations)blockers.push('LUNCH_OR_SESSION_VIOLATIONS_PRESENT');
   if(futureAvailabilityViolations)blockers.push('BAR_AVAILABILITY_SEMANTICS_VIOLATION');
   if(invalidBars)blockers.push('INVALID_BARS_PRESENT');
+  if(!totalBars)blockers.push('OBSERVED_BARS_REQUIRED');
+  if(missingTurnoverBars)blockers.push('MISSING_OR_NONFINITE_TURNOVER_PRESENT');
+  if(invalidTurnoverBars)blockers.push('NONPOSITIVE_TURNOVER_PRESENT');
 
   const coverageBySession=sessions.map(session=>{
     const date=String(session.sessionDate),row=sessionMap.get(date);
     const memberCount=row?.members.size??0,observedSymbolCount=row?.observedSymbols.size??0;
+    if(!row?.barCount)blockers.push(`SESSION_${date}_OBSERVED_MEMBER_BARS_REQUIRED`);
     const expectedBars=memberCount*66;
     return {
       sessionDate:date,memberCount,observedSymbolCount,barCount:row?.barCount??0,
@@ -151,7 +157,7 @@ export function auditPhase57MinimalHybridDataset(dataset){
       sessionCount:sessions.length,symbolCount:symbolSeen.size,totalBars,
       totalCrossSections:coverageBySession.reduce((sum,row)=>sum+row.totalCrossSections,0),
       missingBars:coverageBySession.reduce((sum,row)=>sum+row.missingBars,0),
-      duplicateBars,timestampConflicts,lunchViolations,futureAvailabilityViolations,invalidBars,missingTurnoverBars,
+      duplicateBars,timestampConflicts,lunchViolations,futureAvailabilityViolations,invalidBars,missingTurnoverBars,invalidTurnoverBars,
     },
     coverageSummary:{
       sessionSymbolCoverage:distribution(coverageBySession.map(row=>row.symbolCoverageRate)),

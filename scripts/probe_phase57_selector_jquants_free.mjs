@@ -92,6 +92,9 @@ export async function probeJquantsFree({apiKey,fetchImpl=globalThis.fetch,entitl
     return report;
   }
 
+  if(minute.data.length===0){
+    report.minuteEntitlement.status='EMPTY_RESPONSE_NOT_PASS';return report;
+  }
   report.minuteEntitlement.status='AVAILABLE';
   if(entitlementOnly){
     report.pilot.status='NOT_RUN_ENTITLEMENT_ONLY';
@@ -119,11 +122,11 @@ export async function probeJquantsFree({apiKey,fetchImpl=globalThis.fetch,entitl
   report.pilot.rowCount=observations.reduce((sum,value)=>sum+value.rowCount,0);
   report.pilot.paginationObserved=responses.some(value=>value.paginationPresent);
   report.pilot.paginationComplete=!report.pilot.paginationObserved;
-  report.pilot.timestampTimezoneStatus=timestampsValid?'PASS_JST_EXCHANGE_LOCAL_BAR_OPEN_CONTRACT':'FAIL_TIMESTAMP_FORMAT';
+  report.pilot.timestampTimezoneStatus=timestampsValid?'FORMAT_VALID_SEMANTICS_UNKNOWN':'FAIL_TIMESTAMP_FORMAT';
   report.pilot.lunchViolationCount=lunchRows;
   report.pilot.duplicateCount=rawRows.length-observedKeys.size;
   report.pilot.noTradeSemantics='ABSENT_MINUTES_REMAIN_MISSING_NEVER_ZERO_OR_FABRICATED';
-  report.pilot.corporateActionSemantics='PASS_RAW_AS_PROVIDED_NO_BACK_ADJUSTMENT_FORMAL_DATA_MUST_JOIN_DAILY_ADJFACTOR_AND_QUARANTINE_EVENT_SESSIONS';
+  report.pilot.corporateActionSemantics='UNKNOWN_FIELD_NAMES_DO_NOT_PROVE_ADJUSTMENT_BASIS';
   report.pilot.fieldContractPass=observations.every(value=>value.fieldContractPass);
   report.pilot.ohlcOrderPass=observations.every(value=>value.ohlcOrderPass);
   report.pilot.nonNegativeVolumeTurnoverPass=observations.every(value=>value.nonNegativeVolumeTurnoverPass);
@@ -132,9 +135,9 @@ export async function probeJquantsFree({apiKey,fetchImpl=globalThis.fetch,entitl
   report.pilot.missingMinuteCount=aggregateA.reduce((sum,row)=>sum+row.missingNoTradeMinuteCount,0);
   report.pilot.fabricatedMinuteCount=aggregateA.reduce((sum,row)=>sum+row.fabricatedMinuteCount,0);
   const pilotPass=successful.length===responses.length&&report.pilot.rowCount>0&&report.pilot.fieldContractPass&&report.pilot.ohlcOrderPass&&report.pilot.nonNegativeVolumeTurnoverPass&&report.pilot.paginationComplete&&timestampsValid&&lunchRows===0&&report.pilot.duplicateCount===0&&report.pilot.deterministicAggregationPass&&report.pilot.fabricatedMinuteCount===0;
-  report.pilot.status=pilotPass?'SOURCE_VALIDATION_ONLY_PASS':'PILOT_FAILED';
+  report.pilot.status=pilotPass?'PILOT_BLOCKED_SEMANTICS_UNKNOWN':'PILOT_FAILED';
   report.historicalDepth.status=report.pilot.rowCount>0?'OLDEST_PILOT_DATE_AVAILABLE_120_SESSION_FULL_COVERAGE_NOT_YET_AUDITED':'NOT_PROVEN';
-  report.fiveMinutePath.status=pilotPass?'CAUSAL_ONE_MINUTE_TO_FIVE_MINUTE_AGGREGATION_PILOT_PASS':'NOT_AVAILABLE';
+  report.fiveMinutePath.status='NOT_AVAILABLE_SEMANTICS_UNCONFIRMED';
   return report;
 }
 

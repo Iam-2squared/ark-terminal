@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import fs from 'node:fs';
+import {createHash} from 'node:crypto';
 import {inspectEdgeRows,minuteBoundaryMembership,runJquantsEdgeProbe} from '../../scripts/probe_phase57_selector_jquants_edges.mjs';
 const query={code:'72030',date:'2025-01-08'};
 const row=(Time,extra={})=>({Date:query.date,Code:query.code,Time,O:100,H:101,L:99,C:100,Vo:10,Va:1000,...extra});
@@ -67,4 +69,22 @@ test('malformed observations stop the audit as integrity failures rather than ti
     assert.equal(calls,1);assert.equal(report.status,'PILOT_FAILED_DATA_INTEGRITY');
     assert.equal(report.sourceValidationPass,false);
   }
+});
+test('frozen real edge evidence never admits a dataset or opens any research split',()=>{
+  const base=new URL('../research/phase57-selector-jquants-timestamp-audit-2026-09-06',import.meta.url);
+  const bytes=fs.readFileSync(new URL(base.href+'.json'));
+  const digest=fs.readFileSync(new URL(base.href+'.sha256'),'utf8').trim().split(/\s+/)[0];
+  assert.equal(createHash('sha256').update(bytes).digest('hex'),digest);
+  const evidence=JSON.parse(bytes);
+  assert.equal(evidence.status,'BLOCKED_TIMESTAMP_CONTRACT_UNRESOLVED');
+  assert.equal(evidence.probe.requestCount,4);
+  assert.equal(evidence.probe.groups.reduce((n,g)=>n+g.rowCount,0),1305);
+  assert.ok(evidence.probe.groups.every(g=>g.uniformBarEndFalsified));
+  assert.equal(evidence.probe.sourceValidationPass,false);
+  assert.equal(evidence.probe.rawPersisted,false);
+  assert.equal(evidence.probe.secretPersisted,false);
+  for(const key of ['formalAcquisitionStarted','developmentReleased','validationReleased','untouchedOosReleased'])assert.equal(evidence.probe[key],false);
+  assert.ok(Object.values(evidence.safety).every(value=>value===false));
+  assert.equal(evidence.downstream.hybridFreezeSha256,null);
+  assert.equal(evidence.downstream.validationLeader,null);
 });

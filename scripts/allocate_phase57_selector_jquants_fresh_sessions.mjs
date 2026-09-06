@@ -26,7 +26,7 @@ export function buildFreshAllocation(calendarRows){
   if(!Array.isArray(calendarRows))throw new TypeError('calendar rows are required');
   const seen=new Set(),eligible=[];let invalidRows=0,halfDaysExcluded=0,sourceValidationExcluded=0,consumedExcluded=0;
   for(const row of calendarRows){
-    const date=String(row?.Date??''),division=String(row?.HolidayDivision??'');
+    const date=String(row?.Date??''),division=String(row?.HolDiv??'');
     if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!['0','1','2','3'].includes(division)){invalidRows+=1;continue;}
     if(seen.has(date))throw new Error('calendar contains duplicate dates');seen.add(date);
     if(division!=='1'){if(division==='2')halfDaysExcluded+=1;continue;}

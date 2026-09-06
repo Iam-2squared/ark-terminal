@@ -112,8 +112,8 @@ export async function probeJquantsFree({apiKey,fetchImpl=globalThis.fetch,entitl
   const rawRows=successful.flatMap(value=>value.data);
   let aggregateA=[];let aggregateB=[];let aggregationError=null;
   try{
-    aggregateA=aggregateJquantsMinutesToFiveMinuteBars(rawRows,{sourceMinuteTimestampMeaning:'BAR_OPEN'});
-    aggregateB=aggregateJquantsMinutesToFiveMinuteBars(rawRows,{sourceMinuteTimestampMeaning:'BAR_OPEN'});
+    aggregateA=aggregateJquantsMinutesToFiveMinuteBars(rawRows,{sourceMinuteTimestampMeaning:'BAR_START_HALF_OPEN_INCLUDING_TERMINAL_AUCTION_MINUTES'});
+    aggregateB=aggregateJquantsMinutesToFiveMinuteBars(rawRows,{sourceMinuteTimestampMeaning:'BAR_START_HALF_OPEN_INCLUDING_TERMINAL_AUCTION_MINUTES'});
   }catch(error){aggregationError='AGGREGATION_CONTRACT_REJECTED';}
   const aggregateHash=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
   const lunchRows=rawRows.filter(row=>String(row.Time)>='11:30'&&String(row.Time)<'12:30').length;
@@ -135,7 +135,7 @@ export async function probeJquantsFree({apiKey,fetchImpl=globalThis.fetch,entitl
   report.pilot.missingMinuteCount=aggregateA.reduce((sum,row)=>sum+row.missingNoTradeMinuteCount,0);
   report.pilot.fabricatedMinuteCount=aggregateA.reduce((sum,row)=>sum+row.fabricatedMinuteCount,0);
   const pilotPass=successful.length===responses.length&&report.pilot.rowCount>0&&report.pilot.fieldContractPass&&report.pilot.ohlcOrderPass&&report.pilot.nonNegativeVolumeTurnoverPass&&report.pilot.paginationComplete&&timestampsValid&&lunchRows===0&&report.pilot.duplicateCount===0&&report.pilot.deterministicAggregationPass&&report.pilot.fabricatedMinuteCount===0;
-  report.pilot.status=pilotPass?'PILOT_BLOCKED_SEMANTICS_UNKNOWN':'PILOT_FAILED';
+  report.pilot.status=pilotPass?'PILOT_SUPERSEDED_BY_TICK_PROVEN_CONTRACT':'PILOT_FAILED';
   report.historicalDepth.status=report.pilot.rowCount>0?'OLDEST_PILOT_DATE_AVAILABLE_120_SESSION_FULL_COVERAGE_NOT_YET_AUDITED':'NOT_PROVEN';
   report.fiveMinutePath.status='NOT_AVAILABLE_SEMANTICS_UNCONFIRMED';
   return report;

@@ -5,7 +5,7 @@ import {planPhase57MinimalHybridFrozen120Split} from '../daytrade/phase57-select
 
 function calendar(count=150){
   const rows=[];let cursor=Date.parse('2024-10-01T00:00:00Z');
-  while(rows.length<count){const day=new Date(cursor).getUTCDay();if(day!==0&&day!==6)rows.push({Date:new Date(cursor).toISOString().slice(0,10),HolidayDivision:'1'});cursor+=86_400_000;}
+  while(rows.length<count){const day=new Date(cursor).getUTCDay();if(day!==0&&day!==6)rows.push({Date:new Date(cursor).toISOString().slice(0,10),HolDiv:'1'});cursor+=86_400_000;}
   return rows;
 }
 const sessions=dates=>dates.map(date=>({sessionDate:date,crossSectionAtomic:true,decisionCutoffs:[`${date}T00:15:00.000Z`]}));
@@ -25,5 +25,5 @@ test('allocation fixes 72/24/24 usable sessions with one purge at each boundary'
 
 test('insufficient or invalid calendars fail closed before allocation',()=>{
   assert.equal(buildFreshAllocation(calendar(100)).status,'ALLOCATION_NOT_READY');
-  assert.equal(buildFreshAllocation([{Date:'bad',HolidayDivision:'1'}]).status,'ALLOCATION_NOT_READY');
+  assert.equal(buildFreshAllocation([{Date:'bad',HolDiv:'1'}]).status,'ALLOCATION_NOT_READY');
 });

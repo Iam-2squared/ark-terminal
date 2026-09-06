@@ -23,9 +23,11 @@ function timeParts(value){
   return {hour,minute,total:hour*60+minute};
 }
 
-function regularSessionSegment(total){
-  if(total>=9*60&&total<11*60+30)return {name:'AM',start:9*60,end:11*60+30};
-  if(total>=12*60+30&&total<15*60+30)return {name:'PM',start:12*60+30,end:15*60+30};
+function sourceMinuteSegment(total){
+  if(total>=9*60&&total<11*60+30)return {name:'AM',start:9*60,end:11*60+30,kind:'REGULAR_CONTINUOUS_MINUTE'};
+  if(total===11*60+30)return {name:'AM',start:9*60,end:11*60+30,kind:'TERMINAL_AUCTION_MINUTE'};
+  if(total>=12*60+30&&total<15*60+30)return {name:'PM',start:12*60+30,end:15*60+30,kind:'REGULAR_CONTINUOUS_MINUTE'};
+  if(total===15*60+30)return {name:'PM',start:12*60+30,end:15*60+30,kind:'TERMINAL_AUCTION_MINUTE'};
   return null;
 }
 
@@ -45,13 +47,14 @@ export function normalizeJquantsMinuteRow(raw,index=0){
   const code=String(raw?.Code??'').trim().toUpperCase();
   if(!DATE.test(date))throw new Error(`minute row[${index}] has invalid Date`);
   const {total}=timeParts(time);
-  if(!regularSessionSegment(total))throw new Error(`minute row[${index}] is outside the regular TSE session`);
+  const segment=sourceMinuteSegment(total);
+  if(!segment)throw new Error(`minute row[${index}] is outside the supported TSE source session`);
   if(!/^(?:\d{5}|\d{3}[A-Z]\d)$/.test(code))throw new Error(`minute row[${index}] has invalid Code`);
   for(const key of ['O','H','L','C','Vo','Va']){
     if(!finite(raw?.[key]))throw new Error(`minute row[${index}] requires finite ${key}`);
   }
   const row={
-    date,time,code,
+    date,time,code,sessionSegment:segment.name,sourceMinuteKind:segment.kind,
     open:Number(raw.O),high:Number(raw.H),low:Number(raw.L),close:Number(raw.C),
     volume:Number(raw.Vo),turnover:Number(raw.Va),
   };
@@ -78,13 +81,23 @@ export function normalizeJquantsMinuteRows(rows){
   ));
 }
 
-export function aggregateJquantsMinutesToFiveMinuteBars(rows,{sourceMinuteTimestampMeaning}={}){
-  if(sourceMinuteTimestampMeaning!=='BAR_OPEN')throw new Error('J-Quants minute timestamp meaning must be explicitly verified as BAR_OPEN');
+export function partitionJquantsMinuteRowsForFiveMinuteBars(rows){
   const normalized=normalizeJquantsMinuteRows(rows);
+  return Object.freeze({
+    regularRows:Object.freeze(normalized.filter(row=>row.sourceMinuteKind==='REGULAR_CONTINUOUS_MINUTE')),
+    terminalAuctionRows:Object.freeze(normalized.filter(row=>row.sourceMinuteKind==='TERMINAL_AUCTION_MINUTE')),
+  });
+}
+
+export function aggregateJquantsMinutesToFiveMinuteBars(rows,{sourceMinuteTimestampMeaning}={}){
+  if(sourceMinuteTimestampMeaning!=='BAR_START_HALF_OPEN_INCLUDING_TERMINAL_AUCTION_MINUTES'){
+    throw new Error('J-Quants minute timestamp contract must be the Tick-proven frozen contract');
+  }
+  const {regularRows:normalized}=partitionJquantsMinuteRowsForFiveMinuteBars(rows);
   const bins=new Map();
   for(const row of normalized){
     const {total}=timeParts(row.time);
-    const segment=regularSessionSegment(total);
+    const segment=sourceMinuteSegment(total);
     const binStart=segment.start+Math.floor((total-segment.start)/5)*5;
     const key=`${row.date}|${row.code}|${segment.name}|${binStart}`;
     if(!bins.has(key))bins.set(key,{date:row.date,code:row.code,segment:segment.name,binStart,rows:[]});
@@ -164,11 +177,12 @@ export async function fetchJquantsMinuteRows({
 }
 
 export const PHASE57_SELECTOR_JQUANTS_MINUTE_SAFETY=SAFETY;
-export const Phase57SelectorJquantsMinuteInternals=Object.freeze({API_BASE,MINUTE_PATH,regularSessionSegment,timestampIso});
+export const Phase57SelectorJquantsMinuteInternals=Object.freeze({API_BASE,MINUTE_PATH,sourceMinuteSegment,timestampIso});
 
 export default {
   normalizeJquantsMinuteRow,
   normalizeJquantsMinuteRows,
+  partitionJquantsMinuteRowsForFiveMinuteBars,
   aggregateJquantsMinutesToFiveMinuteBars,
   fetchJquantsMinuteRows,
   PHASE57_SELECTOR_JQUANTS_MINUTE_SAFETY,

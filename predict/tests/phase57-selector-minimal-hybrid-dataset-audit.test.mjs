@@ -14,8 +14,8 @@ const SAFETY=Object.freeze({
   automaticPromotionAllowed:false,productionUpdateAllowed:false,transmitted:false,
 });
 
-function tradingDates(count){
-  const dates=[];let cursor=Date.UTC(2025,1,3);
+function tradingDates(count,start=Date.UTC(2025,1,3)){
+  const dates=[];let cursor=start;
   while(dates.length<count){const day=new Date(cursor).getUTCDay();if(day!==0&&day!==6)dates.push(new Date(cursor).toISOString().slice(0,10));cursor+=86_400_000;}
   return dates;
 }
@@ -59,6 +59,21 @@ function datasetFixture(){
     })),
     symbols:[{symbol:'1001.T',sector:'TEST',market:'PRIME',bars}],
   };
+}
+
+function compactDatasetFixture(){
+  const sessions=tradingDates(122,Date.UTC(2024,0,4)).map(date=>({sessionDate:date,crossSectionAtomic:true,memberSymbols:['1001.T'],decisionCutoffs:[new Date(`${date}T01:00:00.000Z`).toISOString()]}));
+  const base=datasetFixture().manifest;
+  const manifest={...base,datasetId:'PHASE57_JQUANTS_OHLCMIN_FRESH120_V1',datasetAllocationPolicy:'FRESH_120_PLUS_TWO_ONE_SESSION_PURGES',
+    sourceProvider:'J-Quants',sourceEndpoint:'/v2/equities/bars/minute + /v2/equities/master',acquisitionMethod:'API_STRUCTURAL_AUDIT_WITH_SEALED_SPLITS',
+    reconstructionMethod:'TICK_PROVEN_1M_TO_SESSION_ALIGNED_5M',evidenceClassification:'EXACT_POINT_IN_TIME',universeStatus:'POINT_IN_TIME'};
+  const compactSessionAudits=sessions.map((session,index)=>({status:'SESSION_STRUCTURAL_AUDIT_PASS',sessionDate:session.sessionDate,
+    fold:index<72?'DEVELOPMENT':index===72||index===97?'PURGE':index<97?'VALIDATION':'UNTOUCHED_OOS',rawMinuteRows:10,normalizedMinuteRows:10,regularMinuteRows:10,terminalAuctionRows:0,
+    fiveMinuteBars:2,eligibleJpxSymbolCount:1,exactDuplicateRows:0,timestampConflicts:0,invalidMinuteRows:0,lunchViolations:0,futureAvailabilityViolations:0,
+    masterInvalidRows:0,masterDuplicateCodes:0,minuteSha256:'a'.repeat(64),fiveMinuteSha256:'b'.repeat(64),memberSetSha256:'c'.repeat(64),
+    symbolCoverage:[{symbol:'1001.T',fiveMinuteBars:2}],rawPersisted:false,secretPersisted:false,outcomeInspectionPerformed:false,
+    featureCalculationPerformed:index<72,labelGenerationPerformed:index<72,researchPayloadReleased:index<72,validationReleased:false,untouchedOosReleased:false}));
+  return {storageMode:'SANITIZED_SESSION_AUDITS_WITH_SEALED_SPLITS',manifest,sessions,compactSessionAudits};
 }
 
 test('readiness evidence is frozen at DATASET_NOT_READY without training or release',()=>{
@@ -150,4 +165,21 @@ test('an absent sparse bar remains absent and is not fabricated by admission',()
   assert.equal(report.counts.totalBars,7919);
   assert.equal(report.counts.missingBars,1);
   assert.equal(JSON.stringify(value),original);
+});
+
+test('compact structural audits admit 122 allocated sessions while Validation and OOS remain sealed',()=>{
+  const value=compactDatasetFixture();
+  const report=auditPhase57MinimalHybridDataset(value);
+  assert.equal(report.status,'MINIMAL_HYBRID_DATASET_ADMITTED_DEVELOPMENT_ONLY');
+  assert.equal(report.counts.sessionCount,122);
+  assert.equal(report.admission.split.development.length,72);
+  assert.equal(report.admission.split.validation.length,24);
+  assert.equal(report.admission.split.untouchedOos.length,24);
+  assert.equal(report.release.validationReleased,false);
+  assert.equal(report.release.untouchedOosReleased,false);
+
+  value.compactSessionAudits.at(-1).featureCalculationPerformed=true;
+  const rejected=auditPhase57MinimalHybridDataset(value);
+  assert.equal(rejected.status,'MINIMAL_HYBRID_DATASET_ADMISSION_REJECTED');
+  assert.ok(rejected.blockers.some(item=>item.includes('NON_DEVELOPMENT_PAYLOAD')));
 });

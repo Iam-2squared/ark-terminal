@@ -49,6 +49,17 @@ on:
       - 'predict/tests/phase57-selector-jquants-date-capacity.test.mjs'
       - 'scripts/allocate_phase57_selector_jquants_fresh_sessions.mjs'
       - 'predict/tests/phase57-selector-jquants-allocation.test.mjs'
+      - 'predict/research/phase57-selector-jquants-fresh120-allocation.json'
+      - 'predict/research/phase57-selector-jquants-fresh120-allocation.sha256'
+      - 'predict/tests/phase57-selector-jquants-fresh120-allocation-freeze.test.mjs'
+      - 'scripts/lib/phase57-selector-jquants-fresh-session.mjs'
+      - 'scripts/acquire_phase57_selector_jquants_fresh_shard.mjs'
+      - 'scripts/develop_phase57_selector_jquants_hybrid.mjs'
+      - 'scripts/validate_phase57_selector_jquants_shard.mjs'
+      - 'scripts/summarize_phase57_selector_jquants_validation.mjs'
+      - 'predict/tests/phase57-selector-jquants-fresh-session.test.mjs'
+      - 'predict/tests/phase57-selector-jquants-development.test.mjs'
+      - 'predict/tests/phase57-selector-jquants-validation-summary.test.mjs'
       - 'scripts/audit_phase57_selector_minimal_hybrid_dataset.mjs'
       - '.github/workflows/phase57-selector-minimal-hybrid-phase-a.yml'
   workflow_dispatch:
@@ -79,10 +90,14 @@ jobs:
         run: (cd predict/research && sha256sum --check phase57-selector-jquants-timestamp-contract-v1.sha256)
       - name: Verify post-contract reconstruction Pilot
         run: (cd predict/research && sha256sum --check phase57-selector-jquants-minute-reconstruction-pilot-2026-09-06.sha256)
+      - name: Verify immutable Fresh-120 allocation
+        run: (cd predict/research && sha256sum --check phase57-selector-jquants-fresh120-allocation.sha256)
       - name: Verify architecture and dataset contamination guards
         run: node --test predict/tests/phase57-selector-minimal-hybrid-phase-a.test.mjs predict/tests/phase57-selector-minimal-hybrid-dataset-audit.test.mjs predict/tests/phase57-selector-minimal-hybrid-source-resolution.test.mjs predict/tests/phase57-selector-minimal-hybrid-implementation.test.mjs predict/tests/phase57-selector-jquants-minute.test.mjs predict/tests/phase57-selector-jquants-free-probe.test.mjs
       - name: Verify timestamp evidence cannot manufacture a PASS
         run: node --test predict/tests/phase57-selector-jquants-edges.test.mjs predict/tests/phase57-selector-jquants-tick-minute-reconciliation.test.mjs predict/tests/phase57-selector-jquants-minute-reconstruction-pilot.test.mjs predict/tests/phase57-selector-jquants-date-capacity.test.mjs predict/tests/phase57-selector-jquants-allocation.test.mjs
+      - name: Verify Fresh acquisition, Development and Validation gates
+        run: node --test predict/tests/phase57-selector-jquants-fresh120-allocation-freeze.test.mjs predict/tests/phase57-selector-jquants-fresh-session.test.mjs predict/tests/phase57-selector-jquants-development.test.mjs predict/tests/phase57-selector-jquants-validation-summary.test.mjs
 
   jquants-source-edges:
     if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/research/phase57-selector-v1-v3-minimal-hybrid') || (github.event.pull_request.number == 577 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'research/phase57-selector-v1-v3-minimal-hybrid')

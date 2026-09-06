@@ -57,11 +57,62 @@ function manifestBlockers(manifest,blockers){
   for(const key of FALSE_SAFETY_KEYS)if(manifest?.safety?.[key]!==false)blockers.push(`SAFETY_${key}_MUST_BE_FALSE`);
 }
 
+function auditCompactDataset(dataset){
+  const blockers=[];const manifest=dataset.manifest??{};
+  manifestBlockers(manifest,blockers);
+  const sessions=Array.isArray(dataset.sessions)?dataset.sessions:[];
+  const audits=Array.isArray(dataset.compactSessionAudits)?dataset.compactSessionAudits:[];
+  if(!sessions.length)blockers.push('SESSIONS_REQUIRED');
+  if(audits.length!==sessions.length)blockers.push('COMPACT_SESSION_AUDIT_COUNT_MISMATCH');
+  const expectedDates=sessions.map(row=>String(row?.sessionDate??''));
+  const byDate=new Map();const symbolTotals=new Map();
+  let totalBars=0,totalRows=0,totalCrossSections=0;
+  for(const audit of audits){
+    const date=String(audit?.sessionDate??'');
+    if(byDate.has(date)){blockers.push(`COMPACT_SESSION_${date}_DUPLICATE`);continue;}
+    byDate.set(date,audit);
+    if(audit?.status!=='SESSION_STRUCTURAL_AUDIT_PASS')blockers.push(`COMPACT_SESSION_${date}_NOT_PASS`);
+    if(!/^[a-f0-9]{64}$/i.test(String(audit?.minuteSha256??''))||!/^[a-f0-9]{64}$/i.test(String(audit?.fiveMinuteSha256??''))||!/^[a-f0-9]{64}$/i.test(String(audit?.memberSetSha256??'')))blockers.push(`COMPACT_SESSION_${date}_DIGEST_INVALID`);
+    for(const field of ['rawMinuteRows','normalizedMinuteRows','regularMinuteRows','fiveMinuteBars','eligibleJpxSymbolCount'])if(!Number.isInteger(Number(audit?.[field]))||Number(audit[field])<=0)blockers.push(`COMPACT_SESSION_${date}_${field.toUpperCase()}_INVALID`);
+    for(const field of ['exactDuplicateRows','timestampConflicts','invalidMinuteRows','lunchViolations','futureAvailabilityViolations','masterInvalidRows','masterDuplicateCodes'])if(Number(audit?.[field])!==0)blockers.push(`COMPACT_SESSION_${date}_${field.toUpperCase()}_NONZERO`);
+    if(audit?.rawPersisted!==false||audit?.secretPersisted!==false||audit?.outcomeInspectionPerformed!==false)blockers.push(`COMPACT_SESSION_${date}_PERSISTENCE_OR_OUTCOME_GUARD`);
+    if(audit?.validationReleased!==false||audit?.untouchedOosReleased!==false)blockers.push(`COMPACT_SESSION_${date}_SEALED_FOLD_RELEASED`);
+    if(audit?.fold!=='DEVELOPMENT'&&(audit?.featureCalculationPerformed!==false||audit?.labelGenerationPerformed!==false||audit?.researchPayloadReleased!==false))blockers.push(`COMPACT_SESSION_${date}_NON_DEVELOPMENT_PAYLOAD`);
+    const coverage=Array.isArray(audit?.symbolCoverage)?audit.symbolCoverage:[];
+    if(coverage.length!==Number(audit?.eligibleJpxSymbolCount))blockers.push(`COMPACT_SESSION_${date}_SYMBOL_COVERAGE_COUNT_MISMATCH`);
+    for(const row of coverage){
+      const symbol=symbolOf(row?.symbol),count=Number(row?.fiveMinuteBars);
+      if(!symbol||!Number.isInteger(count)||count<=0){blockers.push(`COMPACT_SESSION_${date}_SYMBOL_COVERAGE_INVALID`);continue;}
+      symbolTotals.set(symbol,(symbolTotals.get(symbol)??0)+count);
+    }
+    totalRows+=Number(audit?.normalizedMinuteRows)||0;totalBars+=Number(audit?.fiveMinuteBars)||0;
+    totalCrossSections+=Number(audit?.fiveMinuteBars)||0;
+  }
+  for(const date of expectedDates)if(!byDate.has(date))blockers.push(`COMPACT_SESSION_${date}_AUDIT_REQUIRED`);
+  let admission=null;
+  try{admission=validatePhase57MinimalHybridDatasetAdmission(dataset);}catch(error){blockers.push(`ADMISSION_GUARD:${String(error?.message??error)}`);}
+  const uniqueBlockers=[...new Set(blockers)];
+  const status=uniqueBlockers.length?'MINIMAL_HYBRID_DATASET_ADMISSION_REJECTED':'MINIMAL_HYBRID_DATASET_ADMITTED_DEVELOPMENT_ONLY';
+  const coverageBySession=expectedDates.map(sessionDate=>{const row=byDate.get(sessionDate);return {sessionDate,symbolCount:Number(row?.eligibleJpxSymbolCount)||0,minuteRows:Number(row?.normalizedMinuteRows)||0,fiveMinuteBars:Number(row?.fiveMinuteBars)||0};});
+  const coverageBySymbol=[...symbolTotals].sort((a,b)=>a[0].localeCompare(b[0])).map(([symbol,barCount])=>({symbol,barCount}));
+  const core={schemaVersion:1,phase:'57.selector-minimal-hybrid.dataset-admission-audit',storageMode:dataset.storageMode,status,
+    datasetId:String(manifest.datasetId??''),source:String(manifest.sourceProvider??''),acquisitionMethod:String(manifest.acquisitionMethod??''),
+    evidenceClassification:manifest.evidenceClassification??null,period:{firstSession:expectedDates[0]??null,lastSession:expectedDates.at(-1)??null},
+    counts:{sessionCount:sessions.length,symbolCount:symbolTotals.size,totalMinuteRows:totalRows,totalBars,totalCrossSections,duplicateBars:0,timestampConflicts:0,lunchViolations:0,futureAvailabilityViolations:0,invalidBars:0},
+    coverageSummary:{sessionSymbolCoverage:distribution(coverageBySession.map(row=>row.symbolCount)),sessionBarCount:distribution(coverageBySession.map(row=>row.fiveMinuteBars)),symbolBarCount:distribution(coverageBySymbol.map(row=>row.barCount))},
+    coverageBySession,coverageBySymbol,
+    provenance:{sourceEndpoint:manifest.sourceEndpoint??null,acquiredAt:manifest.acquiredAt??null,rawSourceSha256:manifest.rawSourceSha256??null,parentDatasetIds:manifest.parentDatasetIds??[],reconstructionMethod:manifest.reconstructionMethod??null,universeStatus:manifest.universeStatus??null,survivorshipLimitation:manifest.survivorshipLimitation??null,corporateActionHandling:manifest.corporateActionHandling??null,volumeSemantics:manifest.volumeSemantics??null,turnoverSemantics:manifest.turnoverSemantics??null},
+    release:{developmentReleased:status==='MINIMAL_HYBRID_DATASET_ADMITTED_DEVELOPMENT_ONLY',validationReleased:false,untouchedOosReleased:false},
+    training:{featureScreeningPerformed:false,modelFittingPerformed:false,thresholdTuningPerformed:false},blockers:uniqueBlockers,admission,safety:PHASE57_SELECTOR_MINIMAL_HYBRID_SAFETY};
+  return deepFreeze({...core,reportSha256:sha256(core)});
+}
+
 export function auditPhase57MinimalHybridDataset(dataset){
   const blockers=[];
   if(!dataset||typeof dataset!=='object'||Array.isArray(dataset)){
     return deepFreeze({status:'MINIMAL_HYBRID_DATASET_ADMISSION_REJECTED',blockers:['DATASET_OBJECT_REQUIRED'],admission:null});
   }
+  if(dataset.storageMode==='SANITIZED_SESSION_AUDITS_WITH_SEALED_SPLITS')return auditCompactDataset(dataset);
   const manifest=dataset.manifest??{};
   manifestBlockers(manifest,blockers);
   const symbols=Array.isArray(dataset.symbols)?dataset.symbols:[];

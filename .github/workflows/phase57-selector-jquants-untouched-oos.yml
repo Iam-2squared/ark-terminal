@@ -1,15 +1,10 @@
 name: Phase57 Frozen Selector Untouched OOS
 
+# The one-time Untouched OOS release completed in run 34039779876.
+# The pull-request trigger is intentionally removed so later evidence commits
+# cannot replay an already-consumed OOS as though it were untouched.
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/phase57-selector-jquants-untouched-oos.yml'
-      - 'scripts/verify_phase57_selector_jquants_oos_release.mjs'
-      - 'scripts/evaluate_phase57_selector_jquants_oos_shard.mjs'
-      - 'scripts/summarize_phase57_selector_jquants_oos.mjs'
-      - 'predict/tests/phase57-selector-jquants-oos-final.test.mjs'
-      - 'predict/research/phase57-selector-minimal-hybrid-oos-release.json'
-      - 'predict/research/phase57-selector-minimal-hybrid-oos-release.sha256'
+  workflow_dispatch:
 
 permissions:
   contents: read

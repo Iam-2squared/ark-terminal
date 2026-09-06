@@ -12,9 +12,23 @@ import {Phase57FreshSessionInternals} from './lib/phase57-selector-jquants-fresh
 const allocation=JSON.parse(fs.readFileSync(new URL('../predict/research/phase57-selector-jquants-fresh120-allocation.json',import.meta.url),'utf8'));
 const release=JSON.parse(fs.readFileSync(new URL('../predict/research/phase57-selector-minimal-hybrid-oos-release.json',import.meta.url),'utf8'));
 const sha256=value=>createHash('sha256').update(value).digest('hex');
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 
 function findFiles(root,name){const found=[];for(const entry of fs.readdirSync(root,{withFileTypes:true})){const target=path.join(root,entry.name);if(entry.isDirectory())found.push(...findFiles(target,name));else if(entry.name===name)found.push(target);}return found.sort();}
 function one(root,name){const files=findFiles(root,name);if(files.length!==1)throw new Error(`expected one ${name}, received ${files.length}`);return JSON.parse(fs.readFileSync(files[0],'utf8'));}
+
+async function evaluateWithRateLimitRetry(evaluate,args){
+  for(let attempt=0;attempt<6;attempt+=1){
+    try{return await evaluate({...args,paceMs:1800});}
+    catch(error){
+      if(String(error?.message??error)!=='RATE_LIMITED'||attempt===5)throw error;
+      const delayMs=(attempt+1)*30000;
+      console.error(`OOS_RATE_LIMIT_RETRY attempt=${attempt+1} delayMs=${delayMs}`);
+      await sleep(delayMs);
+    }
+  }
+  throw new Error('OOS_RATE_LIMIT_RETRY_EXHAUSTED');
+}
 
 async function evaluateSession({apiKey,date,expectedAudit,model,fetchImpl=globalThis.fetch,paceMs=1100}){
   if(expectedAudit?.fold!=='UNTOUCHED_OOS'||expectedAudit?.sessionDate!==date)throw new Error('frozen OOS structural audit is required');
@@ -56,7 +70,7 @@ export async function evaluateOosShard({apiKey,inputRoot,shardIndex,shardCount,e
   const dates=allocation.untouchedOos.filter((_,index)=>index%shardCount===shardIndex),records=[],points=[],sessionReports=[];
   for(const [index,date] of dates.entries()){
     console.error(`OOS_SHARD_PROGRESS shard=${shardIndex} session=${index+1}/${dates.length} date=${date}`);
-    const result=await evaluate({apiKey,date,expectedAudit:byDate.get(date),model});
+    const result=await evaluateWithRateLimitRetry(evaluate,{apiKey,date,expectedAudit:byDate.get(date),model});
     records.push(...result.records);points.push(...result.points);
     sessionReports.push({sessionDate:date,status:'OOS_SESSION_EVALUATED_FROZEN_SELECTORS',recordCount:result.records.length,decisionCount:result.points.length,structuralHashesVerified:result.structuralHashesVerified});
   }
@@ -79,4 +93,4 @@ async function main(){
 
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url))main().catch(error=>{console.error(`PHASE57_OOS_SHARD_FAIL ${String(error?.message??error)}`);process.exitCode=1;});
 
-export const Phase57OosShardInternals=Object.freeze({findFiles,evaluateSession});
+export const Phase57OosShardInternals=Object.freeze({findFiles,evaluateSession,evaluateWithRateLimitRetry});

@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.jquants-timestamp-contract-freeze-v1",
+  "asOfDate": "2026-09-06",
+  "status": "TIMESTAMP_CONTRACT_FROZEN",
+  "codeCommit": "084a10b6fbc2de9cb733d52b3f205f98cf98af24",
+  "workflowRunId": 34028904298,
+  "workflowJobId": 101474738422,
+  "officialSources": [
+    {
+      "url": "https://jpx-jquants.com/en/spec/eq-trades",
+      "finding": "Tick CSV fields include execution Time to microseconds, SessionDistinction, Price, TradingVolume and unique TransactionId."
+    },
+    {
+      "url": "https://jpx-jquants.com/en/spec/bulk-list",
+      "finding": "Tick files are enumerated with the authenticated bulk list API."
+    },
+    {
+      "url": "https://jpx-jquants.com/en/spec/bulk-get",
+      "finding": "Bulk get returns a five-minute signed URL for gzip CSV download."
+    },
+    {
+      "url": "https://jpx-jquants.com/ja/spec/eq-bars-minute",
+      "finding": "Minute rows aggregate execution ticks, contain OHLC/Volume/Turnover, and omit minutes with no trades."
+    }
+  ],
+  "contract": {
+    "sourceMinuteTimestampMeaning": "BAR_START",
+    "intervalClosure": "LEFT_CLOSED_RIGHT_OPEN",
+    "interval": "[Time, Time + 1 minute)",
+    "timezone": "ASIA_TOKYO_TSE_LOCAL_TIME",
+    "terminalAuctionMinutes": [
+      "11:30",
+      "15:30"
+    ],
+    "terminalAuctionTreatment": "SEPARATE_SOURCE_MINUTE_EVENT_NOT_A_REGULAR_CONTINUOUS_5M_INPUT",
+    "tickOrdering": "Time then TransactionId",
+    "ohlc": "first/max/min/last execution price",
+    "volume": "sum TradingVolume",
+    "turnover": "sum Price multiplied by TradingVolume",
+    "noTradeMinute": "MISSING_NEVER_FABRICATE"
+  },
+  "proof": {
+    "sourceValidationSessions": [
+      "2025-01-14",
+      "2025-01-15"
+    ],
+    "symbols": [
+      "72030",
+      "86970"
+    ],
+    "queryGroups": 4,
+    "tickCount": 61923,
+    "minuteRowCount": 1303,
+    "startExactMatchCount": 1303,
+    "startOrphanTickBinCount": 0,
+    "endHalfOpenExactMatchCount": 0,
+    "endRightClosedExactMatchCount": 4,
+    "boundaryComparisonCount": 16,
+    "boundaryStartExactMatchCount": 16,
+    "invalidTargetTicks": 0,
+    "duplicateTransactionIds": 0,
+    "invalidMinuteRows": 0,
+    "duplicateMinuteRows": 0,
+    "rawPersisted": false,
+    "signedUrlPersisted": false,
+    "secretPersisted": false
+  },
+  "scope": {
+    "timestampContractConfirmed": true,
+    "adapterChanged": false,
+    "sourceValidationPilotPassed": false,
+    "formalAcquisitionStarted": false,
+    "developmentReleased": false,
+    "validationReleased": false,
+    "untouchedOosReleased": false
+  },
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  }
+}

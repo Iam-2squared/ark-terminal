@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {gzipSync} from 'node:zlib';
+import fs from 'node:fs';
+import {createHash} from 'node:crypto';
 import {
   parseTickTime,reconcileTickMinute,runTickMinuteReconciliation,
   RECONCILIATION_DATES,RECONCILIATION_CODES,
@@ -91,4 +93,24 @@ test('missing key and entitlement errors stay sanitized and sealed',async()=>{
   const denied=await runTickMinuteReconciliation({apiKey:'x',fetchImpl:async()=>new Response('private error',{status:403})});
   assert.equal(denied.status,'BLOCKED_ENTITLEMENT');assert.equal(JSON.stringify(denied).includes('private error'),false);
   assert.equal(denied.developmentReleased,false);assert.equal(denied.validationReleased,false);assert.equal(denied.untouchedOosReleased,false);
+});
+
+test('real Tick reconciliation contract is frozen without opening downstream splits',()=>{
+  const base=new URL('../research/phase57-selector-jquants-timestamp-contract-v1',import.meta.url);
+  const bytes=fs.readFileSync(new URL(base.href+'.json'));
+  const digest=fs.readFileSync(new URL(base.href+'.sha256'),'utf8').trim().split(/\s+/)[0];
+  assert.equal(createHash('sha256').update(bytes).digest('hex'),digest);
+  const evidence=JSON.parse(bytes);
+  assert.equal(evidence.status,'TIMESTAMP_CONTRACT_FROZEN');
+  assert.equal(evidence.proof.startExactMatchCount,1303);
+  assert.equal(evidence.proof.minuteRowCount,1303);
+  assert.equal(evidence.proof.startOrphanTickBinCount,0);
+  assert.equal(evidence.proof.boundaryStartExactMatchCount,16);
+  assert.equal(evidence.contract.sourceMinuteTimestampMeaning,'BAR_START');
+  assert.equal(evidence.contract.intervalClosure,'LEFT_CLOSED_RIGHT_OPEN');
+  assert.equal(evidence.scope.sourceValidationPilotPassed,false);
+  assert.equal(evidence.scope.developmentReleased,false);
+  assert.equal(evidence.scope.validationReleased,false);
+  assert.equal(evidence.scope.untouchedOosReleased,false);
+  assert.ok(safetyKeys.every(key=>evidence.safety[key]===false));
 });

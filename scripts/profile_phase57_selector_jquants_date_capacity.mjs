@@ -6,6 +6,9 @@ import {fileURLToPath} from 'node:url';
 const PROFILE_DATE='2025-01-17'; // already permanently SOURCE_VALIDATION_ONLY
 const MAX_PAGES=2500;
 const MAX_BYTES_PER_PAGE=25_000_000;
+// J-Quants accepts and returns both legacy/common 4-character issue codes and
+// 5-character issue codes. New JPX issue codes can contain an ASCII letter.
+const ISSUE_CODE=/^[0-9A-Z]{4,5}$/;
 const SAFETY=Object.freeze({executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,
   rssOrderFunctionAllowed:false,liveTradingAllowed:false,paperTradingAllowed:false,
   automaticPromotionAllowed:false,productionUpdateAllowed:false,transmitted:false});
@@ -44,7 +47,7 @@ export async function profileDateWideCapacity({apiKey,fetchImpl=globalThis.fetch
         const date=String(row?.Date??''),code=String(row?.Code??''),time=String(row?.Time??'');
         const reasons=[];
         if(date!==PROFILE_DATE)reasons.push('date');
-        if(!/^\d{5}$/.test(code))reasons.push('code');
+        if(!ISSUE_CODE.test(code))reasons.push('code');
         if(!/^\d{2}:\d{2}$/.test(time))reasons.push('time');
         for(const name of ['O','H','L','C','Vo','Va']){
           if(row?.[name]===null||row?.[name]===undefined||!Number.isFinite(Number(row[name])))reasons.push(name);
@@ -87,4 +90,4 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
   console.error('JQUANTS_DATE_CAPACITY_INTERNAL_ERROR');process.exitCode=1;
 });
 
-export const Phase57DateCapacityInternals=Object.freeze({PROFILE_DATE,MAX_PAGES,MAX_BYTES_PER_PAGE});
+export const Phase57DateCapacityInternals=Object.freeze({PROFILE_DATE,MAX_PAGES,MAX_BYTES_PER_PAGE,ISSUE_CODE});

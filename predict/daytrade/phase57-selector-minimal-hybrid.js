@@ -158,6 +158,16 @@ function percentileRanks(rows,valueOf){
   return ranks;
 }
 
+function stage1SnapshotEntry(entry,cutoffMs){
+  const symbol=symbolOf(entry?.symbol);if(!symbol)throw new Error('Minimal Hybrid entry requires symbol');
+  const bars=normalizeBars(entry?.bars,{symbol}).filter(bar=>bar.availableAtMs<=cutoffMs);
+  if(!bars.length)return null;
+  const current=bars.at(-1),sessionBars=bars.filter(bar=>bar.sessionDate===current.sessionDate);
+  if(!sessionBars.length)return null;
+  return {symbol,sector:sectorOf(entry?.sector),market:entry?.market??null,status:'analyzed',scannedAt:new Date(cutoffMs).toISOString(),
+    currentPrice:current.close,volume:sessionBars.reduce((sum,bar)=>sum+bar.volume,0),dailyChangePercent:(current.close/sessionBars[0].open-1)*100};
+}
+
 export function extractPhase57MinimalHybridFeatures({featureCutoff,entries=[]}={}){
   const cutoff=timeMs(featureCutoff,'featureCutoff');
   if(!Array.isArray(entries))throw new TypeError('entries must be an array');
@@ -202,17 +212,17 @@ function stableEvidence(value){return createHash('sha256').update(JSON.stringify
 export function runPhase57MinimalHybrid({featureCutoff,entries=[],model,baselineDiagnostics={}}={}){
   if(model?.status!=='MINIMAL_HYBRID_MULTI_TARGET_MODEL_READY')throw new Error('Minimal Hybrid inference requires a ready multi-target model');
   if(model.guards?.directExtensionCoefficientAllowed!==false||model.guards?.v3MembershipOrThresholdUsed!==false||model.guards?.microstructureUsed!==false)throw new Error('model violates Minimal Hybrid architecture guards');
-  const featureResult=extractPhase57MinimalHybridFeatures({featureCutoff,entries});
-  const bySymbol=new Map(featureResult.rankedFeatures.map(row=>[row.symbol,row]));
-  const snapshotEntries=featureResult.rankedFeatures.map(row=>({
-    symbol:row.symbol,sector:row.sector,market:row.market,status:'analyzed',scannedAt:featureCutoff,
-    currentPrice:row.currentPrice,volume:row.cumulativeVolume,dailyChangePercent:row.returnFromSessionOpen*100,
-  }));
+  const cutoffMs=timeMs(featureCutoff,'featureCutoff');
+  const snapshotEntries=entries.map(entry=>stage1SnapshotEntry(entry,cutoffMs)).filter(Boolean);
   const stage1=buildIntradayDynamicUniverseTimeline({snapshots:[{asOf:featureCutoff,entries:snapshotEntries}]});
   const v1Rows=stage1.points[0]?.rawUniverse??[];
+  const v1Set=new Set(v1Rows.map(row=>row.symbol));
+  const featureResult=extractPhase57MinimalHybridFeatures({featureCutoff,entries:entries.filter(entry=>v1Set.has(symbolOf(entry?.symbol)))});
+  const bySymbol=new Map(featureResult.rankedFeatures.map(row=>[row.symbol,row]));
   const maximumAdjustment=model.selectionPolicy.maximumAbsoluteSoftAdjustment;
-  const ranked=v1Rows.map((row,index)=>{
+  const ranked=v1Rows.flatMap((row,index)=>{
     const featureRow=bySymbol.get(row.symbol);
+    if(!featureRow)return [];
     const inference=predictPhase57MinimalHybridTargets({model,features:featureRow?.features});
     const adjustment=(inference.remainingOpportunityScore-0.5)*2*maximumAdjustment;
     return {
@@ -232,7 +242,7 @@ export function runPhase57MinimalHybrid({featureCutoff,entries=[],model,baseline
   const selected=qualified.slice(0,model.selectionPolicy.maximumSelected);
   const v1Symbols=v1Rows.map(row=>row.symbol),hybridSymbols=selected.map(row=>row.symbol);
   const v3Symbols=Array.isArray(baselineDiagnostics.v3SelectedSymbols)?baselineDiagnostics.v3SelectedSymbols.map(symbolOf).filter(Boolean):null;
-  const v3Set=new Set(v3Symbols??[]),v1Set=new Set(v1Symbols);
+  const v3Set=new Set(v3Symbols??[]);
   const evidenceCore={
     phase:'57.selector-minimal-hybrid.evidence',featureCutoff:new Date(timeMs(featureCutoff,'featureCutoff')).toISOString(),
     modelDigest:model.modelDigest,

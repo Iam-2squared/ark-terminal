@@ -117,7 +117,8 @@ function developmentSamples({date,bySymbol}){
         currentPrice:current.close,volume:causal.reduce((sum,bar)=>sum+bar.volume,0),dailyChangePercent:(current.close/first.open-1)*100});
     }
     const v1=buildIntradayDynamicUniverseTimeline({snapshots:[{asOf:featureCutoff,entries:snapshots}]}).points[0]?.rawUniverse??[];
-    const featureResult=extractPhase57MinimalHybridFeatures({featureCutoff,entries});
+    const candidateSet=new Set(v1.map(row=>row.symbol));
+    const featureResult=extractPhase57MinimalHybridFeatures({featureCutoff,entries:entries.filter(entry=>candidateSet.has(entry.symbol))});
     const featureBySymbol=new Map(featureResult.rankedFeatures.map(row=>[row.symbol,row]));
     diagnostics.decisionCutoffCount+=1;diagnostics.v1CandidateRows+=v1.length;diagnostics.featureRows+=featureResult.rankedFeatures.length;
     for(const [v1Index,candidate] of v1.entries()){

@@ -23,6 +23,7 @@ export async function profileDateWideCapacity({apiKey,fetchImpl=globalThis.fetch
   const report={schemaVersion:1,phase:'57.jquants-date-wide-capacity-profile',status:key?'NOT_RUN':'AUTH_REQUIRED',
     evidenceClass:'SOURCE_VALIDATION_ONLY',quarantinedSession:PROFILE_DATE,pageCount:0,rowCount:0,
     responseBytes:0,maxRowsPerPage:0,uniqueSymbolCount:0,duplicateMinuteKeys:0,invalidRows:0,
+    invalidReasonCounts:{date:0,code:0,time:0,O:0,H:0,L:0,C:0,Vo:0,Va:0},
     firstTime:null,lastTime:null,symbolSetSha256:null,paginationComplete:false,
     rawPersisted:false,secretPersisted:false,responseBodiesPersisted:false,
     developmentReleased:false,validationReleased:false,untouchedOosReleased:false,safety:SAFETY};
@@ -41,8 +42,18 @@ export async function profileDateWideCapacity({apiKey,fetchImpl=globalThis.fetch
       report.maxRowsPerPage=Math.max(report.maxRowsPerPage,payload.data.length);
       for(const row of payload.data){
         const date=String(row?.Date??''),code=String(row?.Code??''),time=String(row?.Time??'');
-        if(date!==PROFILE_DATE||!/^\d{5}$/.test(code)||!/^\d{2}:\d{2}$/.test(time)
-          ||!['O','H','L','C','Vo','Va'].every(name=>Number.isFinite(Number(row?.[name])))){report.invalidRows+=1;continue;}
+        const reasons=[];
+        if(date!==PROFILE_DATE)reasons.push('date');
+        if(!/^\d{5}$/.test(code))reasons.push('code');
+        if(!/^\d{2}:\d{2}$/.test(time))reasons.push('time');
+        for(const name of ['O','H','L','C','Vo','Va']){
+          if(row?.[name]===null||row?.[name]===undefined||!Number.isFinite(Number(row[name])))reasons.push(name);
+        }
+        if(reasons.length){
+          report.invalidRows+=1;
+          for(const reason of new Set(reasons))report.invalidReasonCounts[reason]+=1;
+          continue;
+        }
         symbols.add(code);const minuteKey=`${code}|${time}`;
         if(minuteKeys.has(minuteKey))report.duplicateMinuteKeys+=1;else minuteKeys.add(minuteKey);
         report.firstTime=report.firstTime===null||time<report.firstTime?time:report.firstTime;

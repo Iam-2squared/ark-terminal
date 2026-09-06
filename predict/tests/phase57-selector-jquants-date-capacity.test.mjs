@@ -17,6 +17,18 @@ test('date-wide profiler counts paginated capacity without retaining market rows
   assert.equal(JSON.stringify(report).includes('72030'),false);assert.ok(Object.values(report.safety).every(value=>value===false));
 });
 
+test('date-wide profiler classifies invalid schema fields without retaining rows',async()=>{
+  const date=Phase57DateCapacityInternals.PROFILE_DATE;
+  const report=await profileDateWideCapacity({apiKey:'hidden',pace:async()=>{},fetchImpl:async()=>new Response(JSON.stringify({data:[
+    {Date:date,Code:'72030',Time:'09:00',O:null,H:101,L:99,C:100,Vo:1,Va:100},
+    {Date:date,Code:'bad',Time:'09:00',O:100,H:101,L:99,C:100,Vo:1},
+  ]}),{status:200})});
+  assert.equal(report.status,'DATE_WIDE_CAPACITY_PROFILE_FAIL');
+  assert.equal(report.invalidRows,2);
+  assert.deepEqual(report.invalidReasonCounts,{date:0,code:1,time:0,O:1,H:0,L:0,C:0,Vo:0,Va:1});
+  assert.equal(JSON.stringify(report).includes('72030'),false);
+});
+
 test('authorization failures stay sealed',async()=>{
   const report=await profileDateWideCapacity({apiKey:'x',fetchImpl:async()=>new Response('private-market-payload',{status:403})});
   assert.equal(report.status,'BLOCKED_ENTITLEMENT');assert.equal(JSON.stringify(report).includes('private-market-payload'),false);

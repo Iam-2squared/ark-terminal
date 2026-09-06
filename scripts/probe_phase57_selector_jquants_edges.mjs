@@ -123,7 +123,10 @@ export async function runJquantsEdgeProbe({apiKey,fetchImpl=globalThis.fetch,
     }
     const group=inspectEdgeRows(rows,query);group.paginationComplete=complete;
     report.groups.push(group);
-    if(!complete||rows.length===0||group.queryMismatchCount>0){report.status='PILOT_FAILED_DATA_INTEGRITY';return report;}
+    const invalid=['queryMismatchCount','invalidTimestampCount','invalidOhlcCount',
+      'invalidVolumeTurnoverCount','duplicateCount','conflictingDuplicateCount','interiorLunchRows']
+      .some(field=>group[field]>0);
+    if(!complete||rows.length===0||invalid){report.status='PILOT_FAILED_DATA_INTEGRITY';return report;}
   }
   return report;
 }

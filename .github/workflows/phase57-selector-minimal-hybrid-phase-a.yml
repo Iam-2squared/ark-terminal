@@ -64,7 +64,7 @@ jobs:
         run: node --test predict/tests/phase57-selector-jquants-edges.test.mjs
 
   jquants-source-edges:
-    if: github.event_name == 'workflow_dispatch' || (github.event.pull_request.number == 577 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'research/phase57-selector-v1-v3-minimal-hybrid')
+    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/research/phase57-selector-v1-v3-minimal-hybrid') || (github.event.pull_request.number == 577 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'research/phase57-selector-v1-v3-minimal-hybrid')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -84,10 +84,14 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
         run: |
-          if [ "$EVENT_NAME" = "workflow_dispatch" ] || git diff --name-only HEAD^ HEAD -- scripts/probe_phase57_selector_jquants_edges.mjs | rg -q '^scripts/'; then
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             echo 'run=true' >> "$GITHUB_OUTPUT"
-          else
+          elif git diff --quiet HEAD^ HEAD -- scripts/probe_phase57_selector_jquants_edges.mjs; then
             echo 'run=false' >> "$GITHUB_OUTPUT"
+          else
+            DIFF_STATUS=$?
+            test "$DIFF_STATUS" -eq 1
+            echo 'run=true' >> "$GITHUB_OUTPUT"
           fi
       - uses: actions/setup-node@v4
         if: steps.scope.outputs.run == 'true'

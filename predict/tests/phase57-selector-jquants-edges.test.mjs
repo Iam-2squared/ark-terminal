@@ -58,3 +58,13 @@ test('empty HTTP200 is not PASS and no configured secret means no request',async
   const missing=await runJquantsEdgeProbe({fetchImpl:async()=>{throw new Error('must not call');}});
   assert.equal(missing.status,'AUTH_REQUIRED');assert.equal(missing.requestCount,0);
 });
+test('malformed observations stop the audit as integrity failures rather than timestamp uncertainty',async()=>{
+  for(const data of [[row('09:00',{Va:null})],[row('11:45')],[row('09:00'),row('09:00')]]){
+    let calls=0;
+    const report=await runJquantsEdgeProbe({apiKey:'s',pace:async()=>{},fetchImpl:async()=>{
+      calls++;return response(200,{data});
+    }});
+    assert.equal(calls,1);assert.equal(report.status,'PILOT_FAILED_DATA_INTEGRITY');
+    assert.equal(report.sourceValidationPass,false);
+  }
+});

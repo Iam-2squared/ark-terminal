@@ -15,6 +15,7 @@ const MINUTE_PATH='v2/equities/bars/minute';
 const MASTER_PATH='v2/equities/master';
 const TIMESTAMP_CONTRACT='BAR_START_HALF_OPEN_INCLUDING_TERMINAL_AUCTION_MINUTES';
 const ALLOWED_MARKETS=new Set(['0111','0112','0113']);
+const DOMESTIC_STOCK_PRODUCT='011';
 const DECISION_TIMES=Object.freeze([
   '10:00','10:05','10:10','10:15','10:20','10:25','10:30',
   '13:30','13:35','13:40','13:45','13:50','13:55','14:00','14:05','14:10','14:15','14:20','14:25','14:30',
@@ -78,6 +79,7 @@ function normalizeMaster(rows,date){
       sourceCode:code,symbol:Phase57SelectorJquantsMinuteInternals.sourceCodeToSymbol(code),
       sector:String(row?.S33Nm??row?.S33??'UNKNOWN').trim()||'UNKNOWN',
       marketCode:String(row?.Mkt??''),market:String(row?.MktNm??row?.Mkt??'UNKNOWN').trim()||'UNKNOWN',
+      productCategory:String(row?.ProdCat??''),
     }));
   }
   return {byCode,invalidRows,duplicateCodes};
@@ -95,7 +97,8 @@ function groupBars(bars,master){
   const bySymbol=new Map();
   for(const bar of bars){
     const meta=master.byCode.get(bar.sourceCode);
-    if(!meta||!ALLOWED_MARKETS.has(meta.marketCode))continue;
+    const commonIssue=bar.sourceCode.length===4||bar.sourceCode.endsWith('0');
+    if(!meta||!ALLOWED_MARKETS.has(meta.marketCode)||meta.productCategory!==DOMESTIC_STOCK_PRODUCT||!commonIssue)continue;
     if(!bySymbol.has(bar.symbol))bySymbol.set(bar.symbol,{...meta,bars:[]});
     bySymbol.get(bar.symbol).bars.push(bar);
   }
@@ -223,5 +226,5 @@ export async function evaluateFreshValidationSession({apiKey,date,expectedAudit,
     structuralHashesVerified:true,validationReleased:true,untouchedOosReleased:false,hybridModelDigest:model.modelDigest,v3Threshold:0.7,safety:SAFETY});
 }
 
-export const Phase57FreshSessionInternals=Object.freeze({DECISION_TIMES,TIMESTAMP_CONTRACT,ALLOWED_MARKETS,normalizeMaster,cutoffIso,loadFreshSession,developmentSamples,v1AtCutoff});
+export const Phase57FreshSessionInternals=Object.freeze({DECISION_TIMES,TIMESTAMP_CONTRACT,ALLOWED_MARKETS,DOMESTIC_STOCK_PRODUCT,normalizeMaster,cutoffIso,loadFreshSession,developmentSamples,v1AtCutoff});
 export default {acquireFreshSession,evaluateFreshValidationSession,Phase57FreshSessionInternals};

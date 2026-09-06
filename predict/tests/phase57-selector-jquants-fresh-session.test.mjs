@@ -15,10 +15,10 @@ const minuteRows=codes.flatMap((Code,symbolIndex)=>times.map((Time,index)=>{
   const base=100+symbolIndex+index*0.1;
   return {Date:date,Time,Code,O:base,H:base+0.2,L:base-0.1,C:base+0.1,Vo:1000+index*10,Va:(1000+index*10)*(base+0.1)};
 }));
-const masterRows=codes.map((Code,index)=>({Date:date,Code,S33Nm:`S${index%4}`,Mkt:'0111',MktNm:'Prime'}));
+const masterRows=codes.map((Code,index)=>({Date:date,Code,S33Nm:`S${index%4}`,Mkt:'0111',MktNm:'Prime',ProdCat:'011'}));
 
-function provider(){
-  return async url=>new Response(JSON.stringify({data:String(url).includes('/equities/master')?masterRows:minuteRows}),{status:200});
+function provider({minutes=minuteRows,master=masterRows}={}){
+  return async url=>new Response(JSON.stringify({data:String(url).includes('/equities/master')?master:minutes}),{status:200});
 }
 
 test('Fresh session structural audit is deterministic and sealed outside Development',async()=>{
@@ -45,6 +45,24 @@ test('Fresh Development emits only V1-candidate causal feature and separate targ
   assert.ok(result.developmentSamples.every(row=>Number.isFinite(row.targetsByHorizon[12].upExcursion)&&Number.isFinite(row.targetsByHorizon[12].downExcursion)));
   assert.ok(result.developmentSamples.every(row=>Object.keys(row.features).length===12));
   assert.equal(Phase57FreshSessionInternals.DECISION_TIMES.length,20);
+});
+
+test('Fresh PIT universe excludes non-common issue suffixes and non-domestic-stock products before symbol mapping',async()=>{
+  const excludedRows=[
+    {...minuteRows[0],Code:'10015'},
+    {...minuteRows[0],Code:'13050'},
+  ];
+  const excludedMaster=[
+    {Date:date,Code:'10015',S33Nm:'S0',Mkt:'0111',MktNm:'Prime',ProdCat:'011'},
+    {Date:date,Code:'13050',S33Nm:'S0',Mkt:'0111',MktNm:'Prime',ProdCat:'014'},
+  ];
+  const result=await acquireFreshSession({
+    apiKey:'hidden',date,fold:'UNTOUCHED_OOS',
+    fetchImpl:provider({minutes:[...minuteRows,...excludedRows],master:[...masterRows,...excludedMaster]}),paceMs:0,
+  });
+  assert.equal(result.structuralAudit.status,'SESSION_STRUCTURAL_AUDIT_PASS');
+  assert.equal(result.structuralAudit.eligibleJpxSymbolCount,15);
+  assert.equal(result.structuralAudit.symbolCoverage.length,15);
 });
 
 test('Validation opens only after a frozen model and verifies admitted source hashes',async()=>{

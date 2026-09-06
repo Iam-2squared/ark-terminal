@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.jquants-minute-reconstruction-pilot-freeze",
+  "status": "SOURCE_VALIDATION_ONLY_PASS",
+  "evidenceClass": "SOURCE_VALIDATION_ONLY",
+  "workflowRun": 34029285223,
+  "workflowJob": 101475741713,
+  "sourceCommit": "5dc743f2ec904bf6598735107b9bec34b4a9cd42",
+  "quarantinedSessions": [
+    "2025-01-16",
+    "2025-01-17"
+  ],
+  "sourceCodes": [
+    "72030",
+    "86970"
+  ],
+  "requestCount": 4,
+  "timestampContract": "BAR_START_HALF_OPEN_INCLUDING_TERMINAL_AUCTION_MINUTES",
+  "aggregationPolicy": "REGULAR_CONTINUOUS_MINUTES_ONLY_TERMINAL_AUCTIONS_CLASSIFIED_SEPARATELY",
+  "groups": [
+    {"date":"2025-01-16","code":"72030","sourceMinuteRows":327,"regularContinuousMinuteRows":325,"terminalAuctionMinuteRows":2,"fiveMinuteBars":65,"status":"PASS"},
+    {"date":"2025-01-16","code":"86970","sourceMinuteRows":322,"regularContinuousMinuteRows":320,"terminalAuctionMinuteRows":2,"fiveMinuteBars":65,"status":"PASS"},
+    {"date":"2025-01-17","code":"72030","sourceMinuteRows":327,"regularContinuousMinuteRows":325,"terminalAuctionMinuteRows":2,"fiveMinuteBars":65,"status":"PASS"},
+    {"date":"2025-01-17","code":"86970","sourceMinuteRows":314,"regularContinuousMinuteRows":312,"terminalAuctionMinuteRows":2,"fiveMinuteBars":65,"status":"PASS"}
+  ],
+  "checks": {
+    "sameInputDeterministic": true,
+    "causalAvailability": true,
+    "noFabricatedMinutes": true,
+    "terminalAuctionsExcludedFromRegular5m": true,
+    "exactlyOne1130And1530SourceRowPerGroup": true,
+    "rawPersisted": false,
+    "secretPersisted": false,
+    "responseBodiesPersisted": false
+  },
+  "release": {
+    "formalAcquisitionStarted": false,
+    "developmentReleased": false,
+    "validationReleased": false,
+    "untouchedOosReleased": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

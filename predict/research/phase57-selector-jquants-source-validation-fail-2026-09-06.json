@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.selector-minimal-hybrid.jquants-source-validation",
+  "asOf": "2026-09-06T19:20:34+09:00",
+  "probeCommit": "4c008073f306f5396e9b6f297859beea95445ec4",
+  "workflowRunId": 34027143666,
+  "workflowJobId": 101470024676,
+  "evidenceClass": "SOURCE_VALIDATION_ONLY",
+  "status": "PILOT_FAILED",
+  "entitlement": {
+    "authenticationHttpStatus": 200,
+    "minuteEndpointHttpStatus": 200,
+    "minuteEndpointNonEmpty": true
+  },
+  "pilot": {
+    "symbols": ["72030", "86970"],
+    "sessions": ["2025-01-06", "2025-01-07"],
+    "permanentReuseProhibited": true,
+    "requestCount": 4,
+    "rowCount": 1298,
+    "paginationObserved": false,
+    "paginationComplete": true,
+    "fieldContractPass": true,
+    "ohlcOrderPass": true,
+    "nonNegativeVolumeTurnoverPass": true,
+    "duplicateCount": 0,
+    "lunchBoundaryConflictCount": 4,
+    "deterministicFiveMinuteAggregationPass": false,
+    "fiveMinuteBarCount": 0,
+    "fabricatedMinuteCount": 0,
+    "rawPayloadPersisted": false,
+    "futureReturnsInspected": false,
+    "selectorPerformanceInspected": false
+  },
+  "failure": {
+    "reason": "SOURCE_TIMESTAMP_SEMANTICS_CONFLICT_WITH_BAR_OPEN_ADAPTER",
+    "observedFact": "FOUR_ROWS_WERE_REPORTED_AT_11_30_ACROSS_TWO_SYMBOLS_AND_TWO_SESSIONS",
+    "inference": "THE_SOURCE_TIME_FIELD_IS_LIKELY_BAR_END_AT_THE_AM_SESSION_BOUNDARY_BUT_MUST_BE CONFIRMED_BEFORE_CODE_CHANGE",
+    "affectedSemantics": [
+      "API_TIMESTAMP_MEANING",
+      "AM_SESSION_BOUNDARY",
+      "LUNCH_BOUNDARY",
+      "ONE_MINUTE_TO_FIVE_MINUTE_AGGREGATION",
+      "AVAILABLE_AT_RULE"
+    ],
+    "requiredFix": [
+      "CONFIRM_JQUANTS_TIME_FIELD_AS_BAR_START_OR_BAR_END_FROM_AUTHORITATIVE_CONTRACT_OR_BOUNDED_EDGE_PROBE",
+      "IMPLEMENT_A_SEPARATE_JQUANTS_BAR_END_NORMALIZATION_PATH_IF_CONFIRMED",
+      "MAP_AM_END_11_30_WITHOUT_TREATING_IT_AS_A_LUNCH_TRADE",
+      "VERIFY_PM_END_15_30_AND_AVAILABLE_AT_SEMANTICS",
+      "ADD_09_00_11_30_12_30_15_30_BOUNDARY_FIXTURES",
+      "RERUN_NEW_SOURCE_VALIDATION_ONLY_SESSIONS_BEFORE_FORMAL_ACQUISITION"
+    ]
+  },
+  "gate": {
+    "formalAcquisitionStarted": false,
+    "datasetAllocationFrozen": false,
+    "datasetAdmitted": false,
+    "developmentReleased": false,
+    "modelTrainingStarted": false,
+    "validationReleased": false,
+    "untouchedOosReleased": false,
+    "stopReason": "PILOT_FAIL_REQUIRES_SOURCE_ADAPTER_FIX_AND_NEW_PILOT"
+  },
+  "secretHandling": {
+    "secretValueObserved": false,
+    "secretLogged": false,
+    "secretCommitted": false,
+    "secretPersistedInArtifact": false,
+    "responseBodiesPersisted": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

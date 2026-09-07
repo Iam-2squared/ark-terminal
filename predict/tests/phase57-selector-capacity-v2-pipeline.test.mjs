@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 
 import {Phase57CapacityV2Internals as I} from '../../scripts/run_phase57_selector_capacity_v2.mjs';
 
@@ -32,4 +33,10 @@ test('capacity action is always a frozen action-space prefix length',()=>{
 test('jump rate counts only changes greater than five',()=>{
   assert.equal(I.jumpRate([5,10,15,20]),0);
   assert.equal(I.jumpRate([5,15,20]),.5);
+});
+
+test('development target builder receives the causally filtered future bars',()=>{
+  const source=fs.readFileSync(new URL('../../scripts/run_phase57_selector_capacity_v2.mjs',import.meta.url),'utf8');
+  assert.match(source,/sessionDate:date,futureBars:future/);
+  assert.doesNotMatch(source,/sessionDate:date,futureBars\}\)/);
 });

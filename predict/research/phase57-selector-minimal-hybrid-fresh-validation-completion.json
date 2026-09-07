@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.selector-minimal-hybrid.fresh-validation-completion",
+  "status": "VALIDATION_COMPLETE_OOS_SEALED",
+  "generatedFromWorkflowRun": 34031214529,
+  "source": {
+    "provider": "J-Quants",
+    "minuteEndpointEntitlement": "PASS_HTTP_200_NON_EMPTY",
+    "timestampContract": "BAR_START_HALF_OPEN_INTERVAL",
+    "timestampContractSha256": "74eca1a0b86eb3d5b06b2871dc7f55b7d076ca44e50a4e3a034018045a37d5b6",
+    "sourceValidationPilot": "PASS"
+  },
+  "dataset": {
+    "datasetId": "PHASE57_JQUANTS_OHLCMIN_FRESH120_V1",
+    "allocationSha256": "d92ce2c29daaacd419979847d62d093df9f7375c12483ab9c4d51130ac6efd41",
+    "admissionStatus": "MINIMAL_HYBRID_DATASET_ADMITTED_DEVELOPMENT_ONLY",
+    "admissionReportSha256": "bccf93b4962bfcf6d87c6ec304d5876a1bfa4a869f67a9a3a9bd9b8dbd223e71",
+    "evidenceClassification": "EXACT_POINT_IN_TIME",
+    "usableSessions": 120,
+    "purgeSessions": 2,
+    "developmentSessions": 72,
+    "validationSessions": 24,
+    "untouchedOosSessions": 24,
+    "symbolCount": 3873,
+    "minuteRows": 53406418,
+    "fiveMinuteBars": 19182028,
+    "duplicateBars": 0,
+    "timestampConflicts": 0,
+    "lunchViolations": 0,
+    "futureAvailabilityViolations": 0,
+    "invalidBars": 0
+  },
+  "development": {
+    "status": "MINIMAL_HYBRID_DEVELOPMENT_COMPLETE",
+    "sampleCount": 47355,
+    "trainableFeatureCount": 12,
+    "targetHorizonBars": 3,
+    "upDownSeparated": true,
+    "modelFamily": "TWO_INDEPENDENT_RIDGE_REGRESSIONS",
+    "ridgeLambda": 0.01,
+    "modelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
+    "hybridFreezeSha256": "a744d599e430d23efe4dea6600e418d3410d8a18df5055b35e1cc71432bf64da",
+    "validationRetuningAllowed": false
+  },
+  "validation": {
+    "status": "FROZEN_SELECTORS_VALIDATION_COMPLETE",
+    "leaderStatus": "VALIDATION_LEADER",
+    "leader": "HYBRID",
+    "primaryMetric": "SESSION_EQUAL_MEAN_COST_ADJUSTED_TWO_SIDED_UTILITY_6_BAR_BPS",
+    "primaryMetricBps": {
+      "V1": 117.607505,
+      "V3": 47.848551,
+      "HYBRID": 213.910714
+    },
+    "sameCapacityCostAdjustedUtilityBps": {
+      "V1": 192.866853,
+      "V3": 49.418701,
+      "HYBRID": 215.326661
+    },
+    "meanPreSelectionMoveBps": {
+      "V1": 517.786265,
+      "V3": 58.446746,
+      "HYBRID": 785.786038
+    },
+    "lateDetectionRate": {
+      "V1": 0.969151,
+      "V3": 0.426413,
+      "HYBRID": 0.964104
+    },
+    "validationEvidenceSha256": "da63212e3bd6b7828687eba128176a52df5c975a7b2ec843a382269b3bccd9cc",
+    "validationRetuningPerformed": false,
+    "downstreamComparison": "NOT_RUN_NO_IDENTICAL_FROZEN_JQUANTS_5M_INPUT_ADAPTER"
+  },
+  "interpretation": {
+    "allowedClaim": "HYBRID_IS_THE_VALIDATION_LEADER_FOR_THE_FROZEN_PRIMARY_METRIC",
+    "limitations": [
+      "HYBRID_PRE_SELECTION_MOVE_EXCEEDS_V1_AND_V3",
+      "HYBRID_LATE_DETECTION_RATE_REMAINS_CLOSE_TO_V1_AND_EXCEEDS_V3",
+      "DOWNSTREAM_ENTRY_EXIT_ALLOCATION_COMPARISON_NOT_RUN",
+      "UNTOUCHED_OOS_REQUIRED_BEFORE_FINAL_WINNER_CLAIM"
+    ],
+    "finalWinnerClaimAllowed": false,
+    "mainSelectorClaimAllowed": false,
+    "productionReadyClaimAllowed": false
+  },
+  "sealed": {
+    "untouchedOosReleased": false,
+    "untouchedOosPayloadRequested": false,
+    "reserveSessions": 282,
+    "reserveStatus": "ARK_WIDE_SEALED_RESERVE"
+  },
+  "protection": {
+    "draftPrMaintained": true,
+    "mainMerged": false,
+    "laneYChanged": false,
+    "currentV1Changed": false,
+    "currentV2Changed": false,
+    "frozenV3Changed": false,
+    "entryChanged": false,
+    "exitChanged": false,
+    "capitalAllocationChanged": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

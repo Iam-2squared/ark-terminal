@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.selector-minimal-hybrid.jquants-free-entitlement-evidence",
+  "asOf": "2026-09-06T09:26:46+09:00",
+  "probeCommit": "f1fdf7d51f7ccf8dd40e41a71301513cc41f332d",
+  "workflowRunId": 34001292740,
+  "workflowJobId": 101400513375,
+  "evidenceClass": "SOURCE_VALIDATION_ONLY",
+  "status": "BLOCKED_ENTITLEMENT",
+  "secretHandling": {
+    "repositorySecretName": "JQUANTS_API_KEY",
+    "secretValueObserved": false,
+    "secretLogged": false,
+    "secretCommitted": false,
+    "secretPersistedInArtifact": false,
+    "responseBodiesPersisted": false
+  },
+  "observations": {
+    "authentication": {
+      "endpoint": "/v2/equities/master",
+      "httpStatus": 200,
+      "status": "AUTHENTICATED"
+    },
+    "minuteStockPrices": {
+      "endpoint": "/v2/equities/bars/minute",
+      "httpStatus": 403,
+      "status": "BLOCKED_ENTITLEMENT"
+    },
+    "freeHistoricalFallback": {
+      "endpoint": "/v2/equities/bars/daily",
+      "requestedDate": "2025-01-06",
+      "httpStatus": 200,
+      "rowCount": 1,
+      "status": "HISTORICAL_DAILY_AVAILABLE_BUT_NOT_INTRADAY",
+      "canConstructFiveMinute": false
+    }
+  },
+  "decision": {
+    "jquantsFreeCanProduceArkFreshFiveMinuteDataset": false,
+    "oneMinuteBarsRequiredByArchitecture": false,
+    "minuteEndpointRequiredForThisJquantsIntradayPath": true,
+    "smallAdmissionPilotExecuted": false,
+    "historicalDepth120SessionsProvenForIntraday": false,
+    "datasetAcquired": false,
+    "datasetAdmitted": false,
+    "developmentReleased": false,
+    "validationReleased": false,
+    "untouchedOosReleased": false,
+    "modelTrainingStarted": false
+  },
+  "contamination": {
+    "consumedPeriodReused": false,
+    "forbiddenFirstSession": "2026-06-12",
+    "forbiddenLastSession": "2026-09-04",
+    "rawMarketPayloadPersisted": false
+  },
+  "officialContract": {
+    "freePlanRateLimitRequestsPerMinute": 5,
+    "freeStandardDataPeriod": "TWO_YEARS_HISTORY_WITH_TWELVE_WEEKS_DELAY",
+    "minuteStockPricesClassification": "ADD_ON",
+    "minuteAddOnDataPeriod": "TWO_YEARS",
+    "sources": [
+      "https://jpx-jquants.com/en/spec/data-spec",
+      "https://jpx-jquants.com/en/spec/rate-limits",
+      "https://jpx-jquants.com/en/spec/eq-master",
+      "https://jpx-jquants.com/en/spec/eq-bars-minute"
+    ]
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

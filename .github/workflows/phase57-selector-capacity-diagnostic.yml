@@ -1,0 +1,90 @@
+name: Phase57 Frozen Hybrid Capacity Diagnostic
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-selector-capacity-diagnostic.yml'
+      - 'scripts/evaluate_phase57_selector_capacity_shard.mjs'
+      - 'scripts/summarize_phase57_selector_capacity.mjs'
+      - 'predict/tests/phase57-selector-capacity-diagnostic.test.mjs'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  replay:
+    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/research/phase57-selector-v1-v3-minimal-hybrid') || (github.event.pull_request.number == 577 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'research/phase57-selector-v1-v3-minimal-hybrid')
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: true
+      max-parallel: 3
+      matrix:
+        fold: [VALIDATION, UNTOUCHED_OOS]
+        shard: [0, 1, 2, 3, 4, 5]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify frozen contracts and diagnostic tests
+        run: |
+          (cd predict/research && sha256sum --check phase57-selector-jquants-fresh120-allocation.sha256)
+          (cd predict/research && sha256sum --check phase57-selector-minimal-hybrid-development-model.json.sha256)
+          (cd predict/research && sha256sum --check phase57-selector-minimal-hybrid-development-freeze.json.sha256)
+          (cd predict/research && sha256sum --check phase57-selector-minimal-hybrid-oos-release.sha256)
+          node --test predict/tests/phase57-selector-capacity-diagnostic.test.mjs
+      - name: Download immutable admitted-session audits
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-fresh-shard-*-34031214529
+          path: artifacts/capacity-input
+          run-id: 34031214529
+          github-token: ${{ github.token }}
+      - name: Replay opened fold with unchanged Frozen Hybrid
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          INPUT_ROOT: artifacts/capacity-input
+          FOLD: ${{ matrix.fold }}
+          SHARD_INDEX: ${{ matrix.shard }}
+          SHARD_COUNT: 6
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: node scripts/evaluate_phase57_selector_capacity_shard.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-capacity-${{ matrix.fold }}-${{ matrix.shard }}-${{ github.run_id }}
+          path: artifacts/phase57-capacity-*/
+          if-no-files-found: error
+          retention-days: 7
+
+  summary:
+    needs: replay
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-capacity-*-${{ github.run_id }}
+          path: artifacts/capacity-results
+      - name: Summarize post-hoc capacity depth
+        env:
+          INPUT_ROOT: artifacts/capacity-results
+        run: node scripts/summarize_phase57_selector_capacity.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-capacity-summary-${{ github.run_id }}
+          path: artifacts/phase57-capacity-summary/
+          if-no-files-found: error
+          retention-days: 14

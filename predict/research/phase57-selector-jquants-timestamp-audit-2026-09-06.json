@@ -1,0 +1,449 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.jquants.timestamp-contract-audit",
+  "asOfDate": "2026-09-06",
+  "status": "BLOCKED_TIMESTAMP_CONTRACT_UNRESOLVED",
+  "codeCommit": "df677bf8e92832eec4410e5b7c7e97db0e2bf1e6",
+  "workflowRunId": 34028131686,
+  "workflowJobId": 101472666044,
+  "supersedesInferenceOnly": "Prior source-validation failure suggested BAR_END from closing rows; uniform BAR_END is contradicted by non-flat opening rows. Original failure evidence remains unchanged.",
+  "sources": [
+    {
+      "url": "https://jpx-jquants.com/ja/spec/eq-bars-minute",
+      "finding": "Time is specified only as HH:mm; official non-flat 09:00 example, minute tick aggregation, and omitted no-trade intervals are documented. Interval closure and auction-bin assignment are not explicit."
+    },
+    {
+      "url": "https://www.jpx.co.jp/english/equities/trading/domestic/04.html",
+      "finding": "Opening and closing prices use call auctions. Afternoon continuous trading ends at 15:25, a no-trade pre-close follows, and the closing auction is at 15:30."
+    },
+    {
+      "url": "https://jpx-jquants.com/en/spec/data-update",
+      "finding": "Minute/tick data are updated daily around 16:30 JST; market bar close must not be represented as actual J-Quants provider availability."
+    }
+  ],
+  "conclusions": {
+    "uniformBarEnd": "FALSIFIED_BY_OBSERVED_NON_FLAT_09_00_AND_12_30_ROWS",
+    "strictBarStartWithClosingRowsRejectedAsLunch": "FALSIFIED_BY_OBSERVED_11_30_AND_15_30_ROWS",
+    "candidate": "BAR_START_WITH_SEPARATE_TERMINAL_AUCTION_TREATMENT_NOT_YET_CONFIRMED",
+    "authoritativeIntervalClosure": "UNKNOWN",
+    "auctionBucketAssignment": "UNKNOWN",
+    "corporateActionBasis": "UNKNOWN",
+    "adapterChanged": false,
+    "oneMinuteTimestampShiftApplied": false,
+    "providerAvailableAtEqualsMarketClose": false,
+    "fiveMinuteAggregationPerformed": false,
+    "sourceValidationPass": false
+  },
+  "probe": {
+    "aggregationPerformed": false,
+    "developmentReleased": false,
+    "documentedProviderUpdate": "DAILY_AROUND_16_30_JST_NOT_INTRADAY",
+    "evidenceClass": "SOURCE_VALIDATION_ONLY",
+    "featuresCalculated": false,
+    "formalAcquisitionStarted": false,
+    "groups": [
+      {
+        "barEndIncompatibleRows": 2,
+        "barStartIncompatibleRows": 2,
+        "code": "72030",
+        "conflictingDuplicateCount": 0,
+        "corporateActionBasis": "UNKNOWN_NOT_ESTABLISHED_BY_FIELD_NAMES",
+        "date": "2025-01-08",
+        "duplicateCount": 0,
+        "edges": {
+          "09:00": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "09:01": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "11:29": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "11:30": {
+            "count": 1,
+            "nonFlatCount": 0,
+            "positiveVolumeCount": 1
+          },
+          "12:30": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "12:31": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "15:24": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "15:25": {
+            "count": 0,
+            "nonFlatCount": 0,
+            "positiveVolumeCount": 0
+          },
+          "15:29": {
+            "count": 0,
+            "nonFlatCount": 0,
+            "positiveVolumeCount": 0
+          },
+          "15:30": {
+            "count": 1,
+            "nonFlatCount": 0,
+            "positiveVolumeCount": 1
+          }
+        },
+        "haltVsNoTrade": "UNKNOWN_NO_CAUSE_FIELD",
+        "hypothesis": "BAR_START_WITH_TERMINAL_AUCTION_CANDIDATE_NOT_CONFIRMED",
+        "interiorLunchRows": 0,
+        "invalidOhlcCount": 0,
+        "invalidTimestampCount": 0,
+        "invalidVolumeTurnoverCount": 0,
+        "paginationComplete": true,
+        "queryMismatchCount": 0,
+        "rowCount": 327,
+        "sourceTimestampRetainedInMemory": true,
+        "sourceTimestampShiftApplied": false,
+        "strictBarStartSessionRangeFalsified": true,
+        "timezoneProof": "UNKNOWN_TIME_FIELD_HAS_NO_OFFSET",
+        "uniformBarEndFalsified": true
+      },
+      {
+        "barEndIncompatibleRows": 2,
+        "barStartIncompatibleRows": 2,
+        "code": "86970",
+        "conflictingDuplicateCount": 0,
+        "corporateActionBasis": "UNKNOWN_NOT_ESTABLISHED_BY_FIELD_NAMES",
+        "date": "2025-01-08",
+        "duplicateCount": 0,
+        "edges": {
+          "09:00": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "09:01": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "11:29": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "11:30": {
+            "count": 1,
+            "nonFlatCount": 0,
+            "positiveVolumeCount": 1
+          },
+          "12:30": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "12:31": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "15:24": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "15:25": {
+            "count": 0,
+            "nonFlatCount": 0,
+            "positiveVolumeCount": 0
+          },
+          "15:29": {
+            "count": 0,
+            "nonFlatCount": 0,
+            "positiveVolumeCount": 0
+          },
+          "15:30": {
+            "count": 1,
+            "nonFlatCount": 0,
+            "positiveVolumeCount": 1
+          }
+        },
+        "haltVsNoTrade": "UNKNOWN_NO_CAUSE_FIELD",
+        "hypothesis": "BAR_START_WITH_TERMINAL_AUCTION_CANDIDATE_NOT_CONFIRMED",
+        "interiorLunchRows": 0,
+        "invalidOhlcCount": 0,
+        "invalidTimestampCount": 0,
+        "invalidVolumeTurnoverCount": 0,
+        "paginationComplete": true,
+        "queryMismatchCount": 0,
+        "rowCount": 326,
+        "sourceTimestampRetainedInMemory": true,
+        "sourceTimestampShiftApplied": false,
+        "strictBarStartSessionRangeFalsified": true,
+        "timezoneProof": "UNKNOWN_TIME_FIELD_HAS_NO_OFFSET",
+        "uniformBarEndFalsified": true
+      },
+      {
+        "barEndIncompatibleRows": 2,
+        "barStartIncompatibleRows": 2,
+        "code": "72030",
+        "conflictingDuplicateCount": 0,
+        "corporateActionBasis": "UNKNOWN_NOT_ESTABLISHED_BY_FIELD_NAMES",
+        "date": "2025-01-09",
+        "duplicateCount": 0,
+        "edges": {
+          "09:00": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "09:01": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "11:29": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "11:30": {
+            "count": 1,
+            "nonFlatCount": 0,
+            "positiveVolumeCount": 1
+          },
+          "12:30": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "12:31": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "15:24": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "15:25": {
+            "count": 0,
+            "nonFlatCount": 0,
+            "positiveVolumeCount": 0
+          },
+          "15:29": {
+            "count": 0,
+            "nonFlatCount": 0,
+            "positiveVolumeCount": 0
+          },
+          "15:30": {
+            "count": 1,
+            "nonFlatCount": 0,
+            "positiveVolumeCount": 1
+          }
+        },
+        "haltVsNoTrade": "UNKNOWN_NO_CAUSE_FIELD",
+        "hypothesis": "BAR_START_WITH_TERMINAL_AUCTION_CANDIDATE_NOT_CONFIRMED",
+        "interiorLunchRows": 0,
+        "invalidOhlcCount": 0,
+        "invalidTimestampCount": 0,
+        "invalidVolumeTurnoverCount": 0,
+        "paginationComplete": true,
+        "queryMismatchCount": 0,
+        "rowCount": 327,
+        "sourceTimestampRetainedInMemory": true,
+        "sourceTimestampShiftApplied": false,
+        "strictBarStartSessionRangeFalsified": true,
+        "timezoneProof": "UNKNOWN_TIME_FIELD_HAS_NO_OFFSET",
+        "uniformBarEndFalsified": true
+      },
+      {
+        "barEndIncompatibleRows": 2,
+        "barStartIncompatibleRows": 2,
+        "code": "86970",
+        "conflictingDuplicateCount": 0,
+        "corporateActionBasis": "UNKNOWN_NOT_ESTABLISHED_BY_FIELD_NAMES",
+        "date": "2025-01-09",
+        "duplicateCount": 0,
+        "edges": {
+          "09:00": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "09:01": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "11:29": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "11:30": {
+            "count": 1,
+            "nonFlatCount": 0,
+            "positiveVolumeCount": 1
+          },
+          "12:30": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "12:31": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "15:24": {
+            "count": 1,
+            "nonFlatCount": 1,
+            "positiveVolumeCount": 1
+          },
+          "15:25": {
+            "count": 0,
+            "nonFlatCount": 0,
+            "positiveVolumeCount": 0
+          },
+          "15:29": {
+            "count": 0,
+            "nonFlatCount": 0,
+            "positiveVolumeCount": 0
+          },
+          "15:30": {
+            "count": 1,
+            "nonFlatCount": 0,
+            "positiveVolumeCount": 1
+          }
+        },
+        "haltVsNoTrade": "UNKNOWN_NO_CAUSE_FIELD",
+        "hypothesis": "BAR_START_WITH_TERMINAL_AUCTION_CANDIDATE_NOT_CONFIRMED",
+        "interiorLunchRows": 0,
+        "invalidOhlcCount": 0,
+        "invalidTimestampCount": 0,
+        "invalidVolumeTurnoverCount": 0,
+        "paginationComplete": true,
+        "queryMismatchCount": 0,
+        "rowCount": 325,
+        "sourceTimestampRetainedInMemory": true,
+        "sourceTimestampShiftApplied": false,
+        "strictBarStartSessionRangeFalsified": true,
+        "timezoneProof": "UNKNOWN_TIME_FIELD_HAS_NO_OFFSET",
+        "uniformBarEndFalsified": true
+      }
+    ],
+    "labelsGenerated": false,
+    "marketBarCloseIsProviderAvailableAt": false,
+    "maximumRequests": 8,
+    "phase": "57.jquants-timestamp-edge-probe",
+    "providerAvailableAt": "UNKNOWN_EXACT_PUBLICATION_TIME",
+    "quarantinedSessions": [
+      "2025-01-06",
+      "2025-01-07",
+      "2025-01-08",
+      "2025-01-09"
+    ],
+    "rawPersisted": false,
+    "requestCount": 4,
+    "requests": [
+      {
+        "code": "72030",
+        "date": "2025-01-08",
+        "httpStatus": 200,
+        "page": 1,
+        "rowCount": 327,
+        "status": "NON_EMPTY"
+      },
+      {
+        "code": "86970",
+        "date": "2025-01-08",
+        "httpStatus": 200,
+        "page": 1,
+        "rowCount": 326,
+        "status": "NON_EMPTY"
+      },
+      {
+        "code": "72030",
+        "date": "2025-01-09",
+        "httpStatus": 200,
+        "page": 1,
+        "rowCount": 327,
+        "status": "NON_EMPTY"
+      },
+      {
+        "code": "86970",
+        "date": "2025-01-09",
+        "httpStatus": 200,
+        "page": 1,
+        "rowCount": 325,
+        "status": "NON_EMPTY"
+      }
+    ],
+    "responseErrorsPersisted": false,
+    "safety": {
+      "automaticPromotionAllowed": false,
+      "brokerWriteAllowed": false,
+      "excelOrderWriteAllowed": false,
+      "executionAllowed": false,
+      "liveTradingAllowed": false,
+      "paperTradingAllowed": false,
+      "productionUpdateAllowed": false,
+      "rssOrderFunctionAllowed": false,
+      "transmitted": false
+    },
+    "schemaVersion": 1,
+    "secretPersisted": false,
+    "sourceValidationPass": false,
+    "status": "BLOCKED_TIMESTAMP_CONTRACT_UNRESOLVED",
+    "untouchedOosReleased": false,
+    "validationReleased": false
+  },
+  "downstream": {
+    "datasetAllocationFreeze": "NOT_CREATED_GATE_BLOCKED",
+    "formalDatasetManifest": "NOT_CREATED_GATE_BLOCKED",
+    "formalDatasetAdmitted": false,
+    "developmentTraining": "NOT_RUN",
+    "hybridFreezeSha256": null,
+    "validationComparison": "NOT_RUN",
+    "validationLeader": null,
+    "untouchedOos": "SEALED_NOT_ACCESSED_NOT_YET_ALLOCATED",
+    "reserve": {
+      "status": "UNALLOCATED_UNANALYZED",
+      "totalRemainingSessions": null,
+      "formalRawAcquisitionStarted": false,
+      "newSourceOnlySessionsConsumed": [
+        "2025-01-08",
+        "2025-01-09"
+      ]
+    }
+  },
+  "requiredResolution": [
+    "Obtain an authoritative interval/auction timestamp contract, or perform explicitly bounded tick-to-minute reconciliation on quarantined source-only data before normalizing.",
+    "Separate market-information cutoff/reconstructedAvailableAt from actual provider publication/fetch availability; never claim exact replay from later-fetched bars.",
+    "Define and verify minute corporate-action basis. Do not infer it from O/H/L/C field names.",
+    "After a fresh source-only Pilot PASS, create explicit 72/24/24 usable-session allocation plus at least one whole purge session per boundary; existing fractional split algorithm does not produce those exact counts.",
+    "Only after admitted data and model freeze may Validation open; OOS requires a separate later instruction."
+  ],
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  }
+}

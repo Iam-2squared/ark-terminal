@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.selector-minimal-hybrid.fresh-dataset-readiness",
+  "asOf": "2026-09-05T00:00:00+09:00",
+  "repoHeadAudited": "baa09831bc692d014750ad45d3a9172c77caedb9",
+  "status": "DATASET_NOT_READY",
+  "decision": "NO_AUTHORIZED_REPRODUCIBLE_FRESH_INTRADAY_SOURCE_AVAILABLE_IN_WORK_ENVIRONMENT",
+  "architectureReviewReopened": false,
+  "dataAcquired": false,
+  "datasetAdmitted": false,
+  "developmentReleased": false,
+  "validationReleased": false,
+  "untouchedOosReleased": false,
+  "modelFittingPerformed": false,
+  "featureSelectionPerformed": false,
+  "thresholdTuningPerformed": false,
+  "environment": {
+    "jquantsApiKeyConfigured": false,
+    "otherHistoricalIntradayProviderCredentialConfigured": false,
+    "providerEntitlementVerified": false,
+    "providerTermsAttested": false
+  },
+  "freshnessBoundary": {
+    "forbiddenFirstSession": "2026-06-12",
+    "forbiddenLastSession": "2026-09-04",
+    "forbiddenDatasetId": "PHASE57_SELECTOR_YAHOO_5M_24626FD37F8633F4",
+    "samePeriodDifferentProviderIsFresh": false,
+    "sameDataDifferentFilenameIsFresh": false,
+    "candidateUnusedWindow": {
+      "firstSession": "2025-01-06",
+      "lastSession": "2026-06-11",
+      "admitted": false,
+      "reason": "NO_AUTHORIZED_SOURCE_PAYLOAD_ACQUIRED"
+    }
+  },
+  "repositoryAudit": {
+    "committedFreshDatasetFound": false,
+    "existingYahooFiveMinutePipelineReusableAsFresh": false,
+    "existingJquantsMinuteParserAvailable": true,
+    "existingDatasetAdmissionGuardAvailable": true,
+    "existingDevelopmentTrainingInterfaceAvailable": true,
+    "otherResearchBranchLongHorizonSourceAudit": "PHASE0_NO_GO_NO_AUTHORIZED_LONG_HORIZON_INTRADAY_CREDENTIAL_OR_LICENSED_RAW_DATASET"
+  },
+  "sources": [
+    {
+      "provider": "J-QUANTS_API_V2_MINUTE",
+      "status": "TECHNICALLY_PREFERRED_BUT_BLOCKED",
+      "endpoint": "GET /v2/equities/bars/minute",
+      "nativeInterval": "1m",
+      "fiveMinutePath": "CAUSAL_LOCAL_AGGREGATION",
+      "jpxCoverage": "TSE_LISTED_ISSUES; REGIONAL_ONLY_ISSUES_EXCLUDED",
+      "documentedHistoricalAvailability": "PAST_2_YEARS",
+      "documentedFields": ["OHLC", "VOLUME", "TURNOVER"],
+      "noTradePolicy": "NO_RECORD_WHEN_NO_TRADING_ACTIVITY",
+      "documentedRateLimit": "60_REQUESTS_PER_MINUTE_FOR_MINUTE_TICK_ADDON",
+      "authorization": "STOCK_PRICES_MINUTE_TICK_ADDON_AND_X_API_KEY_REQUIRED",
+      "timestampSemantics": "DATE_AND_TIME_DOCUMENTED; INTERVAL_START_OR_END_REQUIRES_BOUNDED_OVERLAP_PILOT",
+      "adjustmentSemantics": "MINUTE_CORPORATE_ACTION_BASIS_REQUIRES_PILOT",
+      "reproducibility": "POSSIBLE_WITH_IMMUTABLE_RAW_DIGESTS_AFTER_AUTHORIZATION",
+      "blockers": [
+        "JQUANTS_API_KEY_NOT_CONFIGURED",
+        "MINUTE_ADDON_ENTITLEMENT_NOT_VERIFIED",
+        "PRIVATE_RESEARCH_STORAGE_RIGHTS_NOT_ATTESTED",
+        "TIMESTAMP_AND_ADJUSTMENT_SEMANTICS_NOT_PILOTED",
+        "POINT_IN_TIME_UNIVERSE_AND_DELISTED_COVERAGE_NOT_PROVEN"
+      ]
+    },
+    {
+      "provider": "YAHOO_FINANCE_CHART",
+      "status": "REJECTED_AS_FRESH_SOURCE",
+      "nativeInterval": "5m",
+      "observedHistoricalAvailability": "APPROXIMATELY_60_DAYS",
+      "jpxCoverage": "CURRENT_SYMBOL_SAMPLE_ONLY_NOT_HISTORICAL_PIT_UNIVERSE",
+      "turnoverAvailability": false,
+      "authorization": "OPERATOR_TERMS_VERIFICATION_REQUIRED",
+      "reproducibility": "LATER_FETCHED_RECONSTRUCTION_ONLY",
+      "blockers": [
+        "AVAILABLE_WINDOW_OVERLAPS_CONSUMED_2026_06_12_TO_2026_09_04_EVIDENCE",
+        "SAME_ANCESTRY_AS_CONSUMED_SELECTOR_PILOT",
+        "PROVIDER_TERMS_NOT_ATTESTED",
+        "SURVIVORSHIP_LIMITED"
+      ]
+    },
+    {
+      "provider": "ALPHA_VANTAGE_INTRADAY",
+      "status": "BLOCKED_NOT_ADMITTED",
+      "nativeInterval": "5m_SUPPORTED",
+      "documentedHistoricalAvailability": "25_PLUS_YEARS_WITH_MONTH_PARAMETER",
+      "authorization": "PREMIUM_INTRADAY_ENTITLEMENT_REQUIRED",
+      "blockers": [
+        "NO_API_KEY_CONFIGURED",
+        "JPX_ISSUE_COVERAGE_AND_SYMBOL_MAPPING_NOT_VERIFIED",
+        "TIMESTAMP_VOLUME_ADJUSTMENT_AND_TERMS_NOT_PILOTED"
+      ]
+    },
+    {
+      "provider": "TWELVE_DATA_XJPX",
+      "status": "BLOCKED_NOT_ADMITTED",
+      "nativeInterval": "INTRADAY_CAPABILITY_REQUIRES_ENDPOINT_AND_PLAN_VERIFICATION",
+      "jpxCoverage": "TOKYO_EXCHANGE_LISTING_ADVERTISED_BUT REQUIRED_5M_DEPTH_NOT_PROVEN",
+      "blockers": [
+        "NO_API_KEY_CONFIGURED",
+        "REQUIRED_HISTORY_DEPTH_AND_ALL_ISSUE_COVERAGE_NOT_VERIFIED",
+        "TIMESTAMP_VOLUME_ADJUSTMENT_AND_TERMS_NOT_PILOTED"
+      ]
+    },
+    {
+      "provider": "JPX_HISTORICAL_FLEX_OR_LICENSED_FILE",
+      "status": "BLOCKED_NOT_ADMITTED",
+      "nativeInterval": "TICK_OR_EXCHANGE_MESSAGE_AGGREGATION",
+      "authorization": "PAID_CONTRACT_OR_PRODUCT_LICENSE_REQUIRED",
+      "blockers": [
+        "NO_CONTRACTED_ACCESS",
+        "NO_MATCHING_LICENSED_PAYLOAD",
+        "PARSER_AND_FIVE_MINUTE_PARITY_NOT_ESTABLISHED"
+      ]
+    }
+  ],
+  "highestValueNextGate": {
+    "action": "AUTHORIZE_ONE_LONG_HORIZON_SOURCE_THEN_RUN_BOUNDED_OVERLAP_PILOT",
+    "preferredProvider": "J-QUANTS_API_V2_MINUTE",
+    "requirements": [
+      "EXPLICIT_PROVIDER_ENTITLEMENT_AND_PRIVATE_RESEARCH_STORAGE_ATTESTATION",
+      "JQUANTS_API_KEY_CONFIGURED_OUTSIDE_GIT",
+      "TWO_SESSION_SMALL_SYMBOL_OVERLAP_PILOT",
+      "TIMESTAMP_OHLCV_TURNOVER_NO_TRADE_AND_CORPORATE_ACTION_SEMANTICS_PASS",
+      "DATE_SCOPED_POINT_IN_TIME_UNIVERSE_AUDIT",
+      "ONLY_THEN_ACQUIRE_AT_LEAST_120_UNUSED_SESSIONS"
+    ]
+  },
+  "officialSources": [
+    "https://jpx-jquants.com/en/spec/eq-bars-minute",
+    "https://jpx-jquants.com/en/spec/rate-limits",
+    "https://jpx-jquants.com/en/spec/data-update",
+    "https://www.alphavantage.co/documentation/",
+    "https://www.jpx.co.jp/english/markets/paid-info-equities/historical/index.html"
+  ],
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

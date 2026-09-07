@@ -1,0 +1,300 @@
+name: Phase57 Selector Minimal Hybrid Phase A
+
+on:
+  pull_request:
+    paths:
+      - 'docs/phase57-selector-v1-v3-minimal-hybrid-spec.md'
+      - 'docs/phase57-selector-minimal-hybrid-new-dataset-plan.md'
+      - 'predict/daytrade/phase57-selector-minimal-hybrid-dataset-guard.js'
+      - 'predict/daytrade/phase57-selector-minimal-hybrid-dataset-audit.js'
+      - 'predict/daytrade/phase57-selector-minimal-hybrid-model.js'
+      - 'predict/daytrade/phase57-selector-minimal-hybrid-targets.js'
+      - 'predict/daytrade/phase57-selector-minimal-hybrid.js'
+      - 'predict/research/phase57-selector-minimal-hybrid-phase-a.json'
+      - 'predict/research/phase57-selector-minimal-hybrid-phase-a.sha256'
+      - 'predict/research/phase57-selector-minimal-hybrid-phase-a-amendment-v1.1.json'
+      - 'predict/research/phase57-selector-minimal-hybrid-phase-a-amendment-v1.1.sha256'
+      - 'predict/research/phase57-selector-minimal-hybrid-dataset-readiness-2026-09-05.json'
+      - 'predict/research/phase57-selector-minimal-hybrid-dataset-readiness-2026-09-05.sha256'
+      - 'predict/research/phase57-selector-minimal-hybrid-source-resolution-2026-09-06.json'
+      - 'predict/research/phase57-selector-minimal-hybrid-source-resolution-2026-09-06.sha256'
+      - 'predict/research/phase57-selector-jquants-free-entitlement-2026-09-06.json'
+      - 'predict/research/phase57-selector-jquants-free-entitlement-2026-09-06.sha256'
+      - 'docs/phase57-selector-minimal-hybrid-source-resolution-2026-09-06.md'
+      - 'predict/tests/phase57-selector-minimal-hybrid-phase-a.test.mjs'
+      - 'predict/tests/phase57-selector-minimal-hybrid-dataset-audit.test.mjs'
+      - 'predict/tests/phase57-selector-minimal-hybrid-source-resolution.test.mjs'
+      - 'predict/tests/phase57-selector-minimal-hybrid-implementation.test.mjs'
+      - 'predict/tests/phase57-selector-jquants-minute.test.mjs'
+      - 'predict/tests/phase57-selector-jquants-free-probe.test.mjs'
+      - 'scripts/lib/phase57-selector-jquants-minute.mjs'
+      - 'scripts/probe_phase57_selector_jquants_free.mjs'
+      - 'scripts/probe_phase57_selector_jquants_edges.mjs'
+      - 'scripts/reconcile_phase57_selector_jquants_tick_minute.mjs'
+      - 'scripts/pilot_phase57_selector_jquants_minute_reconstruction.mjs'
+      - 'predict/tests/phase57-selector-jquants-edges.test.mjs'
+      - 'predict/tests/phase57-selector-jquants-tick-minute-reconciliation.test.mjs'
+      - 'predict/tests/phase57-selector-jquants-minute-reconstruction-pilot.test.mjs'
+      - 'predict/research/phase57-selector-source-validation-only-registry.json'
+      - 'predict/research/phase57-selector-jquants-timestamp-audit-2026-09-06.json'
+      - 'predict/research/phase57-selector-jquants-timestamp-audit-2026-09-06.sha256'
+      - 'docs/phase57-selector-jquants-timestamp-audit-2026-09-06.md'
+      - 'predict/research/phase57-selector-jquants-timestamp-contract-v1.json'
+      - 'predict/research/phase57-selector-jquants-timestamp-contract-v1.sha256'
+      - 'docs/phase57-selector-jquants-timestamp-contract-v1.md'
+      - 'predict/research/phase57-selector-jquants-minute-reconstruction-pilot-2026-09-06.json'
+      - 'predict/research/phase57-selector-jquants-minute-reconstruction-pilot-2026-09-06.sha256'
+      - 'docs/phase57-selector-jquants-minute-reconstruction-pilot-2026-09-06.md'
+      - 'scripts/profile_phase57_selector_jquants_date_capacity.mjs'
+      - 'predict/tests/phase57-selector-jquants-date-capacity.test.mjs'
+      - 'scripts/allocate_phase57_selector_jquants_fresh_sessions.mjs'
+      - 'predict/tests/phase57-selector-jquants-allocation.test.mjs'
+      - 'predict/research/phase57-selector-jquants-fresh120-allocation.json'
+      - 'predict/research/phase57-selector-jquants-fresh120-allocation.sha256'
+      - 'predict/tests/phase57-selector-jquants-fresh120-allocation-freeze.test.mjs'
+      - 'scripts/lib/phase57-selector-jquants-fresh-session.mjs'
+      - 'scripts/acquire_phase57_selector_jquants_fresh_shard.mjs'
+      - 'scripts/develop_phase57_selector_jquants_hybrid.mjs'
+      - 'scripts/validate_phase57_selector_jquants_shard.mjs'
+      - 'scripts/summarize_phase57_selector_jquants_validation.mjs'
+      - 'predict/tests/phase57-selector-jquants-fresh-session.test.mjs'
+      - 'predict/tests/phase57-selector-jquants-development.test.mjs'
+      - 'predict/tests/phase57-selector-jquants-validation-summary.test.mjs'
+      - 'scripts/audit_phase57_selector_minimal_hybrid_dataset.mjs'
+      - '.github/workflows/phase57-selector-minimal-hybrid-phase-a.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-phase-a:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify frozen Phase A contract
+        run: (cd predict/research && sha256sum --check phase57-selector-minimal-hybrid-phase-a.sha256)
+      - name: Verify Phase A amendment v1.1 contract
+        run: (cd predict/research && sha256sum --check phase57-selector-minimal-hybrid-phase-a-amendment-v1.1.sha256)
+      - name: Verify Fresh Dataset readiness evidence
+        run: (cd predict/research && sha256sum --check phase57-selector-minimal-hybrid-dataset-readiness-2026-09-05.sha256)
+      - name: Verify Fresh Source resolution evidence
+        run: (cd predict/research && sha256sum --check phase57-selector-minimal-hybrid-source-resolution-2026-09-06.sha256)
+      - name: Verify J-Quants Free entitlement evidence
+        run: (cd predict/research && sha256sum --check phase57-selector-jquants-free-entitlement-2026-09-06.sha256)
+      - name: Verify Tick-proven timestamp contract
+        run: (cd predict/research && sha256sum --check phase57-selector-jquants-timestamp-contract-v1.sha256)
+      - name: Verify post-contract reconstruction Pilot
+        run: (cd predict/research && sha256sum --check phase57-selector-jquants-minute-reconstruction-pilot-2026-09-06.sha256)
+      - name: Verify immutable Fresh-120 allocation
+        run: (cd predict/research && sha256sum --check phase57-selector-jquants-fresh120-allocation.sha256)
+      - name: Verify architecture and dataset contamination guards
+        run: node --test predict/tests/phase57-selector-minimal-hybrid-phase-a.test.mjs predict/tests/phase57-selector-minimal-hybrid-dataset-audit.test.mjs predict/tests/phase57-selector-minimal-hybrid-source-resolution.test.mjs predict/tests/phase57-selector-minimal-hybrid-implementation.test.mjs predict/tests/phase57-selector-jquants-minute.test.mjs predict/tests/phase57-selector-jquants-free-probe.test.mjs
+      - name: Verify timestamp evidence cannot manufacture a PASS
+        run: node --test predict/tests/phase57-selector-jquants-edges.test.mjs predict/tests/phase57-selector-jquants-tick-minute-reconciliation.test.mjs predict/tests/phase57-selector-jquants-minute-reconstruction-pilot.test.mjs predict/tests/phase57-selector-jquants-date-capacity.test.mjs predict/tests/phase57-selector-jquants-allocation.test.mjs
+      - name: Verify Fresh acquisition, Development and Validation gates
+        run: node --test predict/tests/phase57-selector-jquants-fresh120-allocation-freeze.test.mjs predict/tests/phase57-selector-jquants-fresh-session.test.mjs predict/tests/phase57-selector-jquants-development.test.mjs predict/tests/phase57-selector-jquants-validation-summary.test.mjs
+
+  jquants-source-edges:
+    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/research/phase57-selector-v1-v3-minimal-hybrid') || (github.event.pull_request.number == 577 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'research/phase57-selector-v1-v3-minimal-hybrid')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    concurrency:
+      group: phase57-jquants-source-edges
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Run API only when edge-probe code changes or explicitly dispatched
+        id: scope
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo 'run=true' >> "$GITHUB_OUTPUT"
+          elif git diff --quiet HEAD^ HEAD -- scripts/probe_phase57_selector_jquants_edges.mjs; then
+            echo 'run=false' >> "$GITHUB_OUTPUT"
+          else
+            DIFF_STATUS=$?
+            test "$DIFF_STATUS" -eq 1
+            echo 'run=true' >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.scope.outputs.run == 'true'
+        with:
+          node-version: 22
+      - name: Bounded source-only edge audit (no prices or credentials emitted)
+        if: steps.scope.outputs.run == 'true'
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: node scripts/probe_phase57_selector_jquants_edges.mjs
+      - name: Upload sanitized SOURCE_VALIDATION_ONLY evidence
+        if: steps.scope.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-jquants-source-edges-${{ github.run_id }}
+          path: artifacts/phase57-jquants-edge/
+          if-no-files-found: error
+          retention-days: 7
+
+  jquants-tick-minute-reconciliation:
+    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/research/phase57-selector-v1-v3-minimal-hybrid') || (github.event.pull_request.number == 577 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'research/phase57-selector-v1-v3-minimal-hybrid')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    concurrency:
+      group: phase57-jquants-tick-minute-reconciliation
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Run only for reconciliation code changes or explicit dispatch
+        id: scope
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo 'run=true' >> "$GITHUB_OUTPUT"
+          elif git diff --quiet HEAD^ HEAD -- scripts/reconcile_phase57_selector_jquants_tick_minute.mjs; then
+            echo 'run=false' >> "$GITHUB_OUTPUT"
+          else
+            DIFF_STATUS=$?
+            test "$DIFF_STATUS" -eq 1
+            echo 'run=true' >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.scope.outputs.run == 'true'
+        with:
+          node-version: 22
+      - name: Reconcile Tick CSV to Minute bars without persisting raw data
+        if: steps.scope.outputs.run == 'true'
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: node scripts/reconcile_phase57_selector_jquants_tick_minute.mjs
+      - name: Upload sanitized reconciliation evidence only
+        if: steps.scope.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-jquants-tick-minute-${{ github.run_id }}
+          path: artifacts/phase57-jquants-tick-minute/
+          if-no-files-found: error
+          retention-days: 7
+
+  jquants-minute-reconstruction-pilot:
+    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/research/phase57-selector-v1-v3-minimal-hybrid') || (github.event.pull_request.number == 577 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'research/phase57-selector-v1-v3-minimal-hybrid')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    concurrency:
+      group: phase57-jquants-minute-reconstruction-pilot
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Run only for post-contract Pilot code changes or explicit dispatch
+        id: scope
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo 'run=true' >> "$GITHUB_OUTPUT"
+          elif git diff --quiet HEAD^ HEAD -- scripts/pilot_phase57_selector_jquants_minute_reconstruction.mjs; then
+            echo 'run=false' >> "$GITHUB_OUTPUT"
+          else
+            DIFF_STATUS=$?
+            test "$DIFF_STATUS" -eq 1
+            echo 'run=true' >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.scope.outputs.run == 'true'
+        with:
+          node-version: 22
+      - name: Verify frozen timestamp contract on new source-only sessions
+        if: steps.scope.outputs.run == 'true'
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: node scripts/pilot_phase57_selector_jquants_minute_reconstruction.mjs
+      - name: Upload sanitized reconstruction Pilot evidence only
+        if: steps.scope.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-jquants-minute-reconstruction-${{ github.run_id }}
+          path: artifacts/phase57-jquants-minute-reconstruction/
+          if-no-files-found: error
+          retention-days: 7
+
+  jquants-date-wide-capacity:
+    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/research/phase57-selector-v1-v3-minimal-hybrid') || (github.event.pull_request.number == 577 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'research/phase57-selector-v1-v3-minimal-hybrid')
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    permissions:
+      contents: read
+    concurrency:
+      group: phase57-jquants-date-wide-capacity
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Profile date-wide pagination on an already quarantined session
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: node scripts/profile_phase57_selector_jquants_date_capacity.mjs
+      - name: Upload sanitized capacity evidence only
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-jquants-date-capacity-${{ github.run_id }}
+          path: artifacts/phase57-jquants-date-capacity/
+          if-no-files-found: error
+          retention-days: 7
+
+  jquants-fresh-session-allocation:
+    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/research/phase57-selector-v1-v3-minimal-hybrid') || (github.event.pull_request.number == 577 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'research/phase57-selector-v1-v3-minimal-hybrid')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Allocate Fresh 120 before any outcome access
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: node scripts/allocate_phase57_selector_jquants_fresh_sessions.mjs
+      - name: Upload allocation dates and guards only
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-jquants-fresh-allocation-${{ github.run_id }}
+          path: artifacts/phase57-jquants-fresh-allocation/
+          if-no-files-found: error
+          retention-days: 7

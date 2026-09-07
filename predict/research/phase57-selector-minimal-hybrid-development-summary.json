@@ -1,0 +1,279 @@
+{
+  "schemaVersion": 1,
+  "status": "MINIMAL_HYBRID_DEVELOPMENT_COMPLETE",
+  "datasetId": "PHASE57_JQUANTS_OHLCMIN_FRESH120_V1",
+  "developmentSessions": 72,
+  "developmentSampleCount": 47355,
+  "featureDiagnostics": {
+    "status": "MINIMAL_HYBRID_FEATURE_DIAGNOSTICS_READY",
+    "developmentSelectionApplied": false,
+    "byFeature": {
+      "turnoverRank": {
+        "missingRate": 0,
+        "pearsonUp": -0.2382837673373468,
+        "pearsonDown": -0.2721404232425375,
+        "spearmanUp": -0.1683544227455172,
+        "spearmanDown": -0.2380338668947969
+      },
+      "relativeActivity": {
+        "missingRate": 0,
+        "pearsonUp": 0.03869208072073624,
+        "pearsonDown": 0.027745554274106573,
+        "spearmanUp": -0.006126324708655455,
+        "spearmanDown": -0.02755751558337471
+      },
+      "recentAbsoluteMovementAtr": {
+        "missingRate": 0,
+        "pearsonUp": 0.05364007915584988,
+        "pearsonDown": 0.0437026800176211,
+        "spearmanUp": 0.04668954351812415,
+        "spearmanDown": 0.04112003230320698
+      },
+      "maSlopeAtr": {
+        "missingRate": 0,
+        "pearsonUp": 0.01685928925816465,
+        "pearsonDown": 0.026050283531785824,
+        "spearmanUp": -0.0020915519533440887,
+        "spearmanDown": 0.02630385834112986
+      },
+      "vwapSlopeAtr": {
+        "missingRate": 0,
+        "pearsonUp": 0.019785581154375325,
+        "pearsonDown": 0.019985714494016295,
+        "spearmanUp": -0.0005196695808063496,
+        "spearmanDown": 0.023586251118561302
+      },
+      "momentumAccelerationAtr": {
+        "missingRate": 0,
+        "pearsonUp": -0.0027193365106512935,
+        "pearsonDown": -0.0047361407003482,
+        "spearmanUp": -0.005702151491704978,
+        "spearmanDown": 0.0018030058724432991
+      },
+      "pathEfficiency": {
+        "missingRate": 0,
+        "pearsonUp": 0.035993991763478964,
+        "pearsonDown": 0.023190326142340813,
+        "spearmanUp": 0.048276907107984914,
+        "spearmanDown": 0.03749498794282326
+      },
+      "reversalFrequency": {
+        "missingRate": 0,
+        "pearsonUp": -0.0218000655876077,
+        "pearsonDown": -0.006984146390064211,
+        "spearmanUp": -0.024939194071854843,
+        "spearmanDown": -0.014799740652191532
+      },
+      "extensionPersistenceInteraction": {
+        "missingRate": 0,
+        "pearsonUp": -0.036247437855700525,
+        "pearsonDown": -0.04169585398797127,
+        "spearmanUp": -0.032440941178540864,
+        "spearmanDown": -0.038071811492074746
+      },
+      "extensionReversalInteraction": {
+        "missingRate": 0,
+        "pearsonUp": -0.10592862325686508,
+        "pearsonDown": -0.09578569997548805,
+        "spearmanUp": -0.11282168274798193,
+        "spearmanDown": -0.10164091277861953
+      },
+      "marketBreadth": {
+        "missingRate": 0,
+        "pearsonUp": -0.0005116291162381819,
+        "pearsonDown": -0.020946070969926366,
+        "spearmanUp": 0.004414669216561846,
+        "spearmanDown": 0.02637182462399871
+      },
+      "sectorBreadth": {
+        "missingRate": 0,
+        "pearsonUp": 0.025633632930919168,
+        "pearsonDown": 0.061136538103446485,
+        "spearmanUp": 0.04143821896314397,
+        "spearmanDown": 0.0576559262318327
+      }
+    }
+  },
+  "featureScreening": {
+    "selected": [
+      "turnoverRank",
+      "extensionReversalInteraction",
+      "sectorBreadth",
+      "extensionPersistenceInteraction",
+      "pathEfficiency",
+      "recentAbsoluteMovementAtr",
+      "relativeActivity",
+      "maSlopeAtr",
+      "vwapSlopeAtr",
+      "marketBreadth",
+      "reversalFrequency",
+      "momentumAccelerationAtr"
+    ],
+    "redundancyDrops": [],
+    "targetAssociation": {
+      "turnoverRank": 0.317655910431807,
+      "relativeActivity": 0.03354212173626216,
+      "recentAbsoluteMovementAtr": 0.0456459723389844,
+      "maSlopeAtr": 0.01952843654441933,
+      "vwapSlopeAtr": 0.01814941693460898,
+      "momentumAccelerationAtr": 0.0031133855917907832,
+      "pathEfficiency": 0.0511957151097038,
+      "reversalFrequency": 0.014095045163627739,
+      "extensionPersistenceInteraction": 0.06819419888585158,
+      "extensionReversalInteraction": 0.1631862246296017,
+      "marketBreadth": 0.015778533317910202,
+      "sectorBreadth": 0.07859062565709529
+    }
+  },
+  "targetSelection": {
+    "selectedHorizonBars": 3,
+    "selectedRidgeLambda": 0.01,
+    "candidates": [
+      {
+        "horizon": 3,
+        "lambda": 0.01,
+        "scale": 0.007599418450736643,
+        "metrics": {
+          "mse": 0.0000715230060680232,
+          "selectedCount": 17018,
+          "meanObservedTwoSided": 0.008558003788929298,
+          "decisionCount": 456,
+          "abstainRate": 0,
+          "meanAbsoluteRankMovement": 7.732107180632272
+        }
+      },
+      {
+        "horizon": 3,
+        "lambda": 0.1,
+        "scale": 0.007599418450736643,
+        "metrics": {
+          "mse": 0.0000715230082231889,
+          "selectedCount": 17018,
+          "meanObservedTwoSided": 0.008558003788929298,
+          "decisionCount": 456,
+          "abstainRate": 0,
+          "meanAbsoluteRankMovement": 7.732107180632272
+        }
+      },
+      {
+        "horizon": 3,
+        "lambda": 1,
+        "scale": 0.007599418450736643,
+        "metrics": {
+          "mse": 0.00007152302964713823,
+          "selectedCount": 17018,
+          "meanObservedTwoSided": 0.008558003788929298,
+          "decisionCount": 456,
+          "abstainRate": 0,
+          "meanAbsoluteRankMovement": 7.732107180632272
+        }
+      },
+      {
+        "horizon": 6,
+        "lambda": 0.01,
+        "scale": 0.010364075353858257,
+        "metrics": {
+          "mse": 0.00012050412265310062,
+          "selectedCount": 17018,
+          "meanObservedTwoSided": 0.011687616514278939,
+          "decisionCount": 456,
+          "abstainRate": 0,
+          "meanAbsoluteRankMovement": 7.521976730520625
+        }
+      },
+      {
+        "horizon": 6,
+        "lambda": 0.1,
+        "scale": 0.010364075353858257,
+        "metrics": {
+          "mse": 0.00012050412854943607,
+          "selectedCount": 17018,
+          "meanObservedTwoSided": 0.011687616514278939,
+          "decisionCount": 456,
+          "abstainRate": 0,
+          "meanAbsoluteRankMovement": 7.521976730520625
+        }
+      },
+      {
+        "horizon": 6,
+        "lambda": 1,
+        "scale": 0.010364075353858257,
+        "metrics": {
+          "mse": 0.00012050418751736784,
+          "selectedCount": 17018,
+          "meanObservedTwoSided": 0.011687616514278939,
+          "decisionCount": 456,
+          "abstainRate": 0,
+          "meanAbsoluteRankMovement": 7.5217416852744154
+        }
+      },
+      {
+        "horizon": 12,
+        "lambda": 0.01,
+        "scale": 0.014286158768830156,
+        "metrics": {
+          "mse": 0.0002039071653575893,
+          "selectedCount": 17018,
+          "meanObservedTwoSided": 0.015739864879539277,
+          "decisionCount": 456,
+          "abstainRate": 0,
+          "meanAbsoluteRankMovement": 7.504348337054883
+        }
+      },
+      {
+        "horizon": 12,
+        "lambda": 0.1,
+        "scale": 0.014286158768830156,
+        "metrics": {
+          "mse": 0.0002039071745912372,
+          "selectedCount": 17018,
+          "meanObservedTwoSided": 0.015739864879539277,
+          "decisionCount": 456,
+          "abstainRate": 0,
+          "meanAbsoluteRankMovement": 7.504348337054883
+        }
+      },
+      {
+        "horizon": 12,
+        "lambda": 1,
+        "scale": 0.014286158768830156,
+        "metrics": {
+          "mse": 0.00020390726762018876,
+          "selectedCount": 17018,
+          "meanObservedTwoSided": 0.015739864879539277,
+          "decisionCount": 456,
+          "abstainRate": 0,
+          "meanAbsoluteRankMovement": 7.504230814431778
+        }
+      }
+    ]
+  },
+  "selectionPolicy": {
+    "maximumSelected": 20,
+    "minimumRemainingOpportunityScore": 0.65,
+    "maximumAbsoluteSoftAdjustment": 0.05,
+    "opportunityScale": 0.007599418450736643
+  },
+  "developmentMetrics": {
+    "mse": 0.00007032918505965133,
+    "selectedCount": 7226,
+    "meanObservedTwoSided": 0.017914159933573107,
+    "decisionCount": 1276,
+    "abstainRate": 0.001567398119122257,
+    "meanAbsoluteRankMovement": 4.637820715869497
+  },
+  "validationReleased": false,
+  "untouchedOosReleased": false,
+  "performanceWinnerClaimAllowed": false,
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

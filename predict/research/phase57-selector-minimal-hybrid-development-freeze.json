@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.selector-minimal-hybrid.development-freeze-candidate",
+  "status": "MINIMAL_HYBRID_FROZEN_BEFORE_VALIDATION",
+  "datasetId": "PHASE57_JQUANTS_OHLCMIN_FRESH120_V1",
+  "datasetManifestSha256": "1e38206da539369a88b36ff445e0042078fc1b0ec6734ce49c98ad26e0a42c33",
+  "datasetAdmissionSha256": "bccf93b4962bfcf6d87c6ec304d5876a1bfa4a869f67a9a3a9bd9b8dbd223e71",
+  "modelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
+  "featureManifest": [
+    "turnoverRank",
+    "extensionReversalInteraction",
+    "sectorBreadth",
+    "extensionPersistenceInteraction",
+    "pathEfficiency",
+    "recentAbsoluteMovementAtr",
+    "relativeActivity",
+    "maSlopeAtr",
+    "vwapSlopeAtr",
+    "marketBreadth",
+    "reversalFrequency",
+    "momentumAccelerationAtr"
+  ],
+  "targetContract": {
+    "horizonBars": 3,
+    "upDownSeparated": true,
+    "twoSidedDirectTrainingTarget": false
+  },
+  "ridgeLambda": 0.01,
+  "softAdjustment": 0.05,
+  "dynamicN": {
+    "maximumSelected": 20,
+    "minimumRemainingOpportunityScore": 0.65
+  },
+  "developmentSummarySha256": "02e848f9d7590a7aeb76071952c95b0ae1f964c18f8cad1d7bdd254257856151",
+  "validationReleased": false,
+  "untouchedOosReleased": false,
+  "validationRetuningAllowed": false,
+  "automaticPromotionAllowed": false,
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "freezeSha256": "a744d599e430d23efe4dea6600e418d3410d8a18df5055b35e1cc71432bf64da"
+}

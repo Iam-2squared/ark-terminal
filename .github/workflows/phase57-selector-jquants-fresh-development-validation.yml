@@ -1,0 +1,142 @@
+name: Phase57 J-Quants Fresh Development Validation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  acquisition:
+    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/research/phase57-selector-v1-v3-minimal-hybrid') || (github.event.pull_request.number == 577 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'research/phase57-selector-v1-v3-minimal-hybrid')
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: true
+      max-parallel: 3
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify immutable allocation and Frozen V3
+        run: |
+          (cd predict/research && sha256sum --check phase57-selector-jquants-fresh120-allocation.sha256)
+          (cd predict/research && sha256sum --check phase57-selector-v3-freeze.sha256)
+      - name: Acquire and structurally audit assigned Fresh sessions
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          SHARD_INDEX: ${{ matrix.shard }}
+          SHARD_COUNT: 6
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: node scripts/acquire_phase57_selector_jquants_fresh_shard.mjs
+      - name: Upload structural audits and Development-only samples
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-fresh-shard-${{ matrix.shard }}-${{ github.run_id }}
+          path: artifacts/phase57-jquants-fresh-shard-${{ matrix.shard }}/
+          if-no-files-found: error
+          retention-days: 3
+
+  development:
+    needs: acquisition
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-fresh-shard-*-${{ github.run_id }}
+          path: artifacts/phase57-jquants-fresh-input
+      - name: Admission, Development-only screening and Ridge training
+        env:
+          INPUT_ROOT: artifacts/phase57-jquants-fresh-input
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: node scripts/develop_phase57_selector_jquants_hybrid.mjs
+      - name: Upload admitted manifest and frozen Hybrid only
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-jquants-development-${{ github.run_id }}
+          path: artifacts/phase57-jquants-development/
+          if-no-files-found: error
+          retention-days: 7
+
+  validation:
+    needs: [acquisition, development]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: true
+      max-parallel: 3
+      matrix:
+        shard: [0, 1, 2]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-fresh-shard-*-${{ github.run_id }}
+          path: artifacts/phase57-validation-input/acquisition
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-jquants-development-${{ github.run_id }}
+          path: artifacts/phase57-validation-input/development
+      - name: Evaluate frozen selectors on assigned Validation sessions
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          INPUT_ROOT: artifacts/phase57-validation-input
+          SHARD_INDEX: ${{ matrix.shard }}
+          SHARD_COUNT: 3
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: node scripts/validate_phase57_selector_jquants_shard.mjs
+      - name: Upload Validation-only results
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-validation-shard-${{ matrix.shard }}-${{ github.run_id }}
+          path: artifacts/phase57-jquants-validation-shard-${{ matrix.shard }}/
+          if-no-files-found: error
+          retention-days: 7
+
+  validation-summary:
+    needs: validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-validation-shard-*-${{ github.run_id }}
+          path: artifacts/phase57-validation-results
+      - name: Summarize paired V1, V3 and frozen Hybrid Validation
+        env:
+          INPUT_ROOT: artifacts/phase57-validation-results
+        run: node scripts/summarize_phase57_selector_jquants_validation.mjs
+      - name: Upload sanitized Validation evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-jquants-validation-${{ github.run_id }}
+          path: artifacts/phase57-jquants-validation/
+          if-no-files-found: error
+          retention-days: 14

@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.selector-v1-v3-minimal-hybrid.phase-a-amendment-v1.1",
+  "candidateId": "SELECTOR_V1_V3_MINIMAL_HYBRID",
+  "status": "AMENDMENT_FROZEN_BEFORE_FRESH_DEVELOPMENT_OUTCOMES",
+  "freezeDate": "2026-09-05",
+  "amends": {
+    "phaseAFile": "phase57-selector-minimal-hybrid-phase-a.json",
+    "phaseASha256": "7ca1b53a25ea756785ed0320e3887fb78ec6be557df53f0840638aeba14dafda",
+    "phaseABytesRemainUnchanged": true
+  },
+  "reason": "Pre-Development independent review identified implementation-critical ambiguities. This amendment narrows the Minimal implementation without using Fresh Development, Validation, or OOS outcomes.",
+  "reviewClassification": {
+    "criticalAdoptedNow": [
+      "PRESERVE_V1_ACTIVITY_SIGNAL",
+      "SOFT_RANK_ADJUSTMENT_PRIMARY",
+      "NO_DIRECT_EXTENSION_PENALTY",
+      "UP_DOWN_EXCURSION_MULTI_TARGET",
+      "FIVE_MINUTE_ONLY_MINIMAL_PIPELINE",
+      "MICROSTRUCTURE_EXCLUDED_FROM_MINIMAL",
+      "ADVANCED_MODEL_DEFERRED"
+    ],
+    "importantDevelopmentOnly": [
+      "FEATURE_REDUNDANCY_SCREENING",
+      "MISSINGNESS_AND_SESSION_STABILITY",
+      "PATH_QUALITY_DIAGNOSTICS"
+    ],
+    "futureUnproven": [
+      "ONE_MINUTE_INCREMENTAL_VALUE",
+      "ADVANCED_MULTITASK_MODEL",
+      "SPECIFIC_BPS_EXPECTATION",
+      "MOMENTUM_CONTINUATION_CAUSAL_EXPLANATION",
+      "INSTITUTIONAL_FLOW_CAUSAL_EXPLANATION"
+    ]
+  },
+  "implementation": {
+    "requiredInput": "CAUSAL_5M_OHLCV_WITH_OBSERVED_OR_EXPLICIT_OHLCV_TURNOVER_PROXY_AND_MARKET_SECTOR_CONTEXT",
+    "oneMinuteDataRequired": false,
+    "microstructureRequired": false,
+    "microstructureUsed": false,
+    "stage1": "FROZEN_CURRENT_V1_BROAD_RECALL",
+    "stage2": "UP_DOWN_REMAINING_OPPORTUNITY_MULTI_TARGET",
+    "combination": "BOUNDED_SOFT_ADJUSTMENT_OF_V1_BASE_SCORE",
+    "selection": "DEVELOPMENT_CONFIGURED_MINIMUM_QUALITY_AND_DYNAMIC_N_WITH_SOFT_ABSTAIN",
+    "researchEvidenceRequired": true
+  },
+  "featurePolicy": {
+    "maximumTrainableFeatures": 12,
+    "trainableFamilies": [
+      "ACTIVITY",
+      "MOMENTUM_QUALITY",
+      "PATH_QUALITY",
+      "CONDITIONAL_EXTENSION",
+      "MARKET_SECTOR_CONTEXT"
+    ],
+    "rawExtensionDiagnosticAllowed": true,
+    "rawExtensionDirectModelCoefficientAllowed": false,
+    "conditionalExtensionInteractionsAllowed": [
+      "EXTENSION_X_PATH_PERSISTENCE",
+      "EXTENSION_X_REVERSAL_FREQUENCY"
+    ],
+    "hardExtensionThresholdAllowed": false,
+    "missingToZeroAllowed": false,
+    "validationOrOosFeatureSelectionAllowed": false
+  },
+  "targetPolicy": {
+    "trainingTargets": [
+      "EXPECTED_UP_EXCURSION",
+      "EXPECTED_DOWN_EXCURSION"
+    ],
+    "targetsTrainedSeparately": true,
+    "twoSidedOpportunityDirectPrimaryTrainingTargetAllowed": false,
+    "twoSidedOpportunityEvaluationAllowed": true,
+    "entryDirectionTargetAllowed": false,
+    "futureBarsUsedForFeatures": false
+  },
+  "rankPolicy": {
+    "v1CandidateMembershipRequired": true,
+    "v3CandidateMembershipRequired": false,
+    "v3ThresholdUsedByHybrid": false,
+    "maximumAbsoluteSoftAdjustment": 0.25,
+    "stage2HardRejectAllowed": false,
+    "structuralEligibilityFailureAllowed": true,
+    "extensionOnlyRejectAllowed": false,
+    "symbolRankOverlapTimeRulesAllowed": false
+  },
+  "trainingPolicy": {
+    "realModelTrainingDataset": "ADMITTED_FRESH_DEVELOPMENT_ONLY",
+    "syntheticFixtureTrainingAllowed": true,
+    "syntheticFixturePerformanceClaimAllowed": false,
+    "modelFamily": "TWO_INDEPENDENT_RIDGE_REGRESSIONS_WITH_SHARED_CAUSAL_FEATURE_INTERFACE",
+    "featureScreeningDataset": "ADMITTED_FRESH_DEVELOPMENT_ONLY",
+    "selectionPolicyTuningDataset": "ADMITTED_FRESH_DEVELOPMENT_ONLY",
+    "validationRetuningAllowed": false,
+    "outerOosRetuningAllowed": false
+  },
+  "unchanged": {
+    "consumedWindowFirstSession": "2026-06-12",
+    "consumedWindowLastSession": "2026-09-04",
+    "consumedDatasetId": "PHASE57_SELECTOR_YAHOO_5M_24626FD37F8633F4",
+    "laneYMainChanged": false,
+    "currentV1Changed": false,
+    "currentV2Changed": false,
+    "frozenV3Changed": false,
+    "entryExitAllocationChanged": false,
+    "automaticPromotionAllowed": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

@@ -122,7 +122,7 @@ async function buildDecisionSamples({apiKey,dates,fold,admission,load=loadWithRe
       for(const row of hybrid.ranked.slice(0,20)){
         const item=bySymbol.get(row.symbol),causal=item?.bars.filter(bar=>Date.parse(bar.availableAt)<=cutoffMs)??[];if(!causal.length){utilities.push(null);continue;}
         const future=item.bars.filter(bar=>Date.parse(bar.availableAt)>cutoffMs&&bar.sessionSegment===segment);
-        utilities.push(targetUtility({targetsByHorizon:buildPhase57MinimalHybridTargets({featureCutoff,anchorPrice:causal.at(-1).close,sessionDate:date,futureBars}).horizons}));
+        utilities.push(targetUtility({targetsByHorizon:buildPhase57MinimalHybridTargets({featureCutoff,anchorPrice:causal.at(-1).close,sessionDate:date,futureBars:future}).horizons}));
       }
       const bandTarget=(min,max)=>{const values=utilities.slice(min-1,max).filter(finite).map(Number);return values.length?mean(values):null;};
       const utilityAt=capacity=>{const values=utilities.slice(0,Math.min(capacity,hybrid.ranked.length)).filter(finite).map(Number);return values.length?mean(values):null;};

@@ -1,0 +1,227 @@
+name: Phase57 Selector Capacity v2 Fresh Evaluation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/phase57-selector-capacity-v2]
+    paths:
+      - scripts/run_phase57_selector_capacity_v2.mjs
+      - predict/daytrade/phase57-selector-capacity-v2-contract.js
+      - predict/research/phase57-selector-capacity-v2-phase-a.json
+      - .github/workflows/phase57-selector-capacity-v2.yml
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-selector-capacity-v2-fresh-once
+  cancel-in-progress: false
+
+jobs:
+  allocation:
+    if: github.ref == 'refs/heads/research/phase57-selector-capacity-v2'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: Verify Phase A and Frozen Hybrid bytes
+        run: |
+          (cd predict/research && sha256sum --check phase57-selector-capacity-v2-phase-a.sha256)
+          (cd predict/research && sha256sum --check phase57-selector-minimal-hybrid-development-model.json.sha256)
+          (cd predict/research && sha256sum --check phase57-selector-minimal-hybrid-development-freeze.json.sha256)
+      - name: Materialize the precommitted first 120 reserve ordinals
+        env: {JQUANTS_API_KEY: '${{ secrets.JQUANTS_API_KEY }}'}
+        run: node scripts/run_phase57_selector_capacity_v2.mjs allocate
+      - uses: actions/upload-artifact@v4
+        with:
+          name: capacity-v2-allocation-${{ github.run_id }}
+          path: artifacts/phase57-capacity-v2-allocation/
+          if-no-files-found: error
+          retention-days: 7
+
+  admission:
+    needs: allocation
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: true
+      max-parallel: 3
+      matrix: {shard: [0, 1, 2, 3, 4, 5]}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - uses: actions/download-artifact@v4
+        with:
+          name: capacity-v2-allocation-${{ github.run_id }}
+          path: artifacts/input/allocation
+      - name: Structural admission only (no features, labels, or raw persistence)
+        env:
+          JQUANTS_API_KEY: '${{ secrets.JQUANTS_API_KEY }}'
+          ALLOCATION_PATH: artifacts/input/allocation/allocation.json
+          SHARD_INDEX: '${{ matrix.shard }}'
+          SHARD_COUNT: '6'
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: node scripts/run_phase57_selector_capacity_v2.mjs admission-shard
+      - uses: actions/upload-artifact@v4
+        with:
+          name: capacity-v2-admission-${{ matrix.shard }}-${{ github.run_id }}
+          path: artifacts/phase57-capacity-v2-admission-${{ matrix.shard }}/
+          if-no-files-found: error
+          retention-days: 7
+
+  admission-summary:
+    needs: admission
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - uses: actions/download-artifact@v4
+        with: {name: 'capacity-v2-allocation-${{ github.run_id }}', path: artifacts/input/allocation}
+      - uses: actions/download-artifact@v4
+        with: {pattern: 'capacity-v2-admission-*-${{ github.run_id }}', path: artifacts/input/admission}
+      - name: Fail-closed Admission Audit
+        env:
+          ALLOCATION_PATH: artifacts/input/allocation/allocation.json
+          INPUT_ROOT: artifacts/input/admission
+        run: node scripts/run_phase57_selector_capacity_v2.mjs admission-summary
+      - uses: actions/upload-artifact@v4
+        with:
+          name: capacity-v2-admission-summary-${{ github.run_id }}
+          path: artifacts/phase57-capacity-v2-admission-summary/
+          if-no-files-found: error
+          retention-days: 7
+
+  development:
+    needs: admission-summary
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - uses: actions/download-artifact@v4
+        with: {name: 'capacity-v2-allocation-${{ github.run_id }}', path: artifacts/input/allocation}
+      - uses: actions/download-artifact@v4
+        with: {name: 'capacity-v2-admission-summary-${{ github.run_id }}', path: artifacts/input/admission}
+      - name: Development-only Ridge training and freeze
+        env:
+          JQUANTS_API_KEY: '${{ secrets.JQUANTS_API_KEY }}'
+          ALLOCATION_PATH: artifacts/input/allocation/allocation.json
+          ADMISSION_PATH: artifacts/input/admission/admission.json
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: node scripts/run_phase57_selector_capacity_v2.mjs development
+      - uses: actions/upload-artifact@v4
+        with:
+          name: capacity-v2-development-${{ github.run_id }}
+          path: artifacts/phase57-capacity-v2-development/
+          if-no-files-found: error
+          retention-days: 14
+
+  validation:
+    needs: development
+    outputs:
+      gate: ${{ steps.gate.outputs.gate }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - uses: actions/download-artifact@v4
+        with: {name: 'capacity-v2-allocation-${{ github.run_id }}', path: artifacts/input/allocation}
+      - uses: actions/download-artifact@v4
+        with: {name: 'capacity-v2-admission-summary-${{ github.run_id }}', path: artifacts/input/admission}
+      - uses: actions/download-artifact@v4
+        with: {name: 'capacity-v2-development-${{ github.run_id }}', path: artifacts/input/development}
+      - name: One-time frozen Validation evaluation
+        env:
+          JQUANTS_API_KEY: '${{ secrets.JQUANTS_API_KEY }}'
+          ALLOCATION_PATH: artifacts/input/allocation/allocation.json
+          ADMISSION_PATH: artifacts/input/admission/admission.json
+          MODEL_PATH: artifacts/input/development/model.json
+          FREEZE_PATH: artifacts/input/development/freeze.json
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: node scripts/run_phase57_selector_capacity_v2.mjs validation
+      - id: gate
+        if: always()
+        run: |
+          if [ -f artifacts/phase57-capacity-v2-validation/validation-summary.json ] && node -e "const x=require('./artifacts/phase57-capacity-v2-validation/validation-summary.json');process.exit(x.pass?0:1)"; then echo 'gate=PASS' >> "$GITHUB_OUTPUT"; else echo 'gate=FAIL' >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: capacity-v2-validation-${{ github.run_id }}
+          path: artifacts/phase57-capacity-v2-validation/
+          if-no-files-found: warn
+          retention-days: 14
+
+  oos:
+    needs: validation
+    if: needs.validation.outputs.gate == 'PASS'
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - uses: actions/download-artifact@v4
+        with: {name: 'capacity-v2-allocation-${{ github.run_id }}', path: artifacts/input/allocation}
+      - uses: actions/download-artifact@v4
+        with: {name: 'capacity-v2-admission-summary-${{ github.run_id }}', path: artifacts/input/admission}
+      - uses: actions/download-artifact@v4
+        with: {name: 'capacity-v2-development-${{ github.run_id }}', path: artifacts/input/development}
+      - name: One-time Untouched OOS evaluation
+        env:
+          JQUANTS_API_KEY: '${{ secrets.JQUANTS_API_KEY }}'
+          ALLOCATION_PATH: artifacts/input/allocation/allocation.json
+          ADMISSION_PATH: artifacts/input/admission/admission.json
+          MODEL_PATH: artifacts/input/development/model.json
+          FREEZE_PATH: artifacts/input/development/freeze.json
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: node scripts/run_phase57_selector_capacity_v2.mjs oos
+      - uses: actions/upload-artifact@v4
+        with:
+          name: capacity-v2-oos-${{ github.run_id }}
+          path: artifacts/phase57-capacity-v2-untouched_oos/
+          if-no-files-found: error
+          retention-days: 14
+
+  final:
+    needs: [validation, oos]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - uses: actions/download-artifact@v4
+        with: {name: 'capacity-v2-development-${{ github.run_id }}', path: artifacts/input/development}
+      - uses: actions/download-artifact@v4
+        with: {name: 'capacity-v2-validation-${{ github.run_id }}', path: artifacts/input/validation}
+      - uses: actions/download-artifact@v4
+        with: {name: 'capacity-v2-oos-${{ github.run_id }}', path: artifacts/input/oos}
+      - name: Final precommitted GO or NO-GO
+        env:
+          MODEL_PATH: artifacts/input/development/model.json
+          FREEZE_PATH: artifacts/input/development/freeze.json
+          VALIDATION_PATH: artifacts/input/validation/validation-summary.json
+          OOS_PATH: artifacts/input/oos/untouched_oos-summary.json
+        run: node scripts/run_phase57_selector_capacity_v2.mjs final
+      - uses: actions/upload-artifact@v4
+        with:
+          name: capacity-v2-final-${{ github.run_id }}
+          path: artifacts/phase57-capacity-v2-final/
+          if-no-files-found: error
+          retention-days: 30

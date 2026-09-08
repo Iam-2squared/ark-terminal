@@ -5,6 +5,7 @@ import {gzipSync} from 'node:zlib';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {reconstructDevelopmentSession} from './phase57-entry-development-source.mjs';
+import {developmentUniverse} from './lib/phase57-entry-development-universe.mjs';
 import {ALLOCATION,FIT,verifyDevelopmentContracts} from './lib/phase57-entry-development-fit.mjs';
 import {CONTRACT,MinimalStatefulEntry,selectionSchedule} from './lib/phase57-minimal-stateful-entry.mjs';
 
@@ -40,9 +41,9 @@ for(const [i,session] of ALLOCATION.sessions.entries()){
  const date=session.sessionDate;ledger(date,'MARKET_DATA_RECONSTRUCTION');
  const source=await reconstructDevelopmentSession(date),expected=admission.get(date);assert(expected,'MISSING_ADMISSION');
  for(const key of ['minuteSha256','fiveMinuteSha256','memberSetSha256','normalizedMinuteRows','fiveMinuteBars','eligibleJpxSymbolCount'])assert.equal(source[key],expected[key],`SOURCE_MISMATCH_${key}`);
- const member=new Set(source.members),meta=new Map(source.master.map(m=>[m.symbol,m]));
+ const universe=developmentUniverse(source),meta=universe.meta;
  const grouped=new Map();
- for(const b of source.bars){if(!member.has(b.symbol)||!regular(b))continue;assert.equal(b.sessionDate,date);assert.equal(Date.parse(b.availableAt),Date.parse(b.timestamp)+300000);if(!grouped.has(b.symbol))grouped.set(b.symbol,[]);grouped.get(b.symbol).push(b);}
+ for(const b of universe.bars){if(!regular(b))continue;assert.equal(b.sessionDate,date);assert.equal(Date.parse(b.availableAt),Date.parse(b.timestamp)+300000);if(!grouped.has(b.symbol))grouped.set(b.symbol,[]);grouped.get(b.symbol).push(b);}
  const entries=[...grouped].map(([symbol,bars])=>({symbol,sector:meta.get(symbol).sector,market:meta.get(symbol).marketCode,bars:bars.sort((a,b)=>Date.parse(a.timestamp)-Date.parse(b.timestamp))}));
  const engine=new MinimalStatefulEntry(date),events=[],points=[];
  for(const t of selectionSchedule(date)){

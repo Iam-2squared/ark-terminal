@@ -2,6 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {labels,stateful} from '../lib/phase57-entry-development-measure.mjs';
 import {FEATURES} from '../lib/phase57-minimal-stateful-entry.mjs';
+import {developmentUniverse} from '../lib/phase57-entry-development-universe.mjs';
+test('issue-code collision cannot contaminate common-issue bars or metadata',()=>{
+ const common={sourceCode:'25930',symbol:'2593.T',marketCode:'0111',productCategory:'011',sector:'common'};
+ const other={...common,sourceCode:'25935',sector:'other'};
+ const bar={sourceCode:common.sourceCode,symbol:common.symbol,close:100};
+ const source={members:['2593.T'],master:[common,other],bars:[bar,{...bar,sourceCode:other.sourceCode,close:200}]};
+ const result=developmentUniverse(source);assert.deepEqual(result.bars,[bar]);assert.equal(result.meta.get('2593.T').sector,'common');
+ assert.throws(()=>developmentUniverse({...source,members:[]}),/ADMISSION_MEMBER_SET_MISMATCH/);
+ const alias={...common,sourceCode:'2593'};
+ assert.throws(()=>developmentUniverse({...source,master:[common,alias],bars:[bar,{...bar,sourceCode:'2593'}]}),/AMBIGUOUS_COMMON_ISSUE_SYMBOL/);
+});
 test('future labels use exact same-session grid and5bps; missing stays missing',()=>{
  const e={sessionDate:'2025-10-09',decisionTimestamp:'2025-10-09T01:00:00.000Z',priceReference:100};
  const b=Array.from({length:3},(_,i)=>({sessionDate:e.sessionDate,timestamp:new Date(Date.parse(e.decisionTimestamp)+i*300000).toISOString(),availableAt:new Date(Date.parse(e.decisionTimestamp)+(i+1)*300000).toISOString(),open:100,high:102,low:99,close:101,volume:10}));

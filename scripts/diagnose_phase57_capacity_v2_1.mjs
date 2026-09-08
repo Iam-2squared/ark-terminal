@@ -42,7 +42,7 @@ function main() {
   const runnerPath = 'scripts/recover_phase57_capacity_v2_1_development.mjs';
   const trainer = fs.readFileSync(trainerPath,'utf8');
   let runner = fs.readFileSync(runnerPath,'utf8');
-  if (sha(runner) !== '73f88e5241959b07d3a998c34107e7d8d0df0418a435f262cc6f55dee3d585f1') throw new Error('RECOVERY_HASH_MISMATCH');
+  if (sha(runner) !== 'cc1db2961491383daee76e8128d37749827b0499398c40b37042bb2f088cefb0') throw new Error('RECOVERY_HASH_MISMATCH');
   runner = replaceOnce(runner, './run_phase57_selector_capacity_v2_1.mjs', './capacity_v21_diagnostic_instrumented.mjs');
   runner = replaceOnce(runner, '...recover(trainV21,rows,source,fresh,allocation)', "status: 'CAPACITY_V2_1_DIAGNOSTIC_COMPLETE', result: trainV21(rows,source,fresh,allocation)");
   runner = runner.replaceAll('artifacts/capacity-v2-1-development-recovery','artifacts/capacity-v2-1-development-diagnostic');

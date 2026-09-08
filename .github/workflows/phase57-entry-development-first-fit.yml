@@ -35,6 +35,22 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Read-only pinned Frozen Hybrid source
+        uses: actions/checkout@v4
+        with:
+          ref: 6c1aec0545fa6a77c5435e7cc864f1ea2d71fc26
+          path: frozen-selector
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /package.json
+            /predict/daytrade/phase57-selector-minimal-hybrid.js
+            /predict/daytrade/phase57-selector-minimal-hybrid-model.js
+            /predict/daytrade/phase57-p25-intraday-dynamic-universe.js
+            /predict/daytrade/phase57-p25-jpx-opportunity-universe.js
+            /predict/research/phase57-selector-minimal-hybrid-development-model.json
+            /predict/research/phase57-selector-minimal-hybrid-development-freeze.json
+            /predict/research/phase57-selector-minimal-hybrid-phase-a-amendment-v1.1.json
       - uses: actions/setup-node@v4
         with:
           node-version: '22'

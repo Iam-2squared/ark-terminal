@@ -2,10 +2,11 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
+import path from 'node:path';
+import {pathToFileURL} from 'node:url';
 import {reconstructDevelopmentSession} from './phase57-entry-development-source.mjs';
 import {ALLOCATION,FIT,verifyDevelopmentContracts} from './lib/phase57-entry-development-fit.mjs';
 import {CONTRACT,MinimalStatefulEntry,selectionSchedule} from './lib/phase57-minimal-stateful-entry.mjs';
-import {runPhase57MinimalHybrid} from '../predict/daytrade/phase57-selector-minimal-hybrid.js';
 
 const hash=b=>createHash('sha256').update(b).digest('hex');
 const read=p=>JSON.parse(fs.readFileSync(p,'utf8'));
@@ -16,8 +17,13 @@ const pins=verifyDevelopmentContracts();
 const admissionBytes=fs.readFileSync(process.env.ADMISSION_V21_PATH??'artifacts/input/admission-v21/admission.json');
 assert.equal(hash(admissionBytes),'18edbdb30325797cde7bdd1316c6086077fc8907a09d9e1755575f2722c04379');
 const admission=new Map(JSON.parse(admissionBytes).auditBySession.map(r=>[r.sessionDate,r]));
-const model=read('predict/research/phase57-selector-minimal-hybrid-development-model.json');
-const freeze=read('predict/research/phase57-selector-minimal-hybrid-development-freeze.json');
+const selectorRoot=path.resolve('frozen-selector');
+for(const [name,expected] of Object.entries({'phase57-selector-minimal-hybrid.js':'336ac8ccda8d1fd6636e65475b58c749dec72fa5','phase57-selector-minimal-hybrid-model.js':'1a44ab4886c8ff4a80e61af983594e39bbd67bf6','phase57-p25-intraday-dynamic-universe.js':'9612eb764f9cbc5d9de247c4f05c734bae0f9d85'})){
+ const b=fs.readFileSync(path.join(selectorRoot,'predict/daytrade',name));assert.equal(createHash('sha1').update(`blob ${b.length}\0`).update(b).digest('hex'),expected);
+}
+const {runPhase57MinimalHybrid}=await import(pathToFileURL(path.join(selectorRoot,'predict/daytrade/phase57-selector-minimal-hybrid.js')).href);
+const model=read(path.join(selectorRoot,'predict/research/phase57-selector-minimal-hybrid-development-model.json'));
+const freeze=read(path.join(selectorRoot,'predict/research/phase57-selector-minimal-hybrid-development-freeze.json'));
 const {modelDigest,...modelCore}=model,{freezeSha256,...freezeCore}=freeze;
 assert.equal(modelDigest,CONTRACT.selectorModelDigest);
 assert.equal(hash(JSON.stringify(modelCore)),modelDigest);

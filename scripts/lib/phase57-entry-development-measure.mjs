@@ -35,7 +35,7 @@ export function probability(row,m){const z=m.intercept+FEATURES.reduce((s,k,i)=>
 export function stateful(events,m,threshold){
  assert(FIT.threshold.candidates.includes(threshold));const entered=new Set(),seen=new Set(),ledger=[];
  let watch=0,noAction=0;
- for(const e of events){assert(!seen.has(e.eventId),'DUPLICATE_EVENT');seen.add(e.eventId);const key=e.symbolSessionId;
+ for(const e of events){assert(!Object.hasOwn(e,'labels')&&!Object.hasOwn(e,'target'),'OUTCOME_IN_STATE_INPUT');assert(!seen.has(e.eventId),'DUPLICATE_EVENT');seen.add(e.eventId);const key=e.symbolSessionId;
   if(entered.has(key)||e.stateBefore==='EXPIRED'){noAction++;ledger.push({eventId:e.eventId,status:'NO_ACTION'});continue;}
   if(!e.directionFeatures){watch++;ledger.push({eventId:e.eventId,status:'WATCH',reason:'BLOCKED_FEATURES'});continue;}
   const [l,s]=e.directionFeatures.map(r=>probability(r,m));

@@ -40,7 +40,8 @@ const cv=[];const combined=new Map(FIT.threshold.candidates.map(t=>[t,{events:[]
 for(let i=0;i<4;i++){
  const split=foldSessions(i),train=events.filter(e=>split.train.includes(e.sessionDate)),ev=events.filter(e=>split.evaluate.includes(e.sessionDate)),model=fitRows(train);
  const result={fold:i,...split,trainEvents:train.length,evalEvents:ev.length,model,thresholds:{}};
- for(const t of FIT.threshold.candidates){const dec=stateful(ev,model,t);result.thresholds[t]=metrics(ev,dec,split.evaluate);const c=combined.get(t);c.events.push(...ev);c.ledger.push(...dec.ledger);for(const k of ['watch','noAction','entered','expired'])c[k]+=dec[k];}
+ const decisionInputs=ev.map(({eventId,symbolSessionId,stateBefore,directionFeatures})=>({eventId,symbolSessionId,stateBefore,directionFeatures}));
+ for(const t of FIT.threshold.candidates){const dec=stateful(decisionInputs,model,t);result.thresholds[t]=metrics(ev,dec,split.evaluate);const c=combined.get(t);c.events.push(...ev);c.ledger.push(...dec.ledger);for(const k of ['watch','noAction','entered','expired'])c[k]+=dec[k];}
  cv.push(result);write(`fold-${i}.json`,result);
 }
 const dates=FIT.cv.folds.flatMap((_,i)=>foldSessions(i).evaluate);

@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "allocationId": "PHASE57_ENTRY_ALLOCATION_PROTECTION_FREEZE_20260908_V1",
+  "asOf": "2026-09-08",
+  "status": "PROTECTION_POLICY_FROZEN_FINAL_ALLOCATION_BLOCKED",
+  "inventoryPath": "predict/research/phase57-entry-historical-inventory-2026-09-08.json",
+  "inventoryCompletionRequired": true,
+  "supersedesOnly": {
+    "path": "predict/research/phase57-hybrid-p21-entry-baseline-precommit.json",
+    "parentGitBlob": "08923e97334a8d3bd27661f271280dfb50b3ebc9",
+    "oldRole": "ENTRY_DEVELOPMENT_DIAGNOSTIC",
+    "newRole": "ENTRY_BASELINE_DEVELOPMENT_DIAGNOSTIC",
+    "semantics": "Clarify Baseline diagnosis versus model development; no source/measurement admission and no modification to original frozen evidence."
+  },
+  "selector": {
+    "name": "FROZEN_MINIMAL_HYBRID_V1",
+    "modelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
+    "freezeSHA": "a744d599e430d23efe4dea6600e418d3410d8a18df5055b35e1cc71432bf64da",
+    "modified": false,
+    "verification": "Metadata pins match prior audited contract and current source tree blob identities; no model rerun or coefficient read."
+  },
+  "roles": {
+    "A_baselineDiagnostic": {
+      "role": "ENTRY_BASELINE_DEVELOPMENT_DIAGNOSTIC",
+      "sessionDates": [
+        "2026-08-13",
+        "2026-08-14",
+        "2026-08-17",
+        "2026-08-18",
+        "2026-08-19",
+        "2026-08-20",
+        "2026-08-21",
+        "2026-08-24",
+        "2026-08-25",
+        "2026-08-26",
+        "2026-08-27",
+        "2026-08-28",
+        "2026-08-31",
+        "2026-09-01",
+        "2026-09-02",
+        "2026-09-03",
+        "2026-09-04"
+      ],
+      "sessionCount": 17,
+      "allocationFrozen": true,
+      "admitted": false,
+      "measurementAllowed": false,
+      "fittingAllowed": false,
+      "reusePolicy": "One immutable descriptive baseline report after admission. No unlimited iterative Entry tuning; any research use ledger is append-only, never reclassify as untouched."
+    },
+    "B_entryDevelopment": {
+      "sessionIds": [],
+      "sessionCount": 0,
+      "status": "UNALLOCATED_GOVERNANCE_BLOCKED",
+      "candidatePool": "Already-opened Hybrid120 and Capacity89 metadata only; no fresh-data claim; causal baseline feasibility unresolved.",
+      "permission": false
+    },
+    "C_entryValidation": {
+      "sessionIds": [],
+      "sessionCount": 0,
+      "status": "UNALLOCATED_GOVERNANCE_BLOCKED",
+      "permission": false
+    },
+    "D_entryUntouchedOos": {
+      "sessionIds": [],
+      "sessionCount": 0,
+      "status": "NO_GLOBALLY_CERTIFIED_CHRONOLOGICAL_OOS",
+      "permission": false
+    },
+    "E_prospective": {
+      "status": "POLICY_ONLY_NO_CAPTURE_OR_PERFORMANCE_EXECUTION",
+      "earliestSessionStrictlyAfter": "2026-09-08",
+      "reservation": "All future newly captured sessions default to protected holdout-candidate metadata-only handling for this Entry research line until a separate dated allocation is committed.",
+      "releasePrerequisites": [
+        "Complete cross-research exposure register including existing autonomous jobs; this document does not stop or control those jobs.",
+        "Exact session IDs from authoritative metadata, assigned before any research outcomes.",
+        "Development and Validation chronologically precede OOS; purge and label horizon separation fixed before release.",
+        "Entire Entry design frozen and separately authorized single-use OOS release."
+      ],
+      "automaticRelease": false,
+      "retrospectiveProspectiveClaimAllowed": false
+    }
+  },
+  "protectedReserve": {
+    "sourceDataset": "PHASE57_JQUANTS_FRESH120_PARENT_RESERVE_282",
+    "parentAllocationSHA": "d92ce2c29daaacd419979847d62d093df9f7375c12483ab9c4d51130ac6efd41",
+    "preserveOriginalAssignments": true,
+    "releaseAllowed": false,
+    "reallocationAllowed": false,
+    "protectedOrdinalRanges": [
+      [
+        92,
+        120
+      ],
+      [
+        121,
+        149
+      ],
+      [
+        151,
+        179
+      ],
+      [
+        180,
+        282
+      ]
+    ],
+    "protectedSessions": 190,
+    "priorityConservationOrdinalRange": [
+      180,
+      282
+    ],
+    "priorityConservationSessions": 103,
+    "priorityDoesNotCertifyOosOrTransferOwnership": true,
+    "excludedPurgeOrdinals": [
+      61,
+      91,
+      150
+    ],
+    "partition": {
+      "U_remainingReserveCrossResearchUnknown": 103,
+      "W_unavailableUnderExistingSelectorReservation": 87,
+      "X_entryDevelopment": 0,
+      "Y_entryValidation": 0,
+      "Z_certifiedEntryUntouchedOos": 0,
+      "basis": "DISJOINT_ACTIONABLE_CLASSIFICATION_EXISTING_RESERVATION_TAKES_PRECEDENCE_OVER_UNKNOWN",
+      "conservationPrioritySubset": {
+        "label": "PRESERVE_FOR_POSSIBLE_FINAL_HOLDOUT_NOT_CERTIFIED_ENTRY_OOS",
+        "ordinalRange": [
+          180,
+          282
+        ],
+        "sessions": 103
+      },
+      "globalFreshnessUnverifiedWithinAllProtected": 190,
+      "permanentlyUnavailableNotAsserted": true,
+      "total": 190
+    }
+  },
+  "chronology": {
+    "historicalReserveLatest": "2026-06-11",
+    "baselineDiagnosticEarliest": "2026-08-13",
+    "currentFrozenP21PriorEnd": "2026-08-12",
+    "reserveEligibleForCurrentFrozenP21Baseline": false,
+    "historicalReconstructedP21IsDifferentClass": true,
+    "knownLaterPeriodExposurePreventsAutomaticHistoricalTemporalOosClaim": true,
+    "protectedAndFreshAreNotSynonyms": true,
+    "globalNeverOpenedRequiredForUntouchedClaim": true,
+    "forbidden": "Do not run the current August-ending P21 prior on older reserved dates; do not backdate a model research freeze."
+  },
+  "admission": {
+    "finalInventoryComplete": false,
+    "finalAllocationComplete": false,
+    "baselineMeasurementGo": false,
+    "newEntryResearchGo": false,
+    "requiredMetadataOnlyEvidence": [
+      "Pinned Reserve282 ordinal-to-session-date calendar mapping.",
+      "Complete append-only information-class exposure ledger from Selector/Entry/EXIT/Allocation, including externally retained archives and pipeline reads.",
+      "Exact legacy Selector consumed-session identifiers and source-validation exclusions.",
+      "Exact Entry572 session usage ledger and source fingerprints; distinguish 16 candidate dates from17 raw dates.",
+      "Governance owner decision for existing protected87; any later reassignment requires explicit precommit, never implies content release.",
+      "Resolve strict chronological OOS availability after already consumed later research periods."
+    ],
+    "unchangedTechnicalBlockers": [
+      "Market-wide raw archive",
+      "Exact P21 prior pack",
+      "Hybrid-to-P21 adapter parity",
+      "Entry cost contract",
+      "Late Entry/WAIT diagnostic foundations"
+    ]
+  },
+  "audit": {
+    "sealedContentOpened": false,
+    "outcomeNewlyViewed": false,
+    "performanceNewlyComputed": false,
+    "baselineSessionsMeasured": 0,
+    "modelFittingPerformed": false,
+    "mainChanged": false,
+    "reserveSessionConsumed": 0
+  },
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  }
+}

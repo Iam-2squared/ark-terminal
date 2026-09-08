@@ -4,6 +4,17 @@ on:
     branches: [main]
     paths:
       - 'scripts/lib/phase57-hybrid-p21-baseline.mjs'
+      - 'scripts/lib/phase57-hybrid-p21-adapter.mjs'
+      - 'scripts/tests/phase57-hybrid-p21-adapter.test.mjs'
+      - 'scripts/tests/phase57-entry-baseline-resume-gates.test.mjs'
+      - 'predict/research/phase57-entry-baseline-cost-contract-v1.json'
+      - 'predict/research/phase57-entry-baseline-resume-four-gates-2026-09-09.json'
+      - 'predict/research/phase57-entry-baseline-resume-2026-09-09.sha256'
+      - 'docs/phase57-entry-baseline-resume-four-gates.md'
+      - 'predict/daytrade/phase57-p21-prospective-*.js'
+      - 'predict/scalping/phase58-phase57-prospective-pipeline.js'
+      - 'predict/daytrade/phase57-p25-exit-v4-structural-risk.js'
+      - 'predict/portfolio/phase57-p25-adaptive-allocation-v2.js'
       - 'scripts/tests/phase57-hybrid-p21-baseline.test.mjs'
       - 'scripts/tests/phase57-entry-allocation-governance.test.mjs'
       - 'scripts/tests/phase57-protected190-cross-research.test.mjs'
@@ -32,4 +43,6 @@ jobs:
       - run: node --test scripts/tests/phase57-hybrid-p21-baseline.test.mjs
       - run: node --test scripts/tests/phase57-entry-allocation-governance.test.mjs
       - run: node --test scripts/tests/phase57-protected190-cross-research.test.mjs
+      - run: node --test scripts/tests/phase57-hybrid-p21-adapter.test.mjs scripts/tests/phase57-entry-baseline-resume-gates.test.mjs
       - run: node --check scripts/lib/phase57-hybrid-p21-baseline.mjs
+      - run: node --check scripts/lib/phase57-hybrid-p21-adapter.mjs

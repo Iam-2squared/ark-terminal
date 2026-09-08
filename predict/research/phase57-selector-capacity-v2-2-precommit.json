@@ -1,0 +1,212 @@
+{
+  "schemaVersion": 1,
+  "version": "CAPACITY_V2_2",
+  "status": "PRECOMMITTED_BEFORE_V22_TRAINING",
+  "researchOnly": true,
+  "source": {
+    "runId": 34189128681,
+    "headSha": "f3543b5a604d25442c28fc3cb475e89274400bd5",
+    "auditRunId": 34214657195,
+    "developmentSessions": 89,
+    "decisions": 1780,
+    "allocationSha256": "295466a4d29eb48ad8926d60cb1ceb03962aeb63e136a3c9758afabba2b70a95",
+    "shards": [
+      {
+        "name": "capacity-v2-1-development-shard-0-34189128681",
+        "sha256": "737600f93a5bfbbf221896fb94221a45943a008cba26a42155e71bf3a45c9163",
+        "shardIndex": 0
+      },
+      {
+        "name": "capacity-v2-1-development-shard-1-34189128681",
+        "sha256": "3df74bd5b1dc9b98eee0a6505b170ea1657b45933d8db83ab7aba03dc348e43b",
+        "shardIndex": 1
+      },
+      {
+        "name": "capacity-v2-1-development-shard-2-34189128681",
+        "sha256": "da537ed54384d96915b6d405d6f2697644a604c14e030ffa7b7553350ff7c598",
+        "shardIndex": 2
+      },
+      {
+        "name": "capacity-v2-1-development-shard-3-34189128681",
+        "sha256": "bc06cef457071730a6cada6db5d613ff010b79b8bf159fe7a1e3fdb506fffd92",
+        "shardIndex": 3
+      },
+      {
+        "name": "capacity-v2-1-development-shard-4-34189128681",
+        "sha256": "1151685cd1b966a17e27ab1f1dc0a194b56d0b7bb0b051a2fefb7185bb705090",
+        "shardIndex": 4
+      },
+      {
+        "name": "capacity-v2-1-development-shard-5-34189128681",
+        "sha256": "39cdc50a48b3e6dedb2a5530cd1d03ec93bd9f57e10738d783931a1313fd019b",
+        "shardIndex": 5
+      }
+    ]
+  },
+  "preservedV21": {
+    "diagnosticCommit": "483a3c1dbd365e339fc7d77a3a03a9117f49172b",
+    "sourceRunId": 34189128681,
+    "diagnosticRunId": 34209072157,
+    "status": "DEVELOPMENT_NO_GO",
+    "reinterpretationAllowed": false
+  },
+  "scope": {
+    "features": [
+      "hybridQualityDecayRank5To1",
+      "qualifiedCandidateCount",
+      "marketBreadth",
+      "dataQualityConfidence"
+    ],
+    "actions": [
+      0,
+      5,
+      10,
+      15,
+      20
+    ],
+    "rankingFrozen": true,
+    "modelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
+    "featureAdditionsAllowed": false
+  },
+  "target": {
+    "formula": "D_K(t) = cached Utility(TopK,t) - cached Frozen-selected Utility(t)",
+    "prefixes": [
+      5,
+      10,
+      15,
+      20
+    ],
+    "modelFamily": "FOUR_INDEPENDENT_RIDGE_REGRESSIONS",
+    "reasonForFourOutputs": "Frozen selected is not a Top-N prefix. D5 is needed as well as the three incremental layers. D10-D5 = U10-U5, etc. No new input feature or ranking change.",
+    "finitePairedOnly": true
+  },
+  "utility": {
+    "horizonBars": 6,
+    "sameSession": true,
+    "sameSegment": true,
+    "roundTripCostBps": 10,
+    "quote": "max(upExcursion,downExcursion)*10000 - 10; opportunity proxy, not realized P&L",
+    "baseline": "STORED_FROZEN_SELECTED_AVAILABLE_CASE_TOP20_LABEL_SCOPE",
+    "challenger": "STORED_PREFIX_AVAILABLE_CASE_MEAN",
+    "missingTargets": "No imputation. Each regression uses finite paired D_K. Report/evaluate on common active decision support: baseline and all four U_K finite, independent of chosen action.",
+    "abstain": "Preserve Frozen ABSTAIN. Exclude from utility means; include all decisions in counts and jumps. No new outcome-selected abstention.",
+    "candidateWeighting": "Equal among observed available candidate labels within each decision; missing per-symbol denominator counts are unavailable.",
+    "timestampWeighting": "Equal among paired observed decisions within each session",
+    "sessionWeighting": "Equal among represented sessions",
+    "trainingWeighting": "Equal available paired decisions per target; scaler uses all past causal-feature-ready rows",
+    "costDifference": "The identical 10 bps subtraction cancels in D_K; do not subtract it again.",
+    "baselineCorrection": "v2.1 used U(frozenSelectedCount) in its metric. v2.2 uses the stored frozenSelectedUtility field. v2.1 result remains unchanged.",
+    "limitations": [
+      "Frozen-selected cache omits labels outside ranks 1..20 and missing horizon labels. Full-selected utility is not recoverable without more raw data.",
+      "Cached source prefixIdentity is not symbol-level historical evidence; v2.2 prefix identity is enforced by rank-index slice construction and adapter tests.",
+      "Raw per-symbol missing counts and target end timestamps are unavailable. No raw-PIT re-audit claim."
+    ]
+  },
+  "cv": {
+    "outerBlocks": [
+      {
+        "trainEnd": 45,
+        "testStart": 46,
+        "testEnd": 60
+      },
+      {
+        "trainEnd": 60,
+        "testStart": 61,
+        "testEnd": 75
+      },
+      {
+        "trainEnd": 75,
+        "testStart": 76,
+        "testEnd": 89
+      }
+    ],
+    "innerBlocks": [
+      {
+        "trainEnd": 25,
+        "testStart": 26,
+        "testEnd": 35
+      },
+      {
+        "trainEnd": 35,
+        "testStart": 36,
+        "testEnd": 45
+      },
+      {
+        "trainEnd": 45,
+        "testStart": 46,
+        "testEnd": 60
+      },
+      {
+        "trainEnd": 60,
+        "testStart": 61,
+        "testEnd": 75
+      },
+      {
+        "trainEnd": 75,
+        "testStart": 76,
+        "testEnd": 89
+      }
+    ],
+    "lambdaCandidates": [
+      0.1,
+      1,
+      10
+    ],
+    "lambdaSelection": "For each target and outer train cutoff, use only inner blocks with testEnd <= outer trainEnd; minimize session-equal paired MAE; ties choose smaller lambda.",
+    "scaling": "Fit independently on each inner train; refit only on each outer past train; never global scale before evaluation.",
+    "mapping": "Precommitted fixed prediction floor -10 bps. No threshold fit, no quantile grid, no outer-label-driven mapping.",
+    "pastOnly": "Fit, scaling and lambda selection receive ONLY preceding-session records; decision inference receives only four features, frozenSelectedCount and rankedCount.",
+    "purge": "Whole-session train/test separation. Original missing purge session retained. Horizon labels are same-session and same-segment; prior session closed before next session decisions. Additional whole-session embargo=0.",
+    "outerResultsUse": "Gate evaluation only; no architecture or threshold retries after results.",
+    "interpretation": "Algorithmically forward-only predictions. Architecture was designed using previously opened Development evidence; blocks are NOT an untouched independent test."
+  },
+  "mapping": {
+    "predictedUtilityDifferenceFloorBps": -10,
+    "choice": "Largest allowed K <= rankedCount whose predicted D_K >= -10; if none qualifies choose Top5. If rankedCount <5 choose ABSTAIN. Preserve Frozen ABSTAIN. Missing features force ABSTAIN and fail feature coverage gate.",
+    "thresholdSearchAllowed": false
+  },
+  "fit": {
+    "minimumTargetRows": 100,
+    "interceptRegularized": false,
+    "scaleZeroVariance": 1
+  },
+  "gates": {
+    "globalUtilityDifferenceMinimumBps": -10,
+    "meanCandidateCountMinimumRatio": 1.25,
+    "meanCandidateCountMinimumAbsoluteIncrease": 2,
+    "maximumAdjacentJumpGreaterThanFiveRate": 0.15,
+    "minimumEveryOuterBlockUtilityDifferenceBps": -10,
+    "sameKPrefixMatch": 1,
+    "leakageViolationsAllowed": 0,
+    "minimumPairedTargetCoverage": 0.8,
+    "missingFeaturesAllowed": 0,
+    "requireAllOuterBlocks": true
+  },
+  "freeze": {
+    "onlyAfterAllGatesPass": true,
+    "finalRefitUsesAll89DevelopmentSessions": true,
+    "lambdaRechosenUsingInnerBlocksWithin89": true,
+    "mappingUnchanged": true,
+    "parametersScalesLambdaAncestryAndSha256Required": true,
+    "passStatus": "READY_FOR_FRESH_VALIDATION",
+    "failStatus": "CAPACITY_V2_2_DEVELOPMENT_NO_GO"
+  },
+  "release": {
+    "newFreshSessionsConsumed": 0,
+    "validation": false,
+    "untouchedOos": false,
+    "sealedReserve": false,
+    "automaticValidationAfterPass": false
+  },
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  }
+}

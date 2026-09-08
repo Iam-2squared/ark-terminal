@@ -1,0 +1,341 @@
+name: Phase57 Selector Capacity v2 Resume
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: Immutable source run containing completed-stage artifacts
+        required: true
+        type: string
+      source_head_sha:
+        description: Full 40-character head SHA of the source run
+        required: true
+        type: string
+      resume_from:
+        description: First incomplete stage, or terminalize a failed Validation
+        required: true
+        type: choice
+        options: [validation, oos, finalize_validation_no_go]
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-selector-capacity-v2-resume
+  cancel-in-progress: false
+
+jobs:
+  integrity:
+    if: github.ref == 'refs/heads/research/phase57-selector-capacity-v2'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      source_validation_gate: ${{ steps.manifest.outputs.source_validation_gate }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Verify source run identity
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          SOURCE_HEAD_SHA: ${{ inputs.source_head_sha }}
+        run: |
+          [[ "$SOURCE_RUN_ID" =~ ^[0-9]+$ ]]
+          [[ "$SOURCE_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
+          curl --fail --silent --show-error --location \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/$SOURCE_RUN_ID" > source-run.json
+          node -e "const fs=require('fs');const r=JSON.parse(fs.readFileSync('source-run.json'));if(r.head_sha!==process.env.SOURCE_HEAD_SHA||r.head_branch!=='research/phase57-selector-capacity-v2')throw new Error('source run identity mismatch')"
+      - name: Download source Allocation
+        uses: actions/download-artifact@v4
+        with:
+          name: capacity-v2-allocation-${{ inputs.source_run_id }}
+          path: artifacts/input/allocation
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ github.token }}
+      - name: Download source Admission
+        uses: actions/download-artifact@v4
+        with:
+          name: capacity-v2-admission-summary-${{ inputs.source_run_id }}
+          path: artifacts/input/admission
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ github.token }}
+      - name: Download source Development freeze
+        uses: actions/download-artifact@v4
+        with:
+          name: capacity-v2-development-${{ inputs.source_run_id }}
+          path: artifacts/input/development
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ github.token }}
+      - name: Download source Validation when required
+        if: inputs.resume_from != 'validation'
+        uses: actions/download-artifact@v4
+        with:
+          name: capacity-v2-validation-${{ inputs.source_run_id }}
+          path: artifacts/input/validation
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ github.token }}
+      - name: Fail-closed checkpoint integrity audit
+        env:
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          SOURCE_HEAD_SHA: ${{ inputs.source_head_sha }}
+          RESUME_FROM: ${{ inputs.resume_from }}
+          ALLOCATION_PATH: artifacts/input/allocation/allocation.json
+          ADMISSION_PATH: artifacts/input/admission/admission.json
+          MODEL_PATH: artifacts/input/development/model.json
+          FREEZE_PATH: artifacts/input/development/freeze.json
+          DEVELOPMENT_SUMMARY_PATH: artifacts/input/development/development-summary.json
+          VALIDATION_PATH: artifacts/input/validation/validation-summary.json
+        run: node scripts/run_phase57_selector_capacity_v2_resume.mjs verify
+      - id: manifest
+        env:
+          MANIFEST_PATH: artifacts/phase57-capacity-v2-resume-integrity/resume-manifest.json
+        run: node -e "const fs=require('fs');const x=JSON.parse(fs.readFileSync(process.env.MANIFEST_PATH));fs.appendFileSync(process.env.GITHUB_OUTPUT,'source_validation_gate='+x.sourceValidationGate+'\n')"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: capacity-v2-resume-integrity-${{ github.run_id }}
+          path: artifacts/phase57-capacity-v2-resume-integrity/
+          if-no-files-found: error
+          retention-days: 14
+
+  validation:
+    needs: integrity
+    if: inputs.resume_from == 'validation'
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    outputs:
+      gate: ${{ steps.gate.outputs.gate }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/download-artifact@v4
+        with:
+          {
+            name: "capacity-v2-allocation-${{ inputs.source_run_id }}",
+            path: artifacts/input/allocation,
+            run-id: "${{ inputs.source_run_id }}",
+            github-token: "${{ github.token }}",
+          }
+      - uses: actions/download-artifact@v4
+        with:
+          {
+            name: "capacity-v2-admission-summary-${{ inputs.source_run_id }}",
+            path: artifacts/input/admission,
+            run-id: "${{ inputs.source_run_id }}",
+            github-token: "${{ github.token }}",
+          }
+      - uses: actions/download-artifact@v4
+        with:
+          {
+            name: "capacity-v2-development-${{ inputs.source_run_id }}",
+            path: artifacts/input/development,
+            run-id: "${{ inputs.source_run_id }}",
+            github-token: "${{ github.token }}",
+          }
+      - name: Resume at frozen Validation
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          ALLOCATION_PATH: artifacts/input/allocation/allocation.json
+          ADMISSION_PATH: artifacts/input/admission/admission.json
+          MODEL_PATH: artifacts/input/development/model.json
+          FREEZE_PATH: artifacts/input/development/freeze.json
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: |
+          set +e
+          node scripts/run_phase57_selector_capacity_v2.mjs validation
+          code=$?
+          set -e
+          if [ "$code" -ne 0 ] && [ "$code" -ne 20 ]; then exit "$code"; fi
+      - id: gate
+        if: always()
+        run: |
+          if [ -f artifacts/phase57-capacity-v2-validation/validation-summary.json ] && node -e "const x=require('./artifacts/phase57-capacity-v2-validation/validation-summary.json');process.exit(x.pass?0:1)"; then echo 'gate=PASS' >> "$GITHUB_OUTPUT"; else echo 'gate=FAIL' >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: capacity-v2-validation-${{ github.run_id }}
+          path: artifacts/phase57-capacity-v2-validation/
+          if-no-files-found: warn
+          retention-days: 14
+
+  oos:
+    needs: [integrity, validation]
+    if: always() && needs.integrity.result == 'success' && ((inputs.resume_from == 'validation' && needs.validation.result == 'success' && needs.validation.outputs.gate == 'PASS') || (inputs.resume_from == 'oos' && needs.integrity.outputs.source_validation_gate == 'PASS'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/download-artifact@v4
+        with:
+          {
+            name: "capacity-v2-allocation-${{ inputs.source_run_id }}",
+            path: artifacts/input/allocation,
+            run-id: "${{ inputs.source_run_id }}",
+            github-token: "${{ github.token }}",
+          }
+      - uses: actions/download-artifact@v4
+        with:
+          {
+            name: "capacity-v2-admission-summary-${{ inputs.source_run_id }}",
+            path: artifacts/input/admission,
+            run-id: "${{ inputs.source_run_id }}",
+            github-token: "${{ github.token }}",
+          }
+      - uses: actions/download-artifact@v4
+        with:
+          {
+            name: "capacity-v2-development-${{ inputs.source_run_id }}",
+            path: artifacts/input/development,
+            run-id: "${{ inputs.source_run_id }}",
+            github-token: "${{ github.token }}",
+          }
+      - name: Resume Untouched OOS
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          ALLOCATION_PATH: artifacts/input/allocation/allocation.json
+          ADMISSION_PATH: artifacts/input/admission/admission.json
+          MODEL_PATH: artifacts/input/development/model.json
+          FREEZE_PATH: artifacts/input/development/freeze.json
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: node scripts/run_phase57_selector_capacity_v2.mjs oos
+      - uses: actions/upload-artifact@v4
+        with:
+          name: capacity-v2-oos-${{ github.run_id }}
+          path: artifacts/phase57-capacity-v2-untouched_oos/
+          if-no-files-found: error
+          retention-days: 14
+
+  validation-no-go:
+    needs: [integrity, validation]
+    if: always() && needs.integrity.result == 'success' && ((inputs.resume_from == 'finalize_validation_no_go' && needs.integrity.outputs.source_validation_gate == 'FAIL') || (inputs.resume_from == 'validation' && needs.validation.result == 'success' && needs.validation.outputs.gate == 'FAIL'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/download-artifact@v4
+        with:
+          {
+            name: "capacity-v2-allocation-${{ inputs.source_run_id }}",
+            path: artifacts/input/allocation,
+            run-id: "${{ inputs.source_run_id }}",
+            github-token: "${{ github.token }}",
+          }
+      - uses: actions/download-artifact@v4
+        with:
+          {
+            name: "capacity-v2-admission-summary-${{ inputs.source_run_id }}",
+            path: artifacts/input/admission,
+            run-id: "${{ inputs.source_run_id }}",
+            github-token: "${{ github.token }}",
+          }
+      - uses: actions/download-artifact@v4
+        with:
+          {
+            name: "capacity-v2-development-${{ inputs.source_run_id }}",
+            path: artifacts/input/development,
+            run-id: "${{ inputs.source_run_id }}",
+            github-token: "${{ github.token }}",
+          }
+      - name: Download source failed Validation
+        if: inputs.resume_from == 'finalize_validation_no_go'
+        uses: actions/download-artifact@v4
+        with:
+          {
+            name: "capacity-v2-validation-${{ inputs.source_run_id }}",
+            path: artifacts/input/validation,
+            run-id: "${{ inputs.source_run_id }}",
+            github-token: "${{ github.token }}",
+          }
+      - name: Download resumed failed Validation
+        if: inputs.resume_from == 'validation'
+        uses: actions/download-artifact@v4
+        with:
+          {
+            name: "capacity-v2-validation-${{ github.run_id }}",
+            path: artifacts/input/validation,
+          }
+      - name: Emit terminal Validation NO-GO without opening OOS
+        env:
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          SOURCE_HEAD_SHA: ${{ inputs.source_head_sha }}
+          ALLOCATION_PATH: artifacts/input/allocation/allocation.json
+          ADMISSION_PATH: artifacts/input/admission/admission.json
+          MODEL_PATH: artifacts/input/development/model.json
+          FREEZE_PATH: artifacts/input/development/freeze.json
+          DEVELOPMENT_SUMMARY_PATH: artifacts/input/development/development-summary.json
+          VALIDATION_PATH: artifacts/input/validation/validation-summary.json
+        run: node scripts/run_phase57_selector_capacity_v2_resume.mjs finalize-validation-no-go
+      - uses: actions/upload-artifact@v4
+        with:
+          name: capacity-v2-final-no-go-${{ github.run_id }}
+          path: artifacts/phase57-capacity-v2-final/
+          if-no-files-found: error
+          retention-days: 30
+
+  final:
+    needs: [integrity, validation, oos]
+    if: always() && needs.oos.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/download-artifact@v4
+        with:
+          {
+            name: "capacity-v2-development-${{ inputs.source_run_id }}",
+            path: artifacts/input/development,
+            run-id: "${{ inputs.source_run_id }}",
+            github-token: "${{ github.token }}",
+          }
+      - name: Download source passing Validation
+        if: inputs.resume_from == 'oos'
+        uses: actions/download-artifact@v4
+        with:
+          {
+            name: "capacity-v2-validation-${{ inputs.source_run_id }}",
+            path: artifacts/input/validation,
+            run-id: "${{ inputs.source_run_id }}",
+            github-token: "${{ github.token }}",
+          }
+      - name: Download resumed passing Validation
+        if: inputs.resume_from == 'validation'
+        uses: actions/download-artifact@v4
+        with:
+          {
+            name: "capacity-v2-validation-${{ github.run_id }}",
+            path: artifacts/input/validation,
+          }
+      - uses: actions/download-artifact@v4
+        with:
+          {
+            name: "capacity-v2-oos-${{ github.run_id }}",
+            path: artifacts/input/oos,
+          }
+      - name: Final precommitted GO or NO-GO
+        env:
+          MODEL_PATH: artifacts/input/development/model.json
+          FREEZE_PATH: artifacts/input/development/freeze.json
+          VALIDATION_PATH: artifacts/input/validation/validation-summary.json
+          OOS_PATH: artifacts/input/oos/untouched_oos-summary.json
+        run: node scripts/run_phase57_selector_capacity_v2.mjs final
+      - uses: actions/upload-artifact@v4
+        with:
+          name: capacity-v2-final-${{ github.run_id }}
+          path: artifacts/phase57-capacity-v2-final/
+          if-no-files-found: error
+          retention-days: 30

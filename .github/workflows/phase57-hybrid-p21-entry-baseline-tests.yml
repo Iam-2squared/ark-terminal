@@ -1,0 +1,25 @@
+name: Phase57 Hybrid P21 Entry Baseline Foundation
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/lib/phase57-hybrid-p21-baseline.mjs'
+      - 'scripts/tests/phase57-hybrid-p21-baseline.test.mjs'
+      - 'predict/research/phase57-hybrid-p21-entry-baseline-precommit.json'
+      - 'docs/phase57-hybrid-p21-entry-baseline.md'
+      - '.github/workflows/phase57-hybrid-p21-entry-baseline-tests.yml'
+permissions:
+  contents: read
+jobs:
+  offline-foundation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test scripts/tests/phase57-hybrid-p21-baseline.test.mjs
+      - run: node --check scripts/lib/phase57-hybrid-p21-baseline.mjs

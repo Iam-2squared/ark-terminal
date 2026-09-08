@@ -6,6 +6,9 @@ on:
       - 'scripts/lib/phase57-hybrid-p21-baseline.mjs'
       - 'scripts/tests/phase57-hybrid-p21-baseline.test.mjs'
       - 'scripts/tests/phase57-entry-allocation-governance.test.mjs'
+      - 'scripts/tests/phase57-protected190-cross-research.test.mjs'
+      - 'predict/research/phase57-entry-protected190-cross-research-2026-09-09.json'
+      - 'docs/phase57-protected190-cross-research-audit.md'
       - 'predict/research/phase57-entry-historical-inventory-2026-09-08.json'
       - 'predict/research/phase57-entry-allocation-freeze-2026-09-08.json'
       - 'predict/research/phase57-entry-governance-2026-09-08.sha256'
@@ -28,4 +31,5 @@ jobs:
           node-version: '22'
       - run: node --test scripts/tests/phase57-hybrid-p21-baseline.test.mjs
       - run: node --test scripts/tests/phase57-entry-allocation-governance.test.mjs
+      - run: node --test scripts/tests/phase57-protected190-cross-research.test.mjs
       - run: node --check scripts/lib/phase57-hybrid-p21-baseline.mjs

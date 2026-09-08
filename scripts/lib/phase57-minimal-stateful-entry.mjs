@@ -98,7 +98,7 @@ export function decideNow(pair,artifact,options={}) {
 
 // Each complete snapshot includes ALL Hybrid selected symbols, not only P21 ENTERs.
 export class MinimalStatefulEntry {
-  constructor(date,{model=null,syntheticContractTest=false}={}){this.date=date;this.schedule=selectionSchedule(date);this.model=model;this.syntheticContractTest=syntheticContractTest;this.states=new Map();this.seenPoints=new Set();this.lastIndex=-1;this.closed=false;}
+  constructor(date,{model=null,syntheticContractTest=false}={}){if(model&&(!syntheticContractTest||model.artifactClass!=='SYNTHETIC_CONTRACT_TEST'))throw Error('REAL_MODEL_BLOCKED_NO_AUTHORIZED_TRAINING_DATASET');this.date=date;this.schedule=selectionSchedule(date);this.model=model?deepFreeze(structuredClone(model)):null;this.syntheticContractTest=syntheticContractTest;this.states=new Map();this.seenPoints=new Set();this.lastIndex=-1;this.closed=false;}
   step(snapshot,prefixes={}) {
     if(this.closed)throw Error('SESSION_CLOSED');
     rejectOutcomeFields(snapshot);

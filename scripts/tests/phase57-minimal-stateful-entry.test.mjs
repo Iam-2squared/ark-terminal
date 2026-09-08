@@ -29,6 +29,8 @@ test('future state timestamp rejected',()=>assert.throws(()=>buildDirectionFeatu
 test('price semantics preserved',()=>assert.throws(()=>buildDirectionFeatures({...params(),priceReference:1}),/PRICE_REFERENCE/));
 test('model absence means WATCH',()=>assert.equal(decideNow(pair(),null).reason,'MODEL_UNAVAILABLE'));
 test('real or untagged artifact blocked without training authority',()=>assert.throws(()=>scoreLogistic(pair()[0],model()),/NO_AUTHORIZED_TRAINING/));
+test('state engine rejects real model before any state mutation',()=>assert.throws(()=>new MinimalStatefulEntry(date,{model:model()}),/NO_AUTHORIZED_TRAINING/));
+test('constructor freezes a private model copy',()=>{const m=model(),s=new MinimalStatefulEntry(date,{model:m,syntheticContractTest:true});m.threshold=1;assert.equal(s.model.threshold,0.6);assert.throws(()=>s.model.weights.push(1));});
 test('synthetic shared logistic score is exact and directional',()=>{const r=decideNow(pair(),model(),{syntheticContractTest:true});assert.equal(r.action,'ENTER');assert.equal(r.direction,1);assert.equal(r.probability,1/(1+Math.exp(-1)));});
 test('exact directional ties WATCH, never arbitrary LONG',()=>{const m=model();m.weights.fill(0);assert.equal(decideNow(pair(),m,{syntheticContractTest:true}).reason,'DIRECTION_TIE');});
 test('threshold equality is WATCH',()=>{const m=model();m.threshold=1/(1+Math.exp(-1));assert.equal(decideNow(pair(),m,{syntheticContractTest:true}).action,'WATCH');});

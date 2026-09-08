@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.selector-capacity-v2-1.precommit",
+  "status": "CAPACITY_V2_1_ARCHITECTURE_PRECOMMITTED_BEFORE_NEW_RESERVE_RELEASE",
+  "researchOnly": true,
+  "parentNoGoEvidence": {
+    "path": "predict/research/phase57-selector-capacity-v2-validation-no-go.json",
+    "sourceRunId": 34153192882,
+    "classification": "OPENED_VALIDATION_AGGREGATE_HYPOTHESIS_EVIDENCE",
+    "allowedForV2_1ArchitectureDesign": true,
+    "allowedForV2PerformanceClaim": false,
+    "allowedAsV2_1FreshValidation": false,
+    "allowedAsV2_1UntouchedOos": false
+  },
+  "frozenBaseline": {
+    "name": "FROZEN_MINIMAL_HYBRID_V1",
+    "modelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
+    "rankingMutable": false,
+    "modelMutable": false
+  },
+  "scope": {
+    "purpose": "CHOOSE_ONLY_THE_FROZEN_HYBRID_PREFIX_LENGTH",
+    "decisionSpace": [0, 5, 10, 15, 20],
+    "rerankingAllowed": false,
+    "symbolRescoringAllowed": false,
+    "entryExitAllocationInputsAllowed": false,
+    "preserveFrozenAbstain": true
+  },
+  "retainedModelContract": {
+    "modelFamily": "THREE_INDEPENDENT_RIDGE_REGRESSIONS",
+    "marginalLayers": ["RANK_6_10", "RANK_11_15", "RANK_16_20"],
+    "ridgeLambdaCandidates": [0.1, 1, 10],
+    "thresholdPredictionQuantiles": [0, 0.5, 0.7, 0.85],
+    "trainableFeatureWhitelist": [
+      "hybridQualityDecayRank5To1",
+      "qualifiedCandidateCount",
+      "marketBreadth",
+      "dataQualityConfidence"
+    ],
+    "targetHorizonBars": 6,
+    "roundTripCostBps": 10
+  },
+  "developmentDataset": {
+    "sourceOrdinals": [[1, 60], [62, 90]],
+    "sessionCount": 89,
+    "ordinal61Role": "PURGE_RETAINED",
+    "openedValidation62To90ReclassifiedAs": "V2_1_DEVELOPMENT_ONLY",
+    "originalUntouchedOos92To120Role": "QUARANTINED_NOT_OPENED_NOT_REUSED",
+    "rawRowsCurrentlyPersisted": false,
+    "reconstructionRequired": true
+  },
+  "outOfFoldContract": {
+    "type": "THREE_EXPANDING_CHRONOLOGICAL_FOLDS",
+    "folds": [
+      {"trainSessionOrdinalsWithinDevelopment": [1, 45], "testSessionOrdinalsWithinDevelopment": [46, 60]},
+      {"trainSessionOrdinalsWithinDevelopment": [1, 60], "testSessionOrdinalsWithinDevelopment": [61, 75]},
+      {"trainSessionOrdinalsWithinDevelopment": [1, 75], "testSessionOrdinalsWithinDevelopment": [76, 89]}
+    ],
+    "thresholdSelectionUsesOnlyHeldOutPredictions": true,
+    "sameSessionRowsNeverCrossTrainTest": true,
+    "futureFoldUsedForEarlierFold": false
+  },
+  "mappingSelectionContract": {
+    "eligibleGlobalGates": {
+      "utilityDifferenceMinimumBps": -10,
+      "meanCandidateCountMinimumRelativeIncrease": 1.25,
+      "meanCandidateCountMinimumAbsoluteIncrease": 2,
+      "maximumAdjacentDecisionJumpGreaterThanFiveRate": 0.15,
+      "sameKRankingPrefixIdentity": 1
+    },
+    "eligibleFoldGate": {
+      "minimumUtilityDifferenceBpsInEveryHeldOutFold": -10
+    },
+    "lexicographicObjective": [
+      "MAXIMIZE_WORST_HELD_OUT_FOLD_UTILITY_DIFFERENCE_BPS",
+      "MAXIMIZE_GLOBAL_HELD_OUT_UTILITY_DIFFERENCE_BPS",
+      "MINIMIZE_MEAN_SELECTED_COUNT",
+      "LEXICOGRAPHIC_THRESHOLD_TUPLE_ASCENDING"
+    ],
+    "candidateCountIsConstraintNotPrimaryObjective": true,
+    "validationRetuningAllowed": false,
+    "oosRetuningAllowed": false
+  },
+  "newFreshEvaluationAllocation": {
+    "parentReserveOrdinals": [121, 282],
+    "allocationMethod": "CHRONOLOGICAL_ORDINAL_WITHOUT_OUTCOME_OR_FEATURE_INSPECTION",
+    "freshValidationOrdinals": [121, 149],
+    "purgeValidationOosOrdinal": 150,
+    "freshUntouchedOosOrdinals": [151, 179],
+    "remainingReserveOrdinals": [180, 282],
+    "freshValidationSessions": 29,
+    "freshUntouchedOosSessions": 29,
+    "purgeSessions": 1,
+    "reserveRemainingSessions": 103,
+    "sessionDatesMaterialized": false,
+    "outcomesInspected": false,
+    "featuresCalculated": false,
+    "labelsGenerated": false,
+    "freshValidationReleased": false,
+    "freshUntouchedOosReleased": false
+  },
+  "freshValidationGate": {
+    "primaryMetric": "SESSION_EQUAL_COST_ADJUSTED_6_BAR_TWO_SIDED_UTILITY_BPS",
+    "utilityNonInferiorityMarginBps": -10,
+    "meanCandidateCountMinimumRelativeIncrease": 1.25,
+    "meanCandidateCountMinimumAbsoluteIncrease": 2,
+    "sameKRankingPrefixIdentity": 1,
+    "maximumAdjacentDecisionJumpGreaterThanFiveRate": 0.15,
+    "minimumLayerCandidateCoverage": 0.8,
+    "minimumBreadthBucketsRepresented": 2,
+    "leakageViolationsAllowed": 0,
+    "reserveContaminationAllowed": 0,
+    "allConditionsRequired": true
+  },
+  "releasePolicy": {
+    "implementAndTestBeforeMaterializingNewSessionDates": true,
+    "freezeModelAndMappingBeforeFreshValidation": true,
+    "releaseFreshOosOnlyAfterFreshValidationPass": true,
+    "technicalFailureMayResumeFromVerifiedCheckpoint": true,
+    "gateFailureMayNotBeBypassedByResume": true,
+    "automaticPromotion": false
+  },
+  "guards": {
+    "frozenHybridChanged": false,
+    "v1ChangeAllowed": false,
+    "v3ChangeAllowed": false,
+    "entryLogicAllowed": false,
+    "exitLogicAllowed": false,
+    "capitalAllocationLogicAllowed": false,
+    "openedEvidenceOptimizationAllowedBeyondDeclaredV2_1Development": false,
+    "originalOos92To120ReuseAllowed": false,
+    "mainChangeAllowed": false,
+    "laneYChangeAllowed": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

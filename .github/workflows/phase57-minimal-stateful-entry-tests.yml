@@ -1,0 +1,27 @@
+name: Phase57 Minimal Stateful Entry Contracts
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/lib/phase57-minimal-stateful-entry.mjs'
+      - 'scripts/tests/phase57-minimal-stateful-entry.test.mjs'
+      - 'scripts/audit_phase57_minimal_stateful_sanity.mjs'
+      - 'predict/research/phase57-minimal-stateful-entry-*.json'
+      - 'docs/phase57-minimal-stateful-entry*.md'
+      - '.github/workflows/phase57-minimal-stateful-entry-tests.yml'
+permissions:
+  contents: read
+jobs:
+  offline-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test scripts/tests/phase57-minimal-stateful-entry.test.mjs
+      - run: node --check scripts/lib/phase57-minimal-stateful-entry.mjs
+      - run: node --check scripts/audit_phase57_minimal_stateful_sanity.mjs

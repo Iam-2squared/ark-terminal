@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.selector-capacity-v2.validation-final",
+  "status": "CAPACITY_V2_FINAL_NO_GO",
+  "sourceRunId": 34153192882,
+  "sourceHeadSha": "90aec031a262179bca716ec3077f9501de75e380",
+  "finalizationRunId": 34187088800,
+  "finalizationHeadSha": "07f25a12ca78718b5ead60ec094006bddcb0bb1c",
+  "capacityModelDigest": "af66355ef82bb667ab8ecf895e8883a300aff1deb3b32bd6b31fa32590242009",
+  "freezeSha256": "f03bc9866b561d8b87935c80d39137686c003fa7aafac924755298b9a668c468",
+  "validation": {
+    "status": "CAPACITY_V2_VALIDATION_NO_GO",
+    "sessions": 29,
+    "decisions": 580,
+    "metrics": {
+      "baselineUtilityBps": 228.212877,
+      "capacityV2UtilityBps": 214.511155,
+      "utilityDifferenceBps": -13.701722,
+      "allowedNonInferiorityMarginBps": -10,
+      "marginMissBps": -3.701722,
+      "baselineMeanSelected": 5.827586,
+      "capacityV2MeanSelected": 7.87931,
+      "candidateCountRatio": 1.352071,
+      "absoluteCandidateIncrease": 2.051724,
+      "decisionJumpGreaterThanFiveRate": 0.07772,
+      "prefixMatchRate": 1,
+      "positiveSessionRate": 1,
+      "capacityFrequency": {
+        "0": 0,
+        "5": 0.618966,
+        "10": 0.255172,
+        "15": 0.056897,
+        "20": 0.068966
+      },
+      "layerCoverage": {
+        "RANK_6_10": 1,
+        "RANK_11_15": 1,
+        "RANK_16_20": 1
+      },
+      "breadthBucketCount": 3
+    },
+    "gates": {
+      "utilityNonInferior": false,
+      "candidateRelativeIncrease": true,
+      "candidateAbsoluteIncrease": true,
+      "prefixIdentity": true,
+      "jumpStable": true,
+      "leakageClean": true,
+      "reserveClean": true,
+      "layerCoverage": true,
+      "breadthCoverage": true
+    },
+    "pass": false
+  },
+  "confirmedFindings": [
+    "CAPACITY_V2_INCREASED_MEAN_SELECTED_COUNT_BY_2_051724",
+    "CAPACITY_V2_PASSED_RELATIVE_AND_ABSOLUTE_CANDIDATE_INCREASE_GATES",
+    "CAPACITY_V2_PASSED_PREFIX_STABILITY_LEAKAGE_RESERVE_AND_COVERAGE_GATES",
+    "CAPACITY_V2_FAILED_ONLY_THE_PRECOMMITTED_UTILITY_NONINFERIORITY_GATE",
+    "UNTOUCHED_OOS_WAS_NOT_RELEASED"
+  ],
+  "hypothesesNotEstablishedFacts": [
+    "DEVELOPMENT_LEXICOGRAPHIC_COUNT_FIRST_SELECTION_MAY_HAVE_FAVORED_A_BOUNDARY_SOLUTION",
+    "TEMPORAL_GENERALIZATION_OF_MARGINAL_CAPACITY_VALUE_MAY_REQUIRE_OUT_OF_FOLD_ROBUSTNESS",
+    "THE_VALIDATION_SUMMARY_DOES_NOT_IDENTIFY_CAUSAL_CONTRIBUTION_BY_CAPACITY_LAYER"
+  ],
+  "researchDecision": {
+    "capacityV2Promoted": false,
+    "validationRetuned": false,
+    "untouchedOosReleased": false,
+    "automaticPromotion": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

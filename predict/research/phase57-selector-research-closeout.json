@@ -1,0 +1,256 @@
+{
+  "schemaVersion": 1,
+  "status": "CLOSED_FROZEN",
+  "decisionDate": "2026-09-08",
+  "currentPhase57Selector": "FROZEN_MINIMAL_HYBRID_V1",
+  "designation": "USER_SELECTED_CURRENT_RESEARCH_SELECTOR; NOT_A_RUNTIME_DEPLOYMENT",
+  "frozenHybridChanged": false,
+  "modelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
+  "hybridFreezeSha256": "a744d599e430d23efe4dea6600e418d3410d8a18df5055b35e1cc71432bf64da",
+  "modelAndFreezeCoreDigestsRecomputedAndMatched": true,
+  "datasetAncestry": {
+    "datasetId": "PHASE57_JQUANTS_OHLCMIN_FRESH120_V1",
+    "datasetManifestSha256": "1e38206da539369a88b36ff445e0042078fc1b0ec6734ce49c98ad26e0a42c33",
+    "datasetAdmissionSha256": "bccf93b4962bfcf6d87c6ec304d5876a1bfa4a869f67a9a3a9bd9b8dbd223e71",
+    "developmentSummarySha256": "02e848f9d7590a7aeb76071952c95b0ae1f964c18f8cad1d7bdd254257856151"
+  },
+  "oosEvidenceSha256": "19ac961275a50edb83ab5b785554725cfd0f5912b7c7d476550643bd2cb27951",
+  "freshResults": {
+    "validationPrimaryUtilityBps": 213.910714,
+    "oosPrimaryUtilityBps": 223.140794,
+    "oosSameCapacityUtilityBps": 226.027635,
+    "oosMedianSessionUtilityBps": 224.206275,
+    "oosPositiveSessions": 24,
+    "oosSessions": 24,
+    "oosSelectedCount": {
+      "count": 480,
+      "min": 0,
+      "median": 5,
+      "max": 12,
+      "mean": 5.195833
+    },
+    "oosPreMoveBps": 798.390461,
+    "oosLateDetectionRate": 0.955133,
+    "earlyDetectionLeader": "V3",
+    "opportunityLeader": "HYBRID"
+  },
+  "knownLimitations": [
+    "High remaining opportunity does not imply early detection; V3 retains the early-detection advantage.",
+    "The original OOS report said NO_SINGLE_OVERALL_CANDIDATE_OPPORTUNITY_EARLY_TRADEOFF; this closeout is a user decision to adopt the opportunity specialist, not an edit to that finding.",
+    "Two-sided opportunity Utility is not realized P&L, directional accuracy, production readiness or proof of downstream profitability.",
+    "Downstream adapter/evaluation remained pending in the original evidence."
+  ],
+  "postHocCapacityRankingOpportunityBps": {
+    "rank1to5": 204.93,
+    "rank6to10": 150.76,
+    "rank11to15": 116.65,
+    "rank16to20": 93.48,
+    "rank21to30": 64.03,
+    "provenance": "USER_SUPPLIED_PRIOR_DIAGNOSTIC_VALUES; exact originating diagnostic artifact not independently reloaded in this closeout",
+    "usedToChangeCapacityRule": false
+  },
+  "selectorRoles": {
+    "V1": "HISTORICAL_BASELINE",
+    "V3": "EARLY_DETECTION_SPECIALIST",
+    "FROZEN_MINIMAL_HYBRID_V1": "CURRENT_PHASE57_SELECTOR",
+    "CAPACITY_V2": "VALIDATION_NO_GO",
+    "CAPACITY_V2_1": "DEVELOPMENT_NO_GO",
+    "CAPACITY_V2_2": "DEVELOPMENT_NO_GO",
+    "CAPACITY_V2_3_PLUS": "NOT_STARTED"
+  },
+  "capacityV2": {
+    "evidence": "predict/research/phase57-selector-capacity-v2-validation-no-go.json",
+    "status": "CAPACITY_V2_FINAL_NO_GO",
+    "validationAlreadyOpened": true,
+    "oosReleased": false
+  },
+  "capacityV21": {
+    "status": "CAPACITY_V2_1_DEVELOPMENT_NO_GO",
+    "evidence": "predict/research/phase57-selector-capacity-v2-1-development-diagnostic.json",
+    "evidenceGitBlobSha": "776ea5afb4d596fb71a678b691dee7740d524e91",
+    "sourceRunId": 34189128681,
+    "diagnosticRunId": 34209072157,
+    "sessions": 89,
+    "decisions": 1780,
+    "heldOutDecisions": 880,
+    "tuples": 64,
+    "eligible": 0,
+    "baselineCount": 6.1625,
+    "challengerCount": 8.33522727,
+    "candidateRatio": 1.3525723769,
+    "candidateIncrease": 2.17272727,
+    "baselineUtilityBps": 244.55035503,
+    "challengerUtilityBps": 233.72092414,
+    "utilityDifferenceBps": -10.82943089,
+    "worstFoldBps": -14.45976362,
+    "gateFloorBps": -10,
+    "freshValidationReleased": false,
+    "freshOosReleased": false
+  },
+  "capacityV22": {
+    "status": "CAPACITY_V2_2_DEVELOPMENT_NO_GO",
+    "evidence": "predict/research/phase57-selector-capacity-v2-2-development-no-go.json",
+    "evidenceGitBlobSha": "de03f37b162ce09b03dd45e6f0bb402d134eeafa",
+    "runId": 34215429201,
+    "metrics": {
+      "sessionCount": 44,
+      "decisionCount": 880,
+      "pairedDecisionCount": 876,
+      "evaluatedDecisionCount": 876,
+      "pairedCoverage": 0.9954545454545455,
+      "activeAbstainCount": 0,
+      "baselineUtility": 299.19572949996723,
+      "utility": 248.28055157323232,
+      "utilityDifference": -50.91517792673491,
+      "baselineCount": 6.1625,
+      "count": 5,
+      "countRatio": 0.8113590263691685,
+      "absoluteIncrease": -1.1624999999999996,
+      "jumpRate": 0,
+      "actionDistribution": {
+        "0": 0,
+        "5": 880,
+        "10": 0,
+        "15": 0,
+        "20": 0
+      }
+    },
+    "worstFoldBps": -61.71211869579122,
+    "precommitSha256": "6750071042aa595c1f143e02a6f6e3dc83d4e220c42d45480106a14b1c985323",
+    "resultDigest": "4bd6fbf95e5746a1d569f46c6479e0c29217414ecab18e11a20dd0fe7b0421ca",
+    "freezeCreated": false,
+    "freshValidationReleased": false,
+    "freshOosReleased": false,
+    "corrections": [
+      "prefix/baseline semantics",
+      "strict nested forward CV",
+      "future-fold lambda leakage removed",
+      "prefix-relative targets"
+    ]
+  },
+  "capacityComparability": "Do not compare v2.1 and v2.2 absolute Utility directly: baseline semantics and evaluation protocol differ. Cached missing-label/top20 scope limitations remain recorded in v2.2 evidence.",
+  "researchStop": {
+    "additionalCapacityVersionsAllowed": false,
+    "thresholdOrGridSearchAllowed": false,
+    "newFeatureOrModelResearchAllowed": false,
+    "gateRelaxationAllowed": false,
+    "developmentReoptimizationAllowed": false,
+    "newLearningPerformed": false,
+    "newMarketDataFetched": false,
+    "activeCapacityRunsObserved": 0,
+    "monitors": [
+      {
+        "id": "6a9e8732ead48191b089b723f34ae12b",
+        "is_enabled": false,
+        "next_run_time": null,
+        "title": "Capacity v2.1 Recovery Watch"
+      },
+      {
+        "id": "6a9b46005ac08191b18cf61b740fced9",
+        "is_enabled": false,
+        "next_run_time": null,
+        "title": "Selector Hourly Research"
+      },
+      {
+        "id": "6a9adbf2670c8191b371aa8f1b4246e2",
+        "is_enabled": false,
+        "next_run_time": null,
+        "title": "Selector Night Research"
+      }
+    ],
+    "oldWorkflowsRetainedForEvidence": true,
+    "dispatchOrRerunAuthorized": false
+  },
+  "dataManifest": "predict/research/phase57-selector-closeout-data-use-manifest.json",
+  "nextResponsibility": "DOWNSTREAM_ENTRY_EXIT_CAPITAL_ALLOCATION_EVALUATION",
+  "downstreamHandoff": {
+    "chain": [
+      "FROZEN_MINIMAL_HYBRID_V1",
+      "FROZEN_ENTRY",
+      "SELECTED_EXIT",
+      "SELECTED_CAPITAL_ALLOCATION"
+    ],
+    "selectorRetuningAllowed": false,
+    "cashUtilizationObjectiveBelongsTo": "CAPITAL_ALLOCATION",
+    "selectorObjective": "Rank and present promising candidates with remaining opportunity; do not increase supply merely to spend cash.",
+    "freshnessAndAncestryContractRequiredBeforeEvaluation": true,
+    "openedSelectorValidationOosNotUntouchedDownstreamData": true,
+    "evaluationStarted": false
+  },
+  "prState": {
+    "577": {
+      "head": "c70cb168358b1aedd9785a18ca76fde1832d7a53",
+      "unchanged": true,
+      "draft": true
+    },
+    "578": {
+      "priorHead": "9effeeacb46b2f1e7af408b356be8340fd007274",
+      "draft": true,
+      "evidenceOnlyAdditions": true
+    }
+  },
+  "mainChanged": false,
+  "laneYChanged": false,
+  "runtimePromoted": false,
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "verifiedSources": [
+    {
+      "path": "predict/research/phase57-selector-minimal-hybrid-development-model.json",
+      "gitBlobSha": "03ca24fb714510fe3f782d6fd9c0b59487730b00",
+      "fileSha256": "b30d5386884678dcab3660d8caf07d9b3031bc9d5c16605ea10fdb6556d4bca5",
+      "ref": "9effeeacb46b2f1e7af408b356be8340fd007274"
+    },
+    {
+      "path": "predict/research/phase57-selector-minimal-hybrid-development-freeze.json",
+      "gitBlobSha": "183b797fd6265f1fa31857531918b17515057449",
+      "fileSha256": "25ee8e34509825ce9647a9170b0bf529467f7a23e353bcbdd74d7fa4ebb5b967",
+      "ref": "9effeeacb46b2f1e7af408b356be8340fd007274"
+    },
+    {
+      "path": "predict/research/phase57-selector-minimal-hybrid-fresh-validation.json",
+      "gitBlobSha": "c2963bd912efd38dcf8b66b1fc82edae5b8fd8fe",
+      "fileSha256": "46bf9e36925a781bf58daf00cf2d5665025e18a8d084cf19a3b3ac2c8eaa37c6",
+      "ref": "9effeeacb46b2f1e7af408b356be8340fd007274"
+    },
+    {
+      "path": "predict/research/phase57-selector-minimal-hybrid-oos-final.json",
+      "gitBlobSha": "4691fcff62507bfcadf71a6528987cda3d84a00b",
+      "fileSha256": "c2afa12765956c18a93781a40ca0a23a049f079a8da8ecbbfccbcd79deb8976c",
+      "ref": "9effeeacb46b2f1e7af408b356be8340fd007274"
+    },
+    {
+      "path": "predict/research/phase57-selector-jquants-fresh120-allocation.json",
+      "gitBlobSha": "f33c33a98aba7733ae1a4ca5746f85652c4097e5",
+      "fileSha256": "d92ce2c29daaacd419979847d62d093df9f7375c12483ab9c4d51130ac6efd41",
+      "ref": "9effeeacb46b2f1e7af408b356be8340fd007274"
+    },
+    {
+      "path": "predict/research/phase57-selector-jquants-fresh120-dataset-manifest.json",
+      "gitBlobSha": "7a4aa21eeb9c3c97a543190b4f9b11426b9c61ae",
+      "fileSha256": "b4fe2aba4f08a959d464c6ee46bb025678d1458562fad426da74dc003b8fa463",
+      "ref": "9effeeacb46b2f1e7af408b356be8340fd007274"
+    },
+    {
+      "path": "predict/research/phase57-selector-capacity-v2-validation-no-go.json",
+      "gitBlobSha": "421f823b8e9c11c19befa5732620106ef02164d3",
+      "fileSha256": "e4013af0ccb1f4d69eb727bbd7500ba10b30b9c5393b519a8e899da6b5c0c1aa",
+      "ref": "9effeeacb46b2f1e7af408b356be8340fd007274"
+    },
+    {
+      "path": "predict/research/phase57-selector-capacity-v2-1-precommit.json",
+      "gitBlobSha": "fea379f40427d2526048d674ed22c61a8c7b8450",
+      "fileSha256": "21ee356efe783242d0fed2ffb638b1880a75953577e2b8fe1e5f87a8b8cb0012",
+      "ref": "9effeeacb46b2f1e7af408b356be8340fd007274"
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+name: Phase57 Capacity v2 Finalize Run 34153192882
+
+on:
+  push:
+    branches: [research/phase57-selector-capacity-v2]
+    paths:
+      - .github/workflows/phase57-selector-capacity-v2-finalize-34153192882.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  finalize-validation-no-go:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Download immutable source Allocation
+        uses: actions/download-artifact@v4
+        with:
+          name: capacity-v2-allocation-34153192882
+          path: artifacts/input/allocation
+          run-id: 34153192882
+          github-token: ${{ github.token }}
+      - name: Download immutable source Admission
+        uses: actions/download-artifact@v4
+        with:
+          name: capacity-v2-admission-summary-34153192882
+          path: artifacts/input/admission
+          run-id: 34153192882
+          github-token: ${{ github.token }}
+      - name: Download immutable source Development freeze
+        uses: actions/download-artifact@v4
+        with:
+          name: capacity-v2-development-34153192882
+          path: artifacts/input/development
+          run-id: 34153192882
+          github-token: ${{ github.token }}
+      - name: Download immutable failed Validation
+        uses: actions/download-artifact@v4
+        with:
+          name: capacity-v2-validation-34153192882
+          path: artifacts/input/validation
+          run-id: 34153192882
+          github-token: ${{ github.token }}
+      - name: Verify checkpoints and emit terminal NO-GO
+        env:
+          SOURCE_RUN_ID: "34153192882"
+          SOURCE_HEAD_SHA: 90aec031a262179bca716ec3077f9501de75e380
+          ALLOCATION_PATH: artifacts/input/allocation/allocation.json
+          ADMISSION_PATH: artifacts/input/admission/admission.json
+          MODEL_PATH: artifacts/input/development/model.json
+          FREEZE_PATH: artifacts/input/development/freeze.json
+          DEVELOPMENT_SUMMARY_PATH: artifacts/input/development/development-summary.json
+          VALIDATION_PATH: artifacts/input/validation/validation-summary.json
+        run: node scripts/run_phase57_selector_capacity_v2_resume.mjs finalize-validation-no-go
+      - uses: actions/upload-artifact@v4
+        with:
+          name: capacity-v2-final-no-go-${{ github.run_id }}
+          path: artifacts/phase57-capacity-v2-final/
+          if-no-files-found: error
+          retention-days: 30

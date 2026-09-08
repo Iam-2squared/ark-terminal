@@ -1,0 +1,52 @@
+name: Capacity v2.2 Development semantics audit
+on:
+  push:
+    branches: [research/phase57-selector-capacity-v2]
+    paths: [.github/workflows/phase57-capacity-v2-2-semantics.yml]
+  workflow_dispatch:
+permissions: {contents: read, actions: read}
+concurrency:
+  group: capacity-v22-semantics-34189128681
+  cancel-in-progress: false
+jobs:
+  audit:
+    if: github.ref == 'refs/heads/research/phase57-selector-capacity-v2'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: Verify Development source provenance
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const {data:run}=await github.rest.actions.getWorkflowRun({...context.repo,run_id:34189128681});
+            if(run.head_sha!=='f3543b5a604d25442c28fc3cb475e89274400bd5') throw new Error('SOURCE_SHA_MISMATCH');
+            const artifacts=await github.paginate(github.rest.actions.listWorkflowRunArtifacts,{...context.repo,run_id:34189128681,per_page:100});
+            const names=['capacity-v2-1-allocation-34189128681',...Array.from({length:6},(_,i)=>'capacity-v2-1-development-shard-'+i+'-34189128681')];
+            for(const name of names) {
+              const matches=artifacts.filter(a=>a.name===name&&!a.expired);
+              if(matches.length!==1||matches[0].workflow_run.head_sha!==run.head_sha) throw new Error('ARTIFACT_PROVENANCE_MISMATCH');
+            }
+      - uses: actions/download-artifact@v4
+        with:
+          name: capacity-v2-1-allocation-34189128681
+          path: artifacts/capacity-v22-input/allocation
+          run-id: 34189128681
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: capacity-v2-1-development-shard-*-34189128681
+          path: artifacts/capacity-v22-input/shards
+          run-id: 34189128681
+          github-token: ${{ github.token }}
+      - name: Audit only saved Development utilities
+        run: node scripts/audit_phase57_capacity_v2_2.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: capacity-v22-semantics-${{ github.run_id }}
+          path: artifacts/capacity-v22-semantics/
+          retention-days: 90
+          if-no-files-found: error

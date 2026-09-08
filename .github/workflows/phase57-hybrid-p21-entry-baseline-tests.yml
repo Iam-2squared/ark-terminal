@@ -3,6 +3,15 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - 'scripts/run_phase57_hybrid_p21_baseline.mjs'
+      - 'scripts/summarize_phase57_hybrid_p21_baseline.mjs'
+      - 'scripts/audit_phase57_baseline_real_inputs.mjs'
+      - 'scripts/lib/phase57-baseline-diagnostics.mjs'
+      - 'scripts/tests/phase57-baseline-diagnostics.test.mjs'
+      - 'predict/research/phase57-entry-baseline-measurement-policy-v1.json'
+      - 'predict/research/phase57-entry-baseline-real-gates-2026-09-09/**'
+      - 'predict/research/phase57-entry-baseline-measured-2026-09-09/**'
+      - 'docs/phase57-entry-baseline-measurement-2026-09-09.md'
       - 'scripts/lib/phase57-hybrid-p21-baseline.mjs'
       - 'scripts/lib/phase57-hybrid-p21-adapter.mjs'
       - 'scripts/tests/phase57-hybrid-p21-adapter.test.mjs'
@@ -46,3 +55,6 @@ jobs:
       - run: node --test scripts/tests/phase57-hybrid-p21-adapter.test.mjs scripts/tests/phase57-entry-baseline-resume-gates.test.mjs
       - run: node --check scripts/lib/phase57-hybrid-p21-baseline.mjs
       - run: node --check scripts/lib/phase57-hybrid-p21-adapter.mjs
+      - run: node --test scripts/tests/phase57-baseline-diagnostics.test.mjs
+      - run: node --check scripts/run_phase57_hybrid_p21_baseline.mjs
+      - run: node --check scripts/summarize_phase57_hybrid_p21_baseline.mjs

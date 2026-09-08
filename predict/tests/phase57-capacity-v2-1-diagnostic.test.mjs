@@ -20,7 +20,7 @@ test('modified frozen source or ambiguous anchors fail closed',()=>{
  assert.throws(()=>replaceOnce('z','x','y'),/ANCHOR/);
 });
 test('instrumentation captures candidates before full fit without changing gates',()=>{
- const source=fs.readFileSync('scripts/run_phase57_selector_capacity_v2_1.mjs','utf8');
+ const source=fs.readFileSync(new URL('../../scripts/run_phase57_selector_capacity_v2_1.mjs', import.meta.url),'utf8');
  const result=instrumentTrainer(source);
  assert.ok(result.includes('diagnostics.push(candidate)'));
  assert.ok(result.indexOf('return { diagnostics, choices, grids') < result.indexOf('const fullScale = featureScale(rows)'));

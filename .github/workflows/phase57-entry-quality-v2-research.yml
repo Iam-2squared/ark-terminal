@@ -1,0 +1,53 @@
+name: Phase57 Entry Quality v2 Research
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'predict/daytrade/phase57-entry-quality-v2-*.js'
+      - 'predict/daytrade/phase57-entry-quality-v2-*.json'
+      - 'predict/daytrade/PHASE57_ENTRY_QUALITY_V2_RESEARCH.md'
+      - 'predict/tests/phase57-entry-quality-v2-*.test.mjs'
+      - 'scripts/build_entry_v2_later_fetched_bar_archive.mjs'
+      - 'scripts/build_entry_v2_historical_daily_archive.mjs'
+      - 'scripts/build_entry_v2_historical_market_archive.mjs'
+      - 'scripts/run_entry_v2_historical_market_replay.mjs'
+      - 'scripts/run_entry_v2_dataset_readiness_phase0.mjs'
+      - '.github/workflows/phase57-entry-quality-v2-research.yml'
+      - '.github/workflows/phase57-entry-quality-v2-historical-daily-archive.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase57-entry-quality-v2-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  isolated-research-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify isolated Entry v2 research tests
+        working-directory: predict
+        run: |
+          set -euo pipefail
+          node --test tests/phase57-entry-quality-v2-*.test.mjs
+      - name: Verify historical reconstruction tool syntax
+        run: |
+          set -euo pipefail
+          node --check scripts/build_entry_v2_later_fetched_bar_archive.mjs
+          node --check scripts/build_entry_v2_historical_daily_archive.mjs
+          node --check scripts/build_entry_v2_historical_market_archive.mjs
+          node --check scripts/run_entry_v2_historical_market_replay.mjs
+          node --check scripts/run_entry_v2_dataset_readiness_phase0.mjs
+      - name: Safety boundary
+        if: always()
+        run: |
+          echo 'Entry Quality v2 is isolated research only.'
+          echo 'No selector, EXIT, capital allocation, broker/RSS write, paper/live trading, auto-promotion, or production update.'

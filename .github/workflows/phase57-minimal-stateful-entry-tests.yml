@@ -5,6 +5,9 @@ on:
     paths:
       - 'scripts/lib/phase57-minimal-stateful-entry.mjs'
       - 'scripts/lib/phase57-entry-development-fit.mjs'
+      - 'scripts/lib/phase57-entry-development-measure.mjs'
+      - 'scripts/phase57-entry-development-*.mjs'
+      - 'scripts/tests/phase57-entry-development-measure.test.mjs'
       - 'scripts/tests/phase57-entry-development-fit.test.mjs'
       - 'predict/research/phase57-entry-development-*.json'
       - 'scripts/tests/phase57-minimal-stateful-entry.test.mjs'
@@ -27,5 +30,6 @@ jobs:
           node-version: '22'
       - run: node --test scripts/tests/phase57-minimal-stateful-entry.test.mjs
       - run: node --test scripts/tests/phase57-entry-development-fit.test.mjs
+      - run: node --test scripts/tests/phase57-entry-development-measure.test.mjs
       - run: node --check scripts/lib/phase57-minimal-stateful-entry.mjs
       - run: node --check scripts/audit_phase57_minimal_stateful_sanity.mjs

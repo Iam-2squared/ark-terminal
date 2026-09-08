@@ -38,11 +38,12 @@ weighted Newton solver. Synthetic convergence and failure tests are not market
 performance evidence. Existing real-artifact inference and Validation remain
 fail-closed; the numerical solver does not bypass those guards.
 
-Still required: development source-to-dataset runner; immutable source hash
-verification on reconstructed inputs; frozen Hybrid replay; all-event feature
-fingerprints; downstream labels; training-row weighting/provenance integration;
-stateful OOF predictions and metrics; threshold selection; model artifact freeze;
-PIT/state/clustering audits; completed independent review packet.
+The subsequent First Development Fit workflow connects source reconstruction,
+immutable hashes, frozen Hybrid replay, all-event feature fingerprints, a global
+58-session feature barrier, labels, weighted Logistic, stateful OOF evaluation,
+the fixed threshold rule, candidate freeze and a review JSON packet. Its existence
+is not evidence of a successful real-data run. Check that run's results separately.
+The workflow has no Fresh Validation or OOS job, and no broker integration.
 
 No source-recovery investigation is required merely to redo the PASS gate.
 The remaining work is execution/integration, not a claimed new data-integrity failure.

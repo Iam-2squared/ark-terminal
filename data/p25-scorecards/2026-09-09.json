@@ -1,0 +1,300 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.p25.3e.trade-pace-scorecard-cli",
+  "status": "P25_3_TRADE_PACE_SCORECARD_ARTIFACT_WRITTEN",
+  "createdAt": "2026-09-09T14:08:54.438Z",
+  "inputs": {
+    "evaluation": "/tmp/p25-evaluation.json",
+    "evaluationSha256": "3ae9356f7c806ce186f374a8cd42c35d7a8f23c1d22f45664a0c3843f9725a34",
+    "lineageManifestHeadSha256": "a12f83e6cea9066e6c565e3d735ae77ad5e18c089d82aba2bc4c13aacdd8a580"
+  },
+  "scorecard": {
+    "phase": "57.p25.3e.trade-pace-scorecard",
+    "status": "P25_3_TRADE_PACE_SCORECARD_READY",
+    "lineageManifestHeadSha256": "a12f83e6cea9066e6c565e3d735ae77ad5e18c089d82aba2bc4c13aacdd8a580",
+    "targetTradeCount": 400,
+    "paceTargets": [
+      {
+        "tradingDays": 30,
+        "requiredEntriesPerTradingSession": 13.333333
+      },
+      {
+        "tradingDays": 20,
+        "requiredEntriesPerTradingSession": 20
+      }
+    ],
+    "expectedSessionCount": 9,
+    "frozenReadySessionInputCount": 7,
+    "readyPacketCount": 7,
+    "blockedSessionCount": 0,
+    "rows": [
+      {
+        "variant": "FIXED_5",
+        "expectedTradingSessions": 9,
+        "commonReadyTradingSessions": 7,
+        "frozenEntries": 0,
+        "resolvedEntries": 0,
+        "unresolvedFrozenEntries": 0,
+        "entriesPerTradingSession": 0,
+        "observedDaysTo400": null,
+        "paceEstimatedDaysTo400": null,
+        "targetProgress": [
+          {
+            "tradingDays": 30,
+            "requiredEntriesPerTradingSession": 13.333333,
+            "currentEntriesPerTradingSession": 0,
+            "paceRatio": 0,
+            "currentlyAtOrAboveTargetPace": false
+          },
+          {
+            "tradingDays": 20,
+            "requiredEntriesPerTradingSession": 20,
+            "currentEntriesPerTradingSession": 0,
+            "paceRatio": 0,
+            "currentlyAtOrAboveTargetPace": false
+          }
+        ],
+        "hitRate": null,
+        "tradeWinRate": null,
+        "afterCostNetPct": 0,
+        "profitFactor": null,
+        "maxDrawdownPct": 0,
+        "meanNetReturnPct": null,
+        "coverage": 0,
+        "coverageDenominator": 755,
+        "conservativeEffectiveIndependentEntries": 0,
+        "conservativeIndependenceRatio": null,
+        "sessionEqualWeightAfterCostNetPct": 0,
+        "largestSymbolShare": null,
+        "symbolHhi": null,
+        "largestSectorShare": null,
+        "sectorHhi": null
+      },
+      {
+        "variant": "OLD_FIXED_30",
+        "expectedTradingSessions": 9,
+        "commonReadyTradingSessions": 7,
+        "frozenEntries": 0,
+        "resolvedEntries": 0,
+        "unresolvedFrozenEntries": 0,
+        "entriesPerTradingSession": 0,
+        "observedDaysTo400": null,
+        "paceEstimatedDaysTo400": null,
+        "targetProgress": [
+          {
+            "tradingDays": 30,
+            "requiredEntriesPerTradingSession": 13.333333,
+            "currentEntriesPerTradingSession": 0,
+            "paceRatio": 0,
+            "currentlyAtOrAboveTargetPace": false
+          },
+          {
+            "tradingDays": 20,
+            "requiredEntriesPerTradingSession": 20,
+            "currentEntriesPerTradingSession": 0,
+            "paceRatio": 0,
+            "currentlyAtOrAboveTargetPace": false
+          }
+        ],
+        "hitRate": null,
+        "tradeWinRate": null,
+        "afterCostNetPct": 0,
+        "profitFactor": null,
+        "maxDrawdownPct": 0,
+        "meanNetReturnPct": null,
+        "coverage": 0,
+        "coverageDenominator": 4530,
+        "conservativeEffectiveIndependentEntries": 0,
+        "conservativeIndependenceRatio": null,
+        "sessionEqualWeightAfterCostNetPct": 0,
+        "largestSymbolShare": null,
+        "symbolHhi": null,
+        "largestSectorShare": null,
+        "sectorHhi": null
+      },
+      {
+        "variant": "DYNAMIC_30",
+        "expectedTradingSessions": 9,
+        "commonReadyTradingSessions": 7,
+        "frozenEntries": 26,
+        "resolvedEntries": 23,
+        "unresolvedFrozenEntries": 3,
+        "entriesPerTradingSession": 2.888888888888889,
+        "observedDaysTo400": null,
+        "paceEstimatedDaysTo400": 138.46153846153845,
+        "targetProgress": [
+          {
+            "tradingDays": 30,
+            "requiredEntriesPerTradingSession": 13.333333,
+            "currentEntriesPerTradingSession": 2.888888888888889,
+            "paceRatio": 0.216667,
+            "currentlyAtOrAboveTargetPace": false
+          },
+          {
+            "tradingDays": 20,
+            "requiredEntriesPerTradingSession": 20,
+            "currentEntriesPerTradingSession": 2.888888888888889,
+            "paceRatio": 0.144444,
+            "currentlyAtOrAboveTargetPace": false
+          }
+        ],
+        "hitRate": 0.565217,
+        "tradeWinRate": 0.565217,
+        "afterCostNetPct": 17.577732,
+        "profitFactor": 1.488075,
+        "maxDrawdownPct": 15.908237,
+        "meanNetReturnPct": 0.852487,
+        "coverage": 0.005077,
+        "coverageDenominator": 4530,
+        "conservativeEffectiveIndependentEntries": 20,
+        "conservativeIndependenceRatio": 0.869565,
+        "sessionEqualWeightAfterCostNetPct": 1.567591,
+        "largestSymbolShare": 0.173913,
+        "symbolHhi": 0.115312,
+        "largestSectorShare": 0.391304,
+        "sectorHhi": 0.255198
+      },
+      {
+        "variant": "DYNAMIC_40",
+        "expectedTradingSessions": 9,
+        "commonReadyTradingSessions": 7,
+        "frozenEntries": 31,
+        "resolvedEntries": 28,
+        "unresolvedFrozenEntries": 3,
+        "entriesPerTradingSession": 3.4444444444444446,
+        "observedDaysTo400": null,
+        "paceEstimatedDaysTo400": 116.12903225806451,
+        "targetProgress": [
+          {
+            "tradingDays": 30,
+            "requiredEntriesPerTradingSession": 13.333333,
+            "currentEntriesPerTradingSession": 3.4444444444444446,
+            "paceRatio": 0.258333,
+            "currentlyAtOrAboveTargetPace": false
+          },
+          {
+            "tradingDays": 20,
+            "requiredEntriesPerTradingSession": 20,
+            "currentEntriesPerTradingSession": 3.4444444444444446,
+            "paceRatio": 0.172222,
+            "currentlyAtOrAboveTargetPace": false
+          }
+        ],
+        "hitRate": 0.535714,
+        "tradeWinRate": 0.535714,
+        "afterCostNetPct": 8.249948,
+        "profitFactor": 1.231067,
+        "maxDrawdownPct": 19.02866,
+        "meanNetReturnPct": 0.411115,
+        "coverage": 0.004636,
+        "coverageDenominator": 6040,
+        "conservativeEffectiveIndependentEntries": 24,
+        "conservativeIndependenceRatio": 0.857143,
+        "sessionEqualWeightAfterCostNetPct": 0.666201,
+        "largestSymbolShare": 0.142857,
+        "symbolHhi": 0.091837,
+        "largestSectorShare": 0.321429,
+        "sectorHhi": 0.188776
+      },
+      {
+        "variant": "DYNAMIC_50",
+        "expectedTradingSessions": 9,
+        "commonReadyTradingSessions": 7,
+        "frozenEntries": 38,
+        "resolvedEntries": 35,
+        "unresolvedFrozenEntries": 3,
+        "entriesPerTradingSession": 4.222222222222222,
+        "observedDaysTo400": null,
+        "paceEstimatedDaysTo400": 94.73684210526315,
+        "targetProgress": [
+          {
+            "tradingDays": 30,
+            "requiredEntriesPerTradingSession": 13.333333,
+            "currentEntriesPerTradingSession": 4.222222222222222,
+            "paceRatio": 0.316667,
+            "currentlyAtOrAboveTargetPace": false
+          },
+          {
+            "tradingDays": 20,
+            "requiredEntriesPerTradingSession": 20,
+            "currentEntriesPerTradingSession": 4.222222222222222,
+            "paceRatio": 0.211111,
+            "currentlyAtOrAboveTargetPace": false
+          }
+        ],
+        "hitRate": 0.542857,
+        "tradeWinRate": 0.542857,
+        "afterCostNetPct": 18.813026,
+        "profitFactor": 1.390617,
+        "maxDrawdownPct": 19.02866,
+        "meanNetReturnPct": 0.603928,
+        "coverage": 0.004636,
+        "coverageDenominator": 7550,
+        "conservativeEffectiveIndependentEntries": 29,
+        "conservativeIndependenceRatio": 0.828571,
+        "sessionEqualWeightAfterCostNetPct": 1.023691,
+        "largestSymbolShare": 0.114286,
+        "symbolHhi": 0.075918,
+        "largestSectorShare": 0.257143,
+        "sectorHhi": 0.142857
+      }
+    ],
+    "methodology": {
+      "descriptiveOnly": true,
+      "allFiveVariantsRetained": true,
+      "fixedVariantDisplayOrder": true,
+      "variantsRankedByPerformance": false,
+      "currentOuterOosDoesNotSelectDynamicN": true,
+      "entryThresholdRelaxed": false,
+      "postHocWinnerFiltering": false,
+      "performanceConclusionAllowed": false,
+      "targetPaceIsArithmeticOnly": true,
+      "dailyMarketSpeedRequired": false,
+      "boardOrTickUsed": false,
+      "microstructureUsed": false,
+      "freshHoldoutConsumed": false
+    },
+    "safety": {
+      "phase": "57.p25.3e.trade-pace-scorecard",
+      "mode": "READ_ONLY_DESCRIPTIVE_PROSPECTIVE_SCORECARD",
+      "researchOnly": true,
+      "executionAllowed": false,
+      "brokerWriteAllowed": false,
+      "excelOrderWriteAllowed": false,
+      "rssOrderFunctionAllowed": false,
+      "liveTradingAllowed": false,
+      "paperTradingAllowed": false,
+      "automaticPromotionAllowed": false,
+      "productionUpdateAllowed": false,
+      "transmitted": false,
+      "freshHoldoutConsumed": false
+    }
+  },
+  "methodology": {
+    "descriptiveOnly": true,
+    "allFiveVariantsRetained": true,
+    "currentOuterOosDoesNotSelectDynamicN": true,
+    "entryThresholdRelaxed": false,
+    "postHocWinnerFiltering": false,
+    "performanceConclusionAllowed": false,
+    "dailyMarketSpeedRequired": false,
+    "boardOrTickUsed": false,
+    "microstructureUsed": false,
+    "freshHoldoutConsumed": false
+  },
+  "safety": {
+    "phase": "57.p25.3e.trade-pace-scorecard",
+    "mode": "READ_ONLY_DESCRIPTIVE_PROSPECTIVE_SCORECARD",
+    "researchOnly": true,
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "freshHoldoutConsumed": false
+  }
+}

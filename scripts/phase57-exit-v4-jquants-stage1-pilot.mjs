@@ -50,7 +50,13 @@ async function requestJson(pathname, query) {
       const parsed = JSON.parse(responseText);
       providerCode = String(parsed?.message ?? parsed?.code ?? providerCode).replace(/[^A-Za-z0-9_.-]/g, "_").slice(0, 80);
     } catch {}
-    throw new Error(`JQUANTS_HTTP_${response.status}_${pathname.replaceAll("/", "_")}_${providerCode}`);
+    const pathCode = ({
+      "v2/bulk/get": "BULK_GET",
+      "v2/equities/bars/minute": "MINUTE",
+      "v2/equities/bars/daily": "DAILY",
+      "v2/equities/master": "MASTER",
+    })[pathname] ?? "OTHER";
+    throw new Error(`HTTP:${response.status};PATH:${pathCode};CODE:${providerCode}`);
   }
   throw new Error("JQUANTS_REQUEST_EXHAUSTED");
 }

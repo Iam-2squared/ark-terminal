@@ -11,6 +11,7 @@ const sha256 = (value) => createHash("sha256").update(value).digest("hex");
 const PRECOMMIT_PATH = process.env.FULL_PARITY_PRECOMMIT_PATH ?? "predict/research/phase57-entry-reserve87-full-source-parity-precommit.json";
 const ADMISSION_PATH = process.env.ADMISSION_V21_PATH ?? "artifacts/input/admission-v21/admission.json";
 const OUT_DIR = process.env.OUTPUT_DIR ?? "artifacts/phase57-entry-reserve87-full-source-parity";
+const SOURCE_ALLOCATION_PATH = process.env.ENTRY_SOURCE_ALLOCATION_PATH ?? "predict/research/phase57-entry-development-allocation-v1.json";
 const API_KEY = process.env.JQUANTS_API_KEY ?? "";
 const SHARD_INDEX = Number(process.env.SHARD_INDEX ?? "0");
 const SHARD_COUNT = Number(process.env.SHARD_COUNT ?? "1");
@@ -115,8 +116,10 @@ function groupBars(bars, master) {
   return bySymbol;
 }
 export async function reconstructDevelopmentSession(sessionDate) {
-  const allocation=readJson("predict/research/phase57-entry-development-allocation-v1.json");
-  assert(allocation.sessions.some(s=>s.sessionDate===sessionDate), "SESSION_NOT_ALLOCATED");
+  const allocation=readJson(SOURCE_ALLOCATION_PATH);
+  const allocatedSessions=Array.isArray(allocation.sessions) ? allocation.sessions : [];
+  const allocated=allocatedSessions.some(s => (typeof s === "string" ? s : s?.sessionDate) === sessionDate);
+  assert(allocated, "SESSION_NOT_ALLOCATED");
   const [{ raw, pageCount }, masterRows] = await Promise.all([fetchMinuteDate(sessionDate), fetchMasterDate(sessionDate)]);
   const normalized = normalizeJquantsMinuteRows(raw);
   assert(raw.length === normalized.length, "EXACT_DUPLICATE_MINUTES_PRESENT");

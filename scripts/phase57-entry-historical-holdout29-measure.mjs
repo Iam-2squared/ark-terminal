@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {gunzipSync} from 'node:zlib';
-import {verifyDevelopmentContracts,verifyFrozenRow} from './lib/phase57-entry-development-fit.mjs';
-import {CONTRACT} from './lib/phase57-minimal-stateful-entry.mjs';
+import {verifyDevelopmentContracts} from './lib/phase57-entry-development-fit.mjs';
+import {CONTRACT,CONTRACT_SHA256,FEATURES,sha256} from './lib/phase57-minimal-stateful-entry.mjs';
 import {labels,stateful,metrics,mean,median} from './lib/phase57-entry-development-measure.mjs';
 
 const input=process.env.INPUT_DIR??'artifacts/holdout29-input';
@@ -18,6 +18,17 @@ assert.equal(precommit.status,'HISTORICAL_HOLDOUT_SOURCE_PARITY_PRECOMMITTED_NO_
 assert.equal(precommit.holdoutRole,'HISTORICAL_HOLDOUT_DIAGNOSTIC_NOT_PROSPECTIVE_NOT_FORMAL_OOS');
 assert.equal(precommit.candidatePolicy,'FROZEN_MINIMAL_STATEFUL_ENTRY_NO_RETRAIN_NO_RETUNE');
 assert.equal(precommit.count,29);assert.equal(precommit.sessions.length,29);
+const holdoutSessions=new Set(precommit.sessions);
+function verifyHoldoutFrozenRow(row){
+ const {featureSha256,...core}=row;
+ assert.equal(sha256(core),featureSha256,'FEATURE_BYTES_CHANGED');
+ assert.equal(row.contractSha256,CONTRACT_SHA256,'CONTRACT_SHA_MISMATCH');
+ assert(holdoutSessions.has(row.sessionDate),'SESSION_NOT_IN_HOLDOUT29_PRECOMMIT');
+ assert(Number.isFinite(Date.parse(row.latestAvailableAt))&&Date.parse(row.latestAvailableAt)<=Date.parse(row.decisionTimestamp),'FUTURE_FEATURE');
+ assert.deepEqual(Object.keys(row.features),FEATURES,'FEATURE_ORDER_CHANGED');
+ assert(FEATURES.every(k=>Number.isFinite(row.features[k])),'MISSING_FEATURE');
+ return true;
+}
 
 const candidateBytes=fs.readFileSync(`${candidateDir}/candidate-model.json`);
 assert.equal(hash(candidateBytes),'f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a','CANDIDATE_SHA_MISMATCH');
@@ -36,7 +47,7 @@ for(const date of precommit.sessions){
  for(const [k,v] of Object.entries(pins))assert.equal(m[k],v);
  const bytes=gunzipSync(fs.readFileSync(`${input}/${date}.features.json.gz`));assert.equal(hash(bytes),m.featureSha256);
  const bundle=JSON.parse(bytes);assert.equal(bundle.sessionDate,date);assert.equal(bundle.points.length,66);
- for(const e of bundle.events){assert.equal(e.sessionDate,date);for(const r of e.directionFeatures??[])verifyFrozenRow(r);}
+ for(const e of bundle.events){assert.equal(e.sessionDate,date);for(const r of e.directionFeatures??[])verifyHoldoutFrozenRow(r);}
  assert(bundle.events.some(e=>e.directionFeatures),'NO_FEATURE_READY_SESSION');bundles.push({m,bundle});
 }
 write('feature-barrier.json',{...pins,status:'ALL29_HOLDOUT_FEATURES_FROZEN_BEFORE_LABELS',candidateSha256:hash(candidateBytes),threshold:model.threshold,holdoutRole:precommit.holdoutRole,candidateChanged:false,retraining:false,sessions:bundles.map(x=>({sessionDate:x.m.sessionDate,featureSha256:x.m.featureSha256}))});

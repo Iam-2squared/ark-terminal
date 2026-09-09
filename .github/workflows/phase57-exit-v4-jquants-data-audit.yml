@@ -1,0 +1,25 @@
+name: Phase57 EXIT v4 J-Quants Data Audit
+
+on:
+  pull_request:
+    paths:
+      - 'predict/research/phase57-exit-v4-jquants-data-capacity-audit-v1.json'
+      - 'scripts/tests/phase57-exit-v4-jquants-data-audit.test.mjs'
+      - 'docs/phase57-exit-v4-jquants-data-capacity-audit.md'
+      - '.github/workflows/phase57-exit-v4-jquants-data-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate outcome-blind data audit contract
+        run: node --test scripts/tests/phase57-exit-v4-jquants-data-audit.test.mjs

@@ -342,12 +342,13 @@ No order function, broker write, Excel/RSS order write, paper execution or live 
 
 ## Immediate next steps
 
-1. Complete Mandatory pre-condition A: large historical data quality/coverage audit.
-2. Complete Mandatory pre-condition B: substrate-tier classifier and counts without opening protected/fresh OOS.
-3. Freeze the historical replay/parity contract and paired evaluator.
-4. Verify overlap parity on golden sessions.
-5. Reach Checkpoint A: 200 independent Entry events.
-6. Ask for independent post-Checkpoint-A review before expanding to 500.
-7. Only after stress work is complete, write and hash Mandatory pre-condition C before any locked holdout access.
+1. Resolve the Stage 0 J-Quants blockers recorded in `phase57-exit-v4-jquants-data-capacity-audit.md`; the audit is complete but conditional and stopped before outcomes.
+2. Run only a separately authorized, predeclared Stage 1 quality/parity pilot; do not bulk-fetch or open outcomes.
+3. Complete Mandatory pre-condition B: substrate-tier classifier and counts without opening protected/fresh OOS.
+4. Freeze a result-blind data allocation contract, then freeze the historical replay/parity contract and paired evaluator.
+5. Verify overlap parity on golden sessions.
+6. Reach Checkpoint A: 200 independent Entry events only after explicit Development unlock.
+7. Ask for independent post-Checkpoint-A review before expanding to 500.
+8. Only after stress work is complete, write and hash Mandatory pre-condition C before any locked holdout access.
 
 Until those gates are complete, EXIT v4 remains a frozen candidate under large-scale historical evaluation, not a proven Main EXIT.

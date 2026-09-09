@@ -3,10 +3,12 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import {
   classifyMinuteAbsence,
+  classifyTickBulkScope,
   compareTimestampHypotheses,
   parseCsvLine,
   tierFromQuality,
 } from "../lib/phase57-jquants-stage1-quality.mjs";
+import { aggregateJquantsMinutesToFiveMinuteBars } from "../lib/phase57-selector-jquants-minute.mjs";
 
 test("CSV parser preserves quoted commas", () => {
   assert.deepEqual(parseCsvLine('a,"b,c","d""e"'), ["a", "b,c", 'd"e']);
@@ -39,6 +41,31 @@ test("ambiguous missing minute remains UNKNOWN class", () => {
 test("provider historical availableAt failure blocks Tier 1", () => {
   const audit = { timestamp: "PASS", fiveMinuteAggregation: "PASS", historicalProviderAvailableAt: "FAIL", universe: "PASS", adjustment: "PASS", missing: "PASS", hybridParity: "PASS", entryParity: "PASS", pitViolations: 0 };
   assert.equal(tierFromQuality(audit), "TIER_2_RECONSTRUCTED_REPLAY_CANDIDATE");
+});
+
+test("monthly Tick transport is detected before any raw download", () => {
+  const result = classifyTickBulkScope([{ Key: "equities/trades/historical/2025/equities_trades_202508.csv.gz", Size: 10 }], "2025-08-27");
+  assert.equal(result.scope, "MONTH");
+});
+
+function minute(Time, O) {
+  return { Date: "2025-08-27", Time, Code: "86970", O, H: O + 1, L: O - 1, C: O, Vo: 10, Va: O * 10 };
+}
+
+test("5m aggregation is causal, no-fill, and lunch-separated", () => {
+  const contract = { sourceMinuteTimestampMeaning: "BAR_START_HALF_OPEN_INCLUDING_TERMINAL_AUCTION_MINUTES" };
+  const prefix = [minute("09:00", 100), minute("09:01", 101), minute("09:03", 103), minute("09:04", 104)];
+  const beforeFuture = aggregateJquantsMinutesToFiveMinuteBars(prefix, contract)[0];
+  const afterFuture = aggregateJquantsMinutesToFiveMinuteBars([...prefix, minute("09:05", 999)], contract)[0];
+  assert.deepEqual(beforeFuture, afterFuture);
+  assert.equal(beforeFuture.observedMinuteCount, 4);
+  assert.equal(beforeFuture.missingNoTradeMinuteCount, 1);
+  assert.equal(beforeFuture.fabricatedMinuteCount, 0);
+
+  const lunch = aggregateJquantsMinutesToFiveMinuteBars([minute("11:29", 110), minute("12:30", 120)], contract);
+  assert.equal(lunch.length, 2);
+  assert.notEqual(lunch[0].sessionSegment, lunch[1].sessionSegment);
+  assert.equal(lunch[1].timestamp, "2025-08-27T03:30:00.000Z");
 });
 
 test("precommit stays outcome blind and uses exposed PURGE sessions only", () => {

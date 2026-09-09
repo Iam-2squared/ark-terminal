@@ -6,6 +6,7 @@ import { createGunzip } from "node:zlib";
 import { createHash } from "node:crypto";
 import {
   classifyMinuteAbsence,
+  classifyTickBulkScope,
   compareTimestampHypotheses,
   minuteLabelFromTickTime,
   parseCsvLine,
@@ -52,6 +53,7 @@ async function requestJson(pathname, query) {
     } catch {}
     const pathCode = ({
       "v2/bulk/get": "BULK_GET",
+      "v2/bulk/list": "BULK_LIST",
       "v2/equities/bars/minute": "MINUTE",
       "v2/equities/bars/daily": "DAILY",
       "v2/equities/master": "MASTER",
@@ -81,7 +83,17 @@ async function fetchAll(pathname, query) {
 function normalizeCode(value) { return String(value ?? "").trim().toUpperCase(); }
 
 async function fetchTickProbe(probe) {
-  const payload = await requestJson("v2/bulk/get", { endpoint: "/equities/trades", date: probe.sessionDate });
+  const listPayload = await requestJson("v2/bulk/list", { endpoint: "/equities/trades", from: probe.sessionDate, to: probe.sessionDate });
+  assert(Array.isArray(listPayload?.data), "TICK_BULK_LIST_SCHEMA_INVALID");
+  assert(listPayload.data.length > 0, "TICK_BULK_FILE_NOT_FOUND");
+  const scope = classifyTickBulkScope(listPayload.data, probe.sessionDate);
+  if (scope.scope !== "DAY") {
+    if (scope.scope === "MONTH") throw new Error("POLICY_STOP:TICK_FILE_SCOPE_MONTH:RAW_DOWNLOAD_NOT_STARTED");
+    throw new Error("POLICY_STOP:TICK_FILE_SCOPE_UNKNOWN:RAW_DOWNLOAD_NOT_STARTED");
+  }
+  const daily = scope.file;
+  assert(daily.size <= MAX_COMPRESSED_BYTES, "POLICY_STOP:TICK_DAILY_FILE_TOO_LARGE:RAW_DOWNLOAD_NOT_STARTED");
+  const payload = await requestJson("v2/bulk/get", { key: daily.key });
   const signedUrl = String(payload?.url ?? payload?.URL ?? payload?.Url ?? "");
   assert(/^https:\/\//.test(signedUrl), "BULK_SIGNED_URL_MISSING");
   const response = await fetch(signedUrl, { cache: "no-store", redirect: "follow", signal: AbortSignal.timeout(45 * 60_000) });
@@ -138,11 +150,11 @@ assert(API_KEY, "JQUANTS_API_KEY_REQUIRED");
 let output;
 try {
   const probe = precommit.tickProbe;
-  const [minuteRows, dailyRows, masterRows, tick] = await Promise.all([
+  const tick = await fetchTickProbe(probe);
+  const [minuteRows, dailyRows, masterRows] = await Promise.all([
     fetchAll("v2/equities/bars/minute", { code: probe.sourceCode, date: probe.sessionDate }),
     fetchAll("v2/equities/bars/daily", { code: probe.sourceCode, date: probe.sessionDate }),
     fetchAll("v2/equities/master", { date: probe.sessionDate }),
-    fetchTickProbe(probe),
   ]);
   const sourceMinutes = minuteRows.filter((row) => normalizeCode(row.Code) === probe.sourceCode);
   const sourceTicks = tick.selectedRows;
@@ -251,12 +263,15 @@ try {
     safety: precommit.safety,
   };
 } catch (error) {
+  const policyStop = String(error?.message ?? error).startsWith("POLICY_STOP:");
   output = {
     schemaVersion: 1,
     phase: "57.exit-v4.jquants-stage1-minimal-quality-parity",
-    status: "QUALITY_PILOT_BLOCKED",
+    status: policyStop ? "STOP_DATA_SOURCE_NOT_READY" : "QUALITY_PILOT_BLOCKED",
     pilotId: precommit.pilotId,
     error: safeError(error),
+    stage1Gate: policyStop ? "STOP_DATA_SOURCE_NOT_READY" : "BLOCKED_TECHNICAL_ERROR",
+    rawDownloadStarted: policyStop ? false : "UNKNOWN_FAIL_CLOSED",
     newSessionAccess: 0,
     fullReplayEligibleSessions: 0,
     rawPersisted: false,
@@ -269,4 +284,4 @@ try {
   };
 }
 writeJson("stage1-quality-pilot.json", output);
-if (!output.status.startsWith("QUALITY_PILOT_PASS")) process.exitCode = 20;
+if (!output.status.startsWith("QUALITY_PILOT_PASS") && output.status !== "STOP_DATA_SOURCE_NOT_READY") process.exitCode = 20;

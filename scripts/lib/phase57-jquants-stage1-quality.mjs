@@ -106,3 +106,14 @@ export function tierFromQuality(audit) {
       audit.hybridParity !== "FAIL" && audit.entryParity !== "FAIL") return "TIER_2_RECONSTRUCTED_REPLAY_CANDIDATE";
   return "TIER_3_DIAGNOSTIC_ONLY";
 }
+
+export function classifyTickBulkScope(rows, sessionDate) {
+  const compact = String(sessionDate).replaceAll("-", "");
+  if (!/^\d{8}$/.test(compact)) throw new Error("INVALID_SESSION_DATE");
+  const normalized = rows.map((row) => ({ key: String(row?.Key ?? row?.key ?? ""), size: Number(row?.Size ?? row?.size ?? 0) }));
+  const daily = normalized.find((row) => row.key.includes(compact));
+  if (daily) return { scope: "DAY", file: daily };
+  const monthly = normalized.find((row) => row.key.includes(compact.slice(0, 6)));
+  if (monthly) return { scope: "MONTH", file: monthly };
+  return { scope: "UNKNOWN", file: null };
+}

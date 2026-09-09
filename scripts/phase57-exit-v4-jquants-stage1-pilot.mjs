@@ -40,11 +40,17 @@ async function requestJson(pathname, query) {
       headers: { Accept: "application/json", "x-api-key": API_KEY },
       signal: AbortSignal.timeout(90_000),
     });
-    if (response.ok) return JSON.parse(await response.text());
+    const responseText = await response.text();
+    if (response.ok) return JSON.parse(responseText);
     if ((response.status === 429 || response.status >= 500) && attempt < 3) { await sleep(5000 * (attempt + 1)); continue; }
     if (response.status === 401) throw new Error("AUTH_REJECTED");
     if (response.status === 403) throw new Error("BLOCKED_ENTITLEMENT");
-    throw new Error(`JQUANTS_HTTP_${response.status}`);
+    let providerCode = "UNSPECIFIED";
+    try {
+      const parsed = JSON.parse(responseText);
+      providerCode = String(parsed?.message ?? parsed?.code ?? providerCode).replace(/[^A-Za-z0-9_.-]/g, "_").slice(0, 80);
+    } catch {}
+    throw new Error(`JQUANTS_HTTP_${response.status}_${pathname.replaceAll("/", "_")}_${providerCode}`);
   }
   throw new Error("JQUANTS_REQUEST_EXHAUSTED");
 }

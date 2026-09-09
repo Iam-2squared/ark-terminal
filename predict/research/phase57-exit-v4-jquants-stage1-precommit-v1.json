@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "pilotId": "PHASE57_EXIT_V4_JQUANTS_STAGE1_MINIMAL_QUALITY_PARITY_V1",
+  "asOfJst": "2026-09-10",
+  "status": "PRECOMMITTED_BEFORE_PROVIDER_PROBE",
+  "scope": "LEVEL_1_SOURCE_QUALITY_AND_INPUT_PARITY_ONLY",
+  "sessions": ["2025-08-27", "2025-10-09", "2025-11-25"],
+  "sessionClassification": "ALREADY_EXPOSED_PURGE_QUALITY_EVIDENCE",
+  "tickProbe": {
+    "sessionDate": "2025-08-27",
+    "sourceCode": "86970",
+    "minuteLabels": ["09:00", "09:01", "09:02", "09:03", "09:04", "11:25", "11:26", "11:27", "11:28", "11:29", "11:30", "12:30", "12:31", "12:32", "12:33", "12:34", "15:25", "15:26", "15:27", "15:28", "15:29", "15:30"],
+    "selectedBeforeProbe": true,
+    "rawPersistenceAllowed": false
+  },
+  "expectedSourceEvidence": {
+    "2025-08-27": {"eligibleJpxSymbolCount": 3768, "normalizedMinuteRows": 466427, "fiveMinuteBars": 167291, "minuteSha256": "e0e4f4d237e21f17c5690b9ff869c9e954a9bebf00ab71d8ef955292a97c2c6e", "fiveMinuteSha256": "f0ae11ddf71b46e288858509769eb5768cacb3cb434c91370e38a0e6c7203f9f", "memberSetSha256": "c0a887cbc04d2962847584c451515e8f20ab3a3d64303ac163610754a8873a3f"},
+    "2025-10-09": {"eligibleJpxSymbolCount": 3758, "normalizedMinuteRows": 459257, "fiveMinuteBars": 165051, "minuteSha256": "f6e0ad15c52a7445e7c10b1685d47b296a9c5d3ee68c284b60e2dde951ef7879", "fiveMinuteSha256": "0ffa9099f82d6d624ad821ed30b7c2e196182b6608be0c6627e6b95fc59832ed", "memberSetSha256": "fbedce0b270cbd38dc46dae2a4ff4e97a3a2a57d0b74c0279b506b63a5ac9c25"},
+    "2025-11-25": {"eligibleJpxSymbolCount": 3765, "normalizedMinuteRows": 466095, "fiveMinuteBars": 166978, "minuteSha256": "ba6335b60e6878bb2cc037c59cffe616daf1fc81eb41dcf2f9c91eb0e768e44f", "fiveMinuteSha256": "a0b315994383dac72a738517e2f7d2305b1a595b3600ba0b19240f14b9d14a36", "memberSetSha256": "dc886196c2e29c25042d5fbb5484ac7982cca32383344714996362ab4193a18f"}
+  },
+  "prohibited": ["EXIT_PERFORMANCE", "MFE_MAE", "FUTURE_LABELS", "WINNER_LOSER", "PROTECTED_180_TO_282", "FRESH_VALIDATION", "FRESH_OOS", "DEVELOPMENT_UNLOCK", "RAW_ARCHIVE"],
+  "frozenIdentifiers": {
+    "selectorModelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
+    "selectorFreezeSha256": "a744d599e430d23efe4dea6600e418d3410d8a18df5055b35e1cc71432bf64da",
+    "entryThreshold": "STRICTLY_GREATER_THAN_0.60",
+    "entryCandidateSha256": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a",
+    "entryAllocationSha256": "7df4cb026d966628c9b3fbc91037eb13704397a700c076e865d817a273df00e6",
+    "entryFitSha256": "e1567951bcc81d50497a42e24411a32112b36638fbc0ff67247a16a6ce80859c"
+  },
+  "safety": {"executionAllowed": false, "brokerWriteAllowed": false, "excelOrderWriteAllowed": false, "rssOrderFunctionAllowed": false, "liveTradingAllowed": false, "paperTradingAllowed": false, "automaticPromotionAllowed": false, "productionUpdateAllowed": false, "transmitted": false}
+}

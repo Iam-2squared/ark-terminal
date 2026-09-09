@@ -1,0 +1,46 @@
+name: Phase57 EXIT v4 J-Quants Stage1 Quality Pilot
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [research/phase57-minimal-stateful-hybrid-entry]
+    paths:
+      - .github/workflows/phase57-exit-v4-jquants-stage1.yml
+      - scripts/phase57-exit-v4-jquants-stage1-pilot.mjs
+      - scripts/lib/phase57-jquants-stage1-quality.mjs
+      - scripts/tests/phase57-exit-v4-jquants-stage1-pilot.test.mjs
+      - predict/research/phase57-exit-v4-jquants-stage1-precommit-v1.json
+
+permissions:
+  contents: read
+
+jobs:
+  contract-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node --test scripts/tests/phase57-exit-v4-jquants-stage1-pilot.test.mjs
+
+  provider-pilot:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Run one-session one-symbol Tick/minute quality probe
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: node scripts/phase57-exit-v4-jquants-stage1-pilot.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-exit-v4-jquants-stage1-${{ github.run_id }}
+          path: artifacts/phase57-exit-v4-jquants-stage1/
+          if-no-files-found: error
+          retention-days: 7

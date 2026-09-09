@@ -1,0 +1,75 @@
+name: Phase57 Entry Historical Holdout29 Measurement Resume
+
+on:
+  push:
+    branches: [research/phase57-minimal-stateful-hybrid-entry]
+    paths:
+      - .github/workflows/phase57-entry-historical-holdout29-measure-resume.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-entry-historical-holdout29-measure-resume
+  cancel-in-progress: true
+
+jobs:
+  measure-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Reuse verified Holdout29 feature bundles from prior successful reconstruction
+        uses: actions/download-artifact@v4
+        with:
+          pattern: entry-holdout29-features-*-34348893988
+          run-id: 34348893988
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/holdout29-input
+          merge-multiple: true
+
+      - name: Verify all three reused feature artifacts are present
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f artifacts/holdout29-input/2025-08-27.manifest.json
+          count=$(find artifacts/holdout29-input -maxdepth 1 -name '*.manifest.json' | wc -l)
+          test "$count" -eq 29
+          echo "Reused 29 frozen session manifests from run 34348893988"
+
+      - name: Download immutable frozen Development candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: entry58-development-measurement-34292703804
+          run-id: 34292703804
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/input/candidate
+
+      - name: Verify candidate SHA and run inference-only measurement
+        env:
+          NODE_OPTIONS: --max-old-space-size=5120
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(sha256sum artifacts/input/candidate/candidate-model.json | cut -d' ' -f1)" = "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a"
+          node scripts/phase57-entry-historical-holdout29-measure.mjs
+
+      - name: Upload holdout29 measurement result
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: entry-holdout29-measurement-resume-${{ github.run_id }}
+          path: artifacts/holdout29-measurement/
+          if-no-files-found: error
+          retention-days: 30

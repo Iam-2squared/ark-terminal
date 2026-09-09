@@ -184,11 +184,145 @@ Historical reconstruction is never Prospective.
 
 Do not consume protected/fresh OOS allocations without explicit authorization.
 
+## Independent pre-review integration — Claude 2026-09-10
+
+An external pre-review judged the plan `GO WITH CONDITIONS`. We adopt the methodological guards below, but do **not** blindly freeze reviewer-suggested numerical performance thresholds (for example PF 1.30, WinRate 58%, MFE Capture 60%, substrate score 0.70, p<0.05) because those values were proposed heuristically rather than derived from an Ark-specific utility/risk contract. Any promotion/failure threshold must be separately justified and precommitted before locked holdout inspection.
+
+### Mandatory pre-condition A — Historical data quality audit
+
+Before Checkpoint A performance claims, produce a data-quality report covering:
+
+- timestamp / completed-bar semantics
+- session/lunch boundaries
+- adjusted vs unadjusted OHLCV
+- corporate actions
+- missing/no-trade bars
+- historical universe reconstruction and survivorship risk
+- later-fetched historical revision / source lineage
+- source query/fetch time/fingerprint where available
+
+Each item must be PASS / CONDITIONAL_PASS / FAIL. Critical unresolved timestamp, adjustment, or survivorship errors block performance claims.
+
+### Mandatory pre-condition B — Entry substrate fidelity tiers
+
+Classify every historical Entry event into a reproducible substrate tier. Suggested semantics:
+
+- `TIER_1_GOLDEN_OR_FULL_REPLAY`: exact/golden or defensible full Frozen Hybrid × MSH replay with strong parity evidence.
+- `TIER_2_RECONSTRUCTED_REPLAY`: later-fetched historical reconstruction with causal replay but weaker market-wide/microstructure fidelity.
+- `TIER_3_PARTIAL_SUBSTRATE`: incomplete Entry reconstruction; excluded from primary v4 validation and, if retained, diagnostic only.
+
+Report counts and performance separately by tier and by period. Do not collapse Tier 1/2/3 into one claim if performance or data quality differs materially.
+
+A weighted substrate score may be displayed only as a descriptive diagnostic. It is not a promotion gate unless its weights and threshold are independently justified and frozen before outcome inspection.
+
+### Mandatory pre-condition C — Freeze checklist before locked holdout
+
+Before opening locked holdout, freeze and hash:
+
+- EXIT v4 policy SHA / implementation ref
+- EXIT v3 baseline ref
+- fixed/session-end baseline definition
+- paired evaluator implementation
+- Entry/Selector identifiers
+- cost assumptions
+- session-end and sparse/no-trade semantics
+- metrics definitions
+- predeclared subgroup definitions
+- statistical unit / resampling method
+- promotion criteria
+- failure criteria
+- data lineage manifest
+- holdout date/session allocation
+
+No result-driven change after holdout access.
+
+## Statistical design
+
+The independent unit for headline claims is the Entry event/trade. Because trades within the same session are correlated, also report session count and use a session-aware uncertainty method for paired deltas.
+
+Preferred hierarchy:
+
+- paired trade-level summaries for descriptive effect sizes;
+- session-cluster/bootstrap confidence intervals for paired v4-v3 and v4-fixed deltas when enough sessions exist;
+- block/session resampling for large historical samples;
+- effective N / ICC where estimable.
+
+Do not use naive row-level standard errors on repeated management states.
+
+Do not precommit an arbitrary p-value gate solely because the reviewer suggested one. Economic effect size, uncertainty, stability, and paired downside behavior are primary; inferential tests are supporting evidence.
+
+## Required subgroup diagnostics
+
+Predeclare these before large-scale result inspection:
+
+1. LONG / SHORT
+2. Immediate adverse YES / NO
+3. volatility regime using a frozen causal definition
+4. time-of-day / session segment using exact JST boundaries
+5. source/substrate tier
+6. period chunking using a frozen calendar rule
+
+Evaluation-only path groups such as MAE-before-MFE or MFE-before-MAE may be reported to explain behavior, but may never become decision features or retroactive promotion filters in this frozen v4 study.
+
+Additional symbol/sector/day-of-week slices are exploratory unless predeclared before outcome inspection. Multiple-testing/significance hunting is prohibited.
+
+## Failure taxonomy
+
+Use explicit paired taxonomy to distinguish early cuts from slow rescue without hindsight-perfect-price optimization:
+
+- `EARLY_EXIT_CONTINUATION_WINNER`: v4 exits and a fixed predeclared post-exit horizon subsequently shows material favorable continuation; evaluation only.
+- `GOOD_EARLY_RISK_EXIT`: v4 exits before a predeclared adverse continuation and avoids additional loss.
+- `EXCESS_PROFIT_GIVEBACK`: causal running MFE existed before exit and a large share was surrendered by realized exit.
+- `GOOD_WINNER_HOLD`: v4 remains open through ordinary adverse noise and later captures additional favorable return.
+- `SLOW_LOSS_RESCUE`: deterioration persists before v4 exits and paired baseline indicates avoidable additional loss.
+- `SESSION_END_FALLBACK`: no policy exit before canonical session-end handling.
+- `NO_OBSERVATION_HOLD`: canonical sparse/no-finalized-bar hold.
+
+Exact materiality thresholds, if any, must be frozen before the locked holdout and cannot be selected from holdout outcomes.
+
+## Checkpoint protocol
+
+### Checkpoint A — 200 independent Entry events
+
+Primary purpose: **data/substrate validation and obvious failure detection**, not a final performance claim.
+
+Required report:
+
+- Entry events / sessions / symbols / LONG-SHORT
+- substrate tiers
+- parity / PIT / duplicate / missing-bar violations
+- paired Fixed vs v3 vs v4 headline metrics
+- immediate-adverse stratification
+- exit timing distribution
+- symbol concentration
+
+Do not stop merely because one performance metric is below a reviewer-proposed arbitrary threshold. Stop if the data contract is invalid, pairing is broken, v4 implementation parity is broken, or a precommitted economic failure rule is triggered.
+
+### Checkpoints B/C/D
+
+B=500, C=1000+, D=2000+ if coverage permits. Expand only if data integrity remains acceptable. Track period-by-period and tier-by-tier stability rather than treating cumulative N as proof of generalization.
+
+## Concentration and stability diagnostics
+
+Report at minimum:
+
+- Top 1 / Top 5 / Top 10 symbol contribution to total PnL
+- session contribution concentration
+- period-chunk paired deltas
+- LONG and SHORT separately
+- v4 exit-bar distribution
+- giveback by EXIT reason/state
+- immediate-adverse path behavior
+
+Any concentration threshold used as a formal failure gate must be justified and frozen before holdout.
+
 ## Promotion rule
 
 A favorable large historical result does not change main and does not promote v4 automatically.
 
 Any eventual Main EXIT decision requires separately governed OOS/prospective evidence and explicit approval.
+
+Reviewer-suggested values such as `PF>=1.30`, `WinRate>=58%`, `MFE Capture>=60%`, `PF delta<0.15`, `MaxDD<15%`, or `p<0.05` are **not adopted automatically**. They are hypotheses for a later promotion-contract design, not facts established by the current source material.
 
 ## Safety
 
@@ -208,12 +342,12 @@ No order function, broker write, Excel/RSS order write, paper execution or live 
 
 ## Immediate next steps
 
-1. Audit available large historical 5-minute source coverage and lineage.
-2. Determine how many sessions/symbols can support defensible Frozen Hybrid × MSH replay.
-3. Build a replay dataset without touching protected/fresh OOS allocations.
-4. Verify parity on overlapping golden sessions.
-5. Reach 200 independent Entry events before making any v4 quality claim.
-6. Expand to 500 / 1000+ if coverage permits.
-7. Run fixed vs v3 vs v4 paired diagnostics and stability analysis.
+1. Complete Mandatory pre-condition A: large historical data quality/coverage audit.
+2. Complete Mandatory pre-condition B: substrate-tier classifier and counts without opening protected/fresh OOS.
+3. Freeze the historical replay/parity contract and paired evaluator.
+4. Verify overlap parity on golden sessions.
+5. Reach Checkpoint A: 200 independent Entry events.
+6. Ask for independent post-Checkpoint-A review before expanding to 500.
+7. Only after stress work is complete, write and hash Mandatory pre-condition C before any locked holdout access.
 
 Until those gates are complete, EXIT v4 remains a frozen candidate under large-scale historical evaluation, not a proven Main EXIT.

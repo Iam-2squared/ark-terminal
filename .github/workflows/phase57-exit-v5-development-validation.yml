@@ -1,0 +1,157 @@
+name: Phase57 EXIT v5 Development Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/phase57-exit-v5-development-validation.yml'
+      - 'scripts/prepare_phase57_exit_v5_development_validation.mjs'
+      - 'scripts/run_phase57_exit_v5_validation_shard.mjs'
+      - 'scripts/reduce_phase57_exit_v5_validation_shards.mjs'
+      - 'predict/daytrade/phase57-exit-v5-development-validation.js'
+      - 'predict/daytrade/phase57-exit-v5-audited-split-evaluator.js'
+      - 'predict/daytrade/phase57-exit-v5-paired-evaluator.js'
+      - 'predict/daytrade/phase57-exit-v5-continuation-dataset.js'
+      - 'predict/daytrade/phase57-exit-v5-continuation-model.js'
+      - 'predict/daytrade/phase57-exit-v5-conditional-model.js'
+      - 'predict/daytrade/phase57-exit-v5-gbm-model.js'
+      - 'predict/daytrade/phase57-exit-v5-gbm-challenger.js'
+      - 'predict/daytrade/phase57-exit-v5-training-harness.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-exit-v5-development-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+env:
+  TZ: UTC
+  NODE_OPTIONS: --max-old-space-size=6144
+  CANONICAL_SOURCE_RUN_ID: '31785422471'
+  CANONICAL_ARTIFACT_NAME: phase57-p24-9-oos-canonical-candidate
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      validation_dates: ${{ steps.matrix.outputs.validation_dates }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download exact pre-performance canonical byte snapshot
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/exit-v5/canonical
+          gh run download "$CANONICAL_SOURCE_RUN_ID" --repo "$GH_REPO" --name "$CANONICAL_ARTIFACT_NAME" --dir /tmp/exit-v5/canonical
+          snapshot="$(find /tmp/exit-v5/canonical -type f -name 'phase57-p24-9-oos-byte-snapshot.json' -print -quit)"
+          test -n "$snapshot"
+          node scripts/build_p25_pinned_history_pack.mjs --snapshot "$snapshot" --output /tmp/exit-v5/p25-pinned-history-pack.json
+      - name: Replay and freeze P21 Development Validation entries
+        run: |
+          set -euo pipefail
+          node scripts/prepare_phase57_exit_v5_development_validation.mjs \
+            --history-pack /tmp/exit-v5/p25-pinned-history-pack.json \
+            --output /tmp/exit-v5/phase57-exit-v5-development-validation-substrate.json
+      - name: Resolve frozen Validation matrix
+        id: matrix
+        run: |
+          node --input-type=module - <<'NODE' >> "$GITHUB_OUTPUT"
+          import {PHASE57_EXIT_V5_DEVELOPMENT_VALIDATION_POLICY as policy} from './predict/daytrade/phase57-exit-v5-development-validation.js';
+          console.log(`validation_dates=${JSON.stringify(Object.keys(policy.expectedValidationCounts))}`);
+          NODE
+      - name: Upload byte-frozen paired substrate
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-exit-v5-development-validation-substrate
+          path: |
+            /tmp/exit-v5/p25-pinned-history-pack.json
+            /tmp/exit-v5/phase57-exit-v5-development-validation-substrate.json
+          retention-days: 90
+
+  evaluate-validation:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        session_date: ${{ fromJSON(needs.prepare.outputs.validation_dates) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-exit-v5-development-validation-substrate
+          path: /tmp/exit-v5
+      - name: Evaluate exact four-way paired Validation shard
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/exit-v5/shard
+          node scripts/run_phase57_exit_v5_validation_shard.mjs \
+            --history-pack /tmp/exit-v5/p25-pinned-history-pack.json \
+            --substrate /tmp/exit-v5/phase57-exit-v5-development-validation-substrate.json \
+            --validation-session '${{ matrix.session_date }}' \
+            --output '/tmp/exit-v5/shard/${{ matrix.session_date }}.json'
+      - name: Upload Validation shard
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-exit-v5-validation-${{ matrix.session_date }}
+          path: /tmp/exit-v5/shard/${{ matrix.session_date }}.json
+          retention-days: 90
+
+  reduce:
+    needs: evaluate-validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-exit-v5-validation-*
+          path: /tmp/exit-v5/shards
+          merge-multiple: true
+      - name: Deterministically reduce all Validation shards
+        run: |
+          set -euo pipefail
+          node scripts/reduce_phase57_exit_v5_validation_shards.mjs \
+            --input-dir /tmp/exit-v5/shards \
+            --output /tmp/exit-v5/phase57-exit-v5-development-validation-evidence.json
+      - name: Enforce research and safety boundary
+        run: |
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          const evidence=JSON.parse(fs.readFileSync('/tmp/exit-v5/phase57-exit-v5-development-validation-evidence.json','utf8'));
+          if(evidence.status!=='EXIT_V5_DEVELOPMENT_VALIDATION_EVIDENCE_READY')throw new Error('Validation evidence status mismatch');
+          if(evidence.pairedCount!==155)throw new Error(`Validation pair count mismatch: ${evidence.pairedCount}`);
+          if(evidence.classification?.formalOos!==false||evidence.classification?.prospective!==false||evidence.classification?.promotionEligible!==false)throw new Error('Validation classification boundary violation');
+          if(evidence.methodology?.outerOosRead!==false||evidence.methodology?.outerOosEvaluation!==false||evidence.methodology?.resultBasedRetuning!==false||evidence.methodology?.bestResultOnlyReporting!==false)throw new Error('Validation methodology boundary violation');
+          if(evidence.methodology?.strictOuterSplitMembershipEnforced!==true||evidence.methodology?.fullTradeTrajectoryContainedInValidation!==true||evidence.methodology?.purgedBoundarySessionsExcluded!==true)throw new Error('Validation audited split boundary violation');
+          for(const key of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted','freshHoldoutConsumed'])if(evidence.safety?.[key]!==false)throw new Error(`Safety violation: ${key}`);
+          NODE
+      - name: Upload complete four-way Validation evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-exit-v5-development-validation-evidence
+          path: /tmp/exit-v5/phase57-exit-v5-development-validation-evidence.json
+          retention-days: 90
+      - name: Safety statement
+        run: |
+          echo 'Development/Validation research only. Untouched outer OOS and Prospective are not read or evaluated.'
+          echo 'Same P21 Frozen Entry and market-data path for EXIT v3, v4, unconditional v5, and conditional v5.'
+          echo 'No broker, Excel, RSS/MarketSpeed order, paper/live trading, promotion, transmission, or production update.'

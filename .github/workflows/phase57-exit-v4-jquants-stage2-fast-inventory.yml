@@ -26,7 +26,9 @@ jobs:
       - run: node --test scripts/tests/phase57-exit-v4-jquants-stage2-fast-inventory.test.mjs
 
   inventory:
-    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    # Allocation is already frozen. PR path matching must not refetch the pool.
+    # A new inventory requires an explicit manual workflow dispatch.
+    if: github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       max-parallel: 6
@@ -55,7 +57,7 @@ jobs:
 
   aggregate:
     needs: inventory
-    if: always()
+    if: always() && needs.inventory.result != 'skipped'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "auditId": "PHASE57_EXIT_V4_JQUANTS_STAGE1H_TIER2_CONTRACT_FREEZE_V1",
+  "stage": "1H_TIER2_RECONSTRUCTION_CONTRACT_FREEZE",
+  "asOfJst": "2026-09-10",
+  "status": "TIER2_RECONSTRUCTION_CONTRACT_FROZEN_STAGE2_READY",
+  "pullRequest": 581,
+  "parentRemoteHeadSha": "3fb54f2b054f7008a7c5f75cd9d5ba375205419e",
+  "baseBranch": "research/phase57-minimal-stateful-hybrid-entry",
+  "draft": true,
+  "contractFreeze": {
+    "version": "1.0.0",
+    "path": "predict/research/phase57-exit-v4-tier2-reconstruction-contract-v1.json",
+    "sha256": "2aa9fd80596c0f71f2359fb132288a15d563e3fab8e22ecbac54fda308a54a70",
+    "status": "FROZEN_NOT_ACTIVATED",
+    "eligibilitySchemaPath": "predict/research/phase57-exit-v4-tier2-eligibility-schema-v1.json",
+    "eligibilitySchemaSha256": "f060c654f0d5af5f105f8ba20c47b78950ad433305b735d42f6cbd68f8e2823b"
+  },
+  "sourceEvidence": {
+    "stage1gGate": "ENTRY_EVENT_EVIDENCE_CLOSED_TIER2_FREEZE_READY",
+    "stage1gArtifactSha256": "accfa07914c98ab1381351a20e202bd087ae7b4278d750d0556f7b23daa02f4f",
+    "stage1gMatrixSha256": "7fb4dd8e29791deda73710a6539f6c9597a0b2118aff3136a89c2354f522ac86",
+    "approvedSessions": 3,
+    "goldenSelectionEvents": 787,
+    "scoreRowsReconstructed": 1260,
+    "firstEnterEvents": 10,
+    "referencePriceComparisons": 630,
+    "referencePriceMismatches": 0,
+    "pitViolations": 0,
+    "repeatEntryViolations": 0,
+    "criticalAmbiguityOrMismatch": 0,
+    "evidenceClass": "DETERMINISTIC_ENTRY_RECONSTRUCTION_NOT_DIRECT_GOLDEN"
+  },
+  "classification": {
+    "datasetClass": "EXIT_DEVELOPMENT_SUBSTRATE",
+    "substrateTier": "TIER2_RECONSTRUCTED_REPLAY",
+    "researchUse": "DEVELOPMENT_ONLY",
+    "temporality": "NON_PROSPECTIVE",
+    "fullReplayConfirmedSessions": 0,
+    "tier2ActivatedSessions": 0
+  },
+  "policies": {
+    "timestamp": "BAR_START_JST_COMPLETED_5M_AVAILABLE_AT_BAR_END_REPLAY_BOUND",
+    "pit": "ZERO_REQUIRED_ANY_VIOLATION_BLOCKS",
+    "historicalUniverse": "PARTIAL_DISCLOSED_BLOCK_WHEN_ENTRY_CANDIDATE_GENERATION_NOT_DEFENSIBLE",
+    "corporateActions": "PARTIAL_UNRESOLVED_CRITICAL_CONFLICT_BLOCK_OR_EXCLUDE",
+    "missing": "UNKNOWN_FAIL_CLOSED_TO_NO_OBSERVATION_NO_FINALIZED_BAR_NO_FILL",
+    "sourceLineage": "ALL_REQUIRED_FIELDS_PRESENT_OR_BLOCK",
+    "sourceMixing": "JQUANTS_MINUTE_ONLY_ARK_GOLDEN_REFERENCE_OTHER_SOURCE_REQUIRES_SEPARATE_AUDIT"
+  },
+  "eligibility": {
+    "requiredGates": 13,
+    "blockingReasons": 13,
+    "reasonCountsRequired": true,
+    "criticalFailureTreatment": "EXCLUDED",
+    "automaticActivation": false
+  },
+  "frozenIdentifiers": {
+    "selectorModelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
+    "selectorFreezeSha256": "a744d599e430d23efe4dea6600e418d3410d8a18df5055b35e1cc71432bf64da",
+    "entryThreshold": "STRICTLY_GREATER_THAN_0.60",
+    "entryCandidateSha256": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a",
+    "entryAllocationSha256": "7df4cb026d966628c9b3fbc91037eb13704397a700c076e865d817a273df00e6",
+    "entryFitSha256": "e1567951bcc81d50497a42e24411a32112b36638fbc0ff67247a16a6ce80859c"
+  },
+  "stageHandoff": {
+    "stage2AllocationDesignReady": true,
+    "stage2AllocationExecuted": false,
+    "tier2Activated": false,
+    "developmentUnlocked": false,
+    "allocationDatesOrRatiosSet": false,
+    "outcomeMetadataIncluded": false
+  },
+  "tests": {
+    "focused": "11_OF_11_PASS",
+    "predictRegression": "2683_OF_2683_PASS",
+    "contractChecksum": "PASS",
+    "schemaChecksum": "PASS"
+  },
+  "accessLedger": {
+    "newRawSessions": 0,
+    "newSealedSessions": 0,
+    "protected180To282": 0,
+    "freshValidationOrOos": 0,
+    "exitOutcomes": 0,
+    "futureLabels": 0,
+    "exitInvocations": 0
+  },
+  "hardStop": "ACTIVE",
+  "highestValueNextAction": "With separate explicit authorization, freeze result-blind Stage 2 session allocation using capacity and eligibility metadata only; do not open outcomes.",
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

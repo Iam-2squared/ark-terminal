@@ -35,6 +35,15 @@ const ALLOCATED = new Set([
   'FUTURE_RESERVE_SEALED', 'PURGE_EMBARGO',
 ]);
 const OOS_OR_RESERVE = new Set(['UNTOUCHED_OOS_SEALED', 'FUTURE_RESERVE_SEALED']);
+const OUTCOME_UNTOUCHED = new Set(['SEALED_UNTOUCHED', 'METADATA_ONLY_OUTCOME_UNTOUCHED']);
+const SPLIT_KEYS = Object.freeze({
+  DEV_A_LOCKED: 'devA',
+  DEV_B_LOCKED: 'devB',
+  VALIDATION_LOCKED: 'validation',
+  HISTORICAL_HOLDOUT_LOCKED: 'historicalHoldout',
+  UNTOUCHED_OOS_SEALED: 'untouchedOos',
+  FUTURE_RESERVE_SEALED: 'futureReserve',
+});
 
 export function assertNoOutcomeOrFutureFields(value, path = '$') {
   if (Array.isArray(value)) {
@@ -73,7 +82,7 @@ export function validateManifest(manifest) {
     seen.add(row.sessionDate);
     previous = row.sessionDate;
     if (row.eligibilityStatus !== 'ELIGIBLE') assert(!ALLOCATED.has(row.allocationClass), `INELIGIBLE_ALLOCATED:${row.sessionDate}`);
-    if (row.exposureStatus !== 'SEALED_UNTOUCHED') assert(!OOS_OR_RESERVE.has(row.allocationClass), `EXPOSED_ASSIGNED_TO_OOS:${row.sessionDate}`);
+    if (!OUTCOME_UNTOUCHED.has(row.exposureStatus)) assert(!OOS_OR_RESERVE.has(row.allocationClass), `EXPOSED_ASSIGNED_TO_OOS:${row.sessionDate}`);
     if (row.eligibilityStatus === 'UNKNOWN') assert(['DIAGNOSTIC_ONLY', 'UNKNOWN_NOT_ALLOCATED'].includes(row.allocationClass));
   }
   return {sessionCount: manifest.sessions.length, uniqueSessionCount: seen.size};
@@ -83,19 +92,40 @@ export function validateStage2Contract(contract, manifest) {
   assertNoOutcomeOrFutureFields(contract);
   validateManifest(manifest);
   assert.equal(contract.contractId, 'PHASE57_EXIT_V4_STAGE2_DATA_ALLOCATION_CONTRACT_V1');
-  assert.equal(contract.contractVersion, '1.0.0');
-  assert.equal(contract.status, 'NOT_FROZEN_INTEGRITY_BLOCKED');
-  assert.equal(contract.finalGate, 'DATA_ALLOCATION_INTEGRITY_BLOCKED');
+  assert.equal(contract.contractVersion, '1.1.0');
+  assert.equal(contract.status, 'FROZEN_RESULT_BLIND');
+  assert(['DATA_ALLOCATION_READY', 'DATA_ALLOCATION_CAPACITY_CONSTRAINED_BUT_USABLE'].includes(contract.finalGate));
   assert.equal(contract.tier2Contract.sha256, '2aa9fd80596c0f71f2359fb132288a15d563e3fab8e22ecbac54fda308a54a70');
-  assert.equal(contract.pool.confirmedEligibleSessions, 0);
+  assert.equal(contract.tier2Contract.eligibilitySchemaSha256, 'f060c654f0d5af5f105f8ba20c47b78950ad433305b735d42f6cbd68f8e2823b');
+  assert.equal(contract.tier2Contract.modifiedHere, false);
+  assert.equal(contract.pool.confirmedEligibleSessions, 205);
   assert.equal(contract.pool.confirmedBlockedSessions, 0);
-  assert.deepEqual(contract.pool.unknownPlanningBand, [300, 360]);
-  assert.equal(contract.pool.exactSessionLevelInventoryAvailable, false);
-  assert.equal(contract.allocation.frozen, false);
-  for (const count of Object.values(contract.allocation.sessionCounts)) assert.equal(count, 0);
-  assert.equal(contract.stage3.devAUnlockCandidate, false);
+  assert.equal(contract.pool.diagnosticPriorExposureSessions, 179);
+  assert.equal(contract.pool.exactSessionLevelInventoryAvailable, true);
+  assert.equal(contract.allocation.frozen, true);
+  assert.equal(contract.allocation.manifestComplete, true);
+  assert.equal(contract.allocation.purgeEmbargoDecision, 'NONE_SESSION_LOCAL_SELECTOR_AND_ENTRY_STATE');
+
+  const eligible = manifest.sessions.filter((row) => row.eligibilityStatus === 'ELIGIBLE');
+  assert.equal(eligible.length, contract.pool.confirmedEligibleSessions);
+  const allocatedCount = Object.values(contract.allocation.sessionCounts).reduce((sum, count) => sum + count, 0);
+  assert.equal(allocatedCount, eligible.length);
+  for (const [allocationClass, splitKey] of Object.entries(SPLIT_KEYS)) {
+    const rows = eligible.filter((row) => row.allocationClass === allocationClass);
+    const boundary = contract.allocation.dateBoundaries[splitKey];
+    assert.equal(rows.length, contract.allocation.sessionCounts[splitKey], `SPLIT_COUNT_MISMATCH:${splitKey}`);
+    assert.equal(rows[0]?.sessionDate, boundary.first, `SPLIT_FIRST_MISMATCH:${splitKey}`);
+    assert.equal(rows.at(-1)?.sessionDate, boundary.last, `SPLIT_LAST_MISMATCH:${splitKey}`);
+    assert.equal(rows.length, boundary.count, `SPLIT_BOUNDARY_COUNT_MISMATCH:${splitKey}`);
+  }
+
+  assert.equal(contract.stage3.devAUnlockCandidate, true);
   assert.equal(contract.stage3.developmentUnlocked, false);
   assert.equal(contract.stage3.explicitFutureAuthorizationRequired, true);
+  assert.equal(contract.protection.exposedAssignedOosOrReserve, 0);
+  assert.equal(contract.protection.protected180To282ReallocationAllowed, false);
+  assert.equal(contract.protection.freshValidationOrOosReallocationAllowed, false);
+  assert.equal(contract.protection.resultBasedReshuffleAllowed, false);
   assert.deepEqual(contract.safety, SAFETY);
   assert(Object.values(contract.accessLedger).every((value) => value === 0));
   return {status: contract.status, finalGate: contract.finalGate};

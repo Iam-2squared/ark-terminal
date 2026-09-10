@@ -3,29 +3,33 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import test from 'node:test';
 import {
-  ALLOCATION_CLASSES,
-  SAFETY,
-  assertMinimumProtectionWhenFrozen,
-  assertNoOutcomeOrFutureFields,
-  canonicalSha256,
-  expectedFirstEnterCapacity,
-  validateManifest,
-  validateStage2Contract,
+  SAFETY, assertMinimumProtectionWhenFrozen,
+  assertNoOutcomeOrFutureFields, canonicalSha256, expectedFirstEnterCapacity,
+  validateManifest, validateStage2Contract,
 } from '../../scripts/lib/phase57-stage2-data-allocation-contract.mjs';
 
 const research = (name) => new URL(`../research/${name}`, import.meta.url);
 const read = (name) => JSON.parse(fs.readFileSync(research(name), 'utf8'));
+const byteSha = (name) => crypto.createHash('sha256').update(fs.readFileSync(research(name))).digest('hex');
 const contract = read('phase57-exit-v4-stage2-data-allocation-contract-v1.json');
 const manifest = read('phase57-exit-v4-stage2-allocation-manifest-v1.json');
 const summary = read('phase57-exit-v4-stage2-capacity-eligibility-summary-v1.json');
-const audit = read('phase57-exit-v4-jquants-stage2-data-allocation-freeze-v1.json');
-const handoff = read('phase57-exit-v4-stage2-dev-a-handoff-stub-v1.json');
+const inventory = read('phase57-exit-v4-stage2-session-metadata-inventory-v1.json');
+const audit = read('phase57-exit-v4-jquants-stage2-fast-allocation-freeze-v1.json');
+const handoff = read('phase57-exit-v4-stage2-dev-a-handoff-v1.json');
+const artifactFiles = {
+  inventorySha256: 'phase57-exit-v4-stage2-session-metadata-inventory-v1.json',
+  allocationManifestSha256: 'phase57-exit-v4-stage2-allocation-manifest-v1.json',
+  allocationContractSha256: 'phase57-exit-v4-stage2-data-allocation-contract-v1.json',
+  capacitySummarySha256: 'phase57-exit-v4-stage2-capacity-eligibility-summary-v1.json',
+  devAHandoffSha256: 'phase57-exit-v4-stage2-dev-a-handoff-v1.json',
+};
 
-test('Stage 2 truthfully stops at integrity blocked without a frozen allocation', () => {
+test('Stage 2 allocation is frozen result-blind and remains at hard stop', () => {
   assert.deepEqual(validateStage2Contract(contract, manifest), {
-    status: 'NOT_FROZEN_INTEGRITY_BLOCKED', finalGate: 'DATA_ALLOCATION_INTEGRITY_BLOCKED',
+    status: 'FROZEN_RESULT_BLIND', finalGate: 'DATA_ALLOCATION_CAPACITY_CONSTRAINED_BUT_USABLE',
   });
-  assert.equal(audit.status, 'DATA_ALLOCATION_INTEGRITY_BLOCKED');
+  assert.equal(audit.status, 'DATA_ALLOCATION_CAPACITY_CONSTRAINED_BUT_USABLE');
   assert.equal(audit.hardStop, 'ACTIVE');
 });
 
@@ -35,92 +39,101 @@ test('Tier 2 contract and eligibility schema digests remain pinned', () => {
   assert.equal(contract.tier2Contract.modifiedHere, false);
 });
 
-test('unknown planning range is not treated as eligible or allocated', () => {
-  assert.deepEqual(contract.pool.unknownPlanningBand, [300, 360]);
-  assert.equal(contract.pool.unknownPlanningBandIsAllocation, false);
-  assert.equal(contract.pool.confirmedEligibleSessions, 0);
-  assert.equal(summary.candidatePool.allocationPermitted, false);
+test('exact inventory classifies 205 eligible and 179 prior-exposure diagnostics', () => {
+  assert.equal(inventory.status, 'EXACT_METADATA_INVENTORY_COMPLETE');
+  assert.equal(inventory.sessions.length, 384);
+  assert.deepEqual(summary.pool, {discovered: 487, eligible: 205, blocked: 0, diagnosticPriorExposure: 179, protectedExternal: 103, freshExternal: 25});
+  assert.equal(contract.pool.exactSessionLevelInventoryAvailable, true);
+  assert.equal(contract.pool.confirmedEligibleSessions, 205);
+  assert.equal(contract.pool.confirmedBlockedSessions, 0);
 });
 
-test('manifest is deterministic, date ordered and one session one split', () => {
-  assert.deepEqual(validateManifest(manifest), {sessionCount: 3, uniqueSessionCount: 3});
+test('manifest is deterministic, ordered, complete and one-session-one-split', () => {
+  assert.deepEqual(validateManifest(manifest), {sessionCount: 384, uniqueSessionCount: 384});
   assert.equal(canonicalSha256(manifest), canonicalSha256(JSON.parse(JSON.stringify(manifest))));
-  assert.deepEqual(manifest.sessions.map((row) => row.sessionDate), ['2025-08-27', '2025-10-09', '2025-11-25']);
+  assert.equal(contract.allocation.manifestComplete, true);
+  assert.equal(new Set(manifest.sessions.map((row) => row.sessionDate)).size, manifest.sessions.length);
 });
 
-test('all exposed sessions remain diagnostic and cannot become OOS', () => {
-  for (const row of manifest.sessions) {
-    assert.equal(row.exposureStatus, 'DIAGNOSTIC_USED');
-    assert.equal(row.allocationClass, 'DIAGNOSTIC_ONLY');
-    assert.equal(row.eligibilityStatus, 'UNKNOWN');
-  }
+test('allocation counts and chronological boundaries are exact', () => {
+  assert.deepEqual(contract.allocation.sessionCounts, {devA: 70, devB: 20, validation: 30, historicalHoldout: 25, untouchedOos: 30, futureReserve: 30});
+  assert.deepEqual(contract.allocation.dateBoundaries, {
+    devA: {first: '2024-09-10', last: '2024-12-20', count: 70},
+    devB: {first: '2024-12-23', last: '2025-01-24', count: 20},
+    validation: {first: '2025-01-27', last: '2025-03-11', count: 30},
+    historicalHoldout: {first: '2025-03-12', last: '2026-06-15', count: 25},
+    untouchedOos: {first: '2026-06-16', last: '2026-07-28', count: 30},
+    futureReserve: {first: '2026-07-29', last: '2026-09-09', count: 30},
+  });
+  assert.equal(contract.allocation.purgeEmbargoDecision, 'NONE_SESSION_LOCAL_SELECTOR_AND_ENTRY_STATE');
 });
 
-test('Protected and Fresh reservations are external and untouched', () => {
-  assert.equal(manifest.externalProtectionLedger.protected180To282.sessions, 103);
-  assert.equal(manifest.externalProtectionLedger.protected180To282.newAccess, 0);
-  assert.equal(manifest.externalProtectionLedger.freshValidationOrOos.sessions, 25);
-  assert.equal(manifest.externalProtectionLedger.freshValidationOrOos.newAccess, 0);
+test('only metadata-outcome-untouched eligible sessions enter frozen splits', () => {
+  const diagnostic = manifest.sessions.filter((row) => row.allocationClass === 'DIAGNOSTIC_ONLY');
+  const eligible = manifest.sessions.filter((row) => row.eligibilityStatus === 'ELIGIBLE');
+  assert.equal(diagnostic.length, 179);
+  assert(diagnostic.every((row) => row.exposureStatus === 'PRIOR_RESEARCH_EXPOSED'));
+  assert.equal(eligible.length, 205);
+  assert(eligible.every((row) => row.exposureStatus === 'METADATA_ONLY_OUTCOME_UNTOUCHED'));
+  assert.equal(eligible.filter((row) => ['UNTOUCHED_OOS_SEALED', 'FUTURE_RESERVE_SEALED'].includes(row.allocationClass)).length, 60);
+});
+
+test('Protected and Fresh reservations are external, untouched and not reallocatable', () => {
+  assert.deepEqual(manifest.externalProtectionLedger, {
+    protected180To282: {sessions: 103, newAccess: 0, allocationAllowed: false},
+    freshValidationOrOos: {sessions: 25, newAccess: 0, allocationAllowed: false},
+  });
   assert.equal(contract.protection.protected180To282ReallocationAllowed, false);
   assert.equal(contract.protection.freshValidationOrOosReallocationAllowed, false);
+  assert.equal(contract.protection.resultBasedReshuffleAllowed, false);
 });
 
-test('allocation classes are exact and no session is assigned to a split', () => {
-  assert.deepEqual(contract.allocationClasses, ALLOCATION_CLASSES);
-  assert(Object.values(contract.allocation.sessionCounts).every((count) => count === 0));
-  assert.equal(contract.allocation.dateBoundaries, null);
+test('First ENTER capacity is arithmetic only and records the constrained gate', () => {
+  assert.deepEqual(expectedFirstEnterCapacity(70), {conservative: 140, base: 203, optimistic: 238});
+  assert.deepEqual(expectedFirstEnterCapacity(20), {conservative: 40, base: 58, optimistic: 68});
+  assert.deepEqual(summary.allocation.devA.expectedFirstEnter, {conservative: 140, base: 203, optimistic: 238});
+  assert.deepEqual(summary.allocation.devB.expectedFirstEnter, {conservative: 40, base: 58, optimistic: 68});
+  assert.equal(summary.devATarget200.base, true);
+  assert.equal(summary.devBTarget500.base, false);
+  assert.equal(summary.finalGate, 'DATA_ALLOCATION_CAPACITY_CONSTRAINED_BUT_USABLE');
 });
 
-test('First ENTER capacity estimates are arithmetic only', () => {
-  assert.deepEqual(expectedFirstEnterCapacity(100), {conservative: 200, base: 290, optimistic: 340});
-  assert.deepEqual(summary.confirmedAllocationCapacity.devAExpectedFirstEnter, {conservative: 0, base: 0, optimistic: 0});
-  assert.deepEqual(summary.planningBandCapacityNotAllocation.expectedFirstEnter.base, [870, 1044]);
-});
-
-test('minimum protection is not falsely asserted before freeze', () => {
-  assert.deepEqual(assertMinimumProtectionWhenFrozen(contract), {checked: false, reason: 'ALLOCATION_NOT_FROZEN'});
+test('minimum protected split sizes pass after freeze', () => {
+  assert.deepEqual(assertMinimumProtectionWhenFrozen(contract), {checked: true});
 });
 
 test('outcome and future-label fields are rejected recursively', () => {
   assert.throws(() => assertNoOutcomeOrFutureFields({nested:{mfe:1}}), /PROHIBITED_OUTCOME_FIELD/);
   assert.throws(() => assertNoOutcomeOrFutureFields({futureLabel:'x'}), /PROHIBITED_OUTCOME_FIELD/);
-  for (const artifact of [contract, manifest, summary, audit, handoff]) assertNoOutcomeOrFutureFields(artifact);
+  for (const artifact of [contract, manifest, summary, inventory, audit, handoff]) assertNoOutcomeOrFutureFields(artifact);
 });
 
-test('DEV-A is not ready and no split is unlockable', () => {
-  assert.equal(contract.stage3.devAUnlockCandidate, false);
+test('DEV-A is locked and requires separate authorization', () => {
+  assert.equal(contract.stage3.devAUnlockCandidate, true);
   assert.equal(contract.stage3.developmentUnlocked, false);
-  assert.equal(handoff.status, 'BLOCKED_NOT_READY');
-  assert.deepEqual(handoff.devASessions, []);
+  assert.equal(handoff.status, 'DEV_A_LOCKED_READY_FOR_SEPARATE_AUTHORIZATION');
+  assert.equal(handoff.devASessions.length, 70);
+  assert.equal(handoff.developmentUnlocked, false);
+  assert.equal(handoff.explicitFutureAuthorizationRequired, true);
 });
 
-test('all safety flags and all access counters remain false or zero', () => {
-  for (const artifact of [contract, manifest, audit]) assert.deepEqual(artifact.safety, SAFETY);
-  assert(Object.values(contract.accessLedger).every((value) => value === 0));
-  assert(Object.values(audit.accessLedger).every((value) => value === 0));
+test('all safety flags and access counters remain false or zero', () => {
+  for (const artifact of [contract, manifest, inventory, audit, handoff]) assert.deepEqual(artifact.safety, SAFETY);
+  for (const ledger of [contract.accessLedger, inventory.accessLedger, audit.accessLedger]) assert(Object.values(ledger).every((value) => value === 0));
 });
 
-test('byte SHA evidence files match each frozen artifact', () => {
-  for (const name of [
-    'phase57-exit-v4-stage2-data-allocation-contract-v1.json',
-    'phase57-exit-v4-stage2-allocation-manifest-v1.json',
-    'phase57-exit-v4-stage2-capacity-eligibility-summary-v1.json',
-    'phase57-exit-v4-stage2-dev-a-handoff-stub-v1.json',
-    'phase57-exit-v4-jquants-stage2-data-allocation-freeze-v1.json',
-  ]) {
+test('byte SHA evidence files match every current frozen artifact', () => {
+  for (const name of Object.values(artifactFiles)) {
     const expected = fs.readFileSync(research(name.replace(/\.json$/, '.sha256')), 'utf8').trim().split(/\s+/)[0];
-    const actual = crypto.createHash('sha256').update(fs.readFileSync(research(name))).digest('hex');
-    assert.equal(actual, expected, name);
+    assert.equal(byteSha(name), expected, name);
   }
 });
 
-test('audit and blocked DEV-A handoff pin the same artifact bytes', () => {
-  assert.equal(audit.artifacts.allocationContractSha256, 'b3eb3c438ad2c5ec75d2a2900840570d49e03c483808336b6649f8cf46e150b9');
-  assert.equal(audit.artifacts.allocationManifestSha256, '7a3c1fc986eec469b81f6382fc158cc9e54af3c6af24a334432f68a5b868394f');
-  assert.equal(audit.artifacts.capacitySummarySha256, '7227119f2442bf867780f04dfa02c8ab5e964bb1cb389a863d5d02102e5f8252');
-  assert.equal(audit.artifacts.devAHandoffSha256, 'ab267b0d61a3fc580e50dae5420d6da63a23093087cc4e9da691af6129f9e598');
+test('audit and DEV-A handoff pin the same artifact bytes', () => {
+  for (const [field, name] of Object.entries(artifactFiles)) assert.equal(audit.artifacts[field], byteSha(name), field);
   assert.equal(handoff.allocationContractDigest, audit.artifacts.allocationContractSha256);
   assert.equal(handoff.allocationManifestDigest, audit.artifacts.allocationManifestSha256);
+  assert.equal(handoff.sessionMetadataInventoryDigest, audit.artifacts.inventorySha256);
 });
 
 test('Stage 2 implementation has no EXIT invocation import', () => {

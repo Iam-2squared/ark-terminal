@@ -1,0 +1,142 @@
+name: Phase57 EXIT v4 20-Session Diagnostic
+
+on:
+  pull_request:
+    branches: [research/phase57-minimal-stateful-hybrid-entry]
+    paths:
+      - .github/workflows/phase57-exit-v4-20session-diagnostic.yml
+      - scripts/phase57-exit-v4-20session-features.mjs
+      - scripts/phase57-exit-v4-20session-measure.mjs
+      - predict/research/phase57-exit-v4-20session-diagnostic-v1.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-exit-v4-20session-diagnostic-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: Verify fixed 20-session diagnostic contract
+        run: |
+          node - <<'NODE'
+          const fs=require('fs');
+          const c=JSON.parse(fs.readFileSync('predict/research/phase57-exit-v4-20session-diagnostic-v1.json','utf8'));
+          if(c.sessions.length!==20) throw Error('EXPECTED_EXACTLY_20_SESSIONS');
+          const dates=c.sessions.map(x=>x.sessionDate);
+          if(new Set(dates).size!==20) throw Error('DUPLICATE_SESSION');
+          if(dates.some(d=>d<='2026-08-12')) throw Error('NON_CAUSAL_DIAGNOSTIC_DATE');
+          if(c.minimumCausalNeighbors!==30) throw Error('NEIGHBOR_CONTRACT_CHANGED');
+          for(const v of Object.values(c.safety)) if(v!==false) throw Error('SAFETY_FLAG_CHANGED');
+          console.log(JSON.stringify({status:'20SESSION_DIAGNOSTIC_PREFLIGHT_PASS',first:dates[0],last:dates.at(-1),count:dates.length}));
+          NODE
+
+  features:
+    needs: preflight
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        shard: [0, 1, 2, 3]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - name: Read-only pinned Frozen Hybrid source
+        uses: actions/checkout@v4
+        with:
+          ref: 6c1aec0545fa6a77c5435e7cc864f1ea2d71fc26
+          path: frozen-selector
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /package.json
+            /predict/daytrade/phase57-selector-minimal-hybrid.js
+            /predict/daytrade/phase57-selector-minimal-hybrid-model.js
+            /predict/daytrade/phase57-p25-intraday-dynamic-universe.js
+            /predict/daytrade/phase57-p25-jpx-opportunity-universe.js
+            /predict/research/phase57-selector-minimal-hybrid-development-model.json
+            /predict/research/phase57-selector-minimal-hybrid-development-freeze.json
+            /predict/research/phase57-selector-minimal-hybrid-phase-a-amendment-v1.1.json
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: Reconstruct Frozen Hybrid + MSH input-only features
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          SHARD_INDEX: ${{ matrix.shard }}
+          SHARD_COUNT: 4
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: node scripts/phase57-exit-v4-20session-features.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-exit-v4-20session-features-${{ matrix.shard }}-${{ github.run_id }}
+          path: artifacts/phase57-exit-v4-20session-features/
+          if-no-files-found: error
+          retention-days: 14
+
+  measure:
+    needs: features
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: Download 20 reconstructed input bundles
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-exit-v4-20session-features-*-${{ github.run_id }}
+          path: artifacts/diagnostic-input
+          merge-multiple: true
+      - name: Download immutable frozen MSH candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: entry58-development-measurement-34292703804
+          run-id: 34292703804
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/input/candidate
+      - name: Download canonical pre-performance analog snapshot
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-p24-9-oos-canonical-candidate
+          run-id: 31785422471
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/input/analog
+      - name: Resolve exact analog snapshot by frozen SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          wanted=10ec0b89893823f9e2f7ba720db2d0fad8e76d642fe00f7b77d387ae6be6b12a
+          found=''
+          while IFS= read -r f; do
+            if [ "$(sha256sum "$f" | cut -d' ' -f1)" = "$wanted" ]; then found="$f"; break; fi
+          done < <(find artifacts/input/analog -type f -name '*.json' | sort)
+          test -n "$found"
+          echo "ANALOG_SNAPSHOT=$found" >> "$GITHUB_ENV"
+          test "$(sha256sum artifacts/input/candidate/candidate-model.json | cut -d' ' -f1)" = "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a"
+      - name: Measure Hybrid MSH entry quality and Fixed v3 v4 paired outcomes
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: node scripts/phase57-exit-v4-20session-measure.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-exit-v4-20session-measurement-${{ github.run_id }}
+          path: artifacts/phase57-exit-v4-20session-measurement/
+          if-no-files-found: error
+          retention-days: 30

@@ -75,3 +75,42 @@ test("precommit stays outcome blind and uses exposed PURGE sessions only", () =>
   for (const forbidden of ["EXIT_PERFORMANCE", "MFE_MAE", "FUTURE_LABELS", "PROTECTED_180_TO_282", "FRESH_OOS"]) assert.ok(manifest.prohibited.includes(forbidden));
   assert.ok(Object.values(manifest.safety).every((value) => value === false));
 });
+
+test("final result stops with all protected, outcome, and safety guards closed", () => {
+  const result = JSON.parse(fs.readFileSync("predict/research/phase57-exit-v4-jquants-stage1-result-v1.json", "utf8"));
+  assert.equal(result.stage1Gate, "STOP_DATA_SOURCE_NOT_READY");
+  assert.equal(result.evidence.bulkGetCalled, false);
+  assert.equal(result.evidence.tickRawDownloadStarted, false);
+  assert.equal(result.accessLedger.newSealedSessionsOpened, 0);
+  assert.equal(result.accessLedger.exitOutcomeAccess, 0);
+  assert.equal(result.accessLedger.futureLabelAccess, 0);
+  assert.equal(result.accessLedger.protected180To282Opened, 0);
+  assert.equal(result.accessLedger.freshValidationOpened, 0);
+  assert.equal(result.accessLedger.freshOosOpened, 0);
+  assert.equal(result.datasetEligibility.FULL_REPLAY_ELIGIBLE.sessions, 0);
+  assert.ok(result.pilotClassification.every((row) => row.tier === "BLOCKED"));
+  assert.ok(Object.values(result.safety).every((value) => value === false));
+});
+
+test("Hybrid and all ten MSH features remain explicit and unfitted", () => {
+  const result = JSON.parse(fs.readFileSync("predict/research/phase57-exit-v4-jquants-stage1-result-v1.json", "utf8"));
+  assert.equal(result.hybridReplay.verdict, "PARTIAL");
+  assert.equal(result.mshEntryReplay.verdict, "PARTIAL");
+  assert.equal(result.mshEntryReplay.threshold, "STRICTLY_GREATER_THAN_0.60");
+  assert.deepEqual(result.mshEntryReplay.features.map((row) => row.feature), [
+    "directionalReturnFromOpenPct", "directionalVwapDistancePct", "directionalMomentum3Pct",
+    "directionalMomentumAccelerationPct", "directionalPullback6Pct", "relativeVolume5",
+    "minutesSinceFirstSelection", "hybridReciprocalRank", "priorSelectionCount", "direction",
+  ]);
+  assert.ok(result.mshEntryReplay.features.every((row) => row.goldenParity === "0_OF_3_NOT_RUN"));
+});
+
+test("adjustment and unknown absence fail closed", () => {
+  const result = JSON.parse(fs.readFileSync("predict/research/phase57-exit-v4-jquants-stage1-result-v1.json", "utf8"));
+  assert.match(result.quality.adjustment, /^FAIL/);
+  const unknown = result.missingSparseSemantics.find((row) => row.condition === "UNKNOWN");
+  assert.equal(unknown.detectable, "YES");
+  assert.match(unknown.replayTreatment, /NO_OBSERVATION/);
+  assert.match(unknown.replayTreatment, /NO_STATE_ADVANCEMENT/);
+  assert.equal(aggregateJquantsMinutesToFiveMinuteBars([], { sourceMinuteTimestampMeaning: "BAR_START_HALF_OPEN_INCLUDING_TERMINAL_AUCTION_MINUTES" }).length, 0);
+});

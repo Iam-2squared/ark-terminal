@@ -1,6 +1,8 @@
 # Phase57 EXIT v4 — J-Quants Stage 1 Minimal Quality / Parity Pilot
 
-Status: `PRECOMMITTED_PROVIDER_PROBE_PENDING`
+Status: `STOP_DATA_SOURCE_NOT_READY`
+
+The precommitted provider probe ran through metadata only and stopped before Tick raw download because the historical Tick transport was month-scoped. Final evidence and the F–T gate report are in `phase57-exit-v4-jquants-stage1-result.md`.
 
 This stage is restricted to source semantics and input-substrate parity. It does not calculate Frozen EXIT v3/v4 performance, MFE/MAE, future labels, winner/loser groups, or Entry capacity. Development, Validation, Protected 180–282, Fresh Validation, and Fresh OOS remain locked.
 

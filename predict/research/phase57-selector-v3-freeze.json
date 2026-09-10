@@ -1,0 +1,195 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.selector-v3.0",
+  "candidateId": "SELECTOR_V3_0_CAUSAL_OHLCV",
+  "status": "PRE_REGISTERED_FROZEN_BEFORE_LARGE_SCALE_HISTORICAL_OUTCOMES",
+  "freezeDate": "2026-09-05",
+  "baseMainSha": "d2efdd4953454318bb02b77d32f3d731bfc4cc29",
+  "purpose": "Rank remaining direction-agnostic tradable opportunity rather than current activity alone.",
+  "scope": {
+    "researchOnly": true,
+    "laneYMainChangeAllowed": false,
+    "v1ChangeAllowed": false,
+    "v2ChangeAllowed": false,
+    "automaticPromotionAllowed": false,
+    "outerOosRetuningAllowed": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "causality": {
+    "intervalMinutes": 5,
+    "barTimestampContract": "Every bar must provide availableAt. Historical BAR_OPEN timestamps may be normalized only as availableAt = timestamp + intervalMinutes.",
+    "featureCutoffRule": "availableAt <= featureCutoff",
+    "futureBarFeaturesAllowed": false,
+    "futureQuoteFeaturesAllowed": false,
+    "futureTickFeaturesAllowed": false,
+    "silentMissingToZeroAllowed": false,
+    "duplicateAvailableAtPolicy": "FAIL_CLOSED_ON_CONFLICT",
+    "minimumClosedLookbackBars": 12,
+    "minimumCurrentSessionBars": 3,
+    "atomicFoldUnit": "COMPLETE_5M_CROSS_SECTION",
+    "outerGrouping": "TRADING_SESSION",
+    "purgeSessionsAtEachBoundary": 1
+  },
+  "sourceArms": {
+    "primary": "CAUSAL_OHLCV_ONLY",
+    "microstructurePrimaryAllowed": false,
+    "microstructureRule": "Spread, depth, quote staleness and observed price grid are diagnostic-only in V3.0. They may not be zero-filled or mixed into the primary score.",
+    "genericTickSizeMayBeCalledOfficial": false
+  },
+  "featureDefinitions": {
+    "atrLookbackBars": 12,
+    "shortReturnBars": 3,
+    "mediumReturnBars": 6,
+    "turnoverMedianBars": 6,
+    "minimumSectorPeers": 3,
+    "structuralTradability": {
+      "cumulativeTurnoverPercentileWeight": 0.55,
+      "medianBarTurnoverPercentileWeight": 0.45
+    },
+    "momentum": {
+      "absoluteAtrNormalizedReturn3PercentileWeight": 0.45,
+      "absoluteAtrNormalizedReturn6PercentileWeight": 0.3,
+      "pathEfficiency6Weight": 0.25
+    },
+    "extensionPenalty": {
+      "vwapExtensionAtrDivisor": 3,
+      "sessionMoveAtrDivisor": 6,
+      "sameDirectionRunDivisor": 4,
+      "vwapExtensionWeight": 0.55,
+      "sessionMoveWeight": 0.3,
+      "sameDirectionRunWeight": 0.15
+    },
+    "context": {
+      "sectorBreadthAlignmentWeight": 0.45,
+      "marketBreadthAlignmentWeight": 0.35,
+      "sectorResidualHeadroomWeight": 0.2,
+      "missingSectorPolicy": "UNKNOWN_AND_RENORMALIZE_AVAILABLE_CONTEXT_WEIGHTS"
+    }
+  },
+  "score": {
+    "structuralTradabilityWeight": 0.3,
+    "momentumWeight": 0.3,
+    "remainingHeadroomWeight": 0.25,
+    "marketSectorContextWeight": 0.15,
+    "minimumStructuralTradability": 0.3,
+    "scoreMeaning": "FIXED_INTERPRETABLE_UTILITY_SCORE_NOT_A_PROBABILITY"
+  },
+  "selection": {
+    "maximumSelectedPerTimestamp": 30,
+    "maximumSelectedPerSector": 5,
+    "thresholdCandidates": [
+      0.45,
+      0.5,
+      0.55,
+      0.6,
+      0.65,
+      0.7
+    ],
+    "thresholdSelectionDataset": "VALIDATION_ONLY",
+    "thresholdObjective": "MAXIMIZE_MEAN_COST_ADJUSTED_TWO_SIDED_UTILITY_BPS_MINUS_0_25_TIMES_DOWNSIDE_DEVIATION_BPS",
+    "minimumValidationSelectedRows": 200,
+    "minimumValidationDecisionTimestamps": 20,
+    "thresholdTieBreak": "HIGHER_THRESHOLD_THEN_LOWER_SELECTED_COUNT",
+    "noEligibleThresholdPolicy": "ABSTAIN_ALL",
+    "fixedCountFillAllowed": false,
+    "persistenceFeatureAllowed": false
+  },
+  "targets": {
+    "anchor": "LAST_CAUSALLY_CLOSED_BAR_CLOSE",
+    "horizonBars": [
+      1,
+      2,
+      3,
+      6,
+      12
+    ],
+    "primaryHorizonBars": 6,
+    "roundTripCostBps": 10,
+    "upExcursion": "max(0, maxFutureHigh / anchorPrice - 1)",
+    "downExcursion": "max(0, 1 - minFutureLow / anchorPrice)",
+    "twoSidedOpportunity": "max(upExcursion, downExcursion)",
+    "costAdjustedTwoSidedUtility": "twoSidedOpportunity - roundTripCostBps / 10000",
+    "barrierBps": [
+      20,
+      40,
+      60
+    ],
+    "sameBarUpperAndLowerPolicy": "AMBIGUOUS_SAME_BAR",
+    "entryAwareMetricsAreSeparate": true
+  },
+  "split": {
+    "minimumTradingSessions": 30,
+    "developmentFraction": 0.5,
+    "validationFraction": 0.2,
+    "untouchedOosFraction": 0.3,
+    "chronologicalOnly": true,
+    "rowLevelRandomSplitAllowed": false,
+    "crossSectionSplitAllowed": false,
+    "outerOosThresholdSearchAllowed": false
+  },
+  "benchmark": {
+    "selectors": [
+      "CURRENT_V1_FROZEN",
+      "CURRENT_V2_FROZEN",
+      "SELECTOR_V3_0_FROZEN"
+    ],
+    "pairedMarketStateRequired": true,
+    "v1V2WeightsAndThresholdsChangeAllowed": false,
+    "historicalReplayLabels": [
+      "EXACT_HISTORICAL_REPLAY",
+      "LATER_FETCHED_HISTORICAL_RECONSTRUCTION",
+      "SURVIVORSHIP_LIMITED_RECONSTRUCTION"
+    ],
+    "reconstructionMayBeCalledExact": false,
+    "requiredSlices": [
+      "timeOfDay",
+      "sector",
+      "marketRegime",
+      "priceBand",
+      "liquidityBand",
+      "rankDecile"
+    ],
+    "requiredMetrics": [
+      "selectedCount",
+      "coverage",
+      "rank",
+      "preSelectionMove",
+      "upExcursion",
+      "downExcursion",
+      "twoSidedOpportunity",
+      "costAdjustedTradableUtility",
+      "opportunityDetectionLeadTime"
+    ],
+    "entryAwareEvaluation": [
+      "frozenEntryAcceptanceRate",
+      "directionalMfe",
+      "directionalMae",
+      "netExpectancy",
+      "profitFactor",
+      "maxDrawdown"
+    ]
+  },
+  "freezeDiscipline": {
+    "forensicCasesUsed": [
+      "2026-09-04:338A",
+      "2026-09-04:8918",
+      "2026-09-04:336A"
+    ],
+    "largeScaleHistoricalOutcomesSeenBeforeFreeze": false,
+    "postFreezeFeatureAdditionAllowed": false,
+    "postFreezeWeightChangeAllowed": false,
+    "postFreezeSpecialSymbolOrPriceFilterAllowed": false,
+    "bugFixPolicy": "A bug fix requires an explicit version bump or a documented semantics-preserving correction; OOS results remain untouched."
+  }
+}
+

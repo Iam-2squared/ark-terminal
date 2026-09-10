@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "auditId": "PHASE57_EXIT_V4_JQUANTS_STAGE1D_READ_ONLY_GOLDEN_EXTRACTION_V1",
+  "asOfJst": "2026-09-10",
+  "stage": "1D_READ_ONLY_GOLDEN_EXTRACTION_CONTRACT",
+  "pullRequest": 581,
+  "parentHeadSha": "e22e2716f785ce658f61eb672f22b2026b74d299",
+  "baseBranch": "research/phase57-minimal-stateful-hybrid-entry",
+  "baseSha": "2357699727af2f4234771f9e25a2cf9fbf887eee",
+  "status": "READ_ONLY_EXTRACTION_NOT_SUPPORTED",
+  "hardStop": "ACTIVE",
+  "scope": "OFFICIAL_GITHUB_ARTIFACT_METADATA_AND_EXTRACTION_CAPABILITY_ONLY_NO_ZIP_DOWNLOAD_NO_PARITY_NO_OUTCOME",
+  "allowedSessions": ["2025-08-27", "2025-10-09", "2025-11-25"],
+  "officialApiEvidence": {
+    "documentation": "https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28#download-an-artifact",
+    "metadataEndpoints": true,
+    "archiveDownloadRedirect": true,
+    "archiveFormat": "zip",
+    "serverSideMemberListing": false,
+    "serverSideMemberFilter": false,
+    "individualMemberDownload": false,
+    "verdict": "ONLY_WHOLE_ZIP_ARCHIVE_DOWNLOAD_IS_DOCUMENTED"
+  },
+  "sourceArtifacts": [
+    {
+      "sessionDate": "2025-08-27",
+      "runId": 34355199082,
+      "artifactId": 10106663226,
+      "artifactName": "entry-holdout29-features-0-34355199082",
+      "sizeInBytes": 1197793,
+      "digest": "sha256:803b33bcc8f26acd4afbcea090215ef7e58214ad833206baf79cbaa367d18173",
+      "expiresAt": "2026-10-09T13:37:28Z",
+      "sessionsInArtifact": 10,
+      "deniedSessionsCount": 9,
+      "expired": false
+    },
+    {
+      "sessionDate": "2025-10-09",
+      "runId": 34292703804,
+      "artifactId": 10082689099,
+      "artifactName": "entry58-features-0-34292703804",
+      "sizeInBytes": 1095885,
+      "digest": "sha256:a38749885f36f63a48d4b8b5b47f02aedc4b5b5a5c9ee10b83744c7ebedb1b3b",
+      "expiresAt": "2026-10-09T00:22:58Z",
+      "sessionsInArtifact": 10,
+      "deniedSessionsCount": 9,
+      "expired": false
+    },
+    {
+      "sessionDate": "2025-11-25",
+      "runId": 34292703804,
+      "artifactId": 10084152060,
+      "artifactName": "entry58-features-5-34292703804",
+      "sizeInBytes": 1089747,
+      "digest": "sha256:72a9b97a913fe2b94aad4ef292bd6fcf172401d4b5252c7e7ddc7a379c425d03",
+      "expiresAt": "2026-10-09T01:21:32Z",
+      "sessionsInArtifact": 9,
+      "deniedSessionsCount": 8,
+      "expired": false
+    }
+  ],
+  "filterContract": {
+    "key": "sessionDate",
+    "match": "EXACT_ALLOWLIST_ONLY",
+    "outcomeDependent": false,
+    "readOnly": true,
+    "requiredTransport": "SERVER_SIDE_MEMBER_FILTER",
+    "downloadThenFilter": "FORBIDDEN",
+    "fullArtifactMaterialization": "FORBIDDEN",
+    "columnPolicy": "RECURSIVE_DENYLIST_BEFORE_OUTPUT",
+    "deniedFieldFamilies": ["future*", "*label*", "*outcome*", "mfe*", "mae*", "exit*", "profit*", "winner/winRate", "returnAfter*", "target*"],
+    "sourceLineageRequired": ["runId", "artifactId", "artifactName", "artifactDigest"],
+    "subsetShaRequired": true
+  },
+  "extraction": {
+    "serverSideFilterSupported": false,
+    "executed": false,
+    "fullArtifactDownloaded": 0,
+    "allowedSessionsExtracted": 0,
+    "unapprovedSessionsMaterialized": 0,
+    "goldenBRows": 0,
+    "subsetSha256": null,
+    "extractorSha256": null,
+    "contractModuleSha256": "07a7fd3bd80d8ceacbee78633f662abd70303258a138239f3a8a17f50d8ea7b7",
+    "reason": "OFFICIAL_API_EXPOSES_ARCHIVE_LEVEL_DOWNLOAD_ONLY"
+  },
+  "parity": {
+    "dataBar": "NOT_RUN",
+    "hybridInput": "NOT_RUN",
+    "hybridOutput": "NOT_RUN",
+    "mshFeatures": "NOT_RUN",
+    "mshState": "NOT_RUN",
+    "entryEvent": "NOT_RUN",
+    "pitViolations": 0,
+    "pitQualification": "NO_PARITY_EXECUTED_NOT_FULL_PROOF"
+  },
+  "eligibility": {
+    "fullReplayEligibleSessions": 0,
+    "confirmedTier2Sessions": 0,
+    "stage2AllocationAllowed": false
+  },
+  "accessLedger": {
+    "artifactZipDownloads": 0,
+    "artifactMemberDownloads": 0,
+    "newJquantsCalls": 0,
+    "newTickDownloads": 0,
+    "newRawSessions": 0,
+    "newSealedSessions": 0,
+    "protected180To282": 0,
+    "freshValidationOrOos": 0,
+    "exitOutcome": 0,
+    "futureLabels": 0,
+    "exitInvocations": 0,
+    "rawPersistence": 0
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "tests": {
+    "stage1dContract": "8_OF_8_PASS",
+    "fullPredict": "2615_OF_2615_PASS",
+    "githubCi": "VERIFY_ON_COMMITTED_HEAD_AND_REPORT_EXTERNALLY"
+  },
+  "nextHighestValueAction": "CREATE_NEW_SESSION_ISOLATED_PRE_OUTCOME_ARTIFACTS_AT_GENERATION_TIME_OR_OBTAIN_AN_OFFICIALLY_SUPPORTED_MEMBER_FILTER_ENDPOINT_THEN_REAUTHORIZE_STAGE1D"
+}

@@ -1,0 +1,52 @@
+{
+  "freezeVersion": 1,
+  "purpose": "ENTRY_TIME_ALLOCATION_BASELINE_REFERENCE_ONLY",
+  "upstreamBranch": "research/phase57-minimal-stateful-hybrid-entry",
+  "upstreamHeadAtBranchCreation": "2357699727af2f4234771f9e25a2cf9fbf887eee",
+  "legacy": {
+    "source": "predict/portfolio/phase57-p25-lane-c-portfolio-simulator.js",
+    "sourceRef": "244e47b994ee8809e73bebb6a914eaf0ce8abf69",
+    "profiles": [
+      {"id":"MAX_10","maxPositions":10},
+      {"id":"MAX_4","maxPositions":4},
+      {"id":"MAX_3","maxPositions":3},
+      {"id":"MAX_2","maxPositions":2}
+    ],
+    "slotBudget": "CURRENT_PORTFOLIO_EQUITY_DIVIDED_BY_MAX_POSITIONS",
+    "lotSize": 100,
+    "entryOrder": ["ENTRY_TIMESTAMP_ASC","SYMBOL_ASC"],
+    "purchaseCashConstraintRequired": true,
+    "unrealizedPnlMayIncreaseBuyingPower": false,
+    "sectorConstraintApplied": false,
+    "deterministicConfidenceRankingApplied": false,
+    "futureOutcomeVisibleToAllocator": false
+  },
+  "adaptiveV2": {
+    "sourceCommit": "f13cc42515df3b1e1b60de7181fdf89f1a9255f9",
+    "candidateId": "ADAPTIVE_ALLOCATION_V2",
+    "maximumConcurrentPositions": 9,
+    "rankThresholds": {"S":0.85,"A":0.70,"B":0.55,"C":0},
+    "candidateEquityCaps": {"S":0.45,"A":0.35,"B":0.25,"C":0.15},
+    "singleRankTarget": {"S":0.68,"A":0.56,"B":0.44,"C":0.30},
+    "breadthBonusPerAdditionalCandidate": 0.055,
+    "maximumTargetUtilization": 0.92,
+    "scoreWeights": {"entryConfidence":0.30,"entryProbability":0.20,"selectionOpportunity":0.25,"selectionV2":0.25},
+    "profiles": ["ADAPTIVE_EQUAL","ADAPTIVE_RANK","ADAPTIVE_SCORE"],
+    "rankWeights": {"S":4,"A":3,"B":2,"C":1},
+    "winnerSelectionAllowed": false,
+    "resultBasedRetuning": false
+  },
+  "comparisonRule": "BASELINES_ARE_FROZEN_REFERENCES; DO_NOT_RETUNE_TO_HELP_V3",
+  "phaseA": "NO_REALIZED_PNL_PRIMARY; EXIT_DEPENDENT_PORTFOLIO_UTILITY_DEFERRED",
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

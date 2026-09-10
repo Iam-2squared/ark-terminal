@@ -3,38 +3,91 @@
   "summaryId": "PHASE57_EXIT_V4_STAGE2_CAPACITY_ELIGIBILITY_SUMMARY_V1",
   "asOfJst": "2026-09-10",
   "basis": "METADATA_AND_PRE_OUTCOME_ESTIMATES_ONLY",
-  "metadataKnown": {
-    "diagnosticUsedSessions": 3,
-    "protectedExternalSessions": 103,
-    "freshExternalSessions": 25,
-    "totalSessions": 131
+  "pool": {
+    "discovered": 487,
+    "eligible": 205,
+    "blocked": 0,
+    "diagnosticPriorExposure": 179,
+    "protectedExternal": 103,
+    "freshExternal": 25
   },
-  "candidatePool": {
-    "confirmedEligible": 0,
-    "confirmedBlocked": 0,
-    "unknownPlanningBand": [300, 360],
-    "exactDates": "UNKNOWN",
-    "allocationPermitted": false
+  "blockingReasonCounts": {},
+  "expectedFirstEnterPerSession": {
+    "conservative": 2,
+    "base": 2.9,
+    "optimistic": 3.4
   },
-  "expectedFirstEnterPerSession": {"conservative": 2.0, "base": 2.9, "optimistic": 3.4},
-  "confirmedAllocationCapacity": {
-    "devASessions": 0,
-    "devAExpectedFirstEnter": {"conservative": 0, "base": 0, "optimistic": 0},
-    "devBTotalSessions": 0,
-    "devBTotalExpectedFirstEnter": {"conservative": 0, "base": 0, "optimistic": 0},
-    "validationSessions": 0,
-    "historicalHoldoutSessions": 0,
-    "untouchedOosSessions": 0,
-    "futureReserveSessions": 0,
-    "purgeEmbargoSessions": 0
-  },
-  "planningBandCapacityNotAllocation": {
-    "sessions": [300, 360],
-    "expectedFirstEnter": {
-      "conservative": [600, 720],
-      "base": [870, 1044],
-      "optimistic": [1020, 1224]
+  "allocation": {
+    "devA": {
+      "first": "2024-09-10",
+      "last": "2024-12-20",
+      "count": 70,
+      "expectedFirstEnter": {
+        "conservative": 140,
+        "base": 203,
+        "optimistic": 238
+      }
+    },
+    "devB": {
+      "first": "2024-12-23",
+      "last": "2025-01-24",
+      "count": 20,
+      "expectedFirstEnter": {
+        "conservative": 40,
+        "base": 58,
+        "optimistic": 68
+      }
+    },
+    "validation": {
+      "first": "2025-01-27",
+      "last": "2025-03-11",
+      "count": 30,
+      "expectedFirstEnter": {
+        "conservative": 60,
+        "base": 87,
+        "optimistic": 102
+      }
+    },
+    "historicalHoldout": {
+      "first": "2025-03-12",
+      "last": "2026-06-15",
+      "count": 25,
+      "expectedFirstEnter": {
+        "conservative": 50,
+        "base": 72.5,
+        "optimistic": 85
+      }
+    },
+    "untouchedOos": {
+      "first": "2026-06-16",
+      "last": "2026-07-28",
+      "count": 30,
+      "expectedFirstEnter": {
+        "conservative": 60,
+        "base": 87,
+        "optimistic": 102
+      }
+    },
+    "futureReserve": {
+      "first": "2026-07-29",
+      "last": "2026-09-09",
+      "count": 30,
+      "expectedFirstEnter": {
+        "conservative": 60,
+        "base": 87,
+        "optimistic": 102
+      }
     }
   },
-  "conclusion": "EXACT_ELIGIBILITY_POOL_REQUIRED_BEFORE_RESULT_BLIND_SPLIT_FREEZE"
+  "devATarget200": {
+    "conservative": false,
+    "base": true,
+    "optimistic": true
+  },
+  "devBTarget500": {
+    "conservative": false,
+    "base": false,
+    "optimistic": false
+  },
+  "finalGate": "DATA_ALLOCATION_CAPACITY_CONSTRAINED_BUT_USABLE"
 }

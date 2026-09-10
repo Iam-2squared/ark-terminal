@@ -1,28 +1,31 @@
 {
   "schemaVersion": 1,
-  "contractId": "PHASE57_EXIT_V4_STAGE2_DATA_ALLOCATION_CONTRACT_V1",
-  "contractVersion": "1.1.0",
+  "auditId": "PHASE57_EXIT_V4_JQUANTS_STAGE2_FAST_ALLOCATION_FREEZE_V1",
+  "stage": "2_FAST_METADATA_INVENTORY_ALLOCATION_FREEZE",
   "asOfJst": "2026-09-10",
-  "status": "FROZEN_RESULT_BLIND",
-  "finalGate": "DATA_ALLOCATION_CAPACITY_CONSTRAINED_BUT_USABLE",
+  "status": "DATA_ALLOCATION_CAPACITY_CONSTRAINED_BUT_USABLE",
+  "pullRequest": 581,
+  "draft": true,
+  "mainChanged": false,
   "tier2Contract": {
-    "version": "1.0.0",
     "sha256": "2aa9fd80596c0f71f2359fb132288a15d563e3fab8e22ecbac54fda308a54a70",
-    "eligibilitySchemaSha256": "f060c654f0d5af5f105f8ba20c47b78950ad433305b735d42f6cbd68f8e2823b",
-    "modifiedHere": false
+    "modified": false
+  },
+  "artifacts": {
+    "inventorySha256": "127bc15586301936fcb5806486b2d3f03f9a51790d5e1b051fa918815a019e82",
+    "allocationManifestSha256": "316d65a051ef62a0917446a910eabd9c46f2b577486fb5ead5743c446075a276",
+    "allocationContractSha256": "7e2792dfe35998716535bbbe0c9347adf87c9d6179f004b405bf0afd7240faec",
+    "capacitySummarySha256": "9d95b4a7a099764be03a66a1ef0088211659662440f3ab809f8c79f250224040",
+    "devAHandoffSha256": "afcc928c99de77c98115eadb47747e6cc33b50af733461ce41e4885e877adfb0"
   },
   "pool": {
-    "exactSessionLevelInventoryAvailable": true,
-    "confirmedEligibleSessions": 205,
-    "confirmedBlockedSessions": 0,
-    "diagnosticPriorExposureSessions": 179,
-    "protectedExternalSessions": 103,
-    "freshExternalSessions": 25
+    "discovered": 487,
+    "eligible": 205,
+    "blocked": 0,
+    "diagnosticPriorExposure": 179,
+    "protectedExternal": 103,
+    "freshExternal": 25
   },
-  "allocationUnit": "JST_TRADING_SESSION",
-  "ordering": "OLDEST_ELIGIBLE_TO_NEWEST_ELIGIBLE",
-  "randomShuffleAllowed": false,
-  "oneSessionOneSplit": true,
   "allocation": {
     "frozen": true,
     "manifestComplete": true,
@@ -68,32 +71,6 @@
       }
     }
   },
-  "developmentPolicy": {
-    "devATargetIndependentFirstEnter": 200,
-    "devAExpectedFirstEnter": {
-      "conservative": 140,
-      "base": 203,
-      "optimistic": 238
-    },
-    "devBTotalExpectedFirstEnter": {
-      "conservative": 180,
-      "base": 261,
-      "optimistic": 306
-    },
-    "devAOnlyMayBecomeNextUnlockCandidate": true,
-    "developmentUnlocked": false
-  },
-  "protection": {
-    "exposedAssignedOosOrReserve": 0,
-    "protected180To282ReallocationAllowed": false,
-    "freshValidationOrOosReallocationAllowed": false,
-    "resultBasedReshuffleAllowed": false
-  },
-  "stage3": {
-    "devAUnlockCandidate": true,
-    "developmentUnlocked": false,
-    "explicitFutureAuthorizationRequired": true
-  },
   "accessLedger": {
     "newRawSessions": 0,
     "newSealedOutcomeSessions": 0,
@@ -103,6 +80,7 @@
     "futureLabels": 0,
     "exitInvocations": 0
   },
+  "hardStop": "ACTIVE",
   "safety": {
     "executionAllowed": false,
     "brokerWriteAllowed": false,

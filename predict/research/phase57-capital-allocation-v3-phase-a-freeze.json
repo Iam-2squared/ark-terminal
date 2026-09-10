@@ -1,0 +1,96 @@
+{
+  "status": "PHASE_A_FROZEN_STRUCTURAL_ONLY",
+  "frozenAt": "2026-09-11T02:36:47+09:00",
+  "scope": "CAPITAL_ALLOCATION_V3_ENTRY_TIME_PHASE_A_ONLY",
+  "pullRequest": 582,
+  "pullRequestMustRemainDraft": true,
+  "mergeAllowed": false,
+  "performanceClaimAllowed": false,
+  "winnerSelectionAllowed": false,
+  "outcomesRead": false,
+  "labelsRead": false,
+  "exitRead": false,
+  "protectedOosRead": false,
+  "freshOutcomesRead": false,
+  "frozenEvidenceCommitSha": "be887e2fcf16f80d438a3415a26470484548d1c3",
+  "baseSha": "2357699727af2f4234771f9e25a2cf9fbf887eee",
+  "frozenArtifacts": [
+    "predict/research/phase57-capital-allocation-v3-entrytime-contract.json",
+    "predict/research/phase57-capital-allocation-v3-baseline-freeze.json",
+    "predict/research/phase57-capital-allocation-v3-phase-a-source.json",
+    "predict/research/phase57-capital-allocation-v3-phase-a-structural.json",
+    "scripts/lib/phase57-capital-allocation-v3-entrytime.mjs",
+    "scripts/phase57-capital-allocation-v3-phase-a.mjs",
+    "scripts/tests/phase57-capital-allocation-v3-entrytime.test.mjs",
+    "scripts/tests/phase57-capital-allocation-v3-phase-a.test.mjs",
+    "docs/phase57-capital-allocation-v3-phase-a-review.md"
+  ],
+  "structuralEvidence": {
+    "evidenceClass": "IN_SAMPLE_STRUCTURAL_EXPOSURE_ONLY_NO_PERFORMANCE_CLAIM",
+    "firstEnterCount": 203,
+    "sessionCount": 58,
+    "uniqueSymbols": 119,
+    "longCount": 27,
+    "shortCount": 176,
+    "opportunitySetCount": 195,
+    "singletonSetCount": 187,
+    "twoCandidateSetCount": 8,
+    "simultaneousCompetitionRate": 0.041025641025641026,
+    "opportunityDatasetSha256": "6c9d226ef91d110530b3b4d01795b1daa7276a6ffe2db30356a23484ad69070e"
+  },
+  "sourceLineage": {
+    "mshWorkflowRun": 34292703804,
+    "sourceHeadSha": "86d4fa839a097d73a36169df88001bacd4022387",
+    "candidateModelSha256": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a",
+    "sourceManifestSha256": "b05413676a391789a74e887aace3ae5ad05aece6f9b3d54217f6da7215e6dc85"
+  },
+  "greenCiAtFrozenEvidenceCommit": [
+    {
+      "name": "Predict Tests",
+      "runId": 34497984881,
+      "runNumber": 998,
+      "conclusion": "success"
+    },
+    {
+      "name": "Phase52 Daily Dry-Run Persistence",
+      "runId": 34497984834,
+      "runNumber": 955,
+      "conclusion": "success"
+    },
+    {
+      "name": "Phase57 Capital Allocation v3 Entry-Time Tests",
+      "runId": 34497984833,
+      "runNumber": 12,
+      "conclusion": "success",
+      "verifiedSteps": [
+        "Syntax check",
+        "Run Capital Allocation v3 entry-time tests",
+        "Safety boundary"
+      ]
+    }
+  ],
+  "independentReviewDisposition": "CONDITIONAL_PASS_SATISFIED_BY_GREEN_CI_THEN_HARD_STOP",
+  "deferred": [
+    "V3_C_HYBRID",
+    "SCORE_CALIBRATION",
+    "KELLY",
+    "SECTOR_OR_DIRECTION_CAPS",
+    "VOLATILITY_FLOORS_OR_CAPS",
+    "EXIT_INTERACTION",
+    "OUTCOME_DRIVEN_TUNING",
+    "ALLOCATOR_WINNER_SELECTION",
+    "PROTECTED_OOS_OR_FRESH_RELEASE"
+  ],
+  "nextValidPhase": "PHASE_B_AFTER_FROZEN_EXIT_WITH_SHARED_EVENT_TIME_CASH_LEDGER_AND_EXIT_DRIVEN_RECYCLING",
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

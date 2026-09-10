@@ -17,6 +17,8 @@ const read=p=>JSON.parse(fs.readFileSync(p,'utf8'));
 const cfg=read(CONFIG_PATH);
 assert.equal(cfg.schemaId,'PHASE57_EXIT_V4_20SESSION_DIAGNOSTIC_V1');
 assert.equal(cfg.sessions.length,20);
+const sessionFilter=String(process.env.SESSION_FILTER??'').trim();
+if(sessionFilter)assert(cfg.sessions.some(x=>x.sessionDate===sessionFilter),'SESSION_FILTER_NOT_FROZEN');
 const shard=Number(process.env.SHARD_INDEX??0),shardCount=Number(process.env.SHARD_COUNT??4);
 assert(Number.isInteger(shard)&&shard>=0&&shard<shardCount);
 const out=process.env.OUTPUT_DIR??'artifacts/phase57-exit-v4-20session-features';
@@ -30,6 +32,7 @@ assert.equal(freeze.freezeSha256,cfg.lockedUpstream.selectorFreezeSha256);
 const regular=b=>{const hm=new Date(Date.parse(b.timestamp)+32400000).toISOString().slice(11,16);return (hm>='09:00'&&hm<'11:30')||(hm>='12:30'&&hm<'15:30');};
 const writeGz=(name,obj)=>{const bytes=Buffer.from(JSON.stringify(obj)+'\n');fs.writeFileSync(path.join(out,name),gzipSync(bytes),{flag:'wx'});return hash(bytes);};
 for(const [i,row] of cfg.sessions.entries()){
+  if(sessionFilter&&row.sessionDate!==sessionFilter)continue;
   if(i%shardCount!==shard)continue;
   const date=row.sessionDate;
   const source=await reconstructDevelopmentSession(date);

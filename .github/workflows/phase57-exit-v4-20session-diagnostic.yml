@@ -16,10 +16,6 @@ permissions:
   contents: read
   actions: read
 
-# One bounded overnight run, not an indefinitely repeating schedule.
-env:
-  OVERNIGHT_DEADLINE: '2026-09-11T08:00:00+09:00'
-
 concurrency:
   group: phase57-exit-v4-20session-diagnostic-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -38,11 +34,10 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with: {node-version: 22}
-      - name: Verify deadline and immutable diagnostic contract
+      - name: Verify immutable diagnostic contract
         run: |
           node - <<'NODE'
           const fs=require('fs'),assert=require('assert/strict'),crypto=require('crypto');
-          assert(Date.now()<Date.parse(process.env.OVERNIGHT_DEADLINE),'OVERNIGHT_DEADLINE_REACHED');
           const b=fs.readFileSync('predict/research/phase57-exit-v4-20session-diagnostic-v1.json');
           assert.equal(crypto.createHash('sha1').update(`blob ${b.length}\0`).update(b).digest('hex'),'77ae8e1df056ba83f93962651a58ef379365d5d4','FROZEN_DIAGNOSTIC_CONTRACT_CHANGED');
           const c=JSON.parse(b),dates=c.sessions.map(x=>x.sessionDate);
@@ -51,7 +46,7 @@ jobs:
           assert.deepEqual(dates,[...dates].sort());assert.equal(c.minimumCausalNeighbors,30);
           assert.equal(Object.keys(c.safety).length,9);
           for(const v of Object.values(c.safety))assert.equal(v,false);
-          console.log(JSON.stringify({status:'OVERNIGHT_PREFLIGHT_PASS',first:dates[0],last:dates.at(-1),sessions:20,deadline:process.env.OVERNIGHT_DEADLINE}));
+          console.log(JSON.stringify({status:'FAST_DIAGNOSTIC_PREFLIGHT_PASS',first:dates[0],last:dates.at(-1),sessions:20}));
           NODE
       - name: Runtime safeguards and syntax tests
         run: |
@@ -63,9 +58,9 @@ jobs:
     needs: preflight
     strategy:
       fail-fast: false
-      max-parallel: 2
+      max-parallel: 1
       matrix:
-        shard: [0, 1, 2, 3]
+        session: ['2026-08-17', '2026-08-21', '2026-08-27', '2026-09-02', '2026-09-08']
     runs-on: ubuntu-latest
     timeout-minutes: 350
     steps:
@@ -91,38 +86,36 @@ jobs:
             /predict/research/phase57-selector-minimal-hybrid-phase-a-amendment-v1.1.json
       - uses: actions/setup-node@v4
         with: {node-version: 22}
-      - name: Reconstruct fixed shard with bounded transient-only retries
+      - name: Reconstruct one missing fixed session with bounded transient-only retries
         env:
           JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
-          SHARD_INDEX: ${{ matrix.shard }}
-          SHARD_COUNT: 4
+          SESSION_FILTER: ${{ matrix.session }}
+          SHARD_INDEX: 0
+          SHARD_COUNT: 1
           NODE_OPTIONS: --max-old-space-size=6144
         shell: bash
         run: |
           set -euo pipefail
-          deadline=$(date -d "$OVERNIGHT_DEADLINE" +%s)
-          scratch=$(mktemp -d "$RUNNER_TEMP/exit20-${SHARD_INDEX}-XXXXXXXX")
+          scratch=$(mktemp -d "$RUNNER_TEMP/exit20-${SESSION_FILTER}-XXXXXXXX")
           trap 'rm -rf "$scratch"' EXIT
           mkdir -p artifacts/overnight-status
-          for attempt in 1 2 3; do
-            remaining=$((deadline-$(date +%s)))
-            if [ "$remaining" -le 0 ]; then echo 'OVERNIGHT_DEADLINE_REACHED'; exit 124; fi
+          for attempt in 1 2 3 4 5 6; do
             output="$scratch/attempt-$attempt"
-            log="artifacts/overnight-status/features-${SHARD_INDEX}-attempt-${attempt}.log"
-            echo "FEATURE_SHARD=$SHARD_INDEX ATTEMPT=$attempt MAX_ATTEMPTS=3"
+            log="artifacts/overnight-status/features-${SESSION_FILTER}-attempt-${attempt}.log"
+            echo "FEATURE_SESSION=$SESSION_FILTER ATTEMPT=$attempt MAX_ATTEMPTS=6"
             set +e
-            OUTPUT_DIR="$output" timeout --signal=TERM --kill-after=30s "${remaining}s" node scripts/phase57-exit-v4-20session-features.mjs >"$log" 2>&1
+            OUTPUT_DIR="$output" timeout --signal=TERM --kill-after=30s 320m node scripts/phase57-exit-v4-20session-features.mjs >"$log" 2>&1
             rc=$?
             set -e
             cat "$log"
-            printf '{"shard":%s,"attempt":%s,"exitCode":%s}\n' "$SHARD_INDEX" "$attempt" "$rc" > "artifacts/overnight-status/features-${SHARD_INDEX}.json"
+            printf '{"session":"%s","attempt":%s,"exitCode":%s}\n' "$SESSION_FILTER" "$attempt" "$rc" > "artifacts/overnight-status/features-${SESSION_FILTER}.json"
             if [ "$rc" -eq 0 ]; then
               test ! -e artifacts/phase57-exit-v4-20session-features
               mv "$output" artifacts/phase57-exit-v4-20session-features
               exit 0
             fi
             # Never retry time/deadline, auth, hash, PIT or implementation failures.
-            if [ "$rc" -eq 124 ] || [ "$rc" -eq 137 ] || [ "$attempt" -eq 3 ]; then exit "$rc"; fi
+            if [ "$rc" -eq 124 ] || [ "$rc" -eq 137 ] || [ "$attempt" -eq 6 ]; then exit "$rc"; fi
             if ! node --input-type=module - "$log" <<'NODE'
           import fs from 'node:fs';
           import {isTransientDiagnosticFailure} from './scripts/lib/phase57-exit-v4-20session-runtime.mjs';
@@ -131,22 +124,20 @@ jobs:
             then exit "$rc"; fi
             # No mixing partial bundles from different provider fetch attempts.
             rm -rf "$output"
-            pause=$((attempt*30))
-            remaining=$((deadline-$(date +%s)))
-            if [ "$remaining" -le "$pause" ]; then exit 124; fi
+            pause=$((attempt*60))
             sleep "$pause"
           done
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: phase57-exit-v4-20session-features-${{ matrix.shard }}-${{ github.run_id }}
+          name: phase57-exit-v4-20session-features-missing-${{ matrix.session }}-${{ github.run_id }}
           path: artifacts/phase57-exit-v4-20session-features/
           if-no-files-found: error
           retention-days: 7
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: phase57-exit20-overnight-status-${{ matrix.shard }}-${{ github.run_id }}
+          name: phase57-exit20-status-${{ matrix.session }}-${{ github.run_id }}
           path: artifacts/overnight-status/
           if-no-files-found: warn
           retention-days: 7
@@ -162,12 +153,19 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with: {node-version: 22}
-      - name: Stop before input access if overnight window has ended
-        run: test "$(date -d "$OVERNIGHT_DEADLINE" +%s)" -gt "$(date +%s)"
-      - name: Download 20 reconstructed input bundles
+      - name: Download 15 completed fixed input bundles from the prior run
         uses: actions/download-artifact@v4
         with:
-          pattern: phase57-exit-v4-20session-features-*-${{ github.run_id }}
+          pattern: phase57-exit-v4-20session-features-*-34494213877
+          run-id: 34494213877
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/diagnostic-input
+          merge-multiple: true
+      - name: Download five newly completed fixed input bundles
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-exit-v4-20session-features-missing-*-${{ github.run_id }}
           path: artifacts/diagnostic-input
           merge-multiple: true
       - name: Download immutable frozen MSH candidate
@@ -204,9 +202,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          remaining=$(( $(date -d "$OVERNIGHT_DEADLINE" +%s)-$(date +%s) ))
-          test "$remaining" -gt 0
-          timeout --signal=TERM --kill-after=30s "${remaining}s" node scripts/phase57-exit-v4-20session-measure.mjs
+          timeout --signal=TERM --kill-after=30s 320m node scripts/phase57-exit-v4-20session-measure.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -249,7 +245,7 @@ jobs:
                   r=json.loads(report.read_text());status=r.get('status','UNKNOWN_REPORT_STATUS')
               else:
                   status='REPORT_INTEGRITY_BLOCKED'
-          payload={'runId':os.environ['GITHUB_RUN_ID'],'status':status,'stages':stages,'deadline':os.environ['OVERNIGHT_DEADLINE'],'scope':'APPROVED_DIAGNOSTIC20_ONLY','automaticExpansion':False,'automaticRepair':False,'automaticPromotion':False}
+          payload={'runId':os.environ['GITHUB_RUN_ID'],'status':status,'stages':stages,'scope':'APPROVED_DIAGNOSTIC20_ONLY','automaticExpansion':False,'automaticRepair':False,'automaticPromotion':False}
           (out/'status.json').write_text(json.dumps(payload,indent=2)+'\n')
           lines=['# EXIT 20-session overnight result','',f'**Status: {status}**','', '| Stage | Result |','|---|---|']
           lines += [f'| {k} | {v} |' for k,v in stages.items()]
@@ -261,7 +257,7 @@ jobs:
               lines += ['', 'Development diagnostics only; not prospective, formal OOS or a portfolio-performance claim.','The reported sums/drawdowns are trade-level proxies, not a capital-constrained portfolio.','Existing recoveryBy6 is a positive-MFE proxy; it does not establish intrabar adverse-then-recovery order.']
           else:
               lines += ['', 'No verified complete measurement report is available. Do not interpret missing results as zero trades or weak Entry. Review the failed/queued runner before resuming.']
-          lines += ['', 'No automatic code repair, period expansion, retuning, merge or promotion.','Execution window ends at '+os.environ['OVERNIGHT_DEADLINE']+'. Runner availability is not guaranteed.']
+          lines += ['', 'No automatic period expansion, retuning, merge or promotion.','Runner availability is not guaranteed.']
           text='\n'.join(lines)+'\n';(out/'summary.md').write_text(text)
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:f.write(text)
           PY

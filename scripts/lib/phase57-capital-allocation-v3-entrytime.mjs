@@ -13,7 +13,7 @@ const forbidden = /^(labels?|targets?|outcomes?|future.*|mfe.*|mae.*|exit.*|real
 function assertNoOutcomeFields(value) {
   if (!value || typeof value !== 'object') return;
   for (const [k,v] of Object.entries(value)) {
-    if (k === 'exitUsed' && v === false) continue;
+    if ((k === 'outcomeUsed' || k === 'exitUsed') && v === false) continue;
     if (forbidden.test(k)) throw new Error(`OUTCOME_FIELD_FORBIDDEN:${k}`);
     assertNoOutcomeFields(v);
   }
@@ -35,7 +35,7 @@ function chosenFeatureRow(event) {
 }
 
 export function recentRealizedVolatility(closes) {
-  if (!Array.isArray(closes) || closes.length < 3 || !closes.every(x => finite(x) && x > 0)) return null;
+  if (!Array.isArray(closes) || closes.length !== 7 || !closes.every(x => finite(x) && x > 0)) return null;
   const rets = [];
   for (let i=1;i<closes.length;i++) rets.push(Math.log(closes[i]/closes[i-1]));
   const mean = rets.reduce((a,b)=>a+b,0)/rets.length;
@@ -58,6 +58,8 @@ export function buildEntryTimeOpportunity(event, { recentCloses = null } = {}) {
     'minutesSinceFirstSelection','hybridReciprocalRank','priorSelectionCount','direction'
   ];
   if (!required.every(k => finite(features[k]))) throw new Error('MSH_FEATURE_SET_INCOMPLETE');
+  const recentVol = recentRealizedVolatility(recentCloses);
+  if (recentCloses !== null && !finite(recentVol)) throw new Error('RISK_FEATURE_WINDOW_INVALID');
   const opportunity = {
     contractSha256: CONTRACT_SHA256,
     eventId: String(event.eventId),
@@ -70,7 +72,7 @@ export function buildEntryTimeOpportunity(event, { recentCloses = null } = {}) {
     hybridRank: Number(event.hybridRank),
     hybridScore: Number(event.hybridScore),
     features,
-    recentRealizedVolatility: recentCloses ? recentRealizedVolatility(recentCloses) : null,
+    recentRealizedVolatility: recentVol,
     sourceClass: event.sourceClass ?? 'UNKNOWN',
     selectionLineage: event.selectionLineage ?? null,
     outcomeUsed: false,

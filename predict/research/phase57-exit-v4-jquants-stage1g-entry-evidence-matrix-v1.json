@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "matrixId": "PHASE57_EXIT_V4_JQUANTS_STAGE1G_ENTRY_EVIDENCE_CLOSURE_MATRIX_V1",
+  "asOfJst": "2026-09-10",
+  "allowedSessions": ["2025-08-27", "2025-10-09", "2025-11-25"],
+  "directGoldenEntryRows": 0,
+  "evidenceClasses": {
+    "DIRECT_ENTRY_GOLDEN_PARITY": "NOT_AVAILABLE_PRE_FIT_GOLDEN_DECISION_REASON_MODEL_UNAVAILABLE",
+    "DETERMINISTIC_ENTRY_RECONSTRUCTION": "PASS"
+  },
+  "fields": [
+    {"field":"sessionDate","critical":true,"classification":"DIRECT_GOLDEN","status":"PASS","rows":787},
+    {"field":"symbol","critical":true,"classification":"DIRECT_GOLDEN","status":"PASS","rows":787},
+    {"field":"direction","critical":true,"classification":"DETERMINISTIC","status":"PASS","entryRows":10},
+    {"field":"firstSelectionTimestamp","critical":false,"classification":"DIRECT_GOLDEN","status":"PASS","rows":787},
+    {"field":"decisionTimestamp","critical":true,"classification":"DIRECT_GOLDEN","status":"PASS","rows":787},
+    {"field":"MSH_feature_vector","critical":true,"classification":"DIRECT_GOLDEN","status":"PASS","directionRows":1260,"exactTolerance":0},
+    {"field":"MSH_probability_score","critical":true,"classification":"DETERMINISTIC","status":"PASS","directionRows":1260,"directGoldenRows":0},
+    {"field":"threshold_comparison","critical":true,"classification":"DETERMINISTIC","status":"PASS","semantics":"STRICTLY_GREATER_THAN_0.60"},
+    {"field":"preDecisionState","critical":true,"classification":"DETERMINISTIC","status":"PASS","rows":787},
+    {"field":"postDecisionState","critical":true,"classification":"DETERMINISTIC","status":"PASS","rows":787},
+    {"field":"ENTER_WATCH_decision","critical":true,"classification":"DETERMINISTIC","status":"PASS","rows":787},
+    {"field":"First_ENTER_uniqueness","critical":true,"classification":"DETERMINISTIC","status":"PASS","entryRows":10,"violations":0},
+    {"field":"priorSelectionCount","critical":false,"classification":"DIRECT_GOLDEN","status":"PASS","rows":787},
+    {"field":"minutesSinceFirstSelection","critical":false,"classification":"DIRECT_GOLDEN","status":"PASS","rows":787},
+    {"field":"entryReferencePrice","critical":true,"classification":"DETERMINISTIC","status":"PASS","entryRows":10,"allFeatureReadyComparisons":630,"mismatches":0},
+    {"field":"referencePriceTimestamp","critical":true,"classification":"DETERMINISTIC","status":"PASS","entryRows":10,"semantics":"LAST_COMPLETED_5M_BAR_START_WITH_AVAILABLE_AT_DECISION"}
+  ],
+  "criticalAmbiguous": 0,
+  "criticalMismatch": 0,
+  "criticalBlocked": 0,
+  "goldenMissingIsMismatch": false,
+  "closure": "PASS_DETERMINISTIC_NOT_DIRECT_GOLDEN",
+  "fullReplayEligibleSessions": 0,
+  "tier2ConfirmedSessions": 0,
+  "hardStop": "ACTIVE",
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

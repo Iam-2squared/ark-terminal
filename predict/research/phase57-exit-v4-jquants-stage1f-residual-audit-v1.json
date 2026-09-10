@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "auditId": "PHASE57_EXIT_V4_JQUANTS_STAGE1F_HYBRID_ENTRY_PARITY_RESIDUAL_AUDIT_V1",
+  "stage": "1F_HYBRID_ENTRY_PARITY_RESIDUAL_AUDIT",
+  "asOfJst": "2026-09-10",
+  "status": "RESIDUALS_EXPLAINED_MORE_EVIDENCE_REQUIRED",
+  "pullRequest": 581,
+  "parentHeadSha": "f6314c67f34b7ec551f79f46b99437277d33f674",
+  "baseBranch": "research/phase57-minimal-stateful-hybrid-entry",
+  "draft": true,
+  "scope": {
+    "allowedSessions": ["2025-08-27", "2025-10-09", "2025-11-25"],
+    "reextractionPerformed": false,
+    "newRawAcquisitionAllowed": false,
+    "exitOutcomeAccessAllowed": false,
+    "stage2Allowed": false
+  },
+  "frozenIdentifiers": {
+    "selectorModelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
+    "selectorFreezeSha": "a744d599e430d23efe4dea6600e418d3410d8a18df5055b35e1cc71432bf64da",
+    "entryThreshold": "STRICTLY_GREATER_THAN_0.60",
+    "entryCandidateSha256": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a",
+    "entryAllocationSha256": "7df4cb026d966628c9b3fbc91037eb13704397a700c076e865d817a273df00e6",
+    "entryFitSha256": "e1567951bcc81d50497a42e24411a32112b36638fbc0ff67247a16a6ce80859c"
+  },
+  "hybridLayers": [
+    {"layer":"A_DATA_INPUT_AVAILABILITY","status":"PASS","unit":"GOLDEN_EVENT_ROWS","comparable":787,"match":787,"mismatch":0,"blocked":0,"reason":"Golden B events retain causal input rows; 6545 allowed sparse bars and 1260 direction-feature rows passed Stage1E checks"},
+    {"layer":"B_HISTORICAL_UNIVERSE","status":"PARTIAL","unit":"SESSIONS","comparable":0,"match":0,"mismatch":0,"blocked":3,"reason":"Only event-used symbols were extracted; complete PIT universe was not independently replayed","taxonomy":"HISTORICAL_UNIVERSE_PARTIAL"},
+    {"layer":"C_V1_V2_MEMBERSHIP_INPUTS","status":"NOT_RECOVERABLE","unit":"GOLDEN_EVENT_ROWS","comparable":0,"match":0,"mismatch":0,"blocked":787,"reason":"Separate V1/V2 membership inputs are not retained in committed Stage1E evidence","taxonomy":"MEMBERSHIP_NOT_RETAINED"},
+    {"layer":"D_HYBRID_SCORE_INPUTS","status":"PARTIAL","unit":"GOLDEN_EVENT_ROWS","comparable":0,"match":0,"mismatch":0,"blocked":787,"retained":787,"reason":"Hybrid score values are retained but not independently recomputed from full-universe inputs","taxonomy":"SOURCE_INPUT_MISSING"},
+    {"layer":"E_HYBRID_MEMBERSHIP_OUTPUT","status":"PARTIAL","unit":"SELECTION_POINTS","comparable":198,"match":198,"mismatch":0,"blocked":0,"reason":"Selected-event counts equal point selectedCount at all 198 points; exact output was not independently rerun","taxonomy":"GOLDEN_REFERENCE_INCOMPLETE"},
+    {"layer":"F_HYBRID_RANK_OUTPUT","status":"PARTIAL","unit":"GOLDEN_EVENT_ROWS","comparable":0,"match":0,"mismatch":0,"blocked":787,"retainedAndValid":787,"reason":"Ranks are retained and structurally valid, but no independent full-universe rerank exists","taxonomy":"RANK_NOT_RETAINED"},
+    {"layer":"G_SELECTION_TIMESTAMP","status":"PASS","unit":"GOLDEN_EVENT_ROWS","comparable":787,"match":787,"mismatch":0,"blocked":0,"reason":"Decision timestamps are retained, scheduled, chronological and PIT-safe"},
+    {"layer":"H_DUPLICATE_RESELECTION_SEMANTICS","status":"PASS","unit":"STATE_COMPARISONS","comparable":787,"match":787,"mismatch":0,"blocked":0,"reason":"Exact chronological state reconstruction; duplicate and reselection violations zero"}
+  ],
+  "hybridResidualConclusion": {
+    "materialComparableMismatch": 0,
+    "cause": [
+      "GOLDEN_REFERENCE_INCOMPLETE",
+      "HISTORICAL_UNIVERSE_PARTIAL",
+      "SOURCE_INPUT_MISSING",
+      "MEMBERSHIP_NOT_RETAINED",
+      "RANK_NOT_RETAINED"
+    ],
+    "replayImplementationFailureObserved": false,
+    "distributionShiftRisk": "MATERIAL_MUST_REPORT_BY_SUBSTRATE_CLASS"
+  },
+  "entryFieldRecoverability": [
+    {"field":"symbol","status":"GOLDEN_AVAILABLE","rows":787},
+    {"field":"decisionTimestamp","status":"GOLDEN_AVAILABLE","rows":787},
+    {"field":"direction","status":"NOT_RETAINED","rows":0,"note":"Pre-fit decisions are MODEL_UNAVAILABLE"},
+    {"field":"entryReferencePrice","status":"GOLDEN_AVAILABLE","rows":787,"verifiedFeatureReadyRows":630},
+    {"field":"ENTER_WATCH_decision","status":"NOT_RETAINED","rows":0,"note":"No model-applied Golden row"},
+    {"field":"mshProbabilityScore","status":"NOT_RETAINED","rows":0},
+    {"field":"firstSelectionTimestamp","status":"GOLDEN_AVAILABLE","rows":787},
+    {"field":"priorSelectionCount","status":"GOLDEN_AVAILABLE","rows":787}
+  ],
+  "entryReconstruction": {
+    "algorithmicMapping": "DETERMINISTIC",
+    "empiricalStatus": "ALGORITHM_DETERMINISTIC_EMPIRICAL_RECONSTRUCTION_BLOCKED_PINNED_MODEL_BYTES_REQUIRED",
+    "featureParity": "PASS_1260_OF_1260_EXACT_NUMERIC_TOLERANCE_ZERO",
+    "stateParity": "PASS_787_OF_787_EXACT_CHRONOLOGICAL",
+    "candidateIdentityPinned": true,
+    "candidateModelBytesInCommittedEvidence": false,
+    "candidateModelHashCanBeReverifiedFromCurrentEvidence": false,
+    "missingCriticalModelComponent": "COMPLETE_MODEL_BYTES_INCLUDING_INTERCEPT",
+    "directGoldenParity": "NOT_AVAILABLE",
+    "entryEventReconstructionExecuted": false,
+    "reason": "A SHA-256 identity and partial coefficient audit do not substitute for the complete hash-verified candidate artifact"
+  },
+  "sourceSemantics": {
+    "minuteTimestamp": "PASS_TRUST_B_BAR_START_LEFT_CLOSED_RIGHT_OPEN",
+    "fiveMinuteAggregation": "PASS_CAUSAL_COMPLETED_SPARSE_BARS",
+    "availableAt": "CONDITIONAL_REPLAY_BOUND_EQUALS_BAR_END_PROVIDER_PUBLICATION_TIME_UNKNOWN",
+    "missingReason": "FAIL_UNKNOWN_FAIL_CLOSED_TO_NO_OBSERVATION_NO_FINALIZED_BAR",
+    "corporateActions": "PARTIAL_UNRESOLVED_CONFLICT_BLOCK_SYMBOL_SESSION",
+    "historicalUniverse": "PARTIAL",
+    "pitViolations": 0
+  },
+  "eligibility": {
+    "fullReplayEligibleSessions": 0,
+    "confirmedTier2Sessions": 0,
+    "tier2DraftStatus": "DRAFT_NOT_ACTIVE_BLOCKED",
+    "stage2AllocationAllowed": false,
+    "remainingEvidence": [
+      "NON_OUTCOME_HASH_VERIFIED_FROZEN_CANDIDATE_MODEL_BYTES",
+      "MODEL_APPLIED_ENTRY_RECONSTRUCTION_ON_ONLY_THE_THREE_ALLOWED_GOLDEN_INPUT_SESSIONS",
+      "SEPARATELY_AUTHORIZED_FULL_UNIVERSE_HYBRID_REFERENCE_OR_FORMAL_ACCEPTANCE_OF_THE_PARTIAL_UNIVERSE_LIMIT"
+    ]
+  },
+  "accessLedger": {
+    "newRawDownloads": 0,
+    "reextractedSessions": 0,
+    "newSealedSessions": 0,
+    "protected180To282": 0,
+    "freshValidationOrOos": 0,
+    "exitOutcome": 0,
+    "futureLabels": 0,
+    "exitInvocations": 0
+  },
+  "tier2Draft": {
+    "path": "predict/research/phase57-exit-v4-tier2-reconstruction-contract-draft-v1.json",
+    "selfActivationAllowed": false,
+    "appliedToPilotSessions": false
+  },
+  "tests": {
+    "focused": "6_OF_6_PASS",
+    "predictRegression": "2634_OF_2634_PASS"
+  },
+  "nextHighestValueAction": "Make only the non-outcome frozen candidate-model bytes available under a content allowlist, verify SHA f05def..., and run model-applied Entry reconstruction on the same three already-authorized Golden inputs; separately freeze whether Tier2 accepts the documented Hybrid universe limitation.",
+  "hardStop": "ACTIVE",
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

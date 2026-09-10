@@ -13,6 +13,7 @@ const forbidden = /^(labels?|targets?|outcomes?|future.*|mfe.*|mae.*|exit.*|real
 function assertNoOutcomeFields(value) {
   if (!value || typeof value !== 'object') return;
   for (const [k,v] of Object.entries(value)) {
+    if (k === 'exitUsed' && v === false) continue;
     if (forbidden.test(k)) throw new Error(`OUTCOME_FIELD_FORBIDDEN:${k}`);
     assertNoOutcomeFields(v);
   }

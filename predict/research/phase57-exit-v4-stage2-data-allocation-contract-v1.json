@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "contractId": "PHASE57_EXIT_V4_STAGE2_DATA_ALLOCATION_CONTRACT_V1",
+  "contractVersion": "1.0.0",
+  "asOfJst": "2026-09-10",
+  "status": "NOT_FROZEN_INTEGRITY_BLOCKED",
+  "purpose": "Result-blind time-ordered session allocation for a later separately authorized Tier 2 EXIT Development study",
+  "finalGate": "DATA_ALLOCATION_INTEGRITY_BLOCKED",
+  "tier2Contract": {
+    "version": "1.0.0",
+    "status": "FROZEN_NOT_ACTIVATED",
+    "sha256": "2aa9fd80596c0f71f2359fb132288a15d563e3fab8e22ecbac54fda308a54a70",
+    "eligibilitySchemaSha256": "f060c654f0d5af5f105f8ba20c47b78950ad433305b735d42f6cbd68f8e2823b",
+    "modifiedHere": false
+  },
+  "allowedInputs": [
+    "SESSION_DATE",
+    "SOURCE_CLASS",
+    "AVAILABILITY_METADATA",
+    "TIER2_ELIGIBILITY_GATES",
+    "BLOCKING_REASONS",
+    "UNIVERSE_CORPORATE_ACTION_MISSING_METADATA",
+    "SOURCE_LINEAGE",
+    "EXPOSURE_AND_PROTECTION_CLASS",
+    "SESSION_SYMBOL_AND_BAR_COUNTS",
+    "PRE_OUTCOME_FIRST_ENTER_CAPACITY_ESTIMATES"
+  ],
+  "pool": {
+    "metadataKnownTotalSessions": 131,
+    "confirmedEligibleSessions": 0,
+    "confirmedBlockedSessions": 0,
+    "unknownPlanningBand": [300, 360],
+    "unknownPlanningBandIsAllocation": false,
+    "exactSessionLevelInventoryAvailable": false,
+    "diagnosticUsedSessions": 3,
+    "diagnosticSessionDates": ["2025-08-27", "2025-10-09", "2025-11-25"],
+    "protectedExternalSessions": 103,
+    "freshExternalSessions": 25,
+    "integrityBlockers": [
+      "NO_EXACT_DATE_SORTED_CANDIDATE_SESSION_INVENTORY",
+      "NO_SESSION_LEVEL_13_GATE_ELIGIBILITY_MATRIX_FOR_PLANNING_BAND",
+      "NO_SESSION_LEVEL_SOURCE_LINEAGE_FOR_PLANNING_BAND",
+      "PROTECTED_AND_FRESH_SESSION_IDS_NOT_READ_OR_REALLOCATED",
+      "PLANNING_BAND_CANNOT_BE_PROMOTED_FROM_UNKNOWN_TO_ELIGIBLE"
+    ]
+  },
+  "allocationUnit": "JST_TRADING_SESSION",
+  "ordering": "TIME_ORDERED_CONTIGUOUS_BLOCKS_OLDEST_TO_NEWEST",
+  "randomShuffleAllowed": false,
+  "oneSessionOneSplit": true,
+  "sameSessionSymbolOrEventCrossSplitAllowed": false,
+  "allocationClasses": [
+    "DEV_A_LOCKED",
+    "DEV_B_LOCKED",
+    "VALIDATION_LOCKED",
+    "HISTORICAL_HOLDOUT_LOCKED",
+    "UNTOUCHED_OOS_SEALED",
+    "FUTURE_RESERVE_SEALED",
+    "PURGE_EMBARGO",
+    "DIAGNOSTIC_ONLY",
+    "BLOCKED_NOT_USABLE",
+    "PROTECTED_EXTERNAL",
+    "FRESH_EXTERNAL",
+    "UNKNOWN_NOT_ALLOCATED"
+  ],
+  "minimumProtectionWhenCapacitySufficient": {
+    "validationSessions": 30,
+    "historicalHoldoutSessions": 25,
+    "untouchedOosSessions": 30,
+    "futureReserveSessions": 30,
+    "futureReserveEligibleSharePreferredMinimum": 0.10
+  },
+  "developmentPolicy": {
+    "devATargetIndependentFirstEnter": 200,
+    "devBTotalUpperTargetIndependentFirstEnter": 500,
+    "entryPerSessionEstimate": {"conservative": 2.0, "base": 2.9, "optimistic": 3.4},
+    "devAOnlyMayBecomeNextUnlockCandidate": true,
+    "devBExtensionRequiresSeparateApproval": true,
+    "doNotConsumeProtectedSplitsFor1000Or2000Events": true
+  },
+  "allocation": {
+    "frozen": false,
+    "manifestComplete": false,
+    "dateBoundaries": null,
+    "purgeEmbargoDecision": "NOT_DETERMINABLE_WITHOUT_SPLIT_BOUNDARIES",
+    "sessionCounts": {
+      "devA": 0,
+      "devB": 0,
+      "validation": 0,
+      "historicalHoldout": 0,
+      "untouchedOos": 0,
+      "futureReserve": 0,
+      "purgeEmbargo": 0
+    }
+  },
+  "protection": {
+    "unknownCanBecomeEligibleWithoutGateEvidence": false,
+    "exposedCanBecomeOosOrFutureReserve": false,
+    "protected180To282ReallocationAllowed": false,
+    "freshValidationOrOosReallocationAllowed": false,
+    "resultBasedReshuffleAllowed": false
+  },
+  "stage3": {
+    "devAUnlockCandidate": false,
+    "developmentUnlocked": false,
+    "devASessionList": [],
+    "explicitFutureAuthorizationRequired": true,
+    "blockReason": "STAGE2_ALLOCATION_MANIFEST_NOT_FROZEN"
+  },
+  "accessLedger": {
+    "newRawSessions": 0,
+    "newSealedSessions": 0,
+    "protected180To282": 0,
+    "freshValidationOrOos": 0,
+    "exitOutcomes": 0,
+    "futureLabels": 0,
+    "exitInvocations": 0
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

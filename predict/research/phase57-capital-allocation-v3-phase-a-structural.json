@@ -1,0 +1,69 @@
+{
+  "status": "PHASE_A_DEVELOPMENT_STRUCTURAL_REPLAY_COMPLETE",
+  "evidenceClass": "IN_SAMPLE_STRUCTURAL_EXPOSURE_ONLY_NO_PERFORMANCE_CLAIM",
+  "performanceClaimAllowed": false,
+  "outcomesRead": false,
+  "labelsRead": false,
+  "exitRead": false,
+  "source": {
+    "sourceManifestSha256": "b05413676a391789a74e887aace3ae5ad05aece6f9b3d54217f6da7215e6dc85",
+    "workflowRun": 34292703804,
+    "sourceHeadSha": "86d4fa839a097d73a36169df88001bacd4022387",
+    "modelSha256": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a",
+    "threshold": 0.6,
+    "featurePacketSessionCount": 58,
+    "featureEventCount": 16392,
+    "sourceRequirement": "LABEL_FREE_FROZEN_FEATURE_PACKETS_PLUS_CAUSALLY_FILTERED_PRE_ENTRY_BARS"
+  },
+  "firstEnter": {
+    "count": 203,
+    "sessionCount": 58,
+    "uniqueSymbols": 119,
+    "directions": {"LONG": 27, "SHORT": 176},
+    "perSession": {"n": 58, "min": 1, "p25": 2, "median": 4, "p75": 4, "p95": 6, "max": 6, "mean": 3.5},
+    "mshScore": {"n": 203, "min": 0.6001583531601684, "p25": 0.6166239782565099, "median": 0.640897948902697, "p75": 0.6849903538129485, "p95": 0.7802295990602421, "max": 0.9163473289595971, "mean": 0.6604722260380735},
+    "recentRealizedVolatility": {"n": 203, "min": 0.0025535781785981856, "p25": 0.014526169567805823, "median": 0.020156628028156643, "p75": 0.032353961673661315, "p95": 0.05925060493362436, "max": 0.08602650079939733, "mean": 0.025231246403015262},
+    "opportunityDatasetSha256": "6c9d226ef91d110530b3b4d01795b1daa7276a6ffe2db30356a23484ad69070e"
+  },
+  "opportunitySets": {
+    "count": 195,
+    "cardinality": {"1": 187, "2": 8},
+    "simultaneousCompetitionSetCount": 8,
+    "simultaneousCompetitionRate": 0.041025641025641026
+  },
+  "policies": [
+    {"policyId":"V3_0_EQUAL","allSets":{"opportunitySetCount":195,"meanHhi":0.9794871794871794,"meanTop1":0.9794871794871794},"simultaneousCompetitionOnly":{"setCount":8,"meanHhi":0.5,"meanTop1":0.5,"maxTop1":0.5}},
+    {"policyId":"V3_A_RANK","allSets":{"opportunitySetCount":195,"meanHhi":0.9817663817663815,"meanTop1":0.986324786324786},"simultaneousCompetitionOnly":{"setCount":8,"meanHhi":0.5555555555555555,"meanTop1":0.6666666666666666,"maxTop1":0.6666666666666666}},
+    {"policyId":"V3_B_RISK","allSets":{"opportunitySetCount":195,"meanHhi":0.9811035020893447,"meanTop1":0.9844189300263467},"simultaneousCompetitionOnly":{"setCount":8,"meanHhi":0.5393978634277722,"meanTop1":0.620211419392202,"maxTop1":0.7594744154581665}}
+  ],
+  "baselineCompatibility": {
+    "legacy": {
+      "status": "STRUCTURAL_REFERENCE_ONLY_EXIT_REQUIRED_FOR_ACTUAL_PORTFOLIO_REPLAY",
+      "reason": "MAX_N uses portfolio equity, open-position count, cash and EXIT-driven recycling. Phase A may retain nominal slot fractions but cannot claim realized allocation parity without EXIT.",
+      "nominalSlotFractions": {"MAX_10":0.1,"MAX_4":0.25,"MAX_3":0.3333333333333333,"MAX_2":0.5}
+    },
+    "adaptiveV2": {
+      "status": "NO_IMPLICIT_MSH_ADAPTER",
+      "reason": "Frozen Adaptive v2 expects entryConfidence, entryProbability, selectionOpportunityScore and selectionV2Score. Frozen MSH First ENTER does not provide semantically identical fields; mapping MSH/hybrid scores into those inputs would create a new unfrozen model.",
+      "requiredLegacyInputs": ["confidence","probability","selectionOpportunityScore","selectionV2Score"]
+    }
+  },
+  "interpretation": {
+    "primary": "STRUCTURAL_ONLY",
+    "singletonDominanceWarning": "HHI/top1 across all sets is dominated by singleton First ENTER timestamps; use simultaneousCompetitionOnly to compare cross-sectional sizing behavior.",
+    "noWinnerSelection": true,
+    "noParameterTuning": true,
+    "v3CHybridDeferred": true
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

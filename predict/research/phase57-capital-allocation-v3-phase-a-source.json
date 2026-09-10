@@ -1,0 +1,51 @@
+{
+  "sourceVersion": 1,
+  "purpose": "PHASE_A_ENTRY_TIME_STRUCTURAL_REPLAY_ONLY",
+  "evidenceClass": "DEVELOPMENT_ONLY_NOT_OOS_NOT_FRESH",
+  "mshSource": {
+    "workflowRun": 34292703804,
+    "headBranch": "research/phase57-minimal-stateful-hybrid-entry",
+    "headSha": "86d4fa839a097d73a36169df88001bacd4022387",
+    "candidateModelSha256": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a",
+    "threshold": 0.60,
+    "measurementArtifact": {
+      "id": 10084158820,
+      "name": "entry58-development-measurement-34292703804",
+      "digest": "sha256:aa4fa5f9f5530132263f33a7dcbf9153bff4d7b44f2f574b4f3a213f122b9058",
+      "allowedMember": "candidate-model.json",
+      "forbiddenMembersForPhaseA": ["training-events.ndjson.gz", "development-report.json", "threshold-results.json", "fold-0.json", "fold-1.json", "fold-2.json", "fold-3.json"]
+    },
+    "featureArtifacts": [
+      {"id":10082689099,"name":"entry58-features-0-34292703804","digest":"sha256:a38749885f36f63a48d4b8b5b47f02aedc4b5b5a5c9ee10b83744c7ebedb1b3b"},
+      {"id":10082708524,"name":"entry58-features-1-34292703804","digest":"sha256:1ffb465bfc691f3b4c85af60a69ebae1b71abd96d2fc1e05b79955e669fcce07"},
+      {"id":10083465565,"name":"entry58-features-2-34292703804","digest":"sha256:5cd7f357841d7a6229e5b73337a09f51b0a0bbf71fc9bb8acb0e10dc08bcf14f"},
+      {"id":10083454900,"name":"entry58-features-3-34292703804","digest":"sha256:981399340ea72a46e2e37dbdd41bffee109d11d87881438563bb8807b8a021da"},
+      {"id":10084108213,"name":"entry58-features-4-34292703804","digest":"sha256:19b452e07a48815b9d01aefb997b45deb25cb5547343d77c30611addb0582a13"},
+      {"id":10084152060,"name":"entry58-features-5-34292703804","digest":"sha256:72a9b97a913fe2b94aad4ef292bd6fcf172401d4b5252c7e7ddc7a379c425d03"}
+    ]
+  },
+  "phaseAInputRule": {
+    "featurePackets": "ONLY *.features.json.gz FROM PINNED FEATURE ARTIFACTS",
+    "bars": "ONLY LAST 7 COMPLETED 5M CLOSES WITH availableAt <= decisionTimestamp",
+    "model": "ONLY candidate-model.json WITH EXACT PINNED SHA256",
+    "labelsOpened": false,
+    "outcomesOpened": false,
+    "exitOpened": false,
+    "protectedOosFreshOpened": false,
+    "trainingEventsOpened": false
+  },
+  "expectedSessions": 58,
+  "winnerSelectionAllowed": false,
+  "parameterTuningAllowed": false,
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

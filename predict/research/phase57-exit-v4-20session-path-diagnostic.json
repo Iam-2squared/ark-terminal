@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "role": "DEVELOPMENT_DIAGNOSTIC_ONLY",
+  "prospective": false,
+  "sourceWorkflowRun": 34541503697,
+  "pairedTrades": 35,
+  "immediateAdverse": {
+    "count": 28,
+    "rate": 0.8,
+    "completeH6": 24,
+    "recoveredBy6Close": 14,
+    "stillLoserBy6Close": 10,
+    "armMetrics": {
+      "fixed12": {"n": 28, "averageTradePct": 1.4916199245396944, "medianTradePct": -0.20608740894901273, "winRate": 0.4642857142857143, "profitFactor": 1.8458123757710712},
+      "sessionEnd": {"n": 28, "averageTradePct": 3.4024139281185373, "medianTradePct": 1.0496240601503781, "winRate": 0.5357142857142857, "profitFactor": 2.7509845114300564},
+      "v3": {"n": 28, "averageTradePct": 3.4811075549984274, "medianTradePct": -0.24138599625287965, "winRate": 0.4642857142857143, "profitFactor": 3.354221150729594},
+      "v4": {"n": 28, "averageTradePct": 3.3274732838455745, "medianTradePct": -0.29032369021326215, "winRate": 0.4642857142857143, "profitFactor": 3.178959900313805}
+    }
+  },
+  "recoveredBy6": {
+    "n": 14,
+    "v3AverageTradePct": 8.252838065212266,
+    "v4AverageTradePct": 8.255641439353381
+  },
+  "stillLoserBy6": {
+    "n": 10,
+    "v3AverageTradePct": -2.682481750611637,
+    "v4AverageTradePct": -3.1165824336371886
+  },
+  "descriptiveSeparators": [
+    {"name": "firstBarDirectionalCloseBps", "recoveredMean": 79.12632768733329, "loserMean": -89.52710681714647, "aucInSample": 0.75},
+    {"name": "firstBarFavorableExcursionBps", "recoveredMean": 196.3207734028024, "loserMean": 107.28987315629324, "aucInSample": 0.7},
+    {"name": "hybridRank", "recoveredMean": 7.857142857142857, "loserMean": 12.4, "aucInSample": 0.30357142857142855, "lowerIsBetter": true},
+    {"name": "hybridScore", "recoveredMean": 0.6117881542857143, "loserMean": 0.597580552, "aucInSample": 0.6642857142857143},
+    {"name": "entryRvol5", "recoveredMean": 2.975729655547862, "loserMean": 2.2288065197224474, "aucInSample": 0.65},
+    {"name": "firstBarAdverseExcursionBps", "recoveredMean": 139.3286763779492, "loserMean": 180.268631708135, "aucInSample": 0.39999999999999997},
+    {"name": "postFirstBarDirectionalVwapDistancePct", "recoveredMean": -3.9979612694126248, "loserMean": -4.710492103174569, "aucInSample": 0.5714285714285714},
+    {"name": "firstBarVolumeVsPrior5", "recoveredMean": 1.4227120764078245, "loserMean": 1.4772803440814752, "aucInSample": 0.5214285714285715}
+  ],
+  "v4MinusV3": {
+    "identicalTrades": 30,
+    "differentTrades": 5,
+    "v4BetterTrades": 2,
+    "v4WorseTrades": 3,
+    "positiveDeltaSumPct": 14.543064031868756,
+    "negativeDeltaSumPct": -8.157800723385286,
+    "netDeltaSumPct": 6.38526330848347,
+    "differences": [
+      {"sessionDate": "2026-09-01", "symbol": "4598.T", "direction": "LONG", "v3NetPct": 6.820229007633593, "v4NetPct": 17.50725190839694, "deltaPct": 10.687022900763347, "v3Bars": 4, "v4Bars": 48, "v3Reason": "V3_WINNER_PROTECTION_CONFIRMED_EDGE_REJECTION", "v4Reason": "SESSION_END"},
+      {"sessionDate": "2026-09-03", "symbol": "4052.T", "direction": "LONG", "v3NetPct": 7.2764781491002575, "v4NetPct": 11.13251939924906, "deltaPct": 3.8560412501488024, "v3Bars": 6, "v4Bars": 41, "v3Reason": "V3_WINNER_PROTECTION_CONFIRMED_EDGE_REJECTION", "v4Reason": "SESSION_END"},
+      {"sessionDate": "2026-08-24", "symbol": "593A.T", "direction": "SHORT", "v3NetPct": -0.3042372881355919, "v4NetPct": -1.6601694915254201, "deltaPct": -1.3559322033898282, "v3Bars": 3, "v4Bars": 12, "v3Reason": "V3_LOSER_RESCUE_SHORT_HORIZON_EDGE_REJECTED", "v4Reason": "V4_CONFIRMED_DOWNSIDE_TRAJECTORY"},
+      {"sessionDate": "2026-08-21", "symbol": "4833.T", "direction": "LONG", "v3NetPct": 8.905223880597023, "v4NetPct": 5.920149253731342, "deltaPct": -2.985074626865681, "v3Bars": 18, "v4Bars": 26, "v3Reason": "V3_WINNER_PROTECTION_CONFIRMED_EDGE_REJECTION", "v4Reason": "SESSION_END"},
+      {"sessionDate": "2026-08-21", "symbol": "6085.T", "direction": "SHORT", "v3NetPct": 9.873664122137395, "v4NetPct": 6.056870229007636, "deltaPct": -3.816793893129759, "v3Bars": 14, "v4Bars": 53, "v3Reason": "V3_WINNER_PROTECTION_CONFIRMED_EDGE_REJECTION", "v4Reason": "SESSION_END"}
+    ]
+  },
+  "nextCandidateStateFamily": [
+    "firstBarDirectionalCloseReturn",
+    "firstBarFavorableExcursion",
+    "firstBarAdverseExcursion",
+    "hybridRank",
+    "hybridScore",
+    "entryDirectionalVwapDistance",
+    "entryRvol5"
+  ],
+  "frozenWeights": false,
+  "frozenThresholds": false,
+  "newOutcomeAccess": 0,
+  "selectorChanged": false,
+  "entryChanged": false,
+  "exitV3Changed": false,
+  "exitV4Changed": false,
+  "mainChanged": false,
+  "promotionAllowed": false
+}

@@ -5,7 +5,7 @@ Role: DEVELOPMENT_DIAGNOSTIC_ONLY / NON_PROSPECTIVE
 Source: PR #581 head `0eb9857bf61e8a6f31cda662cecc13a094e84fa3`, measurement run `34541503697`  
 Measurement report SHA-256: `7533d488861be420f6edbfc5e2a62d9ca98de9719b56cacc1c67f5d4b319b803`  
 Trades SHA-256: `02c78a819c5bcf74f8f1f2f02ee0750eb1358af8447c666d5168e82c3b5884a1`  
-Diagnostic JSON SHA-256: `3fd6975e8ee9da531da2c14e29854de7283c5cafca50b736d326d868056a099e`
+Machine-readable diagnostic: `phase57-exit-immediate-adverse-diagnostic-2026-09-11.json`
 
 ## Purpose
 

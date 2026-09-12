@@ -7,7 +7,9 @@ on:
       - .github/workflows/phase57-exit-v5-dynamic-state.yml
       - scripts/lib/phase57-exit-v5-dynamic-state.mjs
       - scripts/tests/phase57-exit-v5-dynamic-state.test.mjs
+      - scripts/phase57-exit-v5-dynamic-state-freeze-preflight.mjs
       - predict/research/phase57-exit-v5-dynamic-state-development-v1.json
+      - predict/research/phase57-exit-v5-dynamic-state-freeze-v1.json
   workflow_dispatch:
 
 permissions:
@@ -27,7 +29,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with: {node-version: 22}
-      - name: Contract preflight
+      - name: Development contract preflight
         run: |
           node --check scripts/lib/phase57-exit-v5-dynamic-state.mjs
           node --input-type=module - <<'NODE'
@@ -42,11 +44,12 @@ jobs:
           assert.equal(r.nextImplementation.freeThresholds,0);
           assert.deepEqual(r.nextImplementation.states,['NEUTRAL','DEFENSIVE','RECOVERED']);
           assert.equal(r.nextImplementation.horizon.candidateBars,6);
-          assert.equal(r.nextImplementation.horizon.status,'DEVELOPMENT_CANDIDATE_NOT_FROZEN');
           assert.equal(r.guards.newUnseenOpened,false);
           assert.equal(r.guards.thresholdOptimizationAllowedBeforeNextUnseen,false);
           for(const [k,v] of Object.entries(r.safety)) assert.equal(v,false,`SAFETY_FLAG_NOT_FALSE:${k}`);
-          console.log(JSON.stringify({status:'DYNAMIC_STATE_PREFLIGHT_PASS',unseenStillSealed:true,safety:'ALL_FALSE'}));
+          console.log(JSON.stringify({status:'DYNAMIC_STATE_DEVELOPMENT_PREFLIGHT_PASS',unseenStillSealed:true,safety:'ALL_FALSE'}));
           NODE
       - name: Dynamic state tests
         run: node --test scripts/tests/phase57-exit-v5-dynamic-state.test.mjs
+      - name: Frozen candidate preflight
+        run: node scripts/phase57-exit-v5-dynamic-state-freeze-preflight.mjs

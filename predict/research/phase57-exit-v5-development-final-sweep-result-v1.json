@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "schemaId": "PHASE57_EXIT_V5_DEVELOPMENT_FINAL_SWEEP_RESULT_V1",
+  "status": "COMPLETE",
+  "role": "EXPOSED_DEVELOPMENT_ONLY_NOT_VALIDATION",
+  "inputs": {
+    "blockA": {"rows": 54, "causalEligible": 51, "role": "EXPOSED_DEVELOPMENT"},
+    "blockB": {"rows": 34, "causalEligible": 34, "role": "EXPOSED_DEVELOPMENT"}
+  },
+  "fixedArchitecture": {
+    "firstBarNonAdverse": "CONTINUE_FROZEN_V4",
+    "firstBarAdverse": "ENTER_DEFENSIVE",
+    "recovery": "DIRECTIONAL_CLOSE_RECLAIM_TO_ENTRY_PRICE",
+    "recovered": "CONTINUE_FROZEN_V4",
+    "unrecovered": "EXIT_AT_FIXED_HORIZON_CLOSE",
+    "roundTripCostPct": 0.05
+  },
+  "candidateFamily": [2,3,4,5,6,8,10,12],
+  "selectionRule": "Prefer candidates non-negative versus v4 in BOTH exposed blocks and <=1pt DD worsening in each; maximize worst-block delta, then combined delta, then lower concentration, then shorter horizon.",
+  "candidates": [
+    {"horizon":2,"blockADelta":-27.568525,"blockBDelta":-5.418600,"combinedDelta":-32.987125,"robustPass":false},
+    {"horizon":3,"blockADelta":-22.189511,"blockBDelta":5.566708,"combinedDelta":-16.622804,"robustPass":false},
+    {"horizon":4,"blockADelta":-2.532672,"blockBDelta":5.050482,"combinedDelta":2.517810,"robustPass":false},
+    {"horizon":5,"blockADelta":0.763570734416219,"blockBDelta":4.463934546579917,"combinedDelta":5.227505280996136,"robustPass":true},
+    {"horizon":6,"blockADelta":0.569207,"blockBDelta":3.830894,"combinedDelta":4.400101,"robustPass":true},
+    {"horizon":8,"blockADelta":-0.097182,"blockBDelta":4.015503,"combinedDelta":3.918322,"robustPass":false},
+    {"horizon":10,"blockADelta":0.0,"blockBDelta":0.965434,"combinedDelta":0.965434,"robustPass":true},
+    {"horizon":12,"blockADelta":0.0,"blockBDelta":0.370553,"combinedDelta":0.370553,"robustPass":true}
+  ],
+  "selected": {
+    "id": "DYNAMIC_RECLAIM_BAR_5",
+    "horizon": 5,
+    "robustPass": true,
+    "combinedDeltaPctPointsVsV4": 5.227505280996136,
+    "worstBlockDeltaPctPointsVsV4": 0.763570734416219,
+    "blockA": {
+      "n": 51,
+      "netPctPoints": 72.52907806627492,
+      "v4NetPctPoints": 71.7655073318587,
+      "deltaPctPoints": 0.763570734416219,
+      "profitFactor": 2.330478081040155,
+      "v4ProfitFactor": 2.298286010158678,
+      "maxDrawdownPctPoints": -11.786107933631005,
+      "v4MaxDrawdownPctPoints": -11.786107933631005,
+      "top1AbsDeltaShare": 1.0,
+      "stateCounts": {
+        "FIRST_BAR_NON_ADVERSE_V4": 35,
+        "HORIZON_FALLBACK_V4": 7,
+        "RECOVERED_TO_V4": 6,
+        "DEFENSIVE_EXIT_BAR_5": 3
+      }
+    },
+    "blockB": {
+      "n": 34,
+      "netPctPoints": 29.9209591946214,
+      "v4NetPctPoints": 25.457024648041482,
+      "deltaPctPoints": 4.463934546579917,
+      "profitFactor": 2.2040057026334825,
+      "v4ProfitFactor": 1.8683925470013119,
+      "maxDrawdownPctPoints": -9.715050066467827,
+      "v4MaxDrawdownPctPoints": -13.790826433163293,
+      "top1AbsDeltaShare": 0.3060000492357879,
+      "stateCounts": {
+        "DEFENSIVE_EXIT_BAR_5": 8,
+        "FIRST_BAR_NON_ADVERSE_V4": 20,
+        "RECOVERED_TO_V4": 5,
+        "HORIZON_FALLBACK_V4": 1
+      }
+    }
+  },
+  "interpretation": {
+    "developmentFinalCandidateSelected": true,
+    "validationClaim": false,
+    "unseenClaim": false,
+    "blockAConcentrationWarning": "All Block A improvement versus v4 is concentrated in one changed trade (top1AbsDeltaShare=1.0).",
+    "blockBObservation": "Bar5 improves net, PF and drawdown versus v4 on exposed Block B with lower single-trade concentration than Block A.",
+    "nextUse": "Use as the single Development Final candidate; any future validation must keep this candidate unchanged."
+  },
+  "guards": {
+    "symbolRules": false,
+    "directionSpecificRules": false,
+    "extraFeatures": false,
+    "outcomeDrivenExceptions": false,
+    "formalValidation": false,
+    "unseenClaim": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

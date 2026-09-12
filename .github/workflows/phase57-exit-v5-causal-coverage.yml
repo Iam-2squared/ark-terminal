@@ -1,0 +1,49 @@
+name: Phase57 EXIT v5 Causal Coverage Map
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/phase57-exit-v5-causal-coverage-map.mjs'
+      - 'predict/daytrade/phase57-p25-2k-pinned-history-bridge.js'
+      - 'predict/daytrade/phase57-p25-data-driven-exit.js'
+      - '.github/workflows/phase57-exit-v5-causal-coverage.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  coverage:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download canonical pre-performance analog snapshot
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-p24-9-oos-canonical-candidate
+          run-id: 31785422471
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/input/analog
+      - name: Build metadata-only causal coverage map
+        shell: bash
+        run: |
+          set -euo pipefail
+          wanted=10ec0b89893823f9e2f7ba720db2d0fad8e76d642fe00f7b77d387ae6be6b12a
+          found=''
+          while IFS= read -r f; do
+            if [ "$(sha256sum "$f" | cut -d' ' -f1)" = "$wanted" ]; then found="$f"; break; fi
+          done < <(find artifacts/input/analog -type f -name '*.json' | sort)
+          test -n "$found"
+          ANALOG_SNAPSHOT="$found" MINIMUM_CAUSAL_NEIGHBORS=30 node scripts/phase57-exit-v5-causal-coverage-map.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-exit-v5-causal-coverage-${{ github.run_id }}
+          path: artifacts/phase57-exit-v5-causal-coverage/report.json
+          retention-days: 14
+      - name: Cleanup
+        run: rm -rf artifacts/input

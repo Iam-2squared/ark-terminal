@@ -66,6 +66,7 @@ jobs:
           github-token: ${{ github.token }}
           repository: Iam-2squared/ark-terminal
           path: artifacts/phase-b/block-a
+          merge-multiple: true
       - uses: actions/download-artifact@v4
         with:
           pattern: phase57-exit-v5-block-b-measurement-34653714314
@@ -73,6 +74,7 @@ jobs:
           github-token: ${{ github.token }}
           repository: Iam-2squared/ark-terminal
           path: artifacts/phase-b/block-b
+          merge-multiple: true
       - name: Download pinned bar5 Development Final report
         uses: actions/download-artifact@v4
         with:

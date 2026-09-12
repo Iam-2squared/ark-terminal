@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 1,
+  "schemaId": "PHASE57_EXIT_V5_DYNAMIC_STATE_DEVELOPMENT_V1",
+  "asOfJst": "2026-09-12",
+  "role": "DEVELOPMENT_ONLY_AFTER_BLOCK_B_REJECT",
+  "blockB": {
+    "workflowRun": 34653714314,
+    "artifactId": 10286251638,
+    "artifactDigest": "sha256:408efa60287e52c22890f2d558fce12d3135ab6997b2d10dedeea60874ec8521",
+    "finalDecision": "BLOCK_B_REJECT",
+    "trades": 34,
+    "v5NetPct": 20.158805797068506,
+    "v4NetPct": 25.457024648041475,
+    "deltaVsV4PctPoints": -5.298218850972969
+  },
+  "staticRouterDecision": "REJECT_ARCHITECTURE",
+  "developmentQuestion": "Can an initially adverse trade remain reversible and be promoted after causal recovery evidence instead of being permanently routed after bar 1?",
+  "trajectoryEvidenceScope": {
+    "blockA": {"causalPathTrades": 51, "initialNegativeFirstClose": 16},
+    "blockB": {"causalPathTrades": 34, "initialNegativeFirstClose": 14},
+    "old20": {
+      "role": "STATIC_SUPPORT_ONLY_NO_MANAGEMENT_TRAJECTORY",
+      "reason": "Persisted old20 trade artifact does not retain per-bar management decisions."
+    }
+  },
+  "recoveryAblation": {
+    "labelForDevelopmentDiagnostics": "v4_net_return_positive_vs_nonpositive",
+    "note": "This label is exposed development only and is not a future validation label.",
+    "entryPriceCloseReclaim": {
+      "bar4": {
+        "blockA": {"positive": {"n": 3, "reclaimRate": 1.0}, "nonPositive": {"n": 13, "reclaimRate": 0.15384615384615385}},
+        "blockB": {"positive": {"n": 5, "reclaimRate": 1.0}, "nonPositive": {"n": 9, "reclaimRate": 0.0}}
+      },
+      "bar6": {
+        "blockA": {"positive": {"n": 3, "reclaimRate": 1.0}, "nonPositive": {"n": 13, "reclaimRate": 0.23076923076923078}},
+        "blockB": {"positive": {"n": 5, "reclaimRate": 1.0}, "nonPositive": {"n": 9, "reclaimRate": 0.0}}
+      },
+      "interpretation": "A close reclaim of the entry anchor is the simplest state-transition signal examined and separates later positive v4 outcomes more consistently than MFE-update alone in both path-exposed blocks."
+    },
+    "mfeUpdate": {
+      "bar4": {
+        "blockA": {"positiveRate": 1.0, "nonPositiveRate": 0.15384615384615385},
+        "blockB": {"positiveRate": 0.8, "nonPositiveRate": 0.2222222222222222}
+      },
+      "bar6": {
+        "blockA": {"positiveRate": 1.0, "nonPositiveRate": 0.23076923076923078},
+        "blockB": {"positiveRate": 1.0, "nonPositiveRate": 0.2222222222222222}
+      },
+      "interpretation": "MFE update is useful but adds less separation than entry-price close reclaim at bar 4 in Block B."
+    },
+    "closeRecoveryRatio": {
+      "definition": "(currentDirectionalCloseReturnPct - runningWorstDirectionalCloseReturnPct) / abs(runningWorstDirectionalCloseReturnPct)",
+      "bar4Median": {"blockAPositive": 1.25, "blockANonPositive": 0.42105263157894784, "blockBPositive": 2.5, "blockBNonPositive": 0.14285714285713605},
+      "bar6Median": {"blockAPositive": 2.5, "blockANonPositive": 0.5, "blockBPositive": 2.5, "blockBNonPositive": 0.22727272727272996},
+      "decision": "KEEP_AS_SECONDARY_DIAGNOSTIC_NOT_PRIMARY_TRIGGER"
+    }
+  },
+  "minimalDynamicCandidateDiagnostic": {
+    "candidateId": "V5_DYNAMIC_RECLAIM_V0_DEV_ONLY",
+    "logic": [
+      "If first managed bar directional close return is non-negative, remain in continuation management.",
+      "If first managed bar directional close return is negative, enter DEFENSIVE.",
+      "While DEFENSIVE, observe causally for entry-price close reclaim.",
+      "If any managed close reclaims non-negative directional return by the observation horizon, promote to RECOVERED and continue with frozen v4 continuation management.",
+      "If no reclaim occurs by the observation horizon, exit at that horizon close."
+    ],
+    "observationHorizonSensitivity": {
+      "bar3": {
+        "blockA": {"deltaVsV4PctPoints": -22.18951147233802, "switches": 12},
+        "blockB": {"deltaVsV4PctPoints": 5.566707821577879, "switches": 11},
+        "decision": "REJECT_TOO_EARLY"
+      },
+      "bar4": {
+        "blockA": {"deltaVsV4PctPoints": -2.5326718981650203, "switches": 11},
+        "blockB": {"deltaVsV4PctPoints": 5.0504816266313775, "switches": 9},
+        "decision": "MIXED"
+      },
+      "bar6": {
+        "blockA": {
+          "candidateNetPctPoints": 72.33471460660533,
+          "v4NetPctPoints": 71.7655073318587,
+          "deltaVsV4PctPoints": 0.5692072747466312,
+          "candidateProfitFactor": 2.32219847783416,
+          "v4ProfitFactor": 2.298286010158678,
+          "candidateMaxDrawdownProxyPctPoints": -11.786107933631005,
+          "v4MaxDrawdownProxyPctPoints": -11.786107933631005,
+          "switches": 10
+        },
+        "blockB": {
+          "candidateNetPctPoints": 29.287918536335734,
+          "v4NetPctPoints": 25.457024648041482,
+          "deltaVsV4PctPoints": 3.830893888294252,
+          "candidateProfitFactor": 2.149257104000069,
+          "v4ProfitFactor": 1.8683925470013119,
+          "candidateMaxDrawdownProxyPctPoints": -11.684773928226223,
+          "v4MaxDrawdownProxyPctPoints": -13.790826433163293,
+          "switches": 9
+        },
+        "decision": "PROMISING_EXPOSED_DEVELOPMENT_ONLY"
+      },
+      "bar8": {
+        "blockA": {"deltaVsV4PctPoints": -0.09718172983480144, "switches": 10},
+        "blockB": {"deltaVsV4PctPoints": 4.0155033665355795, "switches": 9},
+        "decision": "MIXED"
+      }
+    },
+    "whyBar6IsNotYetFrozen": [
+      "Bar 6 was selected after exposed Block A and Block B trajectories were inspected.",
+      "The candidate still uses frozen v4 as the continuation module after recovery.",
+      "old20 cannot supply matching per-bar management trajectory evidence from its persisted artifact.",
+      "A dedicated causal implementation and preflight are required before consuming any new unseen block."
+    ]
+  },
+  "architectureDecision": {
+    "staticRouter": "REJECT",
+    "dynamicStateTransition": "CONTINUE_DEVELOPMENT",
+    "continuationValueHazard": "DEFER",
+    "primaryTransitionSignal": "ENTRY_PRICE_CLOSE_RECLAIM",
+    "secondarySignals": ["CLOSE_RECOVERY_RATIO", "RUNNING_MFE_UPDATE"],
+    "v3v4Role": "BASELINE_ARMS; V4_MAY_BE_USED_AS_TEMPORARY_CONTINUATION_MODULE_IN_DEV_ONLY",
+    "nextUnseen": "SEALED_UNTIL_ONE_CAUSAL_DYNAMIC_CANDIDATE_IS_FROZEN"
+  },
+  "nextImplementation": {
+    "states": ["NEUTRAL", "DEFENSIVE", "RECOVERED"],
+    "freeThresholds": 0,
+    "naturalBoundaries": {
+      "adverseTrigger": "first managed directional close < 0",
+      "recoveryTrigger": "managed directional close >= 0"
+    },
+    "horizon": {
+      "candidateBars": 6,
+      "origin": "existing frozen 1/3/6 horizon family, not a newly invented numeric threshold",
+      "status": "DEVELOPMENT_CANDIDATE_NOT_FROZEN"
+    },
+    "requiredBeforeFreeze": [
+      "Implement causal state machine directly against managed-bar stream.",
+      "Verify no future access in state transitions.",
+      "Verify exit-at-bar6 pricing and 5bps cost parity.",
+      "Verify v4 continuation handoff does not reset v4 internal state.",
+      "Add deterministic regression tests for 5240.T-like and 4889.T-like recovery shapes without symbol-specific rules."
+    ]
+  },
+  "guards": {
+    "developmentEvidenceOnly": true,
+    "newUnseenOpened": false,
+    "resultDrivenSymbolRulesAllowed": false,
+    "longShortSpecificRulesAllowed": false,
+    "thresholdOptimizationAllowedBeforeNextUnseen": false,
+    "mainIntegrationAllowed": false,
+    "mergeAllowed": false,
+    "automaticPromotionAllowed": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

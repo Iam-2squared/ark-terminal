@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "schemaId": "PHASE57_EXIT_V5_BLOCK_C_UNSEEN_V1",
+  "asOfJst": "2026-09-12",
+  "role": "UNSEEN_VALIDATION_BLOCK_C_NON_PROSPECTIVE",
+  "purpose": "Pure falsification of the frozen Dynamic State v5 candidate against frozen v4 on one newly opened historical block.",
+  "authorization": "Explicit user instruction to continue after Dynamic State freeze on 2026-09-12 JST; consume only this single block and do not expand by outcome.",
+  "selectionRule": "Ten chronological JPX sessions immediately preceding Block A, fixed before any Block C outcome is measured.",
+  "expectedSessionCount": 10,
+  "minimumCausalNeighbors": 30,
+  "roundTripCostPct": 0.05,
+  "sessions": [
+    {"sessionDate":"2026-06-04"},
+    {"sessionDate":"2026-06-05"},
+    {"sessionDate":"2026-06-08"},
+    {"sessionDate":"2026-06-09"},
+    {"sessionDate":"2026-06-10"},
+    {"sessionDate":"2026-06-11"},
+    {"sessionDate":"2026-06-12"},
+    {"sessionDate":"2026-06-15"},
+    {"sessionDate":"2026-06-16"},
+    {"sessionDate":"2026-06-17"}
+  ],
+  "candidate": {
+    "freezePath": "predict/research/phase57-exit-v5-dynamic-state-freeze-v1.json",
+    "architecture": "CAUSAL_DYNAMIC_STATE_OVER_FROZEN_V4_CONTINUATION",
+    "candidateId": "PHASE57_EXIT_V5_DYNAMIC_STATE_V1",
+    "firstBarRule": "directional close return < 0 enters DEFENSIVE; otherwise continue v4",
+    "recoveryRule": "first completed managed close with directional return >= 0 by elapsed bar 6 promotes to RECOVERED and continues frozen v4",
+    "failureRule": "no reclaim by elapsed bar 6 exits at completed bar-6 close",
+    "transactionCostBps": 5,
+    "retuningAllowed": false
+  },
+  "lockedUpstream": {
+    "selector": "FROZEN_MINIMAL_HYBRID_V1",
+    "selectorModelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
+    "selectorFreezeSha256": "a744d599e430d23efe4dea6600e418d3410d8a18df5055b35e1cc71432bf64da",
+    "entry": "MINIMAL_STATEFUL_HYBRID_ENTRY_V1",
+    "entryThreshold": 0.60,
+    "entryThresholdRule": "STRICTLY_GREATER_THAN",
+    "repeatEntryAllowed": false,
+    "candidateModelSha256": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a",
+    "exitV4PolicySha256": "2d512dd810d057807bc59a0138a3db98035e57ff2c23c186ba096beeb6be26cb"
+  },
+  "exposedDateRanges": {
+    "blockA": ["2026-06-18","2026-07-30"],
+    "blockB": ["2026-07-31","2026-08-12"],
+    "diagnostic20": ["2026-08-13","2026-09-09"]
+  },
+  "decisionRule": {
+    "supportive": "dynamic v5 net delta vs v4 > 0, PF >= v4 PF, drawdown not worse by more than 1 percentage point, and improvement not dominated by one trade",
+    "mixed": "some benefit but one robustness criterion fails or sample is too small",
+    "reject": "dynamic v5 net delta vs v4 <= 0 or materially worsens drawdown/premature-winner behavior"
+  },
+  "guards": {
+    "datesFrozenBeforeOutcome": true,
+    "noOutcomeDrivenExpansion": true,
+    "noRetuningAfterOpen": true,
+    "noFeatureChangesAfterOpen": true,
+    "noOverrideAdditionAfterOpen": true,
+    "noHorizonChangesAfterOpen": true,
+    "notFormalOos": true,
+    "notProspective": true,
+    "mainIntegrationAllowed": false,
+    "mergeAllowed": false,
+    "automaticPromotionAllowed": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

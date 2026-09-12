@@ -1,0 +1,60 @@
+name: Phase57 Hybrid P21 Entry Baseline Foundation
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/run_phase57_hybrid_p21_baseline.mjs'
+      - 'scripts/summarize_phase57_hybrid_p21_baseline.mjs'
+      - 'scripts/audit_phase57_baseline_real_inputs.mjs'
+      - 'scripts/lib/phase57-baseline-diagnostics.mjs'
+      - 'scripts/tests/phase57-baseline-diagnostics.test.mjs'
+      - 'predict/research/phase57-entry-baseline-measurement-policy-v1.json'
+      - 'predict/research/phase57-entry-baseline-real-gates-2026-09-09/**'
+      - 'predict/research/phase57-entry-baseline-measured-2026-09-09/**'
+      - 'docs/phase57-entry-baseline-measurement-2026-09-09.md'
+      - 'scripts/lib/phase57-hybrid-p21-baseline.mjs'
+      - 'scripts/lib/phase57-hybrid-p21-adapter.mjs'
+      - 'scripts/tests/phase57-hybrid-p21-adapter.test.mjs'
+      - 'scripts/tests/phase57-entry-baseline-resume-gates.test.mjs'
+      - 'predict/research/phase57-entry-baseline-cost-contract-v1.json'
+      - 'predict/research/phase57-entry-baseline-resume-four-gates-2026-09-09.json'
+      - 'predict/research/phase57-entry-baseline-resume-2026-09-09.sha256'
+      - 'docs/phase57-entry-baseline-resume-four-gates.md'
+      - 'predict/daytrade/phase57-p21-prospective-*.js'
+      - 'predict/scalping/phase58-phase57-prospective-pipeline.js'
+      - 'predict/daytrade/phase57-p25-exit-v4-structural-risk.js'
+      - 'predict/portfolio/phase57-p25-adaptive-allocation-v2.js'
+      - 'scripts/tests/phase57-hybrid-p21-baseline.test.mjs'
+      - 'scripts/tests/phase57-entry-allocation-governance.test.mjs'
+      - 'scripts/tests/phase57-protected190-cross-research.test.mjs'
+      - 'predict/research/phase57-entry-protected190-cross-research-2026-09-09.json'
+      - 'docs/phase57-protected190-cross-research-audit.md'
+      - 'predict/research/phase57-entry-historical-inventory-2026-09-08.json'
+      - 'predict/research/phase57-entry-allocation-freeze-2026-09-08.json'
+      - 'predict/research/phase57-entry-governance-2026-09-08.sha256'
+      - 'docs/phase57-entry-historical-inventory-allocation.md'
+      - 'predict/research/phase57-hybrid-p21-entry-baseline-precommit.json'
+      - 'docs/phase57-hybrid-p21-entry-baseline.md'
+      - '.github/workflows/phase57-hybrid-p21-entry-baseline-tests.yml'
+permissions:
+  contents: read
+jobs:
+  offline-foundation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test scripts/tests/phase57-hybrid-p21-baseline.test.mjs
+      - run: node --test scripts/tests/phase57-entry-allocation-governance.test.mjs
+      - run: node --test scripts/tests/phase57-protected190-cross-research.test.mjs
+      - run: node --test scripts/tests/phase57-hybrid-p21-adapter.test.mjs scripts/tests/phase57-entry-baseline-resume-gates.test.mjs
+      - run: node --check scripts/lib/phase57-hybrid-p21-baseline.mjs
+      - run: node --check scripts/lib/phase57-hybrid-p21-adapter.mjs
+      - run: node --test scripts/tests/phase57-baseline-diagnostics.test.mjs
+      - run: node --check scripts/run_phase57_hybrid_p21_baseline.mjs
+      - run: node --check scripts/summarize_phase57_hybrid_p21_baseline.mjs

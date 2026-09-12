@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "schemaId": "PHASE57_EXIT_V5_BLOCK_D_RESERVATION_V1",
+  "asOfJst": "2026-09-12",
+  "status": "RESERVED_NOT_OPENED",
+  "role": "NEXT_CAUSAL_VALID_UNSEEN_VALIDATION_BLOCK",
+  "candidateFreezePath": "predict/research/phase57-exit-v5-dynamic-state-freeze-v1.json",
+  "purpose": "Reserve the next genuinely unseen sessions for one-shot falsification of frozen Dynamic State v5 versus frozen v4 without outcome-driven date selection.",
+  "eligibility": {
+    "minimumCausalNeighbors": 30,
+    "coverageMapFirstEligibleDate": "2026-06-19",
+    "requiredSessionDate": ">=2026-09-10",
+    "excludeExposedRanges": [
+      ["2026-06-04", "2026-06-17"],
+      ["2026-06-18", "2026-07-30"],
+      ["2026-07-31", "2026-08-12"],
+      ["2026-08-13", "2026-09-09"]
+    ],
+    "selectionRule": "Take chronological JPX sessions from 2026-09-10 onward as they become reconstructable; never replace a reserved session because of its outcome.",
+    "targetSessions": 10,
+    "minimumPairedTradesForPerformanceDecision": 20,
+    "ifBelowMinimum": "REPORT_MIXED_INSUFFICIENT_SAMPLE_AND_ACCUMULATE_FORWARD_ONLY_WITHOUT_RETUNING"
+  },
+  "candidateLock": {
+    "candidateId": "PHASE57_EXIT_V5_DYNAMIC_STATE_V1",
+    "architecture": "CAUSAL_DYNAMIC_STATE_OVER_FROZEN_V4_CONTINUATION",
+    "firstBarRule": "directional close return < 0 enters DEFENSIVE; otherwise continue frozen v4",
+    "recoveryRule": "first completed managed close with directional return >= 0 by elapsed bar 6 promotes to RECOVERED and continues frozen v4",
+    "failureRule": "no reclaim by elapsed bar 6 exits at completed bar-6 close",
+    "transactionCostBps": 5,
+    "retuningAllowed": false,
+    "featureChangesAllowed": false,
+    "overrideAdditionAllowed": false,
+    "horizonChangesAllowed": false
+  },
+  "decisionRule": {
+    "supportive": "v5-v4 paired net delta > 0, PF >= v4, drawdown not worse by >1 percentage point, no material premature-winner regression, and improvement not dominated by one trade",
+    "mixed": "directionally useful but sample/robustness criterion insufficient",
+    "reject": "paired net delta <= 0 or material drawdown/premature-winner regression"
+  },
+  "reviewGates": {
+    "claudeReview4BeforeOutcomeInterpretation": true,
+    "claudeReview5AfterBlockDResultBeforeArchitectureChange": true,
+    "oneCandidateOnly": true
+  },
+  "guards": {
+    "outcomeDrivenExpansion": false,
+    "reuseExposedSessionsAsUnseen": false,
+    "formalOos": false,
+    "prospective": false,
+    "mainIntegrationAllowed": false,
+    "mergeAllowed": false,
+    "automaticPromotionAllowed": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

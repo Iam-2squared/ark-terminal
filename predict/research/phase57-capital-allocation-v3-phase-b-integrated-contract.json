@@ -23,6 +23,24 @@
     "legacyBar6DynamicStateFunctionMayNotBeUsedAsBar5": true
   },
   "allocationPolicies": ["V3_0_EQUAL", "V3_A_RANK", "V3_B_RISK"],
+  "ledger": {
+    "source": "predict/portfolio/phase57-p25-lane-c-portfolio-simulator.js",
+    "initialCapitalJpy": 1000000,
+    "baseProfile": "MAX_10",
+    "maximumConcurrentPositions": 10,
+    "lotSizeShares": 100,
+    "cashConstraint": true,
+    "eventOrder": ["PRICE_UPDATE", "EXIT", "CASH_RELEASE", "ENTRY", "MARK_TO_MARKET"],
+    "shortAccounting": "FULLY_CASH_COLLATERALIZED_PROCEEDS_NOT_REUSABLE",
+    "unrealizedPnlMayIncreaseBuyingPower": false,
+    "roundTripCostPct": 0.05,
+    "slippageBps": 0,
+    "v3SetBudgetBridge": {
+      "status": "EXPLICIT_DEVELOPMENT_ASSUMPTION",
+      "formula": "CURRENT_EQUITY_DIVIDED_BY_MAX_N_TIMES_MIN_SIMULTANEOUS_CANDIDATES_AND_OPEN_SLOTS",
+      "reason": "The frozen V3 policies define within-set relative weights; the existing Lane C source defines one equity/MAX_N slot per candidate. This bridge preserves that source notional before applying the three relative-weight policies."
+    }
+  },
   "initialDataset": {
     "role": "EXPOSED_DEVELOPMENT_ONLY",
     "blockA": {

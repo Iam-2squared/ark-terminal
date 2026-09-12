@@ -1,0 +1,2441 @@
+{
+  "schemaVersion": 1,
+  "schemaId": "PHASE57_CAPITAL_ALLOCATION_V3_PHASE_B_INDEPENDENT_REVIEW_PACKET_V1",
+  "status": "REVIEW_PACKET_PREPARED_NOT_REVIEWED",
+  "questions": [
+    "cash accounting and final invariant",
+    "SHORT collateral/notional and non-reusable proceeds",
+    "same-timestamp price update / EXIT / cash release / Entry ordering",
+    "0.05% cost counted exactly once",
+    "bar5 timestamp, close and net parity",
+    "MSH probability and seven-close risk point-in-time integrity",
+    "fairness of shared candidate stream, MAX_10 and set budget",
+    "common-trade and execution-set attribution recomposition",
+    "mark-to-market MaxDD",
+    "any overlooked accounting or interpretation bug"
+  ],
+  "contract": {
+    "id": "PHASE57_CAPITAL_ALLOCATION_V3_PHASE_B_INTEGRATED_V1",
+    "initialCapitalJpy": 1000000,
+    "baseMaxNProfile": "MAX_10",
+    "maximumConcurrentPositions": 10,
+    "lotSize": 100,
+    "roundTripCostPct": 0.05,
+    "slippageBps": 0,
+    "eventOrder": [
+      "PRICE_UPDATE",
+      "EXIT",
+      "CASH_RELEASE",
+      "ENTRY",
+      "MARK_TO_MARKET"
+    ],
+    "entryOrder": [
+      "ENTRY_TIMESTAMP_ASC",
+      "SYMBOL_ASC"
+    ],
+    "simultaneousSetBudget": "CURRENT_EQUITY_DIVIDED_BY_MAX_N_TIMES_CANDIDATE_COUNT_CAPPED_BY_OPEN_SLOTS",
+    "unrealizedPnlMayIncreaseBuyingPower": false,
+    "shortSaleProceedsReusable": false,
+    "fullyCashCollateralizedShorts": true,
+    "adaptiveV2Status": "INCOMPATIBLE_INPUT_SCHEMA_NOT_MEASURED"
+  },
+  "input": {
+    "sessions": [
+      "2026-06-18",
+      "2026-06-19",
+      "2026-06-22",
+      "2026-06-23",
+      "2026-06-24",
+      "2026-06-25",
+      "2026-06-26",
+      "2026-06-29",
+      "2026-06-30",
+      "2026-07-01",
+      "2026-07-02",
+      "2026-07-03",
+      "2026-07-06",
+      "2026-07-07",
+      "2026-07-08",
+      "2026-07-09",
+      "2026-07-10",
+      "2026-07-13",
+      "2026-07-14",
+      "2026-07-15",
+      "2026-07-16",
+      "2026-07-17",
+      "2026-07-21",
+      "2026-07-22",
+      "2026-07-23",
+      "2026-07-24",
+      "2026-07-27",
+      "2026-07-28",
+      "2026-07-29",
+      "2026-07-30",
+      "2026-07-31",
+      "2026-08-03",
+      "2026-08-04",
+      "2026-08-05",
+      "2026-08-06",
+      "2026-08-07",
+      "2026-08-10",
+      "2026-08-12"
+    ],
+    "sessionCount": 38,
+    "manifestCount": 38,
+    "featureEventCount": 9652,
+    "mshReplayFirstEnterCount": 91,
+    "pairedEligibleCount": 85,
+    "blockAArchiveSha256": "80f4ae315576abd4e13604f2b4271cbe1033ca6883221b65ae700bfff9422a62",
+    "blockBArchiveSha256": "408efa60287e52c22890f2d558fce12d3135ab6997b2d10dedeea60874ec8521",
+    "modelSha256": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a",
+    "opportunitySha256": "df2d58917d714ee58d0df9668c97ebb8562fd01c5d828211b55e630eb0109340",
+    "tradeOutcomeSha256": "799ecd715c0bb90201de2aee86590d3bed88236b350cc3d0fe6c02c500308518",
+    "markSha256": "c360745a87c9ea8d6175e91a66657ef898da8980cadfa9f521abb55575d06a94"
+  },
+  "parity": {
+    "status": "BAR5_PARITY_PASS",
+    "blockA": {
+      "n": 51,
+      "net": 72.52907806627495,
+      "stateCounts": {
+        "FIRST_BAR_NON_ADVERSE_V4": 35,
+        "HORIZON_FALLBACK_V4": 7,
+        "RECOVERED_TO_V4": 6,
+        "DEFENSIVE_EXIT_BAR_5": 3
+      }
+    },
+    "blockB": {
+      "n": 34,
+      "net": 29.920959194621393,
+      "stateCounts": {
+        "DEFENSIVE_EXIT_BAR_5": 8,
+        "FIRST_BAR_NON_ADVERSE_V4": 20,
+        "RECOVERED_TO_V4": 5,
+        "HORIZON_FALLBACK_V4": 1
+      }
+    }
+  },
+  "arms": {
+    "V3_0_EQUAL__FROZEN_EXIT_V4": {
+      "armId": "V3_0_EQUAL__FROZEN_EXIT_V4",
+      "allocationId": "V3_0_EQUAL",
+      "exitId": "FROZEN_EXIT_V4",
+      "initialCapitalJpy": 1000000,
+      "finalEquityJpy": 1058638.605,
+      "netPnlJpy": 58638.605,
+      "netReturnPct": 5.863861,
+      "realizedPnlJpy": 58638.605,
+      "unrealizedPnlJpy": 0,
+      "portfolioProfitFactor": 4.408261,
+      "maxDrawdown": {
+        "maxDrawdownPct": 2.224815,
+        "peakTimestamp": "2026-06-26T02:20:00.000Z",
+        "troughTimestamp": "2026-06-29T02:20:00.000Z"
+      },
+      "worstDay": {
+        "sessionDate": "2026-06-24",
+        "equityJpy": 1005408.705,
+        "returnPct": -0.054684
+      },
+      "trade": {
+        "candidates": 85,
+        "accepted": 29,
+        "rejected": 56,
+        "winRate": 0.482759,
+        "averagePnlJpy": 2022.020862,
+        "medianPnlJpy": -37,
+        "averageHoldingMinutes": 201.37931,
+        "transactionCostsJpy": 1341.395,
+        "rejectionCounts": {
+          "INSUFFICIENT_AVAILABLE_CASH_FOR_100_SHARES": 1,
+          "TARGET_BUDGET_BELOW_100_SHARES": 55
+        }
+      },
+      "capital": {
+        "maximumConcurrentPositions": 2,
+        "averageCapitalUtilization": 0.036196,
+        "maximumCapitalUtilization": 0.197195,
+        "averageGrossExposureJpy": 37195.418975,
+        "maximumGrossExposureJpy": 198900,
+        "averageNetExposureJpy": -27400.335873,
+        "maximumAbsoluteNetExposureJpy": 198900,
+        "averageCashJpy": 987765.326487,
+        "grossTurnoverNotionalJpy": 5304600
+      },
+      "directionCapitalShare": {
+        "long": 0.110445,
+        "short": 0.889555
+      },
+      "symbolConcentration": {
+        "topSymbol": {
+          "symbol": "8918.T",
+          "share": 0.26699816236082585,
+          "notionalJpy": 716300
+        },
+        "top3Share": 0.469399,
+        "shares": [
+          {
+            "symbol": "8918.T",
+            "share": 0.266998,
+            "notionalJpy": 716300
+          },
+          {
+            "symbol": "4935.T",
+            "share": 0.127106,
+            "notionalJpy": 341000
+          },
+          {
+            "symbol": "4564.T",
+            "share": 0.075295,
+            "notionalJpy": 202000
+          },
+          {
+            "symbol": "9425.T",
+            "share": 0.065678,
+            "notionalJpy": 176200
+          },
+          {
+            "symbol": "4597.T",
+            "share": 0.037834,
+            "notionalJpy": 101500
+          },
+          {
+            "symbol": "4833.T",
+            "share": 0.037386,
+            "notionalJpy": 100300
+          },
+          {
+            "symbol": "6620.T",
+            "share": 0.036678,
+            "notionalJpy": 98400
+          },
+          {
+            "symbol": "5240.T",
+            "share": 0.03638,
+            "notionalJpy": 97600
+          },
+          {
+            "symbol": "6740.T",
+            "share": 0.036119,
+            "notionalJpy": 96900
+          },
+          {
+            "symbol": "3323.T",
+            "share": 0.03556,
+            "notionalJpy": 95400
+          }
+        ]
+      },
+      "profitContribution": {
+        "top1": {
+          "symbol": "8918.T",
+          "pnlJpy": 27641.85,
+          "shareOfPositiveProfit": 0.36569
+        },
+        "top3": {
+          "pnlJpy": 43747.8,
+          "shareOfPositiveProfit": 0.578764,
+          "symbols": [
+            "8918.T",
+            "5240.T",
+            "8105.T"
+          ]
+        }
+      },
+      "exitReasonDistribution": {
+        "SESSION_END": {
+          "count": 21,
+          "pnlJpy": 70105.555
+        },
+        "V4_CONFIRMED_DOWNSIDE_TRAJECTORY": {
+          "count": 6,
+          "pnlJpy": -10467.6
+        },
+        "V4_EMERGENCY_STRUCTURAL_DOWNSIDE": {
+          "count": 1,
+          "pnlJpy": -2649.2
+        },
+        "V4_WINNER_GIVEBACK_CONFIRMED": {
+          "count": 1,
+          "pnlJpy": 1649.85
+        }
+      },
+      "accounting": {
+        "cashInsufficientSkips": 1,
+        "positionLimitSkips": 0,
+        "costDoubleCounted": false,
+        "shortSaleProceedsReusable": false,
+        "unrealizedPnlBuyingPower": false
+      },
+      "dailyEquity": [
+        {
+          "sessionDate": "2026-06-18",
+          "equityJpy": 1000000,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-19",
+          "equityJpy": 1000000,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-22",
+          "equityJpy": 1005958.8,
+          "returnPct": 0.59588
+        },
+        {
+          "sessionDate": "2026-06-23",
+          "equityJpy": 1005958.8,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-24",
+          "equityJpy": 1005408.705,
+          "returnPct": -0.054684
+        },
+        {
+          "sessionDate": "2026-06-25",
+          "equityJpy": 1005408.705,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-26",
+          "equityJpy": 1004861.855,
+          "returnPct": -0.054391
+        },
+        {
+          "sessionDate": "2026-06-29",
+          "equityJpy": 1005829.455,
+          "returnPct": 0.096292
+        },
+        {
+          "sessionDate": "2026-06-30",
+          "equityJpy": 1005779.455,
+          "returnPct": -0.004971
+        },
+        {
+          "sessionDate": "2026-07-01",
+          "equityJpy": 1005779.455,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-02",
+          "equityJpy": 1008695.455,
+          "returnPct": 0.289924
+        },
+        {
+          "sessionDate": "2026-07-03",
+          "equityJpy": 1009396.005,
+          "returnPct": 0.069451
+        },
+        {
+          "sessionDate": "2026-07-06",
+          "equityJpy": 1018445.955,
+          "returnPct": 0.896571
+        },
+        {
+          "sessionDate": "2026-07-07",
+          "equityJpy": 1018445.955,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-08",
+          "equityJpy": 1020456.705,
+          "returnPct": 0.197433
+        },
+        {
+          "sessionDate": "2026-07-09",
+          "equityJpy": 1020456.705,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-10",
+          "equityJpy": 1022069.555,
+          "returnPct": 0.158052
+        },
+        {
+          "sessionDate": "2026-07-13",
+          "equityJpy": 1022018.555,
+          "returnPct": -0.00499
+        },
+        {
+          "sessionDate": "2026-07-14",
+          "equityJpy": 1022018.555,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-15",
+          "equityJpy": 1031169.755,
+          "returnPct": 0.895404
+        },
+        {
+          "sessionDate": "2026-07-16",
+          "equityJpy": 1031125.505,
+          "returnPct": -0.004291
+        },
+        {
+          "sessionDate": "2026-07-17",
+          "equityJpy": 1031125.505,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-21",
+          "equityJpy": 1031074.205,
+          "returnPct": -0.004975
+        },
+        {
+          "sessionDate": "2026-07-22",
+          "equityJpy": 1034523.455,
+          "returnPct": 0.33453
+        },
+        {
+          "sessionDate": "2026-07-23",
+          "equityJpy": 1037481.855,
+          "returnPct": 0.285967
+        },
+        {
+          "sessionDate": "2026-07-24",
+          "equityJpy": 1037243.055,
+          "returnPct": -0.023017
+        },
+        {
+          "sessionDate": "2026-07-27",
+          "equityJpy": 1037243.055,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-28",
+          "equityJpy": 1046591.355,
+          "returnPct": 0.901264
+        },
+        {
+          "sessionDate": "2026-07-29",
+          "equityJpy": 1046591.355,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-30",
+          "equityJpy": 1046591.355,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-31",
+          "equityJpy": 1046591.355,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-03",
+          "equityJpy": 1056039.105,
+          "returnPct": 0.902716
+        },
+        {
+          "sessionDate": "2026-08-04",
+          "equityJpy": 1056039.105,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-05",
+          "equityJpy": 1056039.105,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-06",
+          "equityJpy": 1055986.305,
+          "returnPct": -0.005
+        },
+        {
+          "sessionDate": "2026-08-07",
+          "equityJpy": 1055986.305,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-10",
+          "equityJpy": 1055986.305,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-12",
+          "equityJpy": 1058638.605,
+          "returnPct": 0.251168
+        }
+      ]
+    },
+    "V3_0_EQUAL__EXIT_V5_DYNAMIC_RECLAIM_BAR_5": {
+      "armId": "V3_0_EQUAL__EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+      "allocationId": "V3_0_EQUAL",
+      "exitId": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+      "initialCapitalJpy": 1000000,
+      "finalEquityJpy": 1058638.605,
+      "netPnlJpy": 58638.605,
+      "netReturnPct": 5.863861,
+      "realizedPnlJpy": 58638.605,
+      "unrealizedPnlJpy": 0,
+      "portfolioProfitFactor": 4.408261,
+      "maxDrawdown": {
+        "maxDrawdownPct": 2.224815,
+        "peakTimestamp": "2026-06-26T02:20:00.000Z",
+        "troughTimestamp": "2026-06-29T02:20:00.000Z"
+      },
+      "worstDay": {
+        "sessionDate": "2026-06-24",
+        "equityJpy": 1005408.705,
+        "returnPct": -0.054684
+      },
+      "trade": {
+        "candidates": 85,
+        "accepted": 29,
+        "rejected": 56,
+        "winRate": 0.482759,
+        "averagePnlJpy": 2022.020862,
+        "medianPnlJpy": -37,
+        "averageHoldingMinutes": 201.37931,
+        "transactionCostsJpy": 1341.395,
+        "rejectionCounts": {
+          "INSUFFICIENT_AVAILABLE_CASH_FOR_100_SHARES": 1,
+          "TARGET_BUDGET_BELOW_100_SHARES": 55
+        }
+      },
+      "capital": {
+        "maximumConcurrentPositions": 2,
+        "averageCapitalUtilization": 0.036196,
+        "maximumCapitalUtilization": 0.197195,
+        "averageGrossExposureJpy": 37195.418975,
+        "maximumGrossExposureJpy": 198900,
+        "averageNetExposureJpy": -27400.335873,
+        "maximumAbsoluteNetExposureJpy": 198900,
+        "averageCashJpy": 987765.326487,
+        "grossTurnoverNotionalJpy": 5304600
+      },
+      "directionCapitalShare": {
+        "long": 0.110445,
+        "short": 0.889555
+      },
+      "symbolConcentration": {
+        "topSymbol": {
+          "symbol": "8918.T",
+          "share": 0.26699816236082585,
+          "notionalJpy": 716300
+        },
+        "top3Share": 0.469399,
+        "shares": [
+          {
+            "symbol": "8918.T",
+            "share": 0.266998,
+            "notionalJpy": 716300
+          },
+          {
+            "symbol": "4935.T",
+            "share": 0.127106,
+            "notionalJpy": 341000
+          },
+          {
+            "symbol": "4564.T",
+            "share": 0.075295,
+            "notionalJpy": 202000
+          },
+          {
+            "symbol": "9425.T",
+            "share": 0.065678,
+            "notionalJpy": 176200
+          },
+          {
+            "symbol": "4597.T",
+            "share": 0.037834,
+            "notionalJpy": 101500
+          },
+          {
+            "symbol": "4833.T",
+            "share": 0.037386,
+            "notionalJpy": 100300
+          },
+          {
+            "symbol": "6620.T",
+            "share": 0.036678,
+            "notionalJpy": 98400
+          },
+          {
+            "symbol": "5240.T",
+            "share": 0.03638,
+            "notionalJpy": 97600
+          },
+          {
+            "symbol": "6740.T",
+            "share": 0.036119,
+            "notionalJpy": 96900
+          },
+          {
+            "symbol": "3323.T",
+            "share": 0.03556,
+            "notionalJpy": 95400
+          }
+        ]
+      },
+      "profitContribution": {
+        "top1": {
+          "symbol": "8918.T",
+          "pnlJpy": 27641.85,
+          "shareOfPositiveProfit": 0.36569
+        },
+        "top3": {
+          "pnlJpy": 43747.8,
+          "shareOfPositiveProfit": 0.578764,
+          "symbols": [
+            "8918.T",
+            "5240.T",
+            "8105.T"
+          ]
+        }
+      },
+      "exitReasonDistribution": {
+        "SESSION_END": {
+          "count": 21,
+          "pnlJpy": 70105.555
+        },
+        "V4_CONFIRMED_DOWNSIDE_TRAJECTORY": {
+          "count": 6,
+          "pnlJpy": -10467.6
+        },
+        "V4_EMERGENCY_STRUCTURAL_DOWNSIDE": {
+          "count": 1,
+          "pnlJpy": -2649.2
+        },
+        "V4_WINNER_GIVEBACK_CONFIRMED": {
+          "count": 1,
+          "pnlJpy": 1649.85
+        }
+      },
+      "accounting": {
+        "cashInsufficientSkips": 1,
+        "positionLimitSkips": 0,
+        "costDoubleCounted": false,
+        "shortSaleProceedsReusable": false,
+        "unrealizedPnlBuyingPower": false
+      },
+      "dailyEquity": [
+        {
+          "sessionDate": "2026-06-18",
+          "equityJpy": 1000000,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-19",
+          "equityJpy": 1000000,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-22",
+          "equityJpy": 1005958.8,
+          "returnPct": 0.59588
+        },
+        {
+          "sessionDate": "2026-06-23",
+          "equityJpy": 1005958.8,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-24",
+          "equityJpy": 1005408.705,
+          "returnPct": -0.054684
+        },
+        {
+          "sessionDate": "2026-06-25",
+          "equityJpy": 1005408.705,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-26",
+          "equityJpy": 1004861.855,
+          "returnPct": -0.054391
+        },
+        {
+          "sessionDate": "2026-06-29",
+          "equityJpy": 1005829.455,
+          "returnPct": 0.096292
+        },
+        {
+          "sessionDate": "2026-06-30",
+          "equityJpy": 1005779.455,
+          "returnPct": -0.004971
+        },
+        {
+          "sessionDate": "2026-07-01",
+          "equityJpy": 1005779.455,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-02",
+          "equityJpy": 1008695.455,
+          "returnPct": 0.289924
+        },
+        {
+          "sessionDate": "2026-07-03",
+          "equityJpy": 1009396.005,
+          "returnPct": 0.069451
+        },
+        {
+          "sessionDate": "2026-07-06",
+          "equityJpy": 1018445.955,
+          "returnPct": 0.896571
+        },
+        {
+          "sessionDate": "2026-07-07",
+          "equityJpy": 1018445.955,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-08",
+          "equityJpy": 1020456.705,
+          "returnPct": 0.197433
+        },
+        {
+          "sessionDate": "2026-07-09",
+          "equityJpy": 1020456.705,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-10",
+          "equityJpy": 1022069.555,
+          "returnPct": 0.158052
+        },
+        {
+          "sessionDate": "2026-07-13",
+          "equityJpy": 1022018.555,
+          "returnPct": -0.00499
+        },
+        {
+          "sessionDate": "2026-07-14",
+          "equityJpy": 1022018.555,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-15",
+          "equityJpy": 1031169.755,
+          "returnPct": 0.895404
+        },
+        {
+          "sessionDate": "2026-07-16",
+          "equityJpy": 1031125.505,
+          "returnPct": -0.004291
+        },
+        {
+          "sessionDate": "2026-07-17",
+          "equityJpy": 1031125.505,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-21",
+          "equityJpy": 1031074.205,
+          "returnPct": -0.004975
+        },
+        {
+          "sessionDate": "2026-07-22",
+          "equityJpy": 1034523.455,
+          "returnPct": 0.33453
+        },
+        {
+          "sessionDate": "2026-07-23",
+          "equityJpy": 1037481.855,
+          "returnPct": 0.285967
+        },
+        {
+          "sessionDate": "2026-07-24",
+          "equityJpy": 1037243.055,
+          "returnPct": -0.023017
+        },
+        {
+          "sessionDate": "2026-07-27",
+          "equityJpy": 1037243.055,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-28",
+          "equityJpy": 1046591.355,
+          "returnPct": 0.901264
+        },
+        {
+          "sessionDate": "2026-07-29",
+          "equityJpy": 1046591.355,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-30",
+          "equityJpy": 1046591.355,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-31",
+          "equityJpy": 1046591.355,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-03",
+          "equityJpy": 1056039.105,
+          "returnPct": 0.902716
+        },
+        {
+          "sessionDate": "2026-08-04",
+          "equityJpy": 1056039.105,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-05",
+          "equityJpy": 1056039.105,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-06",
+          "equityJpy": 1055986.305,
+          "returnPct": -0.005
+        },
+        {
+          "sessionDate": "2026-08-07",
+          "equityJpy": 1055986.305,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-10",
+          "equityJpy": 1055986.305,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-12",
+          "equityJpy": 1058638.605,
+          "returnPct": 0.251168
+        }
+      ]
+    },
+    "V3_A_RANK__FROZEN_EXIT_V4": {
+      "armId": "V3_A_RANK__FROZEN_EXIT_V4",
+      "allocationId": "V3_A_RANK",
+      "exitId": "FROZEN_EXIT_V4",
+      "initialCapitalJpy": 1000000,
+      "finalEquityJpy": 1051084.205,
+      "netPnlJpy": 51084.205,
+      "netReturnPct": 5.108421,
+      "realizedPnlJpy": 51084.205,
+      "unrealizedPnlJpy": 0,
+      "portfolioProfitFactor": 3.969521,
+      "maxDrawdown": {
+        "maxDrawdownPct": 2.355698,
+        "peakTimestamp": "2026-06-26T02:20:00.000Z",
+        "troughTimestamp": "2026-07-02T01:30:00.000Z"
+      },
+      "worstDay": {
+        "sessionDate": "2026-06-29",
+        "equityJpy": 1003047.555,
+        "returnPct": -0.180552
+      },
+      "trade": {
+        "candidates": 85,
+        "accepted": 29,
+        "rejected": 56,
+        "winRate": 0.482759,
+        "averagePnlJpy": 1761.52431,
+        "medianPnlJpy": -37,
+        "averageHoldingMinutes": 201.37931,
+        "transactionCostsJpy": 1295.795,
+        "rejectionCounts": {
+          "INSUFFICIENT_AVAILABLE_CASH_FOR_100_SHARES": 1,
+          "TARGET_BUDGET_BELOW_100_SHARES": 55
+        }
+      },
+      "capital": {
+        "maximumConcurrentPositions": 2,
+        "averageCapitalUtilization": 0.034664,
+        "maximumCapitalUtilization": 0.19774,
+        "averageGrossExposureJpy": 35482.780471,
+        "maximumGrossExposureJpy": 198900,
+        "averageNetExposureJpy": -25702.655817,
+        "maximumAbsoluteNetExposureJpy": 198900,
+        "averageCashJpy": 985200.230331,
+        "grossTurnoverNotionalJpy": 5129800
+      },
+      "directionCapitalShare": {
+        "long": 0.113984,
+        "short": 0.886016
+      },
+      "symbolConcentration": {
+        "topSymbol": {
+          "symbol": "8918.T",
+          "share": 0.2747734016568979,
+          "notionalJpy": 712100
+        },
+        "top3Share": 0.483526,
+        "shares": [
+          {
+            "symbol": "8918.T",
+            "share": 0.274773,
+            "notionalJpy": 712100
+          },
+          {
+            "symbol": "4935.T",
+            "share": 0.131579,
+            "notionalJpy": 341000
+          },
+          {
+            "symbol": "4564.T",
+            "share": 0.077173,
+            "notionalJpy": 200000
+          },
+          {
+            "symbol": "9425.T",
+            "share": 0.067989,
+            "notionalJpy": 176200
+          },
+          {
+            "symbol": "4597.T",
+            "share": 0.039165,
+            "notionalJpy": 101500
+          },
+          {
+            "symbol": "4833.T",
+            "share": 0.038702,
+            "notionalJpy": 100300
+          },
+          {
+            "symbol": "6620.T",
+            "share": 0.037969,
+            "notionalJpy": 98400
+          },
+          {
+            "symbol": "6740.T",
+            "share": 0.03739,
+            "notionalJpy": 96900
+          },
+          {
+            "symbol": "3323.T",
+            "share": 0.036811,
+            "notionalJpy": 95400
+          },
+          {
+            "symbol": "6072.T",
+            "share": 0.036155,
+            "notionalJpy": 93700
+          }
+        ]
+      },
+      "profitContribution": {
+        "top1": {
+          "symbol": "8918.T",
+          "pnlJpy": 27443.95,
+          "shareOfPositiveProfit": 0.403386
+        },
+        "top3": {
+          "pnlJpy": 40114.65,
+          "shareOfPositiveProfit": 0.589627,
+          "symbols": [
+            "8918.T",
+            "9425.T",
+            "4169.T"
+          ]
+        }
+      },
+      "exitReasonDistribution": {
+        "SESSION_END": {
+          "count": 21,
+          "pnlJpy": 62551.155
+        },
+        "V4_CONFIRMED_DOWNSIDE_TRAJECTORY": {
+          "count": 6,
+          "pnlJpy": -10467.6
+        },
+        "V4_EMERGENCY_STRUCTURAL_DOWNSIDE": {
+          "count": 1,
+          "pnlJpy": -2649.2
+        },
+        "V4_WINNER_GIVEBACK_CONFIRMED": {
+          "count": 1,
+          "pnlJpy": 1649.85
+        }
+      },
+      "accounting": {
+        "cashInsufficientSkips": 1,
+        "positionLimitSkips": 0,
+        "costDoubleCounted": false,
+        "shortSaleProceedsReusable": false,
+        "unrealizedPnlBuyingPower": false
+      },
+      "dailyEquity": [
+        {
+          "sessionDate": "2026-06-18",
+          "equityJpy": 1000000,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-19",
+          "equityJpy": 1000000,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-22",
+          "equityJpy": 1005958.8,
+          "returnPct": 0.59588
+        },
+        {
+          "sessionDate": "2026-06-23",
+          "equityJpy": 1005958.8,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-24",
+          "equityJpy": 1005408.705,
+          "returnPct": -0.054684
+        },
+        {
+          "sessionDate": "2026-06-25",
+          "equityJpy": 1005408.705,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-26",
+          "equityJpy": 1004861.855,
+          "returnPct": -0.054391
+        },
+        {
+          "sessionDate": "2026-06-29",
+          "equityJpy": 1003047.555,
+          "returnPct": -0.180552
+        },
+        {
+          "sessionDate": "2026-06-30",
+          "equityJpy": 1002997.555,
+          "returnPct": -0.004985
+        },
+        {
+          "sessionDate": "2026-07-01",
+          "equityJpy": 1002997.555,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-02",
+          "equityJpy": 1005913.555,
+          "returnPct": 0.290729
+        },
+        {
+          "sessionDate": "2026-07-03",
+          "equityJpy": 1006614.105,
+          "returnPct": 0.069643
+        },
+        {
+          "sessionDate": "2026-07-06",
+          "equityJpy": 1015664.055,
+          "returnPct": 0.899049
+        },
+        {
+          "sessionDate": "2026-07-07",
+          "equityJpy": 1015664.055,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-08",
+          "equityJpy": 1017674.805,
+          "returnPct": 0.197974
+        },
+        {
+          "sessionDate": "2026-07-09",
+          "equityJpy": 1017674.805,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-10",
+          "equityJpy": 1019287.655,
+          "returnPct": 0.158484
+        },
+        {
+          "sessionDate": "2026-07-13",
+          "equityJpy": 1019237.655,
+          "returnPct": -0.004905
+        },
+        {
+          "sessionDate": "2026-07-14",
+          "equityJpy": 1019237.655,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-15",
+          "equityJpy": 1023813.255,
+          "returnPct": 0.448924
+        },
+        {
+          "sessionDate": "2026-07-16",
+          "equityJpy": 1023769.005,
+          "returnPct": -0.004322
+        },
+        {
+          "sessionDate": "2026-07-17",
+          "equityJpy": 1023769.005,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-21",
+          "equityJpy": 1023718.155,
+          "returnPct": -0.004967
+        },
+        {
+          "sessionDate": "2026-07-22",
+          "equityJpy": 1027167.405,
+          "returnPct": 0.336934
+        },
+        {
+          "sessionDate": "2026-07-23",
+          "equityJpy": 1030125.805,
+          "returnPct": 0.288015
+        },
+        {
+          "sessionDate": "2026-07-24",
+          "equityJpy": 1029887.005,
+          "returnPct": -0.023182
+        },
+        {
+          "sessionDate": "2026-07-27",
+          "equityJpy": 1029887.005,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-28",
+          "equityJpy": 1039135.855,
+          "returnPct": 0.898045
+        },
+        {
+          "sessionDate": "2026-07-29",
+          "equityJpy": 1039135.855,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-30",
+          "equityJpy": 1039135.855,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-31",
+          "equityJpy": 1039135.855,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-03",
+          "equityJpy": 1048484.155,
+          "returnPct": 0.899623
+        },
+        {
+          "sessionDate": "2026-08-04",
+          "equityJpy": 1048484.155,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-05",
+          "equityJpy": 1048484.155,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-06",
+          "equityJpy": 1048431.905,
+          "returnPct": -0.004983
+        },
+        {
+          "sessionDate": "2026-08-07",
+          "equityJpy": 1048431.905,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-10",
+          "equityJpy": 1048431.905,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-12",
+          "equityJpy": 1051084.205,
+          "returnPct": 0.252978
+        }
+      ]
+    },
+    "V3_A_RANK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5": {
+      "armId": "V3_A_RANK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+      "allocationId": "V3_A_RANK",
+      "exitId": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+      "initialCapitalJpy": 1000000,
+      "finalEquityJpy": 1051084.205,
+      "netPnlJpy": 51084.205,
+      "netReturnPct": 5.108421,
+      "realizedPnlJpy": 51084.205,
+      "unrealizedPnlJpy": 0,
+      "portfolioProfitFactor": 3.969521,
+      "maxDrawdown": {
+        "maxDrawdownPct": 2.355698,
+        "peakTimestamp": "2026-06-26T02:20:00.000Z",
+        "troughTimestamp": "2026-07-02T01:30:00.000Z"
+      },
+      "worstDay": {
+        "sessionDate": "2026-06-29",
+        "equityJpy": 1003047.555,
+        "returnPct": -0.180552
+      },
+      "trade": {
+        "candidates": 85,
+        "accepted": 29,
+        "rejected": 56,
+        "winRate": 0.482759,
+        "averagePnlJpy": 1761.52431,
+        "medianPnlJpy": -37,
+        "averageHoldingMinutes": 201.37931,
+        "transactionCostsJpy": 1295.795,
+        "rejectionCounts": {
+          "INSUFFICIENT_AVAILABLE_CASH_FOR_100_SHARES": 1,
+          "TARGET_BUDGET_BELOW_100_SHARES": 55
+        }
+      },
+      "capital": {
+        "maximumConcurrentPositions": 2,
+        "averageCapitalUtilization": 0.034664,
+        "maximumCapitalUtilization": 0.19774,
+        "averageGrossExposureJpy": 35482.780471,
+        "maximumGrossExposureJpy": 198900,
+        "averageNetExposureJpy": -25702.655817,
+        "maximumAbsoluteNetExposureJpy": 198900,
+        "averageCashJpy": 985200.230331,
+        "grossTurnoverNotionalJpy": 5129800
+      },
+      "directionCapitalShare": {
+        "long": 0.113984,
+        "short": 0.886016
+      },
+      "symbolConcentration": {
+        "topSymbol": {
+          "symbol": "8918.T",
+          "share": 0.2747734016568979,
+          "notionalJpy": 712100
+        },
+        "top3Share": 0.483526,
+        "shares": [
+          {
+            "symbol": "8918.T",
+            "share": 0.274773,
+            "notionalJpy": 712100
+          },
+          {
+            "symbol": "4935.T",
+            "share": 0.131579,
+            "notionalJpy": 341000
+          },
+          {
+            "symbol": "4564.T",
+            "share": 0.077173,
+            "notionalJpy": 200000
+          },
+          {
+            "symbol": "9425.T",
+            "share": 0.067989,
+            "notionalJpy": 176200
+          },
+          {
+            "symbol": "4597.T",
+            "share": 0.039165,
+            "notionalJpy": 101500
+          },
+          {
+            "symbol": "4833.T",
+            "share": 0.038702,
+            "notionalJpy": 100300
+          },
+          {
+            "symbol": "6620.T",
+            "share": 0.037969,
+            "notionalJpy": 98400
+          },
+          {
+            "symbol": "6740.T",
+            "share": 0.03739,
+            "notionalJpy": 96900
+          },
+          {
+            "symbol": "3323.T",
+            "share": 0.036811,
+            "notionalJpy": 95400
+          },
+          {
+            "symbol": "6072.T",
+            "share": 0.036155,
+            "notionalJpy": 93700
+          }
+        ]
+      },
+      "profitContribution": {
+        "top1": {
+          "symbol": "8918.T",
+          "pnlJpy": 27443.95,
+          "shareOfPositiveProfit": 0.403386
+        },
+        "top3": {
+          "pnlJpy": 40114.65,
+          "shareOfPositiveProfit": 0.589627,
+          "symbols": [
+            "8918.T",
+            "9425.T",
+            "4169.T"
+          ]
+        }
+      },
+      "exitReasonDistribution": {
+        "SESSION_END": {
+          "count": 21,
+          "pnlJpy": 62551.155
+        },
+        "V4_CONFIRMED_DOWNSIDE_TRAJECTORY": {
+          "count": 6,
+          "pnlJpy": -10467.6
+        },
+        "V4_EMERGENCY_STRUCTURAL_DOWNSIDE": {
+          "count": 1,
+          "pnlJpy": -2649.2
+        },
+        "V4_WINNER_GIVEBACK_CONFIRMED": {
+          "count": 1,
+          "pnlJpy": 1649.85
+        }
+      },
+      "accounting": {
+        "cashInsufficientSkips": 1,
+        "positionLimitSkips": 0,
+        "costDoubleCounted": false,
+        "shortSaleProceedsReusable": false,
+        "unrealizedPnlBuyingPower": false
+      },
+      "dailyEquity": [
+        {
+          "sessionDate": "2026-06-18",
+          "equityJpy": 1000000,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-19",
+          "equityJpy": 1000000,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-22",
+          "equityJpy": 1005958.8,
+          "returnPct": 0.59588
+        },
+        {
+          "sessionDate": "2026-06-23",
+          "equityJpy": 1005958.8,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-24",
+          "equityJpy": 1005408.705,
+          "returnPct": -0.054684
+        },
+        {
+          "sessionDate": "2026-06-25",
+          "equityJpy": 1005408.705,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-26",
+          "equityJpy": 1004861.855,
+          "returnPct": -0.054391
+        },
+        {
+          "sessionDate": "2026-06-29",
+          "equityJpy": 1003047.555,
+          "returnPct": -0.180552
+        },
+        {
+          "sessionDate": "2026-06-30",
+          "equityJpy": 1002997.555,
+          "returnPct": -0.004985
+        },
+        {
+          "sessionDate": "2026-07-01",
+          "equityJpy": 1002997.555,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-02",
+          "equityJpy": 1005913.555,
+          "returnPct": 0.290729
+        },
+        {
+          "sessionDate": "2026-07-03",
+          "equityJpy": 1006614.105,
+          "returnPct": 0.069643
+        },
+        {
+          "sessionDate": "2026-07-06",
+          "equityJpy": 1015664.055,
+          "returnPct": 0.899049
+        },
+        {
+          "sessionDate": "2026-07-07",
+          "equityJpy": 1015664.055,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-08",
+          "equityJpy": 1017674.805,
+          "returnPct": 0.197974
+        },
+        {
+          "sessionDate": "2026-07-09",
+          "equityJpy": 1017674.805,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-10",
+          "equityJpy": 1019287.655,
+          "returnPct": 0.158484
+        },
+        {
+          "sessionDate": "2026-07-13",
+          "equityJpy": 1019237.655,
+          "returnPct": -0.004905
+        },
+        {
+          "sessionDate": "2026-07-14",
+          "equityJpy": 1019237.655,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-15",
+          "equityJpy": 1023813.255,
+          "returnPct": 0.448924
+        },
+        {
+          "sessionDate": "2026-07-16",
+          "equityJpy": 1023769.005,
+          "returnPct": -0.004322
+        },
+        {
+          "sessionDate": "2026-07-17",
+          "equityJpy": 1023769.005,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-21",
+          "equityJpy": 1023718.155,
+          "returnPct": -0.004967
+        },
+        {
+          "sessionDate": "2026-07-22",
+          "equityJpy": 1027167.405,
+          "returnPct": 0.336934
+        },
+        {
+          "sessionDate": "2026-07-23",
+          "equityJpy": 1030125.805,
+          "returnPct": 0.288015
+        },
+        {
+          "sessionDate": "2026-07-24",
+          "equityJpy": 1029887.005,
+          "returnPct": -0.023182
+        },
+        {
+          "sessionDate": "2026-07-27",
+          "equityJpy": 1029887.005,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-28",
+          "equityJpy": 1039135.855,
+          "returnPct": 0.898045
+        },
+        {
+          "sessionDate": "2026-07-29",
+          "equityJpy": 1039135.855,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-30",
+          "equityJpy": 1039135.855,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-31",
+          "equityJpy": 1039135.855,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-03",
+          "equityJpy": 1048484.155,
+          "returnPct": 0.899623
+        },
+        {
+          "sessionDate": "2026-08-04",
+          "equityJpy": 1048484.155,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-05",
+          "equityJpy": 1048484.155,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-06",
+          "equityJpy": 1048431.905,
+          "returnPct": -0.004983
+        },
+        {
+          "sessionDate": "2026-08-07",
+          "equityJpy": 1048431.905,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-10",
+          "equityJpy": 1048431.905,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-12",
+          "equityJpy": 1051084.205,
+          "returnPct": 0.252978
+        }
+      ]
+    },
+    "V3_B_RISK__FROZEN_EXIT_V4": {
+      "armId": "V3_B_RISK__FROZEN_EXIT_V4",
+      "allocationId": "V3_B_RISK",
+      "exitId": "FROZEN_EXIT_V4",
+      "initialCapitalJpy": 1000000,
+      "finalEquityJpy": 1065637.505,
+      "netPnlJpy": 65637.505,
+      "netReturnPct": 6.56375,
+      "realizedPnlJpy": 65637.505,
+      "unrealizedPnlJpy": 0,
+      "portfolioProfitFactor": 5.188792,
+      "maxDrawdown": {
+        "maxDrawdownPct": 2.096278,
+        "peakTimestamp": "2026-06-26T02:20:00.000Z",
+        "troughTimestamp": "2026-06-29T02:20:00.000Z"
+      },
+      "worstDay": {
+        "sessionDate": "2026-06-24",
+        "equityJpy": 1005408.705,
+        "returnPct": -0.054684
+      },
+      "trade": {
+        "candidates": 85,
+        "accepted": 28,
+        "rejected": 57,
+        "winRate": 0.5,
+        "averagePnlJpy": 2344.196607,
+        "medianPnlJpy": 356.8,
+        "averageHoldingMinutes": 207.857143,
+        "transactionCostsJpy": 1342.495,
+        "rejectionCounts": {
+          "INSUFFICIENT_AVAILABLE_CASH_FOR_100_SHARES": 1,
+          "TARGET_BUDGET_BELOW_100_SHARES": 56
+        }
+      },
+      "capital": {
+        "maximumConcurrentPositions": 2,
+        "averageCapitalUtilization": 0.037274,
+        "maximumCapitalUtilization": 0.22243,
+        "averageGrossExposureJpy": 38476.790166,
+        "maximumGrossExposureJpy": 224300,
+        "averageNetExposureJpy": -28621.180748,
+        "maximumAbsoluteNetExposureJpy": 224300,
+        "averageCashJpy": 990995.547964,
+        "grossTurnoverNotionalJpy": 5302000
+      },
+      "directionCapitalShare": {
+        "long": 0.111062,
+        "short": 0.888938
+      },
+      "symbolConcentration": {
+        "topSymbol": {
+          "symbol": "8918.T",
+          "share": 0.26830639965139536,
+          "notionalJpy": 720400
+        },
+        "top3Share": 0.479965,
+        "shares": [
+          {
+            "symbol": "8918.T",
+            "share": 0.268306,
+            "notionalJpy": 720400
+          },
+          {
+            "symbol": "4935.T",
+            "share": 0.136425,
+            "notionalJpy": 366300
+          },
+          {
+            "symbol": "4564.T",
+            "share": 0.075233,
+            "notionalJpy": 202000
+          },
+          {
+            "symbol": "9425.T",
+            "share": 0.065624,
+            "notionalJpy": 176200
+          },
+          {
+            "symbol": "8105.T",
+            "share": 0.047188,
+            "notionalJpy": 126700
+          },
+          {
+            "symbol": "5240.T",
+            "share": 0.045438,
+            "notionalJpy": 122000
+          },
+          {
+            "symbol": "3323.T",
+            "share": 0.039479,
+            "notionalJpy": 106000
+          },
+          {
+            "symbol": "4597.T",
+            "share": 0.037803,
+            "notionalJpy": 101500
+          },
+          {
+            "symbol": "4833.T",
+            "share": 0.037356,
+            "notionalJpy": 100300
+          },
+          {
+            "symbol": "6740.T",
+            "share": 0.03609,
+            "notionalJpy": 96900
+          }
+        ]
+      },
+      "profitContribution": {
+        "top1": {
+          "symbol": "8918.T",
+          "pnlJpy": 27739.8,
+          "shareOfPositiveProfit": 0.342253
+        },
+        "top3": {
+          "pnlJpy": 48915.45,
+          "shareOfPositiveProfit": 0.603517,
+          "symbols": [
+            "8918.T",
+            "5240.T",
+            "8105.T"
+          ]
+        }
+      },
+      "exitReasonDistribution": {
+        "SESSION_END": {
+          "count": 21,
+          "pnlJpy": 75567.905
+        },
+        "V4_CONFIRMED_DOWNSIDE_TRAJECTORY": {
+          "count": 6,
+          "pnlJpy": -11580.25
+        },
+        "V4_WINNER_GIVEBACK_CONFIRMED": {
+          "count": 1,
+          "pnlJpy": 1649.85
+        }
+      },
+      "accounting": {
+        "cashInsufficientSkips": 1,
+        "positionLimitSkips": 0,
+        "costDoubleCounted": false,
+        "shortSaleProceedsReusable": false,
+        "unrealizedPnlBuyingPower": false
+      },
+      "dailyEquity": [
+        {
+          "sessionDate": "2026-06-18",
+          "equityJpy": 1000000,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-19",
+          "equityJpy": 1000000,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-22",
+          "equityJpy": 1005958.8,
+          "returnPct": 0.59588
+        },
+        {
+          "sessionDate": "2026-06-23",
+          "equityJpy": 1005958.8,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-24",
+          "equityJpy": 1005408.705,
+          "returnPct": -0.054684
+        },
+        {
+          "sessionDate": "2026-06-25",
+          "equityJpy": 1005408.705,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-26",
+          "equityJpy": 1004861.855,
+          "returnPct": -0.054391
+        },
+        {
+          "sessionDate": "2026-06-29",
+          "equityJpy": 1010147.905,
+          "returnPct": 0.526047
+        },
+        {
+          "sessionDate": "2026-06-30",
+          "equityJpy": 1010097.405,
+          "returnPct": -0.004999
+        },
+        {
+          "sessionDate": "2026-07-01",
+          "equityJpy": 1010097.405,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-02",
+          "equityJpy": 1013013.405,
+          "returnPct": 0.288685
+        },
+        {
+          "sessionDate": "2026-07-03",
+          "equityJpy": 1013713.405,
+          "returnPct": 0.069101
+        },
+        {
+          "sessionDate": "2026-07-06",
+          "equityJpy": 1022862.805,
+          "returnPct": 0.902563
+        },
+        {
+          "sessionDate": "2026-07-07",
+          "equityJpy": 1022862.805,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-08",
+          "equityJpy": 1024873.555,
+          "returnPct": 0.196581
+        },
+        {
+          "sessionDate": "2026-07-09",
+          "equityJpy": 1024873.555,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-10",
+          "equityJpy": 1026486.405,
+          "returnPct": 0.157371
+        },
+        {
+          "sessionDate": "2026-07-13",
+          "equityJpy": 1026435.405,
+          "returnPct": -0.004968
+        },
+        {
+          "sessionDate": "2026-07-14",
+          "equityJpy": 1026435.405,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-15",
+          "equityJpy": 1037874.405,
+          "returnPct": 1.114439
+        },
+        {
+          "sessionDate": "2026-07-16",
+          "equityJpy": 1037830.155,
+          "returnPct": -0.004264
+        },
+        {
+          "sessionDate": "2026-07-17",
+          "equityJpy": 1037830.155,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-21",
+          "equityJpy": 1037778.405,
+          "returnPct": -0.004986
+        },
+        {
+          "sessionDate": "2026-07-22",
+          "equityJpy": 1041227.655,
+          "returnPct": 0.332369
+        },
+        {
+          "sessionDate": "2026-07-23",
+          "equityJpy": 1044186.055,
+          "returnPct": 0.284126
+        },
+        {
+          "sessionDate": "2026-07-24",
+          "equityJpy": 1043947.255,
+          "returnPct": -0.022869
+        },
+        {
+          "sessionDate": "2026-07-27",
+          "equityJpy": 1043947.255,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-28",
+          "equityJpy": 1053295.555,
+          "returnPct": 0.895476
+        },
+        {
+          "sessionDate": "2026-07-29",
+          "equityJpy": 1053295.555,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-30",
+          "equityJpy": 1053295.555,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-31",
+          "equityJpy": 1053295.555,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-03",
+          "equityJpy": 1062743.305,
+          "returnPct": 0.89697
+        },
+        {
+          "sessionDate": "2026-08-04",
+          "equityJpy": 1062743.305,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-05",
+          "equityJpy": 1062743.305,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-06",
+          "equityJpy": 1062690.505,
+          "returnPct": -0.004968
+        },
+        {
+          "sessionDate": "2026-08-07",
+          "equityJpy": 1062690.505,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-10",
+          "equityJpy": 1062690.505,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-12",
+          "equityJpy": 1065637.505,
+          "returnPct": 0.277315
+        }
+      ]
+    },
+    "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5": {
+      "armId": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+      "allocationId": "V3_B_RISK",
+      "exitId": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+      "initialCapitalJpy": 1000000,
+      "finalEquityJpy": 1065637.505,
+      "netPnlJpy": 65637.505,
+      "netReturnPct": 6.56375,
+      "realizedPnlJpy": 65637.505,
+      "unrealizedPnlJpy": 0,
+      "portfolioProfitFactor": 5.188792,
+      "maxDrawdown": {
+        "maxDrawdownPct": 2.096278,
+        "peakTimestamp": "2026-06-26T02:20:00.000Z",
+        "troughTimestamp": "2026-06-29T02:20:00.000Z"
+      },
+      "worstDay": {
+        "sessionDate": "2026-06-24",
+        "equityJpy": 1005408.705,
+        "returnPct": -0.054684
+      },
+      "trade": {
+        "candidates": 85,
+        "accepted": 28,
+        "rejected": 57,
+        "winRate": 0.5,
+        "averagePnlJpy": 2344.196607,
+        "medianPnlJpy": 356.8,
+        "averageHoldingMinutes": 207.857143,
+        "transactionCostsJpy": 1342.495,
+        "rejectionCounts": {
+          "INSUFFICIENT_AVAILABLE_CASH_FOR_100_SHARES": 1,
+          "TARGET_BUDGET_BELOW_100_SHARES": 56
+        }
+      },
+      "capital": {
+        "maximumConcurrentPositions": 2,
+        "averageCapitalUtilization": 0.037274,
+        "maximumCapitalUtilization": 0.22243,
+        "averageGrossExposureJpy": 38476.790166,
+        "maximumGrossExposureJpy": 224300,
+        "averageNetExposureJpy": -28621.180748,
+        "maximumAbsoluteNetExposureJpy": 224300,
+        "averageCashJpy": 990995.547964,
+        "grossTurnoverNotionalJpy": 5302000
+      },
+      "directionCapitalShare": {
+        "long": 0.111062,
+        "short": 0.888938
+      },
+      "symbolConcentration": {
+        "topSymbol": {
+          "symbol": "8918.T",
+          "share": 0.26830639965139536,
+          "notionalJpy": 720400
+        },
+        "top3Share": 0.479965,
+        "shares": [
+          {
+            "symbol": "8918.T",
+            "share": 0.268306,
+            "notionalJpy": 720400
+          },
+          {
+            "symbol": "4935.T",
+            "share": 0.136425,
+            "notionalJpy": 366300
+          },
+          {
+            "symbol": "4564.T",
+            "share": 0.075233,
+            "notionalJpy": 202000
+          },
+          {
+            "symbol": "9425.T",
+            "share": 0.065624,
+            "notionalJpy": 176200
+          },
+          {
+            "symbol": "8105.T",
+            "share": 0.047188,
+            "notionalJpy": 126700
+          },
+          {
+            "symbol": "5240.T",
+            "share": 0.045438,
+            "notionalJpy": 122000
+          },
+          {
+            "symbol": "3323.T",
+            "share": 0.039479,
+            "notionalJpy": 106000
+          },
+          {
+            "symbol": "4597.T",
+            "share": 0.037803,
+            "notionalJpy": 101500
+          },
+          {
+            "symbol": "4833.T",
+            "share": 0.037356,
+            "notionalJpy": 100300
+          },
+          {
+            "symbol": "6740.T",
+            "share": 0.03609,
+            "notionalJpy": 96900
+          }
+        ]
+      },
+      "profitContribution": {
+        "top1": {
+          "symbol": "8918.T",
+          "pnlJpy": 27739.8,
+          "shareOfPositiveProfit": 0.342253
+        },
+        "top3": {
+          "pnlJpy": 48915.45,
+          "shareOfPositiveProfit": 0.603517,
+          "symbols": [
+            "8918.T",
+            "5240.T",
+            "8105.T"
+          ]
+        }
+      },
+      "exitReasonDistribution": {
+        "SESSION_END": {
+          "count": 21,
+          "pnlJpy": 75567.905
+        },
+        "V4_CONFIRMED_DOWNSIDE_TRAJECTORY": {
+          "count": 6,
+          "pnlJpy": -11580.25
+        },
+        "V4_WINNER_GIVEBACK_CONFIRMED": {
+          "count": 1,
+          "pnlJpy": 1649.85
+        }
+      },
+      "accounting": {
+        "cashInsufficientSkips": 1,
+        "positionLimitSkips": 0,
+        "costDoubleCounted": false,
+        "shortSaleProceedsReusable": false,
+        "unrealizedPnlBuyingPower": false
+      },
+      "dailyEquity": [
+        {
+          "sessionDate": "2026-06-18",
+          "equityJpy": 1000000,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-19",
+          "equityJpy": 1000000,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-22",
+          "equityJpy": 1005958.8,
+          "returnPct": 0.59588
+        },
+        {
+          "sessionDate": "2026-06-23",
+          "equityJpy": 1005958.8,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-24",
+          "equityJpy": 1005408.705,
+          "returnPct": -0.054684
+        },
+        {
+          "sessionDate": "2026-06-25",
+          "equityJpy": 1005408.705,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-06-26",
+          "equityJpy": 1004861.855,
+          "returnPct": -0.054391
+        },
+        {
+          "sessionDate": "2026-06-29",
+          "equityJpy": 1010147.905,
+          "returnPct": 0.526047
+        },
+        {
+          "sessionDate": "2026-06-30",
+          "equityJpy": 1010097.405,
+          "returnPct": -0.004999
+        },
+        {
+          "sessionDate": "2026-07-01",
+          "equityJpy": 1010097.405,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-02",
+          "equityJpy": 1013013.405,
+          "returnPct": 0.288685
+        },
+        {
+          "sessionDate": "2026-07-03",
+          "equityJpy": 1013713.405,
+          "returnPct": 0.069101
+        },
+        {
+          "sessionDate": "2026-07-06",
+          "equityJpy": 1022862.805,
+          "returnPct": 0.902563
+        },
+        {
+          "sessionDate": "2026-07-07",
+          "equityJpy": 1022862.805,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-08",
+          "equityJpy": 1024873.555,
+          "returnPct": 0.196581
+        },
+        {
+          "sessionDate": "2026-07-09",
+          "equityJpy": 1024873.555,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-10",
+          "equityJpy": 1026486.405,
+          "returnPct": 0.157371
+        },
+        {
+          "sessionDate": "2026-07-13",
+          "equityJpy": 1026435.405,
+          "returnPct": -0.004968
+        },
+        {
+          "sessionDate": "2026-07-14",
+          "equityJpy": 1026435.405,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-15",
+          "equityJpy": 1037874.405,
+          "returnPct": 1.114439
+        },
+        {
+          "sessionDate": "2026-07-16",
+          "equityJpy": 1037830.155,
+          "returnPct": -0.004264
+        },
+        {
+          "sessionDate": "2026-07-17",
+          "equityJpy": 1037830.155,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-21",
+          "equityJpy": 1037778.405,
+          "returnPct": -0.004986
+        },
+        {
+          "sessionDate": "2026-07-22",
+          "equityJpy": 1041227.655,
+          "returnPct": 0.332369
+        },
+        {
+          "sessionDate": "2026-07-23",
+          "equityJpy": 1044186.055,
+          "returnPct": 0.284126
+        },
+        {
+          "sessionDate": "2026-07-24",
+          "equityJpy": 1043947.255,
+          "returnPct": -0.022869
+        },
+        {
+          "sessionDate": "2026-07-27",
+          "equityJpy": 1043947.255,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-28",
+          "equityJpy": 1053295.555,
+          "returnPct": 0.895476
+        },
+        {
+          "sessionDate": "2026-07-29",
+          "equityJpy": 1053295.555,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-30",
+          "equityJpy": 1053295.555,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-07-31",
+          "equityJpy": 1053295.555,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-03",
+          "equityJpy": 1062743.305,
+          "returnPct": 0.89697
+        },
+        {
+          "sessionDate": "2026-08-04",
+          "equityJpy": 1062743.305,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-05",
+          "equityJpy": 1062743.305,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-06",
+          "equityJpy": 1062690.505,
+          "returnPct": -0.004968
+        },
+        {
+          "sessionDate": "2026-08-07",
+          "equityJpy": 1062690.505,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-10",
+          "equityJpy": 1062690.505,
+          "returnPct": 0
+        },
+        {
+          "sessionDate": "2026-08-12",
+          "equityJpy": 1065637.505,
+          "returnPct": 0.277315
+        }
+      ]
+    }
+  },
+  "comparisons": {
+    "exitEffect": [
+      {
+        "label": "EXIT_EFFECT",
+        "leftArm": "V3_0_EQUAL__FROZEN_EXIT_V4",
+        "rightArm": "V3_0_EQUAL__EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+        "totalDeltaJpy": 0,
+        "commonTrades": {
+          "count": 29,
+          "deltaJpy": 0
+        },
+        "leftOnlyTrades": {
+          "count": 0,
+          "contributionToDeltaJpy": 0,
+          "eventIds": []
+        },
+        "rightOnlyTrades": {
+          "count": 0,
+          "contributionToDeltaJpy": 0,
+          "eventIds": []
+        },
+        "earlierExitCapitalReleaseAdditionalTrades": {
+          "count": 0,
+          "pnlJpy": 0,
+          "eventIds": []
+        },
+        "recomposed": true
+      },
+      {
+        "label": "EXIT_EFFECT",
+        "leftArm": "V3_A_RANK__FROZEN_EXIT_V4",
+        "rightArm": "V3_A_RANK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+        "totalDeltaJpy": 0,
+        "commonTrades": {
+          "count": 29,
+          "deltaJpy": 0
+        },
+        "leftOnlyTrades": {
+          "count": 0,
+          "contributionToDeltaJpy": 0,
+          "eventIds": []
+        },
+        "rightOnlyTrades": {
+          "count": 0,
+          "contributionToDeltaJpy": 0,
+          "eventIds": []
+        },
+        "earlierExitCapitalReleaseAdditionalTrades": {
+          "count": 0,
+          "pnlJpy": 0,
+          "eventIds": []
+        },
+        "recomposed": true
+      },
+      {
+        "label": "EXIT_EFFECT",
+        "leftArm": "V3_B_RISK__FROZEN_EXIT_V4",
+        "rightArm": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+        "totalDeltaJpy": 0,
+        "commonTrades": {
+          "count": 28,
+          "deltaJpy": 0
+        },
+        "leftOnlyTrades": {
+          "count": 0,
+          "contributionToDeltaJpy": 0,
+          "eventIds": []
+        },
+        "rightOnlyTrades": {
+          "count": 0,
+          "contributionToDeltaJpy": 0,
+          "eventIds": []
+        },
+        "earlierExitCapitalReleaseAdditionalTrades": {
+          "count": 0,
+          "pnlJpy": 0,
+          "eventIds": []
+        },
+        "recomposed": true
+      }
+    ],
+    "allocationEffect": [
+      {
+        "label": "ALLOCATION_EFFECT",
+        "leftArm": "V3_0_EQUAL__FROZEN_EXIT_V4",
+        "rightArm": "V3_A_RANK__FROZEN_EXIT_V4",
+        "totalDeltaJpy": -7554.4,
+        "commonTrades": {
+          "count": 29,
+          "deltaJpy": -7554.4
+        },
+        "leftOnlyTrades": {
+          "count": 0,
+          "contributionToDeltaJpy": 0,
+          "eventIds": []
+        },
+        "rightOnlyTrades": {
+          "count": 0,
+          "contributionToDeltaJpy": 0,
+          "eventIds": []
+        },
+        "earlierExitCapitalReleaseAdditionalTrades": {
+          "count": 0,
+          "pnlJpy": 0,
+          "eventIds": []
+        },
+        "recomposed": true
+      },
+      {
+        "label": "ALLOCATION_EFFECT",
+        "leftArm": "V3_0_EQUAL__FROZEN_EXIT_V4",
+        "rightArm": "V3_B_RISK__FROZEN_EXIT_V4",
+        "totalDeltaJpy": 6998.9,
+        "commonTrades": {
+          "count": 28,
+          "deltaJpy": 4349.7
+        },
+        "leftOnlyTrades": {
+          "count": 1,
+          "contributionToDeltaJpy": 2649.2,
+          "eventIds": [
+            "2026-06-29|2026-06-29T02:10:00.000Z|6620.T"
+          ]
+        },
+        "rightOnlyTrades": {
+          "count": 0,
+          "contributionToDeltaJpy": 0,
+          "eventIds": []
+        },
+        "earlierExitCapitalReleaseAdditionalTrades": {
+          "count": 0,
+          "pnlJpy": 0,
+          "eventIds": []
+        },
+        "recomposed": true
+      },
+      {
+        "label": "ALLOCATION_EFFECT",
+        "leftArm": "V3_A_RANK__FROZEN_EXIT_V4",
+        "rightArm": "V3_B_RISK__FROZEN_EXIT_V4",
+        "totalDeltaJpy": 14553.3,
+        "commonTrades": {
+          "count": 28,
+          "deltaJpy": 11904.1
+        },
+        "leftOnlyTrades": {
+          "count": 1,
+          "contributionToDeltaJpy": 2649.2,
+          "eventIds": [
+            "2026-06-29|2026-06-29T02:10:00.000Z|6620.T"
+          ]
+        },
+        "rightOnlyTrades": {
+          "count": 0,
+          "contributionToDeltaJpy": 0,
+          "eventIds": []
+        },
+        "earlierExitCapitalReleaseAdditionalTrades": {
+          "count": 0,
+          "pnlJpy": 0,
+          "eventIds": []
+        },
+        "recomposed": true
+      },
+      {
+        "label": "ALLOCATION_EFFECT",
+        "leftArm": "V3_0_EQUAL__EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+        "rightArm": "V3_A_RANK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+        "totalDeltaJpy": -7554.4,
+        "commonTrades": {
+          "count": 29,
+          "deltaJpy": -7554.4
+        },
+        "leftOnlyTrades": {
+          "count": 0,
+          "contributionToDeltaJpy": 0,
+          "eventIds": []
+        },
+        "rightOnlyTrades": {
+          "count": 0,
+          "contributionToDeltaJpy": 0,
+          "eventIds": []
+        },
+        "earlierExitCapitalReleaseAdditionalTrades": {
+          "count": 0,
+          "pnlJpy": 0,
+          "eventIds": []
+        },
+        "recomposed": true
+      },
+      {
+        "label": "ALLOCATION_EFFECT",
+        "leftArm": "V3_0_EQUAL__EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+        "rightArm": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+        "totalDeltaJpy": 6998.9,
+        "commonTrades": {
+          "count": 28,
+          "deltaJpy": 4349.7
+        },
+        "leftOnlyTrades": {
+          "count": 1,
+          "contributionToDeltaJpy": 2649.2,
+          "eventIds": [
+            "2026-06-29|2026-06-29T02:10:00.000Z|6620.T"
+          ]
+        },
+        "rightOnlyTrades": {
+          "count": 0,
+          "contributionToDeltaJpy": 0,
+          "eventIds": []
+        },
+        "earlierExitCapitalReleaseAdditionalTrades": {
+          "count": 0,
+          "pnlJpy": 0,
+          "eventIds": []
+        },
+        "recomposed": true
+      },
+      {
+        "label": "ALLOCATION_EFFECT",
+        "leftArm": "V3_A_RANK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+        "rightArm": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+        "totalDeltaJpy": 14553.3,
+        "commonTrades": {
+          "count": 28,
+          "deltaJpy": 11904.1
+        },
+        "leftOnlyTrades": {
+          "count": 1,
+          "contributionToDeltaJpy": 2649.2,
+          "eventIds": [
+            "2026-06-29|2026-06-29T02:10:00.000Z|6620.T"
+          ]
+        },
+        "rightOnlyTrades": {
+          "count": 0,
+          "contributionToDeltaJpy": 0,
+          "eventIds": []
+        },
+        "earlierExitCapitalReleaseAdditionalTrades": {
+          "count": 0,
+          "pnlJpy": 0,
+          "eventIds": []
+        },
+        "recomposed": true
+      }
+    ]
+  },
+  "claims": {
+    "reviewCompleted": false,
+    "developmentOnly": true,
+    "validation": false,
+    "promotion": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

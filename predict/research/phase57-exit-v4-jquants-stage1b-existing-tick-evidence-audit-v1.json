@@ -1,0 +1,293 @@
+{
+  "schemaVersion": 1,
+  "auditId": "PHASE57_EXIT_V4_JQUANTS_STAGE1B_EXISTING_TICK_EVIDENCE_AUDIT_V1",
+  "asOfJst": "2026-09-10",
+  "stage": "1B_EXISTING_TICK_EVIDENCE_DISCOVERY",
+  "parentHeadSha": "2529937379813e89271d88a471c9f63659a33775",
+  "pullRequest": 581,
+  "draftRequired": true,
+  "baseBranch": "research/phase57-minimal-stateful-hybrid-entry",
+  "status": "EXISTING_EVIDENCE_PARTIALLY_SUFFICIENT",
+  "scope": "EXISTING_EVIDENCE_DISCOVERY_ONLY_NO_NEW_PROVIDER_ACQUISITION_NO_OUTCOME_ACCESS",
+  "search": {
+    "remoteBranchTipsSearched": 696,
+    "uniqueRepositoryPathsSearched": 3282,
+    "attachedPdfFilesSearched": 16,
+    "totalFilesSearched": 3298,
+    "workflowArtifactsSearched": 4,
+    "contentHitsAcrossBranchTips": 272775,
+    "relevantEvidenceClusters": 18,
+    "directJquantsTickMinuteEvidenceClusters": 1,
+    "indirectOrSupportingEvidenceClusters": 17,
+    "keywords": [
+      "J-Quants", "JQuants", "tick", "Tick", "OhlcMin", "minute", "1m", "sub-minute",
+      "MarketSpeed", "RSS", "timestamp", "availableAt", "barStart", "barEnd", "09:00", "11:30",
+      "12:30", "NO_FINALIZED_BAR", "finalized", "available", "operator", "parity", "golden",
+      "raw", "archive", "historical"
+    ],
+    "locations": [
+      "main and all 696 fetched remote branch tips",
+      "research/phase57-exit-v4-hybrid-msh-large-scale",
+      "research/phase57-minimal-stateful-hybrid-entry",
+      "research/phase57-selector-v1-v3-minimal-hybrid",
+      "research/phase57-selector-capacity-v2",
+      "Phase57 realtime, MarketSpeed, RSS and historical branches",
+      "Phase58 RSSChart, causal Tick and source-bar-close branches",
+      ".github/workflows, scripts, predict, docs, data and committed evidence",
+      "four GitHub Actions artifacts",
+      "sixteen supplied handoff/reference PDFs"
+    ]
+  },
+  "evidenceInventory": [
+    {
+      "id": "E01",
+      "classification": ["DIRECT_TIMESTAMP_EVIDENCE", "SESSION_BOUNDARY_EVIDENCE", "ADJUSTMENT_EVIDENCE"],
+      "trustLevel": "B",
+      "location": "GitHub Actions artifact 9987982017, run 34028904298, job 101474738422",
+      "commit": "084a10b6fbc2de9cb733d52b3f205f98cf98af24",
+      "finding": "61923 J-Quants Tick executions reconcile exactly to all 1303 Minute rows and all 16 09:00/11:30/12:30/15:30 boundaries under [Time,Time+1m); alternative end-labelled assignments fail",
+      "rawPresent": false,
+      "artifactSha256": "9104f8f7bd7a31ae05e996b28884458b7057d69354a244d93c03b7caf4ff819a"
+    },
+    {
+      "id": "E02",
+      "classification": ["DIRECT_TIMESTAMP_EVIDENCE", "SESSION_BOUNDARY_EVIDENCE"],
+      "trustLevel": "B",
+      "location": "predict/research/phase57-selector-jquants-timestamp-contract-v1.json and .sha256 on research/phase57-selector-capacity-v2",
+      "commit": "084a10b6fbc2de9cb733d52b3f205f98cf98af24",
+      "finding": "Frozen BAR_START, left-closed/right-open, Asia/Tokyo, terminal-auction and no-fabrication contract",
+      "rawPresent": false
+    },
+    {
+      "id": "E03",
+      "classification": ["INDIRECT_TIMESTAMP_EVIDENCE"],
+      "trustLevel": "C",
+      "location": "scripts/reconcile_phase57_selector_jquants_tick_minute.mjs and its tests",
+      "commit": "084a10b6fbc2de9cb733d52b3f205f98cf98af24",
+      "finding": "Reproducible candidate-bin reconciliation, exact OHLCV/turnover equality and fail-closed checks; local re-run 17/17 passed with the reconstruction tests"
+    },
+    {
+      "id": "E04",
+      "classification": ["INDIRECT_TIMESTAMP_EVIDENCE", "SESSION_BOUNDARY_EVIDENCE", "MISSING_SEMANTICS_EVIDENCE"],
+      "trustLevel": "B",
+      "location": "GitHub Actions artifact 9987714595, run 34028131686, job 101472666044",
+      "commit": "df677bf8e92832eec4410e5b7c7e97db0e2bf1e6",
+      "finding": "1305 Minute rows reject a uniform BAR_END interpretation and expose 11:30/15:30 terminal rows, but cannot alone confirm interval closure or absence cause",
+      "rawPresent": false,
+      "artifactSha256": "0171e722383cfe266aebbf39c5454556cd0276ed637790741d6964a8f195b2f4"
+    },
+    {
+      "id": "E05",
+      "classification": ["INDIRECT_TIMESTAMP_EVIDENCE", "AVAILABLE_AT_EVIDENCE"],
+      "trustLevel": "C",
+      "location": "docs/phase57-selector-jquants-timestamp-audit-2026-09-06.md",
+      "finding": "Separates market event time, reconstructed bar availability, provider publication and fetch time; records provider publication around 16:30 JST daily"
+    },
+    {
+      "id": "E06",
+      "classification": ["NOT_USABLE"],
+      "trustLevel": "D",
+      "location": "docs and JSON for phase57-selector-jquants-source-validation-fail-2026-09-06",
+      "finding": "Superseded BAR_END suggestion; retained only as immutable failure history and not used for the current contract"
+    },
+    {
+      "id": "E07",
+      "classification": ["5M_AGGREGATION_PARITY", "SESSION_BOUNDARY_EVIDENCE"],
+      "trustLevel": "B",
+      "location": "GitHub Actions artifact 9988060213, run 34029285223, job 101475741713",
+      "commit": "5dc743f2ec904bf6598735107b9bec34b4a9cd42",
+      "finding": "Four J-Quants Minute groups deterministically produced 65 sparse regular 5m bars each with no fabricated minutes and 11:30/15:30 terminal rows excluded",
+      "rawPresent": false,
+      "artifactSha256": "c199de00c943b25d73eefd5958d3497d65e6eac57486fbd99713b47423892b7a"
+    },
+    {
+      "id": "E08",
+      "classification": ["5M_AGGREGATION_PARITY", "SESSION_BOUNDARY_EVIDENCE"],
+      "trustLevel": "B",
+      "location": "phase57-selector-jquants-minute-reconstruction-pilot-2026-09-06 JSON, SHA and report",
+      "commit": "5dc743f2ec904bf6598735107b9bec34b4a9cd42",
+      "finding": "Frozen SOURCE_VALIDATION_ONLY PASS for 2025-01-16/17 and codes 72030/86970; the relevant Actions job passed even though a separate verify-phase-a job made the overall workflow unsuccessful"
+    },
+    {
+      "id": "E09",
+      "classification": ["5M_AGGREGATION_PARITY", "AVAILABLE_AT_EVIDENCE", "MISSING_SEMANTICS_EVIDENCE"],
+      "trustLevel": "C",
+      "location": "scripts/lib/phase57-selector-jquants-minute.mjs and tests",
+      "commit": "5dc743f2ec904bf6598735107b9bec34b4a9cd42",
+      "finding": "Defines session-separated T..T+4 bins, reconstructed availableAt=T+5m, sparse no-fill behavior and terminal-auction exclusion"
+    },
+    {
+      "id": "E10",
+      "classification": ["INDIRECT_TIMESTAMP_EVIDENCE", "5M_AGGREGATION_PARITY"],
+      "trustLevel": "B",
+      "location": "Stage 0/1 committed counts and minute/five-minute/member-set SHA-256 fingerprints",
+      "finding": "Result-independent fingerprints exist for the three already exposed sessions, but no row-level Ark golden comparison is retained"
+    },
+    {
+      "id": "E11",
+      "classification": ["NOT_USABLE"],
+      "trustLevel": "B",
+      "location": "GitHub Actions artifact 10130183707 and Stage 1 result, run 34418970782",
+      "commit": "15e81b176dbd3ad3cb481319c16042974aa39127",
+      "finding": "Confirms the month-scoped transport stop and zero bulk get/raw/outcome access; contains no Tick rows and cannot prove timestamp semantics",
+      "rawPresent": false,
+      "artifactSha256": "f51f64ea699ccd7f72c11fc1f9da985bc7386e9f9ec24469f17d5f98e0e47150"
+    },
+    {
+      "id": "E12",
+      "classification": ["INDIRECT_TIMESTAMP_EVIDENCE"],
+      "trustLevel": "C",
+      "location": "phase58/p15-causal-tick-order code and tests",
+      "finding": "MarketSpeed II RssTickList chronology is normalized oldest-to-newest and future ordering is rejected; this is not J-Quants evidence"
+    },
+    {
+      "id": "E13",
+      "classification": ["AVAILABLE_AT_EVIDENCE", "INDIRECT_TIMESTAMP_EVIDENCE"],
+      "trustLevel": "C",
+      "location": "Phase57 RSS microstructure capture and MSII raw prospective runtime code/tests",
+      "finding": "Separates capturedAt from source tick time and rejects tick times later than capture; provider differs from J-Quants"
+    },
+    {
+      "id": "E14",
+      "classification": ["MISSING_SEMANTICS_EVIDENCE"],
+      "trustLevel": "C",
+      "location": "fix/phase57-realtime-sparse-5m-bars code/tests",
+      "finding": "Existing Ark sparse finalized-bar behavior avoids synthetic OHLCV, but does not classify J-Quants absence reasons"
+    },
+    {
+      "id": "E15",
+      "classification": ["AVAILABLE_AT_EVIDENCE", "5M_AGGREGATION_PARITY"],
+      "trustLevel": "C",
+      "location": "phase58/p29-source-bar-close-horizon-anchor code/tests",
+      "finding": "Ark distinguishes sourceBarTimestamp from sourceBarCloseAt and anchors decisions to completed source bars; this is an Ark contract, not J-Quants publication proof"
+    },
+    {
+      "id": "E16",
+      "classification": ["NOT_USABLE"],
+      "trustLevel": "D",
+      "location": "41 committed data/phase57-realtime-live raw files",
+      "finding": "These are TradingView point-in-time scanner snapshots, not Tick or J-Quants Minute/Tick data"
+    },
+    {
+      "id": "E17",
+      "classification": ["INDIRECT_TIMESTAMP_EVIDENCE"],
+      "trustLevel": "C",
+      "location": "supplied ms2rss_function PDF",
+      "finding": "Documents RssTickList execution time and RssChart time fields, but does not define J-Quants intervals"
+    },
+    {
+      "id": "E18",
+      "classification": ["INDIRECT_TIMESTAMP_EVIDENCE", "NOT_USABLE"],
+      "trustLevel": "C",
+      "location": "fifteen supplied Ark history/handoff PDFs",
+      "finding": "Confirm read-only MSII/RSS design and older sparse/history context; no operator-confirmed J-Quants timestamp, exact availableAt or retained J-Quants raw evidence was found"
+    }
+  ],
+  "timestamp": {
+    "minuteSemantics": "PASS_BAR_START",
+    "evidenceLevel": "B",
+    "timezone": "PASS_ASIA_TOKYO_JST",
+    "intervalClosure": "LEFT_CLOSED_RIGHT_OPEN",
+    "firstMinute": "09:00",
+    "row0900Interval": "[09:00:00,09:01:00)",
+    "row0905Interval": "[09:05:00,09:06:00)",
+    "barEnd": "SOURCE_MINUTE_START_PLUS_ONE_MINUTE",
+    "terminalAuctionRows": ["11:30", "15:30"],
+    "tickProof": "FOUND_SANITIZED_DIRECT_RECONCILIATION_RAW_NOT_RETAINED"
+  },
+  "availableAt": {
+    "status": "CONDITIONAL_INFERRED_BOUND",
+    "sourceTimestamp": "MINUTE_BAR_START",
+    "barStart": "FIVE_MINUTE_BIN_START",
+    "barEnd": "FIVE_MINUTE_BIN_START_PLUS_FIVE_MINUTES",
+    "reconstructedEventTimeAvailableAt": "NO_EARLIER_THAN_BAR_END_ASSIGN_BAR_END_FOR_LATER_FETCHED_CAUSAL_REPLAY",
+    "providerPublication": "DAILY_AROUND_16_30_JST",
+    "providerExactAvailableAt": "UNKNOWN",
+    "restriction": "DO_NOT_CLAIM_JQUANTS_MINUTE_ENDPOINT_WAS_AVAILABLE_INTRADAY"
+  },
+  "fiveMinuteAggregation": {
+    "status": "PASS_CAUSAL_RECONSTRUCTION_CONTRACT",
+    "firstRegularBar": {
+      "barStart": "09:00:00_JST",
+      "barEnd": "09:05:00_JST",
+      "includedSourceRows": ["09:00", "09:01", "09:02", "09:03", "09:04"],
+      "decisionTimestamp": "09:05:00_JST",
+      "availableAt": "09:05:00_JST_RECONSTRUCTED_EVENT_TIME_NOT_PROVIDER_PUBLICATION"
+    },
+    "morning": "[09:00,11:30)_REGULAR_CONTINUOUS",
+    "lunch": "NO_CROSS_SESSION_BIN",
+    "afternoon": "[12:30,15:30)_REGULAR_CONTINUOUS_RESTART",
+    "terminalAuctions": "11:30_AND_15:30_SEPARATE_SOURCE_EVENTS_EXCLUDED_FROM_REGULAR_5M",
+    "missingMinute": "ABSENT_NO_FILL_NO_SYNTHETIC_OHLCV",
+    "goldenFiveMinuteParity": "NOT_RUN_FOR_THE_THREE_STAGE1_SESSIONS"
+  },
+  "dataSemantics": {
+    "missingReason": "FAIL_INCOMPLETE",
+    "barExistenceReplay": "PASS_NO_OBSERVATION_FAIL_CLOSED",
+    "adjustedUnadjusted": "PASS_RAW_EXECUTION_PRICE_FOR_INTRADAY_MINUTE_TICK",
+    "corporateActions": "PARTIAL_EVENT_FILTER_REQUIRED",
+    "historicalUniverse": "PARTIAL_DATED_MASTER_WITHOUT_COMPLETE_LINEAGE"
+  },
+  "replay": {
+    "frozenHybrid": "PARTIAL",
+    "mshEntry": "PARTIAL",
+    "fullReplayEligibleSessions": 0,
+    "confirmedTier2Sessions": 0,
+    "diagnosticOnlySessions": 3,
+    "goldenParity": "NOT_RUN",
+    "pitViolationsObserved": 0,
+    "pitViolationsClaimScope": "NO_NEW_RAW_SESSION_WAS_ACCESSED_SO_THIS_IS_NOT_COMPLETE_PIT_PROOF"
+  },
+  "monthlyTickDecision": {
+    "requiredForTimestamp": false,
+    "requiredForFiveMinuteContract": false,
+    "wouldResolveExactProviderAvailableAt": false,
+    "wouldResolveHistoricalUniverse": false,
+    "wouldResolveCorporateActionLineage": false,
+    "requiredNow": false,
+    "reason": "EXISTING_SANITIZED_TICK_RECONCILIATION_ALREADY_RESOLVES_INTERVAL_SEMANTICS; REMAINING BLOCKERS REQUIRE GOLDEN INPUT PARITY, DATED UNIVERSE AND EVENT FILTERS, NOT ANOTHER MONTHLY TICK DOWNLOAD"
+  },
+  "physicalAcquisitionStateModel": [
+    "NOT_ACQUIRED",
+    "ACQUIRED_UNINSPECTED",
+    "QUALITY_PILOT_ALLOWED",
+    "DEVELOPMENT_LOCKED",
+    "VALIDATION_LOCKED",
+    "OOS_SEALED",
+    "PROTECTED"
+  ],
+  "accessLedger": {
+    "newJquantsBulkDownloads": 0,
+    "newBulkGetCalls": 0,
+    "newProviderApiCalls": 0,
+    "newRawSessionsAccessed": 0,
+    "newSealedSessionsAccessed": 0,
+    "protected180To282Accessed": 0,
+    "freshValidationOrOosAccessed": 0,
+    "exitOutcomeAccess": 0,
+    "futureLabelsGenerated": 0,
+    "rawPersistence": 0
+  },
+  "nextHighestValueAction": "PRECOMMIT_AND_RUN_DATE_SCOPED_MINUTE_ONLY_INPUT_PARITY_ON_THE_SAME_THREE_ALREADY_EXPOSED_SESSIONS_USING_THE_PROVEN_TIMESTAMP_CONTRACT_DATED_MASTER_AND_CORPORATE_ACTION_BLOCKLIST_NO_OUTCOMES",
+  "additionalSealedSessionRequired": false,
+  "stage2AllocationAllowed": false,
+  "frozenIdentifiers": {
+    "selectorModelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
+    "selectorFreezeSha256": "a744d599e430d23efe4dea6600e418d3410d8a18df5055b35e1cc71432bf64da",
+    "entryThreshold": "STRICTLY_GREATER_THAN_0.60",
+    "entryCandidateSha256": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a",
+    "entryAllocationSha256": "7df4cb026d966628c9b3fbc91037eb13704397a700c076e865d817a273df00e6",
+    "entryFitSha256": "e1567951bcc81d50497a42e24411a32112b36638fbc0ff67247a16a6ce80859c"
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

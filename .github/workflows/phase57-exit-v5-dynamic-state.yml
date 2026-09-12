@@ -1,0 +1,55 @@
+name: Phase57 EXIT v5 Dynamic State Preflight
+
+on:
+  pull_request:
+    branches: [research/phase57-minimal-stateful-hybrid-entry]
+    paths:
+      - .github/workflows/phase57-exit-v5-dynamic-state.yml
+      - scripts/lib/phase57-exit-v5-dynamic-state.mjs
+      - scripts/tests/phase57-exit-v5-dynamic-state.test.mjs
+      - scripts/phase57-exit-v5-dynamic-state-freeze-preflight.mjs
+      - predict/research/phase57-exit-v5-dynamic-state-development-v1.json
+      - predict/research/phase57-exit-v5-dynamic-state-freeze-v1.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    if: >-
+      (github.event_name == 'pull_request' && github.event.pull_request.number == 581 && github.head_ref == 'research/phase57-exit-v4-hybrid-msh-large-scale') ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/research/phase57-exit-v4-hybrid-msh-large-scale')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: Development contract preflight
+        run: |
+          node --check scripts/lib/phase57-exit-v5-dynamic-state.mjs
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const r=JSON.parse(fs.readFileSync('predict/research/phase57-exit-v5-dynamic-state-development-v1.json','utf8'));
+          assert.equal(r.schemaId,'PHASE57_EXIT_V5_DYNAMIC_STATE_DEVELOPMENT_V1');
+          assert.equal(r.blockB.finalDecision,'BLOCK_B_REJECT');
+          assert.equal(r.staticRouterDecision,'REJECT_ARCHITECTURE');
+          assert.equal(r.architectureDecision.dynamicStateTransition,'CONTINUE_DEVELOPMENT');
+          assert.equal(r.architectureDecision.primaryTransitionSignal,'ENTRY_PRICE_CLOSE_RECLAIM');
+          assert.equal(r.nextImplementation.freeThresholds,0);
+          assert.deepEqual(r.nextImplementation.states,['NEUTRAL','DEFENSIVE','RECOVERED']);
+          assert.equal(r.nextImplementation.horizon.candidateBars,6);
+          assert.equal(r.guards.newUnseenOpened,false);
+          assert.equal(r.guards.thresholdOptimizationAllowedBeforeNextUnseen,false);
+          for(const [k,v] of Object.entries(r.safety)) assert.equal(v,false,`SAFETY_FLAG_NOT_FALSE:${k}`);
+          console.log(JSON.stringify({status:'DYNAMIC_STATE_DEVELOPMENT_PREFLIGHT_PASS',unseenStillSealed:true,safety:'ALL_FALSE'}));
+          NODE
+      - name: Dynamic state tests
+        run: node --test scripts/tests/phase57-exit-v5-dynamic-state.test.mjs
+      - name: Frozen candidate preflight
+        run: node scripts/phase57-exit-v5-dynamic-state-freeze-preflight.mjs

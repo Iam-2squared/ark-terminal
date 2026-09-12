@@ -1,0 +1,295 @@
+{
+  "schemaVersion": 1,
+  "auditId": "PHASE57_EXIT_V4_JQUANTS_STAGE1C_GOLDEN_INPUT_PARITY_V1",
+  "asOfJst": "2026-09-10",
+  "stage": "1C_MINUTE_ONLY_GOLDEN_INPUT_PARITY",
+  "pullRequest": 581,
+  "parentHeadSha": "87587f301806cf7ae262bf901ffcd3bad4c59dbe",
+  "baseBranch": "research/phase57-minimal-stateful-hybrid-entry",
+  "baseSha": "2357699727af2f4234771f9e25a2cf9fbf887eee",
+  "status": "GOLDEN_PARITY_NOT_RECOVERABLE",
+  "hardStop": "ACTIVE",
+  "scope": "GOLDEN_RECOVERABILITY_ONLY_NO_PARITY_EXECUTION_NO_PROVIDER_ACCESS_NO_OUTCOME_ACCESS",
+  "pilotSessions": [
+    "2025-08-27",
+    "2025-10-09",
+    "2025-11-25"
+  ],
+  "goldenPolicy": {
+    "A": "ORIGINAL_ROW_LEVEL_INPUT_WITH_VERIFIED_LINEAGE",
+    "B": "PRE_OUTCOME_COMMITTED_DETERMINISTIC_RECONSTRUCTION_WITH_VERIFIED_HASH_OR_FINGERPRINT",
+    "C": "AGGREGATE_COUNT_OR_HASH_ONLY_CONSISTENCY_EVIDENCE",
+    "D": "OUTCOME_DERIVED_AMBIGUOUS_OR_UNVERIFIABLE_NOT_PERMITTED",
+    "formalRowParityAllowed": ["A", "B"],
+    "tolerancePolicy": "NO_TOLERANCE_FIXED_BECAUSE_NO_COMPARABLE_GOLDEN_A_OR_B_ROWS_WERE_RECOVERED"
+  },
+  "search": {
+    "remoteBranchTipsAvailable": 696,
+    "dateReferenceHitsAcrossUniqueRefPathPairs": 107,
+    "entryRelatedRemoteBranches": 78,
+    "pullRequestsChecked": [580, 581],
+    "workflowRunsChecked": [
+      34276420520,
+      34279996111,
+      34292703804,
+      34343070520,
+      34355199082,
+      34363598965
+    ],
+    "locations": [
+      "all fetched remote branch tips including main",
+      "PR 580 and PR 581 metadata and changed files",
+      "Entry Development58 feature and measurement artifact metadata",
+      "Historical Holdout29 source-parity and feature artifact metadata",
+      "Reserve87 source-parity artifact metadata",
+      "predict/research, scripts, docs and .github/workflows",
+      "committed gz filenames and all Git object paths",
+      "supplied Stage 1C instruction PDF"
+    ]
+  },
+  "goldenRecoverability": [
+    {
+      "sessionDate": "2025-08-27",
+      "accessibleGoldenLevel": "C",
+      "candidateGoldenB": {
+        "exists": true,
+        "workflowRunId": 34355199082,
+        "artifactId": 10106663226,
+        "artifactName": "entry-holdout29-features-0-34355199082",
+        "workflowHeadSha": "3d530eed2910011e20f2a1b014675a9dbb139dc0",
+        "preOutcome": true,
+        "labelsGenerated": false,
+        "sessionIndex": 0,
+        "shardIndex": 0,
+        "shardCount": 3,
+        "sessionsInArtifact": 10,
+        "artifactDownloaded": false,
+        "isolationFailure": "TARGET_SESSION_IS_CO_PACKAGED_WITH_NINE_OUT_OF_SCOPE_SESSIONS"
+      },
+      "hybridRows": "UNKNOWN_NOT_ACCESSED",
+      "mshRows": "UNKNOWN_NOT_ACCESSED",
+      "entryRows": "UNKNOWN_NOT_ACCESSED",
+      "verdict": "NOT_RECOVERABLE_WITHIN_THREE_SESSION_ONLY_ACCESS_CONTRACT"
+    },
+    {
+      "sessionDate": "2025-10-09",
+      "accessibleGoldenLevel": "C",
+      "candidateGoldenB": {
+        "exists": true,
+        "workflowRunId": 34292703804,
+        "artifactId": 10082689099,
+        "artifactName": "entry58-features-0-34292703804",
+        "workflowHeadSha": "86d4fa839a097d73a36169df88001bacd4022387",
+        "preOutcome": true,
+        "labelsGenerated": false,
+        "sessionIndex": 0,
+        "shardIndex": 0,
+        "shardCount": 6,
+        "sessionsInArtifact": 10,
+        "artifactDownloaded": false,
+        "isolationFailure": "TARGET_SESSION_IS_CO_PACKAGED_WITH_NINE_OUT_OF_SCOPE_SESSIONS"
+      },
+      "hybridRows": "UNKNOWN_NOT_ACCESSED",
+      "mshRows": "UNKNOWN_NOT_ACCESSED",
+      "entryRows": "UNKNOWN_NOT_ACCESSED",
+      "verdict": "NOT_RECOVERABLE_WITHIN_THREE_SESSION_ONLY_ACCESS_CONTRACT"
+    },
+    {
+      "sessionDate": "2025-11-25",
+      "accessibleGoldenLevel": "C",
+      "candidateGoldenB": {
+        "exists": true,
+        "workflowRunId": 34292703804,
+        "artifactId": 10084152060,
+        "artifactName": "entry58-features-5-34292703804",
+        "workflowHeadSha": "86d4fa839a097d73a36169df88001bacd4022387",
+        "preOutcome": true,
+        "labelsGenerated": false,
+        "sessionIndex": 29,
+        "shardIndex": 5,
+        "shardCount": 6,
+        "sessionsInArtifact": 9,
+        "artifactDownloaded": false,
+        "isolationFailure": "TARGET_SESSION_IS_CO_PACKAGED_WITH_EIGHT_OUT_OF_SCOPE_SESSIONS"
+      },
+      "hybridRows": "UNKNOWN_NOT_ACCESSED",
+      "mshRows": "UNKNOWN_NOT_ACCESSED",
+      "entryRows": "UNKNOWN_NOT_ACCESSED",
+      "verdict": "NOT_RECOVERABLE_WITHIN_THREE_SESSION_ONLY_ACCESS_CONTRACT"
+    }
+  ],
+  "dataBarEvidence": [
+    {
+      "sessionDate": "2025-08-27",
+      "eligibleJpxSymbols": 3768,
+      "minuteRows": 466427,
+      "fiveMinuteBars": 167291,
+      "sourceParityRunId": 34343070520,
+      "sourceParityArtifactId": 10101335949,
+      "rowLevelGoldenAvailable": false,
+      "verdict": "PARTIAL_HASH_COUNT_CONSISTENCY_ONLY"
+    },
+    {
+      "sessionDate": "2025-10-09",
+      "eligibleJpxSymbols": 3758,
+      "minuteRows": 459257,
+      "fiveMinuteBars": 165051,
+      "sourceParityRunId": 34279996111,
+      "sourceParityArtifactId": 10078072448,
+      "rowLevelGoldenAvailable": false,
+      "verdict": "PARTIAL_HASH_COUNT_CONSISTENCY_ONLY"
+    },
+    {
+      "sessionDate": "2025-11-25",
+      "eligibleJpxSymbols": 3765,
+      "minuteRows": 466095,
+      "fiveMinuteBars": 166978,
+      "sourceParityRunId": 34279996111,
+      "sourceParityArtifactId": 10079662326,
+      "rowLevelGoldenAvailable": false,
+      "verdict": "PARTIAL_HASH_COUNT_CONSISTENCY_ONLY"
+    }
+  ],
+  "parityLayers": [
+    {
+      "layer": "DATA_BAR",
+      "status": "PARTIAL",
+      "comparableRows": 0,
+      "match": 0,
+      "mismatch": 0,
+      "blocked": 3,
+      "reason": "TIMESTAMP_AND_AGGREGATION_CONTRACT_PASS_BUT_ONLY_COUNTS_AND_FINGERPRINTS_ARE_ACCESSIBLE"
+    },
+    {
+      "layer": "HYBRID_INPUT",
+      "status": "NOT_RECOVERABLE",
+      "comparableRows": 0,
+      "match": 0,
+      "mismatch": 0,
+      "blocked": 3,
+      "reason": "NO_ISOLATED_GOLDEN_A_OR_B_MARKET_SNAPSHOT_ROWS"
+    },
+    {
+      "layer": "HYBRID_OUTPUT",
+      "status": "NOT_RECOVERABLE",
+      "comparableRows": 0,
+      "match": 0,
+      "mismatch": 0,
+      "blocked": 3,
+      "reason": "NO_ISOLATED_GOLDEN_A_OR_B_MEMBERSHIP_RANK_OR_SELECTION_ROWS"
+    },
+    {
+      "layer": "MSH_FEATURE",
+      "status": "NOT_RECOVERABLE",
+      "comparableRows": 0,
+      "match": 0,
+      "mismatch": 0,
+      "blocked": 3,
+      "reason": "PRE_OUTCOME_FEATURE_ROWS_EXIST_ONLY_INSIDE_MULTI_SESSION_ARTIFACTS"
+    },
+    {
+      "layer": "MSH_STATE",
+      "status": "NOT_RECOVERABLE",
+      "comparableRows": 0,
+      "match": 0,
+      "mismatch": 0,
+      "blocked": 3,
+      "reason": "NO_ISOLATED_CHRONOLOGICAL_TRANSITION_LEDGER"
+    },
+    {
+      "layer": "ENTRY_EVENT",
+      "status": "NOT_RECOVERABLE",
+      "comparableRows": 0,
+      "match": 0,
+      "mismatch": 0,
+      "blocked": 3,
+      "reason": "NO_ISOLATED_PRE_OUTCOME_FIRST_ENTER_REFERENCE_ROWS"
+    }
+  ],
+  "mshFeatureParity": [
+    "directionalReturnFromOpenPct",
+    "directionalVwapDistancePct",
+    "directionalMomentum3Pct",
+    "directionalMomentumAccelerationPct",
+    "directionalPullback6Pct",
+    "relativeVolume5",
+    "minutesSinceFirstSelection",
+    "hybridReciprocalRank",
+    "priorSelectionCount",
+    "direction"
+  ],
+  "mshFeatureParityStatus": "ALL_TEN_NOT_RECOVERABLE_ZERO_COMPARABLE_ROWS",
+  "mismatchTaxonomy": [
+    "DATA_SEMANTICS",
+    "TIMESTAMP",
+    "UNIVERSE",
+    "MISSING_BAR",
+    "CORPORATE_ACTION",
+    "HYBRID_IMPLEMENTATION",
+    "RANK",
+    "MSH_FEATURE",
+    "MSH_STATE",
+    "PRICE_REFERENCE",
+    "DIRECTION",
+    "GOLDEN_REFERENCE_INCOMPLETE",
+    "UNKNOWN"
+  ],
+  "quality": {
+    "minuteTimestamp": "PASS_BAR_START_LEFT_CLOSED_RIGHT_OPEN",
+    "fiveMinuteAggregation": "PASS_CAUSAL_RECONSTRUCTION_CONTRACT",
+    "availableAt": "CONDITIONAL_RECONSTRUCTED_EVENT_TIME_PROVIDER_EXACT_UNKNOWN",
+    "historicalUniverse": "PARTIAL",
+    "corporateActions": "PARTIAL_EVENT_CONFLICT_BLOCK_REQUIRED",
+    "missingSemantics": "FAIL_REASON_CLASSIFICATION_INCOMPLETE_FAIL_CLOSED_NO_OBSERVATION",
+    "pitViolations": 0,
+    "pitClaimScope": "ZERO_OBSERVED_BECAUSE_PARITY_EXECUTION_DID_NOT_START_NOT_FULL_PIT_PROOF"
+  },
+  "eligibility": {
+    "fullReplayEligibleSessions": 0,
+    "confirmedTier2Sessions": 0,
+    "diagnosticOnlySessions": 3,
+    "tier2Applied": false,
+    "stage2AllocationAllowed": false
+  },
+  "tests": {
+    "stage1cContract": "6_OF_6_PASS",
+    "predictFullSuite": "2607_OF_2607_PASS",
+    "githubCi": "VERIFY_ON_COMMITTED_HEAD"
+  },
+  "accessLedger": {
+    "newJquantsBulkDownloads": 0,
+    "newBulkGetCalls": 0,
+    "newTickRawDownloads": 0,
+    "newMinuteApiCalls": 0,
+    "newRawSessionsAccessed": 0,
+    "newSealedSessionsAccessed": 0,
+    "outOfScopeArtifactSessionsAccessed": 0,
+    "protected180To282Accessed": 0,
+    "freshValidationOrOosAccessed": 0,
+    "exitOutcomeAccess": 0,
+    "futureLabelsGenerated": 0,
+    "exitV3OrV4Invocations": 0,
+    "rawPersistence": 0
+  },
+  "frozenIdentifiers": {
+    "selectorModelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
+    "selectorFreezeSha256": "a744d599e430d23efe4dea6600e418d3410d8a18df5055b35e1cc71432bf64da",
+    "entryThreshold": "STRICTLY_GREATER_THAN_0.60",
+    "entryCandidateSha256": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a",
+    "entryAllocationSha256": "7df4cb026d966628c9b3fbc91037eb13704397a700c076e865d817a273df00e6",
+    "entryFitSha256": "e1567951bcc81d50497a42e24411a32112b36638fbc0ff67247a16a6ce80859c"
+  },
+  "nextHighestValueAction": "CREATE_A_SEPARATELY_PRECOMMITTED_READ_ONLY_EXTRACTION_WORKFLOW_THAT_SERVER_SIDE_EXTRACTS_ONLY_THE_THREE_AUTHORIZED_PRE_OUTCOME_SESSION_MEMBERS_FROM_EXISTING_FEATURE_ARTIFACTS_AND_EMITS_HASH_LOCKED_NON_OUTCOME_GOLDEN_B_BUNDLES_THEN_STOP_BEFORE_REPLAY",
+  "additionalSealedSessionRequired": false,
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

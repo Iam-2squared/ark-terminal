@@ -1,0 +1,110 @@
+name: Phase57 EXIT Block A Unseen Validation
+
+on:
+  pull_request:
+    branches: [research/phase57-minimal-stateful-hybrid-entry]
+    paths:
+      - .github/workflows/phase57-exit-block-a.yml
+      - scripts/phase57-exit-block-a-recover.mjs
+      - predict/research/phase57-exit-block-a-unseen-validation-v1.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-exit-block-a-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preflight:
+    if: >-
+      (github.event_name == 'pull_request' && github.event.pull_request.number == 581 && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'research/phase57-exit-v4-hybrid-msh-large-scale') ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/research/phase57-exit-v4-hybrid-msh-large-scale')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: Verify artifact-reuse recovery contract
+        run: |
+          node --check scripts/phase57-exit-block-a-recover.mjs
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';import assert from 'node:assert/strict';
+          const c=JSON.parse(fs.readFileSync('predict/research/phase57-exit-block-a-unseen-validation-v1.json'));
+          assert.equal(c.schemaId,'PHASE57_EXIT_BLOCK_A_UNSEEN_VALIDATION_V1');
+          assert.equal(c.sessions.length,30);
+          assert.equal(c.minimumCausalNeighbors,30);
+          assert.equal(new Set(c.sessions.map(x=>x.sessionDate)).size,30);
+          assert.equal(new Set([...c.sessions.map(x=>x.sessionDate),...c.exposed20]).size,50,'EXPOSED20_OVERLAP');
+          for(const v of Object.values(c.safety))assert.equal(v,false);
+          console.log(JSON.stringify({status:'BLOCK_A_RECOVERY_PREFLIGHT_PASS',sessions:c.sessions.length,reuseRun:34580109870}));
+          NODE
+
+  recover_measure:
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: Reuse all 30 completed feature artifacts from original Block A run
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-exit-block-a-features-*-34580109870
+          run-id: 34580109870
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/block-a-input
+          merge-multiple: true
+      - name: Download immutable frozen MSH candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: entry58-development-measurement-34292703804
+          run-id: 34292703804
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/input/candidate
+      - name: Download canonical pre-performance analog snapshot
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-p24-9-oos-canonical-candidate
+          run-id: 31785422471
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/input/analog
+      - name: Measure Block A without rebuilding features
+        shell: bash
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+          DIAGNOSTIC_CONFIG: predict/research/phase57-exit-block-a-unseen-validation-v1.json
+          INPUT_DIR: artifacts/block-a-input
+          CANDIDATE_MODEL: artifacts/input/candidate/candidate-model.json
+          OUTPUT_DIR: artifacts/phase57-exit-block-a-recovery
+          REUSED_FEATURE_RUN_ID: 34580109870
+        run: |
+          set -euo pipefail
+          test "$(find artifacts/block-a-input -type f -name '*.manifest.json' | wc -l)" -eq 30
+          wanted=10ec0b89893823f9e2f7ba720db2d0fad8e76d642fe00f7b77d387ae6be6b12a
+          found=''
+          while IFS= read -r f; do
+            if [ "$(sha256sum "$f" | cut -d' ' -f1)" = "$wanted" ]; then found="$f"; break; fi
+          done < <(find artifacts/input/analog -type f -name '*.json' | sort)
+          test -n "$found"
+          ANALOG_SNAPSHOT="$found" node scripts/phase57-exit-block-a-recover.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-exit-block-a-recovery-${{ github.run_id }}
+          path: artifacts/phase57-exit-block-a-recovery/
+          if-no-files-found: error
+          retention-days: 14

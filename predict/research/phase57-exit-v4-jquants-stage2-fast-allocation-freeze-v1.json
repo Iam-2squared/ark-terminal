@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "auditId": "PHASE57_EXIT_V4_JQUANTS_STAGE2_FAST_ALLOCATION_FREEZE_V1",
+  "stage": "2_FAST_METADATA_INVENTORY_ALLOCATION_FREEZE",
+  "asOfJst": "2026-09-10",
+  "status": "DATA_ALLOCATION_CAPACITY_CONSTRAINED_BUT_USABLE",
+  "pullRequest": 581,
+  "draft": true,
+  "mainChanged": false,
+  "tier2Contract": {
+    "sha256": "2aa9fd80596c0f71f2359fb132288a15d563e3fab8e22ecbac54fda308a54a70",
+    "modified": false
+  },
+  "artifacts": {
+    "inventorySha256": "127bc15586301936fcb5806486b2d3f03f9a51790d5e1b051fa918815a019e82",
+    "allocationManifestSha256": "316d65a051ef62a0917446a910eabd9c46f2b577486fb5ead5743c446075a276",
+    "allocationContractSha256": "7e2792dfe35998716535bbbe0c9347adf87c9d6179f004b405bf0afd7240faec",
+    "capacitySummarySha256": "9d95b4a7a099764be03a66a1ef0088211659662440f3ab809f8c79f250224040",
+    "devAHandoffSha256": "afcc928c99de77c98115eadb47747e6cc33b50af733461ce41e4885e877adfb0"
+  },
+  "pool": {
+    "discovered": 487,
+    "eligible": 205,
+    "blocked": 0,
+    "diagnosticPriorExposure": 179,
+    "protectedExternal": 103,
+    "freshExternal": 25
+  },
+  "allocation": {
+    "frozen": true,
+    "manifestComplete": true,
+    "purgeEmbargoDecision": "NONE_SESSION_LOCAL_SELECTOR_AND_ENTRY_STATE",
+    "sessionCounts": {
+      "devA": 70,
+      "devB": 20,
+      "validation": 30,
+      "historicalHoldout": 25,
+      "untouchedOos": 30,
+      "futureReserve": 30
+    },
+    "dateBoundaries": {
+      "devA": {
+        "first": "2024-09-10",
+        "last": "2024-12-20",
+        "count": 70
+      },
+      "devB": {
+        "first": "2024-12-23",
+        "last": "2025-01-24",
+        "count": 20
+      },
+      "validation": {
+        "first": "2025-01-27",
+        "last": "2025-03-11",
+        "count": 30
+      },
+      "historicalHoldout": {
+        "first": "2025-03-12",
+        "last": "2026-06-15",
+        "count": 25
+      },
+      "untouchedOos": {
+        "first": "2026-06-16",
+        "last": "2026-07-28",
+        "count": 30
+      },
+      "futureReserve": {
+        "first": "2026-07-29",
+        "last": "2026-09-09",
+        "count": 30
+      }
+    }
+  },
+  "accessLedger": {
+    "newRawSessions": 0,
+    "newSealedOutcomeSessions": 0,
+    "protected180To282": 0,
+    "freshValidationOrOos": 0,
+    "exitOutcomes": 0,
+    "futureLabels": 0,
+    "exitInvocations": 0
+  },
+  "hardStop": "ACTIVE",
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

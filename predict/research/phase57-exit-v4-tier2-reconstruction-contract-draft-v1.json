@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "contractId": "PHASE57_EXIT_V4_TIER2_RECONSTRUCTION_CONTRACT_DRAFT",
+  "asOfJst": "2026-09-10",
+  "status": "DRAFT_NOT_ACTIVE_BLOCKED",
+  "purpose": "Result-blind causal Entry-path substrate contract for a future separately authorized Stage 2 decision",
+  "nonProspective": true,
+  "fullLaneYParityClaimed": false,
+  "activated": false,
+  "tier2ConfirmedSessions": 0,
+  "stage2AllocationAllowed": false,
+  "allocatedSessions": [],
+  "allowedSourceClasses": [
+    "JQUANTS_MINUTE_WITH_VERIFIED_LINEAGE_AND_FIXED_SCHEMA",
+    "EXISTING_VERIFIED_ARK_GOLDEN_INPUT"
+  ],
+  "timestampContract": {
+    "timezone": "JST",
+    "minuteLabel": "BAR_START_LEFT_CLOSED_RIGHT_OPEN",
+    "fiveMinuteLabel": "BAR_START",
+    "firstBarStart": "09:00",
+    "firstBarEnd": "09:05",
+    "firstBarIncludedMinuteRows": ["09:00", "09:01", "09:02", "09:03", "09:04"],
+    "decisionAvailabilityBound": "barEnd",
+    "providerPublicationTimeClaimed": false,
+    "lunchCrossingAllowed": false
+  },
+  "requiredParity": {
+    "dataBar": "PASS",
+    "selectionTimestamp": "PASS",
+    "mshFeature": "PASS_EXACT_NUMERIC_TOLERANCE_ZERO",
+    "mshState": "PASS_EXACT_CHRONOLOGICAL",
+    "pitViolations": 0,
+    "hybridCriticalSemantics": "SUFFICIENT_UNDER_EXPLICIT_PARTIAL_UNIVERSE_LIMIT",
+    "entryDecision": "DETERMINISTIC_WITH_HASH_VERIFIED_FROZEN_MODEL_BYTES"
+  },
+  "acceptableUnresolvedFields": [
+    "EXACT_PROVIDER_PUBLICATION_LATENCY",
+    "MISSING_REASON_WHEN_FAIL_CLOSED_TO_NO_OBSERVATION",
+    "FULL_LANE_Y_UNIVERSE_PARITY"
+  ],
+  "blockingConditions": [
+    "PINNED_CANDIDATE_MODEL_BYTES_UNAVAILABLE_OR_HASH_MISMATCH",
+    "PIT_VIOLATION_GT_ZERO",
+    "TIMESTAMP_OR_5M_CONTRACT_MISMATCH",
+    "MSH_FEATURE_OR_STATE_MISMATCH",
+    "UNKNOWN_ABSENCE_TREATED_AS_NO_TRADE",
+    "UNRESOLVED_CORPORATE_ACTION_CONFLICT",
+    "UNVERIFIED_SOURCE_LINEAGE",
+    "OUTCOME_OR_FUTURE_LABEL_PRESENT_IN_DECISION_INPUT",
+    "PROTECTED_OR_FRESH_SESSION_ACCESS_WITHOUT_SEPARATE_AUTHORIZATION"
+  ],
+  "missingSemantics": {
+    "unknownAbsence": "NO_OBSERVATION",
+    "reason": "NO_FINALIZED_BAR",
+    "advanceExitState": false,
+    "advanceStreak": false,
+    "syntheticOhlcv": false,
+    "forwardFill": false
+  },
+  "corporateActions": {
+    "coverage": "PARTIAL",
+    "unresolvedConflictTreatment": "BLOCK_SYMBOL_SESSION"
+  },
+  "universe": {
+    "coverage": "PARTIAL",
+    "fullReplayClaimAllowed": false,
+    "distributionShiftReportingRequired": true,
+    "aggregateWithCurrentLaneYAsFullPerformance": false
+  },
+  "sourceLineageRequired": [
+    "provider",
+    "endpointOrArtifactId",
+    "fetchOrRunTimestamp",
+    "schemaVersion",
+    "contentSha256",
+    "sessionDate",
+    "symbol"
+  ],
+  "activationRequirements": [
+    "HASH_VERIFIED_FROZEN_CANDIDATE_MODEL_BYTES_AVAILABLE_WITHOUT_OUTCOME_ACCESS",
+    "NON_OUTCOME_ENTRY_DECISION_RECONSTRUCTION_TEST_PASS",
+    "SEPARATELY_AUTHORIZED_HYBRID_CRITICAL_PARITY_REFERENCE_OR_FORMALLY_ACCEPTED_PARTIAL_LIMIT",
+    "RESULT_BLIND_STAGE2_ALLOCATION_CONTRACT_FREEZE",
+    "EXPLICIT_USER_AUTHORIZATION"
+  ],
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

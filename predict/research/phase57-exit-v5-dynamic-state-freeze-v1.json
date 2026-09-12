@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "schemaId": "PHASE57_EXIT_V5_DYNAMIC_STATE_FREEZE_V1",
+  "asOfJst": "2026-09-12",
+  "status": "FROZEN_FOR_NEXT_UNSEEN_VALIDATION_NOT_PROMOTED",
+  "architecture": "CAUSAL_DYNAMIC_STATE_OVER_FROZEN_V4_CONTINUATION",
+  "candidateId": "PHASE57_EXIT_V5_DYNAMIC_STATE_V1",
+  "developmentOrigin": "post Block-B rejection using exposed Block A and Block B trajectories only",
+  "stateMachine": {
+    "states": ["NEUTRAL", "DEFENSIVE", "RECOVERED"],
+    "firstManagedBarRule": "directional close return < 0 enters DEFENSIVE; otherwise continuation",
+    "recoveryRule": "while DEFENSIVE, first completed managed bar with directional close return >= 0 promotes to RECOVERED",
+    "failureRule": "if no reclaim is observed by elapsed bar 6, exit at completed bar-6 close",
+    "continuationRule": "RECOVERED and first-bar-non-adverse cases preserve the frozen v4 continuation outcome",
+    "observationHorizonBars": 6,
+    "transactionCostBps": 5,
+    "freeReturnThresholds": 0,
+    "symbolSpecificRules": false,
+    "longShortSpecificRules": false
+  },
+  "exposedReplayParity": {
+    "blockA": {
+      "workflowRun": 34660896961,
+      "artifactId": 10287317999,
+      "artifactDigest": "sha256:250affdbb5eaa2c6d09e6b02faecbe95149371dbd6d6f68f244e0335cb708852",
+      "causalEligibleTrades": 51,
+      "dynamicNetPctPoints": 72.33471460660533,
+      "v4NetPctPoints": 71.7655073318587,
+      "deltaVsV4PctPoints": 0.5692072747466312,
+      "stateOutcomes": {
+        "firstBarNonAdverseContinuation": 35,
+        "recoveredContinuation": 6,
+        "bar6DefensiveExit": 1,
+        "horizonUnavailableContinuationFallback": 9
+      },
+      "parity": "EXACT_MATCH_TO_DEVELOPMENT_DIAGNOSTIC"
+    },
+    "blockB": {
+      "workflowRun": 34653714314,
+      "artifactId": 10286251638,
+      "artifactDigest": "sha256:408efa60287e52c22890f2d558fce12d3135ab6997b2d10dedeea60874ec8521",
+      "causalEligibleTrades": 34,
+      "dynamicNetPctPoints": 29.287918536335734,
+      "v4NetPctPoints": 25.457024648041482,
+      "deltaVsV4PctPoints": 3.830893888294252,
+      "stateOutcomes": {
+        "firstBarNonAdverseContinuation": 20,
+        "recoveredContinuation": 5,
+        "bar6DefensiveExit": 7,
+        "horizonUnavailableContinuationFallback": 2
+      },
+      "parity": "EXACT_MATCH_TO_DEVELOPMENT_DIAGNOSTIC"
+    }
+  },
+  "freezeRationale": [
+    "The implementation reproduces the exposed Block A and Block B bar-6 development diagnostic exactly at aggregate net-return level.",
+    "The state machine uses only completed managed bars up to the current elapsed bar and ignores recovery after bar 6.",
+    "The only numeric horizon is bar 6 from the pre-existing 1/3/6 family; the adverse and reclaim boundaries are the natural zero boundary.",
+    "No symbol override, direction-specific threshold, winner override, or post-freeze tuning is allowed before the next unseen block is measured."
+  ],
+  "nextUnseenContract": {
+    "openOnlyAfterFreezeCommitAndGreenPreflight": true,
+    "thresholdChangesAfterOpen": false,
+    "featureChangesAfterOpen": false,
+    "stateLogicChangesAfterOpen": false,
+    "overrideAdditionAfterOpen": false,
+    "horizonChangesAfterOpen": false,
+    "decisionMustRemainPairedAgainstFrozenV4": true
+  },
+  "guards": {
+    "newUnseenOpenedAtFreezeTime": false,
+    "developmentEvidenceOnlyBeforeNextUnseen": true,
+    "mainIntegrationAllowed": false,
+    "mergeAllowed": false,
+    "readyForReviewAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

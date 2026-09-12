@@ -1,0 +1,203 @@
+{
+  "schemaVersion": 1,
+  "auditId": "PHASE57_EXIT_V4_JQUANTS_DATA_CAPACITY_AUDIT_V1",
+  "asOfJst": "2026-09-10",
+  "scope": "DATA_CAPACITY_QUALITY_AND_CONSERVATION_ONLY",
+  "status": "CONDITIONAL_STOP_BEFORE_OUTCOME_ACCESS",
+  "performanceMeasurementAuthorized": false,
+  "newOutcomeAccess": 0,
+  "newProtectedAccess": 0,
+  "contract": {
+    "light": {
+      "status": "ACTIVE_USER_ATTESTED",
+      "monthlyJpyTaxIncluded": 1650,
+      "scheduledEndJst": "2026-10-06T19:02:00+09:00",
+      "baseRateLimitRequestsPerMinute": 60
+    },
+    "tickOhlcMin": {
+      "status": "ACTIVE_CANCELLATION_SCHEDULED_USER_ATTESTED",
+      "monthlyJpyTaxIncluded": 5500,
+      "scheduledEndJst": "2026-10-06T19:07:00+09:00",
+      "addonRateLimitRequestsPerMinute": 60
+    },
+    "privateUseOnly": true,
+    "storageDuringSubscription": "PERMITTED_IF_USER_ONLY_WITH_ACCESS_CONTROL_AND_ENCRYPTION",
+    "postCancellation": "DELETE_RAW_COPIES_AND_RECONSTRUCTABLE_DERIVATIVES",
+    "permanentRawArchivePermittedAfterCancellation": false
+  },
+  "officialCapabilities": {
+    "minute": {
+      "endpoint": "/v2/equities/bars/minute",
+      "access": "API_OR_CSV",
+      "lookback": "PAST_2_YEARS",
+      "tseOnly": true,
+      "queryShapes": ["CODE_ALL_AVAILABLE", "CODE_DATE", "CODE_FROM_TO", "ALL_LISTED_ISSUES_DATE"],
+      "fields": ["Date", "Time", "Code", "O", "H", "L", "C", "Vo", "Va"],
+      "noTrade": "NO_RECORD_FOR_PERIOD_WITH_NO_TRADING_ACTIVITY",
+      "timestampBoundaryDocumented": false,
+      "timezoneDocumentedOnEndpointPage": false,
+      "availableAtProvided": false
+    },
+    "tick": {
+      "endpoint": "/equities/trades_via_bulk_csv",
+      "access": "CSV_ONLY_NOT_DIRECT_API",
+      "lookback": "PAST_2_YEARS",
+      "tseOnly": true,
+      "fields": ["Date", "Code", "Time", "SessionDistinction", "Price", "TradingVolume", "TransactionId"],
+      "timePrecision": "HH:MM:SS.ffffff",
+      "sessionDistinction": {"01": "MORNING", "02": "AFTERNOON"}
+    },
+    "pagination": {
+      "key": "pagination_key",
+      "totalCountProvided": false,
+      "repeatUntilKeyAbsent": true,
+      "consistentSnapshotGuaranteedDuringUpdates": false
+    }
+  },
+  "existingEvidence": {
+    "classification": "LEVEL_1_EXISTING_SOURCE_QUALITY_EVIDENCE_NO_NEW_FETCH",
+    "sessions": [
+      {"sessionDate": "2025-08-27", "eligibleJpxSymbols": 3768, "minuteRows": 466427, "fiveMinuteBars": 167291},
+      {"sessionDate": "2025-10-09", "eligibleJpxSymbols": 3758, "minuteRows": 459257, "fiveMinuteBars": 165051},
+      {"sessionDate": "2025-11-25", "eligibleJpxSymbols": 3765, "minuteRows": 466095, "fiveMinuteBars": 166978}
+    ],
+    "means": {
+      "eligibleJpxSymbolsPerSession": 3763.67,
+      "minuteRowsPerSession": 463926.33,
+      "fiveMinuteBarsPerSession": 166440,
+      "observedFiveMinuteBarsPerEligibleSymbol": 44.22
+    },
+    "source": "predict/research/phase57-entry-reserve87-formal-recovery.json",
+    "limitations": [
+      "THREE_SESSIONS_ONLY",
+      "NOT_RANDOMLY_SAMPLED_FOR_THIS_AUDIT",
+      "NO_NEW_PROVIDER_PROBE_IN_THIS_AUDIT",
+      "DOES_NOT_ESTABLISH_TWO_YEAR_STABILITY"
+    ]
+  },
+  "capacity": {
+    "officialCalendarWindow": "ROLLING_PAST_2_YEARS_EXACT_BOUNDARY_TO_BE_CONFIRMED_BY_METADATA_QUERY",
+    "planningSessionBand": {"lower": 480, "upper": 500, "exactCountFrozen": false},
+    "grossEstimatedMinuteRows": {"lower": 222684480, "upper": 231963000},
+    "grossEstimatedSparseFiveMinuteBars": {"lower": 79891200, "upper": 83220000},
+    "postExclusionCandidateSessionBand": {
+      "lower": 300,
+      "upper": 360,
+      "status": "PLANNING_ONLY_NOT_ALLOCATED",
+      "exclusions": [
+        "PROTECTED_180_TO_282_103_SESSIONS",
+        "KNOWN_PRIOR_RESEARCH_ALLOCATIONS_AND_OVERLAP",
+        "FRESH_VALIDATION_AND_OOS_RESERVATIONS",
+        "CALENDAR_TIMESTAMP_CORPORATE_ACTION_AND_PARITY_REJECTIONS"
+      ]
+    }
+  },
+  "entryCapacity": {
+    "knownHistoricalDiagnosticFirstEnterPerSession": 3.4,
+    "knownValueUsedAsEstimateOnly": true,
+    "scenarios": {
+      "conservative": {"firstEnterPerSession": 2.0, "rationale": "41_PERCENT_HAIRCUT_FOR_SUBSTRATE_AND_QUALITY_REJECTION"},
+      "base": {"firstEnterPerSession": 2.9, "rationale": "15_PERCENT_HAIRCUT_FROM_KNOWN_3_4_DIAGNOSTIC"},
+      "optimistic": {"firstEnterPerSession": 3.4, "rationale": "NO_UPLIFT_ABOVE_EXISTING_DIAGNOSTIC"}
+    },
+    "requiredSessions": {
+      "200": {"conservative": 100, "base": 69, "optimistic": 59},
+      "500": {"conservative": 250, "base": 173, "optimistic": 148},
+      "1000": {"conservative": 500, "base": 345, "optimistic": 295},
+      "2000": {"conservative": 1000, "base": 690, "optimistic": 589}
+    },
+    "candidateBandEventCapacity": {
+      "conservative": {"lower": 600, "upper": 720},
+      "base": {"lower": 870, "upper": 1044},
+      "optimistic": {"lower": 1020, "upper": 1224}
+    },
+    "checkpointFeasibility": {
+      "200": "FEASIBLE_IN_ALL_SCENARIOS_IF_PARITY_PASSES",
+      "500": "FEASIBLE_IN_ALL_SCENARIOS_IF_PARITY_PASSES",
+      "1000": "CONDITIONAL_BASE_REQUIRES_UPPER_SESSION_BAND_OPTIMISTIC_FEASIBLE",
+      "2000": "NOT_FEASIBLE_WITH_CURRENT_TWO_YEAR_WINDOW_WITHOUT_USING_PROTECTED_OR_FUTURE_DATA"
+    }
+  },
+  "qualityAudit": [
+    {"item": "HISTORICAL_RANGE", "status": "PASS", "finding": "MINUTE_AND_TICK_OFFICIALLY_PAST_TWO_YEARS"},
+    {"item": "TSE_COVERAGE", "status": "CONDITIONAL_PASS", "finding": "TSE_ONLY_REGIONAL_ONLY_ISSUES_EXCLUDED"},
+    {"item": "PIT_UNIVERSE", "status": "CONDITIONAL_PASS", "finding": "DATED_MASTER_REPLAY_EXISTS_AND_THREE_SESSIONS_OBSERVED_BUT_DELISTED_CODE_CHANGE_COMPLETENESS_NOT_ATTESTED"},
+    {"item": "TIMESTAMP_BOUNDARY", "status": "FAIL", "finding": "OFFICIAL_ENDPOINT_DOES_NOT_DEFINE_START_OR_END_BOUNDARY_EXISTING_PROVIDER_METADATA_SAYS_OPERATOR_UNVERIFIED"},
+    {"item": "TIMEZONE", "status": "CONDITIONAL_PASS", "finding": "JST_IS_OPERATIONAL_EXPECTATION_BUT_ENDPOINT_PAGE_DOES_NOT_EXPLICITLY_DECLARE_ZONE"},
+    {"item": "AVAILABLE_AT", "status": "FAIL", "finding": "NOT_A_PROVIDER_FIELD_DERIVATION_BLOCKED_UNTIL_TIMESTAMP_BOUNDARY_PARITY"},
+    {"item": "LUNCH_AND_SESSION", "status": "CONDITIONAL_PASS", "finding": "TICK_HAS_SESSION_DISTINCTION_AND_CURRENT_TSE_HOURS_ARE_KNOWN_BUT_HISTORICAL_CLOSE_CHANGE_MUST_BE_CALENDAR_AWARE"},
+    {"item": "NO_TRADE", "status": "PASS", "finding": "OFFICIAL_SPEC_SAYS_NO_RECORD_WHEN_NO_TRADING_ACTIVITY"},
+    {"item": "MISSING_PROVIDER_CLASSIFICATION", "status": "FAIL", "finding": "ABSENT_MINUTE_ALONE_CANNOT_DISTINGUISH_NO_TRADE_SUSPENDED_PROVIDER_MISSING_NOT_LISTED_OR_OUT_OF_UNIVERSE"},
+    {"item": "ADJUSTMENT", "status": "FAIL", "finding": "MINUTE_SCHEMA_HAS_NO_ADJUSTMENT_FACTOR_AND_CURRENT_REPLAY_HAS_NO_DAILY_CORPORATE_ACTION_JOIN"},
+    {"item": "CORPORATE_ACTIONS", "status": "FAIL", "finding": "SPLIT_REVERSE_SPLIT_RIGHTS_JOIN_AND_CROSS_SESSION_PRICE_STATE_POLICY_NOT_FROZEN"},
+    {"item": "PROVIDER_REVISION", "status": "CONDITIONAL_PASS", "finding": "FETCH_TIME_SHA_AND_CORRECTION_SNAPSHOT_REQUIRED_PAGINATION_IS_NOT_SNAPSHOT_CONSISTENT_DURING_UPDATE"},
+    {"item": "RAW_ARCHIVE_DURING_SUBSCRIPTION", "status": "CONDITIONAL_PASS", "finding": "PRIVATE_USER_ONLY_STORAGE_ALLOWED_WITH_ACCESS_CONTROL_AND_ENCRYPTION"},
+    {"item": "RAW_ARCHIVE_AFTER_CANCELLATION", "status": "FAIL", "finding": "RAW_COPIES_AND_RECONSTRUCTABLE_DERIVATIVES_MUST_BE_DELETED"},
+    {"item": "FIVE_MINUTE_CAUSAL_AGGREGATION", "status": "CONDITIONAL_PASS", "finding": "NO_FILL_SEGMENT_ALIGNED_AGGREGATOR_EXISTS_BUT_TIMESTAMP_AND_HISTORICAL_SESSION_SCHEDULE_BLOCK_FULL_REPLAY"},
+    {"item": "FROZEN_HYBRID_REPLAY", "status": "CONDITIONAL_PASS", "finding": "CANDIDATE_TIER_2_ONLY_UNTIL_PIT_UNIVERSE_TIMESTAMP_CORPORATE_ACTION_AND_GOLDEN_PARITY_PASS"},
+    {"item": "MSH_ENTRY_REPLAY", "status": "CONDITIONAL_PASS", "finding": "MODEL_IS_FROZEN_BUT_INPUT_FEATURE_AND_REFERENCE_PRICE_PARITY_MUST_PASS_PER_SESSION"}
+  ],
+  "fiveMinuteContract": {
+    "candidateInterval": "LEFT_CLOSED_RIGHT_OPEN",
+    "example": "09:00_LE_TIME_LT_09:05_ASSIGNED_09:00_AVAILABLE_NO_EARLIER_THAN_09:05_JST",
+    "lunch": "NEVER_AGGREGATE_ACROSS_11:30_TO_12:30",
+    "terminalAuctionMinutes": "SEPARATE_FROM_REGULAR_CONTINUOUS_BARS",
+    "missingMinute": "NEVER_FILL_BAR_RECORDS_OBSERVED_MINUTE_COUNT_AND_CLASSIFICATION",
+    "status": "NOT_FROZEN_TIMESTAMP_PROOF_REQUIRED"
+  },
+  "datasetClassification": {
+    "FULL_REPLAY_ELIGIBLE": {"confirmedSessions": 0, "status": "BLOCKED"},
+    "EXIT_DEVELOPMENT_SUBSTRATE": {"confirmedSessions": 0, "potentialSessionBand": [300, 360], "status": "RESULT_BLIND_CANDIDATE_ONLY"},
+    "DIAGNOSTIC_ONLY": {"qualityEvidenceSessions": 3, "status": "EXISTING_EVIDENCE_ONLY"},
+    "SEALED_RESERVE": {"protected180To282": 103, "freshEntryReservations": 25, "newAccess": 0},
+    "NOT_USABLE": {"confirmedSessions": 0, "status": "CLASSIFY_AFTER_LEVEL_1_PILOT"}
+  },
+  "sequentialUnlock": {
+    "currentStage": 0,
+    "nextStage": "STAGE_1_SMALL_QUALITY_AND_PARITY_PILOT_REQUIRES_SEPARATE_AUTHORIZATION_AND_API_CREDENTIAL_EXECUTION_CONTEXT",
+    "allocationFrozen": false,
+    "developmentUnlocked": false,
+    "validationUnlocked": false,
+    "untouchedOosUnlocked": false
+  },
+  "requiredBeforeAllocationFreeze": [
+    "CONFIRM_EXACT_API_DATE_BOUNDARY_AND_TRADING_SESSION_LIST",
+    "TICK_PROVE_MINUTE_TIMESTAMP_BOUNDARY_AND_JST",
+    "MAKE_SESSION_END_HISTORICALLY_CALENDAR_AWARE",
+    "JOIN_DATED_MASTER_AND_CORPORATE_ACTION_METADATA",
+    "CLASSIFY_ABSENCE_WITH_TICK_DAILY_MASTER_AND_SUSPENSION_EVIDENCE",
+    "RUN_SMALL_PREDECLARED_GOLDEN_PARITY_PILOT",
+    "DEFINE_CANCELLATION_DELETION_LEDGER_AND_DELETE_BY_2026_10_06",
+    "FREEZE_RESULT_BLIND_DATA_ALLOCATION_CONTRACT"
+  ],
+  "officialSources": [
+    "https://jpx-jquants.com/en",
+    "https://jpx-jquants.com/en/spec/data-spec",
+    "https://jpx-jquants.com/en/spec/eq-bars-minute",
+    "https://jpx-jquants.com/en/spec/eq-trades",
+    "https://jpx-jquants.com/en/spec/pagination",
+    "https://jpx-jquants.com/en/spec/rate-limits",
+    "https://jpx-jquants.com/en/spec/eq-bars-daily/adj",
+    "https://jpx-jquants.com/en/help/usage",
+    "https://www.jpx.co.jp/english/equities/trading/domestic/01.html"
+  ],
+  "frozenIdentifiers": {
+    "selectorModelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
+    "selectorFreezeSha256": "a744d599e430d23efe4dea6600e418d3410d8a18df5055b35e1cc71432bf64da",
+    "entryThreshold": "STRICTLY_GREATER_THAN_0.60",
+    "entryCandidateSha256": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a",
+    "entryAllocationSha256": "7df4cb026d966628c9b3fbc91037eb13704397a700c076e865d817a273df00e6",
+    "entryFitSha256": "e1567951bcc81d50497a42e24411a32112b36638fbc0ff67247a16a6ce80859c"
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "schemaId": "PHASE57_EXIT_V5_DEVELOPMENT_FINAL_AUDIT_V1",
+  "status": "DEVELOPMENT_AUDIT_COMPLETE",
+  "role": "EXPOSED_DEVELOPMENT_ONLY_NOT_VALIDATION",
+  "candidate": "DYNAMIC_RECLAIM_BAR_5",
+  "inputs": {
+    "blockAEligibleTrades": 51,
+    "blockBEligibleTrades": 34,
+    "combinedEligibleTrades": 85
+  },
+  "horizonSweepDeltaVsV4": {
+    "2": {"blockA": -27.568524871861552, "blockB": -5.4186001839126705, "combined": -32.98712505577422},
+    "3": {"blockA": -22.189511472338015, "blockB": 5.566707821577876, "combined": -16.62280365076014},
+    "4": {"blockA": -2.532671898165016, "blockB": 5.050481626631376, "combined": 2.51780972846636},
+    "5": {"blockA": 0.763570734416219, "blockB": 4.463934546579917, "combined": 5.227505280996136},
+    "6": {"blockA": 0.5692072747466304, "blockB": 3.830893888294251, "combined": 4.4001011630408815},
+    "8": {"blockA": -0.09718172983479434, "blockB": 4.015503366535578, "combined": 3.9183216367007834},
+    "10": {"blockA": 0.0, "blockB": 0.9654336534742567, "combined": 0.9654336534742567},
+    "12": {"blockA": 0.0, "blockB": 0.3705529061030832, "combined": 0.3705529061030832}
+  },
+  "concentrationAudit": {
+    "blockA": {
+      "nonZeroDeltaTrades": 1,
+      "top1AbsDeltaShare": 1.0,
+      "topContributor": {
+        "symbol": "6301.T",
+        "direction": "SHORT",
+        "sessionDate": "2026-07-29",
+        "deltaVsV4PctPoints": 0.763570734416219
+      },
+      "deltaAfterRemovingTopContributor": 0.0,
+      "interpretation": "Block A improvement is entirely attributable to one trade, but removing it does not make the candidate worse than v4; it becomes neutral."
+    },
+    "blockB": {
+      "nonZeroDeltaTrades": 6,
+      "top1AbsDeltaShare": 0.3060000492357879,
+      "topContributorDeltaVsV4PctPoints": 2.9082774049216997,
+      "interpretation": "Block B improvement is distributed across six changed trades; top contributor is about 30.6% of absolute delta mass, not a single-trade-only effect."
+    }
+  },
+  "leaveOneOutSelectionAudit": {
+    "eligibleTradesRemovedOneAtATime": 85,
+    "selectedHorizon5Count": 85,
+    "selectionStability": 1.0,
+    "interpretation": "Under the frozen selection rule, removing any one eligible trade from Block A or B still selects horizon 5. This does not prove generalization, but it rejects the narrower claim that one trade alone determines the selected horizon."
+  },
+  "reviewAssessment": {
+    "acceptedConcerns": [
+      "Block A performance uplift is single-trade concentrated.",
+      "The eight-horizon sweep creates selection risk because all horizons were evaluated on exposed development data.",
+      "Entry-price reclaim has not been established as uniquely structural versus alternatives such as VWAP or recovery-ratio definitions."
+    ],
+    "notSupportedByCurrentEvidence": [
+      "Numeric claims such as 80% probability of fitting or 30-40% unseen reproducibility are not estimated by the current artifacts.",
+      "Bonferroni-adjusted significance cannot be asserted without a pre-specified inferential test and p-values; the current sweep is a deterministic development selection exercise, not a completed hypothesis test.",
+      "Replacing the current candidate with a 0.60 recovery ratio, VWAP OR rule, momentum confirmation, and horizon 6 would introduce several new unfrozen parameters without evidence from the current minimal sweep."
+    ]
+  },
+  "developmentDecision": {
+    "selectedCandidate": "DYNAMIC_RECLAIM_BAR_5",
+    "status": "DEVELOPMENT_FINAL_ONE_CANDIDATE",
+    "reason": "Among the tested minimal fixed-architecture horizons, bar5 is the only candidate with the highest positive worst-block delta and highest combined delta while remaining non-negative in both exposed blocks. It also survives 85/85 leave-one-out selection checks.",
+    "validationClaim": false,
+    "generalizationClaim": false,
+    "additionalFeatureExpansion": "NOT_ADOPTED",
+    "nextAllowedUse": "Use as the single frozen development candidate when genuinely new causal-valid data becomes available; until then, historical analysis may diagnose it but must not create a second competing candidate without explicitly reopening development."
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

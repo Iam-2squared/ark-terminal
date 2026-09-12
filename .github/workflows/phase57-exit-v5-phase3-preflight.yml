@@ -1,0 +1,34 @@
+name: Phase57 EXIT v5 Phase3 Preflight
+
+on:
+  pull_request:
+    branches: [research/phase57-minimal-stateful-hybrid-entry]
+    paths:
+      - .github/workflows/phase57-exit-v5-phase3-preflight.yml
+      - scripts/phase57-exit-v5-phase3-preflight.mjs
+      - predict/research/phase57-exit-v5-phase3-development-v1.json
+      - predict/research/phase57-exit-v5-phase3-exposed-evidence-analysis-v1.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    if: >-
+      (github.event_name == 'pull_request' && github.event.pull_request.number == 581 && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'research/phase57-exit-v4-hybrid-msh-large-scale') ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/research/phase57-exit-v4-hybrid-msh-large-scale')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify Phase3 development freeze and exposed-evidence guards
+        run: |
+          node --check scripts/phase57-exit-v5-phase3-preflight.mjs
+          node scripts/phase57-exit-v5-phase3-preflight.mjs

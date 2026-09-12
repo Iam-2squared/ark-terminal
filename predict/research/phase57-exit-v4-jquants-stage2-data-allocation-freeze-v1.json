@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "auditId": "PHASE57_EXIT_V4_JQUANTS_STAGE2_DATA_ALLOCATION_FREEZE_V1",
+  "stage": "2_RESULT_BLIND_DATA_ALLOCATION_FREEZE",
+  "asOfJst": "2026-09-10",
+  "status": "DATA_ALLOCATION_INTEGRITY_BLOCKED",
+  "pullRequest": 581,
+  "parentRemoteHeadSha": "3acf65b41234ea06a02c93634aa5329cc13d05aa",
+  "baseBranch": "research/phase57-minimal-stateful-hybrid-entry",
+  "draft": true,
+  "tier2Contract": {
+    "version": "1.0.0",
+    "sha256": "2aa9fd80596c0f71f2359fb132288a15d563e3fab8e22ecbac54fda308a54a70",
+    "status": "FROZEN_NOT_ACTIVATED"
+  },
+  "artifacts": {
+    "allocationContractSha256": "b3eb3c438ad2c5ec75d2a2900840570d49e03c483808336b6649f8cf46e150b9",
+    "allocationManifestSha256": "7a3c1fc986eec469b81f6382fc158cc9e54af3c6af24a334432f68a5b868394f",
+    "capacitySummarySha256": "7227119f2442bf867780f04dfa02c8ab5e964bb1cb389a863d5d02102e5f8252",
+    "devAHandoffSha256": "ab267b0d61a3fc580e50dae5420d6da63a23093087cc4e9da691af6129f9e598"
+  },
+  "pool": {
+    "metadataKnownTotalSessions": 131,
+    "eligibleSessions": 0,
+    "blockedSessions": 0,
+    "unknownPlanningBand": [300, 360],
+    "diagnosticUsedSessions": 3,
+    "protectedExternalSessions": 103,
+    "freshExternalSessions": 25
+  },
+  "allocation": {
+    "frozen": false,
+    "devA": 0,
+    "devB": 0,
+    "validation": 0,
+    "historicalHoldout": 0,
+    "untouchedOos": 0,
+    "futureReserve": 0,
+    "purgeEmbargo": 0,
+    "dateBoundaries": null
+  },
+  "blocker": "No exact date-sorted candidate pool has session-level Tier 2 gate decisions and required source lineage. The Stage 0 300-360 range is planning-only and cannot be converted from UNKNOWN to ELIGIBLE.",
+  "accessLedger": {
+    "newRawSessions": 0,
+    "newSealedSessions": 0,
+    "protected180To282": 0,
+    "freshValidationOrOos": 0,
+    "exitOutcomes": 0,
+    "futureLabels": 0,
+    "exitInvocations": 0
+  },
+  "stage3": {
+    "devAReady": false,
+    "developmentUnlocked": false,
+    "automaticProgression": false
+  },
+  "tests": {
+    "focused": "15_OF_15_PASS",
+    "predictRegression": "2665_OF_2665_PASS",
+    "checksumEvidence": "PASS"
+  },
+  "hardStop": "ACTIVE",
+  "highestValueNextAction": "With separate authorization, build an exact metadata-only JST session inventory outside Protected/Fresh, apply all 13 frozen Tier 2 gates and source-lineage checks per session, then rerun Stage 2 without opening outcomes.",
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

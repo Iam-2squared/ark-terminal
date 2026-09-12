@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "reportId": "PHASE57_EXIT_IMMEDIATE_ADVERSE_DIAGNOSTIC_2026_09_11",
+  "role": "DEVELOPMENT_DIAGNOSTIC_ONLY_NON_PROSPECTIVE",
+  "source": {
+    "pr": 581,
+    "headSha": "0eb9857bf61e8a6f31cda662cecc13a094e84fa3",
+    "measurementRunId": 34541503697,
+    "measurementArtifactId": 10178728601,
+    "measurementArtifactDigest": "sha256:308738971814c2d6c54101e101153fbc64af64e29030b317f78fee1a5de0551e",
+    "reportSha256": "7533d488861be420f6edbfc5e2a62d9ca98de9719b56cacc1c67f5d4b319b803",
+    "tradesSha256": "02c78a819c5bcf74f8f1f2f02ee0750eb1358af8447c666d5168e82c3b5884a1",
+    "tradeCount": 35,
+    "immediateAdverseCount": 28,
+    "completePlus6ImmediateAdverse": 24
+  },
+  "immediateAdverse": {
+    "all28ArmMetrics": {
+      "fixed12": {"N":28,"avg":1.4916199245396944,"med":-0.20608740894901273,"win":0.4642857142857143,"PF":1.8458123757710712,"hold":10.892857142857142,"earlyFixed":0.0,"lateFixed":0.0},
+      "sessionEnd": {"N":28,"avg":3.4024139281185373,"med":1.0496240601503781,"win":0.5357142857142857,"PF":2.7509845114300564,"hold":29.0,"earlyFixed":0.0,"lateFixed":0.8214285714285714},
+      "v3": {"N":28,"avg":3.4811075549984274,"med":-0.24138599625287965,"win":0.4642857142857143,"PF":3.354221150729594,"hold":18.607142857142858,"earlyFixed":0.25,"lateFixed":0.5714285714285714},
+      "v4": {"N":28,"avg":3.3274732838455745,"med":-0.29032369021326215,"win":0.4642857142857143,"PF":3.178959900313805,"hold":21.857142857142858,"earlyFixed":0.17857142857142858,"lateFixed":0.6071428571428571}
+    },
+    "plus6Cohorts": {
+      "recovered": {
+        "n": 14,
+        "armMetrics": {
+          "fixed12": {"N":14,"avg":5.681233011527794,"med":3.281833730608497,"win":0.7142857142857143,"PF":11.457876917193396,"hold":11.5,"earlyFixed":0.0,"lateFixed":0.0},
+          "sessionEnd": {"N":14,"avg":8.690502066062892,"med":8.938201173291144,"win":0.7857142857142857,"PF":16.469012074123754,"hold":35.57142857142857,"earlyFixed":0.0,"lateFixed":0.8571428571428571},
+          "v3": {"N":14,"avg":8.252838065212265,"med":7.202982664293717,"win":0.7142857142857143,"PF":37.03473176524078,"hold":25.142857142857142,"earlyFixed":0.14285714285714285,"lateFixed":0.7142857142857143},
+          "v4": {"N":14,"avg":8.255641439353381,"med":6.843856873627608,"win":0.7142857142857143,"PF":37.04697226171175,"hold":30.428571428571427,"earlyFixed":0.07142857142857142,"lateFixed":0.7857142857142857}
+        }
+      },
+      "remainedLoser": {
+        "n": 10,
+        "armMetrics": {
+          "fixed12": {"N":10,"avg":-3.8653000407378295,"med":-2.0908504938891737,"win":0.1,"PF":0.016643895351854194,"hold":12.0,"earlyFixed":0.0,"lateFixed":0.0},
+          "sessionEnd": {"N":10,"avg":-3.5155535070662096,"med":-3.9432557180287096,"win":0.2,"PF":0.20239788274352058,"hold":25.7,"earlyFixed":0.0,"lateFixed":1.0},
+          "v3": {"N":10,"avg":-2.682481750611637,"med":-1.8356006479419094,"win":0.1,"PF":0.24923631585572478,"hold":11.2,"earlyFixed":0.5,"lateFixed":0.5},
+          "v4": {"N":10,"avg":-3.116582433637188,"med":-1.9600571214533122,"win":0.1,"PF":0.15963310871016723,"hold":12.9,"earlyFixed":0.4,"lateFixed":0.5}
+        }
+      }
+    },
+    "firstBarNaturalDiagnostics": {
+      "t1_close_positive": {"n":12,"recoveredBy6Close":10,"remainedLoserBy6":2,"recoveryRate":0.8333333333333334},
+      "t1_close_nonpositive": {"n":12,"recoveredBy6Close":4,"remainedLoserBy6":8,"recoveryRate":0.3333333333333333},
+      "t1_mfe_ge_1pct": {"n":15,"recoveredBy6Close":11,"remainedLoserBy6":4,"recoveryRate":0.7333333333333333},
+      "t1_mfe_lt_1pct": {"n":9,"recoveredBy6Close":3,"remainedLoserBy6":6,"recoveryRate":0.3333333333333333},
+      "t1_close_positive_and_mfe_ge_1pct": {"n":10,"recoveredBy6Close":10,"remainedLoserBy6":0,"recoveryRate":1.0}
+    },
+    "descriptiveFeatureSeparation": [
+      {"feature":"t1CloseDirPct","rec_median":1.5152380952380928,"los_median":-0.5615365365365335,"auc_rec_high":0.75,"abs_sep":0.25},
+      {"feature":"t1MfePct","rec_median":2.0223416893322374,"los_median":0.6544401544401571,"auc_rec_high":0.7,"abs_sep":0.2},
+      {"feature":"entry_hybridReciprocalRank","rec_median":0.14285714285714285,"los_median":0.08888888888888888,"auc_rec_high":0.6964285714285714,"abs_sep":0.1964285714285714},
+      {"feature":"hybridScore","rec_median":0.60880265,"los_median":0.58519675,"auc_rec_high":0.6642857142857143,"abs_sep":0.16428571428571426},
+      {"feature":"entry_directionalVwapDistancePct","rec_median":-5.664485379090999,"los_median":-3.7596948365339264,"auc_rec_high":0.35,"abs_sep":0.15000000000000002},
+      {"feature":"entry_relativeVolume5","rec_median":1.7801565836296348,"los_median":1.3290776704383287,"auc_rec_high":0.65,"abs_sep":0.15000000000000002},
+      {"feature":"modelProb","rec_median":0.6303651290313669,"los_median":0.6257410755660464,"auc_rec_high":0.65,"abs_sep":0.15000000000000002},
+      {"feature":"entry_directionalMomentum3Pct","rec_median":-6.665687004391088,"los_median":-5.447801852563295,"auc_rec_high":0.37142857142857144,"abs_sep":0.12857142857142856},
+      {"feature":"entry_directionalPullback6Pct","rec_median":-7.694069585231249,"los_median":-6.101694915254237,"auc_rec_high":0.39285714285714285,"abs_sep":0.10714285714285715},
+      {"feature":"t1MaePct","rec_median":-0.9824012051887471,"los_median":-1.339819454909181,"auc_rec_high":0.6,"abs_sep":0.09999999999999998}
+    ],
+    "interpretationGuard": "AUC values are descriptive rank separation on 24 exposed development trades, not fitted-model performance, significance claims, or threshold authorization."
+  },
+  "v4VsV3": {
+    "tradesWithAnyDifference": 5,
+    "v4BetterCount": 2,
+    "v4WorseCount": 3,
+    "netDeltaPct": 6.385263307483468,
+    "rows": [
+      {"date":"2026-09-01","symbol":"4598.T","dir":"LONG","delta_v4_v3":10.687022900763353,"v3net":6.820229007633588,"v4net":17.507251908396942,"v3bars":4,"v4bars":48,"v3reason":"V3_WINNER_PROTECTION_CONFIRMED_EDGE_REJECTION","v4reason":"SESSION_END","immAdv":false,"h3net_bps":682.0229007633588,"h6net_bps":605.6870229007625,"post_v3_best_from_entry_pct":17.55725190839694,"post_v3_worst_from_entry_pct":1.5267175572519107,"hybridScore":0.5760949,"modelProb":0.6433759227649356,"entryVwapDirPct":-6.333259895524248,"entryMom3Pct":-9.027777777777768,"entryRelVol5":2.359990635981254,"rank":18},
+      {"date":"2026-09-03","symbol":"4052.T","dir":"LONG","delta_v4_v3":3.8560411311054024,"v3net":7.2764781491002575,"v4net":11.13251928020566,"v3bars":6,"v4bars":41,"v3reason":"V3_WINNER_PROTECTION_CONFIRMED_EDGE_REJECTION","v4reason":"SESSION_END","immAdv":true,"h3net_bps":226.3624678663239,"h6net_bps":727.6478149100258,"post_v3_best_from_entry_pct":11.182519280205655,"post_v3_worst_from_entry_pct":4.241645244215942,"hybridScore":0.5985209,"modelProb":0.6198779393705136,"entryVwapDirPct":-5.118244184099786,"entryMom3Pct":-7.928994082840245,"entryRelVol5":1.934822258592471,"rank":8},
+      {"date":"2026-08-24","symbol":"593A.T","dir":"SHORT","delta_v4_v3":-1.3559322033898313,"v3net":-0.30423728813558365,"v4net":-1.660169491525415,"v3bars":3,"v4bars":12,"v3reason":"V3_LOSER_RESCUE_SHORT_HORIZON_EDGE_REJECTED","v4reason":"V4_CONFIRMED_DOWNSIDE_TRAJECTORY","immAdv":true,"h3net_bps":-30.42372881355922,"h6net_bps":-123.64406779660878,"post_v3_best_from_entry_pct":6.186440677966098,"post_v3_worst_from_entry_pct":-3.389830508474567,"hybridScore":0.6654055,"modelProb":0.6182591562782564,"entryVwapDirPct":-3.2580349461320164,"entryMom3Pct":-3.8732394366197185,"entryRelVol5":1.4063758389261745,"rank":1},
+      {"date":"2026-08-21","symbol":"4833.T","dir":"LONG","delta_v4_v3":-2.9850746268656785,"v3net":8.905223880597017,"v4net":5.9201492537313385,"v3bars":18,"v4bars":26,"v3reason":"V3_WINNER_PROTECTION_CONFIRMED_EDGE_REJECTION","v4reason":"SESSION_END","immAdv":true,"h3net_bps":-303.50746268656713,"h6net_bps":-5.000000000000111,"post_v3_best_from_entry_pct":11.94029850746268,"post_v3_worst_from_entry_pct":2.985074626865658,"hybridScore":0.582596,"modelProb":0.6871662437654828,"entryVwapDirPct":1.3462265601425057,"entryMom3Pct":-11.842105263157908,"entryRelVol5":0.6361426256077796,"rank":9},
+      {"date":"2026-08-21","symbol":"6085.T","dir":"SHORT","delta_v4_v3":-3.816793893129776,"v3net":9.87366412213741,"v4net":6.056870229007633,"v3bars":14,"v4bars":53,"v3reason":"V3_WINNER_PROTECTION_CONFIRMED_EDGE_REJECTION","v4reason":"SESSION_END","immAdv":true,"h3net_bps":453.0152671755723,"h6net_bps":987.3664122137405,"post_v3_best_from_entry_pct":11.450381679389315,"post_v3_worst_from_entry_pct":4.580152671755755,"hybridScore":0.6182889,"modelProb":0.6408528145932489,"entryVwapDirPct":-5.962520348269452,"entryMom3Pct":-6.504065040650409,"entryRelVol5":0.851098901098901,"rank":3}
+    ],
+    "interpretation": "Aggregate v4-v3 uplift comes from two large positive deltas partially offset by three negative deltas; do not treat as broad trade-level dominance."
+  },
+  "conclusions": {
+    "healthyPullbackSignal": "Immediate adverse alone is not discriminative. First completed post-entry bar behavior is more informative in this exposed sample: directional close >0 had 10/12 +6 recovery vs 4/12 when <=0.",
+    "strongestObservedPattern": "Among 24 complete +6 immediate-adverse trades, t+1 directional close had descriptive AUC 0.75 and t+1 MFE 0.70 for recovered-vs-loser ordering.",
+    "vwapVolumeFinding": "Entry/t+1 VWAP distance and t+1 relative volume did not show comparably strong separation in this small exposed sample; they should remain hypotheses, not weighted Health Score components.",
+    "v3v4Finding": "v3/v4 both benefit from waiting on recovered trades; on +6 losers v3 reduced average loss more than v4 in this sample (-2.68% vs -3.12%).",
+    "nextStep": "Freeze a small causal candidate feature set centered on first-bar close/MFE plus existing entry score/rank, then test it only on new development/validation data before any v5 rule or Health Score weights."
+  },
+  "safety": {
+    "noRetuning": true,
+    "noNewOutcomeAccessBeyondExisting20SessionArtifacts": true,
+    "noMainChange": true,
+    "noPromotion": true
+  }
+}

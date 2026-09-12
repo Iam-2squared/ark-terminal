@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "schemaId": "PHASE57_EXIT_V4_TIER2_ELIGIBILITY_SCHEMA_V1",
+  "contractVersion": "1.0.0",
+  "classification": "TIER2_RECONSTRUCTED_REPLAY",
+  "unit": "SESSION_OR_EVENT",
+  "requiredGates": [
+    {"id":"TIMESTAMP_CONTRACT","required":"PASS"},
+    {"id":"FIVE_MINUTE_AGGREGATION","required":"PASS"},
+    {"id":"PIT_VIOLATIONS","required":0},
+    {"id":"SOURCE_LINEAGE","required":"PASS"},
+    {"id":"FROZEN_IDENTIFIERS","required":"PASS"},
+    {"id":"HYBRID_COMPARABLE_MATERIAL_MISMATCHES","required":0},
+    {"id":"MSH_FEATURE_RECONSTRUCTION","required":"PASS"},
+    {"id":"MSH_STATE_RECONSTRUCTION","required":"PASS"},
+    {"id":"ENTRY_EVENT_CLOSURE","required":"DETERMINISTIC_PASS"},
+    {"id":"REFERENCE_PRICE_SEMANTICS","required":"PASS"},
+    {"id":"CORPORATE_ACTION_CONFLICT","required":false},
+    {"id":"UNIVERSE_FIDELITY","required":"NOT_BLOCKED"},
+    {"id":"MISSING_HANDLING","required":"FAIL_CLOSED"}
+  ],
+  "blockingReasons": [
+    "PIT_VIOLATION",
+    "SOURCE_LINEAGE_MISSING",
+    "TIMESTAMP_AMBIGUOUS",
+    "FIVE_MIN_AGGREGATION_FAIL",
+    "HISTORICAL_UNIVERSE_BLOCKED",
+    "CORPORATE_ACTION_UNRESOLVED",
+    "CRITICAL_MISSING_DATA",
+    "HYBRID_MATERIAL_MISMATCH",
+    "MSH_RECONSTRUCTION_FAIL",
+    "ENTRY_EVENT_AMBIGUOUS",
+    "REFERENCE_PRICE_AMBIGUOUS",
+    "SESSION_INCOMPLETE",
+    "UNKNOWN_CRITICAL"
+  ],
+  "decision": {
+    "allRequiredGatesPass": "ELIGIBLE_CANDIDATE_NOT_ACTIVATED",
+    "anyCriticalGateFails": "EXCLUDED",
+    "unknownCritical": "EXCLUDED",
+    "automaticActivation": false
+  },
+  "reasonCountsRequired": true,
+  "outcomeFieldsAllowed": false,
+  "futureLabelFieldsAllowed": false,
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

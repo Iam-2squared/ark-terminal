@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "schemaId": "PHASE57_EXIT_V5_BLOCK_B_UNSEEN_V1",
+  "asOfJst": "2026-09-12",
+  "role": "UNSEEN_VALIDATION_BLOCK_B_NON_PROSPECTIVE",
+  "purpose": "Pure falsification of the frozen two-feature v5 router against Fixed12, Session-End, frozen v3 and frozen v4.",
+  "selectionRule": "All chronological JPX sessions after Block A end (2026-07-30) and before the exposed diagnostic20 start (2026-08-13), excluding the 2026-08-11 holiday; fixed before outcomes.",
+  "expectedSessionCount": 8,
+  "minimumCausalNeighbors": 30,
+  "roundTripCostPct": 0.05,
+  "sessions": [
+    {"sessionDate":"2026-07-31"},
+    {"sessionDate":"2026-08-03"},
+    {"sessionDate":"2026-08-04"},
+    {"sessionDate":"2026-08-05"},
+    {"sessionDate":"2026-08-06"},
+    {"sessionDate":"2026-08-07"},
+    {"sessionDate":"2026-08-10"},
+    {"sessionDate":"2026-08-12"}
+  ],
+  "candidate": {
+    "freezePath": "predict/research/phase57-exit-v5-candidate-freeze-v1.json",
+    "architecture": "FIRST_BAR_STATE_ROUTER_OVER_FROZEN_V3_V4",
+    "routeToV3When": "firstBarDirectionalCloseReturnBps <= 100 AND firstBarMaeBps >= 25",
+    "otherwise": "ROUTE_TO_V4",
+    "routeIsSticky": true,
+    "midTradeRerouting": false
+  },
+  "lockedUpstream": {
+    "selector": "FROZEN_MINIMAL_HYBRID_V1",
+    "selectorModelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
+    "selectorFreezeSha256": "a744d599e430d23efe4dea6600e418d3410d8a18df5055b35e1cc71432bf64da",
+    "entry": "MINIMAL_STATEFUL_HYBRID_ENTRY_V1",
+    "entryThreshold": 0.60,
+    "entryThresholdRule": "STRICTLY_GREATER_THAN",
+    "repeatEntryAllowed": false,
+    "candidateModelSha256": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a",
+    "exitV3PolicySha256": "634514abac1ea1129ecf669e677d677a18378b1f75b7ba872bae781b82c401f2",
+    "exitV4PolicySha256": "2d512dd810d057807bc59a0138a3db98035e57ff2c23c186ba096beeb6be26cb"
+  },
+  "exposedDateRanges": {
+    "blockA": ["2026-06-18","2026-07-30"],
+    "diagnostic20": ["2026-08-13","2026-09-09"]
+  },
+  "decisionRule": {
+    "supportive": "candidate net delta vs v4 > 0, candidate PF >= v4 PF, candidate max drawdown not worse by more than 1 percentage point, and improvement not dominated by one trade",
+    "mixed": "candidate shows some improvement but fails one robustness criterion or sample is too small for a stable conclusion",
+    "reject": "candidate net delta vs v4 <= 0 or materially worsens drawdown/premature-winner behavior"
+  },
+  "guards": {
+    "datesFrozenBeforeOutcome": true,
+    "noOutcomeDrivenExpansion": true,
+    "noRetuningAfterOpen": true,
+    "noFeatureChangesAfterOpen": true,
+    "noOverrideAdditionAfterOpen": true,
+    "notFormalOos": true,
+    "notProspective": true,
+    "mainIntegrationAllowed": false,
+    "mergeAllowed": false,
+    "automaticPromotionAllowed": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

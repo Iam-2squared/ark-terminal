@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "resultId": "PHASE57_EXIT_V4_JQUANTS_STAGE1_RESULT_V1",
+  "asOfJst": "2026-09-10",
+  "stage": "1_MINIMAL_QUALITY_PARITY",
+  "status": "STOP_DATA_SOURCE_NOT_READY",
+  "stage1Gate": "STOP_DATA_SOURCE_NOT_READY",
+  "gateReason": "HISTORICAL_TICK_IS_MONTH_SCOPED_IN_BULK_TRANSPORT_SO_TIMESTAMP_BOUNDARY_CANNOT_BE_PROBED_WITHOUT_ACCESSING_UNALLOCATED_SESSIONS",
+  "evidence": {
+    "workflowRunId": 34418970782,
+    "workflowHeadSha": "15e81b176dbd3ad3cb481319c16042974aa39127",
+    "executedAtUtc": "2026-09-09T23:55:23Z",
+    "sanitizedArtifactSha256": "f51f64ea699ccd7f72c11fc1f9da985bc7386e9f9ec24469f17d5f98e0e47150",
+    "precommitSha256": "443f86c8b302f7c3e5a357be23c38a4fecfeccf239413467650921cd9c1411b0",
+    "pilotScriptSha256": "a78432fc25908b2a061f2f6b3be762981409defebfc7164ebbd4ac770b27d72e",
+    "qualityLibrarySha256": "fb54519a82bc29993e9b4d9bb74ded0220abde606ecc27a567970994d70b6384",
+    "metadataEndpointCalled": "/v2/bulk/list",
+    "bulkGetCalled": false,
+    "tickRawDownloadStarted": false,
+    "rawPersisted": false
+  },
+  "accessLedger": {
+    "precommittedSessions": ["2025-08-27", "2025-10-09", "2025-11-25"],
+    "existingExposedEvidenceSessions": 3,
+    "newStage1RawSessions": 0,
+    "newSealedSessionsOpened": 0,
+    "exitOutcomeAccess": 0,
+    "futureLabelAccess": 0,
+    "protected180To282Opened": 0,
+    "freshValidationOpened": 0,
+    "freshOosOpened": 0
+  },
+  "pilotClassification": [
+    {"sessionDate": "2025-08-27", "tier": "BLOCKED", "timestamp": "FAIL_UNRESOLVED", "timezone": "CONDITIONAL", "availableAt": "FAIL", "fiveMinuteAggregation": "CONDITIONAL", "historicalUniverse": "CONDITIONAL", "adjustment": "FAIL_UNVERIFIED_FOR_PILOT", "missingNoTrade": "FAIL_INCOMPLETE_CLASSIFICATION", "hybridParity": "NOT_RUN", "mshEntryParity": "NOT_RUN", "pitViolations": 0, "reason": "MONTH_SCOPED_TICK_TRANSPORT_BLOCKED_BEFORE_RAW_DOWNLOAD"},
+    {"sessionDate": "2025-10-09", "tier": "BLOCKED", "timestamp": "FAIL_UNRESOLVED", "timezone": "CONDITIONAL", "availableAt": "FAIL", "fiveMinuteAggregation": "CONDITIONAL", "historicalUniverse": "CONDITIONAL", "adjustment": "FAIL_UNVERIFIED_FOR_PILOT", "missingNoTrade": "FAIL_INCOMPLETE_CLASSIFICATION", "hybridParity": "NOT_RUN", "mshEntryParity": "NOT_RUN", "pitViolations": 0, "reason": "NO_TICK_PROBE_AUTHORIZED_AFTER_FIRST_SESSION_TRANSPORT_SCOPE_BLOCK"},
+    {"sessionDate": "2025-11-25", "tier": "BLOCKED", "timestamp": "FAIL_UNRESOLVED", "timezone": "CONDITIONAL", "availableAt": "FAIL", "fiveMinuteAggregation": "CONDITIONAL", "historicalUniverse": "CONDITIONAL", "adjustment": "FAIL_UNVERIFIED_FOR_PILOT", "missingNoTrade": "FAIL_INCOMPLETE_CLASSIFICATION", "hybridParity": "NOT_RUN", "mshEntryParity": "NOT_RUN", "pitViolations": 0, "reason": "NO_TICK_PROBE_AUTHORIZED_AFTER_FIRST_SESSION_TRANSPORT_SCOPE_BLOCK"}
+  ],
+  "datasetEligibility": {
+    "FULL_REPLAY_ELIGIBLE": {"sessions": 0, "status": "BLOCKED"},
+    "EXIT_DEVELOPMENT_SUBSTRATE": {"sessions": 0, "status": "CANDIDATE_RANGE_300_TO_360_NOT_CONFIRMED_OR_UNLOCKED"},
+    "DIAGNOSTIC_ONLY": {"sessions": 3, "status": "CONFIRMED_EXISTING_EXPOSED_EVIDENCE"},
+    "SEALED_RESERVE": {"sessions": 128, "status": "UNTOUCHED_103_PROTECTED_PLUS_25_FRESH_RESERVATIONS"},
+    "NOT_USABLE": {"sessions": 0, "status": "TBD_NOT_DECLARED_FROM_TRANSPORT_BLOCK"}
+  },
+  "quality": {
+    "minuteTimestamp": "FAIL_UNRESOLVED",
+    "timezone": "CONDITIONAL_JST_OPERATIONAL_BUT_NOT_EXPLICIT_ENDPOINT_FIELD",
+    "availableAt": "FAIL_NO_PER_BAR_FIELD_HISTORICAL_DATA_UPDATED_DAILY_AROUND_16_30",
+    "fiveMinuteAggregation": "CONDITIONAL_STRUCTURAL_TESTS_PASS_TIMESTAMP_PROOF_MISSING",
+    "lunchSession": "CONDITIONAL_STRUCTURAL_TESTS_PASS_EMPIRICAL_TICK_PARITY_MISSING",
+    "missingSemantics": "FAIL_FULL_REASON_CLASSIFICATION_UNAVAILABLE",
+    "adjustment": "FAIL_INTRADAY_PILOT_PARITY_NOT_EXECUTED",
+    "corporateActions": "PARTIAL_DAILY_SPLIT_REVERSE_SPLIT_RIGHTS_ONLY",
+    "historicalUniverse": "PARTIAL_DATED_MASTER_WITHOUT_EXACT_LINEAGE",
+    "goldenParity": "NOT_RUN_BLOCKED_BEFORE_INPUT_PARITY",
+    "pitViolationsObserved": 0,
+    "pitViolationsClaimScope": "NO_NEW_RAW_INPUT_WAS_OPENED"
+  },
+  "missingSparseSemantics": [
+    {"condition": "NO_TRADE", "detectable": "PARTIAL", "source": "MINUTE_ABSENCE_PLUS_TICK_IF_DATE_SCOPED", "replayTreatment": "NO_OBSERVATION_UNLESS_INDEPENDENT_EVIDENCE_RESOLVES_REASON"},
+    {"condition": "SUSPENDED", "detectable": "NO", "source": "NO_DEDICATED_SUSPENSION_REASON_FOUND", "replayTreatment": "UNKNOWN_THEN_NO_OBSERVATION"},
+    {"condition": "MISSING_PROVIDER", "detectable": "PARTIAL", "source": "TICK_PRESENT_AND_MINUTE_ABSENT", "replayTreatment": "REJECT_AFFECTED_BAR_OR_SESSION"},
+    {"condition": "NOT_LISTED", "detectable": "PARTIAL", "source": "DATED_ISSUE_MASTER", "replayTreatment": "EXCLUDE_SYMBOL_AT_SESSION"},
+    {"condition": "OUT_OF_UNIVERSE", "detectable": "PARTIAL", "source": "DATED_MASTER_MARKET_PRODUCT_AND_FROZEN_FILTER", "replayTreatment": "EXCLUDE_SYMBOL_AT_SESSION"},
+    {"condition": "UNKNOWN", "detectable": "YES", "source": "DERIVED_FALLBACK", "replayTreatment": "NO_OBSERVATION_REASON_NO_FINALIZED_BAR_NO_STATE_ADVANCEMENT"}
+  ],
+  "corporateActions": [
+    {"item": "STOCK_SPLIT", "availability": "PARTIAL", "semantics": "DAILY_ADJFACTOR_EXRT", "replayRisk": "MEDIUM"},
+    {"item": "REVERSE_SPLIT", "availability": "PARTIAL", "semantics": "DAILY_ADJFACTOR_EXRT", "replayRisk": "MEDIUM"},
+    {"item": "MERGER", "availability": "NO", "semantics": "NO_EXACT_LINEAGE", "replayRisk": "HIGH"},
+    {"item": "CODE_CHANGE", "availability": "PARTIAL", "semantics": "DAILY_MASTER_DIFF_NO_OLD_NEW_MAPPING", "replayRisk": "HIGH"},
+    {"item": "DELISTING", "availability": "PARTIAL", "semantics": "DATED_MASTER_AND_DAILY_WITHIN_LISTING_PERIOD", "replayRisk": "MEDIUM"},
+    {"item": "NEW_LISTING", "availability": "PARTIAL", "semantics": "DATED_MASTER_SNAPSHOT_DIFF", "replayRisk": "MEDIUM"}
+  ],
+  "hybridReplay": {
+    "verdict": "PARTIAL",
+    "requirements": [
+      {"requirement": "HISTORICAL_UNIVERSE", "status": "CONDITIONAL", "evidence": "DATED_MASTER_EXISTS_EXACT_LINEAGE_MISSING"},
+      {"requirement": "REQUIRED_5M_OHLCV", "status": "CONDITIONAL", "evidence": "NO_FILL_AGGREGATOR_AND_CAUSAL_TEST_PASS_TIMESTAMP_UNPROVEN"},
+      {"requirement": "TIMESTAMP_SEMANTICS", "status": "FAIL", "evidence": "TICK_PROBE_BLOCKED_BY_MONTH_TRANSPORT"},
+      {"requirement": "PIT_COMPLETENESS", "status": "CONDITIONAL", "evidence": "DATED_MASTER_ONLY"},
+      {"requirement": "RANK_RECONSTRUCTION", "status": "CONDITIONAL", "evidence": "SOURCE_MEMBER_HASHES_EXIST_BUT_GOLDEN_FEATURE_PARITY_NOT_RUN"},
+      {"requirement": "MEMBERSHIP_RECONSTRUCTION", "status": "CONDITIONAL", "evidence": "THREE_EXISTING_SOURCE_MEMBER_HASHES_ONLY"},
+      {"requirement": "MISSING_BEHAVIOR", "status": "CONDITIONAL", "evidence": "NO_FILL_IS_TESTED_REASON_CLASSIFICATION_INCOMPLETE"}
+    ]
+  },
+  "mshEntryReplay": {
+    "verdict": "PARTIAL",
+    "threshold": "STRICTLY_GREATER_THAN_0.60",
+    "goldenMismatchClassification": ["DATA_SEMANTICS", "TIMESTAMP", "UNIVERSE", "MISSING_BAR", "ADJUSTMENT", "FEATURE_IMPLEMENTATION", "STATE_REPLAY", "UNKNOWN"],
+    "features": [
+      {"feature": "directionalReturnFromOpenPct", "reconstructable": "YES_STRUCTURAL", "goldenParity": "0_OF_3_NOT_RUN", "pitSafe": "NO_NOT_PROVEN"},
+      {"feature": "directionalVwapDistancePct", "reconstructable": "YES_STRUCTURAL", "goldenParity": "0_OF_3_NOT_RUN", "pitSafe": "NO_NOT_PROVEN"},
+      {"feature": "directionalMomentum3Pct", "reconstructable": "YES_STRUCTURAL", "goldenParity": "0_OF_3_NOT_RUN", "pitSafe": "NO_NOT_PROVEN"},
+      {"feature": "directionalMomentumAccelerationPct", "reconstructable": "YES_STRUCTURAL", "goldenParity": "0_OF_3_NOT_RUN", "pitSafe": "NO_NOT_PROVEN"},
+      {"feature": "directionalPullback6Pct", "reconstructable": "YES_STRUCTURAL", "goldenParity": "0_OF_3_NOT_RUN", "pitSafe": "NO_NOT_PROVEN"},
+      {"feature": "relativeVolume5", "reconstructable": "YES_STRUCTURAL", "goldenParity": "0_OF_3_NOT_RUN", "pitSafe": "NO_NOT_PROVEN"},
+      {"feature": "minutesSinceFirstSelection", "reconstructable": "YES_WITH_STATE_REPLAY", "goldenParity": "0_OF_3_NOT_RUN", "pitSafe": "NO_NOT_PROVEN"},
+      {"feature": "hybridReciprocalRank", "reconstructable": "YES_WITH_HYBRID_REPLAY", "goldenParity": "0_OF_3_NOT_RUN", "pitSafe": "NO_NOT_PROVEN"},
+      {"feature": "priorSelectionCount", "reconstructable": "YES_WITH_STATE_REPLAY", "goldenParity": "0_OF_3_NOT_RUN", "pitSafe": "NO_NOT_PROVEN"},
+      {"feature": "direction", "reconstructable": "YES_WITH_FROZEN_SELECTOR", "goldenParity": "0_OF_3_NOT_RUN", "pitSafe": "NO_NOT_PROVEN"}
+    ]
+  },
+  "capacity": {
+    "updatedFromStage0": false,
+    "reason": "NO_DATA_REJECTION_RATE_OR_ENTRY_FREQUENCY_MEASURED",
+    "scenarios": {"conservativeEnterPerSession": 2.0, "baseEnterPerSession": 2.9, "optimisticEnterPerSession": 3.4},
+    "checkpoints": [
+      {"target": 200, "conservativeSessions": 100, "baseSessions": 69, "optimisticSessions": 59, "feasibility": "YES_CAPACITY_ONLY_SOURCE_GATE_BLOCKED"},
+      {"target": 500, "conservativeSessions": 250, "baseSessions": 173, "optimisticSessions": 148, "feasibility": "LIKELY_CAPACITY_ONLY_SOURCE_GATE_BLOCKED"},
+      {"target": 1000, "conservativeSessions": 500, "baseSessions": 345, "optimisticSessions": 295, "feasibility": "UNCERTAIN"},
+      {"target": 2000, "conservativeSessions": 1000, "baseSessions": 690, "optimisticSessions": 589, "feasibility": "NO"}
+    ]
+  },
+  "retention": {
+    "rawArchiveDuringActiveSubscription": "CONDITIONAL_PRIVATE_USER_ONLY_ACCESS_CONTROL_AND_ENCRYPTION",
+    "rawRetentionAfterCancellation": "NOT_ALLOWED",
+    "derivedReconstructableRetention": "NOT_ALLOWED",
+    "nonReconstructableAggregateRetention": "CONDITIONAL_PRIVATE_NO_DISTRIBUTION",
+    "requiredDeletionTiming": "CONFIRMED_AT_CANCELLATION_OR_DOWNGRADE_OPERATIONAL_DEADLINE_2026_10_06",
+    "researchEvidenceRetention": "CONDITIONAL_NON_RECONSTRUCTABLE_ONLY"
+  },
+  "frozenIdentifiers": {
+    "selectorModelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
+    "selectorFreezeSha256": "a744d599e430d23efe4dea6600e418d3410d8a18df5055b35e1cc71432bf64da",
+    "entryThreshold": "STRICTLY_GREATER_THAN_0.60",
+    "entryCandidateSha256": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a",
+    "entryAllocationSha256": "7df4cb026d966628c9b3fbc91037eb13704397a700c076e865d817a273df00e6",
+    "entryFitSha256": "e1567951bcc81d50497a42e24411a32112b36638fbc0ff67247a16a6ce80859c"
+  },
+  "nextHighestValueAction": "OBTAIN_PROVIDER_CONFIRMED_DATE_SCOPED_TICK_ACCESS_OR_LOCATE_EXISTING_VERIFIED_TICK_EVIDENCE_FOR_ONE_ALREADY_EXPOSED_SESSION_THEN_RERUN_ONLY_TIMESTAMP_INPUT_PARITY",
+  "additionalSealedSessionRequired": false,
+  "safety": {"executionAllowed": false, "brokerWriteAllowed": false, "excelOrderWriteAllowed": false, "rssOrderFunctionAllowed": false, "liveTradingAllowed": false, "paperTradingAllowed": false, "automaticPromotionAllowed": false, "productionUpdateAllowed": false, "transmitted": false}
+}

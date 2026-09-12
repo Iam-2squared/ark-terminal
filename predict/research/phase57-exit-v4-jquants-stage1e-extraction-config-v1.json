@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "contractId": "PHASE57_EXIT_V4_JQUANTS_STAGE1E_CONTROLLED_ZIP_ACQUISITION_V1",
+  "governanceChange": "WHOLE_ZIP_TEMPORARY_PHYSICAL_ACQUISITION_ALLOWED_AS_ACQUIRED_UNINSPECTED_RESEARCH_INSPECTION_REMAINS_THREE_SESSION_ALLOWLIST_ONLY",
+  "allowedSessions": ["2025-08-27", "2025-10-09", "2025-11-25"],
+  "defaultPolicy": "DENY",
+  "requiredMemberPattern": "<sessionDate>.(features.json.gz|bars.json.gz|manifest.json)",
+  "fullExtractFunction": false,
+  "unapprovedContentReadAllowed": false,
+  "outcomeDependentFilterAllowed": false,
+  "sourceReadOnly": true,
+  "temporaryContainerRequired": true,
+  "temporaryContainerDeleteRequired": true,
+  "outputDirectoryIsolationRequired": true,
+  "artifacts": [
+    {"sessionDate":"2025-08-27","runId":34355199082,"artifactId":10106663226,"artifactName":"entry-holdout29-features-0-34355199082","artifactDigest":"sha256:803b33bcc8f26acd4afbcea090215ef7e58214ad833206baf79cbaa367d18173","expiresAt":"2026-10-09T13:37:28Z"},
+    {"sessionDate":"2025-10-09","runId":34292703804,"artifactId":10082689099,"artifactName":"entry58-features-0-34292703804","artifactDigest":"sha256:a38749885f36f63a48d4b8b5b47f02aedc4b5b5a5c9ee10b83744c7ebedb1b3b","expiresAt":"2026-10-09T00:22:58Z"},
+    {"sessionDate":"2025-11-25","runId":34292703804,"artifactId":10084152060,"artifactName":"entry58-features-5-34292703804","artifactDigest":"sha256:72a9b97a913fe2b94aad4ef292bd6fcf172401d4b5252c7e7ddc7a379c425d03","expiresAt":"2026-10-09T01:21:32Z"}
+  ],
+  "deniedFieldFamilies": ["label*","target*","outcome*","future*","actualReturn*","netReturn*","mfe*","mae*","exit*","profit*","winner*","winRate","returnAfter*","postExit*"],
+  "safety": {"executionAllowed":false,"brokerWriteAllowed":false,"excelOrderWriteAllowed":false,"rssOrderFunctionAllowed":false,"liveTradingAllowed":false,"paperTradingAllowed":false,"automaticPromotionAllowed":false,"productionUpdateAllowed":false,"transmitted":false}
+}

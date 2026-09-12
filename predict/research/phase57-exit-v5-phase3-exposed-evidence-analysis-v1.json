@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "schemaId": "PHASE57_EXIT_V5_PHASE3_EXPOSED_EVIDENCE_ANALYSIS_V1",
+  "asOfJst": "2026-09-11",
+  "role": "DEVELOPMENT_ONLY_EXPOSED_EVIDENCE",
+  "provenance": {
+    "old20": {
+      "workflowRun": 34541503697,
+      "artifactId": 10178728601,
+      "artifactDigest": "sha256:308738971814c2d6c54101e101153fbc64af64e29030b317f78fee1a5de0551e",
+      "rawTrades": 35,
+      "routerComparableWithFirstBar": 33
+    },
+    "blockA": {
+      "workflowRun": 34603854563,
+      "artifactId": 10265532613,
+      "artifactDigest": "sha256:e9a97ff127bb960393aba0d54b41c2059534588c37d6562a3829db347c1d75a0",
+      "rawTrades": 54,
+      "routerComparableWithFirstBar": 48
+    }
+  },
+  "units": {
+    "firstBarDirectionalCloseReturn": "bps",
+    "firstBarMfe": "bps",
+    "firstBarMae": "bps_positive_adverse_magnitude",
+    "exitNetReturn": "percentage_points"
+  },
+  "finding1HardExit": {
+    "hypothesis": "Use the replicated first-bar failure signal as an immediate hard exit.",
+    "implementation": "If firstBarDirectionalCloseReturnBps <= threshold, replace frozen v4 outcome with first-bar close net outcome; otherwise retain frozen v4.",
+    "results": [
+      {
+        "thresholdBps": 0,
+        "old20Switches": 17,
+        "old20NetDeltaVsV4PctPoints": -36.752756,
+        "blockASwitches": 19,
+        "blockANetDeltaVsV4PctPoints": -35.913988
+      },
+      {
+        "thresholdBps": -50,
+        "old20Switches": 12,
+        "old20NetDeltaVsV4PctPoints": -42.768786,
+        "blockASwitches": 15,
+        "blockANetDeltaVsV4PctPoints": -15.014167
+      },
+      {
+        "thresholdBps": -100,
+        "old20Switches": 6,
+        "old20NetDeltaVsV4PctPoints": -30.962449,
+        "blockASwitches": 12,
+        "blockANetDeltaVsV4PctPoints": -6.341958
+      }
+    ],
+    "decision": "REJECT_HARD_FIRST_BAR_EXIT",
+    "interpretation": "The first-bar path signal predicts later recovery/failure class, but converting that classification directly into an immediate exit destroys continuation value in both exposed blocks."
+  },
+  "finding2ManagementRouter": {
+    "hypothesis": "Use first-bar state to choose between already-frozen v3 and v4 management rather than exiting immediately.",
+    "importantCaveat": "These are exposed-evidence development diagnostics. Thresholds were examined after outcomes were known and are not validation results.",
+    "singleFeatureSensitivity": [
+      {
+        "rule": "route_to_v3_if_firstBarDirectionalCloseReturnBps<=75_else_v4",
+        "old20Switches": 22,
+        "old20DivergentSwitches": 2,
+        "old20NetDeltaVsAlwaysV4PctPoints": 4.341007,
+        "old20LeaveOneDivergentSwitchOutMinDeltaPctPoints": 1.355932,
+        "blockASwitches": 25,
+        "blockADivergentSwitches": 5,
+        "blockANetDeltaVsAlwaysV4PctPoints": 1.297020,
+        "blockALeaveOneDivergentSwitchOutMinDeltaPctPoints": -6.047613,
+        "robustAcrossBothBlocksUnderLeaveOneOut": false
+      },
+      {
+        "rule": "route_to_v3_if_firstBarDirectionalCloseReturnBps<=100_else_v4",
+        "old20Switches": 23,
+        "old20DivergentSwitches": 3,
+        "old20NetDeltaVsAlwaysV4PctPoints": -6.346016,
+        "old20LeaveOneDivergentSwitchOutMinDeltaPctPoints": -9.331091,
+        "blockASwitches": 26,
+        "blockADivergentSwitches": 6,
+        "blockANetDeltaVsAlwaysV4PctPoints": 8.715418,
+        "blockALeaveOneDivergentSwitchOutMinDeltaPctPoints": 1.297020,
+        "robustAcrossBothBlocksUnderLeaveOneOut": false
+      }
+    ],
+    "threeFeatureDevelopmentCandidate": {
+      "rule": "route_to_v3_if_closeBps<=100_AND_mfeBps<=300_AND_maeBps>=25_else_v4",
+      "old20Switches": 20,
+      "old20DivergentSwitches": 2,
+      "old20NetDeltaVsAlwaysV4PctPoints": 4.341007,
+      "old20LeaveOneDivergentSwitchOutMinDeltaPctPoints": 1.355932,
+      "blockASwitches": 23,
+      "blockADivergentSwitches": 6,
+      "blockANetDeltaVsAlwaysV4PctPoints": 8.715418,
+      "blockALeaveOneDivergentSwitchOutMinDeltaPctPoints": 1.297020,
+      "status": "PROMISING_EXPOSED_DEVELOPMENT_ONLY_NOT_FROZEN"
+    },
+    "stricterThreeFeatureSensitivity": {
+      "rule": "route_to_v3_if_closeBps<=100_AND_mfeBps<=300_AND_maeBps>=50_else_v4",
+      "old20Switches": 18,
+      "old20DivergentSwitches": 2,
+      "old20NetDeltaVsAlwaysV4PctPoints": 4.341007,
+      "old20LeaveOneDivergentSwitchOutMinDeltaPctPoints": 1.355932,
+      "blockASwitches": 20,
+      "blockADivergentSwitches": 4,
+      "blockANetDeltaVsAlwaysV4PctPoints": 8.348303,
+      "blockALeaveOneDivergentSwitchOutMinDeltaPctPoints": 0.929906,
+      "status": "PROMISING_EXPOSED_DEVELOPMENT_ONLY_NOT_FROZEN"
+    }
+  },
+  "divergenceRisk": {
+    "reason": "v3 and v4 are identical on most trades, so router gains are necessarily driven by a small number of divergent outcomes.",
+    "notableCounterexample": {
+      "block": "blockA",
+      "symbol": "5240.T",
+      "direction": "SHORT",
+      "firstBarDirectionalCloseReturnBps": -122.950820,
+      "firstBarMfeBps": 40.983607,
+      "firstBarMaeBps": 286.885246,
+      "v3NetPct": 2.409016,
+      "v4NetPct": 9.376230,
+      "v3MinusV4PctPoints": -6.967213,
+      "interpretation": "A strongly failure-looking first bar can still become a large continuation winner under v4; loser-state classification cannot safely replace winner-continuation management."
+    }
+  },
+  "phase3Decision": {
+    "hardExit": "NO_GO",
+    "singleFeatureRouter": "NO_FREEZE",
+    "threeFeatureRouter": "CONTINUE_DEVELOPMENT",
+    "winnerContinuation": "KEEP_SEPARATE_AND_REQUIRED_BEFORE_FINAL_V5_FREEZE",
+    "newUnseenOutcomeAccess": "DO_NOT_OPEN",
+    "reason": "The router concept is materially more promising than hard exit, but candidate selection is still based on exposed outcomes and v3/v4 divergence is sparse. A final v5 candidate must be implemented causally and frozen before any new unseen block is opened."
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

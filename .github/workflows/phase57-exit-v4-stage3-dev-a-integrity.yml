@@ -1,0 +1,36 @@
+name: Phase57 EXIT v4 Stage3 DEV-A Integrity
+
+on:
+  pull_request:
+    branches: [research/phase57-minimal-stateful-hybrid-entry]
+    paths:
+      - '.github/workflows/phase57-exit-v4-stage3-dev-a-integrity.yml'
+      - 'scripts/lib/phase57-stage3-dev-a-integrity.mjs'
+      - 'scripts/phase57-exit-v4-stage3-dev-a-integrity-preflight.mjs'
+      - 'scripts/tests/phase57-exit-v4-stage3-dev-a-integrity.test.mjs'
+      - 'predict/research/phase57-exit-v4-stage3-dev-a-integrity-block-v1.json'
+
+permissions:
+  contents: read
+
+jobs:
+  fail-closed-preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - run: node --test scripts/tests/phase57-exit-v4-stage3-dev-a-integrity.test.mjs
+      - name: Reproduce pre-outcome integrity gate
+        run: |
+          node scripts/phase57-exit-v4-stage3-dev-a-integrity-preflight.mjs
+          node - <<'NODE'
+          const x=require('./predict/research/phase57-exit-v4-stage3-dev-a-integrity-block-v1.json');
+          if(x.preflight?.gate!=='DEV_A_MEASUREMENT_INTEGRITY_BLOCKED') throw new Error('unexpected Stage3 gate');
+          if(x.accessLedger?.devAOutcomeSessions!==0||x.accessLedger?.exitOutcomes!==0||x.accessLedger?.futureLabels!==0) throw new Error('outcome access guard failed');
+          for(const value of Object.values(x.safety??{})) if(value!==false) throw new Error('safety flag changed');
+          NODE
+      - name: Safety boundary
+        run: echo 'Offline research integrity preflight only; no provider secret, market outcome fetch, trading, promotion, or production update.'
+

@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "contractId": "PHASE57_EXIT_V4_STAGE2_DATA_ALLOCATION_CONTRACT_V1",
+  "contractVersion": "1.1.0",
+  "asOfJst": "2026-09-10",
+  "status": "FROZEN_RESULT_BLIND",
+  "finalGate": "DATA_ALLOCATION_CAPACITY_CONSTRAINED_BUT_USABLE",
+  "tier2Contract": {
+    "version": "1.0.0",
+    "sha256": "2aa9fd80596c0f71f2359fb132288a15d563e3fab8e22ecbac54fda308a54a70",
+    "eligibilitySchemaSha256": "f060c654f0d5af5f105f8ba20c47b78950ad433305b735d42f6cbd68f8e2823b",
+    "modifiedHere": false
+  },
+  "pool": {
+    "exactSessionLevelInventoryAvailable": true,
+    "confirmedEligibleSessions": 205,
+    "confirmedBlockedSessions": 0,
+    "diagnosticPriorExposureSessions": 179,
+    "protectedExternalSessions": 103,
+    "freshExternalSessions": 25
+  },
+  "allocationUnit": "JST_TRADING_SESSION",
+  "ordering": "OLDEST_ELIGIBLE_TO_NEWEST_ELIGIBLE",
+  "randomShuffleAllowed": false,
+  "oneSessionOneSplit": true,
+  "allocation": {
+    "frozen": true,
+    "manifestComplete": true,
+    "purgeEmbargoDecision": "NONE_SESSION_LOCAL_SELECTOR_AND_ENTRY_STATE",
+    "sessionCounts": {
+      "devA": 70,
+      "devB": 20,
+      "validation": 30,
+      "historicalHoldout": 25,
+      "untouchedOos": 30,
+      "futureReserve": 30
+    },
+    "dateBoundaries": {
+      "devA": {
+        "first": "2024-09-10",
+        "last": "2024-12-20",
+        "count": 70
+      },
+      "devB": {
+        "first": "2024-12-23",
+        "last": "2025-01-24",
+        "count": 20
+      },
+      "validation": {
+        "first": "2025-01-27",
+        "last": "2025-03-11",
+        "count": 30
+      },
+      "historicalHoldout": {
+        "first": "2025-03-12",
+        "last": "2026-06-15",
+        "count": 25
+      },
+      "untouchedOos": {
+        "first": "2026-06-16",
+        "last": "2026-07-28",
+        "count": 30
+      },
+      "futureReserve": {
+        "first": "2026-07-29",
+        "last": "2026-09-09",
+        "count": 30
+      }
+    }
+  },
+  "developmentPolicy": {
+    "devATargetIndependentFirstEnter": 200,
+    "devAExpectedFirstEnter": {
+      "conservative": 140,
+      "base": 203,
+      "optimistic": 238
+    },
+    "devBTotalExpectedFirstEnter": {
+      "conservative": 180,
+      "base": 261,
+      "optimistic": 306
+    },
+    "devAOnlyMayBecomeNextUnlockCandidate": true,
+    "developmentUnlocked": false
+  },
+  "protection": {
+    "exposedAssignedOosOrReserve": 0,
+    "protected180To282ReallocationAllowed": false,
+    "freshValidationOrOosReallocationAllowed": false,
+    "resultBasedReshuffleAllowed": false
+  },
+  "stage3": {
+    "devAUnlockCandidate": true,
+    "developmentUnlocked": false,
+    "explicitFutureAuthorizationRequired": true
+  },
+  "accessLedger": {
+    "newRawSessions": 0,
+    "newSealedOutcomeSessions": 0,
+    "protected180To282": 0,
+    "freshValidationOrOos": 0,
+    "exitOutcomes": 0,
+    "futureLabels": 0,
+    "exitInvocations": 0
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

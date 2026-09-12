@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "schemaId": "PHASE57_EXIT_V4_20SESSION_DIAGNOSTIC_V1",
+  "asOfJst": "2026-09-10",
+  "role": "DEVELOPMENT_DIAGNOSTIC_ONLY_NON_PROSPECTIVE",
+  "purpose": "Quick triage of Frozen Minimal Hybrid v1 x MSH-Entry v1 entry quality and Frozen EXIT v3/v4 fit before spending more historical data on large-scale validation.",
+  "sourceAllocationSupersededForTheseSessions": "FUTURE_RESERVE_SEALED",
+  "reclassification": "DIAGNOSTIC_20_DEVELOPMENT_EXPOSED_AFTER_THIS_RUN",
+  "selectionRule": "First 20 JST trading sessions after 2026-08-12 available in the frozen Stage2 manifest, chosen without outcome inspection.",
+  "minimumCausalNeighbors": 30,
+  "roundTripCostPct": 0.05,
+  "sessions": [
+    {"sessionDate":"2026-08-13"},
+    {"sessionDate":"2026-08-14"},
+    {"sessionDate":"2026-08-17"},
+    {"sessionDate":"2026-08-18"},
+    {"sessionDate":"2026-08-19"},
+    {"sessionDate":"2026-08-20"},
+    {"sessionDate":"2026-08-21"},
+    {"sessionDate":"2026-08-24"},
+    {"sessionDate":"2026-08-25"},
+    {"sessionDate":"2026-08-26"},
+    {"sessionDate":"2026-08-27"},
+    {"sessionDate":"2026-08-28"},
+    {"sessionDate":"2026-08-31"},
+    {"sessionDate":"2026-09-01"},
+    {"sessionDate":"2026-09-02"},
+    {"sessionDate":"2026-09-03"},
+    {"sessionDate":"2026-09-04"},
+    {"sessionDate":"2026-09-07"},
+    {"sessionDate":"2026-09-08"},
+    {"sessionDate":"2026-09-09"}
+  ],
+  "lockedUpstream": {
+    "selector": "FROZEN_MINIMAL_HYBRID_V1",
+    "selectorModelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
+    "selectorFreezeSha256": "a744d599e430d23efe4dea6600e418d3410d8a18df5055b35e1cc71432bf64da",
+    "entry": "MINIMAL_STATEFUL_HYBRID_ENTRY_V1",
+    "entryThreshold": 0.60,
+    "entryThresholdRule": "STRICTLY_GREATER_THAN",
+    "candidateModelSha256": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a"
+  },
+  "guards": {
+    "noRetuning": true,
+    "noSessionReplacementAfterOutcomes": true,
+    "noAutomaticExpansionBeyond20": true,
+    "notFormalOos": true,
+    "notProspective": true,
+    "mainIntegrationAllowed": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

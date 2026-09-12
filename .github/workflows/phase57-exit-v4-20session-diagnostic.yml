@@ -1,0 +1,261 @@
+name: Phase57 EXIT v4 20-Session Diagnostic
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-exit-v4-20session-diagnostic-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preflight:
+    if: >-
+      (github.event_name == 'pull_request' && github.event.pull_request.number == 581 && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'research/phase57-exit-v4-hybrid-msh-large-scale') ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/research/phase57-exit-v4-hybrid-msh-large-scale')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: Verify immutable diagnostic contract
+        run: |
+          node - <<'NODE'
+          const fs=require('fs'),assert=require('assert/strict'),crypto=require('crypto');
+          const b=fs.readFileSync('predict/research/phase57-exit-v4-20session-diagnostic-v1.json');
+          assert.equal(crypto.createHash('sha1').update(`blob ${b.length}\0`).update(b).digest('hex'),'77ae8e1df056ba83f93962651a58ef379365d5d4','FROZEN_DIAGNOSTIC_CONTRACT_CHANGED');
+          const c=JSON.parse(b),dates=c.sessions.map(x=>x.sessionDate);
+          assert.equal(dates.length,20);assert.equal(new Set(dates).size,20);
+          assert(dates.every(d=>d>'2026-08-12'&&d<='2026-09-09'));
+          assert.deepEqual(dates,[...dates].sort());assert.equal(c.minimumCausalNeighbors,30);
+          assert.equal(Object.keys(c.safety).length,9);
+          for(const v of Object.values(c.safety))assert.equal(v,false);
+          console.log(JSON.stringify({status:'FAST_DIAGNOSTIC_PREFLIGHT_PASS',first:dates[0],last:dates.at(-1),sessions:20}));
+          NODE
+      - name: Runtime safeguards and syntax tests
+        run: |
+          node --test scripts/tests/phase57-exit-v4-20session-runtime.test.mjs
+          node --check scripts/phase57-exit-v4-20session-features.mjs
+          node --check scripts/phase57-exit-v4-20session-measure.mjs
+
+  features:
+    needs: preflight
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        session: ['2026-08-17', '2026-08-21', '2026-08-27', '2026-09-02', '2026-09-08']
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Read-only pinned Frozen Hybrid source
+        uses: actions/checkout@v4
+        with:
+          ref: 6c1aec0545fa6a77c5435e7cc864f1ea2d71fc26
+          path: frozen-selector
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /package.json
+            /predict/daytrade/phase57-selector-minimal-hybrid.js
+            /predict/daytrade/phase57-selector-minimal-hybrid-model.js
+            /predict/daytrade/phase57-p25-intraday-dynamic-universe.js
+            /predict/daytrade/phase57-p25-jpx-opportunity-universe.js
+            /predict/research/phase57-selector-minimal-hybrid-development-model.json
+            /predict/research/phase57-selector-minimal-hybrid-development-freeze.json
+            /predict/research/phase57-selector-minimal-hybrid-phase-a-amendment-v1.1.json
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: Reconstruct one missing fixed session with bounded transient-only retries
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          SESSION_FILTER: ${{ matrix.session }}
+          SHARD_INDEX: 0
+          SHARD_COUNT: 1
+          NODE_OPTIONS: --max-old-space-size=6144
+        shell: bash
+        run: |
+          set -euo pipefail
+          scratch=$(mktemp -d "$RUNNER_TEMP/exit20-${SESSION_FILTER}-XXXXXXXX")
+          trap 'rm -rf "$scratch"' EXIT
+          mkdir -p artifacts/overnight-status
+          for attempt in 1 2 3 4 5 6; do
+            output="$scratch/attempt-$attempt"
+            log="artifacts/overnight-status/features-${SESSION_FILTER}-attempt-${attempt}.log"
+            echo "FEATURE_SESSION=$SESSION_FILTER ATTEMPT=$attempt MAX_ATTEMPTS=6"
+            set +e
+            OUTPUT_DIR="$output" timeout --signal=TERM --kill-after=30s 320m node scripts/phase57-exit-v4-20session-features.mjs >"$log" 2>&1
+            rc=$?
+            set -e
+            cat "$log"
+            printf '{"session":"%s","attempt":%s,"exitCode":%s}\n' "$SESSION_FILTER" "$attempt" "$rc" > "artifacts/overnight-status/features-${SESSION_FILTER}.json"
+            if [ "$rc" -eq 0 ]; then
+              test ! -e artifacts/phase57-exit-v4-20session-features
+              mv "$output" artifacts/phase57-exit-v4-20session-features
+              exit 0
+            fi
+            # Never retry time/deadline, auth, hash, PIT or implementation failures.
+            if [ "$rc" -eq 124 ] || [ "$rc" -eq 137 ] || [ "$attempt" -eq 6 ]; then exit "$rc"; fi
+            if ! node --input-type=module - "$log" <<'NODE'
+          import fs from 'node:fs';
+          import {isTransientDiagnosticFailure} from './scripts/lib/phase57-exit-v4-20session-runtime.mjs';
+          process.exit(isTransientDiagnosticFailure(fs.readFileSync(process.argv[2],'utf8'))?0:1);
+          NODE
+            then exit "$rc"; fi
+            # No mixing partial bundles from different provider fetch attempts.
+            rm -rf "$output"
+            pause=$((attempt*60))
+            sleep "$pause"
+          done
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: phase57-exit-v4-20session-features-missing-${{ matrix.session }}-${{ github.run_id }}
+          path: artifacts/phase57-exit-v4-20session-features/
+          if-no-files-found: error
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-exit20-status-${{ matrix.session }}-${{ github.run_id }}
+          path: artifacts/overnight-status/
+          if-no-files-found: warn
+          retention-days: 7
+
+  measure:
+    needs: features
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: Download 15 completed fixed input bundles from the prior run
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-exit-v4-20session-features-*-34494213877
+          run-id: 34494213877
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/diagnostic-input
+          merge-multiple: true
+      - name: Download five newly completed fixed input bundles
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-exit-v4-20session-features-missing-*-${{ github.run_id }}
+          path: artifacts/diagnostic-input
+          merge-multiple: true
+      - name: Download immutable frozen MSH candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: entry58-development-measurement-34292703804
+          run-id: 34292703804
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/input/candidate
+      - name: Download canonical pre-performance analog snapshot
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-p24-9-oos-canonical-candidate
+          run-id: 31785422471
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/input/analog
+      - name: Resolve exact analog snapshot by frozen SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          wanted=10ec0b89893823f9e2f7ba720db2d0fad8e76d642fe00f7b77d387ae6be6b12a
+          found=''
+          while IFS= read -r f; do
+            if [ "$(sha256sum "$f" | cut -d' ' -f1)" = "$wanted" ]; then found="$f"; break; fi
+          done < <(find artifacts/input/analog -type f -name '*.json' | sort)
+          test -n "$found"
+          echo "ANALOG_SNAPSHOT=$found" >> "$GITHUB_ENV"
+          test "$(sha256sum artifacts/input/candidate/candidate-model.json | cut -d' ' -f1)" = "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a"
+      - name: Measure once, without outcome-driven retries or retuning
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout --signal=TERM --kill-after=30s 320m node scripts/phase57-exit-v4-20session-measure.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-exit-v4-20session-measurement-${{ github.run_id }}
+          path: artifacts/phase57-exit-v4-20session-measurement/
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Remove temporary market and model inputs
+        if: always()
+        run: rm -rf artifacts/diagnostic-input artifacts/input/candidate artifacts/input/analog
+
+  overnight-report:
+    needs: [preflight, features, measure]
+    if: always() && needs.preflight.result != 'skipped'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Recover approved 20-session measurement artifact
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: phase57-exit-v4-20session-measurement-${{ github.run_id }}
+          path: artifacts/measurement
+      - name: Preserve completion or blocker status for morning review
+        env:
+          PREFLIGHT_RESULT: ${{ needs.preflight.result }}
+          FEATURES_RESULT: ${{ needs.features.result }}
+          MEASURE_RESULT: ${{ needs.measure.result }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib
+          out=pathlib.Path('artifacts/overnight-summary');out.mkdir(parents=True,exist_ok=True)
+          report=pathlib.Path('artifacts/measurement/report.json');r=None
+          stages={k:os.environ[k+'_RESULT'] for k in ('PREFLIGHT','FEATURES','MEASURE')}
+          status='MEASUREMENT_NOT_COMPLETED'
+          if report.exists():
+              digest=report.with_name('report.json.sha256')
+              if digest.exists() and hashlib.sha256(report.read_bytes()).hexdigest()==digest.read_text().split()[0]:
+                  r=json.loads(report.read_text());status=r.get('status','UNKNOWN_REPORT_STATUS')
+              else:
+                  status='REPORT_INTEGRITY_BLOCKED'
+          payload={'runId':os.environ['GITHUB_RUN_ID'],'status':status,'stages':stages,'scope':'APPROVED_DIAGNOSTIC20_ONLY','automaticExpansion':False,'automaticRepair':False,'automaticPromotion':False}
+          (out/'status.json').write_text(json.dumps(payload,indent=2)+'\n')
+          lines=['# EXIT 20-session overnight result','',f'**Status: {status}**','', '| Stage | Result |','|---|---|']
+          lines += [f'| {k} | {v} |' for k,v in stages.items()]
+          if r:
+              q=r.get('entryQuality',{});a=r.get('causal',{}).get('readiness',{})
+              lines += ['',f"Paired trades: {q.get('firstEnter','N/A')}; symbols: {q.get('uniqueSymbols','N/A')}; LONG/SHORT: {q.get('LONG','N/A')}/{q.get('SHORT','N/A')}",f"Scored decisions: {a.get('scored','N/A')}; warmup: {a.get('warmup','N/A')}; neutral HOLD: {a.get('neutral','N/A')}; insufficient: {a.get('insufficient','N/A')}",'','| Arm | N | Average trade (%) | PF | Win rate |','|---|---:|---:|---:|---:|']
+              for name,arm in r.get('arms',{}).items():
+                  lines.append(f"| {name} | {arm.get('n')} | {arm.get('averageTradePct')} | {arm.get('profitFactor')} | {arm.get('winRate')} |")
+              lines += ['', 'Development diagnostics only; not prospective, formal OOS or a portfolio-performance claim.','The reported sums/drawdowns are trade-level proxies, not a capital-constrained portfolio.','Existing recoveryBy6 is a positive-MFE proxy; it does not establish intrabar adverse-then-recovery order.']
+          else:
+              lines += ['', 'No verified complete measurement report is available. Do not interpret missing results as zero trades or weak Entry. Review the failed/queued runner before resuming.']
+          lines += ['', 'No automatic period expansion, retuning, merge or promotion.','Runner availability is not guaranteed.']
+          text='\n'.join(lines)+'\n';(out/'summary.md').write_text(text)
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:f.write(text)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-exit20-overnight-summary-${{ github.run_id }}
+          path: artifacts/overnight-summary/
+          if-no-files-found: error
+          retention-days: 7

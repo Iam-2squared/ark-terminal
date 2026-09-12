@@ -1,0 +1,21 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+
+const INPUT_DIR = process.env.INPUT_DIR ?? 'artifacts/shards';
+const OUT_DIR = process.env.OUTPUT_DIR ?? 'artifacts/phase57-exit-v4-jquants-stage2-fast-aggregate';
+const SHARD_COUNT = Number(process.env.SHARD_COUNT ?? '12');
+const sha256 = value => crypto.createHash('sha256').update(value).digest('hex');
+const files = fs.readdirSync(INPUT_DIR).filter(name => /^inventory-shard-\d+\.json$/.test(name)).sort((a,b)=>Number(a.match(/\d+/)[0])-Number(b.match(/\d+/)[0]));
+const shards = files.map(name => JSON.parse(fs.readFileSync(path.join(INPUT_DIR,name),'utf8')));
+const sessions = shards.flatMap(shard => shard.sessions ?? []).sort((a,b)=>a.sessionDate.localeCompare(b.sessionDate));
+const unique = new Set(sessions.map(row => row.sessionDate));
+const blockingReasonCounts = {};
+for (const row of sessions) for (const reason of row.blockingReasons ?? []) blockingReasonCounts[reason] = (blockingReasonCounts[reason] ?? 0) + 1;
+const pass = shards.length === SHARD_COUNT && unique.size === sessions.length && sessions.length === Number(shards[0]?.candidateSessionCount ?? -1) && sessions.every(row => row.outcomesAccessed === false && row.futureLabelsGenerated === false);
+const output = {schemaVersion:1, phase:'57.exit-v4.jquants-stage2.fast-metadata-inventory', status:pass?'FAST_METADATA_INVENTORY_COMPLETE':'FAST_METADATA_INVENTORY_INCOMPLETE', asOfJst:'2026-09-10', range:shards[0]?.range ?? null, discoveredSessionCount:shards[0]?.discoveredSessionCount ?? null, candidateSessionCount:shards[0]?.candidateSessionCount ?? null, excludedIdentifierCount:shards[0]?.excludedIdentifierCount ?? null, observedSessions:sessions.length, eligibleSessions:sessions.filter(row=>row.status==='ELIGIBLE').length, excludedSessions:sessions.filter(row=>row.status!=='ELIGIBLE').length, blockingReasonCounts, sessions, accessLedger:{newRawSessions:0,newSealedOutcomeSessions:0,protected180To282:0,freshValidationOrOos:0,exitOutcomes:0,futureLabels:0,exitInvocations:0}, safety:shards[0]?.safety};
+fs.mkdirSync(OUT_DIR,{recursive:true});
+const text=JSON.stringify(output,null,2)+'\n';
+fs.writeFileSync(path.join(OUT_DIR,'fast-metadata-inventory.json'),text);
+fs.writeFileSync(path.join(OUT_DIR,'fast-metadata-inventory.json.sha256'),`${sha256(text)}  fast-metadata-inventory.json\n`);
+if(!pass)process.exitCode=20;

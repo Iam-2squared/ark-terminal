@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "schemaId": "PHASE57_EXIT_V5_PHASE3_ROBUSTNESS_ABLATION_V1",
+  "asOfJst": "2026-09-11",
+  "role": "EXPOSED_DEVELOPMENT_ROBUSTNESS_ONLY",
+  "provenance": {
+    "old20": {
+      "workflowRun": 34541503697,
+      "artifactId": 10178728601,
+      "artifactDigest": "sha256:308738971814c2d6c54101e101153fbc64af64e29030b317f78fee1a5de0551e",
+      "routerComparableTrades": 33
+    },
+    "blockA": {
+      "workflowRun": 34603854563,
+      "artifactId": 10265532613,
+      "artifactDigest": "sha256:e9a97ff127bb960393aba0d54b41c2059534588c37d6562a3829db347c1d75a0",
+      "routerComparableTrades": 48
+    }
+  },
+  "featureCorrelation": {
+    "old20": {
+      "close_mfe": 0.673,
+      "close_mae": -0.604,
+      "mfe_mae": -0.374
+    },
+    "blockA": {
+      "close_mfe": 0.961,
+      "close_mae": -0.639,
+      "mfe_mae": -0.465
+    },
+    "combined": {
+      "close_mfe": 0.882,
+      "close_mae": -0.620,
+      "mfe_mae": -0.436
+    },
+    "interpretation": "First-bar close and MFE are highly redundant, especially in Block A. MFE is therefore not required as a router decision feature unless future unseen evidence contradicts this development finding."
+  },
+  "ablationAtExistingDevelopmentThresholds": {
+    "thresholdsBps": {
+      "closeMax": 100,
+      "mfeMax": 300,
+      "maeMin": 25
+    },
+    "variants": [
+      {"features":["close"],"old20DeltaVsV4PctPoints":-6.346016,"blockADeltaVsV4PctPoints":8.715418,"robustBothBlocks":false},
+      {"features":["mfe"],"old20DeltaVsV4PctPoints":-2.529222,"blockADeltaVsV4PctPoints":5.782653,"robustBothBlocks":false},
+      {"features":["mae"],"old20DeltaVsV4PctPoints":4.301760,"blockADeltaVsV4PctPoints":1.146827,"robustBothBlocks":true,"blockALeaveOneDivergentSwitchOutMinDeltaPctPoints":-6.271571},
+      {"features":["close","mfe"],"old20DeltaVsV4PctPoints":-6.346016,"blockADeltaVsV4PctPoints":8.715418,"robustBothBlocks":false},
+      {"features":["close","mae"],"old20DeltaVsV4PctPoints":4.341007,"blockADeltaVsV4PctPoints":8.715418,"old20LeaveOneDivergentSwitchOutMinDeltaPctPoints":1.355932,"blockALeaveOneDivergentSwitchOutMinDeltaPctPoints":1.297020,"robustBothBlocksUnderLeaveOneOut":true},
+      {"features":["mfe","mae"],"old20DeltaVsV4PctPoints":8.157801,"blockADeltaVsV4PctPoints":5.782653,"old20LeaveOneDivergentSwitchOutMinDeltaPctPoints":4.341007,"blockALeaveOneDivergentSwitchOutMinDeltaPctPoints":-1.635745,"robustBothBlocksUnderLeaveOneOut":false},
+      {"features":["close","mfe","mae"],"old20DeltaVsV4PctPoints":4.341007,"blockADeltaVsV4PctPoints":8.715418,"old20LeaveOneDivergentSwitchOutMinDeltaPctPoints":1.355932,"blockALeaveOneDivergentSwitchOutMinDeltaPctPoints":1.297020,"robustBothBlocksUnderLeaveOneOut":true}
+    ],
+    "keyFinding": "At the existing development thresholds, Close+MAE produces exactly the same router outcomes and aggregate deltas as Close+MFE+MAE in both exposed blocks. MFE is redundant for this candidate."
+  },
+  "thresholdSensitivity": {
+    "scope": "LOCAL_ROBUSTNESS_NOT_OPTIMIZATION",
+    "closeThresholdsBpsExamined": [50,75,100,125,150],
+    "maeMinimumsBpsExamined": [0,25,50,75,100],
+    "result": {
+      "robustRegion": "close threshold 100-150 bps with MAE minimum 25-100 bps",
+      "robustRegionProperty": "All examined combinations in this region had positive delta versus always-v4 in both exposed blocks and positive leave-one-divergent-switch-out minimum delta in both blocks.",
+      "fragileEdges": [
+        "MAE minimum 0 bps fails in old20 for close thresholds >=100 bps.",
+        "Close threshold 50 bps fails in Block A.",
+        "Close threshold 75 bps is positive in aggregate but fails Block A leave-one-divergent-switch-out robustness."
+      ]
+    },
+    "interpretation": "The candidate is not a single-point spike, but its useful region depends on requiring non-trivial first-bar adverse excursion."
+  },
+  "candidateDiagnostics": {
+    "rule": "route_to_v3_if_firstBarDirectionalCloseReturnBps<=100_AND_firstBarMaeBps>=25_else_v4",
+    "old20": {
+      "switches": 20,
+      "divergentSwitches": 2,
+      "netDeltaVsAlwaysV4PctPoints": 4.341007,
+      "leaveOneDivergentSwitchOutMinDeltaPctPoints": 1.355932,
+      "routerNetPctPoints": 117.410103,
+      "alwaysV4NetPctPoints": 113.069096,
+      "routerMaxDrawdownProxyPctPoints": -15.566509,
+      "alwaysV4MaxDrawdownProxyPctPoints": -16.380533
+    },
+    "blockA": {
+      "switches": 23,
+      "divergentSwitches": 6,
+      "netDeltaVsAlwaysV4PctPoints": 8.715418,
+      "leaveOneDivergentSwitchOutMinDeltaPctPoints": 1.297020,
+      "routerNetPctPoints": 76.549158,
+      "alwaysV4NetPctPoints": 67.833741,
+      "routerMaxDrawdownProxyPctPoints": -12.058314,
+      "alwaysV4MaxDrawdownProxyPctPoints": -12.058314
+    },
+    "knownCounterexample": {
+      "sessionDate": "2026-07-15",
+      "symbol": "5240.T",
+      "direction": "SHORT",
+      "firstBarCloseBps": -122.950820,
+      "firstBarMfeBps": 40.983607,
+      "firstBarMaeBps": 286.885246,
+      "v3NetPct": 2.409016,
+      "v4NetPct": 9.376230,
+      "candidateRoutesTo": "V3",
+      "costVsV4PctPoints": -6.967213,
+      "interpretation": "The simplified router remains exposed to initial-adverse trades that later become large continuation winners. This risk is intentionally left for unseen validation rather than fitted away with an override."
+    }
+  },
+  "decision": {
+    "mfeAsDecisionFeature": "REMOVE_AS_REDUNDANT_FOR_CANDIDATE",
+    "winnerOverride": "DO_NOT_FIT_BEFORE_UNSEEN",
+    "hardFirstBarExit": "REJECTED",
+    "routerArchitecture": "KEEP_MINIMAL_TWO_FEATURE",
+    "candidateReadyToFreezeForNewUnseen": true,
+    "reason": "Close+MAE matches the three-feature candidate in both exposed blocks, survives local threshold sensitivity over a non-trivial region, and avoids adding a hindsight-fitted winner override."
+  },
+  "guards": {
+    "developmentEvidenceOnly": true,
+    "notValidationEvidence": true,
+    "doNotRetuneAfterUnseenOpen": true,
+    "doNotAddWinnerOverrideAfterUnseenOpen": true,
+    "mainIntegrationAllowed": false,
+    "mergeAllowed": false,
+    "automaticPromotionAllowed": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

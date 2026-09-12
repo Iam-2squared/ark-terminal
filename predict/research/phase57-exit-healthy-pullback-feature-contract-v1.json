@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "contractId": "PHASE57_EXIT_HEALTHY_PULLBACK_FEATURE_CONTRACT_V1",
+  "status": "FROZEN_FOR_VALIDATION_NOT_MODEL_FIT",
+  "role": "EXIT_RESEARCH_HYPOTHESIS_CONTRACT",
+  "sourceDiagnostic": {
+    "pr": 581,
+    "measurementRunId": 34541503697,
+    "measurementReportSha256": "7533d488861be420f6edbfc5e2a62d9ca98de9719b56cacc1c67f5d4b319b803",
+    "tradesSha256": "02c78a819c5bcf74f8f1f2f02ee0750eb1358af8447c666d5168e82c3b5884a1",
+    "diagnosticPath": "predict/research/phase57-exit-immediate-adverse-diagnostic-2026-09-11.json"
+  },
+  "purpose": "Validate whether causal first-bar and frozen Entry-state features can distinguish healthy pullback from structural failure after Immediate Adverse, without fitting or tuning on the exposed 20-session diagnostic.",
+  "population": {
+    "base": "Frozen Minimal Hybrid v1 x MSH-Entry v1 First ENTER events",
+    "subgroup": "Immediate Adverse trades",
+    "directionHandling": "Preserve LONG/SHORT direction and report pooled plus direction split; do not retune by direction on the exposed diagnostic.",
+    "sameSessionOnly": true
+  },
+  "featureAvailability": {
+    "entryTime": [
+      "hybridScore",
+      "hybridReciprocalRank",
+      "mshDirectionProbability",
+      "directionalVwapDistancePct",
+      "relativeVolume5"
+    ],
+    "afterFirstCompleted5mBar": [
+      "firstBarDirectionalCloseReturnPct",
+      "firstBarMfePct",
+      "firstBarMaePct"
+    ]
+  },
+  "definitions": {
+    "hybridScore": "Frozen Minimal Hybrid score at the First ENTER decision timestamp.",
+    "hybridReciprocalRank": "1 / frozen Hybrid rank at the First ENTER decision timestamp.",
+    "mshDirectionProbability": "Frozen MSH-Entry probability for the chosen LONG/SHORT direction at First ENTER.",
+    "directionalVwapDistancePct": "direction * ((entryClose / causalSessionVwap) - 1) * 100 using only completed bars available at First ENTER.",
+    "relativeVolume5": "Entry bar volume divided by the mean volume of the prior five completed 5m bars, matching the frozen MSH feature contract.",
+    "firstBarDirectionalCloseReturnPct": "direction * ((firstCompletedPostEntryClose / entryReferencePrice) - 1) * 100. Available only after the first full 5m bar closes.",
+    "firstBarMfePct": "Maximum favorable excursion within the first completed post-entry 5m bar relative to entryReferencePrice, direction adjusted and floored at zero.",
+    "firstBarMaePct": "Maximum adverse excursion within the first completed post-entry 5m bar relative to entryReferencePrice, direction adjusted and capped at zero."
+  },
+  "primaryEvaluationLabel": {
+    "name": "RECOVERED_BY_PLUS6_CLOSE",
+    "definition": "For an Immediate Adverse trade with a complete +6-bar same-session horizon: directional gross close return at +6 bars > 0.",
+    "negativeClass": "REMAINED_LOSER_BY_PLUS6_CLOSE",
+    "featureLeakageRule": "The +6 label is evaluation-only and must never enter any feature, threshold, rule, or state calculation."
+  },
+  "secondaryDiagnostics": [
+    "recoveredByPlus3Close",
+    "timeToMfe",
+    "v3ExitTiming",
+    "v4ExitTiming",
+    "fixed12Outcome"
+  ],
+  "validationRules": {
+    "noWeightsFrozen": true,
+    "noThresholdsFrozen": true,
+    "noHealthScoreAuthorized": true,
+    "noModelFitOnSource20Sessions": true,
+    "noFeatureAdditionAfterValidationOutcomeWithoutNewContract": true,
+    "reportEachFeatureSeparatelyBeforeAnyComposite": true,
+    "directionSplitRequiredWhenSampleAllows": true,
+    "minimumClaim": "A feature is only a candidate discriminator until replicated on data not used for the 2026-09-11 hypothesis diagnostic."
+  },
+  "descriptiveEvidenceOnly": {
+    "firstBarDirectionalCloseReturnPct": {
+      "recoveredVsLoserRankAuc": 0.75,
+      "naturalSplit": "firstBarDirectionalCloseReturnPct > 0",
+      "sourceCounts": "10/12 recovered when >0 versus 4/12 when <=0"
+    },
+    "firstBarMfePct": {
+      "recoveredVsLoserRankAuc": 0.70,
+      "naturalSplit": "firstBarMfePct >= 1.0",
+      "sourceCounts": "11/15 recovered when >=1% versus 3/9 when <1%"
+    },
+    "warning": "These values are hypothesis-generation diagnostics from 24 exposed complete +6 Immediate-Adverse trades. They are not authorized thresholds or model performance claims."
+  },
+  "baselinePolicy": {
+    "v3": "FROZEN_BASELINE",
+    "v4": "FROZEN_BASELINE",
+    "fixed12": "FROZEN_REFERENCE",
+    "sessionEnd": "REFERENCE_ONLY"
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "mainIntegrationAllowed": false,
+  "automaticPromotionAllowed": false
+}

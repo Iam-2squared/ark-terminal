@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "auditId": "PHASE57_EXIT_V4_STAGE3_DEV_A_INTEGRITY_PREFLIGHT_V1",
+  "asOfJst": "2026-09-10",
+  "status": "BLOCKED_BEFORE_DEV_A_OUTCOME_ACCESS",
+  "classification": {
+    "substrate": "TIER2_RECONSTRUCTED_REPLAY",
+    "researchUse": "DEVELOPMENT_ONLY",
+    "temporality": "NON_PROSPECTIVE"
+  },
+  "authorization": {
+    "devAOutcomeAccessAuthorized": true,
+    "devASessions": 70,
+    "authorizationUsed": false,
+    "reason": "PRE_OUTCOME_CAUSAL_INTEGRITY_BLOCK"
+  },
+  "preflight": {
+    "ready": false,
+    "gate": "DEV_A_MEASUREMENT_INTEGRITY_BLOCKED",
+    "blocker": "FROZEN_EXIT_ANALOG_POOL_POSTDATES_ALL_DEV_A_SESSIONS",
+    "devASessionCount": 70,
+    "devAFirst": "2024-09-10",
+    "devALast": "2024-12-20",
+    "earliestPossibleAnalogTimestamp": "2026-06-17T06:30:00.000Z",
+    "causalAnalogUpperBoundPerDevASession": 0,
+    "minimumRequiredNeighbors": 30,
+    "pitViolationsIfLaterAnalogsForced": "MATERIAL_NONZERO_ALL_MANAGED_DECISIONS",
+    "safeTreatment": "STOP_BEFORE_MARKET_OUTCOME_ACCESS"
+  },
+  "frozenPins": {
+    "tier2ContractSha256": "2aa9fd80596c0f71f2359fb132288a15d563e3fab8e22ecbac54fda308a54a70",
+    "allocationContractSha256": "7e2792dfe35998716535bbbe0c9347adf87c9d6179f004b405bf0afd7240faec",
+    "allocationManifestSha256": "316d65a051ef62a0917446a910eabd9c46f2b577486fb5ead5743c446075a276",
+    "sessionMetadataInventorySha256": "127bc15586301936fcb5806486b2d3f03f9a51790d5e1b051fa918815a019e82",
+    "devASessionsSha256": "8fc50ffaff4aa7107b5e1a904237c3ea4dba00dd4a27255c94839627363a9909",
+    "exitV3PolicySha256": "634514abac1ea1129ecf669e677d677a18378b1f75b7ba872bae781b82c401f2",
+    "exitV4PolicySha256": "2d512dd810d057807bc59a0138a3db98035e57ff2c23c186ba096beeb6be26cb",
+    "analogSnapshotSha256": "10ec0b89893823f9e2f7ba720db2d0fad8e76d642fe00f7b77d387ae6be6b12a"
+  },
+  "measurement": {
+    "attemptedSessions": 0,
+    "eligibleMeasuredSessions": 0,
+    "blockedSessions": 70,
+    "firstEnterEvents": null,
+    "fixed": null,
+    "exitV3": null,
+    "exitV4": null,
+    "pairedDeltas": null,
+    "performanceClaimAllowed": false
+  },
+  "accessLedger": {
+    "devAOutcomeSessions": 0,
+    "devB": 0,
+    "validation": 0,
+    "historicalHoldout": 0,
+    "untouchedOos": 0,
+    "futureReserve": 0,
+    "protected180To282": 0,
+    "freshValidationOrOos": 0,
+    "exitOutcomes": 0,
+    "futureLabels": 0,
+    "exitInvocations": 0
+  },
+  "decision": "Do not fetch DEV-A outcome paths or report Fixed/v3/v4 performance: frozen v3/v4 analog evidence is chronologically later than every DEV-A session, so a causal paired policy measurement cannot be formed.",
+  "requiredRepair": "Freeze a result-blind analog source wholly available before 2024-09-10, or separately re-contract/reallocate an evaluation window after the frozen analog history. Either path requires explicit methodology review and a new authorization.",
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

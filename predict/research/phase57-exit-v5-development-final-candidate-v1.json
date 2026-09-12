@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "schemaId": "PHASE57_EXIT_V5_DEVELOPMENT_FINAL_CANDIDATE_V1",
+  "status": "DEVELOPMENT_FINAL_SELECTED_NOT_VALIDATED",
+  "candidateId": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+  "role": "SINGLE_DEVELOPMENT_FINAL_CANDIDATE",
+  "architecture": {
+    "baseContinuation": "FROZEN_EXIT_V4",
+    "firstBarNonAdverse": "CONTINUE_FROZEN_V4",
+    "firstBarAdverse": "ENTER_DEFENSIVE",
+    "recoveryCondition": "DIRECTIONAL_COMPLETED_CLOSE_RETURN_FROM_ENTRY >= 0 BEFORE_OR_AT_BAR_5",
+    "onRecovery": "CONTINUE_FROZEN_V4",
+    "onNoRecoveryByHorizon": "EXIT_AT_BAR_5_COMPLETED_CLOSE",
+    "recoveryHorizonBars": 5,
+    "roundTripCostPct": 0.05,
+    "symbolSpecificRules": false,
+    "directionSpecificRules": false,
+    "extraOverrideLayer": false
+  },
+  "selectedFrom": {
+    "dataRole": "EXPOSED_DEVELOPMENT_ONLY",
+    "blockACausalEligibleTrades": 51,
+    "blockBCausalEligibleTrades": 34,
+    "candidateHorizonsCompared": [2,3,4,5,6,8,10,12],
+    "selectionRulePrecommittedInScript": true
+  },
+  "developmentEvidence": {
+    "blockA": {
+      "v5NetPctPoints": 72.52907806627492,
+      "v4NetPctPoints": 71.7655073318587,
+      "deltaPctPoints": 0.763570734416219,
+      "v5ProfitFactor": 2.330478081040155,
+      "v4ProfitFactor": 2.298286010158678,
+      "v5MaxDrawdownPctPoints": -11.786107933631005,
+      "v4MaxDrawdownPctPoints": -11.786107933631005,
+      "top1AbsDeltaShare": 1.0
+    },
+    "blockB": {
+      "v5NetPctPoints": 29.9209591946214,
+      "v4NetPctPoints": 25.457024648041482,
+      "deltaPctPoints": 4.463934546579917,
+      "v5ProfitFactor": 2.2040057026334825,
+      "v4ProfitFactor": 1.8683925470013119,
+      "v5MaxDrawdownPctPoints": -9.715050066467827,
+      "v4MaxDrawdownPctPoints": -13.790826433163293,
+      "top1AbsDeltaShare": 0.3060000492357879
+    },
+    "combinedDeltaPctPointsVsV4": 5.227505280996136,
+    "worstBlockDeltaPctPointsVsV4": 0.763570734416219
+  },
+  "knownWeaknesses": [
+    "Block A improvement versus v4 is fully concentrated in one changed trade.",
+    "The candidate was selected using exposed Development data and therefore has no unseen-validation claim.",
+    "Performance robustness across future regimes remains unproven."
+  ],
+  "freezeIntent": {
+    "singleCandidate": true,
+    "retuneBeforeFutureValidation": false,
+    "addFeatureBeforeFutureValidation": false,
+    "changeHorizonBeforeFutureValidation": false,
+    "addSymbolOrDirectionException": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

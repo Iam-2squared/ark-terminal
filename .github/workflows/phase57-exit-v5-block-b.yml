@@ -1,0 +1,177 @@
+name: Phase57 EXIT v5 Block B Unseen Validation
+
+on:
+  pull_request:
+    branches: [research/phase57-minimal-stateful-hybrid-entry]
+    paths:
+      - .github/workflows/phase57-exit-v5-block-b.yml
+      - scripts/phase57-exit-v5-block-b-measure.mjs
+      - scripts/phase57-exit-v4-20session-features.mjs
+      - predict/research/phase57-exit-v5-block-b-unseen-v1.json
+      - predict/research/phase57-exit-v5-candidate-freeze-v1.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-exit-v5-block-b-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preflight:
+    if: >-
+      (github.event_name == 'pull_request' && github.event.pull_request.number == 581 && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'research/phase57-exit-v4-hybrid-msh-large-scale') ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/research/phase57-exit-v4-hybrid-msh-large-scale')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: Verify frozen Block B contract
+        run: |
+          node --check scripts/phase57-exit-v5-block-b-measure.mjs
+          node --check scripts/phase57-exit-v4-20session-features.mjs
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';import assert from 'node:assert/strict';
+          const c=JSON.parse(fs.readFileSync('predict/research/phase57-exit-v5-block-b-unseen-v1.json'));
+          const f=JSON.parse(fs.readFileSync('predict/research/phase57-exit-v5-candidate-freeze-v1.json'));
+          assert.equal(c.schemaId,'PHASE57_EXIT_V5_BLOCK_B_UNSEEN_V1');
+          assert.equal(c.sessions.length,8);assert.equal(new Set(c.sessions.map(x=>x.sessionDate)).size,8);
+          assert(c.sessions.every(x=>x.sessionDate>'2026-07-30'&&x.sessionDate<'2026-08-13'));
+          assert.equal(f.status,'FROZEN_FOR_UNSEEN_VALIDATION_NOT_PROMOTED');
+          assert.equal(f.router.routeToV3When,'firstBarDirectionalCloseReturnBps <= 100 AND firstBarMaeBps >= 25');
+          for(const v of Object.values(c.safety))assert.equal(v,false);
+          console.log(JSON.stringify({status:'BLOCK_B_PREFLIGHT_PASS',sessions:8,candidate:f.status}));
+          NODE
+
+  features:
+    needs: preflight
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        session: ['2026-07-31','2026-08-03','2026-08-04','2026-08-05','2026-08-06','2026-08-07','2026-08-10','2026-08-12']
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Read-only pinned Frozen Hybrid source
+        uses: actions/checkout@v4
+        with:
+          ref: 6c1aec0545fa6a77c5435e7cc864f1ea2d71fc26
+          path: frozen-selector
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /package.json
+            /predict/daytrade/phase57-selector-minimal-hybrid.js
+            /predict/daytrade/phase57-selector-minimal-hybrid-model.js
+            /predict/daytrade/phase57-p25-intraday-dynamic-universe.js
+            /predict/daytrade/phase57-p25-jpx-opportunity-universe.js
+            /predict/research/phase57-selector-minimal-hybrid-development-model.json
+            /predict/research/phase57-selector-minimal-hybrid-development-freeze.json
+            /predict/research/phase57-selector-minimal-hybrid-phase-a-amendment-v1.1.json
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: Reconstruct one frozen unseen session
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          SESSION_FILTER: ${{ matrix.session }}
+          SHARD_INDEX: 0
+          SHARD_COUNT: 1
+          DIAGNOSTIC_CONFIG: predict/research/phase57-exit-v5-block-b-unseen-v1.json
+          NODE_OPTIONS: --max-old-space-size=6144
+        shell: bash
+        run: |
+          set -euo pipefail
+          scratch=$(mktemp -d "$RUNNER_TEMP/block-b-${SESSION_FILTER}-XXXXXXXX")
+          trap 'rm -rf "$scratch"' EXIT
+          mkdir -p artifacts
+          for attempt in 1 2 3; do
+            output="$scratch/attempt-$attempt"
+            set +e
+            OUTPUT_DIR="$output" timeout --signal=TERM --kill-after=30s 320m node scripts/phase57-exit-v4-20session-features.mjs
+            rc=$?
+            set -e
+            if [ "$rc" -eq 0 ]; then mv "$output" artifacts/phase57-exit-v5-block-b-features; exit 0; fi
+            rm -rf "$output"
+            if [ "$attempt" -eq 3 ]; then exit "$rc"; fi
+            sleep $((attempt*90))
+          done
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: phase57-exit-v5-block-b-features-${{ matrix.session }}-${{ github.run_id }}
+          path: artifacts/phase57-exit-v5-block-b-features/
+          if-no-files-found: error
+          retention-days: 14
+
+  measure:
+    needs: features
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-exit-v5-block-b-features-*-${{ github.run_id }}
+          path: artifacts/block-b-input
+          merge-multiple: true
+      - name: Download immutable frozen MSH candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: entry58-development-measurement-34292703804
+          run-id: 34292703804
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/input/candidate
+      - name: Download canonical pre-performance analog snapshot
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-p24-9-oos-canonical-candidate
+          run-id: 31785422471
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/input/analog
+      - name: Measure frozen v5 candidate once
+        shell: bash
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+          DIAGNOSTIC_CONFIG: predict/research/phase57-exit-v5-block-b-unseen-v1.json
+          INPUT_DIR: artifacts/block-b-input
+          CANDIDATE_MODEL: artifacts/input/candidate/candidate-model.json
+          OUTPUT_DIR: artifacts/phase57-exit-v5-block-b
+        run: |
+          set -euo pipefail
+          test "$(find artifacts/block-b-input -type f -name '*.manifest.json' | wc -l)" -eq 8
+          wanted=10ec0b89893823f9e2f7ba720db2d0fad8e76d642fe00f7b77d387ae6be6b12a
+          found=''
+          while IFS= read -r f; do
+            if [ "$(sha256sum "$f" | cut -d' ' -f1)" = "$wanted" ]; then found="$f"; break; fi
+          done < <(find artifacts/input/analog -type f -name '*.json' | sort)
+          test -n "$found"
+          ANALOG_SNAPSHOT="$found" node scripts/phase57-exit-v5-block-b-measure.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-exit-v5-block-b-measurement-${{ github.run_id }}
+          path: artifacts/phase57-exit-v5-block-b/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Remove temporary market/model inputs
+        if: always()
+        run: rm -rf artifacts/block-b-input artifacts/input

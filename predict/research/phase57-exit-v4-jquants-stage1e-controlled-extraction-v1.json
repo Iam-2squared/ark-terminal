@@ -1,0 +1,451 @@
+{
+  "schemaVersion": 1,
+  "auditId": "PHASE57_EXIT_V4_JQUANTS_STAGE1E_CONTROLLED_ZIP_ACQUISITION_V1",
+  "asOfJst": "2026-09-10",
+  "stage": "1E_CONTROLLED_WHOLE_ZIP_ACQUISITION_ALLOWLISTED_EXTRACTION",
+  "pullRequest": 581,
+  "parentHeadSha": "cdfcf0e566e8edf98294f1a5ae8ae817ee21f57e",
+  "baseBranch": "research/phase57-minimal-stateful-hybrid-entry",
+  "status": "CONTROLLED_EXTRACTION_PARITY_PARTIAL",
+  "hardStop": "ACTIVE",
+  "scope": "THREE_PREEXPOSED_SESSIONS_INPUT_ONLY_NO_EXIT_OUTCOME_NO_FUTURE_LABELS",
+  "governanceChange": {
+    "prior": "WHOLE_ZIP_ACQUISITION_FORBIDDEN",
+    "current": "TEMPORARY_WHOLE_ZIP_ACQUIRED_UNINSPECTED_ALLOWED",
+    "researchInspection": "EXACT_THREE_SESSION_ALLOWLIST_ONLY",
+    "physicalAcquisitionIsResearchAccess": false
+  },
+  "allowedSessions": [
+    "2025-08-27",
+    "2025-10-09",
+    "2025-11-25"
+  ],
+  "freeze": {
+    "frozenBeforeDownload": true,
+    "freezeCommitSha": "cdfcf0e566e8edf98294f1a5ae8ae817ee21f57e",
+    "extractorSha256": "73e5c0a67bcfe335fa72e0a48c8f41965f6d6e41d2709b0b8032940b6d87e019",
+    "configSha256": "b5117c4c3115a564414c3cf53948d19e8f284bedbd5642c35628b5d00bd3e475",
+    "parityRunnerSha256": "130fffb5a4029cced57e3eb6c036d47b7f1950b4465fd77daa85b52acb8f0579",
+    "syntheticDryRun": "8_OF_8_PASS",
+    "exactFloatTolerance": 0
+  },
+  "sourceArtifacts": [
+    {
+      "sessionDate": "2025-08-27",
+      "runId": 34355199082,
+      "artifactId": 10106663226,
+      "artifactName": "entry-holdout29-features-0-34355199082",
+      "expiresAt": "2026-10-09T13:37:28Z",
+      "containerSha256": "803b33bcc8f26acd4afbcea090215ef7e58214ad833206baf79cbaa367d18173",
+      "containerDigestMatched": true
+    },
+    {
+      "sessionDate": "2025-10-09",
+      "runId": 34292703804,
+      "artifactId": 10082689099,
+      "artifactName": "entry58-features-0-34292703804",
+      "expiresAt": "2026-10-09T00:22:58Z",
+      "containerSha256": "a38749885f36f63a48d4b8b5b47f02aedc4b5b5a5c9ee10b83744c7ebedb1b3b",
+      "containerDigestMatched": true
+    },
+    {
+      "sessionDate": "2025-11-25",
+      "runId": 34292703804,
+      "artifactId": 10084152060,
+      "artifactName": "entry58-features-5-34292703804",
+      "expiresAt": "2026-10-09T01:21:32Z",
+      "containerSha256": "72a9b97a913fe2b94aad4ef292bd6fcf172401d4b5252c7e7ddc7a379c425d03",
+      "containerDigestMatched": true
+    }
+  ],
+  "extraction": [
+    {
+      "sessionDate": "2025-08-27",
+      "status": "EXTRACTED_ALLOWED_ONLY",
+      "approvedMembersRead": 3,
+      "unapprovedMembersMetadataCount": 28,
+      "unapprovedContentReads": 0,
+      "goldenRows": 236,
+      "subsetSha256": "c0cdc56897ef8a22698949befea45a9019d8eccdc009f2ccd537796dfea27f89",
+      "strippedFieldCount": 0,
+      "outputMembers": [
+        {
+          "bytes": 50795,
+          "name": "2025-08-27.bars.json.gz",
+          "outputSha256": "2babf1745ef9ab2961fa0e9989269985c04f797740e3ab8ee4b382690d2e27cb",
+          "sourceMemberSha256": "15cbd6bdcb5bca77ce6792d72da85da00ee010222f6b93cad59cb1886550b58c",
+          "strippedFieldCount": 0
+        },
+        {
+          "bytes": 50095,
+          "name": "2025-08-27.features.json.gz",
+          "outputSha256": "11c9700902d88188b1a827fbdc4605f4ccb4e690694b53dcf37b2fc36312ab1f",
+          "sourceMemberSha256": "753dcd938035291b47f3b82cf7c013f16c04df645149a46b6c0f9748e0129d1a",
+          "strippedFieldCount": 0
+        },
+        {
+          "bytes": 1301,
+          "name": "2025-08-27.manifest.json",
+          "outputSha256": "90017ca21538616df7453f000954f19ecd2fb13145ef2dbfc224f6e8c0c0b1ff",
+          "sourceMemberSha256": "921d25ba7c90e82ef10177a18d697dd746c2483ec6a2950e95f1d8ffa60bed9a",
+          "strippedFieldCount": 0
+        }
+      ]
+    },
+    {
+      "sessionDate": "2025-10-09",
+      "status": "EXTRACTED_ALLOWED_ONLY",
+      "approvedMembersRead": 3,
+      "unapprovedMembersMetadataCount": 28,
+      "unapprovedContentReads": 0,
+      "goldenRows": 226,
+      "subsetSha256": "4c1934e78a169879b18718ea67b16f9adbb8c717b61418971a69c8a008cfe140",
+      "strippedFieldCount": 0,
+      "outputMembers": [
+        {
+          "bytes": 62048,
+          "name": "2025-10-09.bars.json.gz",
+          "outputSha256": "84780139bda88211493ba3018b9dd5bce2a7da172caa9b5a1328ec701e05fc41",
+          "sourceMemberSha256": "d90c3c718caca2025f4029c6307b2df92333a20bde51e0662d171e9a76ed5b4a",
+          "strippedFieldCount": 0
+        },
+        {
+          "bytes": 53070,
+          "name": "2025-10-09.features.json.gz",
+          "outputSha256": "2a0a020940349761447e4ac47a98cdd1e3fecb316e1d470033c68ccc93b8929f",
+          "sourceMemberSha256": "8eec7f1ebd7fc6190feb9a1224f8cc1e7c9aacae6deda7cb26ca1373d25e53e6",
+          "strippedFieldCount": 0
+        },
+        {
+          "bytes": 1109,
+          "name": "2025-10-09.manifest.json",
+          "outputSha256": "3afc321244684e53578b2aae43487ef0f683e79bc12d6ee1420d958d79f7409a",
+          "sourceMemberSha256": "abd419a4088e7467ab29e7a078afba122199be6092545cb6cbec780ca7c424f2",
+          "strippedFieldCount": 0
+        }
+      ]
+    },
+    {
+      "sessionDate": "2025-11-25",
+      "status": "EXTRACTED_ALLOWED_ONLY",
+      "approvedMembersRead": 3,
+      "unapprovedMembersMetadataCount": 25,
+      "unapprovedContentReads": 0,
+      "goldenRows": 325,
+      "subsetSha256": "98841946ab40fd7a3d1e6ba3f66b6d8cabf690736e7bcd82bda7bc601c787d08",
+      "strippedFieldCount": 0,
+      "outputMembers": [
+        {
+          "bytes": 51324,
+          "name": "2025-11-25.bars.json.gz",
+          "outputSha256": "f35f6274b65b7da1c55066fcef1e3cf0dc5b598394e323e8f8e41c60a966e39e",
+          "sourceMemberSha256": "a22e2d7d6bda806e384b32743a10b513ba0061ebb9fe8b581af78b0fa170c1c3",
+          "strippedFieldCount": 0
+        },
+        {
+          "bytes": 84219,
+          "name": "2025-11-25.features.json.gz",
+          "outputSha256": "d6ba905659e004935c9426990fc4479d219a8cd2df2f651fe0d672835d589209",
+          "sourceMemberSha256": "bc5a9f914a5949788848e1fa4dd34d956f8918dc0da84e85fe5d40ff81f06b7a",
+          "strippedFieldCount": 0
+        },
+        {
+          "bytes": 1109,
+          "name": "2025-11-25.manifest.json",
+          "outputSha256": "933c7e8b66b9fb97e59ff69a6636aa00806496609323c148ce651cda3b53c43e",
+          "sourceMemberSha256": "b8444b3c7ca8507cba4719f19ba5f7518f49d5561f3dd7477243bae0bbfd6e4d",
+          "strippedFieldCount": 0
+        }
+      ]
+    }
+  ],
+  "extractionTotals": {
+    "zipDownloads": 3,
+    "containerShaCount": 3,
+    "allowedSessionsExtracted": 3,
+    "approvedMembersRead": 9,
+    "unapprovedContentReads": 0,
+    "goldenRows": 787,
+    "prohibitedFieldsFoundOrStripped": 0
+  },
+  "parity": {
+    "exactFloatTolerance": 0,
+    "safety": {
+      "automaticPromotionAllowed": false,
+      "brokerWriteAllowed": false,
+      "excelOrderWriteAllowed": false,
+      "executionAllowed": false,
+      "liveTradingAllowed": false,
+      "paperTradingAllowed": false,
+      "productionUpdateAllowed": false,
+      "rssOrderFunctionAllowed": false,
+      "transmitted": false
+    },
+    "sessions": [
+      {
+        "dataBars": {
+          "pitViolations": 0,
+          "rows": 2057,
+          "status": "PASS",
+          "timestampViolations": 0
+        },
+        "entryEvents": {
+          "modelAppliedRows": 0,
+          "referencePriceComparisons": 162,
+          "referencePriceMismatches": 0,
+          "status": "NOT_RECOVERABLE_PRE_FIT_BUNDLE_HAS_NO_FROZEN_MODEL_DECISIONS",
+          "storedFirstEnterRows": 0
+        },
+        "goldenEventRows": 236,
+        "hybridOutput": {
+          "membershipCountComparisons": 66,
+          "membershipCountMismatches": 0,
+          "rankViolations": 0,
+          "selectionDigestComparisons": 0,
+          "status": "PARTIAL_EVENT_MEMBERSHIP_AND_RANK_CONSISTENT_NO_INDEPENDENT_FULL_UNIVERSE_REPLAY"
+        },
+        "mshFeatures": {
+          "contractSha256": "cc70b1eb07c0719f72c4a8caa0f165a2812aec4af0b2fdeae42ef3ff400c4115",
+          "exactNumericTolerance": 0,
+          "featureMismatches": 0,
+          "featurePairs": 162,
+          "featureRows": 324,
+          "jsonNegativeZeroNormalizations": 43,
+          "mismatchTaxonomy": {},
+          "status": "PASS_EXACT_NUMERIC_JSON_SEMANTICS"
+        },
+        "mshState": {
+          "stateComparisons": 236,
+          "stateMismatches": 0,
+          "status": "PASS_EXACT_CHRONOLOGICAL_RECONSTRUCTION"
+        },
+        "safety": {
+          "automaticPromotionAllowed": false,
+          "brokerWriteAllowed": false,
+          "excelOrderWriteAllowed": false,
+          "executionAllowed": false,
+          "liveTradingAllowed": false,
+          "paperTradingAllowed": false,
+          "productionUpdateAllowed": false,
+          "rssOrderFunctionAllowed": false,
+          "transmitted": false
+        },
+        "sessionDate": "2025-08-27",
+        "sourceDeclaredPreOutcome": true,
+        "usedSymbols": 33
+      },
+      {
+        "dataBars": {
+          "pitViolations": 0,
+          "rows": 2428,
+          "status": "PASS",
+          "timestampViolations": 0
+        },
+        "entryEvents": {
+          "modelAppliedRows": 0,
+          "referencePriceComparisons": 171,
+          "referencePriceMismatches": 0,
+          "status": "NOT_RECOVERABLE_PRE_FIT_BUNDLE_HAS_NO_FROZEN_MODEL_DECISIONS",
+          "storedFirstEnterRows": 0
+        },
+        "goldenEventRows": 226,
+        "hybridOutput": {
+          "membershipCountComparisons": 66,
+          "membershipCountMismatches": 0,
+          "rankViolations": 0,
+          "selectionDigestComparisons": 0,
+          "status": "PARTIAL_EVENT_MEMBERSHIP_AND_RANK_CONSISTENT_NO_INDEPENDENT_FULL_UNIVERSE_REPLAY"
+        },
+        "mshFeatures": {
+          "contractSha256": "cc70b1eb07c0719f72c4a8caa0f165a2812aec4af0b2fdeae42ef3ff400c4115",
+          "exactNumericTolerance": 0,
+          "featureMismatches": 0,
+          "featurePairs": 171,
+          "featureRows": 342,
+          "jsonNegativeZeroNormalizations": 20,
+          "mismatchTaxonomy": {},
+          "status": "PASS_EXACT_NUMERIC_JSON_SEMANTICS"
+        },
+        "mshState": {
+          "stateComparisons": 226,
+          "stateMismatches": 0,
+          "status": "PASS_EXACT_CHRONOLOGICAL_RECONSTRUCTION"
+        },
+        "safety": {
+          "automaticPromotionAllowed": false,
+          "brokerWriteAllowed": false,
+          "excelOrderWriteAllowed": false,
+          "executionAllowed": false,
+          "liveTradingAllowed": false,
+          "paperTradingAllowed": false,
+          "productionUpdateAllowed": false,
+          "rssOrderFunctionAllowed": false,
+          "transmitted": false
+        },
+        "sessionDate": "2025-10-09",
+        "sourceDeclaredPreOutcome": true,
+        "usedSymbols": 38
+      },
+      {
+        "dataBars": {
+          "pitViolations": 0,
+          "rows": 2060,
+          "status": "PASS",
+          "timestampViolations": 0
+        },
+        "entryEvents": {
+          "modelAppliedRows": 0,
+          "referencePriceComparisons": 297,
+          "referencePriceMismatches": 0,
+          "status": "NOT_RECOVERABLE_PRE_FIT_BUNDLE_HAS_NO_FROZEN_MODEL_DECISIONS",
+          "storedFirstEnterRows": 0
+        },
+        "goldenEventRows": 325,
+        "hybridOutput": {
+          "membershipCountComparisons": 66,
+          "membershipCountMismatches": 0,
+          "rankViolations": 0,
+          "selectionDigestComparisons": 0,
+          "status": "PARTIAL_EVENT_MEMBERSHIP_AND_RANK_CONSISTENT_NO_INDEPENDENT_FULL_UNIVERSE_REPLAY"
+        },
+        "mshFeatures": {
+          "contractSha256": "cc70b1eb07c0719f72c4a8caa0f165a2812aec4af0b2fdeae42ef3ff400c4115",
+          "exactNumericTolerance": 0,
+          "featureMismatches": 0,
+          "featurePairs": 297,
+          "featureRows": 594,
+          "jsonNegativeZeroNormalizations": 61,
+          "mismatchTaxonomy": {},
+          "status": "PASS_EXACT_NUMERIC_JSON_SEMANTICS"
+        },
+        "mshState": {
+          "stateComparisons": 325,
+          "stateMismatches": 0,
+          "status": "PASS_EXACT_CHRONOLOGICAL_RECONSTRUCTION"
+        },
+        "safety": {
+          "automaticPromotionAllowed": false,
+          "brokerWriteAllowed": false,
+          "excelOrderWriteAllowed": false,
+          "executionAllowed": false,
+          "liveTradingAllowed": false,
+          "paperTradingAllowed": false,
+          "productionUpdateAllowed": false,
+          "rssOrderFunctionAllowed": false,
+          "transmitted": false
+        },
+        "sessionDate": "2025-11-25",
+        "sourceDeclaredPreOutcome": true,
+        "usedSymbols": 33
+      }
+    ],
+    "status": "CONTROLLED_EXTRACTION_PARITY_PARTIAL",
+    "totals": {
+      "entryModelAppliedRows": 0,
+      "featureMismatches": 0,
+      "featureRows": 1260,
+      "goldenEventRows": 787,
+      "pitViolations": 0,
+      "stateComparisons": 787,
+      "stateMismatches": 0
+    }
+  },
+  "negativeZeroNormalization": {
+    "observed": 124,
+    "classification": "JSON_SERIALIZATION_NORMALIZATION_NOT_NUMERIC_MISMATCH",
+    "rule": "FINITE_NUMBER_STRICT_EQUAL_WITH_ZERO_TOLERANCE",
+    "result": "NO_MSH_FEATURE_MISMATCH"
+  },
+  "layerResults": {
+    "dataBar": "PASS_ALLOWED_GOLDEN_PREFIXES",
+    "hybridInput": "PASS_EVENT_LEVEL_FROZEN_IDENTIFIERS_AND_PRICE_REFERENCE",
+    "hybridOutput": "PARTIAL_NO_INDEPENDENT_FULL_UNIVERSE_REPLAY_OR_SELECTION_DIGEST_RECOMPUTE",
+    "mshFeature": "PASS_1260_OF_1260_EXACT_NUMERIC",
+    "mshState": "PASS_787_OF_787_EXACT",
+    "entryEvent": "NOT_RECOVERABLE_SOURCE_BUNDLE_PRE_FIT_MODEL_UNAVAILABLE"
+  },
+  "existingStage1Semantics": {
+    "minuteTimestamp": "PASS_TRUST_B_FROM_STAGE1B",
+    "fiveMinuteAggregation": "PASS_FROM_STAGE1B_CONTRACT",
+    "availableAt": "CONDITIONAL_REPLAY_AVAILABLE_AT_EQUALS_BAR_END_NOT_PROVIDER_PUBLICATION_TIME",
+    "missingReason": "FAIL_UNKNOWN_FAIL_CLOSED",
+    "corporateActions": "PARTIAL_CONFLICTS_MUST_BLOCK",
+    "historicalUniverse": "PARTIAL"
+  },
+  "eligibility": {
+    "goldenBInputSubsets": 3,
+    "fullReplayEligibleSessions": 0,
+    "confirmedTier2Sessions": 0,
+    "diagnosticGoldenInputSessions": 3,
+    "stage2AllocationAllowed": false,
+    "blockers": [
+      "NO_INDEPENDENT_FULL_UNIVERSE_HYBRID_REPLAY",
+      "ENTRY_EVENT_GOLDEN_NOT_RECOVERABLE",
+      "AVAILABLE_AT_IS_REPLAY_BOUND_NOT_PROVIDER_PUBLICATION_TIME",
+      "HISTORICAL_UNIVERSE_PARTIAL",
+      "MISSING_REASON_FAIL",
+      "CORPORATE_ACTIONS_PARTIAL"
+    ]
+  },
+  "accessLedger": {
+    "githubArtifactZipDownloads": 3,
+    "jquantsApiCalls": 0,
+    "jquantsBulkDownloads": 0,
+    "newJquantsRawSessions": 0,
+    "allowedExistingSessionsInspected": 3,
+    "unapprovedSessionContentInspected": 0,
+    "newSealedSessions": 0,
+    "protected180To282": 0,
+    "freshValidationOrOos": 0,
+    "exitOutcome": 0,
+    "futureLabels": 0,
+    "exitInvocations": 0
+  },
+  "temporaryMaterial": {
+    "zipDeletion": [
+      {
+        "deleted": true,
+        "pathBasename": "2025-08-27.zip"
+      },
+      {
+        "deleted": true,
+        "pathBasename": "2025-10-09.zip"
+      },
+      {
+        "deleted": true,
+        "pathBasename": "2025-11-25.zip"
+      }
+    ],
+    "allTemporaryZipsDeleted": true,
+    "allTemporarySubsetsDeleted": true,
+    "rawZipCommitted": false,
+    "subsetCommitted": false
+  },
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "tests": {
+    "stage1eExtractorDryRun": "8_OF_8_PASS",
+    "stage1eCombined": "13_OF_13_PASS",
+    "stage1eParityEvidence": "5_OF_5_PASS",
+    "fullPredict": "2628_OF_2628_PASS",
+    "githubCi": "PENDING"
+  },
+  "nextHighestValueAction": "FREEZE_A_NON_OUTCOME_ENTRY_EVENT_GOLDEN_CONTRACT_OR_REPRODUCIBLE_FROZEN_MODEL_DECISION_REFERENCE_THEN_REPEAT_ONLY_MISSING_ENTRY_AND_FULL_UNIVERSE_PARITY_LAYERS",
+  "stoppedBefore": [
+    "STAGE_2_ALLOCATION",
+    "DEVELOPMENT",
+    "EXIT_PERFORMANCE",
+    "VALIDATION",
+    "OOS",
+    "PROSPECTIVE"
+  ]
+}

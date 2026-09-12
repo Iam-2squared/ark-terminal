@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "schemaId": "PHASE57_EXIT_V5_PHASE3_DEVELOPMENT_V1",
+  "asOfJst": "2026-09-11",
+  "role": "DEVELOPMENT_ONLY_AFTER_BLOCK_A_REPLICATION",
+  "purpose": "Freeze the post-Block-A EXIT v5 development contract before any new unseen outcome block is opened.",
+  "evidenceBasis": {
+    "blockAWorkflowRun": 34603854563,
+    "blockAArtifactId": 10265532613,
+    "blockAArtifactDigest": "sha256:e9a97ff127bb960393aba0d54b41c2059534588c37d6562a3829db347c1d75a0",
+    "blockAFinalDecision": "BLOCK_A_PARTIAL",
+    "blockASessions": 30,
+    "blockAPairedTrades": 54,
+    "blockAImmediateAdverseCompleteN": 29,
+    "blockARecoveredN": 15,
+    "blockAFailureN": 14,
+    "resultInterpretation": "Healthy-pullback versus structural-failure path signal replicated strongly, while delayed-edge shape and static-entry descriptors did not replicate consistently."
+  },
+  "frozenPrimaryFeatures": [
+    {
+      "name": "firstBarDirectionalCloseReturnPct",
+      "blockADescriptiveAuc": 0.8428571428571429,
+      "direction": "HIGHER_IN_RECOVERED",
+      "status": "PRIMARY"
+    },
+    {
+      "name": "firstBarMfePct",
+      "blockADescriptiveAuc": 0.8047619047619048,
+      "direction": "HIGHER_IN_RECOVERED",
+      "status": "PRIMARY"
+    },
+    {
+      "name": "firstBarMaePct",
+      "blockADescriptiveAuc": 0.8095238095238095,
+      "direction": "HIGHER_IN_RECOVERED",
+      "status": "PRIMARY"
+    }
+  ],
+  "exploratoryOnlyFeatures": [
+    {
+      "name": "firstBarVolumeRatio",
+      "blockADescriptiveAuc": 0.319047619047619,
+      "direction": "LOWER_IN_RECOVERED",
+      "status": "EXPLORATORY_INVERSE_ONLY"
+    }
+  ],
+  "notDecisionFeatures": [
+    "hybridReciprocalRank",
+    "hybridScore",
+    "relativeVolume5",
+    "directionalVwapDistancePct"
+  ],
+  "stateArchitecture": {
+    "stage0": "ENTRY_UNCHANGED_FROZEN_MSH",
+    "stage1": "OBSERVE_FIRST_COMPLETED_BAR_ONLY",
+    "stage2": "CLASSIFY_PATH_AS_HEALTHY_AMBIGUOUS_OR_STRUCTURAL_FAILURE",
+    "stage3": "APPLY_LOSER_SIDE_EXIT_RESPONSE_ONLY_AFTER_FIRST_BAR_OBSERVATION",
+    "winnerContinuation": "SEPARATE_RESEARCH_PATH_NOT_FIT_IN_THIS CONTRACT",
+    "catastrophicZeroBarFilter": "NOT_AUTHORIZED_YET"
+  },
+  "developmentConstraints": {
+    "maxPrimaryDecisionFeatures": 3,
+    "maxFreeThresholds": 3,
+    "interactionTermsAllowed": false,
+    "blackBoxModelAllowed": false,
+    "logisticRegressionAllowed": false,
+    "neuralNetworkAllowed": false,
+    "thresholdFittingAllowedOnExposedDevelopmentEvidence": true,
+    "thresholdFittingAllowedOnFutureUnseenValidation": false,
+    "outcomeDrivenFeatureExpansionAllowed": false,
+    "staticEntryFeatureRescueAllowed": false,
+    "winnerAndLoserLogicMustBeSeparated": true
+  },
+  "requiredBaselines": [
+    "FIXED12",
+    "SESSION_END",
+    "EXIT_V3_FROZEN",
+    "EXIT_V4_FROZEN"
+  ],
+  "candidateAcceptanceBeforeUnseen": {
+    "mustReduceLoserTailVersusV4": true,
+    "mustNotIncreasePrematureWinnerExitVersusV4Materially": true,
+    "mustReportTradeLevelPairedDelta": true,
+    "mustReportImmediateAdverseSubset": true,
+    "mustReportLongShortSeparately": true,
+    "mustReportOutlierDependence": true,
+    "mustRemainDevelopmentOnly": true
+  },
+  "nextUnseenPolicy": {
+    "openBeforeCandidateFreeze": false,
+    "thresholdChangesAfterOpening": false,
+    "featureChangesAfterOpening": false,
+    "automaticExpansion": false,
+    "formalOosClaim": false,
+    "prospectiveClaim": false
+  },
+  "lockedUpstream": {
+    "selector": "FROZEN_MINIMAL_HYBRID_V1",
+    "entry": "MINIMAL_STATEFUL_HYBRID_ENTRY_V1",
+    "entryThreshold": 0.60,
+    "entryThresholdRule": "STRICTLY_GREATER_THAN",
+    "repeatEntryAllowed": false,
+    "exitV3PolicySha256": "634514abac1ea1129ecf669e677d677a18378b1f75b7ba872bae781b82c401f2",
+    "exitV4PolicySha256": "2d512dd810d057807bc59a0138a3db98035e57ff2c23c186ba096beeb6be26cb"
+  },
+  "guards": {
+    "blockAIsNowDevelopmentExposed": true,
+    "doNotReuseBlockAAsValidation": true,
+    "doNotOpenNewUnseenUntilCandidateFreeze": true,
+    "mainIntegrationAllowed": false,
+    "mergeAllowed": false,
+    "automaticPromotionAllowed": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

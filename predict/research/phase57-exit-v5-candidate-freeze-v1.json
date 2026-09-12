@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "schemaId": "PHASE57_EXIT_V5_CANDIDATE_FREEZE_V1",
+  "asOfJst": "2026-09-11",
+  "status": "FROZEN_FOR_UNSEEN_VALIDATION_NOT_PROMOTED",
+  "role": "DEVELOPMENT_CANDIDATE_ONLY",
+  "architecture": "FIRST_BAR_STATE_ROUTER_OVER_FROZEN_V3_V4",
+  "decisionFeatures": [
+    {
+      "name": "firstBarDirectionalCloseReturnBps",
+      "source": "first completed 5m bar after Entry",
+      "causalAtDecision": true,
+      "rule": "<= 100"
+    },
+    {
+      "name": "firstBarMaeBps",
+      "source": "directional adverse excursion observed during first completed 5m bar after Entry",
+      "causalAtDecision": true,
+      "rule": ">= 25"
+    }
+  ],
+  "router": {
+    "decisionTimestamp": "END_OF_FIRST_COMPLETED_POST_ENTRY_5M_BAR",
+    "routeToV3When": "firstBarDirectionalCloseReturnBps <= 100 AND firstBarMaeBps >= 25",
+    "otherwise": "ROUTE_TO_V4",
+    "routeIsSticky": true,
+    "midTradeRerouting": false
+  },
+  "managedPolicies": {
+    "v3": {
+      "policySha256": "634514abac1ea1129ecf669e677d677a18378b1f75b7ba872bae781b82c401f2",
+      "modified": false
+    },
+    "v4": {
+      "policySha256": "2d512dd810d057807bc59a0138a3db98035e57ff2c23c186ba096beeb6be26cb",
+      "modified": false
+    }
+  },
+  "explicitlyExcludedFromCandidate": [
+    "firstBarMfePct_as_router_feature",
+    "hybridReciprocalRank",
+    "hybridScore",
+    "relativeVolume5",
+    "directionalVwapDistancePct",
+    "firstBarVolumeRatio",
+    "hard_first_bar_exit",
+    "winner_continuation_override",
+    "recovery_override",
+    "catastrophic_zero_bar_filter",
+    "stateful_exit_score",
+    "dynamic_threshold_retuning"
+  ],
+  "developmentEvidence": {
+    "old20ComparableTrades": 33,
+    "blockAComparableTrades": 48,
+    "old20NetDeltaVsAlwaysV4PctPoints": 4.341007,
+    "blockANetDeltaVsAlwaysV4PctPoints": 8.715418,
+    "old20LeaveOneDivergentSwitchOutMinDeltaPctPoints": 1.355932,
+    "blockALeaveOneDivergentSwitchOutMinDeltaPctPoints": 1.297020,
+    "knownCounterexample": "2026-07-15 5240.T SHORT routes to v3 but v4 was +6.967213 percentage points better; do not fit this case away before unseen validation.",
+    "interpretation": "Development-only. These values justify a single frozen candidate for falsification, not a performance claim."
+  },
+  "unseenValidationContract": {
+    "thresholdChangesAfterOpening": false,
+    "featureChangesAfterOpening": false,
+    "routerLogicChangesAfterOpening": false,
+    "overrideAdditionAfterOpening": false,
+    "sessionSelectionBasedOnOutcome": false,
+    "compareAgainst": ["FIXED12","SESSION_END","EXIT_V3_FROZEN","EXIT_V4_FROZEN"],
+    "requiredPairedMetrics": [
+      "N",
+      "netSum",
+      "profitFactor",
+      "winRate",
+      "averageTrade",
+      "medianTrade",
+      "maxDrawdownProxy",
+      "meanHoldingBars",
+      "mfeCapture",
+      "giveback",
+      "routerSwitchCount",
+      "v3V4DivergenceCount",
+      "tradeLevelDeltaVsV4",
+      "outlierDependence"
+    ],
+    "requiredSubgroups": [
+      "IMMEDIATE_ADVERSE",
+      "LONG",
+      "SHORT",
+      "ROUTED_TO_V3",
+      "ROUTED_TO_V4"
+    ],
+    "decision": "PASS_ONLY_IF_CANDIDATE_IMPROVEMENT_IS_NOT_DOMINATED_BY_ONE_OR_TWO_TRADES_AND_DOES_NOT_MATERIALLY_WORSEN_DRAWDOWN_OR_PREMATURE_WINNER_EXIT"
+  },
+  "upstreamFreeze": {
+    "selector": "FROZEN_MINIMAL_HYBRID_V1",
+    "entry": "MINIMAL_STATEFUL_HYBRID_ENTRY_V1",
+    "entryThreshold": 0.60,
+    "entryThresholdRule": "STRICTLY_GREATER_THAN",
+    "repeatEntryAllowed": false
+  },
+  "guards": {
+    "blockAExposedDevelopmentOnly": true,
+    "old20ExposedDevelopmentOnly": true,
+    "newUnseenOpenedAtFreezeTime": false,
+    "mainIntegrationAllowed": false,
+    "mergeAllowed": false,
+    "readyForReviewAllowed": false,
+    "automaticPromotionAllowed": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

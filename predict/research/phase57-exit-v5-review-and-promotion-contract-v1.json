@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "schemaId": "PHASE57_EXIT_V5_REVIEW_AND_PROMOTION_CONTRACT_V1",
+  "status": "FROZEN_PROCESS_CONTRACT",
+  "purpose": "Prevent post-result architecture drift by fixing independent review and promotion gates before Block D outcomes exist.",
+  "sequence": [
+    {
+      "stage": "BLOCK_D_PREOPEN",
+      "review": "CLAUDE_REVIEW_4",
+      "question": "Attack the Block D reservation, causal coverage, sample rule, decision rule, and frozen Dynamic State candidate. No outcome data may be supplied because none is opened for Block D yet.",
+      "allowedChange": "Contract defect fixes only before first Block D outcome access; candidate logic remains frozen."
+    },
+    {
+      "stage": "BLOCK_D_POSTRESULT",
+      "review": "CLAUDE_REVIEW_5",
+      "question": "Independently audit paired v4/v5 results, concentration, premature-winner behavior, state transitions, direction imbalance, and whether SUPPORTIVE/MIXED/REJECT is justified.",
+      "allowedChange": "No reinterpretation of the precommitted decision rule. Architecture changes require a new development version and cannot relabel Block D as unseen for that new version."
+    },
+    {
+      "stage": "DEVELOPMENT_FINAL",
+      "review": "CLAUDE_REVIEW_6",
+      "question": "Attack the final architecture for overfit, unnecessary states/features, causal leakage, and failure modes before Validation/Holdout.",
+      "allowedChange": "If changed, freeze a new version before Validation; all prior blocks remain exposed."
+    },
+    {
+      "stage": "VALIDATION_HOLDOUT",
+      "review": "CLAUDE_REVIEW_7",
+      "question": "Audit whether validation evidence supports advancement without threshold or architecture changes.",
+      "allowedChange": "No tuning on Validation/Holdout. Failure returns to Development with a new version."
+    },
+    {
+      "stage": "UNTOUCHED_OOS",
+      "review": "CLAUDE_REVIEW_8",
+      "question": "Audit OOS robustness, regime/direction concentration, drawdown, winner preservation, and generalization.",
+      "allowedChange": "No OOS-driven tuning while preserving the same candidate identity."
+    },
+    {
+      "stage": "PROSPECTIVE_SHADOW",
+      "review": "CLAUDE_FINAL_REVIEW",
+      "question": "Final independent audit before any promotion decision. Historical performance alone cannot authorize production or execution.",
+      "allowedChange": "Promotion decision only; execution remains separately prohibited unless explicitly authorized outside this research contract."
+    }
+  ],
+  "globalRules": {
+    "claudeIsIndependentCriticNotParameterOracle": true,
+    "unsupportedNumericThresholdsAreNotAutoAdopted": true,
+    "oneFrozenCandidatePerUnseenBlock": true,
+    "noOutcomeDrivenSessionReplacement": true,
+    "noReusingExposedDataAsUnseen": true,
+    "noSilentRetuning": true,
+    "allArchitectureChangesCreateNewCandidateIdentity": true
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

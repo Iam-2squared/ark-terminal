@@ -15,7 +15,7 @@ const [{reconstructDevelopmentSession},{developmentUniverse},{CONTRACT,MinimalSt
 const hash=b=>createHash('sha256').update(b).digest('hex');
 const read=p=>JSON.parse(fs.readFileSync(p,'utf8'));
 const cfg=read(CONFIG_PATH);
-assert(['PHASE57_EXIT_V4_20SESSION_DIAGNOSTIC_V1','PHASE57_EXIT_BLOCK_A_UNSEEN_VALIDATION_V1','PHASE57_EXIT_V5_BLOCK_B_UNSEEN_V1'].includes(cfg.schemaId),'UNSUPPORTED_RESEARCH_CONFIG');
+assert(['PHASE57_EXIT_V4_20SESSION_DIAGNOSTIC_V1','PHASE57_EXIT_BLOCK_A_UNSEEN_VALIDATION_V1','PHASE57_EXIT_V5_BLOCK_B_UNSEEN_V1','PHASE57_EXIT_V5_BLOCK_C_UNSEEN_V1'].includes(cfg.schemaId),'UNSUPPORTED_RESEARCH_CONFIG');
 assert.equal(cfg.sessions.length,Number(cfg.expectedSessionCount??20));
 const sessionFilter=String(process.env.SESSION_FILTER??'').trim();
 if(sessionFilter)assert(cfg.sessions.some(x=>x.sessionDate===sessionFilter),'SESSION_FILTER_NOT_FROZEN');

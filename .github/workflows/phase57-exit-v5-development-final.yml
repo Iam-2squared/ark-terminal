@@ -1,0 +1,85 @@
+name: Phase57 EXIT v5 Development Final Sweep
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/phase57-exit-v5-development-final-sweep.mjs'
+      - '.github/workflows/phase57-exit-v5-development-final.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  sweep:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Download Block A exposed feature artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-exit-block-a-features-*-34580109870
+          run-id: 34580109870
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/block-a-input
+          merge-multiple: true
+      - name: Download immutable frozen MSH candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: entry58-development-measurement-34292703804
+          run-id: 34292703804
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/input/candidate
+      - name: Download canonical analog snapshot
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-p24-9-oos-canonical-candidate
+          run-id: 31785422471
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/input/analog
+      - name: Reconstruct Block A exposed trades
+        shell: bash
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+          DIAGNOSTIC_CONFIG: predict/research/phase57-exit-block-a-unseen-validation-v1.json
+          INPUT_DIR: artifacts/block-a-input
+          CANDIDATE_MODEL: artifacts/input/candidate/candidate-model.json
+          OUTPUT_DIR: artifacts/block-a
+          REUSED_FEATURE_RUN_ID: 34580109870
+        run: |
+          set -euo pipefail
+          wanted=10ec0b89893823f9e2f7ba720db2d0fad8e76d642fe00f7b77d387ae6be6b12a
+          found=''
+          while IFS= read -r f; do
+            if [ "$(sha256sum "$f" | cut -d' ' -f1)" = "$wanted" ]; then found="$f"; break; fi
+          done < <(find artifacts/input/analog -type f -name '*.json' | sort)
+          test -n "$found"
+          ANALOG_SNAPSHOT="$found" node scripts/phase57-exit-block-a-recover.mjs
+      - name: Download Block B exposed measurement
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-exit-v5-block-b-measurement-34653714314
+          run-id: 34653714314
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/block-b
+      - name: Sweep minimal Dynamic State horizons
+        run: node scripts/phase57-exit-v5-development-final-sweep.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-exit-v5-development-final-${{ github.run_id }}
+          path: artifacts/phase57-exit-v5-development-final/report.json
+          retention-days: 14
+      - name: Cleanup
+        if: always()
+        run: rm -rf artifacts/block-a-input artifacts/input

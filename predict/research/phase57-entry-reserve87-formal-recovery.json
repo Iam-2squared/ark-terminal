@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.entry.minimal-stateful.reserve87.formal-recovery",
+  "status": "FORMAL_ALLOCATION_RECOVERED_SOURCE_PARITY_PILOT_PRECOMMITTED",
+  "sourceArtifacts": [
+    {
+      "runId": 34153192882,
+      "artifactId": 10030056589,
+      "name": "capacity-v2-allocation-34153192882",
+      "artifactDigest": "sha256:5f74429a4cd66855c274e2fd6fd98e0df86ac8b56bea1d006591382f7d281986",
+      "allocationSha256": "77af0bb6055232980b0220a961b45019c6fba54de4fd0cab8eabce651a757fab"
+    },
+    {
+      "runId": 34189128681,
+      "artifactId": 10041559531,
+      "name": "capacity-v2-1-allocation-34189128681",
+      "artifactDigest": "sha256:dd7a4171659197b9518d44bf3e604fafe9d99783d067b0fff7e874d6be87ad95",
+      "allocationSha256": "295466a4d29eb48ad8926d60cb1ceb03962aeb63e136a3c9758afabba2b70a95"
+    },
+    {
+      "runId": 34153192882,
+      "artifactId": 10032070173,
+      "name": "capacity-v2-admission-summary-34153192882",
+      "artifactDigest": "sha256:a49c338627aaa37fc44651c632e0a1393993e0baaa8359df841935b1d11a4f85",
+      "admissionSha256": "9650e9a7f3b0d9ae5d8339879b4571de58681d337785ca4f7715262580b72b08"
+    },
+    {
+      "runId": 34189128681,
+      "artifactId": 10042627971,
+      "name": "capacity-v2-1-admission-summary-34189128681",
+      "artifactDigest": "sha256:ede2918f6a6e1b8a5e8a6c76185cfc842b4cdfc23ca4981752300742b9ec8884",
+      "admissionSha256": "18edbdb30325797cde7bdd1316c6086077fc8907a09d9e1755575f2722c04379"
+    }
+  ],
+  "formalMappingCount": 87,
+  "pilot": {
+    "purpose": "ENTRY_DEV_SOURCE_PARITY_ONLY_NO_FEATURES_NO_LABELS_NO_OUTCOMES",
+    "sessions": [
+      "2025-08-27",
+      "2025-10-09",
+      "2025-11-25"
+    ],
+    "fold": "PURGE",
+    "precommittedBeforeRefetch": true,
+    "requiredParity": [
+      "minuteSha256",
+      "fiveMinuteSha256",
+      "memberSetSha256"
+    ],
+    "onMismatch": "FAIL_CLOSED_NO_DEVELOPMENT_UNLOCK",
+    "expected": {
+      "2025-08-27": {
+        "minuteSha256": "e0e4f4d237e21f17c5690b9ff869c9e954a9bebf00ab71d8ef955292a97c2c6e",
+        "fiveMinuteSha256": "f0ae11ddf71b46e288858509769eb5768cacb3cb434c91370e38a0e6c7203f9f",
+        "memberSetSha256": "c0a887cbc04d2962847584c451515e8f20ab3a3d64303ac163610754a8873a3f",
+        "eligibleJpxSymbolCount": 3768,
+        "normalizedMinuteRows": 466427,
+        "fiveMinuteBars": 167291
+      },
+      "2025-10-09": {
+        "minuteSha256": "f6e0ad15c52a7445e7c10b1685d47b296a9c5d3ee68c284b60e2dde951ef7879",
+        "fiveMinuteSha256": "0ffa9099f82d6d624ad821ed30b7c2e196182b6608be0c6627e6b95fc59832ed",
+        "memberSetSha256": "fbedce0b270cbd38dc46dae2a4ff4e97a3a2a57d0b74c0279b506b63a5ac9c25",
+        "eligibleJpxSymbolCount": 3758,
+        "normalizedMinuteRows": 459257,
+        "fiveMinuteBars": 165051
+      },
+      "2025-11-25": {
+        "minuteSha256": "ba6335b60e6878bb2cc037c59cffe616daf1fc81eb41dcf2f9c91eb0e768e44f",
+        "fiveMinuteSha256": "a0b315994383dac72a738517e2f7d2305b1a595b3600ba0b19240f14b9d14a36",
+        "memberSetSha256": "dc886196c2e29c25042d5fbb5484ac7982cca32383344714996362ab4193a18f",
+        "eligibleJpxSymbolCount": 3765,
+        "normalizedMinuteRows": 466095,
+        "fiveMinuteBars": 166978
+      }
+    }
+  },
+  "protected": {
+    "reserve180To282": {
+      "first": "2026-01-08",
+      "last": "2026-06-11",
+      "count": 103,
+      "newAccessAllowed": false
+    },
+    "freshValidation": {
+      "newOutcomeAccessAllowed": false
+    },
+    "freshOos": {
+      "newOutcomeAccessAllowed": false
+    }
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "reserveBlocks": [
+    {
+      "ordinals": [92, 120],
+      "first": "2025-08-27",
+      "last": "2025-10-08",
+      "count": 29,
+      "priorRole": "QUARANTINED_ORIGINAL_OOS"
+    },
+    {
+      "ordinals": [121, 149],
+      "first": "2025-10-09",
+      "last": "2025-11-20",
+      "count": 29,
+      "priorRole": "CAPACITY_V2_1_FRESH_VALIDATION"
+    },
+    {
+      "ordinal": 150,
+      "session": "2025-11-21",
+      "priorRole": "PURGE",
+      "excluded": true
+    },
+    {
+      "ordinals": [151, 179],
+      "first": "2025-11-25",
+      "last": "2026-01-07",
+      "count": 29,
+      "priorRole": "CAPACITY_V2_1_FRESH_UNTOUCHED_OOS"
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+name: Phase57 Entry Reserve87 Source Parity Pilot
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/phase57-minimal-stateful-hybrid-entry]
+    paths:
+      - .github/workflows/phase57-entry-reserve87-source-parity-pilot.yml
+      - scripts/phase57-entry-reserve87-source-parity-pilot.mjs
+      - predict/research/phase57-entry-reserve87-formal-recovery.json
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  parity-pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Download immutable v2 allocation
+        uses: actions/download-artifact@v4
+        with:
+          name: capacity-v2-allocation-34153192882
+          path: artifacts/input/allocation-v2
+          run-id: 34153192882
+          github-token: ${{ github.token }}
+      - name: Download immutable v2.1 allocation
+        uses: actions/download-artifact@v4
+        with:
+          name: capacity-v2-1-allocation-34189128681
+          path: artifacts/input/allocation-v21
+          run-id: 34189128681
+          github-token: ${{ github.token }}
+      - name: Verify recovered allocation hashes
+        run: |
+          (cd artifacts/input/allocation-v2 && sha256sum --check allocation.json.sha256)
+          (cd artifacts/input/allocation-v21 && sha256sum --check allocation.json.sha256)
+          test "$(sha256sum artifacts/input/allocation-v2/allocation.json | cut -d' ' -f1)" = "77af0bb6055232980b0220a961b45019c6fba54de4fd0cab8eabce651a757fab"
+          test "$(sha256sum artifacts/input/allocation-v21/allocation.json | cut -d' ' -f1)" = "295466a4d29eb48ad8926d60cb1ceb03962aeb63e136a3c9758afabba2b70a95"
+      - name: Download v2 admission ancestry
+        uses: actions/download-artifact@v4
+        with:
+          name: capacity-v2-admission-summary-34153192882
+          path: artifacts/input/admission-v2
+          run-id: 34153192882
+          github-token: ${{ github.token }}
+      - name: Download v2.1 admission ancestry
+        uses: actions/download-artifact@v4
+        with:
+          name: capacity-v2-1-admission-summary-34189128681
+          path: artifacts/input/admission-v21
+          run-id: 34189128681
+          github-token: ${{ github.token }}
+      - name: Verify admission hashes
+        run: |
+          (cd artifacts/input/admission-v2 && sha256sum --check admission.json.sha256)
+          (cd artifacts/input/admission-v21 && sha256sum --check admission.json.sha256)
+      - name: Run outcome-blind 3-session source parity pilot
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          RECOVERY_MANIFEST_PATH: predict/research/phase57-entry-reserve87-formal-recovery.json
+          ADMISSION_V2_PATH: artifacts/input/admission-v2/admission.json
+          ADMISSION_V21_PATH: artifacts/input/admission-v21/admission.json
+        run: node scripts/phase57-entry-reserve87-source-parity-pilot.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-entry-reserve87-source-parity-pilot-${{ github.run_id }}
+          path: artifacts/phase57-entry-reserve87-source-parity-pilot/
+          if-no-files-found: error
+          retention-days: 30

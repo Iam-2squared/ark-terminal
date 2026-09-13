@@ -1,0 +1,49 @@
+{
+  "classification": "OFFLINE_SOURCE_INVENTORY",
+  "classLegend": {
+    "A": "Potential official RSS information field; not proof of live PIT availability",
+    "B": "Existing independent realtime source verified (none established in this package)",
+    "C": "Pinned static or historically effective metadata",
+    "D": "Not available in this package"
+  },
+  "inputs": [
+    {
+      "input": "full eligible common-equity universe / memberSet",
+      "class": "D",
+      "reason": "Current selected-symbol fixture is not a full-universe snapshot",
+      "source": "scripts/lib/phase57-entry-development-universe.mjs"
+    },
+    {
+      "input": "sourceCode / symbol / sector / marketCode / productCategory",
+      "class": "C",
+      "reason": "Requires historically effective admitted master metadata; a current master cannot replace PIT membership",
+      "source": "scripts/lib/phase57-entry-development-universe.mjs"
+    },
+    {
+      "input": "per-symbol completed 5m OHLCV and availableAt",
+      "class": "A_CONDITIONAL",
+      "reason": "Official chart fields cover OHLCV; actual finalization, full-universe capture and availability are not verified",
+      "source": "tools/phase57-parity-field-map.json"
+    },
+    {
+      "input": "Frozen Selector executable/model/freeze digest",
+      "class": "C",
+      "reason": "Pinned separate frozen-selector checkout, not a market field",
+      "source": "scripts/phase57-entry-development-features.mjs"
+    },
+    {
+      "input": "featureCutoff and session decision schedule",
+      "class": "C",
+      "reason": "Clock/schedule and completed-prefix restriction must match frozen implementation",
+      "source": "scripts/phase57-entry-development-features.mjs"
+    },
+    {
+      "input": "selected symbols / Dynamic N / rank / score / abstain",
+      "class": "DERIVED_OUTPUT",
+      "reason": "Must be recomputed by frozen Selector or labelled reference output, never fabricated from selected-symbol capture",
+      "source": "scripts/phase57-entry-development-features.mjs"
+    }
+  ],
+  "otherRealtimeSourceVerified": false,
+  "fullUniverseVerified": false
+}

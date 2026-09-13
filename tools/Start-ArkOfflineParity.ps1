@@ -14,6 +14,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Focused tests failed' }
     & node --test scripts/tests/phase57-offline-completion.test.mjs
     if ($LASTEXITCODE -ne 0) { throw 'Restart or source diagnostic tests failed' }
+    & node --test scripts/tests/phase57-offline-provenance.test.mjs
+    if ($LASTEXITCODE -ne 0) { throw 'Offline provenance checks failed' }
     $packet = Join-Path $runDir 'workbook-packet.json'
     & python tools/phase57_offline_excel_reader.py --output $packet
     if ($LASTEXITCODE -ne 0) { throw 'Offline workbook check failed' }

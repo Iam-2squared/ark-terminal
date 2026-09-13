@@ -105,3 +105,20 @@ A+B recheck: 14,458 feature rows, 91 First ENTERs, 85 bar5 paths and 2,470 ledge
 Local validation: 124 relevant Node tests and 3 XLSX tests pass, preflight passes, synthetic daily export/restart passes, and A+B exact parity passes. `pre-existing-failure.json` and both original logs preserve the unchanged-base history-pagination failure; no unrelated fix was made.
 
 Build scope: WINDOWS_OFFLINE_GATE_READY / SOURCE_SEMANTICS_DIAGNOSTIC_CODE_READY / OFFLINE_DAILY_EVIDENCE_PIPELINE_READY. Real data remains locked. Remaining gates are actual local Windows execution, independent upstream Selector/analog input identity, real source-label/finalization evidence and live capture transport. Consequently this is not yet a "connect Excel and everything runs" build, and it is not DAILY_REALTIME_PARITY_PASS. No reserved/future data has been opened and all nine safety flags remain false.
+
+
+## Offline provenance hardening
+
+The final-integration request remains only partially fulfilled. No broker login, live RSS reader, account connection or executable-order interface was added. Independent Selector and v4 scoring remain unconnected; prior downstream parity is not relabelled as end-to-end coverage.
+
+`selector-input-map.json` records full-universe membership, master metadata, completed bars, code/model identity and decision schedule separately. Rank, score and Dynamic N are derived outputs, not additional RSS fields. No alternate realtime source is claimed verified.
+
+`phase57-offline-provenance.mjs` validates offline source metadata: bytes/hash, freeze, safety, session/date, availability, completion and strict prior-session/fully-realized analog timing. This checks metadata consistency only; it does not establish analog support, full-universe coverage or content correctness. Explicit coverage gates keep unmeasured upstream work visible and never unlock realtime execution. Tests cover future/forming inputs, equal-time analogs, duplicate IDs, wrong hashes, reserved dates and false promotion.
+
+For a connection-free local check:
+
+1. Open this checkout in PowerShell with Node available.
+2. Run `node --test scripts/tests/phase57-offline-provenance.test.mjs`.
+3. Return the test summary if anything fails.
+
+This command uses synthetic metadata only and does not access market data, an account or Excel. Full research reference source files and all reservation boundaries remain unchanged.

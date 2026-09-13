@@ -1,0 +1,4109 @@
+{
+  "schemaVersion": 1,
+  "schemaId": "PHASE57_CAPITAL_ALLOCATION_CROSS_PERIOD_REMEASUREMENT_V1",
+  "status": "HISTORICAL_REMEASUREMENT_COMPLETE",
+  "classification": "CROSS_PERIOD_ROBUSTNESS_DIAGNOSTIC",
+  "evidenceRole": "USED_AND_EXPOSED_HISTORICAL_REPLAY_NOT_OOS_NOT_VALIDATION",
+  "frozenSystem": {
+    "selector": "FROZEN_MINIMAL_HYBRID_V1",
+    "entry": "MSH_ENTRY_V1_STRICT_GT_0_60_NO_REPEAT",
+    "allocation": "V3_B_RISK",
+    "risk": "7_COMPLETED_5M_CLOSES_6_LOG_RETURNS_POPULATION_SD",
+    "primaryBudget": "MAX_5",
+    "primaryExit": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+    "initialCapitalJpy": 1000000,
+    "lotSizeShares": 100,
+    "maximumConcurrentPositions": 10,
+    "eventOrder": [
+      "PRICE_UPDATE",
+      "EXIT",
+      "CASH_RELEASE",
+      "ENTRY",
+      "MARK_TO_MARKET"
+    ],
+    "roundTripCostPct": 0.05,
+    "candidateFreezeSha256": "0eda85ade4b16871229edb34f7c24e094c1398878277c0786b910d3fb53e26aa"
+  },
+  "sourceProvenance": {
+    "model": {
+      "workflowRun": 34292703804,
+      "artifactId": 10084158820,
+      "modelSha256": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a"
+    },
+    "blockA": {
+      "featureRun": 34580109870,
+      "outcomeRun": 34689621795,
+      "outcomeArtifactId": 10297193220,
+      "outcomeArchiveSha256": "80f4ae315576abd4e13604f2b4271cbe1033ca6883221b65ae700bfff9422a62"
+    },
+    "blockB": {
+      "workflowRun": 34653714314,
+      "outcomeArtifactId": 10286251638,
+      "outcomeArchiveSha256": "408efa60287e52c22890f2d558fce12d3135ab6997b2d10dedeea60874ec8521"
+    },
+    "bar5DevelopmentFinal": {
+      "workflowRun": 34691691199,
+      "artifactId": 10297810131,
+      "archiveSha256": "179a9715d61a3152227393ab1fe08a81b0d05481872ebd46312d3bc5028f70ef"
+    },
+    "old20": {
+      "featureRuns": [
+        34494213877,
+        34541503697
+      ],
+      "featureArtifactArchiveSha256": [
+        "2ab8d18aea65eb8ade779495ac7db99166cde7b2fdb2cea70d8574cf1bd772b3",
+        "abd95a5aa4b030d39e00648645357ca28f238e9ce90e05da8cd0e31adc59a218",
+        "6991573ed52545e2cf8e44252babf0b7f2bfc6ed7fd149a94ca2b651466e6248",
+        "d044f1e00794fc2f66a2501c9e7b233b1bf3033206e5390f966a30ebfe717ce1",
+        "7c1c0196169ed82581e641c4a216c12d53cf4c1422eeedea1f15e22e819939a9",
+        "bcce77a21ae5a222c283ff0d3932047fdcc86adc4a776b62ae58d6e8f2209a22",
+        "af0c0318779d40feb0e40aa3d1b25c7252050d5c5467e22842e9c9e38a10c964",
+        "56fc1ff0b094d0988a12f11bfbfc3faaef9e09b5aa0abe5d34abbd053c905180"
+      ],
+      "outcomeRun": 34541503697,
+      "outcomeArtifactId": 10178728601,
+      "outcomeArchiveSha256": "308738971814c2d6c54101e101153fbc64af64e29030b317f78fee1a5de0551e"
+    }
+  },
+  "inventory": [
+    {
+      "block": "A",
+      "dateRange": [
+        "2026-06-18",
+        "2026-07-30"
+      ],
+      "sessions": 30,
+      "originalRole": "EXIT_BLOCK_A_AND_INTEGRATED_DEVELOPMENT",
+      "selectorExposure": "FROZEN_SELECTOR_ALREADY_SELECTED",
+      "entryExposure": "FROZEN_ENTRY_REPLAY_NOT_TUNED_ON_A",
+      "exitExposure": "USED_FOR_EXIT_V4_V5_DESIGN_AND_SELECTION",
+      "allocationExposure": "USED_FOR_MAX_5_SELECTION_AS_PART_OF_A+B",
+      "outcomesViewed": true,
+      "causalEligible": true,
+      "completeReplay": true,
+      "classification": "REPLAYABLE_DEVELOPMENT"
+    },
+    {
+      "block": "B",
+      "dateRange": [
+        "2026-07-31",
+        "2026-08-12"
+      ],
+      "sessions": 8,
+      "originalRole": "EXIT_BLOCK_B_AND_INTEGRATED_DEVELOPMENT",
+      "selectorExposure": "FROZEN_SELECTOR_ALREADY_SELECTED",
+      "entryExposure": "FROZEN_ENTRY_REPLAY_NOT_TUNED_ON_B",
+      "exitExposure": "USED_FOR_EXIT_V5_SELECTION",
+      "allocationExposure": "USED_FOR_MAX_5_SELECTION_AS_PART_OF_A+B",
+      "outcomesViewed": true,
+      "causalEligible": true,
+      "completeReplay": true,
+      "classification": "REPLAYABLE_DEVELOPMENT"
+    },
+    {
+      "block": "OLD20",
+      "dateRange": [
+        "2026-08-13",
+        "2026-09-09"
+      ],
+      "sessions": 20,
+      "originalRole": "DEVELOPMENT_DIAGNOSTIC_ONLY_NON_PROSPECTIVE",
+      "selectorExposure": "FROZEN_SELECTOR_ALREADY_SELECTED",
+      "entryExposure": "OUTCOMES_VIEWED_FOR_ENTRY_QUALITY_DIAGNOSTIC",
+      "exitExposure": "OUTCOMES_VIEWED_FOR_V3_V4_DIAGNOSTIC_NOT_V5_SELECTION",
+      "allocationExposure": "NOT_USED_FOR_MAX_5_SELECTION",
+      "outcomesViewed": true,
+      "causalEligible": true,
+      "completeReplay": true,
+      "classification": "REPLAYABLE_EXPOSED_DIAGNOSTIC",
+      "note": "36 First ENTER; 35 have a complete intraday outcome path and are portfolio eligible."
+    },
+    {
+      "block": "PRE_2026_06_19",
+      "dateRange": [
+        "2024-09-10",
+        "2026-06-18"
+      ],
+      "originalRole": "MIXED_USED_EXPOSED_PROTECTED_HISTORY",
+      "outcomesViewed": "MIXED",
+      "causalEligible": false,
+      "completeReplay": false,
+      "classification": "CAUSALLY_INELIGIBLE",
+      "reason": "Frozen EXIT requires 30 prior fully-realized analogs; future 2026 analogs are not backfilled."
+    },
+    {
+      "block": "ENTRY_FRESH_RESERVE",
+      "dateRange": [
+        "2026-09-10",
+        "2026-10-21"
+      ],
+      "sessions": 26,
+      "originalRole": "RESERVED_ENTRY_VALIDATION_PURGE_OOS",
+      "outcomesViewed": false,
+      "causalEligible": "NOT_ACCESSED",
+      "completeReplay": false,
+      "classification": "NOT_REPLAYABLE",
+      "reason": "Existing reservation contract; no access in this task."
+    }
+  ],
+  "blockOrder": [
+    "A",
+    "B",
+    "OLD20",
+    "A+B"
+  ],
+  "requiredTable": [
+    {
+      "block": "A",
+      "sessions": 30,
+      "arm": "MAX_5_V5",
+      "returnPct": 16.935817,
+      "profitFactor": 4.233159,
+      "maxDrawdownPct": 4.273109,
+      "worstDay": {
+        "sessionDate": "2026-07-24",
+        "equityJpy": 1127882.115,
+        "returnPct": -0.874888
+      },
+      "accepted": 34,
+      "eligible": 51,
+      "averageUtilization": 0.099159,
+      "maximumUtilization": 0.542978
+    },
+    {
+      "block": "A",
+      "sessions": 30,
+      "arm": "MAX_10_V5",
+      "returnPct": 5.329555,
+      "profitFactor": 4.412664,
+      "maxDrawdownPct": 2.096278,
+      "worstDay": {
+        "sessionDate": "2026-06-24",
+        "equityJpy": 1005408.705,
+        "returnPct": -0.054684
+      },
+      "accepted": 25,
+      "eligible": 51,
+      "averageUtilization": 0.039927,
+      "maximumUtilization": 0.22243
+    },
+    {
+      "block": "A",
+      "sessions": 30,
+      "arm": "MAX_3_V5",
+      "returnPct": 27.47728,
+      "profitFactor": 3.340186,
+      "maxDrawdownPct": 6.379147,
+      "worstDay": {
+        "sessionDate": "2026-07-24",
+        "equityJpy": 1203722.6,
+        "returnPct": -2.549371
+      },
+      "accepted": 39,
+      "eligible": 51,
+      "averageUtilization": 0.171886,
+      "maximumUtilization": 0.903595
+    },
+    {
+      "block": "A",
+      "sessions": 30,
+      "arm": "MAX_5_V4",
+      "returnPct": 16.935817,
+      "profitFactor": 4.233159,
+      "maxDrawdownPct": 4.273109,
+      "worstDay": {
+        "sessionDate": "2026-07-24",
+        "equityJpy": 1127882.115,
+        "returnPct": -0.874888
+      },
+      "accepted": 34,
+      "eligible": 51,
+      "averageUtilization": 0.099159,
+      "maximumUtilization": 0.542978
+    },
+    {
+      "block": "B",
+      "sessions": 8,
+      "arm": "MAX_5_V5",
+      "returnPct": 2.61357,
+      "profitFactor": 2.793175,
+      "maxDrawdownPct": 2.392236,
+      "worstDay": {
+        "sessionDate": "2026-08-04",
+        "equityJpy": 1013889.175,
+        "returnPct": -0.403858
+      },
+      "accepted": 14,
+      "eligible": 34,
+      "averageUtilization": 0.088529,
+      "maximumUtilization": 0.369493
+    },
+    {
+      "block": "B",
+      "sessions": 8,
+      "arm": "MAX_10_V5",
+      "returnPct": 1.155275,
+      "profitFactor": 231.824176,
+      "maxDrawdownPct": 1.252314,
+      "worstDay": {
+        "sessionDate": "2026-08-06",
+        "equityJpy": 1008900.45,
+        "returnPct": -0.004961
+      },
+      "accepted": 3,
+      "eligible": 34,
+      "averageUtilization": 0.02682,
+      "maximumUtilization": 0.099214
+    },
+    {
+      "block": "B",
+      "sessions": 8,
+      "arm": "MAX_3_V5",
+      "returnPct": 4.574855,
+      "profitFactor": 1.765074,
+      "maxDrawdownPct": 3.499304,
+      "worstDay": {
+        "sessionDate": "2026-08-05",
+        "equityJpy": 1017053.7,
+        "returnPct": -1.699423
+      },
+      "accepted": 23,
+      "eligible": 34,
+      "averageUtilization": 0.202507,
+      "maximumUtilization": 0.840189
+    },
+    {
+      "block": "B",
+      "sessions": 8,
+      "arm": "MAX_5_V4",
+      "returnPct": 2.223625,
+      "profitFactor": 2.203615,
+      "maxDrawdownPct": 2.581152,
+      "worstDay": {
+        "sessionDate": "2026-08-04",
+        "equityJpy": 1011439.175,
+        "returnPct": -0.644526
+      },
+      "accepted": 14,
+      "eligible": 34,
+      "averageUtilization": 0.097161,
+      "maximumUtilization": 0.469994
+    },
+    {
+      "block": "OLD20",
+      "sessions": 20,
+      "arm": "MAX_5_V5",
+      "returnPct": 22.53884,
+      "profitFactor": 3.710652,
+      "maxDrawdownPct": 5.436598,
+      "worstDay": {
+        "sessionDate": "2026-08-27",
+        "equityJpy": 1013268.75,
+        "returnPct": -1.698039
+      },
+      "accepted": 27,
+      "eligible": 35,
+      "averageUtilization": 0.091812,
+      "maximumUtilization": 0.724499
+    },
+    {
+      "block": "OLD20",
+      "sessions": 20,
+      "arm": "MAX_10_V5",
+      "returnPct": 5.41344,
+      "profitFactor": 3.142787,
+      "maxDrawdownPct": 2.279582,
+      "worstDay": {
+        "sessionDate": "2026-08-27",
+        "equityJpy": 997541.35,
+        "returnPct": -0.581467
+      },
+      "accepted": 17,
+      "eligible": 35,
+      "averageUtilization": 0.031146,
+      "maximumUtilization": 0.295889
+    },
+    {
+      "block": "OLD20",
+      "sessions": 20,
+      "arm": "MAX_3_V5",
+      "returnPct": 41.52144,
+      "profitFactor": 3.955733,
+      "maxDrawdownPct": 8.778544,
+      "worstDay": {
+        "sessionDate": "2026-08-27",
+        "equityJpy": 1004772.05,
+        "returnPct": -2.821382
+      },
+      "accepted": 28,
+      "eligible": 35,
+      "averageUtilization": 0.149287,
+      "maximumUtilization": 0.990883
+    },
+    {
+      "block": "OLD20",
+      "sessions": 20,
+      "arm": "MAX_5_V4",
+      "returnPct": 21.35889,
+      "profitFactor": 3.25188,
+      "maxDrawdownPct": 5.724065,
+      "worstDay": {
+        "sessionDate": "2026-08-27",
+        "equityJpy": 1008868.75,
+        "returnPct": -1.991788
+      },
+      "accepted": 27,
+      "eligible": 35,
+      "averageUtilization": 0.097626,
+      "maximumUtilization": 0.726515
+    },
+    {
+      "block": "A+B",
+      "sessions": 38,
+      "arm": "MAX_5_V5",
+      "returnPct": 21.442571,
+      "profitFactor": 4.027381,
+      "maxDrawdownPct": 4.273109,
+      "worstDay": {
+        "sessionDate": "2026-07-24",
+        "equityJpy": 1127882.115,
+        "returnPct": -0.874888
+      },
+      "accepted": 49,
+      "eligible": 85,
+      "averageUtilization": 0.098941,
+      "maximumUtilization": 0.542978
+    },
+    {
+      "block": "A+B",
+      "sessions": 38,
+      "arm": "MAX_10_V5",
+      "returnPct": 6.56375,
+      "profitFactor": 5.188792,
+      "maxDrawdownPct": 2.096278,
+      "worstDay": {
+        "sessionDate": "2026-06-24",
+        "equityJpy": 1005408.705,
+        "returnPct": -0.054684
+      },
+      "accepted": 28,
+      "eligible": 85,
+      "averageUtilization": 0.037274,
+      "maximumUtilization": 0.22243
+    },
+    {
+      "block": "A+B",
+      "sessions": 38,
+      "arm": "MAX_3_V5",
+      "returnPct": 35.09198,
+      "profitFactor": 2.832755,
+      "maxDrawdownPct": 6.379147,
+      "worstDay": {
+        "sessionDate": "2026-07-24",
+        "equityJpy": 1203722.6,
+        "returnPct": -2.549371
+      },
+      "accepted": 64,
+      "eligible": 85,
+      "averageUtilization": 0.181997,
+      "maximumUtilization": 0.922396
+    },
+    {
+      "block": "A+B",
+      "sessions": 38,
+      "arm": "MAX_5_V4",
+      "returnPct": 21.212626,
+      "profitFactor": 3.900744,
+      "maxDrawdownPct": 4.273109,
+      "worstDay": {
+        "sessionDate": "2026-07-24",
+        "equityJpy": 1127882.115,
+        "returnPct": -0.874888
+      },
+      "accepted": 49,
+      "eligible": 85,
+      "averageUtilization": 0.100529,
+      "maximumUtilization": 0.542978
+    }
+  ],
+  "summaryTable": [
+    {
+      "dataset": "A",
+      "role": "REPLAYABLE_DEVELOPMENT_BLOCK_A",
+      "sessions": 30,
+      "max5ReturnPct": 16.935817,
+      "max5ProfitFactor": 4.233159,
+      "max5MaxDrawdownPct": 4.273109,
+      "max10ReturnPct": 5.329555,
+      "max3ReturnPct": 27.47728
+    },
+    {
+      "dataset": "B",
+      "role": "REPLAYABLE_DEVELOPMENT_BLOCK_B",
+      "sessions": 8,
+      "max5ReturnPct": 2.61357,
+      "max5ProfitFactor": 2.793175,
+      "max5MaxDrawdownPct": 2.392236,
+      "max10ReturnPct": 1.155275,
+      "max3ReturnPct": 4.574855
+    },
+    {
+      "dataset": "OLD20",
+      "role": "REPLAYABLE_EXPOSED_DIAGNOSTIC",
+      "sessions": 20,
+      "max5ReturnPct": 22.53884,
+      "max5ProfitFactor": 3.710652,
+      "max5MaxDrawdownPct": 5.436598,
+      "max10ReturnPct": 5.41344,
+      "max3ReturnPct": 41.52144
+    },
+    {
+      "dataset": "A+B",
+      "role": "REPLAYABLE_DEVELOPMENT",
+      "sessions": 38,
+      "max5ReturnPct": 21.442571,
+      "max5ProfitFactor": 4.027381,
+      "max5MaxDrawdownPct": 4.273109,
+      "max10ReturnPct": 6.56375,
+      "max3ReturnPct": 35.09198
+    }
+  ],
+  "blocks": {
+    "A": {
+      "block": "A",
+      "role": "REPLAYABLE_DEVELOPMENT_BLOCK_A",
+      "dateRange": [
+        "2026-06-18",
+        "2026-07-30"
+      ],
+      "sessionCount": 30,
+      "eligibleCount": 51,
+      "firstEnterCount": 51,
+      "missingOutcomePathCount": 0,
+      "bar5Parity": {
+        "label": "BLOCK_A",
+        "n": 51,
+        "netReturnPctPoints": 72.52907806627495,
+        "stateCounts": {
+          "FIRST_BAR_NON_ADVERSE_V4": 35,
+          "HORIZON_FALLBACK_V4": 7,
+          "RECOVERED_TO_V4": 6,
+          "DEFENSIVE_EXIT_BAR_5": 3
+        },
+        "perTrade": [
+          {
+            "eventId": "2026-06-22|2026-06-22T04:00:00.000Z|4169.T",
+            "netReturnPct": 7.231553398058249,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-06-22T06:25:00.000Z",
+            "exitPrice": 191
+          },
+          {
+            "eventId": "2026-06-22|2026-06-22T05:15:00.000Z|6254.T",
+            "netReturnPct": -2.117669172932329,
+            "classification": "HORIZON_FALLBACK_V4",
+            "dynamicState": "DEFENSIVE_FALLBACK_TO_NATIVE_V4",
+            "exitTimestamp": "2026-06-22T05:30:00.000Z",
+            "exitPrice": 5430
+          },
+          {
+            "eventId": "2026-06-23|2026-06-23T01:55:00.000Z|6217.T",
+            "netReturnPct": -0.7239679865206405,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-06-23T03:50:00.000Z",
+            "exitPrice": 1179
+          },
+          {
+            "eventId": "2026-06-24|2026-06-24T01:00:00.000Z|4564.T",
+            "netReturnPct": 4.950000000000005,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-06-24T06:25:00.000Z",
+            "exitPrice": 19
+          },
+          {
+            "eventId": "2026-06-24|2026-06-24T01:35:00.000Z|5074.T",
+            "netReturnPct": 15.316614664586586,
+            "classification": "RECOVERED_TO_V4",
+            "dynamicState": "RECOVERED_CONTINUATION",
+            "exitTimestamp": "2026-06-24T06:25:00.000Z",
+            "exitPrice": 1085
+          },
+          {
+            "eventId": "2026-06-24|2026-06-24T05:20:00.000Z|6740.T",
+            "netReturnPct": -1.8043859649122862,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-06-24T05:40:00.000Z",
+            "exitPrice": 58
+          },
+          {
+            "eventId": "2026-06-24|2026-06-24T06:15:00.000Z|6753.T",
+            "netReturnPct": -5.927705798704391,
+            "classification": "HORIZON_FALLBACK_V4",
+            "dynamicState": "DEFENSIVE_FALLBACK_TO_NATIVE_V4",
+            "exitTimestamp": "2026-06-24T06:25:00.000Z",
+            "exitPrice": 670.1
+          },
+          {
+            "eventId": "2026-06-25|2026-06-25T02:10:00.000Z|4676.T",
+            "netReturnPct": 1.7427308447937107,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-06-25T06:15:00.000Z",
+            "exitPrice": 3999
+          },
+          {
+            "eventId": "2026-06-26|2026-06-26T01:40:00.000Z|6327.T",
+            "netReturnPct": 11.450701262272094,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-06-26T06:25:00.000Z",
+            "exitPrice": 6310
+          },
+          {
+            "eventId": "2026-06-26|2026-06-26T02:00:00.000Z|6072.T",
+            "netReturnPct": -0.5836179295624355,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-06-26T06:15:00.000Z",
+            "exitPrice": 932
+          },
+          {
+            "eventId": "2026-06-29|2026-06-29T01:05:00.000Z|4107.T",
+            "netReturnPct": -9.366037735849059,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-06-29T01:50:00.000Z",
+            "exitPrice": 4635
+          },
+          {
+            "eventId": "2026-06-29|2026-06-29T02:10:00.000Z|8105.T",
+            "netReturnPct": 7.684806629834257,
+            "classification": "RECOVERED_TO_V4",
+            "dynamicState": "RECOVERED_CONTINUATION",
+            "exitTimestamp": "2026-06-29T06:25:00.000Z",
+            "exitPrice": 167
+          },
+          {
+            "eventId": "2026-06-29|2026-06-29T02:10:00.000Z|6620.T",
+            "netReturnPct": -2.6922764227642224,
+            "classification": "HORIZON_FALLBACK_V4",
+            "dynamicState": "DEFENSIVE_FALLBACK_TO_NATIVE_V4",
+            "exitTimestamp": "2026-06-29T02:30:00.000Z",
+            "exitPrice": 1010
+          },
+          {
+            "eventId": "2026-06-29|2026-06-29T04:55:00.000Z|4935.T",
+            "netReturnPct": -4.397826086956519,
+            "classification": "HORIZON_FALLBACK_V4",
+            "dynamicState": "DEFENSIVE_FALLBACK_TO_NATIVE_V4",
+            "exitTimestamp": "2026-06-29T05:15:00.000Z",
+            "exitPrice": 264
+          },
+          {
+            "eventId": "2026-06-30|2026-06-30T01:15:00.000Z|8918.T",
+            "netReturnPct": -0.05,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-06-30T06:25:00.000Z",
+            "exitPrice": 10
+          },
+          {
+            "eventId": "2026-07-01|2026-07-01T01:45:00.000Z|7012.T",
+            "netReturnPct": -1.6144897216663623,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-01T04:30:00.000Z",
+            "exitPrice": 2705.5
+          },
+          {
+            "eventId": "2026-07-01|2026-07-01T04:55:00.000Z|9256.T",
+            "netReturnPct": -0.05,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-01T06:25:00.000Z",
+            "exitPrice": 5340
+          },
+          {
+            "eventId": "2026-07-02|2026-07-02T01:20:00.000Z|4935.T",
+            "netReturnPct": -0.7166666666666599,
+            "classification": "HORIZON_FALLBACK_V4",
+            "dynamicState": "DEFENSIVE_FALLBACK_TO_NATIVE_V4",
+            "exitTimestamp": "2026-07-02T01:40:00.000Z",
+            "exitPrice": 302
+          },
+          {
+            "eventId": "2026-07-02|2026-07-02T02:25:00.000Z|2438.T",
+            "netReturnPct": 4.56538461538461,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-02T06:25:00.000Z",
+            "exitPrice": 372
+          },
+          {
+            "eventId": "2026-07-03|2026-07-03T01:05:00.000Z|8918.T",
+            "netReturnPct": -0.05,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-03T06:25:00.000Z",
+            "exitPrice": 11
+          },
+          {
+            "eventId": "2026-07-03|2026-07-03T06:00:00.000Z|9425.T",
+            "netReturnPct": 0.7597165991902799,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-03T06:25:00.000Z",
+            "exitPrice": 245
+          },
+          {
+            "eventId": "2026-07-06|2026-07-06T01:00:00.000Z|4446.T",
+            "netReturnPct": 9.28852140077821,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-06T06:25:00.000Z",
+            "exitPrice": 932
+          },
+          {
+            "eventId": "2026-07-06|2026-07-06T01:05:00.000Z|589A.T",
+            "netReturnPct": -0.44215686274509663,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-06T01:40:00.000Z",
+            "exitPrice": 1536
+          },
+          {
+            "eventId": "2026-07-06|2026-07-06T01:10:00.000Z|8918.T",
+            "netReturnPct": 9.040909090909093,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-06T06:25:00.000Z",
+            "exitPrice": 10
+          },
+          {
+            "eventId": "2026-07-08|2026-07-08T01:10:00.000Z|584A.T",
+            "netReturnPct": -0.17515644555695092,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-08T01:20:00.000Z",
+            "exitPrice": 4000
+          },
+          {
+            "eventId": "2026-07-08|2026-07-08T01:40:00.000Z|4935.T",
+            "netReturnPct": -3.907566765578646,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-08T05:50:00.000Z",
+            "exitPrice": 350
+          },
+          {
+            "eventId": "2026-07-08|2026-07-08T01:50:00.000Z|9425.T",
+            "netReturnPct": 7.701937984496127,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-08T06:25:00.000Z",
+            "exitPrice": 238
+          },
+          {
+            "eventId": "2026-07-10|2026-07-10T04:15:00.000Z|4935.T",
+            "netReturnPct": -0.05,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-10T06:25:00.000Z",
+            "exitPrice": 370
+          },
+          {
+            "eventId": "2026-07-10|2026-07-10T05:00:00.000Z|4833.T",
+            "netReturnPct": 1.6449152542372836,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-10T05:50:00.000Z",
+            "exitPrice": 58
+          },
+          {
+            "eventId": "2026-07-13|2026-07-13T01:25:00.000Z|4564.T",
+            "netReturnPct": -0.05,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-13T06:25:00.000Z",
+            "exitPrice": 20
+          },
+          {
+            "eventId": "2026-07-14|2026-07-14T04:35:00.000Z|4889.T",
+            "netReturnPct": 4.3944444444444395,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-14T06:25:00.000Z",
+            "exitPrice": 1634
+          },
+          {
+            "eventId": "2026-07-14|2026-07-14T06:05:00.000Z|6474.T",
+            "netReturnPct": -0.3503003003003046,
+            "classification": "RECOVERED_TO_V4",
+            "dynamicState": "RECOVERED_CONTINUATION",
+            "exitTimestamp": "2026-07-14T06:25:00.000Z",
+            "exitPrice": 6680
+          },
+          {
+            "eventId": "2026-07-15|2026-07-15T01:05:00.000Z|1407.T",
+            "netReturnPct": -3.6742603550295847,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-15T06:10:00.000Z",
+            "exitPrice": 2802
+          },
+          {
+            "eventId": "2026-07-15|2026-07-15T01:05:00.000Z|5240.T",
+            "netReturnPct": 9.376229508196726,
+            "classification": "RECOVERED_TO_V4",
+            "dynamicState": "RECOVERED_CONTINUATION",
+            "exitTimestamp": "2026-07-15T06:25:00.000Z",
+            "exitPrice": 221
+          },
+          {
+            "eventId": "2026-07-15|2026-07-15T01:30:00.000Z|276A.T",
+            "netReturnPct": -0.7027415143603222,
+            "classification": "RECOVERED_TO_V4",
+            "dynamicState": "RECOVERED_CONTINUATION",
+            "exitTimestamp": "2026-07-15T02:30:00.000Z",
+            "exitPrice": 3855
+          },
+          {
+            "eventId": "2026-07-16|2026-07-16T01:00:00.000Z|7138.T",
+            "netReturnPct": -0.05,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-16T06:25:00.000Z",
+            "exitPrice": 177
+          },
+          {
+            "eventId": "2026-07-21|2026-07-21T04:35:00.000Z|8918.T",
+            "netReturnPct": -0.05,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-21T06:25:00.000Z",
+            "exitPrice": 9
+          },
+          {
+            "eventId": "2026-07-22|2026-07-22T01:00:00.000Z|4597.T",
+            "netReturnPct": 3.3982758620689615,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-22T06:25:00.000Z",
+            "exitPrice": 28
+          },
+          {
+            "eventId": "2026-07-22|2026-07-22T01:30:00.000Z|2354.T",
+            "netReturnPct": -2.4579320113314482,
+            "classification": "DEFENSIVE_EXIT_BAR_5",
+            "dynamicState": "DEFENSIVE_EXIT",
+            "exitTimestamp": "2026-07-22T01:55:00.000Z",
+            "exitPrice": 1446
+          },
+          {
+            "eventId": "2026-07-22|2026-07-22T01:55:00.000Z|4894.T",
+            "netReturnPct": 1.0330324909747224,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-22T06:25:00.000Z",
+            "exitPrice": 4200
+          },
+          {
+            "eventId": "2026-07-22|2026-07-22T06:20:00.000Z|4733.T",
+            "netReturnPct": 4.528447794528195,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-22T06:25:00.000Z",
+            "exitPrice": 6836
+          },
+          {
+            "eventId": "2026-07-23|2026-07-23T01:20:00.000Z|584A.T",
+            "netReturnPct": -1.045024875621886,
+            "classification": "HORIZON_FALLBACK_V4",
+            "dynamicState": "DEFENSIVE_FALLBACK_TO_NATIVE_V4",
+            "exitTimestamp": "2026-07-23T01:35:00.000Z",
+            "exitPrice": 3045
+          },
+          {
+            "eventId": "2026-07-23|2026-07-23T06:10:00.000Z|5074.T",
+            "netReturnPct": 3.5557692307692292,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-23T06:25:00.000Z",
+            "exitPrice": 802
+          },
+          {
+            "eventId": "2026-07-24|2026-07-24T01:30:00.000Z|4424.T",
+            "netReturnPct": -0.30773195876288567,
+            "classification": "RECOVERED_TO_V4",
+            "dynamicState": "RECOVERED_CONTINUATION",
+            "exitTimestamp": "2026-07-24T05:45:00.000Z",
+            "exitPrice": 389
+          },
+          {
+            "eventId": "2026-07-24|2026-07-24T01:35:00.000Z|3907.T",
+            "netReturnPct": -8.094982698961946,
+            "classification": "DEFENSIVE_EXIT_BAR_5",
+            "dynamicState": "DEFENSIVE_EXIT",
+            "exitTimestamp": "2026-07-24T02:00:00.000Z",
+            "exitPrice": 1249
+          },
+          {
+            "eventId": "2026-07-24|2026-07-24T05:30:00.000Z|1723.T",
+            "netReturnPct": -0.9053971486761736,
+            "classification": "HORIZON_FALLBACK_V4",
+            "dynamicState": "DEFENSIVE_FALLBACK_TO_NATIVE_V4",
+            "exitTimestamp": "2026-07-24T05:40:00.000Z",
+            "exitPrice": 2476
+          },
+          {
+            "eventId": "2026-07-27|2026-07-27T06:15:00.000Z|3132.T",
+            "netReturnPct": 0.8553497942386856,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-27T06:25:00.000Z",
+            "exitPrice": 3612
+          },
+          {
+            "eventId": "2026-07-28|2026-07-28T01:15:00.000Z|8918.T",
+            "netReturnPct": 9.040909090909093,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-28T06:25:00.000Z",
+            "exitPrice": 10
+          },
+          {
+            "eventId": "2026-07-28|2026-07-28T01:50:00.000Z|3907.T",
+            "netReturnPct": 9.48237410071942,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-28T06:25:00.000Z",
+            "exitPrice": 1006
+          },
+          {
+            "eventId": "2026-07-29|2026-07-29T05:35:00.000Z|6301.T",
+            "netReturnPct": -0.7858045258919921,
+            "classification": "DEFENSIVE_EXIT_BAR_5",
+            "dynamicState": "DEFENSIVE_EXIT",
+            "exitTimestamp": "2026-07-29T06:00:00.000Z",
+            "exitPrice": 7256
+          },
+          {
+            "eventId": "2026-07-30|2026-07-30T06:05:00.000Z|1959.T",
+            "netReturnPct": -1.369847045762923,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-30T06:25:00.000Z",
+            "exitPrice": 8000
+          }
+        ]
+      },
+      "inputHashes": {
+        "opportunitySha256": "365e7a7b37cb64e32bcaf394e7a3d11903afd2f0ba1db6325f6d6f444a7705f6",
+        "tradeOutcomeSha256": "f6a0046900bf8ebdb4b83900f0a76bd6f27dfb17f587e4456e10940d734f3434",
+        "markSha256": "3051e74fda641152aceeb1b9828272c007c18d964509ac20a02d811e0dd1369a"
+      },
+      "arms": {
+        "MAX_5_V5": {
+          "initialEquityJpy": 1000000,
+          "finalEquityJpy": 1169358.165,
+          "netPnlJpy": 169358.165,
+          "returnPct": 16.935817,
+          "profitFactor": 4.233159,
+          "maxDrawdownPct": 4.273109,
+          "worstDay": {
+            "sessionDate": "2026-07-24",
+            "equityJpy": 1127882.115,
+            "returnPct": -0.874888
+          },
+          "eligible": 51,
+          "accepted": 34,
+          "belowLotSkips": 17,
+          "cashSkips": 0,
+          "positionLimitSkips": 0,
+          "winRate": 0.470588,
+          "averageTradePnlJpy": 4981.1225,
+          "medianTradePnlJpy": -98,
+          "averageWinJpy": 13858.7375,
+          "averageLossJpy": -2910.090833,
+          "averageWinLossRatio": 4.762304,
+          "averageHoldingMinutes": 180.735294,
+          "averageUtilization": 0.099159,
+          "maximumUtilization": 0.542978,
+          "averageGrossExposureJpy": 107630.004386,
+          "maximumGrossExposureJpy": 567200,
+          "averageAbsoluteNetExposureJpy": 107630.004386,
+          "maximumAbsoluteNetExposureJpy": 567200,
+          "maximumConcurrentPositions": 3,
+          "longCapitalShare": 0.112452,
+          "shortCapitalShare": 0.887548,
+          "top1ProfitContribution": {
+            "symbol": "8918.T",
+            "pnlJpy": 38962.8,
+            "shareOfPositiveProfit": 0.183828
+          },
+          "top3ProfitContribution": {
+            "pnlJpy": 91969.1,
+            "shareOfPositiveProfit": 0.433913,
+            "symbols": [
+              "8918.T",
+              "5240.T",
+              "5074.T"
+            ]
+          },
+          "top1CapitalConcentration": {
+            "symbol": "8918.T",
+            "share": 0.16368891184352657,
+            "notionalJpy": 1074400
+          },
+          "top3CapitalConcentration": 0.344929,
+          "ledgerAudit": {
+            "status": "LEDGER_INVARIANTS_PASS",
+            "eventCount": 1950,
+            "violationCount": 0,
+            "checks": [
+              "availableCashNonnegative",
+              "shortSaleProceedsNotReused",
+              "unrealizedGainsExcludedFromBuyingPower",
+              "lockedShortCollateralEqualsReferenceNotional",
+              "entryRequiredCashWithinBuyingPower",
+              "exitReleaseBeforeSameTimestampEntry",
+              "grossExposureWithinCurrentEquity",
+              "absoluteNetExposureWithinCurrentEquity",
+              "costsChargedExactlyOnce",
+              "positionLimitRespected",
+              "quantityUnitValid",
+              "realizedEquityReconciles"
+            ],
+            "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+            "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+            "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
+          }
+        },
+        "MAX_10_V5": {
+          "initialEquityJpy": 1000000,
+          "finalEquityJpy": 1053295.555,
+          "netPnlJpy": 53295.555,
+          "returnPct": 5.329555,
+          "profitFactor": 4.412664,
+          "maxDrawdownPct": 2.096278,
+          "worstDay": {
+            "sessionDate": "2026-06-24",
+            "equityJpy": 1005408.705,
+            "returnPct": -0.054684
+          },
+          "eligible": 51,
+          "accepted": 25,
+          "belowLotSkips": 26,
+          "cashSkips": 0,
+          "positionLimitSkips": 0,
+          "winRate": 0.48,
+          "averageTradePnlJpy": 2131.8222,
+          "medianTradePnlJpy": -37,
+          "averageWinJpy": 5742.7125,
+          "averageLossJpy": -1201.307308,
+          "averageWinLossRatio": 4.780386,
+          "averageHoldingMinutes": 197,
+          "averageUtilization": 0.039927,
+          "maximumUtilization": 0.22243,
+          "averageGrossExposureJpy": 40969.241228,
+          "maximumGrossExposureJpy": 224300,
+          "averageAbsoluteNetExposureJpy": 40969.241228,
+          "maximumAbsoluteNetExposureJpy": 224300,
+          "maximumConcurrentPositions": 2,
+          "longCapitalShare": 0.125882,
+          "shortCapitalShare": 0.874118,
+          "top1ProfitContribution": {
+            "symbol": "8918.T",
+            "pnlJpy": 18344.85,
+            "shareOfPositiveProfit": 0.266995
+          },
+          "top3ProfitContribution": {
+            "pnlJpy": 39520.5,
+            "shareOfPositiveProfit": 0.575189,
+            "symbols": [
+              "8918.T",
+              "5240.T",
+              "8105.T"
+            ]
+          },
+          "top1CapitalConcentration": {
+            "symbol": "8918.T",
+            "share": 0.2154173473652217,
+            "notionalJpy": 510300
+          },
+          "top3CapitalConcentration": 0.455319,
+          "ledgerAudit": {
+            "status": "LEDGER_INVARIANTS_PASS",
+            "eventCount": 1950,
+            "violationCount": 0,
+            "checks": [
+              "availableCashNonnegative",
+              "shortSaleProceedsNotReused",
+              "unrealizedGainsExcludedFromBuyingPower",
+              "lockedShortCollateralEqualsReferenceNotional",
+              "entryRequiredCashWithinBuyingPower",
+              "exitReleaseBeforeSameTimestampEntry",
+              "grossExposureWithinCurrentEquity",
+              "absoluteNetExposureWithinCurrentEquity",
+              "costsChargedExactlyOnce",
+              "positionLimitRespected",
+              "quantityUnitValid",
+              "realizedEquityReconciles"
+            ],
+            "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+            "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+            "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
+          }
+        },
+        "MAX_3_V5": {
+          "initialEquityJpy": 1000000,
+          "finalEquityJpy": 1274772.8,
+          "netPnlJpy": 274772.8,
+          "returnPct": 27.47728,
+          "profitFactor": 3.340186,
+          "maxDrawdownPct": 6.379147,
+          "worstDay": {
+            "sessionDate": "2026-07-24",
+            "equityJpy": 1203722.6,
+            "returnPct": -2.549371
+          },
+          "eligible": 51,
+          "accepted": 39,
+          "belowLotSkips": 12,
+          "cashSkips": 0,
+          "positionLimitSkips": 0,
+          "winRate": 0.435897,
+          "averageTradePnlJpy": 7045.45641,
+          "medianTradePnlJpy": -185,
+          "averageWinJpy": 23069.867647,
+          "averageLossJpy": -5337.043182,
+          "averageWinLossRatio": 4.322593,
+          "averageHoldingMinutes": 164.230769,
+          "averageUtilization": 0.171886,
+          "maximumUtilization": 0.903595,
+          "averageGrossExposureJpy": 196714.561404,
+          "maximumGrossExposureJpy": 974600,
+          "averageAbsoluteNetExposureJpy": 196714.561404,
+          "maximumAbsoluteNetExposureJpy": 974600,
+          "maximumConcurrentPositions": 3,
+          "longCapitalShare": 0.11552,
+          "shortCapitalShare": 0.88448,
+          "top1ProfitContribution": {
+            "symbol": "8918.T",
+            "pnlJpy": 68359.65,
+            "shareOfPositiveProfit": 0.18813
+          },
+          "top3ProfitContribution": {
+            "pnlJpy": 169796.65,
+            "shareOfPositiveProfit": 0.467292,
+            "symbols": [
+              "8918.T",
+              "5074.T",
+              "5240.T"
+            ]
+          },
+          "top1CapitalConcentration": {
+            "symbol": "8918.T",
+            "share": 0.13978326792722084,
+            "notionalJpy": 1880700
+          },
+          "top3CapitalConcentration": 0.299501,
+          "ledgerAudit": {
+            "status": "LEDGER_INVARIANTS_PASS",
+            "eventCount": 1950,
+            "violationCount": 0,
+            "checks": [
+              "availableCashNonnegative",
+              "shortSaleProceedsNotReused",
+              "unrealizedGainsExcludedFromBuyingPower",
+              "lockedShortCollateralEqualsReferenceNotional",
+              "entryRequiredCashWithinBuyingPower",
+              "exitReleaseBeforeSameTimestampEntry",
+              "grossExposureWithinCurrentEquity",
+              "absoluteNetExposureWithinCurrentEquity",
+              "costsChargedExactlyOnce",
+              "positionLimitRespected",
+              "quantityUnitValid",
+              "realizedEquityReconciles"
+            ],
+            "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+            "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+            "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
+          }
+        },
+        "MAX_5_V4": {
+          "initialEquityJpy": 1000000,
+          "finalEquityJpy": 1169358.165,
+          "netPnlJpy": 169358.165,
+          "returnPct": 16.935817,
+          "profitFactor": 4.233159,
+          "maxDrawdownPct": 4.273109,
+          "worstDay": {
+            "sessionDate": "2026-07-24",
+            "equityJpy": 1127882.115,
+            "returnPct": -0.874888
+          },
+          "eligible": 51,
+          "accepted": 34,
+          "belowLotSkips": 17,
+          "cashSkips": 0,
+          "positionLimitSkips": 0,
+          "winRate": 0.470588,
+          "averageTradePnlJpy": 4981.1225,
+          "medianTradePnlJpy": -98,
+          "averageWinJpy": 13858.7375,
+          "averageLossJpy": -2910.090833,
+          "averageWinLossRatio": 4.762304,
+          "averageHoldingMinutes": 180.735294,
+          "averageUtilization": 0.099159,
+          "maximumUtilization": 0.542978,
+          "averageGrossExposureJpy": 107630.004386,
+          "maximumGrossExposureJpy": 567200,
+          "averageAbsoluteNetExposureJpy": 107630.004386,
+          "maximumAbsoluteNetExposureJpy": 567200,
+          "maximumConcurrentPositions": 3,
+          "longCapitalShare": 0.112452,
+          "shortCapitalShare": 0.887548,
+          "top1ProfitContribution": {
+            "symbol": "8918.T",
+            "pnlJpy": 38962.8,
+            "shareOfPositiveProfit": 0.183828
+          },
+          "top3ProfitContribution": {
+            "pnlJpy": 91969.1,
+            "shareOfPositiveProfit": 0.433913,
+            "symbols": [
+              "8918.T",
+              "5240.T",
+              "5074.T"
+            ]
+          },
+          "top1CapitalConcentration": {
+            "symbol": "8918.T",
+            "share": 0.16368891184352657,
+            "notionalJpy": 1074400
+          },
+          "top3CapitalConcentration": 0.344929,
+          "ledgerAudit": {
+            "status": "LEDGER_INVARIANTS_PASS",
+            "eventCount": 1950,
+            "violationCount": 0,
+            "checks": [
+              "availableCashNonnegative",
+              "shortSaleProceedsNotReused",
+              "unrealizedGainsExcludedFromBuyingPower",
+              "lockedShortCollateralEqualsReferenceNotional",
+              "entryRequiredCashWithinBuyingPower",
+              "exitReleaseBeforeSameTimestampEntry",
+              "grossExposureWithinCurrentEquity",
+              "absoluteNetExposureWithinCurrentEquity",
+              "costsChargedExactlyOnce",
+              "positionLimitRespected",
+              "quantityUnitValid",
+              "realizedEquityReconciles"
+            ],
+            "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+            "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+            "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
+          }
+        }
+      },
+      "attribution": {
+        "MAX_10_TO_MAX_5": {
+          "leftArm": "MAX_10_V5",
+          "rightArm": "MAX_5_V5",
+          "totalDeltaJpy": 116062.61,
+          "totalReturnDeltaPctPoints": 11.606262,
+          "positionSizeEffect": {
+            "commonTradeCount": 25,
+            "pnlDeltaJpy": 65739.66
+          },
+          "newTradeEffect": {
+            "count": 9,
+            "pnlJpy": 50322.95,
+            "eventIds": [
+              "2026-06-23|2026-06-23T01:55:00.000Z|6217.T",
+              "2026-06-24|2026-06-24T01:35:00.000Z|5074.T",
+              "2026-06-29|2026-06-29T02:10:00.000Z|6620.T",
+              "2026-07-06|2026-07-06T01:00:00.000Z|4446.T",
+              "2026-07-06|2026-07-06T01:05:00.000Z|589A.T",
+              "2026-07-14|2026-07-14T04:35:00.000Z|4889.T",
+              "2026-07-22|2026-07-22T01:30:00.000Z|2354.T",
+              "2026-07-24|2026-07-24T01:35:00.000Z|3907.T",
+              "2026-07-28|2026-07-28T01:50:00.000Z|3907.T"
+            ]
+          },
+          "cashRecyclingEffect": {
+            "definition": "Execution-set difference with a cash-insufficient rejection on one side and a prior cash release on the accepted side; descriptive cash-path subset, not an extra additive term.",
+            "count": 0,
+            "pnlJpy": 0,
+            "eventIds": []
+          },
+          "otherExecutionSetEffect": {
+            "count": 0,
+            "pnlJpy": 0,
+            "eventIds": []
+          },
+          "executionSetDifference": {
+            "rightOnlyCount": 9,
+            "leftOnlyCount": 0,
+            "totalPnlContributionJpy": 50322.95,
+            "rightOnlyEventIds": [
+              "2026-06-23|2026-06-23T01:55:00.000Z|6217.T",
+              "2026-06-24|2026-06-24T01:35:00.000Z|5074.T",
+              "2026-06-29|2026-06-29T02:10:00.000Z|6620.T",
+              "2026-07-06|2026-07-06T01:00:00.000Z|4446.T",
+              "2026-07-06|2026-07-06T01:05:00.000Z|589A.T",
+              "2026-07-14|2026-07-14T04:35:00.000Z|4889.T",
+              "2026-07-22|2026-07-22T01:30:00.000Z|2354.T",
+              "2026-07-24|2026-07-24T01:35:00.000Z|3907.T",
+              "2026-07-28|2026-07-28T01:50:00.000Z|3907.T"
+            ],
+            "leftOnlyEventIds": []
+          },
+          "recomposition": {
+            "formula": "POSITION_SIZE + NEW_TRADE_NON_RECYCLING + CASH_RECYCLING + OTHER_EXECUTION_SET",
+            "pnlJpy": 116062.61,
+            "matchesTotal": true
+          }
+        },
+        "MAX_5_TO_MAX_3": {
+          "leftArm": "MAX_5_V5",
+          "rightArm": "MAX_3_V5",
+          "totalDeltaJpy": 105414.635,
+          "totalReturnDeltaPctPoints": 10.541463,
+          "positionSizeEffect": {
+            "commonTradeCount": 34,
+            "pnlDeltaJpy": 114799.31
+          },
+          "newTradeEffect": {
+            "count": 5,
+            "pnlJpy": -9384.675,
+            "eventIds": [
+              "2026-07-01|2026-07-01T01:45:00.000Z|7012.T",
+              "2026-07-15|2026-07-15T01:30:00.000Z|276A.T",
+              "2026-07-23|2026-07-23T01:20:00.000Z|584A.T",
+              "2026-07-24|2026-07-24T05:30:00.000Z|1723.T",
+              "2026-07-27|2026-07-27T06:15:00.000Z|3132.T"
+            ]
+          },
+          "cashRecyclingEffect": {
+            "definition": "Execution-set difference with a cash-insufficient rejection on one side and a prior cash release on the accepted side; descriptive cash-path subset, not an extra additive term.",
+            "count": 0,
+            "pnlJpy": 0,
+            "eventIds": []
+          },
+          "otherExecutionSetEffect": {
+            "count": 0,
+            "pnlJpy": 0,
+            "eventIds": []
+          },
+          "executionSetDifference": {
+            "rightOnlyCount": 5,
+            "leftOnlyCount": 0,
+            "totalPnlContributionJpy": -9384.675,
+            "rightOnlyEventIds": [
+              "2026-07-01|2026-07-01T01:45:00.000Z|7012.T",
+              "2026-07-15|2026-07-15T01:30:00.000Z|276A.T",
+              "2026-07-23|2026-07-23T01:20:00.000Z|584A.T",
+              "2026-07-24|2026-07-24T05:30:00.000Z|1723.T",
+              "2026-07-27|2026-07-27T06:15:00.000Z|3132.T"
+            ],
+            "leftOnlyEventIds": []
+          },
+          "recomposition": {
+            "formula": "POSITION_SIZE + NEW_TRADE_NON_RECYCLING + CASH_RECYCLING + OTHER_EXECUTION_SET",
+            "pnlJpy": 105414.635,
+            "matchesTotal": true
+          }
+        },
+        "MAX_5_V4_TO_V5": {
+          "label": "MAX_5_V4_TO_V5",
+          "leftArm": "MAX_5_V4",
+          "rightArm": "MAX_5_V5",
+          "totalDeltaJpy": 0,
+          "commonTrades": {
+            "count": 34,
+            "deltaJpy": 0
+          },
+          "leftOnlyTrades": {
+            "count": 0,
+            "contributionToDeltaJpy": 0,
+            "eventIds": []
+          },
+          "rightOnlyTrades": {
+            "count": 0,
+            "contributionToDeltaJpy": 0,
+            "eventIds": []
+          },
+          "earlierExitCapitalReleaseAdditionalTrades": {
+            "count": 0,
+            "pnlJpy": 0,
+            "eventIds": []
+          },
+          "recomposed": true,
+          "defensiveTradesAccepted": 2,
+          "changedOutcomeCount": 0,
+          "changedOutcomeEventIds": [],
+          "earlyCashReleaseCount": 0,
+          "earlyCashReleaseEventIds": [],
+          "additionalEntriesCausedByRecycling": 0,
+          "additionalEntryPnlJpy": 0
+        }
+      },
+      "dayConcentration": {
+        "topPositiveDay": {
+          "sessionDate": "2026-07-28",
+          "pnlJpy": 41476.05,
+          "shareOfPositiveDayProfit": 0.22827
+        },
+        "top3PositiveDayShare": 0.584741
+      }
+    },
+    "B": {
+      "block": "B",
+      "role": "REPLAYABLE_DEVELOPMENT_BLOCK_B",
+      "dateRange": [
+        "2026-07-31",
+        "2026-08-12"
+      ],
+      "sessionCount": 8,
+      "eligibleCount": 34,
+      "firstEnterCount": 34,
+      "missingOutcomePathCount": 0,
+      "bar5Parity": {
+        "label": "BLOCK_B",
+        "n": 34,
+        "netReturnPctPoints": 29.920959194621393,
+        "stateCounts": {
+          "DEFENSIVE_EXIT_BAR_5": 8,
+          "FIRST_BAR_NON_ADVERSE_V4": 20,
+          "RECOVERED_TO_V4": 5,
+          "HORIZON_FALLBACK_V4": 1
+        },
+        "perTrade": [
+          {
+            "eventId": "2026-07-31|2026-07-31T01:25:00.000Z|8473.T",
+            "netReturnPct": -1.2071356699647817,
+            "classification": "DEFENSIVE_EXIT_BAR_5",
+            "dynamicState": "DEFENSIVE_EXIT",
+            "exitTimestamp": "2026-07-31T01:50:00.000Z",
+            "exitPrice": 3016
+          },
+          {
+            "eventId": "2026-07-31|2026-07-31T04:05:00.000Z|1942.T",
+            "netReturnPct": 4.763359528487227,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-07-31T06:25:00.000Z",
+            "exitPrice": 5335
+          },
+          {
+            "eventId": "2026-07-31|2026-07-31T04:30:00.000Z|7282.T",
+            "netReturnPct": 0.5716696269982224,
+            "classification": "RECOVERED_TO_V4",
+            "dynamicState": "RECOVERED_CONTINUATION",
+            "exitTimestamp": "2026-07-31T06:25:00.000Z",
+            "exitPrice": 5595
+          },
+          {
+            "eventId": "2026-08-03|2026-08-03T01:00:00.000Z|278A.T",
+            "netReturnPct": -0.3195417789757348,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-08-03T01:25:00.000Z",
+            "exitPrice": 11160
+          },
+          {
+            "eventId": "2026-08-03|2026-08-03T01:40:00.000Z|8918.T",
+            "netReturnPct": 9.040909090909093,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-08-03T06:25:00.000Z",
+            "exitPrice": 10
+          },
+          {
+            "eventId": "2026-08-03|2026-08-03T05:05:00.000Z|7202.T",
+            "netReturnPct": 5.999458409973429,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-08-03T06:25:00.000Z",
+            "exitPrice": 2298.5
+          },
+          {
+            "eventId": "2026-08-03|2026-08-03T05:10:00.000Z|5703.T",
+            "netReturnPct": 1.5684573002754776,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-08-03T06:25:00.000Z",
+            "exitPrice": 2857
+          },
+          {
+            "eventId": "2026-08-04|2026-08-04T04:05:00.000Z|7272.T",
+            "netReturnPct": -3.488693990969077,
+            "classification": "DEFENSIVE_EXIT_BAR_5",
+            "dynamicState": "DEFENSIVE_EXIT",
+            "exitTimestamp": "2026-08-04T04:30:00.000Z",
+            "exitPrice": 1489
+          },
+          {
+            "eventId": "2026-08-04|2026-08-04T04:15:00.000Z|6522.T",
+            "netReturnPct": 0.5099104143337085,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-08-04T06:25:00.000Z",
+            "exitPrice": 1776
+          },
+          {
+            "eventId": "2026-08-04|2026-08-04T04:25:00.000Z|2897.T",
+            "netReturnPct": -0.6072441742654588,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-08-04T05:25:00.000Z",
+            "exitPrice": 2977.5
+          },
+          {
+            "eventId": "2026-08-04|2026-08-04T04:45:00.000Z|7011.T",
+            "netReturnPct": -0.2696729314132284,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-08-04T04:55:00.000Z",
+            "exitPrice": 4106
+          },
+          {
+            "eventId": "2026-08-04|2026-08-04T05:10:00.000Z|6302.T",
+            "netReturnPct": -0.7559654076950306,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-08-04T06:10:00.000Z",
+            "exitPrice": 5706
+          },
+          {
+            "eventId": "2026-08-04|2026-08-04T05:40:00.000Z|5232.T",
+            "netReturnPct": 3.0076175326970658,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-08-04T06:25:00.000Z",
+            "exitPrice": 5485
+          },
+          {
+            "eventId": "2026-08-05|2026-08-05T01:25:00.000Z|3907.T",
+            "netReturnPct": -1.7058675305975435,
+            "classification": "DEFENSIVE_EXIT_BAR_5",
+            "dynamicState": "DEFENSIVE_EXIT",
+            "exitTimestamp": "2026-08-05T01:50:00.000Z",
+            "exitPrice": 1412
+          },
+          {
+            "eventId": "2026-08-05|2026-08-05T04:05:00.000Z|1980.T",
+            "netReturnPct": -3.841821561338282,
+            "classification": "DEFENSIVE_EXIT_BAR_5",
+            "dynamicState": "DEFENSIVE_EXIT",
+            "exitTimestamp": "2026-08-05T04:30:00.000Z",
+            "exitPrice": 2792
+          },
+          {
+            "eventId": "2026-08-05|2026-08-05T05:05:00.000Z|9412.T",
+            "netReturnPct": -1.6696013289036638,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-08-05T05:25:00.000Z",
+            "exitPrice": 2447
+          },
+          {
+            "eventId": "2026-08-05|2026-08-05T05:25:00.000Z|1965.T",
+            "netReturnPct": 0.25674846625766695,
+            "classification": "RECOVERED_TO_V4",
+            "dynamicState": "RECOVERED_CONTINUATION",
+            "exitTimestamp": "2026-08-05T06:25:00.000Z",
+            "exitPrice": 6500
+          },
+          {
+            "eventId": "2026-08-05|2026-08-05T06:05:00.000Z|5702.T",
+            "netReturnPct": 0.8483717012914116,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-08-05T06:25:00.000Z",
+            "exitPrice": 1765
+          },
+          {
+            "eventId": "2026-08-06|2026-08-06T01:00:00.000Z|8918.T",
+            "netReturnPct": -0.05,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-08-06T06:25:00.000Z",
+            "exitPrice": 11
+          },
+          {
+            "eventId": "2026-08-06|2026-08-06T04:15:00.000Z|3402.T",
+            "netReturnPct": -1.4882740711146536,
+            "classification": "DEFENSIVE_EXIT_BAR_5",
+            "dynamicState": "DEFENSIVE_EXIT",
+            "exitTimestamp": "2026-08-06T04:40:00.000Z",
+            "exitPrice": 1269.5
+          },
+          {
+            "eventId": "2026-08-06|2026-08-06T04:55:00.000Z|5602.T",
+            "netReturnPct": -0.4605571847507372,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-08-06T06:00:00.000Z",
+            "exitPrice": 1712
+          },
+          {
+            "eventId": "2026-08-06|2026-08-06T06:20:00.000Z|4847.T",
+            "netReturnPct": 0.2652088258471242,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-08-06T06:25:00.000Z",
+            "exitPrice": 1265
+          },
+          {
+            "eventId": "2026-08-07|2026-08-07T01:10:00.000Z|5076.T",
+            "netReturnPct": 3.8916058394160626,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-08-07T06:25:00.000Z",
+            "exitPrice": 2632
+          },
+          {
+            "eventId": "2026-08-07|2026-08-07T02:10:00.000Z|3405.T",
+            "netReturnPct": 6.034017382906804,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-08-07T06:25:00.000Z",
+            "exitPrice": 1945
+          },
+          {
+            "eventId": "2026-08-07|2026-08-07T04:05:00.000Z|4114.T",
+            "netReturnPct": -2.8983606557377026,
+            "classification": "DEFENSIVE_EXIT_BAR_5",
+            "dynamicState": "DEFENSIVE_EXIT",
+            "exitTimestamp": "2026-08-07T04:30:00.000Z",
+            "exitPrice": 2509.5
+          },
+          {
+            "eventId": "2026-08-07|2026-08-07T04:10:00.000Z|4401.T",
+            "netReturnPct": -2.2200223713646547,
+            "classification": "DEFENSIVE_EXIT_BAR_5",
+            "dynamicState": "DEFENSIVE_EXIT",
+            "exitTimestamp": "2026-08-07T04:35:00.000Z",
+            "exitPrice": 4567
+          },
+          {
+            "eventId": "2026-08-07|2026-08-07T04:10:00.000Z|1952.T",
+            "netReturnPct": 1.2517356475300445,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-08-07T05:05:00.000Z",
+            "exitPrice": 3035
+          },
+          {
+            "eventId": "2026-08-07|2026-08-07T04:40:00.000Z|5830.T",
+            "netReturnPct": 1.0851909184726505,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-08-07T06:25:00.000Z",
+            "exitPrice": 3832
+          },
+          {
+            "eventId": "2026-08-07|2026-08-07T06:20:00.000Z|3907.T",
+            "netReturnPct": -0.3638731952291307,
+            "classification": "HORIZON_FALLBACK_V4",
+            "dynamicState": "DEFENSIVE_FALLBACK_TO_NATIVE_V4",
+            "exitTimestamp": "2026-08-07T06:25:00.000Z",
+            "exitPrice": 1598
+          },
+          {
+            "eventId": "2026-08-10|2026-08-10T01:10:00.000Z|3907.T",
+            "netReturnPct": 4.575928041119365,
+            "classification": "RECOVERED_TO_V4",
+            "dynamicState": "RECOVERED_CONTINUATION",
+            "exitTimestamp": "2026-08-10T06:25:00.000Z",
+            "exitPrice": 1670
+          },
+          {
+            "eventId": "2026-08-10|2026-08-10T01:35:00.000Z|3103.T",
+            "netReturnPct": -3.5045454545454433,
+            "classification": "DEFENSIVE_EXIT_BAR_5",
+            "dynamicState": "DEFENSIVE_EXIT",
+            "exitTimestamp": "2026-08-10T02:00:00.000Z",
+            "exitPrice": 1138
+          },
+          {
+            "eventId": "2026-08-10|2026-08-10T04:15:00.000Z|4044.T",
+            "netReturnPct": 3.0026315789473736,
+            "classification": "FIRST_BAR_NON_ADVERSE_V4",
+            "dynamicState": "NON_ADVERSE_CONTINUATION",
+            "exitTimestamp": "2026-08-10T06:25:00.000Z",
+            "exitPrice": 4605
+          },
+          {
+            "eventId": "2026-08-10|2026-08-10T06:15:00.000Z|4889.T",
+            "netReturnPct": 5.319127516778516,
+            "classification": "RECOVERED_TO_V4",
+            "dynamicState": "RECOVERED_CONTINUATION",
+            "exitTimestamp": "2026-08-10T06:25:00.000Z",
+            "exitPrice": 1256
+          },
+          {
+            "eventId": "2026-08-12|2026-08-12T01:40:00.000Z|3323.T",
+            "netReturnPct": 2.7801886792452826,
+            "classification": "RECOVERED_TO_V4",
+            "dynamicState": "RECOVERED_CONTINUATION",
+            "exitTimestamp": "2026-08-12T06:25:00.000Z",
+            "exitPrice": 103
+          }
+        ]
+      },
+      "inputHashes": {
+        "opportunitySha256": "5f68e77947de1ba79490e82aca77941cd6ff07389e1ddc448653d4ae2d949a8c",
+        "tradeOutcomeSha256": "b8c6d1556b00dfcd9be9fa16dc55292e53596e3de4e800f873de3dec4692dd84",
+        "markSha256": "4ee110eb9acd53cce074ae5713df345c5e9f1b9e29d70fc8a1d74a0ad18b84a4"
+      },
+      "arms": {
+        "MAX_5_V5": {
+          "initialEquityJpy": 1000000,
+          "finalEquityJpy": 1026135.7,
+          "netPnlJpy": 26135.7,
+          "returnPct": 2.61357,
+          "profitFactor": 2.793175,
+          "maxDrawdownPct": 2.392236,
+          "worstDay": {
+            "sessionDate": "2026-08-04",
+            "equityJpy": 1013889.175,
+            "returnPct": -0.403858
+          },
+          "eligible": 34,
+          "accepted": 14,
+          "belowLotSkips": 19,
+          "cashSkips": 1,
+          "positionLimitSkips": 0,
+          "winRate": 0.5,
+          "averageTradePnlJpy": 1866.835714,
+          "medianTradePnlJpy": 117.675,
+          "averageWinJpy": 5815.828571,
+          "averageLossJpy": -2082.157143,
+          "averageWinLossRatio": 2.793175,
+          "averageHoldingMinutes": 110.357143,
+          "averageUtilization": 0.088529,
+          "maximumUtilization": 0.369493,
+          "averageGrossExposureJpy": 90358.799342,
+          "maximumGrossExposureJpy": 373400,
+          "averageAbsoluteNetExposureJpy": 89587.746711,
+          "maximumAbsoluteNetExposureJpy": 373400,
+          "maximumConcurrentPositions": 2,
+          "longCapitalShare": 0.053486,
+          "shortCapitalShare": 0.946514,
+          "top1ProfitContribution": {
+            "symbol": "8918.T",
+            "pnlJpy": 17899.25,
+            "shareOfPositiveProfit": 0.475279
+          },
+          "top3ProfitContribution": {
+            "pnlJpy": 29838.95,
+            "shareOfPositiveProfit": 0.792314,
+            "symbols": [
+              "8918.T",
+              "4889.T",
+              "3323.T"
+            ]
+          },
+          "top1CapitalConcentration": {
+            "symbol": "3907.T",
+            "share": 0.21237548236561068,
+            "notionalJpy": 473300
+          },
+          "top3CapitalConcentration": 0.482904,
+          "ledgerAudit": {
+            "status": "LEDGER_INVARIANTS_PASS",
+            "eventCount": 520,
+            "violationCount": 0,
+            "checks": [
+              "availableCashNonnegative",
+              "shortSaleProceedsNotReused",
+              "unrealizedGainsExcludedFromBuyingPower",
+              "lockedShortCollateralEqualsReferenceNotional",
+              "entryRequiredCashWithinBuyingPower",
+              "exitReleaseBeforeSameTimestampEntry",
+              "grossExposureWithinCurrentEquity",
+              "absoluteNetExposureWithinCurrentEquity",
+              "costsChargedExactlyOnce",
+              "positionLimitRespected",
+              "quantityUnitValid",
+              "realizedEquityReconciles"
+            ],
+            "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+            "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+            "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
+          }
+        },
+        "MAX_10_V5": {
+          "initialEquityJpy": 1000000,
+          "finalEquityJpy": 1011552.75,
+          "netPnlJpy": 11552.75,
+          "returnPct": 1.155275,
+          "profitFactor": 231.824176,
+          "maxDrawdownPct": 1.252314,
+          "worstDay": {
+            "sessionDate": "2026-08-06",
+            "equityJpy": 1008900.45,
+            "returnPct": -0.004961
+          },
+          "eligible": 34,
+          "accepted": 3,
+          "belowLotSkips": 30,
+          "cashSkips": 1,
+          "positionLimitSkips": 0,
+          "winRate": 0.666667,
+          "averageTradePnlJpy": 3850.916667,
+          "medianTradePnlJpy": 2652.3,
+          "averageWinJpy": 5801.4,
+          "averageLossJpy": -50.05,
+          "averageWinLossRatio": 115.912088,
+          "averageHoldingMinutes": 298.333333,
+          "averageUtilization": 0.02682,
+          "maximumUtilization": 0.099214,
+          "averageGrossExposureJpy": 27142.763158,
+          "maximumGrossExposureJpy": 100100,
+          "averageAbsoluteNetExposureJpy": 27142.763158,
+          "maximumAbsoluteNetExposureJpy": 100100,
+          "maximumConcurrentPositions": 1,
+          "longCapitalShare": 0,
+          "shortCapitalShare": 1,
+          "top1ProfitContribution": {
+            "symbol": "8918.T",
+            "pnlJpy": 8900.45,
+            "shareOfPositiveProfit": 0.770418
+          },
+          "top3ProfitContribution": {
+            "pnlJpy": 11552.75,
+            "shareOfPositiveProfit": 1,
+            "symbols": [
+              "8918.T",
+              "3323.T"
+            ]
+          },
+          "top1CapitalConcentration": {
+            "symbol": "8918.T",
+            "share": 0.6760611205432937,
+            "notionalJpy": 199100
+          },
+          "top3CapitalConcentration": 1,
+          "ledgerAudit": {
+            "status": "LEDGER_INVARIANTS_PASS",
+            "eventCount": 520,
+            "violationCount": 0,
+            "checks": [
+              "availableCashNonnegative",
+              "shortSaleProceedsNotReused",
+              "unrealizedGainsExcludedFromBuyingPower",
+              "lockedShortCollateralEqualsReferenceNotional",
+              "entryRequiredCashWithinBuyingPower",
+              "exitReleaseBeforeSameTimestampEntry",
+              "grossExposureWithinCurrentEquity",
+              "absoluteNetExposureWithinCurrentEquity",
+              "costsChargedExactlyOnce",
+              "positionLimitRespected",
+              "quantityUnitValid",
+              "realizedEquityReconciles"
+            ],
+            "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+            "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+            "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
+          }
+        },
+        "MAX_3_V5": {
+          "initialEquityJpy": 1000000,
+          "finalEquityJpy": 1045748.55,
+          "netPnlJpy": 45748.55,
+          "returnPct": 4.574855,
+          "profitFactor": 1.765074,
+          "maxDrawdownPct": 3.499304,
+          "worstDay": {
+            "sessionDate": "2026-08-05",
+            "equityJpy": 1017053.7,
+            "returnPct": -1.699423
+          },
+          "eligible": 34,
+          "accepted": 23,
+          "belowLotSkips": 7,
+          "cashSkips": 4,
+          "positionLimitSkips": 0,
+          "winRate": 0.478261,
+          "averageTradePnlJpy": 1989.067391,
+          "medianTradePnlJpy": -169.4,
+          "averageWinJpy": 9594.979545,
+          "averageLossJpy": -4983.01875,
+          "averageWinLossRatio": 1.925536,
+          "averageHoldingMinutes": 105.434783,
+          "averageUtilization": 0.202507,
+          "maximumUtilization": 0.840189,
+          "averageGrossExposureJpy": 209169.901316,
+          "maximumGrossExposureJpy": 850300,
+          "averageAbsoluteNetExposureJpy": 208080.098684,
+          "maximumAbsoluteNetExposureJpy": 850300,
+          "maximumConcurrentPositions": 3,
+          "longCapitalShare": 0.038434,
+          "shortCapitalShare": 0.961566,
+          "top1ProfitContribution": {
+            "symbol": "8918.T",
+            "pnlJpy": 29765.05,
+            "shareOfPositiveProfit": 0.299215
+          },
+          "top3ProfitContribution": {
+            "pnlJpy": 57123.525,
+            "shareOfPositiveProfit": 0.574238,
+            "symbols": [
+              "8918.T",
+              "7202.T",
+              "4889.T"
+            ]
+          },
+          "top1CapitalConcentration": {
+            "symbol": "3907.T",
+            "share": 0.12437730738847959,
+            "notionalJpy": 771500
+          },
+          "top3CapitalConcentration": 0.287349,
+          "ledgerAudit": {
+            "status": "LEDGER_INVARIANTS_PASS",
+            "eventCount": 520,
+            "violationCount": 0,
+            "checks": [
+              "availableCashNonnegative",
+              "shortSaleProceedsNotReused",
+              "unrealizedGainsExcludedFromBuyingPower",
+              "lockedShortCollateralEqualsReferenceNotional",
+              "entryRequiredCashWithinBuyingPower",
+              "exitReleaseBeforeSameTimestampEntry",
+              "grossExposureWithinCurrentEquity",
+              "absoluteNetExposureWithinCurrentEquity",
+              "costsChargedExactlyOnce",
+              "positionLimitRespected",
+              "quantityUnitValid",
+              "realizedEquityReconciles"
+            ],
+            "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+            "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+            "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
+          }
+        },
+        "MAX_5_V4": {
+          "initialEquityJpy": 1000000,
+          "finalEquityJpy": 1022236.25,
+          "netPnlJpy": 22236.25,
+          "returnPct": 2.223625,
+          "profitFactor": 2.203615,
+          "maxDrawdownPct": 2.581152,
+          "worstDay": {
+            "sessionDate": "2026-08-04",
+            "equityJpy": 1011439.175,
+            "returnPct": -0.644526
+          },
+          "eligible": 34,
+          "accepted": 14,
+          "belowLotSkips": 19,
+          "cashSkips": 1,
+          "positionLimitSkips": 0,
+          "winRate": 0.5,
+          "averageTradePnlJpy": 1588.303571,
+          "medianTradePnlJpy": 117.95,
+          "averageWinJpy": 5815.828571,
+          "averageLossJpy": -2639.221429,
+          "averageWinLossRatio": 2.203615,
+          "averageHoldingMinutes": 123.571429,
+          "averageUtilization": 0.097161,
+          "maximumUtilization": 0.469994,
+          "averageGrossExposureJpy": 98816.940789,
+          "maximumGrossExposureJpy": 481700,
+          "averageAbsoluteNetExposureJpy": 98045.888158,
+          "maximumAbsoluteNetExposureJpy": 481700,
+          "maximumConcurrentPositions": 3,
+          "longCapitalShare": 0.053513,
+          "shortCapitalShare": 0.946487,
+          "top1ProfitContribution": {
+            "symbol": "8918.T",
+            "pnlJpy": 17899.8,
+            "shareOfPositiveProfit": 0.485602
+          },
+          "top3ProfitContribution": {
+            "pnlJpy": 29839.5,
+            "shareOfPositiveProfit": 0.809513,
+            "symbols": [
+              "8918.T",
+              "4889.T",
+              "3323.T"
+            ]
+          },
+          "top1CapitalConcentration": {
+            "symbol": "3907.T",
+            "share": 0.21248035914702582,
+            "notionalJpy": 473300
+          },
+          "top3CapitalConcentration": 0.482649,
+          "ledgerAudit": {
+            "status": "LEDGER_INVARIANTS_PASS",
+            "eventCount": 520,
+            "violationCount": 0,
+            "checks": [
+              "availableCashNonnegative",
+              "shortSaleProceedsNotReused",
+              "unrealizedGainsExcludedFromBuyingPower",
+              "lockedShortCollateralEqualsReferenceNotional",
+              "entryRequiredCashWithinBuyingPower",
+              "exitReleaseBeforeSameTimestampEntry",
+              "grossExposureWithinCurrentEquity",
+              "absoluteNetExposureWithinCurrentEquity",
+              "costsChargedExactlyOnce",
+              "positionLimitRespected",
+              "quantityUnitValid",
+              "realizedEquityReconciles"
+            ],
+            "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+            "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+            "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
+          }
+        }
+      },
+      "attribution": {
+        "MAX_10_TO_MAX_5": {
+          "leftArm": "MAX_10_V5",
+          "rightArm": "MAX_5_V5",
+          "totalDeltaJpy": 14582.95,
+          "totalReturnDeltaPctPoints": 1.458295,
+          "positionSizeEffect": {
+            "commonTradeCount": 3,
+            "pnlDeltaJpy": 11945.8
+          },
+          "newTradeEffect": {
+            "count": 11,
+            "pnlJpy": 2637.15,
+            "eventIds": [
+              "2026-08-04|2026-08-04T04:05:00.000Z|7272.T",
+              "2026-08-04|2026-08-04T04:15:00.000Z|6522.T",
+              "2026-08-05|2026-08-05T01:25:00.000Z|3907.T",
+              "2026-08-05|2026-08-05T06:05:00.000Z|5702.T",
+              "2026-08-06|2026-08-06T04:15:00.000Z|3402.T",
+              "2026-08-06|2026-08-06T04:55:00.000Z|5602.T",
+              "2026-08-06|2026-08-06T06:20:00.000Z|4847.T",
+              "2026-08-07|2026-08-07T06:20:00.000Z|3907.T",
+              "2026-08-10|2026-08-10T01:10:00.000Z|3907.T",
+              "2026-08-10|2026-08-10T01:35:00.000Z|3103.T",
+              "2026-08-10|2026-08-10T06:15:00.000Z|4889.T"
+            ]
+          },
+          "cashRecyclingEffect": {
+            "definition": "Execution-set difference with a cash-insufficient rejection on one side and a prior cash release on the accepted side; descriptive cash-path subset, not an extra additive term.",
+            "count": 0,
+            "pnlJpy": 0,
+            "eventIds": []
+          },
+          "otherExecutionSetEffect": {
+            "count": 0,
+            "pnlJpy": 0,
+            "eventIds": []
+          },
+          "executionSetDifference": {
+            "rightOnlyCount": 11,
+            "leftOnlyCount": 0,
+            "totalPnlContributionJpy": 2637.15,
+            "rightOnlyEventIds": [
+              "2026-08-04|2026-08-04T04:05:00.000Z|7272.T",
+              "2026-08-04|2026-08-04T04:15:00.000Z|6522.T",
+              "2026-08-05|2026-08-05T01:25:00.000Z|3907.T",
+              "2026-08-05|2026-08-05T06:05:00.000Z|5702.T",
+              "2026-08-06|2026-08-06T04:15:00.000Z|3402.T",
+              "2026-08-06|2026-08-06T04:55:00.000Z|5602.T",
+              "2026-08-06|2026-08-06T06:20:00.000Z|4847.T",
+              "2026-08-07|2026-08-07T06:20:00.000Z|3907.T",
+              "2026-08-10|2026-08-10T01:10:00.000Z|3907.T",
+              "2026-08-10|2026-08-10T01:35:00.000Z|3103.T",
+              "2026-08-10|2026-08-10T06:15:00.000Z|4889.T"
+            ],
+            "leftOnlyEventIds": []
+          },
+          "recomposition": {
+            "formula": "POSITION_SIZE + NEW_TRADE_NON_RECYCLING + CASH_RECYCLING + OTHER_EXECUTION_SET",
+            "pnlJpy": 14582.95,
+            "matchesTotal": true
+          }
+        },
+        "MAX_5_TO_MAX_3": {
+          "leftArm": "MAX_5_V5",
+          "rightArm": "MAX_3_V5",
+          "totalDeltaJpy": 19612.85,
+          "totalReturnDeltaPctPoints": 1.961285,
+          "positionSizeEffect": {
+            "commonTradeCount": 14,
+            "pnlDeltaJpy": 4044.95
+          },
+          "newTradeEffect": {
+            "count": 9,
+            "pnlJpy": 15567.9,
+            "eventIds": [
+              "2026-07-31|2026-07-31T01:25:00.000Z|8473.T",
+              "2026-08-03|2026-08-03T05:05:00.000Z|7202.T",
+              "2026-08-03|2026-08-03T05:10:00.000Z|5703.T",
+              "2026-08-04|2026-08-04T04:25:00.000Z|2897.T",
+              "2026-08-05|2026-08-05T04:05:00.000Z|1980.T",
+              "2026-08-05|2026-08-05T05:05:00.000Z|9412.T",
+              "2026-08-07|2026-08-07T01:10:00.000Z|5076.T",
+              "2026-08-07|2026-08-07T02:10:00.000Z|3405.T",
+              "2026-08-07|2026-08-07T04:05:00.000Z|4114.T"
+            ]
+          },
+          "cashRecyclingEffect": {
+            "definition": "Execution-set difference with a cash-insufficient rejection on one side and a prior cash release on the accepted side; descriptive cash-path subset, not an extra additive term.",
+            "count": 0,
+            "pnlJpy": 0,
+            "eventIds": []
+          },
+          "otherExecutionSetEffect": {
+            "count": 0,
+            "pnlJpy": 0,
+            "eventIds": []
+          },
+          "executionSetDifference": {
+            "rightOnlyCount": 9,
+            "leftOnlyCount": 0,
+            "totalPnlContributionJpy": 15567.9,
+            "rightOnlyEventIds": [
+              "2026-07-31|2026-07-31T01:25:00.000Z|8473.T",
+              "2026-08-03|2026-08-03T05:05:00.000Z|7202.T",
+              "2026-08-03|2026-08-03T05:10:00.000Z|5703.T",
+              "2026-08-04|2026-08-04T04:25:00.000Z|2897.T",
+              "2026-08-05|2026-08-05T04:05:00.000Z|1980.T",
+              "2026-08-05|2026-08-05T05:05:00.000Z|9412.T",
+              "2026-08-07|2026-08-07T01:10:00.000Z|5076.T",
+              "2026-08-07|2026-08-07T02:10:00.000Z|3405.T",
+              "2026-08-07|2026-08-07T04:05:00.000Z|4114.T"
+            ],
+            "leftOnlyEventIds": []
+          },
+          "recomposition": {
+            "formula": "POSITION_SIZE + NEW_TRADE_NON_RECYCLING + CASH_RECYCLING + OTHER_EXECUTION_SET",
+            "pnlJpy": 19612.85,
+            "matchesTotal": true
+          }
+        },
+        "MAX_5_V4_TO_V5": {
+          "label": "MAX_5_V4_TO_V5",
+          "leftArm": "MAX_5_V4",
+          "rightArm": "MAX_5_V5",
+          "totalDeltaJpy": 3899.45,
+          "commonTrades": {
+            "count": 14,
+            "deltaJpy": 3899.45
+          },
+          "leftOnlyTrades": {
+            "count": 0,
+            "contributionToDeltaJpy": 0,
+            "eventIds": []
+          },
+          "rightOnlyTrades": {
+            "count": 0,
+            "contributionToDeltaJpy": 0,
+            "eventIds": []
+          },
+          "earlierExitCapitalReleaseAdditionalTrades": {
+            "count": 0,
+            "pnlJpy": 0,
+            "eventIds": []
+          },
+          "recomposed": true,
+          "defensiveTradesAccepted": 4,
+          "changedOutcomeCount": 5,
+          "changedOutcomeEventIds": [
+            "2026-08-04|2026-08-04T04:05:00.000Z|7272.T",
+            "2026-08-05|2026-08-05T01:25:00.000Z|3907.T",
+            "2026-08-06|2026-08-06T01:00:00.000Z|8918.T",
+            "2026-08-06|2026-08-06T04:15:00.000Z|3402.T",
+            "2026-08-10|2026-08-10T01:35:00.000Z|3103.T"
+          ],
+          "earlyCashReleaseCount": 4,
+          "earlyCashReleaseEventIds": [
+            "2026-08-04|2026-08-04T04:05:00.000Z|7272.T",
+            "2026-08-05|2026-08-05T01:25:00.000Z|3907.T",
+            "2026-08-06|2026-08-06T04:15:00.000Z|3402.T",
+            "2026-08-10|2026-08-10T01:35:00.000Z|3103.T"
+          ],
+          "additionalEntriesCausedByRecycling": 0,
+          "additionalEntryPnlJpy": 0
+        }
+      },
+      "dayConcentration": {
+        "topPositiveDay": {
+          "sessionDate": "2026-08-03",
+          "pnlJpy": 18000.45,
+          "shareOfPositiveDayProfit": 0.52791
+        },
+        "top3PositiveDayShare": 1
+      }
+    },
+    "OLD20": {
+      "block": "OLD20",
+      "role": "REPLAYABLE_EXPOSED_DIAGNOSTIC",
+      "dateRange": [
+        "2026-08-13",
+        "2026-09-09"
+      ],
+      "sessionCount": 20,
+      "eligibleCount": 35,
+      "firstEnterCount": 36,
+      "missingOutcomePathCount": 1,
+      "bar5Parity": {
+        "status": "OLD20_DIRECT_BAR5_PATH_PARITY_PASS",
+        "n": 35,
+        "netReturnPctPoints": 106.81240680144,
+        "stateCounts": {
+          "FIRST_BAR_NON_ADVERSE_V4": 21,
+          "HORIZON_FALLBACK_V4": 1,
+          "RECOVERED_TO_V4": 8,
+          "DEFENSIVE_EXIT_BAR_5": 5
+        },
+        "futureBarsAfterBar5Read": false,
+        "costAppliedExactlyOnce": true
+      },
+      "inputHashes": {
+        "opportunitySha256": "a460e4671afe685874fa2c8df5ca7c3f7dfaac2c0027c79eceae7659d0918304",
+        "tradeOutcomeSha256": "2a261ccd1ce2774911cc04a619ad30faff978e8288de997d50e956a11cbd7f9d",
+        "markSha256": "f3146829628702fb9b48bf1ab10f1939d2191f11b5c53018cfa71ca3505fb77a"
+      },
+      "arms": {
+        "MAX_5_V5": {
+          "initialEquityJpy": 1000000,
+          "finalEquityJpy": 1225388.4,
+          "netPnlJpy": 225388.4,
+          "returnPct": 22.53884,
+          "profitFactor": 3.710652,
+          "maxDrawdownPct": 5.436598,
+          "worstDay": {
+            "sessionDate": "2026-08-27",
+            "equityJpy": 1013268.75,
+            "returnPct": -1.698039
+          },
+          "eligible": 35,
+          "accepted": 27,
+          "belowLotSkips": 8,
+          "cashSkips": 0,
+          "positionLimitSkips": 0,
+          "winRate": 0.518519,
+          "averageTradePnlJpy": 8347.718519,
+          "medianTradePnlJpy": 797.6,
+          "averageWinJpy": 22038.396429,
+          "averageLossJpy": -6396.088462,
+          "averageWinLossRatio": 3.445605,
+          "averageHoldingMinutes": 145.925926,
+          "averageUtilization": 0.091812,
+          "maximumUtilization": 0.724499,
+          "averageGrossExposureJpy": 98636.710526,
+          "maximumGrossExposureJpy": 793000,
+          "averageAbsoluteNetExposureJpy": 74103.552632,
+          "maximumAbsoluteNetExposureJpy": 793000,
+          "maximumConcurrentPositions": 4,
+          "longCapitalShare": 0.188448,
+          "shortCapitalShare": 0.811552,
+          "top1ProfitContribution": {
+            "symbol": "8995.T",
+            "pnlJpy": 79056,
+            "shareOfPositiveProfit": 0.260535
+          },
+          "top3ProfitContribution": {
+            "pnlJpy": 188237.55,
+            "shareOfPositiveProfit": 0.620351,
+            "symbols": [
+              "8995.T",
+              "4598.T",
+              "4583.T"
+            ]
+          },
+          "top1CapitalConcentration": {
+            "symbol": "8995.T",
+            "share": 0.09342931536223005,
+            "notionalJpy": 488000
+          },
+          "top3CapitalConcentration": 0.254289,
+          "ledgerAudit": {
+            "status": "LEDGER_INVARIANTS_PASS",
+            "eventCount": 1300,
+            "violationCount": 0,
+            "checks": [
+              "availableCashNonnegative",
+              "shortSaleProceedsNotReused",
+              "unrealizedGainsExcludedFromBuyingPower",
+              "lockedShortCollateralEqualsReferenceNotional",
+              "entryRequiredCashWithinBuyingPower",
+              "exitReleaseBeforeSameTimestampEntry",
+              "grossExposureWithinCurrentEquity",
+              "absoluteNetExposureWithinCurrentEquity",
+              "costsChargedExactlyOnce",
+              "positionLimitRespected",
+              "quantityUnitValid",
+              "realizedEquityReconciles"
+            ],
+            "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+            "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+            "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
+          }
+        },
+        "MAX_10_V5": {
+          "initialEquityJpy": 1000000,
+          "finalEquityJpy": 1054134.4,
+          "netPnlJpy": 54134.4,
+          "returnPct": 5.41344,
+          "profitFactor": 3.142787,
+          "maxDrawdownPct": 2.279582,
+          "worstDay": {
+            "sessionDate": "2026-08-27",
+            "equityJpy": 997541.35,
+            "returnPct": -0.581467
+          },
+          "eligible": 35,
+          "accepted": 17,
+          "belowLotSkips": 18,
+          "cashSkips": 0,
+          "positionLimitSkips": 0,
+          "winRate": 0.529412,
+          "averageTradePnlJpy": 3184.376471,
+          "medianTradePnlJpy": 560.1,
+          "averageWinJpy": 8821.994444,
+          "averageLossJpy": -3157.94375,
+          "averageWinLossRatio": 2.793588,
+          "averageHoldingMinutes": 152.058824,
+          "averageUtilization": 0.031146,
+          "maximumUtilization": 0.295889,
+          "averageGrossExposureJpy": 31755.986842,
+          "maximumGrossExposureJpy": 299200,
+          "averageAbsoluteNetExposureJpy": 28238.881579,
+          "maximumAbsoluteNetExposureJpy": 197600,
+          "maximumConcurrentPositions": 3,
+          "longCapitalShare": 0.306949,
+          "shortCapitalShare": 0.693051,
+          "top1ProfitContribution": {
+            "symbol": "4598.T",
+            "pnlJpy": 31608.55,
+            "shareOfPositiveProfit": 0.408893
+          },
+          "top3ProfitContribution": {
+            "pnlJpy": 57560.8,
+            "shareOfPositiveProfit": 0.744616,
+            "symbols": [
+              "4598.T",
+              "4583.T",
+              "8918.T"
+            ]
+          },
+          "top1CapitalConcentration": {
+            "symbol": "8918.T",
+            "share": 0.13133490073145246,
+            "notionalJpy": 201100
+          },
+          "top3CapitalConcentration": 0.369775,
+          "ledgerAudit": {
+            "status": "LEDGER_INVARIANTS_PASS",
+            "eventCount": 1300,
+            "violationCount": 0,
+            "checks": [
+              "availableCashNonnegative",
+              "shortSaleProceedsNotReused",
+              "unrealizedGainsExcludedFromBuyingPower",
+              "lockedShortCollateralEqualsReferenceNotional",
+              "entryRequiredCashWithinBuyingPower",
+              "exitReleaseBeforeSameTimestampEntry",
+              "grossExposureWithinCurrentEquity",
+              "absoluteNetExposureWithinCurrentEquity",
+              "costsChargedExactlyOnce",
+              "positionLimitRespected",
+              "quantityUnitValid",
+              "realizedEquityReconciles"
+            ],
+            "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+            "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+            "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
+          }
+        },
+        "MAX_3_V5": {
+          "initialEquityJpy": 1000000,
+          "finalEquityJpy": 1415214.4,
+          "netPnlJpy": 415214.4,
+          "returnPct": 41.52144,
+          "profitFactor": 3.955733,
+          "maxDrawdownPct": 8.778544,
+          "worstDay": {
+            "sessionDate": "2026-08-27",
+            "equityJpy": 1004772.05,
+            "returnPct": -2.821382
+          },
+          "eligible": 35,
+          "accepted": 28,
+          "belowLotSkips": 7,
+          "cashSkips": 0,
+          "positionLimitSkips": 0,
+          "winRate": 0.535714,
+          "averageTradePnlJpy": 14829.085714,
+          "medianTradePnlJpy": 1519,
+          "averageWinJpy": 37046.136667,
+          "averageLossJpy": -10805.973077,
+          "averageWinLossRatio": 3.428302,
+          "averageHoldingMinutes": 150.357143,
+          "averageUtilization": 0.149287,
+          "maximumUtilization": 0.990883,
+          "averageGrossExposureJpy": 167157.105263,
+          "maximumGrossExposureJpy": 1121600,
+          "averageAbsoluteNetExposureJpy": 138168.947368,
+          "maximumAbsoluteNetExposureJpy": 1121600,
+          "maximumConcurrentPositions": 4,
+          "longCapitalShare": 0.199412,
+          "shortCapitalShare": 0.800588,
+          "top1ProfitContribution": {
+            "symbol": "8995.T",
+            "pnlJpy": 157314.4,
+            "shareOfPositiveProfit": 0.285755
+          },
+          "top3ProfitContribution": {
+            "pnlJpy": 353641.45,
+            "shareOfPositiveProfit": 0.642374,
+            "symbols": [
+              "8995.T",
+              "4598.T",
+              "4583.T"
+            ]
+          },
+          "top1CapitalConcentration": {
+            "symbol": "8995.T",
+            "share": 0.08997573268620497,
+            "notionalJpy": 771200
+          },
+          "top3CapitalConcentration": 0.261189,
+          "ledgerAudit": {
+            "status": "LEDGER_INVARIANTS_PASS",
+            "eventCount": 1300,
+            "violationCount": 0,
+            "checks": [
+              "availableCashNonnegative",
+              "shortSaleProceedsNotReused",
+              "unrealizedGainsExcludedFromBuyingPower",
+              "lockedShortCollateralEqualsReferenceNotional",
+              "entryRequiredCashWithinBuyingPower",
+              "exitReleaseBeforeSameTimestampEntry",
+              "grossExposureWithinCurrentEquity",
+              "absoluteNetExposureWithinCurrentEquity",
+              "costsChargedExactlyOnce",
+              "positionLimitRespected",
+              "quantityUnitValid",
+              "realizedEquityReconciles"
+            ],
+            "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+            "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+            "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
+          }
+        },
+        "MAX_5_V4": {
+          "initialEquityJpy": 1000000,
+          "finalEquityJpy": 1213588.9,
+          "netPnlJpy": 213588.9,
+          "returnPct": 21.35889,
+          "profitFactor": 3.25188,
+          "maxDrawdownPct": 5.724065,
+          "worstDay": {
+            "sessionDate": "2026-08-27",
+            "equityJpy": 1008868.75,
+            "returnPct": -1.991788
+          },
+          "eligible": 35,
+          "accepted": 27,
+          "belowLotSkips": 8,
+          "cashSkips": 0,
+          "positionLimitSkips": 0,
+          "winRate": 0.518519,
+          "averageTradePnlJpy": 7910.7,
+          "medianTradePnlJpy": 797.6,
+          "averageWinJpy": 22031.289286,
+          "averageLossJpy": -7296.088462,
+          "averageWinLossRatio": 3.019603,
+          "averageHoldingMinutes": 152.962963,
+          "averageUtilization": 0.097626,
+          "maximumUtilization": 0.726515,
+          "averageGrossExposureJpy": 104134.144737,
+          "maximumGrossExposureJpy": 793000,
+          "averageAbsoluteNetExposureJpy": 79076.381579,
+          "maximumAbsoluteNetExposureJpy": 793000,
+          "maximumConcurrentPositions": 4,
+          "longCapitalShare": 0.188292,
+          "shortCapitalShare": 0.811708,
+          "top1ProfitContribution": {
+            "symbol": "8995.T",
+            "pnlJpy": 79056,
+            "shareOfPositiveProfit": 0.26062
+          },
+          "top3ProfitContribution": {
+            "pnlJpy": 188237.55,
+            "shareOfPositiveProfit": 0.620555,
+            "symbols": [
+              "8995.T",
+              "4598.T",
+              "4583.T"
+            ]
+          },
+          "top1CapitalConcentration": {
+            "symbol": "8995.T",
+            "share": 0.09344720615832408,
+            "notionalJpy": 488000
+          },
+          "top3CapitalConcentration": 0.254146,
+          "ledgerAudit": {
+            "status": "LEDGER_INVARIANTS_PASS",
+            "eventCount": 1300,
+            "violationCount": 0,
+            "checks": [
+              "availableCashNonnegative",
+              "shortSaleProceedsNotReused",
+              "unrealizedGainsExcludedFromBuyingPower",
+              "lockedShortCollateralEqualsReferenceNotional",
+              "entryRequiredCashWithinBuyingPower",
+              "exitReleaseBeforeSameTimestampEntry",
+              "grossExposureWithinCurrentEquity",
+              "absoluteNetExposureWithinCurrentEquity",
+              "costsChargedExactlyOnce",
+              "positionLimitRespected",
+              "quantityUnitValid",
+              "realizedEquityReconciles"
+            ],
+            "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+            "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+            "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
+          }
+        }
+      },
+      "attribution": {
+        "MAX_10_TO_MAX_5": {
+          "leftArm": "MAX_10_V5",
+          "rightArm": "MAX_5_V5",
+          "totalDeltaJpy": 171254,
+          "totalReturnDeltaPctPoints": 17.1254,
+          "positionSizeEffect": {
+            "commonTradeCount": 17,
+            "pnlDeltaJpy": 60566.85
+          },
+          "newTradeEffect": {
+            "count": 10,
+            "pnlJpy": 110687.15,
+            "eventIds": [
+              "2026-08-18|2026-08-18T01:05:00.000Z|3905.T",
+              "2026-08-24|2026-08-24T01:15:00.000Z|593A.T",
+              "2026-08-26|2026-08-26T06:05:00.000Z|2962.T",
+              "2026-09-03|2026-09-03T01:15:00.000Z|4440.T",
+              "2026-09-03|2026-09-03T01:30:00.000Z|336A.T",
+              "2026-09-03|2026-09-03T04:30:00.000Z|6730.T",
+              "2026-09-07|2026-09-07T01:50:00.000Z|8995.T",
+              "2026-09-07|2026-09-07T02:10:00.000Z|6203.T",
+              "2026-09-09|2026-09-09T01:00:00.000Z|8995.T",
+              "2026-09-09|2026-09-09T01:55:00.000Z|336A.T"
+            ]
+          },
+          "cashRecyclingEffect": {
+            "definition": "Execution-set difference with a cash-insufficient rejection on one side and a prior cash release on the accepted side; descriptive cash-path subset, not an extra additive term.",
+            "count": 0,
+            "pnlJpy": 0,
+            "eventIds": []
+          },
+          "otherExecutionSetEffect": {
+            "count": 0,
+            "pnlJpy": 0,
+            "eventIds": []
+          },
+          "executionSetDifference": {
+            "rightOnlyCount": 10,
+            "leftOnlyCount": 0,
+            "totalPnlContributionJpy": 110687.15,
+            "rightOnlyEventIds": [
+              "2026-08-18|2026-08-18T01:05:00.000Z|3905.T",
+              "2026-08-24|2026-08-24T01:15:00.000Z|593A.T",
+              "2026-08-26|2026-08-26T06:05:00.000Z|2962.T",
+              "2026-09-03|2026-09-03T01:15:00.000Z|4440.T",
+              "2026-09-03|2026-09-03T01:30:00.000Z|336A.T",
+              "2026-09-03|2026-09-03T04:30:00.000Z|6730.T",
+              "2026-09-07|2026-09-07T01:50:00.000Z|8995.T",
+              "2026-09-07|2026-09-07T02:10:00.000Z|6203.T",
+              "2026-09-09|2026-09-09T01:00:00.000Z|8995.T",
+              "2026-09-09|2026-09-09T01:55:00.000Z|336A.T"
+            ],
+            "leftOnlyEventIds": []
+          },
+          "recomposition": {
+            "formula": "POSITION_SIZE + NEW_TRADE_NON_RECYCLING + CASH_RECYCLING + OTHER_EXECUTION_SET",
+            "pnlJpy": 171254,
+            "matchesTotal": true
+          }
+        },
+        "MAX_5_TO_MAX_3": {
+          "leftArm": "MAX_5_V5",
+          "rightArm": "MAX_3_V5",
+          "totalDeltaJpy": 189826,
+          "totalReturnDeltaPctPoints": 18.9826,
+          "positionSizeEffect": {
+            "commonTradeCount": 27,
+            "pnlDeltaJpy": 168972.25
+          },
+          "newTradeEffect": {
+            "count": 1,
+            "pnlJpy": 20853.75,
+            "eventIds": [
+              "2026-09-04|2026-09-04T01:55:00.000Z|338A.T"
+            ]
+          },
+          "cashRecyclingEffect": {
+            "definition": "Execution-set difference with a cash-insufficient rejection on one side and a prior cash release on the accepted side; descriptive cash-path subset, not an extra additive term.",
+            "count": 0,
+            "pnlJpy": 0,
+            "eventIds": []
+          },
+          "otherExecutionSetEffect": {
+            "count": 0,
+            "pnlJpy": 0,
+            "eventIds": []
+          },
+          "executionSetDifference": {
+            "rightOnlyCount": 1,
+            "leftOnlyCount": 0,
+            "totalPnlContributionJpy": 20853.75,
+            "rightOnlyEventIds": [
+              "2026-09-04|2026-09-04T01:55:00.000Z|338A.T"
+            ],
+            "leftOnlyEventIds": []
+          },
+          "recomposition": {
+            "formula": "POSITION_SIZE + NEW_TRADE_NON_RECYCLING + CASH_RECYCLING + OTHER_EXECUTION_SET",
+            "pnlJpy": 189826,
+            "matchesTotal": true
+          }
+        },
+        "MAX_5_V4_TO_V5": {
+          "label": "MAX_5_V4_TO_V5",
+          "leftArm": "MAX_5_V4",
+          "rightArm": "MAX_5_V5",
+          "totalDeltaJpy": 11799.5,
+          "commonTrades": {
+            "count": 27,
+            "deltaJpy": 11799.5
+          },
+          "leftOnlyTrades": {
+            "count": 0,
+            "contributionToDeltaJpy": 0,
+            "eventIds": []
+          },
+          "rightOnlyTrades": {
+            "count": 0,
+            "contributionToDeltaJpy": 0,
+            "eventIds": []
+          },
+          "earlierExitCapitalReleaseAdditionalTrades": {
+            "count": 0,
+            "pnlJpy": 0,
+            "eventIds": []
+          },
+          "recomposed": true,
+          "defensiveTradesAccepted": 4,
+          "changedOutcomeCount": 5,
+          "changedOutcomeEventIds": [
+            "2026-08-20|2026-08-20T04:15:00.000Z|593A.T",
+            "2026-08-27|2026-08-27T01:15:00.000Z|462A.T",
+            "2026-09-03|2026-09-03T01:10:00.000Z|8918.T",
+            "2026-09-03|2026-09-03T01:15:00.000Z|4440.T",
+            "2026-09-04|2026-09-04T01:05:00.000Z|607A.T"
+          ],
+          "earlyCashReleaseCount": 4,
+          "earlyCashReleaseEventIds": [
+            "2026-08-20|2026-08-20T04:15:00.000Z|593A.T",
+            "2026-08-27|2026-08-27T01:15:00.000Z|462A.T",
+            "2026-09-03|2026-09-03T01:15:00.000Z|4440.T",
+            "2026-09-04|2026-09-04T01:05:00.000Z|607A.T"
+          ],
+          "additionalEntriesCausedByRecycling": 0,
+          "additionalEntryPnlJpy": 0
+        }
+      },
+      "dayConcentration": {
+        "topPositiveDay": {
+          "sessionDate": "2026-09-09",
+          "pnlJpy": 126870.25,
+          "shareOfPositiveDayProfit": 0.47085
+        },
+        "top3PositiveDayShare": 0.795428
+      }
+    },
+    "A+B": {
+      "block": "A+B",
+      "role": "REPLAYABLE_DEVELOPMENT",
+      "dateRange": [
+        "2026-06-18",
+        "2026-08-12"
+      ],
+      "sessionCount": 38,
+      "eligibleCount": 85,
+      "firstEnterCount": 85,
+      "missingOutcomePathCount": 0,
+      "bar5Parity": {
+        "status": "BAR5_PARITY_PASS",
+        "A": {
+          "label": "BLOCK_A",
+          "n": 51,
+          "netReturnPctPoints": 72.52907806627495,
+          "stateCounts": {
+            "FIRST_BAR_NON_ADVERSE_V4": 35,
+            "HORIZON_FALLBACK_V4": 7,
+            "RECOVERED_TO_V4": 6,
+            "DEFENSIVE_EXIT_BAR_5": 3
+          },
+          "perTrade": [
+            {
+              "eventId": "2026-06-22|2026-06-22T04:00:00.000Z|4169.T",
+              "netReturnPct": 7.231553398058249,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-06-22T06:25:00.000Z",
+              "exitPrice": 191
+            },
+            {
+              "eventId": "2026-06-22|2026-06-22T05:15:00.000Z|6254.T",
+              "netReturnPct": -2.117669172932329,
+              "classification": "HORIZON_FALLBACK_V4",
+              "dynamicState": "DEFENSIVE_FALLBACK_TO_NATIVE_V4",
+              "exitTimestamp": "2026-06-22T05:30:00.000Z",
+              "exitPrice": 5430
+            },
+            {
+              "eventId": "2026-06-23|2026-06-23T01:55:00.000Z|6217.T",
+              "netReturnPct": -0.7239679865206405,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-06-23T03:50:00.000Z",
+              "exitPrice": 1179
+            },
+            {
+              "eventId": "2026-06-24|2026-06-24T01:00:00.000Z|4564.T",
+              "netReturnPct": 4.950000000000005,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-06-24T06:25:00.000Z",
+              "exitPrice": 19
+            },
+            {
+              "eventId": "2026-06-24|2026-06-24T01:35:00.000Z|5074.T",
+              "netReturnPct": 15.316614664586586,
+              "classification": "RECOVERED_TO_V4",
+              "dynamicState": "RECOVERED_CONTINUATION",
+              "exitTimestamp": "2026-06-24T06:25:00.000Z",
+              "exitPrice": 1085
+            },
+            {
+              "eventId": "2026-06-24|2026-06-24T05:20:00.000Z|6740.T",
+              "netReturnPct": -1.8043859649122862,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-06-24T05:40:00.000Z",
+              "exitPrice": 58
+            },
+            {
+              "eventId": "2026-06-24|2026-06-24T06:15:00.000Z|6753.T",
+              "netReturnPct": -5.927705798704391,
+              "classification": "HORIZON_FALLBACK_V4",
+              "dynamicState": "DEFENSIVE_FALLBACK_TO_NATIVE_V4",
+              "exitTimestamp": "2026-06-24T06:25:00.000Z",
+              "exitPrice": 670.1
+            },
+            {
+              "eventId": "2026-06-25|2026-06-25T02:10:00.000Z|4676.T",
+              "netReturnPct": 1.7427308447937107,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-06-25T06:15:00.000Z",
+              "exitPrice": 3999
+            },
+            {
+              "eventId": "2026-06-26|2026-06-26T01:40:00.000Z|6327.T",
+              "netReturnPct": 11.450701262272094,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-06-26T06:25:00.000Z",
+              "exitPrice": 6310
+            },
+            {
+              "eventId": "2026-06-26|2026-06-26T02:00:00.000Z|6072.T",
+              "netReturnPct": -0.5836179295624355,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-06-26T06:15:00.000Z",
+              "exitPrice": 932
+            },
+            {
+              "eventId": "2026-06-29|2026-06-29T01:05:00.000Z|4107.T",
+              "netReturnPct": -9.366037735849059,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-06-29T01:50:00.000Z",
+              "exitPrice": 4635
+            },
+            {
+              "eventId": "2026-06-29|2026-06-29T02:10:00.000Z|8105.T",
+              "netReturnPct": 7.684806629834257,
+              "classification": "RECOVERED_TO_V4",
+              "dynamicState": "RECOVERED_CONTINUATION",
+              "exitTimestamp": "2026-06-29T06:25:00.000Z",
+              "exitPrice": 167
+            },
+            {
+              "eventId": "2026-06-29|2026-06-29T02:10:00.000Z|6620.T",
+              "netReturnPct": -2.6922764227642224,
+              "classification": "HORIZON_FALLBACK_V4",
+              "dynamicState": "DEFENSIVE_FALLBACK_TO_NATIVE_V4",
+              "exitTimestamp": "2026-06-29T02:30:00.000Z",
+              "exitPrice": 1010
+            },
+            {
+              "eventId": "2026-06-29|2026-06-29T04:55:00.000Z|4935.T",
+              "netReturnPct": -4.397826086956519,
+              "classification": "HORIZON_FALLBACK_V4",
+              "dynamicState": "DEFENSIVE_FALLBACK_TO_NATIVE_V4",
+              "exitTimestamp": "2026-06-29T05:15:00.000Z",
+              "exitPrice": 264
+            },
+            {
+              "eventId": "2026-06-30|2026-06-30T01:15:00.000Z|8918.T",
+              "netReturnPct": -0.05,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-06-30T06:25:00.000Z",
+              "exitPrice": 10
+            },
+            {
+              "eventId": "2026-07-01|2026-07-01T01:45:00.000Z|7012.T",
+              "netReturnPct": -1.6144897216663623,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-01T04:30:00.000Z",
+              "exitPrice": 2705.5
+            },
+            {
+              "eventId": "2026-07-01|2026-07-01T04:55:00.000Z|9256.T",
+              "netReturnPct": -0.05,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-01T06:25:00.000Z",
+              "exitPrice": 5340
+            },
+            {
+              "eventId": "2026-07-02|2026-07-02T01:20:00.000Z|4935.T",
+              "netReturnPct": -0.7166666666666599,
+              "classification": "HORIZON_FALLBACK_V4",
+              "dynamicState": "DEFENSIVE_FALLBACK_TO_NATIVE_V4",
+              "exitTimestamp": "2026-07-02T01:40:00.000Z",
+              "exitPrice": 302
+            },
+            {
+              "eventId": "2026-07-02|2026-07-02T02:25:00.000Z|2438.T",
+              "netReturnPct": 4.56538461538461,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-02T06:25:00.000Z",
+              "exitPrice": 372
+            },
+            {
+              "eventId": "2026-07-03|2026-07-03T01:05:00.000Z|8918.T",
+              "netReturnPct": -0.05,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-03T06:25:00.000Z",
+              "exitPrice": 11
+            },
+            {
+              "eventId": "2026-07-03|2026-07-03T06:00:00.000Z|9425.T",
+              "netReturnPct": 0.7597165991902799,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-03T06:25:00.000Z",
+              "exitPrice": 245
+            },
+            {
+              "eventId": "2026-07-06|2026-07-06T01:00:00.000Z|4446.T",
+              "netReturnPct": 9.28852140077821,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-06T06:25:00.000Z",
+              "exitPrice": 932
+            },
+            {
+              "eventId": "2026-07-06|2026-07-06T01:05:00.000Z|589A.T",
+              "netReturnPct": -0.44215686274509663,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-06T01:40:00.000Z",
+              "exitPrice": 1536
+            },
+            {
+              "eventId": "2026-07-06|2026-07-06T01:10:00.000Z|8918.T",
+              "netReturnPct": 9.040909090909093,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-06T06:25:00.000Z",
+              "exitPrice": 10
+            },
+            {
+              "eventId": "2026-07-08|2026-07-08T01:10:00.000Z|584A.T",
+              "netReturnPct": -0.17515644555695092,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-08T01:20:00.000Z",
+              "exitPrice": 4000
+            },
+            {
+              "eventId": "2026-07-08|2026-07-08T01:40:00.000Z|4935.T",
+              "netReturnPct": -3.907566765578646,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-08T05:50:00.000Z",
+              "exitPrice": 350
+            },
+            {
+              "eventId": "2026-07-08|2026-07-08T01:50:00.000Z|9425.T",
+              "netReturnPct": 7.701937984496127,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-08T06:25:00.000Z",
+              "exitPrice": 238
+            },
+            {
+              "eventId": "2026-07-10|2026-07-10T04:15:00.000Z|4935.T",
+              "netReturnPct": -0.05,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-10T06:25:00.000Z",
+              "exitPrice": 370
+            },
+            {
+              "eventId": "2026-07-10|2026-07-10T05:00:00.000Z|4833.T",
+              "netReturnPct": 1.6449152542372836,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-10T05:50:00.000Z",
+              "exitPrice": 58
+            },
+            {
+              "eventId": "2026-07-13|2026-07-13T01:25:00.000Z|4564.T",
+              "netReturnPct": -0.05,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-13T06:25:00.000Z",
+              "exitPrice": 20
+            },
+            {
+              "eventId": "2026-07-14|2026-07-14T04:35:00.000Z|4889.T",
+              "netReturnPct": 4.3944444444444395,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-14T06:25:00.000Z",
+              "exitPrice": 1634
+            },
+            {
+              "eventId": "2026-07-14|2026-07-14T06:05:00.000Z|6474.T",
+              "netReturnPct": -0.3503003003003046,
+              "classification": "RECOVERED_TO_V4",
+              "dynamicState": "RECOVERED_CONTINUATION",
+              "exitTimestamp": "2026-07-14T06:25:00.000Z",
+              "exitPrice": 6680
+            },
+            {
+              "eventId": "2026-07-15|2026-07-15T01:05:00.000Z|1407.T",
+              "netReturnPct": -3.6742603550295847,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-15T06:10:00.000Z",
+              "exitPrice": 2802
+            },
+            {
+              "eventId": "2026-07-15|2026-07-15T01:05:00.000Z|5240.T",
+              "netReturnPct": 9.376229508196726,
+              "classification": "RECOVERED_TO_V4",
+              "dynamicState": "RECOVERED_CONTINUATION",
+              "exitTimestamp": "2026-07-15T06:25:00.000Z",
+              "exitPrice": 221
+            },
+            {
+              "eventId": "2026-07-15|2026-07-15T01:30:00.000Z|276A.T",
+              "netReturnPct": -0.7027415143603222,
+              "classification": "RECOVERED_TO_V4",
+              "dynamicState": "RECOVERED_CONTINUATION",
+              "exitTimestamp": "2026-07-15T02:30:00.000Z",
+              "exitPrice": 3855
+            },
+            {
+              "eventId": "2026-07-16|2026-07-16T01:00:00.000Z|7138.T",
+              "netReturnPct": -0.05,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-16T06:25:00.000Z",
+              "exitPrice": 177
+            },
+            {
+              "eventId": "2026-07-21|2026-07-21T04:35:00.000Z|8918.T",
+              "netReturnPct": -0.05,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-21T06:25:00.000Z",
+              "exitPrice": 9
+            },
+            {
+              "eventId": "2026-07-22|2026-07-22T01:00:00.000Z|4597.T",
+              "netReturnPct": 3.3982758620689615,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-22T06:25:00.000Z",
+              "exitPrice": 28
+            },
+            {
+              "eventId": "2026-07-22|2026-07-22T01:30:00.000Z|2354.T",
+              "netReturnPct": -2.4579320113314482,
+              "classification": "DEFENSIVE_EXIT_BAR_5",
+              "dynamicState": "DEFENSIVE_EXIT",
+              "exitTimestamp": "2026-07-22T01:55:00.000Z",
+              "exitPrice": 1446
+            },
+            {
+              "eventId": "2026-07-22|2026-07-22T01:55:00.000Z|4894.T",
+              "netReturnPct": 1.0330324909747224,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-22T06:25:00.000Z",
+              "exitPrice": 4200
+            },
+            {
+              "eventId": "2026-07-22|2026-07-22T06:20:00.000Z|4733.T",
+              "netReturnPct": 4.528447794528195,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-22T06:25:00.000Z",
+              "exitPrice": 6836
+            },
+            {
+              "eventId": "2026-07-23|2026-07-23T01:20:00.000Z|584A.T",
+              "netReturnPct": -1.045024875621886,
+              "classification": "HORIZON_FALLBACK_V4",
+              "dynamicState": "DEFENSIVE_FALLBACK_TO_NATIVE_V4",
+              "exitTimestamp": "2026-07-23T01:35:00.000Z",
+              "exitPrice": 3045
+            },
+            {
+              "eventId": "2026-07-23|2026-07-23T06:10:00.000Z|5074.T",
+              "netReturnPct": 3.5557692307692292,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-23T06:25:00.000Z",
+              "exitPrice": 802
+            },
+            {
+              "eventId": "2026-07-24|2026-07-24T01:30:00.000Z|4424.T",
+              "netReturnPct": -0.30773195876288567,
+              "classification": "RECOVERED_TO_V4",
+              "dynamicState": "RECOVERED_CONTINUATION",
+              "exitTimestamp": "2026-07-24T05:45:00.000Z",
+              "exitPrice": 389
+            },
+            {
+              "eventId": "2026-07-24|2026-07-24T01:35:00.000Z|3907.T",
+              "netReturnPct": -8.094982698961946,
+              "classification": "DEFENSIVE_EXIT_BAR_5",
+              "dynamicState": "DEFENSIVE_EXIT",
+              "exitTimestamp": "2026-07-24T02:00:00.000Z",
+              "exitPrice": 1249
+            },
+            {
+              "eventId": "2026-07-24|2026-07-24T05:30:00.000Z|1723.T",
+              "netReturnPct": -0.9053971486761736,
+              "classification": "HORIZON_FALLBACK_V4",
+              "dynamicState": "DEFENSIVE_FALLBACK_TO_NATIVE_V4",
+              "exitTimestamp": "2026-07-24T05:40:00.000Z",
+              "exitPrice": 2476
+            },
+            {
+              "eventId": "2026-07-27|2026-07-27T06:15:00.000Z|3132.T",
+              "netReturnPct": 0.8553497942386856,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-27T06:25:00.000Z",
+              "exitPrice": 3612
+            },
+            {
+              "eventId": "2026-07-28|2026-07-28T01:15:00.000Z|8918.T",
+              "netReturnPct": 9.040909090909093,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-28T06:25:00.000Z",
+              "exitPrice": 10
+            },
+            {
+              "eventId": "2026-07-28|2026-07-28T01:50:00.000Z|3907.T",
+              "netReturnPct": 9.48237410071942,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-28T06:25:00.000Z",
+              "exitPrice": 1006
+            },
+            {
+              "eventId": "2026-07-29|2026-07-29T05:35:00.000Z|6301.T",
+              "netReturnPct": -0.7858045258919921,
+              "classification": "DEFENSIVE_EXIT_BAR_5",
+              "dynamicState": "DEFENSIVE_EXIT",
+              "exitTimestamp": "2026-07-29T06:00:00.000Z",
+              "exitPrice": 7256
+            },
+            {
+              "eventId": "2026-07-30|2026-07-30T06:05:00.000Z|1959.T",
+              "netReturnPct": -1.369847045762923,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-30T06:25:00.000Z",
+              "exitPrice": 8000
+            }
+          ]
+        },
+        "B": {
+          "label": "BLOCK_B",
+          "n": 34,
+          "netReturnPctPoints": 29.920959194621393,
+          "stateCounts": {
+            "DEFENSIVE_EXIT_BAR_5": 8,
+            "FIRST_BAR_NON_ADVERSE_V4": 20,
+            "RECOVERED_TO_V4": 5,
+            "HORIZON_FALLBACK_V4": 1
+          },
+          "perTrade": [
+            {
+              "eventId": "2026-07-31|2026-07-31T01:25:00.000Z|8473.T",
+              "netReturnPct": -1.2071356699647817,
+              "classification": "DEFENSIVE_EXIT_BAR_5",
+              "dynamicState": "DEFENSIVE_EXIT",
+              "exitTimestamp": "2026-07-31T01:50:00.000Z",
+              "exitPrice": 3016
+            },
+            {
+              "eventId": "2026-07-31|2026-07-31T04:05:00.000Z|1942.T",
+              "netReturnPct": 4.763359528487227,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-07-31T06:25:00.000Z",
+              "exitPrice": 5335
+            },
+            {
+              "eventId": "2026-07-31|2026-07-31T04:30:00.000Z|7282.T",
+              "netReturnPct": 0.5716696269982224,
+              "classification": "RECOVERED_TO_V4",
+              "dynamicState": "RECOVERED_CONTINUATION",
+              "exitTimestamp": "2026-07-31T06:25:00.000Z",
+              "exitPrice": 5595
+            },
+            {
+              "eventId": "2026-08-03|2026-08-03T01:00:00.000Z|278A.T",
+              "netReturnPct": -0.3195417789757348,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-08-03T01:25:00.000Z",
+              "exitPrice": 11160
+            },
+            {
+              "eventId": "2026-08-03|2026-08-03T01:40:00.000Z|8918.T",
+              "netReturnPct": 9.040909090909093,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-08-03T06:25:00.000Z",
+              "exitPrice": 10
+            },
+            {
+              "eventId": "2026-08-03|2026-08-03T05:05:00.000Z|7202.T",
+              "netReturnPct": 5.999458409973429,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-08-03T06:25:00.000Z",
+              "exitPrice": 2298.5
+            },
+            {
+              "eventId": "2026-08-03|2026-08-03T05:10:00.000Z|5703.T",
+              "netReturnPct": 1.5684573002754776,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-08-03T06:25:00.000Z",
+              "exitPrice": 2857
+            },
+            {
+              "eventId": "2026-08-04|2026-08-04T04:05:00.000Z|7272.T",
+              "netReturnPct": -3.488693990969077,
+              "classification": "DEFENSIVE_EXIT_BAR_5",
+              "dynamicState": "DEFENSIVE_EXIT",
+              "exitTimestamp": "2026-08-04T04:30:00.000Z",
+              "exitPrice": 1489
+            },
+            {
+              "eventId": "2026-08-04|2026-08-04T04:15:00.000Z|6522.T",
+              "netReturnPct": 0.5099104143337085,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-08-04T06:25:00.000Z",
+              "exitPrice": 1776
+            },
+            {
+              "eventId": "2026-08-04|2026-08-04T04:25:00.000Z|2897.T",
+              "netReturnPct": -0.6072441742654588,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-08-04T05:25:00.000Z",
+              "exitPrice": 2977.5
+            },
+            {
+              "eventId": "2026-08-04|2026-08-04T04:45:00.000Z|7011.T",
+              "netReturnPct": -0.2696729314132284,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-08-04T04:55:00.000Z",
+              "exitPrice": 4106
+            },
+            {
+              "eventId": "2026-08-04|2026-08-04T05:10:00.000Z|6302.T",
+              "netReturnPct": -0.7559654076950306,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-08-04T06:10:00.000Z",
+              "exitPrice": 5706
+            },
+            {
+              "eventId": "2026-08-04|2026-08-04T05:40:00.000Z|5232.T",
+              "netReturnPct": 3.0076175326970658,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-08-04T06:25:00.000Z",
+              "exitPrice": 5485
+            },
+            {
+              "eventId": "2026-08-05|2026-08-05T01:25:00.000Z|3907.T",
+              "netReturnPct": -1.7058675305975435,
+              "classification": "DEFENSIVE_EXIT_BAR_5",
+              "dynamicState": "DEFENSIVE_EXIT",
+              "exitTimestamp": "2026-08-05T01:50:00.000Z",
+              "exitPrice": 1412
+            },
+            {
+              "eventId": "2026-08-05|2026-08-05T04:05:00.000Z|1980.T",
+              "netReturnPct": -3.841821561338282,
+              "classification": "DEFENSIVE_EXIT_BAR_5",
+              "dynamicState": "DEFENSIVE_EXIT",
+              "exitTimestamp": "2026-08-05T04:30:00.000Z",
+              "exitPrice": 2792
+            },
+            {
+              "eventId": "2026-08-05|2026-08-05T05:05:00.000Z|9412.T",
+              "netReturnPct": -1.6696013289036638,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-08-05T05:25:00.000Z",
+              "exitPrice": 2447
+            },
+            {
+              "eventId": "2026-08-05|2026-08-05T05:25:00.000Z|1965.T",
+              "netReturnPct": 0.25674846625766695,
+              "classification": "RECOVERED_TO_V4",
+              "dynamicState": "RECOVERED_CONTINUATION",
+              "exitTimestamp": "2026-08-05T06:25:00.000Z",
+              "exitPrice": 6500
+            },
+            {
+              "eventId": "2026-08-05|2026-08-05T06:05:00.000Z|5702.T",
+              "netReturnPct": 0.8483717012914116,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-08-05T06:25:00.000Z",
+              "exitPrice": 1765
+            },
+            {
+              "eventId": "2026-08-06|2026-08-06T01:00:00.000Z|8918.T",
+              "netReturnPct": -0.05,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-08-06T06:25:00.000Z",
+              "exitPrice": 11
+            },
+            {
+              "eventId": "2026-08-06|2026-08-06T04:15:00.000Z|3402.T",
+              "netReturnPct": -1.4882740711146536,
+              "classification": "DEFENSIVE_EXIT_BAR_5",
+              "dynamicState": "DEFENSIVE_EXIT",
+              "exitTimestamp": "2026-08-06T04:40:00.000Z",
+              "exitPrice": 1269.5
+            },
+            {
+              "eventId": "2026-08-06|2026-08-06T04:55:00.000Z|5602.T",
+              "netReturnPct": -0.4605571847507372,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-08-06T06:00:00.000Z",
+              "exitPrice": 1712
+            },
+            {
+              "eventId": "2026-08-06|2026-08-06T06:20:00.000Z|4847.T",
+              "netReturnPct": 0.2652088258471242,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-08-06T06:25:00.000Z",
+              "exitPrice": 1265
+            },
+            {
+              "eventId": "2026-08-07|2026-08-07T01:10:00.000Z|5076.T",
+              "netReturnPct": 3.8916058394160626,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-08-07T06:25:00.000Z",
+              "exitPrice": 2632
+            },
+            {
+              "eventId": "2026-08-07|2026-08-07T02:10:00.000Z|3405.T",
+              "netReturnPct": 6.034017382906804,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-08-07T06:25:00.000Z",
+              "exitPrice": 1945
+            },
+            {
+              "eventId": "2026-08-07|2026-08-07T04:05:00.000Z|4114.T",
+              "netReturnPct": -2.8983606557377026,
+              "classification": "DEFENSIVE_EXIT_BAR_5",
+              "dynamicState": "DEFENSIVE_EXIT",
+              "exitTimestamp": "2026-08-07T04:30:00.000Z",
+              "exitPrice": 2509.5
+            },
+            {
+              "eventId": "2026-08-07|2026-08-07T04:10:00.000Z|4401.T",
+              "netReturnPct": -2.2200223713646547,
+              "classification": "DEFENSIVE_EXIT_BAR_5",
+              "dynamicState": "DEFENSIVE_EXIT",
+              "exitTimestamp": "2026-08-07T04:35:00.000Z",
+              "exitPrice": 4567
+            },
+            {
+              "eventId": "2026-08-07|2026-08-07T04:10:00.000Z|1952.T",
+              "netReturnPct": 1.2517356475300445,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-08-07T05:05:00.000Z",
+              "exitPrice": 3035
+            },
+            {
+              "eventId": "2026-08-07|2026-08-07T04:40:00.000Z|5830.T",
+              "netReturnPct": 1.0851909184726505,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-08-07T06:25:00.000Z",
+              "exitPrice": 3832
+            },
+            {
+              "eventId": "2026-08-07|2026-08-07T06:20:00.000Z|3907.T",
+              "netReturnPct": -0.3638731952291307,
+              "classification": "HORIZON_FALLBACK_V4",
+              "dynamicState": "DEFENSIVE_FALLBACK_TO_NATIVE_V4",
+              "exitTimestamp": "2026-08-07T06:25:00.000Z",
+              "exitPrice": 1598
+            },
+            {
+              "eventId": "2026-08-10|2026-08-10T01:10:00.000Z|3907.T",
+              "netReturnPct": 4.575928041119365,
+              "classification": "RECOVERED_TO_V4",
+              "dynamicState": "RECOVERED_CONTINUATION",
+              "exitTimestamp": "2026-08-10T06:25:00.000Z",
+              "exitPrice": 1670
+            },
+            {
+              "eventId": "2026-08-10|2026-08-10T01:35:00.000Z|3103.T",
+              "netReturnPct": -3.5045454545454433,
+              "classification": "DEFENSIVE_EXIT_BAR_5",
+              "dynamicState": "DEFENSIVE_EXIT",
+              "exitTimestamp": "2026-08-10T02:00:00.000Z",
+              "exitPrice": 1138
+            },
+            {
+              "eventId": "2026-08-10|2026-08-10T04:15:00.000Z|4044.T",
+              "netReturnPct": 3.0026315789473736,
+              "classification": "FIRST_BAR_NON_ADVERSE_V4",
+              "dynamicState": "NON_ADVERSE_CONTINUATION",
+              "exitTimestamp": "2026-08-10T06:25:00.000Z",
+              "exitPrice": 4605
+            },
+            {
+              "eventId": "2026-08-10|2026-08-10T06:15:00.000Z|4889.T",
+              "netReturnPct": 5.319127516778516,
+              "classification": "RECOVERED_TO_V4",
+              "dynamicState": "RECOVERED_CONTINUATION",
+              "exitTimestamp": "2026-08-10T06:25:00.000Z",
+              "exitPrice": 1256
+            },
+            {
+              "eventId": "2026-08-12|2026-08-12T01:40:00.000Z|3323.T",
+              "netReturnPct": 2.7801886792452826,
+              "classification": "RECOVERED_TO_V4",
+              "dynamicState": "RECOVERED_CONTINUATION",
+              "exitTimestamp": "2026-08-12T06:25:00.000Z",
+              "exitPrice": 103
+            }
+          ]
+        }
+      },
+      "inputHashes": {
+        "opportunitySha256": "df2d58917d714ee58d0df9668c97ebb8562fd01c5d828211b55e630eb0109340",
+        "tradeOutcomeSha256": "799ecd715c0bb90201de2aee86590d3bed88236b350cc3d0fe6c02c500308518",
+        "markSha256": "c360745a87c9ea8d6175e91a66657ef898da8980cadfa9f521abb55575d06a94"
+      },
+      "arms": {
+        "MAX_5_V5": {
+          "initialEquityJpy": 1000000,
+          "finalEquityJpy": 1214425.715,
+          "netPnlJpy": 214425.715,
+          "returnPct": 21.442571,
+          "profitFactor": 4.027381,
+          "maxDrawdownPct": 4.273109,
+          "worstDay": {
+            "sessionDate": "2026-07-24",
+            "equityJpy": 1127882.115,
+            "returnPct": -0.874888
+          },
+          "eligible": 85,
+          "accepted": 49,
+          "belowLotSkips": 36,
+          "cashSkips": 0,
+          "positionLimitSkips": 0,
+          "winRate": 0.489796,
+          "averageTradePnlJpy": 4376.035,
+          "medianTradePnlJpy": -92.5,
+          "averageWinJpy": 11885.604167,
+          "averageLossJpy": -2833.1514,
+          "averageWinLossRatio": 4.195188,
+          "averageHoldingMinutes": 162.142857,
+          "averageUtilization": 0.098941,
+          "maximumUtilization": 0.542978,
+          "averageGrossExposureJpy": 109717.76662,
+          "maximumGrossExposureJpy": 567200,
+          "averageAbsoluteNetExposureJpy": 109488.334488,
+          "maximumAbsoluteNetExposureJpy": 567200,
+          "maximumConcurrentPositions": 3,
+          "longCapitalShare": 0.104678,
+          "shortCapitalShare": 0.895322,
+          "top1ProfitContribution": {
+            "symbol": "8918.T",
+            "pnlJpy": 59927.95,
+            "shareOfPositiveProfit": 0.219999
+          },
+          "top3ProfitContribution": {
+            "pnlJpy": 112934.25,
+            "shareOfPositiveProfit": 0.414589,
+            "symbols": [
+              "8918.T",
+              "5240.T",
+              "5074.T"
+            ]
+          },
+          "top1CapitalConcentration": {
+            "symbol": "8918.T",
+            "share": 0.1655237619485087,
+            "notionalJpy": 1544100
+          },
+          "top3CapitalConcentration": 0.334992,
+          "ledgerAudit": {
+            "status": "LEDGER_INVARIANTS_PASS",
+            "eventCount": 2470,
+            "violationCount": 0,
+            "checks": [
+              "availableCashNonnegative",
+              "shortSaleProceedsNotReused",
+              "unrealizedGainsExcludedFromBuyingPower",
+              "lockedShortCollateralEqualsReferenceNotional",
+              "entryRequiredCashWithinBuyingPower",
+              "exitReleaseBeforeSameTimestampEntry",
+              "grossExposureWithinCurrentEquity",
+              "absoluteNetExposureWithinCurrentEquity",
+              "costsChargedExactlyOnce",
+              "positionLimitRespected",
+              "quantityUnitValid",
+              "realizedEquityReconciles"
+            ],
+            "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+            "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+            "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
+          }
+        },
+        "MAX_10_V5": {
+          "initialEquityJpy": 1000000,
+          "finalEquityJpy": 1065637.505,
+          "netPnlJpy": 65637.505,
+          "returnPct": 6.56375,
+          "profitFactor": 5.188792,
+          "maxDrawdownPct": 2.096278,
+          "worstDay": {
+            "sessionDate": "2026-06-24",
+            "equityJpy": 1005408.705,
+            "returnPct": -0.054684
+          },
+          "eligible": 85,
+          "accepted": 28,
+          "belowLotSkips": 56,
+          "cashSkips": 1,
+          "positionLimitSkips": 0,
+          "winRate": 0.5,
+          "averageTradePnlJpy": 2344.196607,
+          "medianTradePnlJpy": 356.8,
+          "averageWinJpy": 5807.664286,
+          "averageLossJpy": -1119.271071,
+          "averageWinLossRatio": 5.188792,
+          "averageHoldingMinutes": 207.857143,
+          "averageUtilization": 0.037274,
+          "maximumUtilization": 0.22243,
+          "averageGrossExposureJpy": 38476.790166,
+          "maximumGrossExposureJpy": 224300,
+          "averageAbsoluteNetExposureJpy": 38476.790166,
+          "maximumAbsoluteNetExposureJpy": 224300,
+          "maximumConcurrentPositions": 2,
+          "longCapitalShare": 0.111062,
+          "shortCapitalShare": 0.888938,
+          "top1ProfitContribution": {
+            "symbol": "8918.T",
+            "pnlJpy": 27739.8,
+            "shareOfPositiveProfit": 0.342253
+          },
+          "top3ProfitContribution": {
+            "pnlJpy": 48915.45,
+            "shareOfPositiveProfit": 0.603517,
+            "symbols": [
+              "8918.T",
+              "5240.T",
+              "8105.T"
+            ]
+          },
+          "top1CapitalConcentration": {
+            "symbol": "8918.T",
+            "share": 0.26830639965139536,
+            "notionalJpy": 720400
+          },
+          "top3CapitalConcentration": 0.479965,
+          "ledgerAudit": {
+            "status": "LEDGER_INVARIANTS_PASS",
+            "eventCount": 2470,
+            "violationCount": 0,
+            "checks": [
+              "availableCashNonnegative",
+              "shortSaleProceedsNotReused",
+              "unrealizedGainsExcludedFromBuyingPower",
+              "lockedShortCollateralEqualsReferenceNotional",
+              "entryRequiredCashWithinBuyingPower",
+              "exitReleaseBeforeSameTimestampEntry",
+              "grossExposureWithinCurrentEquity",
+              "absoluteNetExposureWithinCurrentEquity",
+              "costsChargedExactlyOnce",
+              "positionLimitRespected",
+              "quantityUnitValid",
+              "realizedEquityReconciles"
+            ],
+            "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+            "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+            "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
+          }
+        },
+        "MAX_3_V5": {
+          "initialEquityJpy": 1000000,
+          "finalEquityJpy": 1350919.8,
+          "netPnlJpy": 350919.8,
+          "returnPct": 35.09198,
+          "profitFactor": 2.832755,
+          "maxDrawdownPct": 6.379147,
+          "worstDay": {
+            "sessionDate": "2026-07-24",
+            "equityJpy": 1203722.6,
+            "returnPct": -2.549371
+          },
+          "eligible": 85,
+          "accepted": 64,
+          "belowLotSkips": 19,
+          "cashSkips": 2,
+          "positionLimitSkips": 0,
+          "winRate": 0.453125,
+          "averageTradePnlJpy": 5483.121875,
+          "medianTradePnlJpy": -188.5,
+          "averageWinJpy": 18703.138793,
+          "averageLossJpy": -5470.606429,
+          "averageWinLossRatio": 3.418842,
+          "averageHoldingMinutes": 138.984375,
+          "averageUtilization": 0.181997,
+          "maximumUtilization": 0.922396,
+          "averageGrossExposureJpy": 216426.350416,
+          "maximumGrossExposureJpy": 1213950,
+          "averageAbsoluteNetExposureJpy": 213658.552632,
+          "maximumAbsoluteNetExposureJpy": 1089250,
+          "maximumConcurrentPositions": 4,
+          "longCapitalShare": 0.099793,
+          "shortCapitalShare": 0.900207,
+          "top1ProfitContribution": {
+            "symbol": "8918.T",
+            "pnlJpy": 106432.3,
+            "shareOfPositiveProfit": 0.210722
+          },
+          "top3ProfitContribution": {
+            "pnlJpy": 207869.3,
+            "shareOfPositiveProfit": 0.411555,
+            "symbols": [
+              "8918.T",
+              "5074.T",
+              "5240.T"
+            ]
+          },
+          "top1CapitalConcentration": {
+            "symbol": "8918.T",
+            "share": 0.12343640006498077,
+            "notionalJpy": 2735400
+          },
+          "top3CapitalConcentration": 0.267423,
+          "ledgerAudit": {
+            "status": "LEDGER_INVARIANTS_PASS",
+            "eventCount": 2470,
+            "violationCount": 0,
+            "checks": [
+              "availableCashNonnegative",
+              "shortSaleProceedsNotReused",
+              "unrealizedGainsExcludedFromBuyingPower",
+              "lockedShortCollateralEqualsReferenceNotional",
+              "entryRequiredCashWithinBuyingPower",
+              "exitReleaseBeforeSameTimestampEntry",
+              "grossExposureWithinCurrentEquity",
+              "absoluteNetExposureWithinCurrentEquity",
+              "costsChargedExactlyOnce",
+              "positionLimitRespected",
+              "quantityUnitValid",
+              "realizedEquityReconciles"
+            ],
+            "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+            "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+            "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
+          }
+        },
+        "MAX_5_V4": {
+          "initialEquityJpy": 1000000,
+          "finalEquityJpy": 1212126.265,
+          "netPnlJpy": 212126.265,
+          "returnPct": 21.212626,
+          "profitFactor": 3.900744,
+          "maxDrawdownPct": 4.273109,
+          "worstDay": {
+            "sessionDate": "2026-07-24",
+            "equityJpy": 1127882.115,
+            "returnPct": -0.874888
+          },
+          "eligible": 85,
+          "accepted": 49,
+          "belowLotSkips": 36,
+          "cashSkips": 0,
+          "positionLimitSkips": 0,
+          "winRate": 0.489796,
+          "averageTradePnlJpy": 4329.107449,
+          "medianTradePnlJpy": -92.5,
+          "averageWinJpy": 11885.604167,
+          "averageLossJpy": -2925.1294,
+          "averageWinLossRatio": 4.063275,
+          "averageHoldingMinutes": 165.918367,
+          "averageUtilization": 0.100529,
+          "maximumUtilization": 0.542978,
+          "averageGrossExposureJpy": 111537.83241,
+          "maximumGrossExposureJpy": 567200,
+          "averageAbsoluteNetExposureJpy": 111308.400277,
+          "maximumAbsoluteNetExposureJpy": 567200,
+          "maximumConcurrentPositions": 3,
+          "longCapitalShare": 0.104691,
+          "shortCapitalShare": 0.895309,
+          "top1ProfitContribution": {
+            "symbol": "8918.T",
+            "pnlJpy": 59928.5,
+            "shareOfPositiveProfit": 0.220649
+          },
+          "top3ProfitContribution": {
+            "pnlJpy": 112934.8,
+            "shareOfPositiveProfit": 0.415812,
+            "symbols": [
+              "8918.T",
+              "5240.T",
+              "5074.T"
+            ]
+          },
+          "top1CapitalConcentration": {
+            "symbol": "8918.T",
+            "share": 0.16542535114023416,
+            "notionalJpy": 1543000
+          },
+          "top3CapitalConcentration": 0.334914,
+          "ledgerAudit": {
+            "status": "LEDGER_INVARIANTS_PASS",
+            "eventCount": 2470,
+            "violationCount": 0,
+            "checks": [
+              "availableCashNonnegative",
+              "shortSaleProceedsNotReused",
+              "unrealizedGainsExcludedFromBuyingPower",
+              "lockedShortCollateralEqualsReferenceNotional",
+              "entryRequiredCashWithinBuyingPower",
+              "exitReleaseBeforeSameTimestampEntry",
+              "grossExposureWithinCurrentEquity",
+              "absoluteNetExposureWithinCurrentEquity",
+              "costsChargedExactlyOnce",
+              "positionLimitRespected",
+              "quantityUnitValid",
+              "realizedEquityReconciles"
+            ],
+            "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+            "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+            "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
+          }
+        }
+      },
+      "attribution": {
+        "MAX_10_TO_MAX_5": {
+          "leftArm": "MAX_10_V5",
+          "rightArm": "MAX_5_V5",
+          "totalDeltaJpy": 148788.21,
+          "totalReturnDeltaPctPoints": 14.878821,
+          "positionSizeEffect": {
+            "commonTradeCount": 28,
+            "pnlDeltaJpy": 80846.26
+          },
+          "newTradeEffect": {
+            "count": 21,
+            "pnlJpy": 67941.95,
+            "eventIds": [
+              "2026-06-23|2026-06-23T01:55:00.000Z|6217.T",
+              "2026-06-24|2026-06-24T01:35:00.000Z|5074.T",
+              "2026-06-29|2026-06-29T02:10:00.000Z|6620.T",
+              "2026-07-06|2026-07-06T01:00:00.000Z|4446.T",
+              "2026-07-06|2026-07-06T01:05:00.000Z|589A.T",
+              "2026-07-14|2026-07-14T04:35:00.000Z|4889.T",
+              "2026-07-22|2026-07-22T01:30:00.000Z|2354.T",
+              "2026-07-24|2026-07-24T01:35:00.000Z|3907.T",
+              "2026-07-28|2026-07-28T01:50:00.000Z|3907.T",
+              "2026-08-04|2026-08-04T04:05:00.000Z|7272.T",
+              "2026-08-04|2026-08-04T04:15:00.000Z|6522.T",
+              "2026-08-05|2026-08-05T01:25:00.000Z|3907.T",
+              "2026-08-05|2026-08-05T06:05:00.000Z|5702.T",
+              "2026-08-06|2026-08-06T04:15:00.000Z|3402.T",
+              "2026-08-06|2026-08-06T04:55:00.000Z|5602.T",
+              "2026-08-06|2026-08-06T06:20:00.000Z|4847.T",
+              "2026-08-07|2026-08-07T02:10:00.000Z|3405.T",
+              "2026-08-07|2026-08-07T06:20:00.000Z|3907.T",
+              "2026-08-10|2026-08-10T01:10:00.000Z|3907.T",
+              "2026-08-10|2026-08-10T01:35:00.000Z|3103.T",
+              "2026-08-10|2026-08-10T06:15:00.000Z|4889.T"
+            ]
+          },
+          "cashRecyclingEffect": {
+            "definition": "Execution-set difference with a cash-insufficient rejection on one side and a prior cash release on the accepted side; descriptive cash-path subset, not an extra additive term.",
+            "count": 0,
+            "pnlJpy": 0,
+            "eventIds": []
+          },
+          "otherExecutionSetEffect": {
+            "count": 0,
+            "pnlJpy": 0,
+            "eventIds": []
+          },
+          "executionSetDifference": {
+            "rightOnlyCount": 21,
+            "leftOnlyCount": 0,
+            "totalPnlContributionJpy": 67941.95,
+            "rightOnlyEventIds": [
+              "2026-06-23|2026-06-23T01:55:00.000Z|6217.T",
+              "2026-06-24|2026-06-24T01:35:00.000Z|5074.T",
+              "2026-06-29|2026-06-29T02:10:00.000Z|6620.T",
+              "2026-07-06|2026-07-06T01:00:00.000Z|4446.T",
+              "2026-07-06|2026-07-06T01:05:00.000Z|589A.T",
+              "2026-07-14|2026-07-14T04:35:00.000Z|4889.T",
+              "2026-07-22|2026-07-22T01:30:00.000Z|2354.T",
+              "2026-07-24|2026-07-24T01:35:00.000Z|3907.T",
+              "2026-07-28|2026-07-28T01:50:00.000Z|3907.T",
+              "2026-08-04|2026-08-04T04:05:00.000Z|7272.T",
+              "2026-08-04|2026-08-04T04:15:00.000Z|6522.T",
+              "2026-08-05|2026-08-05T01:25:00.000Z|3907.T",
+              "2026-08-05|2026-08-05T06:05:00.000Z|5702.T",
+              "2026-08-06|2026-08-06T04:15:00.000Z|3402.T",
+              "2026-08-06|2026-08-06T04:55:00.000Z|5602.T",
+              "2026-08-06|2026-08-06T06:20:00.000Z|4847.T",
+              "2026-08-07|2026-08-07T02:10:00.000Z|3405.T",
+              "2026-08-07|2026-08-07T06:20:00.000Z|3907.T",
+              "2026-08-10|2026-08-10T01:10:00.000Z|3907.T",
+              "2026-08-10|2026-08-10T01:35:00.000Z|3103.T",
+              "2026-08-10|2026-08-10T06:15:00.000Z|4889.T"
+            ],
+            "leftOnlyEventIds": []
+          },
+          "recomposition": {
+            "formula": "POSITION_SIZE + NEW_TRADE_NON_RECYCLING + CASH_RECYCLING + OTHER_EXECUTION_SET",
+            "pnlJpy": 148788.21,
+            "matchesTotal": true
+          }
+        },
+        "MAX_5_TO_MAX_3": {
+          "leftArm": "MAX_5_V5",
+          "rightArm": "MAX_3_V5",
+          "totalDeltaJpy": 136494.085,
+          "totalReturnDeltaPctPoints": 13.649409,
+          "positionSizeEffect": {
+            "commonTradeCount": 49,
+            "pnlDeltaJpy": 140161.96
+          },
+          "newTradeEffect": {
+            "count": 15,
+            "pnlJpy": -3667.875,
+            "eventIds": [
+              "2026-07-01|2026-07-01T01:45:00.000Z|7012.T",
+              "2026-07-15|2026-07-15T01:30:00.000Z|276A.T",
+              "2026-07-23|2026-07-23T01:20:00.000Z|584A.T",
+              "2026-07-24|2026-07-24T05:30:00.000Z|1723.T",
+              "2026-07-27|2026-07-27T06:15:00.000Z|3132.T",
+              "2026-07-31|2026-07-31T01:25:00.000Z|8473.T",
+              "2026-08-03|2026-08-03T05:05:00.000Z|7202.T",
+              "2026-08-03|2026-08-03T05:10:00.000Z|5703.T",
+              "2026-08-04|2026-08-04T04:25:00.000Z|2897.T",
+              "2026-08-04|2026-08-04T04:45:00.000Z|7011.T",
+              "2026-08-05|2026-08-05T04:05:00.000Z|1980.T",
+              "2026-08-05|2026-08-05T05:05:00.000Z|9412.T",
+              "2026-08-07|2026-08-07T01:10:00.000Z|5076.T",
+              "2026-08-07|2026-08-07T04:05:00.000Z|4114.T",
+              "2026-08-07|2026-08-07T04:10:00.000Z|1952.T"
+            ]
+          },
+          "cashRecyclingEffect": {
+            "definition": "Execution-set difference with a cash-insufficient rejection on one side and a prior cash release on the accepted side; descriptive cash-path subset, not an extra additive term.",
+            "count": 0,
+            "pnlJpy": 0,
+            "eventIds": []
+          },
+          "otherExecutionSetEffect": {
+            "count": 0,
+            "pnlJpy": 0,
+            "eventIds": []
+          },
+          "executionSetDifference": {
+            "rightOnlyCount": 15,
+            "leftOnlyCount": 0,
+            "totalPnlContributionJpy": -3667.875,
+            "rightOnlyEventIds": [
+              "2026-07-01|2026-07-01T01:45:00.000Z|7012.T",
+              "2026-07-15|2026-07-15T01:30:00.000Z|276A.T",
+              "2026-07-23|2026-07-23T01:20:00.000Z|584A.T",
+              "2026-07-24|2026-07-24T05:30:00.000Z|1723.T",
+              "2026-07-27|2026-07-27T06:15:00.000Z|3132.T",
+              "2026-07-31|2026-07-31T01:25:00.000Z|8473.T",
+              "2026-08-03|2026-08-03T05:05:00.000Z|7202.T",
+              "2026-08-03|2026-08-03T05:10:00.000Z|5703.T",
+              "2026-08-04|2026-08-04T04:25:00.000Z|2897.T",
+              "2026-08-04|2026-08-04T04:45:00.000Z|7011.T",
+              "2026-08-05|2026-08-05T04:05:00.000Z|1980.T",
+              "2026-08-05|2026-08-05T05:05:00.000Z|9412.T",
+              "2026-08-07|2026-08-07T01:10:00.000Z|5076.T",
+              "2026-08-07|2026-08-07T04:05:00.000Z|4114.T",
+              "2026-08-07|2026-08-07T04:10:00.000Z|1952.T"
+            ],
+            "leftOnlyEventIds": []
+          },
+          "recomposition": {
+            "formula": "POSITION_SIZE + NEW_TRADE_NON_RECYCLING + CASH_RECYCLING + OTHER_EXECUTION_SET",
+            "pnlJpy": 136494.085,
+            "matchesTotal": true
+          }
+        },
+        "MAX_5_V4_TO_V5": {
+          "label": "MAX_5_V4_TO_V5",
+          "leftArm": "MAX_5_V4",
+          "rightArm": "MAX_5_V5",
+          "totalDeltaJpy": 2299.45,
+          "commonTrades": {
+            "count": 49,
+            "deltaJpy": 2299.45
+          },
+          "leftOnlyTrades": {
+            "count": 0,
+            "contributionToDeltaJpy": 0,
+            "eventIds": []
+          },
+          "rightOnlyTrades": {
+            "count": 0,
+            "contributionToDeltaJpy": 0,
+            "eventIds": []
+          },
+          "earlierExitCapitalReleaseAdditionalTrades": {
+            "count": 0,
+            "pnlJpy": 0,
+            "eventIds": []
+          },
+          "recomposed": true,
+          "defensiveTradesAccepted": 6,
+          "changedOutcomeCount": 5,
+          "changedOutcomeEventIds": [
+            "2026-08-04|2026-08-04T04:05:00.000Z|7272.T",
+            "2026-08-05|2026-08-05T01:25:00.000Z|3907.T",
+            "2026-08-06|2026-08-06T01:00:00.000Z|8918.T",
+            "2026-08-06|2026-08-06T04:15:00.000Z|3402.T",
+            "2026-08-10|2026-08-10T01:35:00.000Z|3103.T"
+          ],
+          "earlyCashReleaseCount": 4,
+          "earlyCashReleaseEventIds": [
+            "2026-08-04|2026-08-04T04:05:00.000Z|7272.T",
+            "2026-08-05|2026-08-05T01:25:00.000Z|3907.T",
+            "2026-08-06|2026-08-06T04:15:00.000Z|3402.T",
+            "2026-08-10|2026-08-10T01:35:00.000Z|3103.T"
+          ],
+          "additionalEntriesCausedByRecycling": 0,
+          "additionalEntryPnlJpy": 0
+        }
+      },
+      "dayConcentration": {
+        "topPositiveDay": {
+          "sessionDate": "2026-07-28",
+          "pnlJpy": 41476.05,
+          "shareOfPositiveDayProfit": 0.177124
+        },
+        "top3PositiveDayShare": 0.453724
+      }
+    }
+  },
+  "leaveOneBlockDiagnostic": {
+    "A+OLD20": {
+      "role": "DESCRIPTIVE_LEAVE_ONE_BLOCK_DIAGNOSTIC",
+      "sessions": 50,
+      "dateRange": [
+        "2026-06-18",
+        "2026-09-09"
+      ],
+      "eligible": 86,
+      "MAX_5_V5": {
+        "initialEquityJpy": 1000000,
+        "finalEquityJpy": 1421665.215,
+        "netPnlJpy": 421665.215,
+        "returnPct": 42.166522,
+        "profitFactor": 3.868317,
+        "maxDrawdownPct": 5.545163,
+        "worstDay": {
+          "sessionDate": "2026-08-27",
+          "equityJpy": 1180124.765,
+          "returnPct": -1.700899
+        },
+        "eligible": 86,
+        "accepted": 61,
+        "belowLotSkips": 25,
+        "cashSkips": 0,
+        "positionLimitSkips": 0,
+        "winRate": 0.491803,
+        "averageTradePnlJpy": 6912.544508,
+        "medianTradePnlJpy": -88.95,
+        "averageWinJpy": 18955.77,
+        "averageLossJpy": -4742.189839,
+        "averageWinLossRatio": 3.997261,
+        "averageHoldingMinutes": 165.327869,
+        "averageUtilization": 0.095806,
+        "maximumUtilization": 0.71604,
+        "averageGrossExposureJpy": 110075.45,
+        "maximumGrossExposureJpy": 901700,
+        "averageAbsoluteNetExposureJpy": 99793.239474,
+        "maximumAbsoluteNetExposureJpy": 861000,
+        "maximumConcurrentPositions": 4,
+        "longCapitalShare": 0.154667,
+        "shortCapitalShare": 0.845333,
+        "top1ProfitContribution": {
+          "symbol": "4598.T",
+          "pnlJpy": 87945.3,
+          "shareOfPositiveProfit": 0.159047
+        },
+        "top3ProfitContribution": {
+          "pnlJpy": 230221.7,
+          "shareOfPositiveProfit": 0.416351,
+          "symbols": [
+            "4598.T",
+            "8995.T",
+            "8918.T"
+          ]
+        },
+        "top1CapitalConcentration": {
+          "symbol": "8918.T",
+          "share": 0.12424330076648045,
+          "notionalJpy": 1559200
+        },
+        "top3CapitalConcentration": 0.226159,
+        "ledgerAudit": {
+          "status": "LEDGER_INVARIANTS_PASS",
+          "eventCount": 3250,
+          "violationCount": 0,
+          "checks": [
+            "availableCashNonnegative",
+            "shortSaleProceedsNotReused",
+            "unrealizedGainsExcludedFromBuyingPower",
+            "lockedShortCollateralEqualsReferenceNotional",
+            "entryRequiredCashWithinBuyingPower",
+            "exitReleaseBeforeSameTimestampEntry",
+            "grossExposureWithinCurrentEquity",
+            "absoluteNetExposureWithinCurrentEquity",
+            "costsChargedExactlyOnce",
+            "positionLimitRespected",
+            "quantityUnitValid",
+            "realizedEquityReconciles"
+          ],
+          "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+          "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+          "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
+        }
+      }
+    },
+    "B+OLD20": {
+      "role": "DESCRIPTIVE_LEAVE_ONE_BLOCK_DIAGNOSTIC",
+      "sessions": 28,
+      "dateRange": [
+        "2026-07-31",
+        "2026-09-09"
+      ],
+      "eligible": 69,
+      "MAX_5_V5": {
+        "initialEquityJpy": 1000000,
+        "finalEquityJpy": 1254800.35,
+        "netPnlJpy": 254800.35,
+        "returnPct": 25.480035,
+        "profitFactor": 3.596567,
+        "maxDrawdownPct": 5.39003,
+        "worstDay": {
+          "sessionDate": "2026-08-27",
+          "equityJpy": 1040189.1,
+          "returnPct": -1.65482
+        },
+        "eligible": 69,
+        "accepted": 41,
+        "belowLotSkips": 27,
+        "cashSkips": 1,
+        "positionLimitSkips": 0,
+        "winRate": 0.512195,
+        "averageTradePnlJpy": 6214.642683,
+        "medianTradePnlJpy": 336.55,
+        "averageWinJpy": 16806.192857,
+        "averageLossJpy": -4906.485,
+        "averageWinLossRatio": 3.425302,
+        "averageHoldingMinutes": 133.780488,
+        "averageUtilization": 0.090257,
+        "maximumUtilization": 0.711483,
+        "averageGrossExposureJpy": 97387.241541,
+        "maximumGrossExposureJpy": 803600,
+        "averageAbsoluteNetExposureJpy": 79475.775376,
+        "maximumAbsoluteNetExposureJpy": 803600,
+        "maximumConcurrentPositions": 4,
+        "longCapitalShare": 0.148707,
+        "shortCapitalShare": 0.851293,
+        "top1ProfitContribution": {
+          "symbol": "8995.T",
+          "pnlJpy": 79056,
+          "shareOfPositiveProfit": 0.229296
+        },
+        "top3ProfitContribution": {
+          "pnlJpy": 191529.9,
+          "shareOfPositiveProfit": 0.555519,
+          "symbols": [
+            "8995.T",
+            "4598.T",
+            "8918.T"
+          ]
+        },
+        "top1CapitalConcentration": {
+          "symbol": "8918.T",
+          "share": 0.11037030122811463,
+          "notionalJpy": 827700
+        },
+        "top3CapitalConcentration": 0.238556,
+        "ledgerAudit": {
+          "status": "LEDGER_INVARIANTS_PASS",
+          "eventCount": 1820,
+          "violationCount": 0,
+          "checks": [
+            "availableCashNonnegative",
+            "shortSaleProceedsNotReused",
+            "unrealizedGainsExcludedFromBuyingPower",
+            "lockedShortCollateralEqualsReferenceNotional",
+            "entryRequiredCashWithinBuyingPower",
+            "exitReleaseBeforeSameTimestampEntry",
+            "grossExposureWithinCurrentEquity",
+            "absoluteNetExposureWithinCurrentEquity",
+            "costsChargedExactlyOnce",
+            "positionLimitRespected",
+            "quantityUnitValid",
+            "realizedEquityReconciles"
+          ],
+          "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+          "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+          "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
+        }
+      }
+    }
+  },
+  "robustnessQuestions": {
+    "positiveReturnEveryBlock": true,
+    "profitFactorAboveOneEveryBlock": true,
+    "drawdownToReturnByBlock": {
+      "A": 0.252312,
+      "B": 0.915314,
+      "OLD20": 0.24121
+    },
+    "max5ReturnAboveMax10EveryBlock": true,
+    "max5AcceptedAtLeastMax10EveryBlock": true,
+    "shortHeavyEveryBlock": true,
+    "v5PositiveDeltaEveryBlock": false,
+    "max3ReturnAboveMax5EveryBlock": true,
+    "max3RiskCostByBlock": {
+      "A": {
+        "returnDeltaPctPoints": 10.541463,
+        "maxDrawdownDeltaPctPoints": 2.106038,
+        "maximumUtilizationDelta": 0.360617
+      },
+      "B": {
+        "returnDeltaPctPoints": 1.961285,
+        "maxDrawdownDeltaPctPoints": 1.107068,
+        "maximumUtilizationDelta": 0.470696
+      },
+      "OLD20": {
+        "returnDeltaPctPoints": 18.9826,
+        "maxDrawdownDeltaPctPoints": 3.341946,
+        "maximumUtilizationDelta": 0.266384
+      }
+    },
+    "profitByBlock": {
+      "A": 169358.165,
+      "B": 26135.7,
+      "OLD20": 225388.4
+    }
+  },
+  "aPlusBReferenceParity": "PASS",
+  "interpretation": {
+    "retuningPerformed": false,
+    "winnerSelectionPerformed": false,
+    "max3Promoted": false,
+    "oosClaim": false,
+    "validationClaim": false,
+    "finalPass": false,
+    "productionReady": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

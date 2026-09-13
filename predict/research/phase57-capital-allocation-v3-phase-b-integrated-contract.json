@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "schemaId": "PHASE57_CAPITAL_ALLOCATION_V3_PHASE_B_INTEGRATED_DEVELOPMENT_V1",
+  "status": "HISTORICAL_INTEGRATED_DEVELOPMENT_ONLY",
+  "purpose": "Connect frozen Minimal Hybrid v1 x MSH-Entry v1 x frozen EXIT v4/bar5 v5 with frozen Capital Allocation v3 policies on already-exposed Block A+B data using one event-time cash ledger.",
+  "upstream": {
+    "selectorId": "FROZEN_MINIMAL_HYBRID_V1",
+    "selectorModelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
+    "selectorFreezeSHA": "a744d599e430d23efe4dea6600e418d3410d8a18df5055b35e1cc71432bf64da",
+    "entryId": "MSH_ENTRY_V1",
+    "entryModelSha256": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a",
+    "entryThresholdStrictlyGreaterThan": 0.60,
+    "repeatEntryAllowed": false
+  },
+  "exit": {
+    "baseline": "FROZEN_EXIT_V4",
+    "v4PolicySha256": "2d512dd810d057807bc59a0138a3db98035e57ff2c23c186ba096beeb6be26cb",
+    "challenger": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+    "v5Status": "DEVELOPMENT_FINAL_SELECTED_NOT_VALIDATED",
+    "recoveryHorizonBars": 5,
+    "roundTripCostPct": 0.05,
+    "bar5AdapterRequired": true,
+    "legacyBar6DynamicStateFunctionMayNotBeUsedAsBar5": true
+  },
+  "allocationPolicies": ["V3_0_EQUAL", "V3_A_RANK", "V3_B_RISK"],
+  "ledger": {
+    "source": "predict/portfolio/phase57-p25-lane-c-portfolio-simulator.js",
+    "initialCapitalJpy": 1000000,
+    "baseProfile": "MAX_10",
+    "maximumConcurrentPositions": 10,
+    "lotSizeShares": 100,
+    "cashConstraint": true,
+    "eventOrder": ["PRICE_UPDATE", "EXIT", "CASH_RELEASE", "ENTRY", "MARK_TO_MARKET"],
+    "shortAccounting": "FULLY_CASH_COLLATERALIZED_PROCEEDS_NOT_REUSABLE",
+    "unrealizedPnlMayIncreaseBuyingPower": false,
+    "roundTripCostPct": 0.05,
+    "slippageBps": 0,
+    "v3SetBudgetBridge": {
+      "status": "EXPLICIT_DEVELOPMENT_ASSUMPTION",
+      "formula": "CURRENT_EQUITY_DIVIDED_BY_MAX_N_TIMES_MIN_SIMULTANEOUS_CANDIDATES_AND_OPEN_SLOTS",
+      "reason": "The frozen V3 policies define within-set relative weights; the existing Lane C source defines one equity/MAX_N slot per candidate. This bridge preserves that source notional before applying the three relative-weight policies."
+    }
+  },
+  "budgetEnvelopeAblation": {
+    "status": "EXPOSED_HISTORICAL_DEVELOPMENT_DIAGNOSIS_ONLY",
+    "allocationFixed": "V3_B_RISK",
+    "exitBaselineFixed": "FROZEN_EXIT_V4",
+    "onlyChangedVariable": "SLOT_BUDGET_DIVISOR",
+    "budgetDivisors": [10, 5, 3],
+    "maximumConcurrentPositionsFixed": 10,
+    "additionalBudgetDivisorsForbidden": true,
+    "fractionalShareArm": "THEORETICAL_DIAGNOSTIC_NOT_EXECUTABLE",
+    "v5ComparisonConditionalOnBar5DefensiveExecution": true,
+    "winnerSelectionAllowed": false
+  },
+  "candidateFreeze": {
+    "status": "DEVELOPMENT_MAIN_MAX_3_FROZEN",
+    "primary": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5__MAX_3",
+    "conservativeSub": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5__MAX_5",
+    "legacyBaseline": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5__MAX_10",
+    "primaryExitComparator": "V3_B_RISK__FROZEN_EXIT_V4__MAX_3",
+    "freezeContract": "predict/research/phase57-capital-allocation-integrated-candidate-freeze.json",
+    "futureIntegratedOosPrecommit": "predict/research/phase57-capital-allocation-future-integrated-oos-precommit.json",
+    "validationContract": "predict/research/phase57-capital-allocation-validation-contract.json",
+    "validationOpened": false,
+    "futureIntegratedOosStart": "2026-10-22",
+    "futureIntegratedOosEligibleSessions": 20,
+    "developmentExplorationClosed": true
+  },
+  "initialDataset": {
+    "role": "EXPOSED_DEVELOPMENT_ONLY",
+    "blockA": {
+      "sessions": 30,
+      "firstEnter": 56,
+      "causalEligible": 51,
+      "runId": 34689621795,
+      "artifactId": 10297193220,
+      "archiveSha256": "80f4ae315576abd4e13604f2b4271cbe1033ca6883221b65ae700bfff9422a62"
+    },
+    "blockB": {
+      "sessions": 8,
+      "firstEnter": 35,
+      "causalEligible": 34,
+      "runId": 34653714314,
+      "artifactId": 10286251638,
+      "archiveSha256": "408efa60287e52c22890f2d558fce12d3135ab6997b2d10dedeea60874ec8521"
+    },
+    "pairedEligibleTrades": 85,
+    "protectedOrFreshOpened": false
+  },
+  "comparisonArms": [
+    "V3_0_EQUAL__FROZEN_EXIT_V4",
+    "V3_0_EQUAL__EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+    "V3_A_RANK__FROZEN_EXIT_V4",
+    "V3_A_RANK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+    "V3_B_RISK__FROZEN_EXIT_V4",
+    "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5"
+  ],
+  "rules": {
+    "allocatorMayReadFutureExit": false,
+    "allocatorMayReadFutureReturn": false,
+    "allocatorMayReadMfeMae": false,
+    "sameEntryStreamAcrossArms": true,
+    "sameCashLedgerSemanticsAcrossArms": true,
+    "sameLotAndEventOrderingAcrossArms": true,
+    "doNotRetuneAllocationFromObservedOutcome": true,
+    "doNotResweepExitHorizon": true,
+    "doNotOpenProtectedOos": true,
+    "doNotMergeOrPromoteToProduction": true,
+    "doNotChangeFrozenRolesInsideOosBlock": true
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

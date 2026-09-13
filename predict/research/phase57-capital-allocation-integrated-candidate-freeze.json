@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 2,
+  "schemaId": "PHASE57_CAPITAL_ALLOCATION_INTEGRATED_DEVELOPMENT_CANDIDATE_FREEZE_V2",
+  "status": "DEVELOPMENT_MAIN_MAX_3_FROZEN",
+  "effectiveAtUtc": "2026-09-13T11:34:58Z",
+  "decisionStage": "DEVELOPMENT_AFTER_USED_AND_EXPOSED_HISTORICAL_RESULTS_BEFORE_FUTURE_INTEGRATED_OOS",
+  "candidate": {
+    "selector": "FROZEN_MINIMAL_HYBRID_V1",
+    "selectorModelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
+    "selectorFreezeSHA": "a744d599e430d23efe4dea6600e418d3410d8a18df5055b35e1cc71432bf64da",
+    "entry": "MSH_ENTRY_V1",
+    "entryModelSha256": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a",
+    "entryThresholdStrictlyGreaterThan": 0.60,
+    "repeatEntryAllowed": false,
+    "allocation": "V3_B_RISK",
+    "riskDefinition": "SEVEN_COMPLETED_5M_CLOSES_SIX_LOG_RETURNS_POPULATION_SD",
+    "budgetEnvelope": "MAX_3",
+    "slotBudgetFormula": "CURRENT_EQUITY_DIVIDED_BY_3",
+    "maximumConcurrentPositions": 10,
+    "exit": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+    "initialCapitalJpy": 1000000,
+    "lotSizeShares": 100,
+    "roundTripCostPct": 0.05,
+    "eventOrder": ["PRICE_UPDATE", "EXIT", "CASH_RELEASE", "ENTRY", "MARK_TO_MARKET"],
+    "shortAccounting": "FULLY_CASH_COLLATERALIZED_ENTRY_REFERENCE_NOTIONAL_PROCEEDS_NOT_REUSABLE",
+    "unrealizedPnlMayIncreaseBuyingPower": false
+  },
+  "budgetRoles": {
+    "MAX_3": "PRIMARY_INTEGRATED_DEVELOPMENT_CANDIDATE",
+    "MAX_5": "CONSERVATIVE_INTEGRATED_SUB_CANDIDATE",
+    "MAX_10": "LEGACY_BUDGET_BASELINE"
+  },
+  "selectionLineage": [
+    {
+      "sequence": 1,
+      "decision": "MAX_5_ORIGINALLY_SELECTED_AS_PRIMARY_AFTER_A_PLUS_B_BUDGET_ENVELOPE_DEVELOPMENT",
+      "predecessorFreezeSha256": "0eda85ade4b16871229edb34f7c24e094c1398878277c0786b910d3fb53e26aa",
+      "predecessorValidationContractSha256": "02cd97af9f13de67f73396be43d72aa90d6d26082d100fe57e62c3585ca58126"
+    },
+    {
+      "sequence": 2,
+      "decision": "USED_AND_EXPOSED_REMEASUREMENT_SHOWED_MAX_3_RETURN_ABOVE_MAX_5_IN_A_B_AND_OLD20",
+      "evidencePath": "predict/research/phase57-capital-allocation-cross-period-evidence/cross-period-remeasurement-result.json",
+      "evidenceSha256": "7fc0b89da810eda2a50789c2400db0b5e605f97b6496523234384f8086b90441",
+      "outcomesViewed": true,
+      "oosEvidence": false
+    },
+    {
+      "sequence": 3,
+      "decision": "USER_EXPLICITLY_PROMOTED_MAX_3_TO_MAIN_FROM_DEVELOPMENT_AND_EXPOSED_EVIDENCE",
+      "predecessorHeadSha": "1322c3edd40ade74bc0b505f8c5d11610a1bf007"
+    },
+    {
+      "sequence": 4,
+      "decision": "PROMOTION_FROZEN_BEFORE_2026_10_22_FUTURE_INTEGRATED_OOS_EXISTS_OR_IS_OPENED"
+    }
+  ],
+  "selectionBasis": {
+    "observed": "MAX_3_RETURN_ABOVE_MAX_5_IN_BLOCK_A_BLOCK_B_OLD20_AND_A_PLUS_B",
+    "mechanism": "ADVANTAGE_MAINLY_COMMON_TRADE_SIZING_IN_A_AND_OLD20_WHILE_NEW_TRADES_MATTERED_IN_B",
+    "stationarityClaim": false,
+    "oosSuperiorityClaim": false,
+    "tailRiskAcknowledged": true,
+    "aPlusBMaxDrawdownPctMagnitude": 6.379147,
+    "aPlusBMaximumUtilization": 0.933312,
+    "hiddenLeverageFound": false,
+    "ledgerInvariantStatus": "PASS"
+  },
+  "developmentSearchClosure": {
+    "closed": true,
+    "additionalMaxNForbidden": true,
+    "forbidden": [
+      "MAX_2_OR_MAX_4_OR_MAX_6_OR_MAX_7_OR_OTHER_MAX_N",
+      "DYNAMIC_BUDGET",
+      "RISK_BUDGET_CHANGE",
+      "KELLY",
+      "LEVERAGE",
+      "RISK_LOOKBACK_OR_VOLATILITY_FLOOR_CAP_CHANGE",
+      "MSH_THRESHOLD_OR_ENTRY_RETRAINING",
+      "SELECTOR_CHANGE",
+      "EXIT_HORIZON_RESWEEP",
+      "SYMBOL_DIRECTION_OR_SECTOR_EXCEPTION"
+    ],
+    "furtherOptimizationOnA_B_OLD20Allowed": false
+  },
+  "claims": {
+    "oosPass": false,
+    "validationPass": false,
+    "finalPass": false,
+    "productionReady": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

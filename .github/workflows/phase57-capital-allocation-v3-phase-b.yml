@@ -1,0 +1,238 @@
+name: Phase57 Capital Allocation v3 Phase B
+
+on:
+  pull_request:
+    branches: [research/phase57-capital-allocation-v3-entrytime]
+    paths:
+      - .github/workflows/phase57-capital-allocation-v3-phase-b.yml
+      - scripts/lib/phase57-capital-allocation-v3-phase-b.mjs
+      - scripts/tests/phase57-capital-allocation-v3-phase-b.test.mjs
+      - scripts/tests/phase57-capital-allocation-budget-envelope.test.mjs
+      - scripts/tests/phase57-capital-allocation-ledger-audit-validation.test.mjs
+      - scripts/tests/phase57-capital-allocation-historical-oos-inventory.test.mjs
+      - scripts/tests/phase57-capital-allocation-cross-period-remeasurement.test.mjs
+      - scripts/tests/phase57-capital-allocation-integrated-refreeze.test.mjs
+      - scripts/phase57-capital-allocation-v3-phase-b.mjs
+      - scripts/phase57-capital-allocation-budget-envelope-ablation.mjs
+      - scripts/phase57-capital-allocation-ledger-audit-freeze.mjs
+      - scripts/phase57-capital-allocation-validation-runner.mjs
+      - scripts/phase57-capital-allocation-historical-oos-inventory.mjs
+      - scripts/phase57-capital-allocation-cross-period-remeasurement.mjs
+      - scripts/phase57-capital-allocation-integrated-main-refreeze.mjs
+      - predict/research/phase57-capital-allocation-v3-phase-b-integrated-contract.json
+      - predict/research/phase57-capital-allocation-v3-phase-b-evidence/**
+      - predict/research/phase57-capital-allocation-budget-envelope-evidence/**
+      - predict/research/phase57-capital-allocation-integrated-candidate-freeze.json
+      - predict/research/phase57-capital-allocation-future-integrated-oos-precommit.json
+      - predict/research/phase57-capital-allocation-validation-contract.json
+      - predict/research/phase57-capital-allocation-validation-output-schema.json
+      - predict/research/phase57-capital-allocation-ledger-audit-evidence/**
+      - predict/research/phase57-capital-allocation-historical-oos-inventory-v1.json
+      - predict/research/phase57-capital-allocation-historical-oos-inventory-v1.json.sha256
+      - predict/research/phase57-capital-allocation-historical-oos-evidence/**
+      - predict/research/phase57-capital-allocation-cross-period-evidence/**
+      - predict/research/phase57-capital-allocation-integrated-main-refreeze-evidence/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  integrated-development:
+    if: >-
+      (github.event_name == 'pull_request' && github.event.pull_request.number == 583 && github.head_ref == 'research/phase57-capital-allocation-v3-phase-b-integrated') ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/research/phase57-capital-allocation-v3-phase-b-integrated')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: Focused tests
+        run: node --test scripts/tests/phase57-capital-allocation-v3-phase-b.test.mjs scripts/tests/phase57-capital-allocation-v3-entrytime.test.mjs scripts/tests/phase57-capital-allocation-budget-envelope.test.mjs scripts/tests/phase57-capital-allocation-ledger-audit-validation.test.mjs scripts/tests/phase57-capital-allocation-historical-oos-inventory.test.mjs scripts/tests/phase57-capital-allocation-cross-period-remeasurement.test.mjs scripts/tests/phase57-capital-allocation-integrated-refreeze.test.mjs
+      - name: Verify MAX_3 Main refreeze and future OOS precommit
+        run: |
+          node scripts/phase57-capital-allocation-integrated-main-refreeze.mjs --output-dir artifacts/phase-b/integrated-main-refreeze
+          cmp artifacts/phase-b/integrated-main-refreeze/integrated-main-refreeze-evidence.json predict/research/phase57-capital-allocation-integrated-main-refreeze-evidence/integrated-main-refreeze-evidence.json
+          cmp artifacts/phase-b/integrated-main-refreeze/integrated-main-refreeze-evidence.json.sha256 predict/research/phase57-capital-allocation-integrated-main-refreeze-evidence/integrated-main-refreeze-evidence.json.sha256
+          cmp artifacts/phase-b/integrated-main-refreeze/integrated-main-refreeze-report.md predict/research/phase57-capital-allocation-integrated-main-refreeze-evidence/integrated-main-refreeze-report.md
+          cmp artifacts/phase-b/integrated-main-refreeze/integrated-main-refreeze-report.md.sha256 predict/research/phase57-capital-allocation-integrated-main-refreeze-evidence/integrated-main-refreeze-report.md.sha256
+      - name: Audit unused Historical OOS inventory
+        run: >-
+          node scripts/phase57-capital-allocation-historical-oos-inventory.mjs
+          --output-dir artifacts/phase-b/historical-oos-inventory
+      - name: Download Block A features
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-exit-block-a-features-*-34580109870
+          run-id: 34580109870
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/phase-b/features
+          merge-multiple: true
+      - name: Download Block B features
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-exit-v5-block-b-features-*-34653714314
+          run-id: 34653714314
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/phase-b/features
+          merge-multiple: true
+      - name: Download frozen MSH model
+        uses: actions/download-artifact@v4
+        with:
+          name: entry58-development-measurement-34292703804
+          run-id: 34292703804
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/phase-b/model
+      - name: Download exposed A/B outcomes
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-exit-block-a-recovery-34689621795
+          run-id: 34689621795
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/phase-b/block-a
+          merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-exit-v5-block-b-measurement-34653714314
+          run-id: 34653714314
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/phase-b/block-b
+          merge-multiple: true
+      - name: Download pinned bar5 Development Final report
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-exit-v5-development-final-34691691199
+          run-id: 34691691199
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/phase-b/bar5-pinned
+      - name: Download exposed Old20 feature bundles
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-exit-v4-20session-features-*-34494213877
+          run-id: 34494213877
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/phase-b/old20
+          merge-multiple: true
+      - name: Download exposed Old20 missing-session feature bundles
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-exit-v4-20session-features-missing-*-34541503697
+          run-id: 34541503697
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/phase-b/old20
+          merge-multiple: true
+      - name: Download exposed Old20 outcomes
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-exit-v4-20session-measurement-34541503697
+          run-id: 34541503697
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/phase-b/old20-measurement
+      - name: Measure six arms
+        run: >-
+          node scripts/phase57-capital-allocation-v3-phase-b.mjs
+          --features-dir artifacts/phase-b/features
+          --model artifacts/phase-b/model/candidate-model.json
+          --block-a artifacts/phase-b/block-a/trades.json
+          --block-b artifacts/phase-b/block-b/trades.json
+          --bar5-pinned-report artifacts/phase-b/bar5-pinned/report.json
+          --output-dir artifacts/phase-b/result
+      - name: Measure budget envelope ablation
+        run: >-
+          node scripts/phase57-capital-allocation-budget-envelope-ablation.mjs
+          --features-dir artifacts/phase-b/features
+          --model artifacts/phase-b/model/candidate-model.json
+          --block-a artifacts/phase-b/block-a/trades.json
+          --block-b artifacts/phase-b/block-b/trades.json
+          --bar5-pinned-report artifacts/phase-b/bar5-pinned/report.json
+          --output-dir artifacts/phase-b/budget-envelope
+      - name: Audit ledger and freeze Development candidate
+        run: >-
+          node scripts/phase57-capital-allocation-ledger-audit-freeze.mjs
+          --features-dir artifacts/phase-b/features
+          --model artifacts/phase-b/model/candidate-model.json
+          --block-a artifacts/phase-b/block-a/trades.json
+          --block-b artifacts/phase-b/block-b/trades.json
+          --bar5-pinned-report artifacts/phase-b/bar5-pinned/report.json
+          --output-dir artifacts/phase-b/ledger-audit
+      - name: Prepare locked Validation runner
+        run: >-
+          node scripts/phase57-capital-allocation-validation-runner.mjs
+          --mode PREPARE_ONLY
+          --output-dir artifacts/phase-b/validation-readiness
+      - name: Re-measure used and exposed historical blocks
+        run: >-
+          node scripts/phase57-capital-allocation-cross-period-remeasurement.mjs
+          --features-dir artifacts/phase-b/features
+          --model artifacts/phase-b/model/candidate-model.json
+          --block-a artifacts/phase-b/block-a/trades.json
+          --block-b artifacts/phase-b/block-b/trades.json
+          --bar5-pinned-report artifacts/phase-b/bar5-pinned/report.json
+          --old20-features-dir artifacts/phase-b/old20
+          --old20-trades artifacts/phase-b/old20-measurement/trades.json
+          --old20-report artifacts/phase-b/old20-measurement/report.json
+          --output-dir artifacts/phase-b/cross-period
+      - name: Verify frozen cross-period evidence
+        run: |
+          cmp artifacts/phase-b/cross-period/cross-period-remeasurement-result.json predict/research/phase57-capital-allocation-cross-period-evidence/cross-period-remeasurement-result.json
+          cmp artifacts/phase-b/cross-period/cross-period-remeasurement-result.json.sha256 predict/research/phase57-capital-allocation-cross-period-evidence/cross-period-remeasurement-result.json.sha256
+          cmp artifacts/phase-b/cross-period/cross-period-remeasurement-report.md predict/research/phase57-capital-allocation-cross-period-evidence/cross-period-remeasurement-report.md
+          cmp artifacts/phase-b/cross-period/cross-period-remeasurement-report.md.sha256 predict/research/phase57-capital-allocation-cross-period-evidence/cross-period-remeasurement-report.md.sha256
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-capital-allocation-v3-phase-b-${{ github.run_id }}
+          path: artifacts/phase-b/result/
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-capital-allocation-cross-period-remeasurement-${{ github.run_id }}
+          path: artifacts/phase-b/cross-period/
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-capital-allocation-historical-oos-inventory-${{ github.run_id }}
+          path: artifacts/phase-b/historical-oos-inventory/
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-capital-allocation-ledger-audit-freeze-${{ github.run_id }}
+          path: |
+            artifacts/phase-b/ledger-audit/
+            artifacts/phase-b/validation-readiness/
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-capital-allocation-integrated-main-refreeze-${{ github.run_id }}
+          path: artifacts/phase-b/integrated-main-refreeze/
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-capital-allocation-budget-envelope-${{ github.run_id }}
+          path: artifacts/phase-b/budget-envelope/
+          if-no-files-found: error
+          retention-days: 30

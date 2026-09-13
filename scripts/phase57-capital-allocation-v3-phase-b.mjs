@@ -17,7 +17,7 @@ const round=(x,d=6)=>Number.isFinite(x)?Number(x.toFixed(d)):x;
 const walk=(root)=>{const out=[];for(const name of fs.readdirSync(root)){const p=path.join(root,name),s=fs.statSync(p);if(s.isDirectory())out.push(...walk(p));else out.push(p);}return out.sort();};
 function args(argv){const x={};for(let i=0;i<argv.length;i+=2){if(!argv[i]?.startsWith('--')||argv[i+1]===undefined)throw Error('arguments require --key value pairs');x[argv[i].slice(2)]=argv[i+1];}for(const k of ['features-dir','model','block-a','block-b','bar5-pinned-report','output-dir'])if(!x[k])throw Error(`MISSING_ARG:${k}`);return x;}
 
-function loadInputs(root){
+export function loadInputs(root){
   const files=walk(root),manifests=files.filter(x=>x.endsWith('.manifest.json')),features=files.filter(x=>x.endsWith('.features.json.gz')),bars=files.filter(x=>x.endsWith('.bars.json.gz'));
   assert.equal(manifests.length,38,'exactly 38 exposed A+B manifests required');assert.equal(features.length,38);assert.equal(bars.length,38);
   const events=[],barsBySession=new Map(),marks=[],closeLookup=new Map(),featureDates=new Set();

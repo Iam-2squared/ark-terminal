@@ -7,9 +7,12 @@ on:
       - .github/workflows/phase57-capital-allocation-v3-phase-b.yml
       - scripts/lib/phase57-capital-allocation-v3-phase-b.mjs
       - scripts/tests/phase57-capital-allocation-v3-phase-b.test.mjs
+      - scripts/tests/phase57-capital-allocation-budget-envelope.test.mjs
       - scripts/phase57-capital-allocation-v3-phase-b.mjs
+      - scripts/phase57-capital-allocation-budget-envelope-ablation.mjs
       - predict/research/phase57-capital-allocation-v3-phase-b-integrated-contract.json
       - predict/research/phase57-capital-allocation-v3-phase-b-evidence/**
+      - predict/research/phase57-capital-allocation-budget-envelope-evidence/**
   workflow_dispatch:
 
 permissions:
@@ -31,7 +34,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: {node-version: 22}
       - name: Focused tests
-        run: node --test scripts/tests/phase57-capital-allocation-v3-phase-b.test.mjs scripts/tests/phase57-capital-allocation-v3-entrytime.test.mjs
+        run: node --test scripts/tests/phase57-capital-allocation-v3-phase-b.test.mjs scripts/tests/phase57-capital-allocation-v3-entrytime.test.mjs scripts/tests/phase57-capital-allocation-budget-envelope.test.mjs
       - name: Download Block A features
         uses: actions/download-artifact@v4
         with:
@@ -92,10 +95,26 @@ jobs:
           --block-b artifacts/phase-b/block-b/trades.json
           --bar5-pinned-report artifacts/phase-b/bar5-pinned/report.json
           --output-dir artifacts/phase-b/result
+      - name: Measure budget envelope ablation
+        run: >-
+          node scripts/phase57-capital-allocation-budget-envelope-ablation.mjs
+          --features-dir artifacts/phase-b/features
+          --model artifacts/phase-b/model/candidate-model.json
+          --block-a artifacts/phase-b/block-a/trades.json
+          --block-b artifacts/phase-b/block-b/trades.json
+          --bar5-pinned-report artifacts/phase-b/bar5-pinned/report.json
+          --output-dir artifacts/phase-b/budget-envelope
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: phase57-capital-allocation-v3-phase-b-${{ github.run_id }}
           path: artifacts/phase-b/result/
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-capital-allocation-budget-envelope-${{ github.run_id }}
+          path: artifacts/phase-b/budget-envelope/
           if-no-files-found: error
           retention-days: 30

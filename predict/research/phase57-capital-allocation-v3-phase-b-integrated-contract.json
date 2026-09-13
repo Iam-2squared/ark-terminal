@@ -41,6 +41,18 @@
       "reason": "The frozen V3 policies define within-set relative weights; the existing Lane C source defines one equity/MAX_N slot per candidate. This bridge preserves that source notional before applying the three relative-weight policies."
     }
   },
+  "budgetEnvelopeAblation": {
+    "status": "EXPOSED_HISTORICAL_DEVELOPMENT_DIAGNOSIS_ONLY",
+    "allocationFixed": "V3_B_RISK",
+    "exitBaselineFixed": "FROZEN_EXIT_V4",
+    "onlyChangedVariable": "SLOT_BUDGET_DIVISOR",
+    "budgetDivisors": [10, 5, 3],
+    "maximumConcurrentPositionsFixed": 10,
+    "additionalBudgetDivisorsForbidden": true,
+    "fractionalShareArm": "THEORETICAL_DIAGNOSTIC_NOT_EXECUTABLE",
+    "v5ComparisonConditionalOnBar5DefensiveExecution": true,
+    "winnerSelectionAllowed": false
+  },
   "initialDataset": {
     "role": "EXPOSED_DEVELOPMENT_ONLY",
     "blockA": {

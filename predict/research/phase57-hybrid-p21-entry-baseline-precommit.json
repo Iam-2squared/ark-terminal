@@ -1,0 +1,180 @@
+{
+  "schemaVersion": 1,
+  "status": "PRECOMMITTED_NOT_ADMITTED_NO_MEASUREMENT",
+  "purpose": "FROZEN_MINIMAL_HYBRID_V1_PLUS_EXISTING_P21_BASELINE",
+  "asOf": "2026-09-08",
+  "mainAtAudit": "899d16b808dba0d5b2003228a5f46332b3a3ce09",
+  "entryLegacyHead": "435466c49cf2de7915ec9fa530b7d0f98db914ad",
+  "selectorRef": "63edf641f871be20cbd8518cec44392d12e74b16",
+  "entryBranch": "research/phase57-hybrid-p21-entry-baseline",
+  "selector": {
+    "modelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
+    "freezeSha256": "a744d599e430d23efe4dea6600e418d3410d8a18df5055b35e1cc71432bf64da",
+    "modelGitBlob": "03ca24fb714510fe3f782d6fd9c0b59487730b00",
+    "freezeGitBlob": "183b797fd6265f1fa31857531918b17515057449",
+    "implementationGitBlobs": [
+      {
+        "path": "predict/daytrade/phase57-p25-intraday-dynamic-universe.js",
+        "sha": "9612eb764f9cbc5d9de247c4f05c734bae0f9d85"
+      },
+      {
+        "path": "predict/daytrade/phase57-selector-minimal-hybrid-model.js",
+        "sha": "1a44ab4886c8ff4a80e61af983594e39bbd67bf6"
+      },
+      {
+        "path": "predict/daytrade/phase57-selector-minimal-hybrid.js",
+        "sha": "336ac8ccda8d1fd6636e65475b58c749dec72fa5"
+      }
+    ],
+    "digestsRecomputed": true,
+    "runtimeOnMain": false,
+    "retuningAllowed": false
+  },
+  "allocation": {
+    "role": "ENTRY_DEVELOPMENT_DIAGNOSTIC",
+    "sourceClass": "HISTORICAL_RECONSTRUCTION_LATER_FETCHED",
+    "sessions": [
+      "2026-08-13",
+      "2026-08-14",
+      "2026-08-17",
+      "2026-08-18",
+      "2026-08-19",
+      "2026-08-20",
+      "2026-08-21",
+      "2026-08-24",
+      "2026-08-25",
+      "2026-08-26",
+      "2026-08-27",
+      "2026-08-28",
+      "2026-08-31",
+      "2026-09-01",
+      "2026-09-02",
+      "2026-09-03",
+      "2026-09-04"
+    ],
+    "reason": "Already outcome-inspected period outside protected Selector reserve and after current P21 pack end; regenerate from market-wide raw bars, never from old 445 candidate rows.",
+    "admitted": false,
+    "sourceRightsConfirmed": false,
+    "sourceRightsStatus": "CURRENT_EXECUTION_ACCESS_UNVERIFIED_NOT_A_CLAIM_OF_NO_SUBSCRIPTION",
+    "rawDataAvailable": false,
+    "modelFittingAllowed": false,
+    "formalOos": false,
+    "hybridOriginalDevelopment": "IN_SAMPLE_SELECTOR_DIAGNOSTIC_ONLY_NOT_ALLOCATED",
+    "hybridOriginalValidationAndOos": "ALREADY_OPENED_NOT_UNTOUCHED_DOWNSTREAM_NOT_ALLOCATED",
+    "capacityOpened89": "POTENTIAL_DIAGNOSTIC_ONLY_NOT_ALLOCATED_CURRENT_P21_PRIOR_UNSUITABLE",
+    "protectedNonPurgeSessions": 190,
+    "sealedReleaseAllowed": false,
+    "purgesExcluded": true,
+    "unknownDates": "DENY",
+    "sourceManifestGitBlob": "b2542b627c14ac0ba3d3d960b164e6c7aaaa8da3"
+  },
+  "baseline": {
+    "policyId": "PHASE57_P21_FROZEN_ENTRY",
+    "baselineClass": "CURRENT_FROZEN_P21_BASELINE",
+    "historyEndSession": "2026-08-12",
+    "historyFingerprint": "REQUIRED_BEFORE_ADMISSION",
+    "historicalReconstructedMethodology": "DIFFERENT_CLASS_NOT_AUTHORIZED_BY_THIS_CONTRACT",
+    "newEntryFitting": false,
+    "p21MethodologyAndSelectionOptionsUnchanged": true,
+    "adapterParityVerified": false
+  },
+  "cost": {
+    "p21InnerSelectionRoundTripCostBps": 5,
+    "selectorNativeOutcomeCostBps": 10,
+    "entryOutcomeRoundTripCostBps": null,
+    "status": "BLOCKED_UNTIL_EXISTING_DOWNSTREAM_COST_SOURCE_PINNED",
+    "zeroDefaultAllowed": false,
+    "costChangesAllowed": false
+  },
+  "measurement": {
+    "population": "ALL_HYBRID_SELECTED_EVENTS_FROM_MARKET_WIDE_SNAPSHOTS",
+    "cadence": "EVERY_REGULAR_COMPLETED_5M_SELECTION_TIMESTAMP_NOT_ORIGINAL_20_TIME_SUBSAMPLE",
+    "featureRule": "bar.timestamp + 5m <= T AND availableAt <= T",
+    "dailyRule": "prior JST completed sessions only",
+    "auctionAdapterParityRequired": true,
+    "statuses": [
+      "ENTER",
+      "ABSTAIN",
+      "BLOCKED"
+    ],
+    "coverageDenominator": "ALL_SELECTED_EVENTS_WITH_BLOCKED_COUNT_REPORTED_SEPARATELY",
+    "state": "FIRST_ENTER_PER_SYMBOL_SESSION_NO_RESET_NO_SIMULATED_FILLS",
+    "statefulFirstEnterIsTrade": false,
+    "repeatedSignalsPreserved": true,
+    "waitPolicyCreated": false,
+    "unknownNextSelectionIsNull": true,
+    "horizons": [
+      1,
+      3,
+      6,
+      12
+    ],
+    "grossHit": "directional return > 0; zero is not a hit",
+    "costAdjustedPositive": "gross bps - pinned cost bps > 0",
+    "labelDenominator": "COMPLETE_LABELS_ONLY_WITH_CENSORING_COUNTS",
+    "labels": "LONG_AND_SHORT_AFTER_FEATURE_FREEZE_SAME_JST_SESSION_ONLY",
+    "missingBars": "NO_INTERPOLATION_NO_SHIFT_TO_NEXT_OBSERVED_BAR",
+    "extremaTiming": "FIRST_EXTREMUM_BAR_CLOSE_WALL_CLOCK_MINUTES_NOT_TICK_TIME",
+    "timeBuckets": {
+      "MORNING_EARLY": "09:00 <= T < 10:30",
+      "MORNING_LATE": "10:30 <= T <= 11:30",
+      "AFTERNOON_EARLY": "12:30 <= T < 14:00",
+      "AFTERNOON_LATE": "14:00 <= T <= 15:30"
+    },
+    "primaryAggregation": "SESSION_EQUAL_ALONGSIDE_EVENT_WEIGHTED_AND_FIRST_ENTER_OPPORTUNITY",
+    "outcomeRetuningAllowed": false
+  },
+  "incompleteImplementation": [
+    "Frozen Hybrid/P21 source adapter integration and golden parity",
+    "Daily Context/PIT feature schema parity",
+    "Late Entry, WAIT paired diagnostics, rank diagnostics",
+    "session regimes, ICC/effective-n audit",
+    "end-to-end data runner and source-hashed performance evidence"
+  ],
+  "results": {
+    "measurementPerformed": false,
+    "usedSessions": 0,
+    "selectionEvents": null,
+    "uniqueSymbols": null,
+    "uniqueSymbolSessions": null,
+    "repeatedSelections": null,
+    "p21Eligible": null,
+    "p21Abstain": null,
+    "p21Blocked": null,
+    "p21Coverage": null,
+    "long": null,
+    "short": null,
+    "horizonMetrics": null,
+    "lateEntry": null,
+    "continuation": null,
+    "entryDelay": null,
+    "rankBreakdown": null,
+    "timeOfDayBreakdown": null,
+    "labelCompleteness": null,
+    "regimeDiversity": null,
+    "icc": null,
+    "effectiveN": null,
+    "pitViolations": null,
+    "duplicates": null,
+    "modelReadiness": "NO_GO",
+    "overallBaselineEvaluation": "NOT_MEASURED",
+    "maximumEntryWeakness": "UNKNOWN"
+  },
+  "blockers": [
+    "RAW_MARKET_ARCHIVE_AND_FROZEN_PRIOR_PACK_NOT_AVAILABLE_IN_CURRENT_EXECUTION_ENVIRONMENT",
+    "CURRENT_JQUANTS_EXECUTION_ACCESS_NOT_VERIFIED",
+    "HYBRID_TO_P21_IDENTICAL_INPUT_ADAPTER_NOT_VERIFIED",
+    "DOWNSTREAM_OUTCOME_COST_NOT_YET_PINNED"
+  ],
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

@@ -37,7 +37,7 @@ export function buildIntegratedInputs(a){
 
 function compact(arm){const {curve,closedTrades,decisions,ledgerTrace,...summary}=arm;return summary;}
 
-function budgetAttribution(left,right){
+export function budgetAttribution(left,right){
   const L=new Map(left.closedTrades.map(x=>[x.eventId,x])),R=new Map(right.closedTrades.map(x=>[x.eventId,x]));
   const LD=new Map(left.decisions.map(x=>[x.eventId,x])),RD=new Map(right.decisions.map(x=>[x.eventId,x]));
   const common=[...L.keys()].filter(x=>R.has(x)),leftOnly=[...L.keys()].filter(x=>!R.has(x)),rightOnly=[...R.keys()].filter(x=>!L.has(x));

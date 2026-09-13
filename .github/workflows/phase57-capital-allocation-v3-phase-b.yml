@@ -10,11 +10,13 @@ on:
       - scripts/tests/phase57-capital-allocation-budget-envelope.test.mjs
       - scripts/tests/phase57-capital-allocation-ledger-audit-validation.test.mjs
       - scripts/tests/phase57-capital-allocation-historical-oos-inventory.test.mjs
+      - scripts/tests/phase57-capital-allocation-cross-period-remeasurement.test.mjs
       - scripts/phase57-capital-allocation-v3-phase-b.mjs
       - scripts/phase57-capital-allocation-budget-envelope-ablation.mjs
       - scripts/phase57-capital-allocation-ledger-audit-freeze.mjs
       - scripts/phase57-capital-allocation-validation-runner.mjs
       - scripts/phase57-capital-allocation-historical-oos-inventory.mjs
+      - scripts/phase57-capital-allocation-cross-period-remeasurement.mjs
       - predict/research/phase57-capital-allocation-v3-phase-b-integrated-contract.json
       - predict/research/phase57-capital-allocation-v3-phase-b-evidence/**
       - predict/research/phase57-capital-allocation-budget-envelope-evidence/**
@@ -25,6 +27,7 @@ on:
       - predict/research/phase57-capital-allocation-historical-oos-inventory-v1.json
       - predict/research/phase57-capital-allocation-historical-oos-inventory-v1.json.sha256
       - predict/research/phase57-capital-allocation-historical-oos-evidence/**
+      - predict/research/phase57-capital-allocation-cross-period-evidence/**
   workflow_dispatch:
 
 permissions:
@@ -46,7 +49,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: {node-version: 22}
       - name: Focused tests
-        run: node --test scripts/tests/phase57-capital-allocation-v3-phase-b.test.mjs scripts/tests/phase57-capital-allocation-v3-entrytime.test.mjs scripts/tests/phase57-capital-allocation-budget-envelope.test.mjs scripts/tests/phase57-capital-allocation-ledger-audit-validation.test.mjs scripts/tests/phase57-capital-allocation-historical-oos-inventory.test.mjs
+        run: node --test scripts/tests/phase57-capital-allocation-v3-phase-b.test.mjs scripts/tests/phase57-capital-allocation-v3-entrytime.test.mjs scripts/tests/phase57-capital-allocation-budget-envelope.test.mjs scripts/tests/phase57-capital-allocation-ledger-audit-validation.test.mjs scripts/tests/phase57-capital-allocation-historical-oos-inventory.test.mjs scripts/tests/phase57-capital-allocation-cross-period-remeasurement.test.mjs
       - name: Audit unused Historical OOS inventory
         run: >-
           node scripts/phase57-capital-allocation-historical-oos-inventory.mjs
@@ -102,6 +105,32 @@ jobs:
           github-token: ${{ github.token }}
           repository: Iam-2squared/ark-terminal
           path: artifacts/phase-b/bar5-pinned
+      - name: Download exposed Old20 feature bundles
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-exit-v4-20session-features-*-34494213877
+          run-id: 34494213877
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/phase-b/old20
+          merge-multiple: true
+      - name: Download exposed Old20 missing-session feature bundles
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-exit-v4-20session-features-missing-*-34541503697
+          run-id: 34541503697
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/phase-b/old20
+          merge-multiple: true
+      - name: Download exposed Old20 outcomes
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-exit-v4-20session-measurement-34541503697
+          run-id: 34541503697
+          github-token: ${{ github.token }}
+          repository: Iam-2squared/ark-terminal
+          path: artifacts/phase-b/old20-measurement
       - name: Measure six arms
         run: >-
           node scripts/phase57-capital-allocation-v3-phase-b.mjs
@@ -134,11 +163,36 @@ jobs:
           node scripts/phase57-capital-allocation-validation-runner.mjs
           --mode PREPARE_ONLY
           --output-dir artifacts/phase-b/validation-readiness
+      - name: Re-measure used and exposed historical blocks
+        run: >-
+          node scripts/phase57-capital-allocation-cross-period-remeasurement.mjs
+          --features-dir artifacts/phase-b/features
+          --model artifacts/phase-b/model/candidate-model.json
+          --block-a artifacts/phase-b/block-a/trades.json
+          --block-b artifacts/phase-b/block-b/trades.json
+          --bar5-pinned-report artifacts/phase-b/bar5-pinned/report.json
+          --old20-features-dir artifacts/phase-b/old20
+          --old20-trades artifacts/phase-b/old20-measurement/trades.json
+          --old20-report artifacts/phase-b/old20-measurement/report.json
+          --output-dir artifacts/phase-b/cross-period
+      - name: Verify frozen cross-period evidence
+        run: |
+          cmp artifacts/phase-b/cross-period/cross-period-remeasurement-result.json predict/research/phase57-capital-allocation-cross-period-evidence/cross-period-remeasurement-result.json
+          cmp artifacts/phase-b/cross-period/cross-period-remeasurement-result.json.sha256 predict/research/phase57-capital-allocation-cross-period-evidence/cross-period-remeasurement-result.json.sha256
+          cmp artifacts/phase-b/cross-period/cross-period-remeasurement-report.md predict/research/phase57-capital-allocation-cross-period-evidence/cross-period-remeasurement-report.md
+          cmp artifacts/phase-b/cross-period/cross-period-remeasurement-report.md.sha256 predict/research/phase57-capital-allocation-cross-period-evidence/cross-period-remeasurement-report.md.sha256
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: phase57-capital-allocation-v3-phase-b-${{ github.run_id }}
           path: artifacts/phase-b/result/
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-capital-allocation-cross-period-remeasurement-${{ github.run_id }}
+          path: artifacts/phase-b/cross-period/
           if-no-files-found: error
           retention-days: 30
       - uses: actions/upload-artifact@v4

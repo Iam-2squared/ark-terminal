@@ -1,0 +1,54 @@
+name: Phase57 Offline Parity
+on:
+  pull_request:
+    paths:
+      - 'scripts/*offline*'
+      - 'scripts/lib/*offline*'
+      - 'scripts/lib/phase57-parity-report.mjs'
+      - 'scripts/tests/phase57-offline*'
+      - 'tools/*phase57*offline*'
+      - 'tools/phase57-parity-field-map.json'
+      - 'tools/Start-ArkOfflineParity.ps1'
+      - 'tools/templates/**'
+      - 'predict/research/phase57-offline-parity/**'
+      - '.github/workflows/phase57-offline-parity.yml'
+permissions:
+  contents: read
+jobs:
+  offline:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Frozen reference and offline tests
+        shell: bash
+        run: node --test scripts/tests/*.test.mjs
+      - name: Workbook failure tests
+        run: python tools/test_phase57_offline_excel_reader.py
+      - name: One-command Windows launcher (offline only)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./tools/Start-ArkOfflineParity.ps1 -OutputRoot '${{ runner.temp }}/ark-offline'
+      - name: Linux workbook transport
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          python tools/phase57_offline_excel_reader.py --output '${{ runner.temp }}/packet.json'
+          node scripts/phase57-offline-workbook-check.mjs '${{ runner.temp }}/packet.json' '${{ runner.temp }}/report'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: offline-parity-${{ runner.os }}
+          path: |
+            ${{ runner.temp }}/report
+            ${{ runner.temp }}/ark-offline
+          if-no-files-found: ignore

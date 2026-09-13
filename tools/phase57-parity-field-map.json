@@ -1,0 +1,26 @@
+{
+  "schemaId": "ARK_OFFLINE_PARITY_WORKBOOK_V1",
+  "mode": "OFFLINE_FIXTURE_ONLY",
+  "source": "Uploaded official MARKETSPEED II RSS function list, pp. 17-18 and chart return fields",
+  "sourceTimestampSemantics": "UNVERIFIED_FOR_REAL_RSS",
+  "fixtureTimestampLabel": "START",
+  "fixtureCaptureTimeEncoding": "UTC_PREFIX_PLUS_ISO_8601_Z_TEXT",
+  "chart": {
+    "sheet": "ARK_CHART_5M",
+    "headerRow": 1,
+    "firstDataRow": 2,
+    "columns": ["slot", "generation", "symbol", "sourceDate", "sourceTime", "open", "high", "low", "close", "volume", "captureAt", "availableAt", "finalized"],
+    "officialFunction": "RssChart",
+    "officialBarType": "5M",
+    "officialMaximumRows": 3000,
+    "officialFields": {"sourceDate":"日付", "sourceTime":"時刻", "open":"始値", "high":"高値", "low":"安値", "close":"終値", "volume":"出来高"},
+    "captureMetadataNotRssFields": ["slot", "generation", "symbol", "captureAt", "availableAt", "finalized"]
+  },
+  "marketDiagnostics": {"sheet":"ARK_MARKET", "function":"RssMarket", "fields":["現在値", "現在値詳細時刻", "出来高", "出来高加重平均", "最良売気配値", "最良買気配値", "最良売気配数量", "最良買気配数量"]},
+  "ticksDiagnostics": {"sheet":"ARK_TICKS", "function":"RssTickList", "maximumRows":300, "fields":["時刻", "出来高", "約定値"], "modelFeature":false},
+  "chartPastIntradaySupported": false,
+  "sheets": ["ARK_CONFIG", "ARK_MARKET", "ARK_CHART_5M", "ARK_TICKS", "ARK_INDEX", "ARK_ACCOUNT_READONLY", "ARK_HEALTH"],
+  "activeRssFunctions": [],
+  "accountReadEnabled": false,
+  "realCaptureEnabled": false
+}

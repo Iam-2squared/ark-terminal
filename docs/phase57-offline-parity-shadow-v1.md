@@ -70,3 +70,7 @@ MSH JSON parity uses the same JSON serialization as the saved artifact (`-0` ser
 Health tests cover disconnected/closed/error/stale conditions as fixture inputs. They are not tests of a user's actual terminal. A torn evidence tail or stale writer lock is preserved; start a new version instead of overwriting or silently repairing it. A failure halts further ledger decisions. The original failed evidence is retained for review.
 
 Status: `OFFLINE_FIXTURE_PARITY_READY`, `REAL_CAPTURE_LOCKED`, `ORDER_TRANSMISSION_DISABLED`. Do not label this build `READY_FOR_DAILY_REALTIME_PARITY` until the remaining gates are actually satisfied.
+
+CI attempt on PR #584: run `34760321140` failed before runner/test steps, with no job logs. A retry also failed before steps on both Linux and Windows. The available connector did not expose the cause; billing is not asserted. Local relevant tests are green (112 Node, 3 Python), but GitHub CI is not green and the Windows launcher is prepared, not confirmed executed. See `ci-attempt.json` for the exact tested head and jobs.
+
+The full Predict suite was also run: 2,595 passed, one failed (`learning.test.mjs`, history filtering/pagination, 39 records versus expected 40). The identical isolated failure was reproduced on an untouched `84b2961` worktree. It is an inherited failure outside the offline parity modules; no unrelated behavior or test expectation was changed to manufacture a green result.

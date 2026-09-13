@@ -11,16 +11,19 @@ on:
       - scripts/tests/phase57-capital-allocation-ledger-audit-validation.test.mjs
       - scripts/tests/phase57-capital-allocation-historical-oos-inventory.test.mjs
       - scripts/tests/phase57-capital-allocation-cross-period-remeasurement.test.mjs
+      - scripts/tests/phase57-capital-allocation-integrated-refreeze.test.mjs
       - scripts/phase57-capital-allocation-v3-phase-b.mjs
       - scripts/phase57-capital-allocation-budget-envelope-ablation.mjs
       - scripts/phase57-capital-allocation-ledger-audit-freeze.mjs
       - scripts/phase57-capital-allocation-validation-runner.mjs
       - scripts/phase57-capital-allocation-historical-oos-inventory.mjs
       - scripts/phase57-capital-allocation-cross-period-remeasurement.mjs
+      - scripts/phase57-capital-allocation-integrated-main-refreeze.mjs
       - predict/research/phase57-capital-allocation-v3-phase-b-integrated-contract.json
       - predict/research/phase57-capital-allocation-v3-phase-b-evidence/**
       - predict/research/phase57-capital-allocation-budget-envelope-evidence/**
       - predict/research/phase57-capital-allocation-integrated-candidate-freeze.json
+      - predict/research/phase57-capital-allocation-future-integrated-oos-precommit.json
       - predict/research/phase57-capital-allocation-validation-contract.json
       - predict/research/phase57-capital-allocation-validation-output-schema.json
       - predict/research/phase57-capital-allocation-ledger-audit-evidence/**
@@ -28,6 +31,7 @@ on:
       - predict/research/phase57-capital-allocation-historical-oos-inventory-v1.json.sha256
       - predict/research/phase57-capital-allocation-historical-oos-evidence/**
       - predict/research/phase57-capital-allocation-cross-period-evidence/**
+      - predict/research/phase57-capital-allocation-integrated-main-refreeze-evidence/**
   workflow_dispatch:
 
 permissions:
@@ -49,7 +53,14 @@ jobs:
       - uses: actions/setup-node@v4
         with: {node-version: 22}
       - name: Focused tests
-        run: node --test scripts/tests/phase57-capital-allocation-v3-phase-b.test.mjs scripts/tests/phase57-capital-allocation-v3-entrytime.test.mjs scripts/tests/phase57-capital-allocation-budget-envelope.test.mjs scripts/tests/phase57-capital-allocation-ledger-audit-validation.test.mjs scripts/tests/phase57-capital-allocation-historical-oos-inventory.test.mjs scripts/tests/phase57-capital-allocation-cross-period-remeasurement.test.mjs
+        run: node --test scripts/tests/phase57-capital-allocation-v3-phase-b.test.mjs scripts/tests/phase57-capital-allocation-v3-entrytime.test.mjs scripts/tests/phase57-capital-allocation-budget-envelope.test.mjs scripts/tests/phase57-capital-allocation-ledger-audit-validation.test.mjs scripts/tests/phase57-capital-allocation-historical-oos-inventory.test.mjs scripts/tests/phase57-capital-allocation-cross-period-remeasurement.test.mjs scripts/tests/phase57-capital-allocation-integrated-refreeze.test.mjs
+      - name: Verify MAX_3 Main refreeze and future OOS precommit
+        run: |
+          node scripts/phase57-capital-allocation-integrated-main-refreeze.mjs --output-dir artifacts/phase-b/integrated-main-refreeze
+          cmp artifacts/phase-b/integrated-main-refreeze/integrated-main-refreeze-evidence.json predict/research/phase57-capital-allocation-integrated-main-refreeze-evidence/integrated-main-refreeze-evidence.json
+          cmp artifacts/phase-b/integrated-main-refreeze/integrated-main-refreeze-evidence.json.sha256 predict/research/phase57-capital-allocation-integrated-main-refreeze-evidence/integrated-main-refreeze-evidence.json.sha256
+          cmp artifacts/phase-b/integrated-main-refreeze/integrated-main-refreeze-report.md predict/research/phase57-capital-allocation-integrated-main-refreeze-evidence/integrated-main-refreeze-report.md
+          cmp artifacts/phase-b/integrated-main-refreeze/integrated-main-refreeze-report.md.sha256 predict/research/phase57-capital-allocation-integrated-main-refreeze-evidence/integrated-main-refreeze-report.md.sha256
       - name: Audit unused Historical OOS inventory
         run: >-
           node scripts/phase57-capital-allocation-historical-oos-inventory.mjs
@@ -209,6 +220,13 @@ jobs:
           path: |
             artifacts/phase-b/ledger-audit/
             artifacts/phase-b/validation-readiness/
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-capital-allocation-integrated-main-refreeze-${{ github.run_id }}
+          path: artifacts/phase-b/integrated-main-refreeze/
           if-no-files-found: error
           retention-days: 30
       - uses: actions/upload-artifact@v4

@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "schemaId": "PHASE57_CAPITAL_ALLOCATION_FUTURE_INTEGRATED_OOS_PRECOMMIT_V1",
+  "status": "FUTURE_INTEGRATED_OOS_PRECOMMITTED_OOS_NOT_OPENED",
+  "precommittedAtUtc": "2026-09-13T11:34:58Z",
+  "predecessorHeadSha": "1322c3edd40ade74bc0b505f8c5d11610a1bf007",
+  "candidateFreezePath": "predict/research/phase57-capital-allocation-integrated-candidate-freeze.json",
+  "candidateFreezeSha256": "f0ea365e5cf73b3394779ae1be3ea99e268f9d6cede8160a703ed24cab5c0a14",
+  "window": {
+    "notBeforeSessionDate": "2026-10-22",
+    "targetEligibleMarketSessions": 20,
+    "endpointRule": "STOP_AFTER_THE_20TH_CHRONOLOGICALLY_ELIGIBLE_MARKET_SESSION",
+    "extensionOrShorteningFromPerformanceAllowed": false,
+    "comparisonRationale": "Twenty sessions was fixed before outcomes exist, matches the prior diagnostic20 length, and prevents performance-selected endpoints."
+  },
+  "eligibilityRule": {
+    "id": "FIRST_20_CHRONOLOGICALLY_ELIGIBLE_SESSIONS_FROM_2026_10_22_V1",
+    "ordering": "JPX_MARKET_SESSION_DATE_ASCENDING",
+    "requirements": [
+      "JQUANTS_SOURCE_AVAILABLE_UNDER_EXISTING_ENTITLEMENT",
+      "COMPLETE_FROZEN_SELECTOR_AND_MSH_ENTRY_POINT_IN_TIME_INPUTS",
+      "COMPLETE_FIRST_ENTER_AND_INTRADAY_BAR_PATH",
+      "FROZEN_EXIT_ANALOG_SESSION_DATE_BEFORE_EVALUATED_SESSION",
+      "ANALOG_FULLY_REALIZED_BEFORE_EVALUATED_DECISION_TIMESTAMP",
+      "MINIMUM_REQUIRED_CAUSAL_ANALOG_COUNT_MET",
+      "SOURCE_AND_INPUT_HASHES_FIXED_BEFORE_OUTCOME_MEASUREMENT"
+    ],
+    "unavailableOrIneligibleSessionHandling": "RECORD_DATE_REASON_AND_SOURCE_STATUS_IN_SESSION_ELIGIBILITY_LEDGER_THEN_CONTINUE_TO_NEXT_CHRONOLOGICAL_SESSION",
+    "selectiveReplacementFromPerformanceAllowed": false,
+    "outcomeMayInfluenceEligibility": false
+  },
+  "reservedBoundary": {
+    "existingEntryFreshReservation": ["2026-09-10", "2026-10-21"],
+    "mayConsumeOrRepurpose": false,
+    "firstIntegratedOosDate": "2026-10-22"
+  },
+  "arms": {
+    "primary": {
+      "role": "PRIMARY_INTEGRATED_OOS_CANDIDATE",
+      "id": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5__MAX_3",
+      "budgetDivisor": 3,
+      "exit": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5"
+    },
+    "conservativeSub": {
+      "role": "CONSERVATIVE_INTEGRATED_SUB_CANDIDATE",
+      "id": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5__MAX_5",
+      "budgetDivisor": 5,
+      "exit": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5"
+    },
+    "legacyBaseline": {
+      "role": "LEGACY_BUDGET_BASELINE",
+      "id": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5__MAX_10",
+      "budgetDivisor": 10,
+      "exit": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5"
+    },
+    "exitComparator": {
+      "role": "PRIMARY_BUDGET_EXIT_COMPARATOR",
+      "id": "V3_B_RISK__FROZEN_EXIT_V4__MAX_3",
+      "budgetDivisor": 3,
+      "exit": "FROZEN_EXIT_V4"
+    }
+  },
+  "decisionContract": {
+    "max3MustHaveHighestReturn": false,
+    "automaticRoleChangeFromOneBlockAllowed": false,
+    "systemChangeInsideSameOosBlockAllowed": false,
+    "honestStructuralFailureAssessmentRequired": true,
+    "claimsBeforeAdjudication": "MEASURED_NOT_ADJUDICATED"
+  },
+  "requiredMetrics": [
+    "DATE_RANGE",
+    "ELIGIBLE_SESSION_COUNT",
+    "INITIAL_AND_FINAL_EQUITY",
+    "NET_PNL_AND_RETURN",
+    "PROFIT_FACTOR",
+    "MAX_DRAWDOWN_AND_WORST_DAY",
+    "ELIGIBLE_AND_ACCEPTED",
+    "BELOW_LOT_CASH_AND_POSITION_LIMIT_SKIPS",
+    "WIN_RATE_AVERAGE_MEDIAN_WIN_LOSS_AND_WIN_LOSS_RATIO",
+    "AVERAGE_HOLDING_TIME",
+    "AVERAGE_AND_MAXIMUM_UTILIZATION",
+    "AVERAGE_AND_MAXIMUM_GROSS_AND_ABSOLUTE_NET_EXPOSURE",
+    "MAXIMUM_CONCURRENT_POSITIONS",
+    "LONG_AND_SHORT_CAPITAL_SHARE",
+    "TOP1_AND_TOP3_PROFIT_CONTRIBUTION",
+    "TOP1_AND_TOP3_CAPITAL_CONCENTRATION"
+  ],
+  "requiredAttribution": {
+    "MAX_5_TO_MAX_3": ["COMMON_TRADE_POSITION_SIZE", "MAX_3_ONLY_NEW_TRADE", "CASH_RECYCLING", "OTHER_EXECUTION_SET", "EXACT_RECONCILIATION"],
+    "MAX_10_TO_MAX_3": ["COMMON_TRADE_POSITION_SIZE", "MAX_3_ONLY_NEW_TRADE", "CASH_RECYCLING", "OTHER_EXECUTION_SET", "EXACT_RECONCILIATION"],
+    "MAX_3_V4_TO_V5": ["COMMON_TRADE_OUTCOME", "EARLY_CASH_RELEASE", "ADDITIONAL_ENTRY_FROM_RECYCLING", "EXECUTION_SET", "EXACT_RECONCILIATION"]
+  },
+  "ledgerInvariants": [
+    "AVAILABLE_CASH_NONNEGATIVE",
+    "SHORT_SALE_PROCEEDS_NOT_REUSED",
+    "UNREALIZED_GAINS_EXCLUDED_FROM_BUYING_POWER",
+    "LOCKED_SHORT_COLLATERAL_EQUALS_ACTIVE_SHORT_REFERENCE_NOTIONAL",
+    "ENTRY_REQUIRED_CASH_WITHIN_BUYING_POWER",
+    "EXIT_RELEASE_BEFORE_SAME_TIMESTAMP_ENTRY",
+    "GROSS_EXPOSURE_WITHIN_CURRENT_EQUITY",
+    "ABSOLUTE_NET_EXPOSURE_WITHIN_CURRENT_EQUITY",
+    "COSTS_CHARGED_EXACTLY_ONCE",
+    "POSITION_LIMIT_RESPECTED",
+    "QUANTITY_UNIT_VALID_100_SHARE_LOT",
+    "REALIZED_EQUITY_RECONCILES"
+  ],
+  "dataAccessAttestation": {
+    "future2026_10_22PlusFetched": false,
+    "future2026_10_22PlusOpened": false,
+    "future2026_10_22PlusMeasured": false,
+    "reserved2026_09_10Through2026_10_21Consumed": false,
+    "inputBundleSha256": null,
+    "sessionIds": []
+  },
+  "claims": {
+    "oosPass": false,
+    "validationPass": false,
+    "finalPass": false,
+    "productionReady": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

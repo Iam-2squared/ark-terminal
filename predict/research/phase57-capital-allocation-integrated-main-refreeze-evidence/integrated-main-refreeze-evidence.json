@@ -1,16 +1,26 @@
 {
-  "schemaVersion": 2,
-  "schemaId": "PHASE57_CAPITAL_ALLOCATION_INTEGRATED_DEVELOPMENT_CANDIDATE_FREEZE_V2",
-  "status": "DEVELOPMENT_MAIN_MAX_3_FROZEN",
+  "schemaVersion": 1,
+  "schemaId": "PHASE57_CAPITAL_ALLOCATION_INTEGRATED_MAIN_REFREEZE_EVIDENCE_V1",
+  "status": {
+    "development": "DEVELOPMENT_MAIN_MAX_3_FROZEN",
+    "conservativeSub": "CONSERVATIVE_SUB_MAX_5_FROZEN",
+    "futureIntegratedOos": "FUTURE_INTEGRATED_OOS_PRECOMMITTED",
+    "oos": "OOS_NOT_OPENED"
+  },
   "effectiveAtUtc": "2026-09-13T11:34:58Z",
-  "decisionStage": "DEVELOPMENT_AFTER_USED_AND_EXPOSED_HISTORICAL_RESULTS_BEFORE_FUTURE_INTEGRATED_OOS",
-  "candidate": {
+  "predecessorHeadSha": "1322c3edd40ade74bc0b505f8c5d11610a1bf007",
+  "roles": {
+    "MAX_3": "PRIMARY_INTEGRATED_DEVELOPMENT_CANDIDATE",
+    "MAX_5": "CONSERVATIVE_INTEGRATED_SUB_CANDIDATE",
+    "MAX_10": "LEGACY_BUDGET_BASELINE"
+  },
+  "mainCandidate": {
     "selector": "FROZEN_MINIMAL_HYBRID_V1",
     "selectorModelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
     "selectorFreezeSHA": "a744d599e430d23efe4dea6600e418d3410d8a18df5055b35e1cc71432bf64da",
     "entry": "MSH_ENTRY_V1",
     "entryModelSha256": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a",
-    "entryThresholdStrictlyGreaterThan": 0.60,
+    "entryThresholdStrictlyGreaterThan": 0.6,
     "repeatEntryAllowed": false,
     "allocation": "V3_B_RISK",
     "riskDefinition": "SEVEN_COMPLETED_5M_CLOSES_SIX_LOG_RETURNS_POPULATION_SD",
@@ -21,14 +31,15 @@
     "initialCapitalJpy": 1000000,
     "lotSizeShares": 100,
     "roundTripCostPct": 0.05,
-    "eventOrder": ["PRICE_UPDATE", "EXIT", "CASH_RELEASE", "ENTRY", "MARK_TO_MARKET"],
+    "eventOrder": [
+      "PRICE_UPDATE",
+      "EXIT",
+      "CASH_RELEASE",
+      "ENTRY",
+      "MARK_TO_MARKET"
+    ],
     "shortAccounting": "FULLY_CASH_COLLATERALIZED_ENTRY_REFERENCE_NOTIONAL_PROCEEDS_NOT_REUSABLE",
     "unrealizedPnlMayIncreaseBuyingPower": false
-  },
-  "budgetRoles": {
-    "MAX_3": "PRIMARY_INTEGRATED_DEVELOPMENT_CANDIDATE",
-    "MAX_5": "CONSERVATIVE_INTEGRATED_SUB_CANDIDATE",
-    "MAX_10": "LEGACY_BUDGET_BASELINE"
   },
   "selectionLineage": [
     {
@@ -55,7 +66,7 @@
       "decision": "PROMOTION_FROZEN_BEFORE_2026_10_22_FUTURE_INTEGRATED_OOS_EXISTS_OR_IS_OPENED"
     }
   ],
-  "selectionBasis": {
+  "selectionInterpretation": {
     "observed": "MAX_3_RETURN_ABOVE_MAX_5_IN_BLOCK_A_BLOCK_B_OLD20_AND_A_PLUS_B",
     "mechanism": "ADVANTAGE_MAINLY_COMMON_TRADE_SIZING_IN_A_AND_OLD20_WHILE_NEW_TRADES_MATTERED_IN_B",
     "stationarityClaim": false,
@@ -82,6 +93,55 @@
       "SYMBOL_DIRECTION_OR_SECTOR_EXCEPTION"
     ],
     "furtherOptimizationOnA_B_OLD20Allowed": false
+  },
+  "futureIntegratedOos": {
+    "startDate": "2026-10-22",
+    "eligibleSessionCount": 20,
+    "eligibilityRuleId": "FIRST_20_CHRONOLOGICALLY_ELIGIBLE_SESSIONS_FROM_2026_10_22_V1",
+    "endpointRule": "STOP_AFTER_THE_20TH_CHRONOLOGICALLY_ELIGIBLE_MARKET_SESSION",
+    "arms": {
+      "primary": {
+        "role": "PRIMARY_INTEGRATED_OOS_CANDIDATE",
+        "id": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5__MAX_3",
+        "budgetDivisor": 3,
+        "exit": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5"
+      },
+      "conservativeSub": {
+        "role": "CONSERVATIVE_INTEGRATED_SUB_CANDIDATE",
+        "id": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5__MAX_5",
+        "budgetDivisor": 5,
+        "exit": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5"
+      },
+      "legacyBaseline": {
+        "role": "LEGACY_BUDGET_BASELINE",
+        "id": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5__MAX_10",
+        "budgetDivisor": 10,
+        "exit": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5"
+      },
+      "exitComparator": {
+        "role": "PRIMARY_BUDGET_EXIT_COMPARATOR",
+        "id": "V3_B_RISK__FROZEN_EXIT_V4__MAX_3",
+        "budgetDivisor": 3,
+        "exit": "FROZEN_EXIT_V4"
+      }
+    },
+    "reservedEntryWindow": [
+      "2026-09-10",
+      "2026-10-21"
+    ],
+    "runnerStatus": "FUTURE_INTEGRATED_OOS_PRECOMMITTED_OOS_NOT_OPENED",
+    "executionPerformed": false,
+    "futureOutcomeDataFetched": false,
+    "futureOutcomeDataOpened": false,
+    "futureOutcomeDataMeasured": false,
+    "reservedEntryBlockConsumed": false
+  },
+  "hashes": {
+    "candidateFreezeSha256": "f0ea365e5cf73b3394779ae1be3ea99e268f9d6cede8160a703ed24cab5c0a14",
+    "precommitSha256": "8efcb68d498e6c3e02d93c903493eb691336426383ebeae5cd535d6e0a5d00d9",
+    "validationContractSha256": "72a3cafaeb34bac7c9414d00c463d09ebe3e2dc0151c9c5422dc6e251deb1141",
+    "outputSchemaSha256": "962b684a4480d9a158dd3239ac26ede518fc228937e3f57227a0ca2448e15f5a",
+    "crossPeriodEvidenceSha256": "7fc0b89da810eda2a50789c2400db0b5e605f97b6496523234384f8086b90441"
   },
   "claims": {
     "oosPass": false,

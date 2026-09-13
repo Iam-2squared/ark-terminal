@@ -1,29 +1,39 @@
 {
-  "schemaVersion": 1,
-  "schemaId": "PHASE57_CAPITAL_ALLOCATION_VALIDATION_CONTRACT_V1",
-  "status": "VALIDATION_READY_NOT_OPENED",
+  "schemaVersion": 2,
+  "schemaId": "PHASE57_CAPITAL_ALLOCATION_FUTURE_INTEGRATED_OOS_CONTRACT_V2",
+  "status": "FUTURE_INTEGRATED_OOS_PRECOMMITTED_NOT_OPENED",
   "integratedCandidateFreeze": "predict/research/phase57-capital-allocation-integrated-candidate-freeze.json",
+  "integratedCandidateFreezeSha256": "f0ea365e5cf73b3394779ae1be3ea99e268f9d6cede8160a703ed24cab5c0a14",
+  "futureIntegratedOosPrecommit": "predict/research/phase57-capital-allocation-future-integrated-oos-precommit.json",
   "developmentInputsAllowedForValidationMeasurement": false,
   "validationOpened": false,
   "runnerExecutionUnlocked": false,
   "arms": {
-    "primary": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5__MAX_5",
+    "primary": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5__MAX_3",
+    "conservativeSub": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5__MAX_5",
     "legacyBaseline": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5__MAX_10",
-    "aggressiveDevelopmentReference": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5__MAX_3",
-    "exitComparator": "V3_B_RISK__FROZEN_EXIT_V4__MAX_5"
+    "exitComparator": "V3_B_RISK__FROZEN_EXIT_V4__MAX_3"
   },
   "referenceRules": {
-    "MAX_3_isCoPrimary": false,
-    "MAX_3_measurementOptional": true,
+    "MAX_3_isPrimary": true,
+    "MAX_5_isConservativeSub": true,
     "MAX_10_isBaselineOnly": true,
-    "MAX_5_v4_isExitComparatorOnly": true
+    "MAX_3_v4_isExitComparatorOnly": true,
+    "automaticRoleChangeFromOneOosBlock": false
+  },
+  "futureWindow": {
+    "notBeforeSessionDate": "2026-10-22",
+    "eligibleSessionCount": 20,
+    "eligibilityRuleId": "FIRST_20_CHRONOLOGICALLY_ELIGIBLE_SESSIONS_FROM_2026_10_22_V1",
+    "reservedDatesForbidden": ["2026-09-10", "2026-10-21"],
+    "performanceSelectedEndpointAllowed": false
   },
   "fixed": {
     "selector": "FROZEN_MINIMAL_HYBRID_V1",
     "entry": "MSH_ENTRY_V1_STRICT_GT_0_60_NO_REPEAT",
     "allocation": "V3_B_RISK",
     "riskDefinition": "SEVEN_COMPLETED_5M_CLOSES_SIX_LOG_RETURNS_POPULATION_SD",
-    "primaryBudgetDivisor": 5,
+    "primaryBudgetDivisor": 3,
     "maximumConcurrentPositions": 10,
     "primaryExit": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
     "initialCapitalJpy": 1000000,
@@ -34,19 +44,25 @@
     "unrealizedPnlMayIncreaseBuyingPower": false
   },
   "sourceIdentityRequired": [
-    "validationSourceId",
+    "integratedOosSourceId",
     "inputBundleSha256",
     "sourceManifestSha256",
     "sessionIds",
+    "sessionEligibilityLedger",
+    "eligibilityRuleId",
     "pointInTimeAttestation",
-    "unopenedBeforeAuthorizationAttestation"
+    "unopenedBeforeAuthorizationAttestation",
+    "causalEligibilityAttestation"
   ],
   "executionGate": {
     "separateUnlockContractRequired": true,
-    "unlockStatus": "AUTHORIZED_VALIDATION_OPEN",
+    "unlockStatus": "AUTHORIZED_INTEGRATED_OOS_OPEN",
     "candidateFreezeSha256MatchRequired": true,
+    "precommitSha256MatchRequired": true,
+    "contractSha256MatchRequired": true,
     "inputBundleSha256MatchRequired": true,
-    "developmentBlockAOrBRejected": true
+    "developmentAndExposedHistoryRejected": true,
+    "sessionEligibilityLedgerRequired": true
   },
   "outputSchema": "predict/research/phase57-capital-allocation-validation-output-schema.json",
   "requiredOutputMetrics": [
@@ -56,8 +72,10 @@
     "MAX_DRAWDOWN",
     "WORST_DAY",
     "ACCEPTED",
+    "ELIGIBLE_SESSION_COUNT",
     "BELOW_LOT_SKIP",
     "CASH_INSUFFICIENT_SKIP",
+    "POSITION_LIMIT_SKIP",
     "AVERAGE_AND_MAXIMUM_CAPITAL_UTILIZATION",
     "AVERAGE_AND_MAXIMUM_GROSS_EXPOSURE",
     "AVERAGE_AND_MAXIMUM_ABSOLUTE_NET_EXPOSURE",
@@ -65,9 +83,15 @@
     "WIN_RATE",
     "AVERAGE_AND_MEDIAN_TRADE_PNL",
     "AVERAGE_WIN_AND_LOSS",
+    "AVERAGE_WIN_LOSS_RATIO",
+    "AVERAGE_HOLDING_TIME",
+    "MAXIMUM_CONCURRENT_POSITIONS",
     "TOP1_AND_TOP3_PROFIT_CONTRIBUTION",
+    "TOP1_AND_TOP3_CAPITAL_CONCENTRATION",
     "POSITION_SIZE_EFFECT",
     "NEW_TRADE_EFFECT",
+    "CASH_RECYCLING_EFFECT",
+    "OTHER_EXECUTION_SET_EFFECT",
     "V4_V5_DIFFERENCE"
   ],
   "resultBasedChangesForbidden": [

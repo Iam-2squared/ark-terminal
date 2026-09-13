@@ -54,13 +54,17 @@
     "winnerSelectionAllowed": false
   },
   "candidateFreeze": {
-    "status": "DEVELOPMENT_PRIMARY_CANDIDATE_FROZEN_AFTER_LEDGER_AUDIT",
-    "primary": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5__MAX_5",
+    "status": "DEVELOPMENT_MAIN_MAX_3_FROZEN",
+    "primary": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5__MAX_3",
+    "conservativeSub": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5__MAX_5",
     "legacyBaseline": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5__MAX_10",
-    "aggressiveDevelopmentReference": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5__MAX_3",
+    "primaryExitComparator": "V3_B_RISK__FROZEN_EXIT_V4__MAX_3",
     "freezeContract": "predict/research/phase57-capital-allocation-integrated-candidate-freeze.json",
+    "futureIntegratedOosPrecommit": "predict/research/phase57-capital-allocation-future-integrated-oos-precommit.json",
     "validationContract": "predict/research/phase57-capital-allocation-validation-contract.json",
     "validationOpened": false,
+    "futureIntegratedOosStart": "2026-10-22",
+    "futureIntegratedOosEligibleSessions": 20,
     "developmentExplorationClosed": true
   },
   "initialDataset": {
@@ -102,7 +106,8 @@
     "doNotRetuneAllocationFromObservedOutcome": true,
     "doNotResweepExitHorizon": true,
     "doNotOpenProtectedOos": true,
-    "doNotMergeOrPromote": true
+    "doNotMergeOrPromoteToProduction": true,
+    "doNotChangeFrozenRolesInsideOosBlock": true
   },
   "safety": {
     "executionAllowed": false,

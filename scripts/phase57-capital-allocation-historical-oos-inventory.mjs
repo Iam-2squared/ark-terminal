@@ -21,14 +21,14 @@ const write=(dir,name,bytes)=>{fs.writeFileSync(path.join(dir,name),bytes);fs.wr
 export function auditHistoricalOosInventory(){
   const inventoryBytes=readBytes(INVENTORY_PATH),inventory=JSON.parse(inventoryBytes),freezeBytes=readBytes(FREEZE_PATH),freeze=JSON.parse(freezeBytes),validationBytes=readBytes(VALIDATION_PATH),validation=JSON.parse(validationBytes),phaseB=read(PHASE_B_PATH),entryDevelopment=read(ENTRY_DEVELOPMENT_PATH),entryHoldout=read(ENTRY_HOLDOUT_PATH),entryFresh=read(ENTRY_FRESH_PATH);
   assert.equal(inventory.status,'NO_TRULY_UNUSED_CAUSAL_ELIGIBLE_HISTORICAL_BLOCK');
-  assert.equal(inventory.sourcePins.capital.candidateFreezeSha256,digest(freezeBytes));
-  assert.equal(inventory.sourcePins.capital.validationContractSha256,digest(validationBytes));
+  assert.equal(inventory.sourcePins.capital.candidateFreezeSha256,freeze.selectionLineage[0].predecessorFreezeSha256);
+  assert.equal(inventory.sourcePins.capital.validationContractSha256,freeze.selectionLineage[0].predecessorValidationContractSha256);
   assert.equal(inventory.sourcePins.entry.developmentAllocationSha256,digest(readBytes(ENTRY_DEVELOPMENT_PATH)));
   assert.equal(inventory.sourcePins.entry.historicalHoldoutSha256,digest(readBytes(ENTRY_HOLDOUT_PATH)));
-  assert.equal(freeze.status,'DEVELOPMENT_PRIMARY_CANDIDATE_FROZEN');
-  assert.equal(freeze.candidate.budgetEnvelope,'MAX_5');
+  assert.equal(freeze.status,'DEVELOPMENT_MAIN_MAX_3_FROZEN');
+  assert.equal(freeze.candidate.budgetEnvelope,'MAX_3');
   assert.equal(freeze.candidate.exit,'EXIT_V5_DYNAMIC_RECLAIM_BAR_5');
-  assert.equal(validation.status,'VALIDATION_READY_NOT_OPENED');
+  assert.equal(validation.status,'FUTURE_INTEGRATED_OOS_PRECOMMITTED_NOT_OPENED');
   assert.equal(validation.validationOpened,false);
   assert.equal(validation.runnerExecutionUnlocked,false);
   assert.equal(inventory.jquantsHistoricalInventory.firstSessionWithRequiredCausalCoverage,'2026-06-19');
@@ -69,7 +69,8 @@ export function auditHistoricalOosInventory(){
     validationRunnerExecuted:false,
     fourArmPerformanceMeasured:false,
     nextCleanOpportunity:inventory.nextCleanOpportunity,
-    frozenCandidateUnchanged:inventory.frozenCandidateUnchanged,
+    frozenCandidateAtInventoryTime:inventory.frozenCandidateUnchanged,
+    currentRefreeze:{status:freeze.status,roles:{MAX_3_V5:freeze.budgetRoles.MAX_3,MAX_5_V5:freeze.budgetRoles.MAX_5,MAX_10_V5:freeze.budgetRoles.MAX_10},futureIntegratedOosStatus:validation.status},
     claims:inventory.claims,
     safety:inventory.safety
   };
@@ -77,7 +78,7 @@ export function auditHistoricalOosInventory(){
 
 export function renderHistoricalOosInventoryReport(inventory,audit){
   const rows=inventory.classification.map(x=>`| ${x.id} | ${x.window.join(' to ')} | ${x.sessions??'n/a'} | ${x.classification} | ${x.primaryExclusion} |`).join('\n');
-  return `# Phase57 Integrated Historical OOS Inventory\n\nStatus: **${audit.status}**\n\nNo new J-Quants market payload, future label, realized outcome, or performance result was opened during this inventory. The four-arm runner was not unlocked because the precondition for a clean Historical OOS block failed.\n\n## Inventory\n\n| Segment | Window | Sessions | Classification | Primary exclusion |\n| --- | --- | ---: | --- | --- |\n${rows}\n\n## Causal conclusion\n\nThe frozen v4/v5 analog pool begins at ${inventory.jquantsHistoricalInventory.earliestFrozenAnalogTimestamp}; the first session with the required ${inventory.jquantsHistoricalInventory.minimumCausalAnalogCount} causal analogs is ${inventory.jquantsHistoricalInventory.firstSessionWithRequiredCausalCoverage}. Older outcome-unopened sessions cannot be evaluated by sending later 2026 analogs backward. Every causal-valid Historical session through 2026-09-09 has already been exposed by Block A, Block B, or diagnostic20.\n\nThe first EXIT-causal unseen date is 2026-09-10, but the existing Entry contract reserves 2026-09-10 through 2026-10-21. The first currently unassigned opportunity is **${inventory.nextCleanOpportunity.firstDateUnderCurrentCrossResearchReservations}**, and it is future/prospective rather than an available Historical OOS block. It still requires a separate outcome-blind precommit before that session.\n\n## Result\n\n- Historical OOS block pre-frozen: false\n- Validation unlock created: false\n- Four-arm performance measured: false\n- Frozen MAX_5 primary / MAX_10 baseline / MAX_3 aggressive reference / MAX_5 v4 comparator roles: unchanged\n- OOS PASS / Validation PASS / Final PASS / Production Ready: all false\n\nThis is a clear no-data result, not a performance failure. Development remains closed and no exposed period is relabelled OOS.\n`;
+  return `# Phase57 Integrated Historical OOS Inventory\n\nStatus: **${audit.status}**\n\nNo new J-Quants market payload, future label, realized outcome, or performance result was opened during this inventory. The four-arm runner was not unlocked because the precondition for a clean Historical OOS block failed.\n\n## Inventory\n\n| Segment | Window | Sessions | Classification | Primary exclusion |\n| --- | --- | ---: | --- | --- |\n${rows}\n\n## Causal conclusion\n\nThe frozen v4/v5 analog pool begins at ${inventory.jquantsHistoricalInventory.earliestFrozenAnalogTimestamp}; the first session with the required ${inventory.jquantsHistoricalInventory.minimumCausalAnalogCount} causal analogs is ${inventory.jquantsHistoricalInventory.firstSessionWithRequiredCausalCoverage}. Older outcome-unopened sessions cannot be evaluated by sending later 2026 analogs backward. Every causal-valid Historical session through 2026-09-09 has already been exposed by Block A, Block B, or diagnostic20.\n\nThe first EXIT-causal unseen date is 2026-09-10, but the existing Entry contract reserves 2026-09-10 through 2026-10-21. The first currently unassigned opportunity is **${inventory.nextCleanOpportunity.firstDateUnderCurrentCrossResearchReservations}**. It has since been precommitted as the start of the future Integrated OOS without opening outcomes.\n\n## Result and lineage\n\n- Historical OOS block pre-frozen by this inventory: false\n- Validation unlock created: false\n- Four-arm performance measured: false\n- Roles at inventory time: MAX_5 primary / MAX_10 baseline / MAX_3 aggressive reference / MAX_5 v4 comparator\n- Current roles after exposed remeasurement and explicit user decision: MAX_3 Main / MAX_5 Conservative Sub / MAX_10 baseline / MAX_3 v4 comparator\n- Historical classifications and the original no-data conclusion remain unchanged\n- OOS PASS / Validation PASS / Final PASS / Production Ready: all false\n\nThis is a clear no-data result, not a performance failure. Development remains closed and no exposed period is relabelled OOS.\n`;
 }
 
 function main(){

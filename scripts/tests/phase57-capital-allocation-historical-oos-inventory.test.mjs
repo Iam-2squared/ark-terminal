@@ -20,10 +20,12 @@ test('Historical OOS inventory fails closed when no unused causal block exists',
   assert.ok(Object.values(audit.safety).every(value=>value===false));
 });
 
-test('Frozen four-arm roles remain unchanged despite the no-data result',()=>{
+test('Historical inventory roles remain preserved while current refreeze is explicit',()=>{
   const audit=auditHistoricalOosInventory();
-  assert.equal(audit.frozenCandidateUnchanged.roles.MAX_5_V5,'PRIMARY_OOS_CANDIDATE_WHEN_A_CLEAN_BLOCK_EXISTS');
-  assert.equal(audit.frozenCandidateUnchanged.roles.MAX_10_V5,'LEGACY_BUDGET_BASELINE');
-  assert.equal(audit.frozenCandidateUnchanged.roles.MAX_3_V5,'AGGRESSIVE_OOS_REFERENCE');
-  assert.equal(audit.frozenCandidateUnchanged.roles.MAX_5_V4,'EXIT_COMPARATOR');
+  assert.equal(audit.frozenCandidateAtInventoryTime.roles.MAX_5_V5,'PRIMARY_OOS_CANDIDATE_WHEN_A_CLEAN_BLOCK_EXISTS');
+  assert.equal(audit.frozenCandidateAtInventoryTime.roles.MAX_10_V5,'LEGACY_BUDGET_BASELINE');
+  assert.equal(audit.frozenCandidateAtInventoryTime.roles.MAX_3_V5,'AGGRESSIVE_OOS_REFERENCE');
+  assert.equal(audit.currentRefreeze.roles.MAX_3_V5,'PRIMARY_INTEGRATED_DEVELOPMENT_CANDIDATE');
+  assert.equal(audit.currentRefreeze.roles.MAX_5_V5,'CONSERVATIVE_INTEGRATED_SUB_CANDIDATE');
+  assert.equal(audit.currentRefreeze.roles.MAX_10_V5,'LEGACY_BUDGET_BASELINE');
 });

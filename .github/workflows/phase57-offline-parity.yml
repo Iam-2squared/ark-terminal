@@ -6,9 +6,14 @@ on:
       - 'scripts/lib/*offline*'
       - 'scripts/lib/phase57-parity-report.mjs'
       - 'scripts/lib/phase57-operational-robustness.mjs'
+      - 'scripts/lib/phase57-frozen-main-engine.mjs'
+      - 'scripts/phase57-frozen-main-runner.mjs'
       - 'scripts/tests/phase57-offline*'
+      - 'scripts/tests/phase57-frozen-main-engine.test.mjs'
       - 'scripts/tests/phase57-operational-robustness.test.mjs'
       - 'tools/*phase57*offline*'
+      - 'tools/phase57_generic_excel_reader.py'
+      - 'tools/test_phase57_generic_excel_reader.py'
       - 'tools/phase57-parity-field-map.json'
       - 'tools/Start-ArkOfflineParity.ps1'
       - 'tools/templates/**'
@@ -38,7 +43,9 @@ jobs:
         shell: bash
         run: node --test scripts/tests/*.test.mjs
       - name: Workbook failure tests
-        run: python tools/test_phase57_offline_excel_reader.py
+        run: |
+          python tools/test_phase57_offline_excel_reader.py
+          python tools/test_phase57_generic_excel_reader.py
       - name: One-command Windows launcher (offline only)
         if: runner.os == 'Windows'
         shell: pwsh

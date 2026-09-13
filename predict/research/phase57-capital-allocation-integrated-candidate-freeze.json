@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "schemaId": "PHASE57_CAPITAL_ALLOCATION_INTEGRATED_DEVELOPMENT_CANDIDATE_FREEZE_V1",
+  "status": "DEVELOPMENT_PRIMARY_CANDIDATE_FROZEN",
+  "effectiveAfterLedgerAuditStatus": "LEDGER_AUDIT_PASS_NO_HIDDEN_LEVERAGE",
+  "candidate": {
+    "selector": "FROZEN_MINIMAL_HYBRID_V1",
+    "selectorModelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
+    "selectorFreezeSHA": "a744d599e430d23efe4dea6600e418d3410d8a18df5055b35e1cc71432bf64da",
+    "entry": "MSH_ENTRY_V1",
+    "entryModelSha256": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a",
+    "entryThresholdStrictlyGreaterThan": 0.60,
+    "repeatEntryAllowed": false,
+    "allocation": "V3_B_RISK",
+    "riskDefinition": "SEVEN_COMPLETED_5M_CLOSES_SIX_LOG_RETURNS_POPULATION_SD",
+    "budgetEnvelope": "MAX_5",
+    "slotBudgetFormula": "CURRENT_EQUITY_DIVIDED_BY_5",
+    "maximumConcurrentPositions": 10,
+    "exit": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+    "initialCapitalJpy": 1000000,
+    "lotSizeShares": 100,
+    "roundTripCostPct": 0.05,
+    "eventOrder": ["PRICE_UPDATE", "EXIT", "CASH_RELEASE", "ENTRY", "MARK_TO_MARKET"],
+    "shortAccounting": "FULLY_CASH_COLLATERALIZED_ENTRY_REFERENCE_NOTIONAL_PROCEEDS_NOT_REUSABLE",
+    "unrealizedPnlMayIncreaseBuyingPower": false
+  },
+  "budgetRoles": {
+    "MAX_5": "PRIMARY_DEVELOPMENT_CANDIDATE",
+    "MAX_10": "LEGACY_BUDGET_BASELINE",
+    "MAX_3": "AGGRESSIVE_DEVELOPMENT_REFERENCE"
+  },
+  "selectionBasis": [
+    "MAX_10 capital deployment bottleneck materially reduced",
+    "accepted count increases from 28 to 49 and below-lot skips fall from 56 to 36",
+    "average utilization increases from 3.73% to 10.05% while maximum utilization remains 54.30%",
+    "Development return improves while PF remains 3.900744 and MaxDD is 4.273109% under v4",
+    "MAX_5 carries less tail exposure than MAX_3",
+    "MAX_5 to MAX_3 marginal new-trade contribution diminishes"
+  ],
+  "selectionMethod": "PRECOMMITTED_STRUCTURAL_JUDGMENT_NOT_WEIGHTED_SCORE_OR_POST_HOC_THRESHOLD",
+  "developmentDataset": "EXPOSED_BLOCK_A_PLUS_B_85_ONLY",
+  "newBudgetSearchAllowed": false,
+  "developmentExplorationClosed": true,
+  "claims": {
+    "final": false,
+    "oosPass": false,
+    "validated": false,
+    "productionReady": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

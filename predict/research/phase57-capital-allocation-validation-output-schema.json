@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "PHASE57_CAPITAL_ALLOCATION_VALIDATION_RESULT_V1",
+  "title": "Phase57 Capital Allocation Validation Result",
+  "type": "object",
+  "required": ["schemaVersion", "schemaId", "status", "sourceIdentity", "arms", "comparisons", "safety"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "schemaId": {"const": "PHASE57_CAPITAL_ALLOCATION_VALIDATION_RESULT_V1"},
+    "status": {"enum": ["VALIDATION_MEASURED_NOT_ADJUDICATED"]},
+    "sourceIdentity": {
+      "type": "object",
+      "required": ["validationSourceId", "inputBundleSha256", "sourceManifestSha256", "sessionIds", "pointInTimeAttestation"],
+      "additionalProperties": true
+    },
+    "arms": {
+      "type": "object",
+      "required": ["primary", "legacyBaseline", "exitComparator"],
+      "additionalProperties": {"$ref": "#/$defs/arm"}
+    },
+    "comparisons": {
+      "type": "object",
+      "required": ["primaryVsLegacyBudget", "primaryV5VsV4"],
+      "properties": {
+        "primaryVsLegacyBudget": {"$ref": "#/$defs/attribution"},
+        "primaryV5VsV4": {"$ref": "#/$defs/attribution"}
+      }
+    },
+    "safety": {"type": "object"}
+  },
+  "$defs": {
+    "arm": {
+      "type": "object",
+      "required": ["initialCapitalJpy", "finalEquityJpy", "netReturnPct", "portfolioProfitFactor", "maxDrawdown", "worstDay", "trade", "capital", "accounting", "directionCapitalShare", "profitContribution", "ledgerAudit", "validationMetrics"],
+      "properties": {
+        "initialCapitalJpy": {"type": "number"},
+        "finalEquityJpy": {"type": "number"},
+        "netReturnPct": {"type": "number"},
+        "portfolioProfitFactor": {"type": ["number", "string", "null"]},
+        "maxDrawdown": {"type": "object"},
+        "worstDay": {"type": ["object", "null"]},
+        "trade": {
+          "type": "object",
+          "required": ["accepted", "averagePnlJpy", "medianPnlJpy", "averageWinJpy", "averageLossJpy", "winRate", "rejectionCounts"]
+        },
+        "capital": {
+          "type": "object",
+          "required": ["averageCapitalUtilization", "maximumCapitalUtilization", "averageGrossExposureJpy", "maximumGrossExposureJpy", "averageAbsoluteNetExposureJpy", "maximumAbsoluteNetExposureJpy"]
+        },
+        "accounting": {
+          "type": "object",
+          "required": ["cashInsufficientSkips", "positionLimitSkips", "costDoubleCounted", "shortSaleProceedsReusable", "unrealizedPnlBuyingPower"]
+        },
+        "directionCapitalShare": {"type": "object"},
+        "profitContribution": {"type": "object"},
+        "ledgerAudit": {"type": "object"},
+        "validationMetrics": {
+          "type": "object",
+          "required": ["finalEquityJpy", "returnPct", "portfolioProfitFactor", "maxDrawdownPct", "worstDay", "accepted", "belowLotSkip", "cashInsufficientSkip", "averageCapitalUtilization", "maximumCapitalUtilization", "averageGrossExposureJpy", "maximumGrossExposureJpy", "averageAbsoluteNetExposureJpy", "maximumAbsoluteNetExposureJpy", "longCapitalShare", "shortCapitalShare", "winRate", "averageTradePnlJpy", "medianTradePnlJpy", "averageWinJpy", "averageLossJpy", "top1ProfitContribution", "top3ProfitContribution"]
+        }
+      }
+    },
+    "attribution": {
+      "type": "object",
+      "required": ["totalDeltaJpy", "commonTrades", "leftOnlyTrades", "rightOnlyTrades", "recomposed"],
+      "properties": {
+        "totalDeltaJpy": {"type": "number"},
+        "commonTrades": {"type": "object", "description": "Position-size/common-trade effect"},
+        "leftOnlyTrades": {"type": "object"},
+        "rightOnlyTrades": {"type": "object", "description": "New-trade/execution-set effect"},
+        "recomposed": {"const": true}
+      }
+    }
+  }
+}

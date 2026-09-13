@@ -18,7 +18,7 @@ const median=xs=>{if(!xs.length)return null;const a=[...xs].sort((x,y)=>x-y),m=M
 const stats=xs=>({n:xs.length,mean:round(mean(xs)),median:round(median(xs)),minimum:xs.length?round(Math.min(...xs)):null,maximum:xs.length?round(Math.max(...xs)):null});
 function args(argv){const out={};for(let i=0;i<argv.length;i+=2){if(!argv[i]?.startsWith('--')||argv[i+1]===undefined)throw Error('arguments require --key value pairs');out[argv[i].slice(2)]=argv[i+1];}for(const k of ['features-dir','model','block-a','block-b','bar5-pinned-report','output-dir'])if(!out[k])throw Error(`MISSING_ARG:${k}`);return out;}
 
-function buildIntegratedInputs(a){
+export function buildIntegratedInputs(a){
   const contract=read('predict/research/phase57-capital-allocation-v3-phase-b-integrated-contract.json');
   const modelBytes=fs.readFileSync(a.model),model=JSON.parse(modelBytes),A=read(a['block-a']),B=read(a['block-b']),pinnedReport=read(a['bar5-pinned-report']);
   assert.equal(digest(modelBytes),contract.upstream.entryModelSha256,'Frozen MSH model hash');assert.equal(model.threshold,.6);assert.equal(model.validationOpened,false);for(const v of Object.values(PHASE_B_SAFETY))assert.equal(v,false);
@@ -35,7 +35,7 @@ function buildIntegratedInputs(a){
   return {contract,modelBytes,input,allOpps,eligible,paired,barCloseAt,parity};
 }
 
-function compact(arm){const {curve,closedTrades,decisions,...summary}=arm;return summary;}
+function compact(arm){const {curve,closedTrades,decisions,ledgerTrace,...summary}=arm;return summary;}
 
 function budgetAttribution(left,right){
   const L=new Map(left.closedTrades.map(x=>[x.eventId,x])),R=new Map(right.closedTrades.map(x=>[x.eventId,x]));

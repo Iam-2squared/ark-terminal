@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "schemaId": "PHASE57_CAPITAL_ALLOCATION_VALIDATION_RUNNER_READINESS_V1",
+  "status": "VALIDATION_READY_NOT_OPENED",
+  "executionPerformed": false,
+  "protectedOrFreshDataRead": false,
+  "contractSha256": "02cd97af9f13de67f73396be43d72aa90d6d26082d100fe57e62c3585ca58126",
+  "candidateFreezeSha256": "0eda85ade4b16871229edb34f7c24e094c1398878277c0786b910d3fb53e26aa",
+  "outputSchemaSha256": "b4ff1508c507540c1a6f074977d7edeebcbc3f5e6611be53fce65bc2efa7568f",
+  "arms": {
+    "primary": {
+      "role": "PRIMARY",
+      "budgetDivisor": 5,
+      "exitId": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5"
+    },
+    "legacyBaseline": {
+      "role": "LEGACY_BUDGET_BASELINE",
+      "budgetDivisor": 10,
+      "exitId": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5"
+    },
+    "aggressiveDevelopmentReference": {
+      "role": "AGGRESSIVE_DEVELOPMENT_REFERENCE_OPTIONAL",
+      "budgetDivisor": 3,
+      "exitId": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5"
+    },
+    "exitComparator": {
+      "role": "EXIT_COMPARATOR",
+      "budgetDivisor": 5,
+      "exitId": "FROZEN_EXIT_V4"
+    }
+  },
+  "gate": {
+    "separateUnlockRequired": true,
+    "inputBundleRequired": true,
+    "developmentBlockAOrBRejected": true
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

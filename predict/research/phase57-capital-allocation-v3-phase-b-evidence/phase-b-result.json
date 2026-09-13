@@ -807,6 +807,9 @@
       "armId": "V3_0_EQUAL__FROZEN_EXIT_V4",
       "allocationId": "V3_0_EQUAL",
       "exitId": "FROZEN_EXIT_V4",
+      "budgetDivisor": 10,
+      "lotSizeShares": 100,
+      "fractionalShares": false,
       "initialCapitalJpy": 1000000,
       "finalEquityJpy": 1058638.605,
       "netPnlJpy": 58638.605,
@@ -831,6 +834,15 @@
         "winRate": 0.482759,
         "averagePnlJpy": 2022.020862,
         "medianPnlJpy": -37,
+        "averageWinJpy": 5417.389286,
+        "averageLossJpy": -1146.989667,
+        "averageWinLossRatio": 4.723137,
+        "largestWinningTrade": {
+          "eventId": "2026-08-03|2026-08-03T01:40:00.000Z|8918.T",
+          "symbol": "8918.T",
+          "pnlJpy": 9447.75,
+          "shareOfPositiveProfit": 0.124569
+        },
         "averageHoldingMinutes": 201.37931,
         "transactionCostsJpy": 1341.395,
         "rejectionCounts": {
@@ -845,6 +857,7 @@
         "averageGrossExposureJpy": 37195.418975,
         "maximumGrossExposureJpy": 198900,
         "averageNetExposureJpy": -27400.335873,
+        "averageAbsoluteNetExposureJpy": 37195.418975,
         "maximumAbsoluteNetExposureJpy": 198900,
         "averageCashJpy": 987765.326487,
         "grossTurnoverNotionalJpy": 5304600
@@ -953,6 +966,28 @@
         "costDoubleCounted": false,
         "shortSaleProceedsReusable": false,
         "unrealizedPnlBuyingPower": false
+      },
+      "ledgerAudit": {
+        "status": "LEDGER_INVARIANTS_PASS",
+        "eventCount": 2470,
+        "violationCount": 0,
+        "checks": [
+          "availableCashNonnegative",
+          "shortSaleProceedsNotReused",
+          "unrealizedGainsExcludedFromBuyingPower",
+          "lockedShortCollateralEqualsReferenceNotional",
+          "entryRequiredCashWithinBuyingPower",
+          "exitReleaseBeforeSameTimestampEntry",
+          "grossExposureWithinCurrentEquity",
+          "absoluteNetExposureWithinCurrentEquity",
+          "costsChargedExactlyOnce",
+          "positionLimitRespected",
+          "quantityUnitValid",
+          "realizedEquityReconciles"
+        ],
+        "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+        "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+        "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
       },
       "dailyEquity": [
         {
@@ -1151,6 +1186,9 @@
       "armId": "V3_0_EQUAL__EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
       "allocationId": "V3_0_EQUAL",
       "exitId": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+      "budgetDivisor": 10,
+      "lotSizeShares": 100,
+      "fractionalShares": false,
       "initialCapitalJpy": 1000000,
       "finalEquityJpy": 1058638.605,
       "netPnlJpy": 58638.605,
@@ -1175,6 +1213,15 @@
         "winRate": 0.482759,
         "averagePnlJpy": 2022.020862,
         "medianPnlJpy": -37,
+        "averageWinJpy": 5417.389286,
+        "averageLossJpy": -1146.989667,
+        "averageWinLossRatio": 4.723137,
+        "largestWinningTrade": {
+          "eventId": "2026-08-03|2026-08-03T01:40:00.000Z|8918.T",
+          "symbol": "8918.T",
+          "pnlJpy": 9447.75,
+          "shareOfPositiveProfit": 0.124569
+        },
         "averageHoldingMinutes": 201.37931,
         "transactionCostsJpy": 1341.395,
         "rejectionCounts": {
@@ -1189,6 +1236,7 @@
         "averageGrossExposureJpy": 37195.418975,
         "maximumGrossExposureJpy": 198900,
         "averageNetExposureJpy": -27400.335873,
+        "averageAbsoluteNetExposureJpy": 37195.418975,
         "maximumAbsoluteNetExposureJpy": 198900,
         "averageCashJpy": 987765.326487,
         "grossTurnoverNotionalJpy": 5304600
@@ -1297,6 +1345,28 @@
         "costDoubleCounted": false,
         "shortSaleProceedsReusable": false,
         "unrealizedPnlBuyingPower": false
+      },
+      "ledgerAudit": {
+        "status": "LEDGER_INVARIANTS_PASS",
+        "eventCount": 2470,
+        "violationCount": 0,
+        "checks": [
+          "availableCashNonnegative",
+          "shortSaleProceedsNotReused",
+          "unrealizedGainsExcludedFromBuyingPower",
+          "lockedShortCollateralEqualsReferenceNotional",
+          "entryRequiredCashWithinBuyingPower",
+          "exitReleaseBeforeSameTimestampEntry",
+          "grossExposureWithinCurrentEquity",
+          "absoluteNetExposureWithinCurrentEquity",
+          "costsChargedExactlyOnce",
+          "positionLimitRespected",
+          "quantityUnitValid",
+          "realizedEquityReconciles"
+        ],
+        "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+        "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+        "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
       },
       "dailyEquity": [
         {
@@ -1495,6 +1565,9 @@
       "armId": "V3_A_RANK__FROZEN_EXIT_V4",
       "allocationId": "V3_A_RANK",
       "exitId": "FROZEN_EXIT_V4",
+      "budgetDivisor": 10,
+      "lotSizeShares": 100,
+      "fractionalShares": false,
       "initialCapitalJpy": 1000000,
       "finalEquityJpy": 1051084.205,
       "netPnlJpy": 51084.205,
@@ -1519,6 +1592,15 @@
         "winRate": 0.482759,
         "averagePnlJpy": 1761.52431,
         "medianPnlJpy": -37,
+        "averageWinJpy": 4877.646429,
+        "averageLossJpy": -1146.856333,
+        "averageWinLossRatio": 4.253058,
+        "largestWinningTrade": {
+          "eventId": "2026-08-03|2026-08-03T01:40:00.000Z|8918.T",
+          "symbol": "8918.T",
+          "pnlJpy": 9348.3,
+          "shareOfPositiveProfit": 0.136897
+        },
         "averageHoldingMinutes": 201.37931,
         "transactionCostsJpy": 1295.795,
         "rejectionCounts": {
@@ -1533,6 +1615,7 @@
         "averageGrossExposureJpy": 35482.780471,
         "maximumGrossExposureJpy": 198900,
         "averageNetExposureJpy": -25702.655817,
+        "averageAbsoluteNetExposureJpy": 35482.780471,
         "maximumAbsoluteNetExposureJpy": 198900,
         "averageCashJpy": 985200.230331,
         "grossTurnoverNotionalJpy": 5129800
@@ -1641,6 +1724,28 @@
         "costDoubleCounted": false,
         "shortSaleProceedsReusable": false,
         "unrealizedPnlBuyingPower": false
+      },
+      "ledgerAudit": {
+        "status": "LEDGER_INVARIANTS_PASS",
+        "eventCount": 2470,
+        "violationCount": 0,
+        "checks": [
+          "availableCashNonnegative",
+          "shortSaleProceedsNotReused",
+          "unrealizedGainsExcludedFromBuyingPower",
+          "lockedShortCollateralEqualsReferenceNotional",
+          "entryRequiredCashWithinBuyingPower",
+          "exitReleaseBeforeSameTimestampEntry",
+          "grossExposureWithinCurrentEquity",
+          "absoluteNetExposureWithinCurrentEquity",
+          "costsChargedExactlyOnce",
+          "positionLimitRespected",
+          "quantityUnitValid",
+          "realizedEquityReconciles"
+        ],
+        "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+        "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+        "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
       },
       "dailyEquity": [
         {
@@ -1839,6 +1944,9 @@
       "armId": "V3_A_RANK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
       "allocationId": "V3_A_RANK",
       "exitId": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+      "budgetDivisor": 10,
+      "lotSizeShares": 100,
+      "fractionalShares": false,
       "initialCapitalJpy": 1000000,
       "finalEquityJpy": 1051084.205,
       "netPnlJpy": 51084.205,
@@ -1863,6 +1971,15 @@
         "winRate": 0.482759,
         "averagePnlJpy": 1761.52431,
         "medianPnlJpy": -37,
+        "averageWinJpy": 4877.646429,
+        "averageLossJpy": -1146.856333,
+        "averageWinLossRatio": 4.253058,
+        "largestWinningTrade": {
+          "eventId": "2026-08-03|2026-08-03T01:40:00.000Z|8918.T",
+          "symbol": "8918.T",
+          "pnlJpy": 9348.3,
+          "shareOfPositiveProfit": 0.136897
+        },
         "averageHoldingMinutes": 201.37931,
         "transactionCostsJpy": 1295.795,
         "rejectionCounts": {
@@ -1877,6 +1994,7 @@
         "averageGrossExposureJpy": 35482.780471,
         "maximumGrossExposureJpy": 198900,
         "averageNetExposureJpy": -25702.655817,
+        "averageAbsoluteNetExposureJpy": 35482.780471,
         "maximumAbsoluteNetExposureJpy": 198900,
         "averageCashJpy": 985200.230331,
         "grossTurnoverNotionalJpy": 5129800
@@ -1985,6 +2103,28 @@
         "costDoubleCounted": false,
         "shortSaleProceedsReusable": false,
         "unrealizedPnlBuyingPower": false
+      },
+      "ledgerAudit": {
+        "status": "LEDGER_INVARIANTS_PASS",
+        "eventCount": 2470,
+        "violationCount": 0,
+        "checks": [
+          "availableCashNonnegative",
+          "shortSaleProceedsNotReused",
+          "unrealizedGainsExcludedFromBuyingPower",
+          "lockedShortCollateralEqualsReferenceNotional",
+          "entryRequiredCashWithinBuyingPower",
+          "exitReleaseBeforeSameTimestampEntry",
+          "grossExposureWithinCurrentEquity",
+          "absoluteNetExposureWithinCurrentEquity",
+          "costsChargedExactlyOnce",
+          "positionLimitRespected",
+          "quantityUnitValid",
+          "realizedEquityReconciles"
+        ],
+        "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+        "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+        "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
       },
       "dailyEquity": [
         {
@@ -2183,6 +2323,9 @@
       "armId": "V3_B_RISK__FROZEN_EXIT_V4",
       "allocationId": "V3_B_RISK",
       "exitId": "FROZEN_EXIT_V4",
+      "budgetDivisor": 10,
+      "lotSizeShares": 100,
+      "fractionalShares": false,
       "initialCapitalJpy": 1000000,
       "finalEquityJpy": 1065637.505,
       "netPnlJpy": 65637.505,
@@ -2207,6 +2350,15 @@
         "winRate": 0.5,
         "averagePnlJpy": 2344.196607,
         "medianPnlJpy": 356.8,
+        "averageWinJpy": 5807.664286,
+        "averageLossJpy": -1119.271071,
+        "averageWinLossRatio": 5.188792,
+        "largestWinningTrade": {
+          "eventId": "2026-07-15|2026-07-15T01:05:00.000Z|5240.T",
+          "symbol": "5240.T",
+          "pnlJpy": 11439,
+          "shareOfPositiveProfit": 0.140688
+        },
         "averageHoldingMinutes": 207.857143,
         "transactionCostsJpy": 1342.495,
         "rejectionCounts": {
@@ -2221,6 +2373,7 @@
         "averageGrossExposureJpy": 38476.790166,
         "maximumGrossExposureJpy": 224300,
         "averageNetExposureJpy": -28621.180748,
+        "averageAbsoluteNetExposureJpy": 38476.790166,
         "maximumAbsoluteNetExposureJpy": 224300,
         "averageCashJpy": 990995.547964,
         "grossTurnoverNotionalJpy": 5302000
@@ -2325,6 +2478,28 @@
         "costDoubleCounted": false,
         "shortSaleProceedsReusable": false,
         "unrealizedPnlBuyingPower": false
+      },
+      "ledgerAudit": {
+        "status": "LEDGER_INVARIANTS_PASS",
+        "eventCount": 2470,
+        "violationCount": 0,
+        "checks": [
+          "availableCashNonnegative",
+          "shortSaleProceedsNotReused",
+          "unrealizedGainsExcludedFromBuyingPower",
+          "lockedShortCollateralEqualsReferenceNotional",
+          "entryRequiredCashWithinBuyingPower",
+          "exitReleaseBeforeSameTimestampEntry",
+          "grossExposureWithinCurrentEquity",
+          "absoluteNetExposureWithinCurrentEquity",
+          "costsChargedExactlyOnce",
+          "positionLimitRespected",
+          "quantityUnitValid",
+          "realizedEquityReconciles"
+        ],
+        "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+        "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+        "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
       },
       "dailyEquity": [
         {
@@ -2523,6 +2698,9 @@
       "armId": "V3_B_RISK__EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
       "allocationId": "V3_B_RISK",
       "exitId": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+      "budgetDivisor": 10,
+      "lotSizeShares": 100,
+      "fractionalShares": false,
       "initialCapitalJpy": 1000000,
       "finalEquityJpy": 1065637.505,
       "netPnlJpy": 65637.505,
@@ -2547,6 +2725,15 @@
         "winRate": 0.5,
         "averagePnlJpy": 2344.196607,
         "medianPnlJpy": 356.8,
+        "averageWinJpy": 5807.664286,
+        "averageLossJpy": -1119.271071,
+        "averageWinLossRatio": 5.188792,
+        "largestWinningTrade": {
+          "eventId": "2026-07-15|2026-07-15T01:05:00.000Z|5240.T",
+          "symbol": "5240.T",
+          "pnlJpy": 11439,
+          "shareOfPositiveProfit": 0.140688
+        },
         "averageHoldingMinutes": 207.857143,
         "transactionCostsJpy": 1342.495,
         "rejectionCounts": {
@@ -2561,6 +2748,7 @@
         "averageGrossExposureJpy": 38476.790166,
         "maximumGrossExposureJpy": 224300,
         "averageNetExposureJpy": -28621.180748,
+        "averageAbsoluteNetExposureJpy": 38476.790166,
         "maximumAbsoluteNetExposureJpy": 224300,
         "averageCashJpy": 990995.547964,
         "grossTurnoverNotionalJpy": 5302000
@@ -2665,6 +2853,28 @@
         "costDoubleCounted": false,
         "shortSaleProceedsReusable": false,
         "unrealizedPnlBuyingPower": false
+      },
+      "ledgerAudit": {
+        "status": "LEDGER_INVARIANTS_PASS",
+        "eventCount": 2470,
+        "violationCount": 0,
+        "checks": [
+          "availableCashNonnegative",
+          "shortSaleProceedsNotReused",
+          "unrealizedGainsExcludedFromBuyingPower",
+          "lockedShortCollateralEqualsReferenceNotional",
+          "entryRequiredCashWithinBuyingPower",
+          "exitReleaseBeforeSameTimestampEntry",
+          "grossExposureWithinCurrentEquity",
+          "absoluteNetExposureWithinCurrentEquity",
+          "costsChargedExactlyOnce",
+          "positionLimitRespected",
+          "quantityUnitValid",
+          "realizedEquityReconciles"
+        ],
+        "comparisonBasis": "CURRENT_MARK_TO_MARKET_EQUITY_NOT_INITIAL_CAPITAL",
+        "shortCollateralBasis": "ENTRY_REFERENCE_NOTIONAL_FULLY_CASH_COLLATERALIZED",
+        "fractionalShareQuantityCheck": "EXACT_LOT_MULTIPLE"
       },
       "dailyEquity": [
         {

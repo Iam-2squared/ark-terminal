@@ -47,6 +47,8 @@ jobs:
         run: |
           python tools/phase57_offline_excel_reader.py --output '${{ runner.temp }}/packet.json'
           node scripts/phase57-offline-workbook-check.mjs '${{ runner.temp }}/packet.json' '${{ runner.temp }}/report'
+          python tools/phase57_offline_preflight.py --output '${{ runner.temp }}/report/preflight.json'
+          node scripts/phase57-offline-local-gate.mjs '${{ runner.temp }}/report/local-gate'
       - uses: actions/upload-artifact@v4
         if: always()
         with:

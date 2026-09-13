@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {isDeepStrictEqual} from 'node:util';
-import {compareRecords,exposedDate,instant,SAFETY,FREEZE} from './phase57-offline-parity.mjs';
+import {compareRecords,exposedDate,instant,SAFETY,FREEZE,cumulative,hash} from './phase57-offline-parity.mjs';
 export const STAGES=['DATA','SELECTOR','ENTRY','ALLOCATION','EXIT','LEDGER'];
 const fraction=(a,b,fields)=>{const A=new Map(a.map(x=>[x.id,x])),B=new Map(b.map(x=>[x.id,x])),ids=[...new Set([...A.keys(),...B.keys()])];let exact=0;for(const id of ids)if(A.has(id)&&B.has(id)&&fields.every(k=>Object.hasOwn(A.get(id),k)&&Object.hasOwn(B.get(id),k)&&isDeepStrictEqual(A.get(id)[k],B.get(id)[k])))exact++;return ids.length?exact/ids.length:null;};
 const delta=(a,b,key,time=false)=>{const B=new Map(b.map(x=>[x.id,x]));const xs=[];for(const x of a){const y=B.get(x.id);if(!y||x[key]==null||y[key]==null)continue;const l=time?instant(x[key]):x[key],r=time?instant(y[key]):y[key];assert.ok(Number.isFinite(l)&&Number.isFinite(r),'NONFINITE_COMPARISON_VALUE');xs.push(Math.abs(l-r));}xs.sort((a,b)=>a-b);const n=xs.length;return {matchedCount:n,median:n?(xs[Math.floor((n-1)/2)]+xs[Math.floor(n/2)])/2:null,max:n?xs.at(-1):null};};
@@ -29,4 +29,15 @@ export function compareDay(left,right){
     mismatchCountsByCause:counts,missingEvents:left.health?.missingEvents??null,staleEvents:left.health?.staleEvents??null,
     excelRssUptime:left.health?.excelRssUptime??null,
   },reservedDataOpened:false,realSessionCaptured:false,safety:SAFETY};
+}
+
+export function cumulativeDays(reports){
+  const seen=new Set();
+  for(const r of reports){
+    exposedDate(r.sessionDate);assert.equal(r.freezeSha256,FREEZE);
+    assert.ok(['USED_HISTORICAL_FIXTURE','SYNTHETIC_TRANSPORT_TEST'].includes(r.classification),'REAL_CAPTURE_LOCKED');
+    const key=r.classification+'|'+r.sessionDate;assert.ok(!seen.has(key),'DUPLICATE_SESSION_USE_SEPARATE_VERSION_SERIES');seen.add(key);
+  }
+  const mismatchCountsByCause={};for(const r of reports)for(const [cause,n]of Object.entries(r.metrics.mismatchCountsByCause))mismatchCountsByCause[cause]=(mismatchCountsByCause[cause]??0)+n;
+  return {schemaId:'ARK_OFFLINE_CUMULATIVE_V1',sessions:reports.length,reportHashes:reports.map(hash),stages:cumulative(reports),mismatchCountsByCause,realSessionCaptured:false,safety:SAFETY};
 }

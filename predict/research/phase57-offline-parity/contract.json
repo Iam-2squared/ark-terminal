@@ -18,12 +18,21 @@
     "maxPositions": 10,
     "exit": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
     "roundTripCostPct": 0.05,
-    "eventOrder": ["PRICE_UPDATE", "EXIT", "CASH_RELEASE", "ENTRY", "MARK_TO_MARKET"]
+    "eventOrder": [
+      "PRICE_UPDATE",
+      "EXIT",
+      "CASH_RELEASE",
+      "ENTRY",
+      "MARK_TO_MARKET"
+    ]
   },
   "boundaries": {
     "allowedActualData": "HASH_PINNED_ALREADY_USED_A_PLUS_B_LOCAL_FIXTURES_ONLY",
     "excelFixture": "HASH_PINNED_SYNTHETIC_TRANSPORT_TEST_NO_RSS_FORMULAS",
-    "reservedEntry": ["2026-09-10", "2026-10-21"],
+    "reservedEntry": [
+      "2026-09-10",
+      "2026-10-21"
+    ],
     "futureIntegratedOosStart": "2026-10-22",
     "reservedOpened": false,
     "futureOpened": false,
@@ -53,7 +62,9 @@
     "v5": "INCREMENTAL_BAR5_OVER_CURRENT_V4_FEED",
     "ledger": "EXACT_12_INVARIANTS_PORT_FROM_PINNED_PHASE_B",
     "ticks": "DIAGNOSTIC_ONLY_NOT_USED",
-    "prospectiveCapture": "NOT_RUN"
+    "prospectiveCapture": "NOT_RUN",
+    "sourceSemanticsDiagnostic": "SOURCE_ONLY_OFFLINE_OBSERVATIONS_NO_FINALIZATION_INFERENCE",
+    "dailyPipeline": "SEALED_HASH_CHAIN_EXPORT_TESTED_ON_SYNTHETIC_INPUTS"
   },
   "evidence": {
     "exclusiveWriter": true,
@@ -62,14 +73,18 @@
     "overwriteAllowed": false,
     "tornTail": "PRESERVE_AND_FAIL_CLOSED_CREATE_NEW_VERSION",
     "crashLock": "NO_AUTOMATIC_REMOVAL_CREATE_NEW_VERSION",
-    "restart": "DETERMINISTIC_OFFLINE_REPLAY_NEW_RUN_DIRECTORY",
+    "restart": "COMMITTED_INPUT_REPLAY_WITH_CAPTURE_ID_IDEMPOTENCE_AND_IDENTITY_PIN",
     "codeFixes": "NEW_VERSION_ORIGINAL_EVIDENCE_RETAINED"
   },
   "safety": {
-    "executionAllowed": false, "brokerWriteAllowed": false,
-    "excelOrderWriteAllowed": false, "rssOrderFunctionAllowed": false,
-    "liveTradingAllowed": false, "paperTradingAllowed": false,
-    "automaticPromotionAllowed": false, "productionUpdateAllowed": false,
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
     "transmitted": false
   }
 }

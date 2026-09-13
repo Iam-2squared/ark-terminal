@@ -1,0 +1,40 @@
+✔ 予測時点のテクニカル条件を固定特徴量として保存できる (2.392351ms)
+✔ 欠損した指標値を0として扱わない (1.191383ms)
+✔ 指標別・組み合わせ別の成績を実リターンから集計する (2.007602ms)
+✔ 期待変動幅のMAE・RMSE・偏りを算出する (0.25239ms)
+✔ 期待変動幅が欠損した旧履歴を予測誤差へ混ぜない (0.156916ms)
+✖ 履歴は結果・銘柄・日付で絞り込み、ページ分割できる (1.516093ms)
+✔ 予測検証履歴は初期状態で閉じ、必要な絞り込みUIを持つ (7.385065ms)
+✔ 推奨重みは学習期間だけを使い、採用前の重みを変更しない (1.48849ms)
+✔ 機械学習用データは特徴量と正解を分離し時系列順に分割する (1.175199ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 8
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 113.242471
+
+✖ failing tests:
+
+test at predict/tests/learning.test.mjs:180:1
+✖ 履歴は結果・銘柄・日付で絞り込み、ページ分割できる (1.516093ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  39 !== 40
+  
+      at TestContext.<anonymous> (file:///tmp/ark-parity-baseline-84b2961/predict/tests/learning.test.mjs:191:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 39,
+    expected: 40,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

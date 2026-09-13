@@ -71,6 +71,37 @@ Health tests cover disconnected/closed/error/stale conditions as fixture inputs.
 
 Status: `OFFLINE_FIXTURE_PARITY_READY`, `REAL_CAPTURE_LOCKED`, `ORDER_TRANSMISSION_DISABLED`. Do not label this build `READY_FOR_DAILY_REALTIME_PARITY` until the remaining gates are actually satisfied.
 
-CI attempt on PR #584: run `34760321140` failed before runner/test steps, with no job logs. A retry also failed before steps on both Linux and Windows. The available connector did not expose the cause; billing is not asserted. Local relevant tests are green (112 Node, 3 Python), but GitHub CI is not green and the Windows launcher is prepared, not confirmed executed. See `ci-attempt.json` for the exact tested head and jobs.
+Historical CI attempt on PR #584: run `34760321140` failed before runner/test steps, with no job logs. A retry also failed before steps on both Linux and Windows. The available connector did not expose the cause; billing is not asserted. At that attempt local relevant tests were green (112 Node, 3 Python), but GitHub CI was not green and Windows execution was unconfirmed. The completion-block recovery below supersedes that operational status. See `ci-attempt.json` for the exact tested head and jobs.
 
 The full Predict suite was also run: 2,595 passed, one failed (`learning.test.mjs`, history filtering/pagination, 39 records versus expected 40). The identical isolated failure was reproduced on an untouched `84b2961` worktree. It is an inherited failure outside the offline parity modules; no unrelated behavior or test expectation was changed to manufacture a green result.
+
+
+## Completion block (2026-09-13)
+
+The same `585e260` source passed Linux and Windows after one retry (run 34760561728, attempt 2). The Windows launcher step ran successfully. Initial jobs had no steps/logs; their precise platform cause remains unavailable. This is evidence of recovery without a strategy or workflow fix, not a claim about billing. `ci-recovery.json` preserves both facts. The next completion commit must also pass its own checks.
+
+The one-command launcher now checks Python >=3.12, Node >=22, workbook identity, source hashes, configuration and safety before starting. It then runs failure tests, the pinned XLSX transport, a synthetic stateful ledger/restart test, a source-only timestamp diagnostic and daily export. Optional `-UsedFixtures` adds the exact frozen-model A+B pass. No artifacts are downloaded automatically. Without the used model bundle the default smoke run does NOT claim MSH/Selector parity.
+
+New offline outputs beneath `local-gate/`:
+
+| Output | Meaning |
+| --- | --- |
+| `session/session.jsonl` | Fsynced hash chain: identity, input/output commits, terminal seal |
+| `daily/*.jsonl` | Raw, normalized, decisions, ledger, health, mismatches, reference and report channels |
+| `daily/manifest.json` | Freeze, repo, workbook/source identities and every channel hash |
+| `daily-report.md`, `cumulative.json` | Comparison with unmeasured stages left empty; repeated session versions cannot inflate cumulative rates |
+| `source-semantics-input.json`, `source-semantics-report.json` | Synthetic observations at open, lunch and close; no strategy calculation |
+
+On clean restart, committed input replays rebuild reducer state and repeat capture IDs are suppressed. Different content under the same ID halts permanently. Identity/code changes, torn JSONL and stale crash locks fail closed while retaining the original evidence. A sealed journal can be exported to a NEW directory after an interrupted export. This tests software recovery; it does not establish actual PC sleep or Excel recovery.
+
+The source diagnostic preserves both START/END hypotheses, first/last observed time, last changed time, repeated rows, numeric/cell errors, source timestamp freshness and observation coverage. It never infers finalization from unchanged OHLCV. Identical tick rows are counted diagnostically, not deleted: identical time/price/volume can represent separate trades. No tick becomes an MSH feature.
+
+The seven-sheet workbook remains byte-identical and formula-free. `workbook-audit.json` pins its field map/version/hash. ARK_HEALTH truthfully shows NOT_CONNECTED/UNVERIFIED/LOCKED; generated health reports do not write into the workbook. There is no live workbook or broker connection launcher.
+
+A+B recheck: 14,458 feature rows, 91 First ENTERs, 85 bar5 paths and 2,470 ledger events still match exactly. All 12 invariants pass. All 58 recorded gaps across 13 trades classify as FIXTURE_LIMITATION; none is an exact lunch/session transition. Whether each omission is a genuine no-trade interval or source loss remains unproven. No gap is filled or treated as safe realtime input.
+
+`dependency-boundary.json` fixes the honest scope. Selector reconstruction requires a separate hash-pinned frozen-selector checkout, PIT full-universe admission/master metadata and full-universe completed bars. The current A+B selected-symbol bundle and Excel slots do not establish those inputs. Frozen v4's existing scorer requires a hash-bound causal analog pool, context bars and accumulated state. Saved management scores/decisions are not substitutes for that pool. Full independent Selector/v4 parity therefore remains unmeasured. The current build is DOWNSTREAM OFFLINE PARITY with explicit reference dependencies, not full end-to-end parity.
+
+Local validation: 124 relevant Node tests and 3 XLSX tests pass, preflight passes, synthetic daily export/restart passes, and A+B exact parity passes. `pre-existing-failure.json` and both original logs preserve the unchanged-base history-pagination failure; no unrelated fix was made.
+
+Build scope: WINDOWS_OFFLINE_GATE_READY / SOURCE_SEMANTICS_DIAGNOSTIC_CODE_READY / OFFLINE_DAILY_EVIDENCE_PIPELINE_READY. Real data remains locked. Remaining gates are actual local Windows execution, independent upstream Selector/analog input identity, real source-label/finalization evidence and live capture transport. Consequently this is not yet a "connect Excel and everything runs" build, and it is not DAILY_REALTIME_PARITY_PASS. No reserved/future data has been opened and all nine safety flags remain false.

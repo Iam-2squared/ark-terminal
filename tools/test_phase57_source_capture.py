@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 from types import SimpleNamespace
 from phase57_source_capture import read_snapshot, packet_from_rows, validate_config, FIELDS, SAFETY
 
@@ -32,4 +33,36 @@ class Tests(unittest.TestCase):
     def test_modes_and_fieldmap_rejected(self):
         for mutation in [{'mode':'REALTIME_SHADOW'},{'fields':['close']},{'range':'A:O'},{'safety':{}}]:
             with self.assertRaises(ValueError):validate_config({**CONFIG,**mutation})
+    def test_retry_match_and_exhaustion_preserve_reads(self):
+        from phase57_source_capture import read_consistent_snapshot
+        def fake(pairs):
+            it=iter(pairs)
+            def read(*args,**kwargs):
+                a,b=next(it);kwargs['on_read']('A',a);kwargs['on_read']('B',b);return a,b
+            return read
+        for pairs,matched in [([([1],[2]),([3],[3])],True),([([1],[2])]*3,False)]:
+            log=[]
+            with patch('phase57_source_capture.read_snapshot',side_effect=fake(pairs)):
+                a,b,ok=read_consistent_snapshot(None,CONFIG,log.append,sleep=lambda _:None)
+            self.assertEqual(ok,matched);self.assertEqual(len([x for x in log if 'snapshot' in x]),len(pairs)*2)
+            self.assertFalse(log[-1]['atomicityProven'])
+    def test_retry_transient_exception_and_safety_failure(self):
+        from phase57_source_capture import read_consistent_snapshot
+        log=[]
+        with patch('phase57_source_capture.read_snapshot',side_effect=[RuntimeError('Excel busy'),([1],[1])]) as read:
+            self.assertTrue(read_consistent_snapshot(None,CONFIG,log.append,sleep=lambda _:None)[2]);self.assertEqual(read.call_count,2)
+        self.assertEqual(log[0]['error'],'Excel busy')
+        with patch('phase57_source_capture.read_snapshot',side_effect=ValueError('WRONG_WORKBOOK')) as read:
+            with self.assertRaises(ValueError):read_consistent_snapshot(None,CONFIG,log.append,sleep=lambda _:None)
+            self.assertEqual(read.call_count,1)
+        with patch('phase57_source_capture.read_snapshot',side_effect=RuntimeError('Excel busy')) as read:
+            with self.assertRaisesRegex(RuntimeError,'RETRIES_EXHAUSTED'):read_consistent_snapshot(None,CONFIG,log.append,sleep=lambda _:None)
+            self.assertEqual(read.call_count,3)
+    def test_a_preserved_if_b_raises(self):
+        from phase57_source_capture import read_consistent_snapshot
+        def fail(*args,**kwargs):kwargs['on_read']('A',[123]);raise RuntimeError('B failed')
+        log=[]
+        with patch('phase57_source_capture.read_snapshot',side_effect=fail):
+            with self.assertRaises(RuntimeError):read_consistent_snapshot(None,CONFIG,log.append,attempts=1,sleep=lambda _:None)
+        self.assertEqual(log[0]['snapshot'],[123]);self.assertEqual(log[1]['error'],'B failed')
 if __name__=='__main__':unittest.main()

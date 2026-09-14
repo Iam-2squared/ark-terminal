@@ -84,3 +84,39 @@ test('source diagnostic CLI seals evidence and never overwrites an existing run'
   assert.throws(()=>execFileSync(process.execPath,args,{stdio:'pipe'}));
   assert.equal(fs.readFileSync(path.join(output,'source-diagnostic.jsonl'),'utf8'),evidence);
 });
+
+const freshPacket=()=>{const p=packet();p.connected=null;p.rows[0]={...p.rows[0],currentPrice:100,bestBid:99,bestAsk:101};return p;};
+test('fresh feed plus old chart rows observes connection once without stale chart-age alarms',()=>{
+  const p=freshPacket();p.rows=Array.from({length:20},(_,i)=>({...p.rows[0],sourceTime:`09:${String(i%12*5).padStart(2,'0')}:00`}));
+  p.captureTimestamp='2026-09-14T05:16:07Z';p.rows.forEach(r=>r.marketTimestamp='2026-09-14T05:16:06Z');
+  const o=new SourceObserver(),result=o.step(p);
+  assert.equal(result.connectionState,'REAL_SOURCE_CONNECTED_OBSERVED');assert.equal(result.currentFeeds.length,1);
+  assert.equal(result.problems.filter(x=>x.cause==='STALE_SOURCE_DATA').length,0);assert.equal(result.strategyAllowed,false);
+  const stale=structuredClone(p);stale.captureId='2';stale.captureTimestamp='2026-09-14T05:17:00Z';
+  const r=o.step(stale);assert.equal(r.problems.filter(x=>x.cause==='STALE_SOURCE_DATA').length,1);
+  assert.equal(r.connectionState,'SOURCE_CONNECTION_UNVERIFIED');
+});
+test('connection observation requires quotes, matching date, chart, coherent feed and healthy reads',()=>{
+  for(const mutate of [p=>p.rows[0].bestAsk=0,p=>p.rows[0].marketTimestamp='2026-09-13T00:05:00Z',p=>p.rows=[],
+    p=>p.partialRead=true,p=>p.workbookHealthy=false,p=>p.rows.push({...p.rows[0],currentPrice:101}),p=>p.rows[0].sourceTime='18:00:00']){
+    const p=freshPacket();mutate(p);assert.notEqual(new SourceObserver().step(p).connectionState,'REAL_SOURCE_CONNECTED_OBSERVED');
+  }
+});
+test('adjacent successor gives candidate latency, subsequent revision invalidates it; latest follows label',()=>{
+  const o=new SourceObserver(),p=freshPacket();p.captureTimestamp='2026-09-14T00:04:59Z';p.rows[0].marketTimestamp='2026-09-14T00:04:58Z';o.step(p);
+  const q=structuredClone(p);q.captureId='2';q.captureTimestamp='2026-09-14T00:05:02Z';q.rows.push({...q.rows[0],sourceTime:'09:05:00'});o.step(q);
+  let r=o.report();assert.equal(r.bars[0].candidateFinalizationLatencyMs,2000);assert.equal(r.latestSourceTime,'09:05:00');assert.equal(r.latestBarAgeMs,2000);
+  assert.equal(r.bars[0].safeCompletedBarTime,null);assert.equal(r.finalization,'UNVERIFIED');
+  q.captureId='3';q.captureTimestamp='2026-09-14T00:05:03Z';q.rows[0].close=100.5;o.step(q);r=o.report();
+  assert.equal(r.bars[0].candidateFinalizationLatencyMs,null);assert.equal(r.bars[0].revisionsAfterNextAppearance,1);assert.equal(r.latestSourceTime,'09:05:00');
+});
+test('backfills, lunch gap, unchanged values and partial packets never establish finalization',()=>{
+  const o=new SourceObserver(),p=freshPacket();p.rows.push({...p.rows[0],sourceTime:'09:05:00'});o.step(p);
+  assert.ok(o.report().bars.every(b=>b.candidateFinalizationLatencyMs===null));
+  const q=freshPacket();q.captureId='2';q.captureTimestamp='2026-09-14T03:00:00Z';q.rows[0].sourceTime='11:25:00';o.step(q);
+  assert.equal(o.report().events.filter(x=>x.captureId==='2'&&x.cause==='STALE_SOURCE_DATA').length,0);
+  q.captureId='3';q.captureTimestamp='2026-09-14T03:30:02Z';q.rows[0].sourceTime='12:30:00';o.step(q);
+  assert.ok(o.report().bars.every(b=>b.candidateFinalizationLatencyMs===null));
+  q.captureId='4';q.partialRead=true;q.rows[0].close=100.5;const before=o.report().bars.at(-1).revisions;o.step(q);
+  assert.equal(o.report().bars.at(-1).revisions,before);assert.equal(o.report().readyForStrategy,false);
+});

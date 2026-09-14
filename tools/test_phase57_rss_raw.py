@@ -68,7 +68,8 @@ class Tests(unittest.TestCase):
             run=subprocess.run(['node','scripts/phase57-source-diagnostic.mjs',str(source),str(diagnostic)],capture_output=True,text=True)
             self.assertEqual(run.returncode,0,run.stderr)
             report=json.loads((diagnostic/'summary.json').read_text())
-            self.assertEqual([e['cause'] for e in report['events']],['SOURCE_CONNECTION_UNVERIFIED'])
+            self.assertEqual(report['events'],[])
+            self.assertEqual(report['connectionState'],'REAL_SOURCE_CONNECTED_OBSERVED')
             self.assertIn('UNVERIFIED',json.dumps(report));self.assertIn('"strategyCalculated": false',json.dumps(report))
             b.saved=False
             self.assertEqual(setup(b,c,Path(tmp)/'unused.xlsx'),'EXISTING_LAYOUT_VERIFIED')

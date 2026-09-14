@@ -87,7 +87,14 @@ def audit_workbook(workbook, config):
             for value, value2 in zip(row, row2): audit_formula_pair(value, value2)
     require(workbook.Worksheets('ARK_CONFIG').Range(config['versionCell']).Value2 == config['workbookVersion'], 'WORKBOOK_VERSION_MISMATCH')
 
-def read_snapshot(workbook, config):
+def read_snapshot(workbook, config, delay=0, sleep=time.sleep, on_read=None):
+    def pair(reader):
+        before=reader()
+        if on_read: on_read('A',before)
+        if delay: sleep(delay)
+        after=reader()
+        if on_read: on_read('B',after)
+        return before,after
     audit_workbook(workbook, config)
     names={workbook.Worksheets(i).Name for i in range(1,workbook.Worksheets.Count+1)}
     if config['schemaId']=='ARK_RSS_RAW_CONFIG_V1':
@@ -110,12 +117,31 @@ def read_snapshot(workbook, config):
                 output.append({'chartStatus':safe_value(chart.Range(slot['formulaCell']).Value2),'chart':matrix(chart.Range(slot['chart']).Value2),
                     'market':matrix(workbook.Worksheets('ARK_RAW_MARKET').Range(slot['market']).Value2)})
             return output
-        return snapshot(),snapshot()
+        return pair(snapshot)
     sheet = workbook.Worksheets(config['sheet'])
-    before = matrix(sheet.Range(config['range']).Value2)
-    after = matrix(sheet.Range(config['range']).Value2)
-    # Equality does NOT establish atomicy/finality; keep both raw snapshots in evidence.
-    return before, after
+    return pair(lambda: matrix(sheet.Range(config['range']).Value2))
+
+def read_consistent_snapshot(workbook, config, emit, attempts=3, delay=0.05, sleep=time.sleep):
+    """Bounded read retries. Equality is an atomic candidate, never atomic/finality proof.
+    Persist each completed read even if its peer raises; do not retry safety failures.
+    """
+    require(type(attempts) is int and 1<=attempts<=5 and 0<=delay<=.25,'INVALID_RETRY_POLICY')
+    last_error=None
+    for attempt in range(1,attempts+1):
+        def record(side,value):
+            emit({'attempt':attempt,'side':side,'observedAt':datetime.now(timezone.utc).isoformat(),'snapshot':value})
+        try:
+            before,after=read_snapshot(workbook,config,delay=delay,sleep=sleep,on_read=record)
+            matched=before==after
+            emit({'attempt':attempt,'atomicCandidate':matched,'atomicityProven':False})
+            if matched or attempt==attempts: return before,after,matched
+        except ValueError as error:
+            emit({'attempt':attempt,'error':str(error),'retryable':False});raise
+        except Exception as error:
+            last_error=error
+            emit({'attempt':attempt,'error':str(error),'retryable':True})
+            if attempt<attempts: sleep(delay)
+    raise RuntimeError(f'EXCEL_READ_RETRIES_EXHAUSTED: {last_error}')
 
 def packet_from_rows(rows, config, capture_id, timestamp, partial=False):
     result=[]
@@ -154,12 +180,14 @@ def main():
             try:
                 matches=[excel.Workbooks(i) for i in range(1,excel.Workbooks.Count+1) if str(excel.Workbooks(i).FullName).casefold()==config['workbookPath'].casefold()]
                 require(len(matches)==1,'WORKBOOK_NOT_OPEN')
-                before,after=read_snapshot(matches[0],config)
+                def emit_read(record):
+                    raw.write(json.dumps({'captureId':str(count),'readStartedAt':stamp,**record},ensure_ascii=False)+'\n');raw.flush();os.fsync(raw.fileno())
+                before,after,consistent=read_consistent_snapshot(matches[0],config,emit_read)
                 ended=datetime.now(timezone.utc).isoformat(timespec='milliseconds').replace('+00:00','Z')
-                raw.write(json.dumps({'captureId':str(count),'readStartedAt':stamp,'readEndedAt':ended,'before':before,'after':after},ensure_ascii=False)+'\n');raw.flush();os.fsync(raw.fileno())
                 stamp=ended
                 rows=normalize(after,config['slots'],today) if config['schemaId']=='ARK_RSS_RAW_CONFIG_V1' else after
-                packet=packet_from_rows(rows,config,str(count),stamp,before!=after)
+                packet=packet_from_rows(rows,config,str(count),stamp,not consistent)
+                if not consistent: packet['error']='INCONSISTENT_EXCEL_SNAPSHOT'
                 if config['schemaId']=='ARK_RSS_RAW_CONFIG_V1' and any(str(x['chartStatus']).startswith('#') for x in after):
                     packet.update(error='RSS_CHART_FUNCTION_ERROR',workbookHealthy=False)
             except Exception as error:

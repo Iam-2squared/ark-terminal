@@ -19,7 +19,7 @@ try {
     }
     & python -c 'import sys; assert sys.version_info >= (3,10)'
     if ($LASTEXITCODE -ne 0) { throw 'Python 3.10+ is required; workbook unchanged.' }
-    & python -c 'import importlib.util, sys; sys.exit(0 if importlib.util.find_spec("win32com") else 1)'
+    & python -c 'import importlib.util,sys; sys.exit(int(importlib.util.find_spec(sys.argv[1]) is None))' win32com
     if ($LASTEXITCODE -ne 0) {
         & python -m pip install pywin32
         if ($LASTEXITCODE -ne 0) { throw 'pywin32 installation failed; workbook unchanged.' }

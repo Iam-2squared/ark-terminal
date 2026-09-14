@@ -8,7 +8,7 @@ class Sheets:
     def __init__(self, names): self.names=names; self.Count=len(names); self.formula='=RssMarket("1000","現在値")'
     def __call__(self,key):
         name=self.names[key-1] if isinstance(key,int) else key
-        return SimpleNamespace(Name=name,UsedRange=SimpleNamespace(Count=15,Formula=((self.formula,),)),Range=lambda address:SimpleNamespace(Value2='ARK_SOURCE_V1' if address=='B1' else (tuple(ROW),)))
+        return SimpleNamespace(Name=name,UsedRange=SimpleNamespace(Count=15,Formula=((self.formula,),),Formula2=((self.formula.replace('=','=@',1),),)),Range=lambda address:SimpleNamespace(Value2='ARK_SOURCE_V1' if address=='B1' else (tuple(ROW),)))
 def workbook():
     return SimpleNamespace(Worksheets=Sheets(['ARK_CONFIG','ARK_CHART_5M']),FullName=CONFIG['workbookPath'],HasVBProject=False,Connections=SimpleNamespace(Count=0),Names=SimpleNamespace(Count=0),LinkSources=lambda _:None)
 class Tests(unittest.TestCase):

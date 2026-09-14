@@ -4,6 +4,7 @@ Same GetActiveObject/Range.Value2 transport as the existing Phase58 readers.
 No inherited newest-row-drop/finality assumption. Only source diagnostics.
 """
 from __future__ import annotations
+from collections import Counter
 import argparse
 import hashlib
 import json
@@ -14,7 +15,7 @@ import time
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
-from phase57_rss_raw import RAW_SHEETS, HEADERS, layout, formulas, normalize
+from phase57_rss_raw import RAW_SHEETS, HEADERS, MARKET, layout, formulas, normalize
 
 SHEETS = {'ARK_CONFIG', 'ARK_MARKET', 'ARK_CHART_5M', 'ARK_TICKS', 'ARK_INDEX', 'ARK_HEALTH'}
 FIELDS = ['slot', 'generation', 'symbol', 'sourceCode', 'sourceDate', 'sourceTime', 'open', 'high', 'low', 'close', 'volume', 'marketTimestamp', 'currentPrice', 'bestBid', 'bestAsk']
@@ -47,6 +48,24 @@ def matrix(value):
     require(isinstance(value, (tuple, list)), 'RANGE_MATRIX_REQUIRED')
     return [[safe_value(v) for v in row] for row in value]
 
+def audit_names(names):
+    # Exact user-observed Excel compatibility artifact; no aliases or visible names.
+    require(names.Count in (0, 1), 'DEFINED_NAMES_REQUIRE_REVIEW')
+    if names.Count:
+        item = names.Item(1)
+        require(item.Name == '_xlfn.SINGLE' and item.Visible is False
+                and item.RefersTo == '=#NAME?', 'DEFINED_NAMES_REQUIRE_REVIEW')
+
+def audit_formula_pair(value, value2):
+    is_formula = lambda v: isinstance(v, str) and v.startswith('=')
+    if not is_formula(value) and not is_formula(value2): return
+    require(is_formula(value) and is_formula(value2), 'FORMULA_REPRESENTATION_MISMATCH')
+    # Only one top-level implicit-intersection marker in Formula2 is equivalent.
+    canonical2 = '=' + value2[2:] if value2.startswith('=@') else value2
+    require(value == canonical2, 'FORMULA_REPRESENTATION_MISMATCH')
+    require(re.fullmatch(r'=\s*(?:_xlfn\.)?(?:RssChart|RssMarket|RssTickList)\([^()\r\n]*\)', value, re.I) is not None, 'FORMULA_NOT_READ_ALLOWLIST')
+    require(not any(c in value for c in ('!', '[', '|', '@')), 'EXTERNAL_FORMULA_REFERENCE')
+
 def audit_workbook(workbook, config):
     # Reject foreign/order sheets by NAME before reading any cells on them.
     names = [workbook.Worksheets(i).Name for i in range(1, workbook.Worksheets.Count + 1)]
@@ -55,18 +74,17 @@ def audit_workbook(workbook, config):
     require(workbook.HasVBProject is False, 'MACRO_WORKBOOK_FORBIDDEN')
     require(workbook.Connections.Count == 0, 'EXTERNAL_CONNECTION_FORBIDDEN')
     require(workbook.LinkSources(1) is None, 'EXTERNAL_WORKBOOK_LINK_FORBIDDEN')
-    require(workbook.Names.Count == 0, 'DEFINED_NAMES_REQUIRE_REVIEW')
+    audit_names(workbook.Names)
     for name in names:
         used = workbook.Worksheets(name).UsedRange
         require(used.Count <= (300000 if name in RAW_SHEETS else 100000), 'WORKBOOK_RANGE_TOO_LARGE')
-        values = used.Formula
+        values, values2 = used.Formula, used.Formula2
         if not isinstance(values, (tuple, list)): values = ((values,),)
-        for row in values:
-            for value in row:
-                if not isinstance(value, str) or not value.startswith('='): continue
-                # Direct official read functions only. No IF, trigger, DDE or nested UDF.
-                require(re.fullmatch(r'=\s*(?:_xlfn\.)?(?:RssChart|RssMarket|RssTickList)\([^()\r\n]*\)', value, re.I) is not None, 'FORMULA_NOT_READ_ALLOWLIST')
-                require('!' not in value and '[' not in value and '|' not in value, 'EXTERNAL_FORMULA_REFERENCE')
+        if not isinstance(values2, (tuple, list)): values2 = ((values2,),)
+        require(len(values)==len(values2), 'FORMULA_REPRESENTATION_MISMATCH')
+        for row, row2 in zip(values, values2):
+            require(len(row)==len(row2), 'FORMULA_REPRESENTATION_MISMATCH')
+            for value, value2 in zip(row, row2): audit_formula_pair(value, value2)
     require(workbook.Worksheets('ARK_CONFIG').Range(config['versionCell']).Value2 == config['workbookVersion'], 'WORKBOOK_VERSION_MISMATCH')
 
 def read_snapshot(workbook, config):
@@ -75,8 +93,15 @@ def read_snapshot(workbook, config):
     if config['schemaId']=='ARK_RSS_RAW_CONFIG_V1':
         require(RAW_SHEETS.issubset(names),'RAW_SHEETS_MISSING')
         require(workbook.Date1904 is False,'DATE_SYSTEM_UNSUPPORTED')
-        for (name,cell),formula in formulas(config['slots']).items():
+        expected = formulas(config['slots'])
+        for name in RAW_SHEETS:
+            values=workbook.Worksheets(name).UsedRange.Formula
+            if not isinstance(values,(tuple,list)): values=((values,),)
+            actual=Counter(v for row in values for v in row if isinstance(v,str) and v.startswith('='))
+            require(actual==Counter(f for (sheet,_),f in expected.items() if sheet==name),'RAW_FORMULA_SET_MISMATCH')
+        for (name,cell),formula in expected.items():
             require(workbook.Worksheets(name).Range(cell).Formula == formula,'RAW_FORMULA_OR_MAPPING_CHANGED')
+        require(matrix(workbook.Worksheets('ARK_RAW_MARKET').Range('A1:E1').Value2)==[MARKET], 'RAW_MARKET_HEADER_CHANGED')
         def snapshot():
             output=[]
             for slot in config['slots']:

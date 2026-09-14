@@ -24,3 +24,13 @@ Two reads preserve before/after arrays and capture start/end. Their equality doe
 ## Verification boundary
 
 `python tools/test_phase57_rss_raw.py` exercises a COM-shaped synthetic workbook through the actual setup, capture, normalization, packet and Node diagnostic. Windows CI also runs `Setup-ArkSource.ps1 -FixtureTest`. These checks do **not** test the installed RSS add-in or actual Excel COM behavior. The real script's first run is the local gate; preserve its backup/error/evidence if Excel rejects a formula or changes its representation. No realtime strategy, reserved strategy outcomes or future OOS are opened. The existing date gate still blocks 2026-10-22+ capture.
+
+## Observed Excel compatibility contract (2026-09-14)
+
+The user reported successful real Windows COM workbook discovery and live RssChart/RssMarket delivery. Record `REAL_RSS_TRANSPORT_PASS` as **user-reported local evidence**, not Work-observed execution. Bar finalization and realtime Shadow remain unverified.
+
+Excel generated one hidden compatibility name after information-formula insertion. The source audit now permits zero names or exactly one name with all three exact properties: Name `_xlfn.SINGLE`, Visible `False`, RefersTo `=#NAME?`. Visible names, different references, scoped/prefixed names, additional names and every other name still fail. The artifact is never evaluated or rewritten by our code.
+
+Both UsedRange.Formula and UsedRange.Formula2 are audited. The only added representation equivalence is direct `=RssChart(...)` / `=@RssChart(...)` (likewise RssMarket and the existing read-only RssTickList allowlist). Formula2 may also equal Formula. After removing at most one leading implicit-intersection marker in Formula2, both strings must match exactly. Nested expressions, external/cross-sheet references, unknown functions and order functions remain rejected. Raw layout formulas still match the generated exact symbol/field contract.
+
+When both RAW sheets already exist, their formulas and chart/market headers must pass the full audit. The verified existing-layout path now calls Save before reporting success or writing local-source.json. This recovers the user-observed first attempt that stopped after RSS insertion but before Save. Missing or mismatched layouts still fail without saving. The same PowerShell launcher then generates config, captures 60 seconds in SOURCE_SEMANTICS_ONLY and writes diagnostic/summary.json. A 60-second run alone does not establish finalization or all session-boundary semantics.

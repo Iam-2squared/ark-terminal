@@ -15,7 +15,7 @@ class Sheet:
     def __init__(self,name): self.Name=name; self.cells={}
     def Range(self,key): return self.cells.setdefault(key,Cell())
     @property
-    def UsedRange(self): return SimpleNamespace(Count=100,Formula=tuple((c.Formula,) for c in self.cells.values()))
+    def UsedRange(self): return SimpleNamespace(Count=100,Formula=tuple((c.Formula,) for c in self.cells.values()),Formula2=tuple((getattr(c,'Formula2',c.Formula.replace('=','=@',1) if c.Formula else c.Formula),) for c in self.cells.values()))
 class Sheets:
     def __init__(self): self.items=[Sheet('ARK_CONFIG'),Sheet('ARK_CHART_5M')]
     @property
@@ -70,7 +70,9 @@ class Tests(unittest.TestCase):
             report=json.loads((diagnostic/'summary.json').read_text())
             self.assertEqual([e['cause'] for e in report['events']],['SOURCE_CONNECTION_UNVERIFIED'])
             self.assertIn('UNVERIFIED',json.dumps(report));self.assertIn('"strategyCalculated": false',json.dumps(report))
+            b.saved=False
             self.assertEqual(setup(b,c,Path(tmp)/'unused.xlsx'),'EXISTING_LAYOUT_VERIFIED')
+            self.assertTrue(b.saved)
             self.assertFalse((Path(tmp)/'unused.xlsx').exists())
     def test_changed_formula_header_and_mapping_fail(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -101,6 +103,47 @@ class Tests(unittest.TestCase):
             b,c=self.make(tmp);b.Date1904=True
             with self.assertRaises(ValueError):setup(b,c,Path(tmp)/'backup.xlsx')
         with self.assertRaises(ValueError):normalize([dict(market=[[1]],chart=[])],layout(['7203.T']),'2026-09-14')
+    def test_compatibility_names_exact_allowlist(self):
+        from phase57_source_capture import audit_names
+        benign=dict(Name='_xlfn.SINGLE',Visible=False,RefersTo='=#NAME?')
+        for mutation,allowed in [({},True),({'Visible':True},False),({'RefersTo':'=1'},False),
+            ({'Name':'other'},False),({'Name':'Sheet1!_xlfn.SINGLE'},False),({'RefersTo':'=#NAME? '},False)]:
+            names=SimpleNamespace(Count=1,Item=lambda i:SimpleNamespace(**{**benign,**mutation}))
+            if allowed: audit_names(names)
+            else:
+                with self.assertRaises(ValueError): audit_names(names)
+        with self.assertRaises(ValueError): audit_names(SimpleNamespace(Count=2))
+    def test_formula_and_formula2_contract(self):
+        from phase57_source_capture import audit_formula_pair
+        for formula in ['=RssChart(A2:G2,"7203.T","5M",120)','=RssMarket("7203.T","現在値")']:
+            audit_formula_pair(formula,formula)
+            audit_formula_pair(formula,'=@'+formula[1:])
+        for bad in ['=IF(TRUE,RssMarket("7203.T","現在値"),0)','=Other()','=RssStockOrder(1,TRUE)',
+                    '=RssMarket(Sheet1!A1,"現在値")','=RssMarket([other.xlsx]A1,"現在値")']:
+            with self.assertRaises(ValueError):audit_formula_pair(bad,'=@'+bad[1:])
+        with self.assertRaises(ValueError):audit_formula_pair('=RssMarket("7203.T","現在値")','=@RssMarket("1111.T","現在値")')
+    def test_failed_first_setup_can_resume_with_compat_name(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            b,c=self.make(tmp);setup(b,c,Path(tmp)/'backup.xlsx');populated(b,c)
+            b.saved=False
+            b.Names=SimpleNamespace(Count=1,Item=lambda i:SimpleNamespace(Name='_xlfn.SINGLE',Visible=False,RefersTo='=#NAME?'))
+            self.assertEqual(setup(b,c,Path(tmp)/'retry.xlsx'),'EXISTING_LAYOUT_VERIFIED')
+            self.assertTrue(b.saved)
+            b.saved=False
+            b.Worksheets('ARK_RAW_MARKET').Range('A1:E1').Value2=(('wrong',)*5,)
+            with self.assertRaises(ValueError): setup(b,c,Path(tmp)/'bad.xlsx')
+            self.assertFalse(b.saved)
+    def test_extra_raw_formula_not_adopted(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            b,c=self.make(tmp);setup(b,c,Path(tmp)/'backup.xlsx');populated(b,c);b.saved=False
+            b.Worksheets('ARK_RAW_MARKET').Range('A99').Formula='=RssMarket("1111.T","現在値")'
+            with self.assertRaises(ValueError):setup(b,c,Path(tmp)/'retry.xlsx')
+            self.assertFalse(b.saved)
+    def test_partial_layout_not_saved(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            b,c=self.make(tmp);b.Worksheets.items.append(Sheet('ARK_RAW_CHART'))
+            with self.assertRaises(ValueError):setup(b,c,Path(tmp)/'backup.xlsx')
+            self.assertFalse(b.saved)
     def test_config_bounds(self):
         for symbols in [[],['7203.T']*2,['7203.T"),Other(']]:
             with self.assertRaises(ValueError):layout(symbols)

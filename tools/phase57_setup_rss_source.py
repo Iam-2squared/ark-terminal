@@ -27,6 +27,7 @@ def setup(workbook, config, backup_path):
     if names & RAW_SHEETS:
         require(RAW_SHEETS.issubset(names),'PARTIAL_SETUP_REQUIRES_BACKUP_RESTORE')
         read_snapshot(workbook,config) # rerun only an identical verified layout
+        workbook.Save() # prior setup may have stopped after formula insertion, before Save
         return 'EXISTING_LAYOUT_VERIFIED'
     # SaveCopyAs is non-destructive; refuse overwrite at caller before any mutation.
     require(not Path(backup_path).exists(),'BACKUP_EXISTS')

@@ -111,3 +111,7 @@ A Development win is only a candidate-generation result. Validation / OOS decide
 ## Speed objective
 
 Research should move quickly enough to complete the LONG-only integrated candidate and current-Ark comparison this week, without weakening future-leak, PIT, OOS, safety, or data-integrity controls.
+
+## Immediate next action
+
+While acquisition remains blocked, only non-contaminating work should continue: CI verification, acquisition dry-run planning, immutable cache/manifest wiring and integrated dataset schema. No J-Quants endpoint should be called until the remaining gates are explicitly cleared.

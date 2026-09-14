@@ -89,6 +89,25 @@ No credential value has been read or committed.
 
 Until then acquisition remains fail-closed.
 
+## This-week completion gate
+
+The research is not considered complete when the Selector looks good. Completion requires a frozen integrated comparison against the current Ark baseline.
+
+| Stage | Required output |
+|---|---|
+| L0 | daily LONG opportunity census |
+| L1 | early-detection / remaining-upside structure |
+| L2 | frozen LONG selector candidate |
+| Entry | LONG-only entry replay on the new selector |
+| EXIT | exit replay on identical LONG entries |
+| Allocation | cash-only 100-share constrained allocation |
+| Integrated | end-to-end portfolio ledger |
+| Comparison | current Ark vs new LONG-only on predeclared metrics |
+
+Before Validation is opened, the comparison metric set and GO/NO-GO rule must be frozen. At minimum the integrated comparison must report after-cost Net, Profit Factor, MaxDD, Return/DD, win rate, trade count, portfolio return, cash utilization, missed opportunity, symbol/sector concentration and SHORT/margin contribution (required to remain exactly zero in the new system).
+
+A Development win is only a candidate-generation result. Validation / OOS decide whether the edge survives. No post-OOS tuning is allowed to force the new system to beat the current Ark baseline.
+
 ## Speed objective
 
 Research should move quickly enough to complete the LONG-only integrated candidate and current-Ark comparison this week, without weakening future-leak, PIT, OOS, safety, or data-integrity controls.

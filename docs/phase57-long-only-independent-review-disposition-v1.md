@@ -8,6 +8,8 @@ Status: REVIEW RECEIVED / DISPOSITION FROZEN / ACQUISITION STILL BLOCKED
 
 Claude independent review verdict was `CONDITIONAL GO`. The review is not adopted blindly. Each material point is either accepted, modified, or rejected with an Ark-specific rationale.
 
+The research must finish the integrated LONG-only candidate and current-Ark comparison this week. Speed is achieved by reusing evidence and one-time acquired raw data, not by weakening PIT, future-leak, OOS, safety or data-integrity controls.
+
 ## Disposition
 
 | Review point | Ark disposition | Result |

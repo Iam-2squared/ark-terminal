@@ -10,6 +10,9 @@ export const REQUIRED_PHASE57_LONG_ONLY_ACQUISITION_GATES=Object.freeze([
   'dataBudgetCalculated',
   'paginationBudgetCalculated',
   'storageManifestContractFrozen',
+  'integratedDataReuseContractFrozen',
+  'humanOverfittingControlsFrozen',
+  'independentReviewDispositionFrozen',
   'exactCurrentEntitlementReattested',
   'storageDeletionTermsReattested',
   'freshExactDatesFrozen',
@@ -41,11 +44,29 @@ export function evaluateLongOnlyAcquisitionGate(plan){
 }
 
 export function assertReleasedPartition({partition,plan}){
-  const allowed=new Set(['DEVELOPMENT_A','DEVELOPMENT_B','DEVELOPMENT_C','DEVELOPMENT_D','VALIDATION','VALIDATION_CONFIRMATION','UNTOUCHED_OOS','FINAL_CONFIRMATION','FRESH_PROSPECTIVE']);
-  if(!allowed.has(partition))throw new Error('unknown partition');
+  const allowed=new Set([
+    'DEVELOPMENT_A','DEVELOPMENT_B','DEVELOPMENT_C','DEVELOPMENT_D',
+    'VALIDATION','VALIDATION_REPLICATION','PRIMARY_OOS','CONTINGENCY_OOS','FRESH_PROSPECTIVE',
+  ]);
+  if(!allowed.has(partition))throw new Error('unknown or non-mountable partition');
   const release=plan?.runtimeReleaseEvidence?.[partition];
   if(release?.released!==true||!release?.releaseSha256?.match(/^[a-f0-9]{64}$/))throw new Error(`${partition} is sealed`);
+  if(partition==='CONTINGENCY_OOS'&&release?.reason!=='PRIMARY_EVALUATION_INVALIDATED_NON_PERFORMANCE')throw new Error('CONTINGENCY_OOS release reason is not permitted');
   return true;
 }
 
-export default {REQUIRED_PHASE57_LONG_ONLY_ACQUISITION_GATES,evaluateLongOnlyAcquisitionGate,assertReleasedPartition};
+export function assertReserveReplacement({plan,reserveSessionId,replacementFor,trigger,evidenceSha256}){
+  const reserve=plan?.datasetSplit?.reserve;
+  if(!reserve||reserve.opened!==false)throw new Error('reserve contract missing or invalid');
+  if(!reserveSessionId||!replacementFor)throw new Error('reserve session and replacement target are required');
+  if(!reserve.triggers?.includes(trigger))throw new Error('reserve deployment trigger is not precommitted');
+  if(!evidenceSha256?.match(/^[a-f0-9]{64}$/))throw new Error('reserve deployment requires hashed admission-failure evidence');
+  return true;
+}
+
+export default {
+  REQUIRED_PHASE57_LONG_ONLY_ACQUISITION_GATES,
+  evaluateLongOnlyAcquisitionGate,
+  assertReleasedPartition,
+  assertReserveReplacement,
+};

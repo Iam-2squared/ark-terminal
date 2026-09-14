@@ -26,7 +26,7 @@ export function lockedOrderFormula(intent,routing){
   const execution='1',expiry='',account=code(routing.accountType??0);
   if(routing.product==='CASH'){
     assert.equal(intent.direction,'LONG','CASH_SHORT_UNSUPPORTED');
-    assert.equal(intent.positionEffect==='OPEN'?intent.side:'SELL',intent.side,'CASH_LONG_SIDE_MISMATCH');
+    assert.equal(intent.positionEffect==='OPEN'?'BUY':'SELL',intent.side,'CASH_LONG_SIDE_MISMATCH');
     return {function:ORDER_FUNCTIONS.CASH,trigger:0,transmitted:false,formula:excelFormula(ORDER_FUNCTIONS.CASH,[...common,q(intent.quantity),priceType,price,execution,expiry,account,'','','','', '0','','',''])};
   }
   assert.equal(routing.product,'MARGIN','MSII_PRODUCT_REQUIRED');

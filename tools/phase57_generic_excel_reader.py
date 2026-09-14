@@ -123,8 +123,8 @@ def inspect_generic_workbook(file: Path):
         require(row['symbol'] in symbols, 'BAR_SYMBOL_NOT_IN_MASTER')
         _timestamp(row['timestamp'], 'BAR_TIMESTAMP'); _timestamp(row['availableAt'], 'BAR_AVAILABLE_AT')
         key = (row['symbol'], row['timestamp']); require(key not in seen_bars, 'DUPLICATE_SYMBOL_BAR'); seen_bars.add(key)
-        for field in ['open', 'high', 'low', 'close', 'volume']: require(isinstance(row[field], (int, float)) and math.isfinite(row[field]), f'BAR_{field}_FINITE_REQUIRED')
-        require(min(row['open'], row['low'], row['close']) > 0 and row['high'] >= max(row['open'], row['low'], row['close']) and row['volume'] >= 0, 'INVALID_OHLCV')
+        for field in ['open', 'high', 'low', 'close', 'volume']: require(type(row[field]) in (int, float) and math.isfinite(row[field]), f'BAR_{field}_FINITE_REQUIRED')
+        require(min(row['open'], row['low'], row['close']) > 0 and row['high'] >= max(row['open'], row['low'], row['close']) and row['low'] <= min(row['open'], row['close']) and row['volume'] >= 0, 'INVALID_OHLCV')
     member_hash = hashlib.sha256(json.dumps(sorted(symbols), separators=(',', ':')).encode()).hexdigest()
     points = []
     for status in health:

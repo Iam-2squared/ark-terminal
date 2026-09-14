@@ -54,13 +54,14 @@ export function classifyFreshness({ sourceTimestamp, observedAt, maxAgeMs }) {
 export function applyExternalCashFlow(snapshot, event) {
   assert.ok(snapshot && typeof snapshot === 'object', 'SNAPSHOT_REQUIRED');
   assert.ok(event && typeof event === 'object', 'EXTERNAL_CASH_FLOW_REQUIRED');
-  assert.ok(['DEPOSIT', 'WITHDRAWAL'].includes(event.type), 'INVALID_EXTERNAL_CASH_FLOW_TYPE');
-  assert.ok(finite(event.amountJpy) && event.amountJpy > 0, 'INVALID_EXTERNAL_CASH_FLOW_AMOUNT');
+  assert.ok(['DEPOSIT', 'WITHDRAWAL', 'MANUAL_ADJUSTMENT'].includes(event.type), 'INVALID_EXTERNAL_CASH_FLOW_TYPE');
+  assert.ok(finite(event.amountJpy) && (event.type === 'MANUAL_ADJUSTMENT' ? event.amountJpy !== 0 : event.amountJpy > 0), 'INVALID_EXTERNAL_CASH_FLOW_AMOUNT');
+  if (event.type === 'MANUAL_ADJUSTMENT') assert.ok(typeof event.reason === 'string' && event.reason.trim(), 'ADJUSTMENT_REASON_REQUIRED');
   assert.ok(finite(snapshot.cashJpy) && finite(snapshot.equityJpy), 'INVALID_LEDGER_BALANCE');
-  const delta = event.type === 'DEPOSIT' ? event.amountJpy : -event.amountJpy;
+  const delta = event.type === 'WITHDRAWAL' ? -event.amountJpy : event.amountJpy;
   const nextCash = snapshot.cashJpy + delta;
   const nextEquity = snapshot.equityJpy + delta;
-  assert.ok(nextCash >= -1e-9, 'EXTERNAL_WITHDRAWAL_EXCEEDS_CASH');
+  assert.ok(nextCash >= 0 && nextEquity >= 0, 'EXTERNAL_WITHDRAWAL_EXCEEDS_CASH');
   return {
     ...structuredClone(snapshot),
     cashJpy: round(nextCash),
@@ -75,14 +76,25 @@ export function reconcileState(expected, observed, tolerances = {}) {
   assert.ok(expected && observed, 'RECONCILIATION_INPUT_REQUIRED');
   const moneyTolerance = tolerances.moneyJpy ?? 0.01;
   const quantityTolerance = tolerances.quantity ?? 1e-9;
+  assert.ok(nonnegative(moneyTolerance) && nonnegative(quantityTolerance), 'INVALID_RECONCILIATION_TOLERANCE');
   const mismatches = [];
   const compareMoney = key => {
-    if (!finite(expected[key]) || !finite(observed[key])) return;
+    if (!finite(expected[key]) || !finite(observed[key])) { mismatches.push({field:key,reason:'UNKNOWN_BALANCE'}); return; }
     if (Math.abs(expected[key] - observed[key]) > moneyTolerance) mismatches.push({ field: key, expected: expected[key], observed: observed[key] });
   };
   for (const key of ['cashJpy', 'equityJpy', 'grossExposureJpy', 'absoluteNetExposureJpy']) compareMoney(key);
-  const expPositions = new Map((expected.positions ?? []).map(p => [p.symbol, p]));
-  const obsPositions = new Map((observed.positions ?? []).map(p => [p.symbol, p]));
+  const index = (rows, side) => {
+    const result = new Map();
+    if (!Array.isArray(rows)) { mismatches.push({field:'positions',side,reason:'UNKNOWN_POSITIONS'}); return result; }
+    for (const p of rows) {
+      if (!p || typeof p.symbol !== 'string' || !['LONG','SHORT'].includes(p.direction) || !nonnegative(p.quantity)) { mismatches.push({field:'positions',side,reason:'INVALID_POSITION'}); continue; }
+      if(result.has(p.symbol)) mismatches.push({field:'positions',side,reason:'DUPLICATE_POSITION',symbol:p.symbol});
+      result.set(p.symbol,p);
+    }
+    return result;
+  };
+  const expPositions = index(expected.positions,'expected');
+  const obsPositions = index(observed.positions,'observed');
   const symbols = [...new Set([...expPositions.keys(), ...obsPositions.keys()])].sort();
   for (const symbol of symbols) {
     const a = expPositions.get(symbol), b = obsPositions.get(symbol);

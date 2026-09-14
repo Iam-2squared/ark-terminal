@@ -6,6 +6,15 @@ on:
       - 'scripts/lib/*offline*'
       - 'scripts/lib/phase57-parity-report.mjs'
       - 'scripts/lib/phase57-operational-robustness.mjs'
+      - 'scripts/lib/phase57-integration-gates.mjs'
+      - 'scripts/lib/phase57-source-observer.mjs'
+      - 'scripts/phase57-source-diagnostic.mjs'
+      - 'scripts/phase57-post-close-parity.mjs'
+      - 'scripts/tests/phase57-integration-gates.test.mjs'
+      - 'tools/phase57_source_capture.py'
+      - 'tools/test_phase57_source_capture.py'
+      - 'tools/Start-ArkParity.ps1'
+      - 'tools/phase57-source-capture.example.json'
       - 'scripts/lib/phase57-frozen-main-engine.mjs'
       - 'scripts/phase57-frozen-main-runner.mjs'
       - 'scripts/tests/phase57-offline*'
@@ -46,10 +55,11 @@ jobs:
         run: |
           python tools/test_phase57_offline_excel_reader.py
           python tools/test_phase57_generic_excel_reader.py
+          python tools/test_phase57_source_capture.py
       - name: One-command Windows launcher (offline only)
         if: runner.os == 'Windows'
         shell: pwsh
-        run: ./tools/Start-ArkOfflineParity.ps1 -OutputRoot '${{ runner.temp }}/ark-offline'
+        run: ./tools/Start-ArkParity.ps1 -Mode OFFLINE_FIXTURE -OutputRoot '${{ runner.temp }}/ark-offline'
       - name: Linux workbook transport
         if: runner.os == 'Linux'
         shell: bash

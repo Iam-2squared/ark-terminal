@@ -1,0 +1,47 @@
+name: Ark App v2 Read Only
+on:
+  pull_request:
+    paths: ['app-v2/**', '.github/workflows/ark-app-v2.yml']
+  push:
+    branches: ['feature/ark-terminal-app-v2']
+    paths: ['app-v2/**', '.github/workflows/ark-app-v2.yml']
+permissions:
+  contents: read
+jobs:
+  app:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: app-v2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: app-v2/package-lock.json
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+      - name: Verify PowerShell launcher syntax
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PWD 'Start-App.ps1'), [ref]$tokens, [ref]$errors) | Out-Null
+          if ($errors.Count -gt 0) { throw ($errors | Out-String) }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: app-v2-${{ runner.os }}
+          path: app-v2/test-results

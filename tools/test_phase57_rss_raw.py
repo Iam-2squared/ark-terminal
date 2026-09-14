@@ -68,6 +68,7 @@ class Tests(unittest.TestCase):
             run=subprocess.run(['node','scripts/phase57-source-diagnostic.mjs',str(source),str(diagnostic)],capture_output=True,text=True)
             self.assertEqual(run.returncode,0,run.stderr)
             report=json.loads((diagnostic/'summary.json').read_text())
+            self.assertEqual([e['cause'] for e in report['events']],['SOURCE_CONNECTION_UNVERIFIED'])
             self.assertIn('UNVERIFIED',json.dumps(report));self.assertIn('"strategyCalculated": false',json.dumps(report))
             self.assertEqual(setup(b,c,Path(tmp)/'unused.xlsx'),'EXISTING_LAYOUT_VERIFIED')
             self.assertFalse((Path(tmp)/'unused.xlsx').exists())
@@ -89,7 +90,7 @@ class Tests(unittest.TestCase):
     def test_serials_strict_parse_errors_and_prior_day(self):
         self.assertEqual(date_cell(46279),'2026-09-14')
         self.assertEqual(time_cell(9/24),'09:00:00')
-        for bad in [True,float('nan'),'1,000','-','']:
+        for bad in [True,float('nan'),'1,000','-','','9'*400]:
             with self.assertRaises(ValueError):number_cell(bad)
         slots=layout(['7203.T'])
         raw=[dict(market=[['2026/09/14','09:01:01',100,99,101]],chart=[['2026/09/13','09:00',100,101,99,100,5],['2026/09/14','09:00','#N/A',101,99,100,5]])]

@@ -104,7 +104,7 @@ def packet_from_rows(rows, config, capture_id, timestamp, partial=False):
       'workbookIdentity':config['workbookPath'],'workbookVersion':config['workbookVersion'],
       'fieldMapSha256':hashlib.sha256(json.dumps(config,sort_keys=True).encode()).hexdigest(),
       'captureId':capture_id,'captureTimestamp':timestamp,'sessionDate':datetime.fromisoformat(timestamp.replace('Z','+00:00')).astimezone(timezone(timedelta(hours=9))).date().isoformat(),
-      'connected':False,'workbookHealthy':True,'partialRead':partial,'rows':result,
+      'connected':None,'workbookHealthy':True,'partialRead':partial,'rows':result,
       'error':'MSII_CONNECTION_UNVERIFIED'}
 
 def main():

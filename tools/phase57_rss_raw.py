@@ -53,7 +53,9 @@ def time_cell(value):
 def number_cell(value):
     if isinstance(value,bool): raise ValueError('NUMERIC_BOOLEAN')
     if isinstance(value,(int,float)) and math.isfinite(value): return value
-    if isinstance(value,str) and re.fullmatch(r'-?\d+(\.\d+)?',value): return float(value)
+    if isinstance(value,str) and re.fullmatch(r'-?\d+(\.\d+)?',value):
+        parsed=float(value)
+        if math.isfinite(parsed): return parsed
     raise ValueError('NUMERIC_PARSE')
 
 def normalize(raw, slots, session_date):

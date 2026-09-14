@@ -25,10 +25,11 @@ export class SourceObserver {
     for(const row of packet.rows)assert.ok(Object.keys(row).every(k=>fields.includes(k)),'STRATEGY_OR_UNKNOWN_ROW_FIELD');
     this.identity=identity;this.last=t;this.seen.set(packet.captureId,fingerprint);this.captures++;
     const problems=[];const emit=cause=>problems.push({captureId:packet.captureId,cause});
-    if(packet.connected!==true)emit('SOURCE_DISCONNECTED');
+    if(packet.connected===false)emit('SOURCE_DISCONNECTED');
+    else if(packet.connected!==true)emit('SOURCE_CONNECTION_UNVERIFIED');
     if(packet.workbookHealthy!==true)emit('EXCEL_CAPTURE_FAILURE');
     if(packet.partialRead!==false)emit('PARTIAL_READ');
-    if(packet.error)emit('EXCEL_CAPTURE_FAILURE');
+    if(packet.error&&packet.error!=='MSII_CONNECTION_UNVERIFIED')emit('EXCEL_CAPTURE_FAILURE');
     const m=minute(packet.captureTimestamp),active=(m>=540&&m<690)||(m>=750&&m<930);
     if(m>=540&&m<=545)this.windows.open0900=true;
     if(m>=685&&m<=695)this.windows.morning1130=true;

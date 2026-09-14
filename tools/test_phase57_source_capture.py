@@ -24,7 +24,7 @@ class Tests(unittest.TestCase):
             with self.assertRaises(ValueError):read_snapshot(w,CONFIG)
     def test_source_packet_never_claims_connection_or_finality(self):
         p=packet_from_rows([ROW],CONFIG,'1','2026-09-14T00:05:01Z')
-        self.assertFalse(p['connected']);self.assertEqual(p['mode'],'SOURCE_SEMANTICS_ONLY');self.assertNotIn('finalized',p['rows'][0])
+        self.assertIsNone(p['connected']);self.assertEqual(p['mode'],'SOURCE_SEMANTICS_ONLY');self.assertNotIn('finalized',p['rows'][0])
     def test_partial_and_cell_errors(self):
         with self.assertRaises(ValueError):packet_from_rows([[1]],CONFIG,'1','2026-09-14T00:05:01Z')
         row=ROW.copy();row[6]='#N/A';p=packet_from_rows([row],CONFIG,'1','2026-09-14T00:05:01Z',True)

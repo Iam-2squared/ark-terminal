@@ -6,6 +6,10 @@ import {
   assertLongOnlyOrderIntent,validatePartitionManifest,
 } from '../long-only/phase57-long-only-research-contract.js';
 import {buildLongOnlyL0OpportunityCensus} from '../long-only/phase57-long-only-l0-opportunity-census.js';
+import {
+  assertReleasedPartition,evaluateLongOnlyAcquisitionGate,
+  REQUIRED_PHASE57_LONG_ONLY_ACQUISITION_GATES,
+} from '../long-only/phase57-long-only-acquisition-gate.js';
 
 test('LONG-only contract prohibits every credit, short and leverage path',()=>{
   assert.equal(PHASE57_LONG_ONLY_RESEARCH_CONTRACT.longOnly,true);
@@ -58,9 +62,31 @@ test('L0 fails closed on missing point-in-time membership, duplicates or sealed 
 test('data plan freezes acquisition off until exact range and partition gates are complete',()=>{
   const plan=JSON.parse(fs.readFileSync(new URL('../long-only/phase57-long-only-data-plan.json',import.meta.url),'utf8'));
   assert.equal(plan.newJquantsAcquisitionAuthorized,false);
-  assert.equal(plan.existingJquantsImplementation.dailyAdjustedQuotesPipelinePresent,false);
-  assert.equal(plan.minimumProposedBlock.intradayDataRequiredForL0,false);
-  assert.equal(plan.partitions.UNTOUCHED_OOS.opened,false);
+  assert.equal(plan.historicalImplementationAudit.main.dailyMinuteMasterHistoricalPipelinePresent,false);
+  assert.equal(plan.historicalImplementationAudit.allRemoteBranchesSearched,true);
+  assert.match(plan.historicalImplementationAudit.finding,/REUSABLE_MINUTE/);
+  assert.equal(plan.l0Contract.intradayDataRequired,false);
+  assert.equal(plan.datasetSplit.untouchedOos.opened,false);
   assert.equal(plan.safety.freshHoldoutConsumed,false);
-  assert.ok(plan.auditedAssets.every(asset=>asset.formalL0Eligible===false));
+  assert.equal(plan.artifactInventory.exactMetadataInventory.rawPersistedSessions,0);
+  assert.equal(plan.dataBudget.daily252WhatIf.baseApiRequests,504);
+  assert.equal(plan.dataBudget.development90IntradayIfLaterAuthorized.observedMinutePages,1188);
+  assert.equal(plan.datasetSplit.development.totalSessions,90);
+  assert.deepEqual(Object.values(plan.datasetSplit.development.blocks).map(block=>block.sessions),[30,20,20,20]);
+});
+
+test('acquisition gate is fail-closed and Claude review is mandatory',()=>{
+  const plan=JSON.parse(fs.readFileSync(new URL('../long-only/phase57-long-only-data-plan.json',import.meta.url),'utf8'));
+  const gate=evaluateLongOnlyAcquisitionGate(plan);
+  assert.equal(gate.status,'BLOCKED');
+  assert.equal(gate.acquisitionMayStart,false);
+  for(const key of ['exactCurrentEntitlementReattested','claudeIndependentReviewReceived','claudeCriticalBlockersResolved','operatorExplicitAcquisitionApproval'])assert.ok(gate.missing.includes(key));
+  assert.match(gate.planSha256,/^[a-f0-9]{64}$/);
+  assert.equal(REQUIRED_PHASE57_LONG_ONLY_ACQUISITION_GATES.length,15);
+});
+
+test('sealed validation and OOS partitions cannot be mounted without hashed release evidence',()=>{
+  assert.throws(()=>assertReleasedPartition({partition:'UNTOUCHED_OOS',plan:{}}),/sealed/);
+  assert.throws(()=>assertReleasedPartition({partition:'UNTOUCHED_OOS',plan:{runtimeReleaseEvidence:{UNTOUCHED_OOS:{released:true,releaseSha256:'bad'}}}}),/sealed/);
+  assert.equal(assertReleasedPartition({partition:'DEVELOPMENT_A',plan:{runtimeReleaseEvidence:{DEVELOPMENT_A:{released:true,releaseSha256:'a'.repeat(64)}}}}),true);
 });

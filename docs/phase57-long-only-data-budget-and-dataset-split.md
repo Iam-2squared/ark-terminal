@@ -140,6 +140,19 @@ Claude returned `CONDITIONAL GO`. Ark accepted the useful controls, corrected ar
 
 See `docs/phase57-long-only-independent-review-disposition-v1.md` for the itemized disposition.
 
+## Speed policy
+
+The project target is to finish the LONG-only research candidate and current-Ark integrated comparison this week. Speed comes from removing duplicated work, not from weakening research controls.
+
+Therefore:
+
+- do not repeat audits already evidenced;
+- do not reacquire identical data;
+- do not stop all work while waiting for Claude when a non-contaminating task can proceed;
+- move directly from Formal L0 to L1 once the census contract passes;
+- reuse the same released Development raw data through Selector, Entry, EXIT and Allocation;
+- do not consume Validation/OOS merely to accelerate Development.
+
 ## Next step
 
 1. Clear the remaining non-data blockers.

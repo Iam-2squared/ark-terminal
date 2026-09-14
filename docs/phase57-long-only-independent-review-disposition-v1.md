@@ -106,4 +106,4 @@ Until then `newJquantsAcquisitionAuthorized=false` and all new J-Quants Historic
 
 ## Final review state
 
-The independent-review blocker is considered resolved at the contract level. This does not authorize data acquisition. The remaining gate is operational and contractual: storage terms, exact Fresh dates, and explicit operator authorization.
+The independent-review blocker is resolved at the contract level. This does not authorize data acquisition. The remaining gate is operational and contractual: storage terms, exact Fresh dates, and explicit operator authorization.

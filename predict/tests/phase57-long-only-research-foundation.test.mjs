@@ -80,6 +80,20 @@ test('reviewed data plan conserves all 205 clean sessions and reserves 15 for ad
   assert.equal(plan.purgeEmbargoContract.crossCloseTargetAllowed,false);
 });
 
+test('integrated comparison is the research completion target, not selector-only performance',()=>{
+  const plan=JSON.parse(fs.readFileSync(new URL('../long-only/phase57-long-only-data-plan.json',import.meta.url),'utf8'));
+  assert.equal(plan.researchObjective.selectorIsIntermediateArtifactNotFinalGoal,true);
+  assert.equal(plan.researchObjective.completionRequiresIntegratedComparison,true);
+  assert.equal(plan.researchObjective.developmentWinDoesNotEqualFinalWin,true);
+  assert.equal(plan.integratedComparisonContract.baseline,'CURRENT_ARK_SELECTOR_ENTRY_EXIT_INTEGRATED');
+  assert.equal(plan.integratedComparisonContract.candidate,'NEW_LONG_ONLY_SELECTOR_ENTRY_EXIT_ALLOCATION_CASH_PORTFOLIO');
+  assert.equal(plan.integratedComparisonContract.candidateShortTradesRequired,0);
+  assert.equal(plan.integratedComparisonContract.candidateMarginTradesRequired,0);
+  assert.equal(plan.integratedComparisonContract.sameEvaluationWindowRequired,true);
+  assert.equal(plan.integratedComparisonContract.sameCostModelRequired,true);
+  for(const metric of ['AFTER_COST_NET','PROFIT_FACTOR','MAX_DRAWDOWN','RETURN_TO_DD','PORTFOLIO_RETURN'])assert.ok(plan.integratedComparisonContract.minimumMetrics.includes(metric));
+});
+
 test('acquisition gate remains fail-closed after entitlement and Claude re-attestation',()=>{
   const plan=JSON.parse(fs.readFileSync(new URL('../long-only/phase57-long-only-data-plan.json',import.meta.url),'utf8'));
   const gate=evaluateLongOnlyAcquisitionGate(plan);

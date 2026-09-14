@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {lockedOrderFormula,lockedCancelFormula,observationFormulas} from '../msii-rss-contract.mjs';
+const base={symbol:'7203.T',side:'BUY',direction:'LONG',positionEffect:'OPEN',quantity:100,orderType:'LIMIT',limitPrice:3025,timeInForce:'DAY'};
+test('cash order is worksheet formula with literal trigger zero',()=>{const r=lockedOrderFormula(base,{orderId:101,product:'CASH',accountType:0,sor:0});assert.equal(r.function,'RssStockOrder');assert.match(r.formula,/^=RssStockOrder\(101,0,/);assert.equal(r.transmitted,false);assert.ok(!r.formula.includes(',1,"7203.T"'));});
+test('market order omits price and stays locked',()=>{const r=lockedOrderFormula({...base,orderType:'MARKET',limitPrice:null},{orderId:102,product:'CASH',accountType:0});assert.match(r.formula,/,0,"",1,/);assert.equal(r.trigger,0);});
+test('margin short open uses RssMarginOpenOrder',()=>{const r=lockedOrderFormula({...base,side:'SELL',direction:'SHORT'},{orderId:103,product:'MARGIN',marginType:2,accountType:0});assert.equal(r.function,'RssMarginOpenOrder');assert.match(r.formula,/^=RssMarginOpenOrder\(103,0,/);});
+test('margin close requires exact opened-position identity',()=>{const r=lockedOrderFormula({...base,side:'SELL',positionEffect:'CLOSE'},{orderId:104,product:'MARGIN',marginType:2,accountType:0,openPosition:{openDate:'20260914',openPrice:3000,openMarket:1}});assert.equal(r.function,'RssMarginCloseOrder');assert.match(r.formula,/"20260914",3000,1/);assert.throws(()=>lockedOrderFormula({...base,positionEffect:'CLOSE'},{orderId:105,product:'MARGIN',marginType:2,accountType:0}),/OPEN_POSITION_REQUIRED/);});
+test('cash short is rejected rather than guessed',()=>assert.throws(()=>lockedOrderFormula({...base,side:'SELL',direction:'SHORT'},{orderId:106,product:'CASH',accountType:0}),/CASH_SHORT_UNSUPPORTED/));
+test('cancel formula is also hard locked',()=>{const r=lockedCancelFormula({orderId:201,targetOrderNumber:999});assert.equal(r.formula,'=RssCancelOrder(201,0,999)');});
+test('read-only account/order observation formulas are available',()=>{const f=observationFormulas('7203.T');assert.match(f.cashPositions,/RssPositionList/);assert.match(f.marginPositions,/RssMarginPositionList/);assert.match(f.usedOrderIds,/RssOrderIDList/);});

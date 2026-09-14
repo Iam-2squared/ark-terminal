@@ -90,7 +90,10 @@
     "selectorIsIntermediateArtifactNotFinalGoal": true,
     "sameDevelopmentRawDataMustSupport": ["L0", "L1", "L2_SELECTOR", "ENTRY", "EXIT", "ALLOCATION", "INTEGRATED_PORTFOLIO_REPLAY"],
     "shortProfitContributionAllowed": false,
-    "marginAllowed": false
+    "marginAllowed": false,
+    "completionDeadline": "THIS_WEEK",
+    "completionRequiresIntegratedComparison": true,
+    "developmentWinDoesNotEqualFinalWin": true
   },
   "l0Contract": {
     "granularity": "DAILY_ONLY",
@@ -209,6 +212,16 @@
     "rawDataMayNotBeDiscardedAfterSelectorResearch": true,
     "entryExitAllocationReuseRequired": true,
     "futurePathAccessibleToDecisionFeatures": false
+  },
+  "integratedComparisonContract": {
+    "baseline": "CURRENT_ARK_SELECTOR_ENTRY_EXIT_INTEGRATED",
+    "candidate": "NEW_LONG_ONLY_SELECTOR_ENTRY_EXIT_ALLOCATION_CASH_PORTFOLIO",
+    "minimumMetrics": ["AFTER_COST_NET", "PROFIT_FACTOR", "MAX_DRAWDOWN", "RETURN_TO_DD", "WIN_RATE", "TRADE_COUNT", "PORTFOLIO_RETURN", "CASH_UTILIZATION", "MISSED_OPPORTUNITY", "SYMBOL_CONCENTRATION", "SECTOR_CONCENTRATION"],
+    "candidateShortTradesRequired": 0,
+    "candidateMarginTradesRequired": 0,
+    "sameEvaluationWindowRequired": true,
+    "sameCostModelRequired": true,
+    "frozenBeforeValidation": true
   },
   "dataBudget": {
     "planningUniverseSymbols": 3700,

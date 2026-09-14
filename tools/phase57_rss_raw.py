@@ -3,6 +3,8 @@ import math
 import re
 from datetime import datetime, timedelta
 
+MAX_SCAN_BARS = 3000
+
 RAW_SHEETS = {'ARK_RAW_CHART', 'ARK_RAW_MARKET'}
 HEADERS = ['日付','時刻','始値','高値','安値','終値','出来高']
 MARKET = ['現在日付','現在値詳細時刻','現在値','最良買気配値','最良売気配値']
@@ -21,7 +23,7 @@ def layout(symbols, count=120):
         if not re.fullmatch(r'\d{4,5}\.T',symbol): raise ValueError('INVALID_SOURCE_SYMBOL')
         a,g=column(i*9+1),column(i*9+7)
         slots.append(dict(slot=i,generation=0,symbol=symbol,sourceCode=symbol,
-            header=f'{a}2:{g}2',chart=f'{a}3:{g}{count+2}',formulaCell=f'{a}1',
+            header=f'{a}2:{g}2',chart=f'{a}3:{g}{MAX_SCAN_BARS+2}',formulaCell=f'{a}1',
             chartFormula=f'=RssChart({a}2:{g}2,"{symbol}","5M",{count})',market=f'A{i+2}:E{i+2}'))
     return slots
 
@@ -88,3 +90,51 @@ def normalize(raw, slots, session_date):
                 except ValueError: values.append('#INVALID_NUMERIC')
             result.append([s['slot'],s['generation'],s['symbol'],s['sourceCode'],day,clock,*values,mt,*quotes])
     return result
+
+def scan_range(slot):
+    # Column identity comes from the fixed, audited slot layout, never from cell data.
+    a,b=slot['header'].split(':')
+    return f'{a[:-1]}3:{b[:-1]}{MAX_SCAN_BARS+2}'
+
+def select_latest(raw, slots, count, session_date):
+    """Bounded scan -> latest N nonempty bars, preserving Excel order and row identity.
+    Caller must persist the full scan before invoking this validator.
+    """
+    if type(count) is not int or not 1<=count<=MAX_SCAN_BARS: raise ValueError('INVALID_ROW_COUNT')
+    selected=[];metadata=[]
+    for slot,data in zip(slots,raw,strict=True):
+        if len(data['chart'])>MAX_SCAN_BARS: raise ValueError('RAW_CHART_SCAN_LIMIT')
+        valid=[];previous=None
+        for excel_row,row in enumerate(data['chart'],3):
+            if all(v in (None,'') for v in row): continue
+            try:
+                if len(row)!=7: raise ValueError('PARTIAL_ROW')
+                day,clock=date_cell(row[0]),time_cell(row[1])
+                o,h,l,c,v=[number_cell(x) for x in row[2:]]
+                if l<=0 or h<max(o,l,c) or l>min(o,c) or v<0: raise ValueError('OHLCV')
+                stamp=(day,clock)
+                if previous is not None and stamp<previous: raise ValueError('NONMONOTONIC')
+                previous=stamp
+            except (ValueError,OverflowError) as error:
+                raise ValueError(f'RAW_CHART_INVALID_ROW: slot={slot["slot"]} row={excel_row} {error}') from error
+            valid.append((excel_row,day,clock,row))
+        window=valid[-count:]
+        today=[x for x in valid if x[1]==session_date]
+        selected.append({**data,'chart':[x[3] for x in window]})
+        metadata.append(dict(slot=slot['slot'],generation=slot['generation'],symbol=slot['symbol'],sourceCode=slot['sourceCode'],
+            rawFirstSourceTime=valid[0][2] if valid else None,rawFirstSourceDate=valid[0][1] if valid else None,
+            rawLastSourceTime=valid[-1][2] if valid else None,rawLastSourceDate=valid[-1][1] if valid else None,
+            rawValidRowCount=len(valid),rawLastExcelRow=valid[-1][0] if valid else None,
+            selectedFirstExcelRow=window[0][0] if window else None,selectedLastExcelRow=window[-1][0] if window else None,
+            selectedBarCount=len(window),requestedLatestBars=count,scanRange=scan_range(slot),scanMaxBars=MAX_SCAN_BARS,
+            rawLatestSessionSourceTime=today[-1][2] if today else None,sessionDate=session_date))
+    return selected,metadata
+
+def check_latest_parity(metadata, rows):
+    for item in metadata:
+        times=[r[5] for r in rows if r[0]==item['slot'] and r[1]==item['generation'] and r[2]==item['symbol']
+               and r[3]==item['sourceCode'] and r[4]==item['sessionDate']]
+        item['normalizedLatestSourceTime']=max(times) if times else None
+        expected=item['rawLatestSessionSourceTime']
+        item['normalizationParity']='PASS' if expected is not None and expected==item['normalizedLatestSourceTime'] else ('NO_CURRENT_SESSION_BARS' if expected is None and not times else 'RAW_NORMALIZATION_LAG')
+    return all(x['normalizationParity']!='RAW_NORMALIZATION_LAG' for x in metadata)

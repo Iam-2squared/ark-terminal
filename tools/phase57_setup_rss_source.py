@@ -12,7 +12,7 @@ def config_for(path, symbols, rows=120):
     config=dict(schemaId='ARK_RSS_RAW_CONFIG_V1',mode='SOURCE_SEMANTICS_ONLY',
         workbookPath=str(path),workbookVersion='ARK_SOURCE_V1',sourceIdentity='MSII_RSS_RAW_V1',
         sheet='ARK_CHART_5M',range='A2:O3001',versionCell='B1',fields=FIELDS,safety=SAFETY,
-        symbols=symbols,chartRows=rows,slots=layout(symbols,rows))
+        symbols=symbols,chartRows=rows,slots=layout(symbols,rows),chartReadPolicy='LATEST_N_WITHIN_3000_ROW_SCAN_V1')
     validate_config(config)
     return config
 

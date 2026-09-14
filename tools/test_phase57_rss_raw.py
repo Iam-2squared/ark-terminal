@@ -7,7 +7,7 @@ from types import SimpleNamespace
 import unittest
 from phase57_setup_rss_source import config_for, setup
 from phase57_source_capture import read_snapshot, packet_from_rows
-from phase57_rss_raw import layout, formulas, normalize, date_cell, time_cell, number_cell
+from phase57_rss_raw import layout, formulas, normalize, date_cell, time_cell, number_cell, scan_range
 
 class Cell:
     def __init__(self,value=None,formula=None): self.Value2=value; self.Formula=formula
@@ -15,7 +15,7 @@ class Sheet:
     def __init__(self,name): self.Name=name; self.cells={}
     def Range(self,key): return self.cells.setdefault(key,Cell())
     @property
-    def UsedRange(self): return SimpleNamespace(Count=100,Formula=tuple((c.Formula,) for c in self.cells.values()),Formula2=tuple((getattr(c,'Formula2',c.Formula.replace('=','=@',1) if c.Formula else c.Formula),) for c in self.cells.values()))
+    def UsedRange(self): return SimpleNamespace(Count=100,Row=1,Rows=SimpleNamespace(Count=3002),Formula=tuple((c.Formula,) for c in self.cells.values()),Formula2=tuple((getattr(c,'Formula2',c.Formula.replace('=','=@',1) if c.Formula else c.Formula),) for c in self.cells.values()))
 class Sheets:
     def __init__(self): self.items=[Sheet('ARK_CONFIG'),Sheet('ARK_CHART_5M')]
     @property
@@ -36,7 +36,7 @@ class Book:
 def populated(book,config):
     # Mock RSS output after Excel's direct function calls. No model/outcomes used.
     for slot in config['slots']:
-        book.Worksheets('ARK_RAW_CHART').Range(slot['chart']).Value2=(('2026/09/14','09:00',100,101,99,100,20),)
+        book.Worksheets('ARK_RAW_CHART').Range(scan_range(slot)).Value2=(('2026/09/14','09:00',100,101,99,100,20),)
         book.Worksheets('ARK_RAW_MARKET').Range(slot['market']).Value2=(('2026/09/14','09:05:01',100,99,101),)
 
 class Tests(unittest.TestCase):
@@ -48,7 +48,7 @@ class Tests(unittest.TestCase):
         def add(After):
             s=old(After)
             for slot in c['slots']:
-                s.Range(slot['chart']).Value2=((None,)*7,)
+                s.Range(scan_range(slot)).Value2=((None,)*7,)
                 s.Range(slot['market']).Value2=((None,)*5,)
             return s
         b.Worksheets.Add=add
@@ -145,6 +145,55 @@ class Tests(unittest.TestCase):
             b,c=self.make(tmp);b.Worksheets.items.append(Sheet('ARK_RAW_CHART'))
             with self.assertRaises(ValueError):setup(b,c,Path(tmp)/'backup.xlsx')
             self.assertFalse(b.saved)
+    def test_bounded_latest_window_sizes_blanks_and_lunch(self):
+        from datetime import datetime,timedelta
+        from phase57_rss_raw import select_latest,check_latest_parity
+        slots=layout(['7203.T'])
+        for count in [1,119,120,136,3000]:
+            rows=[]
+            for i in range(count):
+                t=datetime(2026,9,1,9)+timedelta(minutes=i*5)
+                rows.append([t.strftime('%Y/%m/%d'),t.strftime('%H:%M'),100,101,99,100,i])
+            session=rows[-1][0].replace('/','-')
+            raw=[{'chart':rows,'market':[[session,'14:16',100,99,101]]}]
+            chosen,meta=select_latest(raw,slots,120,session)
+            self.assertEqual(len(chosen[0]['chart']),min(count,120))
+            self.assertEqual(chosen[0]['chart'][-1],rows[-1]);self.assertEqual(meta[0]['rawLastExcelRow'],count+2)
+            normalized=normalize(chosen,slots,session);self.assertTrue(check_latest_parity(meta,normalized))
+            self.assertEqual(meta[0]['normalizationParity'],'PASS')
+            self.assertFalse(check_latest_parity(meta,normalized[:-1]))
+        rows=[['2026/09/14','11:25',100,101,99,100,1],[None]*7,['2026/09/14','12:30',100,101,99,100,2],['']*7]
+        chosen,meta=select_latest([{'chart':rows}],slots,120,'2026-09-14')
+        self.assertEqual([r[1] for r in chosen[0]['chart']],['11:25','12:30'])
+        self.assertEqual(meta[0]['rawValidRowCount'],2);self.assertEqual(meta[0]['rawLastExcelRow'],5)
+    def test_scan_overflow_invalid_and_reversed_rows_fail(self):
+        from phase57_rss_raw import select_latest
+        slots=layout(['7203.T'])
+        for rows in [[[None]*7]*3001,[['2026/09/14','14:15','#N/A',101,99,100,1]],
+          [['2026/09/14','14:15',100,101,99,100,1],['2026/09/14','14:10',100,101,99,100,1]]]:
+            with self.assertRaises(ValueError):select_latest([{'chart':rows}],slots,120,'2026-09-14')
+    def test_capture_reads_beyond_initial_120_rows(self):
+        from phase57_rss_raw import select_latest,check_latest_parity
+        with tempfile.TemporaryDirectory() as tmp:
+            b,c=self.make(tmp);setup(b,c,Path(tmp)/'backup.xlsx');populated(b,c)
+            rows=[['2026/09/14','13:00',100,101,99,100,1] for _ in range(135)]
+            rows.append(['2026/09/14','14:15',100,101,99,100,2])
+            b.Worksheets('ARK_RAW_CHART').Range(scan_range(c['slots'][0])).Value2=tuple(map(tuple,rows))
+            _,raw=read_snapshot(b,c)
+            chosen,meta=select_latest(raw,c['slots'],120,'2026-09-14')
+            normal=normalize(chosen,c['slots'],'2026-09-14')
+            self.assertTrue(check_latest_parity(meta,normal));self.assertEqual(meta[0]['rawLastExcelRow'],138)
+            self.assertEqual(meta[0]['normalizedLatestSourceTime'],'14:15:00')
+            self.assertEqual(len([r for r in normal if r[0]==0]),120)
+            self.assertEqual([r[2] for r in normal if r[0]==1],['6758.T'])
+    def test_legacy_config_uses_new_scan_and_future_new_config_is_explicit(self):
+        from phase57_source_capture import validate_config
+        config=config_for('Source.xlsx',['7203.T'])
+        self.assertEqual(config['slots'][0]['chart'],'A3:G3002')
+        config['slots'][0]['chart']='A3:G122';validate_config(config)
+        self.assertEqual(scan_range(config['slots'][0]),'A3:G3002')
+        config['slots'][0]['chart']='A3:G9999'
+        with self.assertRaises(ValueError):validate_config(config)
     def test_config_bounds(self):
         for symbols in [[],['7203.T']*2,['7203.T"),Other(']]:
             with self.assertRaises(ValueError):layout(symbols)

@@ -2,14 +2,14 @@ import assert from 'node:assert/strict';
 import {hash,instant,iso,jstDate,SAFETY} from './phase57-offline-parity.mjs';
 import {admitMode} from './phase57-integration-gates.mjs';
 
-const top=['mode','sourceClass','sourceIdentity','workbookIdentity','workbookVersion','fieldMapSha256','captureId','captureTimestamp','sessionDate','connected','workbookHealthy','partialRead','rows','error'];
+const top=['mode','sourceClass','sourceIdentity','workbookIdentity','workbookVersion','fieldMapSha256','captureId','captureTimestamp','sessionDate','connected','workbookHealthy','partialRead','rows','error','rawWindowMetadata'];
 const fields=['slot','generation','symbol','sourceCode','sourceDate','sourceTime','open','high','low','close','volume','marketTimestamp','currentPrice','bestBid','bestAsk','cellErrors'];
 const minute=t=>{const s=iso(instant(t)+32400000);return Number(s.slice(11,13))*60+Number(s.slice(14,16));};
 const grid=start=>{const m=minute(iso(start));return start%300000===0&&((m>=540&&m<690)||(m>=750&&m<930));};
 
 /** Observer only. No model import, strategy output, finality inference, or data repair. */
 export class SourceObserver {
-  constructor(){this.seen=new Map();this.bars=new Map();this.slots=new Map();this.last=-Infinity;this.identity=null;this.events=[];this.captures=0;this.feedObservations=[];this.connectionState='SOURCE_CONNECTION_UNVERIFIED';this.windows={open0900:false,morning1130:false,lunch:false,reopen1230:false,close1530:false};}
+  constructor(){this.seen=new Map();this.bars=new Map();this.slots=new Map();this.last=-Infinity;this.identity=null;this.events=[];this.captures=0;this.feedObservations=[];this.rawWindowObservations=[];this.connectionState='SOURCE_CONNECTION_UNVERIFIED';this.windows={open0900:false,morning1130:false,lunch:false,reopen1230:false,close1530:false};}
   step(packet){
     assert.ok(Object.keys(packet).every(k=>top.includes(k)),'UNEXPECTED_SOURCE_FIELD');
     assert.equal(packet.mode,'SOURCE_SEMANTICS_ONLY');admitMode(packet);
@@ -36,6 +36,16 @@ export class SourceObserver {
     if(m>690&&m<750)this.windows.lunch=true;
     if(m>=750&&m<=755)this.windows.reopen1230=true;
     if(m>=925&&m<=935)this.windows.close1530=true;
+    if(packet.error==='RAW_NORMALIZATION_LAG')emit('RAW_NORMALIZATION_LAG');
+    if(packet.rawWindowMetadata){
+      assert.ok(Array.isArray(packet.rawWindowMetadata),'RAW_WINDOW_METADATA_REQUIRED');
+      for(const metadata of packet.rawWindowMetadata){
+        const times=packet.rows.filter(r=>r.slot===metadata.slot&&r.generation===metadata.generation&&r.symbol===metadata.symbol&&r.sourceCode===metadata.sourceCode&&r.sourceDate===packet.sessionDate).map(r=>r.sourceTime).sort();
+        const latest=times.at(-1)??null;
+        assert.ok(metadata.normalizationParity!=='PASS'||(metadata.sessionDate===packet.sessionDate&&metadata.rawLatestSessionSourceTime!==null&&metadata.rawLatestSessionSourceTime===latest&&metadata.normalizedLatestSourceTime===latest),'RAW_NORMALIZATION_LAG');
+        this.rawWindowObservations.push({captureId:packet.captureId,...metadata});
+      }
+    }
     const trusted=packet.workbookHealthy===true&&packet.partialRead===false&&(!packet.error||packet.error==='MSII_CONNECTION_UNVERIFIED');
     const feeds=new Map();
     for(const row of packet.rows){
@@ -112,7 +122,7 @@ export class SourceObserver {
       latestBarFirstAppearance:b.firstAppearanceTime,latestBarLastChange:b.lastChangeTime,latestBarRevisions:b.revisions,
       latestBarAgeMs:this.last-instant(`${b.sourceDate}T${b.sourceTime}+09:00`),barAgeMeaning:'SOURCE_LABEL_AGE_NOT_FEED_STALENESS',
       candidateFinalizationLatencyMs:b.candidateFinalizationLatencyMs,labelHypothesis:'START_UNVERIFIED'}));
-    return {connectionState:this.connectionState,currentFeedObservations:this.feedObservations,latestBars,
+    return {rawWindowObservations:this.rawWindowObservations,latestRawWindowMetadata:this.rawWindowObservations.filter(x=>x.captureId===this.rawWindowObservations.at(-1)?.captureId),connectionState:this.connectionState,currentFeedObservations:this.feedObservations,latestBars,
       ...(latestBars.length===1?latestBars[0]:{}),currentFeedFreshnessLimitMs:30000,feedFreshnessMeaning:'CURRENT_PRICE_UPDATE_AGE_NOT_CONNECTION_HEARTBEAT',schemaId:'ARK_REAL_SOURCE_SEMANTICS_REPORT_V1',mode:'SOURCE_SEMANTICS_ONLY',captures:this.captures,bars:[...this.bars.values()],events:this.events,coverage:this.windows,
     finalization:'UNVERIFIED',sourceSemanticsCompatibility:'NEEDS_REVIEW',strategyCalculated:false,readyForStrategy:false,
     missingBarVerdict:'UNVERIFIED_UNTIL_LABEL_AND_UNIVERSE_CONTRACT_CONFIRMED',unchangedValuesProveFinality:false,safety:SAFETY};}

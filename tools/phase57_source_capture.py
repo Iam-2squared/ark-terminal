@@ -15,7 +15,7 @@ import time
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
-from phase57_rss_raw import RAW_SHEETS, HEADERS, MARKET, layout, formulas, normalize
+from phase57_rss_raw import RAW_SHEETS, HEADERS, MARKET, layout, formulas, normalize, scan_range, select_latest, check_latest_parity
 
 SHEETS = {'ARK_CONFIG', 'ARK_MARKET', 'ARK_CHART_5M', 'ARK_TICKS', 'ARK_INDEX', 'ARK_HEALTH'}
 FIELDS = ['slot', 'generation', 'symbol', 'sourceCode', 'sourceDate', 'sourceTime', 'open', 'high', 'low', 'close', 'volume', 'marketTimestamp', 'currentPrice', 'bestBid', 'bestAsk']
@@ -32,7 +32,13 @@ def validate_config(config):
     require(isinstance(config.get('workbookVersion'), str) and config['workbookVersion'], 'VERSION_REQUIRED')
     require(isinstance(config.get('sourceIdentity'), str) and config['sourceIdentity'], 'SOURCE_IDENTITY_REQUIRED')
     if config['schemaId'] == 'ARK_RSS_RAW_CONFIG_V1':
-        require(config.get('slots') == layout(config.get('symbols',[]),config.get('chartRows',120)), 'RAW_LAYOUT_MISMATCH')
+        expected=layout(config.get('symbols',[]),config.get('chartRows',120))
+        legacy=[]
+        for slot in expected:
+            first,last=slot['header'].split(':')
+            legacy.append({**slot,'chart':f"{first[:-1]}3:{last[:-1]}{config.get('chartRows',120)+2}"})
+        require(config.get('slots') in (expected,legacy), 'RAW_LAYOUT_MISMATCH')
+        require(config.get('chartReadPolicy','LATEST_N_WITHIN_3000_ROW_SCAN_V1')=='LATEST_N_WITHIN_3000_ROW_SCAN_V1','RAW_READ_POLICY_MISMATCH')
     require(config.get('sheet') == 'ARK_CHART_5M', 'SOURCE_SHEET_REQUIRED')
     require(re.fullmatch(r'[A-Z]{1,3}[1-9][0-9]{0,3}:[A-Z]{1,3}[1-9][0-9]{0,3}', config.get('range', '')) is not None, 'BOUNDED_RANGE_REQUIRED')
     require(config.get('fields') == FIELDS, 'FIELD_MAP_MISMATCH')
@@ -100,6 +106,8 @@ def read_snapshot(workbook, config, delay=0, sleep=time.sleep, on_read=None):
     if config['schemaId']=='ARK_RSS_RAW_CONFIG_V1':
         require(RAW_SHEETS.issubset(names),'RAW_SHEETS_MISSING')
         require(workbook.Date1904 is False,'DATE_SYSTEM_UNSUPPORTED')
+        extent=workbook.Worksheets('ARK_RAW_CHART').UsedRange
+        require(extent.Row+extent.Rows.Count-1<=3002,'RAW_CHART_SCAN_LIMIT')
         expected = formulas(config['slots'])
         for name in RAW_SHEETS:
             values=workbook.Worksheets(name).UsedRange.Formula
@@ -114,7 +122,7 @@ def read_snapshot(workbook, config, delay=0, sleep=time.sleep, on_read=None):
             for slot in config['slots']:
                 chart=workbook.Worksheets('ARK_RAW_CHART')
                 require(matrix(chart.Range(slot['header']).Value2)==[HEADERS],'RAW_HEADER_CHANGED')
-                output.append({'chartStatus':safe_value(chart.Range(slot['formulaCell']).Value2),'chart':matrix(chart.Range(slot['chart']).Value2),
+                output.append({'chartStatus':safe_value(chart.Range(slot['formulaCell']).Value2),'chart':matrix(chart.Range(scan_range(slot)).Value2),
                     'market':matrix(workbook.Worksheets('ARK_RAW_MARKET').Range(slot['market']).Value2)})
             return output
         return pair(snapshot)
@@ -185,9 +193,17 @@ def main():
                 before,after,consistent=read_consistent_snapshot(matches[0],config,emit_read)
                 ended=datetime.now(timezone.utc).isoformat(timespec='milliseconds').replace('+00:00','Z')
                 stamp=ended
-                rows=normalize(after,config['slots'],today) if config['schemaId']=='ARK_RSS_RAW_CONFIG_V1' else after
+                metadata=None
+                if config['schemaId']=='ARK_RSS_RAW_CONFIG_V1':
+                    window,metadata=select_latest(after,config['slots'],config['chartRows'],today)
+                    rows=normalize(window,config['slots'],today)
+                    parity=check_latest_parity(metadata,rows)
+                else: rows=after
                 packet=packet_from_rows(rows,config,str(count),stamp,not consistent)
-                if not consistent: packet['error']='INCONSISTENT_EXCEL_SNAPSHOT'
+                if metadata is not None:
+                    packet['rawWindowMetadata']=metadata
+                    if not parity: packet.update(error='RAW_NORMALIZATION_LAG',workbookHealthy=False,rows=[])
+                if not consistent and packet.get('error')!='RAW_NORMALIZATION_LAG': packet['error']='INCONSISTENT_EXCEL_SNAPSHOT'
                 if config['schemaId']=='ARK_RSS_RAW_CONFIG_V1' and any(str(x['chartStatus']).startswith('#') for x in after):
                     packet.update(error='RSS_CHART_FUNCTION_ERROR',workbookHealthy=False)
             except Exception as error:

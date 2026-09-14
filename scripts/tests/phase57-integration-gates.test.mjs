@@ -120,3 +120,14 @@ test('backfills, lunch gap, unchanged values and partial packets never establish
   q.captureId='4';q.partialRead=true;q.rows[0].close=100.5;const before=o.report().bars.at(-1).revisions;o.step(q);
   assert.equal(o.report().bars.at(-1).revisions,before);assert.equal(o.report().readyForStrategy,false);
 });
+
+test('raw latest metadata is retained and mismatched normalized latest fails closed',()=>{
+  const p=freshPacket();p.rawWindowMetadata=[{slot:0,generation:0,symbol:'1000.T',sourceCode:'1000',sessionDate:p.sessionDate,
+    rawLastSourceTime:'09:00:00',rawValidRowCount:136,rawLastExcelRow:138,rawLatestSessionSourceTime:'09:00:00',normalizedLatestSourceTime:'09:00:00',normalizationParity:'PASS'}];
+  const o=new SourceObserver();o.step(p);assert.equal(o.report().latestRawWindowMetadata[0].rawLastExcelRow,138);
+  p.rawWindowMetadata[0].rawLatestSessionSourceTime='09:05:00';
+  assert.throws(()=>new SourceObserver().step(p),/RAW_NORMALIZATION_LAG/);
+  p.error='RAW_NORMALIZATION_LAG';p.workbookHealthy=false;p.rows=[];p.rawWindowMetadata[0].normalizationParity='RAW_NORMALIZATION_LAG';
+  const failed=new SourceObserver();failed.step(p);assert.ok(failed.report().events.some(e=>e.cause==='RAW_NORMALIZATION_LAG'));
+  assert.equal(failed.report().readyForStrategy,false);
+});

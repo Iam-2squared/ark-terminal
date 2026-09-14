@@ -33,6 +33,8 @@ Remaining blockers:
 2. Freeze exact Fresh prospective dates.
 3. Receive separate explicit operator authorization at runtime.
 
+The Claude independent-review blocker itself is now closed at the contract level; its accepted/modified/rejected items are frozen separately.
+
 ## Clean historical allocation
 
 The existing metadata inventory exposes 205 clean, outcome-unread historical session identifiers. v3 allocates all 205 while preserving a true reserve:

@@ -7,7 +7,7 @@ import {
 } from '../long-only/phase57-long-only-research-contract.js';
 import {buildLongOnlyL0OpportunityCensus} from '../long-only/phase57-long-only-l0-opportunity-census.js';
 import {
-  assertReleasedPartition,evaluateLongOnlyAcquisitionGate,
+  assertReleasedPartition,assertReserveReplacement,evaluateLongOnlyAcquisitionGate,
   REQUIRED_PHASE57_LONG_ONLY_ACQUISITION_GATES,
 } from '../long-only/phase57-long-only-acquisition-gate.js';
 
@@ -59,34 +59,52 @@ test('L0 fails closed on missing point-in-time membership, duplicates or sealed 
   assert.throws(()=>buildLongOnlyL0OpportunityCensus({rows:[base],partition:'UNTOUCHED_OOS',sourceManifest}),/DEVELOPMENT only/);
 });
 
-test('data plan freezes acquisition off until exact range and partition gates are complete',()=>{
+test('reviewed data plan conserves all 205 clean sessions and reserves 15 for admission failures',()=>{
   const plan=JSON.parse(fs.readFileSync(new URL('../long-only/phase57-long-only-data-plan.json',import.meta.url),'utf8'));
+  assert.equal(plan.schemaVersion,3);
   assert.equal(plan.newJquantsAcquisitionAuthorized,false);
-  assert.equal(plan.historicalImplementationAudit.main.dailyMinuteMasterHistoricalPipelinePresent,false);
-  assert.equal(plan.historicalImplementationAudit.allRemoteBranchesSearched,true);
-  assert.match(plan.historicalImplementationAudit.finding,/REUSABLE_MINUTE/);
+  assert.equal(plan.currentEntitlementEvidence.basePlan,'LIGHT');
+  assert.equal(plan.currentEntitlementEvidence.minuteAddon,'TICK_PLUS_OHLCMIN');
+  assert.equal(plan.currentEntitlementEvidence.basePlanActive,true);
+  assert.equal(plan.currentEntitlementEvidence.minuteAddonActive,true);
   assert.equal(plan.l0Contract.intradayDataRequired,false);
-  assert.equal(plan.datasetSplit.untouchedOos.opened,false);
-  assert.equal(plan.safety.freshHoldoutConsumed,false);
-  assert.equal(plan.artifactInventory.exactMetadataInventory.rawPersistedSessions,0);
-  assert.equal(plan.dataBudget.daily252WhatIf.baseApiRequests,504);
-  assert.equal(plan.dataBudget.development90IntradayIfLaterAuthorized.observedMinutePages,1188);
-  assert.equal(plan.datasetSplit.development.totalSessions,90);
-  assert.deepEqual(Object.values(plan.datasetSplit.development.blocks).map(block=>block.sessions),[30,20,20,20]);
+  assert.equal(plan.datasetSplit.development.totalSessions,80);
+  assert.deepEqual(Object.values(plan.datasetSplit.development.blocks).map(block=>block.sessions),[25,15,20,20]);
+  assert.equal(plan.datasetSplit.reserve.sessions,15);
+  assert.equal(plan.partitionAccounting.sum,205);
+  assert.equal(plan.partitionAccounting.sum,plan.datasetSplit.totalCleanHistoricalSessions);
+  assert.equal(plan.datasetSplit.development.integratedReuseRequired,true);
+  assert.equal(plan.datasetSplit.development.selectorOnlyConsumptionProhibited,true);
+  assert.equal(plan.integratedResearchDataset.entryExitAllocationReuseRequired,true);
+  assert.equal(plan.intradayConservation.finalModelFitMustUseFullCrossSection,true);
+  assert.equal(plan.purgeEmbargoContract.crossCloseTargetAllowed,false);
 });
 
-test('acquisition gate is fail-closed and Claude review is mandatory',()=>{
+test('acquisition gate remains fail-closed after entitlement and Claude re-attestation',()=>{
   const plan=JSON.parse(fs.readFileSync(new URL('../long-only/phase57-long-only-data-plan.json',import.meta.url),'utf8'));
   const gate=evaluateLongOnlyAcquisitionGate(plan);
   assert.equal(gate.status,'BLOCKED');
   assert.equal(gate.acquisitionMayStart,false);
-  for(const key of ['exactCurrentEntitlementReattested','claudeIndependentReviewReceived','claudeCriticalBlockersResolved','operatorExplicitAcquisitionApproval'])assert.ok(gate.missing.includes(key));
+  assert.equal(plan.preAcquisitionGate.exactCurrentEntitlementReattested,true);
+  assert.equal(plan.preAcquisitionGate.claudeIndependentReviewReceived,true);
+  assert.equal(plan.preAcquisitionGate.claudeCriticalBlockersResolved,true);
+  for(const key of ['storageDeletionTermsReattested','freshExactDatesFrozen','operatorExplicitAcquisitionApproval'])assert.ok(gate.missing.includes(key));
+  for(const key of ['integratedDataReuseContractFrozen','humanOverfittingControlsFrozen','independentReviewDispositionFrozen'])assert.ok(!gate.missing.includes(key));
   assert.match(gate.planSha256,/^[a-f0-9]{64}$/);
-  assert.equal(REQUIRED_PHASE57_LONG_ONLY_ACQUISITION_GATES.length,15);
+  assert.equal(REQUIRED_PHASE57_LONG_ONLY_ACQUISITION_GATES.length,18);
 });
 
-test('sealed validation and OOS partitions cannot be mounted without hashed release evidence',()=>{
-  assert.throws(()=>assertReleasedPartition({partition:'UNTOUCHED_OOS',plan:{}}),/sealed/);
-  assert.throws(()=>assertReleasedPartition({partition:'UNTOUCHED_OOS',plan:{runtimeReleaseEvidence:{UNTOUCHED_OOS:{released:true,releaseSha256:'bad'}}}}),/sealed/);
+test('sealed validation and OOS partitions require hashed release evidence and contingency cannot open for poor performance',()=>{
+  assert.throws(()=>assertReleasedPartition({partition:'PRIMARY_OOS',plan:{}}),/sealed/);
+  assert.throws(()=>assertReleasedPartition({partition:'PRIMARY_OOS',plan:{runtimeReleaseEvidence:{PRIMARY_OOS:{released:true,releaseSha256:'bad'}}}}),/sealed/);
   assert.equal(assertReleasedPartition({partition:'DEVELOPMENT_A',plan:{runtimeReleaseEvidence:{DEVELOPMENT_A:{released:true,releaseSha256:'a'.repeat(64)}}}}),true);
+  assert.throws(()=>assertReleasedPartition({partition:'CONTINGENCY_OOS',plan:{runtimeReleaseEvidence:{CONTINGENCY_OOS:{released:true,releaseSha256:'b'.repeat(64),reason:'POOR_PERFORMANCE'}}}}),/not permitted/);
+  assert.equal(assertReleasedPartition({partition:'CONTINGENCY_OOS',plan:{runtimeReleaseEvidence:{CONTINGENCY_OOS:{released:true,releaseSha256:'b'.repeat(64),reason:'PRIMARY_EVALUATION_INVALIDATED_NON_PERFORMANCE'}}}}),true);
+});
+
+test('reserve deployment is mechanical and requires hashed admission-failure evidence',()=>{
+  const plan=JSON.parse(fs.readFileSync(new URL('../long-only/phase57-long-only-data-plan.json',import.meta.url),'utf8'));
+  assert.equal(assertReserveReplacement({plan,reserveSessionId:'R01',replacementFor:'DEVELOPMENT_A:03',trigger:'RAW_HASH_MISMATCH',evidenceSha256:'c'.repeat(64)}),true);
+  assert.throws(()=>assertReserveReplacement({plan,reserveSessionId:'R02',replacementFor:'DEVELOPMENT_A:04',trigger:'BAD_PERFORMANCE',evidenceSha256:'d'.repeat(64)}),/not precommitted/);
+  assert.throws(()=>assertReserveReplacement({plan,reserveSessionId:'R03',replacementFor:'DEVELOPMENT_A:05',trigger:'RAW_HASH_MISMATCH',evidenceSha256:'bad'}),/hashed/);
 });

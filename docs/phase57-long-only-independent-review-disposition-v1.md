@@ -103,3 +103,7 @@ No secret/API-key value was observed or recorded.
 - operator must explicitly authorize acquisition outside the committed plan.
 
 Until then `newJquantsAcquisitionAuthorized=false` and all new J-Quants Historical acquisition remains blocked.
+
+## Final review state
+
+The independent-review blocker is considered resolved at the contract level. This does not authorize data acquisition. The remaining gate is operational and contractual: storage terms, exact Fresh dates, and explicit operator authorization.

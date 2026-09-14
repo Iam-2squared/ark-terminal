@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 export const MSII_RSS_SPEC_DATE='2026-03-30';
 export const ORDER_FUNCTIONS=Object.freeze({CASH:'RssStockOrder',MARGIN_OPEN:'RssMarginOpenOrder',MARGIN_CLOSE:'RssMarginCloseOrder',MODIFY:'RssModifyOrder',CANCEL:'RssCancelOrder'});
 export const OBSERVATION_FUNCTIONS=Object.freeze(['RssOrderList','RssExecutionList','RssPositionList','RssMarginPositionList','RssCapacityList','RssBuyingPower','RssMarginPower','RssOrderIDList','RssOrderStatus']);
+// Current live-routing policy preserves the research meaning: LONG is cash-only; margin is reserved for SHORT.
+// Insufficient cash must fail closed. It must never auto-promote a LONG intent into margin buying.
+export const EXECUTION_PRODUCT_POLICY=Object.freeze({cashLong:true,marginLong:false,marginShort:true,autoMarginFallback:false});
 const sideCode=side=>{assert.ok(['BUY','SELL'].includes(side),'MSII_SIDE_REQUIRED');return side==='BUY'?'3':'1';};
 const priceFields=intent=>{assert.ok(['MARKET','LIMIT'].includes(intent.orderType),'MSII_ORDER_TYPE_REQUIRED');if(intent.orderType==='MARKET'){assert.equal(intent.limitPrice,null,'MARKET_LIMIT_PRICE_MUST_BE_NULL');return ['0',''];}assert.ok(Number.isFinite(intent.limitPrice)&&intent.limitPrice>0,'MSII_LIMIT_PRICE_REQUIRED');return ['1',String(intent.limitPrice)];};
 const q=x=>{assert.ok(Number.isSafeInteger(x)&&x>0&&x%100===0,'MSII_LOT_QUANTITY_REQUIRED');return String(x);};
@@ -23,9 +26,12 @@ export function lockedOrderFormula(intent,routing){
   const execution='1',expiry='',account=code(routing.accountType??0);
   if(routing.product==='CASH'){
     assert.equal(intent.direction,'LONG','CASH_SHORT_UNSUPPORTED');
+    assert.equal(intent.positionEffect==='OPEN'?intent.side:'SELL',intent.side,'CASH_LONG_SIDE_MISMATCH');
     return {function:ORDER_FUNCTIONS.CASH,trigger:0,transmitted:false,formula:excelFormula(ORDER_FUNCTIONS.CASH,[...common,q(intent.quantity),priceType,price,execution,expiry,account,'','','','', '0','','',''])};
   }
   assert.equal(routing.product,'MARGIN','MSII_PRODUCT_REQUIRED');
+  assert.equal(intent.direction,'SHORT','MARGIN_LONG_DISABLED');
+  assert.equal(intent.positionEffect==='OPEN'?'SELL':'BUY',intent.side,'MARGIN_SHORT_SIDE_MISMATCH');
   const marginType=code(routing.marginType);
   if(intent.positionEffect==='OPEN')return {function:ORDER_FUNCTIONS.MARGIN_OPEN,trigger:0,transmitted:false,formula:excelFormula(ORDER_FUNCTIONS.MARGIN_OPEN,[...common,marginType,q(intent.quantity),priceType,price,execution,expiry,account,'','','','', '0','','','',''])};
   assert.ok(routing.openPosition,'MSII_OPEN_POSITION_REQUIRED');

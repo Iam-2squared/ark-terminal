@@ -1,159 +1,150 @@
-# Phase57 LONG-only Cash Equity — Data Budget and Dataset Split
+# Phase57 LONG-only Cash Equity — Data Budget and Dataset Split v3
 
-## 結論
+Date: 2026-09-15 JST  
+Branch: `research/phase57-long-only-cash-equity`  
+PR: #587
 
-状態は **🟢 設計固定 / 🔴 取得BLOCKED**。L0は日足OHLCV・調整情報・point-in-time Masterだけで成立し、minuteを取得しない。L1/L2では既存のJ-Quants取得・pagination・1m→5m・timestamp実装を再利用するが、既存LONG+SHORT仮説や閾値は流用しない。
+## Purpose
 
-全remote branchの再監査により、mainのTDnet providerとは別に、historical research branchへ`/v2/equities/bars/minute`、`/v2/equities/bars/daily`、`/v2/equities/master`の実装とexact metadata inventoryが残っていることを確認した。旧報告の「J-Quants実装 = TDnetのみ」はmain限定として訂正する。
+This research line is not a Selector-only experiment. The objective is to build and compare a complete cash-equity LONG-only stack:
 
-新規J-Quants Historical requestは行っていない。契約の再確認、Claude独立レビュー、Fresh日付固定、明示的な取得承認が揃うまでGateは閉じる。
+`JPX PIT universe -> LONG Selector -> LONG Entry -> EXIT -> Capital Allocation -> Cash Equity Portfolio`
 
-## 現在分かっていること
+against the current integrated Ark baseline. SHORT, margin, leverage and broker execution remain prohibited.
 
-| 項目 | 状態 | 確認結果 |
+## Current entitlement evidence
+
+User-provided J-Quants account screenshots on 2026-09-15 confirm:
+
+| Entitlement | Status | Scheduled end |
 |---|---|---|
-| main | 🟢 PASS | 監査基準SHA `b1d7460f7f624b59a1d97d8591ebcec47ce26be3` |
-| LONG-only branch / PR | 🟢 PASS | `research/phase57-long-only-cash-equity` / PR #587 |
-| 日足endpoint | 🟢 PASS | `GET /v2/equities/bars/daily` |
-| minute endpoint | 🟢 PASS | `GET /v2/equities/bars/minute`、TSEのみ、過去2年、無約定minuteはrowなし |
-| Master endpoint | 🟢 PASS | `GET /v2/equities/master`、日付指定可能 |
-| 認証 | 🟢 PASS | v2 `x-api-key`。秘密値は閲覧・出力・commitしていない |
-| Pagination | 🟢 PASS | 同一queryへ返却された`pagination_key`を付け、keyが消えるまで継続 |
-| L0粒度 | 🔒 FROZEN | 日足 + dated Masterのみ。minute禁止 |
-| 既存取得コード | 🟢 REUSABLE | historical branchにminute/daily/master、pagination、PIT filter、1m→5m、hash、安全境界あり |
-| 既存価格本体 | 🔴 NOT REUSABLE | raw永続保存0 session。短期Actions shardは期限切れ |
-| 既存metadata | 🟢 REUSABLE | 487 session、うち205 sessionはmetadata-only・outcome未参照 |
+| Light | Active | 2026-10-06 19:02 JST |
+| Tick + OhlcMin | Active / cancellation scheduled | 2026-10-06 19:07 JST |
 
-公式のplan別historyはFree 2年（12週遅延）、Light 5年、Standard 10年、Premium 20年。rate limitは順に5/60/120/500 requests/minute。minuteはadd-onで過去2年、planning rateは60 requests/minute。
+No API key value was observed or stored.
 
-## まだ分からないこと
+## Acquisition policy
 
-| 未確定事項 | なぜ推測不可か | 解消方法 |
-|---|---|---|
-| 現在のbase plan | public browserは未login、local環境にもplan/keyなし | ユーザーがAccount画面でplan名と終了日を再確認 |
-| minute add-onの現在状態 | 2026-09-10のrepo記録はLight + add-on、2026-10-06終了予定だが現在状態を保証しない | add-on名・終了日・60 rpmを再確認 |
-| 保存・解約後削除条件 | repoにはraw/再構成可能derivativeを解約後削除するuser-attested contractがある | 現在の利用規約/Account表示で再確認 |
-| Fresh 25のexact sessions | 将来の営業日が未完了 | outcomeを見ずcalendar順で25日を固定 |
-| raw JSON exact bytes | 過去取得はrawを残していない | 本取得時にpage単位bytes/hashを記録。新しいprobe sessionは消費しない |
+New Historical acquisition is still blocked. The branch must not start J-Quants downloads automatically.
 
-## 既存J-Quants実装の再監査
+Remaining blockers:
 
-| 区分 | 場所 | 判定 |
-|---|---|---|
-| main | `server/providers/jquants-tdnet-provider.js` | TDnetのみ。価格Historical pipelineなし |
-| Selector系 | `research/phase57-selector-capacity-v2` | minute adapter、date-wide capacity、Fresh allocation、timestamp contractを再利用可能 |
-| EXIT系 | `research/phase57-exit-v4-hybrid-msh-large-scale` | minute+daily+masterのsession監査、pagination、PIT、corporate-action flag、hashを再利用可能 |
-| Entry/Allocation系 | 複数Phase57 research branch | 同じminute adapterを参照。別実装を新造する必要なし |
-| Actions artifacts | run `34031214529` | raw shardは期限切れ。sanitized manifest/digestのみ再利用可能 |
+1. Re-attest private-storage and post-cancellation deletion terms.
+2. Freeze exact Fresh prospective dates.
+3. Receive separate explicit operator authorization at runtime.
 
-Canonical候補はminute adapter blob `c09556460f729b6091c2de4ba5849b9021288f84`、exact metadata inventory blob `2217ffee6b9607f5610d5484bffea884f65b7422`。LONG-only branchへ移植する場合は、fetch/normalize/cache基盤だけを取り込み、Frozen Minimal Hybrid、SHORT、既存thresholdは取り込まない。
+## Clean historical allocation
 
-## L0は日足だけで成立するか
+The existing metadata inventory exposes 205 clean, outcome-unread historical session identifiers. v3 allocates all 205 while preserving a true reserve:
 
-**🟢 成立する。** +3/+5/+10%の日次Opportunity Censusは、当日と前営業日のadjusted close、日次volume/turnover、corporate-action audit fields、当日point-in-time Masterがあれば計算できる。1分/5分情報は検出時刻やRemaining Upsideを扱うL1まで不要。
+| Partition | Sessions | Purpose |
+|---|---:|---|
+| Development A | 25 | L0 definition / initial census |
+| Development B | 15 | L0 replication / L1 label contract |
+| Development C | 20 | L1 ablation / L2 model selection |
+| Development D | 20 | threshold freeze / integrated Development replay |
+| Validation | 30 | frozen first-pass evaluation |
+| Validation Replication | 20 | locked replication |
+| Primary OOS | 30 | true outer OOS |
+| Contingency OOS | 30 | sealed insurance if Primary OOS is invalidated for non-performance reasons |
+| Admission Reserve | 15 | replacement for admission failure only |
+| **Total** | **205** | |
 
-L0は銘柄数だけでなくeligible universe比率も併記する。IPO初日、前日値なし、null OHLC、売買停止、0 volume、limit-up、ExRT/AdjFactor変化は黙って除外せず、別stratumまたはblocked reasonとして数える。Regimeは後付けbinを禁止し、前日までのTOPIX/volatilityだけで定義してから追加する。
+Fresh prospective sessions are outside this 205-session historical accounting.
 
-## 252営業日 Data Budget
+## Why Reserve exists
 
-約3,700銘柄、過去205-sessionの実績（日足1 page/session、Master 1 page/session）を使うplanning値。
+Reserve is operational insurance, not extra tuning data. It may be used only when an admitted session is invalid because of precommitted data-integrity failures such as:
 
-| 項目 | 252営業日案 |
+- raw hash mismatch;
+- provider page corruption;
+- missing mandatory Daily or dated Master data;
+- unresolved corporate-action ambiguity;
+- PIT Master divergence.
+
+Poor model performance is never a Reserve deployment trigger.
+
+## L0
+
+L0 remains Daily-only and uses dated PIT Master plus adjusted daily fields. It measures opportunity density for +3%, +5% and +10% sessions by JPX segment. Minute requests remain zero in L0.
+
+Development A defines the census contract; Development B replicates it. L0 results cannot choose Validation/OOS dates.
+
+## L1 / L2
+
+L1 introduces causal intraday 5-minute reconstruction from released minute data. Future labels are evaluator-only and cannot enter decision features.
+
+L2 evaluates a limited set of predeclared feature families. The primary target, final feature set, model family and threshold rule must be frozen before Validation.
+
+Future MFE/MAE may be labels, but normalization used in the live decision semantics must be causal (for example decision-time ATR), not future realized volatility.
+
+## Minute-data conservation
+
+The core rule is:
+
+**Do not spend J-Quants minute data only on Selector research.**
+
+Any authorized intraday acquisition is persisted once and reused for:
+
+- Selector research;
+- LONG Entry replay;
+- EXIT replay;
+- Capital Allocation;
+- integrated portfolio replay.
+
+Winner / near-winner / control samples are diagnostic only. Final L2 fit, threshold calibration, Validation, OOS and integrated performance claims require the full point-in-time JPX cross-section for released session dates.
+
+## Purge / embargo
+
+There is no blanket ban on causal historical prices from an earlier partition. Past information that was genuinely available at a decision timestamp remains valid.
+
+The actual protections are:
+
+- labels must resolve within the same JPX trading session or be ineligible;
+- no target horizon may cross session close;
+- next-session prices are not features;
+- scalers, weights, thresholds and other fitted statistics are learned only on authorized Development blocks;
+- Validation/OOS outcomes stay sealed until release.
+
+## Human-overfitting controls
+
+Before Validation:
+
+- primary target frozen;
+- feature set frozen;
+- model family frozen;
+- threshold rule frozen;
+- current-Ark comparison metrics frozen;
+- GO/NO-GO rules frozen.
+
+Validation and later sets cannot trigger retuning. Contingency OOS is not a retry after a bad Primary OOS result.
+
+## Data budget
+
+Daily + Master for the 205 clean historical sessions remains light compared with intraday data. Intraday is released by partition, not acquired for all 205 upfront.
+
+Current planning upper bound for Development 80 intraday sessions, extrapolated from the prior 90-session audit:
+
+| Item | Planning estimate |
 |---|---:|
-| 対象営業日 | 252 |
-| 想定eligible銘柄/日 | 3,700 |
-| joined L0 symbol-session | 932,400 |
-| 日足response rows概算 | 932,400 |
-| Master response rows概算 | 932,400 |
-| 日足pages/requests | 252 |
-| Master pages/requests | 252 |
-| 合計requests | 504 |
-| uncompressed JSON計画幅 | 0.34–0.75 GB |
-| gzip転送/保存計画幅 | 0.07–0.26 GB |
-| normalized Parquet計画幅 | 0.05–0.15 GB |
-| Light 60 rpm理論下限 | 8.4分 |
-| retry/hash/manifest込み計画 | 12–20分 |
+| Development sessions | 80 |
+| Minute pages | ~1,056 |
+| Minute rows | ~33.7M |
+| Daily + Master + minute requests | ~1,216 |
 
-再取得を許すのは、endpoint/API version/query/session/symbol-set/contract snapshot/hashのいずれかが不一致、provider correctionが新versionとして確認された、またはcacheが破損した場合だけ。同じidentityとhashなら再取得禁止。
+This is an upper planning bound, not authorization to download.
 
-252日すべてをDevelopmentとして開く案は棄却する。既存のoutcome-blind allocationを利用すると、clean 205日をDevelopment 90 / Validation 30 / Validation Confirmation 25 / OOS 30 / Final 30に分離でき、さらにFresh 25を将来温存できる。
+## Independent review disposition
 
-## Dataset Split
+Claude returned `CONDITIONAL GO`. Ark accepted the useful controls, corrected arithmetic/date/timestamp issues, rejected a blanket prohibition on causal past history, and retained Ark's existing timestamp semantics.
 
-| Block | Session | 開封タイミング | 主用途 | Model選択 | Threshold選択 | 最終評価 |
-|---|---:|---|---|---|---|---|
-| Development A | 30 | 契約・Claude・取得Gate後 | L0定義、初回Census | 不可 | 不可 | 不可 |
-| Development B | 20 | AのL0 contract固定後 | L0再現、L1 label feasibility | 不可 | 不可 | 不可 |
-| Development C | 20 | L1 label contract固定後 | feature family ablation、L2 fit | 可 | 不可 | 不可 |
-| Development D | 20 | candidate family固定後 | inner temporal選択、threshold freeze | 可 | 可 | 不可 |
-| Validation | 30 | model/feature/threshold freeze後 | 1回のfrozen評価 | 不可 | 不可 | 不可 |
-| Validation Confirmation | 25 | Validation判定と再freeze後 | 2段目frozen確認 | 不可 | 不可 | 不可 |
-| Untouched OOS | 30 | Claude OOS前review + 全freeze後 | 1回のouter OOS | 不可 | 不可 | 可 |
-| Final Confirmation | 30 | OOS解釈を固定後 | 最終historical確認 | 不可 | 不可 | 可 |
-| Fresh prospective | 25 | 未来25日が完成後 | prospective確認 | 不可 | 不可 | 可 |
-| Prior-exposed diagnostic | 179 | source/parity検査のみ | performance以外 | 不可 | 不可 | 不可 |
+See `docs/phase57-long-only-independent-review-disposition-v1.md` for the itemized disposition.
 
-Developmentは合計90日。日付境界とhigher-level classは既存metadata-only/outcome-unseen allocationを維持し、A/B/C/Dだけをoutcome未参照で時系列分割した。Validation失敗後に同じValidationを調整へ使った場合、そのblockは以後Development扱いとなり、新しい未参照Validationがなければ次candidateの強いclaimは禁止する。
+## Next step
 
-## L1 / L2までの段階取得
-
-| 段階 | Target / Feature | 取得粒度 | 取得範囲 |
-|---|---|---|---|
-| L0 | daily +3/+5/+10 census | Daily + dated Master | released Developmentのみ。minute 0 |
-| L1 feasibility | winner、remaining upside、MFE/MAE、detection time | raw 1mをcausal 5mへ | Development B、case-control併用可 |
-| L1 cross-section | Recall、precision、late rate、breadth | JPX date-wide 1m→5m | released Developmentのfull market |
-| L2 | ablatable causal feature family | 同上 | Development C/Dのみ |
-| Validation以降 | frozen selector metrics | full cross-section必須 | blockごとのrelease後に一度だけ |
-
-過去実測でDevelopment 90日はminute 1,188 page、37,903,800 rows、5分足13,827,576 bars。daily/masterを含め1,368 requests、逐次約5.46時間、6 bounded shardsで0.9–1.4時間がplanning値。ただしL0時点では取得しない。
-
-clean 205日の全minuteを先に取る案は、2,899 minute pages・92,131,136 rowsになるため禁止する。partition releaseごとに一度だけ取得する。
-
-## Intraday節約とSelection Bias
-
-Case-controlはall winner、near winner、high-volume non-winner、sector/segment/ADV matched control、seeded random liquid controlを含める。sampling probabilityとweightをmanifestへ残す。この集合で許されるのはfeature feasibility、mechanism ablation、error analysisだけ。
-
-次はfull cross-sectionを必須とする。
-
-- Early Winner Recall / precision / prevalence
-- cross-sectional rank、market/sector breadth
-- threshold calibration
-- missed opportunity、portfolio opportunity cost
-- Validation、OOS、Final/Fresh
-
-Winner-only samplingで最終Selector性能を主張しない。同日Opportunity densityでsessionを選ばない。full-market date-wide取得はrowsが多いが、symbol別取得よりrequest数が少なく、全市場denominatorとbreadthを保つため、released sessionの正式評価では合理的。
-
-## 保存・Manifest・Hash
-
-rawはGit外のprivate encrypted user-only storageへ、page単位でimmutable保存する。最低限、provider、API version、endpoint、正規化query、sessionDate、fetchedAt、page count、row count、page SHA-256、aggregate SHA-256、symbol-set SHA-256、contract snapshot SHA-256を保存する。
-
-derived 5mにはparent raw hash、transform version、timestamp contract、corporate-action policy、output hashを持たせる。provider correctionは上書きせず別version。現在repoに記録された解約後削除条件が再確認されるまでは永続保持可能と推定しない。
-
-## J-Quants取得開始Gate
-
-| Gate | 状態 |
-|---|---|
-| 公式endpoint / pagination contract | 🟢 PASS |
-| 全branchコード再監査 | 🟢 PASS |
-| artifact inventory | 🟢 PASS |
-| L0必要データ | 🟢 FROZEN |
-| L1/L2将来必要データ | 🟢 FROZEN |
-| Dataset Split | 🟢 FROZEN |
-| request/page/row budget | 🟢 PASS |
-| storage/manifest/hash contract | 🟢 FROZEN |
-| 現契約・終了日の再attestation | 🔴 BLOCKED |
-| 保存/解約後削除条件の再attestation | 🔴 BLOCKED |
-| Fresh 25 exact dates | 🔴 BLOCKED |
-| Claude independent review受領 | 🔴 BLOCKED |
-| Claude critical blocker解消 | 🔴 BLOCKED |
-| operator明示取得承認 | 🔴 BLOCKED |
-
-Gate moduleは、全項目が揃ってもcommitted planから自動取得を許可しない。最後にGit外の明示的runtime authorizationが必要で、sealed partitionはrelease SHA-256なしにmountできない。
-
-## 次の1手
-
-1. `docs/phase57-long-only-claude-data-budget-review-request.md`をClaudeへそのまま送る。
-2. ユーザー側でJ-Quants Accountのbase plan、minute add-on、終了日、保存/削除条件を確認する。API key自体は共有しない。
-3. Claude指摘をArk測定と分離して分類し、critical blockerだけcontractへ反映する。
-4. Fresh日付をoutcome blindで固定し、全Gateがgreenになった時点でclean historical 205日のdaily+dated Master（410 requests）を一度だけ取得する案を再提示する。取得時点でpartition別に暗号化・封印し、最初にmountするのはDevelopmentだけとする。
-5. 明示承認後も、最初の取得はL0 daily/masterだけ。minuteはL1 Gateまで0 requestを維持し、その後もreleased partitionごとに一度だけ取得する。
+1. Clear the remaining non-data blockers.
+2. Freeze Fresh dates.
+3. Get explicit operator acquisition approval.
+4. Acquire the minimum Daily + Master payload once.
+5. Run Formal L0 immediately.
+6. Progress quickly into L1/L2 while preserving the same raw data for Entry/EXIT/Allocation integration.

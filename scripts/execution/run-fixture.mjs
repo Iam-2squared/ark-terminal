@@ -12,7 +12,7 @@ verifyFreeze(root);fs.mkdirSync(destination,{recursive:false});
 const fixtureBytes=fs.readFileSync(new URL('./fixtures/lifecycle.json',import.meta.url));
 const fixture=JSON.parse(fixtureBytes);assert.equal(fixture.sourceClass,'SYNTHETIC_FIXTURE');
 const head=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
-const tests=spawnSync(process.execPath,['--test','scripts/execution/tests/execution.test.mjs'],{cwd:root,encoding:'utf8',env:{...process.env,ARK_EXECUTION_EVIDENCE_DIR:path.join(destination,'evidence')}});
+const tests=spawnSync(process.execPath,['--test','scripts/execution/tests/execution.test.mjs','scripts/execution/tests/msii-rss-contract.test.mjs'],{cwd:root,encoding:'utf8',env:{...process.env,ARK_EXECUTION_EVIDENCE_DIR:path.join(destination,'evidence')}});
 fs.writeFileSync(path.join(destination,'tests.log'),tests.stdout+tests.stderr,{flag:'wx'});assert.equal(tests.status,0,'EXECUTION_TEST_GATE_FAILED');
 const config={mode:'SYNTHETIC_FIXTURE',freezeSha256:FREEZE,repoHead:head,fixtureHash:digest(fixtureBytes),sessionDate:fixture.sessionDate,startedAt:fixture.at,symbols:fixture.symbols,initialCashJpy:fixture.initialCashJpy,limits:fixture.limits};
 fs.writeFileSync(path.join(destination,'run-config.json'),JSON.stringify(config,null,2)+'\n',{flag:'wx'});

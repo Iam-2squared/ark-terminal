@@ -155,5 +155,5 @@ Gate moduleは、全項目が揃ってもcommitted planから自動取得を許�
 1. `docs/phase57-long-only-claude-data-budget-review-request.md`をClaudeへそのまま送る。
 2. ユーザー側でJ-Quants Accountのbase plan、minute add-on、終了日、保存/削除条件を確認する。API key自体は共有しない。
 3. Claude指摘をArk測定と分離して分類し、critical blockerだけcontractへ反映する。
-4. Fresh日付をoutcome blindで固定し、全Gateがgreenになった時点でDevelopment Aの日足+dated Master取得案を再提示する。
-5. 明示承認後も、最初の取得はL0 daily/masterだけ。minuteはL1 Gateまで0 requestを維持する。
+4. Fresh日付をoutcome blindで固定し、全Gateがgreenになった時点でclean historical 205日のdaily+dated Master（410 requests）を一度だけ取得する案を再提示する。取得時点でpartition別に暗号化・封印し、最初にmountするのはDevelopmentだけとする。
+5. 明示承認後も、最初の取得はL0 daily/masterだけ。minuteはL1 Gateまで0 requestを維持し、その後もreleased partitionごとに一度だけ取得する。

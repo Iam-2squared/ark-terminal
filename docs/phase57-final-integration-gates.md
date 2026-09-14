@@ -89,3 +89,8 @@ Passing source semantics alone does not start realtime Shadow automatically.
 Future OOS remains the original J-Quants-bound #583 four-arm contract: 10/22,
 first 20 eligible sessions. MSII observations cannot replace that contract.
 No main merge, Draft conversion, order transmission or production readiness.
+
+
+## RAW RSS source setup successor
+
+The normalized-only template limitation above is addressed by [RAW RSS source setup](phase57-rss-raw-source-setup.md). `tools/Setup-ArkSource.ps1` now adds official raw RSS sheets and generates local-source.json; Python bridges them into the diagnostic contract. Actual add-in formula acceptance and finalization semantics remain unverified until the local run. Frozen strategy and OOS are unchanged.

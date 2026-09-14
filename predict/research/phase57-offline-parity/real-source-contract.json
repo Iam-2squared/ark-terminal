@@ -1,28 +1,117 @@
 {
-  "schemaId":"ARK_PHASE57_REAL_SOURCE_PREPARATION_V1",
-  "freezeSha256":"f0ea365e5cf73b3394779ae1be3ea99e268f9d6cede8160a703ed24cab5c0a14",
-  "officialDocumentSha256":"298145f74a3cf147859a1d6c0bdb954ba1398d0fb052f7390b09e6e92c022d1a",
-  "documentation":{"chartFunction":"RssChart","barType":"5M","chartMaxRows":3000,"tickFunction":"RssTickList","tickMaxRows":300,"pastChartIntradaySupported":false},
-  "sourceSemanticsVerified":false,
-  "finalizationRule":"NO_RULE_ADMITTED_UNTIL_LOCAL_EVIDENCE_REVIEW",
-  "connectionRule":"EXCEL_REACHABILITY_IS_NOT_MSII_CONNECTION_PROOF",
-  "atomicityRule":"EQUAL_DOUBLE_READS_ARE_OBSERVATIONS_NOT_ATOMIC_SNAPSHOT_PROOF",
-  "rawFields":["sourceIdentity","workbookIdentity","workbookVersion","fieldMapSha256","captureId","captureTimestamp","sourceDate","sourceTime","symbol","sourceCode","slot","generation","open","high","low","close","volume","marketTimestamp","currentPrice","bestBid","bestAsk","cellErrors"],
-  "normalizedFields":["barStart","barEnd","availableAt","finalizedState","freshnessState"],
-  "unknownNormalizedValues":"NULL_OR_UNVERIFIED_NEVER_GUESSED",
-  "selectorInputClasses":[
-    {"input":"universe/memberSet/product admission","class":"UNAVAILABLE_MUST_BE_SOURCED_ELSEWHERE","completeLiveSourceVerified":false},
-    {"input":"sourceCode/symbol/sector/market/productCategory/effectiveAt","class":"PIT_MASTER_STATIC_METADATA","currentMasterMayReplaceHistoricalMaster":false},
-    {"input":"completed 5m OHLCV and availableAt for every universe member","class":"REALTIME_DYNAMIC_MARKET_INPUT","actualFullCoverageVerified":false},
-    {"input":"optional observed turnover","class":"REALTIME_DYNAMIC_MARKET_INPUT","fallback":"EXISTING_FROZEN_OHLCV_CAUSAL_PROXY_ONLY"},
-    {"input":"Selector/Entry model and freeze digests","class":"FROZEN_MODEL_ASSET","vendored":true},
-    {"input":"featureCutoff / selectionSchedule","class":"DECISION_SCHEDULE","timingAdapterVerified":false},
-    {"input":"Dynamic N / ranks / scores / selected / abstain","class":"DERIVED_SELECTOR_OUTPUT","mustUseFrozenLogic":true}
+  "schemaId": "ARK_PHASE57_REAL_SOURCE_PREPARATION_V1",
+  "freezeSha256": "f0ea365e5cf73b3394779ae1be3ea99e268f9d6cede8160a703ed24cab5c0a14",
+  "officialDocumentSha256": "298145f74a3cf147859a1d6c0bdb954ba1398d0fb052f7390b09e6e92c022d1a",
+  "documentation": {
+    "chartFunction": "RssChart",
+    "barType": "5M",
+    "chartMaxRows": 3000,
+    "tickFunction": "RssTickList",
+    "tickMaxRows": 300,
+    "pastChartIntradaySupported": false
+  },
+  "sourceSemanticsVerified": false,
+  "finalizationRule": "NO_RULE_ADMITTED_UNTIL_LOCAL_EVIDENCE_REVIEW",
+  "connectionRule": "EXCEL_REACHABILITY_IS_NOT_MSII_CONNECTION_PROOF",
+  "atomicityRule": "EQUAL_DOUBLE_READS_ARE_OBSERVATIONS_NOT_ATOMIC_SNAPSHOT_PROOF",
+  "rawFields": [
+    "sourceIdentity",
+    "workbookIdentity",
+    "workbookVersion",
+    "fieldMapSha256",
+    "captureId",
+    "captureTimestamp",
+    "sourceDate",
+    "sourceTime",
+    "symbol",
+    "sourceCode",
+    "slot",
+    "generation",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "marketTimestamp",
+    "currentPrice",
+    "bestBid",
+    "bestAsk",
+    "cellErrors"
   ],
-  "fullUniverseBoundary":"DOWNSTREAM_MSII_SOURCE_DIAGNOSTIC_NOT_FULL_MSII_ONLY_PARITY",
-  "realTimeAdmissionBlockers":["SOURCE_FINALIZATION_RULE","FULL_UNIVERSE_PIT_PROVIDER","AVAILABILITY_VS_DECISION_GRID_TIMING","AUTHORIZED_SESSION_UNLOCK","CANONICAL_ANALOG_SNAPSHOT_BINDING"],
-  "historicalParityBoundary":"A_B_DOWNSTREAM_REPLAY_USES_SAVED_SELECTOR_LINEAGE_AND_CURRENT_V4_DECISIONS; INDEPENDENT_ENGINE_SYNTHETIC_TEST_IS_SEPARATE",
-  "futureOosBoundary":"PRESERVE_EXISTING_JQUANTS_PRECOMMIT_NO_MSII_SUBSTITUTION",
-  "runtimeModes":{"OFFLINE_FIXTURE":"SUPPORTED","SOURCE_SEMANTICS_ONLY":"LOCAL_READ_ONLY_CAPTURE_PREPARED","REALTIME_SHADOW":"LOCKED","POST_CLOSE_PARITY":"AUTHORIZED_FIXTURE_STAGE_PACKETS_ONLY"},
-  "orderTransmissionImplemented":false
+  "normalizedFields": [
+    "barStart",
+    "barEnd",
+    "availableAt",
+    "finalizedState",
+    "freshnessState"
+  ],
+  "unknownNormalizedValues": "NULL_OR_UNVERIFIED_NEVER_GUESSED",
+  "selectorInputClasses": [
+    {
+      "input": "universe/memberSet/product admission",
+      "class": "UNAVAILABLE_MUST_BE_SOURCED_ELSEWHERE",
+      "completeLiveSourceVerified": false
+    },
+    {
+      "input": "sourceCode/symbol/sector/market/productCategory/effectiveAt",
+      "class": "PIT_MASTER_STATIC_METADATA",
+      "currentMasterMayReplaceHistoricalMaster": false
+    },
+    {
+      "input": "completed 5m OHLCV and availableAt for every universe member",
+      "class": "REALTIME_DYNAMIC_MARKET_INPUT",
+      "actualFullCoverageVerified": false
+    },
+    {
+      "input": "optional observed turnover",
+      "class": "REALTIME_DYNAMIC_MARKET_INPUT",
+      "fallback": "EXISTING_FROZEN_OHLCV_CAUSAL_PROXY_ONLY"
+    },
+    {
+      "input": "Selector/Entry model and freeze digests",
+      "class": "FROZEN_MODEL_ASSET",
+      "vendored": true
+    },
+    {
+      "input": "featureCutoff / selectionSchedule",
+      "class": "DECISION_SCHEDULE",
+      "timingAdapterVerified": false
+    },
+    {
+      "input": "Dynamic N / ranks / scores / selected / abstain",
+      "class": "DERIVED_SELECTOR_OUTPUT",
+      "mustUseFrozenLogic": true
+    }
+  ],
+  "fullUniverseBoundary": "DOWNSTREAM_MSII_SOURCE_DIAGNOSTIC_NOT_FULL_MSII_ONLY_PARITY",
+  "realTimeAdmissionBlockers": [
+    "SOURCE_FINALIZATION_RULE",
+    "FULL_UNIVERSE_PIT_PROVIDER",
+    "AVAILABILITY_VS_DECISION_GRID_TIMING",
+    "AUTHORIZED_SESSION_UNLOCK",
+    "CANONICAL_ANALOG_SNAPSHOT_BINDING"
+  ],
+  "historicalParityBoundary": "A_B_DOWNSTREAM_REPLAY_USES_SAVED_SELECTOR_LINEAGE_AND_CURRENT_V4_DECISIONS; INDEPENDENT_ENGINE_SYNTHETIC_TEST_IS_SEPARATE",
+  "futureOosBoundary": "PRESERVE_EXISTING_JQUANTS_PRECOMMIT_NO_MSII_SUBSTITUTION",
+  "runtimeModes": {
+    "OFFLINE_FIXTURE": "SUPPORTED",
+    "SOURCE_SEMANTICS_ONLY": "LOCAL_READ_ONLY_CAPTURE_PREPARED",
+    "REALTIME_SHADOW": "LOCKED",
+    "POST_CLOSE_PARITY": "AUTHORIZED_FIXTURE_STAGE_PACKETS_ONLY"
+  },
+  "orderTransmissionImplemented": false,
+  "rawWorkbookAdapter": {
+    "schemaId": "ARK_RSS_RAW_CONFIG_V1",
+    "rawSheets": [
+      "ARK_RAW_CHART",
+      "ARK_RAW_MARKET"
+    ],
+    "setup": "tools/Setup-ArkSource.ps1",
+    "normalizer": "tools/phase57_rss_raw.py",
+    "existingNormalizedSheetPreserved": true,
+    "crossSheetFormulasAllowed": false,
+    "finalityInferred": false,
+    "actualExcelVerified": false,
+    "defaultSymbolIsDiagnosticOnly": true
+  }
 }

@@ -14,6 +14,8 @@ import time
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
+from phase57_rss_raw import RAW_SHEETS, HEADERS, layout, formulas, normalize
+
 SHEETS = {'ARK_CONFIG', 'ARK_MARKET', 'ARK_CHART_5M', 'ARK_TICKS', 'ARK_INDEX', 'ARK_HEALTH'}
 FIELDS = ['slot', 'generation', 'symbol', 'sourceCode', 'sourceDate', 'sourceTime', 'open', 'high', 'low', 'close', 'volume', 'marketTimestamp', 'currentPrice', 'bestBid', 'bestAsk']
 SAFETY = {k: False for k in ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted']}
@@ -22,12 +24,14 @@ def require(ok, reason):
     if not ok: raise ValueError(reason)
 
 def validate_config(config):
-    require(config.get('schemaId') == 'ARK_SOURCE_CAPTURE_CONFIG_V1', 'CONFIG_SCHEMA_MISMATCH')
+    require(config.get('schemaId') in ('ARK_SOURCE_CAPTURE_CONFIG_V1','ARK_RSS_RAW_CONFIG_V1'), 'CONFIG_SCHEMA_MISMATCH')
     require(config.get('mode') == 'SOURCE_SEMANTICS_ONLY', 'SOURCE_ONLY_REQUIRED')
     require(config.get('safety') == SAFETY, 'SAFETY_FLAGS_REQUIRED')
     require(Path(config.get('workbookPath', '')).suffix.lower() == '.xlsx', 'DEDICATED_XLSX_REQUIRED')
     require(isinstance(config.get('workbookVersion'), str) and config['workbookVersion'], 'VERSION_REQUIRED')
     require(isinstance(config.get('sourceIdentity'), str) and config['sourceIdentity'], 'SOURCE_IDENTITY_REQUIRED')
+    if config['schemaId'] == 'ARK_RSS_RAW_CONFIG_V1':
+        require(config.get('slots') == layout(config.get('symbols',[]),config.get('chartRows',120)), 'RAW_LAYOUT_MISMATCH')
     require(config.get('sheet') == 'ARK_CHART_5M', 'SOURCE_SHEET_REQUIRED')
     require(re.fullmatch(r'[A-Z]{1,3}[1-9][0-9]{0,3}:[A-Z]{1,3}[1-9][0-9]{0,3}', config.get('range', '')) is not None, 'BOUNDED_RANGE_REQUIRED')
     require(config.get('fields') == FIELDS, 'FIELD_MAP_MISMATCH')
@@ -43,10 +47,10 @@ def matrix(value):
     require(isinstance(value, (tuple, list)), 'RANGE_MATRIX_REQUIRED')
     return [[safe_value(v) for v in row] for row in value]
 
-def read_snapshot(workbook, config):
+def audit_workbook(workbook, config):
     # Reject foreign/order sheets by NAME before reading any cells on them.
     names = [workbook.Worksheets(i).Name for i in range(1, workbook.Worksheets.Count + 1)]
-    require(set(names).issubset(SHEETS) and {'ARK_CONFIG','ARK_CHART_5M'}.issubset(names), 'WRONG_OR_ORDER_ENABLED_WORKBOOK')
+    require(set(names).issubset(SHEETS | (RAW_SHEETS if config['schemaId']=='ARK_RSS_RAW_CONFIG_V1' else set())) and {'ARK_CONFIG','ARK_CHART_5M'}.issubset(names), 'WRONG_OR_ORDER_ENABLED_WORKBOOK')
     require(str(workbook.FullName).casefold() == str(config['workbookPath']).casefold(), 'WRONG_WORKBOOK')
     require(workbook.HasVBProject is False, 'MACRO_WORKBOOK_FORBIDDEN')
     require(workbook.Connections.Count == 0, 'EXTERNAL_CONNECTION_FORBIDDEN')
@@ -54,7 +58,7 @@ def read_snapshot(workbook, config):
     require(workbook.Names.Count == 0, 'DEFINED_NAMES_REQUIRE_REVIEW')
     for name in names:
         used = workbook.Worksheets(name).UsedRange
-        require(used.Count <= 100000, 'WORKBOOK_RANGE_TOO_LARGE')
+        require(used.Count <= (300000 if name in RAW_SHEETS else 100000), 'WORKBOOK_RANGE_TOO_LARGE')
         values = used.Formula
         if not isinstance(values, (tuple, list)): values = ((values,),)
         for row in values:
@@ -64,6 +68,24 @@ def read_snapshot(workbook, config):
                 require(re.fullmatch(r'=\s*(?:_xlfn\.)?(?:RssChart|RssMarket|RssTickList)\([^()\r\n]*\)', value, re.I) is not None, 'FORMULA_NOT_READ_ALLOWLIST')
                 require('!' not in value and '[' not in value and '|' not in value, 'EXTERNAL_FORMULA_REFERENCE')
     require(workbook.Worksheets('ARK_CONFIG').Range(config['versionCell']).Value2 == config['workbookVersion'], 'WORKBOOK_VERSION_MISMATCH')
+
+def read_snapshot(workbook, config):
+    audit_workbook(workbook, config)
+    names={workbook.Worksheets(i).Name for i in range(1,workbook.Worksheets.Count+1)}
+    if config['schemaId']=='ARK_RSS_RAW_CONFIG_V1':
+        require(RAW_SHEETS.issubset(names),'RAW_SHEETS_MISSING')
+        require(workbook.Date1904 is False,'DATE_SYSTEM_UNSUPPORTED')
+        for (name,cell),formula in formulas(config['slots']).items():
+            require(workbook.Worksheets(name).Range(cell).Formula == formula,'RAW_FORMULA_OR_MAPPING_CHANGED')
+        def snapshot():
+            output=[]
+            for slot in config['slots']:
+                chart=workbook.Worksheets('ARK_RAW_CHART')
+                require(matrix(chart.Range(slot['header']).Value2)==[HEADERS],'RAW_HEADER_CHANGED')
+                output.append({'chartStatus':safe_value(chart.Range(slot['formulaCell']).Value2),'chart':matrix(chart.Range(slot['chart']).Value2),
+                    'market':matrix(workbook.Worksheets('ARK_RAW_MARKET').Range(slot['market']).Value2)})
+            return output
+        return snapshot(),snapshot()
     sheet = workbook.Worksheets(config['sheet'])
     before = matrix(sheet.Range(config['range']).Value2)
     after = matrix(sheet.Range(config['range']).Value2)
@@ -111,7 +133,10 @@ def main():
                 ended=datetime.now(timezone.utc).isoformat(timespec='milliseconds').replace('+00:00','Z')
                 raw.write(json.dumps({'captureId':str(count),'readStartedAt':stamp,'readEndedAt':ended,'before':before,'after':after},ensure_ascii=False)+'\n');raw.flush();os.fsync(raw.fileno())
                 stamp=ended
-                packet=packet_from_rows(after,config,str(count),stamp,before!=after)
+                rows=normalize(after,config['slots'],today) if config['schemaId']=='ARK_RSS_RAW_CONFIG_V1' else after
+                packet=packet_from_rows(rows,config,str(count),stamp,before!=after)
+                if config['schemaId']=='ARK_RSS_RAW_CONFIG_V1' and any(str(x['chartStatus']).startswith('#') for x in after):
+                    packet.update(error='RSS_CHART_FUNCTION_ERROR',workbookHealthy=False)
             except Exception as error:
                 packet=packet_from_rows([],config,str(count),stamp,True)
                 packet.update(workbookHealthy=False,error=str(error))

@@ -1,0 +1,108 @@
+import copy
+import json
+from pathlib import Path
+import subprocess
+import tempfile
+from types import SimpleNamespace
+import unittest
+from phase57_setup_rss_source import config_for, setup
+from phase57_source_capture import read_snapshot, packet_from_rows
+from phase57_rss_raw import layout, formulas, normalize, date_cell, time_cell, number_cell
+
+class Cell:
+    def __init__(self,value=None,formula=None): self.Value2=value; self.Formula=formula
+class Sheet:
+    def __init__(self,name): self.Name=name; self.cells={}
+    def Range(self,key): return self.cells.setdefault(key,Cell())
+    @property
+    def UsedRange(self): return SimpleNamespace(Count=100,Formula=tuple((c.Formula,) for c in self.cells.values()))
+class Sheets:
+    def __init__(self): self.items=[Sheet('ARK_CONFIG'),Sheet('ARK_CHART_5M')]
+    @property
+    def Count(self): return len(self.items)
+    def __call__(self,key):
+        return self.items[key-1] if isinstance(key,int) else next(s for s in self.items if s.Name==key)
+    def Add(self,After):
+        sheet=Sheet('new');self.items.append(sheet);return sheet
+class Book:
+    def __init__(self,path):
+        self.FullName=path;self.Worksheets=Sheets();self.HasVBProject=False;self.Date1904=False;self.ReadOnly=False
+        self.Connections=SimpleNamespace(Count=0);self.Names=SimpleNamespace(Count=0)
+        self.Worksheets('ARK_CONFIG').Range('B1').Value2='ARK_SOURCE_V1';self.saved=False
+    def LinkSources(self,_):return None
+    def SaveCopyAs(self,path):Path(path).write_bytes(b'original-fixture-backup')
+    def Save(self):self.saved=True
+
+def populated(book,config):
+    # Mock RSS output after Excel's direct function calls. No model/outcomes used.
+    for slot in config['slots']:
+        book.Worksheets('ARK_RAW_CHART').Range(slot['chart']).Value2=(('2026/09/14','09:00',100,101,99,100,20),)
+        book.Worksheets('ARK_RAW_MARKET').Range(slot['market']).Value2=(('2026/09/14','09:05:01',100,99,101),)
+
+class Tests(unittest.TestCase):
+    def make(self,tmp):
+        c=config_for(Path(tmp)/'Source.xlsx',['7203.T','6758.T'])
+        b=Book(c['workbookPath'])
+        # New ranges in Excel are rectangular blank matrices; mock that behavior.
+        old=b.Worksheets.Add
+        def add(After):
+            s=old(After)
+            for slot in c['slots']:
+                s.Range(slot['chart']).Value2=((None,)*7,)
+                s.Range(slot['market']).Value2=((None,)*5,)
+            return s
+        b.Worksheets.Add=add
+        return b,c
+    def test_setup_capture_diagnostic(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            b,c=self.make(tmp)
+            self.assertEqual(setup(b,c,Path(tmp)/'backup.xlsx'),'RAW_LAYOUT_CREATED')
+            self.assertTrue(b.saved);self.assertTrue((Path(tmp)/'backup.xlsx').exists())
+            populated(b,c);before,after=read_snapshot(b,c)
+            self.assertEqual(before,after)
+            rows=normalize(after,c['slots'],'2026-09-14')
+            self.assertEqual(rows[0],[0,0,'7203.T','7203.T','2026-09-14','09:00:00',100,101,99,100,20,'2026-09-14T09:05:01+09:00',100,99,101])
+            packet=packet_from_rows(rows,c,'1','2026-09-14T00:05:02Z')
+            source=Path(tmp)/'capture.jsonl';source.write_text(json.dumps(packet)+'\n')
+            diagnostic=Path(tmp)/'diagnostic'
+            run=subprocess.run(['node','scripts/phase57-source-diagnostic.mjs',str(source),str(diagnostic)],capture_output=True,text=True)
+            self.assertEqual(run.returncode,0,run.stderr)
+            report=json.loads((diagnostic/'summary.json').read_text())
+            self.assertIn('UNVERIFIED',json.dumps(report));self.assertIn('"strategyCalculated": false',json.dumps(report))
+            self.assertEqual(setup(b,c,Path(tmp)/'unused.xlsx'),'EXISTING_LAYOUT_VERIFIED')
+            self.assertFalse((Path(tmp)/'unused.xlsx').exists())
+    def test_changed_formula_header_and_mapping_fail(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            b,c=self.make(tmp);setup(b,c,Path(tmp)/'backup.xlsx');populated(b,c)
+            cell=b.Worksheets('ARK_RAW_CHART').Range(c['slots'][0]['formulaCell'])
+            for formula in ['=RssChart(A2:G2,"1111.T","5M",120)','=RssChart(ARK_CONFIG!A1,"7203.T","5M",120)','=RssStockOrder(1,TRUE)']:
+                cell.Formula=formula
+                with self.assertRaises(ValueError):read_snapshot(b,c)
+            cell.Formula=c['slots'][0]['chartFormula']
+            b.Worksheets('ARK_RAW_CHART').Range(c['slots'][0]['header']).Value2=(('bad',)*7,)
+            with self.assertRaises(ValueError):read_snapshot(b,c)
+    def test_existing_order_workbook_never_written(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            b,c=self.make(tmp);b.Worksheets.items.append(Sheet('ARK_ORDER'))
+            with self.assertRaises(ValueError):setup(b,c,Path(tmp)/'backup.xlsx')
+            self.assertFalse((Path(tmp)/'backup.xlsx').exists());self.assertFalse(b.saved)
+    def test_serials_strict_parse_errors_and_prior_day(self):
+        self.assertEqual(date_cell(46279),'2026-09-14')
+        self.assertEqual(time_cell(9/24),'09:00:00')
+        for bad in [True,float('nan'),'1,000','-','']:
+            with self.assertRaises(ValueError):number_cell(bad)
+        slots=layout(['7203.T'])
+        raw=[dict(market=[['2026/09/14','09:01:01',100,99,101]],chart=[['2026/09/13','09:00',100,101,99,100,5],['2026/09/14','09:00','#N/A',101,99,100,5]])]
+        before=copy.deepcopy(raw);rows=normalize(raw,slots,'2026-09-14')
+        self.assertEqual(len(rows),1);self.assertEqual(rows[0][6],'#INVALID_NUMERIC');self.assertEqual(raw,before)
+    def test_partial_raw_and_date_system_fail(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            b,c=self.make(tmp);b.Date1904=True
+            with self.assertRaises(ValueError):setup(b,c,Path(tmp)/'backup.xlsx')
+        with self.assertRaises(ValueError):normalize([dict(market=[[1]],chart=[])],layout(['7203.T']),'2026-09-14')
+    def test_config_bounds(self):
+        for symbols in [[],['7203.T']*2,['7203.T"),Other(']]:
+            with self.assertRaises(ValueError):layout(symbols)
+        with self.assertRaises(ValueError):layout(['7203.T'],3001)
+
+if __name__=='__main__':unittest.main()

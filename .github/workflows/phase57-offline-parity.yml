@@ -12,6 +12,10 @@ on:
       - 'scripts/phase57-post-close-parity.mjs'
       - 'scripts/tests/phase57-integration-gates.test.mjs'
       - 'tools/phase57_source_capture.py'
+      - 'tools/phase57_rss_raw.py'
+      - 'tools/phase57_setup_rss_source.py'
+      - 'tools/test_phase57_rss_raw.py'
+      - 'tools/Setup-ArkSource.ps1'
       - 'tools/test_phase57_source_capture.py'
       - 'tools/Start-ArkParity.ps1'
       - 'tools/phase57-source-capture.example.json'
@@ -56,10 +60,15 @@ jobs:
           python tools/test_phase57_offline_excel_reader.py
           python tools/test_phase57_generic_excel_reader.py
           python tools/test_phase57_source_capture.py
+          python tools/test_phase57_rss_raw.py
       - name: One-command Windows launcher (offline only)
         if: runner.os == 'Windows'
         shell: pwsh
         run: ./tools/Start-ArkParity.ps1 -Mode OFFLINE_FIXTURE -OutputRoot '${{ runner.temp }}/ark-offline'
+      - name: Windows RSS setup fixture gate (no Excel or market access)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./tools/Setup-ArkSource.ps1 -FixtureTest
       - name: Linux workbook transport
         if: runner.os == 'Linux'
         shell: bash

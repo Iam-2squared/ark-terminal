@@ -1,6 +1,7 @@
 """Official RSS raw layout; source observations only, never bar finalization."""
 import math
 import re
+from rss_chart_semantics import unpopulated_ohlcv_reason
 from datetime import datetime, timedelta
 
 MAX_SCAN_BARS = 3000
@@ -97,24 +98,29 @@ def scan_range(slot):
     return f'{a[:-1]}3:{b[:-1]}{MAX_SCAN_BARS+2}'
 
 def select_latest(raw, slots, count, session_date):
-    """Bounded scan -> latest N nonempty bars, preserving Excel order and row identity.
+    """Bounded scan -> latest N valid OHLCV bars, preserving Excel order and row identity.
     Caller must persist the full scan before invoking this validator.
     """
     if type(count) is not int or not 1<=count<=MAX_SCAN_BARS: raise ValueError('INVALID_ROW_COUNT')
     selected=[];metadata=[]
     for slot,data in zip(slots,raw,strict=True):
         if len(data['chart'])>MAX_SCAN_BARS: raise ValueError('RAW_CHART_SCAN_LIMIT')
-        valid=[];previous=None
+        valid=[];previous=None;skipped=[]
         for excel_row,row in enumerate(data['chart'],3):
             if all(v in (None,'') for v in row): continue
             try:
                 if len(row)!=7: raise ValueError('PARTIAL_ROW')
                 day,clock=date_cell(row[0]),time_cell(row[1])
-                o,h,l,c,v=[number_cell(x) for x in row[2:]]
-                if l<=0 or h<max(o,l,c) or l>min(o,c) or v<0: raise ValueError('OHLCV')
                 stamp=(day,clock)
+                if previous is not None and stamp==previous: raise ValueError('DUPLICATE_TIMESTAMP')
                 if previous is not None and stamp<previous: raise ValueError('NONMONOTONIC')
                 previous=stamp
+                reason=unpopulated_ohlcv_reason(row[2:],number_cell)
+                if reason:
+                    skipped.append(dict(excelRow=excel_row,sourceDate=day,sourceTime=clock,reason=reason))
+                    continue
+                o,h,l,c,v=[number_cell(x) for x in row[2:]]
+                if l<=0 or h<max(o,l,c) or l>min(o,c) or v<0: raise ValueError('OHLCV')
             except (ValueError,OverflowError) as error:
                 raise ValueError(f'RAW_CHART_INVALID_ROW: slot={slot["slot"]} row={excel_row} {error}') from error
             valid.append((excel_row,day,clock,row))
@@ -124,6 +130,7 @@ def select_latest(raw, slots, count, session_date):
         metadata.append(dict(slot=slot['slot'],generation=slot['generation'],symbol=slot['symbol'],sourceCode=slot['sourceCode'],
             rawFirstSourceTime=valid[0][2] if valid else None,rawFirstSourceDate=valid[0][1] if valid else None,
             rawLastSourceTime=valid[-1][2] if valid else None,rawLastSourceDate=valid[-1][1] if valid else None,
+            skippedUnpopulatedOhlcvRowCount=len(skipped),skippedUnpopulatedOhlcvRows=skipped,
             rawValidRowCount=len(valid),rawLastExcelRow=valid[-1][0] if valid else None,
             selectedFirstExcelRow=window[0][0] if window else None,selectedLastExcelRow=window[-1][0] if window else None,
             selectedBarCount=len(window),requestedLatestBars=count,scanRange=scan_range(slot),scanMaxBars=MAX_SCAN_BARS,

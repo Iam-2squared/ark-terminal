@@ -13,6 +13,9 @@ on:
       - 'scripts/tests/phase57-integration-gates.test.mjs'
       - 'tools/phase57_source_capture.py'
       - 'tools/phase57_rss_raw.py'
+      - 'tools/rss_chart_semantics.py'
+      - 'tools/phase58_excel_5m_chart_export.py'
+      - 'tools/test_phase58_excel_5m_chart_export.py'
       - 'tools/phase57_setup_rss_source.py'
       - 'tools/test_phase57_rss_raw.py'
       - 'tools/Setup-ArkSource.ps1'
@@ -55,6 +58,10 @@ jobs:
       - name: Frozen reference and offline tests
         shell: bash
         run: node --test scripts/tests/*.test.mjs
+      - name: Existing Phase58 RSS semantics regression
+        run: |
+          python -m pip install pytest
+          python -m pytest tools/test_phase58_excel_5m_chart_export.py -q
       - name: Workbook failure tests
         run: |
           python tools/test_phase57_offline_excel_reader.py

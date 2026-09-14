@@ -58,11 +58,20 @@ class Tests(unittest.TestCase):
             b,c=self.make(tmp)
             self.assertEqual(setup(b,c,Path(tmp)/'backup.xlsx'),'RAW_LAYOUT_CREATED')
             self.assertTrue(b.saved);self.assertTrue((Path(tmp)/'backup.xlsx').exists())
-            populated(b,c);before,after=read_snapshot(b,c)
+            populated(b,c)
+            slot=c['slots'][0]
+            original=b.Worksheets('ARK_RAW_CHART').Range(scan_range(slot)).Value2
+            b.Worksheets('ARK_RAW_CHART').Range(scan_range(slot)).Value2=tuple([[None]*7]*12+[['2026/09/10','15:25',None,None,None,None,0]]+list(original))
+            before,after=read_snapshot(b,c)
             self.assertEqual(before,after)
-            rows=normalize(after,c['slots'],'2026-09-14')
+            from phase57_rss_raw import select_latest,check_latest_parity
+            chosen,meta=select_latest(after,c['slots'],120,'2026-09-14')
+            self.assertEqual(meta[0]['skippedUnpopulatedOhlcvRows'][0]['excelRow'],15)
+            rows=normalize(chosen,c['slots'],'2026-09-14')
+            self.assertTrue(check_latest_parity(meta,rows))
             self.assertEqual(rows[0],[0,0,'7203.T','7203.T','2026-09-14','09:00:00',100,101,99,100,20,'2026-09-14T09:05:01+09:00',100,99,101])
             packet=packet_from_rows(rows,c,'1','2026-09-14T00:05:02Z')
+            packet['rawWindowMetadata']=meta
             source=Path(tmp)/'capture.jsonl';source.write_text(json.dumps(packet)+'\n')
             diagnostic=Path(tmp)/'diagnostic'
             run=subprocess.run(['node','scripts/phase57-source-diagnostic.mjs',str(source),str(diagnostic)],capture_output=True,text=True)
@@ -176,7 +185,8 @@ class Tests(unittest.TestCase):
         from phase57_rss_raw import select_latest,check_latest_parity
         with tempfile.TemporaryDirectory() as tmp:
             b,c=self.make(tmp);setup(b,c,Path(tmp)/'backup.xlsx');populated(b,c)
-            rows=[['2026/09/14','13:00',100,101,99,100,1] for _ in range(135)]
+            from datetime import datetime,timedelta
+            rows=[['2026/09/14',(datetime(2026,9,14,3)+timedelta(minutes=5*i)).strftime('%H:%M'),100,101,99,100,1] for i in range(135)]
             rows.append(['2026/09/14','14:15',100,101,99,100,2])
             b.Worksheets('ARK_RAW_CHART').Range(scan_range(c['slots'][0])).Value2=tuple(map(tuple,rows))
             _,raw=read_snapshot(b,c)
@@ -194,6 +204,34 @@ class Tests(unittest.TestCase):
         self.assertEqual(scan_range(config['slots'][0]),'A3:G3002')
         config['slots'][0]['chart']='A3:G9999'
         with self.assertRaises(ValueError):validate_config(config)
+    def test_unpopulated_allowlist_and_counts(self):
+        from phase57_rss_raw import select_latest
+        for values in [[None]*4+[0],['']*5,[None]*5,['-']*4+[0],['—']*5,['－']*4+[None]]:
+            with self.subTest(values=values):
+                rows=[['2026/09/10','15:20',100,101,99,100,1],['2026/09/10','15:25',*values]]
+                chosen,meta=select_latest([{'chart':rows}],layout(['7203.T']),1,'2026-09-10')
+                self.assertEqual(chosen[0]['chart'],rows[:1])
+                self.assertEqual(meta[0]['rawValidRowCount'],1)
+                self.assertEqual(meta[0]['rawLastExcelRow'],3)
+                self.assertEqual(meta[0]['skippedUnpopulatedOhlcvRowCount'],1)
+                self.assertEqual(meta[0]['skippedUnpopulatedOhlcvRows'][0]['excelRow'],4)
+
+    def test_unpopulated_invalid_rows_still_fail(self):
+        from phase57_rss_raw import select_latest
+        invalid=[[None,None,None,100,0],[None]*4+[1],['-']*4+[1],['?']*4+[0],
+                 [None]*4+['bad'],[None]*4+[False],['-',None,'-',None,0],
+                 ['2026/99/10','15:25',None,None,None,None,0],
+                 ['2026/09/10','25:00',None,None,None,None,0]]
+        for values in invalid:
+            row=values if len(values)==7 else ['2026/09/10','15:25',*values]
+            with self.subTest(row=row),self.assertRaises(ValueError):
+                select_latest([{'chart':[row]}],layout(['7203.T']),120,'2026-09-10')
+        for clock in ['15:20','15:15']:
+            for values in [[None]*4+[0],[100,101,99,100,1]]:
+                with self.subTest(clock=clock,values=values),self.assertRaises(ValueError):
+                    select_latest([{'chart':[['2026/09/10','15:20',100,101,99,100,1],
+                      ['2026/09/10',clock,*values]]}],layout(['7203.T']),120,'2026-09-10')
+
     def test_config_bounds(self):
         for symbols in [[],['7203.T']*2,['7203.T"),Other(']]:
             with self.assertRaises(ValueError):layout(symbols)

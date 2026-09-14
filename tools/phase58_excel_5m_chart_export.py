@@ -35,7 +35,7 @@ PHASE58_5M_EXPORT_SAFETY = {
 REQUIRED_HEADERS = ("日付", "時刻", "始値", "高値", "安値", "終値", "出来高")
 OPTIONAL_HEADERS = ("銘柄名称", "市場名称", "足種")
 OHLCV_HEADERS = ("始値", "高値", "安値", "終値", "出来高")
-RSS_DASH_PLACEHOLDER_CHARS = frozenset("-‐‑‒–—−－")
+from rss_chart_semantics import RSS_DASH_PLACEHOLDER_CHARS, is_rss_display_placeholder as _is_rss_display_placeholder
 
 
 def _text(value: Any) -> str:
@@ -49,13 +49,6 @@ def _finite(value: Any) -> bool:
         return math.isfinite(float(value))
     except (TypeError, ValueError):
         return False
-
-
-def _is_rss_display_placeholder(value: Any) -> bool:
-    text = _text(value)
-    if text == "":
-        return True
-    return all(char in RSS_DASH_PLACEHOLDER_CHARS for char in text)
 
 
 def _matrix(values: Any) -> list[list[Any]]:

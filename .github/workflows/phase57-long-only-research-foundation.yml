@@ -1,0 +1,43 @@
+name: Phase57 LONG-only Research Foundation
+
+on:
+  pull_request:
+    paths:
+      - 'predict/long-only/**'
+      - 'scripts/run_phase57_long_only_l0_census.mjs'
+      - 'predict/tests/phase57-long-only-research-foundation.test.mjs'
+      - 'docs/phase57-long-only-cash-equity-research-foundation.md'
+      - '.github/workflows/phase57-long-only-research-foundation.yml'
+  push:
+    branches:
+      - research/phase57-long-only-cash-equity
+    paths:
+      - 'predict/long-only/**'
+      - 'scripts/run_phase57_long_only_l0_census.mjs'
+      - 'predict/tests/phase57-long-only-research-foundation.test.mjs'
+      - 'docs/phase57-long-only-cash-equity-research-foundation.md'
+      - '.github/workflows/phase57-long-only-research-foundation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contract-and-l0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify LONG-only cash-equity research foundation
+        working-directory: predict
+        run: node --test tests/phase57-long-only-research-foundation.test.mjs
+      - name: Check L0 runner syntax
+        run: node --check scripts/run_phase57_long_only_l0_census.mjs
+      - name: Prove no write-path imports
+        run: |
+          if rg -n "rss-order|order-bridge|broker.*write|createOrder|transmitOrder" predict/long-only; then
+            echo "Forbidden execution-path reference found"
+            exit 1
+          fi

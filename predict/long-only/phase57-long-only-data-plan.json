@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "planId": "PHASE57_LONG_ONLY_L0_MINIMUM_DATA_PLAN_V1",
+  "status": "BLOCKED_PENDING_EXACT_JQUANTS_ENTITLEMENT_AND_DATE_FREEZE",
+  "newJquantsAcquisitionAuthorized": false,
+  "auditedAtMainSha": "0cb26992d5e284b508262eee527ee2eec88a80b6",
+  "auditedAssets": [
+    {
+      "ref": "automation/p25-marketwide-5m-data",
+      "sha": "7b33e37856b1ba120e698c536bd7bea56565a6cf",
+      "datedSessionCount": 10,
+      "firstDatedSession": "2026-09-01",
+      "lastDatedSession": "2026-09-14",
+      "payloadBytes": 28044881,
+      "formalL0Eligible": false,
+      "reason": "Short recent scanner window; not official adjusted daily quote history."
+    },
+    {
+      "ref": "automation/p25-day-data",
+      "sha": "fee964c1a75c5d418cb47aa075507d6f572a575d",
+      "datedSessionCount": 9,
+      "firstDatedSession": "2026-08-19",
+      "lastDatedSession": "2026-09-03",
+      "payloadBytes": 8038508,
+      "formalL0Eligible": false,
+      "reason": "Research-session artifacts, not a JPX-wide daily census."
+    },
+    {
+      "ref": "automation/p25-dynamic5m-day-data",
+      "sha": "b4f876c64fc3daecb8dccdac998ea710f5e25ec7",
+      "datedSessionCount": 2,
+      "firstDatedSession": "2026-09-03",
+      "lastDatedSession": "2026-09-04",
+      "payloadBytes": 2274435,
+      "formalL0Eligible": false,
+      "reason": "Two intraday sessions only."
+    },
+    {
+      "ref": "automation/phase57-realtime-live-data",
+      "sha": "dc82a697a46a016aaf0bc7b4c2f6787932bba5b5",
+      "datedSessionCount": 9,
+      "firstDatedSession": "2026-09-03",
+      "lastDatedSession": "2026-09-14",
+      "payloadBytes": 114016236,
+      "formalL0Eligible": false,
+      "reason": "Reusable causal runtime evidence, but not long-history official daily data."
+    }
+  ],
+  "existingJquantsImplementation": {
+    "path": "server/providers/jquants-tdnet-provider.js",
+    "capability": "TDNET_DISCLOSURES_ONLY",
+    "dailyAdjustedQuotesPipelinePresent": false
+  },
+  "minimumProposedBlock": {
+    "granularity": "DAILY",
+    "developmentTradingSessions": 252,
+    "universe": "ALL_ELIGIBLE_JPX_DOMESTIC_COMMON_EQUITIES_POINT_IN_TIME",
+    "requiredFields": [
+      "sessionDate",
+      "symbol",
+      "adjustedClose",
+      "adjustedPreviousClose",
+      "pointInTimeMarketSegment",
+      "pointInTimeListingMembership"
+    ],
+    "optionalRegimeReference": "TOPIX_DAILY_SAME_SESSIONS",
+    "intradayDataRequiredForL0": false
+  },
+  "preAcquisitionGate": {
+    "exactFirstSessionFrozen": false,
+    "exactLastSessionFrozen": false,
+    "entitlementHistoryConfirmed": false,
+    "endpointAndPaginationConfirmed": false,
+    "expectedRowsCalculated": false,
+    "immutableCacheDestinationFrozen": false,
+    "partitionManifestFrozen": false,
+    "reuseAuditCompleted": true
+  },
+  "partitions": {
+    "DEVELOPMENT": {"opened": true, "sessions": []},
+    "VALIDATION": {"opened": false, "sessions": []},
+    "UNTOUCHED_OOS": {"opened": false, "sessions": []},
+    "FINAL_CONFIRMATION_FRESH": {"opened": false, "sessions": []}
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "freshHoldoutConsumed": false
+  }
+}
+

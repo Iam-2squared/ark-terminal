@@ -119,6 +119,21 @@ Before Validation:
 
 Validation and later sets cannot trigger retuning. Contingency OOS is not a retry after a bad Primary OOS result.
 
+## Integrated comparison contract
+
+The end point is an integrated comparison, not a Selector scorecard.
+
+| Comparison | Requirement |
+|---|---|
+| Baseline | current Ark Selector -> Entry -> EXIT integrated system |
+| Candidate | new LONG Selector -> LONG Entry -> EXIT -> Allocation -> cash portfolio |
+| Evaluation window | same window |
+| Cost model | same cost assumptions |
+| SHORT contribution in candidate | exactly 0 |
+| Margin trades in candidate | exactly 0 |
+
+Minimum frozen metrics are after-cost Net, PF, MaxDD, Return/DD, win rate, trade count, portfolio return, cash utilization, missed opportunity and symbol/sector concentration. A Development win only qualifies a candidate for frozen evaluation; Validation/OOS determine whether the improvement survives.
+
 ## Data budget
 
 Daily + Master for the 205 clean historical sessions remains light compared with intraday data. Intraday is released by partition, not acquired for all 205 upfront.

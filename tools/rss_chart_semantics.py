@@ -7,6 +7,11 @@ def is_rss_display_placeholder(value):
     return text == "" or all(char in RSS_DASH_PLACEHOLDER_CHARS for char in text)
 
 
+def is_rss_dash_placeholder(value):
+    """Nonblank dash-only display, using the shared Phase58 character set."""
+    return isinstance(value, str) and bool(value.strip()) and is_rss_display_placeholder(value)
+
+
 def unpopulated_ohlcv_reason(values, parse_number):
     """Narrow source-gate allowlist; caller validates timestamp before skipping.
 
@@ -15,7 +20,7 @@ def unpopulated_ohlcv_reason(values, parse_number):
     """
     ohlc, volume = values[:4], values[4]
     blank = lambda value: value is None or isinstance(value, str) and not value.strip()
-    dash = lambda value: not blank(value) and is_rss_display_placeholder(value)
+    dash = is_rss_dash_placeholder
     volume_blank = blank(volume)
     volume_dash = dash(volume)
     volume_zero = False if volume_blank or volume_dash else parse_number(volume) == 0

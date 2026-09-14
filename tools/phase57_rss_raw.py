@@ -1,7 +1,7 @@
 """Official RSS raw layout; source observations only, never bar finalization."""
 import math
 import re
-from rss_chart_semantics import unpopulated_ohlcv_reason
+from rss_chart_semantics import unpopulated_ohlcv_reason, is_rss_dash_placeholder
 from datetime import datetime, timedelta
 
 MAX_SCAN_BARS = 3000
@@ -105,11 +105,16 @@ def select_latest(raw, slots, count, session_date):
     selected=[];metadata=[]
     for slot,data in zip(slots,raw,strict=True):
         if len(data['chart'])>MAX_SCAN_BARS: raise ValueError('RAW_CHART_SCAN_LIMIT')
-        valid=[];previous=None;skipped=[]
+        valid=[];previous=None;skipped=[];tail=[]
         for excel_row,row in enumerate(data['chart'],3):
             if all(v in (None,'') for v in row): continue
             try:
                 if len(row)!=7: raise ValueError('PARTIAL_ROW')
+                if all(is_rss_dash_placeholder(value) for value in row):
+                    if not valid: raise ValueError('TAIL_PLACEHOLDER_WITHOUT_VALID_BAR')
+                    tail.append(dict(excelRow=excel_row,reason='RSSCHART_FUTURE_DASH_SLOT'))
+                    continue
+                if tail: raise ValueError('NONTAIL_DASH_PLACEHOLDER')
                 day,clock=date_cell(row[0]),time_cell(row[1])
                 stamp=(day,clock)
                 if previous is not None and stamp==previous: raise ValueError('DUPLICATE_TIMESTAMP')
@@ -130,6 +135,7 @@ def select_latest(raw, slots, count, session_date):
         metadata.append(dict(slot=slot['slot'],generation=slot['generation'],symbol=slot['symbol'],sourceCode=slot['sourceCode'],
             rawFirstSourceTime=valid[0][2] if valid else None,rawFirstSourceDate=valid[0][1] if valid else None,
             rawLastSourceTime=valid[-1][2] if valid else None,rawLastSourceDate=valid[-1][1] if valid else None,
+            skippedTailPlaceholderRowCount=len(tail),skippedTailPlaceholderRows=tail,
             skippedUnpopulatedOhlcvRowCount=len(skipped),skippedUnpopulatedOhlcvRows=skipped,
             rawValidRowCount=len(valid),rawLastExcelRow=valid[-1][0] if valid else None,
             selectedFirstExcelRow=window[0][0] if window else None,selectedLastExcelRow=window[-1][0] if window else None,

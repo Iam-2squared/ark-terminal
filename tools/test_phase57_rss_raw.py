@@ -232,6 +232,51 @@ class Tests(unittest.TestCase):
                     select_latest([{'chart':[['2026/09/10','15:20',100,101,99,100,1],
                       ['2026/09/10',clock,*values]]}],layout(['7203.T']),120,'2026-09-10')
 
+    def test_tail_placeholder_progression_capture_diagnostic(self):
+        from phase57_rss_raw import select_latest,check_latest_parity
+        with tempfile.TemporaryDirectory() as tmp:
+            b,c=self.make(tmp);setup(b,c,Path(tmp)/'backup.xlsx');populated(b,c)
+            packets=[]
+            for index,clocks in enumerate([['15:00','15:05'],['15:00','15:05','15:10']]):
+                rows=[[None]*7]*143+[['2026/09/14',clock,100,101,99,100,20] for clock in clocks]+[['--------']*7,[None]*7]
+                b.Worksheets('ARK_RAW_CHART').Range(scan_range(c['slots'][0])).Value2=tuple(map(tuple,rows))
+                for slot in c['slots']:
+                    b.Worksheets('ARK_RAW_MARKET').Range(slot['market']).Value2=(('2026/09/14',f'15:{6+index*5:02d}:00',100,99,101),)
+                before,after=read_snapshot(b,c);self.assertEqual(before,after)
+                chosen,meta=select_latest(after,c['slots'],120,'2026-09-14')
+                normalized=normalize(chosen,c['slots'],'2026-09-14')
+                self.assertTrue(check_latest_parity(meta,normalized))
+                item=meta[0]
+                self.assertEqual(item['rawValidRowCount'],len(clocks))
+                self.assertEqual(item['rawLastExcelRow'],147+index)
+                self.assertEqual(item['skippedTailPlaceholderRows'],[{'excelRow':148+index,'reason':'RSSCHART_FUTURE_DASH_SLOT'}])
+                self.assertEqual(item['skippedTailPlaceholderRowCount'],1)
+                self.assertEqual(item['rawLatestSessionSourceTime'],clocks[-1]+':00')
+                packet=packet_from_rows(normalized,c,str(index),f'2026-09-14T06:{6+index*5:02d}:01Z')
+                packet['rawWindowMetadata']=meta;packets.append(packet)
+            source=Path(tmp)/'capture.jsonl';source.write_text(''.join(json.dumps(p)+'\n' for p in packets))
+            out=Path(tmp)/'diagnostic'
+            run=subprocess.run(['node','scripts/phase57-source-diagnostic.mjs',str(source),str(out)],capture_output=True,text=True)
+            self.assertEqual(run.returncode,0,run.stderr)
+            report=json.loads((out/'summary.json').read_text())
+            self.assertEqual(report['events'],[])
+            self.assertTrue(report['bars'])
+            self.assertIn('RSSCHART_FUTURE_DASH_SLOT',json.dumps(report['latestRawWindowMetadata']))
+
+    def test_tail_placeholder_rejects_interior_partial_and_unknown(self):
+        from phase57_rss_raw import select_latest
+        bar=['2026/09/14','15:00',100,101,99,100,1]
+        nextbar=['2026/09/14','15:05',100,101,99,100,1]
+        dash=['--------']*7
+        for rows in [[dash],[dash,bar],[bar,dash,nextbar],[bar,dash,[None]*7,nextbar],
+                     [bar,['--------']*6+[None]],[bar,['?']*7],
+                     [bar,dash,['2026/09/14','15:05',None,None,None,None,0]]]:
+            with self.subTest(rows=rows),self.assertRaises(ValueError):
+                select_latest([{'chart':rows}],layout(['7203.T']),120,'2026-09-14')
+        for value in ['--------','—','－','−']:
+            _,meta=select_latest([{'chart':[bar,[value]*7,[None]*7]}],layout(['7203.T']),120,'2026-09-14')
+            self.assertEqual(meta[0]['skippedTailPlaceholderRowCount'],1)
+
     def test_config_bounds(self):
         for symbols in [[],['7203.T']*2,['7203.T"),Other(']]:
             with self.assertRaises(ValueError):layout(symbols)

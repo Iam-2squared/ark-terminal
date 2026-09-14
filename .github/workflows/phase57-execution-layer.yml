@@ -1,0 +1,39 @@
+name: Phase57 Execution Layer Locked
+on:
+  pull_request:
+    paths:
+      - 'scripts/execution/**'
+      - 'scripts/lib/phase57-offline-parity.mjs'
+      - 'scripts/lib/phase57-operational-robustness.mjs'
+      - 'docs/phase57-execution-layer-v1.md'
+      - 'predict/research/phase57-execution-layer-v1/**'
+      - '.github/workflows/phase57-execution-layer.yml'
+permissions:
+  contents: read
+jobs:
+  execution:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Synthetic lifecycle, failure matrix and immutable evidence
+        run: node scripts/execution/run-fixture.mjs "${{ runner.temp }}/execution-evidence"
+      - name: Existing frozen runtime and operational regressions
+        shell: bash
+        run: node --test scripts/tests/*.test.mjs
+      - name: Existing pre-live and broker-boundary regressions
+        shell: bash
+        run: node --test predict/tests/phase51-semi-auto-safety.test.mjs predict/tests/phase52-prelive-safety.test.mjs predict/tests/execution-bridge.test.mjs predict/tests/readonly-broker-reconciler.test.mjs predict/tests/paper-order-book.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: execution-locked-${{ runner.os }}
+          path: ${{ runner.temp }}/execution-evidence

@@ -1,0 +1,217 @@
+name: Phase57 Offline Parity
+on:
+  pull_request:
+    paths:
+      - 'scripts/*offline*'
+      - 'scripts/lib/*offline*'
+      - 'scripts/lib/phase57-parity-report.mjs'
+      - 'scripts/lib/phase57-operational-robustness.mjs'
+      - 'scripts/lib/phase57-integration-gates.mjs'
+      - 'scripts/lib/phase57-source-observer.mjs'
+      - 'scripts/lib/phase57-cash-frozen-main-boundary.mjs'
+      - 'scripts/phase57-source-diagnostic.mjs'
+      - 'scripts/phase57-post-close-parity.mjs'
+      - 'scripts/tests/phase57-integration-gates.test.mjs'
+      - 'scripts/tests/phase57-cash-frozen-main-boundary.test.mjs'
+      - 'predict/realtime/phase57-cash-execution-adapter.js'
+      - 'predict/tests/phase57-cash-execution-adapter.test.mjs'
+      - 'predict/tests/phase57-cash-upstream-action.test.mjs'
+      - 'tools/phase57_cash_upstream_action.mjs'
+      - 'tools/phase57_cash_upstream_request.mjs'
+      - 'tools/test_phase57_cash_upstream_request.mjs'
+      - 'tools/phase57_cash_ownership_baseline.mjs'
+      - 'tools/test_phase57_cash_ownership_baseline.mjs'
+      - 'tools/phase57_ui_read_model.mjs'
+      - 'tools/test_phase57_ui_read_model.mjs'
+      - 'tools/phase57_ui_read_model_cli.mjs'
+      - 'tools/test_phase57_ui_read_model_cli.mjs'
+      - 'tools/Start-ArkUiReadOnlyPreview.ps1'
+      - 'docs/ARK_TERMINAL_UI_2_INTEGRATION_PLAN.md'
+      - 'tools/Start-ArkCashLockedFromAction.ps1'
+      - 'tools/phase57_source_capture.py'
+      - 'tools/phase57_rss_raw.py'
+      - 'tools/phase57_rss_finalization.py'
+      - 'tools/test_phase57_rss_finalization.py'
+      - 'tools/phase57_rss_finalized_bar_gate.py'
+      - 'tools/test_phase57_rss_finalized_bar_gate.py'
+      - 'tools/phase57_account_reconciliation.py'
+      - 'tools/test_phase57_account_reconciliation.py'
+      - 'tools/phase57_execution_dryrun_gate.py'
+      - 'tools/test_phase57_execution_dryrun_gate.py'
+      - 'tools/phase57_fault_tolerance.py'
+      - 'tools/test_phase57_fault_tolerance.py'
+      - 'tools/phase57_cash_only_unlock.py'
+      - 'tools/test_phase57_cash_only_unlock.py'
+      - 'tools/phase57_cash_micro_live_gate.py'
+      - 'tools/test_phase57_cash_micro_live_gate.py'
+      - 'tools/phase57_locked_excel_adapter.py'
+      - 'tools/test_phase57_locked_excel_adapter.py'
+      - 'tools/Start-ArkCashLocked.ps1'
+      - 'tools/phase57_cash_locked_pipeline.py'
+      - 'tools/test_phase57_cash_locked_pipeline.py'
+      - 'tools/phase57_cash_locked_cli.py'
+      - 'tools/test_phase57_cash_locked_cli.py'
+      - 'tools/phase57_cash_locked_bridge.ps1'
+      - 'tools/Test-ArkCashLockedBridge.ps1'
+      - 'tools/rss_chart_semantics.py'
+      - 'tools/phase58_excel_5m_chart_export.py'
+      - 'tools/test_phase58_excel_5m_chart_export.py'
+      - 'tools/phase57_setup_rss_source.py'
+      - 'tools/test_phase57_rss_raw.py'
+      - 'tools/Setup-ArkSource.ps1'
+      - 'tools/test_phase57_source_capture.py'
+      - 'tools/Start-ArkParity.ps1'
+      - 'tools/phase57-source-capture.example.json'
+      - 'scripts/lib/phase57-frozen-main-engine.mjs'
+      - 'scripts/phase57-frozen-main-runner.mjs'
+      - 'scripts/tests/phase57-offline*'
+      - 'scripts/tests/phase57-frozen-main-engine.test.mjs'
+      - 'scripts/tests/phase57-operational-robustness.test.mjs'
+      - 'tools/*phase57*offline*'
+      - 'tools/phase57_generic_excel_reader.py'
+      - 'tools/test_phase57_generic_excel_reader.py'
+      - 'tools/phase57-parity-field-map.json'
+      - 'tools/Start-ArkOfflineParity.ps1'
+      - 'tools/templates/**'
+      - 'predict/research/phase57-offline-parity/**'
+      - '.github/workflows/phase57-offline-parity.yml'
+permissions:
+  contents: read
+jobs:
+  cash-launcher-transport:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Parse cash launcher scripts with Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          $scripts = @(
+            'tools/Start-ArkCashLocked.ps1',
+            'tools/Start-ArkCashLockedFromAction.ps1',
+            'tools/Start-ArkUiReadOnlyPreview.ps1',
+            'tools/phase57_cash_locked_bridge.ps1',
+            'tools/Test-ArkCashLockedBridge.ps1'
+          )
+          foreach ($script in $scripts) {
+            $tokens = $null
+            $errors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile(
+              (Resolve-Path $script).Path,
+              [ref]$tokens,
+              [ref]$errors
+            )
+            if ($errors.Count -gt 0) {
+              $errors | ForEach-Object { Write-Error ("{0}: {1}" -f $script, $_.Message) }
+              throw "POWERSHELL_PARSE_FAILED:$script"
+            }
+          }
+      - name: Windows PowerShell 5.1 locked transport (synthetic; no Excel)
+        shell: powershell
+        run: ./tools/Test-ArkCashLockedBridge.ps1 -RequireWindowsPowerShell
+      - name: PowerShell 7 locked transport (synthetic; no Excel)
+        shell: pwsh
+        run: ./tools/Test-ArkCashLockedBridge.ps1
+  offline:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - name: Preserve hash-bound source bytes on Windows and Linux
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Frozen reference and offline tests
+        shell: bash
+        run: node --test scripts/tests/*.test.mjs
+      - name: Cash execution adapter and UI read-model regression
+        shell: bash
+        run: |
+          node --test predict/tests/phase57-cash-execution-adapter.test.mjs
+          node --test predict/tests/phase57-cash-upstream-action.test.mjs
+          node --test tools/test_phase57_cash_upstream_request.mjs
+          node --test tools/test_phase57_cash_ownership_baseline.mjs
+          node --test tools/test_phase57_ui_read_model.mjs
+          node --test tools/test_phase57_ui_read_model_cli.mjs
+      - name: Existing Phase58 RSS semantics regression
+        run: |
+          python -m pip install pytest
+          python -m pytest tools/test_phase58_excel_5m_chart_export.py -q
+      - name: G3-G10 cash-only safety and locked Excel adapter tests
+        shell: bash
+        run: |
+          PYTHONPATH=tools python -m unittest \
+            tools.test_phase57_rss_finalization \
+            tools.test_phase57_rss_finalized_bar_gate \
+            tools.test_phase57_account_reconciliation \
+            tools.test_phase57_execution_dryrun_gate \
+            tools.test_phase57_fault_tolerance \
+            tools.test_phase57_cash_only_unlock \
+            tools.test_phase57_cash_micro_live_gate \
+            tools.test_phase57_locked_excel_adapter \
+            tools.test_phase57_cash_locked_pipeline \
+            tools.test_phase57_cash_locked_cli \
+            tools.test_phase57_rss_raw \
+            tools.test_phase57_source_capture
+      - name: Workbook failure tests
+        run: |
+          python tools/test_phase57_offline_excel_reader.py
+          python tools/test_phase57_generic_excel_reader.py
+          python tools/test_phase57_source_capture.py
+          python tools/test_phase57_rss_raw.py
+      - name: One-command Windows launcher (offline only)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./tools/Start-ArkParity.ps1 -Mode OFFLINE_FIXTURE -OutputRoot '${{ runner.temp }}/ark-offline'
+      - name: Windows UI read-model preview (synthetic; no Excel)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $root = Join-Path $env:RUNNER_TEMP 'ark-ui-preview'
+          New-Item -ItemType Directory -Force -Path $root | Out-Null
+          $snapshot = Join-Path $root 'snapshot.json'
+          $output = Join-Path $root 'ui.json'
+          $now = (Get-Date).ToUniversalTime().ToString('o')
+          $payload = @{
+            schemaId='ARK_ACCOUNT_READONLY_SNAPSHOT_V2'; capturedAt=$now; captureCompletedAt=$now
+            source='MARKETSPEED_II_RSS'; mode='READ_ONLY'; buyingPower=2605
+            positions=@(@{symbol='408A';name='fixture';account='TEST';quantity=180}); orders=@(); executions=@()
+            safety=@{executionAllowed=$false;brokerWriteAllowed=$false;excelOrderWriteAllowed=$false;rssOrderFunctionAllowed=$false;liveTradingAllowed=$false;paperTradingAllowed=$false;automaticPromotionAllowed=$false;productionUpdateAllowed=$false;transmitted=$false}
+          }
+          $payload | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $snapshot -Encoding UTF8
+          ./tools/Start-ArkUiReadOnlyPreview.ps1 -SnapshotPath $snapshot -UiReadModelPath $output -SkipSnapshotRefresh
+          $model = Get-Content -LiteralPath $output -Raw | ConvertFrom-Json
+          if ($model.schemaId -ne 'ARK_TERMINAL_UI_READ_MODEL_V1' -or $model.readOnly -ne $true) { throw 'UI_PREVIEW_INVALID' }
+          if ($model.home.buyingPower -ne 2605 -or $model.positions.Count -ne 1) { throw 'UI_PREVIEW_DATA_MISMATCH' }
+          if ($model.mutationCapabilities.orderSubmit -ne $false -or $model.mutationCapabilities.rssOrderFunction -ne $false) { throw 'UI_PREVIEW_MUTATION_NOT_LOCKED' }
+      - name: Windows RSS setup fixture gate (no Excel or market access)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./tools/Setup-ArkSource.ps1 -FixtureTest
+      - name: Linux workbook transport
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          python tools/phase57_offline_excel_reader.py --output '${{ runner.temp }}/packet.json'
+          node scripts/phase57-offline-workbook-check.mjs '${{ runner.temp }}/packet.json' '${{ runner.temp }}/report'
+          python tools/phase57_offline_preflight.py --output '${{ runner.temp }}/report/preflight.json'
+          node scripts/phase57-offline-local-gate.mjs '${{ runner.temp }}/report/local-gate'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: offline-parity-${{ matrix.os }}
+          path: |
+            ${{ runner.temp }}/report
+            ${{ runner.temp }}/ark-offline
+          if-no-files-found: ignore

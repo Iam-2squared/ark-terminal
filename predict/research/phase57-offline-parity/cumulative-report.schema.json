@@ -1,0 +1,8 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"ARK_PARITY_CUMULATIVE_STAGE_METRICS_V1",
+  "type":"object",
+  "propertyNames":{"enum":["DATA","SELECTOR","ENTRY","ALLOCATION","EXIT","LEDGER"]},
+  "additionalProperties":{"type":"object","required":["exact","denominator","exactMatchRate"],"properties":{"exact":{"type":"integer","minimum":0},"denominator":{"type":"integer","minimum":0},"exactMatchRate":{"type":["number","null"],"minimum":0,"maximum":1}}},
+  "$comment":"Aggregate counts then divide; never average session percentages. Empty denominators yield null. Caller must supply one original report per session/version cohort, never mix corrected reruns with originals. No prospective sessions exist in this offline evidence."
+}

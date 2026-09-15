@@ -1,0 +1,68 @@
+{
+  "schemaId": "ARK_PHASE57_FROZEN_MAIN_RUNTIME_CONTRACT_V1",
+  "status": "END_TO_END_OFFLINE_SHADOW_RUNTIME_COMPLETE",
+  "strategy": {
+    "selector": "FROZEN_MINIMAL_HYBRID_V1",
+    "entry": "MSH_ENTRY_V1",
+    "entryThreshold": "STRICTLY_GREATER_THAN_0.60",
+    "allocation": "V3_B_RISK",
+    "capacity": "MAX_3",
+    "budgetDivisor": 3,
+    "maximumConcurrentPositions": 10,
+    "lotShares": 100,
+    "exit": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+    "underlyingExit": "EXIT_V4_STRUCTURAL_RISK"
+  },
+  "assetPins": {
+    "integratedCandidateFreezeSha256": "f0ea365e5cf73b3394779ae1be3ea99e268f9d6cede8160a703ed24cab5c0a14",
+    "selectorModelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
+    "selectorFreezeSha": "a744d599e430d23efe4dea6600e418d3410d8a18df5055b35e1cc71432bf64da",
+    "mshEntryModelFileSha256": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a",
+    "exitV4PolicySha256": "2d512dd810d057807bc59a0138a3db98035e57ff2c23c186ba096beeb6be26cb"
+  },
+  "input": {
+    "schemaId": "ARK_PHASE57_FROZEN_MAIN_POINT_V1",
+    "completeUniverseRequiredAtEveryPoint": true,
+    "completeMasterRequiredAtEveryPoint": true,
+    "memberSetHashRequired": true,
+    "completedFiveMinuteBarsOnly": true,
+    "availabilityNotAfterDecision": true,
+    "masterEffectiveAtNotAfterDecision": true,
+    "acceptedSourceClasses": ["SYNTHETIC_TRANSPORT_TEST", "USED_HISTORICAL_FIXTURE"],
+    "realSourceModeAccepted": false
+  },
+  "pipeline": [
+    "PIT_VALIDATION",
+    "FROZEN_SELECTOR",
+    "STATEFUL_FIRST_ENTER",
+    "V3_B_RISK",
+    "MAX_3_SIZING",
+    "CAUSAL_EXIT_V4",
+    "EXIT_V5_BAR_5",
+    "SHADOW_LEDGER",
+    "HASH_CHAIN_JOURNAL",
+    "IMMUTABLE_EXPORT"
+  ],
+  "failurePolicy": {
+    "incompleteUniverse": "FAIL_CLOSED",
+    "membershipHashMismatch": "FAIL_CLOSED",
+    "futureOrFormingBar": "FAIL_CLOSED",
+    "unhealthyOrStaleSource": "FAIL_CLOSED",
+    "noncausalAnalogPool": "FAIL_CLOSED",
+    "nonmonotonicPoint": "FAIL_CLOSED",
+    "conflictingCaptureId": "HALT_SESSION",
+    "tornJournalTail": "PRESERVE_AND_FAIL_CLOSED"
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "remainingExternalGate": "A real source adapter may only be admitted after independently proving its timestamp, finalization, complete-universe, symbol-mapping and freshness semantics. Order transmission is outside this runtime."
+}

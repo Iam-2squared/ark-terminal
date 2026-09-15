@@ -24,9 +24,7 @@ function Resolve-ArkDedicatedWorkbook {
         $excel = [Runtime.InteropServices.Marshal]::GetActiveObject("Excel.Application")
     }
     catch {
-        if (-not $AutoOpen) {
-            throw "EXCEL_APPLICATION_NOT_RUNNING"
-        }
+        if (-not $AutoOpen) { throw "EXCEL_APPLICATION_NOT_RUNNING" }
         $excel = New-Object -ComObject Excel.Application
         $excel.Visible = $true
         $excelStartedByLauncher = $true
@@ -41,8 +39,8 @@ function Resolve-ArkDedicatedWorkbook {
             throw ("DEDICATED_WORKBOOK_FILE_MISSING: expected={0}; path={1}; open={2}" -f $ExpectedWorkbookName, $resolvedWorkbookPath, $openSummary)
         }
 
-        # Open read-only. This launcher never writes to workbook cells and never
-        # evaluates or transmits an RSS order function.
+        # Snapshot capture itself stays read-only. One-time sheet provisioning is
+        # a separate explicit setup command.
         $opened = $excel.Workbooks.Open($resolvedWorkbookPath, 0, $true)
         if ($null -eq $opened) { throw "DEDICATED_WORKBOOK_OPEN_FAILED" }
         $workbookOpenedByLauncher = $true
@@ -63,7 +61,7 @@ function Resolve-ArkDedicatedWorkbook {
     if ($sheetMatches.Count -ne 1) {
         $sheetNames = @($workbook.Worksheets | ForEach-Object { [string]$_.Name })
         $sheetSummary = if ($sheetNames.Count -gt 0) { $sheetNames -join "," } else { "NONE" }
-        throw ("ACCOUNT_SHEET_REQUIRED: expected={0}; workbook={1}; sheets={2}" -f $ExpectedAccountSheet, $ExpectedWorkbookName, $sheetSummary)
+        throw ("ACCOUNT_SHEET_SETUP_REQUIRED: expected={0}; workbook={1}; sheets={2}; run=.\tools\Initialize-ArkAccountReadOnlySheet.ps1" -f $ExpectedAccountSheet, $ExpectedWorkbookName, $sheetSummary)
     }
 
     return [PSCustomObject]@{
@@ -75,6 +73,56 @@ function Resolve-ArkDedicatedWorkbook {
     }
 }
 
+function Assert-ArkAccountSheetLayout {
+    param([Parameter(Mandatory=$true)]$Worksheet)
+
+    $requiredFormulas = @{
+        "L1"  = "RssCapacityList"
+        "N1"  = "RssOrderList"
+        "AA1" = "RssExecutionList"
+        "AL1" = "RssPositionList"
+    }
+    foreach ($address in $requiredFormulas.Keys) {
+        $cell = $Worksheet.Range($address)
+        if ($cell.HasFormula -ne $true -or ([string]$cell.Formula) -notmatch [Regex]::Escape($requiredFormulas[$address])) {
+            throw ("ACCOUNT_SHEET_LAYOUT_INVALID:{0}:{1}" -f $address, $requiredFormulas[$address])
+        }
+    }
+
+    $requiredHeaders = @{
+        "L2"="現物買付可能額"
+        "N2"="注文番号"; "O2"="通常注文状況"; "P2"="銘柄コード"; "V2"="注文数量"; "W2"="約定数量"
+        "AA2"="約定日"; "AB2"="銘柄コード"; "AD2"="口座区分"; "AG2"="売買"; "AH2"="約定数量"; "AI2"="約定単価"
+        "AL2"="銘柄コード"; "AM2"="銘柄名称"; "AN2"="口座区分"; "AO2"="保有数量"
+        "AQ2"="平均取得価額"; "AR2"="時価"; "AS2"="時価評価額"; "AT2"="評価損益額"; "AU2"="評価損益率"
+    }
+    foreach ($address in $requiredHeaders.Keys) {
+        if ([string]$Worksheet.Range($address).Text -ne $requiredHeaders[$address]) {
+            throw ("ACCOUNT_SHEET_HEADER_INVALID:{0}:expected={1}:actual={2}" -f $address, $requiredHeaders[$address], [string]$Worksheet.Range($address).Text)
+        }
+    }
+}
+
+function Wait-ArkReadOnlyRssReady {
+    param([Parameter(Mandatory=$true)]$Worksheet)
+
+    $statusAddresses = @("L1", "N1", "AA1", "AL1")
+    $last = @{}
+    for ($attempt = 0; $attempt -lt 24; $attempt++) {
+        $allReady = $true
+        foreach ($address in $statusAddresses) {
+            $text = ([string]$Worksheet.Range($address).Text).Trim()
+            $last[$address] = $text
+            $ready = $text -match "配信中|完了"
+            if (-not $ready) { $allReady = $false }
+        }
+        if ($allReady) { return $last }
+        Start-Sleep -Milliseconds 250
+        try { $Worksheet.Application.CalculateFull() } catch { }
+    }
+    throw ("RSS_READ_ONLY_SOURCE_NOT_READY:L1={0};N1={1};AA1={2};AL1={3}" -f $last["L1"], $last["N1"], $last["AA1"], $last["AL1"])
+}
+
 $resolved = Resolve-ArkDedicatedWorkbook `
     -ExpectedWorkbookName $WorkbookName `
     -ExpectedWorkbookPath $WorkbookPath `
@@ -82,6 +130,8 @@ $resolved = Resolve-ArkDedicatedWorkbook `
     -AutoOpen (-not $DoNotAutoOpenWorkbook)
 
 $acct = $resolved.AccountSheet
+Assert-ArkAccountSheetLayout -Worksheet $acct
+$rssStatus = Wait-ArkReadOnlyRssReady -Worksheet $acct
 
 $captureStartedAt = (Get-Date).ToString("o")
 $positions = @()
@@ -96,6 +146,12 @@ for ($row = 3; $row -le 200; $row++) {
             name=$positionName
             account=$positionAccount
             quantity=$positionQuantity
+            orderQuantity=$acct.Cells.Item($row,42).Value2
+            averagePrice=$acct.Cells.Item($row,43).Value2
+            marketPrice=$acct.Cells.Item($row,44).Value2
+            marketValue=$acct.Cells.Item($row,45).Value2
+            unrealizedPnl=$acct.Cells.Item($row,46).Value2
+            unrealizedPnlPercent=$acct.Cells.Item($row,47).Value2
         }
     }
 }
@@ -143,6 +199,12 @@ $snapshot = [PSCustomObject]@{
     captureCompletedAt=(Get-Date).ToString("o")
     source="MARKETSPEED_II_RSS"
     mode="READ_ONLY"
+    rssStatus=@{
+        capacity=$rssStatus["L1"]
+        orders=$rssStatus["N1"]
+        executions=$rssStatus["AA1"]
+        positions=$rssStatus["AL1"]
+    }
     positions=$positions
     orders=$orders
     executions=$executions
@@ -174,6 +236,10 @@ Write-Host "Positions   :" $positions.Count
 Write-Host "Orders      :" $orders.Count
 Write-Host "Executions  :" $executions.Count
 Write-Host "BuyingPower :" $buyingPower
+Write-Host "CapacityRSS :" $rssStatus["L1"]
+Write-Host "OrdersRSS   :" $rssStatus["N1"]
+Write-Host "ExecutionRSS:" $rssStatus["AA1"]
+Write-Host "PositionRSS :" $rssStatus["AL1"]
 Write-Host "ExcelWrite  : FALSE"
 Write-Host "RSSOrderCall:" "FALSE"
 Write-Host "Transmitted :" "FALSE"

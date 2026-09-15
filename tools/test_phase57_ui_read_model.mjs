@@ -1,8 +1,15 @@
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import test from 'node:test';
 import {buildArkTerminalUiReadModel} from './phase57_ui_read_model.mjs';
 
 const NOW = '2026-09-15T13:00:20.000Z';
+const canonical = value => Array.isArray(value)
+  ? value.map(canonical)
+  : value && typeof value === 'object'
+    ? Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])]))
+    : value;
+const sha256 = value => createHash('sha256').update(JSON.stringify(canonical(value))).digest('hex');
 
 function snapshot(overrides = {}) {
   return {
@@ -31,16 +38,17 @@ function snapshot(overrides = {}) {
 }
 
 function ownership(overrides = {}) {
-  return {
+  const core = {
     schemaId: 'ARK_CASH_OWNERSHIP_BASELINE_V1',
     capturedAt: '2026-09-15T12:50:00.000Z',
     source: 'TEST_ONLY',
     frozen: true,
     externalPositions: [{symbol: '408A.T', quantity: 180}],
     arkManagedPositions: [],
-    baselineSha256: 'a'.repeat(64),
     ...overrides,
   };
+  delete core.baselineSha256;
+  return {...core, baselineSha256: sha256(core)};
 }
 
 function blockedPipeline() {
@@ -133,6 +141,14 @@ test('ownership is UNKNOWN without an explicit baseline and INVALID baselines ne
   });
   assert.equal(invalid.system.ownership.state, 'INVALID');
   assert.equal(invalid.positions[0].ownership, 'UNKNOWN');
+});
+
+test('tampered ownership hash never assigns an owner', () => {
+  const valid = ownership();
+  const tampered = {...valid, externalPositions: [{symbol: '408A.T', quantity: 999}]};
+  const model = buildArkTerminalUiReadModel({accountSnapshot: snapshot(), ownershipBaseline: tampered, generatedAt: NOW});
+  assert.equal(model.system.ownership.state, 'INVALID');
+  assert.equal(model.positions[0].ownership, 'UNKNOWN');
 });
 
 test('LOCKED_READY remains non-executable and exposes only a read-only active intent', () => {

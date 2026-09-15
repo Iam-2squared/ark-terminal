@@ -112,3 +112,9 @@ test('J-Quants pagination is reusable but formal acquisition fails before any ne
   calls=0;const plan=JSON.parse(fs.readFileSync(new URL('../long-only/phase57-long-only-data-plan.json',import.meta.url),'utf8'));
   await assert.rejects(()=>acquireFormalL0Session({plan,authorization:{},partition:'DEVELOPMENT_A',sessionDate:'2024-01-04',apiKey:'fixture',fetchImpl:async()=>{calls++;}}),/does not match/);assert.equal(calls,0);
 });
+
+test('approved physical provider-request budget cannot be exceeded by pagination',async()=>{
+  let calls=0;const requestBudget={remaining:1,consumed:0};
+  await assert.rejects(()=>fetchJquantsPages({endpoint:'/equities/bars/daily',query:{date:'2024-01-04'},apiKey:'fixture',requestBudget,fetchImpl:async()=>{calls++;return {ok:true,status:200,text:async()=>JSON.stringify({data:[1],pagination_key:'next'})};}}),/budget exhausted/);
+  assert.equal(calls,1);assert.deepEqual(requestBudget,{remaining:0,consumed:1});
+});

@@ -59,3 +59,12 @@ test('causal warmup is one Daily-only request outside the evaluation partition',
   await assert.rejects(()=>acquireFormalL0WarmupDaily({plan:authorizedPlan,authorization,sessionDate:'2024-09-06',apiKey:'fixture',fetchImpl:async()=>{calls++;}}),/outside frozen/);
   assert.equal(calls,1);
 });
+
+test('Formal L0 workflow reuses repository secret and never uploads plaintext raw cache',()=>{
+  const workflow=fs.readFileSync(new URL('../../.github/workflows/phase57-long-only-formal-l0.yml',import.meta.url),'utf8');
+  assert.match(workflow,/JQUANTS_API_KEY: \$\{\{ secrets\.JQUANTS_API_KEY \}\}/);
+  assert.match(workflow,/openssl enc -aes-256-cbc/);
+  assert.match(workflow,/rm -rf -- "\$RUNNER_TEMP\/phase57-l0-cache"/);
+  assert.doesNotMatch(workflow,/path:\s*\$RUNNER_TEMP\/phase57-l0-cache/);
+  assert.match(workflow,/retention-days: 7/);
+});

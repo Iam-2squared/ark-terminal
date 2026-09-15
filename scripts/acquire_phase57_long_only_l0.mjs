@@ -13,6 +13,7 @@ if(cacheRoot===root||cacheRoot.startsWith(`${root}${path.sep}`))throw new Error(
 const partitions=requestedPartition==='ALL_HISTORICAL'?Object.keys(allocation.partitions):[requestedPartition];
 for(const partition of partitions)if(!Array.isArray(allocation.partitions?.[partition]))throw new Error('partition is not in frozen session allocation');
 const apiKey=process.env.JQUANTS_API_KEY;if(!apiKey)throw new Error('JQUANTS_API_KEY is unavailable');
+const providerRequestBudget={remaining:411,consumed:0};
 
 if(partitions.includes('DEVELOPMENT_A')){
   const sessionDate=plan.l0Contract.causalWarmup.sessionDate;
@@ -25,7 +26,7 @@ if(partitions.includes('DEVELOPMENT_A')){
     console.log(JSON.stringify({sessionDate,status:'IMMUTABLE_WARMUP_CACHE_REUSED_AND_HASH_VERIFIED'}));
   }else{
     if(fs.existsSync(sessionDir)&&fs.readdirSync(sessionDir).length)throw new Error(`incomplete immutable warmup cache requires operator quarantine before retry: ${sessionDate}`);
-    const result=await acquireFormalL0WarmupDaily({plan,authorization,sessionDate,apiKey});
+    const result=await acquireFormalL0WarmupDaily({plan,authorization,sessionDate,apiKey,requestBudget:providerRequestBudget});
     fs.mkdirSync(sessionDir,{recursive:true});
     fs.writeFileSync(dailyPath,`${JSON.stringify(result.daily.pages)}\n`,{flag:'wx',mode:0o600});
     const manifest={...result,daily:{...result.daily,pages:undefined},fetchedAt:new Date().toISOString()};
@@ -51,7 +52,7 @@ for(const partition of partitions)for(const sessionDate of allocation.partitions
     console.log(JSON.stringify({sessionDate,status:'IMMUTABLE_CACHE_REUSED_AND_HASH_VERIFIED'}));continue;
   }
   if(fs.existsSync(sessionDir)&&fs.readdirSync(sessionDir).length)throw new Error(`incomplete immutable cache requires operator quarantine before retry: ${sessionDate}`);
-  const result=await acquireFormalL0Session({plan,authorization,partition,sessionDate,apiKey});
+  const result=await acquireFormalL0Session({plan,authorization,partition,sessionDate,apiKey,requestBudget:providerRequestBudget});
   fs.mkdirSync(sessionDir,{recursive:true});
   const dailyPath=path.join(sessionDir,'daily-pages.json'),masterPath=path.join(sessionDir,'master-pages.json');
   fs.writeFileSync(dailyPath,`${JSON.stringify(result.daily.pages)}\n`,{flag:'wx',mode:0o600});
@@ -66,3 +67,4 @@ for(const partition of partitions)for(const sessionDate of allocation.partitions
   fs.writeFileSync(lifecyclePath,`${JSON.stringify(lifecycle,null,2)}\n`,{flag:'wx',mode:0o600});
   console.log(JSON.stringify({sessionDate,status:'FORMAL_L0_SESSION_CACHED',minuteRequests:0,manifestSha256:result.manifestSha256}));
 }
+console.log(JSON.stringify({status:'FORMAL_L0_ACQUISITION_COMPLETE',providerRequestsConsumed:providerRequestBudget.consumed,providerRequestBudgetMaximum:411,minuteRequests:0}));

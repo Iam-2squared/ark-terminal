@@ -90,6 +90,9 @@ test('L1 discovery report compares winners with full-cross-section negative cont
   const evaluatorOnlyLabels=[{sessionDate:'2024-09-10',symbol:'1000',decisionTimeJst:'10:00',evaluatorOnly:true,winner:true,largeWinner:false,finalClass:'FINAL_GTE5',remainingUpsidePct:4,futureMfePct:4,futureMaePct:-1,futureMfeAtr:2,futureMaeAtr:-.5,timeToWinnerMinutes:60,lateDetection:false,limitUpTouched:false},{sessionDate:'2024-09-10',symbol:'2000',decisionTimeJst:'10:00',evaluatorOnly:true,winner:false,largeWinner:false,finalClass:'NON_WINNER',remainingUpsidePct:1,futureMfePct:1,futureMaePct:-2,futureMfeAtr:.5,futureMaeAtr:-1,timeToWinnerMinutes:null,lateDetection:false,limitUpTouched:false}];
   const report=buildL1DiscoveryReport({featureRows,evaluatorOnlyLabels});
   assert.equal(report.winnerCurrentReturnBuckets['1_TO_2'].symbols,1);
+  assert.equal(report.winnerUniverse.finalGte5SymbolSessions,1);
+  assert.equal(report.comparisonCohorts.highVolumeNonWinner.symbols,1);
+  assert.equal(report.sessionStability['2024-09-10'].observations,2);
   assert.equal(report.causalFeatureDiagnostics['10:00'].topNByCausalFeature.currentReturnPct.winnerRecallPct,100);
   assert.equal(report.contract.outcomesNeverReturnedToDecisionPipeline,true);
 });

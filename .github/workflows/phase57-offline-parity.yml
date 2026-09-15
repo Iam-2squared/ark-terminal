@@ -23,6 +23,8 @@ on:
       - 'tools/test_phase57_cash_ownership_baseline.mjs'
       - 'tools/phase57_ui_read_model.mjs'
       - 'tools/test_phase57_ui_read_model.mjs'
+      - 'tools/phase57_ui_read_model_cli.mjs'
+      - 'tools/test_phase57_ui_read_model_cli.mjs'
       - 'docs/ARK_TERMINAL_UI_2_INTEGRATION_PLAN.md'
       - 'tools/Start-ArkCashLockedFromAction.ps1'
       - 'tools/phase57_source_capture.py'
@@ -139,6 +141,7 @@ jobs:
           node --test tools/test_phase57_cash_upstream_request.mjs
           node --test tools/test_phase57_cash_ownership_baseline.mjs
           node --test tools/test_phase57_ui_read_model.mjs
+          node --test tools/test_phase57_ui_read_model_cli.mjs
       - name: Existing Phase58 RSS semantics regression
         run: |
           python -m pip install pytest

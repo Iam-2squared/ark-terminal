@@ -27,6 +27,24 @@ class CashLockedCliTests(unittest.TestCase):
         self.assertIs(type(value["intent"]["quantity"]), int)
         self.assertEqual(value["externalPositions"][0]["symbol"], "123A")
         self.assertEqual(value["estimatedNotional"], 300000.25)
+        self.assertEqual(value["arkManagedPositions"], [])
+
+    def test_managed_positions_are_explicit_and_cannot_overlap_external_inventory(self):
+        value = request()
+        value["intent"].update({"side": "SELL", "positionEffect": "CLOSE"})
+        value["arkManagedPositions"] = [{"symbol": "7203.T", "quantity": 100}]
+        validated = validate_request(value)
+        self.assertEqual(validated["arkManagedPositions"][0]["symbol"], "7203.T")
+        overlap = request()
+        overlap["arkManagedPositions"] = [{"symbol": "123A.T", "quantity": 100}]
+        with self.assertRaisesRegex(ValueError, "POSITION_OWNERSHIP_OVERLAP"):
+            validate_request(overlap)
+
+    def test_invalid_managed_position_identity_or_quantity_blocks(self):
+        for row in ({"symbol": "", "quantity": 100}, {"symbol": "7203", "quantity": 0}, {"symbol": "7203", "quantity": "100"}):
+            value = request(); value["arkManagedPositions"] = [row]
+            with self.subTest(row=row), self.assertRaises(ValueError):
+                validate_request(value)
 
     def test_blank_symbol_rejected_not_shifted_or_defaulted(self):
         for symbol in (None, "", " "):

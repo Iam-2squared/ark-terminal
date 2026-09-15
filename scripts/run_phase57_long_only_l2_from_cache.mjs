@@ -15,6 +15,16 @@ const allocation=JSON.parse(fs.readFileSync(new URL('../predict/long-only/phase5
 const sessionsContract=JSON.parse(fs.readFileSync(new URL('../predict/long-only/phase57-long-only-l2-development-sessions.json',import.meta.url),'utf8'));
 const expected=[...allocation.partitions.DEVELOPMENT_C,...allocation.partitions.DEVELOPMENT_D];
 const hash=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
+const hashArray=value=>{
+  const digest=createHash('sha256');
+  digest.update('[');
+  for(let index=0;index<value.length;index+=1){
+    if(index>0)digest.update(',');
+    digest.update(JSON.stringify(value[index]));
+  }
+  digest.update(']');
+  return digest.digest('hex');
+};
 const sha=value=>createHash('sha256').update(value).digest('hex');
 if(expected.length!==40||JSON.stringify(expected)!==JSON.stringify(sessionsContract.sessions)||hash(expected)!==sessionsContract.sessionListSha256)throw new Error('L2 measurement differs from approved C+D session contract');
 const base=path.join(cacheRoot,'phase57-long-only','raw','jquants-v2');
@@ -38,7 +48,7 @@ function buildPartition(partition){
     sessionAudits.push({sessionDate,pageCount:manifest.pageCount,rawRows:minuteRows.length,featureRows:features.length,targetRows:targets.length,y30Rows:targets.filter(row=>Number.isFinite(row.y30Bps)).length,y60Rows:targets.filter(row=>Number.isFinite(row.y60Bps)).length,corporateActionExclusions:crossSection.audit.exclusions.CORPORATE_ACTION_UNRESOLVED,minutePriceScale:crossSection.audit.minutePriceScale});
     console.log(JSON.stringify({status:'L2_SESSION_PREPARED',partition,sessionDate,rawRows:minuteRows.length,featureRows:features.length}));
   }
-  return Object.freeze({partition,featureRows:Object.freeze(featureRows),targetRows:Object.freeze(targetRows),sessionAudits:Object.freeze(sessionAudits),featureSha256:hash(featureRows),targetSha256:hash(targetRows),sourceSha256:l0.sourceManifest.sourceSha256});
+  return Object.freeze({partition,featureRows:Object.freeze(featureRows),targetRows:Object.freeze(targetRows),sessionAudits:Object.freeze(sessionAudits),featureSha256:hashArray(featureRows),targetSha256:hashArray(targetRows),sourceSha256:l0.sourceManifest.sourceSha256});
 }
 
 const developmentC=buildPartition('DEVELOPMENT_C'),developmentD=buildPartition('DEVELOPMENT_D');

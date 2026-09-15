@@ -1,0 +1,97 @@
+name: Phase57 LONG-only Missed Opportunity Diagnostic
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/phase57-long-only-missed-opportunity-diagnostic.yml
+      - scripts/run_phase57_long_only_missed_opportunity_diagnostic.mjs
+      - predict/long-only/phase57-long-only-missed-opportunity-diagnostic.js
+      - predict/tests/phase57-long-only-missed-opportunity-diagnostic.test.mjs
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  diagnose-fixed-score-development-d:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      BASE_RUN_ID: 34917676944
+      BASE_ARTIFACT: phase57-long-only-l0-replication-34917676944
+      MINUTE_RUN_ID: 34936002178
+      L2_RUN_ID: 34944665187
+      L2_ARTIFACT: phase57-long-only-l2-development-34944665187
+      JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+      NODE_OPTIONS: --max-old-space-size=6144
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify missed-opportunity diagnostic tests
+        run: node --test predict/tests/phase57-long-only-missed-opportunity-diagnostic.test.mjs predict/tests/phase57-long-only-selector-capacity-diagnostic.test.mjs predict/tests/phase57-long-only-selector-development.test.mjs
+      - name: Download encrypted L0 base
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.BASE_ARTIFACT }}
+          path: ${{ runner.temp }}/base
+          repository: Iam-2squared/ark-terminal
+          run-id: ${{ env.BASE_RUN_ID }}
+          github-token: ${{ github.token }}
+      - name: Download encrypted Development C and D Minute checkpoints
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-l2-minute-shard-*-${{ env.MINUTE_RUN_ID }}
+          path: ${{ runner.temp }}/shards
+          merge-multiple: false
+          repository: Iam-2squared/ark-terminal
+          run-id: ${{ env.MINUTE_RUN_ID }}
+          github-token: ${{ github.token }}
+      - name: Download fixed Candidate v1 evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.L2_ARTIFACT }}
+          path: ${{ runner.temp }}/l2
+          repository: Iam-2squared/ark-terminal
+          run-id: ${{ env.L2_RUN_ID }}
+          github-token: ${{ github.token }}
+      - name: Verify and mount saved private cache
+        shell: bash
+        run: |
+          test -n "${JQUANTS_API_KEY:-}"
+          test "$(find "$RUNNER_TEMP/shards" -name acquisition-summary.json | wc -l)" = "4"
+          test "$(jq -s '[.[] | (.completedSessions + .unavailableSessions)] | add' $(find "$RUNNER_TEMP/shards" -name acquisition-summary.json | sort))" = "40"
+          test "$(jq -s '[.[].unavailableSessions]|add' $(find "$RUNNER_TEMP/shards" -name acquisition-summary.json | sort))" = "0"
+          test "$(jq -r '.status' "$RUNNER_TEMP/l2/l2-selector-freeze-report.json")" = "L2_SELECTOR_FROZEN"
+          cd "$RUNNER_TEMP/base"
+          test "$(cut -d' ' -f1 private-cache.tar.gz.enc.sha256)" = "$(sha256sum private-cache.tar.gz.enc | cut -d' ' -f1)"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -in private-cache.tar.gz.enc -out "$RUNNER_TEMP/base.tar.gz"
+          tar -C "$RUNNER_TEMP" -xzf "$RUNNER_TEMP/base.tar.gz"
+          while IFS= read -r encrypted; do
+            test "$(cut -d' ' -f1 "${encrypted}.sha256")" = "$(sha256sum "$encrypted" | cut -d' ' -f1)"
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -in "$encrypted" | tar -C "$RUNNER_TEMP/phase57-l0-cache" -xzf -
+          done < <(find "$RUNNER_TEMP/shards" -name minute-shard.tar.gz.enc | sort)
+      - name: Run fixed-score missed-opportunity diagnostic
+        shell: bash
+        run: |
+          mkdir -p artifacts/phase57-long-only-missed-opportunity
+          node scripts/run_phase57_long_only_missed_opportunity_diagnostic.mjs \
+            --cache-root "$RUNNER_TEMP/phase57-l0-cache" \
+            --freeze-report "$RUNNER_TEMP/l2/l2-selector-freeze-report.json" \
+            --output artifacts/phase57-long-only-missed-opportunity/missed-opportunity-diagnostic.json
+      - name: Purge raw and upload sanitized diagnostic only
+        if: always()
+        shell: bash
+        run: rm -rf -- "$RUNNER_TEMP/phase57-l0-cache" "$RUNNER_TEMP/base.tar.gz" "$RUNNER_TEMP/base" "$RUNNER_TEMP/shards" "$RUNNER_TEMP/l2"
+      - name: Upload sanitized diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-long-only-missed-opportunity-${{ github.run_id }}
+          path: artifacts/phase57-long-only-missed-opportunity/
+          if-no-files-found: error
+          retention-days: 21

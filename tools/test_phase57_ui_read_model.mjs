@@ -151,17 +151,30 @@ test('tampered ownership hash never assigns an owner', () => {
   assert.equal(model.positions[0].ownership, 'UNKNOWN');
 });
 
-test('LOCKED_READY remains non-executable and exposes only a read-only active intent', () => {
+test('LOCKED_READY requires explicit clear runtime safety and remains non-executable', () => {
+  const pipeline = {
+    status: 'LOCKED_READY',
+    stage: 'EXCEL_ADAPTER',
+    reconciliation: {status: 'RECONCILIATION_PASS', blockers: []},
+    draft: {symbol: '7203.T', side: 'BUY', positionEffect: 'OPEN', quantity: 100},
+    candidate: {eligible: true, blockers: []},
+    preflight: {readyForPhysicalUnlock: true, blockers: []},
+  };
+
+  const unknownRuntime = buildArkTerminalUiReadModel({
+    accountSnapshot: snapshot({buyingPower: 1_000_000}),
+    ownershipBaseline: ownership(),
+    lockedPipeline: pipeline,
+    generatedAt: NOW,
+  });
+  assert.equal(unknownRuntime.system.tradeReadiness, 'BLOCKED');
+  assert.equal(unknownRuntime.system.runtimeSafety.state, 'UNKNOWN');
+
   const model = buildArkTerminalUiReadModel({
     accountSnapshot: snapshot({buyingPower: 1_000_000}),
-    lockedPipeline: {
-      status: 'LOCKED_READY',
-      stage: 'EXCEL_ADAPTER',
-      reconciliation: {status: 'RECONCILIATION_PASS', blockers: []},
-      draft: {symbol: '7203.T', side: 'BUY', positionEffect: 'OPEN', quantity: 100},
-      candidate: {eligible: true, blockers: []},
-      preflight: {readyForPhysicalUnlock: true, blockers: []},
-    },
+    ownershipBaseline: ownership(),
+    lockedPipeline: pipeline,
+    runtimeSafety: {killSwitchLatched: false, faults: []},
     generatedAt: NOW,
   });
 
@@ -175,6 +188,7 @@ test('LOCKED_READY remains non-executable and exposes only a read-only active in
 test('runtime kill switch blocks readiness without turning the UI into a mutation surface', () => {
   const model = buildArkTerminalUiReadModel({
     accountSnapshot: snapshot(),
+    ownershipBaseline: ownership(),
     runtimeSafety: {killSwitchLatched: true, faults: ['RSS_DISCONNECTED']},
     generatedAt: NOW,
   });

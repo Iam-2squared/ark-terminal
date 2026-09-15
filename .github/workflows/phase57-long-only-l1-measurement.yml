@@ -2,6 +2,10 @@ name: Phase57 LONG-only L1 Early Winner Measurement
 
 on:
   workflow_dispatch:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-long-only-l1-measurement.yml
 
 permissions:
   actions: read
@@ -14,7 +18,7 @@ jobs:
     env:
       BASE_RUN_ID: 34917676944
       BASE_ARTIFACT: phase57-long-only-l0-replication-34917676944
-      MINUTE_RUN_ID: REPLACE_AFTER_FIXED_20_ACQUISITION
+      MINUTE_RUN_ID: 34926225832
       JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
       NODE_OPTIONS: --max-old-space-size=6144
     steps:

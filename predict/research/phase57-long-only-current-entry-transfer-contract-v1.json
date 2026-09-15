@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "contractId": "PHASE57_LONG_ONLY_FROZEN_SELECTOR_V1_CURRENT_ENTRY_TRANSFER_DIAGNOSTIC_V1",
+  "status": "FROZEN_BEFORE_TRANSFER_OUTCOMES",
+  "scope": {
+    "market": "JPX_CASH_EQUITY",
+    "direction": "LONG_ONLY",
+    "researchPartition": "FROZEN_SELECTOR_DEVELOPMENT_76_ONLY",
+    "validationOpened": false,
+    "oosOpened": false,
+    "exitUsed": false,
+    "capitalAllocationUsed": false
+  },
+  "frozenSelector": {
+    "formalName": "Phase57 LONG-only Frozen Selector v1",
+    "freezeCommit": "565d74b3dea823581fdb32380113aac5913a248d",
+    "specificationPath": "predict/research/phase57-long-only-frozen-selector-v1.json",
+    "frozenPayloadSha256": "3dc6d222d4039737c0dcfdcfa4a83372202152e29b582225419ab97c00610d59",
+    "ridgeArtifactSha256": "994f1dbaba1d32e97458d5dd9d4c646ef443fbb37128650e8166001d8deabefb",
+    "topN": 5,
+    "decisionCount": 760,
+    "selectionEventCount": 3800,
+    "selectorChanged": false
+  },
+  "currentEntry": {
+    "formalName": "MSH_ENTRY_V1",
+    "runtimePolicySourceCommit": "f5498434",
+    "developmentRobustnessReviewCommit": "12cf75a7",
+    "artifactPath": "predict/research/phase57-msh-entry-v1-model.json",
+    "artifactFileSha256": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a",
+    "featureContractPath": "predict/research/phase57-minimal-stateful-entry-contract.json",
+    "featureContractSha256": "cc70b1eb07c0719f72c4a8caa0f165a2812aec4af0b2fdeae42ef3ff400c4115",
+    "featureImplementationPath": "scripts/lib/phase57-minimal-stateful-entry.mjs",
+    "featureImplementationSha256": "7cd4ab03f4de8e0b845fc5f7fb2893d9585feee0989b0f6b085a18a28be73ba0",
+    "threshold": 0.6,
+    "comparison": "STRICTLY_GREATER",
+    "fitAllowed": false,
+    "thresholdChangeAllowed": false,
+    "normalizationChangeAllowed": false,
+    "featureChangeAllowed": false,
+    "targetChangeAllowed": false
+  },
+  "adapter": {
+    "type": "SEMANTIC_PRESERVING_LONG_ONLY_TRANSFER",
+    "symbol": "APPEND_DOT_T_ONLY_FOR_CURRENT_ENTRY_FEATURE_CONTRACT",
+    "selectorDecisionPrice": "LATEST_CAUSALLY_AVAILABLE_CLOSED_MARKET_PRICE_AGE_LE_5_MINUTES",
+    "entryReferencePrice": "LATEST_COMPLETED_CAUSAL_5M_BAR_CLOSE_AT_ENTRY_EVALUATION",
+    "pricesAreNotInterchangeable": true,
+    "entryFeatures": "EXACT_MSH_ENTRY_V1_LONG_DIRECTION_FEATURE_FORMULAS",
+    "directionRowsEvaluated": [1],
+    "shortScoreEvaluated": false,
+    "shortFallbackAllowed": false,
+    "selectorMembershipBetweenContractualDecisions": "ACTIVE_OPPORTUNITY_STATE_ONLY_NO_NEW_RANK_OR_SELECTOR_SCORE",
+    "entryEvaluationCadence": "EACH_AVAILABLE_REGULAR_5M_CLOSE_FROM_SELECTOR_DECISION_UNTIL_NEXT_CONTRACTUAL_SELECTOR_DECISION",
+    "firstSelectionTimestamp": "FIRST_FROZEN_SELECTOR_SELECTION_IN_SYMBOL_SESSION",
+    "priorSelectionCount": "PRIOR_CURRENT_ENTRY_EVALUATION_COUNT_WHILE_ACTIVE_MATCHING_ORIGINAL_5M_STATEFUL_SEMANTICS",
+    "absenceRule": "EXPIRE_ONLY_WHEN_ABSENT_FROM_NEXT_COMPLETE_FROZEN_SELECTOR_DECISION_OR_AT_SESSION_CLOSE",
+    "expiredTerminalUntilNextSession": true,
+    "repeatEntryAllowed": false,
+    "selectorPriceForwardFillAllowed": false,
+    "selectorRankForwardFillClaimAllowed": false,
+    "entryUsesOnlyBarsAvailableAtEvaluation": true
+  },
+  "funnel": {
+    "directStatus": {
+      "PASS": "LONG probability strictly greater than 0.60 at the selector decision, or already ENTERED",
+      "WAIT": "LONG feature row available and probability not greater than 0.60",
+      "BLOCKED": "CURRENT Entry feature contract cannot construct a row from available causal bars",
+      "REJECT": "symbol-session already terminal EXPIRED under unchanged state semantics",
+      "UNAVAILABLE": "required selected-event identity, Decision Price, or source bars are unavailable"
+    },
+    "opportunityStatus": {
+      "PASS": "first LONG PASS occurs before terminal expiry",
+      "REJECT": "opportunity reaches terminal expiry without LONG PASS",
+      "UNAVAILABLE": "opportunity cannot be evaluated because required source material is unavailable"
+    },
+    "noImmediateRejectStateInCurrentEntry": true,
+    "directRejectCanOnlyFollowPriorTerminalExpiry": true
+  },
+  "outcomes": {
+    "thresholdsPct": [1, 2, 3, 5],
+    "selectorReference": "SELECTOR_DECISION_PRICE",
+    "entryReference": "CURRENT_ENTRY_REFERENCE_PRICE",
+    "opportunity": "SAME_SESSION_FUTURE_CONTINUOUS_5M_HIGH_TOUCH",
+    "mfe": "MAX_0_MAX_FUTURE_HIGH_RETURN",
+    "mae": "MIN_0_MIN_FUTURE_LOW_RETURN",
+    "overnightAllowed": false,
+    "futureOutcomesAvailableToSelectorOrEntry": false
+  },
+  "latencyBucketsMinutes": [
+    {"id": "0_TO_5", "lowerInclusive": 0, "upperInclusive": 5},
+    {"id": "GT5_TO_10", "lowerExclusive": 5, "upperInclusive": 10},
+    {"id": "GT10_TO_20", "lowerExclusive": 10, "upperInclusive": 20},
+    {"id": "GT20_TO_30", "lowerExclusive": 20, "upperInclusive": 30},
+    {"id": "GT30", "lowerExclusive": 30, "upperInclusive": null}
+  ],
+  "verdictRule": {
+    "minimumSelectorEvents": 3800,
+    "minimumDecisionTimestamps": 760,
+    "minimumDevelopmentSessions": 76,
+    "minimumEntryPassesForEnrichmentComparison": 10,
+    "filterProblemIfAny": {
+      "opportunityPreservation3PctBelow": 0.6,
+      "opportunityPreservation5PctBelow": 0.6,
+      "symbolSessionFirstEntryCoverageBelow": 0.2,
+      "waitOrRejectBeatsPassAtBoth3And5ByPercentagePoints": 5
+    },
+    "latencyProblemIfAny": {
+      "medianFirstPassLatencyMinutesAbove": 10,
+      "entryTimeRemaining3PctRetentionBelow": 0.75,
+      "entryTimeRemaining5PctRetentionBelow": 0.75,
+      "medianConsumedReturnBpsAbove": 50
+    },
+    "inconclusiveIf": [
+      "INTEGRITY_COUNT_MISMATCH",
+      "FROZEN_ASSET_HASH_MISMATCH",
+      "VALIDATION_OR_OOS_OPENED",
+      "PASS_COUNT_BELOW_MINIMUM_FOR_ENRICHMENT_AND_NO_FILTER_COVERAGE_FAILURE",
+      "ENTRY_OUTCOME_COVERAGE_BELOW_0_90"
+    ],
+    "precedence": [
+      "INCONCLUSIVE",
+      "CURRENT_ENTRY_BOTH_FILTER_AND_LATENCY_PROBLEM",
+      "CURRENT_ENTRY_FILTER_PROBLEM",
+      "CURRENT_ENTRY_LATENCY_PROBLEM",
+      "CURRENT_ENTRY_WORKS"
+    ]
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "shortAllowed": false,
+    "marginAllowed": false,
+    "leverageAllowed": false
+  },
+  "stopBoundary": "ISSUE_ONE_TRANSFER_VERDICT_THEN_STOP_NO_ENTRY_REDESIGN"
+}

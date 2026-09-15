@@ -80,14 +80,19 @@ test('L0 replication reuses encrypted cache without another provider acquisition
   assert.match(workflow,/retention-days: 21/);
 });
 
-test('L1 Minute workflow is limited to approved Development A+B acquisition',()=>{
-  const workflow=fs.readFileSync(new URL('../../.github/workflows/phase57-long-only-l1-minute.yml',import.meta.url),'utf8');
+test('L1 Minute workflow is limited to fixed first-20 Development A sessions in two checkpoints',()=>{
+  const workflow=fs.readFileSync(new URL('../../.github/workflows/phase57-long-only-l1-minute-checkpointed-retry.yml',import.meta.url),'utf8');
   const script=fs.readFileSync(new URL('../../scripts/acquire_phase57_long_only_l1_minute.mjs',import.meta.url),'utf8');
-  assert.match(workflow,/--maximum-requests 550/);
-  assert.match(script,/\['DEVELOPMENT_A','DEVELOPMENT_B'\]/);
-  assert.match(script,/approvedSessions\.length!==40/);
+  const contract=JSON.parse(fs.readFileSync(new URL('../long-only/phase57-long-only-l1-discovery-sessions.json',import.meta.url),'utf8'));
+  assert.equal(contract.sessions.length,20);
+  assert.deepEqual(contract.sessions,allocation.partitions.DEVELOPMENT_A.slice(0,20));
+  assert.equal(contract.sessionListSha256,'96b54f4a6110f7883c063f5896777a4148534c6ba9ecf2b455e6546bfb4ff975');
+  assert.equal(contract.selectionUsedMinuteOutcomes,false);
+  assert.match(workflow,/--shard-count 2/);
+  assert.equal((workflow.match(/request_cap: 150/g)??[]).length,2);
+  assert.match(script,/approvedSessions\.length!==20/);
   assert.match(workflow,/set -o pipefail/);
-  assert.match(script,/6bc10cf3f55eb4cfcf0e5ffec65d2ccb50a633ca19c88c94a2f78c981945c2cd/);
-  assert.doesNotMatch(script,/VALIDATION|PRIMARY_OOS|CONTINGENCY_OOS|RESERVE/);
-  assert.match(workflow,/integrated-cache\.tar\.gz\.enc/);
+  assert.match(script,/FIRST_20_CALENDAR_ORDERED_SESSIONS_OF_DEVELOPMENT_A/);
+  assert.doesNotMatch(script,/DEVELOPMENT_B|VALIDATION|PRIMARY_OOS|CONTINGENCY_OOS|RESERVE/);
+  assert.match(workflow,/minute-shard\.tar\.gz\.enc/);
 });

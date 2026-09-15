@@ -145,11 +145,17 @@ export function runFeatureFamilyAblation({fitFeatures=[],fitTargets=[],evaluatio
   }));
 }
 
-export function chooseAndFreezeL2({developmentC,developmentD}={}){
+export function chooseFeatureSetFromAblation(ablations=[]){
+  const all=ablations.find(row=>row.variant==='ALL');if(!all)throw new Error('ALL feature ablation result is required');
+  const eligible=ablations.filter(row=>row.variant==='ALL'||(row.metrics.selectionObjective>all.metrics.selectionObjective&&row.metrics.positiveSessionRatePct>=all.metrics.positiveSessionRatePct));
+  return [...eligible].sort((a,b)=>b.metrics.selectionObjective-a.metrics.selectionObjective||b.metrics.positiveSessionRatePct-a.metrics.positiveSessionRatePct||a.featureNames.length-b.featureNames.length||a.variant.localeCompare(b.variant))[0];
+}
+
+export function chooseAndFreezeL2({developmentC,developmentD,featureNames=L2_FEATURES}={}){
   if(developmentC?.partition!=='DEVELOPMENT_C'||developmentD?.partition!=='DEVELOPMENT_D')throw new Error('L2 requires C fit and D selection');
   const results=[];
   for(const candidateId of L2_SELECTOR_CONTRACT.candidates){
-    const artifact=fitL2Candidate({candidateId,featureRows:developmentC.featureRows,targetRows:developmentC.targetRows}),horizon=candidateId==='RIDGE_Y60'?12:6;
+    const artifact=fitL2Candidate({candidateId,featureRows:developmentC.featureRows,targetRows:developmentC.targetRows,featureNames}),horizon=candidateId==='RIDGE_Y60'?12:6;
     for(const topN of L2_SELECTOR_CONTRACT.topNCandidates){
       const selected=selectRanked({featureRows:developmentD.featureRows,artifact,topN}),metrics=evaluateSelection({selected,targetRows:developmentD.targetRows,horizon});
       results.push({candidateId,topN,horizon,artifact,metrics});
@@ -157,14 +163,15 @@ export function chooseAndFreezeL2({developmentC,developmentD}={}){
   }
   results.sort((a,b)=>b.metrics.selectionObjective-a.metrics.selectionObjective||b.metrics.positiveSessionRatePct-a.metrics.positiveSessionRatePct||a.topN-b.topN||a.candidateId.localeCompare(b.candidateId));
   const chosen=results[0],combinedFeatures=[...developmentC.featureRows,...developmentD.featureRows],combinedTargets=[...developmentC.targetRows,...developmentD.targetRows];
-  const finalArtifact=fitL2Candidate({candidateId:chosen.candidateId,featureRows:combinedFeatures,targetRows:combinedTargets});
-  const shuffled=permuteTargets(developmentC.targetRows),shuffledArtifact=fitL2Candidate({candidateId:chosen.candidateId,featureRows:developmentC.featureRows,targetRows:shuffled});
+  const finalArtifact=fitL2Candidate({candidateId:chosen.candidateId,featureRows:combinedFeatures,targetRows:combinedTargets,featureNames});
+  const shuffled=permuteTargets(developmentC.targetRows),shuffledArtifact=fitL2Candidate({candidateId:chosen.candidateId,featureRows:developmentC.featureRows,targetRows:shuffled,featureNames});
   const shuffledMetrics=evaluateSelection({selected:selectRanked({featureRows:developmentD.featureRows,artifact:shuffledArtifact,topN:chosen.topN}),targetRows:developmentD.targetRows,horizon:chosen.horizon});
   const momentum=evaluateSelection({selected:rankBaseline({featureRows:developmentD.featureRows,topN:chosen.topN,mode:'MOMENTUM'}),targetRows:developmentD.targetRows,horizon:chosen.horizon});
   const random=evaluateSelection({selected:rankBaseline({featureRows:developmentD.featureRows,topN:chosen.topN,mode:'RANDOM'}),targetRows:developmentD.targetRows,horizon:chosen.horizon});
   const labelShufflePass=chosen.metrics.selectionObjective>shuffledMetrics.selectionObjective;
-  const freezeCore={contract:L2_SELECTOR_CONTRACT,selectedCandidate:chosen.candidateId,horizonBars:chosen.horizon,topN:chosen.topN,developmentDSelectionMetrics:chosen.metrics,baselines:{momentum,random,labelShuffle:shuffledMetrics},labelShufflePass,lookAheadAuditPass:true,featureFamilies:L2_FEATURE_FAMILIES,finalArtifact,allCandidates:results.map(x=>({candidateId:x.candidateId,topN:x.topN,horizonBars:x.horizon,metrics:x.metrics,fitArtifactSha256:x.artifact.artifactSha256})),validationOutcomesUsed:false,oosOutcomesUsed:false,shortTrades:0,marginTrades:0,leverage:0};
+  const activeDecisionTimes=[...new Set(combinedTargets.filter(row=>Number.isFinite(chosen.horizon===6?row.y30Bps:row.y60Bps)).map(row=>row.decisionTimeJst))].sort();
+  const freezeCore={contract:L2_SELECTOR_CONTRACT,selectedCandidate:chosen.candidateId,horizonBars:chosen.horizon,activeDecisionTimes,topN:chosen.topN,selectedFeatureNames:featureNames,developmentDSelectionMetrics:chosen.metrics,baselines:{momentum,random,labelShuffle:shuffledMetrics,oldSelectorReference:{status:'NOT_EXECUTED',reason:'OLD_SELECTOR_IS_REFERENCE_ONLY_AND_HAS_NO_CAUSAL_ADAPTER_FOR_THIS_FIXED_HORIZON_DATASET'}},labelShufflePass,lookAheadAuditPass:true,featureFamilies:L2_FEATURE_FAMILIES,finalArtifact,allCandidates:results.map(x=>({candidateId:x.candidateId,topN:x.topN,horizonBars:x.horizon,metrics:x.metrics,fitArtifactSha256:x.artifact.artifactSha256})),validationOutcomesUsed:false,oosOutcomesUsed:false,shortTrades:0,marginTrades:0,leverage:0};
   return Object.freeze({...freezeCore,freezeSha256:sha(freezeCore)});
 }
 
-export default {L2_FEATURE_FAMILIES,L2_FEATURES,L2_SELECTOR_CONTRACT,projectL2Features,fitL2Candidate,scoreL2Candidate,selectRanked,evaluateSelection,rankBaseline,permuteTargets,runFeatureFamilyAblation,chooseAndFreezeL2};
+export default {L2_FEATURE_FAMILIES,L2_FEATURES,L2_SELECTOR_CONTRACT,projectL2Features,fitL2Candidate,scoreL2Candidate,selectRanked,evaluateSelection,rankBaseline,permuteTargets,runFeatureFamilyAblation,chooseFeatureSetFromAblation,chooseAndFreezeL2};

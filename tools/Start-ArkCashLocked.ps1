@@ -35,6 +35,12 @@ $dir=Split-Path -Parent $SnapshotPath; New-Item -ItemType Directory -Force $dir 
 $snapshot | ConvertTo-Json -Depth 10 | Set-Content $SnapshotPath -Encoding UTF8
 
 $env:PYTHONPATH=(Resolve-Path ".\tools").Path
+$env:ARK_SNAPSHOT_PATH=$SnapshotPath
+$env:ARK_SYMBOL=$Symbol
+$env:ARK_QUANTITY=[string]$Quantity
+$env:ARK_EXTERNAL_SYMBOL=$ExternalSymbol
+$env:ARK_EXTERNAL_QUANTITY=[string]$ExternalQuantity
+$env:ARK_EST_NOTIONAL=[string]$EstimatedNotional
 $pipelineOut = @'
 import json, os
 from pathlib import Path
@@ -44,16 +50,10 @@ with snapshot_path.open("r",encoding="utf-8-sig") as f: snapshot=json.load(f)
 intent={"symbol":os.environ["ARK_SYMBOL"],"direction":"LONG","side":"BUY","positionEffect":"OPEN","quantity":int(os.environ["ARK_QUANTITY"]),"orderType":"MARKET","limitPrice":None,"timeInForce":"DAY"}
 out=run_locked_pipeline(snapshot,external_positions=[{"symbol":os.environ["ARK_EXTERNAL_SYMBOL"],"quantity":float(os.environ["ARK_EXTERNAL_QUANTITY"])}],intent=intent,estimated_notional=float(os.environ["ARK_EST_NOTIONAL"]))
 print(json.dumps(out,ensure_ascii=False))
-'@ | ForEach-Object {
- $env:ARK_SNAPSHOT_PATH=$SnapshotPath
- $env:ARK_SYMBOL=$Symbol
- $env:ARK_QUANTITY=[string]$Quantity
- $env:ARK_EXTERNAL_SYMBOL=$ExternalSymbol
- $env:ARK_EXTERNAL_QUANTITY=[string]$ExternalQuantity
- $env:ARK_EST_NOTIONAL=[string]$EstimatedNotional
- $_ | python -
-}
+'@ | python -
+if ($LASTEXITCODE -ne 0) { throw "Locked cash Python pipeline failed with exit code $LASTEXITCODE" }
 $pipeline = $pipelineOut | ConvertFrom-Json
+if ($null -eq $pipeline -or -not $pipeline.status) { throw "Locked cash pipeline returned no status" }
 
 $sheet=$null; foreach($s in $wb.Worksheets){if($s.Name -eq $OrderSheet){$sheet=$s;break}}
 if($null -eq $sheet){$sheet=$wb.Worksheets.Add();$sheet.Name=$OrderSheet}

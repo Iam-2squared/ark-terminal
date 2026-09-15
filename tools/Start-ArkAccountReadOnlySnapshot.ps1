@@ -1,7 +1,9 @@
 param(
     [string]$WorkbookName = "Ark_MSII_LiveSource.xlsx",
+    [string]$WorkbookPath = "C:\Ark\Ark_MSII_LiveSource.xlsx",
     [string]$AccountSheet = "ARK_ACCOUNT_READONLY",
-    [string]$SnapshotPath = "C:\Ark\account-readonly-20260915\account-snapshot-live.json"
+    [string]$SnapshotPath = "C:\Ark\account-readonly-20260915\account-snapshot-live.json",
+    [switch]$DoNotAutoOpenWorkbook
 )
 
 $ErrorActionPreference = "Stop"
@@ -9,19 +11,49 @@ $ErrorActionPreference = "Stop"
 function Resolve-ArkDedicatedWorkbook {
     param(
         [Parameter(Mandatory=$true)][string]$ExpectedWorkbookName,
-        [Parameter(Mandatory=$true)][string]$ExpectedAccountSheet
+        [Parameter(Mandatory=$true)][string]$ExpectedWorkbookPath,
+        [Parameter(Mandatory=$true)][string]$ExpectedAccountSheet,
+        [Parameter(Mandatory=$true)][bool]$AutoOpen
     )
+
+    $excel = $null
+    $excelStartedByLauncher = $false
+    $workbookOpenedByLauncher = $false
 
     try {
         $excel = [Runtime.InteropServices.Marshal]::GetActiveObject("Excel.Application")
     }
     catch {
-        throw "EXCEL_APPLICATION_NOT_RUNNING"
+        if (-not $AutoOpen) {
+            throw "EXCEL_APPLICATION_NOT_RUNNING"
+        }
+        $excel = New-Object -ComObject Excel.Application
+        $excel.Visible = $true
+        $excelStartedByLauncher = $true
     }
 
-    $openNames = @($excel.Workbooks | ForEach-Object { [string]$_.Name })
     $matchingBooks = @($excel.Workbooks | Where-Object { $_.Name -eq $ExpectedWorkbookName })
+    if ($matchingBooks.Count -eq 0 -and $AutoOpen) {
+        $resolvedWorkbookPath = [IO.Path]::GetFullPath($ExpectedWorkbookPath)
+        if (-not (Test-Path -LiteralPath $resolvedWorkbookPath -PathType Leaf)) {
+            $openNames = @($excel.Workbooks | ForEach-Object { [string]$_.Name })
+            $openSummary = if ($openNames.Count -gt 0) { $openNames -join "," } else { "NONE" }
+            throw ("DEDICATED_WORKBOOK_FILE_MISSING: expected={0}; path={1}; open={2}" -f $ExpectedWorkbookName, $resolvedWorkbookPath, $openSummary)
+        }
+
+        # Open read-only. This launcher never writes to workbook cells and never
+        # evaluates or transmits an RSS order function.
+        $opened = $excel.Workbooks.Open($resolvedWorkbookPath, 0, $true)
+        if ($null -eq $opened) { throw "DEDICATED_WORKBOOK_OPEN_FAILED" }
+        $workbookOpenedByLauncher = $true
+        Start-Sleep -Milliseconds 1200
+        try { $excel.CalculateFull() } catch { }
+        Start-Sleep -Milliseconds 500
+        $matchingBooks = @($excel.Workbooks | Where-Object { $_.Name -eq $ExpectedWorkbookName })
+    }
+
     if ($matchingBooks.Count -ne 1) {
+        $openNames = @($excel.Workbooks | ForEach-Object { [string]$_.Name })
         $openSummary = if ($openNames.Count -gt 0) { $openNames -join "," } else { "NONE" }
         throw ("OPEN_DEDICATED_WORKBOOK_REQUIRED: expected={0}; open={1}" -f $ExpectedWorkbookName, $openSummary)
     }
@@ -34,10 +66,21 @@ function Resolve-ArkDedicatedWorkbook {
         throw ("ACCOUNT_SHEET_REQUIRED: expected={0}; workbook={1}; sheets={2}" -f $ExpectedAccountSheet, $ExpectedWorkbookName, $sheetSummary)
     }
 
-    return [PSCustomObject]@{ Workbook = $workbook; AccountSheet = $sheetMatches[0] }
+    return [PSCustomObject]@{
+        Excel = $excel
+        Workbook = $workbook
+        AccountSheet = $sheetMatches[0]
+        ExcelStartedByLauncher = $excelStartedByLauncher
+        WorkbookOpenedByLauncher = $workbookOpenedByLauncher
+    }
 }
 
-$resolved = Resolve-ArkDedicatedWorkbook -ExpectedWorkbookName $WorkbookName -ExpectedAccountSheet $AccountSheet
+$resolved = Resolve-ArkDedicatedWorkbook `
+    -ExpectedWorkbookName $WorkbookName `
+    -ExpectedWorkbookPath $WorkbookPath `
+    -ExpectedAccountSheet $AccountSheet `
+    -AutoOpen (-not $DoNotAutoOpenWorkbook)
+
 $acct = $resolved.AccountSheet
 
 $captureStartedAt = (Get-Date).ToString("o")
@@ -86,7 +129,12 @@ for ($row = 3; $row -le 300; $row++) {
     }
 }
 
-$buyingPower = $acct.Cells.Item(3,12).Value2
+$buyingPower = $null
+for ($attempt = 0; $attempt -lt 20; $attempt++) {
+    $buyingPower = $acct.Cells.Item(3,12).Value2
+    if ($null -ne $buyingPower) { break }
+    Start-Sleep -Milliseconds 250
+}
 if ($null -eq $buyingPower) { throw "BUYING_POWER_READ_MISSING" }
 
 $snapshot = [PSCustomObject]@{
@@ -120,6 +168,7 @@ $utf8 = New-Object System.Text.UTF8Encoding($false)
 
 Write-Host "ARK_ACCOUNT_READ_ONLY_SNAPSHOT_READY"
 Write-Host "Workbook    :" $WorkbookName
+Write-Host "AutoOpened  :" $resolved.WorkbookOpenedByLauncher
 Write-Host "Snapshot    :" $target
 Write-Host "Positions   :" $positions.Count
 Write-Host "Orders      :" $orders.Count

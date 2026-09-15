@@ -15,7 +15,8 @@ export function buildL1CrossSectionDataset({partition,dailyRows=[],bars5m=[],ter
     if(daily.corporateActionFlag){exclusions.CORPORATE_ACTION_UNRESOLVED++;continue;}
     const k=`${daily.sessionDate}|${daily.symbol}`,symbolBars=barsBySessionSymbol.get(k)??[];
     if(!symbolBars.length){exclusions.NO_INTRADAY_BARS++;continue;}
-    const built=buildL1ResearchRows({sessionDate:daily.sessionDate,symbol:daily.symbol,segment:daily.segment,bars5m:symbolBars,terminalAuctions:auctionsBySessionSymbol.get(k)??[],previousAdjustedClose:Number(daily.adjustedPreviousClose),officialFinalAdjustedClose:Number(daily.adjustedClose)});
+    const scale=Number(daily.adjustmentScale)||1,rawPreviousClose=Number(daily.adjustedPreviousClose)/scale,rawFinalClose=Number(daily.unadjustedClose)||Number(daily.adjustedClose)/scale;
+    const built=buildL1ResearchRows({sessionDate:daily.sessionDate,symbol:daily.symbol,segment:daily.segment,bars5m:symbolBars,terminalAuctions:auctionsBySessionSymbol.get(k)??[],previousAdjustedClose:rawPreviousClose,officialFinalAdjustedClose:rawFinalClose});
     rawFeatures.push(...built.features);labels.push(...built.evaluatorOnlyLabels);
   }
   const features=assignCausalLiquidityBuckets(addCausalBreadthContext(rawFeatures,{sectorBySymbol}));
@@ -23,7 +24,8 @@ export function buildL1CrossSectionDataset({partition,dailyRows=[],bars5m=[],ter
   exclusions.NO_EVALUATOR_LABEL=features.length-matchedLabels.length;
   const labelKeys=new Set(matchedLabels.map(key)),matchedFeatures=features.filter(feature=>labelKeys.has(key(feature)));
   if(matchedFeatures.some(row=>Object.keys(row).some(k=>/winner|future|remaining|lateDetection/i.test(k))))throw new Error('evaluator outcome leaked into L1 feature rows');
-  return Object.freeze({schemaVersion:1,partition,featureRows:Object.freeze(matchedFeatures),evaluatorOnlyLabels:Object.freeze(matchedLabels),audit:Object.freeze({dailyRows:dailyRows.length,bars5m:bars5m.length,featureRows:matchedFeatures.length,labelRows:matchedLabels.length,exclusions:Object.freeze(exclusions),labelFieldsReachDecisionPipeline:false}),featureSha256:sha(matchedFeatures),labelSha256:sha(matchedLabels)});
+  const nonUnitAdjustmentScaleRows=dailyRows.filter(row=>Math.abs((Number(row.adjustmentScale)||1)-1)>1e-8).length;
+  return Object.freeze({schemaVersion:1,partition,featureRows:Object.freeze(matchedFeatures),evaluatorOnlyLabels:Object.freeze(matchedLabels),audit:Object.freeze({dailyRows:dailyRows.length,bars5m:bars5m.length,featureRows:matchedFeatures.length,labelRows:matchedLabels.length,nonUnitAdjustmentScaleRows,minutePriceScale:'RAW_WITH_PREVIOUS_CLOSE_DEADJUSTED_BY_SAME_SESSION_FACTOR',exclusions:Object.freeze(exclusions),labelFieldsReachDecisionPipeline:false}),featureSha256:sha(matchedFeatures),labelSha256:sha(matchedLabels)});
 }
 
 export default {buildL1CrossSectionDataset};

@@ -15,7 +15,7 @@ jobs:
   acquire-shard:
     strategy:
       max-parallel: 1
-      fail-fast: false
+      fail-fast: true
       matrix:
         include:
           - shard: 0
@@ -60,7 +60,12 @@ jobs:
         run: |
           set -o pipefail
           status=0
-          node scripts/acquire_phase57_long_only_l2_minute.mjs +            --cache-root "$RUNNER_TEMP/phase57-l0-cache" +            --shard-index "${{ matrix.shard }}" --shard-count 4 +            --maximum-requests "${{ matrix.request_cap }}" +            --summary "$RUNNER_TEMP/acquisition-summary.json" | tee "$RUNNER_TEMP/acquisition.log" || status=$?
+          node scripts/acquire_phase57_long_only_l2_minute.mjs \
+            --cache-root "$RUNNER_TEMP/phase57-l0-cache" \
+            --shard-index "${{ matrix.shard }}" --shard-count 4 \
+            --maximum-requests "${{ matrix.request_cap }}" \
+            --summary "$RUNNER_TEMP/acquisition-summary.json" \
+            | tee "$RUNNER_TEMP/acquisition.log" || status=$?
           test "$status" = "0" -o "$status" = "2"
           test "$(jq '[.completedSessions,.unavailableSessions]|add' "$RUNNER_TEMP/acquisition-summary.json")" = "10"
           test "$(jq -r '.sessionListSha256' "$RUNNER_TEMP/acquisition-summary.json")" = "9abbc28870b8885cab2b68ae2d2f3e6ef4511b5f687dc553ddcd9e0255b0281c"
@@ -71,7 +76,9 @@ jobs:
           test -f "$RUNNER_TEMP/acquisition-summary.json"
           mkdir -p artifacts/shard-${{ matrix.shard }}
           cd "$RUNNER_TEMP/phase57-l0-cache"
-          find phase57-long-only/raw/jquants-v2 -type f \( -name minute-pages.json -o -name l2-minute-manifest.json \) -print0 +            | tar --null -T - -czf - +            | openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -out "$GITHUB_WORKSPACE/artifacts/shard-${{ matrix.shard }}/minute-shard.tar.gz.enc"
+          find phase57-long-only/raw/jquants-v2 -type f \( -name minute-pages.json -o -name l2-minute-manifest.json \) -print0 \
+            | tar --null -T - -czf - \
+            | openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -out "$GITHUB_WORKSPACE/artifacts/shard-${{ matrix.shard }}/minute-shard.tar.gz.enc"
           cd "$GITHUB_WORKSPACE"
           sha256sum artifacts/shard-${{ matrix.shard }}/minute-shard.tar.gz.enc > artifacts/shard-${{ matrix.shard }}/minute-shard.tar.gz.enc.sha256
           cp "$RUNNER_TEMP/acquisition-summary.json" artifacts/shard-${{ matrix.shard }}/acquisition-summary.json

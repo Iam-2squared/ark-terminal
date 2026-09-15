@@ -1,0 +1,24 @@
+name: Phase57 Cancel Obsolete 40-session L1 Retry
+
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-cancel-obsolete-l1-retry.yml
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cancel-obsolete-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.cancelWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: 34925014664,
+            });

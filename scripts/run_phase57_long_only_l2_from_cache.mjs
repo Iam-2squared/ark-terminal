@@ -5,7 +5,7 @@ import {loadFormalL0PartitionFromCache} from '../predict/long-only/phase57-long-
 import {normalizeAndAggregateMinuteRows} from '../predict/long-only/phase57-long-only-integrated-dataset.js';
 import {buildL1CrossSectionDataset} from '../predict/long-only/phase57-long-only-l1-cross-section.js';
 import {buildFixedHorizonTargets,L2_HORIZON_CONTRACT} from '../predict/long-only/phase57-long-only-l2-fixed-horizon.js';
-import {chooseAndFreezeL2,runFeatureFamilyAblation,L2_SELECTOR_CONTRACT} from '../predict/long-only/phase57-long-only-l2-selector-v1.js';
+import {chooseAndFreezeL2,runFeatureFamilyAblation,chooseFeatureSetFromAblation,L2_SELECTOR_CONTRACT} from '../predict/long-only/phase57-long-only-l2-selector-v1.js';
 
 const arg=name=>{const i=process.argv.indexOf(name);return i<0?null:process.argv[i+1];};
 const cacheRoot=path.resolve(arg('--cache-root')??''),output=path.resolve(arg('--output')??'');
@@ -50,8 +50,9 @@ const ablations=runFeatureFamilyAblation({
   evaluationTargets:developmentC.targetRows.filter(row=>lastC.has(row.sessionDate)),
   topN:10,
 });
-const freeze=chooseAndFreezeL2({developmentC,developmentD});
-const report={schemaVersion:1,status:freeze.labelShufflePass?'L2_SELECTOR_FROZEN':'L2_NO_FREEZE_NEGATIVE_CONTROL_FAILED',sessionListSha256:sessionsContract.sessionListSha256,horizonContract:L2_HORIZON_CONTRACT,selectorContract:L2_SELECTOR_CONTRACT,audit:{developmentC:{featureRows:developmentC.featureRows.length,targetRows:developmentC.targetRows.length,featureSha256:developmentC.featureSha256,targetSha256:developmentC.targetSha256,sourceSha256:developmentC.sourceSha256,sessionAudits:developmentC.sessionAudits},developmentD:{featureRows:developmentD.featureRows.length,targetRows:developmentD.targetRows.length,featureSha256:developmentD.featureSha256,targetSha256:developmentD.targetSha256,sourceSha256:developmentD.sourceSha256,sessionAudits:developmentD.sessionAudits},labelFieldsReachDecisionPipeline:false,validationOpened:false,oosOpened:false},featureFamilyAblation:ablations,freeze};
+const selectedFeatureSet=chooseFeatureSetFromAblation(ablations);
+const freeze=chooseAndFreezeL2({developmentC,developmentD,featureNames:selectedFeatureSet.featureNames});
+const report={schemaVersion:1,status:freeze.labelShufflePass?'L2_SELECTOR_FROZEN':'L2_NO_FREEZE_NEGATIVE_CONTROL_FAILED',sessionListSha256:sessionsContract.sessionListSha256,horizonContract:L2_HORIZON_CONTRACT,selectorContract:L2_SELECTOR_CONTRACT,audit:{developmentC:{featureRows:developmentC.featureRows.length,targetRows:developmentC.targetRows.length,featureSha256:developmentC.featureSha256,targetSha256:developmentC.targetSha256,sourceSha256:developmentC.sourceSha256,sessionAudits:developmentC.sessionAudits},developmentD:{featureRows:developmentD.featureRows.length,targetRows:developmentD.targetRows.length,featureSha256:developmentD.featureSha256,targetSha256:developmentD.targetSha256,sourceSha256:developmentD.sourceSha256,sessionAudits:developmentD.sessionAudits},labelFieldsReachDecisionPipeline:false,validationOpened:false,oosOpened:false},featureFamilyAblation:ablations,selectedFeatureSet:{variant:selectedFeatureSet.variant,featureNames:selectedFeatureSet.featureNames,developmentCMetrics:selectedFeatureSet.metrics},freeze};
 fs.mkdirSync(path.dirname(output),{recursive:true});fs.writeFileSync(output,`${JSON.stringify(report,null,2)}\n`,{flag:'wx'});
 console.log(JSON.stringify({status:report.status,selectedCandidate:freeze.selectedCandidate,horizonBars:freeze.horizonBars,topN:freeze.topN,freezeSha256:freeze.freezeSha256,labelShufflePass:freeze.labelShufflePass,output}));
 if(!freeze.labelShufflePass)process.exitCode=2;

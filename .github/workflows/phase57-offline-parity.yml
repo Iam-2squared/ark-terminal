@@ -17,6 +17,8 @@ on:
       - 'predict/tests/phase57-cash-execution-adapter.test.mjs'
       - 'predict/tests/phase57-cash-upstream-action.test.mjs'
       - 'tools/phase57_cash_upstream_action.mjs'
+      - 'tools/phase57_cash_upstream_request.mjs'
+      - 'tools/test_phase57_cash_upstream_request.mjs'
       - 'tools/Start-ArkCashLockedFromAction.ps1'
       - 'tools/phase57_source_capture.py'
       - 'tools/phase57_rss_raw.py'
@@ -107,6 +109,7 @@ jobs:
         run: |
           node --test predict/tests/phase57-cash-execution-adapter.test.mjs
           node --test predict/tests/phase57-cash-upstream-action.test.mjs
+          node --test tools/test_phase57_cash_upstream_request.mjs
       - name: Existing Phase58 RSS semantics regression
         run: |
           python -m pip install pytest

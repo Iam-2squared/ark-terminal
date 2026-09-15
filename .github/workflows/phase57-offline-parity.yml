@@ -25,6 +25,8 @@ on:
       - 'tools/test_phase57_fault_tolerance.py'
       - 'tools/phase57_cash_only_unlock.py'
       - 'tools/test_phase57_cash_only_unlock.py'
+      - 'tools/phase57_cash_micro_live_gate.py'
+      - 'tools/test_phase57_cash_micro_live_gate.py'
       - 'tools/rss_chart_semantics.py'
       - 'tools/phase58_excel_5m_chart_export.py'
       - 'tools/test_phase58_excel_5m_chart_export.py'
@@ -74,7 +76,7 @@ jobs:
         run: |
           python -m pip install pytest
           python -m pytest tools/test_phase58_excel_5m_chart_export.py -q
-      - name: G3-G9 safety contract tests
+      - name: G3-G10 cash-only safety contract tests
         shell: bash
         run: |
           PYTHONPATH=tools python -m unittest \
@@ -84,6 +86,7 @@ jobs:
             tools.test_phase57_execution_dryrun_gate \
             tools.test_phase57_fault_tolerance \
             tools.test_phase57_cash_only_unlock \
+            tools.test_phase57_cash_micro_live_gate \
             tools.test_phase57_rss_raw \
             tools.test_phase57_source_capture
       - name: Workbook failure tests

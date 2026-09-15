@@ -8,7 +8,9 @@ import {buildL1DiscoveryReport} from '../predict/long-only/phase57-long-only-l1-
 
 const arg=name=>{const i=process.argv.indexOf(name);return i<0?null:process.argv[i+1];};
 const cacheRoot=path.resolve(arg('--cache-root')??''),partition=arg('--partition'),output=path.resolve(arg('--output')??'');
+const unavailablePath=arg('--unavailable-sessions');
 if(!cacheRoot||!['DEVELOPMENT_A','DEVELOPMENT_B'].includes(partition)||!output)throw new Error('usage: --cache-root <private cache> --partition DEVELOPMENT_A|DEVELOPMENT_B --output <sanitized report.json>');
+const sourceUnavailable=new Set(unavailablePath?JSON.parse(fs.readFileSync(path.resolve(unavailablePath),'utf8')):[]);
 const plan=JSON.parse(fs.readFileSync(new URL('../predict/long-only/phase57-long-only-data-plan.json',import.meta.url),'utf8'));
 const allocation=JSON.parse(fs.readFileSync(new URL('../predict/long-only/phase57-long-only-session-allocation-v3.json',import.meta.url),'utf8'));
 const l0=loadFormalL0PartitionFromCache({cacheRoot,partition,plan,allocation});
@@ -19,7 +21,11 @@ const sectorOf=row=>String(row?.S17??row?.Sec17??row?.Sector17Code??row?.Sector3
 
 for(const sessionDate of allocation.partitions[partition]){
   const sessionDir=path.join(base,sessionDate),minuteManifestPath=path.join(sessionDir,'l1-minute-manifest.json');
-  if(!fs.existsSync(minuteManifestPath))throw new Error(`Minute source is unavailable for approved session: ${sessionDate}`);
+  if(!fs.existsSync(minuteManifestPath)){
+    if(!sourceUnavailable.has(sessionDate))throw new Error(`Minute cache is unexpectedly missing for approved session: ${sessionDate}`);
+    sessionAudits.push(Object.freeze({sessionDate,status:'SOURCE_UNAVAILABLE',eligibleDailySymbols:l0.rows.filter(row=>row.sessionDate===sessionDate).length}));
+    continue;
+  }
   const minuteManifest=JSON.parse(fs.readFileSync(minuteManifestPath,'utf8')),minutePages=JSON.parse(fs.readFileSync(path.join(sessionDir,'minute-pages.json'),'utf8'));
   if(minuteManifest.sessionDate!==sessionDate||minutePages.length!==minuteManifest.pageCount||minutePages.some(page=>sha(page.responseText)!==page.responseSha256))throw new Error(`Minute immutable-cache verification failed: ${sessionDate}`);
   const minuteRows=minutePages.flatMap(page=>JSON.parse(page.responseText).data??[]),intraday=normalizeAndAggregateMinuteRows(minuteRows);
@@ -32,6 +38,7 @@ for(const sessionDate of allocation.partitions[partition]){
   console.log(JSON.stringify({status:'L1_SESSION_MEASURED',partition,sessionDate,rawRows:minuteRows.length,featureRows:built.featureRows.length}));
 }
 
-const report=buildL1DiscoveryReport({featureRows,evaluatorOnlyLabels,audit:{partition,sessionCount:allocation.partitions[partition].length,sourceSha256:l0.sourceManifest.sourceSha256,featureRows:featureRows.length,labelRows:evaluatorOnlyLabels.length,sessionAudits}});
+const measuredSessionCount=sessionAudits.filter(row=>row.status!=='SOURCE_UNAVAILABLE').length;
+const report=buildL1DiscoveryReport({featureRows,evaluatorOnlyLabels,audit:{partition,approvedSessionCount:allocation.partitions[partition].length,measuredSessionCount,sourceUnavailableSessions:sessionAudits.filter(row=>row.status==='SOURCE_UNAVAILABLE').map(row=>row.sessionDate),sourceSha256:l0.sourceManifest.sourceSha256,featureRows:featureRows.length,labelRows:evaluatorOnlyLabels.length,sessionAudits}});
 fs.mkdirSync(path.dirname(output),{recursive:true});fs.writeFileSync(output,`${JSON.stringify(report,null,2)}\n`,{flag:'wx'});
 console.log(JSON.stringify({status:'L1_DISCOVERY_REPORT_READY',partition,featureRows:featureRows.length,labelRows:evaluatorOnlyLabels.length,output}));

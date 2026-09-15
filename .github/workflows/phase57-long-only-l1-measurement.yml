@@ -21,6 +21,7 @@ jobs:
       MINUTE_RUN_ID: 34926225832
       JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
       NODE_OPTIONS: --max-old-space-size=6144
+      REPORT_ALGORITHM: LINEAR_SYMBOL_SESSION_DEDUP_V1
     steps:
       - uses: actions/checkout@v4
         with:

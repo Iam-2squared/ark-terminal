@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
-import {acquireFormalL0Session} from '../predict/long-only/phase57-long-only-jquants-client.js';
+import {acquireFormalL0Session,acquireFormalL0WarmupDaily} from '../predict/long-only/phase57-long-only-jquants-client.js';
 
 const arg=name=>{const i=process.argv.indexOf(name);return i<0?null:process.argv[i+1];};
 const authorizationPath=arg('--authorization'),requestedPartition=arg('--partition')??'DEVELOPMENT_A';
@@ -13,6 +13,29 @@ if(cacheRoot===root||cacheRoot.startsWith(`${root}${path.sep}`))throw new Error(
 const partitions=requestedPartition==='ALL_HISTORICAL'?Object.keys(allocation.partitions):[requestedPartition];
 for(const partition of partitions)if(!Array.isArray(allocation.partitions?.[partition]))throw new Error('partition is not in frozen session allocation');
 const apiKey=process.env.JQUANTS_API_KEY;if(!apiKey)throw new Error('JQUANTS_API_KEY is unavailable');
+
+if(partitions.includes('DEVELOPMENT_A')){
+  const sessionDate=plan.l0Contract.causalWarmup.sessionDate;
+  const sessionDir=path.join(cacheRoot,'phase57-long-only','raw','jquants-v2',sessionDate),manifestPath=path.join(sessionDir,'l0-warmup-manifest.json'),dailyPath=path.join(sessionDir,'daily-pages.json'),lifecyclePath=path.join(sessionDir,'storage-lifecycle.json');
+  if(fs.existsSync(manifestPath)){
+    const manifest=JSON.parse(fs.readFileSync(manifestPath,'utf8')),pages=JSON.parse(fs.readFileSync(dailyPath,'utf8'));
+    if(manifest.sessionDate!==sessionDate||manifest.planSha256!==authorization.planSha256||manifest.evaluationPartition!==false)throw new Error(`immutable warmup cache identity mismatch: ${sessionDate}`);
+    for(const page of pages)if(createHash('sha256').update(page.responseText).digest('hex')!==page.responseSha256)throw new Error(`immutable warmup cache page hash mismatch: ${sessionDate}`);
+    if(pages.length!==manifest.daily.pageCount||!fs.existsSync(lifecyclePath))throw new Error(`immutable warmup cache is incomplete: ${sessionDate}`);
+    console.log(JSON.stringify({sessionDate,status:'IMMUTABLE_WARMUP_CACHE_REUSED_AND_HASH_VERIFIED'}));
+  }else{
+    if(fs.existsSync(sessionDir)&&fs.readdirSync(sessionDir).length)throw new Error(`incomplete immutable warmup cache requires operator quarantine before retry: ${sessionDate}`);
+    const result=await acquireFormalL0WarmupDaily({plan,authorization,sessionDate,apiKey});
+    fs.mkdirSync(sessionDir,{recursive:true});
+    fs.writeFileSync(dailyPath,`${JSON.stringify(result.daily.pages)}\n`,{flag:'wx',mode:0o600});
+    const manifest={...result,daily:{...result.daily,pages:undefined},fetchedAt:new Date().toISOString()};
+    fs.writeFileSync(manifestPath,`${JSON.stringify(manifest,null,2)}\n`,{flag:'wx',mode:0o600});
+    const relative=file=>path.relative(cacheRoot,file).split(path.sep).join('/'),fileSha=file=>createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+    const lifecycle={schemaVersion:1,privateUserOnly:true,publiclyAccessible:false,sessionDate,partition:'DEVELOPMENT_A',evaluationPartition:false,planSha256:result.planSha256,objects:[{objectId:`${sessionDate}:DAILY_WARMUP`,relativePath:relative(dailyPath),dataClass:'DAILY',sha256:fileSha(dailyPath)}]};
+    fs.writeFileSync(lifecyclePath,`${JSON.stringify(lifecycle,null,2)}\n`,{flag:'wx',mode:0o600});
+    console.log(JSON.stringify({sessionDate,status:'FORMAL_L0_WARMUP_DAILY_CACHED',masterRequests:0,minuteRequests:0,manifestSha256:result.manifestSha256}));
+  }
+}
 
 for(const partition of partitions)for(const sessionDate of allocation.partitions[partition]){
   const sessionDir=path.join(cacheRoot,'phase57-long-only','raw','jquants-v2',sessionDate),manifestPath=path.join(sessionDir,'l0-manifest.json'),lifecyclePath=path.join(sessionDir,'storage-lifecycle.json');

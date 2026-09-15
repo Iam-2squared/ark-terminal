@@ -27,7 +27,9 @@ export function buildLongOnlyAcquisitionDryRun(plan,{includeMinute=false,minuteS
   if(includeMinute&&(!Number.isInteger(minuteSessions)||minuteSessions<1))throw new Error('minuteSessions must be a positive integer when includeMinute=true');
   if(includeMinute&&minuteSessions>plan.datasetSplit.development.totalSessions)throw new Error('minute acquisition may not exceed released Development planning envelope');
 
-  const dailyRequests=totalHistorical;
+  const warmupDailyRequests=Number(plan.l0Contract?.causalWarmup?.dailyRequests??0);
+  if(warmupDailyRequests!==1||plan.l0Contract?.causalWarmup?.evaluationPartition!==false)throw new Error('one non-evaluation L0 causal warmup Daily request is required');
+  const dailyRequests=totalHistorical+warmupDailyRequests;
   const masterRequests=totalHistorical;
   const priorRate=plan.dataBudget?.development80IntradayUpperPlan;
   const minutePages=includeMinute
@@ -40,6 +42,7 @@ export function buildLongOnlyAcquisitionDryRun(plan,{includeMinute=false,minuteS
     gateStatus:gate.status,
     missingGates:[...gate.missing],
     historicalSessions:totalHistorical,
+    causalWarmup:{sessionDate:plan.l0Contract.causalWarmup.sessionDate,evaluationPartition:false,dailyRequests:warmupDailyRequests},
     partitions:{...PARTITIONS},
     requests:{daily:dailyRequests,master:masterRequests,minutePages,total:dailyRequests+masterRequests+minutePages},
     minute:{requested:includeMinute,sessions:includeMinute?minuteSessions:0,policy:'PLANNING_ONLY_NO_PROVIDER_CALL'},

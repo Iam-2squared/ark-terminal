@@ -35,7 +35,19 @@ export async function acquireFormalL0Session({plan,authorization,partition,sessi
   if(requestedAt>=entitlementEnd)throw new Error('Light entitlement ended; Daily/Master acquisition is prohibited');
   const daily=await fetchJquantsPages({endpoint:'/equities/bars/daily',query:{date:sessionDate},apiKey,fetchImpl});
   const master=await fetchJquantsPages({endpoint:'/equities/master',query:{date:sessionDate},apiKey,fetchImpl});
-  return Object.freeze({schemaVersion:1,mode:'FORMAL_L0_DAILY_AND_DATED_MASTER_ONLY',sessionDate,partition,planSha256:auth.planSha256,privateCacheRoot:auth.privateCacheRoot,cacheManifestSha256:auth.cacheManifestSha256,purgeDryRunSha256:auth.purgeDryRunSha256,daily,master,minuteRequests:0,manifestSha256:sha(JSON.stringify({sessionDate,partition,daily:daily.aggregateSha256,master:master.aggregateSha256,planSha256:auth.planSha256,cacheManifestSha256:auth.cacheManifestSha256,purgeDryRunSha256:auth.purgeDryRunSha256}))});
+  return Object.freeze({schemaVersion:1,mode:'FORMAL_L0_DAILY_AND_DATED_MASTER_ONLY',sessionDate,partition,planSha256:auth.planSha256,privateCacheRoot:auth.privateCacheRoot,daily,master,minuteRequests:0,manifestSha256:sha(JSON.stringify({sessionDate,partition,daily:daily.aggregateSha256,master:master.aggregateSha256,planSha256:auth.planSha256}))});
 }
 
-export default {fetchJquantsPages,acquireFormalL0Session};
+export async function acquireFormalL0WarmupDaily({plan,authorization,sessionDate,apiKey,fetchImpl,now=new Date()}={}){
+  const partition='DEVELOPMENT_A';
+  const auth=assertRuntimeAcquisitionAuthorization({plan,authorization,partition});
+  const warmup=plan?.l0Contract?.causalWarmup;
+  if(warmup?.evaluationPartition!==false||warmup?.dailyRequests!==1||sessionDate!==warmup?.sessionDate)throw new Error('request is outside frozen L0 causal warmup contract');
+  const entitlementEnd=Date.parse(plan?.storageManifest?.purgeDeadlinesJst?.DAILY_AND_MASTER_LIGHT??'');
+  const requestedAt=now instanceof Date?now.getTime():Date.parse(String(now));
+  if(!Number.isFinite(entitlementEnd)||!Number.isFinite(requestedAt)||requestedAt>=entitlementEnd)throw new Error('Light entitlement ended; warmup Daily acquisition is prohibited');
+  const daily=await fetchJquantsPages({endpoint:'/equities/bars/daily',query:{date:sessionDate},apiKey,fetchImpl});
+  return Object.freeze({schemaVersion:1,mode:'FORMAL_L0_CAUSAL_WARMUP_DAILY_ONLY',sessionDate,partition,evaluationPartition:false,planSha256:auth.planSha256,privateCacheRoot:auth.privateCacheRoot,daily,masterRequests:0,minuteRequests:0,manifestSha256:sha(JSON.stringify({sessionDate,partition,evaluationPartition:false,daily:daily.aggregateSha256,planSha256:auth.planSha256}))});
+}
+
+export default {fetchJquantsPages,acquireFormalL0Session,acquireFormalL0WarmupDaily};

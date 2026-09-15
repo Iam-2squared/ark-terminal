@@ -12,6 +12,8 @@
 - 🟢 Exact clean-205 session identifiers frozen without outcome inspection
 - 🟢 Formal L0 acquisition/admission/census path implemented and tested with zero provider requests
 - 🟢 Causal 1m -> 5m, evaluator-only L1 labels, shared replay interface and four-stage comparison harness implemented
+- 🟢 Development-only L1 full-cross-section builder and L2 ridge candidate selection/freeze path implemented
+- 🟢 Formal L0 private-cache loader verifies page/aggregate hashes and runs A/B without manual stitching
 - 🔴 New J-Quants Historical acquisition remains blocked
 
 ## Research objective
@@ -38,6 +40,8 @@ This is not a SHORT-off patch to the current selector. The new line must discove
 ## Data strategy
 
 L0 uses only Daily + dated PIT Master. Minute requests remain zero until L1 is explicitly released.
+
+The 205 evaluation sessions require 205 dated Master requests and 206 Daily requests. The one extra Daily request is the non-evaluation `2024-09-09` causal warm-up needed to calculate the adjusted close-to-close return for the first Development A session. Total Formal L0 budget is therefore 411 base requests, with zero Minute requests.
 
 When minute data is authorized, it is not a Selector-only asset. The same immutable raw payload must remain reusable for Selector, Entry, EXIT, Capital Allocation and integrated portfolio replay.
 
@@ -87,9 +91,10 @@ No credential value has been read or committed.
 ## Remaining acquisition blockers
 
 - confirm a private user-only cache outside the public GitHub repository;
-- pass the mandatory cancellation purge dry-run;
 - confirm API credential availability in the intended runtime without exposing it;
 - explicit operator acquisition approval outside the committed plan.
+
+The purge mechanism is implemented and tested; no additional per-request purge approval is required.
 
 Official storage/deletion terms were verified on 2026-09-15. Daily/Master raw and reversible derivatives must be purged by 2026-10-06 19:02 JST; Minute/causal-5m material by 19:07 JST. The current Work process has no J-Quants credential, and no value was requested or observed.
 
@@ -122,4 +127,4 @@ Research should move quickly enough to complete the LONG-only integrated candida
 
 ## Immediate next action
 
-Clear the four remaining gates (private cache destination, tested purge dry-run, credential presence and plan-SHA-bound operator approval), acquire Daily + dated Master once into private immutable cache, mount Development A only, and run Formal L0. Minute acquisition remains zero until L1 block release.
+Clear the three remaining gates (private cache destination, credential presence and plan-SHA-bound operator approval), acquire the 205-session Daily + dated Master set plus one Daily-only causal warm-up into private immutable cache, mount Development A only, and run Formal L0 with `scripts/run_phase57_long_only_formal_l0_from_cache.mjs`. Minute acquisition remains zero until L1 block release.

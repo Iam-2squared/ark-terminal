@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "planId": "PHASE57_LONG_ONLY_INTEGRATED_DATA_CONTRACT_V3",
-  "status": "BLOCKED_PENDING_PRIVATE_CACHE_PURGE_CREDENTIAL_AND_OPERATOR_APPROVAL",
+  "status": "BLOCKED_PENDING_PRIVATE_CACHE_CREDENTIAL_AND_OPERATOR_APPROVAL",
   "newJquantsAcquisitionAuthorized": false,
   "auditedAt": "2026-09-15",
   "officialContract": {
@@ -36,7 +36,7 @@
   "historicalImplementationAudit": {
     "main": {"capability": "TDNET_DISCLOSURES_ONLY", "dailyMinuteMasterHistoricalPipelinePresent": false},
     "allRemoteBranchesSearched": true,
-    "finding": "REUSABLE_MINUTE_MASTER_DAILY_PIPELINE_EXISTS_ON_HISTORICAL_RESEARCH_BRANCHES",
+    "finding": "HISTORICAL_BRANCHES_CONTAIN_REUSABLE_ADAPTER_PATTERNS_AND_EVALUATORS_BUT_NO_COMPLETE_CURRENTLY_REUSABLE_DAILY_MINUTE_MASTER_ACQUISITION_PIPELINE",
     "canonicalMinuteAdapter": {
       "ref": "research/phase57-selector-capacity-v2",
       "refSha": "63edf641f871be20cbd8518cec44392d12e74b16",
@@ -103,6 +103,7 @@
     "requiredDailyFields": ["Date", "Code", "AdjC", "AdjFactor", "ExRT", "Vo", "Va"],
     "requiredMasterFields": ["Date", "Code", "Mkt", "ProdCat"],
     "returnDefinition": "100 * (ADJUSTED_CLOSE_T / ADJUSTED_CLOSE_T_MINUS_1 - 1)",
+    "causalWarmup": {"sessionDate": "2024-09-09", "evaluationPartition": false, "dailyRequests": 1, "masterRequests": 0, "purpose": "PRIOR_ADJUSTED_CLOSE_FOR_FIRST_DEVELOPMENT_A_SESSION_ONLY"},
     "thresholdsPct": [3, 5, 10],
     "countsAndEligibleUniverseRatesBothRequired": true,
     "developmentDefinitionBlock": "DEVELOPMENT_A",
@@ -225,7 +226,7 @@
   },
   "dataBudget": {
     "planningUniverseSymbols": 3700,
-    "clean205DailyMaster": {"sessions": 205, "eligibleSymbolSessionRowsApprox": 758500, "baseApiRequests": 410, "minuteRequests": 0},
+    "clean205DailyMaster": {"sessions": 205, "warmupDailySessions": 1, "eligibleSymbolSessionRowsApprox": 758500, "dailyRequests": 206, "masterRequests": 205, "baseApiRequests": 411, "minuteRequests": 0},
     "development80IntradayUpperPlan": {
       "sessions": 80,
       "planningPolicy": "DO_NOT_ACQUIRE_ALL_UPFRONT_RELEASE_BY_BLOCK_AND_REUSE_FOR_INTEGRATED_REPLAY",
@@ -285,7 +286,7 @@
     "exactCurrentEntitlementReattested": true,
     "storageDeletionTermsReattested": true,
     "privateCacheDestinationConfirmed": false,
-    "postCancellationPurgeMechanismTested": false,
+    "postCancellationPurgeMechanismTested": true,
     "freshExactDatesFrozen": false,
     "freshSelectionRuleFrozen": true,
     "credentialAvailabilityConfirmed": false,

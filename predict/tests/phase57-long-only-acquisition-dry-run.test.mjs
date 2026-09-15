@@ -5,20 +5,21 @@ import {buildLongOnlyAcquisitionDryRun} from '../long-only/phase57-long-only-acq
 
 const loadPlan=()=>JSON.parse(fs.readFileSync(new URL('../long-only/phase57-long-only-data-plan.json',import.meta.url),'utf8'));
 
-test('dry-run plans all 205 historical sessions without authorizing acquisition',()=>{
+test('dry-run plans 205 historical sessions plus one causal warmup Daily without authorizing acquisition',()=>{
   const result=buildLongOnlyAcquisitionDryRun(loadPlan());
   assert.equal(result.mode,'DRY_RUN_ZERO_NETWORK');
   assert.equal(result.acquisitionMayStart,false);
   assert.equal(result.historicalSessions,205);
-  assert.equal(result.requests.daily,205);
+  assert.equal(result.requests.daily,206);
   assert.equal(result.requests.master,205);
   assert.equal(result.requests.minutePages,0);
-  assert.equal(result.requests.total,410);
+  assert.equal(result.requests.total,411);
+  assert.deepEqual(result.causalWarmup,{sessionDate:'2024-09-09',evaluationPartition:false,dailyRequests:1});
   assert.equal(result.selectorOnlyConsumptionProhibited,true);
   assert.deepEqual(result.integratedReuse,['SELECTOR','ENTRY','EXIT','ALLOCATION','PORTFOLIO_REPLAY']);
   assert.ok(!result.missingGates.includes('storageDeletionTermsReattested'));
   assert.ok(result.missingGates.includes('privateCacheDestinationConfirmed'));
-  assert.ok(result.missingGates.includes('postCancellationPurgeMechanismTested'));
+  assert.ok(!result.missingGates.includes('postCancellationPurgeMechanismTested'));
   assert.ok(!result.missingGates.includes('freshSelectionRuleFrozen'));
   assert.ok(result.missingGates.includes('credentialAvailabilityConfirmed'));
   assert.ok(result.missingGates.includes('operatorExplicitAcquisitionApproval'));

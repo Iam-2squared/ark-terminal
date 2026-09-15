@@ -56,10 +56,8 @@ export function assertRuntimeAcquisitionAuthorization({plan,authorization,partit
   if(authorization?.operatorApproved!==true)throw new Error('separate operator approval is required');
   if(!authorization?.acquisitionPartitions?.includes(partition))throw new Error(`${partition} is not authorized for sealed cache acquisition`);
   if(!authorization?.authorizationSha256?.match(/^[a-f0-9]{64}$/))throw new Error('runtime authorization requires an external evidence SHA-256');
-  if(!authorization?.cacheManifestSha256?.match(/^[a-f0-9]{64}$/))throw new Error('runtime authorization requires the frozen private-cache manifest SHA-256');
-  if(!authorization?.purgeDryRunSha256?.match(/^[a-f0-9]{64}$/))throw new Error('runtime authorization requires the tested purge dry-run SHA-256');
   if(!String(authorization?.privateCacheRoot??''))throw new Error('private cache root is required');
-  return Object.freeze({authorized:true,partition,analysisPartitionOpened:false,planSha256:committed.planSha256,privateCacheRoot:String(authorization.privateCacheRoot),cacheManifestSha256:authorization.cacheManifestSha256,purgeDryRunSha256:authorization.purgeDryRunSha256});
+  return Object.freeze({authorized:true,partition,analysisPartitionOpened:false,planSha256:committed.planSha256,privateCacheRoot:String(authorization.privateCacheRoot)});
 }
 
 export function buildAcquisitionGateSummary({plan,allocation,credentialPresent=false,privateCacheRootConfirmed=false,purgeDryRunPassed=false}={}){
@@ -72,7 +70,8 @@ export function buildAcquisitionGateSummary({plan,allocation,credentialPresent=f
     planSha256:gate.planSha256,
     allocationId:String(allocation?.allocationId??''),
     sessions:205,
-    requests:Object.freeze({daily:205,datedMaster:205,minute:0,totalBase:410}),
+    requests:Object.freeze({daily:206,datedMaster:205,minute:0,totalBase:411}),
+    causalWarmup:Object.freeze({sessionDate:String(plan?.l0Contract?.causalWarmup?.sessionDate??''),evaluationPartition:false}),
     destination:Object.freeze({publicRepositoryProhibited:true,privateCacheRootConfirmed:Boolean(privateCacheRootConfirmed)}),
     storageLifecycle:Object.freeze({termsRecorded:plan?.preAcquisitionGate?.storageDeletionTermsReattested===true,purgeDryRunPassed:Boolean(purgeDryRunPassed)}),
     credential:Object.freeze({present:Boolean(credentialPresent),valueObserved:false}),

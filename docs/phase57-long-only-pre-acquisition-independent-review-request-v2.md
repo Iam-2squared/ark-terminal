@@ -19,13 +19,13 @@
 - Primary OOS = 30
 - Contingency OOS = 30
 - Admission Reserve = 15
-- L0はDaily + dated PIT Masterのみ（205 + 205 = 410 base requests、minute 0）
+- L0はDaily + dated PIT Masterのみ（評価205日 + 初日リターン用の評価外Daily warm-up 1日 = Daily 206、Master 205、計411 base requests、minute 0）
 - L1以降のminuteはreleased Development blockのみ。rawはSelector/Entry/EXIT/Allocation/Portfolioで共用
 - Validation/OOS/Reserveはsealed
 
 ## Storage Contract
 
-公式J-Quants規約では、契約中は本人のみ閲覧可能な外部cloud保存が可能ですが、解約/ダウングレード後はraw、複製物、元データを復元可能な派生物を削除する必要があります。Daily/Masterは2026-10-06 19:02 JST、Minute/causal 5mは19:07 JSTをpurge deadlineとして固定しました。public GitHub保存は禁止です。private cache destinationとpurge dry-run、credential存在、operator approvalは未完了のため取得はBLOCKEDです。
+公式J-Quants規約では、契約中は本人のみ閲覧可能な外部cloud保存が可能ですが、解約/ダウングレード後はraw、複製物、元データを復元可能な派生物を削除する必要があります。Daily/Masterは2026-10-06 19:02 JST、Minute/causal 5mは19:07 JSTをpurge deadlineとして固定しました。public GitHub保存は禁止です。purge機構は実装・テスト済みで、private cache destination、credential存在、operator approvalが未完了のため取得はBLOCKEDです。
 
 ## L1/L2 Contract
 

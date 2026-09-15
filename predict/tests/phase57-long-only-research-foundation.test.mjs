@@ -68,6 +68,7 @@ test('reviewed data plan conserves all 205 clean sessions and reserves 15 for ad
   assert.equal(plan.currentEntitlementEvidence.basePlanActive,true);
   assert.equal(plan.currentEntitlementEvidence.minuteAddonActive,true);
   assert.equal(plan.l0Contract.intradayDataRequired,false);
+  assert.deepEqual(plan.l0Contract.causalWarmup,{sessionDate:'2024-09-09',evaluationPartition:false,dailyRequests:1,masterRequests:0,purpose:'PRIOR_ADJUSTED_CLOSE_FOR_FIRST_DEVELOPMENT_A_SESSION_ONLY'});
   assert.equal(plan.datasetSplit.development.totalSessions,80);
   assert.deepEqual(Object.values(plan.datasetSplit.development.blocks).map(block=>block.sessions),[25,15,20,20]);
   assert.equal(plan.datasetSplit.reserve.sessions,15);
@@ -103,7 +104,8 @@ test('acquisition gate remains fail-closed after entitlement and Claude re-attes
   assert.equal(plan.preAcquisitionGate.claudeIndependentReviewReceived,true);
   assert.equal(plan.preAcquisitionGate.claudeCriticalBlockersResolved,true);
   assert.ok(!gate.missing.includes('storageDeletionTermsReattested'));
-  for(const key of ['privateCacheDestinationConfirmed','postCancellationPurgeMechanismTested','credentialAvailabilityConfirmed','operatorExplicitAcquisitionApproval'])assert.ok(gate.missing.includes(key));
+  for(const key of ['privateCacheDestinationConfirmed','credentialAvailabilityConfirmed','operatorExplicitAcquisitionApproval'])assert.ok(gate.missing.includes(key));
+  assert.ok(!gate.missing.includes('postCancellationPurgeMechanismTested'));
   for(const key of ['integratedDataReuseContractFrozen','humanOverfittingControlsFrozen','independentReviewDispositionFrozen'])assert.ok(!gate.missing.includes(key));
   assert.match(gate.planSha256,/^[a-f0-9]{64}$/);
   assert.equal(REQUIRED_PHASE57_LONG_ONLY_ACQUISITION_GATES.length,22);

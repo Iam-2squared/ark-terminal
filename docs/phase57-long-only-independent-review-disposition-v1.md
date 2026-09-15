@@ -98,12 +98,12 @@ No secret/API-key value was observed or recorded.
 
 ## Remaining blockers before acquisition
 
-- storage/deletion terms after cancellation must be re-attested;
-- Fresh exact dates must be frozen;
-- operator must explicitly authorize acquisition outside the committed plan.
+- private user-only cache destination must be confirmed outside the public repository;
+- API credential presence must be confirmed without observing its value;
+- operator must explicitly authorize the exact plan SHA and request budget outside the committed plan.
 
 Until then `newJquantsAcquisitionAuthorized=false` and all new J-Quants Historical acquisition remains blocked.
 
 ## Final review state
 
-The independent-review blocker is resolved at the contract level. This does not authorize data acquisition. The remaining gate is operational and contractual: storage terms, exact Fresh dates, and explicit operator authorization.
+The independent-review blocker, storage terms, purge tooling and prospective Fresh selection rule are resolved at the contract level. This does not authorize data acquisition. Exact Fresh dates are recorded mechanically as future sessions occur; they are not a historical-acquisition blocker. The remaining blockers are the private destination, credential presence and explicit operator authorization.

@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {createHash} from 'node:crypto';
 import test from 'node:test';
 import {assembleLongOnlyL0Rows,normalizeAndAggregateMinuteRows,createIntegratedResearchDataset} from '../long-only/phase57-long-only-integrated-dataset.js';
 import {buildCausalL1Features,buildEvaluatorOnlyL1Label,evaluateEarlyWinnerDiscovery,assignCausalLiquidityBuckets} from '../long-only/phase57-long-only-l1-labels-features.js';
@@ -7,6 +10,7 @@ import {compareLongOnlyIntegratedSystems,COMPARISON_STAGES} from '../long-only/p
 import {acquireFormalL0Session,fetchJquantsPages} from '../long-only/phase57-long-only-jquants-client.js';
 import {replayLongOnlyIntegratedStages} from '../long-only/phase57-long-only-replay-interface.js';
 import {buildEvaluatorOnlyL2Targets,assertL2SelectionBoundary,L2_CANDIDATE_CONTRACT} from '../long-only/phase57-long-only-l2-candidate-contract.js';
+import {loadFormalL0PartitionFromCache} from '../long-only/phase57-long-only-l0-cache.js';
 
 test('frozen split names exactly 205 unique outcome-unread historical sessions',()=>{
   const allocation=JSON.parse(fs.readFileSync(new URL('../long-only/phase57-long-only-session-allocation-v3.json',import.meta.url),'utf8'));
@@ -24,6 +28,24 @@ test('daily plus dated master is sufficient for formal L0 and audits exclusions'
   const masterRows=[{Date:'2024-01-03',Code:'11110',Mkt:'0111',ProdCat:'011'},{Date:'2024-01-04',Code:'11110',Mkt:'0111',ProdCat:'011'}];
   const result=assembleLongOnlyL0Rows({dailyRows,masterRows});
   assert.equal(result.rows.length,1);assert.equal(result.rows[0].adjustedPreviousClose,100);assert.equal(result.rows[0].segment,'PRIME');assert.equal(result.audit.exclusionCounts.NOT_ELIGIBLE_PIT_COMMON_EQUITY,1);
+});
+
+test('Formal L0 cache loader verifies immutable pages and preserves every Development A session with causal warmup',()=>{
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),'phase57-l0-cache-')),base=path.join(root,'phase57-long-only','raw','jquants-v2');
+  const writeSession=(sessionDate,kind,rows,manifestName='l0-manifest.json')=>{
+    const dir=path.join(base,sessionDate);fs.mkdirSync(dir,{recursive:true});
+    const responseText=JSON.stringify({data:rows}),responseSha256=createHash('sha256').update(responseText).digest('hex');
+    const pages=[{page:1,responseSha256,responseText,payload:{data:rows}}],aggregateSha256=createHash('sha256').update(JSON.stringify([responseSha256])).digest('hex');
+    fs.writeFileSync(path.join(dir,`${kind}-pages.json`),JSON.stringify(pages));
+    const manifestPath=path.join(dir,manifestName),existing=fs.existsSync(manifestPath)?JSON.parse(fs.readFileSync(manifestPath,'utf8')):{};
+    fs.writeFileSync(manifestPath,JSON.stringify({...existing,sessionDate,partition:'DEVELOPMENT_A',evaluationPartition:manifestName.includes('warmup')?false:undefined,manifestSha256:'a'.repeat(64),[kind]:{pageCount:1,aggregateSha256}}));
+  };
+  writeSession('2024-09-09','daily',[{Date:'2024-09-09',Code:'11110',AdjC:100}],'l0-warmup-manifest.json');
+  writeSession('2024-09-10','daily',[{Date:'2024-09-10',Code:'11110',AdjC:106,AdjFactor:1,Vo:10,Va:1060}]);
+  writeSession('2024-09-10','master',[{Date:'2024-09-10',Code:'11110',Mkt:'0111',ProdCat:'011'}]);
+  const result=loadFormalL0PartitionFromCache({cacheRoot:root,partition:'DEVELOPMENT_A',plan:{l0Contract:{causalWarmup:{sessionDate:'2024-09-09'}}},allocation:{partitions:{DEVELOPMENT_A:['2024-09-10']}}});
+  assert.equal(result.rows.length,1);assert.equal(result.rows[0].adjustedPreviousClose,100);assert.equal(result.admissionAudit.warmupDailyRows,1);
+  fs.rmSync(root,{recursive:true,force:true});
 });
 
 const minuteRows=[

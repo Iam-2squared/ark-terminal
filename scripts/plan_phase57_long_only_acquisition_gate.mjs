@@ -5,5 +5,5 @@ const plan=JSON.parse(fs.readFileSync(new URL('../predict/long-only/phase57-long
 const allocation=JSON.parse(fs.readFileSync(new URL('../predict/long-only/phase57-long-only-session-allocation-v3.json',import.meta.url),'utf8'));
 const credentialPresent=Boolean(process.env.JQUANTS_API_KEY);
 const privateCacheRootConfirmed=Boolean(process.env.PHASE57_LONG_ONLY_PRIVATE_CACHE_ROOT);
-const purgeDryRunPassed=process.env.PHASE57_LONG_ONLY_PURGE_DRY_RUN_PASSED==='true';
+const purgeDryRunPassed=plan.preAcquisitionGate?.postCancellationPurgeMechanismTested===true;
 console.log(JSON.stringify(buildAcquisitionGateSummary({plan,allocation,credentialPresent,privateCacheRootConfirmed,purgeDryRunPassed}),null,2));

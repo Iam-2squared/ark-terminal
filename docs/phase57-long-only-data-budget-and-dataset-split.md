@@ -30,9 +30,10 @@ New Historical acquisition is still blocked. The branch must not start J-Quants 
 Remaining blockers:
 
 1. Confirm a private user-only cache destination outside the public repository.
-2. Pass a no-delete purge dry-run covering raw data, copies and reverse-engineerable derivatives at the applicable cancellation deadlines.
-3. Confirm that the API credential is available in the intended runtime without exposing its value.
-4. Receive separate explicit operator authorization at runtime.
+2. Confirm that the API credential is available in the intended runtime without exposing its value.
+3. Receive separate explicit operator authorization at runtime.
+
+The no-delete purge mechanism is implemented and tested. It remains an operating obligation, not another approval layer for every request.
 
 Fresh exact dates are not a historical-acquisition blocker: future sessions cannot be named in advance. The prospective selection rule is frozen instead (`next JPX sessions in calendar order`). Exact Fresh identifiers are recorded mechanically as those sessions occur.
 
@@ -161,7 +162,7 @@ Every acquired Daily/Master raw object receives a per-session storage-lifecycle 
 
 ## Data budget
 
-Daily + Master for the 205 clean historical sessions remains light compared with intraday data. Intraday is released by partition, not acquired for all 205 upfront.
+Daily + Master for the 205 clean historical sessions remains light compared with intraday data. One additional Daily-only, non-evaluation warm-up session (`2024-09-09`) supplies the prior adjusted close required to retain the first Development A session. Intraday is released by partition, not acquired for all 205 upfront.
 
 Current planning upper bound for Development 80 intraday sessions, extrapolated from the prior 90-session audit:
 
@@ -197,6 +198,6 @@ Therefore:
 
 1. Clear the remaining non-data blockers.
 2. Get explicit operator acquisition approval with the committed-plan SHA and sealed-cache partitions.
-3. Acquire Daily + dated Master once into private immutable storage (410 base requests for all 205 historical sessions; minute = 0).
+3. Acquire Daily + dated Master once into private immutable storage (Daily 206 including one non-evaluation warm-up, dated Master 205, 411 base requests; minute = 0).
 4. Mount Development A only and run Formal L0; then mount Development B for locked replication.
 5. Release Development intraday by block only after L0 and reuse it across L1/L2/Entry/EXIT/Allocation.

@@ -8,7 +8,7 @@ const codeOf=row=>String(row?.Code??row?.code??row?.symbol??'').trim().toUpperCa
 const dateOf=row=>String(row?.Date??row?.date??row?.sessionDate??'');
 const number=(row,...keys)=>{for(const key of keys){const value=Number(row?.[key]);if(Number.isFinite(value))return value;}return NaN;};
 
-export function assembleLongOnlyL0Rows({dailyRows=[],masterRows=[]}={}){
+export function assembleLongOnlyL0Rows({dailyRows=[],masterRows=[],warmupDailyRows=[]}={}){
   assertLongOnlyResearchContract();
   const master=new Map();
   for(const row of masterRows){
@@ -16,7 +16,12 @@ export function assembleLongOnlyL0Rows({dailyRows=[],masterRows=[]}={}){
     if(date&&code&&!master.has(`${date}|${code}`))master.set(`${date}|${code}`,{segment,commonEquity:String(row?.ProdCat??row?.productCategory??'')==='011'});
   }
   const sorted=[...dailyRows].sort((a,b)=>dateOf(a).localeCompare(dateOf(b))||codeOf(a).localeCompare(codeOf(b)));
-  const previousByCode=new Map(),seen=new Set(),rows=[],exclusions=[];
+  const previousByCode=new Map();
+  for(const row of [...warmupDailyRows].sort((a,b)=>dateOf(a).localeCompare(dateOf(b))||codeOf(a).localeCompare(codeOf(b)))){
+    const symbol=codeOf(row),adjustedClose=number(row,'AdjC','adjustedClose');
+    if(symbol&&Number.isFinite(adjustedClose)&&adjustedClose>0)previousByCode.set(symbol,adjustedClose);
+  }
+  const seen=new Set(),rows=[],exclusions=[];
   const reject=(sessionDate,symbol,reason)=>exclusions.push(Object.freeze({sessionDate,symbol,reason}));
   for(const row of sorted){
     const sessionDate=dateOf(row),symbol=codeOf(row),key=`${sessionDate}|${symbol}`,adjustedClose=number(row,'AdjC','adjustedClose');
@@ -35,7 +40,7 @@ export function assembleLongOnlyL0Rows({dailyRows=[],masterRows=[]}={}){
     }));
   }
   const reasons=Object.fromEntries([...new Set(exclusions.map(x=>x.reason))].sort().map(reason=>[reason,exclusions.filter(x=>x.reason===reason).length]));
-  return Object.freeze({rows:Object.freeze(rows),audit:Object.freeze({inputDailyRows:dailyRows.length,inputMasterRows:masterRows.length,eligibleRows:rows.length,excludedRows:exclusions.length,exclusionCounts:Object.freeze(reasons),exclusions:Object.freeze(exclusions),corporateActionFlaggedRows:rows.filter(x=>x.corporateActionFlag).length})});
+  return Object.freeze({rows:Object.freeze(rows),audit:Object.freeze({inputDailyRows:dailyRows.length,inputMasterRows:masterRows.length,warmupDailyRows:warmupDailyRows.length,eligibleRows:rows.length,excludedRows:exclusions.length,exclusionCounts:Object.freeze(reasons),exclusions:Object.freeze(exclusions),corporateActionFlaggedRows:rows.filter(x=>x.corporateActionFlag).length})});
 }
 
 const minutes=(hhmm)=>{const [h,m]=String(hhmm).slice(0,5).split(':').map(Number);return h*60+m;};

@@ -11,6 +11,7 @@ import {acquireFormalL0Session,fetchJquantsPages} from '../long-only/phase57-lon
 import {replayLongOnlyIntegratedStages} from '../long-only/phase57-long-only-replay-interface.js';
 import {buildEvaluatorOnlyL2Targets,assertL2SelectionBoundary,L2_CANDIDATE_CONTRACT} from '../long-only/phase57-long-only-l2-candidate-contract.js';
 import {loadFormalL0PartitionFromCache} from '../long-only/phase57-long-only-l0-cache.js';
+import {buildL1DiscoveryReport} from '../long-only/phase57-long-only-l1-discovery-report.js';
 
 test('frozen split names exactly 205 unique outcome-unread historical sessions',()=>{
   const allocation=JSON.parse(fs.readFileSync(new URL('../long-only/phase57-long-only-session-allocation-v3.json',import.meta.url),'utf8'));
@@ -81,6 +82,16 @@ test('L1 decision features cannot see evaluator-only future path',()=>{
   assert.throws(()=>assertL2SelectionBoundary({partition:'VALIDATION',targetCount:1,modelFamilyCount:1}),/Development C\/D/);
   assert.equal(L2_CANDIDATE_CONTRACT.validationMaySelectTarget,false);
   assert.throws(()=>buildCausalL1Features({sessionDate:'2024-01-04',symbol:'11110',decisionTimeJst:'09:30',bars5m:bars,previousAdjustedClose:100,corporateActionFlag:true}),/corporate-action/);
+});
+
+test('L1 discovery report compares winners with full-cross-section negative controls',()=>{
+  const base={sessionDate:'2024-09-10',decisionTimeJst:'10:00',segment:'PRIME',liquidityBucket:'HIGH',gapBucket:'NON_GAP',currentReturnPct:1.5,momentum5Pct:1,momentum15Pct:1,marketBreadthPositivePct:50,sectorBreadthPositivePct:50};
+  const featureRows=[{...base,symbol:'1000'},{...base,symbol:'2000',currentReturnPct:0.1}];
+  const evaluatorOnlyLabels=[{sessionDate:'2024-09-10',symbol:'1000',decisionTimeJst:'10:00',evaluatorOnly:true,winner:true,largeWinner:false,finalClass:'FINAL_GTE5',remainingUpsidePct:4,futureMfePct:4,futureMaePct:-1,futureMfeAtr:2,futureMaeAtr:-.5,timeToWinnerMinutes:60,lateDetection:false,limitUpTouched:false},{sessionDate:'2024-09-10',symbol:'2000',decisionTimeJst:'10:00',evaluatorOnly:true,winner:false,largeWinner:false,finalClass:'NON_WINNER',remainingUpsidePct:1,futureMfePct:1,futureMaePct:-2,futureMfeAtr:.5,futureMaeAtr:-1,timeToWinnerMinutes:null,lateDetection:false,limitUpTouched:false}];
+  const report=buildL1DiscoveryReport({featureRows,evaluatorOnlyLabels});
+  assert.equal(report.winnerCurrentReturnBuckets['1_TO_2'].symbols,1);
+  assert.equal(report.causalFeatureDiagnostics['10:00'].topNByCausalFeature.currentReturnPct.winnerRecallPct,100);
+  assert.equal(report.contract.outcomesNeverReturnedToDecisionPipeline,true);
 });
 
 test('one immutable dataset identity is reused by selector entry exit allocation and portfolio',()=>{

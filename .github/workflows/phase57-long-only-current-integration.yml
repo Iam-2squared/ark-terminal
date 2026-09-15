@@ -15,6 +15,7 @@ permissions:
 
 jobs:
   initial-current-stack-comparison:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:

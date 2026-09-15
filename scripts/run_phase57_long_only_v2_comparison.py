@@ -16,7 +16,11 @@ def load_data(path,features):
     df=pd.read_csv(path,sep='\t',dtype={'symbol':str})
     numeric=list(dict.fromkeys(features+['y30Bps','futureMfe30Pct','futureMae30Pct','momentum5Pct','momentumAccelerationPct','pullbackDepthPct','decisionVolatilityPct','cumulativeVolume','gapPct']))
     for column in numeric: df[column]=pd.to_numeric(df[column],errors='coerce')
-    df['winner']=df['winner'].astype(int).astype(bool);df['vwapReclaim5m']=df['vwapReclaim5m'].astype(int).astype(bool)
+    df['winner']=pd.to_numeric(df['winner'],errors='coerce').fillna(0).astype(int).astype(bool)
+    # VWAP reclaim is an evaluation-only diagnostic flag.  It is undefined on
+    # rows without enough causal bar history; preserve those rows and interpret
+    # the absent event as false instead of failing the model run.
+    df['vwapReclaim5m']=pd.to_numeric(df['vwapReclaim5m'],errors='coerce').fillna(0).astype(int).astype(bool)
     if df[features+['y30Bps']].isna().any().any(): raise RuntimeError(f'non-finite model row in {path}')
     return df
 

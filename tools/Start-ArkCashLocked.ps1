@@ -16,7 +16,6 @@ if ($null -eq $wb) { throw "$WorkbookName is not open" }
 $acct = $wb.Worksheets.Item($AccountSheet)
 $excel.CalculateFull(); Start-Sleep -Milliseconds 500
 
-# Fresh READ ONLY account snapshot. No order function is invoked here.
 $positions=@()
 for($r=3;$r -le 200;$r++){
  $symbol=$acct.Cells.Item($r,38).Text; $name=$acct.Cells.Item($r,39).Text; $account=$acct.Cells.Item($r,40).Text; $qty=$acct.Cells.Item($r,41).Value2
@@ -35,23 +34,30 @@ $dir=Split-Path -Parent $SnapshotPath; New-Item -ItemType Directory -Force $dir 
 $snapshot | ConvertTo-Json -Depth 10 | Set-Content $SnapshotPath -Encoding UTF8
 
 $env:PYTHONPATH=(Resolve-Path ".\tools").Path
-$env:ARK_SNAPSHOT_PATH=$SnapshotPath
-$env:ARK_SYMBOL=$Symbol
-$env:ARK_QUANTITY=[string]$Quantity
-$env:ARK_EXTERNAL_SYMBOL=$ExternalSymbol
-$env:ARK_EXTERNAL_QUANTITY=[string]$ExternalQuantity
-$env:ARK_EST_NOTIONAL=[string]$EstimatedNotional
-$pipelineOut = @'
-import json, os
+$py = @'
+import json, sys
 from pathlib import Path
 from phase57_cash_locked_pipeline import run_locked_pipeline
-snapshot_path=Path(os.environ["ARK_SNAPSHOT_PATH"])
-with snapshot_path.open("r",encoding="utf-8-sig") as f: snapshot=json.load(f)
-intent={"symbol":os.environ["ARK_SYMBOL"],"direction":"LONG","side":"BUY","positionEffect":"OPEN","quantity":int(os.environ["ARK_QUANTITY"]),"orderType":"MARKET","limitPrice":None,"timeInForce":"DAY"}
-out=run_locked_pipeline(snapshot,external_positions=[{"symbol":os.environ["ARK_EXTERNAL_SYMBOL"],"quantity":float(os.environ["ARK_EXTERNAL_QUANTITY"])}],intent=intent,estimated_notional=float(os.environ["ARK_EST_NOTIONAL"]))
+snapshot_path=Path(sys.argv[1])
+symbol=sys.argv[2]
+quantity=int(sys.argv[3])
+external_symbol=sys.argv[4]
+external_quantity=float(sys.argv[5])
+estimated_notional=float(sys.argv[6])
+with snapshot_path.open("r",encoding="utf-8-sig") as f:
+    snapshot=json.load(f)
+intent={"symbol":symbol,"direction":"LONG","side":"BUY","positionEffect":"OPEN","quantity":quantity,"orderType":"MARKET","limitPrice":None,"timeInForce":"DAY"}
+out=run_locked_pipeline(snapshot,external_positions=[{"symbol":external_symbol,"quantity":external_quantity}],intent=intent,estimated_notional=estimated_notional)
 print(json.dumps(out,ensure_ascii=False))
-'@ | python -
-if ($LASTEXITCODE -ne 0) { throw "Locked cash Python pipeline failed with exit code $LASTEXITCODE" }
+'@
+$tmpPy = Join-Path $env:TEMP "ark_cash_locked_pipeline_tmp.py"
+Set-Content -Path $tmpPy -Value $py -Encoding UTF8
+try {
+  $pipelineOut = python $tmpPy $SnapshotPath $Symbol ([string]$Quantity) $ExternalSymbol ([string]$ExternalQuantity) ([string]$EstimatedNotional)
+  if ($LASTEXITCODE -ne 0) { throw "Locked cash Python pipeline failed with exit code $LASTEXITCODE" }
+} finally {
+  Remove-Item $tmpPy -Force -ErrorAction SilentlyContinue
+}
 $pipeline = $pipelineOut | ConvertFrom-Json
 if ($null -eq $pipeline -or -not $pipeline.status) { throw "Locked cash pipeline returned no status" }
 

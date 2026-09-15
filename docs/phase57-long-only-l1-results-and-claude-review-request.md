@@ -128,6 +128,12 @@ Proposed acquisition scope:
 
 Use four encrypted 10-session checkpoints. Stop when all fixed sessions are accounted for or the ceiling is reached. Do not acquire Validation or OOS.
 
+| Fixed scope | Calendar range | Session-list SHA-256 |
+|---|---|---|
+| Development C | 2024-11-11 to 2024-12-06 | `91a8ef84391f96c2f0043d9f86fc9def044651b4189138aed135a2ba79750e84` |
+| Development D | 2024-12-09 to 2025-01-09 | `138a50f0245b9f2eddf690f6b9fc1e36e8ca92eb6d3efa5319a6270cc5a1cfc9` |
+| C + D | 40 fixed sessions | `9abbc28870b8885cab2b68ae2d2f3e6ef4511b5f687dc553ddcd9e0255b0281c` |
+
 ---
 
 # Claude Independent Review Request

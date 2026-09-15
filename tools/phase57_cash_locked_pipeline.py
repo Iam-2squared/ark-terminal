@@ -8,9 +8,27 @@ from phase57_cash_micro_live_gate import build_micro_live_preflight
 from phase57_locked_excel_adapter import build_locked_excel_interface
 
 
-def run_locked_pipeline(snapshot, *, external_positions, intent, estimated_notional, daily_realized_pnl=0, max_order_notional=500000, max_daily_loss=10000, now=None):
+def run_locked_pipeline(
+    snapshot,
+    *,
+    external_positions,
+    intent,
+    estimated_notional,
+    ark_managed_positions=None,
+    daily_realized_pnl=0,
+    max_order_notional=500000,
+    max_daily_loss=10000,
+    now=None,
+):
     current=now or datetime.now(timezone.utc)
-    recon=reconcile_account_snapshot(snapshot, ark_positions=[], external_positions=external_positions, now=current, max_age_seconds=30)
+    managed=list(ark_managed_positions or [])
+    recon=reconcile_account_snapshot(
+        snapshot,
+        ark_positions=managed,
+        external_positions=external_positions,
+        now=current,
+        max_age_seconds=30,
+    )
     if recon["status"] != "RECONCILIATION_PASS":
         return {"status":"BLOCKED","stage":"G6","reconciliation":recon}
     draft=build_locked_cash_order_draft(recon,intent,order_id=1,account_type=0,sor=0)
@@ -30,7 +48,12 @@ def run_locked_pipeline(snapshot, *, external_positions, intent, estimated_notio
     )
     if not candidate["eligible"]:
         return {"status":"BLOCKED","stage":"G9","reconciliation":recon,"draft":draft,"candidate":candidate}
-    preflight=build_micro_live_preflight(unlock_candidate=candidate,draft=draft,ark_managed_positions=[],open_order_count=len(snapshot.get("orders") or []))
+    preflight=build_micro_live_preflight(
+        unlock_candidate=candidate,
+        draft=draft,
+        ark_managed_positions=managed,
+        open_order_count=len(snapshot.get("orders") or []),
+    )
     if not preflight["readyForPhysicalUnlock"]:
         return {"status":"BLOCKED","stage":"G10","reconciliation":recon,"draft":draft,"candidate":candidate,"preflight":preflight}
     interface=build_locked_excel_interface(preflight=preflight,draft=draft,buying_power=snapshot.get("buyingPower"))

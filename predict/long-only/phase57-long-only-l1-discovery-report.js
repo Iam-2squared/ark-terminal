@@ -50,7 +50,8 @@ export function buildL1DiscoveryReport({featureRows=[],evaluatorOnlyLabels=[],au
   const joined=evaluatorOnlyLabels.flatMap(label=>{const feature=features.get(`${label.sessionDate}|${label.symbol}|${label.decisionTimeJst}`);return feature?[Object.freeze({...feature,...label,currentReturnBucket:returnBucket(Number(feature.currentReturnPct))})]:[];});
   if(joined.some(row=>row.evaluatorOnly!==true))throw new Error('L1 report requires physically separated evaluator labels');
   const winners=joined.filter(row=>row.winner),largeWinners=joined.filter(row=>row.largeWinner);
-  const firstDecisionRows=[...joined].sort((a,b)=>a.decisionTimeJst.localeCompare(b.decisionTimeJst)).filter((row,index,all)=>index===all.findIndex(x=>x.sessionDate===row.sessionDate&&x.symbol===row.symbol));
+  const seenSymbolSessions=new Set();
+  const firstDecisionRows=[...joined].sort((a,b)=>a.decisionTimeJst.localeCompare(b.decisionTimeJst)).filter(row=>{const key=`${row.sessionDate}|${row.symbol}`;if(seenSymbolSessions.has(key))return false;seenSymbolSessions.add(key);return true;});
   const comparisonCohorts=Object.freeze({
     finalWinner:summarize(joined.filter(row=>row.winner)),
     nearWinner3To5:summarize(joined.filter(row=>row.finalClass==='NEAR_3_TO_5')),

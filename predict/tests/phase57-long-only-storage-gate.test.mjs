@@ -68,3 +68,14 @@ test('Formal L0 workflow reuses repository secret and never uploads plaintext ra
   assert.doesNotMatch(workflow,/path:\s*\$RUNNER_TEMP\/phase57-l0-cache/);
   assert.match(workflow,/retention-days: 7/);
 });
+
+test('L0 replication reuses encrypted cache without another provider acquisition',()=>{
+  const workflow=fs.readFileSync(new URL('../../.github/workflows/phase57-long-only-l0-replication.yml',import.meta.url),'utf8');
+  assert.match(workflow,/actions\/download-artifact@v4/);
+  assert.match(workflow,/SOURCE_RUN_ID: 34916384636/);
+  assert.match(workflow,/openssl enc -d -aes-256-cbc/);
+  assert.match(workflow,/--partition DEVELOPMENT_B/);
+  assert.doesNotMatch(workflow,/acquire_phase57_long_only_l0/);
+  assert.doesNotMatch(workflow,/equities\/bars\/minute/);
+  assert.match(workflow,/retention-days: 21/);
+});

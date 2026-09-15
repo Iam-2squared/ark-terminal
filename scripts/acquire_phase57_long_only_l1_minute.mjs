@@ -6,8 +6,10 @@ import {fetchJquantsPages} from '../predict/long-only/phase57-long-only-jquants-
 const arg=name=>{const index=process.argv.indexOf(name);return index<0?null:process.argv[index+1];};
 const cacheRoot=path.resolve(arg('--cache-root')??'');
 const maximumRequests=Number(arg('--maximum-requests')??550);
+const shardIndex=arg('--shard-index')===null?null:Number(arg('--shard-index'));
+const shardCount=arg('--shard-count')===null?null:Number(arg('--shard-count'));
 const summaryPath=path.resolve(arg('--summary')??path.join(cacheRoot,'l1-minute-acquisition-summary.json'));
-if(!cacheRoot||!Number.isInteger(maximumRequests)||maximumRequests!==550)throw new Error('approved L1 acquisition requires --cache-root and --maximum-requests 550');
+if(!cacheRoot||!Number.isInteger(maximumRequests)||maximumRequests<1)throw new Error('L1 acquisition requires --cache-root and a positive request ceiling');
 const apiKey=process.env.JQUANTS_API_KEY;if(!apiKey)throw new Error('JQUANTS_API_KEY is unavailable');
 const allocation=JSON.parse(fs.readFileSync(new URL('../predict/long-only/phase57-long-only-session-allocation-v3.json',import.meta.url),'utf8'));
 const partitions=['DEVELOPMENT_A','DEVELOPMENT_B'];
@@ -15,10 +17,15 @@ const approvedSessions=partitions.flatMap(partition=>allocation.partitions[parti
 const approvedSessionHash='6bc10cf3f55eb4cfcf0e5ffec65d2ccb50a633ca19c88c94a2f78c981945c2cd';
 const actualSessionHash=createHash('sha256').update(JSON.stringify(approvedSessions.map(x=>x.sessionDate))).digest('hex');
 if(approvedSessions.length!==40||actualSessionHash!==approvedSessionHash)throw new Error('Development A+B session list differs from operator approval');
+const sharded=shardIndex!==null||shardCount!==null;
+if(sharded&&(!Number.isInteger(shardIndex)||!Number.isInteger(shardCount)||shardCount!==4||shardIndex<0||shardIndex>=shardCount))throw new Error('checkpointed retry requires one of four fixed shards');
+if(!sharded&&maximumRequests!==550)throw new Error('unsharded approved L1 acquisition requires --maximum-requests 550');
 // Newest-first prevents an expired rolling-window boundary from blocking dates
 // that remain available. 2024-09-10 already returned HTTP 400 in run
 // 34920375454 and is not requested twice.
-const sessions=[...approvedSessions].reverse();
+const selectedSessions=sharded?approvedSessions.filter((_,index)=>Math.floor(index/10)===shardIndex):approvedSessions;
+if(sharded&&selectedSessions.length!==10)throw new Error('fixed retry shard must contain exactly ten approved sessions');
+const sessions=[...selectedSessions].reverse();
 const priorUnavailable=new Map([['2024-09-10','HTTP_400_RUN_34920375454']]);
 const requestBudget={remaining:maximumRequests,consumed:0};
 const sha=value=>createHash('sha256').update(value).digest('hex');
@@ -55,7 +62,7 @@ for(const {partition,sessionDate} of sessions){
   console.log(JSON.stringify({sessionDate,partition,status:'L1_MINUTE_CACHED',pageCount:result.pageCount,rowCount,requestCount:requestBudget.consumed}));
 }
 completed.sort((a,b)=>a.sessionDate.localeCompare(b.sessionDate));unavailable.sort((a,b)=>a.sessionDate.localeCompare(b.sessionDate));
-const summary={status:unavailable.length?'L1_MINUTE_ACQUISITION_PARTIAL':'L1_MINUTE_ACQUISITION_COMPLETE',approvedSessions:40,completedSessions:completed.length,unavailableSessions:unavailable.length,sessionListSha256:approvedSessionHash,providerRequestsConsumedThisRun:requestBudget.consumed,providerRequestHardCeiling:maximumRequests,providerRequestsUnused:requestBudget.remaining,totalPages:completed.reduce((sum,x)=>sum+x.pageCount,0),totalRows:completed.reduce((sum,x)=>sum+x.rowCount,0),completed,unavailable,validationOpened:false,oosOpened:false};
+const summary={status:unavailable.length?'L1_MINUTE_ACQUISITION_PARTIAL':'L1_MINUTE_ACQUISITION_COMPLETE',approvedSessions:40,selectedSessions:selectedSessions.length,shardIndex,shardCount:sharded?shardCount:1,completedSessions:completed.length,unavailableSessions:unavailable.length,sessionListSha256:approvedSessionHash,providerRequestsConsumedThisRun:requestBudget.consumed,providerRequestHardCeiling:maximumRequests,providerRequestsUnused:requestBudget.remaining,totalPages:completed.reduce((sum,x)=>sum+x.pageCount,0),totalRows:completed.reduce((sum,x)=>sum+x.rowCount,0),completed,unavailable,validationOpened:false,oosOpened:false};
 fs.writeFileSync(summaryPath,`${JSON.stringify(summary,null,2)}\n`,{flag:'wx',mode:0o600});
 console.log(JSON.stringify({...summary,completed:undefined}));
 if(unavailable.length)process.exitCode=2;

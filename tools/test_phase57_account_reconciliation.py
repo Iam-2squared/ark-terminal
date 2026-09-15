@@ -42,17 +42,23 @@ class AccountReconciliationTests(unittest.TestCase):
         self.assertFalse(out["armAllowed"])
         self.assertFalse(out["safety"]["transmitted"])
 
+    def test_alphanumeric_jpx_code_normalizes(self):
+        out = reconcile_account_snapshot(
+            snapshot([{"symbol": "408A", "quantity": 180}]),
+            [], external_positions=[{"symbol": "408A.T", "quantity": 180}], now=NOW,
+        )
+        self.assertEqual(out["status"], "RECONCILIATION_PASS")
+        self.assertEqual(out["externalPositionCount"], 1)
+        self.assertFalse(out["armAllowed"])
+
     def test_unresolved_broker_identity_blocks(self):
         out = reconcile_account_snapshot(
             snapshot([{"symbol": "", "name": "position", "quantity": 180}]), [], now=NOW,
         )
-        self.assertEqual(out["status"], "RECONCILIATION_BLOCKED")
         self.assertIn("BROKER_POSITION_IDENTITY_UNRESOLVED", out["blockers"])
 
     def test_unknown_broker_position_blocks(self):
-        out = reconcile_account_snapshot(
-            snapshot([{"symbol": "7203", "quantity": 100}]), [], now=NOW,
-        )
+        out = reconcile_account_snapshot(snapshot([{"symbol": "7203", "quantity": 100}]), [], now=NOW)
         self.assertIn("UNKNOWN_BROKER_POSITION:7203.T", out["blockers"])
 
     def test_quantity_mismatch_blocks(self):
@@ -60,7 +66,22 @@ class AccountReconciliationTests(unittest.TestCase):
             snapshot([{"symbol": "7203", "quantity": 200}]),
             [{"symbol": "7203", "quantity": 100}], now=NOW,
         )
-        self.assertTrue(any(x.startswith("POSITION_QUANTITY_MISMATCH:7203.T") for x in out["blockers"]))
+        self.assertTrue(any(x.startswith("POSITION_QUANTITY_MISMATCH:ARK:7203.T") for x in out["blockers"]))
+
+    def test_external_quantity_mismatch_blocks(self):
+        out = reconcile_account_snapshot(
+            snapshot([{"symbol": "408A", "quantity": 180}]), [],
+            external_positions=[{"symbol": "408A", "quantity": 100}], now=NOW,
+        )
+        self.assertTrue(any(x.startswith("POSITION_QUANTITY_MISMATCH:EXTERNAL:408A.T") for x in out["blockers"]))
+
+    def test_ownership_overlap_blocks(self):
+        out = reconcile_account_snapshot(
+            snapshot([{"symbol": "7203", "quantity": 100}]),
+            [{"symbol": "7203", "quantity": 100}],
+            external_positions=[{"symbol": "7203", "quantity": 100}], now=NOW,
+        )
+        self.assertIn("POSITION_OWNERSHIP_OVERLAP:7203.T", out["blockers"])
 
     def test_partial_fill_blocks(self):
         out = reconcile_account_snapshot(

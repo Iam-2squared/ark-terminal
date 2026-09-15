@@ -32,7 +32,10 @@ export function assertCurrentEntryAssets({model,modelBytes,contractBytes,impleme
 }
 
 export function normalizeEntrySymbol(symbol){
-  const value=String(symbol??'').trim().toUpperCase().replace(/\.T$/,'');
+  let value=String(symbol??'').trim().toUpperCase().replace(/\.T$/,'');
+  // J-Quants cash-equity Code is the JPX four-character security code plus a
+  // terminal zero. CURRENT Entry consumes the corresponding Yahoo-style code.
+  if(/^[0-9A-Z]{4}0$/.test(value))value=value.slice(0,4);
   if(!/^[0-9A-Z]{4}$/.test(value))throw new Error('CURRENT_ENTRY_SYMBOL_ADAPTER_UNAVAILABLE');
   return `${value}.T`;
 }

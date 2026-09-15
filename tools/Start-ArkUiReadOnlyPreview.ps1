@@ -1,7 +1,6 @@
 param(
     [string]$WorkbookName = "Ark_MSII_LiveSource.xlsx",
     [string]$AccountSheet = "ARK_ACCOUNT_READONLY",
-    [string]$OrderSheet = "ARK_CASH_ORDER_LOCKED",
     [string]$SnapshotPath = "C:\Ark\account-readonly-20260915\account-snapshot-live.json",
     [string]$UiReadModelPath = "C:\Ark\ui-readonly\ark-terminal-ui-read-model.json",
     [string]$OwnershipBaselinePath = "",
@@ -9,48 +8,16 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$launcher = Join-Path $PSScriptRoot "Start-ArkCashLocked.ps1"
+$snapshotLauncher = Join-Path $PSScriptRoot "Start-ArkAccountReadOnlySnapshot.ps1"
 $exporter = Join-Path $PSScriptRoot "phase57_ui_read_model_cli.mjs"
-if (-not (Test-Path -LiteralPath $launcher -PathType Leaf)) { throw "CASH_LOCKED_LAUNCHER_MISSING" }
+if (-not (Test-Path -LiteralPath $snapshotLauncher -PathType Leaf)) { throw "ACCOUNT_READ_ONLY_SNAPSHOT_LAUNCHER_MISSING" }
 if (-not (Test-Path -LiteralPath $exporter -PathType Leaf)) { throw "UI_READ_MODEL_EXPORTER_MISSING" }
-
-function Assert-ArkDedicatedWorkbookOpen {
-    param(
-        [Parameter(Mandatory=$true)][string]$ExpectedWorkbookName,
-        [Parameter(Mandatory=$true)][string]$ExpectedAccountSheet
-    )
-
-    try {
-        $excel = [Runtime.InteropServices.Marshal]::GetActiveObject("Excel.Application")
-    }
-    catch {
-        throw "EXCEL_APPLICATION_NOT_RUNNING"
-    }
-
-    $openNames = @($excel.Workbooks | ForEach-Object { [string]$_.Name })
-    $matchingBooks = @($excel.Workbooks | Where-Object { $_.Name -eq $ExpectedWorkbookName })
-
-    if ($matchingBooks.Count -ne 1) {
-        $openSummary = if ($openNames.Count -gt 0) { $openNames -join "," } else { "NONE" }
-        throw ("OPEN_DEDICATED_WORKBOOK_REQUIRED: expected={0}; open={1}" -f $ExpectedWorkbookName, $openSummary)
-    }
-
-    $workbook = $matchingBooks[0]
-    $sheetMatches = @($workbook.Worksheets | Where-Object { $_.Name -eq $ExpectedAccountSheet })
-    if ($sheetMatches.Count -ne 1) {
-        $sheetNames = @($workbook.Worksheets | ForEach-Object { [string]$_.Name })
-        $sheetSummary = if ($sheetNames.Count -gt 0) { $sheetNames -join "," } else { "NONE" }
-        throw ("ACCOUNT_SHEET_REQUIRED: expected={0}; workbook={1}; sheets={2}" -f $ExpectedAccountSheet, $ExpectedWorkbookName, $sheetSummary)
-    }
-}
 
 $resolvedSnapshot = [IO.Path]::GetFullPath($SnapshotPath)
 if (-not $SkipSnapshotRefresh) {
-    Assert-ArkDedicatedWorkbookOpen -ExpectedWorkbookName $WorkbookName -ExpectedAccountSheet $AccountSheet
-    & $launcher `
+    & $snapshotLauncher `
         -WorkbookName $WorkbookName `
         -AccountSheet $AccountSheet `
-        -OrderSheet $OrderSheet `
         -SnapshotPath $resolvedSnapshot
 }
 if (-not (Test-Path -LiteralPath $resolvedSnapshot -PathType Leaf)) { throw "ACCOUNT_SNAPSHOT_MISSING" }

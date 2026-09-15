@@ -1,0 +1,103 @@
+name: Phase57 LONG-only Frozen Selector Paired Comparison
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/phase57-long-only-selector-paired-comparison.yml
+      - scripts/run_phase57_long_only_selector_paired_comparison.mjs
+      - predict/long-only/phase57-long-only-selector-paired-comparison.js
+      - predict/tests/phase57-long-only-selector-paired-comparison.test.mjs
+      - predict/daytrade/phase57-selector-v3.js
+      - predict/daytrade/phase57-selector-minimal-hybrid.js
+      - predict/daytrade/phase57-selector-minimal-hybrid-model.js
+      - predict/research/phase57-selector-v3-freeze.json
+      - predict/research/phase57-selector-minimal-hybrid-phase-a-amendment-v1.1.json
+      - predict/research/phase57-selector-minimal-hybrid-development-model.json
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  paired-development-d:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      BASE_RUN_ID: 34917676944
+      BASE_ARTIFACT: phase57-long-only-l0-replication-34917676944
+      MINUTE_RUN_ID: 34936002178
+      L2_RUN_ID: 34944665187
+      L2_ARTIFACT: phase57-long-only-l2-development-34944665187
+      JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+      NODE_OPTIONS: --max-old-space-size=6144
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify paired comparator and frozen selector tests
+        run: node --test predict/tests/phase57-long-only-selector-paired-comparison.test.mjs predict/tests/phase57-long-only-current-integration.test.mjs predict/tests/phase57-long-only-integrated-pipeline.test.mjs
+      - name: Download encrypted L0 base
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.BASE_ARTIFACT }}
+          path: ${{ runner.temp }}/base
+          repository: Iam-2squared/ark-terminal
+          run-id: ${{ env.BASE_RUN_ID }}
+          github-token: ${{ github.token }}
+      - name: Download encrypted C plus D Minute checkpoints
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-l2-minute-shard-*-${{ env.MINUTE_RUN_ID }}
+          path: ${{ runner.temp }}/shards
+          merge-multiple: false
+          repository: Iam-2squared/ark-terminal
+          run-id: ${{ env.MINUTE_RUN_ID }}
+          github-token: ${{ github.token }}
+      - name: Download frozen New LONG Selector evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.L2_ARTIFACT }}
+          path: ${{ runner.temp }}/l2
+          repository: Iam-2squared/ark-terminal
+          run-id: ${{ env.L2_RUN_ID }}
+          github-token: ${{ github.token }}
+      - name: Verify and mount existing private cache
+        shell: bash
+        run: |
+          test -n "${JQUANTS_API_KEY:-}"
+          test "$(find "$RUNNER_TEMP/shards" -name acquisition-summary.json | wc -l)" = "4"
+          test "$(jq -s '[.[] | (.completedSessions + .unavailableSessions)] | add' $(find "$RUNNER_TEMP/shards" -name acquisition-summary.json | sort))" = "40"
+          test "$(jq -s '[.[].unavailableSessions]|add' $(find "$RUNNER_TEMP/shards" -name acquisition-summary.json | sort))" = "0"
+          test "$(jq -r '.freeze.freezeSha256' "$RUNNER_TEMP/l2/l2-selector-freeze-report.json")" = "e883168e49b0ee2cf75e4b5bb1053c170b1ca58621a50ff004cd0aa973bfdf15"
+          cd "$RUNNER_TEMP/base"
+          test "$(cut -d' ' -f1 private-cache.tar.gz.enc.sha256)" = "$(sha256sum private-cache.tar.gz.enc | cut -d' ' -f1)"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -in private-cache.tar.gz.enc -out "$RUNNER_TEMP/base.tar.gz"
+          tar -C "$RUNNER_TEMP" -xzf "$RUNNER_TEMP/base.tar.gz"
+          while IFS= read -r encrypted; do
+            test "$(cut -d' ' -f1 "${encrypted}.sha256")" = "$(sha256sum "$encrypted" | cut -d' ' -f1)"
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -in "$encrypted" | tar -C "$RUNNER_TEMP/phase57-l0-cache" -xzf -
+          done < <(find "$RUNNER_TEMP/shards" -name minute-shard.tar.gz.enc | sort)
+      - name: Run native and equal-budget frozen Selector comparison
+        shell: bash
+        run: |
+          mkdir -p artifacts/phase57-long-only-selector-paired
+          node scripts/run_phase57_long_only_selector_paired_comparison.mjs \
+            --cache-root "$RUNNER_TEMP/phase57-l0-cache" \
+            --freeze-report "$RUNNER_TEMP/l2/l2-selector-freeze-report.json" \
+            --output artifacts/phase57-long-only-selector-paired/paired-comparison.json
+      - name: Purge raw and upload sanitized report only
+        if: always()
+        shell: bash
+        run: rm -rf -- "$RUNNER_TEMP/phase57-l0-cache" "$RUNNER_TEMP/base.tar.gz" "$RUNNER_TEMP/base" "$RUNNER_TEMP/shards" "$RUNNER_TEMP/l2"
+      - name: Upload paired comparison evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-long-only-selector-paired-${{ github.run_id }}
+          path: artifacts/phase57-long-only-selector-paired/
+          if-no-files-found: error
+          retention-days: 21

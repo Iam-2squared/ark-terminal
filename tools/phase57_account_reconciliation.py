@@ -1,7 +1,9 @@
 """Fail-closed reconciliation for MarketSpeed II account READ ONLY snapshots.
 
 No broker/Excel/RSS write path exists here. Reconciliation can only attest or
-block; it never repairs account state automatically.
+block; it never repairs account state automatically. Broker positions outside
+Ark ownership may be explicitly declared external; Ark-managed positions still
+require exact broker quantity parity.
 """
 from __future__ import annotations
 
@@ -30,7 +32,8 @@ def _symbol(value):
         return ""
     if raw.endswith(".T"):
         return raw
-    if raw.isdigit():
+    # JPX codes may be numeric (7203) or alphanumeric (408A).
+    if len(raw) == 4 and raw.isalnum():
         return f"{raw}.T"
     return raw
 
@@ -45,7 +48,14 @@ def _parse_time(value):
     return parsed.astimezone(timezone.utc)
 
 
-def reconcile_account_snapshot(snapshot, ark_positions=None, *, now=None, max_age_seconds=30):
+def reconcile_account_snapshot(
+    snapshot,
+    ark_positions=None,
+    *,
+    external_positions=None,
+    now=None,
+    max_age_seconds=30,
+):
     blockers = []
     if not isinstance(snapshot, dict):
         raise TypeError("ACCOUNT_SNAPSHOT_OBJECT_REQUIRED")
@@ -111,24 +121,47 @@ def reconcile_account_snapshot(snapshot, ark_positions=None, *, now=None, max_ag
             continue
         ark[symbol] = ark.get(symbol, 0.0) + float(quantity)
 
-    for symbol in sorted(set(broker) | set(ark)):
-        if symbol not in ark:
+    external = {}
+    for row in external_positions or []:
+        symbol = _symbol(row.get("symbol"))
+        quantity = row.get("quantity")
+        if not symbol:
+            blockers.append("EXTERNAL_POSITION_IDENTITY_UNRESOLVED")
+            continue
+        if quantity is None:
+            blockers.append(f"EXTERNAL_POSITION_QUANTITY_MISSING:{symbol}")
+            continue
+        if symbol in ark:
+            blockers.append(f"POSITION_OWNERSHIP_OVERLAP:{symbol}")
+            continue
+        external[symbol] = external.get(symbol, 0.0) + float(quantity)
+
+    expected = dict(external)
+    for symbol, quantity in ark.items():
+        expected[symbol] = expected.get(symbol, 0.0) + quantity
+
+    for symbol in sorted(set(broker) | set(expected)):
+        if symbol not in expected:
             blockers.append(f"UNKNOWN_BROKER_POSITION:{symbol}")
         elif symbol not in broker:
             blockers.append(f"BROKER_POSITION_MISSING:{symbol}")
-        elif broker[symbol] != ark[symbol]:
-            blockers.append(f"POSITION_QUANTITY_MISMATCH:{symbol}:{ark[symbol]}!={broker[symbol]}")
+        elif broker[symbol] != expected[symbol]:
+            owner = "ARK" if symbol in ark else "EXTERNAL"
+            blockers.append(
+                f"POSITION_QUANTITY_MISMATCH:{owner}:{symbol}:{expected[symbol]}!={broker[symbol]}"
+            )
 
     blockers = list(dict.fromkeys(blockers))
     passed = not blockers
     return {
-        "schemaId": "ARK_ACCOUNT_RECONCILIATION_V1",
+        "schemaId": "ARK_ACCOUNT_RECONCILIATION_V2",
         "status": "RECONCILIATION_PASS" if passed else "RECONCILIATION_BLOCKED",
         "armAllowed": False,
         "reconciliationMatched": passed,
         "blockers": blockers,
         "brokerPositionCount": len(broker),
         "arkPositionCount": len(ark),
+        "externalPositionCount": len(external),
         "snapshotAgeSeconds": age,
         "safety": dict(SAFETY),
     }

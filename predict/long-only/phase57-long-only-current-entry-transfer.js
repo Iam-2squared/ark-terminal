@@ -135,7 +135,7 @@ export function evaluateLongOnlyTransferSession({sessionDate,selections=[],barsB
       const key=stateKey(sessionDate,row.symbol);
       let state=states.get(key);
       if(!state){state={key,sessionDate,symbol:String(row.symbol),state:'WATCHING',firstSelectionTimestamp:at,priorSelectionCount:0,selectionCount:0,
-        firstSelectorEventId:eventKey(row),firstDecisionPrice:Number(row.decisionPrice),firstPassTimestamp:null,firstPassPrice:null,expiredAt:null};states.set(key,state);}
+        firstSelectorEventId:row.selectorEventId??eventKey(row),firstDecisionPrice:Number(row.decisionPrice),firstPassTimestamp:null,firstPassPrice:null,expiredAt:null};states.set(key,state);}
       state.selectionCount+=1;state.currentCandidate=row;
       const event={...row,selectorEventId:row.selectorEventId??eventKey(row),decisionTimestamp:at,symbolSessionId:key,selectionIndex:state.selectionCount,
         firstSelectionTimestamp:state.firstSelectionTimestamp,isFirstSelection:state.selectionCount===1,stateBeforeDecision:state.state,

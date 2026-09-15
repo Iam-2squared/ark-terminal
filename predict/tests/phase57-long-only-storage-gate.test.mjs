@@ -79,3 +79,14 @@ test('L0 replication reuses encrypted cache without another provider acquisition
   assert.doesNotMatch(workflow,/equities\/bars\/minute/);
   assert.match(workflow,/retention-days: 21/);
 });
+
+test('L1 Minute workflow is limited to approved Development A+B acquisition',()=>{
+  const workflow=fs.readFileSync(new URL('../../.github/workflows/phase57-long-only-l1-minute.yml',import.meta.url),'utf8');
+  const script=fs.readFileSync(new URL('../../scripts/acquire_phase57_long_only_l1_minute.mjs',import.meta.url),'utf8');
+  assert.match(workflow,/--maximum-requests 550/);
+  assert.match(script,/\['DEVELOPMENT_A','DEVELOPMENT_B'\]/);
+  assert.match(script,/sessions\.length!==40/);
+  assert.match(script,/6bc10cf3f55eb4cfcf0e5ffec65d2ccb50a633ca19c88c94a2f78c981945c2cd/);
+  assert.doesNotMatch(script,/VALIDATION|PRIMARY_OOS|CONTINGENCY_OOS|RESERVE/);
+  assert.match(workflow,/integrated-cache\.tar\.gz\.enc/);
+});

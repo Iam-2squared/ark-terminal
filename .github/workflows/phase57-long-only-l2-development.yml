@@ -2,8 +2,7 @@ name: Phase57 LONG-only L2 Selector Development
 
 on:
   workflow_dispatch:
-  push:
-    branches: [research/phase57-long-only-cash-equity]
+  pull_request:
     paths:
       - .github/workflows/phase57-long-only-l2-development.yml
 

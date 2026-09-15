@@ -147,6 +147,35 @@ export function buildCashExecutionIntentFromShadowIntent(shadowIntent, {
   return Object.freeze({ ...core, cashExecutionIntentSha256: sha256(core) });
 }
 
+/**
+ * Extract one explicitly-selected realtime strategy lineage from committed
+ * ShadowOrderIntent ledger events. No strategy is selected implicitly.
+ * If that strategy produced a short entry/cover, conversion throws and the
+ * whole batch is rejected rather than silently dropping the short action.
+ */
+export function buildCashExecutionIntentsFromCommittedLedger(ledger, {
+  strategyId,
+  decisionAt = null,
+} = {}) {
+  if (!Array.isArray(ledger)) throw new Error("MSII_LEDGER_ARRAY_REQUIRED");
+  const selectedStrategy = requiredText(strategyId, "STRATEGY_ID");
+  const selectedDecisionAt = decisionAt === null ? null : requiredText(decisionAt, "DECISION_AT");
+  const rows = ledger
+    .filter((row) => row?.eventType === "SHADOW_ORDER_INTENT_COMMITTED")
+    .map((row) => row.intent)
+    .filter((intent) => intent?.strategyId === selectedStrategy)
+    .filter((intent) => selectedDecisionAt === null || intent?.decisionAt === selectedDecisionAt)
+    .sort((left, right) => Number(left.decisionSequence) - Number(right.decisionSequence) || String(left.intentId).localeCompare(String(right.intentId)));
+  const seen = new Set();
+  const result = rows.map((intent) => {
+    const id = requiredText(intent.intentId, "SOURCE_INTENT_ID");
+    if (seen.has(id)) throw new Error("DUPLICATE_COMMITTED_SHADOW_INTENT");
+    seen.add(id);
+    return buildCashExecutionIntentFromShadowIntent(intent);
+  });
+  return Object.freeze(result);
+}
+
 export function buildLockedCashRequestFromShadowIntent(shadowIntent, {
   snapshotPath,
   externalPositions = [],

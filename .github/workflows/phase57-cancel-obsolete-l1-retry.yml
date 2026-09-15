@@ -17,9 +17,9 @@ jobs:
       - uses: actions/github-script@v7
         with:
           script: |
-            // Only superseded jobs auto-triggered by this measurement-audit push.
+            // Only superseded jobs auto-triggered by the contract / audit pushes.
             // Preserve North-Star audit 34976208234 and ordinary CI.
-            for (const run_id of [34976219728, 34976219787, 34976219838, 34976219852]) {
+            for (const run_id of [34975517579, 34975517538, 34976219728, 34976219787, 34976219838, 34976219852]) {
               try {
                 await github.rest.actions.cancelWorkflowRun({
                   owner: context.repo.owner,

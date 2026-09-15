@@ -17,6 +17,8 @@ on:
       - 'tools/test_phase57_rss_finalization.py'
       - 'tools/phase57_rss_finalized_bar_gate.py'
       - 'tools/test_phase57_rss_finalized_bar_gate.py'
+      - 'tools/phase57_account_reconciliation.py'
+      - 'tools/test_phase57_account_reconciliation.py'
       - 'tools/rss_chart_semantics.py'
       - 'tools/phase58_excel_5m_chart_export.py'
       - 'tools/test_phase58_excel_5m_chart_export.py'
@@ -66,12 +68,13 @@ jobs:
         run: |
           python -m pip install pytest
           python -m pytest tools/test_phase58_excel_5m_chart_export.py -q
-      - name: RSS source, finalization, and shadow-gate contract tests
+      - name: RSS source, finalization, shadow-gate, and account reconciliation tests
         shell: bash
         run: |
           PYTHONPATH=tools python -m unittest \
             tools.test_phase57_rss_finalization \
             tools.test_phase57_rss_finalized_bar_gate \
+            tools.test_phase57_account_reconciliation \
             tools.test_phase57_rss_raw \
             tools.test_phase57_source_capture
       - name: Workbook failure tests
@@ -99,7 +102,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: offline-parity-${{ runner.os }}
+          name: offline-parity-${{ matrix.os }}
           path: |
             ${{ runner.temp }}/report
             ${{ runner.temp }}/ark-offline

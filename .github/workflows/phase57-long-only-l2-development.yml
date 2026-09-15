@@ -1,0 +1,90 @@
+name: Phase57 LONG-only L2 Selector Development
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-long-only-l2-development.yml
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  develop-and-freeze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      BASE_RUN_ID: 34917676944
+      BASE_ARTIFACT: phase57-long-only-l0-replication-34917676944
+      MINUTE_RUN_ID: 34936002178
+      JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+      NODE_OPTIONS: --max-old-space-size=6144
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Download encrypted L0 base
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.BASE_ARTIFACT }}
+          path: ${{ runner.temp }}/base
+          repository: Iam-2squared/ark-terminal
+          run-id: ${{ env.BASE_RUN_ID }}
+          github-token: ${{ github.token }}
+      - name: Download four encrypted L2 Minute checkpoints
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-l2-minute-shard-*-${{ env.MINUTE_RUN_ID }}
+          path: ${{ runner.temp }}/shards
+          merge-multiple: false
+          repository: Iam-2squared/ark-terminal
+          run-id: ${{ env.MINUTE_RUN_ID }}
+          github-token: ${{ github.token }}
+      - name: Verify and mount one private C+D cache
+        shell: bash
+        run: |
+          test -n "${JQUANTS_API_KEY:-}"
+          test "$(find "$RUNNER_TEMP/shards" -name acquisition-summary.json | wc -l)" = "4"
+          jq -s '[.[].providerRequestsConsumedThisRun]|add' $(find "$RUNNER_TEMP/shards" -name acquisition-summary.json | sort) > "$RUNNER_TEMP/request-count.json"
+          test "$(cat "$RUNNER_TEMP/request-count.json")" -le 600
+          jq -s '[.[] | (.completedSessions + .unavailableSessions)] | add' $(find "$RUNNER_TEMP/shards" -name acquisition-summary.json | sort) > "$RUNNER_TEMP/accounted-session-count.json"
+          test "$(cat "$RUNNER_TEMP/accounted-session-count.json")" = "40"
+          test "$(jq -s 'map(.sessionListSha256)|unique|length' $(find "$RUNNER_TEMP/shards" -name acquisition-summary.json | sort))" = "1"
+          test "$(jq -r '.sessionListSha256' $(find "$RUNNER_TEMP/shards" -name acquisition-summary.json | sort | head -1))" = "9abbc28870b8885cab2b68ae2d2f3e6ef4511b5f687dc553ddcd9e0255b0281c"
+          test "$(jq -s '[.[].unavailableSessions]|add' $(find "$RUNNER_TEMP/shards" -name acquisition-summary.json | sort))" = "0"
+          cd "$RUNNER_TEMP/base"
+          test "$(cut -d' ' -f1 private-cache.tar.gz.enc.sha256)" = "$(sha256sum private-cache.tar.gz.enc | cut -d' ' -f1)"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -in private-cache.tar.gz.enc -out "$RUNNER_TEMP/base.tar.gz"
+          tar -C "$RUNNER_TEMP" -xzf "$RUNNER_TEMP/base.tar.gz"
+          while IFS= read -r encrypted; do
+            checksum="${encrypted}.sha256"
+            test -f "$checksum"
+            test "$(cut -d' ' -f1 "$checksum")" = "$(sha256sum "$encrypted" | cut -d' ' -f1)"
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -in "$encrypted" | tar -C "$RUNNER_TEMP/phase57-l0-cache" -xzf -
+          done < <(find "$RUNNER_TEMP/shards" -name minute-shard.tar.gz.enc | sort)
+      - name: Develop and freeze inside Development C+D
+        shell: bash
+        run: |
+          mkdir -p artifacts/phase57-long-only-l2
+          status=0
+          node scripts/run_phase57_long_only_l2_from_cache.mjs --cache-root "$RUNNER_TEMP/phase57-l0-cache" --output artifacts/phase57-long-only-l2/l2-selector-freeze-report.json || status=$?
+          test "$status" = "0" -o "$status" = "2"
+      - name: Add acquisition audit and purge raw
+        if: always()
+        shell: bash
+        run: |
+          if test -f "$RUNNER_TEMP/request-count.json"; then cp "$RUNNER_TEMP/request-count.json" artifacts/phase57-long-only-l2/request-count.json; fi
+          rm -rf -- "$RUNNER_TEMP/phase57-l0-cache" "$RUNNER_TEMP/base.tar.gz" "$RUNNER_TEMP/base" "$RUNNER_TEMP/shards"
+      - name: Upload sanitized L2 evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-long-only-l2-development-${{ github.run_id }}
+          path: artifacts/phase57-long-only-l2/
+          if-no-files-found: error
+          retention-days: 21

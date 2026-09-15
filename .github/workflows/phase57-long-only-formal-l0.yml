@@ -1,0 +1,57 @@
+name: Phase57 LONG-only Formal L0
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths: [.github/workflows/phase57-long-only-formal-l0.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  formal-l0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      APPROVED_PLAN_SHA256: 2a10ba6f49addaec91251cb5cb45ea1bcd21356b4c1c9d2bccc20f6aace7a258
+      JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify approved plan and credential presence
+        shell: bash
+        run: |
+          test -n "${JQUANTS_API_KEY:-}"
+          ACTUAL_PLAN_SHA=$(node scripts/plan_phase57_long_only_acquisition_gate.mjs | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>process.stdout.write(JSON.parse(s).planSha256))")
+          test "$ACTUAL_PLAN_SHA" = "$APPROVED_PLAN_SHA256"
+      - name: Create private runtime authorization
+        shell: bash
+        run: |
+          node -e "const fs=require('node:fs'),p=process.env.RUNNER_TEMP+'/phase57-l0-authorization.json';const v={planSha256:process.env.APPROVED_PLAN_SHA256,operatorApproved:true,acquisitionPartitions:['DEVELOPMENT_A','DEVELOPMENT_B','DEVELOPMENT_C','DEVELOPMENT_D','VALIDATION','VALIDATION_REPLICATION','PRIMARY_OOS','CONTINGENCY_OOS','RESERVE'],privateCacheRoot:process.env.RUNNER_TEMP+'/phase57-l0-cache',authorizationSha256:process.env.APPROVED_PLAN_SHA256,gateEvidence:{privateCacheDestinationConfirmed:true,credentialAvailabilityConfirmed:true,operatorExplicitAcquisitionApproval:true}};fs.writeFileSync(p,JSON.stringify(v),{mode:0o600})"
+      - name: Acquire approved 411-request Formal L0 dataset
+        run: node scripts/acquire_phase57_long_only_l0.mjs --authorization "$RUNNER_TEMP/phase57-l0-authorization.json" --partition ALL_HISTORICAL
+      - name: Run Development A Formal L0 Census
+        run: |
+          mkdir -p artifacts/phase57-long-only-l0
+          node scripts/run_phase57_long_only_formal_l0_from_cache.mjs --cache-root "$RUNNER_TEMP/phase57-l0-cache" --partition DEVELOPMENT_A --output artifacts/phase57-long-only-l0/census-development-a.json
+          sha256sum artifacts/phase57-long-only-l0/census-development-a.json > artifacts/phase57-long-only-l0/census-development-a.sha256
+      - name: Encrypt reusable raw cache and remove plaintext
+        shell: bash
+        run: |
+          tar -C "$RUNNER_TEMP" -czf - phase57-l0-cache | openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -out artifacts/phase57-long-only-l0/private-cache.tar.gz.enc
+          sha256sum artifacts/phase57-long-only-l0/private-cache.tar.gz.enc > artifacts/phase57-long-only-l0/private-cache.tar.gz.enc.sha256
+          test -d "$RUNNER_TEMP/phase57-l0-cache"
+          rm -rf -- "$RUNNER_TEMP/phase57-l0-cache"
+          rm -f -- "$RUNNER_TEMP/phase57-l0-authorization.json"
+      - name: Upload encrypted cache and sanitized census
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-long-only-formal-l0-${{ github.run_id }}
+          path: artifacts/phase57-long-only-l0/
+          if-no-files-found: error
+          retention-days: 7

@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {assembleLongOnlyL0Rows,TIMESTAMP_CONTRACT} from './phase57-long-only-integrated-dataset.js';
 
 const sha=value=>createHash('sha256').update(value).digest('hex');
-const developmentPartitions=new Set(['DEVELOPMENT_A','DEVELOPMENT_B']);
+const developmentPartitions=new Set(['DEVELOPMENT_A','DEVELOPMENT_B','DEVELOPMENT_C','DEVELOPMENT_D']);
 
 function readVerifiedPages({sessionDir,kind,expected}){
   const file=path.join(sessionDir,`${kind}-pages.json`);
@@ -20,7 +20,7 @@ function readVerifiedPages({sessionDir,kind,expected}){
 }
 
 export function loadFormalL0PartitionFromCache({cacheRoot,partition,plan,allocation}={}){
-  if(!developmentPartitions.has(partition))throw new Error('Formal L0 cache loader may open Development A/B only');
+  if(!developmentPartitions.has(partition))throw new Error('Formal L0 cache loader may open Development partitions only');
   const sessions=allocation?.partitions?.[partition];
   if(!Array.isArray(sessions)||!sessions.length)throw new Error('partition is absent from frozen allocation');
   const base=path.resolve(String(cacheRoot??''),'phase57-long-only','raw','jquants-v2');

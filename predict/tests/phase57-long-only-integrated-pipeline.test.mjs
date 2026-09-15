@@ -13,6 +13,8 @@ import {buildEvaluatorOnlyL2Targets,assertL2SelectionBoundary,L2_CANDIDATE_CONTR
 import {loadFormalL0PartitionFromCache} from '../long-only/phase57-long-only-l0-cache.js';
 import {buildL1DiscoveryReport} from '../long-only/phase57-long-only-l1-discovery-report.js';
 import {buildL1CrossSectionDataset} from '../long-only/phase57-long-only-l1-cross-section.js';
+import {buildFixedHorizonTargets,L2_HORIZON_CONTRACT} from '../long-only/phase57-long-only-l2-fixed-horizon.js';
+import {L2_SELECTOR_CONTRACT,L2_FEATURE_FAMILIES,projectL2Features} from '../long-only/phase57-long-only-l2-selector-v1.js';
 
 test('frozen split names exactly 205 unique outcome-unread historical sessions',()=>{
   const allocation=JSON.parse(fs.readFileSync(new URL('../long-only/phase57-long-only-session-allocation-v3.json',import.meta.url),'utf8'));
@@ -92,6 +94,24 @@ test('L1 de-adjusts prior close to the raw Minute price scale without changing w
   assert.equal(built.audit.nonUnitAdjustmentScaleRows,1);
   assert.ok(Math.abs(built.featureRows[0].currentReturnPct-8)<1e-9);
   assert.equal(built.evaluatorOnlyLabels[0].winner,true);
+});
+
+test('L2 fixed 30m and 60m targets mean exactly 6 and 12 future five-minute bars',()=>{
+  const bars=Array.from({length:20},(_,i)=>({sessionDate:'2024-01-04',symbol:'11110',availableAtJst:`2024-01-04T${String(9+Math.floor((5*(i+1))/60)).padStart(2,'0')}:${String((5*(i+1))%60).padStart(2,'0')}:00+09:00`,open:100+i,high:101+i,low:99+i,close:100+i}));
+  const feature={sessionDate:'2024-01-04',symbol:'11110',decisionTimeJst:'09:30',decisionAtJst:'2024-01-04T09:30:00+09:00'};
+  const label={sessionDate:'2024-01-04',symbol:'11110',decisionTimeJst:'09:30',evaluatorOnly:true,winner:true,largeWinner:false,remainingUpsidePct:5,timeToWinnerMinutes:30};
+  const [target]=buildFixedHorizonTargets({featureRows:[feature],bars5m:bars,evaluatorOnlyLabels:[label]});
+  assert.equal(L2_HORIZON_CONTRACT.horizons.Y30_BPS,6);assert.equal(L2_HORIZON_CONTRACT.horizons.Y60_BPS,12);
+  assert.equal(target.target30AvailableAtJst,'2024-01-04T10:00:00+09:00');
+  assert.equal(target.target60AvailableAtJst,'2024-01-04T10:30:00+09:00');
+  assert.ok(Math.abs(target.y30Bps-10000*(111/105-1))<1e-7);
+});
+
+test('L2 feature contract is causal, compact by family, and excludes outcome fields',()=>{
+  const feature={sessionDate:'2024-01-04',symbol:'11110',decisionTimeJst:'09:30',currentPrice:105,currentReturnPct:5,momentum30Pct:4,vwapDistancePct:2,vwapSlope15Pct:1,cumulativeTurnover:1e8,volumeAccelerationRatio:1.2,trendEfficiency:.8,rangeExpansionPct:6,gapPct:1,decisionVolatilityPct:.4,causalAtr:1,segment:'PRIME',liquidityBucket:'HIGH',marketBreadthPositivePct:55,sectorBreadthPositivePct:60};
+  assert.equal(Object.keys(L2_FEATURE_FAMILIES).length,8);assert.equal(L2_SELECTOR_CONTRACT.candidates.length,3);
+  assert.doesNotThrow(()=>projectL2Features(feature));
+  assert.throws(()=>projectL2Features({...feature,futureMfePct:4}),/outcome/);
 });
 
 test('L1 discovery report compares winners with full-cross-section negative controls',()=>{

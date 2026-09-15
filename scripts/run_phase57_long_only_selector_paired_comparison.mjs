@@ -43,14 +43,15 @@ function loadSession(partition,sessionDate){
   return {features:cross.featureRows.filter(row=>targetKeys.has(rowKey(row))),targets,bars:intraday.bars,audit:{sessionDate,pageCount:manifest.pageCount,rawRows:minuteRows.length,featureRows:cross.featureRows.length,corporateActionExclusions:cross.audit.exclusions.CORPORATE_ACTION_UNRESOLVED}};
 }
 
+const append=(target,source)=>{for(const row of source)target.push(row);};
 const C={features:[],targets:[]},D={features:[],targets:[],bars:[],audit:[]},previousTail=new Map();
 for(const sessionDate of allocation.partitions.DEVELOPMENT_C){
-  const loaded=loadSession('DEVELOPMENT_C',sessionDate);C.features.push(...loaded.features);C.targets.push(...loaded.targets);
+  const loaded=loadSession('DEVELOPMENT_C',sessionDate);append(C.features,loaded.features);append(C.targets,loaded.targets);
   const grouped=new Map();for(const bar of loaded.bars){if(!grouped.has(bar.symbol))grouped.set(bar.symbol,[]);grouped.get(bar.symbol).push(bar);}
   for(const [symbol,bars] of grouped)previousTail.set(symbol,bars.sort((a,b)=>a.availableAtJst.localeCompare(b.availableAtJst)).slice(-12).map(bar=>({timestamp:bar.barStartJst,availableAt:bar.availableAtJst,sessionDate:bar.sessionDate,open:bar.open,high:bar.high,low:bar.low,close:bar.close,volume:bar.volume,turnover:bar.turnover})));
   console.log(JSON.stringify({status:'PAIRED_C_FIT_READY',sessionDate,featureRows:loaded.features.length}));
 }
-for(const sessionDate of allocation.partitions.DEVELOPMENT_D){const loaded=loadSession('DEVELOPMENT_D',sessionDate);D.features.push(...loaded.features);D.targets.push(...loaded.targets);D.bars.push(...loaded.bars);D.audit.push(loaded.audit);console.log(JSON.stringify({status:'PAIRED_D_READY',sessionDate,featureRows:loaded.features.length}));}
+for(const sessionDate of allocation.partitions.DEVELOPMENT_D){const loaded=loadSession('DEVELOPMENT_D',sessionDate);append(D.features,loaded.features);append(D.targets,loaded.targets);append(D.bars,loaded.bars);D.audit.push(loaded.audit);console.log(JSON.stringify({status:'PAIRED_D_READY',sessionDate,featureRows:loaded.features.length}));}
 
 const cFit=fitL2Candidate({candidateId:freezeReport.freeze.selectedCandidate,featureRows:C.features,targetRows:C.targets,featureNames:freezeReport.freeze.selectedFeatureNames});
 const newNative=selectRanked({featureRows:D.features,artifact:cFit,topN:freezeReport.freeze.topN});

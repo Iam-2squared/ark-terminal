@@ -14,7 +14,7 @@ import {loadFormalL0PartitionFromCache} from '../long-only/phase57-long-only-l0-
 import {buildL1DiscoveryReport} from '../long-only/phase57-long-only-l1-discovery-report.js';
 import {buildL1CrossSectionDataset} from '../long-only/phase57-long-only-l1-cross-section.js';
 import {buildFixedHorizonTargets,L2_HORIZON_CONTRACT} from '../long-only/phase57-long-only-l2-fixed-horizon.js';
-import {L2_SELECTOR_CONTRACT,L2_FEATURE_FAMILIES,projectL2Features} from '../long-only/phase57-long-only-l2-selector-v1.js';
+import {L2_SELECTOR_CONTRACT,L2_FEATURE_FAMILIES,projectL2Features,fitL2Candidate,scoreL2Candidate,selectRanked,evaluateSelection} from '../long-only/phase57-long-only-l2-selector-v1.js';
 
 test('frozen split names exactly 205 unique outcome-unread historical sessions',()=>{
   const allocation=JSON.parse(fs.readFileSync(new URL('../long-only/phase57-long-only-session-allocation-v3.json',import.meta.url),'utf8'));
@@ -112,6 +112,20 @@ test('L2 feature contract is causal, compact by family, and excludes outcome fie
   assert.equal(Object.keys(L2_FEATURE_FAMILIES).length,8);assert.equal(L2_SELECTOR_CONTRACT.candidates.length,3);
   assert.doesNotThrow(()=>projectL2Features(feature));
   assert.throws(()=>projectL2Features({...feature,futureMfePct:4}),/outcome/);
+});
+
+test('L2 Ridge trains on evaluator targets but returns ranking from causal features only',()=>{
+  const features=[],targets=[];
+  for(let i=0;i<40;i++){
+    const sessionDate=i<20?'2024-11-11':'2024-12-09',symbol=String(10000+i),momentum=i/10;
+    features.push({sessionDate,symbol,decisionTimeJst:'09:30',currentPrice:100,currentReturnPct:momentum,momentum30Pct:momentum,vwapDistancePct:momentum/2,vwapSlope15Pct:momentum/3,cumulativeTurnover:1e7+i,volumeAccelerationRatio:1,trendEfficiency:.5,rangeExpansionPct:2,gapPct:0,decisionVolatilityPct:.2,causalAtr:1,segment:'PRIME',liquidityBucket:'MID',marketBreadthPositivePct:50,sectorBreadthPositivePct:50});
+    targets.push({sessionDate,symbol,decisionTimeJst:'09:30',evaluatorOnly:true,y30Bps:momentum*100,y60Bps:momentum*150,futureMfe30Pct:momentum+1,futureMae30Pct:-.5,futureMfe60Pct:momentum+2,futureMae60Pct:-1,winner:i>30});
+  }
+  const artifact=fitL2Candidate({candidateId:'RIDGE_Y30',featureRows:features.slice(0,20),targetRows:targets.slice(0,20)});
+  assert.ok(scoreL2Candidate(features[39],artifact)>scoreL2Candidate(features[20],artifact));
+  const selected=selectRanked({featureRows:features.slice(20),artifact,topN:5});
+  assert.equal(selected.length,5);
+  assert.ok(evaluateSelection({selected,targetRows:targets.slice(20),horizon:6}).meanReturnBps>0);
 });
 
 test('L1 discovery report compares winners with full-cross-section negative controls',()=>{

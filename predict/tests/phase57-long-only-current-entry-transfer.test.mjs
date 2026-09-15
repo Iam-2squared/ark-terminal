@@ -39,7 +39,7 @@ test('LONG-only adapter blocks at 09:30 and scores exact frozen features at 09:3
 });
 
 test('stateful transfer preserves Top5 events and separates first PASS from repeated selection',()=>{
-  const first=Array.from({length:5},(_,index)=>candidate(index+1));
+  const first=Array.from({length:5},(_,index)=>({...candidate(index+1),selectorEventId:`frozen-${index+1}`}));
   const second=first.map(row=>({...row,decisionTimestamp:`${sessionDate}T10:00:00+09:00`,decisionTimeJst:'10:00'}));
   const barsBySymbol=new Map(first.map(row=>[row.symbol,normalized]));
   const result=evaluateLongOnlyTransferSession({sessionDate,selections:[...first,...second],barsBySymbol,auctionsBySymbol:new Map(),model:syntheticModel});
@@ -47,6 +47,7 @@ test('stateful transfer preserves Top5 events and separates first PASS from repe
   assert.ok(result.events.slice(0,5).every(row=>row.directStatus==='BLOCKED'&&row.finalOpportunityStatus==='PASS'&&row.entryLatencyMinutes===5));
   assert.ok(result.events.slice(5).every(row=>row.directStatus==='PASS'&&row.directReason==='ALREADY_ENTERED_NO_REENTRY'));
   assert.ok(result.opportunities.every(row=>row.finalStatus==='PASS'&&row.latencyMinutes===5&&row.selectionCount===2));
+  assert.deepEqual(result.opportunities.map(row=>row.firstSelectorEventId),first.map(row=>row.selectorEventId));
   assert.equal(result.ticks.some(row=>row.status==='PASS'),true);
 });
 

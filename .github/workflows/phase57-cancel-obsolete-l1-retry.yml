@@ -1,4 +1,4 @@
-name: Phase57 Cancel Obsolete 40-session L1 Retry
+name: Phase57 Cancel Superseded L1 Run
 
 on:
   push:
@@ -20,5 +20,5 @@ jobs:
             await github.rest.actions.cancelWorkflowRun({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              run_id: 34925014664,
+              run_id: 34928898260,
             });

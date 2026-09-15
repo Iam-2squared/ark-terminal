@@ -41,6 +41,20 @@ def _positions(value, prefix):
     return value
 
 
+def _lineage(value):
+    if value is None:
+        return None
+    if not isinstance(value, dict):
+        raise ValueError("UPSTREAM_LINEAGE_OBJECT_REQUIRED")
+    for key in ("sourceActionSha256", "sourceCashExecutionIntentSha256", "sourceIntentSha256"):
+        if not re.fullmatch(r"[a-f0-9]{64}", str(value.get(key) or ""), re.I):
+            raise ValueError(f"UPSTREAM_LINEAGE_{key.upper()}_INVALID")
+    for key in ("sourceIntentId", "strategyId"):
+        if not isinstance(value.get(key), str) or not value[key].strip():
+            raise ValueError(f"UPSTREAM_LINEAGE_{key.upper()}_REQUIRED")
+    return value
+
+
 def validate_request(request):
     if not isinstance(request, dict) or request.get("schemaId") != REQUEST_SCHEMA:
         raise ValueError("LOCKED_REQUEST_SCHEMA_REQUIRED")
@@ -58,9 +72,7 @@ def validate_request(request):
         raise ValueError("ORDER_QUANTITY_MUST_BE_POSITIVE_100_SHARE_MULTIPLE")
     if intent.get("direction") != "LONG":
         raise ValueError("LONG_ONLY")
-    if (intent.get("positionEffect"), intent.get("side")) not in {
-        ("OPEN", "BUY"), ("CLOSE", "SELL")
-    }:
+    if (intent.get("positionEffect"), intent.get("side")) not in {("OPEN", "BUY"), ("CLOSE", "SELL")}:
         raise ValueError("CASH_POSITION_EFFECT_SIDE_MISMATCH")
     if intent.get("timeInForce") != "DAY":
         raise ValueError("DAY_ONLY")
@@ -75,21 +87,15 @@ def validate_request(request):
     _positions(request.get("externalPositions"), "EXTERNAL")
     managed = request.setdefault("arkManagedPositions", [])
     _positions(managed, "ARK_MANAGED")
-    external_symbols = {
-        (row["symbol"].upper() if row["symbol"].upper().endswith(".T") else f"{row['symbol'].upper()}.T")
-        for row in request["externalPositions"]
-    }
-    managed_symbols = {
-        (row["symbol"].upper() if row["symbol"].upper().endswith(".T") else f"{row['symbol'].upper()}.T")
-        for row in managed
-    }
+    external_symbols = {(r["symbol"].upper() if r["symbol"].upper().endswith(".T") else f"{r['symbol'].upper()}.T") for r in request["externalPositions"]}
+    managed_symbols = {(r["symbol"].upper() if r["symbol"].upper().endswith(".T") else f"{r['symbol'].upper()}.T") for r in managed}
     if external_symbols & managed_symbols:
         raise ValueError("POSITION_OWNERSHIP_OVERLAP")
+    _lineage(request.get("upstreamLineage"))
     return request
 
 
 def _evaluate(snapshot, request):
-    # Imported only after input validation; this module itself has no COM access.
     from phase57_cash_locked_pipeline import run_locked_pipeline
     return run_locked_pipeline(
         snapshot,
@@ -97,6 +103,7 @@ def _evaluate(snapshot, request):
         ark_managed_positions=request.get("arkManagedPositions") or [],
         intent=request["intent"],
         estimated_notional=request["estimatedNotional"],
+        upstream_lineage=request.get("upstreamLineage"),
     )
 
 
@@ -121,8 +128,6 @@ def main(argv=None):
         if not isinstance(result.get("stage"), str) or not result["stage"]:
             raise ValueError("PIPELINE_STAGE_REQUIRED")
         result["inspectionOnly"] = True
-        # A unique output path is allocated by the bridge. No stdout JSON, no
-        # caller-supplied freshness rewrite, no Excel or order function call.
         with args.output.open("x", encoding="utf-8") as stream:
             json.dump(result, stream, ensure_ascii=True, allow_nan=False)
         return 0

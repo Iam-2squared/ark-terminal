@@ -59,6 +59,14 @@ def mix(frame, field):
     return {str(k): {"n": int(v), "pct": ratio(int(v),len(frame),100)}
             for k,v in frame[field].value_counts(dropna=False).items()}
 
+def coverage_by(frame, field, valid_column="decisionPriceValid"):
+    result={}
+    for value,group in frame.groupby(field,dropna=False,sort=True):
+        fresh=int(group[valid_column].eq(1).sum())
+        result[str(value)]={"rows":len(group),"freshRows":fresh,"unavailableRows":len(group)-fresh,
+                            "freshRatePct":ratio(fresh,len(group),100),"unavailableRatePct":ratio(len(group)-fresh,len(group),100)}
+    return result
+
 def prepare(frame):
     frame=frame.copy()
     for c in STRINGS:
@@ -108,7 +116,9 @@ def freshness(frame):
     return {"eligibleRows":len(frame),"freshPriceRows":int(frame.decisionPriceValid.eq(1).sum()),
             "unavailableRows":len(unavailable),"unavailableRatePct":ratio(len(unavailable),len(frame),100),
             "priceAgeMinutes":distribution(frame.referenceAgeMin),"unavailableByMarket":mix(unavailable,"segment"),
-            "unavailableByLiquidity":mix(unavailable,"liquidityBucket"),"unavailableByDecisionTime":mix(unavailable,"decisionTimeJst")}
+            "unavailableByLiquidity":mix(unavailable,"liquidityBucket"),"unavailableByDecisionTime":mix(unavailable,"decisionTimeJst"),
+            "coverageByMarket":coverage_by(frame,"segment"),"coverageByLiquidity":coverage_by(frame,"liquidityBucket"),
+            "coverageByDecisionTime":coverage_by(frame,"decisionTimeJst")}
 
 def corrected30(frame):
     valid=frame.corrected30Evaluable.eq(1)

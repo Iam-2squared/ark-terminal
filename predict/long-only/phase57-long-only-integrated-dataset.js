@@ -24,7 +24,7 @@ export function assembleLongOnlyL0Rows({dailyRows=[],masterRows=[],warmupDailyRo
   const seen=new Set(),rows=[],exclusions=[];
   const reject=(sessionDate,symbol,reason)=>exclusions.push(Object.freeze({sessionDate,symbol,reason}));
   for(const row of sorted){
-    const sessionDate=dateOf(row),symbol=codeOf(row),key=`${sessionDate}|${symbol}`,adjustedClose=number(row,'AdjC','adjustedClose');
+    const sessionDate=dateOf(row),symbol=codeOf(row),key=`${sessionDate}|${symbol}`,adjustedClose=number(row,'AdjC','adjustedClose'),unadjustedClose=number(row,'C','Close','close');
     if(!/^\d{4}-\d{2}-\d{2}$/.test(sessionDate)||!symbol||!Number.isFinite(adjustedClose)||adjustedClose<=0){reject(sessionDate,symbol,'INVALID_DAILY');continue;}
     if(seen.has(key)){reject(sessionDate,symbol,'DUPLICATE_DAILY');continue;}
     seen.add(key);
@@ -34,6 +34,8 @@ export function assembleLongOnlyL0Rows({dailyRows=[],masterRows=[],warmupDailyRo
     if(!Number.isFinite(previous)||previous<=0){reject(sessionDate,symbol,'NO_PRIOR_ADJUSTED_CLOSE');continue;}
     rows.push(Object.freeze({
       sessionDate,symbol,segment:pit.segment,adjustedClose,adjustedPreviousClose:previous,
+      unadjustedClose:Number.isFinite(unadjustedClose)&&unadjustedClose>0?unadjustedClose:adjustedClose,
+      adjustmentScale:Number.isFinite(unadjustedClose)&&unadjustedClose>0?adjustedClose/unadjustedClose:1,
       volume:number(row,'Vo','volume'),turnover:number(row,'Va','turnover'),
       corporateActionFlag:number(row,'AdjFactor','adjustmentFactor')!==1||Boolean(row?.ExRT),
       listingMembershipPointInTime:true,

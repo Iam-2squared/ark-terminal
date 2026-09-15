@@ -85,20 +85,34 @@ export function buildL1ResearchRows(args={}){
 export function addCausalBreadthContext(featureRows,{sectorBySymbol={}}={}){
   const groups=new Map();
   for(const row of featureRows??[]){const key=`${row.sessionDate}|${row.decisionTimeJst}`;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(row);}
+  const summaries=new Map();
+  for(const [key,peers] of groups){
+    const sectors=new Map();
+    for(const row of peers){
+      const sector=sectorBySymbol[`${row.sessionDate}|${row.symbol}`]??sectorBySymbol[row.symbol]??'UNKNOWN';
+      const current=sectors.get(sector)??{n:0,positive:0};current.n++;if(Number(row.currentReturnPct)>0)current.positive++;sectors.set(sector,current);
+    }
+    summaries.set(key,{marketN:peers.length,marketPositive:peers.filter(x=>Number(x.currentReturnPct)>0).length,sectors});
+  }
   return Object.freeze((featureRows??[]).map(row=>{
-    const peers=groups.get(`${row.sessionDate}|${row.decisionTimeJst}`),sector=sectorBySymbol[`${row.sessionDate}|${row.symbol}`]??sectorBySymbol[row.symbol]??'UNKNOWN',sectorPeers=peers.filter(x=>(sectorBySymbol[`${x.sessionDate}|${x.symbol}`]??sectorBySymbol[x.symbol]??'UNKNOWN')===sector);
-    const positive=list=>list.length?100*list.filter(x=>Number(x.currentReturnPct)>0).length/list.length:null;
-    return Object.freeze({...row,marketBreadthPositivePct:round(positive(peers)),sectorBreadthPositivePct:round(positive(sectorPeers)),sector,marketBreadthN:peers.length,sectorBreadthN:sectorPeers.length});
+    const summary=summaries.get(`${row.sessionDate}|${row.decisionTimeJst}`),sector=sectorBySymbol[`${row.sessionDate}|${row.symbol}`]??sectorBySymbol[row.symbol]??'UNKNOWN',sectorSummary=summary.sectors.get(sector);
+    return Object.freeze({...row,marketBreadthPositivePct:summary.marketN?round(100*summary.marketPositive/summary.marketN):null,sectorBreadthPositivePct:sectorSummary?.n?round(100*sectorSummary.positive/sectorSummary.n):null,sector,marketBreadthN:summary.marketN,sectorBreadthN:sectorSummary?.n??0});
   }));
 }
 
 export function assignCausalLiquidityBuckets(featureRows=[]){
   const groups=new Map();
   for(const row of featureRows){const key=`${row.sessionDate}|${row.decisionTimeJst}`;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(row);}
+  const buckets=new Map();
+  for(const [key,rows] of groups){
+    const peers=[...rows].sort((a,b)=>a.cumulativeTurnover-b.cumulativeTurnover||a.symbol.localeCompare(b.symbol));
+    const bySymbol=new Map();
+    peers.forEach((row,rank)=>{const fraction=(rank+1)/peers.length;bySymbol.set(row.symbol,{bucket:fraction<=1/3?'LOW':fraction<=2/3?'MID':'HIGH',n:peers.length});});
+    buckets.set(key,bySymbol);
+  }
   return Object.freeze(featureRows.map(row=>{
-    const peers=[...groups.get(`${row.sessionDate}|${row.decisionTimeJst}`)].sort((a,b)=>a.cumulativeTurnover-b.cumulativeTurnover||a.symbol.localeCompare(b.symbol));
-    const rank=peers.findIndex(x=>x.symbol===row.symbol),fraction=(rank+1)/peers.length;
-    return Object.freeze({...row,liquidityBucket:fraction<=1/3?'LOW':fraction<=2/3?'MID':'HIGH',liquidityCrossSectionN:peers.length});
+    const value=buckets.get(`${row.sessionDate}|${row.decisionTimeJst}`).get(row.symbol);
+    return Object.freeze({...row,liquidityBucket:value.bucket,liquidityCrossSectionN:value.n});
   }));
 }
 

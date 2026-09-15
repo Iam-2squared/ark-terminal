@@ -8,13 +8,13 @@ permissions:
   contents: read
 
 jobs:
-  measure-development-a-b:
+  measure-fixed-development-a-discovery:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
       BASE_RUN_ID: 34917676944
       BASE_ARTIFACT: phase57-long-only-l0-replication-34917676944
-      MINUTE_RUN_ID: 34925014664
+      MINUTE_RUN_ID: REPLACE_AFTER_FIXED_20_ACQUISITION
       JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
       NODE_OPTIONS: --max-old-space-size=6144
     steps:
@@ -32,7 +32,7 @@ jobs:
           repository: Iam-2squared/ark-terminal
           run-id: ${{ env.BASE_RUN_ID }}
           github-token: ${{ github.token }}
-      - name: Download four encrypted Minute checkpoints
+      - name: Download two encrypted Minute checkpoints
         uses: actions/download-artifact@v4
         with:
           pattern: phase57-long-only-l1-minute-shard-*-${{ env.MINUTE_RUN_ID }}
@@ -45,11 +45,13 @@ jobs:
         shell: bash
         run: |
           test -n "${JQUANTS_API_KEY:-}"
-          test "$(find "$RUNNER_TEMP/shards" -name acquisition-summary.json | wc -l)" = "4"
+          test "$(find "$RUNNER_TEMP/shards" -name acquisition-summary.json | wc -l)" = "2"
           jq -s '[.[].providerRequestsConsumedThisRun]|add' $(find "$RUNNER_TEMP/shards" -name acquisition-summary.json | sort) > "$RUNNER_TEMP/retry-request-count.json"
-          test "$(cat "$RUNNER_TEMP/retry-request-count.json")" -le 545
+          test "$(cat "$RUNNER_TEMP/retry-request-count.json")" -le 300
           jq -s '[.[] | (.completedSessions + .unavailableSessions)] | add' $(find "$RUNNER_TEMP/shards" -name acquisition-summary.json | sort) > "$RUNNER_TEMP/accounted-session-count.json"
-          test "$(cat "$RUNNER_TEMP/accounted-session-count.json")" = "40"
+          test "$(cat "$RUNNER_TEMP/accounted-session-count.json")" = "20"
+          test "$(jq -s 'map(.sessionListSha256)|unique|length' $(find "$RUNNER_TEMP/shards" -name acquisition-summary.json | sort))" = "1"
+          test "$(jq -r '.sessionListSha256' $(find "$RUNNER_TEMP/shards" -name acquisition-summary.json | sort | head -1))" = "96b54f4a6110f7883c063f5896777a4148534c6ba9ecf2b455e6546bfb4ff975"
           jq -s '[.[].unavailable[]?.sessionDate] | unique' $(find "$RUNNER_TEMP/shards" -name acquisition-summary.json | sort) > "$RUNNER_TEMP/source-unavailable.json"
           cd "$RUNNER_TEMP/base"
           test "$(cut -d' ' -f1 private-cache.tar.gz.enc.sha256)" = "$(sha256sum private-cache.tar.gz.enc | cut -d' ' -f1)"
@@ -65,10 +67,7 @@ jobs:
       - name: Measure Development A
         run: |
           mkdir -p artifacts/phase57-long-only-l1
-          node scripts/run_phase57_long_only_l1_from_cache.mjs --cache-root "$RUNNER_TEMP/phase57-l0-cache" --partition DEVELOPMENT_A --unavailable-sessions "$RUNNER_TEMP/source-unavailable.json" --output artifacts/phase57-long-only-l1/development-a-report.json
-      - name: Measure Development B replication
-        run: |
-          node scripts/run_phase57_long_only_l1_from_cache.mjs --cache-root "$RUNNER_TEMP/phase57-l0-cache" --partition DEVELOPMENT_B --unavailable-sessions "$RUNNER_TEMP/source-unavailable.json" --output artifacts/phase57-long-only-l1/development-b-report.json
+          node scripts/run_phase57_long_only_l1_from_cache.mjs --cache-root "$RUNNER_TEMP/phase57-l0-cache" --partition DEVELOPMENT_A --sessions-contract predict/long-only/phase57-long-only-l1-discovery-sessions.json --unavailable-sessions "$RUNNER_TEMP/source-unavailable.json" --output artifacts/phase57-long-only-l1/development-a-discovery-report.json
       - name: Add acquisition audit and purge raw
         if: always()
         shell: bash

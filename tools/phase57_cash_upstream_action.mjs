@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {buildCashExecutionIntentFromShadowIntent} from '../predict/realtime/phase57-cash-execution-adapter.js';
 
@@ -53,7 +54,8 @@ function parseArgs(argv){
   return out;
 }
 
-if(import.meta.url===`file://${process.argv[1].replaceAll('\\','/')}`){
+const isMain=process.argv[1]&&fileURLToPath(import.meta.url)===path.resolve(process.argv[1]);
+if(isMain){
   try{
     const args=parseArgs(process.argv);
     if(!args.input||!args.output)throw Error('USAGE');

@@ -1,4 +1,4 @@
-name: Phase57 LONG-only L1 Minute Checkpointed Retry
+name: Phase57 LONG-only L1 Discovery Minute 20-session Checkpoints
 
 on:
   workflow_dispatch:
@@ -19,13 +19,9 @@ jobs:
       matrix:
         include:
           - shard: 0
-            request_cap: 140
+            request_cap: 150
           - shard: 1
-            request_cap: 135
-          - shard: 2
-            request_cap: 135
-          - shard: 3
-            request_cap: 135
+            request_cap: 150
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -59,11 +55,13 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
+          status=0
           node scripts/acquire_phase57_long_only_l1_minute.mjs \
             --cache-root "$RUNNER_TEMP/phase57-l0-cache" \
-            --shard-index "${{ matrix.shard }}" --shard-count 4 \
+            --shard-index "${{ matrix.shard }}" --shard-count 2 \
             --maximum-requests "${{ matrix.request_cap }}" \
-            --summary "$RUNNER_TEMP/acquisition-summary.json" | tee "$RUNNER_TEMP/acquisition.log"
+            --summary "$RUNNER_TEMP/acquisition-summary.json" | tee "$RUNNER_TEMP/acquisition.log" || status=$?
+          test "$status" = "0" -o "$status" = "2"
           test "$(jq '[.completedSessions,.unavailableSessions]|add' "$RUNNER_TEMP/acquisition-summary.json")" = "10"
       - name: Encrypt immutable Minute shard and remove plaintext
         if: always()

@@ -85,7 +85,8 @@ test('L1 Minute workflow is limited to approved Development A+B acquisition',()=
   const script=fs.readFileSync(new URL('../../scripts/acquire_phase57_long_only_l1_minute.mjs',import.meta.url),'utf8');
   assert.match(workflow,/--maximum-requests 550/);
   assert.match(script,/\['DEVELOPMENT_A','DEVELOPMENT_B'\]/);
-  assert.match(script,/sessions\.length!==40/);
+  assert.match(script,/approvedSessions\.length!==40/);
+  assert.match(workflow,/set -o pipefail/);
   assert.match(script,/6bc10cf3f55eb4cfcf0e5ffec65d2ccb50a633ca19c88c94a2f78c981945c2cd/);
   assert.doesNotMatch(script,/VALIDATION|PRIMARY_OOS|CONTINGENCY_OOS|RESERVE/);
   assert.match(workflow,/integrated-cache\.tar\.gz\.enc/);

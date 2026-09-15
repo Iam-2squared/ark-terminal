@@ -24,7 +24,9 @@ export async function fetchJquantsPages({endpoint,query,apiKey,fetchImpl=globalT
     if(!response?.ok)throw new Error(`J-Quants ${endpoint} failed with HTTP ${response?.status}`);
     const text=await response.text(),payload=JSON.parse(text);
     if(!Array.isArray(payload?.data))throw new Error(`J-Quants ${endpoint} payload requires data[]`);
-    pages.push(Object.freeze({page,responseSha256:sha(text),responseText:text,payload}));
+    // Keep one canonical copy of provider bytes. Retaining both responseText and
+    // the parsed payload roughly doubles multi-million-row Minute caches.
+    pages.push(Object.freeze({page,responseSha256:sha(text),responseText:text}));
     const next=payload.pagination_key;
     if(!next)break;
     if(keys.has(next))throw new Error('J-Quants pagination key repeated');

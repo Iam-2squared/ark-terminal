@@ -23,6 +23,24 @@ def _number(value, name, *, allow_zero=False):
     return value
 
 
+def _positions(value, prefix):
+    if not isinstance(value, list):
+        raise ValueError(f"{prefix}_POSITIONS_ARRAY_REQUIRED")
+    seen = set()
+    for row in value:
+        if not isinstance(row, dict) or not isinstance(row.get("symbol"), str):
+            raise ValueError(f"{prefix}_POSITION_IDENTITY_REQUIRED")
+        symbol = row["symbol"].upper()
+        if not re.fullmatch(r"[0-9A-Z]{4}(?:\.T)?", symbol):
+            raise ValueError(f"{prefix}_POSITION_IDENTITY_REQUIRED")
+        normalized = symbol if symbol.endswith(".T") else f"{symbol}.T"
+        if normalized in seen:
+            raise ValueError(f"{prefix}_POSITION_DUPLICATE")
+        seen.add(normalized)
+        _number(row.get("quantity"), f"{prefix}_POSITION_QUANTITY")
+    return value
+
+
 def validate_request(request):
     if not isinstance(request, dict) or request.get("schemaId") != REQUEST_SCHEMA:
         raise ValueError("LOCKED_REQUEST_SCHEMA_REQUIRED")
@@ -54,15 +72,19 @@ def validate_request(request):
     else:
         raise ValueError("ORDER_TYPE_REQUIRED")
     _number(request.get("estimatedNotional"), "ESTIMATED_NOTIONAL")
-    positions = request.get("externalPositions")
-    if not isinstance(positions, list):
-        raise ValueError("EXTERNAL_POSITIONS_ARRAY_REQUIRED")
-    for row in positions:
-        if not isinstance(row, dict) or not isinstance(row.get("symbol"), str):
-            raise ValueError("EXTERNAL_POSITION_IDENTITY_REQUIRED")
-        if not re.fullmatch(r"[0-9A-Z]{4}(?:\.T)?", row["symbol"]):
-            raise ValueError("EXTERNAL_POSITION_IDENTITY_REQUIRED")
-        _number(row.get("quantity"), "EXTERNAL_POSITION_QUANTITY")
+    _positions(request.get("externalPositions"), "EXTERNAL")
+    managed = request.setdefault("arkManagedPositions", [])
+    _positions(managed, "ARK_MANAGED")
+    external_symbols = {
+        (row["symbol"].upper() if row["symbol"].upper().endswith(".T") else f"{row['symbol'].upper()}.T")
+        for row in request["externalPositions"]
+    }
+    managed_symbols = {
+        (row["symbol"].upper() if row["symbol"].upper().endswith(".T") else f"{row['symbol'].upper()}.T")
+        for row in managed
+    }
+    if external_symbols & managed_symbols:
+        raise ValueError("POSITION_OWNERSHIP_OVERLAP")
     return request
 
 
@@ -72,6 +94,7 @@ def _evaluate(snapshot, request):
     return run_locked_pipeline(
         snapshot,
         external_positions=request["externalPositions"],
+        ark_managed_positions=request.get("arkManagedPositions") or [],
         intent=request["intent"],
         estimated_notional=request["estimatedNotional"],
     )

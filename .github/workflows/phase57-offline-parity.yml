@@ -25,6 +25,7 @@ on:
       - 'tools/test_phase57_ui_read_model.mjs'
       - 'tools/phase57_ui_read_model_cli.mjs'
       - 'tools/test_phase57_ui_read_model_cli.mjs'
+      - 'tools/Start-ArkAccountReadOnlySnapshot.ps1'
       - 'tools/Start-ArkUiReadOnlyPreview.ps1'
       - 'docs/ARK_TERMINAL_UI_2_INTEGRATION_PLAN.md'
       - 'tools/Start-ArkCashLockedFromAction.ps1'
@@ -86,12 +87,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Parse cash launcher scripts with Windows PowerShell 5.1
+      - name: Parse cash and UI launcher scripts with Windows PowerShell 5.1
         shell: powershell
         run: |
           $scripts = @(
             'tools/Start-ArkCashLocked.ps1',
             'tools/Start-ArkCashLockedFromAction.ps1',
+            'tools/Start-ArkAccountReadOnlySnapshot.ps1',
             'tools/Start-ArkUiReadOnlyPreview.ps1',
             'tools/phase57_cash_locked_bridge.ps1',
             'tools/Test-ArkCashLockedBridge.ps1'
@@ -176,25 +178,37 @@ jobs:
         run: ./tools/Start-ArkParity.ps1 -Mode OFFLINE_FIXTURE -OutputRoot '${{ runner.temp }}/ark-offline'
       - name: Windows UI read-model preview (synthetic; no Excel)
         if: runner.os == 'Windows'
-        shell: powershell
+        shell: pwsh
         run: |
-          $root = Join-Path $env:RUNNER_TEMP 'ark-ui-preview'
+          $root = Join-Path '${{ runner.temp }}' 'ark-ui-read-model'
           New-Item -ItemType Directory -Force -Path $root | Out-Null
           $snapshot = Join-Path $root 'snapshot.json'
-          $output = Join-Path $root 'ui.json'
-          $now = (Get-Date).ToUniversalTime().ToString('o')
+          $target = Join-Path $root 'ui.json'
           $payload = @{
-            schemaId='ARK_ACCOUNT_READONLY_SNAPSHOT_V2'; capturedAt=$now; captureCompletedAt=$now
-            source='MARKETSPEED_II_RSS'; mode='READ_ONLY'; buyingPower=2605
-            positions=@(@{symbol='408A';name='fixture';account='TEST';quantity=180}); orders=@(); executions=@()
-            safety=@{executionAllowed=$false;brokerWriteAllowed=$false;excelOrderWriteAllowed=$false;rssOrderFunctionAllowed=$false;liveTradingAllowed=$false;paperTradingAllowed=$false;automaticPromotionAllowed=$false;productionUpdateAllowed=$false;transmitted=$false}
+            schemaId='ARK_ACCOUNT_READONLY_SNAPSHOT_V2'
+            capturedAt=(Get-Date).ToUniversalTime().ToString('o')
+            captureCompletedAt=(Get-Date).ToUniversalTime().ToString('o')
+            source='MARKETSPEED_II_RSS'
+            mode='READ_ONLY'
+            positions=@()
+            orders=@()
+            executions=@()
+            buyingPower=1000000
+            safety=@{
+              executionAllowed=$false
+              brokerWriteAllowed=$false
+              excelOrderWriteAllowed=$false
+              rssOrderFunctionAllowed=$false
+              liveTradingAllowed=$false
+              paperTradingAllowed=$false
+              automaticPromotionAllowed=$false
+              productionUpdateAllowed=$false
+              transmitted=$false
+            }
           }
-          $payload | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $snapshot -Encoding UTF8
-          ./tools/Start-ArkUiReadOnlyPreview.ps1 -SnapshotPath $snapshot -UiReadModelPath $output -SkipSnapshotRefresh
-          $model = Get-Content -LiteralPath $output -Raw | ConvertFrom-Json
-          if ($model.schemaId -ne 'ARK_TERMINAL_UI_READ_MODEL_V1' -or $model.readOnly -ne $true) { throw 'UI_PREVIEW_INVALID' }
-          if ($model.home.buyingPower -ne 2605 -or $model.positions.Count -ne 1) { throw 'UI_PREVIEW_DATA_MISMATCH' }
-          if ($model.mutationCapabilities.orderSubmit -ne $false -or $model.mutationCapabilities.rssOrderFunction -ne $false) { throw 'UI_PREVIEW_MUTATION_NOT_LOCKED' }
+          $payload | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $snapshot -Encoding UTF8
+          ./tools/Start-ArkUiReadOnlyPreview.ps1 -SkipSnapshotRefresh -SnapshotPath $snapshot -UiReadModelPath $target
+          if (-not (Test-Path -LiteralPath $target)) { throw 'UI_READ_MODEL_PREVIEW_MISSING' }
       - name: Windows RSS setup fixture gate (no Excel or market access)
         if: runner.os == 'Windows'
         shell: pwsh

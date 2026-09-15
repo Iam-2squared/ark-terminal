@@ -16,6 +16,7 @@ const summarize=rows=>Object.freeze({
 const group=(rows,key)=>Object.freeze(Object.fromEntries([...new Set(rows.map(row=>row[key]??'UNKNOWN'))].sort().map(value=>[value,summarize(rows.filter(row=>(row[key]??'UNKNOWN')===value))])));
 const returnBucket=value=>value<0?'LT_0':value<1?'0_TO_1':value<2?'1_TO_2':value<3?'2_TO_3':value<5?'3_TO_5':'GTE_5';
 const stableHash=value=>createHash('sha256').update(value).digest('hex');
+const uniqueSymbolSessions=rows=>new Set(rows.map(row=>`${row.sessionDate}|${row.symbol}`)).size;
 
 function selectionMetrics(selected,all){
   const winnerIds=new Set(all.filter(row=>row.winner).map(row=>`${row.sessionDate}|${row.symbol}`));
@@ -49,10 +50,20 @@ export function buildL1DiscoveryReport({featureRows=[],evaluatorOnlyLabels=[],au
   const joined=evaluatorOnlyLabels.flatMap(label=>{const feature=features.get(`${label.sessionDate}|${label.symbol}|${label.decisionTimeJst}`);return feature?[Object.freeze({...feature,...label,currentReturnBucket:returnBucket(Number(feature.currentReturnPct))})]:[];});
   if(joined.some(row=>row.evaluatorOnly!==true))throw new Error('L1 report requires physically separated evaluator labels');
   const winners=joined.filter(row=>row.winner),largeWinners=joined.filter(row=>row.largeWinner);
+  const firstDecisionRows=[...joined].sort((a,b)=>a.decisionTimeJst.localeCompare(b.decisionTimeJst)).filter((row,index,all)=>index===all.findIndex(x=>x.sessionDate===row.sessionDate&&x.symbol===row.symbol));
+  const comparisonCohorts=Object.freeze({
+    finalWinner:summarize(joined.filter(row=>row.winner)),
+    nearWinner3To5:summarize(joined.filter(row=>row.finalClass==='NEAR_3_TO_5')),
+    intraday5ThenFail:summarize(joined.filter(row=>row.finalClass==='INTRADAY_5_THEN_FAIL')),
+    highVolumeNonWinner:summarize(joined.filter(row=>!row.winner&&row.liquidityBucket==='HIGH')),
+    gapUpFailure:summarize(joined.filter(row=>row.gapUpFailure===true)),
+    ordinaryNonWinner:summarize(joined.filter(row=>row.finalClass==='NON_WINNER'&&row.gapUpFailure!==true)),
+  });
   return Object.freeze({schemaVersion:1,evaluatorOnly:true,audit:Object.freeze({...audit,joinedRows:joined.length}),
+    winnerUniverse:Object.freeze({finalGte5SymbolSessions:uniqueSymbolSessions(firstDecisionRows.filter(row=>row.winner)),finalGte10SymbolSessions:uniqueSymbolSessions(firstDecisionRows.filter(row=>row.largeWinner)),eligibleSymbolSessions:uniqueSymbolSessions(firstDecisionRows)}),
     overall:summarize(joined),winnerTimeStructure:group(winners,'decisionTimeJst'),largeWinnerTimeStructure:group(largeWinners,'decisionTimeJst'),
     winnerCurrentReturnBuckets:group(winners,'currentReturnBucket'),byMarket:group(joined,'segment'),byLiquidity:group(joined,'liquidityBucket'),byGap:group(joined,'gapBucket'),byLimitUp:group(joined,'limitUpTouched'),
-    outcomeCohorts:group(joined,'finalClass'),causalFeatureDiagnostics:causalFeatureDiagnostics(joined),
+    outcomeCohorts:group(joined,'finalClass'),comparisonCohorts,sessionStability:group(joined,'sessionDate'),causalFeatureDiagnostics:causalFeatureDiagnostics(joined),
     contract:Object.freeze({currentReturnBuckets:['LT_0','0_TO_1','1_TO_2','2_TO_3','3_TO_5','GTE_5'],randomCountMatchedByDecisionTime:true,permutationControl:'DETERMINISTIC_ONE_THIRD_LABEL_ROTATION',outcomesNeverReturnedToDecisionPipeline:true})});
 }
 

@@ -7,22 +7,20 @@ SAFE={"executionAllowed":False,"brokerWriteAllowed":False,"excelOrderWriteAllowe
 def snap(cash=1000000,positions=None): return {"schemaId":"ARK_ACCOUNT_READONLY_SNAPSHOT_V2","capturedAt":"2026-09-15T15:00:00+09:00","source":"MARKETSPEED_II_RSS","mode":"READ_ONLY","positions":positions if positions is not None else [{"symbol":"408A","quantity":180}],"orders":[],"executions":[],"buyingPower":cash,"safety":dict(SAFE)}
 ENTRY={"symbol":"7203.T","direction":"LONG","side":"BUY","positionEffect":"OPEN","quantity":100,"orderType":"MARKET","limitPrice":None,"timeInForce":"DAY"}
 EXIT={"symbol":"7203.T","direction":"LONG","side":"SELL","positionEffect":"CLOSE","quantity":100,"orderType":"MARKET","limitPrice":None,"timeInForce":"DAY"}
+LINEAGE={"sourceActionSha256":"a"*64,"sourceCashExecutionIntentSha256":"b"*64,"sourceIntentSha256":"c"*64,"sourceIntentId":"MSII_INTENT|fixture","strategyId":"V1_V3__MAX_3"}
 class PipelineTests(unittest.TestCase):
  def test_locked_ready(self):
-  out=run_locked_pipeline(snap(),external_positions=[{"symbol":"408A","quantity":180}],intent=ENTRY,estimated_notional=300000,now=NOW)
-  self.assertEqual(out["status"],"LOCKED_READY"); self.assertFalse(out["interface"]["formulaEvaluationAllowed"]); self.assertFalse(out["interface"]["transmitted"])
- def test_insufficient_cash_blocks_g9(self):
-  out=run_locked_pipeline(snap(2605),external_positions=[{"symbol":"408A","quantity":180}],intent=ENTRY,estimated_notional=300000,now=NOW)
-  self.assertEqual(out["stage"],"G9"); self.assertIn("INSUFFICIENT_CASH",out["candidate"]["blockers"])
+  out=run_locked_pipeline(snap(),external_positions=[{"symbol":"408A","quantity":180}],intent=ENTRY,estimated_notional=300000,upstream_lineage=LINEAGE,now=NOW)
+  self.assertEqual(out["status"],"LOCKED_READY"); self.assertFalse(out["interface"]["formulaEvaluationAllowed"]); self.assertFalse(out["interface"]["transmitted"]); self.assertEqual(out["upstreamLineage"],LINEAGE)
+ def test_insufficient_cash_blocks_g9_and_keeps_lineage(self):
+  out=run_locked_pipeline(snap(2605),external_positions=[{"symbol":"408A","quantity":180}],intent=ENTRY,estimated_notional=300000,upstream_lineage=LINEAGE,now=NOW)
+  self.assertEqual(out["stage"],"G9"); self.assertIn("INSUFFICIENT_CASH",out["candidate"]["blockers"]); self.assertEqual(out["upstreamLineage"],LINEAGE)
  def test_managed_cash_exit_reconciles_and_reaches_locked_ready(self):
   broker=[{"symbol":"408A","quantity":180},{"symbol":"7203","quantity":100}]
-  out=run_locked_pipeline(snap(2605,broker),external_positions=[{"symbol":"408A","quantity":180}],ark_managed_positions=[{"symbol":"7203.T","quantity":100}],intent=EXIT,estimated_notional=300000,now=NOW)
-  self.assertEqual(out["status"],"LOCKED_READY")
-  self.assertEqual(out["draft"]["intent"]["side"],"SELL")
-  self.assertFalse(out["interface"]["formulaEvaluationAllowed"])
+  out=run_locked_pipeline(snap(2605,broker),external_positions=[{"symbol":"408A","quantity":180}],ark_managed_positions=[{"symbol":"7203.T","quantity":100}],intent=EXIT,estimated_notional=300000,upstream_lineage=LINEAGE,now=NOW)
+  self.assertEqual(out["status"],"LOCKED_READY"); self.assertEqual(out["draft"]["intent"]["side"],"SELL"); self.assertFalse(out["interface"]["formulaEvaluationAllowed"]); self.assertEqual(out["upstreamLineage"],LINEAGE)
  def test_unowned_cash_exit_blocks_at_g6(self):
   broker=[{"symbol":"408A","quantity":180},{"symbol":"7203","quantity":100}]
-  out=run_locked_pipeline(snap(2605,broker),external_positions=[{"symbol":"408A","quantity":180}],intent=EXIT,estimated_notional=300000,now=NOW)
-  self.assertEqual(out["stage"],"G6")
-  self.assertIn("UNKNOWN_BROKER_POSITION:7203.T",out["reconciliation"]["blockers"])
+  out=run_locked_pipeline(snap(2605,broker),external_positions=[{"symbol":"408A","quantity":180}],intent=EXIT,estimated_notional=300000,upstream_lineage=LINEAGE,now=NOW)
+  self.assertEqual(out["stage"],"G6"); self.assertIn("UNKNOWN_BROKER_POSITION:7203.T",out["reconciliation"]["blockers"]); self.assertEqual(out["upstreamLineage"],LINEAGE)
 if __name__=="__main__": unittest.main()

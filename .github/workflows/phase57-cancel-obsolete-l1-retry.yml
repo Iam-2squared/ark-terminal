@@ -1,4 +1,4 @@
-name: Phase57 Cancel Superseded L1 Run
+name: Phase57 Cancel Superseded Research Runs
 
 on:
   push:
@@ -17,8 +17,14 @@ jobs:
       - uses: actions/github-script@v7
         with:
           script: |
-            await github.rest.actions.cancelWorkflowRun({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: 34929291187,
-            });
+            for (const run_id of [34957199976, 34957200060]) {
+              try {
+                await github.rest.actions.cancelWorkflowRun({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  run_id,
+                });
+              } catch (error) {
+                if (error.status !== 409) throw error;
+              }
+            }

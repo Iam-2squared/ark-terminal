@@ -42,7 +42,17 @@
   },
   "adapter": {
     "type": "SEMANTIC_PRESERVING_LONG_ONLY_TRANSFER",
-    "symbol": "APPEND_DOT_T_ONLY_FOR_CURRENT_ENTRY_FEATURE_CONTRACT",
+    "symbol": "JQUANTS_FIVE_CHARACTER_CODE_WITH_TERMINAL_ZERO_TO_JPX_FOUR_CHARACTER_CODE_PLUS_DOT_T",
+    "symbolExamples": {
+      "72030": "7203.T",
+      "285A0": "285A.T"
+    },
+    "symbolAdapterAuditRevision": {
+      "reason": "INITIAL_RUN_HAD_ZERO_SCORABLE_ENTRY_TICKS_BECAUSE_THE_JQUANTS_TERMINAL_ZERO_WAS_NOT_REMOVED",
+      "entryScoresObservedBeforeRevision": 0,
+      "modelOrRuleChanged": false,
+      "verdictRulesChanged": false
+    },
     "selectorDecisionPrice": "LATEST_CAUSALLY_AVAILABLE_CLOSED_MARKET_PRICE_AGE_LE_5_MINUTES",
     "entryReferencePrice": "LATEST_COMPLETED_CAUSAL_5M_BAR_CLOSE_AT_ENTRY_EVALUATION",
     "pricesAreNotInterchangeable": true,

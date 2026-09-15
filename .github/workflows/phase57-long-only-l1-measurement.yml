@@ -21,7 +21,7 @@ jobs:
       MINUTE_RUN_ID: 34926225832
       JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
       NODE_OPTIONS: --max-old-space-size=6144
-      REPORT_ALGORITHM: LINEAR_CROSS_SECTION_V2
+      REPORT_ALGORITHM: RAW_PRICE_SCALE_CAUSAL_V3
     steps:
       - uses: actions/checkout@v4
         with:

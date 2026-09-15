@@ -67,7 +67,8 @@ function snapshotIntegrity(snapshot) {
     if (!Array.isArray(snapshot.positions)) violations.push('ACCOUNT_SNAPSHOT_POSITIONS_ARRAY_REQUIRED');
     if (!Array.isArray(snapshot.orders)) violations.push('ACCOUNT_SNAPSHOT_ORDERS_ARRAY_REQUIRED');
     if (!Array.isArray(snapshot.executions)) violations.push('ACCOUNT_SNAPSHOT_EXECUTIONS_ARRAY_REQUIRED');
-    if (optionalNumber(snapshot.buyingPower) === null || optionalNumber(snapshot.buyingPower) < 0) violations.push('ACCOUNT_SNAPSHOT_BUYING_POWER_INVALID');
+    const buyingPower = optionalNumber(snapshot.buyingPower);
+    if (buyingPower === null || buyingPower < 0) violations.push('ACCOUNT_SNAPSHOT_BUYING_POWER_INVALID');
   }
   return Object.freeze({state: violations.length ? 'BLOCKED' : 'VALID', violations: Object.freeze(violations)});
 }
@@ -266,8 +267,9 @@ export function buildArkTerminalUiReadModel({
   const executions = projectExecutions(schemaValid ? accountSnapshot.executions : []);
 
   const criticalSourceProblem = integrity.state !== 'VALID' || freshness.state !== 'FRESH' || safety.state !== 'LOCKED';
-  const runtimeBlocked = runtime.state === 'BLOCKED';
-  const readiness = criticalSourceProblem || runtimeBlocked || pipeline.state === 'BLOCKED' || pipeline.state === 'INVALID'
+  const runtimeNotClear = runtime.state !== 'CLEAR';
+  const ownershipRequiredButUnknown = positions.length > 0 && ownership.state !== 'AVAILABLE';
+  const readiness = criticalSourceProblem || runtimeNotClear || ownershipRequiredButUnknown || pipeline.state === 'BLOCKED' || pipeline.state === 'INVALID'
     ? 'BLOCKED'
     : pipeline.state === 'LOCKED_READY'
       ? 'LOCKED_READY'
@@ -305,7 +307,7 @@ export function buildArkTerminalUiReadModel({
     }),
     safety,
     system: Object.freeze({
-      health: criticalSourceProblem || runtimeBlocked ? 'BLOCKED' : 'READ_ONLY_OK',
+      health: criticalSourceProblem || runtime.state === 'BLOCKED' ? 'BLOCKED' : 'READ_ONLY_OK',
       tradeReadiness: readiness,
       reconciliation: Object.freeze({
         state: lockedPipeline?.reconciliation?.status ? asText(lockedPipeline.reconciliation.status) : 'UNAVAILABLE',

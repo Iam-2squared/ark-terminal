@@ -133,9 +133,14 @@ for(const sessionDate of frozenSessions){
   for(const symbol of selectedSymbols){entryBars.set(symbol,normalizeEntryBars(barsMap.get(symkey(sessionDate,symbol))??[]));entryAuctions.set(symbol,auctionMap.get(symkey(sessionDate,symbol))??[]);}
   const transfer=evaluateLongOnlyTransferSession({sessionDate,selections,barsBySymbol:entryBars,auctionsBySymbol:entryAuctions,model});
   allEvents.push(...transfer.events.map(flattenEvent));allOpportunities.push(...transfer.opportunities);
+  const tickReasonCounts={};
+  for(const tick of transfer.ticks){const key=`${tick.status}:${tick.reason}`;tickReasonCounts[key]=(tickReasonCounts[key]??0)+1;}
+  const scoredProbabilities=transfer.ticks.map(row=>row.probability).filter(Number.isFinite).sort((a,b)=>a-b);
   sessionAudits.push({sessionDate,partition,sourceGroup:group.name,rawMinuteRows:raw.length,eligibleFeatureRows:[...candidateGroups.values()].reduce((sum,rows)=>sum+rows.length,0),
     decisionTimestamps:candidateGroups.size,selectedEvents:selections.length,uniqueSelectedSymbols:selectedSymbols.size,entryEvaluationTicks:transfer.ticks.length,
     directStatus:Object.fromEntries(['PASS','WAIT','REJECT','BLOCKED','UNAVAILABLE'].map(status=>[status,transfer.events.filter(event=>event.directStatus===status).length])),
+    tickReasonCounts,scoredTicks:scoredProbabilities.length,
+    scoredProbabilityMin:scoredProbabilities.at(0)??null,scoredProbabilityMax:scoredProbabilities.at(-1)??null,
     firstEntryOpportunities:transfer.opportunities.length,firstPass:transfer.opportunities.filter(row=>row.finalStatus==='PASS').length});
   console.log(JSON.stringify({status:'ENTRY_TRANSFER_SESSION_COMPLETE',...sessionAudits.at(-1)}));
 }

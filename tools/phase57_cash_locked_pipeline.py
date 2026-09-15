@@ -8,6 +8,12 @@ from phase57_cash_micro_live_gate import build_micro_live_preflight
 from phase57_locked_excel_adapter import build_locked_excel_interface
 
 
+def _result(payload, upstream_lineage):
+    if upstream_lineage is not None:
+        payload["upstreamLineage"] = dict(upstream_lineage)
+    return payload
+
+
 def run_locked_pipeline(
     snapshot,
     *,
@@ -15,6 +21,7 @@ def run_locked_pipeline(
     intent,
     estimated_notional,
     ark_managed_positions=None,
+    upstream_lineage=None,
     daily_realized_pnl=0,
     max_order_notional=500000,
     max_daily_loss=10000,
@@ -22,6 +29,7 @@ def run_locked_pipeline(
 ):
     current=now or datetime.now(timezone.utc)
     managed=list(ark_managed_positions or [])
+    lineage=None if upstream_lineage is None else dict(upstream_lineage)
     recon=reconcile_account_snapshot(
         snapshot,
         ark_positions=managed,
@@ -30,7 +38,7 @@ def run_locked_pipeline(
         max_age_seconds=30,
     )
     if recon["status"] != "RECONCILIATION_PASS":
-        return {"status":"BLOCKED","stage":"G6","reconciliation":recon}
+        return _result({"status":"BLOCKED","stage":"G6","reconciliation":recon}, lineage)
     draft=build_locked_cash_order_draft(recon,intent,order_id=1,account_type=0,sor=0)
     candidate=build_cash_only_unlock_candidate(
         reconciliation=recon,
@@ -47,7 +55,7 @@ def run_locked_pipeline(
         max_daily_loss=max_daily_loss,
     )
     if not candidate["eligible"]:
-        return {"status":"BLOCKED","stage":"G9","reconciliation":recon,"draft":draft,"candidate":candidate}
+        return _result({"status":"BLOCKED","stage":"G9","reconciliation":recon,"draft":draft,"candidate":candidate}, lineage)
     preflight=build_micro_live_preflight(
         unlock_candidate=candidate,
         draft=draft,
@@ -55,6 +63,6 @@ def run_locked_pipeline(
         open_order_count=len(snapshot.get("orders") or []),
     )
     if not preflight["readyForPhysicalUnlock"]:
-        return {"status":"BLOCKED","stage":"G10","reconciliation":recon,"draft":draft,"candidate":candidate,"preflight":preflight}
+        return _result({"status":"BLOCKED","stage":"G10","reconciliation":recon,"draft":draft,"candidate":candidate,"preflight":preflight}, lineage)
     interface=build_locked_excel_interface(preflight=preflight,draft=draft,buying_power=snapshot.get("buyingPower"))
-    return {"status":"LOCKED_READY","stage":"EXCEL_ADAPTER","reconciliation":recon,"draft":draft,"candidate":candidate,"preflight":preflight,"interface":interface}
+    return _result({"status":"LOCKED_READY","stage":"EXCEL_ADAPTER","reconciliation":recon,"draft":draft,"candidate":candidate,"preflight":preflight,"interface":interface}, lineage)

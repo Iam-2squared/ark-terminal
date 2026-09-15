@@ -13,6 +13,8 @@ on:
       - 'scripts/tests/phase57-integration-gates.test.mjs'
       - 'tools/phase57_source_capture.py'
       - 'tools/phase57_rss_raw.py'
+      - 'tools/phase57_rss_finalization.py'
+      - 'tools/test_phase57_rss_finalization.py'
       - 'tools/rss_chart_semantics.py'
       - 'tools/phase58_excel_5m_chart_export.py'
       - 'tools/test_phase58_excel_5m_chart_export.py'
@@ -62,6 +64,13 @@ jobs:
         run: |
           python -m pip install pytest
           python -m pytest tools/test_phase58_excel_5m_chart_export.py -q
+      - name: RSS source and finalization contract tests
+        shell: bash
+        run: |
+          PYTHONPATH=tools python -m unittest \
+            tools.test_phase57_rss_finalization \
+            tools.test_phase57_rss_raw \
+            tools.test_phase57_source_capture
       - name: Workbook failure tests
         run: |
           python tools/test_phase57_offline_excel_reader.py

@@ -8,6 +8,7 @@ import {
 } from "../realtime/phase57-msii-shadow-execution.js";
 import {
   buildCashExecutionIntentFromShadowIntent,
+  buildCashExecutionIntentsFromCommittedLedger,
   buildLockedCashRequestFromShadowIntent,
 } from "../realtime/phase57-cash-execution-adapter.js";
 
@@ -57,15 +58,15 @@ function event(symbol = "7203") {
   }, { marketSizeUnit: "SHARES", tickSizeUnit: "SHARES" });
 }
 
-function shadow({ side = "BUY", intentKind = "ENTRY", requestedQuantity = 500 } = {}) {
+function shadow({ side = "BUY", intentKind = "ENTRY", requestedQuantity = 500, strategyId = "V1_V3__MAX_3", decisionSequence = 0 } = {}) {
   const referenceEvent = event();
   return createShadowOrderIntent({
-    strategyId: "V1_V3__MAX_3",
+    strategyId,
     symbol: "7203",
     side,
     intentKind,
     decisionAt: AT,
-    decisionSequence: 0,
+    decisionSequence,
     requestedQuantity,
     referencePrice: 100.1,
     referenceEvent,
@@ -113,6 +114,28 @@ test("adapts only a LONG cash exit SELL and rejects short semantics", () => {
   assert.throws(
     () => buildCashExecutionIntentFromShadowIntent(shadow({ side: "BUY", intentKind: "EXIT" })),
     /CASH_LONG_EXIT_SELL_ONLY/,
+  );
+});
+
+test("requires explicit strategy lineage when extracting committed realtime intents", () => {
+  const first = shadow({ decisionSequence: 2 });
+  const other = shadow({ strategyId: "V1_V3__MAX_2", decisionSequence: 1 });
+  const ledger = [
+    { eventType: "SHADOW_ORDER_INTENT_COMMITTED", intent: first },
+    { eventType: "SHADOW_ORDER_INTENT_COMMITTED", intent: other },
+  ];
+  assert.throws(() => buildCashExecutionIntentsFromCommittedLedger(ledger), /STRATEGY_ID_REQUIRED/);
+  const selected = buildCashExecutionIntentsFromCommittedLedger(ledger, { strategyId: "V1_V3__MAX_3", decisionAt: AT });
+  assert.equal(selected.length, 1);
+  assert.equal(selected[0].lineage.strategyId, "V1_V3__MAX_3");
+  assert.equal(selected[0].quantity, 500);
+
+  const shortForSelected = shadow({ side: "SELL", intentKind: "ENTRY", decisionSequence: 3 });
+  const mixed = [...ledger, { eventType: "SHADOW_ORDER_INTENT_COMMITTED", intent: shortForSelected }];
+  assert.throws(
+    () => buildCashExecutionIntentsFromCommittedLedger(mixed, { strategyId: "V1_V3__MAX_3" }),
+    /CASH_LONG_ENTRY_BUY_ONLY/,
+    "a short in the explicitly selected strategy must block rather than be silently dropped",
   );
 });
 

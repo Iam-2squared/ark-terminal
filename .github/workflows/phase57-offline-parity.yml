@@ -21,6 +21,9 @@ on:
       - 'tools/test_phase57_cash_upstream_request.mjs'
       - 'tools/phase57_cash_ownership_baseline.mjs'
       - 'tools/test_phase57_cash_ownership_baseline.mjs'
+      - 'tools/phase57_ui_read_model.mjs'
+      - 'tools/test_phase57_ui_read_model.mjs'
+      - 'docs/ARK_TERMINAL_UI_2_INTEGRATION_PLAN.md'
       - 'tools/Start-ArkCashLockedFromAction.ps1'
       - 'tools/phase57_source_capture.py'
       - 'tools/phase57_rss_raw.py'
@@ -128,13 +131,14 @@ jobs:
       - name: Frozen reference and offline tests
         shell: bash
         run: node --test scripts/tests/*.test.mjs
-      - name: Cash execution adapter regression
+      - name: Cash execution adapter and UI read-model regression
         shell: bash
         run: |
           node --test predict/tests/phase57-cash-execution-adapter.test.mjs
           node --test predict/tests/phase57-cash-upstream-action.test.mjs
           node --test tools/test_phase57_cash_upstream_request.mjs
           node --test tools/test_phase57_cash_ownership_baseline.mjs
+          node --test tools/test_phase57_ui_read_model.mjs
       - name: Existing Phase58 RSS semantics regression
         run: |
           python -m pip install pytest

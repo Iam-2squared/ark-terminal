@@ -96,3 +96,20 @@ test('L1 Minute workflow is limited to fixed first-20 Development A sessions in 
   assert.doesNotMatch(script,/DEVELOPMENT_B|VALIDATION|PRIMARY_OOS|CONTINGENCY_OOS|RESERVE/);
   assert.match(workflow,/minute-shard\.tar\.gz\.enc/);
 });
+
+test('L2 Minute workflow is limited to frozen Development C+D in four checkpoints',()=>{
+  const workflow=fs.readFileSync(new URL('../../.github/workflows/phase57-long-only-l2-minute-checkpointed.yml',import.meta.url),'utf8');
+  const script=fs.readFileSync(new URL('../../scripts/acquire_phase57_long_only_l2_minute.mjs',import.meta.url),'utf8');
+  const contract=JSON.parse(fs.readFileSync(new URL('../long-only/phase57-long-only-l2-development-sessions.json',import.meta.url),'utf8'));
+  assert.equal(contract.sessions.length,40);
+  assert.deepEqual(contract.sessions,[...allocation.partitions.DEVELOPMENT_C,...allocation.partitions.DEVELOPMENT_D]);
+  assert.equal(contract.sessionListSha256,'9abbc28870b8885cab2b68ae2d2f3e6ef4511b5f687dc553ddcd9e0255b0281c');
+  assert.equal(contract.requestHardCeiling,600);
+  assert.equal(contract.validationOpened,false);assert.equal(contract.oosOpened,false);
+  assert.match(workflow,/--shard-count 4/);
+  assert.equal((workflow.match(/request_cap: 150/g)??[]).length,4);
+  assert.match(workflow,/max-parallel: 1/);
+  assert.match(script,/expected\.length!==40/);
+  assert.doesNotMatch(script,/VALIDATION|PRIMARY_OOS|CONTINGENCY_OOS|RESERVE/);
+  assert.match(workflow,/minute-shard\.tar\.gz\.enc/);
+});

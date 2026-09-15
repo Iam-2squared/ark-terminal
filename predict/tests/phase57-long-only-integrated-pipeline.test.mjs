@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 import {assembleLongOnlyL0Rows,normalizeAndAggregateMinuteRows,createIntegratedResearchDataset} from '../long-only/phase57-long-only-integrated-dataset.js';
-import {buildCausalL1Features,buildEvaluatorOnlyL1Label,evaluateEarlyWinnerDiscovery} from '../long-only/phase57-long-only-l1-labels-features.js';
+import {buildCausalL1Features,buildEvaluatorOnlyL1Label,evaluateEarlyWinnerDiscovery,assignCausalLiquidityBuckets} from '../long-only/phase57-long-only-l1-labels-features.js';
 import {compareLongOnlyIntegratedSystems,COMPARISON_STAGES} from '../long-only/phase57-long-only-integrated-comparison.js';
 import {acquireFormalL0Session,fetchJquantsPages} from '../long-only/phase57-long-only-jquants-client.js';
 import {replayLongOnlyIntegratedStages} from '../long-only/phase57-long-only-replay-interface.js';
+import {buildEvaluatorOnlyL2Targets,assertL2SelectionBoundary,L2_CANDIDATE_CONTRACT} from '../long-only/phase57-long-only-l2-candidate-contract.js';
 
 test('frozen split names exactly 205 unique outcome-unread historical sessions',()=>{
   const allocation=JSON.parse(fs.readFileSync(new URL('../long-only/phase57-long-only-session-allocation-v3.json',import.meta.url),'utf8'));
@@ -45,11 +46,19 @@ test('sparse minute rows aggregate causally and terminal auction is separate',()
 test('L1 decision features cannot see evaluator-only future path',()=>{
   const bars=normalizeAndAggregateMinuteRows(minuteRows).bars;
   const feature=buildCausalL1Features({sessionDate:'2024-01-04',symbol:'11110',decisionTimeJst:'09:30',bars5m:bars,previousAdjustedClose:100});
-  const label=buildEvaluatorOnlyL1Label({sessionDate:'2024-01-04',symbol:'11110',decisionTimeJst:'09:30',bars5m:bars,previousAdjustedClose:100});
+  const label=buildEvaluatorOnlyL1Label({sessionDate:'2024-01-04',symbol:'11110',decisionTimeJst:'09:30',bars5m:bars,previousAdjustedClose:100,decisionTimeAtr:feature.causalAtr});
   assert.equal(feature.latestAvailableAtJst,'2024-01-04T09:30:00+09:00');assert.equal(feature.currentPrice,108);assert.equal(label.evaluatorOnly,true);assert.equal(label.futureBarCount,1);
   for(const forbidden of ['winner','remainingUpsidePct','futureMfePct','futureMaePct','finalReturnPct'])assert.equal(forbidden in feature,false);
-  const k=`${feature.sessionDate}|${feature.symbol}|${feature.decisionTimeJst}`,summary=evaluateEarlyWinnerDiscovery({features:[feature],evaluatorOnlyLabels:[label],detectedKeys:[k]});
+  assert.ok(Number.isFinite(label.futureMfeAtr));assert.ok(Number.isFinite(label.futureMaeAtr));
+  const stratified=assignCausalLiquidityBuckets([{...feature,segment:'PRIME'}]);
+  const k=`${feature.sessionDate}|${feature.symbol}|${feature.decisionTimeJst}`,summary=evaluateEarlyWinnerDiscovery({features:stratified,evaluatorOnlyLabels:[label],detectedKeys:[k]});
   assert.equal(summary.detectedWinnerCount,1);assert.equal(summary.earlyWinnerRecallPct,100);
+  assert.equal(summary.byMarket.PRIME.n,1);assert.equal(summary.byLiquidity.HIGH.n,1);
+  const targets=buildEvaluatorOnlyL2Targets(label);assert.equal(targets.evaluatorOnly,true);assert.ok(Number.isFinite(targets.riskAdjustedRemainingOpportunityPct));
+  assert.equal(assertL2SelectionBoundary({partition:'DEVELOPMENT_C',targetCount:3,modelFamilyCount:2}),true);
+  assert.throws(()=>assertL2SelectionBoundary({partition:'VALIDATION',targetCount:1,modelFamilyCount:1}),/Development C\/D/);
+  assert.equal(L2_CANDIDATE_CONTRACT.validationMaySelectTarget,false);
+  assert.throws(()=>buildCausalL1Features({sessionDate:'2024-01-04',symbol:'11110',decisionTimeJst:'09:30',bars5m:bars,previousAdjustedClose:100,corporateActionFlag:true}),/corporate-action/);
 });
 
 test('one immutable dataset identity is reused by selector entry exit allocation and portfolio',()=>{
@@ -64,12 +73,13 @@ test('replay adapters receive one dataset and enforce cash-only entry intents',a
   assert.equal(result.proof.singleRawDatasetReused,true);assert.equal(result.stages.FULL_INTEGRATED_PORTFOLIO.portfolio.tradeCount,1);
 });
 
-const system=(sessions,cost,net,ddEnd)=>({evaluationSessions:sessions,costModelSha256:cost,initialCashJpy:100000,stages:Object.fromEntries(COMPARISON_STAGES.map(stage=>[stage,{trades:[{side:'LONG',accountType:'CASH_EQUITY',quantity:100,leverage:1,symbol:'11110',sector:'TECH',entryAt:'2024-01-04T09:30:00+09:00',exitAt:'2024-01-04T10:00:00+09:00',entryPrice:1000,exitPrice:1000+net/100,netPnlJpy:net}],equityCurve:[{equityJpy:100000,investedJpy:50000},{equityJpy:ddEnd,investedJpy:0}],opportunityCount:2,missedOpportunityCount:1}]))});
+const system=(sessions,cost,net,ddEnd)=>({evaluationSessions:sessions,costModelSha256:cost,initialCashJpy:100000,stages:Object.fromEntries(COMPARISON_STAGES.map(stage=>[stage,{trades:[{side:'LONG',accountType:'CASH_EQUITY',quantity:100,leverage:1,symbol:'11110',sector:'TECH',sessionDate:'2024-01-04',regime:'RISK_ON',mfeCapturePct:60,maePct:-0.5,entryAt:'2024-01-04T09:30:00+09:00',exitAt:'2024-01-04T10:00:00+09:00',entryPrice:1000,exitPrice:1000+net/100,netPnlJpy:net}],equityCurve:[{equityJpy:100000,investedJpy:50000},{equityJpy:ddEnd,investedJpy:0}],opportunityCount:2,missedOpportunityCount:1}]))});
 
 test('integrated harness enforces same window/cost and proves zero short or margin',()=>{
   const sessions=['2024-01-04'],cost='a'.repeat(64),baseline=system(sessions,cost,1000,101000),candidate=system(sessions,cost,2000,102000);
   const result=compareLongOnlyIntegratedSystems({evaluationSessions:sessions,costModelSha256:cost,baseline,candidate});
   assert.equal(result.pass,true);assert.equal(result.proof.candidateShortTrades,0);assert.equal(result.proof.cashLedgerAudit.cashNeverNegative,true);assert.equal(Object.keys(result.stages).length,4);
+  assert.equal(result.stages.FULL_INTEGRATED_PORTFOLIO.candidate.meanMfeCapturePct,60);assert.equal(result.stages.FULL_INTEGRATED_PORTFOLIO.candidate.sessionStability.profitableGroupPct,100);
   const bad=structuredClone(candidate);bad.stages.FULL_INTEGRATED_PORTFOLIO.trades[0].side='SHORT';assert.throws(()=>compareLongOnlyIntegratedSystems({evaluationSessions:sessions,costModelSha256:cost,baseline,candidate:bad}),/SHORT/);
 });
 

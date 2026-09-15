@@ -16,6 +16,8 @@ export const REQUIRED_PHASE57_LONG_ONLY_ACQUISITION_GATES=Object.freeze([
   'independentReviewDispositionFrozen',
   'exactCurrentEntitlementReattested',
   'storageDeletionTermsReattested',
+  'privateCacheDestinationConfirmed',
+  'postCancellationPurgeMechanismTested',
   'freshSelectionRuleFrozen',
   'credentialAvailabilityConfirmed',
   'claudeIndependentReviewReceived',
@@ -54,8 +56,29 @@ export function assertRuntimeAcquisitionAuthorization({plan,authorization,partit
   if(authorization?.operatorApproved!==true)throw new Error('separate operator approval is required');
   if(!authorization?.acquisitionPartitions?.includes(partition))throw new Error(`${partition} is not authorized for sealed cache acquisition`);
   if(!authorization?.authorizationSha256?.match(/^[a-f0-9]{64}$/))throw new Error('runtime authorization requires an external evidence SHA-256');
+  if(!authorization?.cacheManifestSha256?.match(/^[a-f0-9]{64}$/))throw new Error('runtime authorization requires the frozen private-cache manifest SHA-256');
+  if(!authorization?.purgeDryRunSha256?.match(/^[a-f0-9]{64}$/))throw new Error('runtime authorization requires the tested purge dry-run SHA-256');
   if(!String(authorization?.privateCacheRoot??''))throw new Error('private cache root is required');
-  return Object.freeze({authorized:true,partition,analysisPartitionOpened:false,planSha256:committed.planSha256,privateCacheRoot:String(authorization.privateCacheRoot)});
+  return Object.freeze({authorized:true,partition,analysisPartitionOpened:false,planSha256:committed.planSha256,privateCacheRoot:String(authorization.privateCacheRoot),cacheManifestSha256:authorization.cacheManifestSha256,purgeDryRunSha256:authorization.purgeDryRunSha256});
+}
+
+export function buildAcquisitionGateSummary({plan,allocation,credentialPresent=false,privateCacheRootConfirmed=false,purgeDryRunPassed=false}={}){
+  const gate=evaluateLongOnlyAcquisitionGate(plan);
+  const partitions=allocation?.partitions??{},sessions=Object.values(partitions).flat();
+  if(sessions.length!==205||new Set(sessions).size!==205)throw new Error('frozen clean-205 allocation is required');
+  return Object.freeze({
+    status:gate.status,
+    acquisitionMayStart:false,
+    planSha256:gate.planSha256,
+    allocationId:String(allocation?.allocationId??''),
+    sessions:205,
+    requests:Object.freeze({daily:205,datedMaster:205,minute:0,totalBase:410}),
+    destination:Object.freeze({publicRepositoryProhibited:true,privateCacheRootConfirmed:Boolean(privateCacheRootConfirmed)}),
+    storageLifecycle:Object.freeze({termsRecorded:plan?.preAcquisitionGate?.storageDeletionTermsReattested===true,purgeDryRunPassed:Boolean(purgeDryRunPassed)}),
+    credential:Object.freeze({present:Boolean(credentialPresent),valueObserved:false}),
+    missingCommittedGates:gate.missing,
+    operatorApprovalStillRequired:true,
+  });
 }
 
 export function assertReleasedPartition({partition,plan}){
@@ -83,6 +106,7 @@ export default {
   REQUIRED_PHASE57_LONG_ONLY_ACQUISITION_GATES,
   evaluateLongOnlyAcquisitionGate,
   assertRuntimeAcquisitionAuthorization,
+  buildAcquisitionGateSummary,
   assertReleasedPartition,
   assertReserveReplacement,
 };

@@ -86,9 +86,12 @@ No credential value has been read or committed.
 
 ## Remaining acquisition blockers
 
-- re-attest provider private-storage / post-cancellation deletion terms;
+- confirm a private user-only cache outside the public GitHub repository;
+- pass the mandatory cancellation purge dry-run;
 - confirm API credential availability in the intended runtime without exposing it;
 - explicit operator acquisition approval outside the committed plan.
+
+Official storage/deletion terms were verified on 2026-09-15. Daily/Master raw and reversible derivatives must be purged by 2026-10-06 19:02 JST; Minute/causal-5m material by 19:07 JST. The current Work process has no J-Quants credential, and no value was requested or observed.
 
 Fresh prospective selection is already frozen by rule. Exact future dates are recorded mechanically as sessions occur and do not block historical Daily/Master cache acquisition.
 
@@ -119,4 +122,4 @@ Research should move quickly enough to complete the LONG-only integrated candida
 
 ## Immediate next action
 
-Clear the three runtime/storage gates, acquire Daily + dated Master once into private immutable cache, mount Development A only, and run Formal L0. Minute acquisition remains zero until L1 block release.
+Clear the four remaining gates (private cache destination, tested purge dry-run, credential presence and plan-SHA-bound operator approval), acquire Daily + dated Master once into private immutable cache, mount Development A only, and run Formal L0. Minute acquisition remains zero until L1 block release.

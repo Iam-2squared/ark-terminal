@@ -15,7 +15,7 @@ for(const partition of partitions)if(!Array.isArray(allocation.partitions?.[part
 const apiKey=process.env.JQUANTS_API_KEY;if(!apiKey)throw new Error('JQUANTS_API_KEY is unavailable');
 
 for(const partition of partitions)for(const sessionDate of allocation.partitions[partition]){
-  const sessionDir=path.join(cacheRoot,'phase57-long-only','raw','jquants-v2',sessionDate),manifestPath=path.join(sessionDir,'l0-manifest.json');
+  const sessionDir=path.join(cacheRoot,'phase57-long-only','raw','jquants-v2',sessionDate),manifestPath=path.join(sessionDir,'l0-manifest.json'),lifecyclePath=path.join(sessionDir,'storage-lifecycle.json');
   if(fs.existsSync(manifestPath)){
     const manifest=JSON.parse(fs.readFileSync(manifestPath,'utf8'));
     if(manifest.sessionDate!==sessionDate||manifest.partition!==partition||manifest.planSha256!==authorization.planSha256)throw new Error(`immutable cache identity mismatch: ${sessionDate}`);
@@ -24,13 +24,22 @@ for(const partition of partitions)for(const sessionDate of allocation.partitions
       for(const page of pages)if(createHash('sha256').update(page.responseText).digest('hex')!==page.responseSha256)throw new Error(`immutable cache page hash mismatch: ${sessionDate} ${kind}`);
       if(pages.length!==expected.pageCount)throw new Error(`immutable cache page count mismatch: ${sessionDate} ${kind}`);
     }
+    if(!fs.existsSync(lifecyclePath))throw new Error(`immutable cache lacks storage lifecycle manifest: ${sessionDate}`);
     console.log(JSON.stringify({sessionDate,status:'IMMUTABLE_CACHE_REUSED_AND_HASH_VERIFIED'}));continue;
   }
+  if(fs.existsSync(sessionDir)&&fs.readdirSync(sessionDir).length)throw new Error(`incomplete immutable cache requires operator quarantine before retry: ${sessionDate}`);
   const result=await acquireFormalL0Session({plan,authorization,partition,sessionDate,apiKey});
   fs.mkdirSync(sessionDir,{recursive:true});
-  fs.writeFileSync(path.join(sessionDir,'daily-pages.json'),`${JSON.stringify(result.daily.pages)}\n`,{flag:'wx',mode:0o600});
-  fs.writeFileSync(path.join(sessionDir,'master-pages.json'),`${JSON.stringify(result.master.pages)}\n`,{flag:'wx',mode:0o600});
+  const dailyPath=path.join(sessionDir,'daily-pages.json'),masterPath=path.join(sessionDir,'master-pages.json');
+  fs.writeFileSync(dailyPath,`${JSON.stringify(result.daily.pages)}\n`,{flag:'wx',mode:0o600});
+  fs.writeFileSync(masterPath,`${JSON.stringify(result.master.pages)}\n`,{flag:'wx',mode:0o600});
   const manifest={...result,daily:{...result.daily,pages:undefined},master:{...result.master,pages:undefined},fetchedAt:new Date().toISOString()};
   fs.writeFileSync(manifestPath,`${JSON.stringify(manifest,null,2)}\n`,{flag:'wx',mode:0o600});
+  const relative=file=>path.relative(cacheRoot,file).split(path.sep).join('/'),fileSha=file=>createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+  const lifecycle={schemaVersion:1,privateUserOnly:true,publiclyAccessible:false,sessionDate,partition,planSha256:result.planSha256,objects:[
+    {objectId:`${sessionDate}:DAILY`,relativePath:relative(dailyPath),dataClass:'DAILY',sha256:fileSha(dailyPath)},
+    {objectId:`${sessionDate}:MASTER`,relativePath:relative(masterPath),dataClass:'MASTER',sha256:fileSha(masterPath)},
+  ]};
+  fs.writeFileSync(lifecyclePath,`${JSON.stringify(lifecycle,null,2)}\n`,{flag:'wx',mode:0o600});
   console.log(JSON.stringify({sessionDate,status:'FORMAL_L0_SESSION_CACHED',minuteRequests:0,manifestSha256:result.manifestSha256}));
 }

@@ -29,11 +29,19 @@ New Historical acquisition is still blocked. The branch must not start J-Quants 
 
 Remaining blockers:
 
-1. Re-attest private-storage and post-cancellation deletion terms.
-2. Confirm that the API credential is available in the intended runtime without exposing its value.
-3. Receive separate explicit operator authorization at runtime.
+1. Confirm a private user-only cache destination outside the public repository.
+2. Pass a no-delete purge dry-run covering raw data, copies and reverse-engineerable derivatives at the applicable cancellation deadlines.
+3. Confirm that the API credential is available in the intended runtime without exposing its value.
+4. Receive separate explicit operator authorization at runtime.
 
 Fresh exact dates are not a historical-acquisition blocker: future sessions cannot be named in advance. The prospective selection rule is frozen instead (`next JPX sessions in calendar order`). Exact Fresh identifiers are recorded mechanically as those sessions occur.
+
+The official J-Quants terms/help were rechecked on 2026-09-15. Private user-only external-cloud storage is permitted during entitlement, but cancellation/downgrade requires deletion of raw data, copies and derivatives from which the source can be reconstructed. Non-reversible private results may remain. Because this GitHub repository is public, it is never an eligible cache destination.
+
+| Data class | Mandatory purge deadline |
+|---|---|
+| Daily / dated Master under Light | 2026-10-06 19:02 JST |
+| Minute and causal 5-minute derivatives | 2026-10-06 19:07 JST |
 
 The Claude independent-review blocker itself is now closed at the contract level; its accepted/modified/rejected items are frozen separately.
 
@@ -86,6 +94,10 @@ L2 evaluates a limited set of predeclared feature families. The primary target, 
 Future MFE/MAE may be labels, but normalization used in the live decision semantics must be causal (for example decision-time ATR), not future realized volatility.
 
 The pre-acquisition implementation includes sparse causal 1m-to-5m aggregation, separate terminal-auction rows, decision-time feature construction, evaluator-only same-session labels, and causal market/sector breadth enrichment. Feature objects do not contain label fields.
+
+L1 evaluator output also supports Future MFE/MAE normalized only by decision-time causal ATR, plus frozen time-of-day, Prime/Standard/Growth and causal liquidity-tercile strata. L2 search is capped at three targets and two model families, with target/model selection restricted to Development C/D.
+
+Corporate-action flagged symbol-sessions fail closed in L1 until an intraday adjustment/parity contract is independently frozen; raw minute prices are never divided by adjusted previous close on an ambiguous action date.
 
 ## Minute-data conservation
 
@@ -143,7 +155,9 @@ The end point is an integrated comparison, not a Selector scorecard.
 
 Minimum frozen metrics are after-cost Net, PF, MaxDD, Return/DD, win rate, trade count, portfolio return, cash utilization, missed opportunity and symbol/sector concentration. A Development win only qualifies a candidate for frozen evaluation; Validation/OOS determine whether the improvement survives.
 
-A pure replay interface now supplies the same immutable `datasetId` to Selector, Entry, EXIT, Allocation and Portfolio consumers. A four-stage comparison harness enforces identical evaluation windows and cost-model hashes and rejects candidate SHORT, margin, leverage, non-cash and non-100-share-lot trades.
+A pure replay interface now supplies the same immutable `datasetId` to Selector, Entry, EXIT, Allocation and Portfolio consumers. A four-stage comparison harness enforces identical evaluation windows and cost-model hashes and rejects candidate SHORT, margin, leverage, non-cash and non-100-share-lot trades. It includes MFE capture, MAE, session stability and regime stability alongside the original portfolio metrics.
+
+Every acquired Daily/Master raw object receives a per-session storage-lifecycle identity (safe cache-relative path, data class and SHA-256). The purge planner re-verifies those hashes and produces an exact no-delete dry-run; deletion requires that dry-run's SHA-256 and records tombstones. An incomplete session cache is quarantined before any retry instead of being silently overwritten or refetched.
 
 ## Data budget
 

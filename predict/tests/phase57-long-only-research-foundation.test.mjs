@@ -91,7 +91,7 @@ test('integrated comparison is the research completion target, not selector-only
   assert.equal(plan.integratedComparisonContract.candidateMarginTradesRequired,0);
   assert.equal(plan.integratedComparisonContract.sameEvaluationWindowRequired,true);
   assert.equal(plan.integratedComparisonContract.sameCostModelRequired,true);
-  for(const metric of ['AFTER_COST_NET','PROFIT_FACTOR','MAX_DRAWDOWN','RETURN_TO_DD','PORTFOLIO_RETURN'])assert.ok(plan.integratedComparisonContract.minimumMetrics.includes(metric));
+  for(const metric of ['AFTER_COST_NET','PROFIT_FACTOR','MAX_DRAWDOWN','RETURN_TO_DD','PORTFOLIO_RETURN','MFE_CAPTURE','MAE','SESSION_STABILITY','REGIME_STABILITY'])assert.ok(plan.integratedComparisonContract.minimumMetrics.includes(metric));
 });
 
 test('acquisition gate remains fail-closed after entitlement and Claude re-attestation',()=>{
@@ -102,10 +102,11 @@ test('acquisition gate remains fail-closed after entitlement and Claude re-attes
   assert.equal(plan.preAcquisitionGate.exactCurrentEntitlementReattested,true);
   assert.equal(plan.preAcquisitionGate.claudeIndependentReviewReceived,true);
   assert.equal(plan.preAcquisitionGate.claudeCriticalBlockersResolved,true);
-  for(const key of ['storageDeletionTermsReattested','credentialAvailabilityConfirmed','operatorExplicitAcquisitionApproval'])assert.ok(gate.missing.includes(key));
+  assert.ok(!gate.missing.includes('storageDeletionTermsReattested'));
+  for(const key of ['privateCacheDestinationConfirmed','postCancellationPurgeMechanismTested','credentialAvailabilityConfirmed','operatorExplicitAcquisitionApproval'])assert.ok(gate.missing.includes(key));
   for(const key of ['integratedDataReuseContractFrozen','humanOverfittingControlsFrozen','independentReviewDispositionFrozen'])assert.ok(!gate.missing.includes(key));
   assert.match(gate.planSha256,/^[a-f0-9]{64}$/);
-  assert.equal(REQUIRED_PHASE57_LONG_ONLY_ACQUISITION_GATES.length,20);
+  assert.equal(REQUIRED_PHASE57_LONG_ONLY_ACQUISITION_GATES.length,22);
 });
 
 test('sealed validation and OOS partitions require hashed release evidence and contingency cannot open for poor performance',()=>{

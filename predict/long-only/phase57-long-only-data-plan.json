@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "planId": "PHASE57_LONG_ONLY_INTEGRATED_DATA_CONTRACT_V3",
-  "status": "BLOCKED_PENDING_STORAGE_TERMS_CREDENTIAL_CONFIRMATION_AND_OPERATOR_APPROVAL",
+  "status": "BLOCKED_PENDING_PRIVATE_CACHE_PURGE_CREDENTIAL_AND_OPERATOR_APPROVAL",
   "newJquantsAcquisitionAuthorized": false,
   "auditedAt": "2026-09-15",
   "officialContract": {
@@ -216,7 +216,7 @@
   "integratedComparisonContract": {
     "baseline": "CURRENT_ARK_SELECTOR_ENTRY_EXIT_INTEGRATED",
     "candidate": "NEW_LONG_ONLY_SELECTOR_ENTRY_EXIT_ALLOCATION_CASH_PORTFOLIO",
-    "minimumMetrics": ["AFTER_COST_NET", "PROFIT_FACTOR", "MAX_DRAWDOWN", "RETURN_TO_DD", "WIN_RATE", "TRADE_COUNT", "PORTFOLIO_RETURN", "CASH_UTILIZATION", "MISSED_OPPORTUNITY", "SYMBOL_CONCENTRATION", "SECTOR_CONCENTRATION"],
+    "minimumMetrics": ["AFTER_COST_NET", "PROFIT_FACTOR", "MAX_DRAWDOWN", "RETURN_TO_DD", "WIN_RATE", "TRADE_COUNT", "PORTFOLIO_RETURN", "CASH_UTILIZATION", "MISSED_OPPORTUNITY", "MFE_CAPTURE", "MAE", "SYMBOL_CONCENTRATION", "SECTOR_CONCENTRATION", "SESSION_STABILITY", "REGIME_STABILITY"],
     "candidateShortTradesRequired": 0,
     "candidateMarginTradesRequired": 0,
     "sameEvaluationWindowRequired": true,
@@ -241,7 +241,18 @@
     "derivedIdentity": ["parentRawSha256", "transformVersion", "timestampContract", "corporateActionPolicy", "outputSha256"],
     "reuseRule": "REUSE_ONLY_WHEN_SOURCE_IDENTITY_SESSION_SYMBOL_QUERY_CONTRACT_AND_SHA256_ALL_MATCH",
     "correctionRule": "NEW_PROVIDER_SNAPSHOT_IS_NEW_VERSION_NEVER_OVERWRITE_OLD_MANIFEST",
-    "postCancellationRule": "BLOCKED_PENDING_REATTESTED_PROVIDER_STORAGE_AND_DELETION_TERMS"
+    "postCancellationRule": "DELETE_RAW_COPIES_AND_REVERSIBLE_DERIVATIVES_AT_APPLICABLE_PLAN_OR_ADDON_END; PRIVATE_NONREVERSIBLE_RESULTS_MAY_REMAIN",
+    "officialTermsEvidence": {
+      "checkedAt": "2026-09-15",
+      "termsUrl": "https://jpx-jquants.com/ja/termsofservice",
+      "helpUrl": "https://jpx-jquants.com/ja/help/usage",
+      "contractTerm": "PRIVATE_USER_ONLY_EXTERNAL_CLOUD_ALLOWED_DURING_ENTITLEMENT; DELETE_RAW_COPIES_AND_REVERSE_ENGINEERABLE_DERIVATIVES_AFTER_CANCELLATION_OR_DOWNGRADE",
+      "publicRepositoryStorageAllowed": false
+    },
+    "purgeDeadlinesJst": {
+      "DAILY_AND_MASTER_LIGHT": "2026-10-06T19:02:00+09:00",
+      "MINUTE_TICK_OHLCMIN": "2026-10-06T19:07:00+09:00"
+    }
   },
   "claudeIndependentReview": {
     "received": true,
@@ -272,7 +283,9 @@
     "humanOverfittingControlsFrozen": true,
     "independentReviewDispositionFrozen": true,
     "exactCurrentEntitlementReattested": true,
-    "storageDeletionTermsReattested": false,
+    "storageDeletionTermsReattested": true,
+    "privateCacheDestinationConfirmed": false,
+    "postCancellationPurgeMechanismTested": false,
     "freshExactDatesFrozen": false,
     "freshSelectionRuleFrozen": true,
     "credentialAvailabilityConfirmed": false,

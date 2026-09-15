@@ -16,7 +16,9 @@ test('dry-run plans all 205 historical sessions without authorizing acquisition'
   assert.equal(result.requests.total,410);
   assert.equal(result.selectorOnlyConsumptionProhibited,true);
   assert.deepEqual(result.integratedReuse,['SELECTOR','ENTRY','EXIT','ALLOCATION','PORTFOLIO_REPLAY']);
-  assert.ok(result.missingGates.includes('storageDeletionTermsReattested'));
+  assert.ok(!result.missingGates.includes('storageDeletionTermsReattested'));
+  assert.ok(result.missingGates.includes('privateCacheDestinationConfirmed'));
+  assert.ok(result.missingGates.includes('postCancellationPurgeMechanismTested'));
   assert.ok(!result.missingGates.includes('freshSelectionRuleFrozen'));
   assert.ok(result.missingGates.includes('credentialAvailabilityConfirmed'));
   assert.ok(result.missingGates.includes('operatorExplicitAcquisitionApproval'));

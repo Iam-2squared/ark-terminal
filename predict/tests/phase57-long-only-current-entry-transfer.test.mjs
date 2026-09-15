@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {
   assertCurrentEntryAssets,evaluateFrozenCurrentEntryLong,evaluateLongOnlyTransferSession,
-  measureRemainingOpportunity,normalizeEntryBars,
+  measureRemainingOpportunity,normalizeEntryBars,normalizeEntrySymbol,
 } from '../long-only/phase57-long-only-current-entry-transfer.js';
 
 const root=new URL('../../',import.meta.url);
@@ -27,6 +27,13 @@ test('pins exact CURRENT Entry model, feature contract and implementation bytes'
   assert.equal(assertCurrentEntryAssets({model:realModel,modelBytes:bytes('predict/research/phase57-msh-entry-v1-model.json'),
     contractBytes:bytes('predict/research/phase57-minimal-stateful-entry-contract.json'),
     implementationBytes:bytes('scripts/lib/phase57-minimal-stateful-entry.mjs')}),true);
+});
+
+test('semantic adapter maps exact J-Quants terminal-zero codes to CURRENT Entry symbols',()=>{
+  assert.equal(normalizeEntrySymbol('72030'),'7203.T');
+  assert.equal(normalizeEntrySymbol('285A0'),'285A.T');
+  assert.equal(normalizeEntrySymbol('7203.T'),'7203.T');
+  assert.throws(()=>normalizeEntrySymbol('72031'),/CURRENT_ENTRY_SYMBOL_ADAPTER_UNAVAILABLE/);
 });
 
 test('LONG-only adapter blocks at 09:30 and scores exact frozen features at 09:35',()=>{

@@ -4,6 +4,8 @@ param(
     [string]$OrderSheet = "ARK_CASH_ORDER_LOCKED",
     [string]$SnapshotPath = "C:\Ark\account-readonly-20260915\account-snapshot-live.json",
     [ValidateNotNullOrEmpty()][string]$Symbol = "7203.T",
+    [ValidateSet("BUY","SELL")][string]$Side = "BUY",
+    [ValidateSet("OPEN","CLOSE")][string]$PositionEffect = "OPEN",
     [ValidateRange(1,2147483647)][int]$Quantity = 100,
     [double]$EstimatedNotional = 300000,
     [string]$ExternalSymbol = "408A",
@@ -19,14 +21,15 @@ $orderRequest = @{
     snapshotPath = [IO.Path]::GetFullPath($SnapshotPath)
     intent = @{
         symbol = $Symbol.Trim().ToUpperInvariant()
-        direction = "LONG"; side = "BUY"; positionEffect = "OPEN"
+        direction = "LONG"; side = $Side; positionEffect = $PositionEffect
         quantity = $Quantity; orderType = "MARKET"; limitPrice = $null
         timeInForce = "DAY"
     }
     externalPositions = @(@{symbol=$ExternalSymbol.Trim().ToUpperInvariant(); quantity=$ExternalQuantity})
     estimatedNotional = $EstimatedNotional
 }
-if ($orderRequest.intent.symbol -notmatch '^[0-9A-Z]{4}\.T$' -or $Quantity % 100 -ne 0 -or
+$validSideEffect = ($Side -eq "BUY" -and $PositionEffect -eq "OPEN") -or ($Side -eq "SELL" -and $PositionEffect -eq "CLOSE")
+if ($orderRequest.intent.symbol -notmatch '^[0-9A-Z]{4}\.T$' -or -not $validSideEffect -or $Quantity % 100 -ne 0 -or
     [double]::IsNaN($EstimatedNotional) -or [double]::IsInfinity($EstimatedNotional) -or $EstimatedNotional -le 0) {
     throw "LOCKED_DIAGNOSTIC_ORDER_INPUT_INVALID"
 }
@@ -146,6 +149,8 @@ try {
     Write-Host "ARK_CASH_LOCKED_CHECK_COMPLETE"
     Write-Host "Snapshot    :" $orderRequest.snapshotPath
     Write-Host "OrderSymbol :" $orderRequest.intent.symbol
+    Write-Host "Side        :" $orderRequest.intent.side
+    Write-Host "Effect      :" $orderRequest.intent.positionEffect
     Write-Host "Quantity    :" $orderRequest.intent.quantity
     Write-Host "Positions   :" $positions.Count
     Write-Host "Orders      :" $orders.Count

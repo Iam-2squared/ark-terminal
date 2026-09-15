@@ -12,6 +12,7 @@ import {replayLongOnlyIntegratedStages} from '../long-only/phase57-long-only-rep
 import {buildEvaluatorOnlyL2Targets,assertL2SelectionBoundary,L2_CANDIDATE_CONTRACT} from '../long-only/phase57-long-only-l2-candidate-contract.js';
 import {loadFormalL0PartitionFromCache} from '../long-only/phase57-long-only-l0-cache.js';
 import {buildL1DiscoveryReport} from '../long-only/phase57-long-only-l1-discovery-report.js';
+import {buildL1CrossSectionDataset} from '../long-only/phase57-long-only-l1-cross-section.js';
 
 test('frozen split names exactly 205 unique outcome-unread historical sessions',()=>{
   const allocation=JSON.parse(fs.readFileSync(new URL('../long-only/phase57-long-only-session-allocation-v3.json',import.meta.url),'utf8'));
@@ -29,6 +30,7 @@ test('daily plus dated master is sufficient for formal L0 and audits exclusions'
   const masterRows=[{Date:'2024-01-03',Code:'11110',Mkt:'0111',ProdCat:'011'},{Date:'2024-01-04',Code:'11110',Mkt:'0111',ProdCat:'011'}];
   const result=assembleLongOnlyL0Rows({dailyRows,masterRows});
   assert.equal(result.rows.length,1);assert.equal(result.rows[0].adjustedPreviousClose,100);assert.equal(result.rows[0].segment,'PRIME');assert.equal(result.audit.exclusionCounts.NOT_ELIGIBLE_PIT_COMMON_EQUITY,1);
+  assert.equal(result.rows[0].adjustmentScale,1);
 });
 
 test('Formal L0 cache loader verifies immutable pages and preserves every Development A session with causal warmup',()=>{
@@ -82,6 +84,14 @@ test('L1 decision features cannot see evaluator-only future path',()=>{
   assert.throws(()=>assertL2SelectionBoundary({partition:'VALIDATION',targetCount:1,modelFamilyCount:1}),/Development C\/D/);
   assert.equal(L2_CANDIDATE_CONTRACT.validationMaySelectTarget,false);
   assert.throws(()=>buildCausalL1Features({sessionDate:'2024-01-04',symbol:'11110',decisionTimeJst:'09:30',bars5m:bars,previousAdjustedClose:100,corporateActionFlag:true}),/corporate-action/);
+});
+
+test('L1 de-adjusts prior close to the raw Minute price scale without changing winner return',()=>{
+  const rawBars=normalizeAndAggregateMinuteRows(minuteRows.map(row=>({...row,O:row.O*10,H:row.H*10,L:row.L*10,C:row.C*10,Va:row.Va*10}))).bars;
+  const built=buildL1CrossSectionDataset({partition:'DEVELOPMENT_A',dailyRows:[{sessionDate:'2024-01-04',symbol:'11110',segment:'PRIME',adjustedPreviousClose:100,adjustedClose:106,unadjustedClose:1060,adjustmentScale:.1,corporateActionFlag:false}],bars5m:rawBars});
+  assert.equal(built.audit.nonUnitAdjustmentScaleRows,1);
+  assert.ok(Math.abs(built.featureRows[0].currentReturnPct-8)<1e-9);
+  assert.equal(built.evaluatorOnlyLabels[0].winner,true);
 });
 
 test('L1 discovery report compares winners with full-cross-section negative controls',()=>{

@@ -53,8 +53,26 @@ print(json.dumps(out,ensure_ascii=False))
 $tmpPy = Join-Path $env:TEMP "ark_cash_locked_pipeline_tmp.py"
 Set-Content -Path $tmpPy -Value $py -Encoding UTF8
 try {
-  $pipelineOut = python $tmpPy $SnapshotPath $Symbol ([string]$Quantity) $ExternalSymbol ([string]$ExternalQuantity) ([string]$EstimatedNotional)
-  if ($LASTEXITCODE -ne 0) { throw "Locked cash Python pipeline failed with exit code $LASTEXITCODE" }
+  $psi = New-Object System.Diagnostics.ProcessStartInfo
+  $psi.FileName = "python"
+  $psi.UseShellExecute = $false
+  $psi.RedirectStandardOutput = $true
+  $psi.RedirectStandardError = $true
+  $psi.CreateNoWindow = $true
+  [void]$psi.ArgumentList.Add($tmpPy)
+  [void]$psi.ArgumentList.Add($SnapshotPath)
+  [void]$psi.ArgumentList.Add($Symbol)
+  [void]$psi.ArgumentList.Add(([string]$Quantity))
+  [void]$psi.ArgumentList.Add($ExternalSymbol)
+  [void]$psi.ArgumentList.Add(([string]$ExternalQuantity))
+  [void]$psi.ArgumentList.Add(([string]$EstimatedNotional))
+  $p = New-Object System.Diagnostics.Process
+  $p.StartInfo = $psi
+  [void]$p.Start()
+  $pipelineOut = $p.StandardOutput.ReadToEnd()
+  $pipelineErr = $p.StandardError.ReadToEnd()
+  $p.WaitForExit()
+  if ($p.ExitCode -ne 0) { throw "Locked cash Python pipeline failed with exit code $($p.ExitCode): $pipelineErr" }
 } finally {
   Remove-Item $tmpPy -Force -ErrorAction SilentlyContinue
 }

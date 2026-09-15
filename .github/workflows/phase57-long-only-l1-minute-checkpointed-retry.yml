@@ -2,6 +2,10 @@ name: Phase57 LONG-only L1 Minute Checkpointed Retry
 
 on:
   workflow_dispatch:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-long-only-l1-minute-checkpointed-retry.yml
 
 permissions:
   actions: read
@@ -21,7 +25,7 @@ jobs:
           - shard: 2
             request_cap: 135
           - shard: 3
-            request_cap: 140
+            request_cap: 135
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:

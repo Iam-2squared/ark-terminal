@@ -29,6 +29,13 @@ on:
       - 'tools/test_phase57_cash_micro_live_gate.py'
       - 'tools/phase57_locked_excel_adapter.py'
       - 'tools/test_phase57_locked_excel_adapter.py'
+      - 'tools/Start-ArkCashLocked.ps1'
+      - 'tools/phase57_cash_locked_pipeline.py'
+      - 'tools/test_phase57_cash_locked_pipeline.py'
+      - 'tools/phase57_cash_locked_cli.py'
+      - 'tools/test_phase57_cash_locked_cli.py'
+      - 'tools/phase57_cash_locked_bridge.ps1'
+      - 'tools/Test-ArkCashLockedBridge.ps1'
       - 'tools/rss_chart_semantics.py'
       - 'tools/phase58_excel_5m_chart_export.py'
       - 'tools/test_phase58_excel_5m_chart_export.py'
@@ -54,6 +61,20 @@ on:
 permissions:
   contents: read
 jobs:
+  cash-launcher-transport:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Windows PowerShell 5.1 locked transport (synthetic; no Excel)
+        shell: powershell
+        run: ./tools/Test-ArkCashLockedBridge.ps1 -RequireWindowsPowerShell
+      - name: PowerShell 7 locked transport (synthetic; no Excel)
+        shell: pwsh
+        run: ./tools/Test-ArkCashLockedBridge.ps1
   offline:
     strategy:
       fail-fast: false
@@ -90,6 +111,8 @@ jobs:
             tools.test_phase57_cash_only_unlock \
             tools.test_phase57_cash_micro_live_gate \
             tools.test_phase57_locked_excel_adapter \
+            tools.test_phase57_cash_locked_pipeline \
+            tools.test_phase57_cash_locked_cli \
             tools.test_phase57_rss_raw \
             tools.test_phase57_source_capture
       - name: Workbook failure tests

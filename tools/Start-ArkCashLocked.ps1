@@ -3,120 +3,172 @@ param(
     [string]$AccountSheet = "ARK_ACCOUNT_READONLY",
     [string]$OrderSheet = "ARK_CASH_ORDER_LOCKED",
     [string]$SnapshotPath = "C:\Ark\account-readonly-20260915\account-snapshot-live.json",
-    [string]$Symbol = "7203.T",
-    [int]$Quantity = 100,
+    [ValidateNotNullOrEmpty()][string]$Symbol = "7203.T",
+    [ValidateRange(1,2147483647)][int]$Quantity = 100,
     [double]$EstimatedNotional = 300000,
     [string]$ExternalSymbol = "408A",
     [double]$ExternalQuantity = 180
 )
 $ErrorActionPreference = "Stop"
-$excel = [Runtime.InteropServices.Marshal]::GetActiveObject("Excel.Application")
-$wb = $excel.Workbooks | Where-Object { $_.Name -eq $WorkbookName }
-if ($null -eq $wb) { throw "$WorkbookName is not open" }
-$acct = $wb.Worksheets.Item($AccountSheet)
-$excel.CalculateFull(); Start-Sleep -Milliseconds 500
+. (Join-Path $PSScriptRoot "phase57_cash_locked_bridge.ps1")
 
-$positions=@()
-for($r=3;$r -le 200;$r++){
- $symbol=$acct.Cells.Item($r,38).Text; $name=$acct.Cells.Item($r,39).Text; $account=$acct.Cells.Item($r,40).Text; $qty=$acct.Cells.Item($r,41).Value2
- if($symbol -and $symbol -ne "--------" -and $name -and $name -ne "--------" -and $null -ne $qty){
-  $positions += [PSCustomObject]@{symbol=$symbol;name=$name;account=$account;quantity=$qty}
- }
+# Capture diagnostic order parameters BEFORE reading broker rows. PowerShell
+# variable names are case-insensitive: $symbol would overwrite $Symbol.
+$orderRequest = @{
+    schemaId = "ARK_CASH_LOCKED_REQUEST_V1"
+    snapshotPath = [IO.Path]::GetFullPath($SnapshotPath)
+    intent = @{
+        symbol = $Symbol.Trim().ToUpperInvariant()
+        direction = "LONG"; side = "BUY"; positionEffect = "OPEN"
+        quantity = $Quantity; orderType = "MARKET"; limitPrice = $null
+        timeInForce = "DAY"
+    }
+    externalPositions = @(@{symbol=$ExternalSymbol.Trim().ToUpperInvariant(); quantity=$ExternalQuantity})
+    estimatedNotional = $EstimatedNotional
 }
-$orders=@()
-for($r=3;$r -le 300;$r++){
- $n=$acct.Cells.Item($r,14).Text
- if($n -and $n -ne "--------"){$orders += [PSCustomObject]@{orderNumber=$n;status=$acct.Cells.Item($r,15).Text;symbol=$acct.Cells.Item($r,16).Text;quantity=$acct.Cells.Item($r,22).Value2;filledQty=$acct.Cells.Item($r,23).Value2}}
+if ($orderRequest.intent.symbol -notmatch '^[0-9A-Z]{4}\.T$' -or $Quantity % 100 -ne 0 -or
+    [double]::IsNaN($EstimatedNotional) -or [double]::IsInfinity($EstimatedNotional) -or $EstimatedNotional -le 0) {
+    throw "LOCKED_DIAGNOSTIC_ORDER_INPUT_INVALID"
 }
-$buyingPower=$acct.Cells.Item(3,12).Value2; if($null -eq $buyingPower){$buyingPower=0}
-$snapshot=[PSCustomObject]@{schemaId="ARK_ACCOUNT_READONLY_SNAPSHOT_V2";capturedAt=(Get-Date).ToString("o");source="MARKETSPEED_II_RSS";mode="READ_ONLY";positions=$positions;orders=$orders;executions=@();buyingPower=$buyingPower;safety=@{executionAllowed=$false;brokerWriteAllowed=$false;excelOrderWriteAllowed=$false;rssOrderFunctionAllowed=$false;liveTradingAllowed=$false;paperTradingAllowed=$false;automaticPromotionAllowed=$false;productionUpdateAllowed=$false;transmitted=$false}}
-$dir=Split-Path -Parent $SnapshotPath; New-Item -ItemType Directory -Force $dir | Out-Null
-$snapshot | ConvertTo-Json -Depth 10 | Set-Content $SnapshotPath -Encoding UTF8
 
-$env:PYTHONPATH=(Resolve-Path ".\tools").Path
-$py = @'
-import json, sys
-from pathlib import Path
-from phase57_cash_locked_pipeline import run_locked_pipeline
-snapshot_path=Path(sys.argv[1])
-symbol=sys.argv[2]
-quantity=int(sys.argv[3])
-external_symbol=sys.argv[4]
-external_quantity=float(sys.argv[5])
-estimated_notional=float(sys.argv[6])
-with snapshot_path.open("r",encoding="utf-8-sig") as f:
-    snapshot=json.load(f)
-intent={"symbol":symbol,"direction":"LONG","side":"BUY","positionEffect":"OPEN","quantity":quantity,"orderType":"MARKET","limitPrice":None,"timeInForce":"DAY"}
-out=run_locked_pipeline(snapshot,external_positions=[{"symbol":external_symbol,"quantity":external_quantity}],intent=intent,estimated_notional=estimated_notional)
-print(json.dumps(out,ensure_ascii=False))
-'@
-$tmpPy = Join-Path $env:TEMP "ark_cash_locked_pipeline_tmp.py"
-Set-Content -Path $tmpPy -Value $py -Encoding UTF8
+function Set-ArkInspectionText {
+    param($Worksheet, [string]$Address, [AllowEmptyString()][string]$Text)
+    $cell = $Worksheet.Range($Address)
+    $cell.NumberFormat = "@"
+    $cell.Value2 = [string]$Text
+}
+
+$sheet = $null
+$wb = $null
 try {
-  $psi = New-Object System.Diagnostics.ProcessStartInfo
-  $psi.FileName = "python"
-  $psi.UseShellExecute = $false
-  $psi.RedirectStandardOutput = $true
-  $psi.RedirectStandardError = $true
-  $psi.CreateNoWindow = $true
-  [void]$psi.ArgumentList.Add($tmpPy)
-  [void]$psi.ArgumentList.Add($SnapshotPath)
-  [void]$psi.ArgumentList.Add($Symbol)
-  [void]$psi.ArgumentList.Add(([string]$Quantity))
-  [void]$psi.ArgumentList.Add($ExternalSymbol)
-  [void]$psi.ArgumentList.Add(([string]$ExternalQuantity))
-  [void]$psi.ArgumentList.Add(([string]$EstimatedNotional))
-  $p = New-Object System.Diagnostics.Process
-  $p.StartInfo = $psi
-  [void]$p.Start()
-  $pipelineOut = $p.StandardOutput.ReadToEnd()
-  $pipelineErr = $p.StandardError.ReadToEnd()
-  $p.WaitForExit()
-  if ($p.ExitCode -ne 0) { throw "Locked cash Python pipeline failed with exit code $($p.ExitCode): $pipelineErr" }
-} finally {
-  Remove-Item $tmpPy -Force -ErrorAction SilentlyContinue
-}
-$pipeline = $pipelineOut | ConvertFrom-Json
-if ($null -eq $pipeline -or -not $pipeline.status) { throw "Locked cash pipeline returned no status" }
+    $excel = [Runtime.InteropServices.Marshal]::GetActiveObject("Excel.Application")
+    $matchingBooks = @($excel.Workbooks | Where-Object { $_.Name -eq $WorkbookName })
+    if ($matchingBooks.Count -ne 1) { throw "OPEN_DEDICATED_WORKBOOK_REQUIRED" }
+    $wb = $matchingBooks[0]
+    $acct = $wb.Worksheets.Item($AccountSheet)
+    foreach ($candidateSheet in $wb.Worksheets) {
+        if ($candidateSheet.Name -eq $OrderSheet) { $sheet = $candidateSheet; break }
+    }
+    if ($null -eq $sheet) { $sheet = $wb.Worksheets.Add(); $sheet.Name = $OrderSheet }
 
-$sheet=$null; foreach($s in $wb.Worksheets){if($s.Name -eq $OrderSheet){$sheet=$s;break}}
-if($null -eq $sheet){$sheet=$wb.Worksheets.Add();$sheet.Name=$OrderSheet}
-$sheet.Range("A1").Value2="ARK CASH-ONLY ORDER INTERFACE"
-$sheet.Range("A3").Value2="MODE";$sheet.Range("B3").Value2="LOCKED / NO TRANSMISSION"
-$sheet.Range("A4").Value2="PRODUCT";$sheet.Range("B4").Value2="CASH ONLY"
-$sheet.Range("A5").Value2="MARGIN";$sheet.Range("B5").Value2="DISABLED"
-$sheet.Range("A6").Value2="SHORT SELLING";$sheet.Range("B6").Value2="DISABLED"
-$sheet.Range("A8").Value2="SYMBOL";$sheet.Range("B8").Value2=$Symbol
-$sheet.Range("A9").Value2="SIDE";$sheet.Range("B9").Value2="BUY"
-$sheet.Range("A10").Value2="QUANTITY";$sheet.Range("B10").Value2=[string]$Quantity
-$sheet.Range("A11").Value2="TRIGGER";$sheet.Range("B11").Value2=0
-$sheet.Range("A12").Value2="BUYING POWER";$sheet.Range("B12").Value2=[string]$buyingPower
-$sheet.Range("A13").Value2="RSS FUNCTION DRAFT";$sheet.Range("B13").NumberFormat="@"
-$sheet.Range("A15").Value2="EXECUTION ALLOWED";$sheet.Range("B15").Value2="FALSE"
-$sheet.Range("A16").Value2="TRANSMITTED";$sheet.Range("B16").Value2="FALSE"
-$sheet.Range("A17").Value2="EXCEL ORDER WRITE";$sheet.Range("B17").Value2="FALSE"
-$sheet.Range("A18").Value2="STATUS"
-if($pipeline.status -eq "LOCKED_READY"){
- $sheet.Range("B13").Value2=[string]$pipeline.interface.cells.B13
- $sheet.Range("B18").Value2="LOCKED READY - PHYSICAL UNLOCK REQUIRED"
-}else{
- $sheet.Range("B13").Value2=""
- $blockers=""
- if($pipeline.candidate -and $pipeline.candidate.blockers){$blockers=($pipeline.candidate.blockers -join ",")}
- elseif($pipeline.reconciliation -and $pipeline.reconciliation.blockers){$blockers=($pipeline.reconciliation.blockers -join ",")}
- elseif($pipeline.preflight -and $pipeline.preflight.blockers){$blockers=($pipeline.preflight.blockers -join ",")}
- $sheet.Range("B18").Value2="BLOCKED @ $($pipeline.stage): $blockers"
+    # Invalidate any old preview BEFORE acquiring data or starting Python.
+    # Changing NumberFormat alone does not remove an existing formula.
+    [void]$sheet.Range("B13").ClearContents()
+    $sheet.Range("B13").NumberFormat = "@"
+    $sheet.Range("B11").Value2 = 0
+    Set-ArkInspectionText $sheet "B3" "LOCKED / NO TRANSMISSION"
+    Set-ArkInspectionText $sheet "B18" "CHECK IN PROGRESS - LOCKED"
+    foreach ($address in @("B15", "B16", "B17")) { Set-ArkInspectionText $sheet $address "FALSE" }
+
+    # Read the running RSS outputs, without forcing recalculation of unrelated
+    # workbook formulas. capturedAt is the oldest read, not a refreshed timestamp.
+    $captureStartedAt = (Get-Date).ToString("o")
+    $positions = @()
+    for ($row = 3; $row -le 200; $row++) {
+        $positionSymbol = $acct.Cells.Item($row,38).Text
+        $positionName = $acct.Cells.Item($row,39).Text
+        $positionAccount = $acct.Cells.Item($row,40).Text
+        $positionQuantity = $acct.Cells.Item($row,41).Value2
+        if ($positionName -and $positionName -ne "--------" -and $null -ne $positionQuantity) {
+            $positions += [PSCustomObject]@{
+                symbol=$positionSymbol; name=$positionName; account=$positionAccount; quantity=$positionQuantity
+            }
+        }
+    }
+    $orders = @()
+    for ($row = 3; $row -le 300; $row++) {
+        $orderNumber = $acct.Cells.Item($row,14).Text
+        if ($orderNumber -and $orderNumber -ne "--------") {
+            $orders += [PSCustomObject]@{
+                orderNumber=$orderNumber; status=$acct.Cells.Item($row,15).Text
+                symbol=$acct.Cells.Item($row,16).Text; quantity=$acct.Cells.Item($row,22).Value2
+                filledQty=$acct.Cells.Item($row,23).Value2
+            }
+        }
+    }
+    $executions = @()
+    for ($row = 3; $row -le 300; $row++) {
+        $executionDate = $acct.Cells.Item($row,27).Text
+        if ($executionDate -and $executionDate -ne "--------") {
+            $executions += [PSCustomObject]@{
+                executionDate=$executionDate; symbol=$acct.Cells.Item($row,28).Text
+                account=$acct.Cells.Item($row,30).Text; side=$acct.Cells.Item($row,33).Text
+                quantity=$acct.Cells.Item($row,34).Value2; price=$acct.Cells.Item($row,35).Value2
+            }
+        }
+    }
+    $buyingPower = $acct.Cells.Item(3,12).Value2
+    if ($null -eq $buyingPower) { throw "BUYING_POWER_READ_MISSING" }
+    $snapshot = [PSCustomObject]@{
+        schemaId="ARK_ACCOUNT_READONLY_SNAPSHOT_V2"; capturedAt=$captureStartedAt
+        captureCompletedAt=(Get-Date).ToString("o"); source="MARKETSPEED_II_RSS"; mode="READ_ONLY"
+        positions=$positions; orders=$orders; executions=$executions; buyingPower=$buyingPower
+        safety=@{executionAllowed=$false;brokerWriteAllowed=$false;excelOrderWriteAllowed=$false;
+            rssOrderFunctionAllowed=$false;liveTradingAllowed=$false;paperTradingAllowed=$false;
+            automaticPromotionAllowed=$false;productionUpdateAllowed=$false;transmitted=$false}
+    }
+    $directory = Split-Path -Parent $orderRequest.snapshotPath
+    [void](New-Item -ItemType Directory -Force -Path $directory)
+    $snapshot | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $orderRequest.snapshotPath -Encoding UTF8
+    $pipeline = Invoke-ArkCashLockedPipeline -Request $orderRequest
+
+    Set-ArkInspectionText $sheet "A1" "ARK CASH-ONLY LOCKED DIAGNOSTIC"
+    $labels = @{A3="MODE";A4="PRODUCT";A5="MARGIN";A6="SHORT SELLING";A8="SYMBOL";
+        A9="SIDE";A10="QUANTITY";A11="TRIGGER";A12="BUYING POWER";A13="RSS FUNCTION DRAFT";
+        A15="EXECUTION ALLOWED";A16="TRANSMITTED";A17="EXCEL ORDER WRITE";A18="STATUS"}
+    foreach ($address in $labels.Keys) { Set-ArkInspectionText $sheet $address $labels[$address] }
+    Set-ArkInspectionText $sheet "B4" "CASH ONLY"
+    Set-ArkInspectionText $sheet "B5" "DISABLED"
+    Set-ArkInspectionText $sheet "B6" "DISABLED"
+    Set-ArkInspectionText $sheet "B8" $orderRequest.intent.symbol
+    Set-ArkInspectionText $sheet "B9" $orderRequest.intent.side
+    Set-ArkInspectionText $sheet "B10" ([string]$orderRequest.intent.quantity)
+    Set-ArkInspectionText $sheet "B12" ([string]$buyingPower)
+    if ($pipeline.status -eq "LOCKED_READY") {
+        if ($pipeline.interface.formulaEvaluationAllowed -ne $false -or
+            $pipeline.interface.transmitted -ne $false) { throw "PIPELINE_INTERFACE_NOT_LOCKED" }
+        Set-ArkInspectionText $sheet "B13" ([string]$pipeline.interface.cells.B13)
+        Set-ArkInspectionText $sheet "B18" "LOCKED PREVIEW ONLY - NOT LIVE READY"
+    }
+    else {
+        $blockers = @()
+        foreach ($component in @($pipeline.candidate, $pipeline.reconciliation, $pipeline.preflight)) {
+            if ($null -ne $component -and $component.blockers) { $blockers += $component.blockers }
+        }
+        if ($blockers.Count -eq 0) { throw "PIPELINE_BLOCK_REASON_MISSING" }
+        Set-ArkInspectionText $sheet "B18" ("BLOCKED @ {0}: {1}" -f $pipeline.stage, ($blockers -join ","))
+    }
+    if ($sheet.Range("B13").HasFormula -ne $false -or $sheet.Range("B11").Value2 -ne 0) {
+        throw "LOCKED_TEXT_INTERFACE_VERIFICATION_FAILED"
+    }
+    [void]$sheet.Columns("A:B").AutoFit()
+    [void]$wb.Save()
+    Write-Host "ARK_CASH_LOCKED_CHECK_COMPLETE"
+    Write-Host "Snapshot    :" $orderRequest.snapshotPath
+    Write-Host "OrderSymbol :" $orderRequest.intent.symbol
+    Write-Host "Quantity    :" $orderRequest.intent.quantity
+    Write-Host "Positions   :" $positions.Count
+    Write-Host "Orders      :" $orders.Count
+    Write-Host "Executions  :" $executions.Count
+    Write-Host "BuyingPower :" $buyingPower
+    Write-Host "Pipeline    :" $pipeline.status
+    Write-Host "Stage       :" $pipeline.stage
+    Write-Host "Trigger     :" $sheet.Range("B11").Value2
+    Write-Host "Formula?    :" $sheet.Range("B13").HasFormula
+    Write-Host "Execution   :" $sheet.Range("B15").Text
+    Write-Host "Transmitted :" $sheet.Range("B16").Text
+    Write-Host "Status      :" $sheet.Range("B18").Text
 }
-$sheet.Columns("A:B").AutoFit();$wb.Save()
-Write-Host "ARK_CASH_LOCKED_READY"
-Write-Host "Snapshot    :" $SnapshotPath
-Write-Host "Positions   :" $positions.Count
-Write-Host "Orders      :" $orders.Count
-Write-Host "BuyingPower :" $buyingPower
-Write-Host "Pipeline    :" $pipeline.status
-Write-Host "Stage       :" $pipeline.stage
-Write-Host "Trigger     :" $sheet.Range("B11").Value2
-Write-Host "Formula?    :" $sheet.Range("B13").HasFormula
-Write-Host "Execution   :" $sheet.Range("B15").Text
-Write-Host "Transmitted :" $sheet.Range("B16").Text
-Write-Host "Status      :" $sheet.Range("B18").Text
+catch {
+    $failure = $_
+    if ($null -ne $sheet) {
+        try {
+            [void]$sheet.Range("B13").ClearContents()
+            $sheet.Range("B11").Value2 = 0
+            Set-ArkInspectionText $sheet "B18" "ERROR - LOCKED; SEE POWERSHELL"
+            [void]$wb.Save()
+        }
+        catch { Write-Warning "Could not refresh the locked error display." }
+    }
+    throw $failure
+}

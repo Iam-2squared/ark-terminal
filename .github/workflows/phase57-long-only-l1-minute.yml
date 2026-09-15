@@ -35,6 +35,7 @@ jobs:
           run-id: ${{ env.SOURCE_RUN_ID }}
           github-token: ${{ github.token }}
       - name: Mount private cache
+        id: mount
         shell: bash
         run: |
           test -n "${JQUANTS_API_KEY:-}"
@@ -46,20 +47,33 @@ jobs:
           tar -tzf "$RUNNER_TEMP/private-cache.tar.gz" | awk '!/^phase57-l0-cache\// {bad=1} END {exit bad}'
           tar -C "$RUNNER_TEMP" -xzf "$RUNNER_TEMP/private-cache.tar.gz"
       - name: Acquire approved 40-session Minute full cross-section
-        run: node scripts/acquire_phase57_long_only_l1_minute.mjs --cache-root "$RUNNER_TEMP/phase57-l0-cache" --maximum-requests 550 | tee "$RUNNER_TEMP/l1-minute-acquisition.log"
+        id: acquisition
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/acquire_phase57_long_only_l1_minute.mjs --cache-root "$RUNNER_TEMP/phase57-l0-cache" --maximum-requests 550 --summary "$RUNNER_TEMP/l1-minute-acquisition-summary.json" | tee "$RUNNER_TEMP/l1-minute-acquisition.log"
       - name: Encrypt combined integrated cache and remove plaintext
+        if: steps.mount.outcome == 'success'
         shell: bash
         run: |
           mkdir -p artifacts/phase57-long-only-l1-minute
           tar -C "$RUNNER_TEMP" -czf - phase57-l0-cache | openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -out artifacts/phase57-long-only-l1-minute/integrated-cache.tar.gz.enc
           sha256sum artifacts/phase57-long-only-l1-minute/integrated-cache.tar.gz.enc > artifacts/phase57-long-only-l1-minute/integrated-cache.tar.gz.enc.sha256
-          tail -1 "$RUNNER_TEMP/l1-minute-acquisition.log" > artifacts/phase57-long-only-l1-minute/acquisition-summary.json
+          cp "$RUNNER_TEMP/l1-minute-acquisition-summary.json" artifacts/phase57-long-only-l1-minute/acquisition-summary.json
           rm -rf -- "$RUNNER_TEMP/phase57-l0-cache"
           rm -f -- "$RUNNER_TEMP/private-cache.tar.gz" "$RUNNER_TEMP/l1-minute-acquisition.log"
       - name: Upload encrypted integrated research dataset
+        if: steps.mount.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: phase57-long-only-l1-minute-${{ github.run_id }}
           path: artifacts/phase57-long-only-l1-minute/
           if-no-files-found: error
           retention-days: 21
+      - name: Enforce complete acquisition status
+        if: always()
+        shell: bash
+        run: |
+          test -f artifacts/phase57-long-only-l1-minute/acquisition-summary.json
+          test "$(jq -r .status artifacts/phase57-long-only-l1-minute/acquisition-summary.json)" = "L1_MINUTE_ACQUISITION_COMPLETE"

@@ -1,10 +1,12 @@
 param(
     [string]$WorkbookName = "Ark_MSII_LiveSource.xlsx",
+    [string]$WorkbookPath = "C:\Ark\Ark_MSII_LiveSource.xlsx",
     [string]$AccountSheet = "ARK_ACCOUNT_READONLY",
     [string]$SnapshotPath = "C:\Ark\account-readonly-20260915\account-snapshot-live.json",
     [string]$UiReadModelPath = "C:\Ark\ui-readonly\ark-terminal-ui-read-model.json",
     [string]$OwnershipBaselinePath = "",
-    [switch]$SkipSnapshotRefresh
+    [switch]$SkipSnapshotRefresh,
+    [switch]$DoNotAutoOpenWorkbook
 )
 
 $ErrorActionPreference = "Stop"
@@ -15,10 +17,14 @@ if (-not (Test-Path -LiteralPath $exporter -PathType Leaf)) { throw "UI_READ_MOD
 
 $resolvedSnapshot = [IO.Path]::GetFullPath($SnapshotPath)
 if (-not $SkipSnapshotRefresh) {
-    & $snapshotLauncher `
-        -WorkbookName $WorkbookName `
-        -AccountSheet $AccountSheet `
-        -SnapshotPath $resolvedSnapshot
+    $snapshotArgs = @{
+        WorkbookName = $WorkbookName
+        WorkbookPath = $WorkbookPath
+        AccountSheet = $AccountSheet
+        SnapshotPath = $resolvedSnapshot
+    }
+    if ($DoNotAutoOpenWorkbook) { $snapshotArgs.DoNotAutoOpenWorkbook = $true }
+    & $snapshotLauncher @snapshotArgs
 }
 if (-not (Test-Path -LiteralPath $resolvedSnapshot -PathType Leaf)) { throw "ACCOUNT_SNAPSHOT_MISSING" }
 

@@ -41,11 +41,17 @@ export const PHASE57_LONG_ONLY_SAFETY=Object.freeze({
 });
 
 export const PHASE57_LONG_ONLY_DATA_PARTITIONS=Object.freeze({
-  order:Object.freeze(['DEVELOPMENT','VALIDATION','UNTOUCHED_OOS','FINAL_CONFIRMATION_FRESH']),
-  DEVELOPMENT:Object.freeze({outcomeInspectionAllowed:true,thresholdSearchAllowed:true,featureSelectionAllowed:true}),
-  VALIDATION:Object.freeze({outcomeInspectionAllowed:true,thresholdSearchAllowed:false,featureSelectionAllowed:false}),
-  UNTOUCHED_OOS:Object.freeze({outcomeInspectionAllowed:false,thresholdSearchAllowed:false,featureSelectionAllowed:false}),
-  FINAL_CONFIRMATION_FRESH:Object.freeze({outcomeInspectionAllowed:false,thresholdSearchAllowed:false,featureSelectionAllowed:false}),
+  order:Object.freeze(['DEVELOPMENT_A','DEVELOPMENT_B','DEVELOPMENT_C','DEVELOPMENT_D','VALIDATION','VALIDATION_REPLICATION','PRIMARY_OOS','CONTINGENCY_OOS','RESERVE','FRESH_PROSPECTIVE']),
+  DEVELOPMENT_A:Object.freeze({sessions:25,outcomeInspectionAllowed:true,thresholdSearchAllowed:false,featureSelectionAllowed:false}),
+  DEVELOPMENT_B:Object.freeze({sessions:15,outcomeInspectionAllowed:true,thresholdSearchAllowed:false,featureSelectionAllowed:false}),
+  DEVELOPMENT_C:Object.freeze({sessions:20,outcomeInspectionAllowed:true,thresholdSearchAllowed:false,featureSelectionAllowed:true}),
+  DEVELOPMENT_D:Object.freeze({sessions:20,outcomeInspectionAllowed:true,thresholdSearchAllowed:true,featureSelectionAllowed:true}),
+  VALIDATION:Object.freeze({sessions:30,outcomeInspectionAllowed:false,thresholdSearchAllowed:false,featureSelectionAllowed:false}),
+  VALIDATION_REPLICATION:Object.freeze({sessions:20,outcomeInspectionAllowed:false,thresholdSearchAllowed:false,featureSelectionAllowed:false}),
+  PRIMARY_OOS:Object.freeze({sessions:30,outcomeInspectionAllowed:false,thresholdSearchAllowed:false,featureSelectionAllowed:false}),
+  CONTINGENCY_OOS:Object.freeze({sessions:30,outcomeInspectionAllowed:false,thresholdSearchAllowed:false,featureSelectionAllowed:false}),
+  RESERVE:Object.freeze({sessions:15,outcomeInspectionAllowed:false,thresholdSearchAllowed:false,featureSelectionAllowed:false}),
+  FRESH_PROSPECTIVE:Object.freeze({sessions:25,outcomeInspectionAllowed:false,thresholdSearchAllowed:false,featureSelectionAllowed:false}),
 });
 
 const FALSE_KEYS=Object.freeze([
@@ -90,8 +96,10 @@ export function validatePartitionManifest(manifest={}){
     }
     normalized[partition]=Object.freeze({sessions:Object.freeze(sessions),opened:Boolean(manifest?.[partition]?.opened)});
   }
-  if(normalized.DEVELOPMENT.opened!==true)throw new Error('DEVELOPMENT must be the only initially opened partition');
-  for(const partition of partitions.slice(1))if(normalized[partition].opened)throw new Error(`${partition} must remain unopened at research start`);
+  const opened=partitions.filter(partition=>normalized[partition].opened);
+  if(opened.some(partition=>!partition.startsWith('DEVELOPMENT_')))throw new Error('only explicitly released Development blocks may be opened before validation');
+  const releasedDevelopment=opened.map(partition=>partition.at(-1)).sort();
+  if(releasedDevelopment.some((letter,index)=>letter!==String.fromCharCode(65+index)))throw new Error('Development blocks must be released in A/B/C/D order');
   return Object.freeze({
     partitions:Object.freeze(normalized),
     manifestSha256:createHash('sha256').update(JSON.stringify(normalized)).digest('hex'),
@@ -99,4 +107,3 @@ export function validatePartitionManifest(manifest={}){
 }
 
 assertLongOnlyResearchContract();
-

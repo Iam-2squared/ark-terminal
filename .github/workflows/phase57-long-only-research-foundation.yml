@@ -5,8 +5,11 @@ on:
     paths:
       - 'predict/long-only/**'
       - 'scripts/run_phase57_long_only_l0_census.mjs'
+      - 'scripts/prepare_phase57_long_only_l0_input.mjs'
+      - 'scripts/acquire_phase57_long_only_l0.mjs'
       - 'predict/tests/phase57-long-only-research-foundation.test.mjs'
       - 'predict/tests/phase57-long-only-acquisition-dry-run.test.mjs'
+      - 'predict/tests/phase57-long-only-integrated-pipeline.test.mjs'
       - 'docs/phase57-long-only-cash-equity-research-foundation.md'
       - 'docs/phase57-long-only-data-budget-and-dataset-split.md'
       - 'docs/phase57-long-only-claude-data-budget-review-request.md'
@@ -18,8 +21,11 @@ on:
     paths:
       - 'predict/long-only/**'
       - 'scripts/run_phase57_long_only_l0_census.mjs'
+      - 'scripts/prepare_phase57_long_only_l0_input.mjs'
+      - 'scripts/acquire_phase57_long_only_l0.mjs'
       - 'predict/tests/phase57-long-only-research-foundation.test.mjs'
       - 'predict/tests/phase57-long-only-acquisition-dry-run.test.mjs'
+      - 'predict/tests/phase57-long-only-integrated-pipeline.test.mjs'
       - 'docs/phase57-long-only-cash-equity-research-foundation.md'
       - 'docs/phase57-long-only-data-budget-and-dataset-split.md'
       - 'docs/phase57-long-only-claude-data-budget-review-request.md'
@@ -40,9 +46,12 @@ jobs:
           node-version: '22'
       - name: Verify LONG-only cash-equity research foundation
         working-directory: predict
-        run: node --test tests/phase57-long-only-research-foundation.test.mjs tests/phase57-long-only-acquisition-dry-run.test.mjs
+        run: node --test tests/phase57-long-only-research-foundation.test.mjs tests/phase57-long-only-acquisition-dry-run.test.mjs tests/phase57-long-only-integrated-pipeline.test.mjs
       - name: Check L0 runner syntax
-        run: node --check scripts/run_phase57_long_only_l0_census.mjs
+        run: |
+          node --check scripts/acquire_phase57_long_only_l0.mjs
+          node --check scripts/prepare_phase57_long_only_l0_input.mjs
+          node --check scripts/run_phase57_long_only_l0_census.mjs
       - name: Prove committed acquisition gate stays closed
         run: node -e "import('./predict/long-only/phase57-long-only-acquisition-gate.js').then(async m=>{const fs=await import('node:fs');const p=JSON.parse(fs.readFileSync('predict/long-only/phase57-long-only-data-plan.json'));if(m.evaluateLongOnlyAcquisitionGate(p).acquisitionMayStart)process.exit(1)})"
       - name: Prove acquisition planner is network-free

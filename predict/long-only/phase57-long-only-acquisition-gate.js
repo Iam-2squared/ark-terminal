@@ -7,6 +7,7 @@ export const REQUIRED_PHASE57_LONG_ONLY_ACQUISITION_GATES=Object.freeze([
   'l0DataContractFrozen',
   'l1L2DataContractFrozen',
   'datasetSplitFrozen',
+  'historicalSessionIdentifiersFrozen',
   'dataBudgetCalculated',
   'paginationBudgetCalculated',
   'storageManifestContractFrozen',
@@ -15,7 +16,8 @@ export const REQUIRED_PHASE57_LONG_ONLY_ACQUISITION_GATES=Object.freeze([
   'independentReviewDispositionFrozen',
   'exactCurrentEntitlementReattested',
   'storageDeletionTermsReattested',
-  'freshExactDatesFrozen',
+  'freshSelectionRuleFrozen',
+  'credentialAvailabilityConfirmed',
   'claudeIndependentReviewReceived',
   'claudeCriticalBlockersResolved',
   'operatorExplicitAcquisitionApproval',
@@ -43,6 +45,19 @@ export function evaluateLongOnlyAcquisitionGate(plan){
   });
 }
 
+export function assertRuntimeAcquisitionAuthorization({plan,authorization,partition}){
+  const committed=evaluateLongOnlyAcquisitionGate(plan);
+  if(authorization?.planSha256!==committed.planSha256)throw new Error('runtime authorization does not match committed data plan');
+  const effective={...(plan.preAcquisitionGate??{}),...(authorization?.gateEvidence??{})};
+  const missing=REQUIRED_PHASE57_LONG_ONLY_ACQUISITION_GATES.filter(key=>effective[key]!==true);
+  if(missing.length)throw new Error(`runtime acquisition authorization is incomplete: ${missing.join(', ')}`);
+  if(authorization?.operatorApproved!==true)throw new Error('separate operator approval is required');
+  if(!authorization?.acquisitionPartitions?.includes(partition))throw new Error(`${partition} is not authorized for sealed cache acquisition`);
+  if(!authorization?.authorizationSha256?.match(/^[a-f0-9]{64}$/))throw new Error('runtime authorization requires an external evidence SHA-256');
+  if(!String(authorization?.privateCacheRoot??''))throw new Error('private cache root is required');
+  return Object.freeze({authorized:true,partition,analysisPartitionOpened:false,planSha256:committed.planSha256,privateCacheRoot:String(authorization.privateCacheRoot)});
+}
+
 export function assertReleasedPartition({partition,plan}){
   const allowed=new Set([
     'DEVELOPMENT_A','DEVELOPMENT_B','DEVELOPMENT_C','DEVELOPMENT_D',
@@ -67,6 +82,7 @@ export function assertReserveReplacement({plan,reserveSessionId,replacementFor,t
 export default {
   REQUIRED_PHASE57_LONG_ONLY_ACQUISITION_GATES,
   evaluateLongOnlyAcquisitionGate,
+  assertRuntimeAcquisitionAuthorization,
   assertReleasedPartition,
   assertReserveReplacement,
 };

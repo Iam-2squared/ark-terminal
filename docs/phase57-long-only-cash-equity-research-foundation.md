@@ -9,6 +9,9 @@
 - 🟢 Reviewed Data Contract v3 committed
 - 🟢 Clean 205-session historical accounting preserved with 15-session reserve
 - 🟢 Selector-only data consumption prohibited; Development raw data must remain reusable for Entry / EXIT / Allocation / integrated portfolio replay
+- 🟢 Exact clean-205 session identifiers frozen without outcome inspection
+- 🟢 Formal L0 acquisition/admission/census path implemented and tested with zero provider requests
+- 🟢 Causal 1m -> 5m, evaluator-only L1 labels, shared replay interface and four-stage comparison harness implemented
 - 🔴 New J-Quants Historical acquisition remains blocked
 
 ## Research objective
@@ -84,8 +87,10 @@ No credential value has been read or committed.
 ## Remaining acquisition blockers
 
 - re-attest provider private-storage / post-cancellation deletion terms;
-- freeze exact Fresh prospective dates;
+- confirm API credential availability in the intended runtime without exposing it;
 - explicit operator acquisition approval outside the committed plan.
+
+Fresh prospective selection is already frozen by rule. Exact future dates are recorded mechanically as sessions occur and do not block historical Daily/Master cache acquisition.
 
 Until then acquisition remains fail-closed.
 
@@ -114,4 +119,4 @@ Research should move quickly enough to complete the LONG-only integrated candida
 
 ## Immediate next action
 
-While acquisition remains blocked, only non-contaminating work should continue: CI verification, acquisition dry-run planning, immutable cache/manifest wiring and integrated dataset schema. No J-Quants endpoint should be called until the remaining gates are explicitly cleared.
+Clear the three runtime/storage gates, acquire Daily + dated Master once into private immutable cache, mount Development A only, and run Formal L0. Minute acquisition remains zero until L1 block release.

@@ -9,7 +9,7 @@ export const PHASE57_LONG_ONLY_L0_POLICY=Object.freeze({
   dailyBarOnly:true,
   selectorModelBuilt:false,
   futureOutcomeFeatureAllowed:false,
-  developmentOnlyAtInitialRun:true,
+  initialAllowedPartitions:Object.freeze(['DEVELOPMENT_A','DEVELOPMENT_B']),
   pointInTimeListingMembershipRequired:true,
 });
 
@@ -51,25 +51,30 @@ function sessionCounts(rows,threshold,segment=null){
     if(!sessions.has(row.sessionDate))sessions.set(row.sessionDate,0);
     if(row.returnPct>=threshold)sessions.set(row.sessionDate,sessions.get(row.sessionDate)+1);
   }
-  return [...sessions].sort(([a],[b])=>a.localeCompare(b)).map(([sessionDate,count])=>Object.freeze({sessionDate,count}));
+  return [...sessions].sort(([a],[b])=>a.localeCompare(b)).map(([sessionDate,count])=>{
+    const eligible=rows.filter(row=>row.sessionDate===sessionDate&&(!segment||row.segment===segment)).length;
+    return Object.freeze({sessionDate,count,eligible,ratePct:eligible?rounded(100*count/eligible):null});
+  });
 }
 
-export function buildLongOnlyL0OpportunityCensus({rows=[],partition='DEVELOPMENT',sourceManifest={}}={}){
+export function buildLongOnlyL0OpportunityCensus({rows=[],partition='DEVELOPMENT_A',sourceManifest={},admissionAudit={}}={}){
   assertLongOnlyResearchContract();
-  if(partition!=='DEVELOPMENT')throw new Error('initial L0 census may consume DEVELOPMENT only');
+  if(!PHASE57_LONG_ONLY_L0_POLICY.initialAllowedPartitions.includes(partition))throw new Error('initial L0 census may consume Development A/B only');
   const normalized=normalizeRows(rows);
   if(!normalized.length)throw new Error('L0 census requires at least one valid row');
   const sessionDates=[...new Set(normalized.map(row=>row.sessionDate))];
   const overall={},bySegment={};
   for(const threshold of PHASE57_LONG_ONLY_L0_POLICY.thresholdsPct){
     const points=sessionCounts(normalized,threshold);
-    overall[`gte${threshold}Pct`]=Object.freeze({summary:stats(points.map(x=>x.count)),sessions:Object.freeze(points)});
+    const countSummary=stats(points.map(x=>x.count));
+    overall[`gte${threshold}Pct`]=Object.freeze({summary:countSummary,countSummary,eligibleRatePctSummary:stats(points.map(x=>x.ratePct)),sessions:Object.freeze(points)});
   }
   for(const segment of PHASE57_LONG_ONLY_L0_POLICY.segments){
     bySegment[segment]={};
     for(const threshold of PHASE57_LONG_ONLY_L0_POLICY.thresholdsPct){
       const points=sessionCounts(normalized,threshold,segment);
-      bySegment[segment][`gte${threshold}Pct`]=Object.freeze({summary:stats(points.map(x=>x.count)),sessions:Object.freeze(points)});
+      const countSummary=stats(points.map(x=>x.count));
+      bySegment[segment][`gte${threshold}Pct`]=Object.freeze({summary:countSummary,countSummary,eligibleRatePctSummary:stats(points.map(x=>x.ratePct)),sessions:Object.freeze(points)});
     }
     bySegment[segment]=Object.freeze(bySegment[segment]);
   }
@@ -85,9 +90,8 @@ export function buildLongOnlyL0OpportunityCensus({rows=[],partition='DEVELOPMENT
   if(!lineage.sourceIdentity||!lineage.sourceSha256||!lineage.timestampContract)throw new Error('complete L0 source lineage is required');
   return Object.freeze({
     schemaVersion:1,phase:'57.long-only.l0-opportunity-census',status:'LONG_ONLY_L0_CENSUS_READY',partition,
-    policy:PHASE57_LONG_ONLY_L0_POLICY,lineage,overall:Object.freeze(overall),bySegment:Object.freeze(bySegment),
+    policy:PHASE57_LONG_ONLY_L0_POLICY,lineage,admissionAudit:Object.freeze({...admissionAudit}),overall:Object.freeze(overall),bySegment:Object.freeze(bySegment),
     methodology:Object.freeze({outcomeUsedForSelector:false,modelBuilt:false,thresholdTuned:false,untouchedOosConsumed:false,freshConsumed:false,badSessionsRemoved:false}),
     safety:PHASE57_LONG_ONLY_SAFETY,
   });
 }
-

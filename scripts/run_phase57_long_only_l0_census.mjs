@@ -17,8 +17,8 @@ const result=buildLongOnlyL0OpportunityCensus({
   rows:payload.rows,
   partition:payload.partition,
   sourceManifest:payload.sourceManifest,
+  admissionAudit:payload.admissionAudit,
 });
 fs.mkdirSync(path.dirname(output),{recursive:true});
 fs.writeFileSync(output,`${JSON.stringify(result,null,2)}\n`);
 console.log(JSON.stringify({status:result.status,partition:result.partition,lineage:result.lineage,output},null,2));
-

@@ -28,14 +28,14 @@ test('cash and lot constraints reject impossible or short intents',()=>{
 
 test('initial partition manifest is disjoint and keeps non-development outcomes sealed',()=>{
   const manifest=validatePartitionManifest({
-    DEVELOPMENT:{sessions:['2024-01-04','2024-01-05'],opened:true},
+    DEVELOPMENT_A:{sessions:['2024-01-04','2024-01-05'],opened:true},
     VALIDATION:{sessions:['2024-01-09'],opened:false},
-    UNTOUCHED_OOS:{sessions:['2024-01-10'],opened:false},
-    FINAL_CONFIRMATION_FRESH:{sessions:['2024-01-11'],opened:false},
+    PRIMARY_OOS:{sessions:['2024-01-10'],opened:false},
+    FRESH_PROSPECTIVE:{sessions:['2024-01-11'],opened:false},
   });
   assert.match(manifest.manifestSha256,/^[a-f0-9]{64}$/);
-  assert.throws(()=>validatePartitionManifest({DEVELOPMENT:{sessions:['2024-01-04'],opened:true},VALIDATION:{sessions:['2024-01-04'],opened:false}}),/overlap/);
-  assert.throws(()=>validatePartitionManifest({DEVELOPMENT:{sessions:['2024-01-04'],opened:true},UNTOUCHED_OOS:{sessions:['2024-01-10'],opened:true}}),/must remain unopened/);
+  assert.throws(()=>validatePartitionManifest({DEVELOPMENT_A:{sessions:['2024-01-04'],opened:true},VALIDATION:{sessions:['2024-01-04'],opened:false}}),/overlap/);
+  assert.throws(()=>validatePartitionManifest({DEVELOPMENT_A:{sessions:['2024-01-04'],opened:true},PRIMARY_OOS:{sessions:['2024-01-10'],opened:true}}),/only explicitly released/);
 });
 
 test('L0 census calculates exact market and segment distributions from development rows',()=>{
@@ -56,7 +56,7 @@ test('L0 fails closed on missing point-in-time membership, duplicates or sealed 
   const sourceManifest={sourceIdentity:'FIXTURE',sourceSha256:'a'.repeat(64),timestampContract:'JPX_OFFICIAL_SESSION_DATE_V1'};
   assert.throws(()=>buildLongOnlyL0OpportunityCensus({rows:[{...base,listingMembershipPointInTime:false}],sourceManifest}),/point-in-time/);
   assert.throws(()=>buildLongOnlyL0OpportunityCensus({rows:[base,base],sourceManifest}),/duplicate/);
-  assert.throws(()=>buildLongOnlyL0OpportunityCensus({rows:[base],partition:'UNTOUCHED_OOS',sourceManifest}),/DEVELOPMENT only/);
+  assert.throws(()=>buildLongOnlyL0OpportunityCensus({rows:[base],partition:'PRIMARY_OOS',sourceManifest}),/Development A\/B only/);
 });
 
 test('reviewed data plan conserves all 205 clean sessions and reserves 15 for admission failures',()=>{
@@ -102,10 +102,10 @@ test('acquisition gate remains fail-closed after entitlement and Claude re-attes
   assert.equal(plan.preAcquisitionGate.exactCurrentEntitlementReattested,true);
   assert.equal(plan.preAcquisitionGate.claudeIndependentReviewReceived,true);
   assert.equal(plan.preAcquisitionGate.claudeCriticalBlockersResolved,true);
-  for(const key of ['storageDeletionTermsReattested','freshExactDatesFrozen','operatorExplicitAcquisitionApproval'])assert.ok(gate.missing.includes(key));
+  for(const key of ['storageDeletionTermsReattested','credentialAvailabilityConfirmed','operatorExplicitAcquisitionApproval'])assert.ok(gate.missing.includes(key));
   for(const key of ['integratedDataReuseContractFrozen','humanOverfittingControlsFrozen','independentReviewDispositionFrozen'])assert.ok(!gate.missing.includes(key));
   assert.match(gate.planSha256,/^[a-f0-9]{64}$/);
-  assert.equal(REQUIRED_PHASE57_LONG_ONLY_ACQUISITION_GATES.length,18);
+  assert.equal(REQUIRED_PHASE57_LONG_ONLY_ACQUISITION_GATES.length,20);
 });
 
 test('sealed validation and OOS partitions require hashed release evidence and contingency cannot open for poor performance',()=>{

@@ -30,8 +30,10 @@ New Historical acquisition is still blocked. The branch must not start J-Quants 
 Remaining blockers:
 
 1. Re-attest private-storage and post-cancellation deletion terms.
-2. Freeze exact Fresh prospective dates.
+2. Confirm that the API credential is available in the intended runtime without exposing its value.
 3. Receive separate explicit operator authorization at runtime.
+
+Fresh exact dates are not a historical-acquisition blocker: future sessions cannot be named in advance. The prospective selection rule is frozen instead (`next JPX sessions in calendar order`). Exact Fresh identifiers are recorded mechanically as those sessions occur.
 
 The Claude independent-review blocker itself is now closed at the contract level; its accepted/modified/rejected items are frozen separately.
 
@@ -53,6 +55,7 @@ The existing metadata inventory exposes 205 clean, outcome-unread historical ses
 | **Total** | **205** | |
 
 Fresh prospective sessions are outside this 205-session historical accounting.
+The exact 205 identifiers are now frozen in `predict/long-only/phase57-long-only-session-allocation-v3.json`; allocation used metadata only and did not inspect outcomes or generate future labels.
 
 ## Why Reserve exists
 
@@ -72,6 +75,8 @@ L0 remains Daily-only and uses dated PIT Master plus adjusted daily fields. It m
 
 Development A defines the census contract; Development B replicates it. L0 results cannot choose Validation/OOS dates.
 
+The Formal L0 path is implemented as a fail-closed paginated client, private immutable cache writer, Daily/PIT-Master admission audit, and census runner. Census output now reports both counts and eligible-universe rates. No request was sent while implementing or testing it.
+
 ## L1 / L2
 
 L1 introduces causal intraday 5-minute reconstruction from released minute data. Future labels are evaluator-only and cannot enter decision features.
@@ -79,6 +84,8 @@ L1 introduces causal intraday 5-minute reconstruction from released minute data.
 L2 evaluates a limited set of predeclared feature families. The primary target, final feature set, model family and threshold rule must be frozen before Validation.
 
 Future MFE/MAE may be labels, but normalization used in the live decision semantics must be causal (for example decision-time ATR), not future realized volatility.
+
+The pre-acquisition implementation includes sparse causal 1m-to-5m aggregation, separate terminal-auction rows, decision-time feature construction, evaluator-only same-session labels, and causal market/sector breadth enrichment. Feature objects do not contain label fields.
 
 ## Minute-data conservation
 
@@ -136,6 +143,8 @@ The end point is an integrated comparison, not a Selector scorecard.
 
 Minimum frozen metrics are after-cost Net, PF, MaxDD, Return/DD, win rate, trade count, portfolio return, cash utilization, missed opportunity and symbol/sector concentration. A Development win only qualifies a candidate for frozen evaluation; Validation/OOS determine whether the improvement survives.
 
+A pure replay interface now supplies the same immutable `datasetId` to Selector, Entry, EXIT, Allocation and Portfolio consumers. A four-stage comparison harness enforces identical evaluation windows and cost-model hashes and rejects candidate SHORT, margin, leverage, non-cash and non-100-share-lot trades.
+
 ## Data budget
 
 Daily + Master for the 205 clean historical sessions remains light compared with intraday data. Intraday is released by partition, not acquired for all 205 upfront.
@@ -173,8 +182,7 @@ Therefore:
 ## Next step
 
 1. Clear the remaining non-data blockers.
-2. Freeze Fresh dates.
-3. Get explicit operator acquisition approval.
-4. Acquire the minimum Daily + Master payload once.
-5. Run Formal L0 immediately.
-6. Progress quickly into L1/L2 while preserving the same raw data for Entry/EXIT/Allocation integration.
+2. Get explicit operator acquisition approval with the committed-plan SHA and sealed-cache partitions.
+3. Acquire Daily + dated Master once into private immutable storage (410 base requests for all 205 historical sessions; minute = 0).
+4. Mount Development A only and run Formal L0; then mount Development B for locked replication.
+5. Release Development intraday by block only after L0 and reuse it across L1/L2/Entry/EXIT/Allocation.

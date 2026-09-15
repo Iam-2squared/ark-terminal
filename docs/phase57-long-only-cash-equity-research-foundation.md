@@ -10,11 +10,12 @@
 - 🟢 Clean 205-session historical accounting preserved with 15-session reserve
 - 🟢 Selector-only data consumption prohibited; Development raw data must remain reusable for Entry / EXIT / Allocation / integrated portfolio replay
 - 🟢 Exact clean-205 session identifiers frozen without outcome inspection
-- 🟢 Formal L0 acquisition/admission/census path implemented and tested with zero provider requests
+- 🟢 Formal L0 acquired exactly 411 approved provider requests (206 Daily, 205 dated Master, 0 Minute)
 - 🟢 Causal 1m -> 5m, evaluator-only L1 labels, shared replay interface and four-stage comparison harness implemented
 - 🟢 Development-only L1 full-cross-section builder and L2 ridge candidate selection/freeze path implemented
 - 🟢 Formal L0 private-cache loader verifies page/aggregate hashes and runs A/B without manual stitching
-- 🔴 New J-Quants Historical acquisition remains blocked
+- 🟢 Development A Formal L0 and fixed-definition Development B replication complete
+- 🟡 L1 Development Minute acquisition remains separately unapproved
 
 ## Research objective
 
@@ -88,19 +89,18 @@ User screenshots dated 2026-09-15 show:
 
 No credential value has been read or committed.
 
-## Remaining acquisition blockers
+## Formal L0 result
 
-- confirm a private user-only cache outside the public GitHub repository;
-- confirm API credential availability in the intended runtime without exposing it;
-- explicit operator acquisition approval outside the committed plan.
+The approved plan SHA `2a10ba6f49addaec91251cb5cb45ea1bcd21356b4c1c9d2bccc20f6aace7a258` completed in GitHub Actions run `34916384636`. The repository Actions secret path was reused without revealing the credential. The immutable cache was encrypted, plaintext was removed, and Development B was replicated from the same cache with zero additional provider requests in run `34917676944`.
 
-The purge mechanism is implemented and tested; no additional per-request purge approval is required.
+| Partition | Sessions | Eligible rows | Eligible/input | Mean +3% | Mean +5% | Mean +10% |
+|---|---:|---:|---:|---:|---:|---:|
+| Development A | 25 | 94,638 | 86.218% | 208.44 | 66.96 | 13.48 |
+| Development B | 15 | 56,731 | 86.045% | 200.73 | 69.87 | 17.20 |
 
-Official storage/deletion terms were verified on 2026-09-15. Daily/Master raw and reversible derivatives must be purged by 2026-10-06 19:02 JST; Minute/causal-5m material by 19:07 JST. The current Work process has no J-Quants credential, and no value was requested or observed.
+Development B reproduced the daily opportunity set without changing the threshold or return definition. L0 therefore passes its market-opportunity purpose and is frozen; further L0 tuning is not warranted. Validation, OOS, Contingency OOS and Reserve outcomes remain unopened.
 
-Fresh prospective selection is already frozen by rule. Exact future dates are recorded mechanically as sessions occur and do not block historical Daily/Master cache acquisition.
-
-Until then acquisition remains fail-closed.
+Official storage/deletion terms remain in force. Daily/Master raw and reversible derivatives must be purged by 2026-10-06 19:02 JST; Minute/causal-5m material by 19:07 JST. The encrypted integrated cache artifact expires on 2026-10-06 and contains no public plaintext raw data.
 
 ## This-week completion gate
 
@@ -127,4 +127,4 @@ Research should move quickly enough to complete the LONG-only integrated candida
 
 ## Immediate next action
 
-Clear the three remaining gates (private cache destination, credential presence and plan-SHA-bound operator approval), acquire the 205-session Daily + dated Master set plus one Daily-only causal warm-up into private immutable cache, mount Development A only, and run Formal L0 with `scripts/run_phase57_long_only_formal_l0_from_cache.mjs`. Minute acquisition remains zero until L1 block release.
+Obtain separate operator approval for the Development A+B L1 Minute block, reuse the encrypted Daily/Master cache and acquire each released session only once as the integrated Selector/Entry/EXIT/Allocation/Portfolio dataset. The current planning estimate for 40 released sessions is 470 Minute pages and approximately 14.97 million sparse source rows; no Minute request is included in the completed L0 approval.

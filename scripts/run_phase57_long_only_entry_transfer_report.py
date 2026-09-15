@@ -152,6 +152,8 @@ def verdict(events, opportunities, report, contract):
     latency_problem = any(latency_signals.values())
     inconclusive_reasons = []
     if not integrity: inconclusive_reasons.append("INTEGRITY_COUNT_MISMATCH")
+    scored_ticks = sum(row.get("scoredTicks", 0) for row in report["sessionAudits"])
+    if scored_ticks == 0: inconclusive_reasons.append("ZERO_SCORABLE_CURRENT_ENTRY_TICKS")
     if entry_coverage is not None and entry_coverage < .90: inconclusive_reasons.append("ENTRY_OUTCOME_COVERAGE_BELOW_0_90")
     if len(passed) < rules["minimumEntryPassesForEnrichmentComparison"] and not filter_problem:
         inconclusive_reasons.append("PASS_COUNT_BELOW_MINIMUM_FOR_ENRICHMENT_AND_NO_FILTER_COVERAGE_FAILURE")
@@ -237,7 +239,8 @@ def main():
                           "decisionTimestamps": int(group[["sessionDate", "decisionTimestamp"]].drop_duplicates().shape[0])}
     report = {"schemaVersion": 1, "status": "CURRENT_ENTRY_TRANSFER_DIAGNOSTIC_COMPLETE_STOP",
               "contractId": contract["contractId"], "contractSha256": hashlib.sha256(contract_bytes).hexdigest(),
-              "source": manifest["source"], "dataAudit": {**manifest["counts"], "directStatusTotal": sum(row["count"] for row in funnel.values()),
+              "source": manifest["source"], "sessionAudits": manifest["sessionAudits"], "dataAudit": {**manifest["counts"], "directStatusTotal": sum(row["count"] for row in funnel.values()),
+              "scoredEntryTicks": sum(row.get("scoredTicks", 0) for row in manifest["sessionAudits"]),
               "repeatedSelections": len(events)-events.symbolSessionId.nunique(), "eventLedgerSha256": hashlib.sha256(events_bytes).hexdigest()},
               "adapterAudit": contract["adapter"], "funnel": funnel,
               "cohorts": {status: cohort(events[events.directStatus.eq(status)]) for status in STATUSES},

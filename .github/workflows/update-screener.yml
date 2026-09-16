@@ -1,5 +1,7 @@
 name: Update AI Stock Screener
 
+# Archived 2026-09-16: historical screener persistence is manual-only.
+# Existing automation/screener-data history is retained.
 on:
   workflow_dispatch:
     inputs:
@@ -12,9 +14,6 @@ on:
         required: false
         type: boolean
         default: false
-
-  schedule:
-    - cron: "15 0,2,4,6,8,10 * * 1-5"
 
 permissions:
   contents: write
@@ -89,4 +88,3 @@ jobs:
             git commit -m "Update AI stock screener data"
             git push --force-with-lease origin "$DATA_BRANCH"
           fi
-

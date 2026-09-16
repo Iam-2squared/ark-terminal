@@ -40,4 +40,35 @@ class FrozenArtifactTests(unittest.TestCase):
         self.assertEqual(receipt['modelPredictionCalls'],1)
         self.assertFalse(any(receipt['safety'].values()))
 
+    def test_report_uses_actual_entry_outcomes_and_preserves_receipts(self):
+        import json,gzip,statistics
+        from run_phase57_historical_remeasurement import OUT,sha
+        measurement=json.loads((OUT/'measurement.json').read_text())
+        receipt=json.loads((OUT/'path-recovery-receipt.json').read_text())
+        raw=(OUT/'path-diagnostics.json.gz').read_bytes()
+        self.assertEqual(sha(raw),receipt['compressedPathDiagnosticsSHA'])
+        decoded=gzip.decompress(raw)
+        self.assertEqual(sha(decoded),receipt['rawPathDiagnosticsSHA'])
+        paths={p['selectorEventId']:p for p in json.loads(decoded)['events']}
+        preds=[json.loads(s) for s in gzip.decompress((OUT/'frozen-predictions.ndjson.gz').read_bytes()).decode().splitlines()]
+        enters=[p for p in preds if p['state']=='ENTER']
+        self.assertEqual(len(enters),measurement['enter'])
+        self.assertEqual(len({p['symbolSessionId'] for p in enters}),len(enters))
+        evaluated=[paths[p['selectorEventId']] for p in enters if paths[p['selectorEventId']]['labelable']]
+        for k in [1,2,3,5]:
+            hits=sum(p['highReturnPct']>=k for p in evaluated)
+            self.assertEqual(hits,measurement['candidateActualEntry']['high'][str(k)]['hits'])
+            self.assertAlmostEqual(100*hits/len(evaluated),measurement['candidateActualEntry']['high'][str(k)]['precisionPct'])
+        self.assertAlmostEqual(statistics.mean(p['trueMaePct'] for p in evaluated),measurement['candidateActualEntry']['trueMaePct']['mean'])
+        assessment=json.loads((OUT/'assessment.json').read_text())
+        self.assertEqual(assessment['measurementSHA'],sha((OUT/'measurement.json').read_bytes()))
+        self.assertFalse(measurement['freshClaim']);self.assertFalse(measurement['oosClaim'])
+        self.assertFalse(any(measurement['safety'].values()))
+        self.assertTrue(all(v==0 for v in measurement['counts'].values()))
+        from run_phase57_historical_remeasurement import ROOT
+        manifest=json.loads((OUT/'manifest.json').read_text())
+        self.assertEqual(sha((OUT/'manifest.json').read_bytes()),(OUT/'manifest.sha256').read_text().strip())
+        for file,expected in {**manifest['fileSHAs'],**manifest['implementationSHAs']}.items():
+            self.assertEqual(sha((ROOT/file).read_bytes()),expected,file)
+
 if __name__=='__main__':unittest.main()

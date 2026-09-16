@@ -6,6 +6,7 @@ import hashlib
 import json
 import math
 from collections import Counter, defaultdict
+from datetime import datetime, timezone
 from pathlib import Path
 from statistics import median
 
@@ -52,6 +53,11 @@ def quantile(values, q):
 
 def finite(value):
     return isinstance(value, (int, float)) and math.isfinite(value)
+
+
+def canonical_instant(value):
+    """Normalize equivalent ISO-8601 representations before lineage comparison."""
+    return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(timezone.utc)
 
 
 def field_audit(rows, key, validator=lambda value: finite(value)):
@@ -200,7 +206,12 @@ def main():
     identity_mismatch = []
     for row in rows:
         old = prior_by_id.get(row["selectorEventId"])
-        if not old or any(old[key] != row[key] for key in ["sessionDate", "symbol", "decisionTimestamp", "decisionPrice", "ridgeRank", "ridgeScore"]):
+        timestamp_matches = old is not None and canonical_instant(old["decisionTimestamp"]) == canonical_instant(row["decisionTimestamp"])
+        fields_match = old is not None and all(
+            old[key] == row[key]
+            for key in ["sessionDate", "symbol", "decisionPrice", "ridgeRank", "ridgeScore"]
+        )
+        if not timestamp_matches or not fields_match:
             identity_mismatch.append(row["selectorEventId"])
     checks["priorEventFieldsExact"] = not identity_mismatch
     failures = [key for key, value in checks.items() if not value]

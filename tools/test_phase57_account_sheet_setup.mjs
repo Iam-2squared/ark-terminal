@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const setup = fs.readFileSync(new URL('./Initialize-ArkAccountReadOnlySheet.ps1', import.meta.url), 'utf8');
 const snapshot = fs.readFileSync(new URL('./Start-ArkAccountReadOnlySnapshot.ps1', import.meta.url), 'utf8');
+const preview = fs.readFileSync(new URL('./Start-ArkUiReadOnlyPreview.ps1', import.meta.url), 'utf8');
 
 const formulaAssignments = [...setup.matchAll(/\.Formula\s*=\s*['"]([^'"]+)['"]/g)].map(match => match[1]);
 
@@ -56,4 +57,9 @@ test('snapshot launcher verifies layout and RSS readiness before exporting fresh
   assert.equal(snapshot.includes('marketValue=$acct.Cells.Item($row,45).Value2'), true);
   assert.equal(snapshot.includes('unrealizedPnl=$acct.Cells.Item($row,46).Value2'), true);
   assert.equal(snapshot.includes('unrealizedPnlPercent=$acct.Cells.Item($row,47).Value2'), true);
+});
+
+test('UI preview never attempts third-party RSS XLL registration', () => {
+  assert.equal(preview.includes('DoNotAutoLoadRssAddin = $true'), true);
+  assert.equal(preview.includes('RegisterXLL'), true, 'document why RegisterXLL is intentionally disabled');
 });

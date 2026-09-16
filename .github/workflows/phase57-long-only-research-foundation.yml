@@ -3,6 +3,11 @@ name: Phase57 LONG-only Research Foundation
 on:
   pull_request:
     paths:
+      - 'scripts/phase57_budget_metadata.py'
+      - 'scripts/test_phase57_budget_metadata.py'
+      - 'scripts/replay_phase57_budget_without_outcomes.py'
+      - 'docs/evidence/phase57-long-only-global-budget-integrity-review/**'
+      - 'predict/research/phase57-long-only-global-data-budget-v1.json'
       - 'predict/long-only/**'
       - 'scripts/run_phase57_long_only_l0_census.mjs'
       - 'scripts/run_phase57_long_only_formal_l0_from_cache.mjs'
@@ -28,6 +33,11 @@ on:
     branches:
       - research/phase57-long-only-cash-equity
     paths:
+      - 'scripts/phase57_budget_metadata.py'
+      - 'scripts/test_phase57_budget_metadata.py'
+      - 'scripts/replay_phase57_budget_without_outcomes.py'
+      - 'docs/evidence/phase57-long-only-global-budget-integrity-review/**'
+      - 'predict/research/phase57-long-only-global-data-budget-v1.json'
       - 'predict/long-only/**'
       - 'scripts/run_phase57_long_only_l0_census.mjs'
       - 'scripts/run_phase57_long_only_formal_l0_from_cache.mjs'
@@ -64,6 +74,8 @@ jobs:
           node-version: '22'
       - name: Verify LONG-only cash-equity research foundation
         run: python3 scripts/run_offline_regression.py --suite foundation --output-dir "$RUNNER_TEMP/foundation-offline-regression"
+      - name: Verify outcome-free global budget derivation and metadata allowlist
+        run: ARK_TEST_OFFLINE=1 python3 scripts/offline/kernel_exec.py python3 scripts/test_phase57_budget_metadata.py -v
       - name: Upload offline regression audit
         if: always()
         uses: actions/upload-artifact@v4

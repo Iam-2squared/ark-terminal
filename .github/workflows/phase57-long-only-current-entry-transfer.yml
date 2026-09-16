@@ -8,14 +8,18 @@ on:
       - .github/workflows/phase57-long-only-current-entry-transfer.yml
       - predict/research/phase57-long-only-current-entry-transfer-contract-v1.json
       - predict/research/phase57-long-only-entry-filter-recovery-audit-contract-v1.json
+      - predict/research/phase57-msh-entry-long-v1-preimplementation-feasibility-contract.json
       - predict/research/phase57-msh-entry-v1-model.json
       - predict/research/phase57-minimal-stateful-entry-contract.json
       - scripts/lib/phase57-minimal-stateful-entry.mjs
       - predict/long-only/phase57-long-only-current-entry-transfer.js
+      - predict/long-only/phase57-long-only-entry-preimplementation-feasibility.js
       - predict/tests/phase57-long-only-current-entry-transfer.test.mjs
+      - predict/tests/phase57-long-only-entry-preimplementation-feasibility.test.mjs
       - scripts/run_phase57_long_only_entry_transfer_diagnostic.mjs
       - scripts/run_phase57_long_only_entry_transfer_report.py
       - scripts/run_phase57_long_only_entry_filter_recovery_audit.py
+      - scripts/run_phase57_msh_entry_long_v1_preimplementation_feasibility_audit.py
 
 permissions:
   actions: read
@@ -47,9 +51,14 @@ jobs:
         run: |
           python scripts/verify_phase57_long_only_frozen_selector_v1.py
           node --test predict/tests/phase57-long-only-current-entry-transfer.test.mjs
+          node --test predict/tests/phase57-long-only-entry-preimplementation-feasibility.test.mjs
           python -m py_compile scripts/run_phase57_long_only_entry_transfer_report.py
           python -m py_compile scripts/run_phase57_long_only_entry_filter_recovery_audit.py
+          python -m py_compile scripts/run_phase57_msh_entry_long_v1_preimplementation_feasibility_audit.py
           node --check scripts/run_phase57_long_only_entry_transfer_diagnostic.mjs
+          while IFS=$'\t' read -r file expected; do
+            test "$(sha256sum "$file" | cut -d' ' -f1)" = "$expected"
+          done < <(jq -r '.auditImplementation | to_entries[] | [.key,.value] | @tsv' predict/research/phase57-msh-entry-long-v1-preimplementation-feasibility-contract.json)
       - name: Download saved encrypted Development base
         uses: actions/download-artifact@v4
         with:
@@ -131,6 +140,20 @@ jobs:
           cp docs/phase57-long-only-entry-filter-recovery-audit-v1.md artifacts/phase57-long-only-current-entry-transfer/
           cp docs/evidence/phase57-long-only-entry-filter-recovery-audit-v1-ticks.ndjson.gz artifacts/phase57-long-only-current-entry-transfer/
           cp docs/evidence/phase57-long-only-entry-filter-recovery-audit-v1-first-opportunities.json.gz artifacts/phase57-long-only-current-entry-transfer/
+      - name: Audit MSH-Entry LONG v1 feasibility without training or performance
+        run: |
+          python scripts/run_phase57_msh_entry_long_v1_preimplementation_feasibility_audit.py \
+            --input-dir "$RUNNER_TEMP/entry-transfer-private" \
+            --contract predict/research/phase57-msh-entry-long-v1-preimplementation-feasibility-contract.json \
+            --prior-events docs/evidence/phase57-long-only-current-entry-transfer-v1-events.ndjson.gz \
+            --prior-transfer-report docs/evidence/phase57-long-only-current-entry-transfer-v1-report.json \
+            --prior-filter-report docs/evidence/phase57-long-only-entry-filter-recovery-audit-v1-report.json \
+            --output docs/evidence/phase57-msh-entry-long-v1-preimplementation-feasibility-report.json \
+            --markdown-output docs/phase57-msh-entry-long-v1-preimplementation-feasibility-report.md
+          gzip -n -9 -c "$RUNNER_TEMP/entry-transfer-private/entry-preimplementation-feasibility-events.ndjson" > docs/evidence/phase57-msh-entry-long-v1-preimplementation-feasibility-events.ndjson.gz
+          cp docs/evidence/phase57-msh-entry-long-v1-preimplementation-feasibility-report.json artifacts/phase57-long-only-current-entry-transfer/
+          cp docs/phase57-msh-entry-long-v1-preimplementation-feasibility-report.md artifacts/phase57-long-only-current-entry-transfer/
+          cp docs/evidence/phase57-msh-entry-long-v1-preimplementation-feasibility-events.ndjson.gz artifacts/phase57-long-only-current-entry-transfer/
       - name: Purge private inputs
         if: always()
         shell: bash
@@ -150,3 +173,4 @@ jobs:
         run: |
           jq '{status,finalVerdict,dataAudit,funnel,opportunityPreservation,opportunityConsumptionBps,stateful}' docs/evidence/phase57-long-only-current-entry-transfer-v1-report.json | tee -a "$GITHUB_STEP_SUMMARY"
           jq '{status,architectureMismatchVerdict,integrity,funnel,blockedRootCauseAttribution,lostOpportunityAttribution,throughput,precisionPreservationFrontier,recoverableOpportunityPool}' docs/evidence/phase57-long-only-entry-filter-recovery-audit-v1-report.json | tee -a "$GITHUB_STEP_SUMMARY"
+          jq '{status,feasibilityVerdict,integrity,trainingRows,selectorOutputAudit,featureAvailability,ordinalLabelFeasibility,coreScoreability,missingSemanticsRecommendation,chronologicalSplitFeasibility,dataAllocation,finalContractRecommendations}' docs/evidence/phase57-msh-entry-long-v1-preimplementation-feasibility-report.json | tee -a "$GITHUB_STEP_SUMMARY"

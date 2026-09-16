@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "contractId": "PHASE57_MSH_ENTRY_LONG_V1_PREIMPLEMENTATION_FEASIBILITY_AUDIT",
+  "status": "FROZEN_BEFORE_FEASIBILITY_OUTCOMES",
+  "createdAtJst": "2026-09-16",
+  "purpose": "Measure data and semantic feasibility for a future LONG-only Entry without fitting a model, producing predictions, measuring predictive performance, or searching thresholds.",
+  "scope": {
+    "market": "JPX_CASH_EQUITY",
+    "direction": "LONG_ONLY",
+    "developmentSessions": 76,
+    "decisionTimestamps": 760,
+    "selectionEvents": 3800,
+    "reuseAlreadyOpenedDevelopmentOnly": true,
+    "validationOpened": false,
+    "oosOpened": false,
+    "newProviderRequestsAllowed": false
+  },
+  "frozenInputs": {
+    "selectorFreezeCommit": "565d74b3dea823581fdb32380113aac5913a248d",
+    "selectorFrozenPayloadSha256": "3dc6d222d4039737c0dcfdcfa4a83372202152e29b582225419ab97c00610d59",
+    "selectorRidgeArtifactSha256": "994f1dbaba1d32e97458d5dd9d4c646ef443fbb37128650e8166001d8deabefb",
+    "priorTransferReportFileSha256": "4b18c17836c70751b77ceee8fab8ee4e6ca6d2a6e1c99920268ea7cf4ce52685",
+    "priorTransferLedgerGzipSha256": "a36eecfed29aa0e9da50b051839578ca2e8f3a37d500de17bd6c3acfd8ce3a53",
+    "priorTransferLedgerPayloadSha256": "bc5f37822e829308d508ebe3748af0ad2f1dd2e41e8847d5633512f8de850f0d",
+    "priorFilterAuditReportFileSha256": "ea34fec41746a39d4533d7946d2693dba323d5a37ee51e4cb8a66e34bc26775e",
+    "currentFeatureContractSha256": "cc70b1eb07c0719f72c4a8caa0f165a2812aec4af0b2fdeae42ef3ff400c4115",
+    "currentFeatureImplementationSha256": "7cd4ab03f4de8e0b845fc5f7fb2893d9585feee0989b0f6b085a18a28be73ba0"
+  },
+  "auditImplementation": {
+    "predict/long-only/phase57-long-only-entry-preimplementation-feasibility.js": "d785c6cadfe95fd8a2f8ee5620edfb4e4edf9748ad071829f782c197affbf10e",
+    "scripts/run_phase57_long_only_entry_transfer_diagnostic.mjs": "fd637bc9c0f401d390b585f8ddf4f2a99b7cd36c7b7e87d7ef5ce7a94c5ef4b4",
+    "scripts/run_phase57_msh_entry_long_v1_preimplementation_feasibility_audit.py": "ff3ab089100af5f735fca8d1fb7e0bd6045b58ad276e9e9ad121366b6b669eaf",
+    "predict/tests/phase57-long-only-entry-preimplementation-feasibility.test.mjs": "d051a60f7d8c44b39f19b1ef9a272ae6ceac9ff25f1ec9167364ac4ce2f393b5"
+  },
+  "trainingRowCandidate": {
+    "unit": "FROZEN_SELECTOR_TOP5_SELECTION_EVENT",
+    "maximumRows": 3800,
+    "repeatedSymbolSessionEventsAllowed": true,
+    "independentTradeInterpretationAllowed": false,
+    "evaluationUnit": "FIRST_ENTRY_OR_SYMBOL_SESSION_TO_BE_FROZEN_LATER"
+  },
+  "featureFeasibility": {
+    "formulaSource": "predict/research/phase57-minimal-stateful-entry-contract.json",
+    "currentAtomicGateMeasuredSeparately": true,
+    "intrinsicAvailabilityDoesNotRedefineFormula": true,
+    "noForwardFill": true,
+    "noInterpolation": true,
+    "noPreviousSessionBars": true,
+    "requirements": {
+      "selectorScore": "FROZEN_SELECTOR_OUTPUT",
+      "ridgeRank": "FROZEN_SELECTOR_OUTPUT_1_TO_5",
+      "directionalMomentum3Pct": "LATEST_CLOSE_AND_CLOSE_THREE_COMPLETED_SAME_SESSION_5M_BARS_EARLIER",
+      "directionalMomentumAccelerationPct": "LATEST_CLOSE_AND_SIX_COMPLETED_SAME_SESSION_5M_BARS_EARLIER",
+      "directionalPullback6Pct": "SIX_COMPLETED_SAME_SESSION_5M_BARS",
+      "relativeVolume5": "SIX_COMPLETED_SAME_SESSION_5M_BARS_AND_POSITIVE_PREVIOUS_FIVE_VOLUME_MEAN",
+      "directionalReturnFromOpenPct": "EXACT_09_00_OPEN_AND_LATEST_COMPLETED_CLOSE",
+      "directionalVwapDistancePct": "COMPLETE_SESSION_TO_DATE_5M_GRID_FROM_09_00_AND_POSITIVE_VOLUME",
+      "lineageFeatures": "FROZEN_SELECTOR_EVENT_LINEAGE_ONLY"
+    }
+  },
+  "ordinalLabelCandidate": {
+    "status": "FEASIBILITY_ONLY_NOT_TARGET_FREEZE",
+    "reference": "FROZEN_SELECTOR_DECISION_PRICE",
+    "window": "STRICT_30_WALL_CLOCK_MINUTES_SAME_SESSION",
+    "primaryObservation": "MAX_FUTURE_CONTINUOUS_5M_HIGH_IN_COMPLETE_WINDOW",
+    "supportingObservation": "MAX_FUTURE_COMPLETED_5M_CLOSE_IN_COMPLETE_WINDOW",
+    "classes": {
+      "0": "BELOW_PLUS_1_PERCENT",
+      "1": "PLUS_1_TO_BELOW_PLUS_2_PERCENT",
+      "2": "PLUS_2_TO_BELOW_PLUS_3_PERCENT",
+      "3": "PLUS_3_TO_BELOW_PLUS_5_PERCENT",
+      "4": "PLUS_5_PERCENT_OR_MORE"
+    },
+    "fullExpectedFiveMinutePathRequired": true,
+    "lunchConvertedToMarketMinutes": false,
+    "overnightAllowed": false,
+    "highTouchAndCloseConfirmationSeparated": true,
+    "unlabelableIsNotClassZero": true
+  },
+  "priorPublishedReference": {
+    "strictWallClock30mEndpointEvaluableEvents": 2704,
+    "strictWallClock30mEndpointCoveragePct": 71.16,
+    "source": "docs/phase57-long-only-eligibility-aware-ridge-report-2026-09-16.md",
+    "note": "The new ordinal audit requires the complete HIGH/CLOSE path, which is stricter than endpoint-only availability."
+  },
+  "scoreabilityCores": {
+    "A": ["selectorScore"],
+    "B": ["selectorScore", "ridgeRank"],
+    "C": ["selectorScore", "directionalMomentum3Pct"],
+    "D": ["selectorScore", "ridgeRank", "directionalMomentum3Pct"]
+  },
+  "decisionPriceRoleRule": {
+    "default": "REFERENCE_ONLY",
+    "modelFeatureRequiresArchitectureReasonIndependentOfPerformance": true,
+    "rawNominalPriceScaleIsNotInvariant": true
+  },
+  "feasibilityVerdictRule": {
+    "inconclusiveOnIntegrityFailure": true,
+    "notFeasibleIfSelectorIdentityFieldsNotComplete": true,
+    "notFeasibleIfNoOrdinalClassCanBeRepresented": true,
+    "contractChangesRequiredIfLabelCoverageBelow100PctOrAnyCoreCandidateMissing": true,
+    "noPredictivePerformanceGate": true
+  },
+  "prohibited": [
+    "MODEL_TRAINING", "ORDINAL_LOGISTIC_FIT", "CV_PERFORMANCE_MEASUREMENT", "OOF_PREDICTION",
+    "THRESHOLD_SEARCH", "CLASS_WEIGHT_TUNING", "L2_TUNING", "FEATURE_IMPORTANCE",
+    "OUTCOME_BASED_FEATURE_SELECTION", "NEW_FEATURE_ENGINEERING", "MFE_AUXILIARY_MODEL",
+    "LIGHTGBM", "WAIT_REDESIGN", "VALIDATION_OR_OOS_ACCESS", "EXIT_ACCESS",
+    "SELECTOR_CHANGE", "SHORT_MARGIN_OR_LEVERAGE"
+  ],
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "shortAllowed": false,
+    "marginAllowed": false,
+    "leverageAllowed": false
+  },
+  "completionBoundary": "ISSUE_FEASIBILITY_VERDICT_AND_CONTRACT_RECOMMENDATIONS_THEN_STOP_BEFORE_IMPLEMENTATION_OR_TRAINING"
+}

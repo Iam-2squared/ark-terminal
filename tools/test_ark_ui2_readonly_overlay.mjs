@@ -1,11 +1,16 @@
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import fs from 'node:fs';
 import test from 'node:test';
 
-const source = fs.readFileSync(
-  new URL('../prototypes/ark-terminal-2-readonly/public/ark-readonly-overlay.js', import.meta.url),
-  'utf8',
-);
+const overlayPath = new URL('../prototypes/ark-terminal-2-readonly/public/ark-readonly-overlay.js', import.meta.url);
+const indexPath = new URL('../prototypes/ark-terminal-2-readonly/public/index.html', import.meta.url);
+const source = fs.readFileSync(overlayPath, 'utf8');
+
+test('frozen Ark Terminal 2.0 distribution snapshot is byte-identical to the approved UI', () => {
+  const sha256 = createHash('sha256').update(fs.readFileSync(indexPath)).digest('hex');
+  assert.equal(sha256, '4d630234fc64c1b5d8df50851fde1989158e61a1db36d799d247fc8ae8f98870');
+});
 
 test('overlay polls only the read-only GET endpoint', () => {
   assert.match(source, /const MODEL_URL = '\/api\/ui-read-model'/);

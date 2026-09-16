@@ -20,4 +20,24 @@ class CausalReplayTests(unittest.TestCase):
         self.assertEqual(p['preservationPct'],100);self.assertEqual(p['timelyPreservationPct'],0);self.assertEqual(p['winnerAndRemainingHit'],0)
     def test_score_count_identity(self):
         with self.assertRaises(ValueError):causal_decisions(self.rows(),[2])
+class FrozenArtifactTests(unittest.TestCase):
+    def test_saved_sources_and_predictions_integrity(self):
+        import json,gzip,math
+        from run_phase57_historical_remeasurement import inputs,OUT,sha
+        c,rows=inputs()
+        receipt=json.loads((OUT/'prediction-receipt.json').read_text())
+        raw=(OUT/'frozen-predictions.ndjson.gz').read_bytes()
+        self.assertEqual(sha(raw),receipt['predictionArtifactSHA'])
+        preds=[json.loads(s) for s in gzip.decompress(raw).decode().splitlines()]
+        self.assertEqual([r['selectorEventId'] for r in rows],[p['selectorEventId'] for p in preds])
+        for p in preds:
+            self.assertEqual(len(p['probabilities']),5)
+            self.assertTrue(all(math.isfinite(x) and 0<=x<=1 for x in p['probabilities']))
+            self.assertAlmostEqual(sum(p['probabilities']),1,places=12)
+            self.assertAlmostEqual(sum(i*x for i,x in enumerate(p['probabilities'])),p['expectedClass'],places=12)
+        expected=causal_decisions(rows,[p['expectedClass'] for p in preds])
+        self.assertEqual(expected,[{k:p[k] for k in ['state','reason']} for p in preds])
+        self.assertEqual(receipt['modelPredictionCalls'],1)
+        self.assertFalse(any(receipt['safety'].values()))
+
 if __name__=='__main__':unittest.main()

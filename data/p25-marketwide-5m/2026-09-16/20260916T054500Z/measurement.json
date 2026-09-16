@@ -1,0 +1,875 @@
+{
+  "schemaVersion": 2,
+  "phase": "57.p25.intraday-dynamic-universe-marketwide-measurement",
+  "status": "MARKETWIDE_DYNAMIC_5M_MEASUREMENT_READY",
+  "observedAt": "2026-09-16T05:45:00.989Z",
+  "inputSymbols": 3691,
+  "selectedSymbols": 38,
+  "selectedV2Symbols": 30,
+  "allocationEligibleSymbols": 38,
+  "allocationEligibleV2Symbols": 30,
+  "selectorCalls": 1,
+  "prescreenedRows": 120,
+  "selectorElapsedMs": 38.739,
+  "priorV2PointCount": 3,
+  "methodology": {
+    "marketWideRefreshEachFiveMinutes": true,
+    "twoStageLightweightPrescreen": true,
+    "semanticSnapshotDeduplication": true,
+    "duplicateSymbolSuppression": true,
+    "heldSymbolExclusionOccursOnlyAtAllocationGate": true,
+    "futureOutcomeUsed": false,
+    "entryThresholdRelaxed": false,
+    "frozenDynamic50Replaced": false,
+    "formalOos": false,
+    "promotionEligible": false
+  },
+  "policy": {
+    "candidateId": "INTRADAY_DYNAMIC_5M_UNIVERSE_V1",
+    "cadenceMinutes": 5,
+    "sourceScope": "JPX_DOMESTIC_PRIME_STANDARD_GROWTH",
+    "candidatePoolSize": 120,
+    "finalUniverseSize": 50,
+    "dayCount": 30,
+    "swingCount": 30,
+    "maxPerSector": 4,
+    "semanticDeduplication": true,
+    "excludeHeldSymbolsAtAllocationGate": true,
+    "replaceFrozenDynamic50": false,
+    "formalOos": false,
+    "promotionEligible": false,
+    "winnerSelectionAllowed": false,
+    "allocationRuleTuningAllowed": false,
+    "thresholdRelaxationAllowed": false
+  },
+  "safety": {
+    "phase": "57.p25.intraday-dynamic-universe",
+    "mode": "READ_ONLY_5M_DYNAMIC_UNIVERSE_RESEARCH_CANDIDATE",
+    "researchOnly": true,
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "overnightHoldingAllowed": false,
+    "transmitted": false,
+    "freshHoldoutConsumed": false
+  },
+  "selected": [
+    {
+      "symbol": "485A.T",
+      "sector": "電気機器",
+      "currentPrice": 2122,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.707353,
+      "turnoverYen": 30478922600
+    },
+    {
+      "symbol": "4588.T",
+      "sector": "医薬品",
+      "currentPrice": 5900,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.680882,
+      "turnoverYen": 23549850000
+    },
+    {
+      "symbol": "6203.T",
+      "sector": "機械",
+      "currentPrice": 2176,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.678361,
+      "turnoverYen": 11642252800
+    },
+    {
+      "symbol": "581A.T",
+      "sector": "情報・通信業",
+      "currentPrice": 3180,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.673319,
+      "turnoverYen": 22762122000
+    },
+    {
+      "symbol": "3103.T",
+      "sector": "繊維製品",
+      "currentPrice": 1487,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.659454,
+      "turnoverYen": 9466985500
+    },
+    {
+      "symbol": "9130.T",
+      "sector": "海運業",
+      "currentPrice": 2022,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.631723,
+      "turnoverYen": 3251376000
+    },
+    {
+      "symbol": "4385.T",
+      "sector": "情報・通信業",
+      "currentPrice": 3632,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.62416,
+      "turnoverYen": 10192481600
+    },
+    {
+      "symbol": "4578.T",
+      "sector": "医薬品",
+      "currentPrice": 10855,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.621639,
+      "turnoverYen": 12777420500
+    },
+    {
+      "symbol": "4075.T",
+      "sector": "情報・通信業",
+      "currentPrice": 1452,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.619118,
+      "turnoverYen": 3886858800
+    },
+    {
+      "symbol": "6787.T",
+      "sector": "電気機器",
+      "currentPrice": 21990,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.617857,
+      "turnoverYen": 11850411000
+    },
+    {
+      "symbol": "278A.T",
+      "sector": "精密機器",
+      "currentPrice": 18050,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.616597,
+      "turnoverYen": 14162030000
+    },
+    {
+      "symbol": "8918.T",
+      "sector": "不動産業",
+      "currentPrice": 11,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.603992,
+      "turnoverYen": 2592352400
+    },
+    {
+      "symbol": "6227.T",
+      "sector": "機械",
+      "currentPrice": 5610,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.597689,
+      "turnoverYen": 4381971000
+    },
+    {
+      "symbol": "6752.T",
+      "sector": "電気機器",
+      "currentPrice": 4365,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.588866,
+      "turnoverYen": 21934561500
+    },
+    {
+      "symbol": "285A.T",
+      "sector": "電気機器",
+      "currentPrice": 50280,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.581303,
+      "turnoverYen": 1156083012000
+    },
+    {
+      "symbol": "3350.T",
+      "sector": "卸売業",
+      "currentPrice": 235,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.581303,
+      "turnoverYen": 3267087500
+    },
+    {
+      "symbol": "5020.T",
+      "sector": "石油・石炭製品",
+      "currentPrice": 1467,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.580042,
+      "turnoverYen": 8822538000
+    },
+    {
+      "symbol": "5019.T",
+      "sector": "石油・石炭製品",
+      "currentPrice": 1672.5,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.573739,
+      "turnoverYen": 5956274250
+    },
+    {
+      "symbol": "141A.T",
+      "sector": "小売業",
+      "currentPrice": 3690,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.572479,
+      "turnoverYen": 2435769000
+    },
+    {
+      "symbol": "3441.T",
+      "sector": "金属製品",
+      "currentPrice": 1855,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.572479,
+      "turnoverYen": 1321873000
+    },
+    {
+      "symbol": "1605.T",
+      "sector": "鉱業",
+      "currentPrice": 4049,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.567437,
+      "turnoverYen": 20182240500
+    },
+    {
+      "symbol": "3563.T",
+      "sector": "小売業",
+      "currentPrice": 4771,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.566176,
+      "turnoverYen": 12146011800
+    },
+    {
+      "symbol": "4506.T",
+      "sector": "医薬品",
+      "currentPrice": 1510.5,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.564916,
+      "turnoverYen": 4676961150
+    },
+    {
+      "symbol": "4840.T",
+      "sector": "サービス業",
+      "currentPrice": 804,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.559874,
+      "turnoverYen": 1261878000
+    },
+    {
+      "symbol": "7936.T",
+      "sector": "その他製品",
+      "currentPrice": 4005,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.55105,
+      "turnoverYen": 12208041000
+    },
+    {
+      "symbol": "6085.T",
+      "sector": "サービス業",
+      "currentPrice": 136,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.54979,
+      "turnoverYen": 1050600000
+    },
+    {
+      "symbol": "4174.T",
+      "sector": "情報・通信業",
+      "currentPrice": 1156,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.548529,
+      "turnoverYen": 1628226000
+    },
+    {
+      "symbol": "6501.T",
+      "sector": "電気機器",
+      "currentPrice": 5368,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.548319,
+      "turnoverYen": 26147528000
+    },
+    {
+      "symbol": "7777.T",
+      "sector": "精密機器",
+      "currentPrice": 434,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.547269,
+      "turnoverYen": 1907516800
+    },
+    {
+      "symbol": "4564.T",
+      "sector": "医薬品",
+      "currentPrice": 22,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.546008,
+      "turnoverYen": 3932667200
+    },
+    {
+      "symbol": "9843.T",
+      "sector": "小売業",
+      "currentPrice": 3090,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.534874,
+      "turnoverYen": 6984945000
+    },
+    {
+      "symbol": "9766.T",
+      "sector": "情報・通信業",
+      "currentPrice": 20640,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.533193,
+      "turnoverYen": 5372592000
+    },
+    {
+      "symbol": "1803.T",
+      "sector": "建設業",
+      "currentPrice": 2383,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.532353,
+      "turnoverYen": 5243076600
+    },
+    {
+      "symbol": "7966.T",
+      "sector": "その他製品",
+      "currentPrice": 5520,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.530672,
+      "turnoverYen": 4791912000
+    },
+    {
+      "symbol": "6988.T",
+      "sector": "化学",
+      "currentPrice": 3330,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.527311,
+      "turnoverYen": 4324671000
+    },
+    {
+      "symbol": "7550.T",
+      "sector": "小売業",
+      "currentPrice": 10900,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.526471,
+      "turnoverYen": 4120200000
+    },
+    {
+      "symbol": "6113.T",
+      "sector": "機械",
+      "currentPrice": 2398,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.52395,
+      "turnoverYen": 3882841600
+    },
+    {
+      "symbol": "186A.T",
+      "sector": "サービス業",
+      "currentPrice": 1044,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.523109,
+      "turnoverYen": 3662247600
+    }
+  ],
+  "dynamic5mV2": {
+    "candidateId": "INTRADAY_DYNAMIC_5M_UNIVERSE_V2",
+    "methodology": {
+      "marketWideRefreshEachFiveMinutes": true,
+      "baseV1PrescreenRetained": true,
+      "causalPersistenceOnly": true,
+      "priorSelectionsConsumedOnlyFromEarlierBuckets": true,
+      "liquidityQualityGate": true,
+      "directionalEfficiencyProxy": true,
+      "sectorConcentrationCap": true,
+      "futureOutcomeUsed": false,
+      "entryOutcomeFitUsed": false,
+      "postHocWinnerFiltering": false,
+      "formalOos": false,
+      "promotionEligible": false
+    },
+    "policy": {
+      "candidateId": "INTRADAY_DYNAMIC_5M_UNIVERSE_V2",
+      "baseCandidateId": "INTRADAY_DYNAMIC_5M_UNIVERSE_V1",
+      "finalUniverseSize": 30,
+      "maxPerSector": 3,
+      "persistenceWindowPoints": 3,
+      "weights": {
+        "baseOpportunity": 0.42,
+        "liquidityQuality": 0.23,
+        "persistence": 0.2,
+        "signalQuality": 0.15
+      },
+      "firstFreshEligibleDate": "2026-09-01",
+      "august31PartialRole": "FAILURE_ANALYSIS_ONLY",
+      "august31UsedForWeightSearch": false,
+      "august31UsedForThresholdSearch": false,
+      "futureOutcomeSelectionAllowed": false,
+      "entryCompatibilityOutcomeFitAllowed": false,
+      "postHocWinnerFilteringAllowed": false,
+      "replaceFrozenDynamic50": false,
+      "formalOos": false,
+      "promotionEligible": false
+    },
+    "safety": {
+      "phase": "57.p25.intraday-dynamic-universe-v2",
+      "mode": "READ_ONLY_5M_DYNAMIC_UNIVERSE_V2_RESEARCH_CHALLENGER",
+      "researchOnly": true,
+      "executionAllowed": false,
+      "brokerWriteAllowed": false,
+      "excelOrderWriteAllowed": false,
+      "rssOrderFunctionAllowed": false,
+      "liveTradingAllowed": false,
+      "paperTradingAllowed": false,
+      "automaticPromotionAllowed": false,
+      "productionUpdateAllowed": false,
+      "overnightHoldingAllowed": false,
+      "transmitted": false,
+      "freshHoldoutConsumed": false
+    }
+  },
+  "selectedV2": [
+    {
+      "symbol": "485A.T",
+      "sector": "電気機器",
+      "currentPrice": 2122,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.707353,
+      "turnoverYen": 30478922600,
+      "v2Score": 0.600588,
+      "components": {
+        "baseOpportunity": 0.707353,
+        "liquidityQuality": 0.45,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "4588.T",
+      "sector": "医薬品",
+      "currentPrice": 5900,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.680882,
+      "turnoverYen": 23549850000,
+      "v2Score": 0.58947,
+      "components": {
+        "baseOpportunity": 0.680882,
+        "liquidityQuality": 0.45,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "6203.T",
+      "sector": "機械",
+      "currentPrice": 2176,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.678361,
+      "turnoverYen": 11642252800,
+      "v2Score": 0.588412,
+      "components": {
+        "baseOpportunity": 0.678361,
+        "liquidityQuality": 0.45,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "581A.T",
+      "sector": "情報・通信業",
+      "currentPrice": 3180,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.673319,
+      "turnoverYen": 22762122000,
+      "v2Score": 0.586294,
+      "components": {
+        "baseOpportunity": 0.673319,
+        "liquidityQuality": 0.45,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "3103.T",
+      "sector": "繊維製品",
+      "currentPrice": 1487,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.659454,
+      "turnoverYen": 9466985500,
+      "v2Score": 0.580224,
+      "components": {
+        "baseOpportunity": 0.659454,
+        "liquidityQuality": 0.44892952703917144,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "4578.T",
+      "sector": "医薬品",
+      "currentPrice": 10855,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.621639,
+      "turnoverYen": 12777420500,
+      "v2Score": 0.564588,
+      "components": {
+        "baseOpportunity": 0.621639,
+        "liquidityQuality": 0.45,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "9130.T",
+      "sector": "海運業",
+      "currentPrice": 2022,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.631723,
+      "turnoverYen": 3251376000,
+      "v2Score": 0.563774,
+      "components": {
+        "baseOpportunity": 0.631723,
+        "liquidityQuality": 0.4280430238110445,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "278A.T",
+      "sector": "精密機器",
+      "currentPrice": 18050,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.616597,
+      "turnoverYen": 14162030000,
+      "v2Score": 0.562471,
+      "components": {
+        "baseOpportunity": 0.616597,
+        "liquidityQuality": 0.45,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "4075.T",
+      "sector": "情報・通信業",
+      "currentPrice": 1452,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.619118,
+      "turnoverYen": 3886858800,
+      "v2Score": 0.559282,
+      "components": {
+        "baseOpportunity": 0.619118,
+        "liquidityQuality": 0.43153194438816606,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "6752.T",
+      "sector": "電気機器",
+      "currentPrice": 4365,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.588866,
+      "turnoverYen": 21934561500,
+      "v2Score": 0.550824,
+      "components": {
+        "baseOpportunity": 0.588866,
+        "liquidityQuality": 0.45,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "6227.T",
+      "sector": "機械",
+      "currentPrice": 5610,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.597689,
+      "turnoverYen": 4381971000,
+      "v2Score": 0.550821,
+      "components": {
+        "baseOpportunity": 0.597689,
+        "liquidityQuality": 0.43387512746224216,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "285A.T",
+      "sector": "電気機器",
+      "currentPrice": 50280,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.581303,
+      "turnoverYen": 1156083012000,
+      "v2Score": 0.547647,
+      "components": {
+        "baseOpportunity": 0.581303,
+        "liquidityQuality": 0.45,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "5020.T",
+      "sector": "石油・石炭製品",
+      "currentPrice": 1467,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.580042,
+      "turnoverYen": 8822538000,
+      "v2Score": 0.546555,
+      "components": {
+        "baseOpportunity": 0.580042,
+        "liquidityQuality": 0.44755170919456533,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "3350.T",
+      "sector": "卸売業",
+      "currentPrice": 235,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.581303,
+      "turnoverYen": 3267087500,
+      "v2Score": 0.542619,
+      "components": {
+        "baseOpportunity": 0.581303,
+        "liquidityQuality": 0.42813723447691227,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "5019.T",
+      "sector": "石油・石炭製品",
+      "currentPrice": 1672.5,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.573739,
+      "turnoverYen": 5956274250,
+      "v2Score": 0.542141,
+      "components": {
+        "baseOpportunity": 0.573739,
+        "liquidityQuality": 0.4398738608798157,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "1605.T",
+      "sector": "鉱業",
+      "currentPrice": 4049,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.567437,
+      "turnoverYen": 20182240500,
+      "v2Score": 0.541824,
+      "components": {
+        "baseOpportunity": 0.567437,
+        "liquidityQuality": 0.45,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "3563.T",
+      "sector": "小売業",
+      "currentPrice": 4771,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.566176,
+      "turnoverYen": 12146011800,
+      "v2Score": 0.541294,
+      "components": {
+        "baseOpportunity": 0.566176,
+        "liquidityQuality": 0.45,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "141A.T",
+      "sector": "小売業",
+      "currentPrice": 3690,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.572479,
+      "turnoverYen": 2435769000,
+      "v2Score": 0.537593,
+      "components": {
+        "baseOpportunity": 0.572479,
+        "liquidityQuality": 0.4223986244590025,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "4506.T",
+      "sector": "医薬品",
+      "currentPrice": 1510.5,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.564916,
+      "turnoverYen": 4676961150,
+      "v2Score": 0.537349,
+      "components": {
+        "baseOpportunity": 0.564916,
+        "liquidityQuality": 0.4351483693112797,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "7936.T",
+      "sector": "その他製品",
+      "currentPrice": 4005,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.55105,
+      "turnoverYen": 12208041000,
+      "v2Score": 0.534941,
+      "components": {
+        "baseOpportunity": 0.55105,
+        "liquidityQuality": 0.45,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "3441.T",
+      "sector": "金属製品",
+      "currentPrice": 1855,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.572479,
+      "turnoverYen": 1321873000,
+      "v2Score": 0.534845,
+      "components": {
+        "baseOpportunity": 0.572479,
+        "liquidityQuality": 0.4104535379532573,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "4840.T",
+      "sector": "サービス業",
+      "currentPrice": 804,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.559874,
+      "turnoverYen": 1261878000,
+      "v2Score": 0.529343,
+      "components": {
+        "baseOpportunity": 0.559874,
+        "liquidityQuality": 0.4095457816107906,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "9843.T",
+      "sector": "小売業",
+      "currentPrice": 3090,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.534874,
+      "turnoverYen": 6984945000,
+      "v2Score": 0.526534,
+      "components": {
+        "baseOpportunity": 0.534874,
+        "liquidityQuality": 0.4429873345885796,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "6085.T",
+      "sector": "サービス業",
+      "currentPrice": 136,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.54979,
+      "turnoverYen": 1050600000,
+      "v2Score": 0.524284,
+      "components": {
+        "baseOpportunity": 0.54979,
+        "liquidityQuality": 0.40596468285962106,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "7966.T",
+      "sector": "その他製品",
+      "currentPrice": 5520,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.530672,
+      "turnoverYen": 4791912000,
+      "v2Score": 0.523076,
+      "components": {
+        "baseOpportunity": 0.530672,
+        "liquidityQuality": 0.4356228975318401,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "186A.T",
+      "sector": "サービス業",
+      "currentPrice": 1044,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.523109,
+      "turnoverYen": 3662247600,
+      "v2Score": 0.518691,
+      "components": {
+        "baseOpportunity": 0.523109,
+        "liquidityQuality": 0.43036864664337066,
+        "persistence": 1,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "7777.T",
+      "sector": "精密機器",
+      "currentPrice": 434,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.547269,
+      "turnoverYen": 1907516800,
+      "v2Score": 0.459239,
+      "components": {
+        "baseOpportunity": 0.547269,
+        "liquidityQuality": 0.41762107673175025,
+        "persistence": 0.6666666666666666,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "1803.T",
+      "sector": "建設業",
+      "currentPrice": 2383,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.532353,
+      "turnoverYen": 5243076600,
+      "v2Score": 0.457519,
+      "components": {
+        "baseOpportunity": 0.532353,
+        "liquidityQuality": 0.43738137912480907,
+        "persistence": 0.6666666666666666,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "6988.T",
+      "sector": "化学",
+      "currentPrice": 3330,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.527311,
+      "turnoverYen": 4324671000,
+      "v2Score": 0.454536,
+      "components": {
+        "baseOpportunity": 0.527311,
+        "liquidityQuality": 0.43361788833628023,
+        "persistence": 0.6666666666666666,
+        "signalQuality": 0
+      }
+    },
+    {
+      "symbol": "4385.T",
+      "sector": "情報・通信業",
+      "currentPrice": 3632,
+      "sourceScannedAt": "2026-09-16T05:45:00.989Z",
+      "opportunityScore": 0.62416,
+      "turnoverYen": 10192481600,
+      "v2Score": 0.432314,
+      "components": {
+        "baseOpportunity": 0.62416,
+        "liquidityQuality": 0.45,
+        "persistence": 0.3333333333333333,
+        "signalQuality": 0
+      }
+    }
+  ]
+}

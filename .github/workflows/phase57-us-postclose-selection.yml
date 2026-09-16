@@ -1,14 +1,9 @@
 name: Phase57 US Postclose Selection Diagnostic
 
+# Archived 2026-09-16: historical US diagnostic persistence is manual-only.
+# Existing automation/p57-us-free-5m-data history is retained.
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'scripts/evaluate_phase57_us_postclose_selection.mjs'
-      - '.github/workflows/phase57-us-postclose-selection.yml'
-  schedule:
-    - cron: '15 21 * * 1-5'
 
 permissions:
   contents: write

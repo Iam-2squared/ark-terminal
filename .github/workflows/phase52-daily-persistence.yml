@@ -1,10 +1,10 @@
 name: Phase52 Daily Dry-Run Persistence
 
+# Scheduled main-branch persistence retired 2026-09-16.
+# Keep PR/push regression coverage and explicit manual execution.
 on:
   pull_request:
   workflow_dispatch:
-  schedule:
-    - cron: '20 8 * * 1-5'
   push:
     branches:
       - main

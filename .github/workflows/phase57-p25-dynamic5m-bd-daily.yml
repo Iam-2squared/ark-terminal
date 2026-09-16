@@ -1,12 +1,7 @@
 name: Phase57 P25 Dynamic 5m B/D Daily
 
+# Archived 2026-09-16: legacy persistence automatic triggers retired; manual history retained.
 on:
-  workflow_run:
-    workflows: ['Phase57 P25 Dynamic 5m Daily Bundle']
-    types: [completed]
-  schedule:
-    - cron: '0 8 * * 1-5'  # 17:00 JST fallback
-    - cron: '45 11 * * 1-5' # 20:45 JST recovery fallback
   workflow_dispatch:
     inputs:
       evidence_date:

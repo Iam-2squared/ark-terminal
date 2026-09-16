@@ -1,17 +1,8 @@
 name: Phase57 US Free Intraday 5m
 
+# Archived 2026-09-16: legacy persistence automatic triggers retired; manual history retained.
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'scripts/fetch_phase57_us_free_reference.mjs'
-      - 'scripts/fetch_phase57_us_free_5m.mjs'
-      - 'scripts/measure_phase57_us_marketwide_5m.mjs'
-      - '.github/workflows/phase57-us-free-intraday-5m.yml'
-  schedule:
-    - cron: '*/5 13-22 * * 1-5'
-
 permissions:
   contents: write
 

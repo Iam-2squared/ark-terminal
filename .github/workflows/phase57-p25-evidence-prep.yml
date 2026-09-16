@@ -1,9 +1,7 @@
 name: Phase57 P25 Evidence Lineage Prep
 
+# Archived 2026-09-16: legacy persistence automatic triggers retired; manual history retained.
 on:
-  schedule:
-    # 17:30 JST on weekdays, after the 16:45 routine 5m capture.
-    - cron: '30 8 * * 1-5'
   workflow_dispatch:
     inputs:
       evidence_date:

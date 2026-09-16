@@ -3,14 +3,6 @@ name: Phase52 Daily Dry-Run Persistence
 on:
   pull_request:
   workflow_dispatch:
-  schedule:
-    - cron: '20 8 * * 1-5'
-  push:
-    branches:
-      - main
-    paths:
-      - '.github/workflows/phase52-daily-persistence.yml'
-
 permissions:
   contents: write
 

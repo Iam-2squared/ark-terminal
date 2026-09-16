@@ -8,10 +8,13 @@ const sha=b=>createHash('sha256').update(b).digest('hex');
 const read=p=>JSON.parse(fs.readFileSync(p,'utf8'));
 const levels=[1,2,3,5];
 export function strictPath(bars, date, timestamp, reference) {
-  const start=Date.parse(timestamp), minute=Number(timestamp.slice(11,13))*60+Number(timestamp.slice(14,16));
+  const start=Date.parse(timestamp);
+  if(!Number.isFinite(start)||!/(Z|[+-]\d{2}:\d{2})$/.test(timestamp))throw Error('INVALID_TIMESTAMP');
+  const jst=new Date(start+9*3600000).toISOString();
+  const minute=Number(jst.slice(11,13))*60+Number(jst.slice(14,16));
   const endMinute=date<'2024-11-05'?900:930;
   const unavailable=reason=>({labelable:false,reason});
-  if(!Number.isFinite(start)||timestamp.slice(0,10)!==date||!timestamp.endsWith('+09:00')||!(reference>0))throw Error('INVALID_REFERENCE');
+  if(!Number.isFinite(start)||jst.slice(0,10)!==date||!(reference>0))throw Error('INVALID_REFERENCE');
   if(minute>=690&&minute<750||minute<690&&minute+30>690)return unavailable('LUNCH_BREAK');
   if(minute<540||minute+30>endMinute)return unavailable('SESSION_END');
   const byStart=new Map();

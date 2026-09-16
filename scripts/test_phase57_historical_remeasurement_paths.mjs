@@ -8,3 +8,5 @@ test('missing path never filled',()=>assert.equal(strictPath(bars.slice(1),date,
 test('lunch and end cannot use shortened horizon',()=>{assert.equal(strictPath([],date,`${date}T11:15:00+09:00`,100).reason,'LUNCH_BREAK');assert.equal(strictPath([],date,`${date}T15:15:00+09:00`,100).reason,'SESSION_END');});
 test('future completed-time corruption rejected',()=>assert.throws(()=>strictPath(bars.map((b,i)=>i?b:{...b,availableAtJst:`${date}T10:06:00+09:00`}),date,timestamp,100)));
 test('duplicate and cross-session rejected',()=>{assert.throws(()=>strictPath([...bars,bars[0]],date,timestamp,100));assert.throws(()=>strictPath([{...bars[0],sessionDate:'2024-12-03'}],date,timestamp,100));});
+
+test('UTC and JST instant identities are equal',()=>assert.deepEqual(strictPath(bars,date,'2024-12-02T01:00:00.000Z',100),strictPath(bars,date,timestamp,100)));

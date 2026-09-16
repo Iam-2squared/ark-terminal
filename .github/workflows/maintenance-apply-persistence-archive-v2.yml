@@ -1,0 +1,42 @@
+name: Maintenance Apply Persistence Archive v2
+
+on:
+  push:
+    branches: [maintenance/archive-auto-persistence-v2]
+    paths:
+      - 'tools/archive_legacy_persistence_triggers.mjs'
+      - '.github/workflows/maintenance-apply-persistence-archive-v2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: maintenance/archive-auto-persistence-v2
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Archive only actual legacy persistence writers and dispatchers
+        run: |
+          node tools/archive_legacy_persistence_triggers.mjs
+          node tools/archive_legacy_persistence_triggers.mjs --check
+      - name: Commit transformed workflows
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --stat
+          if git diff --quiet -- .github/workflows; then
+            echo 'No workflow changes required.'
+            exit 0
+          fi
+          git config user.name 'Ark Maintenance Bot'
+          git config user.email 'ark-maintenance@users.noreply.github.com'
+          git add .github/workflows
+          git commit -m 'maintenance: archive legacy automatic persistence precisely'
+          git push origin HEAD:maintenance/archive-auto-persistence-v2

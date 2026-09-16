@@ -1,12 +1,7 @@
 name: Phase57 P25 EXIT v3 Prospective Daily
 
+# Archived 2026-09-16: legacy persistence automatic triggers retired; manual history retained.
 on:
-  workflow_run:
-    workflows: ['Phase57 P25 Checkpointed Evaluation']
-    types: [completed]
-  schedule:
-    # 20:00 JST weekdays fallback after checkpoint evaluation.
-    - cron: '0 11 * * 1-5'
   workflow_dispatch:
     inputs:
       evidence_date:

@@ -1,5 +1,6 @@
 name: Phase57 P25 Prospective Preopen Universe
 
+# Archived 2026-09-16: legacy persistence automatic triggers retired; manual history retained.
 on:
   workflow_dispatch:
     inputs:
@@ -12,14 +13,6 @@ on:
         required: false
         type: boolean
         default: false
-  schedule:
-    # Every scheduled invocation is now capable of completing the full JPX cycle
-    # by draining successive 620-symbol batches inside one job. The later slots
-    # remain as independent recovery opportunities before the immutable 08:50 cutoff.
-    - cron: "15 11 * * 0-4" # 20:15 JST Sun-Thu: clean reset for next JPX session
-    - cron: "15 13 * * 0-4" # 22:15 JST recovery
-    - cron: "15 15,17,19,21,22,23 * * 0-4" # 00:15..08:15 JST recovery
-
 permissions:
   contents: write
 

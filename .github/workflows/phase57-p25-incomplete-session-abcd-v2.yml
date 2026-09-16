@@ -1,15 +1,7 @@
 name: Phase57 P25 Incomplete Session ABCD v2
 
+# Archived 2026-09-16: legacy persistence automatic triggers retired; manual history retained.
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/phase57-p25-incomplete-session-abcd-v2.yml'
-      - 'scripts/run_p25_incomplete_outcome_coverage_abcd.mjs'
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/phase57-p25-incomplete-session-abcd-v2.yml'
-      - 'scripts/run_p25_incomplete_outcome_coverage_abcd.mjs'
   workflow_dispatch:
     inputs:
       session_date:

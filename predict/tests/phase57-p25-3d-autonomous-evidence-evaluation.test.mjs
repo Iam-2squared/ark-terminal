@@ -94,11 +94,11 @@ test('P25.3D keeps every execution, write, promotion and fresh-holdout surface d
   }
 });
 
-test('automation runs only after successful evidence prep or manual dispatch and evaluates the exact lineage snapshot',()=>{
+test('archived evidence evaluation is manual-only and evaluates the exact lineage snapshot',()=>{
   const workflowUrl=new URL('../../.github/workflows/phase57-p25-evidence-evaluate.yml',import.meta.url);
   const workflow=fs.readFileSync(workflowUrl,'utf8');
-  assert.ok(workflow.includes('workflows: ["Phase57 P25 Evidence Lineage Prep"]'));
-  assert.ok(workflow.includes("github.event.workflow_run.conclusion == 'success'"));
+  assert.ok(workflow.includes('workflow_dispatch:'));
+  assert.doesNotMatch(workflow,/^  (?:schedule|workflow_run|push):/m);
   assert.ok(workflow.includes('run_p25_autonomous_evidence_evaluation.mjs'));
   assert.ok(workflow.includes('x.manifest?.nodes'));
   assert.ok(workflow.includes('gh run download 31785422471'));

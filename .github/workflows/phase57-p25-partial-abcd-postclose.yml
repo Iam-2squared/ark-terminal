@@ -1,11 +1,7 @@
 name: Phase57 P25 Partial ABCD Post-close
 
+# Archived 2026-09-16: legacy persistence automatic triggers retired; manual history retained.
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/phase57-p25-partial-abcd-postclose.yml'
-      - 'scripts/run_p25_partial_abcd_postclose.mjs'
   workflow_dispatch:
     inputs:
       session_date:

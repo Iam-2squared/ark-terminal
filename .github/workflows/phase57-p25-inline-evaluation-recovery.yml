@@ -1,19 +1,8 @@
 name: Phase57 P25 Inline Evaluation Recovery
 
+# Archived 2026-09-16: historical persistence is manual-only; durable branch history is retained.
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/phase57-p25-inline-evaluation-recovery.yml'
-  schedule:
-    - cron: '17 * * * *'
   workflow_dispatch:
-    inputs:
-      evidence_date:
-        description: 'Immutable evidence date YYYY-MM-DD; blank = latest available'
-        required: false
-        type: string
-
 permissions:
   contents: write
   actions: read

@@ -1,13 +1,8 @@
 name: Phase57 P25 Partial Fresh Recovery
 
+# Archived 2026-09-16: historical persistence is manual-only; durable branch history is retained.
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/phase57-p25-partial-fresh-recovery.yml'
-      - 'scripts/capture_p25_partial_late_start.mjs'
   workflow_dispatch:
-
 permissions:
   contents: write
 

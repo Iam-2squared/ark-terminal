@@ -1,17 +1,8 @@
 name: Phase57 P25 EXIT v2 Historical Replay
 
+# Archived 2026-09-16: historical persistence is manual-only; durable branch history is retained.
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/phase57-p25-exit-v2-historical-replay.yml'
-      - 'scripts/run_p25_exit_v2_historical_replay.mjs'
-      - 'scripts/reduce_p25_exit_v2_historical_replay_shards.mjs'
-      - 'predict/daytrade/phase57-p25-exit-v2-historical-replay.js'
-      - 'predict/daytrade/phase57-p25-exit-v2-state-conditioned.js'
-      - 'predict/daytrade/phase57-p25-exit-v2-freeze.js'
   workflow_dispatch:
-
 permissions:
   contents: read
   actions: read

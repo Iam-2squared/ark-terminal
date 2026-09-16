@@ -1,15 +1,8 @@
 name: Phase57 P25 Challenger Registry Persistence
 
+# Archived 2026-09-16: historical persistence is manual-only; durable branch history is retained.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'predict/daytrade/phase57-p25-exit-v4-structural-risk.js'
-      - 'predict/daytrade/phase57-p25-intraday-dynamic-universe-v2.js'
-      - 'scripts/build_p25_challenger_registry.mjs'
-      - '.github/workflows/phase57-p25-challenger-registry-persistence.yml'
   workflow_dispatch:
-
 permissions:
   contents: write
 

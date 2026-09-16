@@ -1,18 +1,8 @@
 name: Phase57 P25 EXIT v4 Prospective Daily
 
+# Archived 2026-09-16: historical persistence is manual-only; durable branch history is retained.
 on:
-  workflow_run:
-    workflows: ['Phase57 P25 Checkpointed Evaluation']
-    types: [completed]
-  schedule:
-    - cron: '15 11 * * 1-5' # 20:15 JST fallback
   workflow_dispatch:
-    inputs:
-      evidence_date:
-        description: 'Immutable evidence/session date YYYY-MM-DD; blank = latest persisted evidence date'
-        required: false
-        type: string
-
 permissions:
   contents: write
   actions: read

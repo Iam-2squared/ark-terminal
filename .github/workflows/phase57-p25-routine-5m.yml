@@ -1,16 +1,8 @@
 name: Phase57 P25 Routine 5m Capture
 
+# Archived 2026-09-16: historical persistence is manual-only; durable branch history is retained.
 on:
-  schedule:
-    # 16:45 JST on JPX weekdays. Holiday/no-universe days fail closed and never fabricate bars.
-    - cron: '45 7 * * 1-5'
   workflow_dispatch:
-    inputs:
-      session_date:
-        description: 'JPX session date (YYYY-MM-DD); blank = current JST date'
-        required: false
-        type: string
-
 permissions:
   contents: write
 

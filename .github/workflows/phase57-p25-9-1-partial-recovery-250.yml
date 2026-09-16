@@ -1,15 +1,8 @@
 name: Phase57 P25 9-1 Partial Recovery 250
 
+# Archived 2026-09-16: historical persistence is manual-only; durable branch history is retained.
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/phase57-p25-9-1-partial-recovery-250.yml'
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/phase57-p25-9-1-partial-recovery-250.yml'
   workflow_dispatch:
-
 permissions:
   contents: write
   actions: read

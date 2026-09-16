@@ -1,15 +1,8 @@
 name: Phase57 P25 EXIT v3 Persist + Home
 
+# Archived 2026-09-16: historical persistence is manual-only; durable branch history is retained.
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/phase57-p25-exit-v3-persist-home.yml'
-      - 'scripts/persist_p25_exit_v3_home.mjs'
-      - 'paper-equity-home.js'
-      - 'paper-equity-page.js'
-
 permissions:
   contents: write
   actions: read

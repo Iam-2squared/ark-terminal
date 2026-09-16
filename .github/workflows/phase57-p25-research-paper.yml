@@ -1,18 +1,8 @@
 name: Phase57 P25 Research Paper
 
+# Archived 2026-09-16: historical persistence is manual-only; durable branch history is retained.
 on:
-  workflow_run:
-    workflows: ['Phase57 P25 Checkpointed Evaluation']
-    types: [completed]
-  schedule:
-    - cron: '0 12 * * 1-5'
   workflow_dispatch:
-    inputs:
-      source_run_id:
-        description: 'Successful Phase57 P25 Checkpointed Evaluation run id; blank = latest successful run'
-        required: false
-        type: string
-
 permissions:
   contents: write
   actions: read

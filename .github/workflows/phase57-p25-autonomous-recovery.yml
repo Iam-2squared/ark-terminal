@@ -1,12 +1,8 @@
 name: Phase57 P25 Autonomous Recovery
 
+# Archived 2026-09-16: historical persistence is manual-only; durable branch history is retained.
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '30 23 * * 0-4' # 08:30 JST: pre-open D50 check
-    - cron: '5,45 8 * * 1-5' # 17:05/17:45 JST: post-close recovery
-    - cron: '30 9,11 * * 1-5' # 18:30/20:30 JST: evaluation/persistence recovery
-
 permissions:
   contents: read
   actions: write

@@ -1,27 +1,8 @@
 name: Phase57 P25 Lane C Fixed Portfolio
 
+# Archived 2026-09-16: historical persistence is manual-only; durable branch history is retained.
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/phase57-p25-lane-c-fixed-portfolio.yml'
-      - 'scripts/run_p25_lane_c_fixed_portfolio.mjs'
-      - 'scripts/package_p25_lane_c_fixed_portfolio.mjs'
-      - 'predict/portfolio/phase57-p25-lane-c-fixed-checkpoint-runner.js'
-      - 'predict/portfolio/phase57-p25-lane-c-fixed-persistence.js'
-      - 'predict/portfolio/phase57-p25-lane-c-portfolio-simulator.js'
-  workflow_run:
-    workflows: ['Phase57 P25 Checkpointed Evaluation']
-    types: [completed]
-  schedule:
-    - cron: '30 12 * * 1-5'
   workflow_dispatch:
-    inputs:
-      source_run_id:
-        description: 'Successful main-branch Phase57 P25 Checkpointed Evaluation run id; blank = latest successful run'
-        required: false
-        type: string
-
 permissions:
   contents: write
   actions: read

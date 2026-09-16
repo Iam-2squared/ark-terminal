@@ -1,26 +1,8 @@
 name: Phase57 P25 Evidence Evaluation
 
+# Archived 2026-09-16: historical persistence is manual-only; durable branch history is retained.
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/phase57-p25-evidence-evaluate.yml'
-  workflow_run:
-    workflows: ["Phase57 P25 Evidence Lineage Prep"]
-    types: [completed]
   workflow_dispatch:
-    inputs:
-      evidence_date:
-        description: 'Evidence snapshot date (YYYY-MM-DD); blank = latest immutable evidence snapshot'
-        required: false
-        type: string
-  workflow_call:
-    inputs:
-      evidence_date:
-        description: 'Immutable evidence snapshot date (YYYY-MM-DD)'
-        required: true
-        type: string
-
 permissions:
   contents: write
   actions: read

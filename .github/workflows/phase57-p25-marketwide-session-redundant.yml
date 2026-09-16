@@ -1,20 +1,8 @@
 name: Phase57 P25 Marketwide 5m Redundant Session Collector
 
+# Archived 2026-09-16: historical persistence is manual-only; durable branch history is retained.
 on:
   workflow_dispatch:
-    inputs:
-      session_part:
-        description: 'MORNING or AFTERNOON'
-        required: true
-        default: 'MORNING'
-        type: choice
-        options: [MORNING, AFTERNOON]
-  schedule:
-    - cron: '50 23 * * 0-4' # 08:50 JST Mon-Fri primary morning warmup; waits for 09:00 boundary
-    - cron: '55 23 * * 0-4' # 08:55 JST Mon-Fri backup morning warmup
-    - cron: '20 3 * * 1-5'  # 12:20 JST Mon-Fri primary afternoon fallback; morning run hands off directly
-    - cron: '25 3 * * 1-5'  # 12:25 JST Mon-Fri backup afternoon fallback
-
 permissions:
   contents: write
   actions: write

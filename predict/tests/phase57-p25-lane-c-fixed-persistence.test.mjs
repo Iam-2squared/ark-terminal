@@ -29,79 +29,33 @@ function artifactFixture(){
         safety,
       },
     };
-    matrixRows.push({
-      managementMode:'FIXED_HORIZON',universeVariant:variant,profileId:'CURRENT_EXISTING',
-      resultClass:'REFERENCE_ONLY_NOT_CAUSAL',winnerEligible:false,
-    });
+    matrixRows.push({managementMode:'FIXED_HORIZON',universeVariant:variant,profileId:'CURRENT_EXISTING',resultClass:'REFERENCE_ONLY_NOT_CAUSAL',winnerEligible:false});
     for(const profileId of profiles.slice(1)){
       results[profileId]={
-        status:'LANE_C_EVENT_TIME_PORTFOLIO_SIMULATED',
-        return:{finalEquityJpy:1_000_000},
-        equityCurve:[{timestamp,portfolioEquityJpy:1_000_000}],
-        dailyEquityCurve:[{sessionDate:'2026-08-25',equityJpy:1_000_000}],
-        concentrationCurve:[{timestamp,openPositionCount:0}],
-        methodology:{allocatorCanSeeFutureExit:false,availableCashConstrainsPurchase:true},
-        safety,
+        status:'LANE_C_EVENT_TIME_PORTFOLIO_SIMULATED',return:{finalEquityJpy:1_000_000},
+        equityCurve:[{timestamp,portfolioEquityJpy:1_000_000}],dailyEquityCurve:[{sessionDate:'2026-08-25',equityJpy:1_000_000}],concentrationCurve:[{timestamp,openPositionCount:0}],
+        methodology:{allocatorCanSeeFutureExit:false,availableCashConstrainsPurchase:true},safety,
       };
-      matrixRows.push({
-        managementMode:'FIXED_HORIZON',universeVariant:variant,profileId,
-        resultClass:'CAUSAL_EVENT_TIME_PORTFOLIO',winnerEligible:false,
-      });
+      matrixRows.push({managementMode:'FIXED_HORIZON',universeVariant:variant,profileId,resultClass:'CAUSAL_EVENT_TIME_PORTFOLIO',winnerEligible:false});
     }
-    comparisons[variant]={
-      status:'LANE_C_PAIRED_ALLOCATION_PROFILES_SIMULATED',
-      resultOrder:[...profiles],results,
-      pairedAudit:{sameFrozenEntryCandidates:true,sameManagementResult:true,onlyCausalAllocationProfileChanged:true},
-      interpretation:{winnerSelectionAllowed:false,prospectiveSampleSufficient:false},
-      safety,
-    };
+    comparisons[variant]={status:'LANE_C_PAIRED_ALLOCATION_PROFILES_SIMULATED',resultOrder:[...profiles],results,pairedAudit:{sameFrozenEntryCandidates:true,sameManagementResult:true,onlyCausalAllocationProfileChanged:true},interpretation:{winnerSelectionAllowed:false,prospectiveSampleSufficient:false},safety};
   }
   const result={
-    status:'LANE_C_FIXED_CHECKPOINTED_PORTFOLIO_MATRIX_READY',managementMode:'FIXED_HORIZON',
-    universeVariantOrder:[...variants],profileOrder:[...profiles],lineageManifestHeadSha256:'a'.repeat(64),
-    sourceReconciliation:{
-      exactCheckpointRecomputationMatch:true,packetSummariesMatch:true,
-      sourceEvaluationCanonicalSha256:'b'.repeat(64),recomputedEvaluationCanonicalSha256:'b'.repeat(64),
-      byUniverseVariant:Object.fromEntries(variants.map(variant=>[variant,{currentReferenceMatchesFormalP25:true}])),
-    },
-    inputAudit:{
-      readySessionCount:1,expectedSessionCount:1,expectedSessionDates:['2026-08-25'],
-      checkpointArtifactCount:1,frozenTradeCount:1,resolvedTradeCount:1,unresolvedTradeCount:0,packetSummaries:[],
-    },
-    comparisons,matrixRows,
-    methodology:{
-      dynamicHoldExitConnected:false,winnerSelectionAllowed:false,prospectiveSampleSufficient:false,
-      availableCashConstrainsPurchase:true,unrealizedPnlInEquityButNotCash:true,
-      futureExitOrReturnVisibleToAllocator:false,
-    },
-    safety,
+    status:'LANE_C_FIXED_CHECKPOINTED_PORTFOLIO_MATRIX_READY',managementMode:'FIXED_HORIZON',universeVariantOrder:[...variants],profileOrder:[...profiles],lineageManifestHeadSha256:'a'.repeat(64),
+    sourceReconciliation:{exactCheckpointRecomputationMatch:true,packetSummariesMatch:true,sourceEvaluationCanonicalSha256:'b'.repeat(64),recomputedEvaluationCanonicalSha256:'b'.repeat(64),byUniverseVariant:Object.fromEntries(variants.map(variant=>[variant,{currentReferenceMatchesFormalP25:true}]))},
+    inputAudit:{readySessionCount:1,expectedSessionCount:1,expectedSessionDates:['2026-08-25'],checkpointArtifactCount:1,frozenTradeCount:1,resolvedTradeCount:1,unresolvedTradeCount:0,packetSummaries:[]},
+    comparisons,matrixRows,methodology:{dynamicHoldExitConnected:false,winnerSelectionAllowed:false,prospectiveSampleSufficient:false,availableCashConstrainsPurchase:true,unrealizedPnlInEquityButNotCash:true,futureExitOrReturnVisibleToAllocator:false},safety,
   };
-  return {
-    schemaVersion:1,phase:'57.p25.lane-c.fixed-checkpoint-portfolio-cli',
-    status:'LANE_C_FIXED_CHECKPOINTED_PORTFOLIO_ARTIFACT_WRITTEN',
-    resultCanonicalSha256:LaneCFixedPersistenceInternals.canonicalSha256(result),result,
-    methodology:{
-      formalP25EvaluationReconciledBeforeSimulation:true,sameFrozenEntry:true,fixedHorizonExitUnchanged:true,
-      currentExistingReferenceOnly:true,max10AssumedEquivalentToCurrent:false,dynamicManagementArtifactUsed:false,
-      winnerSelectionAllowed:false,freshHoldoutConsumed:false,
-    },
-    safety,
-  };
+  return {schemaVersion:1,phase:'57.p25.lane-c.fixed-checkpoint-portfolio-cli',status:'LANE_C_FIXED_CHECKPOINTED_PORTFOLIO_ARTIFACT_WRITTEN',resultCanonicalSha256:LaneCFixedPersistenceInternals.canonicalSha256(result),result,methodology:{formalP25EvaluationReconciledBeforeSimulation:true,sameFrozenEntry:true,fixedHorizonExitUnchanged:true,currentExistingReferenceOnly:true,max10AssumedEquivalentToCurrent:false,dynamicManagementArtifactUsed:false,winnerSelectionAllowed:false,freshHoldoutConsumed:false},safety};
 }
 
-function refreshResultSha(artifact){
-  artifact.resultCanonicalSha256=LaneCFixedPersistenceInternals.canonicalSha256(artifact.result);
-  return artifact;
-}
+function refreshResultSha(artifact){artifact.resultCanonicalSha256=LaneCFixedPersistenceInternals.canonicalSha256(artifact.result);return artifact;}
 
 test('builds a compact append-only summary while auditing every retained full curve',()=>{
   const artifact=artifactFixture();
   const raw=Buffer.from(`${JSON.stringify(artifact)}\n`);
   const archive=gzipSync(raw,{level:9,mtime:0});
-  const summary=buildLaneCFixedPersistenceSummary({
-    artifact,sourceRunId:'32831810521',rawArtifactBytes:raw,archiveBytes:archive,
-    rawArtifactName:'fixed.json',archiveName:'fixed.json.gz',
-  });
+  const summary=buildLaneCFixedPersistenceSummary({artifact,sourceRunId:'32831810521',rawArtifactBytes:raw,archiveBytes:archive,rawArtifactName:'fixed.json',archiveName:'fixed.json.gz'});
   assert.equal(summary.status,'LANE_C_FIXED_PORTFOLIO_PERSISTENCE_SUMMARY_READY');
   assert.equal(summary.evidenceDate,'2026-08-25');
   assert.deepEqual(summary.universeVariantOrder,variants);
@@ -115,36 +69,20 @@ test('builds a compact append-only summary while auditing every retained full cu
   assert.equal(summary.methodology.winnerSelectionAllowed,false);
 });
 
-test('fails closed on an unsafe flag before persistence',()=>{
-  const artifact=artifactFixture();
-  artifact.safety.executionAllowed=true;
-  refreshResultSha(artifact);
-  assert.throws(()=>validateLaneCFixedPortfolioArtifact(artifact),/executionAllowed must be false/i);
-});
+test('fails closed on an unsafe flag before persistence',()=>{const artifact=artifactFixture();artifact.safety.executionAllowed=true;refreshResultSha(artifact);assert.throws(()=>validateLaneCFixedPortfolioArtifact(artifact),/executionAllowed must be false/i);});
 
-test('fails closed if the allocator can see future EXIT information',()=>{
-  const artifact=artifactFixture();
-  artifact.result.comparisons.DYNAMIC_50.results.MAX_2.methodology.allocatorCanSeeFutureExit=true;
-  refreshResultSha(artifact);
-  assert.throws(()=>validateLaneCFixedPortfolioArtifact(artifact),/future outcome visibility/i);
-});
+test('fails closed if the allocator can see future EXIT information',()=>{const artifact=artifactFixture();artifact.result.comparisons.DYNAMIC_50.results.MAX_2.methodology.allocatorCanSeeFutureExit=true;refreshResultSha(artifact);assert.throws(()=>validateLaneCFixedPortfolioArtifact(artifact),/future outcome visibility/i);});
 
 test('fails closed when Current and Max10 or the precommitted matrix are collapsed',()=>{
-  const artifact=artifactFixture();
-  artifact.result.comparisons.DYNAMIC_30.results.CURRENT_EXISTING.max10Equivalent=true;
-  refreshResultSha(artifact);
-  assert.throws(()=>validateLaneCFixedPortfolioArtifact(artifact),/separate from Max10/i);
-
-  const missing=artifactFixture();
-  missing.result.matrixRows.pop();
-  refreshResultSha(missing);
-  assert.throws(()=>validateLaneCFixedPortfolioArtifact(missing),/matrix is incomplete/i);
+  const artifact=artifactFixture();artifact.result.comparisons.DYNAMIC_30.results.CURRENT_EXISTING.max10Equivalent=true;refreshResultSha(artifact);assert.throws(()=>validateLaneCFixedPortfolioArtifact(artifact),/separate from Max10/i);
+  const missing=artifactFixture();missing.result.matrixRows.pop();refreshResultSha(missing);assert.throws(()=>validateLaneCFixedPortfolioArtifact(missing),/matrix is incomplete/i);
 });
 
-test('workflow consumes every exact checkpoint artifact and persists summary plus compressed full curves without touching Dynamic management',()=>{
+test('manual-only workflow consumes every exact checkpoint artifact and persists summary plus compressed full curves without touching Dynamic management',()=>{
   const workflow=fs.readFileSync(new URL('../../.github/workflows/phase57-p25-lane-c-fixed-portfolio.yml',import.meta.url),'utf8');
-  assert.match(workflow,/workflows: \['Phase57 P25 Checkpointed Evaluation'\]/);
-  assert.match(workflow,/github\.event\.workflow_run\.conclusion == 'success'/);
+  assert.match(workflow,/workflow_dispatch:/);
+  assert.match(workflow,/source_run_id:/);
+  assert.doesNotMatch(workflow,/^  (?:schedule|workflow_run|push):/m);
   assert.match(workflow,/phase57-p25-checkpointed-evaluation\.yml/);
   assert.match(workflow,/mapfile -t captures/);
   assert.match(workflow,/mapfile -t checkpoints/);

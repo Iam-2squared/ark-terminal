@@ -3,6 +3,12 @@ name: Phase57 P25 Data-Driven EXIT Paired
 # Archived 2026-09-16: historical persistence is manual-only; durable branch history is retained.
 on:
   workflow_dispatch:
+    inputs:
+      evidence_date:
+        description: 'Immutable evidence date YYYY-MM-DD; blank = formal five-session pin'
+        required: false
+        type: string
+
 permissions:
   contents: write
   actions: read

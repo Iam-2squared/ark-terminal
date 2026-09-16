@@ -3,6 +3,11 @@ name: Phase57 P25 Evidence Evaluation
 # Archived 2026-09-16: historical persistence is manual-only; durable branch history is retained.
 on:
   workflow_dispatch:
+    inputs:
+      evidence_date:
+        description: 'Evidence snapshot date (YYYY-MM-DD); blank = latest immutable evidence snapshot'
+        required: false
+        type: string
 permissions:
   contents: write
   actions: read

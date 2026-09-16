@@ -1,13 +1,7 @@
 name: Phase57 P25 Lane C Capital Efficiency Diagnostic
 
+# Archived 2026-09-16: historical persistence is manual-only; durable branch history is retained.
 on:
-  pull_request:
-    paths:
-      - 'scripts/analyze_p25_lane_c_capital_efficiency.mjs'
-      - 'scripts/run_p25_lane_c_exit_v3_diagnostic.mjs'
-      - 'predict/portfolio/phase57-p25-lane-c-exit-v3-connector.js'
-      - 'predict/portfolio/phase57-p25-lane-c-portfolio-simulator.js'
-      - '.github/workflows/phase57-p25-lane-c-capital-efficiency-diagnostic.yml'
   workflow_dispatch:
 
 permissions:

@@ -3,6 +3,12 @@ name: Phase57 P25 Partial ABCD Post-close
 # Archived 2026-09-16: historical persistence is manual-only; durable branch history is retained.
 on:
   workflow_dispatch:
+    inputs:
+      session_date:
+        description: 'Partial session date YYYY-MM-DD; blank = latest durable partial session'
+        required: false
+        type: string
+
 permissions:
   contents: write
   actions: read

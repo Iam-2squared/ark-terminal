@@ -1,13 +1,7 @@
 name: Phase57 P25 HOLD EXIT Recovery Diagnostic
 
+# Archived 2026-09-16: historical persistence is manual-only; durable branch history is retained.
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/phase57-p25-hold-exit-recovery-diagnostic.yml'
-      - 'scripts/run_p25_hold_exit_recovery_diagnostic.mjs'
-      - 'scripts/recombine_p25_hold_exit_recovery_diagnostic.mjs'
-      - 'predict/daytrade/phase57-p25-hold-exit-recovery-diagnostic.js'
-      - 'predict/tests/p25-hold-exit-recovery-diagnostic.test.mjs'
   workflow_dispatch:
 
 permissions:

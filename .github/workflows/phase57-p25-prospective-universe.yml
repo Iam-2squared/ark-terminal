@@ -3,6 +3,16 @@ name: Phase57 P25 Prospective Preopen Universe
 # Archived 2026-09-16: historical persistence is manual-only; durable branch history is retained.
 on:
   workflow_dispatch:
+    inputs:
+      batch_size:
+        description: "Dedicated P25 overnight batch size"
+        required: false
+        default: "620"
+      reset_progress:
+        description: "Start a new dedicated P25 screener cycle"
+        required: false
+        type: boolean
+        default: false
 permissions:
   contents: write
 

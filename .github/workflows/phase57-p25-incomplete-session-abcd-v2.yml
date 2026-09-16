@@ -3,6 +3,12 @@ name: Phase57 P25 Incomplete Session ABCD v2
 # Archived 2026-09-16: historical persistence is manual-only; durable branch history is retained.
 on:
   workflow_dispatch:
+    inputs:
+      session_date:
+        description: 'Incomplete JPX session date YYYY-MM-DD; blank = current JST date'
+        required: false
+        type: string
+
 permissions:
   contents: write
   actions: read

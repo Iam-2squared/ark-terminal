@@ -3,6 +3,13 @@ name: Phase57 P25 EXIT v1 Diagnostics
 # Archived 2026-09-16: historical persistence is manual-only; durable branch history is retained.
 on:
   workflow_dispatch:
+    inputs:
+      evidence_date:
+        description: 'Existing formal paired evidence date YYYY-MM-DD'
+        required: false
+        default: '2026-08-25'
+        type: string
+
 permissions:
   contents: write
 

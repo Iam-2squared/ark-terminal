@@ -1,14 +1,7 @@
 name: Phase57 P25 Autonomous B-D Integration Smoke
 
+# Archived 2026-09-16: historical persistence is manual-only; durable branch history is retained.
 on:
-  pull_request:
-    paths:
-      - 'scripts/run_p25_dynamic5m_exitv3_portfolio_daily.mjs'
-      - 'scripts/build_p25_dynamic5m_daily_bundle.mjs'
-      - 'scripts/measure_p25_intraday_dynamic_universe_snapshot.mjs'
-      - 'predict/daytrade/phase57-p25-jpx-opportunity-universe.js'
-      - '.github/workflows/phase57-p25-dynamic5m-bd-daily.yml'
-      - '.github/workflows/phase57-p25-autonomous-bd-smoke.yml'
   workflow_dispatch:
 
 permissions:

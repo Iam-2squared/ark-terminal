@@ -5,8 +5,9 @@ import test from 'node:test';
 const workflowUrl=new URL('../../.github/workflows/phase57-p25-evidence-prep.yml',import.meta.url);
 const workflow=fs.readFileSync(workflowUrl,'utf8');
 
-test('evidence prep runs after routine capture and pins the exact canonical P24 artifact',()=>{
-  assert.ok(workflow.includes("cron: '30 8 * * 1-5'"));
+test('archived evidence prep is manual-only and pins the exact canonical P24 artifact',()=>{
+  assert.ok(workflow.includes('workflow_dispatch:'));
+  assert.doesNotMatch(workflow,/^  (?:schedule|workflow_run|push):/m);
   assert.ok(workflow.includes('gh run download 31785422471'));
   assert.ok(workflow.includes('phase57-p24-9-oos-canonical-candidate'));
   assert.ok(workflow.includes('phase57-p24-9-oos-byte-snapshot.json'));

@@ -14,7 +14,7 @@ test('frozen Ark Terminal 2.0 distribution snapshot is byte-identical to the app
 
 test('overlay polls only the read-only GET endpoint', () => {
   assert.match(source, /const MODEL_URL = '\/api\/ui-read-model'/);
-  assert.match(source, /method: 'GET'/);
+  assert.match(source, /method:\s*'GET'/);
   assert.doesNotMatch(source, /method:\s*'POST'/);
   assert.doesNotMatch(source, /method:\s*'DELETE'/);
 });

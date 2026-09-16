@@ -1,0 +1,76 @@
+name: Ark UI2 Read-Only Integration
+
+on:
+  push:
+    branches:
+      - integration/ark-terminal-ui2-readonly
+    paths:
+      - 'prototypes/ark-terminal-2-readonly/**'
+      - 'tools/ark_ui2_readonly_server.py'
+      - 'tools/Start-ArkUi2ReadOnly.ps1'
+      - 'tools/test_ark_ui2_readonly_server.py'
+      - 'tools/test_ark_ui2_readonly_overlay.mjs'
+      - '.github/workflows/ark-ui2-readonly.yml'
+  pull_request:
+    paths:
+      - 'prototypes/ark-terminal-2-readonly/**'
+      - 'tools/ark_ui2_readonly_server.py'
+      - 'tools/Start-ArkUi2ReadOnly.ps1'
+      - 'tools/test_ark_ui2_readonly_server.py'
+      - 'tools/test_ark_ui2_readonly_overlay.mjs'
+      - '.github/workflows/ark-ui2-readonly.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  readonly-integration:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Python server syntax and fail-closed projection tests
+        run: |
+          python -m py_compile tools/ark_ui2_readonly_server.py
+          python tools/test_ark_ui2_readonly_server.py
+      - name: Browser overlay syntax and read-only boundary tests
+        shell: bash
+        run: |
+          node --check prototypes/ark-terminal-2-readonly/public/ark-readonly-overlay.js
+          node --test tools/test_ark_ui2_readonly_overlay.mjs
+
+  windows-launcher-parse:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Parse one-command launcher with Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          $tokens = $null
+          $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path 'tools/Start-ArkUi2ReadOnly.ps1').Path,
+            [ref]$tokens,
+            [ref]$errors
+          )
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_.Message }
+            throw 'ARK_UI2_READ_ONLY_POWERSHELL_PARSE_FAILED'
+          }
+      - name: Server CLI is loadable without Excel
+        shell: powershell
+        run: python tools/ark_ui2_readonly_server.py --help

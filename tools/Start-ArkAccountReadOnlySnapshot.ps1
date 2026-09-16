@@ -3,7 +3,9 @@
     [string]$WorkbookPath = "C:\Ark\Ark_MSII_LiveSource.xlsx",
     [string]$AccountSheet = "ARK_ACCOUNT_READONLY",
     [string]$SnapshotPath = "C:\Ark\account-readonly-20260915\account-snapshot-live.json",
-    [switch]$DoNotAutoOpenWorkbook
+    [string]$RssXllPath = (Join-Path $env:LOCALAPPDATA "MarketSpeed2\Bin\rss\MarketSpeed2_RSS_64bit.xll"),
+    [switch]$DoNotAutoOpenWorkbook,
+    [switch]$DoNotAutoLoadRssAddin
 )
 
 $ErrorActionPreference = "Stop"
@@ -103,12 +105,67 @@ function Assert-ArkAccountSheetLayout {
     }
 }
 
+function Get-ArkRssStatusText {
+    param([Parameter(Mandatory=$true)]$Worksheet)
+    return [ordered]@{
+        L1 = ([string]$Worksheet.Range("L1").Text).Trim()
+        N1 = ([string]$Worksheet.Range("N1").Text).Trim()
+        AA1 = ([string]$Worksheet.Range("AA1").Text).Trim()
+        AL1 = ([string]$Worksheet.Range("AL1").Text).Trim()
+    }
+}
+
+function Ensure-ArkRssAddinLoaded {
+    param(
+        [Parameter(Mandatory=$true)]$Excel,
+        [Parameter(Mandatory=$true)]$Worksheet,
+        [Parameter(Mandatory=$true)][string]$ExpectedXllPath,
+        [Parameter(Mandatory=$true)][bool]$AutoLoad
+    )
+
+    $before = Get-ArkRssStatusText -Worksheet $Worksheet
+    $allNameErrors = @($before.Values | Where-Object { $_ -eq "#NAME?" }).Count -eq 4
+    if (-not $allNameErrors) {
+        return [PSCustomObject]@{ LoadedByLauncher=$false; Path=$null; Status="ALREADY_AVAILABLE" }
+    }
+
+    $resolvedXllPath = [IO.Path]::GetFullPath($ExpectedXllPath)
+    if (-not $AutoLoad) {
+        throw ("RSS_ADDIN_NOT_LOADED: expected={0}" -f $resolvedXllPath)
+    }
+    if (-not (Test-Path -LiteralPath $resolvedXllPath -PathType Leaf)) {
+        throw ("RSS_ADDIN_FILE_MISSING: expected={0}" -f $resolvedXllPath)
+    }
+
+    try {
+        $registered = $Excel.RegisterXLL($resolvedXllPath)
+    }
+    catch {
+        throw ("RSS_ADDIN_REGISTER_FAILED: path={0}; error={1}" -f $resolvedXllPath, $_.Exception.Message)
+    }
+    if ($registered -ne $true) {
+        throw ("RSS_ADDIN_REGISTER_FAILED: path={0}" -f $resolvedXllPath)
+    }
+
+    Start-Sleep -Milliseconds 500
+    try { $Excel.CalculateFullRebuild() } catch { try { $Excel.CalculateFull() } catch { } }
+    Start-Sleep -Milliseconds 1200
+
+    $after = Get-ArkRssStatusText -Worksheet $Worksheet
+    $stillNameErrors = @($after.Values | Where-Object { $_ -eq "#NAME?" }).Count -eq 4
+    if ($stillNameErrors) {
+        throw ("RSS_ADDIN_LOAD_DID_NOT_RESOLVE_FUNCTIONS: path={0}" -f $resolvedXllPath)
+    }
+
+    return [PSCustomObject]@{ LoadedByLauncher=$true; Path=$resolvedXllPath; Status="AUTO_LOADED" }
+}
+
 function Wait-ArkReadOnlyRssReady {
     param([Parameter(Mandatory=$true)]$Worksheet)
 
     $statusAddresses = @("L1", "N1", "AA1", "AL1")
     $last = @{}
-    for ($attempt = 0; $attempt -lt 24; $attempt++) {
+    for ($attempt = 0; $attempt -lt 40; $attempt++) {
         $allReady = $true
         foreach ($address in $statusAddresses) {
             $text = ([string]$Worksheet.Range($address).Text).Trim()
@@ -131,6 +188,11 @@ $resolved = Resolve-ArkDedicatedWorkbook `
 
 $acct = $resolved.AccountSheet
 Assert-ArkAccountSheetLayout -Worksheet $acct
+$rssAddin = Ensure-ArkRssAddinLoaded `
+    -Excel $resolved.Excel `
+    -Worksheet $acct `
+    -ExpectedXllPath $RssXllPath `
+    -AutoLoad (-not $DoNotAutoLoadRssAddin)
 $rssStatus = Wait-ArkReadOnlyRssReady -Worksheet $acct
 
 $captureStartedAt = (Get-Date).ToString("o")
@@ -231,6 +293,8 @@ $utf8 = New-Object System.Text.UTF8Encoding($false)
 Write-Host "ARK_ACCOUNT_READ_ONLY_SNAPSHOT_READY"
 Write-Host "Workbook    :" $WorkbookName
 Write-Host "AutoOpened  :" $resolved.WorkbookOpenedByLauncher
+Write-Host "RSSAddin    :" $rssAddin.Status
+if ($rssAddin.Path) { Write-Host "RSSXll      :" $rssAddin.Path }
 Write-Host "Snapshot    :" $target
 Write-Host "Positions   :" $positions.Count
 Write-Host "Orders      :" $orders.Count

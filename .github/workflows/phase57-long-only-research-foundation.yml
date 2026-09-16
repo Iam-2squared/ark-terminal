@@ -63,8 +63,14 @@ jobs:
         with:
           node-version: '22'
       - name: Verify LONG-only cash-equity research foundation
-        working-directory: predict
-        run: node --test tests/phase57-long-only-research-foundation.test.mjs tests/phase57-long-only-acquisition-dry-run.test.mjs tests/phase57-long-only-integrated-pipeline.test.mjs tests/phase57-long-only-storage-gate.test.mjs tests/phase57-long-only-selector-development.test.mjs
+        run: python3 scripts/run_offline_regression.py --suite foundation --output-dir "$RUNNER_TEMP/foundation-offline-regression"
+      - name: Upload offline regression audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: foundation-offline-regression-${{ github.run_id }}
+          retention-days: 30
+          path: ${{ runner.temp }}/foundation-offline-regression/
       - name: Check L0 runner syntax
         run: |
           node --check scripts/acquire_phase57_long_only_l0.mjs

@@ -3,6 +3,7 @@ import {createHash} from 'node:crypto';
 import fs from 'node:fs';
 import test from 'node:test';
 
+// index.html is LF-pinned by .gitattributes so this hash is stable on Windows/Linux.
 const overlayPath = new URL('../prototypes/ark-terminal-2-readonly/public/ark-readonly-overlay.js', import.meta.url);
 const indexPath = new URL('../prototypes/ark-terminal-2-readonly/public/index.html', import.meta.url);
 const source = fs.readFileSync(overlayPath, 'utf8');

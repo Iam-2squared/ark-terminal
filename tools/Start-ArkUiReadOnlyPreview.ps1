@@ -22,6 +22,11 @@ if (-not $SkipSnapshotRefresh) {
         WorkbookPath = $WorkbookPath
         AccountSheet = $AccountSheet
         SnapshotPath = $resolvedSnapshot
+        # Do not programmatically RegisterXLL from the UI path. The MarketSpeed
+        # XLL is a third-party Excel add-in and has been observed to terminate
+        # the Excel COM server on this machine (RPC 0x800706BE). The add-in must
+        # be registered through Excel once; after that this path is read-only.
+        DoNotAutoLoadRssAddin = $true
     }
     if ($DoNotAutoOpenWorkbook) { $snapshotArgs.DoNotAutoOpenWorkbook = $true }
     & $snapshotLauncher @snapshotArgs

@@ -1,0 +1,42 @@
+name: Maintenance Restore Archived Manual Inputs
+
+on:
+  push:
+    branches: [maintenance/archive-auto-persistence]
+    paths:
+      - 'tools/archive_automatic_persistence.mjs'
+      - '.github/workflows/maintenance-restore-manual-inputs.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: maintenance/archive-auto-persistence
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restore workflow_dispatch input contracts from main while keeping automation archived
+        run: |
+          git fetch origin main:refs/remotes/origin/main
+          node tools/archive_automatic_persistence.mjs --source-ref origin/main
+          node tools/archive_automatic_persistence.mjs --check
+      - name: Commit restored manual contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- .github/workflows; then
+            echo 'No input restoration required.'
+            exit 0
+          fi
+          git config user.name 'Ark Maintenance Bot'
+          git config user.email 'ark-maintenance@users.noreply.github.com'
+          git add .github/workflows
+          git commit -m 'maintenance: preserve archived workflow manual inputs'
+          git push origin HEAD:maintenance/archive-auto-persistence

@@ -1,0 +1,24 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"ARK_PARITY_DAILY_V1",
+  "type":"object",
+  "required":["schemaId","classification","sessionDate","freezeSha256","stages","metrics","reservedDataOpened","realSessionCaptured","safety"],
+  "properties":{
+    "schemaId":{"const":"ARK_PARITY_DAILY_V1"},
+    "classification":{"enum":["USED_HISTORICAL_FIXTURE","SYNTHETIC_TRANSPORT_TEST","SYNTHETIC_OFFLINE_TRANSPORT_TEST"]},
+    "sessionDate":{"type":"string","pattern":"^2026-[0-9]{2}-[0-9]{2}$"},
+    "freezeSha256":{"const":"f0ea365e5cf73b3394779ae1be3ea99e268f9d6cede8160a703ed24cab5c0a14"},
+    "repoHead":{"type":"string"},
+    "workbookSha256":{"type":["string","null"]},
+    "rawCaptureSha256":{"type":["string","null"]},
+    "normalizedBarsSha256":{"type":["string","null"]},
+    "realtimeDecisionLedgerSha256":{"type":["string","null"]},
+    "postCloseReferenceSha256":{"type":["string","null"]},
+    "reservedDataOpened":{"const":false},
+    "realSessionCaptured":{"const":false},
+    "stages":{"type":"array","items":{"type":"object","required":["stage","denominator","exact","exactMatchRate","mismatches"],"properties":{"stage":{"enum":["DATA","SELECTOR","ENTRY","ALLOCATION","EXIT","LEDGER"]},"denominator":{"type":"integer","minimum":0},"exact":{"type":"integer","minimum":0},"exactMatchRate":{"type":["number","null"],"minimum":0,"maximum":1},"mismatches":{"type":"array","items":{"type":"object","required":["stage","id","primaryCause","realtime","reference"],"properties":{"primaryCause":{"enum":["DATA_SOURCE_DIFFERENCE","TIMESTAMP_NORMALIZATION_DIFFERENCE","BAR_FINALIZATION_DIFFERENCE","MISSING_RSS_DATA","RSS_STALE_DATA","EXCEL_CAPTURE_FAILURE","SYMBOL_MAPPING_DIFFERENCE","LOGIC_IMPLEMENTATION_DIFFERENCE","ROUNDING_OR_LOT_DIFFERENCE","LEDGER_IMPLEMENTATION_DIFFERENCE","REFERENCE_RECONSTRUCTION_LIMITATION","UNKNOWN_REQUIRES_REVIEW"]}}}}}}},
+    "metrics":{"type":"object","required":["eligibleDecisionTimestamps","fiveMinuteExactMatchRate","selectorSetMatchRate","selectedSymbolMatchRate","firstEnterExactMatchRate","directionMatchRate","allocationAcceptedSetMatchRate","quantityExactMatchRate","exitDecisionMatchRate","shadowPnlDeltaJpy","shadowEquityDeltaJpy","mismatchCountsByCause","missingEvents","staleEvents","excelRssUptime"]},
+    "safety":{"type":"object","additionalProperties":{"const":false},"required":["executionAllowed","brokerWriteAllowed","excelOrderWriteAllowed","rssOrderFunctionAllowed","liveTradingAllowed","paperTradingAllowed","automaticPromotionAllowed","productionUpdateAllowed","transmitted"]}
+  },
+  "$comment":"Future real-data reports require a separately reviewed contract; this schema cannot unlock them. Missing/unmeasured rates and deltas are null. Match-rate denominator is the union of stable comparison keys, not only paired records. Delta matchedCount is reported separately; missing records never count as zero deltas. ENTRY stable ids must be session/symbol/First ENTER identity, independent of observed timestamp."
+}

@@ -1,0 +1,41 @@
+{
+  "classification": "DOWNSTREAM_OFFLINE_PARITY_WITH_REFERENCE_SELECTOR_AND_CURRENT_V4_FEED",
+  "fullEndToEndParity": false,
+  "selector": {
+    "source": "scripts/phase57-entry-development-features.mjs",
+    "universeSource": "scripts/lib/phase57-entry-development-universe.mjs",
+    "required": [
+      "frozen-selector checkout code and model hashes",
+      "point-in-time full eligible common-equity universe",
+      "master sourceCode/symbol/sector/marketCode/productCategory",
+      "complete 5m prefixes across admitted universe",
+      "featureCutoff and complete selected rank/score snapshot"
+    ],
+    "currentEvidence": "A+B stores selected-symbol features/bars; complete universe admission and selector input not in this bundle",
+    "rssOnlySufficiency": "NOT_ESTABLISHED",
+    "boundary": "REFERENCE_SELECTOR_TO_SELECTED_SYMBOLS_TO_DOWNSTREAM",
+    "universeShrunk": false
+  },
+  "v4": {
+    "source": "predict/realtime/phase57-realtime-exit-v3-v4.js",
+    "gate": "predict/daytrade/phase57-p25-exit-v4-structural-risk.js",
+    "scorer": "predict/daytrade/phase57-p25-exit-v2-state-conditioned.js",
+    "required": [
+      "entry reference and pre-entry contextBars",
+      "current completed OHLCV path",
+      "frozen analog pool with state/labels/sessionDate/fullyRealizedAt and pool hash",
+      "previous downsideHistory/winnerExitStreak/neutralLossStreak and MFE/MAE",
+      "session-end schedule"
+    ],
+    "causality": [
+      "analog.sessionDate < evaluated.sessionDate",
+      "analog.fullyRealizedAt < current timestamp",
+      "same state bucket and frozen support requirements"
+    ],
+    "currentEvidence": "A+B stores scored management decisions; the input-only source reconstruction does not supply a hash-bound analog pool",
+    "boundary": "CURRENT_SAVED_V4_DECISION_TO_BAR5_MANAGER",
+    "independentScorerMeasured": false
+  },
+  "noReservedOrFutureInputOpened": true,
+  "strategyChanged": false
+}

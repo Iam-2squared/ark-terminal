@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "date": "2026-09-16",
+  "role": "HISTORICAL_DEVELOPMENT_DIRECT_ENTRY_IN_SAMPLE",
+  "newResearchAuthorization": "User explicitly replaces unavailable v4 continuation with new LONG-only continuation; this is NOT unchanged v5",
+  "startHead": "3a42db5b1ca000308bd91b3dbda9ac455bdfa956",
+  "candidateFamilySize": 3,
+  "candidates": [
+    "BAR5_FIXED12",
+    "BAR5_TWO_LOWER_CLOSES",
+    "BAR5_CLOSE_PEAK_HALF"
+  ],
+  "reference": "FIXED12",
+  "bar5Rule": "First completed trading CLOSE<0 DEFENSIVE; reclaim CLOSE>=0 through bar5 RECOVERED; otherwise exitbar5; no v4",
+  "continuations": {
+    "BAR5_FIXED12": "Hold to inherited12 trading-bar cap after nonadverse/reclaim. Ablation/control and simplest candidate.",
+    "BAR5_TWO_LOWER_CLOSES": "Exit second consecutive strictly lower completed CLOSE after continuation activation; equality resets, reclaim resets. Single2-confirm assumption to avoid one-bar flip.",
+    "BAR5_CLOSE_PEAK_HALF": "Exit completed CLOSE<=half maximum observed completed CLOSE return since continuation activation, positive peak required. One symmetric50% retained-gain assumption, no fitted ratio."
+  },
+  "maxHoldingBars": 12,
+  "capProvenance": "Existing Fixed future.slice(0,12) baseline; same calendar-known shorter session cap. No holding-grid search.",
+  "costPct": 0.05,
+  "execution": "Completed-close reference-price marking for EVERY arm; decision at completed bar; NO guaranteed fill or broker realized PnL claim. Execution latency/slippage gate remains for integration.",
+  "missing": "Censor if missing before exit; never use availability to decide exit. Complete-case common-arm set only for primary comparison, all277 retained.",
+  "sessionEnd": "Reference diagnostic only when prior path is complete; unresolved15:25 auction excluded/censored with no substitution. Not a blocker for12-bar comparison.",
+  "freshBudgetConsumption": 0,
+  "pathArtifact": "docs/evidence/phase57-long-exit-v345-paired/paths.json.gz",
+  "ledgerPath": "docs/evidence/phase57-msh-entry-long-v1-upstream-freeze/historical-enter-identities.json",
+  "pins": {
+    "docs/evidence/phase57-long-exit-v345-paired/paths.json.gz": "1ffd7e5e3d650a676e06507faf26226ad236ec4de4a0c0446873ee16f7408959",
+    "docs/evidence/phase57-msh-entry-long-v1-upstream-freeze/historical-enter-identities.json": "72224ac9fd073f7da45c488aaf8ca999752b466e715837c21440e7dd93970236",
+    "scripts/lib/phase57-long-exit-v5-bar5-adapter.mjs": "d57a90078d9cf1bc86246e8e99588cbcd91a19a9f0fd09c53976ac93a250859f",
+    "predict/long-only/phase57_long_exit_continuation_v1.py": "b3e8f07086cfa65173524f62b78571f606e5d1c372a4cec1c16343c73d8c6c23",
+    "scripts/phase57_long_exit_continuation_development.py": "ecdbaaccb2ad1276a93c4e68bfaeea91eddebdf3aee6774bfa21f6c1486128e7",
+    "docs/evidence/phase57-long-exit-continuation-v1/path-diagnostic.json": "d2e03f3a62ac3ba10eb83830b8060e89d4a2123466b7b910d00a8d1e9226bcb7",
+    "docs/evidence/phase57-long-exit-continuation-v1/path-diagnostic-ledger.json": "157cbe459a6b54c79fcd604fc2e0b81608a9a162e041854d69630f864a25c3c9"
+  },
+  "selectionWeights": {
+    "tail": 2,
+    "p05": 2,
+    "worst": 2,
+    "winner3": 2,
+    "winner5": 2,
+    "pf": 1,
+    "dd": 1,
+    "median": 1,
+    "capture": 1,
+    "concentration": 1
+  },
+  "selectionRule": "For3 candidates only, rank each metric (higherbetter after transformation), minimize weighted rank loss; tail / winner preservation prioritized; ties use candidates order simplicity. No net-sum objective. All choices development-exposed, weights design judgments not precision guarantees.",
+  "winnerDefinition": "Available MFE over common Fixed12-or-calendar path; positive final net preservation and >=level realization separately. Not full-session or independent opportunity proof.",
+  "concentration": "lowerTop3 share of positive paired improvements; no positive improvement worst score. Report largest improvement removed.",
+  "adaptationLimit": "Exactly3 predeclared candidates once. No follow-up grid, no result-driven family expansion.",
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

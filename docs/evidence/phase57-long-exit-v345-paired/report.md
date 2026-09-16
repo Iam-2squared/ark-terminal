@@ -76,6 +76,8 @@ MFE=max(0,future HIGH/reference−1); MAE=min(0,future LOW/reference−1). Extre
 
 The 181 strict30m results reproduce the already frozen Entry reference (MAE median−1.533742%, p05−10.256410%, worst−35.294118%). This is identity/measurement parity, not independent validation. Only41/277 have every expected remaining regular 5m slot; all41 are in2024-09-18–2024-11-01. This coverage-selected subset cannot stand for all277 or all76 sessions.
 
+Important session-boundary limitation: all187 entries dated2024-11-05 or later lack the expected15:25-start final slot in the recovered normalized paths. This systematic absence may reflect closing-auction/no-trade representation rather than random provider loss; the current expected-slot checker does not establish which. Therefore41 is completeness under this preregistered conservative slot policy, not proof that only41 original market paths can ever be reconstructed. No final close is imputed, no auction is silently substituted, and the pre-result slot rule is not retroactively changed. Auction/session-end semantics must be resolved explicitly before full-session replay. This is an additional DATA_REQUIREMENT_MISMATCH, not a reason to buy missing bars blindly. The strict30m reference parity is unaffected.
+
 ## Adverse, recovery, opportunity, timing and path types
 
 Immediate first5m completed-close adverse: 52/225 (23.1111%); first5m LOW adverse: 124/225 (55.1111%). These are different definitions.

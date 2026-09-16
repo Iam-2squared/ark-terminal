@@ -48,7 +48,7 @@ const sectorOf=row=>String(row?.S17??row?.Sec17??row?.Sector17Code??row?.Sector3
 const symkey=(sessionDate,symbol)=>`${sessionDate}|${symbol}`;
 const rowKey=row=>`${row.sessionDate}|${row.symbol}|${row.decisionTimeJst}`;
 const bySymbol=rows=>{const map=new Map();for(const row of rows){const key=symkey(row.sessionDate,row.symbol);if(!map.has(key))map.set(key,[]);map.get(key).push(row);}return map;};
-const l0s=new Map(),allEvents=[],allOpportunities=[],sessionAudits=[];
+const l0s=new Map(),allEvents=[],allOpportunities=[],allTicks=[],sessionAudits=[];
 
 function sourceFor(sessionDate){
   const matches=groups.filter(group=>group.sessions.includes(sessionDate));
@@ -132,7 +132,7 @@ for(const sessionDate of frozenSessions){
   const selectedSymbols=new Set(selections.map(row=>row.symbol)),entryBars=new Map(),entryAuctions=new Map();
   for(const symbol of selectedSymbols){entryBars.set(symbol,normalizeEntryBars(barsMap.get(symkey(sessionDate,symbol))??[]));entryAuctions.set(symbol,auctionMap.get(symkey(sessionDate,symbol))??[]);}
   const transfer=evaluateLongOnlyTransferSession({sessionDate,selections,barsBySymbol:entryBars,auctionsBySymbol:entryAuctions,model});
-  allEvents.push(...transfer.events.map(flattenEvent));allOpportunities.push(...transfer.opportunities);
+  allEvents.push(...transfer.events.map(flattenEvent));allOpportunities.push(...transfer.opportunities);allTicks.push(...transfer.ticks);
   const tickReasonCounts={};
   for(const tick of transfer.ticks){const key=`${tick.status}:${tick.reason}`;tickReasonCounts[key]=(tickReasonCounts[key]??0)+1;}
   const scoredProbabilities=transfer.ticks.map(row=>row.probability).filter(Number.isFinite).sort((a,b)=>a-b);
@@ -147,23 +147,31 @@ for(const sessionDate of frozenSessions){
 
 allEvents.sort((a,b)=>a.sessionDate.localeCompare(b.sessionDate)||a.decisionTimestamp.localeCompare(b.decisionTimestamp)||a.ridgeRank-b.ridgeRank||a.symbol.localeCompare(b.symbol));
 allOpportunities.sort((a,b)=>a.sessionDate.localeCompare(b.sessionDate)||a.firstSelectionTimestamp.localeCompare(b.firstSelectionTimestamp)||a.stateSymbol.localeCompare(b.stateSymbol));
+allTicks.sort((a,b)=>a.sessionDate.localeCompare(b.sessionDate)||a.evaluationTimestamp.localeCompare(b.evaluationTimestamp)||a.symbol.localeCompare(b.symbol));
 const decisionCount=new Set(allEvents.map(row=>`${row.sessionDate}|${row.decisionTimestamp}`)).size;
 if(allEvents.length!==3800||decisionCount!==760||new Set(allEvents.map(row=>row.sessionDate)).size!==76)throw new Error('FINAL_FROZEN_SELECTOR_COUNT_MISMATCH');
 if(new Set(allEvents.map(row=>row.selectorEventId)).size!==allEvents.length)throw new Error('DUPLICATE_SELECTOR_EVENT_ID');
-if(allEvents.some(row=>row.direction!=='LONG'||row.shortScoreEvaluated!==false))throw new Error('ABSOLUTE_LONG_ONLY_CONTRACT_VIOLATION');
+if(allEvents.some(row=>row.direction!=='LONG'||row.shortScoreEvaluated!==false)||allTicks.some(row=>row.direction!=='LONG'||row.shortScoreEvaluated!==false))throw new Error('ABSOLUTE_LONG_ONLY_CONTRACT_VIOLATION');
+if(new Set(allTicks.map(row=>row.tickId)).size!==allTicks.length)throw new Error('DUPLICATE_ENTRY_EVALUATION_TICK');
 
 fs.mkdirSync(outputDir,{recursive:true,mode:0o700});
-const eventsPath=path.join(outputDir,'selector-current-entry-events.ndjson'),opportunitiesPath=path.join(outputDir,'first-entry-opportunities.json');
+const eventsPath=path.join(outputDir,'selector-current-entry-events.ndjson'),opportunitiesPath=path.join(outputDir,'first-entry-opportunities.json'),
+  ticksPath=path.join(outputDir,'entry-evaluation-ticks.ndjson');
 fs.writeFileSync(eventsPath,allEvents.map(row=>JSON.stringify(row)).join('\n')+'\n',{flag:'wx',mode:0o600});
 fs.writeFileSync(opportunitiesPath,JSON.stringify(allOpportunities,null,2)+'\n',{flag:'wx',mode:0o600});
+fs.writeFileSync(ticksPath,allTicks.map(row=>JSON.stringify(row)).join('\n')+'\n',{flag:'wx',mode:0o600});
 const manifest={schemaVersion:1,status:'FROZEN_SELECTOR_CURRENT_ENTRY_TRANSFER_INPUT_READY',contractId:transferContract.contractId,
   source:{frozenSelectorFreezeCommit:CURRENT_ENTRY_TRANSFER_ASSETS.selectorFreezeCommit,frozenSelectorArtifactSha256:CURRENT_ENTRY_TRANSFER_ASSETS.selectorArtifactSha256,
     currentEntryModelSha256:CURRENT_ENTRY_TRANSFER_ASSETS.modelSha256,currentEntryFeatureContractSha256:CURRENT_ENTRY_TRANSFER_ASSETS.featureContractSha256,
     currentEntryFeatureImplementationSha256:CURRENT_ENTRY_TRANSFER_ASSETS.featureImplementationSha256},
   counts:{sessions:76,decisionTimestamps:decisionCount,selectionEvents:allEvents.length,uniqueSymbols:new Set(allEvents.map(row=>row.symbol)).size,
-    uniqueSymbolSessions:new Set(allEvents.map(row=>row.symbolSessionId)).size,firstEntryOpportunities:allOpportunities.length},
-  files:[{path:path.basename(eventsPath),sha256:sha(fs.readFileSync(eventsPath)),rows:allEvents.length},{path:path.basename(opportunitiesPath),sha256:sha(fs.readFileSync(opportunitiesPath)),rows:allOpportunities.length}],
+    uniqueSymbolSessions:new Set(allEvents.map(row=>row.symbolSessionId)).size,firstEntryOpportunities:allOpportunities.length,
+    entryEvaluationTicks:allTicks.length,scoredEntryTicks:allTicks.filter(row=>Number.isFinite(row.probability)).length},
+  files:[{path:path.basename(eventsPath),sha256:sha(fs.readFileSync(eventsPath)),rows:allEvents.length},
+    {path:path.basename(opportunitiesPath),sha256:sha(fs.readFileSync(opportunitiesPath)),rows:allOpportunities.length},
+    {path:path.basename(ticksPath),sha256:sha(fs.readFileSync(ticksPath)),rows:allTicks.length}],
   sessionAudits,methodology:{selectorRecomputedFromFrozenSavedWeights:true,selectorFitCalls:0,currentEntryFitCalls:0,currentEntryLongDirectionOnly:true,
-    shortScoreEvaluated:false,validationOpened:false,oosOpened:false,providerRequests:0,rawCachePersisted:false},safety:CURRENT_ENTRY_TRANSFER_SAFETY};
+    shortScoreEvaluated:false,validationOpened:false,oosOpened:false,providerRequests:0,rawCachePersisted:false,
+    augmentedTickAndFeatureDiagnosticsDecisionNeutral:true},safety:CURRENT_ENTRY_TRANSFER_SAFETY};
 fs.writeFileSync(path.join(outputDir,'input-manifest.json'),JSON.stringify(manifest,null,2)+'\n',{flag:'wx',mode:0o600});
 console.log(JSON.stringify({status:manifest.status,...manifest.counts,eventsSha256:manifest.files[0].sha256,opportunitiesSha256:manifest.files[1].sha256}));

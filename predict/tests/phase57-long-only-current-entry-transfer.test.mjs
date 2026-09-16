@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {
-  assertCurrentEntryAssets,evaluateFrozenCurrentEntryLong,evaluateLongOnlyTransferSession,
+  assertCurrentEntryAssets,describeFrozenLongScore,evaluateFrozenCurrentEntryLong,evaluateLongOnlyTransferSession,
   measureRemainingOpportunity,normalizeEntryBars,normalizeEntrySymbol,
 } from '../long-only/phase57-long-only-current-entry-transfer.js';
 
@@ -43,6 +43,17 @@ test('LONG-only adapter blocks at 09:30 and scores exact frozen features at 09:3
   const ready=evaluateFrozenCurrentEntryLong({candidate:candidate(1),bars:normalized,evaluationTimestamp:`${sessionDate}T09:35:00+09:00`,
     firstSelectionTimestamp:`${sessionDate}T09:30:00+09:00`,priorSelectionCount:1,model:syntheticModel});
   assert.equal(ready.status,'PASS');assert.ok(ready.probability>.6);assert.equal(ready.entryReferencePrice,100.6);
+  assert.equal(Object.keys(ready.features).length,features.length);
+  assert.equal(Object.keys(ready.contributions).length,features.length);
+  assert.ok(Math.abs(ready.thresholdDistance-(ready.probability-ready.threshold))<1e-12);
+});
+
+test('diagnostic contributions exactly reproduce the unchanged frozen LONG score',()=>{
+  const row={direction:1,features:Object.fromEntries(features.map((name,index)=>[name,index/10]))};
+  const described=describeFrozenLongScore(row,realModel);
+  const rebuilt=realModel.intercept+Object.values(described.contributions).reduce((sum,value)=>sum+value,0);
+  assert.ok(Math.abs(described.logit-rebuilt)<1e-12);
+  assert.ok(Math.abs(described.thresholdDistance-(described.probability-realModel.threshold))<1e-12);
 });
 
 test('stateful transfer preserves Top5 events and separates first PASS from repeated selection',()=>{
@@ -56,6 +67,7 @@ test('stateful transfer preserves Top5 events and separates first PASS from repe
   assert.ok(result.opportunities.every(row=>row.finalStatus==='PASS'&&row.latencyMinutes===5&&row.selectionCount===2));
   assert.deepEqual(result.opportunities.map(row=>row.firstSelectorEventId),first.map(row=>row.selectorEventId));
   assert.equal(result.ticks.some(row=>row.status==='PASS'),true);
+  assert.ok(result.ticks.filter(row=>row.status==='PASS').every(row=>row.direction==='LONG'&&row.shortScoreEvaluated===false&&row.features));
 });
 
 test('entry-time opportunity uses only future bars and true signed MAE',()=>{

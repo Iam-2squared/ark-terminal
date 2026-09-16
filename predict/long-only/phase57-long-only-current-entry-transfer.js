@@ -53,13 +53,22 @@ export function completedPrefix(bars,evaluationTimestamp){
 }
 
 export function scoreFrozenLongRow(row,model){
+  return describeFrozenLongScore(row,model).probability;
+}
+
+export function describeFrozenLongScore(row,model){
   if(!row||Number(row.direction)!==1)throw new Error('LONG_DIRECTION_ROW_REQUIRED');
   if(!Array.isArray(model?.features)||!Array.isArray(model?.weights)||!Array.isArray(model?.means)||!Array.isArray(model?.scales))throw new Error('CURRENT_ENTRY_MODEL_VECTOR_UNAVAILABLE');
   const n=model.features.length;
   if(model.weights.length!==n||model.means.length!==n||model.scales.length!==n||model.scales.some(x=>!(Number(x)>0)))throw new Error('CURRENT_ENTRY_MODEL_VECTOR_MISMATCH');
-  const z=Number(model.intercept)+model.features.reduce((sum,name,index)=>sum+Number(model.weights[index])*(Number(row.features?.[name])-Number(model.means[index]))/Number(model.scales[index]),0);
+  const contributions=Object.fromEntries(model.features.map((name,index)=>[
+    name,Number(model.weights[index])*(Number(row.features?.[name])-Number(model.means[index]))/Number(model.scales[index]),
+  ]));
+  const z=Number(model.intercept)+Object.values(contributions).reduce((sum,value)=>sum+value,0);
   if(!Number.isFinite(z))throw new Error('CURRENT_ENTRY_NONFINITE_LONG_SCORE');
-  return z>=0?1/(1+Math.exp(-z)):Math.exp(z)/(1+Math.exp(z));
+  const probability=z>=0?1/(1+Math.exp(-z)):Math.exp(z)/(1+Math.exp(z));
+  return Object.freeze({probability,logit:z,threshold:Number(model.threshold),thresholdDistance:probability-Number(model.threshold),
+    features:Object.freeze({...row.features}),contributions:Object.freeze(contributions)});
 }
 
 export function evaluateFrozenCurrentEntryLong({candidate,bars=[],evaluationTimestamp,firstSelectionTimestamp,priorSelectionCount,model}={}){
@@ -71,10 +80,12 @@ export function evaluateFrozenCurrentEntryLong({candidate,bars=[],evaluationTime
       rank:Number(candidate.ridgeRank),score:Number(candidate.ridgeScore),priceReference,
       firstSelectionTimestamp,priorSelectionCount,direction:1,
     });
-    const probability=scoreFrozenLongRow(row,model),pass=probability>Number(model.threshold);
+    const diagnostic=describeFrozenLongScore(row,model),probability=diagnostic.probability,pass=probability>Number(model.threshold);
     return Object.freeze({status:pass?'PASS':'WAIT',reason:pass?'LONG_ABOVE_FROZEN_THRESHOLD':'LONG_NOT_ABOVE_FROZEN_THRESHOLD',
       probability,threshold:Number(model.threshold),entryReferencePrice:priceReference,featureTimestamp:row.decisionTimestamp,
-      latestFeatureAvailableAt:row.latestAvailableAt,featureSha256:row.featureSha256,prefixSha256:row.prefixSha256});
+      latestFeatureAvailableAt:row.latestAvailableAt,featureSha256:row.featureSha256,prefixSha256:row.prefixSha256,
+      logit:diagnostic.logit,thresholdDistance:diagnostic.thresholdDistance,features:diagnostic.features,
+      contributions:diagnostic.contributions});
   }catch(error){
     return Object.freeze({status:'BLOCKED',reason:String(error?.message??error),entryReferencePrice:finite(priceReference)?priceReference:null,
       featureTimestamp:iso(evaluationTimestamp),latestFeatureAvailableAt:prefix.at(-1)?.availableAt??null});
@@ -161,8 +172,15 @@ export function evaluateLongOnlyTransferSession({sessionDate,selections=[],barsB
         const result=evaluateFrozenCurrentEntryLong({candidate:row,bars,evaluationTimestamp:tick,firstSelectionTimestamp:state.firstSelectionTimestamp,
           priorSelectionCount:state.priorSelectionCount,model});
         state.priorSelectionCount+=1;
-        ticks.push({symbolSessionId:state.key,selectorDecisionTimestamp:at,evaluationTimestamp:tick,status:result.status,reason:result.reason,
-          probability:result.probability??null,entryReferencePrice:result.entryReferencePrice??null});
+        ticks.push({tickId:`${state.key}|${tick}`,sessionDate,symbol:String(row.symbol),symbolSessionId:state.key,
+          selectorEventId:row.selectorEventId??eventKey(row),selectorDecisionTimestamp:at,evaluationTimestamp:tick,
+          firstSelectionTimestamp:state.firstSelectionTimestamp,priorEvaluationCount:state.priorSelectionCount-1,
+          ridgeRank:Number(row.ridgeRank),ridgeScore:Number(row.ridgeScore),status:result.status,reason:result.reason,
+          probability:result.probability??null,threshold:result.threshold??Number(model.threshold),
+          thresholdDistance:result.thresholdDistance??null,logit:result.logit??null,
+          entryReferencePrice:result.entryReferencePrice??null,featureTimestamp:result.featureTimestamp??null,
+          latestFeatureAvailableAt:result.latestFeatureAvailableAt??null,features:result.features??null,
+          contributions:result.contributions??null,direction:'LONG',shortScoreEvaluated:false});
         const officialEvent=events.find(event=>event.symbolSessionId===state.key&&event.decisionTimestamp===at);
         if(ms(tick)===ms(at)&&officialEvent&&!officialEvent.directStatus){
           officialEvent.directStatus=result.status;officialEvent.directReason=result.reason;officialEvent.longProbability=result.probability??null;
@@ -210,4 +228,4 @@ export function evaluateLongOnlyTransferSession({sessionDate,selections=[],barsB
   return Object.freeze({events:Object.freeze(events),opportunities:Object.freeze(opportunities),ticks:Object.freeze(ticks)});
 }
 
-export default {assertCurrentEntryAssets,evaluateFrozenCurrentEntryLong,evaluateLongOnlyTransferSession,measureRemainingOpportunity,latencyBucket};
+export default {assertCurrentEntryAssets,describeFrozenLongScore,evaluateFrozenCurrentEntryLong,evaluateLongOnlyTransferSession,measureRemainingOpportunity,latencyBucket};

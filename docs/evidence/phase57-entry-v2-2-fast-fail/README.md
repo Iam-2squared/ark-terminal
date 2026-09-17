@@ -123,3 +123,7 @@ Predictability is unproven. Requires a separate minimal preregistered screen; no
 | v21EvidenceSHA | `c1c257a54ff733828135c248fa1b9b9713b737836ee2b369017b68b8639ace12` |
 | v2ContractSHA | `18818ffd1157c7ba15c93eb4723c3e28945c238e0e2f6a2440bee98c7ad1267f` |
 | v2DevelopmentEvidenceSHA | `35cec58faedcebfd09190ed5c404e2e874647eca90b92e12bc9021ff80385a75` |
+
+## CI numerical audit correction
+
+The initial CI job105050945557 exposed exact-float dictionary comparison in the saved-metric test. Changing only the BLAS CPU path reproduced an8.88e-16 MSE difference and1.11e-16 skill difference. Saved numerical metric comparisons now allow1e-12 absolute/relative rounding error; IDs, counts, gate statuses and verdict remain exact, and the actual gate comparisons have no new tolerance. Runtime, runner, protocol, target/model/prediction data and result.json are unchanged. No Project fit/prediction was rerun. The original prefit test source and manifest remain available at commit0b8594d; the corrected audit is tested against the Haswell reduction path. See ci-numerical-audit-fix.json.

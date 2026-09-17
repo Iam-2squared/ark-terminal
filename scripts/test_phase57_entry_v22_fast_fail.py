@@ -154,6 +154,22 @@ class SyntheticTests(unittest.TestCase):
 
 @unittest.skipUnless((d.BASE/'result.json').exists(), 'Saved Project screen not run yet')
 class SavedEvidenceTests(unittest.TestCase):
+    def assert_saved_metrics(self, actual, expected):
+        """CPU/BLAS reductions may differ at roundoff; identities/gates stay exact."""
+        if isinstance(expected, dict):
+            self.assertEqual(set(actual), set(expected))
+            for key in expected:
+                self.assert_saved_metrics(actual[key], expected[key])
+        elif isinstance(expected, list):
+            self.assertEqual(len(actual), len(expected))
+            for a, b in zip(actual, expected):
+                self.assert_saved_metrics(a, b)
+        elif type(expected) is float:
+            self.assertTrue(math.isclose(actual, expected, rel_tol=1e-12, abs_tol=1e-12),
+                            f'Numeric audit mismatch: {actual!r} != {expected!r}')
+        else:
+            self.assertEqual(actual, expected)
+
     @classmethod
     def setUpClass(cls):
         cls.c = d.audit_protocol()
@@ -190,10 +206,12 @@ class SavedEvidenceTests(unittest.TestCase):
         a, b = d.regression_metrics(cr), d.regression_metrics(sy)
         reduced = d.regression_metrics([r for r in cr if r['symbol'] not in self.r['top2RemovalDiagnostic']['symbols']])
         bands = d.coexistence(cr)
-        self.assertEqual(a, self.r['pooled']['chronological'])
-        self.assertEqual(b, self.r['pooled']['symbolDisjointLastWindow'])
+        self.assert_saved_metrics(a, self.r['pooled']['chronological'])
+        self.assert_saved_metrics(b, self.r['pooled']['symbolDisjointLastWindow'])
         verdict, gates = d.decide(self.r['units'], a, b, reduced, bands, self.c)
-        self.assertEqual(verdict, self.r['verdict']); self.assertEqual(gates, self.r['gates'])
+        self.assertEqual(verdict, self.r['verdict'])
+        self.assert_saved_metrics(gates, self.r['gates'])
+        self.assertEqual([g['status'] for g in gates], [g['status'] for g in self.r['gates']])
 
     def test_censored_labels_no_zero_fabrication(self):
         ledger = d.read(str((d.BASE/'target-ledger.json.gz').relative_to(d.ROOT)))

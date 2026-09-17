@@ -18,6 +18,13 @@ class TwoOpportunityEntryKernelTest(unittest.TestCase):
             decision_price=100.0,
         )
 
+    def reference(self, open_price=98.5):
+        return {
+            "missing": False,
+            "open": open_price,
+            "start": "2025-01-01T09:35:00+09:00",
+        }
+
     def test_initial_is_future_independent_and_has_no_quantity(self):
         s1, e1 = emit_initial_opportunity(self.anchor())
         s2, e2 = emit_initial_opportunity(self.anchor())
@@ -29,35 +36,41 @@ class TwoOpportunityEntryKernelTest(unittest.TestCase):
         self.assertFalse(s1.secondary_terminal)
         self.assertEqual(s1, s2)
 
-    def test_first_closed_dip_emits_one_reprice_opportunity(self):
+    def test_first_closed_dip_emits_one_reprice_opportunity_with_reference(self):
         state, _ = emit_initial_opportunity(self.anchor())
         final, event = observe_first_completed_bar(
             state,
             {"missing": False, "open": 101.0, "high": 999.0, "low": 1.0,
              "close": 98.0, "end": "2025-01-01T09:35:00+09:00",
              "futureHigh": 1000000.0, "futureLow": 0.0001},
+            reference_bar={**self.reference(), "futureHigh": 999999.0, "futureLow": 0.0001},
         )
         self.assertEqual(final.state, "DIP_REPRICE_EMITTED")
         self.assertTrue(final.secondary_terminal)
         self.assertEqual(event["eventType"], "DIP_REPRICE_OPPORTUNITY")
         self.assertEqual(event["sourceState"], "FIRST_CLOSED_DIP")
         self.assertEqual(event["observedFirstClose"], 98.0)
+        self.assertEqual(event["referenceStatus"], "REFERENCE_OPEN")
+        self.assertEqual(event["referencePrice"], 98.5)
+        self.assertEqual(event["opportunityTimestamp"], "2025-01-01T09:35:00+09:00")
         self.assertFalse(event["quantityOwnedByEntry"])
         self.assertNotIn("futureHigh", event)
         self.assertNotIn("futureLow", event)
 
-    def test_future_fields_cannot_change_dip_decision(self):
+    def test_future_fields_cannot_change_dip_decision_or_reference(self):
         state, _ = emit_initial_opportunity(self.anchor())
         bar1 = {"missing": False, "c": 99.0, "end": "2025-01-01T09:35:00+09:00",
                 "h": 100.0, "l": 98.0, "nextClose": 1.0}
         bar2 = {"missing": False, "c": 99.0, "end": "2025-01-01T09:35:00+09:00",
                 "h": 99999.0, "l": 0.001, "nextClose": 99999.0}
-        f1, e1 = observe_first_completed_bar(state, bar1)
-        f2, e2 = observe_first_completed_bar(state, bar2)
+        ref1 = {**self.reference(), "h": 99.0, "l": 97.0, "nextClose": 1.0}
+        ref2 = {**self.reference(), "h": 99999.0, "l": 0.001, "nextClose": 99999.0}
+        f1, e1 = observe_first_completed_bar(state, bar1, reference_bar=ref1)
+        f2, e2 = observe_first_completed_bar(state, bar2, reference_bar=ref2)
         self.assertEqual(f1, f2)
         self.assertEqual(e1, e2)
 
-    def test_continuation_emits_no_secondary(self):
+    def test_continuation_emits_no_secondary_and_needs_no_reference(self):
         state, _ = emit_initial_opportunity(self.anchor())
         final, event = observe_first_completed_bar(
             state,
@@ -67,9 +80,19 @@ class TwoOpportunityEntryKernelTest(unittest.TestCase):
         self.assertTrue(final.secondary_terminal)
         self.assertIsNone(event)
 
-    def test_missing_is_unknown_without_imputation(self):
+    def test_missing_first_bar_is_unknown_without_imputation(self):
         state, _ = emit_initial_opportunity(self.anchor())
         final, event = observe_first_completed_bar(state, {"missing": True})
+        self.assertEqual(final.state, "SECONDARY_UNKNOWN")
+        self.assertIsNone(event)
+
+    def test_dip_with_missing_reference_is_unknown_not_emitted(self):
+        state, _ = emit_initial_opportunity(self.anchor())
+        final, event = observe_first_completed_bar(
+            state,
+            {"missing": False, "close": 99.0, "end": "2025-01-01T09:35:00+09:00"},
+            reference_bar={"missing": True},
+        )
         self.assertEqual(final.state, "SECONDARY_UNKNOWN")
         self.assertIsNone(event)
 
@@ -79,16 +102,28 @@ class TwoOpportunityEntryKernelTest(unittest.TestCase):
         self.assertEqual(final.state, "SECONDARY_EXPIRED_BOUNDARY")
         self.assertIsNone(event)
 
+    def test_dip_reference_boundary_expiry(self):
+        state, _ = emit_initial_opportunity(self.anchor())
+        final, event = observe_first_completed_bar(
+            state,
+            {"missing": False, "close": 99.0, "end": "2025-01-01T11:30:00+09:00"},
+            reference_boundary_expired=True,
+        )
+        self.assertEqual(final.state, "SECONDARY_EXPIRED_BOUNDARY")
+        self.assertIsNone(event)
+
     def test_no_recursive_secondary_transition(self):
         state, _ = emit_initial_opportunity(self.anchor())
         final, _ = observe_first_completed_bar(
             state,
             {"missing": False, "close": 99.0, "end": "2025-01-01T09:35:00+09:00"},
+            reference_bar=self.reference(),
         )
         with self.assertRaisesRegex(ValueError, "SECONDARY_STATE_ALREADY_TERMINAL"):
             observe_first_completed_bar(
                 final,
                 {"missing": False, "close": 98.0, "end": "2025-01-01T09:40:00+09:00"},
+                reference_bar={"missing": False, "open": 98.0, "start": "2025-01-01T09:40:00+09:00"},
             )
 
     def test_state_record_has_no_outcome_or_sizing_fields(self):

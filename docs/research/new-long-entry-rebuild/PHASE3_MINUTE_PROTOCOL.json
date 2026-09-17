@@ -1,0 +1,48 @@
+{
+  "id": "NEW_LONG_ENTRY_PHASE3_RESOLUTION_CONTROLLED_FIRST_RESPONSE_V1",
+  "purpose": "Test actual post-selection response at 1m versus the same rule at 5m; do not predict a dip from old Momentum3 sign",
+  "basis": "Phase1 and Phase2 failures already exposed. One new causal mechanism, no parameter search. Existing 76-session Development only, NOT fresh/OOS.",
+  "universe": "All 2743 first symbol-session anchors from 3800 Frozen LONG Selector events; first identity fixed without outcome/coverage filtering",
+  "sourceHead": "7599df41199a8c4d1ea86d5f3cb595edd599dd21",
+  "exporterCommit": "efcced7b0abdc679a7004809793298a7b3a1d067",
+  "exporterSHA": "51a03e89045985ad20f860d9a589caa44ed0e1548c66379e2ee945d16e884359",
+  "dataPolicy": "Same existing encrypted Development checkpoints only. No provider request, new dates, protected/Fresh/OOS access, synthetic OHLC, forward fill, actual orders, or upstream changes",
+  "arms": ["IMMEDIATE_NEXT_1M_OPEN", "FIRST_RESPONSE_1M", "FIRST_RESPONSE_5M_CONTROL"],
+  "rule": {
+    "t0": "OBSERVE; no static feature router and no old v1 gate",
+    "firstCompletedBar": "If CLOSE >= frozen selection reference (within numerical epsilon1e-9 pct), ENTER_CONTINUATION intent. Otherwise enter PULLBACK state",
+    "laterCompletedBar": "In PULLBACK, first strictly later CLOSE > immediately previous completed bar HIGH + epsilon1e-9 pct gives ENTER_REBOUND intent",
+    "referenceFill": "OPEN at signal bar END, i.e. the next exact 1-minute slot; never signal bar LOW/CLOSE, never skip a missing next OPEN",
+    "deadlineMinutes": 30,
+    "boundaries": "Shorten at lunch/session end, no crossing, no reentry, no later Selector substitution",
+    "missing": "Required minute(s) unavailable => UNKNOWN and stop this anchor; missing is not no-trade. 5m control aggregates five exact original minute slots and is UNKNOWN if any missing",
+    "decisionInput": "Only current completed bar CLOSE/HIGH and frozen t0 reference. No future OHLC/label/coverage enters decisions. Numerical epsilon is not a trading threshold"
+  },
+  "primaryPanel": "Evaluation-only exact complete60m forward paths, no recess/end crossing. Decide all anchors first, then slice panel. No requirement of a winner or full t0 prefix",
+  "primaryComparison": "FIRST_RESPONSE_1M versus IMMEDIATE on the same panel; 5m arm is a fixed resolution control, not a candidate sweep",
+  "metrics": {
+    "capture": "Original immediate next1mOPEN +3/+5 winners within t0+60; retained only if new entry has +3/+5 after its own fill before the same endpoint; EXPIRE not retained; unknown separately",
+    "risk": "Own30m D30 on SAME entered anchors for both arms; also ES95(top ceil(.05*n) mean), p95; no expiry D30=0",
+    "price": "100*(immediate price - candidate price)/immediate price; positive is cheaper",
+    "economics": "Common t0+60 CLOSE reference net less0.05% roundtrip; non-entry=0 in per-candidate policy index but not a fabricated trade. NOT Frozen EXIT/Portfolio performance",
+    "denominators": "All anchors, panel, entered, expired, unknown decisions/fills/outcomes retained separately"
+  },
+  "screenGates": {
+    "minimumCompletePanel": 100,
+    "minimumEntries": 100,
+    "minimumEnteredSymbols": 30,
+    "capture3Minimum": 0.90,
+    "capture5Minimum": 0.90,
+    "throughputMinimum": 0.80,
+    "pairedD30RatioMaximum": 0.90,
+    "pairedES95RatioMaximum": 1.0,
+    "meanPriceImprovementStrictMinimum": 0.0,
+    "commonNetPerCandidateDeltaMinimum": 0.0,
+    "chronoNonWorseD30Minimum": 3,
+    "symbolNonWorseD30Minimum": 3,
+    "unitEligibility": "At least10 candidate entries for paired D30 in each of four existing later15-session blocks / five existing SHA-symbol groups; otherwise UNKNOWN not PASS"
+  },
+  "interpretation": "Gates carried as engineering feasibility budgets, not guaranteed achievable or statistically proven. All pass => research continuation only. Failure => KILL_THIS_RULE; if1m improves5m but fails immediate call resolution-only observation, not Entry PASS. No retuning this run",
+  "sensitivity": "Existing top2 frequent symbols from Phase2 (21340,89180) removal diagnostic; session-equal summaries; no performance-driven symbol exclusion. Small/selected panels cannot replace the primary verdict",
+  "scope": "No ML fit/prediction, no Frozen EXIT/Capital/Portfolio replay or changes. No promotion, no main/parent-branch merge, no safety enabling"
+}

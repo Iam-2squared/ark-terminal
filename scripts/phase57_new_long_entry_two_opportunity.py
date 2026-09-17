@@ -42,7 +42,6 @@ class EntryState:
     secondary_terminal: bool
 
 
-
 def _base(anchor: Anchor) -> dict[str, Any]:
     return {
         "kernelVersion": KERNEL_VERSION,
@@ -52,7 +51,6 @@ def _base(anchor: Anchor) -> dict[str, Any]:
         "decisionTimestamp": anchor.decision_timestamp,
         "decisionPrice": float(anchor.decision_price),
     }
-
 
 
 def emit_initial_opportunity(anchor: Anchor) -> tuple[EntryState, dict[str, Any]]:
@@ -68,17 +66,22 @@ def emit_initial_opportunity(anchor: Anchor) -> tuple[EntryState, dict[str, Any]
     return EntryState(anchor=anchor, state="INITIAL_ENTRY_OPPORTUNITY", secondary_terminal=False), event
 
 
-
 def observe_first_completed_bar(
     state: EntryState,
     bar: Mapping[str, Any] | None,
     *,
+    reference_bar: Mapping[str, Any] | None = None,
     boundary_expired: bool = False,
+    reference_boundary_expired: bool = False,
 ) -> tuple[EntryState, dict[str, Any] | None]:
     """Perform the only post-t0 Entry transition.
 
-    Decision fields consumed from `bar`: missing, close, end. Open/high/low/volume
-    and every later/future field are intentionally ignored.
+    Decision fields consumed from the completed first bar are only `missing`,
+    `close`/`c`, and `end`. If that close establishes FIRST_CLOSED_DIP, the
+    secondary opportunity is emitted only when the causally contemporaneous
+    next regular 5m OPEN reference is observable. From `reference_bar` only
+    `missing`, `open`/`o`, and `start` are consumed. High/low/volume, later bars,
+    and every evaluator outcome field are intentionally ignored.
     """
     if state.secondary_terminal or state.state != "INITIAL_ENTRY_OPPORTUNITY":
         raise ValueError("SECONDARY_STATE_ALREADY_TERMINAL")
@@ -98,16 +101,32 @@ def observe_first_completed_bar(
     if close >= anchor.decision_price:
         return EntryState(anchor, "FIRST_BAR_CONTINUATION", True), None
 
+    if reference_boundary_expired:
+        return EntryState(anchor, "SECONDARY_EXPIRED_BOUNDARY", True), None
+    if reference_bar is None or bool(reference_bar.get("missing", False)):
+        return EntryState(anchor, "SECONDARY_UNKNOWN", True), None
+
+    reference_open = reference_bar.get("open", reference_bar.get("o"))
+    reference_start = reference_bar.get("start", end)
+    if (
+        not isinstance(reference_open, (int, float))
+        or isinstance(reference_open, bool)
+        or reference_open <= 0
+        or not reference_start
+    ):
+        return EntryState(anchor, "SECONDARY_UNKNOWN", True), None
+
     event = {
         **_base(anchor),
         "eventType": "DIP_REPRICE_OPPORTUNITY",
         "sourceState": "FIRST_CLOSED_DIP",
-        "opportunityTimestamp": str(end),
+        "opportunityTimestamp": str(reference_start),
         "observedFirstClose": float(close),
+        "referenceStatus": "REFERENCE_OPEN",
+        "referencePrice": float(reference_open),
         "quantityOwnedByEntry": False,
     }
     return EntryState(anchor, "DIP_REPRICE_EMITTED", True), event
-
 
 
 def state_record(state: EntryState) -> dict[str, Any]:

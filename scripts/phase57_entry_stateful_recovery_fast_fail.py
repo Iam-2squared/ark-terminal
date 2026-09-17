@@ -132,14 +132,14 @@ def deep(rows,side,level):
     return {'n':len(a),'count':n,'rate':n/len(a) if a else None}
 
 
-def block_metrics(rows):
-    dates=sorted({r['sessionDate'] for r in rows})
+def block_metrics(rows,calendar_dates):
+    assert len(calendar_dates)==76
     blocks=[]
     for i in range(4):
-        ds=set(dates[i*19:(i+1)*19])
+        ds=set(calendar_dates[i*19:(i+1)*19])
         rr=[r for r in rows if r['sessionDate'] in ds and r.get('baseline30') and r.get('challenger30')]
         b=mean([r['baseline30']['downside'] for r in rr]);c=mean([r['challenger30']['downside'] for r in rr])
-        blocks.append({'block':i+1,'sessions':len(ds),'n':len(rr),'baselineD30':b,'challengerD30':c,
+        blocks.append({'block':i+1,'sessions':19,'n':len(rr),'baselineD30':b,'challengerD30':c,
                        'nonWorse':b is not None and c is not None and c<=b})
     return blocks
 
@@ -153,6 +153,7 @@ def run():
     assert set(pm)=={e['selectorEventId'] for e in loc.read(loc.EVENTS)}
     ledger=[evaluate(pm[a['selectorEventId']]) for a in anchors]
     primary=[r for r in ledger if r.get('primary')]
+    calendar_dates=sorted({r['sessionDate'] for r in primary});assert len(calendar_dates)==76
     dips=[r for r in primary if r.get('firstDip')]
     confirmed=[r for r in dips if r['state']=='RECOVERY_CONFIRMED']
     paired=[r for r in confirmed if r.get('baseline30') and r.get('challenger30') and r.get('baseline60') and r.get('challenger60')]
@@ -160,7 +161,7 @@ def run():
     b60=mean([r['baseline60']['upside'] for r in paired]);c60=mean([r['challenger60']['upside'] for r in paired])
     cap3=capture(paired,3);cap5=capture(paired,5)
     d5b=deep(paired,'baseline30',5);d5c=deep(paired,'challenger30',5)
-    blocks=block_metrics(paired);stable=sum(x['nonWorse'] for x in blocks)
+    blocks=block_metrics(paired,calendar_dates);stable=sum(x['nonWorse'] for x in blocks)
     sufficient=(len(paired)>=30 and len({r['symbol'] for r in paired})>=20 and cap3['denominator']>=20)
     gates=None
     if sufficient:

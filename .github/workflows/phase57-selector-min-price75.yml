@@ -17,7 +17,8 @@ concurrency:
 
 jobs:
   price75-impact:
-    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    # Measurement completed once at this exact implementation HEAD; later commits audit immutable outputs.
+    if: github.event.pull_request.head.sha == 'dee68ee333f28679399c564b9d7f24efd43a5a0d' && github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:

@@ -79,9 +79,12 @@ def run(dataset,outdir):
     assert runtimeids==[eid(r) for r in exact_records(new)]
     previous=read(ROOT/'docs/evidence/phase57-msh-entry-long-v1-preimplementation-feasibility-events.ndjson.gz')
     expected={r['selectorEventId']:r for r in previous}
+    score_transport_differences=[]
     for r in exact_records(old):
         e=expected[eid(r)]
-        assert r['decisionPrice']==e['decisionPrice'] and r['savedV1Score']==e['ridgeScore'] and r['oldEligibleRank']==e['ridgeRank']
+        assert r['decisionPrice']==e['decisionPrice'] and r['oldEligibleRank']==e['ridgeRank']
+        assert math.isclose(r['savedV1Score'],e['ridgeScore'],rel_tol=0,abs_tol=1e-12)
+        if r['savedV1Score']!=e['ridgeScore']:score_transport_differences.append(abs(r['savedV1Score']-e['ridgeScore']))
     assert set(expected)=={eid(r) for r in exact_records(old)}
     prior=read(ROOT/'docs/evidence/phase57-long-only-frozen-selector-v1-development-evidence.json')
     oldmetrics=selected_summary(u,old);newmetrics=selected_summary(newu,new)
@@ -108,7 +111,7 @@ def run(dataset,outdir):
         blocks[str(i+1)]={'sessions':dates,'old':selected_summary(u[u.sessionDate.isin(dates)],old[old.sessionDate.isin(dates)]),'new':selected_summary(newu[newu.sessionDate.isin(dates)],new[new.sessionDate.isin(dates)])}
     top3=[x[0] for x in concentration(oldrows,'symbol')['top10'][:3]]
     def selection_diag(f):return {'n':len(f),'high':loss_metrics(f),'symbol':concentration(exact_records(f),'symbol'),'session':concentration(exact_records(f),'sessionDate')}
-    audit={'oldSelectedParity':3800,'oldMetricsParity':True,'runtimeWrapperParity':True,'reverseInputSelectionParity':True,'scoresUnchanged':True,'sourcePinsUnchanged':True,'causalAgeBounds':True,'eligiblePriceMin':float(newu.decisionPrice.min()),'price75Selected':int(new.decisionPrice.eq(75).sum()),'lowPriceSelected':int(new.decisionPrice.le(75).sum()),'missingFailOpen':False,'excludedPlusAddedCountBalance':len(removed)==len(added),'outputOnlyLabels':True}
+    audit={'scoreTransportDifferences':len(score_transport_differences),'maxScoreTransportDifference':max(score_transport_differences,default=0),'scoreTransportComparisonOnlyTolerance':1e-12,'oldSelectedParity':3800,'oldMetricsParity':True,'runtimeWrapperParity':True,'reverseInputSelectionParity':True,'scoresUnchanged':True,'sourcePinsUnchanged':True,'causalAgeBounds':True,'eligiblePriceMin':float(newu.decisionPrice.min()),'price75Selected':int(new.decisionPrice.eq(75).sum()),'lowPriceSelected':int(new.decisionPrice.le(75).sum()),'missingFailOpen':False,'excludedPlusAddedCountBalance':len(removed)==len(added),'outputOnlyLabels':True}
     result={'policyId':policy['policyId'],'policyDigest':policy['policyDigest'],'policyCommit':PROTOCOL_COMMIT,'sourceHead':policy['sourceHead'],'sourceManifest':manifest,'safety':policy['safety'],'impact':{'sessions':76,'decisionTimestamps':len(timestamps),'preEligibilityCandidates':2758341,'oldEligibleCandidates':len(u),'newEligibleCandidates':len(newu),'oldSelected':len(old),'newSelected':len(new),'excludedCandidates':len(excluded),'excludedOldTop5':len(removed),'affectedTimestamps':len(affected),'replacements':len(added),'newTop5ShortfallTimestamps':sum(n<5 for n in new.groupby(base.KEYS).size())+len(set(timestamps)-set(map(tuple,new[base.KEYS].drop_duplicates().to_numpy()))),'excludedUniqueSymbols':int(excluded.symbol.nunique()),'excludedPrices':base.distribution(excluded.decisionPrice),'removedTop5Prices':base.distribution(removed.decisionPrice)},'opportunity':{'old':oldmetrics,'new':newmetrics,'excludedCandidates':loss_metrics(excluded),'removedOldTop5':loss_metrics(removed),'replacements':loss_metrics(added),'commonOldUniverseRecallPct':{str(k):base.ratio(newmetrics[str(k)]['high']['metrics']['selectedHits'],oldmetrics[str(k)]['high']['metrics']['opportunities'],100) for k in LEVELS}},'replacementsByTimestamp':replacements,'sessionStability':stability,'chronological':blocks,'concentration':{'old':selection_diag(old),'new':selection_diag(new),'oldTop3FixedExclusion':top3,'oldExTop3':selection_diag(old[~old.symbol.isin(top3)]),'newExTop3':selection_diag(new[~new.symbol.isin(top3)])},'audit':audit,'freshOOSOpened':False,'freezeStatus':'PENDING_DOWNSTREAM_AND_CI_AUDIT'}
     out.mkdir(parents=True)
     write(out/'selector-ledger.json.gz',ledger);write(out/'selector-summary.json',result)

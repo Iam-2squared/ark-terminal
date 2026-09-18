@@ -37,6 +37,9 @@ class PriceGateTests(unittest.TestCase):
         with self.assertRaises(ValueError):m.gate.select_top5([row('a'),row('a')])
     def test_selector_entry_a_pins(self):self.assertTrue(m.verify()['sourcePins'])
     def test_safety_false(self):self.assertEqual(set(m.verify()['safety'].values()),{False})
+    def test_transport_tolerance_is_not_score_rounding(self):
+        a=row('a',100,1.0);b=row('b',100,math.nextafter(1.0,math.inf))
+        self.assertEqual(m.gate.select_top5([a,b])[0]['symbol'],'b')
     def test_new_stream_first_anchor(self):
         a=row('a');b={**a,'decisionTimestamp':'2024-09-17T10:00:00+09:00','selectorEventId':'later'}
         self.assertEqual(anchors([b,a]),[a]);self.assertEqual(anchors([b]),[b])

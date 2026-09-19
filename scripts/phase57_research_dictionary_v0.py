@@ -111,7 +111,7 @@ def daily_traits(d,prev,hist,s):
  if hist and num(hist[-1].get('ret')):
   out['continuation_1']=float(np.sign(hist[-1]['ret'])*ret/s)
   if num(hist[-1].get('s')) and hist[-1]['s']>0:out['vol_clustering']=abs(ret/s)*abs(hist[-1]['ret']/hist[-1]['s'])
- if len(hist)>=3 and num(hist[-3].get('ret')) and num(hist[-3].get('C')):
+ if len(hist)>=3 and all(num(x.get('ret')) for x in hist[-3:]) and num(hist[-3].get('C')):
   out['continuation_3']=float(np.sign(hist[-3]['ret'])*(d['C']/hist[-3]['C']-1)/s)
  return out
 

@@ -43,6 +43,9 @@ class Contract(unittest.TestCase):
  def test_swing_gap_reset(self):self.assertEqual(m.swings([{'t':545,'C':100},{'t':560,'C':120},{'t':565,'C':110}],1),[])
  def test_daily_atoms(self):
   d=self.row(O=100,H=110,L=99,C=109,Va=10000);pr=self.row();h=[dict(Va=1000,tr=.1,ret=.01,C=100,s=.1)]*10;x=m.daily_traits(d,pr,h,.05);self.assertEqual(x['large_up'],1);self.assertEqual(x['value_shock'],1)
+ def test_multiday_action_gap_not_bridged(self):
+  h=[dict(Va=1000,tr=.1,ret=.01,C=100,s=.1) for _ in range(10)];h[-2]['ret']=None
+  x=m.daily_traits(self.row(C=101),self.row(),h,.1);self.assertNotIn('continuation_3',x)
  def test_neff(self):
   x=np.tile(np.arange(24.)[:,None],(1,3));self.assertTrue(np.all(m.neff(x)<24));self.assertTrue(np.all(m.neff(x)>0))
  def test_neff_missing(self):self.assertEqual(m.neff(np.full((20,1),np.nan))[0],0)

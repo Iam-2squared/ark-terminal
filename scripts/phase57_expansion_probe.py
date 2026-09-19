@@ -2,7 +2,7 @@
 import hashlib,json,os,re,time,urllib.request,urllib.error
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
-OUT=ROOT/'docs/evidence/phase57-behavior-expansion-v1/probe'
+OUT=ROOT/'docs/evidence/phase57-behavior-expansion-v1/probe-v2'
 
 def main():
  OUT.mkdir(parents=True,exist_ok=False)
@@ -25,9 +25,14 @@ def main():
    r['errorBody']=body
   receipts.append(r);time.sleep(1.2)
  (OUT/'boundaries.json').write_text(json.dumps(receipts,indent=2)+'\n')
- url='https://api.jquants.com/v2/markets/calendar?from=2021-09-01&to=2026-09-19'
+ url='https://api.jquants.com/v2/markets/calendar?from=2021-09-19&to=2026-09-19'
  req=urllib.request.Request(url,headers={'x-api-key':key})
- with urllib.request.urlopen(req,timeout=120) as response: raw=response.read()
+ print(json.dumps(receipts),flush=True)
+ try:
+  with urllib.request.urlopen(req,timeout=120) as response: raw=response.read()
+ except urllib.error.HTTPError as e:
+  error=json.loads(e.read().decode().replace(key,'[REDACTED]'));print(json.dumps(error),flush=True)
+  (OUT/'calendar-error.json').write_text(json.dumps(error,indent=2)+'\n');return
  body=json.loads(raw);assert 'pagination_key' not in body or not body['pagination_key']
  assert all(set(x)<= {'Date','HolDiv'} for x in body['data'])
  (OUT/'calendar.json').write_bytes(raw)

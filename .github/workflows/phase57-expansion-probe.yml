@@ -29,7 +29,7 @@ jobs:
         if: always()
         with:
           name: phase57-expansion-metadata-${{ github.run_id }}
-          path: docs/evidence/phase57-behavior-expansion-v1/probe
+          path: docs/evidence/phase57-behavior-expansion-v1/probe-v2
           retention-days: 30
       - name: Preserve metadata on research branch
         env:
@@ -37,6 +37,6 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add docs/evidence/phase57-behavior-expansion-v1/probe
+          git add docs/evidence/phase57-behavior-expansion-v1/probe-v2
           git commit -m 'Phase57: preserve live metadata-only provider boundary probe'
           git push origin "HEAD:$BRANCH"

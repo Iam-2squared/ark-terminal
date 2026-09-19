@@ -1,0 +1,67 @@
+name: Phase57 Raw Selector Direct Entry Source Preflight
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-raw-selector-direct-entry-preflight.yml'
+      - 'scripts/phase57_raw_selector_direct_entry_preflight.py'
+      - 'scripts/test_phase57_raw_selector_direct_entry_preflight.py'
+      - 'docs/evidence/phase57-raw-selector-direct-entry-v1/**'
+permissions:
+  contents: read
+jobs:
+  source-contract-audit:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      ARK_TEST_OFFLINE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Source identity, missing Selector ticks and causal history tests
+        run: |
+          set -o pipefail
+          mkdir -p /tmp/raw-selector-direct-preflight
+          python scripts/offline/kernel_exec.py python -m unittest -v scripts.test_phase57_raw_selector_direct_entry_preflight 2>&1 | tee /tmp/raw-selector-direct-preflight/tests.log
+      - name: Reproduce metadata only; no fit or candidate outcome evaluation
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_raw_selector_direct_entry_preflight --out /tmp/raw-selector-direct-preflight/measurement
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          b=Path('docs/evidence/phase57-raw-selector-direct-entry-v1')
+          closure=json.loads((b/'closure-manifest.json').read_text())
+          for f,h in closure['filePins'].items():
+              assert hashlib.sha256(Path(f).read_bytes()).hexdigest()==h,f
+          for f in (b/'preflight').iterdir():
+              assert f.read_bytes()==(Path('/tmp/raw-selector-direct-preflight/measurement')/f.name).read_bytes(),f
+          PY
+          git diff --exit-code
+      - name: Record exact HEAD and blocked data contract
+        env:
+          RESEARCH_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          p=Path('/tmp/raw-selector-direct-preflight');s=json.loads((p/'measurement/summary.json').read_text())
+          assert s['modelFits']==s['validationCandidateEvaluations']==s['developmentTestCandidateEvaluations']==0
+          assert all(v is False for v in s['safety'].values())
+          assert 'Ran 12 tests' in (p/'tests.log').read_text()
+          receipt={'checkedHead':os.environ['RESEARCH_HEAD'],'runId':os.environ['GITHUB_RUN_ID'],'status':'PREFLIGHT_AUDIT_PASS',
+              'researchStatus':s['status'],'performanceMeasurementCompleted':False,'targetedTestsPassed':12,
+              'fitCalls':0,'candidateEvaluations':0,'freshOOSOpened':False,'safety':s['safety']}
+          (p/'final-ci-receipt.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-raw-selector-direct-preflight-${{ github.event.pull_request.head.sha }}
+          path: /tmp/raw-selector-direct-preflight/
+          if-no-files-found: error
+          retention-days: 30

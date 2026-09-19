@@ -1,0 +1,27 @@
+name: Phase57 Historical Re-Measurement Integrity
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - 'scripts/*phase57_historical_remeasurement*'
+      - 'docs/evidence/phase57-msh-entry-long-v1-historical-remeasurement/**'
+      - '.github/workflows/phase57-historical-remeasurement-integrity.yml'
+  pull_request:
+    paths:
+      - 'scripts/*phase57_historical_remeasurement*'
+      - 'docs/evidence/phase57-msh-entry-long-v1-historical-remeasurement/**'
+      - '.github/workflows/phase57-historical-remeasurement-integrity.yml'
+permissions:
+  contents: read
+jobs:
+  historical-evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Causal replay and immutable artifact checks without predictions
+        run: ARK_TEST_OFFLINE=1 python3 scripts/offline/kernel_exec.py python3 scripts/test_phase57_historical_remeasurement.py
+      - name: Strict path synthetic checks
+        run: ARK_TEST_OFFLINE=1 python3 scripts/offline/kernel_exec.py node --test scripts/test_phase57_historical_remeasurement_paths.mjs

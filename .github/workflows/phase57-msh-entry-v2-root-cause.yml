@@ -1,0 +1,23 @@
+name: Phase57 LONG Entry v2 Root Cause Evidence Integrity
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-msh-entry-v2-root-cause.yml
+      - scripts/*phase57_msh_entry_v2_root_cause.py
+      - docs/evidence/phase57-msh-entry-long-v2-root-cause/**
+permissions:
+  contents: read
+jobs:
+  saved-evidence-no-model-calls:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Saved evidence and diagnostic tests only; deny network
+        env:
+          ARK_TEST_OFFLINE: '1'
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: python3 scripts/offline/kernel_exec.py python3 -m unittest scripts/test_phase57_msh_entry_v2_root_cause.py

@@ -1,0 +1,40 @@
+{
+  "id": "PHASE57_ENTRY_ADDITIONAL_INFORMATION_DIAGNOSTIC_V1",
+  "status": "PRECOMMITTED_BEFORE_THIS_FEATURE_OUTCOME_COMPARISON",
+  "sourceHead": "7599df41199a8c4d1ea86d5f3cb595edd599dd21",
+  "scope": "Existing 76-session historical Development only, 3800 frozen candidate events; Frozen v1 anchors are primary conditional diagnostic population",
+  "modelFitAllowed": false,
+  "modelPredictionAllowed": false,
+  "newMarketDataAllowed": false,
+  "featurePanel": [
+    {"name": "range6Pct", "definition": "100*(max high - min low)/latest close of exactly six preceding completed scheduled 5m bars", "novelty": "NEW_TO_ENTRY_SCREEN"},
+    {"name": "lastCloseLocation", "definition": "(close-low)/(high-low) on immediately preceding completed 5m bar; zero range is NULL", "novelty": "NEW_TO_ENTRY_SCREEN"},
+    {"name": "lastUpperWickFraction", "definition": "(high-max(open,close))/(high-low) on immediately preceding completed 5m bar; zero range is NULL", "novelty": "NEW_TO_ENTRY_SCREEN"},
+    {"name": "turnover6Jpy", "definition": "Sum of source-observed turnover of the six preceding completed scheduled 5m bars; missing Va is NULL, never zero; partial minute observations disclosed", "novelty": "NEW_TO_ENTRY_SCREEN"},
+    {"name": "relativeVolume5", "definition": "Unmodified AVAILABLE value in canonical feasibility event; missing retained", "novelty": "P0_ALREADY_SCREENED_NOT_NEW_INFORMATION"},
+    {"name": "directionalVwapDistancePct", "definition": "Unmodified AVAILABLE value in canonical feasibility event; HLC3-volume VWAP proxy, not transaction VWAP", "novelty": "P0_ALREADY_SCREENED_NOT_NEW_INFORMATION"},
+    {"name": "priorSelectionCount", "definition": "Count strictly earlier same-symbol same-session frozen Top5 events", "novelty": "PREVIOUSLY_INVENTORIED_NOT_IN_V2_V23_MODEL"},
+    {"name": "ridgeDeltaPreviousSelection", "definition": "Current frozen Ridge score minus most recent earlier same-symbol same-session score; no earlier event is NULL", "novelty": "NEW_DERIVATION_OF_EXISTING_SELECTOR_INFORMATION"}
+  ],
+  "inventoryOnly": ["dated tick-size ratio (not bid/ask spread)", "order-book depth/spread/fill probability"],
+  "outcomes": {
+    "primary": "Saved fixed-LONG-EXIT net reference return > 0; NULL outcome excluded from association denominator only",
+    "supporting": ["strict30m D30 >= 5", "strict30m HIGH MFE >= 3", "strict30m HIGH MFE >= 5"],
+    "labelsUnchanged": true,
+    "noPortfolioRerun": true
+  },
+  "analysis": {
+    "type": "Descriptive no-fit feature ranking screen, NOT model OOF or new validation",
+    "statistics": ["availability", "positive-negative group median", "raw univariate AUROC", "symbol-session-balanced AUROC", "Spearman versus fixed EXIT net and D30"],
+    "chronological": "Reuse existing four disjoint 15-session evaluation windows; no model training or direction fitting",
+    "symbol": "Reuse existing SHA256 symbol grouping, report all76 and last15 separately; no unseen-symbol model-performance claim",
+    "primaryPopulation": "Frozen v1 277 entry anchors; full 3800 candidate population is supporting",
+    "orientation": "Raw feature AUC reported without choosing entry thresholds. At most descriptive direction concordance; all searches counted as outcome-exposed exploratory research",
+    "candidateAdvanceHeuristic": "For a newly screened feature, v1-anchor primary-label univariate AUC >=0.60 or <=0.40, same direction in >=3/4 temporal windows and >=3/5 symbol groups, with two-class denominators reported; direction persists after removing largest positive and negative fixed-EXIT contributors. This nominates further research, NOT acceptance or statistically confirmed edge. Missing or sparse groups are UNKNOWN, not FAIL.",
+    "noIncrementalPredictionClaim": "Marginal association alone is not incremental value beyond frozen score, time and symbol; future model comparison required",
+    "noKillingAllHistoricalResearch": "Lack of univariate separation does not prove no nonlinear or joint signal; verdict applies only to this bounded screen"
+  },
+  "limits": {"features": 8, "fit": 0, "modelPredictions": 0, "thresholdSweeps": 0, "labelChanges": 0, "fresh": 0, "oos": 0, "priceProviderRequests": 0},
+  "safety": {"executionAllowed": false, "brokerWriteAllowed": false, "excelOrderWriteAllowed": false, "rssOrderFunctionAllowed": false, "liveTradingAllowed": false, "paperTradingAllowed": false, "automaticPromotionAllowed": false, "productionUpdateAllowed": false, "transmitted": false},
+  "limitations": ["Frozen Selector and v1 exposed to all76 sessions", "Candidate membership conditioned on historical label availability", "Historical normalization barEnd is not measured realtime arrival time", "OHLCV reference outcomes are not verified fills", "8-feature multi-outcome exploratory screen is not confirmatory testing"]
+}

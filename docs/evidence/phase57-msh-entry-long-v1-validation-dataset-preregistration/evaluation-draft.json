@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "status": "DRAFT_BLOCKED_NOT_FROZEN_NO_ACCESS_AUTHORIZATION",
+  "candidateContractSha256": "4a2f52cd6f25f480fe6d7de9db525860ddf3c1600abed06b6222c0990c055a23",
+  "validationDatasetId": null,
+  "proposedExistingPartition": "PHASE57_LONG_ONLY_CLEAN205_SPLIT_V3/VALIDATION",
+  "blocker": "EXIT_DEVELOPMENT_ALLOCATION_CONFLICT",
+  "dataSource": {
+    "provider": "JQUANTS",
+    "apiVersion": "v2",
+    "sourceContract": "predict/long-only/phase57-long-only-data-plan.json",
+    "endpoints": [
+      "/v2/equities/master",
+      "/v2/equities/bars/daily",
+      "/v2/equities/bars/minute"
+    ],
+    "policy": "Reuse identity-matched private immutable cache first. No acquisition now; no Yahoo substitution. Event/label availability not inspected. A separate acquisition plan is required only if cached sources are missing.",
+    "privateRawDataRequired": true,
+    "publicRawStorageAllowed": false
+  },
+  "universeContract": {
+    "name": "TSE_PRIME_STANDARD_GROWTH_DOMESTIC_COMMON_EQUITY_POINT_IN_TIME",
+    "source": "Frozen Selector eligibility/ranking and existing LONG-only PIT master/corporate-action contracts",
+    "noNewFilters": true,
+    "segments": [
+      "Prime",
+      "Standard",
+      "Growth"
+    ],
+    "direction": "LONG",
+    "cashEquityOnly": true
+  },
+  "cadence": {
+    "decisionTimesJst": [
+      "09:30",
+      "10:00",
+      "10:30",
+      "11:00",
+      "11:30",
+      "13:00",
+      "13:30",
+      "14:00",
+      "14:30",
+      "15:00"
+    ],
+    "decisionsPerSession": 10,
+    "interval": "APPROXIMATELY_30_MINUTES_WITH_LUNCH_BREAK",
+    "fiveMinuteSelectorCadenceAllowed": false
+  },
+  "PITSemantics": {
+    "features": "Available by decision timestamp only; frozen selector and final scaler/model, no fitting.",
+    "futurePath": "Evaluator-only after decisions fixed",
+    "prohibited": [
+      "FUTURE_PRICE_VOLUME_RANKING",
+      "FORWARD_FILL_FOR_ELIGIBILITY",
+      "INTERPOLATION",
+      "PREVIOUS_SESSION_SUBSTITUTION",
+      "REVISED_FUTURE_KNOWLEDGE"
+    ]
+  },
+  "DecisionPriceSemantics": {
+    "reference": "LATEST_CAUSALLY_AVAILABLE_CLOSED_MARKET_PRICE",
+    "maximumAgeWallClockMinutes": 5,
+    "eligibilityBeforeRanking": true,
+    "role": "REFERENCE_ONLY",
+    "entryReference": "Decision Price at actual first ENTER event",
+    "executionClaim": false
+  },
+  "labelContract": {
+    "reference": "EVENT_DECISION_PRICE",
+    "horizonWallClockMinutes": 30,
+    "sameSession": true,
+    "path": "Six complete continuous future5m bars (t,t+30m]; canonical bar interval semantics unchanged.",
+    "primary": "FUTURE_HIGH_ORDINAL",
+    "thresholdsPct": [
+      1,
+      2,
+      3,
+      5
+    ],
+    "classes": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "meaning": [
+      "BELOW1",
+      "GE1_LT2",
+      "GE2_LT3",
+      "GE3_LT5",
+      "GE5"
+    ]
+  },
+  "labelabilityRule": {
+    "rule": "Frozen same-session complete continuous5m path; no horizon compression or future fill",
+    "unlabelable": "MISSING_NOT_CLASS0",
+    "reasons": [
+      "PROVIDER_GAP",
+      "LUNCH_BREAK",
+      "SESSION_END"
+    ],
+    "reasonImplementation": "Use frozen canonical label contract; do not silently relabel gaps.",
+    "selectionUsesFutureLabelability": false
+  },
+  "closeDiagnosticContract": {
+    "path": "SAME_COMPLETE30M_PATH",
+    "type": "COMPLETED5M_CLOSE_ORDINAL",
+    "primaryMixed": false
+  },
+  "trueMAEContract": {
+    "reference": "Same event Decision Price / actual ENTER reference, explicitly separated",
+    "horizon": "STRICT_WALL_CLOCK30M",
+    "field": "LOW",
+    "formula": "100*(min(reference,min_future_LOW)/reference-1)",
+    "sign": "SIGNED_NONPOSITIVE_ADVERSE_EXCURSION_PERCENT",
+    "costTreatment": "GROSS_REFERENCE_PRICE_EXCURSION_NO_EXECUTION_COST_MODEL",
+    "lunch": "Incomplete continuous path => MISSING; no trading-time conversion",
+    "sessionEnd": "Window beyond close => MISSING",
+    "missingLow": "MISSING_NO_SESSION_MAE_SUBSTITUTION"
+  },
+  "MFEContract": {
+    "reference": "SAME_AS_TRUE_MAE",
+    "horizon": "SAME_STRICT30M_PATH",
+    "field": "HIGH",
+    "formula": "100*(max(reference,max_future_HIGH)/reference-1)",
+    "purpose": "DIAGNOSTIC_ONLY_NO_EXIT_OPTIMIZATION",
+    "costTreatment": "GROSS",
+    "missingPath": "MISSING"
+  },
+  "entryTimeRemainingOpportunity": {
+    "reference": "Actual first ENTER Decision Price",
+    "window": "NEW_STRICT30M_SAME_SESSION_PATH_FROM_ENTER",
+    "thresholdsPct": [
+      1,
+      2,
+      3,
+      5
+    ],
+    "separateFrom": "Admission of first-eligible Selector winner; not claimed captured return"
+  },
+  "latencyContract": {
+    "unit": "MINUTES",
+    "formula": "ENTER_timestamp - first_original / first_labelable_selector_timestamp",
+    "separateSameEventDecisionLatency": true
+  },
+  "consumedReturnContract": {
+    "unit": "BPS",
+    "formula": "10000*(entry_reference / first_original_or_first_labelable_selector_reference -1)",
+    "referenceCohortsReportedSeparately": true
+  },
+  "costContract": {
+    "costAdjustedMetricsPlanned": false,
+    "feesSlippageEstimate": null,
+    "primaryAndPathMetrics": "GROSS_PRICE_OPPORTUNITY_AND_EXCURSION_ONLY",
+    "brokerRealizedPnlClaimAllowed": false,
+    "paperOrLiveTradingAllowed": false,
+    "noPostOutcomeCostTuning": true
+  },
+  "exclusionRules": {
+    "eventEligibility": "FROZEN_SELECTOR_CONTRACT_ONLY",
+    "unlabelable": "Retain ledger and all-event action counts; exclude only from outcome denominators",
+    "sessionIntegrityFailure": "STOP_ENTIRE_RUN_NO_SESSION_DROP_NO_REPLACEMENT",
+    "automaticReserveUse": false,
+    "postHocRegimeExclusion": false,
+    "sessionAdditionDeletion": false
+  },
+  "validationGovernance": {
+    "candidate": 2,
+    "singleProspectiveEvaluation": true,
+    "hardNumericPassCutoffs": [],
+    "primaryAxes": [
+      "QUALITY_1_2_3_5",
+      "PRESERVATION_1_2_3_5",
+      "THROUGHPUT",
+      "SESSION_STABILITY",
+      "PATH_RISK"
+    ],
+    "principlesSource": "Frozen Candidate Contract",
+    "failure": "STOP_NO1_OR3_FALLBACK_NO_RETRAIN_NO_REUSE_FOR_TUNING"
+  },
+  "OOSProtection": {
+    "sealed": true,
+    "priceEventScoreLabelCountPreviewAllowed": false,
+    "allocationChangesAllowed": false
+  },
+  "EXITDataProtection": {
+    "existingReservationsMustBeResolved": true,
+    "overlap": [
+      "2025-01-10",
+      "2025-01-14",
+      "2025-01-15",
+      "2025-01-16",
+      "2025-01-17",
+      "2025-01-20",
+      "2025-01-21",
+      "2025-01-22",
+      "2025-01-23",
+      "2025-01-24"
+    ],
+    "doNotConsumeForEntry": true
+  },
+  "providerRequestBudget": {
+    "thisTask": 0,
+    "largeAcquisitionAllowed": false,
+    "futureAcquisitionNotAuthorized": true
+  },
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "leverageAllowed": false,
+    "liveTradingAllowed": false,
+    "marginAllowed": false,
+    "paperTradingAllowed": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "shortAllowed": false,
+    "transmitted": false
+  }
+}

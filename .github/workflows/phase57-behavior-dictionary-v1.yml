@@ -1,0 +1,164 @@
+name: Phase57 Behavior Dictionary v1
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-behavior-dictionary-v1.yml'
+      - 'scripts/phase57_behavior_dictionary.py'
+      - 'scripts/test_phase57_behavior_dictionary.py'
+      - 'docs/evidence/phase57-behavior-dictionary-v1/protocol.json'
+
+permissions:
+  actions: read
+  contents: read
+concurrency:
+  group: phase57-behavior-dictionary-v1
+  cancel-in-progress: false
+jobs:
+  census:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PYTHONUNBUFFERED: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      ARK_TEST_OFFLINE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test admission guards before accessing cache
+        run: python scripts/offline/kernel_exec.py python -m unittest -v scripts.test_phase57_behavior_dictionary
+      - name: Download saved encrypted Development base
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-long-only-l0-replication-34917676944
+          path: ${{ runner.temp }}/dictionary-input/base
+          repository: Iam-2squared/ark-terminal
+          run-id: 34917676944
+          github-token: ${{ github.token }}
+      - name: Download saved L1 Minute checkpoints
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-l1-minute-shard-*-34926225832
+          path: ${{ runner.temp }}/dictionary-input/l1
+          repository: Iam-2squared/ark-terminal
+          run-id: 34926225832
+          github-token: ${{ github.token }}
+      - name: Download saved C+D Minute checkpoints
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-l2-minute-shard-*-34936002178
+          path: ${{ runner.temp }}/dictionary-input/l2
+          repository: Iam-2squared/ark-terminal
+          run-id: 34936002178
+          github-token: ${{ github.token }}
+      - name: Download saved additional Development checkpoints
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-v2-minute-shard-*-34964031692
+          path: ${{ runner.temp }}/dictionary-input/v2
+          repository: Iam-2squared/ark-terminal
+          run-id: 34964031692
+          github-token: ${{ github.token }}
+      - name: Selectively extract existing approved57 dates without provider access
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: |
+          test -n "${JQUANTS_API_KEY:-}"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_behavior_dictionary extract \
+            --archives "$RUNNER_TEMP/dictionary-input" --destination "$RUNNER_TEMP/dictionary-selected57" \
+            --receipt "$RUNNER_TEMP/dictionary-extraction.json"
+      - name: Audit twice and verify deterministic fail-closed research evidence
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_behavior_dictionary run \
+            --cache "$RUNNER_TEMP/dictionary-selected57" --extraction "$RUNNER_TEMP/dictionary-extraction.json" --output-dir "$RUNNER_TEMP/dictionary-evidence"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_behavior_dictionary run \
+            --cache "$RUNNER_TEMP/dictionary-selected57" --extraction "$RUNNER_TEMP/dictionary-extraction.json" --output-dir "$RUNNER_TEMP/dictionary-replay"
+          cmp "$RUNNER_TEMP/dictionary-evidence/manifest.json" "$RUNNER_TEMP/dictionary-replay/manifest.json"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_behavior_dictionary audit --directory "$RUNNER_TEMP/dictionary-evidence"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_behavior_dictionary audit --directory "$RUNNER_TEMP/dictionary-replay"
+      - name: Purge private inputs and replay
+        if: always()
+        run: rm -rf -- "$RUNNER_TEMP/dictionary-input" "$RUNNER_TEMP/dictionary-selected57" "$RUNNER_TEMP/dictionary-extraction.json" "$RUNNER_TEMP/dictionary-replay"
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: phase57-behavior-dictionary-v1-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/dictionary-evidence/
+          retention-days: 30
+          if-no-files-found: error
+  regression:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install fastapi pytest httpx numpy==2.3.5 scipy==1.17.0 pandas==2.2.3
+      - name: Contract tests and full offline regression
+        run: |
+          mkdir -p "$RUNNER_TEMP/dictionary-regression"
+          PYTHONDONTWRITEBYTECODE=1 ARK_TEST_OFFLINE=1 python scripts/offline/kernel_exec.py python -m unittest -v scripts.test_phase57_behavior_dictionary 2>&1 | tee "$RUNNER_TEMP/dictionary-regression/targeted-tests.log"
+          python scripts/run_offline_regression.py --output-dir "$RUNNER_TEMP/dictionary-regression/full"
+          python scripts/verify_phase57_development_preservation.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-behavior-dictionary-v1-regression-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/dictionary-regression/
+          retention-days: 30
+  preserve-evidence:
+    needs: [census, regression]
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-behavior-dictionary-v1-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/dictionary-evidence
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-behavior-dictionary-v1-regression-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/dictionary-regression
+      - name: Attach validation receipts and audit
+        run: |
+          python -m scripts.phase57_behavior_dictionary finalize --directory "$RUNNER_TEMP/dictionary-evidence" \
+            --regression "$RUNNER_TEMP/dictionary-regression" --head "${{ github.event.pull_request.head.sha }}" --run-id "${{ github.run_id }}"
+          python -m scripts.phase57_behavior_dictionary audit --directory "$RUNNER_TEMP/dictionary-evidence"
+          test ! -e docs/evidence/phase57-behavior-dictionary-v1/measurement
+          cp -a "$RUNNER_TEMP/dictionary-evidence" docs/evidence/phase57-behavior-dictionary-v1/measurement
+          git diff --check
+      - name: Preserve on the exact research branch only
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/evidence/phase57-behavior-dictionary-v1/measurement
+          git commit -m "Phase57: preserve Dictionary v1 admission census and stop handoff"
+          git push origin "HEAD:$BRANCH"

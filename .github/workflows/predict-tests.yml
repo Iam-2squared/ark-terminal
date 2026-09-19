@@ -3,14 +3,18 @@ name: Predict Tests
 on:
   pull_request:
     paths:
-      - "predict/**"
-      - "discovery/**"
-      - "tools/**"
-      - "scripts/run_p25_data_driven_exit_paired.mjs"
-      - "scripts/reduce_p25_data_driven_exit_shards.mjs"
-      - "real-account-home.js"
-      - "service-worker.js"
-      - ".github/workflows/predict-tests.yml"
+      - 'predict/**'
+      - 'discovery/**'
+      - 'tools/**'
+      - 'scripts/offline/**'
+      - 'scripts/run_offline_regression.py'
+      - 'scripts/verify_phase57_development_preservation.py'
+      - 'scripts/test_phase57_msh_entry_long_v1_development.py'
+      - 'scripts/run_p25_data_driven_exit_paired.mjs'
+      - 'scripts/reduce_p25_data_driven_exit_shards.mjs'
+      - 'real-account-home.js'
+      - 'service-worker.js'
+      - '.github/workflows/predict-tests.yml'
   workflow_dispatch:
 
 permissions:
@@ -19,126 +23,25 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 20
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-
-      - name: Install prediction dependencies
-        working-directory: predict
-        run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install --ignore-scripts
-          fi
-
-      - name: Install RSS bridge test dependencies
-        run: python -m pip install fastapi pytest httpx
-
-      - name: Run prediction tests
-        working-directory: predict
-        shell: bash
-        run: |
-          set +e
-          npm test 2>&1 | tee prediction-test-output.log
-          status=${PIPESTATUS[0]}
-
-          if [ "$status" -ne 0 ]; then
-            python - <<'PY'
-          from pathlib import Path
-
-          lines = Path("prediction-test-output.log").read_text(
-              encoding="utf-8",
-              errors="replace",
-          ).splitlines()
-          failed = [index for index, line in enumerate(lines) if line.startswith("not ok ")]
-
-          if failed:
-              chunks = []
-              for index in failed:
-                  start = max(0, index - 3)
-                  end = min(len(lines), index + 35)
-                  chunks.append("\n".join(lines[start:end]))
-              message = "\n\n".join(chunks)
-          else:
-              message = "\n".join(lines[-160:])
-
-          message = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-          print(f"::error title=Prediction test failure::{message}")
-          PY
-          fi
-
-          exit "$status"
-
-      - name: Upload prediction failure diagnostics
-        if: failure()
+          python-version: '3.12'
+      - name: Install Python test dependencies (not market data)
+        run: python -m pip install fastapi pytest httpx numpy==2.3.5 scipy==1.17.0
+      - name: Offline regression — kernel network disabled, no Project fit
+        run: python scripts/run_offline_regression.py --output-dir "$RUNNER_TEMP/ark-offline-regression"
+      - name: Verify original Development artifacts unchanged (hashes only)
+        run: python scripts/verify_phase57_development_preservation.py
+      - name: Upload offline regression audit
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: prediction-test-failure-${{ github.run_id }}
-          retention-days: 3
-          path: predict/prediction-test-output.log
-
-      - name: Run discovery tests
-        working-directory: discovery
-        shell: bash
-        run: |
-          set +e
-          npm test 2>&1 | tee discovery-test-output.log
-          status=${PIPESTATUS[0]}
-
-          if [ "$status" -ne 0 ]; then
-            python - <<'PY'
-          from pathlib import Path
-
-          lines = Path("discovery-test-output.log").read_text(
-              encoding="utf-8",
-              errors="replace",
-          ).splitlines()
-          failed = [index for index, line in enumerate(lines) if line.startswith("not ok ")]
-
-          if failed:
-              chunks = []
-              for index in failed:
-                  start = max(0, index - 3)
-                  end = min(len(lines), index + 35)
-                  chunks.append("\n".join(lines[start:end]))
-              message = "\n\n".join(chunks)
-          else:
-              message = "\n".join(lines[-160:])
-
-          message = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-          print(f"::error title=Discovery test failure::{message}")
-          PY
-          fi
-
-          exit "$status"
-
-      - name: Run RSS bridge tests
-        run: >-
-          python -m pytest
-          tools/test_phase18_rss_bridge.py
-          tools/test_phase19_account_bridge.py
-          tools/test_phase57_intraday_capture.py
-          tools/test_phase57_rss_capture_integration.py
-          tools/test_phase57_intraday_capture_ops.py
-          tools/test_phase57_intraday_capture_health.py
-          tools/test_phase57_intraday_capture_runtime.py
-          tools/test_phase57_real_intraday_pipeline.py
-          tools/test_phase58_excel_5m_chart_export.py
-          tools/test_phase58_excel_5m_history_pack.py
-          tools/test_phase58_prospective_session_runner.py
-          tools/test_phase58_excel_synchronized_capture_freshness.py
-          tools/test_phase58_excel_multisymbol_microstructure_capture.py
-          tools/test_phase58_validate_msii_multisymbol_registry.py
-          tools/test_phase58_excel_dynamic_slots.py
+          name: offline-regression-${{ github.run_id }}
+          retention-days: 30
+          path: ${{ runner.temp }}/ark-offline-regression/

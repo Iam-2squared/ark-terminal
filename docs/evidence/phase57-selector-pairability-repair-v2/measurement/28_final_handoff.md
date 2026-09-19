@@ -1,0 +1,65 @@
+# Final handoff — STOP
+
+# Frozen Selector Final Diagnosis — Measurement Protocol v2
+
+**判定:** I_INCONCLUSIVE_FULL_POPULATION_ECONOMIC_EDGE, G_SCORE_NOT_ECONOMICALLY_ORDERED, F_FAT_TAIL_WINNER_DEPENDENCE_DESCRIPTIVE, E_REVERSAL_REBOUND_ASSOCIATION_DESCRIPTIVE, D_VOLATILITY_RANGE_ASSOCIATION_DESCRIPTIVE.
+
+今回の修復は終点リターンに不要な「途中全バー完全観測」条件を除くこと。元Top5、Immediate Entry、Random seed、Momentum、costは変更していない。欠測銘柄の再選出・補完・ゼロ代入はしない。
+
+主estimandは両群の元Top5全5銘柄の始点・終点が観測できる同一時刻での平均net差。日内は時刻を等重み、日間はsessionを等重み。38 sessions・76 timestampsが解釈の最低条件。欠測がある元の全母集団の収益は未同定であり、この条件を満たしても欠測バイアスを解消したとは言わない。
+
+観測できた元メンバー平均の比較は補助診断。欠測のある元Top5成績に置き換えず、原3800行と欠測件数を保存する。3/5等の新しい採用ゲートは作っていない。
+
+| horizon | full5 paired timestamps | sessions | Selector net % | Random net % | delta pp | adjusted/pointwise CI | sample gate |
+|---|---:|---:|---:|---:|---:|---|---|
+| 5 | 88 | 54 | -0.0902 | -0.0517 | -0.0385 | [-0.19723082763445735, 0.13789795949131448] | True |
+| 10 | 24 | 20 | -0.1710 | -0.0796 | -0.0914 | [-0.5660833580032045, 0.4098136865211586] | False |
+| 15 | 20 | 17 | -0.1457 | -0.0565 | -0.0892 | [-0.771160439293959, 0.8497839178039843] | False |
+| 30 | 24 | 20 | +0.0235 | -0.0851 | +0.1086 | [-0.4818759036062815, 0.5883588475561498] | False |
+| 60 | 17 | 14 | -0.6298 | +0.0269 | -0.6567 | [-1.4072320542817782, 0.22766419757470382] | False |
+| 90 | 8 | 8 | -0.3541 | -0.0258 | -0.3283 | [-1.5670404999957577, 0.8218744455486037] | False |
+| 120 | 11 | 9 | -0.4275 | +0.1899 | -0.6175 | [-1.45538111002121, 0.31685495333805663] | False |
+| SESSION_END | 39 | 25 | -1.0474 | -0.0562 | -0.9912 | [-1.559033252007036, -0.4539396844506306] | False |
+
+## 補助：観測条件付き・元メンバーの同時刻比較
+
+| horizon | paired timestamps | sessions | Selector observed rows | Random observed rows | Selector net % | Random net % | delta pp | pointwise CI |
+|---|---:|---:|---:|---:|---:|---:|---:|---|
+| 5 | 651 | 76 | 2703 | 2587 | -0.0049 | -0.0534 | +0.0485 | [-0.0003306653461361572, 0.09797500241660971] |
+| 10 | 649 | 76 | 2437 | 2221 | -0.0035 | -0.0611 | +0.0577 | [-0.01557381641823742, 0.12925884678505908] |
+| 15 | 648 | 76 | 2432 | 2200 | +0.0193 | -0.0592 | +0.0786 | [-0.01667248356455742, 0.16857864522667165] |
+| 30 | 601 | 76 | 2198 | 2067 | +0.0231 | -0.0484 | +0.0715 | [-0.04164828161863514, 0.18208722863636487] |
+| 60 | 453 | 76 | 1664 | 1550 | -0.1035 | -0.0687 | -0.0348 | [-0.20766850512295953, 0.14154755684499193] |
+| 90 | 303 | 76 | 1133 | 1017 | -0.0751 | -0.0474 | -0.0277 | [-0.2668062525685547, 0.21286741208523788] |
+| 120 | 149 | 76 | 616 | 524 | +0.0467 | -0.0592 | +0.1059 | [-0.2536285228829184, 0.4821646460286702] |
+| SESSION_END | 286 | 32 | 1149 | 1135 | -0.5202 | -0.0674 | -0.4528 | [-0.7176342809068196, -0.20253334760766883] |
+
+上表は各horizonの観測集合が異なる。時間経過の証拠として並べない。同一イベントを保つCOMMON60/90/120補助解析は11/12番JSONに保存。95% CIは記述的であり、欠測非ランダム性・全母集団への外挿を保証しない。
+
+選出時のhigh-vol比率: 97.71%。選出前30分リターン中央値: -3.7236%。
+
+| score horizon | endpoint rows | terminal IC | 95% CI | monotone net deciles |
+|---|---:|---:|---|---|
+| 15 | 985716 | +0.0145 | [0.009443444171450798, 0.01967623625260994] | False |
+| 30 | 922203 | +0.0159 | [0.009965599199543563, 0.02148631238435886] | False |
+| 60 | 692524 | +0.0084 | [0.0009988069865415105, 0.015101808720588276] | False |
+| 90 | 470106 | -0.0023 | [-0.009857336679925126, 0.004787430183605031] | False |
+| 120 | 249236 | -0.0037 | [-0.013493307913108581, 0.005915332412912597] | False |
+
+30分available net行平均: +0.0392%。正の上位1%除外: -0.0772%、上位5%除外: -0.2775%。これは事後tail診断で、運用フィルタではない。
+
+完全経路の補助30分Selector–Random差: MFE +1.4429pp、abs(MAE) +1.3861pp、giveback +1.4392pp。経路と終点の標本は異なるので、同じ観測集合の結果として混ぜない。
+
+first-hit/peak/troughは5分バー内区間、同じバー内の順序は不明。+1/+2/+3/+5の到達・保持・givebackは完全経路の将来条件付き記述。MFEは実現可能利益ではない。実際の銘柄・日付別tick sizeは未取得で評価不能。
+
+言えること：固定メンバーにおける観測条件付きの相対差、PIT選出傾向、スコア順位付け、tail依存。言えないこと：欠測を含む元Top5全体の無条件経済リターン、実約定可能な利益、未知データでの優位性。
+
+## 次工程判断
+
+Economic LONG Selector v2の設計書を作成。スコアの経済順位付けと目的のずれを検討する根拠はあるが、新モデルが優れることを証明したわけではない。
+Review Economic Selector v2 design and data-observability contract; implementation requires a separate user decision.
+
+Dedicated tests/regression/CIの証拠は24/25/26番。現行戦略・Entry/EXIT/Capitalは変更なし、DEV TEST/Fresh/OOS未開封、provider0、Safety9項目false。ここでSTOP。
+
+
+Active protocol SHA256: `bc59a30bdb2516d5a79a7217818b6a2adecbf6724c958a3d94ba8e1852d00689`. Source HEAD: `f2e7ffe4e551cb537903c98303af40357ea4bdbf`. Exact producing/preservation commits and CI are recorded in 26_ci_report.json. No training, feature/target implementation, new acquisition, Entry/EXIT/Capital work, merge or promotion authorized by this output.

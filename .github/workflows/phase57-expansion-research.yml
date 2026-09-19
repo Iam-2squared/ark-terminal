@@ -29,12 +29,33 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           if test "$(git log -1 --format=%s)" = 'Phase57: measure expanded Development v1'; then
-            test "$(gh api repos/Iam-2squared/ark-terminal/actions/runs/35447995157 --jq .conclusion)" = success
             test ! -e docs/evidence/phase57-behavior-expansion-v1/measurement
             echo 'measure=true' >> "$GITHUB_OUTPUT"
           else
             echo 'measure=false' >> "$GITHUB_OUTPUT"
           fi
+  await-acquisition:
+    needs: preflight
+    if: needs.preflight.outputs.measure == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Await the exact frozen acquisition; never retry provider calls
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 350); do
+            state=$(gh api repos/Iam-2squared/ark-terminal/actions/runs/35447995157 --jq '.status + "/" + (.conclusion // "")')
+            echo "Frozen acquisition: $state"
+            case "$state" in
+              completed/success) exit 0 ;;
+              completed/*) echo "Acquisition did not succeed; research stays closed"; exit 1 ;;
+            esac
+            sleep 30
+          done
+          echo "Acquisition wait deadline reached; research stays closed"
+          exit 1
   regression:
     needs: preflight
     runs-on: ubuntu-latest
@@ -69,7 +90,7 @@ jobs:
           path: ${{ runner.temp }}/expansion-tests
           retention-days: 30
   measure:
-    needs: [preflight, regression]
+    needs: [preflight, regression, await-acquisition]
     if: needs.preflight.outputs.measure == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 180

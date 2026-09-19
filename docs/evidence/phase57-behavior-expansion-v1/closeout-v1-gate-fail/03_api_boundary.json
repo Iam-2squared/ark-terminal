@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "phase57-closeout-v1",
+  "recordedAt": "2026-09-20T04:14:27+09:00",
+  "item": 3,
+  "status": "PASS",
+  "reason": "Only approved Light-contract endpoints and subscription boundaries were used; no protected outcome source was opened.",
+  "contract": "J-Quants Light",
+  "endpoints": [
+    "/v2/equities/bars/daily",
+    "/v2/equities/master",
+    "/v2/equities/bars/minute",
+    "/v2/markets/calendar"
+  ],
+  "probes": {
+    "dailyEarliestSubscriptionDate": "2021-09-19",
+    "minuteEarliestSubscriptionDate": "2024-09-19",
+    "probeRunId": 35447713631,
+    "requests": 3,
+    "payloadOutcomes": 0,
+    "purchases": 0
+  },
+  "source": "docs/evidence/phase57-behavior-expansion-v1/04_session_split_manifest.json"
+}

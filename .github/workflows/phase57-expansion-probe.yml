@@ -1,0 +1,42 @@
+name: Phase57 Expansion Metadata Probe
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-expansion-probe.yml'
+      - 'scripts/phase57_expansion_probe.py'
+permissions:
+  contents: read
+concurrency:
+  group: phase57-expansion-probe
+  cancel-in-progress: false
+jobs:
+  probe:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Metadata only; refuse repeat
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: python scripts/phase57_expansion_probe.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-expansion-metadata-${{ github.run_id }}
+          path: docs/evidence/phase57-behavior-expansion-v1/probe
+          retention-days: 30
+      - name: Preserve metadata on research branch
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/evidence/phase57-behavior-expansion-v1/probe
+          git commit -m 'Phase57: preserve live metadata-only provider boundary probe'
+          git push origin "HEAD:$BRANCH"

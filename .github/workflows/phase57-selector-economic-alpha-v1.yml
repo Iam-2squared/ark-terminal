@@ -1,0 +1,222 @@
+name: Phase57 Frozen Selector Economic Alpha v1
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-selector-economic-alpha-v1.yml'
+      - 'scripts/phase57_selector_economic_alpha.py'
+      - 'scripts/test_phase57_selector_economic_alpha.py'
+      - 'scripts/audit_phase57_selector_economic_alpha.py'
+      - 'docs/evidence/phase57-selector-economic-alpha-v1/protocol.json'
+      - 'docs/evidence/phase57-selector-economic-alpha-v1/preflight/REPORT.md'
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: phase57-selector-economic-alpha-v1
+  cancel-in-progress: false
+
+jobs:
+  measurement:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      NODE_OPTIONS: --max-old-space-size=6144
+      PYTHONUNBUFFERED: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      ARK_TEST_OFFLINE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install fixed aggregation libraries
+        run: pip install numpy==2.3.5 pandas==2.2.3
+      - name: Preflight tests and source-pin audit
+        run: |
+          python3 scripts/offline/kernel_exec.py python3 -m unittest -v scripts.test_phase57_selector_economic_alpha
+          python3 scripts/offline/kernel_exec.py python3 scripts/audit_phase57_selector_economic_alpha.py
+      - name: Download saved encrypted Development base
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-long-only-l0-replication-34917676944
+          path: ${{ runner.temp }}/economic-alpha-base
+          repository: Iam-2squared/ark-terminal
+          run-id: 34917676944
+          github-token: ${{ github.token }}
+      - name: Download saved L1 Minute checkpoints
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-l1-minute-shard-*-34926225832
+          path: ${{ runner.temp }}/economic-alpha-l1
+          repository: Iam-2squared/ark-terminal
+          run-id: 34926225832
+          github-token: ${{ github.token }}
+      - name: Download saved C+D Minute checkpoints
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-l2-minute-shard-*-34936002178
+          path: ${{ runner.temp }}/economic-alpha-l2
+          repository: Iam-2squared/ark-terminal
+          run-id: 34936002178
+          github-token: ${{ github.token }}
+      - name: Download saved additional Development checkpoints
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-v2-minute-shard-*-34964031692
+          path: ${{ runner.temp }}/economic-alpha-v2
+          repository: Iam-2squared/ark-terminal
+          run-id: 34964031692
+          github-token: ${{ github.token }}
+      - name: Materialize exact embedded frozen weights
+        run: |
+          mkdir -p "$RUNNER_TEMP/economic-alpha-weights"
+          python3 - <<'PY'
+          import json,os,pathlib
+          source=json.loads(pathlib.Path('predict/research/phase57-long-only-frozen-selector-v1.json').read_text())['freezePayload']['selectorSpecification']
+          target=pathlib.Path(os.environ['RUNNER_TEMP'])/'economic-alpha-weights/l2-selector-freeze-report.json'
+          target.write_text(json.dumps({'freeze':{'finalArtifact':source['model']['configuration'],'selectedFeatureNames':source['featureUniverse']['orderedNames']}}))
+          PY
+      - name: Verify and mount immutable private cache without provider calls
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${JQUANTS_API_KEY:-}"
+          test "$(find "$RUNNER_TEMP/economic-alpha-l1" -name acquisition-summary.json | wc -l)" = 2
+          test "$(find "$RUNNER_TEMP/economic-alpha-l2" -name acquisition-summary.json | wc -l)" = 4
+          test "$(find "$RUNNER_TEMP/economic-alpha-v2" -name acquisition-summary.json | wc -l)" = 2
+          mapfile -t summaries < <(find "$RUNNER_TEMP/economic-alpha-l1" -name acquisition-summary.json | sort)
+          jq -s '[.[].unavailable[].sessionDate] | unique' "${summaries[@]}" > "$RUNNER_TEMP/economic-alpha-unavailable.json"
+          test "$(jq length "$RUNNER_TEMP/economic-alpha-unavailable.json")" = 4
+          cd "$RUNNER_TEMP/economic-alpha-base"
+          test "$(cut -d' ' -f1 private-cache.tar.gz.enc.sha256)" = "$(sha256sum private-cache.tar.gz.enc | cut -d' ' -f1)"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -in private-cache.tar.gz.enc -out "$RUNNER_TEMP/economic-alpha-base.tar.gz"
+          tar -C "$RUNNER_TEMP" -xzf "$RUNNER_TEMP/economic-alpha-base.tar.gz"
+          while IFS= read -r encrypted; do
+            test "$(cut -d' ' -f1 "${encrypted}.sha256")" = "$(sha256sum "$encrypted" | cut -d' ' -f1)"
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -in "$encrypted" | tar -C "$RUNNER_TEMP/phase57-l0-cache" -xzf -
+          done < <(find "$RUNNER_TEMP/economic-alpha-l1" "$RUNNER_TEMP/economic-alpha-l2" "$RUNNER_TEMP/economic-alpha-v2" -name minute-shard.tar.gz.enc | sort)
+      - name: Reconstruct frozen Development evaluator rows
+        run: |
+          python3 scripts/offline/kernel_exec.py node scripts/prepare_phase57_long_only_top5_hit_distribution.mjs \
+            --cache-root "$RUNNER_TEMP/phase57-l0-cache" \
+            --freeze-report "$RUNNER_TEMP/economic-alpha-weights/l2-selector-freeze-report.json" \
+            --unavailable-sessions "$RUNNER_TEMP/economic-alpha-unavailable.json" \
+            --output-dir "$RUNNER_TEMP/economic-alpha-dataset"
+      - name: Prepare precommitted baseline membership and project paths
+        run: |
+          mkdir -p "$RUNNER_TEMP/economic-alpha-run"
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_selector_economic_alpha prepare \
+            --dataset-dir "$RUNNER_TEMP/economic-alpha-dataset" \
+            --output "$RUNNER_TEMP/economic-alpha-run/selection-ledger.json.gz"
+          python3 scripts/offline/kernel_exec.py node scripts/phase57_selector_min_price75_paths.mjs \
+            "$RUNNER_TEMP/phase57-l0-cache" \
+            "$RUNNER_TEMP/economic-alpha-run/selection-ledger.json.gz" \
+            "$RUNNER_TEMP/economic-alpha-run/paths.json.gz"
+      - name: Measure, render evidence and audit
+        run: |
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_selector_economic_alpha measure \
+            --selection "$RUNNER_TEMP/economic-alpha-run/selection-ledger.json.gz" \
+            --paths "$RUNNER_TEMP/economic-alpha-run/paths.json.gz" \
+            --output-dir "$RUNNER_TEMP/economic-alpha-evidence"
+          python3 scripts/offline/kernel_exec.py python3 scripts/audit_phase57_selector_economic_alpha.py \
+            --measurement "$RUNNER_TEMP/economic-alpha-evidence"
+      - name: Purge private inputs
+        if: always()
+        shell: bash
+        run: |
+          rm -rf -- "$RUNNER_TEMP/phase57-l0-cache" "$RUNNER_TEMP/economic-alpha-dataset" \
+            "$RUNNER_TEMP/economic-alpha-run" "$RUNNER_TEMP/economic-alpha-base.tar.gz" \
+            "$RUNNER_TEMP/economic-alpha-base" "$RUNNER_TEMP/economic-alpha-l1" \
+            "$RUNNER_TEMP/economic-alpha-l2" "$RUNNER_TEMP/economic-alpha-v2" \
+            "$RUNNER_TEMP/economic-alpha-weights"
+      - name: Upload derived evidence only
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-selector-economic-alpha-v1-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/economic-alpha-evidence/
+          if-no-files-found: error
+          retention-days: 30
+
+  regression:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install regression dependencies
+        run: pip install fastapi pytest httpx numpy==2.3.5 scipy==1.17.0 pandas==2.2.3
+      - name: Dedicated tests and full offline regression
+        run: |
+          mkdir -p "$RUNNER_TEMP/economic-alpha-regression"
+          PYTHONDONTWRITEBYTECODE=1 python -m unittest -v scripts.test_phase57_selector_economic_alpha 2>&1 | tee "$RUNNER_TEMP/economic-alpha-regression/targeted-tests.log"
+          python scripts/run_offline_regression.py --output-dir "$RUNNER_TEMP/economic-alpha-regression/full"
+          python scripts/verify_phase57_development_preservation.py
+      - name: Upload regression audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-selector-economic-alpha-regression-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/economic-alpha-regression/
+          retention-days: 30
+
+  preserve-evidence:
+    needs: [measurement, regression]
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install audit dependencies
+        run: pip install numpy==2.3.5 pandas==2.2.3
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-selector-economic-alpha-v1-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/economic-alpha-evidence
+      - name: Re-audit and preserve immutable derived evidence
+        run: |
+          python scripts/audit_phase57_selector_economic_alpha.py --measurement "$RUNNER_TEMP/economic-alpha-evidence"
+          test ! -e docs/evidence/phase57-selector-economic-alpha-v1/measurement
+          cp -a "$RUNNER_TEMP/economic-alpha-evidence" docs/evidence/phase57-selector-economic-alpha-v1/measurement
+          git diff --check
+          git status --short
+      - name: Commit evidence to the exact PR branch
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/evidence/phase57-selector-economic-alpha-v1/measurement
+          git commit -m "Phase57: measure frozen Selector economic alpha"
+          git push origin "HEAD:$BRANCH"

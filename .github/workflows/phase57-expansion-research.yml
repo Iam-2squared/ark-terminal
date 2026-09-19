@@ -1,0 +1,173 @@
+name: Phase57 Expansion Research
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-expansion-research.yml'
+      - 'scripts/phase57_expansion_*.py'
+      - 'scripts/test_phase57_expansion_*.py'
+      - 'scripts/phase57_chart_reader_research.py'
+      - 'docs/evidence/phase57-behavior-expansion-v1/research-protocol.json'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-expansion-research-v1
+  cancel-in-progress: false
+jobs:
+  preflight:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    outputs:
+      measure: ${{ steps.gate.outputs.measure }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if test "$(git log -1 --format=%s)" = 'Phase57: measure expanded Development v1'; then
+            test "$(gh api repos/Iam-2squared/ark-terminal/actions/runs/35447995157 --jq .conclusion)" = success
+            test ! -e docs/evidence/phase57-behavior-expansion-v1/measurement
+            echo 'measure=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'measure=false' >> "$GITHUB_OUTPUT"
+          fi
+  regression:
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: pip install fastapi pytest httpx numpy==2.3.5 scipy==1.17.0 pandas==2.2.3
+      - name: Boundaries, fixed assessor parity, causal reader and full regression
+        env:
+          OPENBLAS_NUM_THREADS: '1'
+          ARK_TEST_OFFLINE: '1'
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          set -o pipefail
+          mkdir -p "$RUNNER_TEMP/expansion-tests"
+          python scripts/offline/kernel_exec.py python -m unittest -v scripts.test_phase57_expansion_data scripts.test_phase57_expansion_research scripts.test_phase57_research_dictionary_v0 scripts.test_phase57_dictionary_pit_recovery scripts.test_phase57_behavior_dictionary scripts.test_phase57_dictionary_prospective 2>&1 | tee "$RUNNER_TEMP/expansion-tests/focused.log"
+          python scripts/run_offline_regression.py --output-dir "$RUNNER_TEMP/expansion-tests/regression"
+          python scripts/verify_phase57_development_preservation.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-expansion-tests-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/expansion-tests
+          retention-days: 30
+  measure:
+    needs: [preflight, regression]
+    if: needs.preflight.outputs.measure == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      PYTHONUNBUFFERED: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      ARK_TEST_OFFLINE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install numpy==2.3.5 scipy==1.17.0
+      - name: Verify precommitted research implementation
+        run: |
+          python - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          p=json.loads(Path('docs/evidence/phase57-behavior-expansion-v1/research-protocol.json').read_text())
+          for name,h in p['fileHashes'].items(): assert hashlib.sha256(Path(name).read_bytes()).hexdigest()==h,name
+          PY
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-expansion-raw-*-35447995157
+          path: ${{ runner.temp }}/encrypted
+          repository: Iam-2squared/ark-terminal
+          run-id: 35447995157
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-expansion-reuse-35447995157
+          path: ${{ runner.temp }}/encrypted/reuse
+          repository: Iam-2squared/ark-terminal
+          run-id: 35447995157
+          github-token: ${{ github.token }}
+      - name: Verify uploaded raw receipts; selectively restore
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/receipts"
+          gh api 'repos/Iam-2squared/ark-terminal/actions/runs/35447995157/artifacts?per_page=100' > "$RUNNER_TEMP/receipts/raw-artifacts.json"
+          python - <<'PY'
+          import os,json
+          from pathlib import Path
+          from scripts.phase57_expansion_data import matrix
+          root=Path(os.environ['RUNNER_TEMP'])
+          receipts=[json.loads(p.read_text()) for p in (root/'encrypted').rglob('*-receipt.json') if p.name!='reuse-receipt.json']
+          assert {r['job']['id'] for r in receipts}=={j['id'] for j in matrix()}
+          assert all(r['error'] is None and r['localRawPersisted'] for r in receipts)
+          assert sum(r['budget']['requests'] for r in receipts)<=6000
+          (root/'receipts/acquisition.json').write_text(json.dumps(receipts,indent=2))
+          PY
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_expansion_data restore --archives "$RUNNER_TEMP/encrypted" --cache "$RUNNER_TEMP/raw/jquants-v2" --output "$RUNNER_TEMP/receipts/extraction.json"
+      - name: Remeasure twice with unchanged definitions and Gates
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_expansion_measure --cache "$RUNNER_TEMP/raw/jquants-v2" --output "$RUNNER_TEMP/measurement"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_expansion_measure --cache "$RUNNER_TEMP/raw/jquants-v2" --output "$RUNNER_TEMP/replay"
+          cmp "$RUNNER_TEMP/measurement/manifest.json" "$RUNNER_TEMP/replay/manifest.json"
+          cp -a "$RUNNER_TEMP/receipts" "$RUNNER_TEMP/measurement/receipts"
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: phase57-expansion-measurement-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/measurement
+          retention-days: 90
+      - if: always()
+        run: rm -rf -- "$RUNNER_TEMP/encrypted" "$RUNNER_TEMP/raw" "$RUNNER_TEMP/replay"
+  preserve:
+    needs: [preflight, regression, measure]
+    if: needs.preflight.outputs.measure == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-expansion-measurement-${{ github.event.pull_request.head.sha }}
+          path: docs/evidence/phase57-behavior-expansion-v1/measurement
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-expansion-tests-${{ github.event.pull_request.head.sha }}
+          path: docs/evidence/phase57-behavior-expansion-v1/validation
+      - name: Preserve research result; no merge or promotion
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/evidence/phase57-behavior-expansion-v1/measurement docs/evidence/phase57-behavior-expansion-v1/validation
+          git commit -m 'Phase57: preserve expanded Development Dictionary fixed-gate results'
+          git push origin "HEAD:$BRANCH"

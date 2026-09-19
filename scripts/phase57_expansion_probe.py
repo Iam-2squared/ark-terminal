@@ -5,6 +5,8 @@ ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'docs/evidence/phase57-behavior-expansion-v1/probe-v2'
 
 def main():
+ if OUT.exists():
+  print('PRESERVED_EXISTING_METADATA_NO_REQUESTS');return
  OUT.mkdir(parents=True,exist_ok=False)
  key=os.environ['JQUANTS_API_KEY']; assert key
  receipts=[]

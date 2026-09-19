@@ -47,7 +47,8 @@ def request_pages(day,kind,destination,budget):
  if partial.exists():
   checkpoint=base.read(partial);pages=checkpoint['pages'];cursor=checkpoint['nextCursor'];seen=set(checkpoint['seen'])
   for page in pages:assert hashlib.sha256(page['responseText'].encode()).hexdigest()==page['responseSha256']
- while True:
+ completed_checkpoint=bool(pages) and cursor is None
+ while not completed_checkpoint:
   assert budget['requests']<budget['limit'],'REQUEST_BUDGET';assert len(pages)<30,'PAGE_LIMIT'
   query={'date':day}
   if cursor:query['pagination_key']=cursor

@@ -316,7 +316,10 @@ def assess(data,cov,eligible,p,returns):
   if n<100:r['reasons']=['PAIRED_SAMPLE_BELOW100'];results.append(r);profiles.append(allraw);continue
   a,b=av[mask],bv[mask];xf,_,beta,mu,sd=fit_peer((ca[fitmask],ca[fitmask]),av[fitmask],av[fitmask])
   xa=np.column_stack([np.ones(len(a)),(ca[mask]-mu)/sd]);xb=np.column_stack([np.ones(len(a)),(cb[mask]-mu)/sd]);pa,pb=xa@beta,xb@beta;aa,bb=a-pa,b-pb
-  raw=spearman(a,b);inc=spearman(aa,bb)
+  raw=spearman(a,b)
+  # Rank must not turn floating-point remnants of an exact peer proxy into a trait.
+  peer_degenerate=np.allclose(a,pa,rtol=1e-10,atol=1e-12) or np.allclose(b,pb,rtol=1e-10,atol=1e-12)
+  inc=None if peer_degenerate else spearman(aa,bb)
   w=ae[mask]/(ae[mask]+20);posterior=pa+w*aa
   # Rates use Beta posterior at peer logistic mean, then return to logit for calibration.
   if kind=='rate':
@@ -343,8 +346,8 @@ def assess(data,cov,eligible,p,returns):
    tc1=mean(cov[TA])[tm];tc2=mean(cov[TB])[tm];xx,yy,bt,_,_=fit_peer((tc1,tc2),ta[tm],tb[tm]);tr=spearman(ta[tm],tb[tm]);ti=spearman(ta[tm]-xx@bt,tb[tm]-yy@bt)
   market=z-np.nanmedian(z,axis=1)[:,None]
   mr=spearman(mean(market[A])[mask],mean(market[B])[mask])
-  checks={'raw':raw is not None and raw>=.30,'incremental':inc is not None and inc>=.15,'CI':lo>0,'calibration':slope is not None and .5<=slope<=1.5,'direction':inc is not None and reverse is not None and inc>0 and reverse>0,'strata':sum(x['pass'] for x in strata)>=2,'timeRandom':ratio is not None and ratio>=.7,'tail':tr is not None and ti is not None and tr>=.30 and ti>=.15}
-  r.update(rawSplitHalf=raw,spearmanBrown=2*raw/(1+raw) if raw is not None and raw>-1 else None,incremental=inc,reverseIncremental=reverse,ci=[float(lo),float(hi)],p=float(pv),calibrationSlope=slope,quintileBSpread=spread,liquidityStrata=strata,randomSplit=random_r,timeRandomRatio=ratio,tailRaw=tr,tailIncremental=ti,tailPairedSymbols=int(tm.sum()),marketRelative=mr,checks=checks,reasons=[x for x,v in checks.items() if not v],status='WATCH')
+  checks={'residualIdentifiable':not peer_degenerate,'raw':raw is not None and raw>=.30,'incremental':inc is not None and inc>=.15,'CI':lo>0,'calibration':slope is not None and .5<=slope<=1.5,'direction':inc is not None and reverse is not None and inc>0 and reverse>0,'strata':sum(x['pass'] for x in strata)>=2,'timeRandom':ratio is not None and ratio>=.7,'tail':tr is not None and ti is not None and tr>=.30 and ti>=.15}
+  r.update(peerResidualDegenerate=bool(peer_degenerate),rawSplitHalf=raw,spearmanBrown=2*raw/(1+raw) if raw is not None and raw>-1 else None,incremental=inc,reverseIncremental=reverse,ci=[float(lo),float(hi)],p=float(pv),calibrationSlope=slope,quintileBSpread=spread,liquidityStrata=strata,randomSplit=random_r,timeRandomRatio=ratio,tailRaw=tr,tailIncremental=ti,tailPairedSymbols=int(tm.sum()),marketRelative=mr,checks=checks,reasons=[x for x,v in checks.items() if not v],status='WATCH')
   # Save all symbol estimates including insufficient. Join key is never a predictor.
   residualvar=mean((z[A]-mean(z[A])[None,:])**2)[mask];psd=np.sqrt(np.maximum(residualvar,0)/(ae[mask]+20))
   if kind=='rate':

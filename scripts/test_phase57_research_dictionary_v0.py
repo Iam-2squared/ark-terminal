@@ -63,6 +63,11 @@ class Contract(unittest.TestCase):
    a,b=Path(t)/'a',Path(t)/'b';m.writegz(a,{'x':np.nan});m.writegz(b,{'x':np.nan});self.assertEqual(a.read_bytes(),b.read_bytes())
  def test_safety(self):self.assertTrue(all(v is False for v in m.registry()['safety'].values()))
  def test_no_fit_symbol_feature(self):self.assertEqual(m.registry()['statistics']['peer'],['logVa','logS','logPrice','observedMinuteCoverage'])
+ def test_exact_peer_proxy_not_usable(self):
+  p=m.registry();p['catalog']=[dict(id='trading_value',family='liquidity',tier='daily',transform='log')]
+  rng=np.random.default_rng(1);cov=rng.normal(size=(57,120,4));data=np.exp(cov[:,:,:1]);eligible=np.ones((57,120,2),bool)
+  r,profiles,g=m.assess(data,cov,eligible,p,rng.normal(size=(57,120)))
+  self.assertTrue(r[0]['peerResidualDegenerate']);self.assertIsNone(r[0]['incremental']);self.assertFalse(g['complete'])
  def test_assess_all_insufficient(self):
   p=m.registry();a=np.full((57,2,73),np.nan);cov=np.ones((57,2,4));eligible=np.zeros((57,2,2),bool)
   r,prof,g=m.assess(a,cov,eligible,p,np.zeros((57,2)));self.assertEqual(len(r),73);self.assertFalse(g['complete']);self.assertEqual(g['usable'],0)

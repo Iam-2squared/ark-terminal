@@ -268,7 +268,7 @@ def concentration(rows):
         'top3ByFrequency':top,'excludingTop3DescriptiveOnly':summary([r for r in rows if r['symbol'] not in top]),'policyFilterCreated':False}
 
 def winner_capture(candidate,baseline):
-    x={r['selectorEventId']:r for r in usable(candidate)};y={r['selectorEventId']:r for r in usable(baseline)};ids=x.keys()&y.keys();out={}
+    x={r['selectorEventId']:r for r in usable(candidate)};y={r['selectorEventId']:r for r in usable(baseline)};ids=sorted(x.keys()&y.keys());out={}
     for t in [3,5]:
         wins=[i for i in ids if y[i]['result'].get('MFE') is not None and y[i]['result']['MFE']>=t]
         out[str(t)]={'baselineReachedN':len(wins),'candidateOpportunityRetainedN':sum((x[i]['result'].get('MFE') or 0)>=t for i in wins),

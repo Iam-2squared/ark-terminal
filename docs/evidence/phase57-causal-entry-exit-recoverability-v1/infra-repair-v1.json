@@ -1,0 +1,12 @@
+{
+  "failedRunId": "35432313261",
+  "failedHead": "eaa13b34fc0163094e7ce148ad63cac90133e053",
+  "failure": "Full regeneration manifest mismatch in 15_path_capture_metrics.json",
+  "cause": "winner_capture iterated an unordered set of paired event IDs, changing floating-point reduction order between processes",
+  "reproduction": "Two local offline full regenerations differed only in outcome-conditioned descriptive moments in artifact 15; differences were at floating-point last digits",
+  "repair": "Sort paired event IDs before descriptive aggregation",
+  "unchanged": ["protocol", "features", "targets", "models", "decisions", "gates", "primary economic comparisons", "splits", "safety", "data boundary"],
+  "originalRunRegression": "SUCCESS",
+  "originalRunDedicatedTests": 100,
+  "verification": "Full regeneration equality remains mandatory; no tolerance or gate relaxation introduced"
+}

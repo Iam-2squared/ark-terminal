@@ -79,7 +79,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: phase57-profile-coverage-${{ github.event.pull_request.head.sha }}
-          path: docs/evidence/phase57-profile-coverage-v1/ci-result
+          path: docs/evidence/phase57-profile-coverage-v1/ci-result-precision-fix
       - name: Preserve new evidence only
         env:
           BRANCH: ${{ github.head_ref }}
@@ -88,9 +88,9 @@ jobs:
           set -euo pipefail
           test "$BRANCH" = research/phase57-long-only-cash-equity
           test "$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)" = "$EXPECTED"
-          test -z "$(git ls-tree -r HEAD -- docs/evidence/phase57-profile-coverage-v1/ci-result)"
+          test -z "$(git ls-tree -r HEAD -- docs/evidence/phase57-profile-coverage-v1/ci-result-precision-fix)"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add docs/evidence/phase57-profile-coverage-v1/ci-result
+          git add docs/evidence/phase57-profile-coverage-v1/ci-result-precision-fix
           git commit -m 'Phase57: preserve symbol confidence coverage and verified CI'
           git push origin "HEAD:$BRANCH"

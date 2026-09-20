@@ -13,7 +13,7 @@ def clean(x):
  if isinstance(x,dict):return {str(k):clean(v) for k,v in x.items()}
  if isinstance(x,(list,tuple)):return [clean(v) for v in x]
  if isinstance(x,np.generic):x=x.item()
- if isinstance(x,float):return round(x,6) if math.isfinite(x) else None
+ if isinstance(x,float):return x if math.isfinite(x) else None
  return x
 def write(p,x):p.write_text(json.dumps(clean(x),ensure_ascii=False,sort_keys=True,indent=2,allow_nan=False)+'\n')
 def num(x):return isinstance(x,(int,float,np.number)) and not isinstance(x,bool) and np.isfinite(x)
@@ -131,7 +131,7 @@ def run(out):
   for c in union:
    d=sets['daily'][60].get(c,{'available':set(),'hm':set()});i=sets['intraday'][60].get(c,{'available':set(),'hm':set()})
    wr.writerow([c,len(d['available']),len(d['hm']),len(i['available']),len(i['hm']),len(d['available']|i['available']),len(d['hm']|i['hm']),False])
- write(out/'06_integrity.json',{'sourceHashes':manifest,'protocolHash':a.sha(BASE/'protocol.json'),'correctionSpecHash':a.sha(BASE/'correction-spec.json'),'targets':target_counts,'primaryWindow':60,'exportPrecision':6,'newProtectedReads':0,'newProviderRequests':0,'rawRemeasurements':0,'registryGateChanged':False,'entryExitTrials':0,'safety':start['safety']})
+ write(out/'06_integrity.json',{'sourceHashes':manifest,'protocolHash':a.sha(BASE/'protocol.json'),'correctionSpecHash':a.sha(BASE/'correction-spec.json'),'targets':target_counts,'primaryWindow':60,'exportPrecision':'NATIVE_FLOAT64_NO_DECIMAL_ROUNDING','newProtectedReads':0,'newProviderRequests':0,'rawRemeasurements':0,'registryGateChanged':False,'entryExitTrials':0,'safety':start['safety']})
  report(out,summaries,dist,integrated,examples,stratum_meta)
  assert all(a.sha(SOURCE/k)==h for k,h in manifest.items())
  write(out/'manifest.json',{p.name:a.sha(p) for p in sorted(out.iterdir())})

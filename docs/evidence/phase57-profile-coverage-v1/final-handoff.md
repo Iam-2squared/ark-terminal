@@ -2,7 +2,7 @@
 
 Source results: 4929b92aa8e678376b3f4ddb74316e88a5fab428.
 Protocol and correction-spec precommit: 57309d22d1685be2f6bfe64297072452716b5056.
-Read ci-result/result/REPORT-ja.md and ci-result/ci-receipt.json for measured results.
+Read ci-result-precision-fix/result/REPORT-ja.md and ci-result-precision-fix/ci-receipt.json for measured results.
 
 All 9 lane-USABLE and 23 calibration-only lane-WATCH verdicts receive full symbol coverage diagnostics at 20/60/250 snapshots. Primary window is precommitted 60. Per-symbol rows are in all-symbol-profiles.csv.gz; count distributions include lane, code union and intersection, deduplicating same trait IDs without pooling values. Representatives are selected deterministically by confidence and trait count, not outcomes.
 
@@ -22,4 +22,4 @@ Next single step: implement/test only the bounded correction specification, then
 
 No new provider acquisition, Common Holdout244/REPORT19/Validation/OOS/Fresh payload opening, old Evidence overwrite, Gate relaxation, production promotion, main merge or trading. Prior exposure incident remains recorded. All nine Safety flags false. STOP after CI/evidence preservation.
 
-Operational incident: a prior closed anatomy CI retriggered on precommit and refreshed CI logs; see ci-retrigger-incident.json. Its original CI tree was restored exactly, rerun output preserved separately, and old workflow pinned to its original source head. Research results never changed.
+Export precision revision: the first ci-result run rounded serialized floats to six decimal places, erasing tiny raw Amihud values in JSON/CSV. It is retained for provenance only. The canonical ci-result-precision-fix preserves native finite float values. Confidence classifications and count distributions are required to match the initial run exactly. Neither the precommitted protocol nor correction specification changed.

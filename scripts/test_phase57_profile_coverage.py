@@ -42,6 +42,18 @@ class CoverageTests(unittest.TestCase):
   for window in c.WINDOWS:
    for kind in ['union','intersection']:
     for view in ['available','hm']:self.assertEqual(sum(d[str(window)][kind][view].values()),d[str(window)][kind]['symbols'])
+ def test_export_preserves_small_values(self):
+  vals=[1.238e-12,2.559e-11,1.2345678901234567]
+  self.assertEqual(json.loads(json.dumps(c.clean(vals))),vals)
+ def test_precision_revision_counts_unchanged(self):
+  p=Path(os.environ['COVERAGE_OUTPUT']);old=c.BASE/'ci-result/result'
+  for name in ['02_trait_count_distribution.json','03_integrated_coverage.json']:
+   self.assertEqual(c.read(p/name),c.read(old/name))
+  rows=c.read(p/'01_trait_coverage.json');previous=c.read(old/'01_trait_coverage.json')
+  for x,y in zip(rows,previous):
+   self.assertEqual((x['lane'],x['trait'],x['window']),(y['lane'],y['trait'],y['window']))
+   self.assertEqual({k:v['n'] for k,v in x['confidence'].items()},{k:v['n'] for k,v in y['confidence'].items()})
+   if x['trait']=='amihud':self.assertGreater(x['metricsComputable']['raw']['median'],0)
  def test_source_and_safety(self):
   for p,h in c.read(c.BASE/'start-state.json')['files'].items():self.assertEqual(c.a.sha(c.ROOT/p),h)
   self.assertTrue(all(x is False for x in c.read(c.BASE/'start-state.json')['safety'].values()))

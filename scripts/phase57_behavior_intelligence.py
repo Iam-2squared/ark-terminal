@@ -115,7 +115,7 @@ def who_day(meta,z,day,candidates):
 def substrate(cache,matrix,output):
     p=verify();out=Path(output);out.mkdir(parents=True,exist_ok=False);ms=members(p);byday=collections.defaultdict(list)
     for m in ms:byday[m['sessionDate']].append(m)
-    meta=read(Path(matrix)/'metadata.json');z=np.load(Path(matrix)/'matrix.npz');allowed=set(s.admission.plan()['dailyDevelopment'])|set(s.admission.plan()['intradayDevelopment'])
+    meta=read(Path(matrix)/'metadata.json');archive=np.load(Path(matrix)/'matrix.npz');z={key:archive[key] for key in ['daily','intraday','cov','intraCoverage','eligible']};archive.close();allowed=set(s.admission.plan()['dailyDevelopment'])|set(s.admission.plan()['intradayDevelopment'])
     assert meta['hashes']==s.invariants()
     assert {x['session'] for x in meta['inputLedger']}<=allowed
     pins={(x['session'],x['kind']):x['sha256'] for x in meta['inputLedger']}

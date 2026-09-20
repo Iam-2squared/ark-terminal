@@ -56,8 +56,8 @@ def report(evidence,replay):
   x=rmap.get(o['id']+'|'+str(e.minute(o['origin']['decisionTimestamp'])));vol=x['RECENT']['features'].get('volatility5') if x else None;regimes[o['id']]='MISSING' if vol is None else 'HIGH_GE2' if vol>=2 else 'LOW_LT2'
  regime=[]
  for group in ['MISSING','HIGH_GE2','LOW_LT2']:
-  os=[o for o in ev if regimes[o['id']]==group]
-  for k in arms:regime.append({'regime':group,'arm':k,**e.metrics(os,[x for x in trades[k] if regimes[x['opportunity']]==group],labs)})
+  group_opps=[o for o in ev if regimes[o['id']]==group]
+  for k in arms:regime.append({'regime':group,'arm':k,**e.metrics(group_opps,[x for x in trades[k] if regimes[x['opportunity']]==group],labs)})
  write(root/'regime-diagnostic.json',regime)
  fig,axs=plt.subplots(1,2,figsize=(13,4))
  for k in ['IMMEDIATE','CURRENT','E5','E7']:

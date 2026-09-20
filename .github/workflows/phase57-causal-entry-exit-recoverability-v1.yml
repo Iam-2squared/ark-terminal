@@ -8,139 +8,49 @@ on:
       - 'scripts/test_phase57_causal_entry_exit.py'
       - 'docs/evidence/phase57-causal-entry-exit-recoverability-v1/protocol.json'
       - 'docs/evidence/phase57-causal-entry-exit-recoverability-v1/preflight/REPORT.md'
+      - 'scripts/phase57_saved_evidence_reuse.py'
+      - 'scripts/test_phase57_saved_evidence_reuse.py'
 
 permissions:
-  actions: read
   contents: read
-
 concurrency:
-  group: phase57-causal-entry-exit-recoverability-v1
-  cancel-in-progress: false
-
+  group: phase57-saved-causal-audit
+  cancel-in-progress: true
 jobs:
-  measurement:
+  audit-saved-evidence:
     if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 10
     env:
-      NODE_OPTIONS: --max-old-space-size=6144
-      PYTHONUNBUFFERED: '1'
-      PYTHONDONTWRITEBYTECODE: '1'
       ARK_TEST_OFFLINE: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install fixed aggregation libraries
+      - name: Test reuse rejection guards
+        run: python -m unittest -v scripts.test_phase57_saved_evidence_reuse
+      - name: Checkout immutable producing workflow and research snapshot
+        uses: actions/checkout@v4
+        with:
+          ref: e11f8af571a03c7e73f79a77c3964752fd109a08
+          path: .phase57-history
+          persist-credentials: false
+      - name: Install fixed audit dependencies
         run: pip install numpy==2.3.5 pandas==2.2.3
-      - name: Preflight tests and source-pin audit
+      - name: Verify unchanged scientific source and reuse saved evidence
         run: |
-          python3 scripts/offline/kernel_exec.py python3 -m unittest -v scripts.test_phase57_selector_path_anatomy scripts.test_phase57_selector_pairability_v2 scripts.test_phase57_selector_low_high_anatomy scripts.test_phase57_causal_entry_exit
-          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_causal_entry_exit audit
-      - name: Measure twice and verify deterministic complete evidence
-        run: |
-          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_causal_entry_exit measure \
-            --output-dir "$RUNNER_TEMP/causal-recoverability-v1-evidence"
-          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_causal_entry_exit measure \
-            --output-dir "$RUNNER_TEMP/causal-recoverability-v1-replay"
-          cmp "$RUNNER_TEMP/causal-recoverability-v1-evidence/manifest.json" "$RUNNER_TEMP/causal-recoverability-v1-replay/manifest.json"
-          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_causal_entry_exit audit --directory "$RUNNER_TEMP/causal-recoverability-v1-evidence"
-          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_causal_entry_exit audit --directory "$RUNNER_TEMP/causal-recoverability-v1-replay"
-      - name: Remove deterministic replay copy
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_saved_evidence_reuse \
+            --study causal --history .phase57-history --output "$RUNNER_TEMP/causal-reuse"
+      - name: Save fresh audit receipt without rewriting historical evidence
         if: always()
-        run: rm -rf -- "$RUNNER_TEMP/causal-recoverability-v1-replay"
-      - name: Upload derived evidence only
-        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: phase57-causal-entry-exit-recoverability-v1-${{ github.event.pull_request.head.sha }}
-          path: ${{ runner.temp }}/causal-recoverability-v1-evidence/
+          name: phase57-causal-reuse-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/causal-reuse
           if-no-files-found: error
-          retention-days: 30
-
-  regression:
-    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install regression dependencies
-        run: pip install fastapi pytest httpx numpy==2.3.5 scipy==1.17.0 pandas==2.2.3
-      - name: Dedicated tests and full offline regression
-        run: |
-          mkdir -p "$RUNNER_TEMP/causal-recoverability-v1-regression"
-          PYTHONDONTWRITEBYTECODE=1 python -m unittest -v scripts.test_phase57_selector_path_anatomy scripts.test_phase57_selector_pairability_v2 scripts.test_phase57_selector_low_high_anatomy scripts.test_phase57_causal_entry_exit 2>&1 | tee "$RUNNER_TEMP/causal-recoverability-v1-regression/targeted-tests.log"
-          python scripts/run_offline_regression.py --output-dir "$RUNNER_TEMP/causal-recoverability-v1-regression/full"
-          python scripts/verify_phase57_development_preservation.py
-      - name: Upload regression audit
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase57-selector-causal-recoverability-v1-regression-${{ github.event.pull_request.head.sha }}
-          path: ${{ runner.temp }}/causal-recoverability-v1-regression/
-          retention-days: 30
-
-  preserve-evidence:
-    needs: [measurement, regression]
-    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      actions: read
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install audit dependencies
-        run: pip install numpy==2.3.5 pandas==2.2.3
-      - uses: actions/download-artifact@v4
-        with:
-          name: phase57-causal-entry-exit-recoverability-v1-${{ github.event.pull_request.head.sha }}
-          path: ${{ runner.temp }}/causal-recoverability-v1-evidence
-      - uses: actions/download-artifact@v4
-        with:
-          name: phase57-selector-causal-recoverability-v1-regression-${{ github.event.pull_request.head.sha }}
-          path: ${{ runner.temp }}/causal-recoverability-v1-regression
-      - name: Attach test regression and CI receipts without overwriting measurement evidence
-        run: |
-          python -m scripts.phase57_causal_entry_exit finalize \
-            --directory "$RUNNER_TEMP/causal-recoverability-v1-evidence" --regression "$RUNNER_TEMP/causal-recoverability-v1-regression" \
-            --head "${{ github.event.pull_request.head.sha }}" --run-id "${{ github.run_id }}"
-      - name: Re-audit and preserve immutable derived evidence
-        run: |
-          python -m scripts.phase57_causal_entry_exit audit --directory "$RUNNER_TEMP/causal-recoverability-v1-evidence"
-          test ! -e docs/evidence/phase57-causal-entry-exit-recoverability-v1/measurement
-          cp -a "$RUNNER_TEMP/causal-recoverability-v1-evidence" docs/evidence/phase57-causal-entry-exit-recoverability-v1/measurement
-          git diff --check
-          git status --short
-      - name: Commit evidence to the exact PR branch
-        env:
-          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
-          BRANCH: ${{ github.head_ref }}
-        run: |
-          set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/evidence/phase57-causal-entry-exit-recoverability-v1/measurement
-          git commit -m "Phase57: preserve causal Entry EXIT recoverability and final handoff"
-          git push origin "HEAD:$BRANCH"
+          retention-days: 90

@@ -8,204 +8,49 @@ on:
       - 'scripts/test_phase57_selector_low_high_anatomy.py'
       - 'docs/evidence/phase57-selector-low-high-anatomy-v1/02_protocol.json'
       - 'docs/evidence/phase57-selector-low-high-anatomy-v1/preflight/REPORT.md'
+      - 'scripts/phase57_saved_evidence_reuse.py'
+      - 'scripts/test_phase57_saved_evidence_reuse.py'
 
 permissions:
-  actions: read
   contents: read
-
 concurrency:
-  group: phase57-selector-low-high-anatomy-v1
-  cancel-in-progress: false
-
+  group: phase57-saved-low-high-audit
+  cancel-in-progress: true
 jobs:
-  measurement:
+  audit-saved-evidence:
     if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 10
     env:
-      NODE_OPTIONS: --max-old-space-size=6144
-      PYTHONUNBUFFERED: '1'
-      PYTHONDONTWRITEBYTECODE: '1'
       ARK_TEST_OFFLINE: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install fixed aggregation libraries
+      - name: Test reuse rejection guards
+        run: python -m unittest -v scripts.test_phase57_saved_evidence_reuse
+      - name: Checkout immutable producing workflow and research snapshot
+        uses: actions/checkout@v4
+        with:
+          ref: e11f8af571a03c7e73f79a77c3964752fd109a08
+          path: .phase57-history
+          persist-credentials: false
+      - name: Install fixed audit dependencies
         run: pip install numpy==2.3.5 pandas==2.2.3
-      - name: Preflight tests and source-pin audit
+      - name: Verify unchanged scientific source and reuse saved evidence
         run: |
-          python3 scripts/offline/kernel_exec.py python3 -m unittest -v scripts.test_phase57_selector_path_anatomy scripts.test_phase57_selector_pairability_v2 scripts.test_phase57_selector_low_high_anatomy
-          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_selector_low_high_anatomy audit
-      - name: Download saved encrypted Development base
-        uses: actions/download-artifact@v4
-        with:
-          name: phase57-long-only-l0-replication-34917676944
-          path: ${{ runner.temp }}/low-high-v1-base
-          repository: Iam-2squared/ark-terminal
-          run-id: 34917676944
-          github-token: ${{ github.token }}
-      - name: Download saved L1 Minute checkpoints
-        uses: actions/download-artifact@v4
-        with:
-          pattern: phase57-long-only-l1-minute-shard-*-34926225832
-          path: ${{ runner.temp }}/low-high-v1-l1
-          repository: Iam-2squared/ark-terminal
-          run-id: 34926225832
-          github-token: ${{ github.token }}
-      - name: Download saved C+D Minute checkpoints
-        uses: actions/download-artifact@v4
-        with:
-          pattern: phase57-long-only-l2-minute-shard-*-34936002178
-          path: ${{ runner.temp }}/low-high-v1-l2
-          repository: Iam-2squared/ark-terminal
-          run-id: 34936002178
-          github-token: ${{ github.token }}
-      - name: Download saved additional Development checkpoints
-        uses: actions/download-artifact@v4
-        with:
-          pattern: phase57-long-only-v2-minute-shard-*-34964031692
-          path: ${{ runner.temp }}/low-high-v1-v2
-          repository: Iam-2squared/ark-terminal
-          run-id: 34964031692
-          github-token: ${{ github.token }}
-      - name: Verify and mount immutable private cache without provider calls
-        env:
-          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -n "${JQUANTS_API_KEY:-}"
-          test "$(find "$RUNNER_TEMP/low-high-v1-l1" -name acquisition-summary.json | wc -l)" = 2
-          test "$(find "$RUNNER_TEMP/low-high-v1-l2" -name acquisition-summary.json | wc -l)" = 4
-          test "$(find "$RUNNER_TEMP/low-high-v1-v2" -name acquisition-summary.json | wc -l)" = 2
-          mapfile -t summaries < <(find "$RUNNER_TEMP/low-high-v1-l1" -name acquisition-summary.json | sort)
-          jq -s '[.[].unavailable[].sessionDate] | unique' "${summaries[@]}" > "$RUNNER_TEMP/low-high-v1-unavailable.json"
-          test "$(jq length "$RUNNER_TEMP/low-high-v1-unavailable.json")" = 4
-          cd "$RUNNER_TEMP/low-high-v1-base"
-          test "$(cut -d' ' -f1 private-cache.tar.gz.enc.sha256)" = "$(sha256sum private-cache.tar.gz.enc | cut -d' ' -f1)"
-          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -in private-cache.tar.gz.enc -out "$RUNNER_TEMP/low-high-v1-base.tar.gz"
-          tar -C "$RUNNER_TEMP" -xzf "$RUNNER_TEMP/low-high-v1-base.tar.gz"
-          while IFS= read -r encrypted; do
-            test "$(cut -d' ' -f1 "${encrypted}.sha256")" = "$(sha256sum "$encrypted" | cut -d' ' -f1)"
-            openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -in "$encrypted" | tar -C "$RUNNER_TEMP/phase57-l0-cache" -xzf -
-          done < <(find "$RUNNER_TEMP/low-high-v1-l1" "$RUNNER_TEMP/low-high-v1-l2" "$RUNNER_TEMP/low-high-v1-v2" -name minute-shard.tar.gz.enc | sort)
-      - name: Project exact saved union paths without refitting
-        run: |
-          mkdir -p "$RUNNER_TEMP/low-high-v1-run"
-          cp docs/evidence/phase57-selector-economic-alpha-v1/measurement/membership-ledger.json.gz "$RUNNER_TEMP/low-high-v1-run/selection-ledger.json.gz"
-          python3 scripts/offline/kernel_exec.py node scripts/phase57_selector_min_price75_paths.mjs \
-            "$RUNNER_TEMP/phase57-l0-cache" "$RUNNER_TEMP/low-high-v1-run/selection-ledger.json.gz" "$RUNNER_TEMP/low-high-v1-run/paths.json.gz"
-      - name: Measure twice and verify deterministic complete evidence
-        run: |
-          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_selector_low_high_anatomy measure \
-            --paths "$RUNNER_TEMP/low-high-v1-run/paths.json.gz" --output-dir "$RUNNER_TEMP/low-high-v1-evidence"
-          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_selector_low_high_anatomy measure \
-            --paths "$RUNNER_TEMP/low-high-v1-run/paths.json.gz" --output-dir "$RUNNER_TEMP/low-high-v1-replay"
-          cmp "$RUNNER_TEMP/low-high-v1-evidence/manifest.json" "$RUNNER_TEMP/low-high-v1-replay/manifest.json"
-          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_selector_low_high_anatomy audit --directory "$RUNNER_TEMP/low-high-v1-evidence"
-          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_selector_low_high_anatomy audit --directory "$RUNNER_TEMP/low-high-v1-replay"
-      - name: Purge private inputs
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_saved_evidence_reuse \
+            --study low-high --history .phase57-history --output "$RUNNER_TEMP/low-high-reuse"
+      - name: Save fresh audit receipt without rewriting historical evidence
         if: always()
-        shell: bash
-        run: |
-          rm -rf -- "$RUNNER_TEMP/phase57-l0-cache" "$RUNNER_TEMP/low-high-v1-dataset" \
-            "$RUNNER_TEMP/low-high-v1-run" "$RUNNER_TEMP/low-high-v1-base.tar.gz" \
-            "$RUNNER_TEMP/low-high-v1-base" "$RUNNER_TEMP/low-high-v1-l1" \
-            "$RUNNER_TEMP/low-high-v1-l2" "$RUNNER_TEMP/low-high-v1-v2" \
-            "$RUNNER_TEMP/low-high-v1-weights" "$RUNNER_TEMP/low-high-v1-context" "$RUNNER_TEMP/low-high-v1-scores" "$RUNNER_TEMP/low-high-v1-phase-a" "$RUNNER_TEMP/low-high-v1-replay"
-      - name: Upload derived evidence only
-        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: phase57-selector-low-high-anatomy-v1-${{ github.event.pull_request.head.sha }}
-          path: ${{ runner.temp }}/low-high-v1-evidence/
+          name: phase57-low-high-reuse-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/low-high-reuse
           if-no-files-found: error
-          retention-days: 30
-
-  regression:
-    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install regression dependencies
-        run: pip install fastapi pytest httpx numpy==2.3.5 scipy==1.17.0 pandas==2.2.3
-      - name: Dedicated tests and full offline regression
-        run: |
-          mkdir -p "$RUNNER_TEMP/low-high-v1-regression"
-          PYTHONDONTWRITEBYTECODE=1 python -m unittest -v scripts.test_phase57_selector_path_anatomy scripts.test_phase57_selector_pairability_v2 scripts.test_phase57_selector_low_high_anatomy 2>&1 | tee "$RUNNER_TEMP/low-high-v1-regression/targeted-tests.log"
-          python scripts/run_offline_regression.py --output-dir "$RUNNER_TEMP/low-high-v1-regression/full"
-          python scripts/verify_phase57_development_preservation.py
-      - name: Upload regression audit
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase57-selector-low-high-v1-regression-${{ github.event.pull_request.head.sha }}
-          path: ${{ runner.temp }}/low-high-v1-regression/
-          retention-days: 30
-
-  preserve-evidence:
-    needs: [measurement, regression]
-    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      actions: read
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install audit dependencies
-        run: pip install numpy==2.3.5 pandas==2.2.3
-      - uses: actions/download-artifact@v4
-        with:
-          name: phase57-selector-low-high-anatomy-v1-${{ github.event.pull_request.head.sha }}
-          path: ${{ runner.temp }}/low-high-v1-evidence
-      - uses: actions/download-artifact@v4
-        with:
-          name: phase57-selector-low-high-v1-regression-${{ github.event.pull_request.head.sha }}
-          path: ${{ runner.temp }}/low-high-v1-regression
-      - name: Attach test regression and CI receipts without overwriting measurement evidence
-        run: |
-          python -m scripts.phase57_selector_low_high_anatomy finalize \
-            --directory "$RUNNER_TEMP/low-high-v1-evidence" --regression "$RUNNER_TEMP/low-high-v1-regression" \
-            --head "${{ github.event.pull_request.head.sha }}" --run-id "${{ github.run_id }}"
-      - name: Re-audit and preserve immutable derived evidence
-        run: |
-          python -m scripts.phase57_selector_low_high_anatomy audit --directory "$RUNNER_TEMP/low-high-v1-evidence"
-          test ! -e docs/evidence/phase57-selector-low-high-anatomy-v1/measurement
-          cp -a "$RUNNER_TEMP/low-high-v1-evidence" docs/evidence/phase57-selector-low-high-anatomy-v1/measurement
-          git diff --check
-          git status --short
-      - name: Commit evidence to the exact PR branch
-        env:
-          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
-          BRANCH: ${{ github.head_ref }}
-        run: |
-          set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/evidence/phase57-selector-low-high-anatomy-v1/measurement
-          git commit -m "Phase57: preserve post-selection low/high anatomy and final handoff"
-          git push origin "HEAD:$BRANCH"
+          retention-days: 90

@@ -13,7 +13,7 @@ permissions:
   actions: read
 concurrency:
   group: phase57-sparse-reader-ready-v1
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   preflight:
     if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository

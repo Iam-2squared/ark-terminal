@@ -188,6 +188,9 @@ def temporal_summary(records,policy):
     out.update(status='PASS' if passed else 'FAIL',signConsistency=sign,normalizedRMSE=rmse,normalizedBias=bias,calibrationSlope=slope,posteriorChangeRMS=change)
     return out
 
+def calibration_available(mapping_through,forecast_origin):
+    return mapping_through<=forecast_origin
+
 def evaluate(matrix,output):
     src=Path(matrix);out=Path(output);out.mkdir(parents=True,exist_ok=False);before=invariants();meta=read(src/'metadata.json');assert before==meta['hashes'];p=admission.plan();protocol=read(BASE/'protocol.json')
     arrays=np.load(src/'matrix.npz');sessions=meta['sessions'];codes=meta['codes'];last=len(sessions)-1;asof=sessions[-1]+'T15:30:00+09:00';schedule=folds(sessions,p)
@@ -259,7 +262,10 @@ def evaluate(matrix,output):
                 x,y=foldpairs[0];mapping=None;checks=[]
                 if len(x)>=100 and np.std(x)>1e-8:
                     mapping=np.linalg.lstsq(np.column_stack([np.ones(len(x)),x]),y,rcond=None)[0]
-                    for xx,yy in foldpairs[1:]:
+                    for period,(xx,yy) in enumerate(foldpairs[1:],1):
+                        if not calibration_available(schedule[0]['testEnd'],schedule[period]['anchor']):
+                            checks.append({'pairs':len(xx),'pass':False,'reason':'MAPPING_NOT_AVAILABLE_AT_FORECAST_ORIGIN','mappingThrough':schedule[0]['testEnd'],'forecastOrigin':schedule[period]['anchor'],'calibrationSlope':None,'mappedMSE':None,'identityMSE':None})
+                            continue
                         pred=mapping[0]+mapping[1]*xx;den=np.sum((pred-pred.mean())**2)
                         slope=float(np.sum((pred-pred.mean())*(yy-yy.mean()))/den) if len(xx)>=100 and den>0 else None
                         mse=float(np.mean((yy-pred)**2)) if len(xx) else None;identity=float(np.mean((yy-xx)**2)) if len(xx) else None

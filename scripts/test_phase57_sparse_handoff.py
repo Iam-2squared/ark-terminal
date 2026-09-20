@@ -149,6 +149,10 @@ class SparseTests(unittest.TestCase):
         p=s.admission.plan();cal=s.calendar();fs=s.folds(cal,p)
         self.assertEqual(len(fs),3)
         for f in fs:self.assertGreater(f['test'][0],f['end']+5);self.assertLess(max(f['train']),min(f['test']))
+    def test_mapping_asof(self):
+        fs=s.folds(s.calendar(),s.admission.plan())
+        self.assertFalse(s.calibration_available(fs[0]['testEnd'],fs[1]['anchor']))
+        self.assertTrue(s.calibration_available(fs[0]['testEnd'],fs[2]['anchor']))
     def test_causal_fit_ignores_future_poison(self):
         rng=np.random.default_rng(8);data=rng.normal(size=(90,150));cov=rng.normal(size=(90,150,4));eligible=np.ones((90,150),bool);item={'id':'x','transform':'identity'};ix=np.arange(60)
         a=s.snapshot(data,cov,eligible,item,ix);data[60:]=1e10;cov[60:]=-1e10;b=s.snapshot(data,cov,eligible,item,ix)

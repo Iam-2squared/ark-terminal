@@ -105,6 +105,14 @@ jobs:
       - name: Save charts report and STOP without promotion or EXIT
         run: |
           python scripts/offline/kernel_exec.py python -m scripts.phase57_entry_pattern_report --evidence "$RUNNER_TEMP/entry/evidence" --replay "$RUNNER_TEMP/entry/measurement-replay"
+          mkdir -p "$RUNNER_TEMP/entry/report-replay"
+          ln -s "$RUNNER_TEMP/entry/evidence/substrate" "$RUNNER_TEMP/entry/report-replay/substrate"
+          ln -s "$RUNNER_TEMP/entry/measurement-replay" "$RUNNER_TEMP/entry/report-replay/measurement"
+          ln -s "$RUNNER_TEMP/entry/evidence/regression" "$RUNNER_TEMP/entry/report-replay/regression"
+          cp "$RUNNER_TEMP/entry/evidence/extraction.json" "$RUNNER_TEMP/entry/evidence/focused.log" "$RUNNER_TEMP/entry/evidence/substrate-determinism.json" "$RUNNER_TEMP/entry/report-replay/"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_entry_pattern_report --evidence "$RUNNER_TEMP/entry/report-replay" --replay "$RUNNER_TEMP/entry/measurement-replay"
+          cmp "$RUNNER_TEMP/entry/evidence/report-manifest.json" "$RUNNER_TEMP/entry/report-replay/report-manifest.json"
+          cmp "$RUNNER_TEMP/entry/evidence/diagnostics/manifest.json" "$RUNNER_TEMP/entry/report-replay/diagnostics/manifest.json"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -113,7 +121,7 @@ jobs:
           retention-days: 90
       - name: Purge private raw source and temporary replay
         if: always()
-        run: rm -rf -- "$RUNNER_TEMP/entry/raw" "$RUNNER_TEMP/entry/encrypted" "$RUNNER_TEMP/entry/prior" "$RUNNER_TEMP/entry/substrate-replay" "$RUNNER_TEMP/entry/measurement-replay"
+        run: rm -rf -- "$RUNNER_TEMP/entry/raw" "$RUNNER_TEMP/entry/encrypted" "$RUNNER_TEMP/entry/prior" "$RUNNER_TEMP/entry/substrate-replay" "$RUNNER_TEMP/entry/measurement-replay" "$RUNNER_TEMP/entry/report-replay"
   preserve:
     needs: measure
     runs-on: ubuntu-latest

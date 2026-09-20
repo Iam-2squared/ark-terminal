@@ -77,6 +77,9 @@ def report(root,replay):
  '結果表の30/60はsession-active minutesで、v1 wall-clock値を上書きしない。B2はv1のBUY timestamp/price/Captureを完全保存し、同じ新horizonで補助比較。MFE/MAE/MaxDD/returnはcomplete source-slot caseのみ、Hitは全BUY分母の観測下限、Captureは従来session-end Selector winner固定分母。MaxDDは確認できるOHLC順序の下落で、同一足内順序のadverse boundもlabelに保存。','',
  '## Comparison','', '| '+' | '.join(header)+' |','|'+'---|'*len(header)]
  lines+=['| '+' | '.join(map(fmt,row))+' |' for row in vals]
+ from scripts.phase57_entry_pattern_diagnostics import run as diagnose
+ diagnose(root,root/'diagnostics')
+ lines+=['','[Pattern good/bad anatomy・full1m coverage・cadence別retry差・noise・選択モデルattribution](diagnostics/REPORT-ja.md)','']
  lines+=['','## Limitations / safety','','Sparse/partial minute data cannot distinguish no trade from source acquisition gap without external completeness metadata. Exact prior session outside authorized144 remains unavailable, never backfilled. Fixed projection is a numeric representation, not proof of human-like chart understanding. Frozen upstream same-day Daily metadata limitation inherited; this study does not independently certify upstream prospective PIT. Prior Development reused and prior outcomes known; no independent OOS claim.','',
  'Weights are precommitted. weight-sensitivity.json changes the upside coefficient 0/.15/.3 only for descriptive scoring of the same selected decisions; no result-based retune. Conditional means do not establish success by themselves; read fixed-population capture, throughput, unknown outcomes and session plots. Models/targets/scores/selection lock/ablation saved.','',
  'Completion verification: focused tests, regression, dual substrate manifests and dual measurement manifests in ci-receipt.json. Holdout244 untouched, all9 Safety false, no EXIT/capital/trading/merge/promotion.','']

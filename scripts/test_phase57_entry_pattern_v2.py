@@ -65,6 +65,9 @@ class Tests(unittest.TestCase):
   x=np.arange(660,dtype=float).reshape(220,3);y=np.tile(np.sin(np.arange(220)/10)[:,None],(1,5));fit=np.ones(220,bool)
   for family in ['RIDGE','TREE']:
    pred,model=l.fit_predict(x,y,fit,[0,1,2],family);np.testing.assert_allclose(l.predict_saved(x[:12],model),pred[:12],rtol=1e-10,atol=1e-10)
+ def test_efficiency_includes_first_open_close_leg(self):
+  self.assertEqual(e.describe(np.array([bar(569)]),100,1)['trendEfficiency'],1)
+  z=e.describe(np.array([bar(569),bar(570,c=100)]),100,2);self.assertEqual(z['trendEfficiency'],0)
  def test_raw_inputs_not_mutated(self):
   a=np.array([bar(569)]);cp=a.copy();e.features(DAY,570,570,origin(),a,np.empty((0,7)),None,{});np.testing.assert_array_equal(cp,a)
 if __name__=='__main__':unittest.main()

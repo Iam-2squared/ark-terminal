@@ -148,6 +148,14 @@
     "2024-12-09"
   ],
   "horizon": "30/60 active continuous-session minutes with strict nonempty consecutive5-active-minute source chunks separately within AM/PM; partial/censored not zero; end horizon remains source-reconciled auction",
+  "implementationCorrections": [
+    {
+      "beforeRealTrainingOrPerformanceInspection": true,
+      "priorExecutionHead": "19edeac6cb94319c684a128c2aaed1bd90d7837b",
+      "reason": "Trend efficiency denominator omitted the first observed Open-to-Close leg. Correct close-path length to bound efficiency in [0,1], including one-bar windows. No family, window, weights, model, split or policy change.",
+      "reporting": "Adds anatomy/coverage/selected-model attribution and descriptive proposal-flip/fresh-turning adverse-outcome proxy. No model/policy change. Also checks two report regenerations."
+    }
+  ],
   "knownLimitations": [
     "Development reused, not independent OOS",
     "Frozen upstream same-day Daily metadata inherited",
@@ -162,14 +170,15 @@
     "TREE_FULL_STOP"
   ],
   "pins": {
-    ".github/workflows/phase57-entry-pattern-v2.yml": "2036573d8f8c8829f9e4c001004a59fc7b5bb08c33074e857bb72f91fb7d4b07",
+    ".github/workflows/phase57-entry-pattern-v2.yml": "975a59d6ac871062711af640cb0b3c4072b2c6495960e1fd501b6bbee6cecb67",
     "scripts/phase57_behavior_full144.py": "54a0398bc761e40d38a733ec525fce153ef46504fc55f9de197d5125a69c1545",
     "scripts/phase57_chart_entry.py": "92e9542df50b3147f86969b01e00e61410a528bd74bed529002a8fb35080dc65",
     "scripts/phase57_entry_extended.py": "f6eb3aa9995e542d85e1a3c5183f475f5ca3cf159bcb0af425da256640cc0c45",
+    "scripts/phase57_entry_pattern_diagnostics.py": "d5c1a56e80a0a73181cebcccaeee37953d2d847f4c28b5aa9189ecf632a780f8",
     "scripts/phase57_entry_pattern_learn.py": "14a9cc0adb4903c329edbab17ed5fdb614abee2d7d99d5170a2fb65327826047",
-    "scripts/phase57_entry_pattern_report.py": "93547c878c389bee928340bc7bd072f9f2b996ef0e66bf9915782644dfd56605",
-    "scripts/phase57_entry_pattern_v2.py": "89b89de4b6fe869c8adf5668fbe1e365399c52de709a1ac5fd372175a7f8467b",
-    "scripts/test_phase57_entry_pattern_v2.py": "631cb4be80c4002cad8371c5f79256fd5876d0249ba3ae83748923161cc199b2"
+    "scripts/phase57_entry_pattern_report.py": "439d785ffcf898094928539a4c75848989af2efe44544b95649539b4d8183da7",
+    "scripts/phase57_entry_pattern_v2.py": "2bdc82aba45384feca7c7113db1b1cc4f0ffc2d7e67401b716bf93483e28b41d",
+    "scripts/test_phase57_entry_pattern_v2.py": "749984390a199fa514c80c9d16554b004ffd27e55baa747fdf58bbc2c4a69d4c"
   },
   "priorManifests": {
     "measurement": {

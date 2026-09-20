@@ -31,7 +31,7 @@ def describe(a,ref,expected):
  if not len(a) or not ref or ref<=0:return z
  o,h,l,c=a[0,1],max(a[:,2]),min(a[:,3]),a[-1,4];vo=sum(a[:,5]);va=sum(a[:,6]);vw=va/vo if vo>0 else None
  z.update(return_=pct(c,o));z['return']=z.pop('return_')
- z.update(high=pct(h,ref),low=pct(l,ref),range=100*(h-l)/ref,body=100*(c-o)/ref,upper=100*(h-max(o,c))/ref,lower=100*(min(o,c)-l)/ref,volume=math.log1p(vo),value=math.log1p(va),vwapDistance=pct(c,vw),closeLocation=(c-l)/(h-l) if h>l else .5,timeHigh=float(a[np.argmax(a[:,2]),0]),timeLow=float(a[np.argmin(a[:,3]),0]),volatility=float(np.std(np.diff(np.log(a[:,4])))*100) if len(a)>1 else None,trendEfficiency=abs(c-o)/max(sum(abs(np.diff(a[:,4]))),1e-9))
+ z.update(high=pct(h,ref),low=pct(l,ref),range=100*(h-l)/ref,body=100*(c-o)/ref,upper=100*(h-max(o,c))/ref,lower=100*(min(o,c)-l)/ref,volume=math.log1p(vo),value=math.log1p(va),vwapDistance=pct(c,vw),closeLocation=(c-l)/(h-l) if h>l else .5,timeHigh=float(a[np.argmax(a[:,2]),0]),timeLow=float(a[np.argmin(a[:,3]),0]),volatility=float(np.std(np.diff(np.log(a[:,4])))*100) if len(a)>1 else None,trendEfficiency=abs(c-o)/max(abs(a[0,4]-o)+sum(abs(np.diff(a[:,4]))),1e-9))
  return z
 
 PROJECTION=np.random.default_rng(5709202).choice([-1.,1.],size=(391,6,24))/math.sqrt(391*6)

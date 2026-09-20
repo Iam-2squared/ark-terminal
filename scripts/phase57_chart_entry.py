@@ -161,7 +161,9 @@ def substrate(cache,prior,output):
    hist=history.get(code,[]);history[code]=(hist+[history_row(day,code,dc.get(code) if code in uni else None,by[code],hist)])[-10:]
   allrows.extend(today);last=day
   inv={'session':day,'inputAudited':True,'selectorCandidates':len(ms),'opportunities':len(opday),'decisionRows':len(today),'reason':None if ms else 'EXACT_PREVIOUS_SESSION_OUTSIDE_AUTHORIZED_CACHE','WHOavailable':sum(any(c['availability']=='AVAILABLE' for c in x['WHO']) for x in today),'RECENTavailable':sum(x['RECENT']['status']=='AVAILABLE' for x in today),'NOWavailable':sum(x['NOW']['status']=='RESEARCH_CONTEXT_AVAILABLE' for x in today),'SEQavailable':sum(x['SEQ']['status']=='AVAILABLE' for x in today)}
-  inventory.append(inv);print(json.dumps(inv),flush=True)
+  inv['frozenFeatureProjectionAvailable']=len(adapter['projected']);inv['frozenFeatureProjectionUnavailable']=len(adapter['missing'])
+  inv['frozenFeatureProjectionAudit']=adapter['missing']
+  inventory.append(inv);print(json.dumps({k:v for k,v in inv.items() if k!='frozenFeatureProjectionAudit'}),flush=True)
  # Store features and labels separately; no oracle or realized fill in the feature projection.
  write(out/'features.json.gz',allrows);write(out/'outcomes.json.gz',labels);write(out/'opportunities.json.gz',opps);write(out/'current-ticks.json.gz',currentlogs);write(out/'inventory.json',inventory);write(out/'input-ledger.json',lineage)
  write(out/'audit.json',{'all144':len(inventory)==144,'candidateIdentityHash':digest([x['member'] for x in old]),'candidateCount':len(old),'WHOpriorOnly':True,'RECENTpreviousDay':True,'NOWclosedBars':True,'sequenceFixedLagsNoFill':True,'newAcquisition':0,'commonHoldoutOpened':0,'sealedOpened':0,'safety':b.SAFETY,'upstreamLimitation':'Inherited Frozen admission uses same-date Daily metadata. Not independently prospective PIT or OOS.'})
@@ -239,8 +241,22 @@ def fit_model(train,query,y,family):
   base=float(np.mean((fit.predict(a)-y)**2));importance=[]
   for prefix in ['SELECTOR','RECENT','NOW','SEQ','WHO','ANALOG']:
    ii=[i for i,n in enumerate(names) if n.startswith(prefix+'/')];test=a.copy();test[:,ii]=test[::-1,ii];importance.append((prefix,float(np.mean((fit.predict(test)-y)**2)-base)))
-  model['treeStateHash']=digest([{'nodes':tree.nodes.tolist()} for stage in fit._predictors for tree in stage])
+  model['treeNodes']=[{'nodes':tree.nodes.tolist()} for stage in fit._predictors for tree in stage];model['treeStateHash']=digest(model['treeNodes']);model['baselinePrediction']=fit._baseline_prediction.tolist();model['treeNodeFields']=list(fit._predictors[0][0].nodes.dtype.names);model['treeVersion']='sklearn-1.7.2-numeric-threshold-leaf-values-include-learning-rate'
  model['importance']=importance[:30];return pred,model
+
+def predict_saved(model,vectors):
+ names=model['names'];raw=np.array([[x.get(k) if x.get(k) is not None else np.nan for k in names] for x in vectors],float);missing=~np.isfinite(raw)
+ x=np.where(missing,np.array(model['median']),raw);x=np.column_stack([(x-np.array(model['mean']))/np.array(model['scale']),missing])
+ if model['family']=='RIDGE':return (x-np.array(model['designCenter']))@np.array(model['weights'])+model['intercept']
+ fields={n:i for i,n in enumerate(model['treeNodeFields'])};out=np.full(len(vectors),float(np.array(model['baselinePrediction']).reshape(-1)[0]))
+ for tree in model['treeNodes']:
+  nodes=tree['nodes']
+  for j,values in enumerate(x):
+   i=0
+   while not nodes[i][fields['is_leaf']]:
+    node=nodes[i];value=values[int(node[fields['feature_idx']])];i=int(node[fields['left' if value<=node[fields['num_threshold']] else 'right']])
+   out[j]+=nodes[i][fields['value']]
+ return out
 
 def policy(opps,rows,labels,scores,mode):
  mapping={x['id']:x for x in rows};result=[]

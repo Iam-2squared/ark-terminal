@@ -23,9 +23,9 @@ if(previous!=='UNAVAILABLE'){
  const config=read('predict/research/phase57-long-only-frozen-selector-v1.json').freezePayload.selectorSpecification.model.configuration;
  for(const f of built.featureRows){const m=wanted.get(f.symbol+'|'+f.decisionTimeJst);if(!m)continue;
   if(f.latestAvailableAtJst>f.decisionAtJst)throw Error('FUTURE_FROZEN_FEATURE');
-  const score=scoreL2Candidate(f,config);if(Math.abs(score-m.savedV1Score)>1e-5)throw Error('SAVED_SELECTOR_SCORE_DRIFT');
+  const score=scoreL2Candidate(f,config);if(Math.abs(score-m.savedV1Score)>1e-5){missing[m.selectorEventId]={reason:'SAVED_FROZEN_FEATURE_PROJECTION_UNREPRODUCIBLE',savedScore:m.savedV1Score,reconstructedScore:score,absoluteDifference:Math.abs(score-m.savedV1Score),action:'KEEP_SAVED_CANDIDATE_AND_SCORE_FEATURE_VECTOR_UNAVAILABLE',sourceLimitation:'Original partition-wide L0 predecessor state is not equivalent to a one-previous-session reconstruction.'};continue;}
   projected[m.selectorEventId]={features:projectL2Features(f),computedThrough:f.latestAvailableAtJst};
  }
 }
-for(const m of members)if(!projected[m.selectorEventId])missing[m.selectorEventId]=previous==='UNAVAILABLE'?'AUTHORIZED_PREVIOUS_DAILY_UNAVAILABLE':'FROZEN_FEATURE_ROW_UNAVAILABLE';
+for(const m of members)if(!projected[m.selectorEventId]&&!missing[m.selectorEventId])missing[m.selectorEventId]=previous==='UNAVAILABLE'?'AUTHORIZED_PREVIOUS_DAILY_UNAVAILABLE':'FROZEN_FEATURE_ROW_UNAVAILABLE';
 fs.writeFileSync(out,JSON.stringify({projected,missing,currentOpportunities:current.opportunities,currentTicks:current.ticks.map(x=>({symbolSessionId:x.symbolSessionId,evaluationTimestamp:x.evaluationTimestamp,status:x.status,reason:x.reason})),selectorChanged:false,currentEntryChanged:false}),{flag:'wx'});

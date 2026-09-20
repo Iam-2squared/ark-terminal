@@ -40,6 +40,10 @@ class ChartEntryTests(unittest.TestCase):
   tr=[{'x':i,'m':None} for i in range(30)];_,a=e.fit_model(tr,[{'x':1}],np.arange(30),'RIDGE');_,b=e.fit_model(tr,[{'x':1e9}],np.arange(30),'RIDGE');self.assertEqual(a,b)
  def test_nonlinear_deterministic(self):
   tr=[{'x':i} for i in range(100)];a,m=e.fit_model(tr,[{'x':1}],np.arange(100),'TREE');b,n=e.fit_model(tr,[{'x':1}],np.arange(100),'TREE');self.assertEqual(m,n);np.testing.assert_array_equal(a,b)
+ def test_saved_model_prediction_roundtrip(self):
+  train=[{'x':i,'missing':None} for i in range(120)];query=[{'x':None},{'x':43},{'x':999}]
+  for family in ['RIDGE','TREE']:
+   pred,model=e.fit_model(train,query,np.sin(np.arange(120)/8),family);np.testing.assert_allclose(pred,e.predict_saved(model,query),rtol=1e-12,atol=1e-12)
  def test_analog_no_same_session_or_future(self):
   rows=[];opps=[];labels={}
   for day in ['2025-06-02','2025-06-03']:

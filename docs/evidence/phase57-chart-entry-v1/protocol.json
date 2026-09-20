@@ -144,7 +144,7 @@
       "relative_value5",
       "value_shock"
     ],
-    "SELECTOR": "Frozen score/rank/reference/source and immutable original frozen projection, elapsed/time remaining/current causal reference. No model/topK change. First authorized date may lack source prior-day projection, record unavailable.",
+    "SELECTOR": "Frozen score/rank/reference/source and immutable original frozen projection, elapsed/time remaining/current causal reference. No model/topK change. First authorized date may lack source prior-day projection, record unavailable. Any score-incompatible projection is UNAVAILABLE; saved selector score/rank/price always retained.",
     "SEQ": "Fixed12 closed5m wall-clock lags, OHLC relative current causal reference, range/body/wicks, log volume/value, complete-prefix VWAP distance, prior same-time RVOL, causal confirmed swing. Fixed15/30/60 summary, missing slots null. Raw sequence retained.",
     "WHO": "Reuse source causal daily snapshot, all states stored, numeric reliable value only H/M+PASS. No profile backfill."
   },
@@ -208,7 +208,10 @@
   ],
   "id": "PHASE57_CHART_AWARE_BUY_WAIT_V1",
   "implementationCorrectionsBeforeRealResults": [
-    "Report-only local variable name corrected after synthetic report smoke test; model, features, windows, targets unchanged."
+    "Report-only local variable name corrected after synthetic report smoke test; model, features, windows, targets unchanged.",
+    "CI35498721142 failed before fitting: saved55 feature projection score mismatch. Keep saved candidates/scores/ranks/prices verbatim. Only feature vectors reproducing saved score within unchanged1e-5 guard are supplied; mismatched reconstruction is UNAVAILABLE with full difference audit. Original partition-wide L0 predecessor state cannot be assumed identical to one-prior-day reconstruction. No protected source opened.",
+    "Persist fitted numeric tree nodes and add uncertainty/missed-winner report panels, no change to model/target/features/windows/thresholds.",
+    "Saved Ridge/tree inference interface and exact prediction roundtrip test; no estimator or scoring change."
   ],
   "models": [
     "standardized Ridge lambda10 with fit-only median/missing indicators",
@@ -244,13 +247,13 @@
     "scripts/phase57_behavior_full144.py": "54a0398bc761e40d38a733ec525fce153ef46504fc55f9de197d5125a69c1545",
     "scripts/phase57_behavior_intelligence.py": "9aa5b7a5b373a8baa11742691b27649f3005636e68934cf2dc6a92aca8262e82",
     "scripts/phase57_behavior_reader_v2.py": "e41cc903a828068157044ecfcc7b40a67961d4254d1f649a2ee25c1ddbe35e8d",
-    "scripts/phase57_chart_entry.py": "8bfa95ae8ca4dfd225b96cd38e91e1834df59940d21337b4c733dbc710b1e4e3",
-    "scripts/phase57_chart_entry_adapter.mjs": "3b61efcd66b434c4ee69666474a55eee5a86e62356fb87064a6bc0f65efebdeb",
-    "scripts/phase57_chart_entry_report.py": "532b0d721c1bb659d307fe06a8b677014f5770b6fa25b199379b66909d111855",
+    "scripts/phase57_chart_entry.py": "92e9542df50b3147f86969b01e00e61410a528bd74bed529002a8fb35080dc65",
+    "scripts/phase57_chart_entry_adapter.mjs": "52317911db4d4e24fc1d87603ea14c4065cb43eaafc1e1a64392648bf94b8e6e",
+    "scripts/phase57_chart_entry_report.py": "d34b98d5d876210023416b94a592caac099b19dd61ffc3655722ff77d9befef6",
     "scripts/phase57_selector_low_high_anatomy.py": "5458512aa7d3efcd227860d1f494499132176ca827ab41e190238ce45e3c6662",
     "scripts/phase57_sparse_handoff.py": "7534472a281b12eb42feb1c430f8746ba680efbf65f9072d66a7479964eb07e3",
     "scripts/phase57_sparse_trait_contract.py": "f6daf91787fa1b084f3d42b8f093de8032da819ceb5c83b95cdb156d6bf6cefc",
-    "scripts/test_phase57_chart_entry.py": "107c8e3b48c3770cb3c213b7972d2671778fc465ccdb7288e0082f27f102b94f"
+    "scripts/test_phase57_chart_entry.py": "6af9ed88f0857e5c43b0e4d84b486d230bc71b2edc0bc86fd120fc774c4de435"
   },
   "predecessorEvidence": "S2-S4 filtering lost approximately30-37% +3/+5 winners. Do not reinstate filters or claim robust new superiority on reused Development.",
   "priorManifest": {

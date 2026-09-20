@@ -1,0 +1,96 @@
+name: Phase57 Symbol Profile Coverage
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-profile-coverage.yml'
+      - 'scripts/phase57_profile_coverage.py'
+      - 'scripts/test_phase57_profile_coverage.py'
+permissions:
+  contents: read
+concurrency:
+  group: phase57-symbol-profile-coverage-v1
+  cancel-in-progress: false
+jobs:
+  diagnose:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      ARK_TEST_OFFLINE: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: pip install numpy==2.3.5 scipy==1.17.0 pandas==2.2.3 fastapi pytest httpx
+      - name: Generate coverage twice, no provider or raw access
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_profile_coverage --output "$RUNNER_TEMP/coverage/result"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_profile_coverage --output "$RUNNER_TEMP/coverage-replay"
+          cmp "$RUNNER_TEMP/coverage/result/manifest.json" "$RUNNER_TEMP/coverage-replay/manifest.json"
+      - name: Focused contracts and complete offline regression
+        run: |
+          set -o pipefail
+          export COVERAGE_OUTPUT="$RUNNER_TEMP/coverage/result"
+          python scripts/offline/kernel_exec.py python -m unittest -v scripts.test_phase57_profile_coverage scripts.test_phase57_expansion_data scripts.test_phase57_expansion_research scripts.test_phase57_research_dictionary_v0 scripts.test_phase57_dictionary_pit_recovery scripts.test_phase57_behavior_dictionary scripts.test_phase57_dictionary_prospective 2>&1 | tee "$RUNNER_TEMP/coverage/focused.log"
+          python scripts/run_offline_regression.py --output-dir "$RUNNER_TEMP/coverage/regression"
+          python scripts/verify_phase57_development_preservation.py
+      - name: Record verified execution
+        env:
+          CHECKOUT_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python - <<'PY'
+          import json,os,re,subprocess
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])/'coverage'
+          report=json.loads((root/'regression/regression.json').read_text())
+          assert report['status']=='PASS'
+          head=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          assert head==os.environ['CHECKOUT_HEAD']
+          log=(root/'focused.log').read_text()
+          assert 'skipped=' not in log and 'FAILED' not in log
+          receipt={'status':'PASS','runId':os.environ['GITHUB_RUN_ID'],'attempt':os.environ['GITHUB_RUN_ATTEMPT'],'checkoutHead':head,'workflowEventSha':os.environ['GITHUB_SHA'],'focusedTests':int(re.search(r'Ran (\d+) tests',log).group(1)),'regressionTests':sum(s['counts']['tests'] for s in report['suites']),'deterministicRegeneration':'TWO_MANIFESTS_IDENTICAL','sourceEvidence':'UNCHANGED','newProviderRequests':0,'protectedPayloadReads':0,'rawRemeasurements':0,'entryExitTrials':0,'productionAllowed':False}
+          (root/'ci-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-profile-coverage-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/coverage
+          retention-days: 90
+  preserve:
+    needs: diagnose
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-profile-coverage-${{ github.event.pull_request.head.sha }}
+          path: docs/evidence/phase57-profile-coverage-v1/ci-result
+      - name: Preserve new evidence only
+        env:
+          BRANCH: ${{ github.head_ref }}
+          EXPECTED: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$BRANCH" = research/phase57-long-only-cash-equity
+          test "$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)" = "$EXPECTED"
+          test -z "$(git ls-tree -r HEAD -- docs/evidence/phase57-profile-coverage-v1/ci-result)"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/evidence/phase57-profile-coverage-v1/ci-result
+          git commit -m 'Phase57: preserve symbol confidence coverage and verified CI'
+          git push origin "HEAD:$BRANCH"

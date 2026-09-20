@@ -1,0 +1,131 @@
+name: Phase57 Sparse Dictionary Reader Handoff
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-sparse-reader-ready.yml'
+      - 'scripts/phase57_behavior_reader_v2.py'
+      - 'scripts/phase57_sparse_handoff.py'
+      - 'scripts/test_phase57_sparse_handoff.py'
+      - 'scripts/phase57_sparse_closeout.py'
+      - 'docs/evidence/phase57-sparse-reader-ready-v1/protocol.json'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-sparse-reader-ready-v1
+  cancel-in-progress: false
+jobs:
+  preflight:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    outputs:
+      measure: ${{ steps.gate.outputs.measure }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - id: gate
+        run: |
+          if test "$(git log -1 --format=%s)" = 'Phase57: run sparse Reader handoff v1'; then
+            test ! -e docs/evidence/phase57-sparse-reader-ready-v1/ci-result
+            echo 'measure=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'measure=false' >> "$GITHUB_OUTPUT"
+          fi
+  verify:
+    needs: preflight
+    if: needs.preflight.outputs.measure == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      ARK_TEST_OFFLINE: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: pip install numpy==2.3.5 scipy==1.17.0 pandas==2.2.3 fastapi pytest httpx
+      - name: Verify precommit and test contracts before real measurement
+        run: |
+          set -o pipefail
+          mkdir -p "$RUNNER_TEMP/sparse-ready/evidence"
+          python scripts/offline/kernel_exec.py python -m unittest -v scripts.test_phase57_sparse_handoff scripts.test_phase57_expansion_data scripts.test_phase57_expansion_research scripts.test_phase57_research_dictionary_v0 scripts.test_phase57_dictionary_pit_recovery scripts.test_phase57_behavior_dictionary scripts.test_phase57_dictionary_prospective 2>&1 | tee "$RUNNER_TEMP/sparse-ready/evidence/focused.log"
+          python -m scripts.phase57_sparse_closeout verify-lock
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-expansion-raw-*-35447995157
+          path: ${{ runner.temp }}/sparse-ready/encrypted
+          repository: Iam-2squared/ark-terminal
+          run-id: 35447995157
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-expansion-reuse-35447995157
+          path: ${{ runner.temp }}/sparse-ready/encrypted/reuse
+          repository: Iam-2squared/ark-terminal
+          run-id: 35447995157
+          github-token: ${{ github.token }}
+      - name: Selectively restore existing Development only; never acquire
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_expansion_data restore --archives "$RUNNER_TEMP/sparse-ready/encrypted" --cache "$RUNNER_TEMP/sparse-ready/raw/jquants-v2" --output "$RUNNER_TEMP/sparse-ready/evidence/extraction.json"
+      - name: Collect allowlisted hash-verified data once
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_sparse_handoff collect --cache "$RUNNER_TEMP/sparse-ready/raw/jquants-v2" --output "$RUNNER_TEMP/sparse-ready/matrix"
+      - name: Evaluate twice without acquisition or protected reads
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_sparse_handoff evaluate --matrix "$RUNNER_TEMP/sparse-ready/matrix" --output "$RUNNER_TEMP/sparse-ready/evidence/measurement"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_sparse_handoff evaluate --matrix "$RUNNER_TEMP/sparse-ready/matrix" --output "$RUNNER_TEMP/sparse-ready/replay"
+          cmp "$RUNNER_TEMP/sparse-ready/evidence/measurement/manifest.json" "$RUNNER_TEMP/sparse-ready/replay/manifest.json"
+      - name: Full offline regression and immutable source verification
+        run: |
+          python scripts/run_offline_regression.py --output-dir "$RUNNER_TEMP/sparse-ready/evidence/regression"
+          python scripts/verify_phase57_development_preservation.py
+      - name: Finalize Gate, report, conditional designs and handoff
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_sparse_closeout finalize --evidence "$RUNNER_TEMP/sparse-ready/evidence" --replay "$RUNNER_TEMP/sparse-ready/replay" --cache "$RUNNER_TEMP/sparse-ready/raw/jquants-v2" --matrix "$RUNNER_TEMP/sparse-ready/matrix"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-sparse-ready-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/sparse-ready/evidence
+          retention-days: 90
+  preserve:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-sparse-ready-${{ github.event.pull_request.head.sha }}
+          path: docs/evidence/phase57-sparse-reader-ready-v1/ci-result
+      - name: Preserve new Evidence without overwriting source or merging
+        env:
+          BRANCH: ${{ github.head_ref }}
+          EXPECTED: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$BRANCH" = research/phase57-long-only-cash-equity
+          test "$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)" = "$EXPECTED"
+          test -z "$(git ls-tree -r HEAD -- docs/evidence/phase57-sparse-reader-ready-v1/ci-result)"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/evidence/phase57-sparse-reader-ready-v1/ci-result
+          git commit -m 'Phase57: preserve sparse Reader handoff result and STOP'
+          git push origin "HEAD:$BRANCH"

@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   diagnose:
-    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event.pull_request.head.sha == '587514d0f85992dad1da8afdec1fa1dbc5408c04' && github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 35
     env:

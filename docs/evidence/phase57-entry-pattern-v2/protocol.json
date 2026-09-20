@@ -154,6 +154,11 @@
       "priorExecutionHead": "19edeac6cb94319c684a128c2aaed1bd90d7837b",
       "reason": "Trend efficiency denominator omitted the first observed Open-to-Close leg. Correct close-path length to bound efficiency in [0,1], including one-bar windows. No family, window, weights, model, split or policy change.",
       "reporting": "Adds anatomy/coverage/selected-model attribution and descriptive proposal-flip/fresh-turning adverse-outcome proxy. No model/policy change. Also checks two report regenerations."
+    },
+    {
+      "beforeRealTrainingOrPerformanceInspection": true,
+      "priorExecutionHead": "1309d732fe074d9fe83e1904ca3d5a1e67c15f23",
+      "reason": "Configuration key collision overwrote inherited selection20 date list with selection-rule prose. Restore exact v1 selection dates and move prose to selectionRule. Assert all inherited chronological partitions, counts and disjointness before source restoration/training. No outcome, family, target, window or model selection change."
     }
   ],
   "knownLimitations": [
@@ -177,8 +182,8 @@
     "scripts/phase57_entry_pattern_diagnostics.py": "d5c1a56e80a0a73181cebcccaeee37953d2d847f4c28b5aa9189ecf632a780f8",
     "scripts/phase57_entry_pattern_learn.py": "14a9cc0adb4903c329edbab17ed5fdb614abee2d7d99d5170a2fb65327826047",
     "scripts/phase57_entry_pattern_report.py": "439d785ffcf898094928539a4c75848989af2efe44544b95649539b4d8183da7",
-    "scripts/phase57_entry_pattern_v2.py": "2bdc82aba45384feca7c7113db1b1cc4f0ffc2d7e67401b716bf93483e28b41d",
-    "scripts/test_phase57_entry_pattern_v2.py": "749984390a199fa514c80c9d16554b004ffd27e55baa747fdf58bbc2c4a69d4c"
+    "scripts/phase57_entry_pattern_v2.py": "ca4bb73e1523c134e6b0e7a6b103ad3794edd65385bf1ad93241296783d0c23b",
+    "scripts/test_phase57_entry_pattern_v2.py": "9562d81f7a7f206d2cfe825d325f0028a74177ca63c871655e777acd2219cde4"
   },
   "priorManifests": {
     "measurement": {
@@ -222,7 +227,29 @@
     "transmitted": false
   },
   "safetyScope": "No orders/EXIT/capital/merge; Development144 only; model fit allowed only prior split",
-  "selection": "Capture3/5>=90 and BUY>=90% B0 first; then fixed-population quality minus .5*(missedFraction3+missedFraction5); tie Ridge then STOP; no eval selection/refit",
+  "selection": [
+    "2025-04-22",
+    "2025-04-23",
+    "2025-04-24",
+    "2025-04-25",
+    "2025-04-28",
+    "2025-04-30",
+    "2025-05-01",
+    "2025-05-02",
+    "2025-05-07",
+    "2025-05-08",
+    "2025-05-09",
+    "2025-05-12",
+    "2025-05-13",
+    "2025-05-14",
+    "2025-05-15",
+    "2025-05-16",
+    "2025-05-19",
+    "2025-05-20",
+    "2025-05-21",
+    "2025-05-22"
+  ],
+  "selectionRule": "Capture3/5>=90 and BUY>=90% B0 first; then fixed-population quality minus .5*(missedFraction3+missedFraction5); tie Ridge then STOP; no eval selection/refit",
   "sensitivity": "Same decisions utility upside coefficient0/.15/.3 descriptive only; no model retuning",
   "sessions": [
     "2024-09-19",

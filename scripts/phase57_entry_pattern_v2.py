@@ -6,10 +6,18 @@ from scripts import phase57_chart_entry as old
 from scripts import phase57_entry_extended as ext
 f=old.f;v=f.v;read=f.read;write=f.write;sha=f.sha;ROOT=f.ROOT;BASE=ROOT/'docs/evidence/phase57-entry-pattern-v2'
 
+def validate_splits(p,prior):
+ keys=['fit','embargo1','selection','embargo2','evaluation'];counts=[55,5,20,5,59]
+ for key,n in zip(keys,counts):
+  assert isinstance(p[key],list) and len(p[key])==n,'SPLIT_DATE_LIST_'+key
+  assert p[key]==prior[key],'INHERITED_SPLIT_CHANGED_'+key
+ dates=[day for key in keys for day in p[key]]
+ assert dates==p['sessions'] and len(set(dates))==144,'SPLIT_PARTITION'
+
 def verify():
  p=read(BASE/'protocol.json');assert sha(BASE/'protocol.json')==read(BASE/'protocol-lock.json')['sha256']
  for name,h in p['pins'].items():assert sha(ROOT/name)==h,name
- old.verify();assert p['sessions']==f.s.admission.plan()['intradayDevelopment'] and len(p['sessions'])==144
+ prior=old.verify();validate_splits(p,prior);assert p['sessions']==f.s.admission.plan()['intradayDevelopment'] and len(p['sessions'])==144
  assert all(x is False for x in p['safety'].values());return p
 
 @functools.lru_cache(maxsize=150)

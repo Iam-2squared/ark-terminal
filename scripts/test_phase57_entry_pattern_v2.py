@@ -9,6 +9,14 @@ def row(t=570,quote=True):return {'id':'a|'+str(t),'opportunity':'a','minute':t,
 def opp():return {'id':'a','session':DAY,'symbol':'12340','v2grid':list(range(570,601)),'origin':{'decisionTimestamp':DAY+'T09:30:00+09:00'}}
 def lab(price=100,ret=1):return {'price':price,'labels':{'30':{'returnNet':ret,'MFE':3,'MAE':-1,'MaxDD':-2,'status':'COMPLETE'}}}
 class Tests(unittest.TestCase):
+ def test_actual_protocol_inherits_exact_date_split(self):
+  p=e.read(e.BASE/'protocol.json');prior=e.read(e.old.BASE/'protocol.json');e.validate_splits(p,prior)
+ def test_selection_rule_cannot_replace_dates(self):
+  p=e.read(e.BASE/'protocol.json');prior=copy.deepcopy(p);p['selection']='selection rule prose'
+  with self.assertRaisesRegex(AssertionError,'SPLIT_DATE_LIST'):e.validate_splits(p,prior)
+ def test_split_overlap_rejected(self):
+  p=e.read(e.BASE/'protocol.json');prior=copy.deepcopy(p);p['selection'][0]=p['fit'][0]
+  with self.assertRaisesRegex(AssertionError,'INHERITED_SPLIT_CHANGED'):e.validate_splits(p,prior)
  def test_lunch_carry_identity(self):
   self.assertEqual(e.clock(DAY,690),list(range(751,781)));self.assertEqual(e.clock(DAY,690,5),[755,760,765,770,775,780])
  def test_no_session_cross(self):self.assertEqual(e.clock(DAY,920),list(range(920,925)));self.assertEqual(e.clock('2024-10-02',900),[])

@@ -1,0 +1,140 @@
+name: Phase57 Behavior Intelligence Four Track
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-behavior-intelligence.yml'
+      - 'scripts/phase57_behavior_intelligence.py'
+      - 'scripts/phase57_behavior_intelligence_report.py'
+      - 'scripts/test_phase57_behavior_intelligence.py'
+      - 'docs/evidence/phase57-behavior-intelligence-v1/protocol*.json'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-behavior-intelligence-v1
+  cancel-in-progress: false
+jobs:
+  preflight:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    outputs:
+      measure: ${{ steps.gate.outputs.measure }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - id: gate
+        run: |
+          if test "$(git log -1 --format=%s)" = 'Phase57: measure frozen behavior intelligence v1'; then
+            test ! -e docs/evidence/phase57-behavior-intelligence-v1/ci-result
+            echo 'measure=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'measure=false' >> "$GITHUB_OUTPUT"
+          fi
+  measure:
+    needs: preflight
+    if: needs.preflight.outputs.measure == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      ARK_TEST_OFFLINE: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: pip install numpy==2.3.5 scipy==1.17.0 pandas==2.2.3 fastapi pytest httpx matplotlib==3.10.3
+      - name: Verify immutable protocol and causal contracts before outcomes
+        run: |
+          set -o pipefail
+          mkdir -p "$RUNNER_TEMP/behavior/evidence"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_behavior_intelligence verify
+          python scripts/offline/kernel_exec.py python -m unittest -v scripts.test_phase57_behavior_intelligence scripts.test_phase57_temporal_formal scripts.test_phase57_temporal_feasibility scripts.test_phase57_temporal_zero_diagnostic scripts.test_phase57_sparse_handoff scripts.test_phase57_expansion_data scripts.test_phase57_expansion_research scripts.test_phase57_research_dictionary_v0 scripts.test_phase57_dictionary_pit_recovery scripts.test_phase57_behavior_dictionary scripts.test_phase57_dictionary_prospective 2>&1 | tee "$RUNNER_TEMP/behavior/evidence/focused.log"
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-temporal-zero-matrix-84e456c49bc47f642c9e4c7312b4510576152ebc
+          path: ${{ runner.temp }}/behavior/matrix
+          repository: Iam-2squared/ark-terminal
+          run-id: 35484934096
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-expansion-reuse-35447995157
+          path: ${{ runner.temp }}/behavior/encrypted
+          repository: Iam-2squared/ark-terminal
+          run-id: 35447995157
+          github-token: ${{ github.token }}
+      - name: Restore only55 explicitly allowed Development raw dates
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_behavior_intelligence restore --archives "$RUNNER_TEMP/behavior/encrypted" --cache "$RUNNER_TEMP/behavior/raw" --output "$RUNNER_TEMP/behavior/evidence/extraction.json"
+      - name: Regenerate causal substrates twice before evaluator labels
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_behavior_intelligence substrate --cache "$RUNNER_TEMP/behavior/raw" --matrix "$RUNNER_TEMP/behavior/matrix" --output "$RUNNER_TEMP/behavior/evidence/substrate"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_behavior_intelligence substrate --cache "$RUNNER_TEMP/behavior/raw" --matrix "$RUNNER_TEMP/behavior/matrix" --output "$RUNNER_TEMP/behavior/substrate-replay"
+          cmp "$RUNNER_TEMP/behavior/evidence/substrate/manifest.json" "$RUNNER_TEMP/behavior/substrate-replay/manifest.json"
+      - name: Fit and evaluate all fixed variants twice
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_behavior_intelligence measure --substrate "$RUNNER_TEMP/behavior/evidence/substrate" --output "$RUNNER_TEMP/behavior/evidence/measurement"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_behavior_intelligence measure --substrate "$RUNNER_TEMP/behavior/substrate-replay" --output "$RUNNER_TEMP/behavior/measurement-replay"
+          cmp "$RUNNER_TEMP/behavior/evidence/measurement/manifest.json" "$RUNNER_TEMP/behavior/measurement-replay/manifest.json"
+      - name: Full offline regression and immutable baseline preservation
+        run: |
+          python scripts/run_offline_regression.py --output-dir "$RUNNER_TEMP/behavior/evidence/regression"
+          python scripts/verify_phase57_development_preservation.py
+          python scripts/verify_phase57_selector_min_price75_freeze.py
+      - name: Save graphs report and blocker-aware Gate then STOP
+        env:
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_behavior_intelligence_report --evidence "$RUNNER_TEMP/behavior/evidence" --replay "$RUNNER_TEMP/behavior/measurement-replay" --substrate-replay "$RUNNER_TEMP/behavior/substrate-replay"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-behavior-intelligence-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/behavior/evidence
+          retention-days: 90
+      - name: Purge private restored cache
+        if: always()
+        run: rm -rf -- "$RUNNER_TEMP/behavior/raw" "$RUNNER_TEMP/behavior/encrypted" "$RUNNER_TEMP/behavior/matrix" "$RUNNER_TEMP/behavior/substrate-replay" "$RUNNER_TEMP/behavior/measurement-replay"
+  preserve:
+    needs: measure
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-behavior-intelligence-${{ github.event.pull_request.head.sha }}
+          path: docs/evidence/phase57-behavior-intelligence-v1/ci-result
+      - name: Preserve new evidence on exact PR branch without merge
+        env:
+          BRANCH: ${{ github.head_ref }}
+          EXPECTED: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$BRANCH" = research/phase57-long-only-cash-equity
+          test "$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)" = "$EXPECTED"
+          test -z "$(git ls-tree -r HEAD -- docs/evidence/phase57-behavior-intelligence-v1/ci-result)"
+          test -s docs/evidence/phase57-behavior-intelligence-v1/ci-result/REPORT-ja.md
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/evidence/phase57-behavior-intelligence-v1/ci-result
+          git commit -m 'Phase57: preserve behavior intelligence diagnostics and STOP'
+          git push origin "HEAD:$BRANCH"

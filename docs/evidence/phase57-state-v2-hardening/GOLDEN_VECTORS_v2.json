@@ -1,0 +1,191 @@
+{
+  "version": "state-reference-v2.0-golden-schema-vectors",
+  "status": "SPEC_LEVEL_EXPECTATIONS_NOT_IMPLEMENTATION_RESULTS",
+  "vectors": [
+    {
+      "id": "GV01_DIRECTION_SURVIVES_SCALE_UNAVAILABLE",
+      "given": [
+        "latest5 complete",
+        "direction move > 0",
+        "scaleStatus=SCALE_INSUFFICIENT"
+      ],
+      "expect": {
+        "direction": {
+          "status": "DEFINED",
+          "value": "UP"
+        },
+        "structure": {
+          "status": "NOT_EVALUATED",
+          "reasonCodes": [
+            "SCALE_INSUFFICIENT_BLOCKS"
+          ]
+        }
+      }
+    },
+    {
+      "id": "GV02_MULTI_REASON_CURRENT_MISSING_AND_SCALE_UNAVAILABLE",
+      "given": [
+        "current bar not observed",
+        "latest5 incomplete",
+        "scaleStatus=SCALE_INSUFFICIENT"
+      ],
+      "expect": {
+        "direction": {
+          "status": "NOT_EVALUATED"
+        },
+        "structure": {
+          "status": "NOT_EVALUATED"
+        },
+        "reasonCodesMustContain": [
+          "OBS_CURRENT_BAR_NOT_OBSERVED",
+          "OBS_LATEST5_INCOMPLETE",
+          "SCALE_INSUFFICIENT_BLOCKS"
+        ],
+        "primaryReason": "OBS_CURRENT_BAR_NOT_OBSERVED"
+      }
+    },
+    {
+      "id": "GV03_PIVOT_INSUFFICIENT_IS_NOT_MARKET_STATE",
+      "given": [
+        "hard prerequisites valid",
+        "no active Structure",
+        "no active Range",
+        "pivotN=2"
+      ],
+      "expect": {
+        "structure": {
+          "status": "INSUFFICIENT",
+          "value": null,
+          "reasonCodes": [
+            "PIVOT_INSUFFICIENT_COUNT"
+          ]
+        },
+        "forbiddenValues": [
+          "FORMING_UP",
+          "FORMING_DOWN",
+          "PRE_STRUCTURE"
+        ]
+      }
+    },
+    {
+      "id": "GV04_EVALUATED_NEGATIVE_STRUCTURE",
+      "given": [
+        "hard prerequisites valid",
+        "no active Structure",
+        "no active Range",
+        "pivotN>=4"
+      ],
+      "expect": {
+        "structure": {
+          "status": "DEFINED",
+          "value": "NONE"
+        }
+      }
+    },
+    {
+      "id": "GV05_ACTIVE_RANGE_PRECEDES_PIVOT_INSUFFICIENCY",
+      "given": [
+        "active RANGE_STRUCTURE returned by inherited rule",
+        "pivotN<4"
+      ],
+      "expect": {
+        "structure": {
+          "status": "DEFINED",
+          "value": "RANGE_STRUCTURE"
+        }
+      }
+    },
+    {
+      "id": "GV06_EMPTY_PHASE_IS_DEFINED_NEGATIVE",
+      "given": [
+        "phase engine evaluable",
+        "phase set empty"
+      ],
+      "expect": {
+        "phase": {
+          "status": "DEFINED",
+          "value": []
+        }
+      }
+    },
+    {
+      "id": "GV07_NO_CROSS_PERSISTENCE_NOT_APPLICABLE",
+      "given": [
+        "fixed-level event family evaluable",
+        "no close-cross trigger"
+      ],
+      "expect": {
+        "events": {
+          "status": "DEFINED",
+          "value": []
+        },
+        "persistence": {
+          "status": "NOT_APPLICABLE",
+          "reasonCodes": [
+            "NO_TRIGGER_EVENT"
+          ]
+        }
+      }
+    },
+    {
+      "id": "GV08_OVERLAPPING_FUTURE_CENSOR_FLAGS",
+      "given": [
+        "observation censor before H",
+        "session ends before H"
+      ],
+      "expect": {
+        "future": {
+          "resolutionStatus": "CENSORED",
+          "censorFlags": [
+            "OBSERVATION_CENSORED_BEFORE_H",
+            "SESSION_CENSORED_BEFORE_H"
+          ]
+        }
+      }
+    },
+    {
+      "id": "GV09_LATE_CONFIRMATION_EFFECTIVE_BEFORE_T_ALLOWED_IN_FUTURE_REFERENCE",
+      "given": [
+        "pivot effectiveAt<=t",
+        "pivot confirmedAt>t",
+        "confirmedAt<=t+10 active minutes"
+      ],
+      "expect": {
+        "futureMayAdjudicateStateAtT": true,
+        "nowMustNotUsePivot": true
+      }
+    },
+    {
+      "id": "GV10_FUTURE_PIVOT_EFFECTIVE_AFTER_T_FORBIDDEN",
+      "given": [
+        "pivot effectiveAt>t"
+      ],
+      "expect": {
+        "futureMayAdjudicateStateAtT": false
+      }
+    },
+    {
+      "id": "GV11_FUTURE_SUFFIX_PERTURBATION",
+      "given": [
+        "identical inputs through t",
+        "arbitrary change to bars after t"
+      ],
+      "expect": {
+        "canonicalNowHashMustMatch": true
+      }
+    },
+    {
+      "id": "GV12_ACTIVE_STRUCTURE_NOT_DOWNGRADED_BY_CURRENT_PIVOT_COUNT",
+      "given": [
+        "inherited rule returns active UP_STRUCTURE from valid context",
+        "current local pivotN<4"
+      ],
+      "expect": {
+        "structure": {
+          "status": "DEFINED",
+          "value": "UP_STRUCTURE"
+        }
+      }
+    }
+  ]
+}

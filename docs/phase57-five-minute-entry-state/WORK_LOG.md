@@ -278,3 +278,28 @@ Gitには数値Evidence/Protocol/Claude handoffを保存し、添付chart本体�
 ### STOP / 次
 **Deep AuditでSTOP。次はClaude独立レビュー。**
 Claudeレビューが返るまでmechanical-v1を修正せず、State v2/正確表v2/C/S/Eへ進まない。
+
+
+## 2026-09-21 20:24 JST — State正確表追加診断①〜⑤ 完了
+
+開始時に最新branchとClaude再レビュー方針を確認。Evidence pathを事前登録した後、既存G measurementのみで追加診断。
+
+### 実施
+1. D 2,154でDirection / Phase / CHOP / other Attributes / Level / VWAP eventが全部空のstrict residualを再集計。
+2. seed固定、pivotSignature×timeBand×session層化、1 Opportunity最大1 checkpointで36例を再抽出。PnL/return非使用。pivot/S/latest30 windowを含むchartを生成。
+3. B 11,326のsame-session time-to-next-StructureをpivotNとObservation density quartileで測定。
+4. AVAILABLE 1,005 vs SCALE_INSUFFICIENT 1,105を前日/当日regular bars・寄り30分Trading Value等の記述量だけで比較。
+5. identified StructureとDをpivotSignature 3×3へ落とし実測。
+
+### 主結果
+- strict residual=0。旧231最優先扱いを撤回。
+- B解決4,459/11,326=39.37%。pivot0 25.95%、pivot3 64.43%。Q1 18.11%、Q4 69.08%。
+- SCALE_INSUFFICIENTは絶対的には薄いが、当日/前日bar比median 1.71x、Selector時点までbars>前日全日bars 44.43%で相対活性化が強い。
+- 3×3 signatureは複数Structure/Dへ混在し、新Structure classとしては不十分。
+- 36 chart sample = 36 Opportunities / 29 sessions / 9 signatures×4。
+- 数値・sampleは独立2回で対象hash一致。
+
+### Guard / STOP
+State Definition変更0、threshold変更0、PnL/future return使用0、新規provider0、protected data0。
+State v2 / 正確表v2 / Causal Recognition / Signal / BUY-WAIT未開始。
+**ここでSTOP。次は人間レビュー後にv2設計へ進むか判断。**

@@ -1,5 +1,25 @@
 # Phase57 LONG-only — 現在の方針・次作業
 
+## 最新追加記録 — 2026-09-21 20:24 JST — State追加診断①〜⑤完了 / v2未開始
+
+Claude再レビュー後に事前登録した追加診断①〜⑤を、既存G measurementのみで完了した。State Definition / threshold / Selector / Entry / EXIT / Capitalは変更していない。PnL・future return・新規provider・protected dataは未使用。
+
+- D 2,154のstrict residualは **0**。旧「Phaseなし+CHOPなし231」をVocabulary gap最優先とする扱いは撤回。
+- B 11,326のsame-session next Structure解決は **4,459 = 39.37%**。pivot0 25.95% / pivot3 64.43%。Bを一律FORMINGとは呼ばない。
+- Observation density Q1の解決18.11%に対しQ4は69.08%。pivot数と観測品質を分離して扱う根拠。
+- SCALE_INSUFFICIENT 1,105は前日bars median40→当日82、当日/前日比median1.71x。Selector時点までのbarsが前日全日barsを超える割合44.43%（AVAILABLE 5.47%）。相対活性化への偏りはあるが、まだSを変更しない。
+- pivotSignature 3×3はidentified StructureとDへ混在。H_DOWN|L_UPはUP245 / DOWN434 / RANGE58 / D479。signatureをStructure classへ昇格しない。
+- 固定seedで36 checkpoints / 36 Opportunities / 29 sessionsを層別抽出。9 signature ×4。actual1m / pivot / S / latest30 windowのchartを会話添付ZIPに保存。PnL抽出なし。
+- 数値producerとsampleを独立2回実行し対象hash一致。
+- Evidence: [REPORT](evidence/phase57-state-additional-diagnostics-v1/REPORT-ja.md) / [summary](evidence/phase57-state-additional-diagnostics-v1/diagnostic-summary.json) / [protocol](evidence/phase57-state-additional-diagnostics-v1/PROTOCOL.md)
+
+**STOP。次は人間がこのEvidenceを確認し、State Definition v2設計へ進むか判断する。v2 / 正確表v2 / Causal Recognition / Signal / BUY-WAITは未開始。**
+
+local manifest SHA256 `5e0ef437d86e7ae3e70e8f0df50a7e92ebb8c8fb22edec88616c12d568f79224`  
+conversation ZIP SHA256 `1abde291d4a4cea59ebe59f48966ef5ba3fadff6c562e4eb4150d1168e7c7f79`
+
+---
+
 ## 最新追加記録 — 2026-09-21 19:19 JST — 未識別68,405 Deep Audit完了 / Claude独立レビューへSTOP
 
 固定 `five-minute-state-mechanical-v1` とG参照表を変更せず、Structure未識別68,405 checkpointを原因分解した。

@@ -14,14 +14,20 @@ def read_jsonl_gz(p):
  with gzip.open(p,"rt",encoding="utf-8") as f:
   for line in f:
    if line.strip():yield json.loads(line)
-def rel(a,b):
- if a>b:return "UP"
- if a<b:return "DOWN"
+def pricev(x):
+ if isinstance(x,dict):
+  d=x.get("denominator")
+  return x.get("numerator")/d if d else None
+ return float(x)
+def rel(prev,cur):
+ if cur>prev:return "UP"
+ if cur<prev:return "DOWN"
  return "EQ"
 def signature(piv):
- hs=[p for p in piv if p.get("kind")=="HIGH"];ls=[p for p in piv if p.get("kind")=="LOW"]
- if len(hs)<2 or len(ls)<2:return None
- return f"H_{rel(hs[-1]['price'],hs[-2]['price'])}|L_{rel(ls[-1]['price'],ls[-2]['price'])}"
+ t=piv[-4:]
+ hs=[p for p in t if p.get("kind")=="HIGH"];ls=[p for p in t if p.get("kind")=="LOW"]
+ if len(hs)!=2 or len(ls)!=2:return None
+ return f"H_{rel(pricev(hs[0]['price']),pricev(hs[1]['price']))}|L_{rel(pricev(ls[0]['price']),pricev(ls[1]['price']))}"
 def q(v,qs=(.25,.5,.75)):
  a=sorted(v)
  if not a:return {str(x):None for x in qs}
@@ -72,27 +78,34 @@ def main(a):
   chop="CHOPPINESS" in attrs
   other=bool([z for z in attrs if z!="CHOPPINESS"])
   lev=bool(x.get("levelEvents"))
-  vw=bool(x.get("vwapRelations"))
+  vw=bool((x.get("vwapRelations") or {}).get("events"))
   flags={"direction":direction,"phase":phase,"chop":chop,"otherAttributes":other,"levelEvent":lev,"vwapEvent":vw}
   for k,v in flags.items():desc[k]+=int(v)
   if not any(flags.values()):strict.append((r,x,sig))
- # Diagnostic 2 deterministic stratified sample: one checkpoint/opportunity, <=6/signature, diversify band/session by round-robin rank.
+ # Diagnostic 2 deterministic stratified sample: one checkpoint/opportunity globally, 4/signature.
  candidates=defaultdict(list)
  for r,x,sig in d:
   token=hashlib.sha256((SEED+"|"+r["opportunity"]+"|"+r["asOf"]).encode()).hexdigest()
   candidates[sig].append((token,r,x))
- selected=[]
+ selected=[];global_seen=set()
+ bands=("OPEN_0900_1000","AM_1000_1130","PM_EARLY_1230_1400","PM_LATE_1400_CLOSE")
  for sig,xs in sorted(candidates.items()):
-  xs=sorted(xs)
-  # first keep unique opportunity; score favors unseen session/band dynamically, hash tie-break.
-  pool=[];seen_o=set()
-  for token,r,x in xs:
-   if r["opportunity"] not in seen_o:pool.append((token,r,x));seen_o.add(r["opportunity"])
-  chosen=[];ss=set();bb=set()
-  while pool and len(chosen)<6:
-   pool.sort(key=lambda z:(-(z[1]["session"] not in ss)-(tband(hhmm(z[1]["asOf"])) not in bb),z[0]))
-   z=pool.pop(0);chosen.append(z);ss.add(z[1]["session"]);bb.add(tband(hhmm(z[1]["asOf"])))
-  for token,r,x in chosen:selected.append({"signature":sig,"opportunity":r["opportunity"],"session":r["session"],"asOf":r["asOf"],"timeBand":tband(hhmm(r["asOf"])),"hashRank":token,"scale":r["scale"],"pivotN":r["pivotN"],"phase":r["phase"],"attributes":r["attributes"]})
+  strata={}
+  for token,r,x in sorted(xs):
+   k=(tband(hhmm(r["asOf"])),r["session"])
+   if k not in strata:strata[k]=(token,r,x)
+  reps=list(strata.values());chosen=[]
+  for tb in bands:
+   for z in sorted([z for z in reps if tband(hhmm(z[1]["asOf"]))==tb]):
+    if z[1]["opportunity"] not in global_seen:
+     chosen.append(z);global_seen.add(z[1]["opportunity"]);break
+   if len(chosen)>=4:break
+  if len(chosen)<4:
+   for z in sorted(reps):
+    if z[1]["opportunity"] in global_seen:continue
+    chosen.append(z);global_seen.add(z[1]["opportunity"])
+    if len(chosen)>=4:break
+  for token,r,x in chosen:selected.append({"signature":sig,"opportunity":r["opportunity"],"session":r["session"],"asOf":r["asOf"],"timeBand":tband(hhmm(r["asOf"])),"hashRank":token,"scale":r["scale"],"pivotN":r["pivotN"],"direction":r["direction"],"phase":r["phase"],"attributes":r["attributes"]})
  # Diagnostic 3 B time to next identified Structure.
  by_o=defaultdict(list)
  for r in rows:by_o[r["opportunity"]].append(r)
@@ -138,9 +151,12 @@ def main(a):
   def s(k):v=[z[k] for z in xs if z[k] is not None];return {"n":len(v),"median":med(v),"p25":q(v)["0.25"],"p75":q(v)["0.75"]}
   scale_report[g]={"opportunities":len(xs),"previousObserved1m":s("previousObserved1m"),"todayObserved1m":s("todayObserved1m"),"todayObservedToSelector":s("todayObservedToSelector"),"opening30Value":s("opening30Value"),"previousRegularValue":s("previousRegularValue"),"opening30OverPreviousValue":s("ratio"),"openingGtPreviousFullDayRate":sum(z["openingGtPrevious"] for z in xs)/len(xs)}
  # Diagnostic 5
- grid=defaultdict(Counter)
- for r,x,sig in all4:grid[r["structure"] or "UNIDENTIFIED"][sig]+=1
- result={"version":"phase57-state-additional-diagnostics-v1","sourceMeasurementFilesVerified":len(manifest),"sourceCheckpointN":len(rows),"diagnostic1":{"D":len(d),"descriptorAvailability":dict(desc),"strictResidual":len(strict),"strictResidualUniqueOpportunities":len({z[0]["opportunity"] for z in strict})},"diagnostic2":{"seed":SEED,"selectedN":len(selected),"uniqueOpportunities":len({z["opportunity"] for z in selected}),"selected":selected},"diagnostic3":{"densityQuartiles":cuts,"groups":b_report},"diagnostic4":scale_report,"diagnostic5":{k:dict(v) for k,v in grid.items()},"guards":{"definitionChanges":0,"thresholdSearch":0,"providerRequests":0,"protectedDataOpened":0,"pnlUsed":False,"causalRecognition":False,"signal":False,"buyWait":False},"safety":SAFETY,"stop":True}
+ grid=defaultdict(Counter);dkeys={(r["opportunity"],r["asOf"]) for r,x,sig in d}
+ for r,x,sig in all4:
+  if r["structure"]:grid[r["structure"]][sig]+=1
+  elif (r["opportunity"],r["asOf"]) in dkeys:grid["UNIDENTIFIED_D"][sig]+=1
+ pivot_lt4=Counter(r["structure"] for r in rows if r["structure"] and int(r["pivotN"])<4)
+ result={"version":"phase57-state-additional-diagnostics-v1","sourceMeasurementFilesVerified":len(manifest),"sourceCheckpointN":len(rows),"diagnostic1":{"D":len(d),"descriptorAvailability":dict(desc),"strictResidual":len(strict),"strictResidualUniqueOpportunities":len({z[0]["opportunity"] for z in strict})},"diagnostic2":{"seed":SEED,"selectedN":len(selected),"uniqueOpportunities":len({z["opportunity"] for z in selected}),"selected":selected},"diagnostic3":{"densityQuartiles":cuts,"groups":b_report},"diagnostic4":scale_report,"diagnostic5":{"matrix":{k:dict(v) for k,v in grid.items()},"identifiedPivotLt4Excluded":dict(pivot_lt4)},"guards":{"definitionChanges":0,"thresholdSearch":0,"providerRequests":0,"protectedDataOpened":0,"pnlUsed":False,"causalRecognition":False,"signal":False,"buyWait":False},"safety":SAFETY,"stop":True}
  dump(out/"diagnostics.json",result)
  # Compact deterministic CSV for chart selection. Rendering is separate and must use source raw input.
  with (out/"chart-sample.csv").open("w",newline="",encoding="utf-8") as f:

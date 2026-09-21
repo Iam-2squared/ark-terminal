@@ -1,5 +1,24 @@
 # Phase57 LONG-only — 現在の方針・次作業
 
+## 最新追加記録 — 2026-09-21 18:30 JST
+
+同時更新 `13181b14b18019353405f04bf84562031f251dd5` のG終了確認・限定retry方針・共通WORK_LOG追記を保全したうえで、このチャットの独立入力/全CSV照合と可視化レビューを追加する。以下の18:23時点の記録を削除せず、その補足として読む。
+
+- [追加レビュー結果](evidence/phase57-five-minute-reference-g-v1/review-20260921/REPORT-ja.md)
+- [今回の日時付きWORK_LOG](evidence/phase57-five-minute-reference-g-v1/review-20260921/WORK_LOG.md)
+- [追加検証・subset分母の数値](evidence/phase57-five-minute-reference-g-v1/review-20260921/review-summary.json)
+
+179ファイルをこのチャットで再hash検証。全77,214CSV行の重複/集計と、独立した予定時刻・Observation/Direction/S/Future窓statusを照合した。これは構造ラベルの独立正解検証ではない。
+最新5本+Sが揃う22,289行の構造識別8,809（39.52%）。未識別13,480行のうちpivot4個未満11,326、4個以上で有効構造なし2,154。最新5本の完全性だけで過去の連続履歴も十分と断定しない。
+前日raw presentの43件は15:30引けの1本だけで通常分足0。14:30以後の構造識別2,416/24,786、15:00選出では98/1,074。
+6つの状態条件からID順に抽出した実チャートと各例の全checkpointを、自己完結HTML/ZIPとして会話に添付した。画像本体はGitのmeasurementに格納したとは言わず、ZIP hashと代表IDを追加レビューへ保存した。
+当日action原本・独立calendar全体・historical receivedAtは未検証。先の別パスphase57-five-minute-state-reference-v1/PROTOCOL.mdが計画した暗号化raw復元まで完了したとはしない。
+
+**次はG結果の人間確認。必要観測の不足と固定定義の表現限界を分離する診断を検討するが、今回C/Signal/Entryへ進まない。mechanical-v1と閾値は変更しない。**
+保存SHA・実保存時刻は本追記commit metadataとPR終了コメントに記録する。
+
+---
+
 最終更新記録: **2026-09-21 18:23 JST**
 今回の確認時刻: 2026-09-21 18:19 JST / 記録整理: 18:23 JST（Asia/Tokyo、UTC+09:00）。
 対象: Iam-2squared/ark-terminal / research/phase57-long-only-cash-equity / PR #587。

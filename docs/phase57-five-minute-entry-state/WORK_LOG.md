@@ -72,3 +72,20 @@ paperTradingAllowed=false
 automaticPromotionAllowed=false
 productionUpdateAllowed=false
 transmitted=false
+
+### 作業終了時の追記 — 保存・確認の実績
+
+設計保存commit: `fb509512428df17e5b1732e29638810b207bd83a`。
+GitHub compareで開始HEADから1 commit ahead、4文書の新規追加だけ、既存ファイルの削除/変更0を確認した。force=falseで対象branchをfast-forwardし、GitHubからCURRENT入口と設計仕様を再読できた。
+設計仕様は310行、18節。これは文書量であって研究成果件数や分類精度ではない。
+
+検証実績を分けて記録する:
+- GitHub connectorで読取ソースのref/blob、文書の保存、差分範囲、方針/STOP/未固定事項を確認した。
+- runtimeからpublic raw GitHubを取得して文書lintを実行する補助チェックを試したが、DNS解決失敗でファイル取得前に終了した。自動lint PASS/自動hash検証済みとは主張しない。
+- この補助チェック失敗はGitHub connectorによるcommit/branch更新の失敗ではない。保存自体は成功した。
+- 設計保存commitについて確認したpull_request型Actionsの応答は0 runs。full PR GREEN、専用CI PASS、全イベント停止の保証は出さない。
+- 新規分類コード、測定、provider calls、Signal/Entry/EXIT処理は実行していない。
+
+最終状態は変わらず **設計案保存・人間レビュー待ち / NOT_LABEL_READY**。
+次作業は設計レビューと、承認された範囲での同じDefinition Gate内の判定条件固定だけ。正解表・因果認識へ自動進行しない。
+この終了記録を含む最終保存SHAと文書への参照はPR #587へ記録する。

@@ -186,6 +186,237 @@
           "value": "UP_STRUCTURE"
         }
       }
+    },
+    {
+      "id": "GV13_RECESS_BOUNDARY_DOES_NOT_BRIDGE",
+      "given": [
+        "latest5 scheduled interval would cross lunch/recess",
+        "bars exist on both sides of recess"
+      ],
+      "expect": {
+        "direction": {
+          "status": "NOT_EVALUATED",
+          "value": null
+        },
+        "reasonCodesMustContain": [
+          "OBS_SESSION_BOUNDARY"
+        ],
+        "forbiddenBehavior": [
+          "CONNECT_PRE_RECESS_AND_POST_RECESS_AS_CONTIGUOUS_LATEST5"
+        ]
+      }
+    },
+    {
+      "id": "GV14_OPEN_SHORT_HISTORY_RETAINS_FLAG",
+      "given": [
+        "checkpoint is before five scheduled active 1m bars have elapsed",
+        "all available scheduled bars are observed"
+      ],
+      "expect": {
+        "direction": {
+          "status": "NOT_EVALUATED",
+          "value": null
+        },
+        "reasonCodesMustContain": [
+          "OBS_SHORT_SESSION_HISTORY"
+        ],
+        "densityMayEqualOneWithoutClearingShortHistory": true
+      }
+    },
+    {
+      "id": "GV15_SESSION_END_RIGHT_CENSOR",
+      "given": [
+        "future H=10 active minutes requested",
+        "session has fewer than 10 active minutes remaining",
+        "no observation failure before session end"
+      ],
+      "expect": {
+        "future": {
+          "resolutionStatus": "CENSORED",
+          "censorFlags": [
+            "SESSION_CENSORED_BEFORE_H"
+          ]
+        }
+      }
+    },
+    {
+      "id": "GV16_LATEST5_FOUR_OF_FIVE",
+      "given": [
+        "current scheduled bar observed",
+        "one of preceding four scheduled bars missing",
+        "latest5ObservedK=4"
+      ],
+      "expect": {
+        "direction": {
+          "status": "NOT_EVALUATED",
+          "value": null
+        },
+        "reasonCodesMustContain": [
+          "OBS_LATEST5_INCOMPLETE",
+          "OBS_MISSING_SCHEDULED_BAR"
+        ]
+      }
+    },
+    {
+      "id": "GV17_SCALE_PREVIOUS_CONTEXT_UNAVAILABLE",
+      "given": [
+        "actual previous-session context unavailable",
+        "latest5 complete"
+      ],
+      "expect": {
+        "direction": {
+          "status": "DEFINED"
+        },
+        "structure": {
+          "status": "NOT_EVALUATED",
+          "reasonCodes": [
+            "SCALE_PREVIOUS_CONTEXT_UNAVAILABLE"
+          ]
+        },
+        "scaleValue": null
+      }
+    },
+    {
+      "id": "GV18_SCALE_PRICE_BASIS_UNVERIFIED",
+      "given": [
+        "previous-session bars exist",
+        "cross-day common price basis is not independently admissible",
+        "latest5 complete"
+      ],
+      "expect": {
+        "structure": {
+          "status": "NOT_EVALUATED",
+          "reasonCodes": [
+            "SCALE_PRICE_BASIS_UNVERIFIED"
+          ]
+        },
+        "scaleValue": null
+      }
+    },
+    {
+      "id": "GV19_SCALE_ZERO",
+      "given": [
+        "minimum complete Scale blocks satisfied",
+        "median True Range equals zero",
+        "latest5 complete"
+      ],
+      "expect": {
+        "structure": {
+          "status": "NOT_EVALUATED",
+          "reasonCodes": [
+            "SCALE_ZERO"
+          ]
+        },
+        "scaleValue": null,
+        "forbiddenBehavior": [
+          "REPLACE_ZERO_SCALE_WITH_FALLBACK"
+        ]
+      }
+    },
+    {
+      "id": "GV20_PIVOT_THREE_TO_FOUR_BOUNDARY",
+      "given": [
+        "all hard prerequisites valid",
+        "no active Range",
+        "at checkpoint A pivotN=3",
+        "at later checkpoint B fourth confirmed alternating pivot becomes admissible"
+      ],
+      "expect": {
+        "checkpointA": {
+          "structure": {
+            "status": "INSUFFICIENT",
+            "reasonCodes": [
+              "PIVOT_INSUFFICIENT_COUNT"
+            ]
+          }
+        },
+        "checkpointB": {
+          "structureStatusMustBeReevaluated": true
+        },
+        "forbiddenBehavior": [
+          "KEEP_INSUFFICIENT_WITHOUT_REEVALUATION_AFTER_FOURTH_PIVOT"
+        ]
+      }
+    },
+    {
+      "id": "GV21_EXACT_EQ_PIVOT_RELATION",
+      "given": [
+        "pivot engine evaluable",
+        "latest two HIGH prices exactly equal",
+        "latest two LOW prices differ"
+      ],
+      "expect": {
+        "pivotSignatureHighRelation": "H_EQ",
+        "toleranceApplied": false
+      }
+    },
+    {
+      "id": "GV22_PHASE_MULTI_LABEL_IS_DEFINED",
+      "given": [
+        "inherited mechanical-v1 phase engine emits CORRECTION and RECOVERY simultaneously"
+      ],
+      "expect": {
+        "phase": {
+          "status": "DEFINED",
+          "value": [
+            "CORRECTION",
+            "RECOVERY"
+          ]
+        },
+        "forbiddenStatus": "AMBIGUOUS"
+      }
+    },
+    {
+      "id": "GV23_TICK_METADATA_MISSING_DOES_NOT_CHANGE_RAW_EQUALITY",
+      "given": [
+        "tickSize unavailable",
+        "raw pivot prices available",
+        "two pivot prices exactly equal"
+      ],
+      "expect": {
+        "rawEqualityStillEvaluable": true,
+        "tickDifference": null,
+        "tickSizeStatusNotSilentlyInferred": true
+      }
+    },
+    {
+      "id": "GV24_INSTRUMENTED_READER_REJECTS_FUTURE_SOURCE",
+      "given": [
+        "NOW primitive attempts to read source with event timestamp greater than checkpoint t"
+      ],
+      "expect": {
+        "acceptanceHardFail": true,
+        "forbiddenBehavior": [
+          "READ_AND_TRUNCATE_LATER",
+          "SILENTLY_ACCEPT_FUTURE_SOURCE"
+        ]
+      }
+    },
+    {
+      "id": "GV25_KNOWN_AT_AFTER_T_REJECTED",
+      "given": [
+        "source event/end timestamp is <=t",
+        "trustworthy knownAt exists and knownAt>t"
+      ],
+      "expect": {
+        "acceptanceHardFail": true,
+        "forbiddenBehavior": [
+          "USE_SOURCE_BEFORE_KNOWN_AT"
+        ]
+      }
+    },
+    {
+      "id": "GV26_FUTURE_TARGET_AT_T_DISTINCT_FROM_NOW_STRUCTURE",
+      "given": [
+        "NOW Structure uses only confirmedAt<=t pivots",
+        "future_resolution_v2 later adjudicates StructureAtT using effectiveAt<=t and confirmedAt<=t+H"
+      ],
+      "expect": {
+        "artifactsRemainDistinct": true,
+        "nowLabelNotRetroactivelyOverwritten": true,
+        "recognitionTargetMayUseFutureAdjudicatedAxisOnlyAfterTargetFreeze": true
+      }
     }
-  ]
+  ],
+  "vectorCount": 26
 }

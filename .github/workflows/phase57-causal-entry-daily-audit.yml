@@ -1,0 +1,38 @@
+name: Phase57 Causal Entry Daily Ablation Completion Audit
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-causal-entry-daily-audit.yml'
+      - 'scripts/phase57_causal_entry_daily_audit.py'
+      - 'scripts/test_phase57_causal_entry_daily_audit.py'
+      - 'docs/evidence/phase57-causal-entry-state-v1/completion-audit/**'
+permissions:
+  contents: read
+jobs:
+  verify:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      ARK_TEST_OFFLINE: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      OPENBLAS_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install numpy==2.3.5 pandas==2.2.3
+      - name: Verify original immutable evidence and causal tests
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_causal_entry_receipt verify --evidence docs/evidence/phase57-causal-entry-state-v1/ci-result
+          python scripts/offline/kernel_exec.py python -m unittest -q scripts.test_phase57_causal_entry_daily_audit scripts.test_phase57_causal_entry_state scripts.test_phase57_entry_timing_census scripts.test_phase57_entry_pattern_v2 scripts.test_phase57_entry_extended scripts.test_phase57_chart_entry
+      - name: Regenerate strict paired ablation twice without raw data acquisition
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_causal_entry_daily_audit --output "$RUNNER_TEMP/daily-audit-1"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_causal_entry_daily_audit --output "$RUNNER_TEMP/daily-audit-2"
+          cmp "$RUNNER_TEMP/daily-audit-1/manifest.json" "$RUNNER_TEMP/daily-audit-2/manifest.json"
+          cmp "$RUNNER_TEMP/daily-audit-1/manifest.json" docs/evidence/phase57-causal-entry-state-v1/completion-audit/corrected/manifest.json

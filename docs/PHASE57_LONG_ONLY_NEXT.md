@@ -1,5 +1,59 @@
 # Phase57 LONG-only — 現在の方針・次作業
 
+## 最新追加記録 — 2026-09-21 22:41 JST — v2設計前Gate完了 / State Definition v2仕様案作成 / STOP
+
+ユーザー承認「進めて」を受け、先にCompletion Gate G1〜G8を固定し、Claudeがfreeze前に要求した残り3診断R1〜R3を既存G measurementだけで完了。そのEvidenceからState Definition v2の**設計案のみ**を作成した。実装・正確表v2生成には進んでいない。
+
+### R1 固定Horizon
+B 11,326を既存ORACLE_HORIZON=10 active minutesで再集計。
+- 10分を完全評価できた5,733行中、Structure成立 **998 = 17.41%**
+- pivot0 10.07% / pivot1 10.29% / pivot2 18.03% / pivot3 41.21%
+- observation censor 4,750 / session censor 843
+同日終端まで追った旧39.37%を「形成率」とは使わない。pivot<4はPRE/FORMINGへ昇格させず `INSUFFICIENT_PIVOTS(k)` を維持。
+
+### R2 36 chart rubric
+固定seed既存sample 36 checkpoints / 36 Opportunities / 29 sessionsを単一reviewerで再確認。
+- EXISTING_AXES_SUFFICIENT **36/36**
+- DATA_OR_OBSERVATION_ARTIFACT_SUSPECTED overlay **1/36**
+- VOCABULARY_GAP_CANDIDATE 0
+新Structure名の明確な必要例はこのsampleでは確認されず。ただしv2 freeze時の2者独立reviewは未実施。
+
+### R3 Observation multi-flag
+77,214全checkpointをpriority reasonではなく重複flagで監査。
+- current bar missing 30,986
+- latest5 incomplete 48,740
+- Scale unavailable 37,932
+- current missing ∩ scale unavailable 23,116
+- latest5 incomplete ∩ scale unavailable 31,747
+- 3つすべて 23,116
+旧primary reasonは順序依存表示であり原因の排他分解ではないことを確定。
+
+### v2 DESIGN DRAFT
+- Layer0 ObservationQualityをメタ層化
+- 共通status: DEFINED / INSUFFICIENT / AMBIGUOUS / NOT_APPLICABLE / NOT_EVALUATED
+- Structureは必須軸ではない
+- pivot<4は INSUFFICIENT_PIVOTS(k)
+- pivotSignatureはdescriptor
+- Scaleはversioned ScaleSpecでState vocabularyから分離
+- NOWとFuture Resolutionを別artifact/schema/hash
+- 全77,214 rowのtruncation invariance 100%をhard gate
+- v1は上書きせずv1→v2 transition matrix必須
+
+Evidence:
+- [Completion Gate Protocol](evidence/phase57-state-v2-design-gate/PROTOCOL.md)
+- [R1〜R3 Report](evidence/phase57-state-v2-design-gate/R1_R2_R3_REPORT-ja.md)
+- [Remaining Diagnostics Summary](evidence/phase57-state-v2-design-gate/remaining-diagnostics-summary.json)
+- [State v2 Design Draft](phase57-five-minute-entry-state/STATE_DEFINITION_v2_DRAFT.md)
+- [R2 single-reviewer rubric](evidence/phase57-state-v2-design-gate/R2_REVIEW.csv)
+
+会話添付ZIP SHA256 `c26a3194226c9f9c4186e4bb71ee50c3067eb7353095539267e963e19572d5f2`。
+
+**STOP。次はState Definition v2仕様案の人間/Claude設計レビュー。承認前にv2 code・正確表v2を生成しない。**
+
+State Definition v1変更0 / v2 implementation 0 / PnL 0 / future return 0 / provider 0 / protected data 0 / Causal Recognition 0 / Signal 0 / BUY-WAIT 0。Safety9全false。
+
+---
+
 ## 最新追加記録 — 2026-09-21 20:33 JST — 追加診断①〜⑤ 保存確認 / STOP
 
 20:24 JSTに保存した追加診断①〜⑤のEvidenceを再読し、branch HEADと保存内容を確認した。数値結論は変更なし。

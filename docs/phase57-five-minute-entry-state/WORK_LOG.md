@@ -313,3 +313,21 @@ local固定入力の二重実行一致をverification receiptへ保存し、Acti
 State Definition/threshold/PnL/provider/protected data/Causal/Signal/BUY-WAITの変更・開始なし。
 
 **次: 人間レビュー。承認が出るまでState Definition v2設計へ進まない。**
+
+
+## 2026-09-21 22:41 JST — State v2設計前Gate完了 / 設計案でSTOP
+
+開始HEAD: `5657d7225bbd01ec50dcf907544a3620a0848260`。Completion Gate G1〜G8を先にcommit `5657d7225bbd01ec50dcf907544a3620a0848260` で固定。
+既存G measurement 179 filesのみを使用。
+
+R1: B11,326をH=10 active minutesで再集計。evaluable5,733、resolved998=17.41%。pivot0/1/2/3は10.07/10.29/18.03/41.21%。observation censor4,750、session censor843。
+R2: 既存fixed-seed36 chartを単一reviewerでrubric確認。EXISTING_AXES_SUFFICIENT36、chart16にDATA_OR_OBSERVATION_ARTIFACT_SUSPECTED重複1。Vocabulary gap候補0。freeze用2者reviewは未実施。
+R3: 全77,214をmulti-flag化。current missing30,986、latest5 incomplete48,740、scale unavailable37,932。current missing∩scale unavailable23,116、latest5 incomplete∩scale unavailable31,747、triple23,116。primary reasonの順序依存性を確認。
+
+R1/R3 producerを二重実行しsummary/CSV.gzのhash一致。
+State Definition v2 DESIGN DRAFTを作成したが、実装・正確表v2生成は未開始。
+v2案はObservationQuality Layer0、axis status/reason、Structure非必須、INSUFFICIENT_PIVOTS(k)、pivotSignature descriptor、versioned ScaleSpec、NOW/Future別artifact、truncation invariance100%を中心とする。
+
+会話添付: phase57_state_v2_design_gate_20260921.zip SHA256 c26a3194226c9f9c4186e4bb71ee50c3067eb7353095539267e963e19572d5f2。
+
+**STOP。次はv2仕様案の人間/Claude設計レビュー。**

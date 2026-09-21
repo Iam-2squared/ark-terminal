@@ -131,3 +131,35 @@ CURRENT入口は最終更新 `YYYY-MM-DD HH:MM JST`、このWORK_LOGは可能な
 3. 人間確認後のみFuture reference tableへ進む。
 
 Safety9項目false維持。Frozen Selector/Entry/EXIT/Capital/main未変更。
+
+## 2026-09-21 16:04–16:27 JST — 別候補mechanical-v1の実装・合成検証
+
+開始時に直接確認したHEAD=907f1016cd46dd784b2a7269aa10945e75e12543、PR #587 open/Draft/unmerged。
+今回の承認範囲は同じDefinition Gate内の機械ルール固定と合成例/反例テスト。市場正解表生成・Causal Recognition・Signal/Entry評価へは進まない。
+
+### 完了したもの
+
+mechanical-v1/に、前日完全5分TR中央値S、終値1Sのpivot、4pivot Structure、protected level失効、30分Range、CHOP属性、回復episode、typed cross/VWAP、同日future10active分の契約を独立実装。
+contract/SPEC/reference/test/verifier/source-lockと検証Evidenceを作成。実市場結果による選択ではない。
+
+### 検証実績
+
+local Python 3.13.5、named synthetic tests **93/93 PASS**、失敗/エラー0。固定sourceで2回実行しsummary/snapshot SHA-256・manifest一致。6模式snapshotを保存。別途、既存output上書き拒否とsource破損拒否を確認。
+初回1件のprotectedLow期待値を旧101から仕様上の更新102へ訂正し再実行した。市場結果による閾値調整ではない。アップロードの空行差をローカルbyteへ揃え、最終lockで再検証。
+
+実市場ファイル読取0、市場State行生成0、75,059再分類0、fit0、Signal/BUY-WAIT/EXIT評価0、provider取得0、protected data開封0。
+旧実行系・workflow・モデルへ接続せず、docs内のpure referenceだけ。local synthetic PASSをGitHub CI/全PR GREENにしない。
+
+16:27に候補結果報告をまとめ、準備commit ee0387378232d754a80263609f4f208bf145e939を作成した。この時点ではbranch更新前。
+
+## 2026-09-21 16:34 JST — 同時更新保全と最終採用の留保
+
+保存前のremote再読で686bad3fa0c2283a776d1434f30820c3d1e35fb5への5 commits進行を確認。STATE_DEFINITION_v0.1.mdのv0.2追記、helper/test、CURRENT、WORK_LOGが追加更新されていた。
+同時更新のv0.2と本候補は尺度・pivot・Range・Phase・future期限が異なるため、黙って上書き/混在しない。詳細は[採用状態記録](ADOPTION_STATUS_20260921_1634_JST.md)。
+
+元の準備commitをforce pushせず、686bad3を親にして新規mechanical-v1 packageを追加、CURRENTを両案の状態へ更新、WORK_LOGはこのように履歴保持＋追記。v0.2仕様・scriptsは無変更。実行済みsource-lockは維持する。
+
+最終状態: **mechanical-v1は機械定義候補固定・合成検証完了 / branch全体の正式採用は未確定 / STOP**。
+次は人間がD内で採用定義を1つに整理する。G開始はその後の別承認。93 PASSをv0.2へ流用しない。人間の確認前に両案を市場データで比較・調整しない。
+
+開始・結果整理・同時更新確認のJST時刻を残し、GitHubの最終保存SHA・保存時刻・再読確認はPR #587へ記録する。Frozen Selector/旧Evidence/Entry/EXIT/Capital/main無変更。LONG-only現物、Safety9項目false。研究gateの自動進行なし。

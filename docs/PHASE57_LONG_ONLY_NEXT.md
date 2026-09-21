@@ -1,8 +1,10 @@
 # Phase57 LONG-only — 現在の方針・次作業
 
-更新日: 2026-09-21 JST
+最終更新: 2026-09-21 15:46 JST
+記録基準: 作業終了時のJST（24時間表記）
 対象: Iam-2squared/ark-terminal / research/phase57-long-only-cash-equity / PR #587
-開始時に確認したremote HEAD: `2ef307a31bea156110dc8b9181b7582373b2887e`
+今回の開始HEAD: `2ef307a31bea156110dc8b9181b7582373b2887e`
+直前の確認済みHEAD: `8a3f304d8c6a8463d2917bbb807520115a9ead65`
 
 ## 現在地点
 
@@ -55,13 +57,13 @@ Workが報告したローカル4 commits（be52f30 / b045dc0 / 182d2ab / 66fc3c2
 
 ユーザーの2026-09-21指示: **作業を終えるたびに、この後することと方針をGitHubへ記録する。**
 
-1. 開始時にremote HEADとPR、現在の承認範囲を確認する。
+1. 開始時にremote HEADとPR、現在の承認範囲を確認する。\n2. **各記録には必ず `YYYY-MM-DD HH:MM JST` の日付＋時刻を付ける。** CURRENTには最終更新時刻、WORK_LOGには各作業の開始/終了時刻を残す。
 2. 終了時にこのCURRENT入口を更新し、WORK_LOG.mdへ追記する。旧記録を消さない。
 3. 今回したこと/していないこと、変更ファイル、開始SHA、保存commit、Evidence、検証範囲、CI、未解決点、Safety、次の1 Gate、再開条件を残す。
-4. 実施済み、設計提案、人間承認、コード完成、計測完了、科学的PASSを区別する。docs-onlyや専用CI PASSをPR全体GREENと呼ばない。
-5. remote再読で保存を確認する。認証失敗ならLOCAL_ONLY等と明記し、GitHub保存済みと言わない。
-6. 最後にPR #587へ当該保存commitと方針・次作業への参照を残す。自分自身のcommit SHAを本文に埋めるためだけの循環commitは不要。正確な保存SHAはGit履歴/PRコメントで記録できる。
-7. 人間確認前に次Gateへ進まない。会話終了後に自動で進む作業や監視を今回作っていない。
+5. 実施済み、設計提案、人間承認、コード完成、計測完了、科学的PASSを区別する。docs-onlyや専用CI PASSをPR全体GREENと呼ばない。
+6. remote再読で保存を確認する。認証失敗ならLOCAL_ONLY等と明記し、GitHub保存済みと言わない。
+7. 最後にPR #587へ当該保存commitと方針・次作業への参照を残す。自分自身のcommit SHAを本文に埋めるためだけの循環commitは不要。正確な保存SHAはGit履歴/PRコメントで記録できる。
+8. 人間確認前に次Gateへ進まない。会話終了後に自動で進む作業や監視を今回作っていない。
 
 ## 保護境界
 

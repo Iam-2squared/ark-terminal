@@ -1,6 +1,6 @@
 # Phase57 LONG-only — 現在の方針・次作業
 
-最終更新: 2026-09-21 15:46 JST
+最終更新: 2026-09-21 15:58 JST
 記録基準: 作業終了時のJST（24時間表記）
 対象: Iam-2squared/ark-terminal / research/phase57-long-only-cash-equity / PR #587
 今回の開始HEAD: `2ef307a31bea156110dc8b9181b7582373b2887e`
@@ -8,10 +8,10 @@
 
 ## 現在地点
 
-**5-Minute Entry State Definition v0.1 の設計案を保存。STOP FOR HUMAN REVIEW。**
+**5-Minute Entry State Definition v0.2 mechanical lock案を保存。synthetic test実行前。STOP FOR HUMAN REVIEW。**
 
 仕様の設計案作成は完了。ただし人間承認・機械的な判定パラメータ固定は未完了。
-`DESIGN_DRAFT_COMPLETE / NOT_LABEL_READY / NO_MEASUREMENT`
+`MECHANICAL_LOCK_DRAFTED / SYNTHETIC_TESTS_ADDED / NOT_FROZEN / NO_MARKET_MEASUREMENT`
 
 - [設計仕様](phase57-five-minute-entry-state/STATE_DEFINITION_v0.1.md)
 - [今回のソース監査](phase57-five-minute-entry-state/SOURCE_AUDIT_2026-09-21.md)
@@ -42,10 +42,9 @@ SignalはState解釈にも、将来のBUY/WAITにも直接利用し得る。た�
 | L | 必要なEntry Learningを人間判断で検討 | BLOCKED |
 | Later | Dictionary増分 → 別NEW LONG EXIT → Capital/Portfolio → protected evaluation | BLOCKED |
 
-**次にすることはDの設計レビューのみ。**
-3軸の表現（Direction / Structure / Phase）、Breakout等を別Eventにする案、最新5分の終端時刻をState時刻とする案を人間が確認する。
-その後も同じD内で、未固定のSwing scale・Range条件・Future確認期限を1つの機械的契約にする。市場データの再分類・成績による閾値選択はしない。
-Dを人間が承認し、parameter lockとlabeler仕様が完成するまでGへ進まない。D承認はGの自動実行許可ではない。
+**次にすることはDのsynthetic検証だけ。**
+追加したState Definition v0.2のsynthetic testsを実行し、定義矛盾だけを修正する。PASS後にcontract/hashを固定してDefinition Freeze候補にする。市場データ正解表・成績・Unknown率を見て閾値を調整しない。
+D Freeze候補を人間が確認するまでGへ進まない。D承認はGの自動実行許可ではない。
 
 ## 停止中・不採用の系統
 

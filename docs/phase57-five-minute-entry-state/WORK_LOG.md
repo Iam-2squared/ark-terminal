@@ -205,3 +205,44 @@ source-lockとverification summaryの5 source SHA-256の対応を確認。既存
 今回の保存commit/保存時刻/再読・差分確認はPR #587の終了コメントへ記録する。各回JST日時付きのCURRENT/WORK_LOG/PR更新を継続。
 
 Frozen Selector・既存Entry/EXIT/Capital・旧Evidence・main未変更。LONG-only現物。Safety9全false契約。売買・自動昇格・次Gateの自動実行なし。
+
+## 2026-09-21 18:23 JST — G終了確認・失敗時修正方針の記録
+
+確認時刻: 18:19 JST、結果整理: 18:23 JST。過去の開始時刻を推測しない。
+開始確認HEAD: `d8240b380fa0201ccca11e909665c9689300bdcb`。PR #587 open/Draft/unmerged。
+ユーザーの「失敗したら修正して続けて」を受け、前回進行中だったG run `35581246681` の現在jobsと保存Evidenceを直接確認した。
+
+### 結果・今回したこと
+
+verify `106274394010`、preserve `106276954627` ともcompleted/success。生成、独立local replayとの全出力比較、artifact保存、branchへのEvidence保存まで成功していた。
+Evidence保存commitは `d8240b380fa0201ccca11e909665c9689300bdcb`、commit metadataは2026-09-21 18:13:39 JST。
+`docs/evidence/phase57-five-minute-reference-g-v1/verification/ci-receipt.json` は18:13:26 JSTの記録で、定義93/adapter22合成tests、179 measurement files照合、independentLocalReplayMatched=trueを報告。
+今回このチャットでは既存結果を読んで確認した。93/22 testsや179ファイル照合を再実行したとは言わない。
+
+summaryは2,155 Opportunities、77,214 checkpoint、定義/Selector変更0。
+latest5 COMPLETE28,474（36.88%）/PARTIAL34,638/UNAVAILABLE14,102。
+Structure IDENTIFIED8,809（11.41%）/UNIDENTIFIED68,405。割合分母は全checkpointでありOpportunity数や認識精度ではない。
+未識別の排他的stateReasonはCURRENT_BAR_UNAVAILABLE30,986、SCALE_UNAVAILABLE14,816、UNRESOLVED_STRUCTURE22,603。詳細理由は重複がある。
+
+### 入力説明の訂正・残る留保
+
+前回の「前日分足2,155/2,155 present」は、source/コンテナの存在を入力全件の完全性と同じに読ませていた。最終admissionでは尺度利用可能は1,005/2,155。
+SCALE_INSUFFICIENT1,105、PREVIOUS_CONTEXT_UNAVAILABLE43、PRICE_BASIS_UNVERIFIED1、SCALE_ZERO1。Daily5完全1,961、partial194。
+欠測、前日尺度不足、構造条件未成立を分ける。コンテナやIDの照合成功を、全分足完全・全State判定可能・独立PIT監査完了と呼ばない。
+INHERITED_RAW_PRICE_BASIS、INHERITED_SAME_DAY_METADATA_NOT_INDEPENDENT_PIT、CURRENT_ACTION_RAW_NOT_REAUDITED等は解消していない。市場全体の理解、未知0、利益の証拠ではない。
+
+### 失敗時の修正・継続範囲
+
+今後このG作業の実行不具合があれば、ログを根拠にG内のadapter/時刻/型/保存/再現処理を修正し、必要な限定テスト・再実行を行って証拠を保存する。
+今回のrunは成功済みで失敗修正・retryは不要。現在の変更はCURRENT更新と本ログ追記だけ。採用定義、数値閾値、source-lock、旧Evidence、workflow、scriptsは変更しない。
+未識別が多いという研究結果をエラー扱いして閾値変更・架空足補完・Opportunity除外で救済しない。source hash不一致、保護データ要求、定義変更が必要ならguardを外さず人間確認。
+この指示はCausal Recognition/Signal/BUY-WAIT/学習/EXIT等の開始許可ではない。
+
+### 保存と次の1 Gate
+
+CURRENTの古いG_NOT_STARTEDを更新し、実行成功とState識別率・入力制約を分離した。GitHubへ日時付きでこの追記を保存し、PRコメントに最終保存SHAを記録する。
+次はG内の保存結果・未識別理由・入力制約・代表チャートの人間確認。今回の読取だけで代表チャートレビューやG品質承認まで完了したとはしない。C/S/Eへ進まない。
+状態: `G_TABLE_GENERATED / DEDICATED_REPLAY_PASS / SOURCE_LIMITATIONS_REMAIN / HUMAN_REVIEW_REQUIRED / C_NOT_STARTED`。
+
+今回、raw GitHubからログbyteを取得する補助試行はDNS失敗。GitHub connectorで読んだ文書とjob/receiptを根拠とし、通信失敗を研究CI失敗や自動lint PASSにしない。
+新規テスト再実行0、State再生成0、provider0、保護データ開封0。採用定義/Frozen Selector/既存Entry/EXIT/Capital/main不変。Safety9全false契約。成功runの追加再実行・自動監視・後続Gate自動進行は設定していない。

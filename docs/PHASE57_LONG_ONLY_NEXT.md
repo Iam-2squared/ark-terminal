@@ -1,80 +1,100 @@
 # Phase57 LONG-only — 現在の方針・次作業
 
-最終更新記録: **2026-09-21 17:06 JST**
-今回の開始確認: 2026-09-21 17:02 JST。日時はJST / UTC+09:00、24時間表記。
-対象: Iam-2squared/ark-terminal / research/phase57-long-only-cash-equity / PR #587
-開始HEAD: `9a764e27086bf6bb1133c304b73c0027d1275760`
-保存commitと実保存時刻はGit履歴・PR終了コメントを参照。次回開始時はlatestを再取得する。
+最終更新記録: **2026-09-21 18:23 JST**
+今回の確認時刻: 2026-09-21 18:19 JST / 記録整理: 18:23 JST（Asia/Tokyo、UTC+09:00）。
+対象: Iam-2squared/ark-terminal / research/phase57-long-only-cash-equity / PR #587。
+今回の開始確認HEAD・G Evidence保存SHA: `d8240b380fa0201ccca11e909665c9689300bdcb`。
+G実行HEAD: `20ebb47323b7c1aca4e4579c7783fc9f48c75792`。
+この更新の保存SHA・実保存時刻はGit履歴とPR終了コメントを参照。次回開始時にlatestを再取得する。
 
-## 現在地点 — 一案に確定
+## 現在地点 — G生成・再現・保存は成功、結果レビュー待ち
 
-**採用定義は mechanical-v1 の1案だけ。v0.2との採用整理は完了。**
+**G本体のrun35581246681はverify/preserve両jobがSUCCESS。2,155 Opportunities・77,214 checkpoint行の固定State参照表をGitHubに保存済み。**
 
-`ONE_DEFINITION_ADOPTED_AND_PINNED / EXISTING_SYNTHETIC_EVIDENCE_REVIEWED / G_NOT_STARTED / STOP`
+`G_TABLE_GENERATED / DEDICATED_REPLAY_PASS / SOURCE_LIMITATIONS_REMAIN / HUMAN_REVIEW_REQUIRED / C_NOT_STARTED`
 
-ユーザーの「一案に整理して」を受け、既存mechanical-v1を研究用の基準定義として採用した。両案を混ぜた第3案は作らず、採用packageのcode・数値条件・source-lock・既存Evidenceを変更していない。
+前の入口に残っていたG_NOT_STARTEDは古い状態。本記録はrunのjob結果、保存summary/admission/ci-receiptを再読した現在状態。生成・再現に成功したことと、相場を十分に分類できることは別。
+ユーザーの「失敗したら修正して続けて」を受けて確認したが、当該G runは既に成功・保存完了だったため、コード修正・追加再実行は行っていない。
 
-| 正本 | 役割 |
+## 正本・Evidenceの入口
+
+| 文書 | 役割 |
 |---|---|
-| [ADOPTED_DEFINITION.json](phase57-five-minute-entry-state/ADOPTED_DEFINITION.json) | 唯一の採用version・source commit・hash・不採用案の扱い |
-| [採用決定](phase57-five-minute-entry-state/ADOPTION_DECISION_20260921_1706_JST.md) | 選定理由、限界、今回の実施/未実施 |
-| [mechanical-v1/SPEC-ja.md](phase57-five-minute-entry-state/mechanical-v1/SPEC-ja.md) | 採用した判定手順の正本 |
-| [mechanical-v1/contract.json](phase57-five-minute-entry-state/mechanical-v1/contract.json) | 採用したパラメータの正本 |
-| [WORK_LOG.md](phase57-five-minute-entry-state/WORK_LOG.md) | 日時付きの追記履歴 |
+| [ADOPTED_DEFINITION.json](phase57-five-minute-entry-state/ADOPTED_DEFINITION.json) | 唯一の採用version、source/hash、不採用案の扱い |
+| [採用決定](phase57-five-minute-entry-state/ADOPTION_DECISION_20260921_1706_JST.md) | mechanical-v1への一本化理由 |
+| [採用仕様](phase57-five-minute-entry-state/mechanical-v1/SPEC-ja.md) / [contract](phase57-five-minute-entry-state/mechanical-v1/contract.json) | 変更しない判定定義 |
+| [G実行protocol](evidence/phase57-five-minute-reference-g-v1/PROTOCOL.md) | 今回の生成・入力・評価境界 |
+| [G集計](evidence/phase57-five-minute-reference-g-v1/measurement/summary.json) | 全checkpoint分布・制約・STOP |
+| [G入力監査](evidence/phase57-five-minute-reference-g-v1/measurement/admission.json) | source/ID/calendar/日足/尺度の利用可能性 |
+| [G専用CI receipt](evidence/phase57-five-minute-reference-g-v1/verification/ci-receipt.json) | 93定義tests、22adapter tests、179ファイル照合、local replay一致 |
+| [5分表CSV](evidence/phase57-five-minute-reference-g-v1/measurement/checkpoints.csv.gz) | 生成した全checkpoint表。未識別行も保持 |
+| [WORK_LOG](phase57-five-minute-entry-state/WORK_LOG.md) | 過去履歴を消さない日時付き追記 |
 
-旧採用状態文書のADOPTION_UNRESOLVEDやpackage内のFROZEN_CANDIDATEは保存時点の履歴。**現在の採用状態は上記manifestと今回の決定を優先する。** 元Evidenceのstatus文字列を書き換えてhashを変えない。この採用は市場分類・売買・自動昇格の実行許可ではない。
+保存Evidenceのreceipt日時は2026-09-21 18:13:26 JST。Evidence保存commit日時は18:13:39 JST。今回18:23の記録は生成処理の再実行ではなく、その終了確認と引継ぎの更新。
 
-## 採用ルールの要約
+## 保存結果の要点
 
-| 項目 | 唯一の採用仕様 |
+割合は77,214全checkpointを分母に計算。Opportunity件数とは混ぜない。
+
+| 項目 | 件数 | 全checkpoint比 |
+|---|---:|---:|
+| 全checkpoint | 77,214 | 100% |
+| 最新5本が完全観測 | 28,474 | 36.88% |
+| 最新5本が部分観測 | 34,638 | 44.86% |
+| 最新5本が観測不能 | 14,102 | 18.26% |
+| UP/DOWN/RANGE Structure識別 | 8,809 | 11.41% |
+| Structure未識別 | 68,405 | 88.59% |
+
+観測率とStructure識別率は別指標。DirectionはUP11,542 / DOWN12,753 / UNCHANGED4,179 / UNAVAILABLE48,740。
+StructureはUP2,358 / DOWN4,856 / RANGE1,595 / UNIDENTIFIED68,405。
+未識別の排他的stateReasonはCURRENT_BAR_UNAVAILABLE30,986、SCALE_UNAVAILABLE14,816、UNRESOLVED_STRUCTURE22,603。stateDetailReasonは重複があるので合計しない。
+Phase/CHOP等が付くこととStructure識別は別。複数State属性は排他的に潰さない。
+
+### 前回の「前日分足が全件present」の読み方を訂正
+
+sourceに対象ID/コンテナがあることは、全件で前日分足が完全・尺度計算可能であることを意味しない。最終admissionではOpportunity単位の尺度利用可能は**1,005/2,155**。
+残りはSCALE_INSUFFICIENT1,105、PREVIOUS_CONTEXT_UNAVAILABLE43、PRICE_BASIS_UNVERIFIED1、SCALE_ZERO1。
+Daily5が揃ったのは1,961/2,155、partial194。前回のpresent報告を、そのままState入力の完全性PASSとして使わない。
+raw/ID照合に成功したことも、historical receivedAtやcorporate actionを独立再検証した証明ではない。入力にはINHERITED_RAW_PRICE_BASIS、INHERITED_SAME_DAY_METADATA_NOT_INDEPENDENT_PIT、CURRENT_ACTION_RAW_NOT_REAUDITED等の留保が残る。
+
+## 失敗時の修正範囲 — 今回のユーザー指示
+
+実行エラーがあれば、最新HEAD・対象G run・ログを確認し、G内の実装不具合、時刻/型/adapterの契約違反、保存/再現処理の不具合を特定して修正・限定再検証する。成功済みjobや旧研究を理由なく再実行しない。変更・失敗原因・テスト・保存先を日時付きで残す。
+
+**「未識別が多い」「成績が期待より悪い」は、処理失敗と同じではない。** それを理由にS、1S、30分Range、10分Future等を変更したり、欠測を架空足で埋めたり、Opportunityを再filterしたりしない。
+source hash不一致・保護データ要求・秘密情報・定義変更が必要な場合は、guardを外して継続せずEvidenceを保存して人間確認。
+今回のG runは成功済みで修正・retry対象なし。後続Gateの自動監視/自動進行は設定していない。
+
+## 次にすること — Gの結果確認を先に行う
+
+**次は同じG内で、保存済み表の未識別理由・入力制約・代表チャートを人間が確認すること。Cへはまだ進まない。**
+今回の確認はrun/receipt/summary/admissionの読取まで。全件をこのチャットで再計算したとは主張しない。代表チャートと時刻別の詳細レビューの完了も今回確認していない。
+未識別が多い原因を、現在足の欠測・前日尺度不足・固定構造条件未成立に分ける。追加の値動き研究や閾値探索へ自動拡張しない。
+
+| Gate | 現在 |
 |---|---|
-| 更新 | Selector選出Tで初回、WAITなら5 active minutes後に再評価 |
-| State時刻 | tまでの最新5本closed 1mと現在構造。次5分の予測とは別 |
-| 4時間軸 | D-5〜D-1 Daily、前営業日observed 1m、Today Open→t、最新5本 |
-| 尺度S | 前日完全5m blockのTrue Range中央値、最低6block、当日固定、fallbackなし |
-| Swing / Structure | 終値1S反転、交互4pivotのHH/HL・LH/LL、protected levelの終値失効 |
-| Range | 30連続1m、幅<=2S、効率<=1/3、上下各2block接触、境界は成立時固定 |
-| Phase | PROGRESSION / CORRECTION / RECOVERY / BALANCE / RESTRUCTURING、根拠付き集合 |
-| 高値・安値 | 重要水準、HH/HL、wick、cross、幅等として保持。終値pivotだから無視するわけではない |
-| CHOP | 最新5本で終値方向反転>=2、効率<=1/3、幅>=0.5S。他属性を消さない |
-| Future確認 | 正解表側だけ次10 active minutes・同日内。確認不足は項目別に打切り |
-
-これらは再現用に固定した1つの定義であり、市場で最適と検証した値ではない。観測が足りないものや意味未識別を無理に既知Stateへ押し込まない。
-
-## 次にすること — Gだけ
-
-**次の別承認で、既存Developmentの入力確認・adapter検証を含む、5分ごとのFuture reference tableを作る。**
-
-2,155 Opportunity ID、正確な前営業日とDaily lag、calendar、price basis、bar時刻・availability・欠測を照合する。入力adapterは採用定義を呼ぶだけで、そこでパラメータを変えない。75,059を期待row数にしない。
-14:30/15:00以後も観測可能なcheckpointを保持し、未来確認の不足と現在の観測不足を分ける。市場の分類率・未知率・代表チャートを保存し、人間確認までSTOP。
-
-| Gate | 状態 |
-|---|---|
-| D — 基準定義の採用整理 | **完了: mechanical-v1に一本化、source/hash固定** |
-| G — 入力確認・5分正解表 | **次。未開始・別承認待ち** |
-| C — 未来なしState認識 | BLOCKED |
+| D — 基準定義 | mechanical-v1のみ採用、code/contract/hash不変 |
+| G — 5分参照表 | 生成・専用再現・GitHub保存成功。品質/制約/可視化の人間レビュー待ち |
+| C — 未来なし認識 | 未開始、人間承認前はBLOCKED |
 | S — State × Signal | BLOCKED |
-| E — BUY NOW / WAIT評価 | BLOCKED |
-| Later — 必要な学習・Dictionary・別EXIT・Capital/Portfolio・protected評価 | BLOCKED |
+| E — BUY NOW / WAIT | BLOCKED |
+| Later — 学習/Dictionary/別EXIT/Capital/Portfolio/protected評価 | BLOCKED |
 
-## 不採用案・未反映パッチ
+## 継続する設計・保護境界
 
-v0.2の仕様追記、repository helper/testは削除せず**不採用の参考履歴**へ。今後Gの基準として使わず、並行改良・再比較を今回の予定に入れない。mechanical-v1へv0.2の3S/20分/15分等を混ぜない。
-
-会話内のv0.2修正85テストのZIP/レポートは履歴として保持。今回そのレポートを読んだが、パッチをactive scriptsへ適用していない。85はhelper部分の検証であり、採用mechanical-v1の93件へ合算しない。詳細hashと反映待ち解消方針は今回の採用決定に記録。
-旧5+1、旧STEP2/3、Workローカル10/30bps試作も歴史資料のみ。新State正解表の教師として使わない。
-
-## 継続方針・保護境界
-
-Selector=WHAT、Entry=WHEN IN、EXIT=WHEN OUT。Frozen Selectorを変更せず、OpportunityをState/Signal/Qualityで再filterしない。Tで初回判断し、最初から必ず5分待たせない。
-Signalは将来State解釈にもBUY/WAITにも直接入れ得るが、State別の増分価値はSで測る。Signalなし=候補廃棄にしない。SELLは別EXIT研究。
-今回、実市場読取/正解表生成/因果認識/Signal/BUY-WAIT/学習/Dictionary/EXIT/Capital/Portfolio/新規provider/保護データ開封は実施しない。mainへmergeしない。
-93合成PASSは既存Evidenceを確認した記録であり、今回の再実行やCI PASSではない。実相場での精度・UNKNOWN0・収益を保証しない。
+Selector=WHAT、Entry=WHEN IN、EXIT=WHEN OUT。Frozen Selectorをretrain/rerank/refilterしない。OpportunityをState/Signal/Qualityで捨てない。
+将来のEntryはTで初回評価、WAITなら5 active minutes後。最初から5分待たせない。State(t)は直前5本closed 1mとtまでの構造で、次5分の予測とは別。
+4時間軸はD-5〜D-1 Daily、前営業日observed1m、Today Open→t、最新5本。Direction/Structure/Phase/Events/Attributes/Context/Observationを分離。
+採用尺度は前日完全5m TR中央値（最低6block、当日固定、fallbackなし）、終値1S Swing、4pivot構造、30分Range、重複CHOP、同日次10active分Future確認。意味未識別を無理に既知ラベルへ押し込まない。
+Signalは将来State認識とBUY/WAITの入力になり得るが、有用性はSの別Gate。Signalなし=候補廃棄にしない。SELLは別EXIT研究。
+v0.2/helper/85-test patch、旧5+1/旧STEP2・3、Workの10/30bps試作は履歴のみ。採用案へ適用・混合・並行改良しない。
+今回、採用定義/Selector/既存Entry/EXIT/Capital/旧Evidenceを変更しない。新規provider、Holdout/Fresh/OOS/Prospective開封、Causal Recognition、Signal/BUY-WAIT評価、学習はしない。main未merge。
 
 ## 毎回の日時付き記録
 
-開始時にlatest HEAD/PR/この入口/採用manifest/承認範囲を読む。終了時はCURRENT更新＋WORK_LOG追記＋PRコメントに、`YYYY-MM-DD HH:MM JST`、開始SHA、実施/未実施、結果、検証範囲、方針、次の1 Gate、停止条件、保存SHAを残す。不明な過去時刻を推測しない。
-保存前にremote再確認、同時更新を保全、force=false。保存後に再読。保存失敗はLOCAL_ONLY等と明示。旧ログは削除せず訂正は新日時で追記する。合成PASS/市場妥当性/因果性能/利益/CIを混同しない。人間確認前に次Gateを自動実行しない。
+開始時にlatest HEAD/PR/この入口/採用manifestを読む。終了時にCURRENT更新＋WORK_LOG追記＋PRコメント。`YYYY-MM-DD HH:MM JST`、開始SHA、実施/未実施、結果、未解決、次の1 Gate、停止条件、保存SHAを残す。
+保存直前にremote再確認、同時更新を保全、force=false。保存後に再読。保存失敗を保存済みと言わない。旧ログは削除せず訂正は追記。
+合成PASS、専用CI PASS、PR全GREEN、実市場妥当性、因果認識、利益は別。今回の状態はG_DEDICATED_REPLAY_PASS_NOT_PR_GREENであり、市場State認識成功の認定ではない。
 
 executionAllowed=false
 brokerWriteAllowed=false

@@ -1,5 +1,27 @@
 # Phase57 LONG-only — 現在の方針・次作業
 
+## 最新追加記録 — 2026-09-21 20:33 JST — 追加診断①〜⑤ 保存確認 / STOP
+
+20:24 JSTに保存した追加診断①〜⑤のEvidenceを再読し、branch HEADと保存内容を確認した。数値結論は変更なし。
+
+- D 2,154のstrict residual = **0**。
+- B 11,326のsame-session次Structure解決 = **4,459 (39.37%)**、6,867は同日中に未解決。
+- SCALE_INSUFFICIENTは絶対活動量は低い一方、前日→当日の相対活性化がAVAILABLEより強い。
+- pivotSignature 3×3はStructureと一対一対応せず、descriptorとして保持する診断結果。
+- 層別chart sampleは36 checkpoints / 36 Opportunities / 29 sessions。
+- local固定入力の各診断を二重実行し対象出力hash一致。
+
+GitHub Actionsについて、このEvidence HEADに紐づくpull_request workflow runを確認したが、**専用 `Phase57 State Additional Diagnostics v1` runは見つからなかった**。したがって専用CI PASSとは呼ばない。PR全GREENとも呼ばない。local replayの結果とActions未起動を分離してreceiptへ保存した。
+
+Evidence:
+- [REPORT](evidence/phase57-state-additional-diagnostics-v1/REPORT-ja.md)
+- [summary](evidence/phase57-state-additional-diagnostics-v1/diagnostic-summary.json)
+- [verification receipt](evidence/phase57-state-additional-diagnostics-v1/verification/receipt.json)
+
+**ここでSTOP。次は人間確認後、State Definition v2の設計Gateを開始するか判断する。v2 / 正確表v2 / Causal Recognition / Signal / BUY-WAITは未開始。**
+
+---
+
 ## 最新追加記録 — 2026-09-21 20:24 JST — State追加診断①〜⑤完了 / v2未開始
 
 Claude再レビュー後に事前登録した追加診断①〜⑤を、既存G measurementのみで完了した。State Definition / threshold / Selector / Entry / EXIT / Capitalは変更していない。PnL・future return・新規provider・protected dataは未使用。

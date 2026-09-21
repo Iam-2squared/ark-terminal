@@ -246,3 +246,49 @@ paperTradingAllowed=false
 automaticPromotionAllowed=false
 productionUpdateAllowed=false
 transmitted=false
+
+
+---
+
+## 最新追加記録 — 2026-09-22 00:43 JST — State v2 Rule-Spec Hardening 完了 / Freeze Candidate / STOP
+
+Claude独立レビューの `APPROVE_WITH_REQUIRED_CHANGES / NOT_SAFE_TO_FREEZE_V2_DESIGN` を受け、C1〜C8の最小修正を **仕様だけ** に反映した。v2実装・77,214 row再生成には進んでいない。
+
+### 完了
+- mechanical-v1数値ルールを source commit + SHA-256 で完全pin。v2.0では閾値変更0。
+- `Ground Truth` 呼称をやめ、NOW=`now_state_reference_v2` / Future=`future_resolution_v2` へ分離。
+- common statusを `DEFINED / INSUFFICIENT / NOT_EVALUATED / NOT_APPLICABLE` に整理。未定義の `AMBIGUOUS` はv2.0から除外。
+- 評価済み陰性を `DEFINED(NONE/[])` とし、maskと分離。
+- `reasonCodes[]` multi-flag + display-only `primaryReason` を固定。Future censorも重複flag化。
+- ObservationQuality / Scale / timestamp / knownAt / corporate-action as-of / data-vintage / pivot confirmation / calendar / stateful carry-overのPIT契約を明文化。
+- Causal Recognition targetを「未来確認で遅延確定するState-at-t軸」と定義し、Direction等のNOW既知descriptorとの責務を分離。
+- v1→v2 transition audit、canonical serialization、golden vectors 12本を固定。
+- Freeze GateとGeneration Acceptance Gateを分離。
+- G7を status-cell層別 + rare-cell oversampling + 2者独立 + synthetic negative controls で事前登録。
+- 既存G artifactを再利用し、非gating coverage reportを作成。閾値変更0。
+
+### 既存G artifact coverage（Development / descriptive only）
+- 77,214 checkpoints / 2,155 Opportunities
+- Direction defined 28,474 = 36.88%
+- Scale AVAILABLE 39,282 = 50.87%
+- Structure defined 8,809 = 11.41%
+- Phase non-empty 11,621 = 15.05%
+- Opportunity単位でAny Structure defined 604/2,155 = 28.03%
+- current bar missing時のScale unavailable 74.60% / current observed時 32.05%
+
+上記はmissingness/selection biasの開示であり、結果に合わせてState定義を緩めない。
+
+### 保存
+- `docs/phase57-five-minute-entry-state/STATE_DEFINITION_v2_FREEZE_CANDIDATE.md`
+- `docs/evidence/phase57-state-v2-hardening/HARDENING_EVIDENCE.md`
+- `docs/evidence/phase57-state-v2-hardening/GOLDEN_VECTORS_v2.json`
+- `docs/evidence/phase57-state-v2-hardening/FREEZE_CANDIDATE_MANIFEST.json`
+
+### 現在のFreeze blocker
+1. G7 two-reviewer semantic chart review
+2. Claude differential reviewで `SAFE_TO_FREEZE_V2_DESIGN`
+
+**まだFROZENではない。次は上の2点だけを最短で潰す。承認前にv2実装へ進まない。**
+
+### 最終North Star（State定義には使用禁止）
+最終統合評価は、future-assisted Oracleの Selector後Low→later High 値幅のうち、未来情報なしのEntry+EXITで何%回収できたかを中心に評価する。Entry Low Gap / EXIT High Gap / Realized Return / Oracle Capture / Opportunity-weighted Captureを併記する。

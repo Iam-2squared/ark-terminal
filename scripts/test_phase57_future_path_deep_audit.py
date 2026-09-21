@@ -40,7 +40,7 @@ class DeepAuditTests(unittest.TestCase):
     def test_chop_override_preserves_overlap(self):
         a=bars([100.]+[98.,102.]*20+[100.])
         z=self.F.classify('2025-06-02',600,100.,a,True)
-        self.assertEqual(z['path'],d.PATHS[3]]);self.assertGreater(sum(z['predicate'].values()),1)
+        self.assertEqual(z['path'],d.PATHS[3]);self.assertGreater(sum(z['predicate'].values()),1)
         self.assertEqual(len(d.reversals_with_witness(a,self.F)),z['reversals'])
 
     def test_same_bar_order_is_unknown(self):

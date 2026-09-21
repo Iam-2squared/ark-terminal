@@ -24,9 +24,13 @@ def main():
     # raw paths source used by prior audits
     paths=read('docs/evidence/phase57-entry-pattern-v2/ci-result/substrate/raw-paths-evaluator-only.json.gz')
     opportunities=read('docs/evidence/phase57-entry-pattern-v2/ci-result/substrate/opportunities.json.gz')
-    ids=[o.get('id') for o in opportunities]
-    assert len(ids)==len(set(ids))==2155
-    assert cohort['population']==2155
+    protocol=read('docs/evidence/phase57-entry-timing-signal-census-v1/protocol.json')
+    ids=list(protocol['opportunityIds'])
+    assert len(ids)==len(set(ids))==protocol['count']==cohort['population']==2155
+    by_id={o.get('id'):o for o in opportunities}
+    assert len(by_id)==len(opportunities)
+    selected=[by_id[i] for i in ids if i in by_id]
+    assert len(selected)==2155
     # inventory dates and data availability, without emitting price rows
     path_keys=set(paths)
     p2155=sum(i in path_keys for i in ids)
@@ -53,7 +57,9 @@ def main():
       'opportunityRecordsType':type(opp).__name__,
       'opportunityRecordsN':len(opp) if isinstance(opp,list) else None,
       'opportunityRecordShape':shape(opp[0]) if isinstance(opp,list) and opp else None,
-      'opportunityShape':shape(opportunities[0]),
+      'opportunitySubstrateN':len(opportunities),
+      'selectedOpportunityN':len(selected),
+      'opportunityShape':shape(selected[0]),
       'rawPathShape':shape(next(iter(paths.values()))),
       'rawPathCoverage':p2155,
       'previousMinuteAvailability':dict(prev),

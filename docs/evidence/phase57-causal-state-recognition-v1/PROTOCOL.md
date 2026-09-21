@@ -183,3 +183,5 @@ paperTradingAllowed=false
 automaticPromotionAllowed=false
 productionUpdateAllowed=false
 transmitted=false
+
+Measurement implementation: scripts/phase57_causal_state_recognition_v1.py. Results are generated only after this protocol lock.

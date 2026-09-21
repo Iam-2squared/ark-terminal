@@ -1,6 +1,6 @@
 {
   "recordedAt": "2026-09-22T00:39:02+09:00",
-  "status": "STATE_V2_FREEZE_CANDIDATE_HARDENED_NOT_FROZEN",
+  "status": "STATE_V2_FREEZE_CANDIDATE_HARDENED_G7_PACKAGE_BUILT_NOT_FROZEN",
   "sourceHeadBeforeHardening": "52370348bab598de24cf3a2e6c2df8bde27a8f94",
   "branch": "research/phase57-long-only-cash-equity",
   "pr": 587,
@@ -39,8 +39,10 @@
     "futureReturnUsedForStateDesign": false
   },
   "freezeBlockers": [
-    "G7_TWO_REVIEWER_SEMANTIC_CHART_REVIEW",
-    "CLAUDE_DIFFERENTIAL_REVIEW_SAFE_TO_FREEZE"
+    "G7_REVIEWER_A_FRESH_OPENAI_SESSION",
+    "G7_REVIEWER_B_FRESH_CLAUDE_SESSION",
+    "G7_PASS_AND_ADJUDICATION_IF_NEEDED",
+    "CLAUDE_DIFFERENTIAL_REVIEW_WITH_ACTUAL_FILES_SAFE_TO_FREEZE"
   ],
   "safety": {
     "executionAllowed": false,
@@ -52,5 +54,13 @@
     "automaticPromotionAllowed": false,
     "productionUpdateAllowed": false,
     "transmitted": false
+  },
+  "goldenVectorCount": 26,
+  "g7": {
+    "protocol": "docs/evidence/phase57-state-v2-hardening/G7_CHART_REVIEW_PROTOCOL.md",
+    "packageManifest": "docs/evidence/phase57-state-v2-hardening/G7_BLINDED_PACKAGE_MANIFEST.json",
+    "blindedReviewZipSHA256": "303acb5c66b586917b75d1a48bb0e4b0fc848b7d48d86f9d63bb8273283676c1",
+    "sealedAdminZipSHA256": "15e389cbf3638e89e5555e934fe73152b3d4782b5304d4348372ea407d3d932b",
+    "reviewExecuted": false
   }
 }

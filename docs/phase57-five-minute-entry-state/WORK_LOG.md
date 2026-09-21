@@ -97,3 +97,37 @@ CURRENT入口は最終更新 `YYYY-MM-DD HH:MM JST`、このWORK_LOGは可能な
 目的は、次回開始時に「いつの状態か」「どこまで進んだか」「次に何をするか」を即座に判別できるようにすること。
 
 このルール自体も継続方針としてGitHubへ保存し、以後毎回適用する。
+
+## 2026-09-21 15:58 JST — Mechanical State Definition v0.2
+
+開始HEAD: `907f1016cd46dd784b2a7269aa10945e75e12543`
+終了HEAD: `7d125e37149d16092a30ebfc187b06d067d801d3`
+
+### 今回したこと
+- v0.1の未固定項目P2〜P7に対し、Swing/Structure/Range/Phase/Breakout/Reclaim/Choppiness/Future確認期限の機械契約案v0.2を追加。
+- 固定bpsではなくcausal scale S(t)と2 tick floorを使用する案を明文化。
+- UP/DOWN structureはconfirmed swing high/lowとprotected levelで判定、wick-only breachは失効扱いにしない。
+- RECOVERYはexplicit episodeとrecoveredFractionの増加、RESTRUCTURINGはprotected level close break後の新構造未確定状態として分離。
+- Rangeはtrend不成立の補集合にせず、交互pivot＋低efficiency＋20 active minutes以上を要求。
+- Choppinessは5本内directionChanges/efficiency/envelope-to-scaleの複合属性として定義案を固定。
+- Future reference確認期限は15 active minutes・same-session固定、right-censorを明示。
+- 小さなdeterministic helperとsynthetic unit testsを追加。これは市場データ測定ではない。
+
+### 未実施
+- 実市場データでの正解表生成0
+- Causal Recognition 0
+- Signal Stats 0
+- BUY/WAIT評価0
+- provider取得0
+- Holdout/Fresh/OOS開封0
+
+### 現在地
+**MECHANICAL_LOCK_DRAFTED / SYNTHETIC_TESTS_ADDED / NOT_FROZEN**
+まだtestsを実行しておらず、definition freeze完了とは言わない。
+
+### 次にすること
+1. synthetic testsを実行し、失敗があれば定義矛盾だけを修正する。
+2. test PASS後にDefinition contract/hashを固定してD GateをFreeze候補にする。
+3. 人間確認後のみFuture reference tableへ進む。
+
+Safety9項目false維持。Frozen Selector/Entry/EXIT/Capital/main未変更。

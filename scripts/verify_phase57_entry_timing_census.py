@@ -31,7 +31,8 @@ def verify():
     co=c.read(root/'cohort.json')
     assert co['holdoutOpened']==0 and co['noTraining'] and co['noDictionary']
     assert all(v is False for v in co['safety'].values())
-    validation=c.read(base/'validation/completion.json')
+    validation=c.read(base/'validation/completion-ci.json')
+    assert c.sha(base/'validation/completion.json') == validation['originalCompletionSHA256']
     assert validation['fullCensusRegenerationIdentical']
     assert validation['correctedEvaluationRegenerationIdentical']
     assert validation['reportRegenerationIdentical']

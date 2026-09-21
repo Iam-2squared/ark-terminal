@@ -30,7 +30,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install numpy scipy scikit-learn
+      - run: pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.7.2 pandas==2.2.3
       - name: Causal tests and inherited Entry regression
         run: python scripts/offline/kernel_exec.py python -m unittest -v scripts.test_phase57_entry_timing_census scripts.test_phase57_entry_pattern_v2 scripts.test_phase57_entry_extended scripts.test_phase57_chart_entry
       - name: Verify preserved census; no new measurement or training

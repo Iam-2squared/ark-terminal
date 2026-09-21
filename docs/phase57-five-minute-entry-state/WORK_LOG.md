@@ -331,3 +331,22 @@ v2案はObservationQuality Layer0、axis status/reason、Structure非必須、IN
 会話添付: phase57_state_v2_design_gate_20260921.zip SHA256 c26a3194226c9f9c4186e4bb71ee50c3067eb7353095539267e963e19572d5f2。
 
 **STOP。次はv2仕様案の人間/Claude設計レビュー。**
+
+
+## 2026-09-22 00:43 JST — State v2 Rule-Spec Hardening 保存 / Freeze Candidate / STOP
+
+開始remote HEADは `52370348bab598de24cf3a2e6c2df8bde27a8f94`。Claude独立レビューの必須変更C1〜C8を受け、設計Hardeningだけを実施した。
+
+GitHub Actions run 35581246681 の既存artifact（artifact id 10630618102, digest `sha256:cc921c476af1079344975daa78e89fe03ee0dfc20ee62333170199178ade795e`）を再取得し、既存Development G measurement 77,214 checkpoints / 2,155 Opportunitiesのcoverageを記述的に再集計。provider request 0、protected data 0、PnL/future returnによるState rule選択0。
+
+主な修正は、mechanical-v1 exact pin、status semantics、multi-reason/censor flags、PIT/as-of/vintage契約、NOW/Future分離、Recognition責務、transition audit、golden vectors、Freeze/Acceptance Gate分離、G7二者review protocol。数値閾値・ScaleSpec・H=10・Opportunity membershipは変更していない。R1/R2はFreeze根拠から降格。
+
+保存commits:
+- spec: `508abcb5055630e2c311f1918d33d207d98b65b5`
+- hardening evidence: `f1ea53f6146ad2f0cc424f9e10b2f93e0464edbf`
+- golden vectors: `a4387bcfaeaa1fff67d33999214b6b4e875b088e`
+- manifest: `a6e427dd233befdc4b603421381a43d19122b909`
+
+状態: `STATE_V2_FREEZE_CANDIDATE_HARDENED / NOT_FROZEN / NOT_IMPLEMENTED`。
+
+Freeze blockerは G7 two-reviewer semantic chart review と Claude differential review `SAFE_TO_FREEZE_V2_DESIGN` の2点だけ。ここでSTOP。v2 row生成 / Causal Recognition / Signal / BUY-WAIT / Entry / EXIT / Holdout開封へ進まない。Safety9全false。

@@ -308,3 +308,174 @@ productionUpdateAllowed=false
 transmitted=false
 
 本文[S1]〜[S4]はSOURCE_AUDIT_2026-09-21.mdの読取ソースを参照。[E1][E2]はJPX公式の制度資料。提案したState構造・Phase・parameter案は新設計であって、JPXや旧コードが推奨・実証したものではない。
+
+
+## 19. Mechanical Parameter Lock v0.2 — Swing / Structure / Phase
+
+Status: **PROPOSED_MECHANICAL_LOCK / SYNTHETIC_TEST_REQUIRED / NO_MARKET_LABELS_YET**
+
+This section converts the conceptual definition into one deterministic mechanical contract. It is still a proposal until synthetic tests pass and the human accepts it.
+
+### 19.1 Causal scale S(t)
+
+For every scope and asOf t, define a causal movement scale:
+
+- Preferred intraday scale: median of valid absolute 1m log returns over the previous observed trading session, multiplied by current reference price.
+- Fallback when previous-day minute history is insufficient: median absolute 1m log return from Today Open->t when at least 30 contiguous valid returns exist.
+- Final fallback: D-5..D-1 median daily true range divided by sqrt(N_active_minutes) only for normalization diagnostics, not for pivot confirmation.
+- If no intraday scale is available, structural swing/phase identification is NOT_OBSERVABLE rather than silently using a fixed bps threshold.
+
+Record S source, sampleN, asOf, and whether it is fallback. Never estimate S using future rows or the current five-minute future suffix.
+
+### 19.2 Swing pivot confirmation
+
+Use a directional-change pivot process, not adjacent-bar HH/LL noise.
+
+Let qSwing = 3.0 and threshold = qSwing * S(t), with a floor of 2 valid ticks at the pivot price.
+
+Process each contiguous regular-session segment in chronological order:
+1. Start from the first valid close as current extreme.
+2. In an upswing, keep updating the highest observed High and its timestamp.
+3. Confirm SWING_HIGH when a later observed Low is at least threshold below that extreme.
+4. In a downswing, keep updating the lowest observed Low.
+5. Confirm SWING_LOW when a later observed High is at least threshold above that extreme.
+6. effectiveAt = extreme bar timestamp; confirmedAt = first later bar proving the threshold reversal.
+7. Equal highs/lows: keep the earliest extreme timestamp and latest equal-price touch separately; confirmation compares price, not touch count.
+8. Missing/lunch/session gap ends the current confirmation segment. Do not use a post-gap price to prove an intrasegment reversal.
+9. A pivot may be recognized retrospectively in Future reference labels from effectiveAt, but causal recognition may only use it from confirmedAt.
+
+No fixed 10bps/30bps swing threshold is inherited.
+
+### 19.3 UP / DOWN Structure
+
+Use confirmed pivots on one swingScaleId.
+
+UP_STRUCTURE requires, in order:
+- at least two confirmed SWING_HIGH and two confirmed SWING_LOW pivots,
+- latest confirmed high > prior confirmed high,
+- latest confirmed low > prior confirmed low,
+- protectedLow = latest confirmed SWING_LOW that preceded the latest structural high,
+- no later observed close below protectedLow.
+
+DOWN_STRUCTURE is symmetric:
+- latest confirmed high < prior high,
+- latest confirmed low < prior low,
+- protectedHigh = latest confirmed SWING_HIGH that preceded the latest structural low,
+- no later observed close above protectedHigh.
+
+If both directional tests would appear true because scopes/scales differ, keep them under separate scope/scale records. Under identical scope+scale, return AMBIGUOUS rather than both.
+
+Structure invalidation occurs on a close beyond the protected level. A wick-only violation is an event but does not invalidate structure by itself.
+
+### 19.4 RANGE_STRUCTURE
+
+A range is not the complement of trend.
+
+Range candidate requires:
+- at least 20 active minutes of same-segment history,
+- at least 3 confirmed alternating pivots after the candidate begins,
+- upper/lower boundary defined by the max/min of those confirmed pivots,
+- normalized width (upper-lower)/S(t) finite,
+- close-path efficiency over the candidate <= 0.35,
+- no two consecutive closes beyond the same boundary.
+
+To avoid arbitrary absolute-bps range labeling, do not impose an additional fixed width cap in v0.2. Width is retained as a descriptor. RANGE_STRUCTURE is identified only when the alternating-pivot and low-efficiency conditions are satisfied.
+
+Candidate ends when:
+- structure breakout is confirmed by two consecutive closes beyond a boundary, or
+- a new UP/DOWN structure is confirmed on the same scale.
+
+### 19.5 Phase mechanics
+
+PROGRESSION:
+- parent structure identified,
+- latest five-minute netDirection matches parent structure direction,
+- no currently active opposite corrective episode requiring RECOVERY.
+
+CORRECTION:
+- parent UP_STRUCTURE with latest netDirection DOWN, or parent DOWN_STRUCTURE with latest netDirection UP,
+- protected level not invalidated.
+
+RECOVERY:
+- an explicit opposite-direction episode exists with startExtreme H/L and subsequent opposite extreme,
+- current five-minute direction moves back toward the episode start,
+- recoveredFraction > 0 and is increasing versus the previous checkpoint,
+- recovery remains active until recoveredFraction >= 1.0 or a newer structural episode supersedes it.
+- Recovery does not imply parent structure restoration.
+
+BALANCE:
+- RANGE_STRUCTURE identified and no confirmed boundary-break event active.
+
+RESTRUCTURING:
+- prior structure invalidated by close beyond protected level,
+- new opposite UP/DOWN structure not yet confirmed.
+
+Multiple phase tags are allowed only when their semantics are compatible and they reference explicit parent/episode IDs.
+
+### 19.6 Breakout / Reclaim mechanics
+
+For every pre-existing level ID:
+- WICK_TOUCH_UP: High > level and Close <= level.
+- CLOSE_CROSS_UP: previous valid Close <= level and current Close > level.
+- CLOSE_CROSS_DOWN symmetric.
+- BREAKOUT_UP event = CLOSE_CROSS_UP for a resistance-class level.
+- RECLAIM_UP event = CLOSE_CROSS_UP after the same level was previously observed above price and later lost/below.
+- HOLD_CONFIRMED_UP = two consecutive closes > level after the cross.
+- FAILURE_UP = any later close <= level before HOLD_CONFIRMED_UP.
+
+The raw cross event exists immediately at its bar. HOLD_CONFIRMED/FAILURE are later evaluator facts and must not rewrite the original cross timestamp.
+
+### 19.7 Choppiness / expansion attributes
+
+Keep continuous descriptors primary:
+- directionChanges5,
+- closePathEfficiency5,
+- envelopeToScale5 = (maxH-minL)/S(t),
+- realizedVol5,
+- activity ratios.
+
+CHOPPINESS binary tag in v0.2:
+- directionChanges5 >= 2,
+- closePathEfficiency5 <= 0.35,
+- envelopeToScale5 >= 2.0.
+
+VOLATILITY_EXPANSION tag:
+- realizedVol5 >= 1.5 * median realizedVol5 of the previous six complete five-minute windows.
+
+VOLATILITY_COMPRESSION:
+- realizedVol5 <= 0.67 * that causal baseline.
+
+If baseline windows are insufficient, tag is null and the raw descriptor remains.
+
+### 19.8 Future reference confirmation horizon
+
+For Future-assisted reference labels only:
+- fixed maximum future confirmation horizon = 15 active trading minutes after the checkpoint,
+- same session only,
+- never cross overnight,
+- lunch recess does not count toward 15 active minutes but breaks intrasegment continuity,
+- if session end arrives earlier, mark RIGHT_CENSORED,
+- do not extend horizon until a desired label becomes confirmable.
+
+This 15-minute horizon is for confirming pivots/episode interpretation, not for scoring future return and not for causal input.
+
+### 19.9 Synthetic acceptance tests required before Freeze
+
+At minimum:
+1. clean rising HH/HL => UP_STRUCTURE,
+2. clean falling LH/LL => DOWN_STRUCTURE,
+3. uptrend + five-minute decline above protectedLow => CORRECTION,
+4. correction then rebound => RECOVERY,
+5. close below protectedLow => RESTRUCTURING,
+6. alternating pivots + low efficiency => RANGE/BALANCE,
+7. wick-only level breach => no structure invalidation,
+8. close cross + second close => BREAKOUT + HOLD_CONFIRMED,
+9. cross then close back => FAILURE,
+10. missing minute => no synthetic continuity,
+11. lunch gap => no cross-gap pivot confirmation,
+12. same-price highs => deterministic tie handling,
+13. insufficient previous scale => NOT_OBSERVABLE, no fixed-bps fallback,
+14. right-edge confirmation shortage => RIGHT_CENSORED,
+15. causal suffix mutation after t cannot alter observedFactsAtT.
+
+Freeze is allowed only after all synthetic tests pass and a contract hash is saved. No market outcome, BUY performance, or Unknown-rate optimization may modify these parameters after the test run begins.

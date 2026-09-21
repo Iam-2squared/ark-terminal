@@ -101,6 +101,17 @@ jobs:
       - name: Verify preserved results without rerun
         if: steps.gate.outputs.measure == 'false'
         run: python scripts/offline/kernel_exec.py python -m scripts.phase57_causal_entry_receipt verify --evidence docs/evidence/phase57-causal-entry-state-v1/ci-result
+      - name: STEP3 causal state recognition from preserved causal checkpoints
+        run: |
+          rm -rf docs/evidence/phase57-causal-state-recognition-v1/result
+          python scripts/phase57_causal_state_recognition_v1.py
+          test -s docs/evidence/phase57-causal-state-recognition-v1/result/summary.json
+          test -s docs/evidence/phase57-causal-state-recognition-v1/result/REPORT.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-step3-causal-state-${{ github.event.pull_request.head.sha }}
+          path: docs/evidence/phase57-causal-state-recognition-v1/result
+          retention-days: 90
       - uses: actions/upload-artifact@v4
         if: always() && steps.gate.outputs.measure == 'true'
         with:

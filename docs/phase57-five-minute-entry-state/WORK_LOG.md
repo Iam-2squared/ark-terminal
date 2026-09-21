@@ -163,3 +163,45 @@ local Python 3.13.5、named synthetic tests **93/93 PASS**、失敗/エラー0�
 次は人間がD内で採用定義を1つに整理する。G開始はその後の別承認。93 PASSをv0.2へ流用しない。人間の確認前に両案を市場データで比較・調整しない。
 
 開始・結果整理・同時更新確認のJST時刻を残し、GitHubの最終保存SHA・保存時刻・再読確認はPR #587へ記録する。Frozen Selector/旧Evidence/Entry/EXIT/Capital/main無変更。LONG-only現物、Safety9項目false。研究gateの自動進行なし。
+
+
+## 2026-09-21 17:06 JST — 一案への採用整理完了
+
+開始確認: 2026-09-21 17:02 JST。開始HEAD `9a764e27086bf6bb1133c304b73c0027d1275760`。PR #587 open/Draft/unmergedとbranch refを直接再確認した。
+ユーザー指示は「一案に整理して」。この指示を受けて採用を1つ決めるD内の作業であり、市場正解表Gの開始許可ではない。
+
+### 決定・方針
+
+**mechanical-v1を唯一の研究用基準定義として採用。v0.2は不採用の参考履歴。**
+採用packageのcode/数値/contract/source-lock/Evidenceは一切変更せず、1S・30分Range・10active分Future等を混ぜ物なしで固定。旧仕様を削除せず、新しいADOPTED_DEFINITION.jsonと採用決定を現在の正本とする。
+理由は実装全体とcontract・時刻/観測の扱いが一つのpackageとして揃っていること。93対85という件数や、市場精度/利益の優劣ではない。
+
+### 既存Evidenceと未反映作業の照合
+
+source-lockとverification summaryの5 source SHA-256の対応を確認。既存93合成PASS記録を読んだが、今回再実行していない。
+会話内v0.2監査レポートとZIPを読取/ハッシュ確認。16:49レポートの85テストはhelper部分の報告で、全体未実装あり。修正patchをactive scriptsへ適用せず、不採用案の検証履歴として保持する。以前のremote未反映を解消したと偽らず、今後active定義の修正待ちからは外す。
+元WORK_LOGのbyte列を会話内patch packageから復元し、GitHubの現blob `91dc7ef95af890557f94f3956de619bf242738ab` と完全一致を確認してからこの末尾を追記。過去時刻と履歴は書き換えていない。
+
+### 記録先
+
+- docs/PHASE57_LONG_ONLY_NEXT.md
+- docs/phase57-five-minute-entry-state/ADOPTED_DEFINITION.json
+- docs/phase57-five-minute-entry-state/ADOPTION_DECISION_20260921_1706_JST.md
+- このWORK_LOGへの末尾追記
+
+採用contract SHA-256: `f00134b85218eba4dad8409a00ce7f1076d1a3abdc02d8a4cb7e2e2b3511279e`。
+既存contract内の候補statusは当時のEvidenceとして無変更。現在の採用決定は外側のmanifestで示し、過去のscopeを書き換えない。
+
+### 未実施・限界
+
+市場データ読取/正解表生成/因果認識/Signal/Entry/学習/Dictionary/EXIT/Capital/Portfolio/新規provider/保護データ開封=0。
+合成テスト/全体regression/研究CIも今回再実行していない。raw GitHubへの補助downloadはDNS失敗し、GitHub connector読取で確認した。自動source全量byte検証PASSとは呼ばない。
+未識別0、市場妥当性、収益性は未実証。adapterと実データ入力の確認は次のGに残る。
+
+### 次とSTOP
+
+**D採用整理は完了。次の1 GateはGの入力確認・5分Future reference table。**
+別承認後に既存Developmentだけを使い、全2,155 IDsを照合し、採用仕様で全予定checkpointを記録する。75,059試作row数に合わせない。G結果を見てその場で閾値調整しない。G後にSTOPし、C/S/Eへ進まない。
+今回の保存commit/保存時刻/再読・差分確認はPR #587の終了コメントへ記録する。各回JST日時付きのCURRENT/WORK_LOG/PR更新を継続。
+
+Frozen Selector・既存Entry/EXIT/Capital・旧Evidence・main未変更。LONG-only現物。Safety9全false契約。売買・自動昇格・次Gateの自動実行なし。

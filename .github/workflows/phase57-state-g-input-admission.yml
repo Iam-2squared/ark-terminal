@@ -1,0 +1,23 @@
+name: Phase57 State G Input Admission
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - scripts/phase57_state_g_input_admission.py
+      - .github/workflows/phase57-state-g-input-admission.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  admission:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.13'}
+      - run: python scripts/phase57_state_g_input_admission.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-state-g-input-admission
+          path: tmp-phase57-state-g-admission/admission.json

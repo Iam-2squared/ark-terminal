@@ -1,5 +1,31 @@
 # Phase57 LONG-only — 現在の方針・次作業
 
+## 最新追加記録 — 2026-09-21 19:19 JST — 未識別68,405 Deep Audit完了 / Claude独立レビューへSTOP
+
+固定 `five-minute-state-mechanical-v1` とG参照表を変更せず、Structure未識別68,405 checkpointを原因分解した。
+
+- **A: INPUT_OR_OBSERVATION_LIMITED = 54,925**。CURRENT_BAR_UNAVAILABLE 30,986、SCALE_UNAVAILABLE 14,816に加え、primary reasonはUNRESOLVEDでもlatest5がPARTIALだった9,123を観測制約側へ分離。
+- **B: STRUCTURE_NOT_YET_CONFIRMED = 11,326**。latest5 COMPLETE + S availableだがconfirmed pivot<4。pivot0=3,723 / pivot1=4,091 / pivot2=2,185 / pivot3=1,327。
+- **D: STRUCTURAL_VOCABULARY_GAP_CANDIDATE = 2,154**。latest5 COMPLETE + S available + pivot>=4でもUP/DOWN/RANGEなし。H_UP+L_DOWN 845、H_DOWN+L_UP 479が主。
+- Dのcurrent PhaseはRESTRUCTURING 1,427 / RESTRUCTURING+RECOVERY 348 / RECOVERY 93 / NONE 286。Phase NONEの286中CHOPあり55、**Phase NONE + CHOPなし231**を最も強いrepresentation-gap review候補として残す。
+- C「StructureなしでもDirection/Phase等で説明可能」はB/Dと重複するため、無理な排他4分類にせず**overlay**として監査した。これは新State定義ではない。
+- SCALE_INSUFFICIENT 1,105 Opportunitiesのcomplete 5m block数は0:748 / 1:136 / 2:76 / 3:50 / 4:52 / 5:43。欠測原因をno-trade/halt/provider lossのどれかには断定しない。
+- 保存済みG measurement 179ファイルをmanifestで再hash検証。Deep Audit producerを独立2回実行しoutput manifest SHA256 `cdd251ec8aab55c061ac1385a8f21b00543a2c5f8d04e27272d3ee4a538115ad` 一致。
+- 代表チャート10枚＋producerを含む会話添付 `phase57_state_unknown_deep_audit_20260921.zip` SHA256 `ea2e175fe70b145bdd51fc179ee7b1ad4cca64ff14757e5130a8229bbcb10245`。チャート画像本体をGit trackedとは主張しない。
+
+正本:
+- [Deep Audit Protocol](evidence/phase57-state-unidentified-deep-audit-v1/PROTOCOL.md)
+- [Deep Audit Report](evidence/phase57-state-unidentified-deep-audit-v1/REPORT-ja.md)
+- [Deep Audit Summary](evidence/phase57-state-unidentified-deep-audit-v1/audit-summary.json)
+- [Claude Review Handoff](evidence/phase57-state-unidentified-deep-audit-v1/CLAUDE_REVIEW_HANDOFF.md)
+
+**次はClaude独立レビュー。State Definition v2、正確表v2、Causal Recognition、Signal、BUY/WAITはまだ開始しない。**
+ClaudeレビューではAをObservation Qualityとして維持すべきか、Bのpivot0-3をFORMINGとして表現すべきか、Dのbroadening/contracting/equal geometryをStructure/Transitionとしてどう扱うか、231強候補にVocabularyの穴があるかを確認する。
+
+State Definition変更0 / threshold search 0 / new provider 0 / protected data 0 / Causal Recognition 0 / Signal 0 / BUY-WAIT 0。Safety9全false。開始HEAD `90325a549b083c0d6ff2749cc52c3c3fbd8f59f9`。
+
+---
+
 ## 最新追加記録 — 2026-09-21 18:30 JST
 
 同時更新 `13181b14b18019353405f04bf84562031f251dd5` のG終了確認・限定retry方針・共通WORK_LOG追記を保全したうえで、このチャットの独立入力/全CSV照合と可視化レビューを追加する。以下の18:23時点の記録を削除せず、その補足として読む。

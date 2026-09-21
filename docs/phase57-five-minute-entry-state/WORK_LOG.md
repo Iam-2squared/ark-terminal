@@ -246,3 +246,35 @@ CURRENTの古いG_NOT_STARTEDを更新し、実行成功とState識別率・入�
 
 今回、raw GitHubからログbyteを取得する補助試行はDNS失敗。GitHub connectorで読んだ文書とjob/receiptを根拠とし、通信失敗を研究CI失敗や自動lint PASSにしない。
 新規テスト再実行0、State再生成0、provider0、保護データ開封0。採用定義/Frozen Selector/既存Entry/EXIT/Capital/main不変。Safety9全false契約。成功runの追加再実行・自動監視・後続Gate自動進行は設定していない。
+
+
+## 2026-09-21 19:19 JST — 未識別68,405件 Deep Audit v1 完了
+
+開始時remote HEAD: `90325a549b083c0d6ff2749cc52c3c3fbd8f59f9`。ユーザー指示「進めて」を受け、State正確表v1の未識別原因監査だけを実施。
+
+### 実施
+- G保存measurement 179ファイルをmanifest SHAで再検証。
+- 全77,214 checkpoint / 未識別68,405を、定義・閾値を変えずに監査。
+- current bar不足、S不足、latest5 partial、confirmed pivot数、last-4 pivot geometry、current Phase/CHOP/level eventを分解。
+- A/B/D hard partitionとC descriptor overlayを分けた。Cを排他カテゴリへ強制しない。
+- producerを固定入力で2回実行しmanifest byte hash一致。
+- ID辞書順でA/B/Dの代表10 checkpointを抽出し、保存raw 1mからchartを作成。profit/outcomeで代表抽出していない。
+
+### 結果
+A_INPUT_OR_OBSERVATION_LIMITED 54,925。
+B_STRUCTURE_NOT_YET_CONFIRMED 11,326（pivot0 3,723 / 1 4,091 / 2 2,185 / 3 1,327）。
+D_STRUCTURAL_VOCABULARY_GAP_CANDIDATE 2,154。H_UP+L_DOWN 845、H_DOWN+L_UP 479が最大。
+DでPhase NONE 286、うちCHOPあり55、Phase NONE+CHOPなし231。
+SCALE_INSUFFICIENT 1,105 Opportunitiesはcomplete5m block 0=748,1=136,2=76,3=50,4=52,5=43。
+
+Aは「providerで直せる欠損」と断定していない。Bは新しいFORMING Stateを追加した結果ではなく、現在定義が4 pivot確認前であるという診断。DはVocabularyの穴の**候補**であり、新State追加を正当化した結論ではない。
+
+### 検証・保存境界
+G measurement manifest SHA256 `4e11b8eb576dcdd0552f2461c699f57bdabc1db37d8e4c2be9a389a80748d6d1`。
+Deep Audit二重実行manifest SHA256 `cdd251ec8aab55c061ac1385a8f21b00543a2c5f8d04e27272d3ee4a538115ad`。
+会話添付ZIP SHA256 `ea2e175fe70b145bdd51fc179ee7b1ad4cca64ff14757e5130a8229bbcb10245`。
+Gitには数値Evidence/Protocol/Claude handoffを保存し、添付chart本体をtrackedしたとは主張しない。
+
+### STOP / 次
+**Deep AuditでSTOP。次はClaude独立レビュー。**
+Claudeレビューが返るまでmechanical-v1を修正せず、State v2/正確表v2/C/S/Eへ進まない。

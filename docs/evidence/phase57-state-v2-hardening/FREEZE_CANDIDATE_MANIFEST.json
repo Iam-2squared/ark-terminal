@@ -2,7 +2,7 @@
   "recordedAt": "2026-09-22T00:39:02+09:00",
   "lastAdjudicationAtJST": "2026-09-22T10:22:00+09:00",
   "lastHarnessRepairAtJST": "2026-09-22T10:58:05+09:00",
-  "status": "STATE_V2_NOT_FROZEN_G7_V1_FAIL_HARNESS_REPAIR_OLD36_REGRESSION_PASS",
+  "status": "STATE_V2_NOT_FROZEN_G7_R2_PACKAGE_COMPLETE_REVIEW_PENDING",
   "sourceHeadBeforeHardening": "52370348bab598de24cf3a2e6c2df8bde27a8f94",
   "branch": "research/phase57-long-only-cash-equity",
   "pr": 587,
@@ -41,8 +41,8 @@
     "futureReturnUsedForStateDesign": false
   },
   "freezeBlockers": [
-    "REVISED_REVIEW_PROTOCOL_REQUIRES_HUMAN_APPROVAL",
-    "G7_VALID_PASS_REQUIRED_OLD_RUN_REMAINS_FAIL",
+    "G7_R2_REVIEWER_A_AND_B_INDEPENDENT_RESPONSES",
+    "G7_R2_VALID_PASS_AND_RATIONALE_ADJUDICATION_OLD_RUN_REMAINS_FAIL",
     "CLAUDE_DIFFERENTIAL_REVIEW_WITH_ACTUAL_FILES_SAFE_TO_FREEZE"
   ],
   "safety": {
@@ -88,5 +88,21 @@
     "suffixRemovedInvariantCases": 36,
     "reverseOrderIdenticalFiles": 144,
     "newIndependentReviewExecuted": false
+  },
+  "g7R2": {
+    "status": "PACKAGE_COMPLETE_LOCAL_QA_PASS_REVIEW_PENDING",
+    "protocolCommit": "ad39d0e5e5db8ca8399c4c907ff36a6d6ad8e052",
+    "protocol": "docs/evidence/phase57-state-v2-g7-r2/PROTOCOL.md",
+    "report": "docs/evidence/phase57-state-v2-g7-r2/DELIVERY_REPORT-ja.md",
+    "receipt": "docs/evidence/phase57-state-v2-g7-r2/DELIVERY_RECEIPT.json",
+    "attachments": "docs/evidence/phase57-state-v2-g7-r2/ATTACHMENTS.json",
+    "reviewerZIP_SHA256": "ab1bba0c6e0b8f8f35e53cd395fbc862f92f9a1f2ccdc276c44b07773f4c3822",
+    "operatorZIP_SHA256": "a8be7a101ecc90b55a16335ddb6cf12871e0fb73616a70347bd018ae75c7f6a9",
+    "actualCases": 36,
+    "totalReviewCases": 46,
+    "oldOpportunityOverlap": 0,
+    "independentReviewExecuted": false,
+    "oldG7ResultRewritten": false,
+    "stateFreezeGranted": false
   }
 }

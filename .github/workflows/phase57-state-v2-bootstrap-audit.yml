@@ -38,12 +38,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13.5'
-      - name: Pin source, execute all initial tests, preserve actual outcomes
+      - name: Snapshot source, diagnose all pins, run only engine-verified synthetic suites
         env:
           EXECUTION_HEAD: ${{ github.event.pull_request.head.sha }}
+          GH_READ_TOKEN: ${{ github.token }}
         run: |
           python - <<'PY'
-          import datetime, hashlib, json, os, pathlib, shutil, subprocess
+          import base64, datetime, hashlib, json, os, pathlib, re, shutil, subprocess, urllib.request
           root=pathlib.Path.cwd()
           out=pathlib.Path(os.environ['RUNNER_TEMP'])/'state-v2-bootstrap'
           (out/'source').mkdir(parents=True,exist_ok=False)
@@ -51,12 +52,7 @@ jobs:
           hard=root/'docs/evidence/phase57-state-v2-hardening'
           manifest=json.loads((hard/'FREEZE_CANDIDATE_MANIFEST.json').read_text())
           spec=root/'docs/phase57-five-minute-entry-state/STATE_DEFINITION_v2_FREEZE_CANDIDATE.md'
-          assert manifest['status']=='STATE_V2_DESIGN_FROZEN'
-          assert hashlib.sha256(spec.read_bytes()).hexdigest()==manifest['filesSHA256'][spec.name]
           engine=root/'docs/phase57-five-minute-entry-state/mechanical-v1'
-          for name,want in manifest['inheritedMechanicalV1'].items():
-              if name=='sourceCommit': continue
-              assert hashlib.sha256((engine/name).read_bytes()).hexdigest()==want,name
           tracked=subprocess.check_output(['git','ls-files','-z']).decode().split('\0')
           hashes={}
           for name in tracked:
@@ -66,15 +62,47 @@ jobs:
               dest.parent.mkdir(parents=True,exist_ok=True)
               shutil.copyfile(p,dest)
               hashes[name]=hashlib.sha256(p.read_bytes()).hexdigest()
+          pins=[]
+          for name,want in manifest['filesSHA256'].items():
+              p=spec if name==spec.name else hard/name
+              data=p.read_bytes()
+              got=hashlib.sha256(data).hexdigest()
+              variants={'raw':got,'rstripPlusLF':hashlib.sha256(data.rstrip()+b'\n').hexdigest(),'CRLF_to_LF':hashlib.sha256(data.replace(b'\r\n',b'\n')).hexdigest(),'withoutTrailingLF':hashlib.sha256(data.rstrip(b'\r\n')).hexdigest()}
+              pins.append({'path':str(p.relative_to(root)),'expectedSHA256':want,'actualSHA256':got,'match':got==want,'byteN':len(data),'variants':variants})
+          engine_ok=True
+          for name,want in manifest['inheritedMechanicalV1'].items():
+              if name=='sourceCommit': continue
+              p=engine/name
+              got=hashlib.sha256(p.read_bytes()).hexdigest()
+              pins.append({'path':str(p.relative_to(root)),'expectedSHA256':want,'actualSHA256':got,'match':got==want,'byteN':p.stat().st_size})
+              engine_ok &= got==want
+          history={}
+          for ref in ('b4d04c97f8883cce08ff4ff06aa236950d9d2442','fef29f01a5d4a14ee9979ac42b70cb144985ec20','38c789c39a30618b449435d1fc8ec7410a1b5dc6'):
+              rel=str(spec.relative_to(root))
+              url='https://api.github.com/repos/Iam-2squared/ark-terminal/contents/'+rel+'?ref='+ref
+              req=urllib.request.Request(url,headers={'Authorization':'Bearer '+os.environ['GH_READ_TOKEN'],'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'})
+              try:
+                  with urllib.request.urlopen(req,timeout=30) as response: obj=json.load(response)
+                  data=base64.b64decode(obj['content'])
+                  history[ref]={'gitBlobSHA':obj['sha'],'sha256':hashlib.sha256(data).hexdigest(),'byteN':len(data),'identicalToCurrent':data==spec.read_bytes()}
+                  (out/'verification'/('spec-'+ref+'.md')).write_bytes(data)
+              except Exception as exc:
+                  history[ref]={'errorClass':type(exc).__name__}
           suites=[('mechanical-v1',engine,['python','-m','unittest','-v','test_reference']),('historical-adapter',root/'docs/evidence/phase57-five-minute-reference-g-v1',['python','-m','unittest','-v','test_adapter']),('initial-v2',root,['python','scripts/test_phase57_state_v2_reference.py','-v'])]
           results={}
           for name,cwd,cmd in suites:
+              if not engine_ok:
+                  results[name]={'result':'NOT_RUN_ENGINE_PIN_FAILURE'}
+                  continue
               run=subprocess.run(cmd,cwd=cwd,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=300)
               (out/'verification'/(name+'.log')).write_text(run.stdout)
-              results[name]={'command':cmd,'exitCode':run.returncode,'result':'PASS' if run.returncode==0 else 'FAIL'}
+              counts=re.findall(r'Ran (\d+) tests?',run.stdout)
+              results[name]={'command':cmd,'exitCode':run.returncode,'testN':int(counts[-1]) if counts else None,'result':'PASS' if run.returncode==0 else 'FAIL'}
               print(name,run.returncode,run.stdout[-1200:])
-          receipt={'status':'BOOTSTRAP_TEST_EXECUTION_NOT_IMPLEMENTATION_ACCEPTANCE','recordedAtJST':datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).isoformat(),'executionHead':os.environ['EXECUTION_HEAD'],'runId':os.environ['GITHUB_RUN_ID'],'sourceHashes':hashes,'suites':results,'protectedDataOpened':0,'providerRequests':0,'safety':manifest['safety'],'A1_A12':'NOT_RUN'}
+          passed=manifest['status']=='STATE_V2_DESIGN_FROZEN' and all(p['match'] for p in pins) and all(r.get('result')=='PASS' for r in results.values())
+          receipt={'status':'BOOTSTRAP_PASS_NOT_ACCEPTANCE' if passed else 'BOOTSTRAP_FAIL_CLOSED','recordedAtJST':datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).isoformat(),'executionHead':os.environ['EXECUTION_HEAD'],'runId':os.environ['GITHUB_RUN_ID'],'sourceHashes':hashes,'pinChecks':pins,'specHistory':history,'suites':results,'protectedDataOpened':0,'providerRequests':0,'safety':manifest['safety'],'fullGeneration':'NOT_RUN','A1_A12':'NOT_RUN','noPinWasChanged':True}
           (out/'verification/receipt.json').write_text(json.dumps(receipt,sort_keys=True,indent=2)+'\n')
+          print(json.dumps({'pinChecks':pins,'specHistory':history,'suites':results,'status':receipt['status']},indent=2))
           PY
       - uses: actions/upload-artifact@v4
         if: always()
@@ -83,3 +111,11 @@ jobs:
           path: ${{ runner.temp }}/state-v2-bootstrap
           retention-days: 90
           if-no-files-found: error
+      - name: Enforce fail-closed bootstrap verdict after evidence upload
+        run: |
+          python - <<'PY'
+          import json,os,pathlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'state-v2-bootstrap/verification/receipt.json'
+          r=json.loads(p.read_text())
+          assert r['status']=='BOOTSTRAP_PASS_NOT_ACCEPTANCE','PIN_OR_SYNTHETIC_TEST_FAILURE_GENERATION_NOT_AUTHORIZED'
+          PY

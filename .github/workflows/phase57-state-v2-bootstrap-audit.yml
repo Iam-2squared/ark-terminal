@@ -1,0 +1,85 @@
+name: Phase57 State v2 Bootstrap Audit
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-state-v2-bootstrap-audit.yml'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-state-v2-bootstrap
+  cancel-in-progress: false
+jobs:
+  audit:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /docs/phase57-five-minute-entry-state/mechanical-v1/
+            /docs/phase57-five-minute-entry-state/ADOPTED_DEFINITION.json
+            /docs/phase57-five-minute-entry-state/STATE_DEFINITION_v2_FREEZE_CANDIDATE.md
+            /docs/evidence/phase57-state-v2-hardening/
+            /docs/evidence/phase57-five-minute-reference-g-v1/generate_reference.py
+            /docs/evidence/phase57-five-minute-reference-g-v1/test_adapter.py
+            /docs/evidence/phase57-five-minute-reference-g-v1/CI_TRIGGER.json
+            /docs/evidence/phase57-entry-timing-signal-census-v1/protocol.json
+            /docs/evidence/phase57-continuity/CHECKPOINT_20260922_1527_JST.md
+            /scripts/phase57_state_v2_reference.py
+            /scripts/test_phase57_state_v2_reference.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.5'
+      - name: Pin source, execute all initial tests, preserve actual outcomes
+        env:
+          EXECUTION_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python - <<'PY'
+          import datetime, hashlib, json, os, pathlib, shutil, subprocess
+          root=pathlib.Path.cwd()
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'state-v2-bootstrap'
+          (out/'source').mkdir(parents=True,exist_ok=False)
+          (out/'verification').mkdir()
+          hard=root/'docs/evidence/phase57-state-v2-hardening'
+          manifest=json.loads((hard/'FREEZE_CANDIDATE_MANIFEST.json').read_text())
+          spec=root/'docs/phase57-five-minute-entry-state/STATE_DEFINITION_v2_FREEZE_CANDIDATE.md'
+          assert manifest['status']=='STATE_V2_DESIGN_FROZEN'
+          assert hashlib.sha256(spec.read_bytes()).hexdigest()==manifest['filesSHA256'][spec.name]
+          engine=root/'docs/phase57-five-minute-entry-state/mechanical-v1'
+          for name,want in manifest['inheritedMechanicalV1'].items():
+              if name=='sourceCommit': continue
+              assert hashlib.sha256((engine/name).read_bytes()).hexdigest()==want,name
+          tracked=subprocess.check_output(['git','ls-files','-z']).decode().split('\0')
+          hashes={}
+          for name in tracked:
+              p=root/name
+              if not name or not p.is_file() or name.startswith('.git'): continue
+              dest=out/'source'/name
+              dest.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copyfile(p,dest)
+              hashes[name]=hashlib.sha256(p.read_bytes()).hexdigest()
+          suites=[('mechanical-v1',engine,['python','-m','unittest','-v','test_reference']),('historical-adapter',root/'docs/evidence/phase57-five-minute-reference-g-v1',['python','-m','unittest','-v','test_adapter']),('initial-v2',root,['python','scripts/test_phase57_state_v2_reference.py','-v'])]
+          results={}
+          for name,cwd,cmd in suites:
+              run=subprocess.run(cmd,cwd=cwd,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=300)
+              (out/'verification'/(name+'.log')).write_text(run.stdout)
+              results[name]={'command':cmd,'exitCode':run.returncode,'result':'PASS' if run.returncode==0 else 'FAIL'}
+              print(name,run.returncode,run.stdout[-1200:])
+          receipt={'status':'BOOTSTRAP_TEST_EXECUTION_NOT_IMPLEMENTATION_ACCEPTANCE','recordedAtJST':datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).isoformat(),'executionHead':os.environ['EXECUTION_HEAD'],'runId':os.environ['GITHUB_RUN_ID'],'sourceHashes':hashes,'suites':results,'protectedDataOpened':0,'providerRequests':0,'safety':manifest['safety'],'A1_A12':'NOT_RUN'}
+          (out/'verification/receipt.json').write_text(json.dumps(receipt,sort_keys=True,indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-state-v2-bootstrap-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/state-v2-bootstrap
+          retention-days: 90
+          if-no-files-found: error

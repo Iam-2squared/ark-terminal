@@ -226,7 +226,9 @@ v1成績を作り直す材料には使わない。
 | 旧Signal-only baseline parity | PASS |
 | Deterministic full replay | byte-identical PASS |
 | Population preservation | 2,155 / 2,155 PASS |
-| GitHub CI | `CI receiptをimplementation commit後に追記` |
+| GitHub dedicated CI | PASS — run 35753310526 / job 106832715435 |
+| Full Predict regression | PASS — run 35753309424 |
+| LONG-only foundation | PASS — run 35753309014 |
 
 ## ⚠️ 11. v1の弱点と原因分離
 
@@ -253,4 +255,3 @@ Capture差を解消できなければ、State-conditioned waitingを棄却し、
 
 この報告でSTOPし、Entry v2、新EXIT、Allocation、Fresh/OOS/Prospective、main merge、
 Paper/Live tradingには進まない。
-

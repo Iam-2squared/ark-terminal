@@ -39,7 +39,10 @@
 - Deterministic replay: byte-identical PASS.
 - Immediate / old Signal parity: PASS.
 - Look-ahead audit: PASS; closed-bar 377,450/377,450; pivot violations 0.
+- Dedicated GitHub CI: run 35753310526 PASS on implementation HEAD
+  `bceaaccd53d6d7243ad23d827047ad8314189aeb`.
+- Full Predict regression: run 35753309424 PASS.
+- LONG-only foundation: run 35753309014 PASS.
 - Safety9: all false.
 - Provider requests: 0.
 - Protected Holdout/Fresh/OOS/Prospective opened: 0.
-

@@ -1,0 +1,170 @@
+name: Phase57 State v2 Implementation and Reference Replay
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-state-v2-implementation.yml'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-state-v2-implementation
+  cancel-in-progress: false
+jobs:
+  install-source:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    outputs:
+      code-sha: ${{ steps.install.outputs.code_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /docs/evidence/phase57-state-v2-implementation/
+            /docs/evidence/phase57-state-v2-hardening/
+            /docs/phase57-five-minute-entry-state/STATE_DEFINITION_v2_FREEZE_CANDIDATE.md
+            /scripts/phase57_state_v2/
+            /scripts/phase57_state_v2_reference.py
+            /scripts/test_phase57_state_v2_reference.py
+            /scripts/test_phase57_state_v2_acceptance.py
+            /scripts/run_phase57_state_v2.py
+            /scripts/report_phase57_state_v2.py
+            /scripts/restore_phase57_state_v2_artifacts.py
+      - name: Install only exact hashed source payload and recover original pinned terminal bytes
+        id: install
+        env:
+          EXPECTED: ${{ github.event.pull_request.head.sha }}
+          BRANCH: ${{ github.head_ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64,datetime,hashlib,json,lzma,os,pathlib,subprocess
+          root=pathlib.Path.cwd();dest=root/'docs/evidence/phase57-state-v2-implementation'
+          encoded=''.join((dest/'source-transfer'/f'part{i}.b64').read_text().strip() for i in range(4))
+          archive=base64.b64decode(encoded,validate=True)
+          assert hashlib.sha256(archive).hexdigest()=='0eba5dc0754849c4e6666e1e055ab072709edb14ca286f904a494faade47de10'
+          payload=lzma.decompress(archive)
+          assert hashlib.sha256(payload).hexdigest()=='c765a5f1c808abd11e32a1d8672efb5c1fe6e22ee5f609bb46c73fddd175fb1a'
+          files=json.loads(payload)
+          allowed={f'scripts/phase57_state_v2/{n}.py' for n in ('__init__','common','now','future','historical','independent')}
+          allowed|={f'scripts/{n}.py' for n in ('phase57_state_v2_reference','test_phase57_state_v2_reference','test_phase57_state_v2_acceptance','run_phase57_state_v2','report_phase57_state_v2','restore_phase57_state_v2_artifacts')}
+          allowed|={'docs/evidence/phase57-state-v2-implementation/PROTOCOL_20260922.md'}
+          allowed|={f'docs/evidence/phase57-state-v2-implementation/schemas/{n}.schema.json' for n in ('now_state_reference_v2','future_resolution_v2')}
+          assert set(files)==allowed and len(files)==15
+          for name,item in files.items():
+              assert hashlib.sha256(item['content'].encode()).hexdigest()==item['sha256'],name
+              assert '..' not in pathlib.Path(name).parts and not pathlib.Path(name).is_absolute()
+          repairs=[('docs/phase57-five-minute-entry-state/STATE_DEFINITION_v2_FREEZE_CANDIDATE.md','aa490daeee40dc33a48dd030944dc6f31a36179caa525641eeeeb11bbd2c8f42','d2747332abd6a47f84cabebadde05f02c2fe1717e12d3a12891a3640a2e50068'),('docs/evidence/phase57-state-v2-hardening/HARDENING_EVIDENCE.md','e1706de69e5f3129af62cab597326cff910a164a0691d36268fb8ebfc6d4d5f9','5aa8349cbb774e4fcd866697d4a2f8585ab18e9a8883a98337e9f841c7a5bddb')]
+          receipt=[]
+          for name,before,wanted in repairs:
+              p=root/name;data=p.read_bytes();got=hashlib.sha256(data).hexdigest()
+              assert got in (before,wanted),'UNEXPECTED_FROZEN_FILE_BYTES:'+name
+              repaired=data+b'\n' if got==before else data
+              assert hashlib.sha256(repaired).hexdigest()==wanted,name
+              receipt.append({'path':name,'beforeSHA256':got,'afterSHA256':wanted,'operation':'RESTORE_ONE_TERMINAL_LF_TO_EXISTING_FROZEN_PIN' if got==before else 'ALREADY_EXACT','semanticChanges':0,'pinChanged':False})
+          for name,item in files.items():
+              p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(item['content'].encode())
+          for name,before,wanted in repairs:
+              p=root/name
+              if hashlib.sha256(p.read_bytes()).hexdigest()==before:p.write_bytes(p.read_bytes()+b'\n')
+          manifest=json.loads((root/'docs/evidence/phase57-state-v2-hardening/FREEZE_CANDIDATE_MANIFEST.json').read_text())
+          assert manifest['status']=='STATE_V2_DESIGN_FROZEN'
+          for name,_,wanted in repairs:assert manifest['filesSHA256'][pathlib.Path(name).name]==wanted
+          record={'recordedAtJST':datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).isoformat(),'startHead':os.environ['EXPECTED'],'status':'SOURCE_INSTALL_ONLY_NOT_ACCEPTANCE','sourcePayloadSHA256':'c765a5f1c808abd11e32a1d8672efb5c1fe6e22ee5f609bb46c73fddd175fb1a','sourceHashes':{p:x['sha256'] for p,x in files.items()},'originalByteRecovery':receipt,'priorBootstrapFailuresPreserved':[35696041330,35696312668],'providerRequests':0,'protectedDataOpened':0,'safety':manifest['safety'],'publicGitContainsNewMarketRaw':False}
+          rp=dest/f'SOURCE_INSTALL_{os.environ["GITHUB_RUN_ID"]}.json'
+          with rp.open('x') as f:json.dump(record,f,sort_keys=True,indent=2);f.write('\n')
+          paths=sorted(allowed|{x[0] for x in repairs}|{str(rp.relative_to(root))})
+          subprocess.run(['git','add','--sparse','--',*paths],check=True)
+          staged=set(subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines())
+          assert staged<=set(paths),'UNAUTHORIZED_STAGED_PATH'
+          PY
+          test "$BRANCH" = research/phase57-long-only-cash-equity
+          test "$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)" = "$EXPECTED"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Phase57: preserve tested State v2 modules and exact frozen byte recovery [skip ci]'
+          git push origin "HEAD:$BRANCH"
+          echo "code_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+  verify:
+    needs: install-source
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      PYTHONPATH: scripts
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.install-source.outputs.code-sha }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /docs/phase57-five-minute-entry-state/mechanical-v1/
+            /docs/phase57-five-minute-entry-state/STATE_DEFINITION_v2_FREEZE_CANDIDATE.md
+            /docs/evidence/phase57-state-v2-hardening/
+            /docs/evidence/phase57-state-v2-implementation/
+            /docs/evidence/phase57-five-minute-reference-g-v1/generate_reference.py
+            /docs/evidence/phase57-five-minute-reference-g-v1/test_adapter.py
+            /docs/evidence/phase57-entry-timing-signal-census-v1/protocol.json
+            /scripts/phase57_state_v2/
+            /scripts/phase57_state_v2_reference.py
+            /scripts/test_phase57_state_v2_reference.py
+            /scripts/test_phase57_state_v2_acceptance.py
+            /scripts/run_phase57_state_v2.py
+            /scripts/report_phase57_state_v2.py
+            /scripts/restore_phase57_state_v2_artifacts.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.5'
+      - name: Execute definition, adapter, compatibility and full golden-vector test suites
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/v2-evidence/tests"
+          (cd docs/phase57-five-minute-entry-state/mechanical-v1 && python -m unittest -v test_reference) 2>&1 | tee "$RUNNER_TEMP/v2-evidence/tests/definition.log"
+          (cd docs/evidence/phase57-five-minute-reference-g-v1 && python -m unittest -v test_adapter) 2>&1 | tee "$RUNNER_TEMP/v2-evidence/tests/adapter.log"
+          python scripts/test_phase57_state_v2_reference.py -v 2>&1 | tee "$RUNNER_TEMP/v2-evidence/tests/compatibility.log"
+          python scripts/test_phase57_state_v2_acceptance.py -v 2>&1 | tee "$RUNNER_TEMP/v2-evidence/tests/golden-and-canaries.log"
+      - name: Restore only four fixed Development archives and verify every admitted hash
+        env:
+          GH_READ_TOKEN: ${{ github.token }}
+        run: python scripts/restore_phase57_state_v2_artifacts.py --output "$RUNNER_TEMP/v2-inputs" --repo .
+      - name: Generate all 77214 NOW and Future references without provider or trading
+        run: python scripts/run_phase57_state_v2.py --sources "$RUNNER_TEMP/v2-inputs/inputs" --v1 "$RUNNER_TEMP/v2-inputs/v1" --output "$RUNNER_TEMP/v2-evidence/generation" --workers 2
+      - name: Verify cross-environment canonical hashes and preserve truthful acceptance disposition
+        env:
+          CODE_SHA: ${{ needs.install-source.outputs.code-sha }}
+        run: |
+          python scripts/report_phase57_state_v2.py --generation "$RUNNER_TEMP/v2-evidence/generation" --output "$RUNNER_TEMP/v2-evidence/report"
+          python - <<'PY'
+          import datetime,hashlib,json,os,pathlib,platform,re,shutil,subprocess
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'v2-evidence'
+          s=json.loads((out/'generation/summary.json').read_text())
+          expected={'coverage_rows':'860aba058b3ec011a9617a57042659ad8d99d65c5190799fd27b91287f168edb','future_resolution_v2':'a93aa3e8aad0c2fc17be2239b05cfe0ff969da49a77466384262518284162d34','now_state_reference_v2':'ba57dbe3b6da51df8ad79f00d0eaa756d418c9d7b175ee8453afd7f0a2ae7b5d','transitions':'df6df18fbb3d60c54d126d4cbcc623c4b8d5de2a63542b82fa030b7e5593319b'}
+          assert s['checkpointN']==77214 and s['opportunityN']==2155
+          assert s['canonicalHashes']==expected,'CROSS_ENVIRONMENT_REPLAY_MISMATCH'
+          assert all(v is False for v in s['safety'].values())
+          tests={p.name:int(re.findall(r'Ran (\d+) tests?',p.read_text())[-1]) for p in (out/'tests').glob('*.log')}
+          assert sum(tests.values())==158,tests
+          source={}
+          for name in subprocess.check_output(['git','ls-files','-z'],text=True).split('\0'):
+              p=pathlib.Path(name)
+              if name and p.is_file():source[name]=hashlib.sha256(p.read_bytes()).hexdigest()
+          r={'recordedAtJST':datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).isoformat(),'status':'DEDICATED_REPLAY_PASS_NOT_IMPLEMENTATION_ACCEPTED','executionHead':os.environ['CODE_SHA'],'runId':os.environ['GITHUB_RUN_ID'],'python':platform.python_version(),'tests':tests,'sourceHashes':source,'canonicalHashes':s['canonicalHashes'],'matchesIndependentLocalFullGeneration':True,'A8':'BLOCKED_INDEPENDENT_ASOF_PROVENANCE','A9':'PARTIAL_INDEPENDENT_SCOPE','A12':'NOT_ACCEPTED','providerRequests':0,'protectedDataOpened':0,'safety':s['safety']}
+          (out/'ci-receipt.json').write_text(json.dumps(r,sort_keys=True,indent=2)+'\n')
+          shutil.copyfile(pathlib.Path(os.environ['RUNNER_TEMP'])/'v2-inputs/restoration-receipt.json',out/'restoration-receipt.json')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-state-v2-reference-${{ needs.install-source.outputs.code-sha }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/v2-evidence
+          retention-days: 90
+          if-no-files-found: error
+          overwrite: false

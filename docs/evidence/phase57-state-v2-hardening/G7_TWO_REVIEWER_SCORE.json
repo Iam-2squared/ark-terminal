@@ -1,0 +1,77 @@
+{
+  "status": "G7_FAIL_ADJUDICATION_REQUIRED",
+  "actualN": 36,
+  "controlN": 8,
+  "reviewerA": {
+    "controlDetected": 6,
+    "controlMisses": [
+      "G7-012",
+      "G7-042"
+    ]
+  },
+  "reviewerB": {
+    "controlDetected": 7,
+    "controlMisses": [
+      "G7-005"
+    ]
+  },
+  "controlsPass": false,
+  "actualBinaryIssue": {
+    "reviewerAIssueN": 19,
+    "reviewerBIssueN": 16,
+    "rawAgreement": 0.5277777777777778,
+    "cohensKappa": 0.06134969325153379,
+    "agreementPass": false,
+    "disagreementCases": [
+      "G7-002",
+      "G7-003",
+      "G7-006",
+      "G7-010",
+      "G7-016",
+      "G7-021",
+      "G7-022",
+      "G7-023",
+      "G7-024",
+      "G7-028",
+      "G7-032",
+      "G7-033",
+      "G7-034",
+      "G7-036",
+      "G7-040",
+      "G7-041",
+      "G7-043"
+    ]
+  },
+  "actualVocabularyGapCandidates": {
+    "reviewerA": [
+      "G7-014"
+    ],
+    "reviewerB": [
+      "G7-014",
+      "G7-022"
+    ],
+    "common": [
+      "G7-014"
+    ]
+  },
+  "preregisteredRequirements": {
+    "eachReviewerControls": "8/8",
+    "kappaMinimum": 0.6,
+    "fallbackRawAgreementIfKappaUndefined": 0.85
+  },
+  "disposition": [
+    "DO_NOT_FREEZE_V2",
+    "DO_NOT_PATCH_V2_FROM_BLINDED_SET_BEFORE_ADJUDICATION",
+    "ADJUDICATE_ACTUAL_CASES_AGAINST_FROZEN_MECHANICAL_RULES_AND_PACKAGE_RENDERING",
+    "SEPARATE_REVIEWER_MISINTERPRETATION_FROM_SPEC_OR_RENDERING_DEFECT"
+  ],
+  "guards": {
+    "v2ImplementationStarted": false,
+    "v2RowsGenerated": false,
+    "causalRecognitionStarted": false,
+    "signalStarted": false,
+    "buyWaitStarted": false,
+    "pnlUsed": false,
+    "futureReturnUsed": false
+  }
+}

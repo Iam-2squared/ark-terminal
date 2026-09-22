@@ -1,0 +1,11 @@
+import {emptyStatus} from './data.mjs';
+export function demoStatus(now=new Date().toISOString()){
+ const s=emptyStatus(now);s.mode='DEMO';s.warnings=['DEMO DATA — 画面確認用の合成データ。実口座・実相場ではありません。'];
+ s.portfolio={equity:1042380,initial:1000000,cash:289980,buyingPower:289980,gross:744400,net:212400,realized:34980,unrealized:7400,pnl:42380,flow:0,today:8260,todayPct:.8,returnPct:4.238,maxDD:-1.12};
+ s.positions=[['7203.T','トヨタ自動車','LONG',3000,3024],['6758.T','ソニーグループ','SHORT',2700,2660],['8306.T','三菱UFJ','LONG',1750,1760]].map(([symbol,name,direction,averagePrice,price],i)=>({symbol,name,direction,quantity:100,averagePrice,price,value:price*100,pnl:(price-averagePrice)*100*(direction==='LONG'?1:-1),pnlPct:(price-averagePrice)/averagePrice*100*(direction==='LONG'?1:-1),entryAt:now,barsHeld:i+3,mfe:1.2,mae:-.3,exitState:'FIXTURE HOLD',details:{entryReason:'Synthetic display fixture',selector:'DEMO',score:.72,allocation:'V3_B_RISK × MAX_3',collateral:direction==='SHORT'?270000:0,shortProceeds:direction==='SHORT'?270000:0,v4:'FIXTURE HOLD',v5:'FIXTURE HOLD',lastDecisionAt:now}}));
+ s.history=Array.from({length:64},(_,i)=>{const pnl=42380*i/63+Math.sin(i*.65)*2300*Math.sin(Math.PI*i/63);return {at:new Date(Date.parse(now)-(63-i)*300000).toISOString(),equity:1000000+pnl,pnl,flow:0};});
+ s.components.forEach((c,i)=>{c.status=['CONNECTED','CONNECTED','FRESH','READY','UNVERIFIED','UNKNOWN','UNKNOWN','DISARMED','LOCKED'][i];c.detail='Synthetic display fixture';});
+ s.source={feeds:[{symbol:'7203.T',price:3024,bid:3024,ask:3025,marketTimestamp:now,feedAgeMs:0,freshness:'FRESH'}],rawLatest:'14:15:00',normalizedLatest:'14:15:00',parity:'PASS',finalizedLatest:null};
+ s.execution={mode:'DISARMED',transmission:'LOCKED',reconciliation:'MATCH',orders:[],preflight:s.components.slice(0,7),limits:{maxSingleOrderJpy:500000,maxOpenPositions:10,maxGrossExposureJpy:1000000,maxDailyLossJpy:50000}};
+ s.activity=['WATCH','ENTER CANDIDATE','ORDER INTENT','TRANSMISSION_LOCK','EXIT CHECK'].map((type,i)=>({at:new Date(Date.parse(now)-i*60000).toISOString(),symbol:'7203.T',type,state:i===3?'BLOCKED':'FIXTURE',reason:i===3?'Transmission disabled':'Synthetic display event',category:i>1?'EXECUTION':'SOURCE',raw:{synthetic:true}}));s.system={...s.system,branch:'feature/ark-terminal-app-v2',head:'DEMO',runtime:'DISPLAY FIXTURE'};return s;
+}

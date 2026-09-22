@@ -2,7 +2,7 @@
   "recordedAt": "2026-09-22T00:39:02+09:00",
   "lastAdjudicationAtJST": "2026-09-22T10:22:00+09:00",
   "lastHarnessRepairAtJST": "2026-09-22T10:58:05+09:00",
-  "status": "STATE_V2_NOT_FROZEN_GATE_REVISION_1_APPLIED_FINAL_EXTERNAL_REVIEW_PENDING",
+  "status": "STATE_V2_NOT_FROZEN_FINAL_EXTERNAL_REVIEW_NOT_SAFE_D7_REMEDIATION_REQUIRED",
   "sourceHeadBeforeHardening": "52370348bab598de24cf3a2e6c2df8bde27a8f94",
   "branch": "research/phase57-long-only-cash-equity",
   "pr": 587,
@@ -41,7 +41,8 @@
     "futureReturnUsedForStateDesign": false
   },
   "freezeBlockers": [
-    "FINAL_EXTERNAL_DIFFERENTIAL_REVIEW_SAFE_TO_FREEZE"
+    "B1_INDEPENDENT_ACTUAL_CASE_CHART_REVIEW_REQUIRED",
+    "B2_INDEPENDENT_D7_FINAL_ADJUDICATION_REQUIRED"
   ],
   "safety": {
     "executionAllowed": false,
@@ -136,10 +137,25 @@
     "stateFreezeGranted": false
   },
   "finalExternalReview": {
-    "status": "PENDING",
-    "instructions": "docs/evidence/phase57-state-v2-hardening/FINAL_EXTERNAL_REVIEW_INSTRUCTIONS.md",
-    "requiredVerdict": "SAFE_TO_FREEZE_V2_DESIGN",
-    "gateRevisionMustBeReviewed": true,
+    "status": "NOT_SAFE_TO_FREEZE_V2_DESIGN",
+    "resultFile": "docs/evidence/phase57-state-v2-hardening/FINAL_EXTERNAL_REVIEW_RESULT_20260922.md",
+    "C1_TO_C8": {
+      "C1": "RESOLVED",
+      "C2": "RESOLVED",
+      "C3": "RESOLVED",
+      "C4": "PARTIALLY_RESOLVED",
+      "C5": "RESOLVED",
+      "C6": "RESOLVED",
+      "C7": "RESOLVED_PROCEDURALLY",
+      "C8": "RESOLVED"
+    },
+    "gateRevision": "NOT_ACCEPTABLE",
+    "blockers": [
+      "Reviewer B chartCasesInspected=0 leaves actual-case evidence basis unresolved.",
+      "Post-failure D7 governance revision requires independent third-party adjudication."
+    ],
+    "stateRuleBlockerIdentified": false,
     "implementationAuthorized": false
-  }
+  },
+  "lastFinalExternalReviewAtJST": "2026-09-22"
 }

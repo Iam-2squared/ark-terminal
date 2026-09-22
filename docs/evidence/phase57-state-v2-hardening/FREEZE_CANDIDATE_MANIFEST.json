@@ -2,7 +2,7 @@
   "recordedAt": "2026-09-22T00:39:02+09:00",
   "lastAdjudicationAtJST": "2026-09-22T10:22:00+09:00",
   "lastHarnessRepairAtJST": "2026-09-22T10:58:05+09:00",
-  "status": "STATE_V2_NOT_FROZEN_FINAL_EXTERNAL_REVIEW_NOT_SAFE_D7_REMEDIATION_REQUIRED",
+  "status": "STATE_V2_NOT_FROZEN_D7_REVIEWER_C_PACKAGE_READY",
   "sourceHeadBeforeHardening": "52370348bab598de24cf3a2e6c2df8bde27a8f94",
   "branch": "research/phase57-long-only-cash-equity",
   "pr": 587,
@@ -41,8 +41,8 @@
     "futureReturnUsedForStateDesign": false
   },
   "freezeBlockers": [
-    "B1_INDEPENDENT_ACTUAL_CASE_CHART_REVIEW_REQUIRED",
-    "B2_INDEPENDENT_D7_FINAL_ADJUDICATION_REQUIRED"
+    "B1_REVIEWER_C_36_ACTUAL_CHART_INSPECTION_PENDING",
+    "B2_FINAL_EXTERNAL_D7_ADJUDICATION_PENDING"
   ],
   "safety": {
     "executionAllowed": false,
@@ -157,5 +157,17 @@
     "stateRuleBlockerIdentified": false,
     "implementationAuthorized": false
   },
-  "lastFinalExternalReviewAtJST": "2026-09-22"
+  "lastFinalExternalReviewAtJST": "2026-09-22",
+  "d7ActualConfirmation": {
+    "status": "PACKAGE_READY_REVIEW_PENDING",
+    "protocol": "docs/evidence/phase57-state-v2-hardening/D7_ACTUAL_CONFIRMATION_PROTOCOL_20260922.md",
+    "packageRecord": "docs/evidence/phase57-state-v2-hardening/D7_ACTUAL_CONFIRMATION_PACKAGE.json",
+    "reviewerZIP_SHA256": "a2948c7abe85ab97689231bcb9e9f84717681f12d473d422bf801cc176aeada9",
+    "actualCases": 36,
+    "chartInspectionRequired": 36,
+    "reviewerCExecuted": false,
+    "B1Resolved": false,
+    "B2Resolved": false,
+    "stateFreezeGranted": false
+  }
 }

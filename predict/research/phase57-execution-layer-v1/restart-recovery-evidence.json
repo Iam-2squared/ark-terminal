@@ -1,0 +1,88 @@
+{
+  "schemaId": "ARK_EXECUTION_TEST_EVIDENCE_V1",
+  "suite": "restart-recovery",
+  "source": "SYNTHETIC_ASSERTIONS_ONLY",
+  "allAssertionsPassed": true,
+  "assertedScenarios": [
+    {
+      "name": "idempotency canonical across object key order and restart",
+      "status": "PASS"
+    },
+    {
+      "name": "restart at CREATED never resubmits or duplicates fills",
+      "status": "PASS"
+    },
+    {
+      "name": "restart at READY never resubmits or duplicates fills",
+      "status": "PASS"
+    },
+    {
+      "name": "restart at SUBMISSION_REQUESTED never resubmits or duplicates fills",
+      "status": "PASS"
+    },
+    {
+      "name": "restart at SUBMITTED never resubmits or duplicates fills",
+      "status": "PASS"
+    },
+    {
+      "name": "restart at PARTIALLY_FILLED never resubmits or duplicates fills",
+      "status": "PASS"
+    },
+    {
+      "name": "restart at FILLED never resubmits or duplicates fills",
+      "status": "PASS"
+    },
+    {
+      "name": "restart at RECONCILIATION_REQUIRED never resubmits or duplicates fills",
+      "status": "PASS"
+    },
+    {
+      "name": "same event callback replay is no-op; changed event and backwards time reject",
+      "status": "PASS"
+    },
+    {
+      "name": "tampered journal and torn tail fail closed preserving bytes",
+      "status": "PASS"
+    },
+    {
+      "name": "single writer lock refuses concurrent process",
+      "status": "PASS"
+    },
+    {
+      "name": "strong process exit retains lock; explicit verified recovery preserves journal",
+      "status": "PASS"
+    },
+    {
+      "name": "journal append failure leaves memory unchanged and blocks further commands",
+      "status": "PASS"
+    },
+    {
+      "name": "invalid context revokes older readiness and remains revoked after replay",
+      "status": "PASS"
+    }
+  ],
+  "totalScenarioCount": 47,
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "freezeSha256": "f0ea365e5cf73b3394779ae1be3ea99e268f9d6cede8160a703ed24cab5c0a14",
+  "baseGithubHead": "61cb50b7eea670c8473811a4198f919e7065671b",
+  "testedSourceSha256": {
+    "scripts/execution/contract.mjs": "96bd33272de048c9980bd7c5f138d2efc567e0b0b4b694097bead60b85f364f3",
+    "scripts/execution/runtime.mjs": "b141c98c7c7fa297556a99b07829c522b8c6ef447adbc3447a16b9c8b5ae143d",
+    "scripts/execution/run-fixture.mjs": "50039deb5f2389fe577a59b5b3f61892ce3d0678fbe0f9ae01057b12c41b2ff5",
+    "scripts/execution/tests/execution.test.mjs": "ffe6d0a0fa58bab867fcaf41559e95608d37c704d70cf33fb0219e0150dcaca7",
+    "scripts/execution/fixtures/lifecycle.json": "07fe1835533d9c520bf862905fa95cf4a9e1c82f4170defd16424d3f1770a7c5"
+  },
+  "runMode": "SYNTHETIC_FIXTURE",
+  "realSourceUsed": false,
+  "reservedDataOpened": false
+}

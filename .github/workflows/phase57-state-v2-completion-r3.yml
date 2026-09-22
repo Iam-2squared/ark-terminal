@@ -19,12 +19,13 @@ jobs:
       PYTHONDONTWRITEBYTECODE: '1'
       PYTHONUNBUFFERED: '1'
       PYTHONHASHSEED: '71'
-      ARK_V2_COMPLETION_ROOT: ${{ runner.temp }}/v2-completion-r3
       ARK_EXECUTION_SHA: ${{ github.event.pull_request.head.sha }}
     defaults:
       run:
         shell: bash
     steps:
+      - name: Resolve the runner-local workspace after runner allocation
+        run: echo "ARK_V2_COMPLETION_ROOT=$RUNNER_TEMP/v2-completion-r3" >> "$GITHUB_ENV"
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}

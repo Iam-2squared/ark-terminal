@@ -1,0 +1,86 @@
+name: Phase57 Entry UNKNOWN Coverage Diagnostic v1
+
+on:
+  pull_request:
+    paths:
+      - scripts/phase57_entry_unknown_coverage_diagnostic.py
+      - scripts/test_phase57_entry_unknown_coverage_diagnostic.py
+      - docs/evidence/phase57-entry-unknown-coverage-diagnostic-v1/**
+      - .github/workflows/phase57-entry-unknown-coverage-diagnostic-v1.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONDONTWRITEBYTECODE: '1'
+  ARK_TEST_OFFLINE: '1'
+
+jobs:
+  unknown-coverage-diagnostic:
+    if: github.event_name == 'workflow_dispatch' || (github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run focused diagnostic unit tests
+        run: python -m unittest -v scripts.test_phase57_entry_unknown_coverage_diagnostic
+
+      - name: Run UNKNOWN causal-coverage diagnostic
+        run: |
+          set -euo pipefail
+          rm -rf "$RUNNER_TEMP/unknown-coverage"
+          python scripts/phase57_entry_unknown_coverage_diagnostic.py \
+            --signal-measurement docs/evidence/phase57-entry-timing-signal-census-v1/measurement \
+            --entry-v1-measurement docs/evidence/phase57-state-conditioned-signal-entry-v1/measurement \
+            --entry-v1-manifest docs/evidence/phase57-state-conditioned-signal-entry-v1/MANIFEST.json \
+            --output "$RUNNER_TEMP/unknown-coverage"
+
+      - name: Verify STOP and safety contract
+        run: |
+          python - "$RUNNER_TEMP/unknown-coverage/summary.json" <<'PY'
+          import json, sys
+          x = json.load(open(sys.argv[1], encoding='utf-8'))
+          assert x['population'] == 2155
+          assert x['causal']['initialUnknown'] == 1144
+          assert x['diagnosticOnly'] is True
+          assert x['policyCreated'] is False and x['policyChanged'] is False
+          assert x['entryV2Started'] is False and x['exitStarted'] is False and x['capitalStarted'] is False
+          assert x['providerRequests'] == 0 and x['protectedDataOpened'] == 0
+          assert all(value is False for value in x['safety'].values())
+          assert x['sourceAudit']['sourceIntegrity'] == 'PASS'
+          assert x['status'] == 'DIAGNOSTIC_COMPLETE_STOP_NO_POLICY_DECISION'
+          PY
+
+      - name: Deterministic replay
+        run: |
+          set -euo pipefail
+          rm -rf "$RUNNER_TEMP/unknown-coverage-replay"
+          python scripts/phase57_entry_unknown_coverage_diagnostic.py \
+            --signal-measurement docs/evidence/phase57-entry-timing-signal-census-v1/measurement \
+            --entry-v1-measurement docs/evidence/phase57-state-conditioned-signal-entry-v1/measurement \
+            --entry-v1-manifest docs/evidence/phase57-state-conditioned-signal-entry-v1/MANIFEST.json \
+            --output "$RUNNER_TEMP/unknown-coverage-replay" >/dev/null
+          diff -qr "$RUNNER_TEMP/unknown-coverage" "$RUNNER_TEMP/unknown-coverage-replay"
+
+      - name: Full Predict offline regression
+        run: python3 scripts/run_offline_regression.py --suite predict --output-dir "$RUNNER_TEMP/predict-regression"
+
+      - name: Upload diagnostic evidence artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-entry-unknown-coverage-diagnostic-v1-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/unknown-coverage/
+            ${{ runner.temp }}/predict-regression/
+          if-no-files-found: error
+          retention-days: 90

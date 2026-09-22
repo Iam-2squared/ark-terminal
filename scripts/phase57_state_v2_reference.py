@@ -5,13 +5,13 @@ pinned mechanical reference into the frozen v2 status/value/reason contract and
 keeps NOW and Future entry points separate.
 """
 from __future__ import annotations
-import hashlib, importlib.util, json
+import hashlib, importlib.util, json, sys
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
 P=ROOT/"docs/phase57-five-minute-entry-state/mechanical-v1/reference.py"
 sp=importlib.util.spec_from_file_location("_phase57_mechanical_v1",P)
-m=importlib.util.module_from_spec(sp); sp.loader.exec_module(m)
+m=importlib.util.module_from_spec(sp); sys.modules[sp.name]=m; sp.loader.exec_module(m)
 
 VERSION="state-reference-v2.0"
 H=10

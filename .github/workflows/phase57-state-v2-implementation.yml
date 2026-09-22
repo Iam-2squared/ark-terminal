@@ -137,6 +137,9 @@ jobs:
         run: python scripts/restore_phase57_state_v2_artifacts.py --output "$RUNNER_TEMP/v2-inputs" --repo .
       - name: Generate all 77214 NOW and Future references without provider or trading
         run: python scripts/run_phase57_state_v2.py --sources "$RUNNER_TEMP/v2-inputs/inputs" --v1 "$RUNNER_TEMP/v2-inputs/v1" --output "$RUNNER_TEMP/v2-evidence/generation" --workers 2
+      - name: A2/A3/A6 full fresh replay with reversed order and varied worker count
+        run: |
+          python scripts/run_phase57_state_v2.py --sources "$RUNNER_TEMP/v2-inputs/inputs" --v1 "$RUNNER_TEMP/v2-inputs/v1" --output "$RUNNER_TEMP/v2-evidence/replay" --workers 1 --reverse --replay "$RUNNER_TEMP/v2-evidence/generation"
       - name: Verify cross-environment canonical hashes and preserve truthful acceptance disposition
         env:
           CODE_SHA: ${{ needs.install-source.outputs.code-sha }}
@@ -146,6 +149,9 @@ jobs:
           import datetime,hashlib,json,os,pathlib,platform,re,shutil,subprocess
           out=pathlib.Path(os.environ['RUNNER_TEMP'])/'v2-evidence'
           s=json.loads((out/'generation/summary.json').read_text())
+          replay=json.loads((out/'replay/summary.json').read_text())
+          assert replay.get('doubleReplayHashesMatch') is True
+          assert replay['canonicalHashes']==s['canonicalHashes']
           expected={'coverage_rows':'860aba058b3ec011a9617a57042659ad8d99d65c5190799fd27b91287f168edb','future_resolution_v2':'a93aa3e8aad0c2fc17be2239b05cfe0ff969da49a77466384262518284162d34','now_state_reference_v2':'ba57dbe3b6da51df8ad79f00d0eaa756d418c9d7b175ee8453afd7f0a2ae7b5d','transitions':'df6df18fbb3d60c54d126d4cbcc623c4b8d5de2a63542b82fa030b7e5593319b'}
           assert s['checkpointN']==77214 and s['opportunityN']==2155
           assert s['canonicalHashes']==expected,'CROSS_ENVIRONMENT_REPLAY_MISMATCH'
@@ -156,7 +162,7 @@ jobs:
           for name in subprocess.check_output(['git','ls-files','-z'],text=True).split('\0'):
               p=pathlib.Path(name)
               if name and p.is_file():source[name]=hashlib.sha256(p.read_bytes()).hexdigest()
-          r={'recordedAtJST':datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).isoformat(),'status':'DEDICATED_REPLAY_PASS_NOT_IMPLEMENTATION_ACCEPTED','executionHead':os.environ['CODE_SHA'],'runId':os.environ['GITHUB_RUN_ID'],'python':platform.python_version(),'tests':tests,'sourceHashes':source,'canonicalHashes':s['canonicalHashes'],'matchesIndependentLocalFullGeneration':True,'A8':'BLOCKED_INDEPENDENT_ASOF_PROVENANCE','A9':'PARTIAL_INDEPENDENT_SCOPE','A12':'NOT_ACCEPTED','providerRequests':0,'protectedDataOpened':0,'safety':s['safety']}
+          r={'recordedAtJST':datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).isoformat(),'status':'DEDICATED_REPLAY_PASS_NOT_IMPLEMENTATION_ACCEPTED','executionHead':os.environ['CODE_SHA'],'runId':os.environ['GITHUB_RUN_ID'],'python':platform.python_version(),'tests':tests,'sourceHashes':source,'canonicalHashes':s['canonicalHashes'],'matchesIndependentLocalFullGeneration':True,'A2':'PASS_FULL_REVERSE_ORDER_WORKER_VARIATION','A3':'PASS_FULL_FRESH_PREFIX_REPLAY_WITH_HISTORICAL_AVAILABILITY_LIMITATION','A6':'PASS_SEPARATE_MODULE_SCHEMA_HASH_AND_FRESH_REPLAY;_SUFFIX_MUTATION_SYNTHETIC_ONLY','A8':'BLOCKED_INDEPENDENT_ASOF_PROVENANCE','A9':'PARTIAL_INDEPENDENT_SCOPE','A12':'NOT_ACCEPTED','providerRequests':0,'protectedDataOpened':0,'safety':s['safety']}
           (out/'ci-receipt.json').write_text(json.dumps(r,sort_keys=True,indent=2)+'\n')
           shutil.copyfile(pathlib.Path(os.environ['RUNNER_TEMP'])/'v2-inputs/restoration-receipt.json',out/'restoration-receipt.json')
           PY

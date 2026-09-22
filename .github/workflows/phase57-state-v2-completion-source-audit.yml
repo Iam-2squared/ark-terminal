@@ -1,0 +1,71 @@
+name: Phase57 State v2 Completion Source Snapshot
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-state-v2-completion-source-audit.yml'
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /docs/evidence/phase57-state-v2-completion/
+            /docs/evidence/phase57-state-v2-implementation/
+            /docs/evidence/phase57-state-v2-hardening/
+            /docs/evidence/phase57-continuity/
+            /docs/phase57-five-minute-entry-state/mechanical-v1/
+            /docs/phase57-five-minute-entry-state/STATE_DEFINITION_v2_FREEZE_CANDIDATE.md
+            /docs/evidence/phase57-five-minute-reference-g-v1/generate_reference.py
+            /docs/evidence/phase57-five-minute-reference-g-v1/test_adapter.py
+            /docs/evidence/phase57-entry-timing-signal-census-v1/protocol.json
+            /scripts/*state*v2*
+            /.github/workflows/phase57-state-v2-*.yml
+      - name: Export exact tracked source bytes without execution or modification
+        env:
+          SOURCE_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python - <<'PY'
+          import datetime, hashlib, json, os, pathlib, subprocess, zipfile
+          root = pathlib.Path('.')
+          out = pathlib.Path(os.environ['RUNNER_TEMP']) / 'state-v2-completion-snapshot'
+          out.mkdir()
+          files = {}
+          prefixes = ('docs/evidence/phase57-state-v2-', 'docs/evidence/phase57-continuity/', 'docs/phase57-five-minute-entry-state/', 'docs/evidence/phase57-five-minute-reference-g-v1/', 'docs/evidence/phase57-entry-timing-signal-census-v1/protocol.json', 'scripts/', '.github/workflows/phase57-state-v2-')
+          with zipfile.ZipFile(out / 'source.zip', 'x', compression=zipfile.ZIP_DEFLATED) as archive:
+              for name in subprocess.check_output(['git', 'ls-files', '-z'], text=True).split('\0'):
+                  p = root / name
+                  if not name or not p.is_file():
+                      continue
+                  assert name.startswith(prefixes), name
+                  assert not p.is_symlink(), name
+                  assert not name.startswith('scripts/') or ('state' in name and 'v2' in name), name
+                  data = p.read_bytes()
+                  files[name] = hashlib.sha256(data).hexdigest()
+                  archive.writestr(name, data)
+          receipt = {
+              'status': 'SOURCE_SNAPSHOT_ONLY_NOT_ACCEPTANCE',
+              'recordedAtJST': datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).isoformat(),
+              'sourceHead': os.environ['SOURCE_HEAD'],
+              'sourceZipSHA256': hashlib.sha256((out / 'source.zip').read_bytes()).hexdigest(),
+              'files': files, 'providerRequests': 0, 'protectedDataOpened': 0,
+              'sourceExecuted': False, 'sourceMutated': False,
+              'safety': {k: False for k in ('executionAllowed', 'brokerWriteAllowed', 'excelOrderWriteAllowed', 'rssOrderFunctionAllowed', 'liveTradingAllowed', 'paperTradingAllowed', 'automaticPromotionAllowed', 'productionUpdateAllowed', 'transmitted')}
+          }
+          (out / 'source-snapshot-receipt.json').write_text(json.dumps(receipt, sort_keys=True, indent=2) + '\n')
+          print(json.dumps({'status': receipt['status'], 'fileN': len(files), 'sourceHead': receipt['sourceHead']}))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-state-v2-completion-source-${{ github.run_id }}
+          path: ${{ runner.temp }}/state-v2-completion-snapshot
+          retention-days: 90
+          if-no-files-found: error
+          overwrite: false

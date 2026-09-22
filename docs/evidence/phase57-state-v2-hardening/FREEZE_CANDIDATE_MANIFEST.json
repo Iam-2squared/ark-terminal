@@ -1,6 +1,7 @@
 {
   "recordedAt": "2026-09-22T00:39:02+09:00",
-  "status": "STATE_V2_FREEZE_CANDIDATE_HARDENED_G7_PACKAGE_BUILT_NOT_FROZEN",
+  "lastAdjudicationAtJST": "2026-09-22T10:22:00+09:00",
+  "status": "STATE_V2_NOT_FROZEN_G7_V1_FAIL_REVIEW_PACKAGE_DEFECT_CONFIRMED",
   "sourceHeadBeforeHardening": "52370348bab598de24cf3a2e6c2df8bde27a8f94",
   "branch": "research/phase57-long-only-cash-equity",
   "pr": 587,
@@ -39,9 +40,9 @@
     "futureReturnUsedForStateDesign": false
   },
   "freezeBlockers": [
-    "G7_REVIEWER_A_FRESH_OPENAI_SESSION",
-    "G7_REVIEWER_B_FRESH_CLAUDE_SESSION",
-    "G7_PASS_AND_ADJUDICATION_IF_NEEDED",
+    "G7_REVIEW_PACKAGE_CAUSAL_TIME_ALIGNMENT_REPAIR",
+    "REVISED_REVIEW_PROTOCOL_REQUIRES_HUMAN_APPROVAL",
+    "G7_VALID_PASS_REQUIRED_OLD_RUN_REMAINS_FAIL",
     "CLAUDE_DIFFERENTIAL_REVIEW_WITH_ACTUAL_FILES_SAFE_TO_FREEZE"
   ],
   "safety": {
@@ -61,8 +62,16 @@
     "packageManifest": "docs/evidence/phase57-state-v2-hardening/G7_BLINDED_PACKAGE_MANIFEST.json",
     "blindedReviewZipSHA256": "303acb5c66b586917b75d1a48bb0e4b0fc848b7d48d86f9d63bb8273283676c1",
     "sealedAdminZipSHA256": "15e389cbf3638e89e5555e934fe73152b3d4782b5304d4348372ea407d3d932b",
-    "reviewExecuted": false,
+    "reviewExecuted": true,
     "packageQA": "docs/evidence/phase57-state-v2-hardening/G7_PACKAGE_QA.json",
-    "packageQAPass": true
+    "packageQAPass": true,
+    "historicalPackageQAScope": "ARCHIVE_AND_MANIFEST_IDENTITY_ONLY_NOT_CAUSAL_DISPLAY_ACCEPTANCE",
+    "causalDisplayAcceptance": false,
+    "result": "FAIL_UNCHANGED",
+    "adjudicationCompleted": true,
+    "adjudicationReport": "docs/evidence/phase57-state-v2-g7-adjudication/REPORT-ja.md",
+    "adjudicationReceipt": "docs/evidence/phase57-state-v2-g7-adjudication/RECEIPT.json",
+    "newBlindRunStarted": false,
+    "oldLabelsRewritten": false
   }
 }

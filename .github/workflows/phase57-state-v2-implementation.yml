@@ -1,5 +1,6 @@
 name: Phase57 State v2 Implementation and Reference Replay
-# Acceptance replay: reverse order + worker variation; no protected/provider inputs.
+# Read-only continuation. Source installation finished in run35700139842.
+# Prior failed/racing runs remain preserved; no branch push occurs in this workflow.
 on:
   pull_request:
     paths:
@@ -9,91 +10,11 @@ permissions:
   contents: read
   actions: read
 concurrency:
-  group: phase57-state-v2-implementation
+  group: phase57-state-v2-readonly-acceptance
   cancel-in-progress: false
 jobs:
-  install-source:
-    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: write
-    outputs:
-      code-sha: ${{ steps.install.outputs.code_sha }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          sparse-checkout-cone-mode: false
-          sparse-checkout: |
-            /docs/evidence/phase57-state-v2-implementation/
-            /docs/evidence/phase57-state-v2-hardening/
-            /docs/phase57-five-minute-entry-state/STATE_DEFINITION_v2_FREEZE_CANDIDATE.md
-            /scripts/phase57_state_v2/
-            /scripts/phase57_state_v2_reference.py
-            /scripts/test_phase57_state_v2_reference.py
-            /scripts/test_phase57_state_v2_acceptance.py
-            /scripts/run_phase57_state_v2.py
-            /scripts/report_phase57_state_v2.py
-            /scripts/restore_phase57_state_v2_artifacts.py
-      - name: Install only exact hashed source payload and recover original pinned terminal bytes
-        id: install
-        env:
-          EXPECTED: ${{ github.event.pull_request.head.sha }}
-          BRANCH: ${{ github.head_ref }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import base64,datetime,hashlib,json,lzma,os,pathlib,subprocess
-          root=pathlib.Path.cwd();dest=root/'docs/evidence/phase57-state-v2-implementation'
-          encoded=''.join((dest/'source-transfer'/f'part{i}.b64').read_text().strip() for i in range(4))
-          archive=base64.b64decode(encoded,validate=True)
-          assert hashlib.sha256(archive).hexdigest()=='0eba5dc0754849c4e6666e1e055ab072709edb14ca286f904a494faade47de10'
-          payload=lzma.decompress(archive)
-          assert hashlib.sha256(payload).hexdigest()=='c765a5f1c808abd11e32a1d8672efb5c1fe6e22ee5f609bb46c73fddd175fb1a'
-          files=json.loads(payload)
-          allowed={f'scripts/phase57_state_v2/{n}.py' for n in ('__init__','common','now','future','historical','independent')}
-          allowed|={f'scripts/{n}.py' for n in ('phase57_state_v2_reference','test_phase57_state_v2_reference','test_phase57_state_v2_acceptance','run_phase57_state_v2','report_phase57_state_v2','restore_phase57_state_v2_artifacts')}
-          allowed|={'docs/evidence/phase57-state-v2-implementation/PROTOCOL_20260922.md'}
-          allowed|={f'docs/evidence/phase57-state-v2-implementation/schemas/{n}.schema.json' for n in ('now_state_reference_v2','future_resolution_v2')}
-          assert set(files)==allowed and len(files)==15
-          for name,item in files.items():
-              assert hashlib.sha256(item['content'].encode()).hexdigest()==item['sha256'],name
-              assert '..' not in pathlib.Path(name).parts and not pathlib.Path(name).is_absolute()
-          repairs=[('docs/phase57-five-minute-entry-state/STATE_DEFINITION_v2_FREEZE_CANDIDATE.md','aa490daeee40dc33a48dd030944dc6f31a36179caa525641eeeeb11bbd2c8f42','d2747332abd6a47f84cabebadde05f02c2fe1717e12d3a12891a3640a2e50068'),('docs/evidence/phase57-state-v2-hardening/HARDENING_EVIDENCE.md','e1706de69e5f3129af62cab597326cff910a164a0691d36268fb8ebfc6d4d5f9','5aa8349cbb774e4fcd866697d4a2f8585ab18e9a8883a98337e9f841c7a5bddb')]
-          receipt=[]
-          for name,before,wanted in repairs:
-              p=root/name;data=p.read_bytes();got=hashlib.sha256(data).hexdigest()
-              assert got in (before,wanted),'UNEXPECTED_FROZEN_FILE_BYTES:'+name
-              repaired=data+b'\n' if got==before else data
-              assert hashlib.sha256(repaired).hexdigest()==wanted,name
-              receipt.append({'path':name,'beforeSHA256':got,'afterSHA256':wanted,'operation':'RESTORE_ONE_TERMINAL_LF_TO_EXISTING_FROZEN_PIN' if got==before else 'ALREADY_EXACT','semanticChanges':0,'pinChanged':False})
-          for name,item in files.items():
-              p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(item['content'].encode())
-          for name,before,wanted in repairs:
-              p=root/name
-              if hashlib.sha256(p.read_bytes()).hexdigest()==before:p.write_bytes(p.read_bytes()+b'\n')
-          manifest=json.loads((root/'docs/evidence/phase57-state-v2-hardening/FREEZE_CANDIDATE_MANIFEST.json').read_text())
-          assert manifest['status']=='STATE_V2_DESIGN_FROZEN'
-          for name,_,wanted in repairs:assert manifest['filesSHA256'][pathlib.Path(name).name]==wanted
-          record={'recordedAtJST':datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).isoformat(),'startHead':os.environ['EXPECTED'],'status':'SOURCE_INSTALL_ONLY_NOT_ACCEPTANCE','sourcePayloadSHA256':'c765a5f1c808abd11e32a1d8672efb5c1fe6e22ee5f609bb46c73fddd175fb1a','sourceHashes':{p:x['sha256'] for p,x in files.items()},'originalByteRecovery':receipt,'priorBootstrapFailuresPreserved':[35696041330,35696312668],'providerRequests':0,'protectedDataOpened':0,'safety':manifest['safety'],'publicGitContainsNewMarketRaw':False}
-          rp=dest/f'SOURCE_INSTALL_{os.environ["GITHUB_RUN_ID"]}.json'
-          with rp.open('x') as f:json.dump(record,f,sort_keys=True,indent=2);f.write('\n')
-          paths=sorted(allowed|{x[0] for x in repairs}|{str(rp.relative_to(root))})
-          subprocess.run(['git','add','--sparse','--',*paths],check=True)
-          staged=set(subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines())
-          assert staged<=set(paths),'UNAUTHORIZED_STAGED_PATH'
-          PY
-          test "$BRANCH" = research/phase57-long-only-cash-equity
-          test "$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)" = "$EXPECTED"
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'Phase57: preserve tested State v2 modules and exact frozen byte recovery [skip ci]'
-          git push origin "HEAD:$BRANCH"
-          echo "code_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
   verify:
-    needs: install-source
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 55
     env:
@@ -103,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.install-source.outputs.code-sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
           sparse-checkout-cone-mode: false
           sparse-checkout: |
@@ -121,58 +42,99 @@ jobs:
             /scripts/run_phase57_state_v2.py
             /scripts/report_phase57_state_v2.py
             /scripts/restore_phase57_state_v2_artifacts.py
+            /scripts/audit_phase57_state_v2_schema_transitions.py
+            /scripts/audit_phase57_state_v2_event_transitions.py
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13.5'
-      - name: Execute definition, adapter, compatibility and full golden-vector test suites
+      - name: Export exact source snapshot for independent audit without modifying it
+        env:
+          CODE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python - <<'PY'
+          import datetime,hashlib,json,os,pathlib,subprocess,zipfile
+          from phase57_state_v2.historical import verify_spec
+          from phase57_state_v2.common import SAFETY
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'v2-continuation';out.mkdir()
+          (out/'verified-spec').mkdir();verify_spec(out/'verified-spec')
+          files={}
+          with zipfile.ZipFile(out/'source.zip','x',compression=zipfile.ZIP_DEFLATED) as z:
+              for name in subprocess.check_output(['git','ls-files','-z'],text=True).split('\0'):
+                  p=pathlib.Path(name)
+                  if not name or not p.is_file():continue
+                  assert name.startswith(('scripts/phase57_state_v2/','scripts/phase57_state_v2_reference.py','scripts/test_phase57_state_v2','scripts/run_phase57_state_v2.py','scripts/report_phase57_state_v2.py','scripts/restore_phase57_state_v2_artifacts.py','scripts/audit_phase57_state_v2','docs/phase57-five-minute-entry-state/','docs/evidence/phase57-state-v2-hardening/','docs/evidence/phase57-state-v2-implementation/','docs/evidence/phase57-five-minute-reference-g-v1/','docs/evidence/phase57-entry-timing-signal-census-v1/protocol.json')),name
+                  files[name]=hashlib.sha256(p.read_bytes()).hexdigest();z.write(p,name)
+          receipt={'recordedAtJST':datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).isoformat(),'sourceHead':os.environ['CODE_SHA'],'status':'SOURCE_SNAPSHOT_NOT_ACCEPTANCE','files':files,'sourceZipSHA256':hashlib.sha256((out/'source.zip').read_bytes()).hexdigest(),'providerRequests':0,'protectedDataOpened':0,'safety':SAFETY}
+          (out/'source-snapshot-receipt.json').write_text(json.dumps(receipt,sort_keys=True,indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-state-v2-audit-source-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/v2-continuation/source.zip
+            ${{ runner.temp }}/v2-continuation/source-snapshot-receipt.json
+          retention-days: 90
+          overwrite: false
+      - name: Execute frozen numerical, adapter, compatibility and Golden tests
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/v2-evidence/tests"
-          (cd docs/phase57-five-minute-entry-state/mechanical-v1 && python -m unittest -v test_reference) 2>&1 | tee "$RUNNER_TEMP/v2-evidence/tests/definition.log"
-          (cd docs/evidence/phase57-five-minute-reference-g-v1 && python -m unittest -v test_adapter) 2>&1 | tee "$RUNNER_TEMP/v2-evidence/tests/adapter.log"
-          python scripts/test_phase57_state_v2_reference.py -v 2>&1 | tee "$RUNNER_TEMP/v2-evidence/tests/compatibility.log"
-          python scripts/test_phase57_state_v2_acceptance.py -v 2>&1 | tee "$RUNNER_TEMP/v2-evidence/tests/golden-and-canaries.log"
-      - name: Restore only four fixed Development archives and verify every admitted hash
+          mkdir -p "$RUNNER_TEMP/v2-continuation/tests"
+          (cd docs/phase57-five-minute-entry-state/mechanical-v1 && python -m unittest -v test_reference) 2>&1 | tee "$RUNNER_TEMP/v2-continuation/tests/numerical.log"
+          (cd docs/evidence/phase57-five-minute-reference-g-v1 && python -m unittest -v test_adapter) 2>&1 | tee "$RUNNER_TEMP/v2-continuation/tests/adapter.log"
+          python scripts/test_phase57_state_v2_reference.py -v 2>&1 | tee "$RUNNER_TEMP/v2-continuation/tests/compatibility.log"
+          python scripts/test_phase57_state_v2_acceptance.py -v 2>&1 | tee "$RUNNER_TEMP/v2-continuation/tests/golden.log"
+      - name: Restore completed CI baseline by exact artifact ID and verify all bytes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api repos/Iam-2squared/ark-terminal/actions/artifacts/10682598898/zip > "$RUNNER_TEMP/v2-baseline.zip"
+          python - <<'PY'
+          import hashlib,json,os,pathlib,zipfile
+          root=pathlib.Path(os.environ['RUNNER_TEMP']);data=(root/'v2-baseline.zip').read_bytes()
+          assert hashlib.sha256(data).hexdigest()=='f72fd8c74f7ecec1e75f0dcfe1fa99f07457aec9d3c3ad19c63cf05974b327ac'
+          dest=root/'v2-baseline'
+          with zipfile.ZipFile(root/'v2-baseline.zip') as z:
+              for i in z.infolist():
+                  p=pathlib.PurePosixPath(i.filename);assert not p.is_absolute() and '..' not in p.parts
+              z.extractall(dest)
+          m=json.loads((dest/'generation/manifest.json').read_text())
+          for name,wanted in m.items():
+              p=pathlib.PurePosixPath(name);assert not p.is_absolute() and '..' not in p.parts
+              assert hashlib.sha256((dest/'generation'/name).read_bytes()).hexdigest()==wanted,name
+          s=json.loads((dest/'generation/summary.json').read_text())
+          assert s['opportunityN']==2155 and s['checkpointN']==77214
+          launch=json.loads((dest/'generation/launch.json').read_text())
+          for name,wanted in launch['workingCodeSHA256'].items():assert hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest()==wanted,name
+          PY
+      - name: Restore only the four pinned Development input artifacts
         env:
           GH_READ_TOKEN: ${{ github.token }}
         run: python scripts/restore_phase57_state_v2_artifacts.py --output "$RUNNER_TEMP/v2-inputs" --repo .
-      - name: Generate all 77214 NOW and Future references without provider or trading
-        run: python scripts/run_phase57_state_v2.py --sources "$RUNNER_TEMP/v2-inputs/inputs" --v1 "$RUNNER_TEMP/v2-inputs/v1" --output "$RUNNER_TEMP/v2-evidence/generation" --workers 2
-      - name: A2/A3/A6 full fresh replay with reversed order and varied worker count
-        run: |
-          python scripts/run_phase57_state_v2.py --sources "$RUNNER_TEMP/v2-inputs/inputs" --v1 "$RUNNER_TEMP/v2-inputs/v1" --output "$RUNNER_TEMP/v2-evidence/replay" --workers 1 --reverse --replay "$RUNNER_TEMP/v2-evidence/generation"
-      - name: Verify cross-environment canonical hashes and preserve truthful acceptance disposition
+      - name: Replay all77214 rows fresh with reversed order and workers2-to-3
+        run: python scripts/run_phase57_state_v2.py --sources "$RUNNER_TEMP/v2-inputs/inputs" --v1 "$RUNNER_TEMP/v2-inputs/v1" --output "$RUNNER_TEMP/v2-continuation/replay" --workers 3 --reverse --replay "$RUNNER_TEMP/v2-baseline/generation"
+      - name: Record combined replay disposition without waiving A8 or A9
         env:
-          CODE_SHA: ${{ needs.install-source.outputs.code-sha }}
+          CODE_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          python scripts/report_phase57_state_v2.py --generation "$RUNNER_TEMP/v2-evidence/generation" --output "$RUNNER_TEMP/v2-evidence/report"
+          python scripts/report_phase57_state_v2.py --generation "$RUNNER_TEMP/v2-baseline/generation" --replay "$RUNNER_TEMP/v2-continuation/replay" --output "$RUNNER_TEMP/v2-continuation/report"
           python - <<'PY'
-          import datetime,hashlib,json,os,pathlib,platform,re,shutil,subprocess
-          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'v2-evidence'
-          s=json.loads((out/'generation/summary.json').read_text())
-          replay=json.loads((out/'replay/summary.json').read_text())
-          assert replay.get('doubleReplayHashesMatch') is True
-          assert replay['canonicalHashes']==s['canonicalHashes']
-          expected={'coverage_rows':'860aba058b3ec011a9617a57042659ad8d99d65c5190799fd27b91287f168edb','future_resolution_v2':'a93aa3e8aad0c2fc17be2239b05cfe0ff969da49a77466384262518284162d34','now_state_reference_v2':'ba57dbe3b6da51df8ad79f00d0eaa756d418c9d7b175ee8453afd7f0a2ae7b5d','transitions':'df6df18fbb3d60c54d126d4cbcc623c4b8d5de2a63542b82fa030b7e5593319b'}
-          assert s['checkpointN']==77214 and s['opportunityN']==2155
-          assert s['canonicalHashes']==expected,'CROSS_ENVIRONMENT_REPLAY_MISMATCH'
-          assert all(v is False for v in s['safety'].values())
-          tests={p.name:int(re.findall(r'Ran (\d+) tests?',p.read_text())[-1]) for p in (out/'tests').glob('*.log')}
-          assert sum(tests.values())==158,tests
-          source={}
-          for name in subprocess.check_output(['git','ls-files','-z'],text=True).split('\0'):
-              p=pathlib.Path(name)
-              if name and p.is_file():source[name]=hashlib.sha256(p.read_bytes()).hexdigest()
-          r={'recordedAtJST':datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).isoformat(),'status':'DEDICATED_REPLAY_PASS_NOT_IMPLEMENTATION_ACCEPTED','executionHead':os.environ['CODE_SHA'],'runId':os.environ['GITHUB_RUN_ID'],'python':platform.python_version(),'tests':tests,'sourceHashes':source,'canonicalHashes':s['canonicalHashes'],'matchesIndependentLocalFullGeneration':True,'A2':'PASS_FULL_REVERSE_ORDER_WORKER_VARIATION','A3':'PASS_FULL_FRESH_PREFIX_REPLAY_WITH_HISTORICAL_AVAILABILITY_LIMITATION','A6':'PASS_SEPARATE_MODULE_SCHEMA_HASH_AND_FRESH_REPLAY;_SUFFIX_MUTATION_SYNTHETIC_ONLY','A8':'BLOCKED_INDEPENDENT_ASOF_PROVENANCE','A9':'PARTIAL_INDEPENDENT_SCOPE','A12':'NOT_ACCEPTED','providerRequests':0,'protectedDataOpened':0,'safety':s['safety']}
-          (out/'ci-receipt.json').write_text(json.dumps(r,sort_keys=True,indent=2)+'\n')
-          shutil.copyfile(pathlib.Path(os.environ['RUNNER_TEMP'])/'v2-inputs/restoration-receipt.json',out/'restoration-receipt.json')
+          import datetime,json,os,pathlib,re
+          root=pathlib.Path(os.environ['RUNNER_TEMP']);out=root/'v2-continuation'
+          a=json.loads((root/'v2-baseline/generation/summary.json').read_text());b=json.loads((out/'replay/summary.json').read_text())
+          assert b['doubleReplayHashesMatch'] is True and a['canonicalHashes']==b['canonicalHashes']
+          assert b['stats']['freshNowReplayMatches']==b['stats']['futureReplayMatches']==77214
+          tests={p.name:int(re.findall(r'Ran (\d+) tests?',p.read_text())[-1]) for p in (out/'tests').glob('*.log')};assert sum(tests.values())==158,tests
+          receipt={'recordedAtJST':datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).isoformat(),'status':'READONLY_FULL_REPLAY_PASS_NOT_IMPLEMENTATION_ACCEPTED','executionHead':os.environ['CODE_SHA'],'runId':os.environ['GITHUB_RUN_ID'],'baselineArtifactId':10682598898,'baselineArtifactSHA256':'f72fd8c74f7ecec1e75f0dcfe1fa99f07457aec9d3c3ad19c63cf05974b327ac','canonicalHashes':b['canonicalHashes'],'replayStats':b['stats'],'tests':tests,'A8':'BLOCKED_INDEPENDENT_ASOF_PROVENANCE','A9':'PARTIAL_INDEPENDENT_SCOPE','A12':'NOT_ACCEPTED','providerRequests':0,'protectedDataOpened':0,'safety':b['safety'],'sourceInstalledOrMutated':False}
+          (out/'ci-replay-receipt.json').write_text(json.dumps(receipt,sort_keys=True,indent=2)+'\n')
           PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: phase57-state-v2-reference-${{ needs.install-source.outputs.code-sha }}-${{ github.run_id }}
-          path: ${{ runner.temp }}/v2-evidence
+          name: phase57-state-v2-readonly-replay-${{ github.run_id }}
+          path: ${{ runner.temp }}/v2-continuation
           retention-days: 90
           if-no-files-found: error
           overwrite: false

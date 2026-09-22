@@ -38,7 +38,7 @@ jobs:
         run: |
           set -euo pipefail
           rm -rf "$RUNNER_TEMP/unknown-coverage"
-          python scripts/phase57_entry_unknown_coverage_diagnostic.py \
+          python -m scripts.phase57_entry_unknown_coverage_diagnostic \
             --signal-measurement docs/evidence/phase57-entry-timing-signal-census-v1/measurement \
             --entry-v1-measurement docs/evidence/phase57-state-conditioned-signal-entry-v1/measurement \
             --entry-v1-manifest docs/evidence/phase57-state-conditioned-signal-entry-v1/MANIFEST.json \
@@ -64,7 +64,7 @@ jobs:
         run: |
           set -euo pipefail
           rm -rf "$RUNNER_TEMP/unknown-coverage-replay"
-          python scripts/phase57_entry_unknown_coverage_diagnostic.py \
+          python -m scripts.phase57_entry_unknown_coverage_diagnostic \
             --signal-measurement docs/evidence/phase57-entry-timing-signal-census-v1/measurement \
             --entry-v1-measurement docs/evidence/phase57-state-conditioned-signal-entry-v1/measurement \
             --entry-v1-manifest docs/evidence/phase57-state-conditioned-signal-entry-v1/MANIFEST.json \

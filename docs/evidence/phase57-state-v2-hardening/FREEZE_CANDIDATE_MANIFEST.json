@@ -2,7 +2,7 @@
   "recordedAt": "2026-09-22T00:39:02+09:00",
   "lastAdjudicationAtJST": "2026-09-22T10:22:00+09:00",
   "lastHarnessRepairAtJST": "2026-09-22T10:58:05+09:00",
-  "status": "STATE_V2_NOT_FROZEN_G7_R2_FORMAL_FAIL_ADJUDICATION_COMPLETE",
+  "status": "STATE_V2_NOT_FROZEN_GATE_REVISION_1_APPLIED_FINAL_EXTERNAL_REVIEW_PENDING",
   "sourceHeadBeforeHardening": "52370348bab598de24cf3a2e6c2df8bde27a8f94",
   "branch": "research/phase57-long-only-cash-equity",
   "pr": 587,
@@ -41,8 +41,7 @@
     "futureReturnUsedForStateDesign": false
   },
   "freezeBlockers": [
-    "G7_VALID_PASS_OR_EXPLICIT_HUMAN_GATE_REVISION_REQUIRED",
-    "CLAUDE_DIFFERENTIAL_REVIEW_WITH_ACTUAL_FILES_SAFE_TO_FREEZE"
+    "FINAL_EXTERNAL_DIFFERENTIAL_REVIEW_SAFE_TO_FREEZE"
   ],
   "safety": {
     "executionAllowed": false,
@@ -122,5 +121,18 @@
     "resultReport": "docs/evidence/phase57-state-v2-g7-r2/REVIEW_RESULT_20260922-ja.md",
     "scoreReceipt": "docs/evidence/phase57-state-v2-g7-r2/REVIEW_SCORE.json"
   },
-  "lastG7R2ReviewAtJST": "2026-09-22T13:46:20+09:00"
+  "lastG7R2ReviewAtJST": "2026-09-22T13:46:20+09:00",
+  "lastGateRevisionAtJST": "2026-09-22",
+  "freezeGateRevision": {
+    "status": "APPLIED_WITH_USER_APPROVAL",
+    "userApproval": "進めて",
+    "file": "docs/evidence/phase57-state-v2-hardening/FREEZE_GATE_REVISION_1_20260922.md",
+    "oldG7ResultsPreserved": true,
+    "oldG7V1Result": "FAIL_UNCHANGED",
+    "g7R2Result": "FORMAL_FAIL_UNCHANGED",
+    "revisedRole": "D7_INDEPENDENT_SEMANTIC_FALSIFICATION_DIAGNOSTIC",
+    "currentD7Disposition": "COMPLETE_WITH_REVIEWER_RELIABILITY_LIMITATIONS_NO_CONFIRMED_STATE_RULE_BLOCKER",
+    "finalExternalReviewerMustReviewGateRevision": true,
+    "stateFreezeGranted": false
+  }
 }

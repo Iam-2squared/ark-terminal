@@ -1,7 +1,8 @@
 {
   "recordedAt": "2026-09-22T00:39:02+09:00",
   "lastAdjudicationAtJST": "2026-09-22T10:22:00+09:00",
-  "status": "STATE_V2_NOT_FROZEN_G7_V1_FAIL_REVIEW_PACKAGE_DEFECT_CONFIRMED",
+  "lastHarnessRepairAtJST": "2026-09-22T10:58:05+09:00",
+  "status": "STATE_V2_NOT_FROZEN_G7_V1_FAIL_HARNESS_REPAIR_OLD36_REGRESSION_PASS",
   "sourceHeadBeforeHardening": "52370348bab598de24cf3a2e6c2df8bde27a8f94",
   "branch": "research/phase57-long-only-cash-equity",
   "pr": 587,
@@ -40,7 +41,6 @@
     "futureReturnUsedForStateDesign": false
   },
   "freezeBlockers": [
-    "G7_REVIEW_PACKAGE_CAUSAL_TIME_ALIGNMENT_REPAIR",
     "REVISED_REVIEW_PROTOCOL_REQUIRES_HUMAN_APPROVAL",
     "G7_VALID_PASS_REQUIRED_OLD_RUN_REMAINS_FAIL",
     "CLAUDE_DIFFERENTIAL_REVIEW_WITH_ACTUAL_FILES_SAFE_TO_FREEZE"
@@ -73,5 +73,20 @@
     "adjudicationReceipt": "docs/evidence/phase57-state-v2-g7-adjudication/RECEIPT.json",
     "newBlindRunStarted": false,
     "oldLabelsRewritten": false
+  },
+  "harnessRepair": {
+    "status": "OLD36_REGRESSION_PASS_NOT_G7_PASS",
+    "protocolCommit": "4f474a2077df7bc5a6655e23317752817a162379",
+    "report": "docs/evidence/phase57-g7-review-harness-repair-v1/REPORT-ja.md",
+    "receipt": "docs/evidence/phase57-g7-review-harness-repair-v1/REPAIR_RECEIPT.json",
+    "revisedProtocolDraft": "docs/evidence/phase57-g7-review-harness-repair-v1/REVISED_G7_PROTOCOL_DRAFT.md",
+    "attachmentSHA256": "43474144b647a025e542c8e882c8622844ea8ad69d73c5fb3c32e74122bf4b4f",
+    "codeStorage": "CONVERSATION_ATTACHMENT_SOURCE_LOCK_RECORDED_IN_REPO",
+    "syntheticPassed": 49,
+    "regressionCaseN": 36,
+    "suffixChangedInvariantCases": 36,
+    "suffixRemovedInvariantCases": 36,
+    "reverseOrderIdenticalFiles": 144,
+    "newIndependentReviewExecuted": false
   }
 }

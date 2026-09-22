@@ -21,8 +21,12 @@ class T(unittest.TestCase):
  def test_primary_reason(self):
   self.assertEqual("OBS_CURRENT_BAR_NOT_OBSERVED",v.primary(["SCALE_ZERO","OBS_CURRENT_BAR_NOT_OBSERVED"]))
  def test_future_is_separate_and_h10(self):
-  z=v.future_resolution_v2(self.sess(20),self.prev(),["2026-01-05","2026-01-06"],[],545)
-  self.assertEqual(10,z["futureResolution"]["horizonActiveMinutes"])
+  from phase57_state_v2.future import future_resolution_v2
+  today=self.sess(20)
+  ctx=v.make_context(today,self.prev(),["2026-01-05","2026-01-06"],[])
+  ident={"opportunityId":"synthetic","sessionDate":today.day,"securityId":today.security,"selectorAt":None,"elapsedActiveMinutesFromSelector":None}
+  z=future_resolution_v2(bounded_bars=tuple(b for b in today.bars if b.end<=555),ends=today.ends,asof=545,identity=ident,context=ctx)
+  self.assertEqual(10,z["horizonActiveMinutes"])
  def test_canonical_hash_deterministic(self):
   x={"b":2,"a":1}; self.assertEqual(v.canonical_hash(x),v.canonical_hash({"a":1,"b":2}))
 if __name__=="__main__": unittest.main()

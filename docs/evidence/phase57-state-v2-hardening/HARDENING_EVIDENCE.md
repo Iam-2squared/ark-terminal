@@ -530,3 +530,4 @@ If a vocabulary gap remains after adjudication, do not patch v2.0 from the same 
 ## 7. Relation to old R2
 
 The prior 36/36 single-reviewer R2 result is preserved as historical context only. It is not a Freeze Gate and does not count as Reviewer A or B for this protocol unless the exact new blinded package is independently rescored.
+

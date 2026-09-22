@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "adjudicatedPhaseAtT": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "type": "object"
+        },
+        "primaryReason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reasonCodes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "status": {
+          "enum": [
+            "DEFINED",
+            "INSUFFICIENT",
+            "NOT_EVALUATED",
+            "NOT_APPLICABLE"
+          ]
+        },
+        "value": {}
+      },
+      "required": [
+        "status",
+        "value",
+        "reasonCodes",
+        "primaryReason",
+        "evidence"
+      ],
+      "type": "object"
+    },
+    "adjudicatedStructureAtT": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "type": "object"
+        },
+        "primaryReason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reasonCodes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "status": {
+          "enum": [
+            "DEFINED",
+            "INSUFFICIENT",
+            "NOT_EVALUATED",
+            "NOT_APPLICABLE"
+          ]
+        },
+        "value": {}
+      },
+      "required": [
+        "status",
+        "value",
+        "reasonCodes",
+        "primaryReason",
+        "evidence"
+      ],
+      "type": "object"
+    },
+    "artifactKind": {
+      "const": "future_resolution_v2"
+    },
+    "censorFlags": {
+      "items": {
+        "enum": [
+          "OBSERVATION_CENSORED_BEFORE_H",
+          "SESSION_CENSORED_BEFORE_H"
+        ]
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "checkpointAsOf": {
+      "type": "string"
+    },
+    "definitionVersion": {
+      "const": "state-reference-v2.0"
+    },
+    "elapsedActiveMinutesFromSelector": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "horizonActiveMinutes": {
+      "const": 10
+    },
+    "opportunityId": {
+      "type": "string"
+    },
+    "resolutionActiveMinutes": {
+      "maximum": 10,
+      "minimum": 0,
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "resolutionStatus": {
+      "enum": [
+        "RESOLVED_WITHIN_H",
+        "NOT_RESOLVED_WITHIN_H",
+        "CENSORED"
+      ]
+    },
+    "resolutionType": {
+      "enum": [
+        null,
+        "UP_STRUCTURE",
+        "DOWN_STRUCTURE",
+        "RANGE_STRUCTURE"
+      ]
+    },
+    "safety": {
+      "additionalProperties": {
+        "const": false
+      },
+      "maxProperties": 9,
+      "minProperties": 9,
+      "type": "object"
+    },
+    "securityId": {
+      "type": "string"
+    },
+    "selectorAt": {
+      "type": "string"
+    },
+    "sessionDate": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "opportunityId",
+    "sessionDate",
+    "securityId",
+    "selectorAt",
+    "checkpointAsOf",
+    "elapsedActiveMinutesFromSelector",
+    "definitionVersion",
+    "safety",
+    "artifactKind",
+    "horizonActiveMinutes",
+    "adjudicatedStructureAtT",
+    "adjudicatedPhaseAtT",
+    "lateConfirmedPivotN",
+    "resolutionStatus",
+    "resolutionType",
+    "resolutionActiveMinutes",
+    "censorFlags",
+    "futureMaxSourceTimestamp",
+    "futureSourceHashes"
+  ],
+  "title": "future_resolution_v2",
+  "type": "object"
+}

@@ -1,0 +1,138 @@
+name: Phase57 State v2 A8 A9 Full Independent Completion R3
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-state-v2-completion-r3.yml'
+      - 'docs/evidence/phase57-state-v2-completion/source-r3/**'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-state-v2-completion-r3
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+      PYTHONHASHSEED: '71'
+      ARK_V2_COMPLETION_ROOT: ${{ runner.temp }}/v2-completion-r3
+      ARK_EXECUTION_SHA: ${{ github.event.pull_request.head.sha }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /docs/evidence/phase57-state-v2-completion/source-r3/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.5'
+      - name: Verify and unpack the exact versioned second implementation source
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64,hashlib,json,lzma,os,pathlib,datetime
+          src=pathlib.Path('docs/evidence/phase57-state-v2-completion/source-r3')
+          m=json.loads((src/'MANIFEST.json').read_text())
+          sha=lambda b:hashlib.sha256(b).hexdigest()
+          b=base64.b64decode(''.join((src/f'part{i}.b64').read_text().strip() for i in range(6)),validate=True)
+          assert len(b)==m['byteN']==34764
+          assert sha(b)==m['xzSHA256']=='b66b369c3c767f9e69dd2a78569b598912205bccdfeb030b95b37826147f9c7b'
+          decoded=lzma.decompress(b)
+          assert sha(decoded)==m['decodedSHA256']=='6ed039a0b5e9fa96201e341291b31b9e2f57ab3cfc22ca25d949d3e3c55913e5'
+          files=json.loads(decoded);assert set(files)==set(m['files']) and len(files)==28
+          root=pathlib.Path(os.environ['ARK_V2_COMPLETION_ROOT']);root.mkdir()
+          for name,text in files.items():
+              p=pathlib.PurePosixPath(name)
+              assert not p.is_absolute() and '..' not in p.parts and p.parts[0] in ('work','history','a8-admission')
+              data=text.encode('utf-8');assert sha(data)==m['files'][name],name
+              dest=root/name;dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(data)
+          (root/'work/evidence').mkdir(exist_ok=True)
+          receipt={'recordedAtJST':datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).isoformat(),'executionHead':os.environ['ARK_EXECUTION_SHA'],'bundle':m,'status':'SOURCE_VERIFIED_NOT_ACCEPTANCE','providerRequests':0,'protectedDataOpened':0}
+          (root/'source-unpack-receipt.json').write_text(json.dumps(receipt,sort_keys=True,indent=2)+'\n')
+          with open(os.environ['GITHUB_ENV'],'a') as f:f.write('PYTHONPATH='+str(root/'repo/scripts')+'\n')
+          PY
+      - name: Install the same fixed JSON Schema validator
+        run: |
+          set -euo pipefail
+          python -m pip install 'jsonschema==4.26.0'
+          python -m pip freeze > "$ARK_V2_COMPLETION_ROOT/work/evidence/pip-freeze.txt"
+      - name: Restore only pinned primary source and approved Development artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python "$ARK_V2_COMPLETION_ROOT/work/ci_bootstrap.py"
+      - name: Execute primary 158 new admission 45 and independent 119 assertion executions
+        run: python "$ARK_V2_COMPLETION_ROOT/work/run_test_suite.py"
+      - name: Restore original G admission and bounded-memory per-session caches
+        run: python "$ARK_V2_COMPLETION_ROOT/work/ci_admit.py"
+      - name: Independently regenerate narrow A8 decisions and verify the predeclared decision hash
+        run: python "$ARK_V2_COMPLETION_ROOT/work/regenerate_a8_admission.py"
+      - name: Audit all historical timestamps and full previous-session context
+        run: python "$ARK_V2_COMPLETION_ROOT/work/audit_a8_timestamp_context.py"
+      - name: Rebuild all77214 rows reverse-order workers3 with full second implementation and suffix checks
+        env:
+          ARK_V2_SUFFIX_AUDIT: '1'
+        run: |
+          set -euo pipefail
+          python "$ARK_V2_COMPLETION_ROOT/work/run_completion_r3_replay.py" \
+            --sources "$ARK_V2_COMPLETION_ROOT/inputs-restored/inputs" \
+            --v1 "$ARK_V2_COMPLETION_ROOT/inputs-restored/v1" \
+            --output "$ARK_V2_COMPLETION_ROOT/generation" \
+            --admitted-cache "$ARK_V2_COMPLETION_ROOT/g-admitted-complete" \
+            --workers 3 --reverse \
+            2>&1 | tee "$ARK_V2_COMPLETION_ROOT/work/evidence/full-independent-replay.log"
+      - name: Validate all154428 complete schemas and core transitions
+        run: |
+          python "$ARK_V2_COMPLETION_ROOT/repo/scripts/audit_phase57_state_v2_schema_transitions.py" \
+            --generation "$ARK_V2_COMPLETION_ROOT/generation" \
+            --output "$ARK_V2_COMPLETION_ROOT/schema-audit"
+      - name: Audit unchanged attributes fixed-level VWAP and explained persistence transitions
+        run: |
+          python "$ARK_V2_COMPLETION_ROOT/repo/scripts/audit_phase57_state_v2_event_transitions.py" \
+            --generation "$ARK_V2_COMPLETION_ROOT/generation" \
+            --v1 "$ARK_V2_COMPLETION_ROOT/inputs-restored/v1" \
+            --output "$ARK_V2_COMPLETION_ROOT/event-audit"
+      - name: Issue CI evidence receipt without granting automatic Acceptance or downstream authorization
+        run: |
+          python - <<'PY'
+          import datetime,hashlib,json,os,pathlib,platform,sys
+          r=pathlib.Path(os.environ['ARK_V2_COMPLETION_ROOT'])
+          read=lambda name:json.loads((r/name).read_text())
+          s=read('generation/summary.json');t=read('work/evidence/test-suite/receipt.json')
+          for k in ['rows','independentFullNowMatches','independentFullFutureMatches','independentFullNumericalNowMatches','independentFullNumericalFutureMatches','suffixMutationChecks','suffixRemovalChecks','suffixRemovalFreshMatches']:assert s['stats'][k]==77214,k
+          assert s['stats']['independentInputContextMatches']==2155
+          assert s['opportunityN']==2155 and s['checkpointN']==77214 and t['assertionExecutions']==322
+          assert not any(s['safety'].values()) and s['protectedDataOpened']==s['providerRequests']==0
+          assert read('work/evidence/a8-timestamp-context.json')['status']=='HISTORICAL_TIMESTAMP_CALENDAR_CONTEXT_AUDIT_PASS'
+          receipt={'recordedAtJST':datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).isoformat(),'status':'FULL_SECOND_IMPLEMENTATION_REVERSE_SUFFIX_SCHEMA_AUDITS_PASS_NOT_A12_BY_ITSELF','executionHead':os.environ['ARK_EXECUTION_SHA'],'runId':os.environ['GITHUB_RUN_ID'],'canonicalHashes':s['canonicalHashes'],'stats':s['stats'],'tests':t,'python':sys.version,'platform':platform.platform(),'safety':s['safety'],'providerRequests':0,'protectedDataOpened':0,'externalHumanReviewExecuted':False,'localVsCIComparison':'REQUIRED_AFTER_ARTIFACT_RETRIEVAL','recognitionStarted':False,'tradingAuthorized':False}
+          (r/'ci-completion-receipt.json').write_text(json.dumps(receipt,sort_keys=True,indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-state-v2-completion-r3-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/v2-completion-r3/source-unpack-receipt.json
+            ${{ runner.temp }}/v2-completion-r3/primary-source-receipt.json
+            ${{ runner.temp }}/v2-completion-r3/ci-completion-receipt.json
+            ${{ runner.temp }}/v2-completion-r3/work
+            ${{ runner.temp }}/v2-completion-r3/history
+            ${{ runner.temp }}/v2-completion-r3/a8-admission
+            ${{ runner.temp }}/v2-completion-r3/generation
+            ${{ runner.temp }}/v2-completion-r3/schema-audit
+            ${{ runner.temp }}/v2-completion-r3/event-audit
+          retention-days: 90
+          overwrite: false
+          if-no-files-found: error
+      - name: Purge only this run's temporary source restores
+        if: always()
+        run: |
+          rm -rf -- "$ARK_V2_COMPLETION_ROOT/downloads" "$ARK_V2_COMPLETION_ROOT/inputs-restored" "$ARK_V2_COMPLETION_ROOT/g-admitted-complete" "$ARK_V2_COMPLETION_ROOT/g-admitted-by-day" "$ARK_V2_COMPLETION_ROOT/a8-recovery-fixed"

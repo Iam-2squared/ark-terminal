@@ -33,6 +33,7 @@ jobs:
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /docs/evidence/phase57-state-v2-completion/source-r3/
+            /docs/evidence/phase57-state-v2-completion/ci_bootstrap_importfix.py
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13.5'
@@ -69,7 +70,19 @@ jobs:
       - name: Restore only pinned primary source and approved Development artifacts
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python "$ARK_V2_COMPLETION_ROOT/work/ci_bootstrap.py"
+        run: |
+          python - <<'PY'
+          import hashlib,pathlib,os,runpy
+          r=pathlib.Path(os.environ['ARK_V2_COMPLETION_ROOT'])
+          p=pathlib.Path('docs/evidence/phase57-state-v2-completion/ci_bootstrap_importfix.py')
+          b=p.read_bytes();assert hashlib.sha256(b).hexdigest()=='6f93cc43d8e9465aee64bd778a0a909847a7f1b20d353c418e9057e835998c3b'
+          original=(r/'work/ci_bootstrap.py').read_text()
+          old='import restore_phase57_state_v2_artifacts as restore'
+          new='# The PYTHONPATH directory did not exist when Python started.\n# Invalidate its cached missing-path finder after restoring pinned files.\nimport importlib\nimportlib.invalidate_caches()\n'+old
+          assert original.count(old)==1 and original.replace(old,new).encode()==b
+          dest=r/'work/ci_bootstrap_importfix.py';dest.write_bytes(b)
+          runpy.run_path(str(dest),run_name='__main__')
+          PY
       - name: Execute primary 158 new admission 45 and independent 119 assertion executions
         run: python "$ARK_V2_COMPLETION_ROOT/work/run_test_suite.py"
       - name: Restore original G admission and bounded-memory per-session caches

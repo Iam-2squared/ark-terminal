@@ -9,10 +9,12 @@ non-target opportunity retain the exact accepted State-v3 Entry v1 policy.
 from __future__ import annotations
 
 import argparse
+import ast
 import collections
 import hashlib
 import inspect
 import json
+import textwrap
 from pathlib import Path
 
 from scripts import phase57_state_conditioned_signal_entry_v1 as metrics
@@ -47,6 +49,26 @@ def _classify_target_every_minute(oid, day, minute_rows, path):
         checks.append(classified)
     assert checks and checks[0]["delay"] == 0
     return checks, violations
+
+
+def _prohibited_decision_tokens(source):
+    """Scan executable syntax and keys; explanatory docstrings are not inputs.
+
+    Comments are excluded by parsing. Only actual Python docstrings are removed;
+    other string constants (including payload keys), names, attributes, function
+    defaults and executable expressions remain subject to the original tokens.
+    This static check supplements, not replaces, runtime closed-bar assertions.
+    """
+    tree = ast.parse(textwrap.dedent(source))
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            if (node.body and isinstance(node.body[0], ast.Expr)
+                    and isinstance(node.body[0].value, ast.Constant)
+                    and isinstance(node.body[0].value.value, str)):
+                node.body = node.body[1:] or [ast.Pass()]
+    executable_source = ast.unparse(tree)
+    return [token for token in metrics.FORBIDDEN_DECISION_TOKENS
+            if token in executable_source]
 
 
 def _position_thresholds(records):
@@ -145,6 +167,9 @@ def run(args):
                 minute_by_opp[oid],
                 raw_paths[oid],
             )
+            assert checks[0]["state"] == baseline_state_by_opp[oid][0]["state"], (
+                "T0_STATE_CHANGED", oid
+            )
             candidate_state_by_opp[oid] = checks
             target_checkpoint_count += len(checks)
             state_future_violations += violations
@@ -201,6 +226,18 @@ def run(args):
             "firstSignalMinute", "firstSignalDelay", "firstStateBuyMinute",
             "firstStateBuyDelay", "firstTransitionBuyState", "allWindowSignalFamilies",
         )}})
+
+    # The intervention is target-only; audit every field in non-target records.
+    baseline_by_id = {row["opportunity"]: row for row in state_v3}
+    non_target_records_checked = 0
+    for record in candidate:
+        if record["opportunity"] not in target_ids:
+            without_experiment = {k: v for k, v in record.items() if k != "experiment"}
+            assert without_experiment == baseline_by_id[record["opportunity"]], (
+                "NON_TARGET_RECORD_CHANGED", record["opportunity"]
+            )
+            non_target_records_checked += 1
+    assert non_target_records_checked == 2155 - 1757
 
     policies = {
         "A_IMMEDIATE": immediate,
@@ -264,10 +301,7 @@ def run(args):
     status = "PASS_CLEAR_IMPROVEMENT" if all(gates.values()) else "NO_PROMOTION"
 
     decision_source = inspect.getsource(_classify_target_every_minute) + inspect.getsource(v3.frozen_intent)
-    prohibited = [
-        token for token in metrics.FORBIDDEN_DECISION_TOKENS
-        if token in decision_source
-    ]
+    prohibited = _prohibited_decision_tokens(decision_source)
     causality = {
         "status": "PASS" if not prohibited and gates["causality"] else "FAIL",
         "causalIntentSHA256BeforeEvaluatorOpen": causal_intents_sha,
@@ -277,6 +311,9 @@ def run(args):
         "signalClosedBarChecks": signal_closed_bar_checks,
         "signalClosedBarPassed": signal_closed_bar_pass,
         "decisionFunctionProhibitedTokens": prohibited,
+        "staticScanMode": "AST_EXCLUDING_DOCSTRINGS_ONLY",
+        "nonTargetRecordsExactParity": non_target_records_checked,
+        "targetT0StatesExactParity": len(target_ids),
         "oracleLowHighDecisionUse": 0,
         "futureOutcomeDecisionUse": 0,
         "stateV3ContractChanged": False,
@@ -285,7 +322,9 @@ def run(args):
         "protectedDataOpened": 0,
         "safety": policy["safety"],
     }
-    assert causality["status"] == "PASS"
+    # Preserve the actual audit if a future run fails; never publish a silent PASS.
+    metrics.write_json(output / "causality-audit.json", causality)
+    assert causality["status"] == "PASS", json.dumps(causality, sort_keys=True)
 
     summary = {
         "artifactKind": "phase57_drop_pullback_1m_state_recheck_v1_result",

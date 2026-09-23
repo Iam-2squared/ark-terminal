@@ -1,6 +1,6 @@
 # Phase57 State v3 / 9-Pattern Price-Shape Entry v1 — 最終測定報告
 
-Status: `MEASUREMENT_COMPLETE_NO_PROMOTION`; CI receiptは実装commit後にappendする。開始HEAD: `35e0b5ec20ca05940f34bbe23a5ba29d6d566f72`。
+Status: `COMPLETE_NO_PROMOTION`。開始HEAD: `35e0b5ec20ca05940f34bbe23a5ba29d6d566f72`。実装・測定commit: `3c5198df4d0f8085d39cde751386f167ae90833b`。
 
 ## 結論
 
@@ -149,7 +149,9 @@ BUY StatesはImmediateと完全同一で悪化なし。WAIT StatesではFill率�
 | Provider requests | 0 |
 | Protected Holdout/Fresh/OOS/Prospective | 0 / unopened |
 
-Dedicated + preserved Entry local testsは29/29 PASS、STEP 1 Contract testsは7/7 PASS。GitHub dedicated CI、関連Signal regression、Predict regressionのreceiptは実装commit後にappendする。PR全体のunrelated workflowは別集計し、全体GREENとは事実確認なしに主張しない。
+ローカルはState v3 Entry + preserved Entry v1 tests 30/30、STEP 1 Contract tests 7/7 PASS。GitHub dedicated run `35809193558` は2/2 job PASSした。統合Python testsはContract・State v3 Entry・Entry v1・既存Signalを合わせ78/78 PASS。2,155件を2回replayし、相互およびcommit済みmeasurementと全file byte-identicalだった。専用Predict regressionは `predict 2765/2765`、`discovery 26/26`、`foundation 39/39`、`python 30/30`、`rss 89/89`、合計2,949/2,949 PASS、unexpected network attempt 0。通常の `Predict Tests` run `35809193323` もPASSした。
+
+PR全体はGREENではない。今回のcompareはState v3 Entryの新規21ファイルだけだが、旧State v2/G/EXIT/causal-entry系の無関係workflow failureを6件観測した。対象scopeの専用CI・PredictはPASS、scope外failureは既存fail-closed/preservation gateとして分離記録した。詳細は `validation/CI_RECEIPT.json`。
 
 ## 問いへの回答とSTOP判断
 

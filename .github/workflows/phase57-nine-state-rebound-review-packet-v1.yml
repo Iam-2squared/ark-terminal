@@ -1,0 +1,85 @@
+name: Phase57 REBOUND Prefix Blind Review Packet v1
+
+on:
+  push:
+    branches:
+      - research/phase57-long-only-cash-equity
+    paths:
+      - '.github/workflows/phase57-nine-state-rebound-review-packet-v1.yml'
+      - 'scripts/phase57_nine_state_rebound_review_packet_v1.py'
+      - 'scripts/test_phase57_nine_state_rebound_review_packet_v1.py'
+      - 'docs/evidence/phase57-nine-state-entry-audit-v1/**'
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-nine-state-rebound-review-packet-v1.yml'
+      - 'scripts/phase57_nine_state_rebound_review_packet_v1.py'
+      - 'scripts/test_phase57_nine_state_rebound_review_packet_v1.py'
+      - 'docs/evidence/phase57-nine-state-entry-audit-v1/**'
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: phase57-nine-state-rebound-review-packet-v1
+  cancel-in-progress: true
+
+jobs:
+  build-blind-review-packet:
+    if: github.event_name == 'push' || (github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Focused blind-packet tests
+        run: |
+          set -euo pipefail
+          python -m unittest -v scripts.test_phase57_nine_state_rebound_review_packet_v1
+      - name: Download only the approved raw-price substrate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/10605887642/zip" > "$RUNNER_TEMP/substrate.zip"
+          test "$(sha256sum "$RUNNER_TEMP/substrate.zip" | cut -d ' ' -f1)" = "749caf82bbd9d39969f5712ef5a6f2705ac973a2f74483f03307c671586ae05a"
+          mkdir -p "$RUNNER_TEMP/substrate"
+          unzip -p "$RUNNER_TEMP/substrate.zip" substrate/raw-paths-evaluator-only.json.gz > "$RUNNER_TEMP/substrate/raw-paths-evaluator-only.json.gz"
+          test ! -s "$RUNNER_TEMP/substrate/outcomes.json.gz"
+      - name: Build frozen outcome-blind REBOUND review packet
+        run: |
+          set -euo pipefail
+          python -m scripts.phase57_nine_state_rebound_review_packet_v1 \
+            --state-checkpoints docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement/state-checkpoints.json.gz \
+            --raw-paths "$RUNNER_TEMP/substrate/raw-paths-evaluator-only.json.gz" \
+            --output "$RUNNER_TEMP/rebound-review-v1" \
+            | tee "$RUNNER_TEMP/rebound-review-v1-manifest.log"
+          test "$(find "$RUNNER_TEMP/rebound-review-v1/packet/charts" -name '*.svg' | wc -l)" -eq 36
+          test -f "$RUNNER_TEMP/rebound-review-v1/packet/review-template.csv"
+          test -f "$RUNNER_TEMP/rebound-review-v1/sealed/sealed-map.json"
+      - name: Guard public packet against identity/outcome leakage
+        run: |
+          set -euo pipefail
+          ! grep -R -E '"opportunity"|"baselineState"|laterHigh|orderedLow|MFE|MAE|Capture|entryId|fillPrice|future' "$RUNNER_TEMP/rebound-review-v1/packet/cases.json"
+          grep -q 'futureOrOutcomeSourcesOpened.*0' "$RUNNER_TEMP/rebound-review-v1/manifest.json"
+          grep -q 'entryOrFillSourcesOpened.*0' "$RUNNER_TEMP/rebound-review-v1/manifest.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-rebound-prefix-blind-review-packet-v1-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            ${{ runner.temp }}/rebound-review-v1/packet
+            ${{ runner.temp }}/rebound-review-v1/manifest.json
+            ${{ runner.temp }}/rebound-review-v1-manifest.log
+          if-no-files-found: error
+          retention-days: 90
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-rebound-prefix-sealed-map-v1-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/rebound-review-v1/sealed
+          if-no-files-found: error
+          retention-days: 90

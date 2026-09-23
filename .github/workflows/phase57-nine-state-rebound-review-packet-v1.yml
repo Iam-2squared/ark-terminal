@@ -59,7 +59,33 @@ jobs:
             --raw-paths "$RUNNER_TEMP/substrate/raw-paths-evaluator-only.json.gz" \
             --output "$RUNNER_TEMP/rebound-review-v1" \
             | tee "$RUNNER_TEMP/rebound-review-v1-manifest.log"
-          test "$(find "$RUNNER_TEMP/rebound-review-v1/packet/charts" -name '*.svg' | wc -l)" -eq 36
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ["RUNNER_TEMP"]) / "rebound-review-v1"
+          manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+          chart_count = len(list((root / "packet" / "charts").glob("*.svg")))
+          target_n = int(manifest["targetReviewCases"])
+          comparator_n = int(manifest["comparatorReviewCases"])
+          comparator_pool = int(manifest["comparatorPool"])
+          total_n = int(manifest["totalReviewCases"])
+
+          # Preserve the predeclared sampling contract: 24 REBOUND targets and
+          # up to 12 full-recovery RISE comparators. If the fixed comparator
+          # pool contains fewer than 12 cases, use the complete pool rather
+          # than weakening the prefix-only comparator definition post hoc.
+          assert target_n == 24, ("targetReviewCases", target_n)
+          assert comparator_pool > 0, ("comparatorPool", comparator_pool)
+          assert comparator_n == min(12, comparator_pool), (
+              "comparatorReviewCases", comparator_n, comparator_pool
+          )
+          assert total_n == target_n + comparator_n, (
+              "totalReviewCases", total_n, target_n, comparator_n
+          )
+          assert chart_count == total_n, ("chartCount", chart_count, total_n)
+          PY
           test -f "$RUNNER_TEMP/rebound-review-v1/packet/review-template.csv"
           test -f "$RUNNER_TEMP/rebound-review-v1/sealed/sealed-map.json"
       - name: Guard public packet against identity/outcome leakage

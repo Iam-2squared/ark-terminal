@@ -1,6 +1,14 @@
 name: Phase57 DROP/PULLBACK Lower-Wick Gate v1
 
 on:
+  push:
+    branches:
+      - research/phase57-long-only-cash-equity
+    paths:
+      - '.github/workflows/phase57-drop-pull-lower-wick-gate-v1.yml'
+      - 'scripts/phase57_drop_pull_lower_wick_gate_v1.py'
+      - 'scripts/test_phase57_drop_pull_lower_wick_gate_v1.py'
+      - 'docs/evidence/phase57-drop-pull-lower-wick-gate-v1/**'
   pull_request:
     paths:
       - '.github/workflows/phase57-drop-pull-lower-wick-gate-v1.yml'
@@ -24,13 +32,13 @@ env:
 
 jobs:
   measure:
-    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name == 'push' || (github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -84,7 +92,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: phase57-drop-pull-lower-wick-gate-v1-${{ github.event.pull_request.head.sha }}
+          name: phase57-drop-pull-lower-wick-gate-v1-${{ github.event.pull_request.head.sha || github.sha }}
           path: |
             ${{ runner.temp }}/replay-a
             ${{ runner.temp }}/drop-lw-tests.log

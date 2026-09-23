@@ -1,0 +1,116 @@
+name: Phase57 Nine-State Low-Centered Attribution v2
+
+on:
+  push:
+    branches:
+      - research/phase57-long-only-cash-equity
+    paths:
+      - '.github/workflows/phase57-nine-state-low-centered-attribution-v2.yml'
+      - 'docs/evidence/phase57-nine-state-entry-audit-v1/REMAINING_STATE_LOW_CENTERED_DIAGNOSTIC_R1.md'
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: phase57-nine-state-low-centered-attribution-v2
+  cancel-in-progress: true
+
+env:
+  PYTHONDONTWRITEBYTECODE: '1'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+
+jobs:
+  attribution:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Freeze generalized diagnostic source
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          src = Path('scripts/phase57_nine_state_low_centered_attribution_v1.py').read_text()
+          old_targets = 'TARGET_STATES = ("RISE", "DROP", "PULLBACK")'
+          new_targets = 'TARGET_STATES = ("SHARP_RISE", "RANGE", "SHARP_DROP", "DROP_STOP")'
+          assert old_targets in src
+          src = src.replace(old_targets, new_targets, 1)
+          old_assert = '''assert collections.Counter(target_state_by_opp.values()) == {\n        "RISE": 111, "DROP": 1403, "PULLBACK": 354\n    }'''
+          new_assert = '''assert collections.Counter(target_state_by_opp.values()) == {\n        "SHARP_RISE": 7, "RANGE": 57, "SHARP_DROP": 26, "DROP_STOP": 5\n    }'''
+          assert old_assert in src
+          src = src.replace(old_assert, new_assert, 1)
+          out = Path('/tmp/phase57_nine_state_low_centered_attribution_v2.py')
+          out.write_text(src)
+          compile(src, str(out), 'exec')
+          print('GENERALIZED_SOURCE_READY')
+          PY
+      - name: Restore approved raw-price substrate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/10605887642/zip" > "$RUNNER_TEMP/substrate.zip"
+          test "$(sha256sum "$RUNNER_TEMP/substrate.zip" | cut -d ' ' -f1)" = "749caf82bbd9d39969f5712ef5a6f2705ac973a2f74483f03307c671586ae05a"
+          mkdir -p "$RUNNER_TEMP/substrate"
+          unzip -p "$RUNNER_TEMP/substrate.zip" "substrate/raw-paths-evaluator-only.json.gz" > "$RUNNER_TEMP/substrate/raw-paths-evaluator-only.json.gz"
+      - name: Restore accepted one-minute Development evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/10732168448/zip" > "$RUNNER_TEMP/one-minute.zip"
+          test "$(sha256sum "$RUNNER_TEMP/one-minute.zip" | cut -d ' ' -f1)" = "74ff0fb4398f9e2659109103ae73e8a6b27423aa0eb5aee7006c84312488aab8"
+          mkdir -p "$RUNNER_TEMP/one-minute"
+          unzip -p "$RUNNER_TEMP/one-minute.zip" "replay-a/entry-records.json.gz" > "$RUNNER_TEMP/one-minute/entry-records.json.gz"
+      - name: Build frozen causal witnesses then align evaluator-only Low anatomy
+        run: |
+          set -euo pipefail
+          python /tmp/phase57_nine_state_low_centered_attribution_v2.py \
+            --measurement docs/evidence/phase57-entry-timing-signal-census-v1/measurement \
+            --state-checkpoints docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement/state-checkpoints.json.gz \
+            --raw-paths "$RUNNER_TEMP/substrate/raw-paths-evaluator-only.json.gz" \
+            --one-minute-records "$RUNNER_TEMP/one-minute/entry-records.json.gz" \
+            --output "$RUNNER_TEMP/low-centered-attribution-v2" \
+            | tee "$RUNNER_TEMP/low-centered-attribution-v2.log"
+      - name: Guard causal isolation and accepted baseline identity
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, math, os
+          from pathlib import Path
+          root = Path(os.environ['RUNNER_TEMP']) / 'low-centered-attribution-v2'
+          data = json.loads((root / 'summary.json').read_text())
+          assert data['population'] == 2155
+          assert data['targets'] == ['SHARP_RISE','RANGE','SHARP_DROP','DROP_STOP']
+          assert data['causalWitnessBuiltBeforeOracleOpen'] is True
+          assert data['stateFutureViolations'] == 0
+          assert data['closedBarChecks'] == data['closedBarPassed']
+          assert data['oracleLowHighDecisionUse'] == 0
+          assert data['futureOutcomeDecisionUse'] == 0
+          assert data['providerRequests'] == data['protectedDataOpened'] == 0
+          assert data['states']['SHARP_RISE']['population'] == 7
+          assert data['states']['RANGE']['population'] == 57
+          assert data['states']['SHARP_DROP']['population'] == 26
+          assert data['states']['DROP_STOP']['population'] == 5
+          baseline = data['oneMinuteAll']
+          assert baseline['fills'] == 1764
+          assert math.isclose(baseline['fillRatePct'], 81.85614849187935, abs_tol=1e-12)
+          assert math.isclose(baseline['entryPosition']['mean'], 0.6748679920277816, abs_tol=1e-12)
+          print('LOW_CENTERED_ATTRIBUTION_V2_GUARD_PASS')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-nine-state-low-centered-attribution-v2-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/low-centered-attribution-v2
+            ${{ runner.temp }}/low-centered-attribution-v2.log
+          if-no-files-found: error
+          retention-days: 90

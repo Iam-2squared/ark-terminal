@@ -86,6 +86,21 @@ jobs:
           ! grep -R -E '"opportunity"|"baselineState"|laterHigh|orderedLow|MFE|MAE|Capture|entryId|fillPrice|future' "$RUNNER_TEMP/rebound-review-v1/packet/cases.json"
           grep -q 'futureOrOutcomeSourcesOpened.*0' "$RUNNER_TEMP/rebound-review-v1/manifest.json"
           grep -q 'entryOrFillSourcesOpened.*0' "$RUNNER_TEMP/rebound-review-v1/manifest.json"
+      - name: Print masked prefix witness for blind semantic review
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path(os.environ["RUNNER_TEMP"]) / "rebound-review-v1" / "packet" / "cases.json"
+          cases = json.loads(path.read_text(encoding="utf-8"))
+          print(f"BLIND_PREFIX_WITNESSES_BEGIN count={len(cases)}")
+          for row in cases:
+              print(json.dumps(row, ensure_ascii=False, sort_keys=True, allow_nan=False))
+          print("BLIND_PREFIX_WITNESSES_END")
+          PY
       - name: Print masked terminal chart render for blind visual review
         run: |
           set -euo pipefail

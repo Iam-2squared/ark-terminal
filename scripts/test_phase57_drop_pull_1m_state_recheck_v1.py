@@ -93,5 +93,68 @@ class OneMinuteRecheckTests(unittest.TestCase):
         self.assertEqual(got["triggerSources"], ["SIGNAL_TRIGGER", "STATE_TRANSITION_BUY"])
 
 
+class DecisionSourceAuditTests(unittest.TestCase):
+    def test_docstrings_and_comments_are_not_payload_access(self):
+        source = '''def decision(row):
+    """Never use futureReturn, oracleLow or outcome."""
+    # outcome is evaluator-only, not a decision input.
+    return row["state"]
+'''
+        self.assertIn("outcome", source)
+        self.assertEqual(trial._prohibited_decision_tokens(source), [])
+
+    def test_all_forbidden_payload_keys_still_fail(self):
+        for token in trial.metrics.FORBIDDEN_DECISION_TOKENS:
+            with self.subTest(token=token):
+                source = 'def decision(row):\n    return row[' + repr(token) + ']\n'
+                self.assertIn(token, trial._prohibited_decision_tokens(source))
+
+    def test_forbidden_name_attribute_and_fstring_still_fail(self):
+        for expression in ('outcome', 'row.outcome', 'f"{outcome}"'):
+            with self.subTest(expression=expression):
+                source = 'def decision(row):\n    return ' + expression + '\n'
+                self.assertIn("outcome", trial._prohibited_decision_tokens(source))
+
+    def test_non_docstring_constant_is_not_removed(self):
+        source = 'def decision(row):\n    key = "oracleLow"\n    return row[key]\n'
+        self.assertIn("oracleLow", trial._prohibited_decision_tokens(source))
+
+    def test_forbidden_default_is_not_removed(self):
+        source = 'def decision(row, key="futureReturn"):\n    return row[key]\n'
+        self.assertIn("futureReturn", trial._prohibited_decision_tokens(source))
+
+    def test_nested_function_body_remains_scanned(self):
+        source = '''def decision(row):
+    """No outcome input should be accepted."""
+    def nested():
+        """This description mentions oracleLow."""
+        return row["futureMAE"]
+    return nested()
+'''
+        self.assertEqual(trial._prohibited_decision_tokens(source), ["futureMAE"])
+
+    def test_malformed_source_fails_closed(self):
+        with self.assertRaises(SyntaxError):
+            trial._prohibited_decision_tokens('def decision(:\n')
+
+    def test_real_frozen_decision_docstring_regression(self):
+        source = trial.inspect.getsource(trial._classify_target_every_minute)
+        source += trial.inspect.getsource(v3.frozen_intent)
+        self.assertIn("outcome", source)
+        self.assertEqual(trial._prohibited_decision_tokens(source), [])
+
+    def test_current_and_future_suffix_cannot_change_classification(self):
+        rows = [minute(600, 0), minute(601, 1), minute(602, 2)]
+        prefix = [[599, 100, 101, 99, 100], [600, 100, 102, 100, 101],
+                  [601, 101, 102, 100, 101.5]]
+        common = {"previousSession": "2026-01-01", "previous": [[599, 100, 101, 99, 100]]}
+        path_a = {**common, "today": prefix + [[602, 101, 103, 100, 102]]}
+        path_b = {**common, "today": prefix + [[602, 999, 9999, 1, 3], [610, 5, 8, 1, 2]]}
+        self.assertEqual(
+            trial._classify_target_every_minute("o", "2026-01-02", rows, path_a),
+            trial._classify_target_every_minute("o", "2026-01-02", rows, path_b),
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

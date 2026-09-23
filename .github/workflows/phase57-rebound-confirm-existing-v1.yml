@@ -20,8 +20,8 @@ concurrency:
 env:
   ARK_TEST_OFFLINE: '1'
   PYTHONDONTWRITEBYTECODE: '1'
-  OPENBLAS_NUM_THREADS: '1'
-  OMP_NUM_THREADS: '1'
+  OPENBLAS_NUM_THREADS: 1
+  OMP_NUM_THREADS: 1
 
 jobs:
   measure:
@@ -107,7 +107,7 @@ jobs:
           assert s['causalityAudit']['nonTargetRecordsExactParity']==1963
           assert s['providerRequests']==0 and s['protectedDataOpened']==0
           assert all(v is False for v in s['safety'].values())
-          assert set(s['targetCohort']['entryPositionThresholds']['REBOUND_CONFIRM_V1']['rates']) >= {'0.10','0.15','0.25','0.50'}
+          assert set(s['targetCohort']['entryPositionThresholds']['REBOUND_CONFIRM_V1']['rates']) >= {'0.1','0.15','0.25','0.5'}
           print(json.dumps({'status':s['status'],'gateChecks':s['gateChecks'],'deltas':s['targetCohort']['deltasVsStateV3'],'baseline':s['targetCohort']['entryPositionThresholds']['STATE_V3'],'candidate':s['targetCohort']['entryPositionThresholds']['REBOUND_CONFIRM_V1']},sort_keys=True))
           PY
           python scripts/verify_phase57_development_preservation.py

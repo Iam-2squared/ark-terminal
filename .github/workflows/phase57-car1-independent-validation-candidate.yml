@@ -1,0 +1,170 @@
+name: Phase57 CAR-1 Independent Validation Candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: 'Successful main Phase57 P25 Checkpointed Evaluation run ID containing the cumulative formal expected-session lineage'
+        required: true
+        type: string
+      source_run_head_sha:
+        description: 'Exact main head SHA of source_run_id'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-car1-independent-validation-candidate-${{ inputs.source_run_id }}
+  cancel-in-progress: false
+
+jobs:
+  metadata-only-validation-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      DEV_CAR1_RUN_ID: '33943395885'
+      DEV_CAR1_RUN_HEAD_SHA: '59d1f93e288d414d912d9ddfd1c91815c4ae8a90'
+      DEV_CAR1_ARTIFACT_NAME: 'phase57-car1-sizing-attribution-pinned-2026-09-03'
+      DEV_CAR1_ARTIFACT_DIGEST: 'sha256:658853e3d257d30b95f919dc86bf131cd4b0ef7ab66e7a688a080973ac9a7ac7'
+    steps:
+      - name: Checkout CAR-1 research branch
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify immutable development lock source
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mapfile -t metadata < <(gh api "repos/$GH_REPO/actions/runs/$DEV_CAR1_RUN_ID" --jq '.conclusion, .name, .head_branch, .head_sha')
+          test "${#metadata[@]}" -eq 4
+          test "${metadata[0]}" = 'success'
+          test "${metadata[1]}" = 'Phase57 CAR-1 Sizing Attribution'
+          test "${metadata[2]}" = 'research/phase57-car1-sizing-attribution'
+          test "${metadata[3]}" = "$DEV_CAR1_RUN_HEAD_SHA"
+          mapfile -t artifacts < <(gh api "repos/$GH_REPO/actions/runs/$DEV_CAR1_RUN_ID/artifacts" --jq ".artifacts[] | select(.name == \"$DEV_CAR1_ARTIFACT_NAME\") | [.id,.digest] | @tsv")
+          test "${#artifacts[@]}" -eq 1
+          IFS=$'\t' read -r artifact_id artifact_digest <<< "${artifacts[0]}"
+          test -n "$artifact_id"
+          test "$artifact_digest" = "$DEV_CAR1_ARTIFACT_DIGEST"
+      - name: Verify future formal checkpoint source run
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          SOURCE_RUN_HEAD_SHA: ${{ inputs.source_run_head_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$SOURCE_RUN_ID" =~ ^[0-9]+$ ]]
+          [[ "$SOURCE_RUN_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
+          mapfile -t metadata < <(gh api "repos/$GH_REPO/actions/runs/$SOURCE_RUN_ID" --jq '.conclusion, .path, .head_branch, .head_sha')
+          test "${#metadata[@]}" -eq 4
+          test "${metadata[0]}" = 'success'
+          test "${metadata[1]}" = '.github/workflows/phase57-p25-checkpointed-evaluation.yml'
+          test "${metadata[2]}" = 'main'
+          test "${metadata[3]}" = "$SOURCE_RUN_HEAD_SHA"
+      - name: Download pinned development lock artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/car1-development
+          gh run download "$DEV_CAR1_RUN_ID" --repo "$GH_REPO" --name "$DEV_CAR1_ARTIFACT_NAME" --dir /tmp/car1-development
+          mapfile -t development < <(find /tmp/car1-development -type f -name 'phase57-car1-sizing-attribution.json' | sort)
+          test "${#development[@]}" -eq 1
+          cp "${development[0]}" /tmp/car1-development.json
+      - name: Download exact future checkpoint inputs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/car1-candidate-source /tmp/car1-candidate-inputs/captures /tmp/car1-candidate-checkpoints
+          gh run download "$SOURCE_RUN_ID" --repo "$GH_REPO" --dir /tmp/car1-candidate-source
+          mapfile -t histories < <(find /tmp/car1-candidate-source -type f -name history.json | sort)
+          mapfile -t integrities < <(find /tmp/car1-candidate-source -type f -name integrity.json | sort)
+          mapfile -t lineages < <(find /tmp/car1-candidate-source -type f -name lineage.json | sort)
+          mapfile -t evaluations < <(find /tmp/car1-candidate-source -type f -name p25-evaluation.json | sort)
+          mapfile -t captures < <(find /tmp/car1-candidate-source -type f -path '*/captures/*.json' | sort)
+          mapfile -t checkpoints < <(find /tmp/car1-candidate-source -type f -name 'checkpoint-*.json' | sort)
+          test "${#histories[@]}" -eq 1
+          test "${#integrities[@]}" -eq 1
+          test "${#lineages[@]}" -eq 1
+          test "${#evaluations[@]}" -eq 1
+          test "${#captures[@]}" -gt 0
+          test "${#checkpoints[@]}" -gt 0
+          cp "${histories[0]}" /tmp/car1-candidate-inputs/history.json
+          cp "${integrities[0]}" /tmp/car1-candidate-inputs/integrity.json
+          cp "${lineages[0]}" /tmp/car1-candidate-inputs/lineage.json
+          cp "${evaluations[0]}" /tmp/car1-candidate-inputs/source-evaluation.json
+          for source in "${captures[@]}"; do
+            target="/tmp/car1-candidate-inputs/captures/$(basename "$source")"
+            test ! -e "$target"
+            cp "$source" "$target"
+          done
+          for source in "${checkpoints[@]}"; do
+            target="/tmp/car1-candidate-checkpoints/$(basename "$source")"
+            test ! -e "$target"
+            cp "$source" "$target"
+          done
+      - name: Build metadata-only validation gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/run_phase57_car1_validation_candidate_metadata.mjs \
+            --history-pack /tmp/car1-candidate-inputs/history.json \
+            --capture-dir /tmp/car1-candidate-inputs/captures \
+            --integrity-ledger /tmp/car1-candidate-inputs/integrity.json \
+            --lineage-manifest /tmp/car1-candidate-inputs/lineage.json \
+            --checkpoint-dir /tmp/car1-candidate-checkpoints \
+            --source-evaluation /tmp/car1-candidate-inputs/source-evaluation.json \
+            --development-artifact /tmp/car1-development.json \
+            --output /tmp/phase57-car1-validation-candidate-metadata.json
+      - name: Verify no cumulative challenger performance was materialized
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs=require('fs');
+          const x=JSON.parse(fs.readFileSync('/tmp/phase57-car1-validation-candidate-metadata.json','utf8'));
+          const c=x.candidateMetadata??{};
+          const g=x.gate??{};
+          const falseKeys=['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted'];
+          if(x.status!=='CAR1_METADATA_ONLY_VALIDATION_GATE_READY')throw new Error('metadata gate not ready');
+          if(c.status!=='CAR1_VALIDATION_CANDIDATE_METADATA_READY')throw new Error('candidate metadata not ready');
+          if(g.status!=='CAR1_INDEPENDENT_VALIDATION_WINDOW_READY_FOR_WINDOWED_REPLAY')throw new Error('validation window not ready');
+          if((g.selectedSessionDates??[]).length!==5)throw new Error('precommitted five-session window missing');
+          if(c.methodology?.challengerReplayExecuted!==false||c.methodology?.challengerPerformanceMaterialized!==false||c.methodology?.performanceExtractionAllowed!==false)throw new Error('candidate is not metadata-only');
+          if(g.cumulativeChallengerPerformanceMaterialized!==false||g.performanceExtractionAllowed!==false||g.winnerSelectionAllowed!==false||g.promotionEligible!==false)throw new Error('gate exposed forbidden interpretation');
+          for(const key of ['matrixRows','attributions','results','challengerResults','closedTrades','equityCurve'])if(key in c)throw new Error(`forbidden cumulative challenger surface: ${key}`);
+          for(const key of falseKeys)if(x.safety?.[key]!==false)throw new Error(`unsafe CAR-1 candidate flag: ${key}`);
+          console.log(JSON.stringify({
+            status:x.status,
+            selectedSessionDates:g.selectedSessionDates,
+            candidateLineageManifestHeadSha256:c.lineageManifestHeadSha256,
+            cumulativeChallengerPerformanceMaterialized:false,
+            performanceExtractionAllowed:false,
+          },null,2));
+          NODE
+      - name: Upload metadata-only validation gate
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-car1-validation-candidate-metadata-${{ inputs.source_run_id }}
+          path: /tmp/phase57-car1-validation-candidate-metadata.json
+          retention-days: 30
+      - name: Safety boundary
+        if: always()
+        run: |
+          echo 'Metadata-only CAR-1 validation gate. No cumulative challenger replay/performance, winner selection, promotion, persistence, main integration, broker/Excel/RSS order write, paper/live trading, or transmission.'

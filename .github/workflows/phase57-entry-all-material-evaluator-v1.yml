@@ -47,13 +47,14 @@ jobs:
       - name: Verify accepted ONE_MINUTE file identities
         run: |
           set -euo pipefail
-          test -f artifacts/one-minute/entry-records.json.gz
-          echo 'b569d8d7e25240d359bc1a3c2efbd04f2017136eabac1f4288459559f0cf6cde  artifacts/one-minute/causality-audit.json' | sha256sum -c -
-          echo 'de8ee035d2c2949e6ecbd5315d393de8794ca7d0e36ace49a6ccfe720a65a844  artifacts/one-minute/entry-records.json.gz' | sha256sum -c -
-          echo '7a76b1bcbfe9f35cfde0d3f94b9e12e0e0ad013ede8fce81997288027b2bfc08  artifacts/one-minute/gate.json' | sha256sum -c -
-          echo '8de015aeaf9b80d1d375b409ea597fa6dee24d767a72aeabdd5918faac367ea9  artifacts/one-minute/summary.json' | sha256sum -c -
-          echo '4e02becf3a49c51e84614cdabebe034f3a42a82a452a5d8013222bde3d14c2e2  artifacts/one-minute/target-paired-vs-state-v3.json.gz' | sha256sum -c -
-          echo 'e731492871f1db795df5a85042f04394c6e6775ecdac6131d2fe68909d09f32e  artifacts/one-minute/trades.json.gz' | sha256sum -c -
+          ROOT='artifacts/one-minute/replay-a'
+          test -f "$ROOT/entry-records.json.gz"
+          echo "b569d8d7e25240d359bc1a3c2efbd04f2017136eabac1f4288459559f0cf6cde  $ROOT/causality-audit.json" | sha256sum -c -
+          echo "de8ee035d2c2949e6ecbd5315d393de8794ca7d0e36ace49a6ccfe720a65a844  $ROOT/entry-records.json.gz" | sha256sum -c -
+          echo "7a76b1bcbfe9f35cfde0d3f94b9e12e0e0ad013ede8fce81997288027b2bfc08  $ROOT/gate.json" | sha256sum -c -
+          echo "8de015aeaf9b80d1d375b409ea597fa6dee24d767a72aeabdd5918faac367ea9  $ROOT/summary.json" | sha256sum -c -
+          echo "4e02becf3a49c51e84614cdabebe034f3a42a82a452a5d8013222bde3d14c2e2  $ROOT/target-paired-vs-state-v3.json.gz" | sha256sum -c -
+          echo "e731492871f1db795df5a85042f04394c6e6775ecdac6131d2fe68909d09f32e  $ROOT/trades.json.gz" | sha256sum -c -
 
       - name: Re-evaluate immutable baselines and accepted ONE_MINUTE
         env:
@@ -66,7 +67,7 @@ jobs:
           IMM='docs/evidence/phase57-state-conditioned-signal-entry-v1/measurement/baseline-immediate-records.json.gz'
           EV1='docs/evidence/phase57-state-conditioned-signal-entry-v1/measurement/entry-records.json.gz'
           SV3='docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement/entry-records.json.gz'
-          OM='artifacts/one-minute/entry-records.json.gz'
+          OM='artifacts/one-minute/replay-a/entry-records.json.gz'
 
           python scripts/phase57_entry_all_material_evaluator_v1.py \
             --opportunities "$OPP" --records "$IMM" --policy-name IMMEDIATE \

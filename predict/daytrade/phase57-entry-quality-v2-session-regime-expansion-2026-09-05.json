@@ -1,0 +1,225 @@
+{
+  "phase": "57.entry-quality-v2.session-regime-expansion",
+  "status": "SOURCE_FEASIBILITY_AUDIT_COMPLETE_PHASE0_NO_GO",
+  "asOf": "2026-09-05T00:00:00+09:00",
+  "purpose": "Expand independent sessions and market regimes without fitting Entry v2 or weakening PIT, Current Dynamic5m, or Frozen P21.",
+  "datasetChange": {
+    "startingCandidates": 445,
+    "startingSessions": 16,
+    "newCandidatesAdded": 0,
+    "newSessionsAdded": 0,
+    "pitViolations": 0,
+    "duplicateEvents": 0,
+    "reason": "No authorized long-horizon intraday credential or licensed raw dataset was configured; source semantics must pass an overlap pilot before ingestion."
+  },
+  "frozenP21PriorDependency": {
+    "policyId": "PHASE57_P24_COMBINED_PROSPECTIVE_V1",
+    "methodologyFrozenNotParameterVector": true,
+    "historicalUniverse": ["7203.T", "6758.T", "9984.T", "8306.T", "8035.T"],
+    "horizonsBars": [1, 3, 6, 12, 24],
+    "selectionOptions": {
+      "innerTrainFraction": 0.6,
+      "innerTestFraction": 0.15,
+      "innerMinTrainRows": 200,
+      "thresholds": [0.55, 0.6, 0.65],
+      "minInnerSignals": 50,
+      "minimumInnerNetReturnPct": 0,
+      "roundTripCostPct": 0.05
+    },
+    "causalRequirements": [
+      "All historical outcomes used for selection and refit must have outcomeAt <= decision timestamp.",
+      "The row-key intersection must exist across all frozen horizons.",
+      "Horizon, feature family, model/config, and threshold are selected from prior-only rows at each decision.",
+      "The selected model is refit from prior-only rows; the current row is outcome-free.",
+      "Current 5-minute context contains at least six completed same-session bars."
+    ],
+    "currentFrozenHistoryEndSession": "2026-08-12",
+    "currentFrozenBaselineEarliestLeakageFreeReplaySession": "2026-08-13",
+    "olderDecisionClassification": "HISTORICALLY_RECONSTRUCTED_P21_METHODOLOGY",
+    "olderDecisionSameAsCurrentFrozenBaseline": false,
+    "historicalMethodologyEarliestLeakageFreeDecision": null,
+    "historicalMethodologyEarliestDecisionBlocker": "Requires an empirical rolling build over older one-minute/five-minute bars for all five frozen-history symbols and must first satisfy the common-horizon 200-row/50-signal selection gates. Static code inspection cannot establish the first eligible session."
+  },
+  "providers": {
+    "yahooChart": {
+      "role": "CURRENT_GOLDEN_AND_16_SESSION_DEVELOPMENT_SOURCE",
+      "observedIntradayRetention": "approximately 60 days for 5-minute data",
+      "additionalLongHorizonExpansion": false,
+      "sourceClass": "HISTORICAL_RECONSTRUCTION_LATER_FETCHED",
+      "classification": ["DEVELOPMENT_ONLY", "NON_PROSPECTIVE"]
+    },
+    "jquantsApiMinute": {
+      "providerId": "JQUANTS_API_V2_MINUTE",
+      "officialEndpoint": "GET /v2/equities/bars/minute",
+      "interval": "1 minute; locally aggregatable to 5 minutes only after semantics pass",
+      "retention": "past 2 years",
+      "coverage": "TSE-listed equities; all issues may be requested by date; regional-only issues excluded",
+      "delistedCoverage": "Not proven from public minute-endpoint specification; must be tested with date-scoped master and known delistings.",
+      "noTradeSemantics": "No record is emitted for a minute with no trading activity; synthetic bars remain forbidden.",
+      "fields": ["Date", "Time", "Code", "O", "H", "L", "C", "Vo", "Va"],
+      "timezone": "Tokyo-local Date/Time inferred from TSE product context but must be confirmed in pilot lineage",
+      "timestampSemantics": "HH:mm field documented; interval-start versus interval-end availability is not explicitly proven by the public endpoint page",
+      "corporateActionSemantics": "Minute endpoint exposes no adjustment factor/adjusted-price fields in the documented response; relationship to daily adjusted data must be tested",
+      "corrections": "Provider overwrites corrected data and does not retain versions or expose ETags; immutable local raw SHA-256 snapshots are therefore required",
+      "access": "API or CSV with Stock Prices minute/tick add-on",
+      "basePlansJpyPerMonthTaxIncluded": {"Light": 1650, "Standard": 3300, "Premium": 16500},
+      "minuteTickAddonJpyPerMonthTaxIncluded": 5500,
+      "minimumKnownMonthlyCostWithLightJpyTaxIncluded": 7150,
+      "license": "Individual private use only; raw data redistribution is prohibited. Cancellation or downgrade requires deletion of acquired data, copies, and reversible derivatives.",
+      "repositoryRawDataPolicy": "DO_NOT_COMMIT_PROVIDER_RAW_DATA_OR_REVERSIBLE_DERIVATIVES_WITHOUT_CONFIRMED_RIGHTS_AND_ACCESS_CONTROL",
+      "credentialConfigured": false,
+      "intendedUseLicensed": false,
+      "adoptionReady": false,
+      "blockers": [
+        "NO_CONFIGURED_JQUANTS_API_KEY",
+        "INTENDED_PRIVATE_USE_AND_STORAGE_RIGHTS_NOT_CONFIRMED",
+        "INTERVAL_START_OR_END_SEMANTICS_NOT_OVERLAP_TESTED",
+        "OHLCV_AND_NO_TRADE_AGGREGATION_NOT_OVERLAP_TESTED",
+        "MINUTE_CORPORATE_ACTION_BASIS_NOT_CONFIRMED",
+        "HISTORICAL_DELISTED_AND_SYMBOL_CHANGE_COVERAGE_NOT_PROVEN"
+      ]
+    },
+    "jquantsDataCube": {
+      "providerId": "JQUANTS_DATACUBE_FILE_PURCHASE",
+      "delivery": "case-by-case files",
+      "users": "individuals and corporations",
+      "redistribution": "available subject to purchased product rights",
+      "retention": "product-specific",
+      "cost": "product-specific; public catalog discovery is insufficient to price a full OHLCV market-wide build",
+      "minuteProductFinding": "A TSE one-minute closing-price product is listed, but full OHLCV/volume coverage needed by Current Dynamic5m was not verified.",
+      "adoptionReady": false,
+      "blockers": [
+        "FULL_MARKET_ONE_MINUTE_OHLCV_PRODUCT_NOT_VERIFIED",
+        "PRODUCT_PERIOD_AND_LICENSE_NOT_SELECTED",
+        "TIMESTAMP_AND_CORPORATE_ACTION_SEMANTICS_NOT_PILOTED"
+      ]
+    },
+    "jpxFlexHistorical": {
+      "providerId": "JPX_FLEX_STANDARD_HISTORICAL",
+      "dataType": "exchange-origin real-time messages/ticks requiring deterministic five-minute aggregation",
+      "coverage": "TSE cash equities and CBs plus issue/base-price information for the relevant service",
+      "retention": "from 2011-01-11; 2010-01-04 onward available only as reference with possible missing portions",
+      "timestampSemantics": "PCAP reception timestamps from 2021-05-24; earlier data are unaltered FLEX text messages",
+      "delivery": "API for last-30-day Regular; AWS S3 for All-period or one-month Spot",
+      "regularStandardJpyPerMonthExTax": 100000,
+      "allPeriodStandardJpyPerMonthExTax": 300000,
+      "allPeriodMinimumContractMonths": 2,
+      "spotStandardOneMonthJpyExTax": 40000,
+      "academicAllPeriodStandardJpyPerMonthExTax": 50000,
+      "approxCompressedDailyStandardSizeAt60mOrdersGb": 5.5,
+      "license": "Contract required; external distribution needs an additional license; academic pricing requires application and conditions.",
+      "adoptionReady": false,
+      "blockers": [
+        "NO_CONTRACTED_ACCESS",
+        "HIGH_COST_AND_STORAGE_COMPUTE_BURDEN",
+        "FLEX_PARSER_AND_BAR_AGGREGATION_NOT_IMPLEMENTED",
+        "OVERLAP_PARITY_NOT_RUN"
+      ]
+    },
+    "jquantsPro": {
+      "providerId": "JQUANTS_PRO",
+      "users": "corporate entities only",
+      "delivery": "API or SFTP",
+      "cost": "contact provider",
+      "adoptionReady": false,
+      "blockers": ["CORPORATE_ONLY_AND_NO_CONTRACTED_ACCESS"]
+    }
+  },
+  "overlapPilot": {
+    "executed": false,
+    "blocker": "JQUANTS_API_KEY_NOT_CONFIGURED_AND_USE_RIGHTS_NOT_CONFIRMED",
+    "manifest": {
+      "readOnly": true,
+      "provider": "JQUANTS_API_V2_MINUTE",
+      "interval": "1m aggregated to 5m after interval-semantic test",
+      "timezone": "Asia/Tokyo_TO_BE_VERIFIED",
+      "sessions": ["2026-09-03", "2026-09-04"],
+      "symbols": ["4440.T", "336A.T", "338A.T", "8918.T"],
+      "sourceClass": "HISTORICAL_RECONSTRUCTION_LATER_FETCHED",
+      "classification": "DEVELOPMENT_ONLY_NON_PROSPECTIVE",
+      "normalizerVersion": "entry-v2-jquants-minute-pilot-v1",
+      "parserVersion": "jquants-v2-minute-schema-v1",
+      "rawSha256Required": true,
+      "timestampSemanticsClaimedBeforePilot": false,
+      "noTradeBarsMayBeSynthesized": false
+    },
+    "requiredComparisons": [
+      "1-minute Time field against golden provider interval boundaries",
+      "5-minute aggregated OHLC and summed volume against golden context",
+      "completed-bar availability at every decision timestamp",
+      "Current Dynamic5m memberships",
+      "Frozen P21 eligibility, direction, and entry reference",
+      "split/symbol-change/no-trade cases"
+    ],
+    "providerParity": null,
+    "goldenParityImpact": "NONE; no provider data was ingested or substituted"
+  },
+  "historicalUniverse": {
+    "currentRisk": "The existing 2026-06-30 JPX snapshot cannot be projected backward as a complete historical universe.",
+    "jquantsFeasibility": "Date-scoped all-issue minute requests plus date-scoped Listed Issue Master are promising, but delisted, IPO, preferred/common-code, symbol-change, halt, and no-trade coverage require pilot and longitudinal audit.",
+    "survivorshipBiasRisk": "UNRESOLVED_HIGH_FOR_LONG_BACKFILL_UNTIL_DATE_SPECIFIC_MASTER_AND_DELISTED_COVERAGE_PASS",
+    "currentDynamic5mReplay": "CONDITIONALLY_FEASIBLE_AFTER_MARKET-WIDE_DATE_QUERY, FIVE-MINUTE_AGGREGATION, UNIVERSE AUDIT, AND GOLDEN OVERLAP PARITY"
+  },
+  "sessionExpansion": {
+    "currentSessions": 16,
+    "currentCandidates": 445,
+    "observedCandidatesPerSession": 27.8125,
+    "jquantsTwoYearApproximateTseSessionCapacity": "approximately 480-500 sessions before causal warm-up and provider/universe blocking; not measured by an API pilot",
+    "checkpoints": {
+      "30": {"periodFeasible": true, "dataReady": false, "additionalSessionsRequired": 14, "mechanicalCandidatePlanningEstimate": 834},
+      "50": {"periodFeasible": true, "dataReady": false, "additionalSessionsRequired": 34, "mechanicalCandidatePlanningEstimate": 1391},
+      "100": {"periodFeasible": true, "dataReady": false, "additionalSessionsRequired": 84, "mechanicalCandidatePlanningEstimate": 2781}
+    },
+    "estimateCaveat": "Candidate estimates mechanically multiply the current observed yield and are neither performance forecasts nor promises; regime, universe, missing-bar, and causal-prior effects may materially change yield.",
+    "volatilityRegimeExpansion": "LIKELY_PERIOD_FEASIBLE_OVER_TWO_YEARS_BUT_UNPROVEN_UNTIL INGESTION; fixed regime thresholds must not be retuned",
+    "untouchedOosReservation": "No historical reconstruction is Untouched OOS. The first three eligible future sessions after model and threshold freeze remain reserved."
+  },
+  "phase0Reaudit": {
+    "decision": "NO_GO",
+    "modelFittingPerformed": false,
+    "thresholdTuningPerformed": false,
+    "entryV2PerformanceClaimed": false,
+    "resolvedThisRun": [
+      "Frozen P21 prior-history dependency is code-level specified.",
+      "Current baseline forward replay and historical causal methodology reconstruction are structurally separated.",
+      "Long-horizon official provider options and their adoption blockers are inventoried.",
+      "30/50/100-session period feasibility is bounded without pretending the data are ready."
+    ],
+    "remainingBlockers": [
+      "No authorized long-horizon intraday dataset has passed overlap parity.",
+      "Earliest eligible historical-methodology decision is not empirically established.",
+      "Historical universe and delisted/symbol-change coverage remain unverified.",
+      "Session count remains 16 and volatility regimes remain NORMAL_VOL-only.",
+      "No unused Untouched OOS session exists in the inspected period."
+    ],
+    "highestValueNextStep": "With separately confirmed private-use rights and an already configured credential, run the bounded read-only J-Quants minute overlap pilot on the fixed manifest; otherwise obtain a licensed equivalent dataset outside this code change. Do not scale until timestamp/OHLCV/universe parity passes."
+  },
+  "officialSources": [
+    {"title": "J-Quants Minute Stock Prices API", "url": "https://jpx-jquants.com/en/spec/eq-bars-minute"},
+    {"title": "J-Quants APIs and Data Storage Period", "url": "https://jpx-jquants.com/en/spec/data-spec"},
+    {"title": "J-Quants Update Timing and Corrections", "url": "https://jpx-jquants.com/en/spec/data-update"},
+    {"title": "J-Quants Usage and License", "url": "https://jpx-jquants.com/en/help/usage"},
+    {"title": "JPX Historical Data Overview", "url": "https://www.jpx.co.jp/english/markets/paid-info-equities/historical/index.html"},
+    {"title": "JPX FLEX Historical", "url": "https://www.jpx.co.jp/english/markets/paid-info-equities/historical/01.html"},
+    {"title": "J-Quants DataCube", "url": "https://dc.jpx-jquants.com/en"}
+  ],
+  "classification": {
+    "researchOnly": true,
+    "historicalDataIngested": false,
+    "prospective": false,
+    "formalOos": false,
+    "modelFittingPerformed": false,
+    "automaticPromotionAllowed": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

@@ -156,7 +156,17 @@ class EvaluatorContractTests(unittest.TestCase):
         geometry, reason = evaluator.geometry(row)
         self.assertIsNone(reason)
         self.assertLess(geometry.low_bar_start, geometry.high_bar_start)
-        self.assertEqual(geometry.horizon_end, 931)
+        self.assertEqual(geometry.horizon_end, 930)
+
+    def test_endpoint_auction_geometry_uses_same_timestamp_known_at(self):
+        row = next(r for r in evaluator.records()
+                   if r["orderedOracle"].get("fullSessionEvaluable")
+                   and r["orderedOracle"].get("highMinute") == 930
+                   and r["orderedOracle"].get("rangePct", 0) > 0)
+        geometry, reason = evaluator.geometry(row)
+        self.assertIsNone(reason)
+        self.assertEqual(geometry.high_bar_start, 930)
+        self.assertEqual(geometry.high_available_at(), 930)
 
     def test_scorecard_has_requested_arms_and_metrics(self):
         self.assertEqual(self.scorecard["entryArms"],

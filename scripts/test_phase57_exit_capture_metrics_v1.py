@@ -96,6 +96,14 @@ class CaptureTests(unittest.TestCase):
         self.assertEqual(r['sameHighEvaluatorGapPp'],1.)
         self.assertEqual(r['ownedPeakGivebackPp'],.5)
 
+    def test_endpoint_stamped_auction_high_is_known_at_terminal_exit(self):
+        g=OrderedGeometry(1000.,1050.,920,930,930,'SYNTHETIC_ENDPOINT_AUCTION','COMPLETE',930)
+        r=evaluate(geometry=g,exit_price=1050.,exit_minute=930)
+        self.assertFalse(r['sameHighAfterExit'])
+        self.assertEqual(r['geometryHighKnownAt'],930)
+        with self.assertRaises(ValueError):
+            evaluate(geometry=replace(g,high_known_at=None),exit_price=1050.,exit_minute=930)
+
     def test_exit_bar_high_cannot_be_credited_as_owned(self):
         with self.assertRaises(ValueError):evaluate(owned_peak=1050.,owned_peak_confirmed_at=611,owned_path_complete=True)
 

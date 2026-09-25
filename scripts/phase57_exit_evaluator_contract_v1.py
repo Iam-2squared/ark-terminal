@@ -23,8 +23,8 @@ SOURCE_SHA256 = "4b9afd72ccfff0b557fb4a5e067ac122ace90ae501d15a79627a89af9554a01
 COHORT_SHA256 = "6b02b3088dd8ea7f8ce53112bc276df442bae3ce0716b8139c92733be4de2994"
 RAW_PATHS_SHA256 = "37853e73799544be6fd6eb955de514073dd13671692426291a9fdb6d80056c6b"
 ORDERED_SCORECARD_SOURCE_SHA256 = "878aeae3f41af43fbbbde1d00d96be61a709a514ce96457a79bf89a2b0fed6b5"
-HORIZON_END = 931  # exclusive sentinel; permits endpoint-stamped auction minute 930
-DEFINITION_ID = "CANONICAL_ORDERED_LOW_STRICTLY_LATER_HIGH_R13_SOURCE_4b9afd72_HORIZON_931"
+HORIZON_END = 930  # inclusive knowledge cutoff; endpoint-stamped auction is known at 930
+DEFINITION_ID = "CANONICAL_ORDERED_LOW_STRICTLY_LATER_HIGH_R13_SOURCE_4b9afd72_KNOWN_THROUGH_930"
 EXPECTED_BUCKETS = {"<1%": 158, "1-2%": 391, "2-3%": 361,
                     "3-4%": 289, "4-5%": 188, ">=5%": 666}
 EXPECTED_NOT_EVALUABLE = {
@@ -67,8 +67,9 @@ def geometry(record: dict) -> tuple[OrderedGeometry | None, str | None]:
         return None, "NON_STRICT_ORACLE_ORDER"
     expected = 100 * (high / low - 1)
     require(abs(expected - oracle["rangePct"]) < 1e-8, "RANGE_DEFINITION_MISMATCH")
+    high_known_at = high_minute if high_minute == 930 else high_minute + 1
     result = OrderedGeometry(float(low), float(high), low_minute, high_minute,
-                             HORIZON_END, DEFINITION_ID, "COMPLETE")
+                             HORIZON_END, DEFINITION_ID, "COMPLETE", high_known_at)
     result.validate()
     return result, None
 

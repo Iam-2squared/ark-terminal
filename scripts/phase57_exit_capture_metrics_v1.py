@@ -50,13 +50,19 @@ class OrderedGeometry:
     horizon_end: int
     definition_id: str
     coverage_status: str
+    high_known_at: int | None = None
+
+    def high_available_at(self):
+        return self.high_bar_start + 1 if self.high_known_at is None else self.high_known_at
 
     def validate(self):
         price(self.low); price(self.high)
         for x in (self.low_bar_start, self.high_bar_start, self.horizon_end):
             minute(x)
+        known = self.high_available_at(); minute(known)
         check(self.low_bar_start < self.high_bar_start, 'LOW_HIGH_NOT_STRICTLY_ORDERED')
-        check(self.high_bar_start + 1 <= self.horizon_end, 'HIGH_OUTSIDE_HORIZON')
+        check(self.high_bar_start <= known <= self.high_bar_start + 1, 'HIGH_KNOWN_AT_CONVENTION')
+        check(known <= self.horizon_end, 'HIGH_OUTSIDE_HORIZON')
         check(isinstance(self.definition_id, str) and bool(self.definition_id.strip()), 'GEOMETRY_DEFINITION_REQUIRED')
         check(self.coverage_status in ('COMPLETE', 'PARTIAL', 'MISSING'), 'COVERAGE_STATUS_REQUIRED')
 
@@ -68,10 +74,16 @@ class PostEntryHigh:
     horizon_end: int
     definition_id: str
     coverage_status: str
+    high_known_at: int | None = None
+
+    def high_available_at(self):
+        return self.high_bar_start + 1 if self.high_known_at is None else self.high_known_at
 
     def validate(self):
         price(self.high); minute(self.high_bar_start); minute(self.horizon_end)
-        check(self.high_bar_start + 1 <= self.horizon_end, 'HIGH_OUTSIDE_HORIZON')
+        known = self.high_available_at(); minute(known)
+        check(self.high_bar_start <= known <= self.high_bar_start + 1, 'HIGH_KNOWN_AT_CONVENTION')
+        check(known <= self.horizon_end, 'HIGH_OUTSIDE_HORIZON')
         check(isinstance(self.definition_id, str) and bool(self.definition_id.strip()), 'GEOMETRY_DEFINITION_REQUIRED')
         check(self.coverage_status in ('COMPLETE', 'PARTIAL', 'MISSING'), 'COVERAGE_STATUS_REQUIRED')
 
@@ -98,6 +110,7 @@ def evaluate_capture(*, entry_price, entry_minute, exit_price, exit_minute,
         check(geometry is None or post_entry_high.horizon_end == geometry.horizon_end, 'DIFFERENT_EVALUATION_HORIZONS')
     r = {'evaluatorOnly': True, 'geometryDefinition': geometry.definition_id if geometry else None,
          'geometryCoverage': geometry.coverage_status if geometry else 'MISSING',
+         'geometryHighKnownAt': geometry.high_available_at() if geometry else None,
          'bucket': 'UNAVAILABLE', 'observedBucket': 'UNAVAILABLE',
          'opportunityRangePct': None, 'observedOpportunityRangePct': None,
          'entryPositionPct': None, 'entryToSameOrderedHighPct': None,
@@ -106,6 +119,7 @@ def evaluate_capture(*, entry_price, entry_minute, exit_price, exit_minute,
          'sameHighEvaluatorGapPp': None, 'ownedPeakGivebackPp': None,
          'sameHighAfterExit': None, 'entryBeforeOrderedLow': None,
          'postEntryHighDefinition': post_entry_high.definition_id if post_entry_high else None,
+         'postEntryHighKnownAt': post_entry_high.high_available_at() if post_entry_high else None,
          'entryToPostEntryHighPct': None, 'postEntryUpsideCapturePct': None,
          'postEntryHighEvaluatorGapPp': None, 'postEntryCaptureStatus': 'HIGH_UNAVAILABLE',
          'captureStatus': 'GEOMETRY_UNAVAILABLE', 'entryStatus': 'NO_ENTRY',
@@ -180,7 +194,7 @@ def evaluate_capture(*, entry_price, entry_minute, exit_price, exit_minute,
     r['entryPositionPct'] = 100 * (entry_price - g.low) / (g.high - g.low)
     if resolved:
         r['wholeOpportunityCapturePct'] = 100 * (exit_price - entry_price) / (g.high - g.low)
-        r['sameHighAfterExit'] = g.high_bar_start + 1 > exit_minute
+        r['sameHighAfterExit'] = g.high_available_at() > exit_minute
     if g.high_bar_start <= entry_minute:
         r['captureStatus'] = 'ORDERED_HIGH_NOT_STRICTLY_AFTER_ENTRY'
         return r

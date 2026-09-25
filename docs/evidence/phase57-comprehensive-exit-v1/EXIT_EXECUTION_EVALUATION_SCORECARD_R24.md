@@ -69,8 +69,11 @@ The existing ordered scorecard implementation SHA-256 is
 `878aeae3f41af43fbbbde1d00d96be61a709a514ce96457a79bf89a2b0fed6b5`.
 The definition is the maximum observed ordered Low→strictly-later High from the
 frozen Selector start through the same common session horizon, including the
-endpoint-stamped auction when present. The evaluator uses exclusive horizon
-sentinel 931. It is retrospective and never a decision input.
+endpoint-stamped auction when present. The evaluator's inclusive knowledge cutoff
+is 930. A regular bar High is known at start+1; the endpoint-stamped auction is
+explicitly known at 930, so a 15:30 terminal Exit does not misclassify its own
+simultaneous auction price as a post-Exit High. It is retrospective and never a
+decision input.
 
 Keep these identities separate:
 
@@ -153,4 +156,3 @@ partition or provider data was opened. Fixed12/Candidate A were not evaluated or
 referenced as a comparator. Model fits and candidate performance inspections are
 zero. Safety9 are all false; no execution, transmission, paper/live trading,
 promotion or production update is authorized.
-

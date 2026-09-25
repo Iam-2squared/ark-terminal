@@ -39,7 +39,8 @@ def build(opportunities,records,policy_name,t0_state_records=None,baseline_recor
         opp,rec=canonical._subset(opportunities,records,ids)
         result=canonical.policy_panel(opp,rec)
         result['unfilledReasons']=dict(collections.Counter(
-            r.get('reason',r.get('noEntryReason','UNSPECIFIED')) for r in rec if not r['entryId']))
+            r.get('unfilledReason') or r.get('reason') or r.get('noEntryReason') or 'UNSPECIFIED'
+            for r in rec if not r['entryId']))
         result['entryPositionInvalidFilledN']=result['fills']-result['entryPosition']['count']
         return result
     buckets={}; assigned=set()
@@ -63,7 +64,7 @@ def build(opportunities,records,policy_name,t0_state_records=None,baseline_recor
         'newBuckets':'orderedLowHighRangeBuckets use 100*(orderedOracle.high/orderedOracle.low-1)',
         'oracle':'Existing maximum observed ordered rise with strictly later high; not unordered daily min/max',
         'nonEvaluableReasonCounts':dict(sorted(reasons.items())),
-        'retrospectiveOnly':True,'noNewEntryVersion':True}
+        'retrospectiveOnly':True,'changesInputEntryDecisions':False}
     if t0_state_records is not None:
         state_map={r['opportunity']:r['initialState'] for r in t0_state_records}
         assert set(state_map)=={o['opportunity'] for o in opportunities}

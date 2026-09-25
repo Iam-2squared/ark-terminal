@@ -1,0 +1,85 @@
+name: Phase57 EXIT Observation Checkpoints R20
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - 'scripts/phase57_exit_checkpoints_v1.py'
+      - 'scripts/run_phase57_exit_checkpoints_v1.py'
+      - 'scripts/test_phase57_exit_checkpoints_v1.py'
+      - '.github/workflows/phase57-exit-checkpoints-v1.yml'
+      - 'docs/evidence/phase57-comprehensive-exit-v1/SEQUENTIAL_SUBSTRATE_CONTRACT_R20.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-exit-checkpoints-r20-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  observation-census:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      ARK_TEST_OFFLINE: '1'
+      ARK_REQUIRE_CANONICAL: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      PYTHONPATH: '.'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install pinned numeric dependency
+        run: python -m pip install numpy==2.3.5
+      - name: Mandatory synthetic and actual canonical producer tests
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/exit-checkpoints-r20
+          python -m unittest -v scripts.test_phase57_exit_checkpoints_v1 2>&1 | tee artifacts/exit-checkpoints-r20/tests.log
+      - uses: actions/download-artifact@v4
+        with:
+          repository: Iam-2squared/ark-terminal
+          run-id: '36099497597'
+          name: phase57-all-material-r1-afb38b7a5421ca4f6ff6d439bf89096236efd119
+          github-token: ${{ github.token }}
+          path: artifacts/frozen-entry-r1
+      - name: Full frozen Entry observation census twice; no EXIT policy
+        run: |
+          set -euo pipefail
+          for RUN in run-a run-b; do
+            python -m scripts.run_phase57_exit_checkpoints_v1 \
+              --r1-records artifacts/frozen-entry-r1/all-material-r1/ci-run-a/entry-records.json.gz \
+              --out artifacts/exit-checkpoints-r20/$RUN --head '${{ github.sha }}' --workers 2 \
+              | tee artifacts/exit-checkpoints-r20/$RUN.log
+          done
+          python - <<'PY'
+          import json, pathlib, hashlib
+          root=pathlib.Path('artifacts/exit-checkpoints-r20')
+          a=json.loads((root/'run-a/manifest.json').read_text())
+          b=json.loads((root/'run-b/manifest.json').read_text())
+          assert a==b, 'RUN_AB_FILE_HASHES_DIFFER'
+          s=json.loads((root/'run-a/coverage.json').read_text())
+          assert s['populationPerEntry']==2155
+          assert all(v is False for v in s['safety'].values())
+          for key in ('providerRequests','newProtectedPartitionsOpened','modelFits','candidatePoliciesEvaluated','legacyExitPoliciesInvoked'):
+              assert s[key]==0, key
+          receipt={'status':'CHECKPOINT_SUBSTRATE_PASS_NOT_EXIT_PERFORMANCE_PASS',
+                   'executionHead':'${{ github.sha }}','runABByteIdentical':True,
+                   'manifestSHA256':hashlib.sha256((root/'run-a/manifest.json').read_bytes()).hexdigest(),
+                   'byEntry':{arm:{k:v for k,v in p.items() if k not in ('fieldKnown','fieldMissing')} for arm,p in s['byEntry'].items()},
+                   'safety':s['safety'],'modelFits':0,'candidatePoliciesEvaluated':0}
+          (root/'CI_RECEIPT.json').write_text(json.dumps(receipt,sort_keys=True,indent=2)+'\n')
+          print(json.dumps(receipt,sort_keys=True))
+          PY
+      - name: Preserve evidence and failures, never overwrite
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-exit-checkpoints-r20-${{ github.run_id }}
+          path: artifacts/exit-checkpoints-r20
+          retention-days: 30
+          overwrite: false
+          compression-level: 1

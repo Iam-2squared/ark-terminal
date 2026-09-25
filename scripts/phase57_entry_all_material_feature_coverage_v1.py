@@ -269,7 +269,7 @@ def run():
     keys=pattern.pop('decisionRowsKey')
     sig=build_signal_coverage(ids,sessions,keys)
     state=build_state_coverage(ids,keys)
-    ids_hash=hashlib.sha256('\n'.join(sorted(ids)).encode()).hexdigest()
+    ids_hash=hashlib.sha256(json.dumps(sorted(ids),sort_keys=True,separators=(',',':')).encode()).hexdigest()
     pinned=read_json(TIMING/'cohort.json')['opportunityIdsSHA256']
     assert ids_hash==pinned
     integrity={'patternPopulationExact2155':pattern['population']==2155,
@@ -295,6 +295,7 @@ def run():
             'automaticAdmission':False},**blocked},
         'missingPolicy':{'decisionTime':'missing remains missing','futureBackfill':False,
             'interpolationFromFuture':False,'modelPreprocessing':'fit imputer/scaler on train fold only; missing indicators allowed'},
+        'inheritedCausalityLimitations':read_json(TIMING/'cohort.json').get('causalityLimitations',[]),
         'safety':SAFETY}
 
 

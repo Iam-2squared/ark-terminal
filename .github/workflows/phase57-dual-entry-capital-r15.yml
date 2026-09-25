@@ -60,6 +60,9 @@ jobs:
               assert a == b, ('RUN_A_B_NOT_BYTE_IDENTICAL',name)
               pins[name] = hashlib.sha256(a).hexdigest()
           s = json.loads((root/'run-a/summary.json').read_text())
+          protocol = json.loads(Path('docs/evidence/phase57-entry-timing-signal-census-v1/protocol.json').read_text())
+          calendar_sessions = protocol['evaluationSessions']
+          assert len(calendar_sessions) == len(set(calendar_sessions)) == 59
           assert s['streamVsFrozenR13ParityFills'] == 3848
           assert s['finalEntrySelected'] is False
           assert s['providerRequests'] == s['newProtectedPartitionsOpened'] == 0
@@ -67,7 +70,7 @@ jobs:
           for arm, reports in s['reports'].items():
               for architecture, r in reports.items():
                   assert r['opportunities'] == 2155
-                  assert r['sessionCount'] == 58
+                  assert r['sessionCount'] == len(calendar_sessions)
                   assert r['accepted'] == r['closed'] + r['unresolved']
                   assert r['accepted'] + r['rejected'] == r['entryFills']
                   assert r['maxConcurrent'] <= 10
@@ -79,6 +82,7 @@ jobs:
                       assert r['finalEquityJpy'] is None
           receipt = {'status':'CAPITAL_ACCOUNTING_INTEGRITY_PASS_NOT_PORTFOLIO_PROMOTION',
               'executionHead':'${{ github.sha }}','populationPerEntry':2155,
+              'calendarSessions':59,'opportunityBearingSessions':58,
               'runABByteIdentical':True,'streamParityFills':3848,
               'outputPins':pins,'safety':s['safety']}
           (root/'CI_RECEIPT.json').write_text(json.dumps(receipt,sort_keys=True,indent=2)+'\n')

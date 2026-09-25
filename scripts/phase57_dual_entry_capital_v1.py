@@ -227,7 +227,7 @@ def replay(rows, sessions, architecture, c, candidate, fixed):
     complete = not positions and all(r['equityJpy'] is not None for r in curve)
     pnls = [r['pnlJpy'] for r in closed]
     profits, losses = sum(max(0, n) for n in pnls), -sum(min(0, n) for n in pnls)
-    peak, drawdown = float(initial), 0., 0.
+    peak, drawdown = float(initial), 0.
     for r in curve:
         if r['equityJpy'] is not None:
             peak = max(peak, r['equityJpy'])

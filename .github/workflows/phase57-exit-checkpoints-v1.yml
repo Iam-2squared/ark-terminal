@@ -32,8 +32,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-      - name: Install pinned numeric dependency
-        run: python -m pip install numpy==2.3.5
+      - name: Install pinned canonical producer dependencies
+        run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.7.2 pandas==2.2.3
       - name: Mandatory synthetic and actual canonical producer tests
         run: |
           set -euo pipefail

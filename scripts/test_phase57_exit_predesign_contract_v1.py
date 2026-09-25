@@ -4,6 +4,7 @@ import ast
 import unittest
 from pathlib import Path
 
+from scripts import phase57_exit_claude_prefit_closure_v1 as closure
 from scripts import phase57_exit_evaluator_contract_v1 as evaluator
 from scripts import phase57_exit_execution_contract_v1 as execution
 from scripts import phase57_exit_feature_contract_v1 as feature
@@ -237,6 +238,41 @@ class FiniteProtocolTests(unittest.TestCase):
                     imports.append(node.module or "")
             self.assertFalse(any("exit_capture_metrics" in name or "exit_evaluator" in name
                                  for name in imports), module.__name__)
+
+
+class ClaudePrefitClosureIntegrationTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.contract = closure.synthetic_checks()
+
+    def test_all_r28_findings_closed_with_disposition(self):
+        findings = self.contract["findings"]
+        self.assertEqual(set(findings), {f"F{i:03d}" for i in range(1, 13)})
+        self.assertTrue(all(row["closed"] is True for row in findings.values()))
+
+    def test_state_and_signal_closure(self):
+        self.assertIn("DIRECT_STRICT_NOW", self.contract["findings"]["F001"]["rule"])
+        self.assertEqual(self.contract["findings"]["F002"]["encoding"],
+                         ["TRUE", "FALSE", "UNKNOWN"])
+        self.assertFalse(self.contract["findings"]["F002"]["trueToUnknownIsFailure"])
+
+    def test_owned_prefix_and_missingness_closure(self):
+        self.assertTrue(self.contract["syntheticChecks"]["incompletePrefixCertifiedMetricsNull"])
+        self.assertTrue(self.contract["syntheticChecks"]["missingFreshCloseNotForwardFilled"])
+        self.assertEqual(self.contract["findings"]["F008"]["terminalMissingCensored"], 63)
+
+    def test_bucket_training_isolation_and_finite_search(self):
+        self.assertTrue(self.contract["syntheticChecks"]["trainingSurfaceBucketFree"])
+        self.assertEqual(self.contract["findings"]["F010"]["candidateConfigurations"], 24)
+        self.assertEqual(self.contract["findings"]["F011"]["registeredThresholdPp"], [0.0, 0.10])
+        self.assertEqual(self.contract["findings"]["F011"]["registeredPersistence"], [1, 2])
+
+    def test_zero_fit_exposure_and_safety(self):
+        self.assertEqual(self.contract["modelFits"], 0)
+        self.assertFalse(self.contract["candidatePerformanceInspected"])
+        self.assertEqual(self.contract["providerRequests"], 0)
+        self.assertEqual(self.contract["protectedPartitionsOpened"], 0)
+        self.assertTrue(all(value is False for value in self.contract["safety"].values()))
 
 
 if __name__ == "__main__":

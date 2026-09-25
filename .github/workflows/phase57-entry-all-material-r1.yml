@@ -39,7 +39,9 @@ jobs:
         with:
           node-version: '22'
       - name: Install frozen numerical runtime
-        run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0
+        # Initial run36099241905 stopped before fit: legacy import chain requires pandas.
+        # Match the prefit/local and existing Pattern-v2 pandas2.2.3; no model change.
+        run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0 pandas==2.2.3
       - name: Focused and frozen policy regression
         run: |
           set -euo pipefail

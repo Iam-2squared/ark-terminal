@@ -12,7 +12,7 @@ import json
 import os
 from pathlib import Path
 import re
-from urllib.parse import quote
+from urllib.parse import quote, unquote, urlsplit
 from urllib.request import Request, urlopen
 
 
@@ -24,6 +24,21 @@ LAUNCH_PATH = f"{EVIDENCE}/GEN2_LAUNCH_R41.json"
 CONTRACT_WORKFLOW = ".github/workflows/phase57-exit-gen2-contract-r41.yml"
 FINITE_WORKFLOW = ".github/workflows/phase57-exit-gen2-r41.yml"
 R35_SHA256 = "a12852e36f270e247a9a0bb7f0f7f618da934297c05f7c687fccb7ceade40434"
+# One explicit pre-performance technical failure, independently audited before
+# this repair. This is not a general retry/allowlist mechanism.
+ZERO_FIT_FAILED_RUN_ID = 36233376942
+ZERO_FIT_FAILED_SHA = "8ecad9f0fd412e9ceb9ed04cc1e691979ad60d99"
+ZERO_FIT_ARTIFACT_ID = 10903576190
+ZERO_FIT_ARTIFACT_SHA256 = "f4830ec87fc55c00de2397056e657fbba01f49f4d09b50ca381482e6fe0456b8"
+ZERO_FIT_FAILED_STEP = "Verify launch authorization, exact source and prior CI"
+ZERO_FIT_SKIPPED_STEPS = (
+    "Install frozen estimator dependencies",
+    "Restore immutable R35 observation preparation",
+    "Prepare immutable features and isolated labels without model fitting",
+    "Recheck latest HEAD and duplicate jobs immediately before fitting",
+    "Gen2 finite fitting and causal replay — no selection or performance report",
+    "Verify completion counts and deferred audit boundary",
+)
 SAFETY_KEYS = frozenset((
     "executionAllowed", "brokerWriteAllowed", "excelOrderWriteAllowed",
     "rssOrderFunctionAllowed", "liveTradingAllowed", "paperTradingAllowed",
@@ -184,7 +199,17 @@ def contract_receipt(root: Path) -> dict:
 
 
 def github_get(endpoint: str):
-    require(endpoint.startswith("/") and ".." not in endpoint, "invalid GitHub endpoint")
+    require(isinstance(endpoint, str) and endpoint.startswith("/")
+            and not any(ord(char) < 32 or char == "\\" for char in endpoint),
+            "invalid GitHub endpoint")
+    parts = urlsplit(endpoint)
+    require(not parts.scheme and not parts.netloc and not parts.fragment,
+            "invalid GitHub endpoint")
+    # /compare/<sha>...<sha> is legitimate GitHub syntax; only complete dot
+    # segments are traversal. Decode the path to catch encoded dot segments.
+    decoded = unquote(parts.path)
+    require(not any(segment in (".", "..") for segment in decoded.split("/"))
+            and "\\" not in decoded, "invalid GitHub endpoint")
     headers = {"Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}
     token = os.environ.get("GH_TOKEN")
     if token:
@@ -204,6 +229,47 @@ def _all_branch_runs(workflow: str, get) -> list[dict]:
         if len(batch) < 100:
             return result
     raise ValueError("workflow run pagination limit reached; cannot establish no duplicates")
+
+
+def verify_single_zero_fit_failure(get) -> dict:
+    """Recheck the one audited failed launch before excluding it as a fit run."""
+    run = get(f"/actions/runs/{ZERO_FIT_FAILED_RUN_ID}")
+    require(run["id"] == ZERO_FIT_FAILED_RUN_ID and run["head_sha"] == ZERO_FIT_FAILED_SHA
+            and run["path"] == FINITE_WORKFLOW and run["run_attempt"] == 1
+            and run["status"] == "completed" and run["conclusion"] == "failure",
+            "audited zero-fit run identity/status drift")
+    result = get(f"/actions/runs/{ZERO_FIT_FAILED_RUN_ID}/jobs?filter=all&per_page=100")
+    require(result["total_count"] == len(result["jobs"]) == 1, "audited zero-fit job count drift")
+    job = result["jobs"][0]
+    require(job["name"] == "finite-once" and job["status"] == "completed"
+            and job["conclusion"] == "failure", "audited zero-fit job identity/status drift")
+    steps = {step["name"]: step for step in job["steps"]}
+    require(len(steps) == len(job["steps"]), "audited zero-fit duplicate step names")
+    failed = steps.get(ZERO_FIT_FAILED_STEP, {})
+    require(failed.get("status") == "completed" and failed.get("conclusion") == "failure",
+            "audited zero-fit preflight failure unproven")
+    for name in ZERO_FIT_SKIPPED_STEPS:
+        step = steps.get(name, {})
+        require(step.get("conclusion") == "skipped"
+                and step.get("number", -1) > failed["number"],
+                f"audited zero-fit step was not skipped: {name}")
+    upload = steps.get("Preserve full reproducibility evidence and any partial failure", {})
+    require(upload.get("conclusion") == "success", "audited zero-fit artifact upload not successful")
+    artifact = get(f"/actions/artifacts/{ZERO_FIT_ARTIFACT_ID}")
+    require(artifact["id"] == ZERO_FIT_ARTIFACT_ID
+            and artifact["workflow_run"]["id"] == ZERO_FIT_FAILED_RUN_ID
+            and artifact["expired"] is False
+            and artifact["digest"] == f"sha256:{ZERO_FIT_ARTIFACT_SHA256}",
+            "audited zero-fit artifact identity/digest drift")
+    return {
+        "status": "VERIFIED_ZERO_FIT_PREFLIGHT_FAILURE",
+        "runId": ZERO_FIT_FAILED_RUN_ID, "executionHead": ZERO_FIT_FAILED_SHA,
+        "runAttempt": 1, "failedStep": ZERO_FIT_FAILED_STEP,
+        "skippedSteps": list(ZERO_FIT_SKIPPED_STEPS),
+        "artifactId": ZERO_FIT_ARTIFACT_ID, "artifactSha256": ZERO_FIT_ARTIFACT_SHA256,
+        "dataPreparationStarted": False, "modelFitsStarted": 0, "candidateReplaysStarted": 0,
+        "exceptionScope": "THIS_SINGLE_AUDITED_RUN_ONLY_NO_PERFORMANCE_RESTART",
+    }
 
 
 def launch_receipt(root: Path, prerequisite: dict, get=github_get) -> dict:
@@ -245,7 +311,12 @@ def launch_receipt(root: Path, prerequisite: dict, get=github_get) -> dict:
     current_run = get(f"/actions/runs/{run_id}")
     require(current_run["head_sha"] == current_sha and current_run["path"] == FINITE_WORKFLOW,
             "current workflow metadata mismatch")
+    zero_fit_failures = []
     for other in _all_branch_runs("phase57-exit-gen2-r41.yml", get):
+        if int(other["id"]) == ZERO_FIT_FAILED_RUN_ID and int(other["id"]) != run_id:
+            require(not zero_fit_failures, "audited zero-fit run listed more than once")
+            zero_fit_failures.append(verify_single_zero_fit_failure(get))
+            continue
         require(int(other["id"]) == run_id,
                 f"another generation R41 heavy run exists: {other['id']}; explicit investigation required")
     for other in _all_branch_runs("phase57-exit-finite-r36.yml", get):
@@ -270,6 +341,7 @@ def launch_receipt(root: Path, prerequisite: dict, get=github_get) -> dict:
         "r35Artifact": r35,
         "sourceTreeUnchangedSinceRequiredCI": True,
         "duplicateGenerationRunCount": 0,
+        "auditedZeroFitPriorRuns": zero_fit_failures,
         "legacyR36ActiveRunCount": 0,
     })
     return current

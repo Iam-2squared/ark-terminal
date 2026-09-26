@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import copy
 import hashlib
+import io
 import json
 import os
 from pathlib import Path
@@ -13,7 +14,9 @@ from unittest.mock import patch
 from scripts.phase57_exit_gen2_preflight_r41 import (
     BRANCH, CONTRACT_WORKFLOW, EXPOSURE, FINITE_WORKFLOW, LAUNCH_PATH,
     PROTOCOL_PATH, R35_SHA256, REPOSITORY, SAFETY_KEYS, assert_safety,
-    contract_receipt, launch_receipt, main, source_manifest, validate_protocol,
+    ZERO_FIT_ARTIFACT_ID, ZERO_FIT_ARTIFACT_SHA256, ZERO_FIT_FAILED_RUN_ID,
+    ZERO_FIT_FAILED_SHA, ZERO_FIT_FAILED_STEP, ZERO_FIT_SKIPPED_STEPS,
+    contract_receipt, github_get, launch_receipt, main, source_manifest, validate_protocol,
 )
 
 
@@ -99,6 +102,89 @@ class PreflightTests(unittest.TestCase):
     def verify(self, get=None):
         with patch.dict(os.environ, self.environment):
             return launch_receipt(self.root, self.prerequisite, get or self.get)
+
+    def zero_fit_get(self, endpoint):
+        if endpoint in self.overrides:
+            return copy.deepcopy(self.overrides[endpoint])
+        if endpoint.startswith("/actions/workflows/phase57-exit-gen2-r41.yml"):
+            return {"workflow_runs": [{"id": 20}, {"id": ZERO_FIT_FAILED_RUN_ID}]}
+        if endpoint == f"/actions/runs/{ZERO_FIT_FAILED_RUN_ID}":
+            return {"id": ZERO_FIT_FAILED_RUN_ID, "head_sha": ZERO_FIT_FAILED_SHA,
+                    "path": FINITE_WORKFLOW, "run_attempt": 1,
+                    "status": "completed", "conclusion": "failure"}
+        if endpoint == f"/actions/runs/{ZERO_FIT_FAILED_RUN_ID}/jobs?filter=all&per_page=100":
+            steps = [{"name": ZERO_FIT_FAILED_STEP, "number": 6,
+                      "status": "completed", "conclusion": "failure"}]
+            steps.extend({"name": name, "number": i + 7, "status": "completed", "conclusion": "skipped"}
+                         for i, name in enumerate(ZERO_FIT_SKIPPED_STEPS))
+            steps.append({"name": "Preserve full reproducibility evidence and any partial failure",
+                          "number": 13, "status": "completed", "conclusion": "success"})
+            return {"total_count": 1, "jobs": [{"name": "finite-once", "status": "completed",
+                                                "conclusion": "failure", "steps": steps}]}
+        if endpoint == f"/actions/artifacts/{ZERO_FIT_ARTIFACT_ID}":
+            return {"id": ZERO_FIT_ARTIFACT_ID, "workflow_run": {"id": ZERO_FIT_FAILED_RUN_ID},
+                    "expired": False, "digest": f"sha256:{ZERO_FIT_ARTIFACT_SHA256}"}
+        return self.get(endpoint)
+
+    def test_real_github_get_allows_sha_comparison_syntax(self):
+        endpoint = f"/compare/{self.precommit}...{self.execution}"
+        with patch("scripts.phase57_exit_gen2_preflight_r41.urlopen", return_value=io.BytesIO(b'{"status":"ahead"}')) as call:
+            self.assertEqual(github_get(endpoint), {"status": "ahead"})
+        self.assertEqual(call.call_args.args[0].full_url,
+                         f"https://api.github.com/repos/{REPOSITORY}{endpoint}")
+
+    def test_real_github_get_rejects_traversal_and_foreign_urls(self):
+        for endpoint in ("https://example.com/x", "//example.com/x", "/../x", "/x/../y",
+                         "/x/%2e%2e/y", "/x/./y", "/x\\..\\y", "/x#fragment", "/x\n"):
+            with self.subTest(endpoint=endpoint), patch("scripts.phase57_exit_gen2_preflight_r41.urlopen") as call:
+                with self.assertRaisesRegex(ValueError, "invalid GitHub endpoint"):
+                    github_get(endpoint)
+                call.assert_not_called()
+
+    def test_single_audited_zero_fit_failure_is_explicitly_recorded(self):
+        receipt = self.verify(self.zero_fit_get)
+        proof, = receipt["auditedZeroFitPriorRuns"]
+        self.assertEqual(proof["runId"], ZERO_FIT_FAILED_RUN_ID)
+        self.assertEqual(proof["modelFitsStarted"], 0)
+        self.assertEqual(proof["candidateReplaysStarted"], 0)
+        self.assertFalse(proof["dataPreparationStarted"])
+
+    def test_zero_fit_exception_rejects_identity_attempt_or_status_drift(self):
+        endpoint = f"/actions/runs/{ZERO_FIT_FAILED_RUN_ID}"
+        for key, value in (("head_sha", "3" * 40), ("run_attempt", 2), ("conclusion", "success")):
+            with self.subTest(key=key):
+                self.overrides.pop(endpoint, None)
+                run = self.zero_fit_get(endpoint)
+                run[key] = value
+                self.overrides[endpoint] = run
+                with self.assertRaisesRegex(ValueError, "zero-fit run identity/status drift"):
+                    self.verify(self.zero_fit_get)
+
+    def test_zero_fit_exception_rejects_any_started_computation_step(self):
+        endpoint = f"/actions/runs/{ZERO_FIT_FAILED_RUN_ID}/jobs?filter=all&per_page=100"
+        for name in ZERO_FIT_SKIPPED_STEPS:
+            with self.subTest(step=name):
+                self.overrides.pop(endpoint, None)
+                jobs = self.zero_fit_get(endpoint)
+                next(step for step in jobs["jobs"][0]["steps"] if step["name"] == name)["conclusion"] = "failure"
+                self.overrides[endpoint] = jobs
+                with self.assertRaisesRegex(ValueError, "zero-fit step was not skipped"):
+                    self.verify(self.zero_fit_get)
+
+    def test_zero_fit_exception_rejects_artifact_drift_and_additional_prior_run(self):
+        endpoint = f"/actions/artifacts/{ZERO_FIT_ARTIFACT_ID}"
+        artifact = self.zero_fit_get(endpoint)
+        artifact["digest"] = "sha256:" + "0" * 64
+        self.overrides[endpoint] = artifact
+        with self.assertRaisesRegex(ValueError, "zero-fit artifact identity/digest drift"):
+            self.verify(self.zero_fit_get)
+        self.overrides.pop(endpoint)
+        def extra(endpoint):
+            if endpoint.startswith("/actions/workflows/phase57-exit-gen2-r41.yml"):
+                return {"workflow_runs": [{"id": 20}, {"id": ZERO_FIT_FAILED_RUN_ID}, {"id": 19}]}
+            return self.zero_fit_get(endpoint)
+        with self.assertRaisesRegex(ValueError, "another generation R41"):
+            self.verify(extra)
 
     def test_contract_manifest_includes_transitive_imports(self):
         manifest = source_manifest(self.root)

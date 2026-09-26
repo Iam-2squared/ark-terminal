@@ -1,0 +1,142 @@
+# Launch-only, user-authorized, tested immutable R45 execution. No performance report.
+# Current: 4 policies / 24 fits once. Next: independent post-run artifact audit.
+name: Phase57 Gen3 Finite Learning R45
+on:
+  push:
+    branches: ['research/phase57-gen3-r45-launch-*']
+    paths:
+      - 'docs/evidence/phase57-comprehensive-exit-v1/GEN3_LAUNCH_R45.json'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-gen3-finite-r45-one-shot
+  cancel-in-progress: false
+jobs:
+  finite-once:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      ARK_TEST_OFFLINE: '1'
+      PYTHONPATH: '.'
+      PYTHONDONTWRITEBYTECODE: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Read explicit user authorization and immutable execution identity
+        id: marker
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,re,shutil
+          source=pathlib.Path('docs/evidence/phase57-comprehensive-exit-v1/GEN3_LAUNCH_R45.json')
+          d=json.loads(source.read_text())
+          assert d['schemaVersion']=='phase57-gen3-launch-r45-v1' and d['authorizedByUser'] is True
+          assert re.fullmatch('[0-9a-f]{40}',d['executionSha'])
+          assert type(d['contractRunId']) is int and d['contractRunId']>0
+          assert d['protocolSha256']=='e7b38e7e6aaf909926852467152fffef2532f58f960a95e6f2d18efd66f5d1b5'
+          assert d['candidateCount']==4 and d['expectedModelFitCount']==24
+          assert os.environ['GITHUB_REF']=='refs/heads/'+d['triggerBranch']
+          shutil.copyfile(source,pathlib.Path(os.environ['RUNNER_TEMP'])/'gen3-launch.json')
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:
+              f.write('execution='+d['executionSha']+'\ncontract_run='+str(d['contractRunId'])+'\n')
+          PY
+      - name: Checkout exact source tested by required CI
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.marker.outputs.execution }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Initialize immutable launch evidence
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/gen3-launch-logs
+          cp "$RUNNER_TEMP/gen3-launch.json" artifacts/gen3-launch-logs/launch.json
+      - name: Install exact frozen estimator dependencies
+        run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.7.2 pandas==2.2.3 joblib==1.5.2
+      - name: Restore successful exact-execution CI and support evidence
+        uses: actions/download-artifact@v4
+        with:
+          repository: Iam-2squared/ark-terminal
+          run-id: ${{ steps.marker.outputs.contract_run }}
+          name: phase57-gen3-contract-r45-${{ steps.marker.outputs.contract_run }}
+          github-token: ${{ github.token }}
+          path: artifacts/gen3-contract
+      - name: Verify launch authorization exact source prior CI and no duplicate learning
+        env:
+          ARK_GEN3_EXECUTION_SHA: ${{ steps.marker.outputs.execution }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python -m scripts.phase57_exit_gen3_preflight_r45 --mode launch \
+            --marker "$RUNNER_TEMP/gen3-launch.json" \
+            --contract-receipt artifacts/gen3-contract/receipt.json \
+            --out artifacts/gen3-launch-logs/launch-verification.json
+      - name: Restore immutable R35 observation preparation
+        uses: actions/download-artifact@v4
+        with:
+          repository: Iam-2squared/ark-terminal
+          run-id: '36220335998'
+          name: phase57-exit-capital-prep-r35-36220335998
+          github-token: ${{ github.token }}
+          path: artifacts/r35
+      - name: Prepare exact causal features and isolated labels without fitting
+        env:
+          ARK_GEN3_EXECUTION_SHA: ${{ steps.marker.outputs.execution }}
+          R45_CONTRACT_RECEIPT: artifacts/gen3-contract/receipt.json
+        run: |
+          set -euo pipefail
+          python -m scripts.phase57_exit_gen3_runner_r45 --phase prepare \
+            --core-root artifacts/r35 --out artifacts/gen3-r45 --workers 2 \
+            --prepared-cache "$RUNNER_TEMP/gen3-prepared.pkl" \
+            2>&1 | tee artifacts/gen3-launch-logs/prepare.log
+      - name: Recheck branch identities and one-shot boundary immediately before fitting
+        env:
+          ARK_GEN3_EXECUTION_SHA: ${{ steps.marker.outputs.execution }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python -m scripts.phase57_exit_gen3_preflight_r45 --mode launch \
+            --marker "$RUNNER_TEMP/gen3-launch.json" \
+            --contract-receipt artifacts/gen3-contract/receipt.json \
+            --out artifacts/gen3-launch-logs/pre-fit-verification.json
+      - name: Fit exactly 24 models and replay four policies A/B with no selection
+        env:
+          ARK_GEN3_EXECUTION_SHA: ${{ steps.marker.outputs.execution }}
+          R45_CONTRACT_RECEIPT: artifacts/gen3-contract/receipt.json
+        run: |
+          set -euo pipefail
+          python -m scripts.phase57_exit_gen3_runner_r45 --phase fit-replay \
+            --core-root artifacts/r35 --out artifacts/gen3-r45 --workers 2 \
+            --prepared-cache "$RUNNER_TEMP/gen3-prepared.pkl" \
+            2>&1 | tee artifacts/gen3-launch-logs/finite.log
+      - name: Verify completion and deferred audit boundary
+        run: |
+          python - <<'PY'
+          import json,pathlib
+          d=json.loads(pathlib.Path('artifacts/gen3-r45/receipt.json').read_text())
+          assert d['status']=='AWAITING_POST_RUN_AUDIT'
+          assert d['modelFits']==24 and d['candidatePoliciesReplayed']==4
+          assert d['policyReplayPasses']==8 and d['neutralDiagnosticReplayPasses']==2
+          assert d['runABByteIdentical'] is True and d['scorecardsProduced']==0
+          assert d['selection'] is None
+          assert d['providerRequests']==d['protectedPartitionsOpened']==0
+          assert all(v is False for v in d['safety'].values())
+          print('AWAITING_POST_RUN_AUDIT: 24 fits, 4 policies; not a performance PASS')
+          PY
+      - name: Preserve all evidence including partial failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-exit-gen3-r45-${{ github.run_id }}
+          path: |
+            artifacts/gen3-r45
+            artifacts/gen3-launch-logs
+          retention-days: 90
+          overwrite: false
+          if-no-files-found: error

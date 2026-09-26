@@ -14,6 +14,7 @@ from scripts import phase57_exit_gen2_data_r41 as r41
 from scripts import phase57_exit_gen3_runtime_r45 as runtime
 from scripts.phase57_exit_gen3_facts_r45 import FactEncoder, calendar_features, schedule
 from scripts.phase57_exit_gen3_labels_r45 import HEADS, REASONS, index_rows, utility_labels
+from scripts.phase57_exit_gen3_pattern_r45 import parallel_patterns
 
 
 def build_data(core_root: Path, out: Path, *, support_only: bool):
@@ -74,6 +75,10 @@ def build_data(core_root: Path, out: Path, *, support_only: bool):
                 p['entryArms'].index(r['identity'][0]), r['identity'][1], r['identity'][2]))
             current = None; encoder = None; raw_index = {}; pattern_cache = {}; seen = set()
             day_schedule = schedule(day)
+            if not support_only:
+                keys = [(entry_rows[r['identity'][0] + '::' + r['identity'][1]]['opportunity'], r['identity'][2]) for r in rows]
+                pattern_cache = parallel_patterns(day, keys, raw, origins, p['features']['patternNames'], p['execution']['workers'])
+                unique_patterns += len(pattern_cache)
             for row in rows:
                 arm, eid, now = row['identity']; key = arm + '::' + eid
                 ident = (arm, eid, now)
@@ -97,9 +102,7 @@ def build_data(core_root: Path, out: Path, *, support_only: bool):
                 nums[cursor] = [float(v) if v is not None else np.nan for v in vals]
                 if not support_only:
                     pattern_key = (oid, now)
-                    if pattern_key not in pattern_cache:
-                        pattern_cache[pattern_key] = r41.pattern_vector(day, now, raw[oid], origins[oid], p['features']['patternNames'])
-                        unique_patterns += 1
+                    r36.require(pattern_key in pattern_cache, 'R45_MISSING_PATTERN_KEY')
                     patterns[cursor] = pattern_cache[pattern_key]
                 # Future reference reads happen only inside the training-label module.
                 label = utility_labels(now, day_schedule, index, float(entry['price']), row['fresh'],

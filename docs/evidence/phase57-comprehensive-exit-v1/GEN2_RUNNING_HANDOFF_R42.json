@@ -1,0 +1,170 @@
+{
+  "schemaVersion": "phase57-gen2-running-handoff-r42-v1",
+  "observedAt": "2026-09-26T09:50:08.541Z",
+  "status": "WORKFLOW_LAUNCH_VERIFIED_PREPARATION_RUNNING_FITTING_NOT_YET_OBSERVED",
+  "repository": "Iam-2squared/ark-terminal",
+  "executionBranch": "research/phase57-long-only-cash-equity",
+  "controllingHandoffBranch": "research/phase57-gen2-r41-handoff-20260926",
+  "executionHead": "c031976a319130b6be379586147fff53cee6f741",
+  "runId": 36233758837,
+  "jobId": 108381667257,
+  "protocolSha256": "5fdc059936ba31466a7dace520f218353c634e6c8444d20d5ab21069c745deb4",
+  "launchSha256": "b3655a5197221b7aa519c47cb263511c81b86228bf8a4e77efc638748d59e444",
+  "candidateCount": 16,
+  "expectedModelFitCount": 64,
+  "modelFitStartConfirmed": false,
+  "modelFitCompletionConfirmed": false,
+  "modelFitsObserved": null,
+  "gen2PerformanceInspected": false,
+  "requiredContractCI": {
+    "runId": 36233629987,
+    "executionHead": "0d20b9aee00ff0b667f698e4c93d5f92ee057f38",
+    "conclusion": "success",
+    "focusedTests": 97,
+    "artifactId": 10903097039,
+    "artifactDigest": "sha256:e489d3500b06a790868119da0718ed71d24addeeb9a7099980fd227dadedaf7b"
+  },
+  "foundationCI": {
+    "runId": 36233629977,
+    "conclusion": "success"
+  },
+  "artifactPlan": {
+    "name": "phase57-exit-gen2-r41-36233758837",
+    "retentionDays": 90,
+    "uploadOnFailure": true,
+    "components": [
+      "protocol/source/dependency/input identity",
+      "row identity and independent label metadata",
+      "64 model/preprocessor bundles and hashes",
+      "single immutable OOF scores and hash",
+      "16 A/B ledger pairs and neutral A/B",
+      "fit/replay/byte-identity/pending-audit receipts",
+      "partial failure evidence and logs"
+    ]
+  },
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "exposure": {
+    "providerRequests": 0,
+    "protectedPartitionsOpened": 0,
+    "gen2PerformanceInspected": false,
+    "allOpportunitiesOutcomeExposedDevelopment": true
+  },
+  "selection": null,
+  "finalExitFreezeCreated": false,
+  "capitalPortfolioReplays": 0,
+  "priorAuditedZeroFitRun": 36233376942,
+  "jobs": {
+    "jobs": [
+      {
+        "id": 108381667257,
+        "name": "finite-once",
+        "status": "in_progress",
+        "conclusion": null,
+        "run_id": 36233758837,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Initialize evidence and read prerequisite run identity",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Restore successful exact-source pre-performance contract receipt",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Verify launch authorization, exact source and prior CI",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Install frozen estimator dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Restore immutable R35 observation preparation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Prepare immutable features and isolated labels without model fitting",
+            "status": "in_progress",
+            "conclusion": null,
+            "number": 9
+          },
+          {
+            "name": "Recheck latest HEAD and duplicate jobs immediately before fitting",
+            "status": "pending",
+            "conclusion": null,
+            "number": 10
+          },
+          {
+            "name": "Gen2 finite fitting and causal replay — no selection or performance report",
+            "status": "pending",
+            "conclusion": null,
+            "number": 11
+          },
+          {
+            "name": "Verify completion counts and deferred audit boundary",
+            "status": "pending",
+            "conclusion": null,
+            "number": 12
+          },
+          {
+            "name": "Preserve full reproducibility evidence and any partial failure",
+            "status": "pending",
+            "conclusion": null,
+            "number": 13
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "pending",
+            "conclusion": null,
+            "number": 25
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "pending",
+            "conclusion": null,
+            "number": 26
+          }
+        ]
+      }
+    ]
+  }
+}

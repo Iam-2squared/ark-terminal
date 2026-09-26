@@ -1,0 +1,53 @@
+name: Phase57 Gen3 Source Recovery R45
+on:
+  push:
+    branches: ['research/phase57-gen3-r45-ci-*']
+    paths: ['.github/workflows/phase57-gen3-source-recovery-r45.yml']
+permissions:
+  contents: read
+jobs:
+  source-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 98345947c14ffd40c6283ce4e9be33139989b609
+          persist-credentials: false
+      - name: Export only the frozen source and Development input allowlist
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, pathlib, shutil
+          root = pathlib.Path('.')
+          rel = 'docs/evidence/phase57-comprehensive-exit-v1/GEN3_PRECOMMIT_R45.json'
+          raw = (root / rel).read_bytes()
+          assert hashlib.sha256(raw).hexdigest() == 'e7b38e7e6aaf909926852467152fffef2532f58f960a95e6f2d18efd66f5d1b5'
+          p = json.loads(raw)
+          allowed = {**p['reusedGen2SourceHashes'], **p['baselineSourceHashes']}
+          allowed[rel] = hashlib.sha256(raw).hexdigest()
+          allowed.update({
+            'docs/evidence/phase57-entry-pattern-v2/ci-result/substrate/raw-paths-evaluator-only.json.gz': '37853e73799544be6fd6eb955de514073dd13671692426291a9fdb6d80056c6b',
+            'docs/evidence/phase57-entry-pattern-v2/ci-result/substrate/opportunities.json.gz': '1138960e489c3403e49f502a7ff7ab1fa1e9ef205910d2d018f2bb938df813ea',
+            'docs/evidence/phase57-entry-timing-signal-census-v1/measurement/opportunity-records.json.gz': '4b9afd72ccfff0b557fb4a5e067ac122ace90ae501d15a79627a89af9554a01e'
+          })
+          out = pathlib.Path('recovery-source')
+          out.mkdir(exist_ok=False)
+          for name, digest in allowed.items():
+            path = pathlib.PurePosixPath(name)
+            assert not path.is_absolute() and '..' not in path.parts
+            data = (root / name).read_bytes()
+            assert hashlib.sha256(data).hexdigest() == digest, name
+            dest = out / name
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_bytes(data)
+          receipt = {'basisHead': '98345947c14ffd40c6283ce4e9be33139989b609', 'files': allowed, 'modelFits': 0, 'policyReplays': 0, 'performanceInspections': 0, 'providerRequests': 0, 'protectedPartitionsOpened': 0, 'purpose': 'Restore unavailable local source using exact repository allowlist; not required Gen3 CI and not a launch authorization'}
+          (out / 'recovery-source-receipt.json').write_text(json.dumps(receipt, sort_keys=True) + '\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-gen3-source-recovery-r45-${{ github.run_id }}
+          path: recovery-source
+          retention-days: 30
+          if-no-files-found: error
+          overwrite: false

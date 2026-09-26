@@ -1,0 +1,63 @@
+# Current: R45 design frozen; implementation/required CI pending. No fits/replay.
+# Next: implement exact R45, support-only verification, required CI, explicit launch.
+# Basis: 98345947c14ffd40c6283ce4e9be33139989b609; 2026-09-26 JST.
+name: Phase57 Gen3 Source Preparation R45
+on:
+  push:
+    branches: [research/phase57-gen3-r45-ci-20260926-implementation]
+    paths: [.github/workflows/phase57-gen3-source-prep-r45.yml]
+permissions:
+  contents: read
+concurrency:
+  group: phase57-gen3-source-prep-r45
+  cancel-in-progress: false
+jobs:
+  source-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify immutable protocol and preserve only source plus pinned Development inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, os, pathlib, zipfile, datetime
+          root=pathlib.Path('.')
+          base=root/'docs/evidence/phase57-comprehensive-exit-v1'
+          protocol=base/'GEN3_PRECOMMIT_R45.json'
+          digest=lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+          assert digest(protocol)=='e7b38e7e6aaf909926852467152fffef2532f58f960a95e6f2d18efd66f5d1b5'
+          p=json.loads(protocol.read_text())
+          assert p['execution']['expectedModelFitCount']==24 and len(p['candidates'])==4
+          assert not (base/'GEN3_LAUNCH_R45.json').exists()
+          paths=set(root.glob('scripts/*.py')) | set(root.glob('.github/workflows/*gen2*r41.yml'))
+          paths.update(root / s for s in p['baselineSourceHashes'])
+          paths.update(root / s for s in p['reusedGen2SourceHashes'])
+          paths.update(base.glob('*R4*.json'))
+          paths.update(base.glob('*R4*.md'))
+          paths.update(base.glob('*R4*.csv'))
+          inputs={
+            'docs/evidence/phase57-entry-pattern-v2/ci-result/substrate/raw-paths-evaluator-only.json.gz':'37853e73799544be6fd6eb955de514073dd13671692426291a9fdb6d80056c6b',
+            'docs/evidence/phase57-entry-pattern-v2/ci-result/substrate/opportunities.json.gz':'1138960e489c3403e49f502a7ff7ab1fa1e9ef205910d2d018f2bb938df813ea',
+            'docs/evidence/phase57-entry-timing-signal-census-v1/measurement/opportunity-records.json.gz':'4b9afd72ccfff0b557fb4a5e067ac122ace90ae501d15a79627a89af9554a01e'}
+          for s,h in {**p['baselineSourceHashes'],**p['reusedGen2SourceHashes'],**inputs}.items():
+            assert digest(root/s)==h, s
+            paths.add(root/s)
+          out=root/'artifacts/gen3-source'; out.mkdir(parents=True,exist_ok=False)
+          manifest={str(f):digest(f) for f in sorted(paths) if f.is_file()}
+          receipt={'head':os.environ['GITHUB_SHA'],'savedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'status':'SOURCE_READY_NOT_IMPLEMENTATION_PASS','next':'Implement frozen R45, support-only gate and mandatory tests; no learning from this workflow','files':manifest,'modelFits':0,'policyReplays':0,'performanceInspections':0,'providerRequests':0,'protectedPartitionsOpened':0,'safety':p['safety']}
+          with zipfile.ZipFile(out/'sources.zip','w',compression=zipfile.ZIP_DEFLATED) as z:
+            for f in sorted(manifest): z.write(f,f)
+          (out/'receipt.json').write_text(json.dumps(receipt,sort_keys=True,indent=2)+'\n')
+          print(json.dumps({k:v for k,v in receipt.items() if k!='files'},sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-gen3-source-r45-${{ github.run_id }}
+          path: artifacts/gen3-source
+          overwrite: false
+          if-no-files-found: error
+          retention-days: 30

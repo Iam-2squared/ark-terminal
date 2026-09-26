@@ -30,8 +30,11 @@ def dumps(value):
 
 
 def build(source: Path, contract: Path, out: Path) -> dict:
+    if out.exists():
+        raise FileExistsError("OUTPUT_ALREADY_EXISTS_APPEND_ONLY")
     encoder = CoreEncoder(contract)
     archive = None
+    created_output = False
     if source.is_file():
         with source.open('rb') as f:
             if hashlib.file_digest(f,'sha256').hexdigest() != R20_ZIP_SHA:
@@ -65,6 +68,7 @@ def build(source: Path, contract: Path, out: Path) -> dict:
         if len(members)!=58:
             raise ValueError('SESSION_COUNT_DRIFT')
         out.mkdir(parents=True,exist_ok=False)
+        created_output = True
         (out/'checkpoints').mkdir()
         (out/'entry-envelopes.json.gz').write_bytes(env_raw)
         header = {'schema':'phase57-r35-unscaled-core-columns-v1',
@@ -106,7 +110,7 @@ def build(source: Path, contract: Path, out: Path) -> dict:
         (out/'manifest.json').write_bytes(dumps(receipt))
         return receipt
     except Exception as exc:
-        if out.is_dir() and not (out/'manifest.json').exists():
+        if created_output and not (out/'manifest.json').exists():
             (out/'FAILURE.json').write_bytes(dumps({'status':'FAILED_NOT_REUSABLE','error':str(exc)}))
         raise
     finally:

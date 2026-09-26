@@ -117,6 +117,19 @@ class CashOnlyTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 CashBook().step(T0, [entry(1, price=price)])
 
+    def test_rank_and_score_are_strictly_causal_numeric_inputs(self):
+        for changes in (
+            {'newEligibleRank': 0},
+            {'newEligibleRank': -1},
+            {'newEligibleRank': 1.0},
+            {'newEligibleRank': True},
+            {'savedV1Score': 'nan'},
+            {'savedV1Score': 'Infinity'},
+            {'savedV1Score': True},
+        ):
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                CashBook().step(T0, [entry(1, **changes)])
+
     def test_quantizer_does_not_choose_weights(self):
         self.assertEqual(quantity_for_target('333333.33', '1000.5'), 300)
         self.assertEqual(quantity_for_target('99', '1'), 0)

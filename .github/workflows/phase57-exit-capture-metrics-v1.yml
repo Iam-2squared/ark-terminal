@@ -1,0 +1,39 @@
+name: Phase57 EXIT Capture Metric Kernel R21
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - 'scripts/phase57_exit_capture_metrics_v1.py'
+      - 'scripts/test_phase57_exit_capture_metrics_v1.py'
+      - '.github/workflows/phase57-exit-capture-metrics-v1.yml'
+      - 'docs/evidence/phase57-comprehensive-exit-v1/CAPTURE_METRIC_KERNEL_R21.md'
+permissions:
+  contents: read
+jobs:
+  metric-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      ARK_TEST_OFFLINE: '1'
+      PYTHONPATH: '.'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Synthetic evaluator arithmetic and ownership tests only
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/exit-capture-r21
+          python -m unittest -v scripts.test_phase57_exit_capture_metrics_v1 2>&1 | tee artifacts/exit-capture-r21/tests.log
+          sha256sum scripts/phase57_exit_capture_metrics_v1.py scripts/test_phase57_exit_capture_metrics_v1.py > artifacts/exit-capture-r21/source-sha256.txt
+      - name: Preserve tests and any failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-exit-capture-r21-${{ github.run_id }}
+          path: artifacts/exit-capture-r21
+          retention-days: 30
+          overwrite: false

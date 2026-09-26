@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "phase57-closeout-v1",
+  "recordedAt": "2026-09-20T04:14:27+09:00",
+  "item": 24,
+  "status": "PASS",
+  "reason": "Every FAIL and N/A outcome is explicit and is not treated as missing evidence.",
+  "failures": [
+    {
+      "area": "daily Dictionary Gate",
+      "classification": "STATISTICAL_GATE_FAIL",
+      "reason": "V0_TRAIT_RELIABILITY_INSUFFICIENT"
+    },
+    {
+      "area": "intraday Dictionary Gate",
+      "classification": "STATISTICAL_GATE_FAIL",
+      "reason": "V0_TRAIT_RELIABILITY_INSUFFICIENT"
+    },
+    {
+      "area": "untouched audit",
+      "classification": "AUDIT_LIMITATION",
+      "reason": "Known derived-evidence display plus unknown wider scratch-search exposure prohibits complete non-viewing certification"
+    }
+  ],
+  "notApplicable": [
+    {
+      "area": "Chart Reader phase completion",
+      "reason": "Dictionary Gate failed before adapter completion"
+    },
+    {
+      "area": "new Entry",
+      "reason": "entryExitDevelopmentAllowed=false"
+    },
+    {
+      "area": "new EXIT",
+      "reason": "entryExitDevelopmentAllowed=false"
+    },
+    {
+      "area": "four-cell integration",
+      "reason": "new Entry/EXIT not authorized by Gate"
+    }
+  ],
+  "softwareErrorsOpen": 0
+}

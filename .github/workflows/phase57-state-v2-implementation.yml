@@ -1,0 +1,140 @@
+name: Phase57 State v2 Implementation and Reference Replay
+# Read-only continuation. Source installation finished in run35700139842.
+# Prior failed/racing runs remain preserved; no branch push occurs in this workflow.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-state-v2-implementation.yml'
+      - 'docs/evidence/phase57-state-v2-implementation/CI_TRIGGER.json'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-state-v2-readonly-acceptance
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      PYTHONPATH: scripts
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /docs/phase57-five-minute-entry-state/mechanical-v1/
+            /docs/phase57-five-minute-entry-state/STATE_DEFINITION_v2_FREEZE_CANDIDATE.md
+            /docs/evidence/phase57-state-v2-hardening/
+            /docs/evidence/phase57-state-v2-implementation/
+            /docs/evidence/phase57-five-minute-reference-g-v1/generate_reference.py
+            /docs/evidence/phase57-five-minute-reference-g-v1/test_adapter.py
+            /docs/evidence/phase57-entry-timing-signal-census-v1/protocol.json
+            /scripts/phase57_state_v2/
+            /scripts/phase57_state_v2_reference.py
+            /scripts/test_phase57_state_v2_reference.py
+            /scripts/test_phase57_state_v2_acceptance.py
+            /scripts/run_phase57_state_v2.py
+            /scripts/report_phase57_state_v2.py
+            /scripts/restore_phase57_state_v2_artifacts.py
+            /scripts/audit_phase57_state_v2_schema_transitions.py
+            /scripts/audit_phase57_state_v2_event_transitions.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.5'
+      - name: Export exact source snapshot for independent audit without modifying it
+        env:
+          CODE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python - <<'PY'
+          import datetime,hashlib,json,os,pathlib,subprocess,zipfile
+          from phase57_state_v2.historical import verify_spec
+          from phase57_state_v2.common import SAFETY
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'v2-continuation';out.mkdir()
+          (out/'verified-spec').mkdir();verify_spec(out/'verified-spec')
+          files={}
+          with zipfile.ZipFile(out/'source.zip','x',compression=zipfile.ZIP_DEFLATED) as z:
+              for name in subprocess.check_output(['git','ls-files','-z'],text=True).split('\0'):
+                  p=pathlib.Path(name)
+                  if not name or not p.is_file():continue
+                  assert name.startswith(('scripts/phase57_state_v2/','scripts/phase57_state_v2_reference.py','scripts/test_phase57_state_v2','scripts/run_phase57_state_v2.py','scripts/report_phase57_state_v2.py','scripts/restore_phase57_state_v2_artifacts.py','scripts/audit_phase57_state_v2','docs/phase57-five-minute-entry-state/','docs/evidence/phase57-state-v2-hardening/','docs/evidence/phase57-state-v2-implementation/','docs/evidence/phase57-five-minute-reference-g-v1/','docs/evidence/phase57-entry-timing-signal-census-v1/protocol.json')),name
+                  files[name]=hashlib.sha256(p.read_bytes()).hexdigest();z.write(p,name)
+          receipt={'recordedAtJST':datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).isoformat(),'sourceHead':os.environ['CODE_SHA'],'status':'SOURCE_SNAPSHOT_NOT_ACCEPTANCE','files':files,'sourceZipSHA256':hashlib.sha256((out/'source.zip').read_bytes()).hexdigest(),'providerRequests':0,'protectedDataOpened':0,'safety':SAFETY}
+          (out/'source-snapshot-receipt.json').write_text(json.dumps(receipt,sort_keys=True,indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-state-v2-audit-source-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/v2-continuation/source.zip
+            ${{ runner.temp }}/v2-continuation/source-snapshot-receipt.json
+          retention-days: 90
+          overwrite: false
+      - name: Execute frozen numerical, adapter, compatibility and Golden tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/v2-continuation/tests"
+          (cd docs/phase57-five-minute-entry-state/mechanical-v1 && python -m unittest -v test_reference) 2>&1 | tee "$RUNNER_TEMP/v2-continuation/tests/numerical.log"
+          (cd docs/evidence/phase57-five-minute-reference-g-v1 && python -m unittest -v test_adapter) 2>&1 | tee "$RUNNER_TEMP/v2-continuation/tests/adapter.log"
+          python scripts/test_phase57_state_v2_reference.py -v 2>&1 | tee "$RUNNER_TEMP/v2-continuation/tests/compatibility.log"
+          python scripts/test_phase57_state_v2_acceptance.py -v 2>&1 | tee "$RUNNER_TEMP/v2-continuation/tests/golden.log"
+      - name: Restore completed CI baseline by exact artifact ID and verify all bytes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api repos/Iam-2squared/ark-terminal/actions/artifacts/10682598898/zip > "$RUNNER_TEMP/v2-baseline.zip"
+          python - <<'PY'
+          import hashlib,json,os,pathlib,zipfile
+          root=pathlib.Path(os.environ['RUNNER_TEMP']);data=(root/'v2-baseline.zip').read_bytes()
+          assert hashlib.sha256(data).hexdigest()=='f72fd8c74f7ecec1e75f0dcfe1fa99f07457aec9d3c3ad19c63cf05974b327ac'
+          dest=root/'v2-baseline'
+          with zipfile.ZipFile(root/'v2-baseline.zip') as z:
+              for i in z.infolist():
+                  p=pathlib.PurePosixPath(i.filename);assert not p.is_absolute() and '..' not in p.parts
+              z.extractall(dest)
+          m=json.loads((dest/'generation/manifest.json').read_text())
+          for name,wanted in m.items():
+              p=pathlib.PurePosixPath(name);assert not p.is_absolute() and '..' not in p.parts
+              assert hashlib.sha256((dest/'generation'/name).read_bytes()).hexdigest()==wanted,name
+          s=json.loads((dest/'generation/summary.json').read_text())
+          assert s['opportunityN']==2155 and s['checkpointN']==77214
+          launch=json.loads((dest/'generation/launch.json').read_text())
+          for name,wanted in launch['workingCodeSHA256'].items():assert hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest()==wanted,name
+          PY
+      - name: Restore only the four pinned Development input artifacts
+        env:
+          GH_READ_TOKEN: ${{ github.token }}
+        run: python scripts/restore_phase57_state_v2_artifacts.py --output "$RUNNER_TEMP/v2-inputs" --repo .
+      - name: Replay all77214 rows fresh with reversed order and workers2-to-3
+        run: python scripts/run_phase57_state_v2.py --sources "$RUNNER_TEMP/v2-inputs/inputs" --v1 "$RUNNER_TEMP/v2-inputs/v1" --output "$RUNNER_TEMP/v2-continuation/replay" --workers 3 --reverse --replay "$RUNNER_TEMP/v2-baseline/generation"
+      - name: Record combined replay disposition without waiving A8 or A9
+        env:
+          CODE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python scripts/report_phase57_state_v2.py --generation "$RUNNER_TEMP/v2-baseline/generation" --replay "$RUNNER_TEMP/v2-continuation/replay" --output "$RUNNER_TEMP/v2-continuation/report"
+          python - <<'PY'
+          import datetime,json,os,pathlib,re
+          root=pathlib.Path(os.environ['RUNNER_TEMP']);out=root/'v2-continuation'
+          a=json.loads((root/'v2-baseline/generation/summary.json').read_text());b=json.loads((out/'replay/summary.json').read_text())
+          assert b['doubleReplayHashesMatch'] is True and a['canonicalHashes']==b['canonicalHashes']
+          assert b['stats']['freshNowReplayMatches']==b['stats']['futureReplayMatches']==77214
+          tests={p.name:int(re.findall(r'Ran (\d+) tests?',p.read_text())[-1]) for p in (out/'tests').glob('*.log')};assert sum(tests.values())==158,tests
+          receipt={'recordedAtJST':datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).isoformat(),'status':'READONLY_FULL_REPLAY_PASS_NOT_IMPLEMENTATION_ACCEPTED','executionHead':os.environ['CODE_SHA'],'runId':os.environ['GITHUB_RUN_ID'],'baselineArtifactId':10682598898,'baselineArtifactSHA256':'f72fd8c74f7ecec1e75f0dcfe1fa99f07457aec9d3c3ad19c63cf05974b327ac','canonicalHashes':b['canonicalHashes'],'replayStats':b['stats'],'tests':tests,'A8':'BLOCKED_INDEPENDENT_ASOF_PROVENANCE','A9':'PARTIAL_INDEPENDENT_SCOPE','A12':'NOT_ACCEPTED','providerRequests':0,'protectedDataOpened':0,'safety':b['safety'],'sourceInstalledOrMutated':False}
+          (out/'ci-replay-receipt.json').write_text(json.dumps(receipt,sort_keys=True,indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-state-v2-readonly-replay-${{ github.run_id }}
+          path: ${{ runner.temp }}/v2-continuation
+          retention-days: 90
+          if-no-files-found: error
+          overwrite: false

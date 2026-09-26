@@ -1,0 +1,122 @@
+{
+  "daily": {
+    "completion": {
+      "daily": {
+        "actual": 4,
+        "required": 2
+      },
+      "families": {
+        "actual": 3,
+        "names": [
+          "candle",
+          "gap",
+          "liquidity"
+        ],
+        "required": 4
+      },
+      "intraday": {
+        "actual": 0,
+        "required": 2
+      },
+      "usable": {
+        "actual": 4,
+        "required": 8
+      }
+    },
+    "failureReasonCounts": {
+      "CI": 3,
+      "FDR": 3,
+      "PAIRED_SAMPLE_BELOW100": 39,
+      "calibration": 30,
+      "incremental": 9,
+      "raw": 8,
+      "tail": 10,
+      "timeRandom": 10
+    },
+    "note": "Population-level diverse-trait completion, not a minimum trait count for every symbol. Daily-only lane cannot satisfy intraday minimum by design; operational expansion completion follows intraday gate.",
+    "statusCounts": {
+      "INSUFFICIENT": 39,
+      "USABLE": 4,
+      "WATCH": 30
+    },
+    "watchOnlyCalibration": [
+      "body_range",
+      "large_up",
+      "doji",
+      "long_lower",
+      "outside",
+      "trend_day",
+      "range_s",
+      "range_exp",
+      "range_con",
+      "gap_up",
+      "gap_dn",
+      "overnight_var_share",
+      "value_shock",
+      "jump"
+    ],
+    "watchOnlyRedundancy": []
+  },
+  "intraday": {
+    "completion": {
+      "daily": {
+        "actual": 1,
+        "required": 2
+      },
+      "families": {
+        "actual": 3,
+        "names": [
+          "activity",
+          "levels",
+          "liquidity"
+        ],
+        "required": 4
+      },
+      "intraday": {
+        "actual": 4,
+        "required": 2
+      },
+      "usable": {
+        "actual": 5,
+        "required": 8
+      }
+    },
+    "failureReasonCounts": {
+      "CI": 22,
+      "FDR": 18,
+      "PAIRED_SAMPLE_BELOW100": 6,
+      "REDUNDANT_WITH:value_AM": 1,
+      "REDUNDANT_WITH:value_O30": 1,
+      "REDUNDANT_WITH:value_PM1": 1,
+      "calibration": 55,
+      "direction": 5,
+      "incremental": 34,
+      "raw": 43,
+      "strata": 4,
+      "tail": 44,
+      "timeRandom": 31
+    },
+    "note": "Population-level diverse-trait completion, not a minimum trait count for every symbol. Daily-only lane cannot satisfy intraday minimum by design; operational expansion completion follows intraday gate.",
+    "statusCounts": {
+      "INSUFFICIENT": 6,
+      "USABLE": 5,
+      "WATCH": 62
+    },
+    "watchOnlyCalibration": [
+      "inside",
+      "trend_day",
+      "range_con",
+      "gap_fill",
+      "overnight_var_share",
+      "value_shock",
+      "value_CL",
+      "range_PM1",
+      "volume_CL"
+    ],
+    "watchOnlyRedundancy": [
+      "volume_O30",
+      "volume_AM",
+      "volume_PM1"
+    ]
+  }
+}

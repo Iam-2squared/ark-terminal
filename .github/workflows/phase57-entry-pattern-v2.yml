@@ -1,0 +1,153 @@
+name: Phase57 Entry Pattern v2
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-entry-pattern-v2.yml'
+      - 'scripts/phase57_entry_pattern*'
+      - 'scripts/test_phase57_entry_pattern_v2.py'
+      - 'docs/evidence/phase57-entry-pattern-v2/protocol*.json'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-entry-pattern-v2
+  cancel-in-progress: true
+jobs:
+  preflight:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    outputs:
+      measure: ${{ steps.gate.outputs.measure }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - id: gate
+        run: |
+          if test "$(git log -1 --format=%s)" = 'Phase57: measure Entry Pattern v2 development'; then
+            test ! -e docs/evidence/phase57-entry-pattern-v2/ci-result
+            echo 'measure=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'measure=false' >> "$GITHUB_OUTPUT"
+          fi
+  measure:
+    needs: preflight
+    if: needs.preflight.outputs.measure == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      ARK_TEST_OFFLINE: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.7.2 pandas==2.2.3 fastapi pytest httpx matplotlib==3.10.3
+      - name: Verify precommit and causal state contracts before real outcomes
+        run: |
+          set -o pipefail
+          mkdir -p "$RUNNER_TEMP/entry/evidence"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_entry_pattern_v2 verify
+          python scripts/offline/kernel_exec.py python -m unittest -v scripts.test_phase57_entry_pattern_v2 scripts.test_phase57_entry_extended scripts.test_phase57_chart_entry scripts.test_phase57_behavior_full144 scripts.test_phase57_behavior_intelligence scripts.test_phase57_temporal_formal scripts.test_phase57_temporal_feasibility scripts.test_phase57_temporal_zero_diagnostic scripts.test_phase57_sparse_handoff scripts.test_phase57_expansion_data scripts.test_phase57_expansion_research scripts.test_phase57_research_dictionary_v0 scripts.test_phase57_dictionary_pit_recovery scripts.test_phase57_behavior_dictionary scripts.test_phase57_dictionary_prospective 2>&1 | tee "$RUNNER_TEMP/entry/evidence/focused.log"
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-chart-entry-f1807655cb0546143ba4da4aad8a4607ce0fc867
+          path: ${{ runner.temp }}/entry/prior
+          repository: Iam-2squared/ark-terminal
+          run-id: 35499090053
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-expansion-reuse-35447995157
+          path: ${{ runner.temp }}/entry/encrypted
+          repository: Iam-2squared/ark-terminal
+          run-id: 35447995157
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-expansion-raw-minute-*-35447995157
+          path: ${{ runner.temp }}/entry/encrypted/expanded
+          repository: Iam-2squared/ark-terminal
+          run-id: 35447995157
+          github-token: ${{ github.token }}
+      - name: Restore exactly authorized144 Development dates
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_expansion_data restore --archives "$RUNNER_TEMP/entry/encrypted" --cache "$RUNNER_TEMP/entry/raw" --output "$RUNNER_TEMP/entry/evidence/extraction.json"
+      - name: Audit P0 and construct full-chart substrate twice
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_entry_pattern_v2 substrate --cache "$RUNNER_TEMP/entry/raw" --prior "$RUNNER_TEMP/entry/prior" --output "$RUNNER_TEMP/entry/evidence/substrate"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_entry_pattern_v2 substrate --cache "$RUNNER_TEMP/entry/raw" --prior "$RUNNER_TEMP/entry/prior" --output "$RUNNER_TEMP/entry/substrate-replay"
+          cmp "$RUNNER_TEMP/entry/evidence/substrate/manifest.json" "$RUNNER_TEMP/entry/substrate-replay/manifest.json"
+          cp "$RUNNER_TEMP/entry/substrate-replay/manifest.json" "$RUNNER_TEMP/entry/evidence/substrate-determinism.json"
+      - name: Fit bounded Entry quality and continuation candidates twice
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_entry_pattern_learn --prior "$RUNNER_TEMP/entry/prior" --substrate "$RUNNER_TEMP/entry/evidence/substrate" --output "$RUNNER_TEMP/entry/evidence/measurement"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_entry_pattern_learn --prior "$RUNNER_TEMP/entry/prior" --substrate "$RUNNER_TEMP/entry/substrate-replay" --output "$RUNNER_TEMP/entry/measurement-replay"
+          cmp "$RUNNER_TEMP/entry/evidence/measurement/manifest.json" "$RUNNER_TEMP/entry/measurement-replay/manifest.json"
+      - name: Full offline regression and frozen asset preservation
+        run: |
+          python scripts/run_offline_regression.py --output-dir "$RUNNER_TEMP/entry/evidence/regression"
+          python scripts/verify_phase57_development_preservation.py
+          python scripts/verify_phase57_selector_min_price75_freeze.py
+      - name: Save charts report and STOP without promotion or EXIT
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_entry_pattern_report --evidence "$RUNNER_TEMP/entry/evidence" --replay "$RUNNER_TEMP/entry/measurement-replay"
+          mkdir -p "$RUNNER_TEMP/entry/report-replay"
+          ln -s "$RUNNER_TEMP/entry/evidence/substrate" "$RUNNER_TEMP/entry/report-replay/substrate"
+          ln -s "$RUNNER_TEMP/entry/measurement-replay" "$RUNNER_TEMP/entry/report-replay/measurement"
+          ln -s "$RUNNER_TEMP/entry/evidence/regression" "$RUNNER_TEMP/entry/report-replay/regression"
+          cp "$RUNNER_TEMP/entry/evidence/extraction.json" "$RUNNER_TEMP/entry/evidence/focused.log" "$RUNNER_TEMP/entry/evidence/substrate-determinism.json" "$RUNNER_TEMP/entry/report-replay/"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_entry_pattern_report --evidence "$RUNNER_TEMP/entry/report-replay" --replay "$RUNNER_TEMP/entry/measurement-replay"
+          cmp "$RUNNER_TEMP/entry/evidence/report-manifest.json" "$RUNNER_TEMP/entry/report-replay/report-manifest.json"
+          cmp "$RUNNER_TEMP/entry/evidence/diagnostics/manifest.json" "$RUNNER_TEMP/entry/report-replay/diagnostics/manifest.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-entry-pattern-v2-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/entry/evidence
+          retention-days: 90
+      - name: Purge private raw source and temporary replay
+        if: always()
+        run: rm -rf -- "$RUNNER_TEMP/entry/raw" "$RUNNER_TEMP/entry/encrypted" "$RUNNER_TEMP/entry/prior" "$RUNNER_TEMP/entry/substrate-replay" "$RUNNER_TEMP/entry/measurement-replay" "$RUNNER_TEMP/entry/report-replay"
+  preserve:
+    needs: measure
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-entry-pattern-v2-${{ github.event.pull_request.head.sha }}
+          path: docs/evidence/phase57-entry-pattern-v2/ci-result
+      - name: Preserve exact PR branch without merge
+        env:
+          BRANCH: ${{ github.head_ref }}
+          EXPECTED: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$BRANCH" = research/phase57-long-only-cash-equity
+          test "$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)" = "$EXPECTED"
+          test -z "$(git ls-tree -r HEAD -- docs/evidence/phase57-entry-pattern-v2/ci-result)"
+          test -s docs/evidence/phase57-entry-pattern-v2/ci-result/REPORT-ja.md
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/evidence/phase57-entry-pattern-v2/ci-result
+          git commit -m 'Phase57: preserve Entry Pattern v2 development and STOP'
+          git push origin "HEAD:$BRANCH"

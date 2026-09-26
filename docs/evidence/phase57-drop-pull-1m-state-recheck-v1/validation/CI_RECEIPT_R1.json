@@ -1,0 +1,67 @@
+{
+  "artifactKind": "phase57_drop_pullback_1m_state_recheck_ci_receipt_r1",
+  "dateJST": "2026-09-23",
+  "manualContinuation": true,
+  "startingHead": "5b47b975b1d833b3992e56ee7dce4010e58e17bb",
+  "testedImplementationHead": "8c256ff98d365d01c7150afe193686f020e2026c",
+  "dedicated": {
+    "runId": 35818555587,
+    "jobId": 107045547187,
+    "conclusion": "success",
+    "focusedTests": {"passed": 90, "total": 90},
+    "replayA": "PASS_CLEAR_IMPROVEMENT",
+    "replayB": "PASS_CLEAR_IMPROVEMENT",
+    "byteIdenticalAB": true,
+    "verification": "Both replays and diff -qr completed successfully in the same CI step; job log inspected.",
+    "developmentPreservation": "PASS",
+    "selectorPrice75FreezeIntegrity": "PASS"
+  },
+  "regression": {
+    "runId": 35818556861,
+    "jobId": 107045288571,
+    "conclusion": "success",
+    "artifactId": 10732148377,
+    "artifactSHA256": "7038cb311d3f96b337a08137d5ceeae380a68feb398ab54a2f1bba7e81cfa564",
+    "downloadedDigestVerified": true,
+    "regressionJSONInspected": true,
+    "suitesPassed": {"predict": 2765, "discovery": 26, "foundation": 39, "python": 30, "rss": 89},
+    "totalAcrossSuites": 2949,
+    "failures": 0,
+    "skipped": 0,
+    "unexpectedNetworkAttempts": 0,
+    "validationAccess": 0,
+    "oosAccess": 0,
+    "providerRequests": {"jquants": 0, "otherMarketData": 0, "yahoo": 0},
+    "scope": "TEST_PROCESS_TREES_ONLY"
+  },
+  "longOnlyFoundation": {"runId": 35818555691, "jobId": 107045286447, "conclusion": "success"},
+  "measurementArtifact": {
+    "id": 10732168448,
+    "runId": 35818555587,
+    "sizeBytes": 682445,
+    "sha256": "74ff0fb4398f9e2659109103ae73e8a6b27423aa0eb5aee7006c84312488aab8",
+    "expiresAt": "2026-12-22T04:29:43Z",
+    "downloadedDigestVerified": true,
+    "allManifestMembersVerified": true,
+    "manifestPathInsideZip": "replay-a/manifest.json",
+    "manifestSHA256": "940a4a76bb51b515d446b35152345863aeff151b9823cf0e20dba6740f58468b",
+    "fileSHA256": {
+      "causality-audit.json": "b569d8d7e25240d359bc1a3c2efbd04f2017136eabac1f4288459559f0cf6cde",
+      "entry-records.json.gz": "de8ee035d2c2949e6ecbd5315d393de8794ca7d0e36ace49a6ccfe720a65a844",
+      "gate.json": "7a76b1bcbfe9f35cfde0d3f94b9e12e0e0ad013ede8fce81997288027b2bfc08",
+      "summary.json": "8de015aeaf9b80d1d375b409ea597fa6dee24d767a72aeabdd5918faac367ea9",
+      "target-paired-vs-state-v3.json.gz": "4e02becf3a49c51e84614cdabebe034f3a42a82a452a5d8013222bde3d14c2e2",
+      "trades.json.gz": "e731492871f1db795df5a85042f04394c6e6775ecdac6131d2fe68909d09f32e"
+    },
+    "storageNote": "Full original summary, trades and paired records are stored in this expiring Actions artifact; this receipt and final report are repository-persisted. Do not represent the artifact as permanent Git storage.",
+    "testLogNote": "The artifact's tests.log is empty because unittest writes to stderr. The actual successful 90-test result was inspected in the dedicated job log."
+  },
+  "priorRunsPreserved": [
+    {"runId": 35815694968, "conclusion": "failure", "reason": "False-positive static scan of the explanatory outcome word in the unchanged frozen intent function docstring; no accepted measurement summary."},
+    {"runId": 35818543146, "conclusion": "cancelled", "artifactId": 10732123410, "artifactSHA256": "c7eef4f0258502927c5c7eb197a6fb3e93a6257b4738820224aff5e8d5fb1ae8", "reason": "Push run replaced by PR run. Its completed replay-A measurement files were verified byte-identical to the final successful run; the cancelled run itself is NOT a CI PASS."}
+  ],
+  "allPRWorkflowsGreenClaimed": false,
+  "promotionApproved": false,
+  "nextHypothesisStarted": false,
+  "stop": "ONE_MINUTE_EXPERIMENT_COMPLETE_MANUAL_REVIEW_REQUIRED"
+}

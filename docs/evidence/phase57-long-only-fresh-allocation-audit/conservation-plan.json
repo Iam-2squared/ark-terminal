@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "status": "AUDIT_AND_PLAN_ONLY_NO_ALLOCATION_AUTHORIZATION",
+  "recommendation": "D.INSUFFICIENT_INFORMATION",
+  "reason": "No unreserved globally outcome-unexposed historical window is certified. Existing30 contains25 previously exposed Selector sessions,4 permanent source-validation exclusions and1 purge. Releasing EXIT reservations or refetching the same dates cannot restore freshness. Independent later-stage budgets, complete cross-research exposure and current source availability remain unresolved.",
+  "requirementMatrix": [
+    {
+      "stage": "Entry Validation",
+      "requiredSessions": {"status": "KNOWN_PLANNED_NOT_SATISFIED", "count": 30, "source": "longPlan.datasetSplit.validation"},
+      "currentlyAllocated": "LONG v3 Validation30; blocked by EXIT DEV_B10 + Validation20 and legacy exposure/exclusion",
+      "certifiedIndependentAvailable": 0,
+      "stillMissing": "A legally allocated globally unexposed30-session identity under existing plan; no dates chosen here"
+    },
+    {
+      "stage": "Entry OOS",
+      "requiredSessions": {"status": "UNRESOLVED_ENTRY_EXCLUSIVE_BUDGET", "existingSharedPrimaryCount": 30, "source": "longPlan.datasetSplit.primaryOos"},
+      "currentlyAllocated": "Shared LONG integrated Primary30 and Contingency30; not60 independent Entry-only OOS sessions. All those dates have positive cross-research exposure metadata.",
+      "certifiedIndependentAvailable": 0,
+      "stillMissing": "Entry-specific one-shot OOS scope and clean identity; preserve all existing seals"
+    },
+    {
+      "stage": "LONG EXIT Development",
+      "requiredSessions": {"status": "UNRESOLVED_LONG_EXIT_MINIMUM", "existingLegacyContractCount": 90, "legacyDevA": 70, "legacyDevB": 20},
+      "currentlyAllocated": "Legacy EXIT90 reserved; shared LONG Development80 allocated,76 used by Entry/Selector. Integrated Development reuse is required by LONG v3.",
+      "stillMissing": "Explicit LONG EXIT scope and cross-contract ownership. Do not treat legacy90 as proven minimum for new LONG EXIT or automatically unlock it. Exposed Development reuse may conserve fresh data."
+    },
+    {
+      "stage": "LONG EXIT Validation",
+      "requiredSessions": {"status": "UNRESOLVED_LONG_EXIT_MINIMUM", "existingLegacyContractCount": 30},
+      "currentlyAllocated": "Legacy EXIT Validation30 and Historical Holdout25 are reserved; exposed28/30 and25/25 respectively under cross-research metadata.",
+      "certifiedIndependentAvailable": 0,
+      "stillMissing": "LONG EXIT-specific frozen budget and independently unexposed dates"
+    },
+    {
+      "stage": "LONG EXIT OOS",
+      "requiredSessions": {"status": "UNRESOLVED_LONG_EXIT_MINIMUM", "existingLegacyContractCount": 30},
+      "currentlyAllocated": "Legacy Untouched OOS30 and Future Reserve30 remain protected; both30-date lists now intersect exposed research periods.",
+      "certifiedIndependentAvailable": 0,
+      "stillMissing": "LONG EXIT OOS scope and clean identity; old names do not prove freshness"
+    },
+    {
+      "stage": "Selector + Entry + EXIT Integration",
+      "requiredSessions": {"status": "UNRESOLVED_DISTINCT_LONG_INTEGRATION_BUDGET", "legacyIntegratedFutureCount": 20},
+      "currentlyAllocated": "LONG v3 integrated shared evaluation roles; no distinct LONG Integration list. Legacy integrated OOS reserves first20 eligible market sessions not before2026-10-22, exact dates not yet enumerated.",
+      "stillMissing": "INTEGRATION_DATA_NOT_YET_ALLOCATED as a separate LONG-only independent list. Decide whether evaluation is one jointly frozen stack or distinct stage evidence; never double-count shared dates."
+    },
+    {
+      "stage": "Capital Allocation / Portfolio / Existing Ark comparison",
+      "requiredSessions": {"status": "UNRESOLVED_LONG_SPECIFIC_INDEPENDENT_BUDGET", "legacyIntegratedFutureCount": 20},
+      "currentlyAllocated": "Same legacy20 future integrated OOS sessions, not another20; LONG v3 requires same evaluation window and cost model against Current Ark.",
+      "stillMissing": "LONG-specific independent evaluation scope, current data availability/entitlement and ownership. Shared historical Development is reusable, repeated adaptive evaluation is not independent."
+    }
+  ],
+  "alternativeWindows": [
+    {"window": "Existing historical inventory", "certifiedFreshAvailableSessions": 0, "status": "NO_CERTIFIED_ALTERNATIVE", "localPrices": "UNKNOWN_NOT_OPENED; legacy metadata rawPersisted=false; only Development artifacts confirmed by identity", "newProviderNeed": "UNRESOLVED; cached metadata is not cached prices"},
+    {"window": "2026-09-10 through2026-10-21", "enumeratedSessions": 26, "status": "RESERVED_FOR_LEGACY_ENTRY_15_VALIDATION_1_PURGE_10_OOS", "availableForNewEntry": false},
+    {"window": "Not before2026-10-22, first20 chronologically eligible sessions", "status": "LEGACY_CAPITAL_INTEGRATED_OOS_RULE_PRECOMMITTED", "exactSessionList": null, "availableForNewEntry": false},
+    {"window": "Other dates outside reviewed historical inventory or after existing future reservations", "status": "UNKNOWN_NOT_FRESH_AVAILABLE", "sessionCount": null, "newProviderNeed": "Metadata/admission/entitlement and prior-exposure attestation unresolved; no date selected"}
+  ],
+  "scenarios": [
+    {
+      "id": "A",
+      "name": "KEEP_EXIT_RESERVATION_FIND_NEW_ENTRY_VALIDATION",
+      "entryValidationSessions": "Target existing30; certified alternative0",
+      "entryOosRemaining": "Shared Primary30 + contingency30 nominally preserved; globally independent0 certified",
+      "exitDevelopmentRemaining": "All legacy90 reservations retained; LONG-specific need unresolved",
+      "exitValidationRemaining": "30 + holdout25 reservations retained; clean0 certified",
+      "exitOosRemaining": "30 + reserve30 reservations retained; clean0 certified",
+      "integrationRemaining": "Legacy future20 rule retained; distinct LONG budget unresolved",
+      "capitalPortfolioRemaining": "Same future20, counted once; LONG budget unresolved",
+      "newProviderDataRequired": "UNRESOLVED until an independent window and cache identity exist",
+      "jquantsConsumptionNow": 0,
+      "allocationConflicts": "No new conflict introduced; existing conflicts remain",
+      "governanceRisk": "Lowest change risk, but no demonstrated executable window"
+    },
+    {
+      "id": "B",
+      "name": "REALLOCATE_SPECIFIC_SESSIONS_TO_ENTRY_VALIDATION",
+      "entryValidationSessions": "No acceptable subset identified; existing30 exposure/exclusion prevents clean transfer",
+      "entryOosRemaining": "Unchanged nominal shared budgets; independent availability unresolved",
+      "exitDevelopmentRemaining": "90-x if x DEV_B sessions were explicitly released; x not selected",
+      "exitValidationRemaining": "30-y if y Validation sessions were explicitly released; y not selected",
+      "exitOosRemaining": "30 sealed + reserve30 preserved; exposure caveat remains",
+      "integrationRemaining": "Unchanged legacy future20; LONG-specific missing",
+      "capitalPortfolioRemaining": "Same future20, no double counting",
+      "newProviderDataRequired": "UNRESOLVED; reallocation does not establish price-cache availability",
+      "jquantsConsumptionNow": 0,
+      "allocationConflicts": "Requires separate explicit FROM/TO/session-list/reason/impact/remaining-budget/authorizing-contract amendment",
+      "governanceRisk": "Not recommended: ownership release cannot erase outcome exposure; sufficient EXIT budget not established",
+      "sessionsReallocated": []
+    },
+    {
+      "id": "C",
+      "name": "ACQUIRE_MINIMAL_NEW_ENTRY_VALIDATION_DATA",
+      "entryValidationSessions": "Target existing30; new independent identity not established",
+      "entryOosRemaining": "Existing seals retained; additional independent Entry OOS need unresolved",
+      "exitDevelopmentRemaining": "All legacy90 reservations retained; authorized shared Development reuse first",
+      "exitValidationRemaining": "All30 + holdout25 reservations retained; exposure caveat remains",
+      "exitOosRemaining": "All30 + reserve30 reservations retained; exposure caveat remains",
+      "integrationRemaining": "Protect legacy future20; allocate no part to Entry here",
+      "capitalPortfolioRemaining": "Protect same future20; independent LONG budget unresolved",
+      "newProviderDataRequired": "YES only after identity, prior exposure, cache absence and acquisition contract are established; no endpoints invoked now",
+      "jquantsConsumptionNow": 0,
+      "estimatedFutureRequests": "UNRESOLVED: dates, entitlement, symbols, fields, pagination and valid cache not confirmed",
+      "allocationConflicts": "Unreserved window not yet certified; buying/refetching exposed dates does not create fresh observations",
+      "governanceRisk": "Cannot recommend acquisition yet. Repo entitlement snapshot ends2026-10-06 before reserved future integrated window; no live account query made."
+    }
+  ],
+  "conservationRules": [
+    "Keep Protected/OOS seals and all reservations unchanged, including those with contradictory exposure metadata.",
+    "Do not unlock the conflicting30 even by ownership amendment alone:25 are exposed,4 permanently excluded,1 purge.",
+    "Reconcile source-scoped untouched claims against positive repo-wide exposure attestations before independent evaluation claims.",
+    "Use existing authorized shared Development data for future EXIT/Allocation design instead of assuming fresh Development is necessary; add explicit scope contracts before any computation.",
+    "Freeze downstream stage budgets and decide joint-stack versus separate-stage evidence before acquiring Entry data. A shared block is one resource, not independent data for every stage.",
+    "Preserve legacy Entry15/1/10 future dates and capital integrated20 future rule; LONG prospective25 rule has unresolved exact dates and possible overlap, not25 extra free dates.",
+    "Inventory private immutable cache identities before queries; price payloads need not be opened for allocation audit.",
+    "If later authorized, acquire only frozen dates and required PIT cross-section/fields, paginate once, privately cache by content identity and reuse across authorized stages. No winner-only selection.",
+    "Treat the repo's dated entitlement/deletion snapshot as a recorded constraint requiring current operational verification; do not presume data beyond expiry is available.",
+    "No period selected here; no provider request authorized here. UNKNOWN never becomes FRESH_AVAILABLE by lack of evidence."
+  ],
+  "reallocationRecordSchemaOnly": {
+    "status": "TEMPLATE_NOT_AUTHORIZATION",
+    "requiredFields": ["fromAllocation", "toAllocation", "sessionList", "reason", "impact", "remainingData", "authorizingContract", "priorExposureAudit", "protectedBoundaryChecks"]
+  },
+  "allocationChangesMade": 0,
+  "validationDatasetSelected": false,
+  "priceAcquisitionAuthorized": false
+}

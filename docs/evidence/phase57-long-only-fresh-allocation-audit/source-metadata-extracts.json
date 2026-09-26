@@ -1,0 +1,657 @@
+{
+  "exit": {
+    "contractId": "PHASE57_EXIT_V4_STAGE2_DATA_ALLOCATION_CONTRACT_V1",
+    "contractVersion": "1.1.0",
+    "asOfJst": "2026-09-10",
+    "status": "FROZEN_RESULT_BLIND",
+    "allocation": {
+      "frozen": true,
+      "manifestComplete": true,
+      "purgeEmbargoDecision": "NONE_SESSION_LOCAL_SELECTOR_AND_ENTRY_STATE",
+      "sessionCounts": {
+        "devA": 70,
+        "devB": 20,
+        "validation": 30,
+        "historicalHoldout": 25,
+        "untouchedOos": 30,
+        "futureReserve": 30
+      },
+      "dateBoundaries": {
+        "devA": {
+          "first": "2024-09-10",
+          "last": "2024-12-20",
+          "count": 70
+        },
+        "devB": {
+          "first": "2024-12-23",
+          "last": "2025-01-24",
+          "count": 20
+        },
+        "validation": {
+          "first": "2025-01-27",
+          "last": "2025-03-11",
+          "count": 30
+        },
+        "historicalHoldout": {
+          "first": "2025-03-12",
+          "last": "2026-06-15",
+          "count": 25
+        },
+        "untouchedOos": {
+          "first": "2026-06-16",
+          "last": "2026-07-28",
+          "count": 30
+        },
+        "futureReserve": {
+          "first": "2026-07-29",
+          "last": "2026-09-09",
+          "count": 30
+        }
+      }
+    },
+    "protection": {
+      "exposedAssignedOosOrReserve": 0,
+      "protected180To282ReallocationAllowed": false,
+      "freshValidationOrOosReallocationAllowed": false,
+      "resultBasedReshuffleAllowed": false
+    },
+    "stage3": {
+      "devAUnlockCandidate": true,
+      "developmentUnlocked": false,
+      "explicitFutureAuthorizationRequired": true
+    }
+  },
+  "capital": {
+    "status": "NO_TRULY_UNUSED_CAUSAL_ELIGIBLE_HISTORICAL_BLOCK",
+    "decision": "DO_NOT_OPEN_OR_RELABEL_ANY_HISTORICAL_SESSION; retain the frozen integrated candidate and wait for a separately precommitted clean stream.",
+    "classification": [
+      {
+        "id": "SELECTOR_USED",
+        "window": [
+          "2024-10-01",
+          "2025-04-14"
+        ],
+        "sessions": 120,
+        "classification": "DEVELOPMENT_VALIDATION_AND_CONSUMED_OOS",
+        "primaryExclusion": "USED_FOR_FROZEN_SELECTOR_CANDIDATE_SELECTION_OR_EVALUATION"
+      },
+      {
+        "id": "ENTRY_HOLDOUT_EXPOSED",
+        "window": [
+          "2025-08-27",
+          "2025-10-08"
+        ],
+        "sessions": 29,
+        "classification": "EXPOSED_HISTORICAL_HOLDOUT_DIAGNOSTIC",
+        "primaryExclusion": "RESULTS_ALREADY_VIEWED"
+      },
+      {
+        "id": "ENTRY_DEVELOPMENT_USED",
+        "window": [
+          "2025-10-09",
+          "2026-01-07"
+        ],
+        "sessions": 58,
+        "classification": "ENTRY_TRAINING_AND_DEVELOPMENT",
+        "primaryExclusion": "USED_FOR_MSH_ENTRY_MODEL"
+      },
+      {
+        "id": "ENTRY_PROTECTED_103",
+        "window": [
+          "2026-01-08",
+          "2026-06-11"
+        ],
+        "sessions": 103,
+        "classification": "PROTECTED_UNTOUCHED",
+        "causalEligibility": false,
+        "primaryExclusion": "PROTECTED_AND_FROZEN_EXIT_ANALOG_HISTORY_POSTDATES_EVALUATION"
+      },
+      {
+        "id": "EXIT_PRE_COVERAGE_UNUSED_OR_LOCKED",
+        "window": [
+          "2024-09-10",
+          "2026-06-18"
+        ],
+        "classification": "NO_VALID_EVALUATION_UNDER_FROZEN_EXIT_V4_V5",
+        "causalEligibility": false,
+        "primaryExclusion": "REQUIRED_30_CAUSAL_ANALOGS_NOT_AVAILABLE"
+      },
+      {
+        "id": "EXIT_BLOCK_C",
+        "window": [
+          "2026-06-04",
+          "2026-06-17"
+        ],
+        "sessions": 10,
+        "classification": "EXPOSED_CAUSAL_COVERAGE_FAILURE",
+        "causalEligibility": false,
+        "primaryExclusion": "INVALID_CAUSAL_COVERAGE_NOT_PERFORMANCE_REJECT"
+      },
+      {
+        "id": "EXIT_BLOCK_A",
+        "window": [
+          "2026-06-18",
+          "2026-07-30"
+        ],
+        "sessions": 30,
+        "classification": "DEVELOPMENT_EXPOSED",
+        "primaryExclusion": "USED_FOR_EXIT_AND_INTEGRATED_DEVELOPMENT"
+      },
+      {
+        "id": "EXIT_BLOCK_B",
+        "window": [
+          "2026-07-31",
+          "2026-08-12"
+        ],
+        "sessions": 8,
+        "classification": "DEVELOPMENT_EXPOSED",
+        "primaryExclusion": "USED_FOR_EXIT_V5_AND_INTEGRATED_DEVELOPMENT"
+      },
+      {
+        "id": "EXIT_DIAGNOSTIC_20",
+        "window": [
+          "2026-08-13",
+          "2026-09-09"
+        ],
+        "sessions": 20,
+        "classification": "EXPOSED_DIAGNOSTIC_ONLY",
+        "primaryExclusion": "RESULTS_ALREADY_VIEWED"
+      },
+      {
+        "id": "FRESH_ENTRY_VALIDATION_AND_OOS_RESERVE",
+        "window": [
+          "2026-09-10",
+          "2026-10-21"
+        ],
+        "sessions": 26,
+        "classification": "FRESH_RESERVED_15_VALIDATION_PLUS_1_PURGE_PLUS_10_OOS",
+        "primaryExclusion": "CROSS_RESEARCH_RESERVATION_MUST_NOT_BE_CONSUMED_OR_RELABELLED"
+      }
+    ],
+    "nextCleanOpportunity": {
+      "firstDateUnderCurrentCrossResearchReservations": "2026-10-22",
+      "status": "FUTURE_PROSPECTIVE_NOT_PRECOMMITTED",
+      "requirements": [
+        "separate outcome-blind precommit before the session",
+        "no intervening feature, label, outcome, or performance exposure",
+        "source/PIT/causal admission and hash-bound input bundle",
+        "same four fixed arm roles and no result-based changes"
+      ],
+      "note": "2026-09-10 is the first EXIT-causal unseen date, but it is already reserved by Entry Fresh Validation and cannot be reassigned by this inventory."
+    }
+  },
+  "capitalFuture": {
+    "status": "FUTURE_INTEGRATED_OOS_PRECOMMITTED_OOS_NOT_OPENED",
+    "window": {
+      "notBeforeSessionDate": "2026-10-22",
+      "targetEligibleMarketSessions": 20,
+      "endpointRule": "STOP_AFTER_THE_20TH_CHRONOLOGICALLY_ELIGIBLE_MARKET_SESSION",
+      "extensionOrShorteningFromPerformanceAllowed": false,
+      "comparisonRationale": "Twenty sessions was fixed before outcomes exist, matches the prior diagnostic20 length, and prevents performance-selected endpoints."
+    },
+    "eligibilityRule": {
+      "id": "FIRST_20_CHRONOLOGICALLY_ELIGIBLE_SESSIONS_FROM_2026_10_22_V1",
+      "ordering": "JPX_MARKET_SESSION_DATE_ASCENDING",
+      "requirements": [
+        "JQUANTS_SOURCE_AVAILABLE_UNDER_EXISTING_ENTITLEMENT",
+        "COMPLETE_FROZEN_SELECTOR_AND_MSH_ENTRY_POINT_IN_TIME_INPUTS",
+        "COMPLETE_FIRST_ENTER_AND_INTRADAY_BAR_PATH",
+        "FROZEN_EXIT_ANALOG_SESSION_DATE_BEFORE_EVALUATED_SESSION",
+        "ANALOG_FULLY_REALIZED_BEFORE_EVALUATED_DECISION_TIMESTAMP",
+        "MINIMUM_REQUIRED_CAUSAL_ANALOG_COUNT_MET",
+        "SOURCE_AND_INPUT_HASHES_FIXED_BEFORE_OUTCOME_MEASUREMENT"
+      ],
+      "unavailableOrIneligibleSessionHandling": "RECORD_DATE_REASON_AND_SOURCE_STATUS_IN_SESSION_ELIGIBILITY_LEDGER_THEN_CONTINUE_TO_NEXT_CHRONOLOGICAL_SESSION",
+      "selectiveReplacementFromPerformanceAllowed": false,
+      "outcomeMayInfluenceEligibility": false
+    },
+    "reservedBoundary": {
+      "existingEntryFreshReservation": [
+        "2026-09-10",
+        "2026-10-21"
+      ],
+      "mayConsumeOrRepurpose": false,
+      "firstIntegratedOosDate": "2026-10-22"
+    }
+  },
+  "capitalValidation": {
+    "status": "FUTURE_INTEGRATED_OOS_PRECOMMITTED_NOT_OPENED",
+    "futureWindow": {
+      "notBeforeSessionDate": "2026-10-22",
+      "eligibleSessionCount": 20,
+      "eligibilityRuleId": "FIRST_20_CHRONOLOGICALLY_ELIGIBLE_SESSIONS_FROM_2026_10_22_V1",
+      "reservedDatesForbidden": [
+        "2026-09-10",
+        "2026-10-21"
+      ],
+      "performanceSelectedEndpointAllowed": false
+    },
+    "executionGate": {
+      "separateUnlockContractRequired": true,
+      "unlockStatus": "AUTHORIZED_INTEGRATED_OOS_OPEN",
+      "candidateFreezeSha256MatchRequired": true,
+      "precommitSha256MatchRequired": true,
+      "contractSha256MatchRequired": true,
+      "inputBundleSha256MatchRequired": true,
+      "developmentAndExposedHistoryRejected": true,
+      "sessionEligibilityLedgerRequired": true
+    }
+  },
+  "longPlan": {
+    "datasetSplit": {
+      "source": "REUSE_EXISTING_OUTCOME_BLIND_205_SESSION_ALLOCATION_WITH_REVIEWED_RESERVE_AND_CONTINGENCY",
+      "sourceInventoryBlobSha": "2217ffee6b9607f5610d5484bffea884f65b7422",
+      "totalCleanHistoricalSessions": 205,
+      "development": {
+        "opened": false,
+        "totalSessions": 80,
+        "blocks": {
+          "A": {
+            "sessions": 25,
+            "use": "L0_DEFINITION_AND_INITIAL_CENSUS",
+            "modelSelection": false,
+            "thresholdSelection": false
+          },
+          "B": {
+            "sessions": 15,
+            "use": "L0_REPLICATION_AND_L1_LABEL_CONTRACT",
+            "modelSelection": false,
+            "thresholdSelection": false
+          },
+          "C": {
+            "sessions": 20,
+            "use": "L1_ABLATION_AND_L2_MODEL_SELECTION",
+            "modelSelection": true,
+            "thresholdSelection": false
+          },
+          "D": {
+            "sessions": 20,
+            "use": "INNER_TEMPORAL_SELECTION_THRESHOLD_FREEZE_AND_INTEGRATED_DEV_REPLAY",
+            "modelSelection": true,
+            "thresholdSelection": true
+          }
+        },
+        "integratedReuseRequired": true,
+        "selectorOnlyConsumptionProhibited": true
+      },
+      "validation": {
+        "opened": false,
+        "sessions": 30,
+        "role": "FROZEN_FIRST_PASS",
+        "modelSelection": false,
+        "thresholdSelection": false,
+        "finalPerformanceEvaluation": false
+      },
+      "validationReplication": {
+        "opened": false,
+        "sessions": 20,
+        "role": "LOCKED_REPLICATION",
+        "modelSelection": false,
+        "thresholdSelection": false,
+        "finalPerformanceEvaluation": false
+      },
+      "primaryOos": {
+        "opened": false,
+        "sessions": 30,
+        "role": "TRUE_OUTER_OOS",
+        "modelSelection": false,
+        "thresholdSelection": false,
+        "finalPerformanceEvaluation": true
+      },
+      "contingencyOos": {
+        "opened": false,
+        "sessions": 30,
+        "role": "SEALED_INSURANCE_ONLY_IF_PRIMARY_EVALUATION_INVALIDATED_BY_DATA_OR_IMPLEMENTATION_FAILURE",
+        "modelSelection": false,
+        "thresholdSelection": false,
+        "finalPerformanceEvaluation": true,
+        "performanceFailureIsNotAReleaseReason": true
+      },
+      "reserve": {
+        "opened": false,
+        "sessions": 15,
+        "role": "ADMISSION_FAILURE_REPLACEMENT_ONLY",
+        "performanceClaimAllowed": false,
+        "replacementOrderPrecommitted": true,
+        "manualPerformanceBasedDeploymentProhibited": true,
+        "triggers": [
+          "RAW_HASH_MISMATCH",
+          "PROVIDER_PAGE_CORRUPTION",
+          "MISSING_REQUIRED_DAILY_OR_MASTER_DATA",
+          "CORPORATE_ACTION_AMBIGUITY",
+          "PIT_MASTER_DIVERGENCE"
+        ]
+      },
+      "freshProspective": {
+        "opened": false,
+        "targetSessions": 25,
+        "firstNotBefore": "2026-09-15",
+        "exactDatesFrozen": false,
+        "selectionRule": "NEXT_JPX_TRADING_SESSIONS_AFTER_FREEZE_IN_CALENDAR_ORDER",
+        "modelSelection": false,
+        "thresholdSelection": false,
+        "finalPerformanceEvaluation": true
+      },
+      "diagnosticOnlyPriorExposed": {
+        "sessions": 179,
+        "first": "2025-04-15",
+        "last": "2026-01-07",
+        "performanceClaimAllowed": false,
+        "modelSelectionAllowed": false
+      }
+    },
+    "researchObjective": {
+      "primary": "BUILD_AND_VALIDATE_CASH_EQUITY_LONG_ONLY_SELECTOR_ENTRY_EXIT_ALLOCATION_PORTFOLIO",
+      "comparisonBaseline": "CURRENT_SELECTOR_ENTRY_EXIT_INTEGRATED_SYSTEM",
+      "selectorIsIntermediateArtifactNotFinalGoal": true,
+      "sameDevelopmentRawDataMustSupport": [
+        "L0",
+        "L1",
+        "L2_SELECTOR",
+        "ENTRY",
+        "EXIT",
+        "ALLOCATION",
+        "INTEGRATED_PORTFOLIO_REPLAY"
+      ],
+      "shortProfitContributionAllowed": false,
+      "marginAllowed": false,
+      "completionDeadline": "THIS_WEEK",
+      "completionRequiresIntegratedComparison": true,
+      "developmentWinDoesNotEqualFinalWin": true
+    },
+    "humanOverfittingControls": {
+      "frozenBeforeValidation": true,
+      "requiredBeforeValidation": [
+        "PRIMARY_TARGET",
+        "FEATURE_SET",
+        "MODEL_FAMILY",
+        "THRESHOLD_RULE",
+        "PORTFOLIO_COMPARISON_METRICS",
+        "GO_NO_GO_RULES"
+      ],
+      "validationMayNotTriggerRetune": true,
+      "validationReplicationMayNotTriggerRetune": true,
+      "primaryOosMayNotTriggerRetune": true,
+      "contingencyOosMayNotBeOpenedFor_POOR_PERFORMANCE": true,
+      "badResultsMustBePersisted": true
+    },
+    "integratedResearchDataset": {
+      "purpose": "ONE_ACQUISITION_SUPPORTS_SELECTOR_ENTRY_EXIT_ALLOCATION_AND_PORTFOLIO_REPLAY",
+      "requiredLayers": [
+        "PIT_MASTER",
+        "DAILY_OHLCV",
+        "RAW_MINUTE_WHEN_RELEASED",
+        "CAUSAL_5M",
+        "DECISION_TIMESTAMPS",
+        "SELECTION_CONTEXT",
+        "ENTRY_FEATURE_CONTEXT",
+        "CAUSAL_FUTURE_PATH_FOR_EVALUATOR_ONLY",
+        "MFE_MAE_LABELS",
+        "EXIT_REPLAY_BARS",
+        "LIQUIDITY_CONTEXT",
+        "SOURCE_MANIFEST"
+      ],
+      "rawDataMayNotBeDiscardedAfterSelectorResearch": true,
+      "entryExitAllocationReuseRequired": true,
+      "futurePathAccessibleToDecisionFeatures": false
+    },
+    "integratedComparisonContract": {
+      "baseline": "CURRENT_ARK_SELECTOR_ENTRY_EXIT_INTEGRATED",
+      "candidate": "NEW_LONG_ONLY_SELECTOR_ENTRY_EXIT_ALLOCATION_CASH_PORTFOLIO",
+      "minimumMetrics": [
+        "AFTER_COST_NET",
+        "PROFIT_FACTOR",
+        "MAX_DRAWDOWN",
+        "RETURN_TO_DD",
+        "WIN_RATE",
+        "TRADE_COUNT",
+        "PORTFOLIO_RETURN",
+        "CASH_UTILIZATION",
+        "MISSED_OPPORTUNITY",
+        "MFE_CAPTURE",
+        "MAE",
+        "SYMBOL_CONCENTRATION",
+        "SECTOR_CONCENTRATION",
+        "SESSION_STABILITY",
+        "REGIME_STABILITY"
+      ],
+      "candidateShortTradesRequired": 0,
+      "candidateMarginTradesRequired": 0,
+      "sameEvaluationWindowRequired": true,
+      "sameCostModelRequired": true,
+      "frozenBeforeValidation": true
+    },
+    "currentEntitlementEvidence": {
+      "status": "USER_SCREENSHOT_REATTESTED_2026_09_15",
+      "basePlan": "LIGHT",
+      "basePlanActive": true,
+      "basePlanScheduledEndJst": "2026-10-06T19:02:00+09:00",
+      "minuteAddon": "TICK_PLUS_OHLCMIN",
+      "minuteAddonActive": true,
+      "minuteAddonCancellationScheduled": true,
+      "addonScheduledEndJst": "2026-10-06T19:07:00+09:00",
+      "secretValueObserved": false,
+      "requiredOperatorConfirmationRemaining": [
+        "PRIVATE_STORAGE_AND_POST_CANCELLATION_DELETION_TERMS",
+        "GITHUB_ACTIONS_SECRET_JQUANTS_API_KEY_PRESENT"
+      ]
+    },
+    "storageManifest": {
+      "rawCache": "PRIVATE_USER_ONLY_NON_GIT_STORAGE",
+      "requiredIdentity": [
+        "provider",
+        "apiVersion",
+        "endpoint",
+        "normalizedQuery",
+        "sessionDate",
+        "fetchedAt",
+        "pageCount",
+        "rowCount",
+        "responseSha256PerPage",
+        "aggregateSha256",
+        "symbolSetSha256",
+        "contractSnapshotSha256"
+      ],
+      "derivedIdentity": [
+        "parentRawSha256",
+        "transformVersion",
+        "timestampContract",
+        "corporateActionPolicy",
+        "outputSha256"
+      ],
+      "reuseRule": "REUSE_ONLY_WHEN_SOURCE_IDENTITY_SESSION_SYMBOL_QUERY_CONTRACT_AND_SHA256_ALL_MATCH",
+      "correctionRule": "NEW_PROVIDER_SNAPSHOT_IS_NEW_VERSION_NEVER_OVERWRITE_OLD_MANIFEST",
+      "postCancellationRule": "DELETE_RAW_COPIES_AND_REVERSIBLE_DERIVATIVES_AT_APPLICABLE_PLAN_OR_ADDON_END; PRIVATE_NONREVERSIBLE_RESULTS_MAY_REMAIN",
+      "officialTermsEvidence": {
+        "checkedAt": "2026-09-15",
+        "termsUrl": "https://jpx-jquants.com/ja/termsofservice",
+        "helpUrl": "https://jpx-jquants.com/ja/help/usage",
+        "contractTerm": "PRIVATE_USER_ONLY_EXTERNAL_CLOUD_ALLOWED_DURING_ENTITLEMENT; DELETE_RAW_COPIES_AND_REVERSE_ENGINEERABLE_DERIVATIVES_AFTER_CANCELLATION_OR_DOWNGRADE",
+        "publicRepositoryStorageAllowed": false
+      },
+      "purgeDeadlinesJst": {
+        "DAILY_AND_MASTER_LIGHT": "2026-10-06T19:02:00+09:00",
+        "MINUTE_TICK_OHLCMIN": "2026-10-06T19:07:00+09:00"
+      }
+    }
+  },
+  "legacyFresh": {
+    "status": "RESERVATION_ONLY_NO_ACCESS_OR_MEASUREMENT_AUTHORIZATION",
+    "FRESH_ENTRY_VALIDATION": [
+      "2026-09-10",
+      "2026-09-11",
+      "2026-09-14",
+      "2026-09-15",
+      "2026-09-16",
+      "2026-09-17",
+      "2026-09-18",
+      "2026-09-24",
+      "2026-09-25",
+      "2026-09-28",
+      "2026-09-29",
+      "2026-09-30",
+      "2026-10-01",
+      "2026-10-02",
+      "2026-10-05"
+    ],
+    "PURGE_EMBARGO": [
+      "2026-10-06"
+    ],
+    "RESERVED_ENTRY_OOS": [
+      "2026-10-07",
+      "2026-10-08",
+      "2026-10-09",
+      "2026-10-13",
+      "2026-10-14",
+      "2026-10-15",
+      "2026-10-16",
+      "2026-10-19",
+      "2026-10-20",
+      "2026-10-21"
+    ],
+    "PROSPECTIVE": {
+      "notBefore": "2026-10-22",
+      "status": "POLICY_ONLY_REQUIRES_SEPARATE_PRECOMMIT_BEFORE_SESSION"
+    },
+    "unknownExposureDefault": "UNKNOWN_NOT_CLEAN"
+  },
+  "legacyUnresolved": [
+    {
+      "datasetId": "PHASE57_SELECTOR_YAHOO_5M_24626FD37F8633F4",
+      "firstSession": "2026-06-12",
+      "lastSession": "2026-09-04",
+      "uniqueSessions": null,
+      "sourceFingerprint": "931e600bd13a491bd8ac12d90548d2ee40f17d092193d85a628fb8003827f43b",
+      "status": "OUTCOMES_ALREADY_OPENED_RANGE_ONLY",
+      "overlapKnown": "Includes Baseline17; no double-count",
+      "sourceRefs": [
+        "S7"
+      ]
+    },
+    {
+      "datasetId": "P25_PINNED_HISTORY",
+      "reportedSessionCount": 190,
+      "perSymbolSessionCount": {
+        "7203.T": 38,
+        "6758.T": 38,
+        "9984.T": 38,
+        "8306.T": 38,
+        "8035.T": 38
+      },
+      "uniqueSessionDates": null,
+      "sourceFingerprint": "10ec0b89893823f9e2f7ba720db2d0fad8e76d642fe00f7b77d387ae6be6b12a",
+      "sourceRefs": [
+        "S9"
+      ],
+      "warning": "190 is not the protected Reserve190. Five per-symbol counts of38 do not prove a list of190 unique session dates."
+    },
+    {
+      "datasetId": "ENTRY_QUALITY_V2_LEGACY_445",
+      "reportedCandidateSessions": 16,
+      "reportedRawMarketSessions": 17,
+      "entryUsedSessionsVerifiedByMetadata": null,
+      "sourceRef": "435466c49cf2de7915ec9fa530b7d0f98db914ad",
+      "status": "USER_REPORTED_AGGREGATE_NOT_REATTESTED_WITH_OUTCOME_FILES",
+      "sessionMembership": "Raw period covered by Baseline17; candidate-session date ledger missing",
+      "role": "REGRESSION_REFERENCE_ONLY"
+    },
+    {
+      "datasetId": "P25_DURABLE_CAPTURE_9",
+      "uniqueSessions": 9,
+      "dates": [
+        "2026-08-19",
+        "2026-08-20",
+        "2026-08-21",
+        "2026-08-24",
+        "2026-08-25",
+        "2026-08-26",
+        "2026-09-01",
+        "2026-09-02",
+        "2026-09-03"
+      ],
+      "sourceRefs": [
+        "S9"
+      ],
+      "overlapKnown": "All nine already in Baseline17",
+      "newUniqueSessions": 0
+    },
+    {
+      "datasetId": "EXIT_V3_V4_V5_AND_CAR1_ALLOCATION",
+      "uniqueSessions": null,
+      "status": "METADATA_TREES_AND_DURABLE_REFERENCES_EXIST_NO_COMPLETE_SESSION_EXPOSURE_LEDGER",
+      "sourceRefs": [
+        "S10"
+      ]
+    },
+    {
+      "datasetId": "HISTORICAL_DAILY_WARMUP",
+      "uniqueSessions": null,
+      "status": "NOT_ENUMERATED_NOT_INTRADAY_EVIDENCE"
+    },
+    {
+      "datasetId": "RECENT_AUTOMATION_ARTIFACTS",
+      "artifactDates": [
+        "2026-09-07",
+        "2026-09-08"
+      ],
+      "confirmedTradingSessions": null,
+      "status": "ARTIFACT_DATES_NOT_SESSION_MEMBERSHIP_NOT_NEW_PROSPECTIVE_RESERVE"
+    }
+  ],
+  "legacyEntryProtection": {
+    "sourceDataset": "PHASE57_JQUANTS_FRESH120_PARENT_RESERVE_282",
+    "parentAllocationSHA": "d92ce2c29daaacd419979847d62d093df9f7375c12483ab9c4d51130ac6efd41",
+    "preserveOriginalAssignments": true,
+    "releaseAllowed": false,
+    "reallocationAllowed": false,
+    "protectedOrdinalRanges": [
+      [
+        92,
+        120
+      ],
+      [
+        121,
+        149
+      ],
+      [
+        151,
+        179
+      ],
+      [
+        180,
+        282
+      ]
+    ],
+    "protectedSessions": 190,
+    "priorityConservationOrdinalRange": [
+      180,
+      282
+    ],
+    "priorityConservationSessions": 103,
+    "priorityDoesNotCertifyOosOrTransferOwnership": true,
+    "excludedPurgeOrdinals": [
+      61,
+      91,
+      150
+    ],
+    "partition": {
+      "U_remainingReserveCrossResearchUnknown": 103,
+      "W_unavailableUnderExistingSelectorReservation": 87,
+      "X_entryDevelopment": 0,
+      "Y_entryValidation": 0,
+      "Z_certifiedEntryUntouchedOos": 0,
+      "basis": "DISJOINT_ACTIONABLE_CLASSIFICATION_EXISTING_RESERVATION_TAKES_PRECEDENCE_OVER_UNKNOWN",
+      "conservationPrioritySubset": {
+        "label": "PRESERVE_FOR_POSSIBLE_FINAL_HOLDOUT_NOT_CERTIFIED_ENTRY_OOS",
+        "ordinalRange": [
+          180,
+          282
+        ],
+        "sessions": 103
+      },
+      "globalFreshnessUnverifiedWithinAllProtected": 190,
+      "permanentlyUnavailableNotAsserted": true,
+      "total": 190
+    }
+  }
+}

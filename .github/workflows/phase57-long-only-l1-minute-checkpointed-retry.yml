@@ -1,0 +1,87 @@
+name: Phase57 LONG-only L1 Discovery Minute 20-session Checkpoints
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-long-only-l1-minute-checkpointed-retry.yml
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  acquire-shard:
+    strategy:
+      max-parallel: 1
+      fail-fast: false
+      matrix:
+        include:
+          - shard: 0
+            request_cap: 150
+          - shard: 1
+            request_cap: 150
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SOURCE_RUN_ID: 34917676944
+      SOURCE_ARTIFACT: phase57-long-only-l0-replication-34917676944
+      JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Mount verified L0 cache
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.SOURCE_ARTIFACT }}
+          path: ${{ runner.temp }}/source
+          repository: Iam-2squared/ark-terminal
+          run-id: ${{ env.SOURCE_RUN_ID }}
+          github-token: ${{ github.token }}
+      - name: Decrypt private cache
+        shell: bash
+        run: |
+          test -n "${JQUANTS_API_KEY:-}"
+          cd "$RUNNER_TEMP/source"
+          test "$(cut -d' ' -f1 private-cache.tar.gz.enc.sha256)" = "$(sha256sum private-cache.tar.gz.enc | cut -d' ' -f1)"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -in private-cache.tar.gz.enc -out "$RUNNER_TEMP/private-cache.tar.gz"
+          tar -C "$RUNNER_TEMP" -xzf "$RUNNER_TEMP/private-cache.tar.gz"
+      - name: Acquire one fixed ten-session shard
+        shell: bash
+        run: |
+          set -o pipefail
+          status=0
+          node scripts/acquire_phase57_long_only_l1_minute.mjs \
+            --cache-root "$RUNNER_TEMP/phase57-l0-cache" \
+            --shard-index "${{ matrix.shard }}" --shard-count 2 \
+            --maximum-requests "${{ matrix.request_cap }}" \
+            --summary "$RUNNER_TEMP/acquisition-summary.json" | tee "$RUNNER_TEMP/acquisition.log" || status=$?
+          test "$status" = "0" -o "$status" = "2"
+          test "$(jq '[.completedSessions,.unavailableSessions]|add' "$RUNNER_TEMP/acquisition-summary.json")" = "10"
+      - name: Encrypt immutable Minute shard and remove plaintext
+        if: always()
+        shell: bash
+        run: |
+          test -f "$RUNNER_TEMP/acquisition-summary.json"
+          mkdir -p artifacts/shard-${{ matrix.shard }}
+          cd "$RUNNER_TEMP/phase57-l0-cache"
+          find phase57-long-only/raw/jquants-v2 -type f \( -name minute-pages.json -o -name l1-minute-manifest.json \) -print0 \
+            | tar --null -T - -czf - \
+            | openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -out "$GITHUB_WORKSPACE/artifacts/shard-${{ matrix.shard }}/minute-shard.tar.gz.enc"
+          cd "$GITHUB_WORKSPACE"
+          sha256sum artifacts/shard-${{ matrix.shard }}/minute-shard.tar.gz.enc > artifacts/shard-${{ matrix.shard }}/minute-shard.tar.gz.enc.sha256
+          cp "$RUNNER_TEMP/acquisition-summary.json" artifacts/shard-${{ matrix.shard }}/acquisition-summary.json
+          rm -rf -- "$RUNNER_TEMP/phase57-l0-cache" "$RUNNER_TEMP/private-cache.tar.gz" "$RUNNER_TEMP/acquisition.log"
+      - name: Upload encrypted checkpoint
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-long-only-l1-minute-shard-${{ matrix.shard }}-${{ github.run_id }}
+          path: artifacts/shard-${{ matrix.shard }}/
+          if-no-files-found: error
+          retention-days: 21

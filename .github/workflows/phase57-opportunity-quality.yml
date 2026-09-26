@@ -1,0 +1,46 @@
+name: Phase57 Opportunity Quality Diagnostic
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-opportunity-quality.yml'
+      - 'scripts/phase57_opportunity_quality.py'
+      - 'scripts/report_phase57_opportunity_quality.py'
+      - 'scripts/test_phase57_opportunity_quality.py'
+      - 'docs/evidence/phase57-price75-entry-opportunity-quality-v1/**'
+permissions:
+  contents: read
+jobs:
+  verify-quality:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      ARK_TEST_OFFLINE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Evaluator and frozen Entry regression
+        run: python3 scripts/offline/kernel_exec.py python3 -m unittest -v scripts.test_phase57_opportunity_quality scripts.test_phase57_new_long_entry_two_opportunity scripts.test_phase57_opportunity_timestamp_counts
+      - name: Deterministic evaluator and presentation audit
+        run: |
+          set -euo pipefail
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_opportunity_quality --out /tmp/opportunity-quality/measurement
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.report_phase57_opportunity_quality --source /tmp/opportunity-quality/measurement --out /tmp/opportunity-quality/report
+          for file in ledger.json.gz summary.json breadth.csv manifest.json; do
+            cmp "/tmp/opportunity-quality/measurement/$file" "docs/evidence/phase57-price75-entry-opportunity-quality-v1/measurement/$file"
+          done
+          for file in REPORT.md complete-path-breadth.json manifest.json; do
+            cmp "/tmp/opportunity-quality/report/$file" "docs/evidence/phase57-price75-entry-opportunity-quality-v1/report/$file"
+          done
+          git diff --exit-code
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-opportunity-quality-${{ github.event.pull_request.head.sha }}
+          path: /tmp/opportunity-quality/
+          if-no-files-found: error
+          retention-days: 30

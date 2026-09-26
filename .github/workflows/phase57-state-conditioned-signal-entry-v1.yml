@@ -1,0 +1,72 @@
+name: Phase57 State-Conditioned Signal Entry v1
+
+on:
+  pull_request:
+    paths:
+      - scripts/phase57_state_conditioned_signal_entry_v1.py
+      - scripts/test_phase57_state_conditioned_signal_entry_v1.py
+      - docs/evidence/phase57-state-conditioned-signal-entry-v1/**
+      - .github/workflows/phase57-state-conditioned-signal-entry-v1.yml
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  deterministic-entry-v1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run dedicated tests against committed evidence
+        run: python scripts/test_phase57_state_conditioned_signal_entry_v1.py
+
+      - name: Download pinned evaluator-only artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/10692617487/zip" > "$RUNNER_TEMP/state-v2-a12.zip"
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/10605887642/zip" > "$RUNNER_TEMP/entry-pattern-v2.zip"
+          test "$(sha256sum "$RUNNER_TEMP/state-v2-a12.zip" | cut -d ' ' -f1)" = "ef3e3a631d43702ac7072fb02885c199b92e65378105b651255aca56834db9c4"
+          test "$(sha256sum "$RUNNER_TEMP/entry-pattern-v2.zip" | cut -d ' ' -f1)" = "749caf82bbd9d39969f5712ef5a6f2705ac973a2f74483f03307c671586ae05a"
+          mkdir -p "$RUNNER_TEMP/state-v2" "$RUNNER_TEMP/entry-pattern/substrate"
+          unzip -q "$RUNNER_TEMP/state-v2-a12.zip" \
+            'generation/manifest.json' 'generation/now_state_reference_v2/*' \
+            -d "$RUNNER_TEMP/state-v2"
+          unzip -p "$RUNNER_TEMP/entry-pattern-v2.zip" substrate/outcomes.json.gz \
+            > "$RUNNER_TEMP/entry-pattern/substrate/outcomes.json.gz"
+
+      - name: Replay all 2,155 opportunities
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/entry-v1-replay"
+          python scripts/phase57_state_conditioned_signal_entry_v1.py \
+            --measurement docs/evidence/phase57-entry-timing-signal-census-v1/measurement \
+            --state-reference "$RUNNER_TEMP/state-v2/generation/now_state_reference_v2" \
+            --state-manifest "$RUNNER_TEMP/state-v2/generation/manifest.json" \
+            --outcomes "$RUNNER_TEMP/entry-pattern/substrate/outcomes.json.gz" \
+            --policy docs/evidence/phase57-state-conditioned-signal-entry-v1/POLICY_LOCK.json \
+            --signal-detector scripts/phase57_entry_timing_signals.py \
+            --output "$RUNNER_TEMP/entry-v1-replay/measurement"
+
+      - name: Verify byte-identical deterministic replay
+        run: |
+          set -euo pipefail
+          diff -qr \
+            docs/evidence/phase57-state-conditioned-signal-entry-v1/measurement \
+            "$RUNNER_TEMP/entry-v1-replay/measurement"
+
+      - name: Upload replay receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-state-conditioned-signal-entry-v1-replay
+          path: ${{ runner.temp }}/entry-v1-replay/measurement
+          if-no-files-found: error
+          retention-days: 30

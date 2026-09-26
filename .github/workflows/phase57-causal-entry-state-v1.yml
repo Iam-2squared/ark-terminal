@@ -1,0 +1,153 @@
+name: Phase57 Causal Entry State Path Anatomy v1
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-causal-entry-state-v1.yml'
+      - 'scripts/phase57_causal_entry_*.py'
+      - 'scripts/test_phase57_causal_entry_state.py'
+      - 'docs/evidence/phase57-causal-entry-state-v1/**'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-causal-entry-state-v1
+  cancel-in-progress: false
+jobs:
+  research:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      ARK_TEST_OFFLINE: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    outputs:
+      measured: ${{ steps.gate.outputs.measure }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.7.2 pandas==2.2.3 matplotlib==3.10.3 pytest fastapi httpx
+      - id: gate
+        run: |
+          if test -e docs/evidence/phase57-causal-entry-state-v1/ci-result/receipt.json; then
+            echo 'measure=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'measure=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Precommit verification and causal tests
+        run: |
+          set -o pipefail
+          mkdir -p "$RUNNER_TEMP/state/evidence"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_causal_entry_anatomy verify
+          python scripts/offline/kernel_exec.py python -m unittest -v scripts.test_phase57_causal_entry_state scripts.test_phase57_entry_timing_census scripts.test_phase57_entry_pattern_v2 scripts.test_phase57_entry_extended scripts.test_phase57_chart_entry 2>&1 | tee "$RUNNER_TEMP/state/evidence/focused.log"
+      - uses: actions/download-artifact@v4
+        if: steps.gate.outputs.measure == 'true'
+        with:
+          name: phase57-expansion-reuse-35447995157
+          path: ${{ runner.temp }}/state/encrypted
+          repository: Iam-2squared/ark-terminal
+          run-id: 35447995157
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        if: steps.gate.outputs.measure == 'true'
+        with:
+          pattern: phase57-expansion-raw-minute-*-35447995157
+          path: ${{ runner.temp }}/state/encrypted/expanded
+          repository: Iam-2squared/ark-terminal
+          run-id: 35447995157
+          github-token: ${{ github.token }}
+      - name: Restore existing Development only, no acquisition
+        if: steps.gate.outputs.measure == 'true'
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: python scripts/offline/kernel_exec.py python -m scripts.phase57_causal_entry_anatomy restore --archives "$RUNNER_TEMP/state/encrypted" --cache "$RUNNER_TEMP/state/raw" --output "$RUNNER_TEMP/state/evidence/extraction.json"
+      - name: Exact D-5 through D-1 daily context twice
+        if: steps.gate.outputs.measure == 'true'
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_causal_entry_anatomy daily --cache "$RUNNER_TEMP/state/raw" --output "$RUNNER_TEMP/state/evidence/daily.json.gz"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_causal_entry_anatomy daily --cache "$RUNNER_TEMP/state/raw" --output "$RUNNER_TEMP/state/daily-replay.json.gz"
+          cmp "$RUNNER_TEMP/state/evidence/daily.json.gz" "$RUNNER_TEMP/state/daily-replay.json.gz"
+      - name: Fixed study twice, no Entry training
+        if: steps.gate.outputs.measure == 'true'
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_causal_entry_anatomy run --daily "$RUNNER_TEMP/state/evidence/daily.json.gz" --output "$RUNNER_TEMP/state/evidence/measurement"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_causal_entry_anatomy run --daily "$RUNNER_TEMP/state/daily-replay.json.gz" --output "$RUNNER_TEMP/state/measurement-replay"
+          cmp "$RUNNER_TEMP/state/evidence/measurement/manifest.json" "$RUNNER_TEMP/state/measurement-replay/manifest.json"
+      - name: Full offline regression and preservation
+        if: steps.gate.outputs.measure == 'true'
+        run: |
+          python scripts/run_offline_regression.py --output-dir "$RUNNER_TEMP/state/evidence/regression"
+          python scripts/offline/kernel_exec.py python scripts/verify_phase57_development_preservation.py
+          python scripts/offline/kernel_exec.py python scripts/verify_phase57_selector_min_price75_freeze.py
+      - name: Deterministic reports and receipt
+        if: steps.gate.outputs.measure == 'true'
+        env:
+          EXECUTION_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_causal_entry_report --source "$RUNNER_TEMP/state/evidence/measurement" --output "$RUNNER_TEMP/state/evidence/report"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_causal_entry_report --source "$RUNNER_TEMP/state/measurement-replay" --output "$RUNNER_TEMP/state/report-replay"
+          cmp "$RUNNER_TEMP/state/evidence/report/manifest.json" "$RUNNER_TEMP/state/report-replay/manifest.json"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_causal_entry_receipt create --evidence "$RUNNER_TEMP/state/evidence"
+      - name: Verify preserved results without rerun
+        if: steps.gate.outputs.measure == 'false'
+        run: python scripts/offline/kernel_exec.py python -m scripts.phase57_causal_entry_receipt verify --evidence docs/evidence/phase57-causal-entry-state-v1/ci-result
+      - name: STEP3 causal state recognition from preserved causal checkpoints
+        run: |
+          rm -rf docs/evidence/phase57-causal-state-recognition-v1/result
+          python scripts/phase57_causal_state_recognition_v1.py
+          test -s docs/evidence/phase57-causal-state-recognition-v1/result/summary.json
+          test -s docs/evidence/phase57-causal-state-recognition-v1/result/REPORT.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-step3-causal-state-${{ github.event.pull_request.head.sha }}
+          path: docs/evidence/phase57-causal-state-recognition-v1/result
+          retention-days: 90
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.gate.outputs.measure == 'true'
+        with:
+          name: phase57-causal-entry-state-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/state/evidence
+          retention-days: 90
+      - name: Purge temporary private restored sources
+        if: always() && steps.gate.outputs.measure == 'true'
+        run: rm -rf -- "$RUNNER_TEMP/state/raw" "$RUNNER_TEMP/state/encrypted"
+  preserve:
+    needs: research
+    if: needs.research.outputs.measured == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-causal-entry-state-${{ github.event.pull_request.head.sha }}
+          path: docs/evidence/phase57-causal-entry-state-v1/ci-result
+      - name: Preserve new evidence only and STOP
+        env:
+          BRANCH: ${{ github.head_ref }}
+          EXPECTED: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$BRANCH" = research/phase57-long-only-cash-equity
+          test "$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)" = "$EXPECTED"
+          test -z "$(git ls-tree -r HEAD -- docs/evidence/phase57-causal-entry-state-v1/ci-result)"
+          test -s docs/evidence/phase57-causal-entry-state-v1/ci-result/receipt.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/evidence/phase57-causal-entry-state-v1/ci-result
+          git commit -m 'Phase57: preserve Causal Entry State Path Anatomy v1 and STOP'
+          git push origin "HEAD:$BRANCH"

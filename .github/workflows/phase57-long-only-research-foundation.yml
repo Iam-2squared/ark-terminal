@@ -1,0 +1,118 @@
+name: Phase57 LONG-only Research Foundation
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/audit_phase57_historical_fresh_window.py'
+      - 'scripts/test_phase57_historical_fresh_window.py'
+      - 'docs/evidence/phase57-msh-entry-long-v1-historical-fresh-fast-track/**'
+      - 'scripts/phase57_budget_metadata.py'
+      - 'scripts/test_phase57_budget_metadata.py'
+      - 'scripts/replay_phase57_budget_without_outcomes.py'
+      - 'docs/evidence/phase57-long-only-global-budget-integrity-review/**'
+      - 'predict/research/phase57-long-only-global-data-budget-v1.json'
+      - 'predict/long-only/**'
+      - 'scripts/run_phase57_long_only_l0_census.mjs'
+      - 'scripts/run_phase57_long_only_formal_l0_from_cache.mjs'
+      - 'scripts/run_phase57_long_only_l1.mjs'
+      - 'scripts/run_phase57_long_only_l2_development.mjs'
+      - 'scripts/prepare_phase57_long_only_l0_input.mjs'
+      - 'scripts/acquire_phase57_long_only_l0.mjs'
+      - 'scripts/plan_phase57_long_only_acquisition_gate.mjs'
+      - 'scripts/plan_phase57_long_only_storage_purge.mjs'
+      - 'scripts/purge_phase57_long_only_jquants_cache.mjs'
+      - 'predict/tests/phase57-long-only-research-foundation.test.mjs'
+      - 'predict/tests/phase57-long-only-acquisition-dry-run.test.mjs'
+      - 'predict/tests/phase57-long-only-integrated-pipeline.test.mjs'
+      - 'predict/tests/phase57-long-only-storage-gate.test.mjs'
+      - 'predict/tests/phase57-long-only-selector-development.test.mjs'
+      - 'docs/phase57-long-only-cash-equity-research-foundation.md'
+      - 'docs/phase57-long-only-data-budget-and-dataset-split.md'
+      - 'docs/phase57-long-only-claude-data-budget-review-request.md'
+      - 'docs/phase57-long-only-independent-review-disposition-v1.md'
+      - 'docs/phase57-long-only-pre-acquisition-independent-review-request-v2.md'
+      - '.github/workflows/phase57-long-only-research-foundation.yml'
+  push:
+    branches:
+      - research/phase57-long-only-cash-equity
+    paths:
+      - 'scripts/audit_phase57_historical_fresh_window.py'
+      - 'scripts/test_phase57_historical_fresh_window.py'
+      - 'docs/evidence/phase57-msh-entry-long-v1-historical-fresh-fast-track/**'
+      - 'scripts/phase57_budget_metadata.py'
+      - 'scripts/test_phase57_budget_metadata.py'
+      - 'scripts/replay_phase57_budget_without_outcomes.py'
+      - 'docs/evidence/phase57-long-only-global-budget-integrity-review/**'
+      - 'predict/research/phase57-long-only-global-data-budget-v1.json'
+      - 'predict/long-only/**'
+      - 'scripts/run_phase57_long_only_l0_census.mjs'
+      - 'scripts/run_phase57_long_only_formal_l0_from_cache.mjs'
+      - 'scripts/run_phase57_long_only_l1.mjs'
+      - 'scripts/run_phase57_long_only_l2_development.mjs'
+      - 'scripts/prepare_phase57_long_only_l0_input.mjs'
+      - 'scripts/acquire_phase57_long_only_l0.mjs'
+      - 'scripts/plan_phase57_long_only_acquisition_gate.mjs'
+      - 'scripts/plan_phase57_long_only_storage_purge.mjs'
+      - 'scripts/purge_phase57_long_only_jquants_cache.mjs'
+      - 'predict/tests/phase57-long-only-research-foundation.test.mjs'
+      - 'predict/tests/phase57-long-only-acquisition-dry-run.test.mjs'
+      - 'predict/tests/phase57-long-only-integrated-pipeline.test.mjs'
+      - 'predict/tests/phase57-long-only-storage-gate.test.mjs'
+      - 'predict/tests/phase57-long-only-selector-development.test.mjs'
+      - 'docs/phase57-long-only-cash-equity-research-foundation.md'
+      - 'docs/phase57-long-only-data-budget-and-dataset-split.md'
+      - 'docs/phase57-long-only-claude-data-budget-review-request.md'
+      - 'docs/phase57-long-only-independent-review-disposition-v1.md'
+      - 'docs/phase57-long-only-pre-acquisition-independent-review-request-v2.md'
+      - '.github/workflows/phase57-long-only-research-foundation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contract-and-l0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify LONG-only cash-equity research foundation
+        run: python3 scripts/run_offline_regression.py --suite foundation --output-dir "$RUNNER_TEMP/foundation-offline-regression"
+      - name: Verify outcome-free global budget derivation and metadata allowlist
+        run: ARK_TEST_OFFLINE=1 python3 scripts/offline/kernel_exec.py python3 scripts/test_phase57_budget_metadata.py -v
+      - name: Verify historical fresh-window metadata bound
+        run: ARK_TEST_OFFLINE=1 python3 scripts/offline/kernel_exec.py python3 scripts/test_phase57_historical_fresh_window.py -v
+      - name: Upload offline regression audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: foundation-offline-regression-${{ github.run_id }}
+          retention-days: 30
+          path: ${{ runner.temp }}/foundation-offline-regression/
+      - name: Check L0 runner syntax
+        run: |
+          node --check scripts/acquire_phase57_long_only_l0.mjs
+          node --check scripts/plan_phase57_long_only_acquisition_gate.mjs
+          node --check scripts/plan_phase57_long_only_storage_purge.mjs
+          node --check scripts/purge_phase57_long_only_jquants_cache.mjs
+          node --check scripts/prepare_phase57_long_only_l0_input.mjs
+          node --check scripts/run_phase57_long_only_l0_census.mjs
+          node --check scripts/run_phase57_long_only_formal_l0_from_cache.mjs
+          node --check scripts/run_phase57_long_only_l1.mjs
+          node --check scripts/run_phase57_long_only_l2_development.mjs
+      - name: Prove committed acquisition gate stays closed
+        run: node -e "import('./predict/long-only/phase57-long-only-acquisition-gate.js').then(async m=>{const fs=await import('node:fs');const p=JSON.parse(fs.readFileSync('predict/long-only/phase57-long-only-data-plan.json'));if(m.evaluateLongOnlyAcquisitionGate(p).acquisitionMayStart)process.exit(1)})"
+      - name: Prove acquisition planner is network-free
+        run: |
+          if rg -n "fetch\(|https?://|api\.jquants" predict/long-only/phase57-long-only-acquisition-dry-run.js; then
+            echo "Acquisition dry-run planner must not contain network calls"
+            exit 1
+          fi
+      - name: Prove no write-path imports
+        run: |
+          if rg -n "rss-order|order-bridge|broker.*write|createOrder|transmitOrder" predict/long-only; then
+            echo "Forbidden execution-path reference found"
+            exit 1
+          fi

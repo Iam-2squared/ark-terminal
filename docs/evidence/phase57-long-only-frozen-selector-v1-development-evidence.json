@@ -1,0 +1,1011 @@
+{
+  "schemaVersion": 1,
+  "status": "TOP5_HIT_DISTRIBUTION_COMPLETE",
+  "contract": "ELIGIBILITY-TOP5-HIT-DISTRIBUTION-1",
+  "contractCommit": "4cd58726eeeb5f34ae8bb75570589e07261f6100",
+  "parentContract": "ELIGIBILITY-MEASUREMENT-1",
+  "model": {
+    "name": "ELIGIBILITY_AWARE_RIDGE_SAVED_CD",
+    "artifactSha256": "994f1dbaba1d32e97458d5dd9d4c646ef443fbb37128650e8166001d8deabefb",
+    "fitPartitions": [
+      "DEVELOPMENT_C",
+      "DEVELOPMENT_D"
+    ],
+    "trainingRows": 1077111,
+    "historicalCOnly": "UNAVAILABLE_NO_SAVED_WEIGHTS_OR_SCORES",
+    "v2": "OUT_OF_SCOPE_NO_RETEST",
+    "notOriginal117bpsBenchmark": true
+  },
+  "inputManifestSha256": "9c23ec1fa0e1e4b0d78a735ae00a0bb163133aafa6a1c9f0f1abafbfa8ca8691",
+  "dataAudit": {
+    "availableSessions": 76,
+    "populationRows": 2758341,
+    "eligibleRows": 1755720,
+    "decisionCount": 760,
+    "top5SelectionEvents": 3800,
+    "selectedPerDecision": {
+      "n": 760,
+      "missing": 0,
+      "min": 5.0,
+      "mean": 5.0,
+      "p1": 5.0,
+      "p5": 5.0,
+      "p10": 5.0,
+      "p25": 5.0,
+      "p50": 5.0,
+      "p75": 5.0,
+      "p90": 5.0,
+      "p95": 5.0,
+      "p99": 5.0,
+      "max": 5.0
+    },
+    "repeatSymbolsAcrossDecisionsAllowed": true
+  },
+  "semantics": {
+    "eligibility": "LATEST_CAUSALLY_AVAILABLE_PRICE_AGE_LE_5_WALL_CLOCK_MINUTES",
+    "selection": "ELIGIBILITY_THEN_SAVED_RIDGE_SCORE_DESC_SYMBOL_ASC_TOP5",
+    "primary": "DECISION_PRICE_TO_SAME_SESSION_FUTURE_CONTINUOUS_5M_HIGH",
+    "secondary": "DECISION_PRICE_TO_FUTURE_5M_OR_TERMINAL_AUCTION_CLOSE",
+    "thresholdPct": [
+      1,
+      2,
+      3,
+      5
+    ],
+    "timeGroups": {
+      "MORNING": [
+        "09:30",
+        "10:00"
+      ],
+      "LATE_MORNING": [
+        "10:30",
+        "11:00",
+        "11:30"
+      ],
+      "AFTERNOON": [
+        "13:00",
+        "13:30",
+        "14:00",
+        "14:30",
+        "15:00"
+      ]
+    }
+  },
+  "highTouch": {
+    "1": {
+      "metrics": {
+        "opportunities": 321894,
+        "selectedHits": 2895,
+        "precisionAt5Pct": 76.3852242744,
+        "hitsOverAllSelectedLowerBoundPct": 76.1842105263,
+        "actualRecallPct": 0.899364387,
+        "randomExpectedHits": 696.855356799,
+        "randomExpectedRecallPct": 0.2164859726,
+        "recallLift": 4.1543771914,
+        "unconditionalPrevalencePct": 18.370565001,
+        "precisionLift": 4.1580225905,
+        "randomExpectedPrecisionPct": 18.3750136134
+      },
+      "perDecisionTop5": {
+        "decisions": 760,
+        "distribution": {
+          "0": {
+            "decisionCount": 11,
+            "pct": 1.4473684211
+          },
+          "1": {
+            "decisionCount": 17,
+            "pct": 2.2368421053
+          },
+          "2": {
+            "decisionCount": 65,
+            "pct": 8.5526315789
+          },
+          "3": {
+            "decisionCount": 164,
+            "pct": 21.5789473684
+          },
+          "4": {
+            "decisionCount": 259,
+            "pct": 34.0789473684
+          },
+          "5": {
+            "decisionCount": 244,
+            "pct": 32.1052631579
+          }
+        },
+        "meanHitsPerTop5": 3.8092105263,
+        "medianHitsPerTop5": 4.0,
+        "probabilityPct": {
+          "GE1": 98.5526315789,
+          "GE2": 96.3157894737,
+          "GE3": 87.7631578947,
+          "GE4": 66.1842105263,
+          "EQ5": 32.1052631579
+        },
+        "evaluatorCoverage": {
+          "selectedEvents": 3800,
+          "evaluableEvents": 3790,
+          "coveragePct": 99.7368421053,
+          "decisionsWithAnyUnavailable": 10
+        }
+      }
+    },
+    "2": {
+      "metrics": {
+        "opportunities": 100010,
+        "selectedHits": 2323,
+        "precisionAt5Pct": 61.2928759894,
+        "hitsOverAllSelectedLowerBoundPct": 61.1315789474,
+        "actualRecallPct": 2.3227677232,
+        "randomExpectedHits": 215.9243037895,
+        "randomExpectedRecallPct": 0.2159027135,
+        "recallLift": 10.7583998616,
+        "unconditionalPrevalencePct": 5.707593822,
+        "precisionLift": 10.7388293426,
+        "randomExpectedPrecisionPct": 5.6935947796
+      },
+      "perDecisionTop5": {
+        "decisions": 760,
+        "distribution": {
+          "0": {
+            "decisionCount": 21,
+            "pct": 2.7631578947
+          },
+          "1": {
+            "decisionCount": 68,
+            "pct": 8.9473684211
+          },
+          "2": {
+            "decisionCount": 145,
+            "pct": 19.0789473684
+          },
+          "3": {
+            "decisionCount": 225,
+            "pct": 29.6052631579
+          },
+          "4": {
+            "decisionCount": 215,
+            "pct": 28.2894736842
+          },
+          "5": {
+            "decisionCount": 86,
+            "pct": 11.3157894737
+          }
+        },
+        "meanHitsPerTop5": 3.0565789474,
+        "medianHitsPerTop5": 3.0,
+        "probabilityPct": {
+          "GE1": 97.2368421053,
+          "GE2": 88.2894736842,
+          "GE3": 69.2105263158,
+          "GE4": 39.6052631579,
+          "EQ5": 11.3157894737
+        },
+        "evaluatorCoverage": {
+          "selectedEvents": 3800,
+          "evaluableEvents": 3790,
+          "coveragePct": 99.7368421053,
+          "decisionsWithAnyUnavailable": 10
+        }
+      }
+    },
+    "3": {
+      "metrics": {
+        "opportunities": 44991,
+        "selectedHits": 1791,
+        "precisionAt5Pct": 47.2559366755,
+        "hitsOverAllSelectedLowerBoundPct": 47.1315789474,
+        "actualRecallPct": 3.9807961592,
+        "randomExpectedHits": 97.1353286228,
+        "randomExpectedRecallPct": 0.2158994657,
+        "recallLift": 18.4381936561,
+        "unconditionalPrevalencePct": 2.5676467718,
+        "precisionLift": 18.4043760349,
+        "randomExpectedPrecisionPct": 2.5613105623
+      },
+      "perDecisionTop5": {
+        "decisions": 760,
+        "distribution": {
+          "0": {
+            "decisionCount": 57,
+            "pct": 7.5
+          },
+          "1": {
+            "decisionCount": 131,
+            "pct": 17.2368421053
+          },
+          "2": {
+            "decisionCount": 228,
+            "pct": 30.0
+          },
+          "3": {
+            "decisionCount": 197,
+            "pct": 25.9210526316
+          },
+          "4": {
+            "decisionCount": 122,
+            "pct": 16.0526315789
+          },
+          "5": {
+            "decisionCount": 25,
+            "pct": 3.2894736842
+          }
+        },
+        "meanHitsPerTop5": 2.3565789474,
+        "medianHitsPerTop5": 2.0,
+        "probabilityPct": {
+          "GE1": 92.5,
+          "GE2": 75.2631578947,
+          "GE3": 45.2631578947,
+          "GE4": 19.3421052632,
+          "EQ5": 3.2894736842
+        },
+        "evaluatorCoverage": {
+          "selectedEvents": 3800,
+          "evaluableEvents": 3790,
+          "coveragePct": 99.7368421053,
+          "decisionsWithAnyUnavailable": 10
+        }
+      }
+    },
+    "5": {
+      "metrics": {
+        "opportunities": 15429,
+        "selectedHits": 947,
+        "precisionAt5Pct": 24.9868073879,
+        "hitsOverAllSelectedLowerBoundPct": 24.9210526316,
+        "actualRecallPct": 6.1377924687,
+        "randomExpectedHits": 33.3330341494,
+        "randomExpectedRecallPct": 0.2160414424,
+        "recallLift": 28.4102549968,
+        "unconditionalPrevalencePct": 0.8805365971,
+        "precisionLift": 28.3767959106,
+        "randomExpectedPrecisionPct": 0.8789413044
+      },
+      "perDecisionTop5": {
+        "decisions": 760,
+        "distribution": {
+          "0": {
+            "decisionCount": 209,
+            "pct": 27.5
+          },
+          "1": {
+            "decisionCount": 274,
+            "pct": 36.0526315789
+          },
+          "2": {
+            "decisionCount": 183,
+            "pct": 24.0789473684
+          },
+          "3": {
+            "decisionCount": 70,
+            "pct": 9.2105263158
+          },
+          "4": {
+            "decisionCount": 23,
+            "pct": 3.0263157895
+          },
+          "5": {
+            "decisionCount": 1,
+            "pct": 0.1315789474
+          }
+        },
+        "meanHitsPerTop5": 1.2460526316,
+        "medianHitsPerTop5": 1.0,
+        "probabilityPct": {
+          "GE1": 72.5,
+          "GE2": 36.4473684211,
+          "GE3": 12.3684210526,
+          "GE4": 3.1578947368,
+          "EQ5": 0.1315789474
+        },
+        "evaluatorCoverage": {
+          "selectedEvents": 3800,
+          "evaluableEvents": 3790,
+          "coveragePct": 99.7368421053,
+          "decisionsWithAnyUnavailable": 10
+        }
+      }
+    }
+  },
+  "closeConfirmed": {
+    "1": {
+      "metrics": {
+        "opportunities": 293328,
+        "selectedHits": 2729,
+        "precisionAt5Pct": 71.8157894737,
+        "hitsOverAllSelectedLowerBoundPct": 71.8157894737,
+        "actualRecallPct": 0.9303578247,
+        "randomExpectedHits": 634.6383257448,
+        "randomExpectedRecallPct": 0.2163579085,
+        "recallLift": 4.3000869776,
+        "unconditionalPrevalencePct": 16.7069920033,
+        "precisionLift": 4.2985469479,
+        "randomExpectedPrecisionPct": 16.7010085722
+      },
+      "perDecisionTop5": {
+        "decisions": 760,
+        "distribution": {
+          "0": {
+            "decisionCount": 11,
+            "pct": 1.4473684211
+          },
+          "1": {
+            "decisionCount": 24,
+            "pct": 3.1578947368
+          },
+          "2": {
+            "decisionCount": 94,
+            "pct": 12.3684210526
+          },
+          "3": {
+            "decisionCount": 196,
+            "pct": 25.7894736842
+          },
+          "4": {
+            "decisionCount": 246,
+            "pct": 32.3684210526
+          },
+          "5": {
+            "decisionCount": 189,
+            "pct": 24.8684210526
+          }
+        },
+        "meanHitsPerTop5": 3.5907894737,
+        "medianHitsPerTop5": 4.0,
+        "probabilityPct": {
+          "GE1": 98.5526315789,
+          "GE2": 95.3947368421,
+          "GE3": 83.0263157895,
+          "GE4": 57.2368421053,
+          "EQ5": 24.8684210526
+        },
+        "evaluatorCoverage": {
+          "selectedEvents": 3800,
+          "evaluableEvents": 3800,
+          "coveragePct": 100.0,
+          "decisionsWithAnyUnavailable": 0
+        }
+      }
+    },
+    "2": {
+      "metrics": {
+        "opportunities": 88850,
+        "selectedHits": 2166,
+        "precisionAt5Pct": 57.0,
+        "hitsOverAllSelectedLowerBoundPct": 57.0,
+        "actualRecallPct": 2.4378165447,
+        "randomExpectedHits": 191.7533599861,
+        "randomExpectedRecallPct": 0.2158169499,
+        "recallLift": 11.2957603463,
+        "unconditionalPrevalencePct": 5.0606019183,
+        "precisionLift": 11.2634822697,
+        "randomExpectedPrecisionPct": 5.0461410523
+      },
+      "perDecisionTop5": {
+        "decisions": 760,
+        "distribution": {
+          "0": {
+            "decisionCount": 28,
+            "pct": 3.6842105263
+          },
+          "1": {
+            "decisionCount": 80,
+            "pct": 10.5263157895
+          },
+          "2": {
+            "decisionCount": 184,
+            "pct": 24.2105263158
+          },
+          "3": {
+            "decisionCount": 210,
+            "pct": 27.6315789474
+          },
+          "4": {
+            "decisionCount": 202,
+            "pct": 26.5789473684
+          },
+          "5": {
+            "decisionCount": 56,
+            "pct": 7.3684210526
+          }
+        },
+        "meanHitsPerTop5": 2.85,
+        "medianHitsPerTop5": 3.0,
+        "probabilityPct": {
+          "GE1": 96.3157894737,
+          "GE2": 85.7894736842,
+          "GE3": 61.5789473684,
+          "GE4": 33.9473684211,
+          "EQ5": 7.3684210526
+        },
+        "evaluatorCoverage": {
+          "selectedEvents": 3800,
+          "evaluableEvents": 3800,
+          "coveragePct": 100.0,
+          "decisionsWithAnyUnavailable": 0
+        }
+      }
+    },
+    "3": {
+      "metrics": {
+        "opportunities": 39053,
+        "selectedHits": 1656,
+        "precisionAt5Pct": 43.5789473684,
+        "hitsOverAllSelectedLowerBoundPct": 43.5789473684,
+        "actualRecallPct": 4.2403912632,
+        "randomExpectedHits": 84.2583399053,
+        "randomExpectedRecallPct": 0.2157538215,
+        "recallLift": 19.653840817,
+        "unconditionalPrevalencePct": 2.2243296198,
+        "precisionLift": 19.5919467053,
+        "randomExpectedPrecisionPct": 2.2173247344
+      },
+      "perDecisionTop5": {
+        "decisions": 760,
+        "distribution": {
+          "0": {
+            "decisionCount": 69,
+            "pct": 9.0789473684
+          },
+          "1": {
+            "decisionCount": 148,
+            "pct": 19.4736842105
+          },
+          "2": {
+            "decisionCount": 250,
+            "pct": 32.8947368421
+          },
+          "3": {
+            "decisionCount": 179,
+            "pct": 23.5526315789
+          },
+          "4": {
+            "decisionCount": 99,
+            "pct": 13.0263157895
+          },
+          "5": {
+            "decisionCount": 15,
+            "pct": 1.9736842105
+          }
+        },
+        "meanHitsPerTop5": 2.1789473684,
+        "medianHitsPerTop5": 2.0,
+        "probabilityPct": {
+          "GE1": 90.9210526316,
+          "GE2": 71.4473684211,
+          "GE3": 38.5526315789,
+          "GE4": 15.0,
+          "EQ5": 1.9736842105
+        },
+        "evaluatorCoverage": {
+          "selectedEvents": 3800,
+          "evaluableEvents": 3800,
+          "coveragePct": 100.0,
+          "decisionsWithAnyUnavailable": 0
+        }
+      }
+    },
+    "5": {
+      "metrics": {
+        "opportunities": 12788,
+        "selectedHits": 872,
+        "precisionAt5Pct": 22.9473684211,
+        "hitsOverAllSelectedLowerBoundPct": 22.9473684211,
+        "actualRecallPct": 6.8188927119,
+        "randomExpectedHits": 27.615930508,
+        "randomExpectedRecallPct": 0.215951912,
+        "recallLift": 31.5759774869,
+        "unconditionalPrevalencePct": 0.7283621534,
+        "precisionLift": 31.50543781,
+        "randomExpectedPrecisionPct": 0.7267350134
+      },
+      "perDecisionTop5": {
+        "decisions": 760,
+        "distribution": {
+          "0": {
+            "decisionCount": 228,
+            "pct": 30.0
+          },
+          "1": {
+            "decisionCount": 286,
+            "pct": 37.6315789474
+          },
+          "2": {
+            "decisionCount": 170,
+            "pct": 22.3684210526
+          },
+          "3": {
+            "decisionCount": 59,
+            "pct": 7.7631578947
+          },
+          "4": {
+            "decisionCount": 16,
+            "pct": 2.1052631579
+          },
+          "5": {
+            "decisionCount": 1,
+            "pct": 0.1315789474
+          }
+        },
+        "meanHitsPerTop5": 1.1473684211,
+        "medianHitsPerTop5": 1.0,
+        "probabilityPct": {
+          "GE1": 70.0,
+          "GE2": 32.3684210526,
+          "GE3": 10.0,
+          "GE4": 2.2368421053,
+          "EQ5": 0.1315789474
+        },
+        "evaluatorCoverage": {
+          "selectedEvents": 3800,
+          "evaluableEvents": 3800,
+          "coveragePct": 100.0,
+          "decisionsWithAnyUnavailable": 0
+        }
+      }
+    }
+  },
+  "timeToHit": {
+    "highTouch": {
+      "1": {
+        "distributionMinutes": {
+          "n": 2895,
+          "missing": 0,
+          "min": 5.0,
+          "mean": 31.5664939551,
+          "p1": 5.0,
+          "p5": 5.0,
+          "p10": 5.0,
+          "p25": 5.0,
+          "p50": 10.0,
+          "p75": 35.0,
+          "p90": 90.0,
+          "p95": 125.0,
+          "p99": 225.0,
+          "max": 350.0
+        },
+        "buckets": {
+          "LE15": 1780,
+          "16_TO30": 362,
+          "31_TO60": 202,
+          "61_TO120": 383,
+          "GT120": 168
+        }
+      },
+      "2": {
+        "distributionMinutes": {
+          "n": 2323,
+          "missing": 0,
+          "min": 5.0,
+          "mean": 42.0899698666,
+          "p1": 5.0,
+          "p5": 5.0,
+          "p10": 5.0,
+          "p25": 5.0,
+          "p50": 15.0,
+          "p75": 65.0,
+          "p90": 115.0,
+          "p95": 165.0,
+          "p99": 258.9,
+          "max": 355.0
+        },
+        "buckets": {
+          "LE15": 1217,
+          "16_TO30": 297,
+          "31_TO60": 227,
+          "61_TO120": 367,
+          "GT120": 215
+        }
+      },
+      "3": {
+        "distributionMinutes": {
+          "n": 1791,
+          "missing": 0,
+          "min": 5.0,
+          "mean": 49.5421552205,
+          "p1": 5.0,
+          "p5": 5.0,
+          "p10": 5.0,
+          "p25": 5.0,
+          "p50": 20.0,
+          "p75": 70.0,
+          "p90": 140.0,
+          "p95": 197.5,
+          "p99": 265.5,
+          "max": 350.0
+        },
+        "buckets": {
+          "LE15": 862,
+          "16_TO30": 224,
+          "31_TO60": 181,
+          "61_TO120": 298,
+          "GT120": 226
+        }
+      },
+      "5": {
+        "distributionMinutes": {
+          "n": 947,
+          "missing": 0,
+          "min": 5.0,
+          "mean": 63.2418162619,
+          "p1": 5.0,
+          "p5": 5.0,
+          "p10": 5.0,
+          "p25": 5.0,
+          "p50": 30.0,
+          "p75": 95.0,
+          "p90": 182.0,
+          "p95": 225.0,
+          "p99": 310.0,
+          "max": 350.0
+        },
+        "buckets": {
+          "LE15": 404,
+          "16_TO30": 86,
+          "31_TO60": 113,
+          "61_TO120": 162,
+          "GT120": 182
+        }
+      }
+    },
+    "closeConfirmed": {
+      "1": {
+        "distributionMinutes": {
+          "n": 2729,
+          "missing": 0,
+          "min": 5.0,
+          "mean": 39.3532429461,
+          "p1": 5.0,
+          "p5": 5.0,
+          "p10": 5.0,
+          "p25": 5.0,
+          "p50": 15.0,
+          "p75": 55.0,
+          "p90": 100.0,
+          "p95": 150.0,
+          "p99": 250.0,
+          "max": 360.0
+        },
+        "buckets": {
+          "LE15": 1413,
+          "16_TO30": 450,
+          "31_TO60": 240,
+          "61_TO120": 414,
+          "GT120": 212
+        }
+      },
+      "2": {
+        "distributionMinutes": {
+          "n": 2166,
+          "missing": 0,
+          "min": 5.0,
+          "mean": 49.5244690674,
+          "p1": 5.0,
+          "p5": 5.0,
+          "p10": 5.0,
+          "p25": 10.0,
+          "p50": 22.5,
+          "p75": 70.0,
+          "p90": 135.0,
+          "p95": 195.0,
+          "p99": 271.75,
+          "max": 360.0
+        },
+        "buckets": {
+          "LE15": 959,
+          "16_TO30": 347,
+          "31_TO60": 246,
+          "61_TO120": 366,
+          "GT120": 248
+        }
+      },
+      "3": {
+        "distributionMinutes": {
+          "n": 1656,
+          "missing": 0,
+          "min": 5.0,
+          "mean": 55.0362318841,
+          "p1": 5.0,
+          "p5": 5.0,
+          "p10": 5.0,
+          "p25": 10.0,
+          "p50": 25.0,
+          "p75": 75.0,
+          "p90": 152.5,
+          "p95": 210.0,
+          "p99": 270.0,
+          "max": 350.0
+        },
+        "buckets": {
+          "LE15": 692,
+          "16_TO30": 249,
+          "31_TO60": 188,
+          "61_TO120": 299,
+          "GT120": 228
+        }
+      },
+      "5": {
+        "distributionMinutes": {
+          "n": 872,
+          "missing": 0,
+          "min": 5.0,
+          "mean": 68.4059633028,
+          "p1": 5.0,
+          "p5": 5.0,
+          "p10": 5.0,
+          "p25": 10.0,
+          "p50": 35.0,
+          "p75": 101.25,
+          "p90": 190.0,
+          "p95": 230.0,
+          "p99": 316.45,
+          "max": 350.0
+        },
+        "buckets": {
+          "LE15": 327,
+          "16_TO30": 102,
+          "31_TO60": 102,
+          "61_TO120": 160,
+          "GT120": 181
+        }
+      }
+    }
+  },
+  "timeOfDay": {
+    "MORNING": {
+      "decisionTimes": [
+        "09:30",
+        "10:00"
+      ],
+      "decisionCount": 152,
+      "selectedEvents": 760,
+      "highTouch": {
+        "1": {
+          "precisionAt5Pct": 85.3754940711,
+          "meanHitsPerTop5": 4.2631578947,
+          "probabilityAtLeastOnePct": 100.0
+        },
+        "2": {
+          "precisionAt5Pct": 69.9604743083,
+          "meanHitsPerTop5": 3.4934210526,
+          "probabilityAtLeastOnePct": 98.6842105263
+        },
+        "3": {
+          "precisionAt5Pct": 55.4677206851,
+          "meanHitsPerTop5": 2.7697368421,
+          "probabilityAtLeastOnePct": 97.3684210526
+        },
+        "5": {
+          "precisionAt5Pct": 33.465085639,
+          "meanHitsPerTop5": 1.6710526316,
+          "probabilityAtLeastOnePct": 82.8947368421
+        }
+      },
+      "closeConfirmed": {
+        "1": {
+          "precisionAt5Pct": 80.7894736842,
+          "meanHitsPerTop5": 4.0394736842,
+          "probabilityAtLeastOnePct": 100.0
+        },
+        "2": {
+          "precisionAt5Pct": 63.4210526316,
+          "meanHitsPerTop5": 3.1710526316,
+          "probabilityAtLeastOnePct": 98.0263157895
+        },
+        "3": {
+          "precisionAt5Pct": 50.3947368421,
+          "meanHitsPerTop5": 2.5197368421,
+          "probabilityAtLeastOnePct": 94.7368421053
+        },
+        "5": {
+          "precisionAt5Pct": 30.1315789474,
+          "meanHitsPerTop5": 1.5065789474,
+          "probabilityAtLeastOnePct": 78.9473684211
+        }
+      }
+    },
+    "LATE_MORNING": {
+      "decisionTimes": [
+        "10:30",
+        "11:00",
+        "11:30"
+      ],
+      "decisionCount": 228,
+      "selectedEvents": 1140,
+      "highTouch": {
+        "1": {
+          "precisionAt5Pct": 78.8596491228,
+          "meanHitsPerTop5": 3.9429824561,
+          "probabilityAtLeastOnePct": 99.5614035088
+        },
+        "2": {
+          "precisionAt5Pct": 65.2631578947,
+          "meanHitsPerTop5": 3.2631578947,
+          "probabilityAtLeastOnePct": 98.6842105263
+        },
+        "3": {
+          "precisionAt5Pct": 51.7543859649,
+          "meanHitsPerTop5": 2.5877192982,
+          "probabilityAtLeastOnePct": 95.1754385965
+        },
+        "5": {
+          "precisionAt5Pct": 28.9473684211,
+          "meanHitsPerTop5": 1.4473684211,
+          "probabilityAtLeastOnePct": 79.8245614035
+        }
+      },
+      "closeConfirmed": {
+        "1": {
+          "precisionAt5Pct": 74.0350877193,
+          "meanHitsPerTop5": 3.701754386,
+          "probabilityAtLeastOnePct": 99.5614035088
+        },
+        "2": {
+          "precisionAt5Pct": 61.0526315789,
+          "meanHitsPerTop5": 3.0526315789,
+          "probabilityAtLeastOnePct": 98.6842105263
+        },
+        "3": {
+          "precisionAt5Pct": 47.7192982456,
+          "meanHitsPerTop5": 2.3859649123,
+          "probabilityAtLeastOnePct": 94.7368421053
+        },
+        "5": {
+          "precisionAt5Pct": 25.8771929825,
+          "meanHitsPerTop5": 1.2938596491,
+          "probabilityAtLeastOnePct": 77.1929824561
+        }
+      }
+    },
+    "AFTERNOON": {
+      "decisionTimes": [
+        "13:00",
+        "13:30",
+        "14:00",
+        "14:30",
+        "15:00"
+      ],
+      "decisionCount": 380,
+      "selectedEvents": 1900,
+      "highTouch": {
+        "1": {
+          "precisionAt5Pct": 71.2850343733,
+          "meanHitsPerTop5": 3.5473684211,
+          "probabilityAtLeastOnePct": 97.3684210526
+        },
+        "2": {
+          "precisionAt5Pct": 55.4204124802,
+          "meanHitsPerTop5": 2.7578947368,
+          "probabilityAtLeastOnePct": 95.7894736842
+        },
+        "3": {
+          "precisionAt5Pct": 41.2480169223,
+          "meanHitsPerTop5": 2.0526315789,
+          "probabilityAtLeastOnePct": 88.9473684211
+        },
+        "5": {
+          "precisionAt5Pct": 19.1961924907,
+          "meanHitsPerTop5": 0.9552631579,
+          "probabilityAtLeastOnePct": 63.9473684211
+        }
+      },
+      "closeConfirmed": {
+        "1": {
+          "precisionAt5Pct": 66.8947368421,
+          "meanHitsPerTop5": 3.3447368421,
+          "probabilityAtLeastOnePct": 97.3684210526
+        },
+        "2": {
+          "precisionAt5Pct": 52.0,
+          "meanHitsPerTop5": 2.6,
+          "probabilityAtLeastOnePct": 94.2105263158
+        },
+        "3": {
+          "precisionAt5Pct": 38.3684210526,
+          "meanHitsPerTop5": 1.9184210526,
+          "probabilityAtLeastOnePct": 87.1052631579
+        },
+        "5": {
+          "precisionAt5Pct": 18.3157894737,
+          "meanHitsPerTop5": 0.9157894737,
+          "probabilityAtLeastOnePct": 62.1052631579
+        }
+      }
+    }
+  },
+  "segments": {
+    "market": {
+      "PRIME": {
+        "selectedN": 268,
+        "highEvaluableN": 268,
+        "highCoveragePct": 100.0,
+        "highPrecisionPct": {
+          "1": 76.1194029851,
+          "2": 63.8059701493,
+          "3": 54.1044776119,
+          "5": 31.3432835821
+        }
+      },
+      "STANDARD": {
+        "selectedN": 1858,
+        "highEvaluableN": 1852,
+        "highCoveragePct": 99.6770721206,
+        "highPrecisionPct": {
+          "1": 78.8336933045,
+          "2": 66.4686825054,
+          "3": 54.7516198704,
+          "5": 30.5075593952
+        }
+      },
+      "GROWTH": {
+        "selectedN": 1674,
+        "highEvaluableN": 1670,
+        "highCoveragePct": 99.761051374,
+        "highPrecisionPct": {
+          "1": 73.7125748503,
+          "2": 55.1497005988,
+          "3": 37.8443113772,
+          "5": 17.8443113772
+        }
+      }
+    },
+    "liquidity": {
+      "LOW": {
+        "selectedN": 511,
+        "highEvaluableN": 505,
+        "highCoveragePct": 98.8258317025,
+        "highPrecisionPct": {
+          "1": 72.0792079208,
+          "2": 60.396039604,
+          "3": 48.1188118812,
+          "5": 24.1584158416
+        }
+      },
+      "MID": {
+        "selectedN": 890,
+        "highEvaluableN": 889,
+        "highCoveragePct": 99.8876404494,
+        "highPrecisionPct": {
+          "1": 74.1282339708,
+          "2": 58.2677165354,
+          "3": 42.7446569179,
+          "5": 19.5725534308
+        }
+      },
+      "HIGH": {
+        "selectedN": 2399,
+        "highEvaluableN": 2396,
+        "highCoveragePct": 99.874947895,
+        "highPrecisionPct": {
+          "1": 78.1302170284,
+          "2": 62.6043405676,
+          "3": 48.7479131886,
+          "5": 27.1702838063
+        }
+      }
+    }
+  },
+  "safety": {
+    "providerRequests": 0,
+    "fitCalls": 0,
+    "validationOpened": false,
+    "oosOpened": false,
+    "modelChanged": false,
+    "featureChanged": false,
+    "targetChanged": false,
+    "topNChanged": false,
+    "eligibilityChanged": false,
+    "thresholdOptimized": false,
+    "tradingEnabled": false
+  },
+  "limitations": [
+    "Saved C+D Ridge is not the unavailable original C-only v1 model.",
+    "High touch is evaluator evidence, not executable fill evidence.",
+    "Ten selected events lack a continuous future 5m High path and remain selected as non-hits in per-decision lower-bound distributions.",
+    "Development evidence cannot establish sealed Validation/OOS performance."
+  ],
+  "stopBoundary": "REPORT_FREEZE_READINESS_THEN_STOP_NO_FORMAL_FREEZE",
+  "reportSha256": "6bee3d44cbf6664886ccc9fd2de0624d1b3936e7e787187887fb912c78a5ae65"
+}

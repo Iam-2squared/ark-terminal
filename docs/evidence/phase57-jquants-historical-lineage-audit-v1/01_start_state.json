@@ -1,0 +1,738 @@
+{
+  "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+  "base_sha": "f43abbbb41718e513d46c69c81b2efcf6653ab07",
+  "state": "open",
+  "draft": true,
+  "merged": false,
+  "changed_files": 1447,
+  "additions": 468112,
+  "deletions": 129,
+  "retrievedAt": "2026-09-19T12:58:11.488Z",
+  "auditScope": "METADATA_CODE_MANIFEST_ONLY",
+  "sourceHashes": {
+    "predict/long-only/phase57-long-only-jquants-client.js": "a8718775f1acdbe5f398af73000b4124b32c94fe2a6361cfa07827138c73213e",
+    "scripts/acquire_phase57_long_only_l0.mjs": "6cc8f658bc9488d70a31589e486234d04b1e193c42a526d53797c35b46382b3e",
+    "scripts/acquire_phase57_long_only_l1_minute.mjs": "58b52ee88b43b9714b8f2d3c30953a245a0d2d859d6bfd2f9452bfdef7c4bbb2",
+    "scripts/acquire_phase57_long_only_l2_minute.mjs": "8ae877e4ef7e1408a9e9b120d07836552a5f15e33e470d7928ad9d4ee598b8fc",
+    "scripts/acquire_phase57_long_only_v2_minute.mjs": "09cabf6dfac7413ffdd5f74d01a2ae1a4669b62ab4d57231a2f2da528cbb1a28",
+    "scripts/phase57_behavior_dictionary.py": "77a91d72cd7e9e429dfeda48e9c549be35635fa77e9cad963a3506ef4d05f734",
+    "scripts/phase57_research_dictionary_v0.py": "cbbd78952e9863e38d6d84020c60e7ce3912980218a4591c4e65b95f693686c1",
+    "docs/evidence/phase57-behavior-dictionary-v1/measurement/04_data_inventory.json": "7875c7c3c6a34f0124647aff582e4b6e2bd605b7f0b5b3d39aa51a361c6f4380",
+    "docs/evidence/phase57-dictionary-pit-recovery-v1/measurement/08_coverage_after_recovery.json": "e8932dd1f62d2129bbdfc9cdfa8f9f213c21f4f0b49f6d41d9a2808f2e94162d",
+    "docs/evidence/phase57-research-dictionary-v0/registry.json": "3db98b56a98e39cc15708c5918c2aaf694376cc472d601c79971db49a5b98a39",
+    "docs/evidence/phase57-research-dictionary-v0/measurement/manifest.json": "9a78145ea6771109b6aaa5def6fa78a47d72f68b641d989e660f39c65670c3dc",
+    "predict/long-only/phase57-long-only-data-plan.json": "3ba4ec47a01510fe2b0de3874132824b2533400eaf4582a688b62306568ec526",
+    "docs/evidence/phase57-long-only-global-data-budget/resolved-master-ledger.json": "106dee1a81c26052b7b347a3b35a9c5df648f3edc0b7c64288c2503eb39ec004"
+  },
+  "latestActions": [
+    {
+      "id": 35442862357,
+      "name": "Phase57 LONG-only Missed Opportunity Diagnostic",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "skipped"
+    },
+    {
+      "id": 35442862385,
+      "name": "Phase57 LONG-only Selector Capacity Diagnostic",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "skipped"
+    },
+    {
+      "id": 35442862375,
+      "name": "Phase57 LONG-only New Selector with CURRENT Entry Exit",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "skipped"
+    },
+    {
+      "id": 35442862356,
+      "name": "Phase57 Selector Minimum Price 75 Impact",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "skipped"
+    },
+    {
+      "id": 35442862417,
+      "name": "Phase57 LONG-only L2 Selector Development",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "skipped"
+    },
+    {
+      "id": 35442862361,
+      "name": "Phase57 Frozen Entry Conditional EXIT Integrity",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862256,
+      "name": "Phase57 NEW LONG EXIT Profit Protection v1 FAST-FAIL",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862329,
+      "name": "Phase57 NEW LONG EXIT Profit Protection v4 FAST-FAIL",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862336,
+      "name": "Phase57 NEW LONG EXIT Profit Protection v2 FAST-FAIL",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862304,
+      "name": "Phase57 NEW LONG EXIT Loss Defense v3 FAST-FAIL",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862280,
+      "name": "Phase57 NEW LONG EXIT Early Failure Protect v1 FAST-FAIL",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862319,
+      "name": "Phase57 NEW LONG EXIT Candidate A Robustness",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862276,
+      "name": "Phase57 LONG-only Research Foundation",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862372,
+      "name": "Phase57 NEW LONG EXIT Early Failure Protect v0 FAST-FAIL",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862320,
+      "name": "Phase57 NEW LONG EXIT Profit Protection v3 FAST-FAIL",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862390,
+      "name": "Phase57 NEW LONG EXIT Loss Defense v1 FAST-FAIL",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862383,
+      "name": "Phase57 NEW LONG EXIT Candidate C",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862401,
+      "name": "Phase57 NEW LONG EXIT Candidate B",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862341,
+      "name": "Phase57 NEW LONG EXIT Loss Defense v2 FAST-FAIL",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862306,
+      "name": "Phase57 Strict30 MAE Attribution",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862399,
+      "name": "Phase57 NEW LONG EXIT Profit Protection v5 FAST-FAIL",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862377,
+      "name": "Phase57 NEW LONG Entry Two-Opportunity Parity",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862381,
+      "name": "Phase57 NEW LONG EXIT Loss Defense FAST-FAIL",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862374,
+      "name": "Phase57 NEW LONG EXIT Candidate A",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862380,
+      "name": "Phase57 Opportunity Timestamp Counts",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862394,
+      "name": "Phase57 EXIT CC Freeze Audit",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    {
+      "id": 35442862405,
+      "name": "Phase52 Daily Dry-Run Persistence",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862411,
+      "name": "Phase57 NEW LONG EXIT Profit Protection v0 FAST-FAIL",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862391,
+      "name": "Phase57 Historical Re-Measurement Integrity",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862387,
+      "name": "Phase57 Price75 Immutable Evidence Export",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862354,
+      "name": "Phase57 Selector Minimum Price 75 Freeze Audit",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862331,
+      "name": "Phase57 NEW LONG EXIT Path Study Integrity",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862371,
+      "name": "Phase57 EXIT Loss State Study",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862389,
+      "name": "Phase57 P25 Autonomous Pipeline Audit",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862414,
+      "name": "Phase57 Raw Selector Direct Entry Source Preflight",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862386,
+      "name": "Phase57 Comprehensive Entry Bounded Research",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862330,
+      "name": "Phase57 Frozen30m Universe 5m Entry WATCH Audit",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862334,
+      "name": "Phase57 Dictionary Procurement Foundation v1",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862346,
+      "name": "Phase57 Dictionary PIT Recovery v1",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862269,
+      "name": "Predict Tests",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862382,
+      "name": "Phase57 Opportunity Quality Diagnostic",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862347,
+      "name": "Phase57 Research Dictionary v0",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862339,
+      "name": "Phase57 Integrated LONG Entry v1 Evidence Audit",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862395,
+      "name": "Phase57 Comprehensive Entry v2 One-Step Research",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862262,
+      "name": "Phase57 Causal Entry EXIT Recoverability v1",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    {
+      "id": 35442862388,
+      "name": "Phase57 Comprehensive Entry v3 Causal Event Study",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 35442862362,
+      "name": "Phase57 Post-Selection Low High Anatomy v1",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    {
+      "id": 35442862348,
+      "name": "Phase57 Behavior Dictionary v1",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    {
+      "id": 35442862255,
+      "name": "Phase57 Frozen Selector Pairability Repair v2",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "in_progress",
+      "conclusion": null
+    },
+    {
+      "id": 35442862281,
+      "name": "Phase57 Frozen Selector Full-Day Path Anatomy v1",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "in_progress",
+      "conclusion": null
+    },
+    {
+      "id": 35442862303,
+      "name": "Phase57 Frozen Selector Economic Alpha v1",
+      "head_sha": "afb79b8319480b74b3ae63f6658aa8a7b20f1f6d",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    {
+      "id": 35442616019,
+      "name": "Phase57 Opportunity Quality Diagnostic",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616039,
+      "name": "Phase57 Selector Minimum Price 75 Freeze Audit",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616025,
+      "name": "Phase57 NEW LONG Entry Two-Opportunity Parity",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616081,
+      "name": "Phase57 Selector Minimum Price 75 Impact",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616090,
+      "name": "Phase57 Price75 Immutable Evidence Export",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616079,
+      "name": "Phase57 Dictionary Procurement Foundation v1",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616071,
+      "name": "Phase57 NEW LONG EXIT Candidate B",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616074,
+      "name": "Phase57 NEW LONG EXIT Loss Defense v1 FAST-FAIL",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616119,
+      "name": "Phase57 LONG-only L2 Selector Development",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616173,
+      "name": "Phase57 NEW LONG EXIT Profit Protection v4 FAST-FAIL",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616175,
+      "name": "Phase57 Comprehensive Entry v2 One-Step Research",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616138,
+      "name": "Phase57 NEW LONG EXIT Profit Protection v1 FAST-FAIL",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616168,
+      "name": "Phase57 NEW LONG EXIT Candidate A",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616206,
+      "name": "Phase57 NEW LONG EXIT Early Failure Protect v0 FAST-FAIL",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616210,
+      "name": "Phase57 Raw Selector Direct Entry Source Preflight",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616187,
+      "name": "Phase57 Comprehensive Entry v3 Causal Event Study",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616216,
+      "name": "Phase57 NEW LONG EXIT Path Study Integrity",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616199,
+      "name": "Phase57 Research Dictionary v0",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616219,
+      "name": "Phase57 Frozen Selector Full-Day Path Anatomy v1",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616237,
+      "name": "Phase57 NEW LONG EXIT Profit Protection v2 FAST-FAIL",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616225,
+      "name": "Phase57 EXIT Loss State Study",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616281,
+      "name": "Phase57 Post-Selection Low High Anatomy v1",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616252,
+      "name": "Phase57 LONG-only Selector Capacity Diagnostic",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616265,
+      "name": "Phase57 Strict30 MAE Attribution",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616220,
+      "name": "Phase57 Behavior Dictionary v1",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616292,
+      "name": "Phase57 Frozen Selector Pairability Repair v2",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616312,
+      "name": "Phase57 NEW LONG EXIT Profit Protection v3 FAST-FAIL",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616254,
+      "name": "Phase57 NEW LONG EXIT Candidate A Robustness",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616283,
+      "name": "Phase57 Comprehensive Entry Bounded Research",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616276,
+      "name": "Phase57 LONG-only Missed Opportunity Diagnostic",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616285,
+      "name": "Phase57 NEW LONG EXIT Profit Protection v0 FAST-FAIL",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616303,
+      "name": "Phase57 NEW LONG EXIT Loss Defense FAST-FAIL",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616295,
+      "name": "Phase57 NEW LONG EXIT Loss Defense v2 FAST-FAIL",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616268,
+      "name": "Phase57 Causal Entry EXIT Recoverability v1",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616304,
+      "name": "Phase57 Integrated LONG Entry v1 Evidence Audit",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616329,
+      "name": "Phase57 Frozen Entry Conditional EXIT Integrity",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616278,
+      "name": "Phase57 LONG-only New Selector with CURRENT Entry Exit",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616328,
+      "name": "Phase57 Frozen30m Universe 5m Entry WATCH Audit",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616266,
+      "name": "Phase57 NEW LONG EXIT Profit Protection v5 FAST-FAIL",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616314,
+      "name": "Phase57 NEW LONG EXIT Loss Defense v3 FAST-FAIL",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616320,
+      "name": "Phase57 Frozen Selector Economic Alpha v1",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616352,
+      "name": "Phase57 Dictionary PIT Recovery v1",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616280,
+      "name": "Predict Tests",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616323,
+      "name": "Phase57 NEW LONG EXIT Early Failure Protect v1 FAST-FAIL",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616296,
+      "name": "Phase57 LONG-only Research Foundation",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616356,
+      "name": "Phase57 EXIT CC Freeze Audit",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616333,
+      "name": "Phase52 Daily Dry-Run Persistence",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616353,
+      "name": "Phase57 P25 Autonomous Pipeline Audit",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    },
+    {
+      "id": 35442616335,
+      "name": "Phase57 Opportunity Timestamp Counts",
+      "head_sha": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+      "status": "completed",
+      "conclusion": "action_required"
+    }
+  ],
+  "priorReportedHeadMatches": true,
+  "priorToLatestDiff": "NONE; same exact SHA",
+  "untrackedPreserved": [
+    "docs/evidence/phase57-selector-pairability-repair-v2/phase-a/04_pairability_by_timestamp.csv",
+    "scripts/__pycache__/"
+  ],
+  "AGENTS": "none found",
+  "rawPayloadReads": 0,
+  "newProviderRequests": 0
+}

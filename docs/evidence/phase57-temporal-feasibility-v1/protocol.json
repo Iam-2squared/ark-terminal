@@ -1,0 +1,96 @@
+{
+  "calendarPrecommit": "Earliest causal support according to authorized calendar, not realized values. Six-session warmup after excluded days, source60 exchange positions and >=30 potentially eligible, target>=20 potentially eligible, embargo5. Calibration before both later origins; disjoint targets. One schedule only.",
+  "cohort": "All9 prior USABLE;23 calibration-only WATCH. Latest H/M membership descriptive only; not historical eligibility.",
+  "commonHoldoutSessions": 244,
+  "fixedSchedule": {
+    "calendarAdditionalDaysLowerBound": 0,
+    "feasible": true,
+    "method": "Earliest calendar-only 60-position source with30 potentially valid sessions; earliest20-potentially-valid target after embargo5. Mapping completes calibration before both validation origins. Second validation target begins after first target ends; source origin is latest eligible past origin with embargo5. No scoring/window alternatives.",
+    "minimality": "Calendar support witness with earliest first/second origins; not a global optimum over unspecified designs. Source windows can include earlier observed portions of previous validation target, but targets are disjoint and mapping is fixed at calibration completion. Independence means disjoint target dates, not iid statistical independence.",
+    "rows": [
+      {
+        "anchorIndex": 770,
+        "computedThrough": "2024-11-12T15:30:00+09:00",
+        "embargoExchangePositions": 5,
+        "name": "CALIBRATION",
+        "predictionOrigin": "2024-11-12T15:31:00+09:00",
+        "sourceCalendarPositions": 60,
+        "sourcePotentialEligible": 30,
+        "targetAllowedSessions": 26,
+        "targetCalendarPositions": 108,
+        "targetPotentialEligible": 20,
+        "testEnd": "2025-05-01",
+        "testEndIndex": 883,
+        "testStart": "2024-11-20",
+        "testStartIndex": 776,
+        "trainStart": "2024-08-15",
+        "trainStartIndex": 711
+      },
+      {
+        "anchorIndex": 907,
+        "computedThrough": "2025-06-06T15:30:00+09:00",
+        "embargoExchangePositions": 5,
+        "name": "VALIDATION1",
+        "predictionOrigin": "2025-06-06T15:31:00+09:00",
+        "sourceCalendarPositions": 60,
+        "sourcePotentialEligible": 30,
+        "targetAllowedSessions": 26,
+        "targetCalendarPositions": 27,
+        "targetPotentialEligible": 20,
+        "testEnd": "2025-07-23",
+        "testEndIndex": 939,
+        "testStart": "2025-06-16",
+        "testStartIndex": 913,
+        "trainStart": "2025-03-11",
+        "trainStartIndex": 848
+      },
+      {
+        "anchorIndex": 934,
+        "computedThrough": "2025-07-15T15:30:00+09:00",
+        "embargoExchangePositions": 5,
+        "name": "VALIDATION2",
+        "predictionOrigin": "2025-07-15T15:31:00+09:00",
+        "sourceCalendarPositions": 60,
+        "sourcePotentialEligible": 54,
+        "targetAllowedSessions": 20,
+        "targetCalendarPositions": 20,
+        "targetPotentialEligible": 20,
+        "testEnd": "2025-08-21",
+        "testEndIndex": 959,
+        "testStart": "2025-07-24",
+        "testStartIndex": 940,
+        "trainStart": "2025-04-18",
+        "trainStartIndex": 875
+      }
+    ]
+  },
+  "futureReuse": "144 sessions remain Development. Regenerate all Dictionary features at each decision with past-only data; no final snapshot or reliability status backfill. See entry-exit-past-only-contract.md.",
+  "immutableRequirements": "Use original snapshot/coverage/sample/temporalPolicy unchanged, including20 eligible days and100 peer reference; no silent fix of8-versus20 ambiguity. New target spans are a proposal only.",
+  "inputArtifact": {
+    "archiveDigest": "sha256:49289c59f9c3335402d57b00d3736342933bf868defc921949a36a3342b1afcd",
+    "id": 10597435745,
+    "name": "phase57-temporal-zero-matrix-84e456c49bc47f642c9e4c7312b4510576152ebc",
+    "run": 35484934096
+  },
+  "intradayDevelopmentSessions": 144,
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "scope": "Feasibility support counts only. No temporal scoring, calibration fit, threshold/window optimization, new official Gate, feature dispatch, Entry/EXIT, acquisition or protected reads. Entire144 is available, not every day required in each fold. Existing daily Development history allowed.",
+  "sourceHashes": {
+    "oldManifest": "e6ffe087312a1a048fe038ca2afd8e719b16aafd9e6483f076b90389757dafe1",
+    "protocol": "218f6dac2ef660fe74d7e80ca583542dc30bd6796b0d07ec7c64ee1eb23cd22b",
+    "registry": "3db98b56a98e39cc15708c5918c2aaf694376cc472d601c79971db49a5b98a39"
+  },
+  "sourceHead": "c2761354b5695459538f817b6ed35f6edd49bd90",
+  "status": "FIXED_BEFORE_REAL_SUPPORT_COUNTS",
+  "version": "DEVELOPMENT144_TEMPORAL_FEASIBILITY_V1"
+}

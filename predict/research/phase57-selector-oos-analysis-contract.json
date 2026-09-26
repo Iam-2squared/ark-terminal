@@ -1,0 +1,280 @@
+{
+  "schemaVersion": 1,
+  "phase": "57.selector-v1-v2-v3.untouched-oos",
+  "contractId": "PHASE57_SELECTOR_V123_OOS_ANALYSIS_CONTRACT_20260905",
+  "status": "FROZEN_BEFORE_UNTOUCHED_OOS_RELEASE",
+  "freezeDate": "2026-09-05",
+  "contractBaseHeadSha": "3911120bbcd1dd996e2fb4aaa9b2c52cda166807",
+  "selectorV3Freeze": {
+    "commit": "5a2edced801a31c8cb578f7f765fca50937b3f4a",
+    "sha256": "4f4b02fd7b115759c246bdd0927be09b45f1bbbc41774d9d80e1a6834923c93f",
+    "postValidationChangeAllowed": false
+  },
+  "scope": {
+    "researchOnly": true,
+    "laneYMainChangeAllowed": false,
+    "pullRequestMustRemainDraft": true,
+    "automaticPromotionAllowed": false,
+    "v3_1OrV4ImplementationAllowedBeforeOosReport": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "evidenceBoundary": {
+    "datasetId": "PHASE57_SELECTOR_YAHOO_5M_24626FD37F8633F4",
+    "datasetDigest": "931e600bd13a491bd8ac12d90548d2ee40f17d092193d85a628fb8003827f43b",
+    "datasetArchiveSha256": "a56e524568f51ac745bb27a408896f9cd837801730d821c109b0d9ad3c5e46cc",
+    "benchmarkScope": "REDUCED_UNIVERSE_PIPELINE_PILOT",
+    "evidenceClassification": "SURVIVORSHIP_LIMITED_RECONSTRUCTION",
+    "historicalAcquisition": "LATER_FETCHED_HISTORICAL_RECONSTRUCTION",
+    "claimsExactTradingViewReplay": false,
+    "claimsJpxWideHistoricalPerformance": false,
+    "expectedSelectedV3Threshold": 0.7,
+    "untouchedOos": {
+      "statusBeforeRelease": "SEALED_UNTOUCHED_OOS",
+      "sessionCount": 19,
+      "firstSession": "2026-08-10",
+      "lastSession": "2026-09-04",
+      "sessions": [
+        "2026-08-10",
+        "2026-08-12",
+        "2026-08-13",
+        "2026-08-14",
+        "2026-08-17",
+        "2026-08-18",
+        "2026-08-19",
+        "2026-08-20",
+        "2026-08-21",
+        "2026-08-24",
+        "2026-08-25",
+        "2026-08-26",
+        "2026-08-27",
+        "2026-08-28",
+        "2026-08-31",
+        "2026-09-01",
+        "2026-09-02",
+        "2026-09-03",
+        "2026-09-04"
+      ]
+    }
+  },
+  "selectors": [
+    "CURRENT_V1_FROZEN",
+    "CURRENT_V2_FROZEN",
+    "SELECTOR_V3_0_FROZEN"
+  ],
+  "primaryMetric": {
+    "name": "COST_ADJUSTED_TWO_SIDED_OPPORTUNITY_UTILITY",
+    "horizonBars": 6,
+    "horizonMinutes": 30,
+    "anchor": "LAST_CAUSALLY_CLOSED_BAR_CLOSE",
+    "upExcursion": "max(0, maxFutureHigh / anchorPrice - 1)",
+    "downExcursion": "max(0, 1 - minFutureLow / anchorPrice)",
+    "twoSidedOpportunity": "max(upExcursion, downExcursion)",
+    "roundTripCostBps": 10,
+    "utility": "twoSidedOpportunity - roundTripCostBps / 10000",
+    "unit": "BPS",
+    "isRealizedPnl": false,
+    "withinSessionAggregation": "ARITHMETIC_MEAN_ACROSS_TARGET_READY_SELECTED_SYMBOL_TIMESTAMPS",
+    "acrossSessionAggregation": "EQUAL_WEIGHT_ARITHMETIC_MEAN",
+    "pairedComparisonUnit": "TRADING_SESSION"
+  },
+  "primaryComparison": {
+    "sameHistoricalReconstruction": true,
+    "sameDecisionTimestamp": true,
+    "pairedBySession": true,
+    "deltaOrientation": "LEFT_SELECTOR_MINUS_RIGHT_SELECTOR",
+    "missingSessionPolicy": "NO_IMPUTATION_COMPLETE_PAIRS_ONLY",
+    "winnerRequiresAllExpectedOosSessionsPaired": true
+  },
+  "statisticalInference": {
+    "confidenceLevel": 0.95,
+    "interval": "TWO_SIDED_STUDENT_T_INTERVAL_ON_PAIRED_SESSION_DELTAS",
+    "studentTQuantile": 0.975,
+    "degreesOfFreedom": "PAIRED_SESSION_COUNT_MINUS_ONE",
+    "minimumSessionsForInterval": 2,
+    "zeroInclusionRule": "LOWER_BOUND_LE_ZERO_AND_UPPER_BOUND_GE_ZERO",
+    "directionConsistency": {
+      "unit": "PAIRED_TRADING_SESSION",
+      "positive": "LEFT_MINUS_RIGHT_GT_ZERO",
+      "negative": "LEFT_MINUS_RIGHT_LT_ZERO",
+      "tie": "LEFT_MINUS_RIGHT_EQ_ZERO"
+    }
+  },
+  "winnerRule": {
+    "statusWhenNoSelectorQualifies": "NO_STATISTICALLY_ESTABLISHED_WINNER",
+    "statusWhenExactlyOneSelectorQualifies": "STATISTICALLY_ESTABLISHED_WINNER",
+    "requirementsAgainstEachOtherSelector": [
+      "ALL_19_OOS_SESSIONS_HAVE_A_COMPLETE_PRIMARY_PAIR",
+      "MEAN_PAIRED_DELTA_GT_ZERO",
+      "TWO_SIDED_95_PERCENT_CI_LOWER_BOUND_GT_ZERO",
+      "POSITIVE_SESSION_COUNT_GT_NEGATIVE_SESSION_COUNT"
+    ],
+    "secondaryMetricMayOverride": false,
+    "diagnosticMayOverride": false,
+    "sameCapacityMayOverride": false,
+    "automaticPromotionAllowed": false
+  },
+  "secondaryMetrics": [
+    "COST_ADJUSTED_UTILITY_5M",
+    "COST_ADJUSTED_UTILITY_10M",
+    "COST_ADJUSTED_UTILITY_15M",
+    "COST_ADJUSTED_UTILITY_60M",
+    "PRE_SELECTION_ABSOLUTE_SESSION_OPEN_MOVE",
+    "LATE_DETECTION_CANDIDATE_RATE",
+    "UP_EXCURSION",
+    "DOWN_EXCURSION",
+    "TWO_SIDED_OPPORTUNITY",
+    "POST_SELECTION_CLOSE_RETURN",
+    "SELECTED_COUNT",
+    "RANK_CALIBRATION"
+  ],
+  "preRegisteredDiagnostics": {
+    "sameCapacity": {
+      "enabled": true,
+      "kDefinition": "V3_SELECTED_COUNT_AT_EACH_DECISION_TIMESTAMP",
+      "v1Definition": "TOP_K_OF_FROZEN_V1_SELECTION_BY_FROZEN_V1_RANK",
+      "v2Definition": "TOP_K_OF_FROZEN_V2_SELECTION_BY_FROZEN_V2_RANK",
+      "v3Definition": "ALL_FROZEN_V3_SELECTIONS",
+      "kZeroPolicy": "SELECT_NONE_FOR_ALL_THREE_SELECTORS",
+      "winnerOverrideAllowed": false
+    },
+    "selectorOverlapGroups": [
+      "V1_ONLY",
+      "V2_ONLY",
+      "V3_ONLY",
+      "V1_V2",
+      "V1_V3",
+      "V2_V3",
+      "V1_V2_V3"
+    ],
+    "opportunityDetectionLeadTime": {
+      "episodeDefinition": "SESSION_SYMBOL_FIRST_DETECTION_PILOT_PROXY",
+      "positiveMinutesMeaning": "V3_EARLIER_THAN_OTHER",
+      "mustBeReportedWithPostSelectionOpportunity": true
+    },
+    "v2PersistenceCategories": [
+      "NEW_ENTRANT",
+      "INCUMBENT",
+      "DROPPED",
+      "RE_ENTERED",
+      "PERSISTENCE_0",
+      "PERSISTENCE_1_3",
+      "PERSISTENCE_WARMUP_1_2",
+      "PERSISTENCE_2_3",
+      "PERSISTENCE_1"
+    ],
+    "dynamicN": {
+      "statistics": [
+        "MIN",
+        "P10_NEAREST_RANK",
+        "MEDIAN",
+        "P90_NEAREST_RANK",
+        "MAX",
+        "ZERO_TIMESTAMP_COUNT"
+      ]
+    },
+    "timeOfDayBuckets": [
+      "09:00-09:30",
+      "09:30-10:30",
+      "10:30-11:30",
+      "12:30-13:30",
+      "13:30-14:30",
+      "14:30-CLOSE"
+    ]
+  },
+  "forbiddenAfterOosRelease": [
+    "V3_0_FEATURE_CHANGE",
+    "V3_0_THRESHOLD_CHANGE",
+    "V3_0_WEIGHT_CHANGE",
+    "V3_0_ARCHITECTURE_CHANGE",
+    "METRIC_CHANGE",
+    "PRIMARY_HORIZON_CHANGE",
+    "SAMPLE_EXCLUSION",
+    "SYMBOL_EXCLUSION",
+    "TIME_OF_DAY_EXCLUSION",
+    "SECTOR_EXCLUSION",
+    "WINNER_RULE_CHANGE",
+    "V1_AND_V3_ENSEMBLE",
+    "PERSISTENCE_REMOVAL",
+    "SECTOR_CAP_CHANGE"
+  ],
+  "evidenceSeparation": {
+    "validationObservedFacts": {
+      "primaryUtility30mBps": {
+        "V1": 83.76,
+        "V2": 80.36,
+        "V3": 84.25
+      },
+      "v3MinusV1SessionDeltaBps": 1.66,
+      "v3MinusV1Ci95Bps": [
+        -7.04,
+        10.37
+      ],
+      "v3MinusV2SessionDeltaBps": 5.07,
+      "v3MinusV2Ci95Bps": [
+        -4.36,
+        14.49
+      ],
+      "preSelectionAbsoluteMoveBps": {
+        "V1": 223.55,
+        "V2": 213.95,
+        "V3": 108.97
+      },
+      "lateDetectionRate": {
+        "V1": 0.7561,
+        "V2": 0.7496,
+        "V3": 0.4936
+      },
+      "sameCapacityUtility30mBps": {
+        "V1_TOP_K": 110.87,
+        "V2_TOP_K": 104.76,
+        "V3": 84.25
+      }
+    },
+    "futureVersionHypothesesOnly": [
+      "ALREADY_MOVED_MAY_CONTAIN_CONTINUATION_OPPORTUNITY",
+      "ESTIMATE_CONTINUATION_VS_EXHAUSTION_CONDITIONALLY",
+      "PRESERVE_AND_TEST_INFORMATION_IN_V1_V2_ACTIVITY_SCORE",
+      "IMPROVE_V3_RANK_CALIBRATION_IN_A_NEW_VERSION",
+      "TEST_PERSISTENCE_WITH_COUNTERFACTUAL_MATCHED_REPLAY",
+      "V3_DYNAMIC_N_MAY_BE_TOO_RESTRICTIVE"
+    ],
+    "externalReviewClaimsNotObservedByThisPilot": [
+      "INSTITUTIONAL_ORDER_FLOW_EXPLANATION",
+      "JPX_5_TO_30_MINUTE_MOMENTUM_CONTINUATION_IS_DOMINANT"
+    ],
+    "futureHypothesesMayModifyFrozenV3_0": false,
+    "futureHypothesesMayChangeThisOosContract": false
+  },
+  "releaseGuard": {
+    "exactCliConfirmation": "I_UNDERSTAND_THIS_CONSUMES_THE_UNTOUCHED_OOS",
+    "exactContractSha256MustBeSupplied": true,
+    "contractDigestMustMatchFile": true,
+    "selectorV3DigestMustMatchFile": true,
+    "datasetIdentityAndSplitMustMatch": true
+  },
+  "afterOos": {
+    "automaticMainPromotionAllowed": false,
+    "nextBenchmark": "SAME_FROZEN_ENTRY_EXIT_AND_CAPITAL_ALLOCATION",
+    "entryAwareMetrics": [
+      "ENTRY_ACCEPTANCE",
+      "NET",
+      "PROFIT_FACTOR",
+      "MAX_DRAWDOWN",
+      "WIN_RATE",
+      "DIRECTIONAL_MFE",
+      "DIRECTIONAL_MAE"
+    ],
+    "currentOosMayBeReusedToEvaluateV3_1OrV4": false,
+    "nextGenerationRequiresNewHoldoutOrProspectiveData": true
+  }
+}

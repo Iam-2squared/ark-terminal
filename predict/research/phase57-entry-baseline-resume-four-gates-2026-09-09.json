@@ -1,0 +1,649 @@
+{
+  "manifestVersion": 1,
+  "manifestId": "PHASE57_ENTRY_BASELINE_RESUME_FOUR_GATES_2026_09_09_V1",
+  "createdAt": "2026-09-08T15:42:30Z",
+  "status": "NO_GO_NOT_MEASURED",
+  "researchPurpose": "ENTRY_BASELINE_DEVELOPMENT_DIAGNOSTIC",
+  "auditedMain": "899d16b808dba0d5b2003228a5f46332b3a3ce09",
+  "auditedBranchHead": "a95aca96c4d2c74f359e99b7228c9418997c8f19",
+  "branch": "research/phase57-hybrid-p21-entry-baseline",
+  "pr": 579,
+  "policyAmendment": {
+    "authority": "User instruction: Resume Without Consuming Protected 190, 2026-09-09 JST",
+    "supersedesOnly": "Requirement to complete protected-190 cross-research allocation before 17-session diagnostic admission",
+    "protected190AuditIsBaselinePrerequisite": false,
+    "oldEvidenceRemainsImmutable": true,
+    "oldAllocationRoleAlias": "ENTRY_DEVELOPMENT_DIAGNOSTIC",
+    "fourGatesRequiredBeforeAnyHistoricalOutcome": true,
+    "sourceRightsAndCorporateActionAdmissionStillRequired": true,
+    "newEntryFittingAllowed": false,
+    "automaticReallocationAllowed": false,
+    "resultBasedReallocationAllowed": false
+  },
+  "selector": {
+    "modelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
+    "freezeSHA": "a744d599e430d23efe4dea6600e418d3410d8a18df5055b35e1cc71432bf64da",
+    "sourceRef": "63edf641f871be20cbd8518cec44392d12e74b16",
+    "implementationGitBlobs": [
+      {
+        "path": "predict/daytrade/phase57-p25-intraday-dynamic-universe.js",
+        "sha": "9612eb764f9cbc5d9de247c4f05c734bae0f9d85"
+      },
+      {
+        "path": "predict/daytrade/phase57-selector-minimal-hybrid-model.js",
+        "sha": "1a44ab4886c8ff4a80e61af983594e39bbd67bf6"
+      },
+      {
+        "path": "predict/daytrade/phase57-selector-minimal-hybrid.js",
+        "sha": "336ac8ccda8d1fd6636e65475b58c749dec72fa5"
+      }
+    ],
+    "runtimeCopiedOrModified": false
+  },
+  "baselineEntryId": "PHASE57_P21_FROZEN_ENTRY",
+  "protectedReserve": {
+    "parentSessionCount": 282,
+    "protectedSessionCount": 190,
+    "protectedBlocks": [
+      [
+        92,
+        120
+      ],
+      [
+        121,
+        149
+      ],
+      [
+        151,
+        179
+      ],
+      [
+        180,
+        282
+      ]
+    ],
+    "newAccessForbiddenForReserveRange": [
+      92,
+      282
+    ],
+    "purge150NotAllocated": true,
+    "status": "ALL_SEALED_ALL_PROTECTED_NO_NEW_ACCESS",
+    "crossResearchStatus": "UNKNOWN",
+    "confirmedCleanCount": 0,
+    "newlyOpenedCount": 0,
+    "newOutcomeViewedCount": 0,
+    "newPerformanceComputedCount": 0,
+    "entryDevelopmentAllocatedCount": 0,
+    "entryValidationAllocatedCount": 0,
+    "entryOosAllocatedCount": 0,
+    "protectionIsNotNeverOpenedProof": true
+  },
+  "allocation": {
+    "role": "ENTRY_BASELINE_DEVELOPMENT_DIAGNOSTIC",
+    "sessionIds": [
+      "2026-08-13",
+      "2026-08-14",
+      "2026-08-17",
+      "2026-08-18",
+      "2026-08-19",
+      "2026-08-20",
+      "2026-08-21",
+      "2026-08-24",
+      "2026-08-25",
+      "2026-08-26",
+      "2026-08-27",
+      "2026-08-28",
+      "2026-08-31",
+      "2026-09-01",
+      "2026-09-02",
+      "2026-09-03",
+      "2026-09-04"
+    ],
+    "dateEligibilityCount": 17,
+    "governanceBasis": "Already outcome-inspected period outside protected Selector reserve and after current P21 pack end; regenerate from market-wide raw bars, never from old 445 candidate rows.",
+    "sourceManifestGitBlob": "b2542b627c14ac0ba3d3d960b164e6c7aaaa8da3",
+    "formalOos": false,
+    "prospective": false,
+    "newModelDevelopment": false,
+    "status": "RESERVED_NOT_ADMITTED_NOT_MEASURED",
+    "baselineDiagnosticUsed": false,
+    "baselineEligibleAfterAllGatesCount": 0,
+    "blockedSessionCount": 17,
+    "untouchedReclassificationAllowed": false,
+    "repeatedNewEntryRetuningAllowed": false
+  },
+  "gates": {
+    "marketWideRawArchive": {
+      "status": "NO_GO",
+      "reason": "Metadata paths located on four of seventeen dates; no verified market-wide replay input bundle, universe manifest or decision-point coverage.",
+      "examinedArchiveBranch": "automation/p25-marketwide-5m-data",
+      "examinedArchiveRef": "38f3c9ef403256b9a70e6525711d59439e999dd1",
+      "treeTruncated": false,
+      "sessionsWithRawFilePaths": 4,
+      "rawFilePathCount": 18,
+      "fullyVerifiedSessions": 0,
+      "universeCoverage": null,
+      "decisionPointCoverage": null,
+      "unknownIsNotZeroCoverage": true,
+      "otherArchiveLocationsNotRuledOut": true,
+      "rawContentOpened": false,
+      "measurementJsonContentOpened": false,
+      "sourceRightsStatus": "CURRENT_EXECUTION_ACCESS_UNVERIFIED_NOT_ABSENCE_OF_SUBSCRIPTION",
+      "archiveMetadata": [
+        {
+          "sessionDate": "2026-09-01",
+          "files": [
+            {
+              "captureId": "20260901T001735Z",
+              "gitBlobSha": "439ec0d06f0a20d21ab511f9f6ff053351b37d86",
+              "path": "data/p25-marketwide-5m/2026-09-01/20260901T001735Z/marketwide.ndjson"
+            },
+            {
+              "captureId": "20260901T043654Z",
+              "gitBlobSha": "8f652679fcd50b69c9885e3ebee27ffcc0bf7eab",
+              "path": "data/p25-marketwide-5m/2026-09-01/20260901T043654Z/marketwide.ndjson"
+            },
+            {
+              "captureId": "20260901T070316Z",
+              "gitBlobSha": "3830330562c36ec1f8073acd66eef54b51b810c9",
+              "path": "data/p25-marketwide-5m/2026-09-01/20260901T070316Z/marketwide.ndjson"
+            },
+            {
+              "captureId": "20260901T084818Z",
+              "gitBlobSha": "a08bbc873b53dbf82cffc8be57ef34170144a581",
+              "path": "data/p25-marketwide-5m/2026-09-01/20260901T084818Z/marketwide.ndjson"
+            },
+            {
+              "captureId": "20260901T091604Z",
+              "gitBlobSha": "9ce9f016528d26b5c4aef676e9626a0fc6642764",
+              "path": "data/p25-marketwide-5m/2026-09-01/20260901T091604Z/marketwide.ndjson"
+            }
+          ]
+        },
+        {
+          "sessionDate": "2026-09-02",
+          "files": [
+            {
+              "captureId": "20260901T220720Z",
+              "gitBlobSha": "7f19e2b83ae7f7c4595d0a590691c7a1027e0f06",
+              "path": "data/p25-marketwide-5m/2026-09-02/20260901T220720Z/marketwide.ndjson"
+            },
+            {
+              "captureId": "20260902T035913Z",
+              "gitBlobSha": "35be0b6363e01cf143305f1f9e7622b269e81c38",
+              "path": "data/p25-marketwide-5m/2026-09-02/20260902T035913Z/marketwide.ndjson"
+            },
+            {
+              "captureId": "20260902T064041Z",
+              "gitBlobSha": "43c9a456287af7b3a692abb4165ca26db5f5c70e",
+              "path": "data/p25-marketwide-5m/2026-09-02/20260902T064041Z/marketwide.ndjson"
+            },
+            {
+              "captureId": "20260902T080130Z",
+              "gitBlobSha": "0124d2518e96eab71ac13a002ebd0849a3b89ef8",
+              "path": "data/p25-marketwide-5m/2026-09-02/20260902T080130Z/marketwide.ndjson"
+            },
+            {
+              "captureId": "20260902T083417Z",
+              "gitBlobSha": "1b08200a16e11e58a3406c0ad2f98de5d53f866a",
+              "path": "data/p25-marketwide-5m/2026-09-02/20260902T083417Z/marketwide.ndjson"
+            }
+          ]
+        },
+        {
+          "sessionDate": "2026-09-03",
+          "files": [
+            {
+              "captureId": "20260903T035810Z",
+              "gitBlobSha": "01b6588c8fd98fa2fe2bc12cf15d8a7a8c713e25",
+              "path": "data/p25-marketwide-5m/2026-09-03/20260903T035810Z/marketwide.ndjson"
+            },
+            {
+              "captureId": "20260903T064323Z",
+              "gitBlobSha": "64b61dd6e696f3094b690da27934b7d1bfaa8722",
+              "path": "data/p25-marketwide-5m/2026-09-03/20260903T064323Z/marketwide.ndjson"
+            },
+            {
+              "captureId": "20260903T081129Z",
+              "gitBlobSha": "acfbf72b92a4daba61aec9d0e93110fd7e076fc3",
+              "path": "data/p25-marketwide-5m/2026-09-03/20260903T081129Z/marketwide.ndjson"
+            },
+            {
+              "captureId": "20260903T084233Z",
+              "gitBlobSha": "a88e57dc002bea2aa7503330d8744f67ed4af960",
+              "path": "data/p25-marketwide-5m/2026-09-03/20260903T084233Z/marketwide.ndjson"
+            }
+          ]
+        },
+        {
+          "sessionDate": "2026-09-04",
+          "files": [
+            {
+              "captureId": "20260904T035956Z",
+              "gitBlobSha": "ceac3766bdd6bc3d0fb82a6197747f49086f1a4b",
+              "path": "data/p25-marketwide-5m/2026-09-04/20260904T035956Z/marketwide.ndjson"
+            },
+            {
+              "captureId": "20260904T064802Z",
+              "gitBlobSha": "56c5e8f803b9dbda24c665ae62964d1eee2d3f59",
+              "path": "data/p25-marketwide-5m/2026-09-04/20260904T064802Z/marketwide.ndjson"
+            },
+            {
+              "captureId": "20260904T080614Z",
+              "gitBlobSha": "73044b484795c7e54075eb5864da762003339195",
+              "path": "data/p25-marketwide-5m/2026-09-04/20260904T080614Z/marketwide.ndjson"
+            },
+            {
+              "captureId": "20260904T083745Z",
+              "gitBlobSha": "8f43a7c7b0ba2a7ee1b85bc0354ae19a48d0689f",
+              "path": "data/p25-marketwide-5m/2026-09-04/20260904T083745Z/marketwide.ndjson"
+            }
+          ]
+        }
+      ],
+      "requiredNextEvidence": [
+        "Exact allowed session IDs and source classification",
+        "Per-session source/universe lineage and hashes",
+        "Per-decision completed-prefix symbol/bar coverage, availableAt and missingness",
+        "Corporate-action and auction/session semantics bounded"
+      ]
+    },
+    "p21PriorPack": {
+      "status": "NO_GO",
+      "reason": "Canonical source identity located; exact pack bytes, actual time bounds and realized horizon row counts have not been admitted/verified.",
+      "canonicalSourceRun": 31785422471,
+      "canonicalArtifactId": 9213298657,
+      "canonicalArtifactName": "phase57-p24-9-oos-canonical-candidate",
+      "artifactExpired": false,
+      "artifactArchiveSha256": "a9c3c70a49938f56eec8bcf299e443359f2f64919eac247c120172b0b34ec463",
+      "canonicalSnapshotSha256": "10ec0b89893823f9e2f7ba720db2d0fad8e76d642fe00f7b77d387ae6be6b12a",
+      "canonicalDataEndIso": "2026-08-12T06:30:00.000Z",
+      "canonicalWindowDays": 56,
+      "effectiveStartIso": null,
+      "rawProviderResponseTimeBounds": null,
+      "artifactContentsDownloaded": false,
+      "sourceBytesVerified": false,
+      "safeForwardStart": "2026-08-13",
+      "dateBoundaryEligibleSessions": 17,
+      "fullyVerifiedCausalSessions": 0,
+      "horizons": [
+        1,
+        3,
+        6,
+        12,
+        24
+      ],
+      "minimumTrainingRows": 200,
+      "minimumSignals": 50,
+      "priorRowsByHorizon": null,
+      "fullyRealizedBeforeCutoffVerified": false,
+      "sourceContract": "predict/daytrade/phase57-p25-2k-pinned-history-bridge.js",
+      "requiredNextEvidence": [
+        "Isolated prior pack metadata: member names, actual date bounds and hashes without outcomes",
+        "Exact snapshot/pack hash validation",
+        "Prior-only horizon row availability, selection options and realization time validation"
+      ]
+    },
+    "hybridP21Adapter": {
+      "status": "PARTIAL_PASS_SYNTHETIC_CONTRACT_ONLY",
+      "implementation": "scripts/lib/phase57-hybrid-p21-adapter.mjs",
+      "test": "scripts/tests/phase57-hybrid-p21-adapter.test.mjs",
+      "syntheticTestsPassed": 20,
+      "inputParity": true,
+      "outputStageParity": [
+        "LONG",
+        "SHORT",
+        "ABSTAIN",
+        "BLOCKED_NO_PRIOR"
+      ],
+      "comparedFields": [
+        "signalEligible",
+        "direction",
+        "probability",
+        "confidence",
+        "selectedHorizonBars",
+        "selectedFeatureFamily",
+        "selectedModelType",
+        "selectedConfigId",
+        "selectedThreshold"
+      ],
+      "outputParityUsesExplicitSyntheticCachedBundle": true,
+      "modelFittingPerformed": false,
+      "actualPriorSelectionRefitParity": false,
+      "marketWideSelectorReplayParity": false,
+      "gateFullyPassed": false,
+      "timestampSemantics": "Outer T governs bar completion/availability. Existing P21 featureCutoff remains last completed bar-open timestamp; prior filtering remains at this earlier legacy cutoff.",
+      "legacySourceModeIsNotProspectiveEvidence": true,
+      "rankScoreUsedOnlyAsLineage": true,
+      "sourcePolicyUnchanged": true
+    },
+    "entryBaselineCost": {
+      "status": "GO_CONTRACT_FROZEN",
+      "contractPath": "predict/research/phase57-entry-baseline-cost-contract-v1.json",
+      "roundTripCostBps": 5,
+      "basis": "Existing downstream EXIT v4 gross-minus-0.05pct convention; Entry and Capital round-trip rate corroboration",
+      "grossStoredSeparately": true,
+      "zeroDefaultAllowed": false
+    }
+  },
+  "perSession": [
+    {
+      "sessionDate": "2026-08-13",
+      "role": "ENTRY_BASELINE_DEVELOPMENT_DIAGNOSTIC",
+      "afterSafeForwardBoundary": true,
+      "archiveRawPathCount": 0,
+      "rawPathSearchScope": "ONLY_EXAMINED_ARCHIVE_BRANCH",
+      "rawCoverage": null,
+      "universeCoverage": null,
+      "decisionPointCoverage": null,
+      "exactPriorVerified": false,
+      "status": "BLOCKED",
+      "blockers": [
+        "RAW_ARCHIVE_AND_UNIVERSE_NOT_VERIFIED",
+        "EXACT_CAUSAL_PRIOR_NOT_VERIFIED",
+        "ACTUAL_ADAPTER_PRIOR_REPLAY_PARITY_NOT_VERIFIED"
+      ]
+    },
+    {
+      "sessionDate": "2026-08-14",
+      "role": "ENTRY_BASELINE_DEVELOPMENT_DIAGNOSTIC",
+      "afterSafeForwardBoundary": true,
+      "archiveRawPathCount": 0,
+      "rawPathSearchScope": "ONLY_EXAMINED_ARCHIVE_BRANCH",
+      "rawCoverage": null,
+      "universeCoverage": null,
+      "decisionPointCoverage": null,
+      "exactPriorVerified": false,
+      "status": "BLOCKED",
+      "blockers": [
+        "RAW_ARCHIVE_AND_UNIVERSE_NOT_VERIFIED",
+        "EXACT_CAUSAL_PRIOR_NOT_VERIFIED",
+        "ACTUAL_ADAPTER_PRIOR_REPLAY_PARITY_NOT_VERIFIED"
+      ]
+    },
+    {
+      "sessionDate": "2026-08-17",
+      "role": "ENTRY_BASELINE_DEVELOPMENT_DIAGNOSTIC",
+      "afterSafeForwardBoundary": true,
+      "archiveRawPathCount": 0,
+      "rawPathSearchScope": "ONLY_EXAMINED_ARCHIVE_BRANCH",
+      "rawCoverage": null,
+      "universeCoverage": null,
+      "decisionPointCoverage": null,
+      "exactPriorVerified": false,
+      "status": "BLOCKED",
+      "blockers": [
+        "RAW_ARCHIVE_AND_UNIVERSE_NOT_VERIFIED",
+        "EXACT_CAUSAL_PRIOR_NOT_VERIFIED",
+        "ACTUAL_ADAPTER_PRIOR_REPLAY_PARITY_NOT_VERIFIED"
+      ]
+    },
+    {
+      "sessionDate": "2026-08-18",
+      "role": "ENTRY_BASELINE_DEVELOPMENT_DIAGNOSTIC",
+      "afterSafeForwardBoundary": true,
+      "archiveRawPathCount": 0,
+      "rawPathSearchScope": "ONLY_EXAMINED_ARCHIVE_BRANCH",
+      "rawCoverage": null,
+      "universeCoverage": null,
+      "decisionPointCoverage": null,
+      "exactPriorVerified": false,
+      "status": "BLOCKED",
+      "blockers": [
+        "RAW_ARCHIVE_AND_UNIVERSE_NOT_VERIFIED",
+        "EXACT_CAUSAL_PRIOR_NOT_VERIFIED",
+        "ACTUAL_ADAPTER_PRIOR_REPLAY_PARITY_NOT_VERIFIED"
+      ]
+    },
+    {
+      "sessionDate": "2026-08-19",
+      "role": "ENTRY_BASELINE_DEVELOPMENT_DIAGNOSTIC",
+      "afterSafeForwardBoundary": true,
+      "archiveRawPathCount": 0,
+      "rawPathSearchScope": "ONLY_EXAMINED_ARCHIVE_BRANCH",
+      "rawCoverage": null,
+      "universeCoverage": null,
+      "decisionPointCoverage": null,
+      "exactPriorVerified": false,
+      "status": "BLOCKED",
+      "blockers": [
+        "RAW_ARCHIVE_AND_UNIVERSE_NOT_VERIFIED",
+        "EXACT_CAUSAL_PRIOR_NOT_VERIFIED",
+        "ACTUAL_ADAPTER_PRIOR_REPLAY_PARITY_NOT_VERIFIED"
+      ]
+    },
+    {
+      "sessionDate": "2026-08-20",
+      "role": "ENTRY_BASELINE_DEVELOPMENT_DIAGNOSTIC",
+      "afterSafeForwardBoundary": true,
+      "archiveRawPathCount": 0,
+      "rawPathSearchScope": "ONLY_EXAMINED_ARCHIVE_BRANCH",
+      "rawCoverage": null,
+      "universeCoverage": null,
+      "decisionPointCoverage": null,
+      "exactPriorVerified": false,
+      "status": "BLOCKED",
+      "blockers": [
+        "RAW_ARCHIVE_AND_UNIVERSE_NOT_VERIFIED",
+        "EXACT_CAUSAL_PRIOR_NOT_VERIFIED",
+        "ACTUAL_ADAPTER_PRIOR_REPLAY_PARITY_NOT_VERIFIED"
+      ]
+    },
+    {
+      "sessionDate": "2026-08-21",
+      "role": "ENTRY_BASELINE_DEVELOPMENT_DIAGNOSTIC",
+      "afterSafeForwardBoundary": true,
+      "archiveRawPathCount": 0,
+      "rawPathSearchScope": "ONLY_EXAMINED_ARCHIVE_BRANCH",
+      "rawCoverage": null,
+      "universeCoverage": null,
+      "decisionPointCoverage": null,
+      "exactPriorVerified": false,
+      "status": "BLOCKED",
+      "blockers": [
+        "RAW_ARCHIVE_AND_UNIVERSE_NOT_VERIFIED",
+        "EXACT_CAUSAL_PRIOR_NOT_VERIFIED",
+        "ACTUAL_ADAPTER_PRIOR_REPLAY_PARITY_NOT_VERIFIED"
+      ]
+    },
+    {
+      "sessionDate": "2026-08-24",
+      "role": "ENTRY_BASELINE_DEVELOPMENT_DIAGNOSTIC",
+      "afterSafeForwardBoundary": true,
+      "archiveRawPathCount": 0,
+      "rawPathSearchScope": "ONLY_EXAMINED_ARCHIVE_BRANCH",
+      "rawCoverage": null,
+      "universeCoverage": null,
+      "decisionPointCoverage": null,
+      "exactPriorVerified": false,
+      "status": "BLOCKED",
+      "blockers": [
+        "RAW_ARCHIVE_AND_UNIVERSE_NOT_VERIFIED",
+        "EXACT_CAUSAL_PRIOR_NOT_VERIFIED",
+        "ACTUAL_ADAPTER_PRIOR_REPLAY_PARITY_NOT_VERIFIED"
+      ]
+    },
+    {
+      "sessionDate": "2026-08-25",
+      "role": "ENTRY_BASELINE_DEVELOPMENT_DIAGNOSTIC",
+      "afterSafeForwardBoundary": true,
+      "archiveRawPathCount": 0,
+      "rawPathSearchScope": "ONLY_EXAMINED_ARCHIVE_BRANCH",
+      "rawCoverage": null,
+      "universeCoverage": null,
+      "decisionPointCoverage": null,
+      "exactPriorVerified": false,
+      "status": "BLOCKED",
+      "blockers": [
+        "RAW_ARCHIVE_AND_UNIVERSE_NOT_VERIFIED",
+        "EXACT_CAUSAL_PRIOR_NOT_VERIFIED",
+        "ACTUAL_ADAPTER_PRIOR_REPLAY_PARITY_NOT_VERIFIED"
+      ]
+    },
+    {
+      "sessionDate": "2026-08-26",
+      "role": "ENTRY_BASELINE_DEVELOPMENT_DIAGNOSTIC",
+      "afterSafeForwardBoundary": true,
+      "archiveRawPathCount": 0,
+      "rawPathSearchScope": "ONLY_EXAMINED_ARCHIVE_BRANCH",
+      "rawCoverage": null,
+      "universeCoverage": null,
+      "decisionPointCoverage": null,
+      "exactPriorVerified": false,
+      "status": "BLOCKED",
+      "blockers": [
+        "RAW_ARCHIVE_AND_UNIVERSE_NOT_VERIFIED",
+        "EXACT_CAUSAL_PRIOR_NOT_VERIFIED",
+        "ACTUAL_ADAPTER_PRIOR_REPLAY_PARITY_NOT_VERIFIED"
+      ]
+    },
+    {
+      "sessionDate": "2026-08-27",
+      "role": "ENTRY_BASELINE_DEVELOPMENT_DIAGNOSTIC",
+      "afterSafeForwardBoundary": true,
+      "archiveRawPathCount": 0,
+      "rawPathSearchScope": "ONLY_EXAMINED_ARCHIVE_BRANCH",
+      "rawCoverage": null,
+      "universeCoverage": null,
+      "decisionPointCoverage": null,
+      "exactPriorVerified": false,
+      "status": "BLOCKED",
+      "blockers": [
+        "RAW_ARCHIVE_AND_UNIVERSE_NOT_VERIFIED",
+        "EXACT_CAUSAL_PRIOR_NOT_VERIFIED",
+        "ACTUAL_ADAPTER_PRIOR_REPLAY_PARITY_NOT_VERIFIED"
+      ]
+    },
+    {
+      "sessionDate": "2026-08-28",
+      "role": "ENTRY_BASELINE_DEVELOPMENT_DIAGNOSTIC",
+      "afterSafeForwardBoundary": true,
+      "archiveRawPathCount": 0,
+      "rawPathSearchScope": "ONLY_EXAMINED_ARCHIVE_BRANCH",
+      "rawCoverage": null,
+      "universeCoverage": null,
+      "decisionPointCoverage": null,
+      "exactPriorVerified": false,
+      "status": "BLOCKED",
+      "blockers": [
+        "RAW_ARCHIVE_AND_UNIVERSE_NOT_VERIFIED",
+        "EXACT_CAUSAL_PRIOR_NOT_VERIFIED",
+        "ACTUAL_ADAPTER_PRIOR_REPLAY_PARITY_NOT_VERIFIED"
+      ]
+    },
+    {
+      "sessionDate": "2026-08-31",
+      "role": "ENTRY_BASELINE_DEVELOPMENT_DIAGNOSTIC",
+      "afterSafeForwardBoundary": true,
+      "archiveRawPathCount": 0,
+      "rawPathSearchScope": "ONLY_EXAMINED_ARCHIVE_BRANCH",
+      "rawCoverage": null,
+      "universeCoverage": null,
+      "decisionPointCoverage": null,
+      "exactPriorVerified": false,
+      "status": "BLOCKED",
+      "blockers": [
+        "RAW_ARCHIVE_AND_UNIVERSE_NOT_VERIFIED",
+        "EXACT_CAUSAL_PRIOR_NOT_VERIFIED",
+        "ACTUAL_ADAPTER_PRIOR_REPLAY_PARITY_NOT_VERIFIED"
+      ]
+    },
+    {
+      "sessionDate": "2026-09-01",
+      "role": "ENTRY_BASELINE_DEVELOPMENT_DIAGNOSTIC",
+      "afterSafeForwardBoundary": true,
+      "archiveRawPathCount": 5,
+      "rawPathSearchScope": "ONLY_EXAMINED_ARCHIVE_BRANCH",
+      "rawCoverage": null,
+      "universeCoverage": null,
+      "decisionPointCoverage": null,
+      "exactPriorVerified": false,
+      "status": "BLOCKED",
+      "blockers": [
+        "RAW_ARCHIVE_AND_UNIVERSE_NOT_VERIFIED",
+        "EXACT_CAUSAL_PRIOR_NOT_VERIFIED",
+        "ACTUAL_ADAPTER_PRIOR_REPLAY_PARITY_NOT_VERIFIED"
+      ]
+    },
+    {
+      "sessionDate": "2026-09-02",
+      "role": "ENTRY_BASELINE_DEVELOPMENT_DIAGNOSTIC",
+      "afterSafeForwardBoundary": true,
+      "archiveRawPathCount": 5,
+      "rawPathSearchScope": "ONLY_EXAMINED_ARCHIVE_BRANCH",
+      "rawCoverage": null,
+      "universeCoverage": null,
+      "decisionPointCoverage": null,
+      "exactPriorVerified": false,
+      "status": "BLOCKED",
+      "blockers": [
+        "RAW_ARCHIVE_AND_UNIVERSE_NOT_VERIFIED",
+        "EXACT_CAUSAL_PRIOR_NOT_VERIFIED",
+        "ACTUAL_ADAPTER_PRIOR_REPLAY_PARITY_NOT_VERIFIED"
+      ]
+    },
+    {
+      "sessionDate": "2026-09-03",
+      "role": "ENTRY_BASELINE_DEVELOPMENT_DIAGNOSTIC",
+      "afterSafeForwardBoundary": true,
+      "archiveRawPathCount": 4,
+      "rawPathSearchScope": "ONLY_EXAMINED_ARCHIVE_BRANCH",
+      "rawCoverage": null,
+      "universeCoverage": null,
+      "decisionPointCoverage": null,
+      "exactPriorVerified": false,
+      "status": "BLOCKED",
+      "blockers": [
+        "RAW_ARCHIVE_AND_UNIVERSE_NOT_VERIFIED",
+        "EXACT_CAUSAL_PRIOR_NOT_VERIFIED",
+        "ACTUAL_ADAPTER_PRIOR_REPLAY_PARITY_NOT_VERIFIED"
+      ]
+    },
+    {
+      "sessionDate": "2026-09-04",
+      "role": "ENTRY_BASELINE_DEVELOPMENT_DIAGNOSTIC",
+      "afterSafeForwardBoundary": true,
+      "archiveRawPathCount": 4,
+      "rawPathSearchScope": "ONLY_EXAMINED_ARCHIVE_BRANCH",
+      "rawCoverage": null,
+      "universeCoverage": null,
+      "decisionPointCoverage": null,
+      "exactPriorVerified": false,
+      "status": "BLOCKED",
+      "blockers": [
+        "RAW_ARCHIVE_AND_UNIVERSE_NOT_VERIFIED",
+        "EXACT_CAUSAL_PRIOR_NOT_VERIFIED",
+        "ACTUAL_ADAPTER_PRIOR_REPLAY_PARITY_NOT_VERIFIED"
+      ]
+    }
+  ],
+  "measurement": {
+    "allowed": false,
+    "measuredSessions": 0,
+    "hybridEventsGenerated": 0,
+    "p21HistoricalEventsScored": 0,
+    "newBaselineOutcomesViewed": 0,
+    "newHistoricalLabelsGenerated": 0,
+    "newHistoricalPerformanceComputed": 0,
+    "baselineDiagnosticUsed": false,
+    "performanceMetrics": null,
+    "pitViolations": null,
+    "duplicates": null,
+    "regimes": null,
+    "icc": null,
+    "effectiveN": null,
+    "nullReason": "NOT_MEASURED; synthetic test success is not a historical PIT/quality audit"
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "nextHighestValueStep": "Obtain a metadata-only index for an isolated 17-session market-wide archive and exact pre-Aug13 prior pack; verify scope and hashes before reading allowed inputs. Do not resume the protected190 allocation search as a prerequisite."
+}

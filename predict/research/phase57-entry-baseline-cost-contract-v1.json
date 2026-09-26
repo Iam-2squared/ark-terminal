@@ -1,0 +1,51 @@
+{
+  "contractId": "ENTRY_BASELINE_COST_CONTRACT_V1",
+  "status": "FROZEN_BEFORE_BASELINE_OUTCOMES",
+  "researchPurpose": "ENTRY_BASELINE_DEVELOPMENT_DIAGNOSTIC",
+  "roundTripCostBps": 5,
+  "roundTripCostPct": 0.05,
+  "netReturnBpsFormula": "grossDirectionalReturnBps - 5",
+  "netReturnPctFormula": "grossDirectionalReturnPct - 0.05",
+  "application": "ONCE_PER_AVAILABLE_DIRECTIONAL_HORIZON_LABEL",
+  "grossStoredSeparately": true,
+  "grossHitDefinition": "grossDirectionalReturn > 0",
+  "zeroGrossDefinition": "NEUTRAL_INCLUDED_IN_OBSERVED_DENOMINATOR_NOT_HIT",
+  "grossMissDefinition": "grossDirectionalReturn < 0",
+  "netPositiveDefinition": "costAdjustedDirectionalReturn > 0",
+  "missingLabelDefinition": "MISSING_EXCLUDED_FROM_LABEL_DENOMINATOR_NEVER_ZERO_FILLED",
+  "eventAndFirstEntryOpportunityReportedSeparately": true,
+  "horizonsAreSeparateDiagnosticsNotSummedTrades": true,
+  "commissionOrSlippageAddedAgain": false,
+  "overnightBorrowOrFundingModeled": false,
+  "actualFillOrPortfolioPnlClaim": false,
+  "choiceBasis": "Reuse unchanged P25 EXIT v4 fixed-return diagnostic subtraction of 0.05 percentage points; corroborated by frozen Entry and Capital Allocation round-trip rate. Chosen from source contracts before viewing any baseline outcome.",
+  "sourceRef": "899d16b808dba0d5b2003228a5f46332b3a3ce09",
+  "sources": [
+    {
+      "path": "predict/daytrade/phase57-p25-exit-v4-structural-risk.js",
+      "gitBlobSha": "e4b52a850be0135865a49e3a52bbfd2b7ce5ef41",
+      "role": "PRIMARY_DOWNSTREAM_RETURN_SEMANTICS",
+      "semantics": "simulateP25ExitV4 defaults roundTripCostPct=0.05; netReturnPct=gross-Number(roundTripCostPct). No EXIT simulation is run here."
+    },
+    {
+      "path": "predict/scalping/phase58-phase57-prospective-pipeline.js",
+      "gitBlobSha": "a79789b9bc25559ec63ed28f19f281eb563ace35",
+      "role": "P21_INNER_POLICY_CORROBORATION_ONLY",
+      "semantics": "PHASE58_P13_FROZEN_POLICY selectionOptions.roundTripCostPct=0.05. Internal model selection remains unchanged; not the sole basis for label costs."
+    },
+    {
+      "path": "predict/portfolio/phase57-p25-adaptive-allocation-v2.js",
+      "gitBlobSha": "74838deb73e9e04c48350f3b37ee4a845a0ef654",
+      "role": "CAPITAL_RATE_CORROBORATION_ONLY",
+      "semantics": "roundTripCostPct=0.05. Capital simulator charges half-rate on each side's notional; its portfolio cash accounting is NOT copied into fixed-horizon labels."
+    }
+  ],
+  "excludedContracts": [
+    { "name": "SELECTOR_NATIVE_UTILITY", "bps": 10, "reason": "Selector opportunity utility is a different outcome contract." },
+    { "path": "predict/paper/p25-research-cost-policy.js", "gitBlobSha": "5dcce18c5d74ff0d72f0e907f55655b5e49db311", "slippageBpsPerFill": 10, "reason": "Applies to new research paper sessions only; per-fill slippage is not round-trip baseline diagnostic cost." }
+  ],
+  "baselineOutcomesViewedAtFreeze": false,
+  "resultBasedCostChangeAllowed": false,
+  "automaticCostOverrideAllowed": false,
+  "measurementAllowedByThisContractAlone": false
+}

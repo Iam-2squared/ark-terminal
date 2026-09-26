@@ -1,0 +1,26 @@
+{
+  "schema":"phase57-r49-historical-replay-precommit-v1",
+  "status":"FROZEN_BEFORE_REPLAY",
+  "basisHead":"69da4fb7d4da29f50f41d60ac59f30065f2bbfff",
+  "sourcePredictionSha256":"0bf849f4c9d9e90ef05e86ed2d5fd1cfea2eec7214a3b28a8824a1a1daaee6fc",
+  "modelFits":0,
+  "predictionRefits":0,
+  "candidateCount":3,
+  "futureOutcomeInputsAllowed":false,
+  "primaryEvaluatorSlice":"postEntryUpsidePct>=5; evaluator-only",
+  "common":{
+    "continuationScoreMin":0.60,
+    "structLrisingVeto":true,
+    "recoveryVeto":true,
+    "tail":{"currentReturnPctMax":-10.0,"dScoreMin":0.75,"weakRunMin":8,"signalFalseNMin":4,"confirm":3}
+  },
+  "candidates":[
+    {"id":"R49_A","mfeMin":5.0,"givebackMin":4.0,"peakAgeMin":15,"barsHeldMin":60,"momentumMax":0.0,"signalFalseMin":3,"dScoreMin":0.55,"confirm":2},
+    {"id":"R49_B","mfeMin":4.0,"givebackFloor":3.0,"givebackFraction":0.50,"peakAgeMin":12,"barsHeldMin":50,"momentumMax":0.0,"signalFalseMin":3,"cScoreMax":0.55,"confirm":2},
+    {"id":"R49_C","mfeMin":3.0,"givebackMin":3.0,"peakAgeMin":20,"barsHeldMin":60,"momentumMax":0.0,"signalFalseMin":3,"cScoreMax":0.45,"weakRunMin":4,"confirm":3}
+  ],
+  "gatePerEntryArm":{"supportMin":50,"medianCaptureMinPct":50.0,"meanNetMinPct":3.25,"medianNetMinPct":2.0,"prematureRateMax":0.10},
+  "ranking":["max-min medianCapture","max-min meanNet","min-max prematureRate"],
+  "tie":"NO_SELECTION",
+  "noPass":"NO_SELECTION"
+}

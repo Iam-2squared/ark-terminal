@@ -40,6 +40,7 @@ jobs:
           zero=json.loads((base/'ZERO_FIT_CHECKPOINT.json').read_text())
           ci=json.loads((base/'ZERO_FIT_CI_RECEIPT.json').read_text())
           launch=json.loads((base/'FINITE_LAUNCH.json').read_text())
+          assert sha(base/'FINITE_LAUNCH.json')==(base/'FINITE_LAUNCH.sha256').read_text().strip()
           assert sha(base/'PRECOMMIT.json')==(base/'PRECOMMIT.sha256').read_text().strip()==launch['protocolSha256']
           assert sha(base/'ZERO_FIT_CHECKPOINT.json')==(base/'ZERO_FIT_CHECKPOINT.sha256').read_text().strip()==launch['zeroFitCheckpointSha256']
           assert ci['status']=='PASS' and ci['newFits']==ci['newPolicyReplays']==0 and not ci['candidatePerformanceSeen']
@@ -57,6 +58,10 @@ jobs:
                'zeroFitTestedSha':ci['testedSha'],'candidateCount':1,'newFits':0},
               sort_keys=True)+'\n')
           PY
+      - name: Preperformance regression tests on exact execution SHA
+        run: |
+          python -m unittest -q scripts.test_phase57_exit_persistent_value_r53 scripts.test_phase57_exit_continuation_r52 scripts.test_phase57_capital_exit_integrated scripts.test_phase57_exit_winner_lifecycle_r50
+          python -m py_compile scripts/phase57_exit_persistent_value_r53_audit.py
       - uses: actions/download-artifact@v4
         with:
           repository: Iam-2squared/ark-terminal

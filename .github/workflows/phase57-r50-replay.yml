@@ -35,7 +35,7 @@ jobs:
           run-id: 36251316248
       - name: Finite replay and frozen scorecard
         env: {OMP_NUM_THREADS: '1', OPENBLAS_NUM_THREADS: '1', MKL_NUM_THREADS: '1'}
-        run: python scripts/phase57_exit_replay_r50.py --artifact-root upstream --out r50
+        run: python -m scripts.phase57_exit_replay_r50 --artifact-root upstream --out r50
       - uses: actions/upload-artifact@v4
         with:
           name: phase57-r50-result-${{ github.run_id }}

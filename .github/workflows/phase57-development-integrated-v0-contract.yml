@@ -1,6 +1,12 @@
 name: Phase57 Development Integrated v0 Contract
 on:
   workflow_dispatch:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - scripts/phase57_development_integrated_v0.py
+      - scripts/test_phase57_development_integrated_v0.py
+      - .github/workflows/phase57-development-integrated-v0-contract.yml
 
 permissions:
   contents: read

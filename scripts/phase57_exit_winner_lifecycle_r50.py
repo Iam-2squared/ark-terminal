@@ -20,6 +20,10 @@ def require(ok, reason):
 def finite(v):
     return type(v) in (int, float) and math.isfinite(v)
 
+def identity_key(arm, entry_id):
+    require(arm in protocol()['entryArms'] and isinstance(entry_id, str) and entry_id, 'R50_ENTRY_IDENTITY')
+    return arm+'\x00'+entry_id
+
 @lru_cache(maxsize=1)
 def protocol():
     raw = PROTOCOL_PATH.read_bytes()
@@ -104,4 +108,3 @@ def intent(envelope, previous_state, candidate, *, terminal=False):
         return {"action": "EXIT_INTENT", "authority": "WINNER_HARVEST", "state": s}
     s["lifecycle"] = "FAILED_RECOVERY" if failed else ("MATURE_DETERIORATION" if mature else "ORDINARY_PULLBACK")
     return {"action": "HOLD", "authority": s["lifecycle"], "state": s}
-

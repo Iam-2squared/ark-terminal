@@ -21,10 +21,6 @@ def write_gz(p,rows):
         with gzip.GzipFile(filename='',fileobj=raw,mode='wb',mtime=0) as z:
             for x in rows: z.write((json.dumps(x,sort_keys=True,separators=(',',':'))+'\n').encode())
 
-def identity_key(arm, entry_id):
-    require(arm in runtime.protocol()['entryArms'] and isinstance(entry_id,str) and entry_id, 'R50_ENTRY_IDENTITY')
-    return arm+'\x00'+entry_id
-
 def load(root):
     data=root/'gen3/data'; p=runtime.protocol(); source=p['replaySource']
     expected={'decision-features.npz':'45b91faed0ee7ac3dd46d5fa9bdb4f9f5940cfa2c4a9292af468427d551f5b3e',
@@ -41,7 +37,7 @@ def load(root):
     base={}
     with gzip.open(root/'gen3/run-a/HOLD_TO_TERMINAL_DIAGNOSTIC.jsonl.gz','rt') as f:
         for line in f:
-            x=json.loads(line); k=identity_key(x['entryArm'],x['entryId']); require(k not in base,'R50_DUPLICATE_ARM_ENTRY'); base[k]=x
+            x=json.loads(line); k=runtime.identity_key(x['entryArm'],x['entryId']); require(k not in base,'R50_DUPLICATE_ARM_ENTRY'); base[k]=x
     require(len(base)==2257,'R50_CONTROL_ROWS')
     return numeric,fresh,names,identities,base
 
@@ -57,7 +53,7 @@ def replay(candidate,numeric,fresh,names,identities,base,raw):
     global rows; rows=identities
     groups=collections.defaultdict(list)
     for i,x in enumerate(identities):
-        k=identity_key(x['arm'],x['entryId'])
+        k=runtime.identity_key(x['arm'],x['entryId'])
         if k in base: groups[k].append(i)
     out=[]
     for key in sorted(base):

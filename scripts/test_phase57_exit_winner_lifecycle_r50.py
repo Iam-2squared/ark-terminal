@@ -1,6 +1,5 @@
 import copy, unittest
 from scripts import phase57_exit_winner_lifecycle_r50 as r
-from scripts import phase57_exit_replay_r50 as replay
 
 def env(now=700, fresh=True, **kw):
     v={k:0.0 for k in r.FACTS}; v.update(certifiedMfePct=4.0, certifiedGivebackPp=0.5,
@@ -67,6 +66,6 @@ class R50RuntimeTests(unittest.TestCase):
     def test_pattern_blocked(self): self.assertEqual(r.load_protocol()["lifecycle"]["roles"]["pattern187"],"not admitted for R50 decisions")
     def test_diagnostic_scores(self): self.assertIn("diagnostic",r.load_protocol()["lifecycle"]["roles"]["gen3DeteriorationScore"])
     def test_entry_identity_includes_arm(self):
-        self.assertNotEqual(replay.identity_key(r.load_protocol()["entryArms"][0],"same"),replay.identity_key(r.load_protocol()["entryArms"][1],"same"))
+        self.assertNotEqual(r.identity_key(r.load_protocol()["entryArms"][0],"same"),r.identity_key(r.load_protocol()["entryArms"][1],"same"))
 
 if __name__ == "__main__": unittest.main()

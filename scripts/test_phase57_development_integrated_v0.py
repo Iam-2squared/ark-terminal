@@ -1,5 +1,6 @@
 """Synthetic / contract tests only: no historical enrichment or performance."""
 import copy
+import gzip
 import tempfile
 import unittest
 from pathlib import Path
@@ -23,6 +24,26 @@ class IntegratedBenchmarkSyntheticTests(unittest.TestCase):
         self.assertEqual(b["controllingEvaluationCohort"]["fillsByArm"][integrated.IM],1150)
         self.assertFalse(any(a["safety"].values()))
         self.assertEqual(a["exit"]["status"],"BENCHMARK_NOT_FINAL_EXIT")
+
+    def test_allowlist_before_raw_value_json_decode(self):
+        source='{"2025-07-03|11110":{"today":[[600,100,100,100,100,1,1]]},"OUTSIDE":{"secret":invalid}}'
+        with tempfile.TemporaryDirectory() as folder:
+            path=Path(folder)/"raw.gz"
+            path.write_bytes(gzip.compress(source.encode()))
+            projected,skipped=integrated.allowlisted_raw_paths(path,{"2025-07-03|11110"})
+        self.assertEqual(skipped,1)
+        self.assertEqual(projected["2025-07-03|11110"][600][1],100)
+        self.assertNotIn("OUTSIDE",projected)
+
+    def test_allowlist_before_origin_payload_json_decode(self):
+        allowed='{"WHO":{"ignored":"yes"},"id":"S","origin":{"decisionTimestamp":"2025-07-03T10:00:00+09:00","newEligibleRank":1,"savedV1Score":7}}'
+        outsiders=[f'{{"id":"O{i:04d}","origin":invalid}}' for i in range(5374)]
+        with tempfile.TemporaryDirectory() as folder:
+            path=Path(folder)/"origins.gz"
+            path.write_bytes(gzip.compress(("["+",".join([allowed]+outsiders)+"]").encode()))
+            projected=integrated.frozen_origin_projection(path,integrated.digest(path),{"S"})
+        self.assertEqual(set(projected),{"S"})
+        self.assertEqual(projected["S"]["newEligibleRank"],1)
 
     def test_exact_now_bar_mark_and_no_forward_search(self):
         raw={"2025-07-03|11110":{599:[599,100,200,40,101,100,1],

@@ -58,24 +58,83 @@ def event_priority(x):
     return (x["newEligibleRank"], -x["savedV1Score"], x["symbol"], x["entryId"])
 
 
-def frozen_origin_projection(path, expected_sha):
+def structural_value_end(text, i):
+    """Skip a JSON value without decoding its possibly out-of-scope payload."""
+    quote=False; escaped=False; stack=[]
+    while i<len(text):
+        c=text[i]
+        if quote:
+            if escaped: escaped=False
+            elif c=="\\": escaped=True
+            elif c=='"': quote=False
+        elif c=='"': quote=True
+        elif c in "{[": stack.append(c)
+        elif c in "}]":
+            if not stack: break
+            opener=stack.pop()
+            require((opener,c) in (("{","}"),("[","]")),"JSON_UNBALANCED")
+        elif c=="," and not stack: break
+        i+=1
+    require(not quote and not stack,"JSON_UNTERMINATED")
+    return i
+
+
+def frozen_origin_projection(path, expected_sha, allowed_ids):
     """Exact R35 scalar projection; avoid R35's unrelated chart/ML import graph."""
     require(digest(path) == expected_sha, "FROZEN_SELECTOR_ORIGIN_HASH")
-    with gzip.open(path,"rt") as stream:
-        source=json.load(stream)
+    text=gzip.decompress(Path(path).read_bytes()).decode("utf-8")
+    decoder=json.JSONDecoder()
+    def whitespace(i):
+        while i<len(text) and text[i].isspace(): i+=1
+        return i
+    i=whitespace(0)
+    require(text[i]=="[","ORIGINS_NOT_ARRAY")
+    i+=1
     result={}
-    for row in source:
-        origin=row["origin"]
-        stamp=dt.datetime.fromisoformat(origin["decisionTimestamp"])
-        rank=origin["newEligibleRank"]
-        score=origin["savedV1Score"]
-        require(stamp.tzinfo is not None and type(rank) is int and rank > 0
-                and isinstance(score,(float,int)) and not isinstance(score,bool)
-                and math.isfinite(score) and row["id"] not in result,
-                "FROZEN_ORIGIN_R35_VALIDITY")
-        result[row["id"]]={"newEligibleRank":rank,"savedV1Score":float(score),
-                           "rankKnownAtMinute":stamp.hour*60+stamp.minute,
-                           "rankKnownAtSession":stamp.date().isoformat()}
+    seen=set()
+    while True:
+        i=whitespace(i)
+        if text[i]=="]":
+            require(whitespace(i+1)==len(text),"ORIGINS_TRAILING_DATA")
+            break
+        start=i
+        end=structural_value_end(text,start)
+        obj=text[start:end]
+        require(obj.startswith("{") and obj.endswith("}"),"ORIGIN_ELEMENT_NOT_OBJECT")
+        j=1; oid=None; origin=None
+        while j<len(obj)-1:
+            while obj[j].isspace() or obj[j]==",": j+=1
+            key,j=decoder.raw_decode(obj,j)
+            require(isinstance(key,str),"ORIGIN_KEY")
+            while obj[j].isspace(): j+=1
+            require(obj[j]==":","ORIGIN_COLON")
+            j+=1
+            while obj[j].isspace(): j+=1
+            stop=structural_value_end(obj,j)
+            if key=="id":
+                oid=decoder.raw_decode(obj,j)[0]
+                require(isinstance(oid,str) and oid not in seen,"DUPLICATE_ORIGIN_ID")
+                seen.add(oid)
+            elif key=="origin" and oid in allowed_ids:
+                origin=decoder.raw_decode(obj,j)[0]
+            j=stop
+        if oid in allowed_ids:
+            require(isinstance(origin,dict),"ALLOWED_ORIGIN_MISSING")
+            stamp=dt.datetime.fromisoformat(origin["decisionTimestamp"])
+            rank=origin["newEligibleRank"]
+            score=origin["savedV1Score"]
+            require(stamp.tzinfo is not None and type(rank) is int and rank > 0
+                    and isinstance(score,(float,int)) and not isinstance(score,bool)
+                    and math.isfinite(score) and oid not in result,
+                    "FROZEN_ORIGIN_R35_VALIDITY")
+            result[oid]={"newEligibleRank":rank,"savedV1Score":float(score),
+                         "rankKnownAtMinute":stamp.hour*60+stamp.minute,
+                         "rankKnownAtSession":stamp.date().isoformat()}
+        i=whitespace(end)
+        require(text[i] in ",]","ORIGIN_ARRAY_SEPARATOR")
+        if text[i]==",": i+=1
+    require(len(seen)==5375 and set(result)==set(allowed_ids),
+            "FROZEN_SELECTOR_ALLOWLIST_INCOMPLETE")
     return result
 
 
@@ -104,6 +163,52 @@ def frozen_entry_projection(path, arm, expected_sha):
     return result
 
 
+def allowlisted_raw_paths(path, allowed_keys):
+    """Project top-level JSON members before decoding their raw-path payload.
+
+    The source is a single JSON object. A small structural scanner skips each
+    non-allowlisted value without json.loads/raw_decode of that value; only
+    the already-frozen Entry Opportunity allowlist is materialized.
+    """
+    text=gzip.decompress(Path(path).read_bytes()).decode("utf-8")
+    decoder=json.JSONDecoder()
+    n=len(text)
+    def whitespace(i):
+        while i<n and text[i].isspace(): i+=1
+        return i
+    i=whitespace(0)
+    require(i<n and text[i]=="{","RAW_JSON_NOT_OBJECT")
+    i+=1; projected={}; seen=set(); skipped=0
+    while True:
+        i=whitespace(i)
+        if i<n and text[i]=="}":
+            i=whitespace(i+1)
+            require(i==n,"RAW_JSON_TRAILING_DATA")
+            break
+        key,j=decoder.raw_decode(text,i)
+        require(isinstance(key,str) and key not in seen,"RAW_KEY_INVALID_OR_DUPLICATE")
+        seen.add(key)
+        j=whitespace(j)
+        require(j<n and text[j]==":","RAW_JSON_COLON")
+        start=whitespace(j+1)
+        if key in allowed_keys:
+            value,end=decoder.raw_decode(text,start)
+            require(isinstance(value,dict) and isinstance(value.get("today"),list),
+                    "RAW_ALLOWED_VALUE_SCHEMA")
+            minutes=[int(row[0]) for row in value["today"]]
+            require(len(minutes)==len(set(minutes)),"RAW_DUPLICATE_MINUTE")
+            projected[key]={int(row[0]):row for row in value["today"]}
+            i=end
+        else:
+            skipped+=1
+            i=structural_value_end(text,start)
+        i=whitespace(i)
+        require(i<n and text[i] in ",}","RAW_JSON_SEPARATOR")
+        if text[i]==",": i+=1
+    require(set(projected)==set(allowed_keys),"RAW_ALLOWLIST_INCOMPLETE")
+    return projected,skipped
+
+
 def load_contract():
     p1 = EVIDENCE / "DEVELOPMENT_INTEGRATED_V0_PRECOMMIT.json"
     p2 = EVIDENCE / "DEVELOPMENT_INTEGRATED_V0_PRECOMMIT_V2.json"
@@ -122,13 +227,16 @@ def load_sources(ledger_path, r1_path, raw_path):
     contract, correction = load_contract()
     require(digest(ledger_path) == BENCHMARK_HASH, "BENCHMARK_LEDGER_HASH")
     require(digest(raw_path) == RAW_HASH, "RAW_PATH_HASH")
-    origin = frozen_origin_projection(ROOT / contract["inputPins"]["selectorOriginPath"],
-                                      contract["inputPins"]["selectorOriginSha256"])
     immediate_path = ROOT / "docs/evidence/phase57-state-conditioned-signal-entry-v1/measurement/baseline-immediate-records.json.gz"
     full = {
         IM: frozen_entry_projection(immediate_path, IM, contract["inputPins"]["immediateRecordSha256"]),
         R1: frozen_entry_projection(Path(r1_path), R1, contract["inputPins"]["r1RecordSha256"]),
     }
+    allowed_origins={row["opportunity"] for row in full[IM]}
+    require(allowed_origins=={row["opportunity"] for row in full[R1]},"ENTRY_COHORT_MISMATCH")
+    origin = frozen_origin_projection(ROOT / contract["inputPins"]["selectorOriginPath"],
+                                      contract["inputPins"]["selectorOriginSha256"],
+                                      allowed_origins)
     entries_by_arm = {arm: {r["entryId"]: r for r in records if r["entryId"]}
                       for arm, records in full.items()}
     expected_sessions = correction["controllingEvaluationCohort"]["sessions"]
@@ -184,12 +292,10 @@ def load_sources(ledger_path, r1_path, raw_path):
     require(sorted({v["session"] for arm in ARMS for v in evaluation[arm].values()})
             == expected_sessions, "BENCHMARK_SESSION_COHORT")
     require(all(len(rows) == 2155 for rows in full.values()), "ENTRY_FULL_POPULATION")
-    with gzip.open(raw_path, "rt") as stream:
-        raw_all = json.load(stream)
-    raw = {k: {int(r[0]): r for r in raw_all[k]["today"]}
-           for k in {v["opportunity"] for arm in ARMS for v in evaluation[arm].values()}}
-    require(len(raw) <= 2155 and all(len(v) == len(set(v)) for v in raw.values()),
-            "DUPLICATE_OR_MISSING_RAW_PATH")
+    allowed_raw={v["opportunity"] for arm in ARMS for v in evaluation[arm].values()}
+    raw,skipped=allowlisted_raw_paths(raw_path,allowed_raw)
+    require(len(raw)==len(allowed_raw) and skipped==5375-len(allowed_raw),
+            "RAW_ALLOWLIST_SCOPE_MISMATCH")
     for arm in ARMS:
         for eid, t in terminal[arm].items():
             auction = raw[evaluation[arm][eid]["opportunity"]].get(930)
@@ -200,7 +306,12 @@ def load_sources(ledger_path, r1_path, raw_path):
                         all(float(v) == float(auction[1]) for v in auction[1:5]) and
                         math.isclose(float(t["exitPrice"]), float(auction[1]), abs_tol=1e-8),
                         "BENCHMARK_AUCTION_IDENTITY")
-    return correction["controllingEvaluationCohort"], intents, evaluation, terminal, raw
+    cohort=dict(correction["controllingEvaluationCohort"])
+    cohort["allowlistedOriginPayloadsDecoded"]=len(origin)
+    cohort["originPayloadsSkippedBeforeJsonDecode"]=5375-len(origin)
+    cohort["allowlistedRawPayloadsDecoded"]=len(raw)
+    cohort["rawPayloadsSkippedBeforeJsonDecode"]=skipped
+    return cohort, intents, evaluation, terminal, raw
 
 
 class CensoredCashBook(cash.CashBook):
@@ -595,6 +706,11 @@ def main():
                  "protocolSha256":PROTOCOL_V2_HASH,"benchmarkLedgerSha256":BENCHMARK_HASH,
                  "entryArms":{arm:len(intents[arm]) for arm in ARMS},
                  "sessions":len(cohort["sessions"]),"modelFits":0,
+                 "allowlistedOriginPayloadsDecoded":cohort["allowlistedOriginPayloadsDecoded"],
+                 "originPayloadsSkippedBeforeJsonDecode":cohort["originPayloadsSkippedBeforeJsonDecode"],
+                 "allowlistedRawPayloadsDecoded":cohort["allowlistedRawPayloadsDecoded"],
+                 "rawPayloadsSkippedBeforeJsonDecode":cohort["rawPayloadsSkippedBeforeJsonDecode"],
+                 "earlierLocalPreflightDecodedOutsideAllowlist":4225,
                  "candidatePerformanceInspected":0,"portfolioReplays":0,
                  "providerRequests":0,"protectedPartitionsOpened":0,"safety":SAFETY}
         args.out.write_bytes(canonical(receipt))

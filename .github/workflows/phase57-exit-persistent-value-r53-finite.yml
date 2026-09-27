@@ -1,0 +1,125 @@
+name: Phase57 R53 Finite EXIT Integrated Replay
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - docs/evidence/phase57-exit-persistent-value-r53/FINITE_LAUNCH.json
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-r53-finite-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  finite-development:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      PYTHONPATH: '.'
+      PYTHONDONTWRITEBYTECODE: '1'
+      ARK_TEST_OFFLINE: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0 pandas==2.2.3 matplotlib==3.10.8 joblib==1.5.2
+      - name: Verify prior zero-fit PASS, exact candidate and immutable old source
+        run: |
+          mkdir -p /tmp/r53-result
+          python - <<'PY'
+          import hashlib,json,pathlib,os
+          base=pathlib.Path('docs/evidence/phase57-exit-persistent-value-r53')
+          sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+          contract=json.loads((base/'PRECOMMIT.json').read_text())
+          zero=json.loads((base/'ZERO_FIT_CHECKPOINT.json').read_text())
+          ci=json.loads((base/'ZERO_FIT_CI_RECEIPT.json').read_text())
+          launch=json.loads((base/'FINITE_LAUNCH.json').read_text())
+          assert sha(base/'PRECOMMIT.json')==(base/'PRECOMMIT.sha256').read_text().strip()==launch['protocolSha256']
+          assert sha(base/'ZERO_FIT_CHECKPOINT.json')==(base/'ZERO_FIT_CHECKPOINT.sha256').read_text().strip()==launch['zeroFitCheckpointSha256']
+          assert ci['status']=='PASS' and ci['newFits']==ci['newPolicyReplays']==0 and not ci['candidatePerformanceSeen']
+          assert sha(base/'ZERO_FIT_CI_RECEIPT.json')==launch['zeroFitCiReceiptSha256']
+          assert ci['testedSha']==launch['zeroFitTestedSha'] and ci['sourceSha256']==zero['sourceSha256']
+          assert launch['sourceSha256']==sha('scripts/phase57_exit_persistent_value_r53.py')
+          assert launch['independentAuditSourceSha256']==sha('scripts/phase57_exit_persistent_value_r53_audit.py')
+          assert launch['finiteWorkflowSha256']==sha('.github/workflows/phase57-exit-persistent-value-r53-finite.yml')
+          assert contract['candidateCount']==launch['candidateCount']==1 and launch['expectedNewFits']==0
+          assert launch['predictionSha256']==contract['predictionSource']['sha256']
+          assert len(launch['safety'])==9 and not any(launch['safety'].values())
+          assert launch['protectedOpened']==launch['providerRequests']==0
+          pathlib.Path('/tmp/r53-result/stage.json').write_text(json.dumps(
+              {'stage':'PINNED_INPUTS_VALIDATED','executionSha':os.getenv('GITHUB_SHA'),
+               'zeroFitTestedSha':ci['testedSha'],'candidateCount':1,'newFits':0},
+              sort_keys=True)+'\n')
+          PY
+      - uses: actions/download-artifact@v4
+        with:
+          repository: Iam-2squared/ark-terminal
+          run-id: 36251316248
+          name: phase57-exit-gen3-r45-36251316248
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/r45
+      - name: Reconstruct and validate prior R52 OOF prediction bytes
+        run: |
+          python - <<'PY'
+          import hashlib,json,pathlib,zipfile
+          base=pathlib.Path('docs/evidence/phase57-exit-continuation-r52/cycle2/RESULT')
+          m=json.loads((base/'ARTIFACT_REASSEMBLY.json').read_text())
+          sha=lambda x:hashlib.sha256(x).hexdigest()
+          parts=[]
+          for part in m['parts']:
+              raw=(base/part['path']).read_bytes()
+              assert len(raw)==part['bytes'] and sha(raw)==part['sha256']
+              parts.append(raw)
+          assembled=b''.join(parts)
+          assert sha(assembled)==m['assembledSha256']
+          pathlib.Path('/tmp/r53-result/prior.zip').write_bytes(assembled)
+          with zipfile.ZipFile('/tmp/r53-result/prior.zip') as z:
+              pred=z.read('result/oof-predictions.npz')
+          target=pathlib.Path('/tmp/r53-result/prior-oof-predictions.npz')
+          target.write_bytes(pred)
+          p=json.loads(pathlib.Path('docs/evidence/phase57-exit-persistent-value-r53/PRECOMMIT.json').read_text())
+          assert sha(pred)==p['predictionSource']['sha256']
+          PY
+      - name: One finite candidate, complete IM/R1 chronological Capital replay
+        run: |
+          python -m scripts.phase57_exit_persistent_value_r53 --mode finite --source "$RUNNER_TEMP/r45/gen3" --prediction /tmp/r53-result/prior-oof-predictions.npz --out /tmp/r53-result/finite
+      - name: Independent zero-fit ledger, paired Winner, Gate and null audit
+        run: |
+          python -m scripts.phase57_exit_persistent_value_r53_audit --source "$RUNNER_TEMP/r45/gen3" --prediction /tmp/r53-result/prior-oof-predictions.npz --result /tmp/r53-result/finite --receipt /tmp/r53-result/independent-audit.json
+      - name: Record exact output hashes and runtime
+        run: |
+          python - <<'PY'
+          import hashlib,json,os,pathlib,platform,numpy,scipy,sklearn
+          root=pathlib.Path('/tmp/r53-result')
+          manifest=json.loads((root/'finite/manifest.json').read_text())
+          audit=json.loads((root/'independent-audit.json').read_text())
+          sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+          assert manifest['newFits']==0 and manifest['candidateCount']==1
+          assert audit['status']=='PASS' and audit['independentCashLedgerReplays']==4
+          for name,h in manifest['filesSha256'].items():assert sha(root/'finite'/name)==h
+          receipt={'schema':'phase57-r53-finite-action-receipt-v1',
+                   'status':'PASS','executionSha':os.getenv('GITHUB_SHA'),
+                   'protocolSha256':manifest['protocolSha256'],
+                   'savedPredictionSha256':manifest['savedPredictionSha256'],
+                   'newFits':0,'candidateCount':1,'independentAuditStatus':audit['status'],
+                   'provisionalVerdict':audit['verdict'],
+                   'filesSha256':{str(p.relative_to(root)):sha(p) for p in sorted(root.rglob('*'))
+                                  if p.is_file() and p.name!='action-receipt.json'},
+                   'python':platform.python_version(),'numpy':numpy.__version__,
+                   'scipy':scipy.__version__,'sklearn':sklearn.__version__,
+                   'providerRequests':0,'protectedOpened':0,'safety':audit['safety']}
+          (root/'action-receipt.json').write_text(json.dumps(receipt,sort_keys=True)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-r53-finite-${{ github.sha }}
+          path: /tmp/r53-result/
+          retention-days: 90
+          if-no-files-found: warn

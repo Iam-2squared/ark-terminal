@@ -18,8 +18,12 @@ def read_json(p): return json.loads(Path(p).read_text())
 def write_json(p,x): Path(p).write_text(json.dumps(x,sort_keys=True,separators=(',',':'))+'\n')
 def write_gz(p,rows):
     with open(p,'wb') as raw:
-        with gzip.GzipFile(fileobj=raw,mode='wb',mtime=0) as z:
+        with gzip.GzipFile(filename='',fileobj=raw,mode='wb',mtime=0) as z:
             for x in rows: z.write((json.dumps(x,sort_keys=True,separators=(',',':'))+'\n').encode())
+
+def identity_key(arm, entry_id):
+    require(arm in runtime.protocol()['entryArms'] and isinstance(entry_id,str) and entry_id, 'R50_ENTRY_IDENTITY')
+    return arm+'\x00'+entry_id
 
 def load(root):
     data=root/'gen3/data'; p=runtime.protocol(); source=p['replaySource']
@@ -37,7 +41,7 @@ def load(root):
     base={}
     with gzip.open(root/'gen3/run-a/HOLD_TO_TERMINAL_DIAGNOSTIC.jsonl.gz','rt') as f:
         for line in f:
-            x=json.loads(line); base[x['entryId']]=x
+            x=json.loads(line); k=identity_key(x['entryArm'],x['entryId']); require(k not in base,'R50_DUPLICATE_ARM_ENTRY'); base[k]=x
     require(len(base)==2257,'R50_CONTROL_ROWS')
     return numeric,fresh,names,identities,base
 
@@ -53,10 +57,11 @@ def replay(candidate,numeric,fresh,names,identities,base,raw):
     global rows; rows=identities
     groups=collections.defaultdict(list)
     for i,x in enumerate(identities):
-        if x['entryId'] in base: groups[x['entryId']].append(i)
+        k=identity_key(x['arm'],x['entryId'])
+        if k in base: groups[k].append(i)
     out=[]
-    for eid in sorted(base):
-        control=base[eid]; seq=groups[eid]; state=runtime.initial_state(); chosen=None; trigger=None; counts=collections.Counter(); missing=[]
+    for key in sorted(base):
+        control=base[key]; eid=control['entryId']; seq=groups[key]; state=runtime.initial_state(); chosen=None; trigger=None; counts=collections.Counter(); missing=[]
         for i in seq:
             now=int(identities[i]['now']); e=facts(numeric,fresh,names,i)
             result=runtime.intent(e,state,candidate,terminal=(now==925)); state=result['state']; counts[result['authority']]+=1
@@ -69,24 +74,25 @@ def replay(candidate,numeric,fresh,names,identities,base,raw):
             missing.append({'now':now,'status':ref['status']})
         require(chosen is not None and trigger is not None,'R50_UNRESOLVED')
         price,minute,kind=chosen; entry=float(control['entryPrice']); m0=control['metrics']; upside=float(m0['entryToPostEntryHighPct'])
-        high=entry*(1+upside/100); gross=100*(price-entry)/entry
-        capture=None if high<=entry else 100*(price-entry)/(high-entry)
-        metrics={'entryToExitGrossPct':gross,'entryToExitNetPct':gross-0.05,'entryToPostEntryHighPct':upside,
+        high=entry*(1+upside/100); gross=None if price is None else 100*(price-entry)/entry
+        capture=None if price is None or high<=entry else 100*(price-entry)/(high-entry)
+        metrics={'entryToExitGrossPct':gross,'entryToExitNetPct':None if gross is None else gross-0.05,'entryToPostEntryHighPct':upside,
                  'postEntryUpsideCapturePct':capture,'postEntryHighKnownAt':m0['postEntryHighKnownAt'],
-                 'premature':minute<int(m0['postEntryHighKnownAt']),'canonicalBucket':m0.get('bucket'),
-                 'highToExitGapPp':100*(high-price)/entry}
+                 'premature':False if minute is None else minute<int(m0['postEntryHighKnownAt']),'canonicalBucket':m0.get('bucket'),
+                 'highToExitGapPp':None if price is None else 100*(high-price)/entry}
         out.append({'candidateId':candidate,'entryArm':control['entryArm'],'entryId':eid,'session':control['session'],
           'opportunity':control['opportunity'],'entryMinute':control['entryMinute'],'entryPrice':entry,
           'decisionNow':int(identities[trigger]['now']),'exitMinute':minute,'exitPrice':price,'exitKind':kind,
           'authority':result['authority'],'authorityCounts':dict(counts),'decisionState':state,
           'decisionFacts':facts(numeric,fresh,names,trigger),'missingOrdinaryReferences':missing,
-          'netReturnPctBySellCost':{f'{c:.2f}':gross-c for c in (0.05,0.10,0.20)},'metrics':metrics})
+          'netReturnPctBySellCost':{f'{c:.2f}':None if gross is None else gross-c for c in (0.05,0.10,0.20)},'metrics':metrics})
     return out
 
 def q(v,p):
     return float(np.quantile(np.asarray(v,float),p))
 def arm_score(rows,arm,p):
     allr=[x for x in rows if x['entryArm']==arm]; primary=[x for x in allr if x['metrics']['entryToPostEntryHighPct']>=5]
+    require(all(x['metrics']['entryToExitNetPct'] is not None and x['metrics']['postEntryUpsideCapturePct'] is not None for x in primary),'R50_PRIMARY_UNRESOLVED')
     nets=[x['metrics']['entryToExitNetPct'] for x in primary]; caps=[x['metrics']['postEntryUpsideCapturePct'] for x in primary]
     losses=-sum(x for x in nets if x<0); profits=sum(x for x in nets if x>0)
     d={'allRows':len(allr),'support':len(primary),'meanNet':statistics.fmean(nets),'medianNet':statistics.median(nets),
@@ -127,4 +133,3 @@ def main():
       'providerRequests':0,'protectedPartitionsOpened':0,'safety':p['safety'],'capitalAllowed':bool(selection)}
     write_json(a.out/'result.json',result); print(result['status'])
 if __name__=='__main__': main()
-

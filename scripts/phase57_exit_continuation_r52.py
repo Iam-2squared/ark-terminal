@@ -202,6 +202,10 @@ def feature_matrix(receipt,arrays,indices,candidate):
             'FEATURE_WIDTH')
     return result
 
+def score_rows(arms,sessions,nows,arm,score_days):
+    """Explicit booleans keep arm, whole-session fold and terminal mask separate."""
+    return np.flatnonzero((arms==arm)&np.isin(sessions,score_days)&(nows!=925))
+
 def finite_fit(source,out):
     from sklearn.impute import SimpleImputer
     from sklearn.linear_model import Ridge
@@ -221,7 +225,7 @@ def finite_fit(source,out):
                 and not(set(fold['train'])&set(fold['purge'])),'FOLD_PURGE')
         for arm in v0.ARMS:
             train=np.flatnonzero((arms==arm)&np.isin(sessions,fold['train'])&np.isfinite(labels))
-            test=np.flatnonzero((arms==arm)&np.isin(sessions,fold['score'])&(np.asarray([x['now'] for x in identities])!=925))
+            test=score_rows(arms,sessions,np.asarray([x['now'] for x in identities]),arm,fold['score'])
             require(len(train)>=json.loads(SUPPORT_ADDENDUM.read_text())['minMatureLabeledCheckpointsPerTrainArm']
                     and len(test)>0,'TRAIN_SUPPORT_100')
             support.append({'fold':fold['fold'],'arm':arm,'trainRows':len(train),
@@ -235,8 +239,7 @@ def finite_fit(source,out):
     for fold in p['folds']:
         for arm in v0.ARMS:
             tr=np.flatnonzero((arms==arm)&np.isin(sessions,fold['train'])&np.isfinite(labels))
-            te=np.flatnonzero((arms==arm)&np.isin(sessions,fold['score']) &
-                              np.asarray([x['now'] for x in identities])!=925)
+            te=score_rows(arms,sessions,np.asarray([x['now'] for x in identities]),arm,fold['score'])
             # Equal total influence per frozen Entry, independent of path length.
             counts=collections.Counter(eids[tr].tolist())
             weights=np.asarray([1/counts[eids[i]] for i in tr],np.float64)

@@ -52,6 +52,14 @@ class ContinuationR52Tests(unittest.TestCase):
             self.assertLess(max(f['purge']),min(f['score']))
         self.assertFalse(set(p['featureDenylist'])&set(p['featureAllowlist']['coreNumeric']))
 
+    def test_oof_score_rows_do_not_expand_across_arms_sessions_or_terminal(self):
+        arms=np.asarray([v0.IM,v0.IM,v0.IM,v0.R1,v0.IM])
+        days=np.asarray(['2025-07-22','2025-07-22','2025-07-21','2025-07-22','2025-07-22'])
+        now=np.asarray([541,925,541,541,542])
+        got=r.score_rows(arms,days,now,v0.IM,['2025-07-22'])
+        np.testing.assert_array_equal(got,np.asarray([0,4]))
+        self.assertEqual(r.score_rows(arms,days,now,v0.R1,['2025-07-22']).tolist(),[3])
+
     def test_exact_next_open_without_forward_search(self):
         ref=r.execution.ordinary_execution_reference('2025-07-22',600,
                        [[601,105,105,105,105,1,105]])

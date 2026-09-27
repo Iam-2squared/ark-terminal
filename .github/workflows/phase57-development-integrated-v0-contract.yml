@@ -1,0 +1,54 @@
+name: Phase57 Development Integrated v0 Contract
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-development-integrated-v0-contract-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  synthetic-and-source-support:
+    if: github.ref == 'refs/heads/research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fetch frozen R1 source (not a new fit)
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-all-material-r1-afb38b7a5421ca4f6ff6d439bf89096236efd119
+          run-id: 36099497597
+          repository: Iam-2squared/ark-terminal
+          github-token: ${{ github.token }}
+          path: /tmp/phase57-r1-frozen
+      - name: Fetch R50 terminal-hold control
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-r50-result-36287943625
+          run-id: 36287943625
+          repository: Iam-2squared/ark-terminal
+          github-token: ${{ github.token }}
+          path: /tmp/phase57-r50-control
+      - name: Synthetic and frozen R34/R37 regression
+        run: python -m unittest scripts.test_phase57_development_integrated_v0 scripts.test_phase57_cash_capital_r34 scripts.test_phase57_cash_portfolio_r37
+      - name: Source support and identity only, zero portfolio replays
+        run: |
+          python -m scripts.phase57_development_integrated_v0 \
+            --benchmark-ledger /tmp/phase57-r50-control/R50_B_FAILED_RECOVERY-run-a.jsonl.gz \
+            --benchmark-ledger-b /tmp/phase57-r50-control/R50_B_FAILED_RECOVERY-run-b.jsonl.gz \
+            --r1-records /tmp/phase57-r1-frozen/all-material-r1/ci-run-a/entry-records.json.gz \
+            --preflight-only --out /tmp/phase57-integrated-v0-ci-receipt.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-development-integrated-v0-contract-receipt
+          path: /tmp/phase57-integrated-v0-ci-receipt.json
+          if-no-files-found: error

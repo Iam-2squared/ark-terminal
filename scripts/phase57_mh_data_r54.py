@@ -28,6 +28,8 @@ MIN_HORIZON_SESSIONS = 3
 DENIED_RUNTIME = ("futureHigh", "futureLow", "futureOPEN", "futureMFE", "futureMAE",
                   "label", "labelAvailability", "finalPnL", "capture", "oracleExit",
                   "futureMarkAvailability", "postEntryUpside", "futureEntry")
+STATE_ENUM = ("RISE", "SHARP_RISE", "REBOUND", "DROP", "PULLBACK", "RANGE",
+              "SHARP_DROP", "DROP_STOP", "RISE_STOP")  # Frozen R45 declared enum.
 
 
 def sha(path):
@@ -149,13 +151,13 @@ def labels_for_checkpoint(day, now, raw_path, fresh):
     return targets, "AVAILABLE"
 
 
-def category_schema(legacy_maps):
+def category_schema(legacy_maps, selected_names):
     """Fixed declared enum, never derive a vocabulary by scanning scored rows."""
-    from scripts.phase57_exit_gen3_facts_r45 import SIGNALS, STATES
-    enum = sorted(STATES) + ["UNKNOWN"]
+    enum = sorted(STATE_ENUM) + ["UNKNOWN"]
     tri = ["FALSE", "TRUE", "UNKNOWN"]
     out = {}
-    for name, observed in legacy_maps.items():
+    for name in selected_names:
+        observed = legacy_maps[name]
         if name in ("entryState.state", "currentState.state"):
             allowed = enum
         elif name == "entryToCurrentState":
@@ -177,7 +179,7 @@ def category_schema(legacy_maps):
 
 def verify_feature_schema(receipt, arrays, maps):
     from scripts import phase57_exit_continuation_r52 as r52
-    cats = category_schema(maps)
+    cats = category_schema(maps, r52.CATEGORICAL)
     numeric = list(r52.CORE_NUMERIC + r52.EXTRA_NUMERIC)
     pattern = list(receipt["patternColumns"])
     if len(pattern) != 187 or len(pattern) != len(set(pattern)):

@@ -21,6 +21,14 @@ def now_targets(now):
 
 
 class ClockAndLabels(unittest.TestCase):
+    def test_fixed_category_schema_does_not_scan_unused_fields(self):
+        maps={"entryState.state":{"RISE":0,"UNKNOWN":1},
+              "signal.RECLAIM.currentTriState":{"TRUE":0,"UNKNOWN":1},
+              "currentState.confidence":{"source-only-unused":0}}
+        x=d.category_schema(maps,("entryState.state","signal.RECLAIM.currentTriState"))
+        self.assertNotIn("currentState.confidence",x)
+        self.assertIn("RISE",x["entryState.state"]["values"])
+
     def test_h0_not_negative_teacher(self):
         self.assertEqual(d.HORIZONS, (0, 1, 5, 15, 30, 60, "EOD"))
         self.assertNotIn(0, c.SHORT)

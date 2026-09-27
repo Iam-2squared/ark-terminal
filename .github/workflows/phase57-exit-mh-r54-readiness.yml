@@ -1,0 +1,62 @@
+name: Phase57 R54 MH EXIT zero-fit readiness
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - docs/evidence/phase57-exit-mh-r54/READINESS_LAUNCH.json
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-r54-readiness-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  zero-fit-readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      PYTHONPATH: '.'
+      PYTHONDONTWRITEBYTECODE: '1'
+      ARK_TEST_OFFLINE: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0 pandas==2.2.3 matplotlib==3.10.8 joblib==1.5.2
+      - name: Zero-fit synthetic teacher and controller tests
+        run: python -m unittest -q scripts.test_phase57_mh_r54 scripts.test_phase57_exit_continuation_r52
+      - uses: actions/download-artifact@v4
+        with:
+          repository: Iam-2squared/ark-terminal
+          run-id: 36251316248
+          name: phase57-exit-gen3-r45-36251316248
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/r45
+      - name: A/B/C availability, exact source, active clock, feature enum and resource census
+        run: python -m scripts.phase57_mh_data_r54 --source "$RUNNER_TEMP/r45/gen3" --out "$RUNNER_TEMP/r54-readiness"
+      - name: Save compact source readiness and missing evidence request
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-r54-readiness-summary-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/r54-readiness/readiness.json
+            ${{ runner.temp }}/r54-readiness/source-pins.json
+            ${{ runner.temp }}/r54-readiness/feature-schema.json
+            ${{ runner.temp }}/r54-readiness/fold-manifest.json
+            ${{ runner.temp }}/r54-readiness/train-support.json
+            ${{ runner.temp }}/r54-readiness/missing-evidence-request.csv
+          if-no-files-found: warn
+      - name: Save separately hash-pinned teacher-only labels for an authorized finite run
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-r54-teacher-labels-${{ github.run_id }}
+          path: ${{ runner.temp }}/r54-readiness/training-labels.npz
+          compression-level: 0

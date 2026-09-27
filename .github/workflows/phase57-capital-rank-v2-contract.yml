@@ -1,5 +1,12 @@
 name: Phase57 Capital Rank v2 Contract
 on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - scripts/phase57_capital_rank_v2.py
+      - scripts/test_phase57_capital_rank_v2.py
+      - .github/workflows/phase57-capital-rank-v2-contract.yml
+      - .github/workflows/phase57-capital-rank-v2-finite.yml
   workflow_dispatch:
 
 permissions:

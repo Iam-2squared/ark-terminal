@@ -34,7 +34,7 @@ jobs:
           import hashlib,json,os,pathlib,urllib.request
           p=pathlib.Path('docs/evidence/phase57-comprehensive-exit-v1/DEVELOPMENT_INTEGRATED_V0_LAUNCH.json')
           x=json.loads(p.read_text())
-          assert x['executionSha']==os.environ['EXECUTION_SHA']
+          assert x['executionShaPolicy']=='THIS_LAUNCH_MARKER_PUSH_COMMIT_GITHUB_SHA'
           assert x['protocolSha256']=='9b345b3e73214eea0c58caa9509ea0bff8dc6e3c57a9cff646a02566bf4d8fc0'
           assert x['entryFreezeSha']=='4878a1cc53430e816261dea0fb16aeb53b3c238d'
           assert x['runAttempt']==1 and x['variants']==6 and x['capacitySet']==[3,4,5]
@@ -51,7 +51,7 @@ jobs:
           assert run['head_sha']==x['testedSourceSha'] and run['conclusion']=='success'
           assert run['run_attempt']==1
           pathlib.Path('/tmp/phase57-integrated-v0-launch-receipt.json').write_text(json.dumps({
-              'executionSha':x['executionSha'],'testedSourceSha':x['testedSourceSha'],
+              'executionSha':os.environ['EXECUTION_SHA'],'testedSourceSha':x['testedSourceSha'],
               'requiredCiRunId':x['requiredCiRunId'],'protocolSha256':x['protocolSha256'],
               'runAttempt':1,'variants':6,'expectedModelFits':0,'safety':x['safety']},sort_keys=True)+'\n')
           PY

@@ -1,0 +1,97 @@
+name: Phase57 R52 Cycle2 Finite EXIT and Capital Replay
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - docs/evidence/phase57-exit-continuation-r52/cycle2/RETEST_LAUNCH.json
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-r52-cycle2-finite-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  finite-development:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      PYTHONPATH: '.'
+      PYTHONDONTWRITEBYTECODE: '1'
+      ARK_TEST_OFFLINE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0 pandas==2.2.3 matplotlib==3.10.8 joblib==1.5.2
+      - name: Verify distinct cycle, exact precommit and successful zero-fit CI
+        run: |
+          mkdir -p /tmp/r52-cycle2-out
+          python - <<'PY'
+          import hashlib,json,os,pathlib
+          base=pathlib.Path('docs/evidence/phase57-exit-continuation-r52');c=base/'cycle2'
+          sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+          checkpoint=json.loads((c/'INTEGRITY_CHECKPOINT.json').read_text())
+          launch=json.loads((c/'RETEST_LAUNCH.json').read_text())
+          ci=json.loads((c/'CYCLE2_CI_RECEIPT.json').read_text())
+          original=json.loads((base/'PRECOMMIT.json').read_text())
+          assert sha(c/'INTEGRITY_CHECKPOINT.json')==(c/'INTEGRITY_CHECKPOINT.sha256').read_text().strip()==launch['checkpointSha256']
+          assert launch['protocolSha256']==checkpoint['protocolSha256']==sha(base/'PRECOMMIT.json')
+          assert launch['sourceSha256']==checkpoint['sourceSha256']==sha('scripts/phase57_exit_continuation_r52.py')
+          assert launch['testSha256']==checkpoint['testSha256']==sha('scripts/test_phase57_exit_continuation_r52.py')
+          assert checkpoint['workflowSha256']['finite']==sha('.github/workflows/phase57-exit-continuation-r52-cycle2-finite.yml')
+          assert launch['ciReceiptSha256']==sha(c/'CYCLE2_CI_RECEIPT.json')
+          assert ci['status']=='PASS' and ci['modelFits']==0 and ci['candidateReplays']==0 and ci['archivedControlByteIdentical']
+          assert ci['checkpointSha256']==launch['checkpointSha256'] and ci['sourceSha256']==launch['sourceSha256']
+          assert launch['expectedEstimatorFits']==16 and launch['oldRunId']==36320075928 and launch['newCycle'] is True
+          assert launch['oldModelReuse'] is False and original['expectedEstimatorFits']==16
+          assert all(x is False for x in launch['safety'].values()) and len(launch['safety'])==9
+          pathlib.Path('/tmp/r52-cycle2-out/stage.json').write_text(json.dumps({'stage':'INPUTS_VERIFIED_BEFORE_FIT','runSha':os.getenv('GITHUB_SHA'),'oldRunId':launch['oldRunId'],'expectedEstimatorFits':16},sort_keys=True)+'\n')
+          PY
+      - uses: actions/download-artifact@v4
+        with:
+          repository: Iam-2squared/ark-terminal
+          run-id: 36251316248
+          name: phase57-exit-gen3-r45-36251316248
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/r45
+      - name: Finite 16-fit OOF and full IM/R1 integrated replay
+        run: python -m scripts.phase57_exit_continuation_r52 --mode finite --source "$RUNNER_TEMP/r45/gen3" --out /tmp/r52-cycle2-out/result
+      - name: Independent prediction replay and portfolio/accounting audit without refit
+        run: python -m scripts.phase57_exit_continuation_r52_independent_audit --source "$RUNNER_TEMP/r45/gen3" --out /tmp/r52-cycle2-out/result --receipt /tmp/r52-cycle2-out/result/independent-audit.json
+      - name: Verify saved output and package exact result hashes
+        run: |
+          python - <<'PY'
+          import hashlib,json,os,pathlib,platform,numpy,scipy,sklearn
+          root=pathlib.Path('/tmp/r52-cycle2-out');out=root/'result';m=json.loads((out/'manifest.json').read_text())
+          sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+          original=json.loads(pathlib.Path('docs/evidence/phase57-exit-continuation-r52/PRECOMMIT.json').read_text())
+          audit=json.loads((out/'independent-audit.json').read_text())
+          assert m['executionSha']==os.getenv('GITHUB_SHA') and m['modelFits']==16 and m['candidateCount']==2 and m['sessions']==24
+          assert m['protocolSha256']==sha('docs/evidence/phase57-exit-continuation-r52/PRECOMMIT.json')
+          assert all(sha(out/k)==h for k,h in m['filesSha256'].items())
+          assert audit['status']=='PASS' and audit['predictionRefits']==0 and audit['sameSavedPredictionsAllReplays']
+          assert audit['predictionSha256']==m['predictionSha256']==sha(out/'oof-predictions.npz')
+          score=json.loads((out/'scorecard.json').read_text());selection=json.loads((out/'selection.json').read_text())
+          assert score['IM']['R50_A_CONTROL']['portfolio']['finalEquityJpy']==original['controlExactFinalEquityJpy']
+          assert selection['status'] in ('SELECT_DEVELOPMENT_ONLY','NO_SELECTION_STOP')
+          for arm in ('IM','R1'):
+            for candidate in ('R50_A_CONTROL','R52_CORE_VALUE','R52_PREFIX_PATTERN_VALUE'):
+              assert (out/(arm+'_'+candidate+'_ledger.json.gz')).is_file()
+              assert (out/(arm+'_'+candidate+'_daily.csv')).is_file()
+              assert (out/(arm+'_'+candidate+'_equity.csv')).is_file()
+          receipt={'schema':'phase57-r52-cycle2-finite-action-receipt-v1','executionSha':os.getenv('GITHUB_SHA'),'oldFailedRunId':36320075928,'oldModelReuse':False,'protocolSha256':m['protocolSha256'],'predictionSha256':m['predictionSha256'],'expectedEstimatorFits':16,'actualEstimatorFits':m['modelFits'],'candidateCount':2,'replayAAndBFromOneSavedPrediction':True,'independentAuditStatus':audit['status'],'provisionalVerdict':selection['status'],'filesSha256':{str(p.relative_to(root)):sha(p) for p in sorted(root.rglob('*')) if p.is_file() and p.name!='action-receipt.json'},'python':platform.python_version(),'numpy':numpy.__version__,'scipy':scipy.__version__,'sklearn':sklearn.__version__,'providerRequests':0,'protectedPartitionsOpened':0,'safety':original['safety']}
+          (root/'action-receipt.json').write_text(json.dumps(receipt,sort_keys=True)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-r52-cycle2-${{ github.sha }}
+          path: /tmp/r52-cycle2-out/
+          retention-days: 90
+          if-no-files-found: warn

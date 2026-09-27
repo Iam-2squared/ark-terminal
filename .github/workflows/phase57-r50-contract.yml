@@ -30,5 +30,7 @@ jobs:
           json.dump({'status':'PASS','protocolSha256':'011b4959bf7cd343694f44e2986d13d87c07b6fa238dc326f5273e86885afe18','candidateCount':2,'modelFits':0,'policyReplays':0,'performanceInspected':False,'providerRequests':0,'protectedOpened':0,'safety':x['safety']},open('r50-contract-receipt.json','w'),sort_keys=True)
           PY
       - uses: actions/upload-artifact@v4
-        with: {name: phase57-r50-contract-${{ github.run_id }}, path: r50-contract-receipt.json, if-no-files-found: error}
-
+        with:
+          name: phase57-r50-contract-${{ github.run_id }}
+          path: r50-contract-receipt.json
+          if-no-files-found: error

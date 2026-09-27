@@ -289,12 +289,12 @@ def support_only(data):
 
 
 def feature_table(data, names):
-    p,a,_,intents,evaluation,_,_,paths,origins,_ = data
+    p,a,_,intents,_,_,_,paths,origins,_ = data
     pattern_names = a['pattern187'] if any(n.startswith('pattern.') for n in names) else []
     rows = {}
     for arm in v0.ARMS:
-        rows[arm] = {x['entryId']:make_features(x,paths[evaluation[arm][x['entryId']]['opportunity']],
-                           origins[evaluation[arm][x['entryId']]['opportunity']],
+        rows[arm] = {x['entryId']:make_features(x,paths[x['entryId'].rsplit('|',1)[0]],
+                           origins[x['entryId'].rsplit('|',1)[0]],
                            names,pattern_names) for x in intents[arm]}
     return rows
 

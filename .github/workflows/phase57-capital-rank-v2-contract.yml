@@ -79,7 +79,7 @@ jobs:
           pathlib.Path('/tmp/phase57-v2-ci-manifest.json').write_text(json.dumps({
               'testedSha':os.environ['TESTED_SHA'],'protocolSha256':x['protocolSha256'],
               'sourceManifest':m,'fullFeatureMatrixSha256':x['featureMatrixSha256'],
-              'tests':75,'modelFits':0,'portfolioReplays':0,'performanceInspected':False,
+              'tests':76,'modelFits':0,'portfolioReplays':0,'performanceInspected':False,
               'safety':x['safety']},sort_keys=True,indent=2)+'\n')
           PY
       - uses: actions/upload-artifact@v4

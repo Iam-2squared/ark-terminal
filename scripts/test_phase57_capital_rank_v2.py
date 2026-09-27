@@ -88,6 +88,16 @@ class CapitalRankV2Tests(unittest.TestCase):
         self.assertFalse(any(row[0]==930 for row in self.path['today']))
         self.assertEqual(self.values('A'),self.values('A',path=self.path))
 
+    def test_feature_table_never_reads_evaluator_mapping(self):
+        class ForbiddenEvaluator:
+            def __getitem__(self,key):raise AssertionError('EVALUATOR_ENTERED_FEATURE_PIPELINE')
+        identifier=self.intent['entryId'].rsplit('|',1)[0]
+        data=(self.p,self.audit,{},
+              {arm:[self.intent] for arm in v0.ARMS},ForbiddenEvaluator(),
+              {},{}, {identifier:self.path},{identifier:self.origin}, {})
+        result=rank.feature_table(data,self.p['features']['sets']['A'])
+        for arm in v0.ARMS:self.assertEqual(len(result[arm][self.intent['entryId']]),8)
+
     def test_old_rank_control_and_score_order(self):
         intents=[]
         labels={}

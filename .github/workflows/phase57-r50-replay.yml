@@ -1,0 +1,40 @@
+name: Phase57 R50 Finite Replay
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths: [docs/evidence/phase57-comprehensive-exit-v1/R50_LAUNCH.json]
+permissions: {contents: read, actions: read}
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.13'}
+      - run: pip install 'numpy==2.3.5'
+      - name: Verify launch marker
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          x=json.load(open('docs/evidence/phase57-comprehensive-exit-v1/R50_LAUNCH.json'))
+          marker=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          subprocess.check_call(['git','merge-base','--is-ancestor',x['executionSha'],marker])
+          assert x['protocolSha256']=='011b4959bf7cd343694f44e2986d13d87c07b6fa238dc326f5273e86885afe18'
+          assert x['candidateCount']==2 and x['modelFits']==0 and all(v is False for v in x['safety'].values())
+          open('/tmp/r50-execution-sha','w').write(x['executionSha'])
+          PY
+      - name: Checkout exact tested execution source
+        run: git checkout --detach "$(cat /tmp/r50-execution-sha)"
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-exit-gen3-r45-36251316248
+          path: upstream
+          github-token: ${{ github.token }}
+          run-id: 36251316248
+      - name: Finite replay and frozen scorecard
+        env: {OMP_NUM_THREADS: '1', OPENBLAS_NUM_THREADS: '1', MKL_NUM_THREADS: '1'}
+        run: python scripts/phase57_exit_replay_r50.py --artifact-root upstream --out r50
+      - uses: actions/upload-artifact@v4
+        with: {name: phase57-r50-result-${{ github.run_id }}, path: r50, if-no-files-found: error, retention-days: 90}

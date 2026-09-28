@@ -1,0 +1,59 @@
+name: Phase57 Milestone Guard Phase 0
+
+on:
+  push:
+    branches:
+      - research/phase57-long-only-cash-equity
+    paths:
+      - .github/workflows/phase57-mg-phase0.yml
+      - docs/evidence/phase57-milestone-guard-exit/FINAL_CLOSURE.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  reproduce-zero-fit-no-go:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned analysis dependencies
+        run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0 matplotlib==3.10.8
+      - name: Focused zero-fit rule tests
+        run: python -m unittest scripts.test_phase57_milestone_guard_phase0 -v
+      - name: Retrieve existing Development artifacts only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/phase57-mg
+          for entry in '10909618948 r45' '10964100200 r54' '10964250835 r34'; do
+            set -- $entry
+            curl --fail --silent --show-error --location \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'Accept: application/vnd.github+json' \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/$1/zip" \
+              -o "/tmp/phase57-mg/$2.zip"
+          done
+      - name: Recompute Phase 0 and compare exact saved bytes
+        run: |
+          python -m scripts.phase57_milestone_guard_phase0 \
+            --r45 /tmp/phase57-mg/r45.zip \
+            --replay /tmp/phase57-mg/r54.zip \
+            --audit /tmp/phase57-mg/r34.zip
+          git diff --exit-code -- \
+            docs/evidence/phase57-milestone-guard-exit/PHASE0_A.json \
+            docs/evidence/phase57-milestone-guard-exit/PHASE0_B.json \
+            docs/evidence/phase57-milestone-guard-exit/PHASE0_B_ENTRY_ROWS.jsonl.gz
+      - name: Independent raw-path audit and exact saved receipt
+        run: |
+          python -m scripts.phase57_milestone_guard_independent_audit \
+            --r45 /tmp/phase57-mg/r45.zip \
+            --replay /tmp/phase57-mg/r54.zip \
+            --audit /tmp/phase57-mg/r34.zip
+          git diff --exit-code -- \
+            docs/evidence/phase57-milestone-guard-exit/INDEPENDENT_AUDIT.json

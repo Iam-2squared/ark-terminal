@@ -207,6 +207,11 @@ def all_entry(rows):
              "routedPnlJpy": pnl100(r["entryPrice"], r["ccmgExitPrice"] if
                                     r["routeDecision"] == "DEFENSIVE_ELIGIBLE" else
                                     r["controlExitPrice"])} for r in rows]
+    for r in rows:
+        r["pairedDeltaJpy"] = (None if r["routedPnlJpy"] is None or
+                                r["controlPnlJpy"] is None else
+                                str(dec(r["routedPnlJpy"]) - dec(r["controlPnlJpy"])))
+    rank.gzip_rows("ALL_ENTRY_ENTRY_ROWS.jsonl.gz", rows)
     arm = {a: metrics([r for r in rows if r["arm"] == a]) for a in ("IM", "R1")}
     rank.require(arm["IM"]["entryN"] == 819 and arm["R1"]["entryN"] == 795,
                  "ALL_ENTRY_CENSUS_ABORT")
@@ -236,6 +241,7 @@ def all_entry(rows):
               "defensiveValueGate": "PASS" if val_pass else
                                     "ALL_ENTRY_DEFENSIVE_VALUE_FAIL",
               "nullNotImputed": True, "safety": rank.SAFETY}
+    result["entryRowsSha256"] = rank.sha(OUT / "ALL_ENTRY_ENTRY_ROWS.jsonl.gz")
     rank.write("ALL_ENTRY_RESULT.json", result)
     return result
 

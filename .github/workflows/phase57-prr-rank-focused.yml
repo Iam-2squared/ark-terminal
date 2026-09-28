@@ -1,0 +1,44 @@
+name: Phase57 PRR frozen rank and route
+on:
+  pull_request:
+    paths:
+      - 'scripts/phase57_prr_rank.py'
+      - 'tests/test_phase57_prr_rank.py'
+      - '.github/workflows/phase57-prr-rank-focused.yml'
+  workflow_dispatch:
+jobs:
+  frozen-rank:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install frozen Python dependencies
+        run: python -m pip install 'numpy==2.3.5' 'scikit-learn==1.8.0'
+      - name: Focused synthetic rank/route contract
+        run: python -m unittest tests.test_phase57_prr_rank -v
+      - name: Restore existing Development State reference, no provider calls
+        run: |
+          mkdir -p artifacts/reference
+          cp docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement/state-checkpoints.json.gz artifacts/reference/state-checkpoints.json.gz
+      - name: Reconstruct exact frozen features (zero fits)
+        run: python -m scripts.phase57_entry_all_material_r1_data --workers 2
+      - name: Six fixed outer fits, saved OOF identity and fold-local median route
+        run: python -m scripts.phase57_prr_rank
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-prr-rank-evidence
+          path: |
+            docs/evidence/phase57-potential-rank-routed-exit/RANK_REPRODUCTION.json
+            docs/evidence/phase57-potential-rank-routed-exit/ROUTE_DECISIONS.jsonl.gz
+            docs/evidence/phase57-potential-rank-routed-exit/RANK_ANATOMY.json
+            docs/evidence/phase57-potential-rank-routed-exit/ROUTE_FEASIBILITY.json
+            docs/evidence/phase57-checkpoint-certified-guard-exit/LAYER_A_ENTRY_ROWS.jsonl.gz
+            docs/evidence/phase57-checkpoint-certified-guard-exit/CHECKPOINT_ENTRY_SUMMARY.jsonl.gz
+            docs/evidence/phase57-checkpoint-certified-guard-exit/POTENTIAL_OOF.jsonl.gz
+          if-no-files-found: warn

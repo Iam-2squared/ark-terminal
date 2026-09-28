@@ -21,6 +21,8 @@ from scripts import phase57_mh_data_r54 as data
 
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / "docs/evidence/phase57-exit-mh-r54"
+PROTOCOL = EVIDENCE / "CYCLE2_PRECOMMIT.json"
+PROTOCOL_SHA = EVIDENCE / "CYCLE2_PRECOMMIT.sha256"
 HEADS = {"A": (("mean", None), ("q10", .1), ("q50", .5), ("q90", .9)),
          "D": (("mean", None), ("q10", .1), ("q90", .9)),
          "HIGH": (("q10", .1), ("q50", .5), ("q90", .9)),
@@ -34,10 +36,17 @@ FIT_CAP = 176
 def verify_protocol(summary, labels_path, source):
     from scripts import phase57_exit_continuation_r52 as r52
     from scripts import phase57_development_integrated_v0 as v0
-    raw = (EVIDENCE / "PRECOMMIT.json").read_bytes()
+    raw = PROTOCOL.read_bytes()
     p = json.loads(raw)
-    if hashlib.sha256(raw).hexdigest() != (EVIDENCE / "PRECOMMIT.sha256").read_text().strip():
+    if hashlib.sha256(raw).hexdigest() != PROTOCOL_SHA.read_text().strip():
         raise ValueError("FROZEN_PROTOCOL_HASH")
+    if (p["cycleId"] != "CYCLE2_CORRECTED_D_TEACHER"
+        or p["readiness"]["runId"] != 36361518409
+        or p["inputHashes"]["labels"] !=
+           "a017a10b5b0b6dc0a023ba070a60b0e991d3d98d62a800d36fe743b85c2c759b"
+        or p["inputHashes"]["readinessJson"] != data.sha(summary["summaryPath"] / "readiness.json")
+        or summary["filesSha256"]["training-labels.npz"] != p["inputHashes"]["labels"]):
+        raise ValueError("CORRECTED_CYCLE_IDENTITY")
     if (p["status"] != "FROZEN_BEFORE_NEW_FORECAST_PERFORMANCE"
         or p["fixed"]["selector"] != "FROZEN"
         or p["model"]["hyperparameters"] != MODEL
@@ -53,6 +62,12 @@ def verify_protocol(summary, labels_path, source):
             raise ValueError("READINESS_FILE_CHANGED:"+file)
     if data.sha(EVIDENCE/"FEATURE_SCHEMA_LOCKED.json") != p["inputHashes"]["lockedFeatureSchema"]:
         raise ValueError("FROZEN_FEATURE_AUDIT_CHANGED")
+    schema = json.loads((EVIDENCE / "FEATURE_SCHEMA_LOCKED.json").read_text())
+    if p["inputHashes"]["consumedFeatureLayouts"] != {
+        variant: hashlib.sha256(data.canonical(feature_layout(schema, variant))).hexdigest()
+        for variant in ("FULL", "S", "P")
+    }:
+        raise ValueError("CONSUMED_FEATURE_LAYOUT_CHANGED")
     if p["fixed"]["r52ProtocolSha256"] != data.sha(r52.PRECOMMIT):
         raise ValueError("OLD_FOLD_SOURCE_CHANGED")
     r52.protocol()
@@ -60,6 +75,20 @@ def verify_protocol(summary, labels_path, source):
     if p["fixed"]["r45FeatureSha256"] != data.sha(source / "data/decision-features.npz"):
         raise ValueError("FEATURE_SOURCE_CHANGED")
     return p, receipt, arrays, ids, groups
+
+
+def feature_layout(schema, variant):
+    if variant not in ("FULL", "S", "P"):
+        raise ValueError("UNKNOWN_ABLATION")
+    banned = set(schema["ablationSRemove"] if variant == "S" else
+                 schema["ablationPRemove"] if variant == "P" else ())
+    columns = [n for n in schema["numeric"] if n not in banned]
+    if variant != "P":
+        columns.extend(n for n in schema["pattern187"] if n not in banned)
+    for name, info in schema["categorical"].items():
+        if name not in banned:
+            columns.extend(name + "=" + value for value in info["values"])
+    return columns + ["HORIZON/activeDelay", "HORIZON/eodFlag"]
 
 
 def feature_columns(receipt, schema, arrays, idx, horizons, variant):
@@ -96,7 +125,8 @@ def feature_columns(receipt, schema, arrays, idx, horizons, variant):
     blocks.append(np.column_stack((active, eod)).astype(np.float32))
     x = np.concatenate(blocks,axis=1)
     del blocks
-    if len(x) != len(idx) or not np.all(np.isfinite(x[:,-2:])):
+    if (len(x) != len(idx) or x.shape[1] != len(feature_layout(schema, variant))
+        or not np.all(np.isfinite(x[:,-2:]))):
         raise ValueError("FEATURE_HORIZON_GEOMETRY")
     return x
 
@@ -168,7 +198,7 @@ def main(source, summary_path, labels_path, out):
     manifests=[]; manifest_path=out/"fit-manifest.json"
     def manifest():
         manifest_path.write_bytes(data.canonical({"fits":manifests,"consumedCalls":len(manifests),
-             "protocolSha256":data.sha(EVIDENCE/"PRECOMMIT.json"),"safety":v0.SAFETY}))
+             "protocolSha256":data.sha(PROTOCOL),"safety":v0.SAFETY}))
     manifest()
     schema=json.loads((EVIDENCE/"FEATURE_SCHEMA_LOCKED.json").read_text())
     original=json.loads((summary_path/"feature-schema.json").read_text())

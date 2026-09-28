@@ -22,6 +22,7 @@ import numpy as np
 
 from scripts import phase57_mh_data_r54 as data
 from scripts import phase57_mh_controller_r54 as ctl
+from scripts import phase57_mh_train_r54 as trainer
 
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / "docs/evidence/phase57-exit-mh-r54"
@@ -281,10 +282,16 @@ def frozen_gate(protocol, reports, paired, metrics, arm_im, control, stress,
             Decimal(out[name]["pairedGe5PnlJpy"]),reports["IM"][name]["quality"]["Combined"]["ge5"])
         top=max(map(rank,winners));chosen=[name for name in winners if rank(name)==top]
         if len(chosen)==1:selection=chosen[0]
-    return {"integrity":"PASS" if byte_ok else "INTEGRITY_ABORT",
-            "measurement":"CERTIFIED" if all(reports["IM"][n]["dailySummary"]["validSessions"]==24
-                                            for n in out) else "MEASUREMENT_BLOCKED",
-            "selection":"SELECT_DEVELOPMENT_ONLY" if selection else "NO_SELECTION_STOP",
+    integrity = "PASS" if byte_ok and refit_ok else "INTEGRITY_ABORT"
+    measurement = ("CERTIFIED" if all(
+        reports["IM"][n]["dailySummary"]["validSessions"] == 24 for n in out)
+        else "MEASUREMENT_BLOCKED")
+    verdict = ("INTEGRITY_ABORT" if integrity != "PASS" else
+               "MEASUREMENT_BLOCKED" if measurement != "CERTIFIED" else
+               "SELECT_DEVELOPMENT_ONLY" if selection else "NO_SELECTION_STOP")
+    return {"integrity":integrity,
+            "measurement":measurement,
+            "selection":verdict,
             "selected":selection,"votes":out,"productionReady":False}
 
 
@@ -299,8 +306,8 @@ def finite(source, summary, label_path, forecast_path, refit_path, out):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    protocol=json.loads((EVIDENCE/"PRECOMMIT.json").read_text())
-    if data.sha(EVIDENCE/"PRECOMMIT.json")!=(EVIDENCE/"PRECOMMIT.sha256").read_text().strip():
+    protocol=json.loads(trainer.PROTOCOL.read_text())
+    if data.sha(trainer.PROTOCOL)!=trainer.PROTOCOL_SHA.read_text().strip():
         raise ValueError("R54_PROTOCOL_CHANGED")
     oof_audit=json.loads((forecast_path.parent/"oof-audit.json").read_text())
     if (data.sha(forecast_path)!=oof_audit["predictionsSha256"]

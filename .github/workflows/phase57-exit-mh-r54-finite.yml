@@ -3,7 +3,7 @@ on:
   push:
     branches: [research/phase57-long-only-cash-equity]
     paths:
-      - docs/evidence/phase57-exit-mh-r54/FINITE_LAUNCH.json
+      - docs/evidence/phase57-exit-mh-r54/CYCLE2_FINITE_LAUNCH.json
 permissions:
   contents: read
   actions: read
@@ -43,15 +43,15 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           repository: Iam-2squared/ark-terminal
-          run-id: 36360421232
-          name: phase57-r54-readiness-summary-36360421232
+          run-id: 36361518409
+          name: phase57-r54-readiness-summary-36361518409
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: ${{ runner.temp }}/summary
       - uses: actions/download-artifact@v4
         with:
           repository: Iam-2squared/ark-terminal
-          run-id: 36360421232
-          name: phase57-r54-teacher-labels-36360421232
+          run-id: 36361518409
+          name: phase57-r54-teacher-labels-36361518409
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: ${{ runner.temp }}/labels
       - name: Verify exact zero-fit input identities before spending fit budget

@@ -52,7 +52,7 @@ def run(source, summary, labels, out, smoke_fits=True):
             if not np.all(np.isfinite(m.predict(X[:5]))):raise ValueError("SYNTHETIC_SMOKE_NONFINITE")
             smoke.append(head)
     row={"schema":"phase57-r54-zero-real-fit-ci-receipt-v1",
-         "status":"PASS","protocolSha256":data.sha(trainer.EVIDENCE/"PRECOMMIT.json"),
+         "status":"PASS","protocolSha256":data.sha(trainer.PROTOCOL),
          "lockedSchemaSha256":data.sha(trainer.EVIDENCE/"FEATURE_SCHEMA_LOCKED.json"),
          "teacherSha256":data.sha(labels),"sourceRows":len(ids),
          "frozenControlByteIdentical":controls,"realEstimatorFits":0,

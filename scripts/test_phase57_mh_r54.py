@@ -1,10 +1,12 @@
 """Synthetic only: zero real labels, zero estimator fits, no policy performance."""
 import math
+import json
 import unittest
 
 from scripts import phase57_exit_execution_contract_v1 as execution
 from scripts import phase57_mh_controller_r54 as c
 from scripts import phase57_mh_data_r54 as d
+from scripts import phase57_mh_train_r54 as train
 
 DAY = "2025-07-22"
 
@@ -21,6 +23,16 @@ def now_targets(now):
 
 
 class ClockAndLabels(unittest.TestCase):
+    def test_active_cycle_rejects_invalid_teacher(self):
+        p=json.loads(train.PROTOCOL.read_text())
+        self.assertEqual(d.sha(train.PROTOCOL),train.PROTOCOL_SHA.read_text().strip())
+        self.assertEqual(p["cycleId"],"CYCLE2_CORRECTED_D_TEACHER")
+        self.assertEqual(p["readiness"]["runId"],36361518409)
+        self.assertEqual(p["inputHashes"]["labels"],
+                         "a017a10b5b0b6dc0a023ba070a60b0e991d3d98d62a800d36fe743b85c2c759b")
+        self.assertNotEqual(p["inputHashes"]["labels"],
+                            json.loads((train.EVIDENCE/"PRECOMMIT.json").read_text())["inputHashes"]["labels"])
+
     def test_fixed_category_schema_does_not_scan_unused_fields(self):
         maps={"entryState.state":{"RISE":0,"UNKNOWN":1},
               "signal.RECLAIM.currentTriState":{"TRUE":0,"UNKNOWN":1},

@@ -18,9 +18,6 @@ from scripts import phase57_wpsd_phase0 as upstream
 
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'docs/evidence/phase57-checkpoint-certified-guard-exit'
-REPLAY='/workspace/scratch/214c4519002d/attachments/6fe1b21f-4c2f-4042-afb0-5106dfdf8ec2/github-actions-artifact-10964100200.zip'
-AUDIT='/workspace/scratch/214c4519002d/attachments/35f7ba2f-03d9-401d-8287-de4365fa2923/github-actions-artifact-10964250835.zip'
-R45='/workspace/scratch/214c4519002d/r45-source.zip'
 
 
 def require(ok,reason):
@@ -83,12 +80,12 @@ def distr(xs):
        'q75':xs[int((len(xs)-1)*.75)],'mean':statistics.mean(xs)}
 
 
-def run():
+def run(r45,replay,audit):
     pre=(OUT/'CYCLE_PRECOMMIT.json').read_bytes()
     require(sha(pre)==readiness.PRE_SHA,'PRECOMMIT_DRIFT')
     ready=json.loads((OUT/'CHECKPOINT_READINESS.json').read_bytes())
     require(all(x=='PASS' for x in ready['gates'].values()),'READINESS_NOT_PASS')
-    _,_,ledgers,paired=upstream.load_fixed(R45,REPLAY,AUDIT)
+    _,_,ledgers,paired=upstream.load_fixed(r45,replay,audit)
     entries,calendar,funded,context,paths,sessions=upstream.control_universe({},ledgers)
     controls=readiness.read_control()
     summaries={}
@@ -96,7 +93,7 @@ def run():
         for line in f:
             x=json.loads(line);summaries[(x['arm'],x['entryId'])]=x
     require(len(summaries)==len(entries)==1614,'READINESS_ENTRY_CENSUS')
-    with zipfile.ZipFile(REPLAY) as z:
+    with zipfile.ZipFile(replay) as z:
         standalone=json.loads(gzip.decompress(z.read('r54-result/standalone-all-entries.json.gz')))
     old={}
     for arm in ('IM','R1'):
@@ -235,4 +232,10 @@ def run():
                       'entryRowsSha256':sha(z)},indent=2))
 
 
-if __name__=='__main__':run()
+if __name__=='__main__':
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--r45',required=True,type=Path)
+    parser.add_argument('--replay',required=True,type=Path)
+    parser.add_argument('--audit',required=True,type=Path)
+    args=parser.parse_args()
+    run(args.r45,args.replay,args.audit)

@@ -1,6 +1,7 @@
 """Independent arithmetic, state and lineage audit of a closed CCMG cycle."""
 from __future__ import annotations
 
+import argparse
 import collections
 from decimal import Decimal
 import gzip
@@ -11,7 +12,6 @@ import zipfile
 
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'docs/evidence/phase57-checkpoint-certified-guard-exit'
-AUDIT=Path('/workspace/scratch/214c4519002d/attachments/35f7ba2f-03d9-401d-8287-de4365fa2923/github-actions-artifact-10964250835.zip')
 LADDER=(1,2,3,5,10)
 FLOOR={1:0,2:1,3:2,5:3,10:5}
 
@@ -27,7 +27,7 @@ def lines(path):
     with gzip.open(path,'rt') as f:return [json.loads(line) for line in f]
 
 
-def main():
+def main(audit_zip):
     pre=json.loads((OUT/'CYCLE_PRECOMMIT.json').read_text())
     pre_sha=digest(OUT/'CYCLE_PRECOMMIT.json')
     assert pre_sha=='679cbe81bdaf483c7c68dbd290a520cdb6289ea1573519816e421b4c563cd079'
@@ -43,7 +43,7 @@ def main():
     assert digest(OUT/'POTENTIAL_OOF.jsonl.gz')==potential['oofRowsSha256']
     assert potential['outerFitsActual']==6<=2*potential['canonicalOuterFoldCount']==10
     assert result['integratedReplayInvocations']==0 and potential['innerFits']==0
-    with zipfile.ZipFile(AUDIT) as z:
+    with zipfile.ZipFile(audit_zip) as z:
         paired=json.loads(z.read('paired-layer-a-r34.json'))
     paired_index={(arm,x['entryId']):x for arm in ('IM','R1') for x in paired[arm]['FULL_MH_WAIT15']}
     primary=[x for x in rows if x['primary']]
@@ -115,4 +115,8 @@ def main():
     print(json.dumps(evidence,indent=2))
 
 
-if __name__=='__main__':main()
+if __name__=='__main__':
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--audit',required=True,type=Path)
+    args=parser.parse_args()
+    main(args.audit)

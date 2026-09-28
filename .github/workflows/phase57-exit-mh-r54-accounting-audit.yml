@@ -4,6 +4,7 @@ on:
     branches: [research/phase57-long-only-cash-equity]
     paths:
       - docs/evidence/phase57-exit-mh-r54/CYCLE2_LAYER_A_AUDIT_LAUNCH.json
+      - docs/evidence/phase57-exit-mh-r54/CYCLE2_LAYER_A_AUDIT_RETRY_01.json
 permissions:
   contents: read
   actions: read
@@ -39,7 +40,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: ${{ runner.temp }}/r54-result
       - name: Reconcile saved Layer A against frozen R34 and reapply unchanged Gate
-        run: python -m scripts.phase57_mh_layer_a_accounting_audit_r54 --result "$RUNNER_TEMP/r54-result" --out "$RUNNER_TEMP/r54-r34-audit"
+        run: python -m scripts.phase57_mh_layer_a_accounting_audit_r54 --result "$RUNNER_TEMP/r54-result/r54-result" --out "$RUNNER_TEMP/r54-r34-audit"
       - name: Save original and corrected disposition separately
         if: always()
         uses: actions/upload-artifact@v4

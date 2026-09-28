@@ -1,0 +1,63 @@
+name: Phase57 R54 MH EXIT pre-performance identity and synthetic CI
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - docs/evidence/phase57-exit-mh-r54/PRECOMMIT.sha256
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-r54-preflight-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  zero-real-fit-ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      PYTHONPATH: '.'
+      PYTHONDONTWRITEBYTECODE: '1'
+      ARK_TEST_OFFLINE: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0 pandas==2.2.3 matplotlib==3.10.8 joblib==1.5.2
+      - name: Contract, temporal and controller tests; no real fits
+        run: python -m unittest -q scripts.test_phase57_mh_r54 scripts.test_phase57_exit_continuation_r52
+      - uses: actions/download-artifact@v4
+        with:
+          repository: Iam-2squared/ark-terminal
+          run-id: 36251316248
+          name: phase57-exit-gen3-r45-36251316248
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/r45
+      - uses: actions/download-artifact@v4
+        with:
+          repository: Iam-2squared/ark-terminal
+          run-id: 36360421232
+          name: phase57-r54-readiness-summary-36360421232
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/summary
+      - uses: actions/download-artifact@v4
+        with:
+          repository: Iam-2squared/ark-terminal
+          run-id: 36360421232
+          name: phase57-r54-teacher-labels-36360421232
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/labels
+      - name: Check protocol hashes and R50 control byte identity; three separate synthetic smoke fits
+        run: python -m scripts.phase57_mh_ci_r54 --source "$RUNNER_TEMP/r45/gen3" --summary "$RUNNER_TEMP/summary" --labels "$RUNNER_TEMP/labels/training-labels.npz" --out "$RUNNER_TEMP/r54-ci-receipt.json"
+      - name: Preserve zero-real-fit CI receipt even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-r54-preflight-${{ github.run_id }}
+          path: ${{ runner.temp }}/r54-ci-receipt.json
+          if-no-files-found: warn

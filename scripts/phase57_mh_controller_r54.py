@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import dataclasses
 import math
+from functools import lru_cache
 
 from scripts import phase57_exit_execution_contract_v1 as execution
 
@@ -16,8 +17,13 @@ LONG = (15, 30, 60, "EOD")
 SAFETY = execution.SAFETY
 
 
+@lru_cache(maxsize=128)
+def endpoints_for(day: str) -> tuple[int, ...]:
+    return execution.decision_endpoints(day, execution.continuous_minutes(day)[0])
+
+
 def deadline_after(day: str, now: int, budget: int) -> int:
-    endpoints = execution.decision_endpoints(day, execution.continuous_minutes(day)[0])
+    endpoints = endpoints_for(day)
     if now not in endpoints:
         raise ValueError("NOT_A_DECISION_ENDPOINT")
     pos = endpoints.index(now)
@@ -25,7 +31,7 @@ def deadline_after(day: str, now: int, budget: int) -> int:
 
 
 def previous_decision(day: str, now: int) -> int | None:
-    ends = execution.decision_endpoints(day, execution.continuous_minutes(day)[0])
+    ends = endpoints_for(day)
     idx = ends.index(now)
     return ends[idx - 1] if idx else None
 

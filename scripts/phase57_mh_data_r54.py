@@ -13,6 +13,7 @@ import gzip
 import hashlib
 import json
 import math
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -57,6 +58,7 @@ def split_manifest(r52_protocol):
     return out
 
 
+@lru_cache(maxsize=4096)
 def planned_targets(day, now):
     """Calendar only; neither label availability nor price looks ahead at runtime."""
     starts = execution.continuous_minutes(day)
@@ -77,6 +79,12 @@ def planned_targets(day, now):
                 continue
         out[h] = target_now
     return out
+
+
+@lru_cache(maxsize=16384)
+def scheduled_delay(day, now, target_now):
+    """True active-minute distance; no observed-bar count is used."""
+    return execution.active_minutes(day, now, target_now)
 
 
 def _price(row, index):
@@ -131,7 +139,7 @@ def labels_for_checkpoint(day, now, raw_path, fresh):
         rec = {"targetNow": target_now, "referenceMinute": ref_minute,
                "A": None, "D": None, "HIGH": None, "LOW": None,
                "reasonA": availability, "reasonD": "H0_IS_EXCLUDED" if h == 0 else availability,
-               "reasonC": availability}
+               "reasonC": "H0_IS_EXCLUDED" if h == 0 else availability}
         if e_h is not None:
             rec["A"] = 100 * (e_h / price_now - 1)
             rec["reasonA"] = "AVAILABLE"
@@ -195,8 +203,12 @@ def verify_feature_schema(receipt, arrays, maps):
             "deniedRuntime": list(DENIED_RUNTIME),
             "nowKnownAt": "R45 completed closed-bar end proxy <= decisionNow",
             "publicationLatencyCertified": False,
-            "ablationSRemove": [x for x in numeric if x.startswith(("state", "history.5.signal", "history.5.state"))]
-                + [x for x in cats if x.startswith(("entryState", "currentState", "entryToCurrentState", "signal."))],
+            "ablationSRemove": [x for x in numeric if x.startswith(("state", "history.5.signal", "history.5.state"))
+                or x in ("facts.weakRun", "facts.stateRecovery", "facts.failedRecovery",
+                         "facts.signalTrueN", "facts.signalFalseN", "facts.signalUnknownN",
+                         "facts.signalLossN", "facts.signalRecoveryN")]
+                + [x for x in cats if x.startswith(("entryState", "currentState", "entryToCurrentState", "signal."))]
+                + [x for x in pattern if x.startswith("SIGNAL/") or x == "STRUCT/compressionExpansion"],
             "ablationPRemove": pattern,
             "oneHotVocabularySource": "FIXED_R45_STATE_AND_SIGNAL_DECLARED_ENUMS"}
 

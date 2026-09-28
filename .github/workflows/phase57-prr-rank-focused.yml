@@ -18,9 +18,9 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install frozen Python dependencies
-        run: python -m pip install 'numpy==2.3.5' 'scikit-learn==1.8.0'
+        run: python -m pip install 'numpy==2.3.5' 'scikit-learn==1.8.0' 'pandas==2.2.3'
       - name: Focused synthetic rank/route contract
-        run: python -m unittest tests.test_phase57_prr_rank -v
+        run: python -m unittest tests.test_phase57_prr_rank tests.test_phase57_prr_economics -v
       - name: Restore existing Development State reference, no provider calls
         run: |
           mkdir -p artifacts/reference

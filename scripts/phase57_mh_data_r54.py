@@ -147,8 +147,9 @@ def labels_for_checkpoint(day, now, raw_path, fresh):
                 if e0 is None:
                     rec["reasonD"] = "EXACT_E0_OPEN_MISSING"
                 else:
-                    # Same-position, same-quantity sell fee applied once per hypothetical sale.
-                    rec["D"] = 100 * ((e_h - e0) * (1 - .0005)) / price_now
+                    # R34 sell fee is 0.05 pp of the same Entry cost, not the
+                    # realized sell price; it cancels in the H minus S difference.
+                    rec["D"] = 100 * (e_h - e0) / price_now
                     rec["reasonD"] = "AVAILABLE"
                 hi, lo, reason = interval_extrema(day, now, target_now, path, e_h)
                 if reason == "AVAILABLE":

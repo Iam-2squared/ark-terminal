@@ -57,7 +57,7 @@ class ClockAndLabels(unittest.TestCase):
         self.assertEqual(why,"AVAILABLE")
         self.assertAlmostEqual(r[0]["A"],1)
         self.assertAlmostEqual(r[1]["A"],3)
-        self.assertAlmostEqual(r[1]["D"],(103-101)*.9995)
+        self.assertAlmostEqual(r[1]["D"],103-101)
         self.assertEqual(r[1]["reasonC"],"AVAILABLE")
         self.assertAlmostEqual(r[1]["HIGH"],3)
         self.assertNotIn(0,c.SHORT)

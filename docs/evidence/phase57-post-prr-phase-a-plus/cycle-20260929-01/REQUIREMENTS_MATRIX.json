@@ -1,0 +1,95 @@
+{
+  "originalWorkAndAddedRequirements": {
+    "R01": {
+      "artifactOrReason": "START_AUDIT.json / SOURCE_MANIFEST.json / A_PLUS_PRECOMMIT.json",
+      "status": "VERIFIED_COMPLETE"
+    },
+    "R02": {
+      "artifactOrReason": "SCHEMA_MAP.json / REQUIREMENTS_MATRIX.json",
+      "status": "VERIFIED_COMPLETE"
+    },
+    "R03": {
+      "artifactOrReason": "INTENT_CENSUS.json / INTENT_UNIVERSE_ROWS.jsonl.gz / MISSINGNESS_AUDIT.json / UNKNOWN_FIRST_INTENT_ROWS.jsonl.gz",
+      "status": "VERIFIED_COMPLETE"
+    },
+    "R04": {
+      "artifactOrReason": "INTENT_ORDER_AND_BRANCH_EQUIVALENCE.json; static contract yes, full row witness and ties unresolved",
+      "status": "PARTIAL"
+    },
+    "R05": {
+      "artifactOrReason": "INVENTORY_FREEZE.json / ANALYSIS_SPEC.json (before new State association)",
+      "status": "VERIFIED_COMPLETE"
+    },
+    "R06": {
+      "artifactOrReason": "ACCOUNTING_AND_PRIMARY_DECOMPOSITION.json",
+      "status": "VERIFIED_COMPLETE"
+    },
+    "R07": {
+      "artifactOrReason": "FINE_BUCKET_ROUTE_RESULTS.json.gz; initial/replacement original label not retrieved",
+      "status": "PARTIAL"
+    },
+    "R08": {
+      "artifactOrReason": "TAIL_AND_LOO.json.gz / GROUP_CONTRIBUTIONS.jsonl.gz / GROUP_CONCENTRATION.json.gz",
+      "status": "VERIFIED_COMPLETE"
+    },
+    "R09": {
+      "artifactOrReason": "BOOTSTRAP_SPEC.json / SESSION_DRAWS.npz / CLUSTER_CI_RESULTS.json; 24 sessions, 10000 shared draws",
+      "status": "VERIFIED_COMPLETE"
+    },
+    "R10": {
+      "artifactOrReason": "RANK_DELTA_ANATOMY.json.gz (all/I/E, folds, deciles, unknown)",
+      "status": "VERIFIED_COMPLETE"
+    },
+    "R11": {
+      "artifactOrReason": "PRIOR_STATE_SIGNAL_USAGE_AUDIT.json / UPSTREAM_STATIC_CODE_AUDIT.json; historical names and checkpoint hook only, all definition versions not retrieved",
+      "status": "PARTIAL"
+    },
+    "R12": {
+      "artifactOrReason": "STATE_SIGNAL_AVAILABILITY.json / CAUSAL_FEATURE_PLAN.json / CAUSAL_FEATURE_ROWS.jsonl.gz; only boolean presence, no values/knownAt",
+      "status": "BLOCKED_SOURCE"
+    },
+    "R13": {
+      "artifactOrReason": "STATE_SIGNAL_DELTA_RESULTS.json; feature values absent",
+      "status": "BLOCKED_SOURCE"
+    },
+    "R14": {
+      "artifactOrReason": "INTENT_FILL_ANATOMY.json / ARM_MATCHED_ANATOMY.json; time/exit/match available, Pτ absent",
+      "status": "PARTIAL"
+    },
+    "R15": {
+      "artifactOrReason": "REMAINING_UPSIDE_ANATOMY.json; post-intent path and label endpoint absent",
+      "status": "BLOCKED_SOURCE"
+    },
+    "R16": {
+      "artifactOrReason": "STAGE2_LINEAGE_AUDIT.json / SUPPORT_MATRIX.json; fold/score present, nested dependency unproven",
+      "status": "PARTIAL"
+    },
+    "R17": {
+      "artifactOrReason": "OPTION_B_FEASIBILITY.json; design-only with experiment blocked",
+      "status": "VERIFIED_COMPLETE"
+    },
+    "R18": {
+      "artifactOrReason": "NEXT_EXPERIMENT_PRECOMMIT_DRAFT.md/.json / UNRESOLVED_DECISIONS.json",
+      "status": "VERIFIED_COMPLETE"
+    },
+    "R19": {
+      "artifactOrReason": "MISSING_EVIDENCE_REQUEST.json",
+      "status": "VERIFIED_COMPLETE"
+    },
+    "R20": {
+      "artifactOrReason": "INDEPENDENT_AUDIT.json / EXPOSURE_LEDGER.json; saved rows recalculated, binary upstream/as-of tests blocked",
+      "status": "PARTIAL"
+    },
+    "R21": {
+      "artifactOrReason": "REPORT-ja.md / figures / A_PLUS_CLOSURE.json / CONTROLLING_HANDOFF.md / MANIFEST.json",
+      "status": "VERIFIED_COMPLETE"
+    },
+    "R22": {
+      "artifactOrReason": "commit and ZIP receipt recorded after immutable commit; artifact ZIP prepared separately",
+      "status": "PENDING_SAVE_RECEIPT"
+    }
+  },
+  "schema": "phase57-a-plus-requirements-matrix-v1",
+  "source": "uploaded integrated Work §21; original Work requirements §4–16; Phase A preserved",
+  "statusSemantics": "VERIFIED_COMPLETE applies to saved-row calculation or artifact accounting only; PARTIAL/BLOCKED_SOURCE is not PASS"
+}

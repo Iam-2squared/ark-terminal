@@ -1,0 +1,51 @@
+name: Phase57 P23.11B Fresh Holdout B
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-fresh-holdout-b-policy.js'
+      - 'predict/daytrade/run-phase57-fresh-holdout-b-shard.mjs'
+      - 'predict/tests/p23-11b-fresh-holdout-b.test.mjs'
+      - '.github/workflows/phase57-fresh-holdout-b.yml'
+permissions: { contents: read, actions: read }
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: node predict/tests/p23-11b-fresh-holdout-b.test.mjs
+  holdout-b-shard:
+    needs: unit
+    strategy: { fail-fast: false, matrix: { shard: [0,1,2] } }
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env: { PHASE57_SHARD_INDEX: '${{ matrix.shard }}' }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: Execute reserve holdout B exactly once for committed architecture
+        run: node predict/daytrade/run-phase57-fresh-holdout-b-shard.mjs
+      - name: Verify holdout B preregistration and safety
+        run: |
+          node - <<'NODE'
+          const fs=require('fs'),s=Number(process.env.PHASE57_SHARD_INDEX)+1,p=`artifacts/phase57-p23-11b-fresh-holdout-b-shard-${s}.json`;if(!fs.existsSync(p))throw new Error('missing result');const d=JSON.parse(fs.readFileSync(p,'utf8')),i=d.integrity;if(i?.reserveUniverseFrozenBeforeArchitectureAssignment!==true||i?.reserveUniverseCommit!=='28d1b8c21c142bb04b1b4aa67e9c23e9fdc2dba3'||i?.architectureAssignedBeforeOutcomeRetrieval!==true||i?.reserveHoldoutBOutcomesUsedForArchitectureSelection!==false||i?.postSelectionOnReserveHoldoutBForbidden!==true||i?.maxOneAcceptedTradePerSymbolPerSession!==true||i?.freshReserveHoldoutB!==true)throw new Error('holdout B integrity failed');if(d.preRegistration?.persistenceRule?.requiredSameDirectionSignals!==3||d.preRegistration?.persistenceRule?.lookbackMinutes!==15||d.preRegistration?.persistenceRule?.maxAcceptedTradesPerSymbolPerSession!==1)throw new Error('rule changed');for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed','transmitted'])if(d[k]!==false)throw new Error(`${k} must remain false`);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with: { name: 'phase57-p23-11b-holdout-b-shard-${{ matrix.shard }}', path: 'artifacts/phase57-p23-11b-fresh-holdout-b-shard-*.json', if-no-files-found: error }
+  aggregate:
+    needs: holdout-b-shard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { pattern: 'phase57-p23-11b-holdout-b-shard-*', path: shards, merge-multiple: true }
+      - name: Aggregate reserve holdout B without post-selection
+        run: |
+          node - <<'NODE'
+          const fs=require('fs'),files=fs.readdirSync('shards').filter(x=>/^phase57-p23-11b-fresh-holdout-b-shard-\d+\.json$/.test(x)).sort();if(files.length!==3)throw new Error(`expected3 got${files.length}`);const shards=files.map(f=>JSON.parse(fs.readFileSync(`shards/${f}`,'utf8'))),rows=shards.flatMap(s=>s.accepted||[]);const x=rows.map(r=>Number(r.ratchet.netReturnPct)),p=x.filter(v=>v>0).reduce((s,v)=>s+v,0),n=-x.filter(v=>v<0).reduce((s,v)=>s+v,0),aggregate={signalCount:x.length,hitRate:x.length?x.filter(v=>v>0).length/x.length:null,netAverageReturnPct:x.length?x.reduce((s,v)=>s+v,0)/x.length:null,profitFactor:n>0?p/n:(p>0?Infinity:null)};const counts={};for(const r of rows)counts[r.symbol]=(counts[r.symbol]||0)+1;const uniqueSymbols=Object.keys(counts).length,maxSymbolShare=rows.length?Math.max(...Object.values(counts))/rows.length:0,positiveShardCount=shards.filter(s=>Number(s.dailyCapPersistenceAccepted?.netAverageReturnPct)>0).length,gatePolicy=shards[0].preRegistration.practicalResearchGate,practicalResearchGate={...gatePolicy,uniqueSymbols,maxSymbolShare,positiveShardCount,passed:aggregate.signalCount>=gatePolicy.minimumSignals&&Number(aggregate.profitFactor)>=gatePolicy.minimumProfitFactor&&Number(aggregate.netAverageReturnPct)>=gatePolicy.minimumNetAverageReturnPct&&positiveShardCount>=gatePolicy.minimumPositiveShards&&maxSymbolShare<=gatePolicy.maximumSingleSymbolSignalShare&&uniqueSymbols>=gatePolicy.minimumUniqueSymbols};const result={phase:'57.p23.11b-fresh-holdout-b-aggregate',status:'RESERVE_HOLDOUT_B_AGGREGATED_WITHOUT_POST_SELECTION',aggregate,positiveShardCount,uniqueSymbols,maxSymbolShare,byShard:shards.map(s=>({shardNumber:s.shardNumber,symbols:s.symbols,matchedOuterRows:s.source.matchedOuterRows,baseline:s.baselineMatchedRatchet,dailyCapPersistence:s.dailyCapPersistenceAccepted})),practicalResearchGate,integrity:{reserveUniversePreRegisteredBeforeArchitecture:true,architectureAssignedBeforeOutcomeRetrieval:true,reserveHoldoutBOutcomesUsedForSelection:false,postSelectionPerformed:false,maxOneAcceptedTradePerSymbolPerSession:true,profitFactorRecomputedFromUnderlyingReturns:true},edgeClaimAllowed:practicalResearchGate.passed,recommendationAllowed:false,executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,rssOrderFunctionAllowed:false,liveTradingAllowed:false,paperTradingAllowed:false,automaticPromotionAllowed:false,productionUpdateAllowed:false,overnightHoldingAllowed:false,transmitted:false};fs.mkdirSync('artifacts',{recursive:true});fs.writeFileSync('artifacts/phase57-p23-11b-fresh-holdout-b-aggregate.json',JSON.stringify(result,null,2));console.log(JSON.stringify(result,null,2));
+          NODE
+      - uses: actions/upload-artifact@v4
+        with: { name: phase57-p23-11b-fresh-holdout-b-aggregate, path: artifacts/phase57-p23-11b-fresh-holdout-b-aggregate.json, if-no-files-found: error }

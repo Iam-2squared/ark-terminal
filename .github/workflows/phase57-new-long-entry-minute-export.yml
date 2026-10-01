@@ -1,0 +1,84 @@
+name: NEW LONG Entry existing-minute export
+on:
+  push:
+    branches: [research/phase57-new-long-entry-rebuild]
+    paths: [.github/workflows/phase57-new-long-entry-minute-export.yml]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: new-long-entry-existing-minute-export
+  cancel-in-progress: false
+jobs:
+  existing-development-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      NODE_OPTIONS: --max-old-space-size=6144
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: efcced7b0abdc679a7004809793298a7b3a1d067
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify exporter identity and run synthetic tests offline
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '51a03e89045985ad20f860d9a589caa44ed0e1548c66379e2ee945d16e884359  scripts/phase57_new_long_entry_minute_export.mjs' | sha256sum -c -
+          mkdir -p artifacts/new-long-entry-minute
+          ARK_TEST_OFFLINE=1 python3 scripts/offline/kernel_exec.py node scripts/phase57_new_long_entry_minute_export.mjs --self-test | tee artifacts/new-long-entry-minute/synthetic-tests.json
+          cp scripts/phase57_new_long_entry_minute_export.mjs artifacts/new-long-entry-minute/
+          cp docs/research/new-long-entry-rebuild/CONTROL.md artifacts/new-long-entry-minute/
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-l1-minute-shard-*-34926225832
+          path: ${{ runner.temp }}/new-entry-minute-l1
+          repository: Iam-2squared/ark-terminal
+          run-id: 34926225832
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-l2-minute-shard-*-34936002178
+          path: ${{ runner.temp }}/new-entry-minute-l2
+          repository: Iam-2squared/ark-terminal
+          run-id: 34936002178
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-v2-minute-shard-*-34964031692
+          path: ${{ runner.temp }}/new-entry-minute-v2
+          repository: Iam-2squared/ark-terminal
+          run-id: 34964031692
+          github-token: ${{ github.token }}
+      - name: Decrypt the same eight existing Development checkpoints; never call provider
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${JQUANTS_API_KEY:-}"
+          test "$(find "$RUNNER_TEMP/new-entry-minute-l1" "$RUNNER_TEMP/new-entry-minute-l2" "$RUNNER_TEMP/new-entry-minute-v2" -name minute-shard.tar.gz.enc | wc -l)" = 8
+          mkdir -p "$RUNNER_TEMP/new-entry-minute-cache"
+          while IFS= read -r encrypted; do
+            test "$(cut -d' ' -f1 "${encrypted}.sha256")" = "$(sha256sum "$encrypted" | cut -d' ' -f1)"
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -in "$encrypted" | tar -C "$RUNNER_TEMP/new-entry-minute-cache" -xzf -
+          done < <(find "$RUNNER_TEMP/new-entry-minute-l1" "$RUNNER_TEMP/new-entry-minute-l2" "$RUNNER_TEMP/new-entry-minute-v2" -name minute-shard.tar.gz.enc | sort)
+      - name: Project exact first-anchor prefix and forward minutes with network denied
+        shell: bash
+        run: |
+          set -euo pipefail
+          ARK_TEST_OFFLINE=1 python3 scripts/offline/kernel_exec.py node scripts/phase57_new_long_entry_minute_export.mjs "$RUNNER_TEMP/new-entry-minute-cache" artifacts/new-long-entry-minute/derived | tee artifacts/new-long-entry-minute/export.log
+      - name: Purge temporary decrypted source and encrypted downloads
+        if: always()
+        shell: bash
+        run: rm -rf -- "$RUNNER_TEMP/new-entry-minute-cache" "$RUNNER_TEMP/new-entry-minute-l1" "$RUNNER_TEMP/new-entry-minute-l2" "$RUNNER_TEMP/new-entry-minute-v2"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: new-long-entry-minute-${{ github.run_id }}
+          path: artifacts/new-long-entry-minute/
+          retention-days: 7
+          if-no-files-found: error

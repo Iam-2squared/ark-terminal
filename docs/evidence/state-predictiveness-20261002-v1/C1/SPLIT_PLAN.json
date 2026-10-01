@@ -1,0 +1,17 @@
+{
+  "block_rule": "contiguous balanced blocks of remaining dates, early remainder",
+  "date_order": "chronological input-eligible dates",
+  "embargo_minutes": 30,
+  "initial_train_dates": 3,
+  "inner_validation": "last outer-training date",
+  "minimum_candidate_OOF_dates": 6,
+  "minimum_candidate_targets_per_fold": 50,
+  "outer_test_blocks": 3,
+  "purge_minutes": 30,
+  "purge_rule": "drop train label end >= test start",
+  "random_row_split": false,
+  "security_session_same_fold": true,
+  "train_weights": "equal date then equal security-session within date",
+  "version": "V1",
+  "within_session_targets": true
+}

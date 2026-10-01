@@ -1,0 +1,33 @@
+{
+  "Future_feature_input_cap": 0,
+  "direction_classes": [
+    -1,
+    0,
+    1
+  ],
+  "horizons": [
+    5,
+    15,
+    30
+  ],
+  "lookup": "exact dated calendar horizon, no next-observed substitution",
+  "null_reason_required": true,
+  "price_token_precision": 80,
+  "primary_formula": "(raw_Close_future_JPY-raw_Close_t_JPY)/frozen_U",
+  "primary_unit": "JPY per frozen log-return scale; not percentage or canonical delta_x",
+  "secondary_delta_x": "canonical_x_C_future-canonical_x_C_t",
+  "structural": [
+    "next_scheduled_observed_primary",
+    "transition_within30",
+    "next_transition_from",
+    "next_transition_to",
+    "next_transition_at",
+    "time_to_next_transition",
+    "continuation_or_change",
+    "direction_relation",
+    "censored_at30"
+  ],
+  "target_quantum": null,
+  "version": "V1",
+  "zero_policy": "exact Decimal numerator sign; no dead zone"
+}

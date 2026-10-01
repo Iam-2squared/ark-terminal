@@ -1,0 +1,59 @@
+name: State Predictiveness Development V1
+on:
+  push:
+    branches:
+      - state-predictiveness-20261002-v1
+    paths:
+      - '.github/workflows/state-predictiveness-20261002-v1.yml'
+      - 'research/state-predictiveness-20261002-v1/payload.b64'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: state-predictiveness-development-v1
+  cancel-in-progress: false
+jobs:
+  frozen-development-export:
+    if: github.ref == 'refs/heads/state-predictiveness-20261002-v1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify and unpack precommitted source
+        run: |
+          python - <<'PY'
+          import base64,hashlib,io,os,pathlib,zipfile
+          data=base64.b64decode(pathlib.Path('research/state-predictiveness-20261002-v1/payload.b64').read_bytes())
+          assert hashlib.sha256(data).hexdigest()=='1b80ae8d3926cba668be609584a8dc94723b8221aac00fc86c520933617cd374'
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'state-predictiveness-v1-code'
+          with zipfile.ZipFile(io.BytesIO(data)) as z:
+              assert all(not n.startswith('/') and '..' not in pathlib.PurePosixPath(n).parts for n in z.namelist())
+              z.extractall(root)
+          PY
+      - name: Existing checkpoint and frozen causal feature export only
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          PREDICT_RAW: ${{ runner.temp }}/state-predictiveness-v1-raw
+          PREDICT_OUT: ${{ runner.temp }}/state-predictiveness-v1-evidence
+        run: python "$RUNNER_TEMP/state-predictiveness-v1-code/export_development.py"
+      - name: Exact temporary raw purge
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os,pathlib,shutil
+          root=pathlib.Path(os.environ['RUNNER_TEMP']);raw=root/'state-predictiveness-v1-raw'
+          if raw.exists():shutil.rmtree(raw)
+          out=root/'state-predictiveness-v1-evidence';out.mkdir(parents=True,exist_ok=True)
+          (out/'WORKFLOW_PURGE_RECEIPT.json').write_text(json.dumps({'raw_purge_verified':not raw.exists(),'raw_provider_page_publication':0,'secret_value_publication':0})+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: state-predictiveness-development-v1-${{ github.run_id }}
+          path: ${{ runner.temp }}/state-predictiveness-v1-evidence
+          retention-days: 7
+          if-no-files-found: error

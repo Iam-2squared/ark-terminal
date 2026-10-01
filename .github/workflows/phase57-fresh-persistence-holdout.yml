@@ -1,0 +1,69 @@
+# Fresh symbol holdout. Universe and rule are pre-registered in code before this workflow retrieves outcomes.
+name: Phase57 P23.10B Fresh Persistence Holdout
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'predict/daytrade/phase57-fresh-persistence-holdout.js'
+      - 'predict/daytrade/run-phase57-fresh-persistence-holdout-shard.mjs'
+      - 'predict/tests/p23-10b-fresh-persistence-holdout.test.mjs'
+      - '.github/workflows/phase57-fresh-persistence-holdout.yml'
+permissions: { contents: read, actions: read }
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: node predict/tests/p23-10b-fresh-persistence-holdout.test.mjs
+  holdout-shard:
+    needs: unit
+    strategy:
+      fail-fast: false
+      matrix: { shard: [0,1,2] }
+    name: holdout-shard-${{ matrix.shard }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      PHASE57_SHARD_INDEX: ${{ matrix.shard }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: Execute fresh historical holdout exactly once per committed rule
+        run: node predict/daytrade/run-phase57-fresh-persistence-holdout-shard.mjs
+      - name: Verify holdout integrity and fail-closed safety
+        run: |
+          node - <<'NODE'
+          const fs=require('fs'),s=Number(process.env.PHASE57_SHARD_INDEX)+1,p=`artifacts/phase57-p23-10b-fresh-persistence-holdout-shard-${s}.json`;if(!fs.existsSync(p))throw new Error('missing holdout result');const d=JSON.parse(fs.readFileSync(p,'utf8'));
+          const i=d.integrity;if(i?.symbolUniverseFrozenBeforeOutcomeRetrieval!==true||i?.ruleFrozenBeforeOutcomeRetrieval!==true||i?.holdoutOutcomesUsedForRuleSelection!==false||i?.postSelectionOnHoldoutForbidden!==true||i?.matchedEntriesNestedOuterOos!==true||i?.oneActiveTradePerSymbol!==true||i?.freshSymbolHoldout!==true)throw new Error('holdout integrity failed');if(d.preRegistration?.persistenceRule?.requiredSameDirectionSignals!==3||d.preRegistration?.persistenceRule?.lookbackMinutes!==15)throw new Error('rule changed');
+          for(const k of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','overnightHoldingAllowed','transmitted'])if(d[k]!==false)throw new Error(`${k} must remain false`);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-10b-holdout-shard-${{ matrix.shard }}
+          path: artifacts/phase57-p23-10b-fresh-persistence-holdout-shard-*.json
+          if-no-files-found: error
+  aggregate:
+    needs: holdout-shard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-p23-10b-holdout-shard-*
+          path: shards
+          merge-multiple: true
+      - name: Aggregate fresh holdout without post-selection
+        run: |
+          node - <<'NODE'
+          const fs=require('fs'),files=fs.readdirSync('shards').filter(x=>/^phase57-p23-10b-fresh-persistence-holdout-shard-\d+\.json$/.test(x)).sort();if(files.length!==3)throw new Error(`expected3 shards got${files.length}`);const shards=files.map(f=>JSON.parse(fs.readFileSync(`shards/${f}`,'utf8'))),rows=shards.flatMap(s=>s.accepted||[]);const summary=rows=>{const x=rows.map(r=>Number(r.ratchet.netReturnPct)),p=x.filter(v=>v>0).reduce((s,v)=>s+v,0),n=-x.filter(v=>v<0).reduce((s,v)=>s+v,0);return{signalCount:x.length,hitRate:x.length?x.filter(v=>v>0).length/x.length:null,netAverageReturnPct:x.length?x.reduce((s,v)=>s+v,0)/x.length:null,profitFactor:n>0?p/n:(p>0?Infinity:null),positiveShardCount:shards.filter(s=>Number(s.persistenceAccepted?.netAverageReturnPct)>0).length};};const aggregate=summary(rows),symbolReturns={};for(const r of rows){(symbolReturns[r.symbol]??=[]).push(Number(r.ratchet.netReturnPct));}const bySymbol=Object.fromEntries(Object.entries(symbolReturns).map(([symbol,v])=>[symbol,{signalCount:v.length,netAverageReturnPct:v.reduce((a,b)=>a+b,0)/v.length}]));const maxSymbolShare=rows.length?Math.max(0,...Object.values(symbolReturns).map(v=>v.length))/rows.length:0;const practicalResearchGate={minimumSignals:30,minimumProfitFactor:1.20,minimumNetAverageReturnPct:0.05,minimumPositiveShards:2,maximumSingleSymbolSignalShare:0.35,passed:aggregate.signalCount>=30&&Number(aggregate.profitFactor)>=1.20&&Number(aggregate.netAverageReturnPct)>=0.05&&aggregate.positiveShardCount>=2&&maxSymbolShare<=0.35};const result={phase:'57.p23.10b-fresh-persistence-holdout-aggregate',status:'FRESH_HOLDOUT_AGGREGATED_WITHOUT_POST_SELECTION',rule:{requiredSameDirectionSignals:3,lookbackMinutes:15,oneActiveTradePerSymbol:true},aggregate,byShard:shards.map(s=>({shardNumber:s.shardNumber,symbols:s.symbols,matchedOuterRows:s.source.matchedOuterRows,baseline:s.baselineMatchedRatchet,persistence:s.persistenceAccepted})),bySymbol,maxSymbolShare,practicalResearchGate,integrity:{freshSymbols:true,rulePreRegistered:true,holdoutOutcomesUsedForRuleSelection:false,postSelectionPerformed:false,oneActiveTradePerSymbol:true,profitFactorRecomputedFromUnderlyingAcceptedReturns:true},edgeClaimAllowed:practicalResearchGate.passed,recommendationAllowed:false,executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,rssOrderFunctionAllowed:false,liveTradingAllowed:false,paperTradingAllowed:false,automaticPromotionAllowed:false,productionUpdateAllowed:false,overnightHoldingAllowed:false,transmitted:false};fs.mkdirSync('artifacts',{recursive:true});fs.writeFileSync('artifacts/phase57-p23-10b-fresh-persistence-holdout-aggregate.json',JSON.stringify(result,null,2));console.log(JSON.stringify(result,null,2));
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p23-10b-fresh-persistence-holdout-aggregate
+          path: artifacts/phase57-p23-10b-fresh-persistence-holdout-aggregate.json
+          if-no-files-found: error

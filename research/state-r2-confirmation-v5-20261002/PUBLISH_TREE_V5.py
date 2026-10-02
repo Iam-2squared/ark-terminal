@@ -7,4 +7,5 @@ if __name__=='__main__':
  files=[p for p in R.iterdir() if p.is_file() and (p.suffix=='.py' or p.name in ALLOWED)]
  files+=sorted((R/'CHECKPOINTS').glob('C*.json'))
  elements=[{'path':PREFIX+str(p.relative_to(R)),'type':'blob','mode':'100644','content':p.read_text()} for p in sorted(files)]
+ if len(sys.argv)==3:elements=elements[int(sys.argv[1])::int(sys.argv[2])]
  print(json.dumps({'tree_elements':elements},ensure_ascii=False))

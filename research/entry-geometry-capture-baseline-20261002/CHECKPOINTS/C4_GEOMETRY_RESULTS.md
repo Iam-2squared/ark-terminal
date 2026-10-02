@@ -1,0 +1,126 @@
+# 💾 C4_GEOMETRY_RESULTS
+
+## checkpoint
+
+C4
+
+## saved_at_jst
+
+2026-10-02T23:42:50.240460+09:00
+
+## basis_head
+
+987c0be273eb41a2a52b36d7ede627427921d2fd
+
+## previous_checkpoint_result_head
+
+987c0be273eb41a2a52b36d7ede627427921d2fd
+
+## current_status
+
+C4_GEOMETRY_COMPLETE_DESCRIPTIVE
+
+## completed_this_checkpoint
+
+```json
+[
+  "Produced all 13 requested descriptive table slots and full required continuous statistics",
+  "Produced 7 nonempty evaluator-only figures with arm, unit, total N and known N",
+  "Separated canonical Capture and strict-later sensitivity; preserved unknowns and untruncated retention"
+]
+```
+
+## key_evidence
+
+```json
+{
+  "opportunities": 2155,
+  "arm_rows": 4310,
+  "session_N": 58,
+  "symbol_N": 950,
+  "remaining_known_N": {
+    "IMMEDIATE": 1941,
+    "R1": 1868
+  },
+  "remaining_median_pct": {
+    "IMMEDIATE": 1.8721408526505945,
+    "R1": 1.6720650707150342
+  },
+  "retention_median_pct": {
+    "IMMEDIATE": 95.76006389328715,
+    "R1": 88.31555881978184
+  },
+  "figures": 7,
+  "State9_RC2": "NOT_AVAILABLE_EXACT_SOURCE_JOIN_NOT_CERTIFIED"
+}
+```
+
+## blockers
+
+```json
+[]
+```
+
+## current_direction
+
+Saved-evidence descriptive Entry Geometry; V6 closed STATE_R2_SIGNAL_NOT_REPLICATED; Hybrid next-spec only after integrity PASS
+
+## next_step
+
+C5 independent arithmetic audit from originals
+
+## frozen_boundaries
+
+```json
+[
+  "Selector / State9 RC2 / Path / targets unchanged",
+  "No new Entry decisions / fit / Replay / provider",
+  "No new partition exposure",
+  "No main merge / force push / orders",
+  "Fixed requested bucket edges",
+  "R2 probabilities/ranks not promoted"
+]
+```
+
+## exposure_and_budget
+
+```json
+{
+  "new_entry_model_fits": 0,
+  "state_model_fits": 0,
+  "exit_model_fits": 0,
+  "threshold_searches": 0,
+  "new_policy_replays": 0,
+  "provider_requests": 0,
+  "Protected_open": 0,
+  "Holdout_open": 0,
+  "Validation_new_open": 0,
+  "OOS_open": 0,
+  "Prospective_open": 0,
+  "orders": 0,
+  "paper_trades": 0,
+  "live_trades": 0,
+  "main_merges": 0,
+  "bootstrap": 0
+}
+```
+
+## safety
+
+```json
+{
+  "executionAllowed": false,
+  "brokerWriteAllowed": false,
+  "excelOrderWriteAllowed": false,
+  "rssOrderFunctionAllowed": false,
+  "liveTradingAllowed": false,
+  "paperTradingAllowed": false,
+  "automaticPromotionAllowed": false,
+  "productionUpdateAllowed": false,
+  "transmitted": false
+}
+```
+
+## result_head
+
+GitHub commit itself is authoritative; no future SHA predicted

@@ -1,0 +1,27 @@
+{
+  "status": "FROZEN_BEFORE_NEW_STATE_TIMELINE_COMPUTATION",
+  "JST": "2026-10-03T02:02:08.006237+09:00",
+  "code_sha256": "814eea59e9a377aa1cd7d7ee1d6fb290df8dbaca49e4ff873143e369965e42d2",
+  "RC2_source_bytes_changed": 0,
+  "M0_semantic_changes": 0,
+  "Path_semantic_changes": 0,
+  "source_proof_value_checks": 8691096,
+  "source_proof_run": 37033940669,
+  "source_proof_HEAD": "05dc632b2c1d08f585335ea728e1ed491fd8604d",
+  "private_original_source_SHA256": "20668479355fe37492a154ee80ea132b5af8bf2bf78269d90a2df5814d848dc7",
+  "input_rules": [
+    "source stream emits only a current closed bar to normalization and Engine.step",
+    "U/P_ref from previous day only, independently at80/120",
+    "current daily OHLC/terminal/labels excluded from classifier worker arguments",
+    "no whole-current-prefix validity gate affecting earlier decisions",
+    "semantic null/source unavailable kept distinct",
+    "source unavailable rows retained",
+    "no legacy State imports"
+  ],
+  "M0_execution": "factor the exact frozen expression into previous-day scale then single currently closed bar; first3 coordinates per Opportunity checked against unchanged generate() at80/120",
+  "Path_execution": "unchanged frozen validate and internal accepted-input _push; no rollback-fault certification",
+  "new_labels": 0,
+  "model_fits": 0,
+  "provider_requests": 0,
+  "protected_opens": 0
+}

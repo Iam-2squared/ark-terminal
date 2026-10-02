@@ -52,7 +52,7 @@ def main(m,groups,controls):
  csvout('PROMOTION_GATE_V4.csv',rows);csvout('MAJOR_METRIC_GAIN_GATE_V4.csv',gains)
  nullintegrity=[x for x in controls if x['task']=='CONTEXT_REVERSAL' and x['control']=='TRUE_NULL' and x['model'] in ['R2','R3','R4'] and x['calibrated'] and x['warning']]
  status='BLOCKED_V4_INTEGRITY' if nullintegrity else 'STATE_REVERSAL_INTELLIGENCE_DEV_CANDIDATE_READY_FOR_ENTRY_RESEARCH' if promoted else 'STATE_REVERSAL_INTELLIGENCE_MEASURED_NO_PROMOTABLE_SIGNAL' if adequate else 'STATE_REVERSAL_INTELLIGENCE_LIMITED_SAMPLE'
- save('GATE_ASSESSMENT_V4.json',{'status_pending_independent_audit':status,'integrity_control_PASS':not nullintegrity,'control_integrity_failures':nullintegrity,'core_rows':metric['row_N'],'core_dates':metric['date_N'],'core_folds':metric['fold_N'],'class_support':dict(support),'core_support_adequate':adequate,'promoted_models':promoted,'post_result_changes':0,'new_fits':0,'new_draws':0})
+ save('GATE_ASSESSMENT_V4.json',{'status_pending_independent_audit':status,'integrity_control_PASS':not nullintegrity,'control_integrity_failures':nullintegrity,'core_rows':metric['row_N'],'core_dates':metric['date_N'],'core_folds':metric['fold_N'],'class_support':dict(support),'core_support_adequate':adequate,'comparison_qualifying_before_global_integrity':promoted,'promoted_models':[] if nullintegrity else promoted,'post_result_changes':0,'new_fits':0,'new_draws':0})
  # Required file names and extra ECE/F1 deltas; all derived from identical fixed OOF.
  for src,dst in [('REVERSAL_METRICS_AGGREGATE_V4.csv','REVERSAL_METRICS_V4.csv')]:
   (R/dst).write_bytes((R/src).read_bytes())

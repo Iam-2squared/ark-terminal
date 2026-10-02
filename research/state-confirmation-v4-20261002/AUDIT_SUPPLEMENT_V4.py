@@ -49,7 +49,7 @@ def run(a,grouped,features,ratio,ci):
   comparisons[model].append(passed)
  promoted=sorted(k for k,v in comparisons.items() if all(v));nullfail=any(x['task']=='CONTEXT_REVERSAL' and x['control']=='TRUE_NULL' and x['model'] in ['R2','R3','R4'] and x['calibrated']=='True' and x['warning']=='True' for x in controls)
  status='BLOCKED_V4_INTEGRITY' if nullfail else 'STATE_REVERSAL_INTELLIGENCE_DEV_CANDIDATE_READY_FOR_ENTRY_RESEARCH' if promoted else 'STATE_REVERSAL_INTELLIGENCE_MEASURED_NO_PROMOTABLE_SIGNAL' if adequate else 'STATE_REVERSAL_INTELLIGENCE_LIMITED_SAMPLE';gate=a.jread('GATE_ASSESSMENT_V4.json')
- a.check(status==gate['status_pending_independent_audit'] and promoted==gate['promoted_models'] and gate['core_support_adequate']==adequate and gate['class_support']==dict(support),'independent_final_status_and_support')
+ a.check(status==gate['status_pending_independent_audit'] and ([] if nullfail else promoted)==gate['promoted_models'] and promoted==gate['comparison_qualifying_before_global_integrity'] and gate['core_support_adequate']==adequate and gate['class_support']==dict(support),'independent_final_status_and_support')
  # Incremental tables including risk and probability quality, with no helper calculations.
  for row in a.cread('R0_R1_R2_R3_R4_INCREMENTAL_V4.csv'):
   key=(row['task'],'REAL',row['calibrated']=='True');base=grouped.get((key[0],key[1],row['baseline'],key[2]),[]);test=grouped.get((key[0],key[1],row['model'],key[2]),[]);ct=a.jread('REVERSAL_TARGET_SCHEMA.json')['classes'][key[0]];am=a.metric_ref(base,ct);bm=a.metric_ref(test,ct)

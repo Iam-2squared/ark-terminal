@@ -63,7 +63,10 @@ def build(head,dst):
   assert z.testzip() is None,'FINAL_ZIP_CRC'
   assert len(z.namelist())==len(files)+1,'NO_MISSING_OR_EXTRA_MEMBERS'
   for x in files:
-   assert len(z.read(x['path']))==x['bytes'] and hashlib.sha256(z.read(x['path'])).hexdigest()==x['SHA256'],('ZIP_MEMBER_HASH',x['path'])
+   h=hashlib.sha256();size=0
+   with z.open(x['path']) as f:
+    for b in iter(lambda:f.read(1048576),b''):h.update(b);size+=len(b)
+   assert size==x['bytes'] and h.hexdigest()==x['SHA256'],('ZIP_MEMBER_HASH',x['path'])
   assert hashlib.sha256(z.read('INHERITED_V3_ORIGINAL/'+PARENT.name)).hexdigest()==sha(PARENT),'NESTED_PARENT_CHANGED'
  out={'JST':stamp(),'archive':str(dst),'bytes':dst.stat().st_size,'SHA256':sha(dst),'member_N':len(files)+1,'CRC_PASS':True,'all_member_hashes_PASS':True,'complete':True,'split_archives':False,'new_fits_draws_provider':0}
  (R/'DELIVERY_PACKAGE_RECEIPT.json').write_bytes(encoded(out));print(json.dumps(out))

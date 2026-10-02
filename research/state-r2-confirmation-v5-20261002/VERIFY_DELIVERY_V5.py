@@ -22,7 +22,13 @@ def main():
  calgate=cal['date_equal_LL']<=1.05*raw['date_equal_LL']+1e-12 and cal['Brier']<=1.05*raw['Brier']+1e-12
  concentration=all(float(row['share'])<=.5+1e-12 and int(row['positive_gross_N'])>0 for row in cs if row['group']=='MAXIMUM' and row['gate_applies']=='True')
  assert [sample,hard,reversal,calgate,concentration]==[g['sample_PASS'],g['dangerous_hard_PASS'],g['major_reversal_PASS'],g['calibration_PASS'],g['concentration_PASS']],'FINAL_GATE_RECONCILIATION'
- for i in range(8):assert json.loads((R/'CHECKPOINTS'/f'C{i}_POST_GET.json').read_text())['verified'],'CHECKPOINT_GET'
+ for i in range(8):
+  receipt=json.loads((R/'CHECKPOINTS'/f'C{i}_POST_GET.json').read_text())
+  if i==0:
+   # Initial C0 is the older minimal schema; it records actual GET SHA/tree,
+   # not the later optional verified bool. Do not rewrite original receipt.
+   assert receipt['post_commit_GET_HEAD']=='2afee683c889dd97418c7d9149bb21e28467aa03' and receipt['tree']=='c96d79d8451007d0f56d3d18e6aa39219c13ccf2','C0_ACTUAL_GET_IDENTITY'
+  else:assert receipt['verified'],'CHECKPOINT_GET'
  exposure=json.loads((R/'EXPOSURE_APPEND_ONLY_DELTA_V5.json').read_text())
  for n in ['Holdout','Protected','Entry','EXIT','profit','Fresh_validation_reserve','OOS','Prospective','orders','broker_write','external_AI','main_merge','force_push','State9_changes','Path_changes','profile_changes','M0_changes','target_changes','family_mapping_changes']:assert exposure[n]==0,n
  files=json.loads((R/'DELIVERY_MANIFEST.json').read_text())['files'];assert all(sha(R/r['path'])==r['SHA256'] for r in files),'MANIFEST_HASH'

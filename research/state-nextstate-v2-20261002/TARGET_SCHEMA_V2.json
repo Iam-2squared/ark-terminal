@@ -1,0 +1,58 @@
+{
+  "class_order": [
+    "RISE_STOP",
+    "RISE",
+    "SHARP_RISE",
+    "PULLBACK",
+    "RANGE",
+    "REBOUND",
+    "SHARP_DROP",
+    "DROP",
+    "DROP_STOP"
+  ],
+  "context": {
+    "DOWN_CONTEXT": [
+      "DROP",
+      "SHARP_DROP",
+      "REBOUND",
+      "DROP_STOP"
+    ],
+    "RANGE_CONTEXT": [
+      "RANGE"
+    ],
+    "UP_CONTEXT": [
+      "RISE",
+      "SHARP_RISE",
+      "PULLBACK",
+      "RISE_STOP"
+    ]
+  },
+  "motion": {
+    "DOWN_MOVE": [
+      "DROP",
+      "SHARP_DROP",
+      "PULLBACK"
+    ],
+    "NON_DIRECTIONAL_OR_STOP": [
+      "RANGE",
+      "RISE_STOP",
+      "DROP_STOP"
+    ],
+    "UP_MOVE": [
+      "RISE",
+      "SHARP_RISE",
+      "REBOUND"
+    ]
+  },
+  "null_not_class": true,
+  "primary": [
+    "NEXT_DISTINCT_PRIMARY",
+    "TRANSITION_WITHIN30"
+  ],
+  "secondary": [
+    "NEXT_OBSERVED_PRIMARY",
+    "PRICE_H5",
+    "PRICE_H15",
+    "PRICE_H30"
+  ]
+}

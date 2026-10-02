@@ -1,5 +1,5 @@
 from pathlib import Path
-import csv,json,hashlib,numpy as np,matplotlib
+import csv,json,hashlib,sys,numpy as np,matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 R=Path(__file__).resolve().parent;D=R/'CHARTS';D.mkdir(exist_ok=True)
@@ -8,6 +8,14 @@ def read(n):return list(csv.DictReader((R/n).open()))
 def val(x):return float(x) if x not in ('','None',None) else np.nan
 def export(fig,n):
  fig.tight_layout();fig.savefig(D/(n+'.png'),dpi=150);fig.savefig(D/(n+'.svg'));plt.close(fig)
+def fold_chart(tasks,models,byfold):
+ fig,axes=plt.subplots(1,2,figsize=(12,5))
+ for ax,task in zip(axes,tasks):
+  for model in models:
+   rows=[next(r for r in byfold if r['task']==task and r['control']=='REAL' and r['model']==model and r['fold']==str(f)) for f in [1,2,3]]
+   ax.plot([1,2,3],[val(r['macro_F1']) if int(r['row_N']) else np.nan for r in rows],marker='o',label=model)
+  ax.set_xticks([1,2,3],['1','2','3\nNO EVALUATION']);ax.set_xlim(.85,3.15);ax.axvspan(2.8,3.15,color='grey',alpha=.12);ax.set_xlabel('Chronological fold (empty is not a zero score)');ax.set_ylabel('Macro F1');ax.set_title(task);ax.legend()
+ export(fig,'07_fold_stability')
 def main():
  states=read('PER_STATE_PRECISION_RECALL_F1.csv');models=['B0','B1','B2','B3'];classes=json.loads((R/'TARGET_SCHEMA_V2.json').read_text())['class_order'];tasks=['NEXT_DISTINCT_PRIMARY','NEXT_OBSERVED_PRIMARY'];metrics=read('MODEL_METRICS_AGGREGATE.csv');byfold=read('MODEL_METRICS_BY_FOLD.csv')
  for measure in ['Precision','Recall']:
@@ -39,11 +47,7 @@ def main():
   for j,model in enumerate(models):ax.bar(np.arange(3)+(j-1.5)*.18,[100*val(next(r['Precision'] for r in fam if r['task']==task and r['control']=='REAL' and r['model']==model and r['family']==f)) for f in fs],width=.17,label=model)
   ax.set_xticks(range(3),fs);ax.set_title(task);ax.set_ylabel('Precision (%)');ax.set_ylim(0,105);ax.legend(ncol=4)
  export(fig,'06_motion_family_precision')
- fig,axes=plt.subplots(1,2,figsize=(12,5))
- for ax,task in zip(axes,tasks):
-  for model in models:ax.plot([1,2,3],[val(next(r['macro_F1'] for r in byfold if r['task']==task and r['control']=='REAL' and r['model']==model and r['fold']==str(f))) for f in [1,2,3]],marker='o',label=model)
-  ax.set_xticks([1,2,3]);ax.set_xlabel('Chronological fold (empty retained)');ax.set_ylabel('Macro F1');ax.set_title(task);ax.legend()
- export(fig,'07_fold_stability')
+ fold_chart(tasks,models,byfold)
  fig,axes=plt.subplots(2,1,figsize=(12,8))
  for ax,task in zip(axes,tasks):
   data=[next(r for r in states if r['task']==task and r['control']=='REAL' and r['model']=='B3' and r['State']==c) for c in classes];ax.bar(np.arange(9)-.2,[int(r['Predicted_N']) for r in data],width=.38,label='B3 Predicted');ax.bar(np.arange(9)+.2,[int(r['Actual_N']) for r in data],width=.38,label='Actual');ax.axhline(50,ls='--',color='grey',label='Support floor 50');ax.set_xticks(range(9),classes,rotation=20,ha='right');ax.set_title(task);ax.set_ylabel('OOF endpoint count (not IID)');ax.legend()
@@ -61,4 +65,9 @@ def main():
  export(fig,'11_price_secondary')
  files=[{'path':str(p.relative_to(R)),'bytes':p.stat().st_size,'SHA256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in sorted(D.iterdir()) if p.is_file()]
  (R/'CHART_MANIFEST.json').write_text(json.dumps({'charts':11,'files':files,'source':'Immutable CSV metrics only','new_model_fits':0},indent=2)+'\n');print(json.dumps({'charts':11,'files':len(files)}))
-if __name__=='__main__':main()
+if __name__=='__main__':
+ if sys.argv[1:]==['--fold-only']:
+  fold_chart(['NEXT_DISTINCT_PRIMARY','NEXT_OBSERVED_PRIMARY'],['B0','B1','B2','B3'],read('MODEL_METRICS_BY_FOLD.csv'))
+  files=[{'path':str(p.relative_to(R)),'bytes':p.stat().st_size,'SHA256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in sorted(D.iterdir()) if p.is_file()]
+  (R/'CHART_MANIFEST.json').write_text(json.dumps({'charts':11,'files':files,'source':'Immutable CSV metrics only; empty fold masked from plotted scores','new_model_fits':0,'focused_renderer_repair_N':1},indent=2)+'\n');print(json.dumps({'focused_redraw':1,'metric_changes':0}))
+ else:main()

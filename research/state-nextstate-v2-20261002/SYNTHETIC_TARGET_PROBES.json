@@ -1,0 +1,118 @@
+{
+  "probes": [
+    {
+      "id": "HOLD",
+      "task": "NEXT_DISTINCT_PRIMARY",
+      "PASS": true,
+      "expected": [
+        false,
+        null,
+        null,
+        "NO_TRANSITION_WITHIN30"
+      ]
+    },
+    {
+      "id": "HOLD_BINARY",
+      "task": "TRANSITION_WITHIN30",
+      "PASS": true,
+      "expected": [
+        true,
+        "NO_TRANSITION",
+        "T030",
+        null
+      ]
+    },
+    {
+      "id": "HOLD_NEXT",
+      "task": "NEXT_OBSERVED_PRIMARY",
+      "PASS": true,
+      "expected": [
+        true,
+        "RISE",
+        "T001",
+        null
+      ]
+    },
+    {
+      "id": "EARLY_TRANSITION_LATER_NULL",
+      "task": "NEXT_DISTINCT_PRIMARY",
+      "PASS": true,
+      "expected": [
+        true,
+        "RISE_STOP",
+        "T003",
+        null
+      ]
+    },
+    {
+      "id": "BINARY_REQUIRES_FULL_OBSERVED",
+      "task": "TRANSITION_WITHIN30",
+      "PASS": true,
+      "expected": [
+        false,
+        null,
+        null,
+        "NULL_GAP_OR_AUCTION"
+      ]
+    },
+    {
+      "id": "NO_NULL_SKIP",
+      "task": "NEXT_OBSERVED_PRIMARY",
+      "PASS": true,
+      "expected": [
+        false,
+        null,
+        null,
+        "NULL_GAP_OR_AUCTION"
+      ]
+    },
+    {
+      "id": "NO_RESET_CROSS",
+      "task": "NEXT_DISTINCT_PRIMARY",
+      "PASS": true,
+      "expected": [
+        false,
+        null,
+        null,
+        "SEGMENT_BREAK"
+      ]
+    },
+    {
+      "id": "FIRST_EVENT",
+      "task": "NEXT_DISTINCT_PRIMARY",
+      "PASS": true,
+      "expected": [
+        true,
+        "SHARP_RISE",
+        "T001",
+        null
+      ]
+    },
+    {
+      "id": "EXACT30",
+      "task": "NEXT_DISTINCT_PRIMARY",
+      "PASS": true,
+      "expected": [
+        true,
+        "PULLBACK",
+        "T030",
+        null
+      ]
+    },
+    {
+      "id": "AFTER30_NOT_ELIGIBLE",
+      "task": "NEXT_DISTINCT_PRIMARY",
+      "PASS": true,
+      "expected": [
+        false,
+        null,
+        null,
+        "NO_TRANSITION_WITHIN30"
+      ]
+    }
+  ],
+  "assertions": 20,
+  "mismatches": 0,
+  "market_lookahead": 0,
+  "kernel_reruns": 0
+}

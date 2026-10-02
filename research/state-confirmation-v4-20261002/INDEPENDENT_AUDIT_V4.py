@@ -3,7 +3,7 @@ Normal equations are checked without solving or refitting. Saved bootstrap only.
 """
 from pathlib import Path
 from collections import Counter,defaultdict
-import json,csv,hashlib,math,statistics,importlib.util
+import json,csv,hashlib,math,statistics,importlib.util,sys
 import numpy as np
 R=Path(__file__).resolve().parent
 CHECKS=Counter();ERRORS=[];MISMATCH=0
@@ -149,6 +149,8 @@ def main():
     for pair in manifest['pairs']:
         f=Path(pair['feature_path']);check(sha(f)==pair['feature_SHA256'],'feature_file_hash',pair['pair_id']);original=Path(pair['original_feature_path']);check(sha(original)==pair['original_feature_SHA256'],'original_feature_hash',pair['pair_id']);trace=Path(pair['trace_path']);check(sha(trace)==pair['state_trace_SHA256'],'trace_hash',pair['pair_id'])
         stream=list(map(json.loads,f.read_text().splitlines()));old=list(map(json.loads,original.read_text().splitlines()));traces=list(map(json.loads,trace.read_text().splitlines()))
+        import AUDIT_TRACE_PREFIX_V4
+        AUDIT_TRACE_PREFIX_V4.run(sys.modules[__name__],stream,traces)
         lab=list(map(json.loads,(R/'LABELS'/f"{pair['pair_id']}.jsonl").read_text().splitlines()));check(len(stream)==len(lab)==len(old)==len(traces),'pair_length',pair['pair_id'])
         index={r['tradable_index']:i for i,r in enumerate(stream) if r['tradable_index'] is not None};an=anatomy_oracle(stream)
         for i,(r,prior,l) in enumerate(zip(stream,old,lab)):
@@ -271,7 +273,6 @@ def main():
         warning=row['model'] in ['R2','R3','R4'] and (bm['date_equal_log_loss'] is not None and am['date_equal_log_loss'] is not None and bm['date_equal_log_loss']<=am['date_equal_log_loss']+1e-12 or parse(row['REAL_gain_vs_R1']) is not None and float(row['REAL_gain_vs_R1'])>0 and float(row['control_gain_vs_R1'])>=.9*float(row['REAL_gain_vs_R1']))
         check((row['warning']=='True')==warning,'fixed_control_warning',str(key))
     import AUDIT_SUPPLEMENT_V4
-    import sys
     expected=AUDIT_SUPPLEMENT_V4.run(sys.modules[__name__],grouped,features,ratio,ci)
     caps=jread('BUDGET_START_V4.json')['finite_caps'];runner=jread('NEW_DEVELOPMENT/RUNNER_FINAL_RECEIPT.json')
     check(len(ledger)<=caps['fit_operations'] and runner['provider_requests']<=caps['provider_HTTP_requests'] and runner['new_steps']<=caps['new_frozen_steps'] and len(manifest['pairs'])<=caps['completed_pairs'] and len(boot['draws'])<=caps['bootstrap_generated_vectors'],'finite_compute_budget')

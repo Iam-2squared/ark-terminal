@@ -11,9 +11,9 @@ DATES=BOOT['dates']; DI={d:i for i,d in enumerate(DATES)}
 COUNTS=np.array([np.bincount(v,minlength=len(DATES)) for v in BOOT['draws']],float)
 assert len(COUNTS)==1000
 def save(n,x): (R/n).write_text(json.dumps(x,sort_keys=True,indent=2)+'\n')
-def csvout(n,rows):
+def csvout(n,rows,columns=None):
     with (R/n).open('w') as stream:
-        writer=csv.DictWriter(stream,fieldnames=list(rows[0]) if rows else ['status'])
+        writer=csv.DictWriter(stream,fieldnames=list(rows[0]) if rows else columns or ['status'])
         writer.writeheader();writer.writerows(rows)
 def loadcsv(n):return list(csv.DictReader((R/n).open()))
 def ratio_draw(rows,numerator,denominator):
@@ -139,7 +139,7 @@ def main():
                 lo,hi,valid=interval(ratio_draw(rr,lambda r:r['actual']==c,lambda r:True))
                 base.update({c+'_N':counts[c],c+'_rate':counts[c]/len(rr),c+'_CI95_low':lo,c+'_CI95_high':hi,c+'_valid_global_draws':valid})
             table.append(base)
-        csvout(f'PATH_ANATOMY_LENGTH{length}_V4.csv',table)
+        csvout(f'PATH_ANATOMY_LENGTH{length}_V4.csv',table,['length','sequence','history_complete','N','date_N','security_N','supported_descriptive_sequence']+[c+s for c in CLASSES['CONTEXT_REVERSAL'] for s in ['_N','_rate','_CI95_low','_CI95_high','_valid_global_draws']])
         supportsummary.append({'length':length,'anchor_N':sum(x['N'] for x in table),'sequence_N':len(table),
             'complete_history_anchor_N':sum(x['N'] for x in table if x['history_complete']),
             'supported_sequence_N':sum(x['supported_descriptive_sequence'] for x in table),

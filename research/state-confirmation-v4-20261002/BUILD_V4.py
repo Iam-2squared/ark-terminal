@@ -33,7 +33,9 @@ def prepare():
     assert r['feature_max_timestamp']<=r['bar_end'] and r['anatomy_source_max_timestamp']<=r['bar_end'],'FEATURE_FUTURE'
     r['exposure']=exposure;f.write(json.dumps(r,sort_keys=True,separators=(',',':'))+'\n');counts['observed' if r['audit_source']['observed'] else 'null']+=1
   tr=R/'STATE9_TRACES'/f'{pid}.jsonl';tr.parent.mkdir(exist_ok=True);shutil.copyfile(trace,tr)
-  p.update(original_feature_path=str(source),original_feature_SHA256=sha(source),feature_path=str(out),feature_SHA256=sha(out),trace_path=str(tr),exposure=exposure,original_exposure=original.get('exposure','V4_NEW_DEV_EVAL'),old_label_path=str(P/'LABELS'/f'{pid}.jsonl') if isold else None)
+  endpoint_source=(Path(original['original_feature_path']).parent.parent if isold else exp)/'PATH_ENDPOINTS'/f'{pid}.jsonl'
+  assert sha(endpoint_source)==p['path_endpoint_SHA256'],'PATH_ENDPOINT_IDENTITY'
+  p.update(original_feature_path=str(source),original_feature_SHA256=sha(source),feature_path=str(out),feature_SHA256=sha(out),trace_path=str(tr),path_endpoint_path=str(endpoint_source),exposure=exposure,original_exposure=original.get('exposure','V4_NEW_DEV_EVAL'),old_label_path=str(P/'LABELS'/f'{pid}.jsonl') if isold else None)
   pairs.append(p)
  alldates=sorted({p['date'] for p in pairs});newdates=sorted({p['date'] for p in pairs if p['exposure']=='V4_NEW_DEV_EVAL'});plan=json.loads((R/'SPLIT_PLAN_V4.json').read_text());exposed=set(plan['old_exposed_dates_training_only'])
  assert not exposed.intersection(newdates),'PARTITION_CONTAMINATION'

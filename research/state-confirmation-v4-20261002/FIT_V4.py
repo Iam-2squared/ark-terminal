@@ -80,6 +80,7 @@ def fit(train,test,Y,model,schema,task,control,fold,classes):
 def main():
  for n,h in json.loads((R/'PREDICTIVENESS_V4_PRECOMMIT.json').read_text())['hashes'].items():assert sha(R/n)==h,'PRECOMMIT_CHANGED'
  assert not (R/'OOF_ALL.jsonl').exists(),'OOF_ALREADY_FIXED'
+ if not (R/'MODEL_EXECUTION_LEDGER.jsonl').exists():(R/'MODEL_EXECUTION_LEDGER.jsonl').touch()
  schema=json.loads((R/'FEATURE_SCHEMA_V4.json').read_text());ts=json.loads((R/'REVERSAL_TARGET_SCHEMA.json').read_text());folds=json.loads((R/'SPLIT_REALIZED_V4.json').read_text())['folds'];manifest=json.loads((R/'DATASET_MANIFEST_V4.json').read_text());features=[];labels={}
  for p in manifest['pairs']:
   f=Path(p['feature_path']);assert sha(f)==p['feature_SHA256'];features.extend(map(json.loads,f.read_text().splitlines()));labels.update({r['row_key']:r for r in map(json.loads,(R/'LABELS'/f"{p['pair_id']}.jsonl").read_text().splitlines())})

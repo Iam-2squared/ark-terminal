@@ -1,0 +1,17 @@
+{
+  "phase": "INDEPENDENT_CHECKER_RUNTIME_REPAIR_ONLY",
+  "failed_attempt_N": 1,
+  "failed_attempt_source_SHA256": "1d74ed57ec4c6f2d10afbe502ea2f52146c54c561aa66e2b61ad9b813fe23254",
+  "failure": "ZeroDivisionError in Path rate check after the independent grouping container stayed empty",
+  "root_cause": "Mechanical relocation replaced defaultdict indexed append with get(key,[]).append, which appended to a temporary unstored list.",
+  "repair": "Restore indexed append for writes, preserve safe get for reads, add an exact all-OOF-records-grouped assertion, and retain assertion counts if a future runtime exception occurs.",
+  "scope": "Checker assembly only. No candidate helper import, no candidate prediction, target, split, feature, metric, control or gate changed.",
+  "replay_reason": "The failed process did not persist its earlier prefix/model assertions; they cannot be claimed PASS from an unfinished attempt. Read-only verification is replayed to produce a complete auditable result.",
+  "contract_scope_split_target_feature_model_calibration_gate_changes": 0,
+  "new_provider_requests": 0,
+  "new_fits": 0,
+  "new_bootstrap_draws": 0,
+  "new_State9_Path_kernel_steps": 0,
+  "new_evaluation_labels_generated": 0,
+  "V3_overwritten": 0
+}

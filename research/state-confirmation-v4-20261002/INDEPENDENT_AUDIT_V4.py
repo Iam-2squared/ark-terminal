@@ -178,8 +178,9 @@ def main():
     def target(key,task,control):return labels[donors.get((task,key),key) if control=='TRUE_NULL' else key]['REAL' if control=='TRUE_NULL' else control][task]
     oof=list(map(json.loads,(R/'OOF_ALL.jsonl').open()));byfit=defaultdict(list);grouped=defaultdict(list);foldgroups=defaultdict(list)
     for r in oof:
-        byfit[r['fit_path']].append(r);key=(r['task'],r['control'],r['model'],r['calibrated']);grouped.get(key,[]).append(r);foldgroups[key+(r['fold'],)].append(r)
+        byfit[r['fit_path']].append(r);key=(r['task'],r['control'],r['model'],r['calibrated']);grouped[key].append(r);foldgroups[key+(r['fold'],)].append(r)
         check(foldmap.get(r['date'])==r['fold'] and r['exposure']=='V4_NEW_DEV_EVAL','OOF_fixed_new_date_fold',r['row_key'])
+    check(sum(len(v) for v in grouped.values())==len(oof),'OOF_all_records_grouped')
     receipt=jread('C5_OOF_FIXATION_RECEIPT.json');check(sha(R/'OOF_ALL.jsonl')==receipt['OOF_SHA256'] and len(oof)==receipt['classification_records'],'C5_exact_OOF_identity')
     ledger=list(map(json.loads,(R/'MODEL_EXECUTION_LEDGER.jsonl').read_text().splitlines()));check([x['fit_N'] for x in ledger]==list(range(1,len(ledger)+1)) and all(x['charged_before_fit'] for x in ledger),'append_before_fit_contiguous_ledger');ordinals=[]
     for item in jread('FIT_INDEX_V4.json')['items']:
@@ -263,7 +264,7 @@ def main():
             rr=[r for r in primary if seq(r['row_key'],length)==row['sequence']];check(len(rr)==int(row['N']) and len({r['date'] for r in rr})==int(row['date_N']) and len({r['security_id'] for r in rr})==int(row['security_N']),'direct_anatomy_support',row['sequence'])
             for c in classes['CONTEXT_REVERSAL']:
                 n=sum(r['actual']==c for r in rr);lo,hi,valid=ci(ratio(rr,lambda r:r['actual']==c,lambda r:True))
-                check(n==int(row[c+'_N']) and near(n/len(rr),parse(row[c+'_rate'])) and near(lo,parse(row[c+'_CI95_low'])) and near(hi,parse(row[c+'_CI95_high'])),'direct_anatomy_class_rate_CI',row['sequence']+':'+c)
+                check(n==int(row[c+'_N']) and near(n/len(rr) if rr else None,parse(row[c+'_rate'])) and near(lo,parse(row[c+'_CI95_low'])) and near(hi,parse(row[c+'_CI95_high'])),'direct_anatomy_class_rate_CI',row['sequence']+':'+c)
     for row in cread('NEGATIVE_CONTROL_V4.csv'):
         key=(row['task'],'REAL',row['model'],row['calibrated']=='True');a={r['row_key']:r for r in grouped.get(key,[])};b={r['row_key']:r for r in grouped.get((row['task'],row['control'],row['model'],row['calibrated']=='True'),[])};keys=sorted(a.keys()&b.keys());ar=[a[k] for k in keys];br=[b[k] for k in keys]
         am=metric_ref(ar,classes[row['task']])[0];bm=metric_ref(br,classes[row['task']])[0]
@@ -284,4 +285,8 @@ def main():
         'raw_scope':'Exact derived values and saved source hashes checked; purged full provider responses not re-downloaded.'}
     (R/'INDEPENDENT_AUDIT_V4.json').write_text(json.dumps(result,sort_keys=True,indent=2)+'\n');print(json.dumps({k:v for k,v in result.items() if k not in ['counts','errors']}));print(json.dumps(ERRORS[:10]))
     if MISMATCH:raise SystemExit(1)
-if __name__=='__main__':main()
+if __name__=='__main__':
+    try:main()
+    except Exception as exc:
+        (R/'INDEPENDENT_AUDIT_RUNTIME_FAILURE_V4.json').write_text(json.dumps({'status':'RUNTIME_FAILURE','exception':type(exc).__name__,'message':str(exc),'assertion_N':sum(CHECKS.values()),'mismatch_N':MISMATCH,'counts':dict(CHECKS),'errors':ERRORS,'new_fits':0,'new_draws':0},sort_keys=True,indent=2)+'\n')
+        raise

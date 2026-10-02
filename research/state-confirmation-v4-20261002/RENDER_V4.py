@@ -30,7 +30,7 @@ def main():
  for ax,state in zip(axs,['DOWN_REVERSAL','UP_CONTINUE']):
   sub=p[p['class']==state].set_index('model').reindex(M)
   for j,(k,color) in enumerate(zip(['Precision','Recall','F1'],['#0284c7','#d97706','#059669'])):ax.bar(x+(j-1)*.24,sub[k]*100,.24,label=k,color=color)
-  ax.set(xticks=x,xticklabels=M,ylabel='Percent',ylim=(0,108),title=state);ax.legend(fontsize=8)
+  ax.set(xticks=x,xticklabels=M,ylabel='Percent',ylim=(0,108),title=state);ax.legend(fontsize=8,loc='upper center',bbox_to_anchor=(.5,-.10),ncol=3)
   for i,r in enumerate(sub.itertuples()):ax.text(i,103,f'actual {int(r.Actual_N)}\npred {int(r.Predicted_N)}',va='top',ha='center',fontsize=8)
  write(fig,'03_down_up_precision_recall_f1',['REVERSAL_PER_CLASS_METRICS_V4.csv'],'DOWN recall measures missed reversals; dangerous error uses predicted UP denominator')
  buckets=real(read('CALIBRATION_BUCKETS_V4.csv'));buckets=buckets[buckets.task=='CONTEXT_REVERSAL'];fig,ax=plt.subplots(figsize=(8,6))
@@ -45,7 +45,7 @@ def main():
  write(fig,'05_down_probability_vs_actual',['CALIBRATION_BUCKETS_V4.csv'],'DOWN probability vs actual rate, with bucket support; empty buckets are not zero rates')
  folds=real(read('REVERSAL_METRICS_BY_FOLD_V4.csv'));folds=folds[folds.task=='CONTEXT_REVERSAL'];fig,axs=plt.subplots(1,3,figsize=(15,4.8))
  for model,color in zip(M,C):
-  s=folds[folds.model==model].sort_values('fold');axs[0].plot(s.fold,s.macro_F1*100,'o-',label=model,color=color);axs[1].plot(s.fold,s.date_equal_log_loss,'o-',color=color);r=risk[(risk.model==model)&(risk.group_kind=='FOLD')].sort_values('group');axs[2].plot(r.group.astype(int),r.rate*100,'o-',color=color)
+  s=folds[folds.model==model].sort_values('fold');axs[0].plot(s.fold,s.macro_F1.where(s.row_N>0,np.nan)*100,'o-',label=model,color=color);axs[1].plot(s.fold,s.date_equal_log_loss,'o-',color=color);r=risk[(risk.model==model)&(risk.group_kind=='FOLD')].sort_values('group');axs[2].plot(r.group.astype(int),r.rate*100,'o-',color=color)
  for ax,label in zip(axs,['Macro F1 (%)','Date-equal log loss','UP-to-DOWN error (%)']):ax.set(xticks=[1,2,3],xlabel='Fixed chronological fold',ylabel=label);ax.grid(alpha=.15)
  axs[0].legend();write(fig,'06_fold_stability',['REVERSAL_METRICS_BY_FOLD_V4.csv','UP_TO_DOWN_DANGEROUS_FALSE_POSITIVE_V4.csv'],'Fixed folds retain missing dates; no availability-driven refolding')
  fig,axs=plt.subplots(2,1,figsize=(13,8))

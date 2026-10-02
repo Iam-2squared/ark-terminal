@@ -31,6 +31,7 @@ src=src.replace("'original63_features_unchanged'","'original_saved_features_unch
 src=src.replace("all(r['date']<min(x['date'] for x in test) and target", "all(r['date']<fold['test_dates'][0] and target")
 src=src.replace("==jread('FIT_INDEX_V4.json')['fit_operations']==576", "==jread('FIT_INDEX_V4.json')['fit_operations']")
 src=src.replace("grouped[key]", "grouped.get(key,[])").replace("grouped[('CONTEXT_REVERSAL','REAL',row['model'],True)]", "grouped.get(('CONTEXT_REVERSAL','REAL',row['model'],True),[])").replace("grouped[('CONTEXT_REVERSAL','REAL','R0',True)]", "grouped.get(('CONTEXT_REVERSAL','REAL','R0',True),[])")
+src=src.replace("grouped.get(key,[]).append(r)","grouped[key].append(r)")
 src=src.replace("grouped[(row['task'],row['control'],row['model'],row['calibrated']=='True')]", "grouped.get((row['task'],row['control'],row['model'],row['calibrated']=='True'),[])")
 src=src.replace("bm['date_equal_log_loss']<=am['date_equal_log_loss']", "am['date_equal_log_loss'] is not None and bm['date_equal_log_loss']<=am['date_equal_log_loss']+1e-12")
 start=src.index("    for row in cread('PROMOTION_GATE_V3.csv'):");end=src.index("    caps=jread('BUDGET_START_V3.json')",start);src=src[:start]+"    import AUDIT_SUPPLEMENT_V4\n    expected=AUDIT_SUPPLEMENT_V4.run(sys.modules[__name__],grouped,features,ratio,ci)\n"+src[end:]

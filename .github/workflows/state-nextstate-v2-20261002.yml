@@ -1,0 +1,51 @@
+name: State NextState V2 Development Export
+on:
+  push:
+    branches: [state-predictiveness-v2-nextstate-20261002-v1]
+    paths: ['.github/workflows/state-nextstate-v2-20261002.yml', 'research/state-nextstate-v2-20261002/payload.b64']
+permissions:
+  contents: read
+concurrency:
+  group: state-nextstate-v2-20261002
+  cancel-in-progress: false
+jobs:
+  development-export:
+    if: github.ref == 'refs/heads/state-predictiveness-v2-nextstate-20261002-v1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify source package
+        run: |
+          python - <<'PY'
+          import pathlib,os,zipfile,base64,io,hashlib
+          b=base64.b64decode(pathlib.Path('research/state-nextstate-v2-20261002/payload.b64').read_bytes())
+          assert hashlib.sha256(b).hexdigest()=='bb04f54a28f23832da16a94e0f922f7680fb1d70cdb59687d408e11e0d06f9c9'
+          with zipfile.ZipFile(io.BytesIO(b)) as z:
+              assert all(not n.startswith('/') and '..' not in pathlib.PurePosixPath(n).parts for n in z.namelist())
+              z.extractall(pathlib.Path(os.environ['RUNNER_TEMP'])/'state-nextstate-v2-code')
+          PY
+      - name: Authorized Development temporary raw and frozen export
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          STATE9_AUDIT_RAW: ${{ runner.temp }}/state-nextstate-v2-raw
+          STATE9_AUDIT_OUT: ${{ runner.temp }}/state-nextstate-v2-evidence
+        run: python "$RUNNER_TEMP/state-nextstate-v2-code/export_expansion.py"
+      - name: Purge exact temporary directory
+        if: always()
+        run: |
+          python - <<'PY'
+          import pathlib,os,shutil,json
+          raw=pathlib.Path(os.environ['RUNNER_TEMP'])/'state-nextstate-v2-raw'
+          if raw.exists():shutil.rmtree(raw)
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'state-nextstate-v2-evidence';out.mkdir(exist_ok=True)
+          (out/'WORKFLOW_PURGE_RECEIPT.json').write_text(json.dumps({'verified':not raw.exists(),'secret_export':0})+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: state-nextstate-v2-development-${{ github.run_id }}
+          path: ${{ runner.temp }}/state-nextstate-v2-evidence
+          retention-days: 7

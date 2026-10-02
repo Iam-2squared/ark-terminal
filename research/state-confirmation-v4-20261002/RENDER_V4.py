@@ -62,11 +62,11 @@ def main():
  for outcome,num in [('DOWN_REVERSAL','09'),('UP_CONTINUE','10')]:
   fig,axs=plt.subplots(3,1,figsize=(13,12));any_supported=False
   for length,ax in zip([2,3,4],axs):
-   tab=read(paths[length-1]);good=tab[(tab.supported_descriptive_sequence==True)&(tab[outcome+'_N']>0)];any_supported |=len(good)>0
+   tab=read(paths[length-1]);good=tab[(tab.supported_descriptive_sequence==True)&(tab[outcome+'_N']>0)];qualified=len(good)>0;any_supported |=qualified
    if good.empty:good=tab[(tab.history_complete==True)&(tab[outcome+'_N']>0)]
    t=good.sort_values(['N','sequence'],ascending=[False,True]).head(8).iloc[::-1];y=np.arange(len(t));v=t[outcome+'_rate']*100;ax.barh(y,v,color='#0284c7' if num=='09' else '#059669');ax.hlines(y,t[outcome+'_CI95_low']*100,t[outcome+'_CI95_high']*100,color='#334155')
-   labels=[f'{r.sequence}  N={int(r.N)}, days={int(r.date_N)}, sec={int(r.security_N)}' for r in t.itertuples()];ax.set(yticks=y,yticklabels=labels,xlim=(0,104),xlabel=outcome+' rate (%)',title=f'Length{length}: ranked by support, not rate')
-  write(fig,num+'_top_'+outcome.lower()+'_paths',paths[1:],'Supported descriptive paths' if any_supported else 'No supported path: highest observed supports shown, NOT promoted rules')
+   labels=[f'{r.sequence}  N={int(r.N)}, days={int(r.date_N)}, sec={int(r.security_N)}' for r in t.itertuples()];ax.set(yticks=y,yticklabels=labels,xlim=(0,104),xlabel=outcome+' rate (%)',title=f'Length{length}: '+('support gate PASS only' if qualified else 'below gate, highest observed supports')+'; ranked by support')
+  write(fig,num+'_top_'+outcome.lower()+'_paths',paths[1:],'Descriptive paths: support qualification is stated for each panel' if any_supported else 'No supported path: highest observed supports shown, NOT promoted rules')
  v2src=Path('/workspace/scratch/a1e749e0bd6c/state_predictiveness_v2_nextstate_20261002_v1/PER_STATE_PRECISION_RECALL_F1.csv');dst=R/'INHERITED_V2/PER_STATE_PRECISION_RECALL_F1.csv';dst.parent.mkdir(exist_ok=True);shutil.copyfile(v2src,dst)
  v3src=Path('/workspace/scratch/a1e749e0bd6c/state_predictiveness_v3_reversal_20261002_v1/PER_STATE_PRECISION_RECALL_F1_V3.csv');shutil.copyfile(v3src,R/'INHERITED_V3/PER_STATE_PRECISION_RECALL_F1_V3.csv')
  v2=read(str(dst.relative_to(R)));v3=read('INHERITED_V3/PER_STATE_PRECISION_RECALL_F1_V3.csv');v4=read('PER_STATE_PRECISION_RECALL_F1_V4.csv');states=json.loads((R/'REVERSAL_TARGET_SCHEMA.json').read_text())['classes']['NEXT_DISTINCT_PRIMARY'];short=['RS','R','SR','PB','RG','RB','SD','D','DS'];fig,axs=plt.subplots(2,3,figsize=(17,8))

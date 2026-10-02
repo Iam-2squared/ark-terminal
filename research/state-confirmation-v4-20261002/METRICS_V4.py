@@ -66,14 +66,14 @@ def risk(rows,predicted='UP_CONTINUE',actual='DOWN_REVERSAL'):
     return {'predicted_N':pn,'opposite_actual_N':dn,'rate':dn/pn if pn else None,'CI95_low':lo,'CI95_high':hi,
         'valid_global_draws':valid,'date_N':len({r['date'] for r in rows if r['predicted']==predicted}),
         'security_N':len({r['security_id'] for r in rows if r['predicted']==predicted}),
-        'row_N':len(rows),'sampling_unit':'DATE_CLUSTER_REPEATED_ANCHORS_NOT_INDEPENDENT_TRADES'}
+        'row_N':len(rows),'cluster_CI_informative':len({r['date'] for r in rows if r['predicted']==predicted})>=2,'sampling_unit':'DATE_CLUSTER_REPEATED_ANCHORS_NOT_INDEPENDENT_TRADES'}
 def precision_draw(rows,c):return ratio_draw(rows,lambda r:r['predicted']==c and r['actual']==c,lambda r:r['predicted']==c)
 def danger_draw(rows):return ratio_draw(rows,lambda r:r['predicted']=='UP_CONTINUE' and r['actual']=='DOWN_REVERSAL',lambda r:r['predicted']=='UP_CONTINUE')
 def sequence(row,length):
     history=[x['primary'] for x in row['anatomy_history']][-length:]
     return '>'.join(['<MISSING>']*(length-len(history))+history)
 def main():
-    rows=list(map(json.loads,(R/'OOF_ALL.jsonl').read_text().splitlines()))
+    rows=list(map(json.loads,(R/'OOF_ALL.jsonl').open()))
     groups=defaultdict(list);foldgroups=defaultdict(list)
     for row in rows:
         key=(row['task'],row['control'],row['model'],row['calibrated']);groups[key].append(row);foldgroups[key+(row['fold'],)].append(row)

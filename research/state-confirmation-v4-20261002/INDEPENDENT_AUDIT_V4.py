@@ -176,7 +176,7 @@ def main():
     for group,rr in pergroups.items():
         rr.sort(key=lambda r:r['feature_key']);seed=int(hashlib.sha256(('2026100402|'+group[0]+'|'+'|'.join(group[1:])).encode()).hexdigest()[:16],16);perm=np.random.default_rng(seed).permutation(len(rr));check([r['donor_key'] for r in rr]==[rr[int(i)]['feature_key'] for i in perm],'deterministic_null_permutation_identity',group)
     def target(key,task,control):return labels[donors.get((task,key),key) if control=='TRUE_NULL' else key]['REAL' if control=='TRUE_NULL' else control][task]
-    oof=list(map(json.loads,(R/'OOF_ALL.jsonl').read_text().splitlines()));byfit=defaultdict(list);grouped=defaultdict(list);foldgroups=defaultdict(list)
+    oof=list(map(json.loads,(R/'OOF_ALL.jsonl').open()));byfit=defaultdict(list);grouped=defaultdict(list);foldgroups=defaultdict(list)
     for r in oof:
         byfit[r['fit_path']].append(r);key=(r['task'],r['control'],r['model'],r['calibrated']);grouped.get(key,[]).append(r);foldgroups[key+(r['fold'],)].append(r)
         check(foldmap.get(r['date'])==r['fold'] and r['exposure']=='V4_NEW_DEV_EVAL','OOF_fixed_new_date_fold',r['row_key'])
@@ -275,7 +275,7 @@ def main():
     import AUDIT_SUPPLEMENT_V4
     expected=AUDIT_SUPPLEMENT_V4.run(sys.modules[__name__],grouped,features,ratio,ci)
     caps=jread('BUDGET_START_V4.json')['finite_caps'];runner=jread('NEW_DEVELOPMENT/RUNNER_FINAL_RECEIPT.json')
-    check(len(ledger)<=caps['fit_operations'] and runner['provider_requests']<=caps['provider_HTTP_requests'] and runner['new_steps']<=caps['new_frozen_steps'] and len(manifest['pairs'])<=caps['completed_pairs'] and len(boot['draws'])<=caps['bootstrap_generated_vectors'],'finite_compute_budget')
+    check(len(ledger)<=caps['fit_operations'] and jread('RUNNER_ACCOUNTING_V4.json')['actual_provider_HTTP_requests']<=caps['provider_HTTP_requests'] and runner['new_steps']<=caps['new_frozen_steps'] and len(manifest['pairs'])<=caps['completed_pairs'] and len(boot['draws'])<=caps['bootstrap_generated_vectors'],'finite_compute_budget')
     metric=metric_ref(primary,classes['CONTEXT_REVERSAL'])[0]
     result={'status':'PASS' if MISMATCH==0 else 'FAIL','assertion_N':sum(CHECKS.values()),'mismatch_N':MISMATCH,'counts':dict(CHECKS),'errors':ERRORS,
         'candidate_helper_imports':0,'independent_model_refits':0,'new_bootstrap_draws':0,'new_kernel_steps':0,'provider_requests':0,

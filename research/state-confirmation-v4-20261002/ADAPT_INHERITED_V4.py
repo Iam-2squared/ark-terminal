@@ -12,6 +12,7 @@ src=(P/'METRICS_V3.py').read_text()
 mapping={'DATASET_MANIFEST.json':'DATASET_MANIFEST_V4.json','REVERSAL_METRICS_AGGREGATE.csv':'REVERSAL_METRICS_AGGREGATE_V4.csv','REVERSAL_METRICS_BY_FOLD.csv':'REVERSAL_METRICS_BY_FOLD_V4.csv','REVERSAL_PER_CLASS_METRICS.csv':'REVERSAL_PER_CLASS_METRICS_V4.csv','REVERSAL_CONFUSION_MATRIX.csv':'REVERSAL_CONFUSION_MATRIX_V4.csv','CALIBRATION_METRICS.csv':'CALIBRATION_METRICS_V4.csv','CALIBRATION_BUCKETS.csv':'CALIBRATION_BUCKETS_V4.csv','NEXTSTATE_9CLASS_V3.csv':'NEXTSTATE_9CLASS_V4.csv','CONFUSION_MATRIX_9STATE_V3.csv':'CONFUSION_MATRIX_9STATE_V4.csv','PER_STATE_PRECISION_RECALL_F1_V3.csv':'PER_STATE_PRECISION_RECALL_F1_V4.csv','UP_TO_DOWN_DANGEROUS_FALSE_POSITIVE.csv':'UP_TO_DOWN_DANGEROUS_FALSE_POSITIVE_V4.csv','DOWN_TO_UP_FALSE_NEGATIVE.csv':'DOWN_TO_UP_FALSE_NEGATIVE_V4.csv','PATH_ANATOMY_SUPPORT_SUMMARY.csv':'PATH_ANATOMY_SUPPORT_SUMMARY_V4.csv','NEGATIVE_CONTROL_V3.csv':'NEGATIVE_CONTROL_V4.csv','SHIFT60_STRESS_V3.csv':'SHIFT60_STRESS_V4.csv','R0_R1_R2_R3_R4_INCREMENTAL.csv':'R0_R1_R2_R3_R4_INCREMENTAL_V4.csv',"f'REVERSAL_PATH_ANATOMY_LENGTH{length}.csv'":"f'PATH_ANATOMY_LENGTH{length}_V4.csv'"}
 for old,new in mapping.items():src=src.replace(old,new)
 src=src.replace('absolute=bv is not None and bv<=av','absolute=bv is not None and av is not None and bv<=av+1e-12')
+src=src.replace("'sampling_unit':'DATE_CLUSTER_REPEATED_ANCHORS_NOT_INDEPENDENT_TRADES'", "'cluster_CI_informative':len({r['date'] for r in rows if r['predicted']==predicted})>=2,'sampling_unit':'DATE_CLUSTER_REPEATED_ANCHORS_NOT_INDEPENDENT_TRADES'")
 src=src.replace("'TRUE_NULL_PROMOTION_VETO'", "'TRUE_NULL_PRIMARY_INTEGRITY_FAILURE_IF_CALIBRATED_CONTEXT'")
 src=src.replace('def csvout(n,rows):','def csvout(n,rows,columns=None):').replace("fieldnames=list(rows[0]) if rows else ['status']", "fieldnames=list(rows[0]) if rows else columns or ['status']")
 src=src.replace("csvout(f'PATH_ANATOMY_LENGTH{length}_V4.csv',table)","csvout(f'PATH_ANATOMY_LENGTH{length}_V4.csv',table,['length','sequence','history_complete','N','date_N','security_N','supported_descriptive_sequence']+[c+s for c in CLASSES['CONTEXT_REVERSAL'] for s in ['_N','_rate','_CI95_low','_CI95_high','_valid_global_draws']])")
@@ -34,9 +35,13 @@ src=src.replace("grouped[(row['task'],row['control'],row['model'],row['calibrate
 src=src.replace("bm['date_equal_log_loss']<=am['date_equal_log_loss']", "am['date_equal_log_loss'] is not None and bm['date_equal_log_loss']<=am['date_equal_log_loss']+1e-12")
 start=src.index("    for row in cread('PROMOTION_GATE_V3.csv'):");end=src.index("    caps=jread('BUDGET_START_V3.json')",start);src=src[:start]+"    import AUDIT_SUPPLEMENT_V4\n    expected=AUDIT_SUPPLEMENT_V4.run(sys.modules[__name__],grouped,features,ratio,ci)\n"+src[end:]
 src=src.replace("caps=jread('BUDGET_START_V3.json')['V3_caps']", "caps=jread('BUDGET_START_V4.json')['finite_caps']")
+src=src.replace("runner['provider_requests']<=caps['provider_HTTP_requests']", "jread('RUNNER_ACCOUNTING_V4.json')['actual_provider_HTTP_requests']<=caps['provider_HTTP_requests']")
 start=src.index("    metric=metric_ref(primary");end=src.index("    result={",start);src=src[:start]+"    metric=metric_ref(primary,classes['CONTEXT_REVERSAL'])[0]\n"+src[end:]
 src=src.replace("'primitive_oracle_SHA256':sha(primitive)","'independent_source_SHA256':sha(Path(__file__))")
 src=src.replace('Inherited independent primitive feature oracle verified by hash.','Frozen State9/Path full semantic kernel re-audit deliberately not rerun; source/trace identity and prefix anatomy audited.')
+src=src.replace("(R/'OOF_ALL.jsonl').read_text().splitlines()", "(R/'OOF_ALL.jsonl').open()")
 (R/'INDEPENDENT_AUDIT_V4.py').write_text(src)
+metrics=(R/'METRICS_V4.py').read_text().replace("(R/'OOF_ALL.jsonl').read_text().splitlines()", "(R/'OOF_ALL.jsonl').open()")
+(R/'METRICS_V4.py').write_text(metrics)
 for n in ['BUILD_V4.py','FIT_V4.py','INHERITED_TARGET_ANATOMY_V3.py']:ast.parse((R/n).read_text())
 print('Inherited target/anatomy byte copy and model-math relocation ready; labels/fits/draws0.')

@@ -3,6 +3,9 @@ from collections import Counter,defaultdict
 import math,statistics,json,csv,hashlib,numpy as np
 def run(a,grouped,features,ratio,ci):
  R=a.R;cl=a.jread('REVERSAL_TARGET_SCHEMA.json')['classes']['CONTEXT_REVERSAL'];get=lambda model:grouped.get(('CONTEXT_REVERSAL','REAL',model,True),[])
+ account=a.jread('RUNNER_ACCOUNTING_V4.json');runner=a.jread('NEW_DEVELOPMENT/RUNNER_FINAL_RECEIPT.json');universe=a.jread('NEW_DEVELOPMENT/ACQUISITION_UNIVERSE_PRECOMMIT.json');ledger=a.jread('NEW_DEVELOPMENT/DEVELOPMENT_COMPLETION_LEDGER.json');cap=a.jread('BUDGET_START_V4.json')['finite_caps']['provider_HTTP_requests'];guard=runner['provider_requests']==cap+1 and (universe.get('provider_stopped')=='PROVIDER_REQUEST_CAP' or any(x.get('reason')=='PROVIDER_REQUEST_CAP' for x in ledger));source=(R/'runner/acquisition_base.py').read_text()
+ a.check(account['original_counter']==runner['provider_requests'] and account['actual_provider_HTTP_requests']==runner['provider_requests']-int(guard) and account['cap_guard_rejected_before_HTTP_N']==int(guard),'independent_provider_counter_fence')
+ a.check(source.index('requests+=1')<source.index("assert requests<=CFG['maxrequests']")<source.index('opener.open') and a.sha(R/'NEW_DEVELOPMENT/RUNNER_FINAL_RECEIPT.json')==account['original_runner_receipt_SHA256'] and account['finite_cap_unchanged']==cap,'independent_cap_and_receipt_unchanged')
  # Reliability bucket direct oracle, independently reconstructing each bin.
  for row in a.cread('CALIBRATION_BUCKETS_V4.csv'):
   rr=grouped.get((row['task'],row['control'],row['model'],row['calibrated']=='True'),[]);bucket=int(row['bucket']);kind=row['kind']

@@ -58,7 +58,10 @@ def prepare():
  csvout('DEVELOPMENT_COMPLETION_LEDGER_V4.csv',ledger)
  unavailable=[x for x in ledger if x['status']!='ACQUIRED']
  unavailable.extend(json.loads((exp/'METADATA_UNAVAILABLE.json').read_text()))
- unavailable.extend({**x,'stage':'DATED_MASTER_OR_FACTOR_UNIVERSE'} for x in json.loads((exp/'METADATA_DATE_LEDGER.json').read_text()) if x['status']!='METADATA_SELECTION_COMPLETE' or x['selected_proposal_N']<3)
+ for x in json.loads((exp/'METADATA_DATE_LEDGER.json').read_text()):
+  if x['status']!='METADATA_SELECTION_COMPLETE' or x['selected_proposal_N']<3:
+   status=x['status'] if x['status']!='METADATA_SELECTION_COMPLETE' else 'OTHER_EXPLICIT_REASON' if x.get('compatible_metadata_N',0)==0 else 'FACTOR_UNAVAILABLE'
+   unavailable.append({**x,'status':status,'stage':'DATED_MASTER_OR_FACTOR_UNIVERSE'})
  csvout('UNAVAILABLE_INPUTS_V4.csv',unavailable)
  save('DEVELOPMENT_COMPLETION_SUMMARY_V4.json',{'old_acquired_reused_N':90,'old_unavailable_retained_N':7,'new_selected_N':len(newledger),'new_status_counts':dict(Counter(x['status'] for x in newledger)),'new_date_links_N':106,'new_acquired_date_N':len(newdates),'new_unacquired_selected_N':sum(x['status']!='ACQUIRED' for x in newledger),'metadata_unselected_capacity':sum(3-x['selected_proposal_N'] for x in json.loads((exp/'METADATA_DATE_LEDGER.json').read_text())),'remaining_selected_old_and_new_N':sum(x['status']!='ACQUIRED' for x in ledger),'all_link_attempts_recorded':True,'price_or_outcome_refill':0})
  print(json.dumps({'phase':'features','pairs':len(pairs),'endpoints':len(keys),'observed':counts['observed'],'new_dates':len(newdates)}))

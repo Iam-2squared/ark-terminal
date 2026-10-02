@@ -2,7 +2,7 @@
 import argparse
 import collections
 import concurrent.futures
-from decimal import Decimal, localcontext
+from decimal import Decimal, Context, ROUND_HALF_EVEN, localcontext, InvalidOperation, DivisionByZero, Overflow
 import gzip
 import hashlib
 import json
@@ -40,11 +40,19 @@ def digest(b):
 def coord(module, base, row):
     # Mechanical factorization of the frozen generate() expression. U/P_ref are
     # independently frozen from previous-day input; ONLY this currently closed row is read.
-    with localcontext(module.context()) as ctx:
+    if module is normalize120:
+        config = Context(prec=120, rounding=ROUND_HALF_EVEN, Emin=-999999, Emax=999999, clamp=0)
+        for signal in config.traps:
+            config.traps[signal] = signal in {InvalidOperation, DivisionByZero, Overflow}
+        positive = module.decimal_price
+        quantum = Decimal('1E-24')
+    else:
+        config, positive, quantum = module.context(), module.positive, module.Q
+    with localcontext(config) as ctx:
         ctx.clear_flags()
         U = Decimal(base['U'])
-        pref = module.positive(base['P_ref'])
-        values = {k: format(((module.positive(row[k]).ln() - pref.ln()) / U).quantize(module.Q), 'f')
+        pref = positive(base['P_ref'])
+        values = {k: format(((positive(row[k]).ln() - pref.ln()) / U).quantize(quantum), 'f')
             for k in ('O', 'H', 'L', 'C')}
         return values, {s.__name__: bool(v) for s, v in ctx.flags.items()}
 
@@ -77,7 +85,7 @@ def task(arg):
             if not vals[2] <= min(vals[0], vals[3]) <= max(vals[0], vals[3]) <= vals[1]:
                 return unavailable(oid, src, rows, 'PREVIOUS_RAW_OHLC_INVALID')
         b80 = normalize80.generate(previous, [])
-        b120 = normalize120.generate(previous, [])
+        b120 = normalize120.regenerate(previous, [])
     except ValueError as e:
         return unavailable(oid, src, rows, 'M0_PREVIOUS_SOURCE_' + str(e))
     assert b80['U'] == b120['U'] and b80['P_ref'] == b120['P_ref'], 'NORMALIZATION_UNSTABLE'
@@ -130,7 +138,7 @@ def task(arg):
                         valid_rows.append(original)
                         coords_saved.append(x80)
                         golden80 = normalize80.generate(previous, valid_rows)
-                        golden120 = normalize120.generate(previous, valid_rows)
+                        golden120 = normalize120.regenerate(previous, valid_rows)
                         assert golden80['coordinates'] == coords_saved == golden120['coordinates'], 'M0_FACTORIZATION_PARITY'
                         parity += 1
                 except ValueError:

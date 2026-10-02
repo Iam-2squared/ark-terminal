@@ -1,0 +1,71 @@
+name: State9 Safe-Upside Saved Source Proof 20261003
+on:
+  push:
+    branches: [state9-safe-upside-hybrid-entry-20261003-v1]
+    paths:
+      - research/state9-safe-upside-hybrid-entry-20261003/c1_saved_source_proof.py
+      - .github/workflows/state9-safe-upside-saved-source-proof-20261003.yml
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: state9-safe-upside-saved-source-proof-20261003
+  cancel-in-progress: false
+jobs:
+  saved-source-proof:
+    if: github.ref == 'refs/heads/state9-safe-upside-hybrid-entry-20261003-v1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Read saved frozen R1 row manifest; never load old models
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-all-material-r1-afb38b7a5421ca4f6ff6d439bf89096236efd119
+          repository: Iam-2squared/ark-terminal
+          run-id: 36099497597
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/saved-R1
+      - name: Restore only existing encrypted Development archives
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-expansion-reuse-35447995157
+          repository: Iam-2squared/ark-terminal
+          run-id: 35447995157
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/saved-encrypted/reuse
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-expansion-raw-minute-*-35447995157
+          repository: Iam-2squared/ark-terminal
+          run-id: 35447995157
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/saved-encrypted/expanded
+      - name: Exact original source proof; no acquisition, State or model run
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: |
+          python -u research/state9-safe-upside-hybrid-entry-20261003/c1_saved_source_proof.py --archives "$RUNNER_TEMP/saved-encrypted" --grid "$RUNNER_TEMP/saved-R1/all-material-r1/prefit/rows.json" --out "$RUNNER_TEMP/source-proof"
+      - name: Public metadata receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: state9-safe-upside-C1-source-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/source-proof/ORIGINAL_SAVED_SOURCE_PROOF.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Private selected existing source tokens; never committed
+        uses: actions/upload-artifact@v4
+        with:
+          name: state9-safe-upside-C1-private-source-${{ github.run_id }}
+          path: ${{ runner.temp }}/source-proof/PRIVATE_SELECTED_SOURCE_TOKENS.json.gz
+          retention-days: 30
+          if-no-files-found: error
+      - name: Purge temporary decrypted or encrypted sources
+        if: always()
+        run: rm -rf -- "$RUNNER_TEMP/saved-encrypted" "$RUNNER_TEMP/source-proof" "$RUNNER_TEMP/saved-R1"

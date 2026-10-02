@@ -1,0 +1,431 @@
+# 🧭 State9 Semantic v2 RC2 Contract
+仕様ID: STATE9_V2_RC2_EXACT_SEMANTIC_CLOSURE_20261001_V1
+固定対象: normalized synthetic OHLCのみ。原本RC1・旧16 FAILは別保存。
+本書・NUMERIC_API_CONTRACT・NUMERIC_FIELD_SCHEMA・事前固定期待値を一体として扱う。
+市場・main・予測・売買は未認証。新意味/API選択は今回の依頼由来で、旧RC1や外部reviewの承認として遡及しない。
+
+## 📐 1. 観測と尺度
+確定済み・当該時刻に利用可能な1分OHLCのみ。Closeでlocal/structure DC、pivot、破壊、進捗を判定。
+High/LowでStop全OHLC包含と固定Range帯、Openで整合性。intrabar順序を推測しない。
+固定U/P_refから既に変換された座標をexactで扱う。log変換・市場adapterは実装しない。
+時刻は整数予定ordinal。値の同値は最初のextremum時刻を保持。閾値等号は成立側、帯端は包含、epsilon判定補正0。
+
+## 🌊 2. 方向転換
+DC未初期化は最初のCloseでseed。方向0は観測最小からθ以上でUP、観測最大からθ以上でDOWN。
+方向未成立中の幅はθ未満なので両成立は起きない。UPはrunning最高Close更新、最高−現在>=θでHを確認しDOWNへ。
+DOWNはrunning最安Close更新、現在−最安>=θでLを確認しUPへ。pivotはextremum_tとconfirmed_atを別々に保存。
+local θ=1、structure θ=4。Range退出だけにS04特則。他に構造成立の免除はない。
+
+## 🛡 3. 主構造
+NONEからstructure初方向成立時にその方向・最初の実観測pivotを保護基準とする。
+初期成立・転換の文脈は当該足のPrimaryへ反映するが、新基準で破壊を判定できるのは次予定足から。
+UPはsnapshot基準−0.5以下、DOWNはsnapshot基準+0.5以上のCloseでのみ転換。
+UP→DOWNの新基準は旧UP文脈の最高Close、DOWN→UPは旧DOWN文脈の最安Close、同値は最初。
+旧pivot列を再利用せず、実起点・現在Closeから新structureを形成する。
+更新は前足snapshot末尾3構造pivotだけ。UP L0/H0/L1でL1−L0>=0.5、L1>旧基準、C−H0>=0.5。
+DOWN H0/L0/H1でH0−H1>=0.5、H1<旧基準、L0−C>=0.5。confirmed_at<tを全件要求。
+破壊があれば更新を同時に行わない。更新のeffective_from=t+1。context内有利Close極値はexact更新。
+独立Range成立はcontextをNONEへ終了。時間だけでは終了しない。gap/resetは別の品質処理。
+局所HLだけのB構造転換は採らない。基準未破壊の深いPULLBACKと速いREBOUNDを許す。
+
+## ⏱ 4. 停止
+local成立・反転時の現在Closeをprogress clockとする。同方向0.5以上の累積進捗だけで時計更新。
+有意進捗・反転が先に旧Stopを終了。 age>=3、直近実OHLC3本がE±0.5に全包含、同時計blockedでなければStop認定。
+countは認定足1。停止帯は固定。継続包含足だけ加算。逸脱は停止根拠取消し・そのclockで再Stopをblock。
+Rangeが先成立すればStopを終了し、countを事後に加算しない。D条件は新規Rangeの共通判定内だけ。
+
+## 🟰 5. レンジとfast
+A:10 Close幅<1。B:幅<=1かつabs(net)<=0.5。C:abs(net)<=0.5、OHLC幅>=2、窓probe反転>=3、4abs(net)<=TV。
+D:その足に終了していない同一Stopの10継続足。TV=0ならη=0。共通guard後、理由A/B/C/D順。
+固定帯は成立10実足のmin Low/max High、実Close端点・同値最初時刻と窓IDを保存し動かさない。
+Close>=High+0.5／<=Low−0.5で退出。それまでは物理帯外buffer内でもRange保持。ヒゲだけで退出しない。
+退出はlocal方向即確定、opposite実Close端点を起点として時計とrunning極値を現在へ。structureは通常4U。
+fastはlocal方向あり・実連続6Closeで方向付きnet>=5かつTV>0、5abs(net)>=4TV。足不足／方向0はnull、足があればfalse/true。
+ηは既約num/denで正式出力。Stop/Rangeを補助fastで上書きしない。
+
+## 🧩 6. 9State写像
+BALANCED→RANGE、STOPPED/local UP→RISE_STOP、STOPPED/local DOWN→DROP_STOP。
+LIVE UP/context DOWN→REBOUND、LIVE DOWN/context UP→PULLBACK。
+その他LIVE UP→fast trueならSHARP_RISE、それ以外RISE。DOWNはSHARP_DROP/DROP。
+局所未認定はINITIALIZING、過去Primary又は初期RANGEの表示にとどめobserved=false。
+OBSERVED_FRESH／OBSERVED_NEW_SEGMENT_ONLYだけ現在意味の有効観測。gapはCARRIED_GAP／UNAVAILABLE、invalid/rejectはnull。
+RISE_STOPは天井、DROP_STOPは底、PULLBACKは安全、REBOUNDは売買不適格を意味しない。
+
+## 🔄 7. 一分transaction／例外
+1 protocol時刻検証（不正は例外、時刻も市場状態も不変）。2 raw数値とbar metadata検証。3 利用可否処理。
+有効足は市場state snapshotをstagingへ。source/auction/gap/ordinal非連続は区間reset。4 local DCと進捗、旧Stop終了。
+5 既存Range有なら保持／退出特則。非Rangeならstructure DC、snapshot旧基準破壊→文脈転換、又は前snapshot末尾3更新。
+6 生存Stopの包含/逸脱/継続を評価（まだ新Range権限ではない）。7 A/B/C/Dの共通guardと正条件、Range優先。
+8 非RangeでStop認定→LIVE／INITIALIZING、9 schema全出力と正式exact serializer。成功時だけ市場stateをcommit。
+入力拒否は当該予定tとrestart_requiredを記録し、市場stateは更新しない。次受理足はreset。
+算術/serialization故障はNUMERIC_ENGINE_FAULT例外を保存しrun ERROR、snapshotへrollback、予定t消費・次受理reset。
+遅着過去足は当該足と偽って取り込まず、backfill/過去出力訂正はしない。
+
+## 🔢 8. 固定profile
+
+|キー|値|
+|---|---|
+|local_reversal|1|
+|structure_reversal|4|
+|break_buffer|0.5|
+|progress_increment|0.5|
+|stop_half_band|0.5|
+|stop_min_age|3|
+|stop_min_bars|3|
+|stop_max_qualified_bars|10|
+|balance_bars|10|
+|balance_net_max|0.5|
+|balance_min_turns|3|
+|balance_min_swing_width|2|
+|balance_eff_max|0.25|
+|fast_intervals|5|
+|fast_displacement|5|
+|fast_eff_min|0.8|
+
+## 🔒 9. 依頼に明記された意味・数値/API選択（全文）
+# 3. 📖 RC2で実装前に固定する意味選択
+
+下記は監査/open reviewを読んだ後に、この新Workで採る設計選択である。
+「RC1に元から一意に書いてあった」「監査前から固定していた」としない。
+この選択以外の新しい意味変更は許可していない。全項目をSEMANTIC_DECISIONSへ転記し、G1で固定する。
+
+## S01 — 現在10本、旧10本、初回10本【F1修復＋未記載の明示的選択】
+
+現在足をtとする。連続区間内のRange成立窓W_tはt−9…tの10実足。
+旧帯突破ガードの窓W^-_tはt−10…t−1の10実足。欠測を飛ばして10本にしない。
+W^-_tがまだ存在しない場合は旧帯ガードだけを不適用とする。旧9本で代用しない。
+W_tが存在すればA/B/C/Dの正条件と、構造破壊・既存Range退出の同足抑止は通常どおり評価する。
+初回10本は無条件Rangeではない。reset後の新連続区間にも同じ規則を使う。
+
+同一Primary文字列だけで照合しない。activity、observed、context、固定帯、成立時刻まで確認する。
+Open=前Closeは一般入力契約ではない。有効な独立Openの反例を保持する。
+
+## S02 — Stop認定、count、時計【未記載の明示的選択】
+
+Stop認定足sのcount=1。認定前2本は、認定に用いた3本のEvidenceだがcountには含めない。
+固定Stopが同じ方向・同じ中心/帯のまま継続した実足についてのみ、1本ずつ加算する。
+欠測、未利用可能、invalid、当該足のない時刻では加算しない。
+
+次を分離して保存する：
+・progress_at：最後の有意進捗、又は脚成立時の時計時刻。
+・recognized_at / count_start：Stopを認定したs。
+・evidence_window_start：認定に使った3連続実足の先頭。
+・count：認定足を1とする同一Stopの継続本数。
+
+反転、有意進捗（等号を含む）、ヒゲの帯逸脱、先行したRange成立、区間resetは旧Stopの継続を終了する。
+時計更新・反転の条件自体はRC1を維持。微小進捗一つごとに時計を戻さない。
+帯逸脱後に同じ時計アンカーで即再StopしないというRC1の規則も維持する。
+count=1/3の選び直しで良い検査結果を選ばない。countはかつてDへ接続していた値であり、
+「元から単なる表示だった」と説明しない。
+
+## S03 — Range Dと共通抑止【包含の明文化＋制御フロー修復】
+
+Dは、反転・進捗・逸脱等でその足に終了していない、同一固定Stopに関する連続10実足の条件とする。
+終了した旧Stop帯を使ってDを復活させない。
+全ての新規Range成立は一つの共通ガードを通す：
+  suppress_new_range = 既存構造の当該足破壊 OR 既存Rangeの当該足退出 OR 完全な旧10本帯のClose突破。
+旧10本帯未成立時だけ最後の項をfalseとする。他の項は無効にしない。
+
+Dを理由に共通ガードを通らず_make_balance等を直接呼ぶ独立branchは置かない。
+A/B/C/Dの観測条件は統一した評価経路へ集め、理由選択はA→B→C→Dの順とする。
+Dは固定profileにおける独立した追加Primary領域として数えない。条件名・数値10は履歴と説明に残す。
+stop_countが10になったことだけを、Range成立の別権限や時間切れとして使わない。
+
+G1で次の限定付き包含関係を検証し、証明を保存する：
+UPの同一Stop継続中は E−0.5 ≤ C < E+0.5。
+DOWNの同一Stop継続中は E−0.5 < C ≤ E+0.5。
+等号の有意進捗が先にStopを終了するため、10本のClose幅は1未満となる。
+したがって、正確な境界比較・固定profile・同一Stop継続の前提でD⇒A。
+共通抑止Gを用いれば D∧¬G ⇒ A∧¬G。認定用3本を含める議論は、このWorkでは採らない。
+
+DがAより前に実行経路として発火しないことと、Dの条件を単体で構成できることは別。
+Dを発火させるためA/Bを停止、profile変更、guard解除をしない。
+到達しないbranchを「実行PASS」にしない。PROVED_SUBSUMED_UNDER_FROZEN_CONTRACTとして根拠を残す。
+包含が本書の意味・数値契約から示せない場合はG1を保留し、Dを黙って削除して先へ進まない。
+
+## S04 — Range退出による局所方向確定【明示的な意味選択】
+
+固定RangeのClose退出が成立した足は、退出方向を局所方向として直ちに確定する。
+これは通常のlocal 1U初期認定に対する、Range退出専用の明示的特則。
+固定High+0.5以上で上退出、固定Low−0.5以下で下退出。等号を含む。
+反対側の実Close端点からの距離が1U未満でも適用する。
+
+direction_basis=RANGE_EXIT_CONFIRMED等で通常DC認定と区別する。新State IDは追加しない。
+局所engineの起点は固定Rangeの実Close反対端（同値は最初の観測時刻）、running極値と時計は退出足で開始。
+その後の局所反転は通常1Uを使う。小さい幅の反転へ恒久的に変更しない。
+構造4Uは免除しない。Rangeの実Close反対端と現在Closeで通常の構造尺度成立を確認し、未達ならcontext=NONE。
+構造基準の使用時刻、pivotの確認時刻・極値時刻を区別し、過去へ認定を戻さない。
+同足にRangeを再認定しない。古いUP/DOWN構造を復活させない。
+
+この特則は唯一可能な設計だという主張ではない。
+通常1Uを守って退出後に再初期化する別案は今回比較・実装しない。
+
+## S05 — 保護基準更新のpivot候補集合【未記載の明示的選択】
+
+前足snapshotの同尺度構造pivot列の末尾の連続3件のみを評価する。
+UPならL0→H0→L1、DOWNならH0→L0→H1。古い適格組の再検索は行わない。
+3件不足、型不一致、confirmed_at≥t、価格条件不成立なら、その足の引上げ/引下げは行わない。
+初期/転換/Range退出の起点がpivot列に入る場合は、RC1の実観測起点を維持し、
+生成理由、観測時刻、確認時刻を明示する。架空の価格・intrabar極値は作らない。
+
+旧保護水準での破壊を先に評価する。保護更新の効力は次足から。
+候補集合の説明と、因果性の説明を分ける。過去組を見る方式が必ずlookaheadという主張はしない。
+
+## S06 — Range Cの反転回数【未記載の明示的選択】
+
+W_tの10 Closeだけで新しいlocal DC probeを初期化する。
+窓前の方向・極値を引き継がず、最初の方向成立を反転に数えない。その後の方向変更だけを数える。
+常設local engineの直近10本pivot件数を代用しない。
+B/Cのnet、Cの幅/turn/efficiency条件は固定profileを維持する。
+
+重複と冗長性を仕様に残す：
+・Aが幅<1を含むため、BのAへの追加領域は固定profileで幅=1かつnet≤0.5。
+・窓内probeの初成立1Uと3反転ならTV≥4U。net≤0.5Uなのでη≤0.125。
+  よってCのη≤0.25はこの結合条件下で追加の絞込みではない。
+η=0.25の単体演算境界と、Cの結合条件によるPrimary境界を混同しない。
+独立でない条件を複数の独立した支持Evidenceとして数えない。条件を発火させるため数値を変更しない。
+
+## S07 — RANGE保持・LIVE・表示契約【既存意味の明確化】
+
+RANGEは固定帯からの確認Close退出が未成立という意味。
+物理帯[L,H]と、確認退出水準[L−0.5,H+0.5]を区別する。
+保持中のCloseはL−0.5<C<H+0.5であり、[L,H]内である保証ではない。ヒゲの帯外は単独退出にしない。
+LIVEは最後の確認脚が他の基準で置換されていない状態。最新1分が必ず同方向という意味ではない。
+PULLBACK/REBOUNDは旧主構造との関係。安全、回復、Entry不適格等の売買意味を与えない。
+
+Primaryはactivity、basis、current_semantics_observed、observed_atと一体で返す。
+初期表示RANGE、CARRIED_GAP、ANCHOR、invalid/nullを観測済み9Stateの成功例に数えない。
+
+## S08 — 時刻・遅着・欠測【現kernelの範囲を明示】
+
+今回の公開APIは予定時刻tごとの当該足受付。tは単調増加する整数、bar.t=t、known_at≤tを要求する。
+利用可能でない足はその時点では観測に使わない。後から過去の出力へbackfill/訂正しない。
+遅着した過去足の再組込み、受信履歴の再構築、取引カレンダーは市場adapterの未実装領域。
+欠測、source/auction切替、予定時刻不連続ではRC1の連続区間resetを維持する。
+未知区間を結んだreturn、pivot、Stop本数、fast、全日文脈を作らない。
+
+# 4. 🔢 RC2の数値契約 — exact判定を採る
+
+## 4.1 変更の種類
+
+RC1の「分類演算precision=50」を、RC2では次の契約へ変更する。
+  受理した有限10進入力を正確な数として保持し、State判定に関わる演算・比較をexactに行う。
+これは新しい数値契約であり、F2修復copyをそのまま無条件承認したという扱いではない。
+外部U/P_refと人工profileの値は変えない。市場のlog変換をこのWorkで実装しない。
+
+RC2の判定経路では巨大絶対座標の丸めを避けるためのrecenterを必須にしない。
+絶対normalized座標をexactに扱い、共有origin_ioによる減算→復元を判定/検算の前提から外す。
+過去のrecenter案が厳密算術で平行移動として妥当であることと、50桁実装で全域保証できることは別として保存する。
+
+単にDecimalで引算してから比較する、又はcross multiplicationの直前にfloat/丸め値へ変換する実装は不可。
+大小比較だけでなく、加減算、極値、帯端、TV、net、進捗時計、protected level、構造/局所pivotまでexactにする。
+
+## 4.2 受理する表現域【この指示書で新しく提案する入力契約】
+
+無制限の文字列・指数展開による資源消費を避けるため、このWorkでは以下を固定する。
+これは市場閾値ではなく、資源保護のための明示的なAPI制約。RC1に元からあった制約とは呼ばない。
+
+|項目|RC2固定値/規約|
+|---|---|
+|transportの各数値token|ASCIIの符号付き有限10進文字列。最大2,048 bytes|
+|非ゼロ値のcanonical係数|整数係数の末尾10進ゼロを除去した後、絶対値で最大256桁|
+|canonical exponent|x=c×10^eのeが−512以上+512以下|
+|ゼロ|canonical (c,e)=(0,0)。−0と+0は同値、時刻を更新する進捗にしない|
+|拒否する値|NaN、Infinity、bool、binary float、非数値token、上記域外|
+|Python内部API|上記文字列、又は正確なtupleを取得できる有限Decimal/intのlossless adapterのみ|
+|派生値|入力制約を再適用して丸めない。必要な桁を正確に保持する|
+
+この範囲は1e50共通原点だけでなく、大きな相対変位と小さな差を含む検査を可能にしつつ、
+指数差の展開を有限に制限するために、この新依頼で選んだもの。成績に応じて増減しない。
+固定profileはこの域内。事前にmetadataだけから既存fixtureの域内/域外を一覧化する。
+既存fixtureが域外でも消さず、旧入力と新API受理域の差を明示し、旧期待値を無断で書き換えない。
+
+数学的な値の意味と、有限資源で受理する表現域を分離する。
+全有限Decimalに対する機械実装の完全保証を名乗らない。
+この新入力制約そのものに意味上の矛盾が判明した場合、結果に合わせて制約を動かさずBLOCKEDとする。
+
+## 4.3 演算と比率
+
+candidate：整数係数＋10進指数による正確な演算/比較を使用する。
+independent engine：別実装のparseを通した既約有理数等による正確な演算を使用する。
+同じ数学でもよいが、candidateの状態関数、parse、recenter、serializerを呼ばない。
+
+効率判定はTV≥0を確認して交差積を使える。
+・Range Cのη≤0.25：TV>0なら4×|net|≤TV。
+・fastのη≥0.8：TV>0なら5×|net|≥4×TV。
+・TV=0はη=0。Range側の定義と一致させ、fastはfalse（履歴不足ならnull）。
+fastには別途、局所方向に沿った正味変位≥5Uと6連続Closeの条件が必要。
+交差積だけで方向条件・変位条件を省略しない。
+
+判定経路はhostのDecimal precision/rounding/Emin/Emax/traps、floatの誤差に依存させない。
+表示用近似を付ける場合は別フィールドで任意。正式価格はexact文字列、比率は既約num/denを保存する。
+近似表示を省略してもよい。表示用Decimalを使う場合はローカルcontext全設定を記録し、判定へ戻さない。
+
+## 4.4 I/Oの保証
+
+close_uは受理入力Closeとexactに同じ値を再掲する。
+pivot/Range端点/保護起点は、指す実観測Close及びその時刻と直接一致させる。
+Stop帯や退出水準等の派生価格は、参照する値と固定幅からexactに再計算できるようにする。
+時刻、known_at、source、auction、case IDを価格変換対象にしない。
+
+全価格/幅/比率/時刻フィールドをNUMERIC_FIELD_SCHEMAへ列挙し、意味・単位・原点依存性・出典を定義する。
+未知の出力価格フィールドを比較器が黙って無視することは禁止。
+名前集合だけを双方で共有して漏れを消す設計にせず、照合器自身の独立なschema網羅性確認を持つ。
+
+## 4.5 拒否・原子性・例外【新数値/API契約の一部】
+
+数値の受理チェックは市場状態を更新する前に行う。
+域外/非有限/不正tokenはprimary=null、observed=false、数値入力拒否reasonとする。第10Stateは作らない。
+正しい予定tで入力拒否した場合、可用性側には失敗した予定時刻とrestart_requiredを記録し、
+局所/構造/Stop/Range/clockの市場状態には入力を反映しない。次の受理足で区間resetする。
+時刻重複・非整数・逆順呼出しはAPIプロトコル拒否として区別し、市場状態/時刻を上書きしない。
+
+有効入力の処理はsnapshot/stagingで計算し、出力作成まで成功したときだけ市場状態をcommitする。
+想定外の算術・出力エラーは握り潰さずNUMERIC_ENGINE_FAULT等として保存し、当該runはFAIL/ERROR。
+失敗途中の状態を次の足に継承しない。故障注入でrollbackと再開境界を確認する。
+想定された入力拒否の試験PASSと、engine故障を隠したPASSを分ける。
+
+
+## 📦 10. 正式I/O schema
+{
+  "version": "RC2_EXACT_V1",
+  "required_top_fields": [
+    "as_of",
+    "case_id",
+    "primary",
+    "basis",
+    "current_semantics_observed",
+    "observed_at",
+    "context",
+    "leg_direction",
+    "activity",
+    "fast_flag",
+    "fast_applicable_to_primary",
+    "close_u",
+    "progress_clock",
+    "protected_before",
+    "protected_after_effective_next",
+    "protected_updated_at",
+    "protected_effective_from",
+    "protected_origin",
+    "context_established_at",
+    "stop",
+    "balance",
+    "local_pivot_confirmed",
+    "events",
+    "_structure_direction",
+    "_structure_pivots",
+    "_context_extreme",
+    "_local_tip",
+    "_blocked_anchor_time",
+    "direction_basis",
+    "bar_metadata",
+    "range_analysis",
+    "fast_analysis",
+    "numeric_status",
+    "rejection_reason",
+    "schema_version"
+  ],
+  "price_paths": [
+    "close_u",
+    "protected_before",
+    "protected_after_effective_next",
+    "stop.center",
+    "stop.low",
+    "stop.high",
+    "balance.low",
+    "balance.high",
+    "balance.exit_low",
+    "balance.exit_high",
+    "protected_origin.x",
+    "local_pivot_confirmed.x",
+    "_structure_pivots[].x",
+    "range_analysis.net",
+    "range_analysis.tv",
+    "range_analysis.span",
+    "range_analysis.width",
+    "range_analysis.old_low",
+    "range_analysis.old_high",
+    "fast_analysis.net",
+    "fast_analysis.tv",
+    "fast_analysis.directional_net"
+  ],
+  "point_paths": [
+    "progress_clock",
+    "balance.close_low",
+    "balance.close_high",
+    "_context_extreme",
+    "_local_tip"
+  ],
+  "ratio_paths": [
+    "range_analysis.eta",
+    "fast_analysis.eta"
+  ],
+  "price_unit": "fixed normalized U",
+  "formal_price_encoding": "canonical coefficient e exponent; zero 0; no input-domain limit on derived outputs",
+  "ratio_encoding": {
+    "num": "integer string",
+    "den": "positive integer string",
+    "reduced": true
+  },
+  "timestamps": "integer scheduled ordinal; never translated",
+  "nullable_quality": "negative rows have null market attributes; quality/observed are mandatory",
+  "stop_fields": [
+    "direction",
+    "center",
+    "low",
+    "high",
+    "start",
+    "count",
+    "recognized_at",
+    "count_start",
+    "progress_at",
+    "evidence_window_start",
+    "evidence_ids",
+    "continuation_ids"
+  ],
+  "balance_fields": [
+    "low",
+    "high",
+    "close_low",
+    "close_high",
+    "established_at",
+    "reason",
+    "window_ids",
+    "old_window_ids",
+    "low_at",
+    "high_at",
+    "exit_low",
+    "exit_high"
+  ],
+  "pivot_fields": [
+    "kind",
+    "x",
+    "extremum_t",
+    "confirmed_at",
+    "generation_reason"
+  ],
+  "range_analysis_fields": [
+    "window_ids",
+    "old_window_ids",
+    "net",
+    "tv",
+    "span",
+    "width",
+    "eta",
+    "turns",
+    "old_low",
+    "old_high",
+    "guard",
+    "conditions"
+  ],
+  "fast_analysis_fields": [
+    "window_ids",
+    "net",
+    "tv",
+    "directional_net",
+    "eta"
+  ],
+  "field_meaning": "All primary attributes are audited together; schema price paths use raw Close, extrema or exact fixed profile derivations; state enums are checked by text mapping and independent state engine."
+}
+Formal response schema is identical for accepted/rejected/unavailable rows. Negative rows have null market details, fast_applicable=false and numeric_status/rejection_reason. case_id and bar_metadata are echoed without price transforms. evidence IDs must refer to admitted raw bars in the causal segment.

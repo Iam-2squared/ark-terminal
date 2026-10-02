@@ -52,9 +52,13 @@ if __name__ == '__main__':
         if p.is_file() and '__pycache__' not in p.parts:
             b = p.read_bytes()
             item = dict(path=str(p.relative_to(repo)), bytes=len(b), sha256=hashlib.sha256(b).hexdigest())
-            if len(b) > 40000 or p.suffix in ('.gz', '.png', '.zip', '.npy'):
+            if len(b) > 10000 or p.suffix in ('.gz', '.png', '.zip', '.npy'):
                 item['binary'] = True
             else:
                 item['content'] = b.decode()
             out.append(item)
+    for name in cp.get('extra_paths', []):
+        p = repo / name
+        b = p.read_bytes()
+        out.append(dict(path=name, bytes=len(b), sha256=hashlib.sha256(b).hexdigest(), content=b.decode()))
     print(json.dumps(dict(checkpoint=cp, files=out), ensure_ascii=False))

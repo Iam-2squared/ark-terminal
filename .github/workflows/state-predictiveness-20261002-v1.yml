@@ -27,7 +27,7 @@ jobs:
           python - <<'PY'
           import base64,hashlib,io,os,pathlib,zipfile
           data=base64.b64decode(pathlib.Path('research/state-predictiveness-20261002-v1/payload.b64').read_bytes())
-          assert hashlib.sha256(data).hexdigest()=='1b80ae8d3926cba668be609584a8dc94723b8221aac00fc86c520933617cd374'
+          assert hashlib.sha256(data).hexdigest()=='a7f9aa0c32fd31093bd615f12c96bfcfe132ff9804068ef349afac51bf811947'
           root=pathlib.Path(os.environ['RUNNER_TEMP'])/'state-predictiveness-v1-code'
           with zipfile.ZipFile(io.BytesIO(data)) as z:
               assert all(not n.startswith('/') and '..' not in pathlib.PurePosixPath(n).parts for n in z.namelist())

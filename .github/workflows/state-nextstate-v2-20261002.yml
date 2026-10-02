@@ -5,6 +5,7 @@ on:
     paths: ['.github/workflows/state-nextstate-v2-20261002.yml', 'research/state-nextstate-v2-20261002/payload.b64']
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: state-nextstate-v2-20261002
   cancel-in-progress: false
@@ -22,7 +23,7 @@ jobs:
           python - <<'PY'
           import pathlib,os,zipfile,base64,io,hashlib
           b=base64.b64decode(pathlib.Path('research/state-nextstate-v2-20261002/payload.b64').read_bytes())
-          assert hashlib.sha256(b).hexdigest()=='bb04f54a28f23832da16a94e0f922f7680fb1d70cdb59687d408e11e0d06f9c9'
+          assert hashlib.sha256(b).hexdigest()=='7921e16634119d56bd4e24c3e8d369fda673d3f90759721e075dda7e1be8e50e'
           with zipfile.ZipFile(io.BytesIO(b)) as z:
               assert all(not n.startswith('/') and '..' not in pathlib.PurePosixPath(n).parts for n in z.namelist())
               z.extractall(pathlib.Path(os.environ['RUNNER_TEMP'])/'state-nextstate-v2-code')
@@ -30,6 +31,7 @@ jobs:
       - name: Authorized Development temporary raw and frozen export
         env:
           JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
           STATE9_AUDIT_RAW: ${{ runner.temp }}/state-nextstate-v2-raw
           STATE9_AUDIT_OUT: ${{ runner.temp }}/state-nextstate-v2-evidence
         run: python "$RUNNER_TEMP/state-nextstate-v2-code/export_expansion.py"

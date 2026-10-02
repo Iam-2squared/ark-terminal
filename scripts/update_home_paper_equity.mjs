@@ -2,11 +2,12 @@ import fs from 'node:fs';
 
 const arg=(name,fallback=null)=>{const i=process.argv.indexOf(name);return i>=0&&i+1<process.argv.length?process.argv[i+1]:fallback;};
 const scorecardPath=arg('--scorecard');
+const evaluationPath=arg('--evaluation');
 const inputPath=arg('--input','data/home/paper-equity.json');
 const outputPath=arg('--output',inputPath);
 const evidenceDate=arg('--date');
 if(!scorecardPath||!evidenceDate){
-  console.error('usage: node scripts/update_home_paper_equity.mjs --scorecard <json> --date YYYY-MM-DD [--input file] [--output file]');
+  console.error('usage: node scripts/update_home_paper_equity.mjs --scorecard <json> --date YYYY-MM-DD [--evaluation <json>] [--input file] [--output file]');
   process.exit(2);
 }
 
@@ -18,6 +19,40 @@ if(!Array.isArray(rows)) throw new Error('P25 scorecard rows missing');
 
 const variants=['DYNAMIC_30','DYNAMIC_40','DYNAMIC_50'];
 const expectedSessionCount=Number(scorecard?.expectedSessionCount??1);
+const round2=value=>Math.round(Number(value)*100)/100;
+
+function getPerSessionReturns(variant){
+  if(!evaluationPath) return null;
+  const artifact=JSON.parse(fs.readFileSync(evaluationPath,'utf8'));
+  const comparison=artifact?.evaluation?.result?.evidence?.comparison;
+  const sessions=comparison?.results?.[variant]?.sessionEqualWeightPortfolio?.sessions;
+  if(!Array.isArray(sessions)||!sessions.length) throw new Error(`Missing per-session portfolio returns for ${variant}`);
+  return sessions.map(x=>({sessionDate:String(x.sessionDate),returnPct:Number(x.returnPct)}));
+}
+
+function rebuildSeriesFromSessions(variant,sessions){
+  const current=Array.isArray(data.series?.[variant])?data.series[variant]:[];
+  const start=current.find(x=>x?.source==='START')??{
+    date:'START',
+    equityJpy:Number(data.startingCapitalJpy),
+    dailyReturnPct:0,
+    resolvedEntries:0,
+    source:'START',
+  };
+  let equity=Number(start.equityJpy??data.startingCapitalJpy);
+  const rebuilt=[start];
+  for(const session of sessions){
+    if(!Number.isFinite(session.returnPct)) throw new Error(`Invalid per-session return for ${variant} ${session.sessionDate}`);
+    equity=round2(equity*(1+session.returnPct/100));
+    rebuilt.push({
+      date:session.sessionDate,
+      equityJpy:equity,
+      dailyReturnPct:session.returnPct,
+      source:`data/p25-evaluations/${evidenceDate}.json#sessionEqualWeightPortfolio`,
+    });
+  }
+  data.series[variant]=rebuilt;
+}
 
 if(expectedSessionCount>1){
   const cumulative={
@@ -44,11 +79,15 @@ if(expectedSessionCount>1){
       sessionEqualWeightAfterCostNetPct:Number(row.sessionEqualWeightAfterCostNetPct??0),
       conservativeEffectiveIndependentEntries:Number(row.conservativeEffectiveIndependentEntries??0),
     };
+    const sessions=getPerSessionReturns(variant);
+    if(sessions){
+      if(sessions.length!==expectedSessionCount) throw new Error(`Expected ${expectedSessionCount} sessions for ${variant}, got ${sessions.length}`);
+      rebuildSeriesFromSessions(variant,sessions);
+    }
   }
-  data.latestCumulative=cumulative;
   data.lastUpdatedAt=new Date().toISOString();
   fs.writeFileSync(outputPath,JSON.stringify(data,null,2)+'\n','utf8');
-  console.log(JSON.stringify({status:'HOME_PAPER_EQUITY_CUMULATIVE_UPDATED',evidenceDate,expectedSessionCount,variants},null,2));
+  console.log(JSON.stringify({status:evaluationPath?'HOME_PAPER_EQUITY_SERIES_REBUILT':'HOME_PAPER_EQUITY_CUMULATIVE_UPDATED',evidenceDate,expectedSessionCount,variants},null,2));
   process.exit(0);
 }
 
@@ -60,7 +99,7 @@ for(const variant of variants){
   if(series.some(point=>point.date===evidenceDate)) continue;
   const previous=series.at(-1)?.equityJpy??data.startingCapitalJpy;
   const dailyReturnPct=Number(row.sessionEqualWeightAfterCostNetPct);
-  const equityJpy=Math.round((Number(previous)*(1+dailyReturnPct/100))*100)/100;
+  const equityJpy=round2(Number(previous)*(1+dailyReturnPct/100));
   series.push({
     date:evidenceDate,
     equityJpy,

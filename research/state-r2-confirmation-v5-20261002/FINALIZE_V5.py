@@ -78,6 +78,22 @@ exposed-only research36fits、実装独立PASS/mismatch0。ROLLING_INNER_OOF_TEM
 | ---: | --- | --- |
 {table}
 
+## R1／R2の比較
+
+| fresh metric | R1 calibrated | R2 raw | R2 calibrated |
+| --- | ---: | ---: | ---: |
+| dangerous UP→DOWN | {pct(r1['dangerous_rate'])} | {pct(raw['dangerous_rate'])} | {pct(r2['dangerous_rate'])} |
+| DOWN P / R / F1 | {' / '.join(pct(r1.get('DOWN_REVERSAL_'+k)) for k in ['Precision','Recall','F1'])} | {' / '.join(pct(raw.get('DOWN_REVERSAL_'+k)) for k in ['Precision','Recall','F1'])} | {' / '.join(pct(r2.get('DOWN_REVERSAL_'+k)) for k in ['Precision','Recall','F1'])} |
+| UP P / R / F1 | {' / '.join(pct(r1.get('UP_CONTINUE_'+k)) for k in ['Precision','Recall','F1'])} | {' / '.join(pct(raw.get('UP_CONTINUE_'+k)) for k in ['Precision','Recall','F1'])} | {' / '.join(pct(r2.get('UP_CONTINUE_'+k)) for k in ['Precision','Recall','F1'])} |
+| balanced accuracy | {pct(r1.get('balanced_accuracy'))} | {pct(raw.get('balanced_accuracy'))} | {pct(r2.get('balanced_accuracy'))} |
+| fixed4-class macro F1 | {pct(r1.get('macro_F1'))} | {pct(raw.get('macro_F1'))} | {pct(r2.get('macro_F1'))} |
+| overall accuracy | {pct(r1.get('accuracy'))} | {pct(raw.get('accuracy'))} | {pct(r2.get('accuracy'))} |
+| date-equal logloss | {num(r1.get('date_equal_LL'),6)} | {num(raw.get('date_equal_LL'),6)} | {num(r2.get('date_equal_LL'),6)} |
+| row Brier | {num(r1.get('Brier'),6)} | {num(raw.get('Brier'),6)} | {num(r2.get('Brier'),6)} |
+| top-label ECE | {num(r1.get('ECE'),6)} | {num(raw.get('ECE'),6)} | {num(r2.get('ECE'),6)} |
+
+R2のDOWN recallは40%、従ってDOWNの60%はDOWN classとしては検出していない。dangerous rate9.70%とは分母が異なる。UP recallはR1から低下し、overall accuracy改善は小さい。R2 calibratedはR1 calibratedよりLL/Brierが良いが、自身のrawからの悪化が5%gateを超えるためprobability gateはFAIL。positive temperatureはhard argmax/rankを変えず、較正でhard signalが改善したとは言わない。
+
 ## Gateと不確実性
 
 sample {'PASS' if gate['sample_PASS'] else 'FAIL'}、dangerous hard signal {'PASS' if gate['dangerous_hard_PASS'] else 'FAIL'}、major reversal {'PASS' if gate['major_reversal_PASS'] else 'FAIL'}、calibration {'PASS' if gate['calibration_PASS'] else 'FAIL'}、concentration {'PASS' if gate['concentration_PASS'] else 'FAIL'}。固定priorityに従う。statistical control failureはdirect leakageと同義ではない。9State secondaryは今回任意未実施、V4/V3の保存表はParentに保持。Path anatomyもdescriptive既存Evidenceのみで新規rule化0。
@@ -87,6 +103,8 @@ historical known_atはUNKNOWNを維持し、bar-endでcausal availabilityが成�
 ## Recoveryとfinite budget
 
 109件回収0、U58／RAW24／provider HTTP400 27。追加24日はmetadataで事前固定、最大72security-session、原SHA順first3 factor-compatible。成功入力だけをfreshへ入れ、失敗security/dateの差し替え0。scope／split／precommitをfresh labelsより前に固定。新provider {http}/900 HTTP、kernel {steps}/40000 slots、research {delta['research_fits']}/80 fits、fresh {delta['fresh_fits']}/160 fits、total {delta['total_fits']}/240、Actions {len(acq)}/2、bootstrap {delta['global_fresh_bootstrap_vectors']}/1000 once。独立新fit/draw0。V1の3000/cap1000 breach、V2 ledger gap、old16FAIL／88workflow incidentを継承しresetしない。
+
+追加72件はACQUIRED45、PROVIDER_FAILURE15、U_UNAVAILABLE7、RAW_UNAVAILABLE5。原109と合わせた未取得は136security-session。新scopeを結果後に補充していない。provider原ページはrunner一時領域でpurge済みで、原ページそのものはこの納品から復元できない。features／State trace／M0検証／source hashは保存。今回の再取得を繰り返して復元しない。
 
 GitHub専用branch state-predictiveness-v5-r2-confirmation-20261002-v1。C0〜C7のpost-commit GETはCHECKPOINTSを参照。main merge0／force push0。最終HEAD・code location index・delivery hashは各receiptを参照。
 

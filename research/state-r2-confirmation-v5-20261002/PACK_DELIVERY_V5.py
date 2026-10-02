@@ -27,7 +27,7 @@ def classify():
     if not f.is_dir():items.setdefault('PARENT_V4/'+f.filename,part)
  for p in sorted(P.rglob('*')):
   if p.is_file():assert 'PARENT_V4/'+str(p.relative_to(P)) in items,'UNTRACKED_PARENT_MEMBER'
- excluded_roots={'PARENT_V4','runner','extension_runner','__pycache__'};excluded_names={'ACQUISITION_PAYLOAD_V5.zip','ACQUISITION_EXTENSION_PAYLOAD_V5.zip','DELIVERY_PACKAGE_RECEIPT_V5.json','SPLIT_PACKAGE_MANIFEST_V5.json','SPLIT_README_V5.txt','DELIVERY_MANIFEST.json'}
+ excluded_roots={'PARENT_V4','runner','extension_runner','__pycache__'};excluded_names={'ACQUISITION_PAYLOAD_V5.zip','ACQUISITION_EXTENSION_PAYLOAD_V5.zip','DELIVERY_PACKAGE_RECEIPT_V5.json','SPLIT_PACKAGE_MANIFEST_V5.json','SPLIT_README_V5.txt','DELIVERY_MANIFEST.json','DELIVERY_VERIFICATION_V5.json','ARCHIVE_VERIFICATION_RECEIPT_V5.json'}
  for p in sorted(R.rglob('*')):
   if not p.is_file():continue
   rel=p.relative_to(R)
@@ -47,14 +47,14 @@ def main():
  for row in data['files']:assert sha(R/row['path'])==row['SHA256'] and (R/row['path']).stat().st_size==row['bytes'],'DELIVERY_CHANGED_AFTER_MANIFEST'
  text='Ark Terminal V5 COMPLETE — 3 ordinary ZIPs\nAll three can be opened separately. Extract all into the same directory. Do not concatenate or use .z01 spanning archives.\nPart1: V5 results/reports/receipts plus byte-identical V4 original results. Part2: V5 acquired/label/fit/research data plus byte-identical V4 data. Part3: immutable V3 original COMPLETE ZIP from the V4 parent.\nPARENT_V4 preserves all original member paths/bytes, including historical one-ZIP README instructions and original split manifests; the outer V5 split manifest governs this delivery.\nRead 00_README.txt / REPORT-ja.md / FINAL_RECEIPT_V5.json / NEXT_STAGE_HANDOFF.md. Use DELIVERY_MANIFEST.json to verify data paths/hash/size. Code sources are exact Git commit/path/SHA in SOURCE_CODE_LOCATION_INDEX_V5.json. No acquisition/refit/label/bootstrap reruns.\n'
  (R/'SPLIT_README_V5.txt').write_text(text)
- split={'ordinary_ZIPs':NAMES,'relative_paths_extract_together':True,'no_spanning_format':True,'manifest_SHA256':sha(R/'DELIVERY_MANIFEST.json'),'source_index_SHA256':sha(R/'SOURCE_CODE_LOCATION_INDEX_V5.json'),'Parent_V4_original_part_SHA256':[{'name':n,'SHA256':sha(ROOT/'project_sources'/n)} for n in INPUT_PARTS],'part_counts':{n:sum(x==i for x in items.values()) for i,n in enumerate(NAMES,1)}};save('SPLIT_PACKAGE_MANIFEST_V5.json',split)
+ split={'ordinary_ZIPs':NAMES,'relative_paths_extract_together':True,'no_spanning_format':True,'manifest_SHA256':sha(R/'DELIVERY_MANIFEST.json'),'source_index_SHA256':sha(R/'SOURCE_CODE_LOCATION_INDEX_V5.json'),'shared_verification_SHA256':sha(R/'DELIVERY_VERIFICATION_V5.json'),'Parent_V4_original_part_SHA256':[{'name':n,'SHA256':sha(ROOT/'project_sources'/n)} for n in INPUT_PARTS],'part_counts':{n:sum(x==i for x in items.values()) for i,n in enumerate(NAMES,1)}};save('SPLIT_PACKAGE_MANIFEST_V5.json',split)
  delivery=ROOT/'delivery_v5';delivery.mkdir(exist_ok=True);receipt=[];seen=set()
  for part,name in enumerate(NAMES,1):
   dest=delivery/name
   with zipfile.ZipFile(dest,'x',zipfile.ZIP_DEFLATED,compresslevel=6,allowZip64=True) as z:
    for rel,p in sorted(items.items()):
     if p==part:z.write(R/rel,rel);assert rel not in seen;seen.add(rel)
-   for rel in ['DELIVERY_MANIFEST.json','SPLIT_PACKAGE_MANIFEST_V5.json','SPLIT_README_V5.txt']:z.write(R/rel,rel)
+   for rel in ['DELIVERY_MANIFEST.json','SPLIT_PACKAGE_MANIFEST_V5.json','SPLIT_README_V5.txt','DELIVERY_VERIFICATION_V5.json']:z.write(R/rel,rel)
   with zipfile.ZipFile(dest) as z:assert z.testzip() is None,'FINAL_ZIP_CRC'
   receipt.append({'part':part,'filename':name,'local_path':str(dest),'bytes':dest.stat().st_size,'SHA256':sha(dest),'CRC':'PASS'})
  assert seen==set(items),'ARCHIVE_MEMBER_COVERAGE'

@@ -1,8 +1,8 @@
 {
   "document_id": "WORK_STATE9_SAFE_UPSIDE_HYBRID_ENTRY_20261003_V1",
-  "generated_at_jst": "2026-10-03T02:07:57.184290+09:00",
-  "basis_head": "269d8071e1de51d46c63c1e8d0540056541b4b87",
-  "current_status": "C1_RC2_WRAPPER_CONNECTION_FIXED_BEFORE_RESTART",
+  "generated_at_jst": "2026-10-03T02:18:30.655567+09:00",
+  "basis_head": "1091cacd5a60e0bcb2c8266a94c915017234039f",
+  "current_status": "C1_PASS_WITH_EXPLICIT_SOURCE_MISSINGNESS",
   "files": [
     {
       "path": "C0_DUPLICATE_EVIDENCE_MATRIX.json",
@@ -23,10 +23,22 @@
       "git_blob_sha": "f3beea1510a21f8deeb497273e8be29eb639bcd5"
     },
     {
+      "path": "C1_CONNECTION_AUDIT.json",
+      "bytes": 1384,
+      "sha256": "797c900f13d712a08043c4ae076c981173d5fab87200569775fe4ccf0b8f2e7b",
+      "git_blob_sha": "1962f51091fa43a2113ae7cf80d6ea4398723d5f"
+    },
+    {
       "path": "C1_TIMELINE_IMPLEMENTATION_FREEZE.json",
       "bytes": 1801,
       "sha256": "8e6577b2d439362dc8a166ebaa28084b06f338efe59f57c54a2d1323e0d87f18",
       "git_blob_sha": "35d1a9fa118da9765f88598e1df4cf2ad719fa6f"
+    },
+    {
+      "path": "CAUSAL_STATE_CANDIDATE_ROWS.jsonl.gz",
+      "bytes": 10090123,
+      "sha256": "f5362e71d6bdb8b4d5b956a727f04a97df38119c440a8f116d5d9c138ad063e7",
+      "git_blob_sha": "c9968e20aeb2d803f754ae82185cbb7f887a5fdb"
     },
     {
       "path": "CHECKPOINTS/C0_OVERLAP_AUDIT.json",
@@ -51,6 +63,18 @@
       "bytes": 2454,
       "sha256": "c37a21dd519ae303b683aed583c98d8c54b88a2747a90eb57979e57374600b68",
       "git_blob_sha": "720b0456fe17d8c632d623dd85961c17d0c5c056"
+    },
+    {
+      "path": "CHECKPOINTS/C1_STATE9_IDENTITY_TIMELINE.json",
+      "bytes": 3166,
+      "sha256": "a2adbfa8899a03819740467853859067aa2ef459404e6c14a6f77004dc746781",
+      "git_blob_sha": "7f0e59c7e071cbdff5de363430ceae6349083bd3"
+    },
+    {
+      "path": "CHECKPOINTS/C1_STATE9_IDENTITY_TIMELINE.md",
+      "bytes": 2706,
+      "sha256": "583c770637a5c5686d4a219ea98fd098aedb6691b155fb5e49c2630fcb048732",
+      "git_blob_sha": "456de7c11be7bc5103e8899d2fcf08aa35302a9a"
     },
     {
       "path": "CHECKPOINTS/C1_TIMELINE_CONNECTION_FIX.json",
@@ -257,16 +281,34 @@
       "git_blob_sha": "956cc0dda2073303a6bdc0333dab62578047514d"
     },
     {
+      "path": "RC2_TIMELINE_COMPUTATION_RECEIPT.json",
+      "bytes": 2364674,
+      "sha256": "25573f6eac449997a65013dce80f26f91187496b2f6d6343eccab4f383d43819",
+      "git_blob_sha": "dacc62d23ebfde472bcb8abd09a75b8d791ca6ec"
+    },
+    {
       "path": "SPLIT_PRECOMMIT.DRAFT.json",
       "bytes": 46769,
       "sha256": "4063cee59038f2d0098da20d20f172504b5530d9d86416e1cd2d4608e340cc99",
       "git_blob_sha": "26a74e14d616d8db33b576e1add6d87f61c6b16b"
     },
     {
+      "path": "STATE9_ENTRY_TIMELINE_RECEIPT.json",
+      "bytes": 2792,
+      "sha256": "9de813c5e59a9f5af7146ed8720a9a74f17ea3c8f3e5a9bd55590d2d59c7e6c8",
+      "git_blob_sha": "e3d21a5d9c3adc284718c601c7eba605f02d74d2"
+    },
+    {
       "path": "STATE9_FINAL_IDENTITY.json",
-      "bytes": 4454,
-      "sha256": "89f2f899cbfa6ac66d820747bab681f3bedefb822292bc0a748f2c3c4b615cf8",
-      "git_blob_sha": "d767701aca02b30799124f46fa3607b72d1216d6"
+      "bytes": 4548,
+      "sha256": "1e7149bd88046db0f46d3d7cfbb220f43fc2b48339052803b4b97fcacd4509c9",
+      "git_blob_sha": "4e15a60e00fb938e624d67acf79ef20700751e78"
+    },
+    {
+      "path": "c1_connection_audit.py",
+      "bytes": 6802,
+      "sha256": "8af880e0939c3610fa7410bad2129ee1c3fcf0f5229df81ba2dddefde450db78",
+      "git_blob_sha": "7fa94411c3bc7bf09302e5fa854face41b9ab163"
     },
     {
       "path": "c1_rc2_timeline.py",
@@ -291,6 +333,12 @@
       "bytes": 10251,
       "sha256": "cd39b67e7f89b44131c2ea395112a2b125f01402aa68beebc9d77a8460a7342b",
       "git_blob_sha": "c2b734c16c2aa4955b8571ac46f0031a426bf7da"
+    },
+    {
+      "path": "h0_saved_feature_join.py",
+      "bytes": 4915,
+      "sha256": "8cf6ccf970f8bf1cf67e9866d6a8321ff4989d335d55da7a97d4411162e342a8",
+      "git_blob_sha": "13648fa26661a645eb58e86308ca4f997ccfce27"
     }
   ],
   "self_excluded": true,

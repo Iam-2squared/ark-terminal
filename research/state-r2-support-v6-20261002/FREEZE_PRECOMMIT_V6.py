@@ -1,0 +1,11 @@
+"""Fixed scope, model, calibration and finite evaluation specification, labels0."""
+from pathlib import Path
+from datetime import datetime,timezone,timedelta
+import json,hashlib
+R=Path(__file__).resolve().parent
+def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
+def main():
+ files=['PREDICTIVENESS_V6_CONTRACT.md','FRESH_SCOPE_V6.json','FRESH_SCOPE_PRECOMMIT_V6.json','BUDGET_START_V6.json','BUDGET_START_V5.json','FROZEN_IDENTITY_RECEIPT_V6.json','SPLIT_PLAN_V6.json','MODEL_V5.py','TARGET_KERNEL_V3_FROZEN.py','ACQUISITION_EXECUTION_FREEZE_V6.json']
+ pre={'JST':datetime.now(timezone(timedelta(hours=9))).isoformat(),'document':'WORK_STATE_PREDICTIVENESS_V6_HARD_SIGNAL_SUPPORT_COMPLETION_20261002_V1','primary_candidate':'R2','baseline':'R1','fresh_labels_seen':0,'fits':0,'bootstrap_generated':0,'hashes':{n:sha(R/n) for n in files},'scope_SHA256':sha(R/'FRESH_SCOPE_V6.json'),'outer_split_logic':'V5 unchanged first5 warmup then3 blocks; chronological and label_end purge','calibration_method':'ROLLING_INNER_OOF_TEMPERATURE_V1','alpha_grid':[.01,.1,1],'temperature_grid':[.5,.75,1,1.25,1.5,2],'null_seed_prefix':2026100402,'bootstrap_seed':2026100601,'pooled_bootstrap_seed':2026100602,'V6_only_bootstrap_vectors':1000,'pooled_bootstrap_vectors':1000,'support_gate':{'cumulative_DOWN':100,'cumulative_UP':100,'V6_only_evaluable_dates_min':1,'V6_only_folds_min':1},'preferred_DOWN':125,'pooled_improvement_CI_lower_rule':'>0','V6_only_direction_rule':'>=-1e-12','TRUE_NULL_raw_and_cal_gate':True,'TRUE_NULL_gain_equivalence_fraction':.9,'concentration_max_date_security_share':.5,'concentration_applies':['V6_ONLY','V5_V6_POOLED'],'calibration_ratio_caps':{'date_equal_LL':1.05,'row_Brier':1.05},'result_driven_changes_allowed':False,'new_scope_after_labels_allowed':False,'rank_gate':'NOT_EVALUATED_RANK_NOT_AUTHORIZED_FOR_HANDOFF','implementation_freeze':'acquisition/precommit fixed now; evaluation source frozen in EVALUATION_CODE_FREEZE_V6 after input-only acquisition, before first fresh label; does not change this specification'}
+ p=R/'PREDICTIVENESS_V6_PRECOMMIT.json';assert not p.exists();p.write_text(json.dumps(pre,sort_keys=True,indent=2)+'\n');print(json.dumps({'precommit_SHA256':sha(p),'labels':0,'fits':0,'draws':0}))
+if __name__=='__main__':main()

@@ -1,0 +1,66 @@
+{
+  "JST": "2026-10-02T19:24:37.877887+09:00",
+  "TRUE_NULL_gain_equivalence_fraction": 0.9,
+  "TRUE_NULL_raw_and_cal_gate": true,
+  "V6_only_bootstrap_vectors": 1000,
+  "V6_only_direction_rule": ">=-1e-12",
+  "alpha_grid": [
+    0.01,
+    0.1,
+    1
+  ],
+  "baseline": "R1",
+  "bootstrap_generated": 0,
+  "bootstrap_seed": 2026100601,
+  "calibration_method": "ROLLING_INNER_OOF_TEMPERATURE_V1",
+  "calibration_ratio_caps": {
+    "date_equal_LL": 1.05,
+    "row_Brier": 1.05
+  },
+  "concentration_applies": [
+    "V6_ONLY",
+    "V5_V6_POOLED"
+  ],
+  "concentration_max_date_security_share": 0.5,
+  "document": "WORK_STATE_PREDICTIVENESS_V6_HARD_SIGNAL_SUPPORT_COMPLETION_20261002_V1",
+  "fits": 0,
+  "fresh_labels_seen": 0,
+  "hashes": {
+    "ACQUISITION_EXECUTION_FREEZE_V6.json": "ce2da7c4fcc4f3420bfbeecab71246926e107bdcb06e3716e954266c4ea2b0c4",
+    "BUDGET_START_V5.json": "63f569151fc7e2822b423edb11671f76150ce0166079f9191762aa85d42cd6e3",
+    "BUDGET_START_V6.json": "63f569151fc7e2822b423edb11671f76150ce0166079f9191762aa85d42cd6e3",
+    "FRESH_SCOPE_PRECOMMIT_V6.json": "150f268178e7e717a800ff12a58a85d61bbe38767415352e6736088c8993681b",
+    "FRESH_SCOPE_V6.json": "0b76394c8f34fd3bf85f0a4aef86e41c869f05d9deaa616622122cacdfa15be8",
+    "FROZEN_IDENTITY_RECEIPT_V6.json": "3e6208cdb62282b18d0446c4d0e53a0376aa36c515fa58823fea1480c57f1596",
+    "MODEL_V5.py": "3d06a4d9c7aef06ce9bcf0707f5ef6373679eb538608357c9162311af917c0a6",
+    "PREDICTIVENESS_V6_CONTRACT.md": "f8964db6770d86a0330a7eaadaadbb645121a5b83f5d22334716969bdee0fe08",
+    "SPLIT_PLAN_V6.json": "d142d3c24414ce34228bf3977a4da2658eae0db00411758cc1ccba968022cd4f",
+    "TARGET_KERNEL_V3_FROZEN.py": "bc30b2ffb2a8f2a24c5982e365c18aadbb46809a039fb422ab826b00eaf64be7"
+  },
+  "implementation_freeze": "acquisition/precommit fixed now; evaluation source frozen in EVALUATION_CODE_FREEZE_V6 after input-only acquisition, before first fresh label; does not change this specification",
+  "new_scope_after_labels_allowed": false,
+  "null_seed_prefix": 2026100402,
+  "outer_split_logic": "V5 unchanged first5 warmup then3 blocks; chronological and label_end purge",
+  "pooled_bootstrap_seed": 2026100602,
+  "pooled_bootstrap_vectors": 1000,
+  "pooled_improvement_CI_lower_rule": ">0",
+  "preferred_DOWN": 125,
+  "primary_candidate": "R2",
+  "rank_gate": "NOT_EVALUATED_RANK_NOT_AUTHORIZED_FOR_HANDOFF",
+  "result_driven_changes_allowed": false,
+  "scope_SHA256": "0b76394c8f34fd3bf85f0a4aef86e41c869f05d9deaa616622122cacdfa15be8",
+  "support_gate": {
+    "V6_only_evaluable_dates_min": 1,
+    "V6_only_folds_min": 1,
+    "cumulative_DOWN": 100,
+    "cumulative_UP": 100
+  },
+  "temperature_grid": [
+    0.5,
+    0.75,
+    1,
+    1.25,
+    1.5,
+    2
+  ]
+}

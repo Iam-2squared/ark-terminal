@@ -2,7 +2,7 @@
   "blocking_status": "BLOCKED_SPLIT_OR_LINEAGE_MISMATCH",
   "canonical_2155_event_reference": {
     "IMMEDIATE": {
-      "FIRST_ENTRY_N": 622,
+      "FIRST_ENTRY_N": 1963,
       "entry_to_high_active_minutes": {
         "N": 1941,
         "mean": 65.32818134981969,
@@ -35,7 +35,7 @@
       "watch_N": 2155
     },
     "R1": {
-      "FIRST_ENTRY_N": 622,
+      "FIRST_ENTRY_N": 1885,
       "entry_to_high_active_minutes": {
         "N": 1868,
         "mean": 62.093147751606,
@@ -67,6 +67,16 @@
       },
       "watch_N": 2155
     }
+  },
+  "canonical_reference_count_correction": {
+    "corrected_filled_N": {
+      "IMMEDIATE": 1963,
+      "R1": 1885
+    },
+    "metrics_changed": false,
+    "original_incorrect_filled_N": 622,
+    "reason": "reference comprehension used last policy rows instead of each saved baseline rows; corrected denominator metadata only",
+    "score_or_entry_rows_changed": false
   },
   "diagnostic_only": true,
   "freeze_or_promotion_allowed": false,

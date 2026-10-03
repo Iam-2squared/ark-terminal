@@ -11,6 +11,24 @@
     "low/high intrabar order unknown; peak-bar Low conservatively included",
     "State Path EXIT event names are state-run annotations, never trading EXIT policy calls"
   ],
+  "canonical_reference_count_supplement": {
+    "audit_fit": 0,
+    "checks": {
+      "IMMEDIATE": {
+        "saved_filled_N": 1963,
+        "watch_N": 2155
+      },
+      "R1": {
+        "saved_filled_N": 1885,
+        "watch_N": 2155
+      }
+    },
+    "entry_records_changed": false,
+    "metrics_changed": false,
+    "saved_at_jst": "2026-10-03T12:47:05.637979+09:00",
+    "status": "PASS",
+    "supplement_only": "canonical reference count metadata; main audit remains BLOCKED"
+  },
   "checks": {
     ">=1..5 Winner denominator and capture": 40,
     "EXIT / Reentry / Capital / order imports absent": 5,
@@ -34,6 +52,7 @@
     "State timestamp independent kernel": 4245,
     "WATCH_KEY": 4931,
     "active clock feature": 462752,
+    "canonical reference population and saved filled count": 2,
     "daily FIRST_ENTRY counts": 464,
     "daily peak active watchlist and simultaneous demand": 464,
     "equal-weight uptrend score all OOF rows": 10,
@@ -296,6 +315,6 @@
   "seconds": 160.7,
   "status": "BLOCKED_SPLIT_OR_LINEAGE_MISMATCH",
   "teacher_rows_checked": 462752,
-  "total_checks": 13788666,
+  "total_checks": 13788668,
   "train_only_preprocessing_all_training_rows_checked": true
 }

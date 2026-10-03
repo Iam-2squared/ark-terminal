@@ -1,0 +1,114 @@
+{
+  "BLOCKED_N": 3,
+  "C2_PASS": false,
+  "C3_resumed": false,
+  "Exposure": "Previously outcome-exposed Development1600/58 only; source recovery and admission audit, no new teacher/performance analysis.",
+  "PASS_N": 7,
+  "basis_head": "e4f84041828d0b31f9f56b3a136d2a1b538b0d51",
+  "branch": "capital-state9-vnext-20261004",
+  "branching": "R7-B DRAFT_ONLY_STOP",
+  "candidate_N": 1600,
+  "capital_performance_status": "NOT_EXECUTED_NOT_CERTIFIED",
+  "current_full1m_completeness_as_mandatory_gate": false,
+  "execution_budget": {
+    "Capital_performance_replay": 0,
+    "Claude_calls": 0,
+    "EXIT_replay": 0,
+    "Entry_replay": 0,
+    "MAX_comparison": 0,
+    "State9_feature_search": 0,
+    "fit": 0,
+    "force_pushes": 0,
+    "main_merges": 0,
+    "new_market_data_download": 0,
+    "orders": 0,
+    "protected_holdout_fresh_validation_oos_prospective_open": 0,
+    "provider_request": 0,
+    "ranker": 0,
+    "threshold_search": 0
+  },
+  "existing_only_resolved_N": 0,
+  "filled_N": 1561,
+  "gates": [
+    {
+      "condition": "all1600 identities retained",
+      "evidence": "1600/1600, identity and official overlay mismatch0",
+      "id": 1,
+      "status": "PASS"
+    },
+    {
+      "condition": "future-outcome exclusion0",
+      "evidence": "No candidate funded/rejected; row exclusion0",
+      "id": 2,
+      "status": "PASS"
+    },
+    {
+      "condition": "Frozen Entry/EXIT changes0",
+      "evidence": "identity, prices and timestamps unchanged; original component hashes match",
+      "id": 3,
+      "status": "PASS"
+    },
+    {
+      "condition": "unresolved handling unique under current existing contract",
+      "evidence": "Legacy locked/null mechanisms exist, but current Frozen cross-session and comparison binding not unique;39 remain unresolved",
+      "id": 4,
+      "status": "BLOCKED"
+    },
+    {
+      "condition": "MTM source contract unique under current existing source",
+      "evidence": "Old5m/funded-only mechanics recovered; current cadence/price role/freshness/comparison binding unresolved",
+      "id": 5,
+      "status": "BLOCKED"
+    },
+    {
+      "condition": "known-at/cash release semantics unique",
+      "evidence": "1561 reference-only+60s; actual known-at unknown; existing R34 direct callback fails at reference",
+      "id": 6,
+      "status": "BLOCKED"
+    },
+    {
+      "condition": "cost double count0",
+      "evidence": "BUY1600 and SELL1561 arithmetic0 mismatches; commission0; isolated cash/PnL identity; no funded ledger run",
+      "id": 7,
+      "status": "PASS"
+    },
+    {
+      "condition": "missing imputation0",
+      "evidence": "daily/lastclose/interpolation/forwardfill substitutions0",
+      "id": 8,
+      "status": "PASS"
+    },
+    {
+      "condition": "LONG-only/cash-only maintained",
+      "evidence": "SHORT/margin/order/production operations0; current contract retained",
+      "id": 9,
+      "status": "PASS"
+    },
+    {
+      "condition": "Independent mismatch0",
+      "evidence": "ZIP/SQLite/Fraction and canonical eligibility recheck agree; previous-source link mismatch0",
+      "id": 10,
+      "status": "PASS"
+    }
+  ],
+  "independent_mismatch_N": 0,
+  "latest_observed_HEAD": "e4f84041828d0b31f9f56b3a136d2a1b538b0d51",
+  "minimum_next_direction": "Review D1-D3 admission binding and E1-E4 evidence; existing sources first. No experiments under proposed protocol.",
+  "original_Frozen_research_proof": "NOT_OVERTURNED; reference execution and historical runtime known-at are different guarantees",
+  "repo": "Iam-2squared/ark-terminal",
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "saved_at_jst": "2026-10-04T02:09:28.196064+09:00",
+  "status": "CAPITAL_C2_NEW_ADMISSION_CONTRACT_REQUIRED",
+  "unresolved_N": 39
+}

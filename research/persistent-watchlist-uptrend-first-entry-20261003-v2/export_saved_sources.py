@@ -40,3 +40,14 @@ receipt={'status':'SAVED_DEVELOPMENT_SOURCE_EXPORT_COMPLETE','basis_head':os.env
  'known_at':'UNKNOWN; bar end research assumption','new_data_acquisition':False}
 (out/'SOURCE_EXPORT_RECEIPT.json').write_text(json.dumps(receipt,indent=2)+'\n')
 print(json.dumps({k:v for k,v in receipt.items() if k not in ['parents','files']}))
+
+# Restore the complete Selector event metadata (including refresh timestamps).
+memberpath=ROOT/'docs/evidence/phase57-behavior-full144-v1/ci-result/substrate/features.json.gz'
+features=load(memberpath)
+members=[x['member'] for x in features if x['member']['sessionDate'] in {r['session'] for r in rows}]
+assert len({m['selectorEventId'] for m in members})==len(members)
+save(out/'selector_events_full144.json.gz',members)
+receipt['parents']['selector_events_full144']={'path':str(memberpath.relative_to(ROOT)),'sha256':sha(memberpath),'rows':len(members)}
+receipt['files']['selector_events_full144.json.gz']={'sha256':sha(out/'selector_events_full144.json.gz'),'bytes':(out/'selector_events_full144.json.gz').stat().st_size}
+(out/'SOURCE_EXPORT_RECEIPT.json').write_text(json.dumps(receipt,indent=2)+'\n')
+print(json.dumps({'selector_event_metadata_exported':len(members),'future_features_exported':False,'provider_requests':0,'model_fits':0}))

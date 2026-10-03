@@ -199,7 +199,7 @@ def run():
                     for field in ['window_ids','old_window_ids']:
                         safe=safe and all(x<=t for x in obj.get(field,[]))
             for pv in s.get('_structure_pivots') or []:
-                safe=safe and pv['t']<=t and pv['confirmed_at']<=t
+                safe=safe and pv['extremum_t']<=t and pv['confirmed_at']<=t
             if not safe:leakage+=1
             check('causal_cutoff_all_trace_slots',safe)
             prev=row

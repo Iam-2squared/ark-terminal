@@ -1,0 +1,58 @@
+{
+  "document_id": "WORK_PERSISTENT_WATCHLIST_STATE_UPTREND_FIRST_ENTRY_V2_20261003",
+  "checkpoint": "C5_MODEL",
+  "saved_at_jst": "2026-10-03T12:05:43.307463+09:00",
+  "basis_head": "5c582f624bcd1cf8fca5ec5901ab56c23cfc8c8a",
+  "current_status": "FIXED_30_FITS_READY_WITH_CAUSAL_FEATURES_AND_TEACHERS",
+  "completed_this_checkpoint": [
+    "462752 causal grid feature rows computed;1366473 exact RC2 steps",
+    "267087 unique-price 80/120 normalization matches;2627886 original-prefix Decimal parity checks, mismatch0",
+    "457638 U targets and190523 complete-path Q/D targets; incomplete path targets remainNULL"
+  ],
+  "key_evidence": [
+    "FEATURE_COMPUTATION_RECEIPT.json",
+    "TEACHER_COMPUTATION_RECEIPT.json",
+    "COMPACT_ORIGINAL_VALUE_PARITY.json",
+    "MODEL_SCORE_POLICY_FREEZE.json"
+  ],
+  "blockers": [],
+  "current_direction": "FIRST ENTRY only; fixed nonlinear P0/P1 multi-head; Development outer OOF",
+  "next_step": "Execute exactly30 fixed P0/P1×3-head×5-fold chronological fits, then generate all4 FIRST_ENTRY policies.",
+  "frozen_boundaries": {
+    "watch_expiry": "same-session regular close",
+    "entries_per_watch": 1,
+    "EXIT_calls": 0,
+    "R50_calls": 0,
+    "reentry_calls": 0,
+    "capital_calls": 0,
+    "selector_changes": 0,
+    "state_semantic_changes": 0
+  },
+  "exposure_and_budget": {
+    "fits": 0,
+    "fit_cap": 36,
+    "planned_fits": 30,
+    "provider": 0,
+    "protected": 0,
+    "fresh_validation": 0,
+    "OOS": 0,
+    "prospective": 0,
+    "orders": 0,
+    "main_merge": 0,
+    "hyperparameter_search": 0,
+    "weight_search": 0,
+    "bootstrap": 0
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "productionReady": false
+  }
+}

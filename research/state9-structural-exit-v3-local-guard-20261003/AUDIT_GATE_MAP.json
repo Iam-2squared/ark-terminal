@@ -1,0 +1,258 @@
+{
+  "audit_fit": 0,
+  "availability_assumption": "historical actual_known_at UNKNOWN; inherited bar_end availability assumption only",
+  "future_causal_leakage_N": 0,
+  "items": [
+    {
+      "check_counts": {
+        "Entry_immutable_fill": 1600,
+        "Frozen_Entry_exact_bytes": 1
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 1,
+      "requirement": "Frozen Entry identity",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "full_trace_exact_reuse": 1600
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 2,
+      "requirement": "v2 Full trace exact hash reuse",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "budget_exact": 34,
+        "no_engine_model_provider_import": 7
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 3,
+      "requirement": "no State9/Path reconstruction",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "local_pivot_exact_original_field": 202630,
+        "pivot_exact_bytes_reused": 1600
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 4,
+      "requirement": "local pivot exact source bytes/fields",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "source_local_pivot_causality": 56102
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 5,
+      "requirement": "pivot confirmed_at causality",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "LHL_confirmation_order": 2943
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 6,
+      "requirement": "L0/H0/L1 ordering",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "C_same_segment": 43,
+        "decision_metadata_exact": 202630
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 7,
+      "requirement": "same segment",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "LHL_confirmed_before_t": 2943
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 8,
+      "requirement": "confirmed_at<t",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "guard_higher_low_and_progress": 369
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 9,
+      "requirement": "higher-low condition",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "guard_higher_low_and_progress": 369
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 10,
+      "requirement": "H0+delta progress",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "C_effective_next_bar": 43,
+        "guard_next_bar_not_current": 369
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 11,
+      "requirement": "guard effective next bar",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "guard_monotonicity": 369
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 12,
+      "requirement": "guard monotonicity",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "no_cross_segment_carry": 169450
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 13,
+      "requirement": "no cross-segment carry",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "C_requires_UP_and_exact_break": 43
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 14,
+      "requirement": "EXIT-C exact break arithmetic",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "C_requires_UP_and_exact_break": 43
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 15,
+      "requirement": "EXIT-C requires context still UP",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "first_valid_A_B_C_precedence": 1600
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 16,
+      "requirement": "A/B/C precedence",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "first_valid_A_B_C_precedence": 1600,
+        "post_exit_decision_zero": 1600
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 17,
+      "requirement": "first valid intent only",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "canonical_next_open_5bps_session_close": 1600
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 18,
+      "requirement": "canonical next-open sell5bps",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "saved_v2_join_exact_identity": 1600
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 19,
+      "requirement": "v2 saved-result join identity",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "exclusive_and_subgroup_denominators": 26
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 20,
+      "requirement": "exclusive High denominators",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "paired_delta_N": 338,
+        "paired_delta_mean": 338,
+        "paired_delta_median": 338
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 21,
+      "requirement": "paired return delta",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "independent_later_missed_upside_pct": 1600,
+        "independent_peak_giveback_pp": 1600,
+        "independent_pre_sell_observed_peak_giveback_pp": 1600
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 22,
+      "requirement": "giveback/missed upside",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "post_exit_decision_zero": 1600
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 23,
+      "requirement": "post-exit decision0",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "budget_exact": 34,
+        "no_model_fit_predict_call": 7
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 24,
+      "requirement": "model/teacher/search0",
+      "status": "PASS"
+    },
+    {
+      "check_counts": {
+        "budget_exact": 34
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 25,
+      "requirement": "Re-entry/Capital0",
+      "status": "PASS"
+    }
+  ],
+  "mismatch_N": 0,
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "saved_at_jst": "2026-10-03T20:22:56.226706+09:00",
+  "status": "INDEPENDENT_V3_AUDIT_PASS"
+}

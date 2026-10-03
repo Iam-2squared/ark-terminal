@@ -18,14 +18,12 @@ class TrainPreprocessor:
   self.training_rows=len(num);return self
  def transform(self,num,cat=None,out=None):
   d=num.shape[1];width=2*d+sum(len(k)+1 for k in self.known);arr=np.lib.format.open_memmap(out,mode='w+',dtype=np.float64,shape=(len(num),width)) if out else np.empty((len(num),width),dtype=np.float64)
-  for j in range(d):
-   missing=~np.isfinite(num[:,j]);arr[:,j]=np.where(missing,self.median[j],num[:,j]);arr[:,d+j]=missing
-  offset=2*d
-  if cat is not None:
-   for j,known in enumerate(self.known):
-    # Final column is explicit unseen UNKNOWN; known MISSING/UNKNOWN categories
-    # each get their own train-observed bucket. Forced explicit specials below.
-    arr[:,offset:offset+len(known)+1]=0;idx=np.searchsorted(known,cat[:,j]);clipped=np.minimum(idx,max(len(known)-1,0));seen=(idx<len(known))&(np.asarray(known)[clipped]==cat[:,j]);idx=np.where(seen,idx,len(known));arr[np.arange(len(cat)),offset+idx]=1;offset+=len(known)+1
+  for lo in range(0,len(num),2048):
+   hi=min(lo+2048,len(num));chunk=num[lo:hi];missing=~np.isfinite(chunk);arr[lo:hi,:d]=np.where(missing,self.median,chunk);arr[lo:hi,d:2*d]=missing;offset=2*d
+   if cat is not None:
+    for j,known in enumerate(self.known):
+     # Final column is explicit unseen UNKNOWN; reserved specials unchanged.
+     arr[lo:hi,offset:offset+len(known)+1]=0;idx=np.searchsorted(known,cat[lo:hi,j]);clipped=np.minimum(idx,max(len(known)-1,0));seen=(idx<len(known))&(np.asarray(known)[clipped]==cat[lo:hi,j]);idx=np.where(seen,idx,len(known));arr[np.arange(lo,hi),offset+idx]=1;offset+=len(known)+1
   if out:arr.flush();arr._mmap.madvise(mmap.MADV_DONTNEED)
   return arr
 def percentile(sorted_ref,pred):return (np.searchsorted(sorted_ref,pred,'left')+np.searchsorted(sorted_ref,pred,'right'))/(2*len(sorted_ref))

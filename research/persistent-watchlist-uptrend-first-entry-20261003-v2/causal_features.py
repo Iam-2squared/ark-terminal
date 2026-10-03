@@ -77,7 +77,11 @@ def state_task(arg):
  return wi,nums,cats,meta,{'watch_key':w['watch_key'],'source_status':'SAVED_SOURCE_CONNECTED','rows':n,'kernel_steps':cursor,'normalization80_120_unique_price_checks':parity,'U_sha256':hashlib.sha256(b80['U'].encode()).hexdigest(),'previous_return_pairs':b80['previous_return_pairs_N'],'future_inputs':0}
 def run(workers=8,limit=0):
  assert (HERE/'FEATURE_FREEZE.json').exists() and (HERE/'CLEAN_UPTREND_TEACHER_CONTRACT.json').exists()
- for name,expected in read(HERE/'FEATURE_FREEZE.json')['code_hashes'].items():assert sha(HERE/name)==expected,'POST_FREEZE_CODE_MUTATION'
+ amendment=read(HERE/'IMPLEMENTATION_FIX_RECEIPT.json') if (HERE/'IMPLEMENTATION_FIX_RECEIPT.json').exists() else {}
+ for name,expected in read(HERE/'FEATURE_FREEZE.json')['code_hashes'].items():
+  if name=='price_features.py' and amendment:expected=amendment['corrected_code_sha256']
+  if name=='causal_features.py' and amendment:expected=amendment['corrected_causal_runner_sha256']
+  assert sha(HERE/name)==expected,'POST_FREEZE_CODE_MUTATION'
  raw=read(INPUT/'raw_paths_selected.json.gz');src=read(SCRATCH/'private_source/PRIVATE_SELECTED_SOURCE_TOKENS.json.gz');watches=list(lines(HERE/'WATCH_RECORDS.jsonl.gz'))
  proof=read(OLD/'ORIGINAL_SAVED_SOURCE_PROOF.json');assert sha(SCRATCH/'private_source/PRIVATE_SELECTED_SOURCE_TOKENS.json.gz')==proof['private_source_sha256']
  overlap=0

@@ -21,7 +21,7 @@ def compute(w,a,previous,t):
  for n in (1,3,5,10,20):
   x=window(a,t,n+1);out['return'+str(n)]=pct(c,x[0,4]) if x is not None else None
  vw,cov=observed_vwap(w['session'],a,t);vw3,_=observed_vwap(w['session'],a,t-3)
- out.update(vwapDistancePct=pct(c,vw),vwapSlope3Pct=pct(vw,vw3),vwapObservedCoverage=cov)
+ out.update(vwapDistancePct=pct(c,vw),vwapSlope3Pct=pct(vw,vw3) if vw is not None else None,vwapObservedCoverage=cov)
  for n in WINDOWS:
   x=window(a,t,n);out['pullback'+str(n)+'Pct']=pct(c,max(x[:,2])) if x is not None else None
  known=[m for m in w['refresh_minutes'] if m<=t]

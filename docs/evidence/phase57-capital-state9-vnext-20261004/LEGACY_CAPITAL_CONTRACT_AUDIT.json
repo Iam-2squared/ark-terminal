@@ -1,0 +1,201 @@
+{
+  "Legacy_Adaptive_v2_winner_found": false,
+  "basis_head": "d26c733407577cf72fff75a9abfa4c8c2b0f3cbe",
+  "components": [
+    {
+      "component": "causal event queue",
+      "reason": "Price→EXIT→cash release→Entry; reference fills/known-at still need explicit admission.",
+      "reuse": "YES_CANDIDATE"
+    },
+    {
+      "component": "deterministic candidate ordering",
+      "reason": "timestamp then causal rank/score then symbol/identity; no future rank",
+      "reuse": "YES_CANDIDATE"
+    },
+    {
+      "component": "100-share lot quantization",
+      "reason": "Current cash LONG-only round lots; existing Decimal quantity primitive",
+      "reuse": "YES_CANDIDATE"
+    },
+    {
+      "component": "cash vs MTM equity separation",
+      "reason": "Unrealized gains never become spendable cash; unknown marks remain null",
+      "reuse": "YES_CANDIDATE"
+    },
+    {
+      "component": "cash-only LONG debit / credit",
+      "reason": "Reuse actual cash mechanisms; current embedded5bps each side replaces old fee assumptions",
+      "reuse": "YES_CANDIDATE"
+    },
+    {
+      "component": "same symbol no double-open",
+      "reason": "Existing invariant",
+      "reuse": "YES_CANDIDATE"
+    },
+    {
+      "component": "concurrent position cap",
+      "reason": "Current MAX3/4/5 capacity distinct from budget divisor",
+      "reuse": "YES_CANDIDATE"
+    },
+    {
+      "component": "causal score weighting",
+      "reason": "Mechanism only; no old scorer inputs are fabricated",
+      "reuse": "YES_CANDIDATE"
+    },
+    {
+      "component": "dynamic target utilization / reserve",
+      "reason": "Mechanism only; numerical deployment curve not transferred",
+      "reuse": "YES_CANDIDATE"
+    },
+    {
+      "component": "candidate equity cap mechanism",
+      "reason": "Mechanism only; old45/35/25/15% not transferred",
+      "reuse": "YES_CANDIDATE"
+    },
+    {
+      "component": "confirmed EXIT capital recycling",
+      "reason": "Only confirmed source fill releases cash; unknown exit remains locked",
+      "reuse": "YES_CANDIDATE"
+    },
+    {
+      "component": "append-only audit and outcome allowlist",
+      "reason": "18 inherited tests passed; current joint audit not claimed",
+      "reuse": "YES_CANDIDATE"
+    },
+    {
+      "component": "old confidence/probability/Selector features",
+      "reason": "Missing or different current meaning; LEGACY_FEATURE_UNAVAILABLE",
+      "reuse": "NO_DIRECT_REUSE"
+    },
+    {
+      "component": "old score/rank/utilization numerical values",
+      "reason": "Former Entry/Selector calibration and side regime",
+      "reuse": "NO_DIRECT_REUSE"
+    },
+    {
+      "component": "SHORT / collateral accounting",
+      "reason": "Current LONG-only, cash-equity-only",
+      "reuse": "NO_CURRENT_REUSE"
+    },
+    {
+      "component": "legacy Adaptive reported realized PnL metric",
+      "reason": "One-trade supplemental audit proves entry cost double-subtracted from reported realized PnL; cash endpoint is separate",
+      "reuse": "NO_DIRECT_REUSE"
+    }
+  ],
+  "current_winner": null,
+  "later_lineages": [
+    {
+      "date": "2026-09-13",
+      "head": "84b296102b85ab2909385a8f3ee7ef336c9b6129",
+      "method": "V3_B_RISK seven completed5m closes; MSH v1; EXIT v5; budget Equity/3 but maximumConcurrentPositions10; LONG+SHORT; not Adaptive v2 or current FIRST_ENTRY/EXIT",
+      "status": "DEVELOPMENT_MAIN_MAX_3_FROZEN"
+    },
+    {
+      "date": "2026-09-27",
+      "head": "0357d0a507d39515c70687448b515fc543e28f0a",
+      "method": "IM/R1 different Entry and terminal-hold; four certified EOD curves and two unresolved; no Capital rank selected",
+      "status": "REPORTING_AUDIT_PASS_CAPITAL_V2_NO_SELECTION"
+    },
+    {
+      "date": "2026-09-27",
+      "path": "docs/evidence/phase57-capital-v3/CAPITAL_V3_FINAL_CLOSURE.md",
+      "status": "CAPITAL_V3_0_OF_2_PASS_NO_SELECTION_STOP"
+    },
+    {
+      "date": "2026-09-27",
+      "path": "docs/evidence/phase57-replacement-capital/CONTROLLING_HANDOFF.md",
+      "status": "REPLACEMENT_CAPITAL_NO_SELECTION_STOP"
+    }
+  ],
+  "latest_legacy_source_history": {
+    "adaptive": "f13cc42515df3b1e1b60de7181fdf89f1a9255f9",
+    "fixed": "4646d303da55fa71001197f72416b4aad6c53df1",
+    "realtime": "e198040c8224fd4f7a61410b416f767638fb473c"
+  },
+  "main_merges": 0,
+  "new_capital_replays": 0,
+  "new_fits": 0,
+  "new_protected_opens": 0,
+  "old_performance_transferred_to_current_strategy": false,
+  "old_scoring_semantics": "Normalize available causal inputs into[0,1]; values>1 divided by100; renormalize sum of weights over available inputs; zero available inputs throws; fixed S/A/B/C thresholds. These are not adopted current policy values.",
+  "orders": 0,
+  "original_focused_tests": {
+    "failed": 0,
+    "passed": 18,
+    "scope": "Lane-C13 +Adaptive v2 5; local exact recovered files; not current1600 replay"
+  },
+  "outcome_flags": {
+    "futureOutcomeVisibleToAllocator": false,
+    "postHocWinnerFiltering": false,
+    "resultBasedRetuning": false,
+    "winnerSelectionAllowed": false
+  },
+  "reuse_measure": {
+    "compatible_or_conditional_candidates": 12,
+    "current_strategy_engine_migration_completed_pct": 0.0,
+    "denominator": "16 explicitly enumerated engineering components; equal unit weighting, not code-line reuse or a claim of current performance validation",
+    "legacy_parameter_direct_adoption_pct": 0.0,
+    "mechanics_reuse_candidate_pct": 75.0,
+    "unavailable_or_inapplicable": 4
+  },
+  "saved_at_jst": "2026-10-04T01:02:25.085104+09:00",
+  "status": "LEGACY_RECOVERY_PASS_NOT_PERFORMANCE_PASS",
+  "supplemental_cash_pnl_audit": {
+    "entry_fee": 100,
+    "entry_price": 1000,
+    "exit_fee": 101,
+    "exit_price": 1010,
+    "expected_cash_endpoint": 1003799,
+    "expected_net_pnl": 3799,
+    "future_outcome_changed_first_decision_unchanged": true,
+    "legacy_reported_realized_pnl": 3699,
+    "quantity": 400,
+    "reported_minus_cash_pnl": -100,
+    "status": "FAIL_REPORTING_RECONCILIATION",
+    "synthetic_trade_count": 1
+  },
+  "verified_old_policy_reference_only": {
+    "breadth_bonus_per_additional_candidate": 0.055,
+    "candidate_equity_caps": {
+      "A": 0.35,
+      "B": 0.25,
+      "C": 0.15,
+      "S": 0.45
+    },
+    "initial_equity_jpy": 1000000,
+    "lot_size": 100,
+    "max_concurrent_positions": 9,
+    "max_target_utilization": 0.92,
+    "profiles": [
+      "ADAPTIVE_EQUAL",
+      "ADAPTIVE_RANK",
+      "ADAPTIVE_SCORE"
+    ],
+    "rank_thresholds": {
+      "A": 0.7,
+      "B": 0.55,
+      "C": 0,
+      "S": 0.85
+    },
+    "rank_weights": {
+      "A": 3,
+      "B": 2,
+      "C": 1,
+      "S": 4
+    },
+    "round_trip_cost_pct": 0.05,
+    "score_weights": {
+      "entryConfidence": 0.3,
+      "entryProbability": 0.2,
+      "selectionOpportunity": 0.25,
+      "selectionV2": 0.25
+    },
+    "single_rank_target_utilization": {
+      "A": 0.56,
+      "B": 0.44,
+      "C": 0.3,
+      "S": 0.68
+    }
+  }
+}

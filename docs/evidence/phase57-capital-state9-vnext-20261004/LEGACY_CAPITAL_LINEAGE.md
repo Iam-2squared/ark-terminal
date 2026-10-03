@@ -1,0 +1,15 @@
+# Legacy Capital lineage — read-only recovery
+
+Fixed Lane C source commit: `4646d303da55fa71001197f72416b4aad6c53df1`. Policy documentation commit: `005b3c5ad214a2f126cab67733a036b2bfd808c3`. Historical profiles MAX10/4/3/2 use Current MTM Equity/N,100-share lots, actual cash constraint, exact timestamps and outcome-separated Entry envelopes. No profile winner was authorized by the foundation.
+
+Adaptive v2 merged PR#496: `f13cc42515df3b1e1b60de7181fdf89f1a9255f9`; source branch retained `3a4a92a386a12857b2dc8d41112689679e9e87ad`. Three profiles EQUAL/RANK/SCORE, causal quality score, S/A/B/C, candidate caps, dynamic target utilization and reserve,9 concurrent positions. Current-basis and default-branch source path histories show the same single implementation commit. Winner selection remains false. First Fresh-eligible2026-09-01 is a policy eligibility date, not proof of a successful Fresh/OOS evaluation or a winner.
+
+Realtime R6 merged PR#532: `e198040c8224fd4f7a61410b416f767638fb473c`;28 cells (4 management cells×7 capital profiles), append-only/idempotent allocation, realtime accounting and Frozen Entry events. Current-basis and default source histories show no later change to this allocator file. Later realtime infrastructure fixes did not revise its score/weights.
+
+A separate Capital v3 lineage was frozen in September: Phase A `d0b9bbfbf46d60484b9c407543cefa350cfd2681`; integrated Development refreeze `84b296102b85ab2909385a8f3ee7ef336c9b6129`. It selected V3_B_RISK +MSH v1 +EXIT v5, not Adaptive v2. Its historical MAX_3 meant Equity/3 budget with10 simultaneous positions, not current MAX3 capacity. Historical Development outcomes were viewed; OOS superiority/finalPass=false. Its old closed search and future-OOS reservations are not reopened here.
+
+Later LONG-only IM/R1 Capital Rank v2 /v3 /replacement evidence is formally negative: Capital v2 NO_SELECTION; v3 0/2 PASS NO_SELECTION_STOP; replacement NO_SELECTION_STOP. The09-27 reporting reconciliation retained unresolved auctions and null intraday metrics. Its observed returns cannot be transplanted into the current1600 FIRST_ENTRY v2 +EXIT v3 cohort. A prior top3-enrichment Gate was geometrically unreachable; this is not proof that State9 has no current incremental value.
+
+18 recovered original focused tests PASS. A supplemental synthetic one-trade cash/PnL check FAILS the Adaptive v2 reported realizedPnl field: cash endpoint gain3799JPY vs reported3699JPY (entry fee100JPY counted twice in the report). Cash endpoint itself reconciles. Existing legacy source is preserved unchanged; reporting repair is required before metric reuse. Historical utilization in this Adaptive engine is an unweighted event-sample mean, not the current requested time-weighted utilization.
+
+Current authoritative strategy is the corrected-lineage FIRST_ENTRY v2 P1_Q70 +official frozen Structural EXIT v3. Neither an old selected V3_B_RISK policy nor the R35 fallback is renamed its current Adaptive baseline. No model, threshold, legacy value, SHORT, old EXIT, or future outcome was transplanted.

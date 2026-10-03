@@ -152,7 +152,7 @@ def main():
 
     report = dict(
         saved_at_jst=now(), stage="C2_CURRENT_FROZEN_STRATEGY_ADAPTER_AUDIT",
-        status="CAPITAL_ADAPTER_MISMATCH", identity_integrity_status="PASS",
+        status="CAPITAL_ADAPTER_MISMATCH" if missing else "CURRENT_STRATEGY_ADAPTER_AUDIT_READY", identity_integrity_status="PASS",
         frozen_entry_source_sha256=digest(entry_path), watches_N=len(watches), candidate_N=len(entries),
         sessions_N=len(per_session), identity_mismatch_N=sum(not x for x in identities),
         source_component_hash_checks_N=len(hashes),
@@ -160,7 +160,7 @@ def main():
         filled_exit_N=len(execution), filled_exit_source_or_price_mismatch_N=sum(not x for x in execution),
         unresolved_exit_N=len(missing), unresolved_exit_rate_pct=100*len(missing)/len(entries),
         sessions_with_unresolved_exit_N=sum(v["UNRESOLVED"] > 0 for v in per_session.values()),
-        full_1600_resolved_trade_adapter_available=False,
+        full_1600_resolved_trade_adapter_available=not missing,
         missing_rows_removed_N=0, invented_prices_N=0, invented_cash_releases_N=0,
         old_feature_counts=feature_counts, legacy_quality_status="LEGACY_FEATURE_UNAVAILABLE",
         P1_score_is_legacy_probability=False, P1_score_already_includes_State9=True,

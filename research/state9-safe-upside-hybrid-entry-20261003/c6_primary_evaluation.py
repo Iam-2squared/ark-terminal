@@ -146,7 +146,11 @@ def run():
  arms={};basereceipt={};scorecards={};base_new_anchor=0;base_reused=0;price_mismatches=[]
  for arm,p in BASE_PATHS.items():
   assert sha(p)==BASE_SHA[arm];saved=read(p);assert {x['opportunity'] for x in saved}==set(canon)
-  sp=GEOM/f'FROZEN_ARTIFACT_MEMBERS/{arm}_SCORECARD.original.json.gz';assert sha(sp)==SCORE_SHA[arm];scorecards[arm]=read(sp)
+  sp=GEOM/f'FROZEN_ARTIFACT_MEMBERS/{arm}_SCORECARD.original.json.gz'
+  gm=next(f for f in read(GEOM/'MANIFEST.json')['files'] if f['path']==str(sp.relative_to(GEOM)))
+  assert sha(sp)==gm['sha256'],'GEOMETRY_COMPRESSED_SOURCE_HASH_MISMATCH'
+  assert hashlib.sha256(gzip.decompress(sp.read_bytes())).hexdigest()==SCORE_SHA[arm],'ORIGINAL_SCORECARD_BODY_HASH_MISMATCH'
+  scorecards[arm]=read(sp)
   records=[]
   for x in saved:
    oid=x['opportunity'];g=geometry[(arm,oid)];fill=x['entryId'] is not None and x['price'] is not None

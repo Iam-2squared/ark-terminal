@@ -4,7 +4,7 @@ from common import *
 def generate():
  grid=list(lines(HERE/'PERSISTENT_GRID.jsonl.gz'));ws=[w for w in lines(HERE/'WATCH_RECORDS.jsonl.gz') if w['canonical']];intents=[];counts={}
  for family in ('P0','P1'):
-  z=np.load(HERE/'PRIVATE_INPUTS'/f'oof_{family}.npz');by=collections.defaultdict(list)
+  z=load_npz(HERE/'PRIVATE_INPUTS'/f'oof_{family}.npz');by=collections.defaultdict(list)
   for j,i in enumerate(z['row_indices']):by[grid[i]['watch_key']].append(j)
   for pi,policy in enumerate(POLICIES):
    evaluated=0

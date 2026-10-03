@@ -82,6 +82,7 @@ def run(workers=8,limit=0):
   if name=='price_features.py' and amendment:expected=amendment['corrected_code_sha256']
   if name=='causal_features.py' and amendment:expected=amendment['corrected_causal_runner_sha256']
   if name=='model_oof.py' and (HERE/'FIT_MEMORY_RESUME_RECEIPT.json').exists():expected=read(HERE/'FIT_MEMORY_RESUME_RECEIPT.json')['corrected_model_code_sha256']
+  if (HERE/'NPZ_STORAGE_READ_RECEIPT.json').exists():expected=read(HERE/'NPZ_STORAGE_READ_RECEIPT.json')['updated_code_sha256'].get(name,expected)
   assert sha(HERE/name)==expected,'POST_FREEZE_CODE_MUTATION'
  raw=read(INPUT/'raw_paths_selected.json.gz');src=read(SCRATCH/'private_source/PRIVATE_SELECTED_SOURCE_TOKENS.json.gz');watches=list(lines(HERE/'WATCH_RECORDS.jsonl.gz'))
  proof=read(OLD/'ORIGINAL_SAVED_SOURCE_PROOF.json');assert sha(SCRATCH/'private_source/PRIVATE_SELECTED_SOURCE_TOKENS.json.gz')==proof['private_source_sha256']

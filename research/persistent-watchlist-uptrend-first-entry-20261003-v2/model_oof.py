@@ -72,7 +72,7 @@ def run():
    write_lines(HERE/f'OOF_{family}_{head}.jsonl.gz',head_records())
  def score_records():
   for family in ('P0','P1'):
-   z=np.load(HERE/'PRIVATE_INPUTS'/f'oof_{family}.npz')
+   z=load_npz(HERE/'PRIVATE_INPUTS'/f'oof_{family}.npz')
    for j,i in enumerate(z['row_indices']):yield {'row_index':int(i),'row_id':grid[i]['row_id'],'watch_key':grid[i]['watch_key'],'session':grid[i]['session'],'intent_minute':grid[i]['intent_minute'],'family':family,'fold':int(z['fold'][j]),'U_pctile':float(z['percentiles'][j,0]),'Q_pctile':float(z['percentiles'][j,1]),'D_pctile':float(z['percentiles'][j,2]),'UPTREND_SCORE':float(z['score'][j]),'thresholds':dict(zip(POLICIES,map(float,z['thresholds'][j]))),'is_probability':False}
  write_lines(HERE/'UPTREND_SCORE_ROWS.jsonl.gz',score_records())
  write(HERE/'OOF_MODEL_RECEIPT.json',{'saved_at_jst':now(),'fits':len(fits),'hard_cap':36,'OOF_rows_per_family':len(primary),'sklearn_version':sklearn.__version__,'model_parameters':cfg['parameters'],'preprocessing_scope':'outer train feature rows only','head_training_scope':'finite targets in outer training sessions only','calibration':'all training grid in-sample predictions, no extra fits','development_evaluation':'outer test only','searches':cfg['search_counts'],'safety':SAFETY})

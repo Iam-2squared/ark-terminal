@@ -50,3 +50,6 @@ def bucket(v):
  return '<1%' if v<1 else '1–<2%' if v<2 else '2–<3%' if v<3 else '3–<4%' if v<4 else '4–<5%' if v<5 else '>=5%'
 def input_manifest():
  return {p.name:{'bytes':p.stat().st_size,'sha256':sha(p)} for p in sorted(INPUT.iterdir()) if p.is_file()}
+def load_npz(p):
+ # NpzFile is lazy: materialize each immutable array once, never per decision.
+ with np.load(p) as z:return {k:z[k] for k in z.files}

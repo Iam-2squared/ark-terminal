@@ -22,6 +22,8 @@ def rows(p):
  with gzip.open(p,'rt') as f:
   for s in f:yield json.loads(s)
 def digest(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+def load_npz(p):
+ with np.load(p) as n:return {k:n[k] for k in n.files}
 @lru_cache(None)
 def reg(d):return list(range(540,690))+list(range(750,900 if d<'2024-11-05' else 925))
 def close(d):return 900 if d<'2024-11-05' else 930
@@ -126,7 +128,10 @@ def audit_state(samples,ws,raw,X,C,vocab,metadata,features):
    prev_segment=segment;prev_formal=formal;prev_obs=observed;last_end=end
  print(json.dumps({'audit_independent_state_rows':seen,'sample_watches':len(samples),'mismatches_so_far':len(mismatches)}),flush=True);return seen
 def run():
- t0=time.time();ws=list(rows(HERE/'WATCH_RECORDS.jsonl.gz'));primary=[w for w in ws if w['canonical']];raw=read(INPUT/'raw_paths_selected.json.gz');grid=list(rows(HERE/'PERSISTENT_GRID.jsonl.gz'));metadata=list(rows(HERE/'STATE_FEATURE_METADATA.jsonl.gz'));X=np.load(HERE/'PRIVATE_INPUTS/features_numeric.npy',mmap_mode='r');C=np.load(HERE/'PRIVATE_INPUTS/features_categories.npy',mmap_mode='r');Y=np.load(HERE/'PRIVATE_INPUTS/targets.npy',mmap_mode='r');vocab=read(HERE/'PRIVATE_INPUTS/category_vocabulary.json');features=read(HERE/'FEATURE_FREEZE.json');ranges=np.load(HERE/'PRIVATE_INPUTS/watch_row_ranges.npy');events=read(INPUT/'selector_events_full144.json.gz');byevent=collections.defaultdict(list)
+ t0=time.time();identity=read(OLD/'STATE9_FINAL_IDENTITY.json')
+ for spec in identity['source_files']:check('exact final RC2 source identity',digest(OLD/'FROZEN_RC2_SOURCE'/spec['path'])==spec['sha256'],spec['path'])
+ for name,key in [('RC2_CONTRACT.txt','contract_sha256'),('profile.json','profile_sha256'),('M0.md','M0_sha256'),('source_snapshot.json','source_snapshot_sha256'),('STATE_PATH_CONTRACT_V1.md','path_contract_sha256')]:check('exact final RC2 contract profile M0 Path',digest(OLD/'FROZEN_PUBLIC_INPUTS'/name)==identity[key],name)
+ ws=list(rows(HERE/'WATCH_RECORDS.jsonl.gz'));primary=[w for w in ws if w['canonical']];raw=read(INPUT/'raw_paths_selected.json.gz');grid=list(rows(HERE/'PERSISTENT_GRID.jsonl.gz'));metadata=list(rows(HERE/'STATE_FEATURE_METADATA.jsonl.gz'));X=np.load(HERE/'PRIVATE_INPUTS/features_numeric.npy',mmap_mode='r');C=np.load(HERE/'PRIVATE_INPUTS/features_categories.npy',mmap_mode='r');Y=np.load(HERE/'PRIVATE_INPUTS/targets.npy',mmap_mode='r');vocab=read(HERE/'PRIVATE_INPUTS/category_vocabulary.json');features=read(HERE/'FEATURE_FREEZE.json');ranges=np.load(HERE/'PRIVATE_INPUTS/watch_row_ranges.npy');events=read(INPUT/'selector_events_full144.json.gz');byevent=collections.defaultdict(list)
  for e in events:byevent[e['sessionDate']+'|'+e['symbol']].append(e)
  check('watch identity unique',len(ws)==len({w['watch_key'] for w in ws})==4931)
  for wi,w in enumerate(ws):
@@ -157,7 +162,7 @@ def run():
   if teacher_N%100000==0:print(json.dumps({'audit_teacher_rows':teacher_N,'seconds':round(time.time()-t0,1),'mismatches_so_far':len(mismatches)}),flush=True)
  freeze=read(HERE/'MODEL_SCORE_POLICY_FREEZE.json');folds=read(HERE/'SPLIT_PRECOMMIT.json')['folds'];ledger=read(HERE/'FIT_LEDGER.json');check('fit budget and fixed model',ledger['fits_reserved']==ledger['fits_completed']==30 and all(x['status']=='COMPLETED' for x in ledger['runs']));sessions=np.asarray([r['session'] for r in grid]);model_prediction_samples=0
  for family in ['P0','P1']:
-  z=np.load(HERE/'PRIVATE_INPUTS'/f'oof_{family}.npz');primary_indices=np.flatnonzero([r['canonical'] for r in grid]);check('outer OOF population lineage',np.array_equal(z['row_indices'],primary_indices));dims=len(features['P0_numeric']) if family=='P0' else len(features['P1_numeric']);slot={int(i):j for j,i in enumerate(z['row_indices'])}
+  z=load_npz(HERE/'PRIVATE_INPUTS'/f'oof_{family}.npz');primary_indices=np.flatnonzero([r['canonical'] for r in grid]);check('outer OOF population lineage',np.array_equal(z['row_indices'],primary_indices));dims=len(features['P0_numeric']) if family=='P0' else len(features['P1_numeric']);slot={int(i):j for j,i in enumerate(z['row_indices'])}
   for fold in folds:
    tr=np.flatnonzero(np.isin(sessions,fold['train']));te=np.flatnonzero(np.isin(sessions,fold['test']));check('temporal split no session/watch crossing',max(fold['train'])<fold['purge']<min(fold['test']) and not(set(fold['train'])&set(fold['test'])));p=HERE/'PRIVATE_MODELS'/f'{family}_F{fold["id"]}_preprocessor.pkl';prep=pickle.loads(p.read_bytes())
    with __import__('warnings').catch_warnings():
@@ -173,12 +178,12 @@ def run():
    train_score=(calc_train_pct[0]+calc_train_pct[1]+1-calc_train_pct[2])/3;threshold=np.quantile(train_score,[.70,.80,.90,.95],method='linear');indices=[slot[int(i)] for i in te];check('Q70 Q80 Q90 Q95 train-only quantile lineage',np.array_equal(z['thresholds'][indices],np.repeat(threshold[None,:],len(indices),axis=0)));calc_score=(out_te[0]+out_te[1]+1-out_te[2])/3;check('equal-weight uptrend score all OOF rows',np.allclose(z['score'][indices],calc_score,rtol=0,atol=1e-15))
  entries={p:list(rows(HERE/f'FIRST_ENTRY_{p}.jsonl.gz')) for p in ['Q70','Q80','Q90','Q95']};geometry={(r['arm'],r['opportunity']):r for r in rows(INPUT/'geometry_rows.jsonl.gz')};evals=read(HERE/'SELECTOR_WATCH_BUCKET_EVALUATION.json')['policies'];pres=read(HERE/'WINNER_PRESERVATION.json')['panels'];daily=read(HERE/'DAILY_FIRST_ENTRY_ACTIVITY.json')['panels']
  for family in ['P0','P1']:
-  z=np.load(HERE/'PRIVATE_INPUTS'/f'oof_{family}.npz');by=collections.defaultdict(list)
+  z=load_npz(HERE/'PRIVATE_INPUTS'/f'oof_{family}.npz');by=collections.defaultdict(list)
   for j,i in enumerate(z['row_indices']):by[grid[int(i)]['watch_key']].append(j)
   for pi,p in enumerate(['Q70','Q80','Q90','Q95']):
    rr=[r for r in entries[p] if r['family']==family];check('FIRST entry watch population',len(rr)==2155 and len({r['watch_key'] for r in rr})==2155)
    for r in rr:
-    hits=[j for j in by[r['watch_key']] if z['score'][j]>=z['thresholds'][j,pi]];first=hits[0] if hits else None;intent=r['first_intent'];check('FIRST threshold cross and decision stopping',first is None and intent is None or first is not None and intent is not None and intent['row_index']==int(z['row_indices'][first]) and r['scoring_decisions']==by[r['watch_key']].index(first)+1,r['watch_key']);check('FIRST_ENTRY after decision stop / EXIT0 Reentry0',r['decision_after_first_entry']==r['second_intent']==r['EXIT_calls']==r['reentry_calls']==0,r['watch_key'])
+    hits=[j for j in by[r['watch_key']] if z['score'][j]>=z['thresholds'][j,pi]];first=hits[0] if hits else None;intent=r['first_intent'];check('FIRST threshold cross and decision stopping',first is None and intent is None and r['scoring_decisions']==len(by[r['watch_key']]) or first is not None and intent is not None and intent['row_index']==int(z['row_indices'][first]) and r['scoring_decisions']==by[r['watch_key']].index(first)+1,r['watch_key']);check('FIRST_ENTRY after decision stop / EXIT0 Reentry0',r['decision_after_first_entry']==r['second_intent']==r['EXIT_calls']==r['reentry_calls']==0,r['watch_key']);trace=[[grid[int(z['row_indices'][j])]['intent_minute'],float(z['score'][j]),float(z['thresholds'][j,pi])] for j in by[r['watch_key']][:r['scoring_decisions']]];check('FIRST threshold trace hash lineage',r['threshold_trace_sha256']==hashlib.sha256(json.dumps(trace,separators=(',',':')).encode()).hexdigest(),r['watch_key'])
     f=fill(r['session'],source_clean[r['watch_key']],intent['intent_minute']) if intent else None;check('FIRST entry next-open+5bps',f is None and r['entry_status']!='FIRST_ENTRY' or f is not None and r['entry_status']=='FIRST_ENTRY' and r['fill_minute']==f[0] and same(r['fill_price'],f[1]),r['watch_key'])
     if f is not None:
      e=expected_teacher(r['session'],source_clean[r['watch_key']],*f)

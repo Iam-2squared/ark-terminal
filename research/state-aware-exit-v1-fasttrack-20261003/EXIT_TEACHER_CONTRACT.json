@@ -1,0 +1,17 @@
+{
+  "EXIT_NOW": "first available regular raw open start>=closed decision, excluding540/750; otherwise terminal closing-auction close",
+  "Entry_conditioning": "position-independent continuation relative to selling now; evaluated only after frozen Entry in replay",
+  "at_or_after_terminal": "no later opportunities => NULL",
+  "basis_head": "4a2d6f35946b16820a13449a9288a6685a5c283c",
+  "before_teacher_computation": true,
+  "definition": "100*(mean(strictly later available executable sell opportunities)/EXIT_NOW executable sell price -1)",
+  "future_isolation": "teacher values/raw future source suffix never passed to decision feature matrix",
+  "head": "HOLD_CONTINUATION_VALUE",
+  "later_opportunities": "regular raw opens strictly later than EXIT_NOW fill plus same-session terminal closing-auction close, one equally weighted observed opportunity each",
+  "missing_later_regular_minutes": "not fabricated, not forward filled; label is observed available opportunity mean; scheduled coverage saved separately",
+  "peak_High_teacher": false,
+  "saved_at_jst": "2026-10-03T16:56:27.116500+09:00",
+  "teacher_search": 0,
+  "terminal_source_required": true,
+  "training_target": "clip(raw_value_pct,-10,10)"
+}

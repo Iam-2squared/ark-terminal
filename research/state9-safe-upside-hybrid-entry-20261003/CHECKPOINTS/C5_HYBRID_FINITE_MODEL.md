@@ -1,0 +1,110 @@
+# 💾 C5_HYBRID_FINITE_MODEL
+
+## 📌 saved_at_jst
+
+"2026-10-03T10:20:45.823970+09:00"
+
+## 📌 basis_head
+
+"e5f5989fdcda5b25e8c61c1b61bf61eacc0493fa"
+
+## 📌 previous_checkpoint_result_head
+
+"e5f5989fdcda5b25e8c61c1b61bf61eacc0493fa"
+
+## 📌 current_status
+
+"C5_FINITE_EXPERIMENT_COMPLETE_NO_HIGH_PRECISION_OPERATING_POINT"
+
+## 📌 completed_this_checkpoint
+
+[
+  "固定L2 LogisticRegressionでH0/H1/H2、5 outer×3 inner+outerの60fitを一回完了",
+  "train-only preprocessing、Opportunity総学習weight1、session chronological split、外側label選択0",
+  "15 family/fold threshold selectionで90/85/80の固定条件を評価し、feasible0",
+  "4新arm×2155件の記録を保存。signalなしNO_ENTRY、forced fallback0",
+  "非公開OOF/model算術ファイルとhash保存。新row-level価格payload公開0"
+]
+
+## 📌 key_evidence
+
+{
+  "model_fits_started": 60,
+  "model_fits_completed": 60,
+  "fit_hard_cap": 72,
+  "convergence_warnings": 0,
+  "max_n_iter": 36,
+  "feature_families": 3,
+  "model_families": 1,
+  "outer_folds": 5,
+  "inner_per_outer": 3,
+  "threshold_selection_passes": 15,
+  "precision_target_checks": 45,
+  "threshold_boundaries_evaluated": 130249,
+  "feasible_family_fold_operating_points": 0,
+  "selected_fold_candidates": 0,
+  "OOF_rows_per_family": 65312,
+  "opportunities_per_arm": 2155,
+  "policy_records": 8620
+}
+
+## 📌 blockers
+
+[
+  "高precision operating pointは全15 family/foldで未成立。閾値緩和・手作業State rule・forced fallback・追加fitはしない",
+  "row-level価格を含むファイルの公開は保留。private成果物とhash/receiptで保持",
+  "実feed received_atはUNKNOWN、bar-end availabilityは研究仮定"
+]
+
+## 📌 current_direction
+
+"C6で外側OOF識別指標とsafe-up評価、既存IMMEDIATE/R1の新Primaryだけを比較。C7独立監査まで完了し、不成立をそのまま報告"
+
+## 📌 next_step
+
+"C6新target評価・baseline既存値引用・matched Opportunity・precision/coverage図表"
+
+## 📌 frozen_boundaries
+
+[
+  "Primary+2/-1",
+  "H0/H1/H2 finite schema",
+  "exactRC2 identity",
+  "frozen5outer3inner split",
+  "LR C1/l2/liblinear/1000/tol1e-4",
+  "fitcap72、予定60完了後追加0",
+  "90/85/80 precision/support100Opp10sessions/DOWN<=10%",
+  "train-only threshold、NO_ENTRY許可",
+  "future/evaluator field decision禁止",
+  "公開row-level価格保留"
+]
+
+## 📌 exposure_and_budget
+
+{
+  "reads": {
+    "OOF_source_candidate_rows": 149900,
+    "outer_rows_per_family": 65312
+  },
+  "writes": {
+    "public_checkpoint_scope": "aggregate/hash/receipt/source; no new row-level market prices"
+  },
+  "fit": 60,
+  "threshold_selections": 15,
+  "precision_target_checks": 45,
+  "family_selection_passes": 5,
+  "hyperparameter_search": 0,
+  "provider_requests": 0,
+  "protected_opens": 0,
+  "holdout_opens": 0,
+  "validation_new_opens": 0,
+  "OOS_opens": 0,
+  "prospective_opens": 0,
+  "bootstrap": 0,
+  "replay": 0,
+  "new_candidate_label_passes": 1,
+  "orders": 0,
+  "main_merge": 0
+}
+
+Result HEADは保存後のGitHub commitが正本。未来のSHAは本文に記録しない。

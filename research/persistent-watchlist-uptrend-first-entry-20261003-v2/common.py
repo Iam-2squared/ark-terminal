@@ -40,6 +40,7 @@ def valid_bar(x):
 def clean_array(rows):
  a=np.asarray(rows,dtype=np.float64).reshape(-1,7)
  assert len(a)==len(set(a[:,0])),'DUPLICATE_RAW_MINUTE'
+ assert len(a)<2 or np.all(np.diff(a[:,0])>0),'UNSORTED_RAW_MINUTE'
  return a[np.asarray([valid_bar(x) for x in a],dtype=bool)]
 def summarize(values):
  x=np.asarray([v for v in values if v is not None and np.isfinite(v)],float)

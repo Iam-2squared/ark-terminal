@@ -1,0 +1,43 @@
+name: Persistent Uptrend Saved Source Export 20261003
+on:
+  push:
+    branches: [persistent-watchlist-uptrend-first-entry-20261003-v2]
+    paths:
+      - research/persistent-watchlist-uptrend-first-entry-20261003-v2/export_saved_sources.py
+      - .github/workflows/persistent-uptrend-saved-source-20261003.yml
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: persistent-uptrend-saved-source-20261003
+  cancel-in-progress: false
+jobs:
+  export:
+    if: github.ref == 'refs/heads/persistent-watchlist-uptrend-first-entry-20261003-v2'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-all-material-r1-afb38b7a5421ca4f6ff6d439bf89096236efd119
+          repository: Iam-2squared/ark-terminal
+          run-id: 36099497597
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/saved-R1
+      - name: Export existing Development only; no provider or fit
+        run: python -u research/persistent-watchlist-uptrend-first-entry-20261003-v2/export_saved_sources.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: persistent-uptrend-saved-source-${{ github.run_id }}
+          path: ${{ runner.temp }}/persistent-saved-source/
+          retention-days: 30
+          if-no-files-found: error
+      - name: Purge temporary sources
+        if: always()
+        run: rm -rf -- "$RUNNER_TEMP/saved-R1" "$RUNNER_TEMP/persistent-saved-source"

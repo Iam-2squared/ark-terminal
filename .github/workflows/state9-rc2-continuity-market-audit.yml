@@ -1,0 +1,47 @@
+name: State9 RC2 Continuity Market Audit
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/state9-rc2-continuity-market-audit.yml'
+      - 'scripts/state9_rc2_continuity/**'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: state9-rc2-market-semantic-audit-20261001-v1
+  cancel-in-progress: false
+jobs:
+  audit:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Runner-only exact Development raw and fixed RC2 audit
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          STATE9_AUDIT_OUT: ${{ runner.temp }}/state9-derived-evidence
+          STATE9_AUDIT_RAW: ${{ runner.temp }}/state9-private-raw
+        run: python scripts/state9_rc2_continuity/run.py
+      - name: Verify runner plaintext purge
+        if: always()
+        run: |
+          rm -rf -- "$RUNNER_TEMP/state9-private-raw" "$RUNNER_TEMP/state9-classifier-sandbox"
+          mkdir -p "$RUNNER_TEMP/state9-derived-evidence"
+          python - <<'PY'
+          import os,json,pathlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])
+          out=root/'state9-derived-evidence'/'PURGE_RECEIPT.json'
+          out.write_text(json.dumps({'raw_directory_exists':(root/'state9-private-raw').exists(),'classifier_directory_exists':(root/'state9-classifier-sandbox').exists(),'plaintext_purge_verified':not (root/'state9-private-raw').exists() and not (root/'state9-classifier-sandbox').exists()})+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: state9-rc2-continuity-evidence-${{ github.run_id }}
+          path: ${{ runner.temp }}/state9-derived-evidence
+          retention-days: 7
+          if-no-files-found: error

@@ -1,0 +1,83 @@
+name: Phase57 Nine-State Anatomy v1
+
+on:
+  push:
+    branches:
+      - research/phase57-long-only-cash-equity
+    paths:
+      - '.github/workflows/phase57-nine-state-anatomy-v1.yml'
+      - 'scripts/phase57_nine_state_anatomy_v1.py'
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: phase57-nine-state-anatomy-v1
+  cancel-in-progress: true
+
+jobs:
+  anatomy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Syntax check
+        run: python -m py_compile scripts/phase57_nine_state_anatomy_v1.py
+      - name: Restore accepted one-minute Development evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/10732168448/zip" > "$RUNNER_TEMP/one-minute.zip"
+          test "$(sha256sum "$RUNNER_TEMP/one-minute.zip" | cut -d ' ' -f1)" = "74ff0fb4398f9e2659109103ae73e8a6b27423aa0eb5aee7006c84312488aab8"
+          mkdir -p "$RUNNER_TEMP/one-minute"
+          unzip -q "$RUNNER_TEMP/one-minute.zip" -d "$RUNNER_TEMP/one-minute"
+          test -f "$RUNNER_TEMP/one-minute/replay-a/entry-records.json.gz"
+          test -f "$RUNNER_TEMP/one-minute/replay-a/manifest.json"
+      - name: Build evaluator-only nine-State anatomy census
+        run: |
+          set -euo pipefail
+          python -m scripts.phase57_nine_state_anatomy_v1 \
+            --state-v3-measurement docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement \
+            --entry-v1-measurement docs/evidence/phase57-state-conditioned-signal-entry-v1/measurement \
+            --entry-timing-measurement docs/evidence/phase57-entry-timing-signal-census-v1/measurement \
+            --one-minute-root "$RUNNER_TEMP/one-minute/replay-a" \
+            --output "$RUNNER_TEMP/nine-state-anatomy-v1" \
+            | tee "$RUNNER_TEMP/nine-state-anatomy-v1.log"
+      - name: Guard completion-target semantics
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          root = Path(os.environ['RUNNER_TEMP']) / 'nine-state-anatomy-v1'
+          data = json.loads((root / 'summary.json').read_text())
+          assert data['population'] == 2155
+          assert sum(data['t0StateCounts'].values()) == 2155
+          assert data['entryPositionCompletionTarget']['aspirationalMeanLt'] == 0.15
+          assert data['entryPositionCompletionTarget']['futureOracleDecisionUse'] == 0
+          assert data['providerRequests'] == 0
+          assert data['protectedDataOpened'] == 0
+          assert set(data['states']) == {'REBOUND','RISE','SHARP_RISE','DROP','PULLBACK','RANGE','SHARP_DROP','DROP_STOP','RISE_STOP','ALL'}
+          for state, block in data['states'].items():
+              for policy in ('IMMEDIATE','ENTRY_V1','STATE_V3','ONE_MINUTE'):
+                  assert block['policies'][policy]['population'] == block['population']
+                  goal = block['policies'][policy]['entryPositionGoal']
+                  assert set(goal['thresholds']) == {'le10pct','le15pct','le25pct','le50pct'}
+          print('ANATOMY_GUARD_PASS')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-nine-state-anatomy-v1-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/nine-state-anatomy-v1
+            ${{ runner.temp }}/nine-state-anatomy-v1.log
+          if-no-files-found: error
+          retention-days: 90

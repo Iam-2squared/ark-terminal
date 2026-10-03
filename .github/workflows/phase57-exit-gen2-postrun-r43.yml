@@ -1,0 +1,91 @@
+name: Phase57 Gen2 Post-Run Audit R43
+
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - 'scripts/phase57_exit_gen2*_r43.py'
+      - 'scripts/test_phase57_exit_gen2*_r43.py'
+      - '.github/workflows/phase57-exit-gen2-postrun-r43.yml'
+      - 'docs/evidence/phase57-comprehensive-exit-v1/r43-result/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase57-exit-gen2-postrun-r43-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  audit-and-saved-evidence-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      ARK_TEST_OFFLINE: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONPATH: '.'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install unchanged frozen numerical dependencies
+        run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.7.2 pandas==2.2.3 joblib==1.5.2
+      - name: Test corruption boundaries and frozen selection behavior
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/r43-ci
+          python -m unittest discover -v -s scripts -p 'test_phase57_exit_gen2*_r43.py' 2>&1 | tee artifacts/r43-ci/postrun-tests.log
+          python -m unittest -v scripts.test_phase57_exit_gen2_scoring_r41 scripts.test_phase57_exit_gen2_runtime_r41 2>&1 | tee artifacts/r43-ci/frozen-contract-tests.log
+      - name: Verify committed evidence bytes and frozen all-candidate selection
+        run: |
+          python - <<'PY'
+          import gzip, hashlib, json, os, zipfile
+          from pathlib import Path
+          from scripts.phase57_exit_gen2_runtime_r41 import PROTOCOL_SHA256, load_protocol
+          from scripts.phase57_exit_gen2_scoring_r41 import select_from_gates
+          from scripts.phase57_exit_gen2_preflight_r41 import assert_safety
+          root = Path('docs/evidence/phase57-comprehensive-exit-v1/r43-result')
+          manifest = json.loads((root/'manifest.json').read_text())
+          assert manifest['protocolSha256'] == PROTOCOL_SHA256
+          for name, expected in manifest['files'].items():
+              assert hashlib.sha256((root/name).read_bytes()).hexdigest() == expected, name
+          with zipfile.ZipFile(root/'full-scorecards-and-reports.zip') as archive:
+              assert archive.testzip() is None
+              inner = json.loads(archive.read('source-file-hashes.json'))
+              for name, expected in inner.items():
+                  data = archive.read(name)
+                  assert len(data) == expected['bytes'], name
+                  assert hashlib.sha256(data).hexdigest() == expected['sha256'], name
+          results = []
+          for variant in ('run-a', 'run-b'):
+              with gzip.open(root/'scorecards'/variant/'selection.json.gz', 'rt') as stream:
+                  saved = json.load(stream)
+              result = select_from_gates(saved['candidates'])
+              assert result == saved['selection']
+              results.append(result)
+          assert results[0] == results[1]
+          assert_safety(load_protocol()['safety'])
+          receipt = {'status': 'POSTRUN_SAVED_EVIDENCE_AND_SYNTHETIC_TESTS_PASS',
+                     'executionHead': os.environ['GITHUB_SHA'], 'runId': os.environ['GITHUB_RUN_ID'],
+                     'protocolSha256': PROTOCOL_SHA256, 'verifiedEvidenceFiles': len(manifest['files']),
+                     'selection': results[0], 'modelFitsPerformed': 0, 'policyReplaysPerformed': 0,
+                     'providerRequests': 0, 'protectedPartitionsOpened': 0,
+                     'safety': load_protocol()['safety']}
+          Path('artifacts/r43-ci/receipt.json').write_text(json.dumps(receipt, indent=2, sort_keys=True)+'\n')
+          PY
+      - name: Preserve post-run verification evidence including failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-exit-gen2-postrun-r43-${{ github.run_id }}
+          path: artifacts/r43-ci
+          retention-days: 90
+          overwrite: false
+          if-no-files-found: error

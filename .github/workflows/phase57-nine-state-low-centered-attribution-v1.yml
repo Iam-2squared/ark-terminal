@@ -1,0 +1,93 @@
+name: Phase57 Nine-State Low-Centered Attribution v1
+
+on:
+  push:
+    branches:
+      - research/phase57-long-only-cash-equity
+    paths:
+      - '.github/workflows/phase57-nine-state-low-centered-attribution-v1.yml'
+      - 'scripts/phase57_nine_state_low_centered_attribution_v1.py'
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: phase57-nine-state-low-centered-attribution-v1
+  cancel-in-progress: true
+
+jobs:
+  attribution:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Syntax check
+        run: python -m py_compile scripts/phase57_nine_state_low_centered_attribution_v1.py
+      - name: Restore approved raw-price substrate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/10605887642/zip" > "$RUNNER_TEMP/substrate.zip"
+          test "$(sha256sum "$RUNNER_TEMP/substrate.zip" | cut -d ' ' -f1)" = "749caf82bbd9d39969f5712ef5a6f2705ac973a2f74483f03307c671586ae05a"
+          mkdir -p "$RUNNER_TEMP/substrate"
+          unzip -p "$RUNNER_TEMP/substrate.zip" "substrate/raw-paths-evaluator-only.json.gz" > "$RUNNER_TEMP/substrate/raw-paths-evaluator-only.json.gz"
+      - name: Restore accepted one-minute Development evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/10732168448/zip" > "$RUNNER_TEMP/one-minute.zip"
+          test "$(sha256sum "$RUNNER_TEMP/one-minute.zip" | cut -d ' ' -f1)" = "74ff0fb4398f9e2659109103ae73e8a6b27423aa0eb5aee7006c84312488aab8"
+          mkdir -p "$RUNNER_TEMP/one-minute"
+          unzip -p "$RUNNER_TEMP/one-minute.zip" "replay-a/entry-records.json.gz" > "$RUNNER_TEMP/one-minute/entry-records.json.gz"
+      - name: Build frozen causal witnesses then align evaluator-only Low anatomy
+        run: |
+          set -euo pipefail
+          python -m scripts.phase57_nine_state_low_centered_attribution_v1 \
+            --measurement docs/evidence/phase57-entry-timing-signal-census-v1/measurement \
+            --state-checkpoints docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement/state-checkpoints.json.gz \
+            --raw-paths "$RUNNER_TEMP/substrate/raw-paths-evaluator-only.json.gz" \
+            --one-minute-records "$RUNNER_TEMP/one-minute/entry-records.json.gz" \
+            --output "$RUNNER_TEMP/low-centered-attribution-v1" \
+            | tee "$RUNNER_TEMP/low-centered-attribution-v1.log"
+      - name: Guard causal isolation and accepted baseline identity
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, math, os
+          from pathlib import Path
+          root = Path(os.environ["RUNNER_TEMP"]) / "low-centered-attribution-v1"
+          data = json.loads((root / "summary.json").read_text())
+          assert data["population"] == 2155
+          assert data["targets"] == ["RISE", "DROP", "PULLBACK"]
+          assert data["causalWitnessBuiltBeforeOracleOpen"] is True
+          assert data["stateFutureViolations"] == 0
+          assert data["closedBarChecks"] == data["closedBarPassed"]
+          assert data["oracleLowHighDecisionUse"] == 0
+          assert data["futureOutcomeDecisionUse"] == 0
+          assert data["providerRequests"] == data["protectedDataOpened"] == 0
+          assert data["states"]["RISE"]["population"] == 111
+          assert data["states"]["DROP"]["population"] == 1403
+          assert data["states"]["PULLBACK"]["population"] == 354
+          baseline = data["oneMinuteAll"]
+          assert baseline["fills"] == 1764
+          assert math.isclose(baseline["fillRatePct"], 81.85614849187935, abs_tol=1e-12)
+          assert math.isclose(baseline["entryPosition"]["mean"], 0.6748679920277816, abs_tol=1e-12)
+          print("LOW_CENTERED_ATTRIBUTION_GUARD_PASS")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-nine-state-low-centered-attribution-v1-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/low-centered-attribution-v1
+            ${{ runner.temp }}/low-centered-attribution-v1.log
+          if-no-files-found: error
+          retention-days: 90

@@ -1,0 +1,32 @@
+{
+  "rowType": "PROVIDER_AGGREGATED_ONE_MINUTE_BAR",
+  "fields": {
+    "Date": "session date YYYY-MM-DD",
+    "Time": "HH:mm JST minute START, not availability timestamp",
+    "Code": "provider issue/share-class code; not stable securityId",
+    "O": "first execution price JPY in minute",
+    "H": "maximum execution price JPY in minute",
+    "L": "minimum execution price JPY in minute",
+    "C": "last execution price JPY in minute",
+    "Vo": "executed shares summed in minute",
+    "Va": "executed price × quantity summed in minute, JPY"
+  },
+  "observedFields": [
+    "C",
+    "Code",
+    "Date",
+    "H",
+    "L",
+    "O",
+    "Time",
+    "Va",
+    "Vo"
+  ],
+  "all57FieldSetsMatch": true,
+  "adjustment": "unadjusted intraday prices",
+  "missing": "absent source rows preserved; UNKNOWN cannot be classified by absence alone",
+  "ordering": "provider ordering not guaranteed; Ark sorts Code/Time",
+  "sessionCalendar": "pre2024-11-05 close15:00; later continuous ends15:25 and close auction15:30",
+  "historicalKnownAt": null,
+  "source": "https://jpx-jquants.com/en/spec/eq-bars-minute"
+}

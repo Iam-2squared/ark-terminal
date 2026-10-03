@@ -1,0 +1,155 @@
+name: Phase57 All-Material Entry Evaluator v1
+
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-entry-all-material-evaluator-v1.yml
+      - scripts/phase57_entry_all_material_evaluator_v1.py
+      - scripts/test_phase57_entry_all_material_evaluator_v1.py
+      - docs/evidence/phase57-entry-all-material-v1/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  evaluator-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Focused evaluator tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          ARK_TEST_OFFLINE: '1'
+        run: |
+          set -euo pipefail
+          python -m unittest -v scripts.test_phase57_entry_all_material_evaluator_v1
+
+      - name: Restore accepted ONE_MINUTE Development artifact without provider access
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-drop-pull-1m-state-recheck-v1-8c256ff98d365d01c7150afe193686f020e2026c
+          path: artifacts/one-minute
+          repository: Iam-2squared/ark-terminal
+          run-id: 35818555587
+          github-token: ${{ github.token }}
+
+      - name: Verify accepted ONE_MINUTE file identities
+        run: |
+          set -euo pipefail
+          ROOT='artifacts/one-minute/replay-a'
+          test -f "$ROOT/entry-records.json.gz"
+          echo "b569d8d7e25240d359bc1a3c2efbd04f2017136eabac1f4288459559f0cf6cde  $ROOT/causality-audit.json" | sha256sum -c -
+          echo "de8ee035d2c2949e6ecbd5315d393de8794ca7d0e36ace49a6ccfe720a65a844  $ROOT/entry-records.json.gz" | sha256sum -c -
+          echo "7a76b1bcbfe9f35cfde0d3f94b9e12e0e0ad013ede8fce81997288027b2bfc08  $ROOT/gate.json" | sha256sum -c -
+          echo "8de015aeaf9b80d1d375b409ea597fa6dee24d767a72aeabdd5918faac367ea9  $ROOT/summary.json" | sha256sum -c -
+          echo "4e02becf3a49c51e84614cdabebe034f3a42a82a452a5d8013222bde3d14c2e2  $ROOT/target-paired-vs-state-v3.json.gz" | sha256sum -c -
+          echo "e731492871f1db795df5a85042f04394c6e6775ecdac6131d2fe68909d09f32e  $ROOT/trades.json.gz" | sha256sum -c -
+
+      - name: Re-evaluate immutable baselines and accepted ONE_MINUTE
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          ARK_TEST_OFFLINE: '1'
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/all-material-evaluator/run-a artifacts/all-material-evaluator/run-b
+          OPP='docs/evidence/phase57-entry-timing-signal-census-v1/measurement/opportunity-records.json.gz'
+          IMM='docs/evidence/phase57-state-conditioned-signal-entry-v1/measurement/baseline-immediate-records.json.gz'
+          EV1='docs/evidence/phase57-state-conditioned-signal-entry-v1/measurement/entry-records.json.gz'
+          SV3='docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement/entry-records.json.gz'
+          OM='artifacts/one-minute/replay-a/entry-records.json.gz'
+
+          python scripts/phase57_entry_all_material_evaluator_v1.py \
+            --opportunities "$OPP" --records "$IMM" --policy-name IMMEDIATE \
+            --output artifacts/all-material-evaluator/immediate.json
+
+          python scripts/phase57_entry_all_material_evaluator_v1.py \
+            --opportunities "$OPP" --records "$EV1" --policy-name ENTRY_V1 \
+            --baseline-records "$IMM" --baseline-name IMMEDIATE \
+            --output artifacts/all-material-evaluator/entry-v1.json
+
+          python scripts/phase57_entry_all_material_evaluator_v1.py \
+            --opportunities "$OPP" --records "$SV3" --policy-name ORIGINAL_STATE_V3 \
+            --baseline-records "$IMM" --baseline-name IMMEDIATE \
+            --output artifacts/all-material-evaluator/state-v3.json
+
+          python scripts/phase57_entry_all_material_evaluator_v1.py \
+            --opportunities "$OPP" --records "$OM" --policy-name ONE_MINUTE_ACCEPTED \
+            --baseline-records "$IMM" --baseline-name IMMEDIATE \
+            --output artifacts/all-material-evaluator/run-a/one-minute.json
+
+          python scripts/phase57_entry_all_material_evaluator_v1.py \
+            --opportunities "$OPP" --records "$OM" --policy-name ONE_MINUTE_ACCEPTED \
+            --baseline-records "$IMM" --baseline-name IMMEDIATE \
+            --output artifacts/all-material-evaluator/run-b/one-minute.json
+
+          diff -u artifacts/all-material-evaluator/run-a/one-minute.json \
+                  artifacts/all-material-evaluator/run-b/one-minute.json
+
+      - name: Assert population, canonical Capture parity, safety and no decision outputs
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('artifacts/all-material-evaluator')
+          files = [
+              root/'immediate.json',
+              root/'entry-v1.json',
+              root/'state-v3.json',
+              root/'run-a'/'one-minute.json',
+          ]
+          for path in files:
+              data = json.loads(path.read_text())
+              assert data['population'] == 2155, (path, data['population'])
+              assert data['evaluatorOnly'] is True
+              assert data['decisionOutputsCreated'] == 0
+              assert data['futureEvaluatorUsedForDecision'] is False
+              assert all(data['canonicalCaptureParity'].values()), path
+              assert all(value is False for value in data['safety'].values()), path
+              assert list(data['extendedCaptureLevels']) == [1,2,3,4,5]
+          one = json.loads((root/'run-a'/'one-minute.json').read_text())
+          assert one['overall']['fills'] == 1764
+          assert abs(one['overall']['fillRatePct'] - 81.85614849187935) < 1e-9
+          assert one['overall']['entryPosition']['count'] == 1751
+          assert abs(one['overall']['entryPosition']['mean'] - 0.674868) < 1e-5
+          assert all(
+              one['overall']['capture'][str(k)]
+              == one['upsideThresholdPanels'][str(k)]['captureAtSameThreshold']
+              for k in (1,2,3,4,5)
+          )
+          print(json.dumps({
+              'status': 'PASS',
+              'population': one['population'],
+              'fills': one['overall']['fills'],
+              'entryPositionValidN': one['overall']['entryPosition']['count'],
+              'canonicalCaptureParity': one['canonicalCaptureParity'],
+              'safetyAllFalse': True,
+              'decisionOutputsCreated': 0,
+          }, sort_keys=True))
+          PY
+
+      - name: Hash evaluator outputs
+        run: |
+          set -euo pipefail
+          find artifacts/all-material-evaluator -type f -name '*.json' -print0 \
+            | sort -z | xargs -0 sha256sum \
+            > artifacts/all-material-evaluator/SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-entry-all-material-evaluator-v1-${{ github.sha }}
+          path: artifacts/all-material-evaluator
+          retention-days: 30
+          if-no-files-found: error

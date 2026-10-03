@@ -1,0 +1,90 @@
+name: Phase57 All-Material Causal Coverage v1
+
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-entry-all-material-coverage-v1.yml
+      - scripts/phase57_entry_all_material_feature_coverage_v1.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-all-material-coverage-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install audit dependency
+        run: python -m pip install numpy==2.3.5
+      - name: Synthetic accounting and canonical evaluator tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          ARK_TEST_OFFLINE: '1'
+        run: |
+          set -euo pipefail
+          python scripts/phase57_entry_all_material_feature_coverage_v1.py --self-test
+          python -m py_compile scripts/phase57_entry_all_material_feature_coverage_v1.py
+          python -m unittest -v scripts.test_phase57_entry_all_material_evaluator_v1
+      - name: Exact current-cohort coverage twice, no fit or outcomes
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          ARK_TEST_OFFLINE: '1'
+        run: |
+          set -euo pipefail
+          python scripts/phase57_entry_all_material_feature_coverage_v1.py --output artifacts/coverage/run-a.json
+          python scripts/phase57_entry_all_material_feature_coverage_v1.py --output artifacts/coverage/run-b.json
+          cmp artifacts/coverage/run-a.json artifacts/coverage/run-b.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('artifacts/coverage/run-a.json').read_text())
+          p=d['patternSubstrate']; i=d['integrity']
+          assert d['cohort']['population']==2155 and d['cohort']['sessions']==58
+          assert p['featureColumns']==476 and p['decisionRows']==65312
+          assert p['t0Rows']==1954 and p['noCausalT0Checkpoint']==201
+          assert p['horizonAvailability']=={'0':1954,'5':2155,'10':2155,'20':2155,'30':1758}
+          assert d['sixSignals']['exactJoinRows']==d['stateV3']['asOfJoinRows']==65312
+          assert all(v is True for v in i.values() if type(v) is bool)
+          assert all(i[k]==0 for k in ('futureBarViolations','performanceMetricsRead','modelFits','modelPredictions','providerRequests','protectedDataOpened'))
+          assert all(v is False for v in d['safety'].values())
+          r={'status':'PASS','population':2155,'sessions':58,'decisionRows':65312,'features':476,'t0Rows':1954,'noCausalT0':201,'twoRunIdentical':True,'modelFits':0,'performanceMetricsRead':0}
+          Path('artifacts/coverage/receipt.json').write_text(json.dumps(r,indent=2,sort_keys=True)+'\n')
+          print(json.dumps(r,sort_keys=True))
+          PY
+      - name: Preserve implementation snapshot and baseline inputs for authorized offline verification
+        if: success()
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/research-inputs/scripts artifacts/research-inputs/records
+          cp scripts/phase57*.py artifacts/research-inputs/scripts/
+          if [ -f scripts/__init__.py ]; then cp scripts/__init__.py artifacts/research-inputs/scripts/; fi
+          cp docs/evidence/phase57-entry-timing-signal-census-v1/measurement/opportunity-records.json.gz artifacts/research-inputs/records/opportunities.json.gz
+          cp docs/evidence/phase57-state-conditioned-signal-entry-v1/measurement/baseline-immediate-records.json.gz artifacts/research-inputs/records/immediate.json.gz
+          cp docs/evidence/phase57-state-conditioned-signal-entry-v1/measurement/entry-records.json.gz artifacts/research-inputs/records/entry-v1.json.gz
+          cp docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement/entry-records.json.gz artifacts/research-inputs/records/state-v3.json.gz
+          cp docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement/state-checkpoints.json.gz artifacts/research-inputs/records/state-checkpoints.json.gz
+          git rev-parse HEAD > artifacts/research-inputs/SOURCE_HEAD.txt
+          find artifacts/coverage artifacts/research-inputs -type f -print0 | sort -z | xargs -0 sha256sum > artifacts/RESEARCH_SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-entry-causal-coverage-${{ github.sha }}
+          path: |
+            artifacts/coverage
+            artifacts/research-inputs
+            artifacts/RESEARCH_SHA256SUMS.txt
+          retention-days: 30
+          if-no-files-found: error

@@ -1,0 +1,50 @@
+name: Phase57 Selector Minimum Price 75 Freeze Audit
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-selector-min-price75-freeze-audit.yml'
+      - 'predict/research/phase57-long-only-frozen-selector-min-price75-v1.json'
+      - 'predict/research/phase57-long-only-active-research-selector.json'
+      - 'scripts/verify_phase57_selector_min_price75_freeze.py'
+      - 'scripts/report_phase57_selector_min_price75.py'
+      - 'docs/evidence/phase57-selector-min-price75-v1/**'
+permissions:
+  contents: read
+jobs:
+  freeze-audit:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      ARK_TEST_OFFLINE: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install fixed aggregation libraries
+        run: pip install numpy==2.3.5 pandas==2.2.3
+      - name: Verify old and new frozen identities without measurement
+        run: |
+          python3 scripts/offline/kernel_exec.py python3 scripts/verify_phase57_long_only_frozen_selector_v1.py
+          python3 scripts/offline/kernel_exec.py python3 scripts/verify_phase57_selector_min_price75_freeze.py
+          python3 scripts/offline/kernel_exec.py python3 scripts/verify_phase57_development_preservation.py
+          python3 scripts/offline/kernel_exec.py python3 -m unittest -v scripts.test_phase57_selector_min_price75 scripts.test_phase57_new_long_entry_two_opportunity scripts.test_phase57_strict30_mae_attribution
+      - name: Regenerate presentation from immutable measurement only
+        run: |
+          set -euo pipefail
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.report_phase57_selector_min_price75 --source docs/evidence/phase57-selector-min-price75-v1/measurement --out /tmp/price75-report
+          for file in REPORT.md selected-and-excluded-identities.csv manifest.json; do
+            cmp "/tmp/price75-report/$file" "docs/evidence/phase57-selector-min-price75-v1/decision/$file"
+          done
+          git diff --exit-code
+      - uses: actions/upload-artifact@v4
+        with:
+          name: price75-freeze-audit-${{ github.event.pull_request.head.sha }}
+          path: /tmp/price75-report/
+          if-no-files-found: error
+          retention-days: 30

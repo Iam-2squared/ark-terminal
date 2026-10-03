@@ -1,0 +1,174 @@
+{
+  "schemaVersion": "phase57-dual-entry-capital-receipt-r16",
+  "status": "INTEGRATION_ACCOUNTING_PASS_FULL_PORTFOLIO_BLOCKED_NO_ENTRY_WINNER",
+  "dualFreezeCommit": "4878a1cc53430e816261dea0fb16aeb53b3c238d",
+  "capitalPreregistrationCommit": "4d20b6fa0fec7977a08da70484a2b126e6aa0178",
+  "executionHead": "fd68460930a3198e3976aba057d41cde1c2c9c97",
+  "workflowRun": 36117117239,
+  "job": 108013713013,
+  "conclusion": "success",
+  "artifactId": 10855870021,
+  "artifactDigest": "4532885a75b63e69bed69bc958da8783383fa6478fa67fb8a56ea29ffbf5f2e2",
+  "artifactExpiresAt": "2026-10-25T09:13:37Z",
+  "artifactNotPermanentStorage": true,
+  "uniqueSyntheticTestsPassed": 38,
+  "streamVsR13ParityFills": 3848,
+  "runABByteIdentical": true,
+  "localVsCIAllThreeOutputsByteIdentical": true,
+  "outputPins": {
+    "ledgers.json.gz": "bb422da6a09ce1b0eafdde90dc29760876ef42b93cbc289df2bd48cf485a4456",
+    "manifest.json": "97db2495029e7875e9785dc16391839433f94531fcca923ec8d2a3698a13f50b",
+    "summary.json": "1b8537b11f8c4e49e6cadaf139de05e02c301cf089f9300fbe23293a5f57a652"
+  },
+  "calendarCorrectionToR14": {
+    "calendarSessions": 59,
+    "opportunityBearingSessions": 58,
+    "noOpportunitySession": "2025-07-14",
+    "note": "R14 said58 evaluation sessions;58 is the number of Opportunity-bearing dates. The frozen protocol has59 calendar sessions, all retained for Capital. R14 is preserved append-only, not overwritten."
+  },
+  "preservedFailedCIRuns": [
+    {
+      "run": 36116691952,
+      "head": "4d20b6fa0fec7977a08da70484a2b126e6aa0178",
+      "artifact": 10854733595,
+      "digest": "be0a55801d89b7345f596d9135a6ba036cef87bfbbababa3ccb31c2589975d3d",
+      "cause": "Transcribed drawdown initialization had3 scalar values for2 variables. Synthetic tests failed before real ledger replay. Fixed in25073c991b20eb2b8a347fad581700d138dc453c; no policy/input changes."
+    },
+    {
+      "run": 36116943012,
+      "head": "25073c991b20eb2b8a347fad581700d138dc453c",
+      "artifact": 10855860114,
+      "digest": "c8da4c21f20ad67fe568a6a57714253c71ebdd8a226f86b91b4c1d4c59e5dc66",
+      "cause": "Replay and A/B completed, but CI asserted58 calendar sessions. Bound gate to exact59-session frozen protocol in final execution HEAD; no data excluded or policy changed."
+    }
+  ],
+  "preliminaryLocalRunDisposition": "Early local runs retained separately. Runs labeled4d20 used the locally corrected script rather than the transcribed remote blob, so are not claimed as source-matched reproduction. Final fd684609 local and CI source/output bytes match.",
+  "reports": {
+    "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF": {
+      "EQUAL_MAX3": {
+        "opportunities": 2155,
+        "entryFills": 1885,
+        "noEntry": 270,
+        "accepted": 2,
+        "rejected": 1883,
+        "closed": 1,
+        "unresolved": 1,
+        "cashBalanceJpy": 658146.6823,
+        "lockedPurchaseNotionalJpy": 329764.8,
+        "closedTradePnlJpy": -12006.076499999963,
+        "closedTradeProfitFactorNotFullPortfolio": 0.0,
+        "portfolioReturnPct": null,
+        "maxDrawdownPct": null,
+        "finalEquityJpy": null,
+        "rejectionReasons": {
+          "CURRENT_EQUITY_UNKNOWN": 1875,
+          "INSUFFICIENT_CASH": 1,
+          "SYMBOL_ALREADY_OPEN": 6,
+          "TARGET_BELOW_LOT": 1
+        },
+        "firstUnknownValuation": "2025-05-30T09:31:00+09:00",
+        "maxConcurrent": 2,
+        "maxCashBalanceErrorJpy": 1.5631940186722204e-11
+      },
+      "ONE_LOT_REFERENCE": {
+        "opportunities": 2155,
+        "entryFills": 1885,
+        "noEntry": 270,
+        "accepted": 24,
+        "rejected": 1861,
+        "closed": 14,
+        "unresolved": 10,
+        "cashBalanceJpy": 639372.3877750002,
+        "lockedPurchaseNotionalJpy": 313356.6,
+        "closedTradePnlJpy": -47192.673074999955,
+        "closedTradeProfitFactorNotFullPortfolio": 0.03634178220669936,
+        "portfolioReturnPct": null,
+        "maxDrawdownPct": null,
+        "finalEquityJpy": null,
+        "rejectionReasons": {
+          "INSUFFICIENT_CASH": 1,
+          "MAX_CONCURRENT_POSITIONS": 1860
+        },
+        "firstUnknownValuation": "2025-05-30T09:31:00+09:00",
+        "maxConcurrent": 10,
+        "maxCashBalanceErrorJpy": 2.1827872842550278e-10
+      }
+    },
+    "IMMEDIATE": {
+      "EQUAL_MAX3": {
+        "opportunities": 2155,
+        "entryFills": 1963,
+        "noEntry": 192,
+        "accepted": 3,
+        "rejected": 1960,
+        "closed": 2,
+        "unresolved": 1,
+        "cashBalanceJpy": 653643.7065750001,
+        "lockedPurchaseNotionalJpy": 329764.8,
+        "closedTradePnlJpy": -16509.052224999963,
+        "closedTradeProfitFactorNotFullPortfolio": 0.0,
+        "portfolioReturnPct": null,
+        "maxDrawdownPct": null,
+        "finalEquityJpy": null,
+        "rejectionReasons": {
+          "CURRENT_EQUITY_UNKNOWN": 1949,
+          "INSUFFICIENT_CASH": 5,
+          "SYMBOL_ALREADY_OPEN": 6
+        },
+        "firstUnknownValuation": "2025-05-30T10:01:00+09:00",
+        "maxConcurrent": 3,
+        "maxCashBalanceErrorJpy": 9.589484761818312e-11
+      },
+      "ONE_LOT_REFERENCE": {
+        "opportunities": 2155,
+        "entryFills": 1963,
+        "noEntry": 192,
+        "accepted": 26,
+        "rejected": 1937,
+        "closed": 16,
+        "unresolved": 10,
+        "cashBalanceJpy": 483929.51281249966,
+        "lockedPurchaseNotionalJpy": 485342.55,
+        "closedTradePnlJpy": -30606.60154999996,
+        "closedTradeProfitFactorNotFullPortfolio": 0.25664758554395145,
+        "portfolioReturnPct": null,
+        "maxDrawdownPct": null,
+        "finalEquityJpy": null,
+        "rejectionReasons": {
+          "INSUFFICIENT_CASH": 1,
+          "MAX_CONCURRENT_POSITIONS": 1936
+        },
+        "firstUnknownValuation": "2025-05-30T10:01:00+09:00",
+        "maxConcurrent": 10,
+        "maxCashBalanceErrorJpy": 4.656612873077393e-10
+      }
+    }
+  },
+  "firstConfirmedMissingReference": "2025-05-30T10:10:00+09:00",
+  "sharedFirstEqualBlockedPosition": {
+    "entryId": "2025-05-30|61770|570",
+    "quantity": 3200,
+    "purchaseNotionalJpy": 329764.8
+  },
+  "closedTradeSessionDates": [
+    "2025-05-30"
+  ],
+  "interpretation": "Closed-trade PnL/PF is only a partial accounting diagnostic, not59-session Portfolio Return/PF. Positions with unknown EXIT are never liquidated or removed; no final Entry selection.",
+  "samplingCaveat": "Legacy min(5, clock interval) lock/utilization sampling has Entry-dependent timeline points and different tradingMinutes. Do not use its average lock/concurrency to rank the Entry arms. Final locked principal is reported; averageUtilization and full equity/MDD remain unavailable.",
+  "nextGate": "Audit already saved current-Development raw references for true data absence, no-trade intervals and terminal calendar semantics, without guessing fills/forward-filling or opening new partitions. Freeze Entry/EXIT and preserve unknown liabilities.",
+  "providerRequests": 0,
+  "newProtectedPartitionsOpened": 0,
+  "mainMerged": false,
+  "finalEntrySelected": false,
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  }
+}

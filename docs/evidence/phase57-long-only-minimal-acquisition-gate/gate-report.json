@@ -1,0 +1,355 @@
+{
+  "schemaVersion": 1,
+  "dateJst": "2026-09-16",
+  "repo": "Iam-2squared/ark-terminal",
+  "branch": "research/phase57-long-only-cash-equity",
+  "pr": 587,
+  "assessedRemoteHead": "d872762a5d255714a138496267da1886cb829a9b",
+  "latestMain": "b7801ce2c13772cbc3f5b51506819c119fe868ea",
+  "verdict": "ACQUISITION_CONTRACT_BLOCKED",
+  "phaseReached": "A_PRECONTRACT_METADATA_REVIEW",
+  "globalBudgetRemainsFrozen": true,
+  "blockers": [
+    {
+      "code": "ACQUISITION_CONTRACT_BLOCKED",
+      "detail": "User Phase A requires all195 exact sessions before acquisition. Frozen blockG requires first25 JPX sessions strictly after blockF AND full-system comparison closeout. Closeout date is not established. A calendar or historical25-day block cannot prove that temporal condition. No dates or closeout deadline invented.",
+      "source": "predict/research/phase57-long-only-global-data-budget-v1.json#/acquisitionBlocks/7/dateSelectionRule"
+    },
+    {
+      "code": "PROVIDER_SCOPE_UNRESOLVED",
+      "detail": "Inherited metadata does not establish a hard request cap, verified195-date availability, current private cache identity/destination, or entitlement covering the prospective block. Recorded Light/minute termination2026-10-06 is a repository snapshot, not a live provider attestation. The inherited3149-request figure is only a point estimate.",
+      "source": "predict/research/phase57-long-only-global-data-budget-v1.json#/newJQuantsRequirement"
+    }
+  ],
+  "verification": {
+    "globalBudget": {
+      "path": "predict/research/phase57-long-only-global-data-budget-v1.json",
+      "sha256": "b91699704f80ef7fda60fe0596e8f8736a181cd00dc879f5070f9caed4d4a62f",
+      "expected": "b91699704f80ef7fda60fe0596e8f8736a181cd00dc879f5070f9caed4d4a62f",
+      "pass": true
+    },
+    "candidate": {
+      "path": "predict/research/phase57-msh-entry-long-v1-validation-candidate-v1.json",
+      "sha256": "4a2f52cd6f25f480fe6d7de9db525860ddf3c1600abed06b6222c0990c055a23",
+      "expected": "4a2f52cd6f25f480fe6d7de9db525860ddf3c1600abed06b6222c0990c055a23",
+      "pass": true
+    },
+    "model": {
+      "path": "docs/evidence/phase57-msh-entry-long-v1-final-validation-model/final-model.json",
+      "sha256": "b053a858edda22bee7b9939162648740507964cc5ed8d613c2d778d15534589e",
+      "expected": "b053a858edda22bee7b9939162648740507964cc5ed8d613c2d778d15534589e",
+      "pass": true
+    },
+    "scaler": {
+      "path": "docs/evidence/phase57-msh-entry-long-v1-final-validation-model/final-scaler.json",
+      "sha256": "1e4865915a2ad1ec51dd4ebf2116d48b9f89b9b884f8dc732fdb2861dbf4fe4b",
+      "expected": "1e4865915a2ad1ec51dd4ebf2116d48b9f89b9b884f8dc732fdb2861dbf4fe4b",
+      "pass": true
+    },
+    "fit": {
+      "path": "predict/research/phase57-msh-entry-long-v1-fit-contract-v1.json",
+      "sha256": "64c20d785be5f23b0a9103f419726b191a12a58fd5d3a7ad5185c69f9644a938",
+      "expected": "64c20d785be5f23b0a9103f419726b191a12a58fd5d3a7ad5185c69f9644a938",
+      "pass": true
+    },
+    "developmentEvidence": {
+      "path": "docs/evidence/phase57-msh-entry-long-v1-offline-freeze/development-evidence-freeze.json",
+      "sha256": "68d2a02c988a05b3178e903d628a53662b01bb704fa0700ebcb98e3b32547ead",
+      "expected": "68d2a02c988a05b3178e903d628a53662b01bb704fa0700ebcb98e3b32547ead",
+      "pass": true
+    },
+    "selectorPayload": {
+      "sha256": "3dc6d222d4039737c0dcfdcfa4a83372202152e29b582225419ab97c00610d59",
+      "expected": "3dc6d222d4039737c0dcfdcfa4a83372202152e29b582225419ab97c00610d59",
+      "pass": true
+    },
+    "selectorRidge": {
+      "referenceSha256": "994f1dbaba1d32e97458d5dd9d4c646ef443fbb37128650e8166001d8deabefb",
+      "pass": true,
+      "scope": "Pinned artifact reference verified; external raw Ridge artifact not reacquired"
+    }
+  },
+  "blocks": [
+    {
+      "block": "A",
+      "purpose": [
+        "ENTRY_VALIDATION"
+      ],
+      "sessions": 30,
+      "startDate": null,
+      "endDate": null,
+      "sessionList": null,
+      "sessionListSHA": null,
+      "status": "UNASSIGNED_NOT_OPENED",
+      "dateSelectionRule": "Chronological disjoint whole JPX sessions, after all applicable upstream training/analog cutoffs; select using calendar, prior exposure, reservation and provider availability metadata only. Freeze exact list in Acquisition Contract before any price fetch."
+    },
+    {
+      "block": "B",
+      "purpose": [
+        "ENTRY_OOS"
+      ],
+      "sessions": 30,
+      "startDate": null,
+      "endDate": null,
+      "sessionList": null,
+      "sessionListSHA": null,
+      "status": "UNASSIGNED_NOT_OPENED",
+      "dateSelectionRule": "Chronological disjoint whole JPX sessions, after all applicable upstream training/analog cutoffs; select using calendar, prior exposure, reservation and provider availability metadata only. Freeze exact list in Acquisition Contract before any price fetch."
+    },
+    {
+      "block": "C",
+      "purpose": [
+        "EXIT_VALIDATION"
+      ],
+      "sessions": 30,
+      "startDate": null,
+      "endDate": null,
+      "sessionList": null,
+      "sessionListSHA": null,
+      "status": "UNASSIGNED_NOT_OPENED",
+      "dateSelectionRule": "Chronological disjoint whole JPX sessions, after all applicable upstream training/analog cutoffs; select using calendar, prior exposure, reservation and provider availability metadata only. Freeze exact list in Acquisition Contract before any price fetch."
+    },
+    {
+      "block": "D",
+      "purpose": [
+        "EXIT_OOS"
+      ],
+      "sessions": 30,
+      "startDate": null,
+      "endDate": null,
+      "sessionList": null,
+      "sessionListSHA": null,
+      "status": "UNASSIGNED_NOT_OPENED",
+      "dateSelectionRule": "Chronological disjoint whole JPX sessions, after all applicable upstream training/analog cutoffs; select using calendar, prior exposure, reservation and provider availability metadata only. Freeze exact list in Acquisition Contract before any price fetch."
+    },
+    {
+      "block": "E",
+      "purpose": [
+        "INTEGRATION_VALIDATION",
+        "CAPITAL_VALIDATION",
+        "PORTFOLIO_VALIDATION"
+      ],
+      "sessions": 20,
+      "startDate": null,
+      "endDate": null,
+      "sessionList": null,
+      "sessionListSHA": null,
+      "status": "UNASSIGNED_NOT_OPENED",
+      "dateSelectionRule": "Chronological disjoint whole JPX sessions, after all applicable upstream training/analog cutoffs; select using calendar, prior exposure, reservation and provider availability metadata only. Freeze exact list in Acquisition Contract before any price fetch."
+    },
+    {
+      "block": "F",
+      "purpose": [
+        "FINAL_COMPARISON"
+      ],
+      "sessions": 30,
+      "startDate": null,
+      "endDate": null,
+      "sessionList": null,
+      "sessionListSHA": null,
+      "status": "UNASSIGNED_NOT_OPENED",
+      "dateSelectionRule": "Chronological disjoint whole JPX sessions, after all applicable upstream training/analog cutoffs; select using calendar, prior exposure, reservation and provider availability metadata only. Freeze exact list in Acquisition Contract before any price fetch."
+    },
+    {
+      "block": "G",
+      "purpose": [
+        "FINAL_PROSPECTIVE_OOS"
+      ],
+      "sessions": 25,
+      "startDate": null,
+      "endDate": null,
+      "sessionList": null,
+      "sessionListSHA": null,
+      "status": "UNASSIGNED_NOT_OPENED",
+      "dateSelectionRule": "First25 JPX sessions strictly after Block F and full-system comparison closeout, excluding all protected/reserved/exposed dates; preregister all dates before opening any G payload."
+    }
+  ],
+  "cadence": {
+    "source": "predict/research/phase57-msh-entry-long-v1-validation-candidate-v1.json#/cadence",
+    "decisionTimesJst": [
+      "09:30",
+      "10:00",
+      "10:30",
+      "11:00",
+      "11:30",
+      "13:00",
+      "13:30",
+      "14:00",
+      "14:30",
+      "15:00"
+    ],
+    "decisionsPerSession": 10,
+    "status": "RESOLVED_SAME_SAVED_SELECTOR_SCHEDULE",
+    "fiveMinuteSelectorReconstruction": false
+  },
+  "universe": "FROZEN_TSE_PRIME_STANDARD_GROWTH_DOMESTIC_COMMON_EQUITY_POINT_IN_TIME_LONG_ONLY",
+  "logicalRequiredFields": {
+    "daily": [
+      "Date",
+      "Code",
+      "AdjC",
+      "AdjFactor",
+      "ExRT",
+      "Vo",
+      "Va"
+    ],
+    "master": [
+      "Date",
+      "Code",
+      "Mkt",
+      "ProdCat"
+    ],
+    "minute": [
+      "symbol",
+      "bar_timestamp_and_availability",
+      "open",
+      "high",
+      "low",
+      "close",
+      "volume"
+    ],
+    "additionalFutureStageFields": "UNRESOLVED until LONG EXIT/Portfolio contracts specify their causal inputs"
+  },
+  "providerSnapshot": {
+    "apiVersion": "v2",
+    "authentication": "x-api-key",
+    "dailyEndpoint": "/v2/equities/bars/daily",
+    "minuteEndpoint": "/v2/equities/bars/minute",
+    "masterEndpoint": "/v2/equities/master",
+    "paginationKey": "pagination_key",
+    "paginationRule": "REPEAT_UNCHANGED_QUERY_WITH_RETURNED_KEY_UNTIL_KEY_ABSENT",
+    "minuteCoverage": "TSE_LISTED_ONLY_PAST_2_YEARS",
+    "minuteNoTradePolicy": "NO_ROW_WHEN_NO_TRADING_ACTIVITY",
+    "planHistoryYears": {
+      "FREE_DELAYED": 2,
+      "LIGHT": 5,
+      "STANDARD": 10,
+      "PREMIUM": 20
+    },
+    "planRateLimitRequestsPerMinute": {
+      "FREE": 5,
+      "LIGHT": 60,
+      "STANDARD": 120,
+      "PREMIUM": 500
+    },
+    "minuteAddonRateLimitRequestsPerMinute": 60
+  },
+  "providerSnapshotIsLiveVerification": false,
+  "entitlementSnapshot": {
+    "status": "USER_SCREENSHOT_REATTESTED_2026_09_15",
+    "basePlan": "LIGHT",
+    "basePlanActive": true,
+    "basePlanScheduledEndJst": "2026-10-06T19:02:00+09:00",
+    "minuteAddon": "TICK_PLUS_OHLCMIN",
+    "minuteAddonActive": true,
+    "minuteAddonCancellationScheduled": true,
+    "addonScheduledEndJst": "2026-10-06T19:07:00+09:00",
+    "secretValueObserved": false,
+    "requiredOperatorConfirmationRemaining": [
+      "PRIVATE_STORAGE_AND_POST_CANCELLATION_DELETION_TERMS",
+      "GITHUB_ACTIONS_SECRET_JQUANTS_API_KEY_PRESENT"
+    ]
+  },
+  "priorExposureAudit": {
+    "newExactSessionsAudited": 0,
+    "status": "NOT_PASS_NO_EXACT195_IDENTITIES",
+    "priorLedgerUnchanged": {
+      "EXPOSED": 375,
+      "RESERVED": 4,
+      "SEALED": 25,
+      "PROTECTED": 1,
+      "PURGED": 3,
+      "EXCLUDED": 4,
+      "FRESH_AVAILABLE": 0,
+      "UNKNOWN": 101,
+      "TOTAL": 513,
+      "dateResolved": 412
+    },
+    "unknown101Usable": false,
+    "former30Fresh": false,
+    "noNewPriceOrOutcomeReads": true
+  },
+  "future20": {
+    "count": 20,
+    "purpose": "LEGACY_CAPITAL_INTEGRATED_OOS_FOR_ITS_FROZEN_STACK",
+    "notBefore": "2026-10-22",
+    "exactDates": "UNASSIGNED_EXISTING_RULE",
+    "unchanged": true,
+    "newLongCredit": 0,
+    "notSameAsBlockE": true
+  },
+  "phases": {
+    "A": "BLOCKED",
+    "B": "NOT_STARTED",
+    "C": "NOT_STARTED",
+    "D": "NOT_STARTED",
+    "E": "NOT_STARTED",
+    "F": "NO_PERFORMANCE_VERDICT"
+  },
+  "acquisitionContractSha256": null,
+  "validationDatasetSha256": null,
+  "rawArtifacts": [],
+  "normalizedArtifacts": [],
+  "countsThisTask": {
+    "candidatePredictions": 0,
+    "validationPredictions": 0,
+    "validationOutcomeAccess": 0,
+    "oosAccess": 0,
+    "exitOutcomeAccess": 0,
+    "shortEvaluation": 0,
+    "modelFit": 0,
+    "scalerFit": 0,
+    "providerMetadataRequests": 0,
+    "yahooPriceRequests": 0,
+    "jquantsPriceRequests": 0,
+    "otherPriceRequests": 0,
+    "acquisitionFailures": 0,
+    "rawPriceArtifactsAcquired": 0,
+    "actualAllocationChanges": 0,
+    "reservationReleases": 0,
+    "sealedOpenings": 0,
+    "protectedOpenings": 0,
+    "forwardFill": 0,
+    "interpolation": 0,
+    "substitution": 0
+  },
+  "providerCountConfidence": "CONFIRMED_FOR_THIS_TASK_DIRECT_CALLS; GitHub metadata is not a market-data request",
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "offlineRegression": {
+    "suite": "scripts/test_phase57_budget_metadata.py",
+    "guard": "ARK_TEST_OFFLINE=1 python3 scripts/offline/kernel_exec.py",
+    "total": 23,
+    "pass": 23,
+    "fail": 0,
+    "skip": 0,
+    "scope": "Existing outcome-free budget/integrity tests only; no market/model/prediction evaluator run",
+    "warning": "Existing replay emits ResourceWarning for unclosed metadata catalog file; tests pass"
+  },
+  "ci": {
+    "assessedHead": "d872762a5d255714a138496267da1886cb829a9b",
+    "success": [
+      "Phase57 LONG-only Research Foundation",
+      "Predict Tests",
+      "Phase52 Daily Dry-Run Persistence"
+    ],
+    "skipped": [
+      "Phase57 LONG-only Selector Capacity Diagnostic",
+      "Phase57 LONG-only L2 Selector Development",
+      "Phase57 LONG-only New Selector with CURRENT Entry Exit",
+      "Phase57 LONG-only Missed Opportunity Diagnostic"
+    ],
+    "evidenceCommitCI": "Report separately after publication; baseline result is not a new-head CI claim"
+  },
+  "nextAction": "Resolve acquisition scheduling contract without outcomes: preserve G as prospective; explicitly reconcile all195 exact-date prerequisite with unknown future F closeout (for example a separately authorized staged identity schedule, or a fixed future closeout deadline with fail-closed dates). Then verify entitlement/storage/cache metadata and set hard request budget. No acquisition or Validation until the same gate passes.",
+  "authorization": "User has conditionally authorized A-F; no extra generic approval requested. STOP is due to stated acquisition identity gate, not absent user acquisition authorization."
+}

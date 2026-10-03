@@ -1,0 +1,191 @@
+name: Phase57 REBOUND Prefix Blind Review Packet v1
+
+on:
+  push:
+    branches:
+      - research/phase57-long-only-cash-equity
+    paths:
+      - '.github/workflows/phase57-nine-state-rebound-review-packet-v1.yml'
+      - 'scripts/phase57_nine_state_rebound_review_packet_v1.py'
+      - 'scripts/test_phase57_nine_state_rebound_review_packet_v1.py'
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: phase57-nine-state-rebound-review-packet-v1
+  cancel-in-progress: true
+
+jobs:
+  build-blind-review-packet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Focused blind-packet tests
+        run: |
+          set -euo pipefail
+          python -m unittest -v scripts.test_phase57_nine_state_rebound_review_packet_v1
+      - name: Download only the approved raw-price substrate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/10605887642/zip" > "$RUNNER_TEMP/substrate.zip"
+          test "$(sha256sum "$RUNNER_TEMP/substrate.zip" | cut -d ' ' -f1)" = "749caf82bbd9d39969f5712ef5a6f2705ac973a2f74483f03307c671586ae05a"
+          mkdir -p "$RUNNER_TEMP/substrate"
+          unzip -p "$RUNNER_TEMP/substrate.zip" substrate/raw-paths-evaluator-only.json.gz > "$RUNNER_TEMP/substrate/raw-paths-evaluator-only.json.gz"
+          test ! -s "$RUNNER_TEMP/substrate/outcomes.json.gz"
+      - name: Build frozen outcome-blind REBOUND review packet
+        run: |
+          set -euo pipefail
+          python -m scripts.phase57_nine_state_rebound_review_packet_v1 \
+            --state-checkpoints docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement/state-checkpoints.json.gz \
+            --raw-paths "$RUNNER_TEMP/substrate/raw-paths-evaluator-only.json.gz" \
+            --output "$RUNNER_TEMP/rebound-review-v1" \
+            | tee "$RUNNER_TEMP/rebound-review-v1-manifest.log"
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ["RUNNER_TEMP"]) / "rebound-review-v1"
+          manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+          chart_count = len(list((root / "packet" / "charts").glob("*.svg")))
+          target_n = int(manifest["targetReviewCases"])
+          comparator_n = int(manifest["comparatorReviewCases"])
+          comparator_pool = int(manifest["comparatorPool"])
+          total_n = int(manifest["totalReviewCases"])
+
+          # Preserve the predeclared sampling contract: 24 REBOUND targets and
+          # up to 12 full-recovery RISE comparators. If the fixed comparator
+          # pool contains fewer than 12 cases, use the complete pool rather
+          # than weakening the prefix-only comparator definition post hoc.
+          assert target_n == 24, ("targetReviewCases", target_n)
+          assert comparator_pool > 0, ("comparatorPool", comparator_pool)
+          assert comparator_n == min(12, comparator_pool), (
+              "comparatorReviewCases", comparator_n, comparator_pool
+          )
+          assert total_n == target_n + comparator_n, (
+              "totalReviewCases", total_n, target_n, comparator_n
+          )
+          assert chart_count == total_n, ("chartCount", chart_count, total_n)
+          PY
+          test -f "$RUNNER_TEMP/rebound-review-v1/packet/review-template.csv"
+          test -f "$RUNNER_TEMP/rebound-review-v1/sealed/sealed-map.json"
+      - name: Guard public packet against identity/outcome leakage
+        run: |
+          set -euo pipefail
+          ! grep -R -E '"opportunity"|"baselineState"|laterHigh|orderedLow|MFE|MAE|Capture|entryId|fillPrice|future' "$RUNNER_TEMP/rebound-review-v1/packet/cases.json"
+          grep -q 'futureOrOutcomeSourcesOpened.*0' "$RUNNER_TEMP/rebound-review-v1/manifest.json"
+          grep -q 'entryOrFillSourcesOpened.*0' "$RUNNER_TEMP/rebound-review-v1/manifest.json"
+      - name: Print masked prefix witness for blind semantic review
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path(os.environ["RUNNER_TEMP"]) / "rebound-review-v1" / "packet" / "cases.json"
+          cases = json.loads(path.read_text(encoding="utf-8"))
+          print(f"BLIND_PREFIX_WITNESSES_BEGIN count={len(cases)}")
+          for row in cases:
+              print(json.dumps(row, ensure_ascii=False, sort_keys=True, allow_nan=False))
+          print("BLIND_PREFIX_WITNESSES_END")
+          PY
+      - name: Print masked terminal chart render for blind visual review
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          root = Path(os.environ["RUNNER_TEMP"]) / "rebound-review-v1" / "packet" / "charts"
+          point_re = re.compile(r'<polyline points="([^"]+)"')
+
+          def parse_points(text):
+              series = []
+              for raw in point_re.findall(text):
+                  pts = []
+                  for token in raw.split():
+                      x, y = token.split(',')
+                      pts.append((float(x), float(y)))
+                  series.append(pts)
+              return series
+
+          def raster(points, cols=72, rows=12):
+              if not points:
+                  return [" " * cols for _ in range(rows)]
+              xmin = min(x for x, _ in points)
+              xmax = max(x for x, _ in points)
+              ymin = min(y for _, y in points)
+              ymax = max(y for _, y in points)
+              if xmax <= xmin:
+                  xmax = xmin + 1.0
+              if ymax <= ymin:
+                  ymax = ymin + 1.0
+              grid = [[" " for _ in range(cols)] for _ in range(rows)]
+
+              def cell(p):
+                  x, y = p
+                  c = round((x - xmin) / (xmax - xmin) * (cols - 1))
+                  r = round((y - ymin) / (ymax - ymin) * (rows - 1))
+                  return int(c), int(r)
+
+              cells = [cell(p) for p in points]
+              for (c0, r0), (c1, r1) in zip(cells, cells[1:]):
+                  steps = max(abs(c1 - c0), abs(r1 - r0), 1)
+                  for i in range(steps + 1):
+                      c = round(c0 + (c1 - c0) * i / steps)
+                      r = round(r0 + (r1 - r0) * i / steps)
+                      if 0 <= r < rows and 0 <= c < cols:
+                          grid[r][c] = "•"
+              for c, r in cells:
+                  if 0 <= r < rows and 0 <= c < cols:
+                      grid[r][c] = "●"
+              return ["".join(line) for line in grid]
+
+          charts = sorted(root.glob("RBV1-*.svg"))
+          print(f"BLIND_TERMINAL_CHARTS_BEGIN count={len(charts)}")
+          for chart in charts:
+              text = chart.read_text(encoding="utf-8")
+              series = parse_points(text)
+              prev = series[0] if len(series) >= 1 else []
+              today = series[1] if len(series) >= 2 else []
+              print(f"\n===== {chart.stem} =====")
+              print("PREVIOUS SESSION PREFIX-CONTEXT")
+              print("+" + "-" * 72 + "+")
+              for line in raster(prev):
+                  print("|" + line + "|")
+              print("+" + "-" * 72 + "+")
+              print("CURRENT SESSION PREFIX THROUGH T0")
+              print("+" + "-" * 72 + "+")
+              for line in raster(today):
+                  print("|" + line + "|")
+              print("+" + "-" * 72 + "+")
+          print("BLIND_TERMINAL_CHARTS_END")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-rebound-prefix-blind-review-packet-v1-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/rebound-review-v1/packet
+            ${{ runner.temp }}/rebound-review-v1/manifest.json
+            ${{ runner.temp }}/rebound-review-v1-manifest.log
+          if-no-files-found: error
+          retention-days: 90
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-rebound-prefix-sealed-map-v1-${{ github.sha }}
+          path: ${{ runner.temp }}/rebound-review-v1/sealed
+          if-no-files-found: error
+          retention-days: 90

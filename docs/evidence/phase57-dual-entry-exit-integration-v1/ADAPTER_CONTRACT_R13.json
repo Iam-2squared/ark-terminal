@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "phase57-dual-entry-exit-adapter-r13",
+  "status": "PREREGISTERED_BEFORE_NEW_EXIT_OUTCOMES_NOT_PERFORMANCE_PASS",
+  "dateJST": "2026-09-25",
+  "dualFreezeCommit": "4878a1cc53430e816261dea0fb16aeb53b3c238d",
+  "sourceHead": "4d391907796e526e3eb63acd4959d9d317071316",
+  "basis": "Controlling uploaded Entry EXIT Capital handoff and committed integration plan R11",
+  "population": 2155,
+  "partition": "ALREADY_OUTCOME_EXPOSED_DEVELOPMENT_NOT_FRESH_OOS",
+  "entryPolicies": [
+    "IMMEDIATE",
+    "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF"
+  ],
+  "inputPins": {
+    "docs/evidence/phase57-entry-all-material-v1/ENTRY_DUAL_FREEZE_R10.json": "5d7b619694a2d830d366d21429c2465f7214739f3e94a222a3844f6c0f41820a",
+    "docs/evidence/phase57-state-conditioned-signal-entry-v1/measurement/baseline-immediate-records.json.gz": "4522bea9ac94f597affc8518c4cb25354e27f9e64141152cde8b8a4b9e09df9c",
+    "docs/evidence/phase57-entry-pattern-v2/ci-result/substrate/raw-paths-evaluator-only.json.gz": "37853e73799544be6fd6eb955de514073dd13671692426291a9fdb6d80056c6b",
+    "docs/evidence/phase57-entry-timing-signal-census-v1/protocol.json": "6b02b3088dd8ea7f8ce53112bc276df442bae3ce0716b8139c92733be4de2994",
+    "scripts/phase57_new_long_exit_candidate_a.py": "082183ee2a1ba5b71cee35e9394401f4b0ff338898fec39263b3e5cbfcd09901",
+    "predict/long-only/phase57_long_exit_continuation_v1.py": "b3e8f07086cfa65173524f62b78571f606e5d1c372a4cec1c16343c73d8c6c23",
+    "scripts/phase57_long_exit_paired_paths.mjs": "cb09142c56dcb35047b490fbb995ed3ccc8250807e04f54fc3c1f2ee84cad843",
+    "docs/evidence/phase57-new-long-exit-candidate-a-contract-2026-09-18.md": "4e018ed05ef8b386ef30e1bad1c7427c2d67e93b64130d44ff2fd683db3d9904",
+    "docs/evidence/phase57-entry-pattern-v2/protocol.json": "9d364509089360223a5d699dd87dbf26d06cad24cc0725b5d394e8d884235ef8",
+    "docs/evidence/phase57-entry-all-material-v1/EXIT_CAPITAL_INTEGRATION_PLAN_R11.md": "486775fa84639868d271d34edf668a84287c467091adfe56bf328b3aa44daac6"
+  },
+  "r1EntryRecordsSHA256": "15ddb5cfc5169024878ee72d9dbecc6e1d9dec24e78afa2dcdf8dea891117fa6",
+  "r1Source": {
+    "workflowRun": 36099497597,
+    "artifactId": 10851958443,
+    "artifactDigest": "33a0f64d48d25701215dadb82b9769a9c3bde2b9fec3d82d9879706f8f90e1a0",
+    "member": "all-material-r1/ci-run-a/entry-records.json.gz"
+  },
+  "entryHandling": {
+    "immutableFields": [
+      "opportunity",
+      "session",
+      "symbol",
+      "entryId",
+      "entryMinute",
+      "price"
+    ],
+    "noEntryReselection": true,
+    "noModelFitOrPrediction": true,
+    "preserveAll2155IncludingNoEntry": true,
+    "fillPrice": "Exact saved final price = exact raw1m entry-minute OPEN * 1.0005; no second Entry slippage",
+    "cost": "Frozen Candidate A and Fixed12 subtract 0.05 percentage points once, from returns rebased to the unchanged effective Entry price. The saved Entry price already includes 5bps buy slippage; do not describe total friction as all-in 5bps.",
+    "labelsQualityAndOtherFutureFields": "Never copied into six-field Entry envelope; no Entry decision module invoked"
+  },
+  "geometry": {
+    "status": "EXPLICIT_MECHANICAL_EXTENSION_FOR_OFFGRID_ENTRIES_NOT_A_NEW_EXIT_POLICY",
+    "noOutcomeChosenVariant": true,
+    "offGridRule": "Actual Entry time and price never rounded. Only complete calendar-anchored regular5m buckets wholly after Entry are consumed; the containing partial bucket is excluded. First bucket starts at ceil(entryMinute/5)*5, skipping lunch.",
+    "example": "09:31 Entry stays 09:31; first eligible completed regular5m bar is 09:35-09:40. Fixed12 counts these full post-entry regular bars.",
+    "preEntryHigh": "Never included in PROTECT arm; initial partial bucket is not substituted by an Entry-anchored synthetic 5m bar",
+    "calendar": "Inherited projectPath: end minute 900 before 2024-11-05, 930 thereafter; regular starts 540-689 and 750-(end-1); 690/930 auction rows excluded",
+    "terminalMissing": "Do not shorten inherited 15:30 cap to 15:25, insert an auction print or forward-fill a missing 15:25-15:30 bucket. Censor explicitly.",
+    "aggregation": "Use saved current-cohort raw1m only. Nonempty regular buckets use first observed Open/max High/min Low/last observed Close and retain observedMinutes; empty buckets missing. No interpolation or new provider.",
+    "openTimestamp": "First actual observed source minute of the next regular5m bucket; never backdate cash release to nominal bucket start when sparse",
+    "referenceNotExecution": true,
+    "old3800PathCache": "Not joined: no matching current2155 identity lineage; use same aggregation/calendar semantics on saved current raw archive instead"
+  },
+  "exit": {
+    "candidate": "Call unchanged phase57_new_long_exit_candidate_a.policy, not old hardwired build",
+    "fixed": "Call unchanged phase57_long_exit_continuation_v1.replay(event, FIXED12)",
+    "arm": "First completed HIGH >= 3%; a later completed CLOSE <= 1% signals",
+    "protectReference": "Next regular5m first-observed OPEN strictly after signal completion or at its boundary",
+    "fallback": "Exact Fixed12 CLOSE at min(12, remaining eligible regular slots)",
+    "forbidden": [
+      "loss-defense",
+      "BAR5",
+      "two-lower-closes",
+      "re-entry",
+      "Entry or EXIT retuning"
+    ],
+    "missing": "Evaluate all fills. A later unresolved Fixed12 must not suppress an earlier causal PROTECT exit. If Candidate cannot exit before missing data, keep unresolved and capital locked.",
+    "futureAvailabilityFilter": "Forbidden in Entry and Capital; paired evaluator subset is explicitly separate from full ledger"
+  },
+  "evaluation": {
+    "primary": "Within each Entry, Candidate A vs Fixed12 on identical resolved IDs; report no-entry, censored and Candidate-only-resolved counts separately",
+    "crossEntry": "Report both each-policy common-resolved and four-cell common-resolved comparisons; never compare different denominators as paired",
+    "metrics": [
+      "net return mean/median/p05/worst/best",
+      "PF",
+      "win rate",
+      "holding clock minutes",
+      "exit reason",
+      "plus3/plus5 preservation",
+      "symbol/session/time concentration",
+      "A/B byte reproducibility"
+    ],
+    "preservation": "Keep old exitBar>=firstHitBar statistic as legacySlotPreserved; also report ownershipTimeCredited excluding an EXIT-bar HIGH reached after exiting at that bar OPEN. Do not relabel the old statistic or change policy to improve it.",
+    "capital": "Not run in R13. Full ledger includes unresolved positions and rejects outcome filtering; no final Entry winner chosen here."
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

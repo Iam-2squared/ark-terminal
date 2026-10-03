@@ -26,8 +26,15 @@ jobs:
         run: npm install --ignore-scripts
 
       - name: Run prediction regression suite
-        working-directory: predict
-        run: npm test
+        run: python3 scripts/run_offline_regression.py --suite predict --output-dir "$RUNNER_TEMP/phase52-offline-regression"
+
+      - name: Upload offline regression audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase52-offline-regression-${{ github.run_id }}
+          retention-days: 30
+          path: ${{ runner.temp }}/phase52-offline-regression/
 
       - name: Generate fail-closed daily record
         run: node tools/run_phase52_daily_persistence.mjs

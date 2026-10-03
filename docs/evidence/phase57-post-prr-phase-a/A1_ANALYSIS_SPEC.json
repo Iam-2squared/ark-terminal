@@ -1,0 +1,75 @@
+{
+  "a0FreezeSha256": "ab45f672c8c603566dc4b4759dc8bd7616f645cb698d7485a1791e5d7b20c064",
+  "a0Sha256": "cc7280eead274f00e90ec1c69d3dfed479c2af11506a0b247cd54937c64700c6",
+  "columns": {
+    "ccmg": "normalizedCcmgPnlJpy",
+    "ccmgIntent": "ccmgFirstIntentMinute",
+    "control": "normalizedControlPnlJpy",
+    "cost": "entryCostJpy",
+    "deciles": [
+      "rank5Decile",
+      "rank10Decile"
+    ],
+    "delta": "deltaPnlJpy",
+    "fill": [
+      "controlExitMinute",
+      "ccmgExitMinute"
+    ],
+    "key": [
+      "world",
+      "arm",
+      "entryId"
+    ],
+    "label": "futureUpsidePctEvaluatorOnly",
+    "quantity": "quantity",
+    "r50ModelIntent": "controlIntentMinute",
+    "route": "routeDecision",
+    "scores": [
+      "score5",
+      "score10"
+    ]
+  },
+  "metrics": {
+    "capitalWeightedReturnPct": "100*sum pnl/sum entry cost, separate from meanNetPct",
+    "deltaNetPp": "100*deltaPnlJpy/entryCostJpy",
+    "gate": "same paired mask, both aggregate delta JPY and mean delta Net pp >= 0; old receipt status separately",
+    "meanJpy": "sum normalizedPolicyPnl / pairedN",
+    "meanNetPct": "sum per-entry netPct / pairedN",
+    "netPct": "100*normalizedPolicyPnl/entryCostJpy, before arithmetic mean"
+  },
+  "notPermitted": [
+    "model fit",
+    "policy replay",
+    "candidate implementation",
+    "protected partition",
+    "provider requests",
+    "orders"
+  ],
+  "oldPeriods": {
+    "bothR50AndCCMGOutcomeOutsideCurrent1614": "NOT_ESTABLISHED",
+    "note": "No separately pinned old-period paired CCMG teacher in current source manifests. No replay or fit used to fill."
+  },
+  "population": {
+    "allEntry": "ALL_100",
+    "arm": "IM and R1 separately; alternative Entry worlds",
+    "paired": "both saved policy outcomes known; delta=0 retained; no missing CCMG imputed as R50",
+    "primary": "PRIMARY_FUNDED",
+    "primaryOutside": "ALL_100 and primary=false"
+  },
+  "precommitSha256": "25e6f97b191a8d343a9361f73e48d179dd4ddcd94a229cac5f55c46b210381e9",
+  "schema": "phase57-post-prr-a1-analysis-spec-v1",
+  "sixAnalyses": [
+    "paired value, counts and percentage Gate by arm/world/route",
+    "<5, 5-10, >=10, >=5 and >=10 Winner bands with paired masks",
+    "positive/negative yen concentration and session clustering",
+    "fixed PRR Potential scores and fold-local rank deciles versus normalized delta on full paired rows",
+    "IM/R1 same opportunity pairing with primary subset identity and no arm pooling",
+    "CCMG first SELL_INTENT, R50 model SELL_INTENT, forced terminal, confirmed fill time and guard trace as-of"
+  ],
+  "sources": {
+    "maskRows": "COMPARISON_MASK_ROWS.jsonl.gz",
+    "normalizedRows": "ACCOUNTING_RECONCILIATION_ROWS.jsonl.gz"
+  },
+  "stage2FeatureSnapshot": "not present in saved trace; limited causal guard state only",
+  "statistics": "Descriptive only; rank correlation has no external validation or significance claim. Active nonzero rows diagnostic, never population selection."
+}

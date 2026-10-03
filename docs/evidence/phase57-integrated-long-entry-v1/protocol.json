@@ -1,0 +1,362 @@
+{
+  "architecture": {
+    "calibrationFits": 0,
+    "estimator": "sklearn.tree.DecisionTreeRegressor",
+    "fitBudget": 1,
+    "hyperparameterTrials": 1,
+    "hyperparameters": {
+      "ccp_alpha": 0.0,
+      "criterion": "squared_error",
+      "max_depth": 4,
+      "max_features": null,
+      "min_samples_leaf": 100,
+      "min_samples_split": 2,
+      "random_state": 57,
+      "splitter": "best"
+    },
+    "id": "SINGLE_MULTI_OUTPUT_SHALLOW_TREE_STATE_MACHINE",
+    "labels": {
+      "failure": "same window terminal close return<0 and MAE<=-3",
+      "urgent": "At current state: exact v2 FAST_WINNER_now (first bar HIGH>=1 and common-end MFE>=3) OR (delay=0 and exact v1 original path_class=IMMEDIATE_WINNER).",
+      "viable": "current executable OPEN to original opportunity+60 common-end MFE>=3"
+    },
+    "outputs": [
+      "urgent",
+      "viable",
+      "failure"
+    ],
+    "preprocessing": "Exact feature-manifest; train medians, explicit missing indicators, identity scaling. Binary scores are leaf weighted target means.",
+    "reason": "A single shared shallow tree captures limited PIT context/state interactions that a static linear value comparison and context-free events missed; depth4 caps16 leaves. No model comparison. Three joint binary-target regressions yield local empirical scores, not calibrated probabilities.",
+    "reproducibility": "Pinned versions and seed, saved tree/scaler/medians. Verify every node weighted moments, globally best eligible split impurity, leaf predictions and deterministic artifact inference. No research-data refit in tests/CI.",
+    "teacherSeparation": "Future path only in TRAIN label builder and evaluator; no best entry/max future utility search; no learned WAIT advantage. Three heads jointly fit in one estimator.fit call.",
+    "training": "Complete common60 TRAIN episodes only. All valid states at delay0,5,10,15, regardless subsequent policy reachability; each episode total sample_weight1 divided equally across states. Missing labels excluded, never0."
+  },
+  "decision": {
+    "gridMinutes": [
+      0,
+      5,
+      10,
+      15
+    ],
+    "maxWaitMinutes": 15,
+    "notes": [
+      "Pullback alone never BUY. State evidence computed from completed bars only; may include current completed bar as support.",
+      "Route C is both WAIT transitions and later urgency/continuation/cap BUY. Route shares report terminal A/B/C/D and initial WAIT membership separately; not disjoint memberships.",
+      "Short WAIT is structurally available, no forced route quotas; zero WAIT or zero delayed BUY yields structural failure, no rescue.",
+      "Each opportunity one terminal decision; no resurrection. INITIAL/DIP share exact policy.",
+      "Missing price reference/required prefix/execution OPEN expires. Optional feature absence uses TRAIN imputation plus indicators.",
+      "At t, all bars end<=t; execute scheduled regular bar starting t OPEN after decision, never same completed signal LOW/CLOSE. OHLC ordering UNKNOWN_INTRABAR_ORDER.",
+      "No cross original morning/afternoon boundary. No future execution bar HIGH/LOW/CLOSE fed to decision."
+    ],
+    "priority": [
+      "Missing/boundary terminal fail-closed",
+      "D: failure>=.75 AND viable<.10 ->SKIP (all states)",
+      "A at delay0: urgent>=.25 OR (viable>=.40 AND failure<.50) ->BUY_NOW",
+      "B delay>0: any earlier/current completed post-op close<0 AND (newLowStopped AND closeDeteriorationStopped OR priorHighReclaim OR momentumTurn) AND viable>=.20 AND failure<.50 ->BUY",
+      "C delay>0: urgent>=.25 OR (continuation AND viable>=.20 AND failure<.50) ->BUY",
+      "If delay<15 and next5 stays strictly inside original segment ->C WAIT_ONE_STEP",
+      "At cap/boundary-last-decision: viable>=.20 AND failure<.50 ->C BUY, else D EXPIRE"
+    ],
+    "thresholds": {
+      "entryFailureCeiling": 0.5,
+      "entryViable": 0.2,
+      "immediateViable": 0.4,
+      "skipFailure": 0.75,
+      "skipViableCeiling": 0.1,
+      "urgent": 0.25
+    }
+  },
+  "economicGates": "Economic evaluable >=90% of common baseline; mean net delta>=.05pp, PF nonworse, p05 nonworse; both sources mean delta>=0; >=3/4 blocks net delta>=0; TRAIN-top3 exclusion delta>0.",
+  "entryGates": {
+    "chronological": "At least3/4 subblocks commonN>=20, +3/+5 preservation>=.80 where denominator exists, price improvement mean>=0; no subgroup thresholds/rules.",
+    "cohorts": "INITIAL and DIP each complete n>=30, entry coverage>=.60, +3/+5 preservation>=.85, strict30 entered-paired p05 no worse by more than.25pp.",
+    "concentration": "Exclude TRAIN-frequency top3 symbols (tie symbol ascending); same full overall entry gates excluding minimum sample / pullback cohort nesting. No blacklist.",
+    "deep5CountReductionFraction": 0.1,
+    "eventualEntryCoverage": 0.7,
+    "fastWinnerEnteredAndRemaining3": 0.9,
+    "immediateWinnerEnteredAndRemaining3": 0.9,
+    "minimumCompleteN": 100,
+    "plus1Preservation": 0.8,
+    "plus2Preservation": 0.85,
+    "plus3Preservation": 0.9,
+    "plus5Preservation": 0.9,
+    "priceImprovementMeanPP": 0.1,
+    "pullback": "PULLBACK+DEEP_PULLBACK combined n>=10, paired entered mean price improvement>=0.10pp and strict30 median MAE nonworse, +3 preservation>=.85. Deep separately descriptive (tiny n cannot certify).",
+    "remainingMFEMeanRatioOnEnteredPairs": 0.9,
+    "strict30MAEMedianImprovementPP": 0.1,
+    "strict30MAEP05ImprovementPP": 0.25
+  },
+  "evaluation": {
+    "baseline": "B0_IMMEDIATE exact original scheduled OPEN, independently of optional feature coverage",
+    "chronologicalBlocks": {
+      "TRAIN": [
+        [
+          "2024-09-17",
+          "2024-09-18",
+          "2024-09-19",
+          "2024-09-20",
+          "2024-09-24",
+          "2024-09-25",
+          "2024-09-26",
+          "2024-09-27",
+          "2024-09-30",
+          "2024-10-01"
+        ],
+        [
+          "2024-10-02",
+          "2024-10-03",
+          "2024-10-04",
+          "2024-10-07",
+          "2024-10-08",
+          "2024-10-09",
+          "2024-10-10",
+          "2024-10-11",
+          "2024-10-15",
+          "2024-10-16"
+        ],
+        [
+          "2024-10-17",
+          "2024-10-18",
+          "2024-10-21",
+          "2024-10-22",
+          "2024-10-23",
+          "2024-10-24",
+          "2024-10-25",
+          "2024-10-28",
+          "2024-10-29"
+        ],
+        [
+          "2024-10-30",
+          "2024-10-31",
+          "2024-11-01",
+          "2024-11-05",
+          "2024-11-06",
+          "2024-11-07",
+          "2024-11-08",
+          "2024-11-11",
+          "2024-11-12"
+        ]
+      ],
+      "VALIDATION": [
+        [
+          "2024-11-13",
+          "2024-11-14",
+          "2024-11-15",
+          "2024-11-18",
+          "2024-11-19"
+        ],
+        [
+          "2024-11-20",
+          "2024-11-21",
+          "2024-11-22",
+          "2024-11-25",
+          "2024-11-26"
+        ],
+        [
+          "2024-11-27",
+          "2024-11-28",
+          "2024-11-29",
+          "2024-12-02",
+          "2024-12-03"
+        ],
+        [
+          "2024-12-04",
+          "2024-12-05",
+          "2024-12-06",
+          "2024-12-09"
+        ]
+      ]
+    },
+    "classes": "Exact v1 path_class and v2 FAST_WINNER, no altered hindsight classification.",
+    "economic": "Unconditional diagnostic as explicitly requested, even when Entry gate fails. Exact frozen Candidate A, exact Fixed12 fallback cost .05pp. Identical opportunity pairs; no-entry cash0; missing entered outcome UNKNOWN excluded explicitly. Report entered-paired and cash-inclusive separately.",
+    "risk": "baselineEnteredTail-entryTail = BETTER_ENTRY_LOCATION; baselineAllTail-baselineEnteredTail = SKIP_AVOIDANCE (split MODEL_SKIP, cap/boundary/missing expiry). Sum equals total tail-count difference. Also strict30 paired risk.",
+    "top3": "TRAIN all-emitted frequency, descending count/symbol ascending; diagnostic exclusion only, no refit",
+    "volatility": "TRAIN available t0 rangeMean median, fixed before Validation; below/equal/above plus missing panels; no routing use",
+    "windows": "Reuse v2 complete original+60 common end; own-entry strict30 for MAE; report all-emitted and complete denominators, incomplete retained UNKNOWN."
+  },
+  "featureManifestSHA256": "9e052344fa5eabf792a377101f050a13e3dfd1965d63f628da95276e7e782026",
+  "id": "COMPREHENSIVE_INTEGRATED_LONG_ENTRY_V1_FIRST_MEASUREMENT",
+  "instructionSHA256": {
+    "instruction-part1.txt": "12584caf02ccf0478fd90d1295621a986615a869be4e197adb08d5b70f80c9dd",
+    "instruction-part2.md": "9052b6ee9b0aa9e16808830448776fd283f9dbd4f3ec9722d9e9d20ef126007c"
+  },
+  "population": {
+    "DEVELOPMENT_TEST": 885,
+    "TRAIN": 1760,
+    "VALIDATION": 863,
+    "expected": 3508,
+    "independentEpisodes": true,
+    "notFundedPortfolio": true,
+    "sources": [
+      "INITIAL_ENTRY_OPPORTUNITY",
+      "DIP_REPRICE_OPPORTUNITY"
+    ]
+  },
+  "purpose": "One first integrated measurement through Validation, including exact Candidate A counterfactual regardless Entry gate. No tuning after TRAIN or Validation; do not freeze candidate. No DEV TEST/Fresh/OOS. Prior v1-v3 failures inform design, not deployment endorsement.",
+  "resultClassification": {
+    "compositeGates": "PASS if satisfied else FAIL (no arbitrary near band). Structural WAIT>0 and delayedEnter>0 required.",
+    "hardFloor": {
+      "count": "0.5*target",
+      "fraction": "0.5*target",
+      "pp": -0.25
+    },
+    "metricBands": "Higher is better. PASS observed>=target. NEAR_MISS observed>=target-nearTolerance. HARD_FAIL observed<hardFloor. Else FAIL. Undefined required observations HARD_FAIL. No near-miss qualification changes pass gates.",
+    "nearTolerance": {
+      "count": 10,
+      "fraction": 0.05,
+      "pp": 0.05
+    },
+    "overall": "Worst status among all main numeric metrics and composite Entry/Economic/structural/integrity gates; integrity failure HARD_FAIL. No performance PASS from tests."
+  },
+  "runControl": {
+    "candidateCount": 1,
+    "candidateFreeze": false,
+    "completion": "FIRST_INTEGRATED_MEASUREMENT_COMPLETE",
+    "developmentTestOpened": false,
+    "fitOnceOnTrain": true,
+    "freshOOSOpened": false,
+    "postMeasurementChanges": {
+      "feature": 0,
+      "gate": 0,
+      "model": 0,
+      "objective": 0,
+      "routing": 0,
+      "symbolRule": 0,
+      "threshold": 0,
+      "timeRule": 0,
+      "waitCap": 0
+    },
+    "protocolCommitBeforeFit": true,
+    "stop": "After report+tests+CI+immutable evidence; even PASS no DEV TEST or freeze.",
+    "validationExposed": true,
+    "validationOnceRegardlessTrainPerformance": true
+  },
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "sourceHead": "88d9623dda24c5201dadea666c0ec74e4a29ddf1",
+  "sourcePins": {
+    "docs/evidence/phase57-comprehensive-entry-v1/measurement/feature-inventory.csv": "bd7cc0994f37452de5ac2b95dc7622ef78962f920fd598ac1d45025a6df15d45",
+    "docs/evidence/phase57-comprehensive-entry-v1/measurement/model-linear.json": "f4497a9f44b6325f7e10ccae5720ed6d91333cba4f7aca666ae02190a07d70fd",
+    "docs/evidence/phase57-comprehensive-entry-v1/measurement/model-tree.json": "2cdf8e73a4d725f3d46e9c9583c9a254edc3e108d429a881cf54d5795287c12a",
+    "docs/evidence/phase57-comprehensive-entry-v1/measurement/summary.json": "3613c22695edbd0585b7a2900d6c52b4818dc209088ca835d20a5185b387f92a",
+    "docs/evidence/phase57-comprehensive-entry-v1/measurement/validation-linear.json.gz": "3ed678826ba272f977a4be7be898bd5bd6519e800ac5ba047d27cc30d65054c9",
+    "docs/evidence/phase57-comprehensive-entry-v1/measurement/validation-tree.json.gz": "154c038d7e4bfeef89aceb832010d523f232b823600893342fecd8f6deea6bb1",
+    "docs/evidence/phase57-comprehensive-entry-v1/protocol.json": "dfc6adea9c20e87efb8ea8af324e722ae2875f4a8aed02dad3c090e8fa113006",
+    "docs/evidence/phase57-comprehensive-entry-v2/closure-manifest.json": "af2beb82459c22427257c71837f5909d6485f35253b0aa6c1c17c4b165700b7d",
+    "docs/evidence/phase57-comprehensive-entry-v2/measurement/manifest.json": "8cad931d5768d993835b4931f92059e23f71345c2fd8bfd838f35ab15b2dba78",
+    "docs/evidence/phase57-comprehensive-entry-v2/measurement/summary.json": "3e51f32e6353247756106c78ce71c5a98a78ba3ae892a697300d7092155f6907",
+    "docs/evidence/phase57-comprehensive-entry-v2/protocol.json": "3ef0e87eeb370443240a5e6258adfd8e83a9797d60e9efbe61c8b88d9466dcdb",
+    "docs/evidence/phase57-comprehensive-entry-v3/closure-manifest.json": "012d5ac268fa35b1cb8349848e51c8362c54d29f7be780b3ec2d603a0dfb9467",
+    "docs/evidence/phase57-comprehensive-entry-v3/measurement/summary.json": "19422073bc5c718b6ce2df0b98bf7817544ddb36279ee5847ff010fdf965a981",
+    "docs/evidence/phase57-comprehensive-entry-v3/protocol.json": "642e43b301b5d46535f7399e509e0923e3393584fa4bbafbe99852c6ee0975f8",
+    "docs/evidence/phase57-msh-entry-long-v1-preimplementation-feasibility-events.ndjson.gz": "73e566aba4d1a3f5af33b74be52ae90736c088b1091841f1eb44e93d5476084c",
+    "docs/evidence/phase57-new-long-entry-v1-freeze-2026-09-18.md": "7fbad495f855321151995c4936abb754240370c0ff0f8579385c90fadc19fec6",
+    "docs/evidence/phase57-new-long-exit-candidate-a-freeze-2026-09-18.md": "ba4ea0f8aa3a3c897f05936beb379e7388fba464665ac4b44edc12e36c2a2223",
+    "docs/evidence/phase57-price75-entry-opportunity-quality-v1/measurement/ledger.json.gz": "9d71f99f9f1e5ae77022e8e9b57719c3ee4d21388cdd21f63910d5d79c12cf10",
+    "docs/evidence/phase57-price75-entry-opportunity-quality-v1/measurement/summary.json": "bc59b5f5a71a996d0c0733be178c1098ad3d73cd6839a3dd5223231253df662b",
+    "docs/evidence/phase57-selector-min-price75-v1/measurement/downstream/entry-decisions.json.gz": "42877a45f6040786d93ef354b11b31d72ecd918c44c06ff24e24efec708b0e0b",
+    "docs/evidence/phase57-selector-min-price75-v1/measurement/new-paths.json.gz": "eeb15545a278a7058a0b40042169df8ad7560077289c7bef3412977decc524d2",
+    "docs/evidence/phase57-selector-min-price75-v1/measurement/selector/selector-ledger.json.gz": "df9f6a6c728249b2e3fd924fa8803ce01f8c7d7ddcae3b9203effa434ca44a77",
+    "predict/long-only/phase57_long_exit_continuation_v1.py": "b3e8f07086cfa65173524f62b78571f606e5d1c372a4cec1c16343c73d8c6c23",
+    "predict/research/phase57-long-only-frozen-selector-min-price75-v1.json": "e75a49adb2a35497b6ac4d1afdd2942f87d9e139f04ae98e2478ca564ee874d8",
+    "scripts/phase57_comprehensive_entry.py": "01ddadbd65ec3affe97f2d242d9a8b95c3dd5d57017bf5d1dd01bc584107c136",
+    "scripts/phase57_comprehensive_entry_v2.py": "1a2f9b0ab24032abb9116e8ff1ce9025a85f5c94d3b4cd8da1b69b82cfbed213",
+    "scripts/phase57_comprehensive_entry_v3.py": "44c6712a7301504e4f323da754d91452bbef6e3d1321baab0502ad71971ea761",
+    "scripts/phase57_new_long_entry_exit_conditional.py": "2b359a7a2e9239616927213f2eaf67d85e14cb689976ff4ea39d083b66046d54",
+    "scripts/phase57_new_long_exit_candidate_a.py": "082183ee2a1ba5b71cee35e9394401f4b0ff338898fec39263b3e5cbfcd09901",
+    "scripts/report_phase57_comprehensive_entry_v2.py": "7a43d02117985e3991030200cf6ff499b1466c1fa7726af401556ed33ab7da25"
+  },
+  "split": {
+    "DEVELOPMENT_TEST": [
+      "2024-12-10",
+      "2024-12-11",
+      "2024-12-12",
+      "2024-12-13",
+      "2024-12-16",
+      "2024-12-17",
+      "2024-12-18",
+      "2024-12-19",
+      "2024-12-20",
+      "2024-12-23",
+      "2024-12-24",
+      "2024-12-25",
+      "2024-12-26",
+      "2024-12-27",
+      "2024-12-30",
+      "2025-01-06",
+      "2025-01-07",
+      "2025-01-08",
+      "2025-01-09"
+    ],
+    "TRAIN": [
+      "2024-09-17",
+      "2024-09-18",
+      "2024-09-19",
+      "2024-09-20",
+      "2024-09-24",
+      "2024-09-25",
+      "2024-09-26",
+      "2024-09-27",
+      "2024-09-30",
+      "2024-10-01",
+      "2024-10-02",
+      "2024-10-03",
+      "2024-10-04",
+      "2024-10-07",
+      "2024-10-08",
+      "2024-10-09",
+      "2024-10-10",
+      "2024-10-11",
+      "2024-10-15",
+      "2024-10-16",
+      "2024-10-17",
+      "2024-10-18",
+      "2024-10-21",
+      "2024-10-22",
+      "2024-10-23",
+      "2024-10-24",
+      "2024-10-25",
+      "2024-10-28",
+      "2024-10-29",
+      "2024-10-30",
+      "2024-10-31",
+      "2024-11-01",
+      "2024-11-05",
+      "2024-11-06",
+      "2024-11-07",
+      "2024-11-08",
+      "2024-11-11",
+      "2024-11-12"
+    ],
+    "VALIDATION": [
+      "2024-11-13",
+      "2024-11-14",
+      "2024-11-15",
+      "2024-11-18",
+      "2024-11-19",
+      "2024-11-20",
+      "2024-11-21",
+      "2024-11-22",
+      "2024-11-25",
+      "2024-11-26",
+      "2024-11-27",
+      "2024-11-28",
+      "2024-11-29",
+      "2024-12-02",
+      "2024-12-03",
+      "2024-12-04",
+      "2024-12-05",
+      "2024-12-06",
+      "2024-12-09"
+    ]
+  }
+}

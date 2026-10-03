@@ -1,0 +1,122 @@
+name: Phase57 State v3 Nine-Pattern Entry v1
+
+on:
+  pull_request:
+    paths:
+      - scripts/phase57_state_v3_9pattern_entry_v1.py
+      - scripts/test_phase57_state_v3_9pattern_entry_v1.py
+      - docs/evidence/phase57-state-v3-9pattern-entry-v1/**
+      - .github/workflows/phase57-state-v3-9pattern-entry-v1.yml
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: phase57-state-v3-9pattern-entry-v1
+  cancel-in-progress: true
+
+env:
+  ARK_TEST_OFFLINE: '1'
+  PYTHONDONTWRITEBYTECODE: '1'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+
+jobs:
+  state-v3-entry:
+    if: github.event_name == 'workflow_dispatch' || (github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned offline test dependencies
+        run: pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.7.2 pandas==2.2.3
+      - name: Contract, policy and relevant Entry regressions
+        run: |
+          set -euo pipefail
+          python scripts/offline/kernel_exec.py python -m unittest -v \
+            scripts.test_phase57_state_v3_9pattern_contract \
+            scripts.test_phase57_state_v3_9pattern_entry_v1 \
+            scripts.test_phase57_state_conditioned_signal_entry_v1 \
+            scripts.test_phase57_entry_timing_census \
+            | tee "$RUNNER_TEMP/state-v3-entry-tests.log"
+      - name: Download hash-pinned saved market artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/10605887642/zip" > "$RUNNER_TEMP/entry-pattern-v2.zip"
+          test "$(sha256sum "$RUNNER_TEMP/entry-pattern-v2.zip" | cut -d ' ' -f1)" = "749caf82bbd9d39969f5712ef5a6f2705ac973a2f74483f03307c671586ae05a"
+          mkdir -p "$RUNNER_TEMP/entry-pattern/substrate"
+          for name in raw-paths-evaluator-only.json.gz rows.json.gz outcomes.json.gz; do
+            unzip -p "$RUNNER_TEMP/entry-pattern-v2.zip" "substrate/$name" > "$RUNNER_TEMP/entry-pattern/substrate/$name"
+          done
+      - name: Replay 2,155 Opportunities twice without network
+        run: |
+          set -euo pipefail
+          replay() {
+            python scripts/offline/kernel_exec.py python -m scripts.phase57_state_v3_9pattern_entry_v1 \
+              --measurement docs/evidence/phase57-entry-timing-signal-census-v1/measurement \
+              --entry-v1-measurement docs/evidence/phase57-state-conditioned-signal-entry-v1/measurement \
+              --raw-paths "$RUNNER_TEMP/entry-pattern/substrate/raw-paths-evaluator-only.json.gz" \
+              --rows "$RUNNER_TEMP/entry-pattern/substrate/rows.json.gz" \
+              --outcomes "$RUNNER_TEMP/entry-pattern/substrate/outcomes.json.gz" \
+              --policy docs/evidence/phase57-state-v3-9pattern-entry-v1/POLICY_LOCK.json \
+              --contract docs/evidence/phase57-state-v3-9pattern/CONTRACT.json \
+              --contract-markdown docs/evidence/phase57-state-v3-9pattern/CONTRACT.md \
+              --signal-detector scripts/phase57_entry_timing_signals.py \
+              --output "$1"
+          }
+          replay "$RUNNER_TEMP/replay-a"
+          replay "$RUNNER_TEMP/replay-b"
+          diff -qr "$RUNNER_TEMP/replay-a" "$RUNNER_TEMP/replay-b"
+          diff -qr docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement "$RUNNER_TEMP/replay-a"
+      - name: Upload deterministic replay receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-state-v3-9pattern-entry-v1-replay
+          path: |
+            ${{ runner.temp }}/replay-a
+            ${{ runner.temp }}/state-v3-entry-tests.log
+          if-no-files-found: error
+          retention-days: 30
+
+  predict-regression:
+    if: github.event_name == 'workflow_dispatch' || (github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install offline regression dependencies
+        run: pip install fastapi pytest httpx numpy==2.3.5 scipy==1.17.0
+      - name: Existing Predict offline regression
+        run: |
+          set -euo pipefail
+          python scripts/run_offline_regression.py --output-dir "$RUNNER_TEMP/ark-offline-regression" \
+            | tee "$RUNNER_TEMP/predict-regression.log"
+          python scripts/verify_phase57_development_preservation.py
+      - name: Upload regression receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-state-v3-entry-predict-regression
+          retention-days: 30
+          path: |
+            ${{ runner.temp }}/ark-offline-regression
+            ${{ runner.temp }}/predict-regression.log

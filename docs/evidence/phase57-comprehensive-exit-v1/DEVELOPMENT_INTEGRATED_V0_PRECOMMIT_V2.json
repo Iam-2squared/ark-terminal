@@ -1,0 +1,24 @@
+{
+  "schema": "phase57-development-integrated-v0-precommit-v2",
+  "status": "CONTROLLING_CORRECTION_FROZEN_BEFORE_ANY_ENRICHMENT_OR_PORTFOLIO_PERFORMANCE",
+  "savedJst": "2026-09-27 12:25:00 JST",
+  "basisHead": "bd91ef2791fd54f9c90ebe54f7fe0010d381834a",
+  "supersedes": "DEVELOPMENT_INTEGRATED_V0_PRECOMMIT.json (SHA256 c2f946f2031c6bda9f86c6eac7cbd5873b9b1fd10631cb8f8ee3174d9930d35d) for evaluation cohort and denominator only; all other frozen rules remain controlling",
+  "correctionReason": "R50_B control is an OOF score-window ledger: 34 sessions, not the entire 58-session/2155-Opportunity frozen Entry population. The user-specified primary support IM222/R1200 belongs to this score window.",
+  "performanceInspectedBeforeCorrection": false,
+  "sourceIdentityChecksOnly": {"fullEntryPopulationPerArm": 2155, "fullEntrySessions": 58, "fullImmediateFills": 1963, "fullR1Fills": 1885, "r50ControlSessionCount": 34, "r50ImmediateFills": 1150, "r50R1Fills": 1107},
+  "controllingEvaluationCohort": {
+    "name": "R50_FROZEN_OOF_SCORE_WINDOW_DEVELOPMENT_SUBSET",
+    "sessionDerivation": "exact sorted session set in pinned R50_B ledger, never selected by Capital outcome",
+    "sessions": ["2025-07-03", "2025-07-04", "2025-07-07", "2025-07-08", "2025-07-09", "2025-07-10", "2025-07-15", "2025-07-16", "2025-07-17", "2025-07-18", "2025-07-22", "2025-07-23", "2025-07-24", "2025-07-25", "2025-07-28", "2025-07-29", "2025-07-30", "2025-07-31", "2025-08-01", "2025-08-04", "2025-08-05", "2025-08-06", "2025-08-07", "2025-08-08", "2025-08-12", "2025-08-13", "2025-08-14", "2025-08-15", "2025-08-18", "2025-08-19", "2025-08-20", "2025-08-21", "2025-08-22", "2025-08-25"],
+    "fillsByArm": {"IMMEDIATE": 1150, "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF": 1107},
+    "primaryPostEntryUpsideGe5ByArm": {"IMMEDIATE": 222, "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF": 200},
+    "secondaryCanonicalL2hGe5ByArm": {"IMMEDIATE": 387, "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF": 381},
+    "interpretation": "OOF score-window Development subset only; do not describe as all 2155 Opportunities or all 58 Entry sessions",
+    "rankAudit": "Verify R50_B frozen Entry identity/price/time is exact subset of independently frozen complete IM and R1 records; verify original selector rankKnownAt no later than Entry",
+    "denominator": "1150 and 1107 frozen Entry fills respectively for enrichment baseline; candidate event count separately reported",
+    "flatSessionRule": "Include all 34 frozen score-window sessions for capacity and time coverage, including zero-Entry sessions if any"
+  },
+  "unchanged": ["terminal-hold control is benchmark, never SELECT", "frozen rank order and missing semantics", "cash-only R35 target slot sizing", "MAX3 primary / MAX4/MAX5 sensitivity", "strict NOW marks/no fake fill", "evaluator-only buckets", "cost", "R49 exposure disclosure", "Safety9 all false"],
+  "forbidden": ["extend cohort after inspecting results", "claim full-Development coverage", "adopt R50_B as Final EXIT", "Entry or Selector changes", "new ranker fit", "Fresh/OOS/Protected/provider access"]
+}

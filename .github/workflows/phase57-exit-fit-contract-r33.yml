@@ -1,0 +1,106 @@
+# Work basis: 821374477530d6266191cc43d9d63d7dcbb665c9 (2026-09-26 JST).
+# Current: R33 source/test and R34 cash-only precommit saved; R33 CI was missing.
+# Next: verify this contract-only artifact, then implement/test the finite runner.
+# No estimator fit, policy replay, market-data acquisition or protected-data read.
+name: Phase57 EXIT Fit Contract R33
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - 'scripts/phase57_exit_fit_contract_r33.py'
+      - 'scripts/test_phase57_exit_fit_contract_r33.py'
+      - 'scripts/phase57_exit_research_protocol_v1.py'
+      - '.github/workflows/phase57-exit-fit-contract-r33.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: phase57-exit-fit-contract-r33-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  contract-only:
+    if: github.ref == 'refs/heads/research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      ARK_TEST_OFFLINE: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONPATH: '.'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /scripts/phase57_exit_fit_contract_r33.py
+            /scripts/test_phase57_exit_fit_contract_r33.py
+            /scripts/phase57_exit_research_protocol_v1.py
+            /docs/evidence/phase57-entry-timing-signal-census-v1/protocol.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Test the committed R33 contract without fitting
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/r33/run-a artifacts/r33/run-b
+          python -m unittest -v scripts.test_phase57_exit_fit_contract_r33 2>&1 | tee artifacts/r33/tests.log
+      - name: Generate contracts twice and verify the unchanged finite grid
+        run: |
+          set -euo pipefail
+          for run in run-a run-b; do
+            python -m scripts.phase57_exit_fit_contract_r33 > artifacts/r33/$run/fit-contract.json
+            python -m scripts.phase57_exit_research_protocol_v1 > artifacts/r33/$run/research-protocol.json
+          done
+          diff -ru artifacts/r33/run-a artifacts/r33/run-b
+          python - <<'PY'
+          import hashlib, json, os
+          from datetime import datetime, timezone
+          from pathlib import Path
+          root = Path('artifacts/r33')
+          fit = json.loads((root/'run-a/fit-contract.json').read_text())
+          protocol = json.loads((root/'run-a/research-protocol.json').read_text())
+          assert fit['searchBudget']['maximumCandidateConfigurations'] == 24
+          assert fit['fitReuse']['predictionSpecCount'] == 6
+          assert fit['fitReuse']['modelFitsTotal'] == 144
+          assert fit['scope']['scoreSessionCount'] == 34
+          assert fit['patternEncoding']['columns'] == 187
+          assert fit['selection'] == protocol['selection']
+          assert fit['searchBudget'] == protocol['searchBudget']
+          assert len(protocol['models']['grid']) == 24
+          assert fit['exposureAtFreeze']['modelFits'] == 0
+          assert fit['exposureAtFreeze']['candidatePerformanceInspected'] is False
+          assert all(v is False for v in fit['safety'].values())
+          sha = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+          sources = [Path('scripts')/n for n in (
+              'phase57_exit_fit_contract_r33.py',
+              'test_phase57_exit_fit_contract_r33.py',
+              'phase57_exit_research_protocol_v1.py')]
+          receipt = {
+              'schemaVersion': 'phase57-r33-contract-ci-receipt-v1',
+              'savedAtUtc': datetime.now(timezone.utc).isoformat(),
+              'executionHead': os.environ['GITHUB_SHA'],
+              'runId': os.environ['GITHUB_RUN_ID'],
+              'status': 'R33_CONTRACT_CI_PASS_NOT_FIT_OR_PERFORMANCE_PASS',
+              'runABByteIdentical': True,
+              'contractSha256': {p.name: sha(p) for p in sorted((root/'run-a').glob('*.json'))},
+              'sourceSha256': {str(p): sha(p) for p in sources},
+              'modelFitsPerformed': 0,
+              'candidateReplaysPerformed': 0,
+              'candidatePerformanceInspected': False,
+              'providerRequests': 0,
+              'protectedPartitionsOpened': 0,
+              'safety': fit['safety'],
+              'currentState': 'R33 committed contract tested and byte-reproduced; runner is a separate next step',
+              'nextPlan': 'Implement finite R25 runner and synthetic boundary tests; prepare R34 Capital independently',
+          }
+          (root/'receipt.json').write_text(json.dumps(receipt, indent=2, sort_keys=True)+'\n')
+          PY
+      - name: Preserve evidence and any failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-exit-fit-contract-r33-${{ github.run_id }}
+          path: artifacts/r33
+          retention-days: 30
+          overwrite: false
+          if-no-files-found: error

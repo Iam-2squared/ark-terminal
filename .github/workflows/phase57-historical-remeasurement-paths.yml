@@ -1,0 +1,68 @@
+name: Phase57 Historical Re-Measurement Saved Path Recovery
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-historical-remeasurement-paths.yml
+      - scripts/recover_phase57_historical_remeasurement_paths.mjs
+      - docs/evidence/phase57-msh-entry-long-v1-historical-remeasurement/dataset-contract.json
+permissions:
+  contents: read
+  actions: read
+jobs:
+  saved-development-paths:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      NODE_OPTIONS: --max-old-space-size=6144
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Synthetic strict-path tests offline
+        run: ARK_TEST_OFFLINE=1 python3 scripts/offline/kernel_exec.py node --test scripts/test_phase57_historical_remeasurement_paths.mjs
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-l1-minute-shard-*-34926225832
+          path: ${{ runner.temp }}/replay-l1
+          repository: Iam-2squared/ark-terminal
+          run-id: 34926225832
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-l2-minute-shard-*-34936002178
+          path: ${{ runner.temp }}/replay-l2
+          repository: Iam-2squared/ark-terminal
+          run-id: 34936002178
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-v2-minute-shard-*-34964031692
+          path: ${{ runner.temp }}/replay-v2
+          repository: Iam-2squared/ark-terminal
+          run-id: 34964031692
+          github-token: ${{ github.token }}
+      - name: Decrypt existing Development minute checkpoints only
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        shell: bash
+        run: |
+          test -n "${JQUANTS_API_KEY:-}"
+          test "$(find "$RUNNER_TEMP/replay-l1" "$RUNNER_TEMP/replay-l2" "$RUNNER_TEMP/replay-v2" -name minute-shard.tar.gz.enc | wc -l)" = 8
+          mkdir -p "$RUNNER_TEMP/replay-cache"
+          while IFS= read -r encrypted; do
+            test "$(cut -d' ' -f1 "${encrypted}.sha256")" = "$(sha256sum "$encrypted" | cut -d' ' -f1)"
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -in "$encrypted" | tar -C "$RUNNER_TEMP/replay-cache" -xzf -
+          done < <(find "$RUNNER_TEMP/replay-l1" "$RUNNER_TEMP/replay-l2" "$RUNNER_TEMP/replay-v2" -name minute-shard.tar.gz.enc | sort)
+      - name: Restore strict paths with network denied and no prediction
+        run: ARK_TEST_OFFLINE=1 python3 scripts/offline/kernel_exec.py node scripts/recover_phase57_historical_remeasurement_paths.mjs "$RUNNER_TEMP/replay-cache" artifacts/historical-remeasurement/path-diagnostics.json
+      - name: Purge private cached inputs
+        if: always()
+        run: rm -rf -- "$RUNNER_TEMP/replay-cache" "$RUNNER_TEMP/replay-l1" "$RUNNER_TEMP/replay-l2" "$RUNNER_TEMP/replay-v2"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-historical-remeasurement-paths-${{ github.run_id }}
+          path: artifacts/historical-remeasurement/
+          if-no-files-found: error
+          retention-days: 20

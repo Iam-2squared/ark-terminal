@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "verdict": "MSH_ENTRY_LONG_V2_ROOT_CAUSE_REVIEW_COMPLETE",
+  "meaningOfComplete": "Saved decision-set failure and architecture requirements are explained. This is not complete identification of every feature's causal effect or proof that D30 generalizes.",
+  "primaryRootCause": "RC9_MULTIPLE",
+  "primaryMechanisms": [
+    "D30_ONLY_ENTRY_DECISION_OBJECTIVE_MISMATCH: risk-only admission replaced the v1 opportunity-quality gate over all 3800 candidates; it did not merely veto v1 ENTERs.",
+    "ADMISSION_DISTRIBUTION_AND_TIMING_SHIFT: many lower-opportunity entries were added, and an earlier v2 ENTER latched some later v1 decisions.",
+    "LOCAL_FALSE_RISK_REJECTIONS: risk rejection removed low-D30 +3/+5 paths as well as genuinely adverse paths; a global precision-dilution problem coexists with localized winner sacrifice."
+  ],
+  "secondaryRootCauses": [
+    {"code": "RC5_D30_TARGET_MISMATCH", "status": "SUPPORTED_FOR_SOLE_ENTRY_DECISION_ROLE", "qualification": "D30 measures adverse magnitude, not upside quality. This does not establish that D30 is an invalid risk target."},
+    {"code": "RC2_OPPORTUNITY_FEATURE_CONTAMINATION_IN_RISK_MODEL", "status": "PARTIAL", "qualification": "Ridge score has a positive risk coefficient in 19/24 models and positive association with opportunity. Aggregate term attribution supports a trade-off, but no ablation or numerical-score correlation was performed."},
+    {"code": "RC7_SYMBOL_CONCENTRATION_DRIVEN_FAILURE", "status": "PARTIAL_LOCAL_WINNER_SACRIFICE", "qualification": "5 of 6 chronological rejected +5 memberships belong to 89180; broad precision failures persist across every complement-group calibration. No symbol rule is justified."}
+  ],
+  "otherRootCauseDispositions": [
+    {"code": "RC1_RISK_OPPORTUNITY_INTRINSIC_OVERLAP", "status": "PARTIAL_NOT_PRIMARY", "qualification": "There are high-risk/high-opportunity rejected paths, but 8 unique low-risk/high-opportunity rejected events show the sacrifice is not entirely unavoidable intrinsic overlap."},
+    {"code": "RC3_MARKET_STATE_FEATURES_INSUFFICIENT", "status": "INCONCLUSIVE", "qualification": "No feature augmentation, selection or ablation is permitted; saved evidence cannot establish that adding a field solves this problem."},
+    {"code": "RC4_LINEAR_RIDGE_CAPACITY_LIMIT", "status": "INCONCLUSIVE", "qualification": "No model-family comparison; numerical inner predictions were not persisted, so residual/calibration diagnostics cannot be regenerated here."},
+    {"code": "RC6_MISSINGNESS_DRIVEN_FAILURE", "status": "NOT_SUPPORTED_AS_PRIMARY", "qualification": "All direct risk rejections in 24 units have both market-state inputs available. Missing-input false accepts remain descriptive; their counterfactual effect is unknown."},
+    {"code": "RC8_GATE_INTERACTION_ONLY", "status": "NOT_SUPPORTED_AS_SOLE_CAUSE", "qualification": "Large measured precision shifts and real winner/tail errors exist. No gate relaxation is justified from these results."}
+  ],
+  "targetDiagnosis": {
+    "primary": "E_INCONCLUSIVE",
+    "question": "Does D30 have stable predictive risk value across symbols, beyond decision-set composition?",
+    "evidence": "Mean D30 versus v1 improves in all 4 chronological units, but rejected mean D30 exceeds accepted mean in only 2/4 units. Relative to already-saved tau5, tau2 changes mean D30 by -0.0563/-0.0525/+0.0033/-0.0186 percentage points. No actual >=10 D30 paths were directly rejected in those units. Numerical-score diagnostics and held-symbol OOF are absent.",
+    "secondary": "A_D30_TARGET_HAS_SIGNAL_BUT_DECISION_RULE_FAILS remains a plausible partial explanation, not a demonstrated predictive claim.",
+    "doNotConclude": ["D30 is meaningless", "D30 is validated", "D30 must be replaced now", "cross-symbol performance passed"]
+  },
+  "architectureDiagnosis": {
+    "primary": "B_RISK_AND_OPPORTUNITY_NEED_SEPARATE_DECISION_AXES",
+    "secondary": "A_RISK_VETO_DIRECTION_VALID_BUT_TOO_AGGRESSIVE applies only to localized winner rejection; overall tau2 admission is permissive.",
+    "notEstablished": ["C_RISK_MODEL_INPUTS_INSUFFICIENT", "D_LINEAR_MODEL_INSUFFICIENT", "Futility of every future risk-veto architecture"],
+    "support": "Current standalone D30-only admission does not satisfy the frozen combined quality/risk gates. A broad rejection of risk-veto families is not supported."
+  },
+  "nextArchitectureRecommendation": {
+    "code": "D_SEPARATE_OPPORTUNITY_AND_RISK_AXES",
+    "action": "A separate Pre-Development Contract should distinguish minimum opportunity quality from adverse-risk control, retaining the Frozen Selector. Consider the meaning and eligibility of each axis before any model change.",
+    "notAnAutomaticImplementationChoice": "Does not authorize a second model, Two-Head implementation, v1 intersection training, additional features, a new threshold, score product, WAIT, XGBoost, or a D30 target replacement.",
+    "dataRequirement": "Any separately authorized future run must persist per-candidate numeric predictions, masks and decision reasons. This review does not regenerate them.",
+    "portfolioIssue": "Track unresolved valuation/cash-lock semantics independently. Do not use the 173 complete-case +23.05% as a full-stream baseline or fabricate liquidation."
+  },
+  "whatNotToChangeNow": ["Frozen Contract", "Selector", "Entry v1", "D30 target", "five input order", "medians or missing rules", "Ridge lambda=1", "symbol weights", "CV", "thresholds 1/2/5/10", "numeric Gates", "ENTER/SKIP latch", "LONG EXIT", "Equal Allocation", "cash ledger", "Fresh budget"],
+  "limitations": ["Inner numerical predictions were not persisted by the prior Development run.", "No held-symbol outer OOF exists; complement-group calibration stability is not unseen-symbol evaluation.", "MFE winner means historical high-touch opportunity, not executable or realized profit.", "Calibration windows and repeated symbols are dependent; per-unit evidence is primary.", "Per-input term associations cannot establish counterfactual feature effects."],
+  "stop": true,
+  "exactNextAction": "STOP. Separate user instruction for an Alternative Architecture / v2.1 Pre-Development Contract based on this evidence. No fit, prediction, implementation, gate change, Fresh or OOS now."
+}

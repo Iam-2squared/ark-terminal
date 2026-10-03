@@ -1,0 +1,168 @@
+name: Phase57 All-Material Nested Entry R1
+
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-all-material-nested-r1.yml
+      - scripts/phase57_all_material_nested_r1.py
+      - scripts/phase57_all_material_prefit_reconstruction_r1.py
+      - scripts/phase57_all_material_prefit_dataset_r1.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-all-material-nested-r1
+  cancel-in-progress: false
+
+env:
+  ARK_TEST_OFFLINE: '1'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  PYTHONDONTWRITEBYTECODE: '1'
+  PYTHONUNBUFFERED: '1'
+
+jobs:
+  nested-one-shot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install exact pre-fit runtime
+        run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0 pandas==2.2.3
+      - name: Synthetic tests before any learned performance
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/all-material-r1-logs
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_all_material_nested_r1 --self-test | tee artifacts/all-material-r1-logs/model-tests.txt
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_entry_ordered_range_scorecard_v1 --self-test | tee artifacts/all-material-r1-logs/range-tests.txt
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_entry_all_material_feature_coverage_v1 --self-test | tee artifacts/all-material-r1-logs/coverage-tests.txt
+          python scripts/offline/kernel_exec.py python -m unittest -v scripts.test_phase57_entry_all_material_evaluator_v1 2>&1 | tee artifacts/all-material-r1-logs/canonical-tests.txt
+      - name: Restore immutable accepted reference
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-drop-pull-1m-state-recheck-v1-8c256ff98d365d01c7150afe193686f020e2026c
+          path: artifacts/one-minute
+          repository: Iam-2squared/ark-terminal
+          run-id: 35818555587
+          github-token: ${{ github.token }}
+      - name: Verify fixed sources
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          echo 'de8ee035d2c2949e6ecbd5315d393de8794ca7d0e36ace49a6ccfe720a65a844  artifacts/one-minute/replay-a/entry-records.json.gz' | sha256sum -c -
+          python scripts/offline/kernel_exec.py python - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          root=Path('docs/evidence/phase57-entry-pattern-v2/ci-result/substrate')
+          manifest=json.loads((root/'manifest.json').read_text())
+          entries=manifest.get('files',manifest)
+          for name,expected in entries.items():
+              if isinstance(expected,dict): expected=expected.get('sha256')
+              assert expected and (root/name).is_file(), ('BAD_MANIFEST',name)
+              actual=hashlib.sha256((root/name).read_bytes()).hexdigest()
+              assert actual==expected, ('SOURCE_HASH',name)
+          print('Verified substrate manifest:',len(entries),'files')
+          PY
+      - name: Reconstruct frozen signal State and ONE_MINUTE inputs without fit
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_all_material_prefit_reconstruction_r1 2>&1 | tee artifacts/all-material-r1-logs/reconstruction.txt
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_all_material_prefit_dataset_r1 --accepted-records artifacts/one-minute/replay-a/entry-records.json.gz 2>&1 | tee artifacts/all-material-r1-logs/dataset.txt
+      - name: Run the precommitted finite nested experiment once
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_all_material_nested_r1 --output artifacts/all-material-r1-result 2>&1 | tee artifacts/all-material-r1-logs/nested.txt
+      - name: Check result integrity, not a forced performance PASS
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          python scripts/offline/kernel_exec.py python - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          root=Path('artifacts/all-material-r1-result')
+          d=json.loads((root/'RESULT_RECEIPT.json').read_text())
+          assert d['N']==2155 and d['configuredCandidates']==36
+          assert d['innerTrialSummaries']==180 and len(d['outerFolds'])==5
+          assert d['entryOptimizationStopped'] is True and d['automaticPromotion'] is False
+          assert d['developmentOnly'] is True and d['freshOrOos'] is False
+          assert all(v is False for v in d['safety'].values())
+          assert d['twoReplayEquality'] is True
+          for name in ('LATEST_R1','ONE_MINUTE','IMMEDIATE'):
+              card=json.loads((root/(name+'.json')).read_text())
+              assert card['population']==2155
+              assert sum(b['denominator'] for b in card['orderedLowHighRangeBuckets'].values())==2155
+              assert all(card['canonicalCaptureParity'].values())
+          print(json.dumps(d,sort_keys=True))
+          PY
+      - name: Snapshot source lineage and limited prefit evidence
+        if: always()
+        run: |
+          mkdir -p artifacts/all-material-r1-logs artifacts/all-material-r1-prefit-public
+          git rev-parse HEAD > artifacts/all-material-r1-logs/SOURCE_HEAD.txt
+          cp docs/evidence/phase57-entry-all-material-v1/PREFIT_FREEZE_R7.json artifacts/all-material-r1-logs/
+          python - <<'PY'
+          import shutil,hashlib,json
+          from pathlib import Path
+          src=Path('artifacts/all-material-r1-prefit');dst=Path('artifacts/all-material-r1-prefit-public')
+          for name in ('causal-reconstruction-receipt.json','current-one-minute-parity.json','feature-names.json','split-manifest.json','dataset-prefit-receipt.json'):
+              if (src/name).exists():shutil.copy2(src/name,dst/name)
+          scripts=sorted(Path('scripts').glob('phase57_all_material_*r1.py'))+[Path('scripts/phase57_entry_ordered_range_scorecard_v1.py')]
+          hashes={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in scripts}
+          Path('artifacts/all-material-r1-logs/code-hashes.json').write_text(json.dumps(hashes,indent=2,sort_keys=True)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-all-material-nested-r1-${{ github.sha }}
+          path: |
+            artifacts/all-material-r1-result
+            artifacts/all-material-r1-logs
+            artifacts/all-material-r1-prefit-public
+          retention-days: 30
+          if-no-files-found: error
+
+  offline-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0 pandas==2.2.3 fastapi pytest httpx
+      - name: Existing offline regression only, no other research runs
+        run: python scripts/run_offline_regression.py --output-dir artifacts/r1-offline-regression
+      - name: Preserve Frozen Selector and Development boundaries
+        run: |
+          python scripts/verify_phase57_development_preservation.py
+          python scripts/verify_phase57_selector_min_price75_freeze.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-r1-offline-regression-${{ github.sha }}
+          path: artifacts/r1-offline-regression
+          retention-days: 30
+          if-no-files-found: error

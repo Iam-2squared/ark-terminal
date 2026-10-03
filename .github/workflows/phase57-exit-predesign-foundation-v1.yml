@@ -1,0 +1,73 @@
+name: Phase57 EXIT Pre-Design Foundation R23-R25
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - 'scripts/phase57_exit_feature_contract_v1.py'
+      - 'scripts/phase57_exit_execution_contract_v1.py'
+      - 'scripts/phase57_exit_evaluator_contract_v1.py'
+      - 'scripts/phase57_exit_research_protocol_v1.py'
+      - 'scripts/test_phase57_exit_predesign_contract_v1.py'
+      - 'scripts/phase57_exit_capture_metrics_v1.py'
+      - 'scripts/test_phase57_exit_capture_metrics_v1.py'
+      - '.github/workflows/phase57-exit-predesign-foundation-v1.yml'
+      - 'docs/evidence/phase57-comprehensive-exit-v1/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: phase57-exit-predesign-foundation-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  contract-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      ARK_TEST_OFFLINE: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONPATH: '.'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install pinned canonical producer dependencies
+        run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.7.2 pandas==2.2.3
+      - name: Run pre-design and R21 evaluator tests
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/exit-predesign-r25/run-a artifacts/exit-predesign-r25/run-b
+          python -m unittest -v \
+            scripts.test_phase57_exit_predesign_contract_v1 \
+            scripts.test_phase57_exit_capture_metrics_v1 \
+            2>&1 | tee artifacts/exit-predesign-r25/tests.log
+      - name: Reproduce deterministic contracts twice
+        run: |
+          set -euo pipefail
+          for run in run-a run-b; do
+            python -m scripts.phase57_exit_feature_contract_v1 > artifacts/exit-predesign-r25/$run/feature-contract.json
+            python -m scripts.phase57_exit_execution_contract_v1 > artifacts/exit-predesign-r25/$run/execution-contract.json
+            python -m scripts.phase57_exit_evaluator_contract_v1 > artifacts/exit-predesign-r25/$run/evaluator-scorecard-contract.json
+            python -m scripts.phase57_exit_research_protocol_v1 > artifacts/exit-predesign-r25/$run/research-protocol.json
+          done
+          diff -ru artifacts/exit-predesign-r25/run-a artifacts/exit-predesign-r25/run-b
+          sha256sum artifacts/exit-predesign-r25/run-a/* > artifacts/exit-predesign-r25/contract-sha256.txt
+          sha256sum \
+            scripts/phase57_exit_feature_contract_v1.py \
+            scripts/phase57_exit_execution_contract_v1.py \
+            scripts/phase57_exit_evaluator_contract_v1.py \
+            scripts/phase57_exit_research_protocol_v1.py \
+            scripts/test_phase57_exit_predesign_contract_v1.py \
+            scripts/phase57_exit_capture_metrics_v1.py \
+            scripts/test_phase57_exit_capture_metrics_v1.py \
+            > artifacts/exit-predesign-r25/source-sha256.txt
+      - name: Preserve contract evidence and any failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-exit-predesign-r25-${{ github.run_id }}
+          path: artifacts/exit-predesign-r25
+          retention-days: 30
+          overwrite: false

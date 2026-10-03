@@ -1,0 +1,40 @@
+{
+  "artifactKind": "phase57_drop_pullback_1m_state_recheck_v1_policy_lock",
+  "version": "v1.0",
+  "lockedBeforeMeasurement": true,
+  "baseHead": "4fb4515b745be63e2b7f6f48e20cbb5bfb3e6314",
+  "parentExperiment": "phase57-drop-pull-lower-wick-gate-v1",
+  "parentResult": "NO_PROMOTION",
+  "population": 2155,
+  "targetInitialStates": ["DROP", "PULLBACK"],
+  "stateV3Classifier": "FROZEN_UNCHANGED",
+  "stateV3BuyStates": ["RISE", "SHARP_RISE", "REBOUND"],
+  "stateRecheckActiveMinutes": 1,
+  "signalPolicy": "ANY_FROZEN_SIX_UNCHANGED",
+  "signalDefinitions": "FROZEN_UNCHANGED_ALL_SIX",
+  "fixedTimeFallback": false,
+  "nonTargetPolicy": "EXACT_STATE_V3_ENTRY_V1",
+  "hypothesis": "The LOWER_WICK-only gate did not improve the primary <=25% EntryPosition rate and slightly worsened Low-to-Entry despite preserving Fill/Capture within the precommitted loss bounds. Low-centered anatomy shows the frozen State-v3 classifier still labels most target cases DROP at the oracle-low boundary while BUY-state prevalence rises over the following active minutes. For initial DROP/PULLBACK only, retaining the original OR-of-six frozen signals while recomputing the unchanged State-v3 classifier every 1 active minute instead of every 5 active minutes may capture the earliest causal BUY-state transition, improve EntryPosition <=25% and paired Low-to-Entry, and avoid the Fill/Capture loss caused by signal suppression.",
+  "successGate": {
+    "targetEntryPositionLE25RateImprovementPpMinimum": 2.0,
+    "targetPairedEntryPositionMeanDeltaMustBeBelow": 0.0,
+    "targetPairedLowToEntryDistancePctMeanDeltaMustBeBelow": 0.0,
+    "targetFillRateDeltaPpMinimum": -2.0,
+    "targetCapture3DeltaPpMinimum": -2.0,
+    "targetCapture5DeltaPpMinimum": -2.0,
+    "causalityLeakageAudit": "PASS_REQUIRED"
+  },
+  "providerRequestsAuthorized": 0,
+  "protectedDataOpened": 0,
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "status": "REVIEWER_A_RECORDED_G7_NOT_YET_PASS",
+  "reviewer": "A",
+  "source": "fresh OpenAI chat reported by user",
+  "caseN": 44,
+  "actualN": 36,
+  "controlN": 8,
+  "controlsDetectedByIssueTag": 6,
+  "controlsMissed": [
+    {
+      "caseId": "G7-012",
+      "controlType": "FUTURE_CONFIRMED_PIVOT_AS_NOW",
+      "reviewerTag": "SEMANTICS_SUFFICIENT"
+    },
+    {
+      "caseId": "G7-042",
+      "controlType": "COLLAPSED_CENSOR_FLAGS",
+      "reviewerTag": "SEMANTICS_SUFFICIENT"
+    }
+  ],
+  "preregisteredControlRequirement": "8/8 by each reviewer",
+  "reviewerAControlGate": "FAIL",
+  "actualTags": {
+    "semanticsSufficient": 17,
+    "observationOrProvenanceProblem": 12,
+    "statusSemanticsProblem": 3,
+    "boundaryOrToleranceSuspected": 3,
+    "vocabularyGapCandidate": 1
+  },
+  "actualVocabularyGapCases": [
+    "G7-014"
+  ],
+  "actualStatusSemanticsCases": [
+    "G7-016",
+    "G7-028",
+    "G7-035"
+  ],
+  "note": "No G7 final disposition until Reviewer B is received and actual-case concerns are adjudicated. Control misses already mean the preregistered G7 protocol cannot PASS as-is."
+}

@@ -1,0 +1,270 @@
+{
+  "schemaVersion": 1,
+  "status": "MSH_ENTRY_LONG_V1_FROZEN_FOR_EXIT_RESEARCH",
+  "freezeDate": "2026-09-16",
+  "freezeTimezone": "Asia/Tokyo",
+  "repo": "Iam-2squared/ark-terminal",
+  "branch": "research/phase57-long-only-cash-equity",
+  "PR": 587,
+  "evidenceBaselineHead": "8cb15e7eb0867f891899207319b96bfc8bbb7fb3",
+  "latestMainAtVerification": "b7801ce2c13772cbc3f5b51506819c119fe868ea",
+  "selectorFreezeCommit": "565d74b3dea823581fdb32380113aac5913a248d",
+  "selectorPayloadSHA": "3dc6d222d4039737c0dcfdcfa4a83372202152e29b582225419ab97c00610d59",
+  "selectorRidgeSHA": "994f1dbaba1d32e97458d5dd9d4c646ef443fbb37128650e8166001d8deabefb",
+  "candidateContractSHA": "4a2f52cd6f25f480fe6d7de9db525860ddf3c1600abed06b6222c0990c055a23",
+  "finalModelSHA": "b053a858edda22bee7b9939162648740507964cc5ed8d613c2d778d15534589e",
+  "finalScalerSHA": "1e4865915a2ad1ec51dd4ebf2116d48b9f89b9b884f8dc732fdb2861dbf4fe4b",
+  "globalBudgetSHA": "b91699704f80ef7fda60fe0596e8f8736a181cd00dc879f5070f9caed4d4a62f",
+  "threshold": 2.0,
+  "decisionScore": "P1 + 2P2 + 3P3 + 4P4",
+  "decisionRule": {
+    "ENTER": "E[L] >= 2.0",
+    "SKIP_THIS_DECISION": "E[L] < 2.0 or symbol-session already entered"
+  },
+  "features": [
+    "frozenSelectorRidgeScore",
+    "frozenSelectorRidgeRank"
+  ],
+  "optionalFeatures": [],
+  "decisionPrice": "REFERENCE_ONLY",
+  "state": [
+    "ENTER",
+    "SKIP_THIS_DECISION"
+  ],
+  "wait": null,
+  "expiry": null,
+  "persistentSkip": false,
+  "reentryAfterEnterAllowed": false,
+  "direction": "LONG",
+  "cashEquityOnly": true,
+  "market": "JPX",
+  "shortAllowed": false,
+  "marginAllowed": false,
+  "leverageAllowed": false,
+  "historicalDatasetPeriod": {
+    "startDate": "2024-09-17",
+    "endDate": "2025-01-09"
+  },
+  "historicalSessions": 76,
+  "historicalSessionListSHA": "de4a4264a7d78446ff01f72c2f927cc29ec45b18126068ca2e9dc2cfe16c5483",
+  "historicalDatasetContractSHA": "4a1d3e4ec4229d32ee2a50678db8fe3f8739abb3530df521e3036d201e75b441",
+  "historicalExposureStatus": "DIRECT_DEVELOPMENT_EXPOSED / IN_SAMPLE; all76 sessions were used by final Entry training",
+  "historicalVerdict": "BORDERLINE",
+  "historicalVerdictCode": "MSH_ENTRY_LONG_V1_HISTORICAL_REMEASUREMENT_BORDERLINE",
+  "freshValidationStatus": "PENDING",
+  "oosStatus": "PENDING_SEALED",
+  "officialValidationPass": false,
+  "prospectivePass": false,
+  "selectorPrecision": {
+    "1": {
+      "hits": 860,
+      "precisionPct": 66.00153491941673
+    },
+    "2": {
+      "hits": 557,
+      "precisionPct": 42.74750575594781
+    },
+    "3": {
+      "hits": 360,
+      "precisionPct": 27.62854950115119
+    },
+    "5": {
+      "hits": 157,
+      "precisionPct": 12.04911742133538
+    }
+  },
+  "candidatePrecision": {
+    "1": {
+      "hits": 156,
+      "precisionPct": 86.1878453038674
+    },
+    "2": {
+      "hits": 132,
+      "precisionPct": 72.92817679558011
+    },
+    "3": {
+      "hits": 95,
+      "precisionPct": 52.48618784530387
+    },
+    "5": {
+      "hits": 56,
+      "precisionPct": 30.939226519337016
+    }
+  },
+  "precisionDenominators": {
+    "selector": 1303,
+    "candidate": 181
+  },
+  "candidateEnterCount": 277,
+  "candidateEnterPerSession": 3.6447368421052633,
+  "oldCurrentEntryEnterCount": 96,
+  "oldCurrentEntryEnterPerSession": 1.263157894736842,
+  "opportunityPreservation": {
+    "1": {
+      "selectorWinners": 860,
+      "transferred": 153,
+      "preservationPct": 17.790697674418606,
+      "preservedPerSession": 2.013157894736842,
+      "admittedBeforeOriginalHorizonEnd": 139,
+      "timelyPreservationPct": 16.162790697674417,
+      "winnerAndRemainingHit": 147,
+      "winnerAndRemainingPreservationPct": 17.093023255813954,
+      "transferredEntryLabelable": 148
+    },
+    "2": {
+      "selectorWinners": 557,
+      "transferred": 131,
+      "preservationPct": 23.518850987432675,
+      "preservedPerSession": 1.7236842105263157,
+      "admittedBeforeOriginalHorizonEnd": 119,
+      "timelyPreservationPct": 21.364452423698385,
+      "winnerAndRemainingHit": 123,
+      "winnerAndRemainingPreservationPct": 22.082585278276483,
+      "transferredEntryLabelable": 126
+    },
+    "3": {
+      "selectorWinners": 360,
+      "transferred": 98,
+      "preservationPct": 27.22222222222222,
+      "preservedPerSession": 1.2894736842105263,
+      "admittedBeforeOriginalHorizonEnd": 88,
+      "timelyPreservationPct": 24.444444444444443,
+      "winnerAndRemainingHit": 88,
+      "winnerAndRemainingPreservationPct": 24.444444444444443,
+      "transferredEntryLabelable": 94
+    },
+    "5": {
+      "selectorWinners": 157,
+      "transferred": 58,
+      "preservationPct": 36.94267515923567,
+      "preservedPerSession": 0.7631578947368421,
+      "admittedBeforeOriginalHorizonEnd": 53,
+      "timelyPreservationPct": 33.75796178343949,
+      "winnerAndRemainingHit": 53,
+      "winnerAndRemainingPreservationPct": 33.75796178343949,
+      "transferredEntryLabelable": 55
+    }
+  },
+  "strict30mMAE": {
+    "n": 181,
+    "mean": -2.563740983025967,
+    "min": -35.29411764705882,
+    "p05": -10.256410256410254,
+    "p25": -3.3444816053511683,
+    "median": -1.5337423312883458,
+    "p75": -0.1166861143523934,
+    "p95": 0.0,
+    "max": 0.0
+  },
+  "labelability": {
+    "labelableEnter": 181,
+    "unlabelableEnter": 96,
+    "unlabelableReasons": {
+      "PROVIDER_GAP": 51,
+      "SESSION_END": 20,
+      "LUNCH_BREAK": 25
+    }
+  },
+  "qualityEnrichment": "SUPPORTED_ON_IN_SAMPLE_HISTORICAL_EVIDENCE",
+  "opportunityPreservationSupport": "SUPPORTED_ON_IN_SAMPLE_HISTORICAL_EVIDENCE",
+  "throughputImprovement": "SUPPORTED_AS_DESCRIPTIVE_HISTORICAL_COMPARISON",
+  "downsidePathRisk": "REMAINS_MATERIAL_RISK",
+  "cadenceJst": [
+    "09:30",
+    "10:00",
+    "10:30",
+    "11:00",
+    "11:30",
+    "13:00",
+    "13:30",
+    "14:00",
+    "14:30",
+    "15:00"
+  ],
+  "universe": "Saved Frozen Selector PIT JPX Prime/Standard/Growth domestic common-equity Top5 events; no new filters",
+  "entryTimestampSemantics": "Saved Selector decision timestamp is Candidate decision/ENTER reference timestamp. JST-aware instant; same-decision latency is historical convention, not measured execution delay. Features use information available at decision only.",
+  "decisionPriceSemantics": "Existing saved decisionPrice at actual Candidate decision; reference only, not executable broker fill. Never used as model feature.",
+  "historicalEnterLedger": {
+    "path": "docs/evidence/phase57-msh-entry-long-v1-upstream-freeze/historical-enter-identities.json",
+    "sha256": "72224ac9fd073f7da45c488aaf8ca999752b466e715837c21440e7dd93970236",
+    "count": 277,
+    "fields": [
+      "selectorEventId",
+      "symbolSessionId",
+      "sessionDate",
+      "symbol",
+      "decisionTimestamp",
+      "decisionPrice"
+    ],
+    "sourcePredictionSHA": "a11313909248d2c8aa1c39bac807f8a5c476c19c0be75a0e15dde41690cdb8be",
+    "construction": "Projection and identity join of existing saved ENTER records only. No candidate invocation or post-entry path access."
+  },
+  "knownLimitations": [
+    "All76 Historical sessions are direct Entry Development / IN-SAMPLE.",
+    "Fresh Validation=PENDING; OOS=PENDING_SEALED.",
+    "Historical Verdict=BORDERLINE.",
+    "Strict30m MAE median=-1.53%, adverse5th percentile=-10.26%, worst=-35.29% (rounded; exact saved values included).",
+    "Post-entry downside path remains a major question for a separate EXIT research chat.",
+    "This freeze does not mean OFFICIAL VALIDATION PASS, OOS PASS, prospective proof, production adoption, or profitable execution.",
+    "Quality/path denominator181 of277;96 unlabelable ENTERs remain in entry identity. Sparse observed-minute bar aggregation is disclosed in original evidence.",
+    "CURRENT96 versus Candidate277 is not a cadence-controlled causal comparison.",
+    "Existing Historical outputs are referenced without any new prediction or MFE/MAE calculation."
+  ],
+  "downstreamPurpose": "Read-only upstream handoff to a separate LONG EXIT research chat. This task does not authorize or execute EXIT research.",
+  "entryModificationPolicy": {
+    "allowed": false,
+    "prohibited": [
+      "threshold change",
+      "threshold sweep",
+      "threshold1.0 or3.0",
+      "model retrain",
+      "scaler refit",
+      "feature addition",
+      "feature removal",
+      "label change",
+      "target change",
+      "state change",
+      "WAIT addition",
+      "expiry addition",
+      "decision score change",
+      "candidate reselection",
+      "Historical-outcome-based Entry optimization"
+    ]
+  },
+  "freshBudgetConsumed": 0,
+  "globalFreshBudgetRemaining": 195,
+  "future20Protected": true,
+  "evidencePins": {
+    "predict/research/phase57-long-only-global-data-budget-v1.json": "b91699704f80ef7fda60fe0596e8f8736a181cd00dc879f5070f9caed4d4a62f",
+    "predict/research/phase57-msh-entry-long-v1-validation-candidate-v1.json": "4a2f52cd6f25f480fe6d7de9db525860ddf3c1600abed06b6222c0990c055a23",
+    "docs/evidence/phase57-msh-entry-long-v1-final-validation-model/final-model.json": "b053a858edda22bee7b9939162648740507964cc5ed8d613c2d778d15534589e",
+    "docs/evidence/phase57-msh-entry-long-v1-final-validation-model/final-scaler.json": "1e4865915a2ad1ec51dd4ebf2116d48b9f89b9b884f8dc732fdb2861dbf4fe4b",
+    "predict/research/phase57-msh-entry-long-v1-fit-contract-v1.json": "64c20d785be5f23b0a9103f419726b191a12a58fd5d3a7ad5185c69f9644a938",
+    "docs/evidence/phase57-msh-entry-long-v1-offline-freeze/development-evidence-freeze.json": "68d2a02c988a05b3178e903d628a53662b01bb704fa0700ebcb98e3b32547ead",
+    "docs/evidence/phase57-msh-entry-long-v1-preimplementation-feasibility-events.ndjson.gz": "73e566aba4d1a3f5af33b74be52ae90736c088b1091841f1eb44e93d5476084c",
+    "docs/evidence/phase57-long-only-current-entry-transfer-v1-events.ndjson.gz": "a36eecfed29aa0e9da50b051839578ca2e8f3a37d500de17bd6c3acfd8ce3a53",
+    "docs/evidence/phase57-long-only-entry-filter-recovery-audit-v1-first-opportunities.json.gz": "74ca5797a117df37ec78f7e2f859a52ab634affa088fcdabd2a3a0ec4e16d30a",
+    "predict/research/phase57_msh_entry_long_v1_proportional_odds.py": "9e5910c476c6957aab65cc24490ffb2759084e5e49b36db42fe284674979ae74",
+    "predict/long-only/phase57-long-only-integrated-dataset.js": "390e2df4ddc0be571d285e05754ce9ad90f2618eb5902797cf8e7bae4a5f667f",
+    "predict/long-only/phase57-long-only-entry-preimplementation-feasibility.js": "d785c6cadfe95fd8a2f8ee5620edfb4e4edf9748ad071829f782c197affbf10e",
+    "docs/evidence/phase57-msh-entry-long-v1-historical-remeasurement/measurement.json": "f43b00b4959698ba6f97883ea2291e2e47dfdbd7d1dc4d2f07a421ac241f0b02",
+    "docs/evidence/phase57-msh-entry-long-v1-historical-remeasurement/assessment.json": "843bd90ba8583b774ce243ff341e0537b0049ee655742fc8737a73c882ec219c",
+    "docs/evidence/phase57-msh-entry-long-v1-historical-remeasurement/manifest.json": "b3e30dee5b73d4bc0477ecf7fbfaf48d83c05df4845de7076ac4118042893448",
+    "docs/evidence/phase57-msh-entry-long-v1-historical-remeasurement/dataset-contract.json": "4a1d3e4ec4229d32ee2a50678db8fe3f8739abb3530df521e3036d201e75b441",
+    "docs/evidence/phase57-msh-entry-long-v1-historical-remeasurement/frozen-predictions.ndjson.gz": "a11313909248d2c8aa1c39bac807f8a5c476c19c0be75a0e15dde41690cdb8be",
+    "docs/evidence/phase57-msh-entry-long-v1-historical-remeasurement/prediction-receipt.json": "47aec60ccf2c7fc51dac91aedad781f7ec71e525205a8e2c2f015817473043dc",
+    "docs/evidence/phase57-msh-entry-long-v1-historical-remeasurement/session-exposure-ledger.json": "c83077a0cbbf92b373c0c1af0985ede5fea7d0ed7fb88f6221eb684c6a2a14df"
+  },
+  "scopeTransitionSHA": "43bc45e1eeaa1fd910c01979bd95490d238ed0617d54e89343ea68e22e4f0ffb",
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

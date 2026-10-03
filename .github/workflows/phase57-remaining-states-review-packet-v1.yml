@@ -1,0 +1,131 @@
+name: Phase57 Remaining States Prefix Review Packets v1
+
+on:
+  push:
+    branches:
+      - research/phase57-long-only-cash-equity
+    paths:
+      - '.github/workflows/phase57-remaining-states-review-packet-v1.yml'
+      - 'scripts/phase57_remaining_states_blind_review_packet_v1.py'
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: phase57-remaining-states-review-packet-v1
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Syntax check
+        run: python -m py_compile scripts/phase57_remaining_states_blind_review_packet_v1.py
+      - name: Download only approved raw-price substrate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/10605887642/zip" > "$RUNNER_TEMP/substrate.zip"
+          test "$(sha256sum "$RUNNER_TEMP/substrate.zip" | cut -d ' ' -f1)" = "749caf82bbd9d39969f5712ef5a6f2705ac973a2f74483f03307c671586ae05a"
+          mkdir -p "$RUNNER_TEMP/substrate"
+          unzip -p "$RUNNER_TEMP/substrate.zip" substrate/raw-paths-evaluator-only.json.gz > "$RUNNER_TEMP/substrate/raw-paths-evaluator-only.json.gz"
+      - name: Build five masked State packets and RISE_STOP transition census
+        run: |
+          set -euo pipefail
+          python -m scripts.phase57_remaining_states_blind_review_packet_v1 \
+            --state-checkpoints docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement/state-checkpoints.json.gz \
+            --raw-paths "$RUNNER_TEMP/substrate/raw-paths-evaluator-only.json.gz" \
+            --output "$RUNNER_TEMP/remaining-states-review-v1"
+      - name: Leakage and cardinality guard
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])/'remaining-states-review-v1'
+          top=json.loads((root/'manifest.json').read_text())
+          assert top['futureOrOutcomeSourcesOpened']==0 and top['entryOrFillSourcesOpened']==0
+          assert top['providerRequests']==0 and top['protectedDataOpened']==0
+          expected={'DROP':1403,'PULLBACK':354,'RANGE':57,'SHARP_DROP':26,'DROP_STOP':5}
+          for state,n in expected.items():
+              block=top['states'][state]
+              assert block['targetPopulation']==n
+              sub=root/state.lower().replace('_','-')
+              m=json.loads((sub/'manifest.json').read_text())
+              cases=json.loads((sub/'packet'/'cases.json').read_text())
+              assert len(cases)==m['totalReviewCases']
+              assert len(list((sub/'packet'/'charts').glob('*.svg')))==len(cases)
+              text=(sub/'packet'/'cases.json').read_text()
+              for bad in ('"opportunity"','"baselineState"','laterHigh','orderedLow','MFE','MAE','Capture','entryId','fillPrice','future'):
+                  assert bad not in text, (state,bad)
+          assert top['riseStopTransitionCensus']['t0Population']==0
+          print('REMAINING_STATES_PACKET_GUARD_PASS')
+          PY
+      - name: Print masked witnesses and terminal chart rasters
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])/'remaining-states-review-v1'
+          point_re=re.compile(r'<polyline points="([^"]+)"')
+          def parse(text):
+              out=[]
+              for raw in point_re.findall(text):
+                  pts=[]
+                  for tok in raw.split():
+                      x,y=tok.split(','); pts.append((float(x),float(y)))
+                  out.append(pts)
+              return out
+          def raster(points, cols=72, rows=12):
+              if not points:return [' '*cols for _ in range(rows)]
+              xmin=min(x for x,_ in points); xmax=max(x for x,_ in points)
+              ymin=min(y for _,y in points); ymax=max(y for _,y in points)
+              if xmax<=xmin:xmax=xmin+1
+              if ymax<=ymin:ymax=ymin+1
+              grid=[[' ']*cols for _ in range(rows)]
+              def cell(p):
+                  x,y=p
+                  return round((x-xmin)/(xmax-xmin)*(cols-1)),round((y-ymin)/(ymax-ymin)*(rows-1))
+              cells=[cell(p) for p in points]
+              for (c0,r0),(c1,r1) in zip(cells,cells[1:]):
+                  steps=max(abs(c1-c0),abs(r1-r0),1)
+                  for i in range(steps+1):
+                      c=round(c0+(c1-c0)*i/steps);r=round(r0+(r1-r0)*i/steps)
+                      if 0<=r<rows and 0<=c<cols:grid[r][c]='•'
+              for c,r in cells:
+                  if 0<=r<rows and 0<=c<cols:grid[r][c]='●'
+              return [''.join(line) for line in grid]
+          for sub in ('drop','pullback','range','sharp-drop','drop-stop'):
+              sroot=root/sub
+              cases=json.loads((sroot/'packet'/'cases.json').read_text())
+              print(f'===== {sub.upper()} MASKED WITNESSES count={len(cases)} =====')
+              for row in cases: print(json.dumps(row,sort_keys=True,allow_nan=False))
+              charts=sorted((sroot/'packet'/'charts').glob('*.svg'))
+              print(f'===== {sub.upper()} TERMINAL CHARTS count={len(charts)} =====')
+              for chart in charts:
+                  series=parse(chart.read_text())
+                  print(f'\n--- {chart.stem} ---')
+                  for label,pts in [('PREVIOUS',series[0] if len(series)>0 else []),('TODAY_PREFIX',series[1] if len(series)>1 else [])]:
+                      print(label); print('+'+'-'*72+'+')
+                      for line in raster(pts): print('|'+line+'|')
+                      print('+'+'-'*72+'+')
+          print('===== RISE_STOP PREFIX-ONLY TRANSITION CENSUS =====')
+          print((root/'rise-stop-transition-census.json').read_text())
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-remaining-states-prefix-review-packets-v1-${{ github.sha }}
+          path: ${{ runner.temp }}/remaining-states-review-v1
+          if-no-files-found: error
+          retention-days: 90

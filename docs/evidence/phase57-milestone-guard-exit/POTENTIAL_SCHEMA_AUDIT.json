@@ -1,0 +1,87 @@
+{
+  "OOFSkill": null,
+  "candidateSources": [
+    {
+      "source": "frozen Selector origin savedV1Score/newEligibleRank",
+      "status": "CAUSAL_SUMMARY_ONLY; Capital input; not uniquely declared Potential model feature vector"
+    },
+    {
+      "source": "R1 all-material 566-column prefit decision vector",
+      "status": "FEATURE_NAMES_AND_ROW_METADATA_ONLY; features.npy absent in archived artifact; per-Entry as-of mapping for IM and R1 not frozen for Potential"
+    },
+    {
+      "source": "R45 EXIT decision-features.npz",
+      "status": "POST_ENTRY_CLOSED_CHECKPOINT; cannot use as Entry-time feature vector"
+    }
+  ],
+  "decision": "POTENTIAL_FEATURE_SCHEMA_AMBIGUOUS",
+  "exposure": {
+    "freshOpened": 0,
+    "integratedReplayInvocations": 0,
+    "mainMerges": 0,
+    "newEstimatorFits": 0,
+    "oosOpened": 0,
+    "orders": 0,
+    "prospectiveOpened": 0,
+    "protectedOpened": 0,
+    "providerRequests": 0,
+    "validationOpened": 0
+  },
+  "frozenEntryArtifact": {
+    "featureNames": 566,
+    "id": 10851958443,
+    "prefitFeaturesArrayContainedInPublishedZip": false,
+    "prefitFeaturesArrayListedInManifest": true,
+    "prefitRows": 149900,
+    "sha256": "33a0f64d48d25701215dadb82b9769a9c3bde2b9fec3d82d9879706f8f90e1a0"
+  },
+  "newEstimatorFits": 0,
+  "power": {
+    "10": {
+      "bootstrapPerRep": 199,
+      "delta": 0.3582869092425833,
+      "detected": 954,
+      "knownN": 1614,
+      "negativeN": 1488,
+      "negativeSessions": 24,
+      "positiveN": 126,
+      "positiveSessions": 23,
+      "power": 0.954,
+      "repetitions": 1000,
+      "status": "PASS",
+      "unknownN": 0,
+      "validSimulations": 1000
+    },
+    "5": {
+      "bootstrapPerRep": 199,
+      "delta": 0.3582869092425833,
+      "detected": 996,
+      "knownN": 1614,
+      "negativeN": 1313,
+      "negativeSessions": 24,
+      "positiveN": 301,
+      "positiveSessions": 24,
+      "power": 0.996,
+      "repetitions": 1000,
+      "status": "PASS",
+      "unknownN": 0,
+      "validSimulations": 1000
+    }
+  },
+  "precommitSha256": "1b7bc9d41333958e3bb1cc5845d044427f107ebf6824f6a8975ab37eaa58293d",
+  "reason": "Two non-equivalent upstream feature sources are plausible; choosing the narrow Selector summary or regenerating R1 566-column vectors after seeing Phase 0 power is a new schema decision. The archived R1 prefit model input array is absent. No unique, shared, pinned Entry-time feature matrix is proven.",
+  "runtimeAuthority": false,
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "savedJst": "2026-09-28T23:55:59.429097+09:00",
+  "schema": "phase57-mg-potential-feature-schema-audit-v1"
+}

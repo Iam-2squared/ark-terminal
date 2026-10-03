@@ -1,0 +1,155 @@
+{
+  "schemaVersion": 1,
+  "id": "PHASE57_FROZEN_SELECTOR_ECONOMIC_ALPHA_V1",
+  "status": "PRECOMMITTED_BEFORE_MEASUREMENT",
+  "authorizedAtJst": "2026-09-19",
+  "sourceHead": "7a9cfa771511de7a293c3b8282083d092ec48dae",
+  "scope": {
+    "selector": "FROZEN_LONG_SELECTOR_WITH_MIN_PRICE_75",
+    "direction": "LONG",
+    "instrument": "JPX_CASH_EQUITY",
+    "developmentOnly": true,
+    "sessions": 76,
+    "selectorCadenceMinutes": 30,
+    "decisionTimestamps": 760,
+    "selectionRows": 3800,
+    "selectorChanged": false,
+    "entryModelUsed": false,
+    "exitModelUsed": false,
+    "capitalModelUsed": false
+  },
+  "frozenQuestions": [
+    "Is Immediate Selector Entry fixed-horizon return positive after the existing canonical cost?",
+    "At which of 5, 10, 15, 30 and 60 minutes does economic alpha exist?",
+    "How does return change after fixed 0, 5, 10, 15, 20 and 25 minute entry delays?",
+    "Does the Frozen Selector add value over like-for-like Random Top5 and Simple Momentum Top5?",
+    "Does model-free decay explain why prior Entry research converged to Immediate?"
+  ],
+  "execution": {
+    "entry": "first saved regular-session 5m OPEN at or after selector decision plus intended delay; missing first eligible bar fails closed; no same-bar future HIGH/LOW",
+    "entryDelayMinutes": [0, 5, 10, 15, 20, 25],
+    "entryActualLatencyReported": true,
+    "exit": "saved completed 5m CLOSE exactly at the fixed target timestamp; no interpolation, forward-fill, next-price substitution, lunch crossing substitution or auction repair",
+    "entryRelativeHorizonsMinutes": [5, 10, 15, 30, 60],
+    "selectorTerminalHorizonsMinutes": [5, 10, 15, 30, 60],
+    "sessionBoundary": "same regular session only",
+    "missing": "UNKNOWN_AND_EXCLUDED_FROM_EVALUABLE_RETURN; retained in all-row coverage ledger",
+    "fillClaim": "REFERENCE_PRICE_DIAGNOSTIC_ONLY_NOT_GUARANTEED_EXECUTION"
+  },
+  "cost": {
+    "grossPctPoints": 0.0,
+    "canonicalRoundTripPctPoints": 0.05,
+    "sensitivityRoundTripPctPoints": [0.10, 0.20],
+    "canonicalSource": "existing Candidate A and LONG integration cost contract",
+    "commissionSeparated": false,
+    "bidAskAvailable": false,
+    "orderBookAvailable": false,
+    "datedSecurityTickScheduleAvailable": false,
+    "spreadOrSlippageInvented": false,
+    "oneYenPriceQuantumDiagnosticOnly": true
+  },
+  "baselines": {
+    "sharedEligibility": "parent causal freshness AND decisionPrice > 75",
+    "sharedCount": 5,
+    "random": {
+      "id": "RANDOM_TOP5_SHA256_SEED_20260919",
+      "seed": 20260919,
+      "ordering": "SHA256(seed|sessionDate|decisionTimeJst|symbol) ascending, then symbol ascending",
+      "futureAvailabilityUsed": false
+    },
+    "momentum": {
+      "id": "SIMPLE_MOMENTUM30_TOP5",
+      "field": "momentum30Pct",
+      "ordering": "momentum30Pct descending, then symbol ascending",
+      "lookbackSearch": false,
+      "futureAvailabilityUsed": false
+    }
+  },
+  "statistics": {
+    "pointEstimate": "row-weighted mean plus separately reported session-equal mean",
+    "cluster": "sessionDate",
+    "bootstrapSeed": 20260919,
+    "bootstrapReplicates": 10000,
+    "confidenceLevel": 0.95,
+    "pairedIncrementalComparison": true,
+    "mdePower": 0.80,
+    "mdeAlphaTwoSided": 0.05,
+    "independentRowClaim": false
+  },
+  "diagnostics": {
+    "priceBandsJpy": [[76, 100], [101, 200], [201, 500], [501, 1000], [1001, null]],
+    "timeBandsJst": {
+      "MORNING_EARLY": ["09:30", "10:30"],
+      "MORNING_LATE": ["11:00", "11:30"],
+      "AFTERNOON_EARLY": ["13:00", "14:00"],
+      "AFTERNOON_LATE": ["14:30", "15:00"]
+    },
+    "selectorRanks": [1, 2, 3, 4, 5],
+    "selectorScoreBins": "fixed empirical quintiles, descriptive only",
+    "preSelectionPathField": "momentum30Pct",
+    "mfeThresholdsPct": [1, 2, 3, 5],
+    "postHocFilterCreation": false
+  },
+  "dipIntentToTreat": {
+    "population": "all 3800 Frozen Selector rows",
+    "policies": {
+      "P0": "Immediate",
+      "P1": "observe first 5m completed CLOSE; if close < decisionPrice enter next OPEN (+5), otherwise mandatory fallback at +10 OPEN; unknown condition also mandatory fallback at +10 OPEN",
+      "P2": "unconditional +5 minute entry placebo",
+      "P3": "unconditional +10 minute entry placebo"
+    },
+    "thresholdSearch": false,
+    "adoptionThisRun": false
+  },
+  "verdictRules": {
+    "materialNetMeanPctPoints": 0.10,
+    "selectorPositive": "At least one of 10m, 15m or 30m Immediate canonical-net horizons has mean >= 0.10pp, cluster-CI lower > 0, PF > 1, and paired incremental cluster-CI lower > 0 versus both canonical Random and Momentum at the same horizon.",
+    "selectorNegative": "All evaluable 10m, 15m and 30m Immediate canonical-net horizon cluster-CI uppers are < 0.",
+    "selectorNotDemonstrated": "No primary horizon has positive canonical-net point estimate and no positive rule is met.",
+    "selectorWeakOrUncertain": "Any remaining outcome, including positive point estimates without the positive rule.",
+    "delayedEntrySupported": "At selector-terminal 30m, one precommitted nonzero delay improves canonical net over delay0 by >= 0.10pp with paired cluster-CI lower > 0.",
+    "immediateEntrySupported": "Delayed Entry is not supported, delay0 has the highest selector-terminal 30m point estimate, and at least one nonzero delay has paired cluster-CI upper < 0 versus delay0.",
+    "noTimingEdgeDemonstrated": "Neither delayed nor immediate support rule is met with adequate coverage.",
+    "inconclusiveTiming": "Terminal30 evaluable sessions < 38 or observed 80%-power MDE exceeds 0.20pp."
+  },
+  "sealed": {
+    "developmentTestOpened": false,
+    "freshOpened": false,
+    "oosOpened": false,
+    "newProviderRequests": 0,
+    "selectorRetrain": false,
+    "baselineParameterSearch": false,
+    "exitTuning": false,
+    "capitalTuning": false,
+    "portfolioOptimization": false,
+    "automaticPromotion": false,
+    "mainMerge": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "sourcePins": {
+    "predict/research/phase57-long-only-frozen-selector-min-price75-v1.json": "e75a49adb2a35497b6ac4d1afdd2942f87d9e139f04ae98e2478ca564ee874d8",
+    "docs/evidence/phase57-selector-min-price75-v1/measurement/selector/selector-ledger.json.gz": "df9f6a6c728249b2e3fd924fa8803ce01f8c7d7ddcae3b9203effa434ca44a77",
+    "docs/evidence/phase57-selector-min-price75-v1/measurement/new-paths.json.gz": "eeb15545a278a7058a0b40042169df8ad7560077289c7bef3412977decc524d2",
+    "scripts/phase57_selector_min_price75_paths.mjs": "e11dff6b84e19b6026b440ce71ad5a61ad5013b0efb3ac3995dd75830e4dd28e",
+    "scripts/run_phase57_long_only_corrected_measurement.py": "dbfe8359d9ff9315bf8fd7ed3b8d8207d1277ff114341c8f7b72b6be93aef364",
+    "scripts/run_phase57_long_only_eligibility_measurement.py": "1122065f3aa964291b3706c30b36ca3664a1ed8fa7dfef15b985fca3bf895d5d",
+    "docs/evidence/phase57-new-long-exit-candidate-a-freeze-2026-09-18.md": "ba4ea0f8aa3a3c897f05936beb379e7388fba464665ac4b44edc12e36c2a2223"
+  },
+  "savedDevelopmentArtifacts": {
+    "baseRunId": 34917676944,
+    "l1RunId": 34926225832,
+    "cdRunId": 34936002178,
+    "additionalRunId": 34964031692,
+    "providerAccess": "download and decrypt immutable saved artifacts only"
+  }
+}

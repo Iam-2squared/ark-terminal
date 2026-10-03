@@ -1,0 +1,109 @@
+{
+  "Exposure": "Development1600/58 previously outcome-exposed; no new teacher/performance/protected exposure.",
+  "basis_head": "8bce9810eecea68c71f227ee0d705fbf2480b916",
+  "branch": "capital-state9-vnext-20261004",
+  "checkpoints": [
+    {
+      "checkpoint": "RECOVERY_START",
+      "result_commit": "ab9e1356a00b5ef464068d897efe81047db1357a",
+      "saved_at_jst": "2026-10-04T01:33:43.362608+09:00"
+    },
+    {
+      "checkpoint": "SOURCE_DISCOVERY_COMPLETE",
+      "result_commit": "b88a6f7f05e3abe33b869be3a5ed65440e309fd2",
+      "saved_at_jst": "2026-10-04T01:51:33.629666+09:00"
+    },
+    {
+      "checkpoint": "R2_R3_R4_AUDIT_COMPLETE",
+      "result_commit": "e4f84041828d0b31f9f56b3a136d2a1b538b0d51",
+      "saved_at_jst": "2026-10-04T02:02:43.379263+09:00"
+    },
+    {
+      "checkpoint": "C2_RE_AUDIT",
+      "result_commit": "8bce9810eecea68c71f227ee0d705fbf2480b916",
+      "saved_at_jst": "2026-10-04T02:09:28.196064+09:00"
+    },
+    {
+      "checkpoint": "FINAL_CLOSURE_HANDOFF",
+      "result_commit_receipt": "CHECKPOINT_RECEIPTS/R7_RESULT_COMMIT.json",
+      "saved_at_jst": "2026-10-04T02:19:13.803807+09:00"
+    }
+  ],
+  "execution_budget": {
+    "Capital_performance_replay": 0,
+    "Claude_calls": 0,
+    "EXIT_replay": 0,
+    "Entry_replay": 0,
+    "MAX_comparison": 0,
+    "State9_feature_search": 0,
+    "fit": 0,
+    "force_pushes": 0,
+    "main_merges": 0,
+    "new_market_data_download": 0,
+    "orders": 0,
+    "protected_holdout_fresh_validation_oos_prospective_open": 0,
+    "provider_request": 0,
+    "ranker": 0,
+    "threshold_search": 0
+  },
+  "latest_observed_HEAD": "8bce9810eecea68c71f227ee0d705fbf2480b916",
+  "next_direction": "Existing asset receipts first; explicit new admission contract review before any new protocol experiment. STOP; do not start C3 or Integrated automatically.",
+  "repo": "Iam-2squared/ark-terminal",
+  "results": {
+    "BLOCKED_N": 3,
+    "PASS_N": 7,
+    "candidate_N": 1600,
+    "independent_mismatch_N": 0,
+    "new_resolved_N": 0,
+    "remaining39_N": 39,
+    "replay_fit_orders_N": 0
+  },
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "saved_at_jst": "2026-10-04T02:19:13.803807+09:00",
+  "scope": "C2 source recovery and admission contract only",
+  "source_hashes": {
+    "C2_READMISSION_AUDIT.json": "4dee08a028a295bcf70c480426585df5d8e768b89186abbc063c1ba81967238d",
+    "CONTROLLING_HANDOFF.md": "12823d75606042bfd2dbb73fc50786a9e820978e0fd18f7b6ed0e6e86fce104b",
+    "EXACT_SOURCE_BOUNDARY_RECHECK.json": "84b817e9ed6c7445d9bc6ddfd47f80a874d1a435a144bb5d4f9f3863f8efd975",
+    "RECOVERY_INDEPENDENT_AUDIT.json": "218be9bdf21025d22247ce8e3ce246c00bf09abb36725c6b39a8e6070af600d0",
+    "RECOVERY_PRIMARY_AUDIT.json": "4e13eecc2c5e3d4f37ac3fce08a036d652b5b71fb57406911087f3fe0025a926",
+    "REPORT-ja.md": "ccbe5a9b03bf5516280a2edec1618556bd1a4a931490cd7feaf7faf75e4077bf"
+  },
+  "status": "CAPITAL_C2_NEW_ADMISSION_CONTRACT_REQUIRED",
+  "unresolved": [
+    "E1 exact39 source/receipt in remaining existing assets",
+    "D1 current known-at/cash binding",
+    "D2 current mark/source binding",
+    "D3 unresolved/cross-session/comparison binding"
+  ],
+  "what_NOT_changed": [
+    "immutable parent STOP",
+    "Frozen Entry/EXIT and source values",
+    "cash/fill timestamp",
+    "cost",
+    "threshold/ranker",
+    "mark interpolation or forward-fill",
+    "unresolved population",
+    "protected boundary",
+    "Safety"
+  ],
+  "what_changed": "Append-only source recovery, exact canonical recheck, independent audit, proposed contract and current closure.",
+  "what_was_read": [
+    "original frozen source/manifests and hashes",
+    "old accounting/mark/source availability contracts",
+    "Primary and independently reconstructed source rows",
+    "target-only previous-session links",
+    "final frozen branch GET/PR/Actions metadata"
+  ]
+}

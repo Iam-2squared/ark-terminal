@@ -1,0 +1,38 @@
+{
+  "U_is_observed_maximum": "partial-source U is a lower-bound observed target, not guaranteed true maximum",
+  "additional_labels_not_selection_targets": [
+    "time-to-peak",
+    "first +1..5% and pre-hit MAE",
+    "reversal count",
+    "session-end MFE/MAE",
+    "terminal return",
+    "Selector Low/High anatomy"
+  ],
+  "before_teacher_computation": true,
+  "capture": "observed strictly later hit confirmed; absent hit on incomplete remaining source =>unknown",
+  "fill": "first available regular raw open at start>=intent +5bps; exclude actual 09:00/12:30 mixed opening starts; no 30-minute cap",
+  "future_used_only_in": "teacher/evaluator",
+  "heads": {
+    "D": "absolute min(0,min Low/fill-1) from fill bar through peak bar inclusive; train clip 0..5; complete scheduled-source path required",
+    "Q": "fill + closed closes including fill bar through earliest strictly later max-High bar; max(net close progress,0)/total variation; TV=0 =>0; complete scheduled-source path required",
+    "U": "strictly later raw-bar-start maximum observed High / fill; raw percent saved; training clip 0..10"
+  },
+  "lunch_and_closing_auction_pause": "not active; expected dated RC2 source schedule, including terminal marks, otherwise no inserted bar",
+  "missing_path": "Q and D targets NULL; observed raw statistics separately saved, no interpolation across missing scheduled minute",
+  "peak": "earliest raw bar attaining observed maximum High; exact touch time and intrabar order unknown",
+  "primary_winner_denominator": "saved canonical first-selector full-session MFE, reused; continuous 1m completeness separate",
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "saved_at_jst": "2026-10-03T11:57:31.362154+09:00",
+  "strictly_later": "maximum over raw source start>fill_minute; same fill-bar High excluded"
+}

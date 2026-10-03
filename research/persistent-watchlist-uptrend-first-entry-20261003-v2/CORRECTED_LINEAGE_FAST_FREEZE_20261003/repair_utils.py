@@ -1,6 +1,6 @@
 """Repair-only artifact utilities. Frozen research contracts remain in parent."""
 from pathlib import Path
-import sys,hashlib,json,gzip,datetime
+import sys,hashlib,json,gzip,datetime,os
 from zoneinfo import ZoneInfo
 HERE=Path(__file__).resolve().parent
 BASE=HERE.parent
@@ -29,8 +29,14 @@ def rows(p):
   for line in f:yield json.loads(line)
 def write_rows(p,records):
  p=Path(p);p.parent.mkdir(parents=True,exist_ok=True)
- with p.open('wb') as f,gzip.GzipFile(fileobj=f,mode='wb',mtime=0) as z:
-  for r in records:z.write((json.dumps(r,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False)+'\n').encode())
+ temporary=p.with_name(p.name+'.pending');N=0
+ with temporary.open('wb') as f:
+  with gzip.GzipFile(fileobj=f,mode='wb',mtime=0,filename=p.name) as z:
+   for r in records:
+    z.write((json.dumps(r,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False)+'\n').encode());N+=1
+  f.flush();os.fsync(f.fileno())
+ with gzip.open(temporary,'rt',encoding='utf8') as z:assert sum(1 for _ in z)==N
+ os.replace(temporary,p)
 def load_npz(p):
  import numpy as np
  with np.load(p) as z:return {k:z[k] for k in z.files}

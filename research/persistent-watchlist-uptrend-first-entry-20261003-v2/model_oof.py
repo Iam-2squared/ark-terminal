@@ -28,6 +28,7 @@ class TrainPreprocessor:
   return arr
 def percentile(sorted_ref,pred):return (np.searchsorted(sorted_ref,pred,'left')+np.searchsorted(sorted_ref,pred,'right'))/(2*len(sorted_ref))
 def run():
+ assert not (HERE/'CALENDAR_INTEGRITY_DIAGNOSIS.json').exists(),'BLOCKED_SPLIT_OR_LINEAGE_MISMATCH: corrected teacher needs20 head refits, exceeds36 fit cap; original completed models preserved'
  cfg=read(HERE/'MODEL_SCORE_POLICY_FREEZE.json');folds=read(HERE/'SPLIT_PRECOMMIT.json')['folds'];grid=list(lines(HERE/'PERSISTENT_GRID.jsonl.gz'));sessions=np.asarray([r['session'] for r in grid]);X=np.load(HERE/'PRIVATE_INPUTS/features_numeric.npy',mmap_mode='r');C=np.load(HERE/'PRIVATE_INPUTS/features_categories.npy',mmap_mode='r');Y=np.load(HERE/'PRIVATE_INPUTS/targets.npy',mmap_mode='r');vocab=read(HERE/'PRIVATE_INPUTS/category_vocabulary.json')
  assert len(X)==len(grid)==len(Y);primary=np.flatnonzero([r['canonical'] for r in grid]);models=HERE/'PRIVATE_MODELS';models.mkdir(exist_ok=True);fits=[];OOF={};ledger_path=HERE/'FIT_LEDGER.json';t0=time.time()
  if ledger_path.exists():

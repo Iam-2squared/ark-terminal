@@ -32,7 +32,7 @@ def minute(s):return int(s[11:13])*60+int(s[14:16])
 def stamp(day,t):return day+'T%02d:%02d:00+09:00'%divmod(t,60)
 def regular_starts(day):return list(range(540,690))+list(range(750,900 if day<'2024-11-05' else 925))
 def close_minute(day):return 900 if day<'2024-11-05' else 930
-def source_starts(day):return regular_starts(day)+[690,close_minute(day)]
+def source_starts(day):return sorted(regular_starts(day)+[690,close_minute(day)])
 def active_elapsed(day,start,end):
  return sum(max(0,min(end,b)-max(start,a)) for a,b in ((540,690),(750,900 if day<'2024-11-05' else 925)))
 def valid_bar(x):

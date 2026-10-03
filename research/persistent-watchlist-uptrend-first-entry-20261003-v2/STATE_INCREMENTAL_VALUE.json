@@ -1,6 +1,8 @@
 {
   "adopted_State9": false,
+  "blocking_status": "BLOCKED_SPLIT_OR_LINEAGE_MISMATCH",
   "development_only": true,
+  "diagnostic_only": true,
   "fixed_quantile_entry_deltas": {
     "Q70": {
       "capture_ge3_pp_P1_minus_P0": 1.3140604467805517,
@@ -8,12 +10,12 @@
       "entries_per_session_P1_minus_P0": -0.1896551724137936,
       "entry_rate_pp_P1_minus_P0": -0.5104408352668202,
       "entry_to_high_pct_median_P1_minus_P0": 0.015364170843301661,
-      "path_efficiency_median_P1_minus_P0": 0.015619600778167902,
-      "pre_peak_mae_abs_pct_median_P1_minus_P0": 0.00196558554548254,
+      "path_efficiency_median_P1_minus_P0": 0.03403324257083978,
+      "pre_peak_mae_abs_pct_median_P1_minus_P0": 0.04989879331021574,
       "reversal_count_median_P1_minus_P0": 0.0,
       "selector_to_entry_active_delay_median_P1_minus_P0": 0.0,
       "time_to_peak_active_min_median_P1_minus_P0": 1.0,
-      "total_variation_pct_median_P1_minus_P0": -0.0414539274141712,
+      "total_variation_pct_median_P1_minus_P0": -0.11119327322153238,
       "upside_retention_pct_median_P1_minus_P0": 0.4482536556658232
     },
     "Q80": {
@@ -22,12 +24,12 @@
       "entries_per_session_P1_minus_P0": 0.0,
       "entry_rate_pp_P1_minus_P0": 0.0,
       "entry_to_high_pct_median_P1_minus_P0": 0.0,
-      "path_efficiency_median_P1_minus_P0": -0.010970583045397525,
-      "pre_peak_mae_abs_pct_median_P1_minus_P0": 0.047891093798307915,
+      "path_efficiency_median_P1_minus_P0": -0.012195787583629186,
+      "pre_peak_mae_abs_pct_median_P1_minus_P0": 0.06082464564107215,
       "reversal_count_median_P1_minus_P0": 0.0,
       "selector_to_entry_active_delay_median_P1_minus_P0": 0.0,
       "time_to_peak_active_min_median_P1_minus_P0": -1.0,
-      "total_variation_pct_median_P1_minus_P0": -0.19708092045917858,
+      "total_variation_pct_median_P1_minus_P0": -0.11063806200137272,
       "upside_retention_pct_median_P1_minus_P0": -1.3280373792409819
     },
     "Q90": {
@@ -36,12 +38,12 @@
       "entries_per_session_P1_minus_P0": -0.3275862068965516,
       "entry_rate_pp_P1_minus_P0": -0.8816705336426978,
       "entry_to_high_pct_median_P1_minus_P0": -0.002863755333659679,
-      "path_efficiency_median_P1_minus_P0": -0.01050772998042538,
-      "pre_peak_mae_abs_pct_median_P1_minus_P0": -0.026050237527852627,
+      "path_efficiency_median_P1_minus_P0": -0.019771395201347644,
+      "pre_peak_mae_abs_pct_median_P1_minus_P0": -0.045515984261695897,
       "reversal_count_median_P1_minus_P0": 0.0,
       "selector_to_entry_active_delay_median_P1_minus_P0": 0.0,
       "time_to_peak_active_min_median_P1_minus_P0": 1.0,
-      "total_variation_pct_median_P1_minus_P0": 0.0,
+      "total_variation_pct_median_P1_minus_P0": -0.07612608980990854,
       "upside_retention_pct_median_P1_minus_P0": 0.35863555648583656
     },
     "Q95": {
@@ -50,15 +52,18 @@
       "entries_per_session_P1_minus_P0": 0.05172413793103381,
       "entry_rate_pp_P1_minus_P0": 0.1392111368909532,
       "entry_to_high_pct_median_P1_minus_P0": 0.039480666530478103,
-      "path_efficiency_median_P1_minus_P0": 0.03627296849734637,
-      "pre_peak_mae_abs_pct_median_P1_minus_P0": 0.06416897871341365,
+      "path_efficiency_median_P1_minus_P0": 0.04997694229030042,
+      "pre_peak_mae_abs_pct_median_P1_minus_P0": 0.09963121414260367,
       "reversal_count_median_P1_minus_P0": 0.0,
       "selector_to_entry_active_delay_median_P1_minus_P0": -1.0,
       "time_to_peak_active_min_median_P1_minus_P0": 3.0,
-      "total_variation_pct_median_P1_minus_P0": 0.0,
+      "total_variation_pct_median_P1_minus_P0": 0.009241796115347256,
       "upside_retention_pct_median_P1_minus_P0": 0.6043632488591868
     }
   },
+  "formal_incremental_conclusion_available": false,
+  "freeze_or_promotion_allowed": false,
+  "head_metric_target_scope": "original fitted eligibility mask; invalid for corrected teacher population",
   "head_metrics": {
     "P0": {
       "ADVERSE": {
@@ -3289,6 +3294,7 @@
   },
   "interpretation_rule": "clear non-worsening across all four fixed quantiles in median Q, median D and >=5 capture; otherwise no established incremental value; descriptive only",
   "mixed_tradeoffs_kept_visible": true,
+  "model_teacher_lineage_valid": false,
   "per_family_balanced_candidates": {
     "P0": "P0_Q70",
     "P1": "P1_Q70"
@@ -3309,6 +3315,7 @@
     "rssOrderFunctionAllowed": false,
     "transmitted": false
   },
-  "saved_at_jst": "2026-10-03T12:26:34.722967+09:00",
+  "saved_after_calendar_correction_at_jst": "2026-10-03T12:41:37.284633+09:00",
+  "saved_at_jst": "2026-10-03T12:40:32.886641+09:00",
   "status": "STATE9_NO_INCREMENTAL_UPTREND_ENTRY_VALUE_ON_DEVELOPMENT"
 }

@@ -1,0 +1,301 @@
+{
+  "EXIT_calls": 0,
+  "FIRST_ENTRY_records_checked": 17240,
+  "all_rows_score_threshold_lineage_checked": true,
+  "audit_fit": 0,
+  "audit_implementation": "separate formulas and state-machine code; frozen independent RC2 API + normalization120; no main study calculation imports",
+  "audit_limits": [
+    "independent exact State numeric/history replay uses predetermined51-watch sample; source/causal timestamp and missing checks cover every row",
+    "model direct prediction checked on deterministic256-row sample per fit; percentile transform and threshold lineage checked on all rows",
+    "actual historical bar arrival timestamp UNKNOWN; causal availability assumes bar end",
+    "low/high intrabar order unknown; peak-bar Low conservatively included",
+    "State Path EXIT event names are state-run annotations, never trading EXIT policy calls"
+  ],
+  "checks": {
+    ">=1..5 Winner denominator and capture": 40,
+    "EXIT / Reentry / Capital / order imports absent": 5,
+    "FIRST ENTRY evaluator independent path_efficiency": 9353,
+    "FIRST ENTRY evaluator independent peak_minute": 9353,
+    "FIRST ENTRY evaluator independent pre_peak_mae_abs_pct": 9353,
+    "FIRST ENTRY evaluator independent remaining_upside_pct": 9353,
+    "FIRST ENTRY evaluator independent reversal_count": 9353,
+    "FIRST ENTRY evaluator independent total_variation_pct": 9353,
+    "FIRST entry next-open+5bps": 17240,
+    "FIRST entry watch population": 8,
+    "FIRST threshold cross and decision stopping": 17240,
+    "FIRST threshold trace hash lineage": 17240,
+    "FIRST_ENTRY after decision stop / EXIT0 Reentry0": 17240,
+    "OOF score percentile transform all rows": 30,
+    "Q70 Q80 Q90 Q95 train-only quantile lineage": 10,
+    "State categorical/history independent extraction": 63675,
+    "State exact numeric and history independent extraction": 161310,
+    "State formal/display/observed independent route": 4245,
+    "State segment independent Path derivation": 4245,
+    "State timestamp independent kernel": 4245,
+    "WATCH_KEY": 4931,
+    "active clock feature": 462752,
+    "daily FIRST_ENTRY counts": 464,
+    "daily peak active watchlist and simultaneous demand": 464,
+    "equal-weight uptrend score all OOF rows": 10,
+    "every-minute causal cutoff": 462752,
+    "exact final RC2 contract profile M0 Path": 5,
+    "exact final RC2 source identity": 16,
+    "exclusive Selector MFE bucket": 17240,
+    "first +1..5 hit/unknown": 2289170,
+    "first Selector event and first-selector anchor": 4931,
+    "fit budget and fixed model": 1,
+    "fixed HGB model parameters": 30,
+    "full-day observed 1m grid": 4931,
+    "future teacher/evaluator isolation": 1,
+    "independent preprocessed OOF model predictions": 30,
+    "independent preprocessed train model predictions": 30,
+    "lunch/session-close and no 30m cap": 462752,
+    "model training labels match corrected frozen teacher": 30,
+    "next raw regular open +5bps fill": 462752,
+    "outer OOF population lineage": 2,
+    "previous Work remains closed": 1,
+    "price close-lag missing semantics": 2313760,
+    "refresh causal feature": 462752,
+    "repeated Selector refresh": 4931,
+    "source missing distinct from semantic unknown": 29185,
+    "teacher independent D_target": 457834,
+    "teacher independent Q_target": 457834,
+    "teacher independent U_target": 457834,
+    "teacher independent path_efficiency": 457834,
+    "teacher independent peak_bar_close": 457834,
+    "teacher independent peak_minute": 457834,
+    "teacher independent pre_peak_mae_abs_pct": 457834,
+    "teacher independent remaining_upside_pct": 457834,
+    "teacher independent reversal_count": 457834,
+    "teacher independent time_to_peak_active_min": 457834,
+    "teacher independent total_variation_pct": 457834,
+    "teacher target file lineage": 1388256,
+    "temporal split no session/watch crossing": 10,
+    "train prediction distribution lineage": 30,
+    "train-only median preprocessing": 10,
+    "train-only one-hot and reserved missing/unknown": 75,
+    "watch bucket denominator / Entry count": 56,
+    "watch first anchor Selector MFE": 17240,
+    "watch identity unique": 1
+  },
+  "failure_counts": {
+    "model training labels match corrected frozen teacher": 20
+  },
+  "grid_rows_checked": 462752,
+  "independent_state_rows_checked": 4245,
+  "independent_state_sample_watch_N": 51,
+  "mismatch_N": 20,
+  "mismatch_examples_N": 20,
+  "mismatches": [
+    {
+      "check": "model training labels match corrected frozen teacher",
+      "detail": [
+        "P0",
+        1,
+        "QUALITY",
+        95976,
+        103892
+      ]
+    },
+    {
+      "check": "model training labels match corrected frozen teacher",
+      "detail": [
+        "P0",
+        1,
+        "ADVERSE",
+        95976,
+        103892
+      ]
+    },
+    {
+      "check": "model training labels match corrected frozen teacher",
+      "detail": [
+        "P0",
+        2,
+        "QUALITY",
+        111815,
+        120621
+      ]
+    },
+    {
+      "check": "model training labels match corrected frozen teacher",
+      "detail": [
+        "P0",
+        2,
+        "ADVERSE",
+        111815,
+        120621
+      ]
+    },
+    {
+      "check": "model training labels match corrected frozen teacher",
+      "detail": [
+        "P0",
+        3,
+        "QUALITY",
+        131694,
+        142031
+      ]
+    },
+    {
+      "check": "model training labels match corrected frozen teacher",
+      "detail": [
+        "P0",
+        3,
+        "ADVERSE",
+        131694,
+        142031
+      ]
+    },
+    {
+      "check": "model training labels match corrected frozen teacher",
+      "detail": [
+        "P0",
+        4,
+        "QUALITY",
+        151120,
+        162509
+      ]
+    },
+    {
+      "check": "model training labels match corrected frozen teacher",
+      "detail": [
+        "P0",
+        4,
+        "ADVERSE",
+        151120,
+        162509
+      ]
+    },
+    {
+      "check": "model training labels match corrected frozen teacher",
+      "detail": [
+        "P0",
+        5,
+        "QUALITY",
+        170441,
+        182930
+      ]
+    },
+    {
+      "check": "model training labels match corrected frozen teacher",
+      "detail": [
+        "P0",
+        5,
+        "ADVERSE",
+        170441,
+        182930
+      ]
+    },
+    {
+      "check": "model training labels match corrected frozen teacher",
+      "detail": [
+        "P1",
+        1,
+        "QUALITY",
+        95976,
+        103892
+      ]
+    },
+    {
+      "check": "model training labels match corrected frozen teacher",
+      "detail": [
+        "P1",
+        1,
+        "ADVERSE",
+        95976,
+        103892
+      ]
+    },
+    {
+      "check": "model training labels match corrected frozen teacher",
+      "detail": [
+        "P1",
+        2,
+        "QUALITY",
+        111815,
+        120621
+      ]
+    },
+    {
+      "check": "model training labels match corrected frozen teacher",
+      "detail": [
+        "P1",
+        2,
+        "ADVERSE",
+        111815,
+        120621
+      ]
+    },
+    {
+      "check": "model training labels match corrected frozen teacher",
+      "detail": [
+        "P1",
+        3,
+        "QUALITY",
+        131694,
+        142031
+      ]
+    },
+    {
+      "check": "model training labels match corrected frozen teacher",
+      "detail": [
+        "P1",
+        3,
+        "ADVERSE",
+        131694,
+        142031
+      ]
+    },
+    {
+      "check": "model training labels match corrected frozen teacher",
+      "detail": [
+        "P1",
+        4,
+        "QUALITY",
+        151120,
+        162509
+      ]
+    },
+    {
+      "check": "model training labels match corrected frozen teacher",
+      "detail": [
+        "P1",
+        4,
+        "ADVERSE",
+        151120,
+        162509
+      ]
+    },
+    {
+      "check": "model training labels match corrected frozen teacher",
+      "detail": [
+        "P1",
+        5,
+        "QUALITY",
+        170441,
+        182930
+      ]
+    },
+    {
+      "check": "model training labels match corrected frozen teacher",
+      "detail": [
+        "P1",
+        5,
+        "ADVERSE",
+        170441,
+        182930
+      ]
+    }
+  ],
+  "model_prediction_samples_checked": 7680,
+  "productionReady": false,
+  "provider_requests": 0,
+  "reentry_calls": 0,
+  "saved_at_jst": "2026-10-03T12:44:16.644650+09:00",
+  "seconds": 160.7,
+  "status": "BLOCKED_SPLIT_OR_LINEAGE_MISMATCH",
+  "teacher_rows_checked": 462752,
+  "total_checks": 13788666,
+  "train_only_preprocessing_all_training_rows_checked": true
+}

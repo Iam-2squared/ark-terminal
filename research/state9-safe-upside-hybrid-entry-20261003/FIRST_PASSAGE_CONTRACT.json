@@ -1,0 +1,62 @@
+{
+  "status": "FROZEN",
+  "primary": "SAFE_UP_2_BEFORE_DOWN_1",
+  "primary_up_pct": 2,
+  "primary_down_pct": 1,
+  "up_levels_pct": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "down_levels_pct": [
+    0.5,
+    1,
+    2
+  ],
+  "statuses": [
+    "UP_FIRST",
+    "DOWN_FIRST",
+    "NEITHER",
+    "ORDER_UNKNOWN",
+    "DATA_UNAVAILABLE"
+  ],
+  "decision_cutoff": "closed raw bar_end <= candidate intent; same-minute unclosed OHLC forbidden",
+  "candidate_grid": "exact R1 original rows; no new minute grid",
+  "candidate_window_active_minutes": [
+    0,
+    30
+  ],
+  "fill_contract": "Frozen simulate_fill semantics: latch intent; iterate remaining saved comparison rows; require saved quoteAvailable and saved outcome.price at that minute; first such row fills; price is observed raw open*1.0005. No source open at t => retry on later candidate row; no forced fallback.",
+  "fill_basis_authority": "saved Pattern-v2 outcomes.price and original R1 candidate quote/time manifests; verify raw open+5bps arithmetic but do not regenerate old Entry decisions",
+  "fill_is_teacher_only": true,
+  "up_barrier": "P0*(1+u/100)",
+  "down_barrier": "P0*(1-d/100)",
+  "intrabar_order": "open>=UP => UP_FIRST; open<=DOWN => DOWN_FIRST; otherwise H>=UP and L<=DOWN => ORDER_UNKNOWN; one touch => corresponding first; never invent H/L order",
+  "source_gap": "missing scheduled raw minute before first barrier touch => DATA_UNAVAILABLE, not negative; known touch before gap retains status; NEITHER requires complete scheduled remainder and canonical full-session availability",
+  "missing_minute_not_no_trade": true,
+  "regular_source_schedule": "AM raw starts540..689; PM750..899 before2024-11-05, otherwise750..924; separate terminal auction starts690 and900/930. Exclude lunch and post2024-11-05 925..929 from continuous slots.",
+  "active_clock": "inherit R1 continuous trading interval lengths [540,690] and [750,900/925]; terminal auction wall clock retained separately; clock endpoints are not relabeled to Geometry clock",
+  "first_touch_time": "bar-start active elapsed is a lower-bound proxy; preserve bar-start and bar-end wall/active interval, no exact intrabar touch-time assertion",
+  "MAE_before_UP": "include prior bars and current open known to precede touch; current touch-bar low order unknown unless open already above UP. Save optimistic/adverse bounds; exact field UNKNOWN when unequal.",
+  "MFE_before_DOWN": "analogous preceding highs/open and touch-bar high bounds; exact field UNKNOWN when unequal",
+  "future_fields_evaluator_only": true,
+  "old_immediate_r1_geometry_recompute": false,
+  "new_label_passes_authorized": 1,
+  "threshold_search_on_secondary_grid": 0,
+  "source_gate_required": "C1 PASS; otherwise never create labels",
+  "productionReady": false,
+  "frozen_at_jst": "2026-10-03T09:36:09.846073+09:00",
+  "label_implementation_sha256": "cd39b67e7f89b44131c2ea395112a2b125f01402aa68beebc9d77a8460a7342b",
+  "arithmetic": "saved canonical float64 P0 and saved OHLC; exact comparisons with no epsilon-imputation; independent Decimal audit checks first passage and reports any boundary mismatch",
+  "source_invalid_OHLC": "DATA_UNAVAILABLE if an invalid/nonpositive/nonfinite OHLC bar precedes first passage; no invented ordering",
+  "current_primary_population": 2155,
+  "current_candidate_rows": 65312,
+  "current_sessions": 58,
+  "source_raw_path_sha256": "37853e73799544be6fd6eb955de514073dd13671692426291a9fdb6d80056c6b",
+  "source_outcomes_sha256": "0ec281ddddd30a7f2424de0c752056818e4f97aff398ac4f38e17a479cc69848",
+  "C1_receipt_sha256": "9de813c5e59a9f5af7146ed8720a9a74f17ea3c8f3e5a9bd55590d2d59c7e6c8",
+  "new_fits": 0,
+  "new_labels": 0
+}

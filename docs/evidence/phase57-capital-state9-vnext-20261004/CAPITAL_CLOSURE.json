@@ -1,0 +1,57 @@
+{
+  "Capital_freeze_candidate": false,
+  "Claude_used": false,
+  "EXIT_v3_official_freeze_receipt_HEAD": "1ecbcc43f75279fa302f19fd896add2aac15b537",
+  "Frozen_EXIT_v3_HEAD": "c7a5e5c25eb19cbd58b45c3e4ffff977f4648fad",
+  "Frozen_Entry_HEAD": "4a2d6f35946b16820a13449a9288a6685a5c283c",
+  "Integrated_ready": false,
+  "Integrated_started": false,
+  "State9_value_disproved": false,
+  "basis_head": "c55b2b2134f79cbe33085b6757337048d150c2cb",
+  "blockers": [
+    "39 Frozen EXITs unresolved across29 sessions",
+    "1420 candidate holding windows lack some exact regular1m source marks",
+    "No certified cross-session mark continuity for hypothetically funded unresolved positions",
+    "Legacy quality features unavailable; legacy scorer is not semantically reproducible",
+    "Reference fills and raw source availability timestamps are different; historical actual arrival is unknown"
+  ],
+  "candidate_outcome_filtering": 0,
+  "completed": [
+    "C0_LATEST_AUDIT",
+    "C1_LEGACY_RECOVERY",
+    "C2_SOURCE_ADAPTER_AUDIT",
+    "INDEPENDENT_SOURCE_AUDIT"
+  ],
+  "current_Portfolio_values": null,
+  "force_pushes": 0,
+  "main_merges": 0,
+  "next_direction": "Resolve source/valuation/known-at admission first; resume C2, then C3; do not perform ranking fits while input admission is blocked.",
+  "not_executed": [
+    "C3_BASELINE",
+    "C4_ASOF_JOIN",
+    "C5_INCREMENTAL",
+    "C6_RANK_PRECOMMIT",
+    "C7_CURRENT_CAPITAL_POLICY",
+    "C8_MAX3_MAX4_MAX5_REPLAY",
+    "C9_FULL_PORTFOLIO_AUDIT"
+  ],
+  "orders": 0,
+  "repair_boundary": "Read-only recovery of an already frozen admissible source/receipt is allowed. If new prices/data, altered fill/cash timing or a different null-aware comparative protocol are required, this is a new lineage/protocol decision, not an import/path fix. Preserve the old freeze and append the difference before restarting.",
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "saved_at_jst": "2026-10-04T01:11:04.521686+09:00",
+  "status": "CAPITAL_ADAPTER_MISMATCH",
+  "stop_condition": "20.B",
+  "stop_stage": "C2",
+  "synthetic_cash_release": 0
+}

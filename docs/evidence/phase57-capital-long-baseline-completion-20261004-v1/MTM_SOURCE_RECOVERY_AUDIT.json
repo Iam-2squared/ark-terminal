@@ -1,0 +1,45 @@
+{
+  "jst": "2026-10-04T12:40:13.534+09:00",
+  "basis_head": "262e4da6f39c6f36dd1ac649c0be6121e11e0b93",
+  "status": "READ_ONLY_SOURCE_AUDIT_COMPLETE_NOT_MTM_ADMISSION",
+  "distinct_blocked_funded_positions_N": 1,
+  "affected_arms_N": 6,
+  "affected_sessions_N": 1,
+  "exact_final_minute_source_N": 0,
+  "saved_trade_minute_rows_in_same_closed_5m_window_N": 4,
+  "last_saved_minute_offset_before_grid": 2,
+  "saved_primary_vs_independent_window_value_mismatch_N": 0,
+  "comparison_scope": "Same four existing source rows from the previously independently extracted private source paths; this is not full independent portfolio audit.",
+  "raw_window_canonical_sha256": "dee79a22ea507406b8cce1df7fc9642cac275135770af25bf38c169c5ca315cb",
+  "source_hashes": {
+    "frozen_entry_gz": "e7a6140b6b11d8d078a271fad76b75e68a5b2fda9e45c7db43d98ee2f282abeb",
+    "primary_raw_paths_gz": "5e7c3624b4904d05c50c5bf8976ae23051d7f74c57808791de3a00997da4a856",
+    "independent_raw_paths_gz": "e22f94642d17bb0f8b23ceb3605f7c3ecda90cd7285333eed316fd23c629e29f"
+  },
+  "not_proven": [
+    "That the omitted final minute had no market trade",
+    "That same-window observed Close is identical to the missing exact final-1m Close",
+    "That a native provider 5m bar has been recovered",
+    "That switching marks would preserve allocation decisions or risk metrics"
+  ],
+  "native_or_aggregated_5m_contract_executed": false,
+  "price_imputation_N": 0,
+  "future_execution_status_rank_inputs_N": 0,
+  "funded_candidates_excluded_N": 0,
+  "capital_replays": 0,
+  "full_final_equity": null,
+  "full_return": null,
+  "full_max_drawdown": null,
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "productionReady": false
+  }
+}

@@ -1,0 +1,166 @@
+{
+  "causal_inference_by_occupancy": {
+    "0": {
+      "actions": {
+        "CASH_OR_LOT_CONSTRAINED": 6,
+        "FUNDED": 49
+      },
+      "decision_N": 55,
+      "p_accept_N": 0,
+      "p_accept_max": null,
+      "p_accept_mean": null,
+      "p_accept_median": null,
+      "p_accept_min": null
+    },
+    "1": {
+      "actions": {
+        "CASH_OR_LOT_CONSTRAINED": 2,
+        "FUNDED": 50,
+        "SLOT_RESERVE_REJECT": 176
+      },
+      "decision_N": 228,
+      "p_accept_N": 228,
+      "p_accept_max": 0.9322357482454724,
+      "p_accept_mean": 0.34340752329535484,
+      "p_accept_median": 0.29275276351046303,
+      "p_accept_min": 0.007081585999457283
+    },
+    "2": {
+      "actions": {
+        "CASH_OR_LOT_CONSTRAINED": 8,
+        "FUNDED": 22,
+        "SLOT_RESERVE_REJECT": 144
+      },
+      "decision_N": 174,
+      "p_accept_N": 174,
+      "p_accept_max": 0.9183128375224737,
+      "p_accept_mean": 0.2789166767538179,
+      "p_accept_median": 0.2096676733235331,
+      "p_accept_min": 0.0018859002090606863
+    },
+    "3": {
+      "actions": {
+        "MAX_POSITION_CAP": 37
+      },
+      "decision_N": 37,
+      "p_accept_N": 0,
+      "p_accept_max": null,
+      "p_accept_mean": null,
+      "p_accept_median": null,
+      "p_accept_min": null
+    }
+  },
+  "exact_jst": "2026-10-04T23:52:27.883841+09:00",
+  "models": [
+    {
+      "ACCEPT_N": 83,
+      "RESERVE_N": 129,
+      "block": 1,
+      "family": "LogisticRegression",
+      "n_iter": [
+        61
+      ],
+      "threshold": 0.5,
+      "train_N": 212,
+      "winner_fit": 0,
+      "within_block_refit": 0
+    },
+    {
+      "ACCEPT_N": 105,
+      "RESERVE_N": 182,
+      "block": 2,
+      "family": "LogisticRegression",
+      "n_iter": [
+        67
+      ],
+      "threshold": 0.5,
+      "train_N": 287,
+      "winner_fit": 0,
+      "within_block_refit": 0
+    },
+    {
+      "ACCEPT_N": 120,
+      "RESERVE_N": 222,
+      "block": 3,
+      "family": "LogisticRegression",
+      "n_iter": [
+        72
+      ],
+      "threshold": 0.5,
+      "train_N": 342,
+      "winner_fit": 0,
+      "within_block_refit": 0
+    },
+    {
+      "ACCEPT_N": 125,
+      "RESERVE_N": 304,
+      "block": 4,
+      "family": "LogisticRegression",
+      "n_iter": [
+        86
+      ],
+      "threshold": 0.5,
+      "train_N": 429,
+      "winner_fit": 0,
+      "within_block_refit": 0
+    },
+    {
+      "ACCEPT_N": 148,
+      "RESERVE_N": 368,
+      "block": 5,
+      "family": "LogisticRegression",
+      "n_iter": [
+        86
+      ],
+      "threshold": 0.5,
+      "train_N": 516,
+      "winner_fit": 0,
+      "within_block_refit": 0
+    },
+    {
+      "ACCEPT_N": 174,
+      "RESERVE_N": 387,
+      "block": 6,
+      "family": "LogisticRegression",
+      "n_iter": [
+        78
+      ],
+      "threshold": 0.5,
+      "train_N": 561,
+      "winner_fit": 0,
+      "within_block_refit": 0
+    },
+    {
+      "ACCEPT_N": 178,
+      "RESERVE_N": 444,
+      "block": 7,
+      "family": "LogisticRegression",
+      "n_iter": [
+        90
+      ],
+      "threshold": 0.5,
+      "train_N": 622,
+      "winner_fit": 0,
+      "within_block_refit": 0
+    },
+    {
+      "ACCEPT_N": 211,
+      "RESERVE_N": 456,
+      "block": 8,
+      "family": "LogisticRegression",
+      "n_iter": [
+        90
+      ],
+      "threshold": 0.5,
+      "train_N": 667,
+      "winner_fit": 0,
+      "within_block_refit": 0
+    }
+  ],
+  "outcome_quality": "Not improved under fixed downstream criteria",
+  "p_accept_meaning": "Probability of the frozen training ACCEPT teacher class, not a calibrated U5 or profit probability.",
+  "runtime_correctness": "Independent features/inference/actions mismatch0",
+  "support_all8_pass": true,
+  "teacher_target_accuracy_AUC": "Not recomputed: frozen private training state/teacher rows are not regenerated. Downstream U5/U10 quality is reported separately and is not teacher-target accuracy.",
+  "total_training_block_examples": 3636
+}

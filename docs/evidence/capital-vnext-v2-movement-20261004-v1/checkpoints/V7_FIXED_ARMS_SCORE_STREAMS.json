@@ -1,0 +1,251 @@
+{
+  "basis_head": "3560d0b9c94055e87d596a0f19e2d4d4af504ca1",
+  "blockers": [],
+  "branch": "capital-state9-vnext-20261004",
+  "current_state": "THREE_ARM_SCORE_STREAMS_FROZEN",
+  "design_config_hash": "42de3a21640502881f6c1cf678ba5d9c4ecf697fc12d0f8538bcfcc3ac35fcd4",
+  "exposure": {
+    "Development_sessions": 58,
+    "Fresh": 0,
+    "Holdout": 0,
+    "OOF": 38,
+    "OOS": 0,
+    "Prospective": 0,
+    "Protected": 0,
+    "Validation": 0,
+    "warmup": 20
+  },
+  "feature_manifest_hash": "efba2449967d937b6fd5b45067cbb4237fea8ede7e66905c148ba0b756769235",
+  "fit_count": 24,
+  "jst": "2026-10-04T15:30:54.167190+09:00",
+  "model_hash": "cefa65ff0e2ba1875ba6d8111b3eb79e3d5b4cd202348dcd1b4bc6e5e489c24b",
+  "next_direction": "Run exactly9 fixed portfolios using these immutable streams and the same execution assumptions. Do not inspect result-dependent source filters.",
+  "orders": 0,
+  "replay_count": 0,
+  "repo": "Iam-2squared/ark-terminal",
+  "result": {
+    "code_hashes": {
+      "allocation.py": "5a7a304a0ebc9bb93cb27325650f27580b1e84426b8d57c83792f7898e01579f",
+      "anatomy.py": "7e4a7c935477b5ea81d74fa3d825d7225dd386809fab9ae645f0df11ccf7993e",
+      "checkpoint.py": "0c042509004af6016b087a663fd572bd891d708b2f90ac389197801dfda679ea",
+      "core_features.py": "ee2f3a1c03780b2025a5fc87cdc0f3ba2877f6c05eda72914848f3a0715aa14a",
+      "execution.py": "7f084415ed92344fb99ef26e27ac48f2beeb868e643fba720bb61355339a8bc8",
+      "independent_audit.py": "2297d07edd88e9d0c4a8e86e69c6e8868a4f8eacdf5a1a72bba33550c45c4d8e",
+      "io_data.py": "956864006966fbaed5821dc8ecc8a06dea287129aaee852956c2387ec68e5bf9",
+      "model.py": "5fdbd1c1b90c8c96162bd6f6563c23bdfea76b61fb1b7f40db8d42ab6ec55620",
+      "movement.py": "794c56d930355a5b3ecbdc9b5ea57afd595e324274a6424d1bdfb1133875980e",
+      "prepare.py": "17d2f71e961c84d412b2c6db7c2c11f36a615c4d8a9917c971b008efbf371dbe",
+      "publish_payload.py": "95593bf987ada5b6f10a92c43b5c25038c88dde866ce5e04dbad71ed18e7f862",
+      "publish_receipt.py": "e1358b7ea7c48130ea84336b9d427068008d5d1861d1316d12c512a0d5f52188",
+      "recover_movement_source.py": "bea4ac6dc1e7c3884bb2bc5fdca18be587903f0430ab78bd3d75201bd9f81cf2",
+      "replay.py": "a4cae411510adbbaa277599b7ff2ad530caa38911607a92f3cc6d110f9d65a94",
+      "test_canaries.py": "0f91e1515071a1e8a631e9d6059bc249630b43ce2f120b2d114ccf0da8da5c88"
+    },
+    "design_hash": "42de3a21640502881f6c1cf678ba5d9c4ecf697fc12d0f8538bcfcc3ac35fcd4",
+    "feature_hash": "efba2449967d937b6fd5b45067cbb4237fea8ede7e66905c148ba0b756769235",
+    "fits": 24,
+    "model_hashes_hash": "cefa65ff0e2ba1875ba6d8111b3eb79e3d5b4cd202348dcd1b4bc6e5e489c24b",
+    "model_precommit_hash": "c138d8456c6bb1ecdbbf177bdfe6a78c8fba04df47f2e190f8098e5ebc312907",
+    "portfolio_runs_seen": 0,
+    "profile_refit": 0,
+    "ready_fixed_profiles": 9,
+    "runtime_hash": "7d0ae8b6a7f9c368f3d801c82a19cfc73b34ea13ef10f74b59ad85c82936e730",
+    "score_streams": {
+      "MOVE_P_shared_by_B_C": true,
+      "OOF_sessions": 38,
+      "arms": {
+        "CORE_P5": {
+          "N": 1039,
+          "capacity_bands": {
+            "BASE": 172,
+            "BELOW_THRESHOLD": 577,
+            "HIGH": 153,
+            "MID": 137
+          },
+          "score_ge1_N": 462,
+          "score_stream_sha256": "a34f2c4a090a589d4e80858b65f01f3dc95a7849a57aece7e815213d20429731"
+        },
+        "MOVE_DUAL": {
+          "N": 1039,
+          "capacity_bands": {
+            "BASE": 194,
+            "BELOW_THRESHOLD": 687,
+            "HIGH": 61,
+            "MID": 97
+          },
+          "score_ge1_N": 352,
+          "score_stream_sha256": "a0644d031943e5413f886591e9a1c74cb50a4eca0b26cbe955606fd2d9b01292"
+        },
+        "MOVE_P5": {
+          "N": 1039,
+          "capacity_bands": {
+            "BASE": 136,
+            "BELOW_THRESHOLD": 663,
+            "HIGH": 167,
+            "MID": 73
+          },
+          "score_ge1_N": 376,
+          "score_stream_sha256": "14c48e61554bd58c6d5289b410d6a8c859cb37efd0dbc5d98987fcb440aac2ed"
+        }
+      },
+      "fits_added_at_score_materialization": 0,
+      "productionReady": false,
+      "warmup_sessions": 20
+    },
+    "sweeps": 0,
+    "water_fill_off_arm": false
+  },
+  "result_commit_receipt": "receipts/V7_FIXED_ARMS_SCORE_STREAMS.json",
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "source_hashes": {
+    "initial": {
+      "upstream_entry": "4a2d6f35946b16820a13449a9288a6685a5c283c",
+      "upstream_exit": "c7a5e5c25eb19cbd58b45c3e4ffff977f4648fad",
+      "v1_execution_book": "ee7c88e19832439f615da54dc9df7e4a0307fdb1b2b5a18d3e1f60f71566736a",
+      "v1_final_source_manifest": {
+        "final_market_book_sha256": "ee7c88e19832439f615da54dc9df7e4a0307fdb1b2b5a18d3e1f60f71566736a",
+        "final_teacher_sha256": "85d2a595671c228d955d15a0b3334e4a2e6166f833cdef924a6e35ed37270ba8",
+        "prior": {
+          "initial": {
+            "work_inputs/exit_v2/FROZEN_ENTRY/P1_Q70_FIRST_ENTRY_RECORDS.jsonl.gz": "e7a6140b6b11d8d078a271fad76b75e68a5b2fda9e45c7db43d98ee2f282abeb",
+            "work_inputs/exit_v2/SAVED_INPUTS/raw_paths_selected.json.gz": "e22f94642d17bb0f8b23ceb3605f7c3ecda90cd7285333eed316fd23c629e29f",
+            "work_inputs/exit_v3/REPLAY_ROWS.jsonl.gz": "e162d94b9f532f1b6b44b7d602f6be50babec7a5183c4378473cefcd92d61234"
+          },
+          "saved_source_sha256": "6c500ffaf585e630386d45ed57bc6711d2203db0f0fca0059a4a7a10ddfe4595",
+          "source_receipt_sha256": "1f0159ba254fe4d402da0fa27e8947b69e2fe4becf52590517561ff74c7bc8be"
+        },
+        "supplement_source_sha256": "4addea6ca62253794a9e3b24f031e1884e984b81a154ca9747e5a3f52f41feff"
+      },
+      "v1_runtime": "52f722088dd046e7c53dae653b8a432804538ca086f296a1f4f838cc52a1ac4b",
+      "v1_teacher": "85d2a595671c228d955d15a0b3334e4a2e6166f833cdef924a6e35ed37270ba8"
+    },
+    "movement_shards": [
+      {
+        "bytes": 6817060,
+        "dates": [
+          "2025-04-30",
+          "2025-05-08",
+          "2025-05-14",
+          "2025-05-20",
+          "2025-05-26",
+          "2025-05-30",
+          "2025-06-05",
+          "2025-06-11",
+          "2025-06-17",
+          "2025-06-23",
+          "2025-06-27",
+          "2025-07-03",
+          "2025-07-09",
+          "2025-07-16",
+          "2025-07-23",
+          "2025-07-29",
+          "2025-08-04",
+          "2025-08-08",
+          "2025-08-15",
+          "2025-08-21"
+        ],
+        "filename": "MOVEMENT_SOURCE_PART_01.json.gz",
+        "records_N": 15448,
+        "sha256": "9d6dc565a82c5f70940c4865f7a656ab080127a3ee950f97c54302a1e57ea183"
+      },
+      {
+        "bytes": 6833806,
+        "dates": [
+          "2025-05-01",
+          "2025-05-09",
+          "2025-05-15",
+          "2025-05-21",
+          "2025-05-27",
+          "2025-06-02",
+          "2025-06-06",
+          "2025-06-12",
+          "2025-06-18",
+          "2025-06-24",
+          "2025-06-30",
+          "2025-07-04",
+          "2025-07-10",
+          "2025-07-17",
+          "2025-07-24",
+          "2025-07-30",
+          "2025-08-05",
+          "2025-08-12",
+          "2025-08-18",
+          "2025-08-22"
+        ],
+        "filename": "MOVEMENT_SOURCE_PART_02.json.gz",
+        "records_N": 15450,
+        "sha256": "d9448a7da1bdd39406b8c0b99f0fd35f84289d04e916c23dd1a38bbd88c9ccb3"
+      },
+      {
+        "bytes": 6867464,
+        "dates": [
+          "2025-05-02",
+          "2025-05-12",
+          "2025-05-16",
+          "2025-05-22",
+          "2025-05-28",
+          "2025-06-03",
+          "2025-06-09",
+          "2025-06-13",
+          "2025-06-19",
+          "2025-06-25",
+          "2025-07-01",
+          "2025-07-07",
+          "2025-07-14",
+          "2025-07-18",
+          "2025-07-25",
+          "2025-07-31",
+          "2025-08-06",
+          "2025-08-13",
+          "2025-08-19",
+          "2025-08-25"
+        ],
+        "filename": "MOVEMENT_SOURCE_PART_03.json.gz",
+        "records_N": 15450,
+        "sha256": "b3bd8876fb316607c505f3100ba0f22bdb0901cd1a879693782726c7464e49b1"
+      },
+      {
+        "bytes": 6500124,
+        "dates": [
+          "2025-05-07",
+          "2025-05-13",
+          "2025-05-19",
+          "2025-05-23",
+          "2025-05-29",
+          "2025-06-04",
+          "2025-06-10",
+          "2025-06-16",
+          "2025-06-20",
+          "2025-06-26",
+          "2025-07-02",
+          "2025-07-08",
+          "2025-07-15",
+          "2025-07-22",
+          "2025-07-28",
+          "2025-08-01",
+          "2025-08-07",
+          "2025-08-14",
+          "2025-08-20"
+        ],
+        "filename": "MOVEMENT_SOURCE_PART_04.json.gz",
+        "records_N": 14677,
+        "sha256": "9577518929bb995002eb2dcd0c8e950ea22ca6544e1b501d5d3e18280704c193"
+      }
+    ],
+    "recovery_receipt_hash": "6595dec6e3c05b4fdcee92c4931d28f0417cf21b8264481c06b87857e6303076",
+    "recovery_scope_hash": "f178d836514d297b1c209b877666a23abd866168441a678e47f7281d0cfcf905",
+    "runtime_hash": "7d0ae8b6a7f9c368f3d801c82a19cfc73b34ea13ef10f74b59ad85c82936e730",
+    "teacher_hash": "005e194cae26898d74ea95c3aea8464517f7b71d330e53d1a2ad05c767b89322"
+  }
+}

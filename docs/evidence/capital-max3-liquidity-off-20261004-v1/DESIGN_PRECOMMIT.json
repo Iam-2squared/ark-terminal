@@ -1,0 +1,205 @@
+{
+  "EOD": "Frozen confirmed <=15:20 first. Remaining15:20 full SELL intent; first admissible920<=minute<925; else exact930 valid auction; else unexecuted fail-closed; release only source+1.",
+  "EXIT_v4": "Rejected; not used",
+  "Head_R": 0,
+  "MAX4_MAX5_replays": 0,
+  "MTM": "MTM_LAST_ACTUAL_TRADE_SAME_SESSION_V1; raw actual Entry anchor; same-session past-only trade; never fill/cash release",
+  "Movement_active_features": 0,
+  "North_star_hit": "Separate field; true/false only for complete valid rolling windows, null if none.",
+  "North_star_scope": "Same38 supplied Development evaluation sessions,19 overlapping20-session windows. No opening/imputation of noncohort2025-07-11/07-14. Complete primary windows only.",
+  "accounting": {
+    "BUY": 1.0005,
+    "LONG_only": true,
+    "SELL": 0.9995,
+    "broker_commission_jpy": 0,
+    "extra_round_trip_fee": 0,
+    "initial_cash": 1000000,
+    "leverage": false,
+    "lot_shares": 100,
+    "margin": false,
+    "short": false
+  },
+  "allocation": {
+    "breadth_additional_selected_or_held_candidate_bonus": 0.055,
+    "caps_accounting": "BUY cash debit including one1.0005 factor, unchanged from control",
+    "equal_one_third_allocation": false,
+    "first_pass": "capital_score proportional; floor100; min(desired,equity_cap,available_cash)",
+    "maximum_concurrent_positions": 3,
+    "maximum_target_utilization": 0.92,
+    "quality_capacity_bands": {
+      "BASE": {
+        "base_utilization": 0.44,
+        "equity_cap": 0.25,
+        "score_gte": 1
+      },
+      "HIGH": {
+        "base_utilization": 0.68,
+        "equity_cap": 0.45,
+        "score_gte": 2
+      },
+      "MID": {
+        "base_utilization": 0.56,
+        "equity_cap": 0.35,
+        "score_gte": 1.5
+      }
+    },
+    "tie_break": [
+      "score DESC",
+      "Entry timestamp",
+      "symbol stable ASC"
+    ],
+    "water_fill": "Only initially funded selected same-timestamp candidates; fixed score-descending rounds of100-share lots within equity cap,budget,cash. No retries of zero-lot candidates or later top-ups."
+  },
+  "basis_head": "b0f20398f1d314f7822bf61b3cd1664b2a2cd1f1",
+  "branch": "capital-state9-vnext-20261004",
+  "comparison_scope": "Full38 paired primary comparison when all38 valid. If no complete paired38 series, primary full-series metrics are unavailable; report complete prefix/window and diagnostic-only counts explicitly, classify MEASUREMENT_BLOCKED rather than claim full38 improvement.",
+  "control_head": "c27413bd681ce2cb5587fa4e692526ca97590a0a",
+  "control_profile": "CORE_P5_MAX3",
+  "control_replays": 0,
+  "counterfactual_change": {
+    "candidate_liquidity_hard_reject": false,
+    "liquidity_position_size_cap": false,
+    "liquidity_role": "diagnostic-only; not an input to eligibility/ranking/quantity",
+    "liquidity_unknown_candidate_reject": false
+  },
+  "cycle": "Capital vNext v2.1 MAX3 Liquidity-OFF Counterfactual",
+  "deterministic_verification_replays": 1,
+  "entry_at_cutoff_funded": 0,
+  "entry_cutoff": 920,
+  "event_order": [
+    "causal marks",
+    "confirmed EXIT fill",
+    "cash release",
+    "Entry decisions",
+    "BUY and water-fill",
+    "equity snapshot"
+  ],
+  "exit_formal_receipt": "1ecbcc43f75279fa302f19fd896add2aac15b537",
+  "exposure": {
+    "Development_sessions": 58,
+    "Fresh": 0,
+    "Holdout": 0,
+    "OOF": 38,
+    "OOS": 0,
+    "Prospective": 0,
+    "Protected": 0,
+    "Validation": 0,
+    "warmup": 20
+  },
+  "fixed_control_hashes": {
+    "CORE_P_models": {
+      "CORE_P_BLOCK_01.json": "676ed9086f1cf26af40fce6ada5bedaaa218d9271ef8bef9076978f94bdfd461",
+      "CORE_P_BLOCK_02.json": "e58f840bde6c5f2d96e8be6dec7688e5ce9d9c1bb1518c62fadb91981e6145b1",
+      "CORE_P_BLOCK_03.json": "535889cabc2f50f9427748818b2d583b7b514bd73b4b44b71c36205f4bfdb423",
+      "CORE_P_BLOCK_04.json": "f3eb77670bdf20bc24fedeea8aec458a53e2caf6e6b159bb24259e0563747c08",
+      "CORE_P_BLOCK_05.json": "6fa7c3294853f8f08f8605c170d6a3d6bd35996400c0b786e6f42bc03c161a0d",
+      "CORE_P_BLOCK_06.json": "6669168f1e46f13f7d40dcef6ababbf1b012a2a6d50461431c9a3d9161caf093",
+      "CORE_P_BLOCK_07.json": "9545ba24bc4fce323bd2011ff5bf87bc065cfb39401c17ee7f6862a189536998",
+      "CORE_P_BLOCK_08.json": "437259018f4a94f63a954a10e30c80eb7666e2bdebab714a606c39d5a2d9ed0f"
+    },
+    "control_curve": {
+      "bytes": 178563,
+      "path": "capital_v2_private/CORE_P5_MAX3_CURVE.jsonl.gz",
+      "sha256": "5dbfa018eecefbcca2053595da8c60e44d51e4c9b6758baeb6f53021c4b09a5b"
+    },
+    "control_decisions": {
+      "bytes": 34690,
+      "path": "capital_v2_private/CORE_P5_MAX3_DECISIONS.jsonl.gz",
+      "sha256": "b97791b199c6d413e2e7f3217c547299d02d24f8c964f7e40514343bd7e5e2d1"
+    },
+    "control_intents": {
+      "bytes": 899,
+      "path": "capital_v2_private/CORE_P5_MAX3_INTENTS.jsonl.gz",
+      "sha256": "a91ea566aad90bdc413f82a2b277e603dcc4ab9d08d2cf19c0975e9c13d52419"
+    },
+    "control_result": {
+      "bytes": 21817,
+      "path": "capital_v2_private/CORE_P5_MAX3_RESULT.json",
+      "sha256": "9f77673eddf86ca3137d2c81810d1d97a90941eaba35877713be3c0622610b5d"
+    },
+    "control_trades": {
+      "bytes": 19231,
+      "path": "capital_v2_private/CORE_P5_MAX3_TRADES.jsonl.gz",
+      "sha256": "ed11301ebc8a0faa69037276692f6b90144db89debc57c51cd68b883dfec990e"
+    },
+    "core_score_stream": {
+      "bytes": 428398,
+      "path": "capital_v2_private/CORE_P5_SCORE_STREAM.jsonl.gz",
+      "sha256": "a34f2c4a090a589d4e80858b65f01f3dc95a7849a57aece7e815213d20429731"
+    },
+    "execution_book": {
+      "bytes": 7229451,
+      "path": "bigwinner_private/MARKET_EXECUTION_BOOK_V2.jsonl.gz",
+      "sha256": "ee7c88e19832439f615da54dc9df7e4a0307fdb1b2b5a18d3e1f60f71566736a"
+    },
+    "frozen_entry": {
+      "bytes": 452854,
+      "path": "work_inputs/exit_v2/FROZEN_ENTRY/P1_Q70_FIRST_ENTRY_RECORDS.jsonl.gz",
+      "sha256": "e7a6140b6b11d8d078a271fad76b75e68a5b2fda9e45c7db43d98ee2f282abeb"
+    },
+    "frozen_exit_rows": {
+      "bytes": 775351,
+      "path": "work_inputs/exit_v3/REPLAY_ROWS.jsonl.gz",
+      "sha256": "e162d94b9f532f1b6b44b7d602f6be50babec7a5183c4378473cefcd92d61234"
+    },
+    "v2_runtime": {
+      "bytes": 604031,
+      "path": "capital_v2_private/RUNTIME_CAUSAL.jsonl.gz",
+      "sha256": "7d0ae8b6a7f9c368f3d801c82a19cfc73b34ea13ef10f74b59ad85c82936e730"
+    },
+    "v2_teachers": {
+      "bytes": 117208,
+      "path": "capital_v2_private/TEACHERS_EVALUATION.jsonl.gz",
+      "sha256": "005e194cae26898d74ea95c3aea8464517f7b71d330e53d1a2ad05c767b89322"
+    }
+  },
+  "fixed_v2_feature_manifest_hash": "efba2449967d937b6fd5b45067cbb4237fea8ede7e66905c148ba0b756769235",
+  "fixed_v2_model_precommit_hash": "c138d8456c6bb1ecdbbf177bdfe6a78c8fba04df47f2e190f8098e5ebc312907",
+  "force_push": 0,
+  "frozen_entry": "4a2d6f35946b16820a13449a9288a6685a5c283c",
+  "frozen_exit": "c7a5e5c25eb19cbd58b45c3e4ffff977f4648fad",
+  "independent": "No import of Primary ranking/allocation/replay; independently coded exact Fraction quantities/cash/trades/marks/recycling/daily/rolling and capture. Shared fixed stream,teacher/source IO are explicit independence limit.",
+  "independent_verification_replays": 1,
+  "jst": "2026-10-04T17:03:07.236193+09:00",
+  "judgement": {
+    "IMPROVES": "daily geometric > control AND rolling20 median > control, full paired measurement",
+    "MEASUREMENT_BLOCKED": "full paired comparison unavailable due source/execution/accounting continuation failure",
+    "MIXED": "exactly one primary improves, or measured return improvement with additional execution problems when valid paired comparison is possible",
+    "WORSE": "both primary <=control, full paired measurement"
+  },
+  "main_merge": 0,
+  "measurement_replays": 1,
+  "model_reproduction": false,
+  "models": "Existing 8 CORE_P block artifacts only; no calls to fit or model search",
+  "new_features": 0,
+  "new_fits": 0,
+  "new_provider_requests": 0,
+  "newly_funded_cohort": "OFF funded entry_ids minus fixed Control funded entry_ids. Split historical LIQUIDITY_ELIGIBLE/EXTREME/UNKNOWN and actual closed/unexecuted; primary and diagnostic-only distinguished.",
+  "no_trade_mtm_event": "Per open position at regular closed5m boundary, full window after Entry, zero admissible actual rows in that past5m. Also report stale-mark minute snapshots. Marks do not generate releases.",
+  "old_reject52": "Exactly OOF BigWinner5 with Control historical liquidity eligible=false. Report pre-cutoff score>=1 N,OFF funded N,Winner5/10, realized return and allocated cash PnL; no hindsight selection.",
+  "orders": 0,
+  "policy_hash": "b29526c587941146096ce100910f3109f346948d3e16cade5e0d670f511a269e",
+  "policy_id": "CAPITAL_MAX_CONCURRENT_3_RESEARCH_POLICY_V1",
+  "realized_cohort_statistics": "Valid closed fills only; unresolved returns remain null and counted; PnL includes one BUY/SELL factor each; no-trade marks excluded from realized.",
+  "reentry": "Evidence-only; not used",
+  "repo": "Iam-2squared/ark-terminal",
+  "result_based_retuning": 0,
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "same_day_failure": "Null ending equity/return on execution blocked day. Subsequent days retain v2 diagnostic-only fresh1m replay, primary_chain=false. Do not invent continuation equity or fill. Continue all38 sessions.",
+  "score_stream": "Reuse exact existing CORE_P5 OOF stream; fixed capital_score=liftP=pP/baseP",
+  "score_stream_hash": "a34f2c4a090a589d4e80858b65f01f3dc95a7849a57aece7e815213d20429731",
+  "score_threshold": 1.0,
+  "stop": "Fix the single counterfactual result and STOP; no gate/cap rescue or automatic promotion.",
+  "sweeps": 0
+}

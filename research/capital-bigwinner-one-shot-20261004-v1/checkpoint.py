@@ -58,7 +58,7 @@ def checkpoint(label, status, results, blockers, next_direction, extras=()):
     else:
         save(checkpoint_path,record)
     paths = [str(OUT.relative_to(ROOT)),str(Path(__file__).parent.relative_to(ROOT)),*extras]
-    subprocess.run(['git','add','--',*paths],cwd=ROOT,check=True)
+    subprocess.run(['git','add','--sparse','--',*paths],cwd=ROOT,check=True)
     if not git('config','user.name'):
         raise RuntimeError('Git author not configured')
     print(json.dumps({'checkpoint':label,'basis_head':basis,'status':status,

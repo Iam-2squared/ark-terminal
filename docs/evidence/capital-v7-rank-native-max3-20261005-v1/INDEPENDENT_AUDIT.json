@@ -1,0 +1,204 @@
+{
+  "Oracle": "Distinct binary occupancy MILP global upper bound + exact feasible cash witness, not Primary flow solver",
+  "Oracle_results": {
+    "ADMISSION_U10": {
+      "cash_relaxed_MILP_gap": 0.0,
+      "exact_cash_witness_min": "14149889/20",
+      "global_count_ceiling_certified": true,
+      "max_held": 3,
+      "upper_U10": 55,
+      "upper_U5": null
+    },
+    "ADMISSION_U5": {
+      "cash_relaxed_MILP_gap": 0.0,
+      "exact_cash_witness_min": "477739",
+      "global_count_ceiling_certified": true,
+      "max_held": 3,
+      "upper_U10": 55,
+      "upper_U5": 116
+    },
+    "ALL_U10": {
+      "cash_relaxed_MILP_gap": 0.0,
+      "exact_cash_witness_min": "712527",
+      "global_count_ceiling_certified": true,
+      "max_held": 3,
+      "upper_U10": 67,
+      "upper_U5": null
+    },
+    "ALL_U5": {
+      "cash_relaxed_MILP_gap": 0.0,
+      "exact_cash_witness_min": "6936289/20",
+      "global_count_ceiling_certified": true,
+      "max_held": 3,
+      "upper_U10": 67,
+      "upper_U5": 149
+    }
+  },
+  "Primary_runtime_replay_evaluator_imports": 0,
+  "accounting": "Exact Fraction independently replayed trajectory",
+  "check_N": 233907,
+  "exact_jst": "2026-10-05T02:10:17.085107+09:00",
+  "float_tolerance": 1e-12,
+  "fresh_OOS_claim": false,
+  "implementation_independent_market_source_not_independent": true,
+  "independent_recalculations_not_primary_replays": 2,
+  "independent_selection": {
+    "NEXT_BOTTLENECK": "MAX3_PHYSICAL_OCCUPANCY",
+    "diagnostic_arm": "RANK_NATIVE_GREEDY_MAX3",
+    "eligible_winner": null,
+    "reason_gaps": {
+      "CASH_SIZING": 7,
+      "LAST_SLOT_RESERVE": 0,
+      "MAX3_PHYSICAL_OCCUPANCY": 67,
+      "RANK_ADMISSION": 46
+    },
+    "selectedCapitalCandidate": null
+  },
+  "max_float_delta": 1.1102230246251565e-15,
+  "mismatch_N": 0,
+  "mismatches": [],
+  "model_inference": "Scalar math.fsum independently rebuilt feature vector",
+  "money_quantity_tolerance": 0,
+  "new_fits": 0,
+  "primary_replays_remain": 2,
+  "profiles": {
+    "RANK_NATIVE_GREEDY_MAX3": {
+      "economics": {
+        "arithmetic_mean_daily_return": 0.008030910944453478,
+        "capital_recycling_used_jpy": 6818319.1,
+        "final_equity": 1320438.35,
+        "funded_N": 171,
+        "geometric_mean_daily_return": 0.007341654679876011,
+        "idle_cash_mean_jpy": 608005.2597886763,
+        "max_drawdown": 0.12224147990148176,
+        "mean_idle_cash_fraction": 0.5245545972663451,
+        "median_daily_return": 0.0006041831457788397,
+        "north_star_hit_N": 0,
+        "rolling20_arithmetic_mean": 1.0759537031358188,
+        "rolling20_maximum": 1.2254908119453212,
+        "rolling20_median": 1.048074176360696,
+        "rolling20_minimum": 0.989426841349073,
+        "utilization_mean": 0.47544540273365493,
+        "utilization_median": 0.5400594447867626
+      },
+      "preservation": {
+        "U10_funded": 27,
+        "U5_funded": 50,
+        "below2_rate": 0.4327485380116959,
+        "conservation": {
+          "U10": {
+            "CASH_OR_LOT": 4,
+            "EXECUTION_BLOCKED": 0,
+            "FUNDED": 27,
+            "LAST_SLOT_RESERVE_REJECT": 0,
+            "MAX3_FULL": 24,
+            "OTHER_EXPLICIT": 0,
+            "RANK_BASE_REJECT": 12,
+            "SAME_SYMBOL": 0
+          },
+          "U5": {
+            "CASH_OR_LOT": 7,
+            "EXECUTION_BLOCKED": 0,
+            "FUNDED": 50,
+            "LAST_SLOT_RESERVE_REJECT": 0,
+            "MAX3_FULL": 67,
+            "OTHER_EXPLICIT": 0,
+            "RANK_BASE_REJECT": 46,
+            "SAME_SYMBOL": 0
+          }
+        },
+        "slot_quality": {
+          "1": {
+            "N": 38,
+            "U10": 10,
+            "U5": 15,
+            "below2_N": 14
+          },
+          "2": {
+            "N": 54,
+            "U10": 7,
+            "U5": 16,
+            "below2_N": 27
+          },
+          "3": {
+            "N": 79,
+            "U10": 10,
+            "U5": 19,
+            "below2_N": 33
+          }
+        }
+      },
+      "preservation_PASS": false,
+      "status": "NO_GO"
+    },
+    "RANK_NATIVE_LAST_SLOT_OPTION_MAX3": {
+      "economics": {
+        "arithmetic_mean_daily_return": 0.00214959690485484,
+        "capital_recycling_used_jpy": 7192429.15,
+        "final_equity": 1051087.75,
+        "funded_N": 160,
+        "geometric_mean_daily_return": 0.0013120594800346795,
+        "idle_cash_mean_jpy": 592338.1588596491,
+        "max_drawdown": 0.21202387789050872,
+        "mean_idle_cash_fraction": 0.5514955208593761,
+        "median_daily_return": -0.005862865415280282,
+        "north_star_hit_N": 0,
+        "rolling20_arithmetic_mean": 0.9641337276177808,
+        "rolling20_maximum": 1.1311273644885507,
+        "rolling20_median": 0.9396052222427522,
+        "rolling20_minimum": 0.8638211957187142,
+        "utilization_mean": 0.4485044791406239,
+        "utilization_median": 0.48145494013110035
+      },
+      "preservation": {
+        "U10_funded": 25,
+        "U5_funded": 51,
+        "below2_rate": 0.41875,
+        "conservation": {
+          "U10": {
+            "CASH_OR_LOT": 3,
+            "EXECUTION_BLOCKED": 0,
+            "FUNDED": 25,
+            "LAST_SLOT_RESERVE_REJECT": 17,
+            "MAX3_FULL": 10,
+            "OTHER_EXPLICIT": 0,
+            "RANK_BASE_REJECT": 12,
+            "SAME_SYMBOL": 0
+          },
+          "U5": {
+            "CASH_OR_LOT": 6,
+            "EXECUTION_BLOCKED": 0,
+            "FUNDED": 51,
+            "LAST_SLOT_RESERVE_REJECT": 41,
+            "MAX3_FULL": 26,
+            "OTHER_EXPLICIT": 0,
+            "RANK_BASE_REJECT": 46,
+            "SAME_SYMBOL": 0
+          }
+        },
+        "slot_quality": {
+          "1": {
+            "N": 38,
+            "U10": 10,
+            "U5": 15,
+            "below2_N": 14
+          },
+          "2": {
+            "N": 71,
+            "U10": 9,
+            "U5": 22,
+            "below2_N": 33
+          },
+          "3": {
+            "N": 51,
+            "U10": 6,
+            "U5": 14,
+            "below2_N": 20
+          }
+        }
+      },
+      "preservation_PASS": false,
+      "status": "NO_GO"
+    }
+  }
+}

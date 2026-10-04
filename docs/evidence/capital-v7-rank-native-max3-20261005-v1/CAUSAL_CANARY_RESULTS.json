@@ -1,0 +1,151 @@
+{
+  "OOF_Development_primary_replays": 0,
+  "Safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "all_PASS": true,
+  "code_sha256": {
+    "canary.py": "f901bd9e801f8a16d04e6c312a1f6b00f38632680a35d697dc802643c80f2aae",
+    "control.py": "f9274188d66092ba6dcae23911593eec8fed9aac8b23589e44040fbcb83d3718",
+    "design.py": "9cb9bb7cf150949329384adf3a3b446d0a0cec43578bfaf955e12d818f6e9191",
+    "execution_bridge.py": "f5a391e07b4a065c191750ed55b4650201a9b2f33e12594166073feb8afc8355",
+    "freeze.py": "b6b2c9e29053c8b3f86a7768ba2bbfba787b9daeaf241210e6204d39b00a480d",
+    "independent_engine.py": "dc4e4a3412c0801da93cc79a9b3678658998e53cb1146594e85539b130c00293",
+    "mapping.py": "89364f65c8d930a3a41260538a683738415e4e8fc993433b65bacd9ad1b8d6b8",
+    "oracle.py": "9d446a43a3ae013a4c738c1221eaa3ab6a61f2de188f6f04b6d3c2b4bc15bb75",
+    "oracle_execute.py": "64f031b1c8b01622ab3c81770b6318e64da073b85ca47d564dca7f7347d2ee75",
+    "replay.py": "824c1ca4a48080cc00b3dc2afd0be1107e086056ebc8ed05e7eea6d394359872",
+    "runtime.py": "14358d7e85190e41cfe90e488b9e6e84e0f7acd8ace96952da542c81fd16353b"
+  },
+  "exact_jst": "2026-10-05T02:05:57.987386+09:00",
+  "independent_mapping_check_N": 26587,
+  "independent_mapping_mismatch_N": 0,
+  "input_source_unavailable_N": 12,
+  "max_scalar_model_float_delta": 1.1102230246251565e-15,
+  "source_unavailable_added_runtime_gate": false,
+  "synthetic_scenarios_only": true,
+  "test_N": 28,
+  "tests": [
+    {
+      "PASS": true,
+      "test": "01_pP_score_hash_exact"
+    },
+    {
+      "PASS": true,
+      "test": "02_saved_models_hash_exact"
+    },
+    {
+      "PASS": true,
+      "test": "03_common_mask_exact"
+    },
+    {
+      "PASS": true,
+      "test": "04_future_label_in_X_zero"
+    },
+    {
+      "PASS": true,
+      "test": "05_future_test_arrivals_not_in_table"
+    },
+    {
+      "PASS": true,
+      "test": "06_training_sessions_strictly_before_test"
+    },
+    {
+      "PASS": true,
+      "test": "07_training_percentile_independent_deterministic"
+    },
+    {
+      "PASS": true,
+      "test": "08_band_volume_independent_deterministic"
+    },
+    {
+      "PASS": true,
+      "test": "09_cutoff_1520_funded_zero"
+    },
+    {
+      "PASS": true,
+      "test": "10_same_minute_pP_order"
+    },
+    {
+      "PASS": true,
+      "test": "11_A2_occupancy0_no_reserve"
+    },
+    {
+      "PASS": true,
+      "test": "12_A2_occupancy1_no_reserve"
+    },
+    {
+      "PASS": true,
+      "test": "13_A2_occupancy2_exact_half_reserve"
+    },
+    {
+      "PASS": true,
+      "test": "14_occupancy3_accept_zero"
+    },
+    {
+      "PASS": true,
+      "test": "15_P_future_better_no_test_data"
+    },
+    {
+      "PASS": true,
+      "test": "16_no_replacement"
+    },
+    {
+      "PASS": true,
+      "test": "17_frozen_EXIT_exact"
+    },
+    {
+      "PASS": true,
+      "test": "18_cash_release_exact"
+    },
+    {
+      "PASS": true,
+      "test": "19_cash_nonnegative"
+    },
+    {
+      "PASS": true,
+      "test": "20_lot_multiple100"
+    },
+    {
+      "PASS": true,
+      "test": "21_same_symbol_no_overlap"
+    },
+    {
+      "PASS": true,
+      "test": "22_no_backfill_after_cash_lot"
+    },
+    {
+      "PASS": true,
+      "test": "23_no_later_topup"
+    },
+    {
+      "PASS": true,
+      "test": "24_Oracle_never_runtime"
+    },
+    {
+      "PASS": true,
+      "test": "25_future_U5_mutation_evaluator_only"
+    },
+    {
+      "PASS": true,
+      "test": "26_future_EXIT_change_no_current_leak"
+    },
+    {
+      "PASS": true,
+      "test": "27_monotone_rescale_rank_band_invariant"
+    },
+    {
+      "PASS": true,
+      "test": "28_independent_band_action_quantity"
+    }
+  ]
+}

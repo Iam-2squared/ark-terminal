@@ -1,0 +1,32 @@
+{
+  "jst": "2026-10-04T12:45:11.560+09:00",
+  "basis_head": "1c659439a434f8e74a264eec7c053d9ca968c3dc",
+  "contract_id": "CAPITAL_OBSERVED_CLOSED_5M_WINDOW_MTM_REFERENCE_V1",
+  "status": "AUTHORIZED_PRECOMMITTED",
+  "grid": "09:05..11:30 and12:35..15:25 JST every5 active minutes; [t−5,t) window, half-open",
+  "source": "Existing saved unadjusted1m raw rows with complete minute timestamp and positive finite Close, same symbol/session; chronological latest row in the current closed5m window",
+  "mark": "Close of that latest saved bar, not a synthetic bar and not a missing-price imputation",
+  "known_at": "Bar assumed available after its minute completes; chosen minute+1<=grid t; publish at grid t. Actual historical receipt UNKNOWN; research-reference contract, no live certification.",
+  "in_window_last_observed_allowed": true,
+  "cross_window_price_carry_allowed": false,
+  "interpolation_allowed": false,
+  "forward_fill_allowed": false,
+  "fabricated_price_allowed": false,
+  "empty_window": "POSITION_MEASUREMENT_BLOCKED / MISSING_FUNDED_WINDOW_MTM_MARK; stop this arm, preserve all candidates and only known-prefix records; full metrics null",
+  "source_conflict": "Fail-closed on duplicate minute with different OHLC values; don't choose favourable price",
+  "future_fields": "Minute >=t, next window, High/Low, future EXIT PnL, future execution status do not determine current mark or BUY rank",
+  "event_order": "Scheduled valid source-completion cash release -> current closed-window marks for still-open funded positions -> same-time Entry allocation -> frame",
+  "no_holdout_open": true,
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "productionReady": false
+  }
+}

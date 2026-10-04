@@ -1,0 +1,112 @@
+{
+  "jst": "2026-10-04T12:45:11.560+09:00",
+  "repo": "Iam-2squared/ark-terminal",
+  "branch": "capital-state9-vnext-20261004",
+  "basis_head": "1c659439a434f8e74a264eec7c053d9ca968c3dc",
+  "status": "USER_AUTHORIZED_PRECOMMIT_BEFORE_NEW_REPLAY_RESULTS",
+  "authorization": "2026-10-04T12:43:32+09:00 user explicitly approved each closed5m window's latest saved1m bar Close as its MTM valuation contract.",
+  "scope": "Current LONG-only Frozen FIRST ENTRY v2 P1_Q70 + Frozen Structural EXIT v3 + existing downstream EOD/cutoff/liquidity. Old mechanics/current P1 input baseline only; no State9-aware new Capital, old historical performance lookup, Integrated or live trading.",
+  "universe": {
+    "identities": 1600,
+    "development_sessions": 58,
+    "all_candidates_retained": true
+  },
+  "frozen": {
+    "entry": "4a2d6f35946b16820a13449a9288a6685a5c283c",
+    "exit": "c7a5e5c25eb19cbd58b45c3e4ffff977f4648fad",
+    "formal_exit_receipt": "1ecbcc43f75279fa302f19fd896add2aac15b537",
+    "changes": 0
+  },
+  "baseline_policy_id": "CURRENT_CAUSAL_CAPITAL_BASELINE_CONTINUOUS_V1",
+  "arms": [
+    "CURRENT_CAUSAL_BASELINE_MAX3",
+    "CURRENT_CAUSAL_BASELINE_MAX4",
+    "CURRENT_CAUSAL_BASELINE_MAX5",
+    "FIXED_SANITY_MAX3",
+    "FIXED_SANITY_MAX4",
+    "FIXED_SANITY_MAX5"
+  ],
+  "adaptive": {
+    "score": "Frozen first_intent.score, unchanged, no new fit",
+    "ordering": "descending current causal score then stable identity",
+    "weight": "0.5+s",
+    "candidate_equity_cap_fraction": "0.20+0.20*s",
+    "target_utilization": "min(0.90,0.60+0.25*best_current_eligible_candidate_score+0.02*(eligible_breadth-1))",
+    "deployment": "max(0,equity*targetUtil-current_marked_investment); sequential remaining-weight allocation",
+    "max_n": "Concurrent position cap only, never 1/N sizing",
+    "existing_positions_rebalanced": false
+  },
+  "shared": {
+    "entry_cutoff": "Entry fill_timestamp >=15:20 JST => zero funding; Frozen identities unchanged",
+    "liquidity": "1% exact immediately prior20 trading sessions median daily Trading Value; existing capacities and source only; input UNKNOWN => fail-closed funding0, never future execution availability gate",
+    "lot": 100,
+    "account": "LONG cash only; no SHORT/margin/leverage",
+    "normal_eod": "EOD_LIQUIDATION_1520_SOR_MARKET_V1, valid intraday/auction reference outcome only",
+    "limitup": "LIMIT_UP_HOLD_TO_CLOSING_AUCTION_V1 only causally confirmed flags; current stored flags UNKNOWN => normal route, no invented confirmations",
+    "broker_commission_jpy": 0,
+    "buy_effective_factor": "1.0005",
+    "sell_effective_factor": "0.9995",
+    "friction_applied_once": true,
+    "old_roundtrip_fee_added": false,
+    "cash_release": "Only valid fill at original assumed_available_at source completion; no reference backdating",
+    "missing_funded_execution": "Stop arm with null full metrics, no cash release or PnL0 substitution"
+  },
+  "new_mtm_contract_id": "CAPITAL_OBSERVED_CLOSED_5M_WINDOW_MTM_REFERENCE_V1",
+  "primary_outputs": [
+    "session geometric/arithmetic/median growth",
+    "rolling20 terminal asset equivalent from ¥1m: min/median/mean/max and >=¥2m windows",
+    "MAX3/4/5 comparison"
+  ],
+  "auditing_outputs": [
+    "Final Equity",
+    "MaxDD",
+    "time-weighted utilization",
+    "cash recycling",
+    "costs",
+    "accepted/rejected/lot/liquidity reasons",
+    "winner captures",
+    "session and symbol concentration"
+  ],
+  "evaluation": {
+    "session_returns": "close_equity[d]/previous_session_close_equity-1; initial denominator¥1m, all58 source cohort sessions incl zero-trade sessions",
+    "geometric_mean": "product(1+daily_return)^(1/58)-1; only if full58 measurement",
+    "rolling20": "58−20+1=39 overlapping chronological20-session windows; growth = Equity_end[i+20]/Equity_end[i], including initial Equity at index0; initial¥1m equivalent = growth*¥1m",
+    "stats": "min, ordinary median, arithmetic mean, max across all39 windows; no selected-window-only winner claim",
+    "north_star": "¥1m→¥2m in20sessions is evaluation only; no retuning",
+    "risk": "MTM curves include initial¥1m in peak reference; active-session minute durations exclude lunch for utilization"
+  },
+  "budget": {
+    "research_replays": 6,
+    "new_fits": 0,
+    "new_rankers": 0,
+    "threshold_sweeps": 0,
+    "deadline_sweeps": 0,
+    "liquidity_sweeps": 0,
+    "provider_requests": 0,
+    "new_market_data": 0,
+    "protected_fresh_oos_validation_opens": 0,
+    "state9_new_evaluations": 0,
+    "claude_uses": 0
+  },
+  "technical_repair": "Deterministic import/path/serialization and numerical/accounting audit repairs allowed without policy change; no outcome-based feature/threshold rescue",
+  "what_changed": [
+    "Only formal MTM valuation contract: same closed window latest saved1m Close; append-only new cycle"
+  ],
+  "what_did_not_change": [
+    "Frozen Entry/EXIT/source",
+    "score/sizing/lot/liquidity/cutoff/EOD/cash release/cost",
+    "old evidence/STOP statuses"
+  ],
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "productionReady": false
+  }
+}

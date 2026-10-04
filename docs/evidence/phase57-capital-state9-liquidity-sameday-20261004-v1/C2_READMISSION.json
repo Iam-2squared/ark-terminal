@@ -1,0 +1,109 @@
+{
+  "jst": "2026-10-04T11:10:50.690336+09:00",
+  "repo": "Iam-2squared/ark-terminal",
+  "branch": "capital-state9-vnext-20261004",
+  "basis_head": "a50c560cfa05262354d36498b9be19c7cc13bc00",
+  "status": "CAPITAL_C2_CONTRACT_PASS",
+  "gate_count": 15,
+  "gates": [
+    {
+      "name": "1600 identities preserved",
+      "status": "PASS"
+    },
+    {
+      "name": "Frozen Entry/EXIT unchanged",
+      "status": "PASS"
+    },
+    {
+      "name": "15:20 cutoff precommitted",
+      "status": "PASS"
+    },
+    {
+      "name": "execution UNKNOWN excluded from runtime allowlist",
+      "status": "PASS"
+    },
+    {
+      "name": "BUY decision independent of future execution availability",
+      "status": "PASS"
+    },
+    {
+      "name": "funded UNKNOWN measurement blocked / PnL null",
+      "status": "PASS"
+    },
+    {
+      "name": "price imputation0",
+      "status": "PASS"
+    },
+    {
+      "name": "normal/limit-up same-day EOD contract unique",
+      "status": "PASS"
+    },
+    {
+      "name": "normal/limit-up roles mutually exclusive",
+      "status": "PASS"
+    },
+    {
+      "name": "cash release only valid fill at source-completion clock",
+      "status": "PASS"
+    },
+    {
+      "name": "broker commission0",
+      "status": "PASS"
+    },
+    {
+      "name": "execution factor applied once / old fees not added",
+      "status": "PASS"
+    },
+    {
+      "name": "future suffix canaries PASS",
+      "status": "PASS"
+    },
+    {
+      "name": "Primary/Independent mismatch0",
+      "status": "PASS"
+    },
+    {
+      "name": "Safety allfalse",
+      "status": "PASS"
+    }
+  ],
+  "candidate_count": 1600,
+  "capital_entry_eligible_count": 1578,
+  "capital_entry_cutoff_count": 22,
+  "parent_execution_unknown_count": 18,
+  "parent_future_source_complete_required": false,
+  "frozen_changes": 0,
+  "price_imputation": 0,
+  "outcome_based_exclusions": 0,
+  "independent_mismatch": 0,
+  "synthetic_checks": 12881,
+  "capital_performance_pass": false,
+  "position_measurement_pass": false,
+  "next_direction": "AUTO_RESUME_C3_CURRENT_CAUSAL_BASELINE_NOW",
+  "remaining_inputs": [
+    "Exact prior20 liquidity source recovery",
+    "Funded-only execution/MTM evidence after causal funding",
+    "Formal entry as-of State9/path join"
+  ],
+  "budgets": {
+    "fits": 0,
+    "replays": 0,
+    "provider_requests": 0,
+    "orders": 0,
+    "main_merges": 0,
+    "force_push": 0,
+    "claude": 0
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "productionReady": false
+  }
+}

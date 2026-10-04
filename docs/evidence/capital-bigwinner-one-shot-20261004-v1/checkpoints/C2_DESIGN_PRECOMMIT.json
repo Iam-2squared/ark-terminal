@@ -1,0 +1,206 @@
+{
+  "basis_head": "42b9a20f2102a7c70e7d52dbe312dd613e6f0723",
+  "blockers": [],
+  "branch": "capital-state9-vnext-20261004",
+  "config_hash": "d193d0e4bd8ac64e034afc7cd1f6adbfdf2bf4e48fbacda126e7f1ec20b837c4",
+  "current_state": "ONE_SHOT_DESIGN_FIXED_BEFORE_RESULTS",
+  "feature_manifest_hash": null,
+  "jst": "2026-10-04T14:12:49.682317+09:00",
+  "model_hash": null,
+  "model_precommit_hash": null,
+  "next_direction": "Freeze actual feature manifest and one deterministic model; finish saved-source recovery.",
+  "orders": 0,
+  "repo": "Iam-2squared/ark-terminal",
+  "result_head_receipt": "receipts/C2_DESIGN_PRECOMMIT.json",
+  "results": {
+    "config": {
+      "accounting": {
+        "buy_factor": "1.0005",
+        "cash_only": true,
+        "commission_jpy": 0,
+        "extra_round_trip_fee": 0,
+        "lot": 100,
+        "rebalance_open_positions": false,
+        "sell_factor": "0.9995",
+        "side": "LONG"
+      },
+      "adaptive": {
+        "base_utilization": {
+          "A": 0.56,
+          "B": 0.44,
+          "S": 0.68
+        },
+        "breadth_bonus": 0.055,
+        "candidate_equity_caps": {
+          "A": 0.35,
+          "B": 0.25,
+          "S": 0.45
+        },
+        "maximum_utilization": 0.92,
+        "old_code": "predict/portfolio/phase57-p25-adaptive-allocation-v2.js",
+        "profiles": [
+          3,
+          4,
+          5
+        ],
+        "semantics": "Rank eligible same-time candidates; take free MAX-N slots; compute utilization from existing holdings plus accepted eligible candidates, capped at92%; fixed prebatch budget=min(cash,max(0,equity*target-existing raw-mark exposure)); proportional budget, rank cap, liquidity cap, available cash; lot floor; no redistribution of cap/lot residue within batch, as existing audited Adaptive mechanics.",
+        "tie_break": [
+          "score_desc",
+          "entry_timestamp",
+          "symbol_asc"
+        ],
+        "weight": "p_bigwinner5 proportional"
+      },
+      "blocked_day": {
+        "continue_other_days": "Each session remains isolated cash-only; when prior funded execution blocked, next session origin cash unknown, so continue with declared1,000,000Jpy standalone diagnostic replay. Those later diagnostics cannot rejoin primary compounded chain. No source-based funding filter and no pretend cash release.",
+        "continue_other_profiles": true,
+        "return": null,
+        "rolling": "Only20 consecutive valid sessions with continuous measured origin equity; null never0."
+      },
+      "claude": 0,
+      "entry_cutoff": {
+        "exact_cutoff_funding": 0,
+        "exclusive_jst": "15:20:00",
+        "id": "CAPITAL_ENTRY_CUTOFF_1520_V1"
+      },
+      "entry_frozen_head": "4a2d6f35946b16820a13449a9288a6685a5c283c",
+      "eod": {
+        "auction_source": "Valid exact15:30 TSE closing auction source, inherited terminal availability=15:31; actual arrival UNKNOWN",
+        "fallback": "EOD_UNEXECUTED_FAIL_CLOSED",
+        "frozen_exit_priority": "Frozen EXIT fill cash-release time<=15:20 precedes overlay; no double SELL. Later frozen intent canceled by full remaining EOD SELL.",
+        "intent": "15:20 SOR MARKET DAY full remaining SELL, transmitted=false",
+        "limit_up_same_intent": true,
+        "regular_source": "First valid actual TSE minute Open with start>=15:20 and start<15:25, availability=bar_end; no reference-backdated cash release"
+      },
+      "event_order": [
+        "causal_marks",
+        "confirmed_exit_fill",
+        "cash_release",
+        "entry_decisions",
+        "buy",
+        "snapshot"
+      ],
+      "exit_freeze_receipt_head": "1ecbcc43f75279fa302f19fd896add2aac15b537",
+      "exit_frozen_head": "c7a5e5c25eb19cbd58b45c3e4ffff977f4648fad",
+      "exit_v4": false,
+      "future_outcome_visible_to_allocator": false,
+      "initial_cash_jpy": 1000000,
+      "label": {
+        "diagnostic": [
+          0.03,
+          0.1
+        ],
+        "exit_outcome_teacher": false,
+        "future_bar_start_before_minute": 920,
+        "future_bar_start_strictly_after_entry": true,
+        "id": "SAME_DAY_BIG_WINNER_5_V1",
+        "negative_requires_complete_capture": true,
+        "positive_return": 0.05,
+        "raw_entry_reference": true
+      },
+      "limit_up": {
+        "confirmed_requires_authoritative_base_price_limit_and_causal_status": true,
+        "eod_delay": false,
+        "future_high_recognition": false,
+        "gate_exception": false,
+        "id": "LIMIT_UP_POSITION_HANDLING_V1",
+        "missing_authority": "LIMIT_UP_UNKNOWN"
+      },
+      "liquidity": {
+        "capacity_daily_value_fraction": 0.01,
+        "coverage_denominator_regular_windows": 65,
+        "id": "CAPITAL_SIMPLE_LIQUIDITY_GATE_V1",
+        "lookback_completed_sessions": 20,
+        "minimum_lot": 100,
+        "minimum_lot_daily_value_fraction": 0.005,
+        "minimum_median_active_5m_coverage": 0.6,
+        "minimum_paired_support": 10,
+        "missing_status": "LIQUIDITY_UNKNOWN",
+        "regular_minutes": "[540,690) union [750,925)",
+        "support_rule": "Within exact previous20 calendar trading sessions; unavailable protected/cache days omitted from support, never replaced by older dates. Valid daily Va and complete minute capture both required. Actual zero active windows is0, missing capture isUNKNOWN."
+      },
+      "mtm": {
+        "entry_anchor": "Frozen raw actual fill Open",
+        "id": "MTM_LAST_ACTUAL_TRADE_SAME_SESSION_V1",
+        "later_marks": "Actual minute Close, known at bar_end under inherited historical assumption; mark_source_start>=fill_minute and bar_end<=t. Last mark retained through confirmed no-trade.",
+        "mark_to_fill": false,
+        "prior_session_carry": false,
+        "source_missing": "MTM_SOURCE_LINEAGE_BLOCKED"
+      },
+      "orders": 0,
+      "policy": "CAPITAL_BIGWINNER_ONE_SHOT_V1",
+      "posthoc_winner_filtering": false,
+      "primary": [
+        "geometric_mean_daily_return",
+        "rolling20_growth"
+      ],
+      "profile_selection": [
+        "rolling20_hit_rate_desc",
+        "rolling20_median_desc",
+        "daily_geometric_desc",
+        "maxdd_asc",
+        "max_concurrent_asc"
+      ],
+      "promotion_ceiling": "CAPITAL_VNEXT_DEV_FEASIBILITY_CANDIDATE",
+      "protected_opened": 0,
+      "rank": {
+        "A_lift_min": 1.5,
+        "B_lift_min": 1.0,
+        "C_funded": false,
+        "S_lift_min": 2.0,
+        "base_rate": "Known primary training teachers only; train sessions strictly before block."
+      },
+      "reentry": false,
+      "result_based_retuning": false,
+      "safety": {
+        "automaticPromotionAllowed": false,
+        "brokerWriteAllowed": false,
+        "excelOrderWriteAllowed": false,
+        "executionAllowed": false,
+        "liveTradingAllowed": false,
+        "paperTradingAllowed": false,
+        "productionReady": false,
+        "productionUpdateAllowed": false,
+        "rssOrderFunctionAllowed": false,
+        "transmitted": false
+      },
+      "scope": "DEVELOPMENT_ONLY",
+      "sessions": 58,
+      "sweeps": {
+        "feature": 0,
+        "hyperparameter": 0,
+        "liquidity_threshold": 0,
+        "rank_threshold": 0,
+        "threshold": 0
+      },
+      "temporal": {
+        "block_sessions": 5,
+        "expanding_train": true,
+        "fit_blocks": 8,
+        "refit_within_block": false,
+        "same_score_stream_profiles": true,
+        "training_population": "All pre-cutoff Frozen FIRST ENTRY candidates with known primary teacher; future liquidity eligibility and exit outcomes never determine teacher support.",
+        "warmup_sessions": 20
+      }
+    },
+    "portfolio_replays": 0,
+    "ranker_fits": 0
+  },
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "source_hashes": {
+    "work_inputs/exit_v2/FROZEN_ENTRY/P1_Q70_FIRST_ENTRY_RECORDS.jsonl.gz": "e7a6140b6b11d8d078a271fad76b75e68a5b2fda9e45c7db43d98ee2f282abeb",
+    "work_inputs/exit_v2/SAVED_INPUTS/raw_paths_selected.json.gz": "e22f94642d17bb0f8b23ceb3605f7c3ecda90cd7285333eed316fd23c629e29f",
+    "work_inputs/exit_v3/REPLAY_ROWS.jsonl.gz": "e162d94b9f532f1b6b44b7d602f6be50babec7a5183c4378473cefcd92d61234"
+  }
+}

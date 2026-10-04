@@ -1,0 +1,69 @@
+{
+  "jst": "2026-10-04T13:08:27.249+09:00",
+  "repo": "Iam-2squared/ark-terminal",
+  "branch": "capital-state9-vnext-20261004",
+  "basis_head": "67ea608b4dd8bc40720040e12c56749d66ac480f",
+  "current_status": "CAPITAL_BASELINE_MEASUREMENT_BLOCKED_EMPTY_WINDOW",
+  "closure_result_commit": "68e7f37538f70536760745b7d46a5f179a45e93f",
+  "closure_receipt_commit": "67ea608b4dd8bc40720040e12c56749d66ac480f",
+  "private_package": {
+    "filename": "Ark_LONG_Capital_Baseline_Window_MTM_20261004_PRIVATE.zip",
+    "sha256": "0396add81138f147311d66fb0cfa70b37c8c5f9a3aa121332783c42d3751c376",
+    "bytes": 289523,
+    "member_N": 12,
+    "private_row_level_publication": false,
+    "saved": true,
+    "zip_member_and_crc_verification": "PASS",
+    "record_counts": {
+      "CAPITAL_DECISIONS.jsonl.gz": 9600,
+      "PORTFOLIO_CURVES.jsonl.gz": 108,
+      "TRADES_PRIVATE.jsonl.gz": 12,
+      "INDEPENDENT_FRAMES_PRIVATE.jsonl.gz": 6
+    },
+    "nested_independent_frames_N": 108,
+    "curve_role": "KNOWN_PREFIX_ONLY_NOT_FULL_PORTFOLIO"
+  },
+  "public_git_readback_N": 31,
+  "public_git_readback_mismatch_N": 0,
+  "frozen_changes_N": 0,
+  "budgets": {
+    "baseline_replays": 6,
+    "adaptive_current_LONG_baseline_arms": 3,
+    "fixed_sanity_arms": 3,
+    "new_estimator_fits": 0,
+    "new_rankers": 0,
+    "new_state9_evaluations": 0,
+    "old_historical_performance_lookups": 0,
+    "threshold_sweeps": 0,
+    "deadline_sweeps": 0,
+    "liquidity_sweeps": 0,
+    "provider_requests": 0,
+    "new_market_data_downloads": 0,
+    "protected_holdout_fresh_validation_oos_prospective_opens": 0,
+    "claude": 0,
+    "orders": 0,
+    "main_merges": 0,
+    "force_pushes": 0
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "productionReady": false
+  },
+  "result": "Formal MTM contract implementation/audits PASS; all six arms stop at one funded window with zero stored rows. Fully measured sessions0. No full daily growth/rolling20 performance fabricated.",
+  "unresolved": [
+    "No saved admissible1m source inside one funded5m window",
+    "Market no-trade versus capture gap is not distinguishable from stored metadata",
+    "Full daily growth / rolling20 / Final Equity / MaxDD / utilization / completed funding trace cannot be reported"
+  ],
+  "next_direction": "STOP. No State9 new Capital or historical Capital study. Current empty-window gate cannot be relaxed without another explicit instruction.",
+  "what_changed": "Closure/result receipts and private Evidence save verified; append public canonical-byte manifest",
+  "what_did_not_change": "Frozen strategy, score/sizing/cutoff/liquidity/cost/MTM/EOD, prior Evidence, baseline results and budget"
+}

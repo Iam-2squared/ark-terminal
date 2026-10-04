@@ -19,7 +19,7 @@ def valid(r):
  try:
   a={k:Decimal(str(r[k])) for k in ('O','H','L','C','Vo','Va')}
   return bool(r.get('lineage')) and all(x.is_finite() and x>0 for x in a.values()) and a['L']<=min(a['O'],a['C'])<=max(a['O'],a['C'])<=a['H']
- except (KeyError,ValueError,TypeError):return False
+ except (KeyError,ValueError,TypeError,ArithmeticError):return False
 
 def raw_bins(market):
  grouped=defaultdict(list)
@@ -71,13 +71,13 @@ def range_pct(r):
   o,h,l=[Decimal(str(r[k])) for k in ('O','H','L')]
   if not all(x.is_finite() and x>0 for x in (o,h,l)) or h<l:return None
   return float(100*(h-l)/o)
- except (KeyError,ValueError,TypeError):return None
+ except (KeyError,ValueError,TypeError,ArithmeticError):return None
 
 def pace(prefix):
  t=prefix['clock'];elapsed=sum(m+1<=t for m in REGULAR)
  if elapsed<=0:return None
  try:return float(Decimal(prefix['Va'])/elapsed)
- except (KeyError,ValueError,TypeError):return None
+ except (KeyError,ValueError,TypeError,ArithmeticError):return None
 
 def max30(bins):
  by={b[0]:b for b in bins};values=[]

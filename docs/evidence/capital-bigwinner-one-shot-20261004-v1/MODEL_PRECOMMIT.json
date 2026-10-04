@@ -1,0 +1,32 @@
+{
+  "convergence_failure": "BLOCK; do not change fixed config",
+  "feature_manifest_sha256": "7cd9bdc53c7d1f11363d309b6a27157d325a435de83817fa031b10c75b65f6a0",
+  "feature_search": 0,
+  "fit_count_precommit": 8,
+  "fits_at_precommit": 0,
+  "heavy_dependency_install": 0,
+  "hyperparameter_sweep": 0,
+  "installed_version": "1.8.0",
+  "model_code_sha256": "149670ebcecbf56d4e398edbf092a59a71b7adc9e9b82a86ae2c75349fc6e15e",
+  "numpy_version": "2.3.5",
+  "parameters": {
+    "C": 1.0,
+    "class_weight": null,
+    "max_iter": 2000,
+    "penalty": "l2",
+    "random_state": 57,
+    "solver": "lbfgs",
+    "tol": 0.0001
+  },
+  "preprocessing": {
+    "categorical": "sorted training vocabulary plus __UNKNOWN__; one-hot; unseen maps__UNKNOWN__",
+    "numeric": "constant0 + per-column missing indicator; train-only StandardScaler equivalent mean/population std; zero variance scale1"
+  },
+  "priority1_audit": "Inspected known repo probability-classifier wrappers in phase57_capital_rank_v2.py,phase57_capital_v3.py,phase57_replacement_capital.py; they delegate to sklearn. No reusable standalone audit certificate covering the current causal categorical feature contract was identified. The installed deterministic sklearn classifier is selected once.",
+  "priority_selected": 2,
+  "productionReady": false,
+  "selected_model": "sklearn.linear_model.LogisticRegression",
+  "teacher": "SAME_DAY_BIG_WINNER_5_V1; all pre-cutoff known teachers; no Exit return teacher",
+  "temporal": "20 warmup + 5-session rolling-origin blocks, expanding completed past only;8 fits, last block3 sessions",
+  "threshold_search": 0
+}

@@ -1,0 +1,42 @@
+{
+  "Safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "U5_U10_PnL_in_objective": false,
+  "algorithm": "three-unit integer min-cost flow (SPFA residual paths) cash-relaxed scheduling bound, attained exact minimum-lot cash witness; fail-closed if unattained, no rescue solve",
+  "code_sha256": {
+    "diagnostic.py": "d448ad20743fe8dd36b59413ad3950bdb831c997456f96e3c9834ebfc86f6579",
+    "execution_bridge.py": "f5a391e07b4a065c191750ed55b4650201a9b2f33e12594166073feb8afc8355"
+  },
+  "constraints": [
+    "Frozen Entry/release",
+    "MAX3",
+    "same symbol",
+    "cash-only initial 1000000",
+    "minimum lot100",
+    "exact execution availability",
+    "no replacement/forced EXIT"
+  ],
+  "exact_jst": "2026-10-05T07:24:56.449432+09:00",
+  "independent_solve_budget": 1,
+  "name": "PPRANK_CLAIRVOYANT_ADMISSION_DIAGNOSTIC",
+  "objective": [
+    "maximize sum round(r*1000000)",
+    "maximize selected N",
+    "lexicographic stable Entry timestamp / symbol / entry_id"
+  ],
+  "policy_design_access": false,
+  "population": "v7 executable admission 488; two unexecutable negatives remain in runtime 490",
+  "primary_solve_budget": 1,
+  "runtime_access": false,
+  "tie_encoding": "(utility*(N+1)+selected_count)*2**N + earlier-selection bitset"
+}

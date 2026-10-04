@@ -1,0 +1,62 @@
+{
+  "jst": "2026-10-04T11:50:56+09:00",
+  "repo": "Iam-2squared/ark-terminal",
+  "branch": "capital-state9-vnext-20261004",
+  "basis_head": "1ecae19d939200f06476f5c084c103b82057c418",
+  "status": "INDEPENDENT_AUDIT_PASS_WITH_MEASUREMENT_BLOCKED",
+  "location": "C9 complete, C10 NO_FREEZE closure",
+  "results": {
+    "independent_checks": 101580,
+    "mismatches": 0,
+    "source_token_exact_funded_mark_present": 0,
+    "distinct_funded_MTM_blocked_identity_N": 1,
+    "capacity_known": 1037,
+    "capacity_unknown": 563,
+    "execution_unknown_current_capacity_can_fit_one_lot": 0,
+    "actual_full_funding_trace_complete": false
+  },
+  "executed_scope": "Six independent known-prefix reconstructions; all1600 capacity/runtime checks; 42 saved diagnostic model inferences; no new fit or arm search.",
+  "changed": [
+    "Independent proof of original missing funded MTM mark",
+    "Post-decision UNKNOWN18 capacity evaluation (7 below lot,11 missing prior input)"
+  ],
+  "not_changed": [
+    "Frozen Entry/EXIT",
+    "MTM contract or fallback",
+    "Liquidity cap fraction",
+    "State diagnostic gates",
+    "Protected source access"
+  ],
+  "budgets": {
+    "diagnostic_fits": 42,
+    "maximum_fits": 48,
+    "baseline_replays": 6,
+    "independent_audit_reconstructions": 6,
+    "rank_fits": 0,
+    "State_aware_replays": 0,
+    "provider_requests": 0
+  },
+  "unresolved": [
+    "All full Portfolio metrics null under exact-grid precommit",
+    "No State-aware promotion under finite gate",
+    "Actual full UNKNOWN18 funding count not observed; current-input capacity upper bound0 is not a completed replay result"
+  ],
+  "next_direction": "C10 close NO_FREEZE; preserve Development-only evidence. Do not auto-start Integrated. Require exact-funded-mark evidence or separately authorized mark/measurement contract; no rescue in this cycle.",
+  "exposure": "58 existing outcome-exposed Development; protected/holdout/fresh/OOS/prospective opened0",
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "productionReady": false
+  },
+  "orders": 0,
+  "main_merges": 0,
+  "force_pushes": 0,
+  "Claude_calls": 0
+}

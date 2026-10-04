@@ -1,0 +1,123 @@
+{
+  "CURRENT_ties": [
+    "ML DESC",
+    "m5 DESC",
+    "m3 DESC",
+    "m2 DESC",
+    "Frozen Entry timestamp ASC",
+    "symbol ASC"
+  ],
+  "MAX3_replay": 0,
+  "MOVE_ties": [
+    "pP DESC",
+    "Frozen Entry timestamp ASC",
+    "symbol ASC"
+  ],
+  "PR_AUC": "average precision, step-wise precision-recall integral; sklearn average_precision_score",
+  "ROC_AUC": "pairwise positive/negative concordance; half credit for score ties",
+  "Safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "bootstrap": {
+    "CI_quantiles": [
+      0.025,
+      0.975
+    ],
+    "primary_delta": "U5 ROC-AUC candidate minus supported Current",
+    "quantile_method": "linear",
+    "resamples": 1999,
+    "secondary_deltas": [
+      "U5 PR-AUC",
+      "U10 ROC-AUC",
+      "U10 PR-AUC"
+    ],
+    "seed": 5701005,
+    "single_class": "discard and report N",
+    "unit": "paired session cluster"
+  },
+  "calibration": "Associated saved U5 probability-head Brier/logloss diagnostic; ML is not a probability; absent U10 head reported null; no probability-skill claim",
+  "candidate_count": 2,
+  "candidate_fields": {
+    "CURRENT_V4_ML": "ML",
+    "EXISTING_MOVE_P5": "pP"
+  },
+  "capital_replay": 0,
+  "catastrophic_block_failure_definition": "Either U5 or U10 block ROC-AUC falls below .5 from Current>=.5, with delta<=-.10. Undefined single-class block fails comparable block gate.",
+  "control_replay": 0,
+  "count_identity_and_order_tolerance": 0,
+  "exact_jst": "2026-10-05T01:10:04.556301+09:00",
+  "float_tolerance": 1e-12,
+  "fresh_OOS_claim": false,
+  "gates": {
+    "A": "U5 ROC-AUC, PR-AUC and top20 density strictly exceed Current",
+    "B": "U10 ROC-AUC, PR-AUC and top20 density each >=Current",
+    "C": "top20 below2 contamination <=Current",
+    "D": "U5 block AUC improves in>=5/8; catastrophic blocks0; bootstrap direction reported",
+    "E": "leakage/asof/identity/independent audit mismatch0"
+  },
+  "legacy_current_value_rewrite": 0,
+  "mask_manifest_sha256": "c3f42831c90e46caeba7c8d732e65b23090c8fcef55aa50c9fe5eb153cf588db",
+  "new_fit_budget": 0,
+  "new_provider": 0,
+  "optional_stage_B_only_if_stage_A_no_winner": {
+    "dual_formula": "(r5+r10)/2, right-continuous training empirical CDF; number training scores<=test decision score divided by training N",
+    "dual_ties": [
+      "r10 DESC",
+      "r5 DESC",
+      "Frozen Entry timestamp ASC",
+      "stable symbol ASC"
+    ],
+    "feature_manifest": "exact saved MOVE_P5,46 numeric+7 categorical",
+    "feature_search": 0,
+    "fit_cap": 8,
+    "head": "MOVE_P10",
+    "hyperparameter_search": 0,
+    "parameters": {
+      "C": 1.0,
+      "class_weight": null,
+      "max_iter": 2000,
+      "penalty": "l2",
+      "random_state": 57,
+      "solver": "lbfgs"
+    },
+    "preprocessing": "same algorithm, constant0 missing plus indicators, train-only mean/std/vocabulary",
+    "split": "same8 expanding-origin blocks,20 warmup+38 OOF, no within-block refit",
+    "teacher_unknown": "exclude from new training; do not impute0",
+    "weight_or_threshold_search": 0
+  },
+  "ordinal_metric": "NDCG at10/20/30 percent; ordinal gains0,1,3,7,15; discount1/log2(rank+1)",
+  "ordinal_order": [
+    ">=10",
+    "5-<10",
+    "3-<5",
+    "2-<3",
+    "<2"
+  ],
+  "saved_score_regeneration": 0,
+  "session_top3_top5": "diagnostic only; within session with same saved-score ties",
+  "stage": "A",
+  "status": {
+    "LABEL_BLOCKED": "teacher authority unresolved",
+    "NO_GO": "Any point gate fails",
+    "PROMISING": "point gates and integrity pass and CI crosses0",
+    "STRONG": "A/B/C/D/E PASS and U5 AUC delta CI lower>0"
+  },
+  "top_fraction_K": "ceil(fraction*N); fixed .10/.20/.30; no thresholds or rank-band sweeps",
+  "winner_priority": [
+    "U5 PR-AUC",
+    "U5 ROC-AUC",
+    "U10 PR-AUC",
+    "top20 U5",
+    "lower below2",
+    "block stability"
+  ]
+}

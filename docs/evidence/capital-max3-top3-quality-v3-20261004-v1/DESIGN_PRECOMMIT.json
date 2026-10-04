@@ -1,0 +1,150 @@
+{
+  "BUY": 1.0005,
+  "EXIT": "Frozen EXIT v3 first; 15:20 full remaining SOR MARKET DAY; first admissible actual 15:20<=t<15:25; else exact15:30 auction; else fail closed",
+  "H5": "byte-identical existing CORE_P5 score; fits0",
+  "MAX4_MAX5_replays": 0,
+  "MTM": "MTM_LAST_ACTUAL_TRADE_SAME_SESSION_V1",
+  "Q": "(L5*LF1*LSAFE)**(1/3)",
+  "SELL": 0.9995,
+  "admission": "L3>=1 AND LF1>=1 AND LSAFE>=1",
+  "base_target_utilization": {
+    "A": 0.56,
+    "B": 0.44,
+    "C": 0.3,
+    "S": 0.68
+  },
+  "breadth_bonus": 0.055,
+  "breadth_semantics": "existing held positions plus current selected candidates, as fixed CORE control; cap applies to BUY debit including factor once",
+  "candidate_equity_caps": {
+    "A": 0.35,
+    "B": 0.25,
+    "C": 0.15,
+    "S": 0.45
+  },
+  "commission": 0,
+  "control_replays": 0,
+  "diagnostic_adoption": false,
+  "diagnostic_rank_sets": {
+    "A_PLUS_MAX3": [
+      "S",
+      "A"
+    ],
+    "B_PLUS_MAX3": [
+      "S",
+      "A",
+      "B"
+    ],
+    "S_ONLY_MAX3": [
+      "S"
+    ]
+  },
+  "economic_status": "IMPROVES iff geom and rolling20 median greater; WORSE iff both <=Control; else MIXED",
+  "entry_cutoff_minute": 920,
+  "execution_availability": "unchanged inherited completed-minute assumption (row minute+1); actual provider arrival UNKNOWN; no executable-depth guarantee",
+  "exposure": {
+    "Development_sessions": 58,
+    "Fresh": 0,
+    "Holdout": 0,
+    "OOF": 38,
+    "OOS": 0,
+    "Prospective": 0,
+    "Protected": 0,
+    "Validation": 0,
+    "warmup": 20
+  },
+  "head_diagnostics": "OOF plus block ROC AUC, Brier, empirical base rate, deterministic top20% ceil(N*.2), ten equal-count bins stable p desc then identity; unknown labels excluded",
+  "initial_cash": 1000000,
+  "jst": "2026-10-04T18:16:00.263552+09:00",
+  "legacy_fee_added": 0,
+  "lifts": {
+    "L3": "p3/base3",
+    "L5": "existing pP/baseP",
+    "LF1": "p_floor1/base_floor1",
+    "LSAFE": "(1-p_loss0)/(1-base_loss0)"
+  },
+  "liquidity": "diagnostic only",
+  "liquidity_capacity_cap": false,
+  "liquidity_hard_reject": false,
+  "lot": 100,
+  "max_concurrent": 3,
+  "maximum_target_utilization": 0.92,
+  "measurement_blocked": "no fabricated fill; blocked day null; after primary origin broken continue diagnostic days with JPY1m only; valid contiguous primary windows only",
+  "model": {
+    "C": 1.0,
+    "class_weight": null,
+    "max_iter": 2000,
+    "penalty": "l2",
+    "random_state": 57,
+    "solver": "lbfgs"
+  },
+  "new_heads": {
+    "H3": "saved label_bigwinner3 ==1",
+    "HF1": "saved unconstrained realized_net_return >=0.01",
+    "HL0": "saved unconstrained realized_net_return <=0"
+  },
+  "new_provider_requests": 0,
+  "ordering": [
+    "Q DESC",
+    "L5 DESC",
+    "L3 DESC",
+    "Entry timestamp ASC",
+    "symbol stable ASC"
+  ],
+  "orders": 0,
+  "preprocessing": "exact existing CORE train-only numeric missing0+indicator, mean/std population; train-only categorical vocab with explicit __UNKNOWN__",
+  "profiles": [
+    "QUALITY_V3_MAX3",
+    "S_ONLY_MAX3",
+    "A_PLUS_MAX3",
+    "B_PLUS_MAX3"
+  ],
+  "rank": {
+    "A": "1.5<=Q<2",
+    "B": "1<=Q<1.5",
+    "C": "Q<1; gate PASS only =QUALIFIED_C",
+    "S": "Q>=2"
+  },
+  "realized_missing": "exclude only from HF1/HL0 training/evaluation labels; never zero-impute or runtime filter",
+  "result_based_retune": 0,
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "selection_status": "IMPROVED iff PF1>,loss0<,U5capture>,Mediumcapture>; WORSE iff all four nonimproving; else MIXED",
+  "slot_regret": "evaluation-only same-session same-entry-minute batch: selected FUNDED vs missed MAX_POSITION_CAP among admission/profile-eligible; report qualifying unique batches/candidates and pair N; incomplete realized outcomes excluded. Existing held positions can bind slots; no future replacement runtime.",
+  "success_scoreboard": [
+    "PF1>Control",
+    "loss0<Control",
+    "tail1<Control",
+    "U5capture>Control",
+    "Mediumcapture>Control",
+    "U3capture>Control",
+    "below2<Control",
+    "below3<Control"
+  ],
+  "sweeps": 0,
+  "temporal": {
+    "H3_fits": 8,
+    "HF1_fits": 8,
+    "HL0_fits": 8,
+    "OOF": 38,
+    "block_size": 5,
+    "blocks": 8,
+    "last_block": 3,
+    "sessions": 58,
+    "test_teacher_before_fit": "raw teacher IO indexed by identity only; label parsed only for completed training IDs; evaluation by separate post-fit module",
+    "total_new_fits": 24,
+    "warmup": 20,
+    "within_block_refits": 0
+  },
+  "version": "CAPITAL_QUALITY_V3_MAX3_ONE_SHOT_V1",
+  "water_fill": "same batch initially funded candidates only; one-lot rounds in fixed order; no new identity; later top-up0"
+}

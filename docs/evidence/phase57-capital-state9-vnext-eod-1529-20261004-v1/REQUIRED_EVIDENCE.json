@@ -1,0 +1,24 @@
+{
+  "market_data_request": 0,
+  "needs": [
+    {
+      "blocker": "15:29 is order-only pre-closing",
+      "item": "execution deadline/type",
+      "minimum_next_action": "New explicit contract before any different deadline/source result read",
+      "new_data_alone_sufficient": false
+    },
+    {
+      "blocker": "prior487 and original1561 fill/source availability differ60s, actual receiptUNKNOWN",
+      "item": "reference vs cash-known",
+      "minimum_next_action": "Authoritative cash event receipt or separately authorized historical reference admission contract"
+    },
+    {
+      "blocker": "mark clock/price role/missing comparison binding unresolved",
+      "item": "current MTM",
+      "minimum_next_action": "Source/clock/valuation contract; no invented full1m completeness requirement or partial comparison"
+    }
+  ],
+  "new_protocol_experiments": 0,
+  "saved_at_jst": "2026-10-04T09:26:57.963323+09:00",
+  "status": "PROPOSED_NOT_AUTHORIZED"
+}

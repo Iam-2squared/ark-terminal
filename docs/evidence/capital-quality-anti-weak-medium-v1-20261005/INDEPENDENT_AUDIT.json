@@ -1,0 +1,341 @@
+{
+  "CapitalReplay": 0,
+  "MAX3Replay": 0,
+  "Safety": {
+    "allocator_change": false,
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "capital_replay": false,
+    "claude": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "force_push": false,
+    "fresh_open": false,
+    "liveTradingAllowed": false,
+    "main_merge": false,
+    "max3_replay": false,
+    "orders": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "provider": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "audit_refits": 0,
+  "baseline": {
+    "actual_sha256": "1389d55448725ba3c44bbd29a2302d7b61ec6914d2913b7d575e7db894a8cddc",
+    "expected_Q4_sha256": "cb1efca5ef7665e730a926e9444a49185cfef7296d98972c09f823785357fe03",
+    "fit_claim_sha256": "1389d55448725ba3c44bbd29a2302d7b61ec6914d2913b7d575e7db894a8cddc",
+    "fit_claim_validated_current_bytes_but_omitted_Q4_equality_check": true,
+    "full_frozen_original_bytes_recovered": false,
+    "original_preserved": true,
+    "parse_error": "Expecting value: line 16346 column 13 (char 483690)"
+  },
+  "baseline_integrity_root_failure_N": 1,
+  "bootstrap_runs": 0,
+  "canaries": [
+    {
+      "name": "identity",
+      "number": 1,
+      "status": "PASS"
+    },
+    {
+      "name": "mask",
+      "number": 2,
+      "status": "PASS"
+    },
+    {
+      "name": "train<test",
+      "number": 3,
+      "status": "PASS"
+    },
+    {
+      "name": "test label leakage0",
+      "number": 4,
+      "status": "PASS"
+    },
+    {
+      "name": "future High in X=0",
+      "number": 5,
+      "status": "PASS"
+    },
+    {
+      "name": "PnL in X=0",
+      "number": 6,
+      "status": "PASS"
+    },
+    {
+      "name": "release in X=0",
+      "number": 7,
+      "status": "PASS"
+    },
+    {
+      "name": "future bar in X=0",
+      "number": 8,
+      "status": "PASS"
+    },
+    {
+      "name": "prefix cutoff",
+      "number": 9,
+      "status": "PASS"
+    },
+    {
+      "name": "prior date",
+      "number": 10,
+      "status": "PASS"
+    },
+    {
+      "name": "Movement boundary",
+      "number": 11,
+      "status": "PASS"
+    },
+    {
+      "name": "identity/date feature0",
+      "number": 12,
+      "status": "PASS"
+    },
+    {
+      "name": "U2/Weak complement",
+      "number": 13,
+      "status": "PASS"
+    },
+    {
+      "name": "U3 exact",
+      "number": 14,
+      "status": "PASS"
+    },
+    {
+      "name": "unknown impute0",
+      "number": 15,
+      "status": "PASS"
+    },
+    {
+      "name": "pP not in X",
+      "number": 16,
+      "status": "PASS"
+    },
+    {
+      "name": "feature manifest exact",
+      "number": 17,
+      "status": "PASS"
+    },
+    {
+      "name": "preprocessing exact",
+      "number": 18,
+      "status": "PASS"
+    },
+    {
+      "name": "model config exact",
+      "number": 19,
+      "status": "PASS"
+    },
+    {
+      "name": "search0",
+      "number": 20,
+      "status": "PASS"
+    },
+    {
+      "name": "within-block refit0",
+      "number": 21,
+      "status": "PASS"
+    },
+    {
+      "name": "split exact",
+      "number": 22,
+      "status": "PASS"
+    },
+    {
+      "name": "convergence warning0",
+      "number": 23,
+      "status": "PASS"
+    },
+    {
+      "name": "hash",
+      "number": 24,
+      "status": "FAIL"
+    },
+    {
+      "name": "OOF duplicates0",
+      "number": 25,
+      "status": "PASS"
+    },
+    {
+      "name": "bootstrap session",
+      "number": 26,
+      "status": "NOT_RUN_CONTRACT_STOP"
+    },
+    {
+      "name": "conditional decile outcome-free",
+      "number": 27,
+      "status": "PASS"
+    },
+    {
+      "name": "Safety false",
+      "number": 28,
+      "status": "PASS"
+    },
+    {
+      "name": "v8 research result read=0",
+      "number": 29,
+      "status": "PASS"
+    },
+    {
+      "name": "v8R1 research result read=0",
+      "number": 30,
+      "status": "PASS"
+    },
+    {
+      "name": "Main B1/B2 outcome imported=0",
+      "number": 31,
+      "status": "PASS"
+    }
+  ],
+  "completed_fits_preserved_for_future_authorized_reuse": 16,
+  "convergence_warning_N": 0,
+  "exact_jst": "2026-10-05T08:04:24.287740+09:00",
+  "final_mismatch_N": 1,
+  "firewall_research_information_import_export": 0,
+  "float_tolerance": 1e-12,
+  "head_quality_performance_evaluations": 0,
+  "labels_mask_split_preprocessing_coef_snapshot_OOF_mismatch_N": 0,
+  "max_abs_float_difference": 1.6653345369377348e-16,
+  "metric_audit_status": "NOT_RUN_CONTRACT_STOP: AUC/PR/TopK/conditional/same-session/bootstrap/status promotion blocked",
+  "model_checks": [
+    {
+      "OOF_max_abs_difference": 1.1102230246251565e-16,
+      "audit_refits": 0,
+      "block": 1,
+      "coef_intercept_snapshot_mismatch_N": 0,
+      "head": "MOVE_U2",
+      "preprocessing_mismatch_N": 0
+    },
+    {
+      "OOF_max_abs_difference": 1.1102230246251565e-16,
+      "audit_refits": 0,
+      "block": 1,
+      "coef_intercept_snapshot_mismatch_N": 0,
+      "head": "MOVE_U3",
+      "preprocessing_mismatch_N": 0
+    },
+    {
+      "OOF_max_abs_difference": 1.1102230246251565e-16,
+      "audit_refits": 0,
+      "block": 2,
+      "coef_intercept_snapshot_mismatch_N": 0,
+      "head": "MOVE_U2",
+      "preprocessing_mismatch_N": 0
+    },
+    {
+      "OOF_max_abs_difference": 1.1102230246251565e-16,
+      "audit_refits": 0,
+      "block": 2,
+      "coef_intercept_snapshot_mismatch_N": 0,
+      "head": "MOVE_U3",
+      "preprocessing_mismatch_N": 0
+    },
+    {
+      "OOF_max_abs_difference": 1.1102230246251565e-16,
+      "audit_refits": 0,
+      "block": 3,
+      "coef_intercept_snapshot_mismatch_N": 0,
+      "head": "MOVE_U2",
+      "preprocessing_mismatch_N": 0
+    },
+    {
+      "OOF_max_abs_difference": 1.1102230246251565e-16,
+      "audit_refits": 0,
+      "block": 3,
+      "coef_intercept_snapshot_mismatch_N": 0,
+      "head": "MOVE_U3",
+      "preprocessing_mismatch_N": 0
+    },
+    {
+      "OOF_max_abs_difference": 1.1102230246251565e-16,
+      "audit_refits": 0,
+      "block": 4,
+      "coef_intercept_snapshot_mismatch_N": 0,
+      "head": "MOVE_U2",
+      "preprocessing_mismatch_N": 0
+    },
+    {
+      "OOF_max_abs_difference": 1.1102230246251565e-16,
+      "audit_refits": 0,
+      "block": 4,
+      "coef_intercept_snapshot_mismatch_N": 0,
+      "head": "MOVE_U3",
+      "preprocessing_mismatch_N": 0
+    },
+    {
+      "OOF_max_abs_difference": 1.1102230246251565e-16,
+      "audit_refits": 0,
+      "block": 5,
+      "coef_intercept_snapshot_mismatch_N": 0,
+      "head": "MOVE_U2",
+      "preprocessing_mismatch_N": 0
+    },
+    {
+      "OOF_max_abs_difference": 1.1102230246251565e-16,
+      "audit_refits": 0,
+      "block": 5,
+      "coef_intercept_snapshot_mismatch_N": 0,
+      "head": "MOVE_U3",
+      "preprocessing_mismatch_N": 0
+    },
+    {
+      "OOF_max_abs_difference": 1.1102230246251565e-16,
+      "audit_refits": 0,
+      "block": 6,
+      "coef_intercept_snapshot_mismatch_N": 0,
+      "head": "MOVE_U2",
+      "preprocessing_mismatch_N": 0
+    },
+    {
+      "OOF_max_abs_difference": 1.1102230246251565e-16,
+      "audit_refits": 0,
+      "block": 6,
+      "coef_intercept_snapshot_mismatch_N": 0,
+      "head": "MOVE_U3",
+      "preprocessing_mismatch_N": 0
+    },
+    {
+      "OOF_max_abs_difference": 1.6653345369377348e-16,
+      "audit_refits": 0,
+      "block": 7,
+      "coef_intercept_snapshot_mismatch_N": 0,
+      "head": "MOVE_U2",
+      "preprocessing_mismatch_N": 0
+    },
+    {
+      "OOF_max_abs_difference": 1.1102230246251565e-16,
+      "audit_refits": 0,
+      "block": 7,
+      "coef_intercept_snapshot_mismatch_N": 0,
+      "head": "MOVE_U3",
+      "preprocessing_mismatch_N": 0
+    },
+    {
+      "OOF_max_abs_difference": 1.1102230246251565e-16,
+      "audit_refits": 0,
+      "block": 8,
+      "coef_intercept_snapshot_mismatch_N": 0,
+      "head": "MOVE_U2",
+      "preprocessing_mismatch_N": 0
+    },
+    {
+      "OOF_max_abs_difference": 1.1102230246251565e-16,
+      "audit_refits": 0,
+      "block": 8,
+      "coef_intercept_snapshot_mismatch_N": 0,
+      "head": "MOVE_U3",
+      "preprocessing_mismatch_N": 0
+    }
+  ],
+  "new_fits": 0,
+  "qualityStatus": "QUALITY_CONTRACT_FAIL",
+  "selectedAuxiliaryHeads": [],
+  "selectedBigWinnerRank": "EXISTING_MOVE_P5",
+  "source_actual_arrival_limitation": "Inherited bar-end assumption, actual arrival unknown",
+  "status": "INTEGRITY_CONTRACT_FAIL_CONFIRMED",
+  "trainer_evaluator_metric_imports": 0
+}

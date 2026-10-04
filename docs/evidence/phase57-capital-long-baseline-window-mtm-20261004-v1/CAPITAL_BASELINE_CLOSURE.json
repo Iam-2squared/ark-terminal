@@ -1,0 +1,135 @@
+{
+  "jst": "2026-10-04T13:01:24.490+09:00",
+  "repo": "Iam-2squared/ark-terminal",
+  "branch": "capital-state9-vnext-20261004",
+  "basis_head": "c285aa629ab568a35c3ee5bb4b445e4c6c8ce8ae",
+  "status": "CAPITAL_BASELINE_MEASUREMENT_BLOCKED_EMPTY_WINDOW",
+  "implementation_and_contract_audit": "PASS",
+  "full_portfolio_measurement": "BLOCKED",
+  "baseline_completion": false,
+  "capital_freeze_candidate": false,
+  "integrated_started": false,
+  "scope": "Current LONG-only/cash-equity-only old-Adaptive-mechanics/current P1 causal baseline MAX3/4/5 only; separate Fixed sanity MAX3/4/5. No State9-aware new Capital or old historical performance investigation.",
+  "user_authorized_mtm_contract_id": "CAPITAL_OBSERVED_CLOSED_5M_WINDOW_MTM_REFERENCE_V1",
+  "precommit_result_head": "0cd22086ffb1fee129851ab5c7d609a9eb52b6c4",
+  "implementation_test_result_head": "e6745a06c4a36322411df5a8a5f29bbc60b0f367",
+  "primary_result_head": "8e3606e45d8ac412f46a551073c7610db44cbd32",
+  "independent_result_head": "c285aa629ab568a35c3ee5bb4b445e4c6c8ce8ae",
+  "source_hashes": {
+    "frozen_entry": "e7a6140b6b11d8d078a271fad76b75e68a5b2fda9e45c7db43d98ee2f282abeb",
+    "frozen_exit": "e162d94b9f532f1b6b44b7d602f6be50babec7a5183c4378473cefcd92d61234",
+    "primary_raw": "5e7c3624b4904d05c50c5bf8976ae23051d7f74c57808791de3a00997da4a856",
+    "independent_raw": "e22f94642d17bb0f8b23ceb3605f7c3ecda90cd7285333eed316fd23c629e29f",
+    "capacities": "1c5367baba2c91c4c28573f0889898271c9cd7357f8f3272741498995a9ab94a",
+    "primary_eod": "6035151d5385d259e47ba7b9d78eb54dd6b5f1e248ca9d2331aa6ee15a36ec15",
+    "independent_eod": "402a0c2f4b8c74a4799ad2fd775ec2b8af0051e57bcb123a1a1763b9c3c610eb"
+  },
+  "frozen_refs_verified": [
+    {
+      "branch": "persistent-watchlist-uptrend-first-entry-20261003-v2",
+      "head": "4a2d6f35946b16820a13449a9288a6685a5c283c"
+    },
+    {
+      "branch": "state9-structural-exit-v3-local-guard-20261003",
+      "head": "c7a5e5c25eb19cbd58b45c3e4ffff977f4648fad"
+    },
+    {
+      "branch": "exit-v3-freeze-reentry-v1-20261003",
+      "head": "1ecbcc43f75279fa302f19fd896add2aac15b537"
+    }
+  ],
+  "facts": {
+    "candidate_N": 1600,
+    "development_sessions_N": 58,
+    "fully_measured_sessions_per_arm_N": 0,
+    "adaptive_arms_N": 3,
+    "fixed_sanity_arms_N": 3,
+    "accepted_observed_per_arm_N": 3,
+    "closed_trades_observed_per_arm_N": 2,
+    "cash_recycles_observed_per_arm_N": 2,
+    "positions_open_at_stop_per_arm_N": 1,
+    "max_concurrent_observed_per_arm_N": 3,
+    "cutoff1520_candidates_N": 22,
+    "liquidity_skip_observed_per_arm_N": 1,
+    "not_evaluated_after_block_per_arm_N": 1574,
+    "funded_execution_unknown_observed_per_arm_N": 0,
+    "funded_execution_unknown_full_trace_per_arm_N": null,
+    "distinct_funded_empty_source_windows_N": 1,
+    "affected_arms_N": 6,
+    "primary_saved_window_rows_N": 0,
+    "independent_saved_window_rows_N": 0,
+    "original_provider_saved_window_rows_N": 0,
+    "saved_matching_symbol_session_paths_N": 1,
+    "alternate_matching_saved_window_rows_N": 0,
+    "true_market_no_trade_certified": false,
+    "source_reason": "SOURCE_WINDOW_EMPTY_UNKNOWN_NO_TRADE_OR_CAPTURE_GAP",
+    "focused_tests_passed": 21,
+    "source_canaries_checked": 11200,
+    "source_canary_mismatch_N": 0,
+    "independent_values_compared": 100346,
+    "independent_mismatch_N": 0
+  },
+  "requested_metrics": {
+    "geometric_mean_session": null,
+    "arithmetic_mean_session": null,
+    "median_session_return": null,
+    "rolling20_min_asset_from_1m": null,
+    "rolling20_median_asset_from_1m": null,
+    "rolling20_mean_asset_from_1m": null,
+    "rolling20_max_asset_from_1m": null,
+    "rolling20_doubling_intervals": null,
+    "rolling20_available_windows_N": 0,
+    "rolling20_expected_windows_if_complete_N": 39,
+    "unavailability_reason": "First cohort session not fully measured: funded position has zero saved source rows inside required closed5m valuation window; no prefix extrapolation allowed."
+  },
+  "audit_scope": "Known causal funding prefix, cash ledger, lots/caps, source-window selection and required STOP; not complete performance certification.",
+  "what_changed": [
+    "Formal same-window latest saved1m Close MTM valuation (not missing-value imputation)",
+    "Finite six research replays and separate independent/source audits",
+    "Off-grid source-completion cash-release frames are recorded for audit"
+  ],
+  "what_did_not_change": [
+    "Frozen Entry/EXIT identities, prices, timestamps, source hashes, receipts and prior negative evidence",
+    "Current score, sizing, liquidity1%, lot100, cutoff1520, EOD and cash release clocks",
+    "No same-window absence fallback; no previous-window carry, interpolation or forward-fill",
+    "All1600 retained; no outcome-based candidate exclusion"
+  ],
+  "budgets": {
+    "baseline_replays": 6,
+    "adaptive_current_LONG_baseline_arms": 3,
+    "fixed_sanity_arms": 3,
+    "new_estimator_fits": 0,
+    "new_rankers": 0,
+    "new_state9_evaluations": 0,
+    "old_historical_performance_lookups": 0,
+    "threshold_sweeps": 0,
+    "deadline_sweeps": 0,
+    "liquidity_sweeps": 0,
+    "provider_requests": 0,
+    "new_market_data_downloads": 0,
+    "protected_holdout_fresh_validation_oos_prospective_opens": 0,
+    "claude": 0,
+    "orders": 0,
+    "main_merges": 0,
+    "force_pushes": 0
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "productionReady": false
+  },
+  "unresolved": [
+    "No saved admissible1m source inside one funded5m window",
+    "Market no-trade versus capture gap is not distinguishable from stored metadata",
+    "Full daily growth / rolling20 / Final Equity / MaxDD / utilization / completed funding trace cannot be reported"
+  ],
+  "next_direction": "STOP under the explicit empty-window rule. No State9 study or retuning. Mechanical recovery of an already admissible saved SAME-window source may support a future restart; otherwise completing measurement needs separate explicit source/valuation authority, not an automatic carry or invented price.",
+  "result_commit_receipt": "Append after this closure commit; no future SHA prewritten."
+}

@@ -1,0 +1,43 @@
+{
+  "B1_replay": 0,
+  "B2_replay": 0,
+  "Safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "attempted_primary_diagnostic_solve_N": 1,
+  "cash_only_diagnostic_schedule_certified": false,
+  "cause": "The chosen interval-only min-cost-flow relaxation omitted cash while optimizing. Its minimum-lot witness failed cash>=0. A cash-relaxed optimum is not a valid cash-constrained diagnostic result.",
+  "certified_primary_diagnostic_solve_N": 0,
+  "claim_code_hash_exact": true,
+  "diagnostic_execution_started_receipt": {
+    "claim_sha256": "fcf46f3ade282637efee5f0c5eed5dd2b376880d14cbc4a967274e15977bfb04",
+    "exact_jst": "2026-10-05T07:25:07.228634+09:00",
+    "rerun_allowed": false,
+    "single_execution": true
+  },
+  "diagnostic_execution_started_receipt_sha256": "5e63decf94233313c1f4176686c82f6259bca288ec297177f87de5d471ad53b1",
+  "exact_jst": "2026-10-05T07:28:51.945185+09:00",
+  "exception": "AssertionError: CASH_WITNESS_BLOCKED_NO_SECOND_SOLVE",
+  "execution_session_id": 46293,
+  "failed_stage": "D5_PPRANK_DIAGNOSTIC_RESULT",
+  "failure_not_rank_or_B1_B2_NO_GO": true,
+  "independent_pP_solve": 0,
+  "location": "diagnostic.py solve() cash witness assertion, line 52",
+  "precommit_sha256": "fcf46f3ade282637efee5f0c5eed5dd2b376880d14cbc4a967274e15977bfb04",
+  "precommitted_STOP_rule": "three-unit integer min-cost flow (SPFA residual paths) cash-relaxed scheduling bound, attained exact minimum-lot cash witness; fail-closed if unattained, no rescue solve",
+  "process_exit_code": 1,
+  "recovery": "Known failed execution, not ambiguous; no rerun. STOP under committed rule. A corrected joint-cash evaluation solver requires a separate authorized cycle.",
+  "runtime_policy_result": null,
+  "scope_limit": "This does not show B1/B2 policy failure, cash sizing bottleneck, or lack of pP scheduling signal. Those are unevaluated.",
+  "second_solve": 0,
+  "status": "V8_CONTRACT_FAIL"
+}

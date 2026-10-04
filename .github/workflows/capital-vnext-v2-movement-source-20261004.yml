@@ -1,0 +1,69 @@
+name: Capital v2 Movement saved Development source
+on:
+  push:
+    branches: [capital-state9-vnext-20261004]
+    paths:
+      - .github/workflows/capital-vnext-v2-movement-source-20261004.yml
+      - research/capital-vnext-v2-movement-20261004-v1/recover_movement_source.py
+      - research/capital-vnext-v2-movement-20261004-v1/SOURCE_RECOVERY_SCOPE.json
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: capital-vnext-v2-movement-20261004
+  cancel-in-progress: false
+jobs:
+  recovery:
+    if: github.ref == 'refs/heads/capital-state9-vnext-20261004'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-expansion-raw-minute-*-35447995157
+          repository: Iam-2squared/ark-terminal
+          run-id: 35447995157
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/movement-encrypted
+      - name: Recover authorized prior-session actual aggregates; no provider calls
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: |
+          python -u research/capital-vnext-v2-movement-20261004-v1/recover_movement_source.py --archives "$RUNNER_TEMP/movement-encrypted" --out "$RUNNER_TEMP/movement-source"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: capital-v2-movement-source-receipt-${{ github.run_id }}
+          path: ${{ runner.temp }}/movement-source/MOVEMENT_SOURCE_RECEIPT.json
+          retention-days: 30
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v4
+        with:
+          name: capital-v2-movement-source-part01-${{ github.run_id }}
+          path: ${{ runner.temp }}/movement-source/MOVEMENT_SOURCE_PART_01.json.gz
+          retention-days: 30
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: capital-v2-movement-source-part02-${{ github.run_id }}
+          path: ${{ runner.temp }}/movement-source/MOVEMENT_SOURCE_PART_02.json.gz
+          retention-days: 30
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: capital-v2-movement-source-part03-${{ github.run_id }}
+          path: ${{ runner.temp }}/movement-source/MOVEMENT_SOURCE_PART_03.json.gz
+          retention-days: 30
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: capital-v2-movement-source-part04-${{ github.run_id }}
+          path: ${{ runner.temp }}/movement-source/MOVEMENT_SOURCE_PART_04.json.gz
+          retention-days: 30
+          if-no-files-found: error

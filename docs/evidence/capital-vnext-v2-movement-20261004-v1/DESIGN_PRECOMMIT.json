@@ -1,0 +1,160 @@
+{
+  "EOD": "15:20 full remaining SOR MARKET DAY intent; first admissible15:20<=t<15:25 actualO, else valid exact15:30 O=H=L=C auction, else fail-closed.",
+  "EXIT_v4": "REJECTED",
+  "MTM": "MTM_LAST_ACTUAL_TRADE_SAME_SESSION_V1; actual Entry anchor and later closed actual trade only. Never fill/cash release.",
+  "North_star_scope": "20 supplied Development evaluation sessions; unobserved noncohort days not imputed.",
+  "accounting": {
+    "BUY": "raw*1.0005",
+    "LONG_only": true,
+    "SELL": "valid execution*0.9995",
+    "commission": 0,
+    "legacy_roundtrip_cost": 0,
+    "leverage": false,
+    "margin": false,
+    "short": false
+  },
+  "allocation": {
+    "MAX_semantics": "MAX stops additional position identities. Lots added to already selected funded positions do not increase concurrent count.",
+    "breadth_bonus": 0.055,
+    "caps": "Caps apply to effective cash debit conservatively including BUY5bps once; anchored at pre-batch equity. No Equity/N allocation.",
+    "first_pass": "Select up to free MAX slots at this Entry timestamp; score-proportional budget, conservative effective-debit equity/liquidity caps, floor100.",
+    "initial_cash": 1000000,
+    "lot": 100,
+    "maximum_target_utilization": 0.92,
+    "water_fill": "Only initially funded candidates in this Entry batch; score-descending rounds, one100-share lot per candidate/round while target budget,cash,equity/liquidity capacity allow. No later top-ups or new Entry identities."
+  },
+  "anatomy": {
+    "AUC": "Higher movement value predicts positive, no posthoc sign reversal",
+    "bins": "Five equal-feature-quantile diagnostic bins; boundaries outcome-blind, duplicate boundaries may leave fewer occupied bins; not funding thresholds.",
+    "scope": "All58 Development diagnostics; OOF38 shown separately",
+    "standardized_difference": "(meanPositive-meanNegative)/sqrt((populationVarPositive+populationVarNegative)/2)",
+    "stats": [
+      "N",
+      "mean",
+      "median",
+      "p25",
+      "p75",
+      "standardized difference",
+      "univariate AUC",
+      "five quantile bins"
+    ]
+  },
+  "arms": [
+    "CORE_P5",
+    "MOVE_P5",
+    "MOVE_DUAL"
+  ],
+  "cycle": "Capital vNext v2",
+  "entry_at_cutoff_funded": false,
+  "entry_cutoff": 920,
+  "events": [
+    "causal marks",
+    "confirmed EXIT fill",
+    "cash release",
+    "Entry decisions",
+    "BUY plus same-timestamp water-fill",
+    "snapshot"
+  ],
+  "extra_arms": 0,
+  "feature_manifest_hash": "efba2449967d937b6fd5b45067cbb4237fea8ede7e66905c148ba0b756769235",
+  "feature_search": 0,
+  "formal_exit_receipt": "1ecbcc43f75279fa302f19fd896add2aac15b537",
+  "frozen_entry": "4a2d6f35946b16820a13449a9288a6685a5c283c",
+  "frozen_exit": "c7a5e5c25eb19cbd58b45c3e4ffff977f4648fad",
+  "heads": {
+    "P": "Strictly later Entry minute<t<15:20 actual High/raw reference-1>=.05",
+    "R": "Unconstrained100-share candidate outcome using Frozen EXIT before15:20 when confirmed, else precommitted EOD actual fill; SELL effective/BUY effective-1>0; unresolved=None, training/eval only."
+  },
+  "hyperparameter_sweep": 0,
+  "improvement_status_rule": "If any2x =>HIT; else compare selected v2 and frozen v1 best lexicographically(hit rate,rolling20 median,daily geom), greater=>IMPROVED_BUT_MISS, otherwiseNO_IMPROVEMENT; zero valid windows=>BLOCKED; integrity failure=>CONTRACT_FAIL.",
+  "jst": "2026-10-04T15:14:04.301603+09:00",
+  "limit_up": "LIMIT_UP_POSITION_HANDLING_V2; authoritative causal source only, otherwise UNKNOWN and continue normal EOD. No future liquidity exception.",
+  "liquidity": {
+    "capacity_fraction": 0.05,
+    "coverage_min": 0.2,
+    "minimum_lot_value_max_fraction": 0.05,
+    "policy": "CAPITAL_EXTREME_ILLIQUIDITY_VETO_V2",
+    "support_min": 10
+  },
+  "model": {
+    "C": 1.0,
+    "L2": true,
+    "class_weight": null,
+    "fit_plan": "8 CORE_P fits +8 MOVE_P fits +8 MOVE_R fits =24 unique fits. ARM-C shares exactly ARM-B P artifacts, no redundant fit.",
+    "heavy_dependency_install": 0,
+    "installed_sklearn": "1.8.0",
+    "max_iter": 2000,
+    "preprocessing": "Training-only mean/std on numeric0+missing indicators; training vocabulary onehot with explicitUNKNOWN",
+    "priority": "Reuse v1 audited sklearn L2 logistic pipeline; adapt only precommitted field lists and second fixed teacher",
+    "profile_refits": 0,
+    "seed": 57,
+    "solver": "lbfgs",
+    "training": "First20 supplied Dev sessions warmup;5-session expanding-origin blocks; train only completed past sessions, Entry<15:20 and available teacher; same test block for both heads.",
+    "within_block_refits": 0
+  },
+  "movement_definitions_fixed_before_anatomy": true,
+  "movement_signal_rule": {
+    "SUPPORTED": "effect AND OOF P_AUC(B)-A>=.01 AND pre-cutoff all-OOF top20% score Winner enrichment B>=A AND mean3MAX funded capture,daily geom,rolling20 median B>=A, with one capture/portfolio metric strictly higher",
+    "WEAK": "At least1 ofM1-M12 meets effect thresholds AND at least1 of OOF P_AUC,capture,daily geom,rolling20 median improves B>A; else NOT_SUPPORTED",
+    "effect": "M2 std_difference>=.20 and AUC>=.55, plus at least4 ofM1-M12 with both>=.20/.55",
+    "top20_population": "All pre-cutoff OOF candidates; deterministic score ordering, ceil(.2*N). Also report extreme-liquidity eligible subset."
+  },
+  "orders": 0,
+  "portfolio_runs": 9,
+  "prior_cycle": "v1 retained formal negative; no rerun or modifications",
+  "profiles": [
+    3,
+    4,
+    5
+  ],
+  "reentry": "Evidence only, not integrated",
+  "result_based_retuning": false,
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "scores": {
+    "CORE_P5": "pP/baseP",
+    "MOVE_DUAL": "sqrt((pP/baseP)*(pR/baseR))",
+    "MOVE_P5": "pP/baseP",
+    "bands_capacity_only": {
+      "BASE": {
+        "base_util": 0.44,
+        "cap": 0.25,
+        "minimum": 1
+      },
+      "HIGH": {
+        "base_util": 0.68,
+        "cap": 0.45,
+        "minimum": 2
+      },
+      "MID": {
+        "base_util": 0.56,
+        "cap": 0.35,
+        "minimum": 1.5
+      }
+    },
+    "deterministic_tie": "CapitalScore descending, Entry timestamp, symbol stable order",
+    "funding_threshold": 1.0
+  },
+  "selection": [
+    "rolling20 hit rate DESC",
+    "rolling20 median DESC",
+    "daily geom DESC",
+    "MaxDD ASC",
+    "funded Winner5 capture DESC",
+    "mean utilization DESC",
+    "lowerMAX"
+  ],
+  "selection_final_exact_tie": "Fixed arm order CORE_P5,MOVE_P5,MOVE_DUAL solely if every specified metric and MAX are exactly tied.",
+  "source_arrival": "Actual arrival UNKNOWN; inherited availability minute+1/bar_end assumption. Past sessions available16:30. No future source availability gate.",
+  "threshold_sweep": 0
+}

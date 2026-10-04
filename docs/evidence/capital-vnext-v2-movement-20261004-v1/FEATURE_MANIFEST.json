@@ -1,0 +1,120 @@
+{
+  "arms": {
+    "CORE_P5": {
+      "heads": [
+        "P"
+      ],
+      "movement": false,
+      "numeric": 27
+    },
+    "MOVE_DUAL": {
+      "heads": [
+        "P",
+        "R"
+      ],
+      "movement": true,
+      "numeric": 46
+    },
+    "MOVE_P5": {
+      "heads": [
+        "P"
+      ],
+      "movement": true,
+      "numeric": 46
+    }
+  },
+  "bin_aggregation": "First actual rawO, max actualH, min actualL, last actual rawC; sum actualVa. Empty bins stay absent. No synthetic/carry OHLC.",
+  "calendar_date_feature": false,
+  "categorical": [
+    "path/last3_connected_primary",
+    "state/activity",
+    "state/basis",
+    "state/current_primary",
+    "state/direction_basis",
+    "state/fast",
+    "state/numeric_status"
+  ],
+  "core_numeric": [
+    "entry/fill_clock",
+    "entry/intent_clock",
+    "entry/intent_to_fill_active_delay",
+    "entry/p1_score",
+    "entry/p1_threshold",
+    "path/dwell_observed_bars",
+    "path/dwell_scheduled_bars",
+    "path/last_transition_age_minutes",
+    "path/observation_losses_total",
+    "path/observed_prefix_rows",
+    "path/observed_rows_15m",
+    "path/observed_rows_30m",
+    "path/observed_rows_60m",
+    "path/segment_breaks_total",
+    "path/transitions_15m",
+    "path/transitions_30m",
+    "path/transitions_60m",
+    "path/transitions_total",
+    "selector/first_clock",
+    "selector/raw_entry_vs_first_price_pct",
+    "selector/to_entry_active_delay",
+    "selector/to_intent_active_delay",
+    "state/context_direction",
+    "state/fast_applicable",
+    "state/local_direction",
+    "state/observed",
+    "state/stop_count"
+  ],
+  "current_boundary": "Row minute+1<=Entry minute; closed5m bin_end<=Entry. Raw future OHLC/Va discarded before projection.",
+  "current_range_denominator": "First actual rawO from9:00 through Entry-closed prefix; no prefix actual trade -> UNKNOWN.",
+  "daily_range": "100*(rawDailyH-rawDailyL)/rawDailyO; valid finite O,H,L>0,H>=L; within-session ratios, no cross-session split-sensitive price returns.",
+  "daily_support": {
+    "frequency_denominator": "valid daily ranges among exact prior20",
+    "prior20_min": 10,
+    "prior5_min": 3
+  },
+  "feature_selection": 0,
+  "future_EXIT_or_labels_in_X": false,
+  "identity_feature": false,
+  "interactions": {
+    "I1": "Frozen P1 score/positive threshold * M2; P1 is not probability",
+    "I2": "Frozen P1 score/positive threshold * M15",
+    "I3": "Authoritative fresh Path context_direction(-1,0,+1) * M2; otherwise UNKNOWN. No state-to-band mapping."
+  },
+  "intraday_support": {
+    "RV20_min_valid_sessions": 10,
+    "prior20_min_sessions_with_returns": 10,
+    "prior5_min_sessions_with_returns": 3,
+    "range30_min_valid_sessions": 10
+  },
+  "jst": "2026-10-04T15:14:04.301257+09:00",
+  "liquidity_inputs": "Prior dailyVa, active5m ratio, actual minute bitmap/count, max no-trade duration(reset across lunch). Last2 are audits, no added model columns.",
+  "lookback": "Use exact last20 dates in pinned v1 trading-session calendar; prior5 is last5 of that calendar. Missing/unopened dates are not replaced by older sessions.",
+  "missing": "Explicit None + missing indicators; categorical UNKNOWN; no proxy feature invention.",
+  "movement_numeric": {
+    "M1": "prior5 median daily range%",
+    "M10": "pooled prior20 p90 absolute5m return%",
+    "M11": "prior20 median realized5m volatility%",
+    "M12": "prior20 median max30m range%",
+    "M13": "current range% on completed actual minute bars",
+    "M14": "current realized5m volatility% on completed5m bins",
+    "M15": "current range% / prior20 median same-clock range%",
+    "M16": "current actual Va pace / prior20 median same-clock Va pace",
+    "M2": "prior20 median daily range%",
+    "M3": "prior20 daily range p75",
+    "M4": "prior20 max daily range%",
+    "M5": "prior20 frequency range>=3%",
+    "M6": "prior20 frequency range>=5%",
+    "M7": "prior20 frequency range>=10%",
+    "M8": "median of prior5 session median absolute5m return%",
+    "M9": "median of prior20 session median absolute5m return%"
+  },
+  "pace": "Sum actual minuteVa / elapsed regular minutes since9:00, lunch excluded. Complete no-trade prefix has Va0; current daily Va never used.",
+  "range30": "Rolling clock30min windows step5 within each continuous block; actual prints only, range/first actual rawO. At least1 actual bin; session maximum.",
+  "regular_windows": "65 bins:9:00-11:30 and12:30-15:25. Closing auction excluded from Movement/coverage.",
+  "return5": "C_b/C_a-1 only adjacent actual5m bins in the same uninterrupted morning/afternoon schedule; do not bridge missing bins or lunch.",
+  "sameclock_support": {
+    "denominator": "Median strictly prior same-clock range%/pace; <=0 denominator -> UNKNOWN, no cap/fallback",
+    "minimum": 10
+  },
+  "source_scope_sha256": "f178d836514d297b1c209b877666a23abd866168441a678e47f7281d0cfcf905",
+  "volatility": "Unannualized100*sqrt(sum(log(1+r5)^2)); >=2 valid adjacent-bin returns required."
+}

@@ -1,0 +1,84 @@
+{
+  "B": "base2+base3+base5",
+  "BUY_factor": "1.0005",
+  "CORE_exact_reuse": true,
+  "Entry_cutoff_JST": "15:20",
+  "Exposure": "ITERATIVE_DEVELOPMENT_EVIDENCE",
+  "H10_fit": 0,
+  "H2_fits": 8,
+  "H3_H5_exact_reuse": true,
+  "HF1_HL0_fit_use": 0,
+  "JST": "2026-10-04T19:00:49.923554+09:00",
+  "M": "m2+m3+m5",
+  "MAX4_MAX5_replays": 0,
+  "ML": "M/B",
+  "MTM": "MTM_LAST_ACTUAL_TRADE_SAME_SESSION_V1",
+  "SELL_factor": "0.9995",
+  "admission": "ML>=1.0 only",
+  "allocation": {
+    "base_target": {
+      "A": 0.56,
+      "B": 0.44,
+      "S": 0.68
+    },
+    "breadth_basis": "existing held bands plus eligible selected batch candidates, exact saved Control convention",
+    "breadth_increment": 0.055,
+    "cap": {
+      "A": 0.35,
+      "B": 0.25,
+      "S": 0.45
+    },
+    "forced_backfill": false,
+    "later_topup": false,
+    "lot": 100,
+    "max_concurrent": 3,
+    "max_target": 0.92,
+    "water_fill": "same Entry batch initially funded candidates only; deterministic score-desc one lot rounds",
+    "weight": "ML proportional"
+  },
+  "commission": 0,
+  "control_replays": 0,
+  "execution": "exact unchanged Control execution.py; Frozen EXIT then15:20 SOR regular920<=minute<925 then exact930 auction; fail closed",
+  "legacy_fee": 0,
+  "liquidity": "diagnostic only; historic statuses retained",
+  "liquidity_hard_gate": false,
+  "liquidity_size_cap": false,
+  "logistic": {
+    "C": 1.0,
+    "class_weight": null,
+    "max_iter": 2000,
+    "penalty": "l2",
+    "random_state": 57,
+    "solver": "lbfgs"
+  },
+  "main_replays": 1,
+  "new_head": "H2",
+  "only_LONG_cash_equity": true,
+  "ordering": [
+    "ML descending",
+    "m5 descending",
+    "m3 descending",
+    "m2 descending",
+    "Entry timestamp ascending",
+    "symbol stable ascending"
+  ],
+  "preprocessing": "exact CORE; constant-zero missing plus indicator, training numeric mean/std and category vocab",
+  "productionReady": false,
+  "profile": "UPWARD_STAIRCASE_V4_MAX3",
+  "rank_diagnostic_reruns": 0,
+  "ranks": {
+    "A": "1.5<=ML<2",
+    "B": "1<=ML<1.5",
+    "C": "ML<1; funded0",
+    "S": "ML>=2"
+  },
+  "result_based_retune": 0,
+  "split": {
+    "OOF_sessions": 38,
+    "origin": "5-session expanding-origin; last test block3 sessions",
+    "total_sessions": 58,
+    "warmup_sessions": 20
+  },
+  "stop_after": "main v4 + audit + report; decisions return to user",
+  "sweeps": 0
+}

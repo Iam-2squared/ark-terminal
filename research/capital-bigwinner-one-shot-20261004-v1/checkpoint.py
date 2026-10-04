@@ -39,7 +39,8 @@ def checkpoint(label, status, results, blockers, next_direction, extras=()):
         p = OUT/n
         hashes[n] = sha(p) if p.exists() else None
     private = ROOT.parent/'bigwinner_private'
-    source = private/'SOURCE_MANIFEST.json'
+    source = private/'SOURCE_MANIFEST_RECOVERED.json'
+    if not source.exists():source = private/'SOURCE_MANIFEST.json'
     record = {'jst':now(),'repo':'Iam-2squared/ark-terminal',
         'branch':git('branch','--show-current'),'basis_head':basis,
         'result_head_receipt':f'receipts/{label}.json',

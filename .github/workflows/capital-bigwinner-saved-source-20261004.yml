@@ -6,6 +6,7 @@ on:
       - .github/workflows/capital-bigwinner-saved-source-20261004.yml
       - research/capital-bigwinner-one-shot-20261004-v1/recover_saved_source.py
       - research/capital-bigwinner-one-shot-20261004-v1/SOURCE_RECOVERY_SCOPE.json
+      - research/capital-bigwinner-one-shot-20261004-v1/SOURCE_RECOVERY_SCOPE_COHORT_SUPPLEMENT.json
 permissions:
   contents: read
   actions: read
@@ -35,7 +36,7 @@ jobs:
         env:
           JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
         run: |
-          python -u research/capital-bigwinner-one-shot-20261004-v1/recover_saved_source.py --archives "$RUNNER_TEMP/bigwinner-encrypted" --out "$RUNNER_TEMP/bigwinner-source"
+          python -u research/capital-bigwinner-one-shot-20261004-v1/recover_saved_source.py --archives "$RUNNER_TEMP/bigwinner-encrypted" --scope research/capital-bigwinner-one-shot-20261004-v1/SOURCE_RECOVERY_SCOPE_COHORT_SUPPLEMENT.json --out "$RUNNER_TEMP/bigwinner-source"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

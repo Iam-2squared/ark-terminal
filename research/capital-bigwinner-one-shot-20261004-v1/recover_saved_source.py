@@ -49,10 +49,12 @@ def main():
     ap=argparse.ArgumentParser()
     ap.add_argument('--archives',required=True)
     ap.add_argument('--out',required=True)
+    ap.add_argument('--scope',type=Path)
     args=ap.parse_args()
     here=Path(__file__).resolve().parent
     root=here.parents[1]
-    scope=json.loads((here/'SOURCE_RECOVERY_SCOPE.json').read_text())
+    scope_path=args.scope or here/'SOURCE_RECOVERY_SCOPE.json'
+    scope=json.loads(scope_path.read_text())
     allowed=set(scope['source_dates_authorized'])
     split=json.loads((root/'docs/evidence/phase57-behavior-expansion-v1/04_session_split_manifest.json').read_text())
     assert not allowed&set(split['commonHoldout'])
@@ -133,7 +135,7 @@ def main():
     out.mkdir(parents=True,exist_ok=True)
     data=gzip.compress((json.dumps(list(all_records.values()),sort_keys=True,separators=(',',':'))+'\n').encode(),mtime=0)
     (out/'SAVED_SOURCE_PRIVATE.json.gz').write_bytes(data)
-    report={'status':'EXISTING_DEVELOPMENT_SOURCE_RECOVERED','scope_sha256':sha((here/'SOURCE_RECOVERY_SCOPE.json').read_bytes()),
+    report={'status':'EXISTING_DEVELOPMENT_SOURCE_RECOVERED','scope_sha256':sha(scope_path.read_bytes()),
             'private_sha256':sha(data),'bytes':len(data),'records_N':len(all_records),
             'source_dates_N':len({r['session'] for r in all_records.values()}),'archives':receipts,
             'new_market_data':0,'provider_requests':0,'protected_member_bodies_opened':0,

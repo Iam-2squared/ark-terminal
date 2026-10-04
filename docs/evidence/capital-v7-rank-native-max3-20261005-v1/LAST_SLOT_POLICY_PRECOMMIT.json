@@ -1,0 +1,72 @@
+{
+  "Safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "exact_jst": "2026-10-05T01:53:36.029020+09:00",
+  "specification": {
+    "A1": "Reserve never; free slot admit rank order; full MAX3 reject",
+    "A2": "Reserve only if pre-pick occupancy=2. Strictly later training admitted max r by exact minute. P_future_better=count(M_j(t)>r)/training_session_N; ACCEPT iff count*2<session_N; equality RESERVE. Occupancy0/1 never reserve; full3 reject. Higher batch last-slot reserve implies all remaining lower batch reserve.",
+    "BUY": "1.0005",
+    "SELL": "0.9995",
+    "admission": [
+      "P_HIGH",
+      "P_MID",
+      "P_BASE"
+    ],
+    "arms": [
+      "RANK_NATIVE_GREEDY_MAX3",
+      "RANK_NATIVE_LAST_SLOT_OPTION_MAX3"
+    ],
+    "commission": "0",
+    "execution_contract": "Frozen v5 valid_market/frozen_execution/EOD 15:20/MTM/cash release; LONG cash MAX3 no replacement",
+    "money": "Decimal precision28 frozen v5 contract; exact currency/quantity audit after money representation normalization",
+    "runtime_input_allowlist": [
+      "entry_id",
+      "session",
+      "symbol",
+      "entry_minute",
+      "entry_timestamp",
+      "raw_reference",
+      "pP",
+      "block",
+      "rank_units",
+      "train_N",
+      "band",
+      "liquidity (diagnostic only)"
+    ],
+    "same_batch_order": [
+      "pP DESC",
+      "entry_timestamp ASC",
+      "symbol ASC"
+    ],
+    "same_minute": "Confirmed exits and mark updates processed before Entry batch. Picked-but-unfunded row occupies same-batch pick capacity only; do not backfill.",
+    "sizing": {
+      "base": {
+        "P_BASE": "0.44",
+        "P_HIGH": "0.68",
+        "P_MID": "0.56"
+      },
+      "breadth_increment": "0.055",
+      "candidate_equity_cap": {
+        "P_BASE": "0.25",
+        "P_HIGH": "0.45",
+        "P_MID": "0.35"
+      },
+      "liquidity": "Frozen v5 diagnostic-only; no added gate",
+      "lot": 100,
+      "max_target": "0.92",
+      "waterfill": "Frozen v5 first pass floor; only initially funded rows receive descending one-lot rounds. No candidate backfill after initial cash/lot failure; no later topup.",
+      "weight": "pP proportional (not true-probability claim)"
+    },
+    "tables": "Completed training sessions, no U5/U10 outcomes or test-session future candidates. Empty future max encoded null (-infinity)."
+  }
+}

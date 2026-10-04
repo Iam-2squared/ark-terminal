@@ -1,0 +1,47 @@
+{
+  "Safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "exact_jst": "2026-10-05T01:53:36.029201+09:00",
+  "specification": {
+    "Capital": {
+      "North_Star": "2x window N>0",
+      "daily_geometric_gt": 0.01032420041,
+      "rolling20_mean_gt": 1.190646013,
+      "rolling20_median_gt": 1.199154192
+    },
+    "P1": "funded U5>50",
+    "P2": "funded U10>=26",
+    "P3": "below2 funded rate<=0.38666667",
+    "P4": "cash<0/MAX3/same-symbol/execution unresolved/future leakage=0",
+    "P5": "independent decision/quantity mismatch=0",
+    "bottleneck": "Largest mutually exclusive observed U5 nonfunding count among rank admission/reserve/MAX3/cash. Unique largest => corresponding enum; tied largest or only other/execution/same-symbol => NO_CLEAR_SINGLE_BOTTLENECK. Physical unavoidable is an overlapping ceiling decomposition, never added to reasons.",
+    "data_exposure": "ITERATIVE_DEVELOPMENT_EVIDENCE; protected/fresh unopened; 19 rolling windows overlap",
+    "diagnostic_arm_if_no_preservation_pass": "Apply same ordering among A1/A2 for diagnosis only; v5 remains Capital benchmark. This does not adopt failed arm.",
+    "eligible": "Preservation PASS only",
+    "float_tolerance": 1e-12,
+    "independent_method": "Standalone Fraction accounting and scalar model inference; no primary runtime/replay/evaluator imports",
+    "money_quantity_tolerance": 0,
+    "promotion": "Only Preservation PASS and all Capital gates or North Star; mixed slot diagnostic only, selectedCapitalCandidate null otherwise",
+    "winner_order": [
+      "2x hit N DESC",
+      "rolling20 median DESC",
+      "rolling20 mean DESC",
+      "daily geometric DESC",
+      "U5 funded DESC",
+      "U10 funded DESC",
+      "below2 contamination ASC",
+      "minute MaxDD ASC",
+      "A1 simplicity tie"
+    ]
+  }
+}

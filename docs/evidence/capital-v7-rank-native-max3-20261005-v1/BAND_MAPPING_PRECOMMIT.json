@@ -1,0 +1,29 @@
+{
+  "Safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "exact_jst": "2026-10-05T01:53:36.028903+09:00",
+  "specification": {
+    "boundaries": "P_HIGH if r>(N-S)/N; else P_MID if r>(N-S-A)/N; else P_BASE if r>(N-S-A-B)/N; else P_BELOW. Integer numerator comparisons avoid float boundary ambiguity. Exact boundary belongs to lower band.",
+    "old_band": "ML=sum(PAVA(p2,p3,p5))/sum(frozen head base_rates); S>=2 A>=1.5 B>=1 C otherwise",
+    "ordering": [
+      "pP DESC",
+      "Entry timestamp ASC",
+      "symbol ASC"
+    ],
+    "train_volume_preservation": "Exact S/A/B/C counts on same training rows; test counts deliberately NOT forced",
+    "training_cutoff": "training entry_minute<920; models exact saved train IDs already embody this scope",
+    "training_percentile": "Let keys=(-pP,timestamp,symbol) ascending, N training rows; r=(N-number of training keys strictly less than current key)/N. Includes own training key. Test r uses training insertion index only. This is a full-order empirical CDF (score ties resolved by frozen order).",
+    "training_rows": "Exact identical completed pre-cutoff train_entry_ids of frozen H2/H3/H5 and MOVE_P block; no test rows",
+    "training_score_apply": "Saved models predict only; model fitting/calibration/score-stream regeneration=0"
+  }
+}

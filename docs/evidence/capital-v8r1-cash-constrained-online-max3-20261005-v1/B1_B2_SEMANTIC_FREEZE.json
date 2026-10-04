@@ -1,0 +1,165 @@
+{
+  "diagnostic_failure_dependency_correction": "TYPE A diagnostic-only -> unavailable and policy continues. TYPE B shared contract -> STOP. Diagnostic outputs never input to runtime.",
+  "exact_jst": "2026-10-05T07:48:44.528400+09:00",
+  "frozen_policy": {
+    "B1": {
+      "accept": "pressure < 0.5",
+      "exact_0_5": "RESERVE",
+      "horizon": 920,
+      "name": "CAPACITY_ORDERSTAT_MAX3_V1",
+      "occupancy_free_slots": {
+        "0": 3,
+        "1": 2,
+        "2": 1,
+        "3": 0
+      },
+      "rule": "pressure = fraction past training sessions with >= free_slots strictly later admitted candidates whose frozen r is greater than current r"
+    },
+    "B2": {
+      "backoff": "cell <10 -> same band all time; band <10 -> global admitted completed train",
+      "buckets": [
+        [
+          540,
+          570
+        ],
+        [
+          570,
+          600
+        ],
+        [
+          600,
+          630
+        ],
+        [
+          630,
+          660
+        ],
+        [
+          660,
+          690
+        ],
+        [
+          750,
+          780
+        ],
+        [
+          780,
+          810
+        ],
+        [
+          810,
+          840
+        ],
+        [
+          840,
+          870
+        ],
+        [
+          870,
+          900
+        ],
+        [
+          900,
+          920
+        ]
+      ],
+      "current_actual_future_release_used": false,
+      "group_keys": [
+        "Rank-native band",
+        "fixed Entry 30-minute bucket"
+      ],
+      "held_future_release_used": false,
+      "minimum_cell_support": 10,
+      "name": "TENURE_AWARE_CAPACITY_ORDERSTAT_MAX3_V1",
+      "no_U5_U10_PnL_potential_group_or_input": true,
+      "only_difference": "strictly later admitted candidates before predicted release",
+      "predicted_release": "current Entry active clock + predicted duration; cap15:20; lunch 11:30-12:30 excluded",
+      "teacher_projection": [
+        "entry_id",
+        "execution_status",
+        "release_minute"
+      ],
+      "tenure_statistic": "integer active trading minutes; lower-middle empirical median index floor((N-1)/2), min1"
+    },
+    "Capital_gate": {
+      "Preservation": "PASS",
+      "daily_geometric": ">0.01032420041",
+      "rolling20_mean": ">1.1906460126",
+      "rolling20_median": ">1.1991541915"
+    },
+    "Exposure": "ITERATIVE_DEVELOPMENT_EVIDENCE",
+    "Preservation_gate": {
+      "U10_funded": ">=26",
+      "U5_funded": ">50",
+      "admission_oracle_recovery": ">50/116",
+      "below2": "<=0.38666667",
+      "independent_mismatch": "0",
+      "integrity": "0"
+    },
+    "Safety": {
+      "automaticPromotionAllowed": false,
+      "brokerWriteAllowed": false,
+      "excelOrderWriteAllowed": false,
+      "executionAllowed": false,
+      "liveTradingAllowed": false,
+      "paperTradingAllowed": false,
+      "productionReady": false,
+      "productionUpdateAllowed": false,
+      "rssOrderFunctionAllowed": false,
+      "transmitted": false
+    },
+    "arms": [
+      "CAPACITY_ORDERSTAT_MAX3_V1",
+      "TENURE_AWARE_CAPACITY_ORDERSTAT_MAX3_V1"
+    ],
+    "bottleneck": "Preservation PASS Capital FAIL -> CAPITAL_MONETIZATION_OR_SIZING; else max exclusive actionable miss. Exact tie Rank admission > MAX3 online > Capacity reserve > Cash sizing. No post-hoc closeness threshold.",
+    "code_sha256": {
+      "execution_bridge.py": "f5a391e07b4a065c191750ed55b4650201a9b2f33e12594166073feb8afc8355",
+      "replay.py": "89c12ad91c5dd9e073dc84638eb701ed5eabaaeaf66ff466f3ecf81bb10a856e",
+      "runtime.py": "f9232d8d501832c15344f7f5f125dab929814c5285406c3a932a027c498aa32e",
+      "tables.py": "9c557f15da98899d6a0a2f93ba5b44fe87b3bca5785f0a041337f34ab00454db"
+    },
+    "diagnostic_arm_priority": [
+      "U5 DESC",
+      "U10 DESC",
+      "below2 ASC",
+      "rolling20 median DESC",
+      "B1 tie"
+    ],
+    "exact_jst": "2026-10-05T07:26:33.887554+09:00",
+    "fresh_OOS_claim": false,
+    "future_U5_U10_used": false,
+    "future_test_arrival_used": false,
+    "immutable_execution_sha256": "7f084415ed92344fb99ef26e27ac48f2beeb868e643fba720bb61355339a8bc8",
+    "immutable_sizing_sha256": "14358d7e85190e41cfe90e488b9e6e84e0f7acd8ace96952da542c81fd16353b",
+    "integrity_float_tolerance": 1e-12,
+    "liquidity": "v7 diagnostic-only unchanged",
+    "money_quantity_tolerance": 0,
+    "new_model_fits": 0,
+    "replay_budget": {
+      "B1": 1,
+      "B2": 1
+    },
+    "runtime_admission": "exact v7 band map 490; no changes",
+    "same_batch_cash_lot_failure": "frozen v7 allocation; no backfill, later topup, replacement",
+    "same_minute": "pP DESC; occupancy includes earlier picked rows; ACCEPT increments pre-quantity occupancy. At unchanged occupancy a reserved high rank implies reserve of lower ranks.",
+    "sizing": "immutable v7 allocation function exact; pP proportional weights",
+    "teacher_regeneration": 0,
+    "winner_priority": [
+      "2x hit N DESC",
+      "rolling20 median DESC",
+      "rolling20 mean DESC",
+      "daily geometric DESC",
+      "U5 DESC",
+      "U10 DESC",
+      "below2 ASC",
+      "MaxDD ASC",
+      "B1 exact tie"
+    ]
+  },
+  "runtime_byte_exact": true,
+  "runtime_sha256": "f9232d8d501832c15344f7f5f125dab929814c5285406c3a932a027c498aa32e",
+  "source": "docs/evidence/capital-v8-capacity-aware-online-max3-20261005-v1/POLICY_B1_B2_PRECOMMIT.json",
+  "source_sha256": "a2caff5f8f1d5ab4c82f0c0e68dd20cf7e4d81ec0ffcafaf87978d9f3d728ca5",
+  "v8_B1_B2_state": "UNEVALUATED_NOT_ZERO_OUTCOME"
+}

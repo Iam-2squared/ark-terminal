@@ -1,0 +1,254 @@
+{
+  "basis_head": "28e52e8439cae3bfa4c6f007ad48365f571472c2",
+  "blockers": [],
+  "branch": "capital-state9-vnext-20261004",
+  "current_state": "FIXED_MOVEMENT_ANATOMY_COMPLETE",
+  "design_config_hash": "42de3a21640502881f6c1cf678ba5d9c4ecf697fc12d0f8538bcfcc3ac35fcd4",
+  "exposure": {
+    "Development_sessions": 58,
+    "Fresh": 0,
+    "Holdout": 0,
+    "OOF": 38,
+    "OOS": 0,
+    "Prospective": 0,
+    "Protected": 0,
+    "Validation": 0,
+    "warmup": 20
+  },
+  "feature_manifest_hash": "efba2449967d937b6fd5b45067cbb4237fea8ede7e66905c148ba0b756769235",
+  "fit_count": 0,
+  "jst": "2026-10-04T15:28:12.497917+09:00",
+  "model_hash": null,
+  "next_direction": "Keep manifest unchanged. Freeze exact audited logistic pipeline/code and24-fit plan before fitting.",
+  "orders": 0,
+  "replay_count": 0,
+  "repo": "Iam-2squared/ark-terminal",
+  "result": {
+    "anatomy_sha256": "0491da35827d2c4cdeb5c7fef521617e5632407c5a883e136b51cb93d430f737",
+    "diagnostic_M2": {
+      "feature": "movement/M2",
+      "missing_N": 2,
+      "monotonic_quantile_bins": [
+        {
+          "N": 320,
+          "bin": 1,
+          "feature_median": 1.2820512820512822,
+          "lower_exclusive": null,
+          "positive_N": 39,
+          "positive_rate": 0.121875,
+          "upper_inclusive": 1.8049126185032158
+        },
+        {
+          "N": 319,
+          "bin": 2,
+          "feature_median": 2.168269230769231,
+          "lower_exclusive": 1.8049126185032158,
+          "positive_N": 53,
+          "positive_rate": 0.16614420062695925,
+          "upper_inclusive": 2.550252242023106
+        },
+        {
+          "N": 322,
+          "bin": 3,
+          "feature_median": 3.1120779514992147,
+          "lower_exclusive": 2.550252242023106,
+          "positive_N": 43,
+          "positive_rate": 0.13354037267080746,
+          "upper_inclusive": 3.6398911758716954
+        },
+        {
+          "N": 317,
+          "bin": 4,
+          "feature_median": 4.418633540372671,
+          "lower_exclusive": 3.6398911758716954,
+          "positive_N": 54,
+          "positive_rate": 0.17034700315457413,
+          "upper_inclusive": 5.532700221436432
+        },
+        {
+          "N": 320,
+          "bin": 5,
+          "feature_median": 7.8732441798572035,
+          "lower_exclusive": 5.532700221436432,
+          "positive_N": 54,
+          "positive_rate": 0.16875,
+          "upper_inclusive": null
+        }
+      ],
+      "negative": {
+        "N": 1355,
+        "mean": 3.843705050895887,
+        "median": 3.02962584599668,
+        "p25": 2.002875945533953,
+        "p75": 4.839448455164062
+      },
+      "positive": {
+        "N": 243,
+        "mean": 4.229037389175489,
+        "median": 3.316885964912281,
+        "p25": 2.1083874229026174,
+        "p75": 5.208336680326735
+      },
+      "posthoc_sign_flip": false,
+      "standardized_difference": 0.13149093463142678,
+      "target": "label_bigwinner5",
+      "univariate_AUC": 0.5352375745979682
+    },
+    "feature_manifest_hash": "efba2449967d937b6fd5b45067cbb4237fea8ede7e66905c148ba0b756769235",
+    "fits": 0,
+    "model_features_changed_after_anatomy": false
+  },
+  "result_commit_receipt": "receipts/V4_MOVEMENT_ANATOMY.json",
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "source_hashes": {
+    "initial": {
+      "upstream_entry": "4a2d6f35946b16820a13449a9288a6685a5c283c",
+      "upstream_exit": "c7a5e5c25eb19cbd58b45c3e4ffff977f4648fad",
+      "v1_execution_book": "ee7c88e19832439f615da54dc9df7e4a0307fdb1b2b5a18d3e1f60f71566736a",
+      "v1_final_source_manifest": {
+        "final_market_book_sha256": "ee7c88e19832439f615da54dc9df7e4a0307fdb1b2b5a18d3e1f60f71566736a",
+        "final_teacher_sha256": "85d2a595671c228d955d15a0b3334e4a2e6166f833cdef924a6e35ed37270ba8",
+        "prior": {
+          "initial": {
+            "work_inputs/exit_v2/FROZEN_ENTRY/P1_Q70_FIRST_ENTRY_RECORDS.jsonl.gz": "e7a6140b6b11d8d078a271fad76b75e68a5b2fda9e45c7db43d98ee2f282abeb",
+            "work_inputs/exit_v2/SAVED_INPUTS/raw_paths_selected.json.gz": "e22f94642d17bb0f8b23ceb3605f7c3ecda90cd7285333eed316fd23c629e29f",
+            "work_inputs/exit_v3/REPLAY_ROWS.jsonl.gz": "e162d94b9f532f1b6b44b7d602f6be50babec7a5183c4378473cefcd92d61234"
+          },
+          "saved_source_sha256": "6c500ffaf585e630386d45ed57bc6711d2203db0f0fca0059a4a7a10ddfe4595",
+          "source_receipt_sha256": "1f0159ba254fe4d402da0fa27e8947b69e2fe4becf52590517561ff74c7bc8be"
+        },
+        "supplement_source_sha256": "4addea6ca62253794a9e3b24f031e1884e984b81a154ca9747e5a3f52f41feff"
+      },
+      "v1_runtime": "52f722088dd046e7c53dae653b8a432804538ca086f296a1f4f838cc52a1ac4b",
+      "v1_teacher": "85d2a595671c228d955d15a0b3334e4a2e6166f833cdef924a6e35ed37270ba8"
+    },
+    "movement_shards": [
+      {
+        "bytes": 6817060,
+        "dates": [
+          "2025-04-30",
+          "2025-05-08",
+          "2025-05-14",
+          "2025-05-20",
+          "2025-05-26",
+          "2025-05-30",
+          "2025-06-05",
+          "2025-06-11",
+          "2025-06-17",
+          "2025-06-23",
+          "2025-06-27",
+          "2025-07-03",
+          "2025-07-09",
+          "2025-07-16",
+          "2025-07-23",
+          "2025-07-29",
+          "2025-08-04",
+          "2025-08-08",
+          "2025-08-15",
+          "2025-08-21"
+        ],
+        "filename": "MOVEMENT_SOURCE_PART_01.json.gz",
+        "records_N": 15448,
+        "sha256": "9d6dc565a82c5f70940c4865f7a656ab080127a3ee950f97c54302a1e57ea183"
+      },
+      {
+        "bytes": 6833806,
+        "dates": [
+          "2025-05-01",
+          "2025-05-09",
+          "2025-05-15",
+          "2025-05-21",
+          "2025-05-27",
+          "2025-06-02",
+          "2025-06-06",
+          "2025-06-12",
+          "2025-06-18",
+          "2025-06-24",
+          "2025-06-30",
+          "2025-07-04",
+          "2025-07-10",
+          "2025-07-17",
+          "2025-07-24",
+          "2025-07-30",
+          "2025-08-05",
+          "2025-08-12",
+          "2025-08-18",
+          "2025-08-22"
+        ],
+        "filename": "MOVEMENT_SOURCE_PART_02.json.gz",
+        "records_N": 15450,
+        "sha256": "d9448a7da1bdd39406b8c0b99f0fd35f84289d04e916c23dd1a38bbd88c9ccb3"
+      },
+      {
+        "bytes": 6867464,
+        "dates": [
+          "2025-05-02",
+          "2025-05-12",
+          "2025-05-16",
+          "2025-05-22",
+          "2025-05-28",
+          "2025-06-03",
+          "2025-06-09",
+          "2025-06-13",
+          "2025-06-19",
+          "2025-06-25",
+          "2025-07-01",
+          "2025-07-07",
+          "2025-07-14",
+          "2025-07-18",
+          "2025-07-25",
+          "2025-07-31",
+          "2025-08-06",
+          "2025-08-13",
+          "2025-08-19",
+          "2025-08-25"
+        ],
+        "filename": "MOVEMENT_SOURCE_PART_03.json.gz",
+        "records_N": 15450,
+        "sha256": "b3bd8876fb316607c505f3100ba0f22bdb0901cd1a879693782726c7464e49b1"
+      },
+      {
+        "bytes": 6500124,
+        "dates": [
+          "2025-05-07",
+          "2025-05-13",
+          "2025-05-19",
+          "2025-05-23",
+          "2025-05-29",
+          "2025-06-04",
+          "2025-06-10",
+          "2025-06-16",
+          "2025-06-20",
+          "2025-06-26",
+          "2025-07-02",
+          "2025-07-08",
+          "2025-07-15",
+          "2025-07-22",
+          "2025-07-28",
+          "2025-08-01",
+          "2025-08-07",
+          "2025-08-14",
+          "2025-08-20"
+        ],
+        "filename": "MOVEMENT_SOURCE_PART_04.json.gz",
+        "records_N": 14677,
+        "sha256": "9577518929bb995002eb2dcd0c8e950ea22ca6544e1b501d5d3e18280704c193"
+      }
+    ],
+    "recovery_receipt_hash": "6595dec6e3c05b4fdcee92c4931d28f0417cf21b8264481c06b87857e6303076",
+    "recovery_scope_hash": "f178d836514d297b1c209b877666a23abd866168441a678e47f7281d0cfcf905",
+    "runtime_hash": "7d0ae8b6a7f9c368f3d801c82a19cfc73b34ea13ef10f74b59ad85c82936e730",
+    "teacher_hash": "005e194cae26898d74ea95c3aea8464517f7b71d330e53d1a2ad05c767b89322"
+  }
+}

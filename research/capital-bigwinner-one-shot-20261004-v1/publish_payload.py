@@ -14,7 +14,7 @@ for item in files:
             or path.startswith('docs/evidence/capital-bigwinner-one-shot-20261004-v1/')
             or path=='.github/workflows/capital-bigwinner-saved-source-20261004.yml')
     assert not any(x in path.upper() for x in ('PRIVATE','JSONL','RAW_PATH','NPY','NPZ'))
-    content=subprocess.check_output(['git','show',':'+path],cwd=ROOT,text=True)
+    content=subprocess.check_output(['git','show',':'+path],cwd=ROOT).decode('utf-8')
     elements.append({'path':path,'mode':'100644','type':'blob','content':content})
 print(json.dumps({'label':label,'parent':git('rev-parse','HEAD'),
     'base_tree':git('rev-parse','HEAD^{tree}'),'local_tree':git('write-tree'),

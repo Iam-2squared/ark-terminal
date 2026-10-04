@@ -1,0 +1,149 @@
+{
+  "Exposure": "ITERATIVE_DEVELOPMENT_EVIDENCE",
+  "Safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "basis_HEAD": "b0990c01785ef42e7bbe8ddbd3a417c509c6f55f",
+  "basis_tree": "a69e97fd00ea21f0e0b908ecdb89b6de0dbe5ca7",
+  "branch": "capital-v8r1-cashfix-20261005",
+  "checkpoint": "R4_PPRANK_CASH_DIAGNOSTIC",
+  "completed": [
+    "one new diagnostic package",
+    "cash internal hard constraint",
+    "no labels in objective"
+  ],
+  "counts": {
+    "B1_replay": 0,
+    "B2_replay": 0,
+    "Claude": 0,
+    "MAX4_MAX5": 0,
+    "force_push": 0,
+    "grid_search": 0,
+    "independent_full_recalculations": 0,
+    "independent_pP_diagnostic_solve": 0,
+    "main_merge": 0,
+    "new_rank_fits": 0,
+    "new_slot_ML_fits": 0,
+    "old_physical_admission_Oracle_solves": 0,
+    "old_v8_replay": 0,
+    "orders": 0,
+    "primary_pP_diagnostic_solve": 1,
+    "protected_holdout_fresh_validation_OOS_prospective_open": 0,
+    "provider_request": 0,
+    "replacement": 0,
+    "result_rescue": 0,
+    "retune": 0,
+    "teacher_regeneration": 0,
+    "threshold_sweep": 0,
+    "uniqueness_no_good_solve": 1,
+    "v5_replay": 0,
+    "v6_replay": 0,
+    "v7_A1_replay": 0,
+    "v7_A2_replay": 0
+  },
+  "current_state": "CASH_DIAGNOSTIC_FIXED",
+  "exact_jst": "2026-10-05T07:52:28.035305+09:00",
+  "fresh_OOS_claim": false,
+  "next_policy": "Independent diagnostic raw matrix reconstruction; optional diagnostic failure does not feed policy",
+  "result": {
+    "Safety": {
+      "automaticPromotionAllowed": false,
+      "brokerWriteAllowed": false,
+      "excelOrderWriteAllowed": false,
+      "executionAllowed": false,
+      "liveTradingAllowed": false,
+      "paperTradingAllowed": false,
+      "productionReady": false,
+      "productionUpdateAllowed": false,
+      "rssOrderFunctionAllowed": false,
+      "transmitted": false
+    },
+    "U10": 38,
+    "U5": 81,
+    "U5_upper_bound_claim": false,
+    "below2_N": 92,
+    "candidate_N": 488,
+    "canonical_status": "UNIQUE_CANONICAL",
+    "cash_minimum_exact": "15747.85000",
+    "cash_negative": 0,
+    "ending_cash_exact": "1060132.50000",
+    "event_ledger_sha256": "737a31c70477b3a1d6698fc375af62da6f4fae797d5cea24a0c95ce24ef65b72",
+    "exact_Decimal_certification": true,
+    "exact_jst": "2026-10-05T07:52:28.034998+09:00",
+    "execution_unavailable_ids": [
+      "2025-08-08|58670",
+      "2025-08-12|45560"
+    ],
+    "failure_type": null,
+    "formulation": {
+      "Entry_event_N": 429,
+      "MAX3_constraint_N": 429,
+      "candidate_N": 488,
+      "cash_constraint_N": 429,
+      "matrix_sha256": "d6d53a0616e6570a3e4e91b4e28eb1e5faad7d774fe47dc068ff6e02edaaec1d",
+      "symbol_pairwise_constraint_N": 0
+    },
+    "initial_cash": 1000000,
+    "maximum_occupancy": 3,
+    "money_contract": {
+      "cost_proceeds_exact": true,
+      "decimal_digits": 2,
+      "initial_cash_ticks": 100000000,
+      "max_integer_tick": 167216350,
+      "method": "smallest power10 from normalized Decimal exponent; exact multiplication, no rounding",
+      "scale": 100
+    },
+    "name": "PPRANK_CLAIRVOYANT_ADMISSION_DIAGNOSTIC_CASH_JOINT_V1",
+    "pP_decile": {
+      "6": 21,
+      "7": 23,
+      "8": 39,
+      "9": 58,
+      "10": 93
+    },
+    "policy_design_access": false,
+    "primary_execution_package_N": 1,
+    "runtime_access": false,
+    "runtime_admission_N": 490,
+    "same_symbol_violation": 0,
+    "selected_sha256": "2a7a451665f649ce429e791f0d4898a0aabcf556c74c22208de3632dd112f357",
+    "stage1_utility": 193795278,
+    "stage2_selected_N": 234,
+    "stage3_stable_ordinal_sum": 58834,
+    "stage_receipts": [
+      {
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "mip_gap": 0.0,
+        "solver_fun": -193795278.0,
+        "stage": "UTILITY",
+        "status": 0
+      },
+      {
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "mip_gap": 0.0,
+        "solver_fun": -234.0,
+        "stage": "SELECTED_N",
+        "status": 0
+      },
+      {
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "mip_gap": 0.0,
+        "solver_fun": 58834.0,
+        "stage": "STABLE_ORDINAL_SUM",
+        "status": 0
+      }
+    ],
+    "status": "CERTIFIED",
+    "sum_r": 193.79527255061546,
+    "unique_optimum_claim": true
+  }
+}

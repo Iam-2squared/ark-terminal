@@ -1,0 +1,60 @@
+{
+  "Safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "binary_tolerance": 1e-07,
+  "cash": "joint cumulative cash hard constraint after Entry event; same-minute confirmed exits before buys;38 sessions carry",
+  "code_sha256": {
+    "cash_diagnostic.py": "e748c9f3d6d098127703840c0117f3700d82289b4b711eecdfffa1ea5fe5264e",
+    "cash_diagnostic_independent.py": "8fa550feb9f609097c8d65a0d74b331ec6780dfd48a4fbfa9a0917e851267b59",
+    "solver_preflight.py": "79c42600d7f1b8990cf4db33357e673cdd3d583a150c121f2b0efbd0c7a140e1"
+  },
+  "exact_jst": "2026-10-05T07:51:49.495434+09:00",
+  "failure_types": {
+    "A": "diagnostic solver/optimization/tie/witness -> fixed UNAVAILABLE, do not repair/rerun; B1/B2 continue if shared contract PASS",
+    "B": "input/identity/Entry/EXIT/pP/band/cash/source ambiguity -> STOP"
+  },
+  "float_score_pressure_tolerance": 1e-12,
+  "full_execution_package_budget": 1,
+  "interval": "[Frozen Entry,Frozen release), MAX3 hard constraints at all Entry events",
+  "money": "Decimal exact smallest decimal scale integer ticks, no rounding, float64 exact tick representability check",
+  "money_quantity_tolerance": 0,
+  "name": "PPRANK_CLAIRVOYANT_ADMISSION_DIAGNOSTIC_CASH_JOINT_V1",
+  "objective_U5_U10_PnL": 0,
+  "objective_integer_exact": true,
+  "optional_uniqueness_no_good_budget": 1,
+  "options": {
+    "disp": false,
+    "mip_rel_gap": 0.0,
+    "presolve": true,
+    "time_limit": 120.0
+  },
+  "policy_design_access": false,
+  "population": 488,
+  "quantity": 100,
+  "runtime_access": false,
+  "runtime_admission_unchanged": 490,
+  "same_symbol": "pairwise overlap hard constraints; independent uses symbol-event matrices",
+  "scipy_version": "1.17.0",
+  "solver": "scipy.optimize.milp / HiGHS",
+  "stable_order": [
+    "Entry timestamp ASC",
+    "symbol ASC",
+    "entry_id ASC"
+  ],
+  "stages": [
+    "max sum round(r*1000000)",
+    "fixed utility, max N",
+    "fixed utility/N, min stable ordinal sum"
+  ],
+  "synthetic_before_full": 12
+}

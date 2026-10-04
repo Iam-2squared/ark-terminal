@@ -1,0 +1,94 @@
+{
+  "JST": "2026-10-04T21:38:46.237671+09:00",
+  "Safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "additional_cash_loss_to_U5_count_bound": 0,
+  "candidate_N": 492,
+  "cash_minimum_witness": "2748.50000",
+  "certificate": "Binary selection with integer lot sizes, exact source prices/cash validation. U5/U10 match interval-only upper bounds; Medium and turnover solve remaining lexicographic MILPs with zero gap.",
+  "control_U5_gap": 62,
+  "control_recovery": 0.40384615384615385,
+  "count_upper_certificate": [
+    {
+      "dual_bound": -104.0,
+      "mip_gap": 0.0,
+      "node_N": 1,
+      "objective": "U5",
+      "solver_status": 0,
+      "value": 104
+    },
+    {
+      "dual_bound": -47.0,
+      "mip_gap": 0.0,
+      "node_N": 1,
+      "objective": "U10_at_max_U5",
+      "solver_status": 0,
+      "value": 47
+    },
+    {
+      "dual_bound": -52.0,
+      "mip_gap": 0.0,
+      "node_N": 1,
+      "objective": "Medium_at_max_U5_U10",
+      "solver_status": 0,
+      "value": 52
+    },
+    {
+      "dual_bound": 36.0835618,
+      "mip_gap": 0.0,
+      "node_N": 1,
+      "objective": "turnover_jpy",
+      "solver_status": 0,
+      "value": 36083561.8
+    }
+  ],
+  "evaluator_only": true,
+  "full_physical_maximum_certified": true,
+  "historical_v1_certification_failure_preserved": true,
+  "integer_sizing_solver": [
+    {
+      "dual_bound": -52.0,
+      "mip_gap": 0.0,
+      "nodes": 1,
+      "objective": "Medium",
+      "status": 0,
+      "value": 52
+    },
+    {
+      "dual_bound": 38.95125265,
+      "mip_gap": 0.0,
+      "nodes": 0,
+      "objective": "turnover",
+      "status": 0,
+      "value": 38951252.65
+    }
+  ],
+  "invalid_execution_IDs": [
+    "2025-06-30|70360",
+    "2025-08-12|45560"
+  ],
+  "joint_lex_U10_misses": 0,
+  "maximum_Medium_conditional_on_max_U5_U10": 52,
+  "maximum_U10_conditional_on_max_U5": 47,
+  "maximum_feasible_U5": 104,
+  "minimum_turnover_at_counts_jpy": 38951252.65,
+  "oracle": "ORACLE_U5_SLOT",
+  "oracle_PnL_primary": false,
+  "policy_threshold_selected_from_oracle": false,
+  "rank_pass_U10_denominator": 47,
+  "rank_pass_U5_denominator": 113,
+  "scope": "Physical MAX3/cash/100-share/same-symbol/fixed Entry-EXIT/15:20 cutoff. v4 allocation caps and utilization are policy constraints deliberately relaxed by physical evaluator ceiling. Oracle sizing is not a live allocation recommendation.",
+  "sizing_upper_bounds_hash": "f35f835dbdb5fd30211896e85f2e21ede2648863f6cd0b28fe9a285db0424439",
+  "unavoidable_U5_total_misses": 9,
+  "unavoidable_overlap_only_U5_misses": 9
+}

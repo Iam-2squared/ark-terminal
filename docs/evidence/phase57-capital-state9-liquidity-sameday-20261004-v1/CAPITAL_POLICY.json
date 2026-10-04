@@ -1,0 +1,69 @@
+{
+  "jst": "2026-10-04T12:05:56+09:00",
+  "basis_head": "f65d3ed2bfe92e4a71285925f0fad23c8144eb40",
+  "status": "BASELINE_POLICY_RESEARCH_ONLY_NOT_FROZEN",
+  "policy_core": {
+    "policy_id": "CURRENT_CAUSAL_CAPITAL_BASELINE_CONTINUOUS_V1",
+    "adaptive": {
+      "score": "s = Frozen P1 first_intent.score, no new fit",
+      "weight": "0.5+s",
+      "candidate_cap_fraction": "0.20+0.20*s",
+      "target_utilization": "min(0.90,0.60+0.25*best_current_candidate_score+0.02*(eligible_breadth-1))",
+      "deployment": "max(0,equity*target_utilization-current_marked_investment); distribute remaining deployment by current candidate weights, then common caps and lot flooring",
+      "ordering": "descending causal score then stable Entry identity",
+      "no_existing_position_rebalance": true,
+      "missing_score": "Fail-closed, never mean/fake probability"
+    },
+    "concurrent_caps": [
+      3,
+      4,
+      5
+    ],
+    "shared_contracts": [
+      "CAPITAL_FUNDING_CONDITIONAL_EXECUTION_ADMISSION_V1",
+      "CAPITAL_ENTRY_CUTOFF_1520_V1",
+      "CAPITAL_SIMPLE_LIQUIDITY_CAP_V1",
+      "LIMIT_UP_HOLD_TO_CLOSING_AUCTION_V1",
+      "CAPITAL_CASH_LONG_MTM_REFERENCE_V1"
+    ],
+    "liquidity": {
+      "fraction": 0.01,
+      "prior_sessions": 20,
+      "calendar": "exact immediately prior exchange sessions",
+      "missing": "CAPITAL_LIQUIDITY_INPUT_UNKNOWN"
+    },
+    "cost": {
+      "broker_commission_jpy": 0,
+      "buy_factor": 1.0005,
+      "sell_factor": 0.9995,
+      "execution_friction_once": true,
+      "legacy_fee_added": false
+    },
+    "mark": {
+      "cadence": "exact final1m Close at5m gridMinute-1; no missing-price completion",
+      "missing_funded": "POSITION_MEASUREMENT_BLOCKED"
+    },
+    "rank": "CONTINUOUS_ONLY, Frozen P1 score not old confidence/probability; State9/Path ranker not adopted",
+    "max_n_role": "Concurrent cap only; Equity/N exclusive to Fixed sanity",
+    "LONG_cash_only": true
+  },
+  "policy_hash": "2b7279e55d9e32098424a8ea5d16172b61f0a03a28254de771c276b3d25a0579",
+  "hash_method": "SHA256 canonical core JSON, sorted keys, compact separators, UTF8; excludes receipt metadata",
+  "State9_policy_status": "NOT_ADOPTED_INCREMENTAL_GATE_FAILED",
+  "Path_policy_status": "NOT_ADOPTED_INCREMENTAL_GATE_FAILED",
+  "frozen_entry_and_exit_modified": false,
+  "productionReady": false,
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "productionReady": false
+  }
+}
+

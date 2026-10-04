@@ -1,0 +1,454 @@
+{
+  "causal_input_coverage": [
+    {
+      "input": "Prior20 liquidity",
+      "known_N": 1037,
+      "unknown_N": 563
+    },
+    {
+      "input": "Observed current State9",
+      "known_N": 558,
+      "unknown_N": 1042
+    }
+  ],
+  "eod_source_coverage": [
+    {
+      "class": "EXIT v3 before 15:20",
+      "N": 473
+    },
+    {
+      "class": "Regular EOD reference",
+      "N": 931
+    },
+    {
+      "class": "Exact closing auction",
+      "N": 156
+    },
+    {
+      "class": "Execution UNKNOWN",
+      "N": 18
+    },
+    {
+      "class": "Late-entry cutoff",
+      "N": 22
+    }
+  ],
+  "incremental_teacher_comparison": [
+    {
+      "teacher": "\u22655 Winner",
+      "B_vs_A_pct": -25.57169055579831,
+      "C_vs_B_pct": 43.15647650388876
+    },
+    {
+      "teacher": "Exact pre-peak MAE",
+      "B_vs_A_pct": 4.40074141384692,
+      "C_vs_B_pct": 6.269580930656171
+    },
+    {
+      "teacher": "Frozen v3 return",
+      "B_vs_A_pct": -4.167756021136393,
+      "C_vs_B_pct": 1.594022774688486
+    },
+    {
+      "teacher": "Active hold time",
+      "B_vs_A_pct": -1.8046506427119358,
+      "C_vs_B_pct": -6.963026053045329
+    }
+  ],
+  "session_lift_concentration": [
+    {
+      "comparison": "B vs A: current",
+      "largest_positive_session_pct": 15.530572446760566
+    },
+    {
+      "comparison": "C vs B: Path",
+      "largest_positive_session_pct": 73.19729030571493
+    }
+  ],
+  "liquidity_capacity_predicate": [
+    {
+      "capacity_class": "Capacity fits \u2265100 shares",
+      "N": 727
+    },
+    {
+      "capacity_class": "Capacity below100 shares",
+      "N": 310
+    },
+    {
+      "capacity_class": "Prior20 input UNKNOWN",
+      "N": 563
+    }
+  ],
+  "teacher_support": [
+    {
+      "teacher": "\u22655 Winner",
+      "full_known_N": 301,
+      "OOF_N": 166
+    },
+    {
+      "teacher": "Exact MAE",
+      "full_known_N": 317,
+      "OOF_N": 180
+    },
+    {
+      "teacher": "Frozen v3 return",
+      "full_known_N": 1561,
+      "OOF_N": 1058
+    },
+    {
+      "teacher": "Hold time",
+      "full_known_N": 1561,
+      "OOF_N": 1058
+    }
+  ],
+  "session_input_coverage": [
+    {
+      "session_ordinal": 1,
+      "candidates_N": 29,
+      "liquidity_known_pct": 96.55172413793103,
+      "current_State9_observed_pct": 10.344827586206897
+    },
+    {
+      "session_ordinal": 2,
+      "candidates_N": 27,
+      "liquidity_known_pct": 96.29629629629629,
+      "current_State9_observed_pct": 33.333333333333336
+    },
+    {
+      "session_ordinal": 3,
+      "candidates_N": 27,
+      "liquidity_known_pct": 100.0,
+      "current_State9_observed_pct": 22.22222222222222
+    },
+    {
+      "session_ordinal": 4,
+      "candidates_N": 35,
+      "liquidity_known_pct": 91.42857142857143,
+      "current_State9_observed_pct": 34.285714285714285
+    },
+    {
+      "session_ordinal": 5,
+      "candidates_N": 27,
+      "liquidity_known_pct": 92.5925925925926,
+      "current_State9_observed_pct": 25.925925925925927
+    },
+    {
+      "session_ordinal": 6,
+      "candidates_N": 30,
+      "liquidity_known_pct": 96.66666666666667,
+      "current_State9_observed_pct": 36.666666666666664
+    },
+    {
+      "session_ordinal": 7,
+      "candidates_N": 31,
+      "liquidity_known_pct": 100.0,
+      "current_State9_observed_pct": 32.25806451612903
+    },
+    {
+      "session_ordinal": 8,
+      "candidates_N": 27,
+      "liquidity_known_pct": 92.5925925925926,
+      "current_State9_observed_pct": 14.814814814814815
+    },
+    {
+      "session_ordinal": 9,
+      "candidates_N": 19,
+      "liquidity_known_pct": 100.0,
+      "current_State9_observed_pct": 31.57894736842105
+    },
+    {
+      "session_ordinal": 10,
+      "candidates_N": 21,
+      "liquidity_known_pct": 100.0,
+      "current_State9_observed_pct": 28.571428571428573
+    },
+    {
+      "session_ordinal": 11,
+      "candidates_N": 29,
+      "liquidity_known_pct": 100.0,
+      "current_State9_observed_pct": 34.48275862068966
+    },
+    {
+      "session_ordinal": 12,
+      "candidates_N": 27,
+      "liquidity_known_pct": 96.29629629629629,
+      "current_State9_observed_pct": 14.814814814814815
+    },
+    {
+      "session_ordinal": 13,
+      "candidates_N": 30,
+      "liquidity_known_pct": 93.33333333333333,
+      "current_State9_observed_pct": 36.666666666666664
+    },
+    {
+      "session_ordinal": 14,
+      "candidates_N": 25,
+      "liquidity_known_pct": 92.0,
+      "current_State9_observed_pct": 44.0
+    },
+    {
+      "session_ordinal": 15,
+      "candidates_N": 27,
+      "liquidity_known_pct": 96.29629629629629,
+      "current_State9_observed_pct": 40.74074074074074
+    },
+    {
+      "session_ordinal": 16,
+      "candidates_N": 32,
+      "liquidity_known_pct": 96.875,
+      "current_State9_observed_pct": 25.0
+    },
+    {
+      "session_ordinal": 17,
+      "candidates_N": 41,
+      "liquidity_known_pct": 97.5609756097561,
+      "current_State9_observed_pct": 26.829268292682926
+    },
+    {
+      "session_ordinal": 18,
+      "candidates_N": 26,
+      "liquidity_known_pct": 96.15384615384616,
+      "current_State9_observed_pct": 46.15384615384615
+    },
+    {
+      "session_ordinal": 19,
+      "candidates_N": 26,
+      "liquidity_known_pct": 100.0,
+      "current_State9_observed_pct": 42.30769230769231
+    },
+    {
+      "session_ordinal": 20,
+      "candidates_N": 25,
+      "liquidity_known_pct": 100.0,
+      "current_State9_observed_pct": 36.0
+    },
+    {
+      "session_ordinal": 21,
+      "candidates_N": 27,
+      "liquidity_known_pct": 96.29629629629629,
+      "current_State9_observed_pct": 40.74074074074074
+    },
+    {
+      "session_ordinal": 22,
+      "candidates_N": 30,
+      "liquidity_known_pct": 90.0,
+      "current_State9_observed_pct": 33.333333333333336
+    },
+    {
+      "session_ordinal": 23,
+      "candidates_N": 21,
+      "liquidity_known_pct": 95.23809523809524,
+      "current_State9_observed_pct": 47.61904761904762
+    },
+    {
+      "session_ordinal": 24,
+      "candidates_N": 29,
+      "liquidity_known_pct": 93.10344827586206,
+      "current_State9_observed_pct": 48.275862068965516
+    },
+    {
+      "session_ordinal": 25,
+      "candidates_N": 27,
+      "liquidity_known_pct": 96.29629629629629,
+      "current_State9_observed_pct": 37.03703703703704
+    },
+    {
+      "session_ordinal": 26,
+      "candidates_N": 27,
+      "liquidity_known_pct": 96.29629629629629,
+      "current_State9_observed_pct": 44.44444444444444
+    },
+    {
+      "session_ordinal": 27,
+      "candidates_N": 27,
+      "liquidity_known_pct": 100.0,
+      "current_State9_observed_pct": 22.22222222222222
+    },
+    {
+      "session_ordinal": 28,
+      "candidates_N": 28,
+      "liquidity_known_pct": 96.42857142857143,
+      "current_State9_observed_pct": 28.571428571428573
+    },
+    {
+      "session_ordinal": 29,
+      "candidates_N": 23,
+      "liquidity_known_pct": 100.0,
+      "current_State9_observed_pct": 21.73913043478261
+    },
+    {
+      "session_ordinal": 30,
+      "candidates_N": 31,
+      "liquidity_known_pct": 90.3225806451613,
+      "current_State9_observed_pct": 32.25806451612903
+    },
+    {
+      "session_ordinal": 31,
+      "candidates_N": 28,
+      "liquidity_known_pct": 0.0,
+      "current_State9_observed_pct": 53.57142857142857
+    },
+    {
+      "session_ordinal": 32,
+      "candidates_N": 29,
+      "liquidity_known_pct": 0.0,
+      "current_State9_observed_pct": 37.93103448275862
+    },
+    {
+      "session_ordinal": 33,
+      "candidates_N": 26,
+      "liquidity_known_pct": 0.0,
+      "current_State9_observed_pct": 30.76923076923077
+    },
+    {
+      "session_ordinal": 34,
+      "candidates_N": 27,
+      "liquidity_known_pct": 0.0,
+      "current_State9_observed_pct": 37.03703703703704
+    },
+    {
+      "session_ordinal": 35,
+      "candidates_N": 27,
+      "liquidity_known_pct": 0.0,
+      "current_State9_observed_pct": 25.925925925925927
+    },
+    {
+      "session_ordinal": 36,
+      "candidates_N": 24,
+      "liquidity_known_pct": 0.0,
+      "current_State9_observed_pct": 50.0
+    },
+    {
+      "session_ordinal": 37,
+      "candidates_N": 31,
+      "liquidity_known_pct": 0.0,
+      "current_State9_observed_pct": 32.25806451612903
+    },
+    {
+      "session_ordinal": 38,
+      "candidates_N": 23,
+      "liquidity_known_pct": 0.0,
+      "current_State9_observed_pct": 30.434782608695652
+    },
+    {
+      "session_ordinal": 39,
+      "candidates_N": 27,
+      "liquidity_known_pct": 0.0,
+      "current_State9_observed_pct": 25.925925925925927
+    },
+    {
+      "session_ordinal": 40,
+      "candidates_N": 26,
+      "liquidity_known_pct": 0.0,
+      "current_State9_observed_pct": 57.69230769230769
+    },
+    {
+      "session_ordinal": 41,
+      "candidates_N": 27,
+      "liquidity_known_pct": 0.0,
+      "current_State9_observed_pct": 55.55555555555556
+    },
+    {
+      "session_ordinal": 42,
+      "candidates_N": 25,
+      "liquidity_known_pct": 0.0,
+      "current_State9_observed_pct": 40.0
+    },
+    {
+      "session_ordinal": 43,
+      "candidates_N": 24,
+      "liquidity_known_pct": 0.0,
+      "current_State9_observed_pct": 45.833333333333336
+    },
+    {
+      "session_ordinal": 44,
+      "candidates_N": 31,
+      "liquidity_known_pct": 0.0,
+      "current_State9_observed_pct": 29.032258064516128
+    },
+    {
+      "session_ordinal": 45,
+      "candidates_N": 25,
+      "liquidity_known_pct": 0.0,
+      "current_State9_observed_pct": 40.0
+    },
+    {
+      "session_ordinal": 46,
+      "candidates_N": 24,
+      "liquidity_known_pct": 0.0,
+      "current_State9_observed_pct": 29.166666666666668
+    },
+    {
+      "session_ordinal": 47,
+      "candidates_N": 31,
+      "liquidity_known_pct": 0.0,
+      "current_State9_observed_pct": 22.580645161290324
+    },
+    {
+      "session_ordinal": 48,
+      "candidates_N": 34,
+      "liquidity_known_pct": 0.0,
+      "current_State9_observed_pct": 44.11764705882353
+    },
+    {
+      "session_ordinal": 49,
+      "candidates_N": 32,
+      "liquidity_known_pct": 0.0,
+      "current_State9_observed_pct": 34.375
+    },
+    {
+      "session_ordinal": 50,
+      "candidates_N": 26,
+      "liquidity_known_pct": 96.15384615384616,
+      "current_State9_observed_pct": 42.30769230769231
+    },
+    {
+      "session_ordinal": 51,
+      "candidates_N": 28,
+      "liquidity_known_pct": 100.0,
+      "current_State9_observed_pct": 42.857142857142854
+    },
+    {
+      "session_ordinal": 52,
+      "candidates_N": 30,
+      "liquidity_known_pct": 93.33333333333333,
+      "current_State9_observed_pct": 40.0
+    },
+    {
+      "session_ordinal": 53,
+      "candidates_N": 28,
+      "liquidity_known_pct": 96.42857142857143,
+      "current_State9_observed_pct": 28.571428571428573
+    },
+    {
+      "session_ordinal": 54,
+      "candidates_N": 31,
+      "liquidity_known_pct": 100.0,
+      "current_State9_observed_pct": 41.935483870967744
+    },
+    {
+      "session_ordinal": 55,
+      "candidates_N": 27,
+      "liquidity_known_pct": 85.18518518518519,
+      "current_State9_observed_pct": 22.22222222222222
+    },
+    {
+      "session_ordinal": 56,
+      "candidates_N": 30,
+      "liquidity_known_pct": 96.66666666666667,
+      "current_State9_observed_pct": 33.333333333333336
+    },
+    {
+      "session_ordinal": 57,
+      "candidates_N": 24,
+      "liquidity_known_pct": 95.83333333333333,
+      "current_State9_observed_pct": 45.833333333333336
+    },
+    {
+      "session_ordinal": 58,
+      "candidates_N": 24,
+      "liquidity_known_pct": 100.0,
+      "current_State9_observed_pct": 41.666666666666664
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "Capital": {
+    "Preservation": "PASS",
+    "daily_geom": ">0.01032420041",
+    "rolling20_mean": ">1.1906460126",
+    "rolling20_median": ">1.1991541915"
+  },
+  "Exposure": "ITERATIVE_DEVELOPMENT_EVIDENCE",
+  "P": {
+    "Admission_U5_recovery": ">50/116",
+    "U10": ">=26",
+    "U5": ">50",
+    "below2": "<=0.38666667",
+    "full_independent_mismatch": "0",
+    "runtime_integrity": "0"
+  },
+  "bottleneck": "largest observed actionable exclusive U5 miss count",
+  "bottleneck_exact_tie_priority": [
+    "RANK_ADMISSION",
+    "MAX3_ONLINE_OCCUPANCY",
+    "CAPACITY_RESERVE",
+    "CASH_SIZING"
+  ],
+  "cash_diagnostic_bottleneck_hard_dependency": false,
+  "diagnostic_arm_if_no_winner": [
+    "U5 DESC",
+    "U10 DESC",
+    "below2 ASC",
+    "rolling20 median DESC",
+    "B1 tie"
+  ],
+  "eligible": "Preservation and Capital PASS only",
+  "exact_jst": "2026-10-05T07:58:19.666126+09:00",
+  "fresh_OOS_claim": false,
+  "old_v8_monetization_override_not_applied": "Current Section21 overrides old non-policy evaluation JSON prose; no post-hoc alternative selection",
+  "source": "Current v8R1 instruction; runtime B1/B2 is old byte exact, new evaluation rules only as explicitly requested",
+  "winner": [
+    "2x N DESC",
+    "rolling20 median DESC",
+    "rolling20 mean DESC",
+    "daily geom DESC",
+    "U5 DESC",
+    "U10 DESC",
+    "below2 ASC",
+    "MaxDD ASC",
+    "B1 tie"
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "accounting_contract_sha256": "ccd663b52420950d58d501bf5995f069be2b25a1e2538b65405ef1b95399d8de",
+  "commission_JPY": 0,
+  "controlling": {
+    "entry": "4a2d6f35946b16820a13449a9288a6685a5c283c",
+    "exit_v3": "c7a5e5c25eb19cbd58b45c3e4ffff977f4648fad",
+    "formal_exit_receipt": "1ecbcc43f75279fa302f19fd896add2aac15b537",
+    "parent_C2_STOP": "c55b2b2134f79cbe33085b6757337048d150c2cb",
+    "parent_EOD1529_result": "41ada0f8390997c7d952f18b059499d57c19941e",
+    "parent_delivery": "b170de44a2096acee5933f5935135574da480493"
+  },
+  "deadline_sweep_budget": 0,
+  "deadline_variants_budget": 1,
+  "decision_timestamp": "Entry-session15:20:00+09:00",
+  "downstream_name": "EXIT_V3_PLUS_EOD1520_SOR_REFERENCE_V1",
+  "eligibility": "Same-session LONG cash OPEN with positive remaining quantity, Entry reference fill strictly before15:20, no valid full Frozen v3 reference fill strictly before15:20, no prior EOD commitment. Actual runtime uses confirmed position/filled quantity.",
+  "execution_contract_sha256": "fbbbb58906fc1ebdaece68ebc3fc03c710ed77cdca6a0f14bfff2ef6408e8208",
+  "fit_budget_before_C2": 0,
+  "intent_fields": {
+    "SOR": "ENABLED",
+    "execution_condition": "DAY",
+    "order_type": "MARKET",
+    "partial_exit": false,
+    "quantity": "full remaining",
+    "side": "SELL",
+    "transmitted": false,
+    "trigger": 0
+  },
+  "intent_inputs_allowed": [
+    "session",
+    "clock15:20",
+    "LONG cash position open/remaining quantity",
+    "prior full-fill fact known before15:20",
+    "EOD idempotency state"
+  ],
+  "intent_inputs_forbidden": [
+    "15:20 onward prices",
+    "future Frozen exit outcome",
+    "State9",
+    "rank",
+    "PnL",
+    "MFE/MAE",
+    "future extrema",
+    "next-day fields"
+  ],
+  "late_entry": "Retain identity, flag ENTRY_AT_OR_AFTER_INTENT; no invented position at15:20, no exclusion. If present C2 STOP rather than modifying Frozen Entry.",
+  "new_1520_source_coverage_or_outcomes_seen": false,
+  "operational_buffer_minutes": 5,
+  "original_Frozen_fields_overwritten": false,
+  "policy_id": "EOD_LIQUIDATION_1520_SOR_MARKET_V1",
+  "policy_variants_budget": 1,
+  "previous_evidence_context": "Prior C2 and15:29 aggregates and official source semantics known; new15:20 coverage and outcomes unopened.",
+  "prior_EXIT": "Preserve existing valid Frozen FILLED reference with sell timestamp strictly before intent. Prior integrated final reference copied without altering old columns.",
+  "priority": [
+    "prior Frozen full fill strictly before15:20",
+    "post-intent first regular admissible trade",
+    "proved exact15:30 auction fallback",
+    "EOD_UNEXECUTED_FAIL_CLOSED"
+  ],
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "saved_at_jst": "2026-10-04T09:56:40.858821+09:00",
+  "selection_reason": "User operational buffer before continuous end15:25, not measured performance",
+  "tie_at15_20": "Frozen fill at exact15:20 does not satisfy before15:20. Downstream final chooses EOD branch only; original row remains counterfactual source, never a second final cash release. Intent micro-event precedes first post-intent trade reference."
+}

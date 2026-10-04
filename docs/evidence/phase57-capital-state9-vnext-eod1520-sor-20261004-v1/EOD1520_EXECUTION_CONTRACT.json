@@ -1,0 +1,47 @@
+{
+  "absent_row": "UNKNOWN_NO_ADMISSIBLE_SOURCE unless stored completeness/status metadata proves HALT/NO_TRADE; no-trade minute omission alone cannot prove complete response.",
+  "additional_provider_authorization": {
+    "API_constraint": "Published endpoint supports code/date but no time filter. Do not silently broaden authorized acquisition to whole-day rows; retain out-of-window zero. If narrow transport cannot be guaranteed, record unresolved acquisition-boundary contract instead of downloading wider data.",
+    "access_prerequisite": "existing authenticated entitlement; no purchases/login credentials requested through source code",
+    "population": "same58 Development, current1600 required symbols",
+    "provider": "J-Quants",
+    "window": "15:20–15:30 execution evidence only"
+  },
+  "auction_fallback": "Only if no admissible regular trade; exact Entry-session15:30 J-Quants row with finite positive equal O=H=L=C and positive Vo/Va (official source time semantics), or pre-existing authoritative exact auction execution receipt. Never daily Close/last trade.",
+  "auction_minute": 930,
+  "cross_source_conflict": "No price-based choice: inconsistent exact source => LINEAGE_CONFLICT fail-closed; retain all inputs.",
+  "frozen_row_lineage": "Use pinned Frozen component hashes and per-path sourceHash; new raw responses get request/response hashes and retrieval time.",
+  "imputation": false,
+  "intent_minute": 920,
+  "policy_id": "EOD_LIQUIDATION_1520_SOR_MARKET_V1",
+  "price_fallbacks_forbidden": [
+    "daily Close",
+    "last observed Close",
+    "15:25–15:29 price",
+    "next-day price",
+    "interpolation",
+    "forward-fill",
+    "zero",
+    "future PnL choice"
+  ],
+  "primary_execution": "Earliest admissible trade minute >=920 and <925, after the intent micro-event; reference price=raw Open. minute-start timestamp is a reference label; actual trade second UNKNOWN.",
+  "regular_end_exclusive": 925,
+  "regular_validation": "Finite positive O/H/L/C, internally consistent OHLC, Vo>0, Va>0; dated TSE regular minute. OHLC/Vo/Va are post-intent outcome validation only.",
+  "source_hierarchy": [
+    "original Frozen saved full raw minute source",
+    "existing exact J-Quants cached raw response/source with lineage",
+    "authorized minimal additional J-Quants execution-window source"
+  ],
+  "source_sort": "Explicit chronological sort; provider array order not guaranteed. Duplicate conflicting exact rows fail-closed.",
+  "taxonomy": [
+    "UNKNOWN_NO_ADMISSIBLE_SOURCE",
+    "INVALID_SOURCE",
+    "LINEAGE_UNAVAILABLE",
+    "LINEAGE_CONFLICT",
+    "HALT",
+    "NO_TRADE",
+    "ENTRY_AT_OR_AFTER_INTENT",
+    "SESSION_CONTRACT_CONTRADICTION"
+  ],
+  "timezone": "Asia/Tokyo"
+}

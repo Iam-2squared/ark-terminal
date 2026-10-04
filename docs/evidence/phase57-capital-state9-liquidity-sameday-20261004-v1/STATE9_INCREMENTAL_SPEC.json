@@ -1,0 +1,81 @@
+{
+  "timestamp_utc": "2026-10-04T02:21:21Z",
+  "jst": "2026-10-04T11:21:21.000+09:00",
+  "repo": "Iam-2squared/ark-terminal",
+  "branch": "capital-state9-vnext-20261004",
+  "basis_head": "7d85f21c587e043e6bbbdbbac406b172c28e14e3",
+  "status": "C5_DIAGNOSTIC_PRECOMMITTED_BEFORE_OUTCOME_ANALYSIS",
+  "data": "Same1600 Frozen Entry candidates, existing outcome-exposed58 Development sessions only; no Fresh/OOS claim",
+  "question": "Incremental direct Capital-layer State9/path reference beyond already State-aware P1 output and causal P0/Selector context",
+  "arms": {
+    "A": "Frozen P1 output score + frozen P0_numeric causal features; no old confidence/probability aliases",
+    "B": "A + causal observed-current State9 category / availability / observed age",
+    "C": "B + causal prefix last3-distinct categories, state dwell, change age, transition5/10/20, prefix support/gap flags"
+  },
+  "teacher_targets": [
+    "Entry_to_High_ge5_binary (evaluation teacher, regression diagnostic only)",
+    "pre_peak_MAE_abs_pct",
+    "Frozen_EXIT_v3_realized_return_pct",
+    "Frozen_EXIT_v3_capital_recycling_active_minutes"
+  ],
+  "descriptive_only": [
+    "Entry_to_High_ge1/2/3/4",
+    "remaining upside",
+    "path net-up/total-variation",
+    "time-to-high",
+    "exit reason"
+  ],
+  "missing_teachers": "Target-wise complete rows only, identical population and split across3arms; no label/outcome imputation; report targetN",
+  "splits": {
+    "method": "session-forward",
+    "sessions": 58,
+    "initial_sessions": 18,
+    "test_blocks": [
+      10,
+      10,
+      10,
+      10
+    ],
+    "purge_last_prior_session": 1,
+    "identical_entry_cross_split": false,
+    "prior_only_preprocessing": true
+  },
+  "estimator": "Ridge(alpha=10) fixed, train-only median numeric imputation + standardization; train-only one-hot category vocabulary; no model/threshold search",
+  "fit_budget": {
+    "arms": 3,
+    "teachers": 4,
+    "folds": 4,
+    "max_fits": 48,
+    "hyperparameter_sweeps": 0,
+    "threshold_sweeps": 0
+  },
+  "support_gate": {
+    "causal_observed_current_entries": 400,
+    "causal_observed_sessions": 20,
+    "fold_train_rows_per_target": 100
+  },
+  "incremental_gate": {
+    "mean_normalized_MSE_improvement": 0.01,
+    "min_targets_improved": 2,
+    "winner_auc_max_decline": 0.02,
+    "positive_folds_min": 3,
+    "max_single_session_positive_lift_share": 0.4
+  },
+  "path_gate": "Same incremental gate versus B, not versus A only; no unconditional ARM-C promotion.",
+  "if_not_demonstrated": "CAPITAL_STATE9_INCREMENTAL_VALUE_NOT_DEMONSTRATED; do not force State into policy or expand budget.",
+  "portfolio_budget": "C3 fixed3 + continuous A3 =6. Only C6-precommitted supported rank arms may add MAX3/4/5 replay; noNorthStar inversion.",
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "productionReady": false
+  },
+  "fit_consumed": 0,
+  "diagnostic_results_read": 0
+}

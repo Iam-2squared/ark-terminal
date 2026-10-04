@@ -1,0 +1,105 @@
+{
+  "basis_head": "d4322d6c27eb6ae29c3e21fa4d71adfd809a5eb1",
+  "branch": "capital-state9-vnext-20261004",
+  "checkpoint": "F3 SOURCE COVERAGE / F4 ADAPTER",
+  "contract_hash": "efadc19bce9bdfbaa0d29ad54e3728ad00d5063f213760e9b6e7fafaaaf41748",
+  "controlling_frozen": {
+    "entry": "4a2d6f35946b16820a13449a9288a6685a5c283c",
+    "exit_v3": "c7a5e5c25eb19cbd58b45c3e4ffff977f4648fad",
+    "formal_exit_receipt": "1ecbcc43f75279fa302f19fd896add2aac15b537",
+    "parent_C2_STOP": "c55b2b2134f79cbe33085b6757337048d150c2cb",
+    "parent_EOD1529_result": "41ada0f8390997c7d952f18b059499d57c19941e",
+    "parent_delivery": "b170de44a2096acee5933f5935135574da480493"
+  },
+  "execution_budget": {
+    "Capital_performance_replay": 0,
+    "Claude_calls": 0,
+    "EXIT_replay": 0,
+    "Entry_replay": 0,
+    "MAX3_4_5_comparison": 0,
+    "State9_feature_search": 0,
+    "deadline_sweep": 0,
+    "fit": 0,
+    "force_pushes": 0,
+    "main_merges": 0,
+    "new_market_data_rows": 0,
+    "new_ranker": 0,
+    "orders": 0,
+    "protected_holdout_fresh_validation_oos_prospective_open": 0,
+    "provider_request": 0,
+    "rank_threshold_search": 0
+  },
+  "exposure": {
+    "Capital_performance_evaluated": false,
+    "candidate_N": 1600,
+    "population": "previously outcome-exposed Development",
+    "protected_exposure": 0,
+    "sessions_N": 58
+  },
+  "latest_observed_head": "d4322d6c27eb6ae29c3e21fa4d71adfd809a5eb1",
+  "next_direction": "F5/F6 independent comparison/canaries and C2 fail-closed gate. No policy rescue or Capital replay.",
+  "repo": "Iam-2squared/ark-terminal",
+  "result_head": null,
+  "result_head_receipt": "Append actual commit SHA after commit exists; no future SHA.",
+  "results": {
+    "EOD_fill_N": 1087,
+    "actual_funded_overnight_positions_N": null,
+    "auction_fallback_fill_N": 156,
+    "candidate_N": 1600,
+    "distinct_symbols_N": 774,
+    "entry_after_or_at_intent_N": 22,
+    "final_admission_unresolved_N": 40,
+    "late_entry_original_FILLED_N": 20,
+    "late_entry_original_UNRESOLVED_N": 2,
+    "late_entry_sessions_N": 21,
+    "no_fill_exception_N": 18,
+    "old39_N": 39,
+    "old39_same_day_closed_N": 19,
+    "old39_unresolved_N": 20,
+    "open_at1520_N": 1105,
+    "prior_EXIT_before1520_N": 473,
+    "regular_post_intent_fill_N": 931,
+    "same_day_reference_closed_N": 1560,
+    "sessions_N": 58,
+    "source_missing_sessions_N": 15,
+    "source_missing_symbols_N": 18,
+    "unresolved_candidate_obligation_N": 40
+  },
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "saved_at_jst": "2026-10-04T10:02:52.704839+09:00",
+  "source_hashes": {
+    "adapter_rows": "6035151d5385d259e47ba7b9d78eb54dd6b5f1e248ca9d2331aa6ee15a36ec15",
+    "raw_paths": "5e7c3624b4904d05c50c5bf8976ae23051d7f74c57808791de3a00997da4a856"
+  },
+  "status": "SOURCE_COVERAGE_RECONSTRUCTED_WITH_UNRESOLVED",
+  "unresolved": [
+    "18 exact execution source/market-status evidence; authentication unavailable",
+    "22 Entries after15:20 outside precommitted EOD clock; Frozen statuses20FILLED/2UNRESOLVED retained",
+    "Current MTM and runtime cash-known not certified by reference-price audit"
+  ],
+  "what_changed": [
+    "All1600 retained in new downstream overlay;473 prior reference fills,931 regular EOD,156 auction EOD.",
+    "19/39 old unresolved have a new separate EOD reference fill.",
+    "18 eligible no-source and22 late-entry policy gaps recorded; no imputation or exclusion."
+  ],
+  "what_did_not_change": [
+    "Frozen FIRST ENTRY v2 P1_Q70 source/hash/price/timestamp",
+    "Frozen EXIT v3 source/hash/status/price/timestamp",
+    "15:29 negative Evidence",
+    "Re-entry evidence-only",
+    "EXIT v4 rejected",
+    "LONG cash-only",
+    "Safety false"
+  ]
+}

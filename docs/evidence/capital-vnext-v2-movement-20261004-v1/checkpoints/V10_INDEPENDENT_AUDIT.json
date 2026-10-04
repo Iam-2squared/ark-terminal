@@ -1,0 +1,448 @@
+{
+  "basis_head": "85e279652937a5c359c2d9eb804629455a5ea771",
+  "blockers": [],
+  "branch": "capital-state9-vnext-20261004",
+  "current_state": "CAPITAL_VNEXT_V2_INTEGRITY_PASS",
+  "design_config_hash": "42de3a21640502881f6c1cf678ba5d9c4ecf697fc12d0f8538bcfcc3ac35fcd4",
+  "exposure": {
+    "Development_sessions": 58,
+    "Fresh": 0,
+    "Holdout": 0,
+    "OOF": 38,
+    "OOS": 0,
+    "Prospective": 0,
+    "Protected": 0,
+    "Validation": 0,
+    "warmup": 20
+  },
+  "feature_manifest_hash": "efba2449967d937b6fd5b45067cbb4237fea8ede7e66905c148ba0b756769235",
+  "fit_count": 24,
+  "jst": "2026-10-04T15:40:13.000636+09:00",
+  "model_hash": "cefa65ff0e2ba1875ba6d8111b3eb79e3d5b4cd202348dcd1b4bc6e5e489c24b",
+  "next_direction": "Apply fixed selection, freeze North-Star/v1 comparison report and preserve private Evidence; no retuning.",
+  "orders": 0,
+  "replay_count": 9,
+  "repo": "Iam-2squared/ark-terminal",
+  "result": {
+    "Primary_ranking_allocation_imports_in_independent": 0,
+    "additional_model_fits": 0,
+    "audit_hash": "083bb61e2d3df9b049ecee36b7556844edac0bcbdf4c5440ef757354850d3b4f",
+    "canaries": {
+      "fail_N": 0,
+      "feature_search": 0,
+      "fits_added": 0,
+      "hyperparameter_sweep": 0,
+      "orders": 0,
+      "passed_N": 32,
+      "productionReady": false,
+      "profile_refits": 0,
+      "status": "PASS",
+      "tests": [
+        {
+          "N": 1,
+          "evidence": {
+            "representative_sessions": 38
+          },
+          "name": "future High -> runtime score unchanged",
+          "status": "PASS"
+        },
+        {
+          "N": 2,
+          "evidence": null,
+          "name": "future Low -> runtime score unchanged",
+          "status": "PASS"
+        },
+        {
+          "N": 3,
+          "evidence": null,
+          "name": "future EXIT -> runtime features unchanged",
+          "status": "PASS"
+        },
+        {
+          "N": 4,
+          "evidence": null,
+          "name": "Head R label training/eval only",
+          "status": "PASS"
+        },
+        {
+          "N": 5,
+          "evidence": null,
+          "name": "future State suffix -> score unchanged",
+          "status": "PASS"
+        },
+        {
+          "N": 6,
+          "evidence": null,
+          "name": "future Path suffix -> score unchanged",
+          "status": "PASS"
+        },
+        {
+          "N": 7,
+          "evidence": null,
+          "name": "future liquidity -> funding unchanged",
+          "status": "PASS"
+        },
+        {
+          "N": 8,
+          "evidence": null,
+          "name": "future limit-up -> Entry funding unchanged",
+          "status": "PASS"
+        },
+        {
+          "N": 9,
+          "evidence": null,
+          "name": "Movement Entry-past only",
+          "status": "PASS"
+        },
+        {
+          "N": 10,
+          "evidence": null,
+          "name": "current same-day future bars unused",
+          "status": "PASS"
+        },
+        {
+          "N": 11,
+          "evidence": null,
+          "name": "Entry>=15:20 funding0",
+          "status": "PASS"
+        },
+        {
+          "N": 12,
+          "evidence": null,
+          "name": "Extreme Liquidity past-only",
+          "status": "PASS"
+        },
+        {
+          "N": 13,
+          "evidence": null,
+          "name": "identity blacklist0",
+          "status": "PASS"
+        },
+        {
+          "N": 14,
+          "evidence": null,
+          "name": "score threshold fixed1.0",
+          "status": "PASS"
+        },
+        {
+          "N": 15,
+          "evidence": null,
+          "name": "equity cap obeyed",
+          "status": "PASS"
+        },
+        {
+          "N": 16,
+          "evidence": null,
+          "name": "liquidity cap obeyed",
+          "status": "PASS"
+        },
+        {
+          "N": 17,
+          "evidence": null,
+          "name": "water-fill deterministic",
+          "status": "PASS"
+        },
+        {
+          "N": 18,
+          "evidence": null,
+          "name": "water-fill outcome blind",
+          "status": "PASS"
+        },
+        {
+          "N": 19,
+          "evidence": null,
+          "name": "cash<0 zero",
+          "status": "PASS"
+        },
+        {
+          "N": 20,
+          "evidence": null,
+          "name": "100-share lot",
+          "status": "PASS"
+        },
+        {
+          "N": 21,
+          "evidence": null,
+          "name": "LONG only",
+          "status": "PASS"
+        },
+        {
+          "N": 22,
+          "evidence": null,
+          "name": "margin/short/leverage0",
+          "status": "PASS"
+        },
+        {
+          "N": 23,
+          "evidence": null,
+          "name": "MTM mark != fill",
+          "status": "PASS"
+        },
+        {
+          "N": 24,
+          "evidence": null,
+          "name": "no-trade mark no cash release",
+          "status": "PASS"
+        },
+        {
+          "N": 25,
+          "evidence": null,
+          "name": "EOD valid fill only",
+          "status": "PASS"
+        },
+        {
+          "N": 26,
+          "evidence": null,
+          "name": "duplicate sell0",
+          "status": "PASS"
+        },
+        {
+          "N": 27,
+          "evidence": null,
+          "name": "MAX3/4/5 cap exact",
+          "status": "PASS"
+        },
+        {
+          "N": 28,
+          "evidence": null,
+          "name": "Profile refit0",
+          "status": "PASS"
+        },
+        {
+          "N": 29,
+          "evidence": {
+            "new_fits": 0
+          },
+          "name": "deterministic9-run rerun",
+          "status": "PASS"
+        },
+        {
+          "N": 30,
+          "evidence": null,
+          "name": "Primary / Independent mismatch0",
+          "status": "PASS"
+        },
+        {
+          "N": 31,
+          "evidence": null,
+          "name": "future EOD source missing -> BUY unchanged",
+          "status": "PASS"
+        },
+        {
+          "N": 32,
+          "evidence": null,
+          "name": "limit-up normal EOD one intent",
+          "status": "PASS"
+        }
+      ],
+      "tests_N": 32,
+      "threshold_sweep": 0
+    },
+    "canary_hash": "2cbebf5a5c532ac478f6cddf8fdcfbef3b0f8180abc3f304af43fcea6d39605a",
+    "deterministic_verification_runs": 9,
+    "independent": {
+      "Primary_logic_imported": false,
+      "cash_arithmetic": "Exact Fraction compared to Primary Decimal as rational equality",
+      "checks": {
+        "BUY_debit": 1651,
+        "EOD_intent": 757,
+        "EOD_intent_count": 9,
+        "SELL": 1651,
+        "capacity_band": 3117,
+        "causal_marks": 134064,
+        "continuous_score": 3117,
+        "core_categories": 1600,
+        "core_numeric": 43200,
+        "curve_count": 9,
+        "daily_endpoint": 342,
+        "decision_count": 9,
+        "exact_cash_equity": 134064,
+        "extreme_veto": 1600,
+        "fit_prefix": 24,
+        "fixed_fit_count": 1,
+        "funding": 9351,
+        "liquidity_cap": 1600,
+        "movement_numeric": 30400,
+        "potential_teacher": 1600,
+        "realized_net": 1560,
+        "realized_source": 1600,
+        "realized_teacher": 1600,
+        "scalar_P": 3117,
+        "scalar_R": 1039,
+        "temporal_boundary": 24,
+        "trade_cash": 1651,
+        "trade_count": 9,
+        "train_only_mean": 24,
+        "train_only_scale": 24,
+        "train_only_vocabulary": 168,
+        "training_baseline": 24,
+        "water_fill": 1651
+      },
+      "checks_N": 380657,
+      "future_suffix_runtime_inputs": false,
+      "independent_fit_count": 0,
+      "independent_profiles": 9,
+      "max_scalar_probability_abs_difference": 5.551115123125783e-16,
+      "mismatch_N": 0,
+      "mismatch_categories": {},
+      "productionReady": false,
+      "shared_IO_limit": "Saved provider5m/prefix aggregates,Frozen Entry/State/Path/EXIT and24 fixed fitted artifacts shared. No independent external market source or production certification.",
+      "status": "PASS"
+    },
+    "independent_runs": 9,
+    "primary_unique_portfolio_runs": 9
+  },
+  "result_commit_receipt": "receipts/V10_INDEPENDENT_AUDIT.json",
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "source_hashes": {
+    "initial": {
+      "upstream_entry": "4a2d6f35946b16820a13449a9288a6685a5c283c",
+      "upstream_exit": "c7a5e5c25eb19cbd58b45c3e4ffff977f4648fad",
+      "v1_execution_book": "ee7c88e19832439f615da54dc9df7e4a0307fdb1b2b5a18d3e1f60f71566736a",
+      "v1_final_source_manifest": {
+        "final_market_book_sha256": "ee7c88e19832439f615da54dc9df7e4a0307fdb1b2b5a18d3e1f60f71566736a",
+        "final_teacher_sha256": "85d2a595671c228d955d15a0b3334e4a2e6166f833cdef924a6e35ed37270ba8",
+        "prior": {
+          "initial": {
+            "work_inputs/exit_v2/FROZEN_ENTRY/P1_Q70_FIRST_ENTRY_RECORDS.jsonl.gz": "e7a6140b6b11d8d078a271fad76b75e68a5b2fda9e45c7db43d98ee2f282abeb",
+            "work_inputs/exit_v2/SAVED_INPUTS/raw_paths_selected.json.gz": "e22f94642d17bb0f8b23ceb3605f7c3ecda90cd7285333eed316fd23c629e29f",
+            "work_inputs/exit_v3/REPLAY_ROWS.jsonl.gz": "e162d94b9f532f1b6b44b7d602f6be50babec7a5183c4378473cefcd92d61234"
+          },
+          "saved_source_sha256": "6c500ffaf585e630386d45ed57bc6711d2203db0f0fca0059a4a7a10ddfe4595",
+          "source_receipt_sha256": "1f0159ba254fe4d402da0fa27e8947b69e2fe4becf52590517561ff74c7bc8be"
+        },
+        "supplement_source_sha256": "4addea6ca62253794a9e3b24f031e1884e984b81a154ca9747e5a3f52f41feff"
+      },
+      "v1_runtime": "52f722088dd046e7c53dae653b8a432804538ca086f296a1f4f838cc52a1ac4b",
+      "v1_teacher": "85d2a595671c228d955d15a0b3334e4a2e6166f833cdef924a6e35ed37270ba8"
+    },
+    "movement_shards": [
+      {
+        "bytes": 6817060,
+        "dates": [
+          "2025-04-30",
+          "2025-05-08",
+          "2025-05-14",
+          "2025-05-20",
+          "2025-05-26",
+          "2025-05-30",
+          "2025-06-05",
+          "2025-06-11",
+          "2025-06-17",
+          "2025-06-23",
+          "2025-06-27",
+          "2025-07-03",
+          "2025-07-09",
+          "2025-07-16",
+          "2025-07-23",
+          "2025-07-29",
+          "2025-08-04",
+          "2025-08-08",
+          "2025-08-15",
+          "2025-08-21"
+        ],
+        "filename": "MOVEMENT_SOURCE_PART_01.json.gz",
+        "records_N": 15448,
+        "sha256": "9d6dc565a82c5f70940c4865f7a656ab080127a3ee950f97c54302a1e57ea183"
+      },
+      {
+        "bytes": 6833806,
+        "dates": [
+          "2025-05-01",
+          "2025-05-09",
+          "2025-05-15",
+          "2025-05-21",
+          "2025-05-27",
+          "2025-06-02",
+          "2025-06-06",
+          "2025-06-12",
+          "2025-06-18",
+          "2025-06-24",
+          "2025-06-30",
+          "2025-07-04",
+          "2025-07-10",
+          "2025-07-17",
+          "2025-07-24",
+          "2025-07-30",
+          "2025-08-05",
+          "2025-08-12",
+          "2025-08-18",
+          "2025-08-22"
+        ],
+        "filename": "MOVEMENT_SOURCE_PART_02.json.gz",
+        "records_N": 15450,
+        "sha256": "d9448a7da1bdd39406b8c0b99f0fd35f84289d04e916c23dd1a38bbd88c9ccb3"
+      },
+      {
+        "bytes": 6867464,
+        "dates": [
+          "2025-05-02",
+          "2025-05-12",
+          "2025-05-16",
+          "2025-05-22",
+          "2025-05-28",
+          "2025-06-03",
+          "2025-06-09",
+          "2025-06-13",
+          "2025-06-19",
+          "2025-06-25",
+          "2025-07-01",
+          "2025-07-07",
+          "2025-07-14",
+          "2025-07-18",
+          "2025-07-25",
+          "2025-07-31",
+          "2025-08-06",
+          "2025-08-13",
+          "2025-08-19",
+          "2025-08-25"
+        ],
+        "filename": "MOVEMENT_SOURCE_PART_03.json.gz",
+        "records_N": 15450,
+        "sha256": "b3bd8876fb316607c505f3100ba0f22bdb0901cd1a879693782726c7464e49b1"
+      },
+      {
+        "bytes": 6500124,
+        "dates": [
+          "2025-05-07",
+          "2025-05-13",
+          "2025-05-19",
+          "2025-05-23",
+          "2025-05-29",
+          "2025-06-04",
+          "2025-06-10",
+          "2025-06-16",
+          "2025-06-20",
+          "2025-06-26",
+          "2025-07-02",
+          "2025-07-08",
+          "2025-07-15",
+          "2025-07-22",
+          "2025-07-28",
+          "2025-08-01",
+          "2025-08-07",
+          "2025-08-14",
+          "2025-08-20"
+        ],
+        "filename": "MOVEMENT_SOURCE_PART_04.json.gz",
+        "records_N": 14677,
+        "sha256": "9577518929bb995002eb2dcd0c8e950ea22ca6544e1b501d5d3e18280704c193"
+      }
+    ],
+    "recovery_receipt_hash": "6595dec6e3c05b4fdcee92c4931d28f0417cf21b8264481c06b87857e6303076",
+    "recovery_scope_hash": "f178d836514d297b1c209b877666a23abd866168441a678e47f7281d0cfcf905",
+    "runtime_hash": "7d0ae8b6a7f9c368f3d801c82a19cfc73b34ea13ef10f74b59ad85c82936e730",
+    "teacher_hash": "005e194cae26898d74ea95c3aea8464517f7b71d330e53d1a2ad05c767b89322"
+  }
+}

@@ -1,0 +1,62 @@
+name: Capital vNext existing daily source recovery 20261004 safe subset
+on:
+  push:
+    branches: [capital-state9-vnext-20261004]
+    paths:
+      - .github/workflows/capital-state9-liquidity-saved-source-20261004-v2.yml
+      - research/capital-state9-liquidity-sameday-20261004-v1/recover_daily_saved_v2.py
+      - research/capital-state9-liquidity-sameday-20261004-v1/DAILY_RECOVERY_SCOPE_SAFE_V2.json
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: capital-state9-liquidity-saved-source-20261004-v2
+  cancel-in-progress: false
+jobs:
+  source-recovery:
+    if: github.ref == 'refs/heads/capital-state9-vnext-20261004'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Restore existing Development identity manifest, not labels or models
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-all-material-r1-afb38b7a5421ca4f6ff6d439bf89096236efd119
+          repository: Iam-2squared/ark-terminal
+          run-id: 36099497597
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/capital-saved-grid
+      - name: Restore existing encrypted archives only, no provider requests
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-expansion-raw-minute-*-35447995157
+          repository: Iam-2squared/ark-terminal
+          run-id: 35447995157
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/capital-saved-encrypted
+      - name: Recover only existing prior-date Va/Vo, never extract credentials
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: |
+          python -u research/capital-state9-liquidity-sameday-20261004-v1/recover_daily_saved_v2.py --archives "$RUNNER_TEMP/capital-saved-encrypted" --grid "$RUNNER_TEMP/capital-saved-grid/all-material-r1/prefit/rows.json" --out "$RUNNER_TEMP/capital-daily-recovery"
+      - name: Metadata receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: capital-state9-liquidity-source-receipt-${{ github.run_id }}
+          path: ${{ runner.temp }}/capital-daily-recovery/DAILY_SOURCE_RECOVERY_RECEIPT.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Private source artifact, never repository rows
+        uses: actions/upload-artifact@v4
+        with:
+          name: capital-state9-liquidity-source-private-${{ github.run_id }}
+          path: ${{ runner.temp }}/capital-daily-recovery/PRIOR_DAILY_VA_VO_PRIVATE.json.gz
+          retention-days: 30
+          if-no-files-found: error

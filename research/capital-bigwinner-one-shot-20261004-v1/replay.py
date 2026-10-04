@@ -39,8 +39,11 @@ def day_replay(n,day,candidates,books,starting_cash,primary_chain=True):
         # 1. Closed/past actual marks only. No-trade retains same-session last trade.
         for key,p in positions.items():
             book=books[key]
-            mark,known=last_actual_mark(book['market'],p['entry_minute'],t,p['raw_reference'])
-            p['mark']=mark;p['mark_known_minute']=known
+            assert book['session']==day
+            updates=p['mark_updates']
+            while p['mark_index']<len(updates) and updates[p['mark_index']][0]<=t:
+                known,price=updates[p['mark_index']]
+                p['mark']=price;p['mark_known_minute']=known;p['mark_index']+=1
         # 2+3. Confirmed source fill -> one cash release, then new Entry decisions.
         for key,source in sorted(fills.pop(t,[]),key=lambda x:x[0]):
             assert key in positions,'DUPLICATE_SELL_OR_CASH_RELEASE'
@@ -98,6 +101,9 @@ def day_replay(n,day,candidates,books,starting_cash,primary_chain=True):
                 assert len(positions)<=n and q%100==0 and cash>=0
                 # Future source/outcome book is consulted ONLY after the BUY decision.
                 book=books[key]
+                positions[key]['mark_updates']=sorted([(row['minute']+1,D(row['C'])) for row in book['market']
+                    if row.get('session')==day and row['minute']>=t and valid_market(row)])
+                positions[key]['mark_index']=0
                 if not book['capture_complete'] or not book.get('entry_actual_source'):
                     blockers.append({'entry_id':key,'minute':t,'reason':'MTM_SOURCE_LINEAGE_BLOCKED'})
                 prior=frozen_execution(book)
@@ -113,7 +119,7 @@ def day_replay(n,day,candidates,books,starting_cash,primary_chain=True):
                 # SELL into the same research lifecycle rather than double-selling.
                 it.update(entry_id=key,session=day,limit_up_status='LIMIT_UP_CONFIRMED' if limit_up_confirmed(books[key]['limit_up_authority'],day,t) else 'LIMIT_UP_UNKNOWN')
                 intents.append(it)
-                source=eod_source(books[key]['market'])
+                source=eod_source(books[key]['market'],day)
                 if source:fills[source['release_minute']].append((key,source))
                 else:blockers.append({'entry_id':key,'minute':931,'reason':'LIMIT_UP_EOD_UNEXECUTED_FAIL_CLOSED' if it['limit_up_status']=='LIMIT_UP_CONFIRMED' else 'EOD_UNEXECUTED_FAIL_CLOSED'})
         eq=equity();exposure=eq-cash
@@ -195,7 +201,8 @@ def run_profile(n,stream,books):
 
 def main():
     stream=rows(PRIVATE/'ROLLING_ORIGIN_SCORE_STREAM.jsonl.gz')
-    books={r['entry_id']:r for r in rows(PRIVATE/'MARKET_EXECUTION_BOOK.jsonl.gz')}
+    pointer=json.loads((PRIVATE/'FINAL_SOURCE_POINTER.json').read_text())
+    books={r['entry_id']:r for r in rows(PRIVATE/pointer['market_book'])}
     results=[]
     for n in (3,4,5):
         result,ds,ts,cs,it=run_profile(n,stream,books)

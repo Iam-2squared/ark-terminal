@@ -11,6 +11,7 @@ BASE={'S':D('.68'),'A':D('.56'),'B':D('.44')}
 
 def valid_market(r,auction=False):
     try:
+        if not r.get('lineage'):return False
         v={k:D(str(r[k])) for k in ('O','H','L','C','Vo','Va')}
         if not all(x.is_finite() and x>0 for x in v.values()):return False
         if not v['L']<=min(v['O'],v['C'])<=max(v['O'],v['C'])<=v['H']:return False
@@ -57,8 +58,8 @@ def buy_quantity(raw_price,target,rank_cap,liquidity_cap,cash):
     q=int((limit/(per_share*100)).to_integral_value(rounding=ROUND_FLOOR))*100
     return max(0,q)
 
-def last_actual_mark(rows,entry_minute,t,anchor):
-    candidates=[r for r in rows if entry_minute<=r['minute'] and r['minute']+1<=t and valid_market(r)]
+def last_actual_mark(rows,entry_minute,t,anchor,session):
+    candidates=[r for r in rows if r.get('session')==session and entry_minute<=r['minute'] and r['minute']+1<=t and valid_market(r)]
     if candidates:
         row=max(candidates,key=lambda r:r['minute'])
         return D(str(row['C'])),row['minute']+1
@@ -76,9 +77,9 @@ def eod_intent(position,t=920):
     return {'minute':920,'side':'SELL','quantity':position['quantity'],'sor':True,
             'order_type':'MARKET','condition':'DAY','transmitted':False}
 
-def eod_source(rows):
-    regular=sorted([r for r in rows if 920<=r['minute']<925 and valid_market(r)],key=lambda r:r['minute'])
-    auction=[r for r in rows if r['minute']==930 and valid_market(r,True)]
+def eod_source(rows,session):
+    regular=sorted([r for r in rows if r.get('session')==session and 920<=r['minute']<925 and valid_market(r)],key=lambda r:r['minute'])
+    auction=[r for r in rows if r.get('session')==session and r['minute']==930 and valid_market(r,True)]
     selected=regular[0] if regular else auction[0] if auction else None
     if selected is None:return None
     kind='EOD_REGULAR' if regular else 'EOD_EXACT_1530_AUCTION'

@@ -1,0 +1,85 @@
+{
+  "jst": "2026-10-04T13:31:36.214+09:00",
+  "repo": "Iam-2squared/ark-terminal",
+  "branch": "capital-state9-vnext-20261004",
+  "basis_head": "cc6b14da430f6cc6d2ba10e48667b18ec316a9b8",
+  "status": "ORIGINAL_RESPONSE_COMPLETENESS_PROBE_PRECOMMITTED",
+  "target_date_sha256": "aba25c7d54ed5ffb6c7624bde25a92a3e0e3b1fcb2c5c5fc44fe515e86e87b6d",
+  "target_code_sha256": "5ed6daf7483f3d7cd2caa2757334c8383bb3aa9867aec763e4712482036bb10e",
+  "target_scope_sha256": "cef7a1b1986d59507176081d95de66ee0de3ac103584034134e66a4151245512",
+  "encrypted_archive_sha256": "6c25b2407014d8a56c4f0beec9ae2164876bb53ec6d54a21c9b8eaf43d78e61f",
+  "wrapper_sha256": "bc193eba6c08f581f4db02d35ab926954a72603af08d7b3f78a7c53bf2a4b90c",
+  "parent_response_sha256": "5c3b6d84b995228819eef93653a86fa7f966745fe99b0acb5a4a760fd71b5ec3",
+  "raw_artifact": {
+    "run_id": 35447995157,
+    "artifact_id": 10587957635,
+    "name": "phase57-expansion-raw-minute-006-35447995157",
+    "zip_sha256": "794c76efbf32fa0f35902f69a21678cd8d66a98f3598efe7c7c571bbe8af354f",
+    "shard_mapping_evidence": {
+      "path": "docs/evidence/phase57-behavior-expansion-v1/04_session_split_manifest.json",
+      "ref": "6cedca161b0ac88b2a8495e4a26ff70432c818cd",
+      "target_index_in_non_reuse_minute_dates": 30,
+      "shard_size": 5,
+      "shard_id": "minute-006",
+      "metadata_only": true
+    }
+  },
+  "original_capture": {
+    "commit": "6cedca161b0ac88b2a8495e4a26ff70432c818cd",
+    "path": "scripts/phase57_expansion_data.py",
+    "sha256": "221ecaf2dbdff7f6063d34b3342443d662431706afe4fe6c9e64b0be4f552257",
+    "success_evidence": "NoRedirect opener.open raises on HTTP error; completed pages file only written after terminal pagination; response SHA and date and duplicate keys checked. Numeric HTTP code not separately stored."
+  },
+  "official_spec": {
+    "retrieved_jst": "2026-10-04",
+    "minute": "https://jpx-jquants.com/ja/spec/eq-bars-minute",
+    "pagination": "https://jpx-jquants.com/ja/spec/pagination",
+    "facts": [
+      "No-trade minutes omitted; scope is TSE cash lit session, not PTS or ToSTNeT.",
+      "Row order not guaranteed.",
+      "No pagination_key means whole matching request corpus returned."
+    ]
+  },
+  "proof_gate": [
+    "One target-date minute-pages.json body only; immutable wrapper and all response hashes must match.",
+    "Every page same authorized minute endpoint and date-only query; no Code narrowing.",
+    "Page indices, request cursors and response cursors must form one complete chain, first unpaged and final no cursor.",
+    "All response rows same target date; no duplicate Date/Code/Time.",
+    "Hash-identified single target window and target symbol; no performance is read."
+  ],
+  "classification": [
+    "Existing original valid bar recovered => ADAPTER_OR_CAPTURE_GAP.",
+    "Complete successful original provider response and no target rows => PROVIDER_CONFIRMED_NO_TRADE_TSE_LIT.",
+    "Any incomplete proof => UNKNOWN; no mark relaxation and no source absence inference."
+  ],
+  "credential_boundary": "Reuse existing configured Actions source-recovery JQUANTS_API_KEY for openssl decryption only; never exported, no API call, no provider request.",
+  "what_changed": [
+    "Single saved-source probe and independent completeness checker"
+  ],
+  "what_did_not_change": [
+    "MTM zero-window STOP",
+    "Frozen Entry/EXIT",
+    "All baseline policies and sources"
+  ],
+  "budget": {
+    "provider_requests": 0,
+    "new_data": 0,
+    "fit": 0,
+    "replay_before_valid_source": 0,
+    "source_member_bodies_limit": 1,
+    "protected_other_session_bodies_limit": 0
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "productionReady": false
+  },
+  "next_direction": "One saved artifact decryption; classify source gap vs provider-represented no-trade. No baseline replay absent recovered valid source."
+}

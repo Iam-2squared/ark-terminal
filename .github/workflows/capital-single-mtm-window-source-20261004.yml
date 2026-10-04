@@ -1,0 +1,58 @@
+name: Capital single funded MTM window original source proof
+on:
+  push:
+    branches: [capital-state9-vnext-20261004]
+    paths:
+      - .github/workflows/capital-single-mtm-window-source-20261004.yml
+      - research/capital-long-baseline-blocker-source-20261004-v1/SOURCE_PROBE_SCOPE.json
+      - research/capital-long-baseline-blocker-source-20261004-v1/source_probe.py
+      - research/capital-long-baseline-blocker-source-20261004-v1/independent_probe.py
+      - research/capital-long-baseline-blocker-source-20261004-v1/test_source_probe.py
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: capital-single-mtm-window-source-20261004
+  cancel-in-progress: false
+jobs:
+  single-saved-source:
+    if: github.ref == 'refs/heads/capital-state9-vnext-20261004'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Synthetic completeness and independence tests
+        run: python -m unittest discover -s research/capital-long-baseline-blocker-source-20261004-v1 -p test_source_probe.py -v
+      - name: Restore one existing encrypted source artifact, no API or market acquisition
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-expansion-raw-minute-006-35447995157
+          repository: Iam-2squared/ark-terminal
+          run-id: 35447995157
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/single-saved-source
+      - name: Decrypt existing archive and open only the pinned target-date minute wrapper
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: |
+          python -u research/capital-long-baseline-blocker-source-20261004-v1/source_probe.py --archives "$RUNNER_TEMP/single-saved-source" --scope research/capital-long-baseline-blocker-source-20261004-v1/SOURCE_PROBE_SCOPE.json --out "$RUNNER_TEMP/single-source-proof"
+      - name: Aggregate metadata receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: capital-single-window-source-receipt-${{ github.run_id }}
+          path: ${{ runner.temp }}/single-source-proof/SOURCE_PROBE_RECEIPT.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Private target source proof, never commit row data
+        uses: actions/upload-artifact@v4
+        with:
+          name: capital-single-window-source-private-${{ github.run_id }}
+          path: ${{ runner.temp }}/single-source-proof/TARGET_SOURCE_PROOF_PRIVATE.json
+          retention-days: 30
+          if-no-files-found: error

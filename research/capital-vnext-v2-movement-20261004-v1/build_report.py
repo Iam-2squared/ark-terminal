@@ -24,7 +24,8 @@ def main():
  for p in profiles:p['BigWinner5_funded_capture_rate']=capture[p['profile']]['funded_capture_rate']
  candidates=sorted((p for p in profiles if p['valid_rolling20_window_N']>0),key=selection);best=candidates[0] if candidates else None
  v1report=json.loads((ROOT/'docs/evidence/capital-bigwinner-one-shot-20261004-v1/NORTH_STAR_REPORT.json').read_text())
- v1=next(p for p in v1report['profiles'] if p['profile']==v1report['BEST_DEVELOPMENT_PROFILE'])
+ v1replay=json.loads((ROOT/'docs/evidence/capital-bigwinner-one-shot-20261004-v1/MAX3_4_5_REPLAY.json').read_text())
+ v1=next(p for p in v1replay['profiles'] if p['profile']==v1report['BEST_DEVELOPMENT_PROFILE'])
  hit=any(p['north_star_hit_any'] is True for p in profiles) if best else None
  if not integrity:status='CAPITAL_VNEXT_V2_CONTRACT_FAIL'
  elif best is None:status='CAPITAL_VNEXT_V2_MEASUREMENT_BLOCKED'

@@ -1,0 +1,74 @@
+{
+  "JST": "2026-10-04T19:48:05.078346+09:00",
+  "MAX": 3,
+  "admission": "ML>=1 AND rank cutoff; no backfill",
+  "base_utilization": {
+    "A": 0.56,
+    "B": 0.44,
+    "S": 0.68
+  },
+  "breadth": 0.055,
+  "breadth_convention": "Inherited v4: count includes existing held positions and currently selected batch candidates; highest capacity band sets base.",
+  "caps": {
+    "A": 0.35,
+    "B": 0.25,
+    "S": 0.45
+  },
+  "identity": "B_PLUS all saved ledger fields except profile name; all saved result metrics except profile/arm/score_source metadata exact. Final1433740.25 (display1433740).",
+  "independent_tolerances": {
+    "daily_rolling": 0,
+    "float_metrics": 1e-12,
+    "ledger_cash_and_quantity": 0,
+    "proportional_desired_and_money_summaries": 1e-08
+  },
+  "liquidity_gate_cap": false,
+  "lot": 100,
+  "max_target": 0.92,
+  "monotonic_definition": "Four strict checks, each both S>A and A>B: U5 and U10 precision; reversed below2 and loser. All4 strong, some partial, none not monotonic. Candidate and B_PLUS funded separately; empty ranks not strict passes.",
+  "new_fit": 0,
+  "opportunity_definition": {
+    "held_blocked": "MAX_POSITION_CAP rejected eligible Winner within first3 eligible batch candidates with existing positions: removing held slots would permit selection, not a replacement/fill claim.",
+    "later_winner": "Any pre15:20 Winner Entry, including first batch; slot availability immediately before its Entry batch after due SELL. Occupied means all3 slots occupied.",
+    "minute_samples": "Regular session540<=minute<690 or750<=minute<930, after scheduled sells and entry batch.",
+    "unused_session": "At least one regular minute snapshot with fewer than3 held positions; not merely peak<3."
+  },
+  "ordering": [
+    "ML desc",
+    "m5 desc",
+    "m3 desc",
+    "m2 desc",
+    "timestamp asc",
+    "symbol asc"
+  ],
+  "productionReady": false,
+  "profiles": {
+    "A_PLUS_MAX3": [
+      "A",
+      "S"
+    ],
+    "B_PLUS_MAX3": [
+      "A",
+      "B",
+      "S"
+    ],
+    "S_ONLY_MAX3": [
+      "S"
+    ]
+  },
+  "promotion": 0,
+  "replays": {
+    "deterministic_canary": 3,
+    "independent": 3,
+    "isolated_causal_mutation": 2,
+    "primary": 3
+  },
+  "retune": 0,
+  "score_source": "Frozen v4 score stream exact bytes",
+  "thresholds": {
+    "A": 1.5,
+    "B": 1,
+    "S": 2
+  },
+  "waterfill": "Exact v4; initially funded identities only",
+  "weight": "ML proportional"
+}

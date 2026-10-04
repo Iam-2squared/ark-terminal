@@ -1,0 +1,77 @@
+{
+  "Exposure": "ITERATIVE_DEVELOPMENT_EVIDENCE",
+  "Safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "basis_HEAD": "868de8645be47c8f0d1eb83c8fe49e93bbc8cb73",
+  "basis_tree": "bfd5a52499d755cf352801ba65044b84d4ce4c06",
+  "branch": "capital-v8r1-cashfix-20261005",
+  "checkpoint": "R13_FULL_INDEPENDENT_AUDIT",
+  "completed": [
+    "separate policy/score/table reconstruction",
+    "Fraction money/quantity/BUY/SELL/MTM/cash",
+    "conservation/FalseReserve/BadFill/rolling20/selection"
+  ],
+  "counts": {
+    "B1_replay": 1,
+    "B2_replay": 1,
+    "Claude": 0,
+    "MAX4_MAX5": 0,
+    "force_push": 0,
+    "grid_search": 0,
+    "independent_full_recalculations": 2,
+    "independent_pP_diagnostic_solve": 1,
+    "main_merge": 0,
+    "new_rank_fits": 0,
+    "new_slot_ML_fits": 0,
+    "old_physical_admission_Oracle_solves": 0,
+    "old_v8_replay": 0,
+    "orders": 0,
+    "primary_pP_diagnostic_solve": 1,
+    "protected_holdout_fresh_validation_OOS_prospective_open": 0,
+    "provider_request": 0,
+    "replacement": 0,
+    "result_rescue": 0,
+    "retune": 0,
+    "teacher_regeneration": 0,
+    "threshold_sweep": 0,
+    "uniqueness_no_good_solve": 1,
+    "v5_replay": 0,
+    "v6_replay": 0,
+    "v7_A1_replay": 0,
+    "v7_A2_replay": 0
+  },
+  "current_state": "FULL_INDEPENDENT_MISMATCH0",
+  "exact_jst": "2026-10-05T08:03:17.765927+09:00",
+  "fresh_OOS_claim": false,
+  "next_policy": "Apply the precommitted selection rule once; no policy/threshold/admission/rank changes",
+  "result": {
+    "check_N": 229820,
+    "independent_selection": {
+      "Admission_Oracle_to_runtime_gap": 69,
+      "NEXT_BOTTLENECK": "CAPACITY_RESERVE",
+      "admission_ceiling_loss": 33,
+      "diagnosticArm": "TENURE_AWARE_CAPACITY_ORDERSTAT_MAX3_V1",
+      "observed_U5_exclusive_gaps": {
+        "CAPACITY_RESERVE": 55,
+        "CASH_SIZING": 9,
+        "MAX3_ONLINE_OCCUPANCY": 13,
+        "RANK_ADMISSION": 46
+      },
+      "physical_unavoidable": 21,
+      "selectedCapitalCandidate": null,
+      "status": "V8R1_NO_GO"
+    },
+    "max_float_delta": 0,
+    "mismatch_N": 0
+  }
+}

@@ -1,0 +1,478 @@
+{
+  "BAD_FILL_BLOCKED_U5": 2,
+  "BAD_FILL_BLOCKED_U5_ACTUAL_FUNDED": 2,
+  "Control_replay": 0,
+  "FALSE_RESERVE_U10_ONE_LOT_FUNDABLE": 26,
+  "FALSE_RESERVE_U5": 73,
+  "FALSE_RESERVE_U5_ONE_LOT_FUNDABLE": 70,
+  "Oracle_unavoidable_U5_overlap": 9,
+  "bad_fill_below5_blocked_U5_unique": 4,
+  "bad_fill_diagnostics": {
+    "U10": {
+      "below2_actual_funded_blocked_unique": 1,
+      "below2_actual_or_pending_overlap_unique": 1
+    },
+    "U5": {
+      "below2_actual_funded_blocked_unique": 2,
+      "below2_actual_or_pending_overlap_unique": 2
+    }
+  },
+  "definitions_precommit_sha256": "5012df04b753eab94a3f07c63fede457998c6b97eb3a3554873ab89c62d7683c",
+  "evaluator_only": true,
+  "exact_jst": "2026-10-04T23:41:32.351132+09:00",
+  "limitations": [
+    "False Reserve is a descriptive missed-winner label; no test continuation teacher is generated.",
+    "Bad Fill is observed temporal overlap, not unique counterfactual blame. Pending admissions are separated from actual funded occupants.",
+    "Frozen Oracle104 relaxes runtime allocation caps/utilization; it is a physical ceiling, not a deployable trading result."
+  ],
+  "metrics": {
+    "U10": {
+      "MAX3_miss": 1,
+      "Net_Slot_Miss": 27,
+      "Oracle_feasible": 47,
+      "Oracle_gap": 29,
+      "Oracle_recovery": 0.3829787234042553,
+      "cash_lot": 2,
+      "conservation": 47,
+      "conversion": 0.3829787234042553,
+      "delta_vs_v5": {
+        "MAX3_miss": -8,
+        "Net_Slot_Miss": 8,
+        "cash_lot": 0,
+        "funded": -8,
+        "reserve_rejected": 16
+      },
+      "funded": 18,
+      "rank_pass": 47,
+      "reserve_rejected": 26,
+      "v5": {
+        "MAX3_miss": 9,
+        "Net_Slot_Miss": 19,
+        "cash_lot": 2,
+        "conversion": 0.5531914893617021,
+        "funded": 26,
+        "rank_pass": 47,
+        "reserve_reject": 10
+      }
+    },
+    "U5": {
+      "MAX3_miss": 4,
+      "Net_Slot_Miss": 77,
+      "Oracle_feasible": 104,
+      "Oracle_gap": 71,
+      "Oracle_recovery": 0.3173076923076923,
+      "cash_lot": 3,
+      "conservation": 113,
+      "conversion": 0.2920353982300885,
+      "delta_vs_v5": {
+        "MAX3_miss": -24,
+        "Net_Slot_Miss": 19,
+        "cash_lot": -2,
+        "funded": -17,
+        "reserve_rejected": 43
+      },
+      "funded": 33,
+      "rank_pass": 113,
+      "reserve_rejected": 73,
+      "v5": {
+        "MAX3_miss": 28,
+        "Net_Slot_Miss": 58,
+        "cash_lot": 5,
+        "conversion": 0.4424778761061947,
+        "funded": 50,
+        "rank_pass": 113,
+        "reserve_reject": 30
+      }
+    }
+  },
+  "new_Oracle_solve": 0,
+  "oracle": {
+    "JST": "2026-10-04T21:38:46.237671+09:00",
+    "Safety": {
+      "automaticPromotionAllowed": false,
+      "brokerWriteAllowed": false,
+      "excelOrderWriteAllowed": false,
+      "executionAllowed": false,
+      "liveTradingAllowed": false,
+      "paperTradingAllowed": false,
+      "productionReady": false,
+      "productionUpdateAllowed": false,
+      "rssOrderFunctionAllowed": false,
+      "transmitted": false
+    },
+    "additional_cash_loss_to_U5_count_bound": 0,
+    "candidate_N": 492,
+    "cash_minimum_witness": "2748.50000",
+    "certificate": "Binary selection with integer lot sizes, exact source prices/cash validation. U5/U10 match interval-only upper bounds; Medium and turnover solve remaining lexicographic MILPs with zero gap.",
+    "control_U5_gap": 62,
+    "control_recovery": 0.40384615384615385,
+    "count_upper_certificate": [
+      {
+        "dual_bound": -104.0,
+        "mip_gap": 0.0,
+        "node_N": 1,
+        "objective": "U5",
+        "solver_status": 0,
+        "value": 104
+      },
+      {
+        "dual_bound": -47.0,
+        "mip_gap": 0.0,
+        "node_N": 1,
+        "objective": "U10_at_max_U5",
+        "solver_status": 0,
+        "value": 47
+      },
+      {
+        "dual_bound": -52.0,
+        "mip_gap": 0.0,
+        "node_N": 1,
+        "objective": "Medium_at_max_U5_U10",
+        "solver_status": 0,
+        "value": 52
+      },
+      {
+        "dual_bound": 36.0835618,
+        "mip_gap": 0.0,
+        "node_N": 1,
+        "objective": "turnover_jpy",
+        "solver_status": 0,
+        "value": 36083561.8
+      }
+    ],
+    "evaluator_only": true,
+    "full_physical_maximum_certified": true,
+    "historical_v1_certification_failure_preserved": true,
+    "integer_sizing_solver": [
+      {
+        "dual_bound": -52.0,
+        "mip_gap": 0.0,
+        "nodes": 1,
+        "objective": "Medium",
+        "status": 0,
+        "value": 52
+      },
+      {
+        "dual_bound": 38.95125265,
+        "mip_gap": 0.0,
+        "nodes": 0,
+        "objective": "turnover",
+        "status": 0,
+        "value": 38951252.65
+      }
+    ],
+    "invalid_execution_IDs": [
+      "2025-06-30|70360",
+      "2025-08-12|45560"
+    ],
+    "joint_lex_U10_misses": 0,
+    "maximum_Medium_conditional_on_max_U5_U10": 52,
+    "maximum_U10_conditional_on_max_U5": 47,
+    "maximum_feasible_U5": 104,
+    "minimum_turnover_at_counts_jpy": 38951252.65,
+    "oracle": "ORACLE_U5_SLOT",
+    "oracle_PnL_primary": false,
+    "policy_threshold_selected_from_oracle": false,
+    "rank_pass_U10_denominator": 47,
+    "rank_pass_U5_denominator": 113,
+    "scope": "Physical MAX3/cash/100-share/same-symbol/fixed Entry-EXIT/15:20 cutoff. v4 allocation caps and utilization are policy constraints deliberately relaxed by physical evaluator ceiling. Oracle sizing is not a live allocation recommendation.",
+    "sizing_upper_bounds_hash": "f35f835dbdb5fd30211896e85f2e21ede2648863f6cd0b28fe9a285db0424439",
+    "unavoidable_U5_total_misses": 9,
+    "unavoidable_overlap_only_U5_misses": 9
+  },
+  "quality": {
+    "Medium_N": 28,
+    "Medium_rate": 0.23140495867768596,
+    "N": 121,
+    "PF1_N": 36,
+    "PF1_rate": 0.2975206611570248,
+    "U10_N": 18,
+    "U10_rate": 0.1487603305785124,
+    "U2_N": 78,
+    "U2_rate": 0.6446280991735537,
+    "U3_N": 61,
+    "U3_rate": 0.5041322314049587,
+    "U5_N": 33,
+    "U5_rate": 0.2727272727272727,
+    "actual_pnl_jpy": 156480.0,
+    "below2_N": 43,
+    "below2_rate": 0.35537190082644626,
+    "below3_N": 60,
+    "below3_rate": 0.49586776859504134,
+    "loser_N": 68,
+    "loser_rate": 0.5619834710743802,
+    "positive_N": 53,
+    "positive_rate": 0.4380165289256198,
+    "rank_counts": {
+      "A": 69,
+      "B": 22,
+      "S": 30
+    },
+    "realized_mean": 0.0038653948506471194,
+    "realized_median": -0.0009995002498750624,
+    "realized_resolved_N": 121,
+    "realized_unresolved_N": 0
+  },
+  "rank_actions": {
+    "A": {
+      "actions": {
+        "CASH_OR_LOT_CONSTRAINED": 6,
+        "FUNDED": 69,
+        "MAX_POSITION_CAP": 5,
+        "SLOT_RESERVE_REJECT": 74
+      },
+      "candidate_N": 154,
+      "funded_quality": {
+        "Medium_N": 14,
+        "Medium_rate": 0.2028985507246377,
+        "N": 69,
+        "PF1_N": 22,
+        "PF1_rate": 0.3188405797101449,
+        "U10_N": 11,
+        "U10_rate": 0.15942028985507245,
+        "U2_N": 42,
+        "U2_rate": 0.6086956521739131,
+        "U3_N": 34,
+        "U3_rate": 0.4927536231884058,
+        "U5_N": 20,
+        "U5_rate": 0.2898550724637681,
+        "actual_pnl_jpy": 226161.2,
+        "below2_N": 27,
+        "below2_rate": 0.391304347826087,
+        "below3_N": 35,
+        "below3_rate": 0.5072463768115942,
+        "loser_N": 36,
+        "loser_rate": 0.5217391304347826,
+        "positive_N": 33,
+        "positive_rate": 0.4782608695652174,
+        "rank_counts": {
+          "A": 69
+        },
+        "realized_mean": 0.011275963553450301,
+        "realized_median": -0.0009995002498750624,
+        "realized_resolved_N": 69,
+        "realized_unresolved_N": 0
+      }
+    },
+    "B": {
+      "actions": {
+        "CASH_OR_LOT_CONSTRAINED": 9,
+        "FUNDED": 22,
+        "MAX_POSITION_CAP": 28,
+        "SLOT_RESERVE_REJECT": 238
+      },
+      "candidate_N": 297,
+      "funded_quality": {
+        "Medium_N": 6,
+        "Medium_rate": 0.2727272727272727,
+        "N": 22,
+        "PF1_N": 5,
+        "PF1_rate": 0.22727272727272727,
+        "U10_N": 2,
+        "U10_rate": 0.09090909090909091,
+        "U2_N": 16,
+        "U2_rate": 0.7272727272727273,
+        "U3_N": 9,
+        "U3_rate": 0.4090909090909091,
+        "U5_N": 3,
+        "U5_rate": 0.13636363636363635,
+        "actual_pnl_jpy": -15877.45,
+        "below2_N": 6,
+        "below2_rate": 0.2727272727272727,
+        "below3_N": 13,
+        "below3_rate": 0.5909090909090909,
+        "loser_N": 13,
+        "loser_rate": 0.5909090909090909,
+        "positive_N": 9,
+        "positive_rate": 0.4090909090909091,
+        "rank_counts": {
+          "B": 22
+        },
+        "realized_mean": -0.007542925837041041,
+        "realized_median": -0.004395735550196407,
+        "realized_resolved_N": 22,
+        "realized_unresolved_N": 0
+      }
+    },
+    "C": {
+      "actions": {
+        "CAPITAL_EOD_ENTRY_CUTOFF": 11,
+        "UPWARD_BELOW_BASELINE": 534
+      },
+      "candidate_N": 545,
+      "funded_quality": {
+        "Medium_N": 0,
+        "Medium_rate": null,
+        "N": 0,
+        "PF1_N": 0,
+        "PF1_rate": null,
+        "U10_N": 0,
+        "U10_rate": null,
+        "U2_N": 0,
+        "U2_rate": null,
+        "U3_N": 0,
+        "U3_rate": null,
+        "U5_N": 0,
+        "U5_rate": null,
+        "actual_pnl_jpy": 0.0,
+        "below2_N": 0,
+        "below2_rate": null,
+        "below3_N": 0,
+        "below3_rate": null,
+        "loser_N": 0,
+        "loser_rate": null,
+        "positive_N": 0,
+        "positive_rate": null,
+        "rank_counts": {},
+        "realized_mean": null,
+        "realized_median": null,
+        "realized_resolved_N": 0,
+        "realized_unresolved_N": 0
+      }
+    },
+    "S": {
+      "actions": {
+        "CASH_OR_LOT_CONSTRAINED": 1,
+        "FUNDED": 30,
+        "MAX_POSITION_CAP": 4,
+        "SLOT_RESERVE_REJECT": 8
+      },
+      "candidate_N": 43,
+      "funded_quality": {
+        "Medium_N": 8,
+        "Medium_rate": 0.26666666666666666,
+        "N": 30,
+        "PF1_N": 9,
+        "PF1_rate": 0.3,
+        "U10_N": 5,
+        "U10_rate": 0.16666666666666666,
+        "U2_N": 20,
+        "U2_rate": 0.6666666666666666,
+        "U3_N": 18,
+        "U3_rate": 0.6,
+        "U5_N": 10,
+        "U5_rate": 0.3333333333333333,
+        "actual_pnl_jpy": -53803.75,
+        "below2_N": 10,
+        "below2_rate": 0.3333333333333333,
+        "below3_N": 12,
+        "below3_rate": 0.4,
+        "loser_N": 19,
+        "loser_rate": 0.6333333333333333,
+        "positive_N": 11,
+        "positive_rate": 0.36666666666666664,
+        "rank_counts": {
+          "S": 30
+        },
+        "realized_mean": -0.004812811328162213,
+        "realized_median": -0.0014246068455134135,
+        "realized_resolved_N": 30,
+        "realized_unresolved_N": 0
+      }
+    }
+  },
+  "realized_loser_blocked_U5_unique": 3,
+  "retune": 0,
+  "slot_quality": {
+    "1": {
+      "Medium_N": 10,
+      "Medium_rate": 0.20408163265306123,
+      "N": 49,
+      "PF1_N": 17,
+      "PF1_rate": 0.3469387755102041,
+      "U10_N": 9,
+      "U10_rate": 0.1836734693877551,
+      "U2_N": 31,
+      "U2_rate": 0.6326530612244898,
+      "U3_N": 24,
+      "U3_rate": 0.4897959183673469,
+      "U5_N": 14,
+      "U5_rate": 0.2857142857142857,
+      "actual_pnl_jpy": 105104.55,
+      "below2_N": 18,
+      "below2_rate": 0.3673469387755102,
+      "below3_N": 25,
+      "below3_rate": 0.5102040816326531,
+      "loser_N": 24,
+      "loser_rate": 0.4897959183673469,
+      "positive_N": 25,
+      "positive_rate": 0.5102040816326531,
+      "rank_counts": {
+        "A": 24,
+        "B": 15,
+        "S": 10
+      },
+      "realized_mean": 0.008193916932381268,
+      "realized_median": 0.002505764661528885,
+      "realized_resolved_N": 49,
+      "realized_unresolved_N": 0
+    },
+    "2": {
+      "Medium_N": 15,
+      "Medium_rate": 0.3,
+      "N": 50,
+      "PF1_N": 16,
+      "PF1_rate": 0.32,
+      "U10_N": 7,
+      "U10_rate": 0.14,
+      "U2_N": 37,
+      "U2_rate": 0.74,
+      "U3_N": 30,
+      "U3_rate": 0.6,
+      "U5_N": 15,
+      "U5_rate": 0.3,
+      "actual_pnl_jpy": 82027.15,
+      "below2_N": 13,
+      "below2_rate": 0.26,
+      "below3_N": 20,
+      "below3_rate": 0.4,
+      "loser_N": 28,
+      "loser_rate": 0.56,
+      "positive_N": 22,
+      "positive_rate": 0.44,
+      "rank_counts": {
+        "A": 35,
+        "B": 6,
+        "S": 9
+      },
+      "realized_mean": 0.0044916572882240805,
+      "realized_median": -0.0009995002498750624,
+      "realized_resolved_N": 50,
+      "realized_unresolved_N": 0
+    },
+    "3": {
+      "Medium_N": 3,
+      "Medium_rate": 0.13636363636363635,
+      "N": 22,
+      "PF1_N": 3,
+      "PF1_rate": 0.13636363636363635,
+      "U10_N": 2,
+      "U10_rate": 0.09090909090909091,
+      "U2_N": 10,
+      "U2_rate": 0.45454545454545453,
+      "U3_N": 7,
+      "U3_rate": 0.3181818181818182,
+      "U5_N": 4,
+      "U5_rate": 0.18181818181818182,
+      "actual_pnl_jpy": -30651.7,
+      "below2_N": 12,
+      "below2_rate": 0.5454545454545454,
+      "below3_N": 15,
+      "below3_rate": 0.6818181818181818,
+      "loser_N": 16,
+      "loser_rate": 0.7272727272727273,
+      "positive_N": 6,
+      "positive_rate": 0.2727272727272727,
+      "rank_counts": {
+        "A": 10,
+        "B": 1,
+        "S": 11
+      },
+      "realized_mean": -0.007198728053162942,
+      "realized_median": -0.004651989754297347,
+      "realized_resolved_N": 22,
+      "realized_unresolved_N": 0
+    }
+  },
+  "test_teacher_generated": 0
+}

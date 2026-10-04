@@ -1,0 +1,32 @@
+{
+  "canary_checks_N": 14957,
+  "execution_prices_are_outcomes": "Post-intent prices can change fill results but never order intent; no claim of price-invariance to changing actual first trade.",
+  "immutable_source_hashes": {
+    "entry.jsonl.gz": "e7a6140b6b11d8d078a271fad76b75e68a5b2fda9e45c7db43d98ee2f282abeb",
+    "exit_v3.jsonl.gz": "e162d94b9f532f1b6b44b7d602f6be50babec7a5183c4378473cefcd92d61234",
+    "raw_paths.json.gz": "5e7c3624b4904d05c50c5bf8976ae23051d7f74c57808791de3a00997da4a856",
+    "source_tokens.json.gz": "e1503a9947d79acfc39d57be324250027964efeac98f04af67ad8b09e9d240ac"
+  },
+  "mismatch_N": 0,
+  "policy_deadline_sweep": 0,
+  "provider_requests": 0,
+  "runtime_or_performance_certification": false,
+  "saved_at_jst": "2026-10-04T10:01:54.292846+09:00",
+  "status": "PASS",
+  "tests": {
+    "Frozen_sources_immutable": 1,
+    "already_closed_or_late_not_EOD_filled": 495,
+    "at_most_one_final_cash_release": 1600,
+    "cash_after_reference_source_completion": 1087,
+    "commission_zero": 1600,
+    "future_EXIT_outcome_do_not_change_intent": 1127,
+    "future_entry_outcomes_do_not_change_intent": 1600,
+    "idempotent_intent_guard": 1105,
+    "identities_unique": 1,
+    "later_trade_suffix_does_not_change_first_fill": 931,
+    "missing_execution_no_fabricated_fill_or_cash": 1105,
+    "nextday_prices_do_not_change_today_adapter": 1600,
+    "post_intent_prices_do_not_change_intent": 1600,
+    "zero_remaining_quantity_guard": 1105
+  }
+}

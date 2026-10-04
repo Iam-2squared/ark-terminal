@@ -1,0 +1,184 @@
+{
+  "BLOCKED_gates": 1,
+  "C2_PASS": false,
+  "Capital_C3_restarted": false,
+  "MAX3_4_5_reached": false,
+  "PASS_gates": 14,
+  "Portfolio_curve_records": 0,
+  "State9_research_reached": false,
+  "additional_acquisition": "Authorized J-Quants scope exists, but this environment has no configured authenticated access; provider0, new rows0. Exact private18-target plan prepared.",
+  "allocator_decisions": 0,
+  "basis_head": "764c4f55bc32870d008a23704f6682c7eb9b022f",
+  "counts": {
+    "EOD_fill_N": 1087,
+    "actual_funded_overnight_positions_N": null,
+    "auction_fallback_fill_N": 156,
+    "candidate_N": 1600,
+    "distinct_symbols_N": 774,
+    "entry_after_or_at_intent_N": 22,
+    "final_admission_unresolved_N": 40,
+    "late_entry_original_FILLED_N": 20,
+    "late_entry_original_UNRESOLVED_N": 2,
+    "late_entry_sessions_N": 21,
+    "no_fill_exception_N": 18,
+    "old39_N": 39,
+    "old39_same_day_closed_N": 19,
+    "old39_unresolved_N": 20,
+    "open_at1520_N": 1105,
+    "prior_EXIT_before1520_N": 473,
+    "regular_post_intent_fill_N": 931,
+    "same_day_reference_closed_N": 1560,
+    "sessions_N": 58,
+    "source_missing_sessions_N": 15,
+    "source_missing_symbols_N": 18,
+    "unresolved_candidate_obligation_N": 40
+  },
+  "execution_budget": {
+    "Capital_performance_replay": 0,
+    "Claude_calls": 0,
+    "EXIT_replay": 0,
+    "Entry_replay": 0,
+    "MAX3_4_5_comparison": 0,
+    "State9_feature_search": 0,
+    "deadline_sweep": 0,
+    "fit": 0,
+    "force_pushes": 0,
+    "main_merges": 0,
+    "new_market_data_rows": 0,
+    "new_ranker": 0,
+    "orders": 0,
+    "protected_holdout_fresh_validation_oos_prospective_open": 0,
+    "provider_request": 0,
+    "rank_threshold_search": 0
+  },
+  "freeze_candidate": false,
+  "gates": [
+    {
+      "evidence": 1600,
+      "gate": "1600 identity preserved",
+      "status": "PASS"
+    },
+    {
+      "evidence": 0,
+      "gate": "Frozen Entry changed0",
+      "status": "PASS"
+    },
+    {
+      "evidence": 0,
+      "gate": "Frozen EXIT v3 changed0",
+      "status": "PASS"
+    },
+    {
+      "evidence": true,
+      "gate": "15:29 negative evidence preserved",
+      "status": "PASS"
+    },
+    {
+      "evidence": true,
+      "gate": "EOD1520 separate lineage",
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "canary_mismatch": 0,
+        "reference_execution_outcome_only": true
+      },
+      "gate": "Order intent causal and no future-decision price",
+      "status": "PASS"
+    },
+    {
+      "evidence": 0,
+      "gate": "broker commission0 explicit",
+      "status": "PASS"
+    },
+    {
+      "evidence": "SELL0.9995 execution assumption",
+      "gate": "commission separated from execution friction",
+      "status": "PASS"
+    },
+    {
+      "evidence": 0,
+      "gate": "price imputation0",
+      "status": "PASS"
+    },
+    {
+      "evidence": 0,
+      "gate": "outcome-based exclusion0",
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "no_fill_release": 0,
+        "reference_fill_release": 1560,
+        "runtime_certificate": false
+      },
+      "gate": "cash release only after reference full fill",
+      "status": "PASS"
+    },
+    {
+      "evidence": 0,
+      "gate": "double fee0",
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "all1600_portfolio_admission": false,
+        "eligible_no_source": 18,
+        "late_entry_contract_gap": 22,
+        "same_day_reference_closed": 1560
+      },
+      "gate": "same-day closure / exceptions admit whole population",
+      "status": "BLOCKED"
+    },
+    {
+      "evidence": {
+        "mismatch": 0,
+        "values": 54400
+      },
+      "gate": "Independent mismatch0",
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "automaticPromotionAllowed": false,
+        "brokerWriteAllowed": false,
+        "excelOrderWriteAllowed": false,
+        "executionAllowed": false,
+        "liveTradingAllowed": false,
+        "paperTradingAllowed": false,
+        "productionReady": false,
+        "productionUpdateAllowed": false,
+        "rssOrderFunctionAllowed": false,
+        "transmitted": false
+      },
+      "gate": "LONG cash only / Safety false",
+      "status": "PASS"
+    }
+  ],
+  "independent": {
+    "canaries_N": 14957,
+    "canary_mismatch_N": 0,
+    "imported_primary": false,
+    "mismatch_N": 0,
+    "values_N": 54400
+  },
+  "late_time_range_authority": "F3_SOURCE_TIME_RANGE_CORRECTION.json supersedes only the manually transcribed range field, not rows/policy/results.",
+  "next_direction": "STOP. Provide admissible J-Quants execution/completeness evidence for18 targets and explicitly bind same-time/late-entry behavior. Do not rerank, change Frozen Entry/EXIT or exclude these rows.",
+  "not_a_performance_conclusion": true,
+  "policy_boundary_problem": "6 entries exactly15:20 and16 after15:20 outside precommitted strictly-prior Entry eligibility. Original Frozen20FILLED/2UNRESOLVED retained; no fabricated earlier position or after-result policy extension.",
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "saved_at_jst": "2026-10-04T10:05:02.193563+09:00",
+  "source_problem": "18 eligible positions have no admissible saved15:20–15:24 trade or exact15:30 auction. No proof of HALT/NO_TRADE; UNKNOWN retained.",
+  "status": "CAPITAL_C2_EOD1520_SOURCE_BLOCKED"
+}

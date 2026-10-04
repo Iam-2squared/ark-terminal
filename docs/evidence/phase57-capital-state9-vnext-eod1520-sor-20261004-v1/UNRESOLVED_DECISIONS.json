@@ -1,0 +1,35 @@
+{
+  "items": [
+    {
+      "N": 18,
+      "id": "SOURCE18",
+      "minimum_action": "Use already authorized scoped J-Quants authenticated access or admissible saved response receipt. Missing alone is UNKNOWN.",
+      "missing": "exact regular post-intent or closing-auction execution/completeness/market-status evidence",
+      "sessions": 15,
+      "symbols": 18
+    },
+    {
+      "Frozen_FILLED": 6,
+      "N": 6,
+      "id": "ENTRY_TIE6",
+      "minimum_action": "Choose an explicit downstream operational binding; no same-minute first-trade price reused for a sell intent that could occur after that trade.",
+      "missing": "Explicit ENTRY reference/confirmation vs15:20 EOD intent micro-event ordering"
+    },
+    {
+      "Frozen_FILLED": 14,
+      "Frozen_UNRESOLVED": 2,
+      "N": 16,
+      "id": "LATE_ENTRY16",
+      "minimum_action": "Authorize a causal Capital entry cutoff or a post15:20 newly-opened-position liquidation rule; do not silently alter the Frozen candidate set.",
+      "missing": "A position opened after single15:20 intent is not covered by the new EOD policy"
+    },
+    {
+      "id": "CURRENT_MTM",
+      "minimum_action": "After execution/late-entry admission is solved, reuse existing funded-only/null-aware mechanics and audit exact current marks. No new data outside authorized execution window.",
+      "missing": "Current exact marks / missing-state Portfolio comparability binding"
+    }
+  ],
+  "new_strategy_or_clock_experiment": 0,
+  "saved_at_jst": "2026-10-04T10:05:02.193736+09:00",
+  "status": "DRAFT_ONLY_NOT_AUTHORIZED_NOT_EXECUTED"
+}

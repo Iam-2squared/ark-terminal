@@ -1,0 +1,61 @@
+{
+  "Aplus_definition": "S or A, ML>=1.5",
+  "B_quantiles": "training candidates with1<=ML<1.5, before15:20; numpy linear type7",
+  "Control_replay": 0,
+  "JST": "2026-10-04T21:36:38.000166+09:00",
+  "Safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "allocation": "v4 byte-identical allocation.py and execution.py; caps45/35/25%, utilization68/56/44%, breadth5.5pp, max92%, ML proportional,100-share, no later topup",
+  "arrival_method": "Apply each block frozen H2/H3/H5/preprocessing/PAVA to its training rows only; counts include zeros for all training sessions. Resubstitution training estimates, not OOF-quality estimates. No fit.",
+  "arrival_table_sha256": "69f8edafb4708e9a7b61b4f85eb92f353049cf21324e1647602e9973f195f999",
+  "arrival_time": "At exact current minute t<=entry_minute<920; fixed30-minute buckets summarize at their lower anchor. Runtime does not use test-session arrivals.",
+  "fixed_score_sha256": "c446633dec923e3a80a534b19325ccff49f769a2ff1d29c7af1202202de614d4",
+  "grid_search": 0,
+  "name": "CAPITAL_MAX3_SLOT_RESERVE_V1",
+  "new_fit": 0,
+  "open0": "ML>=1 no reserve",
+  "open1_B": {
+    "OR_time_ge": "14:00",
+    "median_ML_and_probability_lt": 0.5
+  },
+  "open1_SA": "admit",
+  "open2_B": {
+    "P_remaining_Aplus_ge1_lt": 0.35,
+    "expected_remaining_Aplus_lt": 0.75,
+    "quantile": 0.75,
+    "time_ge_1430_quality_only": true
+  },
+  "open2_SA": "admit",
+  "open3": "reject; no forced exit or replacement",
+  "oracle_isolated": true,
+  "policy_count": 1,
+  "rank_changes": 0,
+  "runtime_code_hashes": {
+    "allocation.py": "bbb0f6446cb2c7edd859a2ab97edde03276bda592262c94dacbaa7900ad6b147",
+    "arrival.py": "3d5d1a8a8e15fa5166491fb8670b7ff92d3e282bae05dc2a9a417a2e4d8a0bbc",
+    "common.py": "d0550b6d82d3289367e5f6766d7c63bb39a0262c4292bc8b9ceb992ee7229144",
+    "core_features.py": "ee2f3a1c03780b2025a5fc87cdc0f3ba2877f6c05eda72914848f3a0715aa14a",
+    "execution.py": "7f084415ed92344fb99ef26e27ac48f2beeb868e643fba720bb61355339a8bc8",
+    "freeze.py": "5864cff1563eab342fc60de130b56c3b0848b73ed76aea093616533f5203efa8",
+    "oracle.py": "56316b747c44035d4b83e87cc835973fac0d5f18af2413d5f1c0c643e0d1d5ec",
+    "preprocessing.py": "e2fd0b559d6641e31b34847bcc72e45e47da071a9398c07b305b72d67c3aa2dc",
+    "publish_payload.py": "c333a1a52651c22a21c7d51a678c1ba0610627a357beb42ff9fdd0176305752b",
+    "replay.py": "42e229f3816427ca16e6d44acc218d7b044e1a04f74cfd3154ff4aa6da11bb88",
+    "slot_policy.py": "7088999ffad385051522228f46c97b28ff96d0d34fcdfbb12021e098d31f3a32",
+    "staircase.py": "96d3b01749b30de17d3bce811fea771a990a15ee17508f4462c50e35e4650f70"
+  },
+  "same_batch_contract": "v4 ordering; sequential slot admission occupancy=open positions + prior same-batch slot admissions. All admitted candidates use unchanged simultaneous v4 proportional allocation/water-fill. A cash/lot failure does not trigger backfill. Pending admissions vanish at batch end. Funded slot labels count actual successful positions.",
+  "threshold_changes_after_results": 0,
+  "training_only": true,
+  "training_predictions_sha256": "4a4e87445b663259d06850c09d2d0d2e2e488f23b05a3512b11491a6d7e8d76f"
+}

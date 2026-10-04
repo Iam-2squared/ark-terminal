@@ -1,0 +1,75 @@
+{
+  "Capital_replay": 0,
+  "Frozen_input_file_hashes_unchanged": true,
+  "Open_selector_fixture_checks": [
+    {
+      "PASS": true,
+      "market_fill_evidence": false,
+      "name": "Open selector ignores every completed future field"
+    },
+    {
+      "PASS": true,
+      "market_fill_evidence": false,
+      "name": "Open selector ignores every completed future field"
+    },
+    {
+      "PASS": true,
+      "market_fill_evidence": false,
+      "name": "Open selector ignores every completed future field"
+    },
+    {
+      "PASS": true,
+      "cases_N": 6,
+      "market_fill_evidence": false,
+      "name": "missing/null/zero/negative/nonfinite/duplicate Open fails closed"
+    }
+  ],
+  "actual_quantity_allocated": false,
+  "canaries": {
+    "already_exited_no_EOD_double_apply": {
+      "mismatch_N": 0,
+      "tested_N": 487
+    },
+    "future_Frozen_exit_suffix": {
+      "mismatch_N": 0,
+      "tested_N": 1113
+    },
+    "future_HLC_suffix": {
+      "mismatch_N": 0,
+      "tested_N": 1600
+    },
+    "future_outcome_irrelevance": {
+      "mismatch_N": 0,
+      "tested_N": 1600
+    },
+    "immutable_Frozen_columns": {
+      "mismatch_N": 0,
+      "tested_N": 1600
+    },
+    "missing_source_no_fill": {
+      "mismatch_N": 0,
+      "tested_N": 1113
+    },
+    "next_day_and_previous_price_irrelevance": {
+      "mismatch_N": 0,
+      "tested_N": 1600
+    },
+    "no_cash_release_on_unfillable": {
+      "mismatch_N": 0,
+      "tested_N": 1113
+    },
+    "preclosing_synthetic_Open_still_unexecutable": {
+      "mismatch_N": 0,
+      "tested_N": 1113
+    }
+  },
+  "cash_double_release_N": 0,
+  "final_Primary_vs_saved_Independent_mismatch_N": 0,
+  "fixture_fill_used_for_results": false,
+  "future_suffix_mutations_are_market_data": false,
+  "mismatch_N": 0,
+  "policy_id": "EOD_FORCE_EXIT_1529_V1",
+  "quantity_rule_validation": "Full remaining quantity specified in precommit; no EOD fill or funded quantity exists, so no actual quantity execution/Portfolio ledger is certified.",
+  "saved_at_jst": "2026-10-04T09:20:01.713302+09:00",
+  "status": "PASS"
+}

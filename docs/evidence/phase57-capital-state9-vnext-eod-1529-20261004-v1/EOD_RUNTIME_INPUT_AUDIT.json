@@ -1,0 +1,19 @@
+{
+  "Frozen_exit_fields_after_deadline": "Evidence-only immutable original columns; no late price/reason/outcome affects the EOD decision. Removing future Frozen suffix preserves all runtime output fields for1113 candidates.",
+  "force_decision_inputs": [
+    "unchanged Entry identity/session/time",
+    "prior Frozen v3 fill events strictly before deadline",
+    "fixed dated market clock",
+    "exact15:29 raw Open only if admissible",
+    "source lineage and actual/assumed availability classification"
+  ],
+  "funded_positions_known": false,
+  "future_Frozen_suffix_canary": {
+    "mismatch_N": 0,
+    "tested_N": 1113
+  },
+  "market_gate": "Even a synthetic positive Open fixture at15:29 fails SESSION_NOT_ACTIVE; fixtures are not fill evidence.",
+  "rank_or_State9_feature_inputs": false,
+  "reference_fill_boundary": "Prior historical reference fill is retained but not promoted to runtime cash-known. No new lookahead PASS issued for Frozen Entry/EXIT.",
+  "saved_at_jst": "2026-10-04T09:22:03.944700+09:00"
+}

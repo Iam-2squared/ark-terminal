@@ -1,0 +1,144 @@
+{
+  "C2_PASS": false,
+  "C3_resumed": false,
+  "EOD_needed_N": 1113,
+  "EOD_unfillable_N": 1113,
+  "EOD_valid_fill_N": 0,
+  "Frozen_old39_status_changed_N": 0,
+  "State9_Capital_reached": false,
+  "actual_overnight_funded_positions_N": null,
+  "additional_admission_requirements": [
+    {
+      "reason": "All58 sessions post2024-11-05;15:29 lies in pre-closing with no executions.",
+      "requirement": "15:29 admissible/executable source",
+      "source_N": 0,
+      "status": "BLOCKED"
+    },
+    {
+      "reason": "EOD could not eliminate candidate unresolved obligations. No mark cadence/censoring/valuation semantics adopted.",
+      "requirement": "Current MTM source/clock and missing handling binding",
+      "status": "BLOCKED_INHERITED_PARENT"
+    },
+    {
+      "reason": "No funding yet; cannot exclude future-unfillable candidates. Existing null/locked mechanics retain obligations and yield unknown metrics rather than fabricated closure.",
+      "requirement": "Fail-closed incomplete rows admitted without distorting Portfolio comparison",
+      "status": "NOT_DEMONSTRATED"
+    }
+  ],
+  "basis_head": "ae293547310482b9685000d2e504b1bf56780f14",
+  "branch": "capital-state9-vnext-20261004",
+  "candidate_N": 1600,
+  "candidate_excluded_N": 0,
+  "cash_release_authorized_N": 0,
+  "completion_branch": "E8-B / STOP",
+  "contract_sha256": "7cb3daee351fc3289238af4ceecb5137dc869a246605eeca573e28680e058a25",
+  "cost_double_count_N": 0,
+  "future_canary_mismatch_N": 0,
+  "future_price_input_N": 0,
+  "gate_BLOCKED_N": 2,
+  "gate_PASS_N": 12,
+  "gates": [
+    {
+      "condition": "Frozen1600 identities保持",
+      "evidence": "N1600 / mismatch0; row exclusion0",
+      "gate": 1,
+      "status": "PASS"
+    },
+    {
+      "condition": "Entry変更0",
+      "evidence": "Original component hash unchanged; price/time preserved",
+      "gate": 2,
+      "status": "PASS"
+    },
+    {
+      "condition": "Frozen EXIT v3変更0",
+      "evidence": "Original component hash unchanged; old39 remain Frozen UNRESOLVED",
+      "gate": 3,
+      "status": "PASS"
+    },
+    {
+      "condition": "EOD overlay別lineage",
+      "evidence": "EOD_FORCE_EXIT_1529_V1 / EXIT_V3_PLUS_EOD_1529; new cycle only",
+      "gate": 4,
+      "status": "PASS"
+    },
+    {
+      "condition": "15:29 rule precommitted",
+      "evidence": "Git precommit c021787fe11d7b75e3254897b33e9bad894b90d0 precedes new row/coverage audit",
+      "gate": 5,
+      "status": "PASS"
+    },
+    {
+      "condition": "source type一意",
+      "evidence": "Exactly15:29 regular raw Open only; source type definition unique. Physical admissible sourceN0 is separately BLOCKED.",
+      "gate": 6,
+      "status": "PASS"
+    },
+    {
+      "condition": "future price使用0",
+      "evidence": "Open-only selector and future HLC/next-day/late Frozen EXIT suffix mutation canaries; prior Frozen runtime known-at not newly certified",
+      "gate": 7,
+      "status": "PASS"
+    },
+    {
+      "condition": "same-day final exit contract一意",
+      "evidence": "Deterministic fail-closed rows are unique, but1113 of1600 candidate obligations cannot close by deadline. An unbiased full same-day Portfolio comparison is not established.",
+      "gate": 8,
+      "status": "BLOCKED"
+    },
+    {
+      "condition": "cash release一意",
+      "evidence": "Valid EOD fills0;487 prior reference fills lack runtime cash-known receipts. No new release timestamp backdated or invented.",
+      "gate": 9,
+      "status": "BLOCKED"
+    },
+    {
+      "condition": "cost二重計上0",
+      "evidence": "BUY1600 / FrozenSELL1561 price arithmetic and isolated100share cash-vs-PnL checks mismatch0; funded Portfolio ledger not executed",
+      "gate": 10,
+      "status": "PASS"
+    },
+    {
+      "condition": "missing source補完0",
+      "evidence": "No lastClose/auction/nextbar/nextday/zero/interpolation/forward-fill fallback",
+      "gate": 11,
+      "status": "PASS"
+    },
+    {
+      "condition": "Independent mismatch0",
+      "evidence": "Original attachment route, Fraction arithmetic, Primary not imported;59200 compared values0 mismatch",
+      "gate": 12,
+      "status": "PASS"
+    },
+    {
+      "condition": "LONG-only cash-only",
+      "evidence": "No SHORT/margin/leverage policy or execution",
+      "gate": 13,
+      "status": "PASS"
+    },
+    {
+      "condition": "Safety全false",
+      "evidence": "All ten flags false; orders/main merges/force pushes0",
+      "gate": 14,
+      "status": "PASS"
+    }
+  ],
+  "independent_mismatch_N": 0,
+  "input_and_Frozen_changes_N": 0,
+  "integrated_version_started": false,
+  "latest_observed_HEAD": "ae293547310482b9685000d2e504b1bf56780f14",
+  "missing_price_imputation_N": 0,
+  "next_direction": "STOP. A deadline inside continuous trading, or a separately authorized later auction/order-submission contract, would require a new explicit precommit and source/known-at/MTM audit. No such variant is authorized/executed in this Work.",
+  "official_market_contract": "https://www.jpx.co.jp/equities/trading/domestic/04.html",
+  "old39_new_overlay_closed_N": 0,
+  "policy_id": "EOD_FORCE_EXIT_1529_V1",
+  "prior_frozen_reference_closed_before1529_N": 487,
+  "reason_taxonomy": {
+    "SESSION_NOT_ACTIVE": 1113
+  },
+  "repo": "Iam-2squared/ark-terminal",
+  "retained_fail_closed_candidate_obligations_N": 1113,
+  "runtime_known_at_certification": false,
+  "saved_at_jst": "2026-10-04T09:22:03.944700+09:00",
+  "status": "CAPITAL_C2_EOD_SOURCE_BLOCKED"
+}

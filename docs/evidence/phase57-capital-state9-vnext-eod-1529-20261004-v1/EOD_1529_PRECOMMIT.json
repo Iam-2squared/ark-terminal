@@ -1,0 +1,41 @@
+{
+  "accounting_contract_sha256": "c37d51ff6e531ee7453a5a71a0ade28fd1ccc77a596ad40aee969403154831ea",
+  "controlling": {
+    "entry": "4a2d6f35946b16820a13449a9288a6685a5c283c",
+    "exit_v3": "c7a5e5c25eb19cbd58b45c3e4ffff977f4648fad",
+    "formal_exit_receipt": "1ecbcc43f75279fa302f19fd896add2aac15b537",
+    "parent_C2_STOP": "c55b2b2134f79cbe33085b6757337048d150c2cb",
+    "parent_recovery_final": "313bfbed2bbb023ca986d0d14bcba04421a84f1a"
+  },
+  "deadline_minute": 929,
+  "deadline_variants_budget": 1,
+  "decision_time": "15:29:00+09:00",
+  "downstream_semantics_name": "EXIT_V3_PLUS_EOD_1529",
+  "eligibility": "Entry-session position OPEN at deadline, LONG cash equity, positive remaining quantity, no valid prior Frozen v3 fill strictly before15:29. All1600 retained at candidate audit.",
+  "entry_at_or_after_deadline": "ENTRY_DEADLINE_CONTRACT_CONTRADICTION; do not change/exclude Entry.",
+  "fit_budget": 0,
+  "frozen_fill_at_exact_deadline": "CONTRACT_BOUNDARY_UNRESOLVED; no double exit or arbitrary precedence; STOP if encountered.",
+  "late_frozen_fill": "Retain only in immutable Frozen columns; do not adopt later auction or next-day price as deadline fill.",
+  "missing_overlay_fill": "New final downstream UNRESOLVED_FAIL_CLOSED, no fabricated fill/cash release. Original Frozen row unchanged.",
+  "new_1529_price_coverage_PnL_seen_before_precommit": false,
+  "new_source_download": false,
+  "outcome_scope": "No allocation, PnL selection, teacher, threshold, feature, Entry/EXIT replay before C2 PASS.",
+  "policy_id": "EOD_FORCE_EXIT_1529_V1",
+  "policy_variants_budget": 1,
+  "prior_context": "Parent aggregate facts and official market contracts were known. New deadline coverage and overlay outcomes have not been read.",
+  "prior_frozen_fill": "FILLED with timestamp strictly less than15:29: preserve exact frozen price/timestamp/status in final downstream prior-fill reference. Runtime cash-known independently classified.",
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "source_contract_sha256": "6c22fb8655a9b3fc58309d576c73c7df4e55484e7dba5d70805064cbb98b0726",
+  "source_fallback_budget": 0
+}

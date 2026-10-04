@@ -1,0 +1,44 @@
+{
+  "Open_validation_uses_High_Low_Close": false,
+  "absence_or_unexecutable_action": "UNRESOLVED_FAIL_CLOSED; final price/timestamp/cash release null; retain candidate identity.",
+  "deadline_is_not_order_submission_for_later_auction": true,
+  "fallbacks_allowed": [],
+  "future_price_fields_forbidden": [
+    "High",
+    "Low",
+    "Close",
+    "minute volume/value completed after deadline",
+    "auction Close",
+    "session extrema",
+    "next-day Open",
+    "future outcome/PnL"
+  ],
+  "halt_no_trade_classification": "Only with positive source evidence, not inferred from an absent row.",
+  "known_at": "Record existing actual/assumed availability separately. UNKNOWN stays UNKNOWN; no backdate.",
+  "lineage_requirement": "Existing authoritative frozen/archive raw source only, pinned source/component hashes; no newly fetched market data.",
+  "market_admissibility": "Exact source must represent a tradable regular execution minute under the frozen dated TSE clock and official market contract; pre-closing order acceptance is not an execution.",
+  "policy_id": "EOD_FORCE_EXIT_1529_V1",
+  "price_field": "Open only; numeric finite positive",
+  "primary_source": "exact Entry-session15:29 regular-session raw minute Open",
+  "reason_precedence": [
+    "SESSION_NOT_ACTIVE",
+    "HALT",
+    "NO_TRADE",
+    "SOURCE_MISSING",
+    "LINEAGE_UNAVAILABLE",
+    "AUCTION_ONLY",
+    "OTHER_PREDECLARED_REASON"
+  ],
+  "reason_taxonomy": [
+    "HALT",
+    "NO_TRADE",
+    "SOURCE_MISSING",
+    "AUCTION_ONLY",
+    "SESSION_NOT_ACTIVE",
+    "LINEAGE_UNAVAILABLE",
+    "OTHER_PREDECLARED_REASON"
+  ],
+  "source_minute": 929,
+  "timestamp_semantics": "Bar start identifies reference Open; no assumption that historical API retrieval proves runtime arrival.",
+  "timezone": "Asia/Tokyo"
+}

@@ -1,0 +1,146 @@
+{
+  "Exposure": "ITERATIVE_DEVELOPMENT_EVIDENCE",
+  "Safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "basis_HEAD": "1c43f8f22175fb06b8afcb8f5f93b132f0a8f2c1",
+  "basis_tree": "2c2c78722b26517796e3bb3ff898a22f1d97472b",
+  "checkpoint": "D14_WINNER_AND_BOTTLENECK",
+  "completed": [
+    "Preservation/Capital gates",
+    "precommitted winner order",
+    "independent final selection match",
+    "non-overlapping ceiling gaps"
+  ],
+  "counts": {
+    "Claude": 0,
+    "MAX4_MAX5": 0,
+    "control_replay": 0,
+    "force_push": 0,
+    "independent_oracle_solves": 4,
+    "independent_recalculations": 2,
+    "main_merge": 0,
+    "new_fits": 0,
+    "oracle_solves": 4,
+    "orders": 0,
+    "primary_replays": 2,
+    "protected_fresh_holdout_validation_OOS_prospective_open": 0,
+    "provider_request": 0,
+    "rank_fits": 0,
+    "result_rescue": 0,
+    "retune": 0,
+    "slot_fits": 0,
+    "teacher_regeneration": 0,
+    "v6_replay": 0
+  },
+  "current_state": "NO_GO_AND_BOTTLENECK_FIXED",
+  "exact_jst": "2026-10-05T02:14:47.418110+09:00",
+  "fresh_OOS_claim": false,
+  "next_policy": "Generate final report and private recovery pack; D15 closure STOP, no further policy",
+  "result": {
+    "NEXT_BOTTLENECK": "MAX3_PHYSICAL_OCCUPANCY",
+    "Safety": {
+      "automaticPromotionAllowed": false,
+      "brokerWriteAllowed": false,
+      "excelOrderWriteAllowed": false,
+      "executionAllowed": false,
+      "liveTradingAllowed": false,
+      "paperTradingAllowed": false,
+      "productionReady": false,
+      "productionUpdateAllowed": false,
+      "rssOrderFunctionAllowed": false,
+      "transmitted": false
+    },
+    "ceiling_gap_partition_note": "G5/G6 are a separate counterfactual telescoping decomposition, not additive with observed reason G1..G4. No individual miss is claimed physically unavoidable solely from reason.",
+    "exact_jst": "2026-10-05T02:14:47.417498+09:00",
+    "final_status": "NO_GO",
+    "fresh_OOS_claim": false,
+    "gaps": {
+      "RANK_NATIVE_GREEDY_MAX3": {
+        "G1_RANK_ADMISSION_GAP": 46,
+        "G2_LAST_SLOT_POLICY_GAP": 0,
+        "G3_OCCUPANCY_GAP": 67,
+        "G4_CASH_LOT_GAP": 7,
+        "G5_PHYSICAL_UNAVOIDABLE": 21,
+        "G6_RUNTIME_TO_ORACLE_GAP": 99,
+        "admission_ceiling_loss": 33,
+        "allocator_to_admission_ceiling_gap": 66,
+        "funded": 50
+      },
+      "RANK_NATIVE_LAST_SLOT_OPTION_MAX3": {
+        "G1_RANK_ADMISSION_GAP": 46,
+        "G2_LAST_SLOT_POLICY_GAP": 41,
+        "G3_OCCUPANCY_GAP": 26,
+        "G4_CASH_LOT_GAP": 6,
+        "G5_PHYSICAL_UNAVOIDABLE": 21,
+        "G6_RUNTIME_TO_ORACLE_GAP": 98,
+        "admission_ceiling_loss": 33,
+        "allocator_to_admission_ceiling_gap": 65,
+        "funded": 51
+      }
+    },
+    "higher_pP_blocked_by_lower_pP_holding_U5": 51,
+    "independent_final_selection_mismatch_N": 0,
+    "policy_retune": 0,
+    "productionReady": false,
+    "profiles": {
+      "RANK_NATIVE_GREEDY_MAX3": {
+        "Capital_gates": {
+          "daily_geometric": false,
+          "mean": false,
+          "median": false
+        },
+        "preservation_PASS": false,
+        "preservation_gate": {
+          "P1_U5_gt50": false,
+          "P2_U10_ge26": true,
+          "P3_below2_le38_666667pct": false,
+          "P4_integrity": true,
+          "P5_independent": true
+        },
+        "status": "NO_GO"
+      },
+      "RANK_NATIVE_LAST_SLOT_OPTION_MAX3": {
+        "Capital_gates": {
+          "daily_geometric": false,
+          "mean": false,
+          "median": false
+        },
+        "preservation_PASS": false,
+        "preservation_gate": {
+          "P1_U5_gt50": true,
+          "P2_U10_ge26": false,
+          "P3_below2_le38_666667pct": false,
+          "P4_integrity": true,
+          "P5_independent": true
+        },
+        "status": "NO_GO"
+      }
+    },
+    "retainedCapitalBenchmark": "V5_FROZEN_REFERENCE",
+    "selectedCapitalCandidate": null,
+    "selectedRankCandidate": "EXISTING_MOVE_P5",
+    "selectedSlotDiagnosticCandidate": null,
+    "selection": {
+      "NEXT_BOTTLENECK": "MAX3_PHYSICAL_OCCUPANCY",
+      "diagnostic_arm": "RANK_NATIVE_GREEDY_MAX3",
+      "eligible_winner": null,
+      "reason_gaps": {
+        "CASH_SIZING": 7,
+        "LAST_SLOT_RESERVE": 0,
+        "MAX3_PHYSICAL_OCCUPANCY": 67,
+        "RANK_ADMISSION": 46
+      },
+      "selectedCapitalCandidate": null
+    }
+  }
+}

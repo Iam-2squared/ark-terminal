@@ -1,0 +1,39 @@
+{
+  "U5_tie_reconciliation": {
+    "conflict": "Section7 says current U5/count tie ACCEPT; Section6 and final Work execution demand full lexicographic objective. These differ when lower objectives favor RESERVE.",
+    "optional_clarification_answer_received": false,
+    "resolution": "Apply the later final Work execution full lexicographic objective; report U5-tie lower-objective RESERVE separately.",
+    "result_based_choice": false
+  },
+  "comparison": "Full lexicographic; complete tuple tie ACCEPT",
+  "continuation": "Unchanged v5 physical Oracle constraints: fixed Entry/EXIT/source and MAX3, cash-only, positive integer100-share lots, same-symbol, cutoff; v4 utilization/cap sizing is relaxed exactly as frozen Oracle ceiling. Current ACCEPT selection is forced positive; its lot sizing belongs to this physical teacher, runtime sizing remains exact frozen allocator.",
+  "dedupe": "Within block: candidate, actual held ids/quantities/causal marks, cash/equity, pending ids, causal feature vector; union exact state/candidate across trajectories",
+  "eligibility": "ML>=1, pre920, same-symbol pass, prospective opencount1/2, sum of minimum one-lot debit for pending/current <= available prebatch cash; frozen valid execution continuation.",
+  "exact_jst": "2026-10-04T23:01:30.262986+09:00",
+  "frozen_oracle_changed": 0,
+  "objective": [
+    "U5",
+    "U10",
+    "Medium3_to_lt5",
+    "negative_turnover"
+  ],
+  "pending_batch": "Actual held positions and prebatch cash fixed. Previously accepted pending candidates are forced selections at current minute in both branches. Pending size is not an actual holding yet and is optimized physically in teacher only. Runtime occupancy and held score/age aggregates include pending entries; no future pending quantity is a runtime feature.",
+  "retune": 0,
+  "starting_cash": "JPY1000000 independently at the first training session for each block/policy, linked through completed training sessions",
+  "support_gate": {
+    "ACCEPT": 20,
+    "RESERVE": 20,
+    "any_block_failure": "V6_SLOT_TEACHER_SUPPORT_BLOCKED_STOP",
+    "occupancy1": 20,
+    "occupancy2": 20,
+    "unique_examples": 100
+  },
+  "teacher": "COUNTERFACTUAL_SLOT_VALUE_V6_MAX3",
+  "teacher_scope": "Current training session remainder, current minute remaining v4-order candidates through entry<920; held quantities and cash fixed. No test session or next-session teacher future.",
+  "test_oracle_input": 0,
+  "training_only": true,
+  "trajectory_union": [
+    "FROZEN_V4_B_PLUS_TRAINING_ONLY",
+    "FROZEN_V5_SLOT_RESERVE_TRAINING_ONLY"
+  ]
+}

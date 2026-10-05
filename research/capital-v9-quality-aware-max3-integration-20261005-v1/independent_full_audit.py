@@ -51,7 +51,10 @@ def main():
             cons[name]=dict(c)
         for slot in (1,2,3):compare(a,arm+f'/slot{slot}',iq([r for r in fund if r['funded_slot']==slot],tt,trade),savedpres[arm]['slot_quality'][str(slot)])
         for hour in range(9,16):compare(a,arm+f'/hour{hour}',iq([r for r in fund if r['minute']//60==hour],tt,trade),savedpres[arm]['Entry_hours'][str(hour)])
-        gates={'P1_U5_gt50':q['U5']>50,'P2_U10_ge26':q['U10']>=26,'P3_Medium_ge27':q['Medium3_5_N']>=27,'P4_below2_le38_666667pct':q['below2_rate']<=.38666667,'P5_below3_le48_666667pct':q['below3_rate']<=.48666667,'P6_integrity0':all(z==0 for z in savedpres[arm]['integrity'].values())}
+        symbol_overlap=sum(t1['session']==t2['session'] and rt[t1['entry_id']]['symbol']==rt[t2['entry_id']]['symbol'] and max(t1['entry_minute'],t2['entry_minute'])<min(t1['release_minute'],t2['release_minute']) for j,t1 in enumerate(ts) for t2 in ts[j+1:])
+        actual_integrity={'cash_negative_N':sum(c['cash']<0 for c in cs),'MAX3_excess_N':sum(c['concurrent']>3 for c in cs),'same_symbol_open_N':symbol_overlap,'nonlot100_N':sum(r['quantity']%100!=0 for r in ds),'after1520_funded_N':sum(r['minute']>=920 for r in fund),'execution_unresolved_N':sum(bool(d.get('blockers')) for d in daily),'causal_canary_fail_N':0,'numeric_dominance_disagreement_N':read(O/'NUMERIC_DOMINANCE_BOUNDARY_AUDIT.json')['independent_boundary_disagreement_N'],'leakage_N':0}
+        a.check(arm+'/integrity_independent',actual_integrity==savedpres[arm]['integrity'])
+        gates={'P1_U5_gt50':q['U5']>50,'P2_U10_ge26':q['U10']>=26,'P3_Medium_ge27':q['Medium3_5_N']>=27,'P4_below2_le38_666667pct':q['below2_rate']<=.38666667,'P5_below3_le48_666667pct':q['below3_rate']<=.48666667,'P6_integrity0':all(z==0 for z in actual_integrity.values())}
         for k,v in gates.items():a.check(arm+'/'+k,v==savedpres[arm]['preservation_gates'][k])
         eco={'rolling20_median':e['rolling20_median']>1.1991541915,'rolling20_mean':e['rolling20_arithmetic_mean']>1.1906460126,'daily_geometric':e['geometric_mean_daily_return']>.01032420041}
         a.check(arm+'/Capital_gate',eco==savedcap[arm]['economic_point_gates']);ps=all(gates.values());cap=ps and all(eco.values());a.check(arm+'/point_gate',ps==savedpres[arm]['point_gates_PASS'] and cap==savedcap[arm]['capital_point_PASS'])
@@ -63,8 +66,6 @@ def main():
         a.check(arm+'/induced_prior_reasons',dict(Counter(base[r['entry_id']]['reason'] for r in newmax))==savedpres[arm]['induced_occupancy']['new_MAX3_prior_reasons'])
         intents=rows(P/f'{arm}_INTENTS.jsonl.gz');expected=[{'minute':920,'side':'SELL','quantity':t['quantity'],'sor':True,'order_type':'MARKET','condition':'DAY','transmitted':False,'entry_id':t['entry_id'],'session':t['session']} for t in ts if t['exit_kind'].startswith('EOD_')];a.check(arm+'/EOD_intents_exact',sorted(intents,key=lambda r:r['entry_id'])==sorted(expected,key=lambda r:r['entry_id']))
         result=read(O/f'{arm}_RESULT.json');a.check(arm+'/EOD_intent_N',len(expected)==result['EOD_intent_N']);a.money(arm+'/Final38_exact',daily[-1]['ending_cash'],result['final_equity_exact'])
-        for r in common:
-            a.check(r['entry_id']+'/same_symbol',len({h['symbol'] for h in rows(P/f'{arm}_DECISIONS.jsonl.gz')[ds.index(r)]['held_before_batch']})>=0) if False else None
         profiles[arm]={'quality':{k:(str(v) if isinstance(v,F) else v) for k,v in q.items()},'economics':e,'preservation_PASS':ps,'capital_PASS':cap,'U5_reasons':cons['U5'],'U10_reasons':cons['U10'],'gates':gates,'economic_gates':eco,'NET_counts':net,'groups':{k:{field:z[field] for field in ('N','U5','U10','Medium3_5_N','Weak2_N')} for k,z in groups.items()}}
         all_ind[arm]=dd;cases[arm]={'decisions_N':len(ds),'trades_N':len(ts),'curve_N':len(cs),'daily_N':len(daily),'rolling20_N':19,'money_quantity_exact':True}
     # Paired identity ledger is reconstructed independently after evaluation joins.

@@ -1,0 +1,24 @@
+"""Fixed before any new attribution or monetization outcome calculation."""
+from control import *
+def main():
+    save(OUT/'SIZING_DESIGN_PRECOMMIT.json',{
+      'exact_jst':now(),'status':'FROZEN_PRE_DIAGNOSTIC','policies':{
+       'S1':{'id':ARMS[0],'weight':'1 for every picked candidate'},
+       'S2':{'id':ARMS[1],'weight':'min(rp,r2,r3)','percentile':'(1 + count(completed past block training score < current raw frozen score))/(train_N+1)','raw_scores':['pP','q2','q3'],'population':'all completed-past training candidates of the frozen block models, not admission-only; resubstitution scores','equal_score':'strict <, same percentile','test_cross_section':False,'labels':False,'weight_positive':True}},
+      'selectionPolicy':I2,'only_changed_function':'picked-candidate weight; gate recomputed causally on actual path',
+      'frozen':{'Selector_Entry_EXIT':'PERMANENT','models_features_preprocessing':'pP/MOVE_U2/MOVE_U3 exact','I2_gate':'r_future>r_current AND q2_future>=q2_current AND q3_future>=q3_current; pressure<0.5','tenure':'B2 exact support10 fixed30min lower-middle median','admission':'rank native exact','band_caps':{'P_HIGH':'.45','P_MID':'.35','P_BASE':'.25'},'base_utilization':{'P_HIGH':'.68','P_MID':'.56','P_BASE':'.44'},'breadth_increment':'.055','max_target':'.92','lot':100,'first_pass':'floor100','waterfill':'only first-pass funded, original descending pP order one-lot rounds','backfill':False,'topup':False,'execution':'LONG cash-only MAX3 same-symbol BUY1.0005 SELL0.9995 commission0 frozen MTM cash release cutoff15:20'},
+      'hypotheses':['H1 within-bucket funded identity effect','H2 pP quantity covariance effect','H3 Frozen EXIT monetization ordering limit','H4 consensus weakest-axis sizing'],
+      'quality_retention':{'U5_min':53,'U10_min':26,'Medium_min':32,'weak_rate_max':'0.36024845','below3_rate_max':'0.47204969','integrity_max':0,'independent_mismatch_max':0},
+      'v5_quality_floor':{'U5_min':50,'U10_min':26,'Medium_min':27,'weak_rate_max':'0.38666667','below3_rate_max':'0.48666667'},
+      'capital_gate':{'rolling20_median_strict_min':'1.1991541915','rolling20_mean_strict_min':'1.1906460126','daily_geometric_strict_min':'0.01032420041','quality_retention_required':True},
+      'relative_progress':'median/mean/daily-geometric all strictly > saved I2 full-precision authority AND v5 quality floor; not adoption',
+      'winner_order':['2x_N DESC','rolling20_median DESC','rolling20_mean DESC','daily_geometric DESC','Final38 DESC','MaxDD ASC','S1 exact tie'],
+      'diagnostic_arm':'retention PASS arms first; else v5 floor PASS arms; else saved I2. Rank median, mean, daily geometric, Final38 DESC then MaxDD ASC then S1',
+      'bottleneck_priority':['A retention+capital PASS,2x=0 => NORTH_STAR_CAPITAL_GAP','B retention PASS,capital FAIL,relative progress => SIZING_REMAINS','C both capital FAIL and neither simultaneously improves I2 median/mean/geometric => REALIZED_MONETIZATION_SIGNAL','D otherwise primary retention failure => SIZING_INDUCED_FUNDING_DISTORTION'],
+      'north_star_hit_terminal':'If eligible winner has 2x>0: fixed STOP with development-only hit; no automatic next experiment or Fresh opening. NEXT_BOTTLENECK=null (no specified rule for this case).',
+      'diagnostic_definitions':{'unit_PnL':'exact Decimal 100*(raw_EXIT*.9995 - raw_Entry*1.0005)','common_quantity_delta':'sum((q_I2-q_v5)/100 * unit_100share_PnL), exact Decimal','algebraic':'session fractional equal-lot reference; not executable','shadow':'saved I2 funded identities exactly one100-share lot each; exact chronological BUY/SELL cash check and 1m daily return reference; no capital benchmark gate','hindsight':'static each saved allocation batch; funded-only min1 lot, saved budget/equity caps; integer maximize frozen realized PnL; optional cash idle; no feedback optimization; not rolling20/full-chain upper bound','signal_deciles':'stable score ascending rank bins, ties never use outcomes; descriptive only','ratios':'potential>0 only median Q25 Q75; no mean'},
+      'replay_budget':{'S1':1,'S2':1,'total_primary':2,'v5':0,'I2':0,'newFits':0,'old_oracles':0,'static_batch_hindsight':'evaluation-only authorized solves plus independent verification; not old Oracle solve','shadow':'one fixed-identity accounting diagnostic, not Main policy replay'},
+      'prohibited':['S3','threshold/grid/sweep','retune','new fit','HF1/HL0 refit','EXIT change','admission/rank change','cap/target change','blend/mean/geometric/product weight','replacement/MAX4/MAX5','result rescue','Fresh/protected opening','orders/main merge/force push/provider/Claude'],
+      'Exposure':'ITERATIVE_DEVELOPMENT_EVIDENCE','fresh_OOS_claim':False,'productionReady':False,'Safety':SAFETY})
+    checkpoint('M2_SIZING_DESIGN_PRECOMMIT',{'S1':ARMS[0],'S2':ARMS[1],'newFits':0,'primary_replay_budget':2},'Actual GET then read-only identity/quantity attribution')
+if __name__=='__main__':main()

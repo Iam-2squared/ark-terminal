@@ -1,0 +1,296 @@
+{
+  "schema": "ARK_FULL_R_START_SOURCE_BINDING_V1",
+  "exact_jst": "2026-10-06T07:36:47.738348+09:00",
+  "repository": "Iam-2squared/ark-terminal",
+  "branch": "capital-main-reallocation-20261005",
+  "basis_HEAD": "96f1b47242d125cf26b035281d0d3ce3bb5de15e",
+  "basis_tree": "f52866934c973b5ed138147005bb74c4abc5336d",
+  "work_request_sha256": "077df2f0a0e5a8d7e4d743a83165c6a6fe340a8ce839c100c4e3f520a10abc86",
+  "work_request_blob": "7abcf6ce3c0ccd2d3bc3529f2217c4acb0ecf1fa",
+  "prior_latest_diff": "Two documentation commits: work request and WORK_READY state only; no experiment results yet",
+  "prior_ready_state_blob": "0c1632c48265b7efefa2963e078932e9f381d20b",
+  "prior_ready_state": {
+    "schema": "ARK_CAPITAL_FULL_R_SPECTRUM_WORK_READY_V1",
+    "exact_jst": "2026-10-06T06:57:00+09:00",
+    "repository": "Iam-2squared/ark-terminal",
+    "branch": "capital-main-reallocation-20261005",
+    "basis_head": "5e6a3641d811c0fd3df9b222c4c5fc98f3bdd859",
+    "work_request_commit": "52d282ca2a08190976e73591b607e39df4285d8b",
+    "work_request_blob_sha": "7abcf6ce3c0ccd2d3bc3529f2217c4acb0ecf1fa",
+    "attachment_sha256": "077df2f0a0e5a8d7e4d743a83165c6a6fe340a8ce839c100c4e3f520a10abc86",
+    "status": "R_SPECTRUM_WORK_READY_NOT_EXECUTED",
+    "activeCapitalBaseline": "V5",
+    "rejectedCandidate": "V5.1",
+    "primary_goal": "Understand the complete realized-return spectrum under frozen Entry and frozen Capital EXIT/EOD, including positive and negative R thresholds, before any V5.2 policy.",
+    "definitions": {
+      "U5_U10": "Preserve existing Entry-to-future-High opportunity labels unchanged.",
+      "R_positive": "Cumulative realized net return thresholds R1,R2,... with inherited R5/R10 semantics.",
+      "R_negative": "Cumulative realized net loss thresholds RN1,RN2,...",
+      "exclusive_bins": "Mechanical 1 percentage-point bins across the full known realized-return range.",
+      "unknown": "null, never false or Loser"
+    },
+    "frozen": [
+      "Selector",
+      "Entry",
+      "EXIT",
+      "EOD execution contract",
+      "MAX3",
+      "100-share lot",
+      "LONG cash-only",
+      "existing scores",
+      "V5",
+      "V5.1 evidence"
+    ],
+    "scope": [
+      "Full R census",
+      "U5/U10 to R-spectrum cross anatomy",
+      "V5 funded/missed by R band",
+      "Capital debit/quantity/PnL/holding-time by R band",
+      "Existing causal score separability across positive and negative R thresholds",
+      "Design-only next Capital mechanism, maximum one"
+    ],
+    "not_authorized_in_this_work": [
+      "new model fit/refit/calibration",
+      "new Capital candidate implementation",
+      "V5.2 replay",
+      "R market/EXIT rematerialization",
+      "provider request",
+      "protected partition opening",
+      "orders",
+      "main merge",
+      "force push"
+    ],
+    "current_known_context": {
+      "all_frozen_entry": 1039,
+      "R_known": 1016,
+      "R_unknown": 23,
+      "execution_eligible": 1028,
+      "rank_pass_execution_eligible": 494,
+      "rank_pass_known": 492,
+      "R5_rank_pass": 34,
+      "R10_rank_pass": 16,
+      "V5_R5_capture": "19/34",
+      "V5_R10_capture": "11/16",
+      "reset20_complete_windows": 9,
+      "reset20_planned_windows": 21,
+      "coverage_unknown_windows": 12
+    },
+    "counts_this_turn": {
+      "new_fits": 0,
+      "new_replays": 0,
+      "R_rematerializations": 0,
+      "upstream_edits": 0,
+      "orders": 0,
+      "main_merge": 0,
+      "Claude": 0
+    },
+    "next": "Execute WORK_REQUEST.md as one diagnostic Work, stop before V5.2 execution, and save actual-GET verified evidence."
+  },
+  "prior_authority_actual_GET": [
+    {
+      "name": "REPORT-ja.md",
+      "git_blob_sha1": "b2a37cf1292e7d354e0067c740fdc4aa81d7a6b8",
+      "sha256": "7bb941acdb79b235faae09c46ea9e9d124dc6e59f6ed0c41fcb180523afe3063",
+      "bytes": 7354
+    },
+    {
+      "name": "R_LABEL_CONTRACT.json",
+      "git_blob_sha1": "050260cce26d3874e1205d3ca2b6e992c39f9368",
+      "sha256": "74780ac66ad5b17aa6427b1a9a74a57d4ced17d5b1fbed5eb3ae1e75862ec4a8",
+      "bytes": 3184
+    },
+    {
+      "name": "R_LABEL_CENSUS.json",
+      "git_blob_sha1": "452f022d66dbdbf96fe78d3317d9e0b82b5a0ee4",
+      "sha256": "eda787fc6ee7bef62cf895f4bae7daae446cb3155914b4c07b2a2f2381b8bce5",
+      "bytes": 3330
+    },
+    {
+      "name": "CAPITAL_DIAGNOSTIC.json",
+      "git_blob_sha1": "8c6a7fb37b35f6ae38507e05742f070df6312ca4",
+      "sha256": "bba6e9cdd0e6322413c217e79a7deb4671e257d4017a8a10d206d9185e45450d",
+      "bytes": 111923
+    },
+    {
+      "name": "FINAL_COMPARISON.json",
+      "git_blob_sha1": "405d2343fc0405a1e17ceb86fcc899b65c1561f1",
+      "sha256": "04c5d740e92e56422317486ba356e5a1188a37c4d6c514b1ba34eb184311e9a4",
+      "bytes": 97809
+    },
+    {
+      "name": "CURRENT_STATE.json",
+      "git_blob_sha1": "b95b662030497d662946523e2657169eac9df4c7",
+      "sha256": "eadc5c8cf52f05c1bfb730383daf5be65a2b4902e4a3eecd9299c5397238a1a3",
+      "bytes": 3618
+    },
+    {
+      "name": "INDEPENDENT_ACCOUNTING_AUDIT.json",
+      "git_blob_sha1": "7778a23fcaeacdba032d75aecbfc9685c787d727",
+      "sha256": "b4edeb9316b6b31685db4807cb74d065289b78d3eb915d09a4587c2ae8a1f5a6",
+      "bytes": 78918
+    },
+    {
+      "name": "V5_RESET20_RESULT.json",
+      "git_blob_sha1": "1517eee3505c33a9987af31dc21c98ad0ae3a852",
+      "sha256": "0f1f572a87f38892776c100bed59b638a7ef4f635e320808235a55d708e57f4a",
+      "bytes": 111121
+    },
+    {
+      "name": "V51_RESET20_RESULT.json",
+      "git_blob_sha1": "aec203d3204f87160198c9f0e89f9a1e0bcf15a5",
+      "sha256": "09662bedb3048c4d5f536d1f0e11563404c3ef31da8e794f11d0a96f926267b9",
+      "bytes": 111117
+    }
+  ],
+  "private_source_pack_reference": {
+    "path": "exports/Ark_Capital_V51_Reset20_R5R10_20261006_PRIVATE.zip",
+    "sha256": "bbb3dd5254192d8fd7a4c6273d16c651c2b047ac5faa12c54fbf2713041b0522",
+    "library_file_id": "libfile_1fe4ec058f54819199729e8e99ed8769"
+  },
+  "source_refs": {
+    "exact_jst": "2026-10-06T00:58:02.508954+09:00",
+    "expert_score_sources": [
+      {
+        "archive_member": "24-Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005-1-.zip!Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005/01_SOURCE_PACKS/MRET_V11R1_NUMERIC_CERT_PRIVATE.zip!private/CERTIFIED_INDEPENDENT_MRET_OOF_SCORES.jsonl.gz",
+        "bytes": 15459,
+        "local_path": "/workspace/scratch/bf6e0175ff2d/sources/resolved/90f4dc118b1a_CERTIFIED_INDEPENDENT_MRET_OOF_SCORES.jsonl.gz",
+        "sha256": "90f4dc118b1a688408efade72193c7a7f3a6a74df299336e7ba7615943ad812b"
+      },
+      {
+        "archive_member": "24-Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005-1-.zip!Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005/01_SOURCE_PACKS/MRET_V11R1_NUMERIC_CERT_PRIVATE.zip!private/CURRENT_MRET_CAP_RUNTIME.jsonl.gz",
+        "bytes": 122177,
+        "local_path": "/workspace/scratch/bf6e0175ff2d/sources/resolved/c7e10944822c_CURRENT_MRET_CAP_RUNTIME.jsonl.gz",
+        "sha256": "c7e10944822ccb8861457eba350cea0b5d23703ace713a813b75bdb2b8dbdb5d"
+      },
+      {
+        "archive_member": "24-Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005-1-.zip!Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005/01_SOURCE_PACKS/MRET_V11R1_NUMERIC_CERT_PRIVATE.zip!private/INDEPENDENT_CURRENT_MRET_CAP_RUNTIME.jsonl.gz",
+        "bytes": 82222,
+        "local_path": "/workspace/scratch/bf6e0175ff2d/sources/resolved/d4bab51c2777_INDEPENDENT_CURRENT_MRET_CAP_RUNTIME.jsonl.gz",
+        "sha256": "d4bab51c27770f20db05484f74945862c1cd11dae17508c44fae098df12aeff6"
+      },
+      {
+        "archive_member": "24-Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005-1-.zip!Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005/01_SOURCE_PACKS/MRET_V11R1_NUMERIC_CERT_PRIVATE.zip!authority/Ark_Capital_v11_Realized_Monetization_Signal_20261005_PRIVATE_CONTRACT_FAIL.zip!authority/Ark_Capital_v10_Monetization_Sizing_20261005_PRIVATE.zip!authority/Ark_Capital_v9_Quality_Aware_MAX3_Integration_20261005_PRIVATE.zip!private/CURRENT_CAUSAL_QUALITY_RUNTIME.jsonl.gz",
+        "bytes": 101523,
+        "local_path": "/workspace/scratch/bf6e0175ff2d/sources/resolved/57759e748e8f_CURRENT_CAUSAL_QUALITY_RUNTIME.jsonl.gz",
+        "sha256": "57759e748e8fa299e8a60e4b4f88e51259ca3bdf5544cbed05a5ce9151314a33"
+      },
+      {
+        "archive_member": "24-Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005-1-.zip!Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005/01_SOURCE_PACKS/MRET_V11R1_NUMERIC_CERT_PRIVATE.zip!authority/Ark_Capital_v11_Realized_Monetization_Signal_20261005_PRIVATE_CONTRACT_FAIL.zip!authority/Ark_Capital_v10_Monetization_Sizing_20261005_PRIVATE.zip!authority/Ark_Capital_v9_Quality_Aware_MAX3_Integration_20261005_PRIVATE.zip!private/QUALITY_TRAIN_SCORE_TABLE.jsonl.gz",
+        "bytes": 282533,
+        "local_path": "/workspace/scratch/bf6e0175ff2d/sources/resolved/39e483da642a_QUALITY_TRAIN_SCORE_TABLE.jsonl.gz",
+        "sha256": "39e483da642ae57d545dc76a9101fdf08e54079da973258bc60e08e50ca2932c"
+      }
+    ],
+    "inputs": {
+      "arrival": {
+        "archive_member": "24-Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005-1-.zip!Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005/01_SOURCE_PACKS/MRET_V11R1_NUMERIC_CERT_PRIVATE.zip!authority/Ark_Capital_v11_Realized_Monetization_Signal_20261005_PRIVATE_CONTRACT_FAIL.zip!authority/Ark_Capital_v10_Monetization_Sizing_20261005_PRIVATE.zip!authority/Ark_Capital_v5_MAX3_Slot_Intelligence_20261004_PRIVATE.zip!repo/docs/evidence/capital-v5-max3-slot-intelligence-20261004-v1/ARRIVAL_TABLE.json",
+        "bytes": 158661,
+        "local_path": "/workspace/scratch/bf6e0175ff2d/sources/resolved/arrival",
+        "sha256": "69f8edafb4708e9a7b61b4f85eb92f353049cf21324e1647602e9973f195f999"
+      },
+      "books": {
+        "archive_member": "24-Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005-1-.zip!Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005/01_SOURCE_PACKS/MRET_V11R1_NUMERIC_CERT_PRIVATE.zip!authority/Ark_Capital_v11_Realized_Monetization_Signal_20261005_PRIVATE_CONTRACT_FAIL.zip!authority/Ark_Capital_v10_Monetization_Sizing_20261005_PRIVATE.zip!authority/Ark_Capital_v9_Quality_Aware_MAX3_Integration_20261005_PRIVATE.zip!authority/Ark_Capital_Quality_v1R1_Recovery_20261005_PRIVATE_STRONG.zip!authority/Ark_Capital_Quality_v1_20261005_PRIVATE_CONTRACT_FAIL.zip!inputs/MARKET_TEACHER_BOOK.jsonl.gz",
+        "bytes": 7229451,
+        "local_path": "/workspace/scratch/bf6e0175ff2d/sources/resolved/books",
+        "sha256": "ee7c88e19832439f615da54dc9df7e4a0307fdb1b2b5a18d3e1f60f71566736a"
+      },
+      "candidate_stream": {
+        "archive_member": "24-Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005-1-.zip!Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005/01_SOURCE_PACKS/MRET_V11R1_NUMERIC_CERT_PRIVATE.zip!authority/Ark_Capital_v11_Realized_Monetization_Signal_20261005_PRIVATE_CONTRACT_FAIL.zip!authority/Ark_Capital_v10_Monetization_Sizing_20261005_PRIVATE.zip!authority/Ark_Capital_v9_Quality_Aware_MAX3_Integration_20261005_PRIVATE.zip!authority/Ark_Capital_Quality_v1R1_Recovery_20261005_PRIVATE_STRONG.zip!authority/Ark_Capital_Quality_v1_20261005_PRIVATE_CONTRACT_FAIL.zip!inputs/UPWARD_STAIRCASE_SCORE_STREAM.jsonl.gz",
+        "bytes": 272119,
+        "local_path": "/workspace/scratch/bf6e0175ff2d/sources/resolved/candidate_stream",
+        "sha256": "c446633dec923e3a80a534b19325ccff49f769a2ff1d29c7af1202202de614d4"
+      },
+      "core_runtime": {
+        "archive_member": "24-Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005-1-.zip!Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005/01_SOURCE_PACKS/MRET_V11R1_NUMERIC_CERT_PRIVATE.zip!authority/Ark_Capital_v11_Realized_Monetization_Signal_20261005_PRIVATE_CONTRACT_FAIL.zip!authority/Ark_Capital_v10_Monetization_Sizing_20261005_PRIVATE.zip!authority/Ark_Capital_v9_Quality_Aware_MAX3_Integration_20261005_PRIVATE.zip!authority/Ark_Capital_Quality_v1R1_Recovery_20261005_PRIVATE_STRONG.zip!authority/Ark_Capital_Quality_v1_20261005_PRIVATE_CONTRACT_FAIL.zip!inputs/CORE_RUNTIME_CAUSAL.jsonl.gz",
+        "bytes": 273565,
+        "local_path": "/workspace/scratch/bf6e0175ff2d/sources/resolved/core_runtime",
+        "sha256": "827abcf716c9203a70bc766783948a6be3cee3428abf6a772d1c3495096fd197"
+      },
+      "native_curve": {
+        "archive_member": "24-Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005-1-.zip!Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005/01_SOURCE_PACKS/MRET_V11R1_NUMERIC_CERT_PRIVATE.zip!authority/Ark_Capital_v11_Realized_Monetization_Signal_20261005_PRIVATE_CONTRACT_FAIL.zip!authority/Ark_Capital_v10_Monetization_Sizing_20261005_PRIVATE.zip!authority/Ark_Capital_v5_MAX3_Slot_Intelligence_20261004_PRIVATE.zip!capital_v5_slot_private/CAPITAL_MAX3_SLOT_RESERVE_V1_CURVE.jsonl.gz",
+        "bytes": 172597,
+        "local_path": "/workspace/scratch/bf6e0175ff2d/sources/resolved/native_curve",
+        "sha256": "7d95eaa08a32db6174f385d365746a542652d60afbd56411edd9b0a933371b13"
+      },
+      "native_decisions": {
+        "archive_member": "24-Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005-1-.zip!Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005/01_SOURCE_PACKS/MRET_V11R1_NUMERIC_CERT_PRIVATE.zip!authority/Ark_Capital_v11_Realized_Monetization_Signal_20261005_PRIVATE_CONTRACT_FAIL.zip!authority/Ark_Capital_v10_Monetization_Sizing_20261005_PRIVATE.zip!authority/Ark_Capital_v5_MAX3_Slot_Intelligence_20261004_PRIVATE.zip!capital_v5_slot_private/CAPITAL_MAX3_SLOT_RESERVE_V1_DECISIONS.jsonl.gz",
+        "bytes": 82395,
+        "local_path": "/workspace/scratch/bf6e0175ff2d/sources/resolved/native_decisions",
+        "sha256": "dae4aa4a10d1b9337fcf6518faefa0bddf5555a7d6ab19a523c932b345a3c3b8"
+      },
+      "native_intents": {
+        "archive_member": "24-Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005-1-.zip!Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005/01_SOURCE_PACKS/MRET_V11R1_NUMERIC_CERT_PRIVATE.zip!authority/Ark_Capital_v11_Realized_Monetization_Signal_20261005_PRIVATE_CONTRACT_FAIL.zip!authority/Ark_Capital_v10_Monetization_Sizing_20261005_PRIVATE.zip!authority/Ark_Capital_v5_MAX3_Slot_Intelligence_20261004_PRIVATE.zip!capital_v5_slot_private/CAPITAL_MAX3_SLOT_RESERVE_V1_INTENTS.jsonl.gz",
+        "bytes": 817,
+        "local_path": "/workspace/scratch/bf6e0175ff2d/sources/resolved/native_intents",
+        "sha256": "2cf8db7eb217012cff6ada34b0aa8860c0a9e8d1f76b5bba768d3921f6fa6f60"
+      },
+      "native_result": {
+        "archive_member": "24-Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005-1-.zip!Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005/01_SOURCE_PACKS/MRET_V11R1_NUMERIC_CERT_PRIVATE.zip!authority/Ark_Capital_v11_Realized_Monetization_Signal_20261005_PRIVATE_CONTRACT_FAIL.zip!authority/Ark_Capital_v10_Monetization_Sizing_20261005_PRIVATE.zip!authority/Ark_Capital_v5_MAX3_Slot_Intelligence_20261004_PRIVATE.zip!repo/docs/evidence/capital-v5-max3-slot-intelligence-20261004-v1/MAIN_REPLAY_RESULT.json",
+        "bytes": 21817,
+        "local_path": "/workspace/scratch/bf6e0175ff2d/sources/resolved/native_result",
+        "sha256": "21ebd5eed986b15944c6b0caeae47264b2228ff5aa2689220149597568a96c09"
+      },
+      "native_trades": {
+        "archive_member": "24-Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005-1-.zip!Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005/01_SOURCE_PACKS/MRET_V11R1_NUMERIC_CERT_PRIVATE.zip!authority/Ark_Capital_v11_Realized_Monetization_Signal_20261005_PRIVATE_CONTRACT_FAIL.zip!authority/Ark_Capital_v10_Monetization_Sizing_20261005_PRIVATE.zip!authority/Ark_Capital_v5_MAX3_Slot_Intelligence_20261004_PRIVATE.zip!capital_v5_slot_private/CAPITAL_MAX3_SLOT_RESERVE_V1_TRADES.jsonl.gz",
+        "bytes": 18368,
+        "local_path": "/workspace/scratch/bf6e0175ff2d/sources/resolved/native_trades",
+        "sha256": "7afb487a4e257da2e1b23bac4c94d72eafdb7467e621cd309edd061347e4285d"
+      },
+      "split": {
+        "archive_member": "24-Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005-1-.zip!Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005/01_SOURCE_PACKS/MRET_V11R1_NUMERIC_CERT_PRIVATE.zip!authority/Ark_Capital_v11_Realized_Monetization_Signal_20261005_PRIVATE_CONTRACT_FAIL.zip!authority/Ark_Capital_v10_Monetization_Sizing_20261005_PRIVATE.zip!authority/Ark_Capital_v5_MAX3_Slot_Intelligence_20261004_PRIVATE.zip!input_archives/Ark_Capital_v4_Rank_Cutoff_Independent_20261004_PRIVATE.zip!deliverables/Ark_Capital_MAX3_Upward_Staircase_v4_20261004_PRIVATE.zip!repo/docs/evidence/capital-max3-upward-staircase-v4-20261004-v1/SESSION_SPLIT.json",
+        "bytes": 10231,
+        "local_path": "/workspace/scratch/bf6e0175ff2d/sources/resolved/split",
+        "sha256": "e83291b8706c48a4e496739219f1a645246b73be28f2195bebfaeb6614a12274"
+      },
+      "teachers": {
+        "archive_member": "24-Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005-1-.zip!Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005/01_SOURCE_PACKS/MRET_V11R1_NUMERIC_CERT_PRIVATE.zip!authority/Ark_Capital_v11_Realized_Monetization_Signal_20261005_PRIVATE_CONTRACT_FAIL.zip!authority/Ark_Capital_v10_Monetization_Sizing_20261005_PRIVATE.zip!authority/Ark_Capital_v9_Quality_Aware_MAX3_Integration_20261005_PRIVATE.zip!authority/Ark_Capital_Quality_v1R1_Recovery_20261005_PRIVATE_STRONG.zip!authority/Ark_Capital_Quality_v1_20261005_PRIVATE_CONTRACT_FAIL.zip!inputs/TEACHERS_EVALUATION.jsonl.gz",
+        "bytes": 117208,
+        "local_path": "/workspace/scratch/bf6e0175ff2d/sources/resolved/teachers",
+        "sha256": "005e194cae26898d74ea95c3aea8464517f7b71d330e53d1a2ad05c767b89322"
+      }
+    },
+    "precommit": "ec555d31354fe05b6046a1c272d2db2724708cac",
+    "public_evidence_branch": "capital-main-reallocation-20261005",
+    "source_authority": "V5 commit710656491be06235901b45c50a8b5cbd714ba4eb; original INPUT_BINDING commit220e0d8863978f5d82d0d83189d473252efda146"
+  },
+  "existing_R_labels": {
+    "path": "capital_v51_private/evaluation-only/R_LABELS.jsonl.gz",
+    "sha256": "62049e56c4c3ffd01cad3eeefe801f52152bc3c2821a8061d388bef6c8bfecc6",
+    "N": 1039,
+    "known_N": 1016,
+    "unknown_N": 23
+  },
+  "hash_checks": {
+    "private_R_and_V5_reset_source_files_verified_N": 107,
+    "formal_input_and_expert_hashes_verified_N": 16,
+    "local_public_authority_vs_actual_GET_match": true
+  },
+  "reuse": [
+    "One existing R materialization",
+    "Frozen Entry1039 and expert scores, original V5 decisions/trades/curve",
+    "Saved V5 reset9 completed windows;12 blocked preserved",
+    "Existing V5/V5.1 independent accounting",
+    "Rejected V5.1 retained; no rescue",
+    "Existing model/OFF/U-AUC/bootstrap certification reused; no recertification"
+  ],
+  "repo_instructions": {
+    "AGENTS_root_research_docs_docsEvidence": "actual GET404 at current HEAD; no extra gate or delegation requirement"
+  },
+  "counts": {
+    "derived_label_batches": 0,
+    "new_fits": 0,
+    "refits": 0,
+    "calibration": 0,
+    "new_Capital_candidates": 0,
+    "new_Capital_replays": 0,
+    "R_market_EXIT_rematerializations": 0,
+    "provider_requests": 0,
+    "protected_partition_openings": 0,
+    "orders": 0,
+    "main_merge": 0,
+    "force_push": 0,
+    "Claude": 0
+  },
+  "next": "Freeze spectrum algebra, then derive once from existing exact R; no market/EXIT/Capital replay",
+  "productionReady": false
+}

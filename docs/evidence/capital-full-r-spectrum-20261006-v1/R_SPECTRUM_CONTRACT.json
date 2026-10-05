@@ -1,0 +1,85 @@
+{
+  "schema": "ARK_FULL_R_SPECTRUM_CONTRACT_V1",
+  "exact_jst": "2026-10-06T07:36:47.738348+09:00",
+  "basis_HEAD": "96f1b47242d125cf26b035281d0d3ce3bb5de15e",
+  "reference_contract": "capital-v51-reset20-r5r10-20261006-v1/R_LABEL_CONTRACT.json",
+  "evaluation_only": true,
+  "formula": "r = sell_credit / buy_debit - 1",
+  "unit": "ratio",
+  "continuous_authority": "Copy existing r_net_fraction, preserving numerator/denominator; display Decimal at60-digit precision; independently reconstruct from saved raw debit/credit",
+  "BUY_factor": "1.0005",
+  "SELL_factor": "0.9995",
+  "cost_handling": "Effective costs already applied once; no additional fee subtraction",
+  "positive_labels": {
+    "R0PLUS": "r>=0",
+    "R1_to_R10": "r>=k/100, k1..10",
+    "observed_tail": "Mechanically extend integer k11..floor(100*max(r)) when max exceeds10%; descriptive only"
+  },
+  "negative_labels": {
+    "RNEG": "r<0",
+    "RN1_to_RN10": "r<=-k/100, k1..10",
+    "observed_tail": "Mechanically extend integer k11..floor(-100*min(r)) when min below-10%; descriptive only"
+  },
+  "zero": {
+    "Loser": "Preserve existing credit<=debit",
+    "exact_zero": "r==0 separate",
+    "RPOS": "r>0 descriptive flow mask"
+  },
+  "exclusive_bucket": "k=floor(100*r); [k/100,(k+1)/100), across all integer k from observed floor minimum through observed floor maximum; include empty buckets; unknown has no bucket",
+  "quantiles": "Descriptive Entry return quantiles only, exact linear interpolation type7 at1/5/10/25/50/75/90/95/99%; never score quantiles",
+  "populations": [
+    "ALL_FROZEN_ENTRY",
+    "EXECUTION_ELIGIBLE",
+    "RANK_PASS_EXECUTION_ELIGIBLE",
+    "V5_FUNDED",
+    "V5_NOT_FUNDED",
+    "V5_RESERVE_REJECT",
+    "V5_MAX3_FULL",
+    "V5_CASH_OR_LOT",
+    "each_other_native_reason"
+  ],
+  "U_groups": [
+    "ALL_KNOWN_U5",
+    "U5_NOT_U10",
+    "U10",
+    "NON_U5",
+    "U_UNKNOWN"
+  ],
+  "U_unknown_definition": "Neither U5 nor U10 may be imputed; retain source flags and R-unknown separately",
+  "funded_flow": "Unique original V5 chain150 trades, exact debit/credit/shares/holding, plus each saved reset account separately; never aggregate overlapping windows as unique market opportunities",
+  "miss_quantity": "No counterfactual funded quantity exists for missed entries; report null recovery shares. Reference100-share labels are not recovered portfolio shares",
+  "time_bands": "Descriptive fixed market-clock hourly intervals anchored00:00; no outcome-driven cut",
+  "occupancy": "funded_slot is concurrent positions immediately after that BUY; pre-decision occupancy is native slot admission state; stored minute curve occupancy is after the whole batch",
+  "scores": {
+    "heads": {
+      "pP/MOVE_P5": "pP",
+      "MOVE_U2": "q2",
+      "MOVE_U3": "q3",
+      "MRET": "mP"
+    },
+    "direction": "Original higher raw score for every R/RN threshold; no score inversion",
+    "masks": [
+      "EXECUTION_ELIGIBLE",
+      "RANK_PASS_EXECUTION_ELIGIBLE",
+      "V5_FUNDED"
+    ],
+    "fixed_buckets": [
+      "native S/A/B/C rank",
+      "existing pP-native P_BELOW/P_BASE/P_MID/P_HIGH band",
+      "prior-contract pP training r<0.5/>=0.5",
+      "prior-contract MRET training rM<0.5/>=0.5"
+    ],
+    "MOVE_U2_U3_bucket_limitation": "No formal training-derived q2/q3 rank bucket in runtime schema; do not invent a test split. Use raw AUROC/conditional score means and inherited native buckets",
+    "strata": "Original block/session schedule only, no new split",
+    "MRET_absolute_loss_defense": "INCONCLUSIVE unchanged",
+    "CI": "None; reset windows overlap; no independent-sample significance claim"
+  },
+  "unknown": "null; exclude from event and non-event denominators; include counts/masks",
+  "batch_limit": {
+    "mechanical_derivation": 1,
+    "new_fit": 0,
+    "new_Capital_replay": 0,
+    "market_EXIT_rematerialization": 0
+  },
+  "design_only": "At most one next mechanism hypothesis; no threshold optimization or implementation; no wealth-gain claim"
+}

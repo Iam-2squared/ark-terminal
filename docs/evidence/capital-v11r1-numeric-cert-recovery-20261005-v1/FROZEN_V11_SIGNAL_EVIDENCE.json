@@ -1,0 +1,115 @@
+{
+  "S1_S8": {
+    "S1": true,
+    "S2": true,
+    "S3": true,
+    "S4": true,
+    "S5": true,
+    "S6": true,
+    "S7": true,
+    "S8": true
+  },
+  "Safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "best_control_reselection": 0,
+  "best_existing_control": "q3",
+  "block_improved_N": 8,
+  "bootstrap": {
+    "best_control": "q3",
+    "deltas": {
+      "MRET_AUC_delta": {
+        "CI95": [
+          0.22002366561306444,
+          0.33789468032625536
+        ],
+        "mean": 0.2778442035130256,
+        "valid_N": 1999
+      },
+      "MRET_PR_delta": {
+        "CI95": [
+          0.16143651030725029,
+          0.2523885376795685
+        ],
+        "mean": 0.20826244636763933,
+        "valid_N": 1999
+      },
+      "Spearman_delta": {
+        "CI95": [
+          0.00010277927437544744,
+          0.18573773836448587
+        ],
+        "mean": 0.08706505592165639,
+        "valid_N": 1999
+      },
+      "conditional_delta": {
+        "CI95": [
+          0.15298229134719324,
+          0.2819845066770388
+        ],
+        "mean": 0.2185061863551034,
+        "valid_N": 1999
+      },
+      "realized_positive_AUC_delta": {
+        "CI95": [
+          -0.03165802349667033,
+          0.08592983577094483
+        ],
+        "mean": 0.02778888818874998,
+        "valid_N": 1999
+      }
+    },
+    "independent_session_N": 38,
+    "resamples": 1999,
+    "seed": 5701105,
+    "unit": "OOF38_SESSION_CLUSTER"
+  },
+  "bootstrap_counts_sha256": "5f9fe1d5abf987baed65e84ea605dc76677cd7c79802557dbf60d6ee564aa4a8",
+  "bootstrap_deltas_sha256": "ec16a14542ea89724a06428abd2eff2e176760cb5b6cec4432a87603f5a867a4",
+  "bootstrap_reruns": 0,
+  "bootstrap_result_sha256": "3b1e3bfda330b00908d5ee6c426f7fcc65ea2231ad57b5186276dc7b8d52b0ac",
+  "conditional_sha256": "61d31a6af644dcae98e9dfd62fd92ced45550bc0f6eeb4351dc23366203b1d09",
+  "mP": {
+    "MRET": {
+      "AUC": 0.6314236414044475,
+      "Brier": 0.24793497681984386,
+      "PR_AUC": 0.6065516356187783
+    },
+    "bucket_concordance": 0.5982764563943468,
+    "realized": {
+      "Spearman": 0.0328912831087284,
+      "ge1_AUC": 0.4344783179375418,
+      "loser_AUC": 0.48317236313626205,
+      "positive_AUC": 0.5168276368637379
+    }
+  },
+  "newFits": 0,
+  "oldS9": "FAIL",
+  "oldV11Status": "V11_CONTRACT_FAIL",
+  "primary_evaluate_runs": 0,
+  "primary_sha256": "a23296b0f697695406b417b9e264b0891390648ed9de06c12fe278d33453a5a7",
+  "q3": {
+    "MRET": {
+      "AUC": 0.3532057620349367,
+      "Brier": 0.3911654642269447,
+      "PR_AUC": 0.39805820453157803
+    },
+    "bucket_concordance": 0.38628059289900035,
+    "realized": {
+      "Spearman": -0.05485377388978633,
+      "ge1_AUC": 0.5509695633869091,
+      "loser_AUC": 0.5111624236172972,
+      "positive_AUC": 0.48883757638270275
+    }
+  },
+  "status": "HASH_AND_BODY_VALID"
+}

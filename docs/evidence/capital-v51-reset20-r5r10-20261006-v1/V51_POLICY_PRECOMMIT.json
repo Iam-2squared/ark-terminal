@@ -1,0 +1,126 @@
+{
+  "candidate_N": 1,
+  "candidate_id": "V5.1",
+  "code_hashes": {
+    "accounting_audit.py": "6ffc006c98a7b6f710947d8afd1b86dd37f4f9069c41cfe5941d354072235ae6",
+    "diagnostic.py": "880b45075176c752dec76e6c6eef6aa2ee23439c38d45b0cc4e9390623bb4033",
+    "io_utils.py": "6d01ca92ba0ad1d804c50197f581efd5462a5e7bb193f166f6642f7f982bde61",
+    "prepare_scope.py": "9938c21ac40a14aa4909360b6b6504d19dfe8e7878502e5a1214c0da2a0ffea2",
+    "r_labels.py": "6041406f0125c28471b467513b28479458b02d001f0674f9b137f7f879417efb",
+    "reset20.py": "5deffa7b200435ca86557b38a5b5c1bab4e9205f299a70e6f64e3e99cfdb2851",
+    "run_policy.py": "93ff4ca92675396f43fa21a702cc48a522e4becde3e3010c0dd288e73c80db2c",
+    "test_labels.py": "03e3fd0ae408cd0db07bc0f77a5659d7d9c6dc41b78df674ede3d85553b0df78",
+    "test_reset20.py": "56f9ec3c5d2cfbfb48a78054280e66bf405b0d9f103d01a0da97b7b48dd16b7f",
+    "test_v51.py": "0d48670c8eb77eede74e570e19be6539836f60153f5c09b25d2e597e6059397d",
+    "v51_allocation.py": "736e5bb49854f5c78fbfcffe602386c60a597bcd00a859873a6f82a05a91d39a"
+  },
+  "conditions_A_to_E": {
+    "A": "Same frozen21 windows;9 coverage-complete V5 endpoints, raw-source accounting mismatch0; full coverage certification held",
+    "B": "Capital fixed EXIT/EOD R labels1016 known23 unknown; independent quantity return consistency; evaluation-only quarantine",
+    "C": "Existing pP R5/R10 rank separation AUROC0.69155/0.69845;6 unique same-batch donor/receiver paths with cash/lot/cap feasibility,44 overlapping-window occurrences. No guaranteed profit claim",
+    "D": "Does not retune Reserve/4LOW or repeat S_ONLY, quality Pareto, MRET cap throttle or V10 equal-weight continuous sizing. Uses native V5 admission plus deterministic indivisible lots, original target/caps and frozen pP only",
+    "E": "Synthetic donor/receiver test changes actual quantities; current legal same-batch cash can reach100-share increments, no position replacement/topup"
+  },
+  "decision_metric": "Same fixed21 planned windows, cost-included final cash median; full-set DEV progress only if all windows both policies complete; otherwise paired subset diagnostic only",
+  "exact_jst": "2026-10-06T00:50:16.975924+09:00",
+  "execution_budget": {
+    "Claude": 0,
+    "additional_candidate_policies": 0,
+    "candidate_day_attempts_max": 420,
+    "candidate_formal_batches_max": 1,
+    "candidate_independent_accounting": 1,
+    "candidate_window_manifest_N": 21,
+    "force_push": 0,
+    "future_source_imputation": 0,
+    "main_merge": 0,
+    "new_fits": 0,
+    "old38_full_replay": 0,
+    "orders": 0,
+    "retuning_after_results": 0,
+    "technical_full_batch_restart_max": 1
+  },
+  "formal_candidate_results_seen": false,
+  "input_fields": {
+    "account": [
+      "cash",
+      "equity",
+      "exposure",
+      "existing_bands"
+    ],
+    "asof": "Inherited frozen block schedule and assumed closed-bar/end source timing; actual provider arrival remains UNKNOWN",
+    "native_current": [
+      "entry_id",
+      "session",
+      "symbol",
+      "entry_minute",
+      "entry_timestamp",
+      "block",
+      "raw_reference",
+      "ML",
+      "capital_score",
+      "capacity_band",
+      "rank",
+      "admission",
+      "m2",
+      "m3",
+      "m5"
+    ],
+    "new_current_alias": "lot_priority_pP <- existing raw pP from authenticated CURRENT_MRET_CAP_RUNTIME; exact identity/date/block/price match; no re-inference/calibration"
+  },
+  "main_change_mechanism": "Replace native ML-proportional continuous desired budgets with minimum-lot-first and existing raw pP-priority integer additional lots for the same V5-admitted current batch",
+  "metric_contracts": {
+    "Loser": "<=0 exact",
+    "R10": ">=10% exact costs",
+    "R5": ">=5% exact costs",
+    "center": "median(V51 finals)-median(V5 finals), separately paired delta median",
+    "failure": "null primary final; no partial normalization or subset promotion",
+    "north_star": "endpoint cash>=JPY2000000; median target separate"
+  },
+  "native_code_hashes": {
+    "allocation.py": "bbb0f6446cb2c7edd859a2ab97edde03276bda592262c94dacbaa7900ad6b147",
+    "arrival.py": "3d5d1a8a8e15fa5166491fb8670b7ff92d3e282bae05dc2a9a417a2e4d8a0bbc",
+    "common.py": "d0550b6d82d3289367e5f6766d7c63bb39a0262c4292bc8b9ceb992ee7229144",
+    "execution.py": "7f084415ed92344fb99ef26e27ac48f2beeb868e643fba720bb61355339a8bc8",
+    "replay.py": "42e229f3816427ca16e6d44acc218d7b044e1a04f74cfd3154ff4aa6da11bb88",
+    "slot_policy.py": "7088999ffad385051522228f46c97b28ff96d0d34fcdfbb12021e098d31f3a32",
+    "staircase.py": "96d3b01749b30de17d3bce811fea771a990a15ee17508f4462c50e35e4650f70"
+  },
+  "new_thresholds": [],
+  "policy_name": "V5_NATIVE_ADMISSION_FROZEN_PP_INTEGER_LOT_PRIORITY_V1",
+  "productionReady": false,
+  "quantity_formula": {
+    "additional": "In priority order for initially funded rows assign100*floor(min(unspent budget,remaining cash,equity cap-current debit)/lot debit), then decrement all cash/budget before next row",
+    "budget": "min(cash,max(0,equity*target-exposure))",
+    "cash_release": "Frozen fill release processed before same-minute Entry; MTM never releases cash",
+    "constants_new": [],
+    "future_source_missing": "Never part of eligibility; purchased position failure leaves window final null",
+    "initial": "In priority order assign exactly100 shares iff one lot debit <= remaining budget, remaining cash and equity*CAP[band]; otherwise0",
+    "missing_current_score": "Any missing/nonfinite pP -> entire allocation batch falls back to byte-identical native allocation",
+    "output": "Return assignments in unchanged native picked order; one final BUY per Entry; no later buy-in, backfill or topup",
+    "priority": "raw pP DESC, native candidate_order tuple, entry_id ASC",
+    "target": "min(.92,BASE[best(existing_bands+picked_bands)]+.055*(count(existing_bands+picked_bands)-1))"
+  },
+  "runtime_reads_R_U_teacher_future": false,
+  "schema": "ARK_V51_INTEGER_LOT_PRIORITY_PRECOMMIT_V1",
+  "score_blending": false,
+  "selection_exposure": "Entire previously known iterative Development R diagnostics seen, including local small-profit/Loser cases; not fresh/OOS. Formula not optimized by candidate PnL or threshold search",
+  "source_hashes": {
+    "R_contract": "74780ac66ad5b17aa6427b1a9a74a57d4ced17d5b1fbed5eb3ae1e75862ec4a8",
+    "arrival": "69f8edafb4708e9a7b61b4f85eb92f353049cf21324e1647602e9973f195f999",
+    "baseline": "0f1f572a87f38892776c100bed59b638a7ef4f635e320808235a55d708e57f4a",
+    "baseline_accounting": "74c5d5eb9a4e31e2d3a25e8792dc471e1dc237a86dcfb318c7ce3b6a5c611ad7",
+    "books": "ee7c88e19832439f615da54dc9df7e4a0307fdb1b2b5a18d3e1f60f71566736a",
+    "diagnostic": "bba6e9cdd0e6322413c217e79a7deb4671e257d4017a8a10d206d9185e45450d",
+    "frozen_current_expert_scores": "c7e10944822ccb8861457eba350cea0b5d23703ace713a813b75bdb2b8dbdb5d",
+    "split": "e83291b8706c48a4e496739219f1a645246b73be28f2195bebfaeb6614a12274",
+    "stream": "c446633dec923e3a80a534b19325ccff49f769a2ff1d29c7af1202202de614d4",
+    "window_manifest": "e51e661fb5f051eb34079341833113360a50510ab0b71b6ac84c4a7feff3627b"
+  },
+  "unchanged": [
+    "Native ML gate and same-batch pending admission/MAX3; candidate_order; existing position handling",
+    "CAP S45% A35% B25%; BASE S68% A56% B44%; breadth5.5pp cap92%",
+    "Native BUY1.0005 SELL0.9995 EOD/cutoff/same-symbol; lot100; cash-only",
+    "Selector Entry EXIT and all Expert models/scores/references",
+    "No liquidity rule relaxation; inherited historical liquidity remains diagnostic"
+  ]
+}

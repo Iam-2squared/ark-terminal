@@ -1,0 +1,299 @@
+{
+  "OFF_receipts": {
+    "CAUSAL_SOURCE_REVIEW.json": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/r1_remote/CAUSAL_SOURCE_REVIEW.json",
+      "sha256": "fd5abf4ba1810dee6e1b3ace15c3f23283a9629a251a9bd0f5bfb8ae06bc9f0d"
+    },
+    "OFF_INDEPENDENT_SAVED_COMPARISON.json": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/r1_remote/OFF_INDEPENDENT_SAVED_COMPARISON.json",
+      "sha256": "2691b950cce51acbf7307a1f603ade3cffc527d14d37735e9f24f4c0c54695b9"
+    },
+    "OFF_PRIMARY_COMPLETE.json": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/r1_remote/receipts/OFF_PRIMARY_COMPLETE.json",
+      "sha256": "d1c4c4f15874a786adf754bcc3dacede5557bfb5e6b93e287a79685874cfb0a6"
+    },
+    "RUNTIME_INPUT_MANIFEST.json": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/r1_remote/RUNTIME_INPUT_MANIFEST.json",
+      "sha256": "4120ebf2506c2b8da962020e6f1e164af92feb9cfd4a74763919b5f45fa08b58"
+    },
+    "V5_OFF_EQUIVALENCE.json": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/r1_remote/V5_OFF_EQUIVALENCE.json",
+      "sha256": "2691b950cce51acbf7307a1f603ade3cffc527d14d37735e9f24f4c0c54695b9"
+    },
+    "WORKFLOW_TRIGGER_REUSE.json": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/r1_remote/WORKFLOW_TRIGGER_REUSE.json",
+      "sha256": "05614ac859053131ebff8fd7ac110d3d7083a57ce5614c4f85d2cebe5eee1fe3"
+    }
+  },
+  "columns": {
+    "execution": "books.{entry_id,session,market[],frozen_exit,entry_actual_source,capture_complete,limit_up_authority}",
+    "mtm": "native_curve[].{session,minute,equity,cash,exposure,known_marks}",
+    "native_eod": "native_result.daily_series[].{session,status,starting_cash,ending_cash}",
+    "native_snapshot": "session,minute,candidates[],gate_decisions[],picked_ids[],assigned[],existing_open_N,snapshot.{cash,equity,exposure,positions}",
+    "outcome_authority": "OUTCOMES_EXACT_EVALUATION[entry_id].{potential_pct,frozen_realized_net_return_cell,frozen_execution_status}",
+    "packet": {
+      "identity": [
+        "entry_id",
+        "session",
+        "symbol",
+        "entry_minute",
+        "frozen_entry_time",
+        "native_block"
+      ],
+      "scores": "heads.{pP,MOVE_U2,MOVE_U3}.{raw_score,numerator,denominator,available,score_asof,feature_max_source_minute,prediction_origin,model_hash,training_reference_hash}"
+    },
+    "past_outcome": "teachers.{entry_id,session,execution_status,capture_complete,source_minute,release_minute,potential_return,realized_net_return,buy_effective,sell_effective,source_lineage}",
+    "quantity": "candidate.capital_score,raw_reference,rank;positions.{band,mark,quantity,symbol}",
+    "reference32": "block,head,ordered_reference[].{entry_id,session,score},reference_sha256,model_sha256"
+  },
+  "exact_jst": "2026-10-05T22:29:36.099693+09:00",
+  "historical_actual_arrival": "UNKNOWN / inherited assumed closed-bar-end availability, no stronger provider timing claim",
+  "input_root_actual": "/workspace/scratch/d12c37b8459e/work/bridge_private",
+  "label_maturity": "To be certified per prior OOF identity against saved completed-session teacher/source contract before qualification; unknown never imputed",
+  "missing_core_inputs": [],
+  "native_code": {
+    "allocation.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/allocation.py",
+      "sha256": "bbb0f6446cb2c7edd859a2ab97edde03276bda592262c94dacbaa7900ad6b147"
+    },
+    "analyze.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/analyze.py",
+      "sha256": "39eb003d2fc54f5555502b9d46c0aa6f1342042ede1c59417e2f8c60f2046abe"
+    },
+    "arrival.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/arrival.py",
+      "sha256": "3d5d1a8a8e15fa5166491fb8670b7ff92d3e282bae05dc2a9a417a2e4d8a0bbc"
+    },
+    "build_report.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/build_report.py",
+      "sha256": "323e765cf90781c1f3347225ce2838226b9f0f033847e0a7dab8320f18bf121e"
+    },
+    "canaries.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/canaries.py",
+      "sha256": "81774c118b536c7616b19e340640eccc3a12819518c3c69851312f77fc054336"
+    },
+    "close_cycle.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/close_cycle.py",
+      "sha256": "990c0a574b082c30dbb190646c88d0b3f0157100b7083a550dbe46cba8203132"
+    },
+    "common.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/common.py",
+      "sha256": "d0550b6d82d3289367e5f6766d7c63bb39a0262c4292bc8b9ceb992ee7229144"
+    },
+    "core_features.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/core_features.py",
+      "sha256": "ee2f3a1c03780b2025a5fc87cdc0f3ba2877f6c05eda72914848f3a0715aa14a"
+    },
+    "execution.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/execution.py",
+      "sha256": "7f084415ed92344fb99ef26e27ac48f2beeb868e643fba720bb61355339a8bc8"
+    },
+    "freeze.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/freeze.py",
+      "sha256": "5864cff1563eab342fc60de130b56c3b0848b73ed76aea093616533f5203efa8"
+    },
+    "independent_audit.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/independent_audit.py",
+      "sha256": "f8bb188bc8a2951dd5cf88b4d81716ccb1c6b2e23292f0161dbcbfa9ae3cad9b"
+    },
+    "independent_engine.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/independent_engine.py",
+      "sha256": "f85b614775751b0aa8fd335fb1f5e09ad2be62911d1924628f88cc732d56bf61"
+    },
+    "independent_oracle.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/independent_oracle.py",
+      "sha256": "eca35de76cbd7baf8083e463c0122854d5d93e7cb563d6c5bbe72627d7988300"
+    },
+    "independent_supplement.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/independent_supplement.py",
+      "sha256": "64f22638f1e14915cfbfbccffdf57f346efb6c403d9940beebfa269dc1ef002f"
+    },
+    "oracle.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/oracle.py",
+      "sha256": "56316b747c44035d4b83e87cc835973fac0d5f18af2413d5f1c0c643e0d1d5ec"
+    },
+    "oracle_v2.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/oracle_v2.py",
+      "sha256": "da9d13657d78a7700a63f49fe4c9e1c651c68eec37456588d0dd82375e42141a"
+    },
+    "pack_delivery.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/pack_delivery.py",
+      "sha256": "4bfaae4d57e77e13a695077a601eb1927ec6c4b846c93d02db9a3d516cebc9c2"
+    },
+    "preprocessing.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/preprocessing.py",
+      "sha256": "e2fd0b559d6641e31b34847bcc72e45e47da071a9398c07b305b72d67c3aa2dc"
+    },
+    "publish_payload.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/publish_payload.py",
+      "sha256": "c333a1a52651c22a21c7d51a678c1ba0610627a357beb42ff9fdd0176305752b"
+    },
+    "publish_payload_v2.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/publish_payload_v2.py",
+      "sha256": "0ab0d34e3498828e191982b86b1062b77d71ea3b9a7f1109fa42454affd45bfa"
+    },
+    "replay.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/replay.py",
+      "sha256": "42e229f3816427ca16e6d44acc218d7b044e1a04f74cfd3154ff4aa6da11bb88"
+    },
+    "slot_policy.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/slot_policy.py",
+      "sha256": "7088999ffad385051522228f46c97b28ff96d0d34fcdfbb12021e098d31f3a32"
+    },
+    "staircase.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/staircase.py",
+      "sha256": "96d3b01749b30de17d3bce811fea771a990a15ee17508f4462c50e35e4650f70"
+    },
+    "verify_full.py": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/verify_full.py",
+      "sha256": "48fbb893a7888fb74443f3d624475dd1ba0b460b40a26958d42a001044e5ae53"
+    }
+  },
+  "native_source_root_actual": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1",
+  "new_source_switch": false,
+  "original_certificates": "READ_ONLY_HASH_BODY_REUSE; NO_AUC_OR_ORIGINAL_BOOTSTRAP_RECALCULATION",
+  "roles": {
+    "arrival": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/repo/docs/evidence/capital-v5-max3-slot-intelligence-20261004-v1/ARRIVAL_TABLE.json",
+      "bytes": 158661,
+      "member": "r1_work/inputs/v5/repo/docs/evidence/capital-v5-max3-slot-intelligence-20261004-v1/ARRIVAL_TABLE.json",
+      "sha256": "69f8edafb4708e9a7b61b4f85eb92f353049cf21324e1647602e9973f195f999"
+    },
+    "books": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5_source/inputs/v3/bigwinner_private/MARKET_EXECUTION_BOOK_V2.jsonl.gz",
+      "bytes": 7229451,
+      "member": "r1_work/inputs/v5_source/inputs/v3/bigwinner_private/MARKET_EXECUTION_BOOK_V2.jsonl.gz",
+      "sha256": "ee7c88e19832439f615da54dc9df7e4a0307fdb1b2b5a18d3e1f60f71566736a"
+    },
+    "candidate_stream": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5_source/capital_staircase_v4_private/UPWARD_STAIRCASE_SCORE_STREAM.jsonl.gz",
+      "bytes": 272119,
+      "member": "r1_work/inputs/v5_source/capital_staircase_v4_private/UPWARD_STAIRCASE_SCORE_STREAM.jsonl.gz",
+      "sha256": "c446633dec923e3a80a534b19325ccff49f769a2ff1d29c7af1202202de614d4"
+    },
+    "canonical_scores": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/score_certification/CURRENT_FOUR_HEAD_INTELLIGENCE.jsonl.gz",
+      "bytes": 91466,
+      "member": "r1_work/score_certification/CURRENT_FOUR_HEAD_INTELLIGENCE.jsonl.gz",
+      "sha256": "c31c4780670a2ba113d42a51a5992595c4413bc9100464b0840b41a9c8b9b768"
+    },
+    "materialization_certificate": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/score_certification/NATIVE_SCORE_MATERIALIZATION_CERTIFICATION.json",
+      "bytes": 269,
+      "member": "r1_work/score_certification/NATIVE_SCORE_MATERIALIZATION_CERTIFICATION.json",
+      "sha256": "705139c1ca77d2ce8c3704a61c84d1041f6467c56d2559dd1a4b05038e22d3d3"
+    },
+    "native_authority": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/metrics/V5_EXACT_EVALUATION_AUTHORITY.json",
+      "bytes": 196192,
+      "member": "r1_work/metrics/V5_EXACT_EVALUATION_AUTHORITY.json",
+      "sha256": "fce8455b2542d8e0532014e98dd63f0cf538a3b8ca064a04ee969434541ea550"
+    },
+    "native_curve": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/capital_v5_slot_private/CAPITAL_MAX3_SLOT_RESERVE_V1_CURVE.jsonl.gz",
+      "bytes": 172597,
+      "member": "r1_work/inputs/v5/capital_v5_slot_private/CAPITAL_MAX3_SLOT_RESERVE_V1_CURVE.jsonl.gz",
+      "sha256": "7d95eaa08a32db6174f385d365746a542652d60afbd56411edd9b0a933371b13"
+    },
+    "native_decisions": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/runs/OFF_PRIMARY/DECISIONS.jsonl.gz",
+      "bytes": 82395,
+      "member": "r1_work/runs/OFF_PRIMARY/DECISIONS.jsonl.gz",
+      "sha256": "dae4aa4a10d1b9337fcf6518faefa0bddf5555a7d6ab19a523c932b345a3c3b8"
+    },
+    "native_intents": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/runs/OFF_PRIMARY/INTENTS.jsonl.gz",
+      "bytes": 817,
+      "member": "r1_work/runs/OFF_PRIMARY/INTENTS.jsonl.gz",
+      "sha256": "2cf8db7eb217012cff6ada34b0aa8860c0a9e8d1f76b5bba768d3921f6fa6f60"
+    },
+    "native_result": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5/capital_v5_slot_private/CAPITAL_MAX3_SLOT_RESERVE_V1_RESULT.json",
+      "bytes": 21817,
+      "member": "r1_work/inputs/v5/capital_v5_slot_private/CAPITAL_MAX3_SLOT_RESERVE_V1_RESULT.json",
+      "sha256": "21ebd5eed986b15944c6b0caeae47264b2228ff5aa2689220149597568a96c09"
+    },
+    "native_trades": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/runs/OFF_PRIMARY/TRADES.jsonl.gz",
+      "bytes": 18368,
+      "member": "r1_work/runs/OFF_PRIMARY/TRADES.jsonl.gz",
+      "sha256": "7afb487a4e257da2e1b23bac4c94d72eafdb7467e621cd309edd061347e4285d"
+    },
+    "original_skill_certificate": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/bridge_work/evidence/ORIGINAL_SKILL_REPRODUCTION.json",
+      "bytes": 7164,
+      "member": "bridge_work/evidence/ORIGINAL_SKILL_REPRODUCTION.json",
+      "sha256": "8be0031cbca1eda6fe6141ca568f1367668732266b7305069f6db902e89ee81a"
+    },
+    "outcomes": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/metrics/evaluation_only/OUTCOMES_EXACT_EVALUATION.json",
+      "bytes": 536871,
+      "member": "r1_work/metrics/evaluation_only/OUTCOMES_EXACT_EVALUATION.json",
+      "sha256": "acc573bc7f684d777cf78db3855dc4a21edd166098e688c101a2e6b2ef2b0244"
+    },
+    "packet": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/bridge_work/private/FROZEN_EXPERT_PACKET.jsonl.gz",
+      "bytes": 139253,
+      "member": "bridge_work/private/FROZEN_EXPERT_PACKET.jsonl.gz",
+      "sha256": "6f47f616cab22e5fe749638b69fee7b7152724c8c901a44e3c50aa0e66c514f6"
+    },
+    "proposals": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/runs/OFF_PRIMARY/NATIVE_PROPOSALS.jsonl.gz",
+      "bytes": 122470,
+      "member": "r1_work/runs/OFF_PRIMARY/NATIVE_PROPOSALS.jsonl.gz",
+      "sha256": "5c4e1d81c9cabf9bfff1a21cc591d6bfc94e873da722f4c5a6e4e9230cdcb9fa"
+    },
+    "protected100": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/metrics/evaluation_only/PROTECTED100_IDS.json",
+      "bytes": 2501,
+      "member": "r1_work/metrics/evaluation_only/PROTECTED100_IDS.json",
+      "sha256": "1320ade000a52c242ba404f2d2456ffeee6a5068317038b5fbd579892fdf8499"
+    },
+    "reference32": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/score_certification/TRAINING_REFERENCE_POPULATIONS.json",
+      "bytes": 5836653,
+      "member": "r1_work/score_certification/TRAINING_REFERENCE_POPULATIONS.json",
+      "sha256": "51e9f301901a8ef6f6df0d85ab05d3094515e6541f73b2279a389663157ed128"
+    },
+    "reference_certificate": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/bridge_work/evidence/REFERENCE_HASH_AND_CERTIFICATE_REUSE.json",
+      "bytes": 11783,
+      "member": "bridge_work/evidence/REFERENCE_HASH_AND_CERTIFICATE_REUSE.json",
+      "sha256": "c4ed5aeeb81e7e8def0448cb7f30d4342c440c9dfbb746babebc9931fb170737"
+    },
+    "score_certificate": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/score_certification/SCORE_REFERENCE_CERTIFICATION.json",
+      "bytes": 18328,
+      "member": "r1_work/score_certification/SCORE_REFERENCE_CERTIFICATION.json",
+      "sha256": "0f9f2f10f0faef90f3c326fae05e8adc04669b9774ed242c2d09c73919ae7ecf"
+    },
+    "source_review": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/metrics/evaluation_only/TEACHER_TRANSPORT_RECEIPT.json",
+      "bytes": 342,
+      "member": "r1_work/metrics/evaluation_only/TEACHER_TRANSPORT_RECEIPT.json",
+      "sha256": "b6fd10c41300fb9a9c736c8b351e7f29505c1795bf2bb7e262c3c5c22dbe895b"
+    },
+    "split": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/inputs/v5_source/repo/docs/evidence/capital-max3-upward-staircase-v4-20261004-v1/SESSION_SPLIT.json",
+      "bytes": 10231,
+      "member": "r1_work/inputs/v5_source/repo/docs/evidence/capital-max3-upward-staircase-v4-20261004-v1/SESSION_SPLIT.json",
+      "sha256": "e83291b8706c48a4e496739219f1a645246b73be28f2195bebfaeb6614a12274"
+    },
+    "teachers": {
+      "actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/r1_work/metrics/evaluation_only/TEACHERS_EVALUATION.jsonl.gz",
+      "bytes": 117208,
+      "member": "r1_work/metrics/evaluation_only/TEACHERS_EVALUATION.jsonl.gz",
+      "sha256": "005e194cae26898d74ea95c3aea8464517f7b71d330e53d1a2ad05c767b89322"
+    }
+  },
+  "schema": "V5_R_ACTUAL_INPUT_BINDING_V1",
+  "source_archive": {
+    "actual_path": "/workspace/scratch/d12c37b8459e/work/downloads/Ark_Capital_V5_Frozen_Expert_Bridge_Feasibility_20261005_PRIVATE.zip",
+    "bytes": 28110631,
+    "manifest_actual_path": "/workspace/scratch/d12c37b8459e/work/bridge_private/bridge_work/evidence/PRIVATE_MANIFEST.json",
+    "manifest_sha256": "47044496512f100b2fdfda18bb47e237d49b56b6fd07c86a1c8ac8ce0d1f7ff1",
+    "payload_members_verified": 298,
+    "sha256": "a31eae5a5aea92bcd96bcc093e8379f588d801faee7858b2265a1de150401686"
+  },
+  "source_regeneration": false
+}

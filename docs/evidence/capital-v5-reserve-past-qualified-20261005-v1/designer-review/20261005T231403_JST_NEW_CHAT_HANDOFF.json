@@ -1,0 +1,86 @@
+{
+  "schema": "ARK_TERMINAL_NEW_CHAT_HANDOFF_MAIN_ROUTE_V1",
+  "exact_jst": "2026-10-05T23:14:03+09:00",
+  "CURRENT_STATE": "NEW_CHAT_HANDOFF_READY_MAIN_CAPITAL_ROUTE",
+  "basis_head_before_write": "2b819935965e1e9bccb2ac3b39ab3ef817dea787",
+  "activeCapitalBaseline": "V5",
+  "baseline_is_goal": false,
+  "north_star": {
+    "start_jpy": 1000000,
+    "target_jpy": 2000000,
+    "horizon_sessions": 20,
+    "required_compound_per_session": 0.03526492384137758,
+    "v5_median_jpy": 1199154,
+    "gap_jpy": 800846,
+    "v5_to_target_multiple_needed": 1.667842495626083
+  },
+  "only_objective": "Increase final 20-session wealth toward approximately JPY 2,000,000. Local AUC/U5/U10/Weak improvements are only useful when they materially improve wealth.",
+  "controlling_problems": {
+    "bad_capital_use": "V5 realized<=0 82/150; Weak<2 58/150",
+    "winner_miss": "legacy rank-pass U5 funded 50/113; U10 funded 26/47",
+    "capital_concentration": "V5 rolling20 median 1.199154x; strong candidates do not receive enough capacity/capital"
+  },
+  "frozen": [
+    "Selector",
+    "Entry",
+    "EXIT"
+  ],
+  "reusable_experts": {
+    "pP": {
+      "role": "Winner priority",
+      "original_U5_AUC": 0.7096462361168244,
+      "original_U10_AUC": 0.7402425955550034
+    },
+    "MOVE_U2": {
+      "role": "Weak risk",
+      "original_AUC": 0.6903352597564006
+    },
+    "MOVE_U3": {
+      "role": "Medium+ floor",
+      "original_AUC": 0.6974395113929996
+    },
+    "MRET": {
+      "role": "relative monetization diagnostic only",
+      "original_AUC": 0.6314236414044475,
+      "absolute_loss_defense": "INCONCLUSIVE"
+    }
+  },
+  "latest_closed_local_route": {
+    "branch": "capital-v5-reserve-past-qualified-20261005",
+    "status": "PAST_SUPPORT_NOT_ESTABLISHED",
+    "qualified_blocks": "0/8",
+    "R_primary_replays": 0,
+    "R_performance": "NOT_EVALUATED",
+    "do_not_retune": true
+  },
+  "main_route": {
+    "name": "V5-Anchored Capital Reallocation Engine",
+    "intent": "Solve bad-capital suppression, winner capture, and capital concentration as one wealth-maximization architecture.",
+    "constraints": [
+      "Preserve existing expert roles; no arbitrary AND/OR/weighted blend that destroys frozen skill.",
+      "Do not continue Reserve/Slot3 local retuning as the main route.",
+      "Primary scoreboard is JPY 1,000,000 -> matching 20-session windows; 38-session final is secondary.",
+      "Do not call local metric improvement Capital success without material 20-session wealth improvement.",
+      "Use Claude only when an independent architecture critique is materially useful; do not spend it routinely."
+    ],
+    "next_action": "Independent architecture review with Claude if user still wants it, then design one finite precommitted Capital Reallocation Engine Work. No market replay is authorized by this handoff itself."
+  },
+  "current_selectedCapitalCandidate": null,
+  "current_selectedResearchCandidate": null,
+  "counts_added": {
+    "newFits": 0,
+    "marketReplays": 0,
+    "orders": 0,
+    "mainMerge": 0,
+    "forcePush": 0,
+    "Claude": 0
+  },
+  "Safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionReady": false
+  }
+}

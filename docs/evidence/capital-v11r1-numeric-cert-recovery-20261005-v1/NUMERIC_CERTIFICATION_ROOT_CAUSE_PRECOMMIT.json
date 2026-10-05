@@ -1,0 +1,59 @@
+{
+  "MODEL_ARTIFACT_FAILURE": false,
+  "NUMERIC_AUDIT_OPERATOR_MISMATCH": true,
+  "OOF_SCORE_FAILURE": false,
+  "STATISTICAL_RESULT_FAILURE": false,
+  "Safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "classification": "old independent algorithm did not instantiate the exact training numerical operator contract",
+  "exact_jst": "2026-10-05T13:16:10.646852+09:00",
+  "newFits": 0,
+  "old_failure": {
+    "CapitalReplays": 0,
+    "OOF_and_metric_checks": "All score/metric/bootstrap comparisons passed the same tolerance; only listed scale check failed",
+    "Safety": {
+      "automaticPromotionAllowed": false,
+      "brokerWriteAllowed": false,
+      "excelOrderWriteAllowed": false,
+      "executionAllowed": false,
+      "liveTradingAllowed": false,
+      "paperTradingAllowed": false,
+      "productionReady": false,
+      "productionUpdateAllowed": false,
+      "rssOrderFunctionAllowed": false,
+      "transmitted": false
+    },
+    "audit_sha256": "8d12e3389f659de910fa86856a2b879513132927e7445d6239ff2f5827254f78",
+    "checks": 180380,
+    "contract_failure_honored": true,
+    "exact_jst": "2026-10-05T12:37:23.003682+09:00",
+    "failures": [
+      "train_scale.5"
+    ],
+    "fixed_tolerance": 1e-12,
+    "independent_algorithm": "math.fsum central squared deviations with independently computed mean",
+    "independent_audit_rerun": 0,
+    "location_field": "numeric scale index5, selector/first_clock; failure receipt did not record block in check name",
+    "maximum_absolute_difference": 1.5774048733874224e-12,
+    "mismatch_N": 1,
+    "primary_algorithm": "NumPy population standard deviation of zero-imputed numeric plus missing indicators, per frozen Movement algorithm",
+    "re_evaluation": 0,
+    "refit": 0,
+    "scope": "Existing completed audit receipt only; no recomputation",
+    "tolerance_change": 0
+  },
+  "old_failure_retained": true,
+  "old_failure_sha256": "a7c847c4419b7e23db3e97d85fe59219b2a68bab44975e0ed682ded49f44c602",
+  "small_difference_ignored": false,
+  "tolerance_relaxation": false
+}

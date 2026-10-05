@@ -1,0 +1,66 @@
+{
+  "UTC": "2026-10-05T09:42:26.722391+00:00",
+  "append_only_since_instruction": true,
+  "code_corrections": [
+    "33 AST statement absence replaces broad for-substring rejection",
+    "43 key/literal-read audit excludes multiline docstrings",
+    "51 None/malformed numeric behavior explicitly unsupported; finite/nonpositive/missing-key supported boundaries kept",
+    "token expected reason spelling follows parent canonical diagnostic schema update"
+  ],
+  "corrected_A2": {
+    "FAIL_N": 0,
+    "PASS_N": 51,
+    "code_sha256": "2c18d311066ae9187e4577f0ab42ac537b25e1bdc20da95d1d85a47f236c936e",
+    "report": "INDEPENDENT_SYNTHETIC_CANARIES_A2.json",
+    "sha256": "4182c9350eeee8efb03fc1337f80c1843b7f494d60a9107ec72330d0b99c79f2"
+  },
+  "engine_modifications_by_this_agent": 0,
+  "first_captured_failure": {
+    "FAIL_N": 1,
+    "PASS_N": 50,
+    "code_sha256": "f5a30262c0a5fedeec62190626565e98228934c10c886afe2df2a13963f76c98",
+    "failed_case_IDs": [
+      33
+    ],
+    "report": "INDEPENDENT_SYNTHETIC_CANARIES_FIRST_CAPTURED_FAILURE.json",
+    "sha256": "9f2eb2432ea4d34ee5063e906eb764bd464adeaadcbaa2487c8c225aa70a97fc"
+  },
+  "independent_market_reconstruction": 0,
+  "initial_receipt_reconstructed_not_original": {
+    "FAIL_N": 3,
+    "PASS_N": 48,
+    "case_N": 51,
+    "failed_cases": [
+      {
+        "actual": "first quantity0 and second2400 correctly; source string for p in positions.values() wrongly rejected by canary for-substring condition",
+        "classification": "INCORRECT_CANARY_SOURCE_PROBE",
+        "expected": "first quantity0/second counterfactual2400 and no candidate retry statements",
+        "name": "First eligible cash/lot failure does not backfill second",
+        "number": 33
+      },
+      {
+        "actual": "Canary substring protected/teacher matched explanatory reconstruct_batch docstring, not policy reads",
+        "classification": "INCORRECT_CANARY_DOCSTRING_PROBE",
+        "expected": "Policy does not read protected membership/teacher",
+        "name": "Protected100 evaluation-only dependency",
+        "number": 43
+      },
+      {
+        "actual": "Decimal(str(None)) raises decimal.InvalidOperation; frozen V5 source contract has same behavior",
+        "classification": "UNSUPPORTED_INPUT_OUTSIDE_FROZEN_FINITE_SOURCE_CONTRACT",
+        "expected": "None price rejectedFalse",
+        "name": "Frozen source validity and EOD unavailable boundaries",
+        "number": 51
+      }
+    ],
+    "original_bytes_retained": false,
+    "original_exact_code_sha256": "UNAVAILABLE",
+    "source": "Prior tool output outcome and messages; reconstructed receipt only, not original report bytes.",
+    "status": "FAIL"
+  },
+  "market_candidate_execution": 0,
+  "market_stream_reads": 0,
+  "real_PnL_reads": 0,
+  "real_teacher_reads": 0,
+  "schema": "ARK_R1_INDEPENDENT_CANARY_CORRECTION_HISTORY_V1"
+}

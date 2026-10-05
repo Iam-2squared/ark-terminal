@@ -1,0 +1,652 @@
+{
+  "FAIL_N": 0,
+  "PASS_N": 51,
+  "UTC": "2026-10-05T09:47:34.088553+00:00",
+  "actual_PnL_input_N": 0,
+  "actual_market_input_N": 0,
+  "actual_teacher_input_N": 0,
+  "case_N": 51,
+  "cases": [
+    {
+      "evidence": {
+        "existing": 0,
+        "expected_quantity": [
+          2600,
+          2600,
+          2600
+        ],
+        "planned_slot": 3,
+        "prior_successful": 2
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "SC01 existing0 actual planned3 unanimousLOW veto",
+      "number": 1,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "existing": 1,
+        "expected_quantity": [
+          3900,
+          3800
+        ],
+        "planned_slot": 3,
+        "prior_successful": 1
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "SC01 existing1 actual planned3 unanimousLOW veto",
+      "number": 2,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "existing": 2,
+        "expected_quantity": [
+          4400
+        ],
+        "planned_slot": 3,
+        "prior_successful": 0
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "SC01 existing2 actual planned3 unanimousLOW veto",
+      "number": 3,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "actual_planned_slot": 1
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "SC01 existing0 actual planned1 no veto",
+      "number": 4,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "actual_planned_slot": 2
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "SC01 existing1 actual planned2 no veto",
+      "number": 5,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "actual_planned_slot": 2,
+        "first_quantity": 0,
+        "native_index": 3,
+        "total_quantity": 7800
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Native index3 prior cash/lot failure makes actual planned2 no veto",
+      "number": 6,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "available": true,
+        "denominator": 2,
+        "high": true,
+        "low": false,
+        "numerator": 1,
+        "rank": 0.5
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "SC02 exact 1/2 HIGH",
+      "number": 7,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "available": true,
+        "denominator": 5,
+        "high": false,
+        "low": true,
+        "numerator": 2,
+        "rank": 0.4
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "SC02 raw median equality rank2/5 LOW",
+      "number": 8,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "available": true,
+        "denominator": 4,
+        "high": false,
+        "low": true,
+        "numerator": 1,
+        "rank": 0.25
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "SC02 strict-less ties",
+      "number": 9,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "LOW_count": 3,
+        "veto": false
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "One HIGH disables unanimous LOW shield",
+      "number": 10,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "LOW": null,
+        "intelligence_available": false,
+        "veto": false
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Missing score abstains to V5",
+      "number": 11,
+      "status": "PASS"
+    },
+    {
+      "evidence": [
+        {
+          "LOW": null,
+          "intelligence_available": false,
+          "veto": false
+        },
+        {
+          "LOW": null,
+          "intelligence_available": false,
+          "veto": false
+        },
+        {
+          "LOW": null,
+          "intelligence_available": false,
+          "veto": false
+        }
+      ],
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Nonfinite score abstains to V5",
+      "number": 12,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "rank_exact": "1/3",
+        "reference_N": 2,
+        "scope": "Synthetic training-identity assembly plus empirical_rank; frozen real training coverage audited separately.",
+        "test_future_reference_N": 0
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Remove heldout test rows leaves completed-past reference/action unchanged",
+      "number": 13,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "decision_unchanged": true,
+        "mutated_field": "future_High"
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Future High mutation does not affect action",
+      "number": 14,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "decision_unchanged": true,
+        "mutated_field": "future_realized_pnl"
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Future realized mutation does not affect action",
+      "number": 15,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "decision_unchanged": true,
+        "mutated_field": "future_EXIT"
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Future EXIT mutation does not affect action",
+      "number": 16,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "assigned_before_veto": true,
+        "debits": [
+          "260130",
+          "260130",
+          "260130"
+        ],
+        "quantities": [
+          2600,
+          2600,
+          2600
+        ]
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Other native quantities and exact debits unchanged",
+      "number": 17,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "runtime_eventloop_calls": 0,
+        "verified_source_fragments": [
+          "assignment = {k: D(v)",
+          "if decision[\"D_veto\"]:",
+          "veto_ids.append(key)",
+          "continue",
+          "fund(row, decision, assignment, minute)"
+        ]
+      },
+      "mode": "STRUCTURAL_EVENTLOOP_SOURCE",
+      "name": "No post-veto extra water-fill",
+      "number": 18,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "allocation_calls": 1,
+        "postallocation_admission_append_N": 0
+      },
+      "mode": "STRUCTURAL_PURE_FUNCTION_SOURCE",
+      "name": "Native no backfill after veto or cash/lot failure",
+      "number": 19,
+      "status": "PASS"
+    },
+    {
+      "evidence": "Concrete assertions passed.",
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Same-minute recovery prohibited",
+      "number": 20,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "runtime_eventloop_calls": 0,
+        "verified_source_fragments": [
+          "blockers, token, peak, cash_min = [], None, 0, opening",
+          "if token is None:",
+          "token = {\"session\": day",
+          "token[\"active\"] = False",
+          "token = None"
+        ]
+      },
+      "mode": "STRUCTURAL_EVENTLOOP_SOURCE",
+      "name": "At most one active token in embedded loop",
+      "number": 21,
+      "status": "PASS"
+    },
+    {
+      "evidence": "Concrete assertions passed.",
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Held pair change invalidates",
+      "number": 22,
+      "status": "PASS"
+    },
+    {
+      "evidence": "Concrete assertions passed.",
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Open less than2 invalidates",
+      "number": 23,
+      "status": "PASS"
+    },
+    {
+      "evidence": "Concrete assertions passed.",
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Successful third BUY invalidates",
+      "number": 24,
+      "status": "PASS"
+    },
+    {
+      "evidence": "Concrete assertions passed.",
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Cutoff invalidates",
+      "number": 25,
+      "status": "PASS"
+    },
+    {
+      "evidence": [
+        null,
+        null
+      ],
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Session end invalidates",
+      "number": 26,
+      "status": "PASS"
+    },
+    {
+      "evidence": "Concrete assertions passed.",
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Old vetoed Entry retry prohibited",
+      "number": 27,
+      "status": "PASS"
+    },
+    {
+      "evidence": "Concrete assertions passed.",
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Nonempty native picked list disables recovery",
+      "number": 28,
+      "status": "PASS"
+    },
+    {
+      "evidence": "Concrete assertions passed.",
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Only exact reserve reason admits recovery",
+      "number": 29,
+      "status": "PASS"
+    },
+    {
+      "evidence": "Concrete assertions passed.",
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Non-B candidate cannot recover",
+      "number": 30,
+      "status": "PASS"
+    },
+    {
+      "evidence": "Concrete assertions passed.",
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Four HIGH axes required for recovery",
+      "number": 31,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "expected_priority": [
+          "priority_P",
+          "priority_U3",
+          "priority_M",
+          "priority_U2",
+          "stable_second",
+          "stable_first"
+        ],
+        "rank_comparison": "Fraction exact"
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Multiple recovery candidates exact lexicographic priority",
+      "number": 32,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "attempt_index": 0,
+        "first_quantity": 0,
+        "second_attempt_N": 0,
+        "second_counterfactual_quantity": 2400
+      },
+      "mode": "PURE_FUNCTION_PLUS_STRUCTURAL_EVENTLOOP",
+      "name": "First eligible cash/lot failure does not backfill second",
+      "number": 33,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "B_cap": "250000",
+        "budget": "690000",
+        "debit": "240120",
+        "quantity": 2400,
+        "target": ".79"
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Recovery singleton allocation hand-calculated exact",
+      "number": 34,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "existing": 3,
+        "extra_admission": false
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "MAX3 bound enforced",
+      "number": 35,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "funded_unique_assertion": true,
+        "held_symbol_duplicate_rejected": true
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Same symbol at most one held position",
+      "number": 36,
+      "status": "PASS"
+    },
+    {
+      "evidence": "Concrete assertions passed.",
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Lot100 quantity contract",
+      "number": 37,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "debit": "440220",
+        "effective": "100.0500",
+        "quantity": 4400,
+        "raw": "100"
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "BUY coefficient exact",
+      "number": 38,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "SELL_effective": "99.95",
+        "auction_release": 931,
+        "frozen_release": 602,
+        "regular_release": 921
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "SELL frozen and EOD coefficients exact",
+      "number": 39,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "availability": "source_minute+1",
+        "entry_MTM": "999870",
+        "next_known_close_MTM": "1025870"
+      },
+      "mode": "SYNTHETIC_ARITHMETIC_PLUS_STRUCTURAL_EVENTLOOP",
+      "name": "MTM exact arithmetic and close availability",
+      "number": 40,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "available_minute": 602,
+        "cash_after": "99995",
+        "cash_before": "90000",
+        "release_before_entry_batch": true,
+        "source_minute": 601
+      },
+      "mode": "PURE_FUNCTION_PLUS_STRUCTURAL_EVENTLOOP",
+      "name": "Cash release at exact availability and before same-minute entries",
+      "number": 41,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "919_admitted": true,
+        "920_admitted": false
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "15:20 cutoff exact",
+      "number": 42,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "policy_protected_reads": 0,
+        "protected_membership_evaluator_only": true
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Protected100 evaluation-only dependency",
+      "number": 43,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "Weak": "58/150",
+        "funded_BUY_denominator": 150,
+        "loser_le_zero": "81/150",
+        "protected": 100
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Q rates denominator funded BUY N and exact boundaries",
+      "number": 44,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "first": [
+          "SYNTHETIC_SESSION_00",
+          "SYNTHETIC_SESSION_19"
+        ],
+        "last": [
+          "SYNTHETIC_SESSION_18",
+          "SYNTHETIC_SESSION_37"
+        ],
+        "points_per_window": 7840,
+        "window_N": 19
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Exact 19 rolling20 window identities",
+      "number": 45,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "first_loss_paired_delta": "-1/1000",
+        "loss_case_worse": 11,
+        "positive_case_better": 19
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Exact paired19 noninferiority detects one-window violation",
+      "number": 46,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "final38_secondary": "1038000",
+        "window18_chain_start": "1018000",
+        "window18_growth": "519/509"
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Rolling window uses continuous bankroll and no reset",
+      "number": 47,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "Q_boundaries": {
+          "Medium": 27,
+          "U10": 26,
+          "U5": 50,
+          "Weak": 58,
+          "below3": 73,
+          "loser_le_zero": 81
+        },
+        "convenience_float_loses_tiny_delta": true,
+        "exact_drawdown": "1/4",
+        "fictional_all_gates_PASS": true,
+        "incomplete_chain": "NOT_EVALUATED"
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Decimal/Fraction metrics and economic/quality gate boundaries",
+      "number": 48,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "provider_or_order_transport_imports": 0,
+        "scope": "Independent engine transport/fit invariants; project Safety object certified by parent.",
+        "trainer_calls": 0,
+        "transmitted_fields_all_false": true
+      },
+      "mode": "STRUCTURAL_EVENTLOOP_AST",
+      "name": "Safety no live transport/fit/commission",
+      "number": 49,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "late_quality_not_bypassed": true,
+        "late_release_times": [
+          840,
+          870
+        ],
+        "slot2_probability50_strict": true,
+        "slot3_expected75_strict": true,
+        "slot3_probability35_strict": true
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Frozen native probability/time/quality exact boundaries",
+      "number": 50,
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "invalid_auction_rejected": true,
+        "malformed_numeric_string_or_None": "NOT_SUPPORTED_BY_FROZEN_CONTRACT; unchanged Decimal InvalidOperation behavior",
+        "minute925_not_regular": true,
+        "missingkeys_nonfinite_nonpositive_rejected": true
+      },
+      "mode": "PURE_FUNCTION_SYNTHETIC",
+      "name": "Frozen source validity and EOD unavailable boundaries",
+      "number": 51,
+      "status": "PASS"
+    }
+  ],
+  "fictional_metric_fixture": {
+    "curve_points_per_day": 392,
+    "daily_N": 38,
+    "funded_BUY_N": 150,
+    "protectedSlot1_N": 41,
+    "protectedSlot2_N": 59
+  },
+  "imports": [
+    "__future__",
+    "ast",
+    "copy",
+    "decimal",
+    "fractions",
+    "hashlib",
+    "inspect",
+    "json",
+    "pathlib",
+    "datetime",
+    "independent_engine",
+    "independent_metrics",
+    "sys"
+  ],
+  "limitations": [
+    "Embedded event-loop invariants without pure helpers use explicit AST/source proofs; no synthetic or real event-loop replay was called.",
+    "Test-row reference exclusion uses fictional completed-past identities. Real frozen model/training/raw coverage is a separate independent audit.",
+    "Malformed textual or None Decimal price preserves frozen-contract InvalidOperation behavior and is not a newly supported source operator."
+  ],
+  "mandatory_N": 49,
+  "market_replay": 0,
+  "mode_counts": {
+    "PURE_FUNCTION_PLUS_STRUCTURAL_EVENTLOOP": 2,
+    "PURE_FUNCTION_SYNTHETIC": 44,
+    "STRUCTURAL_EVENTLOOP_AST": 1,
+    "STRUCTURAL_EVENTLOOP_SOURCE": 2,
+    "STRUCTURAL_PURE_FUNCTION_SOURCE": 1,
+    "SYNTHETIC_ARITHMETIC_PLUS_STRUCTURAL_EVENTLOOP": 1
+  },
+  "new_fit": 0,
+  "performance_gate_on_actual_market": 0,
+  "primary_adapter_policy_replay_metrics_import_N": 0,
+  "run_profile_calls": 0,
+  "schema": "ARK_R1_INDEPENDENT_SYNTHETIC_CANARIES_V1",
+  "source_hashes": {
+    "independent_canaries": "a15535abc3d28f800e8fe1802eec44cf7b39634c45828345bb97f8b0e401395a",
+    "independent_engine": "6feef6e48df77294e8dceaf7785ffe16011e020e6c06db659bc6b1023975aba2",
+    "independent_metrics": "6059c8063fa8244036f8a3577eb3119424a2dd58968503726ed6c198dc3c29d9"
+  },
+  "status": "PASS"
+}

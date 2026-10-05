@@ -274,12 +274,14 @@ def invalidate_token(token, day, minute, positions, session_end=False):
     if token is None or not token.get("active"):
         return None
     ids = sorted(positions)
-    if session_end or token["session"] != day:
+    if session_end:
         return "SESSION_END"
+    if token["session"] != day:
+        return "SESSION_CHANGED"
     if minute >= 920:
-        return "CUTOFF_REACHED"
+        return "CUTOFF"
     if len(ids) < 2:
-        return "OPEN_POSITION_BELOW_TWO"
+        return "OPEN_BELOW_TWO"
     if len(ids) > 2:
         return "THIRD_BUY_SUCCESS"
     if ids != token["held_pair_ids"]:
@@ -391,15 +393,17 @@ def run_profile(arm, stream, books, tables, intelligence):
                     events[row["entry_minute"]].append(row)
 
             def record_token(event, minute, detail=None):
-                result["token_events"].append({"session": day, "minute": minute, "event": event,
-                                               "token": deepcopy(token), "detail": detail})
+                action = {"CREATED": "CREATE", "INVALIDATED": "INVALIDATE",
+                          "RECOVERY_ATTEMPT": "RECOVERY_ATTEMPT", "CONSUMED": "CONSUME"}[event]
+                result["token_events"].append({"session": day, "minute": minute, "action": action,
+                                               "reason": detail, "token": deepcopy(token)})
 
             def check_token(minute, session_end=False):
                 nonlocal token
                 reason = invalidate_token(token, day, minute, positions, session_end)
                 if reason:
-                    token["active"] = False
                     record_token("INVALIDATED", minute, reason)
+                    token["active"] = False
                     token = None
 
             def fund(row, decision, assignment, minute, recovery=False):
@@ -509,7 +513,7 @@ def run_profile(arm, stream, books, tables, intelligence):
                             "target_utilization", "batch_equity", "batch_budget", "budget_unspent") else v
                             for k, v in serialized.items()}
                         if decision["D_veto"]:
-                            decision.update(quantity=0, reason=SHIELD_REASON, actual_debit="0",
+                            decision.update(quantity=0, reason=SHIELD_REASON, debit="0", actual_debit="0",
                                             policy_reason=SHIELD_REASON)
                             decision["cash_before"] = str(cash)
                             veto_ids.append(key)
@@ -527,15 +531,22 @@ def run_profile(arm, stream, books, tables, intelligence):
                                                    proposed["picked_ids"], batch, ds, intelligence)
                         if choices:
                             row, decision, state, _ = choices[0]
-                            decision.update(state, recovery_attempted=True,
+                            decision.update(state, recovery_attempted=True, recovery_attempt=True,
                                             recovery_token_origin=token["origin_entry_id"],
                                             policy_reason="V5_SLOT3_GUARDED_WINNER_RECOVERY_ATTEMPT")
                             exposure = sum(p["quantity"] * p["mark"] for p in positions.values())
                             one = allocate([row], cash + exposure, exposure, cash,
                                            [p["band"] for p in positions.values()])[0]
+                            decision['recovery_singleton'] = serial_monetary(one)
                             record_token("RECOVERY_ATTEMPT", minute, row["entry_id"])
-                            fund(row, decision, one, minute, True)
-                            check_token(minute)
+                            if one['quantity'] < 100:
+                                decision['recovery_failure_reason'] = 'CASH_OR_LOT_CONSTRAINED'
+                            elif fund(row, decision, one, minute, True):
+                                record_token("CONSUMED", minute, "RECOVERY_THIRD_BUY_SUCCESS")
+                                token["active"] = False
+                                token = None
+                            else:
+                                check_token(minute)
                 if minute == 920:
                     for key, p in sorted(positions.items()):
                         assert not p["intent_issued"] and p["quantity"] > 0
@@ -577,4 +588,7 @@ def run_profile(arm, stream, books, tables, intelligence):
                 capital = cash
             elif chain:
                 chain = False
+                # Entire arm is not evaluated after an unresolved obligation;
+                # do not manufacture a fresh-cash continuation or 19 windows.
+                break
     return result

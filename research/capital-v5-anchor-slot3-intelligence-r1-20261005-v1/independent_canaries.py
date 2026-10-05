@@ -559,7 +559,8 @@ if __name__=='__main__':
                            'Test-row reference exclusion uses fictional completed-past identities. Real frozen model/training/raw coverage is a separate independent audit.',
                            'Malformed textual or None Decimal price preserves frozen-contract InvalidOperation behavior and is not a newly supported source operator.'],
             'source_hashes':{'independent_engine':sha(e.__file__),'independent_metrics':sha(m.__file__),'independent_canaries':sha(__file__)}}
-    path=Path('r1_work/independent/INDEPENDENT_SYNTHETIC_CANARIES_A2.json');assert not path.exists(), 'Append-only canary report already exists';path.parent.mkdir(parents=True,exist_ok=True)
+    import sys
+    path=Path(sys.argv[1] if len(sys.argv)>1 else 'r1_work/independent/INDEPENDENT_SYNTHETIC_CANARIES_A2.json');assert not path.exists(), 'Append-only canary report already exists';path.parent.mkdir(parents=True,exist_ok=True)
     path.write_text(json.dumps(report,sort_keys=True,ensure_ascii=False,indent=2,default=str)+'\n',encoding='utf-8')
     print(json.dumps({'status':report['status'],'case_N':report['case_N'],'PASS_N':report['PASS_N'],'FAIL_N':report['FAIL_N'],'failed':failed},sort_keys=True,default=str))
     raise SystemExit(bool(failed))

@@ -1,0 +1,2283 @@
+{
+  "card_N": 2,
+  "cards": [
+    {
+      "Gate20": {
+        "Champion": "V5 until human approval even after all PASS",
+        "Primary": [
+          "same19 rolling20 session windows normalized from exact pre-window EOD, not independent resets",
+          "all growth >= saved V5; mean and median both strictly higher",
+          "each matched window and full-series native minute-MTM MaxDD no worse",
+          "38 sessions COMPLETE, unresolved0, same window IDs, no unknown imputation",
+          "no window selection or per-window V5/candidate hindsight switching"
+        ],
+        "Quality": [
+          "U5>=50; U10>=26; Medium>=27",
+          "Weak N<=58 and rate<=58/150; below3 N<=73 and rate<=73/150",
+          "Loser N<82 and rate<82/150; positive N>=68; gross loss<=V5",
+          "negative session N<=V5; worst daily return>=V5",
+          "original Slot1/2 100 IDs retained and each original slot-group PnL no worse, evaluation-only",
+          "independent mismatch0 and all causal contracts PASS"
+        ],
+        "future_no_loss_guarantee": false,
+        "status": "NOT_EVALUATED_THIS_WORK"
+      },
+      "MRET_absolute_loss_path": "DO_NOT_IMPLEMENT_ON_CURRENT_EVIDENCE",
+      "abstain": [
+        "threshold or guard contract absent",
+        "any required score/asof/snapshot missing",
+        "no genuine past OOF to justify loss condition",
+        "legal slot scope unapproved"
+      ],
+      "actual_planned_slots": {
+        "1": 41,
+        "2": 59,
+        "3": 50
+      },
+      "authorization": "PROPOSED_NOT_AUTHORIZED_FOR_REPLAY",
+      "card": "V5_PRE_BUY_DEFENSE",
+      "cold_start": "block1 NO_PAST_OOF_SUPPORT -> separately freeze abstain; do not refit, fabricate past OOF or discard first block",
+      "control": "saved V5 CAPITAL_MAX3_SLOT_RESERVE_V1, parent710656491be06235901b45c50a8b5cbd714ba4eb",
+      "decision_time": "after saved native ADMIT with planned quantity>=100, before BUY; all actual planned slots diagnosed, no automatic all-slot intervention permission",
+      "designed_after_current_outcomes_viewed": true,
+      "evidence": {
+        "Weak_AUC": {
+          "AP": 0.5308013542473331,
+          "AP_bootstrap": {
+            "CI95": [
+              0.4107557849563724,
+              0.6877354754100647
+            ],
+            "bit_generator": "PCG64",
+            "conditioning": null,
+            "invalid_N": 0,
+            "quantile": "linear",
+            "resamples": 1999,
+            "seed": 570100520,
+            "unit": "session_cluster",
+            "valid_N": 1999
+          },
+          "AUC": 0.6368065967016492,
+          "AUC_bootstrap": {
+            "CI95": [
+              0.5296525044707379,
+              0.7501121308356921
+            ],
+            "bit_generator": "PCG64",
+            "conditioning": null,
+            "invalid_N": 0,
+            "quantile": "linear",
+            "resamples": 1999,
+            "seed": 570100520,
+            "unit": "session_cluster",
+            "valid_N": 1999
+          },
+          "direction": -1,
+          "distinct_sessions": 37,
+          "head": "MOVE_U2",
+          "known_N": 150,
+          "mask_hash": "340f2c4a1b15119cdfea3160c1325c344e99afefe709ab96a6cd4e096183cee8",
+          "negative_N": 92,
+          "null_reason": null,
+          "positive_N": 58,
+          "target": "Weak",
+          "total_N": 150,
+          "total_distinct_sessions": 37,
+          "unknown_N": 0,
+          "unknown_mask_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "fixed20_30_FLAG_tradeoff": [
+          {
+            "K": 30,
+            "Loser": {
+              "N": 16,
+              "capture": 0.1951219512195122,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.10752688172043011,
+                  0.2839576318742985
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.5333333333333333,
+              "density_bootstrap": {
+                "CI95": [
+                  0.3333333333333333,
+                  0.7142857142857143
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "Medium": {
+              "N": 5,
+              "capture": 0.18518518518518517,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.058823529411764705,
+                  0.3157894736842105
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.16666666666666666,
+              "density_bootstrap": {
+                "CI95": [
+                  0.047619047619047616,
+                  0.32262808349146105
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "N": 30,
+            "PnL_known_N": 30,
+            "U10": {
+              "N": 0,
+              "capture": 0.0,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.0,
+                  0.0
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.0,
+              "density_bootstrap": {
+                "CI95": [
+                  0.0,
+                  0.0
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "U2": {
+              "N": 12,
+              "capture": 0.13043478260869565,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.07058823529411765,
+                  0.1979120879120878
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.4,
+              "density_bootstrap": {
+                "CI95": [
+                  0.21739130434782608,
+                  0.6129032258064516
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "U3": {
+              "N": 7,
+              "capture": 0.09090909090909091,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.038437195715676734,
+                  0.15384615384615385
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.23333333333333334,
+              "density_bootstrap": {
+                "CI95": [
+                  0.1,
+                  0.4
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "U5": {
+              "N": 2,
+              "capture": 0.04,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.0,
+                  0.10531914893617016
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.06666666666666667,
+              "density_bootstrap": {
+                "CI95": [
+                  0.0,
+                  0.16216216216216217
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "Weak": {
+              "N": 18,
+              "capture": 0.3103448275862069,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.1746031746031746,
+                  0.4423076923076923
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.6,
+              "density_bootstrap": {
+                "CI95": [
+                  0.3870967741935484,
+                  0.782608695652174
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "distinct_sessions": 23,
+            "fixed_set_conditioning": true,
+            "fraction": 0.2,
+            "gross_negative_PnL_exact": "-350657/5",
+            "mask_hash": "d522b36c61bc74b53051a06b3b24502b75423645e6cde42fbb4fc5841fb1f143",
+            "meaning": "diagnostic contribution, NOT avoided loss/counterfactual Capital",
+            "net_fixed_ledger_contribution_exact": "-161581/10",
+            "positive": {
+              "N": 14,
+              "capture": 0.20588235294117646,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.11475409836065574,
+                  0.30303030303030304
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.4666666666666667,
+              "density_bootstrap": {
+                "CI95": [
+                  0.2857142857142857,
+                  0.6666666666666666
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "positive_PnL_exact": "539733/10",
+            "risk_direction": "-MOVE_U2",
+            "unknown_score_N": 0
+          },
+          {
+            "K": 45,
+            "Loser": {
+              "N": 25,
+              "capture": 0.3048780487804878,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.20500693000693002,
+                  0.40743177387914226
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.5555555555555556,
+              "density_bootstrap": {
+                "CI95": [
+                  0.41993023255813955,
+                  0.6842105263157895
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "Medium": {
+              "N": 8,
+              "capture": 0.2962962962962963,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.11538461538461539,
+                  0.4838709677419355
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.17777777777777778,
+              "density_bootstrap": {
+                "CI95": [
+                  0.06376329787234042,
+                  0.32558139534883723
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "N": 45,
+            "PnL_known_N": 45,
+            "U10": {
+              "N": 0,
+              "capture": 0.0,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.0,
+                  0.0
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.0,
+              "density_bootstrap": {
+                "CI95": [
+                  0.0,
+                  0.0
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "U2": {
+              "N": 20,
+              "capture": 0.21739130434782608,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.14285714285714285,
+                  0.2967617488894084
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.4444444444444444,
+              "density_bootstrap": {
+                "CI95": [
+                  0.29545454545454547,
+                  0.5952380952380952
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "U3": {
+              "N": 12,
+              "capture": 0.15584415584415584,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.07692307692307693,
+                  0.25
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.26666666666666666,
+              "density_bootstrap": {
+                "CI95": [
+                  0.13636363636363635,
+                  0.41473577235772346
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "U5": {
+              "N": 4,
+              "capture": 0.08,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.017857142857142856,
+                  0.16378787878787865
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.08888888888888889,
+              "density_bootstrap": {
+                "CI95": [
+                  0.02040816326530612,
+                  0.180090909090909
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "Weak": {
+              "N": 25,
+              "capture": 0.43103448275862066,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.2982456140350877,
+                  0.5714285714285714
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.5555555555555556,
+              "density_bootstrap": {
+                "CI95": [
+                  0.40476190476190477,
+                  0.7045454545454546
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "distinct_sessions": 31,
+            "fixed_set_conditioning": true,
+            "fraction": 0.3,
+            "gross_negative_PnL_exact": "-492713/4",
+            "mask_hash": "5c617ace018d94f9b96403859b5aaf80faebdfc560ef3ee8293f6a0a3e89e958",
+            "meaning": "diagnostic contribution, NOT avoided loss/counterfactual Capital",
+            "net_fixed_ledger_contribution_exact": "11329/5",
+            "positive": {
+              "N": 20,
+              "capture": 0.29411764705882354,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.2028985507246377,
+                  0.39285714285714285
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.4444444444444444,
+              "density_bootstrap": {
+                "CI95": [
+                  0.3157894736842105,
+                  0.5800697674418603
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "positive_PnL_exact": "2508881/20",
+            "risk_direction": "-MOVE_U2",
+            "unknown_score_N": 0
+          },
+          {
+            "K": 30,
+            "Loser": {
+              "N": 17,
+              "capture": 0.2073170731707317,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.12987012987012986,
+                  0.2876712328767123
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.5666666666666667,
+              "density_bootstrap": {
+                "CI95": [
+                  0.41154684095860566,
+                  0.7188125
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "Medium": {
+              "N": 4,
+              "capture": 0.14814814814814814,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.038461538461538464,
+                  0.2647058823529412
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.13333333333333333,
+              "density_bootstrap": {
+                "CI95": [
+                  0.030303030303030304,
+                  0.2857142857142857
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "N": 30,
+            "PnL_known_N": 30,
+            "U10": {
+              "N": 1,
+              "capture": 0.038461538461538464,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.0,
+                  0.11428571428571428
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.03333333333333333,
+              "density_bootstrap": {
+                "CI95": [
+                  0.0,
+                  0.12
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "U2": {
+              "N": 13,
+              "capture": 0.14130434782608695,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.08506793129966675,
+                  0.19607843137254902
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.43333333333333335,
+              "density_bootstrap": {
+                "CI95": [
+                  0.2702702702702703,
+                  0.6296296296296297
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "U3": {
+              "N": 10,
+              "capture": 0.12987012987012986,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.06662280701754386,
+                  0.2
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.3333333333333333,
+              "density_bootstrap": {
+                "CI95": [
+                  0.17391304347826086,
+                  0.52
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "U5": {
+              "N": 6,
+              "capture": 0.12,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.04,
+                  0.20833333333333334
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.2,
+              "density_bootstrap": {
+                "CI95": [
+                  0.07142857142857142,
+                  0.34782608695652173
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "Weak": {
+              "N": 17,
+              "capture": 0.29310344827586204,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.16393442622950818,
+                  0.43137254901960786
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.5666666666666667,
+              "density_bootstrap": {
+                "CI95": [
+                  0.37037037037037035,
+                  0.7297297297297297
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "distinct_sessions": 24,
+            "fixed_set_conditioning": true,
+            "fraction": 0.2,
+            "gross_negative_PnL_exact": "-1067437/10",
+            "mask_hash": "c5ee7ee78f3da04b9bdcbd2394963169a04803e8412260c54e508c9b8ced20ac",
+            "meaning": "diagnostic contribution, NOT avoided loss/counterfactual Capital",
+            "net_fixed_ledger_contribution_exact": "17012/5",
+            "positive": {
+              "N": 13,
+              "capture": 0.19117647058823528,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.1095890410958904,
+                  0.2878787878787879
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.43333333333333335,
+              "density_bootstrap": {
+                "CI95": [
+                  0.2811875,
+                  0.5884531590413942
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "positive_PnL_exact": "1101461/10",
+            "risk_direction": "-MOVE_U3",
+            "unknown_score_N": 0
+          },
+          {
+            "K": 45,
+            "Loser": {
+              "N": 24,
+              "capture": 0.2926829268292683,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.20202127659574468,
+                  0.38826797385620915
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.5333333333333333,
+              "density_bootstrap": {
+                "CI95": [
+                  0.3958333333333333,
+                  0.6666666666666666
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "Medium": {
+              "N": 7,
+              "capture": 0.25925925925925924,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.09090909090909091,
+                  0.42105263157894735
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.15555555555555556,
+              "density_bootstrap": {
+                "CI95": [
+                  0.05128205128205128,
+                  0.2826086956521739
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "N": 45,
+            "PnL_known_N": 45,
+            "U10": {
+              "N": 3,
+              "capture": 0.11538461538461539,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.0,
+                  0.24324324324324326
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.06666666666666667,
+              "density_bootstrap": {
+                "CI95": [
+                  0.0,
+                  0.14
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "U2": {
+              "N": 22,
+              "capture": 0.2391304347826087,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.16049382716049382,
+                  0.3163925570228091
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.4888888888888889,
+              "density_bootstrap": {
+                "CI95": [
+                  0.34210526315789475,
+                  0.6222431865828092
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "U3": {
+              "N": 15,
+              "capture": 0.19480519480519481,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.11229712858926343,
+                  0.28213790713790704
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.3333333333333333,
+              "density_bootstrap": {
+                "CI95": [
+                  0.2,
+                  0.46815023881893175
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "U5": {
+              "N": 8,
+              "capture": 0.16,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.06816255778120185,
+                  0.2558139534883721
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.17777777777777778,
+              "density_bootstrap": {
+                "CI95": [
+                  0.07894736842105263,
+                  0.28205128205128205
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "Weak": {
+              "N": 23,
+              "capture": 0.39655172413793105,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.2692307692307692,
+                  0.5306441326530612
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.5111111111111111,
+              "density_bootstrap": {
+                "CI95": [
+                  0.37775681341719075,
+                  0.6578947368421053
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "distinct_sessions": 30,
+            "fixed_set_conditioning": true,
+            "fraction": 0.3,
+            "gross_negative_PnL_exact": "-682484/5",
+            "mask_hash": "0566a16eadd0a7b6cbd1f9d76e4bbcaa7b1cf483c790fec9a12f01248d47ddd5",
+            "meaning": "diagnostic contribution, NOT avoided loss/counterfactual Capital",
+            "net_fixed_ledger_contribution_exact": "242121/4",
+            "positive": {
+              "N": 21,
+              "capture": 0.3088235294117647,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.2,
+                  0.4348176718092566
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.4666666666666667,
+              "density_bootstrap": {
+                "CI95": [
+                  0.3333333333333333,
+                  0.6041666666666666
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "positive_PnL_exact": "3940541/20",
+            "risk_direction": "-MOVE_U3",
+            "unknown_score_N": 0
+          },
+          {
+            "K": 30,
+            "Loser": {
+              "N": 22,
+              "capture": 0.2682926829268293,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.1794871794871795,
+                  0.35487455197132617
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.7333333333333333,
+              "density_bootstrap": {
+                "CI95": [
+                  0.5652173913043478,
+                  0.8709677419354839
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "Medium": {
+              "N": 5,
+              "capture": 0.18518518518518517,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.04751082251082252,
+                  0.3240196078431368
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.16666666666666666,
+              "density_bootstrap": {
+                "CI95": [
+                  0.03992307692307693,
+                  0.3103448275862069
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "N": 30,
+            "PnL_known_N": 30,
+            "U10": {
+              "N": 6,
+              "capture": 0.23076923076923078,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.08,
+                  0.4090909090909091
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.2,
+              "density_bootstrap": {
+                "CI95": [
+                  0.06666666666666667,
+                  0.3549539170506912
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "U2": {
+              "N": 19,
+              "capture": 0.20652173913043478,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.1397724431107777,
+                  0.2804878048780488
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.6333333333333333,
+              "density_bootstrap": {
+                "CI95": [
+                  0.5,
+                  0.782608695652174
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "U3": {
+              "N": 18,
+              "capture": 0.23376623376623376,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.15658738851509937,
+                  0.3200714285714285
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.6,
+              "density_bootstrap": {
+                "CI95": [
+                  0.45161290322580644,
+                  0.7648039215686273
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "U5": {
+              "N": 13,
+              "capture": 0.26,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.1499468085106383,
+                  0.38
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.43333333333333335,
+              "density_bootstrap": {
+                "CI95": [
+                  0.26666666666666666,
+                  0.6333333333333333
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "Weak": {
+              "N": 11,
+              "capture": 0.1896551724137931,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.09752163650668766,
+                  0.28583535108958824
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.36666666666666664,
+              "density_bootstrap": {
+                "CI95": [
+                  0.21739130434782608,
+                  0.5
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "distinct_sessions": 23,
+            "fixed_set_conditioning": true,
+            "fraction": 0.2,
+            "gross_negative_PnL_exact": "-794719/4",
+            "mask_hash": "6e7d99913cbe472d537a63891790a7e25ba2e238754e1762b6af4da21408aa66",
+            "meaning": "diagnostic contribution, NOT avoided loss/counterfactual Capital",
+            "net_fixed_ledger_contribution_exact": "-350409/10",
+            "positive": {
+              "N": 8,
+              "capture": 0.11764705882352941,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.05263157894736842,
+                  0.2029098731884058
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.26666666666666666,
+              "density_bootstrap": {
+                "CI95": [
+                  0.12903225806451613,
+                  0.43478260869565216
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 30,
+              "unknown_N": 0
+            },
+            "positive_PnL_exact": "3272777/20",
+            "risk_direction": "-MRET",
+            "unknown_score_N": 0
+          },
+          {
+            "K": 45,
+            "Loser": {
+              "N": 32,
+              "capture": 0.3902439024390244,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.2713706563706564,
+                  0.5064935064935064
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.7111111111111111,
+              "density_bootstrap": {
+                "CI95": [
+                  0.5625,
+                  0.8529411764705882
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "Medium": {
+              "N": 5,
+              "capture": 0.18518518518518517,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.04751082251082252,
+                  0.3240196078431368
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.1111111111111111,
+              "density_bootstrap": {
+                "CI95": [
+                  0.02774024024024024,
+                  0.19567348678601876
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "N": 45,
+            "PnL_known_N": 45,
+            "U10": {
+              "N": 9,
+              "capture": 0.34615384615384615,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.1724137931034483,
+                  0.5416666666666666
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.2,
+              "density_bootstrap": {
+                "CI95": [
+                  0.1,
+                  0.3191489361702128
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "U2": {
+              "N": 26,
+              "capture": 0.2826086956521739,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.1851213282247765,
+                  0.39080459770114945
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.5777777777777777,
+              "density_bootstrap": {
+                "CI95": [
+                  0.4473684210526316,
+                  0.7105263157894737
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "U3": {
+              "N": 24,
+              "capture": 0.3116883116883117,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.2068081343943413,
+                  0.43184889434889434
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.5333333333333333,
+              "density_bootstrap": {
+                "CI95": [
+                  0.4038292847503374,
+                  0.6610306178239476
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "U5": {
+              "N": 19,
+              "capture": 0.38,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.23253737541528238,
+                  0.5371851851851851
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.4222222222222222,
+              "density_bootstrap": {
+                "CI95": [
+                  0.275,
+                  0.575
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "Weak": {
+              "N": 19,
+              "capture": 0.3275862068965517,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.20543275217932752,
+                  0.4477869274318065
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.4222222222222222,
+              "density_bootstrap": {
+                "CI95": [
+                  0.2894736842105263,
+                  0.5526315789473685
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "distinct_sessions": 25,
+            "fixed_set_conditioning": true,
+            "fraction": 0.3,
+            "gross_negative_PnL_exact": "-4919551/20",
+            "mask_hash": "d8ec8b4d66a4a7dbc161c1f9fa3445a3be2023f599278aff5697d1e0818b9646",
+            "meaning": "diagnostic contribution, NOT avoided loss/counterfactual Capital",
+            "net_fixed_ledger_contribution_exact": "26633/10",
+            "positive": {
+              "N": 13,
+              "capture": 0.19117647058823528,
+              "capture_bootstrap": {
+                "CI95": [
+                  0.09085081585081585,
+                  0.29511660124682515
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "density": 0.28888888888888886,
+              "density_bootstrap": {
+                "CI95": [
+                  0.14705882352941177,
+                  0.4375
+                ],
+                "bit_generator": "PCG64",
+                "conditioning": "original fixed TopK set",
+                "invalid_N": 0,
+                "quantile": "linear",
+                "resamples": 1999,
+                "seed": 570100520,
+                "unit": "session_cluster",
+                "valid_N": 1999
+              },
+              "known_N": 45,
+              "unknown_N": 0
+            },
+            "positive_PnL_exact": "4972817/20",
+            "risk_direction": "-MRET",
+            "unknown_score_N": 0
+          }
+        ],
+        "mP_positive_AUC": {
+          "AP": 0.5439635195903844,
+          "AP_bootstrap": {
+            "CI95": [
+              0.43513953365582225,
+              0.6847803033165845
+            ],
+            "bit_generator": "PCG64",
+            "conditioning": null,
+            "invalid_N": 0,
+            "quantile": "linear",
+            "resamples": 1999,
+            "seed": 570100520,
+            "unit": "session_cluster",
+            "valid_N": 1999
+          },
+          "AUC": 0.6013271162123386,
+          "AUC_bootstrap": {
+            "CI95": [
+              0.48992873181712265,
+              0.7033169515254039
+            ],
+            "bit_generator": "PCG64",
+            "conditioning": null,
+            "invalid_N": 0,
+            "quantile": "linear",
+            "resamples": 1999,
+            "seed": 570100520,
+            "unit": "session_cluster",
+            "valid_N": 1999
+          },
+          "direction": 1,
+          "distinct_sessions": 37,
+          "head": "MRET",
+          "known_N": 150,
+          "mask_hash": "340f2c4a1b15119cdfea3160c1325c344e99afefe709ab96a6cd4e096183cee8",
+          "negative_N": 82,
+          "null_reason": null,
+          "positive_N": 68,
+          "target": "positive",
+          "total_N": 150,
+          "total_distinct_sessions": 37,
+          "unknown_N": 0,
+          "unknown_mask_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "refutation": "q2 FLAG(K=30) has16 Losers and14 positives versus V5 baseline Loser82/150; weak sorting is not realized loss protection. mP positive CI crosses.5, positive-direction deltas also cross0; mP FLAG(K=30/45) catches13/19 U5 and6/9 U10."
+      },
+      "first_divergence": "separate fixed policy only: reconstruct all decision inputs, native/extended state and counters on saved prefix; action0 everywhere -> induction NO_EFFECT only if complete; reconstruction missing -> UNMEASURABLE; nonzero -> support only, not economics",
+      "information_roles": {
+        "mP": "relative monetization only; independent absolute-Loss screen INCONCLUSIVE",
+        "pP": "raw Winner priority authority, not guaranteed positive truth",
+        "q2": "Weak<2 information, not realized-Loser probability",
+        "q3": "U3 cumulative Medium+ preservation; Medium count tracked separately"
+      },
+      "legal_change_if_future_authorized": "Capital pre-BUY diagnostic veto hook only; no Selector/Entry/EXIT or model changes; exact target/guards/affected slot scope must be separately precommitted",
+      "minimum_missing_evidence": [
+        "past-only fixed realized-Loss rule with explicit Winner/Medium/positive false-exclusion limits",
+        "outcome-free nonzero support and independent sessions for that exact rule",
+        "all native/pending/cash/allocation contracts and separate approved experiment"
+      ],
+      "minimum_trigger_support": null,
+      "non_target_channels": [
+        "held FULL_MAX3",
+        "cash/lot cap redesign",
+        "rank-band redesign",
+        "missed old Entry recovery",
+        "replacement"
+      ],
+      "priority_conflict": "do not blend; q2/q3 veto can conflict with pP strict order and must be evaluated as a new policy; no exact-pP-tie opportunity in measured cohorts",
+      "proposed_next_cycle_budget_not_authorized": {
+        "Fresh": 0,
+        "automaticPromotion": 0,
+        "independentCandidateVerification_max": 1,
+        "mainMerge": 0,
+        "newControlReplay": 0,
+        "newFits": 0,
+        "orders": 0,
+        "primaryCandidateReplay_max": 1,
+        "provider": 0,
+        "teacherRegeneration": 0
+      },
+      "quantity_cash_contract": [
+        "never output orders in this Work",
+        "future policy must preserve V5 lot100/MAX3/same-symbol/fees/cash/release/cutoff/liquidity and native allocation function",
+        "candidate and pending earlier quantities require identical saved-prefix input and extended-state contract",
+        "native Entry timestamp fixed; never rebuy a missed old Entry after natural EXIT",
+        "no held forced exit/partial sale/replacement",
+        "protected100 membership and future Potential not runtime inputs"
+      ],
+      "sessions": 37,
+      "source": [
+        "frozen four-head packet",
+        "saved DECISIONS/NATIVE_PROPOSALS/TRADES/INTENTS",
+        "original model/mask/teacher certificates"
+      ],
+      "status": "UNRESOLVED",
+      "stop_conditions": [
+        "no support -> record and STOP, no in-place relaxation",
+        "unreconstructed state or causal contract -> STOP",
+        "any Gate nonpass -> STOP, no best-direction or threshold rescue",
+        "cannot claim current repeated Development evidence Fresh/OOS"
+      ],
+      "structural_support_N": 150,
+      "threshold": null,
+      "threshold_source_if_separately_approved": "only completed-past training references or genuinely past saved OOF; cannot choose on current-block outcomes; training reference is resubstitution percentile not OOF skill",
+      "threshold_status": "UNRESOLVED_NOT_SELECTED_OR_OPTIMIZED",
+      "unknown_outcome_N": 0,
+      "viewed_outcome_scope": {
+        "Development_sessions": 58,
+        "MRET_original": 1016,
+        "V5_funded": 150,
+        "current_scored": 1039,
+        "original_common": 1028,
+        "rankpass": 494
+      }
+    },
+    {
+      "Gate20": {
+        "Champion": "V5 until human approval even after all PASS",
+        "Primary": [
+          "same19 rolling20 session windows normalized from exact pre-window EOD, not independent resets",
+          "all growth >= saved V5; mean and median both strictly higher",
+          "each matched window and full-series native minute-MTM MaxDD no worse",
+          "38 sessions COMPLETE, unresolved0, same window IDs, no unknown imputation",
+          "no window selection or per-window V5/candidate hindsight switching"
+        ],
+        "Quality": [
+          "U5>=50; U10>=26; Medium>=27",
+          "Weak N<=58 and rate<=58/150; below3 N<=73 and rate<=73/150",
+          "Loser N<82 and rate<82/150; positive N>=68; gross loss<=V5",
+          "negative session N<=V5; worst daily return>=V5",
+          "original Slot1/2 100 IDs retained and each original slot-group PnL no worse, evaluation-only",
+          "independent mismatch0 and all causal contracts PASS"
+        ],
+        "future_no_loss_guarantee": false,
+        "status": "NOT_EVALUATED_THIS_WORK"
+      },
+      "abstain": [
+        "unknown current constraint/asof",
+        "unfixed Reserve threshold or guard",
+        "no past OOF support for proposed bridge criterion",
+        "unreconstructed pending/extended state",
+        "frozen allocation affordability not established"
+      ],
+      "after_native_picks_cash_ge100_lot_N": 175,
+      "asof_score_comparison_constraint_known_N": 181,
+      "authorization": "PROPOSED_NOT_AUTHORIZED_FOR_REPLAY",
+      "blocks": 8,
+      "card": "V5_VACANT_SLOT_WINNER_RECOVERY",
+      "cold_start": "block1 NO_PAST_OOF_SUPPORT -> separately freeze abstain; do not refit, fabricate past OOF or discard first block",
+      "control": "saved V5 CAPITAL_MAX3_SLOT_RESERVE_V1, parent710656491be06235901b45c50a8b5cbd714ba4eb",
+      "decision_time": "current legal Frozen Entry candidate, native SLOT_RESERVE_REJECT, before BUY and existing plus earlier successful pending positions<3",
+      "defense_token_dependency": false,
+      "designed_after_current_outcomes_viewed": true,
+      "evidence": {
+        "C3_pP_U10": {
+          "AP": 0.17185047517529728,
+          "AP_bootstrap": {
+            "CI95": [
+              0.11371768289238886,
+              0.2582596466468496
+            ],
+            "bit_generator": "PCG64",
+            "conditioning": null,
+            "invalid_N": 0,
+            "quantile": "linear",
+            "resamples": 1999,
+            "seed": 570100520,
+            "unit": "session_cluster",
+            "valid_N": 1999
+          },
+          "AUC": 0.6553857870436479,
+          "AUC_bootstrap": {
+            "CI95": [
+              0.5718720351260586,
+              0.7342062701732749
+            ],
+            "bit_generator": "PCG64",
+            "conditioning": null,
+            "invalid_N": 0,
+            "quantile": "linear",
+            "resamples": 1999,
+            "seed": 570100520,
+            "unit": "session_cluster",
+            "valid_N": 1999
+          },
+          "direction": 1,
+          "distinct_sessions": 37,
+          "head": "pP",
+          "known_N": 494,
+          "mask_hash": "f691207f3247ab31181c4c58aba77577721c7c9800e0a321b90ce0679f61e58d",
+          "negative_N": 447,
+          "null_reason": null,
+          "positive_N": 47,
+          "target": "U10",
+          "total_N": 494,
+          "total_distinct_sessions": 37,
+          "unknown_N": 0,
+          "unknown_mask_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "C3_pP_U5": {
+          "AP": 0.31954106866758214,
+          "AP_bootstrap": {
+            "CI95": [
+              0.2503052188524476,
+              0.4061316137725418
+            ],
+            "bit_generator": "PCG64",
+            "conditioning": null,
+            "invalid_N": 0,
+            "quantile": "linear",
+            "resamples": 1999,
+            "seed": 570100520,
+            "unit": "session_cluster",
+            "valid_N": 1999
+          },
+          "AUC": 0.6197012983996469,
+          "AUC_bootstrap": {
+            "CI95": [
+              0.5689845191207477,
+              0.6701525131546762
+            ],
+            "bit_generator": "PCG64",
+            "conditioning": null,
+            "invalid_N": 0,
+            "quantile": "linear",
+            "resamples": 1999,
+            "seed": 570100520,
+            "unit": "session_cluster",
+            "valid_N": 1999
+          },
+          "direction": 1,
+          "distinct_sessions": 37,
+          "head": "pP",
+          "known_N": 494,
+          "mask_hash": "f691207f3247ab31181c4c58aba77577721c7c9800e0a321b90ce0679f61e58d",
+          "negative_N": 381,
+          "null_reason": null,
+          "positive_N": 113,
+          "target": "U5",
+          "total_N": 494,
+          "total_distinct_sessions": 37,
+          "unknown_N": 0,
+          "unknown_mask_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "Reserve_eval_only_U5_U10": [
+          30,
+          10
+        ],
+        "Reserve_pP_U10": {
+          "AP": 0.11260058291067307,
+          "AP_bootstrap": {
+            "CI95": [
+              0.03456973527408921,
+              0.2876980750400184
+            ],
+            "bit_generator": "PCG64",
+            "conditioning": null,
+            "invalid_N": 1,
+            "quantile": "linear",
+            "resamples": 1999,
+            "seed": 570100520,
+            "unit": "session_cluster",
+            "valid_N": 1998
+          },
+          "AUC": 0.6923976608187135,
+          "AUC_bootstrap": {
+            "CI95": [
+              0.44667488402200883,
+              0.8421197058078624
+            ],
+            "bit_generator": "PCG64",
+            "conditioning": null,
+            "invalid_N": 1,
+            "quantile": "linear",
+            "resamples": 1999,
+            "seed": 570100520,
+            "unit": "session_cluster",
+            "valid_N": 1998
+          },
+          "direction": 1,
+          "distinct_sessions": 35,
+          "head": "pP",
+          "known_N": 181,
+          "mask_hash": "bcba44c546d208b503cb0d42b87af40f36a2fcc63386f3f81b0cb53115c6459c",
+          "negative_N": 171,
+          "null_reason": null,
+          "positive_N": 10,
+          "target": "U10",
+          "total_N": 181,
+          "total_distinct_sessions": 35,
+          "unknown_N": 0,
+          "unknown_mask_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "Reserve_pP_U5": {
+          "AP": 0.2792728417821901,
+          "AP_bootstrap": {
+            "CI95": [
+              0.16318439793955172,
+              0.4455071631221148
+            ],
+            "bit_generator": "PCG64",
+            "conditioning": null,
+            "invalid_N": 0,
+            "quantile": "linear",
+            "resamples": 1999,
+            "seed": 570100520,
+            "unit": "session_cluster",
+            "valid_N": 1999
+          },
+          "AUC": 0.6072847682119206,
+          "AUC_bootstrap": {
+            "CI95": [
+              0.4899497812790031,
+              0.7176919714697795
+            ],
+            "bit_generator": "PCG64",
+            "conditioning": null,
+            "invalid_N": 0,
+            "quantile": "linear",
+            "resamples": 1999,
+            "seed": 570100520,
+            "unit": "session_cluster",
+            "valid_N": 1999
+          },
+          "direction": 1,
+          "distinct_sessions": 35,
+          "head": "pP",
+          "known_N": 181,
+          "mask_hash": "bcba44c546d208b503cb0d42b87af40f36a2fcc63386f3f81b0cb53115c6459c",
+          "negative_N": 151,
+          "null_reason": null,
+          "positive_N": 30,
+          "target": "U5",
+          "total_N": 181,
+          "total_distinct_sessions": 35,
+          "unknown_N": 0,
+          "unknown_mask_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "refutation": "C3 Winner role screen is supported, but within Reserve both pP intervals cross.5.30/10 missed Winners are observed outcomes, not guaranteed additional recoveries.100-share affordability is not native allocation proof."
+      },
+      "first_divergence": "separate fixed policy only: reconstruct all decision inputs, native/extended state and counters on saved prefix; action0 everywhere -> induction NO_EFFECT only if complete; reconstruction missing -> UNMEASURABLE; nonzero -> support only, not economics",
+      "fundability": "UNMEASURABLE_WITHOUT_SEPARATELY_APPROVED_COUNTERFACTUAL_ALLOCATION_EVALUATION",
+      "information_roles": {
+        "mP": "diagnostic only; no independent absolute-Loss veto evidence",
+        "pP": "keep raw DESC as Winner-priority authority, cannot use normalized r as global substitute",
+        "q2": "possible Weak guard not yet authorized or fixed",
+        "q3": "possible cumulative Medium+ guard not yet authorized or fixed",
+        "tie_break": "only exact pP ties could change order while preserving strict pP; measured exact ties0"
+      },
+      "legal_change_if_future_authorized": "only current native Reserve disposition at Capital layer; frozen native order/quantity contract explicit; no retroactive Entry or EXIT changes",
+      "minimum_missing_evidence": [
+        "freeze a past-only deterministic Reserve criterion without choosing current diagnostics K as runtime cutoff",
+        "Reserve-specific past OOF/session evidence and cold-start abstain contract",
+        "native allocation and same-batch pending prefix proof; full counterfactual economics only after separate approval"
+      ],
+      "minimum_trigger_support": null,
+      "native_other_picked_empty_N": 167,
+      "native_other_picked_nonempty_N": 14,
+      "new_actual_funded_N": null,
+      "next_direction": "GO_TO_SEPARATE_PRECOMMITTED_EXPERIMENT_DESIGN_ONLY_IF_USER_AUTHORIZES",
+      "non_target_channels": [
+        "actual-held FULL_MAX3",
+        "same-minute MAX3 counted as separate replacement",
+        "cash/lot relaxations",
+        "rank rejects",
+        "natural EXIT followed by old Entry rebuy"
+      ],
+      "outcome_unknown_N": 0,
+      "priority_conflict": "all-HIGH AND or Pareto is not proof of success; exact guard priority vs raw pP is unresolved; no runtime total order made",
+      "proposed_next_cycle_budget_not_authorized": {
+        "Fresh": 0,
+        "automaticPromotion": 0,
+        "independentCandidateVerification_max": 1,
+        "mainMerge": 0,
+        "newControlReplay": 0,
+        "newFits": 0,
+        "orders": 0,
+        "primaryCandidateReplay_max": 1,
+        "provider": 0,
+        "teacherRegeneration": 0
+      },
+      "quantity_cash_contract": [
+        "never output orders in this Work",
+        "future policy must preserve V5 lot100/MAX3/same-symbol/fees/cash/release/cutoff/liquidity and native allocation function",
+        "candidate and pending earlier quantities require identical saved-prefix input and extended-state contract",
+        "native Entry timestamp fixed; never rebuy a missed old Entry after natural EXIT",
+        "no held forced exit/partial sale/replacement",
+        "protected100 membership and future Potential not runtime inputs"
+      ],
+      "sessions": 35,
+      "snapshot_cash_ge100_lot_N": 176,
+      "source": [
+        "frozen four-head packet",
+        "saved DECISIONS/NATIVE_PROPOSALS/TRADES/INTENTS",
+        "original model/mask/teacher certificates"
+      ],
+      "status": "UNRESOLVED",
+      "stop_conditions": [
+        "no support -> record and STOP, no in-place relaxation",
+        "unreconstructed state or causal contract -> STOP",
+        "any Gate nonpass -> STOP, no best-direction or threshold rescue",
+        "cannot claim current repeated Development evidence Fresh/OOS"
+      ],
+      "structural_support_N": 181,
+      "threshold": null,
+      "threshold_source_if_separately_approved": "only completed-past training references or genuinely past saved OOF; cannot choose on current-block outcomes; training reference is resubstitution percentile not OOF skill",
+      "threshold_status": "UNRESOLVED_NOT_SELECTED_OR_OPTIMIZED",
+      "viewed_outcome_scope": {
+        "Development_sessions": 58,
+        "MRET_original": 1016,
+        "V5_funded": 150,
+        "current_scored": 1039,
+        "original_common": 1028,
+        "rankpass": 494
+      }
+    }
+  ],
+  "execution_authorization": 0,
+  "new_runtime_policy_selected": null,
+  "overall": "EXPERT_BRIDGE_INCONCLUSIVE",
+  "schema": "TWO_CARDS_POST_OUTCOME_DRAFT_NOT_RUNTIME_V1"
+}

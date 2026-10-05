@@ -1,0 +1,274 @@
+{
+  "Primary_runtime_replay_evaluator_imports": 0,
+  "cases": {
+    "QUALITY_PARETO_U2_TENURE_MAX3_V1": {
+      "curve_N": 14896,
+      "daily_N": 38,
+      "decisions_N": 1039,
+      "money_quantity_exact": true,
+      "rolling20_N": 19,
+      "trades_N": 158
+    },
+    "QUALITY_PARETO_U2_U3_TENURE_MAX3_V1": {
+      "curve_N": 14896,
+      "daily_N": 38,
+      "decisions_N": 1039,
+      "money_quantity_exact": true,
+      "rolling20_N": 19,
+      "trades_N": 161
+    }
+  },
+  "checks_N": 213794,
+  "exact_jst": "2026-10-05T10:43:47.495127+09:00",
+  "expected_winner_bottleneck": {
+    "NEXT_BOTTLENECK": "CAPITAL_MONETIZATION_OR_SIZING",
+    "diagnosticArm": "I2",
+    "exclusive_U5_miss": {
+      "CAPACITY_RESERVE": 38,
+      "CASH_SIZING": 12,
+      "MAX3_ONLINE_OCCUPANCY": 21,
+      "RANK_ADMISSION": 46
+    },
+    "selectedCapitalCandidate": null,
+    "status": "V9_QUALITY_PRESERVED_CAPITAL_FAIL"
+  },
+  "float_tolerance": 1e-12,
+  "fresh_OOS_claim": false,
+  "implementation_independence": true,
+  "independent_Fraction_reconstructions": 2,
+  "max_abs_float_difference": 8.881784197001252e-16,
+  "mismatch_N": 0,
+  "mismatches": [],
+  "money_quantity_exact": true,
+  "newFits": 0,
+  "prepared_numeric_boundary_audit_sha256": "7a98a07313bd44f043fd1ede0d438070e347ed5bff74c00eb186d4b543d6ca5e",
+  "prepared_raw_inference_audit_sha256": "8b1bb6d738bae95e13b35956f52d517e9b907e9c2fb70963f0a0daec35ced79f",
+  "primary_Main_replays": 2,
+  "productionReady": false,
+  "profiles": {
+    "QUALITY_PARETO_U2_TENURE_MAX3_V1": {
+      "NET_counts": {
+        "Medium": 5,
+        "U10": 2,
+        "U5": 3,
+        "Weak": 2
+      },
+      "U10_reasons": {
+        "CAPACITY_RESERVE_REJECT": 15,
+        "CASH_OR_LOT": 5,
+        "FUNDED": 26,
+        "MAX3_FULL": 9,
+        "RANK_BASE_REJECT": 12
+      },
+      "U5_reasons": {
+        "CAPACITY_RESERVE_REJECT": 42,
+        "CASH_OR_LOT": 13,
+        "FUNDED": 50,
+        "MAX3_FULL": 19,
+        "RANK_BASE_REJECT": 46
+      },
+      "capital_PASS": false,
+      "economic_gates": {
+        "daily_geometric": false,
+        "rolling20_mean": false,
+        "rolling20_median": false
+      },
+      "economics": {
+        "LOWER_P_ACCEPT_AFTER_HIGHER_P_RESERVE_SAME_BATCH": 2,
+        "arithmetic_mean_daily_return": -0.001534139679000931,
+        "capital_recycling_used_jpy": 7262797.0,
+        "final_equity": 922425.95,
+        "funded_N": 158,
+        "geometric_mean_daily_return": -0.0021226959217543993,
+        "idle_cash_mean_jpy": 581683.038229665,
+        "max_drawdown": 0.23196249706159192,
+        "mean_idle_cash_fraction": 0.58873203451054,
+        "median_daily_return": -0.002514787752196406,
+        "north_star_hit_N": 0,
+        "rolling20_arithmetic_mean": 0.9305468287289316,
+        "rolling20_maximum": 1.062535837249777,
+        "rolling20_median": 0.9231834681948272,
+        "rolling20_minimum": 0.8295076482020824,
+        "turnover_cash_jpy": 78548119.15,
+        "utilization_mean": 0.41126796548946,
+        "utilization_median": 0.4697388519430575
+      },
+      "gates": {
+        "P1_U5_gt50": false,
+        "P2_U10_ge26": true,
+        "P3_Medium_ge27": true,
+        "P4_below2_le38_666667pct": true,
+        "P5_below3_le48_666667pct": false,
+        "P6_integrity0": true
+      },
+      "groups": {
+        "GAINED_FUNDING_vs_B2": {
+          "Medium3_5_N": 6,
+          "N": 30,
+          "U10": 4,
+          "U5": 9,
+          "Weak2_N": 12
+        },
+        "LOST_FUNDING_vs_B2": {
+          "Medium3_5_N": 1,
+          "N": 19,
+          "U10": 2,
+          "U5": 6,
+          "Weak2_N": 10
+        },
+        "NEW_MAX3_MISS_vs_B2": {
+          "Medium3_5_N": 0,
+          "N": 19,
+          "U10": 4,
+          "U5": 6,
+          "Weak2_N": 9
+        },
+        "RESERVE_RECOVERY": {
+          "Medium3_5_N": 5,
+          "N": 28,
+          "U10": 4,
+          "U5": 9,
+          "Weak2_N": 11
+        }
+      },
+      "preservation_PASS": false,
+      "quality": {
+        "Big5_10_N": 24,
+        "Low2_3_N": 17,
+        "Medium3_5_N": 30,
+        "Medium_rate": 0.189873417721519,
+        "Mega10_N": 26,
+        "N": 158,
+        "U10": 26,
+        "U2": 97,
+        "U2_rate": 0.6139240506329114,
+        "U3": 80,
+        "U3_rate": 0.5063291139240507,
+        "U5": 50,
+        "Weak2_N": 61,
+        "below2_N": 61,
+        "below2_rate": 0.3860759493670886,
+        "below3_N": 78,
+        "below3_rate": 0.4936708860759494,
+        "realized_PnL_jpy_diagnostic": "-1551481/20",
+        "realized_loser_le0_N_diagnostic": 90,
+        "realized_mean_diagnostic": -0.0013640680366078406,
+        "realized_median_diagnostic": -0.0022925482006394995
+      }
+    },
+    "QUALITY_PARETO_U2_U3_TENURE_MAX3_V1": {
+      "NET_counts": {
+        "Medium": 7,
+        "U10": 2,
+        "U5": 6,
+        "Weak": -1
+      },
+      "U10_reasons": {
+        "CAPACITY_RESERVE_REJECT": 14,
+        "CASH_OR_LOT": 5,
+        "FUNDED": 26,
+        "MAX3_FULL": 10,
+        "RANK_BASE_REJECT": 12
+      },
+      "U5_reasons": {
+        "CAPACITY_RESERVE_REJECT": 38,
+        "CASH_OR_LOT": 12,
+        "FUNDED": 53,
+        "MAX3_FULL": 21,
+        "RANK_BASE_REJECT": 46
+      },
+      "capital_PASS": false,
+      "economic_gates": {
+        "daily_geometric": false,
+        "rolling20_mean": false,
+        "rolling20_median": false
+      },
+      "economics": {
+        "LOWER_P_ACCEPT_AFTER_HIGHER_P_RESERVE_SAME_BATCH": 2,
+        "arithmetic_mean_daily_return": -0.001259722519847837,
+        "capital_recycling_used_jpy": 7916975.3,
+        "final_equity": 933856.05,
+        "funded_N": 161,
+        "geometric_mean_daily_return": -0.0017992471655538772,
+        "idle_cash_mean_jpy": 589217.1833054227,
+        "max_drawdown": 0.21242599623346875,
+        "mean_idle_cash_fraction": 0.5856423530344235,
+        "median_daily_return": -0.002787336844803529,
+        "north_star_hit_N": 0,
+        "rolling20_arithmetic_mean": 0.9443465261832323,
+        "rolling20_maximum": 1.097283911810043,
+        "rolling20_median": 0.9146242057487491,
+        "rolling20_minimum": 0.8439496721622267,
+        "turnover_cash_jpy": 81287912.75,
+        "utilization_mean": 0.4143576469655765,
+        "utilization_median": 0.4926807234806988
+      },
+      "gates": {
+        "P1_U5_gt50": true,
+        "P2_U10_ge26": true,
+        "P3_Medium_ge27": true,
+        "P4_below2_le38_666667pct": true,
+        "P5_below3_le48_666667pct": true,
+        "P6_integrity0": true
+      },
+      "groups": {
+        "GAINED_FUNDING_vs_B2": {
+          "Medium3_5_N": 8,
+          "N": 39,
+          "U10": 5,
+          "U5": 12,
+          "Weak2_N": 15
+        },
+        "LOST_FUNDING_vs_B2": {
+          "Medium3_5_N": 1,
+          "N": 25,
+          "U10": 3,
+          "U5": 6,
+          "Weak2_N": 16
+        },
+        "NEW_MAX3_MISS_vs_B2": {
+          "Medium3_5_N": 2,
+          "N": 34,
+          "U10": 5,
+          "U5": 8,
+          "Weak2_N": 19
+        },
+        "RESERVE_RECOVERY": {
+          "Medium3_5_N": 7,
+          "N": 34,
+          "U10": 5,
+          "U5": 10,
+          "Weak2_N": 14
+        }
+      },
+      "preservation_PASS": true,
+      "quality": {
+        "Big5_10_N": 27,
+        "Low2_3_N": 18,
+        "Medium3_5_N": 32,
+        "Medium_rate": 0.19875776397515527,
+        "Mega10_N": 26,
+        "N": 161,
+        "U10": 26,
+        "U2": 103,
+        "U2_rate": 0.639751552795031,
+        "U3": 85,
+        "U3_rate": 0.5279503105590062,
+        "U5": 53,
+        "Weak2_N": 58,
+        "below2_N": 58,
+        "below2_rate": 0.36024844720496896,
+        "below3_N": 76,
+        "below3_rate": 0.4720496894409938,
+        "realized_PnL_jpy_diagnostic": "-1322879/20",
+        "realized_loser_le0_N_diagnostic": 90,
+        "realized_mean_diagnostic": -0.00022398169745896108,
+        "realized_median_diagnostic": -0.0009995002498750624
+      }
+    }
+  },
+  "saved_control_replays": 0,
+  "score_table_rebuilds_in_full_stage": 0,
+  "shared_upstream_market_data_independence": false,
+  "status": "PASS"
+}

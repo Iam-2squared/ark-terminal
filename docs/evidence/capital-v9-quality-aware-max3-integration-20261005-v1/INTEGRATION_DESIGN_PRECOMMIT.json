@@ -1,0 +1,142 @@
+{
+  "ACCEPT": "2*pressured_sessions < training_session_N",
+  "CapitalGate": {
+    "daily_geometric_gt": 0.01032420041,
+    "preservation": "PASS",
+    "rolling20_mean_gt": 1.1906460126,
+    "rolling20_median_gt": 1.1991541915
+  },
+  "Exposure": "ITERATIVE_DEVELOPMENT_EVIDENCE",
+  "I1": {
+    "future_better": [
+      "future r > current r",
+      "future q2 >= current q2"
+    ]
+  },
+  "I2": {
+    "future_better": [
+      "future r > current r",
+      "future q2 >= current q2",
+      "future q3 >= current q3"
+    ]
+  },
+  "Main_replay_budget": {
+    "I1": 1,
+    "I2": 1,
+    "controls": 0,
+    "total": 2
+  },
+  "PrimaryGate": {
+    "P1_U5_gt50": 50,
+    "P2_U10_ge26": 26,
+    "P3_Medium_ge27": 27,
+    "P4_Weak_rate_le": 0.38666667,
+    "P5_below3_rate_le": 0.48666667,
+    "P6_integrity_violations": 0,
+    "P7_independent_mismatch": 0
+  },
+  "Quality_pP_conditional_CI_crosses0": true,
+  "Safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "U3_Big_Mega_guard": "PARTIAL",
+  "arms": [
+    "QUALITY_PARETO_U2_TENURE_MAX3_V1",
+    "QUALITY_PARETO_U2_U3_TENURE_MAX3_V1"
+  ],
+  "batch_order": [
+    "pP DESC",
+    "Frozen Entry timestamp ASC",
+    "symbol ASC",
+    "entry_id ASC"
+  ],
+  "bottleneck_exception": "Preservation PASS + Capital FAIL -> CAPITAL_MONETIZATION_OR_SIZING; else max exclusive U5 miss; CAPACITY_RESERVE maximum -> CAPACITY_RESERVE_REMAINS",
+  "bottleneck_order": [
+    "RANK_ADMISSION",
+    "CAPACITY_RESERVE",
+    "MAX3_ONLINE_OCCUPANCY",
+    "CASH_SIZING"
+  ],
+  "counterfactual": "paired identity policy deltas; no unique causal replacement attribution",
+  "current_OOF_session_N": 38,
+  "diagnostic_order": [
+    "U5 DESC",
+    "U10 DESC",
+    "Medium DESC",
+    "Weak_rate ASC",
+    "below3_rate ASC",
+    "rolling20_median DESC",
+    "I1 tie"
+  ],
+  "exact0_5": "CAPACITY_RESERVE_REJECT",
+  "exact_jst": "2026-10-05T10:28:35.568191+09:00",
+  "forbidden": [
+    "fit",
+    "calibration",
+    "weighted/geometric/learned blend",
+    "threshold/grid/search",
+    "I3",
+    "quality hard threshold",
+    "admission/sizing/tenure/0.5 change",
+    "backfill",
+    "later topup",
+    "replacement",
+    "forced EXIT",
+    "result rescue",
+    "retune",
+    "Fresh/OOS/protected opening",
+    "main merge",
+    "orders"
+  ],
+  "fresh_OOS_claim": false,
+  "future_window": "entry_current < entry_future < frozen B2 predicted release",
+  "new_fit_budget": 0,
+  "no_same_cycle_tuning": true,
+  "numeric": "canonical IEEE-754 binary64 frozen inference, no rounding; equal >= true; audit every actual compared pair for independent disagreement; near tie abs(delta)<=1e-12",
+  "pP_clairvoyant": "saved diagnostic only; U5=81,U10=38; not upper bound or success gate",
+  "permanent_freeze": [
+    "Selector",
+    "Entry",
+    "EXIT",
+    "pP models/features/preprocessing/OOF/rank",
+    "MOVE_U2 8 models/features/preprocessing",
+    "MOVE_U3 8 models/features/preprocessing",
+    "teacher meaning",
+    "B2 tenure/0.5/support10/30min/lower-middle",
+    "v7 Admission/sizing",
+    "execution/cash/lot100/MAX3/same-symbol/MTM/cutoff/Liquidity diagnostic only"
+  ],
+  "pressure": "fraction completed past training sessions with Nbetter >= (3-occupancy)",
+  "prior_Oracle_and_pP_solves": 0,
+  "productionReady": false,
+  "rolling20_overlap": "19 overlapping windows, not independent samples",
+  "same_state_monotonicity": "I2 <= I1 <= B2; no global funded-set inclusion claim",
+  "schema": "CAPITAL_V9_TWO_PARETO_POLICIES_PRECOMMIT_V1",
+  "score_role": "raw Logistic ordering/dominance only; true-probability claim false",
+  "shared_Development_session_N": 58,
+  "sizing": "frozen v7 allocation byte-exact; pP proportional only; quality not quantity input",
+  "tenure": "saved v8R1 B2 exact; support10, fixed30min, lower-middle; band->global backoff; lunch excluded; cap15:20",
+  "training_score": "frozen block model resubstitution on its completed past training identities; not OOF",
+  "winner_order": [
+    "rolling20_2x_hit_N DESC",
+    "rolling20_median DESC",
+    "rolling20_mean DESC",
+    "daily_geometric DESC",
+    "U5 DESC",
+    "U10 DESC",
+    "Medium DESC",
+    "Weak_rate ASC",
+    "below3_rate ASC",
+    "MaxDD ASC",
+    "I1 tie"
+  ]
+}

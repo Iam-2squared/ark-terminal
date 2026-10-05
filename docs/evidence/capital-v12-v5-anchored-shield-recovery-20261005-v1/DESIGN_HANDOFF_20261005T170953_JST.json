@@ -1,0 +1,98 @@
+{
+  "schema": "CAPITAL_V12_V5_ANCHORED_DESIGN_HANDOFF_V1",
+  "design_created_at_jst": "2026-10-05T17:09:53+09:00",
+  "CURRENT_STATE": "CAPITAL_V12_DESIGN_SAVED_WORK_NOT_STARTED",
+  "branch": "capital-v12-v5-anchored-shield-recovery-20261005",
+  "basis_HEAD": "cc1ca37b17148ea15821101d03b441de4dc6f6d0",
+  "basis_actual_GET_verified": true,
+  "capitalChampion": "V5",
+  "selectedCapitalCandidate": null,
+  "adopted": false,
+  "instruction": {
+    "filename": "Ark_Terminal_Capital_v12_V5_Anchored_No_Regression_Work_20261005.txt",
+    "sha256": "2f5137e2077eeda1211f02e07de9783630246cfeaec0c91e7f0d417daf01d06c",
+    "bytes": 38514,
+    "location": "Generated conversation attachment. This JSON is the design/status handoff, not the complete instruction text.",
+    "required_before_execution": "Commit the complete attached text without changes as WORK_INSTRUCTION.txt, verify the SHA256 above by actual GET, then perform G0. Do not reconstruct missing details from this summary."
+  },
+  "user_direction": "V5を元に改善。既存pP/U2/U3/MRETを活用。1ヶ月は20 sessions。悪化した候補は採用しない。Selector/Entry/EXIT永久Freeze。",
+  "verified_parents": {
+    "V5_closure": "cc1ca37b17148ea15821101d03b441de4dc6f6d0",
+    "V5_evidence_also_read_at": "fe300dadf75867e3437cecfadd7e5317beaaa397",
+    "quality": "a977e30aa3318f639569f806f389acb99b3596e4",
+    "MRET_certification": "a225782aad5a48abea1e332e0eee1d93a0481f0b"
+  },
+  "source_pack_review": {
+    "outer_filename": "Ark_Capital_v11R1_Numeric_Cert_Recovery_20261005_PRIVATE.zip",
+    "outer_sha256": "bca2ba95b095132ce69eef2f207d1980ce2cc8ae688a1aad313c59f37a2c3e86",
+    "outer_manifest_members_verified": 46,
+    "outer_manifest_mismatch": 0,
+    "V5_nested_path": "v11R1 -> authority/v11 private -> authority/v10 private -> authority/Ark_Capital_v5_MAX3_Slot_Intelligence_20261004_PRIVATE.zip",
+    "V5_nested_zip_sha256": "86be004416fe4db4f8c0d25b91dd1c60155a4e47196486ec0bfee817a08f7cf3",
+    "scope": "File/hash/schema/code reading only. Not a new performance audit or policy execution."
+  },
+  "frozen_runtime": ["Selector", "Entry", "EXIT", "V5 H2/H3/H5/PAVA/ML/SAB", "V5 candidate order", "V5 arrival table", "V5 ML-proportional allocation", "MAX3", "lot100", "cash-only LONG", "cost/MTM/EOD", "no later topup", "no cash-failure backfill"],
+  "intervention_scope": "Only when actual open positions equal 2 at batch start after confirmed SELL releases, and current actual-plus-pending occupancy remains 2. Batches starting with 0 or 1 bypass the overlay entirely.",
+  "auxiliary_contract": {
+    "heads": ["EXISTING_MOVE_P5", "MOVE_U2", "MOVE_U3", "MRET_STRONG_CERTIFIED_V11R1"],
+    "newFits": 0,
+    "percentile": "(1 + count(frozen own-model eligible completed-train score < current score))/(own training N+1)",
+    "runtime_missing": "Bypass auxiliary overlay to V5 and log coverage; source/hash/causal mismatch blocks the Work.",
+    "caveat": "Potential/relative-monetization scores are not calibrated loss probabilities."
+  },
+  "policies": {
+    "D": {
+      "name": "V5_LAST_SLOT_UNANIMOUS_SHIELD_V1",
+      "low_consensus": "rP<0.5 AND r2<0.5 AND r3<0.5 AND rM<0.5",
+      "rule": "Within scope, skip only a V5 ADMIT with LOW_CONSENSUS. Otherwise preserve V5. Never convert a V5 REJECT into ADMIT."
+    },
+    "R": {
+      "name": "V5_LAST_SLOT_SHIELD_AND_RECOVERY_V1",
+      "shield": "Same D predicate, starting independently from V5, not from a completed D result.",
+      "big_recovery": "rP>=0.75 AND r2>=0.5 AND r3>=0.5 AND rM>=0.5",
+      "medium_recovery": "NOT BIG_RECOVERY AND r3>=0.75 AND r2>=0.5 AND rM>=0.5",
+      "rule": "Only override original SLOT3_RESERVE_FOR_FUTURE_QUALITY within scope. No rank/cutoff/MAX3/same-symbol/Slot2/cash/source override. No batch reorder."
+    }
+  },
+  "anti_regression_gates": {
+    "A": "All 19 same-identity rolling20 windows >= saved V5; median and mean strictly greater; no principal-loss window. Exact money-derived ratio comparison, no performance epsilon.",
+    "P0": "All execution resolved; causal and independent audits PASS.",
+    "P1": "Retain all 100 original V5 Slot1/2 funded IDs, regardless of their slot in candidate; aggregate PnL of this fixed cohort >= V5. Log all quantity/path effects.",
+    "P2": "U5>=50, U10>=26, Medium>=27, and at least one of U5/U10 strictly increases.",
+    "P3": "Weak N<=58 and rate<=58/150; below3 N<=73 and rate<=73/150, integer cross-multiplication.",
+    "P4": "Nonpositive N<82 and rate<82/150; separately report negative/zero/positive trades.",
+    "P5": "Gross profit>=V5; gross loss absolute<=V5; fixed V5 positive-U10 cohort aggregate PnL>=V5.",
+    "P6": "Chain minute MaxDD<=V5, worst daily return>=V5, losing-day count<=V5.",
+    "B": "Only survivors: 19 paired actual cash-reset20 portfolios, each starting with JPY1m/no positions; no window loses vs V5; median/mean strictly improve; no principal-loss window; each-window MaxDD and V5 Slot1/2 cohort protection pass.",
+    "promotion": "All gates required. Even PASS only recommends a frozen research candidate; no automatic champion pointer change. No candidate means V5 retained."
+  },
+  "monthly_reporting": {
+    "primary": "20-session min/mean/median/max in JPY, 2x hits, worst paired delta and negative-delta window count.",
+    "saved_V5_reference": {"min": 1.0823662751, "mean": 1.1906460126, "median": 1.1991541915, "max": 1.2970310262, "two_x_hits": "0/19"},
+    "distinction": "Saved normalized rolling20 amounts are not assumed equal to independent JPY1m restart results under lot/cash nonlinearity. Show separate tables. No full38 final equity in the monthly headline."
+  },
+  "budget": {
+    "V5_verification_chain_max": 1,
+    "D_chain_max": 1,
+    "R_chain_max": 1,
+    "conditional_cash_reset20_primary_max": 57,
+    "primary_portfolio_invocations_max": 60,
+    "new_model_fits": 0,
+    "independent_audits": "Separate counted certification; raw/features/models cached and reused. No additional policies or tuning.",
+    "no_survivor": "Skip all cash-reset20 runs. No outcome-based rescue."
+  },
+  "counts_executed_in_this_design_turn": {
+    "newFits": 0, "candidate_replays": 0, "new_market_performance_evaluations": 0,
+    "provider_requests": 0, "orders": 0, "main_merges": 0, "force_pushes": 0,
+    "source_pack_hash_review": 1, "design_branch_created": 1
+  },
+  "Safety": {
+    "executionAllowed": false, "brokerWriteAllowed": false, "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false, "liveTradingAllowed": false, "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false, "productionUpdateAllowed": false,
+    "transmitted": false, "productionReady": false
+  },
+  "Exposure": "ITERATIVE_DEVELOPMENT_EVIDENCE; repeated outcomes already seen; new precommit does not create fresh/OOS evidence.",
+  "guarantee_boundary": "Preserve V5 artifacts and reject measured-regressing candidates. No guarantee of candidate success, zero trading losses, or future dominance over V5.",
+  "NEXT_POLICY": "Receive full instruction file; commit its exact bytes/hash; G0 inventory -> baseline/source/score certification -> fixed D/R -> paired20 and protection gates -> cash-reset20 only if eligible -> independent audit -> recommend or retain V5 -> G11 fixed STOP."
+}

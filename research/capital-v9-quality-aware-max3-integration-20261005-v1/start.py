@@ -39,7 +39,7 @@ def private():
     for a,b in pairs:assert sha(MAIN/a)==sha(QUALITY/b);cross.append({'Main_path':a,'Quality_path':b,'sha256':sha(MAIN/a)})
     for b in range(1,9):
         a=MAIN/f'inputs/movement/models/MOVE_P_BLOCK_{b:02}.json';z=QUALITY/f'inputs/models/MOVE_P_BLOCK_{b:02}.json';assert sha(a)==sha(z)
-    assert RECOVERY.joinpath('DELIVERY_MANIFEST.json').exists()
-    save(OUT/'PRIVATE_PACK_CROSS_AUTHORITY_AUDIT.json',{'exact_jst':now(),'status':'PASS','mismatch_N':0,'private_packs':packs,'manifest_member_N':len(checks),'members':checks,'shared_byte_identity':cross,'pP_model_byte_identity_N':8,'nested_pack_sha256':sha(RECOVERY/'authority/Ark_Capital_Quality_v1_20261005_PRIVATE_CONTRACT_FAIL.zip'),'quality_common_sha256':sha(RECOVERY/'private/QUALITY_COMMON_EVAL_ROWS_V1R1.jsonl.gz'),'Main_public_manifest_exact':read(PARENT/'PRIVATE_PACK_MANIFEST.json')==read(MAIN/'MANIFEST.json'),'Safety':SAFETY})
+    public=read(PARENT/'PRIVATE_PACK_MANIFEST.json');assert public['manifest']==read(MAIN/'MANIFEST.json') and public['manifest_sha256']==sha(MAIN/'MANIFEST.json') and public['sha256']==expected['*v8R1*.zip']
+    save(OUT/'PRIVATE_PACK_CROSS_AUTHORITY_AUDIT.json',{'exact_jst':now(),'status':'PASS','mismatch_N':0,'private_packs':packs,'manifest_member_N':len(checks),'members':checks,'shared_byte_identity':cross,'pP_model_byte_identity_N':8,'nested_pack_sha256':sha(RECOVERY/'authority/Ark_Capital_Quality_v1_20261005_PRIVATE_CONTRACT_FAIL.zip'),'quality_common_sha256':sha(RECOVERY/'private/QUALITY_COMMON_EVAL_ROWS_V1R1.jsonl.gz'),'Main_public_manifest_exact':True,'Safety':SAFETY})
     checkpoint('V1_MAIN_QUALITY_PRIVATE_AUTHORITY_AUDIT',{'manifest_members':len(checks),'mismatch_N':0,'status':'PASS'},'Precommit exactly two policies and fixed gates')
 if __name__=='__main__':{'parent':parent,'private':private}[sys.argv[1]]()

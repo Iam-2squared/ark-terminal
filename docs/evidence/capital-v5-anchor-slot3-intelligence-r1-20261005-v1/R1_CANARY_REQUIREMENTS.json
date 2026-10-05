@@ -1,0 +1,422 @@
+{
+  "cases": [
+    {
+      "id": 1,
+      "name": "SC01-existing0-prior2",
+      "required_expected": "existing0 + prior2 + planned3 + index3 + quantity>=100 + allLOW => veto",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 2,
+      "name": "SC01-existing1-prior1",
+      "required_expected": "existing1 + prior1 + planned3 + index3 + quantity>=100 + allLOW => veto",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 3,
+      "name": "SC01-existing2-prior0",
+      "required_expected": "existing2 + prior0 + planned3 + index3 + quantity>=100 + allLOW => veto",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 4,
+      "name": "SC01-planned1",
+      "required_expected": "actual planned1 => no veto",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 5,
+      "name": "SC01-planned2",
+      "required_expected": "actual planned2 => no veto",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 6,
+      "name": "SC01-prior-cash-fail",
+      "required_expected": "native admission index3 but preceding q<100 gives planned<=2 => no veto",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 7,
+      "name": "SC02-exact-half",
+      "required_expected": "2*rank_numerator==rank_denominator => HIGH",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 8,
+      "name": "SC02-raw-median-ties",
+      "required_expected": "T=[.1,.2,.2,.2,.3], s=.2 => rank2/6 LOW",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 9,
+      "name": "SC02-strict-less",
+      "required_expected": "training scores equal to s contribute zero to less_count",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 10,
+      "name": "D-one-axis-HIGH",
+      "required_expected": "each of four single HIGH patterns => native delegation",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 11,
+      "name": "score-missing",
+      "required_expected": "any missing current score => D and DR no intervention",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 12,
+      "name": "score-nonfinite",
+      "required_expected": "NaN,+inf,-inf => neither LOW nor HIGH available",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 13,
+      "name": "training-test-identity-removal",
+      "required_expected": "T contains no test identity; mutate/delete test rows without changing past action",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 14,
+      "name": "future-High-invariance",
+      "required_expected": "mutating current/future High suffix cannot change decision",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 15,
+      "name": "future-realized-invariance",
+      "required_expected": "mutating current/future realized outcome cannot change decision",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 16,
+      "name": "future-EXIT-invariance",
+      "required_expected": "mutating future EXIT/availability cannot change planned-slot or action",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 17,
+      "name": "same-batch-other-quantity",
+      "required_expected": "all nonveto native quantity/debit match pre-veto snapshot exactly",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 18,
+      "name": "same-batch-waterfill",
+      "required_expected": "after veto allocation/waterfill call count stays unchanged",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 19,
+      "name": "same-batch-backfill",
+      "required_expected": "a native gate-rejected candidate never replaces veto in same batch",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 20,
+      "name": "token-same-minute",
+      "required_expected": "current minute<=created_minute => recovery0",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 21,
+      "name": "token-max1",
+      "required_expected": "existing active token is neither stacked nor extended on repeated veto",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 22,
+      "name": "token-held-pair",
+      "required_expected": "Frozen Entry/position pair identity change invalidates token",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 23,
+      "name": "token-open-lt2",
+      "required_expected": "open position N<2 invalidates token",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 24,
+      "name": "token-third-BUY",
+      "required_expected": "any successful actual third BUY invalidates token",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 25,
+      "name": "token-cutoff",
+      "required_expected": "t>=920 invalidates token and no recovery",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 26,
+      "name": "token-session-end",
+      "required_expected": "session end/change invalidates token",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 27,
+      "name": "veto-entry-no-retry",
+      "required_expected": "origin veto identity never becomes recovery candidate at later minute",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 28,
+      "name": "recovery-native-picked",
+      "required_expected": "native preallocation ADMIT list nonempty, including quantity0 => recovery0",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 29,
+      "name": "recovery-exact-reason",
+      "required_expected": "only SLOT3_RESERVE_FOR_FUTURE_QUALITY reason eligible",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 30,
+      "name": "recovery-B-only",
+      "required_expected": "non-B rank => recovery0",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 31,
+      "name": "recovery-four-HIGH",
+      "required_expected": "all four certified HIGH required",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 32,
+      "name": "recovery-order",
+      "required_expected": "rP,r3,rM,r2 desc then exact V5 candidate_order using rational rank comparison",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 33,
+      "name": "recovery-first-fails",
+      "required_expected": "one selected candidate only, cash/lot failure cannot select second",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 34,
+      "name": "recovery-singleton-allocation",
+      "required_expected": "singleton quantity/debit match original frozen V5 allocation.py",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 35,
+      "name": "MAX3",
+      "required_expected": "actual open position N<=3",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 36,
+      "name": "same-symbol",
+      "required_expected": "actual same-symbol position N<=1",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 37,
+      "name": "lot100",
+      "required_expected": "all actual BUY quantities integer multiple100",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 38,
+      "name": "BUY-exact",
+      "required_expected": "BUY debit = raw_reference * Decimal1.0005 * quantity",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 39,
+      "name": "SELL-exact",
+      "required_expected": "SELL credit = confirmed valid source * Decimal.9995 * quantity",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 40,
+      "name": "MTM-exact",
+      "required_expected": "mark only valid source known minute+1<=current minute; no mark future source",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 41,
+      "name": "cash-release-exact",
+      "required_expected": "credit released only confirmed SELL source availability minute; MTM is not cash",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 42,
+      "name": "cutoff-exact",
+      "required_expected": "15:20=minute920; no Entry/recovery at or after cutoff",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 43,
+      "name": "protected100-evaluation-only",
+      "required_expected": "protected Slot1/2 IDs and outcome labels unreachable from runtime policy",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 44,
+      "name": "Q-denominator",
+      "required_expected": "all Q rates denominator exact unique funded BUY identity N",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 45,
+      "name": "paired19-identities",
+      "required_expected": "full38 exactly19 rolling20 windows with paired start/end IDs",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 46,
+      "name": "paired19-noninferiority",
+      "required_expected": "single strict lower paired growth FAIL despite aggregate improvement",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 47,
+      "name": "no-window-reset",
+      "required_expected": "windows normalize connected EOD curve, no nineteen separate reset Replays",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 48,
+      "name": "rational-gates",
+      "required_expected": "all growth/mean/median/rates compare exact rational source values",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 49,
+      "name": "Safety-all-false",
+      "required_expected": "all broker/order/merge/promotion/production Safety false",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 50,
+      "name": "native-index-not3",
+      "required_expected": "planned3 but native admission index!=3 => no veto",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 51,
+      "name": "native-gate-reject",
+      "required_expected": "native gate rejected => no direct shield",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 52,
+      "name": "native-q-lt100",
+      "required_expected": "native q<100 => no direct shield/token",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 53,
+      "name": "execution-source-not-policy",
+      "required_expected": "SELL/MTM availability and capture_complete never decide prior native successful count",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 54,
+      "name": "mark-asof-equity",
+      "required_expected": "batch equity uses held marks causally available at snapshot, not future SELL",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 55,
+      "name": "score-availability-not-HIGH",
+      "required_expected": "unavailable axis cannot qualify DR via HIGH=NOT LOW",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 56,
+      "name": "source-certification-failclosed",
+      "required_expected": "missing current native score causes runtime abstention but certification SOURCE/CONTRACT_BLOCKED",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 57,
+      "name": "training32-reference-manifests",
+      "required_expected": "four heads x eight blocks preserve per-head exact identity/denominator/model SHA",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 58,
+      "name": "rank-numeric-tie",
+      "required_expected": "score numerical tolerance does not permit LOW/HIGH or ordering mismatch",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 59,
+      "name": "token-pair-not-symbol",
+      "required_expected": "identical symbols with changed position IDs invalidate held pair token",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 60,
+      "name": "token-no-replacement",
+      "required_expected": "repeated veto never refreshes active token created_minute/origin",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 61,
+      "name": "recovery-fail-token-retained",
+      "required_expected": "failed singleton may retain token for new future arrival; old failed identity never retries",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 62,
+      "name": "source-incomplete-not-zero",
+      "required_expected": "unresolved execution => NOT_EVALUATED, never fabricated0 outcome",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 63,
+      "name": "protected-group-only",
+      "required_expected": "all100 identities funded and group1/group2 aggregate PnL noninferior; no peridentity quantity/PnL floor",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 64,
+      "name": "window-DD-start-peak",
+      "required_expected": "each window initial peak is its own prewindow exact EOD equity",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 65,
+      "name": "winner-R1-count",
+      "required_expected": "current R1 winner tie stage5 uses loser count ASC; no postresult choice of count/rate",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 66,
+      "name": "pre-main-independent",
+      "required_expected": "independent pre-main imports no Primary adapter/policy/replay and reconstructs all scoped decision cases",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 67,
+      "name": "post-main-independent",
+      "required_expected": "independent post-main imports no Primary replay/evaluator and reconstructs each candidate at most once",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 68,
+      "name": "Champion-stays-V5",
+      "required_expected": "even all E/Q PASS => activeCapitalChampion V5 and selectedCapitalCandidate null",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    },
+    {
+      "id": 69,
+      "name": "budget-no-rerun",
+      "required_expected": "OFF<=1,D<=1,DR<=1,independentD<=1,independentDR<=1; crash ambiguity investigates receipts",
+      "status": "SPECIFICATION_REQUIREMENT_ONLY_NOT_RUNTIME_PASS"
+    }
+  ],
+  "executed_N": 0,
+  "mandatory_N": 49,
+  "schema": "R1_CANARY_STATIC_COVERAGE_V1",
+  "total_N": 69
+}

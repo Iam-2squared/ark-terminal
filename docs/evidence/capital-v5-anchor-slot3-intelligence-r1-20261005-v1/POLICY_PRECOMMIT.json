@@ -1,0 +1,123 @@
+{
+  "D": {
+    "BUY_success_definition": "Frozen V5 current native conditions plus quantity/debit/sequential cash; future SELL/MTM availability consulted only after BUY, never prior-success count or eligibility",
+    "conditions": [
+      "native ADMIT",
+      "native slot_admission_index=3",
+      "existing_open+prior native successful BUY proposals+1=3",
+      "native proposed quantity>=100",
+      "all four available and LOW"
+    ],
+    "profile": "V5_SLOT3_UNANIMOUS_LOW_SHIELD_V1",
+    "proposal": "current-arm batch snapshot V5 gate/allocation once; unchanged others quantities/debits; no reallocation/waterfill/backfill"
+  },
+  "DR": {
+    "batch": "later minute than creation, pre15:20, sameheldpair open2, native preallocation picked list empty including zeroquantity proposals",
+    "eligible": "new Frozen Entry V5 rankpass B exact SLOT3_RESERVE_FOR_FUTURE_QUALITY and four available HIGH; original causal current constraints",
+    "priority": "rP DESC,r3 DESC,rM DESC,r2 DESC,V5 stable native order; exact crossproducts",
+    "profile": "V5_SLOT3_UNANIMOUS_LOW_SHIELD_WITH_GUARDED_RECOVERY_V1",
+    "quantity": "frozen V5 singleton allocation at actual armstate, oneattempt no backfill/retry",
+    "shield": "exact D",
+    "token": "max1; after veto actualopen2; sorted position IDs; no stack/extend; invalidate postSELL/preEntry if heldpair change/open!=2/session/cutoff or thirdBUY success"
+  },
+  "HIGH": "available AND NOT LOW",
+  "LOW": "2*(1+less_count)<N_h+1",
+  "SC01": "minimal_repair_A explicitly applied by current R1; actual planned Slot3 regardless of batch-start0/1/2",
+  "SC02": "strict-less rank fraction domain; exact rank1/2 HIGH; raw score median is not HIGH rule",
+  "Safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "V5_frozen": [
+    "Selector",
+    "Entry",
+    "EXIT",
+    "H2/H3/H5/PAVA/ML/SAB",
+    "native order",
+    "arrival tables",
+    "allocation",
+    "MAX3",
+    "lot100",
+    "same-symbol",
+    "15:20",
+    "BUY1.0005",
+    "SELL0.9995",
+    "commission0",
+    "MTM/cashrelease/EOD"
+  ],
+  "activeCapitalChampion": "V5",
+  "actual_GET_verified": true,
+  "basis_HEAD": "1c94f2ffcd85ca03dd358885e6e5464c4a15446f",
+  "basis_tree": "2eb3250cc03a1cafeee0cbee69a342ef3e92b6af",
+  "branch": "capital-v5-anchor-slot3-intelligence-r1-20261005",
+  "championUpdated": false,
+  "counts": {
+    "Claude": 0,
+    "calibration": 0,
+    "candidatePrimaryReplays": 0,
+    "championUpdates": 0,
+    "controlVerificationReplays": 0,
+    "explicitWorkflowDispatches": 0,
+    "extraArms": 0,
+    "forcePush": 0,
+    "grid": 0,
+    "independentReconstructionReplays": 0,
+    "mainMerge": 0,
+    "newFits": 0,
+    "orders": 0,
+    "protectedDataOpened": 0,
+    "providerRequests": 0,
+    "teacherRegeneration": 0
+  },
+  "directive_SHA": "223f9b76ec34922d2f47a1b8f5763d7872f92d4c0bf7b02d9f7b9914f6e530be",
+  "documented_current_R1_precedence": {
+    "old_loser_rate_vs_current_loser_count": "Current R1 section20 explicitly specifies loser_count; fixed before any candidate outcomes, no retune"
+  },
+  "exact_jst": "2026-10-05T18:21:07.327385+09:00",
+  "fixed_STOP": "R12",
+  "future_suffix_fields_runtime_input": false,
+  "gitHistoryBase": "5210093e6a65ee79d6cb7121e1dd59271aa37659",
+  "heads": [
+    "pP",
+    "MOVE_U2",
+    "MOVE_U3",
+    "MRET"
+  ],
+  "inherited_original_directive_SHA": "088f7e90aae89d25feab741ea04211c92f8f175e9603a77a0d800fdf55674ab6",
+  "newfits": 0,
+  "promotion": "proposal only; activeChampionV5 selectedCapitalnull automaticfalse",
+  "protected100": "evaluation-only; never runtime whitelist; all retained original Slot1group/Slot2group PnL>=V5 separately",
+  "rank_formula": "(1+count(T_h<s_h))/(N_h+1)",
+  "references": "Each head original eligible completed-past train IDs and own block model; original denominator/order unique; test/current/future excluded",
+  "schema": "V5_SLOT3_R1_POLICY_PRECOMMIT_V1",
+  "selectedCapitalCandidate": null,
+  "strategyParent": "710656491be06235901b45c50a8b5cbd714ba4eb",
+  "trial_budget": {
+    "DR_independent_MAX": 1,
+    "DR_primary_MAX": 1,
+    "D_independent_MAX": 1,
+    "D_primary_MAX": 1,
+    "control_MAX": 1
+  },
+  "unavailable": "D/DR intervention0 and V5 delegation; missing/nonfinite official coverage=>SOURCE_CONTRACT_BLOCKED, never coveragePASS",
+  "winner_order": [
+    "2x-hit DESC",
+    "exact rolling20 median DESC",
+    "exact rolling20 mean DESC",
+    "exact rolling20 min DESC",
+    "loser_count ASC",
+    "U10 DESC",
+    "U5 DESC",
+    "Medium DESC",
+    "fullMaxDD ASC",
+    "D exacttie"
+  ]
+}

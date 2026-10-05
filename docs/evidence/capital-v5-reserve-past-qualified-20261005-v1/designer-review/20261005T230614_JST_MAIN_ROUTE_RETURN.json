@@ -1,0 +1,73 @@
+{
+  "schema": "ARK_CAPITAL_MAIN_ROUTE_RETURN_V1",
+  "exact_jst": "2026-10-05T23:06:14+09:00",
+  "CURRENT_STATE": "RESERVE_LOCAL_ROUTE_CLOSED_RETURN_TO_MAIN_CAPITAL_ROUTE",
+  "basis_head_actual_get": "7a164911d3799e13deeef0f2931bafda962c2ead",
+  "reserve_cycle": {
+    "status": "PAST_SUPPORT_NOT_ESTABLISHED",
+    "fixed_stop": true,
+    "qualified_blocks": "0/8",
+    "primary_R_replays": 0,
+    "selectedResearchCandidate": null,
+    "selectedCapitalCandidate": null,
+    "improvement_claim": false
+  },
+  "activeCapitalChampion": "V5_AS_BASELINE_ONLY_NOT_GOAL",
+  "north_star": {
+    "start_jpy": 1000000,
+    "target_jpy": 2000000,
+    "horizon_sessions": 20,
+    "v5_median_jpy": 1199154,
+    "v5_gap_to_target_jpy": 800846,
+    "primary_objective": "20-session final equity / rolling20 wealth, not local model metrics"
+  },
+  "controlling_problems": [
+    "P1_BAD_CAPITAL_USE: V5 realized<=0 82/150 and Weak<2 58/150",
+    "P2_WINNER_MISS: legacy rank-pass U5 50/113 funded and U10 26/47 funded",
+    "P3_CAPITAL_CONCENTRATION: good candidates do not receive enough capacity/capital to approach 2x"
+  ],
+  "frozen": [
+    "Selector",
+    "Entry",
+    "EXIT"
+  ],
+  "reusable_intelligence": {
+    "pP": "Winner priority; original U5/U10 ranking skill preserved",
+    "MOVE_U2": "Weak-risk expert; use for bad-capital suppression, not absolute realized-loss probability",
+    "MOVE_U3": "Medium+ expert; preserve at least medium opportunity",
+    "MRET": "relative monetization diagnostic only until a stronger role is established"
+  },
+  "main_route_policy": [
+    "Do not continue retuning Reserve recovery thresholds or the closed R arm.",
+    "Do not treat V5 as success; it is only the current least-bad Capital baseline.",
+    "Next main work must address P1/P2/P3 as one Capital Reallocation problem: remove/suppress bad capital use, redirect freed capacity/cash to stronger Medium/U5/U10 opportunities, and concentrate sizing where evidence supports it.",
+    "Keep expert roles separate; do not destroy preserved skill via arbitrary AND/OR/weighted blending.",
+    "Primary scoreboard begins with JPY 1,000,000 -> 20 sessions and North-Star gap; AUC/U5/U10/Weak are explanatory secondary metrics.",
+    "Do not adopt any candidate that regresses the fixed V5 comparison; local metric improvement without material 20-session wealth improvement is not Capital success.",
+    "No new directive or market replay is authorized by this record."
+  ],
+  "do_not_repeat": [
+    "Reserve R threshold rescue",
+    "4LOW/3LOW/OR local rescue",
+    "local Slot3 tuning as the main route",
+    "AUC-only success claims",
+    "38-session Final Equity presented as one-month result"
+  ],
+  "NEXT_POLICY": "Design the V5-anchored Capital Reallocation Engine main route around the three controlling problems and the 20-session 2x North Star. Before execution, precommit finite architecture and preserve existing expert skills; then evaluate material wealth improvement, not cosmetic local changes.",
+  "counts_added_by_this_record": {
+    "newFits": 0,
+    "marketReplays": 0,
+    "orders": 0,
+    "mainMerge": 0,
+    "forcePush": 0,
+    "Claude": 0
+  },
+  "Safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionReady": false
+  }
+}

@@ -12,7 +12,7 @@ PRIVATE=ROOT/'capital_v51_private'
 def now():return datetime.now(ZoneInfo('Asia/Tokyo')).isoformat()
 def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 def read(p):return json.loads(Path(p).read_text())
-def rows(p):return [json.loads(s) for s in gzip.open(p,'rt')]
+def rows(p):return [json.loads(s) for s in gzip.open(p,'rt') if s.strip()]
 def save(p,obj):
     p=Path(p);p.parent.mkdir(parents=True,exist_ok=True)
     p.write_text(json.dumps(obj,indent=2,sort_keys=True,ensure_ascii=False,allow_nan=False)+'\n')

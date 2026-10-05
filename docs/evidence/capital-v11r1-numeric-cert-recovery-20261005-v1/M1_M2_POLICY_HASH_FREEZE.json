@@ -1,0 +1,143 @@
+{
+  "Safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "authority_path": "docs/evidence/capital-v11-realized-monetization-signal-20261005-v1/M1_M2_CAPITAL_POLICY_PRECOMMIT.json",
+  "exact_jst": "2026-10-05T13:24:59.502911+09:00",
+  "old_performance_before_policy_precommit": false,
+  "policy_change": 0,
+  "semantic_body": {
+    "Final38_one_month_claim": false,
+    "OOF_sessions": 38,
+    "Safety": {
+      "automaticPromotionAllowed": false,
+      "brokerWriteAllowed": false,
+      "excelOrderWriteAllowed": false,
+      "executionAllowed": false,
+      "liveTradingAllowed": false,
+      "paperTradingAllowed": false,
+      "productionReady": false,
+      "productionUpdateAllowed": false,
+      "rssOrderFunctionAllowed": false,
+      "transmitted": false
+    },
+    "batch_order": [
+      "pP DESC",
+      "Entry timestamp ASC",
+      "symbol ASC",
+      "entry_id ASC"
+    ],
+    "bottleneck": {
+      "STRONG_no_relative_progress": "MONETIZATION_POLICY_TRANSLATION",
+      "STRONG_relative_progress_v5_fail": "MONETIZATION_SIGNAL_STRENGTH_OR_CAPITAL_MAPPING",
+      "not_STRONG": "REALIZED_MONETIZATION_INFORMATION_GAP; PROMISING means unconfirmed under fixed CI gate",
+      "official_2x_hit": "DEVELOPMENT_NORTH_STAR_REQUIRES_INDEPENDENT_NEXT_WORK",
+      "official_capital_pass_2x0": "NORTH_STAR_CAPITAL_GAP"
+    },
+    "budget": {
+      "M1": 1,
+      "M2": 1,
+      "M3": 0,
+      "controls": 0,
+      "total_else": 0,
+      "total_if_STRONG": 2
+    },
+    "capital_gate_strict": {
+      "daily_geometric": 0.01032420041,
+      "rolling20_mean": 1.1906460126,
+      "rolling20_median": 1.1991541915
+    },
+    "diagnostic": "retention PASS first, else v5 floor PASS, else saved I2; median DESC,mean DESC,daily geometric DESC,Final38 DESC,MaxDD ASC,M1 tie",
+    "exact_jst": "2026-10-05T12:25:17.654924+09:00",
+    "fresh_OOS_claim": false,
+    "frozen": {
+      "BUY": "1.0005",
+      "Entry_EXIT_Selector": "permanent frozen",
+      "MAX3": 3,
+      "MTM_cash_release": "parent exact",
+      "SELL": ".9995",
+      "base_utilization": {
+        "P_BASE": 0.44,
+        "P_HIGH": 0.68,
+        "P_MID": 0.56
+      },
+      "breadth_increment": 0.055,
+      "candidate_band_caps": {
+        "P_BASE": 0.25,
+        "P_HIGH": 0.45,
+        "P_MID": 0.35
+      },
+      "commission": 0,
+      "cutoff": 920,
+      "desired_weight": "pP proportional",
+      "long_cash_only": true,
+      "lot": 100,
+      "maximum_target_utilization": 0.92,
+      "no_backfill": true,
+      "no_later_topup": true,
+      "pressure": 0.5,
+      "replacement": false,
+      "support": 10,
+      "tenure": "B2 saved table exact",
+      "tenure_bucket_minute": 30
+    },
+    "hindsight_policy_input": false,
+    "policies": {
+      "M1": {
+        "cap_can_increase": false,
+        "effective_cap": "frozen band equity cap * rM",
+        "name": "I2_MRET_CONTINUOUS_CAP_THROTTLE_V1",
+        "waterfill": "only initially funded rows, effective cap respected"
+      },
+      "M2": {
+        "effective_cap": "rM>=.5 frozen band cap; rM<.5 min(frozen band cap,exact100share BUY debit)",
+        "exact_half": "HIGH side",
+        "name": "I2_MRET_MEDIAN_MINLOT_THROTTLE_V1",
+        "note": "Frozen cap remains an upper bound even where one lot exceeds it; no cap increase",
+        "waterfill": "only initially funded rows, effective cap respected"
+      }
+    },
+    "quality_retention": {
+      "Medium_min": 32,
+      "U10_min": 26,
+      "U5_min": 53,
+      "below3_rate_max": 0.47204969,
+      "independent_mismatch": 0,
+      "integrity_mismatch": 0,
+      "weak_rate_max": 0.36024845
+    },
+    "rM": "(1+count(MRET eligible completed train mP<current mP))/(train_N_score+1); frozen model resubstitution; binary64 unrounded; no labels/test cross-section",
+    "relative_progress_strict": {
+      "adoption": false,
+      "daily_geometric": -0.00179924717,
+      "mean": 0.9542671531,
+      "median": 0.9283112455,
+      "v5_floor_required": true
+    },
+    "result_change_allowed": false,
+    "rolling_windows": 19,
+    "schema": "CAPITAL_V11_MRET_CAPITAL_PRECOMMIT_V1",
+    "secondary_v5_floor": {
+      "Medium_min": 27,
+      "U10_min": 26,
+      "U5_min": 50,
+      "below3_rate_max": 0.48666667,
+      "weak_rate_max": 0.38666667
+    },
+    "selectionPolicy": "QUALITY_PARETO_U2_U3_TENURE_MAX3_V1",
+    "start_yen": 1000000,
+    "window_independence_claim": false,
+    "winner": "STRONG AND retention AND v5 capital; 2xN DESC,median DESC,mean DESC,daily geometric DESC,Final38 DESC,MaxDD ASC,M1 tie"
+  },
+  "sha256": "5db3336d0bdf9c9e09d0481f4fa09fbb1e94229979bbd8e1a97057380ee73d42",
+  "status": "PASS"
+}

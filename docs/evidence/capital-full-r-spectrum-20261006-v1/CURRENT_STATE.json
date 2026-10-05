@@ -1,0 +1,66 @@
+{
+  "schema": "ARK_CAPITAL_FULL_R_SPECTRUM_WORK_READY_V1",
+  "exact_jst": "2026-10-06T06:57:00+09:00",
+  "repository": "Iam-2squared/ark-terminal",
+  "branch": "capital-main-reallocation-20261005",
+  "basis_head": "5e6a3641d811c0fd3df9b222c4c5fc98f3bdd859",
+  "work_request_commit": "52d282ca2a08190976e73591b607e39df4285d8b",
+  "work_request_blob_sha": "7abcf6ce3c0ccd2d3bc3529f2217c4acb0ecf1fa",
+  "attachment_sha256": "077df2f0a0e5a8d7e4d743a83165c6a6fe340a8ce839c100c4e3f520a10abc86",
+  "status": "R_SPECTRUM_WORK_READY_NOT_EXECUTED",
+  "activeCapitalBaseline": "V5",
+  "rejectedCandidate": "V5.1",
+  "primary_goal": "Understand the complete realized-return spectrum under frozen Entry and frozen Capital EXIT/EOD, including positive and negative R thresholds, before any V5.2 policy.",
+  "definitions": {
+    "U5_U10": "Preserve existing Entry-to-future-High opportunity labels unchanged.",
+    "R_positive": "Cumulative realized net return thresholds R1,R2,... with inherited R5/R10 semantics.",
+    "R_negative": "Cumulative realized net loss thresholds RN1,RN2,...",
+    "exclusive_bins": "Mechanical 1 percentage-point bins across the full known realized-return range.",
+    "unknown": "null, never false or Loser"
+  },
+  "frozen": ["Selector","Entry","EXIT","EOD execution contract","MAX3","100-share lot","LONG cash-only","existing scores","V5","V5.1 evidence"],
+  "scope": [
+    "Full R census",
+    "U5/U10 to R-spectrum cross anatomy",
+    "V5 funded/missed by R band",
+    "Capital debit/quantity/PnL/holding-time by R band",
+    "Existing causal score separability across positive and negative R thresholds",
+    "Design-only next Capital mechanism, maximum one"
+  ],
+  "not_authorized_in_this_work": [
+    "new model fit/refit/calibration",
+    "new Capital candidate implementation",
+    "V5.2 replay",
+    "R market/EXIT rematerialization",
+    "provider request",
+    "protected partition opening",
+    "orders",
+    "main merge",
+    "force push"
+  ],
+  "current_known_context": {
+    "all_frozen_entry": 1039,
+    "R_known": 1016,
+    "R_unknown": 23,
+    "execution_eligible": 1028,
+    "rank_pass_execution_eligible": 494,
+    "rank_pass_known": 492,
+    "R5_rank_pass": 34,
+    "R10_rank_pass": 16,
+    "V5_R5_capture": "19/34",
+    "V5_R10_capture": "11/16",
+    "reset20_complete_windows": 9,
+    "reset20_planned_windows": 21,
+    "coverage_unknown_windows": 12
+  },
+  "counts_this_turn": {
+    "new_fits": 0,
+    "new_replays": 0,
+    "R_rematerializations": 0,
+    "upstream_edits": 0,
+    "orders": 0,
+    "main_merge": 0,
+    "Claude": 0
+  },
+  "next": "Execute WORK_REQUEST.md as one diagnostic Work, stop before V5.2 execution, and save actual-GET verified evidence."
+}

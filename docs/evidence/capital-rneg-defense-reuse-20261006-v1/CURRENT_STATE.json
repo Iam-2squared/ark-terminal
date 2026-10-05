@@ -1,0 +1,102 @@
+{
+  "schema": "ARK_RNEG_DEFENSE_WORK_DESIGN_READY_V1",
+  "exact_jst": "2026-10-06T08:56:50+09:00",
+  "status": "DESIGN_READY_NOT_EXECUTED",
+  "repository": "Iam-2squared/ark-terminal",
+  "branch": "capital-main-reallocation-20261005",
+  "basis_head": "0565369b3354afc2a454f261bccb3e44464e82da",
+  "basis_tree": "696abacb7cf40dc668802369f568dabc838b101f",
+  "work_request": {
+    "document_id": "ARK_CAPITAL_RNEG_DEFENSE_REUSE_V1_20261006",
+    "path": "docs/evidence/capital-rneg-defense-reuse-20261006-v1/WORK_REQUEST.md",
+    "commit_sha": "006ba528259521c72056648e658288640a9da5ca",
+    "sha256": "1253a4fc5c43ee4438d3bd85383abeecd747733ef32ab0457a1f729757aac072",
+    "git_blob_sha1": "998925a67935410187473ce2dc4c6bbad3390d9e",
+    "bytes": 30124,
+    "actual_get_blob_matches_local_bytes": true,
+    "attachment_md": "Ark_Capital_RNEG_Defense_Reuse_Work_20261006.md",
+    "attachment_txt": "Ark_Capital_RNEG_Defense_Reuse_Work_20261006.txt",
+    "attachments_byte_identical": true
+  },
+  "corrected_understanding": {
+    "State9_Path_already_in_Capital_CORE": true,
+    "existing_HL0_target": "realized net return <= 0",
+    "existing_HL0_model": "L2 LogisticRegression; 8 temporal folds; reuse, no refit",
+    "existing_HL0_known_N": 1016,
+    "existing_HL0_AUROC": 0.502645068529545,
+    "existing_HL0_Brier": 0.2630797969754043,
+    "CORE_runtime_rows": 1600,
+    "CORE_runtime_sessions": 58,
+    "OOF_candidate_rows": 1039,
+    "OOF_candidate_sessions": 38,
+    "CORE_numeric_fields": 27,
+    "CORE_categorical_fields": 7,
+    "all_runtime_and_OOF_row_schema_keys_checked": true,
+    "State_semantic_validation_is_not_RNEG_predictive_validation": true
+  },
+  "source_paths": [
+    "research/capital-max3-top3-quality-v3-20261004-v1/train_heads.py",
+    "docs/evidence/capital-max3-top3-quality-v3-20261004-v1/HEAD_QUALITY_DIAGNOSTICS.json",
+    "research/capital-max3-upward-staircase-v4-20261004-v1/core_features.py",
+    "research/persistent-watchlist-uptrend-first-entry-20261003-v2/CORRECTED_LINEAGE_FAST_FREEZE_20261003/FIRST_ENTRY_V2_FREEZE_HANDOFF.md"
+  ],
+  "direction": {
+    "target": "All frozen entries; net R < 0 under unchanged Capital EXIT/EOD and cost contract",
+    "reuse": "Existing HL0, State9/Path, original feature extractors, R rows and RESET20 baseline",
+    "D1": "Fixed small nonlinear learner on as-of-audited existing CORE inputs",
+    "D2": "Same learner plus reusable nonduplicate Frozen P0 pre-buy price/volume context; availability-gated before outcome analysis",
+    "deployment_rule": "One predeclared past-first-OOF-only recipe/threshold selection procedure per block",
+    "actions": ["PASS_TO_V5", "VETO_THIS_ENTRY"],
+    "positive_false_avoid_count_budget": 0.10,
+    "positive_unit_notional_profit_removal_budget": 0.10,
+    "budgets_are": "New research design choices applied to past qualification, not future guarantees",
+    "conditional_exit": "At most one Defense Capital policy and one RESET20 batch after source/as-of/OOF checks and actual VETO support",
+    "ultimate_objective": "JPY1000000 to approximately JPY2000000 per20sessions; avoiding all trades is not success"
+  },
+  "planned_limits": {
+    "new_scheduled_fits_max": 16,
+    "technical_identical_recipe_fit_retries_max": 2,
+    "old_HL0_State_Entry_EXIT_refits": 0,
+    "new_Capital_policy_max": 1,
+    "new_Capital_formal_batches_max": 1,
+    "new_Control_full_replays": 0,
+    "new_provider_prices": 0,
+    "protected_openings": 0,
+    "orders": 0,
+    "main_merge": 0,
+    "force_push": 0
+  },
+  "counts_this_design_turn": {
+    "new_fits": 0,
+    "new_R_materializations": 0,
+    "new_market_replays": 0,
+    "State_engine_reruns": 0,
+    "upstream_edits": 0,
+    "Claude": 0,
+    "orders": 0,
+    "main_merge": 0
+  },
+  "unverified": [
+    "D2 same-as-of feature join coverage",
+    "Actual historical provider arrival timestamps",
+    "Incremental RNEG predictive performance",
+    "Future negative-return elimination",
+    "New final wealth improvement"
+  ],
+  "baseline": "V5",
+  "V51_decision": "REJECTED",
+  "R_spectrum_status": "INCONCLUSIVE",
+  "RESET20": {"planned": 21, "complete": 9, "coverage_unknown": 12},
+  "selectedCapitalCandidate": null,
+  "new_performance_claim": false,
+  "next_action": "Execute saved Work instruction as a separate bounded research cycle; do not rerun completed R census or duplicate HL0",
+  "safety": {
+    "productionReady": false,
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "transmitted": false
+  }
+}

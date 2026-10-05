@@ -1,0 +1,150 @@
+{
+  "schema": "CAPITAL_V5_ANCHOR_DESIGN_HANDOFF_V1",
+  "exact_jst": "2026-10-05T17:28:29+09:00",
+  "CURRENT_STATE": "WORK_DIRECTIVE_READY_NOT_EXECUTED",
+  "repo": "Iam-2squared/ark-terminal",
+  "branch": "capital-v5-anchor-slot3-intelligence-20261005",
+  "basis_head_actual_get_verified": "710656491be06235901b45c50a8b5cbd714ba4eb",
+  "strategy_parent": "CAPITAL_MAX3_SLOT_RESERVE_V1",
+  "strategy_parent_sha": "710656491be06235901b45c50a8b5cbd714ba4eb",
+  "activeCapitalChampion": "V5",
+  "selectedCapitalCandidate": null,
+  "championUpdated": false,
+  "user_policy": "V5を土台に改善する。失敗したI2/M2をCapital親にしない。20 sessionsをPrimaryとし、退行した候補は採用しない。既存pP/q2/q3/MRETを活用する。",
+  "directive": {
+    "document_id": "CAPITAL_V5_ANCHORED_SLOT3_INTELLIGENCE_V1_20261005",
+    "filename": "Ark_Terminal_V5_Anchored_Slot3_Loser_Shield_Winner_Recovery_Work_20261005.txt",
+    "created_jst": "2026-10-05T17:27:14+09:00",
+    "sha256": "088f7e90aae89d25feab741ea04211c92f8f175e9603a77a0d800fdf55674ab6",
+    "bytes": 44058,
+    "full_text_location": "User-delivered conversation attachment; this GitHub record is the compact state/design handoff, not the full-text upload.",
+    "start_requirement": "Workは添付正本のhashを確認し、その全文を新規pathへappend-only保存・actual GET後に実行precommitする。正本がない場合は未確定手順を推測して実行しない。"
+  },
+  "read_only_intelligence_authorities": {
+    "rank": "da8dc67b3100ddb7abd7ff95ed336fb9d55470c6",
+    "quality": "a977e30aa3318f639569f806f389acb99b3596e4",
+    "mret_fit": "489fc4f9bc164b3150e374e9f4011a9888ad2d55",
+    "mret_certification": "a225782aad5a48abea1e332e0eee1d93a0481f0b",
+    "mret_status": "MRET_STRONG_CERTIFIED_V11R1",
+    "warning": "pP/q2/q3はPotential順位、MRETはbucket内相対monetization。いずれも無損失やP(net>0)を保証しない。HL0/HF1再fitなし。"
+  },
+  "source_checks_done": {
+    "v5_slot_policy_github_read": true,
+    "v5_report_github_read": true,
+    "v5_closure_history_github_read": true,
+    "v11r1_closure_github_read": true,
+    "mounted_v11r1_archive_sha256": "bca2ba95b095132ce69eef2f207d1980ce2cc8ae688a1aad313c59f37a2c3e86",
+    "v11r1_outer_hash_matches_github_closure": true,
+    "nested_v5_archive_sha256": "86be004416fe4db4f8c0d25b91dd1c60155a4e47196486ec0bfee817a08f7cf3",
+    "all_member_independent_source_certification": "NOT_RUN; Work開始時に実施",
+    "policy_result_analysis": "NOT_RUN"
+  },
+  "primary_reporting": {
+    "horizon_sessions": 20,
+    "windows": 19,
+    "comparison": "同じstart/end sessionの19窓を全対比較。連結曲線のwindow末EOD/window開始前EODを100万円へ正規化。各窓reset独立Replayとは区別。",
+    "v5_display_factors": {
+      "min": "1.0823662751",
+      "mean": "1.1906460126",
+      "median": "1.1991541915",
+      "max": "1.2970310262",
+      "two_x_hits": "0/19"
+    },
+    "exact_gate_source": "V5原本EOD/窓データ。表示用丸め倍率・円・float許容で退行を消さない。",
+    "forbidden": "38-session Final Equityを1ヶ月成績と呼ぶこと、良い窓だけ抽出、候補とV5の良い方へ事後切替"
+  },
+  "score_contract": {
+    "heads": ["pP", "MOVE_U2", "MOVE_U3", "MRET"],
+    "models": "各candidate対応rolling-origin blockの凍結モデル。V5 native ML/H2/H3/H5は置換しない。",
+    "reference": "各headの元のcompleted-training ID集合へ同blockモデルを適用したfrozen resubstitution score。test cross-section使用0。",
+    "percentile": "r_h=(1+count(train_score<current_score))/(N_h+1)",
+    "LOW": "2*(1+count(train_score<current_score)) < N_h+1",
+    "HIGH": "NOT LOW; exact 1/2はHIGH。missing/nonfiniteはLOWにしない。",
+    "threshold_search": 0,
+    "weighted_blend": false
+  },
+  "arms": {
+    "D": {
+      "profile": "V5_SLOT3_UNANIMOUS_LOW_SHIELD_V1",
+      "scope": "native ADMIT、native admission index3、native proposed quantity>=100、先行native BUY成功予定を含め実際の予定Slot3のみ",
+      "veto": "LOW_P AND LOW_2 AND LOW_3 AND LOW_M のときだけnative新規BUYを見送り",
+      "same_batch_protection": "他native candidateの確定quantity/debit不変。veto資金はcashに残し、water-fill再計算・backfillなし。",
+      "otherwise": "V5 nativeに委譲"
+    },
+    "DR": {
+      "profile": "V5_SLOT3_UNANIMOUS_LOW_SHIELD_WITH_GUARDED_RECOVERY_V1",
+      "defense": "Dと同一",
+      "token": "veto後actual open2ならsession/created_minute/origin/held_pairのtokenを最大1つ。pair変更、3rd BUY成功、cutoff、session終端で失効。未来EXITで期限を決めない。",
+      "recovery_batch": "token有効・同held pair・actual open2・createdより後のminute・pre15:20・native picked listが空",
+      "recovery_candidate": "V5 rank-pass B、native reasonが厳密にSLOT3_RESERVE_FOR_FUTURE_QUALITY、4軸全HIGH、元の現在時点制約を満たす",
+      "priority": "救済eligible集合だけrP DESC/r3 DESC/rM DESC/r2 DESC/V5 native order",
+      "quantity": "1候補だけ、当該arm現在stateでV5 allocation.pyのsingletonとして数量算定。既存cap/target/ML/lot/water-fill維持。",
+      "no_backfill": "1件cash/lot不可でも次candidateを試さない。拒否したEntryを後時刻に再購入しない。"
+    }
+  },
+  "protected_slot12": {
+    "direct": "同一stateのSlot1/2 native decision/quantityへのoverride0",
+    "path": "保存V5 slot1/2の100 IDsは評価専用。候補が全件fundし、各元slot集合の実quantity PnLがV5以上でなければ昇格候補にしない。",
+    "warning": "Slot3だけ変更してもcash/occupancyによる間接影響はあり得る。100 ID whitelistをruntimeへ渡さない。"
+  },
+  "economic_hard_gates": [
+    "38 sessions COMPLETE・unresolved0・19窓ID完全一致",
+    "同じ全19窓でcandidate growth>=V5 growth",
+    "median>V5 AND mean>V5",
+    "min/max/2x-hit数の非劣化を併記、20-session減資窓0",
+    "各20-window minute-MTM MaxDD<=対応V5窓",
+    "全系列minute-MTM MaxDD<=V5"
+  ],
+  "quality_hard_gates": [
+    "U5>=50、U10>=26、Medium>=27",
+    "Weak N<=58 AND rate<=58/150",
+    "below3 N<=73 AND rate<=73/150",
+    "realized<=0 N<82 AND rate<82/150",
+    "realized>0 N>=68",
+    "gross loss金額<=V5",
+    "negative day N<=V5 AND worst daily return>=V5",
+    "protected Slot1/2 identity/PnL gate PASS",
+    "independent mismatch0・全causal canary PASS"
+  ],
+  "execution_limits_for_Work": {
+    "new_fits": 0,
+    "candidate_primary_replays_max": 2,
+    "control_off_equivalence_replay_max": 1,
+    "independent_reconstruction_replays_max": 2,
+    "extra_arm": 0,
+    "old_oracle_solve": 0,
+    "threshold_sweep": 0,
+    "provider": 0,
+    "Claude": 0,
+    "Fresh": 0
+  },
+  "execution_counts_at_this_handoff": {
+    "new_fits": 0,
+    "candidate_replays": 0,
+    "control_replays": 0,
+    "independent_market_replays": 0,
+    "orders": 0,
+    "main_merge": 0,
+    "force_push": 0,
+    "strategy_code_changes": 0
+  },
+  "incomplete_arm_policy": "source不足のarmはfail-closed。部分系列を公式19窓へ補完しない。共有契約は全停止、arm固有不足は他arm継続可。",
+  "promotion": "全E/Q gate PASSでもresearch candidate提案だけ。activeCapitalChampion=V5、selectedCapitalCandidate=null、automaticPromotionAllowed=falseを維持。",
+  "NEXT_POLICY": "添付指示書の44,058 bytes/hashを確認・全文append-only保存し、重複監査→仕様precommit→既存score監査→V5 OFF互換性→D/DR限定Replay→同じ19個の20-session非劣化比較→独立監査→P11 fixed STOP。失敗候補を次のCapital親にしない。",
+  "Safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "productionReady": false
+  },
+  "future_no_loss_guarantee": false,
+  "Exposure": "ITERATIVE_DEVELOPMENT_EVIDENCE",
+  "fresh_OOS_claim": false,
+  "note": "このcommitは設計と現在地のappend-only保存のみ。Workを実行した報告ではない。"
+}

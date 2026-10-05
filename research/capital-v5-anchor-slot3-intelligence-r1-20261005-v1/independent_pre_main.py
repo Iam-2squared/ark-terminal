@@ -72,11 +72,17 @@ def audit(proposal_path, policy_case_path=None):
         snapshot = dict(proposal['snapshot'])
         snapshot.update(session=proposal['session'], minute=proposal['minute'], candidates=proposal['candidates'])
         independent = reconstruct_batch(snapshot, tables, intelligence)
+        for decision in independent['decisions']:
+            decision['existing_open_N'] = len(snapshot['positions'])
+            if 'intelligence_available' not in decision:
+                decision.update(intelligence_state(decision['entry_id'], intelligence))
         reconstructed.extend(independent['decisions'])
         ids.extend(d['entry_id'] for d in independent['decisions'])
         expected = {d['entry_id']: d for d in proposal['gate_decisions']}
-        assert set(expected) == {d['entry_id'] for d in independent['decisions']}
+        assert set(expected) == {d['entry_id'] for d in independent['decisions'] if 'slot_gate_action' in d}
         for decision in independent['decisions']:
+            if decision['entry_id'] not in expected:
+                continue
             original = expected[decision['entry_id']]
             for key in GATE_KEYS:
                 if not same(key, decision.get(key), original.get(key)):
@@ -104,16 +110,30 @@ def audit(proposal_path, policy_case_path=None):
             row = expected[decision['entry_id']]
             if 'intelligence_available' not in decision:
                 decision.update(intelligence_state(decision['entry_id'], intelligence))
-            audit_keys = ('existing_open_N', 'prior_native_successful_BUY_proposal_N', 'actual_planned_slot',
-                          'native_quantity', 'native_debit', 'native_would_fund_quantity',
-                          'native_would_fund_debit', 'D_veto', 'intelligence_available')
-            rank_keys = tuple(name + suffix for name in ('rP', 'r2', 'r3', 'rM')
-                              for suffix in ('', '_numerator', '_denominator'))
-            state_keys = tuple(prefix + name for name in ('P', '2', '3', 'M') for prefix in ('LOW_', 'HIGH_'))
-            for key in audit_keys + rank_keys + state_keys:
-                if key in row and not same(key, decision.get(key), row[key]):
+            projection = {
+                'native_gate_action': decision.get('slot_gate_action', 'PRECHECK_REJECT'),
+                'native_reason': decision.get('slot_gate_reason', decision['reason']),
+                'native_slot_admission_index': decision.get('slot_admission_index'),
+                'native_quantity': decision.get('native_quantity', 0),
+                'native_debit': decision.get('native_debit', '0'),
+                'existing_open_N': decision['existing_open_N'],
+                'prior_native_successful_BUY_proposal_N': decision.get('prior_native_successful_BUY_proposal_N'),
+                'actual_planned_slot': decision.get('actual_planned_slot'),
+                'D_veto': decision.get('D_veto', False),
+            }
+            for key, value in projection.items():
+                if not same(key, value, row[key]):
                     mismatches.append({'entry_id': decision['entry_id'], 'field': 'policy.' + key,
-                                       'independent': decision.get(key), 'primary': row[key]})
+                                       'independent': value, 'primary': row[key]})
+            for name in ('rP', 'r2', 'r3', 'rM'):
+                states = {'numerator': decision[name + '_numerator'],
+                          'denominator': decision[name + '_denominator'],
+                          'LOW': decision['LOW_' + name[1:]],
+                          'HIGH': decision['HIGH_' + name[1:]],
+                          'available': decision['intelligence_available']}
+                if states != row['intelligence'][name]:
+                    mismatches.append({'entry_id': decision['entry_id'], 'field': 'policy.intelligence.' + name,
+                                       'independent': states, 'primary': row['intelligence'][name]})
             policy_cases_N += 1
     gzsave(OUT / 'ALL_CANDIDATE_PROPOSALS_RECONSTRUCTED.jsonl.gz', reconstructed)
     report = {'status': 'PASS' if not mismatches else 'FAIL', 'candidate_N': len(ids),

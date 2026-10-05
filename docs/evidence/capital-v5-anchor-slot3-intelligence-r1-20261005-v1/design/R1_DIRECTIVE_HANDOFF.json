@@ -1,0 +1,49 @@
+{
+  "schema": "CAPITAL_V5_ANCHOR_SLOT3_R1_DIRECTIVE_HANDOFF_V1",
+  "exact_jst": "2026-10-05T18:00:00+09:00",
+  "CURRENT_STATE": "R1_WORK_DIRECTIVE_READY_NOT_EXECUTED",
+  "repo": "Iam-2squared/ark-terminal",
+  "branch": "capital-v5-anchor-slot3-intelligence-r1-20261005",
+  "branch_base": "5210093e6a65ee79d6cb7121e1dd59271aa37659",
+  "strategyParent": "710656491be06235901b45c50a8b5cbd714ba4eb",
+  "activeCapitalChampion": "V5",
+  "oldBlockedCycle": {
+    "status": "V5_ANCHOR_CONTRACT_FAIL / SPECIFICATION_BLOCKED",
+    "candidatePrimaryReplays": 0,
+    "newFits": 0,
+    "fixedStop": true
+  },
+  "directive": {
+    "filename": "Ark_Terminal_V5_Anchor_Slot3_R1_SC01_SC02_Recovery_Work_20261005.txt",
+    "sha256": "223f9b76ec34922d2f47a1b8f5763d7872f92d4c0bf7b02d9f7b9914f6e530be",
+    "bytes": 26523
+  },
+  "corrections": {
+    "SC01": "Use actual planned third BUY semantics independent of batch starting occupancy. Existing0/1 does not blanket-prohibit veto if prior native successful proposed BUYs make the current candidate actual planned Slot3. Actual planned Slot1/2 always direct-veto0.",
+    "SC02": "LOW/HIGH is defined only by strict-less empirical rank fraction; exact r_h=1/2 is HIGH. Raw-score median equality is not a separate rule."
+  },
+  "unchanged": {
+    "arms": [
+      "D",
+      "DR"
+    ],
+    "newFits": 0,
+    "primary": "same 19 rolling20 windows normalized from linked curve",
+    "all19NonInferiorityRequired": true,
+    "championAutoUpdate": false,
+    "selectorEntryExitFrozen": true
+  },
+  "nextPolicy": "Use attached R1 directive as full execution authority. Reuse old byte-audit receipts only when hashes match; newly certify score reference populations, causal/source coverage, V5 OFF compatibility, mandatory boundary canaries and independent pre-main audit before D/DR one-shot replays.",
+  "Safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "productionReady": false
+  }
+}

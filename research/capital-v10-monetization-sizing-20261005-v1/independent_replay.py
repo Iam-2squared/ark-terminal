@@ -46,7 +46,7 @@ def reconstruct(arm,stream,tables,audit):
      k=r['entry_id'];saved=primary_d[k]
      for f in ('debit','lot_debit','equity_cap','batch_budget','batch_equity','target_utilization','budget_unspent'):audit.money(k+'/allocation/'+f,z[f],saved[f])
      for f in ('quantity','first_pass_quantity','water_fill_lots','water_fill_rounds'):audit.check(k+'/allocation/'+f,z[f]==saved[f])
-     audit.num(k+'/desired',float(z['desired']),float(saved['desired']));audit.money(k+'/sizing_weight',z['sizing_weight'],saved['sizing_weight'])
+     audit.num(k+'/desired',float(z['desired']),float(saved['desired']));audit.money(k+'/sizing_weight',z['sizing_weight'],saved['sizing_weight']);audit.check(k+'/cap_hit',saved['cap_hit']==(z['debit']+z['lot_debit']>z['equity_cap']))
      for f in ('rp','r2','r3'):audit.num(k+'/'+f,z[f],saved[f])
      audit.money(k+'/cash_before',cash,saved['cash_before']);d['quantity']=z['quantity']
      if z['quantity']<100:d['reason']='CASH_OR_LOT';continue
@@ -79,4 +79,3 @@ def reconstruct(arm,stream,tables,audit):
   else:audit.num(arm+'/'+f,v,primary_result[f])
  for z,s in zip(rolling,primary_result['rolling20_windows']):audit.num(arm+'/rolling',z,s['growth_multiple'])
  return decisions,metrics,trades,frames,daily
-

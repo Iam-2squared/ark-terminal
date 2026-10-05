@@ -1,0 +1,515 @@
+Ark Terminal — V5 Reserve Past-Qualified Recovery Work
+V5を変更せず保持／既存Expert再利用／過去OOF適格性→実数量→初回差分→最大1候補Replay
+文書ID: V5_RESERVE_PAST_QUALIFIED_RECOVERY_V1_20261005
+作成日: 2026-10-05 JST
+状態: DESIGN_READY_NOT_EXECUTED
+
+================================================================
+0. 決定方針と、この指示書の権限
+================================================================
+目的は、V5の空き枠Reserveに限って、既存pPのWinner順位を利用する価値を検証すること。
+「既存モデルのAUCが良いから買ってよい」ではなく、同じ介入経路の過去OOFで
+品質・費用込みの単体returnが支持され、元allocationで実数量が出る場合だけ試す。
+
+新規候補は V5_RESERVE_PAST_QUALIFIED_RECOVERY_V1 の1本だけ。
+新head fit/refit=0。全候補のRankを変更しない。V5 native BUYへの直接veto=0。
+MRETによる損失防御、保有replacement、損失予測モデルの再研究は今回行わない。
+
+本書をWorkへ送ることにより、以下の条件付き研究実行を承認する。
+仕様固定→入力再利用→過去限定の適格表→実数量検査→初回差分検査→
+必要条件を通った場合だけcandidate primary Replay最大1回→独立再構築最大1回→固定STOP。
+工程ごとの形式的な確認待ちは不要。ただしSTOP条件を独断で解除しない。
+このチャットの指示書作成はWork実行そのものではない。
+
+activeCapitalChampion=V5 / selectedCapitalCandidate=null / championUpdated=false。
+全Gateを通っても研究候補の提示まで。自動昇格・注文・main適用はしない。
+将来無損失、全将来月の非劣化、候補Replay自体が必ず改善することは保証しない。
+保証の対象は、V5を保存し、条件未達の候補へ切り替えない手続きである。
+
+================================================================
+1. 根拠、既知の反証、今回の設計判断を分ける
+================================================================
+[出典値：Frozen Expert Bridge 最終報告／GitHub F9]
+・元1028件でpP U5 AUC=0.709646、U10=0.740243、q2 U2=0.690335、q3 U3=0.697440。
+・V5 rank-pass494件でpP U5=0.619701、U10=0.655386。元maskの性能は保存済み。
+・Reserve181件だけではpP U5/U10の95%CIはいずれも0.5を跨ぐ。
+・Reserve181件、native picked空167件。100株支払可能175件という診断はあるが、
+  frozen allocationでfundできる件数と追加回収数は未測定。
+・MRETのabsolute loss defenseと独立増分価値は未確立。
+・4LOW起点の旧D/DRは発動0、回収0、全19窓V5と同値。再実行しない。
+
+[このWorkの新設計：過去研究の認証済み条件ではない]
+・pPのblock-local参照順位3/4以上を回収候補の仮説とする。
+・q2とq3が両方1/2未満なら回収を見送る。両方HIGHは要求しない。
+・現在batchの候補順はraw pP DESCのまま。異種scoreの加重和、MRET投票はしない。
+・過去OOFの同経路で本書の適格条件を満たすblockだけ回収を許す。
+・1sessionの追加BUY成功は最大1件。母集団全体への置換を避ける初回研究予算。
+これらの値は設計上の固定値で、最適値でも利益保証でもない。結果後変更0。
+
+[訂正すべき説明]
+空き枠でも追加BUYは後続V5候補のcash/MAX3を妨げ得る。「安全な上乗せ」と断言しない。
+100株を払えること、元allocationが100株以上を割り当てること、最終決済可能性は別。
+U5/U10とrealized Loserは重なる。q2はWeak判別であり実現損失予測ではない。
+元headを凍結しても統合policyの精度・回収数・収益は保存を保証されない。
+既存150件を全部残して追加するだけなら、既存Loser82件は減らない。
+したがって本書は「回収だけでLoserを消した」と報告させない。
+
+================================================================
+2. Authority、branch、重複回避
+================================================================
+Repo: Iam-2squared/ark-terminal
+strategy parent（常にV5）: 710656491be06235901b45c50a8b5cbd714ba4eb
+最新確認Bridge HEAD: fd896294400f00317486001ba763472564388c5d
+Bridge: capital-v5-frozen-expert-bridge-20261005
+Bridge evidence: docs/evidence/capital-v5-frozen-expert-bridge-feasibility-20261005-v1/
+Bridge terminal: EXPERT_BRIDGE_INCONCLUSIVE / F9_CLOSURE_FIXED_STOP
+旧R1: 9f75e71c7441944bf4527898aa0965e06f168446
+旧R1 designer review: 3910db03d0a134a27efea1b947e40d93b08fbb38
+Rank: da8dc67b3100ddb7abd7ff95ed336fb9d55470c6
+Quality: a977e30aa3318f639569f806f389acb99b3596e4
+MRET fit: 489fc4f9bc164b3150e374e9f4011a9888ad2d55
+MRET numeric cert: a225782aad5a48abea1e332e0eee1d93a0481f0b
+
+推奨新branch: capital-v5-reserve-past-qualified-20261005
+新Evidence: docs/evidence/capital-v5-reserve-past-qualified-20261005-v1/
+新branchはV5 strategy parentから作る。既存同名branchはactual GETし、実行claimの
+有無を確認する。重複開始・force update・旧cycle resume・上書きはしない。
+Bridgeは原本と診断資産としてread-only参照し、I2/M2をstrategy parentにしない。
+
+開始時にBridge CLOSURE、DELIVERY_RECEIPT、DO_NOT_REPEAT、報告、既存2cardsを読む。
+新しい有効な実行claim/closureがあれば重複回避を優先。新しい研究結果に合わせて
+本書のpolicyを勝手に更新しない。今回と同じ実験済みなら再実行せず既存を報告する。
+
+================================================================
+3. 入力再利用と実ファイルの解決
+================================================================
+Bridge private:
+Ark_Capital_V5_Frozen_Expert_Bridge_Feasibility_20261005_PRIVATE.zip
+GitHub delivery-recorded SHA256:
+a31eae5a5aea92bcd96bcc093e8379f588d801faee7858b2265a1de150401686
+packet SHA256: 6f47f616cab22e5fe749638b69fee7b7152724c8c901a44e3c50aa0e66c514f6
+manifest SHA256: 47044496512f100b2fdfda18bb47e237d49b56b6fd07c86a1c8ac8ce0d1f7ff1
+本書作成時にこの最新ZIPの全bytesは未監査。Work開始時に取得・確認する。
+
+必須は、immutable Expert packet、head別32参照集合、OOF block/session分割、
+label成熟時刻、V5 saved native proposals/decisions/trades/MTM/EOD、
+原candidate stream、V5 ARRIVAL_TABLE、allocation/replay/execution/staircaseコード、
+Frozen EXIT/EOD source、既存OFF互換性証明、旧監査receipt。
+実path/列名はmanifestで解決しINPUT_BINDING.jsonへ記録。推定pathを実在扱いしない。
+
+旧R1に存在する再利用候補（Bridge manifestとの対応を確認）:
+r1_work/score_certification/CURRENT_FOUR_HEAD_INTELLIGENCE.jsonl.gz
+r1_work/runs/OFF_PRIMARY/NATIVE_PROPOSALS.jsonl.gz
+r1_work/metrics/supplement/V5_FUNDED150_FOUR_SCORE_NATIVE_SLOT.jsonl.gz
+V5 source root: r1_work/inputs/v5/repo/research/capital-v5-max3-slot-intelligence-20261004-v1/
+
+同hashのhead／score／入力／OFF証明を再作成しない。元AUC/元bootstrapの再実行0。
+必要入力を同一hashの個別artifactから回収できれば外側ZIP不在だけで全工程を止めない。
+ただし必須のnative snapshot、past OOF、決済sourceが復元不能なら該当経路をBLOCKED。
+データ取得先の切替、missingを0扱い、教師再生成、新model推論での穴埋めは禁止。
+
+================================================================
+4. 固定境界
+================================================================
+Selector / Entry / EXITは永久Freeze。
+V5 H2/H3/H5、ML、S/A/B/C、admission>=1、native candidate_order、Reserve/arrival表、
+MAX3、same-symbol、lot100、BUY1.0005、SELL0.9995、commission0、cash LONG-only、
+MTM/source/as-of、15:20 cutoff、cap、target utilization、water-fillは固定。
+Liquidityは元通りdiagnostic-only。新hard gateにしない。
+
+唯一の売買変更権限は「下記の適格状態における、native Reserve Bへの1件の例外BUY」。
+native ADMITを取り消さない。native picked listの順序・数量を同batchで変更しない。
+holdingの早売り・部分売り・replacement・topup・Entry延期・過去Entryの再購入は0。
+満席139件をこのWorkの直接回収可能数へ含めない。
+
+MRETは原研究資産として保存するが、選択・拒否・数量・適格表・tie-breakへの使用0。
+HL0/HF1/LSAFE/Q1-Q8、I2、M1/M2、D/DRの再fit・再Replayは0。
+
+================================================================
+5. 単一policy R：変更するのはReserve例外だけ
+================================================================
+Profile: V5_RESERVE_PAST_QUALIFIED_RECOVERY_V1（略R）
+追加状態: recovered_this_session（bool）。session開始でfalse。
+成功した例外BUYでtrue。同session中は以後trueのまま。自然EXITでも再許可しない。
+他のsession横断の適応counter、損益に応じたpolicy切替は追加しない。
+
+毎Entry batchの順序:
+(1) 元V5の時刻更新、known mark更新、confirmed SELLとcash releaseを元順序で処理。
+(2) R自身の現在保有・cashを使い、V5 native filter/gate/picked listを一度計算。
+(3) native pickedが1件でもあれば元allocation/BUYだけを実行し、例外は検討しない。
+    pickedはallocation前のADMIT list。全候補quantity0でも「空」と読み替えない。
+(4) native pickedが空のときだけ、下記の全構造条件を確認。
+    ・current blockのPAST_QUALIFIED=true
+    ・recovered_this_session=false
+    ・confirmed exits後actual openが1または2（0/3は対象外）
+    ・minute<920（15:20）
+    ・pending/同symbol/Entry時点情報が元契約上有効
+(5) 当batchのnative B、admission true、ML>=1かつnative reasonが厳密に
+    SLOT2_RESERVE_FOR_FUTURE_QUALITY または SLOT3_RESERVE_FOR_FUTURE_QUALITY
+    の行を構造poolとする。MAX_POSITION_CAP/cash失敗/rank rejectは含めない。
+(6) pool内の全pPが既知なら raw pP DESC → V5 native stable order で先頭1件を選ぶ。
+    不明pPがpoolに1件でもあれば例外全体をabstain。native判断には影響しない。
+(7) 先頭1件にSection6のscore条件を適用。不成立でも下位候補へ乗換えない。
+(8) Section7のnative singleton allocationを1回適用。quantity>=100なら例外BUY。
+    quantity0なら同batch backfillなし。別時刻の別Frozen Entryは将来再検討可。
+(9) BUY後は元Frozen EXIT/MTMへ完全委譲。例外候補だから早売りすることはない。
+
+4LOW防御tokenは不要。native Slot2/Slot3 Reserveの双方を一つのscopeとして固定。
+今回のq2/q3条件は新たに追加するReserve BUYの検査であり、旧Dの条件緩和ではない。
+
+================================================================
+6. Expert packet、順序、score条件
+================================================================
+各head hのcurrent score s_hと、その行の元rolling-origin blockに対応する
+completed-training参照集合T_hを凍結reuseする。
+num_h=1+count(t in T_h: t<s_h), den_h=|T_h|+1, r_h=num_h/den_h。
+同値はstrict-less。各headの分母を揃えない。raw medianとの等号を使わない。
+
+Winner条件: 4*num_P >= 3*den_P（rP>=3/4）。
+Low-quality conflict: 2*num_2<den_2 AND 2*num_3<den_3。
+score条件: Winner条件成立 AND NOT Low-quality conflict。
+q2またはq3の一方がHIGHなら、他方のLOWだけで回収候補を拒否しない。
+exact3/4、exact1/2は通過側。missing/nonfinite/参照不明はLOW扱いせずabstain。
+
+pPは候補順の主役。q2/q3は二つとも弱い場合の警告であり、U5の確実な保護ではない。
+raw pPの元順位をrPによるglobal順位へ置換しない。rPは固定cutoff用だけ。
+この新フィルタで失われるU5/U10/Mediumは評価後に全件報告する。
+元score exact保存と新policyの非劣化は別Gate。
+
+================================================================
+7. 実fundability：100株を払えるだけでは通さない
+================================================================
+先頭1候補を、Rの当該時点のequity/exposure/cash/existing_bandsとともに
+V5 allocation(picked=[row], ...)へ渡す。capital_scoreはV5 native値のまま。
+pP/rP/q2/q3をcapital_scoreに代入しない。
+
+元実装の照合式:
+CAP S/A/B=.45/.35/.25、BASE=.68/.56/.44。
+target=min(.92, BASE[best_existing_or_candidate_band]+.055*(positions_after_proposal-1))。
+budget=min(cash,max(0,equity*target-exposure))。
+lot_debit=raw_reference*1.0005*100。
+singleton desired=budget、候補cap=equity*CAP[band]。
+first_quantity=100*floor(min(desired,cap,cash)/lot_debit)。
+元water-fillはfirst passでfunded済みの候補だけ。強制1lot最低保証は追加しない。
+
+qty>=100、debit<=cash/cap/budget、MAX3/same-symbol/Entry整合で初めてfundable。
+元ソースと上式の対応を機械確認し、実際のソースをauthorityにする。意味差はSTOP。
+「cashはあるがtarget/capでqty0」を独立reasonで出す。
+
+将来SELLの存在をこのBUY判断のfeature/gateにしない。BUY確定後にexecution moduleが
+必要sourceを確認する。欠損ならfail-closed。後からその候補を選ばなかった扱いにしない。
+
+================================================================
+8. 過去OOFによるblock適格表：今回埋める不足
+================================================================
+全38sessionの結果を見て一つの閾値を最適化しない。
+block bの表は、元split上でblock<b、かつb開始前にoutcomeが成熟済みの保存OOFだけ。
+warmupや同block内の早い日、後続blockの結果は使用0。block1は必ずCOLD_ABSTAIN。
+新しい係数学習は0だが、この表はoutcomeを使用する二段目のdecision artifactである。
+「新fit0だから適応も過学習もない」と呼ばない。
+
+各行は当時の元head、当時のT_h、当時のV5 native snapshotで扱う。
+current blockモデルで過去行をrescoreしない。training resubstitutionはrの参照だけ。
+過去OOF score→過去完成outcome→block b適格表→bのcurrent actionの依存DAGを保存。
+ラベル公開時刻を証明できないものを都合よくmatured扱いしない。
+
+過去proposal collectionの構成（市場状態を分岐させない）:
+・native picked空、actual open1/2、precutoff、該当Reserve理由の保存snapshotを使用。
+・Section5(5)-(8)と同じ先頭選択・score条件・singleton実数量を適用。
+・各過去sessionで、最初にquantity>=100になる1proposalだけをSへ記録。
+・そこでそのsessionのcollectionを終了。後続candidateを追加してsample Nを増やさない。
+・native snapshotを書換えず、新holding/cash pathを生成しない。これはstandalone proposal
+  supportであり、historical policy Replayでもactual recovered PnLでもない。
+・Sをoutcomeに関係なく先にhash固定後、過去成熟labelをjoinする。
+
+比較集合F: 同じ過去block範囲でV5が実際にfundした全取引。Slot/B別に選び直さない。
+S、Fのknown/unknown、distinct sessions、blocks、各target分母を明示する。
+S/Fに必要outcome unknownが残れば、そのblockはUNKNOWN_ABSTAIN。
+
+================================================================
+9. PAST_QUALIFIEDの固定条件
+================================================================
+以下を全部満たすblockだけtrue。条件を満たさないblockはV5へ委譲し続ける。
+これはReserve専用の実用可能性を過去だけで審査するresearch screenであり、将来保証ではない。
+
+H0 完全なidentity/as-of/原score/原参照/label成熟/実数量証明。
+H1 Sが10件以上・10session以上・2個以上の過去OOF blockに分布。
+   Fが20件以上・8session以上。SにU5が2件以上、U10が1件以上。
+   これらは今回の少数例依存を避ける固定設計値。普遍的統計的十分条件とは主張しない。
+H2 Sのmean費用込みnet return>0。
+H3 下記session bootstrapでstandalone return proxy平均の95%CI下限>0。
+H4 Sを1sessionずつ対称に除いてもmean net return>0。利益を1件だけで支えないscreen。
+H5 SのU5率>=FのU5率、U10率>=FのU10率、U3率>=FのU3率。
+H6 SのWeak<2率<=FのWeak率、realized<=0率<=Fの同率。
+比較は全て過去F。将来のV5全150件/50U5/26U10等を表の判定へ使わない。
+
+Bootstrapを完全指定:
+・block bの先行OOF session列全体がsampling frame。空sessionも残す。
+・各session x_s=Sの唯一のproposalの保存net return、proposal無しは0。
+・seed=571005310+b、PCG64、1999回、各回frame長だけ復元抽出。
+・statistic=抽出x_sの算術平均。2.5/97.5 linear percentile。
+・全1999 validが必要。保存countsから独立再集計。pair生成はしない。
+・このx_sは実際のPortfolio日次returnではない。20-session曲線を生成しない。
+・比較ゼロの近辺をtoleranceでPASSへ倒さない。下限exact0はFAIL。
+
+各blockはtrue/false、各Hi、N、不足数、CI、全入力hashを保存。
+PAST_QUALIFIED=falseを見て閾値3/4・1/2、support、confidence、Scopeを変えない。
+全block falseなら、PAST_SUPPORT_NOT_ESTABLISHEDでCapital Replay0のまま終了。
+同cycleで別のpP cutoffやMRET案へ移らない。
+
+================================================================
+10. 追加精度検査：再研究せず接続だけ確認
+================================================================
+Bridgeの原精度保存・L1/L2 certificateをhash/body reuse。原AUC/bootstrap再計算0。
+使用packetからのraw scoreコピーはbinary64 exact。新しいround/校正/再scaleは0。
+参照集合・split・学習ID・current available timestampを証明する。
+
+原1028とV5 funded150、Reserve181は異なるmask。同じAUCを要求しない。
+過去SのpP高順位、q2/q3 conflict除外によるU5/U10/Medium混入・誤排除を報告するが、
+それを見てガードを作り替えない。MRETは診断結果の反復評価も今回不要。
+
+================================================================
+11. フルReplay前の必須チェック
+================================================================
+J0 条件の到達可能性をsyntheticで確認。Section15の反例を全て通す。
+J1 既存V5 OFF互換性receiptとnative code/input hashをreuse。
+   wrapper OFFの新しい純粋関数入出力は保存native proposalsへ照合する。
+   新OFFフルReplayはしない。検査不足で同一性を証明できなければBLOCKED。
+J2 各時点のnative snapshotにおいてsingleton数量・reasonを別実装で検算。
+   181を全部買う実験ではない。shadow proposal数・snapshot fundable数を分ける。
+J3 Section12のfirst-divergence証明。score条件だけの発火件数では済ませない。
+J4 runtimeが未来outcome/評価ID一覧/未知sourceリストを受け取らないfirewall。
+
+J0-J4と独立pre-main照合mismatch0の前にcandidate Replay禁止。
+
+================================================================
+12. First-divergence：発動ゼロを再びフルReplayしない
+================================================================
+保存V5系列を時系列で走査し、R拡張状態は各session falseから始める。
+PAST_QUALIFIEDはSection9の対応block表を固定参照。V5状態とR状態が一致している
+prefixだけで、Section5の完全なBUY判断、allocation、追加counterを確認する。
+
+最初にRの例外quantity>=100が成立した地点をFIRST_DIVERGENCE_FOUNDとして固定。
+その直前のcash/equity/marks/positions/pending/native picked/hash、candidate、元reason、
+pP/rP/q2/q3、全Hi、quantity/debitを保存。ここでは新BUYを適用しない。
+以後の保存V5 snapshotを「Rの現在state」として使わない。
+
+全系列で例外BUY差分0、かつ初期state・全transition・拡張stateが同じことを
+主/独立実装が確認した場合だけ、帰納的NO_EFFECT_PROVENとする。
+新Capital Replay0、candidate新成績NOT_EXECUTED。V5同値の証明を改善と呼ばない。
+必要state欠落はUNMEASURABLEでありNO_EFFECTとはしない。
+
+FIRST_DIVERGENCE_FOUNDは利益改善の証明ではない。
+これとpre-main全PASSを満たす場合だけ、元初期100万円からRを1回実行できる。
+最初の差分が1件でも、利益を見ずに本書通り実行可。最低回収数を後付けしない。
+
+================================================================
+13. Candidate Replay：1本だけ、閉ループで評価
+================================================================
+SINGLE_REPLAY_CLAIMを先にcommit→actual GET→実行。
+初期100万円。元38評価sessionを元順序で連結。各session終了で元契約の決済を確認。
+R自身のcash、exposure、positions、MTM、後続native判断を更新する。
+保存V5のfuture quantity/保有/Entry結果をRへ上書きしない。
+
+BUY差分が生じた後もV5 native規則は同じだが、実際の購入ID・数量が変わり得る。
+「native BUYに直接vetoしない」を「元150件全て必ず保存」と混同しない。
+現在満席なら元通り見送る。未来のV5 Winnerを知って枠を空けない。
+
+追加BUY確定後にSELL/MTM source不足を検出した場合はfail-closed。
+未決済義務・既知prefixを保存し、残りをV5成績/0/100万円resetで補完しない。
+後続日を正式38日成績へ加えない。完全19窓のGateはNOT_EVALUATED。
+
+途中の利益悪化を見て仕様変更・二度目のReplay・別armへ切替は禁止。
+報告・評価のための再Replayも0。保存した台帳から集計する。
+
+================================================================
+14. 非劣化・改善Gate：旧の厳しい採用境界を緩和しない
+================================================================
+Primaryは同じstart/end sessionの全19個の20-session窓。
+growth=end_EOD/pre_window_EOD、amount=1000000*growth。
+Decimal原数値をFraction化し、大小は厳密分数/交差積で比較。
+表示丸め倍率や1e-12をCapital非劣化の許容損失にしない。
+これは連結系列の正規化窓。独立reset試験や完全calendar月ではない。
+
+E0: 38 COMPLETE、execution unresolved0、19窓ID完全一致。
+E1: 全19対応窓でR growth>=V5 growth。
+E2: meanとmedianの双方がV5よりstrictに上。
+E3: min/max/2x hit数非劣化、100万円未満の20-session窓0。
+E4: 対応する各20-window minute-MTM MaxDDと全系列MaxDDがV5以下。
+
+Q1: U5>=50、U10>=26、Medium3–<5>=27。
+Q2: Weak N<=58かつ率<=58/150、below3 N<=73かつ率<=73/150。
+Q3: realized<=0 N<82かつ率<82/150。realized>0 N>=68。
+Q4: gross loss金額、negative session数、worst daily returnがV5より悪化しない。
+Q5: 元V5 Slot1/2の100IDを全てfundし、元slot各groupの実quantity PnLがV5以上。
+    この100ID集合は評価時のみjoin。runtimeの保護whitelistにしない。
+Q6: all causal checks PASS、独立最終mismatch0。
+R1: Winner回収の成功名を付けるにはU5>50またはU10>26も必要。
+
+E/Q/R1全PASSでのみselectedResearchCandidate=Rを提案可。
+selectedCapitalCandidate=null、activeCapitalChampion=V5は人間承認まで保持。
+
+[目的の非混同]
+回収だけで既存82Loserを維持した場合はQ3 FAILで、総合改善候補にしない。
+Capitalが改善しQ3だけ失敗した場合はCAPITAL_ONLY_LOSS_OBJECTIVE_UNMETと記録し、
+「損失防御成功」「総合採用」とは呼ばない。この結果を理由にQ3を<=へ変えない。
+20-sessionが悪ければ、U5追加が多くてもNO_GO。
+
+================================================================
+15. 必須synthetic・因果テスト（全ケースに期待値を先に固定）
+================================================================
+01 block1/past不足は例外0、nativeそのまま。
+02 current/future outcomeのmutationでcurrent表・action不変。
+03 先行blockだがlabel未成熟なら使用しない。
+04 training resub rowをpast OOF性能sampleに混入させない。
+05 rP exact3/4通過、直下不通過（有理数）。
+06 r2/r3 exact1/2はHIGH、raw median等号は別物。
+07 q2 LOW/q3 HIGHはscore可、q2 HIGH/q3 LOWも可。
+08 q2 LOW/q3 LOWは不可。MRET値変更ではaction不変。
+09 高pPの先頭がguard失敗しても低pPへbackfillしない。
+10 native picked非空ならqty全0の場合も例外0。
+11 actual open0/3は例外0、open1/2は構造候補。
+12 現在cashで1lot払えてもtarget budget0なら例外0。
+13 capが1lot未満、1lotちょうど、直上の数量。
+14 1session例外BUY成功後は自然EXITしても再回収0。
+15 qty0失敗は成功counterを消費せず、同batch backfillは0。
+16 同symbol/pending/current Entry/cutoffを迂回しない。
+17 future releaseを使った期限・判断は作らない。
+18 future source availabilityの入替でBUY前選択は不変。
+19 selected未来source不足は後付け除外せずexecution BLOCKED。
+20 V5 protected100 membershipのmutationでruntime不変。
+21 全prefix差分0ならNO_EFFECT、state欠損ならUNMEASURABLE。
+22 初回差分後にsaved V5 stateを使ったfirst-divergence継続を拒否。
+23 future candidateを同batchへ混入しない。Entryの後回し再実行0。
+24 bootstrapはsessionごとの1値、空session保持。pair m/m²問題を持ち込まない。
+25 純粋追加で元150を保持した場合、Loser82未減をQ3 PASSにしない。
+26 18窓改善・1窓悪化ならE1 FAIL。浮動小数丸めで同値にしない。
+27 Frozen head/元score変更を検出してSTOP。
+28 全Safety false、new fit/new source/注文/main適用0。
+
+独立側はPrimary gate/allocation/evaluatorをimportしない。
+モデル原score/元参照/sourceを共有する限界は明記。完全盲検外部監査とは呼ばない。
+
+================================================================
+16. 独立検証・回数・修復
+================================================================
+new fits/refits/calibration/teacher regeneration=0。
+元AUC/元bootstrap/Bridge診断全体の再計算=0。
+新current inference=0（認証済み1039packetを使う。必須欠落ならsource BLOCKED）。
+past qualification table生成=最大8（同prefixの再最適化なし）。
+native snapshot数量probe=各実snapshot/選択candidate1回、state mutation0。
+first-divergence prefix走査=主1回＋独立1回。
+V5/control/D/DR/M1/M2市場Replay=0。
+新R primary市場Replay=最大1、独立R再構築=最大1。
+Oracle solve、replacement、threshold sweep、extra arm=0。
+provider/Fresh/Claude/orders/main merge/force push/自動昇格=0。
+
+独立再構築は全action/表の過去依存/先頭選択/数量/BUY-SELL/cash/MTM/日次/
+19窓/各DD/quality/protectedID/差分の全てを確認。
+money/quantity/identity/rational gateはexact、score copyはbinary64 exact。
+metric浮動計算は固定1e-12。preprocessingは既存certificateをreuseする。
+
+実装修復とpolicy救済を分ける。syntax/import/path/serialization等、固定仕様が一意で
+期待値を先に示せる純技術bugは、失敗artifact・code hash・影響範囲を保存後に修復可。
+意味・入力母集団・閾値・Gate・許容差の変更は禁止。修復後は必要な下流だけ再集計。
+市場Replayの完了済み・claim済み曖昧な実行を無断で最初から再試行しない。
+Main coreの誤実行は別cycle必要としてSTOP。report writer failureは保存台帳から修復。
+
+================================================================
+17. 出力順序と終了判定
+================================================================
+日本語。見出しに絵文字。数値は表。必ず最初に次を表示。
+
+100万円→20 sessions | V5 | R | R−V5
+Min                  | 1,082,366 | 実測または未実行 | 同左
+Mean                 | 1,190,646 |                 |
+Median               | 1,199,154 |                 |
+Max                  | 1,297,031 |                 |
+2x hit               | 0/19      |                 |
+
+V5値は表示参考。判定は原19窓の厳密値。未実行を0円/0勝にしない。
+続けて、better/equal/worse19窓、最悪差、各DD、全E/Q/R1を出す。
+
+必須activity waterfall:
+構造Reserve→native picked空→pP先頭→score条件→過去適格block→
+native数量>=100→初回差分→actual例外funded→完全決済。
+各段階の総N/session/blockと全abstain reasonを分ける。
+
+必須impact table:
+V5_COMMON / V5_ONLY / R_ONLY、元native取引の失われた件数/数量/PnL、
+追加取引のMedium/U5/U10/Weak/realized損益、後続の新MAX3/cash/reserve miss。
+追加Winner数だけを純増と呼ばない。既存Winner lossとの差を示す。
+保存台帳のoutcome寄与を個別介入の一意因果効果とは呼ばない。
+
+終了status（優先順）:
+INPUT/CAUSAL/IMPLEMENTATION_BLOCKED：必須認証不可、Capital未評価。
+PAST_SUPPORT_NOT_ESTABLISHED：全block適格false、新Replay0。
+NO_EFFECT_PROVEN：全prefix差分0の証明、Replay0、改善0。
+EXECUTION_MEASUREMENT_BLOCKED：候補BUY後にsource/決済不足、正式19窓未評価。
+V5_REGRESSION_NO_GO：完全評価できたがE1/E3/E4等でV5より悪い。
+CAPITAL_ONLY_LOSS_OBJECTIVE_UNMET：E全PASSだがQ3等の品質目的未達。
+QUALITY_ONLY_CAPITAL_NO_GO：品質は改善してもE2等が未達。
+NO_MATERIAL_IMPROVEMENT：上記以外のstrict改善不足。
+V5_RECOVERY_RESEARCH_CANDIDATE：E/Q/R1全PASS、研究候補提示のみ。
+North Star hitは最後のstatusかつ2x>0のDevelopment結果としてだけ追記。
+
+全分岐で不足・理由を定量化しfixed STOP。新cardを増やすだけで終わらず、
+この1本が「支援不足／発動なし／決済不能／退行／改善」のどれかまで確定する。
+
+================================================================
+18. GitHub保存・復旧・成果物
+================================================================
+本書全文をUTF-8/LFで新規pathへ保存し、bytes/SHA256/git blob SHAをactual GET照合。
+チャット貼付と添付の不一致、未取得ファイルのhash一致を推測しない。
+GitHubの本書全文を取得できる場合はそれを正本として使用し、transport問題を避ける。
+core private/source不足とは別に記録。
+
+P0 latest/no-repeat/source binding/本書と全設計値のprecommit
+P1 packet/既存証明/native wrapper OFFの保存case整合
+P2 past OOF DAG・過去proposal集合固定・8適格表
+P3 native実数量probe・synthetic・独立pre-main
+P4 first-divergence証明とconditional execution decision
+P5 必要時のみprimary single execution claim→GET→R Replay
+P6 保存台帳集計・独立R再構築
+P7 20-session/quality/impact Gate・最終Report/PRIVATE/closure
+
+各checkpointに実時計JST、branch、basis HEAD/tree、source/code/policy hash、
+現在地、結果、次方針、回数、Safetyをappend-onlyで残す。
+旧F9/R1/失敗receiptを上書きしない。途中復旧はlast complete→first incomplete。
+claimのみで結果不明なら重複実行せずAMBIGUOUS_STOP。
+
+必須成果物:
+DIRECTIVE.txt / DESIGN_PRECOMMIT.json / INPUT_BINDING.json / TEMPORAL_DAG.json /
+PAST_PROPOSAL_MANIFEST.json / PAST_QUALIFICATION_BY_BLOCK.json /
+NATIVE_SINGLETON_FUNDABILITY.json / SYNTHETIC_AND_PREMAIN_AUDIT.json /
+FIRST_DIVERGENCE_CERTIFICATE.json / EXECUTION_DECISION.json /
+実行時の全decision/trade/MTM/EOD / PAIRED20_EXACT.json・CSV /
+QUALITY_AND_DISPLACEMENT.json / FINAL_GATES.json / INDEPENDENT_AUDIT.json /
+REPORT_FINAL-ja.md / PRIVATE_MANIFEST.json / WORK_STATUS_LOG.jsonl / CLOSURE.json。
+未実行の台帳・グラフは捏造せずNOT_EXECUTED reasonを出す。
+
+同一workflow treeの既存trigger監査をreuseし新branch/pathのevent適合を確認。
+[skip ci]だけを無発火の証明にしない。dispatch/cancel0。無関係jobを勝手に操作しない。
+
+Safety10全false:
+executionAllowed, brokerWriteAllowed, excelOrderWriteAllowed, rssOrderFunctionAllowed,
+liveTradingAllowed, paperTradingAllowed, automaticPromotionAllowed,
+productionUpdateAllowed, transmitted, productionReady。
+
+Exposure=ITERATIVE_DEVELOPMENT_EVIDENCE。
+新branch/precommit/past-only/bootstrapでも既視DevelopmentはFreshへ戻らない。
+選択した38評価sessionを全市場営業日と同一視しない。将来非劣化・無損失保証false。
+
+================================================================
+19. Work開始文
+================================================================
+この全文を正本としてV5 Reserve Past-Qualified Recovery Workを開始してください。
+V5 parent710656…、Bridge F9/fd896…の固定状態と新しい実行claimの有無をGET確認し、
+旧研究を再実行せず、P0-P7を条件付きで完走してください。
+1本のR以外を追加しない。past OOF資格、元allocationの実数量、初回BUY差分を
+証明できないまま市場Replayしない。通った場合だけ最大1回、独立再構築最大1回。
+原headを混ぜて作り変えず、MRET損失防御・EXIT変更・Token依存Recoveryは追加しない。
+Primaryは100万円→同じ20sessions19窓。全Gate未達は採用0、Champion=V5を保持。
+結果が不成立でも条件緩和や別案への横滑りをせず、理由と実施量を保存して固定STOP。
+
+END_OF_DIRECTIVE — V5_RESERVE_PAST_QUALIFIED_RECOVERY_V1_20261005

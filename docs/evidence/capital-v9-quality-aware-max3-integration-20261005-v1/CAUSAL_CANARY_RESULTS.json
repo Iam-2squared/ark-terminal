@@ -1,0 +1,322 @@
+{
+  "PASS_N": 60,
+  "Safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "all_PASS": true,
+  "canary_N": 60,
+  "checks": [
+    {
+      "PASS": true,
+      "evidence": "shared frozen Entry identities; parent tree immutable",
+      "name": "01 Selector freeze"
+    },
+    {
+      "PASS": true,
+      "evidence": "shared byte-identical frozen Entry",
+      "name": "02 Entry freeze"
+    },
+    {
+      "PASS": true,
+      "evidence": "frozen execution source bytes unchanged",
+      "name": "03 EXIT freeze"
+    },
+    {
+      "PASS": true,
+      "evidence": "8 pinned identical models",
+      "name": "04 pP model hashes"
+    },
+    {
+      "PASS": true,
+      "evidence": "frozen saved ordering authority",
+      "name": "05 pP stream hash"
+    },
+    {
+      "PASS": true,
+      "evidence": "16 fitted-state identities checked against completed claims",
+      "name": "06 U2 model hashes"
+    },
+    {
+      "PASS": true,
+      "evidence": "16 fitted-state identities checked against completed claims",
+      "name": "07 U3 model hashes"
+    },
+    {
+      "PASS": true,
+      "evidence": "saved predictions audit-only; causal inference runtime source",
+      "name": "08 current causal score reconstruction"
+    },
+    {
+      "PASS": true,
+      "evidence": "frozen explicit 46+7 feature allowlist",
+      "name": "09 future High input0"
+    },
+    {
+      "PASS": true,
+      "evidence": "frozen explicit 46+7 feature allowlist",
+      "name": "10 realized PnL input0"
+    },
+    {
+      "PASS": true,
+      "evidence": "frozen explicit 46+7 feature allowlist",
+      "name": "11 future EXIT input0"
+    },
+    {
+      "PASS": true,
+      "evidence": "strict completed-past arrivals only",
+      "name": "12 test future candidates input0"
+    },
+    {
+      "PASS": true,
+      "evidence": "table input object exactly 8 label-free fields",
+      "name": "13 U2 U3 teacher pressure input0"
+    },
+    {
+      "PASS": true,
+      "evidence": "all8161 training rows",
+      "name": "14 training sessions strictly past"
+    },
+    {
+      "PASS": true,
+      "evidence": "same completed model training IDs; no new fit",
+      "name": "15 training resubstitution only"
+    },
+    {
+      "PASS": true,
+      "evidence": "all1039 frozen native mappings",
+      "name": "16 admission exact"
+    },
+    {
+      "PASS": true,
+      "evidence": "same saved table, support10 and median semantics",
+      "name": "17 B2 tenure exact"
+    },
+    {
+      "PASS": true,
+      "evidence": "all support states same frozen horizon",
+      "name": "18 predicted release exact"
+    },
+    {
+      "PASS": true,
+      "evidence": "synthetic gate boundary",
+      "name": "19 occupancy0 free3"
+    },
+    {
+      "PASS": true,
+      "evidence": "synthetic gate boundary",
+      "name": "20 occupancy1 free2"
+    },
+    {
+      "PASS": true,
+      "evidence": "synthetic gate boundary",
+      "name": "21 occupancy2 free1"
+    },
+    {
+      "PASS": true,
+      "evidence": "hard MAX3",
+      "name": "22 occupancy3 reject"
+    },
+    {
+      "PASS": true,
+      "evidence": "equal r excluded",
+      "name": "23 future pP rank strict greater"
+    },
+    {
+      "PASS": true,
+      "evidence": "exact q2 equality included",
+      "name": "24 I1 q2 greater equal"
+    },
+    {
+      "PASS": true,
+      "evidence": "exact q2 equality included",
+      "name": "25 I2 q2 greater equal"
+    },
+    {
+      "PASS": true,
+      "evidence": "exact q3 equality included",
+      "name": "26 I2 q3 greater equal"
+    },
+    {
+      "PASS": true,
+      "evidence": "complete support state enumeration",
+      "name": "27 local pressure I2<=I1"
+    },
+    {
+      "PASS": true,
+      "evidence": "complete support state enumeration",
+      "name": "28 local pressure I1<=B2"
+    },
+    {
+      "PASS": true,
+      "evidence": "same state only, no global funding inclusion claim",
+      "name": "29 local action implications"
+    },
+    {
+      "PASS": true,
+      "evidence": "pP DESC then timestamp/symbol/entry_id",
+      "name": "30 same minute pP order"
+    },
+    {
+      "PASS": true,
+      "evidence": "quality perturbation order invariant",
+      "name": "31 quality never batch reorder"
+    },
+    {
+      "PASS": true,
+      "evidence": "frozen day engine provisional reservations",
+      "name": "32 pending occupancy sequential"
+    },
+    {
+      "PASS": true,
+      "evidence": "no re-entry to rejected candidate batch",
+      "name": "33 no backfill"
+    },
+    {
+      "PASS": true,
+      "evidence": "frozen same-batch waterfill only",
+      "name": "34 no later topup"
+    },
+    {
+      "PASS": true,
+      "evidence": "q2/q3 perturbation sizing invariant",
+      "name": "35 quality not quantity input"
+    },
+    {
+      "PASS": true,
+      "evidence": "same immutable v7 sizing function object",
+      "name": "36 pP proportional sizing exact"
+    },
+    {
+      "PASS": true,
+      "evidence": "synthetic exact Decimal allocation and runtime invariants",
+      "name": "37 cash nonnegative"
+    },
+    {
+      "PASS": true,
+      "evidence": "integer hundred-share lots",
+      "name": "38 lot100"
+    },
+    {
+      "PASS": true,
+      "evidence": "hard gate and actual engine invariant",
+      "name": "39 MAX3<=3"
+    },
+    {
+      "PASS": true,
+      "evidence": "unique frozen candidate per session/symbol + open-symbol gate",
+      "name": "40 same symbol<=1"
+    },
+    {
+      "PASS": true,
+      "evidence": "unconditional cutoff precedes all funding paths",
+      "name": "41 after15:20 funded0"
+    },
+    {
+      "PASS": true,
+      "evidence": "positions removed only by confirmed frozen sell events",
+      "name": "42 no replacement"
+    },
+    {
+      "PASS": true,
+      "evidence": "only frozen EXIT and preexisting EOD contract",
+      "name": "43 no forced EXIT"
+    },
+    {
+      "PASS": true,
+      "evidence": "extra evaluation fields cannot affect explicit runtime predicates",
+      "name": "44 future U5 mutation unchanged"
+    },
+    {
+      "PASS": true,
+      "evidence": "extra evaluation fields cannot affect explicit runtime predicates",
+      "name": "45 future U10 mutation unchanged"
+    },
+    {
+      "PASS": true,
+      "evidence": "extra evaluation fields cannot affect explicit runtime predicates",
+      "name": "46 future potential bucket mutation unchanged"
+    },
+    {
+      "PASS": true,
+      "evidence": "extra evaluation fields cannot affect explicit runtime predicates",
+      "name": "47 realized PnL mutation unchanged"
+    },
+    {
+      "PASS": true,
+      "evidence": "raw Logistic ordering/dominance only",
+      "name": "48 quality probability calibration claim false"
+    },
+    {
+      "PASS": true,
+      "evidence": "pP remains frozen ordering authority",
+      "name": "49 pP true probability claim false"
+    },
+    {
+      "PASS": true,
+      "evidence": "no order/provider/production interfaces",
+      "name": "50 Safety all false"
+    },
+    {
+      "PASS": true,
+      "evidence": "every actual compared q2/q3 pair; near ties enumerated",
+      "name": "51 numeric boundary independent PASS"
+    },
+    {
+      "PASS": true,
+      "evidence": "both independent parent closures immutable",
+      "name": "52 Main Quality hashes exact"
+    },
+    {
+      "PASS": true,
+      "evidence": "all pinned Main/rank/v7/v5 public bytes unchanged",
+      "name": "53 old evidence rewrite0"
+    },
+    {
+      "PASS": true,
+      "evidence": "one pressured of two past sessions",
+      "name": "54 exact pressure0.5 reserve"
+    },
+    {
+      "PASS": true,
+      "evidence": "arrival exactly predicted release excluded",
+      "name": "55 horizon strict endpoint"
+    },
+    {
+      "PASS": true,
+      "evidence": "same minute train arrival excluded",
+      "name": "56 arrival strictly later"
+    },
+    {
+      "PASS": true,
+      "evidence": "higher evaluated first; lower quality dominance can ACCEPT, no reorder",
+      "name": "57 lower p accept after higher p reserve allowed"
+    },
+    {
+      "PASS": true,
+      "evidence": "frozen trading clock",
+      "name": "58 lunch excluded horizon"
+    },
+    {
+      "PASS": true,
+      "evidence": "same audited support10 lower-middle table",
+      "name": "59 lower middle tenure"
+    },
+    {
+      "PASS": true,
+      "evidence": "inference/Decimal/Fraction only",
+      "name": "60 no optimizer fit imports"
+    }
+  ],
+  "exact_jst": "2026-10-05T10:35:28.092907+09:00",
+  "historical_Main_replays": 0,
+  "preMain_proof_scope": "input boundaries, synthetic contract cases and exhaustive same-state support; actual cash/occupancy additionally audited after the two claimed replays"
+}

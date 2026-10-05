@@ -1,7 +1,14 @@
 """Actual parent receipt + verified private hierarchy; no diagnostic outcomes."""
 from control import *
 import subprocess,zipfile
-def gitbytes(path):return subprocess.check_output(['git','show',f'{V9_SHA}:{path}'],cwd=ROOT)
+def gitbytes(path):
+    # Base index is the actual terminal V9 tree. Verify local bytes against its
+    # Git blob ID without triggering a promisor network download per file.
+    assert subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT).decode().strip()==V9_SHA
+    data=(ROOT/path).read_bytes()
+    line=subprocess.check_output(['git','ls-files','-s','--',path],cwd=ROOT).decode().strip()
+    assert line and hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()==line.split()[1]
+    return data
 def parent():
     c=read(PARENT/'CLOSURE.json');receipt=read(WORK/'v9_actual_GET.json')
     assert receipt['commit']['sha']==V9_SHA

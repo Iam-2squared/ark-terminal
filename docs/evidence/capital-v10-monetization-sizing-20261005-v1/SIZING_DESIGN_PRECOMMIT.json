@@ -1,0 +1,148 @@
+{
+  "Exposure": "ITERATIVE_DEVELOPMENT_EVIDENCE",
+  "Safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "bottleneck_priority": [
+    "A retention+capital PASS,2x=0 => NORTH_STAR_CAPITAL_GAP",
+    "B retention PASS,capital FAIL,relative progress => SIZING_REMAINS",
+    "C both capital FAIL and neither simultaneously improves I2 median/mean/geometric => REALIZED_MONETIZATION_SIGNAL",
+    "D otherwise primary retention failure => SIZING_INDUCED_FUNDING_DISTORTION"
+  ],
+  "capital_gate": {
+    "daily_geometric_strict_min": "0.01032420041",
+    "quality_retention_required": true,
+    "rolling20_mean_strict_min": "1.1906460126",
+    "rolling20_median_strict_min": "1.1991541915"
+  },
+  "diagnostic_arm": "retention PASS arms first; else v5 floor PASS arms; else saved I2. Rank median, mean, daily geometric, Final38 DESC then MaxDD ASC then S1",
+  "diagnostic_definitions": {
+    "algebraic": "session fractional equal-lot reference; not executable",
+    "common_quantity_delta": "sum((q_I2-q_v5)/100 * unit_100share_PnL), exact Decimal",
+    "hindsight": "static each saved allocation batch; funded-only min1 lot, saved budget/equity caps; integer maximize frozen realized PnL; optional cash idle; no feedback optimization; not rolling20/full-chain upper bound",
+    "ratios": "potential>0 only median Q25 Q75; no mean",
+    "shadow": "saved I2 funded identities exactly one100-share lot each; exact chronological BUY/SELL cash check and 1m daily return reference; no capital benchmark gate",
+    "signal_deciles": "stable score ascending rank bins, ties never use outcomes; descriptive only",
+    "unit_PnL": "exact Decimal 100*(raw_EXIT*.9995 - raw_Entry*1.0005)"
+  },
+  "exact_jst": "2026-10-05T11:21:34.174874+09:00",
+  "fresh_OOS_claim": false,
+  "frozen": {
+    "I2_gate": "r_future>r_current AND q2_future>=q2_current AND q3_future>=q3_current; pressure<0.5",
+    "Selector_Entry_EXIT": "PERMANENT",
+    "admission": "rank native exact",
+    "backfill": false,
+    "band_caps": {
+      "P_BASE": ".25",
+      "P_HIGH": ".45",
+      "P_MID": ".35"
+    },
+    "base_utilization": {
+      "P_BASE": ".44",
+      "P_HIGH": ".68",
+      "P_MID": ".56"
+    },
+    "breadth_increment": ".055",
+    "execution": "LONG cash-only MAX3 same-symbol BUY1.0005 SELL0.9995 commission0 frozen MTM cash release cutoff15:20",
+    "first_pass": "floor100",
+    "lot": 100,
+    "max_target": ".92",
+    "models_features_preprocessing": "pP/MOVE_U2/MOVE_U3 exact",
+    "tenure": "B2 exact support10 fixed30min lower-middle median",
+    "topup": false,
+    "waterfill": "only first-pass funded, original descending pP order one-lot rounds"
+  },
+  "hypotheses": [
+    "H1 within-bucket funded identity effect",
+    "H2 pP quantity covariance effect",
+    "H3 Frozen EXIT monetization ordering limit",
+    "H4 consensus weakest-axis sizing"
+  ],
+  "north_star_hit_terminal": "If eligible winner has 2x>0: fixed STOP with development-only hit; no automatic next experiment or Fresh opening. NEXT_BOTTLENECK=null (no specified rule for this case).",
+  "only_changed_function": "picked-candidate weight; gate recomputed causally on actual path",
+  "policies": {
+    "S1": {
+      "id": "I2_EQUAL_WEIGHT_SIZING_V1",
+      "weight": "1 for every picked candidate"
+    },
+    "S2": {
+      "equal_score": "strict <, same percentile",
+      "id": "I2_CONSENSUS_MINRANK_SIZING_V1",
+      "labels": false,
+      "percentile": "(1 + count(completed past block training score < current raw frozen score))/(train_N+1)",
+      "population": "all completed-past training candidates of the frozen block models, not admission-only; resubstitution scores",
+      "raw_scores": [
+        "pP",
+        "q2",
+        "q3"
+      ],
+      "test_cross_section": false,
+      "weight": "min(rp,r2,r3)",
+      "weight_positive": true
+    }
+  },
+  "productionReady": false,
+  "prohibited": [
+    "S3",
+    "threshold/grid/sweep",
+    "retune",
+    "new fit",
+    "HF1/HL0 refit",
+    "EXIT change",
+    "admission/rank change",
+    "cap/target change",
+    "blend/mean/geometric/product weight",
+    "replacement/MAX4/MAX5",
+    "result rescue",
+    "Fresh/protected opening",
+    "orders/main merge/force push/provider/Claude"
+  ],
+  "quality_retention": {
+    "Medium_min": 32,
+    "U10_min": 26,
+    "U5_min": 53,
+    "below3_rate_max": "0.47204969",
+    "independent_mismatch_max": 0,
+    "integrity_max": 0,
+    "weak_rate_max": "0.36024845"
+  },
+  "relative_progress": "median/mean/daily-geometric all strictly > saved I2 full-precision authority AND v5 quality floor; not adoption",
+  "replay_budget": {
+    "I2": 0,
+    "S1": 1,
+    "S2": 1,
+    "newFits": 0,
+    "old_oracles": 0,
+    "shadow": "one fixed-identity accounting diagnostic, not Main policy replay",
+    "static_batch_hindsight": "evaluation-only authorized solves plus independent verification; not old Oracle solve",
+    "total_primary": 2,
+    "v5": 0
+  },
+  "selectionPolicy": "QUALITY_PARETO_U2_U3_TENURE_MAX3_V1",
+  "status": "FROZEN_PRE_DIAGNOSTIC",
+  "v5_quality_floor": {
+    "Medium_min": 27,
+    "U10_min": 26,
+    "U5_min": 50,
+    "below3_rate_max": "0.48666667",
+    "weak_rate_max": "0.38666667"
+  },
+  "winner_order": [
+    "2x_N DESC",
+    "rolling20_median DESC",
+    "rolling20_mean DESC",
+    "daily_geometric DESC",
+    "Final38 DESC",
+    "MaxDD ASC",
+    "S1 exact tie"
+  ]
+}

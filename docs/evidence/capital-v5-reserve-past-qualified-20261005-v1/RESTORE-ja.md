@@ -1,0 +1,20 @@
+# 🔒 固定STOP・復旧手順
+
+このcycleはPAST_SUPPORT_NOT_ESTABLISHEDで終了しました。R市場Replay0、実行claim0です。
+復旧は保存成果物の参照のために行い、研究スクリプトを再実行しないでください。
+
+PRIVATEのMANIFEST.jsonで全payloadのbytes/SHA256を照合してください。manifest自身は自己hashの対象外です。
+inputs内のBridge PRIVATE ZIPは元bytesをそのまま収録しています。元ZIPをwork/bridge_privateへ展開すると
+INPUT_BINDINGの元相対pathが復元できます。元manifest/packet/hash/旧OFF証明を再作成しないでください。
+
+repo内の新docs/researchはark-terminalの新branch配置へ、private内の新成果物は
+work/r_work/privateへ配置すると、新codeの相対pathが復元します。絶対pathは元Work workspaceの実在記録です。
+新ブランチのstrategy parentは710656491be06235901b45c50a8b5cbd714ba4ebで、Bridgeをstrategy parentにしません。
+
+DIRECTIVE、qualification、execution decision、CLOSURE、DO_NOT_REPEATとcheckpointを先に読んでください。
+完成した表・probe・score/参照・失敗receiptを再生成・上書きしないでください。先行OOFのみの表は8件生成済みです。
+PRIVATEには全保存bootstrap counts、S先行固定の証拠、独立照合、評価専用フィルタ明細、技術修復前codeを収録します。
+
+R DECISIONS/TRADES/MTM/EODと19窓はNOT_EXECUTEDです。保存V5台帳をR台帳へ転記したり、0円/0勝で補完しないでください。
+ARCHIVE_VERIFY・DELIVERY_RECEIPTはZIP作成後の外側receiptです。自己参照hashを避けるため完成ZIPの内側へ追記しません。
+全Safety false、Champion=V5、selectedCapitalCandidate=nullを保持します。

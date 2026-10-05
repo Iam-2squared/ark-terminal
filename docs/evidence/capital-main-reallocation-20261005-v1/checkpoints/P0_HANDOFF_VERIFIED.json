@@ -1,0 +1,68 @@
+{
+  "schema": "ARK_CAPITAL_MAIN_HANDOFF_AUDIT_V1",
+  "exact_jst": "2026-10-05T23:41:11+09:00",
+  "current_state": "HANDOFF_VERIFIED_MAIN_CAPITAL_SCOPE",
+  "repository": "Iam-2squared/ark-terminal",
+  "branch": "capital-main-reallocation-20261005",
+  "basis_commit": "220e0d8863978f5d82d0d83189d473252efda146",
+  "basis_tree": "4cae89fe81c8f7115cd1b3c7f05aaeb8e265fd12",
+  "archive_sha256": "e9178ce4d57760f5c4176c0538eb69beccefadf9d29768c9f20f75bf18108c8c",
+  "archive_manifest_matches": "13/13",
+  "user_policy": {
+    "objective": "Increase final funded wealth from JPY 1000000 toward JPY 2000000 in20 sessions; no lookahead",
+    "frozen": [
+      "Selector",
+      "Entry",
+      "EXIT"
+    ],
+    "focus": "Capital",
+    "claude": "Only when materially necessary",
+    "report": "Headings, emoji, numeric tables or charts",
+    "github": "Append-only current state, direction and exact JST each meaningful checkpoint"
+  },
+  "baseline": {
+    "name": "V5",
+    "status": "COMPARISON_ONLY_GOAL_NOT_REACHED",
+    "legacy_rolling20_median_growth": 1.19915419,
+    "legacy_rolling20_2x_hits": 0,
+    "legacy_rolling20_window_n": 19,
+    "measurement": "Normalized overlapping20-evaluation-session windows from one chained38-session cash-equity path; not independent JPY1000000 reset replays; not certified consecutive calendar trading sessions"
+  },
+  "latest_closed_route": {
+    "name": "V5_RESERVE_PAST_QUALIFIED_RECOVERY_V1",
+    "status": "PAST_SUPPORT_NOT_ESTABLISHED",
+    "qualified_blocks": 0,
+    "total_blocks": 8,
+    "candidate_replays": 0,
+    "reopen": false
+  },
+  "completed": [
+    "Latest handoff SHA256 and inner manifest verified",
+    "Pinned GitHub handoff and live research branch HEAD actual GET match",
+    "Historical V5 baseline and closed route records read",
+    "Prior v4,v9,v11R1 integrity and outcome comparisons reviewed in parallel",
+    "Native allocation and rolling20 semantics inspected read-only"
+  ],
+  "remaining": [
+    "Finish exact native input hash and overlap/source checks",
+    "Record historical non-repeat routes and any unresolved numeric provenance",
+    "Specify next yen-based capital attribution and quantity/cash/slot reachability work",
+    "Append final report and actual-GET receipt"
+  ],
+  "exposure": "ITERATIVE_DEVELOPMENT_EVIDENCE",
+  "counts": {
+    "newFits": 0,
+    "refits": 0,
+    "marketReplays": 0,
+    "orders": 0,
+    "Claude": 0,
+    "mainMerge": 0,
+    "forcePush": 0,
+    "upstreamEdits": 0
+  },
+  "selectedCapitalCandidate": null,
+  "selectedResearchCandidate": null,
+  "improvement_claim": false,
+  "productionReady": false,
+  "authority_note": "This current user message authorizes Capital handoff and forward work. Earlier handoff.new_work_authorized=false is historical, not a new permission barrier. No trading, upstream change, or reuse of closed-route execution instructions is inferred."
+}

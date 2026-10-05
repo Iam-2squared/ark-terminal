@@ -1,0 +1,105 @@
+{
+  "M1_raw_execution_blocker_reproduced": {
+    "Final38": null,
+    "blocked_execution_day_N": 1,
+    "closed_trade_N": 101,
+    "curve_frame_N": 11368,
+    "executed_candidate_N": 791,
+    "funded_N_observed_prefix": 102,
+    "gate_evaluable": false,
+    "measurement_status": "CAPITAL_MEASUREMENT_BLOCKED_EXECUTION",
+    "open_obligations": [
+      "2025-08-12|45560"
+    ],
+    "rolling20": null,
+    "unresolved_quantities": {
+      "2025-08-12|45560": 100
+    },
+    "valid_primary_day_N": 28
+  },
+  "M1_scope": "all emitted29-session prefix incl28 COMPLETE + unresolved day; no Final38/rolling20 certification",
+  "M2_economic_metrics": {
+    "LOWER_P_ACCEPT_AFTER_HIGHER_P_RESERVE_SAME_BATCH": 2,
+    "arithmetic_mean_daily_return": 0.005200011701503379,
+    "avg_funded_per_session": 4.473684210526316,
+    "blocked_execution_day_N": 0,
+    "capital_recycling_used_jpy": 597413.5,
+    "cash_minimum": "4771879/20",
+    "execution_source_unresolved_N": 0,
+    "final_equity": 1203908.6,
+    "funded_N": 170,
+    "geometric_mean_daily_return": 0.004895455101931014,
+    "idle_cash_mean_jpy": 900266.7367025518,
+    "max_concurrent_actual": 3,
+    "max_drawdown": 0.10315733436659769,
+    "mean_idle_cash_fraction": 0.7697463501396027,
+    "median_daily_return": 0.0011234422548784886,
+    "north_star_hit_N": 0,
+    "north_star_hit_rate": 0.0,
+    "rolling20_arithmetic_mean": 1.090376333084239,
+    "rolling20_maximum": 1.293664293566376,
+    "rolling20_median": 1.067406220349939,
+    "rolling20_minimum": 0.9650812909205815,
+    "total_return": 0.2039086,
+    "turnover_cash_jpy": 53382684.7,
+    "utilization_mean": 0.2302536498603973,
+    "utilization_median": 0.19803518516573376,
+    "valid_primary_day_N": 38,
+    "valid_rolling20_window_N": 19
+  },
+  "M2_scope": "full38-session ledger / capital / gates",
+  "Main_reruns": 0,
+  "Safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "checks": 226341,
+  "completed_preparation_recomputed": false,
+  "exact_jst": "2026-10-05T13:42:29.463907+09:00",
+  "float_tolerance": 1e-12,
+  "implementation_independence": true,
+  "independent_decision": {
+    "NEXT_BOTTLENECK": "MONETIZATION_SIGNAL_STRENGTH_OR_CAPITAL_MAPPING",
+    "Q7_pending": true,
+    "adoption": false,
+    "diagnosticArm": "M2",
+    "eligible": [],
+    "selectedCapitalCandidate": null,
+    "status": "V11R1_NUMERIC_CERTIFIED_PARTIAL_CAPITAL_PROGRESS"
+  },
+  "independent_portfolio_audits": 2,
+  "max_float_delta": 1.1102230246251565e-15,
+  "mismatch_N": 0,
+  "mismatches": [],
+  "money_quantity": "EXACT",
+  "newFits": 0,
+  "official_gates": {
+    "I2_MRET_CONTINUOUS_CAP_THROTTLE_V1": {
+      "capital": false,
+      "floor": false,
+      "measurement_complete": false,
+      "relative": false,
+      "retained": false
+    },
+    "I2_MRET_MEDIAN_MINLOT_THROTTLE_V1": {
+      "capital": false,
+      "floor": true,
+      "measurement_complete": true,
+      "relative": true,
+      "retained": false
+    }
+  },
+  "preprocessing_identity": "completed canonical float64 bit certificate reused; no recertification",
+  "primary_runtime_replay_evaluator_imports": 0,
+  "saved_control_replays": 0,
+  "status": "PASS",
+  "upstream_market_source_independence_claim": false
+}

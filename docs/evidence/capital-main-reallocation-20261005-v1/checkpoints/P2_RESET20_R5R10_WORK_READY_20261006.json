@@ -1,0 +1,102 @@
+{
+  "schema": "ARK_CAPITAL_RESET20_R5R10_WORK_READY_V1",
+  "exact_jst": "2026-10-06T00:29:43+09:00",
+  "status": "WORK_INSTRUCTION_READY_NOT_EXECUTED",
+  "repository": "Iam-2squared/ark-terminal",
+  "branch": "capital-main-reallocation-20261005",
+  "basis_head_actual_get": "a35399fc27dd8cc67751aadd21d690ba92aefe5b",
+  "basis_tree": "67aa6ed4f54dbe93f2fabbc19ff0eb4cbb8d333e",
+  "document": {
+    "id": "ARK_CAPITAL_V51_RESET20_R5R10_WORK_V1_20261006",
+    "created_jst": "2026-10-06T00:28:30+09:00",
+    "attachment_txt": "Ark_Capital_V51_Reset20_R5R10_Work_20261006.txt",
+    "attachment_md": "Ark_Capital_V51_Reset20_R5R10_Work_20261006.md",
+    "sha256_utf8_both_identical": "2cb3fbdfb66033373a081a2c60a3a59f01e1db941eb389f5f5e5215b94abbe07",
+    "bytes_each": 35746,
+    "full_text_location": "Generated conversation attachments; this checkpoint stores the scope and hash, not the full instruction text",
+    "execution_start_action": "Receive the instruction attachment, verify its hash, and persist its full text as WORK_REQUEST.md in the new cycle before execution"
+  },
+  "user_decisions": {
+    "frozen": ["Selector", "Entry", "EXIT"],
+    "U5_U10": "Keep original Entry-to-future-High definitions, horizons, bases and columns; U5H/U10H are display aliases only",
+    "R5_R10": "Add evaluation-only labels for net return >=5% / >=10% under the fixed Entry and actual inherited Capital EXIT/EOD execution-and-cost contract",
+    "objective": "JPY 1000000 cash and zero positions at each start; 20 sessions; final wealth toward JPY 2000000",
+    "primary_comparison": "Median final cash; mean/min/max and endpoint 2x hits also reported",
+    "quality_metrics": "Diagnostic, never substitutes for final wealth",
+    "throughput": "Batch all supported stages in one Work; no intermediate approval wait solely for phase boundaries"
+  },
+  "next_work_sequence": [
+    "Read live branch and exact source bindings; reuse already completed equivalent work",
+    "Finite session coverage audit, focused on 2025-07-11 and 2025-07-14; keep UNKNOWN separate from true zero-entry sessions",
+    "Build RESET20_CASH1M wrapper around frozen V5, preserving historical as-of models and references while resetting portfolio state",
+    "Rebaseline V5 on every predeclared window from JPY1000000, not scaled legacy returns",
+    "Reuse or mechanically materialize fixed-contract R5/R10 labels with known/unknown and eligibility masks",
+    "Diagnose existing scores plus R5/R10 capture, Loser funding, quantities and cash/slot constraints",
+    "When documented prerequisites hold, precommit at most one Capital V5.1 mechanism and complete implementation, canaries and paired RESET20 replay",
+    "Independently reconstruct cash accounting, report complete/blocked windows and final wealth, and save actual-GET evidence"
+  ],
+  "critical_guards": [
+    "Full upstream strategy and expert models remain frozen; old V5 and closed-route evidence remain read-only",
+    "No future labels, future arrivals or future exit-source availability in present allocation decisions",
+    "R5/R10 Capital labels include inherited EOD when that is the executed fixed path; standalone Structural EXIT returns stay separate",
+    "Unknown label is null, not false or Loser; effective costs are not deducted twice",
+    "Calendar gaps are not zero-return days; selected-session reset results are not continuous-month certification",
+    "Reset only account-dependent state; do not reset or refit historical model warmup/reference schedules",
+    "Overlapping reset windows are not statistically independent observations",
+    "Do not sum hypothetical missed-trade profits into recoverable portfolio wealth",
+    "No new R5 model fits, threshold grid, closed Reserve rescue or second candidate in the cycle",
+    "Cash utilization and R5 counts are not mandatory success gates; final wealth determines developmental progress",
+    "A V5.1 designed after viewing the same Development remains iterative Development, not fresh validation",
+    "Incomplete or unilateral execution windows remain visible; no complete-sample promotion from favorable known subsets"
+  ],
+  "planned_execution_budget": {
+    "new_model_fits_refits_calibration": 0,
+    "new_capital_policy_candidates_max": 1,
+    "v5_reset20_formal_batches_max": 1,
+    "v51_reset20_formal_batches_max": 1,
+    "window_and_day_attempts": "Count separately; for W planned windows, up to 20*W day evaluations per policy before separately logged technical repair",
+    "technical_full_batch_restart_max_per_policy": 1,
+    "new_market_price_provider_requests": 0,
+    "protected_partition_openings": 0,
+    "orders": 0,
+    "main_merges": 0,
+    "force_pushes": 0,
+    "Claude": "Default zero; report need only if a material unresolved question requires review"
+  },
+  "current_state": {
+    "activeCapitalBaseline": "V5",
+    "selectedCapitalCandidate": null,
+    "selectedResearchCandidate": null,
+    "reset20_experiment_executed_in_this_turn": false,
+    "R5_R10_labels_generated_in_this_turn": false,
+    "V51_implemented_in_this_turn": false,
+    "new_performance_result": false,
+    "productionReady": false
+  },
+  "completed_in_this_turn": [
+    "Read live branch HEAD and the existing P1/NEXT_WORK",
+    "Read original V5 replay.py and execution.py",
+    "Read latest attached handoff metadata and pointers",
+    "Create full TXT/Markdown Work instruction and verify identical bytes",
+    "Record current state, new direction, exact JST and instruction hash"
+  ],
+  "counts_executed_in_this_turn": {
+    "new_fits": 0,
+    "market_replays": 0,
+    "label_materializations": 0,
+    "upstream_edits": 0,
+    "Claude": 0,
+    "orders": 0,
+    "main_merge": 0
+  },
+  "scope_supersession": "This checkpoint records the later user agreement on RESET20 plus R5/R10 and conditional V5.1. It supersedes the earlier next-work read-only/slot-only plan, not historical evidence or upstream freezes.",
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

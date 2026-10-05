@@ -1,0 +1,19 @@
+{
+  "schema": "V5_R_P2_SERIALIZATION_FAILURE_V1",
+  "exact_jst": "2026-10-05T22:37:25.226789+09:00",
+  "failure": "TypeError: numpy.bool_ result in H3 is not JSON serializable",
+  "failed_code_sha256": "2de7c3cca1f025065c8ef7db9779d814eb4f4fc9918d6f6d84231efaf725a615",
+  "failed_code_preserved": "private/failures/qualify_pre_bool_serialization_repair.py",
+  "saved_intermediates": {
+    "PAST_BOOTSTRAP_SESSION_COUNTS.jsonl.gz": "9a8d75ad82fc57eb1b56347b149d05e0ff72dcd3db130d3380bf6891a41e44d5",
+    "PAST_SUPPORT_JOINED_ROWS.jsonl.gz": "8cf6d42133c8b6c2348287ed31efa766b9e882de081ffbe838400a57ad2c561d",
+    "PAST_TEMPORAL_DEPENDENCIES.jsonl.gz": "fd2dccc52fea1b24fa103367235fb1415ff33e7cf97ca6db7b494b15ba69e591"
+  },
+  "completed_table_computation_N": 8,
+  "bootstrap_draws_completed": 13993,
+  "market_replay_N": 0,
+  "expected_fix": "convert H3 numpy.bool_ to Python bool without changing truth value; restore tables from saved rows/counts, no random draws",
+  "scope": "SERIALIZATION_ONLY_DOWNSTREAM_REAGGREGATION",
+  "policy_or_population_or_threshold_change": 0,
+  "PAST_QUALIFICATION_BY_BLOCK_present": false
+}

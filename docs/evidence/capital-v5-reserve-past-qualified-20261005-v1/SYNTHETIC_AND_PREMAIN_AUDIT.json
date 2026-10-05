@@ -1,0 +1,217 @@
+{
+  "J0": "PASS",
+  "J1": "PASS_WITH_FULL_NATIVE_ROW_SCHEMA_SUPPLEMENT",
+  "J2": "PASS",
+  "J3": "NOT_EXECUTED_PAST_SUPPORT_NOT_ESTABLISHED",
+  "J4": "PASS",
+  "Safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "candidate_replay_authorized": false,
+  "cases": [
+    {
+      "case": "01",
+      "execution": "completed before preserved case12 import failure",
+      "expected": "block1/past不足:例外0、native picked不変",
+      "status": "PASS"
+    },
+    {
+      "case": "02",
+      "execution": "completed before preserved case12 import failure",
+      "expected": "current/future outcome mutation:過去依存join・current action不変",
+      "status": "PASS"
+    },
+    {
+      "case": "03",
+      "execution": "completed before preserved case12 import failure",
+      "expected": "先行blockでも未成熟labelはknown=False",
+      "status": "PASS"
+    },
+    {
+      "case": "04",
+      "execution": "completed before preserved case12 import failure",
+      "expected": "OOF frame外training resubstitutionは性能sampleに混入不可",
+      "status": "PASS"
+    },
+    {
+      "case": "05",
+      "execution": "completed before preserved case12 import failure",
+      "expected": "rP exact3/4 PASS、直下FAIL、有理数",
+      "status": "PASS"
+    },
+    {
+      "case": "06",
+      "execution": "completed before preserved case12 import failure",
+      "expected": "q exact1/2 HIGH、strict-lessはraw median等号と異なる",
+      "status": "PASS"
+    },
+    {
+      "case": "07",
+      "execution": "completed before preserved case12 import failure",
+      "expected": "q2LOW/q3HIGH、q2HIGH/q3LOWともPASS",
+      "status": "PASS"
+    },
+    {
+      "case": "08",
+      "execution": "completed before preserved case12 import failure",
+      "expected": "bothLOW FAIL、MRET mutationでaction不変",
+      "status": "PASS"
+    },
+    {
+      "case": "09",
+      "execution": "completed before preserved case12 import failure",
+      "expected": "高pP先頭guard失敗:下位へbackfill0",
+      "status": "PASS"
+    },
+    {
+      "case": "10",
+      "execution": "completed before preserved case12 import failure",
+      "expected": "native picked非空でassigned全quantity0でも例外0",
+      "status": "PASS"
+    },
+    {
+      "case": "11",
+      "execution": "completed before preserved case12 import failure",
+      "expected": "actual open0/3拒否、1/2は構造候補",
+      "status": "PASS"
+    },
+    {
+      "case": "12",
+      "expected": "cashで1lot可能でもtarget budget0:quantity0",
+      "status": "PASS"
+    },
+    {
+      "case": "13",
+      "expected": "cap1lot未満qty0、1lotちょうど/直上qty100",
+      "status": "PASS"
+    },
+    {
+      "case": "14",
+      "expected": "BUY成功counterは同session自然EXIT後もtrue、再回収0",
+      "status": "PASS"
+    },
+    {
+      "case": "15",
+      "expected": "qty0はcounter非消費、同batch下位backfill0",
+      "status": "PASS"
+    },
+    {
+      "case": "16",
+      "expected": "same-symbol/pending/current Entry/cutoff拒否",
+      "status": "PASS"
+    },
+    {
+      "case": "17",
+      "expected": "future cash release mutationでcurrent quantity/action不変",
+      "status": "PASS"
+    },
+    {
+      "case": "18",
+      "expected": "future source availability mutationでBUY前選択不変",
+      "status": "PASS"
+    },
+    {
+      "case": "19",
+      "expected": "選択後source不足:BUY保持/義務保持/BLOCKED",
+      "status": "PASS"
+    },
+    {
+      "case": "20",
+      "expected": "protected100 membership mutationでruntime不変",
+      "status": "PASS"
+    },
+    {
+      "case": "21",
+      "expected": "完全prefix差分0はNO_EFFECT、state欠損UNMEASURABLE",
+      "status": "PASS"
+    },
+    {
+      "case": "22",
+      "expected": "初回差分後saved V5 snapshot継続拒否",
+      "status": "PASS"
+    },
+    {
+      "case": "23",
+      "expected": "future候補同batch混入拒否、過去Entry再検討拒否",
+      "status": "PASS"
+    },
+    {
+      "case": "24",
+      "expected": "bootstrap各session1値、空session0保持、counts合計frame長",
+      "status": "PASS"
+    },
+    {
+      "case": "25",
+      "expected": "元150/Loser82を純粋追加で維持:Q3 FAIL",
+      "status": "PASS"
+    },
+    {
+      "case": "26",
+      "expected": "19窓中1窓の厳密微小退行:E1 FAIL",
+      "status": "PASS"
+    },
+    {
+      "case": "27",
+      "expected": "Frozen head/score bytes変更:STOP",
+      "status": "PASS"
+    },
+    {
+      "case": "28",
+      "expected": "Safety10 false、全禁止実行counter0",
+      "status": "PASS"
+    }
+  ],
+  "exact_jst": "2026-10-05T22:47:46.998851+09:00",
+  "expectations_sha256": "b3540492f87fcad408da6727470736889ba698347739d6d331957d49dc67842e",
+  "firewall": {
+    "MRET_runtime_input_N": 0,
+    "future_outcome_input_N": 0,
+    "future_source_availability_input_N": 0,
+    "policy_imports": [
+      "decimal",
+      "math",
+      "sys",
+      "context",
+      "allocation",
+      "slot_policy",
+      "staircase"
+    ],
+    "projected_heads": [
+      "pP",
+      "MOVE_U2",
+      "MOVE_U3"
+    ],
+    "proposal_arguments": [
+      "candidates",
+      "native",
+      "snapshot",
+      "packets",
+      "session",
+      "minute",
+      "recovered",
+      "qualified",
+      "pending_symbols"
+    ],
+    "protected_ID_runtime_input_N": 0
+  },
+  "independent_audit_sha256": "eeca1963fc594cc81efc0fb3556f6bcc432fc70d065034877431e2e84066478e",
+  "limits": "Cases19/21/22/25/26 test pure certificate/evaluation contracts. They do not claim an executed R engine or whole-path future mutation invariance.",
+  "mismatch_N": 0,
+  "new_bootstrap_draw_N": 0,
+  "new_market_replay_N": 0,
+  "new_statistical_table_N": 0,
+  "reason": "No past-qualified block; J3 was correctly skipped.",
+  "schema": "V5_R_SYNTHETIC_PREMAIN_V1",
+  "status": "PASS",
+  "synthetic_case_N": 28,
+  "synthetic_pass_N": 28
+}

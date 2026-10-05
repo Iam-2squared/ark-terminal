@@ -1,0 +1,52 @@
+{
+  "actual_source_arrival": "inherited bar-end assumption; actual arrival unknown, no stronger claim",
+  "all_head_train_before_test": true,
+  "already_exposed_sessions": 58,
+  "edges": [
+    [
+      "past closed features",
+      "frozen past head fit"
+    ],
+    [
+      "frozen past head fit",
+      "saved current OOF score"
+    ],
+    [
+      "past completed training percentile reference",
+      "frozen read-only packet"
+    ],
+    [
+      "saved current OOF score",
+      "frozen read-only packet"
+    ],
+    [
+      "frozen read-only packet",
+      "current outcome evaluation only"
+    ]
+  ],
+  "exposure": "ITERATIVE_DEVELOPMENT_EVIDENCE",
+  "feature_asof": "max current source minute < Frozen Entry",
+  "forbidden_edges": [
+    [
+      "current outcome evaluation only",
+      "current routing threshold"
+    ],
+    [
+      "future label",
+      "frozen read-only packet"
+    ]
+  ],
+  "fresh_OOS_claim": false,
+  "future_bridge_past_OOF_requirement": "head fit -> saved past score -> past-only bridge criterion -> current action must all be available before current; cold-start abstain",
+  "label_maturity": "past training sessions completed before next test session; existing causal/model certificate reused, no independent provider timing",
+  "nodes": [
+    "past closed features",
+    "frozen past head fit",
+    "saved current OOF score",
+    "past completed training percentile reference",
+    "frozen read-only packet",
+    "current outcome evaluation only",
+    "future separately precommitted bridge criteria",
+    "future current action"
+  ]
+}

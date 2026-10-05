@@ -1,0 +1,83 @@
+{
+  "schema": "V5_ANCHOR_SLOT3_R1_DESIGNER_RESULT_REVIEW_V1",
+  "exact_jst": "2026-10-05T19:39:38+09:00",
+  "record_scope": "APPEND_ONLY_RESULT_REVIEW_NOT_EXECUTION_AUTHORIZATION",
+  "basis_HEAD_actual_GET_verified": "9f75e71c7441944bf4527898aa0965e06f168446",
+  "branch": "capital-v5-anchor-slot3-intelligence-r1-20261005",
+  "controlling_cycle_status_unchanged": "V5_ANCHOR_NO_EFFECT",
+  "controlling_cycle_state_unchanged": "R12_CLOSURE_FIXED_STOP",
+  "review_current_state": "R1_RESULT_REVIEWED_NO_CAPITAL_OR_QUALITY_IMPROVEMENT",
+  "activeCapitalChampion": "V5",
+  "selectedResearchCandidate": null,
+  "selectedCapitalCandidate": null,
+  "championUpdated": false,
+  "sources_read": [
+    "CLOSURE.json at basis_HEAD",
+    "NEXT_WORK_HANDOFF.json at basis_HEAD",
+    "CAUSAL_TRIGGER_DIAGNOSTIC.json at basis_HEAD",
+    "User attachment REPORT_FINAL_R1-ja.md",
+    "User attachment PAIRED_ROLLING20_R1_JPY.csv",
+    "Selected saved artifacts and primary_policy.py inside user PRIVATE.zip"
+  ],
+  "attachment_checks": {
+    "report_sha256": "2c2e6f241303cfcc87a8026089786f7ac66d01b17eb5d8f31e90d6bf60a4ead1",
+    "report_matches_github_closure_hash": true,
+    "paired_csv_sha256": "0a81e27329ea68ef37eb46bf1f9f778a38d78963c9fbf89a06e9ca5494bf9fe6",
+    "uploaded_private_sha256_computed": "b28ea245b8db4e1e4a44ce2e03369007735ad1950b78e26edb67fa6180c728b6",
+    "separate_report_matches_zip_report_bytes": true,
+    "separate_csv_matches_zip_final_csv_bytes": true,
+    "all_private_members_reaudited": false,
+    "new_independent_runtime_audit_performed": false
+  },
+  "primary_20session_review": {
+    "window_count": 19,
+    "unique_start_end_pairs": 19,
+    "comparison_method": "Read saved rational numerators/denominators; verify exact equality using Fraction; no market replay",
+    "D": {"better": 0, "equal": 19, "worse": 0, "max_absolute_saved_growth_delta": "0"},
+    "DR": {"better": 0, "equal": 19, "worse": 0, "max_absolute_saved_growth_delta": "0"},
+    "all_profiles_display_jpy": {"min": 1082366, "mean": 1190646, "median": 1199154, "max": 1297031, "two_x": "0/19"},
+    "interpretation": "No 20-session improvement. These are normalized windows of the same connected evaluation series, not independently cash-reset monthly replays."
+  },
+  "saved_trigger_result": {
+    "planned_slot3_qty_ge100": 50,
+    "four_head_available": 50,
+    "LOW_per_head": {"rP": 3, "r2": 7, "r3": 4, "rM": 35},
+    "four_LOW_intersection": 0,
+    "D_veto": 0,
+    "DR_veto": 0,
+    "DR_token": 0,
+    "DR_recovery": 0
+  },
+  "saved_quality_all_profiles": {
+    "funded": 150,
+    "realized_nonpositive": 82,
+    "realized_positive": 68,
+    "weak_under2": 58,
+    "below3": 73,
+    "medium3_to_under5": 27,
+    "U5": 50,
+    "U10": 26
+  },
+  "designer_assessment": {
+    "status": "NO_EFFECT_NOT_IMPROVEMENT",
+    "design_issue": "The four-LOW conjunction had zero support among the 50 actual planned Slot3 proposals. Recovery was causally dependent on a veto-generated token, so recovery never activated either.",
+    "scope_of_failure": "This fixed integration rule demonstrated no effect in the saved evaluation series. It does not prove that every head is useless or that Slot3 cannot be improved.",
+    "nonregression_interpretation": "All19 nonregression is not evidence of successful defense here: every funded identity, quantity and PnL was unchanged.",
+    "not_a_data_availability_failure": "All 50 scoped proposals had all four intelligence heads available.",
+    "LOW_not_ground_truth_loser": "MRET LOW35 is not a count of correctly detected realized losers; no new score-outcome join was performed in this review.",
+    "accountability": "Requiring all four LOW states and making recovery dependent on that trigger was the designer's ineffective integration choice, not an operator execution failure."
+  },
+  "next_design_direction_proposed_only": {
+    "first": "Retain V5 as strategy parent and all current 20-session acceptance safeguards.",
+    "second": "Separate potential-winner preservation, realized-loss defense, and recovery activation instead of treating all four heads as interchangeable loser detectors.",
+    "third": "Define training-only support and activation/reachability checks before expensive full candidate replays; zero-support rules must not be reported as useful defense.",
+    "fourth": "Consider an independently testable recovery path rather than making all recovery conditional on a rare defense trigger. Any change needs a separate precommitted cycle.",
+    "not_authorized": "No automatic OR/3-of-4/threshold changes, no additional fit or D2/DR2 replay, no adoption."
+  },
+  "NEXT_POLICY": "Keep R1 fixed STOP and V5 champion. Await an explicitly requested new design; do not resume or retune R1.",
+  "review_execution_counts": {"fits": 0, "model_inferences": 0, "market_replays": 0, "score_outcome_joins": 0, "provider_requests": 0, "orders": 0, "main_merge": 0, "force_push": 0, "strategy_changes": 0},
+  "Safety": {"executionAllowed": false, "brokerWriteAllowed": false, "excelOrderWriteAllowed": false, "rssOrderFunctionAllowed": false, "liveTradingAllowed": false, "paperTradingAllowed": false, "automaticPromotionAllowed": false, "productionUpdateAllowed": false, "transmitted": false, "productionReady": false},
+  "Exposure": "ITERATIVE_DEVELOPMENT_EVIDENCE",
+  "fresh_OOS_claim": false,
+  "future_no_loss_guarantee": false
+}

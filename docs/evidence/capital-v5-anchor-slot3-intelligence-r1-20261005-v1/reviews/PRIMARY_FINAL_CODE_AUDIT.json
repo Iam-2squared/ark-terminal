@@ -1,0 +1,95 @@
+{
+  "GitHubWrite": 0,
+  "JST": "2026-10-05T18:36:51.244112+09:00",
+  "OFF_full38_verification": "PENDING_SEPARATE_CLAIMED_REPLAY",
+  "canary_receipt_sha256": "2de640d9d16c1745f3519239c8d9bfca9a87dfcbde40f15e860332d0d4dbf5d3",
+  "causal_source_review_sha256": "fd5abf4ba1810dee6e1b3ace15c3f23283a9629a251a9bd0f5bfb8ae06bc9f0d",
+  "check_N": 14,
+  "checks": [
+    {
+      "PASS": true,
+      "basis": "primary_policy.py direct_decision requires available 4 ranks, native ADMIT/index3/actual planned3/q>=100/current constraints and all4 LOW",
+      "id": "D_REQUIRED_EIGHT"
+    },
+    {
+      "PASS": true,
+      "basis": "rank_from_scores strict less; exact half HIGH; unavailable neither LOW nor HIGH",
+      "id": "RANK_STRICT_LESS"
+    },
+    {
+      "PASS": true,
+      "basis": "primary_adapter.py counts postallocation q/debit/current snapshot cash before accessing newly funded candidate books",
+      "id": "ACTUAL_PLANNED_CURRENT_ONLY"
+    },
+    {
+      "PASS": true,
+      "basis": "one native allocation per batch, proposal assigned quantities/debits reused, veto skips debit and no reallocation/backfill",
+      "id": "SAME_BATCH_NATIVE_FROZEN"
+    },
+    {
+      "PASS": true,
+      "basis": "after confirmed SELL before Entry invalidation; max1/current pair IDs/no refresh/cutoff; new token actual holdings2 after Dveto",
+      "id": "TOKEN_ONLY_CONFIRMED_CURRENT_HOLDINGS"
+    },
+    {
+      "PASS": true,
+      "basis": "choose_recovery bool(picked), including quantity0 native proposals; B/exactReserve/allHIGH/current existing constraints",
+      "id": "RECOVERY_PREALLOCATION_PICKED_EMPTY"
+    },
+    {
+      "PASS": true,
+      "basis": "Fraction rP,r3,rM,r2 DESC then native stable order; top1 returned and singleton native allocation",
+      "id": "RECOVERY_PRIORITY_EXACT"
+    },
+    {
+      "PASS": true,
+      "basis": "FrozenNative verifies original source hash/file/private local import resolver, executes original bytes without AST rewrite",
+      "id": "NATIVE_ISOLATED_IMPORT"
+    },
+    {
+      "PASS": true,
+      "basis": "events entry_minute, field entry_timestamp equal Frozen Entry fill time; firstintent retained only as historical numeric provenance",
+      "id": "NO_FIRST_INTENT_BACKDATE"
+    },
+    {
+      "PASS": true,
+      "basis": "after BUY funding book missing flags create unresolved blocker; candidate run stops at first incomplete session; no candidate reset partial-success completion",
+      "id": "SOURCE_UNAVAILABLE_FAILCLOSED"
+    },
+    {
+      "PASS": true,
+      "basis": "harness requires original strategyparent, actualGET receipt hashes, frozen code/input checks, unique output dir/STARTED immutable writes",
+      "id": "CLAIM_DURABLE_NO_RERUN"
+    },
+    {
+      "PASS": true,
+      "basis": "harness appends exact native score_stream_sha256 and avg_funded_per_session before RESULT save",
+      "id": "FULL_ORIGINAL_RESULT_METADATA"
+    },
+    {
+      "PASS": true,
+      "basis": "all49 mandatory +13 supplemental PASS; source files match executed receipt",
+      "id": "62_CASE_RECEIPT_HASH_MATCH"
+    },
+    {
+      "PASS": true,
+      "basis": "CANARY_PROOF_SCOPE_REVIEW limits14-16 pure same-current-snapshot and51/54 current source behavior; future confirm state changes legitimate",
+      "id": "NO_FUTURE_SUFFIX_WHOLEPATH_OVERCLAIM"
+    }
+  ],
+  "executed_canary_N": 62,
+  "marketReplayByReviewer": 0,
+  "mismatch_N": 0,
+  "modelInferenceByReviewer": 0,
+  "newFit": 0,
+  "next": "Freeze these code hashes in OFF claim; independently compare saved OFF original fields without rerun.",
+  "protectedOpened": 0,
+  "reviewed_code_sha256": {
+    "canaries_primary.py": "cbbf15ad60df102d07886555fea90dfa2eabae7b2b8d6ef0972a8283e80c6f12",
+    "primary_adapter.py": "a235d63b63bce6e240d8e96d3dc8b3380f791d34a1b4666f658f9cd40729e038",
+    "primary_harness.py": "0c8c8421e62f1ab81603104e9cde7270d7d89e2bb0586367ac7af466b90acfb1",
+    "primary_policy.py": "ed5a132d84ebb7f59e3bf449cbadcf292ea745078beb6549c6c70985ab03b7b7"
+  },
+  "schema": "R1_PRIMARY_FINAL_PRE_OFF_READONLY_CODE_AUDIT_V1",
+  "status": "PASS"
+}

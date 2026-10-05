@@ -1,0 +1,197 @@
+{
+  "DR_launch_transport_failure": "Evidence confirms no process/STARTED/output before initial actual DR execution; not a replay retry.",
+  "JST": "2026-10-05T18:50:21.671187+09:00",
+  "actual_primary_executions": [
+    {
+      "COMPLETE_JST": "2026-10-05T18:36:44.757627+09:00",
+      "GET_commit": "c1cceb7edea5693912d8486da8f70f74f8288f10",
+      "GET_tree": "356d77e622a2bf42f9a00ef69d8933dbcf4b7f30",
+      "STARTED_JST": "2026-10-05T18:36:42.917300+09:00",
+      "arm": "OFF",
+      "claim_SHA256": "0c8f69de67d22ed3316223ee365adb506b569130a263980eac5a8c851740881d",
+      "replays": 1,
+      "status": "COMPLETE"
+    },
+    {
+      "COMPLETE_JST": "2026-10-05T18:43:35.260880+09:00",
+      "GET_commit": "4650212cb92234e3386d4ce9d0f37a9664a13de7",
+      "GET_tree": "8b56c5de734ee5a0ca091153e347d82e91e7e47b",
+      "STARTED_JST": "2026-10-05T18:43:33.459840+09:00",
+      "arm": "D",
+      "claim_SHA256": "d2ead5752fb11abf41dfc8af127688669bed50e5b3db784a19fa46230e57b7a7",
+      "replays": 1,
+      "status": "COMPLETE"
+    },
+    {
+      "COMPLETE_JST": "2026-10-05T18:44:45.149843+09:00",
+      "GET_commit": "4650212cb92234e3386d4ce9d0f37a9664a13de7",
+      "GET_tree": "8b56c5de734ee5a0ca091153e347d82e91e7e47b",
+      "STARTED_JST": "2026-10-05T18:44:43.472079+09:00",
+      "arm": "DR",
+      "claim_SHA256": "5d9e46a8dc52547752b0aea3166de47858adab2819676e9f62c8bb2e4a6d563a",
+      "replays": 1,
+      "status": "COMPLETE"
+    }
+  ],
+  "budget_counts": {
+    "D": 1,
+    "DR": 1,
+    "OFF": 1,
+    "candidatePrimaryReplays": 2,
+    "controlVerificationReplays": 1
+  },
+  "check_N": 35,
+  "checks": [
+    {
+      "PASS": true,
+      "name": "OFF/claim_sha_start_get_complete"
+    },
+    {
+      "PASS": true,
+      "name": "OFF/actual_GET_verified_before_execution_enforced"
+    },
+    {
+      "PASS": true,
+      "name": "OFF/one_run_consumed"
+    },
+    {
+      "PASS": true,
+      "name": "OFF/full38_complete"
+    },
+    {
+      "PASS": true,
+      "name": "OFF/frozen_code_hash_claim"
+    },
+    {
+      "PASS": true,
+      "name": "OFF/claim_before_start_before_complete"
+    },
+    {
+      "PASS": true,
+      "name": "OFF/strategy_parent_V5"
+    },
+    {
+      "PASS": true,
+      "name": "OFF/new_fits0"
+    },
+    {
+      "PASS": true,
+      "name": "OFF/orders0"
+    },
+    {
+      "PASS": true,
+      "name": "OFF/main_merge0"
+    },
+    {
+      "PASS": true,
+      "name": "OFF/force_push0"
+    },
+    {
+      "PASS": true,
+      "name": "D/claim_sha_start_get_complete"
+    },
+    {
+      "PASS": true,
+      "name": "D/actual_GET_verified_before_execution_enforced"
+    },
+    {
+      "PASS": true,
+      "name": "D/one_run_consumed"
+    },
+    {
+      "PASS": true,
+      "name": "D/full38_complete"
+    },
+    {
+      "PASS": true,
+      "name": "D/frozen_code_hash_claim"
+    },
+    {
+      "PASS": true,
+      "name": "D/claim_before_start_before_complete"
+    },
+    {
+      "PASS": true,
+      "name": "D/strategy_parent_V5"
+    },
+    {
+      "PASS": true,
+      "name": "D/new_fits0"
+    },
+    {
+      "PASS": true,
+      "name": "D/orders0"
+    },
+    {
+      "PASS": true,
+      "name": "D/main_merge0"
+    },
+    {
+      "PASS": true,
+      "name": "D/force_push0"
+    },
+    {
+      "PASS": true,
+      "name": "DR/claim_sha_start_get_complete"
+    },
+    {
+      "PASS": true,
+      "name": "DR/actual_GET_verified_before_execution_enforced"
+    },
+    {
+      "PASS": true,
+      "name": "DR/one_run_consumed"
+    },
+    {
+      "PASS": true,
+      "name": "DR/full38_complete"
+    },
+    {
+      "PASS": true,
+      "name": "DR/frozen_code_hash_claim"
+    },
+    {
+      "PASS": true,
+      "name": "DR/claim_before_start_before_complete"
+    },
+    {
+      "PASS": true,
+      "name": "DR/strategy_parent_V5"
+    },
+    {
+      "PASS": true,
+      "name": "DR/new_fits0"
+    },
+    {
+      "PASS": true,
+      "name": "DR/orders0"
+    },
+    {
+      "PASS": true,
+      "name": "DR/main_merge0"
+    },
+    {
+      "PASS": true,
+      "name": "DR/force_push0"
+    },
+    {
+      "PASS": true,
+      "name": "DR_transport_failed_before_any_start"
+    },
+    {
+      "PASS": true,
+      "name": "OFF_complete_before_D_DR_start"
+    }
+  ],
+  "countsByThisAudit": {
+    "fits": 0,
+    "modelInference": 0,
+    "protectedOpened": 0,
+    "replays": 0,
+    "scorePnLJoins": 0
+  },
+  "failures": [],
+  "mismatch_N": 0,
+  "schema": "R1_PRIMARY_DURABLE_REPLAY_BUDGET_AUDIT_V1",
+  "status": "PASS"
+}

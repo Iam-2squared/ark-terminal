@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "review_id": "CAPITAL_V5_ANCHOR_INDEPENDENT_SPECIFICATION_REVIEW_20261005",
+  "created_jst": "2026-10-05T17:45:01+09:00",
+  "review_scope": "Read-only independent policy specification review before precommit, score inference, diagnostics or market replay",
+  "review_status": "SPECIFICATION_CONTRADICTION_BLOCKED",
+  "formal_pre_main_implementation_audit": "NOT_EVALUATED",
+  "work_directive_sha256": "088f7e90aae89d25feab741ea04211c92f8f175e9603a77a0d800fdf55674ab6",
+  "source_authority": {
+    "strategy_parent": "710656491be06235901b45c50a8b5cbd714ba4eb",
+    "frozen_code_directory": "/workspace/scratch/f3d0aa747c89/audit_input/selected/86be004416fe/repo/research/capital-v5-max3-slot-intelligence-20261004-v1",
+    "inspected": {
+      "slot_policy.py": "7088999ffad385051522228f46c97b28ff96d0d34fcdfbb12021e098d31f3a32",
+      "allocation.py": "bbb0f6446cb2c7edd859a2ab97edde03276bda592262c94dacbaa7900ad6b147",
+      "replay.py": "42e229f3816427ca16e6d44acc218d7b044e1a04f74cfd3154ff4aa6da11bb88"
+    },
+    "policy_metadata_read": "audit_input/selected/86be004416fe/repo/docs/evidence/capital-v5-max3-slot-intelligence-20261004-v1/POLICY_PRECOMMIT.json",
+    "market_ledgers_read": false,
+    "source_code_executed": false
+  },
+  "findings": [
+    {
+      "id": "SPEC-001",
+      "severity": "BLOCKER",
+      "category": "POLICY_CANARY_CONTRADICTION",
+      "ref": [
+        {"section": "11", "lines": [321, 327]},
+        {"section": "23 B", "lines": [647, 650]}
+      ],
+      "location_text": [
+        "native slot_admission_index=3",
+        "batch既存position数＋cより前のnative BUY成功予定数=2",
+        "既存0/1ではdirect veto0"
+      ],
+      "reason": "Section 11 permits a veto of the actual planned third successful BUY even when the batch starts with zero or one existing position. Section 23 B unconditionally requires zero direct veto for those starting occupancies. A compliant implementation cannot satisfy both requirements for the same state.",
+      "symbolic_counterexamples": [
+        {"existing_positions": 0, "prior_native_successful_buy_proposals": 2, "native_slot_admission_index": 3, "native_quantity": 100, "all_four_low": true, "section_11_veto": true, "section_23_expected_veto": false},
+        {"existing_positions": 1, "prior_native_successful_buy_proposals": 1, "native_slot_admission_index": 3, "native_quantity": 100, "all_four_low": true, "section_11_veto": true, "section_23_expected_veto": false}
+      ],
+      "original_v5_confirmation": "V5 POLICY_PRECOMMIT.same_batch_contract and replay.day_replay compute native occupancy as existing positions plus prior same-batch slot admissions; final funded_slot is based on actual successful BUYs. The counterexamples are allowed by the native contract and are not market-derived observations.",
+      "minimal_repair": {
+        "preferred_unapplied": "Keep Section 11 unchanged; replace the Section 23 B starting-occupancy assertion with: native BUY成功予定順を含む実際予定Slot1/2ではdirect veto0。Add fixed positive cases for planned Slot3 when starting occupancy is 0, 1 and 2, and a negative case where preceding cash/lot failure makes actual planned slot less than 3.",
+        "why_preferred": "Preserves the stated actual planned third-slot policy, score combination, thresholds and native quantity rules; repairs only the contradictory canary wording.",
+        "alternative_unapplied": "Keep Section 23 B literal starting-occupancy exclusion and add existing_positions_at_batch_snapshot=2 to Section 11. This narrows D and DR to batches that began with two existing positions and changes the policy scope; it requires explicit specification resolution and a separately fixed cycle.",
+        "applied": false
+      },
+      "impact": "Do not claim P2/P5 readiness or run score diagnostics, candidate inference or market replay until the contradiction has been resolved in an explicit fixed specification. Current cycle remains blocked; original directive and authorities remain unchanged."
+    },
+    {
+      "id": "SPEC-002",
+      "severity": "CLARIFICATION_REQUIRED_BEFORE_CANARY_FREEZE",
+      "category": "RANK_DOMAIN_AMBIGUITY",
+      "ref": [
+        {"section": "9", "lines": [268, 282]},
+        {"section": "23 B", "lines": [650, 651]}
+      ],
+      "location_text": ["exact1/2はHIGH", "exactmedian HIGH"],
+      "reason": "The exact 1/2 boundary is defined in the empirical rank-fraction domain. The phrase exactmedian can instead be read as equality to a raw training-score median. With training ties these are different: for T=[a,b,b,b,c], a<b<c, and s=b, the defined rank is 2/6 and LOW despite s equalling the raw median.",
+      "minimal_repair": "Use the unambiguous canary phrase r_h(s)=1/2 exactly is HIGH; raw score equality to a training median is not a separate rule. Keep strict T_h<s, the integer formula and all thresholds unchanged.",
+      "impact": "A canary based on a raw-score median could falsely require an action contrary to the fixed rank formula. No raw-score or market calculation was performed.",
+      "applied": false
+    }
+  ],
+  "contract_observations": [
+    {
+      "topic": "Native versus actual planned slot",
+      "conclusion": "Apart from SPEC-001, Sections 8 and 11 correctly separate native pending ADMIT occupancy from BUY-success funded_slot. Cash/lot failures do not cause native backfill. A wrapper must calculate the whole native allocation once before veto and retain other quantities and debits."
+    },
+    {
+      "topic": "Token causality",
+      "conclusion": "Sections 13 and 14 prohibit same-minute recovery, past Entry retry and counterfactual future EXIT expiry. Holding-pair change, successful third BUY and cutoff invalidation are consistent. Freeze held_pair_ids as sorted unique Frozen Entry/position identities, not symbols alone, in any resolved implementation contract. No other definite token contradiction was found."
+    },
+    {
+      "topic": "Guarded recovery",
+      "conclusion": "native picked must mean the pre-allocation native ADMIT list, including zero-quantity proposals, as Section 14 explicitly excludes rescue after native cash/lot failure. Recovery only relaxes the exact Slot3 B reserve reason, uses the fixed rank tie sequence and computes a singleton quantity with unchanged native allocation."
+    },
+    {
+      "topic": "Training ranks and score causal time",
+      "conclusion": "Section 9 fixes rolling-block completed-train resubstitution populations, head-specific eligibility and strict lower-count ranks. It prohibits test-population percentiles and backdating fill features. Any resolved implementation should certify each T_h is complete, nonempty and finite and freeze its ordered unique ID manifest; missing or nonfinite T_h must not silently alter a denominator. This is a source certification requirement, not a new policy threshold."
+    },
+    {
+      "topic": "Exact economics and MaxDD",
+      "conclusion": "Sections 19 and 24 require exact rational comparisons from preserved Decimal amount strings. V5 replay.py stores cash, trades and minute equity as Decimal strings but emits convenience metrics as floats; those summary floats cannot decide the new gates. Window peak starts at that arm's pre-window EOD amount, minute points follow the frozen ordered session/minute curve, and full-series peak starts at 1,000,000. No economic reaggregation was performed."
+    },
+    {
+      "topic": "Protected 100 identities",
+      "conclusion": "Section 15 protection is an evaluation-only all-100 identity constraint plus two original-slot-group aggregate PnL constraints; it does not require every protected trade's individual PnL or quantity to be at least V5. Do not strengthen or weaken this rule silently. Freeze unique exact Frozen Entry and EXIT identities and keep their membership unavailable to decision inputs."
+    },
+    {
+      "topic": "Quality rates",
+      "conclusion": "In the resolved gate precommit, explicitly name candidate-arm funded BUY identity count as the rate denominator for Q4/Q5/Q6 and keep the reference rational thresholds 58/150, 73/150 and 82/150. Missing full-series execution remains NOT_EVALUATED. No quality cross-tab or counts were recomputed."
+    }
+  ],
+  "counts": {
+    "new_fits": 0,
+    "teacher_regeneration": 0,
+    "model_inference": 0,
+    "new_score_pnl_cross_tabs": 0,
+    "market_replays": 0,
+    "control_verification_replays": 0,
+    "candidate_primary_replays": 0,
+    "independent_reconstruction_replays": 0,
+    "synthetic_execution": 0,
+    "original_directive_changes": 0,
+    "frozen_authority_changes": 0,
+    "github_writes_by_this_reviewer": 0,
+    "orders": 0,
+    "main_merge": 0
+  },
+  "resolution_applied": false,
+  "active_capital_champion": "V5",
+  "proposal_eligible": null,
+  "next_policy": "Preserve the original directive and V5. Record the contradictory references and the two unapplied alternatives; obtain an explicit fixed resolution before any later cycle precommit or market work."
+}

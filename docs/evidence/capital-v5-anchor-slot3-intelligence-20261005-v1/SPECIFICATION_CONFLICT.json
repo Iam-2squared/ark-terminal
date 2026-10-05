@@ -1,0 +1,142 @@
+{
+  "schema": "CAPITAL_V5_ANCHOR_BLOCKED_AUDIT_V1",
+  "exact_jst": "2026-10-05T17:50:38.420814+09:00",
+  "branch": "capital-v5-anchor-slot3-intelligence-20261005",
+  "basis": {
+    "HEAD": "14b1910d80335fdf48421383ebf36981ae8f8cfd",
+    "tree": "ba0e1eb2447f33ee41fbdf1d5d173c8f0716dd68",
+    "actual_GET_verified": true
+  },
+  "activeCapitalChampion": "V5",
+  "Safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "productionReady": false
+  },
+  "counts": {
+    "newFits": 0,
+    "modelInferenceRuns": 0,
+    "teacherRegeneration": 0,
+    "calibration": 0,
+    "grid": 0,
+    "extraArm": 0,
+    "candidatePrimaryReplays": 0,
+    "controlVerificationReplays": 0,
+    "independentReconstructionReplays": 0,
+    "orders": 0,
+    "mainMerge": 0,
+    "forcePush": 0,
+    "providerRequests": 0,
+    "Claude": 0,
+    "protectedDataOpened": 0,
+    "scorePnLCrossTabs": 0,
+    "policyChanges": 0,
+    "championPointerChanges": 0,
+    "workflowDispatches": 0,
+    "pullRequestsCreated": 0
+  },
+  "status": "SPECIFICATION_CONTRACT_BLOCKED",
+  "blocking_conflict_N": 1,
+  "issue": {
+    "id": "SC01",
+    "severity": "BLOCKER",
+    "location": [
+      "Work section11 lines321-329",
+      "Work section23B lines647-650"
+    ],
+    "reason": "Section11 requires veto for a fundable actual planned third slot with four LOW scores including batches starting at open0 or open1; section23B independently requires direct veto0 whenever existing open is0 or1.",
+    "counterexamples": [
+      {
+        "batch_existing_position_N": 0,
+        "earlier_native_successful_BUY_N": 2,
+        "native_gate": "ADMIT",
+        "native_slot_admission_index": 3,
+        "native_proposal_quantity": 100,
+        "LOW_P": true,
+        "LOW_2": true,
+        "LOW_3": true,
+        "LOW_M": true,
+        "section11_required_veto": true,
+        "section23B_required_no_veto": true,
+        "incompatible": true,
+        "case_type": "SPECIFICATION_COUNTEREXAMPLE_ONLY_NOT_MARKET_REPLAY"
+      },
+      {
+        "batch_existing_position_N": 1,
+        "earlier_native_successful_BUY_N": 1,
+        "native_gate": "ADMIT",
+        "native_slot_admission_index": 3,
+        "native_proposal_quantity": 100,
+        "LOW_P": true,
+        "LOW_2": true,
+        "LOW_3": true,
+        "LOW_M": true,
+        "section11_required_veto": true,
+        "section23B_required_no_veto": true,
+        "incompatible": true,
+        "case_type": "SPECIFICATION_COUNTEREXAMPLE_ONLY_NOT_MARKET_REPLAY"
+      },
+      {
+        "batch_existing_position_N": 2,
+        "earlier_native_successful_BUY_N": 0,
+        "native_gate": "ADMIT",
+        "native_slot_admission_index": 3,
+        "native_proposal_quantity": 100,
+        "LOW_P": true,
+        "LOW_2": true,
+        "LOW_3": true,
+        "LOW_M": true,
+        "section11_required_veto": true,
+        "section23B_required_no_veto": false,
+        "incompatible": false,
+        "case_type": "SPECIFICATION_COUNTEREXAMPLE_ONLY_NOT_MARKET_REPLAY"
+      }
+    ],
+    "minimal_repair_A": {
+      "recommended": true,
+      "applied": false,
+      "preserves": "section11 D/DR policy and section9 score boundary",
+      "replace_section23B_first_line_with": "native BUY成功予定順を含む実際予定Slot1/2ではdirect veto0。既存0/1でも先行BUY成功予定込みで本当の予定Slot3に達した場合は第11節を適用。"
+    },
+    "alternative_B": {
+      "applied": false,
+      "changes_policy_scope": true,
+      "description": "If zero intervention in batches starting with0/1 is intended, explicitly add batch-start actual open=2 to section11, then revise the corresponding canaries. Do not silently inherit old v12."
+    },
+    "impact": "D action, DR token issuance, recovery path and all economic/quality gates can differ; no compliant implementation can certify both literal requirements."
+  },
+  "clarification": {
+    "id": "SC02",
+    "severity": "CLARIFICATION_REQUIRED",
+    "location": "Work section23B line651",
+    "phrase": "exactmedian HIGH",
+    "authoritative_formula": "section9: 2*(1+count(T_h<s)) < N_h+1 is LOW; exact rank fraction1/2 is HIGH",
+    "reason": "A raw-score training median with ties need not have rank fraction1/2.",
+    "example": {
+      "T": [
+        0.1,
+        0.2,
+        0.2,
+        0.2,
+        0.3
+      ],
+      "current_s": 0.2,
+      "less_count": 1,
+      "rank_numerator": 2,
+      "rank_denominator": 6,
+      "LOW": true
+    },
+    "minimal_repair": "Replace exactmedian HIGH with r_hがexact1/2ならHIGH; preserve strict less-than tie counting.",
+    "applied": false
+  },
+  "implementation_created": false,
+  "runtime_changes": 0,
+  "economic_failure_claim": false
+}

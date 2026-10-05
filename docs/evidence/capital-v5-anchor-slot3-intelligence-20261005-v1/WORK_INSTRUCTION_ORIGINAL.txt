@@ -1,0 +1,847 @@
+Ark Terminal — V5-Anchored Slot3 Loser Shield + Winner Recovery Work
+V5 Champion保護 / 既存4 Intelligence再利用 / 新fit 0
+V5原本再現 → Slot3限定2候補 → 20-session完全対比較 → 非劣化Gate → 固定STOP
+
+文書ID: CAPITAL_V5_ANCHORED_SLOT3_INTELLIGENCE_V1_20261005
+作成時刻（JST）: 2026-10-05T17:27:14+09:00
+Repo: Iam-2squared/ark-terminal
+文書状態: WORK_DIRECTIVE_READY / 市場Replay未実行
+
+================================================================
+0. 最初に読む：目的・実行権限・悪化防止の意味
+================================================================
+
+目的は「勝率やAUCが良く見えること」ではない。
+V5を土台として、実現Loserを減らし、Medium/U5/U10を保持・追加回収し、
+100万円を起点とする20 sessionsの資産成長をV5から改善すること。
+
+このWorkでは、次の範囲を一括実行してよい。
+既存作業・原本監査、仕様precommit、既存モデル推論、V5互換性確認、
+限定2候補の研究Replay、独立監査、表・図・Evidence保存、最終判定。
+段階の区切りだけで逐次承認待ちにせず、許可された範囲を完走する。
+
+許可しないこと：実口座接続、注文、main merge、production更新、
+Champion自動更新、追加モデル学習、保護データ開封、結果後の救済調整。
+
+「絶対に悪化させない」は、将来の投資損失がゼロという保証ではない。
+研究候補の損益は実行するまで不明であり、悪化する候補もあり得る。
+保証する運用境界は以下。
+  ・V5原本・選択設定・既存Evidenceを上書きしない。
+  ・実行中も終了後もactiveCapitalChampion=V5を維持。
+  ・同じ20-session窓のどれか1つでもV5未満なら昇格候補にしない。
+  ・勝率改善だけ、U5増だけ、失敗系統比の回復だけでは採用しない。
+  ・全Gate PASSでも昇格「提案」まで。人間承認なしの切替は0。
+  ・過去に通ったGateは将来の無損失・非劣化を保証しない。
+
+戦略本体をI2/M2から継承しない。Capitalの親はV5だけ。
+後続研究から再利用するのは、凍結済みIntelligenceと必要な推論依存だけ。
+
+================================================================
+1. 確認済み原本と、新branchの起点
+================================================================
+
+【V5 strategy parent：固定】
+710656491be06235901b45c50a8b5cbd714ba4eb
+GitHub message: Capital v5 FINAL_ARTIFACT_ENCODING_RECEIPT
+直前のV5 closure commit:
+cc1ca37b17148ea15821101d03b441de4dc6f6d0
+
+V5 Evidence:
+docs/evidence/capital-v5-max3-slot-intelligence-20261004-v1/
+V5 source:
+research/capital-v5-max3-slot-intelligence-20261004-v1/
+V5 profile:
+CAPITAL_MAX3_SLOT_RESERVE_V1
+
+元branch capital-state9-vnext-20261004 の設計時HEADは
+54722d28a81532279616ee50b62ac625d46871f0。
+ただしこれは後続v6～v8を含むため、新戦略のbaseには使わない。
+
+【Intelligence read-only authorities】
+Rank vNext: da8dc67b3100ddb7abd7ff95ed336fb9d55470c6
+Quality v1R1: a977e30aa3318f639569f806f389acb99b3596e4
+MRET certification v11R1: a225782aad5a48abea1e332e0eee1d93a0481f0b
+元MRET fit v11: 489fc4f9bc164b3150e374e9f4011a9888ad2d55
+
+上記はこの設計の参照点。Work開始時にactual GETし、terminal correction、
+同名Work、より新しい関連作業の存在を調べる。存在を無視して重複実行しない。
+ただし「最新だから」という理由でV5のstrategy parentを後続系統へ変更しない。
+
+新branch:
+capital-v5-anchor-slot3-intelligence-20261005
+base: 710656491be06235901b45c50a8b5cbd714ba4eb
+
+同branchに設計・handoffのみ存在すれば、その記録を保持して継続。
+同じ候補の実行claim/結果が既に存在すれば、それを監査してreuseする。
+別仕様や曖昧な実行履歴があれば重複ReplayせずSTOP。
+
+Evidence directory:
+docs/evidence/capital-v5-anchor-slot3-intelligence-20261005-v1/
+
+================================================================
+2. 原本の優先順位と今回の変更点
+================================================================
+
+優先：ユーザーの現在の固定方針 → 本Workの事前仕様 → V5の原本契約 →
+対応する凍結モデル契約 → 報告文・過去の会話要約。
+
+ただし原本同士に矛盾がある場合、黙って片方を訂正しない。
+対象・違い・影響範囲を保存し、Gateを確定できなければBLOCKED。
+
+本書の新しいpolicyと厳格な非劣化Gateは、今回設計した研究条件である。
+昔のV5に同じ条件がprecommitされていたとは表現しない。
+すでに見たDevelopmentを、このprecommitで未見データへ戻すことはできない。
+
+旧資料の24-session目標や38-session Finalを今回のPrimaryへ流用しない。
+Primaryは常に20 sessions。Selector/Entry/EXIT再研究にも戻らない。
+
+================================================================
+3. V5基準値：まず月相当20 sessionsを表示する
+================================================================
+
+保存済みV5連結曲線から作るrolling20の100万円換算値：
+
+指標                    倍率                 100万円換算・円未満四捨五入
+最小                    1.0823662751x        1,082,366円
+平均                    1.1906460126x        1,190,646円
+中央値                  1.1991541915x        1,199,154円
+最大                    1.2970310262x        1,297,031円
+200万円到達             0/19                未達
+
+正確なGateには、上記の丸めた表示値ではなくV5原本の各窓データを使う。
+
+定義：G_w = 当該20-session末のEOD資産 / 当該窓開始前のEOD資産。
+amount_from_1m = 1,000,000 × G_w。
+これは同じ連結Replayを20 sessionsずつ切った正規化比較であり、
+各窓を100万円・保有ゼロへリセットして別々に再取引した結果ではない。
+100株・cash pathがあるため、この2方式を同一視しない。
+今回は既存V5と同じ方式だけを使い、独立reset Replayは行わない。
+
+評価対象38 Development sessionsから、同じ開始・終了sessionの19窓を固定。
+19窓は重複し、独立19標本でも連続した19暦月でもない。
+
+最初の報告表は V5 / D / DR の20-session円換算、V5との差、Gate。
+38-session Final Equityを「1ヶ月後の資産」として出すことは禁止。
+日次幾何・算術、全期間Final、全期間MTMは補助・監査用。
+
+================================================================
+4. V5の品質基準と、Slot3限定でできないこと
+================================================================
+
+以下は全38評価sessionの取引集計。月次件数ではない。
+
+Funded=150 / positive net>0=68 / loser net<=0=82
+Weak potential<2%=58 / below3%=73
+Medium3–<5%=27 / U5>=5%=50 / U10>=10%=26
+U10はU5の内数。Medium+はMedium+U5=77。
+
+slot                 1              2              3
+funded               41             59             50
+loser<=0             20             28             34
+Weak<2               15             17             26
+U5                   13             21             16
+U10                   8             11              7
+保存PnL円       253,568.65     251,494.05      -27,626.55
+
+Slot3の合計損益が負であることだけで、全Slot3を削除してはいけない。
+その中にもU5=16、U10=7が含まれる。
+
+また「Slot3限定で損失ほぼゼロにできる」と約束しない。
+他を変えずSlot3の34 loserだけを完全除外できた仮想例でも、
+残るloserは48/116=41.3793%。実際の識別性能や実行可能性の実測ではない。
+Slot1/2を守る今回は、全体無損失化ではなく、Championを守った第一改善cycle。
+
+Rank-pass内：U5=113、U10=47。
+V5 U5理由：funded50 + Reserve30 + MAX3 28 + cash/lot5 =113。
+V5 U10理由：funded26 + Reserve10 + MAX3 9 + cash/lot2 =47。
+保存physical OracleはU5=104、U10=47。ただし未来既知・cap等の緩和を含む。
+104/47をこの新policyの実現可能な到達保証にしない。
+今回はRank不通過のU5=57/U10=20を救済する権限を与えない。
+
+================================================================
+5. 再利用する4 Intelligence：意味を取り違えない
+================================================================
+
+pP / EXISTING_MOVE_P5：U5 Potentialの順位。
+MOVE_U2 / q2：Potential>=2%の順位。実現Loserを直接予測するものではない。
+MOVE_U3 / q3：Potential>=3%の順位。最低利益3%の保証ではない。
+MRET / mP：同Potential bucket内で、Frozen EXITの実現returnが
+completed-train中央値を上回る相対monetizationの順位。
+MRETをP(net>0)、期待利益、確実なloser判定と呼ばない。
+
+MRETは数値認証済みだが、全体の絶対利益識別・新policy収益は別評価。
+旧HL0/HF1、v3複合Qはnegative historyとして保存。復活・再fitしない。
+
+新fit=0。既存pP/q2/q3/MRETの各blockモデルを固定reuse。
+V5のH2/H3/H5、PAVA、ML、S/A/B、arrival/Reserve表も固定reuse。
+V5のMLをpPへ置換しない。v7 rank-native admissionやI2へ差し替えない。
+
+================================================================
+6. 必須入力とPrivate packの回収
+================================================================
+
+必須V5：CLOSURE.json、POLICY_PRECOMMIT.json、SOURCE_HASHES.json、
+ARRIVAL_TABLE.json、MAIN_REPLAY_RESULT.json、SLOT_QUALITY_AND_RESERVATION.json、
+PAIRED_DAILY.csv、PAIRED_ROLLING20.csv、各decision/trade/curve/intent ledger、
+model/score/source manifest、code、postcommit encoding receipts。
+
+今回runtimeで確認したmounted v11R1 pack：
+Ark_Capital_v11R1_Numeric_Cert_Recovery_20261005_PRIVATE(1).zip
+SHA256:
+bca2ba95b095132ce69eef2f207d1980ce2cc8ae688a1aad313c59f37a2c3e86
+GitHub v11R1 CLOSUREのprivate_pack.file_sha256と一致。
+
+このpackには以下のnested transport経路がある。
+  authority/Ark_Capital_v11_Realized_Monetization_Signal_20261005_PRIVATE_CONTRACT_FAIL.zip
+    → authority/Ark_Capital_v10_Monetization_Sizing_20261005_PRIVATE.zip
+      → authority/Ark_Capital_v5_MAX3_Slot_Intelligence_20261004_PRIVATE.zip
+
+回収したV5 nested archive SHA256:
+86be004416fe4db4f8c0d25b91dd1c60155a4e47196486ec0bfee817a08f7cf3
+
+nested v10からv9→Quality/Mainの原本も回収可能。
+各内部memberはそれぞれのmanifestと照合する。
+外側ZIPのhash一致だけで全入力を認証しない。
+filenameの(1)等ではなく内容hashで識別する。
+
+V5 frozen code SHA256（closure記載値）：
+slot_policy.py:
+7088999ffad385051522228f46c97b28ff96d0d34fcdfbb12021e098d31f3a32
+allocation.py:
+bbb0f6446cb2c7edd859a2ab97edde03276bda592262c94dacbaa7900ad6b147
+replay.py:
+42e229f3816427ca16e6d44acc218d7b044e1a04f74cfd3154ff4aa6da11bb88
+
+public GitHubとprivate byteが違う場合、既存encoding receiptに記載された
+LF等の機械的変換だけを検証する。任意の正規化でhashを合わせない。
+入力が欠ければ対象処理を止め、不足path/hash/最小必要物を保存。
+provider取得・未来source補完・新fitで穴埋めしない。
+
+================================================================
+7. 先に固定するもの／後から調べるもの
+================================================================
+
+新しい「V5×4 score×損益」のcross-tabを見る前に、以下をcommit/GETする。
+  ・D/DRの全仕様
+  ・score参照母集団・比較式・tie
+  ・20-session窓identityと非劣化Gate
+  ・protected Slot1/2評価規則
+  ・試行数、未測定処理、昇格禁止、STOP
+
+その後に診断を行ってよいが、診断結果で閾値・score組合せを変更しない。
+診断を見てDだけ実行／DRだけ変更といった選別もしない。
+技術・共通契約の不備以外は、事前固定の2本を同条件で評価する。
+
+これは同じDevelopmentでの反復研究。未知性能確認とは呼ばない。
+過去のSlot3損失を見て今回の対象を選んでいる事実もExposureへ記録する。
+
+================================================================
+8. V5本体の凍結範囲
+================================================================
+
+Selector / Entry / EXIT：永久Freeze。
+Entry timestamp、raw reference、candidate identity、再Entry権限：変更0。
+MAX3、現物LONG/CASH-only、100株、same-symbol、15:20 cutoff：維持。
+BUY raw×1.0005、SELL有効source×0.9995、commission0：維持。
+MTM・cash release・EOD・lunch・source欠測・Liquidity：V5原本のまま。
+
+V5 native orderingはstaircase.candidate_orderをそのまま使用。
+V5 S/A/B、ML proportional sizing、water-fill、cap/targetは置換しない。
+cap S45% / A35% / B25%、base68/56/44%、breadth+5.5pt、target最大92%。
+実装には元allocation.pyをreuse。報告文から近似的に再実装しない。
+
+重要：native gateは既存position＋同batch admitted pending数を見る。
+実際のfunded_slotはcash/lot確認後のBUY成功順で、別の値になり得る。
+この2種類のslotを混ぜない。
+
+旧V5機能をisolated namespaceでloadし、__file__とhashを検査。
+common / allocation等の同名importが後続v7/v9を拾う事故を防ぐ。
+
+================================================================
+9. 4 scoreの時点・percentile契約
+================================================================
+
+各candidateは対応する8 rolling-origin blockの凍結モデルで推論。
+モデルのtrain終了は当該test blockより前。最新モデル1本の全期間適用は禁止。
+特徴はFrozen Entry判断時点までの許可されたcausal情報だけ。
+fill時点情報を過去のfirst intentへbackdateしない。
+
+各head hについて、当該blockの凍結済みcompleted-train ID集合へ
+同じblockモデルを適用したscore列T_hを固定する。
+既存保存列が同一ならreuse。無ければ推論のみで作成、新fitは0。
+各headの元train eligibilityの差を台帳に残し、無理に共通化しない。
+MRETは元MRET eligible training集合。test側の未来availabilityで変えない。
+
+r_h(s) = (1 + count(x in T_h: x < s)) / (len(T_h)+1)
+
+rP, r2, r3, rMを作る。scoreを加重合成しない。
+現在test全体のdecileや将来candidateをpercentile母集団に使わない。
+これはtraining-resubstitution基準の相対順位であり、校正済み確率ではない。
+
+今回の唯一の新policy数値境界は1/2。
+LOW_h := 2×(1+count(T_h<s)) < len(T_h)+1
+HIGH_h := NOT LOW_h
+
+整数で判定し、0.499999等への丸め・後付けepsilonを使わない。
+exact1/2はHIGH。missing/nonfiniteはLOWにしない。
+1/2は今回固定する設計境界であって、有効性が実証済みの最適閾値ではない。
+
+公式Replayでは対象native候補のscore/causal sourceが全て認証済みであること。
+一部が欠けたcandidateを削除して評価しない。
+実装上はscore異常なら当該追加介入をABSTAINしV5へ委譲するが、
+研究認証ではその欠測を無視せずSOURCE/CONTRACT_BLOCKEDとする。
+
+保存推論と再推論の差はheadの凍結contractで検査。
+MRET score許容1e-12を拡張しない。raw score一致だけでなく、
+train rank、LOW/HIGH、選択順、actionが独立実装と一致することも要求。
+
+================================================================
+10. 候補はDとDRの2本だけ
+================================================================
+
+Control：V5そのもの。
+D ：V5_SLOT3_UNANIMOUS_LOW_SHIELD_V1
+DR：V5_SLOT3_UNANIMOUS_LOW_SHIELD_WITH_GUARDED_RECOVERY_V1
+
+D→DRで追加するのは「保護した枠への限定Reserve解除」だけ。
+DRはDの成績を見て作るのではなく、今ここで両方固定する。
+D3、別threshold、別score weight、別time bucket、追加fitは禁止。
+
+================================================================
+11. D：低評価が一致した、本当の3枠目だけを見送る
+================================================================
+
+各Entry batchで、当該armの現在cash/positions/marksのsnapshotを取り、
+V5のnative gateとallocationをそのsnapshot上で一度計算する。
+これは現在stateに対するV5 proposalであり、保存された未来V5取引表ではない。
+
+native picked list、slot_admission_index、first-pass/water-fill後の
+quantity/debitを確定してから、Dを適用する。
+
+介入条件を全て満たすcandidate cだけ：
+  1. native gateがADMIT。
+  2. native slot_admission_index=3。
+  3. native proposal quantity>=100。
+  4. batch既存position数＋cより前のnative BUY成功予定数=2。
+     （先行candidateがcash/lot失敗し、実際にはSlot1/2になる場合は対象外。）
+  5. LOW_P AND LOW_2 AND LOW_3 AND LOW_M。
+
+全てtrueなら、この新規BUYだけを取り消す。
+reason=V5_SLOT3_UNANIMOUS_LOW_SHIELD_REJECT。
+actual quantity=0。native would-fund quantity/debitは別列へ残す。
+
+pP・Medium・Weak回避・相対monetizationのどれか1軸でもHIGHなら、
+DはABSTAINしてV5 proposalをそのまま実行する。
+これを「安全と認定」とは呼ばず、V5へ委譲したと記録する。
+
+【同batchの保護】
+他のnative candidateのquantity/debitは既に計算した値をそのまま使う。
+除外後にbudget・ML比率・water-fillを再計算して他へ資金を配らない。
+除外資金はcashに残す。後続candidateの同batch backfillも0。
+
+これにより、そのbatchでのSlot1/2への直接数量変更を防ぐ。
+後日のcash/occupancy pathまで同じになる保証ではない。後述で別監査する。
+
+この追加処理は「元V5仕様そのまま」ではなく、明示した新しいBUY veto。
+元allocationの数量提案を保持するラッパーとして実装・差分保存する。
+
+================================================================
+12. 100株へ縮小する案を今回は採らない理由
+================================================================
+
+100株でも保有枠を1つ使う。勝敗件数にも1取引として残る。
+今回の問いはLoser取引の回避と空いたSlotの回収なので、
+Dは数量縮小ではなく限定的な新規BUY見送りを使う。
+
+ただし見送る候補が実際にはWinnerだった可能性もある。
+誤拒否と機会損失を必ず評価し、損失回避のみを宣伝しない。
+
+================================================================
+13. DRの回収token：未来を見ずに作り、限定して使う
+================================================================
+
+DRもDと同じvetoを行う。Dとの差は以下のtoken処理のみ。
+
+Dによるvetoがあり、当該batch実行後にactual open positionsが2つなら、
+回収tokenを1つだけ作る。
+  token = {session, created_minute, origin_veto_id, held_pair_ids}
+
+tokenは「未来にWinnerが来る保証」ではなく、介入範囲を限定する状態。
+同時に保持できるtokenは1つ。重複vetoでtokenを積み増し・期限延長しない。
+
+次の場合にtokenを失効：
+  ・actual holding集合がheld_pair_idsと異なった。
+  ・新たな3枠目のBUYが成功した（native/救済どちらでも）。
+  ・session終了または15:20に到達。
+
+毎分、confirmed SELL処理後・新規Entry処理前に失効確認する。
+未保有veto候補の「本来の未来EXIT時刻」でtoken期限を決めない。
+
+救済はcreated_minuteより厳密に後のminuteのみ。同batchでは不可。
+拒否した同じEntryを後から買い直さない。新たに到着したFrozen Entry候補のみ。
+
+================================================================
+14. DR：V5のSlot3 Reserveだけを、4軸HIGH時に限定解除
+================================================================
+
+救済を検討できるのは、次を全て満たすbatchだけ。
+  ・tokenが有効で、actual open=2、holding pairが同一。
+  ・current minute>created_minute、current minute<15:20。
+  ・そのbatchのV5 native picked listが空。
+
+最後の条件は重要。
+nativeで買う候補が1つでもある、またはnative admittedがcash/lot失敗した
+batchでは救済しない。既存候補を押しのけるreplacement/backfillを作らない。
+
+救済eligible candidate fは全て以下。
+  ・V5 Rank-pass、元のB rank、Frozen Entry時点・価格を維持。
+  ・same-symbol、source/as-of等の元の現在時点条件を満たす。
+  ・native slot_gate_reasonが厳密にSLOT3_RESERVE_FOR_FUTURE_QUALITY。
+  ・HIGH_P AND HIGH_2 AND HIGH_3 AND HIGH_M。
+
+C/ML未達、Slot2 Reserve、MAX3満席、cash/lot、cutoff、same-symbolの
+拒否を解除する権限は与えない。
+
+同batchに複数eligibleなら、この限定集合だけを以下で一意に選ぶ。
+  rP DESC → r3 DESC → rM DESC → r2 DESC → V5 native order。
+分数比較は整数交差積で行い、丸め値で排序しない。
+1候補だけ。最優先候補がcash/lot不可でも次候補をbackfillしない。
+
+Big Winner軸を先にし、Medium+・monetizationを補助にする。
+しかし将来U5/U10の実ラベルを知って選ぶわけではない。
+「Bigが来なければ必ずMediumが取れる」とは主張しない。
+
+選んだ1候補を、実際のarm cash/equity/exposure、既存2つのS/A/Bを使い、
+V5 allocation.pyのsingleton pickedとして数量計算する。
+追加のquantity重み、cap、target、water-fill変更は0。
+quantity>=100ならreason=V5_SLOT3_GUARDED_RESERVE_RECOVERYとしてBUYしtoken消費。
+quantity<100ならCASH_OR_LOTで終わり、同候補を後時刻に再試行しない。
+tokenは別の将来到着candidateのために残してよい。
+
+この救済はReserve gateの明示的な追加例外であり、V5完全同一とは呼ばない。
+以後のEXIT/MTM/現金解放はV5と完全同じ。
+
+================================================================
+15. Slot1/2の「保護」を二段階で検査する
+================================================================
+
+【A. 同一stateの直接不変性：実装Hard Gate】
+  ・native予定Slot1/2で追加veto=0。
+  ・native予定Slot1/2の同batch quantity/debit変更=0。
+  ・native candidateを救済候補で押しのけること=0。
+  ・Dによる同batch reallocation/backfill=0。
+  ・token救済はactual open=2かつnative picked=0のbatchのみ。
+
+【B. 全経路の保護：採用Hard Gate】
+保存済みV5でfunded_slot1/2だった100 identitiesを、評価専用の
+PROTECTED_V5_SLOT12_IDSへ固定する。runtimeへ渡さない。
+
+昇格提案には、その100件を候補でも全てfundし、Frozen Entry/EXIT identityを
+保っていることを要求する。新policy上のslot番号は変わり得るため追跡する。
+さらに、V5の元Slot1集合・元Slot2集合それぞれについて、
+候補の実quantity損益合計が対応するV5損益以上であること。
+
+100件のfuture勝敗を知ってruntime判断を保護するwhitelistは作らない。
+この条件を満たせないと分かったら、強制的にその銘柄を追加して救済せずNO_GO。
+
+「Slot3のコードだけ変えたからSlot1/2も絶対無影響」は誤り。
+cash・equity・保有時間による間接影響を検出し、失敗ならV5を保持する。
+
+================================================================
+16. V5互換性証明と、Replay予算
+================================================================
+
+最初に保存V5 ledgerの再集計・原本照合を行う。
+次に追加機能OFFの新adapterがV5と一致することを検証する。
+
+新adapterと同じcode/hashのOFF互換性receiptが既にある場合はreuse。
+無い場合、最大1回の全系列V5復元検証Replayを許可する。
+これはControl再現検証であり新研究候補数には数えないが、実行回数を隠さない。
+
+OFFでdecision、intent、quantity、BUY/SELL、cash、EOD、rolling20が一致しなければ、
+D/DRを実行しない。元V5ではなくadapterをsyntheticで修復する。
+正式な全系列実行後にbehaviorが違えば当cycleはCONTRACT_FAIL。
+
+新candidate Replay：Dを1回、DRを1回。いずれも全38sessionの同じ入力。
+独立検算：原本から各armを1回再構築。Primary replayのimportは禁止。
+
+new fits=0 / teacher regeneration=0 / calibration=0 / grid=0 / extra arm=0。
+旧v6～v11R1のReplay=0 / Oracle solve=0 / new provider=0。
+
+V5検証・D/DR本番・独立再構築を別のcounterへ記録する。
+同じ候補を結果が良くなるまで繰り返すことは禁止。
+
+================================================================
+17. Source不足と未測定を、戦略失敗と混ぜない
+================================================================
+
+v11R1 M1では、経路が変わると以前買わなかったcandidateをfundし、
+売却source不足で全期間測定不能となった。V5で完走しただけでは
+新経路のexecution sourceが全て足りると保証できない。
+
+開始監査で、許可済みsourceの範囲・欠測理由・全candidate coverageを記録。
+未来の売却source不足フラグをpolicyへ与えて候補を除外しない。
+
+必要な未来SELL/MTM sourceを実行時に解決できなければ当該armをfail-closed。
+架空価格、前日値、都合のよい終値、forward-fill、暗黙dropで補完しない。
+full38未完走のarmは、公式19-window gate=NOT_EVALUATED。
+partialで存在する20窓を成功判定へ転用しない。参考表示はpartialと明記。
+
+arm固有の不足なら、もう1つの独立armは仕様変更せず続行可能。
+共通入力/会計契約が壊れていれば全arm STOP。
+未測定armを経済NO_GOや2x=0の測定済み結果に置換しない。
+
+================================================================
+18. 診断：V5との差分を全件追跡する
+================================================================
+
+診断はprecommit後、固定されたgateの作用を調べるもの。
+次の表を全件作る。結果で当cycleのpolicyを変更しない。
+
+1. V5 funded150の4 score分布・native slot別診断。
+2. D/DRにおける直接veto集合：Loser/positive/Medium/U5/U10/Weak。
+3. token発行、消費、失効、無候補、native自然補充、救済補充。
+4. V5_ONLY / candidate_ONLY / COMMON identities。
+5. COMMONのquantity差と正確なPnL差。
+6. protected Slot1/2のlost identity、入替slot、quantity、PnL影響。
+7. GAINED/LOST U5/U10/Medium/positive/Loser。
+8. 新たに発生したMAX3 miss、cash miss、Reserve missと改善分。
+9. 新救済候補の実現positive率・損失額・資金寄与。
+10. gross profit、gross loss、net、profit factor、平均勝ち/負け。
+
+V5で後から判明したLoserと保持intervalを使うoverlap集計は評価専用。
+「空ければこのWinnerを確実に取れた」という因果証明ではない。
+actual recoveryは当該causal ReplayのBUY成功でのみ数える。
+
+Potential<2 と realized<=0 を同義にしない。
+0円損益も含む旧Loser<=0に加え、strict negative<0とexact zeroを別表示。
+
+U5保存理由は113、U10は47のRank-pass分母でconservationを確認。
+全候補170/67の表を出す場合は、Rank未達分を別reasonへ追加する。
+物理Oracle gapとobserved理由を重複して足さない。
+
+================================================================
+19. 非劣化Hard Gate：平均で悪化窓を隠さない
+================================================================
+
+対象は同じ19組の20-session窓。候補とV5のstart/end IDは完全一致。
+一つでも欠けたらGate未評価。良い窓だけを選ばない。
+
+E0：全38session COMPLETE / execution unresolved=0 / 19窓一致。
+E1：全wについて G_candidate,w >= G_V5,w。
+E2：rolling20 medianがV5を厳密に上回る。
+E3：rolling20 meanがV5を厳密に上回る。
+E4：rolling20 min/max/2x-hit数がV5未満でないことを明示照合。
+E5：20-session資産減少窓数=0。
+E6：同じ各20-window内のminute-MTM MaxDDが各V5窓以下。
+E7：全38系列のminute-MTM MaxDDがV5以下。
+
+E1は最小値同士を比べるだけではなく、同じ開始日ごとの直接比較。
+同じデータの一つの窓でも退行なら、他の大勝ちで相殺してPASSにしない。
+これは厳しい採用条件であり、通らなければV5保持。基準を後から緩めない。
+
+金額は原本DecimalからFraction等へ正確変換し、
+ratioの大小は整数交差積で確認する。表示用float/丸め円でGate判定しない。
+median/meanもexact ratioで判定し、算定したsource値を残す。
+window MaxDDは各窓開始資産を初期peakにし、窓内の全有効MTM点で再計算。
+日次endだけでminute-MaxDDを代用しない。
+
+未来に毎日V5以上という保証ではない。
+また、取引途中でV5と候補の良い方へ切り替えるoracle fallbackは禁止。
+
+================================================================
+20. Winner・Loser・既存利益の保護Gate
+================================================================
+
+全期間の品質評価は150件のV5原本を基準にする。
+割合は丸めた38.666667等ではなく、分子/分母の整数交差積で比較。
+
+Q1：U5 >=50。
+Q2：U10 >=26。
+Q3：Medium3–<5 >=27。
+Q4：Weak<2の絶対N<=58 AND 率<=58/150。
+Q5：below3の絶対N<=73 AND 率<=73/150。
+Q6：realized<=0のN<82 AND 率<82/150。
+Q7：realized>0のN>=68。
+Q8：実際のgross loss金額（負PnL絶対総和）がV5以下。
+Q9：負の日次returnのNがV5以下、最悪日次returnもV5以上。
+Q10：第15節のprotected Slot1/2 identity・利益保護がPASS。
+Q11：独立会計/causal/action/金額監査mismatch=0。
+
+U5/U10を減らして勝率だけを上げる候補は採用不可。
+取引を0件にして無損失と呼ぶことも不可。
+
+WINNER_RECOVERY_CONFIRMEDは別status：
+上記Q/EがPASS、かつU5>50またはU10>26で、causalな追加BUYが確認されたとき。
+U5とU10それぞれの増減は隠さず出す。
+Dが防御改善だけで合格しても「追加Winner回収成功」と呼ばない。
+
+「Loser40%未満」「U5必ず60」等、根拠のない達成保証は置かない。
+今回は実測の改善量を報告し、将来の次段階目標とは分ける。
+
+================================================================
+21. 有効性を過大評価しないための診断
+================================================================
+
+全E/Q Gate PASSでもDevelopment上の候補であり、Fresh/OOS PASSではない。
+同じ58 Developmentを繰り返し使用した選択バイアスは残る。
+
+全sessionについて対称に、trade PnL差のleave-one-session-out集計を表示。
+これは経路を再Replayした結果ではなく、保存差分の集中度診断である。
+削除後の系列を作ってrolling20や月次成績として採用しない。
+
+追加winnerだけ・最大損失日だけ・特定decileだけを見て結論しない。
+データ依存の強い箇所、支持件数、UNKNOWNを明記する。
+今回はbootstrapを増やして都合のよいp値を探さず、新たな推論的PASSを作らない。
+全19窓非劣化も将来分布の非劣化証明ではない。
+
+================================================================
+22. 合格・不合格・次工程
+================================================================
+
+proposal eligible iff E0–E7 AND Q1–Q11 AND 全必須canaryがPASS。
+
+複数eligibleの場合：
+  1. 20-session 2x-hit N DESC
+  2. rolling20 median DESC
+  3. rolling20 mean DESC
+  4. rolling20 min DESC
+  5. realized loser率 ASC
+  6. U10 DESC → U5 DESC → Medium DESC
+  7. 全期間MaxDD ASC
+  8. exact tieはD（単純な候補）
+
+統合案DRを必ず選ぶための優先権は与えない。
+
+終了status：
+  V5_ANCHOR_SOURCE_BLOCKED
+  V5_ANCHOR_CONTRACT_FAIL
+  V5_ANCHOR_EXECUTION_INCOMPLETE
+  V5_ANCHOR_NO_EFFECT                 （介入0・V5と同一）
+  V5_ANCHOR_CAPITAL_REGRESSION         （どこか20窓等で退行）
+  V5_ANCHOR_WINNER_OR_LOSS_GUARD_FAIL
+  V5_ANCHOR_DEV_NONREGRESSION_CANDIDATE
+  V5_ANCHOR_DEV_NORTH_STAR_HIT         （eligibleかつ2x窓あり）
+
+NO_GO候補を次のCapital土台にしない。
+PASS候補があってもactiveCapitalChampion=V5、automaticPromotionAllowed=false。
+selectedResearchCandidateにはD/DRを記録してよいが、正式Capital採用はnull。
+人間へ固定結果を返してSTOP。次cycle・Fresh・本番移行へ自動進行しない。
+
+NEXT_POLICYは機械的に次のいずれか：
+  source不足 → 必要原本の所在/許可確認。
+  contract不備 → 意味を変えない修復案と別cycle提案。
+  20窓退行/品質退行 → V5を保持。原因差分を記録し、当cycle retune禁止。
+  介入0 → V5を保持。thresholdを緩めずNO_EFFECT。
+  eligible → 固定候補を人間に提示。次の確認計画は別承認。
+
+================================================================
+23. 最低限のsynthetic / causal canary
+================================================================
+
+A. V5と時点
+  OFF adapter native一致、V5 module/hash一致、旧ML/order/arrival表一致。
+  future High/return/EXIT suffixをdecision入力へ渡さない。
+  scoreは各block past-only、future candidate削除でも過去action不変。
+
+B. Slot境界
+  既存0/1ではdirect veto0。
+  admission index3でも先行cash/lot失敗でactual予定slot2ならveto0。
+  本当の予定slot3かつ全4LOWだけveto。
+  任意1軸HIGHならnative委譲。exactmedian HIGH、欠測はLOWにしない。
+  同batch先行Slot1/2のquantity不変、除外後water-fill追加0。
+
+C. Token
+  funded予定でないcandidateからtokenを作らない。
+  token最大1、同minute救済0、過去Entry再購入0。
+  held pair変化/売却/open<2/cutoff/sessionで失効。
+  native買付優先、native pickedありなら追加救済0。
+
+D. Recovery
+  Slot3 B Reserve以外の理由を解除しない。
+  C/ML未達、Slot2、same-symbol、MAX3、cash/lot、cutoff救済0。
+  4HIGHが揃わなければ救済0。
+  救済集合だけの固定rank/tie、選んだ1件cash不可でもbackfill0。
+  singleton数量はV5 allocationそのもの、replacement0。
+
+E. 会計/未知
+  MAX3、現金非負、lot100、buy/sell費用、confirmed cash release一致。
+  MTM増加はcash増加ではない。same-minute exit/entry順はV5と同じ。
+  欠測SELLは未決済・未測定。未来availabilityによる先回り削除0。
+
+F. 評価/安全
+  19窓ID不一致を検出。1窓負差でも非劣化FAIL。
+  aggregate mean改善でもpaired悪化を隠さない。
+  ratesの等値比較はexact fraction。
+  protected100 IDsがruntimeで読めない。
+  candidateのfuture loser IDをruntime whitelist/blacklistにしない。
+  全Safety false、Champion pointer変更0。
+
+固定caseをprecommitし、境界直前/同値/直後を含める。
+canaryの数そのものを成功目的にせず、全必須項目のcoverage表を出す。
+既存証明をhashが同一の箇所はreuseし、新差分の検査へ集中する。
+
+================================================================
+24. Independent auditと数値契約
+================================================================
+
+独立側はPrimary replay、policy wrapper、metricsをimportしない。
+raw source/凍結モデルから別のevent loop・会計・token・gateを再構築。
+同じ関数を2回呼んで独立監査とは呼ばない。
+
+ただしNumPyなどcontract-defined primitiveと凍結model artifactの共有は明示可。
+MRET v11R1の既存mean/scale認証をやり直して別operatorへ置換しない。
+
+必須比較：
+current/training score、percentile整数rank、LOW/HIGH、native proposals、
+veto、token遷移、rescue候補、quantity、cash、MTM、reason、
+EOD、19窓、window/full MaxDD、protected集合、loser/winner、全Gate。
+
+金額/数量/ID/action/tokenはexact。
+既存float契約の許容をそのまま使用し、結果後に広げない。
+経済非劣化の大小判断にfloat許容を使って負差を0化しない。
+
+================================================================
+25. Crash recovery・保存エラー・効率
+================================================================
+
+各高価処理前にimmutable claimを保存：
+run_id / code+input hash / arm / scope / expected output path / started JST。
+claim commit→actual GET→実行→atomic output→complete receipt。
+
+artifactはtemporaryへ完全書出し、parse/schema/hash/row count検証後rename。
+Publicはcompact JSON、full ledgerはprivate compressed。
+JSONはallow_nan=false。gzipはmtime固定、raw/compressed hashを両方保存。
+
+クラッシュ時はlatest GET→claim→complete/outputを調べる。
+完成済み処理の再実行0。不完全実行はdurable checkpointがあれば
+同じrun_id/input/codeでfirst incompleteから継続してよい。
+実行済みか不明ならblind rerunせずSTOP。
+
+計算完了・report writerのみ失敗ならledgerをreuseして書出しだけ再試行可。
+これはReplay再実行と区別し、失敗receiptを残す。
+本物のpolicy/data/gate問題をserialization修復と偽装しない。
+
+CI待ちには、入力manifest、独立実装、synthetic、文書、原本読取を並行可。
+結果次第で他armを変更する作業や、同branch競合writeは並行しない。
+Claude/外部AI呼出しは今回0。必要性が出ても勝手に送らず不足として記録。
+
+================================================================
+26. CheckpointsとGitHub保存
+================================================================
+
+P0_START_AND_DUPLICATE_AUDIT
+P1_V5_AND_INTELLIGENCE_AUTHORITY_FREEZE
+P2_POLICY_AND_20SESSION_GATES_PRECOMMIT
+P3_SCORE_CONTRACT_AND_COVERAGE
+P4_V5_OFF_EQUIVALENCE
+P5_CANARY_AND_PREMAIN_INDEPENDENT_AUDIT
+P6_D_DR_EXECUTION_CLAIMS
+P7_D_DR_REPLAY_COMPLETE_OR_BLOCKED
+P8_20SESSION_PAIRED_AND_LOSS_WINNER_TABLES
+P9_FULL_INDEPENDENT_AUDIT
+P10_NONREGRESSION_DECISION
+P11_CLOSURE_FIXED_STOP
+
+各checkpointに exact JST、branch、basis HEAD/tree、current state、
+completed、results、failures、next policy、counts、Safety、input/code hashes。
+全てappend-only。最新pointerがある場合も旧recordを削除しない。
+
+write直前actual GET→競合確認→commit→actual GET→hash/schema確認。
+自己commit SHAをcommit内容に予測して書かない。次receiptで実値を記録。
+main merge/force push0。失敗したarmや旧v11 S9等の記録を上書きしない。
+
+開始時に既存workflowsのtriggerを確認。明示的dispatchを行わず、
+専用branchへの文書/証拠保存と必要な専用検証だけ。
+無関係な自動jobが動いた場合はrun/scopeを記録し、勝手に変更しない。
+
+================================================================
+27. 最終成果物
+================================================================
+
+START_AUDIT.json / AUTHORITY_MANIFEST.json / DO_NOT_REPEAT.json
+POLICY_PRECOMMIT.json / GATE_PRECOMMIT.json / EXPOSURE_LEDGER.json
+V5_OFF_EQUIVALENCE.json / SCORE_LINEAGE_AND_COVERAGE.json
+CAUSAL_CANARY_COVERAGE.json / PRE_MAIN_INDEPENDENT_AUDIT.json
+D・DR各decision/trade/MTM/token/native proposal ledger
+PAIRED_ROLLING20_JPY.csv （19行、start/end/V5/D/DR/差/可否）
+DAILY_RETURNS.csv （日次、月次Primaryとは別）
+QUALITY_AND_REALIZED_WINRATE.json
+PROTECTED_SLOT12_AUDIT.json / GAINED_LOST_AND_TOKEN_RECOVERY.json
+LOSS_AMOUNT_AND_TAIL_DIAGNOSTICS.json
+INDEPENDENT_AUDIT.json / NONREGRESSION_DECISION.json
+REPORT_FINAL-ja.md / CLOSURE.json / NEXT_WORK_HANDOFF.json
+PRIVATE_DELIVERY_MANIFEST.json / WORK_STATUS_LOG.jsonl
+
+図は実測だけから作る。1図に1テーマ。
+1. 同じ19窓の20-session資産円換算：V5/D/DR＋200万円線。
+2. 同じ19窓のV5との差額：0円線を明示。
+3. Winner/Loserの維持・獲得・喪失。
+4. native Slot1/2保護とSlot3介入の結果。
+
+架空の改善曲線、未完走armの補完曲線、38-sessionを月次扱いした図は禁止。
+
+================================================================
+28. 最終報告の順序と語彙
+================================================================
+
+最初に：
+「V5を超えたか／超えていないか／測定不能か」を明記。
+AUC説明や「失敗版から回復した」を先に置かない。
+
+A. 100万円→20 sessions（正規化）のmin/mean/median/max/2x、V5差。
+B. 19窓全対比較、退行窓N、最悪差、window MaxDD。
+C. 実現勝率・Loser件数/率・損失金額・negative day。
+D. Medium/U5/U10/Weak・各capture分母。
+E. V5 Slot1/2保護とLost winner。
+F. DとDRの差：防御と回収がそれぞれ何を変えたか。
+G. source不足・独立監査・既存再利用・実行回数。
+H. 固定結論と次方針。
+
+「4 scoreを使ったからLoser発見機が完成」や「Slot3だけだから安全」は禁止。
+全Gate PASSでもDevelopment candidate。実市場の無損失成功とは言わない。
+
+終了record：
+strategyParent = CAPITAL_MAX3_SLOT_RESERVE_V1
+activeCapitalChampion = V5
+proposedResearchCandidate = D / DR / null
+selectedCapitalCandidate = null
+championUpdated = false
+newFits = 0
+candidatePrimaryReplays = actual count（上限2）
+controlVerificationReplays = actual count（上限1）
+independentReconstructionReplays = actual count（上限2）
+all19PairedWindowsNonInferior = true / false / null
+protectedSlot12Passed = true / false / null
+orders = 0 / mainMerge = 0 / forcePush = 0
+fresh_OOS_claim = false / productionReady = false
+CURRENT_STATE = CAPITAL_V5_ANCHOR_P11_CLOSURE_FIXED_STOP
+
+================================================================
+29. Workにそのまま渡す開始指示
+================================================================
+
+この指示書に従い、V5-Anchored Slot3 Loser Shield + Winner Recoveryを開始。
+
+最初に既存同名作業・原本・Private pack・GitHub actual HEADを確認。
+戦略baseはV5の710656491be06235901b45c50a8b5cbd714ba4eb。
+v11R1/I2/M2をCapitalの親にしない。
+既存pP/MOVE_U2/MOVE_U3/MRETは凍結Intelligenceとして再利用し、新fit0。
+Selector/Entry/EXIT・V5 ML/SAB/arrival/数量規則を維持。
+
+新規cross-tab・候補成績を見る前にD/DRと全Gateをcommit/GET。
+Dはnativeで本当にfund可能な3枠目について、4軸全LOWのときだけBUYを見送る。
+同batch Slot1/2数量を再配分しない。
+DRはそれに加え、tokenのheld pairが維持される将来batchで、native pickedが空、
+Slot3 B Reserve、4軸全HIGHの場合だけ、固定優先順で1候補を救済。
+同batch backfill、過去Entry買直し、未来到来/EXIT参照は0。
+
+V5 OFF互換性・causal canary・pre-main独立監査がPASSしてから、D/DR各1回。
+保存V5との同じ19個の20-session窓を全て比較。
+1窓でもV5未満、Winner/Loser保護違反、Slot1/2保護違反、未完走なら昇格不可。
+全体平均や38-session Finalで退行を隠さない。
+
+原本とV5 Championは常に保持。全PASSでも候補提案のみ、切替・注文・merge0。
+JST/現在地/結果/次方針をGitHubへappend-only保存し、P11で固定STOP。
+
+END_OF_WORK_DIRECTIVE

@@ -1,0 +1,115 @@
+{
+  "schema": "ARK_CAPITAL_MAIN_HANDOFF_COMPLETE_V1",
+  "exact_jst": "2026-10-05T23:50:25+09:00",
+  "status": "HANDOFF_COMPLETE_MAIN_CAPITAL_PRECHECK_READY",
+  "branch": "capital-main-reallocation-20261005",
+  "basis_commit": "220e0d8863978f5d82d0d83189d473252efda146",
+  "basis_tree": "4cae89fe81c8f7115cd1b3c7f05aaeb8e265fd12",
+  "current_phase": "Capital / main reallocation",
+  "activeCapitalBaseline": "V5",
+  "baseline_is_goal": false,
+  "selectedResearchCandidate": null,
+  "selectedCapitalCandidate": null,
+  "primary_objective": {
+    "start_jpy": 1000000,
+    "target_jpy": 2000000,
+    "horizon_sessions": 20,
+    "center": "median final ending_cash",
+    "score_and_quality_metrics": "DIAGNOSTIC_ONLY"
+  },
+  "baseline_measurement": {
+    "legacy_normalized_rolling20_median": 1.19915419,
+    "legacy_valid_windows": 19,
+    "legacy_two_x_hits": 0,
+    "chained_evaluation_sessions": 38,
+    "independent_cash_reset": "NOT_EXECUTED",
+    "consecutive_calendar_sessions": "NOT_CERTIFIED",
+    "source_exposure": "ITERATIVE_DEVELOPMENT_EVIDENCE"
+  },
+  "frozen": {
+    "Selector": {
+      "identity": "FROZEN_LONG_SELECTOR_WITH_MIN_PRICE_75",
+      "freeze_commit": "06e19ef9cd4fca99840487404ccb38a182b9bd2f",
+      "artifact_sha256": "e75a49adb2a35497b6ac4d1afdd2942f87d9e139f04ae98e2478ca564ee874d8",
+      "payload_sha256": "d782bd93761db2fe524b040479c7b3fc3f28331cc21c5f97fd2ad3f2b6058fb4"
+    },
+    "Entry": "4a2d6f35946b16820a13449a9288a6685a5c283c",
+    "EXIT": "c7a5e5c25eb19cbd58b45c3e4ffff977f4648fad",
+    "EXIT_receipt": "1ecbcc43f75279fa302f19fd896add2aac15b537"
+  },
+  "verified": {
+    "outer_archive_sha256": "e9178ce4d57760f5c4176c0538eb69beccefadf9d29768c9f20f75bf18108c8c",
+    "outer_manifest_matches": 13,
+    "native_hash_matches": 34,
+    "native_hash_mismatches": 0,
+    "p0_actual_get_content_equal": true,
+    "selector_authority_recovered": true
+  },
+  "findings": [
+    "V5 inadequate to target and retained solely as baseline",
+    "Loser and Weak overlap; U5/U10 potential includes realized losses",
+    "Reserve route closed PAST_SUPPORT_NOT_ESTABLISHED",
+    "Rank cutoff, quality Pareto reserve and MRET throttles already tried",
+    "V5 freed cash is not automatically allocated under caps/target/lot/MAX3",
+    "Legacy normalized20 windows are not literal JPY1m resets or certified consecutive trading days"
+  ],
+  "prior_cycle_gate_scope": "Historical quality floors and all-window noninferiority retained as historical evidence, not silently inherited as current wealth-only promotion conditions",
+  "next_work": "CAPITAL_MAIN_PREBUY_REALLOCATION_PRECHECK_V1",
+  "next_actions": [
+    "Reuse exact money/quantity/cash/slot ledgers and bind wealth definition",
+    "Identify causal donor-to-eligible-receiver actual-lot path and constraining Capital mechanism",
+    "Precommit at most one new integrated Capital policy only after that path is concrete"
+  ],
+  "outstanding": [
+    {
+      "id": "CALENDAR_COVERAGE",
+      "scope": "Literal20-consecutive-session certification",
+      "state": "Source authority to locate; no missing-day imputation",
+      "blocks_handoff": false
+    },
+    {
+      "id": "I2_RELATIVE_REFERENCE",
+      "scope": "Historical comparison provenance",
+      "state": "V11 policy references differ from authenticated V9 RESULT; use original V9 values and preserve discrepancy",
+      "blocks_handoff": false
+    }
+  ],
+  "counts": {
+    "newFits": 0,
+    "refits": 0,
+    "marketReplays": 0,
+    "originalAucRecalculations": 0,
+    "originalBootstrapRecalculations": 0,
+    "orders": 0,
+    "Claude": 0,
+    "mainMerge": 0,
+    "forcePush": 0,
+    "upstreamEdits": 0
+  },
+  "improvement_claim": false,
+  "two_x_claim": false,
+  "productionReady": false,
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false
+  },
+  "completed": [
+    "ZIP and live research branch reconciled",
+    "Prior experiments and labels independently reviewed",
+    "Selector/Entry/EXIT authority recovered",
+    "Native input/code identity checked",
+    "Allocation and objective semantics inspected",
+    "Next money-path work specified",
+    "Append-only GitHub checkpoint and final artifacts prepared"
+  ],
+  "not_executed": [
+    "New runtime policy design selection",
+    "New Capital implementation",
+    "New Capital replay",
+    "Literal JPY1m reset20-session wealth certification"
+  ],
+  "checkpoint_saved_before_this_write": "153ba39564c216dd53ca5530e40fa038ab913947"
+}

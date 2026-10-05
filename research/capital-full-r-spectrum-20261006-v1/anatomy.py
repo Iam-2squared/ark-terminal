@@ -332,7 +332,10 @@ def score_phase():
                  'native_decision':dm[r['entry_id']],
                  'actual_funded_trade':tm.get(r['entry_id'])} for r in data])
     pops=populations(data,dm); names=['EXECUTION_ELIGIBLE','RANK_PASS_EXECUTION_ELIGIBLE','V5_FUNDED']
-    old=read(OLD/'CAPITAL_DIAGNOSTIC.json');pooled=[];strata=[];buckets=[]
+    # Public old evidence summarizes sessions; authenticated private support has the full table.
+    old=read(OLD/'CAPITAL_DIAGNOSTIC.json')
+    old['new_R_score_support']=read(PREVIOUS_PRIVATE/'evaluation-only/SCORE_SUPPORT_FULL.json')
+    pooled=[];strata=[];buckets=[]
     numeric_labels=[k for k in meta['labels'] if k not in ['R0PLUS','RPOS','ZERO','RNEG','Loser']]
     reuse_N=0;new_auc_N=0
     for name in names:

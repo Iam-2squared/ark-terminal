@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "cycle": "C06",
+  "before_implementation_or_fit": true,
+  "bins": 8,
+  "scheduled_slots": "All regular minute starts m>=540 with m+1<=BUY_INTENT cutoff; 540<=m<690 or750<=m<925. Lunch and closing auction excluded, same certified active-time calendar as C01.",
+  "bin_assignment": "Index j of a minute in the cutoff-known sorted scheduled_slots, total N. Bin=floor(8*j/N). No observed-count or outcome-based bin boundaries.",
+  "observed_membership": "Only actual same-day prefix bars with start+1<=cutoff, whose start is a scheduled slot. No interpolation.",
+  "empty_bin": "observed_count=0; scheduled_count factual; support_fraction=0 if scheduled_count>0, else null; other summaries null, including gap_pair_count.",
+  "nonempty_bin": "net_progress=log(last observed C/first observed O), range=log(maxH/minL), actual Vo/Va mean, nonflat candle body/wick averages, gap count among observed neighbors in the same bin using same-half exact one-minute adjacency.",
+  "net_progress_is_not_connected_path": true,
+  "all_flat_candle_ratio": null,
+  "teacher_access": 0,
+  "new_raw_transport": 0,
+  "old_Sign_32slot_reuse": 0,
+  "post_result_bin_window_changes": 0
+}

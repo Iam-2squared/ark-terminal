@@ -1,0 +1,64 @@
+{
+  "DEV_COMPARE_labels_allowed_in_thresholds": false,
+  "Fresh_OOS": 0,
+  "M": 172,
+  "P": 144,
+  "REPORT501_fit_inference_aggregation": 0,
+  "UNKNOWN": 6,
+  "ZERO": 0,
+  "all_plus_90_participation_gate": false,
+  "blocks": [
+    "S1",
+    "S2"
+  ],
+  "bucket_spec_sha256": "85a7d22c556eefb83980792b9903665feb0494b487ecf02fb73bff9db9a0f2dd",
+  "clock": {
+    "JST": "2026-10-07T08:00:47.949386+09:00",
+    "UTC": "2026-10-06T23:00:47.949386+00:00"
+  },
+  "comparison_Entry_N": 322,
+  "diagnostic": "WB01",
+  "exposure": "ADAPTIVE_DEVELOPMENT",
+  "gamma_percent": [
+    80,
+    60,
+    40,
+    20,
+    10
+  ],
+  "legacy_goal_retained_only_as_comparator": "P KEEP>=90% AND M KEEP<=20%",
+  "models": [
+    "V1",
+    "C03_STATE_CHART_LOGIT",
+    "C08_STATE_COMPACT"
+  ],
+  "new_fit": 0,
+  "new_threshold_decisions": 30,
+  "no_single_champion": true,
+  "points": [
+    "ALL_KEEP",
+    "CAL95",
+    "CAL_MINUS_KEEP_80",
+    "CAL_MINUS_KEEP_60",
+    "CAL_MINUS_KEEP_40",
+    "CAL_MINUS_KEEP_20",
+    "CAL_MINUS_KEEP_10"
+  ],
+  "preprocessing_fit": 0,
+  "score_orientation": "native eta increases with PLUS direction; MODEL_SPEC eta>=tau KEEP",
+  "source_pin_sha256": "c4948379fb6a0df53681624cc5568af9add54d4d8e531cda4c3a5d623bf77de4",
+  "split_source_sha256": "917198dae8593e8de6ccc7721d8239c7ddeef624d9d018d7e039be5193c20c86",
+  "status": "PRECOMMITTED_BEFORE_THRESHOLDS_AND_RETURN_JOIN",
+  "supplemental_inference": 0,
+  "threshold_input_whitelist": [
+    "CAL entry_id",
+    "saved float64 eta",
+    "frozen sign_status",
+    "label_maturity",
+    "CAL maturity cutoff"
+  ],
+  "threshold_rule": "k=(gamma_percent*N_minus_total)//100; subtract missing-score KEEP; nextafter(sorted_valid_minus_eta[n_valid-k_valid-1], +infinity); >=tau KEEP; score ties dropped together",
+  "threshold_space_after_result_expansion": false,
+  "winner_R_inputs_allowed_in_thresholds": false,
+  "winner_loss_gates_approved": null
+}

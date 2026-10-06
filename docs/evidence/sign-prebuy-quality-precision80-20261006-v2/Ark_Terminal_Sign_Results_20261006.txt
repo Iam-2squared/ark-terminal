@@ -1,0 +1,164 @@
+📊 Ark Terminal 第一層Sign研究 結果まとめ・一時終了記録
+文書ID: ARK_SIGN_RESULTS_PAUSED_20261006
+作成実時計JST: 2026-10-06T17:17:18.160770+09:00
+作成実時計UTC: 2026-10-06T08:17:18.160770+00:00
+実行owner: Codex /root
+状態: ユーザー指示により研究を一時終了。追加学習・取得・探索・採点は行わない。
+
+【1. 結論】
+最低完了条件の「通過した正負既知Entryの80％以上がPLUS」は未達。
+事前固定した20組の通過群PLUS率は 38.89%～46.24%。
+v2は新モデル20fitを完了したが、合格候補0・採用0。後半確認のfit・採点は0。
+最大値も採用モデルではなく、失敗結果を説明する記述値。
+次のv3は別の購入前入力を1600件構築・保存した段階で、学習・精度測定は0。
+第一層の80％達成、第二層接続、Capital全経路評価、100万円→200万円達成を完了扱いしない。
+
+【2. v2の評価範囲と主な数値】
+評価期間: 2025-06-27～2025-08-05、25 sessions（Discovery B1～5）。
+固定Fill Entry 670件。PLUS295、MINUS361、UNKNOWN14、ZERO0。
+符号既知の分母は656件。符号既知全件のPLUS率は295/656＝44.97％。
+今回の入力・教師の主研究人口は1600件、58 sessions。評価670件と区別する。
+旧Capital execution_eligible1578件は診断用。判断後の条件で除外せず全1600件を保持。
+次の通常足で約定できなかった31 first-intentはUNKNOWN／未予測・未評価として別記。
+固定Fill1600件の結果を全first-intent1631件の精度と呼ばない。
+
+記述上の最大値: BASE_HGB、CAL score quantile q=.70
+  通過PLUS率          86/186 = 46.24%
+  PLUS保持率          86/295 = 29.15%
+  MINUS除去率         261/361 = 72.30%
+  通過後MINUS率       100/186 = 53.76%
+  全通過191件のうちUNKNOWN5件は、正負採点から分離して保持。
+  合格候補0、主モデル／主qの採用なし。
+
+符号分類と購入通過の混同行列を区別（上記の記述用候補）:
+  実際       予測PLUS(score>=.5)  予測MINUS
+  PLUS       77                    218
+  MINUS      105                   256
+
+  実際       通過(CAL q=.70)     見送り
+  PLUS       86                    209
+  MINUS      100                   261
+  scoreは未校正。正確な利益確率とは呼ばない。
+
+【3. 何を実行・固定したか】
+元Sign ZIPを Iam-2squared/ark-capital-private- から取得。
+ZIP SHA256 f44ac726082843064f93666dce9cdeaa3b70a6a7503934c32e9452b61fdeab4c。
+520個のprivateファイルhash、ZIP整合を確認。
+J-Quants保存済みRAWと正確なsource tokenを既存GitHub Actions artifactから復元。
+新しい期間のprovider RAW全量取得を完了したとは記録しない。
+
+購入前入力の監査:
+  元P0の110数値vector hash: 1600/1600一致。
+  旧eligible1578件のG_PRICE: 167268セル中104655欠測。全て既存null guardと一致。
+  scheduled gap88873、前日窓不足3812、履歴窓不足3028、半場境界8942（主因別）。
+  欠測をRAW未取得や予測失敗の原因と断定せず、欠測の意味を保持。
+  旧Stateには判断後の値が597/1578件あるため、そのまま流用せずBUY_INTENTまで再生。
+  同時刻の旧State981 Entry、10551項目で不一致0。
+  凍結normalizer80/120精度59113価格で一致。判断後State step0。
+  State source connected1440、unavailable160。品質で対象Entryを後付け除外しない。
+
+有限実験:
+  BASE151数値/15カテゴリ、および判断前Path・構造を加えた191数値/22カテゴリ。
+  2表現 × Logistic/HGBの4モデル、q=.50/.60/.70/.80/.85の20固定組。
+  事前に契約・コード・入力hashをGitHub保存し、actual GET確認後にfit。
+  FITで前処理・学習、CALは同じFITモデル。成熟前教師・未来足を入力しない。
+  教師は現行固定Entry→固定EXIT/EODの費用後符号。1Entry＝1単位。
+  class/sample weightなし。利益額、損失額、Rの大きさ、資産額で選定しない。
+  80％に加えてPLUS保持25％、既知通過50件、通過8日、通過割合10～80％を要求。
+  合格候補なしのため、この有限構成を終了。同じWorkへ閾値やseedを追加しない。
+
+実行量と独立検算:
+  v2新モデルfit20、前処理fit20、technical fit retry0。
+  保存予測・モデル・前処理・境界等の独立検算19342項目、不一致0。
+  新規後半確認fit0、後半成績採点0。
+  v2合成テスト74件PASS、v3入力の合成テスト8件PASS。
+  旧終了済みv1は再開していない。既存モデルの復元を新fitと数えていない。
+  Stage2学習、Capital Replay、上流改変、実注文、本番反映は全て0。
+
+【4. 全20組の結果】
+入力/モデル	CAL q	通過PLUS/既知通過	PLUS率	PLUS保持率	合格CAL block
+BASE_LOGISTIC	0.50	124/269	46.10%	42.03%	0/5
+BASE_LOGISTIC	0.60	98/216	45.37%	33.22%	0/5
+BASE_LOGISTIC	0.70	78/181	43.09%	26.44%	0/5
+BASE_LOGISTIC	0.80	49/123	39.84%	16.61%	0/5
+BASE_LOGISTIC	0.85	42/104	40.38%	14.24%	0/5
+BASE_HGB	0.50	162/353	45.89%	54.92%	0/5
+BASE_HGB	0.60	119/274	43.43%	40.34%	0/5
+BASE_HGB	0.70	86/186	46.24%	29.15%	0/5
+BASE_HGB	0.80	51/120	42.50%	17.29%	0/5
+BASE_HGB	0.85	44/99	44.44%	14.92%	0/5
+BASE_STRUCTURE_LOGISTIC	0.50	127/288	44.10%	43.05%	0/5
+BASE_STRUCTURE_LOGISTIC	0.60	98/227	43.17%	33.22%	0/5
+BASE_STRUCTURE_LOGISTIC	0.70	81/181	44.75%	27.46%	0/5
+BASE_STRUCTURE_LOGISTIC	0.80	59/131	45.04%	20.00%	0/5
+BASE_STRUCTURE_LOGISTIC	0.85	45/105	42.86%	15.25%	0/5
+BASE_STRUCTURE_HGB	0.50	154/342	45.03%	52.20%	0/5
+BASE_STRUCTURE_HGB	0.60	116/272	42.65%	39.32%	0/5
+BASE_STRUCTURE_HGB	0.70	86/208	41.35%	29.15%	0/5
+BASE_STRUCTURE_HGB	0.80	49/126	38.89%	16.61%	0/5
+BASE_STRUCTURE_HGB	0.85	40/101	39.60%	13.56%	0/5
+
+【5. v3で準備した別入力（性能は未測定）】
+購入前32予定slotのOHLC・Volume・Valueの時間順とgapを残すtrajectory。
+価格は凍結U正規化、最後の確定closeで中心化。Volume/Valueはlog1p。
+さらに、その時点までにSelectorが選んだ他銘柄の5/10分return分布・支持情報を追加。
+将来のSelector候補をpoolへ入れず、銘柄集合を時計で限定してから市場値を参照。
+  TRAJECTORY: 407数値、15カテゴリ。
+  TRAJECTORY_CONTEXT: 423数値、15カテゴリ。
+  全1600 Entry保持。元BASEの241600数値＋24000カテゴリは差異0。
+  32slot分母51200、同一半場eligible47154、観測29161。gapを埋めない。
+  価格basis不成立160件は価格null。Volume/Value・観測maskは保持。
+  正規化80/120精度22819価格で一致。
+  既知peer31184リンク、fresh25013リンク、5分支持10188、10分支持8302。
+  実原本5 Entry/91 peerの未来suffix・候補membership改変で出力不変。
+  Entry1600、peer31184、Selector37809リンクの時計検算で意図時刻超過0。
+  追加source hash guard付き技術再生成でもfeature bytes完全一致。
+  v3モデルfit0、教師符号参照0、閾値選択0、精度測定0。
+  v3の主モデル・評価期間・実行契約は未確定。入力完成と予測性能を区別する。
+
+【6. 限界と再開に必要なもの】
+既存58日Developmentは過去に反復閲覧済み。Fresh/独立OOSとは呼ばない。
+実際の歴史データ受信knownAtはUNKNOWN。完了足bar-end可用性を仮定した研究。
+時計境界・未来suffix検査は実受信時刻の証明ではない。
+元EXIT全trade rows、元P1full-grid/modelsを今回全て復元・再実行したとは記録しない。
+固定教師のhash・identity・maturity・正式契約と既存独立監査を再利用した。
+
+追加期間の固定Entry生成には、凍結P1 F5推論用9ファイルが不足（計10968190 bytes）。
+前処理、U/Q/Dモデル、各参照分布、calibration、vocabularyの原本が必要。
+正規ZIP名: Ark_FIRST_ENTRY_V2_P1_Q70_OFFICIAL_FREEZE_20261003_PRIVATE.zip
+正規ZIP SHA256: 0ede654a0a730f78bebeb4fcec1c21503de80c7cb2950d205aaf87e7c79853b7
+今回のSign ZIPには含まれず、正規ZIPの保存先を確認待ち。
+F5学習終端は2025-08-06。後続期間への既存producer routing規約も未確認。
+原Entryモデルを勝手に再fitして代用・延長しない。
+
+再開時の方針（今回は実行しない）:
+  1) ユーザーの再開指示を受け、必要な9原資産と後続routingだけを確認する。
+  2) 準備済みv3入力を再利用し、追加評価期間のRAW・教師・時点情報を接続する。
+  3) 別有限Workの入力・教師・分割・モデル・閾値・支持条件・予算・終了を結果前に固定する。
+  4) 80％条件を確認できるまで未達を明記し、固定上流や評価期間へ後付けで合わせない。
+Selector/Entry/EXIT/EOD、費用、約定、State9/Pathの定義・窓・gap処理はFreeze維持。
+第一層が成立してから既存Rankの第二層、その後Capital全経路で資産を評価する。
+実運用・注文・自動採用に関する全executionフラグはfalse。
+
+【7. GitHub保存先（本文・blob・HEAD読み戻し済みの既存結果）】
+公開Repo: Iam-2squared/ark-terminal
+基礎HEAD: 9b75882957fa897c5df016ac5ddcb368602ccedc
+v2 branch: research/sign-prebuy-quality-precision80-20261006-v2
+v2結果HEAD: 849af71562a2485599b5e1e4d109eeb205ce1918
+https://github.com/Iam-2squared/ark-terminal/blob/849af71562a2485599b5e1e4d109eeb205ce1918/docs/evidence/sign-prebuy-quality-precision80-20261006-v2/REPORT-ja.md
+v3 branch: research/sign-trajectory-context-precision80-20261006-v3
+v3入力準備HEAD: d4e56487b4c6bdb718d9bc598d29e7beba5aef13
+https://github.com/Iam-2squared/ark-terminal/blob/d4e56487b4c6bdb718d9bc598d29e7beba5aef13/docs/evidence/sign-trajectory-context-precision80-20261006-v3/REPORT-ja.md
+
+私的Repo: Iam-2squared/ark-capital-private-
+元Sign ZIP main HEAD: ed8aa200525a62cf43de78297625357d90c1a2bd
+v2モデル・入力・予測保存 branch: research/sign-intent-v2-evidence-20261006
+HEAD: eb1f302f06a204c46133c22763e82bd2b701ae0a
+保存ZIP SHA256: 69915e22e3b9b8fd0ab9af7c99ad544d2dfccbfbb5c5c7d78f09d81ce857707e
+v3入力のみ保存 branch: research/sign-trajectory-v3-inputs-20261006
+HEAD: 96edee484bb3882c546850892b53e72b75800840
+保存ZIP SHA256: 5743b60241eb2aec20ba503307602758c8d5cd40d98a8e4e7640ce841d2a1899
+
+RAW・行別市場入力・モデルはprivateに保存。秘密情報・署名付きURLは本書へ記載しない。
+今回のユーザー停止指示以降は、この要約作成と終了状態の保存だけを実行する。
+END OF REPORT

@@ -1,0 +1,131 @@
+{
+  "document_id": "ARK_CAPITAL_SIGN_ONLY_FILTER_STAGE1_V1_20261006",
+  "status": "DESIGN_READY_NOT_EXECUTED",
+  "basis_head": "6f3a09e4800a1cccbf359364c9acc9ba1f05e8dc",
+  "target": {
+    "NEGATIVE": 1,
+    "POSITIVE": 0,
+    "EXACT_ZERO": null,
+    "UNKNOWN": null,
+    "comparison": "exact sell_credit vs buy_debit under inherited net EXIT/EOD contract"
+  },
+  "objective": "sign_only",
+  "sample_weight": null,
+  "outcome_view_allowlist": [
+    "entry_id",
+    "session",
+    "sign_status",
+    "y_neg",
+    "label_maturity",
+    "source_hash"
+  ],
+  "forbidden_for_fit_threshold_verdict": [
+    "return_magnitude",
+    "pnl_jpy",
+    "U_labels",
+    "R_buckets",
+    "RN_tail",
+    "MFE_MAE",
+    "quantity",
+    "capital_allocation",
+    "portfolio_wealth"
+  ],
+  "primary_population": "FROZEN_ENTRY_EXECUTION_ELIGIBLE",
+  "primary_configuration": "SF_D_UNION",
+  "feature_configurations": [
+    "SF_A_PRICE",
+    "SF_B_STATE",
+    "SF_C_SCORE",
+    "SF_D_UNION"
+  ],
+  "feature_schema_binding": "resolve from existing metadata, precommit before label associations; no outcome-driven additions",
+  "model": {
+    "class": "HistGradientBoostingClassifier",
+    "parameters": {
+      "loss": "log_loss",
+      "learning_rate": 0.05,
+      "max_iter": 100,
+      "max_leaf_nodes": 7,
+      "max_depth": 3,
+      "min_samples_leaf": 20,
+      "l2_regularization": 1.0,
+      "max_bins": 255,
+      "categorical_features": null,
+      "early_stopping": false,
+      "warm_start": false,
+      "class_weight": null,
+      "random_state": 57
+    },
+    "environment": "reuse pinned predecessor version",
+    "preprocessing": "predecessor train-only transform; shape-only adapters allowed"
+  },
+  "reuse_policy": "same training signature -> reuse existing initial OOF; no duplicate refit",
+  "split": {
+    "source": "inherited SESSION_SPLIT",
+    "session_N": 58,
+    "warmup_N": 20,
+    "OOF_session_N": 38,
+    "block_N": 8
+  },
+  "training_min_support": {
+    "known_N": 100,
+    "session_N": 10,
+    "each_class_N": 20
+  },
+  "threshold": {
+    "scope": "per configuration per block; earlier matured initial OOF eligible rows only",
+    "alpha": [
+      "0.05",
+      "0.10",
+      "0.20"
+    ],
+    "primary_alpha": "0.10",
+    "minimum_CAL": {
+      "N": 100,
+      "session_N": 10,
+      "each_class_N": 20
+    },
+    "reject_comparison": "score_neg >= tau",
+    "choice": "minimum distinct past score satisfying rejected_POS <= floor(alpha * past_POS_N); otherwise ALL_PASS",
+    "ties": "atomic",
+    "fallback": "ALL_PASS / PASS_UNASSESSED",
+    "in_sample_allowed": false,
+    "global_OOF_tuning_allowed": false
+  },
+  "binary_prediction": {
+    "threshold": "0.5",
+    "tie_class": "NEGATIVE"
+  },
+  "review_candidate_design_gate": {
+    "source_integrity": "PASS",
+    "model_prediction_coverage_min": "0.95",
+    "positive_retention_min": "0.90",
+    "negative_removal_min": "0.30",
+    "pass_negative_rate": "strictly below no-filter same population",
+    "minimum_evaluable_qualified_blocks": 4,
+    "evaluation_each_class_N_min": 10,
+    "fraction_blocks_with_J_positive_min": "0.75",
+    "scope": "full inherited OOF including initial OFF; developmental milestone only"
+  },
+  "limits": {
+    "new_planned_fits_max": 32,
+    "technical_identical_retry_max": 2,
+    "old_equivalent_refits": 0,
+    "new_capital_replays": 0,
+    "winner_stage2_fits": 0,
+    "new_features_market_generation": 0,
+    "new_R_materializations": 0,
+    "provider_prices": 0,
+    "protected_openings": 0,
+    "orders": 0,
+    "main_merge": 0,
+    "force_push": 0,
+    "Claude": 0
+  },
+  "scope_stop": "stage1 results and handoff only; no automatic stage2 or Capital connection",
+  "safety": {
+    "productionReady": false,
+    "executionAllowed": false,
+    "automaticPromotionAllowed": false
+  }
+}

@@ -1,0 +1,176 @@
+{
+  "api_only_latest_snapshot_count": 1,
+  "bulk_dataset_count": 10,
+  "datasets": [
+    {
+      "actual_earliest_date": null,
+      "actual_latest_date": null,
+      "api_supplement": true,
+      "bulk_endpoint": "/equities/bars/minute",
+      "compressed_bytes": null,
+      "entitlement": "LIVE_ACCOUNT_UNVERIFIED",
+      "history_years_nominal": 2,
+      "id": "MINUTE",
+      "listing_status": "BLOCKED_PREREQUISITES",
+      "object_count": null,
+      "queue": "Q_MINUTE"
+    },
+    {
+      "actual_earliest_date": null,
+      "actual_latest_date": null,
+      "api_supplement": false,
+      "bulk_endpoint": "/equities/trades",
+      "compressed_bytes": null,
+      "entitlement": "LIVE_ACCOUNT_UNVERIFIED",
+      "history_years_nominal": 2,
+      "id": "TICK",
+      "listing_status": "BLOCKED_PREREQUISITES",
+      "object_count": null,
+      "queue": "Q_TICK"
+    },
+    {
+      "actual_earliest_date": null,
+      "actual_latest_date": null,
+      "api_field_supplement_required_where_missing": true,
+      "bulk_endpoint": "/equities/bars/daily",
+      "compressed_bytes": null,
+      "entitlement": "LIVE_ACCOUNT_UNVERIFIED",
+      "history_years_nominal": 5,
+      "id": "DAILY",
+      "listing_status": "BLOCKED_PREREQUISITES",
+      "object_count": null,
+      "queue": "Q_SMALL"
+    },
+    {
+      "actual_earliest_date": null,
+      "actual_latest_date": null,
+      "bulk_endpoint": "/equities/master",
+      "compressed_bytes": null,
+      "entitlement": "LIVE_ACCOUNT_UNVERIFIED",
+      "history_years_nominal": 5,
+      "id": "DATED_MASTER",
+      "listing_status": "BLOCKED_PREREQUISITES",
+      "object_count": null,
+      "queue": "Q_SMALL"
+    },
+    {
+      "actual_earliest_date": null,
+      "actual_latest_date": null,
+      "added_by_live_official_spec_check": true,
+      "bulk_endpoint": "/equities/valuation",
+      "compressed_bytes": null,
+      "entitlement": "LIVE_ACCOUNT_UNVERIFIED",
+      "evidence": [
+        "O4",
+        "O13"
+      ],
+      "history_years_nominal": 5,
+      "id": "VALUATION",
+      "listing_status": "BLOCKED_PREREQUISITES",
+      "object_count": null,
+      "queue": "Q_SMALL"
+    },
+    {
+      "actual_earliest_date": null,
+      "actual_latest_date": null,
+      "bulk_endpoint": "/fins/summary",
+      "compressed_bytes": null,
+      "entitlement": "LIVE_ACCOUNT_UNVERIFIED",
+      "history_years_nominal": 5,
+      "id": "FIN_SUMMARY",
+      "listing_status": "BLOCKED_PREREQUISITES",
+      "object_count": null,
+      "queue": "Q_SMALL"
+    },
+    {
+      "actual_earliest_date": null,
+      "actual_latest_date": null,
+      "bulk_endpoint": "/fins/earnings-date",
+      "compressed_bytes": null,
+      "entitlement": "LIVE_ACCOUNT_UNVERIFIED",
+      "history_years_nominal": 5,
+      "id": "EARNINGS_DATE",
+      "listing_status": "BLOCKED_PREREQUISITES",
+      "object_count": null,
+      "queue": "Q_SMALL"
+    },
+    {
+      "actual_earliest_date": null,
+      "actual_latest_date": null,
+      "bulk_endpoint": "/equities/investor-types",
+      "compressed_bytes": null,
+      "entitlement": "LIVE_ACCOUNT_UNVERIFIED",
+      "history_years_nominal": 5,
+      "id": "INVESTOR_TYPES",
+      "listing_status": "BLOCKED_PREREQUISITES",
+      "object_count": null,
+      "queue": "Q_SMALL"
+    },
+    {
+      "actual_earliest_date": null,
+      "actual_latest_date": null,
+      "bulk_endpoint": "/indices/bars/daily/topix",
+      "compressed_bytes": null,
+      "entitlement": "LIVE_ACCOUNT_UNVERIFIED",
+      "history_years_nominal": 5,
+      "id": "TOPIX",
+      "listing_status": "BLOCKED_PREREQUISITES",
+      "object_count": null,
+      "queue": "Q_SMALL"
+    },
+    {
+      "actual_earliest_date": null,
+      "actual_latest_date": null,
+      "bulk_endpoint": "/markets/calendar",
+      "compressed_bytes": null,
+      "entitlement": "LIVE_ACCOUNT_UNVERIFIED",
+      "future": "end of next year per current spec; actual file bound",
+      "history_years_nominal": 5,
+      "id": "CALENDAR",
+      "listing_status": "BLOCKED_PREREQUISITES",
+      "object_count": null,
+      "queue": "Q_SMALL"
+    },
+    {
+      "actual_earliest_date": null,
+      "actual_latest_date": null,
+      "api_endpoint": "/equities/earnings-calendar",
+      "compressed_bytes": null,
+      "entitlement": "LIVE_ACCOUNT_UNVERIFIED",
+      "history": "latest snapshot only",
+      "id": "EARNINGS_CALENDAR_LATEST",
+      "listing_status": "BLOCKED_PREREQUISITES",
+      "object_count": null,
+      "queue": "Q_SMALL"
+    }
+  ],
+  "exact_jst": "2026-10-06T13:05:23.824610+09:00",
+  "excluded_under_observed_plan": {
+    "datasets": [
+      "INDICES_NON_TOPIX",
+      "INDEX_OPTIONS",
+      "FUTURES",
+      "OPTIONS",
+      "MARGIN_INTEREST",
+      "SHORT_RATIO",
+      "SHORT_SALE_REPORT",
+      "MARGIN_ALERT",
+      "BREAKDOWN",
+      "DIVIDEND",
+      "FIN_DETAILS",
+      "EDINET",
+      "TDNET",
+      "DAILY_AM"
+    ],
+    "extra_addons_purchased": 0,
+    "status": "NOT_ENTITLED_IF_OBSERVED_LIGHT_AND_TICK_ADDON_CONFIRMED"
+  },
+  "fixed_listing_target_count": null,
+  "provider_listing_denominator_established": false,
+  "registry_revision": {
+    "account_entitlement_claimed": false,
+    "reason": "Current official Light specification includes VALUATION; initial Work omitted it."
+  },
+  "schema": "ARK_JQUANTS_DATASET_REGISTRY_EXECUTION_V1",
+  "status": "OFFICIAL_PLAN_ELIGIBILITY_CANDIDATES_FIXED_LIVE_ENTITLEMENT_PENDING"
+}

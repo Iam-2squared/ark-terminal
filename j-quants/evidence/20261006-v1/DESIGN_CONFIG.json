@@ -1,0 +1,188 @@
+{
+  "document_id": "ARK_JQUANTS_RAW_CACHE_PARALLEL_V1_20261006",
+  "exact_jst": "2026-10-06T12:42:59+09:00",
+  "status": "DESIGN_READY_NOT_EXECUTED",
+  "repo": "Iam-2squared/ark-terminal",
+  "basis_head": "50804746231fdb8ceade2b2ee40e7cfdc55e84c9",
+  "main_branch": "capital-main-reallocation-20261005",
+  "cache_branch": "data/jquants-raw-cache-20261006-v1",
+  "parallel": {
+    "stop_main": false,
+    "separate_worktree": true,
+    "cancel_in_progress": false,
+    "shared_input_overwrite": false,
+    "automatic_raw_adoption": false,
+    "closed_sign_v1_reopen": false
+  },
+  "license": {
+    "mode": "ACTIVE_LICENSE_PRIVATE_CACHE_ONLY",
+    "post_cancellation_use": false,
+    "post_cancellation_data_deletion_required_per_official_FAQ": true,
+    "cancel_cancellation_authorized": false,
+    "new_subscription_authorized": false,
+    "mass_deletion_authorized": false,
+    "retention_action_on_expiry": "revoke affected use; inventory copies; request owner-approved deletion procedure; no claim indefinite storage allowed",
+    "main_existing_data_subject_to_same_license": true
+  },
+  "observed_screen": {
+    "source": "user screenshots; not live entitlement",
+    "Light": {
+      "monthly_jpy": 1650,
+      "cancel_display": "2026-10-06T19:02:00+09:00"
+    },
+    "Tick+OhlcMin": {
+      "monthly_jpy": 5500,
+      "cancel_display": "2026-10-06T19:07:00+09:00"
+    }
+  },
+  "deadline": {
+    "planning_alert_jst": "2026-10-06T19:02:00+09:00",
+    "soft_verification_target_jst": "2026-10-06T18:52:00+09:00",
+    "actual_endpoint_deadlines": "resolve separately by entitlement",
+    "auto_extend": false
+  },
+  "api": {
+    "base": "https://api.jquants.com/v2",
+    "auth_header": "x-api-key",
+    "credential_env_reference": "JQUANTS_API_KEY",
+    "never_export_secret_value": true,
+    "prefer_bulk": true,
+    "tick_csv_only": true,
+    "signed_url_ttl_seconds": 300,
+    "complete_within_ttl": true,
+    "preissue_urls_in_bulk": false,
+    "send_key_to_storage_host": false,
+    "signed_url_in_public_log": false
+  },
+  "datasets": [
+    {
+      "id": "MINUTE",
+      "bulk_endpoint": "/equities/bars/minute",
+      "history_years_nominal": 2,
+      "api_supplement": true
+    },
+    {
+      "id": "TICK",
+      "bulk_endpoint": "/equities/trades",
+      "history_years_nominal": 2,
+      "api_supplement": false
+    },
+    {
+      "id": "DAILY",
+      "bulk_endpoint": "/equities/bars/daily",
+      "history_years_nominal": 5,
+      "api_field_supplement_required_where_missing": true
+    },
+    {
+      "id": "DATED_MASTER",
+      "bulk_endpoint": "/equities/master",
+      "history_years_nominal": 5
+    },
+    {
+      "id": "FIN_SUMMARY",
+      "bulk_endpoint": "/fins/summary",
+      "history_years_nominal": 5
+    },
+    {
+      "id": "EARNINGS_DATE",
+      "bulk_endpoint": "/fins/earnings-date",
+      "history_years_nominal": 5
+    },
+    {
+      "id": "INVESTOR_TYPES",
+      "bulk_endpoint": "/equities/investor-types",
+      "history_years_nominal": 5
+    },
+    {
+      "id": "TOPIX",
+      "bulk_endpoint": "/indices/bars/daily/topix",
+      "history_years_nominal": 5
+    },
+    {
+      "id": "CALENDAR",
+      "bulk_endpoint": "/markets/calendar",
+      "history_years_nominal": 5,
+      "future": "end of next year per current spec; actual file bound"
+    },
+    {
+      "id": "EARNINGS_CALENDAR_LATEST",
+      "api_endpoint": "/equities/earnings-calendar",
+      "history": "latest snapshot only"
+    }
+  ],
+  "rate_control": {
+    "vendor_light_base_rpm": 60,
+    "vendor_addon_rpm": 60,
+    "vendor_addon_domain_independent": true,
+    "initial_design_total_rpm": 54,
+    "shared_across_workers_and_work": true,
+    "bulk_domain_unverified": "charge conservative shared limiter",
+    "split_domains_requires_verified_mapping": true,
+    "honor_retry_after": true
+  },
+  "workers": {
+    "initial_downloads": 2,
+    "max_downloads": 4,
+    "initial_integrity_workers": 1,
+    "rate_per_worker": false,
+    "priorities": [
+      "SMALL_BASE",
+      "MINUTE",
+      "TICK"
+    ],
+    "tick_starts_without_waiting_for_all_minutes": true
+  },
+  "retry": {
+    "max_retries_after_initial": 3,
+    "429_domain_cooldown_on_repeated_rejection_seconds": 300,
+    "range_resume": "only when provider support and same object revision verified",
+    "auth_or_license_failure": "do not blindly retry"
+  },
+  "raw_storage": {
+    "path": null,
+    "require_owner_controlled_durable_destination": true,
+    "state_before_resolution": "UNVERIFIED",
+    "public_github_raw": false,
+    "public_artifacts_raw": false,
+    "permanent_object_lock": false,
+    "atomic_publish": true,
+    "hash": "SHA256",
+    "gzip_crc": true,
+    "readback_required": true,
+    "revisions": "append-only during active license; deletion rights preserved"
+  },
+  "exposure": {
+    "keep_sealed_partitions": true,
+    "new_labels": false,
+    "charts_of_sealed_prices": false,
+    "raw_fetch_is_not_fresh_certification": true,
+    "follow_stricter_existing_exposure_contract": true
+  },
+  "counts_this_design_turn": {
+    "new_market_downloads": 0,
+    "model_fits": 0,
+    "capital_replays": 0,
+    "upstream_edits": 0,
+    "contract_changes": 0,
+    "raw_deletions": 0,
+    "orders": 0,
+    "main_merge": 0
+  },
+  "work_scope": {
+    "new_provider_downloads": "authorized only within active entitlement and legal storage",
+    "new_model_fits": 0,
+    "capital_replays": 0,
+    "stage2_fits": 0,
+    "selector_entry_exit_changes": 0,
+    "claude": 0
+  },
+  "uncertain": [
+    "actual entitlement",
+    "subscription continuation",
+    "durable destination",
+    "existing raw availability",
+    "total byte volume",
+    "full completion before expiration"
+  ],
+  "official_sources_file": "OFFICIAL_SPEC_SOURCES.json"
+}

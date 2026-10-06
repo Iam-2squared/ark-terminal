@@ -1,0 +1,38 @@
+name: J-Quants RAW Cache Metadata Preflight V1
+
+on:
+  push:
+    branches: ['data/jquants-raw-cache-20261006-v1']
+    paths:
+      - '.github/workflows/jquants-raw-cache-preflight-v1.yml'
+      - 'research/jquants-raw-cache-parallel-20261006-v1/preflight.py'
+      - 'research/jquants-raw-cache-parallel-20261006-v1/test_preflight.py'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jquants-raw-cache-metadata-preflight-20261006-v1
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Synthetic prerequisite guards; no provider or strategy execution
+        working-directory: research/jquants-raw-cache-parallel-20261006-v1
+        run: python3 -m unittest -v test_preflight.py
+      - name: Check existing credential presence and prerequisites; emit safe metadata only
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: |
+          python3 research/jquants-raw-cache-parallel-20261006-v1/preflight.py \
+            --evidence docs/evidence/jquants-raw-cache-parallel-20261006-v1 \
+            --output "$RUNNER_TEMP/jquants-cache-preflight.json"
+      # No RAW, signed URL, credential, public artifact, schedule, cancellation,
+      # package installation, strategy import, training or Replay is performed.

@@ -5,7 +5,6 @@
   "basis_main_head": "a295df739a6810dd0081becd04a3380f6136b6ef",
   "blockers": [
     "LIVE_ENTITLEMENT_UNVERIFIED",
-    "LOCAL_API_KEY_UNAVAILABLE",
     "BLOCKED_DURABLE_DESTINATION",
     "SHARED_ACCOUNT_LIMITER_UNBOUND",
     "MAIN_READER_ALLOWLIST_UNVERIFIED"
@@ -22,13 +21,16 @@
     "Separate local and remote metadata preflight prepared",
     "11 synthetic preflight guard tests passed",
     "Independent six-run metadata recount and pagination completeness passed",
-    "Separate local preflight process executed and exited blocked"
+    "Separate local preflight process executed and exited blocked",
+    "Remote metadata preflight completed successfully on dedicated branch; existing API secret is present without value disclosure",
+    "START 29-file exact GET body/blob/HEAD readback PASS",
+    "User selected Google through secure sign-in; 403 observed at authentication provider; no credential values inspected"
   ],
   "contract_changes": 0,
   "current_artifact_metadata_count": 65,
-  "current_position": "Execution preflight, source inventory and official registry comparison completed; live acquisition prerequisites unresolved.",
+  "current_position": "CACHE_BLOCKED_AUTH_OR_STORAGE: local and Actions metadata preflight executed, inventories reconciled, authentication continuation blocked by 403, durable destination/limiter/reader prerequisites unbound.",
   "durable_readbacks": 0,
-  "exact_jst": "2026-10-06T13:06:30.931959+09:00",
+  "exact_jst": "2026-10-06T13:14:21.374173+09:00",
   "main_branch_writes": 0,
   "main_jobs_cancelled": 0,
   "main_merge": 0,
@@ -57,5 +59,24 @@
   "schema": "ARK_JQUANTS_RAW_CACHE_EXECUTION_STATE_V1",
   "status": "CACHE_BLOCKED_AUTH_OR_STORAGE",
   "upstream_changes": 0,
-  "local_preflight_result": "LOCAL_PREFLIGHT_RESULT.json"
+  "local_preflight_result": "LOCAL_PREFLIGHT_RESULT.json",
+  "remote_preflight": {
+    "run_id": 37412236265,
+    "job_id": 112103007955,
+    "pid": 2385,
+    "status": "CACHE_BLOCKED_AUTH_OR_STORAGE",
+    "conclusion": "success",
+    "credential_present": true,
+    "provider_requests": 0
+  },
+  "local_api_key_unavailable": true,
+  "remote_job_running": false,
+  "process_status": "PREFLIGHT_EXITED; RAW_ACQUISITION_NOT_STARTED",
+  "continuation_requires": [
+    "Existing owner-only persistent path or bucket and its capacity/access binding",
+    "Live authenticated current subscription and separate Light/addon expiry proof",
+    "Shared account limiter or all-consumer agreed request budget",
+    "Pinned main reader allowlist proof"
+  ],
+  "never_send_secrets_in_chat": true
 }

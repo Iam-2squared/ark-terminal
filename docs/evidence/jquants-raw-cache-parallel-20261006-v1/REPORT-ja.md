@@ -1,6 +1,6 @@
 # 📦 J-Quants RAW全量キャッシュ — 実行前提確認結果
 
-実時計JST: 2026-10-06T13:06:30.931959+09:00
+実時計JST: 2026-10-06T13:14:21.374173+09:00
 
 ## 📍 現在地
 
@@ -9,10 +9,10 @@
 ## ✅ 実施した確認
 
 - 現行公式仕様・利用権・終了時の扱いを照合。Light候補には初期WorkにないVALUATIONを追記。10 bulk dataset＋直近予定API snapshot＝11候補。実アカウントの権限確認は未完了。
-- 現環境の環境変数・既知の認証設定を確認したが、J-Quants APIキーはない。ブラウザーの契約画面はサインイン待ち。GitHubの既存workflowにJQUANTS_API_KEY参照があるが、存在・利用可能性は専用metadata preflightで別確認する。
+- 現環境の環境変数・既知の認証設定を確認したが、J-Quants APIキーはない。ブラウザーでは利用者が安全な入力画面でGoogleを選択したが、認証遷移先が403 Forbiddenを返した。実契約の確認は未完了。GitHubの既存JQUANTS_API_KEYは、専用jobで存在を確認した。値は出していない。providerによる認証成功・契約確認は未実施。
 - DATA_LOCATIONの2台帳、Sign・旧Sign・RNEGのsource binding、旧取得コード、既存source runのartifact metadataを確認。戦略コードはimportせず、本線入力を変更しない。
 - 旧コードのlimiterはprocess内だけのため、本Workの共有limiterとは認定しない。全アカウント利用者の接続・固定予算は未成立。
-- 11件の合成guard検証がPASS。実ダウンローダのページング／転送障害／lease／CRC等の検証は未実施。
+- 11件の合成guard検証がローカル・ActionsでPASS。実ダウンローダのページング／転送障害／lease／CRC等の検証は未実施。
 
 ## 📊 実行量
 
@@ -36,7 +36,7 @@
 |前提|状態|必要なもの|
 |---|---|---|
 |現契約・datasetごとの利用期限|実アカウント未確認|現在の契約状態と終了時刻の証拠|
-|API認証|ローカルにはなし|既存キーを実取得processで安全に利用できること|
+|API認証|Actionsの既存secretあり・ローカルにはなし|既存secretを使う専用processで認証成功・契約を確認|
 |本人専用の永続保存先|BLOCKED_DURABLE_DESTINATION|既存private disk／bucket、閲覧制御、容量、削除・再読取アクセス|
 |本線を含む共有rate limit|未接続|全利用者の共通limiterまたは合意済み固定予算|
 |本線のreader allowlist|未確認|hash固定snapshotを新rootから隔離したreaderの証拠|
@@ -72,3 +72,15 @@ WorkにあるLight 19:02／分足・Tick 19:07は画像由来の計画値で、�
 取得processは稼働していない。metadata preflightだけを実際のPID／run IDで報告する。本線のsnapshot採用や新RAWによるState／Entry／EXIT／Rank再計算は0。READY_PARTITION_MANIFESTは新規partitionなし。
 
 公式根拠: [利用目的・ライセンス](https://jpx-jquants.com/ja/help/usage)、[キャンセル](https://jpx-jquants.com/ja/help/plan)、[プラン別データ仕様](https://jpx-jquants.com/ja/spec/data-spec)、[Bulk一覧](https://jpx-jquants.com/ja/spec/bulk-list)、[レート制限](https://jpx-jquants.com/ja/spec/rate-limits)。
+
+## ✅ GitHub実行と読み戻し
+
+専用metadata preflight run `37412236265`、job `112103007955` がsuccess。既存secretの存在はtrue、provider呼出し0、RAW転送0。本線のcapital branch HEADは開始時の`a295df739a6810dd0081becd04a3380f6136b6ef`と同じ。既存Realtime job `37408601154`はin_progressを維持。このjobはmain branchの既存運用jobであり、Closed Sign V1を新規稼働させたものではない。
+
+START commit `050b440447b42bcc9a5910424bed941d402f2e81`は29ファイルのactual GET body／Git blob／branch HEADが全件一致。最終checkpointも保存後に読み戻す。
+
+## 🧱 実契約画面の最終確認
+
+利用者のGoogle選択後、認証遷移先で403 Forbiddenを観測した。ログイン完了・現在の契約有効性は確認できていない。別方式へ自動変更せず、契約・期限を推測しない。APIキー値をチャットへ送る必要はない。既存Actions secretはそのまま再利用できる候補として記録した。
+
+続行には、既存の本人専用永続保存先（具体的なpath／bucket、空き容量、閲覧制御と実行processからのアクセス）、現契約と期限の実確認、本線側の共有API予算／limiterとsnapshot reader固定を成立させる。専用branch・再開台帳は保存済みで、研究・取得processが無人で継続しているとは報告しない。

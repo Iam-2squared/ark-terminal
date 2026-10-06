@@ -1,12 +1,26 @@
 {
-  "block": "S2",
-  "budget_sha256": "18a92942e1579b86e66bbb26b4703ceea8e7c29030ba0f4b28ecdd8e37a0fc1e",
+  "block": "B3",
+  "budget_counters": {
+    "cycles_completed": 4,
+    "cycles_started": 4,
+    "legacy_threshold_decisions": 9,
+    "model_fit_attempts": 20,
+    "model_fit_success": 20,
+    "preprocessing_fits": 20,
+    "started": {
+      "JST": "2026-10-07T00:34:23.844529+09:00",
+      "UTC": "2026-10-06T15:34:23.844529+00:00"
+    },
+    "technical_retries": 0,
+    "threshold_decisions": 60
+  },
+  "budget_sha256": "6a55e430a85f1a0efa33214211876f0c4b9303dc0b17ee20b0586a5e7181e5bd",
   "candidate_id": "C03_STATE_CHART_LOGIT",
   "clock": {
-    "JST": "2026-10-07T00:47:51.406555+09:00",
-    "UTC": "2026-10-06T15:47:51.406555+00:00"
+    "JST": "2026-10-07T06:55:53.567167+09:00",
+    "UTC": "2026-10-06T21:55:53.567167+00:00"
   },
-  "cycle_status": "CHAMPION_IMPROVED",
+  "cycle_status": "PARETO_EXTENSION",
   "feature_Entry_N": 1600,
   "feature_hashes": {
     "C01": "2fd81dc1e49dae61bfdd5ca89fee2055c9b0878b9ccfa261332b73a0b97a14ad"
@@ -19,15 +33,21 @@
     "row_N": 1936,
     "sha256": "c8e19b5ceeb639f8e76c648f5f4cec2df76efef88c66496bebd5c42eb9184323"
   },
-  "next": "Save/readback C03 measured candidates then precommit next remaining hypothesis.",
+  "new_search_started_after_06JST": 0,
+  "next": "New time authorization required. Continue from C03_STATE_CHART_LOGIT and preserved Pareto archive; next single hypothesis: C05 FIT-only compact representation/regularization. No Phase0, no refit of completed work, no retuning on the501 REPORT. Original deadline remains2026-10-07T07:00:00+09:00.",
   "operating_point": 95,
   "owner": "Iam-2squared / Codex",
-  "parent_id": "C01_CHART_LOGIT",
+  "parent_id": "C03_STATE_CHART_LOGIT",
   "parent_private_HEAD": "e236d621c8299408e0f6c553b5f385e9c62506d7",
   "parent_public_HEAD": "8591fa412b82d6eee01c1cbbdb53128b8e720497",
-  "phase": "CYCLE_C03_COMPLETE",
+  "phase": "FINAL_ASSETS_READY",
+  "report_prediction_hashes": {
+    "PRIMARY": "5ac45cb2ebd2b78d191b1aedc1483b7da581795731782110e03e7c5698ba2470",
+    "SECONDARY": "25fc698cf01c9be215139d0cc4f956319870db95d732357d30eb5cfebb4ecb90"
+  },
   "run_id": "FIRST_LAYER_V1_ALPHA_20261007T0031JST",
-  "seal_sha256": "52288919b9108b949be71fdd70085155196ff605dc1d9576d8f37c6f9ce78a2d",
-  "sealed_N": 158,
-  "source_cache_sha256": "1012d01c5f640f11e8254b73d0ce3649eb3d1edff35231a9150723cf921e1bab"
+  "seal_sha256": "9cf7e076e9648a63723dec4c2c0696081cd25114c0f9acf8d95fa72cc8c219e4",
+  "sealed_N": 164,
+  "source_cache_sha256": "1012d01c5f640f11e8254b73d0ce3649eb3d1edff35231a9150723cf921e1bab",
+  "status": "PROGRESS_SAVED_TARGET_NOT_REACHED"
 }

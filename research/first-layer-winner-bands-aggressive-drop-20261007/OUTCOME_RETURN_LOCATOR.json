@@ -1,16 +1,43 @@
 {
-  "status": "EXACT_AUTHORITY_MEMBER_LOCATED_NOT_YET_JOINED",
-  "original_authority": "Inherited SIGN source pin -> original quality authority inputs/FROZEN_ENTRY.jsonl.gz",
-  "source_binding_commit": "8f1a3bc87a5c97d425940c76c8ed0b4a4da7b3a0",
-  "source_pin_blob": "d804ecf635b48b03af76cfec82fbb1b263b48338",
-  "source_sign_manifest_member": "reuse_sign/authority_data/quality_original/inputs/FROZEN_ENTRY.jsonl.gz",
-  "member": "inputs/FROZEN_ENTRY.jsonl.gz",
-  "bytes": 452854,
-  "sha256": "e7a6140b6b11d8d078a271fad76b75e68a5b2fda9e45c7db43d98ee2f282abeb",
-  "transport": "Already provided handoff ZIP -> QUALITY_U2_U3_PRIVATE_STRONG.zip -> authority/Ark_Capital_Quality_v1_20261005_PRIVATE_CONTRACT_FAIL.zip",
-  "authority_limitation": "Quality-model contract failure is not authority to use its policy; only byte-identical frozen outcome source is recovered. R field/units/fill/cost/identity require validation after decision seal.",
-  "R_rows_parsed_before_decision_seal": 0,
+  "Capital_allocation_profit_used": false,
+  "Entry_N": 322,
+  "Freeze_changes": 0,
+  "REPORT501_R_read": 0,
+  "R_rows_outside_DEV": 0,
+  "clock": {
+    "JST": "2026-10-07T08:12:08.561607+09:00",
+    "UTC": "2026-10-06T23:12:08.561607+00:00"
+  },
+  "cost_authority": "BUY1.0005, SELL0.9995, commission0 already in debit/credit; no additional fees",
+  "formula_authority": "RNEG_TARGET_BINDING sell_credit/buy_debit-1; saved original R used, not regenerated",
+  "known_return_N": 316,
+  "known_sign_return_unavailable_N": 0,
+  "locator_chain": {
+    "R_exposure_JST": "2026-10-07T08:09:33.511257+09:00",
+    "bytes": 73257,
+    "member": "reuse_sign/capital_rneg_defense_private/RNEG_TARGETS_EVALUATION_ONLY.jsonl.gz",
+    "native_rows_parsed": 322,
+    "nested_zip_sha256": "9d473f2b4b325d5b226bd717704a1990400268d97250d89a60cda6c02bb2677c",
+    "outer_zip_sha256": "f44ac726082843064f93666dce9cdeaa3b70a6a7503934c32e9452b61fdeab4c",
+    "sha256": "fe8053da6798adcf01b5f4c09236304f607113c541acfee35a8f4ea74c9b9293"
+  },
+  "native_debit_credit_formula_mismatch": 0,
+  "native_sign_mismatch": 0,
   "new_EXIT_replay": 0,
-  "RAW_scan": 0,
-  "REPORT501_R_read": 0
+  "numeric_contract": "r_original is canonical fraction saved as decimal string at native precision60; percent is exact multiplication by100 using Fraction; no display rounding/epsilon",
+  "quantity_basis": 100,
+  "references": {
+    "RNEG_TARGET_BINDING_commit": "6f3a09e4800a1cccbf359364c9acc9ba1f05e8dc",
+    "SIGN_TARGET_CONTRACT_commit": "4a0b6d5fef69ecee34a05c36789c57478ab37a7a",
+    "original_target_sha256": "fe8053da6798adcf01b5f4c09236304f607113c541acfee35a8f4ea74c9b9293"
+  },
+  "rejected_other_source": {
+    "ECONOMICS_member_sha256": "ff45f547691fd88b433292b61fd5e2b9caffdc230d9184f625a49eb2305a5733",
+    "archive_sha256": "16cb53e6c986963f5a103e56c9f3fafad142548d7d9fd3286bb9e8c92e5a04b3",
+    "reason": "Raw V3-only Replay does not reproduce canonical teacher inherited EOD settlement. Entire candidate R set excluded; no teacher/outcome edits.",
+    "sign_disagreement_N": 27
+  },
+  "status": "CANONICAL_NATIVE_R_RESOLVED",
+  "teacher_source_hash_matches": 322,
+  "unknown_sign_N": 6
 }

@@ -1,0 +1,249 @@
+{
+  "document_id": "ARK_FIRST_LAYER_V1_PHASE0_BINARY_SAFE_TRANSPORT_WORK_20261006",
+  "parent_document": "ARK_FIRST_LAYER_V1_PHASE0_RECOVERY_WORK_20261006",
+  "owner": "Iam-2squared / Codex",
+  "clock": {
+    "UTC": "2026-10-06T13:06:49Z",
+    "JST": "2026-10-06T22:06:49+09:00"
+  },
+  "status": "BLOCKED_DATA_OR_LINEAGE",
+  "specific_status": "RAW_BINARY_READBACK_BLOCKED",
+  "source_repo": "Iam-2squared/J-Quants-C",
+  "source_HEAD_expected": "09dcb8d8e1a2063e077006e44a456179e90a60b8",
+  "source_HEAD_actual": "09dcb8d8e1a2063e077006e44a456179e90a60b8",
+  "GitHub_original_absence_claimed": false,
+  "GitHub_originals_missing_evidence": false,
+  "transport_diagnosis": "GitHub connector decodes gzip bytes as UTF-8 (user-provided UnicodeDecodeError byte0x8b). Authenticated plugin token is not available to runner Git. Binary-safe Git clone fails at private-repo authentication, not gzip decode. No ordinary-object binary materialize tool exposed.",
+  "user_supplied_binary_error": {
+    "blob": "34ddebe04e35cc1c9ab2cf2645e6956ec2809800",
+    "error": "UnicodeDecodeError: utf-8 cannot decode byte0x8b at position1",
+    "runner_body_readback_claimed": false
+  },
+  "binary_safe_Git_attempts": [
+    {
+      "method": "Git protocol clone, blob:none, no checkout; no gzip-as-text fetch",
+      "route": "canonical_GitHub",
+      "remote_repository": "https://github.com/Iam-2squared/J-Quants-C.git",
+      "expected_authority_HEAD": "09dcb8d8e1a2063e077006e44a456179e90a60b8",
+      "started_UTC": "2026-10-06T13:05:03.227686+00:00",
+      "completed_UTC": "2026-10-06T13:05:11.840485+00:00",
+      "exit_code": 128,
+      "timeout": false,
+      "stderr": "Cloning into '/workspace/scratch/845201189eb9/phase0_recovery_work/binary_transport_staging/20261006T130503Z/canonical_GitHub'...\nfatal: could not read Username for 'https://github.com': terminal prompts disabled\n",
+      "stdout": "",
+      "local_target_originals_materialized": 0,
+      "checkout_attempted": false,
+      "status": "BINARY_SAFE_GIT_CLONE_UNAVAILABLE"
+    },
+    {
+      "method": "Git protocol clone, blob:none, no checkout; no gzip-as-text fetch",
+      "route": "runner_Git_gateway",
+      "remote_repository": "https://git.chatgpt-team.site/Iam-2squared/J-Quants-C.git",
+      "expected_authority_HEAD": "09dcb8d8e1a2063e077006e44a456179e90a60b8",
+      "started_UTC": "2026-10-06T13:05:11.840556+00:00",
+      "completed_UTC": "2026-10-06T13:05:12.149674+00:00",
+      "exit_code": 128,
+      "timeout": false,
+      "stderr": "Cloning into '/workspace/scratch/845201189eb9/phase0_recovery_work/binary_transport_staging/20261006T130503Z/runner_Git_gateway'...\nfatal: could not read Username for 'https://git.chatgpt-team.site': terminal prompts disabled\n",
+      "stdout": "",
+      "local_target_originals_materialized": 0,
+      "checkout_attempted": false,
+      "status": "BINARY_SAFE_GIT_CLONE_UNAVAILABLE"
+    }
+  ],
+  "Git_checkout_attempted": false,
+  "Git_checkout_unavailability_reason": "Authenticated clone failed; no pinned remote Git objects available in local object database.",
+  "runner_credentials": {
+    "git_installed": true,
+    "gh_CLI_available": false,
+    "GitHub_token_environment_available": false,
+    "credential_helper_configured": false,
+    "askpass_configured": false,
+    "plugin_credentials_exported": false,
+    "secret_values_seen_or_saved": false
+  },
+  "capability_inventory": {
+    "GitHub_tool_count": 89,
+    "ordinary_clone_checkout_materialize_tools": [],
+    "binary_download_tools": [
+      {
+        "name": "mcp__codex_apps__github_download_user_content",
+        "allowed_target": "Private GitHub image attachments only"
+      },
+      {
+        "name": "mcp__codex_apps__github_download_workflow_artifact",
+        "allowed_target": "Existing GitHub Actions artifacts only"
+      }
+    ],
+    "ordinary_repository_binary_download_tool": false,
+    "GitHub_plugin_connection_credentials_exported_to_runner": false
+  },
+  "existing_C_workflow_artifact_metadata": {
+    "workflow_runs_total_count": 3,
+    "checked_runs": [
+      {
+        "run_id": 37425719232,
+        "total_count": 0,
+        "artifacts": []
+      },
+      {
+        "run_id": 37424520899,
+        "status": "READBACK",
+        "total_count": 0,
+        "artifacts": []
+      },
+      {
+        "run_id": 37423721299,
+        "status": "READBACK",
+        "total_count": 0,
+        "artifacts": []
+      }
+    ],
+    "available_artifacts_total": 0,
+    "artifact_download_invoked": false,
+    "why": "No existing artifact IDs to download; image attachment downloader is not applicable to repository gzip."
+  },
+  "target_objects": [
+    {
+      "month": "202505",
+      "repo": "Iam-2squared/J-Quants-C",
+      "commit": "09dcb8d8e1a2063e077006e44a456179e90a60b8",
+      "path": "raw/equities/bars/minute/historical/2025/equities_bars_minute_202505.csv.gz",
+      "expected_bytes": 86185623,
+      "expected_sha256": "a671695eb4c9ed37c10515e768d4278a9cc701dacd022af99a35d2615bcec965",
+      "expected_blob_sha": "34ddebe04e35cc1c9ab2cf2645e6956ec2809800",
+      "actual_bytes": 0,
+      "actual_sha256": null,
+      "expected_actual_full_match": false,
+      "gzip_integrity": "NOT_EXECUTED_NO_BODY"
+    },
+    {
+      "month": "202506",
+      "repo": "Iam-2squared/J-Quants-C",
+      "commit": "09dcb8d8e1a2063e077006e44a456179e90a60b8",
+      "path": "raw/equities/bars/minute/historical/2025/equities_bars_minute_202506.csv.gz",
+      "expected_bytes": 86117134,
+      "expected_sha256": "58572650290f6a8268b9add5d3ca50a7f501758f9f1ef940ace46d98510ac011",
+      "expected_blob_sha": "d76eb3518e53a912e0cd7e0ec22944e0fcaa1834",
+      "actual_bytes": 0,
+      "actual_sha256": null,
+      "expected_actual_full_match": false,
+      "gzip_integrity": "NOT_EXECUTED_NO_BODY"
+    },
+    {
+      "month": "202507",
+      "repo": "Iam-2squared/J-Quants-C",
+      "commit": "09dcb8d8e1a2063e077006e44a456179e90a60b8",
+      "path": "raw/equities/bars/minute/historical/2025/equities_bars_minute_202507.csv.gz",
+      "expected_bytes": 91406828,
+      "expected_sha256": "32d4c22fa3a69258f64527d0d8fe810a2c29fb3e7160e98876b30752dd8197ba",
+      "expected_blob_sha": "47996b5ef2d5d30254c351fd863659cb5cfa07ec",
+      "actual_bytes": 0,
+      "actual_sha256": null,
+      "expected_actual_full_match": false,
+      "gzip_integrity": "NOT_EXECUTED_NO_BODY"
+    },
+    {
+      "month": "202508",
+      "repo": "Iam-2squared/J-Quants-C",
+      "commit": "09dcb8d8e1a2063e077006e44a456179e90a60b8",
+      "path": "raw/equities/bars/minute/historical/2025/equities_bars_minute_202508.csv.gz",
+      "expected_bytes": 90574217,
+      "expected_sha256": "14b0d3eb810fb2e3eb24f494b12814e79d4f1f16870c97f328a5857eb2092bbe",
+      "expected_blob_sha": "c1f3a3cff0fe53d88ecaa4587953038658b97bcb",
+      "actual_bytes": 0,
+      "actual_sha256": null,
+      "expected_actual_full_match": false,
+      "gzip_integrity": "NOT_EXECUTED_NO_BODY"
+    }
+  ],
+  "expected_total_bytes": 354283802,
+  "actual_materialized_original_bytes": 0,
+  "complete_originals": 0,
+  "source_pin_mismatch_count": 0,
+  "text_gzip_fetch_calls_in_this_work": 0,
+  "metadata_GETs_only": true,
+  "browser_auth_attempts": 0,
+  "new_remote_workflows_created": 0,
+  "GitHub_RAW_objects_modified": 0,
+  "provider_requests": 0,
+  "new_transport_research_branch": "research/first-layer-v1-binary-transport-20261006t130649z",
+  "existing_branch_main_HEADs_at_start": [
+    {
+      "repo": "Iam-2squared/ark-terminal",
+      "branch": "research/first-layer-v1-state-core-20261006",
+      "head": "320c53af45b386a79a1a21525b3ed96aa5eb3505"
+    },
+    {
+      "repo": "Iam-2squared/ark-terminal",
+      "branch": "main",
+      "head": "63531a7f3759553614f2dcc3a205da337caa41a8"
+    },
+    {
+      "repo": "Iam-2squared/ark-capital-private-",
+      "branch": "research/first-layer-v1-state-core-20261006",
+      "head": "cd10b25cc06f293a7f234ad790bcde1bfbcc3621"
+    },
+    {
+      "repo": "Iam-2squared/ark-capital-private-",
+      "branch": "main",
+      "head": "ed8aa200525a62cf43de78297625357d90c1a2bd"
+    }
+  ],
+  "hard_zero_counters": {
+    "model_fit": 0,
+    "preprocessing_fit": 0,
+    "threshold_search": 0,
+    "CAL_scoring": 0,
+    "TEST_open": 0,
+    "feature_archive": 0,
+    "State9_engine_rerun": 0,
+    "EXIT_replay": 0,
+    "provider_request": 0,
+    "Capital_Replay": 0,
+    "orders": 0,
+    "production_changes": 0,
+    "main_changes": 0,
+    "force_push": 0,
+    "Freeze_changes": 0,
+    "Entry_changes": 0,
+    "teacher_changes": 0,
+    "Exposure_changes": 0,
+    "State_Core_design_changes": 0
+  },
+  "population_carried_from_prior_recovery": {
+    "sessions": 58,
+    "Entry": 1600,
+    "PLUS": 706,
+    "MINUS": 854,
+    "UNKNOWN": 40,
+    "ZERO": 0,
+    "Exposure": "ALL_DEVELOPMENT",
+    "Fresh_OOS": 0,
+    "FIT_CAL_TEST": null,
+    "reverified_here": false
+  },
+  "native_causal_QA_continued": false,
+  "native_QA_stop_reason": "RAW4/4 complete readback prerequisite not met.",
+  "manual_upload_resolution": {
+    "possible": true,
+    "conditions": [
+      "Upload exact existing C repo202505-202508 gzip originals without processing/source replacement",
+      "Full binary bytes must be accessible to this runner",
+      "Independently compare bytes and SHA256 and gzip integrity for all4",
+      "Only then clear RAW_BINARY_READBACK_BLOCKED",
+      "Native BUY_INTENT/event ordering/bar/session/lunch/State-input/missing continuity QA must still close before Phase0 PASS"
+    ],
+    "does_not_automatically_declare_Phase0_PASS": true
+  },
+  "PRECOMMIT_created": false,
+  "next_action": "STOP. No workaround that changes originals or creates remote workflows; manual original upload is last resort.",
+  "Git_clone_processes_executed": 4,
+  "Git_clone_routes": 2,
+  "diagnostic_repeat_note": "First two clone processes also exited128; curl verbosity was corrected to retain concise authentication failure diagnostics. No target body fetched or checkout executed in any attempt.",
+  "workflow_trigger_basis": {
+    "reused_audit": "first_layer_v1_state_core/public/BRANCH_ACTIONS_AUDIT.json",
+    "matching_push_or_create_workflows": 0,
+    "scope_note": "Inherited348workflow headers: push filters fixed; wildcard research/phase57-gen3-r45-ci-* does not match this first-layer branch. No workflows modified."
+  }
+}

@@ -1,14 +1,14 @@
 {
-  "candidate_id": "C03_STATE_CHART_LOGIT",
+  "candidate_id": "C08_STATE_COMPACT",
   "clock": {
-    "JST": "2026-10-07T07:08:50.805116+09:00",
-    "UTC": "2026-10-06T22:08:50.805116+00:00"
+    "JST": "2026-10-07T07:10:52.959808+09:00",
+    "UTC": "2026-10-06T22:10:52.959808+00:00"
   },
   "complexity": [
     1,
     12,
     0,
-    38,
+    99,
     0
   ],
   "config": {
@@ -16,14 +16,16 @@
     "added_families": [
       "C01"
     ],
-    "candidate_id": "C03_STATE_CHART_LOGIT",
+    "candidate_id": "C08_STATE_COMPACT",
+    "compact": true,
     "complexity": [
       1,
       12,
       0,
-      38,
+      99,
       0
     ],
+    "drop_FIT_constant_columns": true,
     "family": "logit",
     "new_interactions": [
       {
@@ -57,21 +59,21 @@
         ]
       }
     ],
-    "parent_id": "C01_CHART_LOGIT",
+    "parent_id": "C03_STATE_CHART_LOGIT",
     "regularization_multiplier": 1.0
   },
   "dominated_by": [],
-  "measure_sha256": "dba1bd3f56c8fc933ea15f52f2c65f3a7da61bc7e2e8705e30dc191f9e912681",
+  "measure_sha256": "8250c67aeaf89e786641ccf13afe07c29c20251afdfc234ce27c5ef61e9d57cb",
   "metrics": {
     "M": 172,
-    "MINUS_remaining": 0.872093023255814,
-    "MINUS_removal": 0.12790697674418605,
-    "M_drop": 22,
-    "M_keep": 150,
+    "MINUS_remaining": 0.8662790697674418,
+    "MINUS_removal": 0.13372093023255813,
+    "M_drop": 23,
+    "M_keep": 149,
     "P": 144,
-    "PLUS_retention": 0.9444444444444444,
-    "P_drop": 8,
-    "P_keep": 136,
+    "PLUS_retention": 0.9236111111111112,
+    "P_drop": 11,
+    "P_keep": 133,
     "UNKNOWN_drop": 0,
     "UNKNOWN_keep": 6,
     "ZERO_drop": 0,
@@ -85,5 +87,5 @@
   },
   "reason": "lowest MINUS remaining among PLUS retention>=90%; integer denominators identical",
   "status": "RESEARCH_CHAMPION_DEVELOPMENT_ONLY",
-  "updated": false
+  "updated": true
 }

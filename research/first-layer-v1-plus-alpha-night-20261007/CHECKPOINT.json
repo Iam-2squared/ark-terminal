@@ -2,61 +2,62 @@
   "all_report_count_audits": "PASS_0_MISMATCH",
   "block": "S2",
   "budget_counters": {
-    "cycles_completed": 6,
-    "cycles_started": 6,
+    "cycles_completed": 8,
+    "cycles_started": 8,
     "fit_phase_attempts": {
       "baseline": 2,
       "report": 6,
-      "search": 20
+      "search": 22
     },
     "legacy_threshold_decisions": 9,
-    "model_fit_attempts": 28,
-    "model_fit_success": 28,
-    "preprocessing_fits": 28,
+    "model_fit_attempts": 30,
+    "model_fit_success": 30,
+    "preprocessing_fits": 30,
     "started": {
       "JST": "2026-10-07T00:34:23.844529+09:00",
       "UTC": "2026-10-06T15:34:23.844529+00:00"
     },
     "technical_retries": 0,
-    "threshold_decisions": 84
+    "threshold_decisions": 90
   },
-  "budget_sha256": "a4a58d20a3d45695baa22521aba2933b9f2cb5d400a43bbf241daaf38046c54c",
-  "candidate_id": "C03_STATE_CHART_LOGIT",
+  "budget_sha256": "624b085ecf82248f10c337ef7d9de117008ac73d8f0a338e41989c77479404e8",
+  "candidate_id": "C08_STATE_COMPACT",
   "clock": {
-    "JST": "2026-10-07T07:09:53.032397+09:00",
-    "UTC": "2026-10-06T22:09:53.032397+00:00"
+    "JST": "2026-10-07T07:12:36.376700+09:00",
+    "UTC": "2026-10-06T22:12:36.376700+00:00"
   },
-  "cycle_status": "PARETO_EXTENSION",
+  "cycle_status": "CHAMPION_IMPROVED",
   "deadline_extended": true,
   "feature_Entry_N": 1600,
   "feature_hashes": {
-    "C01": "2fd81dc1e49dae61bfdd5ca89fee2055c9b0878b9ccfa261332b73a0b97a14ad",
-    "C06": "de23e9ed64a3cb02ee75f974e65bb4873f61bd49023bf2b6c90f98884fe1868f"
+    "C01": "2fd81dc1e49dae61bfdd5ca89fee2055c9b0878b9ccfa261332b73a0b97a14ad"
   },
   "feature_sha256": "2fd81dc1e49dae61bfdd5ca89fee2055c9b0878b9ccfa261332b73a0b97a14ad",
   "legacy_threshold_decisions": 9,
-  "model_fit_attempts": 28,
+  "model_fit_attempts": 30,
   "new_REPORT_scoring": 0,
-  "new_search_started_after_06JST": 2,
-  "new_threshold_decisions": 84,
-  "next": "Save C06 result/input artifacts, precommit/readback C07 skip and C08 compact candidate; then run them without REPORT scoring.",
+  "new_fit_attempts_after_resume": 10,
+  "new_search_started_after_06JST": 4,
+  "new_threshold_decisions": 90,
+  "next": "Cycle budget8/8 reached, time limit cancelled by user. Preserve C08_STATE_COMPACT/CAL95 as research parent and C03/Pareto. Request only cycle cap extension8→11; use at most remaining10 normal fits within total40 and new threshold120, no new501 REPORT fits. Next single hypothesis C09: same compact input with two fixed small HGB structures. No Phase0, no reset, no REPORT retuning.",
   "operating_point": 95,
   "owner": "Iam-2squared / Codex",
-  "parent_id": "C01_CHART_LOGIT",
+  "parent_id": "C03_STATE_CHART_LOGIT",
   "parent_private_HEAD": "e236d621c8299408e0f6c553b5f385e9c62506d7",
   "parent_public_HEAD": "8591fa412b82d6eee01c1cbbdb53128b8e720497",
-  "phase": "C06_AUDITED_C07_C08_PREPARED",
-  "preprocessing_fits": 28,
+  "phase": "CYCLE_BUDGET_REACHED_TARGET_NOT_REACHED",
+  "preprocessing_fits": 30,
   "report_prediction_hashes": {
     "PRIMARY": "5ac45cb2ebd2b78d191b1aedc1483b7da581795731782110e03e7c5698ba2470",
     "SECONDARY": "25fc698cf01c9be215139d0cc4f956319870db95d732357d30eb5cfebb4ecb90"
   },
+  "research_champion_is_not_fixed_REPORT_PRIMARY": true,
   "result_private_HEAD": "921608f7ca8d7396f4b1c0e56be7c09ae8965a05",
   "result_public_data_HEAD": "0e6540268f301f107bb5d81a3ff1ae4a7c6f6f47",
   "run_id": "FIRST_LAYER_V1_ALPHA_20261007T0031JST",
-  "seal_sha256": "7248f71f0320dc0fbb27b54f61288f56e04110727f4d1ad48db4406cd9c1429f",
+  "seal_sha256": "dfbef57cfe7e7982fce4742b6399695d9fe2e3c1d06d6fc4d796480693b6e3ea",
   "sealed_N": 158,
   "source_cache_sha256": "1012d01c5f640f11e8254b73d0ce3649eb3d1edff35231a9150723cf921e1bab",
-  "status": "PROGRESS_SAVED_TARGET_NOT_REACHED",
+  "status": "CYCLE_BUDGET_REACHED_TARGET_NOT_REACHED",
   "time_limit_cancelled": true
 }

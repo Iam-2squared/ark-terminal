@@ -49,55 +49,6 @@
       "operating_point": 90
     },
     {
-      "candidate_id": "C02_D5_LOGIT",
-      "complexity": [
-        3,
-        0,
-        0,
-        336,
-        0
-      ],
-      "config": {
-        "V1_INTERACTIONS": true,
-        "added_families": [
-          "C01",
-          "C02D1",
-          "C02D5"
-        ],
-        "candidate_id": "C02_D5_LOGIT",
-        "complexity": [
-          3,
-          0,
-          0,
-          336,
-          0
-        ],
-        "family": "logit",
-        "new_interactions": [],
-        "parent_id": "C01_CHART_LOGIT",
-        "regularization_multiplier": 1.0
-      },
-      "dominated_by": [],
-      "measure_sha256": "a971c1b306fc38834446a255fcca1a5fc1894369b0befe9f97d44ee1f3350a1a",
-      "metrics": {
-        "M": 172,
-        "MINUS_remaining": 0.9767441860465116,
-        "MINUS_removal": 0.023255813953488372,
-        "M_drop": 4,
-        "M_keep": 168,
-        "P": 144,
-        "PLUS_retention": 0.9930555555555556,
-        "P_drop": 1,
-        "P_keep": 143,
-        "UNKNOWN_drop": 0,
-        "UNKNOWN_keep": 6,
-        "ZERO_drop": 0,
-        "ZERO_keep": 0,
-        "target_integer": false
-      },
-      "operating_point": 99
-    },
-    {
       "candidate_id": "C03_STATE_CHART_LOGIT",
       "complexity": [
         1,
@@ -492,38 +443,233 @@
       "operating_point": 90
     },
     {
-      "candidate_id": "V1",
+      "candidate_id": "C08_STATE_COMPACT",
       "complexity": [
+        1,
+        12,
         0,
-        0,
-        0,
-        0,
+        99,
         0
       ],
       "config": {
         "V1_INTERACTIONS": true,
-        "added_families": [],
-        "candidate_id": "V1",
+        "added_families": [
+          "C01"
+        ],
+        "candidate_id": "C08_STATE_COMPACT",
+        "compact": true,
         "complexity": [
+          1,
+          12,
           0,
-          0,
-          0,
-          0,
+          99,
           0
         ],
+        "drop_FIT_constant_columns": true,
         "family": "logit",
-        "new_interactions": [],
-        "parent_id": null,
+        "new_interactions": [
+          {
+            "category": "S.primary",
+            "group": "C03current",
+            "numeric": [
+              "C01.open_progress",
+              "C01.range_position",
+              "C01.connected_efficiency",
+              "C01.mean_value"
+            ]
+          },
+          {
+            "category": "H.primary",
+            "group": "C03history",
+            "numeric": [
+              "C01.from_high",
+              "C01.from_low",
+              "C01.high_update_count",
+              "C01.value_up_fraction"
+            ]
+          },
+          {
+            "binary": "Q.current_state_available",
+            "group": "C03available",
+            "numeric": [
+              "C01.direction_agreement",
+              "C01.tail_vs_full_efficiency",
+              "C01.mean_volume",
+              "C01.support_fraction"
+            ]
+          }
+        ],
+        "parent_id": "C03_STATE_CHART_LOGIT",
         "regularization_multiplier": 1.0
       },
       "dominated_by": [],
-      "measure_sha256": "ec42c31b5f01af0d7380944c48d3acafbf30068157841cf72d316f940b636680",
+      "measure_sha256": "8250c67aeaf89e786641ccf13afe07c29c20251afdfc234ce27c5ef61e9d57cb",
       "metrics": {
         "M": 172,
-        "MINUS_remaining": 0.9883720930232558,
-        "MINUS_removal": 0.011627906976744186,
-        "M_drop": 2,
-        "M_keep": 170,
+        "MINUS_remaining": 0.8023255813953488,
+        "MINUS_removal": 0.19767441860465115,
+        "M_drop": 34,
+        "M_keep": 138,
+        "P": 144,
+        "PLUS_retention": 0.8541666666666666,
+        "P_drop": 21,
+        "P_keep": 123,
+        "UNKNOWN_drop": 0,
+        "UNKNOWN_keep": 6,
+        "ZERO_drop": 0,
+        "ZERO_keep": 0,
+        "target_integer": false
+      },
+      "operating_point": 90
+    },
+    {
+      "candidate_id": "C08_STATE_COMPACT",
+      "complexity": [
+        1,
+        12,
+        0,
+        99,
+        0
+      ],
+      "config": {
+        "V1_INTERACTIONS": true,
+        "added_families": [
+          "C01"
+        ],
+        "candidate_id": "C08_STATE_COMPACT",
+        "compact": true,
+        "complexity": [
+          1,
+          12,
+          0,
+          99,
+          0
+        ],
+        "drop_FIT_constant_columns": true,
+        "family": "logit",
+        "new_interactions": [
+          {
+            "category": "S.primary",
+            "group": "C03current",
+            "numeric": [
+              "C01.open_progress",
+              "C01.range_position",
+              "C01.connected_efficiency",
+              "C01.mean_value"
+            ]
+          },
+          {
+            "category": "H.primary",
+            "group": "C03history",
+            "numeric": [
+              "C01.from_high",
+              "C01.from_low",
+              "C01.high_update_count",
+              "C01.value_up_fraction"
+            ]
+          },
+          {
+            "binary": "Q.current_state_available",
+            "group": "C03available",
+            "numeric": [
+              "C01.direction_agreement",
+              "C01.tail_vs_full_efficiency",
+              "C01.mean_volume",
+              "C01.support_fraction"
+            ]
+          }
+        ],
+        "parent_id": "C03_STATE_CHART_LOGIT",
+        "regularization_multiplier": 1.0
+      },
+      "dominated_by": [],
+      "measure_sha256": "8250c67aeaf89e786641ccf13afe07c29c20251afdfc234ce27c5ef61e9d57cb",
+      "metrics": {
+        "M": 172,
+        "MINUS_remaining": 0.8662790697674418,
+        "MINUS_removal": 0.13372093023255813,
+        "M_drop": 23,
+        "M_keep": 149,
+        "P": 144,
+        "PLUS_retention": 0.9236111111111112,
+        "P_drop": 11,
+        "P_keep": 133,
+        "UNKNOWN_drop": 0,
+        "UNKNOWN_keep": 6,
+        "ZERO_drop": 0,
+        "ZERO_keep": 0,
+        "target_integer": false
+      },
+      "operating_point": 95
+    },
+    {
+      "candidate_id": "C08_STATE_COMPACT",
+      "complexity": [
+        1,
+        12,
+        0,
+        99,
+        0
+      ],
+      "config": {
+        "V1_INTERACTIONS": true,
+        "added_families": [
+          "C01"
+        ],
+        "candidate_id": "C08_STATE_COMPACT",
+        "compact": true,
+        "complexity": [
+          1,
+          12,
+          0,
+          99,
+          0
+        ],
+        "drop_FIT_constant_columns": true,
+        "family": "logit",
+        "new_interactions": [
+          {
+            "category": "S.primary",
+            "group": "C03current",
+            "numeric": [
+              "C01.open_progress",
+              "C01.range_position",
+              "C01.connected_efficiency",
+              "C01.mean_value"
+            ]
+          },
+          {
+            "category": "H.primary",
+            "group": "C03history",
+            "numeric": [
+              "C01.from_high",
+              "C01.from_low",
+              "C01.high_update_count",
+              "C01.value_up_fraction"
+            ]
+          },
+          {
+            "binary": "Q.current_state_available",
+            "group": "C03available",
+            "numeric": [
+              "C01.direction_agreement",
+              "C01.tail_vs_full_efficiency",
+              "C01.mean_volume",
+              "C01.support_fraction"
+            ]
+          }
+        ],
+        "parent_id": "C03_STATE_CHART_LOGIT",
+        "regularization_multiplier": 1.0
+      },
+      "dominated_by": [],
+      "measure_sha256": "8250c67aeaf89e786641ccf13afe07c29c20251afdfc234ce27c5ef61e9d57cb",
+      "metrics": {
+        "M": 172,
+        "MINUS_remaining": 0.9767441860465116,
+        "MINUS_removal": 0.023255813953488372,
+        "M_drop": 4,
+        "M_keep": 168,
         "P": 144,
         "PLUS_retention": 1.0,
         "P_drop": 0,
@@ -538,8 +684,8 @@
     }
   ],
   "clock": {
-    "JST": "2026-10-07T07:08:50.806904+09:00",
-    "UTC": "2026-10-06T22:08:50.806904+00:00"
+    "JST": "2026-10-07T07:10:52.961689+09:00",
+    "UTC": "2026-10-06T22:10:52.961689+00:00"
   },
   "same_entry_denominators": true
 }

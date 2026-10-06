@@ -131,8 +131,8 @@
     "ratio": null,
     "complete_raw_saved": false
   },
-  "acquisition_status": "BLOCKED_PROVIDER_EXECUTION_CONNECTION",
-  "exact_jst": "2026-10-06T14:40:36.156100+09:00",
+  "acquisition_status": "BLOCKED_SETTINGS_READ_CAPABILITY",
+  "exact_jst": "2026-10-06T14:56:24.301291+09:00",
   "current_state": {
     "five_private_and_actual_writes_verified": true,
     "dataset_roles_fixed": true,
@@ -158,15 +158,13 @@
       "repository_budget_is_github_hard_quota": false
     },
     "blockers": [
-      "LIVE_PROVIDER_AUTH_RUNNER_UNAVAILABLE",
-      "SHARED_ACCOUNT_RATE_LIMITER_UNBOUND",
-      "LIVE_ENTITLEMENT_UNVERIFIED",
-      "OWNER_ONLY_ACCESS_AUDIT_UNVERIFIED",
-      "NATIVE_PROVIDER_LISTING_NOT_OBTAINED",
-      "RETENTION_PURGE_BINDING_UNVERIFIED"
+      "SECRET_NAME_AND_PRESENCE_NOT_YET_VERIFIED",
+      "ACTIONS_FREE_ALLOWANCE_OR_ZERO_SPEND_STOP_UNVERIFIED",
+      "OWNER_ONLY_ACCESS_UNVERIFIED",
+      "SHARED_ACCOUNT_LIMITER_UNBOUND"
     ],
     "legacy_outer_zip_not_native_maximum": true,
-    "next_policy": "Connect an existing secure authenticated J-Quants acquisition runner to this Work. Keep the existing secret in the runner. Bind the shared account limiter and verify current entitlement/owner-only access; freeze native listing and boundaries before unchanged RAW acquisition.",
+    "next_policy": "GitHub connector rejects Secret/billing/access-list settings endpoints. Request required approval to inspect existing GitHub settings via browser fallback without displaying secret values; verify no additional Actions charge, then start private presence-only preflight before authenticated full-period listing and fixed A/B/C/D/E allocation. No contract or billing changes.",
     "private_current_state_paths": {
       "Iam-2squared/J-quants-A": "CURRENT_STATE.json",
       "Iam-2squared/J-quants-B": "CURRENT_STATE.json",
@@ -174,7 +172,7 @@
       "Iam-2squared/J-quants-D": "CURRENT_STATE.json",
       "Iam-2squared/J-quants-E": "CURRENT_STATE.json"
     },
-    "checkpoint": "START_REQUEST_BLOCKED_NO_AUTHENTICATED_RUNNER",
+    "checkpoint": "PRIVATE_SECRET_PRESENCE_RUNNERS_PREPARED_SETTINGS_READ_REQUIRED",
     "public_readback_manifest": "j-quants/manifests/FIVE_REPO_READBACK_20261006.json",
     "assignment_manifest": "j-quants/manifests/FIVE_REPO_ASSIGNMENT_20261006.json",
     "previous_single_private_repo_checkpoint": "HISTORICAL; superseded by this five-repo policy",
@@ -225,11 +223,20 @@
     "metadata_content_readback_files": 70,
     "metadata_receipt_readback_files": 5,
     "saved_raw_bytes": 0,
-    "last_user_request": "取得開始して全て入れて",
+    "last_user_request": "全部にapiキー入れた",
     "start_request_authorized": true,
     "acquisition_started": false,
     "provider_requests_this_start_request": 0,
     "raw_downloads_this_start_request": 0,
-    "background_acquisition_running": false
+    "background_acquisition_running": false,
+    "user_reported_api_key_added_to_all_five_repositories": true,
+    "secret_presence_verified_repositories": 0,
+    "private_presence_workflows_prepared": 5,
+    "manual_only_no_automatic_actions": true,
+    "private_prepared_files_actual_get_readback_passed": 25,
+    "private_prepared_workflow_guards_checks_passed": 6,
+    "provider_requests_this_checkpoint": 0,
+    "raw_downloads_this_checkpoint": 0,
+    "raw_saved_bytes": 0
   }
 }

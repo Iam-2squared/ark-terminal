@@ -1,0 +1,35 @@
+{
+  "schema": "ARK_TECHNICAL_PROBE_AMENDMENT_V1",
+  "utc": "2026-10-06T05:24:40.533495+00:00",
+  "jst": "2026-10-06T14:24:40.533495+09:00",
+  "basis_head": "da9c54cc2b71684aec34b96169adf94f562de8c2",
+  "initial_run": 37418149802,
+  "initial_provider_requests": 3,
+  "initial_http_statuses": [
+    200,
+    200,
+    200
+  ],
+  "initial_result": "SCHEMA_UNCONFIRMED; not acquisition success",
+  "reason": "Technical response decoding diagnostic only. Original parser lacked gzip decoding and official Size:number integral-float handling. Initial response bodies were not retained; no unsupported cause attribution.",
+  "new_fixed_requests": 3,
+  "work_cumulative_max_requests": 6,
+  "auto_retries": 0,
+  "no_more_probes_without_new_fixed_scope": true,
+  "changes": [
+    "Bounded gzip decoder capped at 5MiB decompressed.",
+    "Integral JSON number Size validated; nonfinite/nonintegral/bool rejected.",
+    "Fixed enum encoding/schema failure diagnostic; no arbitrary response or error values exported."
+  ],
+  "market_teacher_features_splits_thresholds_changed": false,
+  "model_fit_budget_changed": false,
+  "original_failed_or_unconfirmed_result_retained": true,
+  "implemented": true,
+  "synthetic_tests_passed": 8,
+  "not_yet_executed": true,
+  "future_policy": [
+    "Run one technical confirmation only and count actual requests cumulatively.",
+    "Keep native-data access, retention right and full coverage distinct from metadata status.",
+    "No rerun or code/test repush after confirmation; later checkpoints use docs only."
+  ]
+}

@@ -1,4 +1,5 @@
 import io
+import gzip
 import json
 import unittest
 import urllib.error
@@ -23,6 +24,18 @@ class FakeOpener:
 
 
 class ProbeTests(unittest.TestCase):
+    def test_gzip_response_and_integral_number_size(self):
+        body = gzip.compress(b'{"data":[{"Key":"one.csv.gz","Size":5.0}]}')
+        result = summarize(200, body)
+        self.assertEqual(result["body_encoding"], "gzip")
+        self.assertEqual(result["file_count"], 1)
+        self.assertEqual(result["listed_size_bytes"], 5)
+
+    def test_gzip_limit_and_invalid_gzip(self):
+        from api_probe import MAX_BODY_BYTES
+        self.assertEqual(summarize(200, gzip.compress(b' ' * (MAX_BODY_BYTES + 1)))["schema_failure"], "DECOMPRESSED_BODY_OVERSIZE")
+        self.assertEqual(summarize(200, b'\x1f\x8bbad')["schema_failure"], "INVALID_GZIP")
+
     def test_metadata_only_no_arbitrary_field_export(self):
         result = summarize(200, json.dumps({"data": [{"Key": "one.csv.gz", "Size": 5,
                            "raw_price": 999, "signed_url": "SECRET_URL"}]}).encode())

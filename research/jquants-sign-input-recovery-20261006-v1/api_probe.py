@@ -2,8 +2,11 @@
 from __future__ import annotations
 
 import argparse
+import gzip
 import hashlib
+import io
 import json
+import math
 import os
 import time
 import urllib.error
@@ -23,30 +26,56 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
         return None
 
 
-def summarize(status: int, body: bytes) -> dict:
+def summarize(status: int, body: bytes, content_type: str = "", content_encoding: str = "") -> dict:
     # Error text may include provider-specific details. It is never emitted.
     result = {"http_status": status, "response_bytes": len(body),
               "response_sha256": hashlib.sha256(body).hexdigest(),
               "listing_schema_valid": False, "file_count": None,
               "listed_size_bytes": None, "current_access": "UNCONFIRMED"}
+    media = content_type.split(";", 1)[0].strip().lower()
+    result["content_type"] = media if media in ("application/json", "text/html", "application/octet-stream") else "OTHER_OR_ABSENT"
+    encoding = content_encoding.strip().lower()
+    result["content_encoding_header"] = encoding if encoding in ("gzip", "identity", "") else "OTHER"
     if status != 200:
         result["current_access"] = "REJECTED_OR_UNAVAILABLE"
         return result
+    result["body_encoding"] = "gzip" if body.startswith(b"\x1f\x8b") else "identity"
+    if result["body_encoding"] == "gzip":
+        try:
+            with gzip.GzipFile(fileobj=io.BytesIO(body)) as f:
+                body = f.read(MAX_BODY_BYTES + 1)
+        except (OSError, EOFError):
+            result["schema_failure"] = "INVALID_GZIP"
+            return result
+        if len(body) > MAX_BODY_BYTES:
+            result["schema_failure"] = "DECOMPRESSED_BODY_OVERSIZE"
+            return result
     try:
         data = json.loads(body)
     except (UnicodeError, ValueError):
+        result["schema_failure"] = "INVALID_JSON"
         return result
     files = data.get("data") if isinstance(data, dict) else None
+    result["json_root_type"] = type(data).__name__
+    result["expected_data_type"] = type(files).__name__
+    if isinstance(data, dict):
+        result["recognized_top_fields"] = [k for k in ("data", "files", "message", "error", "pagination_key") if k in data]
     if not isinstance(files, list) or not all(isinstance(f, dict) for f in files):
+        result["schema_failure"] = "EXPECTED_DATA_LIST_ABSENT_OR_INVALID"
         return result
     # Do not export arbitrary JSON fields, keys, signed URLs, or response text.
     valid = all(isinstance(f.get("Key"), str) and f["Key"] and
-                isinstance(f.get("Size"), int) and not isinstance(f["Size"], bool)
-                and f["Size"] >= 0 for f in files)
+                isinstance(f.get("Size"), (int, float)) and not isinstance(f["Size"], bool)
+                and math.isfinite(f["Size"]) and f["Size"] >= 0
+                and int(f["Size"]) == f["Size"] for f in files)
     if not valid:
+        result["schema_failure"] = "INVALID_KEY_OR_NONINTEGRAL_SIZE"
+        # Types only; never export field values from an unvalidated body.
+        result["key_field_types"] = sorted(set(type(f.get("Key")).__name__ for f in files))
+        result["size_field_types"] = sorted(set(type(f.get("Size")).__name__ for f in files))
         return result
     result.update(listing_schema_valid=True, file_count=len(files),
-                  listed_size_bytes=sum(f["Size"] for f in files),
+                  listed_size_bytes=sum(int(f["Size"]) for f in files),
                   current_access="METADATA_ACCESS_CONFIRMED" if files else "EMPTY_AMBIGUOUS")
     return result
 
@@ -80,7 +109,8 @@ def probe(key: str, opener=None, pause=time.sleep, clock=time.monotonic) -> dict
                 if len(body) > MAX_BODY_BYTES:
                     result.update(http_status=response.status, current_access="OVERSIZE_NOT_PARSED")
                 else:
-                    result.update(summarize(response.status, body))
+                    headers = getattr(response, "headers", {})
+                    result.update(summarize(response.status, body, headers.get("Content-Type", ""), headers.get("Content-Encoding", "")))
         except urllib.error.HTTPError as exc:
             result.update(http_status=exc.code, current_access="REJECTED_OR_UNAVAILABLE")
             exc.close()

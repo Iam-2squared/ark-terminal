@@ -81,6 +81,11 @@
       "operation": "large text upload/read preparation",
       "reason": "output truncation; switched to bounded chunks; no model or policy changed",
       "status": "RECOVERED_BEFORE_REMOTE_MUTATION"
+    },
+    {
+      "operation": "Final generated CSV byte-level Git blob comparison",
+      "reason": "CSV writer emitted CRLF locally and UTF-8 upload normalized LF; local generated CSVs and manifest normalized to exact saved LF bytes; no numeric, model, policy, or replay change",
+      "status": "REPAIRED_ARTIFACT_FORMAT_ONLY"
     }
   ],
   "remaining_work_in_this_cycle": [],

@@ -1,0 +1,82 @@
+{
+  "document_id": "ARK_INDEPENDENT_ENTRY_EXIT_SIGN_V1_20261006",
+  "exact_jst": "2026-10-06T11:45:24+09:00",
+  "status": "DESIGN_READY_NOT_EXECUTED",
+  "repository": "Iam-2squared/ark-terminal",
+  "branch": "capital-main-reallocation-20261005",
+  "design_basis_head": "b34c305367633b696dfb134f051d15abe7dbc981",
+  "design_basis_tree": "965b21f2a7b56860ce06ee1864e3b12e3c188162",
+  "latest_old_execution_metadata_head": "8039a7b14fa42b17483398ed1b9a66227f8c0ad6",
+  "work_request": {
+    "commit": "bd5b02eb1cbb6fd8b0b317e8bb35b6beb8cdbaa6",
+    "path": "docs/evidence/independent-entry-exit-sign-20261006-v1/WORK_REQUEST.md",
+    "bytes": 32085,
+    "sha256": "1f44625dfaa833f22e8f4d04e5987e270a0c7872de93275d6cb77597e05b8458",
+    "git_blob_sha1": "b9e69086fec54d7ac25f0f2e830d57f96f66854f",
+    "actual_get_blob_matches_local_complete_bytes": true
+  },
+  "design_config": {
+    "commit": "7b1da642171aa86db7fe540b3e727daca96758d4",
+    "bytes": 7478,
+    "sha256": "51ae20db294bf8f20f64eb195cc103a2d88010cb1fc64603504bb0dc1203a3a1",
+    "git_blob_sha1": "a27dea379dd68ab8eda978514c3c81c7ec44cb60",
+    "actual_get_blob_matches_local_complete_bytes": true
+  },
+  "supersession_notice_commit": "9e3b3a56b7fc5a3b2558bc298177730e34856d63",
+  "direction": {
+    "layer1": "Independent sign-only classifier for frozen Entry to net frozen EXIT/EOD",
+    "layer2": "Preserve existing winner rankings; do not implement or refit now",
+    "target": "PLUS=1 MINUS=0; exact zero/unknown separate",
+    "families": [
+      "L2 Logistic",
+      "HistGradientBoosting",
+      "ExtraTrees"
+    ],
+    "representations": [
+      "X_RAW",
+      "X_AUG conditional on score lineage"
+    ],
+    "validation": "Per outer block: FIT prefix, last5 past sessions CAL, next block TEST; no refit after threshold",
+    "selection": "DISCOVERY B1-B5 chooses one candidate; B6-B8 locked historically exposed Development",
+    "no_fresh_claim_from_repartition": true,
+    "capital_replay_or_stage2": false
+  },
+  "new_budget": {
+    "scheduled_fits_max": 48,
+    "technical_identical_retries_max": 2,
+    "capital_replays": 0,
+    "stage2_fits": 0
+  },
+  "old_stage1_observed": {
+    "new_fits_completed": 32,
+    "oof_complete_jst": "2026-10-06T11:37:57.141805+09:00",
+    "capital_replays": 0,
+    "stage2": 0,
+    "classification_results_not_read_for_this_design": true,
+    "completion_is_not_new_independent_work_execution": true,
+    "process_stop_verified": false
+  },
+  "counts_this_design_turn": {
+    "new_fits": 0,
+    "market_replays": 0,
+    "new_R_materializations": 0,
+    "upstream_edits": 0,
+    "Claude": 0,
+    "synthetic_design_checks": 27,
+    "synthetic_failures": 0
+  },
+  "unexecuted": [
+    "New independent dataset binding",
+    "New independent model fits and threshold evaluation",
+    "Locked late Development check",
+    "Independent Fresh/OOS validation"
+  ],
+  "next_action": "Hand off this instruction to Work; preserve/close prior OOF artifacts without further old fits, bind inputs, and execute only this bounded standalone sign study. No rank or Capital connection.",
+  "safety": {
+    "productionReady": false,
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "automaticPromotionAllowed": false,
+    "transmitted": false
+  }
+}

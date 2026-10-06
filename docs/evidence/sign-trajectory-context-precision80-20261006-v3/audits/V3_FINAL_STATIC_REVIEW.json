@@ -1,0 +1,95 @@
+{
+  "audit_code_source_hashes": {
+    "/workspace/ark-sign-work/research/sign-trajectory-context-precision80-20261006-v3/causal_input_builder.py": "fb05841680d58bd1ec5e6c925c217e236411c9979c8acca85ff9b9a1a25bc850",
+    "/workspace/ark-sign-work/research/sign-trajectory-context-precision80-20261006-v3/test_causal_input_builder.py": "e3bda15581515cc4588c7847e64789ee67f20eac25679f05f0ad716035b5fa8a"
+  },
+  "checks": {
+    "32_slots_use_exact_scheduled_raw_starts_same_half": true,
+    "U_generated_from_saved_previous_only_current_argument_empty": true,
+    "base_151_numeric_15_categorical_reused_without_new_teachers": true,
+    "coordinate80_120_quantized_parity_required": true,
+    "future_RAW_market_column_access_after_clock_filter": 0,
+    "future_peer_membership_before_clock_admission": 0,
+    "input_asof_exact_intent": 1600,
+    "missing_slots_remain_NULL_with_masks": true,
+    "new_Late_performance_reads": 0,
+    "new_model_fits": 0,
+    "new_threshold_choices": 0,
+    "normalizer80_and120_frozen_sources_pin_verified": true,
+    "peer_returns_use_frozen_strict_contiguous_same_half_window": true,
+    "profile_or_State_Path_semantics_changes": 0,
+    "source_unavailable_normalized_price_NULL_not_substituted": true,
+    "source_unavailable_volume_value_remain_causal_current_prefix": true,
+    "target_last_closed_raw_start_plus_one_exact_intent": 1600,
+    "teacher_and_profit_value_dependencies": 0,
+    "worker_RAW_suffix_rows_sent": 0
+  },
+  "clock_boundary_independent_audit": {
+    "Entry_denominator": 1600,
+    "known_peer_Entry_links": 31184,
+    "known_selector_event_Entry_links": 37809,
+    "max_Selector_available_minus_intent_seconds": 0,
+    "max_Selector_decision_minus_intent_seconds": 0,
+    "max_input_asof_minus_intent_seconds": 0,
+    "max_peer_end_minus_intent_seconds": 0,
+    "max_target_end_minus_intent_seconds": 0,
+    "path": "/workspace/private-recovery/teacher-producer-audit/CLOCK_BOUND_AUDIT.json",
+    "sha256": "0ecb9742e8f8c01c4bbf997f93771ee9aeb3baa2280b0870f5d4e87babec7b13",
+    "violations_N": 0
+  },
+  "created_jst": "2026-10-06T17:07:54.539466+09:00",
+  "created_utc": "2026-10-06T08:07:54.539466+00:00",
+  "final_code_sha256": "fb05841680d58bd1ec5e6c925c217e236411c9979c8acca85ff9b9a1a25bc850",
+  "helper_binding": "Root reports actual GET on v2 HEAD7b599...; helper pins are separately recorded in DEPENDENCY_BINDING. Local bytes independently hashed here.",
+  "helper_dependency_snapshot": {
+    "/workspace/ark-sign-work/research/sign-prebuy-quality-precision80-20261006-v2/intent_feature_replay.py": "0b783588813265c3a41012efb2ca22a04afc36ab8ffecff3f6ae4d9c05a13c54",
+    "/workspace/ark-sign-work/research/sign-prebuy-quality-precision80-20261006-v2/study_input_adapter.py": "15227f8c7eb787340a4226bb81819bd3c7370497a347797e16a7da8d9e4b4537"
+  },
+  "limits": [
+    "Historical raw-minute start+1 availability is inherited, not verified actual receipt knownAt.",
+    "Trajectory includes causal opening-mixed OHLCV and explicitly counts those slots; peer fresh returns exclude opening-mixed latest bars. This does not change frozen State rules.",
+    "This review does not re-certify the upstream Selector or its historically exposed Development selection.",
+    "Stale known peers remain members and support denominators; actual returns require same-half contiguous closed windows and fresh quote rules.",
+    "Frozen P1 inference assets for untouched additional periods remain a separate blocker; no new fit or split was fixed here.",
+    "Full RAW JSON is decoded into memory, but prefix filtering consults only suffix clocks; no future OHLCV/Value field is used in feature calculation."
+  ],
+  "normalizer_and_profile_pins": {
+    "causal_reader_sha256": "f833d120a67077477f3b8c02dbf7ca1691b1217468160c4b8fdabe98834e8fb3",
+    "feature_schema_sha256": "68ef202b190266ac08140ac0c0892b48f782d356f453b12f1e68ac448c304f8a",
+    "kernel_identity_sha256": "1e7149bd88046db0f46d3d7cfbb220f43fc2b48339052803b4b97fcacd4509c9",
+    "kernel_source_count": 16,
+    "profile_sha256": "77ee61ba1808a2c17614439fe7d14212a53cbfa7358c032ce16989eeb5248922"
+  },
+  "owner": "sign_teacher_producer_audit",
+  "previous_basis_Date_metadata_independent_checks": {
+    "OHLCV_Value_fields_inspected_for_this_check": 0,
+    "previous_Date_not_declared_session": 0,
+    "previous_Date_not_past": 0,
+    "previous_Date_rows": 196955,
+    "previous_session_not_past": 0,
+    "records": 1600
+  },
+  "representations": {
+    "TRAJECTORY": {
+      "categorical": 15,
+      "numeric": 407
+    },
+    "TRAJECTORY_CONTEXT": {
+      "categorical": 15,
+      "numeric": 423
+    }
+  },
+  "scope": "New v3 input representation preparation only; no model/split contract or fit authorization",
+  "source_binding_guard_change_output_equivalent": true,
+  "source_bound_features_sha256": "d9ece94addc749709ebfdc2f215b4849cdc593412727f07f30f54862d7507f82",
+  "source_bound_schema_sha256": "f1e62ba9e054cedbf17bb347756be9421ff9120d1c2de94625674d608adffa87",
+  "source_provenance_sha256": "3ee115d51ae212c4bf8b52fac6bfe3cad86d4c769ba38c807f7da0f4c84073d8",
+  "status": "PASS_V3_INPUT_ONLY_STATIC_AND_CLOCK_REVIEW_NOT_FIT_ALLOWED",
+  "synthetic_test_source_sha256": "e3bda15581515cc4588c7847e64789ee67f20eac25679f05f0ad716035b5fa8a",
+  "synthetic_verification": {
+    "implementation_agent_report": "8/8 PASS on final SHA",
+    "independent_static_test_review": true,
+    "independent_test_rerun": false,
+    "tests_cover": "Future suffix poison, future membership poison, strict gap NULL, same-half lunch reset, U unavailable NULL, support denominators and mixed-opening peer exclusion"
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "Late_performance_reads": 0,
+  "audit_code_sha256": "711edbdb477009fbb4dd0adec80a3d8b124aa1d6aae57cfc3ebb39ca8c1e49a4",
+  "created_jst": "2026-10-06T17:04:52.936700+09:00",
+  "created_utc": "2026-10-06T08:04:52.936700+00:00",
+  "denominators_and_counts": {
+    "Entry_denominator": 1600,
+    "Entry_with_known_peers": 1600,
+    "base_input_asof_after_actor_intent_violations": 0,
+    "known_peer_Entry_links": 31184,
+    "known_peer_Entry_links_with_past_regular_clock": 31184,
+    "known_peer_end_after_actor_intent_violations": 0,
+    "known_peer_exact_closed_endpoint": 19488,
+    "known_selector_event_Entry_links": 37809,
+    "peer_prefix_clock_rows_scanned": 3742822,
+    "peer_suffix_clock_rows_scanned": 2406415,
+    "same_day_selector_event_Entry_checks": 80000,
+    "selected_selector_available_after_actor_violations": 0,
+    "selected_selector_decision_after_actor_violations": 0,
+    "self_selector_event_checks_excluded": 1676,
+    "target_end_after_actor_intent_violations": 0,
+    "target_exact_closed_endpoint": 1600,
+    "target_prefix_clock_rows_scanned": 123557,
+    "target_suffix_clock_rows_scanned": 139530,
+    "unavailable_or_future_selector_event_checks_excluded": 40515
+  },
+  "interpretation": "Each maximum compares an available input clock with the actor BUY_INTENT. All maxima <=0; raw-minute start+1 is the inherited historical closed-bar assumption.",
+  "known_peer_per_Entry_max": 43,
+  "known_peer_per_Entry_min": 4,
+  "limits": [
+    "Provider RAW JSON is loaded, but only row[0] clocks are consulted; no OHLCV/Value column arithmetic is performed.",
+    "This verifies causal clock and membership filtering, not actual historical receipt knownAt or market performance.",
+    "Known Selector peers use same-time event availability under existing historical ordering; no future member identity is used.",
+    "No model/split contract is frozen or fit-authorized by this audit."
+  ],
+  "market_OHLCV_Value_field_values_inspected": 0,
+  "max_base_input_asof_minus_actor_intent_seconds": 0.0,
+  "max_known_peer_closed_end_minus_actor_intent_seconds": 0,
+  "max_known_selector_available_minus_actor_intent_seconds": 0.0,
+  "max_known_selector_decision_minus_actor_intent_seconds": 0.0,
+  "max_target_closed_end_minus_actor_intent_seconds": 0,
+  "model_fits": 0,
+  "owner": "sign_teacher_producer_audit",
+  "peer_regular_past_clock_rows_scanned": 3727990,
+  "scope": "All 1600 fixed Entries; source raw-start column and Selector timestamp metadata only",
+  "source_hashes": {
+    "/workspace/private-recovery/agent-frozen-source/recovered-persistent/raw_paths_selected.json.gz": "28a7d3faadda1e677a45cf6c7290bb99e4986c3e026da6746a9f3c04883a9c86",
+    "/workspace/private-recovery/agent-frozen-source/recovered-persistent/selector_events_full144.json.gz": "1c8fabdd930ee21d55c064d779721f6854e0bb2db9abc5d94c3d991950bb82cb",
+    "/workspace/private-recovery/sign-v2-inputs/study_features.jsonl.gz": "bf3b77b48c18d218ae9c3d77f5f7c11991359ce6a332de000c950df2c496d52e"
+  },
+  "status": "PASS_V3_INDEPENDENT_CLOCK_BOUND_AUDIT",
+  "target_regular_past_clock_rows_scanned": 123135,
+  "teacher_profit_values_inspected": 0,
+  "teacher_sign_values_inspected": 0,
+  "violations": {
+    "base_input_asof_after_actor_intent_violations": 0,
+    "known_peer_end_after_actor_intent_violations": 0,
+    "selected_selector_available_after_actor_violations": 0,
+    "selected_selector_decision_after_actor_violations": 0,
+    "target_end_after_actor_intent_violations": 0
+  }
+}

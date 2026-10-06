@@ -1,0 +1,47 @@
+{
+  "status": "PASS_INPUT_ONLY_STUDY_ADAPTER_GLOBAL_METADATA_BOUND",
+  "entry_count": 1600,
+  "supported_entry_count": 1600,
+  "P0_snapshot_hash_checks": 1600,
+  "identity_clock_checks": 1600,
+  "max_input_asof_after_intent": 0,
+  "state_source_status_counts": {
+    "SAVED_SOURCE_CONNECTED": 1440,
+    "SOURCE_UNAVAILABLE": 160
+  },
+  "quality_or_execution_based_exclusions": 0,
+  "output_schema_fields": [
+    "categorical",
+    "entry_id",
+    "input_asof",
+    "intent_minute",
+    "numeric",
+    "session",
+    "supported"
+  ],
+  "source_replay_learned_lineage_flag_unchanged": false,
+  "fit_allowed_by_adapter": false,
+  "global_metadata_gate": {
+    "receipt_sha256": "a57ecb67469c4786ed1e2dfbb258bd3121df1f71aadd49fe52e05b06cb97682c",
+    "status": "PASS_METADATA_REUSE_WITH_DECLARED_SOURCE_REPLAY_LIMIT",
+    "limits": [
+      "Full private grid/preprocessors/model files absent: original independent producer audit is reused; saved five train-index arrays and all 1600 row receipts rechecked independently.",
+      "Frozen EXIT native source rows are absent in this 26 MB bundle: teacher hash and inherited metadata are verified, but EXIT-rule replay and exact release source-clock matching were not independently rerun.",
+      "Actual historical market-data receipt timestamps UNKNOWN; bar-end availability remains assumed.",
+      "Existing Development was repeatedly exposed; this audit does not rename it Fresh/OOS.",
+      "Optional pP/MOVE/MRET scores retain their original fill-time metadata; they are not approved for the new BUY_INTENT cutoff."
+    ]
+  },
+  "sha256": {
+    "original_replay_features": "f56672a67031d2560d1bfbc6b81827e8ff973bfbc67d22192db2300ec4ec663b",
+    "original_feature_schema": "a5a3c1f492e617b8f73cf43abd94489bc952557ee497ddc35e238b66f1b05838",
+    "original_replay_provenance": "b88f6b35c39e95eb05c72b9fdb5609814e75aa71f0991c06515ab5d7d08fd2f7",
+    "adapter_code": "15227f8c7eb787340a4226bb81819bd3c7370497a347797e16a7da8d9e4b4537",
+    "study_features": "bf3b77b48c18d218ae9c3d77f5f7c11991359ce6a332de000c950df2c496d52e"
+  },
+  "model_fits": 0,
+  "teacher_sign_values_referenced": 0,
+  "teacher_profit_values_referenced": 0,
+  "threshold_choices": 0,
+  "created_utc": "2026-10-06T07:39:57.875288+00:00"
+}

@@ -1,0 +1,37 @@
+name: J-Quants Sign Input Current Access V1
+on:
+  push:
+    branches: ['data/jquants-sign-input-recovery-20261006-v1']
+    paths:
+      - '.github/workflows/jquants-sign-input-recovery-v1.yml'
+      - 'research/jquants-sign-input-recovery-20261006-v1/api_probe.py'
+      - 'research/jquants-sign-input-recovery-20261006-v1/test_api_probe.py'
+permissions:
+  contents: read
+concurrency:
+  group: ark-jquants-account-sign-input-recovery-v1
+  cancel-in-progress: false
+jobs:
+  current-access:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Test request budget and metadata-only output
+        working-directory: research/jquants-sign-input-recovery-20261006-v1
+        run: python3 -m unittest -v test_api_probe.py
+      - name: Check current API access without retrieving market rows
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: python3 research/jquants-sign-input-recovery-20261006-v1/api_probe.py --output "$RUNNER_TEMP/current-access.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jquants-current-access-metadata-${{ github.run_id }}
+          path: ${{ runner.temp }}/current-access.json
+          retention-days: 7
+          if-no-files-found: error
+      # Only fixed-schema aggregate metadata is exported. No RAW, model, key,
+      # signed URL, paid-service change, trading, or research fit is performed.

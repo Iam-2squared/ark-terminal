@@ -1,0 +1,84 @@
+{
+  "schema": "ARK_JQUANTS_SIGN_INPUT_RECOVERY_WORK_V1",
+  "utc": "2026-10-06T05:21:16.770865+00:00",
+  "jst": "2026-10-06T14:21:16.770865+09:00",
+  "owner": "Codex /root",
+  "repository": "Iam-2squared/ark-terminal",
+  "branch": "data/jquants-sign-input-recovery-20261006-v1",
+  "basis_head": "f6c571ef416edcea1df8ff8b0bfb8223563711c1",
+  "sign_branch": "research/sign-prebuy-quality-precision80-20261006-v2",
+  "sign_head": "a9a89ad6299d04775fcdaf2d45208ce382499d5a",
+  "user_instruction": "GitHubのark terminal内にj-quantsからのデータ取得方法があると思うから。調べて取得して続けて",
+  "scope": "Restore existing authorized Development RAW and measure current J-Quants access with maximum 3 metadata calls. No canonical snapshot replacement. No reopening closed Works.",
+  "status": "EXISTING_RAW_ARTIFACT_DOWNLOADED_VALIDATION_PENDING",
+  "existing_download": {
+    "artifact_id": 11261429936,
+    "run_id": 37091120832,
+    "bytes": 21223454,
+    "location": "/workspace/attachments/e1826bbf-8f82-4721-9e81-644da4510e17/persistent-uptrend-saved-source-37091120832.zip",
+    "sha256": "2db231298033006571bd8d5c709d3b19d81f0cc48644242fd763f6e891928cca",
+    "restore_method": "GitHub connector download_workflow_artifact -> authorized workspace download_file",
+    "ordinary_cli_download": "FAILED_AZURE_REDIRECT_FORBIDDEN; retained as failed method, no signed URL saved"
+  },
+  "api_probe": {
+    "implemented": true,
+    "synthetic_tests_passed": 6,
+    "provider_requests_so_far": 0,
+    "request_budget": 3,
+    "endpoints": [
+      "/equities/bars/minute",
+      "/equities/bars/daily",
+      "/equities/master"
+    ],
+    "date": "2025-08-01",
+    "date_is_intraday_development": true,
+    "protected_partitions_opened": 0,
+    "raw_downloads": 0,
+    "auto_retries": 0,
+    "request_interval_seconds": 2.6,
+    "secrets": "Existing GitHub Actions JQUANTS_API_KEY, not read or copied",
+    "success_claim_limit": "Only current metadata endpoint access; future expiry, retention and native-data completeness remain unverified"
+  },
+  "active_jobs_observed": [
+    {
+      "run_id": 37408601154,
+      "name": "Phase57 Realtime Stateful Live Measurement",
+      "source": "Yahoo; workflow has no JQUANTS_API_KEY or api.jquants references",
+      "unchanged": true
+    }
+  ],
+  "other_account_consumers": "UNOBSERVED; not a globally bound limiter",
+  "operations": {
+    "new_fits": 0,
+    "capital_replays": 0,
+    "provider_requests": 0,
+    "new_public_raw_uploads": 0,
+    "main_merges": 0,
+    "main_writes": 0,
+    "contract_changes": 0,
+    "new_paid_services": 0
+  },
+  "blockers": [
+    "Canonical fixed Entry/EXIT and matrices reside in independent Sign private library bundle, not in the RAW artifact. Recovery search found no canonical substitute.",
+    "Current provider entitlement and retention end are not yet verified."
+  ],
+  "future_policy": [
+    "Finish original-digest and Development-only RAW coverage verification.",
+    "Execute bounded metadata probe via isolated data branch; do not use browser 403 as API evidence.",
+    "Reuse fixed inputs where hashes match; later provider corrections stay a separate as-of source.",
+    "No fits or thresholds until canonical Entry/EXIT, producer dependencies and label maturity support are available; no claim of 80 percent without actual sign evaluation.",
+    "All public outputs are code, safe metadata, hashes, aggregates, actual clocks and next policy. No RAW, keys or signed URLs.",
+    "This is a limited Sign-input recovery Work; whole-market cache remains incomplete and is not resumed."
+  ],
+  "execution_flags": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

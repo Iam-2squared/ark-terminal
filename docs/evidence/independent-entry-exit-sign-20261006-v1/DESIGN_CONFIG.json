@@ -1,0 +1,288 @@
+{
+  "document_id": "ARK_INDEPENDENT_ENTRY_EXIT_SIGN_V1_20261006",
+  "exact_jst": "2026-10-06T11:38:45+09:00",
+  "status": "DESIGN_READY_NOT_EXECUTED",
+  "repository": "Iam-2squared/ark-terminal",
+  "branch": "capital-main-reallocation-20261005",
+  "basis_head": "b34c305367633b696dfb134f051d15abe7dbc981",
+  "basis_tree": "965b21f2a7b56860ce06ee1864e3b12e3c188162",
+  "supersedes": "ARK_CAPITAL_SIGN_ONLY_FILTER_STAGE1_V1_20261006",
+  "target": {
+    "PLUS": 1,
+    "MINUS": 0,
+    "EXACT_ZERO": null,
+    "UNKNOWN": null,
+    "exact_comparison": "sell_credit versus buy_debit under unchanged net frozen EXIT/EOD contract"
+  },
+  "objective": "SIGN_ONLY",
+  "sample_weight": null,
+  "class_weight": null,
+  "primary_population": "FROZEN_ENTRY_EXECUTION_ELIGIBLE",
+  "feature_groups": [
+    "G_PRICE",
+    "G_STATE",
+    "G_CONTEXT",
+    "G_SCORE"
+  ],
+  "representations": {
+    "X_RAW": [
+      "G_PRICE",
+      "G_STATE",
+      "G_CONTEXT"
+    ],
+    "X_AUG": [
+      "G_PRICE",
+      "G_STATE",
+      "G_CONTEXT",
+      "G_SCORE"
+    ]
+  },
+  "score_source_allowlist": [
+    "entry/p1_score",
+    "entry/p1_threshold",
+    "pP/MOVE_P5",
+    "MOVE_U2",
+    "MOVE_U3"
+  ],
+  "optional_score_representation_min_source_coverage": 0.95,
+  "forbidden_for_fit_selection_threshold_verdict": [
+    "future_return_magnitude",
+    "pnl_jpy",
+    "U_labels",
+    "R_buckets",
+    "RN_tail",
+    "future_High_Low",
+    "MFE_MAE",
+    "holding_duration",
+    "exit_reason",
+    "quantity",
+    "capital_state",
+    "portfolio_wealth"
+  ],
+  "families": {
+    "L": {
+      "class": "LogisticRegression",
+      "parameters": {
+        "penalty": "l2",
+        "C": 0.1,
+        "solver": "lbfgs",
+        "max_iter": 2000,
+        "tol": 0.0001,
+        "fit_intercept": true,
+        "class_weight": null,
+        "random_state": 57
+      }
+    },
+    "H": {
+      "class": "HistGradientBoostingClassifier",
+      "parameters": {
+        "loss": "log_loss",
+        "learning_rate": 0.05,
+        "max_iter": 100,
+        "max_leaf_nodes": 7,
+        "max_depth": 3,
+        "min_samples_leaf": 20,
+        "l2_regularization": 1.0,
+        "max_bins": 255,
+        "categorical_features": null,
+        "early_stopping": false,
+        "warm_start": false,
+        "class_weight": null,
+        "random_state": 57
+      }
+    },
+    "E": {
+      "class": "ExtraTreesClassifier",
+      "parameters": {
+        "n_estimators": 300,
+        "criterion": "gini",
+        "max_depth": 6,
+        "min_samples_leaf": 10,
+        "min_samples_split": 2,
+        "max_features": 0.5,
+        "bootstrap": false,
+        "class_weight": null,
+        "warm_start": false,
+        "random_state": 57,
+        "n_jobs": 2
+      }
+    }
+  },
+  "candidate_ids": [
+    "RAW_L",
+    "RAW_H",
+    "RAW_E",
+    "AUG_L",
+    "AUG_H",
+    "AUG_E"
+  ],
+  "split": {
+    "session_universe": "inherit SESSION_SPLIT.json exact dates",
+    "warmup_sessions": 20,
+    "outer_blocks": 8,
+    "discovery_blocks": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "late_check_blocks": [
+      6,
+      7,
+      8
+    ],
+    "cal_sessions": 5,
+    "fit_sessions": "outer past minus latest5 CAL sessions",
+    "fit_label_maturity": "strictly before CAL start",
+    "cal_label_maturity": "strictly before TEST start",
+    "post_threshold_refit": false,
+    "within_test_updates": 0,
+    "late_check_candidate_count": 1,
+    "late_status": "HISTORICALLY_EXPOSED_LOCKED_DEVELOPMENT"
+  },
+  "fit_support": {
+    "known_N": 100,
+    "sessions": 10,
+    "each_class_N": 20
+  },
+  "cal_support": {
+    "known_N": 50,
+    "sessions": 3,
+    "each_class_N": 10
+  },
+  "classification": {
+    "score": "p_plus",
+    "default_threshold": 0.5,
+    "plus_comparison": ">=",
+    "abstain": "separate with prediction coverage"
+  },
+  "filter": {
+    "action_comparison": "p_plus >= tau",
+    "primary_plus_retention": 0.8,
+    "secondary_plus_retentions": [
+      0.9,
+      0.7
+    ],
+    "threshold_candidates": "distinct CAL scores plus ALL_PASS(0) and ALL_REJECT sentinel",
+    "tie_break": [
+      "max balanced_accuracy",
+      "max minus_removal",
+      "min tau"
+    ],
+    "null_if_best_BA_at_most": 0.5,
+    "null_action": "ALL_PASS",
+    "magnitude_based_conditions": false,
+    "missing_prediction_action": "PASS_CANDIDATE with ABSTAIN reason"
+  },
+  "candidate_eligibility": {
+    "prediction_coverage_min": 0.95,
+    "active_discovery_filter_blocks_min": 3
+  },
+  "candidate_selection": [
+    "max mean block filter BA",
+    "max minimum block filter BA",
+    "max pooled filter MCC",
+    "min pooled Brier",
+    "X_RAW first",
+    "L then H then E"
+  ],
+  "ablation": {
+    "blocks": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "family": "selected family only",
+    "dropped_groups": [
+      "G_PRICE",
+      "G_STATE",
+      "G_SCORE"
+    ],
+    "may_change_selected_candidate": false
+  },
+  "promising_gate": {
+    "plus_retention_min": 0.8,
+    "minus_removal_min": 0.4,
+    "BA_min": 0.6,
+    "MCC_strictly_greater_than": 0,
+    "coverage_min": 0.95,
+    "blocks_with_BA_above_half_min": 2,
+    "known_N_min": 100,
+    "each_class_N_min": 30,
+    "sessions_min": 10,
+    "BA_bootstrap_lower_strictly_above": 0.5,
+    "result_status": "SIGN_LOCKED_DEV_PROMISING_UNCONFIRMED"
+  },
+  "bootstrap": {
+    "unit": "session",
+    "repeats": 2000,
+    "seed": 20261006,
+    "percentiles": [
+      2.5,
+      97.5
+    ],
+    "valid_replicates_min_fraction": 0.95,
+    "refits": 0,
+    "formal_unseen_confirmation": false
+  },
+  "budget": {
+    "discovery_fits_max": 30,
+    "late_check_fits_max": 3,
+    "ablation_fits_max": 15,
+    "scheduled_fits_max": 48,
+    "technical_same_recipe_retries_max": 2,
+    "equivalent_fit_refits": 0,
+    "new_feature_definitions": 0,
+    "mechanical_view_batches_max": 1,
+    "new_R_materializations": 0,
+    "capital_replays": 0,
+    "stage2_fits": 0,
+    "full_data_final_fits": 0,
+    "calibration_model_fits": 0,
+    "new_provider_prices": 0,
+    "protected_openings": 0,
+    "orders": 0,
+    "main_merge": 0,
+    "force_push": 0
+  },
+  "safety": {
+    "productionReady": false,
+    "automaticPromotionAllowed": false,
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "transmitted": false
+  },
+  "unverified": [
+    "new family/representation column binding",
+    "any current execution outside GitHub",
+    "independent Fresh/OOS performance",
+    "future sign separation",
+    "later ranking effectiveness within predicted-positive cohort"
+  ],
+  "counts_this_design_turn": {
+    "new_fits": 0,
+    "market_replays": 0,
+    "R_materializations": 0,
+    "upstream_edits": 0,
+    "Claude": 0
+  },
+  "method_references": [
+    "https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html",
+    "https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.HistGradientBoostingClassifier.html",
+    "https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.ExtraTreesClassifier.html",
+    "https://scikit-learn.org/stable/modules/classification_threshold.html",
+    "https://scikit-learn.org/stable/modules/cross_validation.html"
+  ],
+  "latest_source_check": {
+    "head": "8039a7b14fa42b17483398ed1b9a66227f8c0ad6",
+    "old_stage1_oof_complete_jst": "2026-10-06T11:37:57.141805+09:00",
+    "old_stage1_new_fits_completed": 32,
+    "old_stage1_capital_replays": 0,
+    "old_stage1_stage2": 0,
+    "only_completion_metadata_read": true,
+    "classification_results_used_to_redesign": false
+  }
+}

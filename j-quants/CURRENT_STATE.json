@@ -131,8 +131,8 @@
     "ratio": null,
     "complete_raw_saved": false
   },
-  "acquisition_status": "BLOCKED_PROVIDER_LISTING_AUTH_RATE_BINDING",
-  "exact_jst": "2026-10-06T14:29:23.475595+09:00",
+  "acquisition_status": "BLOCKED_PROVIDER_EXECUTION_CONNECTION",
+  "exact_jst": "2026-10-06T14:40:36.156100+09:00",
   "current_state": {
     "five_private_and_actual_writes_verified": true,
     "dataset_roles_fixed": true,
@@ -166,7 +166,7 @@
       "RETENTION_PURGE_BINDING_UNVERIFIED"
     ],
     "legacy_outer_zip_not_native_maximum": true,
-    "next_policy": "Connect a secure authenticated listing runner to the existing secret without exporting its value and to one shared account limiter including main. Verify live entitlement and owner-only private access; then freeze the listing and numeric boundaries before RAW acquisition.",
+    "next_policy": "Connect an existing secure authenticated J-Quants acquisition runner to this Work. Keep the existing secret in the runner. Bind the shared account limiter and verify current entitlement/owner-only access; freeze native listing and boundaries before unchanged RAW acquisition.",
     "private_current_state_paths": {
       "Iam-2squared/J-quants-A": "CURRENT_STATE.json",
       "Iam-2squared/J-quants-B": "CURRENT_STATE.json",
@@ -174,7 +174,7 @@
       "Iam-2squared/J-quants-D": "CURRENT_STATE.json",
       "Iam-2squared/J-quants-E": "CURRENT_STATE.json"
     },
-    "checkpoint": "FIVE_REPO_PRIVATE_METADATA_READBACK_PASS_RAW_NOT_STARTED",
+    "checkpoint": "START_REQUEST_BLOCKED_NO_AUTHENTICATED_RUNNER",
     "public_readback_manifest": "j-quants/manifests/FIVE_REPO_READBACK_20261006.json",
     "assignment_manifest": "j-quants/manifests/FIVE_REPO_ASSIGNMENT_20261006.json",
     "previous_single_private_repo_checkpoint": "HISTORICAL; superseded by this five-repo policy",
@@ -224,6 +224,12 @@
     ],
     "metadata_content_readback_files": 70,
     "metadata_receipt_readback_files": 5,
-    "saved_raw_bytes": 0
+    "saved_raw_bytes": 0,
+    "last_user_request": "取得開始して全て入れて",
+    "start_request_authorized": true,
+    "acquisition_started": false,
+    "provider_requests_this_start_request": 0,
+    "raw_downloads_this_start_request": 0,
+    "background_acquisition_running": false
   }
 }

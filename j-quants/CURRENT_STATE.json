@@ -131,8 +131,8 @@
     "ratio": null,
     "complete_raw_saved": false
   },
-  "acquisition_status": "BLOCKED_SETTINGS_READ_CAPABILITY",
-  "exact_jst": "2026-10-06T14:56:24.301291+09:00",
+  "acquisition_status": "WAITING_FOR_EXISTING_SELF_HOSTED_RUNNER",
+  "exact_jst": "2026-10-06T15:27:55.767560+09:00",
   "current_state": {
     "five_private_and_actual_writes_verified": true,
     "dataset_roles_fixed": true,
@@ -158,13 +158,14 @@
       "repository_budget_is_github_hard_quota": false
     },
     "blockers": [
-      "SECRET_NAME_AND_PRESENCE_NOT_YET_VERIFIED",
-      "ACTIONS_FREE_ALLOWANCE_OR_ZERO_SPEND_STOP_UNVERIFIED",
+      "SELF_HOSTED_JOB_RUNNER_NOT_YET_ASSIGNED",
+      "SECRET_PRESENCE_AND_API_AUTHENTICATION_NOT_YET_EXECUTED",
+      "NATIVE_OBJECT_LISTING_NOT_YET_OBTAINED",
       "OWNER_ONLY_ACCESS_UNVERIFIED",
       "SHARED_ACCOUNT_LIMITER_UNBOUND"
     ],
     "legacy_outer_zip_not_native_maximum": true,
-    "next_policy": "GitHub connector rejects Secret/billing/access-list settings endpoints. Request required approval to inspect existing GitHub settings via browser fallback without displaying secret values; verify no additional Actions charge, then start private presence-only preflight before authenticated full-period listing and fixed A/B/C/D/E allocation. No contract or billing changes.",
+    "next_policy": "Read the queued private Actions jobs through the GitHub plugin. An existing self-hosted runner can perform presence checks without GitHub hosted-minute billing. If no runner accepts them, switching to a standard hosted runner requires evidence of remaining included minutes or a stop preventing extra charges. Keep RAW blocked until authenticated entitlement/listing, owner-only access, shared limiter, fixed object boundaries and native-object storage guards are verified. No browser credentials, paid contract changes or main cancellation.",
     "private_current_state_paths": {
       "Iam-2squared/J-quants-A": "CURRENT_STATE.json",
       "Iam-2squared/J-quants-B": "CURRENT_STATE.json",
@@ -172,7 +173,7 @@
       "Iam-2squared/J-quants-D": "CURRENT_STATE.json",
       "Iam-2squared/J-quants-E": "CURRENT_STATE.json"
     },
-    "checkpoint": "PRIVATE_SECRET_PRESENCE_RUNNERS_PREPARED_SETTINGS_READ_REQUIRED",
+    "checkpoint": "FIVE_PRIVATE_PUSH_WORKFLOWS_ACCEPTED_EXECUTOR_NOT_ASSIGNED",
     "public_readback_manifest": "j-quants/manifests/FIVE_REPO_READBACK_20261006.json",
     "assignment_manifest": "j-quants/manifests/FIVE_REPO_ASSIGNMENT_20261006.json",
     "previous_single_private_repo_checkpoint": "HISTORICAL; superseded by this five-repo policy",
@@ -223,7 +224,7 @@
     "metadata_content_readback_files": 70,
     "metadata_receipt_readback_files": 5,
     "saved_raw_bytes": 0,
-    "last_user_request": "全部にapiキー入れた",
+    "last_user_request": "プラグインから行けよ。 @GitHub",
     "start_request_authorized": true,
     "acquisition_started": false,
     "provider_requests_this_start_request": 0,
@@ -237,6 +238,44 @@
     "private_prepared_workflow_guards_checks_passed": 6,
     "provider_requests_this_checkpoint": 0,
     "raw_downloads_this_checkpoint": 0,
-    "raw_saved_bytes": 0
+    "raw_saved_bytes": 0,
+    "github_plugin_only": true,
+    "workflow_runs_created": 5,
+    "assigned_runners": 0,
+    "workflow_executor_started": 0,
+    "private_actions_run_status": "QUEUED_SELF_HOSTED",
+    "private_runs": [
+      {
+        "repository": "Iam-2squared/J-quants-A",
+        "run_id": 37423714416,
+        "url": "https://github.com/Iam-2squared/J-quants-A/actions/runs/37423714416",
+        "status": "queued"
+      },
+      {
+        "repository": "Iam-2squared/J-quants-B",
+        "run_id": 37423718471,
+        "url": "https://github.com/Iam-2squared/J-quants-B/actions/runs/37423718471",
+        "status": "queued"
+      },
+      {
+        "repository": "Iam-2squared/J-Quants-C",
+        "run_id": 37423721299,
+        "url": "https://github.com/Iam-2squared/J-Quants-C/actions/runs/37423721299",
+        "status": "queued"
+      },
+      {
+        "repository": "Iam-2squared/J-quants-D",
+        "run_id": 37423724285,
+        "url": "https://github.com/Iam-2squared/J-quants-D/actions/runs/37423724285",
+        "status": "queued"
+      },
+      {
+        "repository": "Iam-2squared/J-quants-E",
+        "run_id": 37423729357,
+        "url": "https://github.com/Iam-2squared/J-quants-E/actions/runs/37423729357",
+        "status": "queued"
+      }
+    ],
+    "background_presence_checks_queued": true
   }
 }

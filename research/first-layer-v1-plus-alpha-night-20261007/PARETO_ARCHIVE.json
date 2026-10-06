@@ -95,44 +95,94 @@
       "operating_point": 95
     },
     {
-      "candidate_id": "C01_CHART_LOGIT",
+      "candidate_id": "C02_D1_LOGIT",
       "complexity": [
-        1,
+        2,
         0,
         0,
-        38,
+        220,
         0
       ],
       "config": {
         "V1_INTERACTIONS": true,
         "added_families": [
-          "C01"
+          "C01",
+          "C02D1"
         ],
-        "candidate_id": "C01_CHART_LOGIT",
+        "candidate_id": "C02_D1_LOGIT",
         "complexity": [
-          1,
+          2,
           0,
           0,
-          38,
+          220,
           0
         ],
         "family": "logit",
         "new_interactions": [],
-        "parent_id": "V1",
+        "parent_id": "C01_CHART_LOGIT",
         "regularization_multiplier": 1.0
       },
       "dominated_by": [],
-      "measure_sha256": "7cb7fe7c4bcec29d18e4a20c53ed5cf632a5da2859715284dbf03c1ebdb0a49c",
+      "measure_sha256": "5b904e91b188bd4f7c1bfccd1ecc22ea371325c65380365694a143d0dd70f064",
       "metrics": {
         "M": 172,
-        "MINUS_remaining": 0.9825581395348837,
-        "MINUS_removal": 0.01744186046511628,
-        "M_drop": 3,
-        "M_keep": 169,
+        "MINUS_remaining": 0.8430232558139535,
+        "MINUS_removal": 0.1569767441860465,
+        "M_drop": 27,
+        "M_keep": 145,
         "P": 144,
-        "PLUS_retention": 0.9861111111111112,
-        "P_drop": 2,
-        "P_keep": 142,
+        "PLUS_retention": 0.8819444444444444,
+        "P_drop": 17,
+        "P_keep": 127,
+        "UNKNOWN_drop": 1,
+        "UNKNOWN_keep": 5,
+        "ZERO_drop": 0,
+        "ZERO_keep": 0,
+        "target_integer": false
+      },
+      "operating_point": 90
+    },
+    {
+      "candidate_id": "C02_D5_LOGIT",
+      "complexity": [
+        3,
+        0,
+        0,
+        336,
+        0
+      ],
+      "config": {
+        "V1_INTERACTIONS": true,
+        "added_families": [
+          "C01",
+          "C02D1",
+          "C02D5"
+        ],
+        "candidate_id": "C02_D5_LOGIT",
+        "complexity": [
+          3,
+          0,
+          0,
+          336,
+          0
+        ],
+        "family": "logit",
+        "new_interactions": [],
+        "parent_id": "C01_CHART_LOGIT",
+        "regularization_multiplier": 1.0
+      },
+      "dominated_by": [],
+      "measure_sha256": "a971c1b306fc38834446a255fcca1a5fc1894369b0befe9f97d44ee1f3350a1a",
+      "metrics": {
+        "M": 172,
+        "MINUS_remaining": 0.9767441860465116,
+        "MINUS_removal": 0.023255813953488372,
+        "M_drop": 4,
+        "M_keep": 168,
+        "P": 144,
+        "PLUS_retention": 0.9930555555555556,
+        "P_drop": 1,
+        "P_keep": 143,
         "UNKNOWN_drop": 0,
         "UNKNOWN_keep": 6,
         "ZERO_drop": 0,
@@ -140,51 +190,6 @@
         "target_integer": false
       },
       "operating_point": 99
-    },
-    {
-      "candidate_id": "V1",
-      "complexity": [
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "config": {
-        "V1_INTERACTIONS": true,
-        "added_families": [],
-        "candidate_id": "V1",
-        "complexity": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "family": "logit",
-        "new_interactions": [],
-        "parent_id": null,
-        "regularization_multiplier": 1.0
-      },
-      "dominated_by": [],
-      "measure_sha256": "ec42c31b5f01af0d7380944c48d3acafbf30068157841cf72d316f940b636680",
-      "metrics": {
-        "M": 172,
-        "MINUS_remaining": 0.8604651162790697,
-        "MINUS_removal": 0.13953488372093023,
-        "M_drop": 24,
-        "M_keep": 148,
-        "P": 144,
-        "PLUS_retention": 0.8680555555555556,
-        "P_drop": 19,
-        "P_keep": 125,
-        "UNKNOWN_drop": 0,
-        "UNKNOWN_keep": 6,
-        "ZERO_drop": 0,
-        "ZERO_keep": 0,
-        "target_integer": false
-      },
-      "operating_point": 90
     },
     {
       "candidate_id": "V1",
@@ -278,8 +283,8 @@
     }
   ],
   "clock": {
-    "JST": "2026-10-07T00:41:07.685984+09:00",
-    "UTC": "2026-10-06T15:41:07.685984+00:00"
+    "JST": "2026-10-07T00:44:30.432373+09:00",
+    "UTC": "2026-10-06T15:44:30.432373+00:00"
   },
   "same_entry_denominators": true
 }

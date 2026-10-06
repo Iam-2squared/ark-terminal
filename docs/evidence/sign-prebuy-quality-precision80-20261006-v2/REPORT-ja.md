@@ -1,33 +1,23 @@
-# 🧭 第一層Sign：実装準備完了、非公開入力待ち
+# 🔎 第一層Sign：購入前入力の監査完了、学習前
 
-実時計JST: 2026-10-06T13:58:00.601196+09:00
-実時計UTC: 2026-10-06T04:58:00.601196+00:00
-branch: research/sign-prebuy-quality-precision80-20261006-v2
-basis HEAD: 9b75882957fa897c5df016ac5ddcb368602ccedc
-owner: codex-root-sign-prebuy-v2
+実時計JST: 2026-10-06T16:39:05.708346+09:00 / UTC: 2026-10-06T07:39:05.708346+00:00
 
-## 🎯 結論と前回からの差
+原本をprivate repoから復元し、固定Entryの判断時刻までのState／Path再生を完了した。新しい市場学習・閾値選択・80％判定はまだ実行していない。
 
-通過群PLUS率80%以上はまだ未検証・未達成。新fit0、閾値選択0、市場性能採点0。今回は固定BUY_INTENTまでの入力境界を強制するextractorと欠測条件/集計監査を実装し、48合成検算がPASSした。これは市場性能の検証ではない。
+|監査|結果|
+|---|---:|
+|引継ぎZIP内のprivateファイルhash|520/520一致|
+|元P0のEntry単位hash|1600/1600一致|
+|旧eligible群G_PRICE欠測セル|104655/167268、全て既存null guardと一致|
+|同じ判断時刻の旧State照合|981 Entry、10551セル、不一致0|
+|凍結正規化80/120精度照合|59113価格、不一致0|
+|判断時刻より後の新State step|0|
+|新モデルfit|0|
 
-旧80%はPLUS保持率の条件だった。旧後半13sessionsの通過はPLUS139/MINUS162、PLUS率139/301=46.18%。これを今回80%達成とは扱わない。
+旧compact Stateには判断後の値がある597/1578件が含まれるため、凍結kernelを購入前まで再生した。欠測は元の窓・gap・昼休み条件で説明でき、データ取得失敗や修復効果とは断定しない。欠測を消すための上流変更は行わない。
 
-## 🔍 確認済みと未確認
+次は価格・出来高・State9・履歴と既存P1購入前scoreを使うBASE、および判断前Path／構造情報を加えた表現を比較する。候補・時系列分割・閾値quantile・PLUS保持率・通過件数・終了条件をGitHubへ固定してから有限学習を行う。通過群PLUS率80％以上を主条件とする。
 
-旧P0はfirst-intent row id/indexへのjoinを監査済み。G_PRICE62.57%は167268特徴量セルの欠測率であり、Entry欠測率やRAW取得失敗率ではない。凍結strict-window不足、half-session境界、前日不足、分母無効、VWAP coverageなどがnullを生む。実行行への原因配賦は原本未配置で未実施。
+判断後のCapital購入条件を混ぜないため、主研究は固定Fill1600 Entryとし、旧execution_eligible1578は診断だけに残す。判断後に約定できなかった31 first-intentはUNKNOWN／未評価として別記する。
 
-旧研究のfill時点Open引用仮定と今回intent境界を区別した。新extractorはFill価格/時刻/遅延、future State/Path suffixへ依存しない。State9/Pathの再計算や意味変更は0。主構造距離とstrict prior local LHLを観測済み入力として記述する。
-
-## 🧪 次の有限案
-
-intent P1全特徴量と構造距離追加、固定Logistic/HGBの最大4候補。Discovery20fit、locked確認3fit、再選択しない診断10fitの最大33fit案。CALで80%PLUSと非退化条件を満たす閾値を固定し、TESTで変更しない。支持件数/schema/producer/成熟をまだ確認できていないためDRAFTであり、実験契約固定・学習は未実行。利益額/資産額/Rによる選択なし。反復利用済みDevelopmentをFreshと呼ばない。
-
-## 📦 blockerと次の方針
-
-非公開入力とモデルはこのworkspaceに未配置。GitHubにはbundleのhash/sizeと公開code/集計だけがある。まず約26MBの Ark_Independent_Entry_EXIT_Sign_V1_20261006_PRIVATE.zip を提供してもらい、記録hashを照合し旧保存入力/モデルを再利用する。intent原grid/matrix/State traceが不足していればcomplete handoffの必要archiveだけを追加する。
-
-その後は未確認の行別欠測原因・intent接続・producer時点/教師成熟を確認し、有限契約を固定してGitHub actual GETを行ってから新fitする。Selector/Entry/EXIT/EOD/費用/約定/State9/Path/Rank維持。第2層/Capital Replay/provider新取得/実運用は0。
-
-## 💾 保存
-
-開始checkpointは9c6ada7734e9420f5b09fd90dfd400bc7e1d5472へ保存し、本文/blob/HEAD actual GET一致。Git pushは401で拒否されたため、既に有効なGitHub APIで新branch/tree/commitを作成し、expected HEAD付きnon-force更新を使用した。失敗したpushを保存完了とは扱っていない。最終保存のcommitとreadbackは自己参照せず別receiptに残す。
+既存58日Developmentは過去に閲覧済み。Fresh/OOSとは呼ばない。歴史データの実受信knownAtは不明で、完了足のbar-end可用性を仮定する研究である。固定EXIT教師とP1 producerの原本hash・正式監査を再利用し、native EXIT全再生や元P1 full-gridの再実行を完了扱いしない。Selector／Entry／EXIT変更、Capital Replay、Stage2学習、実注文は0。

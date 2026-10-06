@@ -1,0 +1,480 @@
+{
+  "P1_producers": [
+    {
+      "first_test_session": "2025-05-30",
+      "fold": 1,
+      "full_grid_mapping": "REUSED_FROZEN_INDEPENDENT_AUDIT; full private grid not present in this bundle",
+      "index_identity_hash_verified": true,
+      "purge": "2025-05-29",
+      "teacher_maturity_basis": "All frozen U/Q/D teachers depend on same-session today bars only; their conservative maturity upper bound is session-end, before chronological purge and TEST.",
+      "train_cutoff": "2025-05-22",
+      "train_index_sha256": "393f977683427441b7ba9c29da3180e58daab25bbc89be830a1f9ecf0b6f6e93",
+      "train_rows": 238812
+    },
+    {
+      "first_test_session": "2025-06-17",
+      "fold": 2,
+      "full_grid_mapping": "REUSED_FROZEN_INDEPENDENT_AUDIT; full private grid not present in this bundle",
+      "index_identity_hash_verified": true,
+      "purge": "2025-06-16",
+      "teacher_maturity_basis": "All frozen U/Q/D teachers depend on same-session today bars only; their conservative maturity upper bound is session-end, before chronological purge and TEST.",
+      "train_cutoff": "2025-06-13",
+      "train_index_sha256": "de4ec59c5faa15841fc41a10800de47d5fe4992459481d6121ed040af71223ba",
+      "train_rows": 278031
+    },
+    {
+      "first_test_session": "2025-07-03",
+      "fold": 3,
+      "full_grid_mapping": "REUSED_FROZEN_INDEPENDENT_AUDIT; full private grid not present in this bundle",
+      "index_identity_hash_verified": true,
+      "purge": "2025-07-02",
+      "teacher_maturity_basis": "All frozen U/Q/D teachers depend on same-session today bars only; their conservative maturity upper bound is session-end, before chronological purge and TEST.",
+      "train_cutoff": "2025-07-01",
+      "train_index_sha256": "bcd9c4d084e374831d5cb56cf757618c6203dcd10c95d91a847e97c9f35bb3cf",
+      "train_rows": 325044
+    },
+    {
+      "first_test_session": "2025-07-24",
+      "fold": 4,
+      "full_grid_mapping": "REUSED_FROZEN_INDEPENDENT_AUDIT; full private grid not present in this bundle",
+      "index_identity_hash_verified": true,
+      "purge": "2025-07-23",
+      "teacher_maturity_basis": "All frozen U/Q/D teachers depend on same-session today bars only; their conservative maturity upper bound is session-end, before chronological purge and TEST.",
+      "train_cutoff": "2025-07-22",
+      "train_index_sha256": "50d209af90dea97244de7128a9e754346c1acc7d9a0e44794afb4fb46f0b7133",
+      "train_rows": 370485
+    },
+    {
+      "first_test_session": "2025-08-08",
+      "fold": 5,
+      "full_grid_mapping": "REUSED_FROZEN_INDEPENDENT_AUDIT; full private grid not present in this bundle",
+      "index_identity_hash_verified": true,
+      "purge": "2025-08-07",
+      "teacher_maturity_basis": "All frozen U/Q/D teachers depend on same-session today bars only; their conservative maturity upper bound is session-end, before chronological purge and TEST.",
+      "train_cutoff": "2025-08-06",
+      "train_index_sha256": "fa8b2d852b054574232d6710b253efed571e65290a628093be632bb6d1e7346d",
+      "train_rows": 413940
+    }
+  ],
+  "P1_row_dependency_errors": 0,
+  "TEST_performance_reads": 0,
+  "created_jst": "2026-10-06T16:29:53.336625+09:00",
+  "created_utc": "2026-10-06T07:29:53.335985+00:00",
+  "frozen_producer_independent_audit_reused": {
+    "checks": {
+      "OOF score percentile transform all rows": 30,
+      "Q70 Q80 Q90 Q95 train-only quantile lineage": 10,
+      "every-minute causal cutoff": 462752,
+      "model training labels match corrected frozen teacher": 30,
+      "preprocessor byte reuse; train-only semantics unchanged": 20,
+      "temporal split no session/watch crossing": 10,
+      "train-only median preprocessing": 10,
+      "train-only one-hot and reserved missing/unknown": 75
+    },
+    "mismatch_N": 0,
+    "status": "PASS"
+  },
+  "limits": [
+    "Full private grid/preprocessors/model files absent: original independent producer audit is reused; saved five train-index arrays and all 1600 row receipts rechecked independently.",
+    "Frozen EXIT native source rows are absent in this 26 MB bundle: teacher hash and inherited metadata are verified, but EXIT-rule replay and exact release source-clock matching were not independently rerun.",
+    "Actual historical market-data receipt timestamps UNKNOWN; bar-end availability remains assumed.",
+    "Existing Development was repeatedly exposed; this audit does not rename it Fresh/OOS.",
+    "Optional pP/MOVE/MRET scores retain their original fill-time metadata; they are not approved for the new BUY_INTENT cutoff."
+  ],
+  "new_fits": 0,
+  "new_thresholds": 0,
+  "private_profit_magnitude_value_reads": 0,
+  "private_sign_status_value_reads": 0,
+  "private_y_plus_value_reads": 0,
+  "protected_partition_reads": 0,
+  "scope": "Frozen teacher identity/maturity and purchase-before P1 producer graph only",
+  "source_hashes": {
+    "/workspace/ark-sign-work/research/capital-rneg-defense-reuse-20261006-v1/prepare_rneg.py": "ff73d731d84a1ea34cabd1c697d972f85adb73cb550874b09df151016166e200",
+    "/workspace/ark-sign-work/research/persistent-watchlist-uptrend-first-entry-20261003-v2/CORRECTED_LINEAGE_FAST_FREEZE_20261003/INDEPENDENT_REPAIR_AUDIT.json": "d2b3a7cdaf7ab3c795c57a3154d1c6fbc431ac2ccb27360dbcf78d69f755d4dc",
+    "/workspace/ark-sign-work/research/persistent-watchlist-uptrend-first-entry-20261003-v2/CORRECTED_LINEAGE_FAST_FREEZE_20261003/independent_repair_audit.py": "5dc7f6494aa30ad507080235c922b0c9ab8f036cdafaeb8b07b3e0614efffbd1",
+    "/workspace/ark-sign-work/research/persistent-watchlist-uptrend-first-entry-20261003-v2/SPLIT_PRECOMMIT.json": "0f3b0958b0912bd553bfd9e08cd0b7cffa00f6b07d665cfb8bf67e4c2800922d",
+    "/workspace/ark-sign-work/research/persistent-watchlist-uptrend-first-entry-20261003-v2/teacher.py": "4f748d0d04faf1eb9c14d5af083330f3ff63eb005b88ccf4b63a0c4fd2d30890",
+    "/workspace/private-recovery/agent-frozen-source/independent-bundle/legacy-extracted/capital_sign_only_private/P1_LINEAGE_ROWS.jsonl.gz": "92221bf31c663887621eae25c347440c373d1c9971203b3d1140a923708ec511",
+    "/workspace/private-recovery/agent-frozen-source/independent-bundle/legacy-extracted/reuse_sign/authority_data/quality_original/inputs/FROZEN_ENTRY.jsonl.gz": "e7a6140b6b11d8d078a271fad76b75e68a5b2fda9e45c7db43d98ee2f282abeb",
+    "/workspace/private-recovery/agent-frozen-source/independent-bundle/legacy-extracted/reuse_sign/capital_rneg_defense_private/RNEG_TARGETS_EVALUATION_ONLY.jsonl.gz": "fe8053da6798adcf01b5f4c09236304f607113c541acfee35a8f4ea74c9b9293",
+    "/workspace/private-recovery/agent-frozen-source/independent-bundle/legacy-extracted/reuse_sign/capital_rneg_defense_private/RUNTIME_FEATURES.jsonl.gz": "2ac6acd608385eedf61e5ad912b6ec5a4be5750622167c1f619b30dda323628d",
+    "/workspace/private-recovery/agent-frozen-source/independent-bundle/outer-extracted/work/independent_sign_private/METADATA.jsonl.gz": "acc2a2a083de7189e57ad28d9074a6d854a5d785ebafedeb6dab2af533080385",
+    "/workspace/private-recovery/agent-frozen-source/independent-bundle/outer-extracted/work/independent_sign_private/SIGN_TARGETS.jsonl.gz": "37395d7567df741a74b1ff749a32118cec04ed988da101b81634c2c55ae9ae0d",
+    "/workspace/scratch/sign-prior-evidence/docs/evidence/capital-sign-only-filter-stage1-20261006-v1/ASOF_AND_SCORE_LINEAGE.json": "30cb5f60a00379525b331ec921d88dd359349dda2dfd9617b8d13871341eb5a4",
+    "/workspace/scratch/sign-prior-evidence/docs/evidence/independent-entry-exit-sign-20261006-v1/SPLIT_FIT_CAL_TEST.json": "5d614fea7f93ff49a90e6e0ceecf97d636ac4bc6787b7539b2e1f0e283fb5cf0",
+    "/workspace/scratch/sign-prior-evidence/research/independent-entry-exit-sign-20261006-v1/audit_source_adapter.py": "415473af95b004042ff410b5998b429f0e07fc34a4d0adb93aafd5f809a8c3f3"
+  },
+  "status": "PASS_METADATA_REUSE_WITH_DECLARED_SOURCE_REPLAY_LIMIT",
+  "teacher_clock_provenance_errors": {
+    "identity": 0,
+    "intent_identity": 0,
+    "maturity_after_terminal_bound": 0,
+    "maturity_before_fill": 0,
+    "maturity_before_intent": 0,
+    "maturity_diff_from_frozen_source": 0,
+    "maturity_session": 0,
+    "source_row_hash": 0
+  },
+  "teacher_contract": {
+    "class_weight": null,
+    "fees": "Original BUY1.0005 SELL0.9995 applied once",
+    "maturity_semantics": "Frozen release_minute; missing release conservatively set to 15:31 JST. This is historical assumed availability, not actual received knownAt.",
+    "new_return_computation": false,
+    "original_net_target_sha256": "fe8053da6798adcf01b5f4c09236304f607113c541acfee35a8f4ea74c9b9293",
+    "sample_weight": null,
+    "sign_target_sha256": "37395d7567df741a74b1ff749a32118cec04ed988da101b81634c2c55ae9ae0d",
+    "target": "Existing exact net PLUS/MINUS view can be reused as unit labels; EXACT_ZERO/UNKNOWN remain separate nullable outcomes"
+  },
+  "teacher_rows": 1600,
+  "teacher_schema_violations": 0,
+  "time_split_checks": [
+    {
+      "CAL_first_session": "2025-06-20",
+      "CAL_last_session": "2025-06-26",
+      "FIT_P1_producer_intersections": [
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 1
+        },
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 2
+        }
+      ],
+      "FIT_last_session": "2025-06-19",
+      "TEST_first_session": "2025-06-27",
+      "block": 1,
+      "calendar_disjoint_chronological": true,
+      "teacher_maturity": {
+        "CAL": {
+          "class_values_not_inspected": true,
+          "eligible_rows": 147,
+          "maturity_boundary": "2025-06-27",
+          "timestamp_maturity_violations": 0
+        },
+        "FIT": {
+          "class_values_not_inspected": true,
+          "eligible_rows": 403,
+          "maturity_boundary": "2025-06-20",
+          "timestamp_maturity_violations": 0
+        }
+      }
+    },
+    {
+      "CAL_first_session": "2025-06-27",
+      "CAL_last_session": "2025-07-03",
+      "FIT_P1_producer_intersections": [
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 1
+        },
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 2
+        }
+      ],
+      "FIT_last_session": "2025-06-26",
+      "TEST_first_session": "2025-07-04",
+      "block": 2,
+      "calendar_disjoint_chronological": true,
+      "teacher_maturity": {
+        "CAL": {
+          "class_values_not_inspected": true,
+          "eligible_rows": 133,
+          "maturity_boundary": "2025-07-04",
+          "timestamp_maturity_violations": 0
+        },
+        "FIT": {
+          "class_values_not_inspected": true,
+          "eligible_rows": 550,
+          "maturity_boundary": "2025-06-27",
+          "timestamp_maturity_violations": 0
+        }
+      }
+    },
+    {
+      "CAL_first_session": "2025-07-04",
+      "CAL_last_session": "2025-07-10",
+      "FIT_P1_producer_intersections": [
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 1
+        },
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 2
+        },
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 3
+        }
+      ],
+      "FIT_last_session": "2025-07-03",
+      "TEST_first_session": "2025-07-15",
+      "block": 3,
+      "calendar_disjoint_chronological": true,
+      "teacher_maturity": {
+        "CAL": {
+          "class_values_not_inspected": true,
+          "eligible_rows": 133,
+          "maturity_boundary": "2025-07-15",
+          "timestamp_maturity_violations": 0
+        },
+        "FIT": {
+          "class_values_not_inspected": true,
+          "eligible_rows": 683,
+          "maturity_boundary": "2025-07-04",
+          "timestamp_maturity_violations": 0
+        }
+      }
+    },
+    {
+      "CAL_first_session": "2025-07-15",
+      "CAL_last_session": "2025-07-22",
+      "FIT_P1_producer_intersections": [
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 1
+        },
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 2
+        },
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 3
+        }
+      ],
+      "FIT_last_session": "2025-07-10",
+      "TEST_first_session": "2025-07-23",
+      "block": 4,
+      "calendar_disjoint_chronological": true,
+      "teacher_maturity": {
+        "CAL": {
+          "class_values_not_inspected": true,
+          "eligible_rows": 136,
+          "maturity_boundary": "2025-07-23",
+          "timestamp_maturity_violations": 0
+        },
+        "FIT": {
+          "class_values_not_inspected": true,
+          "eligible_rows": 816,
+          "maturity_boundary": "2025-07-15",
+          "timestamp_maturity_violations": 0
+        }
+      }
+    },
+    {
+      "CAL_first_session": "2025-07-23",
+      "CAL_last_session": "2025-07-29",
+      "FIT_P1_producer_intersections": [
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 1
+        },
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 2
+        },
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 3
+        }
+      ],
+      "FIT_last_session": "2025-07-22",
+      "TEST_first_session": "2025-07-30",
+      "block": 5,
+      "calendar_disjoint_chronological": true,
+      "teacher_maturity": {
+        "CAL": {
+          "class_values_not_inspected": true,
+          "eligible_rows": 131,
+          "maturity_boundary": "2025-07-30",
+          "timestamp_maturity_violations": 0
+        },
+        "FIT": {
+          "class_values_not_inspected": true,
+          "eligible_rows": 952,
+          "maturity_boundary": "2025-07-23",
+          "timestamp_maturity_violations": 0
+        }
+      }
+    },
+    {
+      "CAL_first_session": "2025-07-30",
+      "CAL_last_session": "2025-08-05",
+      "FIT_P1_producer_intersections": [
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 1
+        },
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 2
+        },
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 3
+        },
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 4
+        }
+      ],
+      "FIT_last_session": "2025-07-29",
+      "TEST_first_session": "2025-08-06",
+      "block": 6,
+      "calendar_disjoint_chronological": true,
+      "teacher_maturity": {
+        "CAL": {
+          "class_values_not_inspected": true,
+          "eligible_rows": 132,
+          "maturity_boundary": "2025-08-06",
+          "timestamp_maturity_violations": 0
+        },
+        "FIT": {
+          "class_values_not_inspected": true,
+          "eligible_rows": 1083,
+          "maturity_boundary": "2025-07-30",
+          "timestamp_maturity_violations": 0
+        }
+      }
+    },
+    {
+      "CAL_first_session": "2025-08-06",
+      "CAL_last_session": "2025-08-13",
+      "FIT_P1_producer_intersections": [
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 1
+        },
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 2
+        },
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 3
+        },
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 4
+        }
+      ],
+      "FIT_last_session": "2025-08-05",
+      "TEST_first_session": "2025-08-14",
+      "block": 7,
+      "calendar_disjoint_chronological": true,
+      "teacher_maturity": {
+        "CAL": {
+          "class_values_not_inspected": true,
+          "eligible_rows": 146,
+          "maturity_boundary": "2025-08-14",
+          "timestamp_maturity_violations": 0
+        },
+        "FIT": {
+          "class_values_not_inspected": true,
+          "eligible_rows": 1215,
+          "maturity_boundary": "2025-08-06",
+          "timestamp_maturity_violations": 0
+        }
+      }
+    },
+    {
+      "CAL_first_session": "2025-08-14",
+      "CAL_last_session": "2025-08-20",
+      "FIT_P1_producer_intersections": [
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 1
+        },
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 2
+        },
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 3
+        },
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 4
+        },
+        {
+          "CAL_train_index_intersection": 0,
+          "TEST_train_index_intersection": 0,
+          "max_producer_index_before_CAL_min": true,
+          "producer_fold": 5
+        }
+      ],
+      "FIT_last_session": "2025-08-13",
+      "TEST_first_session": "2025-08-21",
+      "block": 8,
+      "calendar_disjoint_chronological": true,
+      "teacher_maturity": {
+        "CAL": {
+          "class_values_not_inspected": true,
+          "eligible_rows": 140,
+          "maturity_boundary": "2025-08-21",
+          "timestamp_maturity_violations": 0
+        },
+        "FIT": {
+          "class_values_not_inspected": true,
+          "eligible_rows": 1361,
+          "maturity_boundary": "2025-08-14",
+          "timestamp_maturity_violations": 0
+        }
+      }
+    }
+  ]
+}

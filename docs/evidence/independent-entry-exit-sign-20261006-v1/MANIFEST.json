@@ -1,6 +1,7 @@
 {
+  "delivery_receipt": "DELIVERY_RECEIPT.json",
   "delivery_receipt_and_later_readbacks": "append-only; actual GitHub GET verifies final mutable CURRENT_STATE separately",
-  "exact_jst": "2026-10-06T12:24:52.207669+09:00",
+  "exact_jst": "2026-10-06T12:27:06.336754+09:00",
   "files": [
     {
       "bytes": 459033,
@@ -18,9 +19,14 @@
       "sha256": "720dd42f19f95dbf4ad2fab6daf8a3e3b0ec93509cf84e32dde4ccbcc43a3e06"
     },
     {
-      "bytes": 2349,
+      "bytes": 2806,
       "path": "docs/evidence/independent-entry-exit-sign-20261006-v1/CURRENT_STATE.json",
-      "sha256": "09593442256b23c84226753120dd5fe1f9aa3cb39d141ee2971ffaeec04d75b1"
+      "sha256": "71a89943cc2384036bebf91a9442b002a62c6cff2b6fa6c3759f7a22343144fa"
+    },
+    {
+      "bytes": 2523,
+      "path": "docs/evidence/independent-entry-exit-sign-20261006-v1/DELIVERY_RECEIPT.json",
+      "sha256": "062ddedd339811527c6b7cbcefd0200595a88effa8ec171fa58adabcafa7cd2f"
     },
     {
       "bytes": 7478,
@@ -233,6 +239,11 @@
       "sha256": "09593442256b23c84226753120dd5fe1f9aa3cb39d141ee2971ffaeec04d75b1"
     },
     {
+      "bytes": 2806,
+      "path": "docs/evidence/independent-entry-exit-sign-20261006-v1/checkpoints/08_DELIVERY_COMPLETE.json",
+      "sha256": "71a89943cc2384036bebf91a9442b002a62c6cff2b6fa6c3759f7a22343144fa"
+    },
+    {
       "bytes": 12781,
       "path": "docs/evidence/independent-entry-exit-sign-20261006-v1/figures/01_late_confusion.svg",
       "sha256": "1e9119e00ae28cec72df1f03e2b856a7d344cb089d1aab92cc2baa1593c717b3"
@@ -256,6 +267,11 @@
       "bytes": 9332,
       "path": "docs/evidence/independent-entry-exit-sign-20261006-v1/readbacks/04_LATE_ABLATION_AUDIT_READBACK.json",
       "sha256": "309d4ea46a4e93c6b6fffc9c9a15f268fd2adebb212b460387bcc9460b25300c"
+    },
+    {
+      "bytes": 6272,
+      "path": "docs/evidence/independent-entry-exit-sign-20261006-v1/readbacks/05_FINAL_STUDY_READBACK.json",
+      "sha256": "b78ce8adcf28341172bf9886aef23d7ba4f4c85a1c07071327d171ac7b26e427"
     },
     {
       "bytes": 1447,
@@ -344,7 +360,18 @@
     }
   ],
   "manifest_self_excluded": true,
-  "private_archive": "row inputs/labels/models/predictions/forensic repair originals; hash and storage ID recorded on delivery",
+  "private_archive": {
+    "archive_CRC_and_member_hashes": "PASS",
+    "archive_members": 523,
+    "bytes": 26213376,
+    "filename": "Ark_Independent_Entry_EXIT_Sign_V1_20261006_PRIVATE.zip",
+    "forensic_corrupt_archival_files": 1,
+    "library_file_id": "libfile_ec6de6104ce0819181152a26b7dc2c0b",
+    "local_xattrs_applied": true,
+    "persisted": true,
+    "runtime_gzip_verified_N": 208,
+    "sha256": "f44ac726082843064f93666dce9cdeaa3b70a6a7503934c32e9452b61fdeab4c"
+  },
   "private_first_predictions": {
     "contains": "six discovery candidates, one locked late candidate; rows include UNKNOWN and ineligible identities",
     "file": "FIRST_PREDICTIONS.jsonl.gz",
@@ -355,5 +382,6 @@
   },
   "public_contains_row_level_inputs_or_models": false,
   "scientific_status": "SIGN_NOT_SEPARATED_IN_THIS_RUN",
-  "status": "FINAL_STUDY_ARTIFACTS_READY"
+  "status": "DELIVERED_RESEARCH_CLOSED",
+  "study_commit": "7438249ea3dbf32ab2a9191006fc700d124cdeed"
 }

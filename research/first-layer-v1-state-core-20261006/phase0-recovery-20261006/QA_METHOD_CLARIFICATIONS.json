@@ -1,0 +1,19 @@
+{
+  "Freeze_changes": 0,
+  "model_technical_retries": 0,
+  "recovery_check_code_revisions": [
+    {
+      "all_at_minute": 690,
+      "initial_check": "Used RAW regular start set for BUY_INTENT decision timestamp",
+      "observations": 79,
+      "resolution": "Pinned Entry contract uses CLOSED regular1m decisions. Check now uses regular start+1. No source timestamps/semantics changed."
+    },
+    {
+      "initial_check": "Required fill timestamp strictly greater than BUY_INTENT timestamp",
+      "observations": 992,
+      "resolution": "Close-decision and next-bar open-fill are distinct events and may share minute timestamp. Metadata check requires nondecreasing timestamp only. Within-minute causal order remains UNVERIFIED without native RAW."
+    }
+  ],
+  "remaining_uncertainty": "Actual native bar start/end mapping, same-time eligibility and earliest available open are not certified by these metadata checks.",
+  "source_changes": 0
+}

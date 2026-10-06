@@ -1,0 +1,79 @@
+{
+  "QA": [
+    "full1600 no future day access",
+    "same-day suffix invariance",
+    "past-source availability timestamp",
+    "lookback membership exact",
+    "missing prior day preserves row",
+    "raw basis disables cross-day prices",
+    "independent counts and FIT-only scaling"
+  ],
+  "REPORT_scores_opened": false,
+  "blocks": [
+    "S1",
+    "S2"
+  ],
+  "budget_model_fits": 4,
+  "clock": {
+    "JST": "2026-10-07T00:43:27.208597+09:00",
+    "UTC": "2026-10-06T15:43:27.208597+00:00"
+  },
+  "configs": [
+    {
+      "V1_INTERACTIONS": true,
+      "added_families": [
+        "C01",
+        "C02D1"
+      ],
+      "candidate_id": "C02_D1_LOGIT",
+      "complexity": [
+        2,
+        0,
+        0,
+        220,
+        0
+      ],
+      "family": "logit",
+      "new_interactions": [],
+      "parent_id": "C01_CHART_LOGIT",
+      "regularization_multiplier": 1.0
+    },
+    {
+      "V1_INTERACTIONS": true,
+      "added_families": [
+        "C01",
+        "C02D1",
+        "C02D5"
+      ],
+      "candidate_id": "C02_D5_LOGIT",
+      "complexity": [
+        3,
+        0,
+        0,
+        336,
+        0
+      ],
+      "family": "logit",
+      "new_interactions": [],
+      "parent_id": "C01_CHART_LOGIT",
+      "regularization_multiplier": 1.0
+    }
+  ],
+  "cycle": "C02",
+  "hypothesis": "Past observed daily shape changes interpretation of today prefix; causal input availability and missing support retained",
+  "parent": "C01_CHART_LOGIT",
+  "parent_operating_point": 95,
+  "past_scope_sha256": "5f4e24cb16eb1500f194fdd5252994aa6baf122c5246db5908a5957b64f07ba0",
+  "planned_skips": [
+    "Uncertified corporate-action cross-day price gap/PDH/PDL features only; remaining within-day shape context proceeds"
+  ],
+  "points": [
+    90,
+    95,
+    99
+  ],
+  "schema_hashes": {
+    "C02D1": "a9563744cd8c4b651e9457dadddb559acfe3d40b3c0e00c9e89a9650c43f3688",
+    "C02D5": "c2e0b0c059f94030cb69ec0be6589109042278a5ac488f044770d450acff511c"
+  }
+}

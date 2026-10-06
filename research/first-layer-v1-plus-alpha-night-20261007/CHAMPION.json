@@ -1,12 +1,12 @@
 {
-  "candidate_id": "C01_CHART_LOGIT",
+  "candidate_id": "C03_STATE_CHART_LOGIT",
   "clock": {
-    "JST": "2026-10-07T00:44:30.431500+09:00",
-    "UTC": "2026-10-06T15:44:30.431500+00:00"
+    "JST": "2026-10-07T00:47:51.377943+09:00",
+    "UTC": "2026-10-06T15:47:51.377943+00:00"
   },
   "complexity": [
     1,
-    0,
+    12,
     0,
     38,
     0
@@ -16,27 +16,58 @@
     "added_families": [
       "C01"
     ],
-    "candidate_id": "C01_CHART_LOGIT",
+    "candidate_id": "C03_STATE_CHART_LOGIT",
     "complexity": [
       1,
-      0,
+      12,
       0,
       38,
       0
     ],
     "family": "logit",
-    "new_interactions": [],
-    "parent_id": "V1",
+    "new_interactions": [
+      {
+        "category": "S.primary",
+        "group": "C03current",
+        "numeric": [
+          "C01.open_progress",
+          "C01.range_position",
+          "C01.connected_efficiency",
+          "C01.mean_value"
+        ]
+      },
+      {
+        "category": "H.primary",
+        "group": "C03history",
+        "numeric": [
+          "C01.from_high",
+          "C01.from_low",
+          "C01.high_update_count",
+          "C01.value_up_fraction"
+        ]
+      },
+      {
+        "binary": "Q.current_state_available",
+        "group": "C03available",
+        "numeric": [
+          "C01.direction_agreement",
+          "C01.tail_vs_full_efficiency",
+          "C01.mean_volume",
+          "C01.support_fraction"
+        ]
+      }
+    ],
+    "parent_id": "C01_CHART_LOGIT",
     "regularization_multiplier": 1.0
   },
   "dominated_by": [],
-  "measure_sha256": "7cb7fe7c4bcec29d18e4a20c53ed5cf632a5da2859715284dbf03c1ebdb0a49c",
+  "measure_sha256": "dba1bd3f56c8fc933ea15f52f2c65f3a7da61bc7e2e8705e30dc191f9e912681",
   "metrics": {
     "M": 172,
-    "MINUS_remaining": 0.877906976744186,
-    "MINUS_removal": 0.12209302325581395,
-    "M_drop": 21,
-    "M_keep": 151,
+    "MINUS_remaining": 0.872093023255814,
+    "MINUS_removal": 0.12790697674418605,
+    "M_drop": 22,
+    "M_keep": 150,
     "P": 144,
     "PLUS_retention": 0.9444444444444444,
     "P_drop": 8,
@@ -54,5 +85,5 @@
   },
   "reason": "lowest MINUS remaining among PLUS retention>=90%; integer denominators identical",
   "status": "RESEARCH_CHAMPION_DEVELOPMENT_ONLY",
-  "updated": false
+  "updated": true
 }

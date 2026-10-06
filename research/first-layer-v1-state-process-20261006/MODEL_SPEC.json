@@ -1,0 +1,37 @@
+{
+  "CAL_threshold_max": 9,
+  "additional_comparisons": 0,
+  "class_weight": null,
+  "configuration": "D-equivalent Q+S+H+T+P+A+M, all1600 Entry supported",
+  "dtype": "float64",
+  "eta_threshold": "eta>=tau KEEP, eta<tau DROP; ties all KEEP",
+  "family": "New regularized State Process binary logit",
+  "family_rescue": 0,
+  "fits": 3,
+  "grid": 0,
+  "initial_coefficients": 0,
+  "objective": "mean(logaddexp(0,eta)-y*eta)+0.5*sum(lambda_j*theta_j**2)",
+  "optimizer": "scipy.optimize.minimize L-BFGS-B, analytic gradient",
+  "optimizer_options": {
+    "ftol": 1e-12,
+    "gtol": 1e-06,
+    "maxcor": 20,
+    "maxfun": 20000,
+    "maxiter": 2000,
+    "maxls": 40
+  },
+  "penalties": {
+    "actual_transition_pair": 0.05,
+    "common_numeric_general_categorical_history": 0.01,
+    "current_and_last_observed_State": 0.02,
+    "intercept": 0,
+    "specified_interactions": 0.1
+  },
+  "pipeline_fits": 3,
+  "post_TEST_changes": 0,
+  "preprocess": "FIT mature PLUS/MINUS rows only; registry log1p; population mean/std ddof0; canonical null preserved, standardized0 with mask; fixed9 State, FIT-only general vocab/pair vocab; alias columns once",
+  "sample_weight": 1,
+  "score_plus": "uncalibrated sigmoid(eta); not a guaranteed profit probability",
+  "seed_sweep": 0,
+  "technical_retry_max": 2
+}

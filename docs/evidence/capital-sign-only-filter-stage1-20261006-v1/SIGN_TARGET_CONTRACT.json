@@ -1,0 +1,39 @@
+{
+  "allowed_view_fields": [
+    "entry_id",
+    "label_maturity",
+    "session",
+    "sign_status",
+    "source_hash",
+    "y_neg"
+  ],
+  "authority": "Frozen Entry -> Frozen Structural EXIT plus inherited EOD settlement",
+  "comparison": "Fraction(sell_credit) compared directly to Fraction(buy_debit)",
+  "cost": "inherited effective prices BUY=1.0005 SELL=0.9995 commission=0; no extra application",
+  "forbidden_outcome_fields": [
+    "continuous_R",
+    "pnl",
+    "U/R_hierarchy",
+    "EXIT_reason",
+    "future_holding_duration",
+    "future_High_Low",
+    "quantity",
+    "portfolio_assets"
+  ],
+  "labels": {
+    "EXACT_ZERO": null,
+    "NEGATIVE": 1,
+    "POSITIVE": 0,
+    "UNKNOWN": null
+  },
+  "original_binding_sha256": "bf89b805e63cd1d4181192ec99ea3016ec2171021169e7e05ed805ba0da1ed1b",
+  "original_target_sha256": "fe8053da6798adcf01b5f4c09236304f607113c541acfee35a8f4ea74c9b9293",
+  "outcome_files_read_by_fit_threshold_evaluator": [
+    "SIGN_LABEL_VIEW.jsonl.gz"
+  ],
+  "sign_view_sha256": "57a28f24015ee3338094b1664129453be06e4c6b634cfe49bbfd8307791e13e5",
+  "source_hash_role": "audit provenance only; excluded from model/threshold/metric/gate mathematical payload",
+  "status": "PASS",
+  "weights": "all 1; sample_weight=None; class_weight=None",
+  "zero_tolerance": 0
+}

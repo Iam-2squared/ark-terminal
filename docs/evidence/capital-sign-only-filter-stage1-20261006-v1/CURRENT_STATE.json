@@ -1,44 +1,53 @@
 {
-  "document_id": "ARK_CAPITAL_SIGN_ONLY_FILTER_STAGE1_V1_20261006",
-  "exact_jst": "2026-10-06T11:24:24+09:00",
-  "status": "SOURCE_RECOVERED_INPUT_BINDING_IN_PROGRESS",
-  "repository": "Iam-2squared/ark-terminal",
-  "branch": "capital-main-reallocation-20261005",
   "basis_head": "6f3a09e4800a1cccbf359364c9acc9ba1f05e8dc",
   "basis_tree": "ba69773ee6331acfd426e90d0a8ab17db3785bdc",
+  "blockers": [],
+  "branch": "capital-main-reallocation-20261005",
   "completed": [
-    "Latest RNEG REPORT/CURRENT_STATE and fit_rneg.py read from GitHub",
-    "Sign-only stage1 Work instruction and machine-readable design created",
-    "Synthetic threshold/sign-invariance specification checks passed; no market/model test",
-    "Work and config Git blob hashes match local complete bytes after actual GET",
-    "Actual latest branch GET and compare: design/review documents only; no equivalent running experiment",
-    "Original private RNEG archive recovered and SHA256 verified; original models, initial OOF, inputs and split recovered"
+    "Latest actual GET and original source recovery complete",
+    "6-field strict sign view validated; counts match original",
+    "A108 numeric/B18numeric7cat/C13numeric/D139numeric7cat fixed by metadata",
+    "P1 plus32 saved score producers verified; warmup scores missing retained",
+    "621 new synthetic contract checks PASS; fits0"
   ],
-  "work_request": {
-    "commit": "d749a0f85a8a1117d933f6a16948a5383318684f",
-    "path": "docs/evidence/capital-sign-only-filter-stage1-20261006-v1/WORK_REQUEST.md",
-    "sha256": "79029edf214607e9389ae4429af45a8b16036f4f05184e55477201512991aeee",
-    "git_blob_sha1": "94ce1807a55730484cfbe739f2de0b656d94a605",
-    "bytes": 28789
+  "counts_this_execution": {
+    "Claude": 0,
+    "capital_replays": 0,
+    "main_merge": 0,
+    "new_feature_generation": 0,
+    "new_fits": 0,
+    "orders": 0,
+    "producer_fits": 0,
+    "reference_reused_models": 24,
+    "reuse_equivalent_fits": 0,
+    "stage2_fits": 0,
+    "technical_retries": 0,
+    "upstream_edits": 0
   },
   "design_config": {
+    "bytes": 3792,
     "commit": "819a304a0df7790aaaa6ca97ca697b3f6b4c7665",
-    "path": "docs/evidence/capital-sign-only-filter-stage1-20261006-v1/DESIGN_CONFIG.json",
-    "sha256": "ace8615163d9951bf29c2d1d30f0859c777f133f188ad191fc4133377b327f14",
     "git_blob_sha1": "9ab9f386764395762ad9cd9db641a17583e75d5e",
-    "bytes": 3792
+    "path": "docs/evidence/capital-sign-only-filter-stage1-20261006-v1/DESIGN_CONFIG.json",
+    "sha256": "ace8615163d9951bf29c2d1d30f0859c777f133f188ad191fc4133377b327f14"
+  },
+  "design_history_counts": {
+    "Claude": 0,
+    "R_materializations": 0,
+    "main_merge": 0,
+    "market_replays": 0,
+    "new_fits": 0,
+    "orders": 0,
+    "synthetic_rule_assertions": 1201,
+    "upstream_edits": 0
   },
   "direction": {
-    "objective": "Entry to frozen EXIT/EOD net result SIGN ONLY",
-    "target": "NEGATIVE=1 POSITIVE=0; exact zero and unknown separate",
     "all_examples_equal_weight": true,
-    "learner_input_groups": [
-      "price_volume_context",
-      "State9_Path",
-      "causal_saved_scores",
-      "precommitted_union"
+    "filter_alphas": [
+      "0.05",
+      "0.10",
+      "0.20"
     ],
-    "primary": "SF_D_UNION with alpha=0.10, selected before results",
     "forbidden_selection_inputs": [
       "return_magnitude",
       "pnl_jpy",
@@ -47,69 +56,60 @@
       "quantity",
       "portfolio_wealth"
     ],
-    "filter_alphas": [
-      "0.05",
-      "0.10",
-      "0.20"
+    "learner_input_groups": [
+      "price_volume_context",
+      "State9_Path",
+      "causal_saved_scores",
+      "precommitted_union"
     ],
-    "threshold_history": "past matured initial OOF signs only",
-    "stop": "Filter-only report and handoff; no Capital connection, Replay, or Winner stage2"
+    "objective": "Entry to frozen EXIT/EOD net result SIGN ONLY",
+    "primary": "SF_D_UNION with alpha=0.10, selected before results",
+    "stop": "Filter-only report and handoff; no Capital connection, Replay, or Winner stage2",
+    "target": "NEGATIVE=1 POSITIVE=0; exact zero and unknown separate",
+    "threshold_history": "past matured initial OOF signs only"
   },
-  "planned_budget": {
-    "new_fits_max": 32,
-    "technical_identical_retries_max": 2,
-    "equivalent_old_HL0_D1_D2_refits": 0,
-    "new_feature_generation": 0,
-    "capital_replays": 0,
-    "stage2_fits": 0
-  },
+  "document_id": "ARK_CAPITAL_SIGN_ONLY_FILTER_STAGE1_V1_20261006",
+  "exact_jst": "2026-10-06T11:36:01.798845+09:00",
+  "execution_basis_head": "b4058686338eabd2358e64aeb26eef78f1800127",
+  "execution_basis_tree": "a879463ee893f6eb3663d137194a6cfd23232c33",
   "inherited_status": {
+    "actual_historical_arrival": "UNKNOWN",
     "baseline": "V5",
     "old_RNEG_Defense": "DEFENSE_REJECTED",
     "old_V51": "REJECTED",
-    "source_exposure": "ITERATIVE_DEVELOPMENT",
-    "actual_historical_arrival": "UNKNOWN"
+    "source_exposure": "ITERATIVE_DEVELOPMENT"
   },
-  "unexecuted": [
-    "Actual A/B/C column binding and any new score lineage checks",
-    "New model training",
-    "Sign-only filter performance measurement"
-  ],
-  "next_action": "Bind sign-only teacher view, metadata-based feature families and score producer lineage; freeze exact signatures before any fits",
+  "next_action": "Save precommit and actual GET/readback; then execute fixed folds once",
+  "planned_budget": {
+    "capital_replays": 0,
+    "equivalent_old_HL0_D1_D2_refits": 0,
+    "new_feature_generation": 0,
+    "new_fits_max": 32,
+    "stage2_fits": 0,
+    "technical_identical_retries_max": 2
+  },
+  "private_source": {
+    "archive_sha256": "a70abbbb2e4d9933d7a6479dff4e1081b07627ccaad5c3eeb2c3132e5312f47d",
+    "library_file_id": "libfile_c1bee9c192288191956f48b8918fdb9a"
+  },
+  "repository": "Iam-2squared/ark-terminal",
   "safety": {
-    "productionReady": false,
-    "executionAllowed": false,
-    "brokerWriteAllowed": false,
     "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "executionAllowed": false,
+    "productionReady": false,
     "transmitted": false
   },
-  "execution_basis_head": "b4058686338eabd2358e64aeb26eef78f1800127",
-  "execution_basis_tree": "a879463ee893f6eb3663d137194a6cfd23232c33",
-  "design_history_counts": {
-    "new_fits": 0,
-    "market_replays": 0,
-    "R_materializations": 0,
-    "upstream_edits": 0,
-    "Claude": 0,
-    "orders": 0,
-    "main_merge": 0,
-    "synthetic_rule_assertions": 1201
-  },
-  "counts_this_execution": {
-    "new_fits": 0,
-    "reuse_fits": 0,
-    "technical_retries": 0,
-    "new_feature_generation": 0,
-    "capital_replays": 0,
-    "stage2_fits": 0,
-    "upstream_edits": 0,
-    "Claude": 0,
-    "orders": 0,
-    "main_merge": 0
-  },
-  "blockers": [],
-  "private_source": {
-    "library_file_id": "libfile_c1bee9c192288191956f48b8918fdb9a",
-    "archive_sha256": "a70abbbb2e4d9933d7a6479dff4e1081b07627ccaad5c3eeb2c3132e5312f47d"
+  "status": "INPUT_SPEC_FIXED_NOT_FITTED",
+  "unexecuted": [
+    "32 maximum distinct information-group fits and first OOF",
+    "sign-only thresholds/evaluation and independent audit"
+  ],
+  "work_request": {
+    "bytes": 28789,
+    "commit": "d749a0f85a8a1117d933f6a16948a5383318684f",
+    "git_blob_sha1": "94ce1807a55730484cfbe739f2de0b656d94a605",
+    "path": "docs/evidence/capital-sign-only-filter-stage1-20261006-v1/WORK_REQUEST.md",
+    "sha256": "79029edf214607e9389ae4429af45a8b16036f4f05184e55477201512991aeee"
   }
 }

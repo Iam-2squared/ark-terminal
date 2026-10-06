@@ -1,0 +1,986 @@
+{
+  "C06_reused_fields": 0,
+  "alias_N": 14,
+  "alias_policy": "New same-meaning aliases encode0 additional columns; inherited C08 columns are unchanged. Each genuinely new numeric field encodes once plus its missing mask.",
+  "current_day_high_low": "Running observed prefix H/L only; no future daily H/L",
+  "encoded_new_field_N": 83,
+  "fields": [
+    {
+      "alias": "M.active_elapsed_minutes",
+      "formula": "Active minute slots since09:00; lunch excluded",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.elapsed_active_minutes",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": "C01.observed_count",
+      "formula": "Actual observed completed prefix bars",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.prefix.observed_count",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": "C01.support_fraction",
+      "formula": "Observed regular bars / scheduled completed prefix slots",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.prefix.support_fraction",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": "C01.range_position",
+      "formula": "(latest C-running L)/(running H-running L)",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.prefix.range_position",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": "C01.from_high",
+      "formula": "log(latest C/running H)",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.prefix.distance_high",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": "C01.from_low",
+      "formula": "log(latest C/running L)",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.prefix.distance_low",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": "C01.first_progress",
+      "formula": "log(latest C/first observed prefix O)",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.prefix.net_movement",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": "C01.observed_range",
+      "formula": "log(running H/running L)",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.prefix.observed_range",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": "C01.close_vs_vwap",
+      "formula": "Inherited validated log(latest C/(sum Va/sum Vo))",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.prefix.price_vwap_distance",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": "C01.mean_volume",
+      "formula": "Mean actual Vo across prefix",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.prefix.mean_volume",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": "C01.mean_value",
+      "formula": "Mean actual Va across prefix",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.prefix.mean_value",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": "M.w5.mean_volume",
+      "formula": "Mean actual Vo among last5 closed slots, truncated at same half",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.window5.mean_volume",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": "M.w5.mean_value",
+      "formula": "Mean actual Va among last5 closed slots, truncated at same half",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.window5.mean_value",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": "M.w5.support_fraction",
+      "formula": "Actual bars / available scheduled slots in same half, inherited partial rule",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.window5.support_fraction",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": null,
+      "formula": "Scheduled active minutes since current AM09:00 or PM12:30 start",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.active_minutes_in_half",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "log1p",
+      "unit": "minutes"
+    },
+    {
+      "alias": null,
+      "formula": "log(C at cutoff endpoint/C at endpoint-1); exact observed anchor; same half; first session O may anchor endpoint0 only",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.return1",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "log-return"
+    },
+    {
+      "alias": null,
+      "formula": "Observed regular bars in last1 same-half slots / min(1, elapsed slots)",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.window1.support_fraction",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": null,
+      "formula": "1 if fewer than1 scheduled minutes elapsed in current half, else0",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.window1.short_history",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "mask"
+    },
+    {
+      "alias": null,
+      "formula": "log(C at cutoff endpoint/C at endpoint-3); exact observed anchor; same half; first session O may anchor endpoint0 only",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.return3",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "log-return"
+    },
+    {
+      "alias": null,
+      "formula": "Observed regular bars in last3 same-half slots / min(3, elapsed slots)",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.window3.support_fraction",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": null,
+      "formula": "1 if fewer than3 scheduled minutes elapsed in current half, else0",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.window3.short_history",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "mask"
+    },
+    {
+      "alias": null,
+      "formula": "log(C at cutoff endpoint/C at endpoint-5); exact observed anchor; same half; first session O may anchor endpoint0 only",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.return5",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "log-return"
+    },
+    {
+      "alias": null,
+      "formula": "1 if fewer than5 scheduled minutes elapsed in current half, else0",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.window5.short_history",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "mask"
+    },
+    {
+      "alias": null,
+      "formula": "log(C at cutoff endpoint/C at endpoint-10); exact observed anchor; same half; first session O may anchor endpoint0 only",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.return10",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "log-return"
+    },
+    {
+      "alias": null,
+      "formula": "Observed regular bars in last10 same-half slots / min(10, elapsed slots)",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.window10.support_fraction",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": null,
+      "formula": "1 if fewer than10 scheduled minutes elapsed in current half, else0",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.window10.short_history",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "mask"
+    },
+    {
+      "alias": null,
+      "formula": "log(C at cutoff endpoint/C at endpoint-20); exact observed anchor; same half; first session O may anchor endpoint0 only",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.return20",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "log-return"
+    },
+    {
+      "alias": null,
+      "formula": "Observed regular bars in last20 same-half slots / min(20, elapsed slots)",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.window20.support_fraction",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": null,
+      "formula": "1 if fewer than20 scheduled minutes elapsed in current half, else0",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.window20.short_history",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "mask"
+    },
+    {
+      "alias": null,
+      "formula": "log(C at cutoff endpoint/C at endpoint-30); exact observed anchor; same half; first session O may anchor endpoint0 only",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.return30",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "log-return"
+    },
+    {
+      "alias": null,
+      "formula": "Observed regular bars in last30 same-half slots / min(30, elapsed slots)",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.window30.support_fraction",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": null,
+      "formula": "1 if fewer than30 scheduled minutes elapsed in current half, else0",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.window30.short_history",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "mask"
+    },
+    {
+      "alias": null,
+      "formula": "log(C at cutoff endpoint/C at endpoint-60); exact observed anchor; same half; first session O may anchor endpoint0 only",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.return60",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "log-return"
+    },
+    {
+      "alias": null,
+      "formula": "Observed regular bars in last60 same-half slots / min(60, elapsed slots)",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.window60.support_fraction",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": null,
+      "formula": "1 if fewer than60 scheduled minutes elapsed in current half, else0",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.window60.short_history",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "mask"
+    },
+    {
+      "alias": null,
+      "formula": "OLS slope of log observed C vs actual closed active-minute endpoint among last5 same-half slots; >=2 observed bars",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.slope5",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "log-return/active-minute"
+    },
+    {
+      "alias": null,
+      "formula": "sqrt(sum(log(C_next/C_prev)^2)) for adjacent same-half observed pairs among last5 slots; at least1 pair",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.rv5",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "log-return"
+    },
+    {
+      "alias": null,
+      "formula": "OLS slope of log observed C vs actual closed active-minute endpoint among last10 same-half slots; >=2 observed bars",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.slope10",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "log-return/active-minute"
+    },
+    {
+      "alias": null,
+      "formula": "sqrt(sum(log(C_next/C_prev)^2)) for adjacent same-half observed pairs among last10 slots; at least1 pair",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.rv10",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "log-return"
+    },
+    {
+      "alias": null,
+      "formula": "OLS slope of log observed C vs actual closed active-minute endpoint among last20 same-half slots; >=2 observed bars",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.slope20",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "log-return/active-minute"
+    },
+    {
+      "alias": null,
+      "formula": "sqrt(sum(log(C_next/C_prev)^2)) for adjacent same-half observed pairs among last20 slots; at least1 pair",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.rv20",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "log-return"
+    },
+    {
+      "alias": null,
+      "formula": "OLS slope of log observed C vs actual closed active-minute endpoint among last30 same-half slots; >=2 observed bars",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.slope30",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "log-return/active-minute"
+    },
+    {
+      "alias": null,
+      "formula": "sqrt(sum(log(C_next/C_prev)^2)) for adjacent same-half observed pairs among last30 slots; at least1 pair",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.rv30",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "log-return"
+    },
+    {
+      "alias": null,
+      "formula": "slope5-slope20",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.acceleration5_20",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "log-return/active-minute"
+    },
+    {
+      "alias": null,
+      "formula": "log(max H/min L) in window5 / same in window20; null if longer range0",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.range_ratio5_20",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": null,
+      "formula": "slope10-slope30",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.acceleration10_30",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "log-return/active-minute"
+    },
+    {
+      "alias": null,
+      "formula": "log(max H/min L) in window10 / same in window30; null if longer range0",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.range_ratio10_30",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": null,
+      "formula": "max prefix H",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.prefix.running_high",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "unadjusted price"
+    },
+    {
+      "alias": null,
+      "formula": "min prefix L",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.prefix.running_low",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "unadjusted price"
+    },
+    {
+      "alias": null,
+      "formula": "abs(log(first C/first O))+sum(abs(log(next observed C/prior observed C))); observed gaps/lunch spans included without filling",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.prefix.gross_observed_movement",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "log-movement"
+    },
+    {
+      "alias": null,
+      "formula": "log(latest C/first observed O)/gross_observed_movement; null if gross0",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.prefix.observed_path_efficiency",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": null,
+      "formula": "sum Va/sum Vo; inherit C01 per-bar Va/Vo range consistency validation, null if zero denominator/invalid",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.prefix.observed_vwap",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "unadjusted price"
+    },
+    {
+      "alias": null,
+      "formula": "Recent actual mean volume / actual mean in earlier prefix excluding window5; null if no earlier bars/denominator0",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.volume_ratio5",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": null,
+      "formula": "Recent actual mean value / actual mean in earlier prefix excluding window5; null if no earlier bars/denominator0",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.value_ratio5",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": null,
+      "formula": "Mean actual Vo in last10 same-half slots",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.window10.mean_volume",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "log1p",
+      "unit": "shares/bar"
+    },
+    {
+      "alias": null,
+      "formula": "Recent actual mean volume / actual mean in earlier prefix excluding window10; null if no earlier bars/denominator0",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.volume_ratio10",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": null,
+      "formula": "Mean actual Va in last10 same-half slots",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.window10.mean_value",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "log1p",
+      "unit": "yen/bar"
+    },
+    {
+      "alias": null,
+      "formula": "Recent actual mean value / actual mean in earlier prefix excluding window10; null if no earlier bars/denominator0",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.value_ratio10",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": null,
+      "formula": "Mean actual Vo in last20 same-half slots",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.window20.mean_volume",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "log1p",
+      "unit": "shares/bar"
+    },
+    {
+      "alias": null,
+      "formula": "Recent actual mean volume / actual mean in earlier prefix excluding window20; null if no earlier bars/denominator0",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.volume_ratio20",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": null,
+      "formula": "Mean actual Va in last20 same-half slots",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.window20.mean_value",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "log1p",
+      "unit": "yen/bar"
+    },
+    {
+      "alias": null,
+      "formula": "Recent actual mean value / actual mean in earlier prefix excluding window20; null if no earlier bars/denominator0",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.value_ratio20",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": null,
+      "formula": "sign(return5)*log(volume_ratio5); null when return unavailable or ratio<=0",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.direction_activity_volume5",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": null,
+      "formula": "sign(return5)*log(value_ratio5); null when return unavailable or ratio<=0",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.direction_activity_value5",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": null,
+      "formula": "sign(return20)*log(volume_ratio20); null when return unavailable or ratio<=0",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.direction_activity_volume20",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": null,
+      "formula": "sign(return20)*log(value_ratio20); null when return unavailable or ratio<=0",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.direction_activity_value20",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": null,
+      "formula": "Last observed C of nearest authorized previous session; observed close, not certified official adjusted close",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.previous_close",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "unadjusted price"
+    },
+    {
+      "alias": null,
+      "formula": "log(observed09:00 O/previous observed close); null unless both available",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.opening_gap",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "unadjusted log-ratio"
+    },
+    {
+      "alias": null,
+      "formula": "log(latest prefix C/previous-session observed high)",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.distance_previous_high",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "unadjusted log-ratio"
+    },
+    {
+      "alias": null,
+      "formula": "log(latest prefix C/previous-session observed low)",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.distance_previous_low",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "unadjusted log-ratio"
+    },
+    {
+      "alias": null,
+      "formula": "log(latest prefix C/previous-session observed close)",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.distance_previous_close",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "unadjusted log-ratio"
+    },
+    {
+      "alias": null,
+      "formula": "(latest prefix C-previous observed L)/(previous observed H-L); may be outside[0,1]",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.previous_range_position",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": null,
+      "formula": "log(latest prefix C/observed C of kth previous approved session); current session is partial, raw unadjusted basis explicit",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.return1",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "unadjusted log-ratio"
+    },
+    {
+      "alias": null,
+      "formula": "log(latest prefix C/observed C of kth previous approved session); current session is partial, raw unadjusted basis explicit",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.return2",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "unadjusted log-ratio"
+    },
+    {
+      "alias": null,
+      "formula": "log(latest prefix C/observed C of kth previous approved session); current session is partial, raw unadjusted basis explicit",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.return3",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "unadjusted log-ratio"
+    },
+    {
+      "alias": null,
+      "formula": "log(latest prefix C/observed C of kth previous approved session); current session is partial, raw unadjusted basis explicit",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.return5",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "unadjusted log-ratio"
+    },
+    {
+      "alias": null,
+      "formula": "log(max H/min L) across last1 authorized previous sessions; all1 must have observed bars",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.range1",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "unadjusted log-range"
+    },
+    {
+      "alias": null,
+      "formula": "sqrt(sum squared adjacent same-half log C returns across each of last1 prior sessions)); no overnight return or interpolation",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.rv1",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "log-return"
+    },
+    {
+      "alias": null,
+      "formula": "Mean per-session total volume of last1 authorized prior sessions; all1 observed",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.mean_daily_volume1",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "log1p",
+      "unit": "shares/day"
+    },
+    {
+      "alias": null,
+      "formula": "Mean per-session total value of last1 authorized prior sessions; all1 observed",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.mean_daily_value1",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "log1p",
+      "unit": "yen/day"
+    },
+    {
+      "alias": null,
+      "formula": "1 if all last1 authorized prior session keys have bars, else0",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.complete_sessions1",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "mask"
+    },
+    {
+      "alias": null,
+      "formula": "log(max H/min L) across last3 authorized previous sessions; all3 must have observed bars",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.range3",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "unadjusted log-range"
+    },
+    {
+      "alias": null,
+      "formula": "sqrt(sum squared adjacent same-half log C returns across each of last3 prior sessions)); no overnight return or interpolation",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.rv3",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "log-return"
+    },
+    {
+      "alias": null,
+      "formula": "Mean per-session total volume of last3 authorized prior sessions; all3 observed",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.mean_daily_volume3",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "log1p",
+      "unit": "shares/day"
+    },
+    {
+      "alias": null,
+      "formula": "Mean per-session total value of last3 authorized prior sessions; all3 observed",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.mean_daily_value3",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "log1p",
+      "unit": "yen/day"
+    },
+    {
+      "alias": null,
+      "formula": "1 if all last3 authorized prior session keys have bars, else0",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.complete_sessions3",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "mask"
+    },
+    {
+      "alias": null,
+      "formula": "log(max H/min L) across last5 authorized previous sessions; all5 must have observed bars",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.range5",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "unadjusted log-range"
+    },
+    {
+      "alias": null,
+      "formula": "sqrt(sum squared adjacent same-half log C returns across each of last5 prior sessions)); no overnight return or interpolation",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.rv5",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "log-return"
+    },
+    {
+      "alias": null,
+      "formula": "Mean per-session total volume of last5 authorized prior sessions; all5 observed",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.mean_daily_volume5",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "log1p",
+      "unit": "shares/day"
+    },
+    {
+      "alias": null,
+      "formula": "Mean per-session total value of last5 authorized prior sessions; all5 observed",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.mean_daily_value5",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "log1p",
+      "unit": "yen/day"
+    },
+    {
+      "alias": null,
+      "formula": "1 if all last5 authorized prior session keys have bars, else0",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.complete_sessions5",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "mask"
+    },
+    {
+      "alias": null,
+      "formula": "(latest prefix C-min L of5 prior sessions)/(max H-min L); all5 observed; no clipping",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.position5",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "ratio"
+    },
+    {
+      "alias": null,
+      "formula": "Number of authorized prior sessions with observed bars (0..5)",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.observed_sessions",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "log1p",
+      "unit": "sessions"
+    },
+    {
+      "alias": null,
+      "formula": "1 if previous observed last bar minute>=15:24, else0; no synthetic close",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.previous_late_close_observed",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "mask"
+    },
+    {
+      "alias": null,
+      "formula": "Calendar-day distance to nearest authorized prior date, regardless observation",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.previous_calendar_age_days",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "log1p",
+      "unit": "days"
+    },
+    {
+      "alias": null,
+      "formula": "Maximum calendar gap among authorized previous dates and current date; approved58 calendar is not asserted consecutive exchange sessions",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.maximum_calendar_gap_days",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "log1p",
+      "unit": "days"
+    },
+    {
+      "alias": null,
+      "formula": "1 always: no corporate-action adjustment certification is added",
+      "kind": "numeric",
+      "missing": "None if unavailable/zero denominator; fixed value0 plus explicit missing mask in HGB matrix",
+      "name": "C10.past.unadjusted_basis_unknown",
+      "prediction_input": "closed prefix OHLC/Vo/Va and authorized strictly-prior observed days only",
+      "transform": "identity",
+      "unit": "mask"
+    }
+  ],
+  "fixed_hgb_same_as_C09": true,
+  "new_provider": 0,
+  "past_clock": "Up to5 immediately preceding dates in frozen approved58-session calendar; date/security keys pinned. Gaps explicitly recorded, not silently filled from outside dates.",
+  "price_basis": "Unadjusted native raw; cross-session ratios are observed raw features, not adjusted economic returns. No corporate-action inference.",
+  "teacher_R_bucket_capability": false,
+  "version": "C10_DIRECT_CHART_SHAPE_V1",
+  "window_clock": "09:00-11:30 and12:30-15:25 closed regular minute slots. Rolling windows remain in current half; no lunch bridge. Whole-prefix observed movement can span lunch with no interpolation."
+}

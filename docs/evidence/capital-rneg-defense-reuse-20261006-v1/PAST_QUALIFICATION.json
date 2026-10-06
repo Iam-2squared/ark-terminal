@@ -1,0 +1,508 @@
+{
+  "current_or_future_CAL_PAYLOADS": 0,
+  "procedure": "section8 exact distinct-score selection; no extra fits/replays per tau",
+  "snapshots": [
+    {
+      "block": 1,
+      "current_or_future_teacher_payloads": 0,
+      "exact_jst": "2026-10-06T09:17:20+09:00",
+      "in_sample_CAL_rows": 0,
+      "past_qualification": [
+        {
+          "candidate_N": 0,
+          "recipe": "D1",
+          "status": "CAL_PAST_SUPPORT_INSUFFICIENT",
+          "support": {
+            "N": 0,
+            "negative_N": 0,
+            "nonnegative_N": 0,
+            "session_N": 0
+          }
+        },
+        {
+          "candidate_N": 0,
+          "recipe": "D2",
+          "status": "CAL_PAST_SUPPORT_INSUFFICIENT",
+          "support": {
+            "N": 0,
+            "negative_N": 0,
+            "nonnegative_N": 0,
+            "session_N": 0
+          }
+        }
+      ],
+      "selection": null,
+      "single_procedure": true,
+      "status": "DEFENSE_OFF",
+      "test_dates": [
+        "2025-06-27",
+        "2025-06-30",
+        "2025-07-01",
+        "2025-07-02",
+        "2025-07-03"
+      ],
+      "tie_rule": "score >= tau; entire tie retained"
+    },
+    {
+      "block": 2,
+      "current_or_future_teacher_payloads": 0,
+      "exact_jst": "2026-10-06T09:17:21+09:00",
+      "in_sample_CAL_rows": 0,
+      "past_qualification": [
+        {
+          "candidate_N": 0,
+          "recipe": "D1",
+          "status": "CAL_PAST_SUPPORT_INSUFFICIENT",
+          "support": {
+            "N": 61,
+            "negative_N": 38,
+            "nonnegative_N": 23,
+            "session_N": 4
+          }
+        },
+        {
+          "candidate_N": 0,
+          "recipe": "D2",
+          "status": "CAL_PAST_SUPPORT_INSUFFICIENT",
+          "support": {
+            "N": 61,
+            "negative_N": 38,
+            "nonnegative_N": 23,
+            "session_N": 4
+          }
+        }
+      ],
+      "selection": null,
+      "single_procedure": true,
+      "status": "DEFENSE_OFF",
+      "test_dates": [
+        "2025-07-04",
+        "2025-07-07",
+        "2025-07-08",
+        "2025-07-09",
+        "2025-07-10"
+      ],
+      "tie_rule": "score >= tau; entire tie retained"
+    },
+    {
+      "block": 3,
+      "current_or_future_teacher_payloads": 0,
+      "exact_jst": "2026-10-06T09:17:21+09:00",
+      "in_sample_CAL_rows": 0,
+      "past_qualification": [
+        {
+          "candidate_N": 0,
+          "recipe": "D1",
+          "status": "CAL_PAST_SUPPORT_INSUFFICIENT",
+          "support": {
+            "N": 109,
+            "negative_N": 63,
+            "nonnegative_N": 46,
+            "session_N": 9
+          }
+        },
+        {
+          "candidate_N": 0,
+          "recipe": "D2",
+          "status": "CAL_PAST_SUPPORT_INSUFFICIENT",
+          "support": {
+            "N": 109,
+            "negative_N": 63,
+            "nonnegative_N": 46,
+            "session_N": 9
+          }
+        }
+      ],
+      "selection": null,
+      "single_procedure": true,
+      "status": "DEFENSE_OFF",
+      "test_dates": [
+        "2025-07-15",
+        "2025-07-16",
+        "2025-07-17",
+        "2025-07-18",
+        "2025-07-22"
+      ],
+      "tie_rule": "score >= tau; entire tie retained"
+    },
+    {
+      "block": 4,
+      "current_or_future_teacher_payloads": 0,
+      "exact_jst": "2026-10-06T09:17:22+09:00",
+      "in_sample_CAL_rows": 0,
+      "past_qualification": [
+        {
+          "candidate_N": 179,
+          "failed_condition_counts": {
+            "leave_one_session_nonnegative": 154,
+            "net_value": 122,
+            "positive_count_budget": 159,
+            "positive_profit_budget": 151,
+            "precision_lift": 76,
+            "veto_support": 19
+          },
+          "qualified_N": 1,
+          "recipe": "D1",
+          "status": "QUALIFIED",
+          "support": {
+            "N": 179,
+            "negative_N": 105,
+            "nonnegative_N": 74,
+            "session_N": 14
+          }
+        },
+        {
+          "candidate_N": 179,
+          "failed_condition_counts": {
+            "leave_one_session_nonnegative": 178,
+            "net_value": 164,
+            "positive_count_budget": 162,
+            "positive_profit_budget": 172,
+            "precision_lift": 57,
+            "veto_support": 19
+          },
+          "qualified_N": 0,
+          "recipe": "D2",
+          "status": "NO_QUALIFIED_THRESHOLD",
+          "support": {
+            "N": 179,
+            "negative_N": 105,
+            "nonnegative_N": 74,
+            "session_N": 14
+          }
+        }
+      ],
+      "selection": {
+        "CAL_PAST": {
+          "N": 179,
+          "negative_N": 105,
+          "nonnegative_N": 74,
+          "session_N": 14
+        },
+        "min_leave_one_session_net": 0.11960429014821816,
+        "negative_recall": 0.12380952380952381,
+        "positive_false_veto_rate": 0.0945945945945946,
+        "positive_unit_profit_removed_rate": 0.043044389776473985,
+        "precision": 0.65,
+        "recipe": "D1",
+        "tau": 0.6514891848453168,
+        "unit_net_value": 0.18006080878564434,
+        "veto_support": {
+          "N": 20,
+          "negative_N": 13,
+          "nonnegative_N": 7,
+          "session_N": 11
+        }
+      },
+      "single_procedure": true,
+      "status": "ACTIVE",
+      "test_dates": [
+        "2025-07-23",
+        "2025-07-24",
+        "2025-07-25",
+        "2025-07-28",
+        "2025-07-29"
+      ],
+      "tie_rule": "score >= tau; entire tie retained"
+    },
+    {
+      "block": 5,
+      "current_or_future_teacher_payloads": 0,
+      "exact_jst": "2026-10-06T09:17:23+09:00",
+      "in_sample_CAL_rows": 0,
+      "past_qualification": [
+        {
+          "candidate_N": 251,
+          "failed_condition_counts": {
+            "leave_one_session_nonnegative": 186,
+            "net_value": 103,
+            "positive_count_budget": 222,
+            "positive_profit_budget": 214,
+            "precision_lift": 81,
+            "veto_support": 19
+          },
+          "qualified_N": 10,
+          "recipe": "D1",
+          "status": "QUALIFIED",
+          "support": {
+            "N": 252,
+            "negative_N": 147,
+            "nonnegative_N": 105,
+            "session_N": 19
+          }
+        },
+        {
+          "candidate_N": 251,
+          "failed_condition_counts": {
+            "leave_one_session_nonnegative": 243,
+            "net_value": 192,
+            "positive_count_budget": 227,
+            "positive_profit_budget": 239,
+            "precision_lift": 54,
+            "veto_support": 19
+          },
+          "qualified_N": 0,
+          "recipe": "D2",
+          "status": "NO_QUALIFIED_THRESHOLD",
+          "support": {
+            "N": 252,
+            "negative_N": 147,
+            "nonnegative_N": 105,
+            "session_N": 19
+          }
+        }
+      ],
+      "selection": {
+        "CAL_PAST": {
+          "N": 252,
+          "negative_N": 147,
+          "nonnegative_N": 105,
+          "session_N": 19
+        },
+        "min_leave_one_session_net": 0.2031358280536771,
+        "negative_recall": 0.1292517006802721,
+        "positive_false_veto_rate": 0.08571428571428572,
+        "positive_unit_profit_removed_rate": 0.04178513282524539,
+        "precision": 0.6785714285714286,
+        "recipe": "D1",
+        "tau": 0.6534978432985917,
+        "unit_net_value": 0.26359234669110326,
+        "veto_support": {
+          "N": 28,
+          "negative_N": 19,
+          "nonnegative_N": 9,
+          "session_N": 15
+        }
+      },
+      "single_procedure": true,
+      "status": "ACTIVE",
+      "test_dates": [
+        "2025-07-30",
+        "2025-07-31",
+        "2025-08-01",
+        "2025-08-04",
+        "2025-08-05"
+      ],
+      "tie_rule": "score >= tau; entire tie retained"
+    },
+    {
+      "block": 6,
+      "current_or_future_teacher_payloads": 0,
+      "exact_jst": "2026-10-06T09:17:24+09:00",
+      "in_sample_CAL_rows": 0,
+      "past_qualification": [
+        {
+          "candidate_N": 312,
+          "failed_condition_counts": {
+            "leave_one_session_nonnegative": 97,
+            "net_value": 39,
+            "positive_count_budget": 277,
+            "positive_profit_budget": 263,
+            "precision_lift": 67,
+            "veto_support": 19
+          },
+          "qualified_N": 16,
+          "recipe": "D1",
+          "status": "QUALIFIED",
+          "support": {
+            "N": 313,
+            "negative_N": 181,
+            "nonnegative_N": 132,
+            "session_N": 24
+          }
+        },
+        {
+          "candidate_N": 312,
+          "failed_condition_counts": {
+            "leave_one_session_nonnegative": 256,
+            "net_value": 142,
+            "positive_count_budget": 277,
+            "positive_profit_budget": 298,
+            "precision_lift": 54,
+            "veto_support": 19
+          },
+          "qualified_N": 0,
+          "recipe": "D2",
+          "status": "NO_QUALIFIED_THRESHOLD",
+          "support": {
+            "N": 313,
+            "negative_N": 181,
+            "nonnegative_N": 132,
+            "session_N": 24
+          }
+        }
+      ],
+      "selection": {
+        "CAL_PAST": {
+          "N": 313,
+          "negative_N": 181,
+          "nonnegative_N": 132,
+          "session_N": 24
+        },
+        "min_leave_one_session_net": 0.2148954531778712,
+        "negative_recall": 0.12154696132596685,
+        "positive_false_veto_rate": 0.09848484848484848,
+        "positive_unit_profit_removed_rate": 0.04420845949839434,
+        "precision": 0.6285714285714286,
+        "recipe": "D1",
+        "tau": 0.665212103266463,
+        "unit_net_value": 0.2752676807818499,
+        "veto_support": {
+          "N": 35,
+          "negative_N": 22,
+          "nonnegative_N": 13,
+          "session_N": 19
+        }
+      },
+      "single_procedure": true,
+      "status": "ACTIVE",
+      "test_dates": [
+        "2025-08-06",
+        "2025-08-07",
+        "2025-08-08",
+        "2025-08-12",
+        "2025-08-13"
+      ],
+      "tie_rule": "score >= tau; entire tie retained"
+    },
+    {
+      "block": 7,
+      "current_or_future_teacher_payloads": 0,
+      "exact_jst": "2026-10-06T09:17:25+09:00",
+      "in_sample_CAL_rows": 0,
+      "past_qualification": [
+        {
+          "candidate_N": 374,
+          "failed_condition_counts": {
+            "leave_one_session_nonnegative": 147,
+            "net_value": 23,
+            "positive_count_budget": 334,
+            "positive_profit_budget": 316,
+            "precision_lift": 87,
+            "veto_support": 19
+          },
+          "qualified_N": 17,
+          "recipe": "D1",
+          "status": "QUALIFIED",
+          "support": {
+            "N": 376,
+            "negative_N": 216,
+            "nonnegative_N": 160,
+            "session_N": 29
+          }
+        },
+        {
+          "candidate_N": 374,
+          "failed_condition_counts": {
+            "leave_one_session_nonnegative": 255,
+            "net_value": 209,
+            "positive_count_budget": 330,
+            "positive_profit_budget": 354,
+            "precision_lift": 52,
+            "veto_support": 19
+          },
+          "qualified_N": 0,
+          "recipe": "D2",
+          "status": "NO_QUALIFIED_THRESHOLD",
+          "support": {
+            "N": 376,
+            "negative_N": 216,
+            "nonnegative_N": 160,
+            "session_N": 29
+          }
+        }
+      ],
+      "selection": {
+        "CAL_PAST": {
+          "N": 376,
+          "negative_N": 216,
+          "nonnegative_N": 160,
+          "session_N": 29
+        },
+        "min_leave_one_session_net": 0.16684427536965787,
+        "negative_recall": 0.1111111111111111,
+        "positive_false_veto_rate": 0.0875,
+        "positive_unit_profit_removed_rate": 0.051683842116737655,
+        "precision": 0.631578947368421,
+        "recipe": "D1",
+        "tau": 0.6783130392715787,
+        "unit_net_value": 0.22721650297363657,
+        "veto_support": {
+          "N": 38,
+          "negative_N": 24,
+          "nonnegative_N": 14,
+          "session_N": 21
+        }
+      },
+      "single_procedure": true,
+      "status": "ACTIVE",
+      "test_dates": [
+        "2025-08-14",
+        "2025-08-15",
+        "2025-08-18",
+        "2025-08-19",
+        "2025-08-20"
+      ],
+      "tie_rule": "score >= tau; entire tie retained"
+    },
+    {
+      "block": 8,
+      "current_or_future_teacher_payloads": 0,
+      "exact_jst": "2026-10-06T09:17:27+09:00",
+      "in_sample_CAL_rows": 0,
+      "past_qualification": [
+        {
+          "candidate_N": 446,
+          "failed_condition_counts": {
+            "leave_one_session_nonnegative": 438,
+            "net_value": 377,
+            "positive_count_budget": 398,
+            "positive_profit_budget": 407,
+            "precision_lift": 113,
+            "veto_support": 19
+          },
+          "qualified_N": 0,
+          "recipe": "D1",
+          "status": "NO_QUALIFIED_THRESHOLD",
+          "support": {
+            "N": 449,
+            "negative_N": 250,
+            "nonnegative_N": 199,
+            "session_N": 34
+          }
+        },
+        {
+          "candidate_N": 446,
+          "failed_condition_counts": {
+            "leave_one_session_nonnegative": 445,
+            "net_value": 439,
+            "positive_count_budget": 407,
+            "positive_profit_budget": 423,
+            "precision_lift": 59,
+            "veto_support": 19
+          },
+          "qualified_N": 0,
+          "recipe": "D2",
+          "status": "NO_QUALIFIED_THRESHOLD",
+          "support": {
+            "N": 449,
+            "negative_N": 250,
+            "nonnegative_N": 199,
+            "session_N": 34
+          }
+        }
+      ],
+      "selection": null,
+      "single_procedure": true,
+      "status": "DEFENSE_OFF",
+      "test_dates": [
+        "2025-08-21",
+        "2025-08-22",
+        "2025-08-25"
+      ],
+      "tie_rule": "score >= tau; entire tie retained"
+    }
+  ],
+  "threshold_model_selection_events": 8,
+  "within_block_policy_changes": 0
+}

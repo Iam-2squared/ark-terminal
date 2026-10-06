@@ -1,0 +1,217 @@
+{
+  "schema": "ARK_JQUANTS_HISTORICAL_ACQUISITION_METHOD_V1",
+  "exact_jst": "2026-10-06T13:25:14+09:00",
+  "repository": "Iam-2squared/ark-terminal",
+  "cache_branch": "data/jquants-raw-cache-20261006-v1",
+  "basis_cache_head": "c4a4cedfb04119246ed23531b2754427521e603c",
+  "finding": "CONFIRMED_PREVIOUS_SUCCESSFUL_DIRECT_API_ACQUISITION",
+  "provider_requests_this_investigation": 0,
+  "raw_bytes_downloaded_this_investigation": 0,
+  "authentication": {
+    "previous_route": "GitHub Actions repository secret JQUANTS_API_KEY -> environment -> x-api-key header -> https://api.jquants.com/v2",
+    "browser_login_required_for_api_route": false,
+    "key_value_observed": false,
+    "credential_present_verified_today": true,
+    "today_presence_run_id": 37412236265,
+    "current_provider_authentication_tested": false,
+    "old_success_is_not_current_entitlement_proof": true,
+    "browser_403_scope": "Website authentication only; no conclusion about x-api-key API authentication"
+  },
+  "successful_source_run": {
+    "id": 35447995157,
+    "url": "https://github.com/Iam-2squared/ark-terminal/actions/runs/35447995157",
+    "head_branch": "research/phase57-long-only-cash-equity",
+    "head_sha": "6cedca161b0ac88b2a8495e4a26ff70432c818cd",
+    "started_utc": "2026-09-19T14:11:52Z",
+    "completed_utc": "2026-09-19T18:04:37Z",
+    "conclusion": "success",
+    "job_count": 57,
+    "job_metadata_received": 57,
+    "successful_jobs": 57
+  },
+  "immutable_sources": [
+    {
+      "path": ".github/workflows/phase57-expansion-acquire.yml",
+      "ref": "6cedca161b0ac88b2a8495e4a26ff70432c818cd",
+      "blob_sha1": "6ebf60315f8243cd4dee2a2ad4d84a61de44807b",
+      "url": "https://github.com/Iam-2squared/ark-terminal/blob/6cedca161b0ac88b2a8495e4a26ff70432c818cd/.github/workflows/phase57-expansion-acquire.yml"
+    },
+    {
+      "path": "scripts/phase57_expansion_data.py",
+      "ref": "6cedca161b0ac88b2a8495e4a26ff70432c818cd",
+      "blob_sha1": "af28d6d73d0a60e783204f1b2141f7a0f8cc8536",
+      "url": "https://github.com/Iam-2squared/ark-terminal/blob/6cedca161b0ac88b2a8495e4a26ff70432c818cd/scripts/phase57_expansion_data.py"
+    },
+    {
+      "path": "docs/evidence/phase57-behavior-expansion-v1/04_session_split_manifest.json",
+      "ref": "6cedca161b0ac88b2a8495e4a26ff70432c818cd",
+      "blob_sha1": "b4cddce1bc4b8a2e540652de9eed1097e5930f9c"
+    }
+  ],
+  "previous_acquisition": {
+    "endpoints": [
+      "/v2/equities/bars/daily",
+      "/v2/equities/master",
+      "/v2/equities/bars/minute"
+    ],
+    "response_storage": "Original responseText with responseSha256 for every page",
+    "resume": "Atomic fsync page checkpoint stores nextCursor and seen pagination keys; completed exact-date input reused after verification",
+    "dates": {
+      "daily_development": 733,
+      "intraday_development": 144,
+      "reused_minute_dates": 55,
+      "sealed_common_holdout": 244
+    },
+    "full_current_entitled_dataset_cache": false,
+    "tick_supported_by_this_old_client": false,
+    "legacy_throttle": {
+      "seconds_between_requests_per_process": 2.6,
+      "matrix_max_parallel": 2,
+      "account_shared_limiter": false
+    }
+  },
+  "sample_success_receipts": [
+    {
+      "job_id": 105910707186,
+      "partition": "daily-000",
+      "provider_requests": 40,
+      "error": null,
+      "upload_artifact_id": 10586511941,
+      "ciphertext_artifact_bytes": 45583490,
+      "source": "Historical GitHub job log; not replayed"
+    },
+    {
+      "job_id": 105910709476,
+      "partition": "minute-000",
+      "provider_requests": 74,
+      "error": null,
+      "upload_artifact_id": 10587496414,
+      "ciphertext_artifact_bytes": 80449021,
+      "source": "Historical GitHub job log; not replayed"
+    }
+  ],
+  "previous_storage": {
+    "temporary_plaintext_root": "$RUNNER_TEMP/raw/jquants-v2",
+    "persistent_checkpoint": "Expiring GitHub Actions artifact containing encrypted tar archive",
+    "encryption": {
+      "algorithm": "AES-256-CBC",
+      "kdf": "PBKDF2",
+      "iterations": 200000,
+      "password_source": "env:JQUANTS_API_KEY",
+      "password_value_observed": false
+    },
+    "upload_retention_days": 90,
+    "owner_only_durable_raw_binding_verified": false,
+    "new_public_raw_or_ciphertext_uploads": 0
+  },
+  "restoration_method": {
+    "steps": [
+      "Download exact artifact by immutable run ID and artifact name using actions/download-artifact@v4 and scoped github.token",
+      "Verify outer artifact digest and sidecar ciphertext SHA256",
+      "Decrypt in private temporary environment using existing secret; never print key or signed URLs",
+      "Extract only authorized exact-date regular members; reject conflicting immutable bytes and sealed dates",
+      "Validate complete per-date pages; persist to verified owner-only durable destination before marking reuse"
+    ],
+    "encryption_key_rotation_risk": "Decryption with current secret not tested; existence of encrypted archive is not plaintext verification"
+  },
+  "existing_reuse_copy_evidence": {
+    "source_run": 35447995157,
+    "restored_original_runs": [
+      34917676944,
+      34926225832,
+      34936002178,
+      34964031692
+    ],
+    "historical_restore_and_reencrypt_job_success": true,
+    "scope": "Selected admitted-date RAW members; not a complete copy of all old partitions",
+    "preserved_artifacts": [
+      {
+        "run_id": 35447995157,
+        "id": 10586316032,
+        "name": "phase57-expansion-reuse-35447995157",
+        "size_in_bytes": 469488621,
+        "digest": "sha256:d17aed6d3d78fa9214f41cdcd441fef42959a6e8c09efce9ac80c9a353ebfd23",
+        "expired": false,
+        "expires_at": "2026-12-18T14:11:52Z"
+      },
+      {
+        "run_id": 35447995157,
+        "id": 10585681302,
+        "name": "phase57-expansion-daily-reuse-35447995157",
+        "size_in_bytes": 39170623,
+        "digest": "sha256:4c84bdf13da5886c9eaad695e369575ec85065713815437da69ce81a8e64a55d",
+        "expired": false,
+        "expires_at": "2026-12-18T14:11:52Z"
+      }
+    ],
+    "current_bytes_verified": false,
+    "current_decryption_verified": false
+  },
+  "current_artifact_listing": {
+    "checked_at_jst": "2026-10-06T13:25:14+09:00",
+    "runs": [
+      {
+        "run_id": 34917676944,
+        "total_count": 0,
+        "received": 0,
+        "paging_complete": true
+      },
+      {
+        "run_id": 34926225832,
+        "total_count": 0,
+        "received": 0,
+        "paging_complete": true
+      },
+      {
+        "run_id": 34936002178,
+        "total_count": 4,
+        "received": 4,
+        "paging_complete": true
+      },
+      {
+        "run_id": 34964031692,
+        "total_count": 2,
+        "received": 2,
+        "paging_complete": true
+      },
+      {
+        "run_id": 35447995157,
+        "total_count": 57,
+        "received": 57,
+        "paging_complete": true
+      },
+      {
+        "run_id": 35714307152,
+        "total_count": 1,
+        "received": 1,
+        "paging_complete": true
+      }
+    ],
+    "metadata_artifacts": 64,
+    "metadata_compressed_bytes": 4147979834,
+    "a8_raw_daily_batches": 37,
+    "a8_raw_minute_batches": 18,
+    "scope": "Metadata only; not RAW transferred or reuse verified"
+  },
+  "main_preservation": {
+    "writes_by_this_work": 0,
+    "jobs_cancelled": 0,
+    "pinned_basis_head": "a295df739a6810dd0081becd04a3380f6136b6ef",
+    "observed_head": "7c5ec948c73553e05b907665fc0e11c4f522727f",
+    "observed_advance": "Other writer's complete-handoff documentation commits; no reset or overwrite"
+  },
+  "continuation": {
+    "runtime": "Separate metadata/cache workflow on the dedicated branch, using the existing repository secret",
+    "old_research_workflows_to_rerun": false,
+    "remaining_requirements": [
+      "Current per-dataset entitlement and separate base/addon ends",
+      "Existing owner-only durable destination, capacity, deletion and readback access",
+      "Shared account limiter or evidenced all-consumer fixed budgets",
+      "Pinned main reader allowlist"
+    ],
+    "full_cache_route": "Freeze current /v2/bulk/list manifests; prefer provider CSV gzip objects through /v2/bulk/get; run small/minute/tick queues only after required bindings",
+    "new_subscription_or_charges": false,
+    "model_fits": 0,
+    "capital_replays": 0
+  }
+}

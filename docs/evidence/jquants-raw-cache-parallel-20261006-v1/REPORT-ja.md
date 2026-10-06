@@ -1,6 +1,10 @@
 # 📦 J-Quants RAW全量キャッシュ — 実行前提確認結果
 
-実時計JST: 2026-10-06T13:14:21.374173+09:00
+更新実時計JST: 2026-10-06T13:25:14+09:00
+
+**取得経路の追記**：GitHub Actionsの既存 `JQUANTS_API_KEY` を使うv2 API直接取得・復元方法を、成功run 35447995157（57/57 job成功）で確認した。ブラウザー403はAPI認証失敗の証拠ではない。旧L0/L1等の許可日付コピーを含む約469 MBのA8 reuse archiveも残る。今日のprovider疎通・RAW保存は未実施。詳細は [ACQUISITION_METHOD-ja.md](./ACQUISITION_METHOD-ja.md)。
+
+以下の事前確認は2026-10-06T13:14:21.374173+09:00の実行記録。artifact metadata数値は上記更新時刻で6 runを再照合した。
 
 ## 📍 現在地
 
@@ -20,16 +24,16 @@
 |---|---:|
 |取得候補dataset|11|
 |照合した保存台帳|2|
-|現物metadata確認済みartifact|65|
-|artifactに記録された圧縮サイズ合計|4,226,884,950 bytes|
-|元runから消失した旧cache artifact|2|
+|現物metadata確認済みartifact|64|
+|artifactに記録された圧縮サイズ合計|4,147,979,834 bytes|
+|元runの一覧にない旧cache artifact|3|
 |今回RAW再利用hash確認|0|
 |新規RAW保存／永続readback|0／0|
 |provider API requests／署名URL発行|0／0|
 |モデルfit／Capital Replay|0／0|
 |本線job停止／本線branch書込み|0／0|
 
-65件・4.23 GBはsource runのmetadata上の値であり、このWorkに原本を保存した値ではない。65件中、1件は選択済み派生subsetのexportである。既存ciphertextの復号・現bytes・native field set・source version・公開範囲は未確認であり、RAW_VERIFIEDには数えない。元runの一覧にない2件は旧L0および旧L1 shard0で、記録期限が既に経過した。他保存先のコピー消失まで断定していない。
+64件・4.15 GBはsource runのmetadata上の値であり、このWorkに原本を保存した値ではない。64件中、1件は選択済み派生subsetのexportである。既存ciphertextの復号・現bytes・native field set・source version・公開範囲は未確認であり、RAW_VERIFIEDには数えない。元runの一覧にない3件は旧L0および旧L1 shard0／1で、記録期限が既に経過した。A8 reuse archiveの許可済み日付コピーは残っており、旧原本が全部失われたとは判断しない。
 
 ## 🧱 取得を妨げる前提
 

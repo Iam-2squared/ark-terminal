@@ -1,0 +1,67 @@
+{
+  "TEST_performance_reads": 0,
+  "checks": {
+    "FIT_only_median_mask_scale_category_vocabulary": true,
+    "GitHub_actual_GET_receipt_required_before_confirmation": true,
+    "ZERO_UNKNOWN_ABSTAIN_separate": true,
+    "binary_confusion_and_filter_confusion_separate": true,
+    "exact_teacher_join_failure_not_coerced_unknown": true,
+    "exposure_recorded_as_historical_Development": true,
+    "four_families_five_quantiles_discovery_fit_sharing": true,
+    "no_automatic_fit_retry_after_failure": true,
+    "nonqualified_discovery_stops_before_confirmation": true,
+    "out_of_stage_signs_not_dict_decoded": true,
+    "precommit_code_feature_label_config_hashes_pinned": true,
+    "predictions_saved_before_own_TEST_grading": true,
+    "raw_original_teacher_stage_decode_and_six_field_allowlist": true,
+    "sample_weight_none_class_weight_none": true,
+    "strict_CAL_maturity_before_TEST": true,
+    "strict_FIT_maturity_before_CAL": true,
+    "unsupported_rows_retained_in_filter_denominator": true
+  },
+  "created_jst": "2026-10-06T16:43:27.508738+09:00",
+  "created_utc": "2026-10-06T07:43:27.508738+00:00",
+  "limits": [
+    "Static review, not a claim of market performance or attainment.",
+    "Self-attested receipt is only valid after the root performs actual GitHub GET and pins hashes.",
+    "Current full data provenance and teacher identity rely on the separately completed source/metadata audit.",
+    "Frozen teacher must still be independently bound to current fixed Structural EXIT v3 plus existing EOD/cost semantics by asset recovery audit before market fit. This static harness approval is not that teacher binding."
+  ],
+  "new_market_fits": 0,
+  "new_threshold_selections": 0,
+  "owner": "sign_teacher_producer_audit",
+  "previous_review_code_sha256": "a415a7b2c86ade7deb5631011b57e7b93a08b386b5b09de3b3cfcc4364bb1d5f",
+  "previous_review_path": "/workspace/private-recovery/teacher-producer-audit/FINITE_HARNESS_STATIC_REVIEW.json",
+  "previous_review_preserved": true,
+  "previous_review_sha256": "7b1cf89fdf9a626fdba1c9c46a822d2364f0248227d7c716197fac56529fa208",
+  "private_profit_value_reads": 0,
+  "private_sign_value_reads": 0,
+  "remaining_contract_notes": [
+    {
+      "action": "Keep this meaning explicit in the frozen contract; do not add result-dependent fallback.",
+      "finding": "CAL threshold qualified is a Discovery pair-support condition (>=3 blocks), not an enable/disable condition for each test threshold. Quantile tau is applied in Confirmation even when that block CAL qualifies=false.",
+      "severity": "contract_clarity"
+    },
+    {
+      "action": "Report known precision with numerator/denominator and UNKNOWN/ZERO pass counts; never silently label all passed entries 80 percent PLUS.",
+      "finding": "80 percent gate is precision among passed PLUS/MINUS-known rows; ZERO/UNKNOWN pass counts remain separate.",
+      "severity": "denominator_clarity"
+    }
+  ],
+  "resolved_note": {
+    "finding": "Counter increment precedes evaluation of model.fit transform arguments. A transform failure would consume budget but report an actual fit call that was not reached.",
+    "implementation_agent_reported_suite": "13/13 PASS; no estimator .fit",
+    "independent_static_confirmation": true,
+    "independent_test_rerun": false,
+    "resolution": "fit_x/fit_y are fully materialized before actual_model_fit_calls increment, FIT_STARTED ledger save, and model.fit invocation. Conversion failures now count zero estimator fits. Failed .fit invocations remain counted and no automatic retry is added.",
+    "synthetic_test": "test_transform_failure_does_not_count_an_estimator_fit",
+    "synthetic_test_source_sha256": "164c81c2d7168302fc5268abe61188037e489caadbf30335a2e861aca4bbdbfa",
+    "test_review": "Creates supported 100-row synthetic FIT with both classes; injects transform ValueError; asserts trial failure and actual_model_fit_calls=0. No sklearn .fit reaches."
+  },
+  "reviewed_code_path": "/workspace/ark-sign-work/research/sign-prebuy-quality-precision80-20261006-v2/finite_sign_study.py",
+  "reviewed_code_sha256": "9378170ec169b47a5db0c2863e9f33d8b499808ad5c2bdb19054f7a4267fdd56",
+  "scope": "Independent static review of finite Sign harness, without market fit or private class/performance reads",
+  "statistical_contract_changed": false,
+  "status": "PASS_FINAL_STATIC_REVIEW_PENDING_TEACHER_EXIT_BINDING",
+  "technical_diff_independently_verified": "Removing fit_x/fit_y argument materialization and restoring old model.fit expression exactly reconstructs prior reviewed SHA a415a7b2c86ade7deb5631011b57e7b93a08b386b5b09de3b3cfcc4364bb1d5f; no other code changes."
+}

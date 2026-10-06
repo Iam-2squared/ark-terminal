@@ -1,0 +1,217 @@
+{
+  "status": "EXISTING_SIGN_VIEW_HASH_AND_FROZEN_EXIT_EOD_METADATA_CHAIN_VERIFIED",
+  "exact_utc": "2026-10-06T07:43:39.738185+00:00",
+  "exact_jst": "2026-10-06T16:43:39.738185+09:00",
+  "owner": "/root/frozen_asset_recovery",
+  "public_receipt_basis_HEAD": "a295df739a6810dd0081becd04a3380f6136b6ef",
+  "private_repo_basis_HEAD": "ed8aa200525a62cf43de78297625357d90c1a2bd",
+  "scope": "Frozen existing sign target reuse proof from public contracts/source bindings and private byte hashes; no row-level target parsing or grading.",
+  "hash_verified_private_assets": {
+    "SIGN_TARGETS": {
+      "sha256": "37395d7567df741a74b1ff749a32118cec04ed988da101b81634c2c55ae9ae0d",
+      "bytes": 78284,
+      "target_body_decoded": false
+    },
+    "RNEG_TARGETS_EVALUATION_ONLY": {
+      "sha256": "fe8053da6798adcf01b5f4c09236304f607113c541acfee35a8f4ea74c9b9293",
+      "bytes": 73257,
+      "target_body_decoded": false
+    },
+    "FROZEN_ENTRY": {
+      "sha256": "e7a6140b6b11d8d078a271fad76b75e68a5b2fda9e45c7db43d98ee2f282abeb",
+      "schema_identity_clock_only": true
+    }
+  },
+  "target_contract": {
+    "authority": "Existing fixed Entry -> existing frozen Structural EXIT plus inherited fixed EOD settlement; reuse current target bytes.",
+    "comparison": "exact Fraction(sell_credit) vs Fraction(buy_debit), no epsilon, no return computation",
+    "target": "PLUS=1 MINUS=0; exact zero/unknown=null",
+    "allowed_fields": [
+      "entry_id",
+      "label_maturity",
+      "session",
+      "sign_status",
+      "source_hash",
+      "y_plus"
+    ],
+    "costs": "original BUY1.0005 SELL0.9995, no repeated fee application",
+    "commission": 0,
+    "sample_weight": null,
+    "class_weight": null,
+    "magnitude_or_portfolio_payload_used": false,
+    "source_hash_provenance_only": true,
+    "existing_adapter_prior_sign_difference_N": 0,
+    "existing_adapter_prior_magnitude_invariance_cases_N": 3120,
+    "existing_adapter_new_R_materializations_N": 0,
+    "prior_checks_rerun_here": false
+  },
+  "metadata_lineage": [
+    {
+      "stage": "Controlling original freezes",
+      "controlling_frozen": [
+        {
+          "kind": "entry",
+          "branch": "persistent-watchlist-uptrend-first-entry-20261003-v2",
+          "head": "4a2d6f35946b16820a13449a9288a6685a5c283c"
+        },
+        {
+          "kind": "exit",
+          "branch": "state9-structural-exit-v3-local-guard-20261003",
+          "head": "c7a5e5c25eb19cbd58b45c3e4ffff977f4648fad"
+        },
+        {
+          "kind": "formal",
+          "branch": "exit-v3-freeze-reentry-v1-20261003",
+          "head": "1ecbcc43f75279fa302f19fd896add2aac15b537"
+        }
+      ],
+      "frozen_entry_sha256": "e7a6140b6b11d8d078a271fad76b75e68a5b2fda9e45c7db43d98ee2f282abeb",
+      "original_EXIT_v3_sha256": "e162d94b9f532f1b6b44b7d602f6be50babec7a5183c4378473cefcd92d61234"
+    },
+    {
+      "stage": "Original Quality CORE source census binding",
+      "checkpoint_path": "docs/evidence/capital-max3-top3-quality-v3-20261004-v1/checkpoints/Q2_TEACHER_CENSUS_AND_CONTRACT.json",
+      "market_execution_book_sha256": "ee7c88e19832439f615da54dc9df7e4a0307fdb1b2b5a18d3e1f60f71566736a",
+      "teachers_evaluation_sha256": "005e194cae26898d74ea95c3aea8464517f7b71d330e53d1a2ad05c767b89322",
+      "original_frozen_entry_sha256": "e7a6140b6b11d8d078a271fad76b75e68a5b2fda9e45c7db43d98ee2f282abeb",
+      "original_frozen_exit_sha256": "e162d94b9f532f1b6b44b7d602f6be50babec7a5183c4378473cefcd92d61234"
+    },
+    {
+      "stage": "Existing canonical Capital EXIT/EOD and warmup teacher reuse",
+      "prepare_code": "research/capital-rneg-defense-reuse-20261006-v1/prepare_rneg.py",
+      "semantics": "Canonical Capital R debit/credit for stream identities; existing completed-session TEACHERS_EVALUATION for other warmup identities. Existing preparation asserts overlap debit/credit and teacher parity.",
+      "existing_execution_contract": "Native frozen_execution if release<=920, otherwise native EOD source, including native source/lineage fail-closed contract",
+      "execution_policy_sha256": "7f084415ed92344fb99ef26e27ac48f2beeb868e643fba720bb61355339a8bc8",
+      "structural_EXIT_return_separate": "Preserve separately; not relabeled as Capital return"
+    },
+    {
+      "stage": "Existing strict-sign adapter",
+      "source_target_sha256": "fe8053da6798adcf01b5f4c09236304f607113c541acfee35a8f4ea74c9b9293",
+      "sign_view_sha256": "37395d7567df741a74b1ff749a32118cec04ed988da101b81634c2c55ae9ae0d",
+      "semantics": "Exact Fraction comparison; UNKNOWN and EXACT_ZERO remain separate/null; only six allowlisted sign metadata fields exit adapter."
+    }
+  ],
+  "EOD_source_contract": {
+    "frozen_EXIT": "Use confirmed original frozen exit when assumed source availability <= 15:20 JST; fail closed on invalid source lineage.",
+    "inherited_EOD": "Fixed intent 15:20 JST; first valid regular source minute in [15:20,15:25), otherwise exact 15:30 auction; unknown when no valid source.",
+    "definition_changed_here": false,
+    "historical_actual_arrival": "UNKNOWN; original assumed bar-end availability, not actual receive-time certification"
+  },
+  "verification_limitations": {
+    "original_EXIT_v3_trade_rows_restored": false,
+    "original_EXIT_row_level_independent_regrading_performed": false,
+    "old_completed_checks_reused_as_metadata": true,
+    "new_original_teacher_values_read": false,
+    "target_classes_or_prediction_performance_read_here": false,
+    "adoption_or_80_percent_sign_performance_claim": false
+  },
+  "public_contract_and_code_pins": [
+    {
+      "path": "docs/evidence/independent-entry-exit-sign-20261006-v1/SIGN_TARGET_CONTRACT.json",
+      "sha256": "ce5b47baf1a8dd763a3bf98396a7f762b7334d592b2802415746f02629ef8ddb",
+      "Git_blob_SHA1": "3b91854796a098749532637368e238317dc9579c",
+      "bytes": 846,
+      "GET_byte_proof": "PASS"
+    },
+    {
+      "path": "research/independent-entry-exit-sign-20261006-v1/audit_source_adapter.py",
+      "sha256": "415473af95b004042ff410b5998b429f0e07fc34a4d0adb93aafd5f809a8c3f3",
+      "Git_blob_SHA1": "c596aa1ed98397801bc568ac6a55a79b5a9ddfee",
+      "bytes": 5568,
+      "GET_byte_proof": "PASS"
+    },
+    {
+      "path": "research/capital-rneg-defense-reuse-20261006-v1/prepare_rneg.py",
+      "sha256": "ff73d731d84a1ea34cabd1c697d972f85adb73cb550874b09df151016166e200",
+      "Git_blob_SHA1": "d2b65b3230ca8ec9a65ca37695509f40f98badf2",
+      "bytes": 15341,
+      "GET_byte_proof": "PASS"
+    },
+    {
+      "path": "research/capital-v5-max3-slot-intelligence-20261004-v1/execution.py",
+      "sha256": "7f084415ed92344fb99ef26e27ac48f2beeb868e643fba720bb61355339a8bc8",
+      "Git_blob_SHA1": "311fa97b4dccf5ce74af5a81e17d39c986c97573",
+      "bytes": 3327,
+      "GET_byte_proof": "PASS"
+    },
+    {
+      "path": "docs/evidence/capital-sign-only-filter-stage1-20261006-v1/SIGN_TARGET_CONTRACT.json",
+      "sha256": "d80645bf031e78cdf711362eccd9347ed137e6054d870d86cb97f5d7a7383a04",
+      "Git_blob_SHA1": "b0ef20c5e6fa1b7867ad67b44bfe954fc7a6eba5",
+      "bytes": 1294,
+      "GET_byte_proof": "PASS"
+    },
+    {
+      "path": "docs/evidence/capital-sign-only-filter-stage1-20261006-v1/SOURCE_BINDING.json",
+      "sha256": "92f3f79c7ddd4d2d9e4b9998ff4e2bf163b28790dea3ef4f3f36252574828e4b",
+      "Git_blob_SHA1": "fbb18889ba491b95c4f5bd691d3bf6dd8576167a",
+      "bytes": 20315,
+      "GET_byte_proof": "PASS"
+    },
+    {
+      "path": "docs/evidence/capital-rneg-defense-reuse-20261006-v1/RNEG_TARGET_BINDING.json",
+      "sha256": "bf89b805e63cd1d4181192ec99ea3016ec2171021169e7e05ed805ba0da1ed1b",
+      "Git_blob_SHA1": "676af0e826cdf2b0a06dc79309ae7e10c0637fbc",
+      "bytes": 349,
+      "GET_byte_proof": "PASS"
+    },
+    {
+      "path": "docs/evidence/capital-rneg-defense-reuse-20261006-v1/FINAL_TARGET_SOURCE_FREEZE_AUDIT.json",
+      "sha256": "e86c64db5430146c07a0403a285e3341b8b900183d94c0e7ec66104468d6ebcb",
+      "Git_blob_SHA1": "d5bf1187fd5d329505e081cbc7133bf8f098bae8",
+      "bytes": 1422,
+      "GET_byte_proof": "PASS"
+    },
+    {
+      "path": "docs/evidence/capital-rneg-defense-reuse-20261006-v1/SOURCE_BINDING.json",
+      "sha256": "0d7d45f8e3ec777dda24417fa7a7b7fb8674132357dc6d7b82823b8e93b2d2ff",
+      "Git_blob_SHA1": "d1af02c346a8b408c792ce4483e3746f9b4399c2",
+      "bytes": 1747,
+      "GET_byte_proof": "PASS"
+    },
+    {
+      "path": "docs/evidence/capital-full-r-spectrum-20261006-v1/START_AND_SOURCE_BINDING.json",
+      "sha256": "2583ccfe6d95a75ed3739a0aa4f7214532892e71cfb917cc6ff3c960d1fd39cf",
+      "Git_blob_SHA1": "3943b1e19e8cf762e64414b30fc48b438c406285",
+      "bytes": 19381,
+      "GET_byte_proof": "PASS"
+    },
+    {
+      "path": "docs/evidence/capital-v5-reserve-past-qualified-20261005-v1/INPUT_BINDING.json",
+      "sha256": "4ebbc0f5d563420767ce4ba632a626f09cc1ec818a1c40838a085bbacaee617f",
+      "Git_blob_SHA1": "d19b62b55bf398fb50120226ae446c48ebe95205",
+      "bytes": 18960,
+      "GET_byte_proof": "PASS"
+    },
+    {
+      "path": "docs/evidence/capital-max3-top3-quality-v3-20261004-v1/checkpoints/Q2_TEACHER_CENSUS_AND_CONTRACT.json",
+      "sha256": "fe86f4c9cfaa13ae7b28d6641a1f3d57a5f350e29f23582a48120dcb23853331",
+      "Git_blob_SHA1": "f7b500b6faac2616f16fd72926940d33e9a4b6d3",
+      "bytes": 4319,
+      "GET_byte_proof": "PASS"
+    },
+    {
+      "path": "docs/evidence/capital-v51-reset20-r5r10-20261006-v1/R_LABEL_CONTRACT.json",
+      "sha256": "74780ac66ad5b17aa6427b1a9a74a57d4ced17d5b1fbed5eb3ae1e75862ec4a8",
+      "Git_blob_SHA1": "050260cce26d3874e1205d3ca2b6e992c39f9368",
+      "bytes": 3184,
+      "GET_byte_proof": "PASS"
+    },
+    {
+      "path": "docs/evidence/phase57-capital-state9-liquidity-sameday-20261004-v1/SOURCE_MANIFEST_FINAL.json",
+      "sha256": "0b2fb77ce2efd3199717a696b2f4ee6944e040d2ccd3c9f8b93e1a3a71b55e64",
+      "Git_blob_SHA1": "e16e7eab3aa8805789062e5995ffb5645a5f484d",
+      "bytes": 3766,
+      "GET_byte_proof": "PASS"
+    }
+  ],
+  "work量": {
+    "new_provider_requests": 0,
+    "model_fits": 0,
+    "Capital_replays": 0,
+    "protected_market_bodies_opened": 0,
+    "GitHub_writes": 0,
+    "frozen_contract_edits": 0
+  },
+  "next_direction": "Finish purchase-intent prefix input repair/State9-P1 sidecar audit. Reuse authenticated existing SIGN_TARGETS for a separately precommitted finite sign experiment; do not regenerate or reinterpret original EXIT/EOD targets."
+}

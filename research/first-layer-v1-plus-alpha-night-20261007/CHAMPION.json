@@ -1,14 +1,58 @@
 {
-  "candidate_id": "V1",
-  "legacy_REPORT95": {
-    "M": 261,
-    "M_drop": 10,
-    "M_keep": 251,
-    "P": 230,
-    "P_drop": 8,
-    "P_keep": 222
+  "candidate_id": "C01_CHART_LOGIT",
+  "clock": {
+    "JST": "2026-10-07T00:41:07.685580+09:00",
+    "UTC": "2026-10-06T15:41:07.685580+00:00"
   },
-  "operating_point": null,
-  "parent_id": null,
-  "status": "V1_SAME_CONDITION_REBENCHMARK_PENDING"
+  "complexity": [
+    1,
+    0,
+    0,
+    38,
+    0
+  ],
+  "config": {
+    "V1_INTERACTIONS": true,
+    "added_families": [
+      "C01"
+    ],
+    "candidate_id": "C01_CHART_LOGIT",
+    "complexity": [
+      1,
+      0,
+      0,
+      38,
+      0
+    ],
+    "family": "logit",
+    "new_interactions": [],
+    "parent_id": "V1",
+    "regularization_multiplier": 1.0
+  },
+  "dominated_by": [],
+  "measure_sha256": "7cb7fe7c4bcec29d18e4a20c53ed5cf632a5da2859715284dbf03c1ebdb0a49c",
+  "metrics": {
+    "M": 172,
+    "MINUS_remaining": 0.877906976744186,
+    "MINUS_removal": 0.12209302325581395,
+    "M_drop": 21,
+    "M_keep": 151,
+    "P": 144,
+    "PLUS_retention": 0.9444444444444444,
+    "P_drop": 8,
+    "P_keep": 136,
+    "UNKNOWN_drop": 0,
+    "UNKNOWN_keep": 6,
+    "ZERO_drop": 0,
+    "ZERO_keep": 0,
+    "target_integer": false
+  },
+  "operating_point": 95,
+  "previous": {
+    "candidate_id": "V1",
+    "operating_point": 95
+  },
+  "reason": "lowest MINUS remaining among PLUS retention>=90%; integer denominators identical",
+  "status": "RESEARCH_CHAMPION_DEVELOPMENT_ONLY",
+  "updated": true
 }

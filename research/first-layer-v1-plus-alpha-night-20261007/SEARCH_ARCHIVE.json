@@ -28,7 +28,12 @@
         "parent_id": "V1",
         "regularization_multiplier": 1.0
       },
-      "dominated_by": [],
+      "dominated_by": [
+        {
+          "candidate_id": "C05_REG_STRONG",
+          "point": 90
+        }
+      ],
       "measure_sha256": "7cb7fe7c4bcec29d18e4a20c53ed5cf632a5da2859715284dbf03c1ebdb0a49c",
       "metrics": {
         "M": 172,
@@ -139,6 +144,10 @@
         {
           "candidate_id": "C03_STATE_CHART_LOGIT",
           "point": 99
+        },
+        {
+          "candidate_id": "C05_REG_WEAK",
+          "point": 99
         }
       ],
       "measure_sha256": "7cb7fe7c4bcec29d18e4a20c53ed5cf632a5da2859715284dbf03c1ebdb0a49c",
@@ -247,6 +256,10 @@
         },
         {
           "candidate_id": "C03_STATE_CHART_LOGIT",
+          "point": 95
+        },
+        {
+          "candidate_id": "C05_REG_WEAK",
           "point": 95
         }
       ],
@@ -421,6 +434,10 @@
         {
           "candidate_id": "C03_STATE_CHART_LOGIT",
           "point": 95
+        },
+        {
+          "candidate_id": "C05_REG_WEAK",
+          "point": 95
         }
       ],
       "measure_sha256": "a971c1b306fc38834446a255fcca1a5fc1894369b0befe9f97d44ee1f3350a1a",
@@ -549,7 +566,12 @@
         "parent_id": "C01_CHART_LOGIT",
         "regularization_multiplier": 1.0
       },
-      "dominated_by": [],
+      "dominated_by": [
+        {
+          "candidate_id": "C05_REG_STRONG",
+          "point": 90
+        }
+      ],
       "measure_sha256": "dba1bd3f56c8fc933ea15f52f2c65f3a7da61bc7e2e8705e30dc191f9e912681",
       "metrics": {
         "M": 172,
@@ -800,7 +822,12 @@
         "parent_id": "C03_STATE_CHART_LOGIT",
         "regularization_multiplier": 1.0
       },
-      "dominated_by": [],
+      "dominated_by": [
+        {
+          "candidate_id": "C05_REG_STRONG",
+          "point": 90
+        }
+      ],
       "measure_sha256": "700326892fdbd05b4d1d8b3d3accb6de6dbc51b019cfe1cc979cc3294dc3cb36",
       "metrics": {
         "M": 172,
@@ -997,6 +1024,14 @@
         {
           "candidate_id": "C03_STATE_CHART_LOGIT",
           "point": 95
+        },
+        {
+          "candidate_id": "C05_REG_STRONG",
+          "point": 95
+        },
+        {
+          "candidate_id": "C05_REG_WEAK",
+          "point": 95
         }
       ],
       "measure_sha256": "700326892fdbd05b4d1d8b3d3accb6de6dbc51b019cfe1cc979cc3294dc3cb36",
@@ -1088,7 +1123,12 @@
         "parent_id": "C03_STATE_CHART_LOGIT",
         "regularization_multiplier": 1.0
       },
-      "dominated_by": [],
+      "dominated_by": [
+        {
+          "candidate_id": "C05_REG_STRONG",
+          "point": 90
+        }
+      ],
       "measure_sha256": "109b8b114573017acb46814c57f99e92ed6552f5214b777d925d9b8539fd1e5f",
       "metrics": {
         "M": 172,
@@ -1285,7 +1325,16 @@
         "parent_id": "C03_STATE_CHART_LOGIT",
         "regularization_multiplier": 1.0
       },
-      "dominated_by": [],
+      "dominated_by": [
+        {
+          "candidate_id": "C05_REG_STRONG",
+          "point": 95
+        },
+        {
+          "candidate_id": "C05_REG_WEAK",
+          "point": 95
+        }
+      ],
       "measure_sha256": "109b8b114573017acb46814c57f99e92ed6552f5214b777d925d9b8539fd1e5f",
       "metrics": {
         "M": 172,
@@ -1297,6 +1346,511 @@
         "PLUS_retention": 0.9513888888888888,
         "P_drop": 7,
         "P_keep": 137,
+        "UNKNOWN_drop": 0,
+        "UNKNOWN_keep": 6,
+        "ZERO_drop": 0,
+        "ZERO_keep": 0,
+        "target_integer": false
+      },
+      "operating_point": 99
+    },
+    {
+      "candidate_id": "C05_REG_STRONG",
+      "complexity": [
+        1,
+        12,
+        0,
+        100,
+        2.0
+      ],
+      "config": {
+        "V1_INTERACTIONS": true,
+        "added_families": [
+          "C01"
+        ],
+        "candidate_id": "C05_REG_STRONG",
+        "complexity": [
+          1,
+          12,
+          0,
+          100,
+          2.0
+        ],
+        "drop_FIT_constant_columns": true,
+        "family": "logit",
+        "new_interactions": [
+          {
+            "category": "S.primary",
+            "group": "C03current",
+            "numeric": [
+              "C01.open_progress",
+              "C01.range_position",
+              "C01.connected_efficiency",
+              "C01.mean_value"
+            ]
+          },
+          {
+            "category": "H.primary",
+            "group": "C03history",
+            "numeric": [
+              "C01.from_high",
+              "C01.from_low",
+              "C01.high_update_count",
+              "C01.value_up_fraction"
+            ]
+          },
+          {
+            "binary": "Q.current_state_available",
+            "group": "C03available",
+            "numeric": [
+              "C01.direction_agreement",
+              "C01.tail_vs_full_efficiency",
+              "C01.mean_volume",
+              "C01.support_fraction"
+            ]
+          }
+        ],
+        "parent_id": "C03_STATE_CHART_LOGIT",
+        "regularization_multiplier": 3.0
+      },
+      "dominated_by": [],
+      "measure_sha256": "80233788025ad862e8f2a26e453418fc6fe355c2910d5ed366beef1af187aa6d",
+      "metrics": {
+        "M": 172,
+        "MINUS_remaining": 0.8197674418604651,
+        "MINUS_removal": 0.18023255813953487,
+        "M_drop": 31,
+        "M_keep": 141,
+        "P": 144,
+        "PLUS_retention": 0.8680555555555556,
+        "P_drop": 19,
+        "P_keep": 125,
+        "UNKNOWN_drop": 0,
+        "UNKNOWN_keep": 6,
+        "ZERO_drop": 0,
+        "ZERO_keep": 0,
+        "target_integer": false
+      },
+      "operating_point": 90
+    },
+    {
+      "candidate_id": "C05_REG_STRONG",
+      "complexity": [
+        1,
+        12,
+        0,
+        100,
+        2.0
+      ],
+      "config": {
+        "V1_INTERACTIONS": true,
+        "added_families": [
+          "C01"
+        ],
+        "candidate_id": "C05_REG_STRONG",
+        "complexity": [
+          1,
+          12,
+          0,
+          100,
+          2.0
+        ],
+        "drop_FIT_constant_columns": true,
+        "family": "logit",
+        "new_interactions": [
+          {
+            "category": "S.primary",
+            "group": "C03current",
+            "numeric": [
+              "C01.open_progress",
+              "C01.range_position",
+              "C01.connected_efficiency",
+              "C01.mean_value"
+            ]
+          },
+          {
+            "category": "H.primary",
+            "group": "C03history",
+            "numeric": [
+              "C01.from_high",
+              "C01.from_low",
+              "C01.high_update_count",
+              "C01.value_up_fraction"
+            ]
+          },
+          {
+            "binary": "Q.current_state_available",
+            "group": "C03available",
+            "numeric": [
+              "C01.direction_agreement",
+              "C01.tail_vs_full_efficiency",
+              "C01.mean_volume",
+              "C01.support_fraction"
+            ]
+          }
+        ],
+        "parent_id": "C03_STATE_CHART_LOGIT",
+        "regularization_multiplier": 3.0
+      },
+      "dominated_by": [],
+      "measure_sha256": "80233788025ad862e8f2a26e453418fc6fe355c2910d5ed366beef1af187aa6d",
+      "metrics": {
+        "M": 172,
+        "MINUS_remaining": 0.9127906976744186,
+        "MINUS_removal": 0.0872093023255814,
+        "M_drop": 15,
+        "M_keep": 157,
+        "P": 144,
+        "PLUS_retention": 0.9583333333333334,
+        "P_drop": 6,
+        "P_keep": 138,
+        "UNKNOWN_drop": 0,
+        "UNKNOWN_keep": 6,
+        "ZERO_drop": 0,
+        "ZERO_keep": 0,
+        "target_integer": false
+      },
+      "operating_point": 95
+    },
+    {
+      "candidate_id": "C05_REG_STRONG",
+      "complexity": [
+        1,
+        12,
+        0,
+        100,
+        2.0
+      ],
+      "config": {
+        "V1_INTERACTIONS": true,
+        "added_families": [
+          "C01"
+        ],
+        "candidate_id": "C05_REG_STRONG",
+        "complexity": [
+          1,
+          12,
+          0,
+          100,
+          2.0
+        ],
+        "drop_FIT_constant_columns": true,
+        "family": "logit",
+        "new_interactions": [
+          {
+            "category": "S.primary",
+            "group": "C03current",
+            "numeric": [
+              "C01.open_progress",
+              "C01.range_position",
+              "C01.connected_efficiency",
+              "C01.mean_value"
+            ]
+          },
+          {
+            "category": "H.primary",
+            "group": "C03history",
+            "numeric": [
+              "C01.from_high",
+              "C01.from_low",
+              "C01.high_update_count",
+              "C01.value_up_fraction"
+            ]
+          },
+          {
+            "binary": "Q.current_state_available",
+            "group": "C03available",
+            "numeric": [
+              "C01.direction_agreement",
+              "C01.tail_vs_full_efficiency",
+              "C01.mean_volume",
+              "C01.support_fraction"
+            ]
+          }
+        ],
+        "parent_id": "C03_STATE_CHART_LOGIT",
+        "regularization_multiplier": 3.0
+      },
+      "dominated_by": [
+        {
+          "candidate_id": "C02_D1_LOGIT",
+          "point": 99
+        },
+        {
+          "candidate_id": "C02_D5_LOGIT",
+          "point": 99
+        },
+        {
+          "candidate_id": "C03_STATE_CHART_LOGIT",
+          "point": 99
+        },
+        {
+          "candidate_id": "C05_REG_WEAK",
+          "point": 99
+        }
+      ],
+      "measure_sha256": "80233788025ad862e8f2a26e453418fc6fe355c2910d5ed366beef1af187aa6d",
+      "metrics": {
+        "M": 172,
+        "MINUS_remaining": 0.9825581395348837,
+        "MINUS_removal": 0.01744186046511628,
+        "M_drop": 3,
+        "M_keep": 169,
+        "P": 144,
+        "PLUS_retention": 0.9861111111111112,
+        "P_drop": 2,
+        "P_keep": 142,
+        "UNKNOWN_drop": 0,
+        "UNKNOWN_keep": 6,
+        "ZERO_drop": 0,
+        "ZERO_keep": 0,
+        "target_integer": false
+      },
+      "operating_point": 99
+    },
+    {
+      "candidate_id": "C05_REG_WEAK",
+      "complexity": [
+        1,
+        12,
+        0,
+        100,
+        0.6666666666666667
+      ],
+      "config": {
+        "V1_INTERACTIONS": true,
+        "added_families": [
+          "C01"
+        ],
+        "candidate_id": "C05_REG_WEAK",
+        "complexity": [
+          1,
+          12,
+          0,
+          100,
+          0.6666666666666667
+        ],
+        "drop_FIT_constant_columns": true,
+        "family": "logit",
+        "new_interactions": [
+          {
+            "category": "S.primary",
+            "group": "C03current",
+            "numeric": [
+              "C01.open_progress",
+              "C01.range_position",
+              "C01.connected_efficiency",
+              "C01.mean_value"
+            ]
+          },
+          {
+            "category": "H.primary",
+            "group": "C03history",
+            "numeric": [
+              "C01.from_high",
+              "C01.from_low",
+              "C01.high_update_count",
+              "C01.value_up_fraction"
+            ]
+          },
+          {
+            "binary": "Q.current_state_available",
+            "group": "C03available",
+            "numeric": [
+              "C01.direction_agreement",
+              "C01.tail_vs_full_efficiency",
+              "C01.mean_volume",
+              "C01.support_fraction"
+            ]
+          }
+        ],
+        "parent_id": "C03_STATE_CHART_LOGIT",
+        "regularization_multiplier": 0.3333333333333333
+      },
+      "dominated_by": [
+        {
+          "candidate_id": "C04_HGB_B",
+          "point": 90
+        },
+        {
+          "candidate_id": "C05_REG_STRONG",
+          "point": 90
+        }
+      ],
+      "measure_sha256": "568cacc063911c0017dba2446dd521e5d7725b3de0d769ce1d7b62ffddb1b134",
+      "metrics": {
+        "M": 172,
+        "MINUS_remaining": 0.8255813953488372,
+        "MINUS_removal": 0.1744186046511628,
+        "M_drop": 30,
+        "M_keep": 142,
+        "P": 144,
+        "PLUS_retention": 0.8194444444444444,
+        "P_drop": 26,
+        "P_keep": 118,
+        "UNKNOWN_drop": 1,
+        "UNKNOWN_keep": 5,
+        "ZERO_drop": 0,
+        "ZERO_keep": 0,
+        "target_integer": false
+      },
+      "operating_point": 90
+    },
+    {
+      "candidate_id": "C05_REG_WEAK",
+      "complexity": [
+        1,
+        12,
+        0,
+        100,
+        0.6666666666666667
+      ],
+      "config": {
+        "V1_INTERACTIONS": true,
+        "added_families": [
+          "C01"
+        ],
+        "candidate_id": "C05_REG_WEAK",
+        "complexity": [
+          1,
+          12,
+          0,
+          100,
+          0.6666666666666667
+        ],
+        "drop_FIT_constant_columns": true,
+        "family": "logit",
+        "new_interactions": [
+          {
+            "category": "S.primary",
+            "group": "C03current",
+            "numeric": [
+              "C01.open_progress",
+              "C01.range_position",
+              "C01.connected_efficiency",
+              "C01.mean_value"
+            ]
+          },
+          {
+            "category": "H.primary",
+            "group": "C03history",
+            "numeric": [
+              "C01.from_high",
+              "C01.from_low",
+              "C01.high_update_count",
+              "C01.value_up_fraction"
+            ]
+          },
+          {
+            "binary": "Q.current_state_available",
+            "group": "C03available",
+            "numeric": [
+              "C01.direction_agreement",
+              "C01.tail_vs_full_efficiency",
+              "C01.mean_volume",
+              "C01.support_fraction"
+            ]
+          }
+        ],
+        "parent_id": "C03_STATE_CHART_LOGIT",
+        "regularization_multiplier": 0.3333333333333333
+      },
+      "dominated_by": [],
+      "measure_sha256": "568cacc063911c0017dba2446dd521e5d7725b3de0d769ce1d7b62ffddb1b134",
+      "metrics": {
+        "M": 172,
+        "MINUS_remaining": 0.8895348837209303,
+        "MINUS_removal": 0.11046511627906977,
+        "M_drop": 19,
+        "M_keep": 153,
+        "P": 144,
+        "PLUS_retention": 0.9513888888888888,
+        "P_drop": 7,
+        "P_keep": 137,
+        "UNKNOWN_drop": 0,
+        "UNKNOWN_keep": 6,
+        "ZERO_drop": 0,
+        "ZERO_keep": 0,
+        "target_integer": false
+      },
+      "operating_point": 95
+    },
+    {
+      "candidate_id": "C05_REG_WEAK",
+      "complexity": [
+        1,
+        12,
+        0,
+        100,
+        0.6666666666666667
+      ],
+      "config": {
+        "V1_INTERACTIONS": true,
+        "added_families": [
+          "C01"
+        ],
+        "candidate_id": "C05_REG_WEAK",
+        "complexity": [
+          1,
+          12,
+          0,
+          100,
+          0.6666666666666667
+        ],
+        "drop_FIT_constant_columns": true,
+        "family": "logit",
+        "new_interactions": [
+          {
+            "category": "S.primary",
+            "group": "C03current",
+            "numeric": [
+              "C01.open_progress",
+              "C01.range_position",
+              "C01.connected_efficiency",
+              "C01.mean_value"
+            ]
+          },
+          {
+            "category": "H.primary",
+            "group": "C03history",
+            "numeric": [
+              "C01.from_high",
+              "C01.from_low",
+              "C01.high_update_count",
+              "C01.value_up_fraction"
+            ]
+          },
+          {
+            "binary": "Q.current_state_available",
+            "group": "C03available",
+            "numeric": [
+              "C01.direction_agreement",
+              "C01.tail_vs_full_efficiency",
+              "C01.mean_volume",
+              "C01.support_fraction"
+            ]
+          }
+        ],
+        "parent_id": "C03_STATE_CHART_LOGIT",
+        "regularization_multiplier": 0.3333333333333333
+      },
+      "dominated_by": [
+        {
+          "candidate_id": "C02_D5_LOGIT",
+          "point": 99
+        }
+      ],
+      "measure_sha256": "568cacc063911c0017dba2446dd521e5d7725b3de0d769ce1d7b62ffddb1b134",
+      "metrics": {
+        "M": 172,
+        "MINUS_remaining": 0.9825581395348837,
+        "MINUS_removal": 0.01744186046511628,
+        "M_drop": 3,
+        "M_keep": 169,
+        "P": 144,
+        "PLUS_retention": 0.9930555555555556,
+        "P_drop": 1,
+        "P_keep": 143,
         "UNKNOWN_drop": 0,
         "UNKNOWN_keep": 6,
         "ZERO_drop": 0,
@@ -1341,6 +1895,10 @@
         },
         {
           "candidate_id": "C04_HGB_A",
+          "point": 90
+        },
+        {
+          "candidate_id": "C05_REG_STRONG",
           "point": 90
         }
       ],
@@ -1388,7 +1946,12 @@
         "parent_id": null,
         "regularization_multiplier": 1.0
       },
-      "dominated_by": [],
+      "dominated_by": [
+        {
+          "candidate_id": "C05_REG_STRONG",
+          "point": 95
+        }
+      ],
       "measure_sha256": "ec42c31b5f01af0d7380944c48d3acafbf30068157841cf72d316f940b636680",
       "metrics": {
         "M": 172,
@@ -1455,7 +2018,7 @@
     }
   ],
   "clock": {
-    "JST": "2026-10-07T00:49:14.078699+09:00",
-    "UTC": "2026-10-06T15:49:14.078699+00:00"
+    "JST": "2026-10-07T07:06:19.246389+09:00",
+    "UTC": "2026-10-06T22:06:19.246389+00:00"
   }
 }

@@ -1,0 +1,96 @@
+{
+  "REPORT501_forbidden_for_continued_selection": true,
+  "Tick_skipped": "No prepared cutoff-matched tick context; no new transport.",
+  "adaptive_development": true,
+  "aliases_kept": true,
+  "blocks": [
+    "S1",
+    "S2"
+  ],
+  "budget_model_fits": 2,
+  "clock": {
+    "JST": "2026-10-07T07:09:24.524419+09:00",
+    "UTC": "2026-10-06T22:09:24.524419+00:00"
+  },
+  "configs": [
+    {
+      "V1_INTERACTIONS": true,
+      "added_families": [
+        "C01"
+      ],
+      "candidate_id": "C08_STATE_COMPACT",
+      "compact": true,
+      "complexity": [
+        1,
+        12,
+        0,
+        99,
+        0
+      ],
+      "drop_FIT_constant_columns": true,
+      "family": "logit",
+      "new_interactions": [
+        {
+          "category": "S.primary",
+          "group": "C03current",
+          "numeric": [
+            "C01.open_progress",
+            "C01.range_position",
+            "C01.connected_efficiency",
+            "C01.mean_value"
+          ]
+        },
+        {
+          "category": "H.primary",
+          "group": "C03history",
+          "numeric": [
+            "C01.from_high",
+            "C01.from_low",
+            "C01.high_update_count",
+            "C01.value_up_fraction"
+          ]
+        },
+        {
+          "binary": "Q.current_state_available",
+          "group": "C03available",
+          "numeric": [
+            "C01.direction_agreement",
+            "C01.tail_vs_full_efficiency",
+            "C01.mean_volume",
+            "C01.support_fraction"
+          ]
+        }
+      ],
+      "parent_id": "C03_STATE_CHART_LOGIT",
+      "regularization_multiplier": 1.0
+    }
+  ],
+  "cycle": "C08",
+  "family_QA": "all-entry immutable family manifests + FIT-only representation audit + independent count verification",
+  "hypothesis": "Check contribution of one optional family and compress fine-grained run attributes while preserving frozen State meaning",
+  "implementation_sha256": "24e524385bf2f069708c4ab9b7701792fbefa184032d85442939bca029c996a3",
+  "new_REPORT_scores_opened": false,
+  "notes": [],
+  "parent": "C03_STATE_CHART_LOGIT",
+  "parent_operating_point": 95,
+  "points": [
+    90,
+    95,
+    99
+  ],
+  "precommit_before_new_fit": true,
+  "prior_REPORT501_already_opened": true,
+  "run_compact_fields": [
+    "present",
+    "dwell",
+    "net_log",
+    "gross_log",
+    "path_efficiency",
+    "mean_volume",
+    "mean_value",
+    "primary",
+    "same_current_segment",
+    "gap_to_older_active",
+    "valid_connection_to_older"
+  ]
+}

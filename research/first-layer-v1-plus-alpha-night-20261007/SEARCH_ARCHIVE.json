@@ -1234,6 +1234,14 @@
         {
           "candidate_id": "C04_HGB_A",
           "point": 95
+        },
+        {
+          "candidate_id": "C06_ORDERED_CHAMPION",
+          "point": 90
+        },
+        {
+          "candidate_id": "C06_ORDERED_REJECT_BRANCH",
+          "point": 90
         }
       ],
       "measure_sha256": "109b8b114573017acb46814c57f99e92ed6552f5214b777d925d9b8539fd1e5f",
@@ -1860,6 +1868,580 @@
       "operating_point": 99
     },
     {
+      "candidate_id": "C06_ORDERED_CHAMPION",
+      "complexity": [
+        2,
+        12,
+        0,
+        288,
+        0.0
+      ],
+      "config": {
+        "V1_INTERACTIONS": true,
+        "added_families": [
+          "C01",
+          "C06"
+        ],
+        "candidate_id": "C06_ORDERED_CHAMPION",
+        "complexity": [
+          2,
+          12,
+          0,
+          288,
+          0.0
+        ],
+        "family": "logit",
+        "new_interactions": [
+          {
+            "category": "S.primary",
+            "group": "C03current",
+            "numeric": [
+              "C01.open_progress",
+              "C01.range_position",
+              "C01.connected_efficiency",
+              "C01.mean_value"
+            ]
+          },
+          {
+            "category": "H.primary",
+            "group": "C03history",
+            "numeric": [
+              "C01.from_high",
+              "C01.from_low",
+              "C01.high_update_count",
+              "C01.value_up_fraction"
+            ]
+          },
+          {
+            "binary": "Q.current_state_available",
+            "group": "C03available",
+            "numeric": [
+              "C01.direction_agreement",
+              "C01.tail_vs_full_efficiency",
+              "C01.mean_volume",
+              "C01.support_fraction"
+            ]
+          }
+        ],
+        "parent_id": "C03_STATE_CHART_LOGIT",
+        "regularization_multiplier": 1.0
+      },
+      "dominated_by": [],
+      "measure_sha256": "55a5b97319c128e3190d36363405720640b58e279789d43f8ddae0a62eab8b72",
+      "metrics": {
+        "M": 172,
+        "MINUS_remaining": 0.8604651162790697,
+        "MINUS_removal": 0.13953488372093023,
+        "M_drop": 24,
+        "M_keep": 148,
+        "P": 144,
+        "PLUS_retention": 0.8888888888888888,
+        "P_drop": 16,
+        "P_keep": 128,
+        "UNKNOWN_drop": 1,
+        "UNKNOWN_keep": 5,
+        "ZERO_drop": 0,
+        "ZERO_keep": 0,
+        "target_integer": false
+      },
+      "operating_point": 90
+    },
+    {
+      "candidate_id": "C06_ORDERED_CHAMPION",
+      "complexity": [
+        2,
+        12,
+        0,
+        288,
+        0.0
+      ],
+      "config": {
+        "V1_INTERACTIONS": true,
+        "added_families": [
+          "C01",
+          "C06"
+        ],
+        "candidate_id": "C06_ORDERED_CHAMPION",
+        "complexity": [
+          2,
+          12,
+          0,
+          288,
+          0.0
+        ],
+        "family": "logit",
+        "new_interactions": [
+          {
+            "category": "S.primary",
+            "group": "C03current",
+            "numeric": [
+              "C01.open_progress",
+              "C01.range_position",
+              "C01.connected_efficiency",
+              "C01.mean_value"
+            ]
+          },
+          {
+            "category": "H.primary",
+            "group": "C03history",
+            "numeric": [
+              "C01.from_high",
+              "C01.from_low",
+              "C01.high_update_count",
+              "C01.value_up_fraction"
+            ]
+          },
+          {
+            "binary": "Q.current_state_available",
+            "group": "C03available",
+            "numeric": [
+              "C01.direction_agreement",
+              "C01.tail_vs_full_efficiency",
+              "C01.mean_volume",
+              "C01.support_fraction"
+            ]
+          }
+        ],
+        "parent_id": "C03_STATE_CHART_LOGIT",
+        "regularization_multiplier": 1.0
+      },
+      "dominated_by": [
+        {
+          "candidate_id": "C01_CHART_LOGIT",
+          "point": 95
+        },
+        {
+          "candidate_id": "C02_D1_LOGIT",
+          "point": 95
+        },
+        {
+          "candidate_id": "C02_D5_LOGIT",
+          "point": 95
+        },
+        {
+          "candidate_id": "C03_STATE_CHART_LOGIT",
+          "point": 95
+        },
+        {
+          "candidate_id": "C05_REG_WEAK",
+          "point": 95
+        }
+      ],
+      "measure_sha256": "55a5b97319c128e3190d36363405720640b58e279789d43f8ddae0a62eab8b72",
+      "metrics": {
+        "M": 172,
+        "MINUS_remaining": 0.9069767441860465,
+        "MINUS_removal": 0.09302325581395349,
+        "M_drop": 16,
+        "M_keep": 156,
+        "P": 144,
+        "PLUS_retention": 0.9236111111111112,
+        "P_drop": 11,
+        "P_keep": 133,
+        "UNKNOWN_drop": 0,
+        "UNKNOWN_keep": 6,
+        "ZERO_drop": 0,
+        "ZERO_keep": 0,
+        "target_integer": false
+      },
+      "operating_point": 95
+    },
+    {
+      "candidate_id": "C06_ORDERED_CHAMPION",
+      "complexity": [
+        2,
+        12,
+        0,
+        288,
+        0.0
+      ],
+      "config": {
+        "V1_INTERACTIONS": true,
+        "added_families": [
+          "C01",
+          "C06"
+        ],
+        "candidate_id": "C06_ORDERED_CHAMPION",
+        "complexity": [
+          2,
+          12,
+          0,
+          288,
+          0.0
+        ],
+        "family": "logit",
+        "new_interactions": [
+          {
+            "category": "S.primary",
+            "group": "C03current",
+            "numeric": [
+              "C01.open_progress",
+              "C01.range_position",
+              "C01.connected_efficiency",
+              "C01.mean_value"
+            ]
+          },
+          {
+            "category": "H.primary",
+            "group": "C03history",
+            "numeric": [
+              "C01.from_high",
+              "C01.from_low",
+              "C01.high_update_count",
+              "C01.value_up_fraction"
+            ]
+          },
+          {
+            "binary": "Q.current_state_available",
+            "group": "C03available",
+            "numeric": [
+              "C01.direction_agreement",
+              "C01.tail_vs_full_efficiency",
+              "C01.mean_volume",
+              "C01.support_fraction"
+            ]
+          }
+        ],
+        "parent_id": "C03_STATE_CHART_LOGIT",
+        "regularization_multiplier": 1.0
+      },
+      "dominated_by": [
+        {
+          "candidate_id": "C05_REG_STRONG",
+          "point": 95
+        },
+        {
+          "candidate_id": "V1",
+          "point": 95
+        }
+      ],
+      "measure_sha256": "55a5b97319c128e3190d36363405720640b58e279789d43f8ddae0a62eab8b72",
+      "metrics": {
+        "M": 172,
+        "MINUS_remaining": 0.9709302325581395,
+        "MINUS_removal": 0.029069767441860465,
+        "M_drop": 5,
+        "M_keep": 167,
+        "P": 144,
+        "PLUS_retention": 0.9583333333333334,
+        "P_drop": 6,
+        "P_keep": 138,
+        "UNKNOWN_drop": 0,
+        "UNKNOWN_keep": 6,
+        "ZERO_drop": 0,
+        "ZERO_keep": 0,
+        "target_integer": false
+      },
+      "operating_point": 99
+    },
+    {
+      "candidate_id": "C06_ORDERED_REJECT_BRANCH",
+      "complexity": [
+        2,
+        12,
+        0,
+        288,
+        2.0
+      ],
+      "config": {
+        "V1_INTERACTIONS": true,
+        "added_families": [
+          "C01",
+          "C06"
+        ],
+        "candidate_id": "C06_ORDERED_REJECT_BRANCH",
+        "complexity": [
+          2,
+          12,
+          0,
+          288,
+          2.0
+        ],
+        "drop_FIT_constant_columns": true,
+        "family": "logit",
+        "new_interactions": [
+          {
+            "category": "S.primary",
+            "group": "C03current",
+            "numeric": [
+              "C01.open_progress",
+              "C01.range_position",
+              "C01.connected_efficiency",
+              "C01.mean_value"
+            ]
+          },
+          {
+            "category": "H.primary",
+            "group": "C03history",
+            "numeric": [
+              "C01.from_high",
+              "C01.from_low",
+              "C01.high_update_count",
+              "C01.value_up_fraction"
+            ]
+          },
+          {
+            "binary": "Q.current_state_available",
+            "group": "C03available",
+            "numeric": [
+              "C01.direction_agreement",
+              "C01.tail_vs_full_efficiency",
+              "C01.mean_volume",
+              "C01.support_fraction"
+            ]
+          }
+        ],
+        "parent_id": "C05_REG_STRONG",
+        "regularization_multiplier": 3.0
+      },
+      "dominated_by": [
+        {
+          "candidate_id": "C03_STATE_CHART_LOGIT",
+          "point": 95
+        },
+        {
+          "candidate_id": "C04_HGB_A",
+          "point": 95
+        }
+      ],
+      "measure_sha256": "4235b014339c2838f872a1bfd1b547c52137ed2e6aebf7df96ef045e95cf748b",
+      "metrics": {
+        "M": 172,
+        "MINUS_remaining": 0.872093023255814,
+        "MINUS_removal": 0.12790697674418605,
+        "M_drop": 22,
+        "M_keep": 150,
+        "P": 144,
+        "PLUS_retention": 0.8958333333333334,
+        "P_drop": 15,
+        "P_keep": 129,
+        "UNKNOWN_drop": 1,
+        "UNKNOWN_keep": 5,
+        "ZERO_drop": 0,
+        "ZERO_keep": 0,
+        "target_integer": false
+      },
+      "operating_point": 90
+    },
+    {
+      "candidate_id": "C06_ORDERED_REJECT_BRANCH",
+      "complexity": [
+        2,
+        12,
+        0,
+        288,
+        2.0
+      ],
+      "config": {
+        "V1_INTERACTIONS": true,
+        "added_families": [
+          "C01",
+          "C06"
+        ],
+        "candidate_id": "C06_ORDERED_REJECT_BRANCH",
+        "complexity": [
+          2,
+          12,
+          0,
+          288,
+          2.0
+        ],
+        "drop_FIT_constant_columns": true,
+        "family": "logit",
+        "new_interactions": [
+          {
+            "category": "S.primary",
+            "group": "C03current",
+            "numeric": [
+              "C01.open_progress",
+              "C01.range_position",
+              "C01.connected_efficiency",
+              "C01.mean_value"
+            ]
+          },
+          {
+            "category": "H.primary",
+            "group": "C03history",
+            "numeric": [
+              "C01.from_high",
+              "C01.from_low",
+              "C01.high_update_count",
+              "C01.value_up_fraction"
+            ]
+          },
+          {
+            "binary": "Q.current_state_available",
+            "group": "C03available",
+            "numeric": [
+              "C01.direction_agreement",
+              "C01.tail_vs_full_efficiency",
+              "C01.mean_volume",
+              "C01.support_fraction"
+            ]
+          }
+        ],
+        "parent_id": "C05_REG_STRONG",
+        "regularization_multiplier": 3.0
+      },
+      "dominated_by": [
+        {
+          "candidate_id": "C01_CHART_LOGIT",
+          "point": 95
+        },
+        {
+          "candidate_id": "C02_D1_LOGIT",
+          "point": 95
+        },
+        {
+          "candidate_id": "C02_D5_LOGIT",
+          "point": 95
+        },
+        {
+          "candidate_id": "C03_STATE_CHART_LOGIT",
+          "point": 95
+        },
+        {
+          "candidate_id": "C04_HGB_A",
+          "point": 99
+        },
+        {
+          "candidate_id": "C05_REG_STRONG",
+          "point": 95
+        },
+        {
+          "candidate_id": "C05_REG_WEAK",
+          "point": 95
+        },
+        {
+          "candidate_id": "C06_ORDERED_CHAMPION",
+          "point": 95
+        }
+      ],
+      "measure_sha256": "4235b014339c2838f872a1bfd1b547c52137ed2e6aebf7df96ef045e95cf748b",
+      "metrics": {
+        "M": 172,
+        "MINUS_remaining": 0.9302325581395349,
+        "MINUS_removal": 0.06976744186046512,
+        "M_drop": 12,
+        "M_keep": 160,
+        "P": 144,
+        "PLUS_retention": 0.9236111111111112,
+        "P_drop": 11,
+        "P_keep": 133,
+        "UNKNOWN_drop": 0,
+        "UNKNOWN_keep": 6,
+        "ZERO_drop": 0,
+        "ZERO_keep": 0,
+        "target_integer": false
+      },
+      "operating_point": 95
+    },
+    {
+      "candidate_id": "C06_ORDERED_REJECT_BRANCH",
+      "complexity": [
+        2,
+        12,
+        0,
+        288,
+        2.0
+      ],
+      "config": {
+        "V1_INTERACTIONS": true,
+        "added_families": [
+          "C01",
+          "C06"
+        ],
+        "candidate_id": "C06_ORDERED_REJECT_BRANCH",
+        "complexity": [
+          2,
+          12,
+          0,
+          288,
+          2.0
+        ],
+        "drop_FIT_constant_columns": true,
+        "family": "logit",
+        "new_interactions": [
+          {
+            "category": "S.primary",
+            "group": "C03current",
+            "numeric": [
+              "C01.open_progress",
+              "C01.range_position",
+              "C01.connected_efficiency",
+              "C01.mean_value"
+            ]
+          },
+          {
+            "category": "H.primary",
+            "group": "C03history",
+            "numeric": [
+              "C01.from_high",
+              "C01.from_low",
+              "C01.high_update_count",
+              "C01.value_up_fraction"
+            ]
+          },
+          {
+            "binary": "Q.current_state_available",
+            "group": "C03available",
+            "numeric": [
+              "C01.direction_agreement",
+              "C01.tail_vs_full_efficiency",
+              "C01.mean_volume",
+              "C01.support_fraction"
+            ]
+          }
+        ],
+        "parent_id": "C05_REG_STRONG",
+        "regularization_multiplier": 3.0
+      },
+      "dominated_by": [
+        {
+          "candidate_id": "C01_CHART_LOGIT",
+          "point": 99
+        },
+        {
+          "candidate_id": "C02_D1_LOGIT",
+          "point": 99
+        },
+        {
+          "candidate_id": "C02_D5_LOGIT",
+          "point": 99
+        },
+        {
+          "candidate_id": "C03_STATE_CHART_LOGIT",
+          "point": 99
+        },
+        {
+          "candidate_id": "C05_REG_STRONG",
+          "point": 99
+        },
+        {
+          "candidate_id": "C05_REG_WEAK",
+          "point": 99
+        }
+      ],
+      "measure_sha256": "4235b014339c2838f872a1bfd1b547c52137ed2e6aebf7df96ef045e95cf748b",
+      "metrics": {
+        "M": 172,
+        "MINUS_remaining": 0.9825581395348837,
+        "MINUS_removal": 0.01744186046511628,
+        "M_drop": 3,
+        "M_keep": 169,
+        "P": 144,
+        "PLUS_retention": 0.9791666666666666,
+        "P_drop": 3,
+        "P_keep": 141,
+        "UNKNOWN_drop": 0,
+        "UNKNOWN_keep": 6,
+        "ZERO_drop": 0,
+        "ZERO_keep": 0,
+        "target_integer": false
+      },
+      "operating_point": 99
+    },
+    {
       "candidate_id": "V1",
       "complexity": [
         0,
@@ -1899,6 +2481,10 @@
         },
         {
           "candidate_id": "C05_REG_STRONG",
+          "point": 90
+        },
+        {
+          "candidate_id": "C06_ORDERED_CHAMPION",
           "point": 90
         }
       ],
@@ -2018,7 +2604,7 @@
     }
   ],
   "clock": {
-    "JST": "2026-10-07T07:06:19.246389+09:00",
-    "UTC": "2026-10-06T22:06:19.246389+00:00"
+    "JST": "2026-10-07T07:08:50.805143+09:00",
+    "UTC": "2026-10-06T22:08:50.805143+00:00"
   }
 }

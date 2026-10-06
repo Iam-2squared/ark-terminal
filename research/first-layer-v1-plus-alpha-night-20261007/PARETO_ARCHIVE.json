@@ -413,6 +413,85 @@
       "operating_point": 95
     },
     {
+      "candidate_id": "C06_ORDERED_CHAMPION",
+      "complexity": [
+        2,
+        12,
+        0,
+        288,
+        0.0
+      ],
+      "config": {
+        "V1_INTERACTIONS": true,
+        "added_families": [
+          "C01",
+          "C06"
+        ],
+        "candidate_id": "C06_ORDERED_CHAMPION",
+        "complexity": [
+          2,
+          12,
+          0,
+          288,
+          0.0
+        ],
+        "family": "logit",
+        "new_interactions": [
+          {
+            "category": "S.primary",
+            "group": "C03current",
+            "numeric": [
+              "C01.open_progress",
+              "C01.range_position",
+              "C01.connected_efficiency",
+              "C01.mean_value"
+            ]
+          },
+          {
+            "category": "H.primary",
+            "group": "C03history",
+            "numeric": [
+              "C01.from_high",
+              "C01.from_low",
+              "C01.high_update_count",
+              "C01.value_up_fraction"
+            ]
+          },
+          {
+            "binary": "Q.current_state_available",
+            "group": "C03available",
+            "numeric": [
+              "C01.direction_agreement",
+              "C01.tail_vs_full_efficiency",
+              "C01.mean_volume",
+              "C01.support_fraction"
+            ]
+          }
+        ],
+        "parent_id": "C03_STATE_CHART_LOGIT",
+        "regularization_multiplier": 1.0
+      },
+      "dominated_by": [],
+      "measure_sha256": "55a5b97319c128e3190d36363405720640b58e279789d43f8ddae0a62eab8b72",
+      "metrics": {
+        "M": 172,
+        "MINUS_remaining": 0.8604651162790697,
+        "MINUS_removal": 0.13953488372093023,
+        "M_drop": 24,
+        "M_keep": 148,
+        "P": 144,
+        "PLUS_retention": 0.8888888888888888,
+        "P_drop": 16,
+        "P_keep": 128,
+        "UNKNOWN_drop": 1,
+        "UNKNOWN_keep": 5,
+        "ZERO_drop": 0,
+        "ZERO_keep": 0,
+        "target_integer": false
+      },
+      "operating_point": 90
+    },
+    {
       "candidate_id": "V1",
       "complexity": [
         0,
@@ -459,8 +538,8 @@
     }
   ],
   "clock": {
-    "JST": "2026-10-07T07:06:19.248936+09:00",
-    "UTC": "2026-10-06T22:06:19.248936+00:00"
+    "JST": "2026-10-07T07:08:50.806904+09:00",
+    "UTC": "2026-10-06T22:08:50.806904+00:00"
   },
   "same_entry_denominators": true
 }

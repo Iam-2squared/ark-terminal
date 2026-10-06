@@ -1,7 +1,7 @@
 {
   "document_id": "ARK_CAPITAL_SIGN_ONLY_FILTER_STAGE1_V1_20261006",
-  "exact_jst": "2026-10-06T10:34:13+09:00",
-  "status": "DESIGN_READY_NOT_EXECUTED",
+  "exact_jst": "2026-10-06T11:24:24+09:00",
+  "status": "SOURCE_RECOVERED_INPUT_BINDING_IN_PROGRESS",
   "repository": "Iam-2squared/ark-terminal",
   "branch": "capital-main-reallocation-20261005",
   "basis_head": "6f3a09e4800a1cccbf359364c9acc9ba1f05e8dc",
@@ -10,7 +10,9 @@
     "Latest RNEG REPORT/CURRENT_STATE and fit_rneg.py read from GitHub",
     "Sign-only stage1 Work instruction and machine-readable design created",
     "Synthetic threshold/sign-invariance specification checks passed; no market/model test",
-    "Work and config Git blob hashes match local complete bytes after actual GET"
+    "Work and config Git blob hashes match local complete bytes after actual GET",
+    "Actual latest branch GET and compare: design/review documents only; no equivalent running experiment",
+    "Original private RNEG archive recovered and SHA256 verified; original models, initial OOF, inputs and split recovered"
   ],
   "work_request": {
     "commit": "d749a0f85a8a1117d933f6a16948a5383318684f",
@@ -61,16 +63,6 @@
     "capital_replays": 0,
     "stage2_fits": 0
   },
-  "counts_this_design_turn": {
-    "new_fits": 0,
-    "market_replays": 0,
-    "R_materializations": 0,
-    "upstream_edits": 0,
-    "Claude": 0,
-    "orders": 0,
-    "main_merge": 0,
-    "synthetic_rule_assertions": 1201
-  },
   "inherited_status": {
     "baseline": "V5",
     "old_RNEG_Defense": "DEFENSE_REJECTED",
@@ -83,12 +75,41 @@
     "New model training",
     "Sign-only filter performance measurement"
   ],
-  "next_action": "Execute this new limited stage1 Work after source/feature precommit; retain prior closures and reuse equivalent fits",
+  "next_action": "Bind sign-only teacher view, metadata-based feature families and score producer lineage; freeze exact signatures before any fits",
   "safety": {
     "productionReady": false,
     "executionAllowed": false,
     "brokerWriteAllowed": false,
     "automaticPromotionAllowed": false,
     "transmitted": false
+  },
+  "execution_basis_head": "b4058686338eabd2358e64aeb26eef78f1800127",
+  "execution_basis_tree": "a879463ee893f6eb3663d137194a6cfd23232c33",
+  "design_history_counts": {
+    "new_fits": 0,
+    "market_replays": 0,
+    "R_materializations": 0,
+    "upstream_edits": 0,
+    "Claude": 0,
+    "orders": 0,
+    "main_merge": 0,
+    "synthetic_rule_assertions": 1201
+  },
+  "counts_this_execution": {
+    "new_fits": 0,
+    "reuse_fits": 0,
+    "technical_retries": 0,
+    "new_feature_generation": 0,
+    "capital_replays": 0,
+    "stage2_fits": 0,
+    "upstream_edits": 0,
+    "Claude": 0,
+    "orders": 0,
+    "main_merge": 0
+  },
+  "blockers": [],
+  "private_source": {
+    "library_file_id": "libfile_c1bee9c192288191956f48b8918fdb9a",
+    "archive_sha256": "a70abbbb2e4d9933d7a6479dff4e1081b07627ccaad5c3eeb2c3132e5312f47d"
   }
 }

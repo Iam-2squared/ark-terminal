@@ -1,0 +1,108 @@
+{
+  "all_resolved_parameters": {
+    "E": {
+      "bootstrap": false,
+      "ccp_alpha": 0.0,
+      "class_weight": null,
+      "criterion": "gini",
+      "max_depth": 6,
+      "max_features": 0.5,
+      "max_leaf_nodes": null,
+      "max_samples": null,
+      "min_impurity_decrease": 0.0,
+      "min_samples_leaf": 10,
+      "min_samples_split": 2,
+      "min_weight_fraction_leaf": 0.0,
+      "monotonic_cst": null,
+      "n_estimators": 300,
+      "n_jobs": 2,
+      "oob_score": false,
+      "random_state": 57,
+      "verbose": 0,
+      "warm_start": false
+    },
+    "H": {
+      "categorical_features": null,
+      "class_weight": null,
+      "early_stopping": false,
+      "interaction_cst": null,
+      "l2_regularization": 1.0,
+      "learning_rate": 0.05,
+      "loss": "log_loss",
+      "max_bins": 255,
+      "max_depth": 3,
+      "max_features": 1.0,
+      "max_iter": 100,
+      "max_leaf_nodes": 7,
+      "min_samples_leaf": 20,
+      "monotonic_cst": null,
+      "n_iter_no_change": 10,
+      "random_state": 57,
+      "scoring": "loss",
+      "tol": 1e-07,
+      "validation_fraction": 0.1,
+      "verbose": 0,
+      "warm_start": false
+    },
+    "L": {
+      "C": 0.1,
+      "class_weight": null,
+      "dual": false,
+      "fit_intercept": true,
+      "intercept_scaling": 1,
+      "l1_ratio": 0.0,
+      "max_iter": 2000,
+      "n_jobs": null,
+      "penalty": "l2",
+      "random_state": 57,
+      "solver": "lbfgs",
+      "tol": 0.0001,
+      "verbose": 0,
+      "warm_start": false
+    }
+  },
+  "budget_max": 48,
+  "candidate_ids": [
+    "RAW_L",
+    "RAW_H",
+    "RAW_E",
+    "AUG_L",
+    "AUG_H",
+    "AUG_E"
+  ],
+  "code_hashes": {
+    "audit_source_adapter.py": "415473af95b004042ff410b5998b429f0e07fc34a4d0adb93aafd5f809a8c3f3",
+    "inference.py": "250abbd26651225086feb05ffa214cac6414c56acc9a1d4efe8d8d8019f12b65",
+    "prepare_inputs.py": "d6ce02f26dc63e80164200ffe9e56965c890a1da62ad6b05034550ad070c5811",
+    "run_study.py": "045d6a2531889a2de0a1987f19cb34eeb7caadbf3331059cccc73f1ff4d6306b",
+    "sign_io.py": "5147673dcbb0d59b7a497b615b20115ba48233d1e4930dd8dee8112fd486ca88",
+    "sign_metrics.py": "12ba02ab0c10bfcf1d1ba166e2f343d3bdbd5dc68362e89d15ca0eb0ea572ee5",
+    "sign_model.py": "399f4bbd71abf51506b71f799843f67ac9804e89eed9dd0ea6d234425f4a4fb5",
+    "sign_policy.py": "c63d329b9d269b71f1b2ec294e954aa71026f60097a4a833679eb0cae836a1fc",
+    "test_contract.py": "f7b0959ab05cfc42950fba67a2c6b6571f9f5cb401e6870b07100bd9932e9705"
+  },
+  "exact_jst": "2026-10-06T12:05:18.272950+09:00",
+  "frozen_after_implementation_tests_before_any_fit": true,
+  "input_hashes": {
+    "INPUT_PROVENANCE.jsonl.gz": "cad274d2bee5f9e66abde6d99ec5dfe4ac5a9132c474aa780e61305b6d811bf3",
+    "METADATA.jsonl.gz": "acc2a2a083de7189e57ad28d9074a6d854a5d785ebafedeb6dab2af533080385",
+    "SIGN_TARGETS.jsonl.gz": "37395d7567df741a74b1ff749a32118cec04ed988da101b81634c2c55ae9ae0d",
+    "SNAPSHOTS.jsonl.gz": "c1fa67ad55b0360858a4b878c6d2a1d69d0829b1b6f3d742f92d40275a38c07a"
+  },
+  "post_CAL_refits": 0,
+  "preprocessing": "FIT_ONLY_ZERO_MISSING_INDICATORS_STANDARDIZATION_UNKNOWN_V1",
+  "registry_sha256": "454195ed298c36887c7e72448d254407110e5bd8cc3a92cb7c2724a7a66a8b28",
+  "split_sha256": "5d614fea7f93ff49a90e6e0ceecf97d636ac4bc6787b7539b2e1f0e283fb5cf0",
+  "technical_retries_max": 2,
+  "test_model_fit_N": 0,
+  "versions": {
+    "numpy": "2.3.5",
+    "python": "3.12.14",
+    "scipy": "1.17.0",
+    "sklearn": "1.8.0"
+  },
+  "weights": {
+    "class_weight": null,
+    "sample_weight": null
+  }
+}

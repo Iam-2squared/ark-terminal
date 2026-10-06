@@ -1,0 +1,38 @@
+{
+  "Capital_imports": 0,
+  "PASS_rule": "p_plus >= tau; ABSTAIN/OFF are passed and flagged",
+  "function": "inference.predict_sign(snapshot, model_artifact, threshold_artifact)",
+  "input_schema": "exact frozen numeric/categorical fields only; IDs/metadata excluded from actual X",
+  "output_fields": [
+    "entry_id",
+    "decision_ts",
+    "p_plus",
+    "predicted_sign",
+    "filter_action",
+    "availability_status",
+    "model_hash",
+    "threshold_hash",
+    "feature_schema_hash",
+    "max_source_available_at",
+    "fit_cutoff",
+    "cal_cutoff",
+    "exposure_status"
+  ],
+  "p_plus": "uncalibrated PLUS score",
+  "predicted_PLUS_rule": "p_plus >= 0.5",
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "executionAllowed": false,
+    "productionReady": false
+  },
+  "stage2_adapter_spec_only": {
+    "Rank_effectiveness_in_predicted_PASS": "not measured here",
+    "implementation": false,
+    "join_key": "entry_id; preserve exact identity",
+    "join_target": "saved existing winner Rank, target unchanged",
+    "predicted_PASS_contains_actual_MINUS": true
+  },
+  "status": "IMPLEMENTED_STANDALONE_RESEARCH_ONLY",
+  "teacher_or_outcome_arguments": 0,
+  "upstream_freeze": true
+}

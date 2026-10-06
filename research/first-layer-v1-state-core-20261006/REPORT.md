@@ -24,7 +24,7 @@
 | 12 独立監査 | Phase0 metadata/ledger限定: 1,891 checks、mismatch0。Phase5性能・未来漏洩の独立監査は未実行、mismatchはNA。 |
 | 13 status | BLOCKED_DATA_OR_LINEAGE。研究のPASS/FAILを推測しない。 |
 | 14 実行量 | 新規教師生成0、feature archive0、State engine0、EXIT replay0、fit0、preprocessing fit0、technical model retry0、provider0、threshold探索0、protected RAW開封0、Capital0、orders0。既存private original回収1、GitHub Actions artifact download1（metadataのみ利用）。 |
-| 15 保存 | 新規public/private branchへcheckpointを保存。保存commit、各fileのblob/bytes/SHA256とactual GET・branch HEAD照合はREADBACK_RECEIPT.json、最終照合はFINAL_SAVE_RECEIPT.json参照。 |
+| 15 保存 | 新規public/private branchへcheckpointを保存。保存commit、各fileのblob/bytes/SHA256とactual GET・branch HEAD照合はREADBACK_RECEIPT.json、receipt保存後の最終HEAD照合はWork完了回答に記載。 |
 | 16 次方針 | STOP。既存C Git objectの認証付きbinary取得とFreeze依存物の回収・QAを完了してからPhase0再開。PRECOMMIT保存・actual GET後にのみ特徴構築／fitへ進む。Second/Third Layer、Capital、productionへ進まない。 |
 
 ## 最新権威Freeze

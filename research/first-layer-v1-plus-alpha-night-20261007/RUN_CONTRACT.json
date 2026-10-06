@@ -1,0 +1,75 @@
+{
+  "FIRST_CYCLE": "C01: whole observed Today Open through BUY_INTENT chart summary; V1 logit family",
+  "NO_NEW_SEARCH_AFTER_UTC": "2026-10-06T21:00:00+00:00",
+  "STOP_AT_JST": "2026-10-07T07:00:00+09:00",
+  "STOP_AT_UTC": "2026-10-06T22:00:00+00:00",
+  "V1_feature_sha256": "b451d5d061cf31606feeb0dba4288cc9bb438bc9d93700783687b3d149572dff",
+  "V1_spec_sha256": "089c1dc311084fc85d1794c4dd6e4677324b08b8e3311a663f701791b92c3b8d",
+  "branch": "research/first-layer-v1-plus-alpha-night-20261007",
+  "champion_rule": [
+    "PLUS_retention>=90%",
+    "minimum MINUS_remaining",
+    "maximum PLUS_retention",
+    "smaller complexity",
+    "existing parent",
+    "earlier trial/operating point order90,95,99"
+  ],
+  "comparison_split_sha256": "565f3e9a25559a065c13476b46cd148819e308e9208133d54e9a46d236b8e835",
+  "complexity_rule": "lexicographic added information-family count, explicit interaction definition count, model family complexity(logit0,HGB7leaf1,HGB15leaf2), feature count, regularization distance from V1",
+  "directory": "research/first-layer-v1-plus-alpha-night-20261007",
+  "goals_integer": {
+    "M_keep": "floor(M/5)",
+    "P_keep": "ceil(9*P/10)"
+  },
+  "inference_inputs": "prefix only; routing identities excluded from model",
+  "limits": {
+    "CAL_thresholds_legacy": 9,
+    "CAL_thresholds_new": 120,
+    "baseline_model_fits": 2,
+    "configurations_per_cycle": 2,
+    "cycle_minutes": 45,
+    "cycles": 8,
+    "model_jobs": 2,
+    "regular_fits": 40,
+    "report_model_fits": 6,
+    "search_model_fits": 32,
+    "technical_retries": 2,
+    "total_model_attempts": 42
+  },
+  "operating_points": [
+    90,
+    95,
+    99
+  ],
+  "owner": "Iam-2squared / Codex",
+  "parent_private": "e236d621c8299408e0f6c553b5f385e9c62506d7",
+  "parent_public": "8591fa412b82d6eee01c1cbbdb53128b8e720497",
+  "report_policy": "pin PRIMARY and optional high-retention SECONDARY from search only; seal all3 folds before viewing report counts; no candidate changes after report",
+  "run_id": "FIRST_LAYER_V1_ALPHA_20261007T0031JST",
+  "runtime": {
+    "Python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "cpu_available": 9,
+    "model_core_threads": 1,
+    "numpy": "2.3.5",
+    "scipy": "1.17.0",
+    "sklearn": "1.8.0"
+  },
+  "source_policy": "derive today prefixes once from attached byte-identical C4 originals; if certified prefix cache unavailable, no State replay and no teacher generation; all subsequent cycles reuse derived cache",
+  "started": {
+    "JST": "2026-10-07T00:34:23.844529+09:00",
+    "UTC": "2026-10-06T15:34:23.844529+00:00"
+  },
+  "threshold_rule": "integer k=((100-r)*N)//100; tau=ascending_CAL_PLUS[k]; >=tau KEEP all ties",
+  "zero_actions": [
+    "provider",
+    "protected_holdout",
+    "old_Sign_assets",
+    "Freeze_changes",
+    "Capital",
+    "orders",
+    "production",
+    "main_write",
+    "force_push",
+    "new_schedule"
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "document_id": "ARK_CAPITAL_SIGN_ONLY_FILTER_STAGE1_V1_20261006",
+  "exact_jst": "2026-10-06T10:34:13+09:00",
+  "status": "DESIGN_READY_NOT_EXECUTED",
+  "repository": "Iam-2squared/ark-terminal",
+  "branch": "capital-main-reallocation-20261005",
+  "basis_head": "6f3a09e4800a1cccbf359364c9acc9ba1f05e8dc",
+  "basis_tree": "ba69773ee6331acfd426e90d0a8ab17db3785bdc",
+  "completed": [
+    "Latest RNEG REPORT/CURRENT_STATE and fit_rneg.py read from GitHub",
+    "Sign-only stage1 Work instruction and machine-readable design created",
+    "Synthetic threshold/sign-invariance specification checks passed; no market/model test",
+    "Work and config Git blob hashes match local complete bytes after actual GET"
+  ],
+  "work_request": {
+    "commit": "d749a0f85a8a1117d933f6a16948a5383318684f",
+    "path": "docs/evidence/capital-sign-only-filter-stage1-20261006-v1/WORK_REQUEST.md",
+    "sha256": "79029edf214607e9389ae4429af45a8b16036f4f05184e55477201512991aeee",
+    "git_blob_sha1": "94ce1807a55730484cfbe739f2de0b656d94a605",
+    "bytes": 28789
+  },
+  "design_config": {
+    "commit": "819a304a0df7790aaaa6ca97ca697b3f6b4c7665",
+    "path": "docs/evidence/capital-sign-only-filter-stage1-20261006-v1/DESIGN_CONFIG.json",
+    "sha256": "ace8615163d9951bf29c2d1d30f0859c777f133f188ad191fc4133377b327f14",
+    "git_blob_sha1": "9ab9f386764395762ad9cd9db641a17583e75d5e",
+    "bytes": 3792
+  },
+  "direction": {
+    "objective": "Entry to frozen EXIT/EOD net result SIGN ONLY",
+    "target": "NEGATIVE=1 POSITIVE=0; exact zero and unknown separate",
+    "all_examples_equal_weight": true,
+    "learner_input_groups": [
+      "price_volume_context",
+      "State9_Path",
+      "causal_saved_scores",
+      "precommitted_union"
+    ],
+    "primary": "SF_D_UNION with alpha=0.10, selected before results",
+    "forbidden_selection_inputs": [
+      "return_magnitude",
+      "pnl_jpy",
+      "R_or_U_buckets",
+      "RN_tail",
+      "quantity",
+      "portfolio_wealth"
+    ],
+    "filter_alphas": [
+      "0.05",
+      "0.10",
+      "0.20"
+    ],
+    "threshold_history": "past matured initial OOF signs only",
+    "stop": "Filter-only report and handoff; no Capital connection, Replay, or Winner stage2"
+  },
+  "planned_budget": {
+    "new_fits_max": 32,
+    "technical_identical_retries_max": 2,
+    "equivalent_old_HL0_D1_D2_refits": 0,
+    "new_feature_generation": 0,
+    "capital_replays": 0,
+    "stage2_fits": 0
+  },
+  "counts_this_design_turn": {
+    "new_fits": 0,
+    "market_replays": 0,
+    "R_materializations": 0,
+    "upstream_edits": 0,
+    "Claude": 0,
+    "orders": 0,
+    "main_merge": 0,
+    "synthetic_rule_assertions": 1201
+  },
+  "inherited_status": {
+    "baseline": "V5",
+    "old_RNEG_Defense": "DEFENSE_REJECTED",
+    "old_V51": "REJECTED",
+    "source_exposure": "ITERATIVE_DEVELOPMENT",
+    "actual_historical_arrival": "UNKNOWN"
+  },
+  "unexecuted": [
+    "Actual A/B/C column binding and any new score lineage checks",
+    "New model training",
+    "Sign-only filter performance measurement"
+  ],
+  "next_action": "Execute this new limited stage1 Work after source/feature precommit; retain prior closures and reuse equivalent fits",
+  "safety": {
+    "productionReady": false,
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "automaticPromotionAllowed": false,
+    "transmitted": false
+  }
+}

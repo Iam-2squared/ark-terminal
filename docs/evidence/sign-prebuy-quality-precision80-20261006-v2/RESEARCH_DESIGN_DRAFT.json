@@ -1,0 +1,129 @@
+{
+  "recorded_at_jst": "2026-10-06T13:56:06.150394+09:00",
+  "recorded_at_utc": "2026-10-06T04:56:06.150394+00:00",
+  "basis_head": "9b75882957fa897c5df016ac5ddcb368602ccedc",
+  "last_verified_start_head": "9c6ada7734e9420f5b09fd90dfd400bc7e1d5472",
+  "owner": "codex-root-sign-prebuy-v2",
+  "branch": "research/sign-prebuy-quality-precision80-20261006-v2",
+  "status": "DRAFT_NOT_FROZEN_NOT_EXECUTED",
+  "new_model_fits": 0,
+  "goal": "PASS known PLUS / (PASS known PLUS + PASS known MINUS) >=0.80",
+  "teacher": "Frozen Entry to frozen EXIT/EOD after original costs; PLUS=1, MINUS=0, ZERO/UNKNOWN excluded from sign training/scoring and retained separately",
+  "magnitude_or_wealth_selection": false,
+  "decision_boundary": "BUY_INTENT only",
+  "candidate_design": {
+    "max_candidates": 4,
+    "representations": [
+      "INTENT_P1_FULL",
+      "INTENT_P1_FULL_PLUS_PRIOR_STRUCTURE"
+    ],
+    "families": [
+      "LOGISTIC_FIXED",
+      "HGB_FIXED"
+    ],
+    "candidate_ids": [
+      "INTENT_P1_FULL_LOGISTIC",
+      "INTENT_P1_FULL_HGB",
+      "INTENT_P1_STRUCTURE_LOGISTIC",
+      "INTENT_P1_STRUCTURE_HGB"
+    ],
+    "input_difference_from_old": "Exact first-intent P1 matrix (148 numeric, 15 categorical), with fixed current State9 numeric/qualitative and causal history; old Sign had only P0 plus compact fill-boundary State. Optional prior structure distances/pivots are intent-only.",
+    "P1_score": "Reuse only generated predictions/threshold/margin with train index and maturity provenance; no label/backscore substitution.",
+    "other_Winner_scores": "Not enabled unless full FIT/CAL/TEST producer dependency and timing/coverage are bound."
+  },
+  "model_parameters": {
+    "LOGISTIC_FIXED": {
+      "C": 0.1,
+      "solver": "lbfgs",
+      "penalty": "l2",
+      "max_iter": 2000,
+      "class_weight": null,
+      "random_state": 57
+    },
+    "HGB_FIXED": {
+      "max_depth": 3,
+      "max_leaf_nodes": 7,
+      "max_iter": 100,
+      "learning_rate": 0.05,
+      "min_samples_leaf": 20,
+      "l2_regularization": 1.0,
+      "early_stopping": false,
+      "random_state": 57,
+      "class_weight": null
+    }
+  },
+  "preprocessing": "FIT-only numeric median plus missing flags; FIT-only categorical one-hot with explicit missing/unknown; FIT-only scaling for Logistic; schema and transform hashes required before fitting",
+  "splits": {
+    "reuse_existing_time_order": true,
+    "FIT": "past sessions except last 5, matured before CAL start",
+    "CAL": "last 5 past sessions, matured before TEST start; same FIT model",
+    "discovery_blocks": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "locked_confirmation_blocks": [
+      6,
+      7,
+      8
+    ],
+    "CAL_refit": false,
+    "TEST_update": false,
+    "exposure": "HISTORICALLY_EXPOSED_DEVELOPMENT_NOT_FRESH"
+  },
+  "model_fit_ceiling": {
+    "discovery": 20,
+    "locked_confirmation": 3,
+    "post_selection_diagnostics": 10,
+    "total": 33,
+    "diagnostics_do_not_reselect": true,
+    "technical_retries": "Do not set until serialization/import and equivalence checks complete; no automatic model retry loops."
+  },
+  "threshold_selection": {
+    "score_quantile_grid": [
+      0.5,
+      0.6,
+      0.7,
+      0.8,
+      0.85
+    ],
+    "method": "linear CAL-score quantiles; CAL labels only",
+    "CAL_min_pass_PLUS_rate": 0.8,
+    "CAL_min_PLUS_retention": 0.25,
+    "CAL_min_known_pass_count": 20,
+    "CAL_min_pass_sessions": 3,
+    "selection": "Among qualified thresholds maximize PLUS retention; tie break fewer passed MINUS, then fixed quantile order. No threshold chosen on TEST.",
+    "if_none_qualify": "NO_QUALIFIED_THRESHOLD; never claim ALL_PASS/zero-PASS succeeds"
+  },
+  "provisional_confirmation_gate": {
+    "min_known_PASS_PLUS_rate": 0.8,
+    "min_PLUS_retention": 0.25,
+    "min_known_PASS_count": 50,
+    "min_pass_sessions": 8,
+    "known_pass_fraction_interval": [
+      0.1,
+      0.8
+    ],
+    "strict_zero_unknown": "report separate counts and all-PASS unknown fraction; no coercion",
+    "report": [
+      "PLUS/MINUS x predicted_PLUS/predicted_MINUS at fixed score0.5",
+      "PLUS/MINUS x PASS/REJECT at locked tau",
+      "numerators denominators dates counts",
+      "PLUS retention MINUS removal passed MINUS rate",
+      "session variation and uncertainty",
+      "ZERO UNKNOWN unsupported rows kept separate"
+    ]
+  },
+  "before_freezing": [
+    "Verify originals and private hashes without opening protected partitions",
+    "Complete per-cell cause audit",
+    "Freeze feature schema and exact intent identity/provenance",
+    "Confirm label maturity and FIT/preprocessor/score producer dependencies",
+    "Check support feasibility with metadata before labels",
+    "Resolve exact estimator defaults/software versions/selection tie rules",
+    "Save precommit and verify actual GET before any fit"
+  ],
+  "failure_policy": "Report failure and terminate this finite configuration; do not append candidates/seeds/thresholds to fit reused TEST. Specify missing information before proposing next finite Work."
+}

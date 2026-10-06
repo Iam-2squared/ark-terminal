@@ -1,0 +1,90 @@
+{
+  "recorded_at_jst": "2026-10-06T13:56:06.150394+09:00",
+  "recorded_at_utc": "2026-10-06T04:56:06.150394+00:00",
+  "basis_head": "9b75882957fa897c5df016ac5ddcb368602ccedc",
+  "last_verified_start_head": "9c6ada7734e9420f5b09fd90dfd400bc7e1d5472",
+  "owner": "codex-root-sign-prebuy-v2",
+  "branch": "research/sign-prebuy-quality-precision80-20261006-v2",
+  "status": "PUBLIC_SOURCE_AUDIT_COMPLETE_ROW_ATTRIBUTION_NOT_DONE",
+  "source_sha256": {
+    "docs/evidence/independent-entry-exit-sign-20261006-v1/CURRENT_STATE.json": "71a89943cc2384036bebf91a9442b002a62c6cff2b6fa6c3759f7a22343144fa",
+    "docs/evidence/independent-entry-exit-sign-20261006-v1/SOURCE_BINDING.json": "5d003c9f7d0d410b15d4bbb131625772731215e6d779f310f7a75b4d626a4303",
+    "docs/evidence/independent-entry-exit-sign-20261006-v1/FEATURE_MISSINGNESS.json": "283026412732fb73a6923af4c3c6c162a27df2f647b18e37ba050ce9b921252b",
+    "docs/evidence/independent-entry-exit-sign-20261006-v1/FEATURE_REGISTRY.json": "454195ed298c36887c7e72448d254407110e5bd8cc3a92cb7c2724a7a66a8b28",
+    "docs/evidence/independent-entry-exit-sign-20261006-v1/SCORE_LINEAGE_AUDIT.json": "81f92462b8db07460cb49f1c9e760b1fbbba4b3f264de7f430804cc1303d0327",
+    "docs/evidence/independent-entry-exit-sign-20261006-v1/SIGN_TARGET_CONTRACT.json": "ce5b47baf1a8dd763a3bf98396a7f762b7334d592b2802415746f02629ef8ddb",
+    "docs/evidence/independent-entry-exit-sign-20261006-v1/SPLIT_FIT_CAL_TEST.json": "5d614fea7f93ff49a90e6e0ceecf97d636ac4bc6787b7539b2e1f0e283fb5cf0",
+    "docs/evidence/independent-entry-exit-sign-20261006-v1/FIRST_PREDICTIONS_DESCRIPTOR.json": "09cd2c01a41d4ae5f7ebc15911f0d9ee63c234bc30e4c75bef4012f866858b3a",
+    "docs/evidence/independent-entry-exit-sign-20261006-v1/DELIVERY_RECEIPT.json": "062ddedd339811527c6b7cbcefd0200595a88effa8ec171fa58adabcafa7cd2f",
+    "docs/evidence/independent-entry-exit-sign-20261006-v1/LATE_DEV_RESULTS.json": "45a809ea0910e97a11baf65357b870558a09340d5c0c8bb4f7157b2a5a9b4b81",
+    "research/independent-entry-exit-sign-20261006-v1/prepare_inputs.py": "d6ce02f26dc63e80164200ffe9e56965c890a1da62ad6b05034550ad070c5811",
+    "research/independent-entry-exit-sign-20261006-v1/audit_source_adapter.py": "415473af95b004042ff410b5998b429f0e07fc34a4d0adb93aafd5f809a8c3f3",
+    "research/independent-entry-exit-sign-20261006-v1/sign_policy.py": "c63d329b9d269b71f1b2ec294e954aa71026f60097a4a833679eb0cae836a1fc",
+    "research/independent-entry-exit-sign-20261006-v1/sign_model.py": "399f4bbd71abf51506b71f799843f67ac9804e89eed9dd0ea6d234425f4a4fb5",
+    "research/independent-entry-exit-sign-20261006-v1/inference.py": "250abbd26651225086feb05ffa214cac6414c56acc9a1d4efe8d8d8019f12b65",
+    "research/persistent-watchlist-uptrend-first-entry-20261003-v2/price_primitives.py": "66bc074ebebe223471627d186f01dc1287182aac4a4e07d520eede4e772a08e9",
+    "research/persistent-watchlist-uptrend-first-entry-20261003-v2/price_features.py": "a0e9d9f1db089040b774296f49593db663c68d54c0d866561058253ee15c694b",
+    "research/persistent-watchlist-uptrend-first-entry-20261003-v2/causal_features.py": "f833d120a67077477f3b8c02dbf7ca1691b1217468160c4b8fdabe98834e8fb3",
+    "research/capital-v5-max3-slot-intelligence-20261004-v1/core_features.py": "ee2f3a1c03780b2025a5fc87cdc0f3ba2877f6c05eda72914848f3a0715aa14a",
+    "research/capital-rneg-defense-reuse-20261006-v1/prepare_rneg.py": "ff73d731d84a1ea34cabd1c697d972f85adb73cb550874b09df151016166e200"
+  },
+  "existing_missingness": {
+    "G_PRICE": {
+      "eligible_entries": 1578,
+      "numeric_columns": 106,
+      "cell_denominator": 167268,
+      "cell_missing_rate": 0.6256725733553339,
+      "entry_missing_rate": "NOT_MEASURED_HERE",
+      "attribution": "Not a RAW failure rate; inherited frozen P0 nulls. Exact identity joins previously audited at 100%.",
+      "missing_cells": 104655
+    },
+    "G_STATE": {
+      "eligible_entries": 1578,
+      "numeric_columns": 18,
+      "cell_denominator": 28404,
+      "cell_missing_rate": 0.2489790170398536,
+      "entry_missing_rate": "NOT_MEASURED_HERE",
+      "attribution": "May contain not-applicable Stop/history/initialization or source gaps; per-cell causes not measured here.",
+      "missing_cells": 7072
+    }
+  },
+  "old_precision_reference": {
+    "period": "2025-08-06 to 2025-08-25",
+    "sessions": 13,
+    "known_labels": 360,
+    "passed_PLUS": 139,
+    "passed_MINUS": 162,
+    "known_passed": 301,
+    "passed_PLUS_rate": 0.46179401993355484,
+    "source": "prior stored late report; NOT a new inference result",
+    "old_80_percent_constraint": "PLUS_RETENTION_NOT_PASS_PLUS_PRECISION"
+  },
+  "causal_boundary_difference": {
+    "old": "Frozen fill timestamp; raw Open quote historically assumed available before quantity. Actual arrival UNKNOWN.",
+    "new": "Frozen BUY_INTENT timestamp; no raw Fill Open/fill clock/delay or post-intent State/Path.",
+    "forbidden_old_columns": [
+      "entry/fill_clock",
+      "entry/intent_to_fill_active_delay",
+      "selector/to_entry_active_delay",
+      "selector/raw_entry_vs_first_price_pct"
+    ],
+    "old_study_misconduct_claim": false,
+    "old_G_STATE_directly_reusable": "Only after original prefix has been re-extracted at intent and schema/provenance verified."
+  },
+  "reuse": {
+    "old_fits": 43,
+    "old_equivalent_reuse": 5,
+    "old_work_remains_closed": true,
+    "teacher_definition": "Exact fee-adjusted PLUS/MINUS; ZERO and UNKNOWN separate. No magnitude/class/sample weights.",
+    "producer_audit": "Prior P1 producer audit is source evidence, not a replacement for binding new intent rows/train indices."
+  },
+  "unresolved": [
+    "Raw gap cause vs acquisition failure requires acquisition manifest",
+    "Per-cell root causes require original grid, numeric matrix, raw today/previous prefix",
+    "Actual source receipt times remain UNKNOWN",
+    "New schema/full P1 matrix/producer dependencies not yet bound"
+  ],
+  "next_policy": "Restore privately provided assets, verify hashes, reuse audited joins and teachers; attribute nulls and enforce intent cutoff before any finite model study.",
+  "new_model_fits": 0,
+  "market_performance_verified": false
+}

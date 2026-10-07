@@ -1,0 +1,7 @@
+現行ControlはState9 Structural EXIT v3 — Local Guardの構造条件を継承し、正式teacher側のcanonical Capital実行契約で15:20 EODを処理する。V3単体Evidenceの15:30 SESSION_CLOSE結果を今回のControl Rへ代入しない。
+
+A: main UP→DOWNによるUP_STRUCTURE_REVERSED。B: 独立RANGE成立によるUP_STRUCTURE_RETIRED_BY_RANGE。C: main UP継続中、確認済み局所higher-low guard破壊によるLOCAL_UP_STRUCTURE_GUARD_BROKEN。PREは有効UPを観測してarmするまでA/B/Cを出さない。ACTIVEで品質不良・segment断絶時は構造観測をsuspendしguardを凍結契約どおりresetする。品質不良を市場RANGEや下落に補完しない。
+
+現行対象では保存V3のSELL_INTENTまたは15:20 EODが最初のControl意図となる。Closed bar確定→State→構造意図。native V3 fillは次の適格regular raw Open（opening mixed排除）・売り5bps逆行、既存locked closing fallback。canonical Controlはsourceのassumed available時刻が15:20までならFrozen EXIT V3 fillを継承し、未決済なら15:20 EOD：最初のvalid regular Open（15:20～15:24）、なければexact flat15:30 auction。commission0。買い1.0005・売り0.9995は原価・代金へ各1回、R分母は元100株buy debit。実受信時刻の証明はUNKNOWN。
+
+Freeze公表commit 1ecbcc43f75279fa302f19fd896add2aac15b537、V3 Evidence c7a5e5c25eb19cbd58b45c3e4ffff977f4648fad、V3 contract SHA256 ee573737833ca000beb543da617ce7c4d3815d92108d728a48baa725481381a3。canonical execution SHA256 7f084415ed92344fb99ef26e27ac48f2beeb868e643fba720bb61355339a8bc8（source commit4a0b6d5fef69ecee34a05c36789c57478ab37a7a）。既知316件の元buy debit/sell creditをこの系譜で全件照合。Control R原値と既存Freezeは変更していない。

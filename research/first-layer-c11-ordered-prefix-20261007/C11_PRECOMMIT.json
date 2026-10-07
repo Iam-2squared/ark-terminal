@@ -1,0 +1,110 @@
+{
+  "CAL_arithmetic": 12,
+  "QA_before_fit": "All 1600 Entry future suffix mutations, forbidden capabilities, entry cutoff H/L, native11:30/lunch/missing/flat/zero activity/phase boundary/order and semantic aliases; mismatch0",
+  "clock_UTC": "2026-10-07T03:45:11.550919+00:00",
+  "evaluation": [
+    "S1",
+    "S2",
+    "union",
+    "ALL_KEEP",
+    "CAL95",
+    "M80",
+    "M60",
+    "M40",
+    "M20",
+    "M10",
+    "PLUS/MINUS",
+    "0-1/1-2/2-3/3-4/4-5/>=5",
+    "cumulative>=1/>=2/>=3/>=5",
+    "DROP composition",
+    "same-ID paired",
+    "C08 vs C10 vs C11 all curves",
+    "strict Pareto (MINUS lower; PLUS and cumulative Winner higher)"
+  ],
+  "exposure": "ADAPTIVE_DEVELOPMENT; Fresh0 OOS0; no performance PASS",
+  "hyperparameter_changes": 0,
+  "hypothesis": "Appending one teacher-blind ordered pre-BUY_INTENT rise-pullback-rise representation to unchanged C10/HGB7 improves MINUS versus medium/large Winner score ranking.",
+  "join_policy": "Only after both blocks decision seals are committed and actual GET read back may evaluation process open saved CANONICAL_CAPITAL_R/Winner rows.",
+  "new_CAL95_reference": 2,
+  "new_aggressive_threshold": 10,
+  "new_fit": 2,
+  "options": {
+    "categorical_features": null,
+    "class_weight": null,
+    "early_stopping": false,
+    "interaction_cst": null,
+    "l2_regularization": 1.0,
+    "learning_rate": 0.05,
+    "loss": "log_loss",
+    "max_bins": 255,
+    "max_depth": 3,
+    "max_features": 1.0,
+    "max_iter": 200,
+    "max_leaf_nodes": 7,
+    "min_samples_leaf": 30,
+    "monotonic_cst": null,
+    "n_iter_no_change": 10,
+    "random_state": 570107,
+    "scoring": "loss",
+    "tol": 1e-07,
+    "validation_fraction": 0.1,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "parent": "C10 Direct Chart Shape + unchanged inherited C08 compact",
+  "preprocessing_fit": 0,
+  "prohibited_next": [
+    "C12",
+    "layer2",
+    "layer3",
+    "Capital",
+    "orders",
+    "production",
+    "main update",
+    "force push"
+  ],
+  "registry": {
+    "blob": "c9e44efb92a33aafe64df6499bfe0d376e0e5f08",
+    "bytes": 27539,
+    "sha256": "f7153f188dbb0542cb45f69e4867507d33bb882a9d48d337b3c01fa52068950f"
+  },
+  "runtime": {
+    "numpy": "2.3.5",
+    "python": "3.12.14",
+    "sklearn": "1.8.0",
+    "sklearn_implementation_pin": {
+      "blob": "4a4fa319f4ab7c5c520fd11afc7897565049e9e7",
+      "bytes": 97408,
+      "sha256": "5ccdc2f1692a8bb419ddc5136b269f0692c04b9f0209142081fb361e04cf0b3c"
+    },
+    "threads": 1
+  },
+  "score": "decision_function; classes_[0,1], high eta => PLUS",
+  "source": {
+    "blob": "89425c2c22a6723de40784bb9466fdc889ee4501",
+    "bytes": 4752,
+    "sha256": "c2f355e057b39ddfa303c284b0202180ffc0b9363db46381f07c7ced6fae2f8a"
+  },
+  "spec": {
+    "blob": "3b93f4fd68fd204ccf8c8b9cb341f96667fec5ba",
+    "bytes": 1644,
+    "sha256": "a4aea7300882cdaa647117633c174780feb4785bdec1e0ecd6c8facddaa8fa86"
+  },
+  "splits_maturity_CAL_DEV": "byte-identical C09/C10 S1/S2/SPLITS; matrix row order preserved",
+  "stage": "C11",
+  "teacher": "fixed mature sign only; PLUS1/MINUS0; no R/bucket/weights",
+  "thresholds": {
+    "CAL95": "sort mature CAL PLUS eta asc; k=floor(5*N_plus/100); tau=a[k]; KEEP ties",
+    "aggressive": "WB01 mature CAL MINUS integer floor + nextafter(boundary,+infinity); tied boundary all DROP; same missing KEEP fallback",
+    "points": [
+      "ALL_KEEP",
+      "CAL95",
+      "CAL_MINUS_KEEP_80",
+      "CAL_MINUS_KEEP_60",
+      "CAL_MINUS_KEEP_40",
+      "CAL_MINUS_KEEP_20",
+      "CAL_MINUS_KEEP_10"
+    ],
+    "winner_or_DEV_truth_for_cutoff": false
+  }
+}

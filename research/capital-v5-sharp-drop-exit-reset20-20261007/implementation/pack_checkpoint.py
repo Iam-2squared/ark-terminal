@@ -20,10 +20,16 @@ def pack(stage):
    dest=PUB/'implementation'/p.name;dest.parent.mkdir(exist_ok=True);shutil.copyfile(p,dest)
  save(PRI/'TECHNICAL_AND_EXECUTION_COUNTERS.json',{'formal_C_paths_started':sum(p.name=='STARTED.json' and p.parent.name=='C' for p in (PRI/'runs').glob('*/*/STARTED.json')),'formal_E_paths_started':sum(p.name=='STARTED.json' and p.parent.name=='E' for p in (PRI/'runs').glob('*/*/STARTED.json')),'technical_repair_cycles':sum(json.loads(l).get('cycle',0)>0 for l in (PRI/'TECHNICAL_REPAIR_LEDGER.jsonl').read_text().splitlines()),'new_fit':0,'new_inference':0,'new_State_kernel':0,'threshold_search':0,'provider_requests':0,'protected_opens':0,'orders':0,'previous_72_repair_history_preserved':'Pinned S4 carrier, parent5cycles and subsequent72 repair ledger; separate budget.'})
  meta={}
+ large=[]
+ for p in sorted(PRI.glob('*.json')):
+  if p.stat().st_size>600000:
+   b=p.read_bytes();dest=p.with_suffix(p.suffix+'.gz');atomic(dest,gzip.compress(b,mtime=0))
+   large.append({'original_local':p.name,'exact_uncompressed':pin(p),'published_carrier':dest.name,'carrier_pin':pin(dest),'original_large_GET':'UNVERIFIED_EXTRA_DEBUG_COPY; use exact gzip carrier'})
+ if large:save(PRI/'LARGE_LOG_CARRIER_MANIFEST.json',{'files':large})
  for side,root in [('public',PUB),('private',PRI)]:
   files=[]
   for p in sorted(root.rglob('*')):
-   if p.is_file() and (side=='public' or len(p.relative_to(root).parts)==1):files.append({'relative':p.relative_to(root).as_posix(),'local':str(p),'bytes':p.stat().st_size,**pin(p)})
+   if p.is_file() and (side=='public' or len(p.relative_to(root).parts)==1) and not (side=='private' and p.suffix=='.json' and p.stat().st_size>600000):files.append({'relative':p.relative_to(root).as_posix(),'local':str(p),'bytes':p.stat().st_size,**pin(p)})
   meta[side]=files
  save(ROOT/'PUBLICATION_PAYLOAD_METADATA.json',{'stage':stage,'files':meta})
  print(json.dumps({'stage':stage,'files':meta}))

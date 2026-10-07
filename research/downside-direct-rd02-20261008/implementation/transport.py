@@ -23,8 +23,8 @@ def prepare(stage,private_roots):
    for p in names:
     b=p.read_bytes();info=tarfile.TarInfo(p.relative_to(PRIVATE).as_posix());info.size=len(b);info.mtime=0;info.mode=0o600;info.uid=info.gid=0;t.addfile(info,io.BytesIO(b))
   payload=lzma.compress(buf.getvalue(),preset=6);archive=td/(stage+'.tar.xz');archive.write_bytes(payload);parts=[]
-  for i,start in enumerate(range(0,len(payload),262144),1):
-   part=td/f'{stage}.tar.xz.part{i:03d}';part.write_bytes(payload[start:start+262144]);info={'path':prefix+'checkpoints/'+stage+'/'+part.name,'local':str(part),'encoding':'base64','content':base64.b64encode(part.read_bytes()).decode(),**pin(part)};parts.append({k:v for k,v in info.items() if k!='content'});prvs.append(info)
+  for i,start in enumerate(range(0,len(payload),600000),1):
+   part=td/f'{stage}.tar.xz.part{i:03d}';part.write_bytes(payload[start:start+600000]);info={'path':prefix+'checkpoints/'+stage+'/'+part.name,'local':str(part),'encoding':'base64','content':base64.b64encode(part.read_bytes()).decode(),**pin(part)};parts.append({k:v for k,v in info.items() if k!='content'});prvs.append(info)
   manifest={'stage':stage,'archive':archive.name,'archive_pin':pin(archive),'parts':parts,'members':[{'path':p.relative_to(PRIVATE).as_posix(),**pin(p)} for p in names],'source_carrier_repeated':False}
   mf=td/'PRIVATE_CARRIER_MANIFEST.json';save(mf,manifest);prvs.append({'path':prefix+'checkpoints/'+stage+'/PRIVATE_CARRIER_MANIFEST.json','local':str(mf),'encoding':'utf-8','content':mf.read_text(),**pin(mf)})
  assets={'stage':stage,'public':pubs,'private':prvs}

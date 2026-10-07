@@ -1,0 +1,35 @@
+{
+  "e0_connection_replay_paths": 2,
+  "fit": 0,
+  "formal_candidate_paths_budget": 20,
+  "formal_candidate_paths_completed": 0,
+  "independent_paths_completed": 0,
+  "inference": 0,
+  "kernel_build": 0,
+  "orders": 0,
+  "production_updates": 0,
+  "repair_cycles_budget": 20,
+  "repair_cycles_used": 3,
+  "repairs": [
+    {
+      "cycle": 1,
+      "kind": "TRANSPORT_EXTRA_LF",
+      "result": "immutable bytes/blob/hash restored; no economic results existed",
+      "scope": "local predecessor/projection copy"
+    },
+    {
+      "cycle": 2,
+      "kind": "MALFORMED_EXECUTION_ROW_SCHEMA",
+      "scope": "H wrapper catches numeric conversion exceptions; native bytes unchanged; valid original row semantics unchanged",
+      "verification": "synthetic20 PASS"
+    },
+    {
+      "cycle": 3,
+      "kind": "READBACK_LOCATOR_METADATA",
+      "scope": "local receipt remote path was overwritten by local part path; source Git objects unchanged",
+      "verification": "24 correct commit/path GETs exact bytes match"
+    }
+  ],
+  "reproduction_paths_completed": 0,
+  "threshold_search": 0
+}

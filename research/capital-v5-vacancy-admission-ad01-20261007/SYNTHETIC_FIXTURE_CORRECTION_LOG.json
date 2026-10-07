@@ -1,0 +1,45 @@
+{
+  "corrected_assertion": "Complete decision lists including Admission and sizing outputs must remain exactly equal before the changed suffix becomes known.",
+  "correction": "Retain original synthetic rows before minute606; replace O/H/L/C only for rows with minute>=606. Keep synthetic future exit-price replacement500.",
+  "engine_economic_semantics_changed": false,
+  "event": "SYNTHETIC_TEST17_FIXTURE_PREFIX_CORRECTION",
+  "exact_traceback_recorded_here": false,
+  "final_code_pins": {
+    "admission_adapter.py": {
+      "bytes": 14984,
+      "git_blob": "6bebeef1192f6427c269c17d99e8cb6610b9affc",
+      "sha256": "1041c57232c52f946f15c8654838bbdc9760035ab71e779661227e4e395b6646"
+    },
+    "baseline_adapter.py": {
+      "bytes": 8080,
+      "git_blob": "2798add9f23de55fd89fe050b794a6ff12449ce5",
+      "sha256": "fbbf8e2a13fd654e4a5dbdd5816776cc8f84143eec3125dee2cfd158297d9436"
+    },
+    "io_utils.py": {
+      "bytes": 2057,
+      "git_blob": "9dde56b50f833781c30cbd5dc90145ca174e3f16",
+      "sha256": "11d881a5fbbef6a70bd7e044d5b4509f1c5594f80db484ea86d59cd79191ebbf"
+    },
+    "synthetic_tests.py": {
+      "bytes": 15986,
+      "git_blob": "781a97fe63ce12ad9f3abba0d03473ac62f4350b",
+      "sha256": "5621326494fe26fe36bfa3e3faaa3270b2bc017a2899458f232213a461b5b669"
+    }
+  },
+  "final_status": "PASS",
+  "final_synthetic_receipt_pin": {
+    "bytes": 3623,
+    "git_blob": "152690ab55ba9cfd017bd4ffe914af7e594ed6ad",
+    "sha256": "33d6ce52d2f54351f072ea09013d67e67b07131674960b7bc2fb13317c76c678"
+  },
+  "initial_fixture": "Future-outcome test replaced every synthetic market close/open/high/low with2000, including marks that were already available before the B_ENTRY minute605 purchase.",
+  "initial_status": "FAIL",
+  "observed_failure_summary": "The two synthetic B_ENTRY decision payloads differed in native sizing budget/cap fields. This was not evidence of future suffix leakage.",
+  "performance_replay": false,
+  "real_result_viewed": false,
+  "research_id": "AD01",
+  "scope": "ARTIFICIAL_FIXTURE_TECHNICAL_LOG",
+  "semantic_spec_changed": false,
+  "subsequent_campaign": "All20 meaningful synthetic contracts passed; receipt contains final source hashes. No final code is modified by this log write.",
+  "why_invalid": "The changed already-known synthetic prefix legally changed equity used by native sizing at minute605. A full decision equality expectation was therefore invalid for that fixture."
+}

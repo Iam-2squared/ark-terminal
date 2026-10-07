@@ -1,0 +1,25 @@
+{
+  "status": "PASS_SERIALIZATION_ONLY_REPAIR",
+  "cycle": 5,
+  "old_writer": {
+    "bytes": 3281,
+    "sha256": "93adce35105ac7b3810ed730e98ce709e40757c16d94a3bcb089cc21ee1cf819"
+  },
+  "new_writer": {
+    "bytes": 4781,
+    "sha256": "2070d1a0674af9172b8e9754d77ddc49f36c79fab4a7a1393d6aeed5bcbade8b"
+  },
+  "cause": "144 original ISO timestamp text cells exposed as Date objects by spreadsheet transport; source timestamp strings were not changed",
+  "fields": [
+    "sealed_intent_timestamp",
+    "buy_fill_timestamp"
+  ],
+  "exact_source_ISO_timezone_preserved": true,
+  "instant_equality_required_before_original_ISO_text_serialization": true,
+  "restored_cell_N": 144,
+  "intent_changed": false,
+  "fill_changed": false,
+  "R_changed": false,
+  "failed_reproduction_attempt1_preserved": true,
+  "public_private_csv_N": 18
+}

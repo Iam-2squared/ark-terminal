@@ -1,0 +1,87 @@
+{
+  "cohorts": {
+    "S1": {
+      "N": 164,
+      "R_known": 159,
+      "R_unknown": 5,
+      "state_usable_N": 72,
+      "state_unavailable_N": 92,
+      "sessions": 6,
+      "symbols": 136
+    },
+    "S2": {
+      "N": 158,
+      "R_known": 157,
+      "R_unknown": 1,
+      "state_usable_N": 73,
+      "state_unavailable_N": 85,
+      "sessions": 6,
+      "symbols": 117
+    },
+    "UNION": {
+      "N": 322,
+      "R_known": 316,
+      "R_unknown": 6,
+      "state_usable_N": 145,
+      "state_unavailable_N": 177,
+      "sessions": 12,
+      "symbols": 223
+    }
+  },
+  "State_usable_R_known_quadrants": {
+    "True|True": 145,
+    "False|True": 171,
+    "False|False": 6
+  },
+  "split_overlap_N": 0,
+  "policies": {
+    "P1": {
+      "N": 322,
+      "KEEP": 306,
+      "DROP": 16,
+      "decision_UNKNOWN": 0,
+      "KEEP_rate": "0.950310559006211180124223602484",
+      "DROP_rate": "0.049689440993788819875776397516",
+      "decision_coverage": "1.000000000000000000000000000000",
+      "state_usable_N": 145,
+      "state_unavailable_N": 177,
+      "KEEP_STATE_UNAVAILABLE_N": 177,
+      "state_evidence_coverage": "0.450310559006211180124223602484",
+      "distinct_sessions": 12,
+      "distinct_symbols": 223
+    },
+    "P2": {
+      "N": 322,
+      "KEEP": 225,
+      "DROP": 97,
+      "decision_UNKNOWN": 0,
+      "KEEP_rate": "0.698757763975155279503105590062",
+      "DROP_rate": "0.301242236024844720496894409938",
+      "decision_coverage": "1.000000000000000000000000000000",
+      "state_usable_N": 145,
+      "state_unavailable_N": 177,
+      "KEEP_STATE_UNAVAILABLE_N": 177,
+      "state_evidence_coverage": "0.450310559006211180124223602484",
+      "distinct_sessions": 12,
+      "distinct_symbols": 223
+    }
+  },
+  "table_rows": {
+    "STATE9_AT_BUY_INTENT_CENSUS.csv": 36,
+    "STATE9_BY_R_BAND_COUNTS.csv": 36,
+    "STATE9_BY_R_BAND_RATES.csv": 504,
+    "TARGET_STATE_LOSER_WINNER_SUMMARY.csv": 78,
+    "POLICY_R_BAND_KEEP_DROP.csv": 324,
+    "POLICY_CUMULATIVE_KEEP_DROP.csv": 216,
+    "DROP_COMPOSITION.csv": 450,
+    "RETURN_MASS_DECOMPOSITION.csv": 2700,
+    "P2_MINUS_P1_INCREMENTAL_DROP.csv": 84,
+    "SESSION_SUMMARY.csv": 1080,
+    "ACCOUNTING_IDENTITY_CHECK.csv": 540
+  },
+  "status": "STATE9_ONLY_ENTRY_FILTER_DIAGNOSTIC_PARTIAL_STATE_COVERAGE",
+  "newFirstLayerSelected": null,
+  "productionReady": false,
+  "capitalImprovement": "NOT_EVALUATED",
+  "freshValidation": "NOT_RUN"
+}

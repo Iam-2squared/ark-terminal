@@ -1,5 +1,8 @@
 {
+  "C10_causal_QA_sha256": "0aa65a00bf572d37e8f60f4480332989f089066288f33b4290481658e859692f",
+  "C10_feature_seal_sha256": "231a81eca7be981446f2202e1cb64eedcc35ef0a6b3392e793079ed1053924f6",
   "C10_field_registry_sha256": "4457460c4768ac7f5445ba0b10d82a2786b27b293836ca927925dda81312e9d0",
+  "C10_technical_repair_receipt_sha256": "72f42bad936fc6780a02909459d40c8cb8f82e2f8c8b4a9f72c281b90d8f7065",
   "Entry_N": 322,
   "Fresh_OOS": 0,
   "REPORT501_new_score": 0,
@@ -12,9 +15,10 @@
   "causal_QA_scope_Entry_N": 1600,
   "class_weight": null,
   "clock": {
-    "JST": "2026-10-07T08:58:24.202904+09:00",
-    "UTC": "2026-10-06T23:58:24.202904+00:00"
+    "JST": "2026-10-07T09:06:07.463148+09:00",
+    "UTC": "2026-10-07T00:06:07.463148+00:00"
   },
+  "code_build_amendment": "Add implementation and successfulQA hashes to the already fixed83-field/14-alias spec before C10 fit; no result-driven field or parameter changes.",
   "exposure": "ADAPTIVE_DEVELOPMENT",
   "fit_N": 2,
   "formal_spec_source_pin": {
@@ -24,10 +28,20 @@
   },
   "hypothesis": "Information/representation effect: same fixed HGB7 plus fixed pre-buy direct chart shape",
   "implementation_pins": {
+    "build_c10.py": {
+      "blob": "2b5923b28be481cd032ac251c0a7bad423e82a80",
+      "bytes": 14731,
+      "sha256": "9d2829bdfa01f98d1b27b3d76a4add37e23655672cf5acb2400ed1945eecec17"
+    },
     "common.py": {
       "blob": "c8130102543828946a90c26eb0962b5229897937",
       "bytes": 3113,
       "sha256": "b3a3a48ca96c24e3d95736377edf2382e2677b1e472f5be75da2e6d41d69716e"
+    },
+    "direct_chart.py": {
+      "blob": "9c51b8d812a262ea599832daf58a4a962066a125",
+      "bytes": 8186,
+      "sha256": "ebe87c2c6cc492d32d15877f520ee62530aed137a6d65484925ae8c929a41807"
     },
     "direct_registry.py": {
       "blob": "97588a166ec669145cb9d78a312f503a3413e2fb",

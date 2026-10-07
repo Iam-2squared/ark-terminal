@@ -1,0 +1,18 @@
+ARK TERMINAL — V5 Capital × 新メインSHARP_DROP EXIT
+文書ID: ARK_V5_MAIN_CAPITAL_SHARP_DROP_EXIT_RESET20_WORK_20261007 V1.0 2026-10-07
+このcampaignの権限はユーザーが本会話で提示した全17節のWork指示書。構造化したWORK_SPEC.jsonと全原本pinsを併読する。
+問い: V5の買い方を変えずEXITだけSHARP_DROPへ変えたとき、100万円開始20営業日の最終総資産と損失がどう変わるか。
+C/Eの2armのみ。MAX3、100株、LONG現物cash-only、native score/allocator/arrival/block、cost、State9/PITを保持。新FIRST LAYER、P1追加、新fit、探索、provider、保護partition、注文は禁止。
+Primary W13..W21の独立100万円reset9窓を固定。W01..W12 coverage unknownを保存。日次reset禁止。各窓は20営業日で重複し、独立9か月とは呼ばない。
+Primary各窓のcommitとactual GETを先に行い、その後source契約が成立する旧38-session連結と正規化19窓をSecondaryとして比較する。RESET20とLEGACY_NORMALIZED20/CHAIN38を混ぜない。
+正式比較は全Frozen候補をarmごとのcash/equity/slots/pendingで時系列Replay。旧150取引に72件のR差を足す方法は禁止。早期EXITのfill/release後にのみ資金・枠を再利用し、funded IDと数量の差を許す。
+新EXITはbuy fill後の初回有効Primary SHARP_DROP、PRE/ACTIVEと利益中も発火。先行/同時Control優先、全量latched、signal Close売却禁止、修復済みDecimal fill、canonical15:20 EODを継承。
+A有効State/B正当な品質棄権/C証跡欠損/D約定source不足を分ける。C/Dをholdや購入前拒否に偽装しない。funded後に不足なら影響窓Finalをnullにしてcheckpoint保存。
+Controlは全ID/order/数量/金額/time/release/MTM/resetがbindingされoverlay-OFF parityが確認された保存台帳をREUSED_VERIFIED_CONTROLにする。終点だけ一致は不可。
+報告はPrimary資産金額→実損/大Loser→Winner損傷・未購入→資金/数量差→旧29万円同一窓とSecondary→coverage/検算/再現/保存。paired-complete mask、difference of mediansとmedian paired differenceを分離する。
+実funded Rを-5..+5帯、ZERO/UNKNOWNに分け、円PnL・gross loss・tail・資金拘束円×分を保存。元C Winner/Loser固定ID帯のE未購入と直接損益差を分け、元tail外/E-only新規tailを記録する。unique市場Entryと重複口座件数を分ける。
+同一初期・全決済・既知maskでFinal差=COMMON qC*(uE-uC)+COMMON (qE-qC)*uE+E_ONLY PnL-C_ONLY PnL。説明用恒等式であり一意の因果帰属と呼ばない。最初の差分と固定順位の最大損失救済/最大Winner損傷/最悪新tailを示す。
+人工境界を先に実行、元入力から主計算をimportしない別実装で独立検算。共有State kernelは外部認証扱いしない。同一作者の検算で第三者盲検監査ではない。同仕様の再現確認1campaign、deterministic bytes/hash一致、時刻/commit receiptは別。
+正式最大20paths各1回、独立各1回、修復最大20cycles。モデル探索0。各session/例外の原子的checkpointと各窓GitHub commit/actual GET。publicは集計/hash/status、privateは個別Entry/State/価格/台帳/再現依存。旧成果物保持、main merge/force push/本番変更なし、skip CI。
+新EXITのユーザー選択を結果で変更しない。損失減・資産悪化も金額で報告、未知は外挿しない。保存と読戻し後STOP。残る不足なら失敗と再開checkpointを保存しSTOP。「最初から」は再開手順にしない。
+WORK_SPEC.jsonのrequired_final_stateとSafety9全falseを維持。offline researchの許可はSafety9と別。

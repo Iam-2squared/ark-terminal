@@ -26,10 +26,18 @@ def pack(stage):
    b=p.read_bytes();dest=p.with_suffix(p.suffix+'.gz');atomic(dest,gzip.compress(b,mtime=0))
    large.append({'original_local':p.name,'exact_uncompressed':pin(p),'published_carrier':dest.name,'carrier_pin':pin(dest),'original_large_GET':'UNVERIFIED_EXTRA_DEBUG_COPY; use exact gzip carrier'})
  if large:save(PRI/'LARGE_LOG_CARRIER_MANIFEST.json',{'files':large})
+ segments=[]
+ for p in sorted(PRI.iterdir()):
+  if p.is_file() and p.stat().st_size>900000 and p.suffix!='.json':
+   b=p.read_bytes();parts=[]
+   for i,start in enumerate(range(0,len(b),600000)):
+    dest=PRI/(p.name+'.part-%03d.bin'%i);atomic(dest,b[start:start+600000]);parts.append({'index':i,'file':dest.name,**pin(dest)})
+   segments.append({'archive':p.name,**pin(p),'parts':parts,'serialization':'concatenate numbered raw binary parts in index order'})
+ if segments:save(PRI/'SEGMENTED_CARRIER_MANIFEST.json',{'carriers':segments})
  for side,root in [('public',PUB),('private',PRI)]:
   files=[]
   for p in sorted(root.rglob('*')):
-   if p.is_file() and (side=='public' or len(p.relative_to(root).parts)==1) and not (side=='private' and p.suffix=='.json' and p.stat().st_size>600000):files.append({'relative':p.relative_to(root).as_posix(),'local':str(p),'bytes':p.stat().st_size,**pin(p)})
+   if p.is_file() and (side=='public' or len(p.relative_to(root).parts)==1) and not (side=='private' and (p.suffix=='.json' and p.stat().st_size>600000 or p.stat().st_size>900000)):files.append({'relative':p.relative_to(root).as_posix(),'local':str(p),'bytes':p.stat().st_size,**pin(p)})
   meta[side]=files
  save(ROOT/'PUBLICATION_PAYLOAD_METADATA.json',{'stage':stage,'files':meta})
  print(json.dumps({'stage':stage,'files':meta}))

@@ -308,8 +308,118 @@ def path_inputs(root):
  assert len(stream)==len(ids)==1039 and ids<=books.keys() and ids<=cache.keys(), 'FAIL_CLOSED_SOURCE_POPULATION'
  return {'status':'READY','candidate_N':len(stream),'path_N':30}
 
+R_GROUPS=['L5_PLUS','L4_5','L3_4','L2_3','L1_2','L0_1','ZERO','P0_1','P1_2','P2_3','P3_4','P4_5','P5_PLUS','R_UNKNOWN','ALL_MINUS']+['R_LE_MINUS'+str(k) for k in range(1,6)]+['ALL_PLUS']+['R_GE_PLUS'+str(k) for k in range(1,6)]
+
+def belongs(trade,group):
+ value=retpct(trade['pnl'],trade['debit']) if trade else None
+ if group in R_GROUPS[:14]:return (rb(trade['pnl'],trade['debit']) if trade else 'R_UNKNOWN')==group
+ if value is None:return False
+ if group=='ALL_MINUS':return value<0
+ if group=='ALL_PLUS':return value>0
+ if group.startswith('R_LE_MINUS'):return value<=-int(group[-1])
+ return value>=int(group[-1])
+
+def market_minutes(start,end):return sum(540<=minute<690 or 750<=minute<930 for minute in range(start,end))
+def fnum(value):return F(str(value)) if value is not None else None
+def descriptive(values):return {'min':min(values),'mean':sum(values,F(0))/len(values),'median':median(values),'max':max(values)}
+
+def report_value(tag,own,primary):
+ if isinstance(own,dict):
+  if isinstance(primary,str):primary=json.loads(primary)
+  for key,value in own.items():report_value(tag+':'+key,value,(primary or {}).get(key))
+ elif isinstance(own,F):verify(tag,fractionstr(own),primary,True)
+ elif isinstance(own,(int,D)) and not isinstance(own,bool):verify(tag,own,primary,True)
+ else:verify(tag,own,primary or None if own is None else primary)
+
+def independent_risk(data):
+ trades=data['TRADES'];days=data['result']['daily_series'];funded=[d for d in data['DECISIONS'] if d['reason']=='FUNDED'];known={t['entry_id']:t for t in trades};losers=[t for t in trades if F(t['pnl'])<0]
+ day_pnls=[F(d['ending_cash'])-F(d['starting_cash']) for d in days if d['status']=='COMPLETE']
+ risk={'funded_N':len(funded),'unique_Entry_N':len({d['entry_id'] for d in funded}),'known_R_N':len(known),'unknown_R_N':len(funded)-len(known),'ALL_MINUS_N':len(losers),'ALL_MINUS_pct_funded':F(len(losers)*100,len(funded)) if funded else None,'gross_loss_jpy':-sum((F(t['pnl']) for t in losers),F(0)),'gross_positive_jpy':sum((F(t['pnl']) for t in trades if F(t['pnl'])>0),F(0)),'realized_PnL_jpy':sum((F(t['pnl']) for t in trades),F(0)),'worst_trade_loss_jpy':-min((F(t['pnl']) for t in losers),default=F(0)),'worst_trade_R_pct':min((retpct(t['pnl'],t['debit']) for t in trades),default=None),'negative_day_N':sum(pnl<0 for pnl in day_pnls),'known_day_N':len(day_pnls),'worst_daily_PnL_jpy':min(day_pnls,default=None),'minute_MTM_MaxDD_pct':maxdd([c['equity'] for c in data['CURVE']]),'EOD_MaxDD_pct':maxdd([d['ending_cash'] for d in days if d['status']=='COMPLETE'])}
+ for value_key,exact_key in [('minute_MTM_MaxDD_pct','minute_MTM_MaxDD_exact'),('EOD_MaxDD_pct','EOD_MaxDD_exact')]:
+  value=risk[value_key];risk[exact_key]={'value':value,'numerator':str(value.numerator),'denominator':str(value.denominator)}
+ for k in range(1,6):
+  low=[t for t in trades if retpct(t['pnl'],t['debit'])<=-k];high=[t for t in trades if retpct(t['pnl'],t['debit'])>=k]
+  risk.update({f'R_LE_MINUS{k}_N':len(low),f'R_LE_MINUS{k}_gross_loss_jpy':-sum((F(t['pnl']) for t in low),F(0)),f'R_GE_PLUS{k}_N':len(high),f'R_GE_PLUS{k}_PnL_jpy':sum((F(t['pnl']) for t in high),F(0))})
+ return risk
+
+def independent_spectrum(data,group,cohort=None):
+ funded=[d for d in data['DECISIONS'] if d['reason']=='FUNDED'];trade_map={t['entry_id']:t for t in data['TRADES']}
+ if cohort is not None:funded=[d for d in funded if d['entry_id'] in cohort]
+ chosen=[d for d in funded if belongs(trade_map.get(d['entry_id']),group)];known=[trade_map[d['entry_id']] for d in chosen if d['entry_id'] in trade_map];known_all=sum(d['entry_id'] in trade_map for d in funded)
+ return {'funded_N':len(chosen),'group_N':len(chosen),'total_funded_N':len(funded),'total_unique_Entry_N':len({d['entry_id'] for d in funded}),'R_known_denominator_N':known_all,'R_unknown_N':len(funded)-known_all,'pct_all_funded':F(len(chosen)*100,len(funded)) if funded else None,'pct_known_R':F(len(known)*100,known_all) if known_all else None,'BUY_debit_jpy':sum((F(d['debit']) for d in chosen),F(0)),'quantity':sum(d['quantity'] for d in chosen),'lots':sum(d['quantity'] for d in chosen)//100,'positive_PnL_jpy':sum((F(t['pnl']) for t in known if F(t['pnl'])>0),F(0)),'negative_PnL_abs_jpy':-sum((F(t['pnl']) for t in known if F(t['pnl'])<0),F(0)),'realized_PnL_jpy':sum((F(t['pnl']) for t in known),F(0)) if known or not chosen else None,'capital_lock_jpy_market_minutes':sum((F(t['debit'])*market_minutes(t['entry_minute'],t['release_minute']) for t in known),F(0)),'R_median_pct':median([retpct(t['pnl'],t['debit']) for t in known]) if known else None}
+
+def csv_rows(path):return list(csv.DictReader(path.open()))
+
+def verify_reports(root):
+ """All reports reconstructed from independent saved paths; zero path replays."""
+ audit=read(root/'private/independent/INDEPENDENT_COMPLETE.json');assert audit['status']=='PASS' and audit['path_N']==30,'COMPLETE_INDEPENDENT_PATHS_REQUIRED'
+ windows=['W%02d'%n for n in range(13,22)];arms=['E0','H1','H2'];data={};risk={}
+ for window in windows+['CHAIN38']:
+  for arm in arms:
+   dest=root/'private/independent'/window/arm
+   data[window,arm]={'result':read(dest/'RESULT.json'),**{label:rows(dest/(label+'.jsonl.gz')) for label in ['DECISIONS','TRADES','CURVE','INTENTS']}}
+   risk[window,arm]=independent_risk(data[window,arm])
+ for kind in ('primary','chain'):
+  lossfile='TAIL_AND_LOSS_METRICS.csv' if kind=='primary' else 'CHAIN38_TAIL_AND_LOSS_METRICS.csv'
+  spectrumfile='RETURN_SPECTRUM_BY_WINDOW.csv' if kind=='primary' else 'CHAIN38_RETURN_SPECTRUM.csv'
+  scope=windows if kind=='primary' else ['CHAIN38']
+  lossrows={(row['window_id'],row['arm']):row for row in csv_rows(root/'public'/lossfile)}
+  spectrum={(row['window_id'],row['arm'],row['group']):row for row in csv_rows(root/'public'/spectrumfile)}
+  verify(kind+':loss_row_N',len(scope)*3,len(lossrows));verify(kind+':spectrum_row_N',len(scope)*3*len(R_GROUPS),len(spectrum))
+  for window in scope:
+   for arm in arms:
+    report_value(window+':'+arm+':RISK',risk[window,arm],lossrows[window,arm])
+    for group in R_GROUPS:report_value(window+':'+arm+':SPECTRUM:'+group,independent_spectrum(data[window,arm],group),spectrum[window,arm,group])
+ summaries=read(root/'public/RESET20_ARM_SUMMARIES.json');own_summaries={}
+ for arm in arms:
+  finals=[F(data[w,arm]['result']['final_equity']) for w in windows];mm=[risk[w,arm] for w in windows]
+  own={'mask':windows,'measured_N':9,'final_equity':descriptive(finals),'profit':descriptive([v-1000000 for v in finals]),'hit_2m_N':sum(v>=2000000 for v in finals),'red_window_N':sum(v<1000000 for v in finals),'gross_loss_jpy':sum((m['gross_loss_jpy'] for m in mm),F(0)),'gross_positive_jpy':sum((m['gross_positive_jpy'] for m in mm),F(0)),'negative_day_N':sum(m['negative_day_N'] for m in mm),'worst_daily_PnL_jpy':min(m['worst_daily_PnL_jpy'] for m in mm),'worst_trade_loss_jpy':max(m['worst_trade_loss_jpy'] for m in mm),'worst_trade_R_pct':min(m['worst_trade_R_pct'] for m in mm),'max_minute_MTM_MaxDD_pct':max(m['minute_MTM_MaxDD_pct'] for m in mm),'max_EOD_MaxDD_pct':max(m['EOD_MaxDD_pct'] for m in mm),'account_trade_N':sum(m['funded_N'] for m in mm),'unique_Entry_N':len({t['entry_id'] for w in windows for t in data[w,arm]['TRADES']})}
+  for k in range(1,6):own[f'R_LE_MINUS{k}_loss_jpy']=sum((m[f'R_LE_MINUS{k}_gross_loss_jpy'] for m in mm),F(0));own[f'R_LE_MINUS{k}_N']=sum(m[f'R_LE_MINUS{k}_N'] for m in mm)
+  report_value(arm+':FULL9',own,summaries[arm]['full9']);own_summaries[arm]=own
+ paired=read(root/'public/RESET20_PAIRED_DIFFERENCE_SUMMARY.json')
+ for first,second in [('H1','E0'),('H2','E0'),('H1','H2')]:
+  av=[F(data[w,first]['result']['final_equity']) for w in windows];bv=[F(data[w,second]['result']['final_equity']) for w in windows];deltas=[a-b for a,b in zip(av,bv)]
+  own={'full9_complete':True,'denominator':9,'mask':windows,'both_known_subset_auxiliary_only':False,'difference_stats':descriptive(deltas),'difference_of_medians':median(av)-median(bv),'median_of_paired_differences':median(deltas),'difference_of_minima':min(av)-min(bv),'minimum_paired_difference':min(deltas),'difference_of_maxima_not_paired_effect':max(av)-max(bv),'improved_N':sum(v>0 for v in deltas),'equal_N':sum(v==0 for v in deltas),'worsened_N':sum(v<0 for v in deltas)}
+  report_value(first+'_'+second+':PAIRED',own,paired[first+'_minus_'+second])
+ wealth={(row['window_id']):row for row in csv_rows(root/'public/RESET20_WINDOW_RESULTS.csv')}
+ for window in windows:
+  for arm in arms:
+   final=F(data[window,arm]['result']['final_equity']);report_value(window+':'+arm+':WEALTH',{arm+'_final':final,arm+'_profit':final-1000000,arm+'_return_pct':(final/1000000-1)*100},wealth[window])
+  for a,b in [('H1','E0'),('H2','E0'),('H1','H2')]:report_value(window+':WEALTH:'+a+'_'+b,F(data[window,a]['result']['final_equity'])-F(data[window,b]['result']['final_equity']),wealth[window][a+'_minus_'+b])
+ # Fixed E0 cohort preservation and unit-quantity accounting, including indirect funding changes.
+ for kind,scope in [('primary',windows),('chain',['CHAIN38'])]:
+  prefix='' if kind=='primary' else 'CHAIN38_'
+  co={(row['window_id'],row['policy'],row['E0_fixed_R_group']):row for row in csv_rows(root/'public'/(prefix+'E0_FIXED_COHORT_PRESERVATION.csv'))}
+  de={(row['window_id'],row['policy']):row for row in csv_rows(root/'public'/(prefix+'FUNDING_AND_PNL_DECOMPOSITION.csv'))}
+  for window in scope:
+   baseline=data[window,'E0'];et={t['entry_id']:t for t in baseline['TRADES']}
+   for policy in ['H1','H2']:
+    candidate=data[window,policy];ht={t['entry_id']:t for t in candidate['TRADES']};hd={d['entry_id']:d for d in candidate['DECISIONS']};common=set(et)&set(ht);eonly=set(et)-set(ht);honly=set(ht)-set(et)
+    direct=sum((F(et[k]['quantity'])*(F(ht[k]['sell_effective'])-F(ht[k]['buy_effective'])-F(et[k]['sell_effective'])+F(et[k]['buy_effective'])) for k in common),F(0))
+    quantity=sum((F(ht[k]['quantity']-et[k]['quantity'])*(F(ht[k]['sell_effective'])-F(ht[k]['buy_effective'])) for k in common),F(0));honly_pnl=sum((F(ht[k]['pnl']) for k in honly),F(0));eonly_pnl=sum((F(et[k]['pnl']) for k in eonly),F(0));delta=F(candidate['result']['final_equity'])-F(baseline['result']['final_equity']);total=direct+quantity+honly_pnl-eonly_pnl
+    report_value(window+':'+policy+':DECOMPOSITION',{'COMMON_N':len(common),'E0_ONLY_N':len(eonly),'H_ONLY_N':len(honly),'COMMON_direct_EXIT_jpy':direct,'COMMON_quantity_jpy':quantity,'H_ONLY_PnL_jpy':honly_pnl,'E0_ONLY_PnL_jpy':eonly_pnl,'E0_ONLY_direct_guard_N':sum(hd[k]['reason']=='ADMISSION_QUALITY_RESERVE' for k in eonly),'E0_ONLY_indirect_N':sum(hd[k]['reason']!='ADMISSION_QUALITY_RESERVE' and hd[k]['reason'] is not None for k in eonly),'decomposed_delta_jpy':total,'actual_final_delta_jpy':delta},de[window,policy]);verify(window+':'+policy+':ACCOUNTING_IDENTITY',total,delta)
+    for group in R_GROUPS:
+     cohort={k for k,t in et.items() if belongs(t,group)};miss=cohort-set(ht);cc=cohort&set(ht);dr={k for k in miss if hd.get(k,{}).get('reason')=='ADMISSION_QUALITY_RESERVE'};unknown={k for k in miss if hd.get(k,{}).get('reason') is None}
+     own={'E0_N':len(cohort),'COMMON_purchased_N':len(cc),'H_not_purchased_N':len(miss),'same_purchase_pct':F(len(cc)*100,len(cohort)) if cohort else None,'not_purchased_pct':F(len(miss)*100,len(cohort)) if cohort else None,'direct_guard_reject_N':len(dr),'indirect_path_missed_N':len(miss)-len(dr)-len(unknown),'miss_reason_unknown_N':len(unknown),'E0_fixed_missed_PnL_jpy':sum((F(et[k]['pnl']) for k in miss),F(0)),'direct_guard_fixed_missed_PnL_jpy':sum((F(et[k]['pnl']) for k in dr),F(0)),'COMMON_quantity_PnL_delta_jpy':sum((F(ht[k]['pnl'])-F(et[k]['pnl']) for k in cc),F(0))}
+     report_value(window+':'+policy+':PRESERVATION:'+group,own,co[window,policy,group])
+ secondary=read(root/'public/CHAIN38_AND_LEGACY20_RESULTS.json')
+ for arm in arms:report_value('CHAIN38:'+arm+':FINAL',F(data['CHAIN38',arm]['result']['final_equity']),secondary['CHAIN38'][arm]['final_equity'])
+ for index,row in enumerate(secondary['LEGACY_NORMALIZED20']):
+  values={}
+  for arm in arms:
+   days=data['CHAIN38',arm]['result']['daily_series'];value=F(1000000)*F(days[index+19]['ending_cash'])/F(days[index]['starting_cash']);values[arm]=value
+   report_value('LEGACY20:'+str(index)+':'+arm,value,row[arm+'_normalized_final']);verify('LEGACY20_EXACT_NUMERATOR:'+str(index)+':'+arm,str(value.numerator),row[arm+'_exact']['numerator']);verify('LEGACY20_EXACT_DENOMINATOR:'+str(index)+':'+arm,str(value.denominator),row[arm+'_exact']['denominator'])
+  for arm in ['H1','H2']:report_value('LEGACY20:'+str(index)+':'+arm+'_delta',values[arm]-values['E0'],row[arm+'_minus_E0'])
+ result={'status':'PASS' if mismatch_N==0 else 'FAIL','source':'INDEPENDENT_SAVED_SCALAR_PATHS_ONLY','path_reconstruction_N':0,'report_scalar_check_N':checks,'mismatch_N':mismatch_N,'mismatches_first100':mismatches,'checked':'Full9 wealth/summary/paired; disjoint and cumulative R spectra; loss/tail/both DD; fixed E0 cohort preservation; quantity/H_ONLY/E0_ONLY accounting; CHAIN38 and 19 legacy normalized cash ratios','third_party_blind_audit':False}
+ save(root/'public/REPORT_METRICS_INDEPENDENT_CHECK.json',result)
+ combined=read(root/'public/INDEPENDENT_AUDIT.json');combined['report_metrics_verification']=result['status'];combined['report_metrics_check_N']=checks;combined['report_metrics_mismatch_N']=mismatch_N;combined['report_metrics_receipt_sha256']=hashlib.sha256((root/'public/REPORT_METRICS_INDEPENDENT_CHECK.json').read_bytes()).hexdigest();combined['status']='PASS' if combined['status']=='PASS' and result['status']=='PASS' else 'FAIL';save(root/'public/INDEPENDENT_AUDIT.json',combined)
+ print(json.dumps({'report_verification':result['status'],'checks':checks,'mismatch_N':mismatch_N,'real_path_reconstruction_N':0}))
+ if mismatch_N:raise AssertionError(('INDEPENDENT_REPORT_MISMATCH',mismatches[:3]))
+
 def main():
- parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--root',type=Path,default=R);parser.add_argument('--run-campaign',action='store_true',help='Explicitly execute the single independent 30-path campaign after primary readiness');args=parser.parse_args();root=args.root.resolve();preflight=path_inputs(root)
+ parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--root',type=Path,default=R);mode=parser.add_mutually_exclusive_group();mode.add_argument('--run-campaign',action='store_true',help='Explicitly execute the single independent 30-path campaign after primary readiness');mode.add_argument('--verify-reports',action='store_true',help='Compare final reports using saved independent ledgers; never replay paths');args=parser.parse_args();root=args.root.resolve()
+ if args.verify_reports:verify_reports(root);return
+ preflight=path_inputs(root)
  if not args.run_campaign:
   missing=preflight.pop('missing_paths',[])
   print(json.dumps({'mode':'PREFLIGHT_ONLY','campaign_executed':False,**preflight,'missing_path_N':len(missing),'first_missing_paths':missing[:3]},sort_keys=True));return

@@ -1,15 +1,18 @@
 {
+  "calculation_status": "COMPLETE",
   "e0_connection_replay_paths": 2,
   "fit": 0,
   "formal_candidate_paths_budget": 20,
   "formal_candidate_paths_completed": 20,
-  "independent_paths_completed": 0,
+  "independent_mismatch_N": 0,
+  "independent_paths_completed": 30,
   "inference": 0,
   "kernel_build": 0,
   "orders": 0,
   "production_updates": 0,
   "repair_cycles_budget": 20,
-  "repair_cycles_used": 3,
+  "repair_cycles_remaining": 14,
+  "repair_cycles_used": 6,
   "repairs": [
     {
       "cycle": 1,
@@ -28,8 +31,30 @@
       "kind": "READBACK_LOCATOR_METADATA",
       "scope": "local receipt remote path was overwritten by local part path; source Git objects unchanged",
       "verification": "24 correct commit/path GETs exact bytes match"
+    },
+    {
+      "cycle": 4,
+      "kind": "INITIAL_BRANCH_URL_SCHEMA",
+      "recording": "preflight process correction conservatively included in global budget",
+      "scope": "encoded slash in GitHub branch GET rejected; literal known ref used; no input/result changed"
+    },
+    {
+      "cycle": 5,
+      "kind": "SYNTHETIC_FIXTURE_PREFIX_ERROR",
+      "receipt": "SYNTHETIC_FIXTURE_CORRECTION_LOG.json",
+      "recording": "preflight fixture correction conservatively included in global budget",
+      "scope": "test17 initially changed known marks; corrected suffix cutoff; no policy change or real candidate outcome access"
+    },
+    {
+      "cycle": 6,
+      "kind": "FINAL_LOCAL_MANIFEST_OUTPUT_PATH",
+      "scope": "temporary publisher manifest initially targeted nonexistent work/ad01/evidence; corrected to existing root evidence; no source, code, outcome, or Git object changed",
+      "verification": "final publication manifest prepared at evidence/final-public-local-manifest.json"
     }
   ],
-  "reproduction_paths_completed": 0,
+  "report_metrics_mismatch_N": 0,
+  "reproduction_campaigns": 1,
+  "reproduction_mismatch_N": 0,
+  "reproduction_paths_completed": 20,
   "threshold_search": 0
 }

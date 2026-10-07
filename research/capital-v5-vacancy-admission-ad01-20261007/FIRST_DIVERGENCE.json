@@ -1,0 +1,103 @@
+{
+  "anonymous_examples": [
+    {
+      "R_bucket": "P5_PLUS",
+      "contract_same_EXIT": null,
+      "direct_guard": true,
+      "example_kind": "MAXIMUM_E0_WINNER_MISSED",
+      "miss_reason": "ADMISSION_QUALITY_RESERVE",
+      "policy": "H1",
+      "quantity_changed": false,
+      "rank": "B",
+      "set": "E0_ONLY",
+      "window_id": "W13"
+    },
+    {
+      "R_bucket": "L5_PLUS",
+      "contract_same_EXIT": null,
+      "direct_guard": true,
+      "example_kind": "LARGEST_E0_LOSER_NOT_PURCHASED",
+      "miss_reason": "ADMISSION_QUALITY_RESERVE",
+      "policy": "H1",
+      "quantity_changed": false,
+      "rank": "B",
+      "set": "E0_ONLY",
+      "window_id": "W20"
+    },
+    {
+      "R_bucket": "L1_2",
+      "contract_same_EXIT": null,
+      "direct_guard": false,
+      "example_kind": "WORST_H_ONLY",
+      "miss_reason": null,
+      "policy": "H1",
+      "quantity_changed": false,
+      "rank": "A",
+      "set": "H_ONLY",
+      "window_id": "W14"
+    },
+    {
+      "R_bucket": "P3_4",
+      "contract_same_EXIT": null,
+      "direct_guard": true,
+      "example_kind": "MAXIMUM_E0_WINNER_MISSED",
+      "miss_reason": "ADMISSION_QUALITY_RESERVE",
+      "policy": "H2",
+      "quantity_changed": false,
+      "rank": "B",
+      "set": "E0_ONLY",
+      "window_id": "W21"
+    },
+    {
+      "R_bucket": "L5_PLUS",
+      "contract_same_EXIT": null,
+      "direct_guard": true,
+      "example_kind": "LARGEST_E0_LOSER_NOT_PURCHASED",
+      "miss_reason": "ADMISSION_QUALITY_RESERVE",
+      "policy": "H2",
+      "quantity_changed": false,
+      "rank": "B",
+      "set": "E0_ONLY",
+      "window_id": "W20"
+    },
+    {
+      "R_bucket": "L0_1",
+      "contract_same_EXIT": null,
+      "direct_guard": false,
+      "example_kind": "WORST_H_ONLY",
+      "miss_reason": null,
+      "policy": "H2",
+      "quantity_changed": false,
+      "rank": "A",
+      "set": "H_ONLY",
+      "window_id": "W19"
+    }
+  ],
+  "chronological_selection": true,
+  "first_by_policy": {
+    "H1": {
+      "difference_fields": [
+        "reason",
+        "quantity",
+        "debit"
+      ],
+      "example_kind": "FIRST_CHRONOLOGICAL_DIVERGENCE",
+      "policy": "H1",
+      "rank": "B",
+      "window_id": "W13"
+    },
+    "H2": {
+      "difference_fields": [
+        "reason",
+        "quantity",
+        "debit"
+      ],
+      "example_kind": "FIRST_CHRONOLOGICAL_DIVERGENCE",
+      "policy": "H2",
+      "rank": "B",
+      "window_id": "W13"
+    }
+  },
+  "individual_details_private": true,
+  "posthoc_rule_changes": 0
+}

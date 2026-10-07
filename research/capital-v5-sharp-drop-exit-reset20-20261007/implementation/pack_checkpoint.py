@@ -5,7 +5,7 @@ def pack(stage):
  window=stage if stage.startswith('W') or stage=='CHAIN38' else None
  if window:
   from analyze import analyze_primary
-  analyze_primary()
+  if window!='CHAIN38':analyze_primary()
   members=[]
   for p in sorted((PRI/'runs'/window).rglob('*')):
    if p.is_file():members.append((p.relative_to(ROOT).as_posix(),p.read_bytes()))

@@ -88,6 +88,15 @@ def analyze_primary():
   lm=[r for r in loss if r['arm']==a and r['window_id'] in summary['mask']];summary[a+'_gross_loss_jpy_overlapping_accounts']=fmt(sum((D(r['gross_loss_jpy']) for r in lm),D(0)));summary[a+'_gross_positive_jpy_overlapping_accounts']=fmt(sum((D(r['gross_positive_jpy']) for r in lm),D(0)));summary[a+'_ALL_MINUS_N_overlapping_accounts']=sum(r['ALL_MINUS_N'] for r in lm);summary[a+'_negative_day_N_overlapping_accounts']=sum(r['negative_day_N'] for r in lm);summary[a+'_worst_daily_PnL_jpy']=min([D(r['worst_daily_PnL_jpy']) for r in lm],default=None);summary[a+'_max_minute_MTM_MaxDD_pct']=max([D(r['minute_MTM_MaxDD_pct']) for r in lm],default=None)
   for k in [3,4,5]:summary[a+'_tail_LE_MINUS'+str(k)+'_N']=sum(r['R_LE_MINUS'+str(k)+'_N'] for r in lm);summary[a+'_tail_LE_MINUS'+str(k)+'_gross_loss_jpy']=fmt(sum((D(r['R_LE_MINUS'+str(k)+'_gross_loss_jpy']) for r in lm),D(0)))
   summary[a+'_worst_daily_PnL_jpy']=fmt(summary[a+'_worst_daily_PnL_jpy']);summary[a+'_max_minute_MTM_MaxDD_pct']=fmt(summary[a+'_max_minute_MTM_MaxDD_pct'])
+  paired_funded=[r for w in summary['mask'] for r in enriched(path(w,a))];paired_ids={r['entry_id'] for r in paired_funded}
+  summary[a+'_unique_market_Entry_N']=len(paired_ids);summary[a+'_overlapping_account_trade_N']=len(paired_funded)
+  summary[a+'_ALL_MINUS_pct_funded']=fmt(F(summary[a+'_ALL_MINUS_N_overlapping_accounts'])*100/len(paired_funded)) if paired_funded else None
+  summary[a+'_R_known_N']=sum(r['R'] is not None for r in paired_funded);summary[a+'_R_unknown_N']=sum(r['R'] is None for r in paired_funded)
+  summary[a+'_worst_trade_loss_jpy']=fmt(max((D(r['worst_trade_loss_jpy']) for r in lm),default=D(0)))
+  summary[a+'_worst_trade_R_pct']=fmt(min((D(r['worst_trade_R_pct']) for r in lm if r['worst_trade_R_pct'] is not None),default=None))
+  summary[a+'_max_EOD_MaxDD_pct']=fmt(max((D(r['EOD_MaxDD_pct']) for r in lm),default=None))
+  for k in [1,2,3,4,5]:
+   summary[a+'_tail_LE_MINUS'+str(k)+'_N']=sum(r['R_LE_MINUS'+str(k)+'_N'] for r in lm);summary[a+'_tail_LE_MINUS'+str(k)+'_gross_loss_jpy']=fmt(sum((D(r['R_LE_MINUS'+str(k)+'_gross_loss_jpy']) for r in lm),D(0)))
  delta=[D(r['E_minus_C_final_equity_jpy']) for r in complete];summary['paired_delta_stats']=stats(delta);summary['difference_of_medians_jpy']=fmt(median([D(r['E_final_equity']) for r in complete])-median([D(r['C_final_equity']) for r in complete])) if complete else None;summary['median_of_paired_differences_jpy']=fmt(median(delta)) if delta else None;summary['improved_N']=sum(x>0 for x in delta);summary['equal_N']=sum(x==0 for x in delta);summary['worsened_N']=sum(x<0 for x in delta)
  csvsave(PUB/'RESET20_WINDOW_RESULTS.csv',table);save(PUB/'RESET20_SUMMARY.json',summary);csvsave(PUB/'RETURN_SPECTRUM_BY_WINDOW.csv',spectra);csvsave(PUB/'TAIL_AND_LOSS_METRICS.csv',loss);csvsave(PRI/'ORIGINAL_C_WINNER_LOSER_TRANSITIONS.csv',trans);csvsave(PRI/'FUNDING_AND_PNL_DECOMPOSITION.csv',decomps);csvsave(PRI/'NEW_TAIL_ENTRANTS.csv',tails);csvsave(PUB/'FUNDING_AND_PNL_DECOMPOSITION.csv',decomp_window)
  aggregate=[]

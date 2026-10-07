@@ -2,7 +2,8 @@
 from pathlib import Path
 from decimal import Decimal,ROUND_FLOOR,localcontext
 from fractions import Fraction
-import json,gzip,hashlib,zipfile,collections,re,math
+import json,gzip,hashlib,zipfile,collections,re,math,csv
+from statistics import median
 
 R=Path(__file__).resolve().parent;D=Decimal;F=Fraction
 def read(p):return json.loads(Path(p).read_bytes())
@@ -182,6 +183,31 @@ def rb(pnl,debit):
  for k,b in [(2,'P1_2'),(3,'P2_3'),(4,'P3_4'),(5,'P4_5')]:
   if v<k:return b
  return 'P5_PLUS'
+def retpct(pnl,debit):
+ with localcontext() as c:c.prec=60;v=D(pnl)/D(debit)
+ return F(str(v))*100
+def fractionstr(v):
+ with localcontext() as c:c.prec=80;return str(D(v.numerator)/D(v.denominator))
+def maxdd(values):
+ peak=D(1000000);answer=D(0)
+ for v in values:peak=max(peak,v);answer=max(answer,(peak-v)/peak)
+ return answer*100
+def compare_metrics(w,arm,ds,ts,cs,daily):
+ filename='CHAIN38_RETURN_SPECTRUM.csv' if w=='CHAIN38' else 'RETURN_SPECTRUM_BY_WINDOW.csv'
+ saved={(r['arm'],r['band']):r for r in csv.DictReader((R/'public'/filename).open()) if r['window_id']==w}
+ tt={t['entry_id']:t for t in ts};funded=[d for d in ds if d['reason']=='FUNDED'];known=[tt[d['entry_id']] for d in funded if d['entry_id'] in tt]
+ bands=['L5_PLUS','L4_5','L3_4','L2_3','L1_2','L0_1','ZERO','P0_1','P1_2','P2_3','P3_4','P4_5','P5_PLUS','R_UNKNOWN']
+ for band in bands:
+  dd=[d for d in funded if (rb(tt[d['entry_id']]['pnl'],tt[d['entry_id']]['debit']) if d['entry_id'] in tt else 'R_UNKNOWN')==band];kk=[tt[d['entry_id']] for d in dd if d['entry_id'] in tt];own={'funded_N':len(dd),'quantity':sum(d['quantity'] for d in dd),'lots':sum(d['quantity'] for d in dd)//100,'BUY_debit_jpy':sum((D(d['debit']) for d in dd),D(0)),'realized_PnL_jpy':sum((D(t['pnl']) for t in kk),D(0)) if kk or not dd else None,'positive_PnL_jpy':sum((D(t['pnl']) for t in kk if D(t['pnl'])>0),D(0)),'negative_PnL_abs_jpy':-sum((D(t['pnl']) for t in kk if D(t['pnl'])<0),D(0)),'capital_lock_jpy_minutes':sum((D(t['debit'])*(t['release_minute']-t['entry_minute']) for t in kk),D(0)) if kk or not dd else None,'R_median_pct':fractionstr(median([retpct(t['pnl'],t['debit']) for t in kk])) if kk else None,'pp_sum_auxiliary_only':fractionstr(sum((retpct(t['pnl'],t['debit']) for t in kk),F(0))) if kk or not dd else None,'pct_all_funded':fractionstr(F(len(dd))*100/len(funded)) if funded else None,'pct_known_R':fractionstr(F(len(kk))*100/len(known)) if known else None}
+  for k,v in own.items():verify(w+':'+arm+':SPECTRUM:'+band+':'+k,v,saved[arm,band][k] or None,True)
+ filename='CHAIN38_TAIL_AND_LOSS_METRICS.csv' if w=='CHAIN38' else 'TAIL_AND_LOSS_METRICS.csv'
+ target=next(r for r in csv.DictReader((R/'public'/filename).open()) if r['window_id']==w and r['arm']==arm)
+ minus=[t for t in known if D(t['pnl'])<0];days=[D(d['ending_cash'])-D(d['starting_cash']) for d in daily if d['status']=='COMPLETE']
+ metrics={'funded_N':len(funded),'known_R_N':len(known),'unknown_R_N':len(funded)-len(known),'ALL_MINUS_N':len(minus),'ALL_MINUS_pct_funded':fractionstr(F(len(minus))*100/len(funded)) if funded else None,'gross_loss_jpy':-sum((D(t['pnl']) for t in minus),D(0)),'gross_positive_jpy':sum((D(t['pnl']) for t in known if D(t['pnl'])>0),D(0)),'realized_PnL_jpy':sum((D(t['pnl']) for t in known),D(0)),'worst_trade_loss_jpy':-min((D(t['pnl']) for t in minus),default=D(0)),'worst_trade_R_pct':fractionstr(min(retpct(t['pnl'],t['debit']) for t in known)) if known else None,'negative_day_N':sum(v<0 for v in days),'worst_daily_PnL_jpy':min(days) if days else None,'minute_MTM_MaxDD_pct':maxdd([D(c['equity']) for c in cs]),'EOD_MaxDD_pct':maxdd([D(d['ending_cash']) for d in daily if d['status']=='COMPLETE'])}
+ for k in [1,2,3,4,5]:
+  low=[t for t in known if retpct(t['pnl'],t['debit'])<=-k];high=[t for t in known if retpct(t['pnl'],t['debit'])>=k];metrics.update({f'R_LE_MINUS{k}_N':len(low),f'R_LE_MINUS{k}_gross_loss_jpy':-sum((D(t['pnl']) for t in low),D(0)),f'R_GE_PLUS{k}_N':len(high),f'R_GE_PLUS{k}_PnL_jpy':sum((D(t['pnl']) for t in high),D(0))})
+ for k,v in metrics.items():verify(w+':'+arm+':LOSS:'+k,v,target[k] or None,True)
+ return metrics
 def compare_records(tag,own,actual,fields=None):
  verify(tag+':length',len(own),len(actual))
  for index,(a,b) in enumerate(zip(own,actual)):
@@ -209,6 +235,7 @@ def main():
    for label,rr in [('DECISIONS',all_d),('TRADES',all_t),('CURVE',all_c),('INTENTS',all_i)]:
     gzsave(dest/(label+'.jsonl.gz'),rr);compare_records(w+':'+arm+':'+label,rr,rows(original/(label+'.jsonl.gz')))
    primary=read(original/'RESULT.json');compare_records(w+':'+arm+':DAILY',daily,primary['daily_series'])
+   compare_metrics(w,arm,all_d,all_t,all_c,daily)
    complete=len(daily)==len(sessions) and all(d['status']=='COMPLETE' for d in daily);final=str(cash) if complete else None
    verify(w+':'+arm+':FINAL',final,primary['final_equity'],True)
    ownbands=dict(collections.Counter(rb(t['pnl'],t['debit']) for t in all_t));savedbands=dict(collections.Counter(rb(t['pnl'],t['debit']) for t in rows(original/'TRADES.jsonl.gz')));verify(w+':'+arm+':R_BANDS',ownbands,savedbands)
@@ -217,7 +244,21 @@ def main():
     eq=D(c['equity']);peak=max(peak,eq);maxdd=max(maxdd,(peak-eq)/peak)
    sm={'window_id':w,'arm':arm,'status':'COMPLETE' if complete else 'BLOCKED','final_equity':final,'funded_N':sum(d['reason']=='FUNDED' for d in all_d),'closed_N':len(all_t),'gross_loss_jpy':str(-sum((D(t['pnl']) for t in all_t if D(t['pnl'])<0),D(0))),'gross_positive_jpy':str(sum((D(t['pnl']) for t in all_t if D(t['pnl'])>0),D(0))),'MaxDD_pct':str(maxdd*100),'R_bands':ownbands,'daily_series':daily};save(dest/'RESULT.json',sm);completed.append({k:v for k,v in sm.items() if k!='daily_series'})
    print(json.dumps({'independent_window':w,'arm':arm,'final':final,'mismatch_N':len(mismatches)}),flush=True)
- out={'status':'PASS' if not mismatches else 'FAIL','same_author_separate_implementation':True,'third_party_blind_audit':False,'primary_allocator_overlay_evaluator_imports':0,'State_kernel':'SHARED_PREEXISTING_SAVED_KERNEL_OUTPUT; independently re-read original raw saved trace prefixes; no kernel certification','original_trace_rows_verified':seen_state_rows,'scalar_check_N':checks,'mismatch_N':len(mismatches),'mismatches':mismatches,'path_N':len(completed),'paths':completed,'money_quantity_ID_time':'EXACT_NUMERIC_VALUES; decimal lexical scale not a tolerance','new_fits':0,'provider_requests':0,'protected_opens':0}
+ # Paired wealth, normalized legacy endpoints and accounting are derived from independent source reconstructions.
+ summaries={(p['window_id'],p['arm']):p for p in completed}
+ for w in windows:
+  if all((w,a) in summaries and summaries[w,a]['final_equity'] is not None for a in ['C','E']):
+   delta=D(summaries[w,'E']['final_equity'])-D(summaries[w,'C']['final_equity'])
+   if w!='CHAIN38':
+    row=next(r for r in csv.DictReader((R/'public/RESET20_WINDOW_RESULTS.csv').open()) if r['window_id']==w);verify('PAIRED_FINAL:'+w,delta,row['E_minus_C_final_equity_jpy'],True)
+   else:verify('PAIRED_FINAL:CHAIN38',delta,read(R/'public/CHAIN38_AND_LEGACY20_RESULTS.json')['CHAIN38']['E_minus_C_jpy'],True)
+ if ('CHAIN38','C') in summaries and ('CHAIN38','E') in summaries:
+  daily={a:read(R/'private/independent/CHAIN38'/a/'RESULT.json')['daily_series'] for a in ['C','E']}
+  for i,target in enumerate(csv.DictReader((R/'public/LEGACY20_PAIRED_WINDOWS.csv').open())):
+   norm={a:D(1000000)*(D(daily[a][i+19]['ending_cash'])/D(daily[a][i]['starting_cash'])) for a in ['C','E']}
+   for a in ['C','E']:verify('LEGACY_NORMALIZED20:'+str(i)+':'+a,norm[a],target[a+'_normalized_final_jpy'],True)
+   verify('LEGACY_NORMALIZED20:'+str(i)+':DELTA',norm['E']-norm['C'],target['E_minus_C_normalized_jpy'],True)
+ out={'status':'PASS' if not mismatches else 'FAIL','same_author_separate_implementation':True,'third_party_blind_audit':False,'primary_allocator_overlay_evaluator_imports':0,'State_kernel':'SHARED_PREEXISTING_SAVED_KERNEL_OUTPUT; independently re-read original raw saved trace prefixes; no kernel certification','original_trace_rows_verified':seen_state_rows,'scalar_check_N':checks,'mismatch_N':len(mismatches),'mismatches':mismatches,'path_N':len(completed),'paths':completed,'money_quantity_ID_time':'EXACT_NUMERIC_VALUES; decimal lexical scale not a tolerance','public_spectrum_loss_MTM_wealth_and_legacy_normalization_verified_from_independent_paths':True,'new_fits':0,'provider_requests':0,'protected_opens':0}
  save(R/'public/INDEPENDENT_AUDIT.json',out);save(R/'private/independent/INDEPENDENT_COMPLETE.json',out)
  if mismatches:raise AssertionError(('INDEPENDENT_MISMATCH',mismatches[:3]))
 if __name__=='__main__':main()

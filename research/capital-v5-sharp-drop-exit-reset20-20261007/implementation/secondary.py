@@ -23,7 +23,9 @@ def main():
         r['E_minus_C_normalized_jpy']=fmt(D(r['E_normalized_final_jpy'])-D(r['C_normalized_final_jpy'])) if r['paired_complete'] else None
         if r['C_status']=='COMPLETE':
             # The old saved report used IEEE float normalization. Exact money comes from its unchanged ledger.
-            assert float(D(r['C_normalized_final_jpy'])).hex()==float(saved['amount_from_1m']).hex() or abs(float(D(r['C_normalized_final_jpy']))-saved['amount_from_1m'])<=1e-9
+            native_float_amount=1000000*float(D(r['C_chain_ending_cash_jpy'])/D(r['C_chain_starting_cash_jpy']))
+            assert native_float_amount.hex()==float(saved['amount_from_1m']).hex()
+            r['C_native_saved_float_formula_exact']=True
         out.append(r)
     complete=[r for r in out if r['paired_complete']]
     best=max(range(len(out)),key=lambda i:old['rolling20_windows'][i]['amount_from_1m'])

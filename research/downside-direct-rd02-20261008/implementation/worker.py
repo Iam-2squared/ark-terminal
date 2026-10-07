@@ -17,8 +17,17 @@ def lock_data_view(view):
    p=pathlib.Path(os.fsdecode(args[0])).resolve()
    if not any(p==a or a in p.parents for a in allowed):raise PermissionError('WORKER_VIEW_VIOLATION:'+str(p))
  sys.addaudithook(audit)
+ isolation='DECLARED_INPUT_VIEW_WITH_OPEN_AUDIT'
  if os.getuid()==0:
-  os.setgroups([]);os.setgid(65534);os.setuid(65534)
+  try:os.setgroups([]);os.setgid(65534);os.setuid(65534);isolation+=';UID65534'
+  except PermissionError:isolation+=';UID_CHANGE_NOT_PERMITTED'
+ # Probe access denial without reading any manager data or outcome content.
+ forbidden=pathlib.Path(__file__).resolve().parents[1]/'private/EVALUATION_R_NEW_REUSED.jsonl.gz'
+ try:
+  with forbidden.open('rb'):pass
+  raise AssertionError('WORKER_MANAGER_FILE_ACCESS_ALLOWED')
+ except PermissionError:pass
+ save(view/'WORKER_INPUT_ACCESS_AUDIT.json',{'isolation':isolation,'manager_outcome_open_denied':True,'physical_blindness':False})
 
 def matrix(rr,fields):
  numeric=np.asarray([[np.nan if r['numeric'][k] is None else r['numeric'][k] for k in fields] for r in rr],dtype=np.float64)

@@ -1,0 +1,155 @@
+{
+  "document_id": "ARK_INTEGRATED_NO1_1_FREEZE_20261008",
+  "identity": "ARK TERMINAL — INTEGRATED No.1.1",
+  "version": "1.1.0-RESEARCH-FROZEN",
+  "user_selected_date_jst": "2026-10-08",
+  "classification": "EXPLICIT_USER_SELECTED_RESEARCH_FREEZE_NOT_PRODUCTION",
+  "status": "USER_SELECTED_FROZEN_COMBINATION_NO1_1",
+  "no1_parent": {
+    "public_commit": "fee1458ea7a526be3ee1c9819d3b1ade8f178c5a",
+    "private_commit": "92763089a07ce0200cb63b887f1bede0e263ed47",
+    "unchanged": true
+  },
+  "inherited_frozen_state_filter": {
+    "freeze_commit": "662042079c51788c0f2e6e6854bd4097dbc17851",
+    "excluded_formal_entry_states": [
+      "PULLBACK",
+      "SHARP_DROP"
+    ],
+    "applies_to": "every initial and replacement Entry candidate, before V5 slot admission and allocation",
+    "no_reoffer_of_excluded_original_entry_id": true,
+    "missing_state": "preserve frozen unavailable-state semantics; do not invent State",
+    "asof_certification": "HISTORICAL_ASSUMED; ACTUAL_RECEIVE_TIME_UNKNOWN"
+  },
+  "newly_selected_vacancy_policy": {
+    "policy_id": "WAIT_AFTER_FIRST_LEGAL_SELL_FILL_UNTIL_NEXT_TRADING_SESSION",
+    "activation": "first legal SELL FILL in each trading session, irrespective of previous occupancy and sell reason",
+    "no_activation_on": "SELL_INTENT alone, cancelled/unfilled intents",
+    "rule": "after first SELL fill, reject all later BUY candidate batches for remainder of that session, including any vacant slot, same timestamp BUY after legal SELL fill, and recycled cash",
+    "next_session": "reset wait flag at next trading session; original frozen Entry/State filter still applies",
+    "pre_first_sell": "original Capital V5 MAX3 and all native admission/allocation rules unchanged",
+    "after_activation": "continue frozen EXIT and sell-fill for existing holdings; do not force liquidate, do not retroactively cancel already-filled BUY",
+    "no_extra_orders": true,
+    "same_timestamp_order": "frozen SELL fill / cash credit / slot release before BUY admission; wait flag set before that BUY",
+    "no_forced_backfill": true
+  },
+  "immutable_inherited_contracts": [
+    "Frozen FIRST ENTRY",
+    "FIRST LAYER unchanged",
+    "State9/Path freeze",
+    "original Capital V5 MAX3 and S/A/B reserve/caps/allocation",
+    "original H2/H3/H5 and ML R0 priority",
+    "100 share lot, cash/fees",
+    "SHARP_DROP emergency EXIT",
+    "Structural v3 Local Guard fallback",
+    "15:20 EOD",
+    "legal next fill timing"
+  ],
+  "original_research_source": {
+    "study_public_commit": "bb181f0c6e0bacd9fa64fbe7e5f065952c1a27df",
+    "study_public_path": "research/vacancy-characterization-wait-after-sell-20261008/RESULTS_PUBLIC.json",
+    "source_blob_sha": "914088a5bf4cf6c9d5326a30592bd1d46efd92b6",
+    "state_filter_study_public_commit": "88a994378c5c02e66c93bbd4fdb4d40398e3de45",
+    "original_No1_exit_plans_shared": true,
+    "private_evidence": "user-provided research attachment, not committed as public row-level data"
+  },
+  "development_20session_reset": {
+    "initial_cash_jpy": "1000000.00",
+    "windows": 9,
+    "overlapping": true,
+    "min_final_jpy": "1186195.35",
+    "median_final_jpy": "1251120.20",
+    "mean_final_jpy": "1238342.91666667",
+    "max_final_jpy": "1273762.20",
+    "final_assets_by_window": [
+      {
+        "id": "W13",
+        "final_jpy": "1199976.00"
+      },
+      {
+        "id": "W14",
+        "final_jpy": "1208521.45"
+      },
+      {
+        "id": "W15",
+        "final_jpy": "1186195.35"
+      },
+      {
+        "id": "W16",
+        "final_jpy": "1237207.65"
+      },
+      {
+        "id": "W17",
+        "final_jpy": "1254606.35"
+      },
+      {
+        "id": "W18",
+        "final_jpy": "1272885.70"
+      },
+      {
+        "id": "W19",
+        "final_jpy": "1273762.20"
+      },
+      {
+        "id": "W20",
+        "final_jpy": "1251120.20"
+      },
+      {
+        "id": "W21",
+        "final_jpy": "1260811.35"
+      }
+    ],
+    "both_state_only_median_final_jpy": "1221394.30",
+    "no1_original_median_final_jpy": "1216396.70",
+    "difference_of_medians_vs_both_jpy": "29725.90",
+    "paired_median_delta_vs_both_jpy": "18997.50",
+    "paired_mean_delta_vs_both_jpy": "14083.63333333",
+    "improved_vs_both_windows": 7,
+    "worsened_vs_both_windows": 2,
+    "final_2x_target_jpy": "2000000.00",
+    "two_x_hits": 0,
+    "funded_trade_overlap_N": 410,
+    "profit_trade_overlap_N": 163,
+    "loss_trade_overlap_N": 247
+  },
+  "audit": {
+    "original_both_filter_reset20_reproduced_9of9": true,
+    "independent_fraction_event_accounting_27of27": true,
+    "independent_accounting_checks": 11213,
+    "cash_decomposition_18of18": true,
+    "evidence_is_same_author_not_external_audit": true,
+    "fresh_oos": false,
+    "real_receive_time_certified": false,
+    "market_execution_certified": false
+  },
+  "promotion": {
+    "user_selected_as": "INTEGRATED_NO1_1_RESEARCH_BASELINE",
+    "previous_no1_freeze_preserved": true,
+    "previous_two_state_filter_freeze_preserved": true,
+    "automatic_promotion_allowed": false,
+    "productionReady": false,
+    "next_study": "Entry × EXIT compatibility ranking and selective vacancy decisions, all frozen No.1.1 conditions held",
+    "success_metric": "20 business-day ending equity from JPY1m, proximity to JPY2m"
+  },
+  "operations": {
+    "new_fit": 0,
+    "new_portfolio_replay": 0,
+    "live_orders": 0,
+    "paper_orders": 0,
+    "main_merge": 0,
+    "force_push": 0,
+    "production_runtime_change": 0
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "productionReady": false
+  }
+}

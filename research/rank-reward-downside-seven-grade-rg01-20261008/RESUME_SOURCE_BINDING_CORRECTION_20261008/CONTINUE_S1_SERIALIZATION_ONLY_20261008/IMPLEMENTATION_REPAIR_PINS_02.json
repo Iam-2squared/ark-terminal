@@ -1,0 +1,38 @@
+{
+  "assignment_recomputed": false,
+  "diff_only_F_cap_rows": true,
+  "diff_row_N": 13,
+  "failed_audit_attempt_N": 1,
+  "formula_threshold_weight_policy_delta": 0,
+  "new_code_path": "implementation/independent_audit_v2.py",
+  "new_code_pin": {
+    "bytes": 14834,
+    "git_blob": "3c51fd620b9f47807a13b662db7f0942c92518ab",
+    "sha256": "b7f2385a2b8895051dd59a578c829e1ac3ca19b9c1b488eb7c45bf338884c3cb"
+  },
+  "original_code_pin": {
+    "bytes": 14774,
+    "git_blob": "21e3e87bbfcf7d383c74ae844145be1c538da629",
+    "sha256": "af65aa1b37204fa0abfc9f20a5bde940261bdfb8ab5de4662552b56717f01b42"
+  },
+  "private_differences": "private/AUDIT_ATTEMPT_01_REASON_DIFFERENCES.json",
+  "rank_or_evaluation_or_audit_calculation_repair_cycle_total": 2,
+  "rankingIndependentAuditCampaign": 1,
+  "reason": "Independent reason-field checker inferred risk trigger from realized downshift. At F, trigger can be true while grade cap keeps downshift0. Check original trigger from r3/r5 instead. Primary grades, order, reason, all metrics and saved assignments unchanged.",
+  "repair_limits": {
+    "rank_evaluation_audit_max": 3,
+    "write_technical_max": 10
+  },
+  "status": "AUDIT_TECHNICAL_REPAIR_SEALED",
+  "synthetic_logic_assertions": [
+    {
+      "base_grade": "F",
+      "capped_downshift": 0,
+      "r3": 1.5,
+      "r5": 1.5,
+      "reason": "NON_S_AND_GE_1_5_DOWN_ONE",
+      "trigger": true
+    }
+  ],
+  "write_technical_repair_cycle_total": 2
+}

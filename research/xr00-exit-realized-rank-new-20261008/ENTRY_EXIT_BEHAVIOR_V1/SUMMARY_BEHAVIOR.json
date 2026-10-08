@@ -1,0 +1,158 @@
+{
+  "document_id": "ARK_BEHAVIOR_FIRST_BEFORE_RANK_20261008_V1",
+  "status": "HISTORICAL_ENTRY_EXIT_CHARACTERIZATION_COMPLETED; DIRECT_NEW_EXIT_STATE_TRACE_CLASSIFICATION_PENDING",
+  "scope": "FROZEN_NO1_READ_ONLY_DEVELOPMENT",
+  "no1_public_ref": "fee1458ea7a526be3ee1c9819d3b1ade8f178c5a",
+  "no1_private_ref": "92763089a07ce0200cb63b887f1bede0e263ed47",
+  "legacy_source": {
+    "candidate_stream_sha256": "c446633dec923e3a80a534b19325ccff49f769a2ff1d29c7af1202202de614d4",
+    "entry_N": 1039,
+    "session_N": 38,
+    "symbol_N": 583,
+    "strict_actual_arrival_certified_N": 0
+  },
+  "candidate_entry_state": {
+    "observed_N": 386,
+    "unavailable_N": 653,
+    "DROP": 186,
+    "SHARP_DROP": 40,
+    "RISE": 52,
+    "REBOUND": 36,
+    "PULLBACK": 41,
+    "RANGE": 26,
+    "other_observed": 5
+  },
+  "entry_clock": {
+    "median_selector_to_entry_active_min": 5,
+    "selector_equal_entry_minute_N": 218,
+    "selector_to_entry_le10min_N": 663,
+    "selector_to_entry_gt30min_N": 210,
+    "entry_price_less_than_selector_N": 430,
+    "same_N": 121,
+    "greater_N": 488
+  },
+  "native_v5": {
+    "ML_ge_1_N": 494,
+    "prebuy_P1_status": "OFF_UNCHANGED",
+    "native_scores": "PAVA H2/H3/H5 -> ML",
+    "reserve": "S/A immediate conditional slot availability; B has slot2/slot3 past-only reservation",
+    "maxConcurrent": 3,
+    "lot": 100
+  },
+  "funded_E_unique_population": {
+    "N": 152,
+    "sessions": 28,
+    "WIN": 57,
+    "LOSS": 95,
+    "unknown_State_N": 45,
+    "observed_State_N": 107,
+    "mean_R_pct_approx": 0.756,
+    "median_R_pct_approx": -0.35,
+    "positive_5pct_R_N": 14,
+    "state_count_win_loss": {
+      "DROP": [
+        61,
+        23,
+        38
+      ],
+      "SHARP_DROP": [
+        13,
+        2,
+        11
+      ],
+      "PULLBACK": [
+        16,
+        3,
+        13
+      ],
+      "RISE": [
+        8,
+        5,
+        3
+      ],
+      "RANGE": [
+        8,
+        4,
+        4
+      ],
+      "REBOUND": [
+        1,
+        1,
+        0
+      ],
+      "UNAVAILABLE": [
+        45,
+        19,
+        26
+      ]
+    },
+    "data_precision": "No.1 private R retained original; characterization join used four-decimal-percent-point encoded label for count tests"
+  },
+  "old_control_only_path_diagnostic": {
+    "scope": "all1039 candidate post-entry observed raw 1m CLOSE up to old Structural Intent / control end (NOT the new No.1 Exit)",
+    "plus2_first_N": 316,
+    "minus2_first_N": 242,
+    "neither_or_censored_N": 481,
+    "plus2_close_ever_N": 358,
+    "post_plus2_fell_below_entry_before_control_end_N": 128,
+    "lookahead_used_as_decision_feature": false
+  },
+  "no1_EXIT_frozen": {
+    "first_postfill_observed_valid_SHARP_DROP_latched_sell": true,
+    "regardless_of_profit_loss": true,
+    "control_precedence": true,
+    "regular_DROP_and_PULLBACK_overlay_trigger": false,
+    "cash_release_at_legal_fill_only": true,
+    "old_structure_fallback": true,
+    "terminal_clock": "15:20",
+    "buy_multiplier": "1.0005",
+    "sell_multiplier": "0.9995"
+  },
+  "portfolio_reset20": {
+    "overlapping_windows_N": 9,
+    "window_days": 20,
+    "initial_cash_jpy": 1000000,
+    "No1_E_median_jpy": "1216396.70",
+    "old_control_C_median_jpy": "1245688.10",
+    "improved_window_N": 3,
+    "worsened_window_N": 6,
+    "two_x_N": 0,
+    "old_C_funded_account_trades_N": 730,
+    "No1_E_funded_account_trades_N": 898,
+    "E_sharpdrop_intent_and_fill_N": 332,
+    "oldC_winners_N": 327,
+    "E_same_winners_bought_N": 318,
+    "per_unit_EXIT_R_worsened_N": 85,
+    "oldC_positive_to_No1_negative_N": 65,
+    "E_ONLY_windowtrade_N": 192,
+    "E_ONLY_positive_N": 84,
+    "E_ONLY_negative_N": 108,
+    "E_ONLY_PnL_jpy": "-56729.60",
+    "paired_asset_sum_jpy": "-71321.05",
+    "paired_decomposition_jpy": {
+      "direct_EXIT": "67966.00",
+      "quantity_change": "-63492.60",
+      "E_ONLY": "-56729.60",
+      "C_ONLY": "-19064.85"
+    }
+  },
+  "findings_not_yet_certified": [
+    "True post-fill No.1 State9 transition sequence shape by unique entry and pre-Entry as-of features",
+    "Strict buy-intent arrival-time availability; 0/1039 confirmed",
+    "Future economic ranking incremental value; no new rank fit or capital replay",
+    "Prospective performance and real execution slippage/liquidity"
+  ],
+  "flags": {
+    "entry_changed": false,
+    "exit_changed": false,
+    "first_layer_changed": false,
+    "capital_changed": false,
+    "ranking_fit": 0,
+    "new_policy_replay": 0,
+    "new_capital_replay": 0,
+    "protected_partition_opens": 0,
+    "orders": 0,
+    "productionReady": false,
+    "main_merge": 0
+  }
+}

@@ -1,0 +1,172 @@
+{
+  "document_id": "ARK_EXIT_V5_TWO_STATE_HIGH_CAPTURE_READONLY_20261008",
+  "status": "SOURCE_PIN_VERIFIED_READ_ONLY_127_UNIQUE_COMPLETED_NO_NEW_EXIT_POLICY",
+  "research_capital_freeze_commit": "a35c146f6489c42857f055570f68ad64d8c171aa",
+  "original_no1_and_no11_unchanged": true,
+  "selected_capital": "CAPITAL_MAX3_SLOT_RESERVE_V1",
+  "entry_state_filter": [
+    "PULLBACK",
+    "SHARP_DROP"
+  ],
+  "purchase_after_first_legal_sell_fill": "NATIVE_V5_ALLOWED_BEFORE_15_20_WITH_ORIGINAL_CONSTRAINTS",
+  "exit_control": "SHARP_DROP_FIRST_OBSERVED_EXIT_V0_PLUS_STRUCTURAL_FALLBACK",
+  "source_pins": {
+    "original_private_user_pack": "Ark_Terminal_NEW_CHAT_HANDOFF_MAIN_CAPITAL_2X_20261005(1).zip",
+    "market_book_sha256": "ee7c88e19832439f615da54dc9df7e4a0307fdb1b2b5a18d3e1f60f71566736a",
+    "score_stream_sha256": "c446633dec923e3a80a534b19325ccff49f769a2ff1d29c7af1202202de614d4",
+    "original_v5_both_filter_trade_evidence": "ARK_No1_EntryState_Filter_RESET20_20261008/PRIVATE_EVIDENCE.zip"
+  },
+  "cohort": {
+    "unique_entry_n": 127,
+    "overlap_trade_n": 749,
+    "high_teacher_exact_match_n": 127,
+    "source_market_book_match_n": 127,
+    "raw_price_market_bar_n": 27779,
+    "unique_plus": 52,
+    "unique_minus": 75,
+    "one_day_teacher_high_strictly_after_entry_before_1520": true,
+    "read_only_no_replay": true
+  },
+  "high_band_table": [
+    {
+      "band": "<1%",
+      "n": 26,
+      "exit_plus": 2,
+      "exit_minus": 24,
+      "mean_entry_high_pct": "0.26664",
+      "mean_entry_exit_net_pct": "-1.83914",
+      "high_at_or_after_sell_source_n": 2
+    },
+    {
+      "band": "1%-<2%",
+      "n": 28,
+      "exit_plus": 6,
+      "exit_minus": 22,
+      "mean_entry_high_pct": "1.37250",
+      "mean_entry_exit_net_pct": "-0.97659",
+      "high_at_or_after_sell_source_n": 4
+    },
+    {
+      "band": "2%-<3%",
+      "n": 14,
+      "exit_plus": 8,
+      "exit_minus": 6,
+      "mean_entry_high_pct": "2.48399",
+      "mean_entry_exit_net_pct": "-0.15414",
+      "high_at_or_after_sell_source_n": 6
+    },
+    {
+      "band": "3%-<4%",
+      "n": 15,
+      "exit_plus": 9,
+      "exit_minus": 6,
+      "mean_entry_high_pct": "3.55617",
+      "mean_entry_exit_net_pct": "0.85080",
+      "high_at_or_after_sell_source_n": 5
+    },
+    {
+      "band": "4%-<5%",
+      "n": 9,
+      "exit_plus": 6,
+      "exit_minus": 3,
+      "mean_entry_high_pct": "4.33974",
+      "mean_entry_exit_net_pct": "0.48690",
+      "high_at_or_after_sell_source_n": 4
+    },
+    {
+      "band": "5%-<10%",
+      "n": 14,
+      "exit_plus": 6,
+      "exit_minus": 8,
+      "mean_entry_high_pct": "6.87036",
+      "mean_entry_exit_net_pct": "1.63127",
+      "high_at_or_after_sell_source_n": 9
+    },
+    {
+      "band": ">=10%",
+      "n": 21,
+      "exit_plus": 15,
+      "exit_minus": 6,
+      "mean_entry_high_pct": "20.00392",
+      "mean_entry_exit_net_pct": "8.25140",
+      "high_at_or_after_sell_source_n": 15
+    }
+  ],
+  "exit_kind_table": [
+    {
+      "type": "SHARP_DROP_FIRST_OBSERVED_EXIT_V0",
+      "unique_n": 44,
+      "exit_plus": 9,
+      "exit_minus": 35,
+      "avg_net_return_pct": "-0.74166",
+      "teacher_high_ge5_n": 8,
+      "teacher_high_ge5_exit_nonpositive_n": 7,
+      "post_source_peak_n": 23
+    },
+    {
+      "type": "FROZEN_EXIT_V3",
+      "unique_n": 40,
+      "exit_plus": 24,
+      "exit_minus": 16,
+      "avg_net_return_pct": "3.12422",
+      "teacher_high_ge5_n": 20,
+      "teacher_high_ge5_exit_nonpositive_n": 7,
+      "post_source_peak_n": 22
+    },
+    {
+      "type": "EOD_REGULAR",
+      "unique_n": 39,
+      "exit_plus": 17,
+      "exit_minus": 22,
+      "avg_net_return_pct": "0.73046",
+      "teacher_high_ge5_n": 6,
+      "teacher_high_ge5_exit_nonpositive_n": 0,
+      "post_source_peak_n": 0
+    },
+    {
+      "type": "EOD_EXACT_1530_AUCTION",
+      "unique_n": 4,
+      "exit_plus": 2,
+      "exit_minus": 2,
+      "avg_net_return_pct": "3.77927",
+      "teacher_high_ge5_n": 1,
+      "teacher_high_ge5_exit_nonpositive_n": 0,
+      "post_source_peak_n": 0
+    }
+  ],
+  "high_ge5_failure": {
+    "candidate_n": 35,
+    "exit_nonpositive_n": 14,
+    "peak_at_or_after_sell_source_n": 13,
+    "peak_strictly_before_sell_source_n": 1,
+    "failure_avg_full_high_pct": "10.57096",
+    "failure_avg_realized_R_pct": "-0.72688",
+    "failure_pre_sell_source_high_observed_n": 12,
+    "failure_avg_pre_sell_source_high_pct_in12": "1.60931",
+    "sharp_drop_exit_failure_n": 7,
+    "structural_exit_failure_n": 7,
+    "note": "High after selling source is future observation, not realizable sell return. Before-source high is not necessarily before SELL_INTENT; actual intra-bar order UNKNOWN."
+  },
+  "measurement_contract": {
+    "same_unique_entry_id_join": "127 of 127 exact",
+    "teacher_definition": "Original Quality teacher strictly later Entry High prior to 15:20, evaluator-only",
+    "independent_price_parity": "Raw market High max exactly matches saved teacher potential_decimal for 127/127; no re-simulation",
+    "source_split": "pre SELL source minute strictly; at-or-after SELL source minute separately; raw minute Open used for frozen legal SELL fill",
+    "ambiguities": [
+      "SELL intent clock not in filtered trade ledger; precise pre-intent High unresolved",
+      "Intraminute OHLC order unknown",
+      "No future High may be used as a live EXIT rule"
+    ],
+    "outcome": "Existing saved trade net_return after transaction costs",
+    "source_clock": "Historical assumed availability; actual receipt times UNKNOWN"
+  },
+  "next_action": "Recover exact SELL_INTENT and State9 prefix from existing private checkpoint, split peak chronology; then precommit finite exit research overlay. Capital frozen, no new rank or entry adaptation.",
+  "operations": {
+    "new_model_fit": 0,
+    "new_capital_or_exit_replay": 0,
+    "production_modifications": 0,
+    "main_merge": 0,
+    "broker_orders": 0
+  },
+  "productionReady": false
+}

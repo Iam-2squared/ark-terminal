@@ -1,0 +1,170 @@
+{
+  "document_id": "ARK_CAPITAL_V5_TWO_STATE_EXCLUSION_EXIT_RESTART_20261008",
+  "freeze_version": "V1.0",
+  "selection": "USER_EXPLICITLY_SELECTED_RESEARCH_CONTROL",
+  "context": "Restore native V5 and both-Entry-State exclusion as the ACTIVE comparison baseline for next EXIT research. Not a rewrite/relabel of No.1 or No.1.1 frozen original.",
+  "selected_research_capital": {
+    "capital_policy": "CAPITAL_MAX3_SLOT_RESERVE_V1",
+    "original_model_and_rank": "H2/H3/H5 PAVA -> ML; original R0 S/A/B, caps and reserve, original allocation",
+    "frozen_entry": "ORIGINAL_FROZEN_FIRST_ENTRY_AND_FIRST_LAYER_UNCHANGED",
+    "state9": "ORIGINAL_STATE9_UNCHANGED",
+    "purchase_pre_filter": {
+      "exclude_formal_primary": [
+        "PULLBACK",
+        "SHARP_DROP"
+      ],
+      "all_entry_opportunities": true,
+      "including_recycled_slot": true,
+      "including_other_initial_slots": true,
+      "reoffer_excluded_entry_id": false,
+      "unknown_state": "preserve original unknown; do not infer"
+    },
+    "no1_1_wait_after_first_sell": "OFF_FOR_THIS_RESEARCH_BASELINE",
+    "sell_fill_recycling": "REINSTATED_NATIVE_V5_BEHAVIOR; slot & cash released on actual legal sell fill; subsequent buy candidates allowed before 15:20 and subject to two-state exclusion & all original V5 rules",
+    "max_concurrent_positions": 3,
+    "lot_size": 100,
+    "margin_allowed": false,
+    "original_exit_current_comparator": "SHARP_DROP_FIRST_OBSERVED_EXIT_V0 (earlier Structural Control priority, original EOD)",
+    "runtime_production_promotion": false
+  },
+  "original_source_authority": {
+    "no1_public_sha": "fee1458ea7a526be3ee1c9819d3b1ade8f178c5a",
+    "no1_private_sha": "92763089a07ce0200cb63b887f1bede0e263ed47",
+    "both_state_filter_freeze_sha": "662042079c51788c0f2e6e6854bd4097dbc17851",
+    "state_filter_economic_replay_sha": "88a994378c5c02e66c93bbd4fdb4d40398e3de45",
+    "old_no1_1_freeze_sha": "10c94c92c4bd2a59a22744667fd0210252602df4",
+    "all_old_source_commits_unchanged": true
+  },
+  "baseline_20_session_reset": {
+    "mask": [
+      "W13",
+      "W14",
+      "W15",
+      "W16",
+      "W17",
+      "W18",
+      "W19",
+      "W20",
+      "W21"
+    ],
+    "windows": [
+      {
+        "window": "W13",
+        "start": "2025-07-15",
+        "end": "2025-08-13",
+        "final_equity_jpy": "1181117.00"
+      },
+      {
+        "window": "W14",
+        "start": "2025-07-16",
+        "end": "2025-08-14",
+        "final_equity_jpy": "1208294.35"
+      },
+      {
+        "window": "W15",
+        "start": "2025-07-17",
+        "end": "2025-08-15",
+        "final_equity_jpy": "1167197.85"
+      },
+      {
+        "window": "W16",
+        "start": "2025-07-18",
+        "end": "2025-08-18",
+        "final_equity_jpy": "1214865.10"
+      },
+      {
+        "window": "W17",
+        "start": "2025-07-22",
+        "end": "2025-08-19",
+        "final_equity_jpy": "1233527.60"
+      },
+      {
+        "window": "W18",
+        "start": "2025-07-23",
+        "end": "2025-08-20",
+        "final_equity_jpy": "1289094.90"
+      },
+      {
+        "window": "W19",
+        "start": "2025-07-24",
+        "end": "2025-08-21",
+        "final_equity_jpy": "1281244.45"
+      },
+      {
+        "window": "W20",
+        "start": "2025-07-25",
+        "end": "2025-08-22",
+        "final_equity_jpy": "1221394.30"
+      },
+      {
+        "window": "W21",
+        "start": "2025-07-28",
+        "end": "2025-08-25",
+        "final_equity_jpy": "1221598.00"
+      }
+    ],
+    "initial_equity_jpy": "1000000.00",
+    "median_equity_jpy": "1221394.30",
+    "mean_equity_jpy": "1224259.28",
+    "min_equity_jpy": "1167197.85",
+    "max_equity_jpy": "1289094.90",
+    "original_no1_median_jpy": "1216396.70",
+    "no1_1_wait_median_jpy": "1251120.20",
+    "hits_2000000": 0,
+    "overlapping_development_not_independent_months": true,
+    "certified_live_market_arrival": false,
+    "fresh_oos_run": false
+  },
+  "baseline_trades_from_saved_evidence": {
+    "overlapping_9_account_trade_n": 749,
+    "unique_entry_n": 127,
+    "unique_positive_n": 52,
+    "unique_negative_n": 75,
+    "unique_by_exit_kind": {
+      "SHARP_DROP_FIRST_OBSERVED_EXIT_V0": 44,
+      "FROZEN_EXIT_V3": 40,
+      "EOD_REGULAR": 39,
+      "EOD_EXACT_1530_AUCTION": 4
+    },
+    "overlap_by_exit_kind": {
+      "SHARP_DROP_FIRST_OBSERVED_EXIT_V0": 256,
+      "FROZEN_EXIT_V3": 223,
+      "EOD_REGULAR": 247,
+      "EOD_EXACT_1530_AUCTION": 23
+    },
+    "provenance": "Prior sealed filter-both 9-window transaction ledgers in user-provided PRIVATE_EVIDENCE.zip; read-only aggregate, no new trade simulation"
+  },
+  "exit_research_next": {
+    "focus": "Explain unexpectedly large Entry->High vs Entry->EXIT difference, preserve downside protection where possible",
+    "lock_capital_and_entry": true,
+    "do_not_inherit_64_entry_no1_1_high_table_as_new_cohort": true,
+    "required_independent_distinctions": [
+      "High from Entry until first EXIT SELL intent (reachable observation proxy)",
+      "High after SELL intent until actual legal fill",
+      "High after actual fill until session EOD (not captured by former holding)",
+      "Post-Entry same-bar high/low unknown chronology"
+    ],
+    "key_measures": [
+      "same-Entry High bands and EXIT R bands separately for 127 unique and 749 overlap",
+      "Entry->pre-exit maximum high vs realized return gap by band",
+      "EXIT reason split and state trace chronology",
+      "Original structural vs SHARP_DROP paired effect on winners and tail risk",
+      "same frozen V5 9 x RESET20 full wealth replay for any future candidate EXIT in separate branch"
+    ],
+    "no_oracle_high_price_order_claim": true,
+    "no_future_high_in_buy_sell_decision": true,
+    "no_new_EXIT_variant_selected": true,
+    "future_work_requires_separate_precommit": true
+  },
+  "governance": {
+    "freeze_existing_no1_and_no1_1_files": true,
+    "original_R0_capital_unchanged": true,
+    "new_model_fits": 0,
+    "new_portfolio_replays": 0,
+    "original_live_venue_integration_modified": false,
+    "main_merge_n": 0,
+    "broker_or_paper_order_n": 0,
+    "productionReady": false,
+    "automaticPromotionAllowed": false
+  }
+}

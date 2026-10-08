@@ -1,0 +1,48 @@
+{
+  "document_id": "ARK_EXIT_V5_CONFIRMATION_FINITE_PRECOMMIT_20261008",
+  "phase": "BEFORE_NEW_EXIT_REPLAY",
+  "baseline_capital_commit": "a35c146f6489c42857f055570f68ad64d8c171aa",
+  "baseline_diagnosis_commit": "e1b32b88b00c6c9e3b2f031c63cd7a602e98eef4",
+  "population": "9 overlapping RESET20 W13-W21 2025-07 to 2025-08, each JPY1m; 38-session chain diagnostic optional",
+  "frozen": [
+    "FIRST ENTRY",
+    "FIRST LAYER",
+    "State9/Path",
+    "PULLBACK/SHARP_DROP entry-time filter all purchase batches",
+    "Capital V5 MAX3 reserve/ML ranking/allocation/lot/fee/clock",
+    "EOD",
+    "existing structural EXIT priority"
+  ],
+  "arms": [
+    {
+      "id": "CONTROL",
+      "definition": "first valid post-fill SHARP_DROP observed, immediate intent and next legal fill; frozen source"
+    },
+    {
+      "id": "SD_CONSECUTIVE_2",
+      "definition": "after Entry, require two consecutive OBSERVED checkpoints with Primary exactly SHARP_DROP, without an intervening observed other Primary; latch at second valid checkpoint only; original Structural SELL intent earlier/same wins; otherwise fallback unchanged"
+    },
+    {
+      "id": "SD_CONSECUTIVE_3",
+      "definition": "same as SD_CONSECUTIVE_2, but require three consecutive observed SHARP_DROP checkpoints; original Structural priority; fallback unchanged"
+    }
+  ],
+  "guardrails": [
+    "No future state, post-EXIT High or outcome as a decision input",
+    "Only currently observed checkpoints, no counting missing/unobserved as confirmations",
+    "Never sell on signal close; next legal raw source with frozen resolver",
+    "If structural intent already at or before confirmation, use structural",
+    "If no valid legal sell source, preserve blocker, never fabricate fill",
+    "No tuning after viewing W13-W21 results; no promotion from overlapping Development"
+  ],
+  "metrics": [
+    "ALL 9 windows ending equity each",
+    "median/mean/min/max and paired deltas",
+    "loss tails and winner sign",
+    "count by EXIT cause",
+    "2000000 hits"
+  ],
+  "productionReady": false,
+  "liveOrders": 0,
+  "automaticPromotion": false
+}

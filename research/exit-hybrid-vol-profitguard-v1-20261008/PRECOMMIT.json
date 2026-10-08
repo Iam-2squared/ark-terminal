@@ -1,0 +1,60 @@
+{
+  "document_id": "ARK_EXIT_HYBRID_VOL_PROFITGUARD_V1_PRECOMMIT_20261008",
+  "status": "BEFORE_OUTCOME_COMPARISON",
+  "authorized_by_user": "Construct one research implementation of the discussed hybrid EXIT; no deployment authorization",
+  "source_frozen_capital": "a35c146f6489c42857f055570f68ad64d8c171aa",
+  "source_diagnosis": "e1b32b88b00c6c9e3b2f031c63cd7a602e98eef4",
+  "frozen": [
+    "original first entry / first layer / State9",
+    "PULLBACK and SHARP_DROP Entry exclusion on every candidate",
+    "V5 MAX3, existing ML R0 priority / reserve / 100-share / cash allocation",
+    "BUY=raw*1.0005 SELL=raw*0.9995 commission0",
+    "sell cash release at next legal SELL fill only",
+    "canonical EOD and fail closed"
+  ],
+  "policy": {
+    "baseline_control": "original SHARP_DROP first observed + structural priority + EOD",
+    "regime_low": {
+      "initial_trigger_net_return": "-0.003",
+      "checkpoint_after_profit": "0.01",
+      "keep_floor_after_2pct": "0.01",
+      "after_3pct_floor": "0.03"
+    },
+    "regime_high": {
+      "initial_trigger_net_return": "-0.005",
+      "at_1pct_floor": "0.01",
+      "at_2pct_floor": "0.02",
+      "after_3pct_floor": "0.03"
+    },
+    "after_3pct": "keep floor +3% permanently (no 5%/7% etc); allow original SHARP_DROP and original STRUCTURAL EXIT only at causally observed, post-activation checkpoints; no retroactive old intent",
+    "before_3pct": "no old SHARP_DROP or STRUCTURAL exit signal; only new profit floor/stop and EOD",
+    "eod": "original canonical 15:20 EOD",
+    "trigger_unit": "hypothetical net cash return after frozen BUY and SELL multipliers, measured on bar OHLC",
+    "observation": "completed valid one-minute OHLC only; OHLC of minute m is known at m+1; newly reached profit floors are armed AFTER that bar and only enforceable on later completed bars; already active floors checked before arming higher ones",
+    "fill": "next legal existing session raw source at or after trigger minute, SELL price raw Open *0.9995; no instantaneous checkpoint-price fill",
+    "unknown_intrabar": "if previous floor and new High both touched on same bar, old floor breach wins; ambiguous no oracle order",
+    "old_state_traces": "if frozen V3 trace stops at former SELL intent and +3 arm requires later old EXIT State, mark UNVERIFIED_LEGACY_POST_OLD_INTENT; NEVER fabricate successful legacy coverage"
+  },
+  "volatility_provisional": {
+    "scope": "research-sensitivity, NOT user-approved final classification",
+    "metric": "median ((H-L)/C) over up to 20 most recent valid and fully completed pre-Entry same-session raw 1-min bars, excluding open-mixed bars",
+    "threshold": "median of metric across 2025-06-27 through 2025-07-10 Entry universe with >=5 valid prefix bars, computed without EXIT labels",
+    "high_if": "metric > threshold; otherwise LOW",
+    "low_support": "if only 1..4 valid bars, use available bars with LOW_SUPPORT flag; zero bars => BLOCKED",
+    "sensitivity_arms": [
+      "ALL_LOW",
+      "ALL_HIGH",
+      "TRAIN_ONLY_MEDIAN_VOL_SPLIT"
+    ]
+  },
+  "primary_eval": "Complete same nine overlapping RESET20 windows, JPY1m each, record all ending equity, losses, gains, max drawdown, 2x hit, blocked audits and shifts",
+  "admission": "not frozen / not production / report historical as-of UNKNOWN",
+  "safety": {
+    "brokerWrite": false,
+    "paperTrading": false,
+    "mainMerge": false,
+    "forcePush": false,
+    "productionReady": false,
+    "automaticPromotion": false
+  }
+}

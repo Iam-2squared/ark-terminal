@@ -21,7 +21,7 @@ class StateAtEntry:
     state_usable: bool
     assumed_known_minute: int | None
     source_identity_ok: bool = True
-    same_minute_phase_order_ok: bool = True
+    same_minute_phase_order_ok: bool = False
 
 
 @dataclass(frozen=True)

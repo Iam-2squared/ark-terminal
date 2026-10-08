@@ -1,0 +1,21 @@
+{
+  "study_id": "ARK_VACANCY_CHARACTERIZATION_WAIT_AFTER_SELL_20261008",
+  "at_start_of_computation": true,
+  "frozen_baseline_filter": [
+    "PULLBACK",
+    "SHARP_DROP"
+  ],
+  "fixed_arms": [
+    "FILTER_BOTH_BASE",
+    "WAIT_AFTER_FIRST_SELL",
+    "WAIT_AFTER_FULL_SLOT_RELEASE"
+  ],
+  "note": "Causal after actual SELL fill and reset at next market session; no hindsight entry IDs or rank fitting",
+  "source_pin": {
+    "score_stream_sha256": "c446633dec923e3a80a534b19325ccff49f769a2ff1d29c7af1202202de614d4",
+    "market_book_sha256": "ee7c88e19832439f615da54dc9df7e4a0307fdb1b2b5a18d3e1f60f71566736a"
+  },
+  "data_cut": "overlapping exposed Development W13-W21",
+  "unknown_future_actual_arrival": true,
+  "productionReady": false
+}

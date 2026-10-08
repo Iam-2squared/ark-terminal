@@ -1,0 +1,76 @@
+{
+  "document_id": "ARK_ENTRY_STATE_UNIVERSAL_EXCLUSION_V1_20261008",
+  "status": "USER_SELECTED_NEW_RESEARCH_GATE_DESIGN_NOT_PRODUCTION",
+  "effective_scope": "NEW_RESEARCH_ARM_ONLY",
+  "immutable_reference_no1": {
+    "public_commit": "fee1458ea7a526be3ee1c9819d3b1ade8f178c5a",
+    "private_commit": "92763089a07ce0200cb63b887f1bede0e263ed47",
+    "no1_prebuy_P1": "OFF_UNCHANGED",
+    "old_research_comparison": "88a994378c5c02e66c93bbd4fdb4d40398e3de45",
+    "unchanged": [
+      "Frozen Selector",
+      "Frozen FIRST ENTRY",
+      "FIRST LAYER",
+      "Capital V5 MAX3",
+      "S/A/B caps",
+      "slot reserve",
+      "allocation",
+      "lot & cash",
+      "State9 semantics",
+      "SHARP_DROP emergency EXIT",
+      "structural fallback",
+      "15:20 EOD",
+      "costs",
+      "price/fill event order"
+    ]
+  },
+  "candidate_gate": {
+    "rule_id": "EXCLUDE_PULLBACK_SHARP_DROP_EVERY_ENTRY_OPPORTUNITY_V1",
+    "reject_formal_primary": [
+      "PULLBACK",
+      "SHARP_DROP"
+    ],
+    "apply_to": [
+      "first_empty_slot",
+      "slot2_or_slot3_currently_free",
+      "same_timestamp_multiple_candidates",
+      "post_legal_sell_fill_released_slot",
+      "recycled_cash_candidate"
+    ],
+    "clock": "original Frozen Entry/BUY_INTENT candidate event before purchase / slot admission, using original saved State9 evidence available under the same historical as-of assumption",
+    "location": "for EVERY candidate in current Entry event, BEFORE native Capital V5 occupancy, slot reserve, ML ordering and allocation",
+    "eligible_only_if": "formal State9 primary is usable at pre-buy decision and exactly one of the reject names",
+    "explicit_unavailable_state": "KEEP_STATE_UNAVAILABLE tagged separately, never manufacture PULLBACK/SHARP_DROP",
+    "integrity_mismatch": "BLOCKED, never silently infer from other fields or future State",
+    "data_assumption": "Historical assumed source availability only, actual receive time UNKNOWN; not live-deployable",
+    "excluded_candidate_lifecycle": "DROP irreversible for this canonical Entry ID; no re-offer on later slot release, State recovery, or cash refill",
+    "nonexcluded_candidate_lifecycle": "Frozen one-time original Entry event; no artificial retry/backfill if native V5 declines or lot cannot fund",
+    "vacancy": "do not force fill. If no eligible native V5 admission/cash/lot, leave vacancy/cash idle",
+    "ranking": "Use original No1 R0/ML native ranking and V5 allocation until separately authorized new ranking design",
+    "exit": "No change to post-buy SHARP_DROP emergency EXIT and prior structural/EOD timing"
+  },
+  "experiment": {
+    "arm": "FILTER_BOTH_ALWAYS_V1",
+    "parent_comparator": "NO1_FROZEN",
+    "historic_description": "Prior overlapping Development 9xRESET20 median 1,221,394.30 JPY for BOTH vs 1,216,396.70 JPY No.1; this is already observed research, not Fresh/OOS or target-achievement proof",
+    "next_question": "Given BOTH exclusion fixed, rank the quality of replacement choices or choose deliberate vacancy without changing frozen reserve, allocation, entry or exit",
+    "primary_success_metric": "paired 20-business-session final equity starting JPY 1,000,000 and 2x attainment",
+    "evaluation_holdout": "Unopened Fresh/OOS remains unopened until separately precommitted",
+    "existing_frozen_results_immutable": true
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "productionReady": false,
+    "mainMerge": 0,
+    "liveOrders": 0,
+    "policyReplayNew": 0
+  }
+}

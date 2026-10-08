@@ -1,0 +1,169 @@
+{
+  "A": "U7/R0 all block K exact; strong ML S; zero risk upgrades; ML>=2 downshift<=1.",
+  "B": "Both K197 and K494 vsU7: R<=-3 reduced by>=1; R<=-5 nonincrease; negative abs mass decreases; net pp-sum nonworse.",
+  "B7_formula": "x3=min(2,max(0,r3-1)); x5=min(2,max(0,r5-1)); penalty=min(.30,.12*x3+.06*x5); effectiveML=ML*(1-penalty); proposed=U7(effectiveML); maxDown=1 if ML>=2 else2; g=min(6,min(proposed,U7(ML)+maxDown)); if U7(ML)==0 AND(r3>1 OR r5>1): g=max(1,g)",
+  "B7_order": "(new_grade_index,-effectiveML,-ML,-m5,-m3,-m2,entry_timestamp,symbol,canonical_entry_id)",
+  "BUY_INTENT_DEPLOYABLE": false,
+  "C": {
+    "R_GE_P2_min_retention": 0.8,
+    "R_GE_P5_min_retention": 0.85,
+    "U10_min_retention": 0.85,
+    "U5_min_retention": 0.8,
+    "both_K": [
+      "K197",
+      "K494"
+    ],
+    "positive_mass_min_retention": 0.9,
+    "zero_denominator": "N/A never auto-pass"
+  },
+  "CANDIDATE_FOR_CAPITAL_BRIDGE": false,
+  "G7_formula": "g=U7(ML); if g==0 delta=int(r3>1 OR r5>1); else delta=int(r3>=1.5 AND r5>=1.5); new=min(6,g+delta)",
+  "R_classification": "Exact saved Fraction numerator/denominator, no epsilon. Cost-after EXIT namespace preserved.",
+  "S_support": "N0 NO_S_FOR_THIS_DESIGN; n<10 or sessions<5 LOW_SUPPORT_S; no guarantee from observed tail0.",
+  "U7_G7_order": "(new_grade_index,-ML,-m5,-m3,-m2,entry_timestamp,symbol,canonical_entry_id)",
+  "asof_mode": "HISTORICAL_MIXED_ASOF_RESEARCH_ONLY",
+  "assessment_before_assignment": "No new outcome metrics/selection evaluated; constants fixed as original instructions; synthetic fixtures PASS431.",
+  "blindness": "Separate processes and Python file-open allowlist/deny canary, not physical UID/mount blindness; same author has read historical Development reports.",
+  "budgets": {
+    "RD02_repair_count_in_RG01_budget": false,
+    "assignment_max_campaigns": 1,
+    "current_precommit_transport_tool_events": 1,
+    "inherited_assignment_campaigns": 0,
+    "inherited_rank_calculation_repair_cycles": 0,
+    "inherited_reproduction_campaigns": 0,
+    "inherited_transport_tool_events": 14,
+    "inherited_write_technical_repair_cycles": 1,
+    "model_refit": 0,
+    "new_model_fit": 0,
+    "rank_calculation_repair_max": 3,
+    "reproduction_max_campaigns": 1,
+    "score_reinference": 0,
+    "write_technical_repair_max": 10
+  },
+  "compose_pin": {
+    "bytes": 205307,
+    "git_blob": "a74b62923039626d8c67667cca35a6c12f24122d",
+    "sha256": "72d410c68ef403325ecadc6fe6d4a5c0a98e457b4356bc08647353d41c1be36e"
+  },
+  "continuation_id": "RG01_S1_SERIALIZATION_ONLY_20261008",
+  "denominators": "R bands and PLUS/MINUS use R-known N; R_UNKNOWN uses rank total N; U2/U3/U5/U10 use separate U-known mask and global capture. 0/0 N/A.",
+  "document_id": "ARK_RANK_REWARD_DOWNSIDE_SEVEN_GRADE_RG01_20261008",
+  "environment": {
+    "Python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39"
+  },
+  "equal_weight_mass": "Exact Fraction sums, public decimal serialization12 places, percent-point reference sums, no conversion to Capital JPY.",
+  "exclusive_R_bands": [
+    "R>=5",
+    "4<=R<5",
+    "3<=R<4",
+    "2<=R<3",
+    "1<=R<2",
+    "0<R<1",
+    "-1<R<0",
+    "-2<R<=-1",
+    "-3<R<=-2",
+    "-4<R<=-3",
+    "-5<R<=-4",
+    "R<=-5",
+    "ZERO",
+    "R_UNKNOWN"
+  ],
+  "fixed_K": "Per block old R0 S, S+A,S+A+B counts, aggregate43/197/494; do not preexclude unknown. Also per-block natural S counts for each new method. U7/R0 complete order and topK exact ID equality required.",
+  "frozen_state": {
+    "CapitalReplay": 0,
+    "additionalPreBuyP1GateActivated": false,
+    "firstLayerChanged": false,
+    "mainCapital": "CAPITAL_MAX3_SLOT_RESERVE_V1",
+    "mainExit": "SHARP_DROP_FIRST_OBSERVED_EXIT_V0",
+    "mainRank": "SAVED_R0",
+    "mainRankChanged": false,
+    "productionReady": false,
+    "selectedNewRank": null
+  },
+  "grade_rule": "S ML>=2.50; A2<=ML<2.50; B1.5<=ML<2; C1.25<=ML<1.5; D1<=ML<1.25; E.75<=ML<1; F ML<.75. No epsilon or quota; nonfinite/illegal ML unavailable.",
+  "implementation_code_pins": {
+    "assign_ranks.py": {
+      "bytes": 6338,
+      "git_blob": "c8f0113578a809e4f3e6e9909475f5ab2735a2f3",
+      "sha256": "8de421bfddd16481da612a231e9eb1c8baff82697280e4bc55c46eccf541574b"
+    },
+    "evaluate_ranks.py": {
+      "bytes": 18067,
+      "git_blob": "702e60f8f4bd865fbc143a4233feddbf628945d3",
+      "sha256": "f381b2538834c8fbb6c015e20c13bd024b9b60a1832b7963bdfef963718dac7d"
+    },
+    "fixture_tests.py": {
+      "bytes": 5211,
+      "git_blob": "b07ee8079ca5f1dcc55d2e6a4c59efa233dd76d7",
+      "sha256": "ac8f6f0a8bba6036c4444463a1ecc96847dad0047ce3e61566f1e680a5e24296"
+    },
+    "independent_audit.py": {
+      "bytes": 14774,
+      "git_blob": "21e3e87bbfcf7d383c74ae844145be1c538da629",
+      "sha256": "af65aa1b37204fa0abfc9f20a5bde940261bdfb8ab5de4662552b56717f01b42"
+    },
+    "prepare_inputs.py": {
+      "bytes": 11780,
+      "git_blob": "9a4bc495b903a5b2db40b45c0ad89b46a321e321",
+      "sha256": "591a3bcceaac979b66e47c1a066c9f21b61225c61470d83063e44f74edcfec80"
+    },
+    "reproduce_once.py": {
+      "bytes": 1873,
+      "git_blob": "2e51cd54d9bed83c4124124ffde9e58d636a68e1",
+      "sha256": "7c8accad4cf40745de7a717f21bd5968ce084c94a8721ae3390744fcc6dff735"
+    }
+  },
+  "label_pin": {
+    "bytes": 93036,
+    "git_blob": "305da238b1f82df94c2a7eef32205c1142c731c2",
+    "sha256": "2d6f17b9cb917bdd8d404a9db7ee1a6d0899b77ab37ed07175c7a56194fcffbb"
+  },
+  "methods": [
+    "R0_4",
+    "U7",
+    "G7_FULL",
+    "B7_FULL",
+    "G7_PRICE",
+    "B7_PRICE"
+  ],
+  "native_order": "(-ML,-m5,-m3,-m2,entry_timestamp,symbol,canonical_entry_id)",
+  "original_research_spec": "v1.0 sections0-11 unchanged; source location/path and append-only continuation corrections only",
+  "primary_methods": [
+    "G7_FULL",
+    "B7_FULL"
+  ],
+  "rank_boundaries_descending": [
+    2.5,
+    2.0,
+    1.5,
+    1.25,
+    1.0,
+    0.75
+  ],
+  "relative_risk": "r3=q3/b3; r5=q5/b5; not calibrated guaranteed probability",
+  "risk_inputs": "D-FULL/D-PRICE sealed q3/q5 only; same-block stored past-only B0 Dirichlet0.5; b5=B0_p5[0]>0, b3=B0_p5[0]+B0_p5[1]>=b5; q5<=q3 within[0,1]. Missing/invalid risk is RISK_INPUT_UNAVAILABLE, never F or zero-risk.",
+  "sensitivity_methods": [
+    "G7_PRICE",
+    "B7_PRICE"
+  ],
+  "serialization_equivalence_commits": {
+    "private": "a411f665b522d339514109d4ed359a93968e8011",
+    "public": "ad6a85b0275f0518c39f050d19fe8270f4f06c12"
+  },
+  "source_authority_correction_already_sealed": {
+    "binding_commit": "cfb6c9277de332a7eeee95a78d6313fc62452355",
+    "binding_path": "research/rank-reward-downside-rd01-20261008/SOURCE_BINDING.json",
+    "binding_pin": {
+      "bytes": 3202,
+      "git_blob": "7fdb1b86e1ab95fa2b3fd52c53603670785e05d5",
+      "sha256": "4d6c7eabcb09ffcf3a542bfd5fc6f3dd3c7269c4b04bff77b36431db22aaa473"
+    },
+    "binding_repo": "Iam-2squared/ark-capital-private-",
+    "private_commit": "74fced3b3ab07f3e7bf545115f16b75de83bf82a",
+    "public_commit": "1d84409c907b0b442b6621604c11ba96f48cf8fb"
+  },
+  "stability": "All8blocks/all38sessions grades; fixed assignment leave-one-session/block-out aggregates; all583symbols private.",
+  "strict_t_x_certified_subset_N": 0,
+  "unknown_sensitivity": "Paired outcome count delta lower=-lostUnknown, upper=admittedUnknown; for loser suppression worst=upper/best=lower. Unknown mass unbounded without assumed R limits; no imputation."
+}

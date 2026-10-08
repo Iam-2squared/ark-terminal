@@ -1,0 +1,184 @@
+{
+  "document_id": "ARK_NO1_ENTRY_STATE_FILTER_RESET20_20261008",
+  "stage": "FINITE_DEVELOPMENT_COMPLETE_NO_PROMOTION",
+  "research_only": true,
+  "baseline": {
+    "public_freeze_commit": "fee1458ea7a526be3ee1c9819d3b1ade8f178c5a",
+    "private_freeze_commit": "92763089a07ce0200cb63b887f1bede0e263ed47",
+    "capital": "V5_MAX3",
+    "exit": "SHARP_DROP_FIRST_OBSERVED_EXIT_V0",
+    "prebuy_P1": "OFF_UNCHANGED",
+    "initial_cash_jpy": 1000000,
+    "window_business_sessions": 20,
+    "planned_windows_used": 9,
+    "overlapping": true
+  },
+  "policies": {
+    "NO1_UNCHANGED": [],
+    "PULLBACK_ONLY": [
+      "PULLBACK"
+    ],
+    "SHARP_DROP_ONLY": [
+      "SHARP_DROP"
+    ],
+    "PULLBACK_AND_SHARP_DROP": [
+      "PULLBACK",
+      "SHARP_DROP"
+    ]
+  },
+  "filter": "candidate only if original saved prebuy State9 formal Primary is valid observed State named in policy; otherwise KEEP; original V5 admission, reserve, allocation, slot, execution, SHARP_DROP exit untouched",
+  "input_census": {
+    "original_candidate_entry_N": 1039,
+    "entry_state_pullback_N": 41,
+    "entry_state_sharp_drop_N": 40,
+    "strict_actual_receive_time_certified_N": 0
+  },
+  "statistics": [
+    {
+      "arm": "NO1_UNCHANGED",
+      "min_jpy": 1164540,
+      "median_jpy": 1216396.7,
+      "mean_jpy": 1220317.8277778,
+      "max_jpy": 1289644.3,
+      "two_x_hit": 0,
+      "better_than_no1": null,
+      "paired_mean_delta_jpy": null,
+      "paired_median_delta_jpy": null,
+      "funded_9overlap": 898
+    },
+    {
+      "arm": "PULLBACK_ONLY",
+      "min_jpy": 1162318.5,
+      "median_jpy": 1230761.8,
+      "mean_jpy": 1226206.25,
+      "max_jpy": 1289496.35,
+      "two_x_hit": 0,
+      "better_than_no1": 3,
+      "paired_mean_delta_jpy": 5888.42222222,
+      "paired_median_delta_jpy": -147.95,
+      "funded_9overlap": 809
+    },
+    {
+      "arm": "SHARP_DROP_ONLY",
+      "min_jpy": 1165056.7,
+      "median_jpy": 1208134.75,
+      "mean_jpy": 1215910.3833333,
+      "max_jpy": 1279508.95,
+      "two_x_hit": 0,
+      "better_than_no1": 2,
+      "paired_mean_delta_jpy": -4407.4444444,
+      "paired_median_delta_jpy": -9441.2,
+      "funded_9overlap": 836
+    },
+    {
+      "arm": "PULLBACK_AND_SHARP_DROP",
+      "min_jpy": 1167197.85,
+      "median_jpy": 1221394.3,
+      "mean_jpy": 1224259.2833333,
+      "max_jpy": 1289094.9,
+      "two_x_hit": 0,
+      "better_than_no1": 5,
+      "paired_mean_delta_jpy": 3941.4555555,
+      "paired_median_delta_jpy": 248.3,
+      "funded_9overlap": 749
+    }
+  ],
+  "windows": [
+    {
+      "window": "W13",
+      "no1": 1164540,
+      "pullback_only": 1162318.5,
+      "sharp_drop_only": 1181674.2,
+      "both": 1181117
+    },
+    {
+      "window": "W14",
+      "no1": 1195296.55,
+      "pullback_only": 1192205.6,
+      "sharp_drop_only": 1208134.75,
+      "both": 1208294.35
+    },
+    {
+      "window": "W15",
+      "no1": 1174743.25,
+      "pullback_only": 1174473.7,
+      "sharp_drop_only": 1165056.7,
+      "both": 1167197.85
+    },
+    {
+      "window": "W16",
+      "no1": 1222152.55,
+      "pullback_only": 1222307.75,
+      "sharp_drop_only": 1212711.35,
+      "both": 1214865.1
+    },
+    {
+      "window": "W17",
+      "no1": 1246885.15,
+      "pullback_only": 1238896.75,
+      "sharp_drop_only": 1232173.1,
+      "both": 1233527.6
+    },
+    {
+      "window": "W18",
+      "no1": 1288846.6,
+      "pullback_only": 1288698.65,
+      "sharp_drop_only": 1279508.95,
+      "both": 1289094.9
+    },
+    {
+      "window": "W19",
+      "no1": 1289644.3,
+      "pullback_only": 1289496.35,
+      "sharp_drop_only": 1279015.7,
+      "both": 1281244.45
+    },
+    {
+      "window": "W20",
+      "no1": 1216396.7,
+      "pullback_only": 1230761.8,
+      "sharp_drop_only": 1204963.25,
+      "both": 1221394.3
+    },
+    {
+      "window": "W21",
+      "no1": 1184355.35,
+      "pullback_only": 1236697.15,
+      "sharp_drop_only": 1179955.45,
+      "both": 1221598
+    }
+  ],
+  "economic_decomposition_both_9overlap_accounts": {
+    "baseline_only_pnl_sign_reversal_jpy": 242197.1,
+    "new_funded_pnl_jpy": -224412.3,
+    "common_quantity_effect_jpy": 17688.3,
+    "net_9overlap_jpy": 35473.1,
+    "newly_funded_trades": 52,
+    "new_funded_positive": 4,
+    "new_funded_negative": 48
+  },
+  "audit": {
+    "original_no1_9window_and_chain38_exact_parity": true,
+    "independent_fraction_allocator_event_loop_exact_paths": 36,
+    "shared_frozen_exit_source_plans": true,
+    "independent_accounting_checks": 16460,
+    "paired_decompositions_exact": 27,
+    "zero_residual": true,
+    "same_author_not_independent_third_party": true,
+    "all_source_identity_1039": true,
+    "asof": "HISTORICAL_ASSUMED_ONLY",
+    "actual_market_arrival_UNKNOWN": true
+  },
+  "local_artifacts": {
+    "report_sha256": "67fac18d2447300e124392ca8669e44a27aa4b73f3cc99c3f5ef8d48caef8775",
+    "private_evidence_zip_sha256": "da42c8ac2057ce506623c7d48c28bb5906610dd62c399e47b3e83b7eae89dda0",
+    "private_evidence_zip_bytes": 506168,
+    "manifest_sha256": "2cc2135ea0cf763d370a205c2c99b1da44cf6abd226be760ade46dc5d160051d"
+  },
+  "productionReady": false,
+  "selectedNewFilter": null,
+  "FreshOOSOpens": 0,
+  "orders": 0,
+  "mainMerge": 0,
+  "forcePush": 0
+}

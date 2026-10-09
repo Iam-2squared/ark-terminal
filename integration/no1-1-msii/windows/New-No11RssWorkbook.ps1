@@ -138,6 +138,28 @@ function New-No11Workbook {
         throw
     }
 }
+function Get-No11ObservedStatus {
+    param($Sheet,[string]$Address,[string]$ExpectedStatus)
+    $cell = $Sheet.Range($Address)
+    if ($cell.HasFormula -ne $true) { return "RSS_FORMULA_MISSING" }
+    $formula = ([string]$cell.Formula) -replace "^=@", "="
+    if ($formula -cne $expectedFormulas[$Address]) { return "RSS_FORMULA_MISMATCH" }
+    # MarketSpeed II RSS may render "=RssFunction(args) => 配信中" as the
+    # calculated result. Match the exact verified formula and terminal status,
+    # never a loose substring that could accept "#NAME?" or an error suffix.
+    $echo = $formula + " => " + $ExpectedStatus
+    foreach ($raw in @([string]$cell.Value2,[string]$cell.Text)) {
+        $value = $raw.Trim()
+        if ($value -ceq $ExpectedStatus -or $value -ceq $echo) {
+            return $ExpectedStatus
+        }
+        if ($value -ceq ("=@" + $formula.Substring(1) + " => " + $ExpectedStatus)) {
+            return $ExpectedStatus
+        }
+    }
+    return "RSS_STATUS_UNRECOGNIZED"
+}
+
 function Write-No11Diagnostic {
     param($Book, [string]$ReportFullPath)
     $sheets = @($Book.Worksheets | Where-Object { $_.Name -eq "ARK_ACCOUNT_READONLY" })
@@ -147,7 +169,7 @@ function Write-No11Diagnostic {
     $feeds = [ordered]@{}
     $blockers = @()
     foreach ($address in $expectedStates.Keys) {
-        $state = ([string]$sheet.Range($address).Text).Trim()
+        $state = Get-No11ObservedStatus -Sheet $sheet -Address $address -ExpectedStatus $expectedStates[$address]
         $feeds[$address] = $state
         if ($state -ne $expectedStates[$address]) {
             $blockers += ("RSS_STATUS_NOT_READY:{0}" -f $address)

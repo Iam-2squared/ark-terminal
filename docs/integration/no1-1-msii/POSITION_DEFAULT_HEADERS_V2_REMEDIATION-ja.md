@@ -38,3 +38,16 @@ Offline tests are **not** Windows RSS proof. The first run must verify real sour
 The following remain **BLOCKED**: actualFeedTimestampCertified, native No.1.1 live strategy events, ownership baseline, full broker order/fill/cash roundtrip, runtime safety PC certification, UI2 PC E2E and any physical order.
 
 No RegisterXLL, no order formula, no order write, no strategy change, no main merge, no transmission. All Safety flags false.
+
+## Correction: shared diagnostic receipt invalidates cross-workbook attribution
+
+On 2026-10-10 JST, user observed `TARGET_EXISTS=False`, while the shared `workbook-diagnostic.json` reported `workbook=Ark_No11_RSS_ReadOnly.xlsx` (legacy No.1.1, not v2). Consequently the previously reported v2 `AL1=RSS_STATUS_UNRECOGNIZED` is **not admissible as v2 evidence**. We do **not** know whether another process rewrote the shared report or the previous launch failed to persist v2. Do not assert a root cause beyond the observed record identity mismatch.
+
+Remediation:
+- Each launch uses an independent GUID-named receipt under local application data; old fixed-name diagnostic is not read by the launcher.
+- Check expected v2 file existence immediately after the builder returns.
+- Before writing the receipt, builder proves returned Workbook.FullName equals the requested v2 path and the file is persisted.
+- Before consuming the receipt, launcher proves diagnostic.workbook equals requested v2 path and observedAt belongs to this attempt.
+- A BLOCKED status remains BLOCKED; no order/ownership promotions.
+
+Live Windows proof remains pending. Runbook must never treat previous account values or an old workbook diagnostic as fresh proof.

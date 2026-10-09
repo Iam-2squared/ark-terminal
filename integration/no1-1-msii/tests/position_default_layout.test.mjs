@@ -34,3 +34,11 @@ test('formula whitelist scans only actual formula-bearing cells within a bounded
   assert.ok(!b.includes('foreach ($cell in $Sheet.UsedRange.SpecialCells(-4123).Cells)'));
   assert.ok(p.includes('NO11_FORMULA_FOOTPRINT_MOCK_PASS'));
 });
+
+test('read-only setup validates receipt path and versioned workbook provenance',()=>{
+  const setup=read('Start-No11ReadOnlySetup.ps1');
+  assert.ok(setup.includes('NO11_DIAGNOSTIC_WRONG_WORKBOOK'));
+  assert.ok(setup.includes('NO11_EXPECTED_WORKBOOK_NOT_PERSISTED'));
+  assert.ok(setup.includes('NO11_DIAGNOSTIC_VERIFIED_FOR_V2'));
+  assert.ok(b.includes('NO11_DIAGNOSTIC_WORKBOOK_IDENTITY_MISMATCH'));
+});

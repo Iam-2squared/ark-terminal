@@ -225,7 +225,18 @@ function Get-No11ObservedStatus {
 }
 
 function Write-No11Diagnostic {
-    param($Book, [string]$ReportFullPath)
+    param($Book, [string]$ReportFullPath, [string]$ExpectedWorkbookPath)
+    # Do not create a report for a different or unsaved Workbook. This is
+    # checked before the diagnostic file can be written.
+    $expectedPath = [IO.Path]::GetFullPath($ExpectedWorkbookPath)
+    $observedPath = [IO.Path]::GetFullPath([string]$Book.FullName)
+    if (-not [string]::Equals($expectedPath,$observedPath,
+        [StringComparison]::OrdinalIgnoreCase)) {
+        throw "NO11_DIAGNOSTIC_WORKBOOK_IDENTITY_MISMATCH"
+    }
+    if (-not (Test-Path -LiteralPath $expectedPath -PathType Leaf)) {
+        throw "NO11_DIAGNOSTIC_WORKBOOK_NOT_PERSISTED"
+    }
     $sheets = @($Book.Worksheets | Where-Object { $_.Name -eq "ARK_ACCOUNT_READONLY" })
     if ($sheets.Count -ne 1) { throw "NO11_ACCOUNT_SHEET_MISSING_OR_DUPLICATE" }
     $sheet = $sheets[0]
@@ -283,4 +294,4 @@ if ($Mode -eq "Create") {
     $excel = Get-No11Excel -MayStart $true
     $book = Resolve-No11Workbook -Excel $excel -FullPath $target
 }
-Write-No11Diagnostic -Book $book -ReportFullPath $reportTarget
+Write-No11Diagnostic -Book $book -ReportFullPath $reportTarget -ExpectedWorkbookPath $target

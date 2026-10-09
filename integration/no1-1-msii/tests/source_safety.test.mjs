@@ -104,3 +104,17 @@ test('diagnostic creates only an unsaved independent RSS read-only workbook',()=
   assert.doesNotMatch(src,/\bRssCancelOrder\s*\(/i);
   assert.doesNotMatch(src,/\.SaveAs\s*\(/i);
 });
+
+test('setup produces a unique diagnostic report and binds it to the versioned workbook',()=>{
+  const launcher=read('windows/Start-No11ReadOnlySetup.ps1');
+  const builder=read('windows/New-No11RssWorkbook.ps1');
+  assert.match(launcher,/workbook-diagnostic-/);
+  assert.match(launcher,/\$runId = \[guid\]::NewGuid\(\)/);
+  assert.match(launcher,/NO11_EXPECTED_WORKBOOK_NOT_PERSISTED/);
+  assert.match(launcher,/NO11_DIAGNOSTIC_WRONG_WORKBOOK/);
+  assert.match(launcher,/NO11_DIAGNOSTIC_FROM_PRIOR_RUN_FORBIDDEN/);
+  assert.match(builder,/NO11_DIAGNOSTIC_WORKBOOK_IDENTITY_MISMATCH/);
+  assert.match(builder,/NO11_DIAGNOSTIC_WORKBOOK_NOT_PERSISTED/);
+  assert.match(builder,/-ExpectedWorkbookPath \$target/);
+  assert.doesNotMatch(launcher,/\$reportPath = Join-Path \$local "workbook-diagnostic\.json"/);
+});

@@ -40,3 +40,18 @@ jobs:
         run: |
           test "$(git hash-object integration/no1-1-msii/ui/public/index.html)" = ec79214fcc8ad9f200d7899ee562ed11b917b686
           test "$(git hash-object integration/no1-1-msii/ui/public/ark-readonly-overlay.js)" = b0f27e1ad0e62b24052ce839c9eac29f934a677f
+      - name: Parse Windows PowerShell without execution
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $sources = Get-ChildItem 'integration/no1-1-msii/windows' -Filter '*.ps1'
+          foreach ($source in $sources) {
+            $tokens = $null
+            $parseErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($source.FullName, [ref]$tokens, [ref]$parseErrors) | Out-Null
+            if ($parseErrors.Count -gt 0) {
+              $parseErrors | ForEach-Object { Write-Error $_.ToString() }
+              throw "POWERSHELL_PARSER_FAILED:$($source.Name)"
+            }
+          }
+          Write-Host "POWERSHELL_STATIC_PARSE_PASS=$($sources.Count)"

@@ -356,7 +356,7 @@ def build_parser(repo_root: Path) -> argparse.ArgumentParser:
     parser.add_argument(
         "--model",
         type=Path,
-        default=Path(r"C:\Ark\ui-readonly\ark-terminal-ui-read-model.json"),
+        default=Path.home() / "AppData" / "Local" / "ArkTerminal" / "No11" / "ui-read-model.json",
     )
     parser.add_argument(
         "--workbook",
@@ -371,7 +371,7 @@ def build_parser(repo_root: Path) -> argparse.ArgumentParser:
     parser.add_argument(
         "--ui-root",
         type=Path,
-        default=repo_root / "prototypes" / "ark-terminal-2-readonly" / "public",
+        default=repo_root / "ui" / "public",
     )
     return parser
 
@@ -398,7 +398,7 @@ def main(argv: list[str] | None = None) -> int:
     if not args.no_refresh:
         refresh_loop = RefreshLoop(
             state=refresh_state,
-            preview_script=repo_root / "tools" / "Start-ArkUiReadOnlyPreview.ps1",
+            preview_script=repo_root / "windows" / "Write-No11ReadOnlyPreview.ps1",
             workbook_path=args.workbook.resolve(),
             model_path=model_path,
             ownership_path=args.ownership.resolve() if args.ownership else None,

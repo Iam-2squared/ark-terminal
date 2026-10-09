@@ -118,7 +118,9 @@ function New-No11Workbook {
         }
         foreach ($address in $expectedFormulas.Keys) {
             $cell = $sheet.Range($address)
-            $cell.NumberFormat = "General"
+            # Fresh Excel cells already use General by default. On some
+            # Windows/Excel installations the COM NumberFormat setter fails
+            # even on a new sheet; do not make formatting a setup prerequisite.
             $cell.Formula = $expectedFormulas[$address]
         }
         Assert-No11Layout -Sheet $sheet

@@ -33,7 +33,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $newWt "integ
 - 新 `Ark_No11_RSS_DefaultHeaders_v2.xlsx` がなければ一度だけ新規生成。存在する場合は診断のみ。自動上書きなし。
 - `RssPositionList()` の公式18項目すべてのヘッダーと取得コードを検査する。
 - 同じWorkbookにCapacity/Orders/Executions/PositionsのREAD ONLY RSS関数4系統だけを置く。
-- 出力は `%LOCALAPPDATA%\ArkTerminal\No11\workbook-diagnostic.json` と `snapshot.json`。正常値を捏造しない。
+- 診断出力は毎回異なる `%LOCALAPPDATA%\ArkTerminal\No11\workbook-diagnostic-<runId>.json` と `snapshot.json`。旧固定名のレポートは流用しない。正常値を捏造しない。
 - 以前のSnapshotは所有区分Baselineを固定する権威には使わない。
 - この確認はRSS状態と一時刻の保有識別であり、真のbroker delivery timestamp認証ではない。
 
@@ -56,8 +56,14 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $newWt "integ
 RSSが正常になったら、現在の保有のOwnershipを本人が分類する。
 昔の408A 180株は過去Evidenceであり、現在の個人保有をArk管理と推測しない。
 
-次にUI2 6画面のRead-only実機確認へ進む。注文送信、取消、Kill Switch解除、
-Strategy Edit、実売買開始はすべて別Gate。
+次にUI2 6画面のRead-only実機確認へ進む。これは実機の機能検証であり、
+ユーザーに何重もの許可操作を要求するゲートではない。
+
+**将来の実売買の手動許可はExcel側のRSS注文機能ONだけ**とする。
+Ark独自の手動承認・追加ロック解除は設けない。
+現行コードはまだREAD ONLYで、Excelの許可だけでは発注できない。
+金額・保有・重複注文・鮮度・Frozen戦略制約の自動チェックは維持する。
+詳細はONE_MANUAL_PERMISSION_POLICY-ja.md参照。
 
 ## 報告してよいもの
 

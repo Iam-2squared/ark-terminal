@@ -29,11 +29,11 @@ Source: research/ark-integrated-no1-1-freeze-20261008/INTEGRATED_NO1_1_FREEZE.js
 ## Outstanding infrastructure gates
 - One authoritative RSS Fresh Snapshot, 30-second freshness, explicit source-health status.
 - Local private frozen Ownership baseline and current broker/Ark/external reconciliation.
-- Bounded Excel COM retries, persisted latched Kill Switch, restart recovery, health-check/manual reset.
+- Bounded Excel COM retries, recoverable automatic fault halt, restart recovery. Existing ledger has a manual reset primitive; simplify it before live so it does not become an additional user authorization gate.
 - Persistent unique RSS order-ID and intent-to-broker-order-to-fill mapping, idempotency and partial fills.
 - Runtime safety, ownership and pipeline connected into UI Read Model; six-page local UI read-only E2E.
 - Synthetic adversarial tests, then real account SHADOW/LOCKED tests with zero order transmissions.
-- Separate human-approved live gate only after independent final safety audit and fresh evidence.
+- **One user-operated live authorization only: Excel's MarketSpeed II RSS order-enable setting.** No additional Ark manual unlock/independent-review approval. Offline/Windows verification are engineering acceptance checks, not user-facing permission toggles. See ONE_MANUAL_PERMISSION_POLICY-ja.md.
 
 ## Evidence required before moving to Gate 1
 - Read exact No.1.1 and No.1 immutable hashes and runtime event schema.

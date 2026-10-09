@@ -84,5 +84,6 @@ jobs:
       - name: Test RSS formula echo and strict error rejection (Windows PowerShell 5.1)
         shell: powershell
         run: |
+          $ErrorActionPreference = 'Stop'
           & .\integration\no1-1-msii\windows\Test-No11RssStatusParser.ps1
-          if ($LASTEXITCODE -ne 0) { throw "RSS_FORMULA_ECHO_TEST_FAILED" }
+          if (-not $?) { throw "RSS_FORMULA_ECHO_TEST_FAILED" }

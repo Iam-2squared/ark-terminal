@@ -361,7 +361,7 @@ def build_parser(repo_root: Path) -> argparse.ArgumentParser:
     parser.add_argument(
         "--workbook",
         type=Path,
-        default=Path(r"C:\Ark\Ark_MSII_LiveSource.xlsx"),
+        default=Path(r"C:\Ark\Ark_No11_RSS_ReadOnly.xlsx"),
     )
     parser.add_argument("--ownership", type=Path, default=None)
     parser.add_argument("--refresh-seconds", type=float, default=5.0)

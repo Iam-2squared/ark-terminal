@@ -111,13 +111,39 @@ function Assert-ArkAccountSheetLayout {
     }
 }
 
+function Get-No11RssCellStatus {
+    param([Parameter(Mandatory=$true)]$Worksheet,[string]$Address)
+    $expected = @{
+        L1  = @{ formula = "=RssCapacityList(L2:L2)"; state = "完了" }
+        N1  = @{ formula = "=RssOrderList(N2:W2,0,1)"; state = "配信中" }
+        AA1 = @{ formula = "=RssExecutionList(AA2:AI2,1)"; state = "配信中" }
+        AL1 = @{ formula = "=RssPositionList(AL2:AU2)"; state = "配信中" }
+    }
+    if (-not $expected.ContainsKey($Address)) { throw "RSS_STATUS_ADDRESS_INVALID" }
+    $cell = $Worksheet.Range($Address)
+    if ($cell.HasFormula -ne $true) { return "RSS_FORMULA_MISSING" }
+    $formula = ([string]$cell.Formula) -replace "^=@", "="
+    if ($formula -cne $expected[$Address].formula) { return "RSS_FORMULA_MISMATCH" }
+    $state = [string]$expected[$Address].state
+    foreach ($raw in @([string]$cell.Value2,[string]$cell.Text)) {
+        $value = $raw.Trim()
+        if ($value -ceq $state -or $value -ceq ($formula + " => " + $state)) {
+            return $state
+        }
+        if ($value -ceq ("=@" + $formula.Substring(1) + " => " + $state)) {
+            return $state
+        }
+    }
+    return "RSS_STATUS_UNRECOGNIZED"
+}
+
 function Get-ArkRssStatusText {
     param([Parameter(Mandatory=$true)]$Worksheet)
     return [ordered]@{
-        L1 = ([string]$Worksheet.Range("L1").Text).Trim()
-        N1 = ([string]$Worksheet.Range("N1").Text).Trim()
-        AA1 = ([string]$Worksheet.Range("AA1").Text).Trim()
-        AL1 = ([string]$Worksheet.Range("AL1").Text).Trim()
+        L1 = Get-No11RssCellStatus -Worksheet $Worksheet -Address "L1"
+        N1 = Get-No11RssCellStatus -Worksheet $Worksheet -Address "N1"
+        AA1 = Get-No11RssCellStatus -Worksheet $Worksheet -Address "AA1"
+        AL1 = Get-No11RssCellStatus -Worksheet $Worksheet -Address "AL1"
     }
 }
 
@@ -140,14 +166,15 @@ function Wait-ArkReadOnlyRssReady {
     for ($attempt = 0; $attempt -lt 40; $attempt++) {
         $allReady = $true
         foreach ($address in $statusAddresses) {
-            $text = ([string]$Worksheet.Range($address).Text).Trim()
+            $text = Get-No11RssCellStatus -Worksheet $Worksheet -Address $address
             $last[$address] = $text
             $ready = if ($address -eq "L1") { $text -eq "完了" } else { $text -eq "配信中" }
             if (-not $ready) { $allReady = $false }
         }
         if ($allReady) { return $last }
         Start-Sleep -Milliseconds 250
-        try { $Worksheet.Application.CalculateFull() } catch { }
+        # Never recalculate other open Workbooks from a READ ONLY snapshot.
+        try { $Worksheet.Calculate() } catch { }
     }
     throw ("RSS_READ_ONLY_SOURCE_NOT_READY:L1={0};N1={1};AA1={2};AL1={3}" -f $last["L1"], $last["N1"], $last["AA1"], $last["AL1"])
 }

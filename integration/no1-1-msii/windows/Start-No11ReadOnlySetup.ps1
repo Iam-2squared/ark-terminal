@@ -1,0 +1,49 @@
+# Single-command No.1.1 READ ONLY setup after user logs into MarketSpeed II.
+# Never enables add-ins, places orders, changes old Workbook or authorizes trading.
+param(
+    [string]$WorkbookPath = "C:\Ark\Ark_No11_RSS_ReadOnly.xlsx"
+)
+$ErrorActionPreference = "Stop"
+$scriptRoot = $PSScriptRoot
+$builder = Join-Path $scriptRoot "New-No11RssWorkbook.ps1"
+$snapshotter = Join-Path $scriptRoot "Get-No11ReadOnlySnapshot.ps1"
+$local = Join-Path $env:LOCALAPPDATA "ArkTerminal\No11"
+$reportPath = Join-Path $local "workbook-diagnostic.json"
+$snapshotPath = Join-Path $local "snapshot.json"
+$healthPath = Join-Path $local "source-health.json"
+
+if (-not (Test-Path -LiteralPath $builder -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $snapshotter -PathType Leaf)) {
+    throw "NO11_SETUP_FILES_MISSING"
+}
+$mode = if (Test-Path -LiteralPath $WorkbookPath -PathType Leaf) { "Diagnose" } else { "Create" }
+Write-Host ("NO11_WORKBOOK_MODE={0}" -f $mode)
+& $builder -Mode $mode -WorkbookPath $WorkbookPath -ReportPath $reportPath
+if (-not (Test-Path -LiteralPath $reportPath -PathType Leaf)) {
+    throw "NO11_DIAGNOSTIC_REPORT_MISSING"
+}
+$diagnostic = Get-Content -LiteralPath $reportPath -Raw -Encoding UTF8 | ConvertFrom-Json
+if ($diagnostic.schemaId -ne "ARK_NO11_RSS_WORKBOOK_DIAGNOSTIC_V1") {
+    throw "NO11_DIAGNOSTIC_SCHEMA_MISMATCH"
+}
+if ($diagnostic.status -ne "RSS_STATUS_OBSERVED") {
+    Write-Host "NO11_NEXT=CHECK_MARKETSPEED_LOGIN_AND_EXCEL_RSS_ADDIN_MANUALLY"
+    Write-Host "NO11_READ_ONLY_STATUS=BLOCKED"
+    Write-Host "ORDER_TRANSMISSION=FALSE"
+    return
+}
+Write-Host "NO11_NEXT=READ_ONLY_ACCOUNT_SNAPSHOT"
+$snapshotArgs = @{
+    WorkbookName = (Split-Path -Leaf $WorkbookPath)
+    WorkbookPath = $WorkbookPath
+    SnapshotPath = $snapshotPath
+    SourceHealthPath = $healthPath
+    DoNotAutoOpenWorkbook = $true
+}
+& $snapshotter @snapshotArgs
+Write-Host "NO11_SETUP_READ_ONLY_COMPLETE"
+Write-Host ("SNAPSHOT_PATH={0}" -f $snapshotPath)
+Write-Host ("HEALTH_PATH={0}" -f $healthPath)
+Write-Host "OWNERSHIP=UNCLASSIFIED_UNTIL_HUMAN_CONFIRMATION"
+Write-Host "RUNTIME_SAFETY=NOT_LIVE_CERTIFIED"
+Write-Host "ORDER_TRANSMISSION=FALSE"

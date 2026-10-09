@@ -121,3 +121,21 @@ export function inspectLockedAccount({snapshot,health,ownership,lockedIntent,now
     executionAllowed:false,excelOrderWriteAllowed:false,rssOrderFunctionAllowed:false,transmitted:false
   });
 }
+
+
+/** Physical RSS formulas are only *observed*; this is not a broker freshness certificate. */
+export function inspectReadOnlySnapshot({snapshot,health,now=new Date()}={}) {
+  const blockers=[];
+  const nowMs=now instanceof Date?now.getTime():ms(now,'NOW_INVALID');
+  try {validateRSS(snapshot,health,nowMs);}
+  catch(err){blockers.push(err.message);}
+  return Object.freeze({
+    schemaId:'ARK_NO11_READ_ONLY_SOURCE_INSPECTION_V1',
+    status:blockers.length?'BLOCKED':'RSS_STATUS_OBSERVED_READ_ONLY',
+    blockers,
+    liveDataFreshnessCertified:health?.actualFeedTimestampCertified===true,
+    executionAllowed:false,brokerWriteAllowed:false,excelOrderWriteAllowed:false,
+    rssOrderFunctionAllowed:false,transmitted:false,
+    message:'Status-cell observation is not broker source arrival certification',
+  });
+}

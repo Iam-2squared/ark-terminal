@@ -47,9 +47,13 @@ try {
     $expected = @("銘柄コード","銘柄名称","口座区分","保有数量")
     $headerMatches = $true
     for ($col=1; $col -le 4; $col++) {
-        if ([string]$tempSheet.Cells.Item(2,$col).Value2 -ne $expected[$col-1]) {
-            $headerMatches = $false
-        }
+        $header = ([string]$tempSheet.Cells.Item(2,$col).Value2).Trim()
+        $matches = $header -ceq $expected[$col-1]
+        if (-not $matches) { $headerMatches = $false }
+        # RSS field headings are not account values: printing only the heading
+        # allows exact header reconciliation without exposing ticker or quantity.
+        Write-Host ("DEFAULT_HEADER_{0}={1}" -f $col,$header)
+        Write-Host ("DEFAULT_HEADER_{0}_MATCH={1}" -f $col,$matches)
     }
     $tempSymbol = ([string]$tempSheet.Range("A3").Value2).Trim()
     $tempName = ([string]$tempSheet.Range("B3").Value2).Trim()

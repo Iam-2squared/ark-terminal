@@ -52,8 +52,15 @@ function Resolve-No11Workbook {
         [string]::Equals([IO.Path]::GetFullPath([string]$_.FullName),
             $FullPath, [StringComparison]::OrdinalIgnoreCase)
     })
-    if ($matches.Count -ne 1) { throw "NO11_WORKBOOK_NOT_OPEN_AT_EXPECTED_PATH" }
-    return $matches[0]
+    if ($matches.Count -gt 1) { throw "NO11_DUPLICATE_WORKBOOK_OPEN" }
+    if ($matches.Count -eq 1) { return $matches[0] }
+    if (-not (Test-Path -LiteralPath $FullPath -PathType Leaf)) {
+        throw "NO11_WORKBOOK_MISSING"
+    }
+    # Only open the new, isolated Workbook in READ ONLY mode.
+    $opened = $Excel.Workbooks.Open($FullPath,0,$true)
+    if ($null -eq $opened) { throw "NO11_WORKBOOK_READ_ONLY_OPEN_FAILED" }
+    return $opened
 }
 function Assert-No11Layout {
     param($Sheet)
@@ -185,7 +192,7 @@ if ($Mode -eq "Create") {
     $excel = Get-No11Excel -MayStart $true
     $book = New-No11Workbook -Excel $excel -FullPath $target
 } else {
-    $excel = Get-No11Excel -MayStart $false
+    $excel = Get-No11Excel -MayStart $true
     $book = Resolve-No11Workbook -Excel $excel -FullPath $target
 }
 Write-No11Diagnostic -Book $book -ReportFullPath $reportTarget

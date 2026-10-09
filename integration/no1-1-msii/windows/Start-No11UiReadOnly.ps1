@@ -2,7 +2,7 @@ param(
   [ValidateRange(1024,65535)][int]$Port = 8767,
   [ValidateRange(3,300)][int]$RefreshSeconds = 15,
   [ValidateRange(15,600)][int]$MaxModelAgeSeconds = 60,
-  [string]$WorkbookPath = "C:\Ark\Ark_No11_RSS_ReadOnly.xlsx",
+  [string]$WorkbookPath = "C:\Ark\Ark_No11_RSS_DefaultHeaders_v2.xlsx",
   [string]$UiReadModelPath = (Join-Path $env:LOCALAPPDATA "ArkTerminal\No11\ui-read-model.json"),
   [string]$OwnershipBaselinePath = "",
   [switch]$NoAutoRefresh,

@@ -52,7 +52,7 @@ test('safe Windows launch cannot remotely enable execution',()=>{
 
 test('new RSS Workbook is isolated, read-only and never registers XLL or orders',()=>{
   const src=read('windows/New-No11RssWorkbook.ps1');
-  assert(src.includes('Ark_No11_RSS_ReadOnly.xlsx'));
+  assert(src.includes('Ark_No11_RSS_DefaultHeaders_v2.xlsx'));
   assert(src.includes('ARK_ACCOUNT_READONLY'));
   for(const f of ['RssCapacityList','RssOrderList','RssExecutionList','RssPositionList']){
     assert(src.includes(f));
@@ -76,7 +76,7 @@ test('snapshot and UI use new dedicated Workbook without modifying legacy file',
     'windows/Start-No11UiReadOnly.ps1'
   ]){
     const src=read(filename);
-    assert(src.includes('Ark_No11_RSS_ReadOnly.xlsx'));
+    assert(src.includes('Ark_No11_RSS_DefaultHeaders_v2.xlsx'));
     assert(!src.includes('Ark_MSII_LiveSource.xlsx'));
   }
 });

@@ -95,6 +95,11 @@ function New-No11Workbook {
         throw "NO11_WORKBOOK_ALREADY_EXISTS_USE_DIAGNOSE"
     }
     if ([string]::Equals($FullPath,
+        [IO.Path]::GetFullPath("C:\Ark\Ark_No11_RSS_ReadOnly.xlsx"),
+        [StringComparison]::OrdinalIgnoreCase)) {
+        throw "NO11_PREVIOUS_WORKBOOK_OVERWRITE_FORBIDDEN"
+    }
+    if ([string]::Equals($FullPath,
         [IO.Path]::GetFullPath("C:\Ark\Ark_MSII_LiveSource.xlsx"),
         [StringComparison]::OrdinalIgnoreCase)) {
         throw "NO11_LEGACY_WORKBOOK_OVERWRITE_FORBIDDEN"

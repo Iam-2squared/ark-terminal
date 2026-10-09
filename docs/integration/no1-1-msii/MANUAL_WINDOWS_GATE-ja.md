@@ -1,7 +1,7 @@
 # 🖥️ No.1.1 専用 MarketSpeed II RSS — Windows READ ONLY 実機ゲート
 
 **旧Ark_MSII_LiveSource.xlsxのセル操作を繰り返さない。**
-専用Workbook `C:\Ark\Ark_No11_RSS_ReadOnly.xlsx` を**新規作成**し、
+専用Workbook `C:\Ark\Ark_No11_RSS_DefaultHeaders_v2.xlsx` を**新規作成**し、
 そのままRSS4系統の診断とFresh Account Snapshotを一括取得する。
 
 ## 事前条件
@@ -9,34 +9,33 @@
 - MarketSpeed IIを本人が起動してログインする。
 - Excel 64bitとRSSアドインはExcel側で正規に有効化する。
 - **RegisterXLL自動呼出は禁止**。この作成スクリプトには含まれない。
-- 既存 `C:\Ark\Ark_MSII_LiveSource.xlsx` は**上書き・保存・修復しない**。
+- 既存 `C:\Ark\Ark_MSII_LiveSource.xlsx` と `C:\Ark\Ark_No11_RSS_ReadOnly.xlsx` は**上書き・保存・修復しない**。
 - 発注用RSS関数、注文トリガー、発注セル、実注文送信は一切作らない。
 
-## 実行（ローカル worktree の更新＋ワンコマンド診断）
+## 実行 — 既存worktreeとWorkbookを保持する
 
-以下はPowerShellを `C:\Users\Owner\Desktop\Yosuke\ark-terminal-git` で開いて実行する例。
+PowerShellを `C:\Users\Owner\Desktop\Yosuke\ark-terminal-git` で開いたまま実行。
+今まで手動診断した `ark-terminal-no11` は変更せず、**新しい分離worktree**へ更新済み接続コードを配置します。
 
 ~~~powershell
-$wt = "..\ark-terminal-no11"
-$dirty = @(git -C $wt status --porcelain)
-if ($dirty.Count -gt 0) {
-    Write-Host "STOP: No.1.1作業フォルダにローカル変更があります。上書きしません。"
-} else {
-    git -C $wt fetch origin integration/no1-1-msii-cash-locked-v1
-    if ($LASTEXITCODE -ne 0) { throw "NO11_FETCH_FAILED" }
-    git -C $wt switch --detach origin/integration/no1-1-msii-cash-locked-v1
-    if ($LASTEXITCODE -ne 0) { throw "NO11_SWITCH_FAILED" }
-    powershell -NoProfile -ExecutionPolicy Bypass -File (
-        Join-Path $wt "integration\no1-1-msii\windows\Start-No11ReadOnlySetup.ps1"
-    )
-}
+$repo = "C:\Users\Owner\Desktop\Yosuke\ark-terminal-git"
+$newWt = "C:\Users\Owner\Desktop\Yosuke\ark-terminal-no11-default-v2"
+git -C $repo fetch origin integration/no1-1-msii-cash-locked-v1
+if ($LASTEXITCODE -ne 0) { throw "NO11_FETCH_FAILED" }
+if (Test-Path -LiteralPath $newWt) { throw "NO11_V2_WORKTREE_ALREADY_EXISTS_DO_NOT_OVERWRITE" }
+git -C $repo worktree add --detach $newWt origin/integration/no1-1-msii-cash-locked-v1
+if ($LASTEXITCODE -ne 0) { throw "NO11_V2_WORKTREE_CREATION_FAILED" }
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $newWt "integration\no1-1-msii\windows\Start-No11ReadOnlySetup.ps1")
 ~~~
 
-- 新Workbookがない場合は `Create`。ある場合は `Diagnose`。既存Workbookを自動上書きしない。
-- 新Workbookには `ARK_ACCOUNT_READONLY` 1シートだけ、RSS読取関数4種類だけ。
-- Excelの表示設定（数式表示）と、式が文字列でなく本物の数式かを自動チェックする。
-- 出力は `%LOCALAPPDATA%\ArkTerminal\No11\workbook-diagnostic.json`。
-- RSSが準備できていれば同じ操作内でSnapshotを読取取得。準備できていなければ `BLOCKED` で停止。
+- MarketSpeed IIには本人がログイン済み、ExcelでRSSアドインを正規有効化済み。
+- 元のExcelファイルは閉じてもよいが、**手動修正・保存・削除はしない**。
+- 新 `Ark_No11_RSS_DefaultHeaders_v2.xlsx` がなければ一度だけ新規生成。存在する場合は診断のみ。自動上書きなし。
+- `RssPositionList()` の公式18項目すべてのヘッダーと取得コードを検査する。
+- 同じWorkbookにCapacity/Orders/Executions/PositionsのREAD ONLY RSS関数4系統だけを置く。
+- 出力は `%LOCALAPPDATA%\ArkTerminal\No11\workbook-diagnostic.json` と `snapshot.json`。正常値を捏造しない。
+- 以前のSnapshotは所有区分Baselineを固定する権威には使わない。
+- この確認はRSS状態と一時刻の保有識別であり、真のbroker delivery timestamp認証ではない。
 
 ## 正常なステータス
 

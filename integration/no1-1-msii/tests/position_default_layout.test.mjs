@@ -23,3 +23,14 @@ test('price and PnL columns use verified full layout',()=>{
  assert.ok(s.includes('actualFeedTimestampCertified = $false'));
  assert.ok(l.includes('DoNotAutoOpenWorkbook = $true'));
 });
+
+test('formula whitelist scans only actual formula-bearing cells within a bounded rectangle',()=>{
+  assert.ok(b.includes('function Assert-No11FormulaFootprint'));
+  assert.ok(b.includes('$used.Cells.Item($r,$c)'));
+  assert.ok(b.includes('if ([bool]$hasFormula)'));
+  assert.ok(b.includes('NO11_EXTRA_FORMULA_FORBIDDEN'));
+  assert.ok(b.includes('NO11_REQUIRED_FORMULA_NOT_FOUND'));
+  assert.ok(b.includes('NO11_USED_RANGE_UNBOUNDED'));
+  assert.ok(!b.includes('foreach ($cell in $Sheet.UsedRange.SpecialCells(-4123).Cells)'));
+  assert.ok(p.includes('NO11_FORMULA_FOOTPRINT_MOCK_PASS'));
+});

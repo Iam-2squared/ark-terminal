@@ -64,6 +64,41 @@ function Resolve-No11Workbook {
     if ($null -eq $opened) { throw "NO11_WORKBOOK_READ_ONLY_OPEN_FAILED" }
     return $opened
 }
+
+function Assert-No11FormulaFootprint {
+    param([Parameter(Mandatory=$true)]$Sheet)
+    $used = $Sheet.UsedRange
+    if ($null -eq $used) { throw "NO11_USED_RANGE_MISSING" }
+    $rows = [int]$used.Rows.Count
+    $cols = [int]$used.Columns.Count
+    if ($rows -lt 1 -or $cols -lt 1 -or
+        ([long]$rows * [long]$cols) -gt 50000) {
+        throw "NO11_USED_RANGE_UNBOUNDED"
+    }
+
+    $observed = @{}
+    for ($r = 1; $r -le $rows; $r++) {
+        for ($c = 1; $c -le $cols; $c++) {
+            $cell = $used.Cells.Item($r,$c)
+            if ($null -eq $cell) { throw "NO11_FORMULA_CELL_UNREADABLE" }
+            $hasFormula = $cell.HasFormula
+            if ($null -eq $hasFormula) { throw "NO11_FORMULA_STATUS_UNKNOWN" }
+            if ([bool]$hasFormula) {
+                $address = [string]$cell.Address($false,$false)
+                if (-not $expectedFormulas.Contains($address)) {
+                    throw ("NO11_EXTRA_FORMULA_FORBIDDEN:{0}" -f $address)
+                }
+                $observed[$address] = $true
+            }
+        }
+    }
+    foreach ($required in $expectedFormulas.Keys) {
+        if (-not $observed.ContainsKey($required)) {
+            throw ("NO11_REQUIRED_FORMULA_NOT_FOUND:{0}" -f $required)
+        }
+    }
+}
+
 function Assert-No11Layout {
     param($Sheet)
     foreach ($address in $expectedFormulas.Keys) {
@@ -104,39 +139,12 @@ function Assert-No11Layout {
             throw ("NO11_RSS_HEADER_MISMATCH:{0}" -f $address)
         }
     }
-    # RSS list functions can modify the worksheet layout. Record only the
-    # address and safe structural metadata of unexpected formula cells.
-    # Never print broker values, full formula text, account IDs, or ticker IDs.
-    # Crucially, this DOES NOT admit any extra formulas.
-    foreach ($cell in $Sheet.UsedRange.SpecialCells(-4123).Cells) {
-        $address = [string]$cell.Address($false,$false)
-        if (-not $expectedFormulas.Contains($address)) {
-            $raw = [string]$cell.Formula
-            $head = [Regex]::Match($raw, '^\s*=\s*@?\s*(?:_xlfn\.)?([A-Za-z_][A-Za-z0-9_.]*)\s*\(')
-            $name = if ($head.Success -and $head.Groups[1].Value -cin @(
-                "RssCapacityList","RssOrderList","RssExecutionList","RssPositionList"
-            )) { $head.Groups[1].Value } else { "OTHER_OR_INDIRECT" }
-            $anchor = [string]$Sheet.Range("L1").Formula
-            Write-Host ("NO11_EXTRA_FORMULA_CELL={0}" -f $address)
-            Write-Host ("NO11_EXTRA_FORMULA_DIRECT_FAMILY={0}" -f $name)
-            Write-Host ("NO11_EXTRA_FORMULA_LENGTH={0}" -f $raw.Length)
-            Write-Host ("NO11_EXTRA_FORMULA_EQUALS_L1={0}" -f ($raw -ceq $anchor))
-            try {
-                Write-Host ("NO11_EXTRA_FORMULA_HAS_ARRAY={0}" -f [bool]$cell.HasArray)
-            } catch { Write-Host "NO11_EXTRA_FORMULA_HAS_ARRAY=UNAVAILABLE" }
-            try {
-                Write-Host ("NO11_EXTRA_FORMULA_ARRAY_RANGE={0}" -f [string]$cell.CurrentArray.Address($false,$false))
-            } catch { Write-Host "NO11_EXTRA_FORMULA_ARRAY_RANGE=UNAVAILABLE" }
-            try {
-                $parent = $cell.SpillParent
-                if ($null -ne $parent) {
-                    Write-Host ("NO11_EXTRA_FORMULA_SPILL_PARENT={0}" -f [string]$parent.Address($false,$false))
-                } else { Write-Host "NO11_EXTRA_FORMULA_SPILL_PARENT=NONE" }
-            } catch { Write-Host "NO11_EXTRA_FORMULA_SPILL_PARENT=UNAVAILABLE" }
-            Write-Host "NO11_EXTRA_FORMULA_DIAGNOSTIC_ONLY=TRUE"
-            throw ("NO11_EXTRA_FORMULA_FORBIDDEN:{0}" -f $address)
-        }
-    }
+    # Enumerate the actual rectangular UsedRange, NOT the .Cells enumerator
+    # returned by SpecialCells(-4123). That enumerator included an empty M1
+    # in real Excel despite Formula.Length=0, HasArray=false and no spill.
+    # Validate each SINGLE cell's HasFormula, and only allow the four exact
+    # prevalidated RSS anchor formulas. A real fifth formula still FAILS CLOSED.
+    Assert-No11FormulaFootprint -Sheet $Sheet
 }
 function New-No11Workbook {
     param($Excel, [string]$FullPath)

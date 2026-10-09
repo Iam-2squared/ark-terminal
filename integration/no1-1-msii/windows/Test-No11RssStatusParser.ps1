@@ -65,3 +65,62 @@ foreach($address in $expectedFormulas.Keys){
     $checks++
 }
 Write-Host "NO11_RSS_FORMULA_ECHO_OFFLINE_PASS=$checks"
+# Independently exercise the formula whitelist without Excel/COM or account data.
+Import-OneFunction -File (Join-Path $base "New-No11RssWorkbook.ps1") -Name "Assert-No11FormulaFootprint"
+
+function New-No11FootprintMock {
+    param([switch]$ExtraFormula,[switch]$MissingAnchor)
+    $samples = @()
+    foreach($address in @("L1","M1","N1","AA1","AL1")) {
+        $hasFormula = ($address -in @("L1","N1","AA1","AL1"))
+        if ($ExtraFormula -and $address -eq "M1") { $hasFormula = $true }
+        if ($MissingAnchor -and $address -eq "AL1") { $hasFormula = $false }
+        $one = [pscustomobject]@{ AddressLabel=$address; HasFormula=$hasFormula }
+        $one | Add-Member -MemberType ScriptMethod -Name Address -Value {
+            param($absRow,$absCol)
+            return $this.AddressLabel
+        }
+        $samples += $one
+    }
+    $cells = [pscustomobject]@{ Items=$samples }
+    $cells | Add-Member -MemberType ScriptMethod -Name Item -Value {
+        param($row,$col)
+        return $this.Items[$col-1]
+    }
+    $used = [pscustomobject]@{
+        Rows=[pscustomobject]@{ Count=1 }
+        Columns=[pscustomobject]@{ Count=5 }
+        Cells=$cells
+    }
+    return [pscustomobject]@{ UsedRange=$used }
+}
+
+$footprintChecks=0
+Assert-No11FormulaFootprint -Sheet (New-No11FootprintMock)
+$footprintChecks++
+foreach ($scenario in @(
+    @{ Fake=(New-No11FootprintMock -ExtraFormula); Expected="NO11_EXTRA_FORMULA_FORBIDDEN:M1" },
+    @{ Fake=(New-No11FootprintMock -MissingAnchor); Expected="NO11_REQUIRED_FORMULA_NOT_FOUND:AL1" }
+)) {
+    $failed = $false
+    try {
+        Assert-No11FormulaFootprint -Sheet $scenario.Fake
+    } catch {
+        if ($_.Exception.Message -cne $scenario.Expected) { throw }
+        $failed = $true
+    }
+    if (-not $failed) { throw ("NO11_EXPECTED_FAIL_CLOSED_MISSING:{0}" -f $scenario.Expected) }
+    $footprintChecks++
+}
+$oversized=New-No11FootprintMock
+$oversized.UsedRange.Rows.Count = 50001
+$oversizedBlocked=$false
+try {
+    Assert-No11FormulaFootprint -Sheet $oversized
+} catch {
+    if ($_.Exception.Message -cne "NO11_USED_RANGE_UNBOUNDED") { throw }
+    $oversizedBlocked=$true
+}
+if (-not $oversizedBlocked) { throw "NO11_EXPECTED_UNBOUNDED_BLOCK_MISSING" }
+$footprintChecks++
+Write-Host ("NO11_FORMULA_FOOTPRINT_MOCK_PASS={0}" -f $footprintChecks)

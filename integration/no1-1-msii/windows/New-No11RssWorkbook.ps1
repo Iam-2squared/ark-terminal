@@ -39,14 +39,18 @@ $expectedStates = [ordered]@{
 
 function Get-No11Excel {
     param([bool]$MayStart)
+    # Do not let COM Application travel naked through PowerShell's output
+    # pipeline. The reference is always returned as a scalar wrapper.
+    $app = $null
     try {
-        return [Runtime.InteropServices.Marshal]::GetActiveObject("Excel.Application")
+        $app = [Runtime.InteropServices.Marshal]::GetActiveObject("Excel.Application")
     } catch {
         if (-not $MayStart) { throw "EXCEL_NOT_RUNNING" }
-        $created = New-Object -ComObject Excel.Application
-        $created.Visible = $true
-        return $created
+        $app = New-Object -ComObject Excel.Application
+        $app.Visible = $true
     }
+    if ($null -eq $app) { throw "EXCEL_APPLICATION_REFERENCE_MISSING" }
+    return [pscustomobject]@{ Application = $app }
 }
 function Resolve-No11Workbook {
     param($Excel, [string]$FullPath)
@@ -55,14 +59,20 @@ function Resolve-No11Workbook {
             $FullPath, [StringComparison]::OrdinalIgnoreCase)
     })
     if ($matches.Count -gt 1) { throw "NO11_DUPLICATE_WORKBOOK_OPEN" }
-    if ($matches.Count -eq 1) { return $matches[0] }
+    if ($matches.Count -eq 1) {
+        return [pscustomobject]@{ Workbook = $matches[0] }
+    }
     if (-not (Test-Path -LiteralPath $FullPath -PathType Leaf)) {
         throw "NO11_WORKBOOK_MISSING"
     }
     # Only open the new, isolated Workbook in READ ONLY mode.
     $opened = $Excel.Workbooks.Open($FullPath,0,$true)
     if ($null -eq $opened) { throw "NO11_WORKBOOK_READ_ONLY_OPEN_FAILED" }
-    return $opened
+    if (-not [string]::Equals([IO.Path]::GetFullPath([string]$opened.FullName),
+        $FullPath,[StringComparison]::OrdinalIgnoreCase)) {
+        throw "NO11_DIAGNOSE_OPEN_IDENTITY_UNSAFE"
+    }
+    return [pscustomobject]@{ Workbook = $opened }
 }
 
 function Assert-No11FormulaFootprint {
@@ -146,89 +156,150 @@ function Assert-No11Layout {
     # prevalidated RSS anchor formulas. A real fifth formula still FAILS CLOSED.
     Assert-No11FormulaFootprint -Sheet $Sheet
 }
+function New-No11BlankXlsx {
+    param([Parameter(Mandatory=$true)][string]$Path)
+    # A static single-sheet OOXML workbook. It contains no RSS expressions,
+    # orders, broker values, macros, external links or active content.
+    # This avoids Excel.Workbooks.Add, which returned an OLD Workbook object
+    # in the real user's Windows/Excel session.
+    Add-Type -AssemblyName System.IO.Compression -ErrorAction Stop
+    $ct='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>'
+    $root='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'
+    $wb='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="ARK_ACCOUNT_READONLY" sheetId="1" r:id="rId1"/></sheets></workbook>'
+    $wbr='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>'
+    $ws='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData/></worksheet>'
+    $parts=[ordered]@{
+        '[Content_Types].xml'=$ct
+        '_rels/.rels'=$root
+        'xl/workbook.xml'=$wb
+        'xl/_rels/workbook.xml.rels'=$wbr
+        'xl/worksheets/sheet1.xml'=$ws
+    }
+    $fs = [System.IO.File]::Open($Path,
+        [System.IO.FileMode]::CreateNew,[System.IO.FileAccess]::Write,
+        [System.IO.FileShare]::None)
+    try {
+        $archive = [System.IO.Compression.ZipArchive]::new(
+            $fs,[System.IO.Compression.ZipArchiveMode]::Create,$true)
+        try {
+            $utf8 = New-Object System.Text.UTF8Encoding($false)
+            foreach ($name in $parts.Keys) {
+                $entry = $archive.CreateEntry([string]$name,
+                    [System.IO.Compression.CompressionLevel]::Optimal)
+                $stream = $entry.Open()
+                $writer = [System.IO.StreamWriter]::new($stream,$utf8)
+                try { $writer.Write([string]$parts[$name]) }
+                finally { $writer.Dispose() }
+            }
+        } finally { $archive.Dispose() }
+    } finally { $fs.Dispose() }
+}
 function New-No11Workbook {
     param($Excel, [string]$FullPath)
     if (Test-Path -LiteralPath $FullPath -PathType Leaf) {
         throw "NO11_WORKBOOK_ALREADY_EXISTS_USE_DIAGNOSE"
     }
-    if ([string]::Equals($FullPath,
-        [IO.Path]::GetFullPath("C:\Ark\Ark_No11_RSS_ReadOnly.xlsx"),
-        [StringComparison]::OrdinalIgnoreCase)) {
-        throw "NO11_PREVIOUS_WORKBOOK_OVERWRITE_FORBIDDEN"
+    foreach ($protected in @(
+        "C:\Ark\Ark_No11_RSS_ReadOnly.xlsx",
+        "C:\Ark\Ark_MSII_LiveSource.xlsx"
+    )) {
+        if ([string]::Equals($FullPath,[IO.Path]::GetFullPath($protected),
+            [StringComparison]::OrdinalIgnoreCase)) {
+            throw "NO11_LEGACY_WORKBOOK_OVERWRITE_FORBIDDEN"
+        }
     }
-    if ([string]::Equals($FullPath,
-        [IO.Path]::GetFullPath("C:\Ark\Ark_MSII_LiveSource.xlsx"),
-        [StringComparison]::OrdinalIgnoreCase)) {
-        throw "NO11_LEGACY_WORKBOOK_OVERWRITE_FORBIDDEN"
-    }
-    $directory = Split-Path -Parent $FullPath
+    $directory=Split-Path -Parent $FullPath
     if (-not (Test-Path -LiteralPath $directory -PathType Container)) {
         [void](New-Item -ItemType Directory -Force -Path $directory)
     }
-    # xlWBATWorksheet = -4167. Creates a new one-sheet Workbook.
-    # Preserve the COM Workbook inside a scalar wrapper on return. Windows
-    # PowerShell's success pipeline may enumerate returned COM objects.
-    $book = $Excel.Workbooks.Add(-4167)
-    if ($null -eq $book) { throw "NO11_NEW_WORKBOOK_NOT_CREATED" }
-    $newName = [string]$book.Name
-    if ($newName -eq "Ark_No11_RSS_ReadOnly.xlsx" -or
-        $newName -eq "Ark_MSII_LiveSource.xlsx") {
-        throw "NO11_NEW_WORKBOOK_IDENTITY_UNSAFE"
-    }
+    # Isolated temporary workbook: never call Excel.Workbooks.Add.
+    $stage=Join-Path $directory ("Ark_No11_V2_Stage_" +
+        [guid]::NewGuid().ToString("N") + ".xlsx")
+    New-No11BlankXlsx -Path $stage
+    $stageBook=$null
+    $stageVerified=$false
+    $stageClosed=$false
+    $finalBook=$null
     try {
-        $sheet = $book.Worksheets.Item(1)
-        $sheet.Name = "ARK_ACCOUNT_READONLY"
-        $Excel.Visible = $true
-        $book.Activate()
-        $book.Windows.Item(1).DisplayFormulas = $false
-        $sheet.Range("L1:AU2").Font.Bold = $true
-        $sheet.Range("L2:AU2").Interior.Color = 15790320
-        $sheet.Columns("L:AU").ColumnWidth = 16
-        $sheet.Columns("L").ColumnWidth = 22
+        # Only this exact staging file is allowed to be modified.
+        $stageBook=$Excel.Workbooks.Open($stage,0,$false)
+        if ($null -eq $stageBook) { throw "NO11_STAGE_OPEN_FAILED" }
+        if (-not [string]::Equals([IO.Path]::GetFullPath([string]$stageBook.FullName),
+            $stage,[StringComparison]::OrdinalIgnoreCase)) {
+            # Do NOT close this unexpected object; it might be user's old book.
+            throw "NO11_STAGE_WORKBOOK_IDENTITY_UNSAFE"
+        }
+        if ([bool]$stageBook.ReadOnly) { throw "NO11_STAGE_OPENED_READ_ONLY" }
+        $stageVerified=$true
+        if ([int]$stageBook.Worksheets.Count -ne 1) {
+            throw "NO11_STAGE_SHEET_COUNT_INVALID"
+        }
+        $sheet=$stageBook.Worksheets.Item(1)
+        if ([string]$sheet.Name -cne "ARK_ACCOUNT_READONLY") {
+            throw "NO11_STAGE_SHEET_IDENTITY_UNSAFE"
+        }
+        Write-Host "NO11_CREATION_METHOD=ISOLATED_OPENXML_STAGE"
+        Write-Host "NO11_STAGE_WORKBOOK_IDENTITY_MATCH=True"
+        $Excel.Visible=$true
+        $stageBook.Activate()
+        $stageBook.Windows.Item(1).DisplayFormulas=$false
+        $sheet.Range("L1:BC2").Font.Bold=$true
+        $sheet.Range("L2:BC2").Interior.Color=15790320
+        $sheet.Columns("L:BC").ColumnWidth=16
+        $sheet.Columns("L").ColumnWidth=22
         foreach ($address in $expectedHeaders.Keys) {
             $sheet.Range($address).Value2 = $expectedHeaders[$address]
         }
         foreach ($address in $expectedFormulas.Keys) {
-            $cell = $sheet.Range($address)
-            # Fresh Excel cells already use General by default. On some
-            # Windows/Excel installations the COM NumberFormat setter fails
-            # even on a new sheet; do not make formatting a setup prerequisite.
-            $cell.Formula = $expectedFormulas[$address]
+            $sheet.Range($address).Formula = $expectedFormulas[$address]
         }
         Assert-No11Layout -Sheet $sheet
-        # .xlsx, macro-free. No other open Workbook is saved or recalculated.
-        [void]$book.SaveAs($FullPath,51)
-        # Check the newly created workbook itself and the exact on-disk
-        # artifact before a COM reference can pass through a function return.
-        $afterSaveName = [string]$book.FullName
-        $savedIdentityMatches = [string]::Equals(
-            [IO.Path]::GetFullPath($afterSaveName), $FullPath,
-            [StringComparison]::OrdinalIgnoreCase
-        )
-        $savedFilePresent = Test-Path -LiteralPath $FullPath -PathType Leaf
-        Write-Host ("NO11_SAVEAS_IDENTITY_MATCH={0}" -f $savedIdentityMatches)
-        Write-Host ("NO11_SAVEAS_FILE_PRESENT={0}" -f $savedFilePresent)
-        if (-not $savedIdentityMatches) {
-            throw "NO11_SAVEAS_TARGET_MISMATCH"
+        if (-not [string]::Equals([IO.Path]::GetFullPath([string]$stageBook.FullName),
+            $stage,[StringComparison]::OrdinalIgnoreCase)) {
+            throw "NO11_STAGE_IDENTITY_CHANGED_BEFORE_SAVE"
         }
-        if (-not $savedFilePresent) {
-            throw "NO11_SAVEAS_FILE_NOT_PERSISTED"
+        [void]$stageBook.Save()
+        [void]$stageBook.Close($false)
+        $stageClosed=$true
+        $stageBook=$null
+        # File.Move refuses an existing destination (no overwrite).
+        [IO.File]::Move($stage,$FullPath)
+        Write-Host ("NO11_FINAL_FILE_PRESENT={0}" -f (
+            Test-Path -LiteralPath $FullPath -PathType Leaf))
+        # Reopen final Workbook READ ONLY; never call a Save method on it.
+        $finalBook=$Excel.Workbooks.Open($FullPath,0,$true)
+        if ($null -eq $finalBook) { throw "NO11_FINAL_OPEN_FAILED" }
+        if (-not [string]::Equals([IO.Path]::GetFullPath([string]$finalBook.FullName),
+            $FullPath,[StringComparison]::OrdinalIgnoreCase)) {
+            # Do NOT close if Excel returned a protected foreign workbook.
+            throw "NO11_FINAL_WORKBOOK_IDENTITY_UNSAFE"
         }
+        if (-not [bool]$finalBook.ReadOnly) {
+            throw "NO11_FINAL_NOT_READ_ONLY"
+        }
+        Assert-No11Layout -Sheet $finalBook.Worksheets.Item(1)
+        Write-Host "NO11_FINAL_WORKBOOK_IDENTITY_MATCH=True"
         if ($ObserveSeconds -gt 0) {
-            # Only the newly created sheet is calculated; never CalculateFull().
-            [void]$sheet.Calculate()
+            [void]$finalBook.Worksheets.Item(1).Calculate()
             Start-Sleep -Seconds $ObserveSeconds
         }
         return [pscustomobject]@{
-            Workbook = $book
-            SavedWorkbookPath = $FullPath
+            Workbook=$finalBook
+            SavedWorkbookPath=$FullPath
         }
     } catch {
-        # Never overwrite the old file, and never save a failed Workbook.
-        try { $book.Close($false) } catch { }
+        if ($stageVerified -and -not $stageClosed -and $null -ne $stageBook) {
+            try { [void]$stageBook.Close($false) } catch { }
+        }
+        # Any leftover staging file belongs to this run only. Never delete
+        # the user-owned legacy book or an existing target Workbook.
+        if (Test-Path -LiteralPath $stage -PathType Leaf) {
+            try { [IO.File]::Delete($stage) } catch { }
+        }
         throw
     }
 }
+
 function Get-No11ObservedStatus {
     param($Sheet,[string]$Address,[string]$ExpectedStatus)
     $cell = $Sheet.Range($Address)
@@ -315,7 +386,8 @@ if ($Mode -eq "Create") {
     if (Test-Path -LiteralPath $target -PathType Leaf) {
         throw "NO11_WORKBOOK_ALREADY_EXISTS_USE_DIAGNOSE"
     }
-    $excel = Get-No11Excel -MayStart $true
+    $excelSession = Get-No11Excel -MayStart $true
+    $excel = $excelSession.Application
     $created = New-No11Workbook -Excel $excel -FullPath $target
     if ($null -eq $created -or $null -eq $created.Workbook) {
         throw "NO11_NEW_WORKBOOK_REFERENCE_MISSING"
@@ -326,7 +398,12 @@ if ($Mode -eq "Create") {
     }
     $book = $created.Workbook
 } else {
-    $excel = Get-No11Excel -MayStart $true
-    $book = Resolve-No11Workbook -Excel $excel -FullPath $target
+    $excelSession = Get-No11Excel -MayStart $true
+    $excel = $excelSession.Application
+    $resolved = Resolve-No11Workbook -Excel $excel -FullPath $target
+    if ($null -eq $resolved -or $null -eq $resolved.Workbook) {
+        throw "NO11_DIAGNOSE_WORKBOOK_REFERENCE_MISSING"
+    }
+    $book = $resolved.Workbook
 }
 Write-No11Diagnostic -Book $book -ReportFullPath $reportTarget -ExpectedWorkbookPath $target

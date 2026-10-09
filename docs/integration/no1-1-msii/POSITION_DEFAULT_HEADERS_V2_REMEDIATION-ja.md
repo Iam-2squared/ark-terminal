@@ -59,3 +59,32 @@ Additional Windows proof: after V2 Create, `NO11_DIAGNOSTIC_WORKBOOK_IDENTITY_MI
 The builder now checks the newly created COM Workbook's FullName and actual on-disk V2 file immediately after SaveAs. If either fails, throws a distinct fail-closed error. The function returns `[pscustomobject]@{Workbook=$book;SavedWorkbookPath=$FullPath}` instead of passing the COM object directly through the Windows PowerShell function pipeline (which can enumerate COM objects). The caller extracts only `$created.Workbook`. This is a targeted engineering correction; it does not prove SaveAs succeeded until another Windows run.
 
 Do not re-use the shared historical report or overwrite the old Workbook. No RSS order formula, order call or account data is added.
+
+
+## 2026-10-10 — Root-cause code-path and design correction
+
+**Physical proof:** Immediately following $Excel.Workbooks.Add(-4167),
+the identity check observed either the existing
+Ark_No11_RSS_ReadOnly.xlsx or protected Ark_MSII_LiveSource.xlsx,
+and raised NO11_NEW_WORKBOOK_IDENTITY_UNSAFE. The exact Excel/COM-level
+mechanism remains unknown; Workbooks.Add returning a protected existing
+workbook violates the intended new-book contract. Previous iterations had
+no guard at this point, so the existing workbook could have been edited
+in-memory. Do NOT save the user-owned legacy workbook after those runs
+until its contents are reviewed.
+
+The Create path no longer invokes Workbooks.Add. It builds a minimal OOXML
+single-sheet staging .xlsx from pure .NET (no formulas or broker data),
+opens that **exact** staging file and validates Workbook.FullName and
+ReadOnly=false **BEFORE any Excel cell write**. Only then are the four
+read-only RSS functions and expected headings inserted. The stage is saved,
+closed, and File.Move places it atomically at the versioned target without
+overwriting. The final target is reopened READ ONLY with exact path
+verification. COM Application and Workbook function returns use scalar
+PSCustomObject wrappers. A mismatched unexpected COM reference is NEVER
+closed, saved, or edited. A staging artifact is deleted only if this run
+created it. Existing legacy workbooks are never targets.
+
+The XML/ZIP structure is tested in Windows PowerShell 5.1 CI; actual Excel
+acceptance still needs a single physical run. No user/manual trading
+authorization is added; RssStockOrder remains absent.

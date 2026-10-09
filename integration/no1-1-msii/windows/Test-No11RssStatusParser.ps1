@@ -124,3 +124,51 @@ try {
 if (-not $oversizedBlocked) { throw "NO11_EXPECTED_UNBOUNDED_BLOCK_MISSING" }
 $footprintChecks++
 Write-Host ("NO11_FORMULA_FOOTPRINT_MOCK_PASS={0}" -f $footprintChecks)
+
+
+# Verify that the standalone OpenXML template can be produced without COM,
+# contains exactly one worksheet, and has no formulas/orders/account values.
+Import-OneFunction -File (Join-Path $base "New-No11RssWorkbook.ps1") -Name "New-No11BlankXlsx"
+$tempXlsx=Join-Path ([IO.Path]::GetTempPath()) ("no11-template-" +
+    [guid]::NewGuid().ToString("N") + ".xlsx")
+$zip=$null
+try {
+    New-No11BlankXlsx -Path $tempXlsx
+    Add-Type -AssemblyName System.IO.Compression -ErrorAction Stop
+    $fs=[IO.File]::Open($tempXlsx,[IO.FileMode]::Open,[IO.FileAccess]::Read)
+    try {
+        $zip=[IO.Compression.ZipArchive]::new($fs,
+            [IO.Compression.ZipArchiveMode]::Read,$true)
+        $entries=@($zip.Entries | ForEach-Object { [string]$_.FullName })
+        foreach ($required in @("[Content_Types].xml","_rels/.rels",
+            "xl/workbook.xml","xl/_rels/workbook.xml.rels",
+            "xl/worksheets/sheet1.xml")) {
+            if ($required -notin $entries) { throw "NO11_OOXML_PART_MISSING" }
+        }
+        if ($entries.Count -ne 5) { throw "NO11_OOXML_UNEXPECTED_PART" }
+        $sheetEntry=$zip.GetEntry("xl/worksheets/sheet1.xml")
+        $reader=[IO.StreamReader]::new($sheetEntry.Open())
+        try { $sheetXml=$reader.ReadToEnd() }
+        finally { $reader.Dispose() }
+        if ($sheetXml -notmatch '<sheetData\s*/>' -or
+            $sheetXml -match '<f[\s>]' -or $sheetXml -match 'RssStockOrder') {
+            throw "NO11_TEMPLATE_NOT_BLANK_OR_SAFE"
+        }
+        $wbEntry=$zip.GetEntry("xl/workbook.xml")
+        $wbReader=[IO.StreamReader]::new($wbEntry.Open())
+        try { $wbXml=$wbReader.ReadToEnd() }
+        finally { $wbReader.Dispose() }
+        if ($wbXml -notmatch 'ARK_ACCOUNT_READONLY' -or
+            $wbXml -match 'externalReferences') {
+            throw "NO11_TEMPLATE_WORKBOOK_LAYOUT_UNSAFE"
+        }
+        Write-Host "NO11_ISOLATED_OPENXML_TEMPLATE_PASS=TRUE"
+    } finally {
+        if ($null -ne $zip) { $zip.Dispose() }
+        $fs.Dispose()
+    }
+} finally {
+    if (Test-Path -LiteralPath $tempXlsx -PathType Leaf) {
+        Remove-Item -LiteralPath $tempXlsx -Force
+    }
+}

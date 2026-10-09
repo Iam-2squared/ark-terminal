@@ -43,13 +43,18 @@ test('read-only setup validates receipt path and versioned workbook provenance',
   assert.ok(b.includes('NO11_DIAGNOSTIC_WORKBOOK_IDENTITY_MISMATCH'));
 });
 
-test('new Excel workbook SaveAs result is verified and COM object is returned in non-enumerable wrapper',()=>{
-  assert.ok(b.includes('[void]$book.SaveAs($FullPath,51)'));
-  assert.ok(b.includes('NO11_SAVEAS_TARGET_MISMATCH'));
-  assert.ok(b.includes('NO11_SAVEAS_FILE_NOT_PERSISTED'));
+test('new workbook path never calls Workbooks.Add or touches legacy workbook',()=>{
+  assert.ok(!b.includes('Workbooks.Add(-4167)'));
+  assert.ok(b.includes('function New-No11BlankXlsx'));
+  assert.ok(b.includes('[System.IO.Compression.ZipArchive]::new'));
+  assert.ok(b.includes('[IO.File]::Move($stage,$FullPath)'));
+  assert.ok(b.includes('NO11_STAGE_WORKBOOK_IDENTITY_UNSAFE'));
+  assert.ok(b.includes('NO11_FINAL_WORKBOOK_IDENTITY_UNSAFE'));
+  assert.ok(b.includes('NO11_FINAL_NOT_READ_ONLY'));
+  assert.ok(b.includes('NO11_LEGACY_WORKBOOK_OVERWRITE_FORBIDDEN'));
   assert.ok(b.includes('return [pscustomobject]@{'));
-  assert.ok(b.includes('Workbook = $book'));
+  assert.ok(b.includes('Workbook=$finalBook'));
   assert.ok(b.includes('$book = $created.Workbook'));
   assert.ok(b.includes('NO11_NEW_WORKBOOK_WRAPPER_MISMATCH'));
-  assert.ok(b.includes('NO11_NEW_WORKBOOK_IDENTITY_UNSAFE'));
+  assert.ok(b.includes('Application = $app'));
 });

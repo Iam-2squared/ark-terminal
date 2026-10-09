@@ -145,6 +145,14 @@ export class No11SafetyLedger {
     this._persist();
     return this.snapshot();
   }
+  inspectSell(session) {
+    this._requireValid();
+    const reasons=[];
+    if(sessionCheck(session)!==this.state.session) reasons.push('UNVERIFIED_TRADING_SESSION');
+    if(this.state.killSwitchLatched||this.state.faults.length) reasons.push('KILL_SWITCH_OR_RUNTIME_FAULT');
+    return Object.freeze({status:reasons.length?'BLOCKED':'LOCKED_ONLY_CANDIDATE',
+      blockers:reasons,executionAllowed:false,transmitted:false});
+  }
   inspectBuy(session) {
     this._requireValid();
     const reasons=[];

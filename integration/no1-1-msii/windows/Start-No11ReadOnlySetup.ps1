@@ -1,7 +1,7 @@
 # Single-command No.1.1 READ ONLY setup after user logs into MarketSpeed II.
 # Never enables add-ins, places orders, changes old Workbook or authorizes trading.
 param(
-    [string]$WorkbookPath = "C:\Ark\Ark_No11_RSS_ReadOnly.xlsx"
+    [string]$WorkbookPath = "C:\Ark\Ark_No11_RSS_DefaultHeaders_v2.xlsx"
 )
 $ErrorActionPreference = "Stop"
 $scriptRoot = $PSScriptRoot

@@ -6,7 +6,7 @@ $expectedFormulas = [ordered]@{
     L1 = "=RssCapacityList(L2:L2)"
     N1 = "=RssOrderList(N2:W2,0,1)"
     AA1 = "=RssExecutionList(AA2:AI2,1)"
-    AL1 = "=RssPositionList(AL2:AU2)"
+    AL1 = "=RssPositionList()"
 }
 $states = [ordered]@{L1="完了";N1="配信中";AA1="配信中";AL1="配信中"}
 

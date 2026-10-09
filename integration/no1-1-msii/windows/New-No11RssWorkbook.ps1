@@ -2,7 +2,7 @@
 # No RegisterXLL, no RSS order/cancel/modify functions, no old Workbook changes.
 param(
     [ValidateSet("Create","Diagnose")][string]$Mode = "Create",
-    [string]$WorkbookPath = "C:\Ark\Ark_No11_RSS_ReadOnly.xlsx",
+    [string]$WorkbookPath = "C:\Ark\Ark_No11_RSS_DefaultHeaders_v2.xlsx",
     [string]$ReportPath = (Join-Path $env:LOCALAPPDATA "ArkTerminal\No11\workbook-diagnostic.json"),
     [ValidateRange(0,30)][int]$ObserveSeconds = 3
 )
@@ -19,14 +19,16 @@ $expectedHeaders = [ordered]@{
     AG2 = "売買"; AH2 = "約定数量"; AI2 = "約定単価"
     AL2 = "銘柄コード"; AM2 = "銘柄名称"; AN2 = "口座区分"
     AO2 = "保有数量"; AP2 = "発注数量"; AQ2 = "平均取得価額"
-    AR2 = "時価"; AS2 = "時価評価額"; AT2 = "評価損益額"
-    AU2 = "評価損益率"
+    AR2 = "時価"; AS2 = "前日比"; AT2 = "前日比率"
+    AU2 = "時価評価額"; AV2 = "評価損益額"; AW2 = "評価損益率"
+    AX2 = "銘柄情報等"; AY2 = "JAX時価"; AZ2 = "JNX時価"
+    BA2 = "PER"; BB2 = "PBR"; BC2 = "配当利回り"
 }
 $expectedFormulas = [ordered]@{
     L1  = "=RssCapacityList(L2:L2)"
     N1  = "=RssOrderList(N2:W2,0,1)"
     AA1 = "=RssExecutionList(AA2:AI2,1)"
-    AL1 = "=RssPositionList(AL2:AU2)"
+    AL1 = "=RssPositionList()"
 }
 $expectedStates = [ordered]@{
     L1  = "完了"

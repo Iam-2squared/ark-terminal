@@ -1,6 +1,6 @@
 ﻿param(
-    [string]$WorkbookName = "Ark_No11_RSS_ReadOnly.xlsx",
-    [string]$WorkbookPath = "C:\Ark\Ark_No11_RSS_ReadOnly.xlsx",
+    [string]$WorkbookName = "Ark_No11_RSS_DefaultHeaders_v2.xlsx",
+    [string]$WorkbookPath = "C:\Ark\Ark_No11_RSS_DefaultHeaders_v2.xlsx",
     [string]$AccountSheet = "ARK_ACCOUNT_READONLY",
     [string]$SnapshotPath = (Join-Path $env:LOCALAPPDATA "ArkTerminal\No11\snapshot.json"),
     [string]$SourceHealthPath = (Join-Path $env:LOCALAPPDATA "ArkTerminal\No11\source-health.json"),
@@ -102,7 +102,9 @@ function Assert-ArkAccountSheetLayout {
         "N2"="注文番号"; "O2"="通常注文状況"; "P2"="銘柄コード"; "V2"="注文数量"; "W2"="約定数量"
         "AA2"="約定日"; "AB2"="銘柄コード"; "AD2"="口座区分"; "AG2"="売買"; "AH2"="約定数量"; "AI2"="約定単価"
         "AL2"="銘柄コード"; "AM2"="銘柄名称"; "AN2"="口座区分"; "AO2"="保有数量"
-        "AQ2"="平均取得価額"; "AR2"="時価"; "AS2"="時価評価額"; "AT2"="評価損益額"; "AU2"="評価損益率"
+        "AP2"="発注数量"; "AQ2"="平均取得価額"; "AR2"="時価"; "AS2"="前日比"; "AT2"="前日比率"
+        "AU2"="時価評価額"; "AV2"="評価損益額"; "AW2"="評価損益率"; "AX2"="銘柄情報等"
+        "AY2"="JAX時価"; "AZ2"="JNX時価"; "BA2"="PER"; "BB2"="PBR"; "BC2"="配当利回り"
     }
     foreach ($address in $requiredHeaders.Keys) {
         if ([string]$Worksheet.Range($address).Text -ne $requiredHeaders[$address]) {
@@ -117,7 +119,7 @@ function Get-No11RssCellStatus {
         L1  = @{ formula = "=RssCapacityList(L2:L2)"; state = "完了" }
         N1  = @{ formula = "=RssOrderList(N2:W2,0,1)"; state = "配信中" }
         AA1 = @{ formula = "=RssExecutionList(AA2:AI2,1)"; state = "配信中" }
-        AL1 = @{ formula = "=RssPositionList(AL2:AU2)"; state = "配信中" }
+        AL1 = @{ formula = "=RssPositionList()"; state = "配信中" }
     }
     if (-not $expected.ContainsKey($Address)) { throw "RSS_STATUS_ADDRESS_INVALID" }
     $cell = $Worksheet.Range($Address)
@@ -216,9 +218,9 @@ for ($row = 3; $row -le 200; $row++) {
             orderQuantity=$acct.Cells.Item($row,42).Value2
             averagePrice=$acct.Cells.Item($row,43).Value2
             marketPrice=$acct.Cells.Item($row,44).Value2
-            marketValue=$acct.Cells.Item($row,45).Value2
-            unrealizedPnl=$acct.Cells.Item($row,46).Value2
-            unrealizedPnlPercent=$acct.Cells.Item($row,47).Value2
+            marketValue=$acct.Cells.Item($row,47).Value2
+            unrealizedPnl=$acct.Cells.Item($row,48).Value2
+            unrealizedPnlPercent=$acct.Cells.Item($row,49).Value2
         }
     }
 }

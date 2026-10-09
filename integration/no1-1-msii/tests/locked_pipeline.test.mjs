@@ -84,6 +84,7 @@ test('reject negative, zero and non-lot quantity',()=>{for(const q of [-100,0,1,
 test('both excluded State9 entry classes reject',()=>{
   for(const formalState9Primary of ['PULLBACK','SHARP_DROP'])mustFail({formalState9Primary},'NO11_ENTRY_STATE_EXCLUDED');
 });
+test('an invented State9 label never authorizes an Entry',()=>mustFail({formalState9Primary:'CUSTOM_UP'},'FORMAL_ENTRY_STATE_UNRECOGNIZED'));
 test('missing State9 rejects rather than assumed RISE',()=>mustFail({stateObserved:false,formalState9Primary:null},'ENTRY_STATE_UNAVAILABLE'));
 test('source known later than decision fails',()=>mustFail({sourceKnownAt:t1},'FUTURE_INFORMATION_USED'));
 test('state known later than decision fails',()=>mustFail({stateKnownAt:t1},'FUTURE_STATE_USED'));

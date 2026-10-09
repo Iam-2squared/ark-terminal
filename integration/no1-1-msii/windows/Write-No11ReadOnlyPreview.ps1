@@ -1,5 +1,5 @@
 param(
-  [string]$WorkbookPath = "C:\Ark\Ark_MSII_LiveSource.xlsx",
+  [string]$WorkbookPath = "C:\Ark\Ark_No11_RSS_ReadOnly.xlsx",
   [string]$UiReadModelPath = (Join-Path $env:LOCALAPPDATA "ArkTerminal\No11\ui-read-model.json"),
   [string]$OwnershipBaselinePath = ""
 )

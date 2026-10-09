@@ -30,4 +30,13 @@ jobs:
         shell: bash
         run: |
           node --version
-          node --test integration/no1-1-msii/tests/locked_pipeline.test.mjs
+          node --test integration/no1-1-msii/tests/*.test.mjs
+      - name: Original UI2 loopback server unit tests
+        shell: bash
+        run: |
+          python3 -m unittest discover -s integration/no1-1-msii/ui -p 'test_ark_ui2_readonly_server.py' -v
+      - name: Original UI2 HTML and overlay byte-identity check
+        shell: bash
+        run: |
+          test "$(git hash-object integration/no1-1-msii/ui/public/index.html)" = ec79214fcc8ad9f200d7899ee562ed11b917b686
+          test "$(git hash-object integration/no1-1-msii/ui/public/ark-readonly-overlay.js)" = b0f27e1ad0e62b24052ce839c9eac29f934a677f

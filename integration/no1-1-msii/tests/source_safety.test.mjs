@@ -86,3 +86,21 @@ test('new RSS Workbook never depends on locale-sensitive Excel NumberFormat COM 
   assert.doesNotMatch(src,/\$cell\.NumberFormat\s*=/);
   assert(src.includes('$cell.Formula = $expectedFormulas[$address]'));
 });
+
+test('broker identity failure cannot become a valid account Snapshot',()=>{
+  const src=read('windows/Get-No11ReadOnlySnapshot.ps1');
+  assert(src.includes('BROKER_POSITION_SYMBOL_MISSING:ROW_'));
+  assert(src.includes('BROKER_POSITION_SYMBOL_UNRESOLVED:ROW_'));
+  assert(src.indexOf('BROKER_POSITION_SYMBOL_MISSING:ROW_')<src.indexOf('$snapshot = [PSCustomObject]'));
+});
+test('diagnostic creates only an unsaved independent RSS read-only workbook',()=>{
+  const src=read('windows/Test-No11PositionIdentitySource.ps1');
+  assert(src.includes('$excel.Workbooks.Add(-4167)'));
+  assert(src.includes('=RssPositionList()'));
+  assert(src.includes('$tempBook.Close($false)'));
+  assert(src.includes('SAME_HOLDING_NAME_ACCOUNT_QUANTITY'));
+  assert.doesNotMatch(src,/\.\s*RegisterXLL\s*\(/i);
+  assert.doesNotMatch(src,/\bRssStockOrder\s*\(/i);
+  assert.doesNotMatch(src,/\bRssCancelOrder\s*\(/i);
+  assert.doesNotMatch(src,/\.SaveAs\s*\(/i);
+});

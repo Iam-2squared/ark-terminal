@@ -107,7 +107,8 @@ test('distinct verified source codes cannot collide into same broker code',()=>{
     {...map[0],sourceSymbol:'99990'}]}),/BROKER_SYMBOL_MAPPING_COLLISION/);
 });
 test('reject fake LIVE source certification',()=>{
-  mustFail({evidenceMode:'LIVE_ATTESTED',liveSourceCertified:false},'LIVE_SOURCE_RECEIPT_REQUIRED');
+  const unverified=core({evidenceMode:'LIVE_ATTESTED',liveSourceCertified:false});
+  assert.throws(()=>makeLockedIntent({...unverified,decisionSha256:digest(unverified)},{symbolMap:map}),/LIVE_SOURCE_RECEIPT_REQUIRED/);
   mustFail({evidenceMode:'SYNTHETIC',liveSourceCertified:true},'SYNTHETIC_CANNOT_BE_LIVE_CERTIFIED');
 });
 test('EXIT intent is independent of Entry current state and never unlocks',()=>{

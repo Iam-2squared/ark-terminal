@@ -80,3 +80,9 @@ test('snapshot and UI use new dedicated Workbook without modifying legacy file',
     assert(!src.includes('Ark_MSII_LiveSource.xlsx'));
   }
 });
+
+test('new RSS Workbook never depends on locale-sensitive Excel NumberFormat COM setter',()=>{
+  const src=read('windows/New-No11RssWorkbook.ps1');
+  assert.doesNotMatch(src,/\$cell\.NumberFormat\s*=/);
+  assert(src.includes('$cell.Formula = $expectedFormulas[$address]'));
+});

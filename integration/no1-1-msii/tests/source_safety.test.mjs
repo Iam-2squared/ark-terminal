@@ -48,3 +48,35 @@ test('safe Windows launch cannot remotely enable execution',()=>{
   assert.doesNotMatch(launch,/\.\s*RegisterXLL\s*\(/i);
   assert(launch.includes('127.0.0.1'));
 });
+
+
+test('new RSS Workbook is isolated, read-only and never registers XLL or orders',()=>{
+  const src=read('windows/New-No11RssWorkbook.ps1');
+  assert(src.includes('Ark_No11_RSS_ReadOnly.xlsx'));
+  assert(src.includes('ARK_ACCOUNT_READONLY'));
+  for(const f of ['RssCapacityList','RssOrderList','RssExecutionList','RssPositionList']){
+    assert(src.includes(f));
+  }
+  assert.doesNotMatch(src,/\.\s*RegisterXLL\s*\(/i);
+  assert.doesNotMatch(src,/\bRssStockOrder\s*\(/i);
+  assert.doesNotMatch(src,/\bRssCancelOrder\s*\(/i);
+  assert.doesNotMatch(src,/\bRssModifyOrder\s*\(/i);
+  assert(src.includes('NO11_WORKBOOK_ALREADY_EXISTS_USE_DIAGNOSE'));
+  assert(src.includes('NO11_LEGACY_WORKBOOK_OVERWRITE_FORBIDDEN'));
+  assert(src.includes('NO11_RSS_FORMULA_STORED_AS_TEXT_OR_MISSING'));
+  assert(src.includes('NO11_EXTRA_FORMULA_FORBIDDEN'));
+  assert(src.includes('actualBrokerArrivalTimeCertified = $false'));
+  assert(src.includes('transmitted = $false'));
+  assert(src.includes('productionReady = $false'));
+});
+test('snapshot and UI use new dedicated Workbook without modifying legacy file',()=>{
+  for(const filename of [
+    'windows/Get-No11ReadOnlySnapshot.ps1',
+    'windows/Write-No11ReadOnlyPreview.ps1',
+    'windows/Start-No11UiReadOnly.ps1'
+  ]){
+    const src=read(filename);
+    assert(src.includes('Ark_No11_RSS_ReadOnly.xlsx'));
+    assert(!src.includes('Ark_MSII_LiveSource.xlsx'));
+  }
+});

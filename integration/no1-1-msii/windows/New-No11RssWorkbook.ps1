@@ -104,10 +104,36 @@ function Assert-No11Layout {
             throw ("NO11_RSS_HEADER_MISMATCH:{0}" -f $address)
         }
     }
-    # Never trust an extra formula inserted into this account-only Workbook.
+    # RSS list functions can modify the worksheet layout. Record only the
+    # address and safe structural metadata of unexpected formula cells.
+    # Never print broker values, full formula text, account IDs, or ticker IDs.
+    # Crucially, this DOES NOT admit any extra formulas.
     foreach ($cell in $Sheet.UsedRange.SpecialCells(-4123).Cells) {
         $address = [string]$cell.Address($false,$false)
         if (-not $expectedFormulas.Contains($address)) {
+            $raw = [string]$cell.Formula
+            $head = [Regex]::Match($raw, '^\s*=\s*@?\s*(?:_xlfn\.)?([A-Za-z_][A-Za-z0-9_.]*)\s*\(')
+            $name = if ($head.Success -and $head.Groups[1].Value -cin @(
+                "RssCapacityList","RssOrderList","RssExecutionList","RssPositionList"
+            )) { $head.Groups[1].Value } else { "OTHER_OR_INDIRECT" }
+            $anchor = [string]$Sheet.Range("L1").Formula
+            Write-Host ("NO11_EXTRA_FORMULA_CELL={0}" -f $address)
+            Write-Host ("NO11_EXTRA_FORMULA_DIRECT_FAMILY={0}" -f $name)
+            Write-Host ("NO11_EXTRA_FORMULA_LENGTH={0}" -f $raw.Length)
+            Write-Host ("NO11_EXTRA_FORMULA_EQUALS_L1={0}" -f ($raw -ceq $anchor))
+            try {
+                Write-Host ("NO11_EXTRA_FORMULA_HAS_ARRAY={0}" -f [bool]$cell.HasArray)
+            } catch { Write-Host "NO11_EXTRA_FORMULA_HAS_ARRAY=UNAVAILABLE" }
+            try {
+                Write-Host ("NO11_EXTRA_FORMULA_ARRAY_RANGE={0}" -f [string]$cell.CurrentArray.Address($false,$false))
+            } catch { Write-Host "NO11_EXTRA_FORMULA_ARRAY_RANGE=UNAVAILABLE" }
+            try {
+                $parent = $cell.SpillParent
+                if ($null -ne $parent) {
+                    Write-Host ("NO11_EXTRA_FORMULA_SPILL_PARENT={0}" -f [string]$parent.Address($false,$false))
+                } else { Write-Host "NO11_EXTRA_FORMULA_SPILL_PARENT=NONE" }
+            } catch { Write-Host "NO11_EXTRA_FORMULA_SPILL_PARENT=UNAVAILABLE" }
+            Write-Host "NO11_EXTRA_FORMULA_DIAGNOSTIC_ONLY=TRUE"
             throw ("NO11_EXTRA_FORMULA_FORBIDDEN:{0}" -f $address)
         }
     }

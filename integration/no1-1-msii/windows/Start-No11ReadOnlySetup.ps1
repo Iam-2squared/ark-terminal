@@ -18,6 +18,7 @@ if (-not (Test-Path -LiteralPath $builder -PathType Leaf) -or
 }
 $mode = if (Test-Path -LiteralPath $WorkbookPath -PathType Leaf) { "Diagnose" } else { "Create" }
 Write-Host ("NO11_WORKBOOK_MODE={0}" -f $mode)
+$runStartedAt = Get-Date
 & $builder -Mode $mode -WorkbookPath $WorkbookPath -ReportPath $reportPath
 if (-not (Test-Path -LiteralPath $reportPath -PathType Leaf)) {
     throw "NO11_DIAGNOSTIC_REPORT_MISSING"
@@ -25,6 +26,13 @@ if (-not (Test-Path -LiteralPath $reportPath -PathType Leaf)) {
 $diagnostic = Get-Content -LiteralPath $reportPath -Raw -Encoding UTF8 | ConvertFrom-Json
 if ($diagnostic.schemaId -ne "ARK_NO11_RSS_WORKBOOK_DIAGNOSTIC_V1") {
     throw "NO11_DIAGNOSTIC_SCHEMA_MISMATCH"
+}
+$observedAt = [DateTimeOffset]::MinValue
+if (-not [DateTimeOffset]::TryParse([string]$diagnostic.observedAt,[ref]$observedAt)) {
+    throw "NO11_DIAGNOSTIC_TIMESTAMP_INVALID"
+}
+if ($observedAt -lt ([DateTimeOffset]$runStartedAt).AddSeconds(-2)) {
+    throw "NO11_DIAGNOSTIC_FROM_PRIOR_RUN_FORBIDDEN"
 }
 if ($diagnostic.status -ne "RSS_STATUS_OBSERVED") {
     Write-Host "NO11_NEXT=CHECK_MARKETSPEED_LOGIN_AND_EXCEL_RSS_ADDIN_MANUALLY"

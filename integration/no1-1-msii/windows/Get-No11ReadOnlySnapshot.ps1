@@ -193,25 +193,19 @@ $rssStatus = Wait-ArkReadOnlyRssReady -Worksheet $acct
 $captureStartedAt = (Get-Date).ToString("o")
 $positions = @()
 for ($row = 3; $row -le 200; $row++) {
-    $positionSymbol = $acct.Cells.Item($row,38).Text
-    $positionName = $acct.Cells.Item($row,39).Text
-    $positionAccount = $acct.Cells.Item($row,40).Text
+    $positionSymbol = [string]$acct.Cells.Item($row,38).Value2
+    $positionName = [string]$acct.Cells.Item($row,39).Text
+    $positionAccount = [string]$acct.Cells.Item($row,40).Text
     $positionQuantity = $acct.Cells.Item($row,41).Value2
     if ($positionName -and $positionName -ne "--------" -and $null -ne $positionQuantity) {
-        # Name/quantity without exact broker symbol is NOT an identifiable
-        # position. Reject rather than silently skip or invent a prior symbol.
-        $symbolValue = ([string]$acct.Cells.Item($row,38).Value2).Trim().ToUpperInvariant()
+        $symbolValue = $positionSymbol.Trim().ToUpperInvariant()
         if ([string]::IsNullOrWhiteSpace($symbolValue)) {
             throw ("BROKER_POSITION_SYMBOL_MISSING:ROW_{0}" -f $row)
         }
-        if ($symbolValue -notmatch '^[0-9A-Z]{4}$') {
-            throw ("BROKER_POSITION_SYMBOL_INVALID:ROW_{0}" -f $row)
+        if ($symbolValue -notmatch '^[0-9A-Z]{4,5}$') {
+            throw ("BROKER_POSITION_SYMBOL_UNRESOLVED:ROW_{0}" -f $row)
         }
-        $validatedQuantity = 0.0
-        if (-not [double]::TryParse(([string]$positionQuantity),
-            [System.Globalization.NumberStyles]::Float,
-            [System.Globalization.CultureInfo]::InvariantCulture,
-            [ref]$validatedQuantity) -or $validatedQuantity -le 0) {
+        if ($positionQuantity -isnot [ValueType] -or [double]$positionQuantity -le 0) {
             throw ("BROKER_POSITION_QUANTITY_INVALID:ROW_{0}" -f $row)
         }
         $positions += [PSCustomObject]@{

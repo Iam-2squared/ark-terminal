@@ -198,6 +198,148 @@ for ($row = 3; $row -le 200; $row++) {
     $positionAccount = $acct.Cells.Item($row,40).Text
     $positionQuantity = $acct.Cells.Item($row,41).Value2
     if ($positionName -and $positionName -ne "--------" -and $null -ne $positionQuantity) {
+        $symbolValue = ([string]$acct.Cells.Item($row,38).Value2).Trim().ToUpperInvariant()
+        if ([string]::IsNullOrWhiteSpace($symbolValue)) {
+            throw ("BROKER_POSITION_SYMBOL_MISSING:ROW_{0}" -f $row)
+        }
+        if ($symbolValue -notmatch '^[0-9A-Z]{4,5}
+            symbol=$positionSymbol
+            name=$positionName
+            account=$positionAccount
+            quantity=$positionQuantity
+            orderQuantity=$acct.Cells.Item($row,42).Value2
+            averagePrice=$acct.Cells.Item($row,43).Value2
+            marketPrice=$acct.Cells.Item($row,44).Value2
+            marketValue=$acct.Cells.Item($row,45).Value2
+            unrealizedPnl=$acct.Cells.Item($row,46).Value2
+            unrealizedPnlPercent=$acct.Cells.Item($row,47).Value2
+        }
+    }
+}
+
+$orders = @()
+for ($row = 3; $row -le 300; $row++) {
+    $orderNumber = $acct.Cells.Item($row,14).Text
+    if ($orderNumber -and $orderNumber -ne "--------") {
+        $orders += [PSCustomObject]@{
+            orderNumber=$orderNumber
+            status=$acct.Cells.Item($row,15).Text
+            symbol=$acct.Cells.Item($row,16).Text
+            quantity=$acct.Cells.Item($row,22).Value2
+            filledQty=$acct.Cells.Item($row,23).Value2
+        }
+    }
+}
+
+$executions = @()
+for ($row = 3; $row -le 300; $row++) {
+    $executionDate = $acct.Cells.Item($row,27).Text
+    if ($executionDate -and $executionDate -ne "--------") {
+        $executions += [PSCustomObject]@{
+            executionDate=$executionDate
+            symbol=$acct.Cells.Item($row,28).Text
+            account=$acct.Cells.Item($row,30).Text
+            side=$acct.Cells.Item($row,33).Text
+            quantity=$acct.Cells.Item($row,34).Value2
+            price=$acct.Cells.Item($row,35).Value2
+        }
+    }
+}
+
+$buyingPower = $null
+for ($attempt = 0; $attempt -lt 20; $attempt++) {
+    $buyingPower = $acct.Cells.Item(3,12).Value2
+    if ($null -ne $buyingPower) { break }
+    Start-Sleep -Milliseconds 250
+}
+if ($null -eq $buyingPower) { throw "BUYING_POWER_READ_MISSING" }
+
+$snapshot = [PSCustomObject]@{
+    schemaId="ARK_ACCOUNT_READONLY_SNAPSHOT_V2"
+    capturedAt=$captureStartedAt
+    captureCompletedAt=(Get-Date).ToString("o")
+    source="MARKETSPEED_II_RSS"
+    mode="READ_ONLY"
+    rssStatus=@{
+        capacity=$rssStatus["L1"]
+        orders=$rssStatus["N1"]
+        executions=$rssStatus["AA1"]
+        positions=$rssStatus["AL1"]
+    }
+    positions=$positions
+    orders=$orders
+    executions=$executions
+    buyingPower=$buyingPower
+    safety=@{
+        executionAllowed=$false
+        brokerWriteAllowed=$false
+        excelOrderWriteAllowed=$false
+        rssOrderFunctionAllowed=$false
+        liveTradingAllowed=$false
+        paperTradingAllowed=$false
+        automaticPromotionAllowed=$false
+        productionUpdateAllowed=$false
+        transmitted=$false
+        productionReady=$false
+    }
+}
+
+# Status observations are not equivalent to underlying RSS delivery timestamps.
+# A later live gate must independently verify actual source age.
+$feedObservationTime = (Get-Date).ToString("o")
+$sourceHealth = [PSCustomObject]@{
+    schemaId = "ARK_MSII_RSS_SOURCE_HEALTH_V1"
+    source = "MARKETSPEED_II_RSS"
+    readOnly = $true
+    addinLoaded = $true
+    workbookPersisted = $true
+    rssErrors = 0
+    healthCapturedAt = $feedObservationTime
+    actualFeedTimestampCertified = $false
+    feeds = @{
+        capacity = @{ state = $rssStatus["L1"]; observedAt = $feedObservationTime }
+        orders = @{ state = $rssStatus["N1"]; observedAt = $feedObservationTime }
+        executions = @{ state = $rssStatus["AA1"]; observedAt = $feedObservationTime }
+        positions = @{ state = $rssStatus["AL1"]; observedAt = $feedObservationTime }
+    }
+}
+
+$target = [IO.Path]::GetFullPath($SnapshotPath)
+$directory = Split-Path -Parent $target
+[void](New-Item -ItemType Directory -Force -Path $directory)
+$utf8 = New-Object System.Text.UTF8Encoding($false)
+[IO.File]::WriteAllText($target, ($snapshot | ConvertTo-Json -Depth 12), $utf8)
+$healthTarget = [IO.Path]::GetFullPath($SourceHealthPath)
+if ($healthTarget -eq $target) { throw "SOURCE_HEALTH_CANNOT_OVERWRITE_SNAPSHOT" }
+[void](New-Item -ItemType Directory -Force -Path (Split-Path -Parent $healthTarget))
+[IO.File]::WriteAllText($healthTarget, ($sourceHealth | ConvertTo-Json -Depth 12), $utf8)
+
+Write-Host "ARK_ACCOUNT_READ_ONLY_SNAPSHOT_READY"
+Write-Host "Workbook    :" $WorkbookName
+Write-Host "AutoOpened  :" $resolved.WorkbookOpenedByLauncher
+Write-Host "RSSAddin    :" $rssAddin.Status
+if ($rssAddin.Path) { Write-Host "RSSXll      :" $rssAddin.Path }
+Write-Host "Snapshot    :" $target
+Write-Host "Health      :" $healthTarget
+Write-Host "FeedTimeCertified: FALSE"
+Write-Host "Positions   :" $positions.Count
+Write-Host "Orders      :" $orders.Count
+Write-Host "Executions  :" $executions.Count
+Write-Host "BuyingPower :" $buyingPower
+Write-Host "CapacityRSS :" $rssStatus["L1"]
+Write-Host "OrdersRSS   :" $rssStatus["N1"]
+Write-Host "ExecutionRSS:" $rssStatus["AA1"]
+Write-Host "PositionRSS :" $rssStatus["AL1"]
+Write-Host "ExcelWrite  : FALSE"
+Write-Host "RSSOrderCall:" "FALSE"
+Write-Host "Transmitted :" "FALSE"
+) {
+            throw ("BROKER_POSITION_SYMBOL_UNRESOLVED:ROW_{0}" -f $row)
+        }
+        if ($positionQuantity -isnot [ValueType] -or [double]$positionQuantity -le 0) {
+            throw ("BROKER_POSITION_QUANTITY_INVALID:ROW_{0}" -f $row)
+        }
+        $positionSymbol = $symbolValue
         $positions += [PSCustomObject]@{
             symbol=$positionSymbol
             name=$positionName

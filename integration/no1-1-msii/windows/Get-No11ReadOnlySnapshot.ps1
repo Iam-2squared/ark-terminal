@@ -1,6 +1,6 @@
 param(
-    [string]$WorkbookName = "Ark_MSII_LiveSource.xlsx",
-    [string]$WorkbookPath = "C:\Ark\Ark_MSII_LiveSource.xlsx",
+    [string]$WorkbookName = "Ark_No11_RSS_ReadOnly.xlsx",
+    [string]$WorkbookPath = "C:\Ark\Ark_No11_RSS_ReadOnly.xlsx",
     [string]$AccountSheet = "ARK_ACCOUNT_READONLY",
     [string]$SnapshotPath = (Join-Path $env:LOCALAPPDATA "ArkTerminal\No11\snapshot.json"),
     [string]$SourceHealthPath = (Join-Path $env:LOCALAPPDATA "ArkTerminal\No11\source-health.json"),
@@ -62,7 +62,9 @@ function Resolve-ArkDedicatedWorkbook {
     $actualFullPath = [IO.Path]::GetFullPath([string]$workbook.FullName)
     if ($expectedFullPath -ne $actualFullPath) { throw "DEDICATED_WORKBOOK_PATH_MISMATCH" }
     if (-not (Test-Path -LiteralPath $expectedFullPath -PathType Leaf)) { throw "DEDICATED_WORKBOOK_NOT_ON_DISK" }
-    if ($workbook.Saved -ne $true) { throw "DEDICATED_WORKBOOK_UNSAVED_CHANGES" }
+    # RSS streaming may mark Excel as unsaved without changing the persisted
+    # sheet layout. Verify exact disk path, formulas and headers instead;
+    # never save or mutate the live Workbook from a snapshot reader.
     $sheetMatches = @($workbook.Worksheets | Where-Object { $_.Name -eq $ExpectedAccountSheet })
     if ($sheetMatches.Count -ne 1) {
         $sheetNames = @($workbook.Worksheets | ForEach-Object { [string]$_.Name })

@@ -103,7 +103,7 @@ export class No11SafetyLedger {
   /** A normal RSS poll may redeliver the same execution; deduplicate by ID. */
   recordBrokerSellFill(fill) {
     this._requireValid();
-    if(!fill||fill.source!=='MARKETSPEED_II_RSS'||fill.brokerReconciled!==true||fill.verifiedExecution===false) {
+    if(!fill||fill.source!=='MARKETSPEED_II_RSS'||fill.brokerReconciled!==true||fill.verifiedExecution!==true||fill.arkManagedPositionMatched!==true||!(/^[a-f0-9]{64}$/.test(String(fill.matchedArkIntentSha256??'')))) {
       return this.latchFault('UNVERIFIED_BROKER_FILL');
     }
     const id=fill.brokerExecutionId;
@@ -116,7 +116,7 @@ export class No11SafetyLedger {
     const at=absTime(fill.executedAt,'BROKER_FILL_TIME_INVALID');
     const day=sessionCheck(fill.session);
     if(jstDate(at)!==day||day!==this.state.session) return this.latchFault('BROKER_FILL_SESSION_MISMATCH');
-    const fingerprint=digest({id,orderId:fill.orderId,side:fill.side,quantity:fill.quantity,executedAt:fill.executedAt,session:day});
+    const fingerprint=digest({id,orderId:fill.orderId,side:fill.side,quantity:fill.quantity,executedAt:fill.executedAt,session:day,matchedArkIntentSha256:fill.matchedArkIntentSha256});
     const previous=this.state.executions[id];
     if(previous) {
       if(previous!==fingerprint) return this.latchFault('BROKER_EXECUTION_ID_CONFLICT');

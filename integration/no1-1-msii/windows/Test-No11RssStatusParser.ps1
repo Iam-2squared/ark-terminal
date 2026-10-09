@@ -20,7 +20,7 @@ function Import-OneFunction {
         $n -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq $Name
     },$true))
     if($funcs.Count -ne 1){throw "FUNCTION_NOT_FOUND:$Name"}
-    Invoke-Expression $funcs[0].Extent.Text
+    Invoke-Expression ("function script:" + $Name + " " + $funcs[0].Body.Extent.Text)
 }
 Import-OneFunction -File (Join-Path $base "New-No11RssWorkbook.ps1") -Name "Get-No11ObservedStatus"
 Import-OneFunction -File (Join-Path $base "Get-No11ReadOnlySnapshot.ps1") -Name "Get-No11RssCellStatus"

@@ -12,6 +12,8 @@ $local = Join-Path $env:LOCALAPPDATA "ArkTerminal\No11"
 $snapshot = Join-Path $local "snapshot.json"
 $health = Join-Path $local "source-health.json"
 $safety = Join-Path $local "private-safety-ledger.json"
+$faultCli = Join-Path $root "tools\no11_fault_cli.mjs"
+$node = (Get-Command node -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
 $model = [IO.Path]::GetFullPath($UiReadModelPath)
 if (-not (Test-Path -LiteralPath $snapshotScript -PathType Leaf)) { throw "NO11_READ_ONLY_SNAPSHOT_SCRIPT_MISSING" }
 if (-not (Test-Path -LiteralPath $exporter -PathType Leaf)) { throw "NO11_READ_ONLY_UI_EXPORTER_MISSING" }
@@ -24,11 +26,33 @@ $snapshotArgs = @{
     SourceHealthPath = $health
     DoNotAutoOpenWorkbook = $true
 }
-& $snapshotScript @snapshotArgs
+# Bounded COM retry applies only to RPC_E_CALL_REJECTED. Exhaustion latches
+# a private Kill Switch. Unrelated failures never receive blind retries.
+$captured=$false
+for ($attempt=1; $attempt -le 3; $attempt++) {
+  try {
+    & $snapshotScript @snapshotArgs
+    $captured=$true
+    break
+  }
+  catch {
+    $msg=[string]$_.Exception.Message
+    $busy=$msg -match 'RPC_E_CALL_REJECTED|0x80010001'
+    if ($busy -and $attempt -lt 3) {
+      Start-Sleep -Milliseconds 250
+      continue
+    }
+    $fault = if ($busy) { 'EXCEL_COM_RETRY_EXHAUSTED' }
+      elseif ($msg -match 'RSS_ADDIN|#NAME') { 'RSS_ADDIN_NOT_LOADED' }
+      else { 'READ_ONLY_CAPTURE_FAILED' }
+    & $node $faultCli latch --ledger $safety --reason $fault | Out-Null
+    throw ("NO11_CAPTURE_FAIL_CLOSED:{0}" -f $fault)
+  }
+}
+if (-not $captured) { throw "NO11_CAPTURE_RETRY_EXHAUSTED" }
 if (-not (Test-Path -LiteralPath $snapshot -PathType Leaf) -or
     -not (Test-Path -LiteralPath $health -PathType Leaf)) { throw "NO11_SNAPSHOT_OR_HEALTH_MISSING" }
 
-$node = (Get-Command node -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
 $targetDir = Split-Path -Parent $model
 [void](New-Item -Path $targetDir -ItemType Directory -Force)
 $tmp = Join-Path $targetDir ("ui-read-model-" + [guid]::NewGuid().ToString("N") + ".json")
@@ -40,9 +64,11 @@ try {
   }
   # A persisted private Kill Switch is displayed if present.
   # Missing state remains UNKNOWN; NEVER fabricate a CLEAR state.
-  if (Test-Path -LiteralPath $safety -PathType Leaf) {
-    $nativeArgs += @("--runtime-safety",$safety)
-  }
+  # Validate the persisted ledger checksum before exposing it to UI. Missing
+  # ledger starts latched; corrupted ledgers never project a fabricated CLEAR.
+  & $node $faultCli status --ledger $safety | Out-Null
+  if ($LASTEXITCODE -ne 0) { throw "NO11_PRIVATE_SAFETY_LEDGER_INVALID" }
+  $nativeArgs += @("--runtime-safety",$safety)
   & $node @nativeArgs
   if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $tmp -PathType Leaf)) { throw "NO11_UI_READ_MODEL_EXPORT_FAILED" }
   $read = [IO.File]::ReadAllText($tmp,[Text.Encoding]::UTF8) | ConvertFrom-Json -ErrorAction Stop

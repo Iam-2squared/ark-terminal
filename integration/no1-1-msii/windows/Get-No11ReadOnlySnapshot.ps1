@@ -140,10 +140,10 @@ function Get-No11RssCellStatus {
 function Get-ArkRssStatusText {
     param([Parameter(Mandatory=$true)]$Worksheet)
     return [ordered]@{
-        L1 = Get-No11RssCellStatus -Worksheet $Worksheet -Address "L1"
-        N1 = Get-No11RssCellStatus -Worksheet $Worksheet -Address "N1"
-        AA1 = Get-No11RssCellStatus -Worksheet $Worksheet -Address "AA1"
-        AL1 = Get-No11RssCellStatus -Worksheet $Worksheet -Address "AL1"
+        L1 = (Get-No11RssCellStatus -Worksheet $Worksheet -Address "L1")
+        N1 = (Get-No11RssCellStatus -Worksheet $Worksheet -Address "N1")
+        AA1 = (Get-No11RssCellStatus -Worksheet $Worksheet -Address "AA1")
+        AL1 = (Get-No11RssCellStatus -Worksheet $Worksheet -Address "AL1")
     }
 }
 

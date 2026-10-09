@@ -108,7 +108,7 @@ export function makeLockedIntent(decision, {symbolMap}={}) {
   if(orderType==='LIMIT' && (!Number.isFinite(limitPrice)||limitPrice<=0)) fail('LIMIT_PRICE_INVALID');
   if(decision.timeInForce!=='DAY') fail('DAY_ORDERS_ONLY');
   if(typeof decision.sor!=='boolean') fail('SOR_NOT_EXPLICIT');
-  if(!Number.isInteger(decision.accountType) || decision.accountType<0 || decision.accountType>7) fail('ACCOUNT_TYPE_INVALID');
+  if(!Number.isInteger(decision.accountType) || decision.accountType<0 || decision.accountType>3) fail('ACCOUNT_TYPE_INVALID');
   if(decision.accountTypeVerified!==true) fail('ACCOUNT_TYPE_NOT_VERIFIED');
   sha(decision.frozenEventSourceSha256,'FROZEN_EVENT_SOURCE_HASH_REQUIRED');
   if(kind==='ENTRY') {

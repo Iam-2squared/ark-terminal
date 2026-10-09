@@ -1,0 +1,33 @@
+name: No1.1 Cash-only Locked Integration Checks
+
+on:
+  push:
+    branches:
+      - integration/no1-1-msii-cash-locked-v1
+    paths:
+      - 'integration/no1-1-msii/**'
+      - '.github/workflows/no11-cash-locked-integration.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  locked-offline-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+      - name: Confirm no external broker tools used by test
+        shell: bash
+        run: |
+          test -f integration/no1-1-msii/runtime/locked_intent.mjs
+          test -f integration/no1-1-msii/runtime/safety_ledger.mjs
+          test -f integration/no1-1-msii/runtime/account_gate.mjs
+          test -f integration/no1-1-msii/tests/locked_pipeline.test.mjs
+      - name: Run locked offline tests (Node preinstalled)
+        shell: bash
+        run: |
+          node --version
+          node --test integration/no1-1-msii/tests/locked_pipeline.test.mjs

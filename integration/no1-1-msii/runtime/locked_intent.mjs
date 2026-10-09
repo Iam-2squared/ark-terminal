@@ -115,6 +115,7 @@ export function makeLockedIntent(decision, {symbolMap}={}) {
     if(decision.stateObserved!==true) fail('ENTRY_STATE_UNAVAILABLE');
     const state=nonempty(decision.formalState9Primary,'FORMAL_ENTRY_STATE_REQUIRED');
     if(state==='PULLBACK'||state==='SHARP_DROP') fail('NO11_ENTRY_STATE_EXCLUDED');
+    if(!new Set(['RISE_STOP','RISE','SHARP_RISE','PULLBACK','RANGE','REBOUND','SHARP_DROP','DROP','DROP_STOP']).has(state)) fail('FORMAL_ENTRY_STATE_UNRECOGNIZED');
     const stateKnownAt=timestamp(decision.stateKnownAt,'STATE_KNOWN_AT_REQUIRED');
     if(stateKnownAt>decisionAt) fail('FUTURE_STATE_USED');
     if(decision.entryBefore1520!==true) fail('FROZEN_ENTRY_TIME_GATE_REQUIRED');

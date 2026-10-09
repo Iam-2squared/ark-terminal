@@ -6,6 +6,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {makeLockedIntent,digest} from '../runtime/locked_intent.mjs';
 import {No11SafetyLedger} from '../runtime/safety_ledger.mjs';
 import {inspectLockedAccount,inspectReadOnlySnapshot} from '../runtime/account_gate.mjs';
@@ -38,7 +39,7 @@ export function inspect(input) {
   if(input.mode==='initialize-ledger'){
     const x=new No11SafetyLedger(input.ledger);
     return {schemaId:'ARK_NO11_LEDGER_BOOTSTRAP_INSPECTION_V1',
-      status:'RESTART_LOCKED_BY_DEFAULT',ledgerRevision:x.snapshot().revision,
+      status:'PRIVATE_LEDGER_PRESENT_NOT_TRADE_AUTHORIZATION',ledgerRevision:x.snapshot().revision,
       killSwitchLatched:x.snapshot().killSwitchLatched,executionAllowed:false,transmitted:false};
   }
   const snapshot=load(input.snapshot,'SNAPSHOT');
@@ -77,7 +78,7 @@ export function inspect(input) {
   };
   return {...core,inspectionSha256:digest(core)};
 }
-const isCLI = process.argv[1] && path.resolve(process.argv[1])===path.resolve(new URL(import.meta.url).pathname);
+const isCLI = process.argv[1] && path.resolve(process.argv[1])===path.resolve(fileURLToPath(import.meta.url));
 if(isCLI){
   try{
     const args=parse(process.argv.slice(2));

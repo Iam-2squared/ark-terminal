@@ -67,7 +67,8 @@ function verifySession(ledger,day='2026-10-09',at='2026-10-09T09:30:00+09:00'){
 const sellFill = (override={})=>({
   brokerExecutionId:'E001',orderId:'O001',side:'SELL',quantity:30,
   session:'2026-10-09',executedAt:'2026-10-09T09:33:00+09:00',
-  source:'MARKETSPEED_II_RSS',brokerReconciled:true,verifiedExecution:true,...override
+  source:'MARKETSPEED_II_RSS',brokerReconciled:true,verifiedExecution:true,
+  arkManagedPositionMatched:true,matchedArkIntentSha256:fakeHash,...override
 });
 
 test('deterministic locked intent, no execution ability, SOR preserved',()=>{
@@ -204,6 +205,14 @@ test('unverified/foreign sell receipt cannot be treated as legal fill',()=>{
   const f=ledgerFixture();try{
     verifySession(f.ledger);
     f.ledger.recordBrokerSellFill(sellFill({brokerReconciled:false}));
+    assert(f.ledger.snapshot().killSwitchLatched);
+  }finally{f.cleanup();}
+});
+test('personal broker SELL is never interpreted as Ark frozen SELL fill',()=>{
+  const f=ledgerFixture();try{
+    verifySession(f.ledger);
+    f.ledger.recordBrokerSellFill(sellFill({arkManagedPositionMatched:false}));
+    assert.equal(f.ledger.snapshot().sellFillLatched,false);
     assert(f.ledger.snapshot().killSwitchLatched);
   }finally{f.cleanup();}
 });

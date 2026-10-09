@@ -1,4 +1,4 @@
-# Ark Integrated No.1.1 - create/diagnose a NEW, read-only MSII RSS Workbook.
+﻿# Ark Integrated No.1.1 - create/diagnose a NEW, read-only MSII RSS Workbook.
 # No RegisterXLL, no RSS order/cancel/modify functions, no old Workbook changes.
 param(
     [ValidateSet("Create","Diagnose")][string]$Mode = "Create",

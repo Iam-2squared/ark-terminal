@@ -58,6 +58,11 @@ function Resolve-ArkDedicatedWorkbook {
     }
 
     $workbook = $matchingBooks[0]
+    $expectedFullPath = [IO.Path]::GetFullPath($ExpectedWorkbookPath)
+    $actualFullPath = [IO.Path]::GetFullPath([string]$workbook.FullName)
+    if ($expectedFullPath -ne $actualFullPath) { throw "DEDICATED_WORKBOOK_PATH_MISMATCH" }
+    if (-not (Test-Path -LiteralPath $expectedFullPath -PathType Leaf)) { throw "DEDICATED_WORKBOOK_NOT_ON_DISK" }
+    if ($workbook.Saved -ne $true) { throw "DEDICATED_WORKBOOK_UNSAVED_CHANGES" }
     $sheetMatches = @($workbook.Worksheets | Where-Object { $_.Name -eq $ExpectedAccountSheet })
     if ($sheetMatches.Count -ne 1) {
         $sheetNames = @($workbook.Worksheets | ForEach-Object { [string]$_.Name })

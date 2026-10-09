@@ -73,6 +73,29 @@ function Assert-No11Layout {
         }
         $actual = ([string]$cell.Formula) -replace "^=@", "="
         if ($actual -ne $expectedFormulas[$address]) {
+            if ($address -eq "AL1") {
+                # On a real Excel installation, Formula readback may differ
+                # from the requested formula. This is DIAGNOSTIC ONLY.
+                # Never relax the safety gate or print any broker cell values.
+                $raw = [string]$cell.Formula
+                $redact = '(?i)\b(?=[0-9A-Z]{4,5}\b)(?=[0-9A-Z]*[0-9])[0-9A-Z]{4,5}\b'
+                $safe = [Regex]::Replace($raw, $redact, '[REDACTED]')
+                if ($safe.Length -gt 256) {
+                    $safe = $safe.Substring(0,256) + '...[TRUNCATED]'
+                }
+                Write-Host ("NO11_AL1_FORMULA_HAS_FORMULA={0}" -f [bool]$cell.HasFormula)
+                Write-Host ("NO11_AL1_FORMULA_RAW_LENGTH={0}" -f $raw.Length)
+                Write-Host ("NO11_AL1_FORMULA_SAFE={0}" -f $safe)
+                try {
+                    $f2 = [string]$cell.Formula2
+                    $safe2 = [Regex]::Replace($f2, $redact, '[REDACTED]')
+                    if ($safe2.Length -gt 256) {
+                        $safe2 = $safe2.Substring(0,256) + '...[TRUNCATED]'
+                    }
+                    Write-Host ("NO11_AL1_FORMULA2_SAFE={0}" -f $safe2)
+                } catch { Write-Host 'NO11_AL1_FORMULA2_UNAVAILABLE' }
+                Write-Host 'NO11_FORMULA_READBACK_DIAGNOSTIC_ONLY=TRUE'
+            }
             throw ("NO11_RSS_FORMULA_ARGUMENT_MISMATCH:{0}" -f $address)
         }
     }

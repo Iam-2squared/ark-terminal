@@ -81,3 +81,8 @@ jobs:
             if ($errors.Count -gt 0) { throw "PS51_PARSE_ERROR:$($file.Name):$($errors[0])" }
           }
           Write-Host "WINDOWS_POWERSHELL_51_PARSE_PASS=$($files.Count)"
+      - name: Test RSS formula echo and strict error rejection (Windows PowerShell 5.1)
+        shell: powershell
+        run: |
+          & .\integration\no1-1-msii\windows\Test-No11RssStatusParser.ps1
+          if ($LASTEXITCODE -ne 0) { throw "RSS_FORMULA_ECHO_TEST_FAILED" }

@@ -166,7 +166,15 @@ function New-No11Workbook {
         [void](New-Item -ItemType Directory -Force -Path $directory)
     }
     # xlWBATWorksheet = -4167. Creates a new one-sheet Workbook.
+    # Preserve the COM Workbook inside a scalar wrapper on return. Windows
+    # PowerShell's success pipeline may enumerate returned COM objects.
     $book = $Excel.Workbooks.Add(-4167)
+    if ($null -eq $book) { throw "NO11_NEW_WORKBOOK_NOT_CREATED" }
+    $newName = [string]$book.Name
+    if ($newName -eq "Ark_No11_RSS_ReadOnly.xlsx" -or
+        $newName -eq "Ark_MSII_LiveSource.xlsx") {
+        throw "NO11_NEW_WORKBOOK_IDENTITY_UNSAFE"
+    }
     try {
         $sheet = $book.Worksheets.Item(1)
         $sheet.Name = "ARK_ACCOUNT_READONLY"
@@ -189,13 +197,32 @@ function New-No11Workbook {
         }
         Assert-No11Layout -Sheet $sheet
         # .xlsx, macro-free. No other open Workbook is saved or recalculated.
-        $book.SaveAs($FullPath,51)
+        [void]$book.SaveAs($FullPath,51)
+        # Check the newly created workbook itself and the exact on-disk
+        # artifact before a COM reference can pass through a function return.
+        $afterSaveName = [string]$book.FullName
+        $savedIdentityMatches = [string]::Equals(
+            [IO.Path]::GetFullPath($afterSaveName), $FullPath,
+            [StringComparison]::OrdinalIgnoreCase
+        )
+        $savedFilePresent = Test-Path -LiteralPath $FullPath -PathType Leaf
+        Write-Host ("NO11_SAVEAS_IDENTITY_MATCH={0}" -f $savedIdentityMatches)
+        Write-Host ("NO11_SAVEAS_FILE_PRESENT={0}" -f $savedFilePresent)
+        if (-not $savedIdentityMatches) {
+            throw "NO11_SAVEAS_TARGET_MISMATCH"
+        }
+        if (-not $savedFilePresent) {
+            throw "NO11_SAVEAS_FILE_NOT_PERSISTED"
+        }
         if ($ObserveSeconds -gt 0) {
             # Only the newly created sheet is calculated; never CalculateFull().
-            $sheet.Calculate()
+            [void]$sheet.Calculate()
             Start-Sleep -Seconds $ObserveSeconds
         }
-        return $book
+        return [pscustomobject]@{
+            Workbook = $book
+            SavedWorkbookPath = $FullPath
+        }
     } catch {
         # Never overwrite the old file, and never save a failed Workbook.
         try { $book.Close($false) } catch { }
@@ -289,7 +316,15 @@ if ($Mode -eq "Create") {
         throw "NO11_WORKBOOK_ALREADY_EXISTS_USE_DIAGNOSE"
     }
     $excel = Get-No11Excel -MayStart $true
-    $book = New-No11Workbook -Excel $excel -FullPath $target
+    $created = New-No11Workbook -Excel $excel -FullPath $target
+    if ($null -eq $created -or $null -eq $created.Workbook) {
+        throw "NO11_NEW_WORKBOOK_REFERENCE_MISSING"
+    }
+    if (-not [string]::Equals([string]$created.SavedWorkbookPath,$target,
+        [StringComparison]::OrdinalIgnoreCase)) {
+        throw "NO11_NEW_WORKBOOK_WRAPPER_MISMATCH"
+    }
+    $book = $created.Workbook
 } else {
     $excel = Get-No11Excel -MayStart $true
     $book = Resolve-No11Workbook -Excel $excel -FullPath $target

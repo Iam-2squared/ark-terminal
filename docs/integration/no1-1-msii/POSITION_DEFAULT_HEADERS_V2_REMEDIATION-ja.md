@@ -51,3 +51,11 @@ Remediation:
 - A BLOCKED status remains BLOCKED; no order/ownership promotions.
 
 Live Windows proof remains pending. Runbook must never treat previous account values or an old workbook diagnostic as fresh proof.
+
+## 2026-10-10 — Physical SaveAs target diagnostic
+
+Additional Windows proof: after V2 Create, `NO11_DIAGNOSTIC_WORKBOOK_IDENTITY_MISMATCH`, but subsequent independent read-only probe shows `V2_FILE_EXISTS=False`, `OLD_FILE_EXISTS=True`, Excel has only the OLD Workbook open, and there are zero per-run receipts. No V2 RSS status or broker symbol values can be certified from this.
+
+The builder now checks the newly created COM Workbook's FullName and actual on-disk V2 file immediately after SaveAs. If either fails, throws a distinct fail-closed error. The function returns `[pscustomobject]@{Workbook=$book;SavedWorkbookPath=$FullPath}` instead of passing the COM object directly through the Windows PowerShell function pipeline (which can enumerate COM objects). The caller extracts only `$created.Workbook`. This is a targeted engineering correction; it does not prove SaveAs succeeded until another Windows run.
+
+Do not re-use the shared historical report or overwrite the old Workbook. No RSS order formula, order call or account data is added.

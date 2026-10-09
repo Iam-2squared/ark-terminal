@@ -42,3 +42,14 @@ test('read-only setup validates receipt path and versioned workbook provenance',
   assert.ok(setup.includes('NO11_DIAGNOSTIC_VERIFIED_FOR_V2'));
   assert.ok(b.includes('NO11_DIAGNOSTIC_WORKBOOK_IDENTITY_MISMATCH'));
 });
+
+test('new Excel workbook SaveAs result is verified and COM object is returned in non-enumerable wrapper',()=>{
+  assert.ok(b.includes('[void]$book.SaveAs($FullPath,51)'));
+  assert.ok(b.includes('NO11_SAVEAS_TARGET_MISMATCH'));
+  assert.ok(b.includes('NO11_SAVEAS_FILE_NOT_PERSISTED'));
+  assert.ok(b.includes('return [pscustomobject]@{'));
+  assert.ok(b.includes('Workbook = $book'));
+  assert.ok(b.includes('$book = $created.Workbook'));
+  assert.ok(b.includes('NO11_NEW_WORKBOOK_WRAPPER_MISMATCH'));
+  assert.ok(b.includes('NO11_NEW_WORKBOOK_IDENTITY_UNSAFE'));
+});

@@ -12,13 +12,16 @@ $freeze = '10c94c92c4bd2a59a22744667fd0210252602df4'
 $expectedCaptureHash = '0EAB3CA3081B2E0CB323D8438719F2B820B69FC02F373AD843B5907315838E2C'
 $root = Split-Path -Parent $PSScriptRoot
 $gate = Join-Path $root 'tools\no11_desktop_cash_preview.mjs'
+$faultCli = Join-Path $root 'tools\no11_fault_cli.mjs'
 $local = Join-Path $env:LOCALAPPDATA 'ArkTerminal\No11'
 $target = Join-Path $local 'private-capture-v2.ps1'
 $snapshot = Join-Path $local 'snapshot.json'
 $health = Join-Path $local 'source-health.json'
 $ownership = Join-Path $local 'ownership-baseline.json'
 $report = Join-Path $local 'desktop-capital-readonly.json'
+$ledger = Join-Path $local 'private-safety-ledger.json'
 if (-not (Test-Path -LiteralPath $gate -PathType Leaf)) { throw 'DESKTOP_GATE_CODE_MISSING' }
+if (-not (Test-Path -LiteralPath $faultCli -PathType Leaf)) { throw 'DESKTOP_FAULT_REPORTER_MISSING' }
 if (-not (Test-Path -LiteralPath $WorkbookPath -PathType Leaf)) { throw 'DESKTOP_WORKBOOK_MISSING' }
 if (-not (Test-Path -LiteralPath (Join-Path $FrozenRepo '.git'))) { throw 'FROZEN_REPO_MISSING' }
 $head = ((& git -C $FrozenRepo rev-parse HEAD) | Select-Object -First 1)
@@ -43,17 +46,46 @@ if (-not (Test-Path -LiteralPath $ownership -PathType Leaf)) {
     throw 'EXPLICIT_PRIVATE_OWNERSHIP_MISSING'
 }
 function Run-Once {
-    Write-Host 'NO11_DESKTOP_READ_ONLY_POLL_START'
-    $nativeArgs = @('-NoProfile','-ExecutionPolicy','Bypass','-File',$target,
-        '-WorkbookPath',$WorkbookPath,'-SnapshotPath',$snapshot,
-        '-SourceHealthPath',$health)
-    & $ps @nativeArgs
-    if ($LASTEXITCODE -ne 0) { throw 'PRIVATE_RSS_CAPTURE_FAILED' }
-    & $node $gate $snapshot $health $ownership $report
-    if ($LASTEXITCODE -ne 0) { throw 'CASH_OR_OWNERSHIP_GATE_BLOCKED' }
-    Write-Host 'NO11_DESKTOP_READ_ONLY_POLL_PASS=True'
-    Write-Host 'EXCEL_MODIFIED=False'
-    Write-Host 'ORDER_TRANSMISSION=False'
+    # Never poll the same Excel workbook concurrently from UI and watcher.
+    $mutex = [System.Threading.Mutex]::new($false, 'Local\ArkTerminal_No11_RSS_ReadOnly')
+    $lockTaken = $false
+    $faultReason = 'READ_ONLY_CAPTURE_FAILED'
+    try {
+        try {
+            $lockTaken = $mutex.WaitOne(0)
+        } catch [System.Threading.AbandonedMutexException] {
+            $lockTaken = $true
+            throw 'NO11_RSS_CAPTURE_PREVIOUS_RUN_ABANDONED'
+        }
+        if (-not $lockTaken) { throw 'NO11_RSS_CAPTURE_ALREADY_RUNNING' }
+        Write-Host 'NO11_DESKTOP_READ_ONLY_POLL_START'
+        $nativeArgs = @('-NoProfile','-ExecutionPolicy','Bypass','-File',$target,
+            '-WorkbookPath',$WorkbookPath,'-SnapshotPath',$snapshot,
+            '-SourceHealthPath',$health)
+        & $ps @nativeArgs
+        if ($LASTEXITCODE -ne 0) { throw 'PRIVATE_RSS_CAPTURE_FAILED' }
+        $faultReason = 'CAPITAL_OR_OWNERSHIP_GATE_BLOCKED'
+        & $node $gate $snapshot $health $ownership $report
+        if ($LASTEXITCODE -ne 0) { throw 'CASH_OR_OWNERSHIP_GATE_BLOCKED' }
+        Write-Host 'NO11_DESKTOP_READ_ONLY_POLL_PASS=True'
+        Write-Host 'EXCEL_MODIFIED=False'
+        Write-Host 'ORDER_TRANSMISSION=False'
+    } catch {
+        $originalError = $_
+        if ($lockTaken) {
+            # Never reset safety or mask the original failure. Private ledger only.
+            try {
+                & $node $faultCli 'latch' '--ledger' $ledger '--reason' $faultReason | Out-Null
+                if ($LASTEXITCODE -ne 0) { Write-Warning 'NO11_SAFETY_LEDGER_LATCH_FAILED' }
+            } catch {
+                Write-Warning 'NO11_SAFETY_LEDGER_LATCH_FAILED'
+            }
+        }
+        throw $originalError
+    } finally {
+        if ($lockTaken) { [void]$mutex.ReleaseMutex() }
+        $mutex.Dispose()
+    }
 }
 if ($Watch) {
     Write-Host 'NO11_DESKTOP_READ_ONLY_WATCH=ON; STOP=CTRL+C'

@@ -63,3 +63,11 @@ snapshot. Keep the private baseline and workbook in their existing locations.
 
 The original legacy UI helper remains available only for prior research;
 do not point the desktop launcher at `C:\Ark\Ark_No11_RSS_DefaultHeaders_v2.xlsx`.
+
+## 2026-10-10 desktop fail-closed hardening (offline code / CI only)
+
+- Desktop UI read-model age is **30 seconds** (not 90).
+- Failed automatic refresh immediately changes a previously FRESH model to `REFRESH_FAILED` / `BLOCKED`; only a successful new RSS capture restores FRESH. No stale last-good model is promoted.
+- RSS subprocess stdout/stderr (which may contain private account values) is not copied into UI refresh errors.
+- Concurrent desktop RSS capture attempts are rejected by a Windows named mutex. A failed capture/Capital-Ownership inspection while holding the mutex is latched in the **private** Safety Ledger, never silently treated as success. No reset or live permission is granted.
+- This is only offline code. Windows physical checks, broker arrival-time proof, native Frozen No.1.1 event generator and real order/fill reconciliation remain unverified. Excel order enable stays **OFF**.

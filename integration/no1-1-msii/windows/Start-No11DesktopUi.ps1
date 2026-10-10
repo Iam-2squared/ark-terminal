@@ -33,7 +33,7 @@ $pythonArg+=@($server,'--port',[string]$Port,
  '--workbook',$WorkbookPath,'--model',$model,
  '--ownership',$ownership,'--preview-script',$preview,
  '--refresh-seconds',[string]$RefreshSeconds,
- '--max-model-age-seconds','90')
+ '--max-model-age-seconds','30')
 if($NoBrowser -eq $false){$pythonArg+='--open-browser'}
 if($NoAutoRefresh){$pythonArg+='--no-refresh'}
 Write-Host 'NO11_UI2_DESKTOP_READ_ONLY_STARTING'

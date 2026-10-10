@@ -77,7 +77,8 @@ def project_observed_model(
     freshness = source.setdefault("freshness", {})
     timestamp = freshness.get("timestamp") or projected.get("generatedAt")
     timestamp_epoch = parse_iso(timestamp)
-    if timestamp_epoch is None:
+    refresh = copy.deepcopy(refresh_state or {})
+    if timestamp_epoch is None or timestamp_epoch > now_epoch + 1.0:
         age_seconds = None
         freshness["state"] = "INVALID"
     else:
@@ -85,6 +86,9 @@ def project_observed_model(
         freshness["ageSeconds"] = age_seconds
         if age_seconds > max_model_age_seconds:
             freshness["state"] = "STALE"
+    # A failed refresh must block even an old model younger than its age threshold.
+    if freshness.get("state") == "FRESH" and refresh.get("enabled") and refresh.get("lastError"):
+        freshness["state"] = "REFRESH_FAILED"
 
     if freshness.get("state") != "FRESH":
         system = projected.setdefault("system", {})
@@ -100,7 +104,7 @@ def project_observed_model(
         "observedAt": datetime.fromtimestamp(now_epoch, timezone.utc).isoformat(),
         "modelAgeSeconds": age_seconds,
         "maxModelAgeSeconds": max_model_age_seconds,
-        "refresh": copy.deepcopy(refresh_state or {}),
+        "refresh": refresh,
         "mutationCapabilities": {key: False for key in MUTATION_KEYS},
     }
     return projected
@@ -186,15 +190,16 @@ class RefreshLoop(threading.Thread):
                 creationflags=creationflags,
             )
             if result.returncode != 0:
-                message = (result.stderr or result.stdout or "refresh failed").strip()
-                raise RuntimeError(message[-1200:])
+                # Child output may contain account values or private file paths.
+                raise RuntimeError("READ_ONLY_REFRESH_FAILED")
             self.state.update(
                 running=False,
                 lastSuccessAt=utc_now_iso(),
                 lastError=None,
             )
         except Exception as exc:
-            self.state.update(running=False, lastError=f"{type(exc).__name__}:{exc}")
+            code = "READ_ONLY_REFRESH_TIMEOUT" if isinstance(exc, subprocess.TimeoutExpired) else "READ_ONLY_REFRESH_FAILED"
+            self.state.update(running=False, lastError=code)
 
     def run(self) -> None:
         self.state.update(enabled=True)

@@ -4,6 +4,8 @@ import importlib.util
 import json
 import tempfile
 import unittest
+from types import SimpleNamespace
+from unittest.mock import patch
 from pathlib import Path
 
 MODULE_PATH = Path(__file__).with_name("ark_ui2_readonly_server.py")
@@ -104,6 +106,53 @@ class ServerModelTests(unittest.TestCase):
     def test_existing_default_preview_script_path_preserved(self):
         args = mod.build_parser(MODULE_PATH.parent.parent).parse_args(["--no-refresh"])
         self.assertEqual(args.preview_script.name, "Write-No11ReadOnlyPreview.ps1")
+
+
+    def test_refresh_failure_blocks_existing_fresh_model_immediately(self):
+        timestamp = "2026-09-16T01:00:00+00:00"
+        source = model(timestamp)
+        projected = mod.project_observed_model(
+            source,
+            now_epoch=mod.parse_iso("2026-09-16T01:00:05+00:00"),
+            max_model_age_seconds=30,
+            refresh_state={"enabled": True, "lastError": "READ_ONLY_REFRESH_FAILED"},
+        )
+        self.assertEqual(projected["source"]["freshness"]["state"], "REFRESH_FAILED")
+        self.assertEqual(projected["system"]["tradeReadiness"], "BLOCKED")
+        self.assertEqual(projected["home"]["buyingPowerState"], "REFRESH_FAILED")
+        self.assertEqual(source["source"]["freshness"]["state"], "FRESH")
+        recovered = mod.project_observed_model(
+            source, now_epoch=mod.parse_iso("2026-09-16T01:00:05+00:00"),
+            max_model_age_seconds=30,
+            refresh_state={"enabled": True, "lastError": None},
+        )
+        self.assertEqual(recovered["source"]["freshness"]["state"], "FRESH")
+
+    def test_future_model_timestamp_does_not_look_fresh(self):
+        projected = mod.project_observed_model(
+            model("2026-09-16T01:01:00+00:00"),
+            now_epoch=mod.parse_iso("2026-09-16T01:00:00+00:00"),
+            max_model_age_seconds=30,
+        )
+        self.assertEqual(projected["source"]["freshness"]["state"], "INVALID")
+        self.assertEqual(projected["system"]["tradeReadiness"], "BLOCKED")
+
+    def test_refresh_failure_never_exposes_child_account_output(self):
+        state = mod.RefreshState()
+        loop = mod.RefreshLoop(
+            state=state, preview_script=Path("fixture.ps1"),
+            workbook_path=Path("private.xlsx"), model_path=Path("model.json"),
+            ownership_path=None, interval_seconds=30,
+        )
+        loop._command = lambda: ["powershell"]
+        response = SimpleNamespace(
+            returncode=2, stdout="PRIVATE_BUYING_POWER=999",
+            stderr="PRIVATE_SYMBOL_OR_PATH_SHOULD_NOT_LEAK",
+        )
+        with patch.object(mod.subprocess, "run", return_value=response):
+            loop._refresh_once()
+        self.assertEqual(state.snapshot()["lastError"], "READ_ONLY_REFRESH_FAILED")
+        self.assertNotIn("PRIVATE_", str(state.snapshot()))
 
 
 if __name__ == "__main__":

@@ -159,6 +159,38 @@ class ServerModelTests(unittest.TestCase):
         self.assertNotIn("PRIVATE_", str(state.snapshot()))
 
 
+    def test_refresh_stage_marker_only_exposes_whitelisted_category(self):
+        cases = {
+            "NO11_UI_REFRESH_FAILED_STAGE=CAPTURE_GATE\n": "READ_ONLY_REFRESH_FAILED:CAPTURE_GATE",
+            "ignored private line\nNO11_UI_REFRESH_FAILED_STAGE=MODEL_COMMIT\n": "READ_ONLY_REFRESH_FAILED:MODEL_COMMIT",
+            "NO11_UI_REFRESH_FAILED_STAGE=C:\PRIVATE_ACCOUNT\n": "READ_ONLY_REFRESH_FAILED",
+            "NO11_UI_REFRESH_FAILED_STAGE=CAPTURE_GATE extra": "READ_ONLY_REFRESH_FAILED",
+            "NO11_UI_REFRESH_FAILED_STAGE=CAPTURE_GATE\nNO11_UI_REFRESH_FAILED_STAGE=MODEL_EXPORT": "READ_ONLY_REFRESH_FAILED",
+            "PRIVATE_SYMBOL=TEST\n": "READ_ONLY_REFRESH_FAILED",
+        }
+        for output, expected in cases.items():
+            self.assertEqual(mod.classify_refresh_failure(output), expected)
+        self.assertEqual(mod.classify_refresh_failure(None), "READ_ONLY_REFRESH_FAILED")
+
+    def test_refresh_loop_records_safe_stage_without_private_stdout(self):
+        state = mod.RefreshState()
+        loop = mod.RefreshLoop(
+            state=state, preview_script=Path("fixture.ps1"),
+            workbook_path=Path("private.xlsx"), model_path=Path("model.json"),
+            ownership_path=None, interval_seconds=30,
+        )
+        loop._command = lambda: ["powershell"]
+        response = SimpleNamespace(
+            returncode=2,
+            stdout="BROKER_ACCOUNT=DO_NOT_EXPOSE\nNO11_UI_REFRESH_FAILED_STAGE=CAPTURE_GATE\n",
+            stderr="PRIVATE_PATH_AND_ACCOUNT_VALUE",
+        )
+        with patch.object(mod.subprocess, "run", return_value=response):
+            loop._refresh_once()
+        self.assertEqual(state.snapshot()["lastError"], "READ_ONLY_REFRESH_FAILED:CAPTURE_GATE")
+        self.assertNotIn("BROKER_", str(state.snapshot()))
+        self.assertNotIn("PRIVATE_", str(state.snapshot()))
+
     def test_loopback_http_serves_read_only_and_blocks_after_refresh_failure(self):
         timestamp = datetime.now(timezone.utc).isoformat()
         with tempfile.TemporaryDirectory() as td:

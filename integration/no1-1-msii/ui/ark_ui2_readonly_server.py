@@ -27,6 +27,31 @@ MUTATION_KEYS = (
 )
 MODEL_SCHEMA = "ARK_TERMINAL_UI_READ_MODEL_V1"
 
+# Never expose raw PowerShell stdout/stderr (account holdings, paths or brokerage text).
+SAFE_REFRESH_FAILURE_STAGES = frozenset((
+    "PREFLIGHT", "CAPTURE_GATE", "CAPITAL_REPORT", "SAFETY_LEDGER",
+    "MODEL_EXPORT", "MODEL_VERIFY", "MODEL_COMMIT",
+))
+
+
+def classify_refresh_failure(stdout: Any) -> str:
+    fallback = "READ_ONLY_REFRESH_FAILED"
+    if not isinstance(stdout, str):
+        return fallback
+    matches = []
+    for line in stdout.splitlines():
+        prefix = "NO11_UI_REFRESH_FAILED_STAGE="
+        if not line.startswith(prefix):
+            continue
+        stage = line[len(prefix):]
+        if stage not in SAFE_REFRESH_FAILURE_STAGES:
+            return fallback
+        matches.append(stage)
+    if len(matches) != 1:
+        return fallback
+    return f"{fallback}:{matches[0]}"
+
+
 
 def utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -186,12 +211,14 @@ class RefreshLoop(threading.Thread):
                 cwd=str(self.preview_script.parent.parent),
                 capture_output=True,
                 text=True,
+                errors="replace",
                 timeout=max(15.0, self.interval_seconds * 2.0),
                 creationflags=creationflags,
             )
             if result.returncode != 0:
-                # Child output may contain account values or private file paths.
-                raise RuntimeError("READ_ONLY_REFRESH_FAILED")
+                # Only the approved static stage is surfaced; all child data stays private.
+                self.state.update(running=False, lastError=classify_refresh_failure(result.stdout))
+                return
             self.state.update(
                 running=False,
                 lastSuccessAt=utc_now_iso(),

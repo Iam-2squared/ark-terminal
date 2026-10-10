@@ -47,23 +47,9 @@ function Get-ArkNo11StartupRssStatus {
     # Excel implicitly inserts @ for some add-in formula versions.
     $formula = ([string]$cell.Formula) -replace '^=@', '='
     if ($Address -eq 'AL1') {
-        # Only the standard whole-account 18-field form is admissible.
-        # Absolute coordinate markers ($) do not change the header range.
-        # Do not accept a filtered symbol/account list or an incomplete header.
-        $canonical = $formula -replace '\
-    $state = [string]$expected[$Address].state
-    foreach ($raw in @([string]$cell.Value2, [string]$cell.Text)) {
-        $value = $raw.Trim()
-        if ($value -ceq $state -or $value -ceq ($formula + ' => ' + $state)) {
-            return $state
-        }
-        if ($value -ceq ('=@' + $formula.Substring(1) + ' => ' + $state)) {
-            return $state
-        }
-    }
-    return 'RSS_STATUS_UNRECOGNIZED'
-}
-, ''
+        # Only the whole-account default or full 18-field provider header is valid.
+        # Dollar signs in Excel absolute cell references do not change the range.
+        $canonical = $formula -replace '\$', ''
         if ($canonical -cne '=RssPositionList()' -and
             $canonical -cne '=RssPositionList(AL2:BC2)') {
             return 'RSS_FORMULA_MISMATCH'
@@ -85,34 +71,8 @@ function Get-ArkNo11StartupRssStatus {
         foreach ($raw in @([string]$cell.Value2, [string]$cell.Text)) {
             $value = $raw.Trim()
             if ($value -ceq $requiredState) { return $requiredState }
-            if ($value -notmatch '^(.*) => (.*)
-    $state = [string]$expected[$Address].state
-    foreach ($raw in @([string]$cell.Value2, [string]$cell.Text)) {
-        $value = $raw.Trim()
-        if ($value -ceq $state -or $value -ceq ($formula + ' => ' + $state)) {
-            return $state
-        }
-        if ($value -ceq ('=@' + $formula.Substring(1) + ' => ' + $state)) {
-            return $state
-        }
-    }
-    return 'RSS_STATUS_UNRECOGNIZED'
-}
-) { continue }
-            $echoCanonical = (($Matches[1].Trim() -replace '^=@', '=') -replace '\
-    $state = [string]$expected[$Address].state
-    foreach ($raw in @([string]$cell.Value2, [string]$cell.Text)) {
-        $value = $raw.Trim()
-        if ($value -ceq $state -or $value -ceq ($formula + ' => ' + $state)) {
-            return $state
-        }
-        if ($value -ceq ('=@' + $formula.Substring(1) + ' => ' + $state)) {
-            return $state
-        }
-    }
-    return 'RSS_STATUS_UNRECOGNIZED'
-}
-, '')
+            if ($value -notmatch '^(.*) => (.*)$') { continue }
+            $echoCanonical = (($Matches[1].Trim() -replace '^=@', '=') -replace '\$', '')
             if ($echoCanonical -ceq $canonical -and $Matches[2] -ceq $requiredState) {
                 return $requiredState
             }

@@ -85,6 +85,13 @@ function Get-WorkbookOpenState {
 # cash value, workbook path, formula, HRESULT, or exception text.
 function Get-ArkNo11SheetStatusReport {
     param([Parameter(Mandatory=$true)]$Worksheet)
+    # Self-contained approved statuses: usable both in production and isolated tests.
+    $requiredStates = [ordered]@{
+        L1 = '完了'
+        N1 = '配信中'
+        AA1 = '配信中'
+        AL1 = '配信中'
+    }
     $result = [ordered]@{
         Workbook = 'MATCHED'
         Sheet = 'FOUND'
@@ -94,7 +101,7 @@ function Get-ArkNo11SheetStatusReport {
         AL1 = 'NOT_CHECKED'
         Ready = $false
     }
-    foreach ($address in $expectedStates.Keys) {
+    foreach ($address in $requiredStates.Keys) {
         try {
             $result[$address] = Get-ArkNo11StartupRssStatus -Worksheet $Worksheet -Address $address
         } catch {
@@ -102,8 +109,8 @@ function Get-ArkNo11SheetStatusReport {
         }
     }
     $ready = $true
-    foreach ($address in $expectedStates.Keys) {
-        if ($result[$address] -cne $expectedStates[$address]) { $ready = $false }
+    foreach ($address in $requiredStates.Keys) {
+        if ($result[$address] -cne $requiredStates[$address]) { $ready = $false }
     }
     $result.Ready = $ready
     return [pscustomobject]$result

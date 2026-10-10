@@ -2,19 +2,20 @@
 param(
     [string]$WorkbookPath = (Join-Path ([Environment]::GetFolderPath('Desktop')) 'Ark_No11_MSII_RSS.xlsx'),
     [string]$FrozenRepo = 'C:\ArkTerminal\repo',
-    [string]$CaptureDownload = (Join-Path $env:USERPROFILE 'Downloads\Ark-No11-CaptureReadOnly-v2.ps1'),
+    [string]$CaptureDownload = (Join-Path $env:USERPROFILE 'Downloads\Ark-No11-CaptureReadOnly-v3-CANDIDATE.ps1'),
     [ValidateRange(15,3600)][int]$RefreshSeconds = 30,
     [switch]$Watch
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $freeze = '10c94c92c4bd2a59a22744667fd0210252602df4'
-$expectedCaptureHash = '0EAB3CA3081B2E0CB323D8438719F2B820B69FC02F373AD843B5907315838E2C'
+$expectedCaptureHash = '8B396BF22724ABBCA4BCEB7B93862AE46D40ACBDFE95B385F492E960E9F08DA3'
 $root = Split-Path -Parent $PSScriptRoot
-$gate = Join-Path $root 'tools\no11_desktop_cash_preview.mjs'
+$gate = Join-Path $root 'tools\no11_v3_desktop_publish.mjs'
 $faultCli = Join-Path $root 'tools\no11_fault_cli.mjs'
 $local = Join-Path $env:LOCALAPPDATA 'ArkTerminal\No11'
-$target = Join-Path $local 'private-capture-v2.ps1'
+$target = Join-Path $local 'private-capture-v3.ps1'
+$candidateRoot = Join-Path $local 'capture-v3-candidate'
 $snapshot = Join-Path $local 'snapshot.json'
 $health = Join-Path $local 'source-health.json'
 $ownership = Join-Path $local 'ownership-baseline.json'
@@ -59,13 +60,57 @@ function Run-Once {
         }
         if (-not $lockTaken) { throw 'NO11_RSS_CAPTURE_ALREADY_RUNNING' }
         Write-Host 'NO11_DESKTOP_READ_ONLY_POLL_START'
+        # Only a newly generated V3 run may be published; never recycle an older capture.
+        $existing = @{}
+        if (Test-Path -LiteralPath $candidateRoot -PathType Container) {
+            foreach ($folder in @(Get-ChildItem -LiteralPath $candidateRoot -Directory)) {
+                $existing[$folder.Name] = $true
+            }
+        }
         $nativeArgs = @('-NoProfile','-ExecutionPolicy','Bypass','-File',$target,
-            '-WorkbookPath',$WorkbookPath,'-SnapshotPath',$snapshot,
-            '-SourceHealthPath',$health)
-        & $ps @nativeArgs
-        if ($LASTEXITCODE -ne 0) { throw 'PRIVATE_RSS_CAPTURE_FAILED' }
+            '-WorkbookPath',$WorkbookPath)
+        & $ps @nativeArgs | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw 'PRIVATE_V3_RSS_CAPTURE_FAILED' }
+        if (-not (Test-Path -LiteralPath $candidateRoot -PathType Container)) {
+            throw 'PRIVATE_V3_CAPTURE_ROOT_MISSING'
+        }
+        $newFolders = @(Get-ChildItem -LiteralPath $candidateRoot -Directory |
+            Where-Object { -not $existing.ContainsKey($_.Name) })
+        if ($newFolders.Count -ne 1 -or $newFolders[0].Name -cnotmatch '^[a-f0-9]{32}
+        Write-Host 'NO11_DESKTOP_READ_ONLY_POLL_PASS=True'
+        Write-Host 'EXCEL_MODIFIED=False'
+        Write-Host 'ORDER_TRANSMISSION=False'
+    } catch {
+        $originalError = $_
+        if ($lockTaken) {
+            # Never reset safety or mask the original failure. Private ledger only.
+            try {
+                & $node $faultCli 'latch' '--ledger' $ledger '--reason' $faultReason | Out-Null
+                if ($LASTEXITCODE -ne 0) { Write-Warning 'NO11_SAFETY_LEDGER_LATCH_FAILED' }
+            } catch {
+                Write-Warning 'NO11_SAFETY_LEDGER_LATCH_FAILED'
+            }
+        }
+        throw $originalError
+    } finally {
+        if ($lockTaken) { [void]$mutex.ReleaseMutex() }
+        $mutex.Dispose()
+    }
+}
+if ($Watch) {
+    Write-Host 'NO11_DESKTOP_READ_ONLY_WATCH=ON; STOP=CTRL+C'
+    while ($true) {
+        Run-Once
+        Start-Sleep -Seconds $RefreshSeconds
+    }
+} else {
+    Run-Once
+}
+) {
+            throw 'PRIVATE_V3_CAPTURE_IDENTITY_UNVERIFIED'
+        }
         $faultReason = 'CAPITAL_OR_OWNERSHIP_GATE_BLOCKED'
-        & $node $gate $snapshot $health $ownership $report
+        & $node $gate $newFolders[0].Name | Out-Null
         if ($LASTEXITCODE -ne 0) { throw 'CASH_OR_OWNERSHIP_GATE_BLOCKED' }
         Write-Host 'NO11_DESKTOP_READ_ONLY_POLL_PASS=True'
         Write-Host 'EXCEL_MODIFIED=False'

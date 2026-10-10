@@ -55,11 +55,21 @@ test('stale observation is never automatically certified',()=>{
 test('desktop launcher cannot create/save sheets or call broker orders',()=>{
   const text=fs.readFileSync(path.join(here,'../windows/Start-No11DesktopReadOnly.ps1'),'utf8');
   assert(text.includes('Ark_No11_MSII_RSS.xlsx'));
-  assert(text.includes('Ark-No11-CaptureReadOnly-v2.ps1'));
-  assert(text.includes('0EAB3CA3081B2E0CB323D8438719F2B820B69FC02F373AD843B5907315838E2C'));
+  assert(text.includes('Ark-No11-CaptureReadOnly-v3-CANDIDATE.ps1'));
+  assert(text.includes('8B396BF22724ABBCA4BCEB7B93862AE46D40ACBDFE95B385F492E960E9F08DA3'));
   assert.doesNotMatch(text,/Workbooks\s*\.\s*(?:Add|Open)\s*\(/i);
   assert.doesNotMatch(text,/\.\s*(?:Save|SaveAs|RegisterXLL)\s*\(/i);
   assert.doesNotMatch(text,/\.Formula\s*=/);
   assert.doesNotMatch(text,/\bRssStockOrder\s*\(/i);
   assert(text.includes('ORDER_TRANSMISSION=False'));
+});
+
+test('desktop only accepts a NEW V3 candidate and must not fallback to the V2 collector',()=>{
+ const script=fs.readFileSync(path.join(here,'../windows/Start-No11DesktopReadOnly.ps1'),'utf8');
+ assert.match(script,/private-capture-v3\.ps1/);
+ assert.match(script,/no11_v3_desktop_publish\.mjs/);
+ assert.match(script,/PRIVATE_V3_CAPTURE_IDENTITY_UNVERIFIED/);
+ assert.match(script,/CAPITAL_OR_OWNERSHIP_GATE_BLOCKED/);
+ assert.doesNotMatch(script,/private-capture-v2\.ps1/);
+ assert.doesNotMatch(script,/Get-Content\s+.*snapshot\.json/i);
 });

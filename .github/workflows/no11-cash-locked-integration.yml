@@ -74,6 +74,12 @@ jobs:
           $actual=(Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash
           if ($actual -cne $expect) { throw 'V3_CHECKOUT_HASH_MISMATCH' }
           Write-Host 'V3_WINDOWS_WORKTREE_SHA256_PIN_PASS=True'
+      - name: V3 desktop private publisher offline Windows Node test
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          node --test integration/no1-1-msii/tests/v3_desktop_publish.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'V3_PUBLISHER_WINDOWS_TEST_FAILED' }
       - name: Parse all Windows scripts with Windows PowerShell 5.1
         shell: powershell
         run: |

@@ -67,6 +67,12 @@ export function publishNo11V3ReadOnly({privateRoot,runId,now=new Date()}={}) {
   // Recheck immediately prior to publication; never give an aged snapshot a fresh stamp.
   const last=check({snapshot:snap,health,ownership:baseline,now:new Date()});
   if(last.status!=='READ_ONLY_CAPITAL_PREVIEW')disallow('V3_SNAPSHOT_EXPIRED_BEFORE_PUBLISH');
+  // A completed candidate must never be silently republished as a new observation.
+  const oldReceiptFile=path.join(root,'desktop-v3-readonly-receipt.json');
+  if(fs.existsSync(oldReceiptFile)) {
+    const old=readPrivate(oldReceiptFile,'V3_PRIOR_RECEIPT_UNSAFE');
+    if(old?.captureRunId===runId)disallow('V3_CANDIDATE_REPLAY_BLOCKED');
+  }
   const snapJSON=JSON.stringify(snap,null,2)+'\n';
   const healthJSON=JSON.stringify(health,null,2)+'\n';
   const reportJSON=JSON.stringify(last,null,2)+'\n';

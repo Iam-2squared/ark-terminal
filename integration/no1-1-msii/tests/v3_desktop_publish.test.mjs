@@ -100,3 +100,29 @@ test('no trading interface, order writer or safety-reset entrypoint in publisher
  assert.match(content,/no11_desktop_cash_preview\.mjs/);
  assert.match(content,/V3_SNAPSHOT_EXPIRED_BEFORE_PUBLISH/);
 });
+
+test('previous candidate cannot be replayed or used to claim new account freshness',()=>{
+ const x=fixture();
+ try {
+   publishNo11V3ReadOnly({privateRoot:x.root,runId:x.id});
+   const source=fs.readFileSync(path.join(x.root,'snapshot.json'),'utf8');
+   assert.throws(()=>publishNo11V3ReadOnly({privateRoot:x.root,runId:x.id}),/V3_CANDIDATE_REPLAY_BLOCKED/);
+   assert.equal(fs.readFileSync(path.join(x.root,'snapshot.json'),'utf8'),source);
+ }finally{x.cleanup();}
+});
+test('distinct fresh candidate atomically replaces prior read-only private outputs',()=>{
+ const x=fixture();
+ try {
+   publishNo11V3ReadOnly({privateRoot:x.root,runId:x.id});
+   const second='b'.repeat(32);
+   const next=path.join(x.root,'capture-v3-candidate',second);
+   fs.mkdirSync(next);
+   x.write(path.join(next,'snapshot.json'),x.snap);
+   x.write(path.join(next,'source-health.json'),x.health);
+   const y=publishNo11V3ReadOnly({privateRoot:x.root,runId:second});
+   assert.equal(y.runId,second);
+   const receipt=JSON.parse(fs.readFileSync(path.join(x.root,'desktop-v3-readonly-receipt.json'),'utf8'));
+   assert.equal(receipt.captureRunId,second);
+   assert.equal(receipt.productionReady,false);
+ }finally{x.cleanup();}
+});

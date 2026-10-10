@@ -43,3 +43,9 @@ test('single-command parity runner requires verified V2/V3, isolated output, and
   assert.match(h,/ORDER_TRANSMISSION=False/);
   for(const forbidden of [/Workbooks\s*\.\s*(?:Add|Open)\s*\(/i,/\.Formula\s*=/i,/\.Value2\s*=/i,/RssStockOrder\s*\(/i])assert.doesNotMatch(h,forbidden);
 });
+
+test('Git checkout preserves byte-exact V3 source on Windows; no CRLF conversion',()=>{
+  const gitattributes=fs.readFileSync(path.resolve(root,'../..','.gitattributes'),'utf8');
+  assert.equal(gitattributes,
+    'integration/no1-1-msii/windows/Ark-No11-CaptureReadOnly-v3-CANDIDATE.ps1 text eol=lf\n');
+});

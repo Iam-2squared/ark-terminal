@@ -65,6 +65,15 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
+      - name: Verify V3 SHA256 byte-identity after Windows Git checkout
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $path='integration/no1-1-msii/windows/Ark-No11-CaptureReadOnly-v3-CANDIDATE.ps1'
+          $expect='8B396BF22724ABBCA4BCEB7B93862AE46D40ACBDFE95B385F492E960E9F08DA3'
+          $actual=(Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash
+          if ($actual -cne $expect) { throw 'V3_CHECKOUT_HASH_MISMATCH' }
+          Write-Host 'V3_WINDOWS_WORKTREE_SHA256_PIN_PASS=True'
       - name: Parse all Windows scripts with Windows PowerShell 5.1
         shell: powershell
         run: |

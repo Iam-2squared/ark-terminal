@@ -45,13 +45,92 @@ function Get-ArkNo11StartupRssStatus {
     $cell = $Worksheet.Range($Address)
     if ($cell.HasFormula -ne $true) { return 'RSS_FORMULA_MISSING' }
     # Excel implicitly inserts @ for some add-in formula versions.
-    $formula = ([string]$cell.Formula).Trim() -replace '^=@', '='
-    $state = [string]$expected[$Address].state
+    $formula = ([string]$cell.Formula) -replace '^=@', '='
     if ($Address -eq 'AL1') {
-        # ONLY no-argument default or the complete 18-field header row may
-        # represent the whole account. $ only anchors Excel coordinates.
-        # Never accept 10 headers, symbol/account filters or an unknown range.
+        # Only the standard whole-account 18-field form is admissible.
+        # Absolute coordinate markers ($) do not change the header range.
+        # Do not accept a filtered symbol/account list or an incomplete header.
         $canonical = $formula -replace '\
+    $state = [string]$expected[$Address].state
+    foreach ($raw in @([string]$cell.Value2, [string]$cell.Text)) {
+        $value = $raw.Trim()
+        if ($value -ceq $state -or $value -ceq ($formula + ' => ' + $state)) {
+            return $state
+        }
+        if ($value -ceq ('=@' + $formula.Substring(1) + ' => ' + $state)) {
+            return $state
+        }
+    }
+    return 'RSS_STATUS_UNRECOGNIZED'
+}
+, ''
+        if ($canonical -cne '=RssPositionList()' -and
+            $canonical -cne '=RssPositionList(AL2:BC2)') {
+            return 'RSS_FORMULA_MISMATCH'
+        }
+        if ($canonical -ceq '=RssPositionList(AL2:BC2)') {
+            $requiredHeaders = @('銘柄コード', '銘柄名称', '口座区分', '保有数量', '発注数量', '平均取得価額', '時価', '前日比', '前日比率', '時価評価額', '評価損益額', '評価損益率', '銘柄情報等', 'JAX時価', 'JNX時価', 'PER', 'PBR', '配当利回り')
+            try {
+                for ($i = 0; $i -lt $requiredHeaders.Count; $i++) {
+                    $actualHeader = ([string]$Worksheet.Cells.Item(2, 38 + $i).Text).Trim()
+                    if ($actualHeader -cne $requiredHeaders[$i]) {
+                        return 'RSS_POSITION_HEADERS_MISMATCH'
+                    }
+                }
+            } catch {
+                return 'RSS_POSITION_HEADERS_UNAVAILABLE'
+            }
+        }
+        $requiredState = [string]$expected[$Address].state
+        foreach ($raw in @([string]$cell.Value2, [string]$cell.Text)) {
+            $value = $raw.Trim()
+            if ($value -ceq $requiredState) { return $requiredState }
+            if ($value -notmatch '^(.*) => (.*)
+    $state = [string]$expected[$Address].state
+    foreach ($raw in @([string]$cell.Value2, [string]$cell.Text)) {
+        $value = $raw.Trim()
+        if ($value -ceq $state -or $value -ceq ($formula + ' => ' + $state)) {
+            return $state
+        }
+        if ($value -ceq ('=@' + $formula.Substring(1) + ' => ' + $state)) {
+            return $state
+        }
+    }
+    return 'RSS_STATUS_UNRECOGNIZED'
+}
+) { continue }
+            $echoCanonical = (($Matches[1].Trim() -replace '^=@', '=') -replace '\
+    $state = [string]$expected[$Address].state
+    foreach ($raw in @([string]$cell.Value2, [string]$cell.Text)) {
+        $value = $raw.Trim()
+        if ($value -ceq $state -or $value -ceq ($formula + ' => ' + $state)) {
+            return $state
+        }
+        if ($value -ceq ('=@' + $formula.Substring(1) + ' => ' + $state)) {
+            return $state
+        }
+    }
+    return 'RSS_STATUS_UNRECOGNIZED'
+}
+, '')
+            if ($echoCanonical -ceq $canonical -and $Matches[2] -ceq $requiredState) {
+                return $requiredState
+            }
+        }
+        return 'RSS_STATUS_UNRECOGNIZED'
+    }
+    if ($formula -cne $expected[$Address].formula) { return 'RSS_FORMULA_MISMATCH' }
+    $state = [string]$expected[$Address].state
+    foreach ($raw in @([string]$cell.Value2, [string]$cell.Text)) {
+        $value = $raw.Trim()
+        if ($value -ceq $state -or $value -ceq ($formula + ' => ' + $state)) {
+            return $state
+        }
+        if ($value -ceq ('=@' + $formula.Substring(1) + ' => ' + $state)) {
+            return $state
+        }
+    }
+    return 'RSS_STATUS_UNRECOGNIZED'
 }
 
 function Get-WorkbookOpenState {

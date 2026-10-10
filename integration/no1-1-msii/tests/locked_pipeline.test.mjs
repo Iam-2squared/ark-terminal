@@ -231,3 +231,12 @@ test('health-only reset without explicit approval stays latched',()=>{
     assert.equal(f.ledger.snapshot().killSwitchLatched,true);
   }finally{f.cleanup();}
 });
+
+test('personal broker symbol is not eligible for Ark BUY even when enough cash exists',()=>{
+  const intent={...locked(),symbol:'408A.T'};
+  const {lockedIntentSha256,...core}=intent;
+  intent.lockedIntentSha256=digest(core);
+  const result=account({lockedIntent:intent});
+  assert.equal(result.status,'BLOCKED');
+  assert(result.blockers.includes('EXTERNAL_POSITION_SYMBOL_PROTECTED'));
+});

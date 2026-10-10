@@ -101,6 +101,8 @@ export function inspectLockedAccount({snapshot,health,ownership,lockedIntent,now
     const {lockedIntentSha256,...core}=lockedIntent;
     if(digest(core)!==lockedIntentSha256)blockers.push('LOCKED_INTENT_HASH_MISMATCH');
     withBlock(()=>boolSafety(lockedIntent.safety,'INTENT'));
+    // Personal holdings are never sellable and cannot be co-owned by a new Ark BUY.
+    if(own?.external.has(lockedIntent.symbol))blockers.push('EXTERNAL_POSITION_SYMBOL_PROTECTED');
     const ownPosition=own?.ark.get(lockedIntent.symbol)||0;
     if(lockedIntent.side==='SELL' && (lockedIntent.positionEffect!=='CLOSE'||ownPosition<lockedIntent.quantity)){
       blockers.push('SELL_NOT_SUPPORTED_BY_ARK_OWNERSHIP');

@@ -39,7 +39,7 @@ if($NoAutoRefresh){$pythonArg+='--no-refresh'}
 Write-Host 'NO11_UI2_DESKTOP_READ_ONLY_STARTING'
 Write-Host ("URL=http://127.0.0.1:{0}/" -f $Port)
 Write-Host 'MUTATIONS=FALSE'
-Write-Host 'ORDER_TRANSMISSION=FALSE'
+Write-Host 'ORDER_TRANSMISSION=False'
 Write-Host 'STOP=CTRL+C'
 & $program @pythonArg
 if($LASTEXITCODE -ne 0){throw 'UI2_DESKTOP_SERVER_EXITED_ABNORMALLY'}

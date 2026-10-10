@@ -97,5 +97,14 @@ class ServerModelTests(unittest.TestCase):
                 server.server_close()
 
 
+    def test_custom_preview_script_rejects_unapproved_path(self):
+        with self.assertRaisesRegex(SystemExit, "PREVIEW_SCRIPT_NOT_APPROVED"):
+            mod.main(["--no-refresh", "--preview-script", "/tmp/unapproved.ps1"])
+
+    def test_existing_default_preview_script_path_preserved(self):
+        args = mod.build_parser(MODULE_PATH.parent.parent).parse_args(["--no-refresh"])
+        self.assertEqual(args.preview_script.name, "Write-No11ReadOnlyPreview.ps1")
+
+
 if __name__ == "__main__":
     unittest.main()

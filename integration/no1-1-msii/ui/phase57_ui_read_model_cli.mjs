@@ -77,7 +77,7 @@ if (isMain) {
     console.log('ARK_TERMINAL_UI_READ_MODEL_EXPORTED');
     console.log(`SOURCE_STATE=${model.source.freshness.state}`);
     console.log(`TRADE_READINESS=${model.system.tradeReadiness}`);
-    console.log(`BUYING_POWER=${model.home.buyingPower ?? 'UNAVAILABLE'}`);
+    console.log(`BUYING_POWER_STATE=${model.home.buyingPowerState}`);
     console.log(`POSITIONS=${model.positions.length}`);
     console.log(`MUTATIONS=false`);
   } catch (error) {

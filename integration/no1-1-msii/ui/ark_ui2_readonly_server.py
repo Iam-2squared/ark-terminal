@@ -366,6 +366,11 @@ def build_parser(repo_root: Path) -> argparse.ArgumentParser:
     parser.add_argument("--ownership", type=Path, default=None)
     parser.add_argument("--refresh-seconds", type=float, default=5.0)
     parser.add_argument("--max-model-age-seconds", type=float, default=15.0)
+    parser.add_argument(
+        "--preview-script",
+        type=Path,
+        default=repo_root / "windows" / "Write-No11ReadOnlyPreview.ps1",
+    )
     parser.add_argument("--no-refresh", action="store_true")
     parser.add_argument("--open-browser", action="store_true")
     parser.add_argument(
@@ -392,13 +397,21 @@ def main(argv: list[str] | None = None) -> int:
     if not overlay_path.is_file():
         raise SystemExit(f"UI_OVERLAY_MISSING:{overlay_path}")
 
+    allowed_preview_scripts = {
+        (repo_root / "windows" / "Write-No11ReadOnlyPreview.ps1").resolve(),
+        (repo_root / "windows" / "Write-No11DesktopReadOnlyPreview.ps1").resolve(),
+    }
+    preview_script = args.preview_script.resolve()
+    if preview_script not in allowed_preview_scripts or not preview_script.is_file():
+        raise SystemExit("PREVIEW_SCRIPT_NOT_APPROVED")
+
     model_path = args.model.resolve()
     refresh_state = RefreshState()
     refresh_loop: RefreshLoop | None = None
     if not args.no_refresh:
         refresh_loop = RefreshLoop(
             state=refresh_state,
-            preview_script=repo_root / "windows" / "Write-No11ReadOnlyPreview.ps1",
+            preview_script=preview_script,
             workbook_path=args.workbook.resolve(),
             model_path=model_path,
             ownership_path=args.ownership.resolve() if args.ownership else None,

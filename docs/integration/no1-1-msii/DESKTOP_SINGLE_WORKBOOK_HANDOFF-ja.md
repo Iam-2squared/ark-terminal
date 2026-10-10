@@ -46,3 +46,20 @@ For continued read-only monitoring, pass `-Watch -RefreshSeconds 30`. Ctrl+C sto
 Do not turn on the Excel RSS order permission yet. There is **only one eventual manual trade permission**, the Excel RSS order-enable switch, with no Ark-side extra approval/unlock. All accuracy and safety checks are automatic technical prerequisites, not additional user-facing permissions. A hypothetical completed Excel permission alone must never override these blocked states.
 
 Status: **NOT READY FOR MANUAL ORDER ENABLE / NO LIVE ORDER PATH**. Draft PR only. Main and research Freeze are unchanged.
+
+## UI2 read-only desktop path (same workbook, no new Excel)
+
+`integration/no1-1-msii/windows/Start-No11DesktopUi.ps1` takes one private
+RSS/Capital snapshot, serves the existing byte-verified UI2 pages **only on
+`127.0.0.1:8767`**, and automatically refreshes using the same SHA256-pinned
+desktop capture. `Write-No11DesktopReadOnlyPreview.ps1` is the sole approved
+desktop preview helper. The UI has no order/cancel API (HTTP mutations return
+405), no Excel writes, and no manual Ark approval switch.
+
+The UI presents READ ONLY information; its update time is an **observation
+timestamp**, not proof of when the broker's market feed delivered a value.
+Missing or stale data BLOCKS the UI instead of silently recycling a previous
+snapshot. Keep the private baseline and workbook in their existing locations.
+
+The original legacy UI helper remains available only for prior research;
+do not point the desktop launcher at `C:\Ark\Ark_No11_RSS_DefaultHeaders_v2.xlsx`.

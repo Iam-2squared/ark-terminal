@@ -1,4 +1,4 @@
-# Ark Terminal No.1.1 one-click READ ONLY startup (Windows PowerShell 5.1).
+﻿# Ark Terminal No.1.1 one-click READ ONLY startup (Windows PowerShell 5.1).
 # This opens existing applications only; it never enables trading or sends orders.
 param(
     [string]$WorkbookPath = (Join-Path ([Environment]::GetFolderPath('Desktop')) 'Ark_No11_MSII_RSS.xlsx'),
@@ -25,6 +25,26 @@ $expectedStates = [ordered]@{
 }
 
 # Never inspect account amounts or stock rows here. Only readiness status cells.
+function Get-WorkbookOpenState {
+    # Unlike feed readiness, this checks identity even while RSS is pending.
+    try {
+        $excel = [Runtime.InteropServices.Marshal]::GetActiveObject('Excel.Application')
+        $count = 0
+        foreach ($book in $excel.Workbooks) {
+            if ([string]::Equals(
+                [IO.Path]::GetFullPath([string]$book.FullName),
+                [IO.Path]::GetFullPath($WorkbookPath),
+                [StringComparison]::OrdinalIgnoreCase)) { $count++ }
+        }
+        if ($count -gt 1) { return 'AMBIGUOUS' }
+        if ($count -eq 1) { return 'OPEN' }
+        return 'NOT_OPEN'
+    } catch {
+        # Excel may be busy; never use COM failure as a reason to open a duplicate.
+        return 'COM_UNAVAILABLE'
+    }
+}
+
 function Test-StatusCells {
     try {
         $excel = [Runtime.InteropServices.Marshal]::GetActiveObject('Excel.Application')
@@ -188,11 +208,22 @@ try {
     }
 
     if (-not $SkipOpenExcel) {
-        if (-not (Test-StatusCells)) {
-            Start-Process -FilePath $WorkbookPath -ErrorAction Stop
-            Write-Host 'EXISTING_EXCEL_WORKBOOK_OPEN_REQUESTED=True'
-        } else {
+        if (Test-StatusCells) {
             Write-Host 'EXISTING_EXCEL_WORKBOOK_ALREADY_READY=True'
+        } else {
+            $openState = Get-WorkbookOpenState
+            $excelProcesses = @(Get-Process -Name 'EXCEL' -ErrorAction SilentlyContinue)
+            if ($openState -eq 'AMBIGUOUS') {
+                throw 'ARK_DUPLICATE_WORKBOOK_INSTANCES_BLOCKED'
+            }
+            if ($openState -eq 'OPEN') {
+                Write-Host 'EXISTING_EXCEL_WORKBOOK_ALREADY_OPEN=True'
+            } elseif ($openState -eq 'NOT_OPEN' -or $excelProcesses.Count -eq 0) {
+                Start-Process -FilePath $WorkbookPath -ErrorAction Stop
+                Write-Host 'EXISTING_EXCEL_WORKBOOK_OPEN_REQUESTED=True'
+            } else {
+                Write-Host 'EXCEL_COM_BUSY_WAITING_WITHOUT_REOPEN=True'
+            }
         }
     }
 

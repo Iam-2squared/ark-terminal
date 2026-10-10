@@ -16,6 +16,9 @@ test('one click startup reuses verified workbook and Frozen checkout only',()=>{
   assert.match(launcher,/Start-No11DesktopUi\.ps1/);
   assert.match(launcher,/C:\\ArkTerminal\\repo/);
   assert.match(launcher,/RSS_FOUR_STATUS_CELLS_OBSERVED=True/);
+  assert.match(launcher,/Get-WorkbookOpenState/);
+  assert.match(launcher,/EXCEL_COM_BUSY_WAITING_WITHOUT_REOPEN/);
+  assert.match(launcher,/ARK_DUPLICATE_WORKBOOK_INSTANCES_BLOCKED/);
   assert.match(launcher,/ACTUAL_BROKER_DELIVERY_TIMESTAMP_CERTIFIED=False/);
   assert.match(launcher,/Local\\ArkTerminal_No11_DesktopLauncher/);
 });

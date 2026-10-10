@@ -88,3 +88,11 @@ created it. Existing legacy workbooks are never targets.
 The XML/ZIP structure is tested in Windows PowerShell 5.1 CI; actual Excel
 acceptance still needs a single physical run. No user/manual trading
 authorization is added; RssStockOrder remains absent.
+
+## 2026-10-10 — Retire invalid staging file generator
+
+Real Windows evidence: **NO11_STAGE_OPEN_FAILED** immediately after `Excel.Workbooks.Open(stage,0,false)`; no RSS formula write occurred on that run. Whether Excel rejected the minimal package or Excel COM returned null cannot be established from this log. Therefore the minimal OOXML generator and all Excel Workbook creation and formula writes are removed from the Create path.
+
+A verified fixed finished template `Ark_No11_RSS_DefaultHeaders_v2_READY.xlsx` is generated offline with one `ARK_ACCOUNT_READONLY` worksheet, 18 position headers, exactly four READ-ONLY RSS functions, and no macro/order function/account values. SHA-256 `3db01750b742f85cc19c2f6c7a7547f075c3b2ed1b6f1a36d917d4e21f981c17`; size 4305 bytes. It must be placed by the user at `C:\Ark\Ark_No11_RSS_DefaultHeaders_v2_READY.xlsx`. Create mode only checks that SHA, copies file without overwrite to `C:\Ark\Ark_No11_RSS_DefaultHeaders_v2.xlsx` and opens the copy READ ONLY. No Workbooks.Add, Save, SaveAs or Excel Range.Formula/Value2 setter remains.
+
+Excel opening a correctly formed completed file still requires Windows confirmation; if COM returns a foreign Workbook or no target, the run stops, retains the verified file, and asks the user to open it in Excel manually. Do not save or repair the older workbook. Cached `#NAME?` for offline unsupported RSS functions is not broker evidence; live Excel/RSS must recalculate and produce valid RSS statuses before Snapshot and Ownership.

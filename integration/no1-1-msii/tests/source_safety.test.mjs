@@ -84,7 +84,7 @@ test('snapshot and UI use new dedicated Workbook without modifying legacy file',
 test('new RSS Workbook never depends on locale-sensitive Excel NumberFormat COM setter',()=>{
   const src=read('windows/New-No11RssWorkbook.ps1');
   assert.doesNotMatch(src,/\$cell\.NumberFormat\s*=/);
-  assert(src.includes('$sheet.Range($address).Formula = $expectedFormulas[$address]'));
+  assert.doesNotMatch(src,/\.Formula\s*=/);
 });
 
 test('broker identity failure cannot become a valid account Snapshot',()=>{

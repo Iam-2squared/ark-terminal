@@ -65,3 +65,15 @@ CIはオフラインでソースを検証するに過ぎず、現在の株価や
 **Observed on user PC:** RSS status cells were rendered as formula plus state, e.g. `=@RssCapacityList(L2:L2) => 完了`, while one-click preflight required raw `Value2 === 完了` / `配信中`. This caused `ARK_RSS_STATUS_NOT_READY_TIMEOUT` even with visible RSS output. A startup-only strict parser now checks **both the exact approved formula and one of the exact approved status representations**. It is aligned with the already audited `Get-No11ReadOnlySnapshot.ps1` parser, and the existing offline Windows PowerShell test tests all three implementations on valid and malformed states. No Excel formula change, workbook regeneration, order function, account write, or loosened signal checks.
 
 **IMPORTANT:** This corrects the launcher *readiness heuristic only*. It does NOT independently certify underlying RSS delivery timestamps, live data, broker fill, strategy inference or live trade readiness. Keep Excel RSS order feature OFF. After pulling the new branch version, the pinned old launcher will still fail until the versioned worktree is updated safely.
+
+## 2026-10-11: RSS timeout diagnostic (no private data)
+
+A second `ARK_RSS_STATUS_NOT_READY_TIMEOUT` occurred with the fixed parser, so the launcher now exposes **categorical reasons only**, never raw RSS cell contents or any amount/symbol/account path.
+
+After pulling the updated integration commit, run the existing launcher script with `-DiagnosticOnly` to inspect the already-open Excel **without opening Excel, MarketSpeed II, refreshing data, writing a cell, or placing orders**:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\ArkTerminal\no11-launcher\integration\no1-1-msii\windows\Start-ArkTerminalNo11.ps1" -DiagnosticOnly
+```
+
+Permitted report fields: `NO11_RSS_DIAG_WORKBOOK`, `NO11_RSS_DIAG_SHEET`, `NO11_RSS_DIAG_L1/N1/AA1/AL1`, `NO11_RSS_DIAG_READY`; all are coded enums, not raw account values. If a future regular startup times out, the same report is printed. The code still demands exact original formula + acceptable RSS echo. A screenshot of an Excel cell is not adequate proof of broker delivery freshness.

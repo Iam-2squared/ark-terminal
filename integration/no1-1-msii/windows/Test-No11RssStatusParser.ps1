@@ -25,6 +25,7 @@ function Import-OneFunction {
 Import-OneFunction -File (Join-Path $base "New-No11RssWorkbook.ps1") -Name "Get-No11ObservedStatus"
 Import-OneFunction -File (Join-Path $base "Get-No11ReadOnlySnapshot.ps1") -Name "Get-No11RssCellStatus"
 Import-OneFunction -File (Join-Path $base "Start-ArkTerminalNo11.ps1") -Name "Get-ArkNo11StartupRssStatus"
+Import-OneFunction -File (Join-Path $base "Start-ArkTerminalNo11.ps1") -Name "Get-ArkNo11SheetStatusReport"
 
 function Fake-Sheet {
     param([string]$Formula,[string]$Value,[bool]$HasFormula=$true)
@@ -134,3 +135,40 @@ Write-Host ("NO11_FORMULA_FOOTPRINT_MOCK_PASS={0}" -f $footprintChecks)
 # The producer no longer writes or opens a staging OOXML document.
 # Windows test deliberately avoids loading a private or broker workbook.
 Write-Host "NO11_READY_TEMPLATE_COPY_ONLY_DESIGN=TRUE"
+
+
+# Offline categorical startup-diagnostic audit, with synthetic-only RSS cells.
+function New-ArkStartupTestSheet {
+    $cells = @{}
+    foreach ($address in $expectedFormulas.Keys) {
+        $cells[$address] = [pscustomobject]@{
+            Formula = $expectedFormulas[$address]
+            HasFormula = $true
+            Value2 = ('=@' + $expectedFormulas[$address].Substring(1) + ' => ' + $states[$address])
+            Text = ('=@' + $expectedFormulas[$address].Substring(1) + ' => ' + $states[$address])
+        }
+    }
+    $sheet = [pscustomobject]@{Cells=$cells}
+    $sheet | Add-Member -MemberType ScriptMethod -Name Range -Value {
+        param($Address)
+        return $this.Cells[$Address]
+    }
+    return $sheet
+}
+$okSheet = New-ArkStartupTestSheet
+$okReport = Get-ArkNo11SheetStatusReport -Worksheet $okSheet
+if ($okReport.Ready -ne $true) { throw 'NO11_STARTUP_DIAG_VALID_FORMULA_ECHO_REJECTED' }
+$badSheet = New-ArkStartupTestSheet
+$badSheet.Cells.AL1.Value2 = '#NAME?'
+$badSheet.Cells.AL1.Text = '#NAME?'
+$badReport = Get-ArkNo11SheetStatusReport -Worksheet $badSheet
+if ($badReport.Ready -eq $true -or $badReport.AL1 -cne 'RSS_STATUS_UNRECOGNIZED') {
+    throw 'NO11_STARTUP_DIAG_NAME_ERROR_NOT_BLOCKED'
+}
+$wrongSheet = New-ArkStartupTestSheet
+$wrongSheet.Cells.N1.Formula = '=SUM(1,1)'
+$wrongReport = Get-ArkNo11SheetStatusReport -Worksheet $wrongSheet
+if ($wrongReport.Ready -eq $true -or $wrongReport.N1 -cne 'RSS_FORMULA_MISMATCH') {
+    throw 'NO11_STARTUP_DIAG_WRONG_FORMULA_NOT_BLOCKED'
+}
+Write-Host 'NO11_STARTUP_DIAGNOSTIC_MOCK_PASS=3'

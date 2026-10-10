@@ -7,7 +7,8 @@ param(
     [ValidateRange(1024,65535)][int]$Port = 8767,
     [switch]$SkipOpenMarketSpeed,
     [switch]$SkipOpenExcel,
-    [switch]$NoBrowser
+    [switch]$NoBrowser,
+    [switch]$DiagnosticOnly
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
@@ -79,9 +80,52 @@ function Get-WorkbookOpenState {
     }
 }
 
-function Test-StatusCells {
+
+# Only categorical diagnostics. This never prints any RSS cell value, symbol,
+# cash value, workbook path, formula, HRESULT, or exception text.
+function Get-ArkNo11SheetStatusReport {
+    param([Parameter(Mandatory=$true)]$Worksheet)
+    $result = [ordered]@{
+        Workbook = 'MATCHED'
+        Sheet = 'FOUND'
+        L1 = 'NOT_CHECKED'
+        N1 = 'NOT_CHECKED'
+        AA1 = 'NOT_CHECKED'
+        AL1 = 'NOT_CHECKED'
+        Ready = $false
+    }
+    foreach ($address in $expectedStates.Keys) {
+        try {
+            $result[$address] = Get-ArkNo11StartupRssStatus -Worksheet $Worksheet -Address $address
+        } catch {
+            $result[$address] = 'CELL_COM_READ_FAILED'
+        }
+    }
+    $ready = $true
+    foreach ($address in $expectedStates.Keys) {
+        if ($result[$address] -cne $expectedStates[$address]) { $ready = $false }
+    }
+    $result.Ready = $ready
+    return [pscustomobject]$result
+}
+
+function Get-ArkNo11ReadinessDiagnostic {
+    $result = [ordered]@{
+        Workbook = 'NOT_CHECKED'
+        Sheet = 'NOT_CHECKED'
+        L1 = 'NOT_CHECKED'
+        N1 = 'NOT_CHECKED'
+        AA1 = 'NOT_CHECKED'
+        AL1 = 'NOT_CHECKED'
+        Ready = $false
+    }
     try {
         $excel = [Runtime.InteropServices.Marshal]::GetActiveObject('Excel.Application')
+    } catch {
+        $result.Workbook = 'EXCEL_COM_UNAVAILABLE'
+        return [pscustomobject]$result
+    }
+    try {
         $matches = @()
         foreach ($book in $excel.Workbooks) {
             if ([string]::Equals(
@@ -91,17 +135,44 @@ function Test-StatusCells {
                 $matches += $book
             }
         }
-        if ($matches.Count -ne 1) { return $false }
-        $sheet = $matches[0].Worksheets.Item($expectedSheet)
-        foreach ($address in $expectedStates.Keys) {
-            $actual = Get-ArkNo11StartupRssStatus -Worksheet $sheet -Address $address
-            if ($actual -cne $expectedStates[$address]) { return $false }
+        if ($matches.Count -eq 0) {
+            $result.Workbook = 'EXPECTED_WORKBOOK_NOT_IN_ACTIVE_EXCEL'
+            return [pscustomobject]$result
         }
-        return $true
+        if ($matches.Count -ne 1) {
+            $result.Workbook = 'WORKBOOK_IDENTITY_AMBIGUOUS'
+            return [pscustomobject]$result
+        }
+        $result.Workbook = 'MATCHED'
     } catch {
-        # No healthy/unique active Excel workbook or COM busy is not a PASS.
-        return $false
+        $result.Workbook = 'WORKBOOK_COM_ENUMERATION_FAILED'
+        return [pscustomobject]$result
     }
+    try {
+        $sheet = $matches[0].Worksheets.Item($expectedSheet)
+    } catch {
+        $result.Sheet = 'ACCOUNT_SHEET_UNAVAILABLE'
+        return [pscustomobject]$result
+    }
+    return Get-ArkNo11SheetStatusReport -Worksheet $sheet
+}
+
+function Write-ArkNo11ReadinessDiagnostic {
+    param([Parameter(Mandatory=$true)]$Report)
+    Write-Host 'NO11_RSS_DIAGNOSTIC_READ_ONLY=True'
+    Write-Host ('NO11_RSS_DIAG_WORKBOOK={0}' -f $Report.Workbook)
+    Write-Host ('NO11_RSS_DIAG_SHEET={0}' -f $Report.Sheet)
+    foreach ($address in @('L1','N1','AA1','AL1')) {
+        Write-Host ('NO11_RSS_DIAG_{0}={1}' -f $address,$Report.$address)
+    }
+    Write-Host ('NO11_RSS_DIAG_READY={0}' -f $Report.Ready)
+    Write-Host 'ACTUAL_BROKER_DELIVERY_TIMESTAMP_CERTIFIED=False'
+    Write-Host 'LIVE_ORDER_ENABLED=False'
+}
+
+function Test-StatusCells {
+    $report = Get-ArkNo11ReadinessDiagnostic
+    return ($report.Ready -eq $true)
 }
 
 # Check the disk copy *before* opening it with the RSS add-in.
@@ -179,6 +250,11 @@ function Assert-PortAvailable {
     } finally {
         $listener.Stop()
     }
+}
+
+if ($DiagnosticOnly) {
+    Write-ArkNo11ReadinessDiagnostic -Report (Get-ArkNo11ReadinessDiagnostic)
+    return
 }
 
 Write-Host 'ARK_NO11_ONE_CLICK_STARTUP=READ_ONLY'
@@ -269,7 +345,10 @@ try {
         if (Test-StatusCells) { $ready = $true; break }
         Start-Sleep -Seconds 5
     }
-    if (-not $ready) { throw 'ARK_RSS_STATUS_NOT_READY_TIMEOUT' }
+    if (-not $ready) {
+        Write-ArkNo11ReadinessDiagnostic -Report (Get-ArkNo11ReadinessDiagnostic)
+        throw 'ARK_RSS_STATUS_NOT_READY_TIMEOUT'
+    }
     Write-Host 'RSS_FOUR_STATUS_CELLS_OBSERVED=True'
     Write-Host 'ACTUAL_BROKER_DELIVERY_TIMESTAMP_CERTIFIED=False'
     Write-Host 'STARTING_ARK_UI2_READ_ONLY=True'

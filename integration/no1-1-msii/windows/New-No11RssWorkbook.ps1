@@ -251,6 +251,14 @@ function Write-No11Diagnostic {
     $sheets = @($Book.Worksheets | Where-Object { $_.Name -eq "ARK_ACCOUNT_READONLY" })
     if ($sheets.Count -ne 1) { throw "NO11_ACCOUNT_SHEET_MISSING_OR_DUPLICATE" }
     $sheet = $sheets[0]
+    # Finished template has intentionally uncomputed RSS UDF caches. Recalculate
+    # only this exact READ ONLY sheet on the user's Excel/RSS instance.
+    # Never calculate unrelated Workbooks, Save or write formulas.
+    if ($ObserveSeconds -gt 0) {
+        try { [void]$sheet.Calculate() }
+        catch { throw "NO11_READ_ONLY_RSS_SHEET_CALCULATE_FAILED" }
+        Start-Sleep -Seconds $ObserveSeconds
+    }
     Assert-No11Layout -Sheet $sheet
     $feeds = [ordered]@{}
     $blockers = @()

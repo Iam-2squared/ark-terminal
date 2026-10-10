@@ -1,6 +1,7 @@
 ﻿# Ark No.1.1 PRIVATE V2/V3 parity inspection; no original file changes or raw values printed.
 param([string]$PrivateRoot=(Join-Path $env:LOCALAPPDATA 'ArkTerminal\No11'),
-      [int]$MaxComparisonGapSeconds=600)
+      [int]$MaxComparisonGapSeconds=600,
+      [string]$V2SnapshotPath='')
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 function PrivateJson([string]$File) {
@@ -23,7 +24,11 @@ function EqualRows($One,$Two,[string[]]$Fields) {
     return $true
 }
 try {
-    $old=PrivateJson (Join-Path $PrivateRoot 'snapshot.json')
+    $baseFull=[IO.Path]::GetFullPath($PrivateRoot).TrimEnd('\')+'\'
+    if([string]::IsNullOrWhiteSpace($V2SnapshotPath)){$V2SnapshotPath=Join-Path $PrivateRoot 'snapshot.json'}
+    $v2Full=[IO.Path]::GetFullPath($V2SnapshotPath)
+    if(-not $v2Full.StartsWith($baseFull,[StringComparison]::OrdinalIgnoreCase)){throw 'PARITY_V2_OUTSIDE_PRIVATE_DIRECTORY'}
+    $old=PrivateJson $v2Full
     $runs=Join-Path $PrivateRoot 'capture-v3-candidate'
     if(-not (Test-Path -LiteralPath $runs -PathType Container)){throw 'PRIVATE_V3_DIR_MISSING'}
     $dirs=@(Get-ChildItem -LiteralPath $runs -Directory | Sort-Object LastWriteTimeUtc -Descending)

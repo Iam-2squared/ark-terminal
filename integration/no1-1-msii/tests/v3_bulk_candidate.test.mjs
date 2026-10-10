@@ -31,3 +31,15 @@ test('local parity tool is privacy-limited and cannot certify broker arrival tim
   assert.match(p,/ACTUAL_BROKER_DELIVERY_TIMESTAMP_CERTIFIED=False/);
   assert.doesNotMatch(p,/Write-Host\s+.*(?:\.symbol|\.buyingPower|\.quantity)/i);
 });
+
+test('single-command parity runner requires verified V2/V3, isolated output, and same mutex',()=>{
+  const h=fs.readFileSync(path.join(root,'windows/Run-No11V3IsolatedParity.ps1'),'utf8');
+  assert.match(h,/0EAB3CA3081B2E0CB323D8438719F2B820B69FC02F373AD843B5907315838E2C/);
+  assert.match(h,/8B396BF22724ABBCA4BCEB7B93862AE46D40ACBDFE95B385F492E960E9F08DA3/);
+  assert.match(h,/parity-v2/);
+  assert.match(h,/Local\\ArkTerminal_No11_RSS_ReadOnly/);
+  assert.match(h,/MaxComparisonGapSeconds 600/);
+  assert.match(h,/NO11_PRODUCTION_READY=False/);
+  assert.match(h,/ORDER_TRANSMISSION=False/);
+  for(const forbidden of [/Workbooks\s*\.\s*(?:Add|Open)\s*\(/i,/\.Formula\s*=/i,/\.Value2\s*=/i,/RssStockOrder\s*\(/i])assert.doesNotMatch(h,forbidden);
+});

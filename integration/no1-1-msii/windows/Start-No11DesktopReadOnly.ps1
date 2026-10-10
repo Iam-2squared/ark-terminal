@@ -76,37 +76,7 @@ function Run-Once {
         }
         $newFolders = @(Get-ChildItem -LiteralPath $candidateRoot -Directory |
             Where-Object { -not $existing.ContainsKey($_.Name) })
-        if ($newFolders.Count -ne 1 -or $newFolders[0].Name -cnotmatch '^[a-f0-9]{32}
-        Write-Host 'NO11_DESKTOP_READ_ONLY_POLL_PASS=True'
-        Write-Host 'EXCEL_MODIFIED=False'
-        Write-Host 'ORDER_TRANSMISSION=False'
-    } catch {
-        $originalError = $_
-        if ($lockTaken) {
-            # Never reset safety or mask the original failure. Private ledger only.
-            try {
-                & $node $faultCli 'latch' '--ledger' $ledger '--reason' $faultReason | Out-Null
-                if ($LASTEXITCODE -ne 0) { Write-Warning 'NO11_SAFETY_LEDGER_LATCH_FAILED' }
-            } catch {
-                Write-Warning 'NO11_SAFETY_LEDGER_LATCH_FAILED'
-            }
-        }
-        throw $originalError
-    } finally {
-        if ($lockTaken) { [void]$mutex.ReleaseMutex() }
-        $mutex.Dispose()
-    }
-}
-if ($Watch) {
-    Write-Host 'NO11_DESKTOP_READ_ONLY_WATCH=ON; STOP=CTRL+C'
-    while ($true) {
-        Run-Once
-        Start-Sleep -Seconds $RefreshSeconds
-    }
-} else {
-    Run-Once
-}
-) {
+        if ($newFolders.Count -ne 1 -or $newFolders[0].Name -cnotmatch '^[a-f0-9]{32}$') {
             throw 'PRIVATE_V3_CAPTURE_IDENTITY_UNVERIFIED'
         }
         $faultReason = 'CAPITAL_OR_OWNERSHIP_GATE_BLOCKED'

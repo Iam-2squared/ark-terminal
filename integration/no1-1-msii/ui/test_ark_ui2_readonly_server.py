@@ -4,6 +4,10 @@ import importlib.util
 import json
 import tempfile
 import unittest
+import threading
+from datetime import datetime, timezone
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen
 from types import SimpleNamespace
 from unittest.mock import patch
 from pathlib import Path
@@ -153,6 +157,57 @@ class ServerModelTests(unittest.TestCase):
             loop._refresh_once()
         self.assertEqual(state.snapshot()["lastError"], "READ_ONLY_REFRESH_FAILED")
         self.assertNotIn("PRIVATE_", str(state.snapshot()))
+
+
+    def test_loopback_http_serves_read_only_and_blocks_after_refresh_failure(self):
+        timestamp = datetime.now(timezone.utc).isoformat()
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            index = root / "index.html"
+            overlay = root / "ark-readonly-overlay.js"
+            model_path = root / "model.json"
+            original = b'<html><body><div id="root"></div></body></html>'
+            index.write_bytes(original)
+            overlay.write_bytes(b'/* verified read-only overlay */')
+            model_path.write_text(json.dumps(model(timestamp)), encoding="utf-8")
+            state = mod.RefreshState()
+            server = mod.ArkUiServer(
+                ("127.0.0.1", 0), mod.Handler,
+                index_path=index, overlay_path=overlay,
+                model_path=model_path,
+                max_model_age_seconds=30,
+                refresh_state=state,
+            )
+            worker = threading.Thread(target=server.serve_forever, daemon=True)
+            worker.start()
+            url = f"http://127.0.0.1:{server.server_address[1]}"
+            try:
+                with urlopen(url + "/api/ui-read-model", timeout=4) as response:
+                    fresh = json.load(response)
+                    self.assertEqual(response.headers["Cache-Control"], "no-store, max-age=0")
+                self.assertEqual(fresh["source"]["freshness"]["state"], "FRESH")
+                self.assertTrue(fresh["readOnly"])
+
+                state.update(enabled=True, running=False, lastError="READ_ONLY_REFRESH_FAILED")
+                with urlopen(url + "/api/ui-read-model", timeout=4) as response:
+                    blocked = json.load(response)
+                self.assertEqual(blocked["source"]["freshness"]["state"], "REFRESH_FAILED")
+                self.assertEqual(blocked["system"]["tradeReadiness"], "BLOCKED")
+                self.assertEqual(blocked["home"]["buyingPowerState"], "REFRESH_FAILED")
+
+                with self.assertRaises(HTTPError) as error:
+                    urlopen(Request(url + "/api/ui-read-model", data=b"ORDER",
+                                    method="POST"), timeout=4)
+                self.assertEqual(error.exception.code, 405)
+                with urlopen(url + "/", timeout=4) as response:
+                    self.assertIn(b"/ark-readonly-overlay.js", response.read())
+                self.assertEqual(index.read_bytes(), original)
+                with urlopen(url + "/ark-readonly-overlay.js", timeout=4) as response:
+                    self.assertEqual(response.read(), b"/* verified read-only overlay */")
+            finally:
+                server.shutdown()
+                server.server_close()
+                worker.join(timeout=3)
 
 
 if __name__ == "__main__":

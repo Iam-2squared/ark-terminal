@@ -1,3 +1,7 @@
+> **更新注意（2026-10-10）**：以下は旧Workbook新規作成時の履歴手順です。既にPCで `%USERPROFILE%\Desktop\Ark_No11_MSII_RSS.xlsx` を使用し、Ownership Baselineをローカルに保存した現在の環境では、**この手順のWorkbook作成・旧worktree追加を繰り返さない**でください。最新の実機確認方法は [DESKTOP_SINGLE_WORKBOOK_HANDOFF-ja.md](DESKTOP_SINGLE_WORKBOOK_HANDOFF-ja.md) を参照してください。現行の起動・自動更新は `Start-No11DesktopUi.ps1` です。RSS注文許可はOFFのままにします。未解決のライブ経路を完了と見なしません。
+
+---
+
 # 🖥️ No.1.1 専用 MarketSpeed II RSS — Windows READ ONLY 実機ゲート
 
 **旧Ark_MSII_LiveSource.xlsxのセル操作を繰り返さない。**

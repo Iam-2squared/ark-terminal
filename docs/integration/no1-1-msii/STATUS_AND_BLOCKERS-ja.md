@@ -1,3 +1,7 @@
+> **2026-10-10最新版への導線**：本書の本文は10月9日時点の監査記録です。現在は既存デスクトップWorkbookからRSS4系統のREAD ONLY読取が実機で成立し、個人保有1件のOwnership Baselineも本人確認後にローカル固定済みです。2026-10-10の `DESKTOP_SINGLE_WORKBOOK_HANDOFF-ja.md` を優先してください。最新のUI2自動更新とCapital v5資金プレビューは、CI検証が済んでも新しいWindows実機E2Eは未実施です。ライブFrozenイベント、真の到着時刻、Broker注文・約定の経路は引き続きBLOCKED。注文許可OFF、実発注0を維持します。
+
+---
+
 # 🔒 No.1.1 → MSII Cash-only : Integration Gate status
 
 As of 2026-10-09 JST. Integration branch only. No main merge; no order submission.

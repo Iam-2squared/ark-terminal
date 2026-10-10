@@ -85,6 +85,20 @@ jobs:
             if ($errors.Count -gt 0) { throw "PS51_PARSE_ERROR:$($file.Name):$($errors[0])" }
           }
           Write-Host "WINDOWS_POWERSHELL_51_PARSE_PASS=$($files.Count)"
+      - name: Exercise desktop capture mutex primitive (Windows PowerShell 5.1)
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $mutex = [System.Threading.Mutex]::new($false, 'Local\ArkTerminal_No11_RSS_ReadOnly_CI')
+          $acquired = $false
+          try {
+            $acquired = $mutex.WaitOne(0)
+            if (-not $acquired) { throw 'NO11_MUTEX_TEST_BLOCKED' }
+            Write-Host 'NO11_DESKTOP_MUTEX_CONSTRUCTOR_PASS'
+          } finally {
+            if ($acquired) { [void]$mutex.ReleaseMutex() }
+            $mutex.Dispose()
+          }
       - name: Test RSS formula echo and strict error rejection (Windows PowerShell 5.1)
         shell: powershell
         run: |

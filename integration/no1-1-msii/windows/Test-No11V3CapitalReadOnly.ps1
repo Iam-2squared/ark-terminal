@@ -1,10 +1,16 @@
 ﻿# READ ONLY: Windows V3 capture + Capital/Ownership proof on isolated candidate files.
 # Does not overwrite official Snapshot/Health/Capital or reset a Safety latch.
-param([string]$WorkbookPath=(Join-Path ([Environment]::GetFolderPath('Desktop')) 'Ark_No11_MSII_RSS.xlsx'))
+param(
+    [string]$WorkbookPath=(Join-Path ([Environment]::GetFolderPath('Desktop')) 'Ark_No11_MSII_RSS.xlsx'),
+    [string]$V3File=(Join-Path $HOME 'Downloads\Ark-No11-CaptureReadOnly-v3-CANDIDATE.ps1')
+)
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 $root=Split-Path -Parent $PSScriptRoot
-$v3=Join-Path $PSScriptRoot 'Ark-No11-CaptureReadOnly-v3-CANDIDATE.ps1'
+# Use the byte-pinned, already PC-tested Downloads copy. The Git worktree copy may
+# have CRLF checkout smudging on an individual Windows installation despite attributes.
+# Strict SHA256 attestation remains mandatory; do not rewrite or normalize the source.
+$v3=$V3File
 $gate=Join-Path $root 'tools\no11_v3_capital_probe.mjs'
 $local=Join-Path $env:LOCALAPPDATA 'ArkTerminal\No11'
 $runs=Join-Path $local 'capture-v3-candidate'
@@ -17,6 +23,7 @@ $lockTaken=$false
 try {
     if(-not (Test-Path -LiteralPath $v3 -PathType Leaf)){throw 'V3_CANDIDATE_CODE_MISSING'}
     if((Get-FileHash -LiteralPath $v3 -Algorithm SHA256).Hash -cne $expectedV3Hash){throw 'V3_CANDIDATE_HASH_MISMATCH'}
+    Write-Host 'NO11_V3_PINNED_DOWNLOAD_SOURCE_VERIFIED=True'
     if(-not (Test-Path -LiteralPath $gate -PathType Leaf)){throw 'V3_CAPITAL_PROBE_CODE_MISSING'}
     if(-not (Test-Path -LiteralPath $owner -PathType Leaf)){throw 'PRIVATE_OWNERSHIP_BASELINE_MISSING'}
     if(-not (Test-Path -LiteralPath $WorkbookPath -PathType Leaf)){throw 'DESKTOP_WORKBOOK_MISSING'}

@@ -72,3 +72,14 @@ test('probe shell reads only, checks immutable Freeze and hash and leaves offici
   assert.doesNotMatch(j,/writeFile|renameSync|unlink|rmSync|mkdirSync/);
   assert.match(j,/no11_desktop_cash_preview\.mjs/);
 });
+
+test('Windows V3 Capital probe executes byte-verified Downloads candidate, not smudged Git worktree',()=>{
+  const s=fs.readFileSync(path.join(root,'windows/Test-No11V3CapitalReadOnly.ps1'),'utf8');
+  assert.match(s,/Downloads\\Ark-No11-CaptureReadOnly-v3-CANDIDATE\.ps1/);
+  assert.match(s,/\$v3=\$V3File/);
+  assert.match(s,/Get-FileHash -LiteralPath \$v3 -Algorithm SHA256/);
+  assert.match(s,/V3_CANDIDATE_HASH_MISMATCH/);
+  assert.match(s,/NO11_V3_PINNED_DOWNLOAD_SOURCE_VERIFIED=True/);
+  assert.match(s,/NO11_V3_CAPITAL_DIAGNOSTIC_PASS=/);
+  assert.doesNotMatch(s,/(?:Set-Content|Add-Content|Out-File|WriteAllBytes|WriteAllText|\.Save(?:As)?\()/i);
+});

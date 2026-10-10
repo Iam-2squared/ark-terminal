@@ -31,6 +31,10 @@ jobs:
         run: |
           node --version
           node --test integration/no1-1-msii/tests/*.test.mjs
+      - name: Byte-exact Frozen Capital v5 synthetic bridge tests
+        shell: bash
+        run: |
+          python3 -m unittest discover -s integration/no1-1-msii/tests -p 'test_capital_v5_shadow.py' -v
       - name: Original UI2 loopback server unit tests
         shell: bash
         run: |

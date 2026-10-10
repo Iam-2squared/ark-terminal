@@ -77,3 +77,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\ArkTerminal\no11-lau
 ```
 
 Permitted report fields: `NO11_RSS_DIAG_WORKBOOK`, `NO11_RSS_DIAG_SHEET`, `NO11_RSS_DIAG_L1/N1/AA1/AL1`, `NO11_RSS_DIAG_READY`; all are coded enums, not raw account values. If a future regular startup times out, the same report is printed. The code still demands exact original formula + acceptable RSS echo. A screenshot of an Excel cell is not adequate proof of broker delivery freshness.
+
+## 2026-10-11: whole-account 18-header reference acceptance (strict)
+
+Live diagnostic (user PC): Workbook MATCHED, Sheet FOUND; L1/N1/AA1 PASS, AL1 FORMULA_MISMATCH. Read-only structural inspection: AL1 has one argument (header range), no symbol filter, no account filter; formula length 29. A formula with Excel absolute coordinates, `=RssPositionList($AL$2:$BC$2)`, has that length, but the actual header address is **not yet independently certified** by these observations.
+
+The one-click startup whitelist now additionally permits **only** the relative or absolute `AL2:BC2` 18-header form, provided all 18 provider headers are byte-exact in the expected columns and the returned feed state is exactly `配信中`. `RssPositionList()` remains supported. A 10-header range, any filtered account/symbol variant, wrong header order/labels, malformed formula or invalid feed state remains BLOCKED. This checks only startup RSS observation: downstream pinned private capture/Ownership/Fresh Snapshot must still pass separately. No workbook edits, manual order switch or production promotion.

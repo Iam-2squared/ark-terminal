@@ -172,3 +172,61 @@ if ($wrongReport.Ready -eq $true -or $wrongReport.N1 -cne 'RSS_FORMULA_MISMATCH'
     throw 'NO11_STARTUP_DIAG_WRONG_FORMULA_NOT_BLOCKED'
 }
 Write-Host 'NO11_STARTUP_DIAGNOSTIC_MOCK_PASS=3'
+
+
+# AL1 18-header absolute/relative reference compatibility (READ ONLY synthetic).
+# This must not turn a 10-column or filtered account list into a complete source.
+function New-ArkRssPositionHeaderMock {
+    param([string]$Formula,[string]$Value,[switch]$TamperHeader)
+    $sheet = Fake-Sheet -Formula $Formula -Value $Value
+    $names = @('銘柄コード', '銘柄名称', '口座区分', '保有数量', '発注数量', '平均取得価額', '時価', '前日比', '前日比率', '時価評価額', '評価損益額', '評価損益率', '銘柄情報等', 'JAX時価', 'JNX時価', 'PER', 'PBR', '配当利回り')
+    $headerMap = @{}
+    for ($i = 0; $i -lt $names.Count; $i++) {
+        $word = $names[$i]
+        if ($TamperHeader -and $i -eq 9) { $word = '不正な列' }
+        $headerMap[[string](38 + $i)] = [pscustomobject]@{ Text=$word }
+    }
+    $cols = [pscustomobject]@{ Map=$headerMap }
+    $cols | Add-Member -MemberType ScriptMethod -Name Item -Value {
+        param($row,$col)
+        if ($row -ne 2) { throw 'HEADER_ROW_INVALID' }
+        return $this.Map[[string]$col]
+    }
+    $sheet | Add-Member -MemberType NoteProperty -Name Cells -Value $cols
+    return $sheet
+}
+$absolute = '=RssPositionList($AL$2:$BC$2)'
+if ($absolute.Length -ne 29) { throw 'NO11_AL1_ABSOLUTE_LENGTH_WRONG' }
+$absoluteEcho = '=@RssPositionList($AL$2:$BC$2) => 配信中'
+$relative = '=RssPositionList(AL2:BC2)'
+foreach ($sample in @(
+    @{ Formula=$absolute; Value=$absoluteEcho },
+    @{ Formula=$absolute; Value='配信中' },
+    @{ Formula=$relative; Value='=RssPositionList(AL2:BC2) => 配信中' }
+)) {
+    $mock = New-ArkRssPositionHeaderMock -Formula $sample.Formula -Value $sample.Value
+    if ((Get-ArkNo11StartupRssStatus -Worksheet $mock -Address 'AL1') -cne '配信中') {
+        throw 'NO11_AL1_VERIFIED_HEADER_18_REJECTED'
+    }
+}
+foreach ($sample in @(
+    @{ Formula='=RssPositionList($AL$2:$AU$2)'; Expected='RSS_FORMULA_MISMATCH' },
+    @{ Formula='=RssPositionList(AL2:BD2)'; Expected='RSS_FORMULA_MISMATCH' },
+    @{ Formula='=RssPositionList(AL2:BC2,1234)'; Expected='RSS_FORMULA_MISMATCH' },
+    @{ Formula='=RssPositionList(AL2:BC2,1)'; Expected='RSS_FORMULA_MISMATCH' },
+    @{ Formula='=RssPositionList(A2:J2)'; Expected='RSS_FORMULA_MISMATCH' }
+)) {
+    $mock = New-ArkRssPositionHeaderMock -Formula $sample.Formula -Value '配信中'
+    if ((Get-ArkNo11StartupRssStatus -Worksheet $mock -Address 'AL1') -cne $sample.Expected) {
+        throw 'NO11_AL1_INCOMPLETE_OR_FILTERED_SOURCE_NOT_BLOCKED'
+    }
+}
+$wrongHeader = New-ArkRssPositionHeaderMock -Formula $absolute -Value $absoluteEcho -TamperHeader
+if ((Get-ArkNo11StartupRssStatus -Worksheet $wrongHeader -Address 'AL1') -cne 'RSS_POSITION_HEADERS_MISMATCH') {
+    throw 'NO11_AL1_HEADER_MAPPING_NOT_BLOCKED'
+}
+$badEcho = New-ArkRssPositionHeaderMock -Formula $absolute -Value '=@RssPositionList($AL$2:$BC$2) => #NAME?'
+if ((Get-ArkNo11StartupRssStatus -Worksheet $badEcho -Address 'AL1') -cne 'RSS_STATUS_UNRECOGNIZED') {
+    throw 'NO11_AL1_BAD_FEED_STATUS_NOT_BLOCKED'
+}
+Write-Host 'NO11_AL1_18_HEADER_REFERENCE_TESTS_PASS=10'

@@ -59,3 +59,9 @@ ORDER_TRANSMISSION=False
 - 発注機能そのものは現行Draftになく、ユーザーがRSS注文ONにしてもArkはまだ発注しない
 
 CIはオフラインでソースを検証するに過ぎず、現在の株価や本番実行環境を認証したものではない。**ユーザーの火曜日実売買希望は目標として保持し、未認証のまま実注文を解禁しない。**
+
+## 2026-10-10 PM: RSS formula-echo STARTUP regression repaired
+
+**Observed on user PC:** RSS status cells were rendered as formula plus state, e.g. `=@RssCapacityList(L2:L2) => 完了`, while one-click preflight required raw `Value2 === 完了` / `配信中`. This caused `ARK_RSS_STATUS_NOT_READY_TIMEOUT` even with visible RSS output. A startup-only strict parser now checks **both the exact approved formula and one of the exact approved status representations**. It is aligned with the already audited `Get-No11ReadOnlySnapshot.ps1` parser, and the existing offline Windows PowerShell test tests all three implementations on valid and malformed states. No Excel formula change, workbook regeneration, order function, account write, or loosened signal checks.
+
+**IMPORTANT:** This corrects the launcher *readiness heuristic only*. It does NOT independently certify underlying RSS delivery timestamps, live data, broker fill, strategy inference or live trade readiness. Keep Excel RSS order feature OFF. After pulling the new branch version, the pinned old launcher will still fail until the versioned worktree is updated safely.

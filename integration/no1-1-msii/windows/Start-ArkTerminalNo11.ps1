@@ -25,6 +25,40 @@ $expectedStates = [ordered]@{
 }
 
 # Never inspect account amounts or stock rows here. Only readiness status cells.
+
+# Same strict formula+RSS-status contract as Get-No11ReadOnlySnapshot.ps1.
+# Do not accept any text merely ending in "完了" or "配信中".
+# Reading here never executes the RSS formula or writes Excel.
+function Get-ArkNo11StartupRssStatus {
+    param(
+        [Parameter(Mandatory=$true)]$Worksheet,
+        [Parameter(Mandatory=$true)][string]$Address
+    )
+    $expected = @{
+        L1  = @{ formula = '=RssCapacityList(L2:L2)'; state = '完了' }
+        N1  = @{ formula = '=RssOrderList(N2:W2,0,1)'; state = '配信中' }
+        AA1 = @{ formula = '=RssExecutionList(AA2:AI2,1)'; state = '配信中' }
+        AL1 = @{ formula = '=RssPositionList()'; state = '配信中' }
+    }
+    if (-not $expected.ContainsKey($Address)) { throw 'RSS_STATUS_ADDRESS_INVALID' }
+    $cell = $Worksheet.Range($Address)
+    if ($cell.HasFormula -ne $true) { return 'RSS_FORMULA_MISSING' }
+    # Excel implicitly inserts @ for some add-in formula versions.
+    $formula = ([string]$cell.Formula) -replace '^=@', '='
+    if ($formula -cne $expected[$Address].formula) { return 'RSS_FORMULA_MISMATCH' }
+    $state = [string]$expected[$Address].state
+    foreach ($raw in @([string]$cell.Value2, [string]$cell.Text)) {
+        $value = $raw.Trim()
+        if ($value -ceq $state -or $value -ceq ($formula + ' => ' + $state)) {
+            return $state
+        }
+        if ($value -ceq ('=@' + $formula.Substring(1) + ' => ' + $state)) {
+            return $state
+        }
+    }
+    return 'RSS_STATUS_UNRECOGNIZED'
+}
+
 function Get-WorkbookOpenState {
     # Unlike feed readiness, this checks identity even while RSS is pending.
     try {
@@ -60,7 +94,7 @@ function Test-StatusCells {
         if ($matches.Count -ne 1) { return $false }
         $sheet = $matches[0].Worksheets.Item($expectedSheet)
         foreach ($address in $expectedStates.Keys) {
-            $actual = ([string]$sheet.Range($address).Value2).Trim()
+            $actual = Get-ArkNo11StartupRssStatus -Worksheet $sheet -Address $address
             if ($actual -cne $expectedStates[$address]) { return $false }
         }
         return $true

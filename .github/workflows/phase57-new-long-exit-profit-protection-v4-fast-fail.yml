@@ -1,0 +1,24 @@
+name: Phase57 NEW LONG EXIT Profit Protection v4 FAST-FAIL
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-new-long-exit-profit-protection-v4-fast-fail.yml'
+      - 'scripts/*phase57_new_long_exit_profit_protection_v4_fast_fail*'
+      - 'docs/evidence/phase57-new-long-exit-profit-protection-v4-contract-2026-09-18.md'
+permissions: {contents: read}
+jobs:
+  profit-protection-v4:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - env: {ARK_TEST_OFFLINE: '1'}
+        run: python3 scripts/offline/kernel_exec.py python3 -m unittest scripts.test_phase57_new_long_exit_profit_protection_v4_fast_fail
+      - env: {ARK_TEST_OFFLINE: '1'}
+        run: |
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_profit_protection_v4_fast_fail --out /tmp/pp4-a | tee /tmp/pp4.txt
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_profit_protection_v4_fast_fail --out /tmp/pp4-b >/tmp/pp4b.txt
+          cmp /tmp/pp4-a/summary.json /tmp/pp4-b/summary.json
+          cmp /tmp/pp4-a/ledger.json.gz /tmp/pp4-b/ledger.json.gz
+          cmp /tmp/pp4-a/manifest.json /tmp/pp4-b/manifest.json

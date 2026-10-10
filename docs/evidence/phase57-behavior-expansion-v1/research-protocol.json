@@ -1,0 +1,31 @@
+{
+  "preOutcome": true,
+  "registryDefinitionHash": "3db98b56a98e39cc15708c5918c2aaf694376cc472d601c79971db49a5b98a39",
+  "splitHash": "b203fc387e6f5637549cc99b0de90d6d93a6a4690bdf60cb689712b1bcdd0a3d",
+  "assessorChange": "Only chronological calendar index arrays and random split matching half sizes; all other v0 assessor code identical and tested",
+  "dailyAdaptation": "Minute coverage covariate unavailable before minute history; prior daily observation fraction substitutes coverage explicitly; no master predictors",
+  "gaps": "excluded dates remain NaN calendar positions in serial statistics and resampling; causal feature history resets",
+  "drift": {
+    "halfLife": [
+      20,
+      60,
+      250
+    ],
+    "windows": [
+      20,
+      60,
+      250
+    ],
+    "zFlagAbsGreaterThan": 3,
+    "minPerNonOverlapWindow": 20,
+    "confidenceOnly": true,
+    "missingStructuralHistory": "UNKNOWN"
+  },
+  "chartReader": "causal context schema only; decisions contingent on Dictionary gate; no candidate or threshold search",
+  "entryExitGate": "intraday full73 Dictionary Completion must pass before candidate development; daily-only pass never manufactures intraday pass",
+  "fileHashes": {
+    "scripts/phase57_expansion_measure.py": "503a0b7214057982ab1e6df701fea72598eec63c4ab2345c779a828291062485",
+    "scripts/phase57_expansion_assess.py": "f0fe3e9a8cd4eca87619d15eb787b01a6f61535e5f5c5e7c513f7206c7c7d42d",
+    "scripts/phase57_chart_reader_research.py": "9c3bf3731641092b8d4fbbce4c040b5ef08b892fcee2e86d10838edacf01ddb8"
+  }
+}

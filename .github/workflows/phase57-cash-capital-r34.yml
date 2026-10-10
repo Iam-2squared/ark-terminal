@@ -1,0 +1,100 @@
+# Basis: 4c69cd9e9abe3ac7abdd7add76439ee156f6ffdc, 2026-09-26 JST.
+# Current: R34 cash/rank primitives and 24 synthetic tests saved.
+# Next: bind causal sizing and final frozen EXIT; no historical portfolio run here.
+name: Phase57 Cash Capital Primitives R34
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - 'scripts/phase57_cash_capital_r34.py'
+      - 'scripts/test_phase57_cash_capital_r34.py'
+      - '.github/workflows/phase57-cash-capital-r34.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: phase57-cash-capital-r34-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  synthetic-accounting:
+    if: github.ref == 'refs/heads/research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      ARK_TEST_OFFLINE: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONPATH: '.'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /scripts/phase57_cash_capital_r34.py
+            /scripts/test_phase57_cash_capital_r34.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Run cash-only boundary tests
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/r34/run-a artifacts/r34/run-b
+          python -m unittest -v scripts.test_phase57_cash_capital_r34 2>&1 | tee artifacts/r34/tests.log
+      - name: Reproduce synthetic event batches twice
+        run: |
+          set -euo pipefail
+          for run in run-a run-b; do
+            OUT_DIR="artifacts/r34/$run" python - <<'PY'
+          import json, os
+          from pathlib import Path
+          from scripts.phase57_cash_capital_r34 import CashBook, SAFETY
+          from scripts.test_phase57_cash_capital_r34 import entry, exit_event, T0, T1
+          report = {'kind':'SYNTHETIC_ONLY_NOT_PORTFOLIO_PERFORMANCE','books':{}}
+          for cap in (3,4,5):
+              book = CashBook(cap)
+              first = book.step(T0, [entry(i, rank=i+1) for i in range(7)])
+              second = book.step(T1, [entry(8, now=T1)], [exit_event(0)])
+              assert len(book.positions) == cap
+              assert book.cash >= 0
+              report['books'][str(cap)] = {'first':first,'second':second,'snapshot':book.snapshot(T1)}
+          report['safety'] = SAFETY
+          Path(os.environ['OUT_DIR'], 'synthetic-ledgers.json').write_text(json.dumps(report, sort_keys=True, separators=(',',':'))+'\n')
+          PY
+          done
+          diff -ru artifacts/r34/run-a artifacts/r34/run-b
+          python - <<'PY'
+          import hashlib, json, os
+          from datetime import datetime, timezone
+          from pathlib import Path
+          from scripts.phase57_cash_capital_r34 import SAFETY
+          root = Path('artifacts/r34')
+          digest = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+          receipt = {
+              'schemaVersion':'phase57-r34-synthetic-ci-receipt-v1',
+              'savedAtUtc':datetime.now(timezone.utc).isoformat(),
+              'executionHead':os.environ['GITHUB_SHA'],
+              'runId':os.environ['GITHUB_RUN_ID'],
+              'status':'CASH_CAPACITY_ACCOUNTING_TEST_PASS_NOT_PORTFOLIO_PASS',
+              'runABByteIdentical':True,
+              'outputSha256':digest(root/'run-a/synthetic-ledgers.json'),
+              'sourceSha256':{str(p):digest(p) for p in [Path('scripts/phase57_cash_capital_r34.py'),Path('scripts/test_phase57_cash_capital_r34.py')]},
+              'capacities':[3,4,5], 'primaryCapacity':3,
+              'initialCashJpy':1000000, 'lotSize':100,
+              'historicalPortfolioReplays':0, 'newExitModelFits':0,
+              'providerRequests':0, 'protectedPartitionsOpened':0,
+              'sizingPolicyChosenByThisModule':False,
+              'currentState':'Rank ordering, cash-only admission and confirmed-exit accounting tested',
+              'nextPlan':'Bind audited causal requested quantities and Final Frozen EXIT only after its gate',
+              'safety':SAFETY,
+          }
+          (root/'receipt.json').write_text(json.dumps(receipt, sort_keys=True, indent=2)+'\n')
+          PY
+      - name: Preserve synthetic evidence and any failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-cash-capital-r34-${{ github.run_id }}
+          path: artifacts/r34
+          retention-days: 30
+          overwrite: false
+          if-no-files-found: error

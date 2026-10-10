@@ -1,0 +1,34 @@
+{
+ "version":"PULLBACK_READER_CORRECTION_SPEC_V1_PRECOMMIT",
+ "status":"SPECIFICATION_ONLY_NOT_IMPLEMENTED_OR_MEASURED",
+ "pullbackCandidate":{
+  "registryVersionCandidate":"RESEARCH_DICTIONARY_PULLBACK_VNEXT_CANDIDATE_1",
+  "newTraitId":"long_pullback_depth_contiguous_v1",
+  "oldTraitUnchanged":"pullback_depth",
+  "scale":"Existing causal priorClose*S; fixed 0.5S reversal threshold unchanged",
+  "segment":"Same symbol/session/AM-or-PM; exactly adjacent complete 5m bars; reset on any missing bar or phase/session boundary",
+  "impulse":"Confirmed upward swing direction=+1, from trough to peak",
+  "correction":"Immediately following confirmed downward swing direction=-1 in the same uninterrupted segment, sharing the impulse peak as its anchor",
+  "value":"downward correction amplitude / immediately preceding upward impulse amplitude; denominator strictly positive; no clipping of ratios above1",
+  "availability":"Only at downward swing's later upward-reversal confirmation, never at its earlier trough/extremeAt",
+  "multipleEvents":"Retain all event records; per-session scalar is arithmetic mean of eligible pairs. nEventPairs, event-bearing sessions and effective sessions stored separately; no new inference independence claim",
+  "missing":"No confirmed eligible pair => null, never zero; unconfirmed terminal correction excluded",
+  "scope":"Correct cross-phase adjacency and explicitly define LONG direction. No new search, threshold change or automatic replacement of v0",
+  "remeasurement":"Not in this task; separate bounded Development-only precommit must preserve v0 comparator and unchanged Gate"
+ },
+ "readerCandidate":{
+  "version":"CAUSAL_CHART_READER_V2_CANDIDATE",
+  "history":"Canonical explicit session=original daily.Date. Reject missing/duplicate/nonincreasing dates or date>=current session. Adapter explicitly converts barValue integer keys to canonical barValues integer keys; never guesses a missing session or silently aliases malformed data",
+  "minuteTimestamp":"1m bar start time, JST; bar starting m becomes available at m+1",
+  "closed5m":"At decision minute t, only complete five consecutive observed 1m bars in [e-5,e) with e<=t. No zero-fill, forward-fill, missing/lunch bridges or terminal auction substitution",
+  "decisionDomain":"09:05..11:30 and12:35..regularClose, inclusive. regularClose=15:00 before2024-11-05,15:25 thereafter. Outside domain return UNAVAILABLE_OUTSIDE_CONTINUOUS_PHASE",
+  "expectedEnd":"floor(t/5)*5 inside active phase; lastCompletedBar must equal expectedEnd",
+  "maxStalenessMinutes":4,
+  "freshness":"Both expectedEnd equality and 0<=t-lastCompletedBar<=4 required. Missing latest complete bar => UNAVAILABLE_MISSING_CURRENT_BAR even if older bar age appears acceptable. No morning context at afternoon start",
+  "boundaries":"Reset swing/contiguity at missing bars, lunch and session boundary; previous daily must be exact preceding allowed exchange session with verified calendar provenance or unavailable",
+  "missing":"Reason-coded null features; no silent fresh status. No eligible scale or prior daily => UNAVAILABLE. Partial history insufficient for volume baseline => null RVOL with reason, not synthetic zero",
+  "personality":"computed_through strictly before current session; preserve as-of/definition/units and separately versioned freshness policy. Do not join old daily snapshot as if current. Require explicit mapping between wick/range and wick/S; conditional future response profiles never become contemporaneous known outcomes",
+  "contractTests":"future poison/truncation,exact5m boundary,09:00/09:05,11:30/lunch,12:30/12:35,pre/post2024 close,missing last minute,duplicate minute,stale bar,unconfirmed swing,history adapter roundtrip,price-scale invariance,production rejection"
+ },
+ "authorization":"Freeze this specification before coverage results. No Reader implementation, new registry measurement or Entry/EXIT development in this task."
+}

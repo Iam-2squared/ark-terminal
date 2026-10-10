@@ -1,0 +1,114 @@
+name: Phase57 Full144 Source Audit
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-full144-source-audit.yml'
+      - 'scripts/phase57_full144_audit.py'
+      - 'docs/evidence/phase57-full144-source-audit-v1/protocol*.json'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-full144-source-audit-v1
+  cancel-in-progress: true
+jobs:
+  preflight:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    outputs:
+      measure: ${{ steps.gate.outputs.measure }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - id: gate
+        run: |
+          if test "$(git log -1 --format=%s)" = 'Phase57: audit full144 source bars'; then
+            test ! -e docs/evidence/phase57-full144-source-audit-v1/ci-result
+            echo 'measure=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'measure=false' >> "$GITHUB_OUTPUT"
+          fi
+  measure:
+    needs: preflight
+    if: needs.preflight.outputs.measure == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      ARK_TEST_OFFLINE: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: pip install numpy==2.3.5 scipy==1.17.0 pandas==2.2.3 fastapi pytest httpx matplotlib==3.10.3
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-expansion-raw-minute-*-35447995157
+          path: ${{ runner.temp }}/behavior/encrypted
+          repository: Iam-2squared/ark-terminal
+          run-id: 35447995157
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-expansion-reuse-35447995157
+          path: ${{ runner.temp }}/behavior/encrypted/reuse
+          repository: Iam-2squared/ark-terminal
+          run-id: 35447995157
+          github-token: ${{ github.token }}
+      - name: Restore manifest-authorized Development only and audit original response rows
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/behavior/evidence"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_expansion_data restore --archives "$RUNNER_TEMP/behavior/encrypted" --cache "$RUNNER_TEMP/behavior/raw" --output "$RUNNER_TEMP/behavior/evidence/extraction.json"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_full144_audit --cache "$RUNNER_TEMP/behavior/raw" --output "$RUNNER_TEMP/behavior/evidence"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-full144-source-audit-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/behavior/evidence
+          retention-days: 90
+      - name: Purge private restored cache
+        if: always()
+        run: rm -rf -- "$RUNNER_TEMP/behavior/raw" "$RUNNER_TEMP/behavior/encrypted" "$RUNNER_TEMP/behavior/matrix" "$RUNNER_TEMP/behavior/substrate-replay" "$RUNNER_TEMP/behavior/measurement-replay"
+  preserve:
+    needs: measure
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-full144-source-audit-${{ github.event.pull_request.head.sha }}
+          path: docs/evidence/phase57-full144-source-audit-v1/ci-result
+      - name: Preserve new evidence on exact PR branch without merge
+        env:
+          BRANCH: ${{ github.head_ref }}
+          EXPECTED: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$BRANCH" = research/phase57-long-only-cash-equity
+          test "$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)" = "$EXPECTED"
+          test -z "$(git ls-tree -r HEAD -- docs/evidence/phase57-full144-source-audit-v1/ci-result)"
+          test -s docs/evidence/phase57-full144-source-audit-v1/ci-result/REPORT-ja.md
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/evidence/phase57-full144-source-audit-v1/ci-result
+          git commit -m 'Phase57: preserve full144 source audit before revised metrics'
+          git push origin "HEAD:$BRANCH"

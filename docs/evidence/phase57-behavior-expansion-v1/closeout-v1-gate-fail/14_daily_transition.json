@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "phase57-closeout-v1",
+  "recordedAt": "2026-09-20T04:14:27+09:00",
+  "item": 14,
+  "status": "PASS",
+  "reason": "All 73 daily trait state transitions are accounted for.",
+  "transitionCounts": {
+    "WATCH->WATCH": 29,
+    "WATCH->USABLE": 1,
+    "INSUFFICIENT->USABLE": 2,
+    "INSUFFICIENT->WATCH": 1,
+    "USABLE->USABLE": 1,
+    "WATCH->INSUFFICIENT": 22,
+    "USABLE->INSUFFICIENT": 2,
+    "INSUFFICIENT->INSUFFICIENT": 15
+  },
+  "namedChanges": {
+    "WATCH->USABLE": [
+      "inside"
+    ],
+    "INSUFFICIENT->USABLE": [
+      "gap_fill",
+      "gap_cont"
+    ],
+    "INSUFFICIENT->WATCH": [
+      "gap_rev"
+    ],
+    "USABLE->USABLE": [
+      "amihud"
+    ],
+    "USABLE->INSUFFICIENT": [
+      "value_AM",
+      "value_PM1"
+    ]
+  },
+  "accountedTraits": 73
+}

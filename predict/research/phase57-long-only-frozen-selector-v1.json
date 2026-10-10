@@ -1,0 +1,857 @@
+{
+  "schemaVersion": 1,
+  "status": "PHASE57_LONG_ONLY_FROZEN_SELECTOR_V1",
+  "freezePayload": {
+    "identity": {
+      "formalName": "Phase57 LONG-only Frozen Selector v1",
+      "status": "FORMALLY_FROZEN_DEVELOPMENT_ONLY",
+      "direction": "LONG_ONLY",
+      "legacyNamesExcluded": [
+        "measurement-uncorrected Candidate v1",
+        "Legacy Selector",
+        "HistGradientBoosting Candidate v2"
+      ]
+    },
+    "contracts": {
+      "correctedMeasurementCommit": "20356553ddece7309a6a00654c3b1e276d1a3466",
+      "eligibilityCommit": "2998675a217317e4658272129d8759f16d11cc7e",
+      "top5HitDiagnosticCommit": "4cd58726eeeb5f34ae8bb75570589e07261f6100",
+      "sourceHeadBeforeFormalFreeze": "98c04234ae9e6933923358376fbace09ac392c7a"
+    },
+    "selectorSpecification": {
+      "model": {
+        "family": "RIDGE_REGRESSION",
+        "source": "SAVED_DEVELOPMENT_C_PLUS_D",
+        "fitPartitions": [
+          "DEVELOPMENT_C",
+          "DEVELOPMENT_D"
+        ],
+        "trainingRows": 1077111,
+        "configuration": {
+          "contractId": "PHASE57_LONG_ONLY_FIXED_HORIZON_RIDGE_V1",
+          "candidateId": "RIDGE_Y30",
+          "heads": [
+            {
+              "contractId": "PHASE57_LONG_ONLY_FIXED_HORIZON_RIDGE_V1",
+              "targetName": "Y30",
+              "featureNames": [
+                "currentReturnPct",
+                "momentum30Pct",
+                "vwapDistancePct",
+                "vwapSlope15Pct",
+                "logCumulativeTurnover",
+                "volumeAccelerationRatio",
+                "trendEfficiency",
+                "rangeExpansionPct",
+                "timeOfDayFraction",
+                "segmentStandard",
+                "segmentGrowth",
+                "liquidityLow",
+                "liquidityHigh",
+                "marketBreadthPositivePct",
+                "sectorBreadthPositivePct"
+              ],
+              "means": [
+                0.05933269458659133,
+                -0.018647189450178108,
+                -0.04813831088560784,
+                -0.006372054570986437,
+                17.53960781052888,
+                1.5182985448323134,
+                0.3440218160122875,
+                1.9975680539903193,
+                0.4084614053026689,
+                0.31170974950585406,
+                0.1500653136027763,
+                0.19934621408564204,
+                0.4165652379374085,
+                46.02060719014484,
+                46.037672765197506
+              ],
+              "scales": [
+                2.0467892879379472,
+                0.8179059289243953,
+                0.8232585342146,
+                0.22235187105812526,
+                2.294417421907229,
+                109.67966093660739,
+                0.5088653218476143,
+                2.1514334369618107,
+                0.3088922170392123,
+                0.46319194894467847,
+                0.35713542985430835,
+                0.3995088247004009,
+                0.4929894932779551,
+                12.072985230802443,
+                14.50890883013034
+              ],
+              "intercept": -0.6783614482910981,
+              "weights": [
+                -0.37159086248569223,
+                -8.030771282720153,
+                -3.6489621918731836,
+                2.1769720015397853,
+                0.1111132403626052,
+                -0.6277173901300931,
+                0.5756643524462803,
+                -2.141912338424328,
+                0.5078891499702742,
+                0.24475469206049927,
+                0.7332363264905378,
+                -0.3772867326270698,
+                0.5711021681257411,
+                0.39109638269425206,
+                1.2133133645242615
+              ],
+              "lambda": 0.1,
+              "trainingRows": 1077111,
+              "artifactSha256": "165d4531639837e355e8a0f3a7ca3eaff50201b6406356c45d7825d51e652e35"
+            }
+          ],
+          "downsidePenaltyLambda": 0.5,
+          "artifactSha256": "994f1dbaba1d32e97458d5dd9d4c646ef443fbb37128650e8166001d8deabefb"
+        }
+      },
+      "featureUniverse": {
+        "orderedNames": [
+          "currentReturnPct",
+          "momentum30Pct",
+          "vwapDistancePct",
+          "vwapSlope15Pct",
+          "logCumulativeTurnover",
+          "volumeAccelerationRatio",
+          "trendEfficiency",
+          "rangeExpansionPct",
+          "timeOfDayFraction",
+          "segmentStandard",
+          "segmentGrowth",
+          "liquidityLow",
+          "liquidityHigh",
+          "marketBreadthPositivePct",
+          "sectorBreadthPositivePct"
+        ],
+        "orderIsContractual": true,
+        "newFeaturesAllowed": false
+      },
+      "trainingTarget": {
+        "name": "Y30",
+        "definition": "30-minute short-horizon endpoint expected return represented by 6 closed 5-minute trading observations",
+        "observationsForward": 6,
+        "barMinutes": 5,
+        "unchanged": true,
+        "distinctFromPrimaryWallClockEvaluator": true
+      },
+      "eligibility": {
+        "decisionPrice": "LATEST_CAUSALLY_AVAILABLE_CLOSED_MARKET_PRICE",
+        "maximumAgeWallClockMinutes": 5,
+        "staleOverFiveMinutes": "INELIGIBLE",
+        "forwardFillAllowed": false,
+        "interpolationAllowed": false,
+        "futureDataAllowed": false,
+        "order": "ELIGIBILITY_BEFORE_RANKING"
+      },
+      "ranking": {
+        "scoreOrder": "RIDGE_SCORE_DESC_THEN_SYMBOL_ASC",
+        "topN": 5,
+        "perDecisionTimestamp": true,
+        "decisionTimesJst": [
+          "09:30",
+          "10:00",
+          "10:30",
+          "11:00",
+          "11:30",
+          "13:00",
+          "13:30",
+          "14:00",
+          "14:30",
+          "15:00"
+        ],
+        "repeatSymbolsAcrossDecisionsAllowed": true
+      }
+    },
+    "evaluationDefinitions": {
+      "opportunityThresholdPct": [
+        1,
+        2,
+        3,
+        5
+      ],
+      "opportunityHorizon": "DECISION_PRICE_TO_SAME_SESSION_END_NO_OVERNIGHT_CARRY",
+      "primaryOpportunity": "CONTINUOUS_FUTURE_5M_HIGH_FROM_DECISION_PRICE",
+      "confirmationOpportunity": "FUTURE_5M_OR_TERMINAL_AUCTION_CLOSE_FROM_DECISION_PRICE",
+      "wallClock30m": {
+        "primaryShortHorizonEvaluator": true,
+        "targetTimestamp": "DECISION_TIMESTAMP_PLUS_30_WALL_CLOCK_MINUTES",
+        "missingPrice": "EVALUATION_UNAVAILABLE_NO_FORWARD_FILL"
+      },
+      "mfe": "max(0, maximum future return from Decision Price)",
+      "mae": "min(0, minimum future return from Decision Price)",
+      "randomBaseline": "SAME_DECISION_TIMESTAMP_SAME_ELIGIBLE_UNIVERSE_K_EQUALS_5"
+    },
+    "development": {
+      "sessions": [
+        "2024-09-17",
+        "2024-09-18",
+        "2024-09-19",
+        "2024-09-20",
+        "2024-09-24",
+        "2024-09-25",
+        "2024-09-26",
+        "2024-09-27",
+        "2024-09-30",
+        "2024-10-01",
+        "2024-10-02",
+        "2024-10-03",
+        "2024-10-04",
+        "2024-10-07",
+        "2024-10-08",
+        "2024-10-09",
+        "2024-10-10",
+        "2024-10-11",
+        "2024-10-15",
+        "2024-10-16",
+        "2024-10-17",
+        "2024-10-18",
+        "2024-10-21",
+        "2024-10-22",
+        "2024-10-23",
+        "2024-10-24",
+        "2024-10-25",
+        "2024-10-28",
+        "2024-10-29",
+        "2024-10-30",
+        "2024-10-31",
+        "2024-11-01",
+        "2024-11-05",
+        "2024-11-06",
+        "2024-11-07",
+        "2024-11-08",
+        "2024-11-11",
+        "2024-11-12",
+        "2024-11-13",
+        "2024-11-14",
+        "2024-11-15",
+        "2024-11-18",
+        "2024-11-19",
+        "2024-11-20",
+        "2024-11-21",
+        "2024-11-22",
+        "2024-11-25",
+        "2024-11-26",
+        "2024-11-27",
+        "2024-11-28",
+        "2024-11-29",
+        "2024-12-02",
+        "2024-12-03",
+        "2024-12-04",
+        "2024-12-05",
+        "2024-12-06",
+        "2024-12-09",
+        "2024-12-10",
+        "2024-12-11",
+        "2024-12-12",
+        "2024-12-13",
+        "2024-12-16",
+        "2024-12-17",
+        "2024-12-18",
+        "2024-12-19",
+        "2024-12-20",
+        "2024-12-23",
+        "2024-12-24",
+        "2024-12-25",
+        "2024-12-26",
+        "2024-12-27",
+        "2024-12-30",
+        "2025-01-06",
+        "2025-01-07",
+        "2025-01-08",
+        "2025-01-09"
+      ],
+      "sessionIdentities": [
+        {
+          "sessionDate": "2024-09-17",
+          "partition": "DEVELOPMENT_A",
+          "sourceGroup": "L1",
+          "minuteAggregateSha256": "e73dfd0c3cc266c2e16aadce07e50784822b7b9e3f894ab624d2994360e91086"
+        },
+        {
+          "sessionDate": "2024-09-18",
+          "partition": "DEVELOPMENT_A",
+          "sourceGroup": "L1",
+          "minuteAggregateSha256": "a453e9fcf8943caba370656edf303bb30abd6736d53fed8bcb2beec46fae4bee"
+        },
+        {
+          "sessionDate": "2024-09-19",
+          "partition": "DEVELOPMENT_A",
+          "sourceGroup": "L1",
+          "minuteAggregateSha256": "d87dc79351de2ae46a6d9afcdfd76786edb84861a8cbbcff7cd3b21ff8582e43"
+        },
+        {
+          "sessionDate": "2024-09-20",
+          "partition": "DEVELOPMENT_A",
+          "sourceGroup": "L1",
+          "minuteAggregateSha256": "0e78f626b880e164840e6f8bdb87ba07cf5233fe809111a46581b348b613f58e"
+        },
+        {
+          "sessionDate": "2024-09-24",
+          "partition": "DEVELOPMENT_A",
+          "sourceGroup": "L1",
+          "minuteAggregateSha256": "33c9861eb109342d767507fd38a311ce22df1c7ebd82253627cf4a74e33b123d"
+        },
+        {
+          "sessionDate": "2024-09-25",
+          "partition": "DEVELOPMENT_A",
+          "sourceGroup": "L1",
+          "minuteAggregateSha256": "b557100bef879bd2164825c69cd345f79a165823b1ca76a81470b4d9508b6244"
+        },
+        {
+          "sessionDate": "2024-09-26",
+          "partition": "DEVELOPMENT_A",
+          "sourceGroup": "L1",
+          "minuteAggregateSha256": "68cc9df18328c925ad9928a6a7309f5dd5a159e475008779c9789359cfe7cddc"
+        },
+        {
+          "sessionDate": "2024-09-27",
+          "partition": "DEVELOPMENT_A",
+          "sourceGroup": "L1",
+          "minuteAggregateSha256": "438058ad9482f2c8153d5d43425e686333f069903ec9c8aca2df13afa45824cf"
+        },
+        {
+          "sessionDate": "2024-09-30",
+          "partition": "DEVELOPMENT_A",
+          "sourceGroup": "L1",
+          "minuteAggregateSha256": "aeaa0bcb0dcd090a274d4513eda59bc9b64b6775242e0d718a20c72389f6771a"
+        },
+        {
+          "sessionDate": "2024-10-01",
+          "partition": "DEVELOPMENT_A",
+          "sourceGroup": "L1",
+          "minuteAggregateSha256": "4c95121e8fffe722553adf960fcd6a24a9abb6ea365e783ecdfd23cb0bbb689a"
+        },
+        {
+          "sessionDate": "2024-10-02",
+          "partition": "DEVELOPMENT_A",
+          "sourceGroup": "L1",
+          "minuteAggregateSha256": "451d9697992893aa84e7305b23b8d51af38f0f53365c7bb9437c8432d4d4c615"
+        },
+        {
+          "sessionDate": "2024-10-03",
+          "partition": "DEVELOPMENT_A",
+          "sourceGroup": "L1",
+          "minuteAggregateSha256": "df3612ef1e004bafec1fe5db4006e4e5689c97fa7902cf846810864a43e28d5d"
+        },
+        {
+          "sessionDate": "2024-10-04",
+          "partition": "DEVELOPMENT_A",
+          "sourceGroup": "L1",
+          "minuteAggregateSha256": "f0d959794788084dea5fd4d0cbe4c94515b1f6a7a41f590c5f6af49c3dc102d1"
+        },
+        {
+          "sessionDate": "2024-10-07",
+          "partition": "DEVELOPMENT_A",
+          "sourceGroup": "L1",
+          "minuteAggregateSha256": "23963d3a225d31f900f876a7d556ed6fcdc5f9939cbcb3e95ed214ca3207761d"
+        },
+        {
+          "sessionDate": "2024-10-08",
+          "partition": "DEVELOPMENT_A",
+          "sourceGroup": "L1",
+          "minuteAggregateSha256": "0b89626ebf0ed30e2a009bad45b5ff47540f001ab6b878165f3f3530a8ea3bb6"
+        },
+        {
+          "sessionDate": "2024-10-09",
+          "partition": "DEVELOPMENT_A",
+          "sourceGroup": "L1",
+          "minuteAggregateSha256": "9544161d6d420be4a4ea72b3a53ea15f844966474c2021d32d731913f349a5ec"
+        },
+        {
+          "sessionDate": "2024-10-10",
+          "partition": "DEVELOPMENT_A",
+          "sourceGroup": "V2",
+          "minuteAggregateSha256": "be748a73abc39a0a782f55f266a871874461fba7c478d72f3cd67af8471cfd29"
+        },
+        {
+          "sessionDate": "2024-10-11",
+          "partition": "DEVELOPMENT_A",
+          "sourceGroup": "V2",
+          "minuteAggregateSha256": "eaba036b3c776f71ffcedad9ca5b7b4ac19ed27c6376f4390f07e56f3b0d5870"
+        },
+        {
+          "sessionDate": "2024-10-15",
+          "partition": "DEVELOPMENT_A",
+          "sourceGroup": "V2",
+          "minuteAggregateSha256": "a4f9f842aac1c639390bdde76f8cc706e152fbe0b046b6343bdeac3bea14f1ee"
+        },
+        {
+          "sessionDate": "2024-10-16",
+          "partition": "DEVELOPMENT_A",
+          "sourceGroup": "V2",
+          "minuteAggregateSha256": "3393f0d390e6e83e0c10bf0d6688dc241232f1749699e142d0573d66b2884a13"
+        },
+        {
+          "sessionDate": "2024-10-17",
+          "partition": "DEVELOPMENT_A",
+          "sourceGroup": "V2",
+          "minuteAggregateSha256": "e749bf4ffbb19da55b119494e011aa752697f831084ab3bd84843af52501fb8b"
+        },
+        {
+          "sessionDate": "2024-10-18",
+          "partition": "DEVELOPMENT_B",
+          "sourceGroup": "V2",
+          "minuteAggregateSha256": "7f2b1bd8c72ba853b971bca77348f5f7a749696d87a1eaf34e363cc547c2272b"
+        },
+        {
+          "sessionDate": "2024-10-21",
+          "partition": "DEVELOPMENT_B",
+          "sourceGroup": "V2",
+          "minuteAggregateSha256": "aec990af02ec89926e0866efc2ec11c6e7788e1b4ad5d8664e1b9df22dc5a8cd"
+        },
+        {
+          "sessionDate": "2024-10-22",
+          "partition": "DEVELOPMENT_B",
+          "sourceGroup": "V2",
+          "minuteAggregateSha256": "8de93e025affb08f15d7f3a17dad4b1a33f2adb4554be3418cb5de91649dd8f1"
+        },
+        {
+          "sessionDate": "2024-10-23",
+          "partition": "DEVELOPMENT_B",
+          "sourceGroup": "V2",
+          "minuteAggregateSha256": "8c0d5d400cebd461a9ef757dca64e7394cc19b7299d7e71b0d3ac68de1d00770"
+        },
+        {
+          "sessionDate": "2024-10-24",
+          "partition": "DEVELOPMENT_B",
+          "sourceGroup": "V2",
+          "minuteAggregateSha256": "a9bf9d9c7f7f700d381bf091db72456012986cf816f20c98151710fb4ddb41d0"
+        },
+        {
+          "sessionDate": "2024-10-25",
+          "partition": "DEVELOPMENT_B",
+          "sourceGroup": "V2",
+          "minuteAggregateSha256": "e1e00d7e20fdb599572cd73dba1f94d04dc547b2c1bc3745ef6079ee6ce232fe"
+        },
+        {
+          "sessionDate": "2024-10-28",
+          "partition": "DEVELOPMENT_B",
+          "sourceGroup": "V2",
+          "minuteAggregateSha256": "1671c58bf0d00d8bda59d39d6513eb57f381d16afafa8ce0de53247576f69cc4"
+        },
+        {
+          "sessionDate": "2024-10-29",
+          "partition": "DEVELOPMENT_B",
+          "sourceGroup": "V2",
+          "minuteAggregateSha256": "36eb3a589310033d014ee19c86adf805e5151d02b998f9a7bd56656633f517df"
+        },
+        {
+          "sessionDate": "2024-10-30",
+          "partition": "DEVELOPMENT_B",
+          "sourceGroup": "V2",
+          "minuteAggregateSha256": "bb065751b53509f541d7459d52443fbc6b22d7798d52c164dd88955a0c889d97"
+        },
+        {
+          "sessionDate": "2024-10-31",
+          "partition": "DEVELOPMENT_B",
+          "sourceGroup": "V2",
+          "minuteAggregateSha256": "369420e38287b67830ff9a9295b50b45b5c66ec23a2f01291dbb4452875ccea9"
+        },
+        {
+          "sessionDate": "2024-11-01",
+          "partition": "DEVELOPMENT_B",
+          "sourceGroup": "V2",
+          "minuteAggregateSha256": "a7a79f667431f727c256b01039a38fefb024802353cc384b68f0a1667d21a379"
+        },
+        {
+          "sessionDate": "2024-11-05",
+          "partition": "DEVELOPMENT_B",
+          "sourceGroup": "V2",
+          "minuteAggregateSha256": "43488d6896faf5594cad931cc551eb426e590a5f4a1cca1bcd891a19194e31d9"
+        },
+        {
+          "sessionDate": "2024-11-06",
+          "partition": "DEVELOPMENT_B",
+          "sourceGroup": "V2",
+          "minuteAggregateSha256": "dc2a97226c707397beec981edcdf946cb9073983870827b6293ec6fb3d63862b"
+        },
+        {
+          "sessionDate": "2024-11-07",
+          "partition": "DEVELOPMENT_B",
+          "sourceGroup": "V2",
+          "minuteAggregateSha256": "6b6c988e38418f16e127250b67ab594fe0caa568ce2440304d6040c1cb12741b"
+        },
+        {
+          "sessionDate": "2024-11-08",
+          "partition": "DEVELOPMENT_B",
+          "sourceGroup": "V2",
+          "minuteAggregateSha256": "fbf92dd81e4f33bd6909508ee3f213e80d38b9fa6c252f9bef990802d9b6871d"
+        },
+        {
+          "sessionDate": "2024-11-11",
+          "partition": "DEVELOPMENT_C",
+          "sourceGroup": "C",
+          "minuteAggregateSha256": "8a22ed10046594d83959833135999a57b06f899edcbacfa4c8163db1eb19375c"
+        },
+        {
+          "sessionDate": "2024-11-12",
+          "partition": "DEVELOPMENT_C",
+          "sourceGroup": "C",
+          "minuteAggregateSha256": "064af3d040b67f5199c94d8ea7b482bedca5d81da85bfb2cc0af742322c664ef"
+        },
+        {
+          "sessionDate": "2024-11-13",
+          "partition": "DEVELOPMENT_C",
+          "sourceGroup": "C",
+          "minuteAggregateSha256": "5f332f6d7188b306379e20936fc6f5d27c1bd004da3051d557dc6b9211be13b1"
+        },
+        {
+          "sessionDate": "2024-11-14",
+          "partition": "DEVELOPMENT_C",
+          "sourceGroup": "C",
+          "minuteAggregateSha256": "61cdc497bdae339f2338c84949d737b01cddbf9d549524a3f73589576e0bc51a"
+        },
+        {
+          "sessionDate": "2024-11-15",
+          "partition": "DEVELOPMENT_C",
+          "sourceGroup": "C",
+          "minuteAggregateSha256": "991e774cec0cb033d1851c41d6464c80d010127706680944a15cb2123985e11c"
+        },
+        {
+          "sessionDate": "2024-11-18",
+          "partition": "DEVELOPMENT_C",
+          "sourceGroup": "C",
+          "minuteAggregateSha256": "235bf37d454944d7d8920e566edcae9d42389cf29c8bbcf91f70dd413e832af9"
+        },
+        {
+          "sessionDate": "2024-11-19",
+          "partition": "DEVELOPMENT_C",
+          "sourceGroup": "C",
+          "minuteAggregateSha256": "6343f3be0d6bd370edb4bdb60a2262fe7309d6e55f8ace21afce25448c532751"
+        },
+        {
+          "sessionDate": "2024-11-20",
+          "partition": "DEVELOPMENT_C",
+          "sourceGroup": "C",
+          "minuteAggregateSha256": "a7143289739772c17786292d6cb3569511d4205241d4ccff8fdfb798b64ea823"
+        },
+        {
+          "sessionDate": "2024-11-21",
+          "partition": "DEVELOPMENT_C",
+          "sourceGroup": "C",
+          "minuteAggregateSha256": "a620389da1666973b1c029ac1c5fbea49c7742c25530d5b502df8995356ac7ea"
+        },
+        {
+          "sessionDate": "2024-11-22",
+          "partition": "DEVELOPMENT_C",
+          "sourceGroup": "C",
+          "minuteAggregateSha256": "418d6d550949bf8d6527c31fb802894ee42cc3463af5fc62f12c1eb426eb1ed2"
+        },
+        {
+          "sessionDate": "2024-11-25",
+          "partition": "DEVELOPMENT_C",
+          "sourceGroup": "C",
+          "minuteAggregateSha256": "30a546f5252fde85411a03e57880fab888ec2673a78ded0c6f44b7a51111b112"
+        },
+        {
+          "sessionDate": "2024-11-26",
+          "partition": "DEVELOPMENT_C",
+          "sourceGroup": "C",
+          "minuteAggregateSha256": "c8f331f8f08245742c1f636f0cae5967f630ac5175f0cfc7e4d96ed75906eeb1"
+        },
+        {
+          "sessionDate": "2024-11-27",
+          "partition": "DEVELOPMENT_C",
+          "sourceGroup": "C",
+          "minuteAggregateSha256": "9ed168cb594f01714763ff486ccf0cac7c6666987bf623fb8d3a82b560dbebf6"
+        },
+        {
+          "sessionDate": "2024-11-28",
+          "partition": "DEVELOPMENT_C",
+          "sourceGroup": "C",
+          "minuteAggregateSha256": "9b843224d3dd11547cbc26c1e2bea48092561a34e77d7f2f33660c8cd907ca90"
+        },
+        {
+          "sessionDate": "2024-11-29",
+          "partition": "DEVELOPMENT_C",
+          "sourceGroup": "C",
+          "minuteAggregateSha256": "83ad8de63c7cfa5ac6251df95eaa8e0d2b917b3b4dc426a38cd3732aea1fe512"
+        },
+        {
+          "sessionDate": "2024-12-02",
+          "partition": "DEVELOPMENT_C",
+          "sourceGroup": "C",
+          "minuteAggregateSha256": "8915bf6baf626d43d57d5da4bb87e813394b59c396f8de63d7b6f456d754317d"
+        },
+        {
+          "sessionDate": "2024-12-03",
+          "partition": "DEVELOPMENT_C",
+          "sourceGroup": "C",
+          "minuteAggregateSha256": "1c764f22a42d73200374c8dfcac9687edf8fc29f8f141f26f2ac364fc423e554"
+        },
+        {
+          "sessionDate": "2024-12-04",
+          "partition": "DEVELOPMENT_C",
+          "sourceGroup": "C",
+          "minuteAggregateSha256": "c95384dd0506461fc11547f5993b22fdc60f88bb87716e1e3e079f6ad2c7600f"
+        },
+        {
+          "sessionDate": "2024-12-05",
+          "partition": "DEVELOPMENT_C",
+          "sourceGroup": "C",
+          "minuteAggregateSha256": "7692b3eb1f565b22e10610466e5aa9fc191fea50224785e26353986a542728a4"
+        },
+        {
+          "sessionDate": "2024-12-06",
+          "partition": "DEVELOPMENT_C",
+          "sourceGroup": "C",
+          "minuteAggregateSha256": "1360e1aae4f151b5286ceea012912590610c6d8a962686523246cee265c83f5f"
+        },
+        {
+          "sessionDate": "2024-12-09",
+          "partition": "DEVELOPMENT_D",
+          "sourceGroup": "D",
+          "minuteAggregateSha256": "a29e126140155ef651a2c0b4c7c49d3c7c16e21b8fe2bc0c9f2cda4f32c43252"
+        },
+        {
+          "sessionDate": "2024-12-10",
+          "partition": "DEVELOPMENT_D",
+          "sourceGroup": "D",
+          "minuteAggregateSha256": "759f47998ac4f1e9bbbdf668338b0742c0c10e0707f46e7014cecd89a27a5337"
+        },
+        {
+          "sessionDate": "2024-12-11",
+          "partition": "DEVELOPMENT_D",
+          "sourceGroup": "D",
+          "minuteAggregateSha256": "818cc4b183035655b87355f4b5b30c81b85f45b45f12ac9e9b69f80720c68e6e"
+        },
+        {
+          "sessionDate": "2024-12-12",
+          "partition": "DEVELOPMENT_D",
+          "sourceGroup": "D",
+          "minuteAggregateSha256": "d51dbcdd646a7853167e0bd96280aa8d14967657599afeb04e42b5a45d7b78ce"
+        },
+        {
+          "sessionDate": "2024-12-13",
+          "partition": "DEVELOPMENT_D",
+          "sourceGroup": "D",
+          "minuteAggregateSha256": "7d016a1b107bdfe6546b29a7564d750ec6f38b201883af02272ba028f98b0978"
+        },
+        {
+          "sessionDate": "2024-12-16",
+          "partition": "DEVELOPMENT_D",
+          "sourceGroup": "D",
+          "minuteAggregateSha256": "3f098e463811640b6dc6a41f11d9d42aa5696501aa58ea1a2ecb7348da2dff9c"
+        },
+        {
+          "sessionDate": "2024-12-17",
+          "partition": "DEVELOPMENT_D",
+          "sourceGroup": "D",
+          "minuteAggregateSha256": "9f2344a8613078d2f454f5598d69bab0d295af0c5a814ca3d7fae419d039e72d"
+        },
+        {
+          "sessionDate": "2024-12-18",
+          "partition": "DEVELOPMENT_D",
+          "sourceGroup": "D",
+          "minuteAggregateSha256": "af28ea27d33e57bfa61a0f9729622f1f9781c3a6033380f3b8c09ae71c858e1e"
+        },
+        {
+          "sessionDate": "2024-12-19",
+          "partition": "DEVELOPMENT_D",
+          "sourceGroup": "D",
+          "minuteAggregateSha256": "63907bfffbf05b84aebdd9c8c1b05868375259cdc8f867b984ef95188228fd69"
+        },
+        {
+          "sessionDate": "2024-12-20",
+          "partition": "DEVELOPMENT_D",
+          "sourceGroup": "D",
+          "minuteAggregateSha256": "2c37755255f69dcad54741b3cb6935e0dd43c5fd40f3d6ca95cc3eadd4eb035e"
+        },
+        {
+          "sessionDate": "2024-12-23",
+          "partition": "DEVELOPMENT_D",
+          "sourceGroup": "D",
+          "minuteAggregateSha256": "6491b288e8e4050bebd11f29366d57f873e4a931f245477f15dea20fa4265671"
+        },
+        {
+          "sessionDate": "2024-12-24",
+          "partition": "DEVELOPMENT_D",
+          "sourceGroup": "D",
+          "minuteAggregateSha256": "f57dbe5732c744db5ec9c7778ba09c39ceeff333b579c4a5475a02b5d14ac13a"
+        },
+        {
+          "sessionDate": "2024-12-25",
+          "partition": "DEVELOPMENT_D",
+          "sourceGroup": "D",
+          "minuteAggregateSha256": "474beef97fa48c9e6162ea59feafaddbeb9aa84e8ba9102cd06992979f46227d"
+        },
+        {
+          "sessionDate": "2024-12-26",
+          "partition": "DEVELOPMENT_D",
+          "sourceGroup": "D",
+          "minuteAggregateSha256": "fda7e3c862ebd9796005781e8636326bc47f7797b0d092135a886513a4f5032f"
+        },
+        {
+          "sessionDate": "2024-12-27",
+          "partition": "DEVELOPMENT_D",
+          "sourceGroup": "D",
+          "minuteAggregateSha256": "a3d2e4755edf5639993cf8c3e74a80980bc102cdfb486246cecc8cc28f3c3d29"
+        },
+        {
+          "sessionDate": "2024-12-30",
+          "partition": "DEVELOPMENT_D",
+          "sourceGroup": "D",
+          "minuteAggregateSha256": "5e957fc1440f1dedd130a6510424c7d54afeead9703244897a1a3b2c4793df8f"
+        },
+        {
+          "sessionDate": "2025-01-06",
+          "partition": "DEVELOPMENT_D",
+          "sourceGroup": "D",
+          "minuteAggregateSha256": "e9cfc25133418b258bb1c33f1f364cfd7dab75ecbb7e759b4f0a336f306d62b4"
+        },
+        {
+          "sessionDate": "2025-01-07",
+          "partition": "DEVELOPMENT_D",
+          "sourceGroup": "D",
+          "minuteAggregateSha256": "cd2ff6076fcdff5e8c451096245779388742e78dea3d33f4b17d250fbc6c2860"
+        },
+        {
+          "sessionDate": "2025-01-08",
+          "partition": "DEVELOPMENT_D",
+          "sourceGroup": "D",
+          "minuteAggregateSha256": "1e6116196bf0d163f24b2769cc7ed9224abf6a15f7cf088f932dd61677f7a966"
+        },
+        {
+          "sessionDate": "2025-01-09",
+          "partition": "DEVELOPMENT_D",
+          "sourceGroup": "D",
+          "minuteAggregateSha256": "8e220b1334731119357c642435cd8481afa8f4e6a27397446a848a68856611d9"
+        }
+      ],
+      "sessionCount": 76,
+      "decisionTimestampCount": 760,
+      "top5SelectionEvents": 3800,
+      "validationOpened": false,
+      "oosOpened": false
+    },
+    "frozenEvidence": {
+      "evidenceStatus": "TOP5_HIT_DISTRIBUTION_COMPLETE",
+      "evidenceReportSha256": "6bee3d44cbf6664886ccc9fd2de0624d1b3936e7e787187887fb912c78a5ae65",
+      "inputManifestSha256": "9c23ec1fa0e1e4b0d78a735ae00a0bb163133aafa6a1c9f0f1abafbfa8ca8691",
+      "highTouch": {
+        "1": {
+          "precisionAt5Pct": 76.3852242744,
+          "meanHitsPerTop5": 3.8092105263,
+          "medianHitsPerTop5": 4.0,
+          "probabilityAtLeastOnePct": 98.5526315789,
+          "actualRecallPct": 0.899364387,
+          "randomExpectedRecallPct": 0.2164859726,
+          "recallLift": 4.1543771914,
+          "precisionLift": 4.1580225905,
+          "medianTimeToHitMinutes": 10.0
+        },
+        "2": {
+          "precisionAt5Pct": 61.2928759894,
+          "meanHitsPerTop5": 3.0565789474,
+          "medianHitsPerTop5": 3.0,
+          "probabilityAtLeastOnePct": 97.2368421053,
+          "actualRecallPct": 2.3227677232,
+          "randomExpectedRecallPct": 0.2159027135,
+          "recallLift": 10.7583998616,
+          "precisionLift": 10.7388293426,
+          "medianTimeToHitMinutes": 15.0
+        },
+        "3": {
+          "precisionAt5Pct": 47.2559366755,
+          "meanHitsPerTop5": 2.3565789474,
+          "medianHitsPerTop5": 2.0,
+          "probabilityAtLeastOnePct": 92.5,
+          "actualRecallPct": 3.9807961592,
+          "randomExpectedRecallPct": 0.2158994657,
+          "recallLift": 18.4381936561,
+          "precisionLift": 18.4043760349,
+          "medianTimeToHitMinutes": 20.0
+        },
+        "5": {
+          "precisionAt5Pct": 24.9868073879,
+          "meanHitsPerTop5": 1.2460526316,
+          "medianHitsPerTop5": 1.0,
+          "probabilityAtLeastOnePct": 72.5,
+          "actualRecallPct": 6.1377924687,
+          "randomExpectedRecallPct": 0.2160414424,
+          "recallLift": 28.4102549968,
+          "precisionLift": 28.3767959106,
+          "medianTimeToHitMinutes": 30.0
+        }
+      },
+      "closeConfirmation": {
+        "1": {
+          "precisionAt5Pct": 71.8157894737,
+          "probabilityAtLeastOnePct": 98.5526315789
+        },
+        "2": {
+          "precisionAt5Pct": 57.0,
+          "probabilityAtLeastOnePct": 96.3157894737
+        },
+        "3": {
+          "precisionAt5Pct": 43.5789473684,
+          "probabilityAtLeastOnePct": 90.9210526316
+        },
+        "5": {
+          "precisionAt5Pct": 22.9473684211,
+          "probabilityAtLeastOnePct": 70.0
+        }
+      }
+    },
+    "provenance": {
+      "savedModelRun": 34944665187,
+      "savedModelArtifactId": 10386677272,
+      "savedModelArtifactName": "phase57-long-only-l2-development-34944665187",
+      "savedModelArtifactZipDigest": "sha256:1f91276bd876f3d0707c2c4c623918b73cb22dd95d7753fff9e0524fa58631ed",
+      "top5EvidenceRun": 35027741312,
+      "top5EvidenceArtifactId": 10419919267,
+      "top5EvidenceArtifactName": "phase57-long-only-top5-hit-distribution-35027741312",
+      "top5EvidenceArtifactZipDigest": "sha256:c766f0e79813aa6e04c812c157b34e5467c480f3f34e93bbdefd9dc00095b100"
+    },
+    "safety": {
+      "executionAllowed": false,
+      "brokerWriteAllowed": false,
+      "excelOrderWriteAllowed": false,
+      "rssOrderFunctionAllowed": false,
+      "liveTradingAllowed": false,
+      "paperTradingAllowed": false,
+      "providerRequests": 0,
+      "fitCalls": 0
+    },
+    "sealedBoundaries": {
+      "validation": "SEALED",
+      "oos": "SEALED",
+      "entryExitAllocation": "NOT_STARTED",
+      "automaticNextStepAllowed": false
+    },
+    "knownLimitations": [
+      "Growth is weaker than Prime/Standard in Development evidence.",
+      "Afternoon is weaker than earlier time groups in Development evidence.",
+      "The five-minute freshness eligibility gate creates a liquidity-composition bias.",
+      "High-touch opportunity evidence is not executable-fill evidence.",
+      "Ten selected events lack a continuous future 5m High path and are retained as non-hits in lower-bound per-decision distributions.",
+      "All performance evidence is Development-only and does not establish Validation/OOS performance."
+    ],
+    "completionDefinition": "Development selector specification and evidence are immutable and reproducible; this is not production-performance confirmation and is not Validation/OOS PASS."
+  },
+  "hashes": {
+    "canonicalization": "UTF8_JSON_SORT_KEYS_COMPACT_SEPARATORS_NO_NAN",
+    "freezePayloadSha256": "3dc6d222d4039737c0dcfdcfa4a83372202152e29b582225419ab97c00610d59",
+    "developmentSessionListSha256": "de4a4264a7d78446ff01f72c2f927cc29ec45b18126068ca2e9dc2cfe16c5483",
+    "developmentSessionIdentitySha256": "b15042744a7213b49e43fd956b980b16e075a20ca30aee24b06d9fa5457eca08",
+    "featureListSha256": "31d56fc999210efb2551cb887b3d386f7a4b7c53e58ffd5f99b3fe76845d7800",
+    "modelConfigurationSha256": "feb51cefa401675f412b31426074e9b9a995414f2926515a0060620525dbdf21",
+    "savedModelArtifactSha256": "994f1dbaba1d32e97458d5dd9d4c646ef443fbb37128650e8166001d8deabefb",
+    "savedModelHeadArtifactSha256": "165d4531639837e355e8a0f3a7ca3eaff50201b6406356c45d7825d51e652e35",
+    "evidenceFileSha256": "72f6c8590c94ead0aaa9288584ecd131ee4f363f2b7b3aa2a0128bd0a98c00d1",
+    "evidenceReportSha256": "6bee3d44cbf6664886ccc9fd2de0624d1b3936e7e787187887fb912c78a5ae65",
+    "implementationFilesSha256": {
+      "scripts/prepare_phase57_long_only_corrected_measurement.mjs": "2702e7fb2be132e108b20c2ac31eb21b170be5e75078ecf3a45466f1cb0f1e3e",
+      "predict/long-only/phase57-long-only-corrected-measurement.js": "730c446eb50ef6618914173fdef7350311ef41eefc734c45fcd1a2bcd548805b",
+      "scripts/run_phase57_long_only_eligibility_measurement.py": "1122065f3aa964291b3706c30b36ca3664a1ed8fa7dfef15b985fca3bf895d5d",
+      "scripts/run_phase57_long_only_top5_hit_distribution.py": "48727cc1cd71e6f9454fb52817e4fe740bbab79dd5685a8541bf76c3dd323363"
+    }
+  }
+}

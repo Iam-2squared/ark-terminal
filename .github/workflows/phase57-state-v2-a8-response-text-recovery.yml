@@ -1,0 +1,144 @@
+name: Phase57 State v2 A8 Verified ResponseText Recovery
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-state-v2-a8-response-text-recovery.yml'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-state-v2-a8-response-text-recovery
+  cancel-in-progress: false
+jobs:
+  recover:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      PYTHONPATH: scripts
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /docs/evidence/phase57-state-v2-completion/
+            /docs/evidence/phase57-entry-timing-signal-census-v1/protocol.json
+            /scripts/phase57_state_v2_a8_pages.py
+            /scripts/test_phase57_state_v2_a8_pages.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.5'
+      - name: Run offline envelope and failure-regression tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/a8-response-text/evidence"
+          python scripts/test_phase57_state_v2_a8_pages.py -v 2>&1 | tee "$RUNNER_TEMP/a8-response-text/evidence/parser-tests.log"
+      - name: Restore the same approved existing raw records with response hashes verified
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          EXECUTION_HEAD: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import collections,datetime,gzip,hashlib,json,os,pathlib,re,subprocess,tarfile,zipfile
+          from phase57_state_v2_a8_pages import decode_pages
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'a8-response-text'
+          out=root/'evidence';tmp=root/'temporary';tmp.mkdir()
+          sha=lambda b:hashlib.sha256(b).hexdigest()
+          def save(name,z):
+              b=(json.dumps(z,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False)+'\n').encode()
+              (out/name).write_bytes(gzip.compress(b,mtime=0) if name.endswith('.gz') else b)
+          def artifact(aid,wanted):
+              p=tmp/(str(aid)+'.zip')
+              with p.open('wb') as f:subprocess.run(['gh','api',f'repos/Iam-2squared/ark-terminal/actions/artifacts/{aid}/zip'],stdout=f,check=True)
+              assert sha(p.read_bytes())==wanted,('ZIP_PIN',aid)
+              return p
+          proto=pathlib.Path('docs/evidence/phase57-entry-timing-signal-census-v1/protocol.json').read_bytes()
+          assert sha(proto)=='6b02b3088dd8ea7f8ce53112bc276df442bae3ce0716b8139c92733be4de2994'
+          contract=json.loads(proto);allowed=set(contract['developmentSessions']);cohort=set(contract['opportunityIds'])
+          p=artifact(10630618102,'cc921c476af1079344975daa78e89fe03ee0dfc20ee62333170199178ade795e')
+          with zipfile.ZipFile(p) as z:
+              m=json.loads(z.read('measurement/manifest.json'));b=z.read('measurement/inputs.jsonl.gz');assert sha(b)==m['inputs.jsonl.gz']
+          tasks=[json.loads(s) for s in gzip.decompress(b).splitlines()];assert len(tasks)==len(cohort)==2155 and {t['id'] for t in tasks}==cohort
+          needed=collections.defaultdict(set)
+          for t in tasks:
+              for d in {t['session'],t['previousDay'],*[r['date'] for r in t['dailyRows']],*t['dailyReasons']}:
+                  if d in allowed:needed[d].add(t['symbol'])
+          days=sorted({t['session'] for t in tasks});witnessdays={days[0],days[-1]}
+          witnesscodes={d:min(t['symbol'] for t in tasks if t['session']==d) for d in witnessdays}
+          witnessclocks={'09:00','09:04','11:29','11:30','12:30','15:24','15:30'}
+          p=artifact(10605887642,'749caf82bbd9d39969f5712ef5a6f2705ac973a2f74483f03307c671586ae05a')
+          with zipfile.ZipFile(p) as z:b=z.read('substrate/source-ledger.json')
+          assert sha(b)=='5463256720a5276a86c49043b6ceb27a0c42907a5f63354425cc251588d18e96'
+          pins={(r['session'],r['kind']):r['sha256'] for r in json.loads(b)}
+          p=artifact(10619378314,'279388c00b6a97501a578d8ab1f2dd813ba5b56a8a1d91c7ee7afeea39b805e0')
+          with zipfile.ZipFile(p) as z:ex=json.loads(z.read('extraction.json'))
+          encpins={r['archiveSha256'] for r in ex['receipts']}
+          text=pathlib.Path('docs/evidence/phase57-state-v2-completion/A8_EXISTING_RAW_RECOVERY_PROTOCOL.md').read_text()
+          artifacts=[(int(a),h) for a,h in re.findall(r'\|\d{3}\|(\d+)\|([0-9a-f]{64})\|',text)]
+          assert len(artifacts)==13
+          code={n:sha(pathlib.Path('scripts',n).read_bytes()) for n in ['phase57_state_v2_a8_pages.py','test_phase57_state_v2_a8_pages.py']}
+          save('request.json',{'executionHead':os.environ['EXECUTION_HEAD'],'cohortN':len(tasks),'needed':{d:sorted(c) for d,c in sorted(needed.items())},'rawMinuteWitnessCodes':witnesscodes,'rawMinuteWitnessClocks':sorted(witnessclocks),'artifacts':artifacts,'recoveryCodeSHA256':code,'providerRequests':0,'protectedDataOpened':0})
+          found={};rawreceipts=[];minute=[];schemas=collections.Counter();skipped=0
+          for aid,digest in artifacts:
+              archive=artifact(aid,digest)
+              with zipfile.ZipFile(archive) as z:
+                  names=[n for n in z.namelist() if n.endswith('.tar.gz.enc')];assert len(names)==1,('ENCRYPTED_ARCHIVE_COUNT',aid)
+                  enc=tmp/'current.tar.gz.enc';enc.write_bytes(z.read(names[0]))
+              eh=sha(enc.read_bytes());assert eh in encpins,('ENCRYPTED_PIN',aid)
+              proc=subprocess.Popen(['openssl','enc','-d','-aes-256-cbc','-pbkdf2','-iter','200000','-pass','env:JQUANTS_API_KEY','-in',str(enc)],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+              count=0
+              try:
+                  with tarfile.open(fileobj=proc.stdout,mode='r|gz') as tar:
+                      for member in tar:
+                          path=pathlib.PurePosixPath(member.name)
+                          assert not path.is_absolute() and '..' not in path.parts,'UNSAFE_TAR_PATH'
+                          dates=re.findall(r'\d{4}-\d{2}-\d{2}',member.name);d=dates[-1] if dates else None
+                          daily=path.name=='daily-pages.json' and d in needed
+                          mini=path.name=='minute-pages.json' and d in witnessdays
+                          if not member.isfile() or not(daily or mini):skipped+=1;continue
+                          assert d in allowed,'PROTECTED_DATE'
+                          kind='daily' if daily else 'minute';data=tar.extractfile(member).read();h=sha(data)
+                          assert pins.get((d,kind))==h,('ORIGINAL_RAW_PAGE_PIN',d,kind)
+                          rows,page_receipt=decode_pages(data,d,kind,pins[d,kind]);selected=[]
+                          for row in rows:
+                              code=row['Code'];schemas[kind+'|'+','.join(sorted(row))]+=1
+                              if daily and code in needed[d]:
+                                  key=d+'|'+code
+                                  if key in found:assert found[key]['row']==row,'CONFLICTING_SOURCE_ROW'
+                                  else:found[key]={'date':d,'code':code,'row':row,'rawPagesSHA256':h,'archiveId':aid,'encryptedSHA256':eh}
+                                  selected.append(code)
+                              elif mini and code==witnesscodes[d] and str(row.get('Time',''))[:5] in witnessclocks:
+                                  minute.append({'row':row,'rawPagesSHA256':h,'archiveId':aid,'encryptedSHA256':eh});selected.append(code)
+                          rawreceipts.append({'date':d,'kind':kind,'rawPagesSHA256':h,'rawPageByteN':len(data),'selectedRowN':len(selected),'archiveId':aid,'encryptedSHA256':eh,**page_receipt});count+=1
+                  proc.stdout.close();proc.stderr.read();assert proc.wait()==0,'DECRYPT_FAILED'
+              finally:
+                  if proc.poll() is None:proc.kill();proc.wait()
+                  enc.unlink(missing_ok=True);archive.unlink(missing_ok=True)
+              print('verified archive',aid,'selected files',count,flush=True)
+          missing=[d+'|'+c for d,cc in sorted(needed.items()) for c in sorted(cc) if d+'|'+c not in found]
+          save('daily-raw-selected.json.gz',list(found.values()));save('minute-raw-witnesses.json',minute);save('raw-page-receipts.json',rawreceipts)
+          save('missing-symbol-days.json',missing);save('source-field-census.json',dict(schemas))
+          safety={k:False for k in ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted']}
+          ok=bool(rawreceipts and found and minute)
+          save('receipt.json',{'recordedAtJST':datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).isoformat(),'executionHead':os.environ['EXECUTION_HEAD'],'runId':os.environ['GITHUB_RUN_ID'],'status':'RAW_FACTS_RECOVERED_NOT_ASOF_ACCEPTANCE' if ok else 'EMPTY_RECOVERY_NOT_ACCEPTED','opportunityN':len(tasks),'neededSymbolDayN':sum(map(len,needed.values())),'foundSymbolDayN':len(found),'missingSymbolDayN':len(missing),'rawPageFilesVerified':len(rawreceipts),'responsePagesVerified':sum(r['responsePageN'] for r in rawreceipts),'minuteWitnessN':len(minute),'skippedTarMembers':skipped,'priorFailedRecoveryRun':35709025581,'recoveryCodeSHA256':code,'providerRequests':0,'protectedDataOpened':0,'safety':safety,'warning':'Raw file identity and effective-date facts are not proof of historical receivedAt or independent as-of admission.'})
+          save('manifest.json',{f.name:sha(f.read_bytes()) for f in sorted(out.iterdir()) if f.is_file()})
+          assert ok,'EMPTY_RECOVERY_SCOPE'
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-state-v2-a8-response-text-${{ github.run_id }}
+          path: ${{ runner.temp }}/a8-response-text/evidence
+          retention-days: 90
+          overwrite: false
+          if-no-files-found: error
+      - name: Purge temporary restored raw sources
+        if: always()
+        run: rm -rf -- "$RUNNER_TEMP/a8-response-text/temporary"

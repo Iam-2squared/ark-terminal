@@ -1,0 +1,79 @@
+{
+  "title": "Phase57 State v2 A12 Formal Acceptance Receipt",
+  "recordedAtJST": "2026-09-22T21:28:00+09:00",
+  "repository": "Iam-2squared/ark-terminal",
+  "branch": "research/phase57-long-only-cash-equity",
+  "pr": 587,
+  "publicationHeadObserved": "e6717d6d2c237819f5401affe91b53ec683a5a8e",
+  "verifiedExecution": {
+    "runId": 35721458178,
+    "executionHead": "b784e97ac6a5bd1b97a62af4923423596a1258c6",
+    "conclusion": "SUCCESS",
+    "artifactId": 10692617487,
+    "artifactZIPSHA256": "ef3e3a631d43702ac7072fb02885c199b92e65378105b651255aca56834db9c4"
+  },
+  "status": "A12_ACCEPTED_STATE_V2_HISTORICAL_CLOSED_RECONSTRUCTION",
+  "gates": {
+    "A1": "PASS_FIXED_POPULATION_2155_OPPORTUNITIES_77214_ROWS",
+    "A2": "PASS_REVERSE_ORDER_WORKERS3_CANONICAL_OUTPUTS_MATCH_LOCAL_FORWARD_WORKERS4_EXCEPT_LAUNCH_SUMMARY_RUNTIME_METADATA",
+    "A3": "PASS_FOR_HISTORICAL_CLOSED_RECONSTRUCTION_ONLY; HISTORICAL_RECEIVED_AT_AND_PROSPECTIVE_AVAILABILITY_NOT_PROVEN",
+    "A4": "PASS_NOW_FUTURE_SEPARATION_AND_SCHEMA",
+    "A5": "PASS_77214_SUFFIX_MUTATION_CHECKS",
+    "A6": "PASS_77214_SUFFIX_REMOVAL_AND_FRESH_REPLAY_MATCHES",
+    "A7": "PASS_TRANSITION_AUDIT; FROZEN_NUMERICAL_RULE_CHANGES_0",
+    "A8": "PASS_QUALIFIED_EFFECTIVE_DATE_PRICE_BASIS_PROVEN_OR_NARROWLY_MASKED; 240_DAILY_COMPARISONS_NEWLY_MASKED; RECEIVED_AT_NOT_PROVEN",
+    "A9": "PASS_SECOND_IMPLEMENTATION_FULL_POPULATION; NOT_EXTERNAL_HUMAN_OR_CLAUDE_REVIEW",
+    "A10": "PASS_FROZEN_RULES_THRESHOLDS_SCALE_H10_UNCHANGED",
+    "A11": "PASS_PROVIDER_REQUESTS_0_PROTECTED_DATA_OPENED_0_SAFETY9_FALSE_UNEXPLAINED_TRANSITION_RESIDUAL_0",
+    "A12": "ACCEPTED_WITH_SCOPE_LIMITATIONS_BELOW"
+  },
+  "fullPopulation": {
+    "rows": 77214,
+    "nowMatches": 77214,
+    "futureMatches": 77214,
+    "numericalNowMatches": 77214,
+    "numericalFutureMatches": 77214,
+    "inputContextMatches": 2155,
+    "suffixMutationChecks": 77214,
+    "suffixRemovalChecks": 77214,
+    "suffixRemovalFreshMatches": 77214,
+    "jsonSchemaRows": 154428,
+    "assertionExecutions": 322
+  },
+  "canonicalHashes": {
+    "coverage_rows": "ad52c2066ead0ef6a26f6d8f4b4ad3aef5b9b996e49eed6a6fb330adbb189729",
+    "future_resolution_v2": "e1d230d8af513b521ec85c59b823a9c6fb44312a61cb9010eea63d5c3eed97d5",
+    "now_state_reference_v2": "d1950392a473a9cf26dc45da7a7d064b4b035679973d56dd0f0b50d4302b0e20",
+    "transitions": "df6df18fbb3d60c54d126d4cbcc623c4b8d5de2a63542b82fa030b7e5593319b"
+  },
+  "localVsCI": {
+    "filesInGenerationManifest": 238,
+    "semanticOutputDifferences": 0,
+    "metadataOnlyFiles": [
+      "launch.json",
+      "summary.json"
+    ],
+    "explanation": "launch differs by execution head/platform/runtime/order/worker count/code-set bookkeeping; summary adds CI suffix-audit counters and wall time. All per-session canonical hashes and substantive generated streams match."
+  },
+  "limitations": [
+    "Acceptance is for HISTORICAL_CLOSED_RECONSTRUCTION, not prospective/live parity.",
+    "Historical receivedAt or announcement latency is not proven and must not be inferred.",
+    "A9 is a same-assistant specification-derived second implementation, not an external human or Claude review.",
+    "No Recognition/model fitting/Signal/BUY-WAIT/Entry/EXIT/Capital authorization is granted by this receipt."
+  ],
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "providerRequests": 0,
+  "protectedDataOpened": 0,
+  "recognitionStarted": false,
+  "tradingAuthorized": false
+}

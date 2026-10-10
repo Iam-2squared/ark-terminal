@@ -1,0 +1,69 @@
+name: Phase57 G State input admission only v1
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-g-state-inputs-v1.yml'
+      - 'docs/evidence/phase57-five-minute-state-reference-v1/restore_daily.py'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-g-state-inputs-v1
+  cancel-in-progress: false
+jobs:
+  input-projection:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+      G_HEAD: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /docs/evidence/phase57-five-minute-state-reference-v1/
+            /docs/evidence/phase57-entry-timing-signal-census-v1/protocol.json
+            /docs/evidence/phase57-entry-pattern-v2/ci-result/substrate/opportunities.json.gz
+            /docs/evidence/phase57-entry-pattern-v2/ci-result/substrate/source-ledger.json
+            /docs/evidence/phase57-behavior-expansion-v1/probe-v2/calendar.json
+            /docs/phase57-five-minute-entry-state/ADOPTED_DEFINITION.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Synthetic projection and rejection guards
+        run: python docs/evidence/phase57-five-minute-state-reference-v1/restore_daily.py --self-test
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-expansion-reuse-35447995157
+          path: ${{ runner.temp }}/g-input/encrypted/reuse
+          repository: Iam-2squared/ark-terminal
+          run-id: 35447995157
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-expansion-raw-minute-*-35447995157
+          path: ${{ runner.temp }}/g-input/encrypted/expanded
+          repository: Iam-2squared/ark-terminal
+          run-id: 35447995157
+          github-token: ${{ github.token }}
+      - name: Read only requested Development Daily pages and emit selected raw columns
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: |
+          python docs/evidence/phase57-five-minute-state-reference-v1/restore_daily.py \
+            --archives "$RUNNER_TEMP/g-input/encrypted" \
+            --output "$RUNNER_TEMP/g-input/projection"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-g-state-inputs-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/g-input/projection
+          if-no-files-found: error
+          retention-days: 90
+      - name: Remove temporary encrypted copies only
+        if: always()
+        run: rm -rf -- "$RUNNER_TEMP/g-input/encrypted"

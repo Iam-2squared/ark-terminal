@@ -1,0 +1,103 @@
+name: Phase57 Development Integrated v1 Finite Benchmark Replay
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - docs/evidence/phase57-comprehensive-exit-v1/DEVELOPMENT_INTEGRATED_V1_LAUNCH.json
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-development-integrated-v1-replay
+  cancel-in-progress: false
+
+jobs:
+  six-variant-development-benchmark:
+    if: github.ref == 'refs/heads/research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify exact CI, protocol, tested source and safety before replay
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXECUTION_SHA: ${{ github.sha }}
+        run: |
+          python - <<'PY'
+          import hashlib,json,os,pathlib,urllib.request
+          p=pathlib.Path('docs/evidence/phase57-comprehensive-exit-v1/DEVELOPMENT_INTEGRATED_V1_LAUNCH.json')
+          x=json.loads(p.read_text())
+          assert x['executionShaPolicy']=='THIS_LAUNCH_MARKER_PUSH_COMMIT_GITHUB_SHA'
+          assert x['protocolSha256']=='cb4ad1f28471cf26c1ddd50453445323f132410d7a7e34cabffdcfaa8c56ad71'
+          assert x['entryFreezeSha']=='4878a1cc53430e816261dea0fb16aeb53b3c238d'
+          assert x['runAttempt']==1 and x['variants']==6 and x['capacities']==[3,4,5]
+          assert x['protectedOpens']==x['providerRequests']==x['expectedModelFits']==0
+          assert len(x['safety'])==9 and not any(x['safety'].values())
+          assert x['performanceInspectedBeforeLaunch'] is False
+          for name,expected in x['testedSourceManifest'].items():
+              assert hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest()==expected,name
+          url='https://api.github.com/repos/Iam-2squared/ark-terminal/actions/runs/'+str(x['requiredCiRunId'])
+          request=urllib.request.Request(url,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],
+                          'Accept':'application/vnd.github+json'})
+          with urllib.request.urlopen(request,timeout=20) as response:run=json.load(response)
+          assert run['name']=='Phase57 Development Integrated v1 Contract'
+          assert run['head_sha']==x['testedSourceSha'] and run['conclusion']=='success'
+          assert run['run_attempt']==1
+          pathlib.Path('/tmp/phase57-v1-launch-receipt.json').write_text(json.dumps({
+              'executionSha':os.environ['EXECUTION_SHA'],'testedSourceSha':x['testedSourceSha'],
+              'requiredCiRunId':x['requiredCiRunId'],'protocolSha256':x['protocolSha256'],
+              'runAttempt':1,'variants':6,'expectedModelFits':0,'safety':x['safety']},
+              sort_keys=True)+'\n')
+          PY
+      - name: Download frozen R1 and R50 artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-all-material-r1-afb38b7a5421ca4f6ff6d439bf89096236efd119
+          run-id: 36099497597
+          repository: Iam-2squared/ark-terminal
+          github-token: ${{ github.token }}
+          path: /tmp/phase57-r1-frozen
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-r50-result-36287943625
+          run-id: 36287943625
+          repository: Iam-2squared/ark-terminal
+          github-token: ${{ github.token }}
+          path: /tmp/phase57-r50-control
+      - name: Six-variant finite replay A
+        run: |
+          python -m scripts.phase57_development_integrated_v1 \
+            --benchmark-ledger /tmp/phase57-r50-control/R50_B_FAILED_RECOVERY-run-a.jsonl.gz \
+            --benchmark-ledger-b /tmp/phase57-r50-control/R50_B_FAILED_RECOVERY-run-b.jsonl.gz \
+            --r1-records /tmp/phase57-r1-frozen/all-material-r1/ci-run-a/entry-records.json.gz \
+            --out /tmp/phase57-v1-run-a.json.gz
+      - name: Independent deterministic replay B
+        run: |
+          python -m scripts.phase57_development_integrated_v1 \
+            --benchmark-ledger /tmp/phase57-r50-control/R50_B_FAILED_RECOVERY-run-a.jsonl.gz \
+            --benchmark-ledger-b /tmp/phase57-r50-control/R50_B_FAILED_RECOVERY-run-b.jsonl.gz \
+            --r1-records /tmp/phase57-r1-frozen/all-material-r1/ci-run-a/entry-records.json.gz \
+            --out /tmp/phase57-v1-run-b.json.gz
+          cmp /tmp/phase57-v1-run-a.json.gz /tmp/phase57-v1-run-b.json.gz
+      - name: Audit every marked position and export six lossless curves
+        run: |
+          python -m scripts.phase57_integrated_v1_result_audit \
+            --result-a /tmp/phase57-v1-run-a.json.gz \
+            --result-b /tmp/phase57-v1-run-b.json.gz \
+            --out-dir /tmp/phase57-v1-audit
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-development-integrated-v1-result
+          path: |
+            /tmp/phase57-v1-launch-receipt.json
+            /tmp/phase57-v1-run-a.json.gz
+            /tmp/phase57-v1-run-b.json.gz
+            /tmp/phase57-v1-audit/
+          if-no-files-found: error

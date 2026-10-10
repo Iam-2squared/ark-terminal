@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "dateJst": "2026-09-16",
+  "repository": "Iam-2squared/ark-terminal",
+  "branch": "research/phase57-long-only-cash-equity",
+  "pr": 587,
+  "auditedHead": "825da2af3256f554f4586be0db6d5ba36cc23309",
+  "latestMain": "6b6c4d522cd1863132185463a0aed74bc819be01",
+  "verdict": "PHASE57_LONG_ONLY_GLOBAL_DATA_BUDGET_BLOCKED",
+  "blockers": [
+    "UNKNOWN_IDENTITY_UNRESOLVED",
+    "ENTRY_BUDGET_UNRESOLVED",
+    "EXIT_BUDGET_UNRESOLVED",
+    "INTEGRATION_BUDGET_UNRESOLVED",
+    "PORTFOLIO_BUDGET_UNRESOLVED",
+    "PROTECTED_DATA_CONFLICT",
+    "INSUFFICIENT_METADATA"
+  ],
+  "frozenContractIssued": false,
+  "globalDataBudgetContractSha256": null,
+  "artifactHashIsNotFrozenContractHash": true,
+  "protectedVerification": {
+    "predict/research/phase57-msh-entry-long-v1-validation-candidate-v1.json": {
+      "expected": "4a2f52cd6f25f480fe6d7de9db525860ddf3c1600abed06b6222c0990c055a23",
+      "actual": "4a2f52cd6f25f480fe6d7de9db525860ddf3c1600abed06b6222c0990c055a23",
+      "passed": true
+    },
+    "predict/research/phase57-msh-entry-long-v1-fit-contract-v1.json": {
+      "expected": "64c20d785be5f23b0a9103f419726b191a12a58fd5d3a7ad5185c69f9644a938",
+      "actual": "64c20d785be5f23b0a9103f419726b191a12a58fd5d3a7ad5185c69f9644a938",
+      "passed": true
+    },
+    "docs/evidence/phase57-msh-entry-long-v1-offline-freeze/development-evidence-freeze.json": {
+      "expected": "68d2a02c988a05b3178e903d628a53662b01bb704fa0700ebcb98e3b32547ead",
+      "actual": "68d2a02c988a05b3178e903d628a53662b01bb704fa0700ebcb98e3b32547ead",
+      "passed": true
+    },
+    "docs/evidence/phase57-msh-entry-long-v1-final-validation-model/final-model.json": {
+      "expected": "b053a858edda22bee7b9939162648740507964cc5ed8d613c2d778d15534589e",
+      "actual": "b053a858edda22bee7b9939162648740507964cc5ed8d613c2d778d15534589e",
+      "passed": true
+    },
+    "docs/evidence/phase57-msh-entry-long-v1-final-validation-model/final-scaler.json": {
+      "expected": "1e4865915a2ad1ec51dd4ebf2116d48b9f89b9b884f8dc732fdb2861dbf4fe4b",
+      "actual": "1e4865915a2ad1ec51dd4ebf2116d48b9f89b9b884f8dc732fdb2861dbf4fe4b",
+      "passed": true
+    },
+    "predict/long-only/phase57-long-only-session-allocation-v3.json": {
+      "expected": "07092bb98ee90062f51611e9c5247df22711aa0acb3dc496ad59126208c2fd50",
+      "actual": "07092bb98ee90062f51611e9c5247df22711aa0acb3dc496ad59126208c2fd50",
+      "passed": true
+    },
+    "predict/long-only/phase57-long-only-data-plan.json": {
+      "expected": "3ba4ec47a01510fe2b0de3874132824b2533400eaf4582a688b62306568ec526",
+      "actual": "3ba4ec47a01510fe2b0de3874132824b2533400eaf4582a688b62306568ec526",
+      "passed": true
+    },
+    "selectorPayloadSha256": {
+      "expected": "3dc6d222d4039737c0dcfdcfa4a83372202152e29b582225419ab97c00610d59",
+      "actual": "3dc6d222d4039737c0dcfdcfa4a83372202152e29b582225419ab97c00610d59",
+      "passed": true
+    }
+  },
+  "priorAuditManifestSha256": "9da06e9addfd83de9436faa13896abe17546b39e61bd75ff2850ef57152a35b3",
+  "allocationChanges": 0,
+  "protectedOrSealedAllocationChanges": 0,
+  "totalNewFreshSessionsRequired": null,
+  "minimumConfirmedEntryValidationShortage": 30,
+  "minimumConfirmedEntryValidationShortageIsNotAcquisitionAuthorization": true,
+  "jquantsNewAcquisitionRequired": "UNRESOLVED",
+  "priorCandidate30Status": "NOT_FRESH_25_EXPOSED_4_PERMANENTLY_EXCLUDED_1_PURGE; never reallocate for Fresh Entry Validation",
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "shortAllowed": false,
+    "marginAllowed": false,
+    "leverageAllowed": false
+  },
+  "counts": {
+    "outcomeAccess": 0,
+    "candidatePrediction": 0,
+    "validationPrediction": 0,
+    "oosMarketOrOutcomeAccess": 0,
+    "exitOutcomeAccess": 0,
+    "projectModelFit": 0,
+    "scalerFit": 0,
+    "shortEvaluation": 0,
+    "yahooPriceRequests": 0,
+    "jquantsPriceRequests": 0,
+    "otherMarketDataPriceRequests": 0,
+    "providerMetadataRequests": 0
+  },
+  "counterScope": "This task only; Git metadata operations excluded from market-data requests; no claim about independent autonomous jobs.",
+  "nextAction": "Separate outcome-blind LONG-specific stage-budget and evaluation-reuse contract. Resolve Entry OOS, EXIT Dev/Validation/OOS, Integration/Portfolio/Comparison roles and counts; preserve all existing reservations. No price acquisition or Validation release."
+}

@@ -1,0 +1,18 @@
+# Synthetic-only evidence storage
+
+`verify.py`を固定sourceで2回実行し、生成されたsummary.jsonとsynthetic-snapshots.jsonのSHA-256、およびmanifest.jsonのbyte一致を確認した。
+
+producer-manifest.jsonは生成時のuncompressedファイル名・SHA-256を示す。Gitではsnapshotをmtime=0のgzipとして保存する。
+
+- compressed: synthetic-snapshots.json.gz
+- compressed SHA-256: 645f39bdfab9f75814279978ae98531e77654ce74f03be0a5b70a805574173d3
+- uncompressed SHA-256: 2174fbf1eca0766c4457bb8df6d9218e054ee621e53204dcc3c7112d2f603cf3
+- summary SHA-256: ca04968843438ab278dac7811711914ddc97b222c168db62e77c8a1bc93e4d96
+
+93件はunittestのnamed tests。2つのtest内で固定seedの25パスずつを使うproperty checksもあるが、それを市場標本数に数えない。snapshotは6つの模式的Price Pathであり、実在銘柄の成績ではない。
+
+2個の拒否guard（既存outputへの上書き拒否・source hash破損拒否）は93 testsと別に実行した。
+
+初回のsynthetic testではprotectedLow更新後の期待値を101と書いた1件がFAILし、定義通り更新した102を期待するテストへ訂正した。閾値や市場ラベルを成績のために変更したものではない。最終sourceに対して93 testsを再実行し、2回の一致を確認した。アップロード時の空行差はbyte一致のためにローカルsourceにも揃え、最終source-lockを作り直した後に再検証した。
+
+local Python 3.13.5。GitHub Actionsや既存repo全regressionでPASSしたという主張ではない。市場データ・Signal・Entry・EXIT・Dictionaryを読まない。

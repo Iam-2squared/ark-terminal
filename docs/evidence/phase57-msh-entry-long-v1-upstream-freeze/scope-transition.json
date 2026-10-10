@@ -1,0 +1,37 @@
+{
+  "task": "ENTRY_ONLY_FINAL_UPSTREAM_FREEZE",
+  "scopeBoundary": "Latest user instruction: Final Upstream Freeze / DO NOT START EXIT RESEARCH",
+  "previousAuthorization": "Earlier user explicitly authorized EXIT inventory, path diagnostic and unchanged EXIT replay. Superseded by latest instruction.",
+  "priorWorkDisclosure": {
+    "commit": "1435f044344d509fb9f01e9e55d4f51c8b9f75fd",
+    "exitSourceInspectionPerformed": true,
+    "exitSourceFilesHashed": 63,
+    "exitFilesContentInspected": "Nonzero; v3/v4 and related code were read under earlier authorization. Do not report whole-conversation EXIT files inspected=0.",
+    "diagnosticRun": 35087975004,
+    "diagnosticRunStatusAtStopCheck": "completed/success",
+    "cancellation": "No cancellation capability exposed; status check found job already completed. No rerun requested.",
+    "historicalDiagnosticAndReplayJobStarted": 1,
+    "replayTradeCount": "NOT_INSPECTED",
+    "resultDownloaded": false,
+    "resultOpened": false,
+    "resultUsedForFreeze": false,
+    "existingExitStrategyCodeModified": false
+  },
+  "remediation": "Remove this-turn diagnostic workflow/scripts/contracts from final branch tree; preserve Git history and this disclosure. No history rewrite. Discard uncommitted inventory. Retain only Entry identity under Entry-only artifact.",
+  "newFreezeScope": {
+    "entryPrediction": 0,
+    "modelFit": 0,
+    "scalerFit": 0,
+    "oofGeneration": 0,
+    "historicalReplayLaunched": 0,
+    "exitFilesInspected": 0,
+    "exitReplayLaunched": 0,
+    "exitResultOpened": 0,
+    "exitTuning": 0,
+    "exitArchitectureDecision": false,
+    "freshAccess": 0,
+    "oosAccess": 0,
+    "providerRequests": 0
+  },
+  "accountingRule": "New-scope zero counters do not erase earlier authorized activity; inherited completed job is disclosed separately. No fresh/OOS/EXIT result is used to approve Entry freeze."
+}

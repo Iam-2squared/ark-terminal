@@ -1,0 +1,57 @@
+name: Phase57 Frozen Selector Pairability Repair v2
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-selector-pairability-repair-v2.yml'
+      - 'scripts/phase57_selector_pairability_v2.py'
+      - 'scripts/phase57_selector_endpoint_scores_v2.mjs'
+      - 'scripts/test_phase57_selector_pairability_v2.py'
+      - 'docs/evidence/phase57-selector-pairability-repair-v2/protocol-final.json'
+      - 'docs/evidence/phase57-selector-pairability-repair-v2/preflight/REPORT.md'
+      - 'scripts/phase57_saved_evidence_reuse.py'
+      - 'scripts/test_phase57_saved_evidence_reuse.py'
+
+permissions:
+  contents: read
+concurrency:
+  group: phase57-saved-pairability-audit
+  cancel-in-progress: true
+jobs:
+  audit-saved-evidence:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      ARK_TEST_OFFLINE: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test reuse rejection guards
+        run: python -m unittest -v scripts.test_phase57_saved_evidence_reuse
+      - name: Checkout immutable producing workflow and research snapshot
+        uses: actions/checkout@v4
+        with:
+          ref: e11f8af571a03c7e73f79a77c3964752fd109a08
+          path: .phase57-history
+          persist-credentials: false
+      - name: Install fixed audit dependencies
+        run: pip install numpy==2.3.5 pandas==2.2.3
+      - name: Verify unchanged scientific source and reuse saved evidence
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_saved_evidence_reuse \
+            --study pairability --history .phase57-history --output "$RUNNER_TEMP/pairability-reuse"
+      - name: Save fresh audit receipt without rewriting historical evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-pairability-reuse-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/pairability-reuse
+          if-no-files-found: error
+          retention-days: 90

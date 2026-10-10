@@ -1,0 +1,140 @@
+TAP version 13
+# Subtest: ranking adapter applies confidence, risk, market and sector adjustments
+ok 1 - ranking adapter applies confidence, risk, market and sector adjustments
+  ---
+  duration_ms: 1.717136
+  ...
+# Subtest: ranking remains deterministic for equal scores
+ok 2 - ranking remains deterministic for equal scores
+  ---
+  duration_ms: 8.439966
+  ...
+# Subtest: discovery final reuses filters and watchlist without mutating input
+ok 3 - discovery final reuses filters and watchlist without mutating input
+  ---
+  duration_ms: 0.64087
+  ...
+# Subtest: 全銘柄を先頭から指定件数だけ分割する
+ok 4 - 全銘柄を先頭から指定件数だけ分割する
+  ---
+  duration_ms: 3.64139
+  ...
+# Subtest: 保存した位置から再開し最終バッチでサイクルを完了する
+ok 5 - 保存した位置から再開し最終バッチでサイクルを完了する
+  ---
+  duration_ms: 0.472966
+  ...
+# Subtest: 完了後は次の更新サイクルを先頭から開始する
+ok 6 - 完了後は次の更新サイクルを先頭から開始する
+  ---
+  duration_ms: 0.354654
+  ...
+# Subtest: JPX銘柄一覧が変わった場合は安全に先頭から再開する
+ok 7 - JPX銘柄一覧が変わった場合は安全に先頭から再開する
+  ---
+  duration_ms: 0.57625
+  ...
+# Subtest: データ専用ブランチを優先しmainをフォールバックにする
+ok 8 - データ専用ブランチを優先しmainをフォールバックにする
+  ---
+  duration_ms: 2.035933
+  ...
+# Subtest: 取得データへ自動配信元を付与する
+ok 9 - 取得データへ自動配信元を付与する
+  ---
+  duration_ms: 0.303478
+  ...
+# Subtest: 不正なデータ種別は拒否する
+ok 10 - 不正なデータ種別は拒否する
+  ---
+  duration_ms: 0.242254
+  ...
+# Subtest: データ専用ブランチ失敗時はmainへフォールバックする
+ok 11 - データ専用ブランチ失敗時はmainへフォールバックする
+  ---
+  duration_ms: 1.799771
+  ...
+# Subtest: Prediction Lab共通ロジックからランキング行を生成する
+ok 12 - Prediction Lab共通ロジックからランキング行を生成する
+  ---
+  duration_ms: 39.739153
+  ...
+# Subtest: 価格帯の上限は次の帯と重複しない
+ok 13 - 価格帯の上限は次の帯と重複しない
+  ---
+  duration_ms: 0.356367
+  ...
+# Subtest: discoveryScore uses decimal precision and sorts deterministically with tie-breakers
+ok 14 - discoveryScore uses decimal precision and sorts deterministically with tie-breakers
+  ---
+  duration_ms: 1.594286
+  ...
+# Subtest: 価格帯を指定しない場合は分析済み銘柄を除外しない
+ok 15 - 価格帯を指定しない場合は分析済み銘柄を除外しない
+  ---
+  duration_ms: 0.190667
+  ...
+# Subtest: 予算・市場・テーマ・出来高・信頼度を同時に絞り込める
+ok 16 - 予算・市場・テーマ・出来高・信頼度を同時に絞り込める
+  ---
+  duration_ms: 0.315802
+  ...
+# Subtest: ウォッチリストを追加・削除できる
+ok 17 - ウォッチリストを追加・削除できる
+  ---
+  duration_ms: 0.329036
+  ...
+# Subtest: 通知条件を範囲内に正規化して保存する
+ok 18 - 通知条件を範囲内に正規化して保存する
+  ---
+  duration_ms: 0.445925
+  ...
+# Subtest: 通知は閾値・ウォッチ・クールダウンをすべて満たす時だけ候補になる
+ok 19 - 通知は閾値・ウォッチ・クールダウンをすべて満たす時だけ候補になる
+  ---
+  duration_ms: 0.480029
+  ...
+# Subtest: スキャンAPIは日本株表記を正規化し6銘柄までに制限する
+ok 20 - スキャンAPIは日本株表記を正規化し6銘柄までに制限する
+  ---
+  duration_ms: 0.440375
+  ...
+# Subtest: Discovery画面にスクリプトが利用する要素が揃っている
+ok 21 - Discovery画面にスクリプトが利用する要素が揃っている
+  ---
+  duration_ms: 6.649723
+  ...
+# Subtest: スターター銘柄一覧は重複せず必要なメタデータを持つ
+ok 22 - スターター銘柄一覧は重複せず必要なメタデータを持つ
+  ---
+  duration_ms: 20.229706
+  ...
+# Subtest: HomeとPrediction LabからDiscoveryへ移動できる
+ok 23 - HomeとPrediction LabからDiscoveryへ移動できる
+  ---
+  duration_ms: 2.307452
+  ...
+# Subtest: 定期更新はデータ専用ブランチへ公開しmainへ直接pushしない
+ok 24 - 定期更新はデータ専用ブランチへ公開しmainへ直接pushしない
+  ---
+  duration_ms: 1.470884
+  ...
+# Subtest: Discoveryは最新データを統合Vercel API経由で自動取得する
+ok 25 - Discoveryは最新データを統合Vercel API経由で自動取得する
+  ---
+  duration_ms: 1.759175
+  ...
+# Subtest: ローカル開発ではService Workerが古いJSを返さない
+ok 26 - ローカル開発ではService Workerが古いJSを返さない
+  ---
+  duration_ms: 1.360608
+  ...
+1..26
+# tests 26
+# suites 0
+# pass 26
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 219.513392

@@ -1,0 +1,130 @@
+{
+  "schema": "phase57-wpsd-phase0-precommit-v1",
+  "savedJst": "2026-09-28T21:48:48+09:00",
+  "basisHead": "75d6527ce98c81d7350601cb25ed763fe520be25",
+  "branch": "research/phase57-long-only-cash-equity",
+  "draftPr": 587,
+  "status": "FROZEN_BEFORE_WPSD_FIRST_DAMAGE_EVENT_OR_CANDIDATE_PERFORMANCE",
+  "authority": "PHASE0_ZERO_FIT_ARCHITECTURE_GO_ONLY; NOT_INDEPENDENT_VALIDATION_OR_PRODUCTION_PROMOTION",
+  "sourcePins": {
+    "r45ArtifactId": 10909618948,
+    "r45ArtifactZipSha256": "d3936171002e7579e431568b9900ee5fa1fc8ade3dae0bf6de92870c8dbe4b38",
+    "r45FeatureMemberSha256": "45b91faed0ee7ac3dd46d5fa9bdb4f9f5940cfa2c4a9292af468427d551f5b3e",
+    "r45RowIdentityMemberSha256": "41d875a3c7d8d8ebcb6fe6ef2022277143b6b34f9ba34c163395f81f2873ac47",
+    "r45SchemaSha256": "549530ccb29582cc20166497c74ab94a8752fdc8d4108a19a0be9f5aec2d55ba",
+    "rawPathSha256": "37853e73799544be6fd6eb955de514073dd13671692426291a9fdb6d80056c6b",
+    "r50AllEntryCalendarSha256": "2fbf1df2d7ddfbd5f07fbe87da8daeb37b80cb96bb6bfab60a3aa2496f7ae185",
+    "imControlLedgerSha256": "857c775f10e8e4991ef71f5ff6f13ea808dabe33d73affb72950bb5f38d37516",
+    "r1ControlLedgerSha256": "3257b29fa3a07d6292acf40c1630081b437804f22b0b18c7f5a4ba568135dca9",
+    "r54FinalClosureSha256": "5c8bf5d474787372bfd8b1670114f2a11f718c2d22b5f60a25bae81c0ba896f4",
+    "r54TeacherSha256": "a017a10b5b0b6dc0a023ba070a60b0e991d3d98d62a800d36fe743b85c2c759b",
+    "r34PairedSha256": "578c17389a771660a7ba306244d3b888531663a979910d0c1feba66fbab2e0b6",
+    "postR54PrimarySha256": "14ac8ac7eb287b3f4a9485c33ce410a3995cf1355df0ec02bccefcf2ec2b7f98",
+    "r54ReplayArtifactId": 10964100200,
+    "r54ReplayZipSha256": "894fe6de153e6647cdbc54e81edcae9df7da16f2fa9e416221d5a1c6661ef2f4",
+    "r34AuditArtifactId": 10964250835,
+    "r34AuditZipSha256": "46c513221e98498c39c19271f8b90bbbef774f45c80aa645be41fe6af0584b47"
+  },
+  "frozen": {
+    "selector": "FROZEN",
+    "entry": [
+      "IMMEDIATE",
+      "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF"
+    ],
+    "entryDualFreeze": "4878a1cc53430e816261dea0fb16aeb53b3c238d",
+    "capital": "SAVED_CAPITAL_V3_B_CI_RANK_AND_R37_SIZING_ONE_SHOT_ENTRY",
+    "control": "R50_A_LIFECYCLE",
+    "initialCashJpy": 1000000,
+    "lot": 100,
+    "maxConcurrent": 3,
+    "longOnly": true,
+    "cashOnly": true
+  },
+  "universe": {
+    "primary": "ARCHIVED_R50_CONTROL_FUNDED_IM79_R1_32_SAME_ENTRY",
+    "secondary": "ALL_FROZEN_IM819_R1_795",
+    "source": "R45_656247_CLOSED_CHECKPOINTS_IN_CONTROL_LIFECYCLE",
+    "unit": "ENTRY_MAX_ONE_FIRST_DAMAGE_EVENT",
+    "r54SellAnchorUsed": false
+  },
+  "predicates": {
+    "triState": "UNKNOWN distinct from FALSE and TRUE; unavailable damage=0 vote but separately unevaluable",
+    "f1": "currentState.state == DROP; source UNKNOWN is unevaluable; all other known states 0",
+    "f2": "critical={HIGHER_LOW,CONTINUATION,RECLAIM,COMPRESSION_EXPANSION}; only known TRUE/FALSE counted; known>=2 AND FALSE_count>TRUE_count gives 1; known=0/1 unevaluable; one FALSE alone never votes",
+    "f2Resolution": "The handoff's single-FALSE prohibition resolves the Boolean shorthand FALSE>TRUE for known=1; known>=2 is required before a family vote.",
+    "currentNet": "fresh closed path close at now-1 and effectiveEntryPrice>0; R34 as-of percent=100*(close/entry-1.0005); no future/open mark",
+    "upRun": "consecutive strictly rising adjacent scheduled closed closes ending now-1; require both now-1 and immediately preceding scheduled closed close, otherwise UNKNOWN; flat/down gives known 0; break at first nonrise or missing earlier close",
+    "f3": "currentNet<=0 AND upRun==0 with both known; otherwise 0, missing either unevaluable",
+    "f4": "facts.signalLossN>0 OR facts.failedRecovery==TRUE; true if either observed positive; false/evaluable only if both observed and nonpositive; otherwise UNKNOWN/0",
+    "damageScore": "F1+F2+F3+F4 integer 0..4; R54 D, A/HIGH/LOW, Pattern187, short_negative excluded",
+    "p1": "currentNet>0 when known",
+    "p2": "currentState.state in {REBOUND,RISE} when known",
+    "p3": "known critical TRUE>=1 AND FALSE_count<=TRUE_count; UNKNOWN gives no positive",
+    "p4": "upRun>0 when known",
+    "preservationScore": "P1+P2+P3+P4",
+    "veto": "preservationScore>=2; unknown never interpreted as true/false",
+    "evaluableFamilies": "count of F1-F4 with sufficient source evidence per predicates; 0 vote and unevaluable remain distinct",
+    "dataUnavailable": "two adjacent closed checkpoints with evaluableFamilies<2 disables early EXIT and delegates to Control"
+  },
+  "anchor": "For each Frozen Entry, scan exact R45 row identities in increasing closed NOW, from Entry through saved R50 Control decisionNow inclusive; FIRST_DAMAGE_EVENT is first such NOW with score>=1. One anchor at most; save no-anchor count and reason; R54 controller trace must not select an anchor.",
+  "evaluator": {
+    "winnerGe5": "post-entry upside >=5",
+    "defenseLt5": "post-entry upside <5",
+    "winnerGe10": "subset >=10, diagnostic only",
+    "usefulDefensive": "R54 confirmed model sell plus known R34 paired candidate-control PnL>0, supplemental only",
+    "futureFields": "evaluator output only, never joined into runtime predicates",
+    "primaryComparison": "archived IM79/R1 32; all missing evaluator labels reported and excluded from AUC, never replaced"
+  },
+  "auc": {
+    "positive": "defenseLt5",
+    "negative": "winnerGe5",
+    "score": "Damage Score",
+    "ties": "half credit",
+    "sample": "anchored primary Entries with known label only",
+    "bootstrapSeed": 52,
+    "bootstrapReplicates": 10000,
+    "resampleUnit": "session cluster; sort unique primary 24 sessions, sample same number with replacement using Python random.Random(52), retain all anchored IM/R1 rows from sampled session with multiplicity",
+    "ci": "ordinary percentile 2.5%,97.5% using linear interpolation at p*(N-1) over sorted valid AUCs",
+    "invalid": "replicate with single class omitted and counted; fewer than 9500 valid means NO_GO; point AUC undefined means NO_GO",
+    "direction": "per-arm anchored AUC>=0.5 with both classes, otherwise NO_GO"
+  },
+  "secondary": "anchored all-entry IM819/R1 795: defense(<5) median Damage Score >= winner(>=5) median for each arm; >=10 and no-anchor reported separately, not a separate GO test",
+  "gate": [
+    "primaryCombinedAucCiLowerStrictlyAbove0.5",
+    "bothArmAucAtLeast0.5",
+    "secondaryBothArmDefenseMedianAtLeastWinnerMedian",
+    "allPinnedSourceDigestsAndEntryIdentityPass",
+    "historicalAsOfNoFutureLeakage",
+    "allSafetyFlagsFalse"
+  ],
+  "stop": "IF_ANY_GATE_FAIL: PHASE0_NO_GO; NO_CANDIDATE_IMPLEMENTATION_OR_REPLAY; SOURCE_LINEAGE_OR_FUTURE_LEAKAGE_FAILURE: INTEGRITY_ABORT",
+  "diagnostics": [
+    "anchor/no-anchor by arm and class",
+    "damage score and F1-F4 by class",
+    "P1-P4 and veto",
+    "unknown and evaluable family count by cause",
+    "time-of-day and initial/replacement",
+    "upside >=5 and >=10 nested",
+    "R54 negative winner-delta tail worst1/3/5 and minimum trades covering half",
+    "full-prefix MFE/DD/recovery descriptive source comparison"
+  ],
+  "budget": {
+    "newEstimatorFitsAllowed": 0,
+    "integratedReplaysAllowed": 0,
+    "providerRequestsAllowed": 0,
+    "protectedOpenedAllowed": 0,
+    "thresholdSearchAllowed": false,
+    "additionalFamiliesAllowed": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

@@ -1,0 +1,80 @@
+name: Phase57 Entry new information no-fit export
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths: [.github/workflows/phase57-entry-new-information-export.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  existing-development-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      NODE_OPTIONS: --max-old-space-size=6144
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 62d62c21b9d9e42fa8a5a9b8ca22160c5a82feb9
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify preregistration and run synthetic tests with network denied
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '6b5c96d578dde9dee5dfbfa80b8e1ff83c7920b2ae6a890dff0ca5d9d30ce2f7  predict/research/phase57-entry-additional-information-diagnostic-v1.json' | sha256sum -c -
+          echo '99e5a4855f2ebc7b7bb05a5f6b928a739854f5519a8810e8c544e5cfbd525d8a  scripts/phase57_entry_information_export.mjs' | sha256sum -c -
+          mkdir -p artifacts/entry-information
+          ARK_TEST_OFFLINE=1 python3 scripts/offline/kernel_exec.py node scripts/phase57_entry_information_export.mjs --self-test | tee artifacts/entry-information/synthetic-tests.json
+          cp predict/research/phase57-entry-additional-information-diagnostic-v1.json artifacts/entry-information/protocol.json
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-l1-minute-shard-*-34926225832
+          path: ${{ runner.temp }}/entry-info-l1
+          repository: Iam-2squared/ark-terminal
+          run-id: 34926225832
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-l2-minute-shard-*-34936002178
+          path: ${{ runner.temp }}/entry-info-l2
+          repository: Iam-2squared/ark-terminal
+          run-id: 34936002178
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-v2-minute-shard-*-34964031692
+          path: ${{ runner.temp }}/entry-info-v2
+          repository: Iam-2squared/ark-terminal
+          run-id: 34964031692
+          github-token: ${{ github.token }}
+      - name: Decrypt existing Development checkpoints locally, no provider access
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${JQUANTS_API_KEY:-}"
+          test "$(find "$RUNNER_TEMP/entry-info-l1" "$RUNNER_TEMP/entry-info-l2" "$RUNNER_TEMP/entry-info-v2" -name minute-shard.tar.gz.enc | wc -l)" = 8
+          mkdir -p "$RUNNER_TEMP/entry-info-cache"
+          while IFS= read -r encrypted; do
+            test "$(cut -d' ' -f1 "${encrypted}.sha256")" = "$(sha256sum "$encrypted" | cut -d' ' -f1)"
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -in "$encrypted" | tar -C "$RUNNER_TEMP/entry-info-cache" -xzf -
+          done < <(find "$RUNNER_TEMP/entry-info-l1" "$RUNNER_TEMP/entry-info-l2" "$RUNNER_TEMP/entry-info-v2" -name minute-shard.tar.gz.enc | sort)
+      - name: Derive eight pre-entry fields offline from allowlisted 76 sessions
+        shell: bash
+        run: |
+          set -euo pipefail
+          ARK_TEST_OFFLINE=1 python3 scripts/offline/kernel_exec.py node scripts/phase57_entry_information_export.mjs "$RUNNER_TEMP/entry-info-cache" artifacts/entry-information/derived | tee artifacts/entry-information/export.log
+      - name: Purge temporary decrypted source cache
+        if: always()
+        run: rm -rf -- "$RUNNER_TEMP/entry-info-cache" "$RUNNER_TEMP/entry-info-l1" "$RUNNER_TEMP/entry-info-l2" "$RUNNER_TEMP/entry-info-v2"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-entry-new-information-${{ github.run_id }}
+          path: artifacts/entry-information/
+          retention-days: 14
+          if-no-files-found: error

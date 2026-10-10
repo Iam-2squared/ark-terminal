@@ -1,0 +1,160 @@
+{
+  "accounting": {
+    "buyFill": "Frozen effective Entry price includes inherited buy-side semantics",
+    "cashRelease": "R34 confirmed sell proceeds minus cost at exact exit fill time",
+    "daily": "only consecutive certified EOD endpoints; first certified EOD against initial equity only if no prior invalid EOD; full 24-session aggregate null if any session invalid",
+    "equity": "null when any owned position lacks valid as-of mark; final equity/portfolio return null unless every scheduled EOD certified, end flat and contiguous",
+    "geometric": "(final/1000000)**(1/N)-1 only for full contiguous N scheduled sessions",
+    "mark": "V1 same-session same-segment last completed owned close or Entry OPEN, auction at 15:30; no future/interpolation/zero-fill",
+    "overnight": "unresolved lock; fail-closed if R34 cannot enter next session while positions open",
+    "sellCostPp": 0.05
+  },
+  "approval": {
+    "autoPromotion": false,
+    "formalSelection": false,
+    "freshOrProtectedOpen": false,
+    "providerRequests": 0
+  },
+  "arms": {
+    "primary": "IMMEDIATE",
+    "secondary": "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF"
+  },
+  "armsToReplay": [
+    "CAPITAL_V3_B__TERMINAL",
+    "CAPITAL_V3_B__R50_A",
+    "EXISTING_CAUSAL_RANK__R50_A"
+  ],
+  "basisHead": "718458ebca463996962aa7ccc3dcfb3f2d70afd4",
+  "capacity": 3,
+  "comparability": "Same frozen Entry, initial cash, MAX3, 100-share sizing, cost, session window, R50 source as applicable; terminal control uses same saved v3-B predictions.",
+  "eligibility": "ONE_SHOT_AT_FROZEN_ENTRY_TIMESTAMP; no retroactive/revisited Entry, no extra eligibility extension",
+  "entryDualFreeze": "4878a1cc53430e816261dea0fb16aeb53b3c238d",
+  "evaluator": {
+    "boundaries": "half-open at lower boundary inclusive, upper exclusive; <0 strictly negative; >=10 includes 10; 0 included in 0–1",
+    "buckets": [
+      "<0%",
+      "0–1%",
+      "1–2%",
+      "2–3%",
+      "3–4%",
+      "4–5%",
+      "5–7.5%",
+      "7.5–10%",
+      ">=10%",
+      "UNKNOWN/CENSORED"
+    ],
+    "futureLabelsNeverDecision": true,
+    "metrics": [
+      "funded N/rate/reach >=5,>=7.5,>=10",
+      "funded upside bucket count/share/mean/median/net/capital",
+      "cash release/reinvestment/turnover/utilization",
+      "partial valuation and valid EOD returns"
+    ],
+    "missReasonExclusive": true,
+    "missReasonPriority": [
+      "ENTRY_NOT_ELIGIBLE",
+      "UNRESOLVED_CASH_LOCK",
+      "CAPACITY_FULL",
+      "RANK_LOSS",
+      "INSUFFICIENT_CASH",
+      "LOT_INFEASIBLE",
+      "OTHER_CAUSAL"
+    ],
+    "primary": "Frozen Entry effective price -> strictly later same-session best observed High; unknown/censored kept distinct"
+  },
+  "eventOrdering": [
+    "at each union of session start, frozen Entry timestamps, held EXIT fill timestamps, and 15:30",
+    "process held confirmed EXIT fills at their exact time, returning net proceeds and freeing symbols/slots",
+    "unresolved EXIT never releases cash or slots",
+    "mark remaining holdings from same-segment as-of owned observations only",
+    "collect only frozen one-shot Entries at the exact timestamp",
+    "rank same-timestamp eligible Entries by frozen CI Capital v3-B score",
+    "size with inherited R37 1/3 current equity target, available cash and 100-share floor, in that order",
+    "record exclusive reject reasons and post-batch state"
+  ],
+  "initialCashJpy": 1000000,
+  "lotShares": 100,
+  "recycling": {
+    "definition": "same-arm v3-B R50-A funded Entry IDs absent from same-arm v3-B terminal-hold funded IDs",
+    "earlyCashMinutes": "terminal reference minute 930 minus saved confirmed R50-A model exit fill minute, session wall minutes",
+    "highUpsideDefinition": "recycling-funded and evaluator-only POST_ENTRY_UPSIDE_GE5",
+    "opportunityCost": "for jointly funded Entry IDs, compare same-quantity exit price PnL R50-A vs terminal; post-exit remaining observed High evaluator-only, no assumed executable peak",
+    "releaseWitness": "for each incremental fund report prior confirmed R50-A exits with timestamp, net released cash, freed slot; shared witnesses not double counted as extra entries"
+  },
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "sameSymbol": "Inherit R34: only one concurrent position per symbol; later frozen event can fund after prior confirmed EXIT only if a distinct frozen entry exists.",
+  "savedJst": "2026-09-27T18:59:06.137794+09:00",
+  "schema": "phase57-capital-exit-integrated-development-precommit-v1",
+  "scope": "EXPERIMENTAL DEVELOPMENT INTEGRATED REPLAY; no formal Capital or Final EXIT selection",
+  "sessions": [
+    "2025-07-22",
+    "2025-07-23",
+    "2025-07-24",
+    "2025-07-25",
+    "2025-07-28",
+    "2025-07-29",
+    "2025-07-30",
+    "2025-07-31",
+    "2025-08-01",
+    "2025-08-04",
+    "2025-08-05",
+    "2025-08-06",
+    "2025-08-07",
+    "2025-08-08",
+    "2025-08-12",
+    "2025-08-13",
+    "2025-08-14",
+    "2025-08-15",
+    "2025-08-18",
+    "2025-08-19",
+    "2025-08-20",
+    "2025-08-21",
+    "2025-08-22",
+    "2025-08-25"
+  ],
+  "sources": {
+    "docs/evidence/phase57-capital-exit-integrated/INPUTS/R50_A_LIFECYCLE-run-a.jsonl.gz": "2fbf1df2d7ddfbd5f07fbe87da8daeb37b80cb96bb6bfab60a3aa2496f7ae185",
+    "docs/evidence/phase57-capital-v3/INPUTS/R1-entry-records.json.gz": "15ddb5cfc5169024878ee72d9dbecc6e1d9dec24e78afa2dcdf8dea891117fa6",
+    "docs/evidence/phase57-capital-v3/INPUTS/R50-terminal-ledger.jsonl.gz": "770f02612cdd97ed2420f14a2fe6ab6ed1f50a96f222afa9b3c376982c8ea476",
+    "docs/evidence/phase57-capital-v3/RESULT/scores.json": "b6ed8340536b4c89fd562873bc95e028efd7bfd9130e7c92a3ede52b3b0d3645",
+    "docs/evidence/phase57-entry-pattern-v2/ci-result/substrate/raw-paths-evaluator-only.json.gz": "37853e73799544be6fd6eb955de514073dd13671692426291a9fdb6d80056c6b"
+  },
+  "status": "FROZEN_BEFORE_INTEGRATED_REPLAY_PERFORMANCE",
+  "upstreamExit": {
+    "archiveArtifactId": 10921995049,
+    "archiveRunId": 36287943625,
+    "archiveZipSha256": "1868b407b4650144c45b5d0b3bf0a9a59a93179614e0b1c856fe0b4a26c2adaa",
+    "candidateId": "R50_A_LIFECYCLE",
+    "confirmedOrdinaryExecution": "EXACT_NEXT_SCHEDULED_OPEN_AT_SAVED_EXIT_MINUTE",
+    "decisionAtClosedCheckpoint": true,
+    "missingReference": "UNRESOLVED_NO_CASH_RELEASE",
+    "noRefitOrThresholdChange": true,
+    "protocolSha256": "011b4959bf7cd343694f44e2986d13d87c07b6fa238dc326f5273e86885afe18",
+    "terminalExecution": "EXACT_15:30_AUCTION_ONLY"
+  },
+  "upstreamRank": {
+    "candidate": "CAPITAL_V3_B",
+    "candidateNotSelected": true,
+    "fits": 0,
+    "folds": "FROZEN_V3_24_SESSION_TEMPORAL_OOF",
+    "predictionByteDifferenceDisclosed": true,
+    "predictionSource": "SAVED_CI_SCORES_JSON",
+    "tieBreak": [
+      "score descending",
+      "original rank ascending",
+      "saved score descending",
+      "symbol ascending",
+      "entry ID ascending"
+    ]
+  }
+}

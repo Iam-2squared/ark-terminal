@@ -1,0 +1,185 @@
+{
+  "archetypes": {
+    "reason": "Requested categories are optional. Preserve measured order and threshold pattern signatures; do not invent additional immediate/weak/hold thresholds or exclusive taxonomy.",
+    "status": "NOT_APPLICABLE"
+  },
+  "frozen": {
+    "cadence": "unchanged canonical",
+    "decisionPrice": "exact saved PIT Decision Price; not first subsequent OPEN; no artificial zero-price endpoint inserted",
+    "membership": "exact original saved 3800 identities per arm; no future availability used for selection",
+    "rank": "1..5 by within-timestamp order in original arm array, verified against saved frozen scores descending and symbol tie-break; never use union armRank overwritten by another arm",
+    "rankCutoff": null,
+    "selector": "FROZEN_LONG_SELECTOR_WITH_MIN_PRICE_75",
+    "topK": 5
+  },
+  "id": "PHASE57_POST_SELECTION_LOW_HIGH_PATH_ANATOMY_V1",
+  "nextStep": "Propose exactly one A/B/C/D/E after describing evidence and limitations; no causal rule, fitting, validation or strategy work. Path existence can motivate a separate PIT recoverability diagnostic but cannot establish profitability.",
+  "order": {
+    "classes": [
+      "LOW_THEN_HIGH",
+      "HIGH_THEN_LOW",
+      "SAME_BAR_ORDER_UNKNOWN",
+      "NO_VALID_PATH"
+    ],
+    "extremaTies": "earliest bar attaining exact same minimum/maximum; save every tied bar interval and tie counts; classification describes first attainment, not unique extreme times",
+    "sameBar": "unknown even if bar open/close might suggest an order; no intrabar interpolation"
+  },
+  "orderedPatterns": {
+    "allOriginalBounds": "confirmed count / original3800 lower bound; confirmed+same-bar+incomplete count / original3800 upper bound; descriptive partial identification, not binomial independent CI",
+    "confirmed": "exists qualifying first event in a strictly earlier bar than qualifying second event; save earliest lexicographic witness pair",
+    "denominators": [
+      "all complete paths",
+      "paths reaching first threshold"
+    ],
+    "downThenUp": [
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        3,
+        3
+      ],
+      [
+        3,
+        5
+      ]
+    ],
+    "globalVsThresholdOrder": "ordered threshold events do not require global low before global high",
+    "negative": "NOT_OBSERVED only on complete path; missing path remains NOT_EVALUABLE",
+    "thresholdReference": "all thresholds relative to the same original Decision Price",
+    "unknown": "no confirmed pair but both thresholds in the same bar => SAME_BAR_ORDER_UNKNOWN",
+    "upThenGiveback": [
+      [
+        3,
+        0
+      ],
+      [
+        5,
+        0
+      ]
+    ]
+  },
+  "path": {
+    "end": "15:00 before 2024-11-05, 15:30 thereafter; same saved regular-session semantics, no next-session or auction supplement",
+    "invalid": "retain every original row with NO_VALID_PATH, exact reason/missing slots; metrics null. Partial observed extrema separately marked bounds only, never pooled with complete paths",
+    "lowToHigh": "100*((1+selectionToHigh/100)/(1+selectionToLow/100)-1); unordered oracle range, including HIGH_THEN_LOW; not realizable return",
+    "selectionToHigh": "maximum future high relative to Decision Price, without clamping at zero",
+    "selectionToLow": "minimum future low relative to Decision Price, without clamping at zero",
+    "sessionEndReturn": "last regular close relative to Decision Price; gross reference return, not fill-based profit; no cost subtracted from geometric ranges",
+    "source": "same hash-pinned normalized 5m projector and saved raw Development cache",
+    "start": "bars start >= decision timestamp; no selecting bar from the past; at 11:30 first future regular bar is 12:30",
+    "valid": "every expected regular 5m slot exists and is valid; sparse 5m bars with >=1 observed minute accepted per original normalizer, counted explicitly"
+  },
+  "priorOutcomesAlreadyExposed": true,
+  "random": {
+    "bootstrap": "10000 session-cluster resamples seed20260919; pointwise descriptive CI plus circular 5-session block sensitivity",
+    "fields": [
+      "selectionToLowPct",
+      "selectionToHighPct",
+      "lowToHighPct",
+      "LOW_THEN_HIGH",
+      "HIGH_THEN_LOW"
+    ],
+    "fullPopulation": "NOT_IDENTIFIED; no missing imputation, no availability reranking",
+    "primary": "same timestamp both original Top5 fully complete through session end; zero pairs => NOT_EVALUABLE",
+    "secondary": "observed original complete-path members at common timestamps, both arms at least1; explicitly observation-conditional, not Top5 policy estimate",
+    "source": "same original Random Top5, seed20260919 repetitions1, no redraw",
+    "weights": "timestamp equal within session, session equal across sessions"
+  },
+  "role": "EVALUATOR_ONLY_DESCRIPTIVE_NOT_STRATEGY",
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "sealed": {
+    "automaticPromotion": false,
+    "baselineParameterSearch": false,
+    "capitalTuning": false,
+    "developmentTestOpened": false,
+    "exitTuning": false,
+    "freshOpened": false,
+    "mainMerge": false,
+    "newProviderRequests": 0,
+    "oosOpened": false,
+    "portfolioOptimization": false,
+    "selectorRetrain": false
+  },
+  "sourceHead": "8ababb7cc412a7b7dd7e0d09611d1bb66a5dd8e8",
+  "sourcePins": {
+    "docs/evidence/phase57-selector-economic-alpha-v1/measurement/membership-ledger.json.gz": "ffe846802ebbfb9ac65040d78dd5aea8d2222051358fb27cfb315e668cb163b8",
+    "docs/evidence/phase57-selector-full-day-path-anatomy-v1/measurement/source-manifest.json": "3baaef241dd39571527fc1b9c40da597f3827537e4981c0b449e0d599d0f2d78",
+    "docs/evidence/phase57-selector-min-price75-v1/measurement/new-paths.json.gz": "eeb15545a278a7058a0b40042169df8ad7560077289c7bef3412977decc524d2",
+    "docs/evidence/phase57-selector-pairability-repair-v2/measurement/source-manifest.json": "e2cf9bbefd166e71d742e519b03ee3ddf949be2ccaf4a91e797f8a87973cf95f",
+    "predict/long-only/phase57-long-only-integrated-dataset.js": "390e2df4ddc0be571d285e05754ce9ad90f2618eb5902797cf8e7bae4a5f667f",
+    "predict/long-only/phase57-long-only-session-allocation-v3.json": "07092bb98ee90062f51611e9c5247df22711aa0acb3dc496ad59126208c2fd50",
+    "predict/research/phase57-long-only-frozen-selector-min-price75-v1.json": "e75a49adb2a35497b6ac4d1afdd2942f87d9e139f04ae98e2478ca564ee874d8",
+    "scripts/phase57_msh_entry_v2_paths.mjs": "378e2de0937172c06730c42a5ddf726019b23e9ddf2bf083ab109e5ce64b71b4",
+    "scripts/phase57_selector_economic_alpha.py": "12dfb71767789ce8254ff6b5ef78b02dac3271455da6ec74c7995cf6dd476456",
+    "scripts/phase57_selector_min_price75_paths.mjs": "e11dff6b84e19b6026b440ce71ad5a61ad5013b0efb3ac3995dd75830e4dd28e",
+    "scripts/phase57_selector_pairability_v2.py": "a3dc9679ae3a2895cd388080c884de050c4ac89886e05cf08d7132cc08f36901",
+    "scripts/phase57_selector_path_anatomy.py": "2c4ff186852113fb39bd9bb1479391d97283374d7cb0319bab94e7f99970e6ac"
+  },
+  "statistics": {
+    "counts": [
+      "original rows",
+      "valid rows",
+      "missing rows",
+      "sessions",
+      "unique symbols",
+      "timestamps"
+    ],
+    "dependence": "overlapping timestamps and repeated symbols not independent; no row-iid significance claims",
+    "orderRates": "valid complete paths denominator; also all-original status counts",
+    "primary": "row-weighted descriptive distributions, mean median p05 p10 p25 p75 p90 p95",
+    "stability": "per-session, rank1..5 and valid/missing breakdown; no rank cutoff"
+  },
+  "timing": {
+    "cdf": "definite occurrence by t when upper<=t; possible occurrence when lower<=t; session-end includes all valid paths",
+    "cdfMinutes": [
+      5,
+      10,
+      15,
+      30,
+      60,
+      90,
+      120
+    ],
+    "extremaElapsed": "lower/upper elapsed bounds; quantiles for both; report upper-bound median as bar-resolution upper bound",
+    "orderedExtremaGap": "lower=max(0,later start-earlier end), upper=later end-earlier start; trading and wall minutes; no gap for same-bar",
+    "primary": "regular trading minutes from selection; exclude 11:30-12:30 lunch",
+    "secondary": "wall-clock minutes explicitly separate",
+    "timestamps": "bar start/end interval in JST, never a fabricated point timestamp"
+  },
+  "unionPathsSHA256": "81acf9ec27f2a5fc0975d6d17d2f37b2f2a52fc79b7d62e0db5a465e68daec70",
+  "winners": {
+    "conditioned": "future-outcome-conditioned descriptive only",
+    "definition": "selectionToHigh>=threshold with 1e-10 numeric tolerance on complete paths",
+    "groups": "winner and nonwinner separately for every threshold; +3/+5 detailed; invalid paths unknown, never nonwinner",
+    "thresholdsPct": [
+      1,
+      2,
+      3,
+      5
+    ]
+  }
+}

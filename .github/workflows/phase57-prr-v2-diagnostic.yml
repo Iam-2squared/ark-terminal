@@ -1,0 +1,45 @@
+name: Phase57 PRR V2 numerical diagnostic
+on:
+  push:
+    branches:
+      - research/phase57-long-only-cash-equity
+    paths:
+      - 'scripts/phase57_prr_v2_diagnostic.py'
+      - '.github/workflows/phase57-prr-v2-diagnostic.yml'
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 50
+    env:
+      OMP_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+      PYTHONHASHSEED: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install fixed diagnostic packages
+        run: python -m pip install 'numpy==2.3.5' 'scikit-learn==1.8.0' 'pandas==2.2.3'
+      - name: Restore existing Development State reference
+        run: |
+          mkdir -p artifacts/reference
+          cp docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement/state-checkpoints.json.gz artifacts/reference/state-checkpoints.json.gz
+      - name: Reconstruct and verify frozen 566 features without fits
+        run: python -m scripts.phase57_entry_all_material_r1_data --workers 2
+      - name: Two diagnostic fits and full fold-3 mismatch receipt
+        run: python -m scripts.phase57_prr_v2_diagnostic
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-prr-v2-diagnostic-evidence
+          path: |
+            docs/evidence/phase57-prr-numerical-recovery/ENVIRONMENT_AUDIT.json
+            docs/evidence/phase57-prr-numerical-recovery/SOURCE_LINEAGE.json
+            docs/evidence/phase57-prr-numerical-recovery/MISMATCH_DIAGNOSTIC.json
+            docs/evidence/phase57-prr-numerical-recovery/DIAGNOSTIC_MISMATCH_ROWS.jsonl.gz
+          if-no-files-found: warn

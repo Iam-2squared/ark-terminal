@@ -1,0 +1,1554 @@
+{
+  "sources": {
+    "exitContract": {
+      "ref": "origin/research/phase57-exit-v4-hybrid-msh-large-scale",
+      "commit": "ea15a594103bd6c9146f19a4aebafb83067d869b",
+      "path": "predict/research/phase57-exit-v4-stage2-data-allocation-contract-v1.json",
+      "blobSha": "302a289578abc89d2949e67752637175de23b744",
+      "sha256": "7e2792dfe35998716535bbbe0c9347adf87c9d6179f004b405bf0afd7240faec"
+    },
+    "exitManifest": {
+      "ref": "origin/research/phase57-exit-v4-hybrid-msh-large-scale",
+      "commit": "ea15a594103bd6c9146f19a4aebafb83067d869b",
+      "path": "predict/research/phase57-exit-v4-stage2-allocation-manifest-v1.json",
+      "blobSha": "7594c73e8ed34e5661be5b804b6b5ad5a3b62764",
+      "sha256": "316d65a051ef62a0917446a910eabd9c46f2b577486fb5ead5743c446075a276"
+    },
+    "selectorCloseout": {
+      "ref": "origin/research/phase57-selector-capacity-v2",
+      "commit": "63edf641f871be20cbd8518cec44392d12e74b16",
+      "path": "predict/research/phase57-selector-closeout-data-use-manifest.json",
+      "blobSha": "b2542b627c14ac0ba3d3d960b164e6c7aaaa8da3",
+      "sha256": "e7e64f37ac038c3e21ed5c2d5ab768f2feeb112c5bb0aa03e0fa236d358252cc"
+    },
+    "oldEntryInventory": {
+      "ref": "origin/research/phase57-hybrid-p21-entry-baseline",
+      "commit": "938338199c861b1cd6345d08b311fbd85442e339",
+      "path": "predict/research/phase57-entry-historical-inventory-2026-09-08.json",
+      "blobSha": "c4b397b5e674aebbed81e34c02b2987fabbb55d7",
+      "sha256": "4287faa36ea9c35e649fb912c20119dcd6a2f2e4c4be65ec9aeca494362bcdb0"
+    }
+  },
+  "sessions": [
+    {
+      "sessionId": "JPX:2025-01-10",
+      "sessionDate": "2025-01-10",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:DEV_B_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_development",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "DEV_B_LOCKED",
+        "HYBRID_development",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_development"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-01-14",
+      "sessionDate": "2025-01-14",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:DEV_B_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:SOURCE_VALIDATION",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "DEV_B_LOCKED",
+        "SOURCE_VALIDATION",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "UNKNOWN",
+      "exposureReason": [],
+      "sealed": true,
+      "protected": true,
+      "usedBySelectorDevelopment": null,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "SOURCE_VALIDATION_ONLY_PERMANENT_EXCLUSION; not fresh research data."
+      ],
+      "classification": "SEALED"
+    },
+    {
+      "sessionId": "JPX:2025-01-15",
+      "sessionDate": "2025-01-15",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:DEV_B_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:SOURCE_VALIDATION",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "DEV_B_LOCKED",
+        "SOURCE_VALIDATION",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "UNKNOWN",
+      "exposureReason": [],
+      "sealed": true,
+      "protected": true,
+      "usedBySelectorDevelopment": null,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "SOURCE_VALIDATION_ONLY_PERMANENT_EXCLUSION; not fresh research data."
+      ],
+      "classification": "SEALED"
+    },
+    {
+      "sessionId": "JPX:2025-01-16",
+      "sessionDate": "2025-01-16",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:DEV_B_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:SOURCE_VALIDATION",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "DEV_B_LOCKED",
+        "SOURCE_VALIDATION",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "UNKNOWN",
+      "exposureReason": [],
+      "sealed": true,
+      "protected": true,
+      "usedBySelectorDevelopment": null,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "SOURCE_VALIDATION_ONLY_PERMANENT_EXCLUSION; not fresh research data."
+      ],
+      "classification": "SEALED"
+    },
+    {
+      "sessionId": "JPX:2025-01-17",
+      "sessionDate": "2025-01-17",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:DEV_B_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:SOURCE_VALIDATION",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "DEV_B_LOCKED",
+        "SOURCE_VALIDATION",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "UNKNOWN",
+      "exposureReason": [],
+      "sealed": true,
+      "protected": true,
+      "usedBySelectorDevelopment": null,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "SOURCE_VALIDATION_ONLY_PERMANENT_EXCLUSION; not fresh research data."
+      ],
+      "classification": "SEALED"
+    },
+    {
+      "sessionId": "JPX:2025-01-20",
+      "sessionDate": "2025-01-20",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:DEV_B_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_development",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "DEV_B_LOCKED",
+        "HYBRID_development",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_development"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-01-21",
+      "sessionDate": "2025-01-21",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:DEV_B_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_development",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "DEV_B_LOCKED",
+        "HYBRID_development",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_development"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-01-22",
+      "sessionDate": "2025-01-22",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:DEV_B_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_development",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "DEV_B_LOCKED",
+        "HYBRID_development",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_development"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-01-23",
+      "sessionDate": "2025-01-23",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:DEV_B_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_development",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "DEV_B_LOCKED",
+        "HYBRID_development",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_development"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-01-24",
+      "sessionDate": "2025-01-24",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:DEV_B_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_development",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "DEV_B_LOCKED",
+        "HYBRID_development",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_development"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-01-27",
+      "sessionDate": "2025-01-27",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:VALIDATION_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_development",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "VALIDATION_LOCKED",
+        "HYBRID_development",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_development"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-01-28",
+      "sessionDate": "2025-01-28",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:VALIDATION_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_development",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "VALIDATION_LOCKED",
+        "HYBRID_development",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_development"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-01-29",
+      "sessionDate": "2025-01-29",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:VALIDATION_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_development",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "VALIDATION_LOCKED",
+        "HYBRID_development",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_development"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-01-30",
+      "sessionDate": "2025-01-30",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:VALIDATION_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:PURGE",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "VALIDATION_LOCKED",
+        "PURGE",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "UNKNOWN",
+      "exposureReason": [],
+      "sealed": true,
+      "protected": true,
+      "usedBySelectorDevelopment": null,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "PURGE_EXCLUDED_NOT_FRESH_EVALUATION"
+      ],
+      "classification": "SEALED"
+    },
+    {
+      "sessionId": "JPX:2025-01-31",
+      "sessionDate": "2025-01-31",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:VALIDATION_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_validation",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "VALIDATION_LOCKED",
+        "HYBRID_validation",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_validation"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-02-03",
+      "sessionDate": "2025-02-03",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:VALIDATION_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_validation",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "VALIDATION_LOCKED",
+        "HYBRID_validation",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_validation"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-02-04",
+      "sessionDate": "2025-02-04",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:VALIDATION_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_validation",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "VALIDATION_LOCKED",
+        "HYBRID_validation",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_validation"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-02-05",
+      "sessionDate": "2025-02-05",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:VALIDATION_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_validation",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "VALIDATION_LOCKED",
+        "HYBRID_validation",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_validation"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-02-06",
+      "sessionDate": "2025-02-06",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:VALIDATION_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_validation",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "VALIDATION_LOCKED",
+        "HYBRID_validation",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_validation"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-02-07",
+      "sessionDate": "2025-02-07",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:VALIDATION_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_validation",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "VALIDATION_LOCKED",
+        "HYBRID_validation",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_validation"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-02-10",
+      "sessionDate": "2025-02-10",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:VALIDATION_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_validation",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "VALIDATION_LOCKED",
+        "HYBRID_validation",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_validation"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-02-12",
+      "sessionDate": "2025-02-12",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:VALIDATION_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_validation",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "VALIDATION_LOCKED",
+        "HYBRID_validation",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_validation"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-02-13",
+      "sessionDate": "2025-02-13",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:VALIDATION_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_validation",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "VALIDATION_LOCKED",
+        "HYBRID_validation",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_validation"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-02-14",
+      "sessionDate": "2025-02-14",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:VALIDATION_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_validation",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "VALIDATION_LOCKED",
+        "HYBRID_validation",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_validation"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-02-17",
+      "sessionDate": "2025-02-17",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:VALIDATION_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_validation",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "VALIDATION_LOCKED",
+        "HYBRID_validation",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_validation"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-02-18",
+      "sessionDate": "2025-02-18",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:VALIDATION_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_validation",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "VALIDATION_LOCKED",
+        "HYBRID_validation",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_validation"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-02-19",
+      "sessionDate": "2025-02-19",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:VALIDATION_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_validation",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "VALIDATION_LOCKED",
+        "HYBRID_validation",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_validation"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-02-20",
+      "sessionDate": "2025-02-20",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:VALIDATION_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_validation",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "VALIDATION_LOCKED",
+        "HYBRID_validation",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_validation"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-02-21",
+      "sessionDate": "2025-02-21",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:VALIDATION_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_validation",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "VALIDATION_LOCKED",
+        "HYBRID_validation",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_validation"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    },
+    {
+      "sessionId": "JPX:2025-02-25",
+      "sessionDate": "2025-02-25",
+      "parentReserveOrdinal": null,
+      "source": [
+        "J_QUANTS:exitInventory",
+        "oldEntryInventory"
+      ],
+      "availableMetadata": [
+        {
+          "source": "exitInventory",
+          "asOf": "2026-09-10",
+          "status": "ELIGIBLE",
+          "scopeExposure": "METADATA_ONLY_OUTCOME_UNTOUCHED",
+          "rawPersistedAtInventory": false
+        }
+      ],
+      "currentAllocation": [
+        "EXIT_STAGE2:VALIDATION_LOCKED",
+        "LEGACY_SELECTOR_ENTRY:HYBRID_validation",
+        "LONG_INTEGRATED_V3:VALIDATION"
+      ],
+      "allocationPurpose": [
+        "VALIDATION_LOCKED",
+        "HYBRID_validation",
+        "VALIDATION"
+      ],
+      "allocationStatus": [
+        "EXISTING_RECORD_NOT_CHANGED"
+      ],
+      "priorOutcomeExposure": "EXPOSED_CONFIRMED_BY_METADATA",
+      "exposureReason": [
+        "oldEntryInventory:HYBRID_validation"
+      ],
+      "sealed": true,
+      "protected": false,
+      "usedBySelectorDevelopment": true,
+      "usedByEntryDevelopment": null,
+      "usedByEntryDiagnostics": null,
+      "usedByExitResearch": null,
+      "reservedForExit": true,
+      "reservedForValidation": true,
+      "reservedForOOS": false,
+      "reservedForIntegration": false,
+      "reallocationAllowed": false,
+      "localData": "UNKNOWN_NOT_PRICE_PAYLOAD_INSPECTED",
+      "notes": [
+        "CONFLICT: scope-level untouched metadata cannot override cross-research positive exposure attestation."
+      ],
+      "classification": "EXPOSED"
+    }
+  ]
+}

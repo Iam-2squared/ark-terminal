@@ -1,0 +1,60 @@
+{
+  "consumerProjectionExcludes": [
+    "securityId",
+    "symbol",
+    "code",
+    "oneHot",
+    "embedding"
+  ],
+  "implementation": "CONTRACT_ONLY_NOT_RUNTIME_DICTIONARY",
+  "key": [
+    "securityId",
+    "asOfSession",
+    "dictVersion",
+    "window",
+    "metricId"
+  ],
+  "layerContract": {
+    "L0": "private immutable existing raw only; no acquisition",
+    "L1": "5m exact complete minutes, auctions separate, missing unfilled",
+    "L2": "append-only per security/session; private",
+    "L3": "prior-session as-of snapshot; private; no runtime until Early Gate passes"
+  },
+  "schemaVersion": 1,
+  "statusEnum": [
+    "OBSERVED",
+    "NO_TRADE",
+    "DATA_MISSING",
+    "HALT_SPECIAL_QUOTE",
+    "NOT_LISTED",
+    "UNKNOWN",
+    "BLOCKED_PIT",
+    "INSUFFICIENT_NEFF"
+  ],
+  "values": [
+    "value",
+    "raw",
+    "nEvents",
+    "nEff",
+    "nSessions",
+    "windowStart",
+    "windowEnd",
+    "shrinkWeight",
+    "priorSource",
+    "peerMean",
+    "ownDeviation",
+    "ciLo",
+    "ciHi",
+    "reliabilityTier",
+    "status",
+    "missingReason",
+    "knownAt",
+    "eventTime",
+    "inputManifestHash",
+    "codeHash",
+    "configHash",
+    "schemaVersion",
+    "characterStability",
+    "driftFlag"
+  ]
+}

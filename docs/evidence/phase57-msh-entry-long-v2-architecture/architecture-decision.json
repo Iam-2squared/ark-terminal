@@ -1,0 +1,151 @@
+{
+  "verdict": "MSH_ENTRY_LONG_V2_ARCHITECTURE_DIAGNOSTIC_COMPLETE",
+  "meaning": "Architecture requirements complete; risk predictability / v2 performance INCONCLUSIVE. STOP before model/target/features/state/numeric gates freeze or fit.",
+  "primaryProblem": "MULTIPLE",
+  "failureAttribution": [
+    {
+      "id": "A",
+      "failure": "TAIL_FAILURE_NOT_DETECTED",
+      "verdict": "TRUE",
+      "evidence": "10/181 enter paths have MAE<=\u221210%;5 are57590. v1 score has no explicit adverse-risk meaning. Detectability before entry remains unproven."
+    },
+    {
+      "id": "B",
+      "failure": "OPPORTUNITY_TRADABILITY_CONFUSED",
+      "verdict": "PARTIAL",
+      "evidence": "2/10 extreme paths also reach+5%;89180 has21/21 +5 HIGH opportunities but only7/22 profitable chosen exits. Target mismatch is established; actual executable fill quality is unmeasured."
+    },
+    {
+      "id": "C",
+      "failure": "SCORE_NOT_CALIBRATED_FOR_REALIZED_OUTCOME",
+      "verdict": "TRUE",
+      "evidence": "Strict181 score-quartile return/MFE/MAE/tail directions all nonmonotonic; Q4 tail5/45 vsQ1 1/46. No claim that the ordinal probabilities themselves fail formal probability calibration."
+    },
+    {
+      "id": "D",
+      "failure": "CROSS_SYMBOL_GENERALIZATION_WEAK",
+      "verdict": "PARTIAL",
+      "evidence": "Top1/Top3 symbol removal cash replay\u22127.86%/\u221219.71%; profit concentration and tail influence material. No held-symbol out-of-sample model evaluation performed."
+    },
+    {
+      "id": "E",
+      "failure": "COVERAGE_EXECUTION_SEMANTICS_LIMITATION",
+      "verdict": "TRUE",
+      "evidence": "96/277 lack strict30m;104 excluded from common173;full277 equity unknown. Upstream L1 membership filters on future-label availability. Same-close reference is not guaranteed execution."
+    },
+    {
+      "id": "F",
+      "failure": "OTHER_PRICE_GRANULARITY_AND_DEPENDENCE",
+      "verdict": "PARTIAL",
+      "evidence": "89180 seven profitable exits are7\u21928 or8\u21929 JPY,15 exits gross-flat; loss10 observations cover6 symbols, half one symbol. Tick size/spread and causal fill harm not measured."
+    }
+  ],
+  "rootCausePriority": [
+    "Preserve PIT field/missing semantics and denominator identity",
+    "Separate upside opportunity from adverse-path risk meaning",
+    "Assess severe/moderate/extreme + winners jointly with symbol influence control",
+    "Define calibration target and group/chronological evaluation",
+    "Same-downstream throughput/preservation/portfolio robustness trade-off"
+  ],
+  "mustPreserve": [
+    "Frozen Selector",
+    "cash-equity LONG only",
+    "same Decision Price reference and PIT timestamps",
+    "reasonable throughput with denominator disclosure",
+    "+3/+5 opportunity preservation",
+    "simple execution state",
+    "same-session scope",
+    "Frozen EXIT/Equal/cash ledger comparator"
+  ],
+  "mustImprove": [
+    "deep adverse tails and frequency",
+    "cross-symbol quality and top1/top3 sensitivity",
+    "score interpretation/calibration",
+    "portfolio PF/MaxDD/median direction",
+    "winner-risk trade-off transparency"
+  ],
+  "mustNot": [
+    "symbol ID predictor/blacklist/symbol model/threshold",
+    "89180 or57590 special rules",
+    "post-hoc time/segment/liquidity filter",
+    "future MAE/MFE/reclaim/EXIT/PnL feature",
+    "feature zoo",
+    "Validation/OOS tuning",
+    "score-based sizing",
+    "silent outcome-selected coverage expansion"
+  ],
+  "families": [
+    {
+      "family": "C Opportunity Gate + Risk Veto",
+      "disposition": "FIRST_PREDEVELOPMENT_FAMILY_TO_SPECIFY_NOT_SELECTED",
+      "reason": "Keep Frozen Selector opportunity; test a small independently interpretable adverse-risk gate. No veto threshold chosen."
+    },
+    {
+      "family": "A Single Quality Model",
+      "disposition": "MINIMAL_ALTERNATIVE_FOR_NEXT_CONTRACT",
+      "reason": "May suffice if a clearly defined net-quality target can balance tail and preservation; no composite weight chosen."
+    },
+    {
+      "family": "B Two-Head",
+      "disposition": "RESERVE_NOT_DEFAULT",
+      "reason": "Separate risk/quality meanings useful, but only10 extreme events and existing opportunity Selector do not justify duplicating opportunity training or a complex shared model."
+    },
+    {
+      "family": "D Minimal Stateful / WAIT",
+      "disposition": "DEFER_NO_TIMING_COUNTERFACTUAL_EVIDENCE",
+      "reason": "Waiting changes timestamps/prices and label windows; this diagnostic does not test causal delayed entry."
+    },
+    {
+      "family": "Symbol models / broad feature ensembles / targetless score blending",
+      "disposition": "REJECT_FOR_THIS_DESIGN",
+      "reason": "Violates symbol-generalization, small-sample simplicity or explicit score meaning."
+    }
+  ],
+  "questions": {
+    "Q1": "Prefer a small new risk/quality responsibility alongside frozen opportunity, rather than only changing v1 threshold; architecture not frozen.",
+    "Q2": "MULTIPLE: opportunity/tradability separation, realized-outcome calibration, tail failure and cross-symbol dependency.",
+    "Q3": "Non-score market state is justified for investigation; incremental predictive value not yet demonstrated. Six-field fixed descriptive panel only.",
+    "Q4": "ENTER/SKIP is the initial comparator proposal; no evidence requires WAIT. Final state not frozen.",
+    "Q5": "Keep risk and opportunity meanings separate; separate outputs do not mandate two independently complex models.",
+    "Q6": "Retain ordinal opportunity as a preservation benchmark/possible auxiliary; do not let HIGH-touch ordinal alone define tradability.",
+    "Q7": "Tail auxiliary may be useful, but10 extreme events across6 symbols cannot support a complex tail-only classifier; include severity continuum and censored labels.",
+    "Q8": "Do not use score for sizing; Equal remains frozen.",
+    "Q9": "Predeclare symbol-disjoint grouped evaluation plus chronological evaluation with overlapping label-window purge; show symbol-macro and event-micro statistics, top-contributor and dominant-tail influence. All remain Development; Frozen Selector was already outcome-exposed.",
+    "Q10": "Existing3800 candidates/1828 strict labels and existing feature snapshots support a later Development contract and small experiment; complete whole-universe executable portfolio is not currently established."
+  },
+  "modelFamilyFreeze": null,
+  "targetFreeze": null,
+  "featureFreeze": null,
+  "stateFreeze": null,
+  "numericCompletionGates": null,
+  "predictabilityVerdict": "INCONCLUSIVE_NOT_TESTED_WITH_HELD_SYMBOL_MODEL",
+  "counters": {
+    "entryV2Fit": 0,
+    "entryV2Prediction": 0,
+    "entryV1Fit": 0,
+    "entryV1Prediction": 0,
+    "thresholdSearch": 0,
+    "featureSelection": 0,
+    "freshAccess": 0,
+    "oosAccess": 0,
+    "prospectiveAccess": 0,
+    "jquantsRequests": 0,
+    "yahooRequests": 0,
+    "otherProviderRequests": 0,
+    "forwardFill": 0,
+    "interpolation": 0,
+    "futureSubstitution": 0,
+    "frozenComponentChanges": 0
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

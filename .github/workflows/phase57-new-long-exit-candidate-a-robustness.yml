@@ -1,0 +1,24 @@
+name: Phase57 NEW LONG EXIT Candidate A Robustness
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-new-long-exit-candidate-a-robustness.yml'
+      - 'scripts/*phase57_new_long_exit_candidate_a_robustness*'
+      - 'docs/evidence/phase57-new-long-exit-candidate-a-robustness-contract-2026-09-18.md'
+permissions: {contents: read}
+jobs:
+  candidate-a-robustness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - env: {ARK_TEST_OFFLINE: '1'}
+        run: python3 scripts/offline/kernel_exec.py python3 -m unittest scripts.test_phase57_new_long_exit_candidate_a_robustness
+      - env: {ARK_TEST_OFFLINE: '1'}
+        run: |
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_candidate_a_robustness --out /tmp/car-a | tee /tmp/car.txt
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_candidate_a_robustness --out /tmp/car-b >/tmp/carb.txt
+          cmp /tmp/car-a/summary.json /tmp/car-b/summary.json
+          cmp /tmp/car-a/ledger.json.gz /tmp/car-b/ledger.json.gz
+          cmp /tmp/car-a/manifest.json /tmp/car-b/manifest.json

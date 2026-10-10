@@ -1,0 +1,95 @@
+{
+  "features": [
+    {
+      "asof": "at Entry",
+      "availabilityClass": "A",
+      "featureId": "entryMinute",
+      "reasonOrLimit": "clock minute in JST day",
+      "source": "accounting"
+    },
+    {
+      "asof": "at intent",
+      "availabilityClass": "A",
+      "featureId": "ccmgFirstIntentMinute",
+      "reasonOrLimit": "clock minute; not a fill",
+      "source": "accounting"
+    },
+    {
+      "asof": "at Entry",
+      "availabilityClass": "A",
+      "featureId": "entryPrice",
+      "reasonOrLimit": "effective Entry includes buy cost",
+      "source": "accounting"
+    },
+    {
+      "asof": "at Entry",
+      "availabilityClass": "A",
+      "featureId": "routeDecision",
+      "reasonOrLimit": "frozen 2-head decision",
+      "source": "accounting"
+    },
+    {
+      "asof": "at Entry",
+      "availabilityClass": "A",
+      "featureId": "score5/score10",
+      "reasonOrLimit": "frozen OOF; nested stage2 lineage separate",
+      "source": "accounting"
+    },
+    {
+      "asof": "at intent",
+      "availabilityClass": "A",
+      "featureId": "causalGuardTraceAtIntent",
+      "reasonOrLimit": "presence boolean only",
+      "source": "corrected mask"
+    },
+    {
+      "asof": "at intent",
+      "availabilityClass": "A",
+      "featureId": "runtime_feature_asof_valid",
+      "reasonOrLimit": "guard as-of boolean only",
+      "source": "corrected mask"
+    },
+    {
+      "asof": "intended at intent",
+      "availabilityClass": "C",
+      "featureId": "certified milestone / HWM / floor margin / confirmation / fresh price / knownAt",
+      "reasonOrLimit": "SOURCE_MISSING_BINARY_FOR_ROW_JOIN",
+      "source": "CCMG dry trace"
+    },
+    {
+      "asof": "intended at intent",
+      "availabilityClass": "C",
+      "featureId": "causal State vocabulary",
+      "reasonOrLimit": "SOURCE_MISSING_BINARY_FOR_ROW_JOIN",
+      "source": "checkpoint market snapshot or definition"
+    },
+    {
+      "asof": "intended at intent",
+      "availabilityClass": "C",
+      "featureId": "Continuation / Breakout / Compression-Expansion / Higher Low-Swing Recovery / Wick-Close Recovery / VWAP-Level Reclaim",
+      "reasonOrLimit": "SOURCE_MISSING_BINARY_FOR_ROW_JOIN",
+      "source": "checkpoint signal snapshot or saved bars"
+    },
+    {
+      "asof": "evaluator only",
+      "availabilityClass": "C",
+      "featureId": "post-intent high/low",
+      "reasonOrLimit": "SOURCE_MISSING_BINARY_AND_LABEL_ENDPOINT_UNVERIFIED",
+      "source": "owned path"
+    }
+  ],
+  "noNewFeatureOutcomeAssociationYet": true,
+  "rowCoverageFromSavedMask": {
+    "IM": {
+      "causalGuardTracePresenceN": 376,
+      "fullStage2RuntimeSnapshotN": 0,
+      "intentN": 376
+    },
+    "R1": {
+      "causalGuardTracePresenceN": 343,
+      "fullStage2RuntimeSnapshotN": 0,
+      "intentN": 343
+    }
+  },
+  "schema": "phase57-a-plus-feature-availability-v1"
+}

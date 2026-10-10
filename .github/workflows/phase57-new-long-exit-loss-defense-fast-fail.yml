@@ -1,0 +1,36 @@
+name: Phase57 NEW LONG EXIT Loss Defense FAST-FAIL
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-new-long-exit-loss-defense-fast-fail.yml'
+      - 'scripts/*phase57_new_long_exit_loss_defense_fast_fail*'
+      - 'docs/evidence/phase57-new-long-exit-v0-loss-defense-contract-2026-09-18.md'
+      - 'docs/evidence/phase57-new-long-exit-v0-loss-defense-fast-fail/**'
+permissions:
+  contents: read
+jobs:
+  loss-defense-fast-fail:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Causal rule and frozen lineage tests
+        env:
+          ARK_TEST_OFFLINE: '1'
+        run: python3 scripts/offline/kernel_exec.py python3 -m unittest scripts.test_phase57_new_long_exit_loss_defense_fast_fail
+      - name: Run exactly one frozen FAST-FAIL
+        env:
+          ARK_TEST_OFFLINE: '1'
+        run: |
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_loss_defense_fast_fail --out /tmp/loss-defense-a | tee /tmp/result.txt
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_loss_defense_fast_fail --out /tmp/loss-defense-b >/tmp/result-b.txt
+          cmp /tmp/loss-defense-a/summary.json /tmp/loss-defense-b/summary.json
+          cmp /tmp/loss-defense-a/ledger.json.gz /tmp/loss-defense-b/ledger.json.gz
+          cmp /tmp/loss-defense-a/manifest.json /tmp/loss-defense-b/manifest.json
+      - name: Upload deterministic evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-new-long-exit-loss-defense-fast-fail
+          path: /tmp/loss-defense-a/

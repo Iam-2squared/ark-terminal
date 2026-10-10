@@ -1,0 +1,133 @@
+name: Phase57 LONG-only Corrected Measurement
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-long-only-corrected-measurement.yml
+      - scripts/prepare_phase57_long_only_corrected_measurement.mjs
+      - scripts/run_phase57_long_only_corrected_measurement.py
+      - scripts/test_phase57_long_only_corrected_measurement.py
+      - predict/long-only/phase57-long-only-corrected-measurement.js
+      - predict/tests/phase57-long-only-corrected-measurement.test.mjs
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: phase57-corrected-measurement-single-run
+  cancel-in-progress: false
+
+jobs:
+  measurement-only:
+    if: github.ref == 'refs/heads/research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      NODE_OPTIONS: --max-old-space-size=6144
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install fixed aggregation libraries (no model library)
+        run: pip install numpy==2.3.5 pandas==2.2.3 scipy==1.17.0
+      - name: Synthetic measurement tests only
+        run: |
+          node --test predict/tests/phase57-long-only-corrected-measurement.test.mjs
+          python scripts/test_phase57_long_only_corrected_measurement.py
+      - name: Download saved encrypted Development base
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-long-only-l0-replication-34917676944
+          path: ${{ runner.temp }}/northstar-base
+          repository: Iam-2squared/ark-terminal
+          run-id: 34917676944
+          github-token: ${{ github.token }}
+      - name: Download saved L1 Minute checkpoints
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-l1-minute-shard-*-34926225832
+          path: ${{ runner.temp }}/northstar-l1
+          repository: Iam-2squared/ark-terminal
+          run-id: 34926225832
+          github-token: ${{ github.token }}
+      - name: Download saved C+D Minute checkpoints
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-l2-minute-shard-*-34936002178
+          path: ${{ runner.temp }}/northstar-l2
+          repository: Iam-2squared/ark-terminal
+          run-id: 34936002178
+          github-token: ${{ github.token }}
+      - name: Download saved additional Development checkpoints
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-v2-minute-shard-*-34964031692
+          path: ${{ runner.temp }}/northstar-v2
+          repository: Iam-2squared/ark-terminal
+          run-id: 34964031692
+          github-token: ${{ github.token }}
+      - name: Download saved v1 weights (C+D refit, NOT historical C-only model)
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-long-only-l2-development-34944665187
+          path: ${{ runner.temp }}/northstar-weights
+          repository: Iam-2squared/ark-terminal
+          run-id: 34944665187
+          github-token: ${{ github.token }}
+      - name: Verify and mount existing private cache (no provider calls)
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        shell: bash
+        run: |
+          test -n "${JQUANTS_API_KEY:-}"
+          test "$(find "$RUNNER_TEMP/northstar-l1" -name acquisition-summary.json | wc -l)" = 2
+          test "$(find "$RUNNER_TEMP/northstar-l2" -name acquisition-summary.json | wc -l)" = 4
+          test "$(find "$RUNNER_TEMP/northstar-v2" -name acquisition-summary.json | wc -l)" = 2
+          mapfile -t summaries < <(find "$RUNNER_TEMP/northstar-l1" -name acquisition-summary.json | sort)
+          jq -s '[.[].unavailable[].sessionDate] | unique' "${summaries[@]}" > "$RUNNER_TEMP/northstar-unavailable.json"
+          test "$(jq length "$RUNNER_TEMP/northstar-unavailable.json")" = 4
+          cd "$RUNNER_TEMP/northstar-base"
+          test "$(cut -d' ' -f1 private-cache.tar.gz.enc.sha256)" = "$(sha256sum private-cache.tar.gz.enc | cut -d' ' -f1)"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -in private-cache.tar.gz.enc -out "$RUNNER_TEMP/northstar-base.tar.gz"
+          tar -C "$RUNNER_TEMP" -xzf "$RUNNER_TEMP/northstar-base.tar.gz"
+          while IFS= read -r encrypted; do
+            test "$(cut -d' ' -f1 "${encrypted}.sha256")" = "$(sha256sum "$encrypted" | cut -d' ' -f1)"
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -in "$encrypted" | tar -C "$RUNNER_TEMP/phase57-l0-cache" -xzf -
+          done < <(find "$RUNNER_TEMP/northstar-l1" "$RUNNER_TEMP/northstar-l2" "$RUNNER_TEMP/northstar-v2" -name minute-shard.tar.gz.enc | sort)
+      - name: Reconstruct evaluator-only rows from saved Development (no fit)
+        run: |
+          node scripts/prepare_phase57_long_only_corrected_measurement.mjs \
+            --cache-root "$RUNNER_TEMP/phase57-l0-cache" \
+            --freeze-report "$RUNNER_TEMP/northstar-weights/l2-selector-freeze-report.json" \
+            --unavailable-sessions "$RUNNER_TEMP/northstar-unavailable.json" \
+            --output-dir "$RUNNER_TEMP/northstar-private-datasets"
+      - name: Run corrected measurement once with saved Ridge score
+        run: |
+          mkdir -p artifacts/phase57-long-only-corrected-measurement
+          python scripts/run_phase57_long_only_corrected_measurement.py \
+            --dataset-dir "$RUNNER_TEMP/northstar-private-datasets" \
+            --contract-sha 20356553ddece7309a6a00654c3b1e276d1a3466 \
+            --output artifacts/phase57-long-only-corrected-measurement/corrected-measurement-report.json
+      - name: Purge private inputs
+        if: always()
+        shell: bash
+        run: |
+          rm -rf -- "$RUNNER_TEMP/phase57-l0-cache" "$RUNNER_TEMP/northstar-private-datasets" "$RUNNER_TEMP/northstar-base.tar.gz" "$RUNNER_TEMP/northstar-base" "$RUNNER_TEMP/northstar-l1" "$RUNNER_TEMP/northstar-l2" "$RUNNER_TEMP/northstar-v2" "$RUNNER_TEMP/northstar-weights"
+      - name: Upload aggregate evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-long-only-corrected-measurement-${{ github.run_id }}
+          path: artifacts/phase57-long-only-corrected-measurement/
+          if-no-files-found: error
+          retention-days: 21

@@ -1,0 +1,272 @@
+{
+  "schemaVersion": 1,
+  "auditId": "PHASE57_MSH_ENTRY_LONG_V1_FINAL_FIT_DECISION_CONTRACT_FREEZE",
+  "dateJst": "2026-09-16",
+  "status": "PRE_TRAINING_AUDIT_COMPLETE_STOP",
+  "freezeDecision": "MSH_ENTRY_LONG_V1_FIT_CONTRACT_BLOCKED",
+  "freezeEffective": false,
+  "blocker": {
+    "code": "ORDINAL_IMPLEMENTATION_BLOCKED",
+    "summary": "The repository has no pinned implementation of penalized proportional-odds ordinal logistic regression. Substituting binary or multinomial logistic regression, or authoring a new optimizer, is prohibited.",
+    "facts": [
+      "predict/package.json has no runtime dependencies",
+      "tools/requirements-rss.txt does not include statsmodels, mord, or another ordinal package",
+      "the research workflows pin NumPy, pandas, SciPy and in one lane scikit-learn, but do not pin an ordinal logistic package",
+      "scikit-learn LogisticRegression is binary or multinomial logistic regression, not a proportional-odds ordinal model",
+      "statsmodels OrderedModel and mord are unavailable in the audited runtime",
+      "without an implementation source, L2 parameter scaling, solver compatibility, convergence reporting and deterministic behavior cannot be frozen"
+    ],
+    "prohibitedFallbacks": [
+      "FIVE_BINARY_LOGISTIC_MODELS",
+      "MULTINOMIAL_LOGISTIC_REGRESSION",
+      "CUSTOM_PROPORTIONAL_ODDS_OPTIMIZER",
+      "UNPINNED_RUNTIME_DEPENDENCY",
+      "UNREGULARIZED_SUBSTITUTION"
+    ]
+  },
+  "sourceIntegrity": {
+    "repository": "Iam-2squared/ark-terminal",
+    "branch": "research/phase57-long-only-cash-equity",
+    "pullRequest": 587,
+    "frozenSelectorName": "Phase57 LONG-only Frozen Selector v1",
+    "frozenSelectorFreezeCommit": "565d74b3dea823581fdb32380113aac5913a248d",
+    "frozenSelectorPayloadSha256": "3dc6d222d4039737c0dcfdcfa4a83372202152e29b582225419ab97c00610d59",
+    "frozenSelectorRidgeArtifactSha256": "994f1dbaba1d32e97458d5dd9d4c646ef443fbb37128650e8166001d8deabefb",
+    "feasibilityReportSha256": "f7cb8d98891b4a764454939677e03ecc7117fd7cb81d112583e5b8dca6c149df",
+    "developmentSessions": 76,
+    "decisionTimestamps": 760,
+    "selectionEvents": 3800,
+    "uniqueSymbolSessions": 2743
+  },
+  "candidateContract": {
+    "effective": false,
+    "reasonNotEffective": "ORDINAL_IMPLEMENTATION_BLOCKED",
+    "trainingRow": {
+      "unit": "FROZEN_SELECTOR_TOP5_SELECTION_EVENT",
+      "independentTradeInterpretationAllowed": false,
+      "unlabelableRowsRetainedInAuditLedger": true
+    },
+    "features": {
+      "selectedPolicy": "OPTION_A_SELECTOR_SCORE_AND_RANK_ONLY",
+      "mandatoryCore": [
+        "frozenSelectorRidgeScore",
+        "frozenSelectorRidgeRank"
+      ],
+      "mandatoryCoreAvailabilityPct": 100.0,
+      "optionalMarketFeatures": [],
+      "directionFeature": "OMITTED_CONSTANT_LONG",
+      "decisionPriceRole": "REFERENCE_ONLY",
+      "rawDecisionPriceModelFeatureAllowed": false,
+      "missingStrategy": "NO_MODEL_FEATURE_MISSINGNESS_IN_V1_CORE",
+      "rawMissingEqualsZeroAllowed": false,
+      "forwardFillAllowed": false,
+      "previousSessionSubstitutionAllowed": false,
+      "architectureRisk": "Both model inputs are Frozen Selector outputs. Ridge rank is derived from within-decision ordering, so v1 can only recalibrate/filter Selector strength and cannot observe independent market state. This risk must be reported and must not be hidden by adding post-result features."
+    },
+    "primaryLabel": {
+      "type": "ORDINAL_FUTURE_HIGH",
+      "reference": "DECISION_PRICE",
+      "window": "STRICT_WALL_CLOCK_PLUS_30_MINUTES",
+      "sameSessionRequired": true,
+      "completeContinuousFiveMinutePathRequired": true,
+      "classes": {
+        "0": "BELOW_PLUS_1_PERCENT",
+        "1": "PLUS_1_TO_BELOW_PLUS_2_PERCENT",
+        "2": "PLUS_2_TO_BELOW_PLUS_3_PERCENT",
+        "3": "PLUS_3_TO_BELOW_PLUS_5_PERCENT",
+        "4": "PLUS_5_PERCENT_OR_MORE"
+      },
+      "labelableRows": 1828,
+      "selectionRows": 3800,
+      "coveragePct": 48.1052631579
+    },
+    "unlabelable": {
+      "trainingAction": "EXCLUDE_FROM_MODEL_FIT_AND_OOF_SCORING",
+      "negativeClassSubstitutionAllowed": false,
+      "auditFields": [
+        "selectorEventId",
+        "sessionDate",
+        "symbol",
+        "decisionTimestamp",
+        "reason"
+      ],
+      "knownReasonCounts": {
+        "PROVIDER_GAP": 1424,
+        "LUNCH_BREAK": 380,
+        "SESSION_END": 168
+      }
+    },
+    "supportingDiagnostic": {
+      "type": "COMPLETED_FIVE_MINUTE_CLOSE_ORDINAL",
+      "samePathAsPrimary": true,
+      "mixedIntoPrimaryLabel": false,
+      "hybridLabelAllowed": false
+    },
+    "model": {
+      "count": 1,
+      "family": "PROPORTIONAL_ODDS_ORDINAL_LOGISTIC_REGRESSION",
+      "link": "LOGIT",
+      "orderedClasses": [0, 1, 2, 3, 4],
+      "cutpoints": 4,
+      "binaryDecompositionAllowed": false,
+      "multinomialSubstitutionAllowed": false,
+      "secondModelAllowed": false,
+      "treeModelsAllowed": false,
+      "implementationSource": null,
+      "implementationStatus": "BLOCKED_NOT_PINNED"
+    },
+    "regularization": {
+      "family": "L2_ON_STANDARDIZED_SLOPE_COEFFICIENTS_ONLY",
+      "cutpointsPenalized": false,
+      "selectionByDevelopmentPerformanceAllowed": false,
+      "numericValue": null,
+      "parameterSemantics": null,
+      "solver": null,
+      "convergenceContract": null,
+      "deterministicSeedContract": null,
+      "status": "UNRESOLVED_UNTIL_IMPLEMENTATION_SOURCE_IS_PINNED"
+    },
+    "classWeight": {
+      "policy": "UNWEIGHTED",
+      "weightsByClass": [1, 1, 1, 1, 1],
+      "performanceTuningAllowed": false
+    },
+    "crossValidation": {
+      "type": "SESSION_GROUPED_EXPANDING_WINDOW_CHRONOLOGICAL",
+      "evaluationFoldCount": 4,
+      "blockStructure": {
+        "initialTrainingSessions": 16,
+        "evaluationSessionsPerFold": 15,
+        "totalSessions": 76
+      },
+      "folds": [
+        {"fold": 1, "trainSessionOrdinals": "1-16", "evaluateSessionOrdinals": "17-31"},
+        {"fold": 2, "trainSessionOrdinals": "1-31", "evaluateSessionOrdinals": "32-46"},
+        {"fold": 3, "trainSessionOrdinals": "1-46", "evaluateSessionOrdinals": "47-61"},
+        {"fold": 4, "trainSessionOrdinals": "1-61", "evaluateSessionOrdinals": "62-76"}
+      ],
+      "wholeJstSessionKeptTogether": true,
+      "symbolSessionCrossFoldAllowed": false,
+      "randomSplitAllowed": false,
+      "stratifiedRandomSplitAllowed": false,
+      "initialWarmupReceivesOofPrediction": false,
+      "preFitStructuralCheck": "ALL_FIVE_CLASSES_MUST_EXIST_IN_EACH_TRAIN_PREFIX_OR_TRAINING_STOPS_WITHOUT_FOLD_REDESIGN"
+    },
+    "decisionScore": {
+      "name": "EXPECTED_ORDINAL_OPPORTUNITY_LEVEL",
+      "formula": "E[L] = 0*P0 + 1*P1 + 2*P2 + 3*P3 + 4*P4",
+      "range": [0.0, 4.0],
+      "interpretation": "Expected position on the ordered opportunity ladder; it is not a binary probability, expected return, or monetary value.",
+      "expectedThresholdValueWeightingAllowed": false
+    },
+    "thresholdCandidates": {
+      "generationRule": "Use the three interior integer landmarks of the fixed [0,4] expected ordinal level range.",
+      "values": [1.0, 2.0, 3.0],
+      "count": 3,
+      "budget": 3,
+      "resultIndependentReason": "The candidates are derived only from the predeclared class index geometry and were fixed before fit, OOF predictions or performance metrics exist.",
+      "candidateAdditionAfterOofAllowed": false,
+      "currentEntryThresholdReuseAllowed": false
+    },
+    "thresholdSelectionObjective": {
+      "primary": "BALANCED_QUALITY_PRESERVATION_THROUGHPUT",
+      "scalar": "GEOMETRIC_MEAN(MEAN_PRECISION_1_2_3_5, MEAN_PRESERVATION_1_2_3_5, FIRST_ENTRY_COVERAGE)",
+      "thresholdWeights": "EQUAL_ACROSS_PLUS_1_PLUS_2_PLUS_3_PLUS_5",
+      "candidateEligibility": [
+        "MATERIALLY_IMPROVES_CURRENT_ENTRY_PRESERVATION_AND_THROUGHPUT",
+        "HOLDS_OR_ENRICHES_SELECTOR_ONLY_ENTRY_QUALITY",
+        "DOES_NOT_DEPEND_ON_ONLY_ONE_OPPORTUNITY_THRESHOLD",
+        "NO_LARGE_FOLD_DIRECTION_REVERSAL",
+        "LATENCY_AND_CONSUMED_RETURN_DO_NOT_DESTROY_SELECTOR_EDGE"
+      ],
+      "precisionOnlyAllowed": false,
+      "coverageOnlyAllowed": false,
+      "plus5OnlyAllowed": false
+    },
+    "state": {
+      "outputs": ["ENTER", "SKIP_THIS_DECISION"],
+      "skipPersistent": false,
+      "waitStateAllowed": false,
+      "expiryStateAllowed": false,
+      "freshReselectionRequiredForReevaluation": true,
+      "secondEntryInSameSymbolSessionAllowed": false,
+      "positionAndReentrySafetyOwner": "EXTERNAL_EXECUTION_STATE"
+    },
+    "developmentMetrics": [
+      "FIRST_ENTRY_COVERAGE",
+      "ENTRIES_PER_SESSION",
+      "PRECISION_PLUS_1_PLUS_2_PLUS_3_PLUS_5",
+      "PRESERVATION_PLUS_1_PLUS_2_PLUS_3_PLUS_5",
+      "PRESERVED_OPPORTUNITIES_PER_SESSION_PLUS_1_PLUS_2_PLUS_3_PLUS_5",
+      "HIGH_PRIMARY_LABEL_METRICS",
+      "CLOSE_SUPPORTING_METRICS",
+      "MFE",
+      "TRUE_MAE",
+      "LATENCY",
+      "CONSUMED_RETURN",
+      "FOLD_STABILITY"
+    ],
+    "baselines": [
+      "FROZEN_SELECTOR_ONLY",
+      "CURRENT_ENTRY",
+      "MSH_ENTRY_LONG_V1"
+    ],
+    "completionGatePhilosophy": [
+      "CURRENT Entry opportunity preservation and throughput must improve materially",
+      "Selector-only entry quality must be held or enriched",
+      "the result must not depend on only one of +1/+2/+3/+5",
+      "effect direction must not substantially reverse across folds",
+      "latency and consumed return must not destroy Selector edge"
+    ]
+  },
+  "methodology": {
+    "modelFitCalls": 0,
+    "trainingRowsConsumed": 0,
+    "predictionsGenerated": 0,
+    "oofRowsGenerated": 0,
+    "cvPerformanceRuns": 0,
+    "thresholdPerformanceRuns": 0,
+    "thresholdSearches": 0,
+    "featureOutcomeComparisons": 0,
+    "classWeightTuningRuns": 0,
+    "l2TuningRuns": 0,
+    "providerRequests": 0,
+    "validationNewAccess": 0,
+    "oosNewAccess": 0,
+    "exitAccess": 0
+  },
+  "contractReview": {
+    "labelModelSemanticsAligned": true,
+    "mandatoryCoreAvailabilityIs100Pct": true,
+    "missingSemanticsDefined": true,
+    "decisionScoreMatchesOrdinalProbabilities": true,
+    "thresholdCandidatesAreResultIndependent": true,
+    "crossValidationIsChronological": true,
+    "repeatedSelectionLeakagePreventedBySessionGrouping": true,
+    "unlabelableRowsTreatedAsNegative": false,
+    "selectorAndEntryResponsibilitiesSeparated": true,
+    "exitResponsibilityMixedIntoEntry": false,
+    "ordinalImplementationSourcePinned": false,
+    "l2AndSolverSemanticsFrozen": false,
+    "internalContradictions": [],
+    "freezeBlockers": [
+      "ORDINAL_IMPLEMENTATION_SOURCE_NOT_PINNED",
+      "L2_SOLVER_CONVERGENCE_DETERMINISM_CONTRACT_UNRESOLVED"
+    ]
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "shortAllowed": false,
+    "marginAllowed": false,
+    "leverageAllowed": false
+  },
+  "exactNextAction": "Run a dependency-only ordinal implementation review. Select and pin one maintained penalized proportional-odds package, verify its logit-link probability semantics, L2 objective scaling, slope-only penalty, solver convergence reporting and determinism without fitting any project data; then rerun this freeze audit."
+}

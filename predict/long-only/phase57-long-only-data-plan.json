@@ -1,0 +1,308 @@
+{
+  "schemaVersion": 3,
+  "planId": "PHASE57_LONG_ONLY_INTEGRATED_DATA_CONTRACT_V3",
+  "status": "BLOCKED_PENDING_PRIVATE_CACHE_CREDENTIAL_AND_OPERATOR_APPROVAL",
+  "newJquantsAcquisitionAuthorized": false,
+  "auditedAt": "2026-09-15",
+  "officialContract": {
+    "apiVersion": "v2",
+    "authentication": "x-api-key",
+    "dailyEndpoint": "/v2/equities/bars/daily",
+    "minuteEndpoint": "/v2/equities/bars/minute",
+    "masterEndpoint": "/v2/equities/master",
+    "paginationKey": "pagination_key",
+    "paginationRule": "REPEAT_UNCHANGED_QUERY_WITH_RETURNED_KEY_UNTIL_KEY_ABSENT",
+    "minuteCoverage": "TSE_LISTED_ONLY_PAST_2_YEARS",
+    "minuteNoTradePolicy": "NO_ROW_WHEN_NO_TRADING_ACTIVITY",
+    "planHistoryYears": {"FREE_DELAYED": 2, "LIGHT": 5, "STANDARD": 10, "PREMIUM": 20},
+    "planRateLimitRequestsPerMinute": {"FREE": 5, "LIGHT": 60, "STANDARD": 120, "PREMIUM": 500},
+    "minuteAddonRateLimitRequestsPerMinute": 60
+  },
+  "currentEntitlementEvidence": {
+    "status": "USER_SCREENSHOT_REATTESTED_2026_09_15",
+    "basePlan": "LIGHT",
+    "basePlanActive": true,
+    "basePlanScheduledEndJst": "2026-10-06T19:02:00+09:00",
+    "minuteAddon": "TICK_PLUS_OHLCMIN",
+    "minuteAddonActive": true,
+    "minuteAddonCancellationScheduled": true,
+    "addonScheduledEndJst": "2026-10-06T19:07:00+09:00",
+    "secretValueObserved": false,
+    "requiredOperatorConfirmationRemaining": [
+      "PRIVATE_STORAGE_AND_POST_CANCELLATION_DELETION_TERMS",
+      "GITHUB_ACTIONS_SECRET_JQUANTS_API_KEY_PRESENT"
+    ]
+  },
+  "historicalImplementationAudit": {
+    "main": {"capability": "TDNET_DISCLOSURES_ONLY", "dailyMinuteMasterHistoricalPipelinePresent": false},
+    "allRemoteBranchesSearched": true,
+    "finding": "HISTORICAL_BRANCHES_CONTAIN_REUSABLE_ADAPTER_PATTERNS_AND_EVALUATORS_BUT_NO_COMPLETE_CURRENTLY_REUSABLE_DAILY_MINUTE_MASTER_ACQUISITION_PIPELINE",
+    "canonicalMinuteAdapter": {
+      "ref": "research/phase57-selector-capacity-v2",
+      "refSha": "63edf641f871be20cbd8518cec44392d12e74b16",
+      "path": "scripts/lib/phase57-selector-jquants-minute.mjs",
+      "blobSha": "c09556460f729b6091c2de4ba5849b9021288f84"
+    },
+    "canonicalInventoryPipeline": {
+      "ref": "research/phase57-exit-v4-hybrid-msh-large-scale",
+      "refSha": "ea15a594103bd6c9146f19a4aebafb83067d869b",
+      "path": "scripts/phase57-exit-v4-jquants-stage2-fast-inventory.mjs"
+    },
+    "reusableComponents": [
+      "API_KEY_FAIL_CLOSED_AUTH",
+      "PAGINATION_LOOP_AND_REPEAT_KEY_GUARD",
+      "DATE_WIDE_MINUTE_FETCH",
+      "DAILY_AND_DATED_MASTER_FETCH",
+      "POINT_IN_TIME_COMMON_EQUITY_FILTER",
+      "SPARSE_1M_TO_5M_AGGREGATION",
+      "TIMESTAMP_AND_TERMINAL_AUCTION_CONTRACT",
+      "SHA256_AND_SESSION_METADATA",
+      "NO_ORDER_WRITE_SAFETY"
+    ],
+    "mustNotReuse": ["FROZEN_MINIMAL_HYBRID_HYPOTHESIS", "SHORT_LOGIC", "PRIOR_SELECTOR_THRESHOLDS"]
+  },
+  "artifactInventory": {
+    "exactMetadataInventory": {
+      "ref": "research/phase57-exit-v4-hybrid-msh-large-scale",
+      "path": "predict/research/phase57-exit-v4-stage2-session-metadata-inventory-v1.json",
+      "blobSha": "2217ffee6b9607f5610d5484bffea884f65b7422",
+      "sessions": 487,
+      "firstSession": "2024-09-10",
+      "lastSession": "2026-09-09",
+      "outcomeUntouchedMetadataSessions": 205,
+      "priorResearchExposedSessions": 179,
+      "protectedIdentifierOnlySessions": 103,
+      "rawPersistedSessions": 0,
+      "futureLabelsGeneratedSessions": 0
+    },
+    "expiredAcquisitionArtifacts": {
+      "workflowRunId": 34031214529,
+      "datasetId": "PHASE57_JQUANTS_OHLCMIN_FRESH120_V1",
+      "rawShardArtifactsExpired": true,
+      "rawOrReconstructablePricesReusable": false,
+      "sanitizedManifestAndDigestsReusable": true
+    },
+    "conclusion": "CODE_METADATA_AND_SPLIT_IDENTIFIERS_REUSABLE_PRICE_PAYLOAD_REACQUISITION_REQUIRED"
+  },
+  "researchObjective": {
+    "primary": "BUILD_AND_VALIDATE_CASH_EQUITY_LONG_ONLY_SELECTOR_ENTRY_EXIT_ALLOCATION_PORTFOLIO",
+    "comparisonBaseline": "CURRENT_SELECTOR_ENTRY_EXIT_INTEGRATED_SYSTEM",
+    "selectorIsIntermediateArtifactNotFinalGoal": true,
+    "sameDevelopmentRawDataMustSupport": ["L0", "L1", "L2_SELECTOR", "ENTRY", "EXIT", "ALLOCATION", "INTEGRATED_PORTFOLIO_REPLAY"],
+    "shortProfitContributionAllowed": false,
+    "marginAllowed": false,
+    "completionDeadline": "THIS_WEEK",
+    "completionRequiresIntegratedComparison": true,
+    "developmentWinDoesNotEqualFinalWin": true
+  },
+  "l0Contract": {
+    "granularity": "DAILY_ONLY",
+    "intradayDataRequired": false,
+    "universe": "TSE_PRIME_STANDARD_GROWTH_DOMESTIC_COMMON_EQUITY_POINT_IN_TIME",
+    "rowKey": ["sessionDate", "symbol"],
+    "requiredDailyFields": ["Date", "Code", "AdjC", "AdjFactor", "ExRT", "Vo", "Va"],
+    "requiredMasterFields": ["Date", "Code", "Mkt", "ProdCat"],
+    "returnDefinition": "100 * (ADJUSTED_CLOSE_T / ADJUSTED_CLOSE_T_MINUS_1 - 1)",
+    "causalWarmup": {"sessionDate": "2024-09-09", "evaluationPartition": false, "dailyRequests": 1, "masterRequests": 0, "purpose": "PRIOR_ADJUSTED_CLOSE_FOR_FIRST_DEVELOPMENT_A_SESSION_ONLY"},
+    "thresholdsPct": [3, 5, 10],
+    "countsAndEligibleUniverseRatesBothRequired": true,
+    "developmentDefinitionBlock": "DEVELOPMENT_A",
+    "developmentReplicationBlock": "DEVELOPMENT_B",
+    "l0ResultsMayNotSelectOosDates": true
+  },
+  "researchLayers": {
+    "L0": {"target": "DAILY_OPPORTUNITY_CENSUS", "features": [], "data": ["DAILY", "DATED_MASTER"], "minuteAcquisitionAllowed": false},
+    "L1": {
+      "targets": ["FINAL_RETURN_GE_5", "REMAINING_UPSIDE", "FUTURE_MFE", "FUTURE_MAE", "TIME_TO_DETECTION", "LATE_DETECTION"],
+      "decisionTimesJst": ["09:30", "10:00", "10:30", "11:00", "11:30", "13:00", "14:00"],
+      "data": ["DAILY", "DATED_MASTER", "MINUTE_AGGREGATED_TO_CAUSAL_5M"],
+      "futureLabelsAreSelectorFeatures": false,
+      "mfeMaeNormalization": "DECISION_TIME_ATR_OR_OTHER_CAUSAL_VOLATILITY_ONLY"
+    },
+    "L2": {
+      "featureFamiliesInOrder": ["PRICE_MOMENTUM_AND_ACCELERATION", "VOLUME_TURNOVER_AND_RVOL", "VWAP_AND_RANGE_LOCATION", "TREND_QUALITY_AND_PULLBACK", "CAUSAL_MARKET_AND_SECTOR_BREADTH", "TIME_AND_VOLATILITY_CONTEXT"],
+      "ablationRequired": true,
+      "allFamiliesEnabledInitially": false,
+      "candidateTargets": ["REMAINING_UPSIDE", "FUTURE_MFE", "FUTURE_MAE", "CONTINUATION_PROBABILITY"],
+      "primaryTargetMustBeFrozenBeforeValidation": true
+    }
+  },
+  "datasetSplit": {
+    "source": "REUSE_EXISTING_OUTCOME_BLIND_205_SESSION_ALLOCATION_WITH_REVIEWED_RESERVE_AND_CONTINGENCY",
+    "sourceInventoryBlobSha": "2217ffee6b9607f5610d5484bffea884f65b7422",
+    "totalCleanHistoricalSessions": 205,
+    "development": {
+      "opened": false,
+      "totalSessions": 80,
+      "blocks": {
+        "A": {"sessions": 25, "use": "L0_DEFINITION_AND_INITIAL_CENSUS", "modelSelection": false, "thresholdSelection": false},
+        "B": {"sessions": 15, "use": "L0_REPLICATION_AND_L1_LABEL_CONTRACT", "modelSelection": false, "thresholdSelection": false},
+        "C": {"sessions": 20, "use": "L1_ABLATION_AND_L2_MODEL_SELECTION", "modelSelection": true, "thresholdSelection": false},
+        "D": {"sessions": 20, "use": "INNER_TEMPORAL_SELECTION_THRESHOLD_FREEZE_AND_INTEGRATED_DEV_REPLAY", "modelSelection": true, "thresholdSelection": true}
+      },
+      "integratedReuseRequired": true,
+      "selectorOnlyConsumptionProhibited": true
+    },
+    "validation": {"opened": false, "sessions": 30, "role": "FROZEN_FIRST_PASS", "modelSelection": false, "thresholdSelection": false, "finalPerformanceEvaluation": false},
+    "validationReplication": {"opened": false, "sessions": 20, "role": "LOCKED_REPLICATION", "modelSelection": false, "thresholdSelection": false, "finalPerformanceEvaluation": false},
+    "primaryOos": {"opened": false, "sessions": 30, "role": "TRUE_OUTER_OOS", "modelSelection": false, "thresholdSelection": false, "finalPerformanceEvaluation": true},
+    "contingencyOos": {"opened": false, "sessions": 30, "role": "SEALED_INSURANCE_ONLY_IF_PRIMARY_EVALUATION_INVALIDATED_BY_DATA_OR_IMPLEMENTATION_FAILURE", "modelSelection": false, "thresholdSelection": false, "finalPerformanceEvaluation": true, "performanceFailureIsNotAReleaseReason": true},
+    "reserve": {
+      "opened": false,
+      "sessions": 15,
+      "role": "ADMISSION_FAILURE_REPLACEMENT_ONLY",
+      "performanceClaimAllowed": false,
+      "replacementOrderPrecommitted": true,
+      "manualPerformanceBasedDeploymentProhibited": true,
+      "triggers": ["RAW_HASH_MISMATCH", "PROVIDER_PAGE_CORRUPTION", "MISSING_REQUIRED_DAILY_OR_MASTER_DATA", "CORPORATE_ACTION_AMBIGUITY", "PIT_MASTER_DIVERGENCE"]
+    },
+    "freshProspective": {"opened": false, "targetSessions": 25, "firstNotBefore": "2026-09-15", "exactDatesFrozen": false, "selectionRule": "NEXT_JPX_TRADING_SESSIONS_AFTER_FREEZE_IN_CALENDAR_ORDER", "modelSelection": false, "thresholdSelection": false, "finalPerformanceEvaluation": true},
+    "diagnosticOnlyPriorExposed": {"sessions": 179, "first": "2025-04-15", "last": "2026-01-07", "performanceClaimAllowed": false, "modelSelectionAllowed": false}
+  },
+  "partitionAccounting": {
+    "development": 80,
+    "validation": 30,
+    "validationReplication": 20,
+    "primaryOos": 30,
+    "contingencyOos": 30,
+    "reserve": 15,
+    "sum": 205,
+    "mustEqualCleanHistoricalSessions": true
+  },
+  "purgeEmbargoContract": {
+    "arbitraryCalendarPurgeSessions": 0,
+    "rationale": "CAUSAL_PAST_HISTORY_MAY_CROSS_PARTITION_BOUNDARIES; FUTURE_LABELS_AND_FITTED_STATISTICS_MAY_NOT",
+    "labelContainment": "ALL_TARGET_HORIZONS_MUST_RESOLVE_WITHIN_SAME_TRADING_SESSION_OR_BE_MARKED_INELIGIBLE",
+    "crossCloseTargetAllowed": false,
+    "nextSessionPriceAsFeatureAllowed": false,
+    "featureHistoryRule": "PAST_ONLY_HISTORY_AVAILABLE_AT_DECISION_TIME_IS_ALLOWED_EVEN_IF_IT_PRECEDES_PARTITION_START",
+    "normalizationFitRule": "SCALERS_WEIGHTS_THRESHOLDS_AND_OTHER_FITTED_STATISTICS_MUST_BE_FIT_ONLY_ON_AUTHORIZED_DEVELOPMENT_BLOCKS_AND_FROZEN_BEFORE_VALIDATION",
+    "partitionReleaseRule": "NO_VALIDATION_OR_OOS_OUTCOME_MAY_BE_READ_BEFORE_ITS_PRECOMMITTED_RELEASE_GATE"
+  },
+  "humanOverfittingControls": {
+    "frozenBeforeValidation": true,
+    "requiredBeforeValidation": [
+      "PRIMARY_TARGET",
+      "FEATURE_SET",
+      "MODEL_FAMILY",
+      "THRESHOLD_RULE",
+      "PORTFOLIO_COMPARISON_METRICS",
+      "GO_NO_GO_RULES"
+    ],
+    "validationMayNotTriggerRetune": true,
+    "validationReplicationMayNotTriggerRetune": true,
+    "primaryOosMayNotTriggerRetune": true,
+    "contingencyOosMayNotBeOpenedFor_POOR_PERFORMANCE": true,
+    "badResultsMustBePersisted": true
+  },
+  "intradayConservation": {
+    "chosenStrategy": "FULL_CROSS_SECTION_ON_RELEASED_SESSION_DATES_WITH_DIAGNOSTIC_CASE_CONTROL_VIEWS_ONLY",
+    "caseControlAllowedOnlyFor": ["FEATURE_FEASIBILITY", "MECHANISM_ABLATION", "ERROR_ANALYSIS"],
+    "caseControlGroups": ["ALL_DAILY_WINNERS", "NEAR_WINNERS", "HIGH_VOLUME_NON_WINNERS", "SECTOR_MATCHED_CONTROLS", "SEEDED_RANDOM_LIQUID_CONTROLS"],
+    "caseControlPerformanceClaimAllowed": false,
+    "caseControlModelCalibrationAllowed": false,
+    "finalModelFitMustUseFullCrossSection": true,
+    "fullCrossSectionRequiredFor": ["FINAL_L2_FIT", "EARLY_WINNER_RECALL", "PRECISION", "THRESHOLD_CALIBRATION", "MARKET_BREADTH", "SECTOR_BREADTH", "PORTFOLIO_OPPORTUNITY_COST", "VALIDATION", "OOS", "INTEGRATED_PORTFOLIO_REPLAY"],
+    "preferredImplementation": "DATE_WIDE_FETCH_ON_RELEASED_SESSIONS_THEN_PRIVATE_IMMUTABLE_CACHE_AND_CAUSAL_5M_DERIVATION",
+    "winnerOnlyDatasetProhibited": true,
+    "sessionSelectionBySameDayOutcomeProhibited": true
+  },
+  "integratedResearchDataset": {
+    "purpose": "ONE_ACQUISITION_SUPPORTS_SELECTOR_ENTRY_EXIT_ALLOCATION_AND_PORTFOLIO_REPLAY",
+    "requiredLayers": ["PIT_MASTER", "DAILY_OHLCV", "RAW_MINUTE_WHEN_RELEASED", "CAUSAL_5M", "DECISION_TIMESTAMPS", "SELECTION_CONTEXT", "ENTRY_FEATURE_CONTEXT", "CAUSAL_FUTURE_PATH_FOR_EVALUATOR_ONLY", "MFE_MAE_LABELS", "EXIT_REPLAY_BARS", "LIQUIDITY_CONTEXT", "SOURCE_MANIFEST"],
+    "rawDataMayNotBeDiscardedAfterSelectorResearch": true,
+    "entryExitAllocationReuseRequired": true,
+    "futurePathAccessibleToDecisionFeatures": false
+  },
+  "integratedComparisonContract": {
+    "baseline": "CURRENT_ARK_SELECTOR_ENTRY_EXIT_INTEGRATED",
+    "candidate": "NEW_LONG_ONLY_SELECTOR_ENTRY_EXIT_ALLOCATION_CASH_PORTFOLIO",
+    "minimumMetrics": ["AFTER_COST_NET", "PROFIT_FACTOR", "MAX_DRAWDOWN", "RETURN_TO_DD", "WIN_RATE", "TRADE_COUNT", "PORTFOLIO_RETURN", "CASH_UTILIZATION", "MISSED_OPPORTUNITY", "MFE_CAPTURE", "MAE", "SYMBOL_CONCENTRATION", "SECTOR_CONCENTRATION", "SESSION_STABILITY", "REGIME_STABILITY"],
+    "candidateShortTradesRequired": 0,
+    "candidateMarginTradesRequired": 0,
+    "sameEvaluationWindowRequired": true,
+    "sameCostModelRequired": true,
+    "frozenBeforeValidation": true
+  },
+  "dataBudget": {
+    "planningUniverseSymbols": 3700,
+    "clean205DailyMaster": {"sessions": 205, "warmupDailySessions": 1, "eligibleSymbolSessionRowsApprox": 758500, "dailyRequests": 206, "masterRequests": 205, "baseApiRequests": 411, "minuteRequests": 0},
+    "development80IntradayUpperPlan": {
+      "sessions": 80,
+      "planningPolicy": "DO_NOT_ACQUIRE_ALL_UPFRONT_RELEASE_BY_BLOCK_AND_REUSE_FOR_INTEGRATED_REPLAY",
+      "estimatedMinutePagesFromPrior90SessionRate": 1056,
+      "estimatedMinuteRowsFromPrior90SessionRate": 33692267,
+      "estimatedTotalRequestsIncludingDailyAndMaster": 1216
+    },
+    "clean205FullIntradayUpperBound": {"sessions": 205, "observedMinutePages": 2899, "observedMinuteRows": 92131136, "policy": "DO_NOT_ACQUIRE_UPFRONT"}
+  },
+  "storageManifest": {
+    "rawCache": "PRIVATE_USER_ONLY_NON_GIT_STORAGE",
+    "requiredIdentity": ["provider", "apiVersion", "endpoint", "normalizedQuery", "sessionDate", "fetchedAt", "pageCount", "rowCount", "responseSha256PerPage", "aggregateSha256", "symbolSetSha256", "contractSnapshotSha256"],
+    "derivedIdentity": ["parentRawSha256", "transformVersion", "timestampContract", "corporateActionPolicy", "outputSha256"],
+    "reuseRule": "REUSE_ONLY_WHEN_SOURCE_IDENTITY_SESSION_SYMBOL_QUERY_CONTRACT_AND_SHA256_ALL_MATCH",
+    "correctionRule": "NEW_PROVIDER_SNAPSHOT_IS_NEW_VERSION_NEVER_OVERWRITE_OLD_MANIFEST",
+    "postCancellationRule": "DELETE_RAW_COPIES_AND_REVERSIBLE_DERIVATIVES_AT_APPLICABLE_PLAN_OR_ADDON_END; PRIVATE_NONREVERSIBLE_RESULTS_MAY_REMAIN",
+    "officialTermsEvidence": {
+      "checkedAt": "2026-09-15",
+      "termsUrl": "https://jpx-jquants.com/ja/termsofservice",
+      "helpUrl": "https://jpx-jquants.com/ja/help/usage",
+      "contractTerm": "PRIVATE_USER_ONLY_EXTERNAL_CLOUD_ALLOWED_DURING_ENTITLEMENT; DELETE_RAW_COPIES_AND_REVERSE_ENGINEERABLE_DERIVATIVES_AFTER_CANCELLATION_OR_DOWNGRADE",
+      "publicRepositoryStorageAllowed": false
+    },
+    "purgeDeadlinesJst": {
+      "DAILY_AND_MASTER_LIGHT": "2026-10-06T19:02:00+09:00",
+      "MINUTE_TICK_OHLCMIN": "2026-10-06T19:07:00+09:00"
+    }
+  },
+  "claudeIndependentReview": {
+    "received": true,
+    "verdict": "CONDITIONAL_GO",
+    "disposition": {
+      "reserveZero": "ACCEPT_AND_FIX",
+      "l0OutcomeHypothesisRisk": "PARTIAL_ACCEPT_L0_IS_CENSUS_AND_DEFINITIONS_FREEZE_BEFORE_L1",
+      "minuteWinnerBias": "ACCEPT_AND_FIX",
+      "purgeEmbargoUndefined": "ACCEPT_CONCEPT_REJECT_BLANKET_BAN_ON_CAUSAL_PAST_HISTORY",
+      "development90TooLarge": "REDUCED_TO_80_AND_REQUIRE_SAMPLE_BUDGET_BEFORE_FURTHER_EXPANSION",
+      "validationRoleConfusion": "ACCEPT_AND_RENAME_REPLICATION",
+      "finalConfirmationRedundancy": "ACCEPT_REPLACE_WITH_CONTINGENCY_OOS",
+      "futureVolatilityNormalization": "REJECT_FOR_DECISION_FEATURES_USE_CAUSAL_ATR_OR_DECISION_TIME_VOLATILITY"
+    }
+  },
+  "preAcquisitionGate": {
+    "officialEndpointContractRecorded": true,
+    "historicalCodeAuditCompleted": true,
+    "artifactInventoryCompleted": true,
+    "l0DataContractFrozen": true,
+    "l1L2DataContractFrozen": true,
+    "datasetSplitFrozen": true,
+    "historicalSessionIdentifiersFrozen": true,
+    "dataBudgetCalculated": true,
+    "paginationBudgetCalculated": true,
+    "storageManifestContractFrozen": true,
+    "integratedDataReuseContractFrozen": true,
+    "humanOverfittingControlsFrozen": true,
+    "independentReviewDispositionFrozen": true,
+    "exactCurrentEntitlementReattested": true,
+    "storageDeletionTermsReattested": true,
+    "privateCacheDestinationConfirmed": false,
+    "postCancellationPurgeMechanismTested": true,
+    "freshExactDatesFrozen": false,
+    "freshSelectionRuleFrozen": true,
+    "credentialAvailabilityConfirmed": false,
+    "claudeIndependentReviewReceived": true,
+    "claudeCriticalBlockersResolved": true,
+    "operatorExplicitAcquisitionApproval": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "freshHoldoutConsumed": false,
+    "shortProfitContributionAllowed": false,
+    "marginAllowed": false
+  }
+}

@@ -1,0 +1,84 @@
+name: Phase57 Integrated LONG Entry v1 Evidence Audit
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-integrated-long-entry-v1.yml'
+      - 'scripts/phase57_integrated_long_entry_v1.py'
+      - 'scripts/test_phase57_integrated_long_entry_v1.py'
+      - 'scripts/audit_phase57_integrated_long_entry_v1.py'
+      - 'scripts/report_phase57_integrated_long_entry_v1.py'
+      - 'docs/evidence/phase57-integrated-long-entry-v1/**'
+permissions:
+  contents: read
+jobs:
+  verify-first-measurement:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      ARK_TEST_OFFLINE: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Pinned evaluator dependencies
+        run: python -m pip install numpy==2.3.5 scikit-learn==1.8.0 pandas==2.3.3
+      - name: Targeted causal, route, missing, boundary and Safety tests
+        run: |
+          set -o pipefail
+          mkdir -p /tmp/integrated-long-entry-v1
+          python scripts/offline/kernel_exec.py python -m unittest -v scripts.test_phase57_integrated_long_entry_v1 2>&1 | tee /tmp/integrated-long-entry-v1/targeted-tests.log
+      - name: Saved model and ledger audit; zero fit and zero outcome remeasurement
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.audit_phase57_integrated_long_entry_v1 --out /tmp/integrated-long-entry-v1/integrity-audit.json
+          python scripts/offline/kernel_exec.py python -m scripts.report_phase57_integrated_long_entry_v1 --audit /tmp/integrated-long-entry-v1/integrity-audit.json --out /tmp/integrated-long-entry-v1/REPORT.md
+          cmp docs/evidence/phase57-integrated-long-entry-v1/verification/integrity-audit.json /tmp/integrated-long-entry-v1/integrity-audit.json
+          cmp docs/evidence/phase57-integrated-long-entry-v1/REPORT.md /tmp/integrated-long-entry-v1/REPORT.md
+          git diff --exit-code
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Offline prediction regression
+        run: python scripts/run_offline_regression.py --suite predict --output-dir /tmp/integrated-long-entry-v1/regression
+      - name: Exact HEAD receipt and immutable closure verification
+        env:
+          RESEARCH_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          b=Path('docs/evidence/phase57-integrated-long-entry-v1')
+          root=Path('/tmp/integrated-long-entry-v1')
+          closure=json.loads((b/'closure-manifest.json').read_text())
+          for f,h in closure['filePins'].items():
+              assert hashlib.sha256(Path(f).read_bytes()).hexdigest()==h,f
+          a=json.loads((root/'integrity-audit.json').read_text())
+          r=json.loads((root/'regression/regression.json').read_text())
+          assert a['status']==r['status']=='PASS'
+          assert 'Ran 30 tests' in (root/'targeted-tests.log').read_text()
+          assert closure['researchFits']==1 and closure['validationCandidateMeasurements']==1
+          assert closure['developmentTestEvaluations']==0 and not closure['freshOOSOpened']
+          assert all(v is False for v in closure['safety'].values())
+          receipt={'checkedHead':os.environ['RESEARCH_HEAD'],'runId':os.environ['GITHUB_RUN_ID'],
+              'runAttempt':os.environ['GITHUB_RUN_ATTEMPT'],'pr':587,'targetedTestsPassed':30,
+              'regression':r['suites'],'fitCallsInCI':0,'newOutcomeMeasurementsInCI':0,
+              'researchFitsTotal':1,'validationCandidateMeasurementsTotal':1,
+              'developmentTestEvaluations':0,'freshOOSOpened':False,'candidateFreeze':False,
+              'decision':closure['decision'],'overallStatus':closure['overallStatus'],'safety':closure['safety'],
+              'pins':{str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in
+                  [b/'protocol.json',b/'feature-manifest.json',b/'train/manifest.json',b/'validation/manifest.json',b/'closure-manifest.json']}}
+          (root/'final-ci-receipt.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-integrated-long-entry-v1-${{ github.event.pull_request.head.sha }}
+          path: /tmp/integrated-long-entry-v1/
+          if-no-files-found: error
+          retention-days: 30

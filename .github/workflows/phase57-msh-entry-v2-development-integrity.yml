@@ -1,0 +1,37 @@
+name: Phase57 LONG Entry v2 Development Evidence Integrity
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-msh-entry-v2-development-integrity.yml
+      - predict/research/phase57_msh_entry_long_v2_d30.py
+      - scripts/*phase57_msh_entry_v2*
+      - docs/evidence/phase57-msh-entry-long-v2-development/**
+permissions:
+  contents: read
+jobs:
+  synthetic-and-saved-evidence-only:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install fixed numerical dependency
+        run: python3 -m pip install numpy==2.3.5
+      - name: Synthetic tests and saved artifacts; no Project fit or prediction
+        env:
+          ARK_TEST_OFFLINE: '1'
+          PYTHONDONTWRITEBYTECODE: '1'
+          OPENBLAS_NUM_THREADS: '1'
+          OMP_NUM_THREADS: '1'
+          MKL_NUM_THREADS: '1'
+        run: python3 scripts/offline/kernel_exec.py python3 -m unittest scripts/test_phase57_msh_entry_v2_model.py scripts/test_phase57_msh_entry_v2_development.py scripts/test_phase57_msh_entry_v2_evidence.py scripts/test_phase57_msh_entry_v2_predevelopment.py scripts/test_phase57_msh_entry_upstream_freeze.py
+      - name: Synthetic cache projector tests; no cache retrieval
+        env:
+          ARK_TEST_OFFLINE: '1'
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: python3 scripts/offline/kernel_exec.py node --test scripts/test_phase57_msh_entry_v2_paths.mjs

@@ -99,6 +99,12 @@ jobs:
             if ($acquired) { [void]$mutex.ReleaseMutex() }
             $mutex.Dispose()
           }
+      - name: V3 isolated bulk capture offline test (Windows PowerShell 5.1)
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & .\integration\no1-1-msii\windows\Ark-No11-CaptureReadOnly-v3-CANDIDATE.ps1 -OfflineSelfTest
+          if (-not $?) { throw 'NO11_V3_BULK_OFFLINE_SELFTEST_FAILED' }
       - name: Test RSS formula echo and strict error rejection (Windows PowerShell 5.1)
         shell: powershell
         run: |

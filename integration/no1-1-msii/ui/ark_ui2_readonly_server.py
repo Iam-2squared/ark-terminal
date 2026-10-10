@@ -244,6 +244,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Pragma", "no-cache")
         self.send_header("X-Ark-Read-Only", "true")
         self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Referrer-Policy", "no-referrer")
         self.send_header("Cross-Origin-Resource-Policy", "same-origin")
 
     def _send_bytes(self, payload: bytes, content_type: str, status: int = 200) -> None:
@@ -255,6 +257,19 @@ class Handler(BaseHTTPRequestHandler):
     def _send_json(self, payload: Any, status: int = 200) -> None:
         body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
         self._send_bytes(body, "application/json; charset=utf-8", status)
+
+    def _approved_request_origin(self) -> bool:
+        # Loopback binding alone does not prevent browser DNS rebinding.
+        expected = f"127.0.0.1:{self.server.server_address[1]}"
+        origin = self.headers.get("Origin")
+        return (self.headers.get("Host") == expected and
+                (origin is None or origin == f"http://{expected}"))
+
+    def _deny_untrusted_origin(self) -> None:
+        self._send_json(
+            {"ok": False, "readOnly": True, "code": "UNTRUSTED_LOCAL_UI_ORIGIN"},
+            HTTPStatus.FORBIDDEN,
+        )
 
     def _index(self) -> None:
         source = self.server.index_path.read_text(encoding="utf-8-sig")
@@ -272,7 +287,7 @@ class Handler(BaseHTTPRequestHandler):
                     "ok": False,
                     "readOnly": True,
                     "code": "UI_READ_MODEL_FILE_MISSING",
-                    "message": str(self.server.model_path),
+                    "message": "private read model not available",
                 },
                 HTTPStatus.SERVICE_UNAVAILABLE,
             )
@@ -290,7 +305,7 @@ class Handler(BaseHTTPRequestHandler):
                     "ok": False,
                     "readOnly": True,
                     "code": "UI_READ_MODEL_INVALID",
-                    "message": f"{type(exc).__name__}:{exc}",
+                    "message": "private read model invalid",
                 },
                 HTTPStatus.SERVICE_UNAVAILABLE,
             )
@@ -298,6 +313,9 @@ class Handler(BaseHTTPRequestHandler):
         self._send_json(projected)
 
     def do_GET(self) -> None:
+        if not self._approved_request_origin():
+            self._deny_untrusted_origin()
+            return
         path = self.path.split("?", 1)[0]
         try:
             if path in ("/", "/index.html"):
@@ -336,12 +354,15 @@ class Handler(BaseHTTPRequestHandler):
                     "ok": False,
                     "readOnly": True,
                     "code": "LOCAL_UI_SERVER_ERROR",
-                    "message": f"{type(exc).__name__}:{exc}",
+                    "message": "local UI request failed",
                 },
                 HTTPStatus.INTERNAL_SERVER_ERROR,
             )
 
     def do_POST(self) -> None:
+        if not self._approved_request_origin():
+            self._deny_untrusted_origin()
+            return
         self._send_json(
             {"ok": False, "readOnly": True, "code": "READ_ONLY_METHOD_NOT_ALLOWED"},
             HTTPStatus.METHOD_NOT_ALLOWED,

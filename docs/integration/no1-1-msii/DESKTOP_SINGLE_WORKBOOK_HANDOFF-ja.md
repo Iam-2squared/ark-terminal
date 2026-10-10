@@ -71,3 +71,7 @@ do not point the desktop launcher at `C:\Ark\Ark_No11_RSS_DefaultHeaders_v2.xlsx
 - RSS subprocess stdout/stderr (which may contain private account values) is not copied into UI refresh errors.
 - Concurrent desktop RSS capture attempts are rejected by a Windows named mutex. A failed capture/Capital-Ownership inspection while holding the mutex is latched in the **private** Safety Ledger, never silently treated as success. No reset or live permission is granted.
 - This is only offline code. Windows physical checks, broker arrival-time proof, native Frozen No.1.1 event generator and real order/fill reconciliation remain unverified. Excel order enable stays **OFF**.
+
+## Loopback UI privacy hardening
+
+The desktop UI accepts only `Host: 127.0.0.1:<port>`, plus matching local Origin (or no Origin). Invalid Host/Origin receive HTTP 403 to mitigate DNS-rebinding exposure of account data. Missing/invalid UI model responses omit private path or parser details. HTTP mutation methods still return 405. These are offline HTTP tests, not Windows browser or broker certification.

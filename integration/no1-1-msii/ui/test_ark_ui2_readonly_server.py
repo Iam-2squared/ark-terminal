@@ -199,6 +199,16 @@ class ServerModelTests(unittest.TestCase):
                     urlopen(Request(url + "/api/ui-read-model", data=b"ORDER",
                                     method="POST"), timeout=4)
                 self.assertEqual(error.exception.code, 405)
+                for request in (
+                    Request(url + "/api/ui-read-model",
+                            headers={"Host": "attacker.invalid:8767"}),
+                    Request(url + "/health",
+                            headers={"Origin": "https://attacker.invalid"}),
+                ):
+                    with self.assertRaises(HTTPError) as forbidden:
+                        urlopen(request, timeout=4)
+                    self.assertEqual(forbidden.exception.code, 403)
+
                 with urlopen(url + "/", timeout=4) as response:
                     self.assertIn(b"/ark-readonly-overlay.js", response.read())
                 self.assertEqual(index.read_bytes(), original)

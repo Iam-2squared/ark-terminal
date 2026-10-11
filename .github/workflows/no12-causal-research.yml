@@ -36,6 +36,13 @@ jobs:
           test -f research/ark-integrated-no1-1-freeze-20261008/INTEGRATED_NO1_1_FREEZE.json
           git diff --exit-code 4110059f30e9e6b984946897a39df677b22df2f1 HEAD -- research/ark-integrated-no1-1-freeze-20261008/
           git diff --exit-code 4110059f30e9e6b984946897a39df677b22df2f1 HEAD -- integration/no1-1-msii/
+      - name: Exercise market probe formula safety without Excel or broker (Windows only)
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Probe-No12MarketRssChartReadOnly.ps1 -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO12_RSS_CHART_SELFTEST_FAILED' }
       - name: Test synthetic prebuy ranking and life-cycle on real Node runtime
         shell: bash
         run: |

@@ -72,3 +72,35 @@ test('byte-valid private market evidence from earlier poll becomes STALE instead
    'LOCAL_MARKET_RECEIPT_HASH_VALID');
  }finally{f.cleanup()}
 });
+
+test('five complete prior RSS 5m sessions are sealed into the same private market receipt',()=>{
+ const f=fixture();
+ try {
+  const raw=JSON.parse(fs.readFileSync(f.candidatePath,'utf8'));
+  for(const day of ['2026/10/05','2026/10/06','2026/10/07','2026/10/08','2026/10/09']){
+   for(const [a,b] of [[540,690],[750,930]])for(let m=a;m<b;m+=5){
+    const hh=String(Math.floor(m/60)).padStart(2,'0'),mm=String(m%60).padStart(2,'0');
+    raw.rows.push({'銘柄名称':'fixture','市場名称':'東証','足種':'5M',
+      '日付':day,'時刻':hh+':'+mm,'始値':1000,'高値':1002,'安値':998,
+      '終値':1000,'出来高':1000});
+   }
+  }
+  fs.writeFileSync(f.candidatePath,JSON.stringify(raw));
+  const x=pub({...f,privateRoot:f.root});
+  assert.equal(x.historyStatus,'BACKFILL_5M_PREVIOUS_SESSIONS_AVAILABLE');
+  assert.equal(x.previousSessionsFound,5);
+  const saved=JSON.parse(fs.readFileSync(path.join(f.root,'market-readonly-observed.json'),'utf8'));
+  assert.equal(saved.historyRows.length,330);
+  assert.equal(saved.historicalArrivalCertified,false);
+  assert.equal(verify({privateRoot:f.root,now:f.now}).status,'LOCAL_MARKET_RECEIPT_HASH_VALID');
+ }finally{f.cleanup()}
+});
+test('insufficient prior market sessions remain explicitly INCOMPLETE',()=>{
+ const f=fixture();try{
+  const x=pub({...f,privateRoot:f.root});
+  assert.equal(x.historyStatus,'HISTORY_SOURCE_INCOMPLETE');
+  const saved=JSON.parse(fs.readFileSync(path.join(f.root,'market-readonly-observed.json'),'utf8'));
+  assert.equal(saved.historicalArrivalCertified,false);
+  assert.equal(saved.previousSessionsFound,0);
+ }finally{f.cleanup()}
+});

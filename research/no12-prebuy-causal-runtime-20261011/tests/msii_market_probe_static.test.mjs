@@ -26,3 +26,16 @@ test('probe uses only chart, never RSS order function / PowerShell kill-switch r
  assert.match(script,/ORDER_TRANSMISSION=False/);
  assert.match(script,/ACTUAL_BROKER_DELIVERY_TIMESTAMP_CERTIFIED=False/);
 });
+
+test('market probe converts Excel Value2 date/time and sends data only to private local receipt',()=>{
+ for(const token of [
+  'Convert-No12VendorDate','Convert-No12VendorTime','FromOADate',
+  'chart-candidate-','no12_private_chart_publish.mjs',
+  'NO12_RSS_CHART_PRIVATE_READ_ONLY_RECEIPT=True',
+  'market-readonly','NO12_RSS_EXCEL_OADATE_SELFTEST_FAILED'
+ ]){
+   assert.ok(script.includes(token),token);
+ }
+ assert.doesNotMatch(script,/https?:\/\//i);
+ assert.doesNotMatch(script,/Invoke-WebRequest|Invoke-RestMethod|Start-BitsTransfer/i);
+});

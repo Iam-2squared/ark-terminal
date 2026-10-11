@@ -1,0 +1,46 @@
+{
+  "title": "Ark No.1.2 deployable pre-buy causal research candidate",
+  "date": "2026-10-11",
+  "branch": "research/no12-prebuy-causal-runtime-20261011",
+  "parentFrozenNo11": "10c94c92c4bd2a59a22744667fd0210252602df4",
+  "deliberatelyNotFrozenNo11": true,
+  "contract": {
+    "mode": "SYNTHETIC_OFFLINE_ONLY",
+    "originalR0RanksIdentical": false,
+    "prebuyRanking": "First Entry score / threshold research ordering, NOT certified performance",
+    "symbolProtection": "explicit EXTERNAL exclusion",
+    "stateFilter": [
+      "PULLBACK",
+      "SHARP_DROP"
+    ],
+    "cashLongOnly": true,
+    "lotSize": 100,
+    "maxPositions": 3,
+    "firstLegalSellFillStopsFurtherBuySameSession": true,
+    "limitBuyIntentBeforeJst": "15:20",
+    "noFutureKnownAt": true
+  },
+  "tests": [
+    "causal timestamp rejection",
+    "unknown state",
+    "personal-symbol protection",
+    "lot/MAX3",
+    "cash reservation and zero balance",
+    "separate sell intent/fill",
+    "same-time sell-first",
+    "idempotency",
+    "synthetic CLI smoke"
+  ],
+  "notCertified": [
+    "native realtime Selector/Entry/State9/EXIT",
+    "new strategy independent OOS returns",
+    "true brokerage feed arrival timestamps",
+    "RSS real order ID/partial fill linkage",
+    "live Excel/MarketSpeed order transmission",
+    "rollback-reconnect real brokerage E2E"
+  ],
+  "manualPermissionFuture": "Excel RSS order usage ON/OFF only",
+  "additionalHumanPermissionCreated": false,
+  "realOrdersSent": 0,
+  "productionReady": false
+}

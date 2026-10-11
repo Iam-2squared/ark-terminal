@@ -2,9 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import fs from 'node:fs';
+import {fileURLToPath} from 'node:url';
 test('public standalone executable validates full synthetic buy/sell/no-new-buy day with no brokerage',()=>{
  const script=new URL('../tools/no12_offline_demo.mjs',import.meta.url);
- const run=spawnSync(process.execPath,[script.pathname],{
+ const run=spawnSync(process.execPath,[fileURLToPath(script)],{
    encoding:'utf8',env:{...process.env},timeout:5000
  });
  assert.equal(run.status,0,run.stderr);

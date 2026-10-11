@@ -31,6 +31,16 @@ jobs:
         run: |
           node --version
           node --test integration/no1-1-msii/tests/*.test.mjs
+      - name: Original frozen Python sources and optional numpy synthetic smoke
+        shell: bash
+        run: |
+          python3 -m py_compile integration/no1-1-msii/tools/no11_native_original_python_smoke.py
+          python3 -m py_compile integration/no1-1-msii/frozen-native-code/*.py
+          if python3 -c 'import numpy' 2>/dev/null; then
+            python3 integration/no1-1-msii/tools/no11_native_original_python_smoke.py --offline-self-test
+          else
+            echo 'NO11_ORIGINAL_NATIVE_NUMPY_SMOKE=NOT_RUN_DEPENDENCY_MISSING'
+          fi
       - name: Byte-exact Frozen Capital v5 synthetic bridge tests
         shell: bash
         run: |

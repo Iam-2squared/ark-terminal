@@ -66,23 +66,28 @@
     "actualBrokerOrderWriterImplemented": false,
     "actualBrokerOrderFillE2E": false,
     "onlineNativeSelectorFirstEntryState9ExitImplemented": false,
-    "independentOosProfitabilityCertified": false
+    "independentOosProfitabilityCertified": false,
+    "rejectOldChartDespiteFreshExcelObservation": true,
+    "retainSelectorStateKnownTimeInChartBinding": true,
+    "requirePrivateChartReceiptCurrentTimestamp": true,
+    "marketSelectorStateObservedSourceJoinOffline": true,
+    "marketSelectorStateActualLiveProducer": false
   },
   "ci": {
     "windows": {
-      "pass": 67,
+      "pass": 75,
       "fail": 0,
       "marketProbeOfflineSelfTest": true
     },
     "linux": {
-      "pass": 67,
+      "pass": 75,
       "fail": 0
     },
-    "lastRun": "https://github.com/Iam-2squared/ark-terminal/actions/runs/38135407853"
+    "lastRun": "https://github.com/Iam-2squared/ark-terminal/actions/runs/38136867818"
   },
-  "result": "SYNTHETIC_NO12_ORDER_PREVIEW_AND_PRIVATE_MARKET_CAPTURE_PREPARED_LIVE_TRADING_NOT_READY",
+  "result": "SYNTHETIC_MARKET_SELECTOR_STATE_JOIN_READY_NOT_REALTIME_CERTIFIED",
   "excelOrderPermissionOff": true,
   "ownerApprovalButtonsAdded": 0,
   "realMarketObservationCertified": false,
-  "physicalNext": "On next JPX open session, with RSS order OFF: stop No1.1 UI and close account workbook safely, then run the latest isolated RssChart read-only probe once; it stores private closed-bar receipt. Genuine strategy/real broker order E2E and OOS evidence remain subsequent engineering tasks."
+  "physicalNext": "Before any live trading, physical PC MarketSpeed II RSS 5M source/time validation and independent online Selector/FirstEntry/State9 producers, real broker cash/order reconciliation, OOS performance remain required. Excel RSS order remains OFF."
 }

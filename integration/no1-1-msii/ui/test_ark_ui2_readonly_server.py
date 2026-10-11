@@ -193,6 +193,67 @@ class ServerModelTests(unittest.TestCase):
         self.assertNotIn("BROKER_", str(state.snapshot()))
         self.assertNotIn("PRIVATE_", str(state.snapshot()))
 
+    def test_hidden_refresh_failure_then_success_never_unlatches_runtime_safety(self):
+        stamp = datetime.now(timezone.utc).isoformat()
+        source = model(stamp)
+        source["system"]["health"] = "BLOCKED"
+        source["system"]["tradeReadiness"] = "BLOCKED"
+        source["system"]["runtimeSafety"] = {
+            "state": "BLOCKED", "killSwitchLatched": True,
+            "faults": ["READ_ONLY_CAPTURE_FAILED"],
+        }
+        state = mod.RefreshState()
+        loop = mod.RefreshLoop(
+            state=state, preview_script=Path("fixture.ps1"),
+            workbook_path=Path("private.xlsx"), model_path=Path("model.json"),
+            ownership_path=None, interval_seconds=30,
+        )
+        loop._command = lambda: ["powershell"]
+        failed = SimpleNamespace(
+            returncode=2,
+            stdout="NO11_UI_REFRESH_FAILED_STAGE=PUBLISH_RECEIPT\n",
+            stderr="DO_NOT_LEAK_PRIVATE_ACCOUNT",
+        )
+        succeeded = SimpleNamespace(returncode=0, stdout="READ_ONLY_OK", stderr="")
+        with patch.object(mod.subprocess, "run", side_effect=[failed, succeeded]):
+            loop._refresh_once()
+            self.assertEqual(
+                state.snapshot()["lastError"],
+                "READ_ONLY_REFRESH_FAILED:PUBLISH_RECEIPT",
+            )
+            self.assertIsNone(state.snapshot()["lastSuccessAt"])
+            loop._refresh_once()
+        self.assertIsNone(state.snapshot()["lastError"])
+        self.assertIsNotNone(state.snapshot()["lastSuccessAt"])
+        projected = mod.project_observed_model(
+            source, now_epoch=mod.parse_iso(stamp) + 2,
+            max_model_age_seconds=30,
+            refresh_state=state.snapshot(),
+        )
+        self.assertEqual(projected["source"]["freshness"]["state"], "FRESH")
+        self.assertEqual(projected["system"]["tradeReadiness"], "BLOCKED")
+        self.assertEqual(projected["system"]["runtimeSafety"]["killSwitchLatched"], True)
+        self.assertFalse(projected["mutationCapabilities"]["orderSubmit"])
+        self.assertFalse(projected["localBridge"]["mutationCapabilities"]["excelOrderWrite"])
+
+    def test_hidden_refresh_timeout_redacts_account_values(self):
+        state = mod.RefreshState()
+        loop = mod.RefreshLoop(
+            state=state, preview_script=Path("fixture.ps1"),
+            workbook_path=Path("private.xlsx"), model_path=Path("model.json"),
+            ownership_path=None, interval_seconds=30,
+        )
+        loop._command = lambda: ["powershell"]
+        private_timeout = mod.subprocess.TimeoutExpired(
+            cmd=["powershell"], timeout=60,
+            output="PRIVATE_ACCOUNT=SECRET",
+            stderr="PRIVATE_CASH_VALUE",
+        )
+        with patch.object(mod.subprocess, "run", side_effect=private_timeout):
+            loop._refresh_once()
+        self.assertEqual(state.snapshot()["lastError"], "READ_ONLY_REFRESH_TIMEOUT")
+        self.assertNotIn("PRIVATE_", str(state.snapshot()))
+
     def test_loopback_http_serves_read_only_and_blocks_after_refresh_failure(self):
         timestamp = datetime.now(timezone.utc).isoformat()
         with tempfile.TemporaryDirectory() as td:

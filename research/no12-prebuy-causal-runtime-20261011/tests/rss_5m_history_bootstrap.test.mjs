@@ -74,3 +74,75 @@ test('history backfill cannot be relabelled an original live market or strategy 
  assert.equal(y.originalFrozenSelectorCertified,false);
  assert.equal(y.originalNativeState9Certified,false);
 });
+
+test('JPX October holiday is skipped in the EXPECTED prior five sessions',async()=>{
+ const {previousJpxCashTradingDays,isJpxCashTradingDay}=await import('../runtime/jpx_cash_calendar_2026_2027.mjs');
+ assert.equal(isJpxCashTradingDay('2026-10-12'),false);
+ assert.equal(isJpxCashTradingDay('2026-10-13'),true);
+ assert.deepEqual(previousJpxCashTradingDays('2026-10-13',5),
+  ['2026-10-09','2026-10-08','2026-10-07','2026-10-06','2026-10-05']);
+ assert.equal(warm(fixture()).expectedPreviousSessions.length,5);
+});
+test('an older session cannot replace an omitted NEWER required JPX session',()=>{
+ const x=fixture();
+ x.snapshot.rows=x.snapshot.rows.filter(r=>r['日付']!=='2026/10/08');
+ for(const [a,b] of [[540,690],[750,930]])for(let m=a;m<b;m+=5)
+  x.snapshot.rows.push(bar('2026/10/02',Math.floor(m/60),m%60));
+ const r=warm(x);
+ assert.equal(r.status,'HISTORY_SOURCE_INCOMPLETE');
+ assert.equal(r.observedSessions,4);
+ assert(r.perSession.some(s=>s.day==='2026-10-08'&&s.closedBars===0));
+ assert(!r.selectedSessionIds.includes('2026-10-02'));
+});
+test('missing opening bar or closing bar never counts as a complete session',()=>{
+ for(const clock of ['09:00','15:25']){
+  const x=fixture();
+  x.snapshot.rows=x.snapshot.rows.filter(r=>!(r['日付']==='2026/10/09'&&r['時刻']===clock));
+  const r=warm(x);
+  assert.equal(r.status,'HISTORY_SOURCE_INCOMPLETE');
+  assert.equal(r.perSession[0].closedBars,65);
+  assert(r.perSession[0].missingBars>=1);
+ }
+});
+test('60 contiguous bars without opening or close cannot bypass strict full-day gate',()=>{
+ const x=fixture();
+ x.snapshot.rows=x.snapshot.rows.filter(r=>!(r['日付']==='2026/10/09'&&
+   (r['時刻']<'09:15'||r['時刻']>'15:10')));
+ const r=warm({...x,minimumBarsPerSession:12});
+ assert.equal(r.status,'HISTORY_SOURCE_INCOMPLETE');
+ assert(r.perSession[0].closedBars<66);
+});
+test('complete END-labelled grid is supported without presuming vendor time semantics',()=>{
+ const x=fixture();
+ x.snapshot.rows=x.snapshot.rows.filter(r=>r['日付']==='2026/10/13');
+ for(const day of past)for(const [a,b] of [[545,695],[755,935]])
+  for(let m=a;m<b;m+=5)x.snapshot.rows.push(bar(day,Math.floor(m/60),m%60));
+ const r=warm(x);
+ assert.equal(r.status,'BACKFILL_5M_PREVIOUS_SESSIONS_AVAILABLE');
+ assert.equal(r.historyTimeLabelConvention,'END_LABEL');
+ assert.equal(r.providerTimeLabelPhysicallyCertified,false);
+ assert.equal(r.historicalBrokerArrivalProven,false);
+});
+test('mixed START and END time grids across prior days cannot pass as one contract',()=>{
+ const x=fixture();
+ x.snapshot.rows=x.snapshot.rows.filter(r=>r['日付']!=='2026/10/09');
+ for(const [a,b] of [[545,695],[755,935]])
+  for(let m=a;m<b;m+=5)x.snapshot.rows.push(bar('2026/10/09',Math.floor(m/60),m%60));
+ const r=warm(x);
+ assert.equal(r.status,'HISTORY_SOURCE_INCOMPLETE');
+ assert.equal(r.historyTimeLabelConvention,'UNVERIFIED');
+});
+test('a weekday JPX cash holiday with fake bars is rejected even if synthetic',()=>{
+ const x=fixture();
+ x.snapshot.rows.push(bar('2026/10/12',9,0));
+ assert.throws(()=>warm(x),/NO12_HISTORY_NON_TRADING_SESSION_BAR/);
+});
+test('future session bar is rejected BEFORE unfinished-bar exclusion',()=>{
+ const x=fixture();
+ x.snapshot.rows.push(bar('2026/10/14',9,0));
+ assert.throws(()=>warm(x),/NO12_HISTORY_FUTURE_SESSION_BAR/);
+});
+test('unreviewed calendar year fails closed, never assumes weekday equals session',async()=>{
+ const {previousJpxCashTradingDays}=await import('../runtime/jpx_cash_calendar_2026_2027.mjs');
+ assert.throws(()=>previousJpxCashTradingDays('2028-04-04',5),/NO12_JPX_CASH_CALENDAR_YEAR_UNPINNED/);
+});

@@ -6,6 +6,7 @@
  */
 import {createHash} from 'node:crypto';
 import {NO12_CHART_SCHEMA,RSS_CHART_COLUMNS} from './msii_rss_chart_observation.mjs';
+import {isJpxCashTradingDay,previousJpxCashTradingDays} from './jpx_cash_calendar_2026_2027.mjs';
 
 export const HISTORY_SCHEMA='ARK_NO12_RSS_5M_HISTORY_BOOTSTRAP_V1';
 export const DEFAULT_RSS_HISTORY_BARS=500;
@@ -44,9 +45,35 @@ const num=(value,allowZero=false)=>{
     invalid('NO12_HISTORY_INVALID_OHLCV');
   return value;
 };
+// A full normal JPX day has 30 AM + 36 PM five-minute bars. Provider
+// timestamps could denote bar OPEN or CLOSE; both complete grids are
+// accepted as historical SOURCE SHAPES, never as broker arrival proof.
+const slotGrid=offset=>{
+  const result=[];
+  for(const [start,end] of [[540,690],[750,930]])
+    for(let minute=start+offset;minute<end+offset;minute+=5)result.push(minute);
+  return result;
+};
+const START_GRID=slotGrid(0),END_GRID=slotGrid(5);
+const coverage=(rows,grid)=>{
+  const expected=new Set(grid),actual=new Set(rows.map(r=>r.minute));
+  return {
+    missingBars:grid.filter(minute=>!actual.has(minute)).length,
+    unexpectedBars:rows.filter(r=>!expected.has(r.minute)).length
+  };
+};
+const fullSessionCoverage=rows=>{
+  const start=coverage(rows,START_GRID),end=coverage(rows,END_GRID);
+  const startExact=rows.length===66&&start.missingBars===0&&start.unexpectedBars===0;
+  const endExact=rows.length===66&&end.missingBars===0&&end.unexpectedBars===0;
+  return {
+    labelMode:startExact?'START_LABEL':endExact?'END_LABEL':'UNVERIFIED',
+    missingBars:Math.min(start.missingBars,end.missingBars),
+    unexpectedBars:Math.min(start.unexpectedBars,end.unexpectedBars)
+  };
+};
 export function normalizeNo12HistoricalChart({
-  snapshot,now=new Date(),requiredPreviousSessions=DEFAULT_REQUIRED_PREVIOUS_SESSIONS,
-  minimumBarsPerSession=60
+  snapshot,now=new Date(),requiredPreviousSessions=DEFAULT_REQUIRED_PREVIOUS_SESSIONS
 }={}){
   if(!snapshot||snapshot.schemaId!==NO12_CHART_SCHEMA||snapshot.sourceFunction!=='RssChart'||
     snapshot.period!=='5M'||snapshot.evidenceMode!=='OBSERVED_READ_ONLY'||
@@ -58,8 +85,7 @@ export function normalizeNo12HistoricalChart({
   if(!Array.isArray(snapshot.rows)||snapshot.rows.length>3000)
     invalid('NO12_HISTORY_ROWS_INVALID');
   if(!Number.isInteger(requiredPreviousSessions)||requiredPreviousSessions<2||
-     requiredPreviousSessions>15||!Number.isInteger(minimumBarsPerSession)||
-     minimumBarsPerSession<12||minimumBarsPerSession>66)
+     requiredPreviousSessions>15)
     invalid('NO12_HISTORY_COVERAGE_CONFIG_INVALID');
   const capture=utcMs(snapshot.capturedAt,'NO12_HISTORY_CAPTURE_TIME_INVALID');
   const current=now instanceof Date?now.getTime():utcMs(now,'NO12_HISTORY_NOW_INVALID');
@@ -79,8 +105,9 @@ export function normalizeNo12HistoricalChart({
       invalid('NO12_HISTORY_OHLCV_INCONSISTENT');
     // Provider label start-vs-end convention is not yet physically certified;
     // one whole extra 5-minute interval is conservative, not a live time proof.
-    if(when+300000>capture){unclosed.push(stamp);continue;}
     if(day>session)invalid('NO12_HISTORY_FUTURE_SESSION_BAR');
+    if(!isJpxCashTradingDay(day))invalid('NO12_HISTORY_NON_TRADING_SESSION_BAR');
+    if(when+300000>capture){unclosed.push(stamp);continue;}
     historical.push({day,stamp,minute,open,high,low,close,volume,
       conservativeClosedAt:new Date(when+300000).toISOString()});
   }
@@ -90,11 +117,12 @@ export function normalizeNo12HistoricalChart({
     if(!byDay.has(bar.day))byDay.set(bar.day,[]);
     byDay.get(bar.day).push(bar);
   }
-  const days=[...byDay.keys()].sort().reverse();
-  const previous=days.filter(day=>day<session).slice(0,requiredPreviousSessions);
+  // Independently derive the REQUIRED sessions from the pinned JPX calendar.
+  // A missing newer session must never be replaced by an older observed day.
+  const previous=previousJpxCashTradingDays(session,requiredPreviousSessions);
   const perSession=[],selected=[];
   for(const day of previous){
-    const rows=byDay.get(day),gaps=[];
+    const rows=byDay.get(day)??[],gaps=[];
     let last=null;
     for(const r of rows){
       const block=r.minute<=690?'AM':'PM';
@@ -102,18 +130,24 @@ export function normalizeNo12HistoricalChart({
         gaps.push({after:last.stamp,before:r.stamp});
       last=r;
     }
-    perSession.push({day,closedBars:rows.length,gaps:gaps.length});
+    const c=fullSessionCoverage(rows);
+    perSession.push({day,closedBars:rows.length,gaps:gaps.length,...c});
     selected.push(...rows);
   }
   selected.sort((a,b)=>Date.parse(a.stamp)-Date.parse(b.stamp));
-  const enough=previous.length===requiredPreviousSessions &&
-    perSession.every(x=>x.closedBars>=minimumBarsPerSession&&x.gaps===0);
+  const labelModes=new Set(perSession.map(x=>x.labelMode));
+  const enough=perSession.every(x=>x.closedBars===66&&x.gaps===0&&
+    x.missingBars===0&&x.unexpectedBars===0&&x.labelMode!=='UNVERIFIED')&&
+    labelModes.size===1;
   const dateSet=selected.map(x=>x.day);
   const result={
     schemaId:HISTORY_SCHEMA,
     status:enough?'BACKFILL_5M_PREVIOUS_SESSIONS_AVAILABLE':'HISTORY_SOURCE_INCOMPLETE',
     symbol:snapshot.symbol,observedAt:snapshot.capturedAt,
-    observedSessions:previous.length,requiredPreviousSessions,
+    observedSessions:perSession.filter(x=>x.closedBars>0).length,requiredPreviousSessions,
+    expectedPreviousSessions:previous,
+    historyTimeLabelConvention:enough?perSession[0].labelMode:'UNVERIFIED',
+    providerTimeLabelPhysicallyCertified:false,
     perSession,historyRows:selected,unclosedRowsExcluded:unclosed.length,
     selectedSessionIds:[...new Set(dateSet)].sort(),
     historicalBrokerArrivalProven:false,

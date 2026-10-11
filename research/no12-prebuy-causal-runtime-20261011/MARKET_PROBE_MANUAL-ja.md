@@ -17,3 +17,9 @@
 実機で株価セルが数値表示されても、それは**RssChartの動作確認のみ**。価格更新の正確なブローカー到着時刻、State9の原本推論、取引成績、本番注文は未認証。Excel発注機能をONにしない。
 
 Windows CIでは `-OfflineSelfTest` のみ実行。COM、Excel、市場、注文、ユーザーのファイルに一切触れない。
+
+## 2026-10-11 追記：非公開の市場データ保存
+
+最新版のRssChart診断は、元の匿名行数に加え、読み取った5分足を閉足時刻検証後に **PC内だけ** `%LOCALAPPDATA%\ArkTerminal\No12\market-readonly-observed.json` と同じ場所のSHA256 receiptに記録する。Excelの一時Workbookや候補一時JSONは保存しない。口座・保有銘柄・注文情報は含まず、GitHubやチャットへ転送しない。実際のBroker配信到着時刻とNative State9/Entry/EXITの推論は未認証。取得できない場合は古いファイルをFRESHとして使わない。
+
+現在のPC worktree HEADは初期版の可能性があるので、火曜日にテストする前に**最新PR #592のcommitを検査してから取り込む**。発注不可のまま実行し、`NO12_RSS_CHART_PRIVATE_READ_ONLY_RECEIPT=True` が出ても自動売買解禁とは扱わない。

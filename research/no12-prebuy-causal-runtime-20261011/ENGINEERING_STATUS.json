@@ -57,23 +57,32 @@
     "marketBarConservativeTimeRule": true,
     "chartPriceSourceBinding": true,
     "isolatedEphemeralExcelProbePrepared": true,
-    "marketExcelPhysicalProbe": false
+    "marketExcelPhysicalProbe": false,
+    "durableSyntheticEventJournal": true,
+    "syntheticRestartReplayWithoutBrokerSubmission": true,
+    "marketBarPrivateLocalHashReceiptPublisher": true,
+    "standaloneExcelCaptureCanPublishPrivateMarketObservation": true,
+    "twentyArgumentMsiiOrderTextDraftTriggerZero": true,
+    "actualBrokerOrderWriterImplemented": false,
+    "actualBrokerOrderFillE2E": false,
+    "onlineNativeSelectorFirstEntryState9ExitImplemented": false,
+    "independentOosProfitabilityCertified": false
   },
   "ci": {
     "windows": {
-      "pass": 43,
+      "pass": 67,
       "fail": 0,
       "marketProbeOfflineSelfTest": true
     },
     "linux": {
-      "pass": 43,
+      "pass": 67,
       "fail": 0
     },
-    "lastRun": "https://github.com/Iam-2squared/ark-terminal/actions/runs/38132816671"
+    "lastRun": "https://github.com/Iam-2squared/ark-terminal/actions/runs/38135407853"
   },
-  "result": "OFFLINE_CHART_INPUT_ADAPTER_AND_SYNTHETIC_RUNTIME_READY_PHYSICAL_MARKET_SOURCE_PENDING",
+  "result": "SYNTHETIC_NO12_ORDER_PREVIEW_AND_PRIVATE_MARKET_CAPTURE_PREPARED_LIVE_TRADING_NOT_READY",
   "excelOrderPermissionOff": true,
   "ownerApprovalButtonsAdded": 0,
   "realMarketObservationCertified": false,
-  "physicalNext": "Stop No1.1 UI, close account workbook safely, execute isolated RssChart 5M probe while Excel order permission remains OFF; restart No1.1 after test. Market session required to observe live changes."
+  "physicalNext": "On next JPX open session, with RSS order OFF: stop No1.1 UI and close account workbook safely, then run the latest isolated RssChart read-only probe once; it stores private closed-bar receipt. Genuine strategy/real broker order E2E and OOS evidence remain subsequent engineering tasks."
 }

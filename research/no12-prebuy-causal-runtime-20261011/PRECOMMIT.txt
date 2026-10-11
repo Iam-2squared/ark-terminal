@@ -1,0 +1,30 @@
+# No.1.2 causal prebuy research, pre-registered development constraints
+date_jst: 2026-10-11
+branch: research/no12-prebuy-causal-runtime-20261011
+parent_integration_commit: 4110059f30e9e6b984946897a39df677b22df2f1
+original_No1_1_freeze_commit: 10c94c92c4bd2a59a22744667fd0210252602df4
+intent: Develop an independently testable pre-buy-ranking RESEARCH CANDIDATE without post-fill features.
+mode: SYNTHETIC_OFFLINE_ONLY
+no_orders: true
+no_main_merge: true
+no_frozen_edits: true
+no_trading_permissions: true
+prebuy_score: firstEntryScore / firstEntryThreshold
+admission_note: This score is not Frozen H2/H3/H5 ML, not empirically validated.
+data_requirement: point-in-time knowledge of Selector score/threshold, State9 Primary and market reference.
+event_order: SELL_FILL before same-time ENTRY_SIGNAL.
+max_ark_positions: 3
+lot: 100
+position_effect: cash-only LONG
+entry_cutoff: 15:20 JST
+excluded_states: [PULLBACK, SHARP_DROP]
+personal_holdings: EXTERNAL, never Ark EXIT, never Ark duplicate BUY.
+post_sell_buy: stopped after first legally matched SELL FILL, not SELL_INTENT.
+synthetic_smoke: Cannot be used as historic/future profitability evidence.
+promotion_blockers:
+  - out_of_sample_economics
+  - real_native_selector_first_entry_state9_exit_event_publisher
+  - actual_market_data_receipt_times
+  - verified_broker_order_and_partial_fill_identity
+  - real_account_cash_and_ownership_reconciliation
+manual_trade_permission_future: Excel RSS order permission alone, after full engineering proof.

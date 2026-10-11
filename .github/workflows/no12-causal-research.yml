@@ -1,0 +1,54 @@
+name: No12 Prospective Pre-BUY Synthetic Research
+
+on:
+  push:
+    branches:
+      - research/no12-prebuy-causal-runtime-20261011
+    paths:
+      - 'research/no12-prebuy-causal-runtime-20261011/**'
+      - '.github/workflows/no12-causal-research.yml'
+  pull_request:
+    paths:
+      - 'research/no12-prebuy-causal-runtime-20261011/**'
+      - '.github/workflows/no12-causal-research.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  no12-synthetic-offline:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 8
+    steps:
+      - name: Checkout candidate branch
+        uses: actions/checkout@v4
+      - name: Verify original strategy Freeze was not modified
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f research/ark-integrated-no1-1-freeze-20261008/INTEGRATED_NO1_1_FREEZE.json
+          git diff --exit-code 4110059f30e9e6b984946897a39df677b22df2f1 HEAD -- research/ark-integrated-no1-1-freeze-20261008/
+          git diff --exit-code 4110059f30e9e6b984946897a39df677b22df2f1 HEAD -- integration/no1-1-msii/
+      - name: Test synthetic prebuy ranking and life-cycle on real Node runtime
+        shell: bash
+        run: |
+          node --version
+          node --test research/no12-prebuy-causal-runtime-20261011/tests/*.test.mjs
+      - name: Validate source contains no Excel order writes, network or live enable
+        shell: bash
+        run: |
+          node --input-type=module -e "
+          import fs from 'node:fs';
+          import path from 'node:path';
+          const d='research/no12-prebuy-causal-runtime-20261011/runtime';
+          for(const p of fs.readdirSync(d)) {
+            const src=fs.readFileSync(path.join(d,p),'utf8');
+            if(/RssStockOrder\s*\(|RssCancelOrder\s*\(|fetch\s*\(|Excel\.Application|productionReady\s*:\s*true|orderTransmission\s*:\s*true|explicitSafetyReset\s*\(/i.test(src))throw Error('NO12_LIVE_OPERATION_FORBIDDEN:'+p);
+          }
+          console.log('NO12_ORDER_TRANSMISSION_FORBIDDEN_PASS=True');
+          "

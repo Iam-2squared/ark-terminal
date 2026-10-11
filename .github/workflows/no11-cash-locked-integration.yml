@@ -80,6 +80,12 @@ jobs:
           $ErrorActionPreference='Stop'
           node --test integration/no1-1-msii/tests/v3_desktop_publish.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'V3_PUBLISHER_WINDOWS_TEST_FAILED' }
+      - name: Windows PS5.1 physical UI2 atomic model replacement test
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & .\integration\no1-1-msii\windows\Test-No11UiModelAtomicReplace.ps1
+          if(-not $?) { throw 'NO11_UI_MODEL_ATOMIC_TEST_FAILED' }
       - name: Parse all Windows scripts with Windows PowerShell 5.1
         shell: powershell
         run: |

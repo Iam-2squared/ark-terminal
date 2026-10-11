@@ -18,6 +18,9 @@ $collector=Join-Path $PSScriptRoot 'Start-No11DesktopReadOnly.ps1'
 $uiCli=Join-Path $root 'ui\phase57_ui_read_model_cli.mjs'
 $faultCli=Join-Path $root 'tools\no11_fault_cli.mjs'
 $receiptVerifier=Join-Path $root 'tools\no11_v3_receipt_verify.mjs'
+$atomicHelper=Join-Path $PSScriptRoot 'Set-No11UiReadModelAtomic.ps1'
+if(-not (Test-Path -LiteralPath $atomicHelper -PathType Leaf)){throw 'UI2_ATOMIC_COMMIT_HELPER_MISSING'}
+. $atomicHelper
 if(-not (Test-Path -LiteralPath $receiptVerifier -PathType Leaf)){throw 'V3_RECEIPT_VERIFIER_CODE_MISSING'}
 $node=(Get-Command node -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
 if(-not (Test-Path -LiteralPath $OwnershipBaselinePath -PathType Leaf)) { throw 'PRIVATE_OWNER_CONFIRMATION_MISSING' }
@@ -65,11 +68,7 @@ try {
  & $node $receiptVerifier | Out-Null
  if($LASTEXITCODE -ne 0){throw 'V3_SOURCE_RECEIPT_CHANGED_DURING_MODEL_EXPORT'}
  $RefreshAuditStage='MODEL_COMMIT'
- if(Test-Path -LiteralPath $target -PathType Leaf) {
-  [IO.File]::Replace($tmp,$target,$null)
- } else {
-  [IO.File]::Move($tmp,$target)
- }
+ Commit-No11UiReadModelAtomic -TemporaryPath $tmp -DestinationPath $target -PrivateRoot $local
  Write-Host 'NO11_DESKTOP_UI_READ_ONLY_READY=True'
  Write-Host 'ORDER_TRANSMISSION=False'
 } finally {

@@ -26,6 +26,9 @@ const credit=(p,q)=>p*BigInt(q)*10n*9995n/10000n;
 const yen2=sen=>{const n=sen<0n?-sen:sen;return (sen<0n?'-':'')+
  (n/100n).toString()+'.'+(n%100n).toString().padStart(2,'0')};
 const importance=Object.freeze({SELL_FILL:0,BUY_FILL:1,SELL_INTENT:2,ENTRY_SIGNAL:3});
+const jstClock=t=>new Intl.DateTimeFormat('en-GB',{
+  timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hourCycle:'h23'
+}).format(new Date(t));
 export function runNo12SyntheticSession({
  mode,candidateInput,startingCashYen,events,externalSymbols=[],
  now=new Date()
@@ -69,6 +72,7 @@ export function runNo12SyntheticSession({
   }
   seenEvents.set(e.eventId,canonical);
   if(e.kind==='ENTRY_SIGNAL'){
+    if(jstClock(e.time)>='15:20'){block(e,'AFTER_1520_CUTOFF');continue;}
     if(!eligible.has(e.entryId)){block(e,'NOT_ELIGIBLE_PREBUY_RESEARCH_ENTRY');continue;}
     const r=eligible.get(e.entryId);
     if(consumedEntries.has(e.entryId)){block(e,'ORIGINAL_ENTRY_ALREADY_CONSUMED');continue;}

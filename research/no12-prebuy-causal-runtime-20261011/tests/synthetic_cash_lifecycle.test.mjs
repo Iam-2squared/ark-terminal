@@ -126,3 +126,39 @@ test('live mode never accepted as a shortcut to real orders',()=>{
  const x=input();x.mode='LIVE_ATTESTED';
  assert.throws(()=>run(x),/NO12_REAL_BROKER_MODE_DISABLED/);
 });
+
+test('15:20 cutoff applies at signal event time, even when its candidate was validated earlier',()=>{
+ const x=input();x.now=new Date('2026-10-13T15:21:00+09:00');
+ x.events=[event('ENTRY_SIGNAL','late','15:20:00',{entryId:'e1',orderId:'late-order'})];
+ const r=run(x);
+ assert.equal(r.pendingBuyCount,0);
+ assert.equal(r.rejected[0].reason,'AFTER_1520_CUTOFF');
+ assert.equal(r.orderTransmission,false);
+});
+test('synthetic cash uses deterministic two-sided 0.05% cost, with no fill on SELL_INTENT',()=>{
+ const x=input();
+ x.events=[
+  event('ENTRY_SIGNAL','a','09:36:01',{entryId:'e1',orderId:'buy'}),
+  event('BUY_FILL','b','09:37:01',{orderId:'buy',quantity:100,fillPriceTenth:10000}),
+  event('SELL_INTENT','c','09:38:01',{symbol:'7203',quantity:100,orderId:'sell'}),
+  event('SELL_FILL','d','09:39:01',{orderId:'sell',quantity:100,fillPriceTenth:10200,syntheticMatchedOrder:true})
+ ];
+ const full=run(x);
+ assert.equal(full.startingCashYen,'1000000.00');
+ assert.equal(full.endingCashYen,'1001899.00');
+ assert.equal(full.cashReservationYen,'0.00');
+ const beforeFill={...x,events:x.events.slice(0,3)};
+ const pending=run(beforeFill);
+ assert.equal(pending.pendingSellCount,1);
+ assert.equal(pending.endingCashYen,'899950.00');
+});
+test('synthetic reference/reserve cannot be bypassed by a higher unexpected fill price',()=>{
+ const x=input();x.events=[
+  event('ENTRY_SIGNAL','a','09:36:01',{entryId:'e1',orderId:'buy'}),
+  event('BUY_FILL','b','09:37:01',{orderId:'buy',quantity:100,fillPriceTenth:10001})
+ ];
+ const result=run(x);
+ assert.equal(result.status,'BLOCKED_RECONCILIATION');
+ assert.equal(result.positions.length,0);
+ assert.equal(result.rejected.at(-1).reason,'BUY_FILL_PRICE_OR_CASH_EXCEEDS_RESERVATION');
+});

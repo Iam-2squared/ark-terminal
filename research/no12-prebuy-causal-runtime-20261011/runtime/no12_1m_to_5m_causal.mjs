@@ -32,7 +32,17 @@ function minuteBar(row){
 export function deriveNo12ClosedFiveMinuteFromOneMinute({
  snapshot,reviewed=null,now=new Date(),maximumAgeMinutes=10
 }={}){
- const validation=reviewed??inspectNo12OneMinuteObservation({snapshot,now});
+ // Always recompute from actual source bytes. A caller-provided review is only
+ // a parity witness; it must never bypass the source's history or clock gates.
+ const validated=inspectNo12OneMinuteObservation({snapshot,now});
+ const identity=v=>JSON.stringify([
+   v?.schemaId,v?.symbol,v?.capturedAt,v?.status,v?.historyStatus,
+   v?.historyLabelConvention,v?.historyBars,v?.historySha256,
+   v?.currentBar?.at,v?.sourceKnownAt,v?.productionReady,v?.orderTransmission
+ ]);
+ if(reviewed!==null&&identity(reviewed)!==identity(validated))
+  fail('NO12_AGG_1M_SOURCE_NOT_READY');
+ const validation=validated;
  if(validation?.historyStatus!=='BACKFILL_1M_PREVIOUS_SESSIONS_AVAILABLE'||
    validation?.status!=='ONE_MINUTE_CLOSED_BAR_LOCAL_OBSERVATION_ONLY'||
    !['START_LABEL','END_LABEL'].includes(validation.historyLabelConvention)||

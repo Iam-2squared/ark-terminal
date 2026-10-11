@@ -87,3 +87,12 @@ test('a derivation is never certified as RssChart-vendor identical nor as BUY/SE
  assert.equal(r.productionReady,false);
  assert.equal(r.orderTransmission,false);
 });
+
+test('a forged successful review cannot certify an incomplete mutated raw 1m history',()=>{
+ const full=fixture(),trustedReview=inspectNo12OneMinuteObservation(full);
+ const incomplete=fixture();
+ incomplete.snapshot.rows=incomplete.snapshot.rows.filter(r=>
+   !(r['日付']==='2026/10/08'&&r['時刻']==='09:00'));
+ assert.throws(()=>derive({...incomplete,reviewed:trustedReview}),
+   /NO12_AGG_1M_SOURCE_NOT_READY/);
+});

@@ -147,6 +147,15 @@ test('open orders and partial fills are blocked',()=>{
   const s=freshSnapshot();s.orders=[{orderNumber:'123',status:'配信中',quantity:100,filledQty:10}];
   assert(account({snapshot:s}).blockers.includes('BROKER_PARTIAL_FILL'));
 });
+test('zero broker cash blocks a positive real BUY not the existence of an analysis pipeline',()=>{
+  const snapshot=freshSnapshot();
+  snapshot.buyingPower=0;
+  const result=account({snapshot,maxOrderNotional:100});
+  assert.equal(result.status,'BLOCKED');
+  assert(result.blockers.includes('INSUFFICIENT_CASH'));
+  assert.equal(result.executionAllowed,false);
+  assert.equal(result.transmitted,false);
+});
 test('MAX3 and cash-only preflight never assume available money',()=>{
   assert(account({maxOrderNotional:null}).blockers.includes('FRESH_CASH_RESERVATION_REQUIRED'));
   assert(account({maxOrderNotional:900000}).blockers.includes('INSUFFICIENT_CASH'));

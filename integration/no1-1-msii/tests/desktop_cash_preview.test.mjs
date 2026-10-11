@@ -32,6 +32,25 @@ test('full cash plus explicit personal ownership becomes shadow preview, never l
     assert.equal(x[key],false);
   }
 });
+test('READ ONLY cash preview works with zero buying power; no funding precondition for development',()=>{
+  const x=input();
+  x.snapshot.buyingPower=0;
+  const result=check(x);
+  assert.equal(result.status,'READ_ONLY_CAPITAL_PREVIEW');
+  assert.deepEqual(result.arkCapitalInputs,{cash:0,equity:0,exposure:0});
+  assert.equal(result.arkManagedPositionCount,0);
+  assert.equal(result.personalStockDoubleDeducted,false);
+  assert.equal(result.productionReady,false);
+  assert.equal(result.orderTransmission,false);
+  assert.equal(result.liveFeedCertified,false);
+  assert.equal(result.liveOrderReconciliationCertified,false);
+});
+test('missing or negative cash is unavailable and must not be inferred as zero',()=>{
+  const x=input();x.snapshot.buyingPower=-1;
+  assert.equal(check(x).status,'BLOCKED');
+  const y=input();delete y.snapshot.buyingPower;
+  assert.equal(check(y).status,'BLOCKED');
+});
 test('personal market price changes do not inflate Ark equity',()=>{
   const x=input();x.snapshot.positions[0].marketValue=900000;
   assert.equal(check(x).arkCapitalInputs.equity,700000);

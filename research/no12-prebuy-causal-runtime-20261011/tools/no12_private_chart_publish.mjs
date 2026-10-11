@@ -81,6 +81,8 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
   if(args.length!==4||args[0]!=='--private-root'||args[2]!=='--candidate')
     fail('MARKET_PUBLISH_USAGE');
   const out=publishNo12ObservedChart({privateRoot:args[1],candidatePath:args[3]});
+  if(out.status!=='LOCAL_MARKET_OBSERVATION_RECORDED_NOT_CERTIFIED')
+    fail('NO12_CURRENT_SESSION_COMPLETED_BAR_REQUIRED');
   console.log('NO12_LOCAL_MARKET_RECEIPT='+out.status);
   console.log('NO12_LOCAL_MARKET_COMPLETE_BARS='+out.bars);
   console.log('NO12_PRODUCTION_READY=False');

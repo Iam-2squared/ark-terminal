@@ -53,3 +53,9 @@ test('private publisher never calls Excel order functions or network APIs',()=>{
  for(const re of [/RssStockOrder\s*\(/,/RssCancelOrder\s*\(/,/Excel.Application/i,/\bfetch\s*\(/])
  assert.doesNotMatch(script,re);
 });
+
+test('CLI refuses to report a saved market receipt if no current completed bar exists',()=>{
+ const text=fs.readFileSync(new URL('../tools/no12_private_chart_publish.mjs',import.meta.url),'utf8');
+ assert.match(text,/if\(out\.status!=='LOCAL_MARKET_OBSERVATION_RECORDED_NOT_CERTIFIED'\)/);
+ assert.match(text,/NO12_CURRENT_SESSION_COMPLETED_BAR_REQUIRED/);
+});

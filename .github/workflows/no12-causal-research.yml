@@ -27,6 +27,8 @@ jobs:
     steps:
       - name: Checkout candidate branch
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 10
       - name: Verify original strategy Freeze was not modified
         shell: bash
         run: |

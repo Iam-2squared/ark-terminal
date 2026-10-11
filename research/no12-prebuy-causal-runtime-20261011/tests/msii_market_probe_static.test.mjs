@@ -32,7 +32,7 @@ test('market probe converts Excel Value2 date/time and sends data only to privat
   'Convert-No12VendorDate','Convert-No12VendorTime','FromOADate',
   'chart-candidate-','no12_private_chart_publish.mjs',
   'NO12_RSS_CHART_PRIVATE_READ_ONLY_RECEIPT=True',
-  'market-readonly','NO12_RSS_EXCEL_OADATE_SELFTEST_FAILED'
+  'ArkTerminal\\No12','NO12_RSS_EXCEL_OADATE_SELFTEST_FAILED'
  ]){
    assert.ok(script.includes(token),token);
  }

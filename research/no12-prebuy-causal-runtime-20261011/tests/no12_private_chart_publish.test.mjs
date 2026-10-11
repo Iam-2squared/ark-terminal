@@ -21,7 +21,7 @@ function fixture(){
 }
 test('private local receipt persists only already closed bars, never unfinished or order authority',()=>{
  const f=fixture();try{
-  const r=pub(f);assert.equal(r.bars,2);
+  const r=pub({...f,privateRoot:f.root});assert.equal(r.bars,2);
   const check=verify({privateRoot:f.root});
   assert.equal(check.status,'LOCAL_MARKET_RECEIPT_HASH_VALID');
   const value=JSON.parse(fs.readFileSync(path.join(f.root,'market-readonly-observed.json')));
@@ -33,7 +33,7 @@ test('private local receipt persists only already closed bars, never unfinished 
 });
 test('partial write/tamper of saved observation breaks receipt',()=>{
  const f=fixture();try{
-  pub(f);
+  pub({...f,privateRoot:f.root});
   const p=path.join(f.root,'market-readonly-observed.json');
   fs.appendFileSync(p,' ');
   assert.throws(()=>verify({privateRoot:f.root}),/LOCAL_MARKET_RECEIPT_MISMATCH/);
@@ -41,10 +41,10 @@ test('partial write/tamper of saved observation breaks receipt',()=>{
 });
 test('unsafe candidate path outside private root and absent session data block or remain unavailable',()=>{
  const f=fixture();try{
-  assert.throws(()=>pub({...f,candidatePath:path.join(os.tmpdir(),'other.json')}),/PRIVATE_CHART_CANDIDATE_PATH_INVALID/);
+  assert.throws(()=>pub({...f,privateRoot:f.root,candidatePath:path.join(os.tmpdir(),'other.json')}),/PRIVATE_CHART_CANDIDATE_PATH_INVALID/);
   const raw=JSON.parse(fs.readFileSync(f.candidatePath,'utf8'));
   raw.rows=raw.rows.slice(-1);fs.writeFileSync(f.candidatePath,JSON.stringify(raw));
-  const x=pub(f);assert.equal(x.status,'NO_CURRENT_SESSION_COMPLETE_BAR');
+  const x=pub({...f,privateRoot:f.root});assert.equal(x.status,'NO_CURRENT_SESSION_COMPLETE_BAR');
   assert.equal(fs.existsSync(path.join(f.root,'market-readonly-receipt.json')),false);
  }finally{f.cleanup()}
 });

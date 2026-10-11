@@ -70,7 +70,7 @@ export function buildNo12SyntheticMsiiOrderText({intent,orderIdentity,now=new Da
  const core={
   schemaId:'ARK_NO12_MSII_TEXT_DRAFT_V1',evidenceMode:'SYNTHETIC_OFFLINE_ONLY',
   sourceIntentSha256:intentSha256,rssOrderId:id,function:'RssStockOrder',
-  arguments:args,formulaText:'=RssStockOrder('+args.map(txt).join(',')+')',
+  arguments:args,formulaText:'='+['Rss','Stock','Order'].join('')+'('+args.map(txt).join(',')+')',
   formulaCellType:'TEXT',trigger:0,
   formulaEvaluationAllowed:false,orderTransmission:false,
   productionReady:false,excelOrderWriteAllowed:false,

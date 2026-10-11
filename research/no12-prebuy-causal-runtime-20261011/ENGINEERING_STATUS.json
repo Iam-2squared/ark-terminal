@@ -52,20 +52,28 @@
     "brokerRssOrderIdToOrderNumberMapping": true,
     "cumulativeFilledQtyDeltas": true,
     "priceAtIntentCutoff": true,
-    "sourceAndOrderIdObservationPhysical": false
+    "sourceAndOrderIdObservationPhysical": false,
+    "marketRssChart5MReadOnlyNormalization": true,
+    "marketBarConservativeTimeRule": true,
+    "chartPriceSourceBinding": true,
+    "isolatedEphemeralExcelProbePrepared": true,
+    "marketExcelPhysicalProbe": false
   },
   "ci": {
     "windows": {
-      "pass": 32,
-      "fail": 0
+      "pass": 43,
+      "fail": 0,
+      "marketProbeOfflineSelfTest": true
     },
     "linux": {
-      "pass": 32,
+      "pass": 43,
       "fail": 0
     },
-    "lastRun": "https://github.com/Iam-2squared/ark-terminal/actions/runs/38131153086"
+    "lastRun": "https://github.com/Iam-2squared/ark-terminal/actions/runs/38132816671"
   },
-  "result": "SYNTHETIC_RESEARCH_RUNTIME_READY_NOT_DEPLOYABLE",
+  "result": "OFFLINE_CHART_INPUT_ADAPTER_AND_SYNTHETIC_RUNTIME_READY_PHYSICAL_MARKET_SOURCE_PENDING",
   "excelOrderPermissionOff": true,
-  "ownerApprovalButtonsAdded": 0
+  "ownerApprovalButtonsAdded": 0,
+  "realMarketObservationCertified": false,
+  "physicalNext": "Stop No1.1 UI, close account workbook safely, execute isolated RssChart 5M probe while Excel order permission remains OFF; restart No1.1 after test. Market session required to observe live changes."
 }

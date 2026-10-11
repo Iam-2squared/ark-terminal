@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {runNo12SyntheticSession as run} from '../runtime/synthetic_cash_lifecycle.mjs';
 import {NO12_CANDIDATES_SCHEMA} from '../runtime/prebuy_candidates.mjs';
-import {CAUSAL_FRAME_SCHEMA} from '../../integration/no1-1-msii/runtime/native_causal_asof.mjs';
-import {digest} from '../../integration/no1-1-msii/runtime/locked_intent.mjs';
+import {CAUSAL_FRAME_SCHEMA} from '../../../integration/no1-1-msii/runtime/native_causal_asof.mjs';
+import {digest} from '../../../integration/no1-1-msii/runtime/locked_intent.mjs';
 const session='2026-10-13',decisionAt='2026-10-13T09:36:00+09:00';
 function input(){
  const known='2026-10-13T09:35:01+09:00';

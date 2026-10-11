@@ -58,7 +58,7 @@ export function publishNo12ObservedChart({privateRoot,candidatePath,now=new Date
  return Object.freeze({status:'LOCAL_MARKET_OBSERVATION_RECORDED_NOT_CERTIFIED',
   bars:value.bars.length,productionReady:false,orderTransmission:false});
 }
-export function verifyNo12ObservedChart({privateRoot}={}){
+export function verifyNo12ObservedChart({privateRoot,now=new Date()}={}){
  const root=rootOf(privateRoot),filename=path.join(root,'market-readonly-observed.json');
  const receiptFile=path.join(root,'market-readonly-receipt.json');
  regular(filename);regular(receiptFile);
@@ -71,6 +71,12 @@ export function verifyNo12ObservedChart({privateRoot}={}){
    !Array.isArray(obj.bars)||obj.bars.length!==receipt.bars||
    obj.brokerArrivalCertified!==false||obj.productionReady!==false||
    obj.orderTransmission!==false)fail('LOCAL_MARKET_RECEIPT_MISMATCH');
+ // Hash-valid historical files are not valid as CURRENT market observations.
+ const capturedAt=Date.parse(obj.capturedAt??'');
+ const nowMs=now instanceof Date?now.getTime():Date.parse(now);
+ if(!Number.isFinite(capturedAt)||!Number.isFinite(nowMs)||
+    capturedAt>nowMs+1000||nowMs-capturedAt>30000)
+   fail('NO12_LOCAL_MARKET_RECEIPT_STALE');
  return Object.freeze({status:'LOCAL_MARKET_RECEIPT_HASH_VALID',
   bars:receipt.bars,brokerArrivalCertified:false,
   productionReady:false,orderTransmission:false});

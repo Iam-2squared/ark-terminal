@@ -107,6 +107,12 @@ export function inspectNo12RssChartSnapshot({
      nativeState9Certified:false,nativeEntryCertified:false,
      productionReady:false,orderTransmission:false});
  }
+ // A fresh Excel COM observation of an old unchanged chart row is NOT a
+ // fresh market source. During the lunch break or provider outage it is
+ // preferable to stop new candidates, not relabel a stale price as current.
+ const ageSinceClosed=decision-Date.parse(latest.conservativeBarClosedAt);
+ if(ageSinceClosed<0 || ageSinceClosed>15*60*1000)
+   error('NO12_CHART_COMPLETED_BAR_TOO_OLD_FOR_DECISION');
  const payload={symbol:s,sourceFunction:'RssChart',period:'5M',
    sourceAsOf:latest.at,conservativeBarClosedAt:latest.conservativeBarClosedAt,
    observedAt:snapshot.capturedAt,knownAt:snapshot.capturedAt,
@@ -145,15 +151,21 @@ export function bindNo12SyntheticChartReference({
    error('NO12_CHART_BACKING_SYMBOL_MISMATCH');
  if(!chartAudit.sourceRecord||!chartAudit.bar)
    error('NO12_CHART_BACKING_BAR_UNAVAILABLE');
- if(ms(chartAudit.sourceRecord.knownAt,'NO12_CHART_KNOWN_AT_INVALID')>
-    ms(requestedDecisionAt,'NO12_CHART_CANDIDATE_DECISION_AT_INVALID'))
-   error('NO12_CHART_VALUE_NOT_YET_OBSERVED');
+ const marketKnown=ms(chartAudit.sourceRecord.knownAt,'NO12_CHART_KNOWN_AT_INVALID');
+ const decisionTime=ms(requestedDecisionAt,'NO12_CHART_CANDIDATE_DECISION_AT_INVALID');
+ if(marketKnown>decisionTime)error('NO12_CHART_VALUE_NOT_YET_OBSERVED');
+ // Do not move a candidate's original Selector/State9 known time backwards
+ // to the chart capture time; choose the latest positively known input.
+ const candidateKnown=candidate.candidateKnownAt===undefined?
+   marketKnown:ms(candidate.candidateKnownAt,'NO12_CANDIDATE_KNOWN_AT_INVALID');
+ if(candidateKnown>decisionTime)error('NO12_CANDIDATE_VALUE_NOT_YET_OBSERVED');
+ const combinedKnown=Math.max(marketKnown,candidateKnown);
  if(candidate.referencePrice!==undefined &&
     candidate.referencePrice!==chartAudit.bar.close)
    error('NO12_CHART_REFERENCE_PRICE_MISMATCH');
  return Object.freeze({
    ...candidate,referencePrice:chartAudit.bar.close,
    marketRecordId:chartAudit.sourceRecord.recordId,
-   candidateKnownAt:chartAudit.sourceRecord.knownAt,
+   candidateKnownAt:new Date(combinedKnown).toISOString(),
    liveNativeDecisionCertified:false,orderTransmission:false});
 }

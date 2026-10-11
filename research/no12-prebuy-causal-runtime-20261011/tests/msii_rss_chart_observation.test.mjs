@@ -93,3 +93,26 @@ test('captured time cannot be backdated/claimed fresh beyond a 30 second observa
  f.snapshot.capturedAt='2026-10-13T09:36:25+09:00';
  assert.throws(()=>inspect(f),/CLOCK_NOT_FRESH/);
 });
+
+test('fresh Excel observation containing a stale unchanged 5m bar cannot enter No.1.2 decision path',()=>{
+ const f=fixture();
+ f.snapshot.rows=f.snapshot.rows.slice(0,2);
+ f.snapshot.capturedAt='2026-10-13T10:10:00+09:00';
+ f.decisionAt='2026-10-13T10:10:01+09:00';
+ f.now=new Date('2026-10-13T10:10:02+09:00');
+ assert.throws(()=>inspect(f),/NO12_CHART_COMPLETED_BAR_TOO_OLD_FOR_DECISION/);
+});
+test('the chart binding retains a later valid first-entry/State9 availability time',()=>{
+ const f=fixture(),audit=inspect(f);
+ const candidate={symbol:'7203.T',referencePrice:1020,
+  candidateKnownAt:'2026-10-13T09:36:15+09:00'};
+ const r=bind({candidate,chartAudit:audit,requestedDecisionAt:decision});
+ assert.equal(Date.parse(r.candidateKnownAt),Date.parse(candidate.candidateKnownAt));
+ assert.equal(r.marketRecordId,audit.sourceRecord.recordId);
+ const late={...candidate,candidateKnownAt:'2026-10-13T09:36:21+09:00'};
+ assert.throws(()=>bind({candidate:late,chartAudit:audit,requestedDecisionAt:decision}),
+   /NO12_CANDIDATE_VALUE_NOT_YET_OBSERVED/);
+ const earlier={...candidate,candidateKnownAt:'2026-10-13T09:35:00+09:00'};
+ const normalized=bind({candidate:earlier,chartAudit:audit,requestedDecisionAt:decision});
+ assert.equal(Date.parse(normalized.candidateKnownAt),Date.parse(capture));
+});

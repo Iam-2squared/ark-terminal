@@ -22,7 +22,7 @@ function fixture(){
 test('private local receipt persists only already closed bars, never unfinished or order authority',()=>{
  const f=fixture();try{
   const r=pub({...f,privateRoot:f.root});assert.equal(r.bars,2);
-  const check=verify({privateRoot:f.root});
+  const check=verify({privateRoot:f.root,now:f.now});
   assert.equal(check.status,'LOCAL_MARKET_RECEIPT_HASH_VALID');
   const value=JSON.parse(fs.readFileSync(path.join(f.root,'market-readonly-observed.json')));
   assert.equal(value.bars.length,2);
@@ -36,7 +36,7 @@ test('partial write/tamper of saved observation breaks receipt',()=>{
   pub({...f,privateRoot:f.root});
   const p=path.join(f.root,'market-readonly-observed.json');
   fs.appendFileSync(p,' ');
-  assert.throws(()=>verify({privateRoot:f.root}),/LOCAL_MARKET_RECEIPT_MISMATCH/);
+  assert.throws(()=>verify({privateRoot:f.root,now:f.now}),/LOCAL_MARKET_RECEIPT_MISMATCH/);
  }finally{f.cleanup()}
 });
 test('unsafe candidate path outside private root and absent session data block or remain unavailable',()=>{
@@ -58,4 +58,17 @@ test('CLI refuses to report a saved market receipt if no current completed bar e
  const text=fs.readFileSync(new URL('../tools/no12_private_chart_publish.mjs',import.meta.url),'utf8');
  assert.match(text,/if\(out\.status!=='LOCAL_MARKET_OBSERVATION_RECORDED_NOT_CERTIFIED'\)/);
  assert.match(text,/NO12_CURRENT_SESSION_COMPLETED_BAR_REQUIRED/);
+});
+
+test('byte-valid private market evidence from earlier poll becomes STALE instead of live-ready',()=>{
+ const f=fixture();
+ try{
+  pub({...f,privateRoot:f.root});
+  const later=new Date('2026-10-13T09:37:20+09:00');
+  assert.throws(()=>verify({privateRoot:f.root,now:later}),
+    /NO12_LOCAL_MARKET_RECEIPT_STALE/);
+  // Re-verification of a fresh, fully intact pair remains possible.
+  assert.equal(verify({privateRoot:f.root,now:f.now}).status,
+   'LOCAL_MARKET_RECEIPT_HASH_VALID');
+ }finally{f.cleanup()}
 });

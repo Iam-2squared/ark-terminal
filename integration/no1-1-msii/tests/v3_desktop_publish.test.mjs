@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {publishNo11V3ReadOnly} from '../tools/no11_v3_desktop_publish.mjs';
+import {verifyV3PublishedReceipt} from '../tools/no11_v3_receipt_verify.mjs';
 import {LOCKED_FLAGS,digest} from '../runtime/locked_intent.mjs';
 function fixture() {
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'ark-v3-desktop-'));
@@ -125,4 +126,62 @@ test('distinct fresh candidate atomically replaces prior read-only private outpu
    assert.equal(receipt.captureRunId,second);
    assert.equal(receipt.productionReady,false);
  }finally{x.cleanup();}
+});
+
+test('UI2 verifies exact four-file receipt and current original Capital / Ownership gate',()=>{
+ const x=fixture();
+ try{
+   publishNo11V3ReadOnly({privateRoot:x.root,runId:x.id});
+   const r=verifyV3PublishedReceipt({privateRoot:x.root});
+   assert.equal(r.status,'V3_PUBLISHED_SOURCE_RECEIPT_VALID_READ_ONLY');
+   assert.equal(r.orderTransmission,false);
+   assert.equal(r.productionReady,false);
+ }finally{x.cleanup();}
+});
+test('mixed publication generations always block the UI2 source',()=>{
+ for(const name of ['snapshot.json','source-health.json','desktop-capital-readonly.json']){
+   const x=fixture();
+   try{
+     publishNo11V3ReadOnly({privateRoot:x.root,runId:x.id});
+     const p=path.join(x.root,name),obj=JSON.parse(fs.readFileSync(p,'utf8'));
+     obj.unauthorizedGeneration='test-only';x.write(p,obj);
+     assert.throws(()=>verifyV3PublishedReceipt({privateRoot:x.root}),/V3_PUBLISHED_SOURCE_RECEIPT_INVALID/);
+   }finally{x.cleanup();}
+ }
+});
+test('owner changes after publication cannot use old Capital pass as new evidence',()=>{
+ const x=fixture();
+ try{
+   publishNo11V3ReadOnly({privateRoot:x.root,runId:x.id});
+   x.owner.externalPositions[0].quantity=100;
+   x.write(path.join(x.root,'ownership-baseline.json'),x.owner);
+   assert.throws(()=>verifyV3PublishedReceipt({privateRoot:x.root}),/V3_PUBLISHED_SOURCE_RECEIPT_INVALID/);
+ }finally{x.cleanup();}
+});
+test('an old V3 source may never be relabelled fresh',()=>{
+ const x=fixture();
+ try{
+   publishNo11V3ReadOnly({privateRoot:x.root,runId:x.id});
+   assert.throws(()=>verifyV3PublishedReceipt({
+     privateRoot:x.root,now:new Date(Date.parse(x.now)+31000)
+   }),/V3_PUBLISHED_SOURCE_RECEIPT_INVALID/);
+ }finally{x.cleanup();}
+});
+test('missing or modified private receipt is rejected',()=>{
+ const x=fixture();
+ try{
+   publishNo11V3ReadOnly({privateRoot:x.root,runId:x.id});
+   const file=path.join(x.root,'desktop-v3-readonly-receipt.json');
+   const bytes=fs.readFileSync(file);
+   fs.rmSync(file);assert.throws(()=>verifyV3PublishedReceipt({privateRoot:x.root}));
+   const changed=JSON.parse(bytes.toString('utf8'));
+   changed.productionReady=true;x.write(file,changed);
+   assert.throws(()=>verifyV3PublishedReceipt({privateRoot:x.root}));
+ }finally{x.cleanup();}
+});
+test('the READ ONLY UI2 preview checks the receipt both before and after model export',()=>{
+ const script=fs.readFileSync(new URL('../windows/Write-No11DesktopReadOnlyPreview.ps1',import.meta.url),'utf8');
+ assert.equal((script.match(/& \$node \$receiptVerifier \| Out-Null/g)||[]).length,2);
+ assert.match(script,/V3_SOURCE_RECEIPT_CHANGED_DURING_MODEL_EXPORT/);
+ assert.match(script,/NO11_UI_REFRESH_FAILED_STAGE=/);
 });

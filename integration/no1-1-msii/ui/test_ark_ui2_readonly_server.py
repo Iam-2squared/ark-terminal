@@ -171,6 +171,8 @@ class ServerModelTests(unittest.TestCase):
         for output, expected in cases.items():
             self.assertEqual(mod.classify_refresh_failure(output), expected)
         self.assertEqual(mod.classify_refresh_failure(None), "READ_ONLY_REFRESH_FAILED")
+        self.assertEqual(mod.classify_refresh_failure("NO11_UI_REFRESH_FAILED_STAGE=PUBLISH_RECEIPT"), "READ_ONLY_REFRESH_FAILED:PUBLISH_RECEIPT")
+        self.assertEqual(mod.classify_refresh_failure("NO11_UI_REFRESH_FAILED_STAGE=MODEL_VERIFY_RECEIPT"), "READ_ONLY_REFRESH_FAILED:MODEL_VERIFY_RECEIPT")
 
     def test_refresh_loop_records_safe_stage_without_private_stdout(self):
         state = mod.RefreshState()

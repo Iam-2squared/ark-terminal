@@ -17,6 +17,8 @@ $report=Join-Path $local 'desktop-capital-readonly.json'
 $collector=Join-Path $PSScriptRoot 'Start-No11DesktopReadOnly.ps1'
 $uiCli=Join-Path $root 'ui\phase57_ui_read_model_cli.mjs'
 $faultCli=Join-Path $root 'tools\no11_fault_cli.mjs'
+$receiptVerifier=Join-Path $root 'tools\no11_v3_receipt_verify.mjs'
+if(-not (Test-Path -LiteralPath $receiptVerifier -PathType Leaf)){throw 'V3_RECEIPT_VERIFIER_CODE_MISSING'}
 $node=(Get-Command node -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
 if(-not (Test-Path -LiteralPath $OwnershipBaselinePath -PathType Leaf)) { throw 'PRIVATE_OWNER_CONFIRMATION_MISSING' }
 if(-not (Test-Path -LiteralPath $collector -PathType Leaf)) { throw 'DESKTOP_CAPTURE_ENTRYPOINT_MISSING' }
@@ -24,6 +26,9 @@ $RefreshAuditStage='CAPTURE_GATE'
 & $collector -WorkbookPath $WorkbookPath | Out-Null
 if(-not $?) { throw 'DESKTOP_CAPTURE_BLOCKED' }
 if($LASTEXITCODE -ne 0) { throw 'DESKTOP_CAPTURE_EXIT_NONZERO' }
+$RefreshAuditStage='PUBLISH_RECEIPT'
+& $node $receiptVerifier | Out-Null
+if($LASTEXITCODE -ne 0){throw 'V3_SOURCE_RECEIPT_INVALID'}
 $RefreshAuditStage='CAPITAL_REPORT'
 $funding=Get-Content -LiteralPath $report -Raw -Encoding UTF8 | ConvertFrom-Json -ErrorAction Stop
 if($funding.status -cne 'READ_ONLY_CAPITAL_PREVIEW' -or $funding.productionReady -ne $false) {
@@ -56,6 +61,9 @@ try {
   'brokerWrite','excelOrderWrite','rssOrderFunction')) {
   if($model.mutationCapabilities.$key -ne $false) { throw "UI2_MUTATION_CAPABILITY_INVALID:$key" }
  }
+ $RefreshAuditStage='MODEL_VERIFY_RECEIPT'
+ & $node $receiptVerifier | Out-Null
+ if($LASTEXITCODE -ne 0){throw 'V3_SOURCE_RECEIPT_CHANGED_DURING_MODEL_EXPORT'}
  $RefreshAuditStage='MODEL_COMMIT'
  if(Test-Path -LiteralPath $target -PathType Leaf) {
   [IO.File]::Replace($tmp,$target,$null)
@@ -72,8 +80,8 @@ try {
 
 } catch {
     # Only static category; never print broker figures, private paths, exception or HRESULT.
-    $Allowed=@('PREFLIGHT','CAPTURE_GATE','CAPITAL_REPORT','SAFETY_LEDGER',
-        'MODEL_EXPORT','MODEL_VERIFY','MODEL_COMMIT')
+    $Allowed=@('PREFLIGHT','CAPTURE_GATE','PUBLISH_RECEIPT','CAPITAL_REPORT','SAFETY_LEDGER',
+        'MODEL_EXPORT','MODEL_VERIFY','MODEL_VERIFY_RECEIPT','MODEL_COMMIT')
     $Stage=if($Allowed -ccontains $RefreshAuditStage){$RefreshAuditStage}else{'PREFLIGHT'}
     Write-Host ('NO11_UI_REFRESH_FAILED_STAGE={0}' -f $Stage)
     throw

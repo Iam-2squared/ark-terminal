@@ -29,6 +29,15 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 10
+      - name: Fetch pinned safety comparison base for either push or PR event
+        shell: bash
+        run: |
+          set -euo pipefail
+          pinned=4110059f30e9e6b984946897a39df677b22df2f1
+          if ! git cat-file -e "${pinned}^{commit}" 2>/dev/null; then
+            git fetch --no-tags --depth=1 origin "${pinned}"
+          fi
+          git cat-file -e "${pinned}^{commit}"
       - name: Verify original strategy Freeze was not modified
         shell: bash
         run: |

@@ -49,3 +49,14 @@ test('500-row historical bootstrap defaults to exact dynamic range and never rea
  assert.doesNotMatch(script,/Range\('A3:J22'\)/);
  assert.match(script,/NO12_RSS_HISTORY_BARS_REQUESTED/);
 });
+
+test('market probe includes one private first-seen record, never backfill-as-live or order writes',()=>{
+ for(const token of ['no12_market_first_seen.mjs','NO12_FIRST_SEEN_LOCAL_JOURNAL_BLOCKED',
+  'NO12_5DAY_HISTORY_STATUS=','NO12_5DAY_HISTORY_PREVIOUS_SESSIONS=',
+  'NO12_FIRST_SEEN_STATUS=','NO12_FIRST_SEEN_CONTINUITY=',
+  'NO12_MARKET_NATIVE_DECISION_READY=False']){
+  assert.ok(script.includes(token),token);
+ }
+ assert.match(script,/GAP_OR_CLOCK_MISMATCH/);
+ assert.match(script,/NO12_HISTORY_RECEIPT_RESULT_UNVERIFIED/);
+});

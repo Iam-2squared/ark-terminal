@@ -145,9 +145,168 @@ try{
     [IO.File]::WriteAllText($candidateFile,$json,[Text.UTF8Encoding]::new($false))
     $publisher=Join-Path (Split-Path -Parent $PSScriptRoot) 'tools\no12_private_chart_publish.mjs'
     $node=(Get-Command node -CommandType Application -ErrorAction Stop).Source
-    & $node $publisher --private-root $privateRoot --candidate $candidateFile | Out-Null
+    $published=@(& $node $publisher --private-root $privateRoot --candidate $candidateFile)
     if($LASTEXITCODE -ne 0){throw 'NO12_MARKET_PRIVATE_RECEIPT_NOT_READY'}
+    $validReceipt=@($published | Where-Object { $_ -ceq 'NO12_LOCAL_MARKET_RECEIPT=LOCAL_MARKET_OBSERVATION_RECORDED_NOT_CERTIFIED' })
+    $h=@($published | Where-Object { $_ -cmatch '^NO12_5DAY_HISTORY_STATUS=(BACKFILL_5M_PREVIOUS_SESSIONS_AVAILABLE|HISTORY_SOURCE_INCOMPLETE)
+  }
+ }finally{
+  if($null -ne $candidateFile -and (Test-Path -LiteralPath $candidateFile -PathType Leaf)){
+    Remove-Item -LiteralPath $candidateFile -Force -ErrorAction SilentlyContinue
+  }
+ }
+ Write-Host 'NO12_RSS_MARKET_READ_ONLY_PROBE=True'
+ Write-Host ('NO12_RSS_HISTORY_BARS_REQUESTED={0}' -f $HistoryBars)
+ Write-Host ('NO12_RSS_CHART_ROWS_PRESENT={0}' -f $nonEmpty)
+ Write-Host ('NO12_RSS_CHART_NUMERIC_CLOSE_ROWS={0}' -f $numericOHLC)
+ Write-Host ('NO12_RSS_CHART_RESULT={0}' -f $(if($numericOHLC -gt 0){'OBSERVED_OFFLINE_SOURCE_ONLY'}else{'SOURCE_NOT_VERIFIED'}))
+ Write-Host 'ACTUAL_BROKER_DELIVERY_TIMESTAMP_CERTIFIED=False'
+ Write-Host 'NO12_NATIVE_SELECTOR_OR_STATE9_CONNECTED=False'
+ Write-Host 'NO12_PRODUCTION_READY=False'
+ Write-Host 'ORDER_TRANSMISSION=False'
+}catch{
+ # Broker symbol, account, private paths, cell data and any COM exception are not printed.
+ Write-Host 'NO12_RSS_MARKET_PROBE_BLOCKED=True'
+ Write-Host 'NO12_PRODUCTION_READY=False'
+ Write-Host 'ORDER_TRANSMISSION=False'
+ throw 'NO12_MARKET_PROBE_STOPPED_SAFELY'
+}finally{
+ if($null -ne $book){
+   try{$book.Close($false)}catch{}
+ }
+ if($null -ne $sheet){try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($sheet)}catch{}}
+ if($null -ne $book){try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($book)}catch{}}
+ if($null -ne $excel){
+   if($created){try{$excel.Quit()}catch{}}
+   try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($excel)}catch{}
+ }
+ [GC]::Collect()
+ [GC]::WaitForPendingFinalizers()
+}
+ })
+    $n=@($published | Where-Object { $_ -cmatch '^NO12_5DAY_HISTORY_PREVIOUS_SESSIONS=[0-5]
+  }
+ }finally{
+  if($null -ne $candidateFile -and (Test-Path -LiteralPath $candidateFile -PathType Leaf)){
+    Remove-Item -LiteralPath $candidateFile -Force -ErrorAction SilentlyContinue
+  }
+ }
+ Write-Host 'NO12_RSS_MARKET_READ_ONLY_PROBE=True'
+ Write-Host ('NO12_RSS_HISTORY_BARS_REQUESTED={0}' -f $HistoryBars)
+ Write-Host ('NO12_RSS_CHART_ROWS_PRESENT={0}' -f $nonEmpty)
+ Write-Host ('NO12_RSS_CHART_NUMERIC_CLOSE_ROWS={0}' -f $numericOHLC)
+ Write-Host ('NO12_RSS_CHART_RESULT={0}' -f $(if($numericOHLC -gt 0){'OBSERVED_OFFLINE_SOURCE_ONLY'}else{'SOURCE_NOT_VERIFIED'}))
+ Write-Host 'ACTUAL_BROKER_DELIVERY_TIMESTAMP_CERTIFIED=False'
+ Write-Host 'NO12_NATIVE_SELECTOR_OR_STATE9_CONNECTED=False'
+ Write-Host 'NO12_PRODUCTION_READY=False'
+ Write-Host 'ORDER_TRANSMISSION=False'
+}catch{
+ # Broker symbol, account, private paths, cell data and any COM exception are not printed.
+ Write-Host 'NO12_RSS_MARKET_PROBE_BLOCKED=True'
+ Write-Host 'NO12_PRODUCTION_READY=False'
+ Write-Host 'ORDER_TRANSMISSION=False'
+ throw 'NO12_MARKET_PROBE_STOPPED_SAFELY'
+}finally{
+ if($null -ne $book){
+   try{$book.Close($false)}catch{}
+ }
+ if($null -ne $sheet){try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($sheet)}catch{}}
+ if($null -ne $book){try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($book)}catch{}}
+ if($null -ne $excel){
+   if($created){try{$excel.Quit()}catch{}}
+   try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($excel)}catch{}
+ }
+ [GC]::Collect()
+ [GC]::WaitForPendingFinalizers()
+}
+ })
+    if($validReceipt.Count -ne 1 -or $h.Count -ne 1 -or $n.Count -ne 1){
+      throw 'NO12_HISTORY_RECEIPT_RESULT_UNVERIFIED'
+    }
+    $firstSeenCli=Join-Path (Split-Path -Parent $PSScriptRoot) 'tools\no12_market_first_seen.mjs'
+    $observed=@(& $node $firstSeenCli --private-root $privateRoot)
+    if($LASTEXITCODE -ne 0){throw 'NO12_FIRST_SEEN_LOCAL_JOURNAL_BLOCKED'}
+    $s=@($observed | Where-Object { $_ -cmatch '^NO12_FIRST_SEEN_STATUS=(LOCAL_FIRST_SEEN_RECORDED|IDEMPOTENT_OBSERVATION)
+  }
+ }finally{
+  if($null -ne $candidateFile -and (Test-Path -LiteralPath $candidateFile -PathType Leaf)){
+    Remove-Item -LiteralPath $candidateFile -Force -ErrorAction SilentlyContinue
+  }
+ }
+ Write-Host 'NO12_RSS_MARKET_READ_ONLY_PROBE=True'
+ Write-Host ('NO12_RSS_HISTORY_BARS_REQUESTED={0}' -f $HistoryBars)
+ Write-Host ('NO12_RSS_CHART_ROWS_PRESENT={0}' -f $nonEmpty)
+ Write-Host ('NO12_RSS_CHART_NUMERIC_CLOSE_ROWS={0}' -f $numericOHLC)
+ Write-Host ('NO12_RSS_CHART_RESULT={0}' -f $(if($numericOHLC -gt 0){'OBSERVED_OFFLINE_SOURCE_ONLY'}else{'SOURCE_NOT_VERIFIED'}))
+ Write-Host 'ACTUAL_BROKER_DELIVERY_TIMESTAMP_CERTIFIED=False'
+ Write-Host 'NO12_NATIVE_SELECTOR_OR_STATE9_CONNECTED=False'
+ Write-Host 'NO12_PRODUCTION_READY=False'
+ Write-Host 'ORDER_TRANSMISSION=False'
+}catch{
+ # Broker symbol, account, private paths, cell data and any COM exception are not printed.
+ Write-Host 'NO12_RSS_MARKET_PROBE_BLOCKED=True'
+ Write-Host 'NO12_PRODUCTION_READY=False'
+ Write-Host 'ORDER_TRANSMISSION=False'
+ throw 'NO12_MARKET_PROBE_STOPPED_SAFELY'
+}finally{
+ if($null -ne $book){
+   try{$book.Close($false)}catch{}
+ }
+ if($null -ne $sheet){try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($sheet)}catch{}}
+ if($null -ne $book){try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($book)}catch{}}
+ if($null -ne $excel){
+   if($created){try{$excel.Quit()}catch{}}
+   try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($excel)}catch{}
+ }
+ [GC]::Collect()
+ [GC]::WaitForPendingFinalizers()
+}
+ })
+    $c=@($observed | Where-Object { $_ -cmatch '^NO12_FIRST_SEEN_CONTINUITY=(FIRST_OBSERVATION|CONTIGUOUS|NEW_SESSION_NOT_CONTINUOUS|GAP_OR_CLOCK_MISMATCH)
+  }
+ }finally{
+  if($null -ne $candidateFile -and (Test-Path -LiteralPath $candidateFile -PathType Leaf)){
+    Remove-Item -LiteralPath $candidateFile -Force -ErrorAction SilentlyContinue
+  }
+ }
+ Write-Host 'NO12_RSS_MARKET_READ_ONLY_PROBE=True'
+ Write-Host ('NO12_RSS_HISTORY_BARS_REQUESTED={0}' -f $HistoryBars)
+ Write-Host ('NO12_RSS_CHART_ROWS_PRESENT={0}' -f $nonEmpty)
+ Write-Host ('NO12_RSS_CHART_NUMERIC_CLOSE_ROWS={0}' -f $numericOHLC)
+ Write-Host ('NO12_RSS_CHART_RESULT={0}' -f $(if($numericOHLC -gt 0){'OBSERVED_OFFLINE_SOURCE_ONLY'}else{'SOURCE_NOT_VERIFIED'}))
+ Write-Host 'ACTUAL_BROKER_DELIVERY_TIMESTAMP_CERTIFIED=False'
+ Write-Host 'NO12_NATIVE_SELECTOR_OR_STATE9_CONNECTED=False'
+ Write-Host 'NO12_PRODUCTION_READY=False'
+ Write-Host 'ORDER_TRANSMISSION=False'
+}catch{
+ # Broker symbol, account, private paths, cell data and any COM exception are not printed.
+ Write-Host 'NO12_RSS_MARKET_PROBE_BLOCKED=True'
+ Write-Host 'NO12_PRODUCTION_READY=False'
+ Write-Host 'ORDER_TRANSMISSION=False'
+ throw 'NO12_MARKET_PROBE_STOPPED_SAFELY'
+}finally{
+ if($null -ne $book){
+   try{$book.Close($false)}catch{}
+ }
+ if($null -ne $sheet){try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($sheet)}catch{}}
+ if($null -ne $book){try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($book)}catch{}}
+ if($null -ne $excel){
+   if($created){try{$excel.Quit()}catch{}}
+   try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($excel)}catch{}
+ }
+ [GC]::Collect()
+ [GC]::WaitForPendingFinalizers()
+}
+ })
+    if($s.Count -ne 1 -or $c.Count -ne 1){
+      throw 'NO12_FIRST_SEEN_RESULT_UNVERIFIED'
+    }
     Write-Host 'NO12_RSS_CHART_PRIVATE_READ_ONLY_RECEIPT=True'
+    Write-Host $h[0]
+    Write-Host $n[0]
+    Write-Host $s[0]
+    Write-Host $c[0]
+    Write-Host 'NO12_MARKET_NATIVE_DECISION_READY=False'
   }
  }finally{
   if($null -ne $candidateFile -and (Test-Path -LiteralPath $candidateFile -PathType Leaf)){

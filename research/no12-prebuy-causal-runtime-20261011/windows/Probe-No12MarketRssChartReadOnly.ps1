@@ -2,12 +2,13 @@
 # Never run concurrently with No.1.1 UI2 30sec account reader.
 # Creates ONE TEMPORARY unsaved workbook, then closes it with SaveChanges=$false.
 # No personal account workbook, no order RSS function, no safety reset.
-param([switch]$OfflineSelfTest,[int]$WaitSeconds=12)
+param([switch]$OfflineSelfTest,[int]$WaitSeconds=12,[int]$HistoryBars=500)
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 $symbol='7203.T' # PUBLIC fixed sample ONLY; never user's external/managed symbol.
 $headers=@('銘柄名称','市場名称','足種','日付','時刻','始値','高値','安値','終値','出来高')
-$formula=('=RssChart($A$2:$J$2,"{0}","5M",20)' -f $symbol)
+$formula=('=RssChart($A$2:$J$2,"{0}","5M",{1})' -f $symbol,$HistoryBars)
+if($HistoryBars -lt 20 -or $HistoryBars -gt 3000){throw 'NO12_RSS_HISTORY_BAR_REQUEST_OUT_OF_RANGE'}
 function Convert-No12VendorDate([object]$value) {
  if($null -eq $value) { return $null }
  if($value -is [datetime]) { return $value.ToString('yyyy/MM/dd',[Globalization.CultureInfo]::InvariantCulture) }
@@ -35,7 +36,7 @@ function Convert-No12VendorTime([object]$value) {
 
 if($OfflineSelfTest){
  if($headers.Count -ne 10 -or
-    $formula -cne '=RssChart($A$2:$J$2,"7203.T","5M",20)'){
+    $formula -cne ('=RssChart($A$2:$J$2,"7203.T","5M",{0})' -f $HistoryBars)){
    throw 'NO12_RSS_MARKET_FORMULA_OFFLINE_INVALID'
  }
  $sample=[datetime]::new(2026,10,13,9,30,0)
@@ -43,6 +44,7 @@ if($OfflineSelfTest){
     (Convert-No12VendorTime ($sample.ToOADate() - [math]::Floor($sample.ToOADate()))) -cne '09:30') {
    throw 'NO12_RSS_EXCEL_OADATE_SELFTEST_FAILED'
  }
+ Write-Host ('NO12_RSS_HISTORY_BARS_REQUESTED={0}' -f $HistoryBars)
  Write-Host 'NO12_RSS_CHART_FORMULA_SELFTEST_PASS=True'
  Write-Host 'NO12_MARKET_PROBE_BROKER_ACCESS=False'
  Write-Host 'NO12_PRODUCTION_READY=False'
@@ -83,14 +85,15 @@ try{
  # The ONLY RSS UDF inserted in the ephemeral workbook is market chart READ.
  $sheet.Range('A1').Formula=$formula
  Start-Sleep -Seconds $WaitSeconds
- $values=$sheet.Range('A3:J22').Value2
+ $lastRow=2+$HistoryBars
+ $values=$sheet.Range(('A3:J{0}' -f $lastRow)).Value2
  $nonEmpty=0
  $numericOHLC=0
  $parsedRows=New-Object System.Collections.ArrayList
  if($values -is [array] -and $values.Rank -eq 2){
     $r0=$values.GetLowerBound(0)
     $c0=$values.GetLowerBound(1)
-    for($r=$r0;$r -lt ($r0+20);$r++){
+    for($r=$r0;$r -lt ($r0+$HistoryBars);$r++){
        $date=$values.GetValue($r,$c0+3)
        $clock=$values.GetValue($r,$c0+4)
        $close=$values.GetValue($r,$c0+8)
@@ -152,6 +155,7 @@ try{
   }
  }
  Write-Host 'NO12_RSS_MARKET_READ_ONLY_PROBE=True'
+ Write-Host ('NO12_RSS_HISTORY_BARS_REQUESTED={0}' -f $HistoryBars)
  Write-Host ('NO12_RSS_CHART_ROWS_PRESENT={0}' -f $nonEmpty)
  Write-Host ('NO12_RSS_CHART_NUMERIC_CLOSE_ROWS={0}' -f $numericOHLC)
  Write-Host ('NO12_RSS_CHART_RESULT={0}' -f $(if($numericOHLC -gt 0){'OBSERVED_OFFLINE_SOURCE_ONLY'}else{'SOURCE_NOT_VERIFIED'}))

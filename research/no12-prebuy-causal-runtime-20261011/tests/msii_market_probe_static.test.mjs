@@ -6,7 +6,8 @@ test('No12 Windows market-only probe uses exact 2026/3/30 RSS chart columns and 
  for(const name of ['銘柄名称','市場名称','足種','日付','時刻','始値','高値','安値','終値','出来高']){
    assert.ok(script.includes(name),name);
  }
- assert.match(script,/=RssChart\(\$A\$2:\$J\$2,"7203.T","5M",20\)/);
+ assert.match(script,/=RssChart\(\$A\$2:\$J\$2,"7203.T","5M",\{0\}\)/);
+ assert.match(script,/\$HistoryBars=500/);
  assert.match(script,/NO12_RSS_CHART_FORMULA_SELFTEST_PASS=True/);
 });
 test('probe cannot silently replace or modify existing Ark Account workbook',()=>{
@@ -38,4 +39,13 @@ test('market probe converts Excel Value2 date/time and sends data only to privat
  }
  assert.doesNotMatch(script,/https?:\/\//i);
  assert.doesNotMatch(script,/Invoke-WebRequest|Invoke-RestMethod|Start-BitsTransfer/i);
+});
+
+test('500-row historical bootstrap defaults to exact dynamic range and never reads a fixed 20 rows',()=>{
+ assert.match(script,/\$lastRow=2\+\$HistoryBars/);
+ assert.match(script,/A3:J\{0\}/);
+ assert.match(script,/\$r0\+\$HistoryBars/);
+ assert.match(script,/NO12_RSS_HISTORY_BAR_REQUEST_OUT_OF_RANGE/);
+ assert.doesNotMatch(script,/Range\('A3:J22'\)/);
+ assert.match(script,/NO12_RSS_HISTORY_BARS_REQUESTED/);
 });

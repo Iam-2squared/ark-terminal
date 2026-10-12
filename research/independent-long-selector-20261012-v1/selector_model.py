@@ -50,6 +50,31 @@ def split_sessions(rows: list[dict[str, Any]]) -> dict[str, list[str]]:
     return {"fit": sessions[:a], "select": sessions[a:b], "report": sessions[b:]}
 
 
+
+def authorized_development_split(rows: list[dict[str, Any]]) -> dict[str, list[str]]:
+    """Fixed by DATA_SPLIT_PRECOMMIT before any new full-market outcomes.
+
+    Newer 2025-10..2026-10 must remain sealed. An outcome-loaded row from that
+    range fails immediately rather than migrating dynamically into FIT.
+    """
+    partitions = {"fit": [], "select": [], "report": []}
+    sessions = sorted({r["session"] for r in rows})
+    for day in sessions:
+        if day < "2024-10-01" or day > "2025-09-30":
+            raise ContractError("OUTSIDE_AUTHORIZED_DEVELOPMENT_OR_SEALED_HOLDOUT")
+        if day <= "2025-04-30":
+            partitions["fit"].append(day)
+        elif day <= "2025-06-30":
+            partitions["select"].append(day)
+        else:
+            partitions["report"].append(day)
+    if any(len(partitions[k]) < 10 for k in partitions):
+        raise ContractError("INCOMPLETE_PRECOMMITTED_DEVELOPMENT_SPLIT")
+    return partitions
+
+
+
+
 def authorize_research(authorization: dict[str, Any]) -> None:
     """Explicit local human/data gate; never treats mere file presence as a grant."""
     mode = authorization.get("mode")
@@ -159,7 +184,9 @@ def fit_candidate(feature_rows: list[dict[str, Any]],
     This function neither selects a hyperparameter nor reports OOS skill.
     """
     authorize_research(authorization)
-    splits = split_sessions(feature_rows)
+    splits = (split_sessions(feature_rows)
+              if authorization["mode"] == "SYNTHETIC"
+              else authorized_development_split(feature_rows))
     fit_dates = set(splits["fit"])
     fit_rows = []
     targets = []

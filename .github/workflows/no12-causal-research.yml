@@ -52,6 +52,13 @@ jobs:
           $ErrorActionPreference='Stop'
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Probe-No12MarketRssChartReadOnly.ps1 -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'NO12_RSS_CHART_SELFTEST_FAILED' }
+      - name: Exercise isolated 1M RSS formula without Excel or broker (Windows only)
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Probe-No12MarketRss1mReadOnly.ps1 -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO12_RSS_1M_SELFTEST_FAILED' }
       - name: Test synthetic prebuy ranking and life-cycle on real Node runtime
         shell: bash
         run: |

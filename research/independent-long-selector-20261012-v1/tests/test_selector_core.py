@@ -139,6 +139,11 @@ class CausalFeaturesTests(unittest.TestCase):
             build_features(snap)
         snap = fake_snapshot()
         snap["minuteBars"] = snap["minuteBars"][:1]
+        self.assertEqual(build_features(snap)["priceAgeSeconds"], 300)
+        bar = snap["minuteBars"][0]
+        bar["start"] = (timestamp() - timedelta(minutes=7)).isoformat()
+        bar["end"] = (timestamp() - timedelta(minutes=6)).isoformat()
+        bar["availableAt"] = bar["end"]
         with self.assertRaisesRegex(ContractError, "STALE_PRICE"):
             build_features(snap)
 

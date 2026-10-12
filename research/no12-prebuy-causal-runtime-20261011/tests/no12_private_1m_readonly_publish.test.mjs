@@ -26,7 +26,7 @@ function fixture(){
   privateAccountDataIncluded:false,rows};
  const write=()=>fs.writeFileSync(candidatePath,JSON.stringify(snapshot));
  write();
- return {root,candidatePath,snapshot,write,
+ return {root,privateRoot:root,candidatePath,snapshot,write,
   now:new Date('2026-10-13T09:16:11+09:00'),
   clean:()=>fs.rmSync(root,{recursive:true,force:true})};
 }

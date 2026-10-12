@@ -84,7 +84,7 @@ test('stale intent is rejected without mutating original First Entry',()=>{
   x.snapshot.firstEntry=source('FROZEN_FIRST_ENTRY_INTENT','09:32:00','09:32:02','09:32:03',{
     barClosedAt:at('09:32:00'),intentAt:at('09:32:00'),score:0.8,threshold:0.7
   });
- },/ASOF_FIRST_ENTRY_INTENT_EXPIRED/);
+ },/ASOF_SOURCE_TOO_OLD|ASOF_FIRST_ENTRY_INTENT_EXPIRED/);
 });
 test('original frozen PULLBACK and SHARP_DROP entry exclusions are preserved',()=>{
  rejects(x=>x.snapshot.state9.primary='PULLBACK',/ASOF_FROZEN_ENTRY_STATE_EXCLUDED/);

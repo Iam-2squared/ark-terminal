@@ -30,8 +30,13 @@ class PreopenError(ValueError):
 
 
 def digest(value: Any) -> str:
+    from collections.abc import Mapping
+    def encode(obj):
+        if isinstance(obj, Mapping):
+            return dict(obj)
+        raise TypeError("UNSUPPORTED_CANONICAL_HASH_TYPE")
     raw = json.dumps(value, sort_keys=True, ensure_ascii=False,
-                     separators=(",", ":"), allow_nan=False).encode("utf-8")
+                     separators=(",", ":"), allow_nan=False, default=encode).encode("utf-8")
     return hashlib.sha256(raw).hexdigest()
 
 
@@ -232,7 +237,9 @@ def build_preopen_features(snapshot: dict, config: PreopenConfig = PreopenConfig
             features[target] = None
             missing[target] = "SOURCE_NOT_JOINED"
         elif (record.get("pitVerified") is not True or not record.get("sourceId")
-              or record.get("liveRefreshContractVerified") is not True):
+              or (snapshot.get("sampleKind") != "SYNTHETIC" and
+                  (not record.get("publicationEvidence") or
+                   record.get("sourceSha256") not in snapshot.get("verifiedSourceHashes",[])))):
             features[target] = None
             missing[target] = "SOURCE_OR_REFRESH_CONTRACT_UNVERIFIED"
         elif stamp(record["knownAt"]) > cutoff or stamp(record["observedAt"]) > cutoff:
@@ -240,14 +247,45 @@ def build_preopen_features(snapshot: dict, config: PreopenConfig = PreopenConfig
             missing[target] = "NOT_KNOWN_AT_CUTOFF"
         else:
             features[target] = number(record["value"])
+            if record.get("liveRefreshContractVerified") is not True:
+                missing[target] = "RESEARCH_VALUE_PRESENT_LIVE_REFRESH_UNVERIFIED"
     prior_state = snapshot.get("previousState")
     if prior_state is not None:
         if (prior_state.get("session") != snapshot["previousSession"] or
             prior_state.get("pitVerified") is not True or
             stamp(prior_state["knownAt"]) > cutoff or prior_state.get("primary") not in STATE_NAMES):
             raise PreopenError("PRIOR_STATE_NOT_VERIFIED")
+        if snapshot.get("sampleKind") != "SYNTHETIC":
+            lineage = prior_state.get("upstreamLineage", {})
+            if not lineage.get("artifactSha256") or not lineage.get("contractSha256"):
+                raise PreopenError("PRIOR_STATE_UPSTREAM_LINEAGE_UNVERIFIED")
+            if lineage.get("requiresFit") is True:
+                if not lineage.get("lastFitSession") or day(lineage["lastFitSession"]) >= day(snapshot["previousSession"]):
+                    raise PreopenError("PRIOR_STATE_FUTURE_FIT_LINEAGE")
+            elif lineage.get("requiresFit") is not False:
+                raise PreopenError("PRIOR_STATE_FIT_NATURE_UNKNOWN")
     for name in STATE_NAMES:
         features["preopen_previous_state_"+name] = float(prior_state["primary"] == name) if prior_state else None
+    from preopen_history_features import native_feature_names, prior_tick_features, minute_session_summary
+    features.update({k: None for k in native_feature_names()})
+    if snapshot.get("previousTickEvents") is not None:
+        features.update(prior_tick_features(
+            snapshot["previousTickEvents"], previous_session=snapshot["previousSession"],
+            cutoff=cutoff.isoformat(), reference_price=bars[-1]["close"],
+            complete_source_verified=snapshot.get("previousTickCoverageVerified") is True))
+    if snapshot.get("previousMinuteSessionBars") is not None:
+        features.update(minute_session_summary(snapshot["previousMinuteSessionBars"],
+            previous_session=snapshot["previousSession"],reference_price=bars[-1]["close"]))
+    for name, record in snapshot.get("nativeFacts", {}).items():
+        if name not in native_feature_names():
+            raise PreopenError("UNREGISTERED_NATIVE_FACT")
+        if (not record.get("sourceSha256") or not record.get("publicationEvidence")
+                or not record.get("units") or stamp(record["availableAt"]) > cutoff):
+            missing[name] = "NATIVE_FACT_SOURCE_UNITS_OR_AVAILABILITY_UNVERIFIED"
+        elif snapshot.get("sampleKind") != "SYNTHETIC" and record["sourceSha256"] not in snapshot.get("verifiedSourceHashes",[]):
+            raise PreopenError("NATIVE_FACT_SOURCE_NOT_IN_ADMITTED_MANIFEST")
+        else:
+            features[name] = number(record["value"])
     values = [v for v in features.values() if v is not None]
     if any(not math.isfinite(v) for v in values):
         raise PreopenError("NONFINITE_PREOPEN_FEATURE")
@@ -261,6 +299,13 @@ def build_preopen_features(snapshot: dict, config: PreopenConfig = PreopenConfig
             "missingReasons": missing,
             "coarseBarSemantics": "CALENDAR_BUCKETS_THROUGH_D_MINUS_1_NO_FUTURE_COMPLETION",
             "sampleKind": snapshot.get("sampleKind", "HISTORICAL"),
+            "sourceLatestSession": snapshot["previousSession"],
+            "marketSegment": master["segment"],
+            "sizeCategory": snapshot.get("sizeCategory"),
+            "priorMarketReturnPct": features.get("preopen_external_market_return_pct"),
+            "liveRefreshReady": snapshot.get("liveRefreshReady", False),
+            "historicalAvailabilityStatus": snapshot.get("historicalAvailabilityStatus", "CALLER_ADMITTED"),
+            "missingRequiredSources": snapshot.get("missingRequiredSources", []),
             "productionReady": False}
 
 
@@ -299,15 +344,32 @@ def make_watchlist(rows: list[dict], scores: dict[tuple[str, str], float],
     for score in scores.values():
         number(score)
     selected = sorted(rows, key=lambda r: (-scores[row_key(r)], symbol(r["symbol"])))[:config.watchlist_cap]
+    liquidity = sorted(r["priorTurnover"] for r in rows if r.get("priorTurnover") is not None)
+    def liquidity_group(r):
+        if not liquidity or r.get("priorTurnover") is None:
+            return "UNKNOWN"
+        x = r["priorTurnover"]
+        return ("LOW" if x <= liquidity[len(liquidity)//3] else
+                "MID" if x <= liquidity[2*len(liquidity)//3] else "HIGH")
     out = {"schema": "ARK_PREOPEN_WATCHLIST_V1", "contract": CONTRACT,
            "configHash": config.sha, "session": rows[0]["session"], "cutoff": rows[0]["cutoff"],
            "universeHash": rows[0]["universeHash"], "sourceManifestSha256": rows[0]["sourceManifestSha256"],
            "eligibleN": len(rows), "selectedN": len(selected), "cap": config.watchlist_cap,
            "selectionInformation": "PREOPEN_ONLY", "entryAllowed": False,
+           "intended_use": "WATCHLIST_ONLY", "brokerWriteAllowed": False,
+           "excelOrderWriteAllowed": False, "rssOrderFunctionAllowed": False,
+           "liveTradingAllowed": False, "paperTradingAllowed": False,
+           "automaticPromotionAllowed": False, "productionUpdateAllowed": False,
            "executionAllowed": False, "transmitted": False, "productionReady": False,
            "items": [{"session": r["session"], "symbol": symbol(r["symbol"]),
                       "rssSymbol": symbol(r["symbol"])[:4]+".T", "rank": i+1,
                       "rankScoreNotExpectedReturn": float(scores[row_key(r)]),
+                      "marketSegment": r.get("marketSegment","UNKNOWN"),
+                      "sizeCategory": r.get("sizeCategory","UNKNOWN"),
+                      "priorLiquidityGroup": liquidity_group(r),
+                      "priorRegime": ("UNKNOWN" if r.get("priorMarketReturnPct") is None else
+                                      "POSITIVE" if r["priorMarketReturnPct"] > 0 else
+                                      "NEGATIVE" if r["priorMarketReturnPct"] < 0 else "FLAT"),
                       "featureHash": r["featureHash"]} for i, r in enumerate(selected)]}
     out["watchlistHash"] = digest(out)
     return out
@@ -325,6 +387,11 @@ def verify_watchlist(watchlist: dict) -> None:
         raise PreopenError("WATCHLIST_CARDINALITY")
     if any(x["session"] != watchlist["session"] for x in items):
         raise PreopenError("WATCHLIST_SESSION_DRIFT")
+    for flag in ("entryAllowed", "executionAllowed", "transmitted", "productionReady"):
+        if watchlist.get(flag) is not False:
+            raise PreopenError("EXECUTION_FLAGS_MUST_REMAIN_FALSE")
+    if [x["rank"] for x in items] != list(range(1, len(items)+1)):
+        raise PreopenError("WATCHLIST_RANK_SEQUENCE")
 
 
 def positive_bucket(value: Fraction) -> str:
@@ -334,8 +401,8 @@ def positive_bucket(value: Fraction) -> str:
 
 
 def signed_bucket(value: Fraction) -> str:
-    if value >= 5:
-        return ">=5"
+    if value == 0:
+        return "EXACT_ZERO"
     n = value.numerator // value.denominator
     return f"{n}..<{n+1}"
 
@@ -353,6 +420,8 @@ def evaluate_open_high(watchlist: dict, labels: dict[tuple[str, str], dict]) -> 
         out = {"session": key[0], "symbol": key[1], "rank": item["rank"],
                "labelId": LABEL, "status": "UNKNOWN", "openHighPct": None,
                "openLowPct": None, "openClosePct": None, "bucket": "UNKNOWN"}
+        out.update({k:item.get(k,"UNKNOWN") for k in
+                    ("marketSegment","sizeCategory","priorLiquidityGroup","priorRegime")})
         lab = labels.get(key)
         if lab is None:
             out["missingReason"] = "NO_OUTCOME_RECORD"
@@ -371,7 +440,13 @@ def evaluate_open_high(watchlist: dict, labels: dict[tuple[str, str], dict]) -> 
                 raise PreopenError("INVALID_OUTCOME_OHLC")
             if lab.get("openingAt") is not None:
                 opened = stamp(lab["openingAt"])
-                if opened.date().isoformat() != key[0] or opened.time() < time(9) or opened.time() > time(15,30):
+                from preopen_native_source import cash_clock
+                times = cash_clock(key[0])
+                clock = opened.time()
+                valid = (time(9) <= clock <= time(11,30) or
+                         time(12,30) <= clock < time.fromisoformat(times["continuous_close"]) or
+                         clock == time.fromisoformat(times["auction_close"]))
+                if opened.date().isoformat() != key[0] or not valid:
                     raise PreopenError("INVALID_ACTUAL_OPENING_TIMESTAMP")
                 out["openingAt"] = lab["openingAt"]
             up, low, close = [100*(p/o-1) for p in (h,l,c)]
@@ -381,6 +456,7 @@ def evaluate_open_high(watchlist: dict, labels: dict[tuple[str, str], dict]) -> 
                         "exactZero": up == 0,
                         "upHits": {str(k): up >= k for k in (1,2,3,4,5)},
                         "lowHits": {str(k): low <= -k for k in (1,2,3,5)},
+                        "closeHits": {str(k): close <= -k for k in (1,2,3,5)},
                         "closeNegative": close < 0,
                         "intrabarOrder": "NOT_INFERRED", "executableProfit": False})
         result.append(out)
@@ -396,9 +472,16 @@ def summarize_open_high(rows: list[dict]) -> dict:
             "negativeOpenHighN": 0, "negativeCountInterpretation": "STRUCTURAL_NOT_PREDICTIVE",
             "knownBucketPct": {b: 100*v/k if k else None for b,v in bins.items()},
             "highHitN": {str(t): sum(r["upHits"][str(t)] for r in known) for t in (1,2,3,4,5)},
+            "highHitKnownPct": {str(t): 100*sum(r["upHits"][str(t)] for r in known)/k if k else None for t in (1,2,3,4,5)},
             "highHitLowerBoundPct": {str(t): 100*sum(r["upHits"][str(t)] for r in known)/n if n else None for t in (1,2,3,4,5)},
             "lowHitN": {str(t): sum(r["lowHits"][str(t)] for r in known) for t in (1,2,3,5)},
+            "lowHitKnownPct": {str(t): 100*sum(r["lowHits"][str(t)] for r in known)/k if k else None for t in (1,2,3,5)},
+            "lowExactZeroN": sum(r["openLowPct"] == 0 for r in known),
+            "closeExactZeroN": sum(r["openClosePct"] == 0 for r in known),
+            "worstOpenLowPct": min((r["openLowPct"] for r in known), default=None),
+            "worstOpenClosePct": min((r["openClosePct"] for r in known), default=None),
             "closeNegativeN": sum(r["closeNegative"] for r in known),
+            "closeHitN": {str(t):sum(r["closeHits"][str(t)] for r in known) for t in (1,2,3,5)},
             "lowBuckets": dict(Counter(r["lowBucket"] for r in known)),
             "closeBuckets": dict(Counter(r["closeBucket"] for r in known)),
             "marketPerformanceCertified": False}

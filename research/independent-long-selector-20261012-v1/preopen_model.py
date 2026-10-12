@@ -39,9 +39,13 @@ def validate_plan(plan: dict, populations: dict[str, list[dict]]) -> None:
     if protected.intersection(set.union(*sets.values())):
         raise PreopenError("PROTECTED_SESSION_OVERLAP")
     if plan["mode"] == "AUTHORIZED_DEVELOPMENT":
-        for key in ("sourceManifestVerified", "existingSealsReconciled", "reuseBasisConfirmed", "privateInputsOnly", "preopenRefreshCoverageVerified"):
+        for key in ("sourceManifestVerified", "existingSealsReconciled", "reuseBasisConfirmed", "privateInputsOnly"):
             if plan.get(key) is not True:
                 raise PreopenError("MARKET_INPUT_GATE:" + key)
+        if not (plan.get("preopenRefreshCoverageVerified") is True or
+                (plan.get("featureSourceCoverageVerified") is True
+                 and plan.get("liveReadiness") == "NOT_CERTIFIED")):
+            raise PreopenError("MARKET_INPUT_GATE:featureSourceCoverageVerified")
         if not plan.get("sourceManifestSha256") or not plan.get("exposureLedgerSha256"):
             raise PreopenError("SOURCE_AND_EXPOSURE_MANIFEST_REQUIRED")
     for name, rows in populations.items():
@@ -52,6 +56,8 @@ def validate_plan(plan: dict, populations: dict[str, list[dict]]) -> None:
             raise PreopenError("DUPLICATE_LEARNING_IDENTITY")
         for row in rows:
             validate_feature_row(row)
+            if row.get("missingRequiredSources"):
+                raise PreopenError("REQUIRED_NATIVE_SOURCE_MISSING_BEFORE_FIT")
             if plan["mode"] == "SYNTHETIC" and row.get("sampleKind") != "SYNTHETIC":
                 raise PreopenError("REAL_ROW_IN_SYNTHETIC_BYPASS")
 
@@ -97,8 +103,13 @@ def _join(rows: list[dict], labels: dict[tuple[str, str], dict]):
 
 def matrix(rows: list[dict], names: tuple[str, ...]):
     import numpy as np
-    return np.asarray([[float(r["features"][k]) if r["features"][k] is not None else np.nan
-                        for k in names] for r in rows], dtype=float)
+    # Avoid a second full Python list-of-lists copy at native market scale.
+    out = np.empty((len(rows), len(names)), dtype=np.float64)
+    for i, row in enumerate(rows):
+        f = row["features"]
+        out[i] = (f.vector(names) if hasattr(f, "vector") else
+                  [float(f[k]) if f[k] is not None else np.nan for k in names])
+    return out
 
 
 def _logit(p):
@@ -115,12 +126,14 @@ class PreopenModel:
     used_columns: tuple[str, ...]
     receipt: dict
 
-    def score(self, rows: list[dict]) -> dict[tuple[str, str], float]:
+    def probabilities(self, rows: list[dict]) -> dict[tuple[str, str], dict]:
         import numpy as np
         if not rows:
             return {}
         for r in rows:
             validate_feature_row(r)
+            if self.receipt["mode"] == "SYNTHETIC" and r.get("sampleKind") != "SYNTHETIC":
+                raise PreopenError("REAL_ROW_WITH_SYNTHETIC_MODEL")
             if tuple(sorted(r["features"])) != self.all_columns:
                 raise PreopenError("FIT_LIVE_FEATURE_SCHEMA_MISMATCH")
             if r["session"] <= self.receipt["lastCalibrationSession"]:
@@ -135,16 +148,33 @@ class PreopenModel:
         # certification of absolute probabilities or a new joint probability law.
         u = np.minimum.accumulate(np.column_stack([p[f"up{k}"] for k in UP]), axis=1)
         d = np.minimum.accumulate(np.column_stack([p[f"down{k}"] for k in DOWN]), axis=1)
-        values = u.sum(axis=1) - 2*d.sum(axis=1) - p["close_negative"]
-        return {row_key(row): float(v) for row, v in zip(rows, values)}
+        return {row_key(row): {
+            **{f"up{k}": float(u[i,j]) for j,k in enumerate(UP)},
+            **{f"down{k}": float(d[i,j]) for j,k in enumerate(DOWN)},
+            "close_negative": float(p["close_negative"][i])}
+            for i,row in enumerate(rows)}
+
+    def score(self, rows: list[dict]) -> dict[tuple[str, str], float]:
+        return {key: sum(p[f"up{k}"] for k in UP)
+                - 2*sum(p[f"down{k}"] for k in DOWN) - p["close_negative"]
+                for key,p in self.probabilities(rows).items()}
 
     def watchlist(self, rows: list[dict]) -> dict:
-        return make_watchlist(rows, self.score(rows))
+        probabilities = self.probabilities(rows)
+        scores = {key: sum(p[f"up{k}"] for k in UP)
+                  - 2*sum(p[f"down{k}"] for k in DOWN) - p["close_negative"]
+                  for key,p in probabilities.items()}
+        watch = make_watchlist(rows, scores)
+        for item in watch["items"]:
+            item["headProbabilities"] = probabilities[row_key(item)]
+            item["calibration"] = "SEPARATE_LOGISTIC_LOGIT_THEN_MIN_ENVELOPE"
+        watch["watchlistHash"] = digest({k:v for k,v in watch.items() if k != "watchlistHash"})
+        return watch
 
 
 def train_preopen_model(fit_rows: list[dict], fit_labels: dict,
                         calibration_rows: list[dict], calibration_labels: dict,
-                        plan: dict) -> PreopenModel:
+                        plan: dict, *, execution_event=None) -> PreopenModel:
     """At most ten head fits and ten calibration fits; no threshold/model search.
 
     The future Report block is never consumed by this function. All checks that
@@ -154,7 +184,8 @@ def train_preopen_model(fit_rows: list[dict], fit_labels: dict,
     if not fit_rows or not calibration_rows:
         raise PreopenError("EMPTY_LEARNING_PARTITION")
     all_names = tuple(sorted(fit_rows[0]["features"]))
-    if any(tuple(sorted(r["features"])) != all_names for r in fit_rows+calibration_rows):
+    if any(tuple(sorted(r["features"])) != all_names
+           for group in (fit_rows, calibration_rows) for r in group):
         raise PreopenError("INCONSISTENT_LEARNING_FEATURE_SCHEMA")
     known_fit, fit_y, unknown_fit = _join(fit_rows, fit_labels)
     known_cal, cal_y, unknown_cal = _join(calibration_rows, calibration_labels)
@@ -171,14 +202,33 @@ def train_preopen_model(fit_rows: list[dict], fit_labels: dict,
     import sklearn
     import numpy as np
     from threadpoolctl import threadpool_limits
+    # HGB consumes float64 matrices and creates histogram/bin working arrays.
+    # This conservative guard uses actual admitted dimensions, never shrinks the
+    # population or chooses columns from Report to fit the current machine.
+    estimate = 2*(len(known_fit)+len(known_cal))*len(names)*8 + len(known_fit)*len(names)*3 + 256*1024**2
+    try:
+        mem = dict(line.split(":",1) for line in Path("/proc/meminfo").read_text().splitlines())
+        available = int(mem["MemAvailable"].strip().split()[0])*1024
+        cgroup = Path("/sys/fs/cgroup/memory.max")
+        current = Path("/sys/fs/cgroup/memory.current")
+        if cgroup.exists() and cgroup.read_text().strip().isdigit():
+            available = min(available,int(cgroup.read_text())-int(current.read_text()))
+        if estimate > available*0.8:
+            raise PreopenError("ADMITTED_MATRIX_EXCEEDS_CONSERVATIVE_MEMORY_BUDGET")
+    except (OSError, KeyError):
+        available = None
     X, C = matrix(known_fit, names), matrix(known_cal, names)
     models, calibrators = {}, {}
     with threadpool_limits(limits=1):
         for h in HEADS:
+            if execution_event: execution_event("BASE_ESTIMATOR_START",h)
             estimator = HistGradientBoostingClassifier(**MODEL_CONFIG)
             estimator.fit(X, [y[h] for y in fit_y])
+            if execution_event: execution_event("BASE_ESTIMATOR_COMPLETE",h)
             calibration = LogisticRegression(C=1.0, solver="lbfgs", max_iter=1000)
+            if execution_event: execution_event("CALIBRATION_START",h)
             calibration.fit(_logit(estimator.predict_proba(C)[:, 1]), [y[h] for y in cal_y])
+            if execution_event: execution_event("CALIBRATION_COMPLETE",h)
             models[h], calibrators[h] = estimator, calibration
     receipt = {"schema": "ARK_PREOPEN_TRAINING_RECEIPT_V1", "contract": CONTRACT,
                "labelId": LABEL, "mode": plan["mode"], "planHash": digest(plan),
@@ -188,10 +238,14 @@ def train_preopen_model(fit_rows: list[dict], fit_labels: dict,
                "fitN": len(known_fit), "fitUnknownLabelN": unknown_fit,
                "calibrationN": len(known_cal), "calibrationUnknownLabelN": unknown_cal,
                "registeredFeatureN": len(all_names), "usedFeatureN": len(names),
+               "memoryPreflight": {"estimatedPeakBytes":estimate,"availableBytes":available,
+                                   "nativeScaleMeasured":False},
                "allMissingFitColumns": [k for k in all_names if k not in names],
                "lastFitSession": max(plan["splits"]["fit"]),
                "lastCalibrationSession": max(plan["splits"]["calibration"]),
                "headEstimatorFits": 10, "calibrationFits": 10,
+               "classSupport": {"fit": {h: {str(c): sum(y[h] == c for y in fit_y) for c in (0,1)} for h in HEADS},
+                                "calibration": {h: {str(c): sum(y[h] == c for y in cal_y) for c in (0,1)} for h in HEADS}},
                "marketFits": 10 if plan["mode"] == "AUTHORIZED_DEVELOPMENT" else 0,
                "syntheticFits": 10 if plan["mode"] == "SYNTHETIC" else 0,
                "sklearnVersion": sklearn.__version__, "numpyVersion": np.__version__,
@@ -213,3 +267,37 @@ def save_private_model(model: PreopenModel, directory: str | Path) -> dict:
                "trustedLocalObjectsOnly": True}
     (root / "receipt.json").write_text(json.dumps(receipt, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
     return receipt
+
+
+def load_private_model(directory: str | Path, *, private_root: str | Path,
+                       expected_model_sha256: str, expected_schema_sha256: str) -> PreopenModel:
+    """Hashes must come from an independently trusted private receipt.
+
+    Hashing an untrusted pickle does not make it safe. Callers must restrict this
+    entry point to their own trusted artifact; never accept uploaded joblib code.
+    """
+    import hashlib
+    import joblib
+    root = Path(private_root).resolve()
+    model_dir = Path(directory).resolve()
+    if not model_dir.is_relative_to(root):
+        raise PreopenError("MODEL_OUTSIDE_EXPLICIT_PRIVATE_ROOT")
+    file = (model_dir / "preopen_model.joblib").resolve()
+    receipt_file = (model_dir / "receipt.json").resolve()
+    if not file.is_relative_to(root) or not receipt_file.is_relative_to(root):
+        raise PreopenError("MODEL_SYMLINK_OUTSIDE_PRIVATE_ROOT")
+    receipt = json.loads(receipt_file.read_text(encoding="utf-8"))
+    if (hashlib.sha256(file.read_bytes()).hexdigest() != expected_model_sha256
+            or receipt.get("modelFileSha256") != expected_model_sha256
+            or receipt.get("featureSchemaHash") != expected_schema_sha256
+            or receipt.get("trustedLocalObjectsOnly") is not True):
+        raise PreopenError("TRUSTED_MODEL_HASH_OR_SCHEMA_MISMATCH")
+    model = joblib.load(file)
+    if not isinstance(model, PreopenModel) or digest(model.all_columns) != expected_schema_sha256:
+        raise PreopenError("LOADED_MODEL_TYPE_OR_SCHEMA_MISMATCH")
+    if set(model.models) != set(HEADS) or set(model.calibrators) != set(HEADS):
+        raise PreopenError("LOADED_MODEL_HEAD_CONTRACT_MISMATCH")
+    if model.receipt != {k:v for k,v in receipt.items()
+                         if k not in ("modelFileSha256", "trustedLocalObjectsOnly")}:
+        raise PreopenError("LOADED_MODEL_RECEIPT_MISMATCH")
+    return model

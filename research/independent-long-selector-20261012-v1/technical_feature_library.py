@@ -21,7 +21,7 @@ CROSSOVER_PAIRS = ((5, 10), (5, 15), (5, 25), (10, 15), (10, 25),
                    (100, 200))
 OSCILLATOR_PERIODS = (5, 10, 14, 15, 20, 25, 30, 50)
 MA_FAMILIES = ("sma", "ema")
-REGISTRY_VERSION = "ARK_FULL_TECHNICAL_FEATURE_LIBRARY_V1_20261012"
+REGISTRY_VERSION = "ARK_FULL_TECHNICAL_FEATURE_LIBRARY_V2_WILDER_20261012"
 OHLCV_FIELDS = ("open", "high", "low", "close", "volume", "turnover")
 
 
@@ -54,9 +54,9 @@ def _ema_trace(xs, n):
 def _rsi(xs, n):
     if len(xs) < n + 1:
         return None
-    dif = [xs[i] - xs[i - 1] for i in range(len(xs) - n, len(xs))]
-    gains = sum(max(x, 0) for x in dif)
-    losses = sum(max(-x, 0) for x in dif)
+    dif = [xs[i] - xs[i - 1] for i in range(1, len(xs))]
+    gains = _wilder([max(x, 0) for x in dif], n)[-1]
+    losses = _wilder([max(-x, 0) for x in dif], n)[-1]
     if losses == 0:
         return 100.0 if gains > 0 else 50.0
     return 100.0 * gains / (gains + losses)
@@ -66,14 +66,23 @@ def _atr(bars, n):
     if len(bars) < n + 1:
         return None
     truths = []
-    for i in range(len(bars) - n, len(bars)):
+    for i in range(1, len(bars)):
         b, prev = bars[i], bars[i - 1]
         truths.append(max(
             b["high"] - b["low"],
             abs(b["high"] - prev["close"]),
             abs(b["low"] - prev["close"]),
         ))
-    return _avg(truths)
+    return _wilder(truths, n)[-1]
+
+
+def _wilder(values, n):
+    if len(values) < n:
+        return []
+    out = [_avg(values[:n])]
+    for value in values[n:]:
+        out.append(out[-1] + (value-out[-1])/n)
+    return out
 
 
 def _efficiency(values):
@@ -150,18 +159,13 @@ def _adx(bars, n):
         tr.append(max(b["high"] - b["low"],
                       abs(b["high"] - p["close"]),
                       abs(b["low"] - p["close"])))
+    smoothed = zip(_wilder(tr,n),_wilder(p_dm,n),_wilder(m_dm,n))
     dx = []
-    for i in range(n, len(tr) + 1):
-        total = sum(tr[i-n:i])
-        if total <= 0:
-            dx.append(0.0)
-            continue
-        pdi, mdi = 100 * sum(p_dm[i-n:i]) / total, 100 * sum(m_dm[i-n:i]) / total
-        dx.append(100 * abs(pdi - mdi) / (pdi + mdi) if pdi + mdi > 0 else 0.0)
-    last_total = sum(tr[-n:])
-    pdi = 100 * sum(p_dm[-n:]) / last_total if last_total > 0 else 0.0
-    mdi = 100 * sum(m_dm[-n:]) / last_total if last_total > 0 else 0.0
-    return _avg(dx[-n:]), pdi, mdi
+    for total, plus, minus in smoothed:
+        pdi = 100*plus/total if total > 0 else 0.0
+        mdi = 100*minus/total if total > 0 else 0.0
+        dx.append(100*abs(pdi-mdi)/(pdi+mdi) if pdi+mdi else 0.0)
+    return _wilder(dx,n)[-1], pdi, mdi
 
 
 def _max_drawdown(values):
@@ -359,9 +363,8 @@ def build_ohlcv_features(bars: list[dict[str, Any]], *,
     macd_trace=[]
     if len(C)>=26:
         # Use 26-consecutive prefix to seed EMA tracks, then compute 9-period MACD signal.
-        for upto in range(26,len(C)+1):
-            f,s = _ema(C[:upto],12),_ema(C[:upto],26)
-            macd_trace.append(f-s)
+        fast_trace, slow_trace = _ema_trace(C,12), _ema_trace(C,26)
+        macd_trace = [f-s for f,s in zip(fast_trace[14:],slow_trace)]
     macd = fast-slow if fast is not None and slow is not None else None
     signal = _ema(macd_trace,9)
     result[f"{p}_macd_12_26_pct"] = 100 * macd/base if macd is not None else None

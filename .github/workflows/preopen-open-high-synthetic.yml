@@ -7,6 +7,9 @@ on:
       - 'research/independent-long-selector-20261012-v1/preopen_*.py'
       - 'research/independent-long-selector-20261012-v1/preopen_tests/**'
       - 'research/independent-long-selector-20261012-v1/run_preopen_selector.py'
+      - 'research/independent-long-selector-20261012-v1/build_preopen_native_bundle.py'
+      - 'research/independent-long-selector-20261012-v1/predict_preopen_watchlist.py'
+      - 'research/independent-long-selector-20261012-v1/technical_feature_library.py'
       - '.github/workflows/preopen-open-high-synthetic.yml'
   workflow_dispatch:
 
@@ -19,6 +22,7 @@ concurrency:
 
 jobs:
   preopen-synthetic:
+    if: github.ref == 'refs/heads/research/independent-long-selector-20261012-v1'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:

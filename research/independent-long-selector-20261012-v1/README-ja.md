@@ -1,3 +1,13 @@
+# 寄り前Selector研究 - 最新状態
+
+最新仕様は PREOPEN_OPEN_HIGH_PRECOMMIT.json、PREOPEN_DATA_CONTRACT.md、CURRENT_STATUS.json、WORK_HANDOFF-ja.md を読む。
+
+現在は native admission/列形式入力/段階別学習・予測/ラベルなしexport/別経路検算の工学実装。市場fit0・較正0・評価0、旧Frozen比較未完了。既存32+寄り前37+追加16人工試験が対象。原本hash/header確認と市場数値の学習利用を区別する。
+
+下記は旧日中prototypeの記録として保持する。日中Top5や16テストを最新寄り前仕様へ戻さない。
+
+---
+
 # Ark Terminal — Independent LONG Selector v1 / 研究プロトコル
 
 作成: 2026-10-12 JST / 状態: **DESIGN_AND_IMPLEMENTATION_ONLY; NO_MARKET_RESULT; NO_FIT**  

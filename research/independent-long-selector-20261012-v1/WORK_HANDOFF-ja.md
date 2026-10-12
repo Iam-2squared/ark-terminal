@@ -54,7 +54,9 @@ Top1・3・5・15/市場・規模・過去流動性・地合い/up×down、下�
 既存32+37と追加16人工試験を維持。native形式の人工gzipからcache/modelへ
 接続し、Reportラベルを物理的に隠してtrain/predict、新processで同じ候補hash
 を復元、復旧後の評価・別算式検算まで確認。別作者の盲検監査ではない。
-最終releaseログとHEAD CIで確認する。
+release人工85/85 PASS。コード検証commit d290cde48335d2f29822f580f1f1674eea4dfa99、
+専用CI run38258128776/job114841396079 SUCCESS。専用と補助を合わせCI3/3 SUCCESS。
+今回の人工head fit70/較正70（local50+CI20）。市場fit/較正0。
 
 市場head fit0/較正0、追加model・target・K・threshold探索0。人工工学実行は
 市場budgetと分ける。Native実規模RAM/時間は未測定。環境は9CPU、

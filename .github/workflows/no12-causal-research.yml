@@ -59,6 +59,13 @@ jobs:
           $ErrorActionPreference='Stop'
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Probe-No12MarketRss1mReadOnly.ps1 -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'NO12_RSS_1M_SELFTEST_FAILED' }
+      - name: Check holiday-safe 3000-bar 1M archive formula without broker (Windows only)
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Probe-No12MarketRss1mReadOnly.ps1 -OfflineSelfTest -ArchiveHistoricalOnly -HistoryBars 3000
+          if ($LASTEXITCODE -ne 0) { throw 'NO11_RSS_1M_ARCHIVE_OFFLINE_SELFTEST_FAILED' }
       - name: Exercise RssMarket seconds source formula without Excel or broker (Windows only)
         if: matrix.os == 'windows-latest'
         shell: powershell

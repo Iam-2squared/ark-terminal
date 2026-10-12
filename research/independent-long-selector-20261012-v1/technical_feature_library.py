@@ -30,7 +30,7 @@ def _avg(xs):
 
 
 def _pct(x, ref):
-    return 100.0 * (x / ref - 1.0) if ref is not None and ref > 0 else None
+    return 100.0 * (x / ref - 1.0) if x is not None and ref is not None and ref > 0 else None
 
 
 def _ema(xs, n):

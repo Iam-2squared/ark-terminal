@@ -144,7 +144,7 @@ try{
     $json=ConvertTo-Json -InputObject $snap -Depth 6 -Compress
     [IO.File]::WriteAllText($candidateFile,$json,[Text.UTF8Encoding]::new($false))
     $publisher=Join-Path (Split-Path -Parent $PSScriptRoot) 'tools\no12_private_chart_publish.mjs'
-    $node=(Get-Command node -CommandType Application -ErrorAction Stop).Source
+    $node=(Get-Command node -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
     $published=@(& $node $publisher --private-root $privateRoot --candidate $candidateFile)
     if($LASTEXITCODE -ne 0){throw 'NO12_MARKET_PRIVATE_RECEIPT_NOT_READY'}
     $validReceipt=@($published | Where-Object { $_ -ceq 'NO12_LOCAL_MARKET_RECEIPT=LOCAL_MARKET_OBSERVATION_RECORDED_NOT_CERTIFIED' })

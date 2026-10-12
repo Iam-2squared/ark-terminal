@@ -121,7 +121,7 @@ try{
  }
  [IO.File]::WriteAllText($candidateFile,(ConvertTo-Json -InputObject $snapshot -Depth 6 -Compress),
    [Text.UTF8Encoding]::new($false))
- $node=(Get-Command node -CommandType Application -ErrorAction Stop).Source
+ $node=(Get-Command node -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
  $publisher=Join-Path (Split-Path -Parent $PSScriptRoot) 'tools\no12_private_rss_seconds_publish.mjs'
  $published=@(& $node $publisher --private-root $privateRoot --candidate $candidateFile)
  if($LASTEXITCODE -ne 0){throw 'NO12_SECONDS_PRIVATE_RECEIPT_NOT_READY'}

@@ -223,5 +223,40 @@ class EvaluatorTests(unittest.TestCase):
             compare_policies(old, new, outcomes)
 
 
+class OfflineTrainingAndReportTests(unittest.TestCase):
+    def test_development_data_gate_needs_explicit_evidence(self):
+        from selector_model import authorize_research
+        authorize_research({"mode": "SYNTHETIC"})
+        with self.assertRaisesRegex(ContractError, "DATA_USE_NOT_AUTHORIZED"):
+            authorize_research({})
+        with self.assertRaisesRegex(ContractError, "ENTITLEMENT_OR_PARTITION_GATE_BLOCKED"):
+            authorize_research({"mode": "DEVELOPMENT_AUTHORIZED"})
+
+    def test_train_split_keeps_whole_sessions_and_never_reads_labels(self):
+        from selector_model import split_sessions
+        rows = [{"session": f"2026-09-{i:02d}"} for i in range(1, 21)]
+        split = split_sessions(rows)
+        self.assertEqual([len(split[k]) for k in ("fit", "select", "report")], [12, 4, 4])
+        self.assertTrue(set(split["fit"]).isdisjoint(split["report"]))
+
+    def test_aggregate_report_handles_unknown_and_signed_negative(self):
+        from run_paired_comparison import build_public_summary
+        old = [pick(str(i)) for i in range(5)]
+        new = [pick(str(i)) for i in range(1, 6)]
+        paths = {}
+        for i in range(6):
+            if i == 0:
+                continue
+            k = ("2026-10-09", timestamp().isoformat(), str(i))
+            paths[k] = future_bar(99 if i == 5 else 106, 97, 98 if i == 5 else 104)
+        paired = compare_policies(old, new, paths)
+        report = build_public_summary(paired)
+        names = {b["bucket"] for b in report["bands"]}
+        self.assertIn("-1..<0", names)
+        self.assertIn(">=5", names)
+        self.assertEqual(report["baselineUnknownN"], 1)
+        self.assertEqual(report["candidateUnknownN"], 0)
+
+
 if __name__ == "__main__":
     unittest.main()

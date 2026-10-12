@@ -2,7 +2,7 @@
 # Never run concurrently with No.1.1 UI2 30sec account reader.
 # Creates ONE TEMPORARY unsaved workbook, then closes it with SaveChanges=$false.
 # No personal account workbook, no order RSS function, no safety reset.
-param([switch]$OfflineSelfTest,[int]$WaitSeconds=12,[int]$HistoryBars=2000)
+param([switch]$OfflineSelfTest,[int]$WaitSeconds=12,[int]$HistoryBars=2000,[switch]$ArchiveHistoricalOnly)
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 $symbol='7203.T' # PUBLIC fixed sample ONLY; never user's external/managed symbol.
@@ -125,6 +125,9 @@ try{
  }
  $candidateFile=$null
  try {
+  if($ArchiveHistoricalOnly -and $parsedRows.Count -eq 0){
+    throw 'NO11_1M_ARCHIVE_NO_RSS_ROWS'
+  }
   if($parsedRows.Count -gt 0) {
     $privateRoot=Join-Path $env:LOCALAPPDATA 'ArkTerminal\No12'
     [void](New-Item -ItemType Directory -Force -Path $privateRoot -ErrorAction Stop)
@@ -143,6 +146,22 @@ try{
     }
     $json=ConvertTo-Json -InputObject $snap -Depth 6 -Compress
     [IO.File]::WriteAllText($candidateFile,$json,[Text.UTF8Encoding]::new($false))
+    if($ArchiveHistoricalOnly){
+      $publisher=Join-Path (Split-Path -Parent $PSScriptRoot) 'tools\no11_rss_1m_history_archive.mjs'
+      $node=(Get-Command node -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
+      $published=@(& $node $publisher --private-root $privateRoot --candidate $candidateFile)
+      if($LASTEXITCODE -ne 0){throw 'NO11_1M_ARCHIVE_PUBLISH_BLOCKED'}
+      $status=@($published | Where-Object { $_ -ceq 'NO11_1M_ARCHIVE_STATUS=LOCAL_HISTORICAL_1M_OBSERVED_NOT_TRAINING_CERTIFIED' })
+      $bars=@($published | Where-Object { $_ -cmatch '^NO11_1M_ARCHIVE_ROWS=\d+$' })
+      $sessions=@($published | Where-Object { $_ -cmatch '^NO11_1M_ARCHIVE_SESSIONS=\d+$' })
+      if($status.Count -ne 1 -or $bars.Count -ne 1 -or $sessions.Count -ne 1){
+        throw 'NO11_1M_ARCHIVE_RECEIPT_INVALID'
+      }
+      Write-Host $status[0]
+      Write-Host $bars[0]
+      Write-Host $sessions[0]
+      Write-Host 'NO11_MODEL_TRAINING_READY=False'
+    }else{
     $publisher=Join-Path (Split-Path -Parent $PSScriptRoot) 'tools\no12_private_1m_readonly_publish.mjs'
     $node=(Get-Command node -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
     $published=@(& $node $publisher --private-root $privateRoot --candidate $candidateFile)
@@ -157,6 +176,7 @@ try{
     Write-Host $history[0]
     Write-Host $bars[0]
     Write-Host 'NO12_1M_NATIVE_STATE9_READY=False'
+    }
   }
  }finally{
   if($null -ne $candidateFile -and (Test-Path -LiteralPath $candidateFile -PathType Leaf)){

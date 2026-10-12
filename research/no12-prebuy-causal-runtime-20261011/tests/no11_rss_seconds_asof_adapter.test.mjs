@@ -29,7 +29,7 @@ function fixture(){
  };
  fs.writeFileSync(candidatePath,JSON.stringify(snapshot));
  publishNo12PrivateSeconds({privateRoot:root,candidatePath,now:new Date(at('09:30:11'))});
- return {root,decisionAt:at('09:30:12'),now:new Date(at('09:30:11')),
+ return {root,privateRoot:root,decisionAt:at('09:30:12'),now:new Date(at('09:30:11')),
   clean:()=>fs.rmSync(root,{recursive:true,force:true})};
 }
 const source=(kind,time,seen,known,extras={})=>({

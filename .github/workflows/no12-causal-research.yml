@@ -66,6 +66,13 @@ jobs:
           $ErrorActionPreference='Stop'
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Probe-No12RssMarketSecondsReadOnly.ps1 -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'NO12_RSS_SECONDS_SELFTEST_FAILED' }
+      - name: Exercise one-click Tuesday 5M 1M seconds sequence without broker (Windows only)
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Run-No12TuesdayReadOnly.ps1 -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO12_TUESDAY_RUNNER_OFFLINE_FAILED' }
       - name: Test synthetic prebuy ranking and life-cycle on real Node runtime
         shell: bash
         run: |

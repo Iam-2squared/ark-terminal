@@ -32,7 +32,7 @@ jobs:
       - name: Compile research-only code
         shell: bash
         run: |
-          python -m py_compile research/independent-long-selector-20261012-v1/selector_core.py research/independent-long-selector-20261012-v1/selector_model.py research/independent-long-selector-20261012-v1/run_paired_comparison.py research/independent-long-selector-20261012-v1/technical_feature_library.py
+          python -m py_compile research/independent-long-selector-20261012-v1/selector_core.py research/independent-long-selector-20261012-v1/selector_model.py research/independent-long-selector-20261012-v1/run_paired_comparison.py research/independent-long-selector-20261012-v1/technical_feature_library.py research/independent-long-selector-20261012-v1/native_jquants_source.py
       - name: Run self-contained synthetic tests (NO market data, NO models fitted)
         shell: bash
         run: |

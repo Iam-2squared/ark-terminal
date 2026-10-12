@@ -1,0 +1,48 @@
+{
+  "retrievedDateUTC": "2026-09-19",
+  "scope": "public specification metadata only; zero provider data requests",
+  "sources": [
+    {
+      "historical2024VersionProof": false,
+      "id": "minute",
+      "paraphrase": "Rows omit minutes without executions; minute timestamps denote interval start, terminal auctions are separate, PM opening auction cannot be isolated from its minute. Prices are unadjusted; error corrections may overwrite values.",
+      "paraphraseSHA256": "fd28fe446748b01938ca1e873687559fb73ee937c1c6ec9578cac784217a03dc",
+      "url": "https://jpx-jquants.com/en/spec/eq-bars-minute"
+    },
+    {
+      "historical2024VersionProof": false,
+      "id": "master",
+      "paraphrase": "Dated snapshots describe listed codes. Listing/delisting dates, merger and code succession histories are not supplied; snapshot continuity alone does not certify identity.",
+      "paraphraseSHA256": "1c098c90ef58411afd8dacad30910a74e3b174b271b07ee0c4fa4d75e75ac56d",
+      "url": "https://jpx-jquants.com/en/spec/eq-master"
+    },
+    {
+      "historical2024VersionProof": false,
+      "id": "daily",
+      "paraphrase": "Raw prices are not retroactively corporate-action adjusted. Adjusted prices are revised backwards; past delivered adjusted versions cannot be requested. ExRT identifies split/reverse/rights effective dates, not announcement availability. Null bars cannot distinguish halt from no executions.",
+      "paraphraseSHA256": "ce9634c5a3edfa0afb387f2d5db00528d7f576ad6111c94fd80387e45fc897f8",
+      "url": "https://jpx-jquants.com/en/spec/eq-bars-daily"
+    },
+    {
+      "historical2024VersionProof": false,
+      "id": "updates",
+      "paraphrase": "Daily and minute prices are scheduled around 16:30; master around 17:30 and next-business-day 08:00. Times are approximate and unguaranteed, and cannot certify a historical version.",
+      "paraphraseSHA256": "5e715e039a6c0e1d3f58c16c3103824886e9350e8ffe92d2732c2250cbac42ce",
+      "url": "https://jpx-jquants.com/en/spec/data-update"
+    },
+    {
+      "historical2024VersionProof": false,
+      "id": "help",
+      "paraphrase": "No ISIN/FIGI, suspension feed, full corporate-action dataset, past actual update-time record, version number or ETag is provided. These limitations prevent recovery from ordinary re-download alone.",
+      "paraphraseSHA256": "40b23cd1977f1176b79a01adcd0815b7dbda5e63367928c950f2225ad200e653",
+      "url": "https://jpx-jquants.com/en/help/data"
+    },
+    {
+      "historical2024VersionProof": false,
+      "id": "corrections",
+      "paraphrase": "Error corrections exist, including adjusted rights-issue prices revised on 2026-06-29. A current correction page is not an exhaustive historical version receipt.",
+      "paraphraseSHA256": "15cfd1cae6a2476d10e3667add025e7f8f81d6e8d489f6b07b18d7c034133053",
+      "url": "https://jpx-jquants.com/en/spec/fix-data-info"
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+name: Phase57 All-Material Entry Feature Overlap Audit v1
+
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-entry-all-material-overlap-audit-v1.yml
+      - scripts/phase57_entry_all_material_overlap_audit_v1.py
+      - docs/evidence/phase57-entry-all-material-v1/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  overlap-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Synthetic audit tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          ARK_TEST_OFFLINE: '1'
+        run: |
+          set -euo pipefail
+          python scripts/phase57_entry_all_material_overlap_audit_v1.py --self-test
+          python -m py_compile scripts/phase57_entry_all_material_overlap_audit_v1.py
+
+      - name: Restore existing no-fit causal Development feature export
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-entry-new-information-35183197002
+          path: artifacts/entry-information
+          repository: Iam-2squared/ark-terminal
+          run-id: 35183197002
+          github-token: ${{ github.token }}
+
+      - name: Verify exported feature matrix lineage
+        run: |
+          set -euo pipefail
+          test -f artifacts/entry-information/derived/export-audit.json
+          test -f artifacts/entry-information/derived/feature-matrix.json.gz
+          echo 'e68cae479da9fa511d8ccb0b9a80cadac8488f6c3168c77e35fc1bf3de5f41bb  artifacts/entry-information/derived/feature-matrix.json.gz' | sha256sum -c -
+          python - <<'PY'
+          import json
+          a=json.load(open('artifacts/entry-information/derived/export-audit.json'))
+          assert a['id']=='PHASE57_ENTRY_ADDITIONAL_INFORMATION_EXPORT_V1'
+          assert a['rows']==3800
+          assert a['featureSHA']=='e68cae479da9fa511d8ccb0b9a80cadac8488f6c3168c77e35fc1bf3de5f41bb'
+          assert a['providerRequests']==0 and a['freshAccess']==0 and a['oosAccess']==0
+          assert a['modelFit']==0 and a['modelPrediction']==0
+          assert all(v is False for v in a['safety'].values())
+          print({'lineage':'PASS','rows':a['rows'],'providerRequests':0,'freshAccess':0,'oosAccess':0})
+          PY
+
+      - name: Audit exact 2,155-ledger overlap without reading performance metrics
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          ARK_TEST_OFFLINE: '1'
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/all-material-overlap
+          python scripts/phase57_entry_all_material_overlap_audit_v1.py \
+            --opportunities docs/evidence/phase57-entry-timing-signal-census-v1/measurement/opportunity-records.json.gz \
+            --feature-matrix artifacts/entry-information/derived/feature-matrix.json.gz \
+            --export-audit artifacts/entry-information/derived/export-audit.json \
+            --artifact-digest sha256:b00669aaedf65b36ecbdbf2174780d4475eeba40e4ce1e4db247b5adc1faf5cd \
+            --output artifacts/all-material-overlap/overlap-audit.json
+
+      - name: Assert audit remains non-decision and Development-only
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          p='artifacts/all-material-overlap/overlap-audit.json'
+          x=json.load(open(p))
+          assert x['opportunityPopulation']==2155
+          assert x['featureExportRows']==3800
+          assert x['featureExportSessions']==76
+          assert x['performanceMetricsRead']==0
+          assert x['decisionOutputsCreated']==0
+          assert x['featureAdmissionAutomatic'] is False
+          assert x['lineage']['providerRequests']==0
+          assert x['lineage']['freshAccess']==0
+          assert x['lineage']['oosAccess']==0
+          assert all(v is False for v in x['safety'].values())
+          print(json.dumps({'status':'PASS','opportunities':2155,'featureRows':3800,'featureAdmissionAutomatic':False},sort_keys=True))
+          PY
+          sha256sum artifacts/all-material-overlap/overlap-audit.json > artifacts/all-material-overlap/SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-entry-all-material-overlap-audit-v1-${{ github.sha }}
+          path: artifacts/all-material-overlap
+          retention-days: 30
+          if-no-files-found: error

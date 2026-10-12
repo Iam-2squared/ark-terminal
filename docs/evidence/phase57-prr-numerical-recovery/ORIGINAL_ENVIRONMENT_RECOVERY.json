@@ -1,0 +1,17 @@
+{
+  "schema": "phase57-prr-v2-original-environment-recovery-v1",
+  "status": "ORIGINAL_ENVIRONMENT_NOT_UNIQUELY_IDENTIFIABLE",
+  "readOnlyEvidenceInspected": [
+    "CCMG POTENTIAL_FIT_PROTOCOL.json: model, preprocessing, seed and folds but no full installed package/backend/thread receipt",
+    "CCMG POTENTIAL_RECOVERY_AUDIT.json: feature-byte recovery and Python gzip header difference, not the original model-fit environment",
+    "CCMG POTENTIAL_RESULT.json and saved POTENTIAL_OOF.jsonl.gz: predictions and fit topology, no package/backend/thread receipt",
+    "previous PRR FINAL_CLOSURE.json and Actions run 36492615798: later rerun environment, not original saved-OOF generation",
+    "previous PRR workflow and post-closure run 36493547176: later CI, not original saved-OOF generation"
+  ],
+  "case": "B",
+  "canonicalRule": "Freeze the first diagnostic environment without version grid or further trial. Old saved OOF retains its independent FAIL status.",
+  "firstDiagnosticRunId": 36496358294,
+  "firstDiagnosticEnvironmentSha256": "a4ec6736731e434a8b8f829f1254013364e4060cf8c59c7c3393ed2f2af7232d",
+  "economicOutcomesInspected": false,
+  "providerRequests": 0
+}

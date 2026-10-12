@@ -1,0 +1,24 @@
+name: Phase57 NEW LONG EXIT Loss Defense v2 FAST-FAIL
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-new-long-exit-loss-defense-v2-fast-fail.yml'
+      - 'scripts/*phase57_new_long_exit_loss_defense_v2_fast_fail*'
+      - 'docs/evidence/phase57-new-long-exit-v2-recovery-window-contract-2026-09-18.md'
+permissions: {contents: read}
+jobs:
+  loss-defense-v2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - env: {ARK_TEST_OFFLINE: '1'}
+        run: python3 scripts/offline/kernel_exec.py python3 -m unittest scripts.test_phase57_new_long_exit_loss_defense_v2_fast_fail
+      - env: {ARK_TEST_OFFLINE: '1'}
+        run: |
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_loss_defense_v2_fast_fail --out /tmp/ld2-a | tee /tmp/ld2.txt
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_loss_defense_v2_fast_fail --out /tmp/ld2-b >/tmp/ld2b.txt
+          cmp /tmp/ld2-a/summary.json /tmp/ld2-b/summary.json
+          cmp /tmp/ld2-a/ledger.json.gz /tmp/ld2-b/ledger.json.gz
+          cmp /tmp/ld2-a/manifest.json /tmp/ld2-b/manifest.json

@@ -1,0 +1,75 @@
+{
+  "recordedAtJST": "2026-09-22T10:22:00+09:00",
+  "status": "G7_V1_FAIL_REVIEW_PACKAGE_DEFECT_CONFIRMED_ADJUDICATION_COMPLETE",
+  "sourceHead": "e84fc07aef79448367a9ed198436ea05d277552d",
+  "originalG7ResultUnchanged": true,
+  "independentThirdReview": false,
+  "score": {
+    "actualN": 36,
+    "controlN": 8,
+    "AAnyIssueControlN": 6,
+    "BAnyIssueControlN": 7,
+    "agreementN": 19,
+    "disagreementN": 17,
+    "anyActualIssueN": 26,
+    "rawAgreement": "19/36",
+    "kappa": "10/163"
+  },
+  "sourceVerification": {
+    "GArtifactSHA256": "cc921c476af1079344975daa78e89fe03ee0dfc20ee62333170199178ade795e",
+    "reviewZIP": "303acb5c66b586917b75d1a48bb0e4b0fc848b7d48d86f9d63bb8273283676c1",
+    "adminZIP": "15e389cbf3638e89e5555e934fe73152b3d4782b5304d4348372ea407d3d932b",
+    "measurementFilesMatched": 179,
+    "measurementFileHashMismatches": 0
+  },
+  "prefixAudit": {
+    "actualCases": 36,
+    "directionAndObservationMatched": 36,
+    "oraclePortFullStateMatched": 36,
+    "structureKindAndPhaseMatched": 36,
+    "oracleVsCausalFullStateDiffN": 17,
+    "auditTestsPassed": 12,
+    "auditTestsFailed": 0,
+    "doubleRunHashMatched": true,
+    "original93TestsRerun": false,
+    "v2AcceptancePassed": false
+  },
+  "displayLeakConfirmedCases": [
+    "G7-023",
+    "G7-039",
+    "G7-030"
+  ],
+  "atLeastConfirmed": true,
+  "sameStartRegularBarPresentCases": 27,
+  "all27PNGsVerified": false,
+  "rootFindings": [
+    "RAW_START_VS_CLOSED_END_DISPLAY_MISMATCH",
+    "MISSING_RULE_BRIEF_FOR_REVIEWERS",
+    "MISSING_STRUCTURE_RANGE_WITNESSES",
+    "ORACLE_STATE_NOT_INTERCHANGEABLE_WITH_NOW",
+    "ANY_ISSUE_CONTROL_SCORE_NOT_TARGET_SPECIFIC",
+    "ACTUAL_CONTROL_NEAR_DUPLICATE_CONFOUNDING"
+  ],
+  "nextScope": "Repair review harness only in separately versioned protocol/package; no taxonomy expansion justified by these cases.",
+  "freezeAllowed": false,
+  "newBlindRunStarted": false,
+  "guards": {
+    "marketThresholdChanges": 0,
+    "newProviderRequests": 0,
+    "protectedDataOpened": 0,
+    "v2ImplementationStarted": false,
+    "v2FullCohortGenerationStarted": false,
+    "recognitionStarted": false,
+    "signalStarted": false,
+    "buyWaitStarted": false,
+    "entryStarted": false,
+    "exitStarted": false,
+    "futureUsedOnlyForDiagnosticComparisonNotDecision": true
+  },
+  "knownLimitations": [
+    "Historical receivedAt and corporate-action PIT not independently proven.",
+    "Audit port is not byte-identical reference.py; checked on this sample only.",
+    "Original renderer source line not retrieved; leak established from PNG and raw values.",
+    "No predictive accuracy, trading profitability, or fresh/OOS claim."
+  ]
+}

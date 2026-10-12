@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "phase57-dual-entry-exit-receipt-r14",
+  "status": "EXIT_ADAPTER_REPLAY_INTEGRITY_PASS_NOT_PORTFOLIO_OR_PRODUCTION_PASS",
+  "dualFreezeCommit": "4878a1cc53430e816261dea0fb16aeb53b3c238d",
+  "preregisteredAdapterCommit": "416595cc824068fb34abcdc2e2bc368e8c155831",
+  "workflowRun": 36115061827,
+  "job": 108007095280,
+  "conclusion": "success",
+  "artifactId": 10855136419,
+  "artifactDigest": "7cbf9df8df91f390cba1e89cbdfd400802bcfb3b8812a226ff1ea66b067796f1",
+  "artifactExpiresAt": "2026-10-25T08:50:29Z",
+  "artifactNotPermanentStorage": true,
+  "syntheticTestsPassed": 26,
+  "ciRunABByteIdentical": true,
+  "localRunABByteIdentical": true,
+  "localVsCIAllFiveOutputsByteIdentical": true,
+  "outputPins": {
+    "audit.json": "828600ac8588353e318fd99ea9ccd65e98e11412df3e99ce304a43c39ea0d386",
+    "entry-envelopes.json.gz": "0918314fbf363e4d0a04717a81c51321080391827b533302c29ee2b68fd3c513",
+    "exit-ledgers.json.gz": "0afdb59bc476f7085955b3ac30efdf875402fb1d68b316181f483b3486c8e9c6",
+    "manifest.json": "7542f7cb0bd60c7e3c063189cd3ec928b582bef01164ca85106830675786b685",
+    "summary.json": "fb86acb8fb0a61c90e905d44837cbc5c9055b2602fdb7a9114c9e2ec9158f6ca"
+  },
+  "populationPerEntry": 2155,
+  "evaluationSessionCount": 58,
+  "preservedEntryFills": {
+    "IMMEDIATE": 1963,
+    "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF": 1885
+  },
+  "coverage": {
+    "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF": {
+      "fixed12Resolved": 1105,
+      "candidateResolved": 1115,
+      "candidateCensored": 770,
+      "candidateOnlyResolved": 10,
+      "offGridFills": 621
+    },
+    "IMMEDIATE": {
+      "fixed12Resolved": 1118,
+      "candidateResolved": 1133,
+      "candidateCensored": 830,
+      "candidateOnlyResolved": 15,
+      "offGridFills": 529
+    }
+  },
+  "candidateFirstMissingAt1530": {
+    "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF": 217,
+    "IMMEDIATE": 202
+  },
+  "absoluteProfitability": "Both Entry-specific paired Candidate A mean net returns remain below zero and PF below one. Relative Fixed12 improvement is not profitable portfolio proof.",
+  "capitalDisposition": "Feed full R13 ledger, not only resolved subset. Keep unknown purchase capital locked; use inherited simple references under CAPITAL_CONTRACT_R15.json.",
+  "entryWinnerSelected": false,
+  "providerRequests": 0,
+  "newProtectedPartitionsOpened": 0,
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

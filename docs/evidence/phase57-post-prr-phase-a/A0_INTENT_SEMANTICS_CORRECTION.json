@@ -1,0 +1,226 @@
+{
+  "deltaEqualityAndAccountingUnchanged": true,
+  "exposureSequence": "Correction identified after A1 results viewed; no independent validation claim, no new fit or replay.",
+  "newMaskSha256": "e97b328e2646fad58406611aaa6d41925e3ab6115b1071a5e69dde0b367e3359",
+  "oldA0Sha256": "cc7280eead274f00e90ec1c69d3dfed479c2af11506a0b247cd54937c64700c6",
+  "oldMaskSha256": "b8e20b899780e3ee0e734421a61a3a37c2930f4f69bd36ba529c73d8dfd567ca",
+  "reason": "A0 v1 incorrectly scoped control_intent_time_known and intentOrder to MODEL_EXIT only; source controlNow is decisionNow for both MODEL_EXIT and FORCED_TERMINAL (925). These are distinct classes, neither is an exit fill minute.",
+  "schema": "phase57-post-prr-a0-intent-semantics-correction-v2",
+  "sourceCode": [
+    "scripts/phase57_ccmg_readiness.py::read_control",
+    "scripts/phase57_ccmg_readiness.py::trace_entry"
+  ],
+  "status": "APPEND_ONLY_CORRECTION_AFTER_A1_EXPOSURE",
+  "table": {
+    "IM:ALL_100:ALL_ROUTES": {
+      "ccmgFirstIntentN": 376,
+      "entryN": 819,
+      "intentOrderN": {
+        "CCMG_FIRST": 370,
+        "SAME_MINUTE": 6,
+        "UNKNOWN_NO_CCMG_INTENT": 443
+      },
+      "r50DecisionTimeKnownN": 819,
+      "r50ForcedTerminalDecisionN": 785,
+      "r50ModelIntentN": 34
+    },
+    "IM:ALL_100:CONTROL_DEFAULT": {
+      "ccmgFirstIntentN": 302,
+      "entryN": 543,
+      "intentOrderN": {
+        "CCMG_FIRST": 298,
+        "SAME_MINUTE": 4,
+        "UNKNOWN_NO_CCMG_INTENT": 241
+      },
+      "r50DecisionTimeKnownN": 543,
+      "r50ForcedTerminalDecisionN": 512,
+      "r50ModelIntentN": 31
+    },
+    "IM:ALL_100:DEFENSIVE_ELIGIBLE": {
+      "ccmgFirstIntentN": 74,
+      "entryN": 276,
+      "intentOrderN": {
+        "CCMG_FIRST": 72,
+        "SAME_MINUTE": 2,
+        "UNKNOWN_NO_CCMG_INTENT": 202
+      },
+      "r50DecisionTimeKnownN": 276,
+      "r50ForcedTerminalDecisionN": 273,
+      "r50ModelIntentN": 3
+    },
+    "IM:PRIMARY_FUNDED:ALL_ROUTES": {
+      "ccmgFirstIntentN": 49,
+      "entryN": 79,
+      "intentOrderN": {
+        "CCMG_FIRST": 49,
+        "UNKNOWN_NO_CCMG_INTENT": 30
+      },
+      "r50DecisionTimeKnownN": 79,
+      "r50ForcedTerminalDecisionN": 72,
+      "r50ModelIntentN": 7
+    },
+    "IM:PRIMARY_FUNDED:CONTROL_DEFAULT": {
+      "ccmgFirstIntentN": 45,
+      "entryN": 71,
+      "intentOrderN": {
+        "CCMG_FIRST": 45,
+        "UNKNOWN_NO_CCMG_INTENT": 26
+      },
+      "r50DecisionTimeKnownN": 71,
+      "r50ForcedTerminalDecisionN": 65,
+      "r50ModelIntentN": 6
+    },
+    "IM:PRIMARY_FUNDED:DEFENSIVE_ELIGIBLE": {
+      "ccmgFirstIntentN": 4,
+      "entryN": 8,
+      "intentOrderN": {
+        "CCMG_FIRST": 4,
+        "UNKNOWN_NO_CCMG_INTENT": 4
+      },
+      "r50DecisionTimeKnownN": 8,
+      "r50ForcedTerminalDecisionN": 7,
+      "r50ModelIntentN": 1
+    },
+    "IM:PRIMARY_OUTSIDE_100:ALL_ROUTES": {
+      "ccmgFirstIntentN": 327,
+      "entryN": 740,
+      "intentOrderN": {
+        "CCMG_FIRST": 321,
+        "SAME_MINUTE": 6,
+        "UNKNOWN_NO_CCMG_INTENT": 413
+      },
+      "r50DecisionTimeKnownN": 740,
+      "r50ForcedTerminalDecisionN": 713,
+      "r50ModelIntentN": 27
+    },
+    "IM:PRIMARY_OUTSIDE_100:CONTROL_DEFAULT": {
+      "ccmgFirstIntentN": 257,
+      "entryN": 472,
+      "intentOrderN": {
+        "CCMG_FIRST": 253,
+        "SAME_MINUTE": 4,
+        "UNKNOWN_NO_CCMG_INTENT": 215
+      },
+      "r50DecisionTimeKnownN": 472,
+      "r50ForcedTerminalDecisionN": 447,
+      "r50ModelIntentN": 25
+    },
+    "IM:PRIMARY_OUTSIDE_100:DEFENSIVE_ELIGIBLE": {
+      "ccmgFirstIntentN": 70,
+      "entryN": 268,
+      "intentOrderN": {
+        "CCMG_FIRST": 68,
+        "SAME_MINUTE": 2,
+        "UNKNOWN_NO_CCMG_INTENT": 198
+      },
+      "r50DecisionTimeKnownN": 268,
+      "r50ForcedTerminalDecisionN": 266,
+      "r50ModelIntentN": 2
+    },
+    "R1:ALL_100:ALL_ROUTES": {
+      "ccmgFirstIntentN": 343,
+      "entryN": 795,
+      "intentOrderN": {
+        "CCMG_FIRST": 339,
+        "SAME_MINUTE": 4,
+        "UNKNOWN_NO_CCMG_INTENT": 452
+      },
+      "r50DecisionTimeKnownN": 795,
+      "r50ForcedTerminalDecisionN": 760,
+      "r50ModelIntentN": 35
+    },
+    "R1:ALL_100:CONTROL_DEFAULT": {
+      "ccmgFirstIntentN": 256,
+      "entryN": 459,
+      "intentOrderN": {
+        "CCMG_FIRST": 253,
+        "SAME_MINUTE": 3,
+        "UNKNOWN_NO_CCMG_INTENT": 203
+      },
+      "r50DecisionTimeKnownN": 459,
+      "r50ForcedTerminalDecisionN": 429,
+      "r50ModelIntentN": 30
+    },
+    "R1:ALL_100:DEFENSIVE_ELIGIBLE": {
+      "ccmgFirstIntentN": 87,
+      "entryN": 336,
+      "intentOrderN": {
+        "CCMG_FIRST": 86,
+        "SAME_MINUTE": 1,
+        "UNKNOWN_NO_CCMG_INTENT": 249
+      },
+      "r50DecisionTimeKnownN": 336,
+      "r50ForcedTerminalDecisionN": 331,
+      "r50ModelIntentN": 5
+    },
+    "R1:PRIMARY_FUNDED:ALL_ROUTES": {
+      "ccmgFirstIntentN": 23,
+      "entryN": 32,
+      "intentOrderN": {
+        "CCMG_FIRST": 23,
+        "UNKNOWN_NO_CCMG_INTENT": 9
+      },
+      "r50DecisionTimeKnownN": 32,
+      "r50ForcedTerminalDecisionN": 30,
+      "r50ModelIntentN": 2
+    },
+    "R1:PRIMARY_FUNDED:CONTROL_DEFAULT": {
+      "ccmgFirstIntentN": 19,
+      "entryN": 24,
+      "intentOrderN": {
+        "CCMG_FIRST": 19,
+        "UNKNOWN_NO_CCMG_INTENT": 5
+      },
+      "r50DecisionTimeKnownN": 24,
+      "r50ForcedTerminalDecisionN": 22,
+      "r50ModelIntentN": 2
+    },
+    "R1:PRIMARY_FUNDED:DEFENSIVE_ELIGIBLE": {
+      "ccmgFirstIntentN": 4,
+      "entryN": 8,
+      "intentOrderN": {
+        "CCMG_FIRST": 4,
+        "UNKNOWN_NO_CCMG_INTENT": 4
+      },
+      "r50DecisionTimeKnownN": 8,
+      "r50ForcedTerminalDecisionN": 8,
+      "r50ModelIntentN": 0
+    },
+    "R1:PRIMARY_OUTSIDE_100:ALL_ROUTES": {
+      "ccmgFirstIntentN": 320,
+      "entryN": 763,
+      "intentOrderN": {
+        "CCMG_FIRST": 316,
+        "SAME_MINUTE": 4,
+        "UNKNOWN_NO_CCMG_INTENT": 443
+      },
+      "r50DecisionTimeKnownN": 763,
+      "r50ForcedTerminalDecisionN": 730,
+      "r50ModelIntentN": 33
+    },
+    "R1:PRIMARY_OUTSIDE_100:CONTROL_DEFAULT": {
+      "ccmgFirstIntentN": 237,
+      "entryN": 435,
+      "intentOrderN": {
+        "CCMG_FIRST": 234,
+        "SAME_MINUTE": 3,
+        "UNKNOWN_NO_CCMG_INTENT": 198
+      },
+      "r50DecisionTimeKnownN": 435,
+      "r50ForcedTerminalDecisionN": 407,
+      "r50ModelIntentN": 28
+    },
+    "R1:PRIMARY_OUTSIDE_100:DEFENSIVE_ELIGIBLE": {
+      "ccmgFirstIntentN": 83,
+      "entryN": 328,
+      "intentOrderN": {
+        "CCMG_FIRST": 82,
+        "SAME_MINUTE": 1,
+        "UNKNOWN_NO_CCMG_INTENT": 245
+      },
+      "r50DecisionTimeKnownN": 328,
+      "r50ForcedTerminalDecisionN": 323,
+      "r50ModelIntentN": 5
+    }
+  }
+}

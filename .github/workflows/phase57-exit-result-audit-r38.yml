@@ -1,0 +1,57 @@
+name: Phase57 EXIT Result Audit R38
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - 'scripts/phase57_exit_result_audit_r38.py'
+      - 'scripts/test_phase57_exit_result_audit_r38.py'
+      - 'docs/evidence/phase57-comprehensive-exit-v1/RESULT_AUDIT_ERRATUM_SCOPE_R38.md'
+      - '.github/workflows/phase57-exit-result-audit-r38.yml'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-exit-audit-r38-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  audit-no-fit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ARK_TEST_OFFLINE: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONPATH: '.'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.7.2 pandas==2.2.3 joblib==1.5.2
+      - name: Synthetic regression tests
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/r38-logs
+          python -m unittest -v scripts.test_phase57_exit_result_audit_r38 scripts.test_phase57_cash_portfolio_r37 scripts.test_phase57_cash_capital_r34 scripts.test_phase57_exit_finite_r36 scripts.test_phase57_exit_capture_metrics_v1 2>&1 | tee artifacts/r38-logs/tests.log
+      - name: Restore immutable result ZIP and audit without fitting
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api repos/Iam-2squared/ark-terminal/actions/artifacts/10901042535/zip > artifacts/r36.zip
+          unzip -q artifacts/r36.zip -d artifacts/input
+          python -m scripts.phase57_exit_result_audit_r38 --root artifacts/input/r36 --archive artifacts/r36.zip --out artifacts/r38 > artifacts/r38-logs/audit.log
+      - name: Preserve audit and erratum without overwriting R36
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-exit-result-audit-r38-${{ github.run_id }}
+          path: |
+            artifacts/r38
+            artifacts/r38-logs
+          retention-days: 30
+          overwrite: false
+          if-no-files-found: error

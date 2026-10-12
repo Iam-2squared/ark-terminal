@@ -1,0 +1,38 @@
+{
+  "verdict": "MSH_ENTRY_LONG_V1_HISTORICAL_REMEASUREMENT_BORDERLINE",
+  "entryHistoricalResearch": "BORDERLINE",
+  "entryFreshValidation": "PENDING",
+  "entryOOS": "PENDING_SEALED",
+  "officialAdoption": false,
+  "automaticExitProgression": false,
+  "reasoning": {
+    "quality": "All four HIGH levels enrich versus first-Selector baseline, supported by CLOSE. In-sample diagnostic only.",
+    "preservation": "All four transfer levels remain measurable and exceed frozen CURRENT supporting reference. Transfer is separated from remaining opportunity.",
+    "throughput": "277 first ENTERs across76 sessions; CURRENT96. One ENTER per symbol-session. Different decision schedules disclosed.",
+    "sessionStability": "75 of76 sessions have ENTER; top5 sessions15.16% of ENTERs,21.43% of+5 hits. Broad support rather than only a few sessions.",
+    "risk": "Candidate strict30m adverse tail is materially worse than Selector baseline: mean -2.56% vs -1.72%, adverse5th percentile -10.26% vs -5.60%, worst -35.29%. This prevents an unqualified Historical GO. No retrospective numeric hard gate added.",
+    "limitations": "All76 are direct final-model training sessions.181 of277 ENTERs are labelable;96 ENTER outcomes unavailable. Frozen sparse provider-minute aggregation retained, no imputation. No claim of profitable execution or unseen-data generalization."
+  },
+  "nextAction": "STOP. Separate Architecture Decision should assess the disclosed path/risk concern and decide whether to proceed to LONG EXIT research with Entry2.0 unchanged. Do not tune Entry, replace sessions, or open Fresh/OOS in this task.",
+  "prohibitedClaims": [
+    "FRESH_VALIDATION_PASS",
+    "OOS_PASS",
+    "PROSPECTIVE_PASS",
+    "UNSEEN_DATA_PROVEN"
+  ],
+  "freshBudgetConsumed": 0,
+  "globalFreshBudgetRemaining": 195,
+  "threshold": 2.0,
+  "measurementSHA": "f43b00b4959698ba6f97883ea2291e2e47dfdbd7d1dc4d2f07a421ac241f0b02",
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

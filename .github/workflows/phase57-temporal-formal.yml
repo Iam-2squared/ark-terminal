@@ -1,0 +1,128 @@
+name: Phase57 Formal Temporal Reliability
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-temporal-formal.yml'
+      - 'scripts/phase57_temporal_formal.py'
+      - 'scripts/phase57_temporal_formal_closeout.py'
+      - 'scripts/test_phase57_temporal_formal.py'
+      - 'scripts/phase57_sparse_trait_contract.py'
+      - 'docs/evidence/phase57-temporal-formal-v1/protocol.json'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-temporal-formal-v1
+  cancel-in-progress: true
+jobs:
+  preflight:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    outputs:
+      measure: ${{ steps.gate.outputs.measure }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - id: gate
+        run: |
+          if test "$(git log -1 --format=%s)" = 'Phase57: run formal temporal reliability'; then
+            test ! -e docs/evidence/phase57-temporal-formal-v1/ci-result
+            echo 'measure=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'measure=false' >> "$GITHUB_OUTPUT"
+          fi
+  verify:
+    needs: preflight
+    if: needs.preflight.outputs.measure == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      ARK_TEST_OFFLINE: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: pip install numpy==2.3.5 scipy==1.17.0 pandas==2.2.3 fastapi pytest httpx matplotlib==3.10.3
+      - name: Verify precommit and test contracts before real measurement
+        run: |
+          set -o pipefail
+          mkdir -p "$RUNNER_TEMP/temporal-formal/evidence"
+          python scripts/offline/kernel_exec.py python -m unittest -v scripts.test_phase57_temporal_formal scripts.test_phase57_temporal_feasibility scripts.test_phase57_temporal_zero_diagnostic scripts.test_phase57_sparse_handoff scripts.test_phase57_expansion_data scripts.test_phase57_expansion_research scripts.test_phase57_research_dictionary_v0 scripts.test_phase57_dictionary_pit_recovery scripts.test_phase57_behavior_dictionary scripts.test_phase57_dictionary_prospective 2>&1 | tee "$RUNNER_TEMP/temporal-formal/evidence/focused.log"
+          python -m scripts.phase57_sparse_closeout verify-lock
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-temporal-zero-matrix-84e456c49bc47f642c9e4c7312b4510576152ebc
+          path: ${{ runner.temp }}/temporal-formal/matrix
+          repository: Iam-2squared/ark-terminal
+          run-id: 35484934096
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-expansion-raw-minute-017-35447995157
+          path: ${{ runner.temp }}/temporal-formal/encrypted
+          repository: Iam-2squared/ark-terminal
+          run-id: 35447995157
+          github-token: ${{ github.token }}
+      - name: Restore only two Development dates for real Reader composition
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_temporal_formal restore --archives "$RUNNER_TEMP/temporal-formal/encrypted" --cache "$RUNNER_TEMP/temporal-formal/raw" --output "$RUNNER_TEMP/temporal-formal/evidence/extraction.json"
+      - name: Formal measurement twice without acquisition or protected reads
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_temporal_formal measure --cache "$RUNNER_TEMP/temporal-formal/raw" --matrix "$RUNNER_TEMP/temporal-formal/matrix" --output "$RUNNER_TEMP/temporal-formal/evidence/measurement"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_temporal_formal measure --cache "$RUNNER_TEMP/temporal-formal/raw" --matrix "$RUNNER_TEMP/temporal-formal/matrix" --output "$RUNNER_TEMP/temporal-formal/replay"
+          cmp "$RUNNER_TEMP/temporal-formal/evidence/measurement/manifest.json" "$RUNNER_TEMP/temporal-formal/replay/manifest.json"
+      - name: Full offline regression and immutable source verification
+        run: |
+          python scripts/run_offline_regression.py --output-dir "$RUNNER_TEMP/temporal-formal/evidence/regression"
+          python scripts/verify_phase57_development_preservation.py
+      - name: Finalize diagnosis and STOP without changing Gate
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_temporal_formal_closeout --evidence "$RUNNER_TEMP/temporal-formal/evidence" --replay "$RUNNER_TEMP/temporal-formal/replay"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-temporal-formal-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/temporal-formal/evidence
+          retention-days: 90
+  preserve:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-temporal-formal-${{ github.event.pull_request.head.sha }}
+          path: docs/evidence/phase57-temporal-formal-v1/ci-result
+      - name: Preserve new Evidence without overwriting source or merging
+        env:
+          BRANCH: ${{ github.head_ref }}
+          EXPECTED: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$BRANCH" = research/phase57-long-only-cash-equity
+          test "$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)" = "$EXPECTED"
+          test -z "$(git ls-tree -r HEAD -- docs/evidence/phase57-temporal-formal-v1/ci-result)"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/evidence/phase57-temporal-formal-v1/ci-result
+          git commit -m 'Phase57: preserve formal temporal reliability and STOP'
+          git push origin "HEAD:$BRANCH"

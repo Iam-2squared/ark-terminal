@@ -1,0 +1,65 @@
+name: Phase57 Replacement Capital Finite Development Replay
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - docs/evidence/phase57-replacement-capital/FINITE_LAUNCH.json
+      - .github/workflows/phase57-replacement-capital-finite.yml
+permissions:
+  contents: read
+concurrency:
+  group: phase57-replacement-capital-finite-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  finite-development:
+    if: github.ref == 'refs/heads/research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0 pandas==2.2.3 matplotlib==3.10.8
+      - name: Ensure finite execution uses the exact CI tested sources
+        run: |
+          python - <<'PY'
+          import hashlib,json,pathlib
+          launch=json.loads(pathlib.Path('docs/evidence/phase57-replacement-capital/FINITE_LAUNCH.json').read_text())
+          def sha(p):return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+          assert launch['preperformanceRunId']==36315018356
+          assert launch['preperformanceTestedSha']=='81e928c659947c32a95d457fb47b1145ca2a8c72'
+          assert sha('scripts/phase57_replacement_capital.py')==launch['testedSourceSha256']
+          assert sha('scripts/test_phase57_replacement_capital.py')==launch['testedTestSha256']
+          assert sha('docs/evidence/phase57-replacement-capital/PRECOMMIT.json')==launch['protocolSha256']
+          assert launch['providerRequests']==launch['protectedPartitionsOpened']==0
+          assert len(launch['safety'])==9 and not any(launch['safety'].values())
+          PY
+      - name: Exact preperformance synthetic checks
+        run: python -W ignore::FutureWarning -m unittest -q scripts.test_phase57_replacement_capital
+      - name: Finite OOF and four 24-session R50-A arms
+        run: python -W ignore::FutureWarning -m scripts.phase57_replacement_capital --mode finite --out /tmp/phase57-replacement-finite
+      - name: Verify finite result integrity and Safety9
+        run: |
+          python - <<'PY'
+          import json,pathlib,hashlib
+          p=pathlib.Path('/tmp/phase57-replacement-finite')
+          m=json.loads((p/'manifest.json').read_text())
+          assert m['protocolSha256']==json.loads(pathlib.Path('docs/evidence/phase57-replacement-capital/FINITE_LAUNCH.json').read_text())['protocolSha256']
+          assert m['providerRequests']==m['protectedPartitionsOpened']==0
+          assert len(m['safety'])==9 and not any(m['safety'].values())
+          assert len(json.loads((p/'fold-manifests.json').read_text()))==16
+          assert all(hashlib.sha256((p/name).read_bytes()).hexdigest()==digest for name,digest in m['filesSha256'].items())
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-replacement-finite-${{ github.sha }}
+          path: /tmp/phase57-replacement-finite/
+          if-no-files-found: error
+          retention-days: 30

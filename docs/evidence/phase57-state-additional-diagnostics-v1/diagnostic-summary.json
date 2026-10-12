@@ -1,0 +1,261 @@
+{
+  "version": "phase57-state-ground-truth-additional-diagnostics-v1",
+  "recordedAtJST": "2026-09-21T20:24:27+09:00",
+  "protocolCommit": "153d52265985b450c0e87b2264282c02863d68f0",
+  "sourceHeadAtProtocol": "e936b422e80288990f498f1a34c874b7e98aa669",
+  "diagnostic1": {
+    "Drows": 2154,
+    "strictResidualRows": 0,
+    "phaseAndChopEmptyRows": 231,
+    "phaseAttributesLevelVwapEmptyRows": 19,
+    "presenceCounts": {
+      "directionPresent": 2154,
+      "phasePresent": 1868,
+      "attributesPresent": 1680,
+      "chopPresent": 356,
+      "levelEventPresent": 1323,
+      "vwapEventPresent": 31
+    }
+  },
+  "diagnostic2": {
+    "rows": 36,
+    "opportunities": 36,
+    "sessions": 29,
+    "timeBands": {
+      "OPEN_0900_1000": 8,
+      "AM_1000_1130": 9,
+      "PM_EARLY_1230_1400": 9,
+      "PM_LATE_1400_CLOSE": 10
+    },
+    "bySignature": {
+      "H_DOWN|L_DOWN": 4,
+      "H_DOWN|L_EQ": 4,
+      "H_DOWN|L_UP": 4,
+      "H_EQ|L_DOWN": 4,
+      "H_EQ|L_EQ": 4,
+      "H_EQ|L_UP": 4,
+      "H_UP|L_DOWN": 4,
+      "H_UP|L_EQ": 4,
+      "H_UP|L_UP": 4
+    },
+    "seed": "phase57-state-additional-diagnostics-v1-seed-20260921"
+  },
+  "diagnostic3": {
+    "overall": {
+      "rows": 11326,
+      "resolvedN": 4459,
+      "censoredN": 6867,
+      "resolvedPct": 39.369592088998765,
+      "medianMin": 25,
+      "p25Min": 15,
+      "p75Min": 50
+    },
+    "byPivot": [
+      {
+        "pivotN": 0,
+        "rows": 3723,
+        "resolvedN": 966,
+        "censoredN": 2757,
+        "resolvedPct": 25.94681708299758,
+        "medianMin": 35,
+        "p25Min": 20,
+        "p75Min": 70
+      },
+      {
+        "pivotN": 1,
+        "rows": 4091,
+        "resolvedN": 1544,
+        "censoredN": 2547,
+        "resolvedPct": 37.741383524810566,
+        "medianMin": 30,
+        "p25Min": 15,
+        "p75Min": 55
+      },
+      {
+        "pivotN": 2,
+        "rows": 2185,
+        "resolvedN": 1094,
+        "censoredN": 1091,
+        "resolvedPct": 50.068649885583525,
+        "medianMin": 25,
+        "p25Min": 15,
+        "p75Min": 45
+      },
+      {
+        "pivotN": 3,
+        "rows": 1327,
+        "resolvedN": 855,
+        "censoredN": 472,
+        "resolvedPct": 64.43104747550866,
+        "medianMin": 10,
+        "p25Min": 5,
+        "p75Min": 25
+      }
+    ],
+    "densityQuartiles": {
+      "q25": 0.8648986486486487,
+      "median": 0.9365853658536586,
+      "q75": 0.9733333333333334
+    },
+    "byDensity": [
+      {
+        "quartile": "Q1",
+        "rows": 2832,
+        "resolvedN": 513,
+        "censoredN": 2319,
+        "resolvedPct": 18.114406779661017,
+        "medianMin": 30,
+        "p25Min": 15,
+        "p75Min": 55
+      },
+      {
+        "quartile": "Q2",
+        "rows": 2832,
+        "resolvedN": 820,
+        "censoredN": 2012,
+        "resolvedPct": 28.954802259887007,
+        "medianMin": 25,
+        "p25Min": 15,
+        "p75Min": 50
+      },
+      {
+        "quartile": "Q3",
+        "rows": 2848,
+        "resolvedN": 1182,
+        "censoredN": 1666,
+        "resolvedPct": 41.502808988764045,
+        "medianMin": 25,
+        "p25Min": 15,
+        "p75Min": 50
+      },
+      {
+        "quartile": "Q4",
+        "rows": 2814,
+        "resolvedN": 1944,
+        "censoredN": 870,
+        "resolvedPct": 69.08315565031982,
+        "medianMin": 25,
+        "p25Min": 10,
+        "p75Min": 50
+      }
+    ]
+  },
+  "diagnostic4": {
+    "groupN": {
+      "AVAILABLE": 1005,
+      "SCALE_INSUFFICIENT": 1105
+    },
+    "available": {
+      "previousBarsMedian": 264,
+      "todayBarsMedian": 285,
+      "todayPrevBarsRatioMedian": 1.0071428571428571,
+      "opening30PrevValueRatioMedian": 0.24421680758231018,
+      "opening30GtPreviousDayPct": 7.6616915422885565,
+      "todayBarsGtPreviousBarsPct": 52.537313432835816,
+      "preSelectorBarsGtPreviousBarsPct": 5.472636815920398
+    },
+    "scaleInsufficient": {
+      "previousBarsMedian": 40,
+      "todayBarsMedian": 82,
+      "todayPrevBarsRatioMedian": 1.7096774193548387,
+      "opening30PrevValueRatioMedian": 0.3962632800097692,
+      "opening30GtPreviousDayPct": 26.153846153846157,
+      "todayBarsGtPreviousBarsPct": 79.45701357466064,
+      "preSelectorBarsGtPreviousBarsPct": 44.43438914027149
+    }
+  },
+  "diagnostic5": {
+    "matrix": {
+      "H_UP|L_UP": {
+        "UP_STRUCTURE": 1784,
+        "DOWN_STRUCTURE": 0,
+        "RANGE_STRUCTURE": 21,
+        "UNIDENTIFIED_D": 177
+      },
+      "H_UP|L_EQ": {
+        "UP_STRUCTURE": 41,
+        "DOWN_STRUCTURE": 9,
+        "RANGE_STRUCTURE": 24,
+        "UNIDENTIFIED_D": 88
+      },
+      "H_UP|L_DOWN": {
+        "UP_STRUCTURE": 4,
+        "DOWN_STRUCTURE": 8,
+        "RANGE_STRUCTURE": 131,
+        "UNIDENTIFIED_D": 845
+      },
+      "H_EQ|L_UP": {
+        "UP_STRUCTURE": 83,
+        "DOWN_STRUCTURE": 36,
+        "RANGE_STRUCTURE": 16,
+        "UNIDENTIFIED_D": 73
+      },
+      "H_EQ|L_EQ": {
+        "UP_STRUCTURE": 34,
+        "DOWN_STRUCTURE": 116,
+        "RANGE_STRUCTURE": 20,
+        "UNIDENTIFIED_D": 74
+      },
+      "H_EQ|L_DOWN": {
+        "UP_STRUCTURE": 1,
+        "DOWN_STRUCTURE": 150,
+        "RANGE_STRUCTURE": 34,
+        "UNIDENTIFIED_D": 116
+      },
+      "H_DOWN|L_UP": {
+        "UP_STRUCTURE": 245,
+        "DOWN_STRUCTURE": 434,
+        "RANGE_STRUCTURE": 58,
+        "UNIDENTIFIED_D": 479
+      },
+      "H_DOWN|L_EQ": {
+        "UP_STRUCTURE": 41,
+        "DOWN_STRUCTURE": 160,
+        "RANGE_STRUCTURE": 51,
+        "UNIDENTIFIED_D": 104
+      },
+      "H_DOWN|L_DOWN": {
+        "UP_STRUCTURE": 0,
+        "DOWN_STRUCTURE": 3473,
+        "RANGE_STRUCTURE": 5,
+        "UNIDENTIFIED_D": 198
+      }
+    },
+    "identifiedPivotLt4Excluded": {
+      "DOWN_STRUCTURE": 470,
+      "RANGE_STRUCTURE": 1235,
+      "UP_STRUCTURE": 125
+    }
+  },
+  "replay": {
+    "diag15SecondRunMatched": true,
+    "diag34SecondRunMatched": true,
+    "diag2SecondRunMatched": true,
+    "localManifestSHA256": "5e0ef437d86e7ae3e70e8f0df50a7e92ebb8c8fb22edec88616c12d568f79224",
+    "conversationZipSHA256": "1abde291d4a4cea59ebe59f48966ef5ba3fadff6c562e4eb4150d1168e7c7f79"
+  },
+  "guards": {
+    "definitionChanged": false,
+    "thresholdChanged": false,
+    "pnlUsed": false,
+    "futureReturnUsed": false,
+    "providerRequests": 0,
+    "protectedDataOpened": 0,
+    "stateV2Started": false,
+    "causalRecognitionStarted": false,
+    "signalStarted": false,
+    "buyWaitStarted": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "status": "ADDITIONAL_DIAGNOSTICS_1_TO_5_COMPLETE_STOP_FOR_HUMAN_REVIEW"
+}

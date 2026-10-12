@@ -1,0 +1,85 @@
+name: Phase57 Entry additional information descriptive checks
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-entry-additional-information-checks.yml
+      - scripts/analyze_phase57_entry_additional_information.py
+      - docs/evidence/phase57-entry-additional-information-audit/**
+permissions:
+  contents: read
+  actions: read
+jobs:
+  no-fit-reproduction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install fixed numerical dependency only
+        run: python -m pip install numpy==2.3.5
+      - uses: actions/download-artifact@v4
+        with:
+          name: entry-information-pinned-development-7599df4119
+          path: artifacts/additional-info/source_export
+          repository: Iam-2squared/ark-terminal
+          run-id: 35182363612
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-entry-new-information-35183197002
+          path: artifacts/additional-info/derived_export
+          repository: Iam-2squared/ark-terminal
+          run-id: 35183197002
+          github-token: ${{ github.token }}
+      - name: Check source hashes and fourteen statistical unit tests offline
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'ebc6ce4e129b4ccb0435aae9cd8a204b0c3b70328af4a0989193fa5a45aa323f  scripts/analyze_phase57_entry_additional_information.py' | sha256sum -c -
+          cp artifacts/additional-info/derived_export/protocol.json artifacts/additional-info/protocol.json
+          python - <<'PY'
+          import pathlib,json,hashlib
+          p=pathlib.Path('predict/research/phase57-entry-v2-3-fast-fail-protocol-v1.json')
+          assert hashlib.sha256(p.read_bytes()).hexdigest()=='e6fcff8580b6f7feed165a4a8272519dc5d7a661ec367eaf52961f71c1096f2c'
+          pins=json.loads(p.read_text())['sourcePins']
+          for name,h in pins.items():
+              assert hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest()==h,name
+          print(json.dumps({'existingSourcePinsVerified':len(pins)}))
+          PY
+          ARK_TEST_OFFLINE=1 python3 scripts/offline/kernel_exec.py python3 scripts/analyze_phase57_entry_additional_information.py --self-test
+      - name: Reproduce fixed descriptive analysis offline, no model fitting
+        env:
+          ARK_ENTRY_INFO_WORKDIR: artifacts/additional-info
+        run: ARK_TEST_OFFLINE=1 python3 scripts/offline/kernel_exec.py python3 scripts/analyze_phase57_entry_additional_information.py artifacts/additional-info/derived_export/derived/feature-matrix.json.gz
+      - name: Check saved population counts and published primary metrics
+        run: |
+          python - <<'PY'
+          import json,pathlib,math,hashlib
+          p=pathlib.Path('artifacts/additional-info/result.json');r=json.loads(p.read_text())
+          assert r['verdict']=='FAST_FAIL_NO_NEW_FEATURE_NOMINATED'
+          assert r['nominatedNewFeaturesForFurtherResearchOnly']==[]
+          assert r['populations']['v1Anchors']=={'rows':277,'symbols':156,'exitKnown':192,'exitPositive':83,'D30Known':181,'MFE3':95,'MFE5':56}
+          expected={'range6Pct':.43889369057908384,'lastCloseLocation':.42174759644639165,'lastUpperWickFraction':.43464768163563344,'turnover6Jpy':.4608470181503889,'relativeVolume5':.6110630942091616,'directionalVwapDistancePct':.5203574975173784,'priorSelectionCount':.4897756162263734,'ridgeDeltaPreviousSelection':.62}
+          for f,a in expected.items():
+              assert math.isclose(r['primaryV1Anchors'][f]['primary']['aucHigherFeatureIsPositive'],a,abs_tol=1e-12),f
+          q=r['primaryV1Anchors']['range6Pct']['supporting']['tailD30ge5']
+          assert q['jointN']==144 and q['positiveN']==20
+          assert math.isclose(q['aucHigherFeatureIsPositive'],.8036290322580645,abs_tol=1e-12)
+          assert all(v is False for v in r['safety'].values())
+          assert r['modelFits']==r['modelPredictions']==r['thresholdSweeps']==r['providerRequests']==r['freshAccess']==r['oosAccess']==0
+          h=hashlib.sha256(p.read_bytes()).hexdigest();p.with_suffix('.json.sha256').write_text(h+'\n')
+          print(json.dumps({'reproduction':'PASS','resultSHA':h,'modelsTrained':0,'newDecisions':0}))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-entry-additional-information-result-${{ github.run_id }}
+          path: |
+            artifacts/additional-info/result.json
+            artifacts/additional-info/result.json.sha256
+          retention-days: 20
+          if-no-files-found: error

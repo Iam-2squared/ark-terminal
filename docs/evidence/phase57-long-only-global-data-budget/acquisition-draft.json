@@ -1,0 +1,158 @@
+{
+  "status": "ACQUISITION_DRAFT_BLOCKED_NO_REQUEST_AUTHORIZATION",
+  "jquantsNewAcquisitionRequired": "UNRESOLVED",
+  "minimumNewSessionCount": null,
+  "purpose": "Supply only globally allocated independent data after Global Budget and exact dataset identity are frozen.",
+  "dateRange": null,
+  "sessionList": null,
+  "allocation": null,
+  "entitlementEvidence": {
+    "status": "USER_SCREENSHOT_REATTESTED_2026_09_15",
+    "basePlan": "LIGHT",
+    "basePlanActive": true,
+    "basePlanScheduledEndJst": "2026-10-06T19:02:00+09:00",
+    "minuteAddon": "TICK_PLUS_OHLCMIN",
+    "minuteAddonActive": true,
+    "minuteAddonCancellationScheduled": true,
+    "addonScheduledEndJst": "2026-10-06T19:07:00+09:00",
+    "secretValueObserved": false,
+    "requiredOperatorConfirmationRemaining": [
+      "PRIVATE_STORAGE_AND_POST_CANCELLATION_DELETION_TERMS",
+      "GITHUB_ACTIONS_SECRET_JQUANTS_API_KEY_PRESENT"
+    ]
+  },
+  "providerContractSnapshot": {
+    "apiVersion": "v2",
+    "authentication": "x-api-key",
+    "dailyEndpoint": "/v2/equities/bars/daily",
+    "minuteEndpoint": "/v2/equities/bars/minute",
+    "masterEndpoint": "/v2/equities/master",
+    "paginationKey": "pagination_key",
+    "paginationRule": "REPEAT_UNCHANGED_QUERY_WITH_RETURNED_KEY_UNTIL_KEY_ABSENT",
+    "minuteCoverage": "TSE_LISTED_ONLY_PAST_2_YEARS",
+    "minuteNoTradePolicy": "NO_ROW_WHEN_NO_TRADING_ACTIVITY",
+    "planHistoryYears": {
+      "FREE_DELAYED": 2,
+      "LIGHT": 5,
+      "STANDARD": 10,
+      "PREMIUM": 20
+    },
+    "planRateLimitRequestsPerMinute": {
+      "FREE": 5,
+      "LIGHT": 60,
+      "STANDARD": 120,
+      "PREMIUM": 500
+    },
+    "minuteAddonRateLimitRequestsPerMinute": 60
+  },
+  "providerSnapshotQualification": "Recorded repository evidence dated2026-09-15; current account/coverage not queried or independently revalidated in this task.",
+  "futureAvailabilityConflict": "Recorded plan/add-on end2026-10-06 precedes protected future integrated20 beginning2026-10-22; no assumption that future data is retrievable under current entitlement.",
+  "cache": {
+    "existingDevelopmentArtifacts": "IDENTITY_CONFIRMED_NO_PAYLOAD_OPENED",
+    "historicalSourceMetadata": {
+      "exactMetadataInventory": {
+        "ref": "research/phase57-exit-v4-hybrid-msh-large-scale",
+        "path": "predict/research/phase57-exit-v4-stage2-session-metadata-inventory-v1.json",
+        "blobSha": "2217ffee6b9607f5610d5484bffea884f65b7422",
+        "sessions": 487,
+        "firstSession": "2024-09-10",
+        "lastSession": "2026-09-09",
+        "outcomeUntouchedMetadataSessions": 205,
+        "priorResearchExposedSessions": 179,
+        "protectedIdentifierOnlySessions": 103,
+        "rawPersistedSessions": 0,
+        "futureLabelsGeneratedSessions": 0
+      },
+      "expiredAcquisitionArtifacts": {
+        "workflowRunId": 34031214529,
+        "datasetId": "PHASE57_JQUANTS_OHLCMIN_FRESH120_V1",
+        "rawShardArtifactsExpired": true,
+        "rawOrReconstructablePricesReusable": false,
+        "sanitizedManifestAndDigestsReusable": true
+      },
+      "conclusion": "CODE_METADATA_AND_SPLIT_IDENTIFIERS_REUSABLE_PRICE_PAYLOAD_REACQUISITION_REQUIRED"
+    },
+    "currentPrivateRawCache": "UNKNOWN",
+    "alreadyAcquiredSymbolSet": "UNKNOWN_NOT_ENUMERATED_FROM_PRICE_PAYLOAD",
+    "localFilenameScan": "Scratch workspace manifest/inventory/cache filenames only. No standalone protected-calendar mapping or private raw-cache identity manifest located within this bounded scan. No global absence claim."
+  },
+  "universe": "FROZEN_TSE_PRIME_STANDARD_GROWTH_DOMESTIC_COMMON_EQUITY_POINT_IN_TIME_LONG_ONLY",
+  "symbolsRule": "PIT eligible full Selector cross-section on approved dates; no outcome-based Top5-only acquisition, no new liquidity/segment/price filters; date-wide fetch where existing contract requires it.",
+  "logicalRequiredFields": {
+    "daily": [
+      "Date",
+      "Code",
+      "AdjC",
+      "AdjFactor",
+      "ExRT",
+      "Vo",
+      "Va"
+    ],
+    "master": [
+      "Date",
+      "Code",
+      "Mkt",
+      "ProdCat"
+    ],
+    "minute": [
+      "symbol",
+      "bar_timestamp_and_availability",
+      "open",
+      "high",
+      "low",
+      "close",
+      "volume"
+    ],
+    "additionalFutureStageFields": "UNRESOLVED until LONG EXIT/Portfolio contracts specify their causal inputs"
+  },
+  "fieldsQualification": "Logical field needs only. Exact API projection capability is UNKNOWN; do not claim the server returns only selected fields.",
+  "cadence": {
+    "entrySelectorDecisionTimesJst": [
+      "09:30",
+      "10:00",
+      "10:30",
+      "11:00",
+      "11:30",
+      "13:00",
+      "13:30",
+      "14:00",
+      "14:30",
+      "15:00"
+    ],
+    "decisionCountPerSession": 10,
+    "providerMinuteToCompleted5m": "EXISTING_CAUSAL_AGGREGATION_CONTRACT",
+    "futureStageDecisionCadence": "UNRESOLVED_WHERE_NOT_ALREADY_CONTRACTED",
+    "new5mSelectorGenerationAllowed": false
+  },
+  "volumeEstimate": null,
+  "requestEstimate": null,
+  "requestFormula": "sum over frozen dates of daily_pages + master_pages + minute_pages, plus explicitly required causal warmup and metadata pages, less exact matching cached pages. Date/pagination/cache identity unresolved, so no numeric budget.",
+  "whyNotYetMinimumSufficient": "Global stage counts, permitted sharing, exact identities, entitlement and valid cache are unresolved. A nominal30-day acquisition now cannot be certified sufficient for the complete project.",
+  "minimalMetadataRequestProposalNotExecuted": {
+    "provider": "J-Quants",
+    "endpoint": "GET /v2/markets/calendar",
+    "fields": [
+      "Date",
+      "HolDiv"
+    ],
+    "from": "2025-04-15",
+    "to": "2026-06-11",
+    "symbols": "NONE",
+    "estimatedBaseRequests": 1,
+    "estimateQualification": "Based on existing single-call requestCalendar implementation; live pagination/schema/availability not checked; stop on mismatch rather than expand automatically.",
+    "purpose": "Recover authoritative calendar input for parent282 mapping; require original source-validation registry exclusion and exact known anchors/count282 before accepting identities. Prefer original retained calendar snapshot if provided. A current calendar alone does not prove original allocation identity or freshness.",
+    "priceRequestCount": 0,
+    "executed": false,
+    "whyRepoInsufficient": "Explicit mapping for181..281 absent from13 paths/15 historical metadata blobs; allocation output retains only bounds/count."
+  },
+  "queryNowNeededForBudgetFreeze": "NO; even a successful calendar mapping would leave protected ownership and stage-budget blockers. Stop without querying.",
+  "batchOrderReference": "requirements-and-plans.json#/releaseOrderDraft",
+  "providerRequestsThisTask": {
+    "Yahoo": 0,
+    "JQuantsMetadata": 0,
+    "JQuantsPrice": 0,
+    "OtherMarketDataPrice": 0
+  },
+  "bulkAcquisitionAllowed": false,
+  "outcomeBasedExpansionAllowed": false
+}

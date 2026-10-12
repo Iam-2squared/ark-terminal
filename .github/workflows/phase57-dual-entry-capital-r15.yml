@@ -1,0 +1,99 @@
+name: Phase57 Dual Entry Frozen Capital Integration R15
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-dual-entry-capital-r15.yml
+      - scripts/phase57_dual_entry_capital_v1.py
+      - scripts/test_phase57_dual_entry_capital_v1.py
+      - docs/evidence/phase57-dual-entry-exit-integration-v1/CAPITAL_CONTRACT_R15.json
+permissions:
+  contents: read
+  actions: read
+jobs:
+  frozen-capital-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      ARK_TEST_OFFLINE: '1'
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Synthetic EXIT and Capital invariant tests
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/dual-entry-capital-r15
+          python -m unittest -v scripts.test_phase57_dual_entry_exit_integration_v1 scripts.test_phase57_dual_entry_capital_v1 2>&1 | tee artifacts/dual-entry-capital-r15/tests.log
+      - name: Restore immutable R13 full EXIT ledger without provider access
+        uses: actions/download-artifact@v4
+        with:
+          repository: Iam-2squared/ark-terminal
+          run-id: 36115061827
+          name: phase57-dual-entry-exit-r13-36115061827
+          github-token: ${{ github.token }}
+          path: artifacts/frozen-exit
+      - name: Replay full2155 cash-only ledgers twice without outcome filtering
+        run: |
+          set -euo pipefail
+          LEDGER='artifacts/frozen-exit/run-a/exit-ledgers.json.gz'
+          echo "0afdb59bc476f7085955b3ac30efdf875402fb1d68b316181f483b3486c8e9c6  $LEDGER" | sha256sum -c -
+          for RUN in run-a run-b; do
+            python -m scripts.phase57_dual_entry_capital_v1 \
+              --exit-ledger "$LEDGER" --execution-head '${{ github.sha }}' \
+              --out "artifacts/dual-entry-capital-r15/$RUN"
+          done
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          root = Path('artifacts/dual-entry-capital-r15')
+          names = ['summary.json','ledgers.json.gz','manifest.json']
+          pins = {}
+          for name in names:
+              a = (root/'run-a'/name).read_bytes()
+              b = (root/'run-b'/name).read_bytes()
+              assert a == b, ('RUN_A_B_NOT_BYTE_IDENTICAL',name)
+              pins[name] = hashlib.sha256(a).hexdigest()
+          s = json.loads((root/'run-a/summary.json').read_text())
+          protocol = json.loads(Path('docs/evidence/phase57-entry-timing-signal-census-v1/protocol.json').read_text())
+          calendar_sessions = protocol['evaluationSessions']
+          assert len(calendar_sessions) == len(set(calendar_sessions)) == 59
+          assert s['streamVsFrozenR13ParityFills'] == 3848
+          assert s['finalEntrySelected'] is False
+          assert s['providerRequests'] == s['newProtectedPartitionsOpened'] == 0
+          assert all(v is False for v in s['safety'].values())
+          for arm, reports in s['reports'].items():
+              for architecture, r in reports.items():
+                  assert r['opportunities'] == 2155
+                  assert r['sessionCount'] == len(calendar_sessions)
+                  assert r['accepted'] == r['closed'] + r['unresolved']
+                  assert r['accepted'] + r['rejected'] == r['entryFills']
+                  assert r['maxConcurrent'] <= 10
+                  assert r['cashBalanceJpy'] >= -1e-7
+                  assert r['maxCashBalanceErrorJpy'] < 1e-5
+                  if r['unresolved']:
+                      assert r['portfolioReturnPct'] is None
+                      assert r['maxDrawdownPct'] is None
+                      assert r['finalEquityJpy'] is None
+          receipt = {'status':'CAPITAL_ACCOUNTING_INTEGRITY_PASS_NOT_PORTFOLIO_PROMOTION',
+              'executionHead':'${{ github.sha }}','populationPerEntry':2155,
+              'calendarSessions':59,'opportunityBearingSessions':58,
+              'runABByteIdentical':True,'streamParityFills':3848,
+              'outputPins':pins,'safety':s['safety']}
+          (root/'CI_RECEIPT.json').write_text(json.dumps(receipt,sort_keys=True,indent=2)+'\n')
+          print(json.dumps(receipt,sort_keys=True))
+          PY
+      - name: Preserve append-only Capital evidence including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-dual-entry-capital-r15-${{ github.run_id }}
+          path: artifacts/dual-entry-capital-r15
+          retention-days: 30
+          if-no-files-found: error
+          overwrite: false

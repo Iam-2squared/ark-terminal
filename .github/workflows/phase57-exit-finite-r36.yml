@@ -1,0 +1,117 @@
+name: Phase57 Finite NEW EXIT R36
+
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - 'scripts/phase57_exit_finite_r36.py'
+      - 'scripts/test_phase57_exit_finite_r36.py'
+      - 'docs/evidence/phase57-comprehensive-exit-v1/FINITE_EXIT_IMPLEMENTATION_FREEZE_R36.md'
+      - '.github/workflows/phase57-exit-finite-r36.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-exit-finite-r36-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  finite-once:
+    if: github.ref == 'refs/heads/research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      ARK_TEST_OFFLINE: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONPATH: '.'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install frozen estimator dependencies
+        run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.7.2 pandas==2.2.3 joblib==1.5.2
+
+      - name: Require this execution SHA still be branch HEAD before performance
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, urllib.request
+          url='https://api.github.com/repos/Iam-2squared/ark-terminal/git/ref/heads/research/phase57-long-only-cash-equity'
+          with urllib.request.urlopen(url, timeout=30) as response:
+              remote=json.load(response)['object']['sha']
+          assert remote == os.environ['GITHUB_SHA'], (remote, os.environ['GITHUB_SHA'])
+          print(json.dumps({'latestHead':remote,'fitNotStarted':True},sort_keys=True))
+          PY
+
+      - name: Restore successful immutable R35 preparation artifact
+        uses: actions/download-artifact@v4
+        with:
+          repository: Iam-2squared/ark-terminal
+          run-id: '36220335998'
+          name: phase57-exit-capital-prep-r35-36220335998
+          github-token: ${{ github.token }}
+          path: artifacts/r35
+
+      - name: Focused tests before the one-shot fit
+        env:
+          R33_FIT_CONTRACT: artifacts/r35/r33-fit-contract.json
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/r36-logs
+          python -m unittest -v \
+            scripts.test_phase57_exit_finite_r36 \
+            scripts.test_phase57_exit_runtime_r35 \
+            scripts.test_phase57_exit_cache_r35 \
+            scripts.test_phase57_exit_capture_metrics_v1 \
+            scripts.test_phase57_cash_capital_r34 \
+            2>&1 | tee artifacts/r36-logs/focused-tests.log
+
+      - name: Run exactly 144 fits and 24 policy replays once
+        run: |
+          set -euo pipefail
+          python -m scripts.phase57_exit_finite_r36 \
+            --core-root artifacts/r35 \
+            --out artifacts/r36 \
+            --workers 2 \
+            2>&1 | tee artifacts/r36-logs/finite-run.log
+
+      - name: Verify terminal receipt and safety
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          p=Path('artifacts/r36/receipt.json')
+          d=json.loads(p.read_text())
+          assert d['status'] in ('SELECT','NO_SELECTION_STOP')
+          assert d['modelFits']==144
+          assert d['candidatePoliciesReplayed']==24
+          assert d['runABByteIdentical'] is True
+          assert d['providerRequests']==d['protectedPartitionsOpened']==0
+          assert all(v is False for v in d['safety'].values())
+          print(json.dumps({'head':os.environ['GITHUB_SHA'],'status':d['status'],
+                            'selection':d['selection']},sort_keys=True))
+          PY
+
+      - name: Preserve complete evidence including any partial failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-exit-finite-r36-${{ github.run_id }}
+          path: |
+            artifacts/r36
+            artifacts/r36-logs
+          retention-days: 30
+          overwrite: false
+          if-no-files-found: error

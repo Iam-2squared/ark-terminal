@@ -1,0 +1,33 @@
+name: Phase57 NEW LONG EXIT Loss Defense v1 FAST-FAIL
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-new-long-exit-loss-defense-v1-fast-fail.yml'
+      - 'scripts/*phase57_new_long_exit_loss_defense_v1_fast_fail*'
+      - 'docs/evidence/phase57-new-long-exit-v1-prior-low-break-contract-2026-09-18.md'
+      - 'docs/evidence/phase57-new-long-exit-v1-prior-low-break-fast-fail/**'
+permissions:
+  contents: read
+jobs:
+  prior-low-break-fast-fail:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Frozen structural rule tests
+        env: {ARK_TEST_OFFLINE: '1'}
+        run: python3 scripts/offline/kernel_exec.py python3 -m unittest scripts.test_phase57_new_long_exit_loss_defense_v1_fast_fail
+      - name: Run frozen v1 exactly and reproduce
+        env: {ARK_TEST_OFFLINE: '1'}
+        run: |
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_loss_defense_v1_fast_fail --out /tmp/v1-a | tee /tmp/v1-result.txt
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_loss_defense_v1_fast_fail --out /tmp/v1-b >/tmp/v1-result-b.txt
+          cmp /tmp/v1-a/summary.json /tmp/v1-b/summary.json
+          cmp /tmp/v1-a/ledger.json.gz /tmp/v1-b/ledger.json.gz
+          cmp /tmp/v1-a/manifest.json /tmp/v1-b/manifest.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-new-long-exit-loss-defense-v1-fast-fail
+          path: /tmp/v1-a/

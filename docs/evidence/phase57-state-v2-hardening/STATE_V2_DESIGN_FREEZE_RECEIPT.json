@@ -1,0 +1,46 @@
+{
+  "recordedAtJST": "2026-09-22",
+  "status": "STATE_V2_DESIGN_OFFICIAL_FREEZE",
+  "branch": "research/phase57-long-only-cash-equity",
+  "pr": 587,
+  "freezeCommit": "b4d04c97f8883cce08ff4ff06aa236950d9d2442",
+  "verdict": "SAFE_TO_FREEZE_V2_DESIGN",
+  "scope": "DESIGN_FREEZE_ONLY",
+  "evidence": {
+    "stateDefinition": "docs/phase57-five-minute-entry-state/STATE_DEFINITION_v2_FREEZE_CANDIDATE.md",
+    "hardening": "docs/evidence/phase57-state-v2-hardening/HARDENING_EVIDENCE.md",
+    "goldenVectors": "docs/evidence/phase57-state-v2-hardening/GOLDEN_VECTORS_v2.json",
+    "gateRevision": "docs/evidence/phase57-state-v2-hardening/FREEZE_GATE_REVISION_1_20260922.md",
+    "g7R2": "docs/evidence/phase57-state-v2-g7-r2/REVIEW_RESULT_20260922-ja.md",
+    "reviewerC": "docs/evidence/phase57-state-v2-hardening/D7_REVIEWER_C_RESULT_20260922.md",
+    "finalAdjudication": "docs/evidence/phase57-state-v2-hardening/FINAL_D7_B2_ADJUDICATION_RESULT_20260922.md"
+  },
+  "historicalFailuresPreserved": {
+    "g7V1": "FAIL_UNCHANGED",
+    "g7R2": "FORMAL_FAIL_UNCHANGED"
+  },
+  "unresolvedDesignFreezeBlockers": [],
+  "downstream": {
+    "implementationAcceptance": "NOT_STARTED",
+    "full77214Generation": "NOT_STARTED",
+    "causalRecognition": "NOT_STARTED",
+    "signal": "NOT_STARTED",
+    "buyWait": "NOT_STARTED",
+    "entry": "NOT_STARTED",
+    "exit": "NOT_STARTED"
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "note": "freezeCommit is the commit that changed the candidate manifest to STATE_V2_DESIGN_FROZEN. receiptInitialCommit created this receipt; receiptCorrectionCommit corrected commit identity fields.",
+  "receiptInitialCommit": "9cac7e32fd93daae7ea8d4723308460c001ee22e",
+  "receiptCorrectionCommit": "3f39746435846836f02463399f3334cef691a239"
+}

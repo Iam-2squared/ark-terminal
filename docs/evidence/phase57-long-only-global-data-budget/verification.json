@@ -1,0 +1,28 @@
+{
+  "scope": "METADATA_ONLY_NO_MODEL_OR_PERFORMANCE_TESTS",
+  "offlineCommand": "ARK_TEST_OFFLINE=1 python scripts/offline/kernel_exec.py python scripts/audit_phase57_global_budget_metadata.py",
+  "offlineExitCode": 0,
+  "checks": {
+    "unique_identifiers": "PASS",
+    "identity_and_allocation_unchanged": "PASS",
+    "protection_flags_unchanged": "PASS",
+    "exclusive_counts": "PASS",
+    "unknown_not_guessed": "PASS",
+    "no_fresh_promotions": "PASS",
+    "future20_one_unreleased_rule": "PASS",
+    "protected_hashes": "PASS",
+    "all_95_report_items": "PASS",
+    "no_frozen_contract_issued": "PASS",
+    "safety_all_false": "PASS",
+    "this_task_counters_zero": "PASS",
+    "all_tracked_files_unchanged": "PASS",
+    "metadata_builder_stdlib_only": "PASS"
+  },
+  "total": 14,
+  "pass": 14,
+  "fail": 0,
+  "skip": 0,
+  "fullRegressionRun": false,
+  "ciUsedAsFreezeEvidence": false,
+  "trackedBaseline": "825da2af3256f554f4586be0db6d5ba36cc23309"
+}

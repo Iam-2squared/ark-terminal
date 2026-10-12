@@ -1,0 +1,62 @@
+{
+  "verdict": "MSH_ENTRY_LONG_V1_DEVELOPMENT_BORDERLINE",
+  "selectedThreshold": null,
+  "descriptiveBalanceLeader": 1.0,
+  "qualityEnrichmentCandidateNotSelected": 2.0,
+  "thresholdCandidates": [1.0, 2.0, 3.0],
+  "reasons": [
+    "All four frozen fits converged; all pre-fit and saved-output integrity checks passed.",
+    "Threshold 1 leads the frozen balance scalar but admits 98.82% of the labelable symbol-session pool: it largely reproduces Selector-only rather than establishing a useful incremental Entry filter.",
+    "Threshold 2 enriches every HIGH threshold in every fold and improves session-horizon admission preservation and throughput against cached CURRENT on the same symbol-session pool. It is not selected by overriding the frozen balance objective.",
+    "Threshold 3 has only 23 entries and fails to preserve the +5 enrichment direction in fold 3; high precision alone is insufficient.",
+    "Full paired strict-30m CURRENT outcomes and strict-30m true MAE are unavailable in reused ledgers. Session diagnostics are not replacements for these missing measurements.",
+    "Coverage is conditional on hindsight labelability; Entry OOF is not upstream-Selector OOS or a deployable whole-universe coverage estimate.",
+    "No post-result numeric gates, thresholds, hyperparameters, features, folds, labels or model variants were introduced."
+  ],
+  "completion": {
+    "fourFitsAndOofAndThreeThresholdEvaluations": "COMPLETE",
+    "strict30mTrueMae": "UNAVAILABLE_IN_REUSED_LEDGER",
+    "fullPairedCurrent30m": "PARTIAL_24_OF_66_PASS_MATCHED",
+    "localFullPredictionRegression": "BLOCKED_PROVIDER_NETWORK_RISK",
+    "remotePublicationAndNewCi": "NOT_PERFORMED_TO_AVOID_TRIGGERING_NETWORKED_TEST_SUITE"
+  },
+  "tests": {
+    "frozenModelSynthetic": {"passed": 18, "failed": 0},
+    "evaluationSynthetic": {"passed": 12, "failed": 0},
+    "discovery": {"passed": 26, "failed": 0},
+    "rssBridge": {"passed": 89, "failed": 0},
+    "savedEvidenceAudit": {
+      "status": "PASS", "oofRows": 1451, "decisionRows": 4353,
+      "maxProbabilityAbsoluteError": 2.220446049250313e-16,
+      "fitCalls": 0, "modelApiPredictionCalls": 0
+    },
+    "predictionFullSuite": {
+      "status": "BLOCKED_NOT_CLAIMED_PASS",
+      "reason": "Continuation of npm test was rejected by safety review because it can trigger an unapproved Yahoo Finance request. No retry or bypass."
+    }
+  },
+  "accessAccounting": {
+    "developmentExperimentProjectFitCalls": 4,
+    "full76SessionRefitCalls": 0,
+    "developmentExperimentProviderRequests": 0,
+    "regressionSuiteProviderRequestCount": null,
+    "regressionSuiteProviderRequestCountStatus": "ZERO_NOT_VERIFIED_NETWORK_RISK_BLOCKED",
+    "validationNewAccess": 0,
+    "oosNewAccess": 0,
+    "projectExitAccess": 0,
+    "projectShortEvaluation": 0
+  },
+  "newRemoteRefUpdate": false,
+  "sourceHeadCi": {
+    "appliesToNewResults": false,
+    "predictTests": {"runId": 35053207614, "conclusion": "success"},
+    "phase52DailyDryRunPersistence": {"runId": 35053207633, "conclusion": "success"},
+    "phase57LongOnlyResearchFoundation": {"runId": 35053207611, "conclusion": "success"}
+  },
+  "sourceHead": "97617f410a181108ab533632487d05c65f3a9ea8",
+  "latestMainAtAudit": "6b6c4d522cd1863132185463a0aed74bc819be01",
+  "localPrefitCommit": "d8539ca38017a0911a90377dd56dfd978313dce4",
+  "contractSha256": "64c20d785be5f23b0a9103f419726b191a12a58fd5d3a7ad5185c69f9644a938",
+  "validationAuthorized": false,
+  "exactNextAction": "STOP. Review this Development result and the partial-evidence limitations. Before full regression/publication, obtain explicit direction on an offline-only test setup. Do not rerun fits, tune the contract, or open Validation/OOS."
+}

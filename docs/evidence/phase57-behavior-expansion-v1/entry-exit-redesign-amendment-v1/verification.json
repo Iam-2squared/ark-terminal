@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "checks": [
+    "source blobs match precommitted remote tree",
+    "144 intraday / 733 daily dates retained",
+    "holdout 244 = exposed 135 + UNKNOWN 8 + no-source-row 101",
+    "no overlap of Development and Holdout",
+    "baseline immutable Git snapshot and 28 blob pins",
+    "all Holdout uses false",
+    "all Safety flags false"
+  ],
+  "filesSha256": {
+    "README-ja.md": "4f49d7fe03a14af96308346fac408e6626da4d6351af4c39680858f4bb1d288b",
+    "baseline-manifest.json": "b6c92cc69fc4c45730d053a1ea613c5b814f9355b358d49722b2907dd5d1b514",
+    "exposure-ledger.json": "dfc94e8e010ad39fa294a36c3853df83af3b37f0b193722187af70960a84722a",
+    "scope.json": "39d3c4af9b8ba76cb439972363f8ec3d23624d57d04f628b8ed3d8f2eb38d02e"
+  },
+  "performanceTestsRun": false,
+  "reason": "Append-only research scope and metadata; no runtime or candidate change"
+}

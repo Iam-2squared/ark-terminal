@@ -1,0 +1,109 @@
+name: Phase57 R53 Zero-fit EXIT Contract
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - docs/evidence/phase57-exit-persistent-value-r53/ZERO_FIT_CHECKPOINT.json
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-r53-contract-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  no-fit-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PYTHONPATH: '.'
+      PYTHONDONTWRITEBYTECODE: '1'
+      ARK_TEST_OFFLINE: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0 pandas==2.2.3 matplotlib==3.10.8 joblib==1.5.2
+      - name: Exact frozen source and zero-fit checkpoint
+        run: |
+          mkdir -p /tmp/r53-contract
+          python - <<'PY'
+          import hashlib,json,pathlib,os
+          base=pathlib.Path('docs/evidence/phase57-exit-persistent-value-r53')
+          sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+          p=json.loads((base/'PRECOMMIT.json').read_text())
+          c=json.loads((base/'ZERO_FIT_CHECKPOINT.json').read_text())
+          assert sha(base/'PRECOMMIT.json')==(base/'PRECOMMIT.sha256').read_text().strip()==c['protocolSha256']
+          assert c['sourceSha256']==sha('scripts/phase57_exit_persistent_value_r53.py')
+          assert c['testSha256']==sha('scripts/test_phase57_exit_persistent_value_r53.py')
+          assert c['workflowSha256']==sha('.github/workflows/phase57-exit-persistent-value-r53-contract.yml')
+          assert c['newFits']==c['newPolicyReplays']==0
+          assert p['candidateCount']==1 and len(p['safety'])==9 and not any(p['safety'].values())
+          assert c['basisHead']=='3022bcb039077be5d3c84f1d7d7ca19a3cb90c3c'
+          assert c['providerRequests']==c['protectedOpened']==0
+          PY
+      - name: Synthetic EXIT, frozen rank/ledger and causal tests
+        run: |
+          python -m unittest -q scripts.test_phase57_exit_persistent_value_r53 scripts.test_phase57_exit_continuation_r52 scripts.test_phase57_capital_exit_integrated scripts.test_phase57_exit_winner_lifecycle_r50 2>&1 | tee /tmp/r53-contract/tests.log
+      - uses: actions/download-artifact@v4
+        with:
+          repository: Iam-2squared/ark-terminal
+          run-id: 36251316248
+          name: phase57-exit-gen3-r45-36251316248
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/r45
+      - name: Reassemble immutable prior predictions and verify full OOF metadata
+        run: |
+          python - <<'PY'
+          import hashlib,json,pathlib,zipfile,os
+          base=pathlib.Path('docs/evidence/phase57-exit-continuation-r52/cycle2/RESULT')
+          manifest=json.loads((base/'ARTIFACT_REASSEMBLY.json').read_text())
+          sha=lambda content:hashlib.sha256(content).hexdigest()
+          chunks=[]
+          for part in manifest['parts']:
+              data=(base/part['path']).read_bytes()
+              assert len(data)==part['bytes'] and sha(data)==part['sha256']
+              chunks.append(data)
+          assembled=b''.join(chunks)
+          assert sha(assembled)==manifest['assembledSha256']
+          pathlib.Path('/tmp/r53-contract/old.zip').write_bytes(assembled)
+          with zipfile.ZipFile('/tmp/r53-contract/old.zip') as z:
+              data=z.read('result/oof-predictions.npz')
+          target=pathlib.Path('/tmp/r53-contract/oof-predictions.npz')
+          target.write_bytes(data)
+          p=json.loads(pathlib.Path('docs/evidence/phase57-exit-persistent-value-r53/PRECOMMIT.json').read_text())
+          assert sha(data)==p['predictionSource']['sha256']
+          previous=json.loads(pathlib.Path('docs/evidence/phase57-exit-continuation-r52/cycle2/OOF_AUDIT.json').read_text())
+          assert previous['status']=='PASS' and previous['predictionSha256']==sha(data)
+          PY
+      - name: Verify source matrix, row identities and OOF coverage without fit or replay
+        run: |
+          python -m scripts.phase57_exit_persistent_value_r53 --mode preflight --source "$RUNNER_TEMP/r45/gen3" --prediction /tmp/r53-contract/oof-predictions.npz --out /tmp/r53-contract/preflight.json
+          python - <<'PY'
+          import hashlib,json,os,pathlib
+          base=pathlib.Path('docs/evidence/phase57-exit-persistent-value-r53')
+          c=json.loads((base/'ZERO_FIT_CHECKPOINT.json').read_text())
+          pre=json.loads(pathlib.Path('/tmp/r53-contract/preflight.json').read_text())
+          assert pre['rows']==656247 and pre['frozenEntryGroups']==3848 and pre['windowEntryGroups']==1614
+          assert pre['newFits']==pre['newPolicyReplays']==0
+          assert pre['protocolSha256']==c['protocolSha256']
+          receipt={'schema':'phase57-r53-zero-fit-ci-v1','status':'PASS',
+                   'testedSha':os.environ['GITHUB_SHA'],'protocolSha256':c['protocolSha256'],
+                   'sourceSha256':c['sourceSha256'],'testSha256':c['testSha256'],
+                   'savedPredictionSha256':pre['savedPredictionSha256'],
+                   'candidatePerformanceSeen':False,'newFits':0,'newPolicyReplays':0,
+                   'providerRequests':0,'protectedOpened':0,'safety':pre['safety']}
+          pathlib.Path('/tmp/r53-contract/receipt.json').write_text(json.dumps(receipt,sort_keys=True)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-r53-contract-${{ github.sha }}
+          path: /tmp/r53-contract/
+          retention-days: 90
+          if-no-files-found: warn

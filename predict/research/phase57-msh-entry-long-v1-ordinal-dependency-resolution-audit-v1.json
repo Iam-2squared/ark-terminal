@@ -1,0 +1,211 @@
+{
+  "schemaVersion": 1,
+  "auditId": "PHASE57_MSH_ENTRY_LONG_V1_ORDINAL_DEPENDENCY_RESOLUTION",
+  "dateJst": "2026-09-16",
+  "status": "DEPENDENCY_AUDIT_COMPLETE_STOP",
+  "freezeDecision": "MSH_ENTRY_LONG_V1_FIT_CONTRACT_BLOCKED",
+  "freezeEffective": false,
+  "primaryBlocker": "NO_ACCEPTABLE_ORDINAL_DEPENDENCY",
+  "blockerDetails": [
+    "statsmodels OrderedModel provides the required proportional-odds logit likelihood and probabilities but has no native regularized fit path, so slope-only L2 cannot be pinned without a custom optimizer or subclass",
+    "mord LogisticAT provides ordered thresholds, class probabilities and slope-only L2, but optimizes an All-Threshold margin surrogate rather than the ordered categorical likelihood and discards the scipy optimizer result",
+    "mord fit returns normally even when max_iter is zero and exposes no convergence success, status, message or iteration attribute, so fail-closed convergence cannot be enforced",
+    "scikit-learn LogisticRegression is binary or multinomial, not a proportional-odds ordinal model",
+    "no audited candidate satisfies every dependency selection criterion; model semantics are not relaxed"
+  ],
+  "sourceIntegrity": {
+    "repository": "Iam-2squared/ark-terminal",
+    "branch": "research/phase57-long-only-cash-equity",
+    "pullRequest": 587,
+    "auditedHeadBeforeThisReport": "5aa241e8001106ad73382aae57e50a05294ef907",
+    "latestMainObserved": "6b6c4d522cd1863132185463a0aed74bc819be01",
+    "frozenSelectorName": "Phase57 LONG-only Frozen Selector v1",
+    "frozenSelectorFreezeCommit": "565d74b3dea823581fdb32380113aac5913a248d",
+    "frozenSelectorPayloadSha256": "3dc6d222d4039737c0dcfdcfa4a83372202152e29b582225419ab97c00610d59",
+    "frozenSelectorRidgeArtifactSha256": "994f1dbaba1d32e97458d5dd9d4c646ef443fbb37128650e8166001d8deabefb",
+    "priorFitContractAuditSha256": "59289131fead62ca82265cb34e232a0e62ca5fd3409a27b8d58ccc6bfae22855"
+  },
+  "environment": {
+    "repoPython": "3.12",
+    "auditedRuntimePython": "3.12.14",
+    "numpy": "2.3.5",
+    "scipy": "1.17.0",
+    "pandas": "2.2.3",
+    "scikitLearn": "1.8.0"
+  },
+  "dependencyCandidates": [
+    {
+      "package": "statsmodels",
+      "version": "0.15.0",
+      "releaseDate": "2026-08-27",
+      "maintenance": "ACTIVE",
+      "license": "BSD-3-Clause",
+      "pythonRequirement": ">=3.10",
+      "environmentCompatibility": "PASS",
+      "implementation": "statsmodels.miscmodels.ordinal_model.OrderedModel(distr='logit')",
+      "proportionalOdds": true,
+      "logitLink": true,
+      "fiveOrderedClasses": true,
+      "fourOrderedCutpoints": true,
+      "probabilityReconstruction": "F(theta[k+1]-x*beta)-F(theta[k]-x*beta)",
+      "nativeSlopeOnlyL2": false,
+      "cutpointsUnpenalizedUnderRequiredL2": "UNAVAILABLE_BECAUSE_NO_NATIVE_L2_PATH",
+      "convergenceStatus": "AVAILABLE_FOR_UNREGULARIZED_GENERIC_FIT_ONLY",
+      "determinism": "NOT_AUDITED_AFTER_CRITICAL_L2_FAILURE",
+      "serialization": "NOT_AUDITED_AFTER_CRITICAL_L2_FAILURE",
+      "selected": false,
+      "rejectionCodes": [
+        "L2_SEMANTICS_UNRESOLVED",
+        "CUSTOM_OPTIMIZER_REQUIRED"
+      ]
+    },
+    {
+      "package": "mord",
+      "version": "0.7",
+      "releaseDate": "2023-05-26",
+      "maintenance": "STALE_SOURCE_LAST_PUSH_2023-04-27",
+      "license": "BSD-3-Clause",
+      "pythonRequirement": "UNSPECIFIED_BY_PACKAGE_METADATA",
+      "environmentCompatibility": "SYNTHETIC_IMPORT_AND_FIT_PASS_ON_AUDITED_RUNTIME",
+      "implementation": "mord.LogisticAT",
+      "proportionalOddsProbabilityForm": true,
+      "exactOrderedCategoricalLikelihood": false,
+      "objectiveFamily": "ALL_THRESHOLD_LOGISTIC_MARGIN_SURROGATE",
+      "logitLink": true,
+      "fiveOrderedClasses": true,
+      "fourOrderedCutpoints": true,
+      "probabilityReconstruction": "diff([0, sigmoid(theta-x*beta), 1])",
+      "nativeSlopeOnlyL2": true,
+      "l2Objective": "sum(all-threshold logistic losses) + alpha/2 * ||beta||^2",
+      "l2SampleSizeScaling": "UNNORMALIZED_SUM_LOSS",
+      "cutpointsUnpenalized": true,
+      "solver": "scipy.optimize.minimize(method='L-BFGS-B')",
+      "defaultTolerance": "1e-12",
+      "defaultMaxIterations": 1000,
+      "convergenceStatusExposed": false,
+      "convergenceFailureBehavior": "RETURNS_PARAMETERS_AND_ESTIMATOR_WITHOUT_FAILING",
+      "determinism": "SYNTHETIC_EXACT_REPEAT_PASS",
+      "serialization": "SYNTHETIC_PICKLE_ROUNDTRIP_PASS",
+      "selected": false,
+      "rejectionCodes": [
+        "PROBABILITY_SEMANTICS_UNRESOLVED_EXACT_LIKELIHOOD",
+        "DETERMINISM_UNRESOLVED_FAIL_CLOSED_CONVERGENCE",
+        "MAINTENANCE_CRITERION_NOT_MET"
+      ]
+    },
+    {
+      "package": "scikit-learn",
+      "version": "1.8.0",
+      "releaseDate": null,
+      "maintenance": "ACTIVE",
+      "license": "BSD-3-Clause",
+      "environmentCompatibility": "PASS_ALREADY_PINNED_IN_COMPARISON_LANE",
+      "implementation": "sklearn.linear_model.LogisticRegression",
+      "proportionalOdds": false,
+      "modelFamily": "BINARY_OR_MULTINOMIAL_LOGISTIC",
+      "selected": false,
+      "rejectionCodes": [
+        "PROBABILITY_SEMANTICS_UNRESOLVED",
+        "PROHIBITED_MULTINOMIAL_OR_BINARY_SUBSTITUTION"
+      ]
+    }
+  ],
+  "selectedDependency": null,
+  "repoDependencyPin": {
+    "changed": false,
+    "location": null,
+    "reason": "NO_ACCEPTABLE_ORDINAL_DEPENDENCY"
+  },
+  "syntheticAudit": {
+    "projectDataUsed": false,
+    "candidate": "mord==0.7",
+    "purpose": "CANDIDATE_SEMANTICS_AND_FAILURE_MODE_ONLY_NOT_MODEL_SELECTION",
+    "sampleCount": 500,
+    "featureCount": 2,
+    "classes": [0, 1, 2, 3, 4],
+    "classCounts": [137, 83, 98, 63, 119],
+    "fitFinite": true,
+    "orderedCutpoints": true,
+    "probabilityColumns": 5,
+    "probabilityFinite": true,
+    "probabilityNonnegative": true,
+    "maxProbabilityRowSumError": 1.1102230246251565e-16,
+    "expectedLevelLatentDirectionCorrelation": 0.9884844990817304,
+    "unregularizedSlopeNorm": 1.4928949152351885,
+    "fixedL2SlopeNorm": 1.483973605337999,
+    "l2ObjectiveIncrementObserved": 0.09999999999990905,
+    "l2ObjectiveIncrementExpected": 0.10000000000000002,
+    "deterministicCoefficientExact": true,
+    "deterministicCutpointExact": true,
+    "deterministicProbabilityExact": true,
+    "classSemanticsExact": true,
+    "serializationPredictionExact": true,
+    "maxIterZeroFitReturnedNormally": true,
+    "convergenceAttributesPresent": [],
+    "overall": "FAIL_CONVERGENCE_CONTRACT",
+    "note": "Passing synthetic probability and determinism checks cannot override the missing fail-closed convergence result or the objective-family mismatch."
+  },
+  "unchangedCandidateContract": {
+    "architecture": "NEW_LONG_SPECIFIC_ENTRY",
+    "mandatoryCore": [
+      "frozenSelectorRidgeScore",
+      "frozenSelectorRidgeRank"
+    ],
+    "optionalFeatures": [],
+    "decisionPriceRole": "REFERENCE_ONLY",
+    "primaryLabel": "STRICT_WALL_CLOCK_PLUS_30_MINUTES_SAME_SESSION_COMPLETE_PATH_FUTURE_HIGH_ORDINAL_0_TO_4",
+    "unlabelableHandling": "EXCLUDE_FROM_FIT_AND_OOF_NEVER_CLASS_0_KEEP_AUDIT_LEDGER",
+    "supportingDiagnostic": "COMPLETED_FIVE_MINUTE_CLOSE_ORDINAL_SEPARATE_FROM_PRIMARY",
+    "model": "ONE_PROPORTIONAL_ODDS_ORDINAL_LOGISTIC_LOGIT_MODEL",
+    "classWeight": "UNWEIGHTED",
+    "crossValidation": {
+      "type": "SESSION_GROUPED_EXPANDING_WINDOW_CHRONOLOGICAL",
+      "folds": [
+        "TRAIN_1_16_EVAL_17_31",
+        "TRAIN_1_31_EVAL_32_46",
+        "TRAIN_1_46_EVAL_47_61",
+        "TRAIN_1_61_EVAL_62_76"
+      ]
+    },
+    "decisionScore": "E[L]=0*P0+1*P1+2*P2+3*P3+4*P4",
+    "decisionScoreRange": [0, 4],
+    "thresholdCandidates": [1, 2, 3],
+    "state": [
+      "ENTER",
+      "SKIP_THIS_DECISION"
+    ]
+  },
+  "finalContract": {
+    "sha256": null,
+    "issued": false,
+    "reason": "A contract hash is issued only when every freeze condition passes."
+  },
+  "methodology": {
+    "projectDataFitCalls": 0,
+    "projectPredictions": 0,
+    "oofRowsGenerated": 0,
+    "cvPerformanceRuns": 0,
+    "thresholdPerformanceRuns": 0,
+    "featureImportanceRuns": 0,
+    "validationNewAccess": 0,
+    "oosNewAccess": 0,
+    "exitAccess": 0,
+    "providerRequests": 0,
+    "shortEvaluations": 0
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "shortAllowed": false,
+    "marginAllowed": false,
+    "leverageAllowed": false
+  },
+  "exactNextAction": "STOP. Do not implement or train. A separate explicit architecture decision is required before authorizing either a reviewed in-repository proportional-odds implementation or a change to the native slope-only-L2/convergence requirements."
+}

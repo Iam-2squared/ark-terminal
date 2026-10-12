@@ -1,0 +1,98 @@
+{
+  "version": "five-minute-state-unidentified-deep-audit-v1",
+  "recordedAtJST": "2026-09-21T19:19:38+09:00",
+  "sourceHead": "90325a549b083c0d6ff2749cc52c3c3fbd8f59f9",
+  "sourceMeasurement": {
+    "checkpointN": 77214,
+    "unidentifiedN": 68405,
+    "measurementManifestSHA256": "4e11b8eb576dcdd0552f2461c699f57bdabc1db37d8e4c2be9a389a80748d6d1",
+    "filesVerified": 179
+  },
+  "primaryPartition": {
+    "A_INPUT_OR_OBSERVATION_LIMITED": 54925,
+    "B_STRUCTURE_NOT_YET_CONFIRMED": 11326,
+    "D_STRUCTURAL_VOCABULARY_GAP_CANDIDATE": 2154
+  },
+  "A": {
+    "currentBarUnavailable": 30986,
+    "currentWindowObserved1m": {
+      "0": 14102,
+      "1": 7109,
+      "2": 4558,
+      "3": 3139,
+      "4": 2078
+    },
+    "scaleUnavailable": 14816,
+    "unresolvedLatest5Partial": 9123,
+    "scaleStatusOpportunity": {
+      "AVAILABLE": 1005,
+      "SCALE_INSUFFICIENT": 1105,
+      "PREVIOUS_CONTEXT_UNAVAILABLE": 43,
+      "PRICE_BASIS_UNVERIFIED": 1,
+      "SCALE_ZERO": 1
+    },
+    "scaleInsufficientComplete5mBlocks": {
+      "0": 748,
+      "1": 136,
+      "2": 76,
+      "3": 50,
+      "4": 52,
+      "5": 43
+    }
+  },
+  "B": {
+    "rows": 11326,
+    "pivotCount": {
+      "0": 3723,
+      "1": 4091,
+      "2": 2185,
+      "3": 1327
+    }
+  },
+  "D": {
+    "rows": 2154,
+    "pivotGeometry": {
+      "H_UP|L_DOWN": 845,
+      "H_DOWN|L_UP": 479,
+      "H_DOWN|L_DOWN": 198,
+      "H_UP|L_UP": 177,
+      "H_EQ|L_DOWN": 116,
+      "H_DOWN|L_EQ": 104,
+      "H_UP|L_EQ": 88,
+      "H_EQ|L_EQ": 74,
+      "H_EQ|L_UP": 73
+    },
+    "currentPhase": {
+      "RESTRUCTURING": 1427,
+      "RESTRUCTURING|RECOVERY": 348,
+      "RECOVERY": 93,
+      "NONE": 286
+    },
+    "phaseNone": 286,
+    "phaseNoneWithChop": 55,
+    "phaseNoneWithoutChop": 231
+  },
+  "C_overlay": {
+    "exclusive": false,
+    "reason": "Descriptor availability overlaps B/D; not promoted to a new State label in this audit."
+  },
+  "replay": {
+    "doubleRunManifestMatch": true,
+    "auditManifestSHA256": "cdd251ec8aab55c061ac1385a8f21b00543a2c5f8d04e27272d3ee4a538115ad"
+  },
+  "conversationAttachment": {
+    "file": "phase57_state_unknown_deep_audit_20260921.zip",
+    "sha256": "ea2e175fe70b145bdd51fc179ee7b1ad4cca64ff14757e5130a8229bbcb10245",
+    "representativeCharts": 10
+  },
+  "guards": {
+    "definitionChanged": false,
+    "thresholdSearch": false,
+    "causalRecognition": false,
+    "signal": false,
+    "buyWait": false,
+    "providerRequests": 0,
+    "protectedDataOpened": 0
+  },
+  "status": "DEEP_AUDIT_COMPLETE_STOP_FOR_CLAUDE_REVIEW"
+}

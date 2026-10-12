@@ -312,6 +312,28 @@ def build_features(snapshot: dict[str, Any]) -> dict[str, Any]:
             raise ContractError("EXTRA_FEATURE_ASOF_UNVERIFIED")
         features[key] = _number(v["value"], key)
 
+    # Comprehensive multi-window registry: never drop a verified feature just
+    # because it was absent from the original 15-feature Frozen Selector.
+    from technical_feature_library import (
+        build_ohlcv_features, DAILY_PERIODS, MINUTE_PERIODS, REGISTRY_VERSION,
+    )
+    daily_full = build_ohlcv_features(
+        daily if snapshot.get("dailyContinuityVerified") else [],
+        prefix="daily_full",
+        reference_price=decision_price if parity else None,
+        periods=DAILY_PERIODS,
+    )
+    minute_full = build_ohlcv_features(
+        continuous,
+        prefix="minute_full",
+        reference_price=decision_price,
+        periods=MINUTE_PERIODS,
+    )
+    features.update(daily_full)
+    features.update(minute_full)
+    if any(v is not None and not math.isfinite(v) for v in features.values()):
+        raise ContractError("NONFINITE_COMPREHENSIVE_FEATURE")
+
     return {
         "session": session, "decisionTime": snapshot["decisionTime"],
         "symbol": symbol, "securityId": snapshot.get("securityId"),
@@ -321,6 +343,8 @@ def build_features(snapshot: dict[str, Any]) -> dict[str, Any]:
         "priceAgeSeconds": age,
         "eligibleUniverseHash": snapshot["eligibleUniverseHash"],
         "priceBasis": snapshot["priceBasis"],
+        "fullFeatureRegistry": REGISTRY_VERSION,
+        "featureFamilies": {"dailyFull": len(daily_full), "minuteFull": len(minute_full)},
         "features": features,
         "featureN": sum(x is not None for x in features.values()),
         "missingN": sum(x is None for x in features.values()),

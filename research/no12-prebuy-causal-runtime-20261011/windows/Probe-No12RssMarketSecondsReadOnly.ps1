@@ -1,4 +1,4 @@
-# One public sample ticker; seconds-level RssMarket READ ONLY physical probe.
+﻿# One public sample ticker; seconds-level RssMarket READ ONLY physical probe.
 # Uses one UNSAVED temporary workbook, never user's account workbook or order UDF.
 param([switch]$OfflineSelfTest,[int]$Samples=5,[int]$IntervalSeconds=2,[int]$WarmupSeconds=5)
 $ErrorActionPreference='Stop'
@@ -22,6 +22,7 @@ function Convert-No12MarketSeconds([object]$value) {
  if($value -is [datetime]){return $value.ToString('HH:mm:ss',[Globalization.CultureInfo]::InvariantCulture)}
  if($value -is [ValueType]){
    $v=[double]$value
+   if($v -ge 30000 -and $v -le 80000){$v=$v-[math]::Floor($v)}
    if($v -lt 0 -or $v -ge 1){return $null}
    return [datetime]::FromOADate($v).ToString('HH:mm:ss',[Globalization.CultureInfo]::InvariantCulture)
  }
@@ -45,7 +46,8 @@ if($OfflineSelfTest){
  }
  $sample=[datetime]::new(2026,10,13,9,30,15)
  if((Convert-No12MarketDate $sample.ToOADate()) -cne '2026/10/13' -or
-    (Convert-No12MarketSeconds ($sample.ToOADate()-[math]::Floor($sample.ToOADate()))) -cne '09:30:15'){
+    (Convert-No12MarketSeconds ($sample.ToOADate()-[math]::Floor($sample.ToOADate()))) -cne '09:30:15' -or
+    (Convert-No12MarketSeconds $sample.ToOADate()) -cne '09:30:15'){
    throw 'NO12_SECONDS_OADATE_SELFTEST_FAILED'
  }
  Write-Host 'NO12_SECONDS_RSS_FORMULA_SELFTEST_PASS=True'

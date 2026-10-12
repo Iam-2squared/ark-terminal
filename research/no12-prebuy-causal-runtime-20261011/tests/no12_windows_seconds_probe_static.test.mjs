@@ -30,3 +30,8 @@ test('seconds probe outputs anonymized time statistics only and never transmits 
    /explicitSafetyReset\s*\(/i,/killSwitchLatched\s*=\s*false/i])
   assert.doesNotMatch(script,re);
 });
+
+test('Windows PowerShell 5.1 requires UTF-8 BOM to parse Japanese RSS field literals',()=>{
+ assert.equal(script.charCodeAt(0),0xFEFF);
+ assert.match(script,/FromOADate/);
+});

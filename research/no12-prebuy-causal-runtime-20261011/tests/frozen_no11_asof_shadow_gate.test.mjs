@@ -123,3 +123,17 @@ test('gate has no Excel, broker, order or networking operations',async()=>{
     /\bfetch\s*\(/,/productionReady\s*:\s*true/,/orderTransmission\s*:\s*true/])
   assert.doesNotMatch(src,pattern);
 });
+
+test('fresh receipt cannot disguise an old underlying State9 or First Entry bar',()=>{
+ rejects(x=>x.snapshot.state9.barClosedAt=at('09:33:00'),
+  /ASOF_CLOSED_BAR_TOO_OLD/);
+ rejects(x=>x.snapshot.firstEntry.barClosedAt=at('09:33:00'),
+  /ASOF_CLOSED_BAR_TOO_OLD/);
+});
+test('camelCase actual fill and outcome fields cannot leak into prebuy snapshot',()=>{
+ for(const field of ['fillPrice','fillTime','fillMinute','actualBrokerFill',
+   'futureHigh','teacherLabel','realizedPnl']){
+   rejects(x=>x.snapshot.firstEntry[field]='future',
+     /ASOF_POSTFILL_OR_TEACHER_FEATURE_FORBIDDEN/);
+ }
+});

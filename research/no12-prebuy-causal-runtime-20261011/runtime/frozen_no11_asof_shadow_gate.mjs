@@ -32,7 +32,7 @@ const hex=x=>{
 };
 const allowedStates=new Set(['RISE_STOP','RISE','SHARP_RISE','RANGE','REBOUND',
   'DROP','DROP_STOP','PULLBACK','SHARP_DROP']);
-const forbiddenKey=/^(?:fill_price|fill_timestamp|fill_minute|actual_fill_price|actual_fill_time|historical_future_open|future_high|teacher_outcome|entry\/fill_clock|entry\/intent_to_fill_active_delay|selector\/raw_entry_vs_first_price_pct)$/i;
+const forbiddenKey=/^(?:fill_price|fill_timestamp|fill_minute|fillPrice|fillTime|fillMinute|actual_fill_price|actual_fill_time|actualBrokerFill|historical_future_open|future_high|futureHigh|teacher_outcome|teacherLabel|realizedPnl|entry\/fill_clock|entry\/intent_to_fill_active_delay|selector\/raw_entry_vs_first_price_pct)$/i;
 function rejectPostFillKeys(obj,depth=0){
   if(depth>8)fail('ASOF_SOURCE_NESTING_EXCESSIVE');
   if(!obj||typeof obj!=='object')return;
@@ -57,6 +57,8 @@ function checkedSource(source,kind,symbol,decision,session,limitMs=null){
     const closed=iso(source.barClosedAt,'ASOF_BAR_CLOSED_INVALID');
     if(closed>asOf||closed>received||day(closed)!==session)
       fail('ASOF_UNCLOSED_BAR_OR_LABEL_AMBIGUOUS');
+    if(limitMs!==null&&decision-closed>limitMs)
+      fail('ASOF_CLOSED_BAR_TOO_OLD');
   }
   if(source.receiptSha256!==undefined)hex(source.receiptSha256);
   if(source.brokerArrivalCertified===true||source.productionReady===true||
@@ -87,7 +89,7 @@ export function inspectFrozenNo11AsOfShadowInputs({
   const selector=checkedSource(snapshot.selector,'FROZEN_SELECTOR_EVENT',
     symbol,decision,session);
   const entry=checkedSource(snapshot.firstEntry,'FROZEN_FIRST_ENTRY_INTENT',
-    symbol,decision,session);
+    symbol,decision,session,NO11_SHADOW_AGE_LIMITS.firstEntryIntentMs);
   const state=checkedSource(snapshot.state9,'FROZEN_NATIVE_STATE9_CLOSED',
     symbol,decision,session,NO11_SHADOW_AGE_LIMITS.state9BarMs);
   const market=checkedSource(snapshot.market,'MARKETSPEED_II_RSS_MARKET_OBSERVATION',

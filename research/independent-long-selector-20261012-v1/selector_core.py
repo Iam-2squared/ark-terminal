@@ -398,6 +398,19 @@ def build_features(snapshot: dict[str, Any]) -> dict[str, Any]:
     )
     features.update(daily_full)
     features.update(minute_full)
+    # Tick is joined from A/B only when the complete, verified source stream is
+    # mounted. Side/bid/ask fields absent from trades cannot be hallucinated.
+    from tick_feature_library import (
+        compute_tick_features, TICK_FEATURE_VERSION,
+    )
+    tick_full = compute_tick_features(
+        snapshot.get("tickRows"),
+        decision_at=snapshot["decisionTime"],
+        decision_price=decision_price,
+        complete_stream_verified=bool(snapshot.get("tickCoverageVerified")),
+        side_semantics_verified=bool(snapshot.get("tickAggressorSideVerified")),
+    )
+    features.update(tick_full)
     if any(v is not None and not math.isfinite(v) for v in features.values()):
         raise ContractError("NONFINITE_COMPREHENSIVE_FEATURE")
 
@@ -411,7 +424,8 @@ def build_features(snapshot: dict[str, Any]) -> dict[str, Any]:
         "eligibleUniverseHash": snapshot["eligibleUniverseHash"],
         "priceBasis": snapshot["priceBasis"],
         "fullFeatureRegistry": REGISTRY_VERSION,
-        "featureFamilies": {"dailyFull": len(daily_full), "minuteFull": len(minute_full)},
+        "tickFeatureRegistry": TICK_FEATURE_VERSION,
+        "featureFamilies": {"dailyFull": len(daily_full), "minuteFull": len(minute_full), "tickFull": len(tick_full)},
         "features": features,
         "featureN": sum(x is not None for x in features.values()),
         "missingN": sum(x is None for x in features.values()),

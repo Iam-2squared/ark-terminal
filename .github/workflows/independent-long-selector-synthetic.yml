@@ -1,0 +1,39 @@
+name: Independent LONG Selector - Synthetic Only
+
+on:
+  push:
+    branches:
+      - research/independent-long-selector-20261012-v1
+    paths:
+      - 'research/independent-long-selector-20261012-v1/**'
+      - '.github/workflows/independent-long-selector-synthetic.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pure-offline:
+    name: Python syntax and synthetic PIT/bucket tests only
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert broker/provider/external-data-free test scope
+        shell: bash
+        run: |
+          test -f research/independent-long-selector-20261012-v1/selector_core.py
+          test -f research/independent-long-selector-20261012-v1/tests/test_selector_core.py
+      - name: Compile research-only code
+        shell: bash
+        run: |
+          python -m py_compile research/independent-long-selector-20261012-v1/selector_core.py research/independent-long-selector-20261012-v1/selector_model.py research/independent-long-selector-20261012-v1/run_paired_comparison.py
+      - name: Run self-contained synthetic tests (NO market data, NO models fitted)
+        shell: bash
+        run: |
+          python -m unittest discover -s research/independent-long-selector-20261012-v1/tests -p 'test_*.py' -v

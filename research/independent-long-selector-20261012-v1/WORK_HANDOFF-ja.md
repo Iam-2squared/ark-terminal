@@ -1,5 +1,12 @@
 # 📌 寄り前Selector - 今回の到達点
 
+> 2026-10-13最新: PLUGIN_ONLY_SOURCE_PROGRESS_20261013-ja.mdを優先。
+> ブラウザを使わず、GitHubプラグインから原本44件を追加取得/hash照合。
+> 49原本/185728行のsource ingestと別経路件数確認、47日の前営業日照合を完了。
+> code73150bfの専用CI38319228544で104 tests+人工smoke PASS。
+> 全family/PIT結合と市場fit/較正/Report/旧Frozen比較はまだ未完了。以下の
+> 過去の1日canaryや利用根拠障害は履歴として残し、最新完了範囲とは混同しない。
+
 > 最新追記: OWNER_RENEWAL_AND_PLUGIN_SOURCE_HANDOFF_20261012-ja.mdを優先。
 > 23:38の所有者更新申告で今回Workの再利用根拠を記録済み。Eの保存済みAPI
 > 日足1原本を取得/照合し、D-1履歴4393行をprivate取り込み。以下はその前の

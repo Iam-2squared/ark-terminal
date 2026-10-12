@@ -10,6 +10,7 @@ import math
 import statistics
 from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta
+from decimal import Decimal
 from typing import Any
 
 DECISION_TIMES = (
@@ -71,6 +72,11 @@ def _number(value: Any, label: str, *, positive: bool = False) -> float:
 
 def _pct(new: float, old: float) -> float:
     return 100.0 * (new / old - 1.0)
+
+
+def _signed_eval_pct(new: float, old: float) -> float:
+    """Decimal arithmetic prevents a true -1.00% from flooring into -2%."""
+    return float((Decimal(str(new)) / Decimal(str(old)) - Decimal(1)) * Decimal(100))
 
 
 def _mean(values: list[float]) -> float:
@@ -401,8 +407,8 @@ def evaluate_events(selected: list[dict[str, Any]],
                 lows.append(l)
                 closes.append(c)
             if highs:
-                result["signedHighPct"] = _pct(max(highs), dp)
-                result["maePct"] = min(0.0, _pct(min(lows), dp))
+                result["signedHighPct"] = _signed_eval_pct(max(highs), dp)
+                result["maePct"] = min(0.0, _signed_eval_pct(min(lows), dp))
                 result["bucket"] = signed_bucket(result["signedHighPct"])
                 result["closeAtLeast3"] = any(v >= dp * 1.03 for v in closes)
                 result["closeAtLeast5"] = any(v >= dp * 1.05 for v in closes)

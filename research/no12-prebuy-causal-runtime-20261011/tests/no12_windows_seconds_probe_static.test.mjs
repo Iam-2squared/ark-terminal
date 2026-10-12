@@ -35,3 +35,11 @@ test('Windows PowerShell 5.1 requires UTF-8 BOM to parse Japanese RSS field lite
  assert.equal(script.charCodeAt(0),0xFEFF);
  assert.match(script,/FromOADate/);
 });
+
+test('after private seconds receipt, only causal market input is bridged to No.1.1 shadow',()=>{
+ assert.match(script,/no11_rss_seconds_asof_readonly\.mjs/);
+ assert.match(script,/NO11_RSS_SECONDS_ASOF_SOURCE_BLOCKED/);
+ assert.match(script,/NO11_RSS_SECONDS_ASOF_STATUS=LOCAL_RSS_SECONDS_ASOF_MARKET_SOURCE_ONLY/);
+ assert.match(script,/NO11_RSS_SECONDS_ASOF_SOURCE_AGE_MS=/);
+ assert.match(script,/NO11_NATIVE_H2H3H5_EXECUTED=False/);
+});

@@ -135,6 +135,19 @@ try{
  Write-Host $status[0]
  Write-Host $count[0]
  Write-Host $age[0]
+ # The receipt is then converted to a market-only No.1.1 as-of source.
+ # A stale market tick is NOT an approved current BUY input.
+ $bridge=Join-Path (Split-Path -Parent $PSScriptRoot) 'tools\no11_rss_seconds_asof_readonly.mjs'
+ $asof=@(& $node $bridge --private-root $privateRoot)
+ if($LASTEXITCODE -ne 0){throw 'NO11_RSS_SECONDS_ASOF_SOURCE_BLOCKED'}
+ $accepted=@($asof | Where-Object { $_ -ceq 'NO11_RSS_SECONDS_ASOF_STATUS=LOCAL_RSS_SECONDS_ASOF_MARKET_SOURCE_ONLY' })
+ $freshness=@($asof | Where-Object { $_ -cmatch '^NO11_RSS_SECONDS_ASOF_SOURCE_AGE_MS=\d+$' })
+ if($accepted.Count -ne 1 -or $freshness.Count -ne 1){
+   throw 'NO11_RSS_SECONDS_ASOF_SOURCE_UNVERIFIED'
+ }
+ Write-Host $accepted[0]
+ Write-Host $freshness[0]
+ Write-Host 'NO11_NATIVE_H2H3H5_EXECUTED=False'
  Write-Host 'ACTUAL_BROKER_DELIVERY_TIMESTAMP_CERTIFIED=False'
  Write-Host 'NO12_PRODUCTION_READY=False'
  Write-Host 'ORDER_TRANSMISSION=False'

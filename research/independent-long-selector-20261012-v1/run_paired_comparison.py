@@ -106,8 +106,8 @@ def _bucket_order(label: str) -> float:
 def build_public_summary(paired: dict) -> dict:
     a, b = paired["events"]["baseline"], paired["events"]["candidate"]
     sa, sb = paired["baseline"], paired["candidate"]
-    labels = sorted(set(sa["exclusiveBucketCounts"])
-                    | set(sb["exclusiveBucketCounts"]) - {"UNKNOWN"},
+    labels = sorted((set(sa["exclusiveBucketCounts"])
+                    | set(sb["exclusiveBucketCounts"])) - {"UNKNOWN"},
                     key=_bucket_order)
     labels = [name for name in labels if name != "UNKNOWN"]
     ci = paired_session_ci(a, b, labels)

@@ -35,3 +35,14 @@ not an unseen comparator. Info/K/universe differences must be disclosed.
 Next evidence: exact pinned selected identities/native paths for7 admitted dates;
 official same-session RAW OHLC in private storage; current reuse basis. No baseline
 retraining or zero/previous-day substitution of intraday inputs is allowed.
+# Hash-only recovery after owner renewal
+
+Both pinned min-price75 evidence files were recovered read-only from the
+unchanged Git blobs into the private workspace: selected/excluded identities
+5086203 bytes and native new-paths1953620 bytes, total7039823 bytes. SHA256
+0db332537661c1dece6becdfac538e5eeb641fb52754ee9f5c607208abb92a23 and
+eeb15545a278a7058a0b40042169df8ad7560077289c7bef3412977decc524d2 matched.
+All bytes were mechanically copied/hashed; CSV records and JSON outcomes were
+not interpreted and gzip was not decompressed. Not "wholly unopened".
+Numerical legacy comparison remains pending the new model/watchlist freeze.
+No model, weights, threshold, decision time or protected session was changed.

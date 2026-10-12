@@ -45,6 +45,9 @@ JSONをgzip原本と呼ばず、再serialize/recompressしたものを原本に�
 source-only canaryをfull candidate bundleへ昇格させることは禁止。
 
 既存32+37+16と新規8+6の計99ケースを検証。新規14はfitなし。
+検証code commit d067263573e90d9b87bbfb3f4892eec8593db329。
+専用CI run38268054947/job114875158837で32+67と人工model smokeを実確認PASS。
+補助run38268054951/38268063323もSUCCESS。新規source codeのCIは3/3成功。
 回帰の人工E2EとCIの人工学習は市場budgetと別台帳。実canaryは原本解析のみ。
 4393行/約0.25秒は1原本の取り込み値であり、native規模の性能やRAM認証ではない。
 元モデル/target/K/cutoff/price75/期間/較正規則は変更していない。
@@ -71,6 +74,12 @@ EのUTF8日足原本は取得経路を確認済みなので、障害を「全デ
 母集団を縮小して本測定とはしない。
 
 Engineeringは部分PASS、market/legacy未完、quality/live NOT_CERTIFIED。
+旧min-price75のselected-and-excluded-identities.csvとnew-paths.json.gzも、
+正規Gitのread-only原本byteからprivateへ回収し、固定SHA256を照合した。
+2件/7039823bytes、全bytesのhash読取りは行ったがCSV行/JSON outcomeの
+解釈・gzip展開は0。未開封bytesとは主張しない。新候補が未固定なので旧の
+数値評価はまだ開いていない。identityと元model hashは従前のまま保持。
+日中Top5集合のOpen→Highは事後記述で、朝最大15候補と同条件ではない。
 全11安全flag false。新provider取得・注文・main merge・force push・保護解除0。
 原本とprivate checkpointはユーザー限定受渡しに保存し、public Git/Actionsへ
 価格行・候補・モデル・private source envelopeを出さない。

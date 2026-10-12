@@ -1,0 +1,145 @@
+{
+  "schema": "ARK_INDEPENDENT_SELECTOR_PRIVATE_JQUANTS_SOURCE_BINDING_V1",
+  "constructedFrom": "Read-only GitHub connector metadata inspection 2026-10-12",
+  "note": "Metadata only, no private raw files or credentials in public Ark Terminal repository.",
+  "assignments": {
+    "TICK_A": {
+      "repo": "Iam-2squared/J-quants-A",
+      "objectN": 14,
+      "compressedBytes": 10387317454,
+      "storage": "PRIVATE_GITHUB_RELEASE_ASSETS"
+    },
+    "TICK_B": {
+      "repo": "Iam-2squared/J-quants-B",
+      "objectN": 13,
+      "compressedBytes": 9646782612,
+      "storage": "GIT_SMALL_OBJECTS_AND_PRIVATE_RELEASE_ASSETS"
+    },
+    "MINUTE_C": {
+      "repo": "Iam-2squared/J-Quants-C",
+      "objectN": 13,
+      "compressedBytes": 1136175906,
+      "storage": "PRIVATE_GIT_RAW",
+      "from": "2024-10-01",
+      "through": "2025-10-31"
+    },
+    "MINUTE_D": {
+      "repo": "Iam-2squared/J-quants-D",
+      "objectN": 14,
+      "compressedBytes": 1076069715,
+      "storage": "PRIVATE_GIT_AND_RELEASE",
+      "from": "2025-11-01",
+      "through": "2026-10-05"
+    },
+    "LIGHT_E": {
+      "repo": "Iam-2squared/J-quants-E",
+      "nativeObjectN": 442,
+      "nativeCompressedBytes": 393279061,
+      "apiOriginalN": 1222,
+      "apiOriginalBytes": 1463489471,
+      "storage": "PRIVATE_GIT_RAW"
+    }
+  },
+  "lightNativeCoverage": [
+    {
+      "dataset": "DAILY",
+      "objectN": 63,
+      "from": "2021-10-01",
+      "through": "2026-10-05"
+    },
+    {
+      "dataset": "DATED_MASTER",
+      "objectN": 64,
+      "from": "2021-10-01",
+      "through": "2026-10-06"
+    },
+    {
+      "dataset": "VALUATION",
+      "objectN": 63,
+      "from": "2021-10-01",
+      "through": "2026-10-05"
+    },
+    {
+      "dataset": "FIN_SUMMARY",
+      "objectN": 63,
+      "from": "2021-10-01",
+      "through": "2026-10-05"
+    },
+    {
+      "dataset": "EARNINGS_DATE",
+      "objectN": 64,
+      "from": "2021-10-01",
+      "through": "2026-10-06"
+    },
+    {
+      "dataset": "TOPIX",
+      "objectN": 63,
+      "from": "2021-10-01",
+      "through": "2026-10-05"
+    },
+    {
+      "dataset": "INVESTOR_TYPES",
+      "objectN": 61,
+      "from": "2021-10-01",
+      "through": "2026-10-01"
+    },
+    {
+      "dataset": "CALENDAR",
+      "objectN": 1
+    },
+    {
+      "dataset": "API_DAILY_FULL_FIELDS",
+      "requestDates": 1224,
+      "availableDates": [
+        2021,
+        2026
+      ]
+    },
+    {
+      "dataset": "API_LATEST_AM_AND_EARNINGS",
+      "scope": "LATEST_ONLY_NOT_HISTORICAL_ASOF"
+    },
+    {
+      "dataset": "EDINET_TDNET_PROBES",
+      "scope": "ENTITLEMENT_PROBE_NOT_LICENSED_DATA"
+    }
+  ],
+  "sourceIntegrity": {
+    "currentState": "2026-10-06T17:07:41+0900",
+    "nativeAssignmentSha256": "9a74a49c6ea2eea2e59154259e0bb2b734a2fd3626abd542e19829d76f5964e2",
+    "rawListingSha256": "9c0b6d0ff7602e164b9f8a74eeb5c91667dac2b3c7071c3c7d3cf6603bc6323c",
+    "apiInventorySha256": "8d8b9b399ee2f493a1296330caaa5615c342d5ad0dc1c428792457a83de1c716",
+    "originalObjects": 1718,
+    "originalBytes": 24103114219,
+    "verifiedRemoteSha256At20261006": true,
+    "currentReuseEntitlementAfter20261006": "NOT_RECHECKED",
+    "rawAccessNow": "GITHUB_REPOSITORY_METADATA_VERIFIED_CONTENT_MOUNT_PENDING"
+  },
+  "locallyPresentOriginalsVerifiedAgainstPrivateGitHubSHA256": {
+    "2025-05": "a671695eb4c9ed37c10515e768d4278a9cc701dacd022af99a35d2615bcec965",
+    "2025-06": "58572650290f6a8268b9add5d3ca50a7f501758f9f1ef940ace46d98510ac011",
+    "2025-07": "32d4c22fa3a69258f64527d0d8fe810a2c29fb3e7160e98876b30752dd8197ba",
+    "2025-08": "14b0d3eb810fb2e3eb24f494b12814e79d4f1f16870c97f328a5857eb2092bbe"
+  },
+  "metadataOnlyInputCensus": {
+    "sampleDay": "2025-05-01",
+    "source": "SHA256 verified May 2025 private GitHub minute original",
+    "minuteRows": 426737,
+    "uniqueSymbols": 4215,
+    "observedMinuteTimes": 327,
+    "firstTime": "09:00",
+    "lastTime": "15:30",
+    "recordCount0930": 1606,
+    "recordCount1500": 1595,
+    "featureOutcomesOpened": 0
+  },
+  "dataBudgetRules": [
+    "private originals read-only",
+    "no transfer to public repo",
+    "no network acquisition",
+    "no holdout outcome opening",
+    "no trading",
+    "replay baseline only after paired contracts",
+    "no new data rights assumed from repository presence"
+  ]
+}

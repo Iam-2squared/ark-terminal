@@ -1,0 +1,161 @@
+{
+  "documentId": "ARK_INDEPENDENT_LONG_SELECTOR_CHRONOLOGICAL_DESIGN_PRECOMMIT_V1",
+  "createdOn": "2026-10-12 JST",
+  "intent": "FULL_CAUSAL_FEATURE_REBUILD_FROM_NEW_PRIVATE_JQUANTS_ORIGINALS",
+  "baseline": "PHASE57_LONG_ONLY_FROZEN_SELECTOR_V1",
+  "primary": "same-session signed future continuous 5m HIGH exclusive 1percent bins including negatives",
+  "secondary": [
+    "close-confirmed opportunity",
+    "postselection MAE",
+    "downside-first path",
+    "coverage",
+    "stable-upside path score"
+  ],
+  "sources": "research/independent-long-selector-20261012-v1/GITHUB_DATA_SOURCES.json",
+  "proposalStatus": "REGISTERED_BEFORE_NEW_MODEL_FIT_AND_FUTURE_HIGH_COMPARISON",
+  "boundaries": {
+    "development": {
+      "fit": {
+        "from": "2024-10-01",
+        "through": "2025-04-30"
+      },
+      "select": {
+        "from": "2025-05-01",
+        "through": "2025-06-30"
+      },
+      "report": {
+        "from": "2025-07-01",
+        "through": "2025-09-30"
+      }
+    },
+    "protectedHoldout": {
+      "from": "2025-10-01",
+      "through": "2026-10-05",
+      "status": "NOT_OPEN_FOR_OUTCOME_EVALUATION"
+    },
+    "existingArkSealedExposure": {
+      "note": "Respect original explicit seals and prior outcome exposure before interpreting new independent OOS",
+      "overlapAudit": "MUST_COMPLETE_BEFORE_FIT",
+      "priorDevMonths": "OUTCOME_EXPOSED_NOT_NEW_FRESH_DATA"
+    }
+  },
+  "dataAccess": {
+    "clock": "JPX_ASIA_TOKYO",
+    "minuteOriginals": "2024-10..2026-10 from GitHub C/D",
+    "nativeTick": "2024-10..2026-10 from GitHub A/B",
+    "dailyAndHistory": "2021-10..2026-10 from GitHub E",
+    "currentProviderRequests": 0,
+    "brokerAccess": 0,
+    "privateRawOnly": true,
+    "prohibitedCopyToPublicRepo": true,
+    "actualVendorReceiveTime": "UNKNOWN_HISTORICAL_ASSUMED",
+    "rightsStatusOn20261012": "NEEDS_CONFIRMED_ACTIVE_ENTITLEMENT_OR_OTHER_LEGAL_REUSE_BASIS"
+  },
+  "candidate": {
+    "allAvailableVerifiedFeatureColumns": true,
+    "requiredMovingAverageDays": [
+      2,
+      3,
+      5,
+      7,
+      10,
+      12,
+      14,
+      15,
+      20,
+      21,
+      25,
+      26,
+      30,
+      40,
+      50,
+      52,
+      60,
+      75,
+      90,
+      100,
+      120,
+      150,
+      200,
+      250
+    ],
+    "additionalFeatures": [
+      "RSI",
+      "MACD",
+      "ADX",
+      "ATR",
+      "Bollinger",
+      "Stochastic",
+      "CCI",
+      "CMF",
+      "MFI",
+      "OBV",
+      "PVT",
+      "Donchian",
+      "Ichimoku",
+      "TrendEfficiency",
+      "Crossovers",
+      "Volatility",
+      "Volume",
+      "Turnover",
+      "VWAP",
+      "IntradayMomentum",
+      "TickActivity",
+      "Valuation",
+      "Financial",
+      "Earnings",
+      "TOPIX",
+      "MarketBreadth",
+      "InvestorFlows",
+      "CausalState"
+    ],
+    "modelEntryCandidate": "independent ten-head upside/downside HistGradientBoosting scaffold",
+    "modelFitted": false,
+    "optimizerChangesAfterUnsealingForbidden": true
+  },
+  "decision": {
+    "oldComparatorTenTimestamps": [
+      "09:30",
+      "10:00",
+      "10:30",
+      "11:00",
+      "11:30",
+      "13:00",
+      "13:30",
+      "14:00",
+      "14:30",
+      "15:00"
+    ],
+    "topK": 5,
+    "sameEligibilityAndPriceBasisRequired": true,
+    "nullOutcome": "UNKNOWN",
+    "minimumDataVintage": "causally available at timestamp",
+    "positiveBuckets": [
+      "0..1",
+      "1..2",
+      "2..3",
+      "3..4",
+      "4..5",
+      ">=5"
+    ],
+    "negativeBuckets": "all observed signed negative integer 1%-wide buckets",
+    "noTradePolicy": "REPORT_COVERAGE_NOT_SILENT_BACKFILL"
+  },
+  "phaseGate": {
+    "schemaAndSourceQA": "PARTIAL_4_MONTH_NATIVE_MINUTE_HASHES_MATCH",
+    "featuresAndSynthetic": "PASS_PENDING_EXTENDED_TESTS",
+    "sourceJoinedFull5YrDailyTickMinute": "NOT_AVAILABLE_IN_THIS_RUNTIME",
+    "realTraining": "NOT_RUN",
+    "pairedFrozenHistoricalComparison": "NOT_RUN",
+    "protectedHoldoutOpenings": 0,
+    "liveOrders": 0,
+    "productionReady": false
+  },
+  "independence": {
+    "frozenCoreUnchanged": true,
+    "allResearchChangesInDedicatedBranch": true,
+    "publicRawUploads": 0,
+    "automaticPromotionAllowed": false,
+    "mainMerge": 0
+  }
+}

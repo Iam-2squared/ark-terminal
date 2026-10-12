@@ -53,16 +53,16 @@ try{
  $one=Join-Path $PSScriptRoot 'Probe-No12MarketRss1mReadOnly.ps1'
  $seconds=Join-Path $PSScriptRoot 'Probe-No12RssMarketSecondsReadOnly.ps1'
  if($OfflineSelfTest){
-   Invoke-No12Child $five @('-OfflineSelfTest') 'NO12_RSS_CHART_FORMULA_SELFTEST_PASS=True'
-   Invoke-No12Child $one @('-OfflineSelfTest') 'NO12_RSS_CHART_FORMULA_SELFTEST_PASS=True'
-   Invoke-No12Child $seconds @('-OfflineSelfTest') 'NO12_SECONDS_RSS_FORMULA_SELFTEST_PASS=True'
+   Invoke-No12Child -script $five -arguments @('-OfflineSelfTest') -expected 'NO12_RSS_CHART_FORMULA_SELFTEST_PASS=True'
+   Invoke-No12Child -script $one -arguments @('-OfflineSelfTest') -expected 'NO12_RSS_CHART_FORMULA_SELFTEST_PASS=True'
+   Invoke-No12Child -script $seconds -arguments @('-OfflineSelfTest') -expected 'NO12_SECONDS_RSS_FORMULA_SELFTEST_PASS=True'
    Write-Host 'NO12_TUESDAY_OFFLINE_SELFTEST_PASS=True'
  }else{
    # Each child opens one UNSAVED temporary Excel workbook and closes it.
    # Stop immediately on first failure. Never run market probes concurrently.
-   Invoke-No12Child $five @('-WaitSeconds','20','-HistoryBars','500') 'NO12_RSS_CHART_PRIVATE_READ_ONLY_RECEIPT=True'
-   Invoke-No12Child $one @('-WaitSeconds','20','-HistoryBars','2000') 'NO12_1M_PRIVATE_READ_ONLY_RECEIPT=True'
-   Invoke-No12Child $seconds @('-Samples','5','-IntervalSeconds','2','-WarmupSeconds','5') 'NO11_RSS_SECONDS_ASOF_STATUS=LOCAL_RSS_SECONDS_ASOF_MARKET_SOURCE_ONLY'
+   Invoke-No12Child -script $five -arguments @('-WaitSeconds','20','-HistoryBars','500') -expected 'NO12_RSS_CHART_PRIVATE_READ_ONLY_RECEIPT=True'
+   Invoke-No12Child -script $one -arguments @('-WaitSeconds','20','-HistoryBars','2000') -expected 'NO12_1M_PRIVATE_READ_ONLY_RECEIPT=True'
+   Invoke-No12Child -script $seconds -arguments @('-Samples','5','-IntervalSeconds','2','-WarmupSeconds','5') -expected 'NO11_RSS_SECONDS_ASOF_STATUS=LOCAL_RSS_SECONDS_ASOF_MARKET_SOURCE_ONLY'
    Write-Host 'NO12_TUESDAY_MARKET_OBSERVATIONS_COMPLETE_READ_ONLY=True'
  }
  Write-Host 'NO11_NATIVE_SELECTOR_READY=False'
@@ -70,7 +70,16 @@ try{
  Write-Host 'NO11_PRODUCTION_READY=False'
  Write-Host 'ORDER_TRANSMISSION=False'
 }catch{
- # No sensitive paths, account data or broker details in public console logs.
+ # Only fixed NO12_* error codes; never log private paths or account data.
+ $reason=$_.Exception.Message
+ if($reason -cmatch '^NO12_[A-Z0-9_]+
+ Write-Host 'NO11_PRODUCTION_READY=False'
+ Write-Host 'ORDER_TRANSMISSION=False'
+ throw 'NO12_TUESDAY_READ_ONLY_RUNNER_STOPPED_SAFELY'
+}finally{
+ if($null -ne $lock){$lock.Dispose()}
+}
+){Write-Host ('NO12_TUESDAY_RUNNER_REASON='+$reason)}
  Write-Host 'NO12_TUESDAY_RUNNER_BLOCKED=True'
  Write-Host 'NO11_PRODUCTION_READY=False'
  Write-Host 'ORDER_TRANSMISSION=False'

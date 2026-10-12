@@ -72,14 +72,7 @@ try{
 }catch{
  # Only fixed NO12_* error codes; never log private paths or account data.
  $reason=$_.Exception.Message
- if($reason -cmatch '^NO12_[A-Z0-9_]+
- Write-Host 'NO11_PRODUCTION_READY=False'
- Write-Host 'ORDER_TRANSMISSION=False'
- throw 'NO12_TUESDAY_READ_ONLY_RUNNER_STOPPED_SAFELY'
-}finally{
- if($null -ne $lock){$lock.Dispose()}
-}
-){Write-Host ('NO12_TUESDAY_RUNNER_REASON='+$reason)}
+ if($reason -cmatch '^NO12_[A-Z0-9_]+$'){Write-Host ('NO12_TUESDAY_RUNNER_REASON='+$reason)}
  Write-Host 'NO12_TUESDAY_RUNNER_BLOCKED=True'
  Write-Host 'NO11_PRODUCTION_READY=False'
  Write-Host 'ORDER_TRANSMISSION=False'

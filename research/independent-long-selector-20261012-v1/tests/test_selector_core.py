@@ -217,7 +217,8 @@ class EvaluatorTests(unittest.TestCase):
         self.assertEqual(report["candidate"]["cumulativeHighCounts"]["5"], 4)
         self.assertEqual(report["candidate"]["exclusiveBucketCounts"]["-1..<0"], 1)
         self.assertEqual(report["pairedDecisionN"], 1)
-        new[0]["eligibleUniverseHash"] = "different"
+        for row in new:
+            row["eligibleUniverseHash"] = "different"
         with self.assertRaisesRegex(ContractError, "UNPAIRED_GROUPS"):
             compare_policies(old, new, outcomes)
 

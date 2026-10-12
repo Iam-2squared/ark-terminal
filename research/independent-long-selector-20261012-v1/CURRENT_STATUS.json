@@ -1,10 +1,10 @@
 {
   "schema": "ARK_PREOPEN_COMPLETION_WORK_20261012_V1",
-  "sourceCommit": "2fce2c02fce77bc7368cd00989a72fea78878e5c",
+  "sourceCommit": "ab0c58ffd282ed44fd2f6f58ac3d83daa95de7a8",
   "codeCommitBinding": "PR_593_HEAD_AND_SOURCE_FILE_HASHES",
   "contractHash": "11e9ea1224314cfcd6aed7b0472162c5edaf3c2d07dfd1231dc7b8ec4857f02f",
   "inputManifestHash": "e18a181197927bed31b22fb376c42eb35fd0ed42dcabbbb88f7ffcc0b7208325",
-  "createdAt": "2026-10-12T22:37:14.438308+09:00",
+  "createdAt": "2026-10-12T15:04:47.767Z",
   "classification": "PUBLIC_NONRECONSTRUCTIVE",
   "softwareVersions": {
     "numpy": "2.3.5",
@@ -24,7 +24,7 @@
   "transmitted": false,
   "productionReady": false,
   "entryAllowed": false,
-  "overall": "INCOMPLETE_MARKET_MEASUREMENT_LEGACY_AND_NATIVE_JOIN_BLOCKED",
+  "overall": "INCOMPLETE_LARGE_PRIVATE_BINARY_NATIVE_JOINS_AND_MARKET_MEASUREMENT",
   "pr": 593,
   "branch": "research/independent-long-selector-20261012-v1",
   "baseCommit": "10c94c92c4bd2a59a22744667fd0210252602df4",
@@ -40,17 +40,91 @@
   "marketFeatureColumnsUsedInFit": 0,
   "marketModelGenerated": false,
   "candidateMarketWatchlistsGenerated": false,
-  "nativeSourceNumericPriceRowsParsed": 0,
+  "nativeSourceNumericPriceRowsParsed": 4393,
   "protectedNumericOutcomeOpenings": 0,
   "legacyComparisonStatus": "LEGACY_COMPARISON_PENDING",
   "localValidation": {
     "legacyTests": 32,
     "preopenTests": 37,
     "newCompletionTests": 16,
-    "total": 85,
-    "status": "PASS_85_SYNTHETIC_TESTS"
+    "newOwnerReuseTests": 8,
+    "newPluginOriginalTests": 6,
+    "total": 99,
+    "status": "PASS_LOCAL_32_PLUS_65_PLUS_FINAL_2_TARGETED_CASES"
   },
   "ci": {
+    "status": "CURRENT_CODE_RESULTS_BIND_TO_PR_593_RUNS_AND_PRIVATE_CHECKPOINT",
+    "previousVerifiedCommit": "d290cde48335d2f29822f580f1f1674eea4dfa99",
+    "previousRun": 38258128776,
+    "newCodeRuns": "TO_BE_RECORDED_AFTER_SCOPED_PUSH"
+  },
+  "blockers": [
+    "LARGE_PRIVATE_GZIP_BINARY_TRANSFER_NOT_AVAILABLE",
+    "FORMAL_PREVIOUS_STATE_LINEAGE_NOT_JOINED",
+    "NATIVE_SCALE_AND_DAILY_REFRESH_NOT_VERIFIED",
+    "ALL_REQUIRED_NATIVE_FAMILIES_AND_FULL_SNAPSHOT_AVAILABILITY_REVIEW_NOT_COMPLETE"
+  ],
+  "stopAfterResearch": true,
+  "main_merge": 0,
+  "force_push": 0,
+  "live_orders": 0,
+  "paper_orders": 0,
+  "provider_new_acquisition_requests": 0,
+  "unauthorized_sealed_outcome_openings": 0,
+  "localSyntheticExecution": {
+    "nativePrivateE2ERuns": 5,
+    "standaloneSmokeRuns": 1,
+    "headFits": 60,
+    "calibrationFits": 60,
+    "marketFits": 0,
+    "marketCalibrationFits": 0,
+    "rerunBasis": "mechanical changes to source admission, smoothing, stage separation, exact report and safety checks; no market outcomes examined"
+  },
+  "syntheticThisWorkTotal": {
+    "localHeadFits": 60,
+    "CIHeadFits": 20,
+    "localCalibrationFits": 60,
+    "CICalibrationFits": 20,
+    "totalHeadFits": 80,
+    "totalCalibrationFits": 80,
+    "marketHeadFits": 0,
+    "marketCalibrationFits": 0,
+    "status": "BEFORE_NEW_SCOPED_CI_RUN_COUNTS"
+  },
+  "historyBeforeOwnerRenewal": {
+    "at": "2026-10-12T22:37:14.438308+09:00",
+    "reuseBasis": "UNRESOLVED_AT_THAT_TIME",
+    "shaMatchedOriginalN": 12,
+    "shaMatchedOriginalBytes": 354759644,
+    "numericMarketSourceRowsParsed": 0,
+    "testsPassed": 85,
+    "codeVerificationCommit": "d290cde48335d2f29822f580f1f1674eea4dfa99"
+  },
+  "currentSavedOriginalUseBasis": {
+    "status": "OWNER_ATTESTED_CURRENT_WORK_ONLY",
+    "ownerRenewalConfirmedAt": "2026-10-12T23:38:12+09:00",
+    "connectedGithubPrincipalVerified": true,
+    "providerIndependentlyVerified": false,
+    "providerExpiry": null,
+    "attestationFreshnessGuardHours": 24,
+    "freshnessIsSubscriptionExpiry": false
+  },
+  "sourceCanary": {
+    "scope": "ONE_ADMITTED_D_MINUS_1_DAILY_API_ORIGINAL_NOT_FULL_CANDIDATE",
+    "originals": 1,
+    "bytes": 1215429,
+    "admittedRows": 4393,
+    "sourceDate": "2024-10-01",
+    "sha256": "71af453b1b025fbf36a355d2284a09ea8619222d2a31cc792e5fd1644a75116a",
+    "featureRows": 0,
+    "marketFits": 0,
+    "calibrationFits": 0,
+    "watchlists": 0,
+    "reportOutcomes": 0,
+    "marketPerformanceMeasured": false,
+    "nativeScaleCertified": false
+  },
+  "previousCI": {
     "codeVerificationCommit": "d290cde48335d2f29822f580f1f1674eea4dfa99",
     "run": 38258128776,
     "job": 114841396079,
@@ -68,37 +142,5 @@
     "artifactId": 11750874321,
     "artifactBytes": 96123,
     "artifactSha256": "d9e9da7dba536845b02ee66172456dc5fcaa83fdfc7a205019f00bb3384d66dd"
-  },
-  "blockers": [
-    "CURRENT_MARKET_REUSE_BASIS_UNRESOLVED",
-    "LARGE_PRIVATE_GZIP_BINARY_TRANSFER_NOT_AVAILABLE",
-    "FORMAL_PREVIOUS_STATE_LINEAGE_NOT_JOINED",
-    "NATIVE_SCALE_AND_DAILY_REFRESH_NOT_VERIFIED"
-  ],
-  "stopAfterResearch": true,
-  "main_merge": 0,
-  "force_push": 0,
-  "live_orders": 0,
-  "paper_orders": 0,
-  "provider_new_acquisition_requests": 0,
-  "unauthorized_sealed_outcome_openings": 0,
-  "localSyntheticExecution": {
-    "nativePrivateE2ERuns": 4,
-    "standaloneSmokeRuns": 1,
-    "headFits": 50,
-    "calibrationFits": 50,
-    "marketFits": 0,
-    "marketCalibrationFits": 0,
-    "rerunBasis": "mechanical changes to source admission, smoothing, stage separation, exact report and safety checks; no market outcomes examined"
-  },
-  "syntheticThisWorkTotal": {
-    "localHeadFits": 50,
-    "CIHeadFits": 20,
-    "localCalibrationFits": 50,
-    "CICalibrationFits": 20,
-    "totalHeadFits": 70,
-    "totalCalibrationFits": 70,
-    "marketHeadFits": 0,
-    "marketCalibrationFits": 0
   }
 }

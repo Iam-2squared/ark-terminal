@@ -1,5 +1,12 @@
 # Native preopen data contract - 2026-10-12
 
+Latest owner-renewal/source-format amendment is documented in
+OWNER_RENEWAL_AND_PLUGIN_SOURCE_HANDOFF_20261012-ja.md. Current-work owner
+attestation is separately classified; provider expiry is not invented. Saved
+v2 daily API JSON pages are accepted as intact separate originals using the
+same exact RAW/session admission path, not as rewritten native gzip originals.
+The real one-day source-ingest canary is not a full Selector measurement.
+
 Authority: ARK_WORK_PREOPEN_SELECTOR_COMPLETION_20261012_V1. The original
 PREOPEN_OPEN_HIGH_PRECOMMIT.json is preserved. Read CURRENT_STATUS.json for
 the latest result; engineering fixtures are not market measurements.

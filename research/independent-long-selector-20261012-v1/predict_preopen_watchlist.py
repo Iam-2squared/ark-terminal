@@ -84,15 +84,12 @@ def main():
     model = load_private_model(private_path(req["trustedModelDirectory"],root),
         private_root=root,expected_model_sha256=req["modelSha256"],
         expected_schema_sha256=req["featureSchemaHash"])
-    rows = load_feature_input(req["features"],root)
     if model.receipt["mode"] == "AUTHORIZED_DEVELOPMENT":
         from preopen_io import verify_entry
-        from preopen_selector import stamp
+        from preopen_reuse_authorization import validate_reuse_authorization
         evidence=json.loads(verify_entry(req["currentReuseEvidence"],root).read_text())
-        if (evidence.get("currentLegalReuseConfirmed") is not True
-                or not evidence.get("validThrough")
-                or stamp(evidence["validThrough"]) < datetime.now(JST)):
-            raise PreopenError("CURRENT_MARKET_REUSE_BASIS_UNRESOLVED")
+        validate_reuse_authorization(evidence, work_id=req.get("reuseWorkId"))
+    rows = load_feature_input(req["features"],root)
     out = export_watchlist(rows,model,session=req["session"],
         previous_session=req["exchangePreviousSession"],
         historical=req.get("historicalResearchOnly",False),

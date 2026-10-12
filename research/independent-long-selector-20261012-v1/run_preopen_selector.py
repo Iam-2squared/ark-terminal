@@ -97,12 +97,8 @@ def preflight_bundle(bundle: dict, output: Path) -> Path:
     if bundle["plan"]["mode"] == "AUTHORIZED_DEVELOPMENT":
         evidence_path=verify_entry(bundle["plan"]["currentReuseEvidence"],root)
         evidence=json.loads(evidence_path.read_text())
-        from preopen_selector import stamp, JST
-        from datetime import datetime
-        if (evidence.get("currentLegalReuseConfirmed") is not True
-                or not evidence.get("validThrough")
-                or stamp(evidence["validThrough"]) < datetime.now(JST)):
-            raise PreopenError("CURRENT_MARKET_REUSE_BASIS_UNRESOLVED")
+        from preopen_reuse_authorization import validate_reuse_authorization
+        validate_reuse_authorization(evidence, work_id=bundle["plan"].get("reuseWorkId"))
     for role, entry in bundle["inputs"].items():
         private_path(entry["path"], root)
         if not isinstance(entry.get("bytes"), int) or entry["bytes"] < 0:

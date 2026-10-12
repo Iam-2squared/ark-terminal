@@ -11,10 +11,12 @@ import json
 import re
 import sqlite3
 from collections import Counter
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from pathlib import Path
 
 from preopen_io import verify_entry, private_path, write_json, SAFE_FLAGS
+from preopen_reuse_authorization import validate_reuse_authorization, REPOSITORIES
 from preopen_selector import (CONTRACT, LABEL, PreopenError, day, stamp,
                               rational, symbol, digest, JST)
 
@@ -22,6 +24,40 @@ MARKETS = {"0111":"PRIME", "0112":"STANDARD", "0113":"GROWTH"}
 NULLS = ("", None, "null", "Null")
 DATASETS = ("DAILY", "DATED_MASTER", "MINUTE", "TICK", "FIN_SUMMARY",
             "VALUATION", "EARNINGS_DATE", "TOPIX", "INVESTOR_TYPES")
+
+
+@contextmanager
+def open_original_records(path, source):
+    """Native gzip CSV or an intact stored v2 daily JSON page, not a rewrite.
+
+    JSON numeric lexemes are strings until session admission. A bounded single
+    original page is decoded, never a multi-year object graph. Pagination must
+    be complete; the original's SHA/bytes are checked by the caller first.
+    """
+    required=set(source["requiredHeader"])
+    fmt=source.get("sourceFormat", "NATIVE_GZIP_CSV")
+    if fmt == "NATIVE_GZIP_CSV":
+        with gzip.open(path,"rt",encoding="utf-8",newline="") as stream:
+            reader=csv.DictReader(stream)
+            if not reader.fieldnames or not required.issubset(reader.fieldnames):
+                raise PreopenError("NATIVE_EXACT_HEADER_CONTRACT_MISMATCH:" + source["dataset"])
+            yield reader,"GZIP_CRC_PASS"
+    elif fmt == "JQUANTS_V2_DAILY_API_JSON":
+        if source["dataset"] != "DAILY" or Path(path).stat().st_size > 32*1024**2:
+            raise PreopenError("API_DAILY_FORMAT_OR_PAGE_MEMORY_BUDGET")
+        with Path(path).open("rt",encoding="utf-8") as stream:
+            payload=json.load(stream,parse_float=str,parse_int=str)
+        if (not isinstance(payload,dict) or not isinstance(payload.get("data"),list)
+                or payload.get("pagination_key") not in (None,"")):
+            raise PreopenError("API_DAILY_NOT_COMPLETE_SINGLE_ORIGINAL_PAGE")
+        def rows():
+            for row in payload["data"]:
+                if not isinstance(row,dict) or not required.issubset(row):
+                    raise PreopenError("NATIVE_EXACT_HEADER_CONTRACT_MISMATCH:API_DAILY")
+                yield row
+        yield rows(),"JSON_SYNTAX_PASS"
+    else:
+        raise PreopenError("UNSUPPORTED_NATIVE_ORIGINAL_CONTAINER")
 
 
 def cash_clock(session):
@@ -100,12 +136,7 @@ def validate_native_request(request, private_root):
     if mode == "AUTHORIZED_DEVELOPMENT":
         evidence_path = verify_entry(request["currentReuseEvidence"], private_root)
         evidence = json.loads(evidence_path.read_text())
-        if (evidence.get("currentLegalReuseConfirmed") is not True
-                or not evidence.get("authorizationReference")
-                or not evidence.get("verifiedAt")
-                or not evidence.get("validThrough")
-                or stamp(evidence["validThrough"]) < datetime.now(JST)):
-            raise PreopenError("CURRENT_MARKET_REUSE_BASIS_UNRESOLVED")
+        validate_reuse_authorization(evidence, work_id=request.get("reuseWorkId"))
         if request.get("historicalSourceAssumptionsReviewed") is not True:
             raise PreopenError("NATIVE_AVAILABILITY_AND_REVISION_ASSUMPTIONS_UNREVIEWED")
         ledger_path = verify_entry(request["sessionLedger"],private_root)
@@ -129,6 +160,8 @@ def validate_native_request(request, private_root):
                 or not source.get("sourceCommit") or not source.get("sourceContractHash")):
             raise PreopenError("NATIVE_SOURCE_IDENTITY_INCOMPLETE")
         if mode == "AUTHORIZED_DEVELOPMENT":
+            if source["repository"] not in REPOSITORIES:
+                raise PreopenError("NATIVE_SOURCE_REPOSITORY_OUTSIDE_AUTHORIZATION")
             receipt_path = verify_entry(source["storageReceipt"],private_root)
             receipt = json.loads(receipt_path.read_text())
             matched = [r for r in receipt["objects"] if r["object_key"] == source["objectKey"]
@@ -189,10 +222,7 @@ class NativeStore:
         counts = Counter()
         duplicate_keys = set() if ds in ("TOPIX",) else None
         with self.connection:
-            with gzip.open(path,"rt",encoding="utf-8",newline="") as stream:
-                reader = csv.DictReader(stream)
-                if not reader.fieldnames or not required.issubset(reader.fieldnames):
-                    raise PreopenError("NATIVE_EXACT_HEADER_CONTRACT_MISMATCH:" + ds)
+            with open_original_records(path,source) as (reader,container_integrity):
                 for ordinal, row in enumerate(reader,2):
                     counts["lexicallyTraversedRows"] += 1
                     session = row[date_field]
@@ -245,7 +275,9 @@ class NativeStore:
                        "sourceDescriptorHash":descriptor_hash,"dataset":ds,
                        "sourceSha256":source["sha256"],"sourceBytes":source["bytes"],
                        "counts":dict(counts),"allowedDatesHash":digest(sorted(allowed)),
-                       "gzipCRC":"PASS","historicalReceiveTimeCertified":False,
+                       "gzipCRC":"PASS" if container_integrity == "GZIP_CRC_PASS" else "NOT_APPLICABLE_JSON",
+                       "originalContainerIntegrity":container_integrity,
+                       "historicalReceiveTimeCertified":False,
                        "nonAdmittedRowsWereLexicallyTraversed":True,
                        "nonAdmittedNumericPricesParsed":0}
             self.connection.execute("INSERT INTO completed VALUES(?,?,?)",
@@ -320,8 +352,7 @@ def read_native_report_labels(entry, private_root):
         raise PreopenError("NATIVE_REPORT_PROTECTED_OVERLAP")
     for source in manifest["sources"]:
         path = verify_entry(source,private_root)
-        with gzip.open(path,"rt",encoding="utf-8",newline="") as stream:
-            reader = csv.DictReader(stream)
+        with open_original_records(path,source) as (reader,_):
             for row in reader:
                 if row["Date"] in allowed and re.fullmatch(r"[0-9A-Z]{4}0",row["Code"]):
                     yield raw_label(row,source_hash=source["sha256"])

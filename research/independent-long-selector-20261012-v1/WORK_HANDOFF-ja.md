@@ -1,5 +1,10 @@
 # 📌 寄り前Selector - 今回の到達点
 
+> 最新追記: OWNER_RENEWAL_AND_PLUGIN_SOURCE_HANDOFF_20261012-ja.mdを優先。
+> 23:38の所有者更新申告で今回Workの再利用根拠を記録済み。Eの保存済みAPI
+> 日足1原本を取得/照合し、D-1履歴4393行をprivate取り込み。以下はその前の
+> 到達点・障害履歴であり、削除せず保持する。市場fit/Reportは依然0。
+
 未完成。実データ測定・旧Frozen比較・実原本との全family結合が未完了。
 工学実装と人工private E2Eは進めたが、市場モデルは作成していない。
 開始HEAD2fce2c02fce77bc7368cd00989a72fea78878e5c、PR#593の同じDraft研究。

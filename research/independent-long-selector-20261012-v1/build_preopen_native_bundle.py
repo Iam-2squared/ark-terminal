@@ -301,6 +301,8 @@ def snapshot_rows(store, sessions, calendar, ineligible):
 def build_bundle(request, output):
     root = Path(request["privateRoot"]).resolve()
     output = private_path(output,root)
+    if request.get("intendedUse") == "SOURCE_CANARY_ONLY":
+        raise PreopenError("SOURCE_CANARY_CANNOT_BE_PROMOTED_TO_FULL_NATIVE_BUNDLE")
     if output.exists():
         raise PreopenError("REFUSE_OVERWRITE_NATIVE_BUNDLE")
     admission = validate_native_request(request,root)
@@ -352,6 +354,8 @@ def build_bundle(request, output):
             "exposureLedgerSha256":request["admission"]["sha256"]}
     if request["mode"] == "AUTHORIZED_DEVELOPMENT":
         plan["currentReuseEvidence"] = request["currentReuseEvidence"]
+        if request.get("reuseWorkId"):
+            plan["reuseWorkId"] = request["reuseWorkId"]
     bundle = {"contract":CONTRACT,"privateRoot":str(root),"plan":plan,"inputs":inputs}
     write_json(output/"bundle.json",bundle)
     write_json(output/"NATIVE_ACCESS_LEDGER.json",{

@@ -9,9 +9,9 @@ test('one-click Tuesday runner is UTF-8 BOM PowerShell 5.1 safe and defaults to 
  assert.match(src,/NO12_TUESDAY_OFFLINE_SELFTEST_PASS=True/);
 });
 test('sequential only: 5M then 1M then RssMarket seconds, all READ ONLY',()=>{
- const five=src.indexOf("Invoke-No12Child $five @('-WaitSeconds'");
- const one=src.indexOf("Invoke-No12Child $one @('-WaitSeconds'");
- const seconds=src.indexOf("Invoke-No12Child $seconds @('-Samples'");
+ const five=src.indexOf("Invoke-No12Child -script $five -arguments @('-WaitSeconds'");
+ const one=src.indexOf("Invoke-No12Child -script $one -arguments @('-WaitSeconds'");
+ const seconds=src.indexOf("Invoke-No12Child -script $seconds -arguments @('-Samples'");
  assert(five>0&&one>five&&seconds>one);
  assert.match(src,/NO12_TUESDAY_MARKET_OBSERVATIONS_COMPLETE_READ_ONLY=True/);
  assert.match(src,/NO11_RSS_SECONDS_ASOF_STATUS=LOCAL_RSS_SECONDS_ASOF_MARKET_SOURCE_ONLY/);

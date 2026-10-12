@@ -14,7 +14,7 @@ function Invoke-No12Child([string]$script,[string[]]$arguments,[string]$expected
  if(-not (Test-Path -LiteralPath $script -PathType Leaf)){
    throw 'NO12_RUNNER_SCRIPT_MISSING'
  }
- $ps=(Get-Command powershell.exe -CommandType Application -ErrorAction Stop).Source
+ $ps=(Get-Command powershell.exe -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
  $lines=@(& $ps -NoProfile -ExecutionPolicy Bypass -File $script @arguments)
  if($LASTEXITCODE -ne 0){throw 'NO12_RUNNER_CHILD_BLOCKED'}
  if(@($lines | Where-Object { $_ -ceq $expected }).Count -ne 1){
@@ -27,7 +27,7 @@ function Invoke-No12Child([string]$script,[string[]]$arguments,[string]$expected
  Write-Host 'ORDER_TRANSMISSION=False'
 }
 try{
- $git=(Get-Command git -CommandType Application -ErrorAction Stop).Source
+ $git=(Get-Command git -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
  $actualRoot=(& $git -C $repoRoot rev-parse --show-toplevel)
  if($LASTEXITCODE -ne 0 -or -not $actualRoot){throw 'NO12_RUNNER_GIT_WORKTREE_REQUIRED'}
  if($PhysicalReadOnly){
@@ -72,7 +72,6 @@ try{
 }catch{
  # Only fixed NO12_* error codes; never log private paths or account data.
  $reason=$_.Exception.Message
- if($OfflineSelfTest){Write-Host ('NO12_TUESDAY_OFFLINE_REASON='+$reason)}
  if($reason -cmatch '^NO12_[A-Z0-9_]+$'){Write-Host ('NO12_TUESDAY_RUNNER_REASON='+$reason)}
  Write-Host 'NO12_TUESDAY_RUNNER_BLOCKED=True'
  Write-Host 'NO11_PRODUCTION_READY=False'

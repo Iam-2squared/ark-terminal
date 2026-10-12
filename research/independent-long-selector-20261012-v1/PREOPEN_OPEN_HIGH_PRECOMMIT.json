@@ -1,0 +1,105 @@
+{
+  "id": "ARK_PREOPEN_OPEN_HIGH_V1_20261012",
+  "status": "PRECOMMITTED_BEFORE_NEW_MARKET_FIT",
+  "basis_head": "a9270b99339551df0c09d70cb0b67d48f3ef949d",
+  "user_direction": "Complete a preopen-only Selector first; primary evaluation is opening price to subsequent session high.",
+  "scope": "PREOPEN_SELECTOR_ONLY_NO_ENTRY_EXIT_CAPITAL_OR_ORDERS",
+  "initial_watchlist_cap": 15,
+  "cap_origin": "INITIAL_ENGINEERING_CHOICE_FROM_USER_APPROXIMATE_15_NOT_OPTIMIZED",
+  "cutoff_jst": "08:50:00",
+  "cutoff_origin": "EXPLICIT_V1_ENGINEERING_DEFAULT_BEFORE_09_00_NOT_PERFORMANCE_SELECTED",
+  "selection_unit": "ONE_UNIQUE_SYMBOL_PER_SESSION_PREOPEN",
+  "universe": "DATED_PIT_JPX_CASH_COMMON_STOCK_PRIME_STANDARD_GROWTH",
+  "preopen_freshness": "LATEST_PREVIOUS_EXCHANGE_SESSION_NOT_OLD_INTRADAY_5_MINUTE_GATE",
+  "primary_label": {
+    "id": "JPX_RAW_OPEN_TO_ALL_SESSION_HIGH_V1",
+    "formula": "100 * (sessionHigh / actualFirstSessionTradePrice - 1)",
+    "opening": "ACTUAL_SYMBOL_FIRST_TRADE_EVEN_IF_AFTER_09_00_NOT_FIRST_OBSERVED_PRICE",
+    "high": "SAME_JPX_SESSION_HIGH_INCLUDING_OPENING_AND_CLOSING_AUCTIONS",
+    "price_basis": "SAME_RAW_SOURCE_MARKET_SYMBOL_SESSION_BASIS",
+    "unknown": "NO_TRADE_NO_VERIFIED_OPEN_OR_INCOMPLETE_PATH_REMAIN_SELECTED_UNKNOWN",
+    "first_bar_high": "INCLUDED_NO_ASSUMED_INTRABAR_ORDER_NEEDED_FOR_FULL_SESSION_HIGH",
+    "negative": "STRUCTURALLY_IMPOSSIBLE_WITH_VALID_OHLC_NOT_SELECTOR_SKILL",
+    "high_below_open": "DATA_INTEGRITY_ERROR_NOT_LOSS_BUCKET",
+    "zero": "EXACT_ZERO_COUNT_SEPARATELY_WITHIN_0_TO_1_BUCKET",
+    "buckets": ["0..<1", "1..<2", "2..<3", "3..<4", "4..<5", ">=5"],
+    "cumulative_pct": [1, 2, 3, 4, 5],
+    "not_execution": true
+  },
+  "secondary_labels": {
+    "open_to_low_pct": "100*(sessionLow/open-1), signed adverse excursion",
+    "open_to_close_pct": "100*(sessionClose/open-1), raw endpoint not exit PnL",
+    "path_metrics": "ONLY_WITH_VERIFIED_COMPLETE_INTRADAY; equal-bar high/low ordering AMBIGUOUS",
+    "later_opportunity": "09:30/11:00/13:00/14:00 reference-to-future High diagnostic only; never preopen input",
+    "negative_buckets": "APPLY_TO_LOW_AND_CLOSE_RETURNS_NOT_OPEN_TO_HIGH"
+  },
+  "input_gate": {
+    "selection_before_market_open": true,
+    "every_known_at_lte_cutoff": true,
+    "current_day_ohlcv_forbidden": true,
+    "current_day_state_forbidden": true,
+    "calendar_and_dated_master_required": true,
+    "publications_and_revisions_asof_required": true,
+    "full_day_turnover_not_used_for_current_eligibility": true,
+    "normalization_fit_only": true,
+    "feature_and_label_paths_separate": true,
+    "missing_not_zero": true,
+    "all_usable_sources_not_just_MA5": true,
+    "rss_parity_or_preopen_cache_refresh_contract_required": true
+  },
+  "features": {
+    "price": "Previous-session daily/weekly/monthly SMA/EMA, including 15/25, and all verified technical families",
+    "intraday_history": "PRIOR_SESSION_ONLY verified minute and Tick summaries, time-of-day behavior and State/Path",
+    "external": "Known-at cutoff financial/valuation/earnings/master/TOPIX/industry/flow/overnight facts",
+    "capacity": "PREOPEN past-liquidity facts, not outcome-day volume",
+    "unknown_sources": "EXPLICIT_UNAVAILABLE_NOT_GENERATED_PLACEHOLDERS_CLAIMED_AS_DATA"
+  },
+  "model_v1": {
+    "family": "HistGradientBoostingClassifier",
+    "up_heads": [1, 2, 3, 4, 5],
+    "adverse_heads": [1, 2, 3, 5],
+    "endpoint_head": "OPEN_TO_CLOSE_NEGATIVE",
+    "removed_old_head": "SIGNED_HIGH_NEGATIVE_IS_DEGENERATE_UNDER_OPEN_ANCHOR",
+    "rank": "sum(p_up1..5) - 2*sum(p_low1,p_low2,p_low3,p_low5) - p_close_negative; ranking points NOT EV",
+    "model_config": {"learning_rate": 0.05, "max_leaf_nodes": 15, "max_iter": 120, "min_samples_leaf": 40, "l2_regularization": 10.0, "early_stopping": false, "random_state": 20261012},
+    "calibration": "SEPARATE_EARLIER_DEVELOPMENT_CALIBRATION_PARTITION_NO_REPORT_FIT",
+    "finite_budget": {"model_candidates": 1, "head_estimator_fits_max": 10, "calibration_fits_max": 10},
+    "synthetic_smoke_not_market_fit": true,
+    "all_classes_and_input_contracts_checked_before_first_fit": true,
+    "automatic_freeze_or_live_promotion": false
+  },
+  "splits": {
+    "explicit_session_allowlist_required": true,
+    "existing_protected_intervals_take_precedence": true,
+    "old_DATA_SPLIT_PRECOMMIT_is_proposal_not_approved_allowlist": true,
+    "newly_downloaded_previously_exposed_data_not_fresh": true,
+    "no_random_row_split": true,
+    "fit_before_calibration_before_report": true,
+    "market_fit_blocked_until_overlap_manifest_resolved": true
+  },
+  "comparison": {
+    "same_day_K_and_PIT_universe_preopen_controls": ["DETERMINISTIC_PREVIOUS_SESSION_TURNOVER_TOP_K", "EXACT_SAME_DAY_RANDOM_EXPECTATION"],
+    "legacy_frozen": "PRESERVE_EXACT_NATIVE_OUTPUT; intraday Top5 has later information and cannot be called preopen comparator",
+    "no_backdating_old_selection": true,
+    "counts_rates_unknown_all_selected_lower_bounds": true,
+    "daily_cluster_uncertainty": true,
+    "no_liquidation_at_oracle_high": true,
+    "losses_near_zero_not_certified_from_high_label": true
+  },
+  "source_check": {
+    "private_repositories": ["Iam-2squared/J-quants-A", "Iam-2squared/J-quants-B", "Iam-2squared/J-Quants-C", "Iam-2squared/J-quants-D", "Iam-2squared/J-quants-E"],
+    "E_current_state_verified": "1664 originals; source receipt 2026-10-06T17:07:41+0900; NOT proof of current runtime mounting",
+    "local_source_status": "FOUR_UPLOADED_MINUTE_ORIGINALS_PRESENT; complete E daily/master/finance and A/B Tick NOT_MOUNTED",
+    "network_status": "CONTAINER_DIRECT_GITHUB_DNS_FAILED; connector metadata readable",
+    "rights_status": "CURRENT_USE_BASIS_UNVERIFIED_DO_NOT_ASSERT_CANCELLATION_OR_RENEWAL",
+    "new_provider_requests": 0,
+    "raw_outcome_reads_this_cycle": 0
+  },
+  "safety": {
+    "executionAllowed": false, "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false, "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false, "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false, "productionUpdateAllowed": false,
+    "transmitted": false, "productionReady": false
+  }
+}

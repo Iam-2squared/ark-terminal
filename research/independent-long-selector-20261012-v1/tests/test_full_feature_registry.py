@@ -69,7 +69,7 @@ class AllTechnicalFamiliesTest(unittest.TestCase):
         v = build_ohlcv_features([bar(100)], prefix="minute_full",
                                   reference_price=100, periods=MINUTE_PERIODS)
         self.assertIsNone(v["minute_full_sma_close_distance_pct_15"])
-        self.assertIsNone(v["minute_full_ema_close_distance_pct_25"])
+        self.assertIsNone(v["minute_full_ema_close_distance_pct_30"])
         self.assertIsNone(v["minute_full_rsi_14"])
         self.assertIsNone(v["minute_full_adx14"])
         self.assertIsNotNone(v["minute_full_latest_clv"])

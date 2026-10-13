@@ -17,5 +17,5 @@ test('No11 research smoke runner: bounded only to private offline models',()=>{
  assert.match(content,/originalFrozenReplaced -ne \$false/);
  assert.match(content,/NO11_NATIVE_SELECTOR_AND_ENTRY_CONNECTED=False/);
  assert.match(content,/ORDER_TRANSMISSION=False/);
- assert.doesNotMatch(content,/RssStockOrder|RssCancelOrder|RssModifyOrder|\\.SaveAs\\s*\\(|\\.Save\\s*\\(|Remove-Item|Stop-Process|New-Object -ComObject|Excel\.Application/);
+ assert.doesNotMatch(content,/RssStockOrder|RssCancelOrder|RssModifyOrder|SaveAs|Remove-Item|Stop-Process|New-Object -ComObject|Excel.Application/);
 });

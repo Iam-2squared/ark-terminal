@@ -308,14 +308,14 @@ def build_features(snapshot: dict[str, Any]) -> dict[str, Any]:
     features: dict[str, float | None] = {}
     closes = [float(b["close"]) for b in daily] if snapshot.get("dailyContinuityVerified") else []
     parity = bool(snapshot.get("dailyToMinutePriceParityVerified"))
-    for n in (2, 3, 5, 7, 10, 12, 15, 20, 25, 30, 50, 60, 75, 90, 100, 120, 150, 200, 250):
+    for n in (5, 15, 25, 75):
         avg = _sma(closes, n)
         features[f"daily_sma{n}_distance_pct"] = _pct(decision_price, avg) if avg and parity else None
         features[f"daily_sma{n}_slope_pct"] = (
             _pct(_mean(closes[-n:]), _mean(closes[-(n + 1):-1]))
             if len(closes) >= n + 1 else None
         )
-    for n in (1, 2, 3, 5, 7, 10, 12, 15, 20, 25, 30, 50, 60, 75, 100, 120, 200):
+    for n in (1, 3, 5, 10, 20, 60):
         features[f"daily_return_{n}_pct"] = (
             _pct(closes[-1], closes[-n - 1]) if len(closes) >= n + 1 else None
         )
@@ -347,11 +347,11 @@ def build_features(snapshot: dict[str, Any]) -> dict[str, Any]:
 
     continuous = _contiguous_tail(minute)
     tape = [float(b["close"]) for b in continuous]
-    for n in (1, 3, 5, 10, 15, 20, 25, 30, 45, 60, 90, 120):
+    for n in (1, 3, 5, 10, 15, 30, 60):
         features[f"intraday_momentum_{n}m_pct"] = (
             _pct(tape[-1], tape[-n - 1]) if len(tape) >= n + 1 else None
         )
-    for n in (3, 5, 10, 15, 20, 25, 30, 45, 60, 90, 120):
+    for n in (5, 15, 30, 60):
         v = _sma(tape, n)
         features[f"intraday_sma{n}_distance_pct"] = _pct(tape[-1], v) if v else None
         features[f"intraday_efficiency_{n}"] = _efficiency(tape[-n:]) if len(tape) >= n else None

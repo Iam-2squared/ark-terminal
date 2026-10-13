@@ -66,6 +66,13 @@ jobs:
           $ErrorActionPreference='Stop'
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Probe-No12MarketRss1mReadOnly.ps1 -OfflineSelfTest -ArchiveHistoricalOnly -HistoryBars 3000
           if ($LASTEXITCODE -ne 0) { throw 'NO11_RSS_1M_ARCHIVE_OFFLINE_SELFTEST_FAILED' }
+      - name: Verify RSS-enabled existing Excel chart probe formula offline (Windows only)
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Probe-No11SavedExcelChartInputsReadOnly.ps1 -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO11_EXISTING_EXCEL_CHART_OFFLINE_FAILED' }
       - name: Exercise RssMarket seconds source formula without Excel or broker (Windows only)
         if: matrix.os == 'windows-latest'
         shell: powershell

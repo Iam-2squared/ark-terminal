@@ -319,8 +319,10 @@ def build_features(snapshot: dict[str, Any]) -> dict[str, Any]:
         features[f"daily_return_{n}_pct"] = (
             _pct(closes[-1], closes[-n - 1]) if len(closes) >= n + 1 else None
         )
-    features["daily_ema12_vs_ema26_pct"] = (
-        _pct(_ema(closes, 12), _ema(closes, 26)) if _ema(closes, 26) else None
+    # Historical day-selector scaffold aligns standalone EMA crossover to
+    # the user's 5/15/25/75 day MA policy. MACD12/26 is distinct oscillator math.
+    features["daily_ema5_vs_ema15_pct"] = (
+        _pct(_ema(closes, 5), _ema(closes, 15)) if _ema(closes, 15) else None
     )
     features["daily_rsi14"] = _rsi(closes)
     if len(closes) >= 20:

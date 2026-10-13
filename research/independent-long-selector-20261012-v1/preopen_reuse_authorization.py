@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 
 from preopen_io import require_safe_flags
-from preopen_selector import CONTRACT, JST, PreopenError, stamp
+from preopen_selector import CONTRACT, JST, PreopenError, stamp, digest
 
 REPOSITORIES = frozenset((
     "Iam-2squared/J-quants-A", "Iam-2squared/J-quants-B",
@@ -37,6 +37,42 @@ def validate_reuse_authorization(evidence, *, work_id=None, now=None):
     verified = stamp(evidence["verifiedAt"])
     if verified > now:
         refuse("FUTURE_CONFIRMATION")
+    if evidence.get("verificationMethod") == "OWNER_CURRENT_WORK_CONTINUATION":
+        # A later explicit acceptance of the concrete saved-original transfer
+        # and research continuation is a new authorization event, not a new
+        # subscription-renewal date. Keep the original renewal evidence intact.
+        parent = evidence.get("priorRenewalEvidence")
+        if (not isinstance(parent, dict)
+                or parent.get("verificationMethod") != "OWNER_RENEWAL_ATTESTATION"
+                or digest(parent) != evidence.get("priorRenewalEvidenceHash")
+                or evidence.get("continuationScope") != "SAME_RESEARCH_SAVED_ORIGINAL_TRANSFER_AND_MEASUREMENT"
+                or evidence.get("sourceKind") != "DIRECT_USER_MESSAGE"
+                or not evidence.get("ownerStatement")
+                or not evidence.get("acceptedPlanReference")
+                or evidence.get("authorizationScope") != OWNER_SCOPE
+                or evidence.get("attestationWorkId") != work_id
+                or parent.get("attestationWorkId") != work_id
+                or stamp(parent["verifiedAt"]) > verified):
+            refuse("CONTINUATION_EVIDENCE_OR_SCOPE_MISMATCH")
+        for key in ("contract", "ownerLogin", "connectedGithubLogin", "authorizationScope",
+                    "repositories", "providerIndependentlyVerified", "providerExpiryVerified",
+                    "validThrough", "newAcquisitionAuthorized", "publicRawUploadAllowed",
+                    "sealedOutcomeReleaseAuthorized"):
+            if evidence.get(key) != parent.get(key):
+                refuse("CONTINUATION_SCOPE_EXPANDED")
+        # Validate historical evidence at its real timestamp; the new event
+        # itself must pass today's freshness check and the same work/safety gates.
+        validate_reuse_authorization(parent, work_id=work_id, now=parent["verifiedAt"])
+        if now - verified > ATTESTATION_FRESHNESS:
+            refuse("CURRENT_WORK_CONTINUATION_STALE")
+        require_safe_flags(evidence)
+        return {"status": "OWNER_AUTHORIZED_CURRENT_WORK_CONTINUATION",
+                "independentProviderVerification": False, "subscriptionExpiry": None,
+                "attestationFreshnessGuardHours": 24,
+                "authorizationReference": evidence["authorizationReference"],
+                "originalRenewalVerifiedAt": parent["verifiedAt"],
+                "continuationAuthorizedAt": evidence["verifiedAt"],
+                "originalRenewalEvidenceHash": evidence["priorRenewalEvidenceHash"]}
     if evidence.get("verificationMethod") == "OWNER_RENEWAL_ATTESTATION":
         if (not work_id or evidence.get("attestationWorkId") != work_id
                 or evidence.get("authorizationScope") != OWNER_SCOPE

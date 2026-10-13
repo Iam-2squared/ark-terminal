@@ -42,3 +42,17 @@ ENGINEERINGは部分PASS、MARKET_MEASUREMENT_COMPLETE=false、LEGACY_COMPARISON
 財務期間のEPS/BPS/ROEを日次valuationと同じ値として重複削除しない。財務native値を残し、日次valuationは別出典・計算basisとして保持した。最終canaryは同期実行を終了まで待ち、matrix/行台帳の期待hashとbytesが直接一致した。旧破損派生ファイルはquarantineとrepair receiptを保存し、operative入力へ戻していない。
 
 専用CI run38332799944は25eb432fのworkflow重複envキーでjob起動前に失敗（人工fit0）。重複を除去してstrict YAML全mapping検査PASS。Selector Python bytes、554 schema、市場設定は変更なし。最終HEADのrun/job/120tests/E2EはPR Checksとprivate最終receiptで確定する。
+
+
+
+## 2026-10-14: 原本受渡し完了、native source拡張
+
+固定26原本2,403,000,958bytesの全SHA/gzip、全転送ZIP SHA/CRC PASS。前回V4の214payloadをhash照合して復元。原本は79件、source ingest完了原本53件、source records4,945,880。後者は候補・特徴量・独立試行数ではない。
+
+許可済みFIT前日2024-11-13だけを4新familyへ接続。dated master4,392/valuation4,392/Tick4,285,513/minute465,855行。Tick数量は実ヘッダーTradingVolume、一意TransactionIdを認証したとはせず同時同値printを保持。293.087秒、peak57,428KiB、SQLite増分2,076,938,240bytes、quick_check PASS。月次除外日の文字列通過は記録し、除外日の数値利用0。Report価格label評価0。
+
+更新申告10/12 23:38:12の元時刻/内容/hash/workIdを保持し、同じ会話で13:13:15に実際に承認された原本転送・研究再開計画をOWNER_CURRENT_WORK_CONTINUATIONとして別記録。新しいサブスク更新日やprovider独立確認にはしない。scope/安全flagsの拡張なし、freshness24hを維持。新しい種類の証拠はparent hash・scope・時間・安全flagsを機械検査し4回帰tests追加。
+
+初回SQLite書込みエラーとjournal回復を保存。同期して再開し同一inodeで成功。人工E2Eメモリ停止は読込みfile cacheを解放して解消し、model memory guardは変更なし。最終local32+92=124PASS。新HEADのCIはPR Checks/private最終receiptで確認する。
+
+母集団の普通株/100株lotはこのmasterの14fieldから推定しない。参照履歴の保護区分、PIT公開版/単位、正式State/Dictionary fit lineage未接続。1日で約2GBのSQLiteを要したので、全47日へ同じ方式を無条件拡大しない。上流源とrolling cache契約を解決するまでmarket candidate/head fit/calibration/model/watchlist/Report全0、評価bucketはNOT_MEASURED。旧Frozenの数値比較も未完。全安全flags false、原本/data repo/main/frozen/#591/注文系変更なし。

@@ -114,7 +114,7 @@ if($OfflineSelfTest){
  Write-Host 'NO11_LIVE_DATA_ACCESSED=False'
  Write-Host 'NO11_PRODUCTION_READY=False'
  Write-Host 'ORDER_TRANSMISSION=False'
- return
+ exit 0
 }
 $excel=$null;$book=$null;$sheet=$null
 try{

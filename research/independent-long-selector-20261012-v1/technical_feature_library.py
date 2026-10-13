@@ -10,18 +10,18 @@ import statistics
 from collections import Counter
 from typing import Any
 
-DAILY_PERIODS = (2, 3, 5, 7, 10, 12, 14, 15, 20, 21, 25, 26,
-                 30, 40, 50, 52, 60, 75, 90, 100, 120, 150, 200, 250)
-MINUTE_PERIODS = (2, 3, 5, 7, 10, 12, 14, 15, 20, 21, 25, 26,
-                  30, 40, 45, 50, 60, 75, 90, 100, 120, 150, 200)
-CROSSOVER_PAIRS = ((5, 10), (5, 15), (5, 25), (10, 15), (10, 25),
-                   (15, 25), (15, 50), (20, 25), (20, 60),
-                   (25, 50), (25, 75), (25, 100), (25, 200),
-                   (50, 75), (50, 100), (50, 200), (75, 200),
-                   (100, 200))
-OSCILLATOR_PERIODS = (5, 10, 14, 15, 20, 25, 30, 50)
+# User-approved DAILY moving-average lines, and no others.
+# The indicator lookbacks below are NOT additional moving-average lines.
+DAILY_PERIODS = (5, 15, 25, 75)
+MINUTE_PERIODS = (5, 15, 30, 60)
+DAILY_SIGNAL_PERIODS = (3, 5, 10, 14, 20, 25, 60)
+MINUTE_SIGNAL_PERIODS = (3, 5, 10, 15, 30, 60)
+COARSE_SIGNAL_PERIODS = (2, 3, 6, 12)
+CROSSOVER_PAIRS = ((5, 15), (5, 25), (5, 75),
+                   (15, 25), (15, 75), (25, 75))
+OSCILLATOR_PERIODS = (14,)
 MA_FAMILIES = ("sma", "ema")
-REGISTRY_VERSION = "ARK_FULL_TECHNICAL_FEATURE_LIBRARY_V2_WILDER_20261012"
+REGISTRY_VERSION = "ARK_DIVERSE_FEATURES_MA_5_15_25_75_V3_20261013"
 OHLCV_FIELDS = ("open", "high", "low", "close", "volume", "turnover")
 
 
@@ -215,24 +215,37 @@ def _safe_z(x, values):
     return (x - _avg(values)) / sd if sd > 0 else 0.0
 
 
-def feature_registry(prefix: str, periods=DAILY_PERIODS):
-    """Exactly enumerable schema; no hidden indicator pruning."""
+def feature_registry(prefix: str, periods=DAILY_PERIODS, *,
+                     signal_periods=None):
+    """Four daily MA durations, with distinct non-MA indicator lookbacks.
+
+    Periods are SMA/EMA lines ONLY.  RSI14, ATR14, Bollinger20 etc are
+    separate families, not implied 14-day/20-day moving-average lines.
+    For weekly/monthly price structure pass periods=() explicitly.
+    """
+    signal_periods = (DAILY_SIGNAL_PERIODS if signal_periods is None
+                      else tuple(signal_periods))
     names = set()
     for n in periods:
-        for name in ("sma_close_distance_pct", "sma_slope_pct", "ema_close_distance_pct",
-                     "ema_slope_pct", "return_pct", "high_break_pct", "low_buffer_pct",
-                     "range_position", "volume_ratio", "turnover_ratio", "volume_zscore",
-                     "turnover_zscore", "realized_vol_pct", "downside_vol_pct",
+        for name in ("sma_close_distance_pct", "sma_slope_pct",
+                     "ema_close_distance_pct", "ema_slope_pct"):
+            names.add(f"{prefix}_{name}_{n}")
+    for n in signal_periods:
+        for name in ("return_pct", "high_break_pct", "low_buffer_pct",
+                     "range_position", "volume_ratio", "turnover_ratio",
+                     "volume_zscore", "turnover_zscore",
+                     "realized_vol_pct", "downside_vol_pct",
                      "efficiency", "max_drawdown_pct", "atr_pct", "rsi",
-                     "bollinger_z", "bollinger_width_pct", "donchian_high_gap_pct",
-                     "donchian_low_gap_pct", "williams_r", "stochastic_k",
-                     "cci", "cmf", "mfi", "obv_delta", "volume_price_trend",
-                     "up_close_ratio", "up_candle_ratio", "close_location_avg",
-                     "range_avg_pct"):
+                     "bollinger_z", "bollinger_width_pct",
+                     "donchian_high_gap_pct", "donchian_low_gap_pct",
+                     "williams_r", "stochastic_k", "cci", "cmf", "mfi",
+                     "obv_delta", "volume_price_trend", "up_close_ratio",
+                     "up_candle_ratio", "close_location_avg", "range_avg_pct"):
             names.add(f"{prefix}_{name}_{n}")
     for a, b in CROSSOVER_PAIRS:
-        names.add(f"{prefix}_sma_cross_{a}_{b}_pct")
-        names.add(f"{prefix}_ema_cross_{a}_{b}_pct")
+        if a in periods and b in periods:
+            names.add(f"{prefix}_sma_cross_{a}_{b}_pct")
+            names.add(f"{prefix}_ema_cross_{a}_{b}_pct")
     names.update({
         f"{prefix}_macd_12_26_pct", f"{prefix}_macd_signal9_pct",
         f"{prefix}_macd_hist9_pct", f"{prefix}_adx14",
@@ -243,21 +256,30 @@ def feature_registry(prefix: str, periods=DAILY_PERIODS):
         f"{prefix}_latest_body_pct", f"{prefix}_latest_upper_wick_pct",
         f"{prefix}_latest_lower_wick_pct", f"{prefix}_latest_clv",
         f"{prefix}_latest_gap_pct", f"{prefix}_latest_volume",
-        f"{prefix}_latest_turnover",
-        f"{prefix}_total_volume", f"{prefix}_total_turnover",
+        f"{prefix}_latest_turnover", f"{prefix}_total_volume",
+        f"{prefix}_total_turnover",
+        f"{prefix}_prior_day_volume_spike_vs_20d",
+        f"{prefix}_prior_day_turnover_spike_vs_20d",
+        f"{prefix}_prior_day_price_impact_20d_per_100m_jpy",
     })
     return tuple(sorted(names))
 
 
 def build_ohlcv_features(bars: list[dict[str, Any]], *,
                          prefix: str, reference_price: float | None,
-                         periods=DAILY_PERIODS) -> dict[str, float | None]:
+                         periods=DAILY_PERIODS, *,
+                         signal_periods=None) -> dict[str, float | None]:
     """All bars must already be validated, causally available, ordered, comparable.
 
     Cross-source reference_price should be None if adjustment parity is not proven.
     No assumed bar continuity or missing-bar filling occurs here.
     """
-    result: dict[str, float | None] = {k: None for k in feature_registry(prefix, periods)}
+    signal_periods = (DAILY_SIGNAL_PERIODS if signal_periods is None
+                      else tuple(signal_periods))
+    result: dict[str, float | None] = {
+        k: None for k in feature_registry(prefix, periods,
+                                         signal_periods=signal_periods)
+    }
     if not bars:
         return result
     O = [float(b["open"]) for b in bars]
@@ -287,15 +309,21 @@ def build_ohlcv_features(bars: list[dict[str, Any]], *,
         m = _avg(C[-n:]) if len(C) >= n else None
         e = _ema(C, n)
         smas[n], emas[n] = m, e
-        result[f"{p}_sma_close_distance_pct_{n}"] = _pct(reference_price if reference_price is not None else base, m)
-        result[f"{p}_ema_close_distance_pct_{n}"] = _pct(reference_price if reference_price is not None else base, e)
+        result[f"{p}_sma_close_distance_pct_{n}"] = _pct(
+            reference_price if reference_price is not None else base, m)
+        result[f"{p}_ema_close_distance_pct_{n}"] = _pct(
+            reference_price if reference_price is not None else base, e)
         result[f"{p}_sma_slope_pct_{n}"] = (
-            _pct(m, _avg(C[-(n+1):-1])) if m is not None and len(C) >= n+1 else None
-        )
+            _pct(m, _avg(C[-(n + 1):-1])) if m is not None and len(C) >= n + 1
+            else None)
         old_ema = _ema(C[:-1], n) if len(C) > n else None
         result[f"{p}_ema_slope_pct_{n}"] = _pct(e, old_ema)
+
+    for n in signal_periods:
+        # RSI, realized risk, money flow, and price-range context are not MAs.
         if len(C) < n:
             continue
+        m = _avg(C[-n:])
         segment = bars[-n:]
         window_high = max(H[-n:])
         window_low = min(L[-n:])
@@ -353,6 +381,8 @@ def build_ohlcv_features(bars: list[dict[str, Any]], *,
                 sum(min(x,0.0)**2 for x in logrets) / len(logrets)
             )
     for a,b in CROSSOVER_PAIRS:
+        if a not in periods or b not in periods:
+            continue
         result[f"{p}_sma_cross_{a}_{b}_pct"] = (
             _pct(smas[a],smas[b]) if a in smas and b in smas else None
         )
@@ -391,6 +421,22 @@ def build_ohlcv_features(bars: list[dict[str, Any]], *,
         span_b = (max(H[-52:])+min(L[-52:]))/2
         result[f"{p}_ichimoku_cloud_b52_pct"] = _pct(base,span_b)
     # Ichimoku spans are calculated at as-of, not forward/back-shifted to leak data.
+    # Day-before volume/value anomaly uses older 20 sessions only as baseline.
+    if len(bars) >= 21:
+        prior_vol = [float(b["volume"]) for b in bars[-21:-1]]
+        prior_turn = [float(b.get("turnover") or 0) for b in bars[-21:-1]]
+        ref_vol = statistics.median(prior_vol)
+        ref_turn = statistics.median(prior_turn)
+        result[f"{p}_prior_day_volume_spike_vs_20d"] = (
+            V[-1] / ref_vol if ref_vol > 0 else None)
+        result[f"{p}_prior_day_turnover_spike_vs_20d"] = (
+            T[-1] / ref_turn if ref_turn > 0 else None)
+        impact = []
+        for i in range(len(C) - 20, len(C)):
+            if i >= 1 and T[i] > 0 and C[i-1] > 0:
+                impact.append(abs(C[i] / C[i-1] - 1) * 100.0e8 / T[i])
+        if len(impact) == 20:
+            result[f"{p}_prior_day_price_impact_20d_per_100m_jpy"] = _avg(impact)
     for k,v in result.items():
         if v is not None and not math.isfinite(v):
             raise ValueError(f"NONFINITE_INDICATOR:{k}")

@@ -258,10 +258,13 @@ def feature_registry(prefix: str, periods=DAILY_PERIODS, *,
         f"{prefix}_latest_gap_pct", f"{prefix}_latest_volume",
         f"{prefix}_latest_turnover", f"{prefix}_total_volume",
         f"{prefix}_total_turnover",
-        f"{prefix}_prior_day_volume_spike_vs_20d",
-        f"{prefix}_prior_day_turnover_spike_vs_20d",
-        f"{prefix}_prior_day_price_impact_20d_per_100m_jpy",
     })
+    if prefix in ("preopen_daily", "daily_full"):
+        names.update({
+            f"{prefix}_prior_day_volume_spike_vs_20d",
+            f"{prefix}_prior_day_turnover_spike_vs_20d",
+            f"{prefix}_prior_day_price_impact_20d_per_100m_jpy",
+        })
     return tuple(sorted(names))
 
 
@@ -287,7 +290,10 @@ def build_ohlcv_features(bars: list[dict[str, Any]], *,
     L = [float(b["low"]) for b in bars]
     C = [float(b["close"]) for b in bars]
     V = [float(b["volume"]) for b in bars]
-    T = [float(b.get("turnover") or 0) for b in bars]
+    # Missing trading-value is not evidence of zero market activity.
+    if any(b.get("turnover") is None for b in bars):
+        raise ValueError("MISSING_TURNOVER_NOT_ZERO")
+    T = [float(b["turnover"]) for b in bars]
     base = C[-1]
     if any(not math.isfinite(x) or x <= 0 for xs in (O, H, L, C) for x in xs):
         raise ValueError("INVALID_OHLC")
@@ -422,9 +428,9 @@ def build_ohlcv_features(bars: list[dict[str, Any]], *,
         result[f"{p}_ichimoku_cloud_b52_pct"] = _pct(base,span_b)
     # Ichimoku spans are calculated at as-of, not forward/back-shifted to leak data.
     # Day-before volume/value anomaly uses older 20 sessions only as baseline.
-    if len(bars) >= 21:
+    if prefix in ("preopen_daily", "daily_full") and len(bars) >= 21:
         prior_vol = [float(b["volume"]) for b in bars[-21:-1]]
-        prior_turn = [float(b.get("turnover") or 0) for b in bars[-21:-1]]
+        prior_turn = T[-21:-1]
         ref_vol = statistics.median(prior_vol)
         ref_turn = statistics.median(prior_turn)
         result[f"{p}_prior_day_volume_spike_vs_20d"] = (

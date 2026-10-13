@@ -24,22 +24,30 @@ def bar(x: float):
 
 class AllTechnicalFamiliesTest(unittest.TestCase):
     def test_contains_every_requested_MA_and_15_25(self):
-        self.assertIn(15, DAILY_PERIODS)
-        self.assertIn(25, DAILY_PERIODS)
-        self.assertGreaterEqual(max(DAILY_PERIODS), 200)
-        self.assertGreaterEqual(max(MINUTE_PERIODS), 120)
+        self.assertEqual(DAILY_PERIODS, (5, 15, 25, 75))
+        self.assertEqual(MINUTE_PERIODS, (5, 15, 30, 60))
         registry = feature_registry("daily_full")
-        for n in (5, 10, 15, 20, 25, 50, 75, 100, 200):
-            for family in ("sma_close_distance_pct", "ema_close_distance_pct", "sma_slope_pct"):
+        for n in DAILY_PERIODS:
+            for family in ("sma_close_distance_pct", "ema_close_distance_pct",
+                           "sma_slope_pct", "ema_slope_pct"):
                 self.assertIn(f"daily_full_{family}_{n}", registry)
+        for n in (2, 3, 7, 10, 14, 20, 26, 50, 100, 200, 250):
+            for family in ("sma_close_distance_pct", "ema_close_distance_pct",
+                           "sma_slope_pct", "ema_slope_pct"):
+                self.assertNotIn(f"daily_full_{family}_{n}", registry)
         self.assertIn("daily_full_sma_cross_15_25_pct", registry)
-        self.assertIn("daily_full_ema_cross_15_25_pct", registry)
+        self.assertIn("daily_full_ema_cross_25_75_pct", registry)
+        # 14 is used for RSI/ATR/MFI, and 20 for volume/band research,
+        # but they are NOT 14- or 20-day moving-average lines.
+        self.assertIn("daily_full_rsi_14", registry)
+        self.assertIn("daily_full_volume_ratio_20", registry)
+        self.assertNotIn("daily_full_sma_close_distance_pct_14", registry)
 
     def test_populated_trend_volatility_volume_oscillators(self):
         data = [bar(100 + i / 10) for i in range(300)]
         v = build_ohlcv_features(data, prefix="daily_full",
                                  reference_price=129.9)
-        self.assertGreater(len(v), 750)
+        self.assertGreater(len(v), 150)
         for name in (
             "sma_close_distance_pct_5", "sma_close_distance_pct_15",
             "sma_close_distance_pct_25", "sma_cross_15_25_pct",

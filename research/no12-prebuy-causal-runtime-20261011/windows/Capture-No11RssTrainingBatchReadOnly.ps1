@@ -116,8 +116,12 @@ try{
  $tcp=New-Object System.Net.Sockets.TcpClient;$active=$false
  try{$tcp.Connect('127.0.0.1',8767);$active=$tcp.Connected}catch [System.Net.Sockets.SocketException]{$active=$false}finally{$tcp.Close()}
  if($active){throw 'NO11_ACCOUNT_UI_MUST_BE_STOPPED_FIRST'}
- $processes=@(Get-Process EXCEL -ErrorAction Stop)
- if($processes.Count -ne 1 -or $processes[0].MainWindowTitle -notlike 'Ark_No11_*' -or $processes[0].MainWindowHandle -eq [IntPtr]::Zero){throw 'NO11_BATCH_EXCEL_IDENTITY_NOT_UNIQUE'}
+ # Ignore background/headless EXCEL instances; attach only to the unique Ark-labelled visible window.
+ # Other processes are never killed. COM validates both original workbook identities below.
+ $processes=@(Get-Process EXCEL -ErrorAction Stop | Where-Object {
+  $_.MainWindowTitle -like 'Ark_No11_*' -and $_.MainWindowHandle -ne [IntPtr]::Zero
+ })
+ if($processes.Count -ne 1){throw 'NO11_BATCH_EXCEL_IDENTITY_NOT_UNIQUE'}
  if(-not ('No11TrainingBatchWindow' -as [type])){
  Add-Type -TypeDefinition @'
 using System;

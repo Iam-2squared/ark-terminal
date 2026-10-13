@@ -36,14 +36,19 @@ def path_guard(path):
     return path
 
 
-def audit_run(root, run_symbols, *, name="batch", exact=True):
+def audit_run(root, run_symbols, *, name="batch", requested_total=None):
     """Verify every checkpoint and source file; return only aggregates.
 
     run_symbols can be short synthetic lists in offline tests.
     """
     root = path_guard(root)
     n = len(run_symbols)
-    require(n > 0 and n <= 5000, "NO11_ALL_RSS_RUN_COUNT_INVALID")
+    # The second capture intentionally stopped after 1380/4307 requested.
+    # Preserve the ORIGINAL request count; never relabel it as 1380.
+    expected_requested = n if requested_total is None else requested_total
+    require(n > 0 and n <= 5000 and
+            type(expected_requested) is int and n <= expected_requested <= 5000,
+            "NO11_ALL_RSS_RUN_COUNT_INVALID")
     expected_checkpoints = [min(i+20,n) for i in range(0,n,20)]
     actual_checkpoints = sorted(
         int(m.group(1)) for f in root.iterdir()
@@ -57,12 +62,15 @@ def audit_run(root, run_symbols, *, name="batch", exact=True):
         cp = obj_from_bytes(b, f"progress-{cutoff:05d}.json")
         require(cp.get("schemaId") == "ARK_NO11_RSS_TRAINING_CAPTURE_PROGRESS_V1"
                 and type(cp.get("completed")) is int and cp["completed"] == cutoff
-                and type(cp.get("requested")) is int and cp["requested"] == n
+                and type(cp.get("requested")) is int and cp["requested"] == expected_requested
                 and isinstance(cp.get("files"), list)
                 and len(cp["files"]) == cutoff
                 and cp.get("productionReady") is False
                 and cp.get("orderTransmission") is False,
-                "NO11_ALL_RSS_PROGRESS_SCHEMA_INVALID:" + str(cutoff))
+                "NO11_ALL_RSS_PROGRESS_SCHEMA_INVALID:" + name + ":" + str(cutoff) +
+                ":expected_requested=" + str(expected_requested) +
+                ":actual_requested=" + str(cp.get("requested")) +
+                ":files=" + str(len(cp.get("files", [])) if isinstance(cp.get("files"), list) else "INVALID"))
         checkpoints[cutoff] = (b, cp)
 
     last = checkpoints[n][1]
@@ -181,7 +189,10 @@ def main():
             "NO11_ALL_RSS_SEGMENT_BOUNDARIES_INVALID")
     results = []
     for i,(root, ss) in enumerate(zip(runs, segments)):
-        result = audit_run(root, ss, name=("FIRST20","NEXT1380","LAST2927")[i])
+        # Actual original captures used 20, 4307, 2927 as requested counts.
+        # Second run was interrupted at 1380 while its intent remained 4307.
+        result = audit_run(root, ss, name=("FIRST20","NEXT1380","LAST2927")[i],
+                           requested_total=(20,4327-20,2927)[i])
         require((result["completed"], result["observed"],
                  result["unavailable"], result["quarantined"], result["rows"]) ==
                 (EXPECTED_RUNS[i], EXPECTED_OBSERVED[i],

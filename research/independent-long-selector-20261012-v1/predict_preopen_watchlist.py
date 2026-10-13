@@ -46,6 +46,7 @@ def export_watchlist(rows, model, *, session, previous_session, generated_at=Non
         "schema_version":"ARK_RSS_PREOPEN_HANDOFF_V1",
         "selector_id":"ARK_PREOPEN_OPEN_HIGH_V1_20261012",
         "feature_schema_hash":model.receipt["featureSchemaHash"],
+        "feature_policy_hash":model.receipt["featurePolicyHash"],
         "session":session,"cutoff":config.at(session).isoformat(),
         "generated_at":generated_at or utc_now(),
         "source_latest_session":previous_session,

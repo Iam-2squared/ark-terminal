@@ -3,16 +3,14 @@ from __future__ import annotations
 import json
 from selector_core import EXTRA_FEATURES
 from technical_feature_library import (
-    DAILY_PERIODS, MINUTE_PERIODS, DAILY_SIGNAL_PERIODS,
-    MINUTE_SIGNAL_PERIODS, COARSE_SIGNAL_PERIODS, feature_registry,
+    DAILY_PERIODS, MINUTE_PERIODS, feature_registry,
 )
 from tick_feature_library import tick_registry
+from preopen_feature_policy import POLICY, policy_hash, preopen_schema
 
 def feature_catalog():
-    d=feature_registry("daily_full", DAILY_PERIODS,
-                       signal_periods=DAILY_SIGNAL_PERIODS)
-    m=feature_registry("minute_full", MINUTE_PERIODS,
-                       signal_periods=MINUTE_SIGNAL_PERIODS)
+    d=feature_registry("daily_full", DAILY_PERIODS)
+    m=feature_registry("minute_full", MINUTE_PERIODS)
     t=tick_registry()
     x=EXTRA_FEATURES
     categories={
@@ -38,9 +36,9 @@ def feature_catalog():
         },
         "daily_moving_average_periods_exact":list(DAILY_PERIODS),
         "weekly_monthly_moving_average_periods":[],
-        "daily_non_ma_indicator_periods":list(DAILY_SIGNAL_PERIODS),
-        "minute_non_ma_indicator_periods":list(MINUTE_SIGNAL_PERIODS),
-        "weekly_monthly_regime_windows":list(COARSE_SIGNAL_PERIODS),
+        "indicator_parameters_by_timeframe":POLICY["indicatorParameters"],
+        "effective_preopen_schema_N":len(preopen_schema()),
+        "feature_policy_hash":policy_hash(),
         "confirmed_distinct_feature_types":[
             "volume","turnover","liquidity_price_impact","RSI","ATR",
             "MACD","ADX","MFI","CMF","OBV","candlesticks",

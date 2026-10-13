@@ -14,14 +14,12 @@ from typing import Any
 # The indicator lookbacks below are NOT additional moving-average lines.
 DAILY_PERIODS = (5, 15, 25, 75)
 MINUTE_PERIODS = (5, 15, 30, 60)
-DAILY_SIGNAL_PERIODS = (3, 5, 10, 14, 20, 25, 60)
-MINUTE_SIGNAL_PERIODS = (3, 5, 10, 15, 30, 60)
-COARSE_SIGNAL_PERIODS = (2, 3, 6, 12)
 CROSSOVER_PAIRS = ((5, 15), (5, 25), (5, 75),
                    (15, 25), (15, 75), (25, 75))
 OSCILLATOR_PERIODS = (14,)
 MA_FAMILIES = ("sma", "ema")
-REGISTRY_VERSION = "ARK_DIVERSE_FEATURES_MA_5_15_25_75_V3_20261013"
+from preopen_feature_policy import (VERSION as REGISTRY_VERSION, indicator_parameters,
+                                    scope, LATEST_NAMES, OSCILLATOR_NAMES)
 OHLCV_FIELDS = ("open", "high", "low", "close", "volume", "turnover")
 
 
@@ -217,48 +215,26 @@ def _safe_z(x, values):
 
 def feature_registry(prefix: str, periods=DAILY_PERIODS, *,
                      signal_periods=None):
-    """Four daily MA durations, with distinct non-MA indicator lookbacks.
-
-    Periods are SMA/EMA lines ONLY.  RSI14, ATR14, Bollinger20 etc are
-    separate families, not implied 14-day/20-day moving-average lines.
-    For weekly/monthly price structure pass periods=() explicitly.
-    """
-    signal_periods = (DAILY_SIGNAL_PERIODS if signal_periods is None
-                      else tuple(signal_periods))
+    """Exact MA durations and fixed parameters per indicator and time scale."""
+    wanted = MINUTE_PERIODS if scope(prefix) == "minute" else (
+        () if scope(prefix) in ("week", "month") else DAILY_PERIODS)
+    if tuple(periods) != wanted:
+        raise ValueError("UNAPPROVED_MOVING_AVERAGE_PERIODS_OR_TIMEFRAME")
+    if signal_periods is not None:
+        raise ValueError("NON_MA_PERIOD_GRID_NOT_SUPPORTED")
     names = set()
     for n in periods:
         for name in ("sma_close_distance_pct", "sma_slope_pct",
                      "ema_close_distance_pct", "ema_slope_pct"):
             names.add(f"{prefix}_{name}_{n}")
-    for n in signal_periods:
-        for name in ("return_pct", "high_break_pct", "low_buffer_pct",
-                     "range_position", "volume_ratio", "turnover_ratio",
-                     "volume_zscore", "turnover_zscore",
-                     "realized_vol_pct", "downside_vol_pct",
-                     "efficiency", "max_drawdown_pct", "atr_pct", "rsi",
-                     "bollinger_z", "bollinger_width_pct",
-                     "donchian_high_gap_pct", "donchian_low_gap_pct",
-                     "williams_r", "stochastic_k", "cci", "cmf", "mfi",
-                     "obv_delta", "volume_price_trend", "up_close_ratio",
-                     "up_candle_ratio", "close_location_avg", "range_avg_pct"):
-            names.add(f"{prefix}_{name}_{n}")
+    for indicator, horizons in indicator_parameters(prefix).items():
+        names.update(f"{prefix}_{indicator}_{n}" for n in horizons)
     for a, b in CROSSOVER_PAIRS:
         if a in periods and b in periods:
             names.add(f"{prefix}_sma_cross_{a}_{b}_pct")
             names.add(f"{prefix}_ema_cross_{a}_{b}_pct")
-    names.update({
-        f"{prefix}_macd_12_26_pct", f"{prefix}_macd_signal9_pct",
-        f"{prefix}_macd_hist9_pct", f"{prefix}_adx14",
-        f"{prefix}_plus_di14", f"{prefix}_minus_di14",
-        f"{prefix}_ichimoku_tenkan9_pct", f"{prefix}_ichimoku_kijun26_pct",
-        f"{prefix}_ichimoku_cloud_a_pct", f"{prefix}_ichimoku_cloud_b52_pct",
-        f"{prefix}_ichimoku_tenkan_vs_kijun_pct",
-        f"{prefix}_latest_body_pct", f"{prefix}_latest_upper_wick_pct",
-        f"{prefix}_latest_lower_wick_pct", f"{prefix}_latest_clv",
-        f"{prefix}_latest_gap_pct", f"{prefix}_latest_volume",
-        f"{prefix}_latest_turnover", f"{prefix}_total_volume",
-        f"{prefix}_total_turnover",
-    })
+    special = LATEST_NAMES + (() if scope(prefix) in ("week", "month") else OSCILLATOR_NAMES)
+    names.update(f"{prefix}_{name}" for name in special)
     if prefix in ("preopen_daily", "daily_full"):
         names.update({
             f"{prefix}_prior_day_volume_spike_vs_20d",
@@ -277,8 +253,6 @@ def build_ohlcv_features(bars: list[dict[str, Any]], *,
     Cross-source reference_price should be None if adjustment parity is not proven.
     No assumed bar continuity or missing-bar filling occurs here.
     """
-    signal_periods = (DAILY_SIGNAL_PERIODS if signal_periods is None
-                      else tuple(signal_periods))
     result: dict[str, float | None] = {
         k: None for k in feature_registry(prefix, periods,
                                          signal_periods=signal_periods)
@@ -325,71 +299,51 @@ def build_ohlcv_features(bars: list[dict[str, Any]], *,
         old_ema = _ema(C[:-1], n) if len(C) > n else None
         result[f"{p}_ema_slope_pct_{n}"] = _pct(e, old_ema)
 
-    for n in signal_periods:
-        # RSI, realized risk, money flow, and price-range context are not MAs.
+    parameters = indicator_parameters(prefix)
+    for n in sorted({n for values in parameters.values() for n in values}):
         if len(C) < n:
             continue
-        m = _avg(C[-n:])
         segment = bars[-n:]
-        window_high = max(H[-n:])
-        window_low = min(L[-n:])
-        result[f"{p}_high_break_pct_{n}"] = _pct(base, window_high)
-        result[f"{p}_low_buffer_pct_{n}"] = _pct(base, window_low)
-        result[f"{p}_donchian_high_gap_pct_{n}"] = (
-            _pct(base, max(H[-(n+1):-1])) if len(C) >= n+1 else None
-        )
-        result[f"{p}_donchian_low_gap_pct_{n}"] = (
-            _pct(base, min(L[-(n+1):-1])) if len(C) >= n+1 else None
-        )
-        result[f"{p}_range_position_{n}"] = (
-            (base-window_low)/(window_high-window_low)
-            if window_high > window_low else 0.5
-        )
+        window_high, window_low = max(H[-n:]), min(L[-n:])
         vol_avg = _avg(V[-n:])
         turn_avg = _avg(T[-n:]) if all(t is not None for t in T[-n:]) else None
-        result[f"{p}_volume_ratio_{n}"] = V[-1]/vol_avg if vol_avg > 0 else None
-        result[f"{p}_turnover_ratio_{n}"] = (
-            T[-1]/turn_avg if T[-1] is not None and turn_avg is not None
-            and turn_avg > 0 else None)
-        result[f"{p}_volume_zscore_{n}"] = _safe_z(V[-1], V[-n:])
-        result[f"{p}_turnover_zscore_{n}"] = (
-            _safe_z(T[-1], T[-n:])
-            if T[-1] is not None and turn_avg is not None else None)
-        result[f"{p}_max_drawdown_pct_{n}"] = _max_drawdown(C[-n:])
-        result[f"{p}_up_candle_ratio_{n}"] = sum(b["close"] > b["open"] for b in segment)/n
-        result[f"{p}_close_location_avg_{n}"] = _avg([
-            (b["close"]-b["low"])/(b["high"]-b["low"])
-            if b["high"]>b["low"] else 0.5 for b in segment
-        ])
-        result[f"{p}_range_avg_pct_{n}"] = 100 * _avg([
-            (b["high"]-b["low"])/b["close"] for b in segment
-        ])
-        result[f"{p}_bollinger_z_{n}"] = _safe_z(base, C[-n:])
-        result[f"{p}_bollinger_width_pct_{n}"] = (
-            400 * statistics.pstdev(C[-n:]) / m if m > 0 else None
-        )
-        result[f"{p}_williams_r_{n}"] = _williams(bars, n)
-        result[f"{p}_stochastic_k_{n}"] = _stochastic(bars, n)
-        result[f"{p}_cci_{n}"] = _cci(bars, n)
-        result[f"{p}_cmf_{n}"] = _cmf(bars, n)
-        result[f"{p}_rsi_{n}"] = _rsi(C, n)
-        result[f"{p}_atr_pct_{n}"] = 100 * _atr(bars, n) / base if _atr(bars, n) is not None else None
-        result[f"{p}_mfi_{n}"] = _moneyflow(bars, n)
-        result[f"{p}_obv_delta_{n}"] = _obv_delta(bars, n)
-        result[f"{p}_volume_price_trend_{n}"] = _volume_price_trend(bars, n)
-        result[f"{p}_up_close_ratio_{n}"] = (
-            sum(C[i]>C[i-1] for i in range(len(C)-n+1,len(C)))/(n-1)
-            if n>=2 else None
-        )
-        if len(C) >= n+1:
-            result[f"{p}_return_pct_{n}"] = _pct(base, C[-(n+1)])
-            result[f"{p}_efficiency_{n}"] = _efficiency(C[-(n+1):])
-            logrets = _signed_returns(C, n)
-            v = statistics.pstdev(logrets)
-            result[f"{p}_realized_vol_pct_{n}"] = 100 * v
-            result[f"{p}_downside_vol_pct_{n}"] = 100 * math.sqrt(
-                sum(min(x,0.0)**2 for x in logrets) / len(logrets)
-            )
+        logrets = _signed_returns(C, n)
+        calculations = {
+            "return_pct": lambda: _pct(base, C[-n-1]) if len(C) > n else None,
+            "high_break_pct": lambda: _pct(base, window_high),
+            "low_buffer_pct": lambda: _pct(base, window_low),
+            "range_position": lambda: ((base-window_low)/(window_high-window_low)
+                                        if window_high > window_low else 0.5),
+            "volume_ratio": lambda: V[-1]/vol_avg if vol_avg > 0 else None,
+            "turnover_ratio": lambda: T[-1]/turn_avg if T[-1] is not None and
+                turn_avg is not None and turn_avg > 0 else None,
+            "volume_zscore": lambda: _safe_z(V[-1], V[-n:]),
+            "turnover_zscore": lambda: _safe_z(T[-1], T[-n:]) if turn_avg is not None else None,
+            "max_drawdown_pct": lambda: _max_drawdown(C[-n:]),
+            "up_candle_ratio": lambda: sum(b["close"] > b["open"] for b in segment)/n,
+            "close_location_avg": lambda: _avg([(b["close"]-b["low"])/(b["high"]-b["low"])
+                if b["high"] > b["low"] else 0.5 for b in segment]),
+            "range_avg_pct": lambda: 100*_avg([(b["high"]-b["low"])/b["close"] for b in segment]),
+            "bollinger_z": lambda: _safe_z(base, C[-n:]),
+            "bollinger_width_pct": lambda: 400*statistics.pstdev(C[-n:])/_avg(C[-n:]),
+            "donchian_high_gap_pct": lambda: _pct(base, max(H[-n-1:-1])) if len(C) > n else None,
+            "donchian_low_gap_pct": lambda: _pct(base, min(L[-n-1:-1])) if len(C) > n else None,
+            "stochastic_k": lambda: _stochastic(bars, n),
+            "cci": lambda: _cci(bars, n), "cmf": lambda: _cmf(bars, n),
+            "rsi": lambda: _rsi(C, n),
+            "atr_pct": lambda: (100*atr/base if (atr := _atr(bars, n)) is not None else None),
+            "mfi": lambda: _moneyflow(bars, n), "obv_delta": lambda: _obv_delta(bars, n),
+            "volume_price_trend": lambda: _volume_price_trend(bars, n),
+            "up_close_ratio": lambda: sum(C[i] > C[i-1] for i in range(len(C)-n+1,len(C)))/(n-1)
+                if n >= 2 else None,
+            "efficiency": lambda: _efficiency(C[-n-1:]) if len(C) > n else None,
+            "realized_vol_pct": lambda: 100*statistics.pstdev(logrets) if logrets else None,
+            "downside_vol_pct": lambda: 100*math.sqrt(sum(min(x,0)**2 for x in logrets)/len(logrets))
+                if logrets else None,
+        }
+        for indicator, horizons in parameters.items():
+            if n in horizons:
+                result[f"{p}_{indicator}_{n}"] = calculations[indicator]()
     for a,b in CROSSOVER_PAIRS:
         if a not in periods or b not in periods:
             continue
@@ -399,38 +353,39 @@ def build_ohlcv_features(bars: list[dict[str, Any]], *,
         result[f"{p}_ema_cross_{a}_{b}_pct"] = (
             _pct(emas[a],emas[b]) if a in emas and b in emas else None
         )
-    fast,slow = _ema(C,12),_ema(C,26)
-    macd_trace=[]
-    if len(C)>=26:
-        # Use 26-consecutive prefix to seed EMA tracks, then compute 9-period MACD signal.
-        fast_trace, slow_trace = _ema_trace(C,12), _ema_trace(C,26)
-        macd_trace = [f-s for f,s in zip(fast_trace[14:],slow_trace)]
-    macd = fast-slow if fast is not None and slow is not None else None
-    signal = _ema(macd_trace,9)
-    result[f"{p}_macd_12_26_pct"] = 100 * macd/base if macd is not None else None
-    result[f"{p}_macd_signal9_pct"] = 100 * signal/base if signal is not None else None
-    result[f"{p}_macd_hist9_pct"] = 100 * (macd-signal)/base if signal is not None else None
-    adx,pdi,mdi = _adx(bars,14)
-    result[f"{p}_adx14"] = adx
-    result[f"{p}_plus_di14"] = pdi
-    result[f"{p}_minus_di14"] = mdi
-    if len(bars) >= 9:
-        tenkan = (max(H[-9:])+min(L[-9:]))/2
-        result[f"{p}_ichimoku_tenkan9_pct"] = _pct(base,tenkan)
-    else:
-        tenkan=None
-    if len(bars) >= 26:
-        kijun = (max(H[-26:])+min(L[-26:]))/2
-        result[f"{p}_ichimoku_kijun26_pct"] = _pct(base,kijun)
-    else:
-        kijun=None
-    if tenkan is not None and kijun is not None:
-        result[f"{p}_ichimoku_cloud_a_pct"] = _pct(base,(tenkan+kijun)/2)
-        result[f"{p}_ichimoku_tenkan_vs_kijun_pct"] = _pct(tenkan,kijun)
-    if len(bars) >= 52:
-        span_b = (max(H[-52:])+min(L[-52:]))/2
-        result[f"{p}_ichimoku_cloud_b52_pct"] = _pct(base,span_b)
-    # Ichimoku spans are calculated at as-of, not forward/back-shifted to leak data.
+    if scope(prefix) not in ("week", "month"):
+        fast,slow = _ema(C,12),_ema(C,26)
+        macd_trace=[]
+        if len(C)>=26:
+            # Use 26-consecutive prefix to seed EMA tracks, then compute 9-period MACD signal.
+            fast_trace, slow_trace = _ema_trace(C,12), _ema_trace(C,26)
+            macd_trace = [f-s for f,s in zip(fast_trace[14:],slow_trace)]
+        macd = fast-slow if fast is not None and slow is not None else None
+        signal = _ema(macd_trace,9)
+        result[f"{p}_macd_12_26_pct"] = 100 * macd/base if macd is not None else None
+        result[f"{p}_macd_signal9_pct"] = 100 * signal/base if signal is not None else None
+        result[f"{p}_macd_hist9_pct"] = 100 * (macd-signal)/base if signal is not None else None
+        adx,pdi,mdi = _adx(bars,14)
+        result[f"{p}_adx14"] = adx
+        result[f"{p}_plus_di14"] = pdi
+        result[f"{p}_minus_di14"] = mdi
+        if len(bars) >= 9:
+            tenkan = (max(H[-9:])+min(L[-9:]))/2
+            result[f"{p}_ichimoku_tenkan9_pct"] = _pct(base,tenkan)
+        else:
+            tenkan=None
+        if len(bars) >= 26:
+            kijun = (max(H[-26:])+min(L[-26:]))/2
+            result[f"{p}_ichimoku_kijun26_pct"] = _pct(base,kijun)
+        else:
+            kijun=None
+        if tenkan is not None and kijun is not None:
+            result[f"{p}_ichimoku_cloud_a_pct"] = _pct(base,(tenkan+kijun)/2)
+            result[f"{p}_ichimoku_tenkan_vs_kijun_pct"] = _pct(tenkan,kijun)
+        if len(bars) >= 52:
+            span_b = (max(H[-52:])+min(L[-52:]))/2
+            result[f"{p}_ichimoku_cloud_b52_pct"] = _pct(base,span_b)
+        # Ichimoku spans are calculated at as-of, not forward/back-shifted to leak data.
     # Day-before volume/value anomaly uses older 20 sessions only as baseline.
     if prefix in ("preopen_daily", "daily_full") and len(bars) >= 21:
         prior_vol = [float(b["volume"]) for b in bars[-21:-1]]

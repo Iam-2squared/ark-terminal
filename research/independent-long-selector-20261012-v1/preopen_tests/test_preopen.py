@@ -68,7 +68,8 @@ class PreopenFeatureTests(unittest.TestCase):
             self.assertAlmostEqual(r["features"][f"preopen_daily_sma_close_distance_pct_{n}"],wanted)
         self.assertTrue(all(k.startswith("preopen_") for k in r["features"]))
         # Breadth of unrelated indicators is important, not inflated MA count.
-        self.assertGreater(r["featureCount"],300)
+        from preopen_feature_policy import preopen_schema
+        self.assertEqual(tuple(sorted(r["features"])), preopen_schema())
         self.assertLess(r["observedFeatureCount"],r["featureCount"])
         self.assertFalse(r["productionReady"])
 
@@ -122,9 +123,10 @@ class PreopenFeatureTests(unittest.TestCase):
         self.assertIsNone(out["features"]["preopen_external_valuation_pbr"])
         s2 = snapshot()
         s2["dailyBars"][-1]["turnover"] = None
-        # Admitted source may reject earlier than the indicator library.
-        with self.assertRaises((ValueError,PreopenError)):
-            build_preopen_features(s2)
+        f = build_preopen_features(s2)["features"]
+        self.assertIsNone(f["preopen_daily_turnover_ratio_20"])
+        self.assertIsNone(f["preopen_daily_prior_day_price_impact_20d_per_100m_jpy"])
+        self.assertIsNotNone(f["preopen_daily_rsi_14"])
 
     def test_current_day_bar_rejected(self):
         s = snapshot(); s["dailyBars"][-1]["session"] = s["session"]
@@ -170,7 +172,12 @@ class PreopenFeatureTests(unittest.TestCase):
 
     def test_missing_turnover_never_zero(self):
         s=snapshot();s["dailyBars"][-1]["turnover"]=None
-        with self.assertRaises(PreopenError):build_preopen_features(s)
+        r=build_preopen_features(s)
+        for scale in ("daily", "week", "month"):
+            self.assertIsNone(r["features"][f"preopen_{scale}_latest_turnover"])
+        self.assertIsNone(r["priorTurnover"])
+        self.assertEqual(r["missingReasons"]["preopen_daily_turnover_ratio_20"],
+                         "NOT_AVAILABLE_IN_SOURCE")
 
     def test_unknown_and_late_optional_facts_remain_none(self):
         s=snapshot();s["asofFacts"]={"valuation_per":{"value":10,"knownAt":s["session"]+"T09:01:00+09:00",

@@ -10,6 +10,7 @@ import numpy as np
 
 from preopen_io import private_path, verify_entry, sha_file, write_json
 from preopen_selector import digest, PreopenError
+from preopen_feature_policy import policy_hash, source_code_hash, cache_binding
 
 
 class FeatureView(Mapping):
@@ -40,8 +41,20 @@ class FeatureStore(Sequence):
     def __init__(self, manifest_path, *, private_root):
         path = private_path(manifest_path, private_root)
         self.manifest = json.loads(path.read_text())
-        if self.manifest.get("schema") != "ARK_PREOPEN_COLUMNAR_FEATURES_V1":
+        if self.manifest.get("schema") != "ARK_PREOPEN_COLUMNAR_FEATURES_V2":
             raise PreopenError("WRONG_COLUMNAR_FEATURE_SCHEMA")
+        bound = self.manifest.get("cacheBinding", {})
+        if bound.get("featurePolicyHash") != policy_hash() or bound.get("codeHash") != source_code_hash():
+            raise PreopenError("STALE_COLUMNAR_CODE_OR_FEATURE_POLICY")
+        try:
+            rebuilt = cache_binding(code_hash=bound["codeHash"], input_hash=bound["inputHash"],
+                calendar_hash=bound["calendarHash"], basis_hash=bound["basisHash"],
+                schema_hash=bound["featureSchemaHash"])
+        except (KeyError, ValueError) as exc:
+            raise PreopenError("INVALID_COLUMNAR_CACHE_BINDING") from exc
+        if (rebuilt != bound or bound["inputHash"] != self.manifest["inputManifestHash"]
+                or bound["featureSchemaHash"] != self.manifest["featureSchemaHash"]):
+            raise PreopenError("COLUMNAR_CACHE_INPUT_SCHEMA_BINDING_MISMATCH")
         self.columns = tuple(self.manifest["columns"])
         if list(self.columns) != sorted(set(self.columns)):
             raise PreopenError("COLUMNAR_COLUMNS_NOT_UNIQUE_CANONICAL")
@@ -69,7 +82,7 @@ class FeatureStore(Sequence):
 
 
 def write_feature_store(rows, directory, *, private_root, input_manifest_hash,
-                        schema_if_empty=()):
+                        cache_context, schema_if_empty=()):
     directory = private_path(directory, private_root)
     directory.mkdir(parents=True, exist_ok=False, mode=0o700)
     matrix_file, metadata_file = directory/"features.f64", directory/"metadata.jsonl"
@@ -101,7 +114,10 @@ def write_feature_store(rows, directory, *, private_root, input_manifest_hash,
             os.fsync(stream.fileno())
     msha, mbytes = sha_file(matrix_file)
     rsha, rbytes = sha_file(metadata_file)
-    manifest = {"schema":"ARK_PREOPEN_COLUMNAR_FEATURES_V1",
+    binding = cache_binding(code_hash=source_code_hash(), input_hash=input_manifest_hash,
+        calendar_hash=cache_context["calendarHash"], basis_hash=cache_context["basisHash"],
+        schema_hash=digest(columns))
+    manifest = {"schema":"ARK_PREOPEN_COLUMNAR_FEATURES_V2", "cacheBinding":binding,
                 "inputManifestHash":input_manifest_hash,"rowN":count,
                 "columns":columns,"featureSchemaHash":digest(columns),
                 "matrix":{"path":str(matrix_file),"sha256":msha,"bytes":mbytes},
@@ -109,5 +125,5 @@ def write_feature_store(rows, directory, *, private_root, input_manifest_hash,
                 "observedCounts":observed.tolist() if observed is not None else [0]*len(columns),
                 "featurePrecision":"FLOAT64","priceLabels":"SEPARATE_EXACT_DECIMAL_STRINGS"}
     entry = write_json(directory/"manifest.json",manifest)
-    entry["format"] = "ARK_PREOPEN_COLUMNAR_FEATURES_V1"
+    entry["format"] = "ARK_PREOPEN_COLUMNAR_FEATURES_V2"
     return entry

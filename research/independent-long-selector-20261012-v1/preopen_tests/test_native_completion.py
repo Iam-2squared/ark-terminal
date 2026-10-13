@@ -64,9 +64,9 @@ def fixture(root, reverse=False):
             daily.append({"Date":date,"Code":code,"O":100,"H":100+u,"L":100-d,
                           "C":c,"Vo":1000+i,"Va":100000+i*100,"AdjFactor":1})
     save("DAILY",daily,["Date","Code","O","H","L","C","Vo","Va","AdjFactor"])
-    masters = [{"Date":d,"Code":c,"Mkt":"0111","ProdCat":"011","S33":"1","ScaleCat":"TOPIX_SMALL"}
+    masters = [{"Date":d,"Code":c,"Mkt":"0111","ProdCat":"011","CommonStock":"1","S33":"1","ScaleCat":"TOPIX_SMALL"}
                for d in splits["fit"]+splits["calibration"]+splits["report"] for c in codes]
-    save("DATED_MASTER",masters,["Date","Code","Mkt","ProdCat","S33","ScaleCat"],lag=-1)
+    save("DATED_MASTER",masters,["Date","Code","Mkt","ProdCat","CommonStock","S33","ScaleCat"],lag=-1)
     minutes = [{"Date":d,"Time":t,"Code":c,"O":100,"H":102,"L":98,"C":101,"Vo":100,"Va":10100}
                for d in days for c in codes for t in ("09:00","09:01","14:59","15:00")]
     save("MINUTE",minutes,["Date","Time","Code","O","H","L","C","Vo","Va"])
@@ -81,7 +81,7 @@ def fixture(root, reverse=False):
     save("FIN_SUMMARY",fin,list(fin[0]),date_field="DiscDate",numeric_units={"Sales":"JPY","OP":"JPY","NP":"JPY"})
     valuation = [{"Date":days[0],"Code":c,"PER":10,"PBR":1} for c in codes]
     save("VALUATION",valuation,list(valuation[0]),numeric_units={"PER":"MULTIPLE","PBR":"MULTIPLE"})
-    earnings = [{"PubDate":days[0],"Code":c,"SchDate":"2024-10-10"} for c in codes]
+    earnings = [{"PubDate":days[0],"Code":c,"SchDate":"2024-10-10","FQName":"2Q","FYE":"0930"} for c in codes]
     save("EARNINGS_DATE",earnings,list(earnings[0]),date_field="PubDate")
     flow = [{"PubDate":days[0],"StDate":days[0],"EnDate":days[0],
              "Section":"TEST","FrgnBal":10} ]

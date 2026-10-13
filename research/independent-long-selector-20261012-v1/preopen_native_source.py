@@ -102,6 +102,8 @@ def parse_ohlcv(row):
     o, h, l, c, v, t = [rational(row[k]) for k in source]
     if min(o,h,l,c) <= 0 or not l <= min(o,c) <= max(o,c) <= h or min(v,t) < 0:
         raise PreopenError("INVALID_NATIVE_OHLCV")
+    if row.get("AdjFactor") not in NULLS and rational(row["AdjFactor"]) <= 0:
+        raise PreopenError("INVALID_NATIVE_ADJUSTMENT_FACTOR")
     return {"status":"TRADED", **{
         target:str(row[src]) for src,target in zip(source,
              ("open","high","low","close","volume","turnover"))}}

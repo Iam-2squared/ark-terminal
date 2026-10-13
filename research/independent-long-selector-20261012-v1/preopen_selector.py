@@ -123,10 +123,10 @@ def _bar(bar: dict) -> dict:
     if not out["low"] <= min(out["open"], out["close"]) <= max(out["open"], out["close"]) <= out["high"]:
         raise PreopenError("INVALID_OHLC")
     for field in ("volume", "turnover"):
-        # The older generic library defaults missing turnover to zero. Do NOT
-        # allow that fallback at this adapter boundary.
-        out[field] = number(bar[field])
-        if out[field] < 0:
+        # A known price series can still be calculated when trading value is
+        # unavailable. Propagate None through every dependent calculation.
+        out[field] = None if field == "turnover" and bar.get(field) is None else number(bar[field])
+        if out[field] is not None and out[field] < 0:
             raise PreopenError("NEGATIVE_VOLUME_OR_TURNOVER")
     return out
 
@@ -148,7 +148,8 @@ def _resample_complete_history(bars: list[dict], kind: str) -> list[dict]:
         result.append({"open": bs[0]["open"], "high": max(b["high"] for b in bs),
                        "low": min(b["low"] for b in bs), "close": bs[-1]["close"],
                        "volume": sum(b["volume"] for b in bs),
-                       "turnover": sum(b["turnover"] for b in bs)})
+                       "turnover": (sum(b["turnover"] for b in bs)
+                                    if all(b["turnover"] is not None for b in bs) else None)})
     return result
 
 
@@ -200,21 +201,22 @@ def build_preopen_features(snapshot: dict, config: PreopenConfig = PreopenConfig
 
     from technical_feature_library import (
         build_ohlcv_features, DAILY_PERIODS, MINUTE_PERIODS,
-        DAILY_SIGNAL_PERIODS, MINUTE_SIGNAL_PERIODS, COARSE_SIGNAL_PERIODS,
     )
     from selector_core import EXTRA_FEATURES
     features = build_ohlcv_features(
         bars, prefix="preopen_daily", reference_price=bars[-1]["close"],
-        periods=DAILY_PERIODS, signal_periods=DAILY_SIGNAL_PERIODS,
+        periods=DAILY_PERIODS,
     )
+    technical_bars = {"preopen_daily": (bars, DAILY_PERIODS)}
     for interval in ("week", "month"):
         coarse = _resample_complete_history(bars, interval)
+        technical_bars["preopen_"+interval] = (coarse, ())
         # Weekly/monthly are price/volume regime observations, NOT 5/15/25/75
         # *week/month* moving averages. Only four DAILY MA durations are used.
         features.update(build_ohlcv_features(
             coarse, prefix=f"preopen_{interval}",
             reference_price=bars[-1]["close"],
-            periods=(), signal_periods=COARSE_SIGNAL_PERIODS,
+            periods=(),
         ))
     # Every optional source has explicit coverage. Absence is not a verified
     # zero-activity tape. The previous session prefix is never today's tape.
@@ -240,12 +242,15 @@ def build_preopen_features(snapshot: dict, config: PreopenConfig = PreopenConfig
     features.update(build_ohlcv_features(
         minute_tail, prefix="preopen_previous_minute",
         reference_price=bars[-1]["close"], periods=MINUTE_PERIODS,
-        signal_periods=MINUTE_SIGNAL_PERIODS,
     ))
+    technical_bars["preopen_previous_minute"] = (minute_tail, MINUTE_PERIODS)
     facts = snapshot.get("asofFacts", {})
     if set(facts).difference(EXTRA_FEATURES):
         raise PreopenError("UNREGISTERED_EXTERNAL_FEATURE")
     missing = {}
+    from preopen_feature_policy import technical_missing_reasons
+    for prefix, (series, periods) in technical_bars.items():
+        missing.update(technical_missing_reasons(features, series, prefix=prefix, periods=periods))
     for name in EXTRA_FEATURES:
         record = facts.get(name)
         target = "preopen_external_" + name
@@ -302,10 +307,18 @@ def build_preopen_features(snapshot: dict, config: PreopenConfig = PreopenConfig
             raise PreopenError("NATIVE_FACT_SOURCE_NOT_IN_ADMITTED_MANIFEST")
         else:
             features[name] = number(record["value"])
+    for name, value in features.items():
+        if value is None and name not in missing:
+            missing[name] = ("PIT_OR_BASIS_UNVERIFIED" if name.startswith("preopen_previous_state_")
+                             else "SOURCE_NOT_JOINED")
     values = [v for v in features.values() if v is not None]
     if any(not math.isfinite(v) for v in values):
         raise PreopenError("NONFINITE_PREOPEN_FEATURE")
+    from preopen_feature_policy import policy_hash, preopen_schema
+    if tuple(sorted(features)) != preopen_schema():
+        raise PreopenError("BUILDER_NOT_MATCHING_EFFECTIVE_FEATURE_SCHEMA")
     return {"schema": "ARK_PREOPEN_FEATURE_ROW_V1", "contract": CONTRACT,
+            "featurePolicyHash": policy_hash(), "featureSchemaHash": digest(preopen_schema()),
             "configHash": config.sha, "session": session, "symbol": code,
             "cutoff": cutoff.isoformat(), "assetType": "JPX_CASH_EQUITY",
             "universeHash": snapshot["universeHash"], "sourceManifestSha256": snapshot["sourceManifestSha256"],
@@ -339,6 +352,15 @@ def validate_feature_row(row: dict, config: PreopenConfig | None = None) -> None
         raise PreopenError("NON_PREOPEN_FEATURE_SCHEMA")
     if digest(row["features"]) != row.get("featureHash"):
         raise PreopenError("FEATURE_HASH_MISMATCH")
+    from preopen_feature_policy import policy_hash, preopen_schema
+    # Small artificial protocol fixtures may use artificial signal columns.
+    # They can never enter an authorized market plan. Full builder/cache rows
+    # and all market inputs bind to the current policy before model loading.
+    if row.get("sampleKind") != "SYNTHETIC" or "featurePolicyHash" in row:
+        if (row.get("featurePolicyHash") != policy_hash()
+                or row.get("featureSchemaHash") != digest(preopen_schema())
+                or tuple(sorted(row["features"])) != preopen_schema()):
+            raise PreopenError("STALE_OR_UNAPPROVED_FEATURE_POLICY_OR_SCHEMA")
     for v in row["features"].values():
         if v is not None:
             number(v)
@@ -360,6 +382,7 @@ def make_watchlist(rows: list[dict], scores: dict[tuple[str, str], float],
     for score in scores.values():
         number(score)
     selected = sorted(rows, key=lambda r: (-scores[row_key(r)], symbol(r["symbol"])))[:config.watchlist_cap]
+    from preopen_io import SAFE_FLAGS
     liquidity = sorted(r["priorTurnover"] for r in rows if r.get("priorTurnover") is not None)
     def liquidity_group(r):
         if not liquidity or r.get("priorTurnover") is None:
@@ -369,6 +392,8 @@ def make_watchlist(rows: list[dict], scores: dict[tuple[str, str], float],
                 "MID" if x <= liquidity[2*len(liquidity)//3] else "HIGH")
     out = {"schema": "ARK_PREOPEN_WATCHLIST_V1", "contract": CONTRACT,
            "configHash": config.sha, "session": rows[0]["session"], "cutoff": rows[0]["cutoff"],
+           "featurePolicyHash": rows[0].get("featurePolicyHash"),
+           "featureSchemaHash": rows[0].get("featureSchemaHash"),
            "universeHash": rows[0]["universeHash"], "sourceManifestSha256": rows[0]["sourceManifestSha256"],
            "eligibleN": len(rows), "selectedN": len(selected), "cap": config.watchlist_cap,
            "selectionInformation": "PREOPEN_ONLY", "entryAllowed": False,
@@ -387,6 +412,11 @@ def make_watchlist(rows: list[dict], scores: dict[tuple[str, str], float],
                                       "POSITIVE" if r["priorMarketReturnPct"] > 0 else
                                       "NEGATIVE" if r["priorMarketReturnPct"] < 0 else "FLAT"),
                       "featureHash": r["featureHash"]} for i, r in enumerate(selected)]}
+    for item, row in zip(out["items"], selected):
+        item.update({"configHash":config.sha, "featurePolicyHash":row.get("featurePolicyHash"),
+                     "featureSchemaHash":row.get("featureSchemaHash"),
+                     "sourceManifestSha256":row["sourceManifestSha256"],
+                     "missingReasons":row.get("missingReasons",{}), **SAFE_FLAGS})
     out["watchlistHash"] = digest(out)
     return out
 
@@ -403,9 +433,10 @@ def verify_watchlist(watchlist: dict) -> None:
         raise PreopenError("WATCHLIST_CARDINALITY")
     if any(x["session"] != watchlist["session"] for x in items):
         raise PreopenError("WATCHLIST_SESSION_DRIFT")
-    for flag in ("entryAllowed", "executionAllowed", "transmitted", "productionReady"):
-        if watchlist.get(flag) is not False:
-            raise PreopenError("EXECUTION_FLAGS_MUST_REMAIN_FALSE")
+    from preopen_io import require_safe_flags
+    require_safe_flags(watchlist)
+    for item in items:
+        require_safe_flags(item)
     if [x["rank"] for x in items] != list(range(1, len(items)+1)):
         raise PreopenError("WATCHLIST_RANK_SEQUENCE")
 

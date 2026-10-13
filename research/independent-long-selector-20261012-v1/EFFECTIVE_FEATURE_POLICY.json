@@ -1,0 +1,321 @@
+{
+  "schema": "ARK_PREOPEN_EFFECTIVE_FEATURE_POLICY_V2",
+  "authority": "ARK_WORK_PREOPEN_MA4_DIVERSE_COMPLETION_20261013_V2",
+  "changedBeforeMarketFits": true,
+  "marketFitsAtChange": 0,
+  "oldPrecommitOverwritten": false,
+  "policy": {
+    "version": "ARK_MA4_DIVERSE_FIXED_PARAMETERS_20261013_V2",
+    "dailyMovingAveragePeriods": [
+      5,
+      15,
+      25,
+      75
+    ],
+    "minuteMovingAveragePeriods": [
+      5,
+      15,
+      30,
+      60
+    ],
+    "coarseMovingAveragePeriods": [],
+    "indicatorParameters": {
+      "daily": {
+        "return_pct": [
+          1,
+          5,
+          15,
+          25,
+          60
+        ],
+        "high_break_pct": [
+          20,
+          60
+        ],
+        "low_buffer_pct": [
+          20,
+          60
+        ],
+        "range_position": [
+          20
+        ],
+        "volume_ratio": [
+          5,
+          20
+        ],
+        "turnover_ratio": [
+          5,
+          20
+        ],
+        "volume_zscore": [
+          25
+        ],
+        "turnover_zscore": [
+          25
+        ],
+        "realized_vol_pct": [
+          20,
+          60
+        ],
+        "downside_vol_pct": [
+          20,
+          60
+        ],
+        "efficiency": [
+          20
+        ],
+        "max_drawdown_pct": [
+          20,
+          60
+        ],
+        "atr_pct": [
+          14
+        ],
+        "rsi": [
+          14
+        ],
+        "bollinger_z": [
+          20
+        ],
+        "bollinger_width_pct": [
+          20
+        ],
+        "donchian_high_gap_pct": [
+          20
+        ],
+        "donchian_low_gap_pct": [
+          20
+        ],
+        "stochastic_k": [
+          14
+        ],
+        "cci": [
+          20
+        ],
+        "cmf": [
+          20
+        ],
+        "mfi": [
+          14
+        ],
+        "obv_delta": [
+          25
+        ],
+        "volume_price_trend": [
+          25
+        ],
+        "up_close_ratio": [
+          20
+        ],
+        "up_candle_ratio": [
+          20
+        ],
+        "close_location_avg": [
+          20
+        ],
+        "range_avg_pct": [
+          20
+        ]
+      },
+      "minute": {
+        "return_pct": [
+          3,
+          5,
+          10,
+          15,
+          30,
+          60
+        ],
+        "high_break_pct": [
+          15,
+          60
+        ],
+        "low_buffer_pct": [
+          15,
+          60
+        ],
+        "range_position": [
+          30
+        ],
+        "volume_ratio": [
+          15,
+          60
+        ],
+        "turnover_ratio": [
+          15,
+          60
+        ],
+        "volume_zscore": [
+          30
+        ],
+        "turnover_zscore": [
+          30
+        ],
+        "realized_vol_pct": [
+          15,
+          60
+        ],
+        "downside_vol_pct": [
+          15,
+          60
+        ],
+        "efficiency": [
+          15,
+          60
+        ],
+        "max_drawdown_pct": [
+          60
+        ],
+        "atr_pct": [
+          14
+        ],
+        "rsi": [
+          14
+        ],
+        "bollinger_z": [
+          20
+        ],
+        "bollinger_width_pct": [
+          20
+        ],
+        "donchian_high_gap_pct": [
+          30
+        ],
+        "donchian_low_gap_pct": [
+          30
+        ],
+        "stochastic_k": [
+          14
+        ],
+        "cci": [
+          20
+        ],
+        "cmf": [
+          20
+        ],
+        "mfi": [
+          14
+        ],
+        "obv_delta": [
+          30
+        ],
+        "volume_price_trend": [
+          30
+        ],
+        "up_close_ratio": [
+          30
+        ],
+        "up_candle_ratio": [
+          30
+        ],
+        "close_location_avg": [
+          30
+        ],
+        "range_avg_pct": [
+          30
+        ]
+      },
+      "week": {
+        "return_pct": [
+          2,
+          3,
+          6,
+          12
+        ],
+        "volume_ratio": [
+          3
+        ],
+        "turnover_ratio": [
+          3
+        ],
+        "realized_vol_pct": [
+          6,
+          12
+        ],
+        "downside_vol_pct": [
+          6,
+          12
+        ],
+        "efficiency": [
+          6
+        ],
+        "max_drawdown_pct": [
+          12
+        ],
+        "up_candle_ratio": [
+          3
+        ],
+        "close_location_avg": [
+          3
+        ],
+        "range_avg_pct": [
+          3
+        ]
+      },
+      "month": {
+        "return_pct": [
+          2,
+          3,
+          6,
+          12
+        ],
+        "volume_ratio": [
+          3
+        ],
+        "turnover_ratio": [
+          3
+        ],
+        "realized_vol_pct": [
+          6,
+          12
+        ],
+        "downside_vol_pct": [
+          6,
+          12
+        ],
+        "efficiency": [
+          6
+        ],
+        "max_drawdown_pct": [
+          12
+        ],
+        "up_candle_ratio": [
+          3
+        ],
+        "close_location_avg": [
+          3
+        ],
+        "range_avg_pct": [
+          3
+        ]
+      }
+    },
+    "recursiveSeed": "SMA_FIRST_N_IN_ACTUAL_COMPARABLE_SUFFIX",
+    "recursiveAdditionalWarmupBars": 0,
+    "recursiveWarmupCaveat": "ALL_AVAILABLE_SUFFIX_AFTER_SEED; NO_STATIONARITY_CERTIFICATION",
+    "bollinger": "20_POPULATION_STD; Z_SCORE; WIDTH_4_STD_OVER_MEAN_PERCENT",
+    "surpriseBaseline": "MEDIAN_20_PRIOR_SESSIONS_EXCLUDING_EVALUATED_D_MINUS_1",
+    "relativeVolumeBaseline": "MEAN_N_INCLUDING_D_MINUS_1",
+    "removedDeterministicAlias": "WILLIAMS_R_EQUALS_STOCHASTIC_K_MINUS_100",
+    "nativeDirectAliasPolicy": "ONE_CANONICAL_EXTERNAL_VALUE_FOR_10_FINANCIAL_AND_6_VALUATION_DIRECT_ALIASES",
+    "financialVsValuationBasis": "PRESERVE_NATIVE_FIN_EPS_BPS_ROE; NEVER_ALIAS_PERIOD_FINANCIAL_VALUES_TO_DAILY_VALUATION",
+    "coarseSemantics": "REGIME_WINDOWS_ONLY_NO_MACD_WILDER_ICHIMOKU_OR_MA_GRID",
+    "changedBeforeMarketFits": true,
+    "marketResultsConsulted": false
+  },
+  "featurePolicyHash": "c9294e40ab8024618b0858bb4c9ccd1f388a22575765f2f761da4ac8099edc7a",
+  "effectiveSchemaHash": "79a81013c5903913f531de6d97e402f5f19d7f13b6657e58363483128574f243",
+  "effectiveSchemaColumns": 554,
+  "registeredDoesNotMeanObservedOrFitUsed": true,
+  "executionAllowed": false,
+  "brokerWriteAllowed": false,
+  "excelOrderWriteAllowed": false,
+  "rssOrderFunctionAllowed": false,
+  "liveTradingAllowed": false,
+  "paperTradingAllowed": false,
+  "automaticPromotionAllowed": false,
+  "productionUpdateAllowed": false,
+  "transmitted": false,
+  "productionReady": false,
+  "entryAllowed": false
+}

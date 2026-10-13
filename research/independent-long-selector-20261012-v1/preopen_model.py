@@ -55,11 +55,13 @@ def validate_plan(plan: dict, populations: dict[str, list[dict]]) -> None:
         if len(keys) != len(set(keys)):
             raise PreopenError("DUPLICATE_LEARNING_IDENTITY")
         for row in rows:
+            if plan["mode"] == "SYNTHETIC" and row.get("sampleKind") != "SYNTHETIC":
+                raise PreopenError("REAL_ROW_IN_SYNTHETIC_BYPASS")
+            if plan["mode"] == "AUTHORIZED_DEVELOPMENT" and row.get("sampleKind") == "SYNTHETIC":
+                raise PreopenError("SYNTHETIC_ROW_IN_MARKET_PLAN")
             validate_feature_row(row)
             if row.get("missingRequiredSources"):
                 raise PreopenError("REQUIRED_NATIVE_SOURCE_MISSING_BEFORE_FIT")
-            if plan["mode"] == "SYNTHETIC" and row.get("sampleKind") != "SYNTHETIC":
-                raise PreopenError("REAL_ROW_IN_SYNTHETIC_BYPASS")
 
 
 def _teacher(row: dict) -> dict[str, int] | None:
@@ -128,12 +130,17 @@ class PreopenModel:
 
     def probabilities(self, rows: list[dict]) -> dict[tuple[str, str], dict]:
         import numpy as np
+        from preopen_feature_policy import policy_hash
+        if self.receipt.get("featurePolicyHash") != policy_hash():
+            raise PreopenError("MODEL_FEATURE_POLICY_DRIFT")
         if not rows:
             return {}
         for r in rows:
             validate_feature_row(r)
             if self.receipt["mode"] == "SYNTHETIC" and r.get("sampleKind") != "SYNTHETIC":
                 raise PreopenError("REAL_ROW_WITH_SYNTHETIC_MODEL")
+            if self.receipt["mode"] == "AUTHORIZED_DEVELOPMENT" and r.get("sampleKind") == "SYNTHETIC":
+                raise PreopenError("SYNTHETIC_ROW_WITH_MARKET_MODEL")
             if tuple(sorted(r["features"])) != self.all_columns:
                 raise PreopenError("FIT_LIVE_FEATURE_SCHEMA_MISMATCH")
             if r["session"] <= self.receipt["lastCalibrationSession"]:
@@ -194,7 +201,23 @@ def train_preopen_model(fit_rows: list[dict], fit_labels: dict,
     for h in HEADS:
         if {r[h] for r in fit_y} != {0, 1} or {r[h] for r in cal_y} != {0, 1}:
             raise PreopenError("HEAD_CLASS_SUPPORT_MISSING:" + h)
-    names = tuple(k for k in all_names if any(r["features"][k] is not None for r in known_fit))
+    # Row availability and all-missing/constant decisions use FIT only. Never
+    # choose columns from calibration or Report support.
+    reasons = {}
+    for k in all_names:
+        first, observed, variable = None, 0, False
+        for r in known_fit:
+            value = r["features"][k]
+            if value is None:
+                continue
+            if observed and value != first:
+                variable = True
+            elif not observed:
+                first = value
+            observed += 1
+        reasons[k] = ("ALL_MISSING_IN_FIT" if not observed else
+                      "CONSTANT_IN_FIT" if not variable else None)
+    names = tuple(k for k in all_names if reasons[k] is None)
     if not names:
         raise PreopenError("ALL_TRAINING_FEATURES_UNAVAILABLE")
     from sklearn.ensemble import HistGradientBoostingClassifier
@@ -240,7 +263,9 @@ def train_preopen_model(fit_rows: list[dict], fit_labels: dict,
                "registeredFeatureN": len(all_names), "usedFeatureN": len(names),
                "memoryPreflight": {"estimatedPeakBytes":estimate,"availableBytes":available,
                                    "nativeScaleMeasured":False},
-               "allMissingFitColumns": [k for k in all_names if k not in names],
+               "allMissingFitColumns": [k for k,v in reasons.items() if v == "ALL_MISSING_IN_FIT"],
+               "constantFitColumns": [k for k,v in reasons.items() if v == "CONSTANT_IN_FIT"],
+               "fitColumnExclusionReasons": {k:v for k,v in reasons.items() if v},
                "lastFitSession": max(plan["splits"]["fit"]),
                "lastCalibrationSession": max(plan["splits"]["calibration"]),
                "headEstimatorFits": 10, "calibrationFits": 10,
@@ -252,6 +277,10 @@ def train_preopen_model(fit_rows: list[dict], fit_labels: dict,
                "rankIsExpectedReturn": False, "productionReady": False,
                "reportConsumedByFit": False, "executionAllowed": False,
                "monotonicity": "MIN_ENVELOPE_AFTER_SEPARATE_CALIBRATION"}
+    from preopen_feature_policy import policy_hash
+    receipt["featurePolicyHash"] = policy_hash()
+    from preopen_feature_policy import source_code_hash
+    receipt["codeHash"] = source_code_hash()
     return PreopenModel(models, calibrators, all_names, names, receipt)
 
 
@@ -287,6 +316,12 @@ def load_private_model(directory: str | Path, *, private_root: str | Path,
     if not file.is_relative_to(root) or not receipt_file.is_relative_to(root):
         raise PreopenError("MODEL_SYMLINK_OUTSIDE_PRIVATE_ROOT")
     receipt = json.loads(receipt_file.read_text(encoding="utf-8"))
+    from preopen_feature_policy import policy_hash
+    if receipt.get("featurePolicyHash") != policy_hash():
+        raise PreopenError("TRUSTED_MODEL_FEATURE_POLICY_DRIFT")
+    from preopen_feature_policy import source_code_hash
+    if receipt.get("codeHash") != source_code_hash():
+        raise PreopenError("TRUSTED_MODEL_CODE_DRIFT")
     if (hashlib.sha256(file.read_bytes()).hexdigest() != expected_model_sha256
             or receipt.get("modelFileSha256") != expected_model_sha256
             or receipt.get("featureSchemaHash") != expected_schema_sha256

@@ -47,7 +47,7 @@ class AllTechnicalFamiliesTest(unittest.TestCase):
         data = [bar(100 + i / 10) for i in range(300)]
         v = build_ohlcv_features(data, prefix="daily_full",
                                  reference_price=129.9)
-        self.assertGreater(len(v), 150)
+        self.assertEqual(tuple(sorted(v)), feature_registry("daily_full"))
         for name in (
             "sma_close_distance_pct_5", "sma_close_distance_pct_15",
             "sma_close_distance_pct_25", "sma_cross_15_25_pct",

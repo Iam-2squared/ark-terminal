@@ -432,21 +432,18 @@ def build_features(snapshot: dict[str, Any]) -> dict[str, Any]:
     # because it was absent from the original 15-feature Frozen Selector.
     from technical_feature_library import (
         build_ohlcv_features, DAILY_PERIODS, MINUTE_PERIODS, REGISTRY_VERSION,
-        DAILY_SIGNAL_PERIODS, MINUTE_SIGNAL_PERIODS,
     )
     daily_full = build_ohlcv_features(
         daily if snapshot.get("dailyContinuityVerified") else [],
         prefix="daily_full",
         reference_price=decision_price if parity else None,
         periods=DAILY_PERIODS,
-        signal_periods=DAILY_SIGNAL_PERIODS,
     )
     minute_full = build_ohlcv_features(
         continuous,
         prefix="minute_full",
         reference_price=decision_price,
         periods=MINUTE_PERIODS,
-        signal_periods=MINUTE_SIGNAL_PERIODS,
     )
     features.update(daily_full)
     features.update(minute_full)

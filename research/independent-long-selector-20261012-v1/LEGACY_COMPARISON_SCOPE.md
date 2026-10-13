@@ -1,7 +1,8 @@
 # Exact Frozen comparison scope
 
 Status: LEGACY_COMPARISON_PENDING. No legacy Open-to-High counts are inferred.
-The active pointer identifies FROZEN_LONG_SELECTOR_WITH_MIN_PRICE_75.
+Prior recovered metadata pins FROZEN_LONG_SELECTOR_WITH_MIN_PRICE_75.
+Current active-pointer/payload and parent-fit manifest revalidation remains pending.
 
 | Identity | Pin |
 | --- | --- |
@@ -28,9 +29,11 @@ future continuous5m High remains its own metric. Any legacy selected-set all-day
 Open-to-High table is retrospective, can include High before selection, and is
 not legacy preopen ability or profits.
 
-Deduplicate symbol-days separately from repeated native events. The parent's
-76-day fit includes the new Report dates. Both use exposed Development; it is
-not an unseen comparator. Info/K/universe differences must be disclosed.
+Deduplicate symbol-days separately from repeated native events. The parent
+actual FIT intervals and their overlap with the new Report must be verified
+from the original manifest. A 76-day Development universe is not automatically
+a 76-day FIT or validation partition. Both sides have historical exposure; no
+fresh/OOS credit is asserted. Info/K/universe differences must be disclosed.
 
 Next evidence: exact pinned selected identities/native paths for7 admitted dates;
 official same-session RAW OHLC in private storage; current reuse basis. No baseline
@@ -46,3 +49,10 @@ All bytes were mechanically copied/hashed; CSV records and JSON outcomes were
 not interpreted and gzip was not decompressed. Not "wholly unopened".
 Numerical legacy comparison remains pending the new model/watchlist freeze.
 No model, weights, threshold, decision time or protected session was changed.
+
+# MA4 continuation 2026-10-13
+
+The two private pinned originals were restored with all entry hashes matched.
+Numeric records were not opened. Event and unique symbol-day recount, native
+selection-time-to-future High, and retrospective all-day Open/High remain
+NOT_MEASURED. Exact protected admission still precedes any legacy parsing.

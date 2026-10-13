@@ -15,7 +15,8 @@ from datetime import timedelta
 from pathlib import Path
 
 from preopen_feature_store import write_feature_store
-from preopen_history_features import FIN_COLUMNS, FLOW_COLUMNS, VALUATION_COLUMNS
+from preopen_history_features import (FIN_COLUMNS, FLOW_COLUMNS, VALUATION_COLUMNS,
+                                     FIN_EXTERNAL_ALIASES, VALUATION_EXTERNAL_ALIASES)
 from preopen_io import private_path, write_json, sha_file, utc_now, SAFE_FLAGS, verify_entry
 from preopen_native_source import (NativeStore, parse_ohlcv, minute_row,
                                    MARKETS, validate_native_request, NULLS)
@@ -28,8 +29,7 @@ REQUIRED_NATIVE_MARKET_DATASETS = {"DAILY","DATED_MASTER","MINUTE","TICK","FIN_S
 FIN_MAPPING = {"Sales":"fin_sales","OP":"fin_operating_profit","OdP":"fin_ordinary_profit",
                "NP":"fin_net_profit","TA":"fin_assets","Eq":"fin_equity",
                "CFO":"fin_operating_cash_flow","FSales":"fin_revenue_forecast",
-               "FOdP":"fin_ordinary_profit_forecast","FDivAnn":"fin_dividend_forecast",
-               "EPS":"valuation_eps","BPS":"valuation_bps","ROE":"valuation_roe"}
+               "FOdP":"fin_ordinary_profit_forecast","FDivAnn":"fin_dividend_forecast"}
 VALUATION_MAPPING = {"PER":"valuation_per","PBR":"valuation_pbr","MktCap":"valuation_market_cap_jpy",
                      "EPS":"valuation_eps","BPS":"valuation_bps","ROE":"valuation_roe",
                      "PSR":"valuation_psr","DY":"valuation_dividend_yield"}
@@ -61,12 +61,66 @@ def known_records(store, dataset, session, code=None):
             if stamp(store.available_at(r,dataset)) <= cutoff]
 
 
+def current_earnings_versions(rows):
+    """Latest known publication per issue and quarter; TBD cancels old dates.
+
+    Official scheduled-date queries use the latest record per issue/quarter,
+    including a changed fiscal-year-end. Do not take the earliest date over
+    all retained versions. Known-at filtering occurs before this function.
+    """
+    latest = {}
+    for row in rows:
+        if row.get("FQName") not in ("1Q", "2Q", "3Q", "FY"):
+            raise PreopenError("EARNINGS_QUARTER_IDENTITY_UNVERIFIED")
+        key = (row["Code"], row["FQName"])
+        old = latest.get(key)
+        if old is None or row["PubDate"] > old["PubDate"]:
+            latest[key] = row
+        elif row["PubDate"] == old["PubDate"] and row.get("SchDate") != old.get("SchDate"):
+            raise PreopenError("AMBIGUOUS_SAME_PUBLICATION_EARNINGS_REVISION")
+    return list(latest.values())
+
+
+def ordinary_stock_master(store, session, masters):
+    domestic = [r for r in masters if r.get("Mkt") in MARKETS and r.get("ProdCat") == "011"]
+    if store.request["mode"] == "SYNTHETIC":
+        # Classification is explicit in the artificial fixture, never inferred
+        # from real Code endings or from domestic-stock category 011.
+        return [r for r in domestic if r.get("CommonStock") == "1"]
+    contract = store.request.get("commonStockEligibilityContract", {})
+    if (contract.get("reviewed") is not True or not contract.get("evidenceReference")
+            or contract.get("basis") != "DATED_MASTER_AND_INDEPENDENT_SECURITY_CLASS"):
+        raise PreopenError("ORDINARY_STOCK_CLASSIFICATION_NOT_VERIFIED")
+    path = verify_entry(contract["classificationLedger"], store.private_root)
+    payload = json.loads(path.read_text())
+    if payload.get("schema") != "ARK_DATED_SECURITY_CLASSIFICATION_V1":
+        raise PreopenError("WRONG_DATED_SECURITY_CLASSIFICATION_SCHEMA")
+    rows = [r for r in payload["rows"] if r["session"] == session]
+    keys = [r["symbol"] for r in rows]
+    if len(keys) != len(set(keys)):
+        raise PreopenError("DUPLICATE_DATED_SECURITY_CLASSIFICATION")
+    bycode = {r["symbol"]:r for r in rows}
+    eligible = []
+    for master in domestic:
+        row = bycode.get(master["Code"])
+        if (row is None or row.get("pitVerified") is not True
+                or not row.get("sourceSha256") or not row.get("evidenceReference")
+                or stamp(row["knownAt"]) > PreopenConfig().at(session)
+                or type(row.get("commonStock")) is not bool):
+            raise PreopenError("DATED_COMMON_STOCK_CLASSIFICATION_COVERAGE_OR_PIT")
+        if row["commonStock"] and row.get("lotSize") == 100:
+            eligible.append(master)
+    return eligible
+
+
 def optional_facts(store, session, code):
     native, external = {}, {}
     financial = known_records(store,"FIN_SUMMARY",session,code)
     if financial:
         latest = max(financial,key=lambda r:(r["DiscDate"],r["DiscTime"],r.get("DiscNo","")))
         for field in FIN_COLUMNS:
+            if field in FIN_EXTERNAL_ALIASES:
+                continue
             f = fact(store,latest,field)
             if f:
                 native["preopen_native_fin_"+field] = f
@@ -99,6 +153,8 @@ def optional_facts(store, session, code):
     if valuation:
         latest = max(valuation,key=lambda r:r["Date"])
         for field in VALUATION_COLUMNS:
+            if field in VALUATION_EXTERNAL_ALIASES:
+                continue
             f = fact(store,latest,field)
             if f:
                 native["preopen_native_valuation_"+field] = f
@@ -112,7 +168,9 @@ def optional_facts(store, session, code):
     if flows:
         latest = max(flows,key=lambda r:(r["PubDate"],r["EnDate"],r["StDate"]))
         for field in FLOW_COLUMNS:
-            f = fact(store,latest,field,scale=1000)
+            source_unit = store.source(latest["_sourceHash"]).get("numericUnits", {}).get(field)
+            multiplier = {"THOUSAND_JPY":1000, "JPY":1}.get(source_unit)
+            f = fact(store,latest,field,scale=multiplier) if multiplier is not None else None
             if f:
                 native[f"preopen_native_flow_{field}_jpy"] = {**f,"units":"JPY"}
     topix = known_records(store,"TOPIX",session)
@@ -133,7 +191,7 @@ def optional_facts(store, session, code):
                     "units":"PERCENT","sourceSha256":topix[-1]["_sourceHash"],
                     "publicationEvidence":store.source(topix[-1]["_sourceHash"])["availabilityContract"]["evidenceReference"],
                     "availableAt":store.available_at(topix[-1],"TOPIX")}
-    earnings = known_records(store,"EARNINGS_DATE",session,code)
+    earnings = current_earnings_versions(known_records(store,"EARNINGS_DATE",session,code))
     if earnings:
         upcoming = [r for r in earnings if r["SchDate"] >= session]
         if upcoming:
@@ -227,9 +285,9 @@ def snapshot_rows(store, sessions, calendar, ineligible):
         masters = list(store.records("DATED_MASTER",session=session))
         if not masters:
             raise PreopenError("NO_DATED_MASTER_FOR_FIXED_SESSION")
-        eligible_master = [r for r in masters if r.get("Mkt") in MARKETS
-                           and r.get("ProdCat") == "011"
-                           and re.fullmatch(r"[0-9A-Z]{4}0",r.get("Code",""))]
+        eligible_master = ordinary_stock_master(store, session, masters)
+        if any(not re.fullmatch(r"[0-9A-Z]{4}0",r.get("Code","")) for r in eligible_master):
+            raise PreopenError("CLASSIFIED_ORDINARY_STOCK_CODE_MAPPING_UNVERIFIED")
         universe_hash = digest([(r["Code"],r["Mkt"],r.get("S33"),r["ProdCat"])
                                 for r in eligible_master])
         context = previous_market_context(store,session,prev,eligible_master,calendar)
@@ -325,7 +383,10 @@ def build_bundle(request, output):
         counts = Counter()
         features = (build_preopen_features(s) for s in snapshot_rows(store,splits[role],calendar,counts))
         inputs[role+"_snapshots"] = write_feature_store(
-            features,output/role,private_root=root,input_manifest_hash=digest(request))
+            features,output/role,private_root=root,input_manifest_hash=digest(request),
+            cache_context={"calendarHash":request["calendar"]["sha256"],
+                "basisHash":digest({"policy":"RAW_COMPARABLE_SUFFIX_RESET_AFTER_KNOWN_ACTION_OR_NULL_NO_ADJC",
+                                    "sourceContracts":[s["sourceContractHash"] for s in request["sources"]]})})
         excluded[role] = dict(counts)
         if role != "report":
             p = output/(role+"_labels.jsonl")

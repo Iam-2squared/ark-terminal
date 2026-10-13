@@ -1,18 +1,150 @@
 {
-  "schema": "ARK_PREOPEN_COMPLETION_WORK_20261012_V1",
-  "sourceCommit": "73150bf9cfdb5835e1e458bcb0ed327272652854",
-  "codeCommitBinding": "PR_593_HEAD_AND_SOURCE_FILE_HASHES",
-  "contractHash": "11e9ea1224314cfcd6aed7b0472162c5edaf3c2d07dfd1231dc7b8ec4857f02f",
-  "inputManifestHash": "e18a181197927bed31b22fb376c42eb35fd0ed42dcabbbb88f7ffcc0b7208325",
-  "createdAt": "2026-10-12T22:58:58.829Z",
-  "classification": "PUBLIC_NONRECONSTRUCTIVE",
-  "softwareVersions": {
-    "numpy": "2.3.5",
-    "scikit-learn": "1.8.0",
-    "scipy": "1.17.0",
-    "joblib": "1.5.3",
-    "threadpoolctl": "3.6.0"
+  "schema": "ARK_PREOPEN_MA4_WORK_V2",
+  "directiveId": "ARK_WORK_PREOPEN_MA4_DIVERSE_COMPLETION_20261013_V2",
+  "createdAt": "2026-10-13T01:18:02.177620+00:00",
+  "startingHead": "f9430c4d2ab024f5cc6bbe914f1198daf4c51956",
+  "codeCommitBinding": "THIS_FILE_AT_PR_593_FINAL_HEAD; PRIVATE_PERSISTENCE_VERIFIED_CODE_HASH",
+  "localCodeHash": "3125ac61a0b1769287adbee797f56470ca99fd785d39453b7593f342994a0e17",
+  "featurePolicyHash": "c9294e40ab8024618b0858bb4c9ccd1f388a22575765f2f761da4ac8099edc7a",
+  "featureSchemaHash": "79a81013c5903913f531de6d97e402f5f19d7f13b6657e58363483128574f243",
+  "overall": "INCOMPLETE_REQUIRED_PRIVATE_BINARY_PIT_LINEAGE_AND_MARKET_MEASUREMENT",
+  "ENGINEERING_PASS": "PARTIAL_PASS_120_LOCAL_TESTS_SYNTHETIC_E2E_REAL_SOURCE_CANARY; FULL_NATIVE_PENDING",
+  "MARKET_MEASUREMENT_COMPLETE": false,
+  "LEGACY_COMPARISON_COMPLETE": false,
+  "RESEARCH_QUALITY": "NOT_MEASURED",
+  "LIVE_READINESS": "NOT_CERTIFIED",
+  "plannedDays": {
+    "fit": 30,
+    "calibration": 10,
+    "report": 7
   },
+  "executedMarketDays": {
+    "fit": 0,
+    "calibration": 0,
+    "report": 0
+  },
+  "marketCandidates": 0,
+  "marketHeadFits": 0,
+  "marketCalibrationFits": 0,
+  "marketModels": 0,
+  "marketWatchlists": 0,
+  "marketReportOutcomeRows": 0,
+  "verifiedCandidateFeatureRows": 0,
+  "sourceFeatureCanary": {
+    "sourceSymbolN": 4392,
+    "sourceFeatureRowN": 4202,
+    "computedSchemaColumns": 138,
+    "observedColumnN": 100,
+    "sourceOriginalN": 30,
+    "wallSeconds": 11.59929912699954,
+    "peakRssKiB": 144216,
+    "diskOutputBytes": 26289953,
+    "preOutcomeExclusions": {
+      "PRIOR_NO_TRADE_OR_NO_COMPARABLE_SUFFIX": 190
+    },
+    "fullCandidateFamilyConnection": false,
+    "fullNativeScaleCertified": false
+  },
+  "effectiveSchemaN": 554,
+  "observedFullCandidateSchemaN": null,
+  "fitUsedColumns": 0,
+  "restoration": {
+    "zipBytes": 27298507,
+    "zipSha256": "07309ffd12e6c672da2f6be5b41c1ce6d38fb99fb97c03da1722924c9717ee88",
+    "payloadEntries": 161,
+    "CRCAndHashes": "PASS",
+    "sqliteQuickCheck": "PASS",
+    "completedOriginalDescriptors": 49,
+    "sourceRows": 185728
+  },
+  "savedReuseBasis": {
+    "status": "OWNER_ATTESTED_CURRENT_WORK_CONTINUATION",
+    "originalVerifiedAt": "2026-10-12T23:38:12+09:00",
+    "originalWorkIdAndHashPreserved": true,
+    "providerIndependentConfirmation": false,
+    "expiry": null,
+    "guardHours": 24,
+    "freshnessIsExpiry": false
+  },
+  "localValidation": {
+    "suites": [
+      {
+        "suite": "tests",
+        "tests": 32,
+        "failures": 0,
+        "errors": 0,
+        "elapsed": 0.04997505800020008,
+        "peakRssKiB": 16768
+      },
+      {
+        "suite": "preopen_tests",
+        "tests": 88,
+        "failures": 0,
+        "errors": 0,
+        "elapsed": 8.713651960999414,
+        "peakRssKiB": 144216
+      }
+    ],
+    "codeHash": "3125ac61a0b1769287adbee797f56470ca99fd785d39453b7593f342994a0e17",
+    "policyHash": "c9294e40ab8024618b0858bb4c9ccd1f388a22575765f2f761da4ac8099edc7a",
+    "schemaN": 554,
+    "smokeReturncode": 0,
+    "wallSeconds": 10.725832505000653,
+    "marketFits": 0,
+    "syntheticHeadFitsThisValidation": 20,
+    "syntheticCalibrationFitsThisValidation": 20,
+    "allWritersAwaitedToCompletion": true,
+    "reason": "Preserve financial-period EPS/BPS/ROE separately from daily valuation basis; not a deterministic alias"
+  },
+  "syntheticThisWork": {
+    "localHeadFits": 100,
+    "localCalibrationFits": 100,
+    "CIHeadFits": "PENDING_FINAL_HEAD_CI",
+    "CICalibrationFits": "PENDING_FINAL_HEAD_CI",
+    "marketHeadFits": 0,
+    "marketCalibrationFits": 0,
+    "explorationN": 0
+  },
+  "canaryMechanicalRuns": {
+    "n": 4,
+    "uniqueRows": 4202,
+    "calculationAttempts": 16808,
+    "sourceRecordParseAttemptsPerRun": 131558,
+    "rerunReason": "Code/policy binding after mechanical class/revision/basis and alias changes, not performance search"
+  },
+  "derivedCacheRepair": {
+    "status": "HASH_AND_SIZE_MATCH_RECOVERED; TRUNCATED_FILES_QUARANTINED",
+    "originalsAndSqliteRechecked": "PASS",
+    "marketFitsBeforeAndAfter": 0,
+    "cause": "POSTWRITE_CAUSE_UNESTABLISHED",
+    "testsRepeatedForPersistenceVerification": true,
+    "corruptDerivedFiles": 2
+  },
+  "ci": {
+    "verificationLocation": "PR_593_CHECKS_AND_PRIVATE_FINAL_GIT_CI_RECEIPT",
+    "sameFinalHeadRequired": true,
+    "statusAtCommitCreation": "AWAITING_NEW_HEAD_RUN",
+    "baseline106AtF943Local": "PASS",
+    "previousRunsNotReinterpretedAsCurrentHead": true
+  },
+  "protectedNumericOutcomeOpenings": 0,
+  "reportLabelsRead": false,
+  "legacyNumericOutcomesRead": false,
+  "sourceNewOriginals": 0,
+  "externalMarketJobsRunning": 0,
+  "main_merge": 0,
+  "force_push": 0,
+  "provider_new_acquisition_requests": 0,
+  "sourceRepositoryWrites": 0,
+  "localCheckoutAtStart": "ABSENT; EXACT_58_FILE_PLUGIN_SNAPSHOT_VERIFIED_BY_GIT_BLOB_SHA",
+  "blockers": [
+    "PRIVATE_REQUIRED_BINARY_TRANSFER_BLOCKED",
+    "LOOKBACK_PERMISSION_AND_JOIN_PENDING",
+    "DATED_ORDINARY_CLASSIFICATION_AND_PIT_PENDING",
+    "FORMAL_STATE_DICTIONARY_LINEAGE_PENDING",
+    "LEGACY_COMPARISON_PENDING",
+    "FULL_NATIVE_RESOURCES_AND_LIVE_REFRESH_UNVERIFIED"
+  ],
   "executionAllowed": false,
   "brokerWriteAllowed": false,
   "excelOrderWriteAllowed": false,
@@ -24,264 +156,6 @@
   "transmitted": false,
   "productionReady": false,
   "entryAllowed": false,
-  "overall": "INCOMPLETE_LARGE_PRIVATE_BINARY_NATIVE_JOINS_AND_MARKET_MEASUREMENT",
-  "pr": 593,
-  "branch": "research/independent-long-selector-20261012-v1",
-  "baseCommit": "10c94c92c4bd2a59a22744667fd0210252602df4",
-  "ENGINEERING_PASS": "PARTIAL_PASS_SYNTHETIC_PRIVATE_IO_AND_ADMITTED_SOURCE_INGEST_ONLY",
-  "MARKET_MEASUREMENT_COMPLETE": false,
-  "LEGACY_COMPARISON_COMPLETE": false,
-  "RESEARCH_QUALITY": "NOT_CERTIFIED",
-  "LIVE_READINESS": "NOT_CERTIFIED",
-  "marketHeadFits": 0,
-  "marketCalibrationFits": 0,
-  "marketReportSymbolDays": 0,
-  "actualMarketFeatureRows": 0,
-  "marketFeatureColumnsUsedInFit": 0,
-  "marketModelGenerated": false,
-  "candidateMarketWatchlistsGenerated": false,
-  "nativeSourceNumericPriceRowsParsed": 184595,
-  "protectedNumericOutcomeOpenings": 0,
-  "legacyComparisonStatus": "LEGACY_COMPARISON_PENDING",
-  "localValidation": {
-    "legacyTests": 32,
-    "preopenTests": 37,
-    "newCompletionTests": 16,
-    "newOwnerReuseTests": 8,
-    "newPluginOriginalTests": 11,
-    "total": 104,
-    "status": "PASS_LOCAL_32_PLUS_72"
-  },
-  "ci": {
-    "codeVerificationCommit": "73150bf9cfdb5835e1e458bcb0ed327272652854",
-    "run": 38319228544,
-    "job": 115043071525,
-    "result": "SUCCESS",
-    "legacy32": "PASS",
-    "preopen72": "PASS",
-    "smoke": "PASS",
-    "companionRuns": [
-      38319228485,
-      38319234999
-    ],
-    "artifactId": 11777994217,
-    "artifactBytes": 105938,
-    "artifactClassification": "CODE_ONLY_NO_MARKET_DATA"
-  },
-  "blockers": [
-    "LARGE_PRIVATE_GZIP_BINARY_TRANSFER_NOT_AVAILABLE",
-    "FORMAL_PREVIOUS_STATE_LINEAGE_NOT_JOINED",
-    "NATIVE_SCALE_AND_DAILY_REFRESH_NOT_VERIFIED",
-    "ALL_REQUIRED_NATIVE_FAMILIES_AND_FULL_SNAPSHOT_AVAILABILITY_REVIEW_NOT_COMPLETE"
-  ],
-  "stopAfterResearch": true,
-  "main_merge": 0,
-  "force_push": 0,
-  "live_orders": 0,
-  "paper_orders": 0,
-  "provider_new_acquisition_requests": 0,
-  "unauthorized_sealed_outcome_openings": 0,
-  "localSyntheticExecution": {
-    "nativePrivateE2ERuns": 6,
-    "standaloneSmokeRuns": 1,
-    "headFits": 70,
-    "calibrationFits": 70,
-    "marketFits": 0,
-    "marketCalibrationFits": 0,
-    "rerunBasis": "Prior mechanical source/stage fixes plus one regression E2E after the supported small-base64 transfer change; no market performance results examined."
-  },
-  "syntheticThisWorkTotal": {
-    "localHeadFits": 70,
-    "CIHeadFits": 60,
-    "localCalibrationFits": 70,
-    "CICalibrationFits": 60,
-    "totalHeadFits": 130,
-    "totalCalibrationFits": 130,
-    "marketHeadFits": 0,
-    "marketCalibrationFits": 0,
-    "status": "SYNTHETIC_REGRESSION_AND_CODE_CI_ONLY"
-  },
-  "historyBeforeOwnerRenewal": {
-    "at": "2026-10-12T22:37:14.438308+09:00",
-    "reuseBasis": "UNRESOLVED_AT_THAT_TIME",
-    "shaMatchedOriginalN": 12,
-    "shaMatchedOriginalBytes": 354759644,
-    "numericMarketSourceRowsParsed": 0,
-    "testsPassed": 85,
-    "codeVerificationCommit": "d290cde48335d2f29822f580f1f1674eea4dfa99"
-  },
-  "currentSavedOriginalUseBasis": {
-    "status": "OWNER_ATTESTED_CURRENT_WORK_ONLY",
-    "ownerRenewalConfirmedAt": "2026-10-12T23:38:12+09:00",
-    "connectedGithubPrincipalVerified": true,
-    "providerIndependentlyVerified": false,
-    "providerExpiry": null,
-    "attestationFreshnessGuardHours": 24,
-    "freshnessIsSubscriptionExpiry": false
-  },
-  "sourceCanary": {
-    "scope": "49_ADMITTED_SOURCE_ORIGINALS_ONLY_NOT_FULL_NATIVE_CANDIDATE",
-    "dailyOriginals": 41,
-    "dailyOriginalBytes": 49836576,
-    "dailySessions": 41,
-    "dailyRows": 180161,
-    "otherNativeOriginals": 8,
-    "otherNativeRows": 5567,
-    "admittedRows": 185728,
-    "rowsByDataset": {
-      "DAILY": 180161,
-      "FIN_SUMMARY": 4318,
-      "EARNINGS_DATE": 1172,
-      "TOPIX": 41,
-      "INVESTOR_TYPES": 36
-    },
-    "sourceNumericPriceRowsParsedThisResumption": 180202,
-    "sourceNumericPriceParseAttemptsCumulative": 184595,
-    "stockUniverseCertified": false,
-    "candidateSymbolDays": null,
-    "featureRows": 0,
-    "computedFeatureColumns": 0,
-    "fitUsedFeatureColumns": 0,
-    "marketFits": 0,
-    "calibrationFits": 0,
-    "watchlists": 0,
-    "reportOutcomes": 0,
-    "marketPerformanceMeasured": false,
-    "nativeScaleCertified": false,
-    "sourceOnlyDailyIngestElapsedSeconds": 6.484248558000218,
-    "sourceOnlyDailyIngestPeakRssKiB": 60308,
-    "independentSourceCountAudit": {
-      "sha256": "bf1b924e0f3b03a20aaa605b0387d8c08827637068925964d9fc8634c2c18819",
-      "result": "PASS_SAME_IMPLEMENTER_SEPARATE_PATH_NOT_BLIND_THIRD_PARTY",
-      "calendarPreviousSessionMatches": 47,
-      "marketMeasurementRecountComplete": false
-    },
-    "reportDailyOriginalsFetched": 0,
-    "dailyLongLookbackComplete": false,
-    "fullCandidateAvailabilityReviewed": false
-  },
-  "previousCI": {
-    "codeVerificationCommit": "d067263573e90d9b87bbfb3f4892eec8593db329",
-    "run": 38268054947,
-    "job": 114875158837,
-    "result": "SUCCESS",
-    "legacy32": "PASS",
-    "preopen67": "PASS",
-    "smoke": "PASS",
-    "companionRuns": [
-      38268054951,
-      38268063323
-    ],
-    "artifactId": 11755771830,
-    "artifactBytes": 104713,
-    "artifactClassification": "CODE_ONLY_NO_MARKET_DATA"
-  },
-  "legacyEvidenceRecovery": {
-    "artifactN": 2,
-    "bytes": 7039823,
-    "identity": "FROZEN_LONG_SELECTOR_WITH_MIN_PRICE_75",
-    "selectionCsvSha256": "0db332537661c1dece6becdfac538e5eeb641fb52754ee9f5c607208abb92a23",
-    "nativePathSha256": "eeb15545a278a7058a0b40042169df8ad7560077289c7bef3412977decc524d2",
-    "allBytesMechanicallyReadForHash": true,
-    "recordsNumericallyInterpreted": 0,
-    "comparisonMeasured": false
-  },
-  "historyBeforePluginOnlyResumption20261013": {
-    "sourceCommit": "ab0c58ffd282ed44fd2f6f58ac3d83daa95de7a8",
-    "createdAt": "2026-10-12T15:04:47.767Z",
-    "ci": {
-      "codeVerificationCommit": "d067263573e90d9b87bbfb3f4892eec8593db329",
-      "run": 38268054947,
-      "job": 114875158837,
-      "result": "SUCCESS",
-      "legacy32": "PASS",
-      "preopen67": "PASS",
-      "smoke": "PASS",
-      "companionRuns": [
-        38268054951,
-        38268063323
-      ],
-      "artifactId": 11755771830,
-      "artifactBytes": 104713,
-      "artifactClassification": "CODE_ONLY_NO_MARKET_DATA"
-    },
-    "sourceCanary": {
-      "scope": "ONE_ADMITTED_D_MINUS_1_DAILY_API_ORIGINAL_NOT_FULL_CANDIDATE",
-      "originals": 1,
-      "bytes": 1215429,
-      "admittedRows": 4393,
-      "sourceDate": "2024-10-01",
-      "sha256": "71af453b1b025fbf36a355d2284a09ea8619222d2a31cc792e5fd1644a75116a",
-      "featureRows": 0,
-      "marketFits": 0,
-      "calibrationFits": 0,
-      "watchlists": 0,
-      "reportOutcomes": 0,
-      "marketPerformanceMeasured": false,
-      "nativeScaleCertified": false
-    },
-    "numericPriceRowsParsed": 4393,
-    "shaMatchedOriginalN": null,
-    "localSyntheticExecution": {
-      "nativePrivateE2ERuns": 5,
-      "standaloneSmokeRuns": 1,
-      "headFits": 60,
-      "calibrationFits": 60,
-      "marketFits": 0,
-      "marketCalibrationFits": 0,
-      "rerunBasis": "mechanical changes to source admission, smoothing, stage separation, exact report and safety checks; no market outcomes examined"
-    }
-  },
-  "codeCommit": "73150bf9cfdb5835e1e458bcb0ed327272652854",
-  "inputManifestMeaning": "FIXED_SESSION_SPLIT_HASH_NOT_A_FITTED_FEATURE_MATRIX",
-  "nativeSourceUniqueNumericPriceRowsAdmitted": 180202,
-  "sourceRowsMeaning": "SECURITY_DAILY_AND_TOPIX_SOURCE_ROWS_NOT_SELECTED_ORDINARY_STOCK_CANDIDATES",
-  "pluginOnlyResumption": {
-    "at": "2026-10-12T22:58:58.829Z",
-    "githubPrincipal": "Iam-2squared",
-    "browserUsed": false,
-    "loginRequested": false,
-    "newOriginals": 44,
-    "newOriginalBytes": 48898922,
-    "cumulativeShaMatchedOriginals": 57,
-    "cumulativeShaMatchedOriginalBytes": 404873995,
-    "currentPrivateEOriginals": 53,
-    "currentPrivateEOriginalBytes": 50590193,
-    "historyCacheRebuildReason": "Prior checkpoint retained the one daily original and source receipt but not its SQLite shard; that existing day was rebuilt once in the new 41-day shard.",
-    "mechanicalTransferRetry": {
-      "originalCount": 4,
-      "reason": "apply_patch raw output appended LF; unverified generated copies quarantined; official envelope materializer preserves exact tool-returned UTF8 bytes",
-      "marketResultsOpenedBeforeFix": false,
-      "marketFitsBeforeFix": 0
-    },
-    "stageStartupFailures": [
-      {
-        "operation": "source-only resource wrapper",
-        "error": "OPTIONAL_TIME_BINARY_NOT_INSTALLED",
-        "marketFitsStarted": 0
-      },
-      {
-        "operation": "source-only resource wrapper",
-        "error": "IMPORT_PATH_REQUIRED_FOR_RUNPY",
-        "marketFitsStarted": 0
-      }
-    ],
-    "missingFullCandidateDatasets": [
-      "DATED_MASTER",
-      "MINUTE",
-      "TICK",
-      "VALUATION"
-    ],
-    "formalStateLineageJoined": false,
-    "dailyLongLookbackBeforeFirstFitFullyMaterialized": false
-  },
-  "syntheticThisResumption": {
-    "localHeadFits": 10,
-    "localCalibrationFits": 10,
-    "CIHeadFits": 20,
-    "CICalibrationFits": 20,
-    "marketHeadFits": 0,
-    "marketCalibrationFits": 0,
-    "modelSearchN": 0
-  }
+  "sourceCanaryQuantityUnits": "RAW_SOURCE_VO_SHARES_OR_UNITS; COMMON_STOCK_CLASS_NOT_CERTIFIED",
+  "sourceCanaryFinalResourceScope": "Reported process peak RSS includes launch from the already-used validation process; not full-native qualification"
 }

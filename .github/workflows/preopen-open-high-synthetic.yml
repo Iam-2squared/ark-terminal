@@ -4,6 +4,7 @@ on:
   push:
     branches: [research/independent-long-selector-20261012-v1]
     paths:
+      - 'research/independent-long-selector-20261012-v1/**'
       - 'research/independent-long-selector-20261012-v1/preopen_*.py'
       - 'research/independent-long-selector-20261012-v1/preopen_tests/**'
       - 'research/independent-long-selector-20261012-v1/run_preopen_selector.py'
@@ -27,6 +28,8 @@ jobs:
     timeout-minutes: 15
     env:
       OMP_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
       OPENBLAS_NUM_THREADS: '1'
       MKL_NUM_THREADS: '1'
     steps:

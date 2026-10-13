@@ -31,9 +31,11 @@ def load_verified_input(entry: dict, private_root: Path) -> list[dict]:
 
 
 def load_feature_input(entry, root):
-    if entry.get("format") == "ARK_PREOPEN_COLUMNAR_FEATURES_V1":
+    if entry.get("format") == "ARK_PREOPEN_COLUMNAR_FEATURES_V2":
         from preopen_feature_store import FeatureStore
         return FeatureStore(verify_entry(entry, root), private_root=root)
+    if entry.get("format") == "ARK_PREOPEN_COLUMNAR_FEATURES_V1":
+        raise PreopenError("STALE_COLUMNAR_FEATURE_POLICY_REBUILD_REQUIRED")
     snapshots = load_verified_input(entry, root)
     if entry.get("format") == "ARK_PREOPEN_FEATURE_ROWS_V1":
         return snapshots

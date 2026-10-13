@@ -21,6 +21,11 @@ FLOW_COLUMNS = tuple(a+b for a in ("Prop","Brk","Tot","Ind","Frgn","SecCo",
                                   "InvTr","BusCo","OthCo","InsCo","Bank","TrstBnk","OthFin")
                      for b in ("Sell","Buy","Tot","Bal"))
 VALUATION_COLUMNS = ("EPS","FwdEPS","BPS","ROE","FwdROE","PER","FwdPER","PBR","MktCap")
+# These exact values already have one canonical preopen_external output.
+# Keep other native fields and derivatives; do not multiply direct aliases.
+FIN_EXTERNAL_ALIASES = frozenset(("Sales", "OP", "OdP", "NP", "TA", "Eq", "CFO",
+                                  "FSales", "FOdP", "FDivAnn"))
+VALUATION_EXTERNAL_ALIASES = frozenset(("EPS", "BPS", "ROE", "PER", "PBR", "MktCap"))
 SUMMARY_NAMES = ("vwap_distance_pct","afternoon_return_pct","last30_turnover_share",
                  "last60_turnover_share","observed_minute_count",
                  "observed_minute_turnover","auction_turnover_share")
@@ -28,9 +33,9 @@ SUMMARY_NAMES = ("vwap_distance_pct","afternoon_return_pct","last30_turnover_sha
 
 def native_feature_names():
     return tuple(sorted(
-        [f"preopen_native_fin_{c}" for c in FIN_COLUMNS] +
+        [f"preopen_native_fin_{c}" for c in FIN_COLUMNS if c not in FIN_EXTERNAL_ALIASES] +
         [f"preopen_native_flow_{c}_jpy" for c in FLOW_COLUMNS] +
-        [f"preopen_native_valuation_{c}" for c in VALUATION_COLUMNS] +
+        [f"preopen_native_valuation_{c}" for c in VALUATION_COLUMNS if c not in VALUATION_EXTERNAL_ALIASES] +
         [f"preopen_previous_tick_{c}" for c in tick_registry()] +
         [f"preopen_previous_session_{c}" for c in SUMMARY_NAMES]))
 
@@ -67,7 +72,8 @@ def minute_session_summary(bars, *, previous_session, reference_price):
         (continuous if b["kind"] == "CONTINUOUS_1M" else auctions).append(b)
     all_bars = continuous + auctions
     volume = sum(number(b["volume"]) for b in all_bars)
-    turnover = sum(number(b["turnover"]) for b in all_bars)
+    turnover = (sum(number(b["turnover"]) for b in all_bars)
+                if all(b.get("turnover") is not None for b in all_bars) else None)
     result["preopen_previous_session_observed_minute_count"] = float(len(continuous))
     result["preopen_previous_session_observed_minute_turnover"] = turnover
     if volume and turnover:

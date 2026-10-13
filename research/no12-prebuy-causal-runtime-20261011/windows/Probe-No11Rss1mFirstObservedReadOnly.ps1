@@ -1,4 +1,4 @@
-# Ark No.1.1: local PC observation of closed 1M RSS chart (not broker known_at).
+﻿# Ark No.1.1: local PC observation of closed 1M RSS chart (not broker known_at).
 # Single public symbol, read-only RSS, unsaved temporary workbook, zero orders.
 param([switch]$OfflineSelfTest,[int]$DurationSeconds=150,[int]$PollSeconds=3,
       [int]$HistoryBars=35,[int]$WarmupSeconds=8)

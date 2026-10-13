@@ -21,23 +21,50 @@ export function auditNo11State9InputBoundary({file,now=new Date()}={}){
   const rows=obj.periods[period].rows;
   const sorted=[...rows].sort((a,b)=>a.label.localeCompare(b.label));
   const dayCounts={},gaps=[],nonMonotone=0;
+  const dayRanges=new Map(),crossSessionBoundaries=[];
   for(let i=0;i<sorted.length;i++){
    const day=sorted[i].label.slice(0,10);
    dayCounts[day]=(dayCounts[day]??0)+1;
-   if(i===0||day!==sorted[i-1].label.slice(0,10))continue;
+   const previousRange=dayRanges.get(day);
+   if(!previousRange)dayRanges.set(day,{day,firstLabel:sorted[i].label,lastLabel:sorted[i].label,count:1});
+   else {previousRange.lastLabel=sorted[i].label;previousRange.count++;}
+   if(i===0)continue;
+   if(day!==sorted[i-1].label.slice(0,10)){
+    crossSessionBoundaries.push({
+     previousLabel:sorted[i-1].label,currentLabel:sorted[i].label,
+     classification:'CROSS_SESSION_ARCHIVE_BOUNDARY_NOT_MISSING_BAR'
+    });
+    continue;
+   }
    const prev=localMinute(sorted[i-1].label),cur=localMinute(sorted[i].label);
    const step=period==='1M'?1:5;
    // Lunch breaks, terminal auction, and partial archive windows are not
    // classified as missing market data from this local receipt alone.
    if(cur<=prev)nonMonotone++;
-   if(cur-prev>step && !((prev<=690&&cur>=750)))gaps.push({
-    day,previousLabel:sorted[i-1].label,currentLabel:sorted[i].label
-   });
+   if(cur-prev>step){
+    const lunch=prev<=690&&cur>=750;
+    const priorEnd=prev===690||prev===930;
+    const classification=lunch?'EXPECTED_LUNCH_BREAK_BOUNDARY':
+      priorEnd?'SESSION_BOUNDARY_OR_TERMINAL_AUCTION_REVIEW':
+      'UNEXPLAINED_OBSERVED_LABEL_GAP_REQUIRES_SOURCE_REVIEW';
+    gaps.push({
+     day,previousLabel:sorted[i-1].label,currentLabel:sorted[i].label,
+     deltaMinutes:cur-prev,nominalStepMinutes:step,
+     classification,missingMarketBarsCertified:false
+    });
+   }
   }
   sessions[period]={rows:sorted.length,sessionCounts:dayCounts,
    observedIntraSessionGaps:gaps.slice(0,20),
-   observedIntraSessionGapCount:gaps.length,nonMonotone,
-   completeSessionCertified:false};
+   observedIntraSessionGapCount:gaps.length,
+   unexplainedObservedLabelGaps:gaps.filter(g=>g.classification==='UNEXPLAINED_OBSERVED_LABEL_GAP_REQUIRES_SOURCE_REVIEW').length,
+   expectedLunchBoundaries:gaps.filter(g=>g.classification==='EXPECTED_LUNCH_BREAK_BOUNDARY').length,
+   dayRanges:[...dayRanges.values()],
+   crossSessionBoundaries,
+   archiveWindowPartialOrCompleteUnknown:true,
+   previousSessionBaselineUCertified:false,
+   previousSessionPRefCertified:false,
+   nonMonotone,completeSessionCertified:false};
  }
  const blockers=[
   'VENDOR_1M_LABEL_START_END_NOT_CERTIFIED',

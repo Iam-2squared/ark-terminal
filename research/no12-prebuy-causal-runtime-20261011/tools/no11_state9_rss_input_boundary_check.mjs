@@ -12,6 +12,14 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
   console.log('NO11_1M_5M_PARITY_COMPARED='+r.observedParity.compared);
   for(const period of ['1M','5M']){
    console.log('NO11_'+period+'_OBSERVED_GAP_COUNT='+r.periods[period].observedIntraSessionGapCount);
+   console.log('NO11_'+period+'_UNEXPLAINED_LABEL_GAPS='+r.periods[period].unexplainedObservedLabelGaps);
+   console.log('NO11_'+period+'_EXPECTED_LUNCH_BOUNDARIES='+r.periods[period].expectedLunchBoundaries);
+   for(const range of r.periods[period].dayRanges)
+    console.log('NO11_'+period+'_DAY_RANGE='+range.day+'|'+range.firstLabel+'|'+range.lastLabel+'|'+range.count);
+   for(const gap of r.periods[period].observedIntraSessionGaps)
+    console.log('NO11_'+period+'_GAP='+gap.previousLabel+'|'+gap.currentLabel+'|'+gap.classification);
+   console.log('NO11_'+period+'_PREVIOUS_SESSION_U_CERTIFIED=False');
+   console.log('NO11_'+period+'_PREVIOUS_SESSION_P_REF_CERTIFIED=False');
   }
   for(const b of r.blockers)console.log('NO11_STATE9_BLOCKER='+b);
   console.log('NO11_NATIVE_STATE9_CONNECTED=False');

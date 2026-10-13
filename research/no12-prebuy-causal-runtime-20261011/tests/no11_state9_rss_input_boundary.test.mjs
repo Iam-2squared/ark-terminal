@@ -27,6 +27,10 @@ test('market RSS OHLCV never silently becomes Frozen State9 input',()=>{
   assert.equal(r.observedParity.matched,1);
   assert.equal(r.nativeState9Connected,false);
   assert.equal(r.productionReady,false);
+  assert.equal(r.periods['1M'].dayRanges.length,1);
+  assert.equal(r.periods['1M'].dayRanges[0].count,5);
+  assert.equal(r.periods['1M'].previousSessionBaselineUCertified,false);
+  assert.equal(r.periods['5M'].previousSessionPRefCertified,false);
   assert(r.blockers.includes('EXACT_NORMALIZED_DECIMAL_OHLC_ADAPTER_NOT_CERTIFIED'));
   assert(r.blockers.includes('SINGLE_SYMBOL_NOT_MARKETWIDE_SELECTOR'));
  }finally{fs.rmSync(dir,{recursive:true,force:true})}

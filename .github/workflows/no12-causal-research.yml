@@ -73,6 +73,13 @@ jobs:
           $ErrorActionPreference='Stop'
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Probe-No11SavedExcelChartInputsReadOnly.ps1 -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'NO11_EXISTING_EXCEL_CHART_OFFLINE_FAILED' }
+      - name: Validate PC first-observed 1M read-only capture logic offline (Windows only)
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Probe-No11Rss1mFirstObservedReadOnly.ps1 -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO11_FIRST_OBSERVED_OFFLINE_FAILED' }
       - name: Exercise RssMarket seconds source formula without Excel or broker (Windows only)
         if: matrix.os == 'windows-latest'
         shell: powershell

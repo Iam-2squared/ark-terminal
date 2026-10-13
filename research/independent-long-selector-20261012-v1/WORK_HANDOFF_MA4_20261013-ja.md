@@ -40,3 +40,5 @@
 ENGINEERINGは部分PASS、MARKET_MEASUREMENT_COMPLETE=false、LEGACY_COMPARISON_COMPLETE=false、RESEARCH_QUALITY=NOT_MEASURED、LIVE_READINESS=NOT_CERTIFIED。全11安全flags false、main_merge=0、force_push=0、provider_new_acquisition_requests=0。No.1/No.1.1、main、旧Freeze、#591、Entry/EXIT/Capital、口座/Excel原本は変更していない。外部市場job0。
 
 財務期間のEPS/BPS/ROEを日次valuationと同じ値として重複削除しない。財務native値を残し、日次valuationは別出典・計算basisとして保持した。最終canaryは同期実行を終了まで待ち、matrix/行台帳の期待hashとbytesが直接一致した。旧破損派生ファイルはquarantineとrepair receiptを保存し、operative入力へ戻していない。
+
+専用CI run38332799944は25eb432fのworkflow重複envキーでjob起動前に失敗（人工fit0）。重複を除去してstrict YAML全mapping検査PASS。Selector Python bytes、554 schema、市場設定は変更なし。最終HEADのrun/job/120tests/E2EはPR Checksとprivate最終receiptで確定する。

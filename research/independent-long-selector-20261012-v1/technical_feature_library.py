@@ -290,14 +290,14 @@ def build_ohlcv_features(bars: list[dict[str, Any]], *,
     L = [float(b["low"]) for b in bars]
     C = [float(b["close"]) for b in bars]
     V = [float(b["volume"]) for b in bars]
-    # Missing trading-value is not evidence of zero market activity.
-    if any(b.get("turnover") is None for b in bars):
-        raise ValueError("MISSING_TURNOVER_NOT_ZERO")
-    T = [float(b["turnover"]) for b in bars]
+    # Do not treat missing trading value as zero: volume/price indicators can
+    # still be calculated, but turnover-based indicators become None.
+    T = [float(b["turnover"]) if b.get("turnover") is not None else None
+         for b in bars]
     base = C[-1]
     if any(not math.isfinite(x) or x <= 0 for xs in (O, H, L, C) for x in xs):
         raise ValueError("INVALID_OHLC")
-    if any(v < 0 or not math.isfinite(v) for xs in (V, T) for v in xs):
+    if any(v < 0 or not math.isfinite(v) for xs in (V, T) for v in xs if v is not None):
         raise ValueError("INVALID_VOLUME_VALUE")
     p = prefix
     result[f"{p}_latest_body_pct"] = _pct(C[-1], O[-1])
@@ -309,7 +309,7 @@ def build_ohlcv_features(bars: list[dict[str, Any]], *,
     result[f"{p}_latest_volume"] = V[-1]
     result[f"{p}_latest_turnover"] = T[-1]
     result[f"{p}_total_volume"] = sum(V)
-    result[f"{p}_total_turnover"] = sum(T)
+    result[f"{p}_total_turnover"] = sum(T) if all(t is not None for t in T) else None
     smas, emas = {}, {}
     for n in periods:
         m = _avg(C[-n:]) if len(C) >= n else None
@@ -346,11 +346,15 @@ def build_ohlcv_features(bars: list[dict[str, Any]], *,
             if window_high > window_low else 0.5
         )
         vol_avg = _avg(V[-n:])
-        turn_avg = _avg(T[-n:])
+        turn_avg = _avg(T[-n:]) if all(t is not None for t in T[-n:]) else None
         result[f"{p}_volume_ratio_{n}"] = V[-1]/vol_avg if vol_avg > 0 else None
-        result[f"{p}_turnover_ratio_{n}"] = T[-1]/turn_avg if turn_avg > 0 else None
+        result[f"{p}_turnover_ratio_{n}"] = (
+            T[-1]/turn_avg if T[-1] is not None and turn_avg is not None
+            and turn_avg > 0 else None)
         result[f"{p}_volume_zscore_{n}"] = _safe_z(V[-1], V[-n:])
-        result[f"{p}_turnover_zscore_{n}"] = _safe_z(T[-1], T[-n:])
+        result[f"{p}_turnover_zscore_{n}"] = (
+            _safe_z(T[-1], T[-n:])
+            if T[-1] is not None and turn_avg is not None else None)
         result[f"{p}_max_drawdown_pct_{n}"] = _max_drawdown(C[-n:])
         result[f"{p}_up_candle_ratio_{n}"] = sum(b["close"] > b["open"] for b in segment)/n
         result[f"{p}_close_location_avg_{n}"] = _avg([
@@ -432,14 +436,14 @@ def build_ohlcv_features(bars: list[dict[str, Any]], *,
         prior_vol = [float(b["volume"]) for b in bars[-21:-1]]
         prior_turn = T[-21:-1]
         ref_vol = statistics.median(prior_vol)
-        ref_turn = statistics.median(prior_turn)
+        ref_turn = statistics.median(prior_turn) if all(v is not None for v in prior_turn) else None
         result[f"{p}_prior_day_volume_spike_vs_20d"] = (
             V[-1] / ref_vol if ref_vol > 0 else None)
         result[f"{p}_prior_day_turnover_spike_vs_20d"] = (
-            T[-1] / ref_turn if ref_turn > 0 else None)
+            T[-1] / ref_turn if T[-1] is not None and ref_turn is not None and ref_turn > 0 else None)
         impact = []
         for i in range(len(C) - 20, len(C)):
-            if i >= 1 and T[i] > 0 and C[i-1] > 0:
+            if i >= 1 and T[i] is not None and T[i] > 0 and C[i-1] > 0:
                 impact.append(abs(C[i] / C[i-1] - 1) * 100.0e8 / T[i])
         if len(impact) == 20:
             result[f"{p}_prior_day_price_impact_20d_per_100m_jpy"] = _avg(impact)

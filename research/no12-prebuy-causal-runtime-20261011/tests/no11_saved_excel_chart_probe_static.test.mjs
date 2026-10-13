@@ -39,3 +39,10 @@ test('validates vendor chart labels, OHLC consistency, volume and duplicate time
  assert.match(s,/if\(\$numeric -eq 0 -or \$valid -ne \$numeric/);
  assert.match(s,/NO11_CHART_OHLCV_AUDIT_BLOCKED|_OHLCV_AUDIT_BLOCKED/);
 });
+
+test('active Excel title may be account or saved market workbook',()=>{
+ assert.match(s,/MainWindowTitle -like 'Ark_No11_\*'/);
+ assert.doesNotMatch(s,/MainWindowTitle -like 'Ark_No11_MSII_RSS\*'/);
+ for(const name of ['Ark_No11_MSII_RSS.xlsx','Ark_No11_MARKET_RSS.xlsx'])
+  assert(s.includes(name));
+});

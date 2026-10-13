@@ -131,7 +131,9 @@ try{
  finally{$tcp.Close()}
  if($active){throw 'NO11_ACCOUNT_UI_MUST_BE_STOPPED_FIRST'}
  $processes=@(Get-Process EXCEL -ErrorAction Stop |
-  Where-Object {$_.MainWindowTitle -like 'Ark_No11_MSII_RSS*' -and
+  # The active Excel window title changes between account and market books.
+  # Exact workbook identities are verified via COM below before any write.
+  Where-Object {$_.MainWindowTitle -like 'Ark_No11_*' -and
     $_.MainWindowHandle -ne [IntPtr]::Zero})
  if($processes.Count -ne 1){throw 'NO11_ACCOUNT_EXCEL_NOT_UNIQUE'}
  $script:excel7=@()

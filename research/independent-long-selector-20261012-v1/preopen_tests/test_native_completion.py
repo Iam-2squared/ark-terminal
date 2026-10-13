@@ -167,7 +167,11 @@ class NativeBoundaries(unittest.TestCase):
             b=build_bundle(req,root/"bundle")
             r=next(x for x in load_feature_input(b["inputs"]["fit_snapshots"],root) if x["symbol"]=="10000")
             self.assertIsNone(r["features"]["preopen_daily_sma_close_distance_pct_5"])
-            self.assertIsNotNone(r["features"]["preopen_daily_sma_close_distance_pct_2"])
+            self.assertIsNone(r["features"]["preopen_daily_ema_close_distance_pct_5"])
+            # Recent adjusted-price-incomparable history resets correctly.
+            # We no longer expose the obsolete 2-day moving-average line.
+            self.assertNotIn("preopen_daily_sma_close_distance_pct_2", r["features"])
+            self.assertIsNotNone(r["features"]["preopen_daily_latest_clv"])
 
     def test_session_summary_uses_sparse_whole_day_beyond_tail(self):
         bars=[{"session":"2024-11-01","start":"2024-11-01T09:00:00+09:00",

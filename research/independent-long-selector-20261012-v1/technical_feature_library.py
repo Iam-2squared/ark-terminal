@@ -270,7 +270,7 @@ def feature_registry(prefix: str, periods=DAILY_PERIODS, *,
 
 def build_ohlcv_features(bars: list[dict[str, Any]], *,
                          prefix: str, reference_price: float | None,
-                         periods=DAILY_PERIODS, *,
+                         periods=DAILY_PERIODS,
                          signal_periods=None) -> dict[str, float | None]:
     """All bars must already be validated, causally available, ordered, comparable.
 

@@ -22,6 +22,10 @@ test('No11 batch source: no broker order or saved workbook modification',()=>{
  assert.match(text,/SpecialCells\(-4123\)/);
  assert.match(text,/NO11_BATCH_ONLY_TWO_ORIGINAL_WORKBOOKS_REQUIRED/);
  assert.match(text,/NO11_ACCOUNT_UI_MUST_BE_STOPPED_FIRST/);
+ assert.match(text,/Get-Process EXCEL -ErrorAction Stop \| Where-Object/);
+ assert.match(text,/MainWindowTitle -like 'Ark_No11_\*'/);
+ assert.match(text,/MainWindowHandle -ne \[IntPtr\]::Zero/);
+ assert.doesNotMatch(text,/\$processes=@\(Get-Process EXCEL -ErrorAction Stop\)/);
 });
 
 test('No11 batch source: immutable receipts and no model promotion',()=>{

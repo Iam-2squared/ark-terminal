@@ -23,6 +23,7 @@ DATA_RE = re.compile(r"(\d{5})-([0-9A-Z]{4})_T-(1M|5M)\.json\Z")
 PROGRESS_RE = re.compile(r"progress-(\d{5})\.json\Z")
 GOOD = "OBSERVED_ARCHIVE_NOT_TRAINING_CERTIFIED"
 EMPTY = "SOURCE_UNAVAILABLE"
+REJECTED = "ROW_AUDIT_FAILED"
 EXPECTED_CAPTURE = 4307
 FIRST_SKIP = 20
 MAX_BYTES = 3_000_000
@@ -65,7 +66,7 @@ def check_source(v, symbol, index, period, file_name):
             v.get("evidenceMode") == "OBSERVED_READ_ONLY" and
             v.get("requestedBars") == 3000, "NO11_RESUME_SOURCE_IDENTITY:" + file_name)
     status = v.get("status")
-    require(status in (GOOD, EMPTY), "NO11_RESUME_SOURCE_NOT_PASS:" + file_name)
+    require(status in (GOOD, EMPTY, REJECTED), "NO11_RESUME_SOURCE_UNKNOWN_STATUS:" + file_name)
     check_false(v, ("privateAccountDataIncluded", "vendorLabelCertified",
                     "actualHistoricalKnownAtCertified", "vendorDecimalTokenCertified",
                     "nativeSelectorProduced", "modelTrainingReady",
@@ -73,11 +74,17 @@ def check_source(v, symbol, index, period, file_name):
     rows = v.get("rows")
     require(isinstance(rows, list) and
             type(v.get("validRows")) is int and len(rows) == v["validRows"] and
-            type(v.get("numericRows")) is int and v["numericRows"] == v["validRows"] and
-            v.get("invalidRows") == 0 and v.get("duplicateRows") == 0,
+            type(v.get("numericRows")) is int and v["numericRows"] >= v["validRows"] and
+            type(v.get("invalidRows")) is int and v["invalidRows"] >= 0 and
+            type(v.get("duplicateRows")) is int and v["duplicateRows"] >= 0,
             "NO11_RESUME_SOURCE_COUNTS:" + file_name)
-    require((status == GOOD and len(rows) > 0) or
-            (status == EMPTY and len(rows) == 0), "NO11_RESUME_SOURCE_STATUS:" + file_name)
+    require((status == GOOD and len(rows) > 0 and
+             v["numericRows"] == len(rows) and v["invalidRows"] == 0 and v["duplicateRows"] == 0) or
+            (status == EMPTY and len(rows) == 0 and v["numericRows"] == 0 and
+             v["invalidRows"] == 0 and v["duplicateRows"] == 0) or
+            (status == REJECTED and v["numericRows"] > 0 and
+             (v["invalidRows"] > 0 or v["duplicateRows"] > 0)),
+            "NO11_RESUME_SOURCE_STATUS:" + file_name)
     # Check row values rather than trusting file names alone. No missing bars are invented.
     labels = set()
     for bar in rows:
@@ -165,8 +172,10 @@ def main():
         status, n = check_source(v, symbol, i+1, "1M", file_name)
         require(status == e["status"] and n == e["rows"], "NO11_RESUME_ENTRY_DATA_DISAGREES:" + file_name)
         stored_names.add(file_name)
-        counts["rows"] += n
+        counts["rows"] += n if status == GOOD else 0
         counts["observed" if status == GOOD else "unavailable"] += 1
+        if status == REJECTED:
+            counts["quarantined"] += 1
 
     require(counts["rows"] == receipt.get("rows") and
             counts["observed"] == receipt.get("observedSymbols") and
@@ -197,8 +206,10 @@ def main():
         status, rows = check_source(v, symbol, pos, "1M", f.name)
         partial_manifest.append({"index":pos, "file":f.name, "sha256":sha(b),
                                  "symbol":symbol,"status":status,"rows":rows})
-        counts["rows"] += rows
+        counts["rows"] += rows if status == GOOD else 0
         counts["observed" if status == GOOD else "unavailable"] += 1
+        if status == REJECTED:
+            counts["quarantined"] += 1
 
     completed = last + len(extras)
     remaining = symbols[completed:]
@@ -206,6 +217,7 @@ def main():
     print(f"NO11_RESUME_VERIFIED_PARTIAL_FILES={len(extras)}")
     print(f"NO11_RESUME_ACCEPTED_SYMBOLS={completed}")
     print(f"NO11_RESUME_ACCEPTED_ROWS={counts['rows']}")
+    print(f"NO11_RESUME_QUARANTINED_SOURCES={counts['quarantined']}")
     print(f"NO11_RESUME_REMAINING_SYMBOLS={len(remaining)}")
     print("NO11_RESUME_ORIGINAL_DATA_UNCHANGED=True")
     print("NO11_PRODUCTION_READY=False")

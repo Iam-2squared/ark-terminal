@@ -309,8 +309,12 @@ def build_preopen_features(snapshot: dict, config: PreopenConfig = PreopenConfig
             features[name] = number(record["value"])
     for name, value in features.items():
         if value is None and name not in missing:
-            missing[name] = ("PIT_OR_BASIS_UNVERIFIED" if name.startswith("preopen_previous_state_")
-                             else "SOURCE_NOT_JOINED")
+            if name.startswith("preopen_previous_state_"):
+                missing[name] = snapshot.get("previousStateMissingReason") or "PIT_OR_BASIS_UNVERIFIED"
+            elif name.startswith("preopen_previous_tick_") and ("aggressor" in name or "spread_proxy" in name):
+                missing[name] = "NOT_AVAILABLE_IN_SOURCE"
+            else:
+                missing[name] = "SOURCE_NOT_JOINED"
     values = [v for v in features.values() if v is not None]
     if any(not math.isfinite(v) for v in values):
         raise PreopenError("NONFINITE_PREOPEN_FEATURE")

@@ -1,5 +1,30 @@
 # 寄り前MA4 Selector — 2026-10-13再開結果
 
+## 2026-10-14 現在の追記 — 実学習前の参照保護gate
+
+**未完成。市場fit/較正/Report/旧Frozen数値比較は未実施。** 今回の開始HEADはc5545408ad1f52db2a7e33602433ace3685b944b。下の2026-10-13記録は履歴として保持する。現在地はCURRENT_STATUS.jsonと本追記を優先する。
+
+| 今回の実工程 | 照合済みの結果 |
+| --- | --- |
+| 追加保存原本 | GitHubの正式base64機能で24原本/2,220,086bytesを回収、bytes/SHA256/Git blob SHA/gzip CRCを照合。12月の財務・決算予定・TOPIX・フロー4件と財務/市場参照20件。新規provider取得0。既存79原本と合わせ103原本/2,455,811,237bytes。追加24件の数値admissionは0 |
+| 読取済みsourceの再使用 | 53 completed原本/4,945,880 source行は累計のまま。銘柄日・特徴量行・独立試行とは違う。既存daily SQLiteはread-onlyで再使用、再ingest/複製0 |
+| native stream集約 | FIT予定2024-11-14のD-1、2024-11-13だけ。Tick4,285,513行・minute465,855行、各4,202 raw security-day。日足O/H/L/C/Vo/Vaとの不一致0。Tickの同時刻はTransactionId順に派生側で整列し、同値の別ID記録を保持。集約recordは個々の約定数と同じではない |
+| 現codeの資源 | 232.6626秒、peak RSS112,448KiB、派生SQLite18,235,392bytes。旧同日source SQLiteの増分2,076,938,240bytesに対して保存量99.122%減。SQLite quick_check、inode維持、別SQL経路の件数照合PASS。全47日や学習の実規模認証ではない |
+| 因果性・schema | MA4 5/15/25/75、前日分足5/15/30/60、週/月MAなし、登録554列は維持。新規full-candidate特徴量行0、FIT使用列0。出来高・売買代金・price/time/basis検査、公式dated master/product/market/typeと100株根拠、千円/百万円→円の変換、欠測理由の区別を実装 |
+| State | 既存RC2 core3body/profileのSHAを照合。原本/threshold/weights変更0。実State行は未生成。新しい入力gateはcarried表示、未来fit、異なるprofile/source/contractを拒否する。別の簡易Stateを正式Stateへ置換しない |
+| 実証したfit停止 | 2024-09-10/11/12/13がresolved primary RESERVED4およびDictionary OUTSIDE_AUTHORIZED_DEVの保護と交差。固定47日の全MA75窓に含まれる。除外後の比較可能suffix上限はFIT10〜39、較正40〜49、Report50〜56。Native CLIは原本byte hashとcalendar metadataの後、数値source ingest・出力dir作成・市場fit前にMA75_PROTECTED_REFERENCE_CONFLICTで停止 |
+| 試験 | 同一code hash555825f7f4c07ea2e3e95f63170709b6f6880ef23f5d7f1c6d7bfb256a7749b2で32+105=137 testsと人工standalone10-head/10-calibration smoke PASS。新最終Git HEADのCIはPR Checks/private最終receiptで照合する |
+
+24原本のtransferは原本の合法な保存・利用根拠、日時許可、PIT feature利用と同じ判定ではない。所有者の元更新申告と実際の継続許可の時刻/workId/hashを保持し、24時間guardをサブスクの期限と呼ばない。公開scheduleは履歴再構成上の仮定であり、当時の実受信/訂正版確認済みとはしない。財務同時刻の曖昧開示や未確認の尺度等は残課題である。
+
+保護4日の原本はnumericに開いていない。旧保護台帳・47日role・旧Frozenは不変更。必要な所有者判断は「この4日のDAILY_RAWを今回の前日価格参照だけへ明示許可するか」の1件に限定したprivate提案を固定済み。許可後も教師日・較正日・Report日は増やさず、実際のmachine参照露出は追加記録し、旧台帳のbytesを維持したことを露出不変と呼ばない。現時点で許可を受けたとは扱わない。
+
+全欠測MA75を黙ってモデルから外した候補へ縮小せず、有限candidate1/base head10/calibration10の予算を未使用で保つ。残工程は全47日PIT/source/basis結合とcoverage、実State/Dictionary lineage、class support、FIT/較正、全watchlist固定、Report High/Low/Close・同条件基準・旧比較、別経路再計数。旧Frozenのnative future Highと事後日通しOpen/Highは両方NOT_MEASURED。後半機会・Windows/RSS・毎朝更新も未認証。
+
+機械的不具合/制限を保存した。最初の集約では同時刻の原本順序をTransactionId順と仮定して停止、num市場fit0のまま派生sortへ修復。過去の139等の数字へ試験数を合わせていない。人工E2EのRAM guard停止は原本読取で溜まった約8GBのfile cacheが原因で、read-only posix_fadviseで非稼働cacheを解放し、guardや母集団を変更せずPASSを再確認した。1件の追加原本でOS引数長制限に当たったためbase64をprivate一時ファイル経由へ変更した。自動承認reviewの拒否ではない。
+
+主6bucket、exact0、UNKNOWN、累積率、Low/Close/tailは全てNOT_MEASURED/null。モデル/candidate/head fits/calibration fits/watchlist/Report評価は各0。現在実行中job0。ENGINEERINGは部分PASS、MARKET_MEASUREMENT_COMPLETE=false、LEGACY_COMPARISON_COMPLETE=false、RESEARCH_QUALITY=NOT_MEASURED、LIVE_READINESS=NOT_CERTIFIED。注文/口座/Excel/RSS/paper/live/自動昇格/production/entryの全flags false、main_merge=force_push=provider_new_acquisition_requests=0。
+
 **未完成。実市場fit・較正・Report・旧Frozen比較は未実施。**
 開始HEAD: f9430c4d2ab024f5cc6bbe914f1198daf4c51956。Open/Draft PR #593、base 10c94c92c4bd2a59a22744667fd0210252602df4を維持する。
 最新コードはGitHubプラグインから58ファイルを取得し、全Git blob SHA/bytesを照合した。開始時にローカルcheckoutはなく、古いコードZIPを代用していない。

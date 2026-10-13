@@ -75,7 +75,9 @@ def minute_row(row, available_at):
     times = cash_clock(session)
     start = stamp(session + "T" + clock + ":00+09:00")
     if clock in (times["am_close"], times["auction_close"]):
-        kind, end = "TERMINAL_AUCTION_REFERENCE", start
+        # Time denotes a one-minute bucket start even at the terminal auction.
+        # Its exact first-trade time is not supplied; conservative closure +1m.
+        kind, end = "TERMINAL_AUCTION_REFERENCE", start + timedelta(minutes=1)
     elif "09:00" <= clock < "11:30" or "12:30" <= clock < times["continuous_close"]:
         kind, end = "CONTINUOUS_1M", start + timedelta(minutes=1)
     else:
@@ -186,6 +188,9 @@ class NativeStore:
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
         self.private_root = Path(private_root).resolve()
         self.request = request
+        self.sources_by_hash = {s["sha256"]:s for s in request["sources"]}
+        if len(self.sources_by_hash) != len(request["sources"]):
+            raise PreopenError("DUPLICATE_NATIVE_ORIGINAL_DESCRIPTOR")
         self.admission = validate_native_request(request, private_root)
         self.connection = sqlite3.connect(self.root/"sources.sqlite")
         self.connection.execute("PRAGMA cache_size=-32768")
@@ -198,11 +203,33 @@ class NativeStore:
         self.connection.execute("""CREATE TABLE IF NOT EXISTS completed(
             source_hash TEXT PRIMARY KEY,descriptor_hash TEXT,receipt TEXT)""")
         self.connection.commit()
+        self.shared_daily = None
+        shared = request.get("existingDailySourceCache")
+        if shared is not None:
+            cache_path = verify_entry(shared, self.private_root)
+            self.shared_daily = sqlite3.connect(cache_path.as_uri()+"?mode=ro",uri=True)
+            if self.shared_daily.execute("PRAGMA quick_check").fetchone()[0] != "ok":
+                raise PreopenError("SHARED_DAILY_CACHE_INTEGRITY")
+            self.shared_daily_hashes = {s["sha256"] for s in request["sources"]
+                                        if s["dataset"] == "DAILY" and s.get("reuseExistingDailyCache") is True}
 
     def close(self):
         self.connection.close()
+        if self.shared_daily is not None:
+            self.shared_daily.close()
 
     def ingest(self, source):
+        if source.get("reuseExistingDailyCache") is True:
+            if self.shared_daily is None or source["sha256"] not in self.shared_daily_hashes:
+                raise PreopenError("SHARED_DAILY_SOURCE_NOT_BOUND")
+            done = self.shared_daily.execute("SELECT receipt FROM completed WHERE source_hash=?",
+                                            (source["sha256"],)).fetchone()
+            if done is None:
+                raise PreopenError("SHARED_DAILY_SOURCE_NOT_COMPLETED")
+            receipt = json.loads(done[0])
+            if receipt.get("sourceBytes") != source["bytes"]:
+                raise PreopenError("SHARED_DAILY_SOURCE_SIZE_MISMATCH")
+            return {**receipt,"existingVerifiedDailyCacheReused":True,"newIngestRows":0}
         path = verify_entry(source, self.private_root)
         descriptor_hash = digest(source)
         done = self.connection.execute("SELECT descriptor_hash,receipt FROM completed WHERE source_hash=?",
@@ -263,6 +290,11 @@ class NativeStore:
                             (ds,session,code,clock)).fetchone()
                         if existing:
                             raise PreopenError("DUPLICATE_NATIVE_BAR_OR_MASTER_IDENTITY")
+                        if ds == "DAILY" and self.shared_daily is not None:
+                            shared = self.shared_daily.execute("SELECT source_hash FROM records "
+                                "WHERE dataset='DAILY' AND session=? AND symbol=? LIMIT 1",(session,code)).fetchone()
+                            if shared and shared[0] in self.shared_daily_hashes:
+                                raise PreopenError("DUPLICATE_NATIVE_DAILY_WITH_SHARED_CACHE")
                     # Tick ordinal preserves distinct same-time/same-value prints.
                     self.connection.execute("INSERT INTO records VALUES(?,?,?,?,?,?,?)",
                         (ds,session,code,clock,source["sha256"],ordinal,
@@ -294,24 +326,29 @@ class NativeStore:
                 query += " AND " + clause
                 args.append(value)
         query += " ORDER BY session,symbol,clock,source_hash,ordinal"
-        for payload, source_hash, ordinal in self.connection.execute(query,args):
-            yield {**json.loads(payload),"_sourceHash":source_hash,"_ordinal":ordinal}
+        def admitted(cursor, shared=False):
+            for payload, source_hash, ordinal in cursor:
+                if shared and source_hash not in self.shared_daily_hashes:
+                    continue
+                row = json.loads(payload)
+                if shared and row["Date"] not in self.source(source_hash)["allowedRecordDates"]:
+                    continue
+                yield {**row,"_sourceHash":source_hash,"_ordinal":ordinal}
+        if dataset == "DAILY" and self.shared_daily is not None:
+            import heapq
+            yield from heapq.merge(admitted(self.connection.execute(query,args)),
+                admitted(self.shared_daily.execute(query,args),True),
+                key=lambda r:(r["Date"],r["Code"],r.get("Time",""),r["_sourceHash"],r["_ordinal"]))
+        else:
+            yield from admitted(self.connection.execute(query,args))
 
     def source(self, sha):
-        return next(s for s in self.request["sources"] if s["sha256"] == sha)
+        return self.sources_by_hash[sha]
 
     def available_at(self, row, dataset):
         source = self.source(row["_sourceHash"])
-        contract = source.get("availabilityContract",{})
-        if not contract.get("evidenceReference") or not contract.get("publicationTime"):
-            raise PreopenError("NATIVE_PUBLICATION_TIME_EVIDENCE_REQUIRED:" + dataset)
-        date = row.get(source.get("dateField","Date"))
-        date = (day(date)+timedelta(days=contract.get("dayLag",0))).isoformat()
-        at = stamp(date+"T"+contract["publicationTime"]+"+09:00")
-        if dataset == "FIN_SUMMARY":
-            disclosed = stamp(row["DiscDate"]+"T"+row["DiscTime"]+"+09:00")
-            at = max(at,disclosed)
-        return at.isoformat()
+        from preopen_source_contracts import native_available_at
+        return native_available_at(row, source, calendar=self.request.get("exchangeSessions"))
 
     def prior_tick_events(self, previous_session, code, cutoff):
         events = []

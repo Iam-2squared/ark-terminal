@@ -45,7 +45,10 @@ def fact(store, row, field, *, scale=1):
     event_day = row.get(source.get("dateField","Date"))
     observed = (row["DiscDate"]+"T"+row["DiscTime"]+"+09:00" if source["dataset"] == "FIN_SUMMARY"
                 else event_day+"T00:00:00+09:00")
-    return {"value":number(value)*scale,"units":units,
+    from preopen_source_contracts import converted_native_value
+    converted, units = converted_native_value(value, units,
+        output_unit=source.get("outputUnits",{}).get(field))
+    return {"value":converted*scale,"units":units,
             "sourceSha256":row["_sourceHash"],
             "publicationEvidence":contract["evidenceReference"],
             "observedAt":observed,
@@ -88,6 +91,12 @@ def ordinary_stock_master(store, session, masters):
         # from real Code endings or from domestic-stock category 011.
         return [r for r in domestic if r.get("CommonStock") == "1"]
     contract = store.request.get("commonStockEligibilityContract", {})
+    if contract.get("basis") == "DATED_MASTER_AND_OFFICIAL_SECURITY_TYPE_RULES":
+        from preopen_source_contracts import official_security_class, CLASS_VERSION
+        if (contract.get("reviewed") is not True or contract.get("version") != CLASS_VERSION
+                or not contract.get("evidenceReference")):
+            raise PreopenError("OFFICIAL_SECURITY_TYPE_RULE_CONTRACT_UNVERIFIED")
+        return [r for r in masters if official_security_class(r, session=session)["commonStock"]]
     if (contract.get("reviewed") is not True or not contract.get("evidenceReference")
             or contract.get("basis") != "DATED_MASTER_AND_INDEPENDENT_SECURITY_CLASS"):
         raise PreopenError("ORDINARY_STOCK_CLASSIFICATION_NOT_VERIFIED")
@@ -175,6 +184,16 @@ def optional_facts(store, session, code):
                 native[f"preopen_native_flow_{field}_jpy"] = {**f,"units":"JPY"}
     topix = known_records(store,"TOPIX",session)
     topix.sort(key=lambda r:r["Date"])
+    calendar = store.request.get("exchangeSessions")
+    if calendar:
+        indexes = {d:i for i,d in enumerate(calendar)}
+        reset = -1
+        for i,r in enumerate(topix):
+            if r["Date"] not in indexes:
+                raise PreopenError("TOPIX_DATE_OUTSIDE_EXCHANGE_CALENDAR")
+            if i and indexes[r["Date"]] != indexes[topix[i-1]["Date"]]+1:
+                reset = i-1
+        topix = topix[reset+1:]
     if topix:
         for n in (1,5,10,15,20,25,60):
             if len(topix) > n:
@@ -193,7 +212,7 @@ def optional_facts(store, session, code):
                     "availableAt":store.available_at(topix[-1],"TOPIX")}
     earnings = current_earnings_versions(known_records(store,"EARNINGS_DATE",session,code))
     if earnings:
-        upcoming = [r for r in earnings if r["SchDate"] >= session]
+        upcoming = [r for r in earnings if r.get("SchDate") not in NULLS and r["SchDate"] >= session]
         if upcoming:
             latest = min(upcoming,key=lambda r:r["SchDate"])
             f = {"value":(day(latest["SchDate"])-day(session)).days,"units":"CALENDAR_DAYS",
@@ -222,7 +241,11 @@ def previous_market_context(store, session, previous, masters, calendar):
     window_dates = set(calendar[max(0,ix-60):ix+1])
     bad_dates = {}
     for date in sorted(window_dates):
-        for r in store.records("DAILY",session=date):
+        records = list(store.records("DAILY",session=date))
+        present = {r["Code"] for r in records}
+        for code in peer.keys()-present:
+            bad_dates.setdefault(code,[]).append(date)
+        for r in records:
             factor = r.get("AdjFactor")
             if (parse_ohlcv(r)["status"] != "TRADED" or factor in NULLS
                     or number(factor) != 1):
@@ -327,6 +350,14 @@ def snapshot_rows(store, sessions, calendar, ineligible):
             # assumption. The close timestamp remains its real interval endpoint.
             ticks = store.prior_tick_events(prev,code,config.at(session).isoformat())
             native, external = optional_facts(store,session,code)
+            tick_complete = bool(ticks) and store.request["mode"] == "SYNTHETIC"
+            if hasattr(store,"prior_tick_feature_facts"):
+                tick_facts,tick_complete = store.prior_tick_feature_facts(prev,code,config.at(session).isoformat())
+                native.update(tick_facts)
+            minute_complete = (store.minute_complete(prev,code) if hasattr(store,"minute_complete")
+                               else bool(minutes) and store.request["mode"] == "SYNTHETIC")
+            from preopen_state_source import admitted_previous_state
+            previous_state,state_missing = admitted_previous_state(store,prev,code,session)
             external.update(context.get(code,{}))
             master_known = store.available_at(master,"DATED_MASTER")
             if stamp(master_known) > config.at(session):
@@ -345,13 +376,14 @@ def snapshot_rows(store, sessions, calendar, ineligible):
                    "sourceManifestSha256":digest(store.request["sources"]),"universeHash":universe_hash,
                    "verifiedSourceHashes":[s["sha256"] for s in store.request["sources"]],
                    "previousMinuteBars":[b for b in minutes if b["kind"] == "CONTINUOUS_1M"],
-                   "previousMinuteSessionBars":minutes,"previousMinuteCoverageVerified":True,
-                   "previousTickEvents":ticks,"previousTickCoverageVerified":True,
+                   "previousMinuteSessionBars":minutes,"previousMinuteCoverageVerified":minute_complete,
+                   "previousTickEvents":ticks,"previousTickCoverageVerified":tick_complete,
                    "nativeFacts":native,"asofFacts":external,
+                   "previousState":previous_state,"previousStateMissingReason":state_missing,
                    "sampleKind":"SYNTHETIC" if store.request["mode"] == "SYNTHETIC" else "HISTORICAL",
                    "historicalAvailabilityStatus":"SCHEDULE_ASSUMED_NOT_ACTUAL_RECEIVE_OR_VERSION_RECEIPT",
                    "liveRefreshReady":False,"missingRequiredSources":(
-                       ([] if minutes else ["MINUTE"]) + ([] if ticks else ["TICK"])),
+                       ([] if minute_complete else ["MINUTE"]) + ([] if tick_complete else ["TICK"])),
                    "marketSegment":MARKETS[master["Mkt"]],"sector":master.get("S33"),
                    "sizeCategory":master.get("ScaleCat")}
 
@@ -373,9 +405,16 @@ def build_bundle(request, output):
     import gzip
     with gzip.open(verify_entry(request["calendar"],root),"rt",newline="") as stream:
         calendar = exchange_sessions(list(csv.DictReader(stream)))
+    from preopen_reference_admission import enforce_reference_admission
+    enforce_reference_admission({**request,"exchangeSessions":calendar},admission)
     output.mkdir(parents=True,mode=0o700)
     write_json(output/"BUILD_STARTED.json",{"requestHash":digest(request),"startedAt":utc_now(),**SAFE_FLAGS})
-    store = NativeStore(output/"native_shards",private_root=root,request=request)
+    if request.get("intradayStorageMode") == "LOSSLESS_MINUTE_AND_EXACT_TICK_AGGREGATES_V1":
+        from preopen_compact_source import CompactNativeStore
+        store_class = CompactNativeStore
+    else:
+        store_class = NativeStore
+    store = store_class(output/"native_shards",private_root=root,request=request)
     receipts = [store.ingest(s) for s in request["sources"]]
     inputs, excluded = {}, {}
     splits = admission["exactSplits"]

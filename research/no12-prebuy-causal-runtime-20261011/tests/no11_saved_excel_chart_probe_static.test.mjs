@@ -26,3 +26,16 @@ test('only creates and closes an unsaved temporary workbook; never orders',()=>{
  assert.match(s,/ORDER_TRANSMISSION=False/);
  assert.match(s,/NO11_PRODUCTION_READY=False/);
 });
+
+test('validates vendor chart labels, OHLC consistency, volume and duplicate timestamps',()=>{
+ for(const phrase of ['NO11_CHART_OHLCV_SELFTEST=PASS',
+ 'Test-No11ChartRow','Convert-No11ChartDate','Convert-No11ChartTime',
+ 'NO11_CHART_{0}_VALID_OHLCV_ROWS','NO11_CHART_{0}_INVALID_OHLCV_ROWS',
+ 'NO11_CHART_{0}_DUPLICATE_BAR_TIMES',
+ 'NO11_CHART_LABEL_START_OR_END_CERTIFIED=False',
+ 'NO11_CHART_COMPLETED_BARS_CERTIFIED=False',
+ 'NO11_CHART_MISSING_BARS_CERTIFIED=False'])
+  assert(s.includes(phrase),phrase);
+ assert.match(s,/if\(\$numeric -eq 0 -or \$valid -ne \$numeric/);
+ assert.match(s,/NO11_CHART_OHLCV_AUDIT_BLOCKED|_OHLCV_AUDIT_BLOCKED/);
+});

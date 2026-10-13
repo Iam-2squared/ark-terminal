@@ -25,3 +25,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File C:\ArkTerminal\no12-launcher
 結果の `NO11_CHART_1M_NUMERIC_CLOSE_ROWS` と `NO11_CHART_5M_NUMERIC_CLOSE_ROWS` は**数値が返った行数の診断**であり、足の完結性・タイムスタンプの正確性・欠損なし・原本State9と同一性を証明しない。次にバーの日時・OHLCV・足種・確定足を照合し、原本Selector・State9の入力契約と突き合わせる必要がある。
 
 **この段階で元のFrozen Selector・First Entry・State9・H2/H3/H5・Capital・EXITは実行しない。実資金注文は0件、productionReady=false。**
+
+## 追加監査：実取得バーの構造と時刻ラベル
+
+実機で `1M=295/300`、`5M=99/100` の数値終値行を確認済み。ただし、数値行数だけでは日時・OHLCVの整合性が分からないため、同じ一時ブックの読取を拡張した。
+
+- Excel日付/時刻のOADateまたは表示文字列をJSTに正規化し、当日PC観測より未来の行を拒否。
+- 始値/高値/安値/終値は正の有限数、出来高は0以上の安全な整数、高値・安値と始終値の大小関係を確認。
+- 同じ足種内で日付＋時刻の重複を拒否。5分足ラベルは5分境界か確認。
+- `NO11_CHART_1M_VALID_OHLCV_ROWS`、`NO11_CHART_5M_VALID_OHLCV_ROWS`、INVALID/DUPLICATE、EARLIEST/LATESTを出力。
+- `NO11_CHART_PROBE=PASS` は**バー形式の検査**だけを意味する。欠測なし、タイムラベルが足の開始/終了か、未確定足の排除、原本State9の再現は**未証明**。結果のFALSE表示を維持する。
+- 既存Excel二冊の保存・変更、口座データ出力、学習、発注は行わない。
+
+実機の検査結果が返るまでは `NO11_CHART_OHLCV_AUDIT` は未検証。CIの自己診断と実機のMarketSpeed II出力を混同しない。

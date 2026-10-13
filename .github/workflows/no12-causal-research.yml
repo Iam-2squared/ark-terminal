@@ -80,6 +80,13 @@ jobs:
           $ErrorActionPreference='Stop'
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Probe-No11Rss1mFirstObservedReadOnly.ps1 -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'NO11_FIRST_OBSERVED_OFFLINE_FAILED' }
+      - name: Validate private as-of H2/H3/H5 research smoke runner without Excel (Windows only)
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Run-No11AsOfH235ResearchSmokeReadOnly.ps1 -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO11_ASOF_RESEARCH_SMOKE_SELFTEST_FAILED' }
       - name: Exercise RssMarket seconds source formula without Excel or broker (Windows only)
         if: matrix.os == 'windows-latest'
         shell: powershell

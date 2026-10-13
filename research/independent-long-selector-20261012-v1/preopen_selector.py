@@ -198,12 +198,24 @@ def build_preopen_features(snapshot: dict, config: PreopenConfig = PreopenConfig
     if not snapshot.get("universeHash") or not snapshot.get("sourceManifestSha256"):
         raise PreopenError("SOURCE_AND_UNIVERSE_IDENTITY_REQUIRED")
 
-    from technical_feature_library import build_ohlcv_features, DAILY_PERIODS, MINUTE_PERIODS
+    from technical_feature_library import (
+        build_ohlcv_features, DAILY_PERIODS, MINUTE_PERIODS,
+        DAILY_SIGNAL_PERIODS, MINUTE_SIGNAL_PERIODS, COARSE_SIGNAL_PERIODS,
+    )
     from selector_core import EXTRA_FEATURES
-    features = build_ohlcv_features(bars, prefix="preopen_daily", reference_price=bars[-1]["close"], periods=DAILY_PERIODS)
+    features = build_ohlcv_features(
+        bars, prefix="preopen_daily", reference_price=bars[-1]["close"],
+        periods=DAILY_PERIODS, signal_periods=DAILY_SIGNAL_PERIODS,
+    )
     for interval in ("week", "month"):
         coarse = _resample_complete_history(bars, interval)
-        features.update(build_ohlcv_features(coarse, prefix=f"preopen_{interval}", reference_price=bars[-1]["close"], periods=DAILY_PERIODS))
+        # Weekly/monthly are price/volume regime observations, NOT 5/15/25/75
+        # *week/month* moving averages. Only four DAILY MA durations are used.
+        features.update(build_ohlcv_features(
+            coarse, prefix=f"preopen_{interval}",
+            reference_price=bars[-1]["close"],
+            periods=(), signal_periods=COARSE_SIGNAL_PERIODS,
+        ))
     # Every optional source has explicit coverage. Absence is not a verified
     # zero-activity tape. The previous session prefix is never today's tape.
     minute_tail = []
@@ -225,7 +237,11 @@ def build_preopen_features(snapshot: dict, config: PreopenConfig = PreopenConfig
             if stamp(minute_tail[i]["start"])-stamp(minute_tail[i-1]["start"]) != timedelta(minutes=1):
                 minute_tail = minute_tail[i:]
                 break
-    features.update(build_ohlcv_features(minute_tail, prefix="preopen_previous_minute", reference_price=bars[-1]["close"], periods=MINUTE_PERIODS))
+    features.update(build_ohlcv_features(
+        minute_tail, prefix="preopen_previous_minute",
+        reference_price=bars[-1]["close"], periods=MINUTE_PERIODS,
+        signal_periods=MINUTE_SIGNAL_PERIODS,
+    ))
     facts = snapshot.get("asofFacts", {})
     if set(facts).difference(EXTRA_FEATURES):
         raise PreopenError("UNREGISTERED_EXTERNAL_FEATURE")

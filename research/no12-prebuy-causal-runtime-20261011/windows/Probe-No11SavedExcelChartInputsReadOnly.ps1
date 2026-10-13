@@ -1,7 +1,7 @@
 ﻿# No.1.1 next input step: RssChart 1M/5M from the already RSS-enabled
 # Excel instance containing the user's original account workbook.
 # ONLY an unsaved temporary workbook is created/edited/closed. No order.
-param([switch]$OfflineSelfTest,[int]$WaitSeconds=15,[int]$OneMinuteBars=300,[int]$FiveMinuteBars=100)
+param([switch]$OfflineSelfTest,[int]$WaitSeconds=15,[int]$OneMinuteBars=300,[int]$FiveMinuteBars=100,[switch]$SaveEvidence)
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 if($OneMinuteBars -lt 20 -or $OneMinuteBars -gt 3000 -or
@@ -167,6 +167,20 @@ try{
  for($i=0;$i -lt $headers.Count;$i++){
   $sheet.Cells.Item(2,$i+1).Value2=$headers[$i]
  }
+ $evidence=[ordered]@{
+  schemaId='ARK_NO11_RSS_CHART_DUAL_EVIDENCE_V1'
+  symbol=$symbol
+  sourceFunction='RssChart'
+  evidenceMode='OBSERVED_READ_ONLY'
+  privateAccountDataIncluded=$false
+  excelOrderEnabled=$false
+  labelSemanticsCertified=$false
+  brokerArrivalCertified=$false
+  originalNativeState9Certified=$false
+  productionReady=$false
+  orderTransmission=$false
+  periods=[ordered]@{}
+ }
  foreach($test in @(
   @{period='1M';count=$OneMinuteBars},
   @{period='5M';count=$FiveMinuteBars}
@@ -180,6 +194,7 @@ try{
   $earliest=[datetimeoffset]::MaxValue
   $observed=[datetimeoffset]::Now
   $seen=New-Object 'System.Collections.Generic.HashSet[string]'
+  $bars=New-Object System.Collections.ArrayList
   if($values -is [array] -and $values.Rank -eq 2){
    $r0=$values.GetLowerBound(0);$c0=$values.GetLowerBound(1)
    for($r=$r0;$r -lt ($r0+$test.count);$r++){
@@ -191,6 +206,10 @@ try{
      if($null -eq $bar){$invalid++;continue}
      if(-not $seen.Add($bar.key)){$duplicate++;continue}
      $valid++
+     [void]$bars.Add([ordered]@{
+      label=$bar.time.ToString('yyyy-MM-ddTHH:mm:sszzz')
+      open=$bar.open;high=$bar.high;low=$bar.low;close=$bar.close;volume=$bar.volume
+     })
      if($bar.time -lt $earliest){$earliest=$bar.time}
      if($bar.time -gt $latest){$latest=$bar.time}
     }
@@ -208,6 +227,34 @@ try{
   if($numeric -eq 0 -or $valid -ne $numeric -or $invalid -gt 0 -or $duplicate -gt 0){
    throw ('NO11_CHART_'+$test.period+'_OHLCV_AUDIT_BLOCKED')
   }
+  $evidence.periods[$test.period]=[ordered]@{
+   observedAt=$observed.ToString('o')
+   requestedBars=[int]$test.count
+   validRows=[int]$valid
+   rows=@($bars.ToArray())
+  }
+ }
+ if($SaveEvidence){
+  # Private, immutable evidence: only public 7203.T OHLCV. Never save Excel.
+  $folder=Join-Path $env:LOCALAPPDATA 'ArkTerminal\No12'
+  [void][IO.Directory]::CreateDirectory($folder)
+  $evidence['capturedAt']=[datetimeoffset]::Now.ToString('o')
+  $payload=ConvertTo-Json -InputObject $evidence -Depth 8 -Compress
+  $output=Join-Path $folder ('chart-evidence-'+[Guid]::NewGuid().ToString('N')+'.json')
+  $stream=$null
+  try{
+   $stream=[IO.File]::Open($output,[IO.FileMode]::CreateNew,
+     [IO.FileAccess]::Write,[IO.FileShare]::None)
+   $bytes=[Text.UTF8Encoding]::new($false).GetBytes($payload+"`n")
+   $stream.Write($bytes,0,$bytes.Length)
+   $stream.Flush($true)
+  }catch{
+   if($null -ne $stream){$stream.Dispose();$stream=$null}
+   if([IO.File]::Exists($output)){[IO.File]::Delete($output)}
+   throw 'NO11_CHART_EVIDENCE_WRITE_FAILED'
+  }finally{if($null -ne $stream){$stream.Dispose()}}
+  Write-Host ('NO11_CHART_EVIDENCE_FILE='+$output)
+  Write-Host ('NO11_CHART_EVIDENCE_SHA256='+(Get-FileHash -LiteralPath $output -Algorithm SHA256).Hash.ToLowerInvariant())
  }
  Write-Host 'NO11_CHART_SOURCE=OBSERVED_READ_ONLY'
  Write-Host 'NO11_CHART_LABEL_START_OR_END_CERTIFIED=False'

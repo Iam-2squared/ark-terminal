@@ -67,9 +67,63 @@ class PreopenFeatureTests(unittest.TestCase):
             wanted = 100*(cs[-1]/(sum(cs[-n:])/n)-1)
             self.assertAlmostEqual(r["features"][f"preopen_daily_sma_close_distance_pct_{n}"],wanted)
         self.assertTrue(all(k.startswith("preopen_") for k in r["features"]))
-        self.assertGreater(r["featureCount"],1849)
+        # Breadth of unrelated indicators is important, not inflated MA count.
+        self.assertGreater(r["featureCount"],300)
         self.assertLess(r["observedFeatureCount"],r["featureCount"])
         self.assertFalse(r["productionReady"])
+
+    def test_preopen_exactly_four_ma_horizons_and_diverse_known_features(self):
+        from technical_feature_library import DAILY_PERIODS
+        self.assertEqual(DAILY_PERIODS, (5, 15, 25, 75))
+        s = snapshot()
+        # Large previous-day tape volume/value relative to earlier actual days.
+        s["dailyBars"][-1]["volume"] *= 5
+        s["dailyBars"][-1]["turnover"] *= 5
+        prev = s["previousSession"] + "T19:00:00+09:00"
+        facts = ("valuation_pbr", "fin_sales_yoy_pct", "topix_return_5d",
+                 "investor_foreign_net_flow_ratio")
+        s["asofFacts"] = {
+            k: {"value": float(i + 1), "knownAt": prev, "observedAt": prev,
+                "pitVerified": True, "sourceId": "synthetic-"+k,
+                "liveRefreshContractVerified": True}
+            for i,k in enumerate(facts)
+        }
+        f = build_preopen_features(s)["features"]
+        for family in ("sma_close_distance_pct", "ema_close_distance_pct",
+                       "sma_slope_pct", "ema_slope_pct"):
+            times = {int(k.rsplit("_",1)[-1]) for k in f
+                     if k.startswith("preopen_daily_"+family+"_")}
+            self.assertEqual(times, set(DAILY_PERIODS),family)
+        self.assertFalse(any(
+            k.startswith(("preopen_week_sma_", "preopen_week_ema_",
+                          "preopen_month_sma_", "preopen_month_ema_"))
+            for k in f))
+        for name in (
+            "rsi_14", "atr_pct_14", "mfi_14", "cmf_20", "volume_ratio_20",
+            "turnover_ratio_20", "volume_price_trend_25",
+            "adx14", "macd_12_26_pct", "ichimoku_tenkan9_pct",
+            "prior_day_price_impact_20d_per_100m_jpy",
+        ):
+            self.assertIsNotNone(f["preopen_daily_"+name],name)
+        self.assertGreater(f["preopen_daily_prior_day_volume_spike_vs_20d"], 4)
+        self.assertGreater(f["preopen_daily_prior_day_turnover_spike_vs_20d"], 4)
+        for i,k in enumerate(facts):
+            self.assertEqual(f["preopen_external_"+k],float(i+1))
+        self.assertIsNone(f["preopen_external_news_sentiment"])
+        self.assertNotIn("preopen_daily_sma_close_distance_pct_200",f)
+
+    def test_unverified_fundamentals_and_volume_never_implicitly_zero(self):
+        s = snapshot()
+        s["asofFacts"] = {"valuation_pbr": {
+            "value": 0, "knownAt":s["session"]+"T09:00:00+09:00",
+            "observedAt":s["session"]+"T08:30:00+09:00",
+            "pitVerified":True, "sourceId":"synthetic-pbr"}}
+        out = build_preopen_features(s)
+        self.assertIsNone(out["features"]["preopen_external_valuation_pbr"])
+        s2 = snapshot()
+        s2["dailyBars"][-1]["turnover"] = None
+        with self.assertRaisesRegex((ValueError,PreopenError), "TURNOVER"):
+            build_preopen_features(s2)
 
     def test_current_day_bar_rejected(self):
         s = snapshot(); s["dailyBars"][-1]["session"] = s["session"]

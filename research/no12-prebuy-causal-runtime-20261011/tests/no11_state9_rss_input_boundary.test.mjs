@@ -16,7 +16,7 @@ test('market RSS OHLCV never silently becomes Frozen State9 input',()=>{
   capturedAt:time(20),
   periods:{
    '1M':{observedAt:time(18),requestedBars:300,validRows:5,rows:[0,1,2,3,4].map(row)},
-   '5M':{observedAt:time(19),requestedBars:100,validRows:1,rows:[row(0)]}
+   '5M':{observedAt:time(19),requestedBars:100,validRows:1,rows:[{...row(0),volume:500}]}
   }
  };
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'no11-state9-boundary-'));

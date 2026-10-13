@@ -63,7 +63,7 @@ class PreopenFeatureTests(unittest.TestCase):
         s = snapshot()
         r = build_preopen_features(s)
         cs = [b["close"] for b in s["dailyBars"]]
-        for n in (5,15,25):
+        for n in (5,15,25,75):
             wanted = 100*(cs[-1]/(sum(cs[-n:])/n)-1)
             self.assertAlmostEqual(r["features"][f"preopen_daily_sma_close_distance_pct_{n}"],wanted)
         self.assertTrue(all(k.startswith("preopen_") for k in r["features"]))

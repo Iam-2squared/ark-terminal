@@ -56,6 +56,9 @@ NEEDS_EXTERNAL_FROZEN_CONTEXT = (
 SCHEMA = "ARK_NO11_2026_RSS_5M_SOURCE_PROXY_NOT_FROZEN_SELECTOR_V1"
 REPORT_SCHEMA = "ARK_NO11_2026_RSS_FROZEN_SELECTOR_SOURCE_GAP_AUDIT_V1"
 SCOPE_CHOICES = ("priority950","all4327")
+# Exact first 950 names of the immutable 4,327-symbol capture list.
+# Used for both the priority-only scope and the priority coverage report.
+PRIORITY_WATCH_COUNT = 950
 MORNING = tuple(range(540,690,5))          # 09:00..11:29 (30 complete bins)
 AFTERNOON = tuple(range(750,925,5))       # 12:30..15:24 (35 complete bins)
 VALID_STARTS = frozenset(MORNING+AFTERNOON)

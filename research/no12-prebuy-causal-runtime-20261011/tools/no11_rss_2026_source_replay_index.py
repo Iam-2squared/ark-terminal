@@ -35,6 +35,7 @@ RUN_END_SHA = (
     "9c1e76ef5bea5ae60bb015c91bfbeac4b6ea60af81b1d3599385a0782fbc2ce7"
 )
 PRIORITY_WATCH_COUNT = 950
+EXPECTED_FULL_EIGHT = 3864
 
 
 def inspected_market_minute(label):
@@ -232,7 +233,7 @@ def run(args):
               "|ROWS="+str(run_rows),flush=True)
     require(offset==EXPECTED_TOTAL[0] and
             (seen_observed,seen_unavailable,all_rows)==EXPECTED_TOTAL[1:] and
-            full_eight==3864 and
+            full_eight==EXPECTED_FULL_EIGHT and
             dict(sorted(all_day_rows.items()))==
                 original_audit.get("aggregateRowsByDate"),
             "NO11_REPLAY_AGGREGATE_VS_AUDIT_DISAGREES")

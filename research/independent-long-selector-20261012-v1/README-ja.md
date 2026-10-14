@@ -1,10 +1,33 @@
-# 寄り前Selector研究 - 最新状態
+# 新Selector V1 — 最新の研究状態（2026-10-14）
 
-最新仕様は PREOPEN_OPEN_HIGH_PRECOMMIT.json、PREOPEN_DATA_CONTRACT.md、CURRENT_STATUS.json、WORK_HANDOFF-ja.md を読む。
+**現在有効な結果:** 実市場モデル1候補の学習・較正・寄り前Top15の7日事前固定・日通しOpen→High/Low/Close評価・正式旧Frozenとの別条件比較・元原本別経路再計数は完了。**予測品質は未承認、LIVEは未認証、Fresh/OOS credit 0**。単なるコード実装完了を「勝てるモデル」としない。
 
-現在は native admission/列形式入力/段階別学習・予測/ラベルなしexport/別経路検算の工学実装。市場fit0・較正0・評価0、旧Frozen比較未完了。既存32+寄り前37+追加16人工試験が対象。原本hash/header確認と市場数値の学習利用を区別する。
+| 判定 | 最新 |
+| --- | --- |
+| ENGINEERING_PASS | true |
+| MARKET_MEASUREMENT_COMPLETE | true |
+| LEGACY_COMPARISON_COMPLETE | true |
+| RESEARCH_QUALITY | NOT_APPROVED（High≥1%: 新34/105 vs 売買代金基準56/105、低流動性87/105） |
+| LIVE_READINESS | NOT_CERTIFIED |
+| main/旧Freeze/旧weights/State9への変更 | 0、PR #593はDraft/未merge |
 
-下記は旧日中prototypeの記録として保持する。日中Top5や16テストを最新寄り前仕様へ戻さない。
+**読む順番（古い文書に過去状態が残っています）**
+
+1. `V1_RESEARCH_ACCEPTANCE.md` — 現在のV1研究成果物の受入れ範囲、残る品質問題と入力観測差
+2. `CURRENT_STATUS.json`、`WORK_HANDOFF_MA4_20261014-ja.md`、`REPORT_AGGREGATE.json`
+3. `MA4_EFFECTIVE_PRECOMMIT_20261013_V2.json`、`EFFECTIVE_FEATURE_POLICY.json`、`PREOPEN_OPEN_HIGH_PRECOMMIT.json`
+4. `SOURCE_COVERAGE_SUMMARY.json`、`FEATURE_SOURCE_COVERAGE_SUMMARY.csv`、`MODEL_AND_INPUT_MANIFEST_PUBLIC.json`、`INDEPENDENT_RECOUNT_AUDIT.json`、`LEGACY_COMPARISON_SCOPE.md`
+5. `RSS_PREOPEN_RUNTIME_CONTRACT.md` — 将来の朝更新・RSS実機の未認証境界
+
+読み取り専用整合検査（GitHub公開非復元集計のみ、モデルload/再学習/注文なし）：
+
+```bash
+python research/independent-long-selector-20261012-v1/v1_acceptance/verify.py
+```
+
+**注意:** 直下の`*.py`全ファイルのハッシュが学習済みモデルに結合されています。Root計算コード変更、候補差し替え、再fit、結果を見て7 Report日向けに調整する行為はこのV1研究受入には含めません。追加candidateには事前の別承認が必要です。既存`STATUS.json`や旧`WORK_HANDOFF-ja.md`等に残る「未実施」は作成当時の履歴であり、最新判定ではありません。
+
+以下は**2026-10-12時点の旧日中prototypeの履歴**として無改変保存した記録です。日中Top5/MAX3/MA多期間/未fitという内容を現行MA4寄り前V1へ戻さないでください。
 
 ---
 

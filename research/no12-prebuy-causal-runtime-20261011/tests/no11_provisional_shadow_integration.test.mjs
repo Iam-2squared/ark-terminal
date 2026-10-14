@@ -211,3 +211,47 @@ test('Integration stage never imports live broker/Excel/order APIs or marks prod
    /orderTransmission\s*:\s*true/
  ])assert.doesNotMatch(source,forbidden);
 });
+
+test('Actual frozen Capital V5 Python S/A/B is executed on synthetic ranked entry before cash and EXIT',()=>{
+ const s=scenario();
+ s.startingCashYen=700000;
+ s.candidateInput.batch.candidates[0].quantity=300;
+ s.entryEvents[1].quantity=300;
+ s.postExitEvents[0].quantity=300;
+ s.syntheticFrozenV5Request={
+   schemaId:'ARK_NO11_FROZEN_V5_SYNTHETIC_BRIDGE_V1',
+   evidenceMode:'SYNTHETIC_OFFLINE_ONLY',
+   strategyFreezeCommit:'10c94c92c4bd2a59a22744667fd0210252602df4',
+   capitalAuthorityCommit:'710656491be06235901b45c50a8b5cbd714ba4eb',
+   researchInputProvenance:'EXPLICIT_SYNTHETIC_NOT_H235_RANK',
+   productionReady:false,orderTransmission:false,
+   afterFirstLegalSellFill:false,pendingBrokerOrders:false,sessionVerified:false,
+   arkCapitalInputs:{cash:700000,equity:700000,exposure:0},
+   externalSymbols:['408A.T'],arkManagedSymbols:[],existingBands:[],
+   minute:576,
+   preorderedCandidates:[{
+     entry_id:'e1',brokerSymbol:'7203.T',rank:'S',
+     ML:2.5,capital_score:2.2,raw_reference:'1000',block:'1'
+   }],
+   syntheticTrainingTables:{'1':{
+      minute_counts:{'576':[1,0,2]},training_session_N:10,
+      B_median:1.3,B_p75:1.4,minute_bucket:{'576':'synthetic'}
+   }}
+ };
+ const r=run(s);
+ assert.equal(r.frozenV5SyntheticAllocation.fundedCount,1);
+ assert.equal(r.frozenV5SyntheticAllocation.fundedEntries[0].quantity,300);
+ assert.equal(r.frozenV5SyntheticAllocation.allocatedDebitJpy,'300150.0000');
+ assert.equal(r.stages.capital.originalFrozenCapitalV5PythonExecutedOnSynthetic,true);
+ assert.equal(r.stages.capital.nativeCapitalV5Executed,false);
+ assert.equal(r.preExitLedger.endingCashYen,'399850.00');
+ assert.equal(r.preExitLedger.positions[0].quantity,300);
+ assert.equal(r.exitProposal.exits[0].quantity,300);
+ assert.equal(r.finalLedger.endingCashYen,'705697.00');
+ assert.equal(r.finalLedger.positions.length,0);
+ assert.equal(r.finalLedger.subsequentBuyProhibited,true);
+ assert.equal(r.nativeReadiness.originalFrozenCapitalV5PythonRunOnSynthetic,true);
+ assert.equal(r.nativeReadiness.frozenCapitalV5SabExecuted,false);
+ assert.equal(r.productionReady,false);
+ assert.equal(r.orderTransmission,false);
+});

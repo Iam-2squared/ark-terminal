@@ -185,6 +185,8 @@ test('No live mode, no unsafe owner, no real transmission, no fake EXIT fill',()
  const q=scenario();q.entryEvents[1].quantity=30;
  assert.throws(()=>run(q),/ENTRY_RECONCILIATION_BLOCK/);
  const f=scenario();f.candidateInput.batch.candidates[0].symbol='408A.T';
+ assert.throws(()=>run(f),/EXIT_FILL_WITHOUT_PROPOSAL/);
+ delete f.postExitEvents;
  assert.equal(run(f).stages.firstEntry.eligible,1);
 });
 

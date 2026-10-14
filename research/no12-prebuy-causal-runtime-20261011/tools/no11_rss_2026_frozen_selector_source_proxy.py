@@ -72,7 +72,7 @@ def strict_index(path, expected_sha):
     raw=safe_file(path,5_000_000)
     require(sha(raw)==expected_sha,"NO11_SELECTOR_PROXY_INDEX_HASH_MISMATCH")
     rows=[json.loads(ln) for ln in raw.decode("utf8").splitlines()]
-    require(len(rows)==4327 and all(isinstance(x,dict) for x in rows),
+    require(len(rows)==EXPECTED_TOTAL[0] and all(isinstance(x,dict) for x in rows),
             "NO11_SELECTOR_PROXY_INDEX_ROW_COUNT")
     return rows
 
@@ -180,7 +180,7 @@ def main(args):
             "NO11_SELECTOR_PROXY_OUTPUT_DIR_UNSAFE")
     original = safe_file(args.original_symbols,250000)
     full=original.decode("utf8-sig").splitlines()
-    require(len(full)==4327 and full[20:]==load_symbols(args.original_symbols),
+    require(len(full)==EXPECTED_TOTAL[0] and full[20:]==load_symbols(args.original_symbols),
             "NO11_SELECTOR_PROXY_MASTER_INVALID")
     audit=strict_json(args.audit_report,AUDIT_SHA256,200000)
     replay=strict_json(args.replay_report,REPLAY_SHA256,200000)
@@ -201,7 +201,7 @@ def main(args):
     require(all(index[i].get("symbol")==full[i] and
                 index[i].get("productionReady") is False and
                 index[i].get("orderTransmission") is False
-                for i in range(4327)),
+                for i in range(EXPECTED_TOTAL[0])),
             "NO11_SELECTOR_PROXY_SYMBOL_INDEX_ORDER_INVALID")
     frozen_bytes=safe_file(args.frozen_selector,12_000_000)
     import subprocess
@@ -220,7 +220,7 @@ def main(args):
             spec["eligibility"]["maximumAgeWallClockMinutes"]==5 and
             spec["eligibility"]["forwardFillAllowed"] is False,
             "NO11_SELECTOR_PROXY_FROZEN_SELECTOR_CONTRACT_CHANGED")
-    keep=950 if args.scope=="priority950" else 4327
+    keep=PRIORITY_WATCH_COUNT if args.scope=="priority950" else EXPECTED_TOTAL[0]
     days=Counter()
     accepted=Counter()
     day_all_bins=Counter()
@@ -255,14 +255,22 @@ def main(args):
         runs.append((folder,cp))
         offset+=limit
 
+    run_ends=[]
+    boundary=0
+    for count in RUN_LIMITS:
+        boundary+=count
+        run_ends.append(boundary)
+    require(run_ends[-1]==EXPECTED_TOTAL[0],
+            "NO11_SELECTOR_PROXY_UNEXPECTED_RUN_BOUNDARIES")
+
     # tmp is private within user-local capture dir; never overwritten.
     tmp=args.out_dir/f".no11-5m-part-{uuid4().hex}"
     try:
         with tmp.open("xb") as fp:
             with gzip.GzipFile(fileobj=fp,mode="wb",mtime=0,filename="") as writer:
                 for pos in range(keep):
-                    ri=0 if pos<20 else (1 if pos<1400 else 2)
-                    local=pos-(0 if ri==0 else 20 if ri==1 else 1400)
+                    ri=next(i for i,end in enumerate(run_ends) if pos<end)
+                    local=pos-(0 if ri==0 else run_ends[ri-1])
                     folder,cp=runs[ri]
                     entry=cp["files"][local]
                     sym=full[pos]
@@ -298,7 +306,7 @@ def main(args):
                         for at,yes in got.items():
                             if yes:
                                 available_decisions[day][at]+=1
-                                if pos<950:first_watch[day][at]+=1
+                                if pos<PRIORITY_WATCH_COUNT:first_watch[day][at]+=1
                     for b in bins:
                         # Store only exact 5x1M provisional aggregation,
                         # not a Selector event, model score, or teacher.

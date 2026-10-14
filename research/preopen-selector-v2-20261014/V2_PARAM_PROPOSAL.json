@@ -1,0 +1,154 @@
+{
+  "document_id": "ARK_SELECTOR_V2_WORK_DETAILED_DESIGN_20261014_R1",
+  "status": "PROPOSAL_FOR_ENGINEERING_NOT_MARKET_AUTHORIZATION",
+  "candidate_id_proposal": "PREOPEN_V2_TC_C01",
+  "parameters_adopted": false,
+  "mode": "DESIGN_AND_ENGINEERING",
+  "market_fit_allowed": false,
+  "market_numeric_read_allowed": false,
+  "new_period_allowlist_approved": false,
+  "cutoff_jst": "08:50:00",
+  "max_watchlist": 15,
+  "daily_ma_periods": [
+    5,
+    15,
+    25,
+    75
+  ],
+  "g1": {
+    "sma_delta": "ONE_EXCHANGE_SESSION",
+    "strict_above_sma": true,
+    "all_axes_up": true,
+    "perfect_ma_order_required": false
+  },
+  "g2": {
+    "cc_drop_pct": -5.0,
+    "body_drop_pct": -5.0,
+    "gap_drop_pct": -5.0,
+    "atr_damage_multiple": 3.0,
+    "atr_period": 14,
+    "atr_pre_tr_count": 75,
+    "atr_pre_end": "t-1",
+    "gate_history_closes": 77,
+    "reference_cash_jpy": 1000000,
+    "capacity_share_max": 0.01,
+    "capacity_sessions": 20,
+    "prior_close_exclusive_min_jpy": 75
+  },
+  "feature_profile_proposal": "V2_CORE95",
+  "registered_numeric_features": 95,
+  "ema_macd_fixed_close_history": 150,
+  "sector_peer_coverage_min_ratio": 0.9,
+  "optional_core_tick_windows_minutes": [
+    30
+  ],
+  "risk_classes": [
+    "R0_A_LT3",
+    "R1_A_GE3_LT5",
+    "R2_A_GE5"
+  ],
+  "opportunity_classes": [
+    "U_0_LT1",
+    "U_1_LT2",
+    "U_2_LT3",
+    "U_3_LT4",
+    "U_4_LT5",
+    "U_GE5"
+  ],
+  "conditional_on_outcome_known": true,
+  "probability_gates": {
+    "q1_min": 0.5,
+    "p3_max": 0.05,
+    "p5_max": 0.01
+  },
+  "rank": "SUM_Q1_TO_Q5_THEN_Q5_THEN_CANONICAL_SYMBOL",
+  "split_role_days_proposal": {
+    "fit": 120,
+    "calibration": 20,
+    "validation": 20,
+    "final_report": 40
+  },
+  "exact_session_allowlists": null,
+  "rights_and_exposure_manifest": null,
+  "authorized_market_budget_now": {
+    "candidates": 0,
+    "base_fits": 0,
+    "calibration_optimizations": 0
+  },
+  "proposed_budget_after_explicit_approval": {
+    "candidates": 1,
+    "base_fits": 2,
+    "calibration_optimizations": 2
+  },
+  "model": {
+    "family": "HistGradientBoostingClassifier",
+    "loss": "log_loss",
+    "learning_rate": 0.05,
+    "max_leaf_nodes": 15,
+    "max_depth": null,
+    "max_iter": 120,
+    "min_samples_leaf": 40,
+    "l2_regularization": 10.0,
+    "max_bins": 255,
+    "max_features": 1.0,
+    "categorical_features": null,
+    "class_weight": null,
+    "early_stopping": false,
+    "warm_start": false,
+    "random_state": 20261014
+  },
+  "calibration": {
+    "kind": "ONE_TEMPERATURE_PER_ESTIMATOR",
+    "probability_floor": 1e-15,
+    "inverse_temperature_bounds": [
+      0.05,
+      20.0
+    ],
+    "optimizer": "bounded",
+    "maxiter": 200,
+    "xatol": 1e-08,
+    "fit_calls": 0
+  },
+  "support_proposal": {
+    "risk_fit_known_min": 5000,
+    "opportunity_fit_r0_min": 3000,
+    "per_class_fit_rows_min": 100,
+    "per_class_fit_days_min": 10,
+    "per_class_fit_symbols_min": 20,
+    "per_class_cal_rows_min": 20,
+    "per_class_cal_days_min": 5,
+    "per_class_cal_symbols_min": 10,
+    "g2_unknown_teacher_rate_max": 0.01
+  },
+  "point_targets_proposal": {
+    "raw_winner1_all_selected_lower_rate_min": 0.5,
+    "clean_winner3_per_all_session_min": 1.0,
+    "clean_winner5_per_all_session_min": 0.5,
+    "loser3_unknown_worst_case_rate_max": 0.05,
+    "loser5_unknown_worst_case_rate_max": 0.01,
+    "selected_unknown_rate_max": 0.01,
+    "candidate_day_rate": "DIAGNOSTIC_UNLESS_OWNER_FIXES_TARGET_BEFORE_FIT"
+  },
+  "uncertainty": {
+    "unit": "WHOLE_EXCHANGE_SESSION",
+    "bootstrap": "CIRCULAR_MOVING_BLOCK",
+    "block_sessions": 5,
+    "draws": 5000,
+    "seed": 20261014,
+    "descriptive_interval": [
+      0.025,
+      0.975
+    ]
+  },
+  "executionAllowed": false,
+  "brokerWriteAllowed": false,
+  "excelOrderWriteAllowed": false,
+  "rssOrderFunctionAllowed": false,
+  "liveTradingAllowed": false,
+  "paperTradingAllowed": false,
+  "automaticPromotionAllowed": false,
+  "productionUpdateAllowed": false,
+  "transmitted": false,
+  "productionReady": false,
+  "entryAllowed": false
+}

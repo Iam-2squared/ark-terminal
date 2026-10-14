@@ -1,0 +1,513 @@
+{
+  "document_id": "ARK_SELECTOR_V2_WORK_DETAILED_DESIGN_20261014_R1",
+  "required_items": 72,
+  "tests": [
+    {
+      "requirement": 1,
+      "test": "test_required_matrix.RequiredMatrix.test_01_calendar_non_sessions",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "NON_EXCHANGE_SESSION for holiday/weekend",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 2,
+      "test": "test_required_matrix.RequiredMatrix.test_02_previous_is_exchange_session",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "previous session Friday not calendar Monday",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 3,
+      "test": "test_required_matrix.RequiredMatrix.test_03_source_after_cutoff",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "source after08:50 rejected",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 4,
+      "test": "test_required_matrix.RequiredMatrix.test_04_current_outcome_keys_rejected",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "current OHLC/State/outcome key rejected",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 5,
+      "test": "test_required_matrix.RequiredMatrix.test_05_poison_future_invariant",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "future poison cannot change asof feature",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 6,
+      "test": "test_required_matrix.RequiredMatrix.test_06_basis_split_units",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "raw/adjusted/unit error; split suffix UNKNOWN",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 7,
+      "test": "test_required_matrix.RequiredMatrix.test_07_security_kind_and_alpha_identity",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "dated ordinary/ETF/REIT/preferred/alpha identity",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 8,
+      "test": "test_required_matrix.RequiredMatrix.test_08_no_trade_partial_null",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "official fullnull UNKNOWN;partial/bool/nonfinite error",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 9,
+      "test": "test_required_matrix.RequiredMatrix.test_09_master_missing_is_data_blocked",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "master missing DATA_BLOCKED not empty success",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 10,
+      "test": "test_required_matrix.RequiredMatrix.test_10_76_vs_77_closes",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "G1 needs76; ATR/G2 needs77",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 11,
+      "test": "test_required_matrix.RequiredMatrix.test_11_all_up_pass",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "all axesUP PASS",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 12,
+      "test": "test_required_matrix.RequiredMatrix.test_12_all_nonup_reject",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "zero axesUP REJECT",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 13,
+      "test": "test_required_matrix.RequiredMatrix.test_13_short_nonup_wait",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "short notUP mixed WAIT",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 14,
+      "test": "test_required_matrix.RequiredMatrix.test_14_medium_flat_wait",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "medium flat mixed WAIT",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 15,
+      "test": "test_required_matrix.RequiredMatrix.test_15_medium_both_required",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "UP15 AND UP25 both required",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 16,
+      "test": "test_required_matrix.RequiredMatrix.test_16_equalities_not_up",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "Delta0 and C=S notUP",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 17,
+      "test": "test_required_matrix.RequiredMatrix.test_17_tiny_exact_sign",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "tiny exact signs not display rounding",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 18,
+      "test": "test_required_matrix.RequiredMatrix.test_18_independent_ma_equation",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "mean difference equals exact end difference",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 19,
+      "test": "test_required_matrix.RequiredMatrix.test_19_perfect_order_not_required",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "no perfect MA order requirement",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 20,
+      "test": "test_required_matrix.RequiredMatrix.test_20_unknown_not_flat",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "unknown never FLAT/0",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 21,
+      "test": "test_required_matrix.RequiredMatrix.test_21_cc_exact_minus5",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "cc=-5 reject/strictly above pass",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 22,
+      "test": "test_required_matrix.RequiredMatrix.test_22_body_and_gap_independent",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "body/gap independent damage bits",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 23,
+      "test": "test_required_matrix.RequiredMatrix.test_23_exact_three_atr",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "loss=3ATR rejected;less not",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 24,
+      "test": "test_required_matrix.RequiredMatrix.test_24_atr_excludes_t_crash",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "t crash excluded from preATR",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 25,
+      "test": "test_required_matrix.RequiredMatrix.test_25_atr_independent_seed_updates",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "independent seed14 update61 TR75 oracle",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 26,
+      "test": "test_required_matrix.RequiredMatrix.test_26_zero_atr_no_drop_vs_drop",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "ATR0/drop0 z0;positive drop reject/zNone",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 27,
+      "test": "test_required_matrix.RequiredMatrix.test_27_gap_recovery_still_rejected",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "gap recovery remains rejected",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 28,
+      "test": "test_required_matrix.RequiredMatrix.test_28_minus4_candle_can_pass",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "minus4 candle can pass with other conditions",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 29,
+      "test": "test_required_matrix.RequiredMatrix.test_29_median_spike_decline",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "even median;single spike and decline rejected",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 30,
+      "test": "test_required_matrix.RequiredMatrix.test_30_capacity_equal_and_above",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "capacity1% equality pass",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 31,
+      "test": "test_required_matrix.RequiredMatrix.test_31_price_lot_equality",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "100share price equality pass",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 32,
+      "test": "test_required_matrix.RequiredMatrix.test_32_all_and_first_reasons",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "fixed first reason and all violations",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 33,
+      "test": "test_required_matrix.RequiredMatrix.test_33_exact_up_buckets",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "exact +1..5 cross-multiply buckets",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 34,
+      "test": "test_required_matrix.RequiredMatrix.test_34_exact_risk_boundaries",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "A3 R1/A5 R2",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 35,
+      "test": "test_required_matrix.RequiredMatrix.test_35_raw_bigwinner_and_loser",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "U6 A4 raw5 and loser3;not clean5",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 36,
+      "test": "test_required_matrix.RequiredMatrix.test_36_r0_b0_not_positive",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "R0/B0 utility0",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 37,
+      "test": "test_required_matrix.RequiredMatrix.test_37_exact_zero_inside_b0",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "High=Open exact0 is inside B0",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 38,
+      "test": "test_required_matrix.RequiredMatrix.test_38_unknown_not_r0_b0",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "NO_TRADE not R0/B0",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 39,
+      "test": "test_required_matrix.RequiredMatrix.test_39_invalid_ohlc_stops",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "invalid OHLC integrity error",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 40,
+      "test": "test_required_matrix.RequiredMatrix.test_40_same_bar_ambiguous",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "same bar double hit AMBIGUOUS",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 41,
+      "test": "test_required_matrix.RequiredMatrix.test_41_past_bar_high_not_reused",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "past bar High excluded from futureHigh",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 42,
+      "test": "test_required_matrix.RequiredMatrix.test_42_independent_integer_ratio_recount",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "independent Fraction bucket recount total100",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 43,
+      "test": "test_required_matrix.RequiredMatrix.test_43_risk_keeps_failures",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "Risk keeps all known R0/R1/R2",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 44,
+      "test": "test_required_matrix.RequiredMatrix.test_44_opportunity_r0_including_b0",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "Opportunity onlyR0 including B0",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 45,
+      "test": "test_required_matrix.RequiredMatrix.test_45_common_scaling_and_inheritance",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "common c mean1;R0 inherits unchanged",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 46,
+      "test": "test_required_matrix.RequiredMatrix.test_46_missing_class_fit0",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "missing class fails before estimator factory,fit0",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 47,
+      "test": "test_required_matrix.RequiredMatrix.test_47_estimator_specific_fit_columns",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "Risk and R0 FIT have distinct column masks",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 48,
+      "test": "test_required_matrix.RequiredMatrix.test_48_cal_cannot_choose_columns",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "CAL shift blocks without altering FIT masks",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 49,
+      "test": "test_required_matrix.RequiredMatrix.test_49_wrong_model_class_order",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "wrong classes_ order rejected",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 50,
+      "test": "test_required_matrix.RequiredMatrix.test_50_joint_inclusion_and_example_h",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "q monotonic containment and artificial H example",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 51,
+      "test": "test_required_matrix.RequiredMatrix.test_51_beta_one_and_independent_softmax",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "beta1 identity;independent normalized power formula",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 52,
+      "test": "test_required_matrix.RequiredMatrix.test_52_calibration_failure_bounds_flat",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "nonconvergence/nonfinite/bound/flat blocked",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 53,
+      "test": "test_required_matrix.RequiredMatrix.test_53_calibration_never_estimator_fit",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "temperature optimizer calls no estimator fit",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 54,
+      "test": "test_required_matrix.RequiredMatrix.test_54_budget_2fit_2cal_no_retry",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "ledger counts2fit2cal;repeat START denied",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 55,
+      "test": "test_required_matrix.RequiredMatrix.test_55_selection_thresholds_and_ties",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "exact thresholds;score/q5/code deterministic ties",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 56,
+      "test": "test_required_matrix.RequiredMatrix.test_56_0_2_15_and_duplicate",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "0/2/15/16 cap;duplicate canonical rejected",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 57,
+      "test": "test_required_matrix.RequiredMatrix.test_57_unknown_labels_cannot_replace_selection",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "unknown label cannot replace ranked identity",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 58,
+      "test": "test_required_matrix.RequiredMatrix.test_58_zero_day_in_supply_denominator",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "empty candidate day remains supply denominator",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 59,
+      "test": "test_required_matrix.RequiredMatrix.test_59_unknown_worst_case_loser",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "known rate0;UNKNOWN worst upper20%",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 60,
+      "test": "test_required_matrix.RequiredMatrix.test_60_capture_and_zero_denominator",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "gate/model/end-to-end ratios;zero denominator None",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 61,
+      "test": "test_required_matrix.RequiredMatrix.test_61_fit_oracle_upper_stops_fit0",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "oracle min(15,W)/allFITdays insufficient stopsfit0",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 62,
+      "test": "test_required_matrix.RequiredMatrix.test_62_phase_change_all_windows",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "1/5/15/30/60 half-open continuous windows around phasechange",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 63,
+      "test": "test_required_matrix.RequiredMatrix.test_63_no_trade_zero_vs_missing",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "complete no-trade count0 vs source missing None",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 64,
+      "test": "test_required_matrix.RequiredMatrix.test_64_equal_timestamp_distinct_transactions",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "same timestamp distinctTx kept;duplicateID rejected",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 65,
+      "test": "test_required_matrix.RequiredMatrix.test_65_forbidden_descriptor_no_open",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "batch forbidden evaluation descriptor rejects before any open",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 66,
+      "test": "test_required_matrix.RequiredMatrix.test_66_fake_approval_and_sealed_dates",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "untrusted owner approval/protected purpose rejected before open",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 67,
+      "test": "test_required_matrix.RequiredMatrix.test_67_no_artifact_or_ledger_overwrite",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "artifact/run/ledger exclusive create;no overwrite",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 68,
+      "test": "test_required_matrix.RequiredMatrix.test_68_untrusted_pickle_refused_before_load",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "untrusted pickle blocked before joblib.load",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 69,
+      "test": "test_required_matrix.RequiredMatrix.test_69_restore_traversal_symlink_tamper",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "traversal/symlink/tamper reject before restore",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 70,
+      "test": "test_required_matrix.RequiredMatrix.test_70_all_false_flags_header_and_item",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "all11 flags false/header and items;missing fails",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 71,
+      "test": "test_required_matrix.RequiredMatrix.test_71_sealed_forecast_and_code_drift",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "watch/code/schema drift cannot be recovered by fit",
+      "independent_expectations": true
+    },
+    {
+      "requirement": 72,
+      "test": "test_required_matrix.RequiredMatrix.test_72_v1_frozen_whole_tree_unchanged",
+      "fixture_source": "tests/test_required_matrix.py (generated Fraction values only)",
+      "expected": "whole protectedtree and V1 Python byte hashes unchanged",
+      "independent_expectations": true
+    }
+  ],
+  "additional_test_source": "tests/test_additional_contracts.py",
+  "market_rows": 0,
+  "matrix_test_sha256": "c2d8345a160817f476795db3c5c8663400f169a3a0c16d6e1dd3a38a1d185342"
+}

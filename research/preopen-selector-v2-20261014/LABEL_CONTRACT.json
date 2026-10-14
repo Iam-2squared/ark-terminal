@@ -1,0 +1,31 @@
+{
+  "label_id": "JPX_RAW_OPEN_FULL_SESSION_UP_RISK_JOINT_V2",
+  "basis": "RAW_FULL_SESSION_SAME_MARKET",
+  "open": "VERIFIED_FIRST_EXECUTED_PRICE",
+  "up_pct": "100*(H/O-1)",
+  "adverse_pct": "100*(1-L/O)",
+  "close_pct": "100*(C/O-1)",
+  "B_boundaries_pct": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "R_boundaries_pct": [
+    0,
+    3,
+    5
+  ],
+  "clean": "U>=k AND A<3",
+  "utility": "sum(cleanWinner1..5)",
+  "unknown": [
+    "NO_TRADE",
+    "NO_VERIFIED_OPEN",
+    "INCOMPLETE_SOURCE"
+  ],
+  "integrity_error": "PARTIAL_OR_INCONSISTENT_OHLC_STOPS_RUN",
+  "comparison": "EXACT_RATIONAL_CROSS_MULTIPLICATION",
+  "path_order_from_daily": false
+}

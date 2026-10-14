@@ -29,7 +29,7 @@ const candidate=entryId=>({
  selectorRecordId:'selector',stateRecordId:'state',
  marketRecordId:'price',candidateKnownAt:known,
  firstEntryScore:0.78,firstEntryThreshold:0.70,
- referencePrice:1000,quantity:100,
+ referencePrice:1000,quantity:entryId==='e1'?300:100,
  formalState9Primary:'RISE'
 });
 const event=(kind,eventId,time,extras={})=>({
@@ -52,11 +52,32 @@ const scenario={
    ]},
   ownership:{...core,baselineSha256:digest(core)}
  },
- externalSymbols:['408A.T'],startingCashYen:1000000,
+ externalSymbols:['408A.T'],startingCashYen:700000,
+ syntheticFrozenV5Request:{
+  schemaId:'ARK_NO11_FROZEN_V5_SYNTHETIC_BRIDGE_V1',
+  evidenceMode:'SYNTHETIC_OFFLINE_ONLY',
+  strategyFreezeCommit:'10c94c92c4bd2a59a22744667fd0210252602df4',
+  capitalAuthorityCommit:'710656491be06235901b45c50a8b5cbd714ba4eb',
+  researchInputProvenance:'EXPLICIT_SYNTHETIC_NOT_H235_RANK',
+  productionReady:false,orderTransmission:false,
+  afterFirstLegalSellFill:false,pendingBrokerOrders:false,
+  sessionVerified:false,
+  arkCapitalInputs:{cash:700000,equity:700000,exposure:0},
+  externalSymbols:['408A.T'],arkManagedSymbols:[],
+  existingBands:[],minute:576,
+  preorderedCandidates:[{
+   entry_id:'e1',brokerSymbol:'7203.T',rank:'S',
+   ML:2.5,capital_score:2.2,raw_reference:'1000',block:'1'
+  }],
+  syntheticTrainingTables:{'1':{
+   minute_counts:{'576':[1,0,2]},training_session_N:10,
+   B_median:1.3,B_p75:1.4,minute_bucket:{'576':'synthetic'}
+  }}
+ },
  entryEvents:[
   event('ENTRY_SIGNAL','e1-entry','09:36:01',{entryId:'e1',orderId:'buy-sim-1'}),
   event('BUY_FILL','e1-buy','09:37:00',{orderId:'buy-sim-1',
-    quantity:100,fillPriceTenth:10000})
+    quantity:300,fillPriceTenth:10000})
  ],
  exitObservationFrame:{schemaId:CAUSAL_FRAME_SCHEMA,
   session:day,decisionAt:at('10:00:00'),
@@ -67,7 +88,7 @@ const scenario={
   intentAlreadyIssued:false,controlIntentKnownAt:null}],
  postExitEvents:[
   event('SELL_FILL','e1-sell','10:02:00',{
-   orderId:'no11-offline-exit-1',quantity:100,
+   orderId:'no11-offline-exit-1',quantity:300,
    fillPriceTenth:10200,syntheticMatchedOrder:true
   }),
   event('ENTRY_SIGNAL','e2-replacement','10:02:00',
@@ -77,6 +98,10 @@ const scenario={
 const out=runNo11ProvisionalSyntheticShadow({
  mode:'SYNTHETIC_OFFLINE_ONLY',scenario,now:new Date(at('10:03:00'))
 });
+assert.equal(out.frozenV5SyntheticAllocation.fundedCount,1);
+assert.equal(out.frozenV5SyntheticAllocation.allocatedDebitJpy,'300150.0000');
+assert.equal(out.stages.capital.originalFrozenCapitalV5PythonExecutedOnSynthetic,true);
+assert.equal(out.preExitLedger.positions[0].quantity,300);
 assert.equal(out.preExitLedger.positions.length,1);
 assert.equal(out.exitProposal.exits.length,1);
 assert.equal(out.finalLedger.positions.length,0);
@@ -92,7 +117,8 @@ console.log('NO11_INTEGRATION_SYNTHETIC_STATE9_SHARP_DROP_TO_EXIT_INTENT=PASS');
 console.log('NO11_INTEGRATION_SYNTHETIC_SELL_FILL_AND_DAY_LATCH=PASS');
 console.log('NO11_INTEGRATION_ORIGINAL_FROZEN_SELECTOR_EXECUTED=False');
 console.log('NO11_INTEGRATION_ORIGINAL_FROZEN_H235_EXECUTED=False');
-console.log('NO11_INTEGRATION_FROZEN_CAPITAL_SAB_EXECUTED=False');
+console.log('NO11_INTEGRATION_ORIGINAL_CAPITAL_V5_PYTHON_SYNTHETIC=PASS');
+console.log('NO11_INTEGRATION_FROZEN_CAPITAL_LIVE_SAB_EXECUTED=False');
 console.log('NO11_INTEGRATION_NATIVE_E2E_CERTIFIED=False');
 console.log('NO11_PRODUCTION_READY=False');
 console.log('ORDER_TRANSMISSION=False');

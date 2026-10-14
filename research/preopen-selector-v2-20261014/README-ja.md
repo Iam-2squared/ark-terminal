@@ -28,3 +28,8 @@ census/train/calibrate/predict/evaluate/restore-verifyはMODE Aでrequestを開�
 再開にはV2固有の正確な期間・用途別許可、source/権利/露出manifest、
 数値/95列/品質/予算を束ねたowner原文承認が必要。
 V1の47日や旧4日履歴例外は転用しない。添付原本の再送は不要。
+
+
+## 承認接続・native経路の追加
+
+[ORCHESTRATION-ja.md](ORCHESTRATION-ja.md)と[MARKET_APPROVAL_PACKAGE_DRAFT.json](MARKET_APPROVAL_PACKAGE_DRAFT.json)を参照。旧人工matrix smoke、normalized native工程の接続、実在庫adapter／ownerチャネル未接続を区別する。市場candidate/fit/calibration=0/0/0。MODE BとMODE Cは別の承認であり、今回はどちらにも移行しない。

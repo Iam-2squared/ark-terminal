@@ -67,8 +67,10 @@ jobs:
           python -m unittest discover -s research/independent-long-selector-20261012-v1/preopen_tests -p 'test_*.py' -v
       - name: Actual two-estimator two-temperature synthetic E2E and restore
         run: python research/preopen-selector-v2-20261014/tools/v2_cli.py synthetic-test --output "$RUNNER_TEMP/v2-synthetic-${{ github.run_id }}-${{ github.run_attempt }}"
+      - name: Same admitted native route with isolated test authority
+        run: python research/preopen-selector-v2-20261014/tools/v2_cli.py native-route-test --output "$RUNNER_TEMP/v2-native-${{ github.run_id }}-${{ github.run_attempt }}"
       - name: Whole-tree protected scope and public artifact audit
         run: python research/preopen-selector-v2-20261014/tools/v2_cli.py public-audit
       - name: Bind acceptance to this exact head
         run: |
-          python research/preopen-selector-v2-20261014/tools/ci_receipt.py --head "${{ github.sha }}" --run "${{ github.run_id }}" --event "${{ github.event_name }}" --synthetic-receipt "$RUNNER_TEMP/v2-synthetic-${{ github.run_id }}-${{ github.run_attempt }}/receipt.json"
+          python research/preopen-selector-v2-20261014/tools/ci_receipt.py --head "${{ github.sha }}" --run "${{ github.run_id }}" --event "${{ github.event_name }}" --synthetic-receipt "$RUNNER_TEMP/v2-synthetic-${{ github.run_id }}-${{ github.run_attempt }}/receipt.json" --native-receipt "$RUNNER_TEMP/v2-native-${{ github.run_id }}-${{ github.run_attempt }}/native-route-receipt.json"

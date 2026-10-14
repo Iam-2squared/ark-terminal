@@ -1,28 +1,41 @@
 {
-  "V2": {
-    "tests": 97,
-    "required": 72,
-    "additional": 25,
-    "status": "PASS",
-    "code_hash": "5ab3becf5aa1b9abf4cd9a9d455a5b29d9316920929783a688564ab116de5753",
-    "log_sha256": "4beb2ffbb52993ab52520b4ed45b47fb1747cbf40939339b57a445f80f3e086e"
+  "schema": "ARK_V2_CONNECTION_LOCAL_VERIFICATION_V1",
+  "start_head": "57c7d7f03a44ae7d668e0c973d399ddd773e6071",
+  "hashes": {
+    "code": "18685f487d5f05255c821aaf51461f9eeaae32d8608bf2250a72f07578ee06c8",
+    "config": "ef43d34cc8b2c61489beb7f29a6a558515f7ced902a660c08ee6a402163ceabe",
+    "schema": "15c4cebbf5cba48b3d727421885b5c00d791db9d0551c19eb4a5e818f2c4aea0"
   },
-  "V1_READ_ONLY_REGRESSION": {
-    "tests": 157,
-    "legacy_tests": 32,
+  "v2_tests": {
+    "existing": 97,
+    "native_route_added": 34,
+    "total": 131,
+    "result": "PASS"
+  },
+  "v1_readonly_tests": {
+    "tests": 32,
     "preopen_tests": 125,
-    "status": "PASS",
-    "test_logs": {
-      "legacy_sha256": "95a2ffdbca245b73ad7599709e93722ce22fda0fb3f3c561a1c804f03714b054",
-      "preopen_sha256": "83f9ff460379874495aebfde78122bd5550e9e95d8ec372323f2e8d965609dda"
-    }
+    "result": "PASS"
   },
-  "typecheck": {
-    "tool": "mypy1.18.2",
-    "source_files": 23,
-    "status": "PASS"
+  "mypy": {
+    "files": 28,
+    "result": "PASS"
   },
   "syntax": "PASS",
-  "market_fit": 0,
-  "market_numeric_read": 0
+  "protected_tree": "PASS",
+  "strategy_parameters_labels_registry_ranking": "UNCHANGED",
+  "native_test_authority_is_market_authorization": false,
+  "legacy_matrix_smoke": "PASS_ARTIFICIAL_ONLY",
+  "native_route": "PASS_ISOLATED_NATIVE_INPUT_PATH",
+  "native_validation_status": "FAIL_FIXED_POINT_TARGETS",
+  "native_final": "UNOPENED_VALIDATION_FAILED",
+  "market_numeric_reads": 0,
+  "market_candidate_fit_calibration": [
+    0,
+    0,
+    0
+  ],
+  "private_original_payloads_extracted": 0,
+  "metadata_receipts_only_original_hashes": 26,
+  "dedicated_CI_binding": "LATEST_PR_HEAD_RUN_JOB_DECODED_LOG_IN_PR_BODY"
 }

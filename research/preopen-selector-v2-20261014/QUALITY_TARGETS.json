@@ -1,0 +1,50 @@
+{
+  "proposal": true,
+  "point_targets": {
+    "raw_winner1_all_selected_lower_rate_min": 0.5,
+    "clean_winner3_per_all_session_min": 1.0,
+    "clean_winner5_per_all_session_min": 0.5,
+    "loser3_unknown_worst_case_rate_max": 0.05,
+    "loser5_unknown_worst_case_rate_max": 0.01,
+    "selected_unknown_rate_max": 0.01,
+    "candidate_day_rate": "DIAGNOSTIC_UNLESS_OWNER_FIXES_TARGET_BEFORE_FIT"
+  },
+  "uncertainty": {
+    "unit": "WHOLE_EXCHANGE_SESSION",
+    "bootstrap": "CIRCULAR_MOVING_BLOCK",
+    "block_sessions": 5,
+    "draws": 5000,
+    "seed": 20261014,
+    "descriptive_interval": [
+      0.025,
+      0.975
+    ]
+  },
+  "risk_bins": [
+    0,
+    0.01,
+    0.025,
+    0.05,
+    0.1,
+    0.2,
+    0.5,
+    1
+  ],
+  "q_bins": [
+    0.0,
+    0.1,
+    0.2,
+    0.3,
+    0.4,
+    0.5,
+    0.6,
+    0.7,
+    0.8,
+    0.9,
+    1.0
+  ],
+  "small_bin_minN": 10,
+  "statistical_support_auto_certification": false,
+  "live_readiness": "NOT_CERTIFIED",
+  "comparison_with_v1": "AUXILIARY_ONLY_NO_REFIT_NO_NEW_OOS_CLAIM"
+}

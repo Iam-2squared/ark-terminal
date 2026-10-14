@@ -42,7 +42,10 @@ def load_frozen():
     for filename, expected in CAPITAL_BLOBS.items():
         path = SOURCE / filename
         require(path.is_file() and not path.is_symlink(), 'FROZEN_CAPITAL_SOURCE_MISSING')
-        require(git_blob_sha(path.read_bytes()) == expected, 'FROZEN_CAPITAL_SOURCE_HASH_MISMATCH')
+        # Git for Windows can checkout text as CRLF. Match the original Git
+        # LF blob IN MEMORY only; never edit the Frozen source on disk.
+        canonical = path.read_bytes().replace(b'\r\n', b'\n')
+        require(git_blob_sha(canonical) == expected, 'FROZEN_CAPITAL_SOURCE_HASH_MISMATCH')
     sys.path.insert(0, str(SOURCE))
     # Do not modify/copy V5 decision logic: call the original audited Python.
     allocation = importlib.import_module('allocation')

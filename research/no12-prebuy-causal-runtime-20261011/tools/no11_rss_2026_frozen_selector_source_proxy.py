@@ -207,8 +207,14 @@ def main(args):
     import subprocess
     # Preserve Git's blob identity, not arbitrary JSON rewrites.
     # Avoid network calls; Git reads the local working tree only.
+    frozen_path=args.frozen_selector.resolve(strict=True)
+    frozen_rel="predict/research/phase57-long-only-frozen-selector-v1.json"
+    require(frozen_path.as_posix().endswith("/"+frozen_rel),
+            "NO11_SELECTOR_PROXY_FROZEN_FILE_PATH_INVALID")
+    frozen_repo=frozen_path.parents[2]
     frozen_sha=subprocess.run(
-        ["git","hash-object","--",str(args.frozen_selector.resolve())],
+        ["git","-C",str(frozen_repo),"hash-object","--path="+frozen_rel,
+         str(frozen_path)],
         capture_output=True,text=True,check=True,timeout=15).stdout.strip()
     require(frozen_sha==FREEZE_BLOB,
             "NO11_SELECTOR_PROXY_FROZEN_FREEZE_BLOB_CHANGED")

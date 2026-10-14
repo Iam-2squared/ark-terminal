@@ -202,6 +202,9 @@ class NativeStore:
             ON records(dataset,symbol,session,clock)""")
         self.connection.execute("""CREATE TABLE IF NOT EXISTS completed(
             source_hash TEXT PRIMARY KEY,descriptor_hash TEXT,receipt TEXT)""")
+        self.connection.execute("""CREATE TABLE IF NOT EXISTS blocked_publications(
+            dataset TEXT,session TEXT,symbol TEXT,clock TEXT,source_hash TEXT,
+            ordinal INTEGER,PRIMARY KEY(dataset,source_hash,ordinal))""")
         self.connection.commit()
         self.shared_daily = None
         shared = request.get("existingDailySourceCache")
@@ -258,6 +261,15 @@ class NativeStore:
                     day(session)
                     if session not in allowed:
                         counts["nonAdmittedLexicallyTraversedRows"] += 1
+                        # Retain only publication identity/time, never its values.
+                        # A protected newer disclosure prevents pretending that
+                        # an older admitted record is the latest known filing.
+                        if ds == "FIN_SUMMARY" and session in self.request.get("protectedReferenceSessions",[]):
+                            raw_code=row.get("Code","")
+                            code=symbol(raw_code) if re.fullmatch(r"[0-9A-Z]{4}",raw_code) else raw_code
+                            self.connection.execute("INSERT INTO blocked_publications VALUES(?,?,?,?,?,?)",
+                                (ds,session,code,row.get("DiscTime",""),source["sha256"],ordinal))
+                            counts["blockedPublicationMetadataOnlyRows"]+=1
                         continue
                     code = row.get("Code","__MARKET__")
                     clock = row.get("Time",row.get("DiscTime",""))

@@ -60,8 +60,17 @@ def fact(store, row, field, *, scale=1):
 
 def known_records(store, dataset, session, code=None):
     cutoff = PreopenConfig().at(session)
-    return [r for r in store.records(dataset,code=code)
-            if stamp(store.available_at(r,dataset)) <= cutoff]
+    records=[r for r in store.records(dataset,code=code)
+             if stamp(store.available_at(r,dataset)) <= cutoff]
+    if dataset == "FIN_SUMMARY" and code is not None:
+        blocked=store.connection.execute("SELECT session,clock,source_hash FROM blocked_publications "
+            "WHERE dataset=? AND symbol=? AND session<? ORDER BY session,clock",(dataset,code,session)).fetchall()
+        latest=max(((r["DiscDate"],r["DiscTime"]) for r in records),default=("",""))
+        for date,clock,source_hash in blocked:
+            metadata={"DiscDate":date,"DiscTime":clock,"_sourceHash":source_hash}
+            if (date,clock)>=latest and stamp(store.available_at(metadata,dataset))<=cutoff:
+                return []
+    return records
 
 
 def current_earnings_versions(rows):

@@ -64,8 +64,17 @@ export function runNo11SyntheticOriginalCapitalV5({
    input:JSON.stringify(request)+'\n',encoding:'utf8',
    timeout:30000,maxBuffer:1024*1024,windowsHide:true
  });
- checked(run.status===0,
-   'NO11_CAPITAL_V5_ORIGINAL_PYTHON_GATE_FAILED');
+ if(run.status!==0){
+   // The frozen synthetic bridge emits a bounded code, never private values.
+   let reason='UNKNOWN';
+   try{
+     const e=JSON.parse(run.stdout);
+     if(e.status==='BLOCKED'&&typeof e.reason==='string'&&
+        /^[A-Z][A-Z0-9_]{2,100}$/.test(e.reason))
+       reason=e.reason;
+   }catch{}
+   bad('NO11_CAPITAL_V5_ORIGINAL_PYTHON_GATE_FAILED:'+reason);
+ }
  let output;
  try{output=JSON.parse(run.stdout);}catch{
    bad('NO11_CAPITAL_V5_PYTHON_RESULT_NOT_JSON');

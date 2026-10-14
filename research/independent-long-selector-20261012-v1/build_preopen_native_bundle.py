@@ -413,6 +413,13 @@ def snapshot_rows(store, sessions, calendar, ineligible):
                    "sizeCategory":master.get("ScaleCat")}
 
 
+def features_with_source_metadata(snapshot):
+    row=build_preopen_features(snapshot)
+    # Dated sector is diagnostic metadata, never an outcome-conditioned gate.
+    row["sector"]=snapshot.get("sector")
+    return row
+
+
 def build_bundle(request, output, *, source_only=False, resume_source=None, resume_interrupted=None):
     root = Path(request["privateRoot"]).resolve()
     output = private_path(output,root)
@@ -488,7 +495,7 @@ def build_bundle(request, output, *, source_only=False, resume_source=None, resu
     splits = admission["exactSplits"]
     for role in ("fit","calibration","report"):
         counts = Counter()
-        features = (build_preopen_features(s) for s in snapshot_rows(store,splits[role],calendar,counts))
+        features = (features_with_source_metadata(s) for s in snapshot_rows(store,splits[role],calendar,counts))
         inputs[role+"_snapshots"] = write_feature_store(
             features,output/role,private_root=root,input_manifest_hash=digest(request),
             cache_context={"calendarHash":request["calendar"]["sha256"],

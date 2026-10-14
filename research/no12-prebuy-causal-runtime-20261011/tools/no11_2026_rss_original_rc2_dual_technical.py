@@ -306,6 +306,10 @@ def main(args):
                 number==e.get("rows") and status in (GOOD,EMPTY),
                 "NO11_RC2_SOURCE_ARCHIVE_INVALID")
         observations["attemptedSymbols"]+=1
+        if (i+1)%100==0:
+            print("NO11_RC2_2026_SOURCE_CHECKED="+str(i+1)+"/"+
+                  str(args.max_symbols)+"|TECHNICAL_DUAL_PASS="+
+                  str(completed),flush=True)
         if status==EMPTY:
             observations["sourceUnavailable"]+=1
             continue
@@ -335,15 +339,12 @@ def main(args):
         states.update(evidence["stateCounts"])
         if first_observed is None and evidence["firstObservedClock"] is not None:
             first_observed=evidence["firstObservedClock"]
-        if (i+1)%20==0:
-            print("NO11_RC2_TECHNICAL_PROGRESS="+str(i+1)+"/"+
-                  str(args.max_symbols),flush=True)
     require(observations["attemptedSymbols"]==args.max_symbols and
             completed<=observations["fullPreviousAndCurrent327"],
             "NO11_RC2_INTERNAL_COUNTS_INCONSISTENT")
-    result="RESEARCH_NATIVE_RC2_TECHNICAL_PARITY" if not errors else (
-        "BLOCKED_FROZEN_DUAL_ENGINE_DISAGREEMENT_REVIEW"
-    )
+    result=("BLOCKED_FROZEN_DUAL_ENGINE_DISAGREEMENT_REVIEW" if errors
+            else "RESEARCH_NATIVE_RC2_TECHNICAL_PARITY" if completed>0
+            else "NO_COMPLETE_SESSION_PAIR_IN_SELECTED_SYMBOL_PREFIX")
     receipt={
       "schemaId":REPORT_SCHEMA,"status":result,
       "requestedScope":"FIRST_N_ORIGINAL_4327_CAPTURE_ORDER_ONLY",

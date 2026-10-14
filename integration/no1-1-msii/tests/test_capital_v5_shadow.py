@@ -42,8 +42,7 @@ class CapitalV5OfflineBridgeTests(unittest.TestCase):
         for filename, expected in shadow_module.CAPITAL_BLOBS.items():
             with self.subTest(filename=filename):
                 data = (shadow_module.SOURCE / filename).read_bytes()
-                # Windows checkout may use CRLF; only canonicalize in memory.
-                self.assertEqual(shadow_module.git_blob_sha(data.replace(b'\r\n', b'\n')), expected)
+                self.assertEqual(shadow_module.git_blob_sha(data), expected)
         original, _ = shadow_module.load_frozen()
         self.assertEqual(str(original.BUY), '1.0005')
 

@@ -228,6 +228,10 @@ def main(args):
                 status in (GOOD,EMPTY),
                 "NO11_RC2_SPARSE_ARCHIVE_CONTRACT_INVALID")
         seen["sourceInspected"]+=1
+        if (pos+1)%100==0:
+            print("NO11_RC2_SPARSE_SOURCE_PROGRESS="+
+                  str(pos+1)+"/"+str(args.max_symbols)+
+                  "|DUAL_PASS="+str(seen["replayedPairs"]),flush=True)
         if status==EMPTY:
             reasons["UNAVAILABLE_ARCHIVE"]+=1
             continue
@@ -275,9 +279,6 @@ def main(args):
         if seen["replayedPairs"]%10==0:
             print("NO11_RC2_SPARSE_ENGINE_PROGRESS="+
                   str(seen["replayedPairs"])+"/"+str(cap),flush=True)
-        if (pos+1)%100==0:
-            print("NO11_RC2_SPARSE_SOURCE_PROGRESS="+
-                  str(pos+1)+"/"+str(args.max_symbols),flush=True)
     require(seen["sourceInspected"]==CHECKED_SYMBOLS and
             seen["replayedPairs"]<=cap and
             outcomes["nativeMissingTickCalls"]+
@@ -356,6 +357,8 @@ def selftest():
     assert precondition(previous,current) is None
     assert precondition(previous[:-1],current)=="PREVIOUS_OPENINGS_OR_1530_CLOSE_MISSING"
     assert precondition(previous,current[:10])=="CURRENT_TOO_FEW_OBSERVED_1M"
+    thin=[r for r in previous if r["label"][11:16] in ANCHOR_CLOCKS]
+    assert precondition(thin,current)=="PREVIOUS_CONSECUTIVE_PAIRS_BELOW_30"
     frozen=Path(__file__).resolve().parents[3]/parent.FROZEN_REL
     modules=parent.load_frozen(frozen)
     full=technical_sparse_replay(previous,current,"c"*64,modules)

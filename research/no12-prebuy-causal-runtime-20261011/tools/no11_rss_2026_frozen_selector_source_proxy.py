@@ -60,6 +60,9 @@ MORNING = tuple(range(540,690,5))          # 09:00..11:29 (30 complete bins)
 AFTERNOON = tuple(range(750,925,5))       # 12:30..15:24 (35 complete bins)
 VALID_STARTS = frozenset(MORNING+AFTERNOON)
 EXPECTED_5M_PER_DAY = len(VALID_STARTS)      # 65, terminal auctions excluded
+# The 4,327-symbol index holds eight sessions of first/last observed labels.
+# It legitimately exceeds 5MB; retain a strict 32 MiB cap and full SHA-256 pin.
+MAX_SOURCE_INDEX_BYTES = 32 * 1024 * 1024
 
 
 def strict_json(path, expected_sha, size=250_000):
@@ -69,7 +72,7 @@ def strict_json(path, expected_sha, size=250_000):
 
 
 def strict_index(path, expected_sha):
-    raw=safe_file(path,5_000_000)
+    raw=safe_file(path,MAX_SOURCE_INDEX_BYTES)
     require(sha(raw)==expected_sha,"NO11_SELECTOR_PROXY_INDEX_HASH_MISMATCH")
     rows=[json.loads(ln) for ln in raw.decode("utf8").splitlines()]
     require(len(rows)==EXPECTED_TOTAL[0] and all(isinstance(x,dict) for x in rows),

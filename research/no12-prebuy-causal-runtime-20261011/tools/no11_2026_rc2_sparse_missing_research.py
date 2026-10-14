@@ -41,6 +41,18 @@ SCHEDULE=parent.SCHEDULE
 CLOCKS=parent.CLOCKS
 
 
+def previous_continuous_source_pairs(previous):
+    """Count only adjacent CONTINUOUS original 1M labels for M0 U.
+
+    Opening/auction samples NEVER count; this is source availability only.
+    """
+    mins=[int(r["label"][11:13])*60+int(r["label"][14:16])
+          for r in previous]
+    return sum(1 for a,b in zip(mins,mins[1:])
+               if b==a+1 and
+               ((541<=a<b<690) or (751<=a<b<925)))
+
+
 def precondition(previous,current):
     """Keep previous reference non-fabricated and normalize only real pairs."""
     if not previous:return "PREVIOUS_SESSION_ABSENT"
@@ -52,6 +64,8 @@ def precondition(previous,current):
     # Do not grant native parity if the previous reference or opening grid
     # is absent. The original normalizer itself decides U from exact pairs.
     if not am or not pm:return "PREVIOUS_CONTINUOUS_SEGMENT_MISSING"
+    if previous_continuous_source_pairs(previous)<MIN_PREVIOUS_CONSECUTIVE_PAIRS:
+        return "PREVIOUS_CONSECUTIVE_PAIRS_BELOW_30"
     if len(current)<MIN_CURRENT_OBSERVED_BARS:
         return "CURRENT_TOO_FEW_OBSERVED_1M"
     return None
@@ -194,7 +208,6 @@ def main(args):
     cap=args.max_replayed
     cumulativePairs=0
     run_ends=(20,1400,4327)
-    accepted_ids=set()
     for pos in range(args.max_symbols):
         run_i=next(i for i,end in enumerate(run_ends) if pos<end)
         local=pos-(0 if run_i==0 else run_ends[run_i-1])
@@ -231,8 +244,6 @@ def main(args):
             reasons[reason]+=1
             continue
         seen["meetsSourceAnchorAndCurrentFloor"]+=1
-        if len(outcomes)==0:
-            pass
         if seen["replayedPairs"]>=cap:
             reasons["REPLAY_CAP_REACHED_NOT_SELECTED_FIRST_ELIGIBLE"]+=1
             continue
@@ -264,7 +275,6 @@ def main(args):
         if seen["replayedPairs"]%10==0:
             print("NO11_RC2_SPARSE_ENGINE_PROGRESS="+
                   str(seen["replayedPairs"])+"/"+str(cap),flush=True)
-        accepted_ids.add(pos)
         if (pos+1)%100==0:
             print("NO11_RC2_SPARSE_SOURCE_PROGRESS="+
                   str(pos+1)+"/"+str(args.max_symbols),flush=True)

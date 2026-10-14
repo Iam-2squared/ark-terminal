@@ -23,6 +23,7 @@ assert receipt['market_estimator_fits']==receipt['market_calibration_optimizatio
 assert receipt['separate_train_forecast_evaluate_processes'] is True
 assert receipt['restore_prediction_max_abs_diff']==0
 native=json.loads(Path(args.native_receipt).read_text())
+assert native['entrypoint']=='SIX_NORMAL_STAGE_CLI_SUBCOMMANDS_WITH_ISOLATED_HOST_AUTHORITY'
 assert native['test_only'] is True and native['market_approval_established'] is False
 assert native['code_hash']==code_hash() and native['schema_hash']==digest(registry())
 assert native['isolated_fit_starts']==native['isolated_calibration_starts']==2

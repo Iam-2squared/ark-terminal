@@ -14,7 +14,7 @@
 | V1 read-only回帰 | 元tests／preopen_testsの今回実行 | 32＋125 PASS |
 | type / syntax | V2 srcとtools | mypy28 files PASS / compile PASS |
 | 人工matrix smoke | 従来のfactory専用・別process | 2fit／2cal、1080 trees、復元予測差0 |
-| 人工native CLI E2E | 新オーケストレーション全工程 | 720 FIT／360 CAL、1予約／2fit／2cal、1080 trees、復元予測差0 |
+| 人工native CLI E2E | 通常の6 CLI subcommand＋隔離host権限で全工程 | 720 FIT／360 CAL、1予約／2fit／2cal、1080 trees、復元予測差0 |
 | native人工VALIDATION／FINAL | 元点目標を変更しない停止経路 | VALIDATION FAIL、FINAL未開封。試験自体はPASS |
 | 保護diff | V2領域＋専用workflow以外・V1 hash・旧設計bytes | PASS、保護source差分0 |
 
@@ -47,3 +47,5 @@ metadata監査：添付archiveのdirectory、元ファイルmanifest／転送rec
 - orders／paper／provider requests／main merge／force push：すべて0。
 
 今回の未解決事項は、MARKET_APPROVAL_PACKAGE_DRAFT.jsonの6つの不足metadata、実原本adapter／ownerチャネル配備、V2用途MODE B承認、census後の別MODE C承認。承認ファイルだけで市場経路完成・性能完成とはしない。
+
+最終native E2Eは通常のcensus/train/calibrate/predict/evaluate/restore-verifyのCLI分岐を使用した。request JSONとは別のhost権限を引数で注入する隔離試験であり、CLIにauthority-file／approved／unsafeの権限生成optionはない。最後の型注釈修正後の完全suiteは最終HEAD専用CIを受入根拠にする。

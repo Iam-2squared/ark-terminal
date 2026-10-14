@@ -8,13 +8,16 @@ from datetime import date,datetime,timedelta,timezone
 from fractions import Fraction as F
 from decimal import Decimal
 from pathlib import Path
+import contextlib
+import importlib.util
+import io
 from typing import Any
 import hashlib
 import json
 import numpy as np
 from .artifact_io import exclusive_json,sha_file
 from .authority import Authority,OwnerGrant,scoped_allowlists
-from .contracts import FLAGS,code_hash,configuration_hash,digest,registry
+from .contracts import ROOT,FLAGS,code_hash,configuration_hash,digest,registry
 from .orchestration import dispatch,Store
 
 
@@ -93,26 +96,40 @@ def request_for(authority: Authority,manifest: dict[str,Any],mode: str,role: str
 
 
 def run_native_fixture(output: Path) -> dict[str,Any]:
+    # Exercise ordinary census/train/calibrate/predict/evaluate/restore CLI
+    # branches with an isolated host-supplied authority; no authority-file flag.
+    spec=importlib.util.spec_from_file_location("ark_v2_isolated_host_cli",ROOT/"tools/v2_cli.py")
+    assert spec is not None and spec.loader is not None
+    cli=importlib.util.module_from_spec(spec);spec.loader.exec_module(cli)
+    def invoke(stage: str,mode: str,role: str="FIT_CAL") -> dict[str,Any]:
+        request_path=output/("request-"+stage+"-"+role+".json")
+        exclusive_json(request_path,request_for(authority,manifest,mode,role))
+        capture=io.StringIO()
+        with contextlib.redirect_stdout(capture):
+            result_code=cli.main([stage,"--request",str(request_path)],authority=authority)
+        result=json.loads(capture.getvalue())
+        if result_code!=0:raise RuntimeError("ISOLATED_STAGE_CLI_BLOCKED: "+str(result))
+        return result
     authority,manifest=fixture_authority(output)
-    results={"census":dispatch("census",request_for(authority,manifest,"B"),authority=authority)}
+    results={"census":invoke("census","B")}
     authority.precommit["census_receipt_sha256"]=digest(results["census"])
     install_test_grant(authority,"C")
     for stage in ("train","calibrate"):
-        results[stage]=dispatch(stage,request_for(authority,manifest,"C"),authority=authority)
+        results[stage]=invoke(stage,"C")
     for stage in ("predict","evaluate","restore-verify"):
-        results[stage]=dispatch(stage,request_for(authority,manifest,"C","VALIDATION"),authority=authority)
+        results[stage]=invoke(stage,"C","VALIDATION")
     model=Store(authority).get("fixed-model.joblib",model=True)
     # FINAL is conditional on the SAME unmodified point targets. A failed
     # synthetic validation is retained and tests the sealed FINAL boundary.
     final="UNOPENED_VALIDATION_FAILED"
     if results["evaluate"]["status"]=="VALIDATION_TARGETS_MET":
         for stage in ("predict","evaluate","restore-verify"):
-            results["final-"+stage]=dispatch(stage,request_for(authority,manifest,"C","FINAL"),authority=authority)
+            results["final-"+stage]=invoke(stage,"C","FINAL")
         final="ISOLATED_SYNTHETIC_EVALUATED"
     events=[p for p in authority.artifact_pins if p.startswith("events/")]
     receipt={"schema":"ARK_V2_NATIVE_ROUTE_TEST_RECEIPT_V1","test_only":True,"market_approval_established":False,
              "code_hash":code_hash(),"config_hash":configuration_hash(),"schema_hash":digest(registry()),
-             "input_path":"GENERATED_NATIVE_RAW_TO_G0_G1_G2_CORE95_TEACHERS_HGB_ARTIFACT_FORECAST_EVALUATION",
+             "entrypoint":"SIX_NORMAL_STAGE_CLI_SUBCOMMANDS_WITH_ISOLATED_HOST_AUTHORITY","input_path":"GENERATED_NATIVE_RAW_TO_G0_G1_G2_CORE95_TEACHERS_HGB_ARTIFACT_FORECAST_EVALUATION",
              "FIT_rows":results["census"]["stats"]["FIT"]["known"],"CAL_rows":results["census"]["stats"]["CAL"]["known"],
              "isolated_candidate_reservations":sum("CANDIDATE_RESERVED" in p for p in events),
              "isolated_fit_starts":sum("FIT_STARTED" in p for p in events),"isolated_calibration_starts":sum("CAL_STARTED" in p for p in events),

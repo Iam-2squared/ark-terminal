@@ -28,6 +28,7 @@ def main(argv: list[str] | None = None, *, authority: "Authority | None" = None)
         cmd=sub.add_parser(name)
         cmd.add_argument("--request",required=True,help="metadata-only execution request; cannot create owner authority")
     args=parser.parse_args(argv)
+    trusted: Authority | None = None
     try:
         if args.command=="synthetic-test":
             from ark_selector_v2.synthetic import run_synthetic
@@ -54,7 +55,12 @@ def main(argv: list[str] | None = None, *, authority: "Authority | None" = None)
         print(json.dumps(result,ensure_ascii=False,sort_keys=True,allow_nan=False))
         return 0
     except (V2Error,FileExistsError) as e:
-        print(json.dumps({"status":"BLOCKED","reason":str(e),"market_numeric_reads":0,"market_fits":0,"executionAllowed":False},ensure_ascii=False))
+        # A future admitted market failure must not fabricate zero reads/fits.
+        # Its immutable START/access receipts remain the source of actual counts.
+        counts: dict[str,int | str]={"market_numeric_reads":0,"market_fits":0} if trusted is None or trusted.test_only else {
+            "market_numeric_reads":"NOT_ESTABLISHED_CHECK_ACCESS_RECEIPTS",
+            "market_fits":"CHECK_PERSISTED_FIT_START_EVENTS"}
+        print(json.dumps({"status":"BLOCKED","reason":str(e),**counts,"executionAllowed":False},ensure_ascii=False))
         return 2
 
 

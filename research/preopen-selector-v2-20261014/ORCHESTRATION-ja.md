@@ -47,3 +47,5 @@ MODE Bのsupport・oracle・観測率・時点・RAM検査がPASSした後、同
 今回metadataで確認した26元ファイルhashと在庫範囲、保護範囲、未確定項目をパッケージへ記録した。CALENDAR objectは在庫summaryに1件あるが、添付archiveにcalendarはなく、exact営業日リスト・hashは未結合。最新在庫端点2026-10-05は既存protectedHoldout内。保護日を飛ばす／古い期間へ勝手にfallbackする処理はない。原本再送は不要。
 
 次工程は前工程FINISHとMODEL_SEALED／当該WATCHLISTS_SEALEDの独立pinも必須とする。モデルbytesだけ残った途中失敗から評価へ進まない。評価の全教師UNKNOWNでは確率診断をNOT_MEASURED_NO_KNOWN_TEACHERとし、0確率や成功に変換しない。
+
+人工native E2Eは通常6 subcommandのv2_cli.mainを隔離host権限で起動する。CLI failureの0 reads/fit表示はauthority不在／test-only時に限る。将来の実市場承認下での失敗はSTART/access receiptによる確認を要求し、失敗時に0を捏造しない。

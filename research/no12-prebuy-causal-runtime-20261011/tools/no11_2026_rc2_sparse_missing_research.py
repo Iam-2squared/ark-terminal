@@ -14,6 +14,8 @@ native readiness remain unproven. Never issue a Selector candidate or order.
 import argparse
 from collections import Counter
 from datetime import datetime,timedelta
+import gzip
+import io
 import json
 from pathlib import Path
 import re
@@ -30,6 +32,8 @@ BASELINE_REPORT_SHA="2e79d4f530ed492bf8c82a1df63b641ba1b3ab5c6ab4608c6a9b9c3adef
 EARLIER_DAY="2026-10-09"
 TODAY="2026-10-13"
 CHECKED_SYMBOLS=950
+MAX_REPLAYS_IN_FIXED_SCOPE=244
+STATE9_ASOF_SCHEMA="ARK_NO11_2026_RSS_RC2_TECHNICAL_ASOF_STATE_V1"
 # Explicit research-quality floors. Not frozen signal thresholds or a native
 # source availability contract. Lower-coverage names are counted as blocked.
 MIN_PREVIOUS_CONSECUTIVE_PAIRS=30
@@ -71,7 +75,7 @@ def precondition(previous,current):
     return None
 
 
-def technical_sparse_replay(previous,current,source_sha,modules):
+def technical_sparse_replay(previous,current,source_sha,modules,on_tick=None):
     """Invoke both ORIGINAL normalizers and engines; missing ticks use None.
 
     Return aggregate counts only, never a trade, account value, market price,
@@ -93,11 +97,13 @@ def technical_sparse_replay(previous,current,source_sha,modules):
     require(len(a["coordinates"])==len(present),
             "NO11_RC2_SPARSE_M0_COORDINATE_COUNT_INVALID")
     price_map={}
+    label_map={}
     for candle,coordinate in zip(current,a["coordinates"]):
         time=candle["label"][11:16]
         require(time in CLOCKS and time not in price_map,
                 "NO11_RC2_SPARSE_SOURCE_CLOCK_INVALID")
         price_map[time]=coordinate
+        label_map[time]=candle["label"]
 
     one=Candidate(profile)
     two=Independent(profile)
@@ -140,6 +146,29 @@ def technical_sparse_replay(previous,current,source_sha,modules):
                 counts["nativeObservedPrimaryTicks"]+=1
                 observed[str(left["primary"])]+=1
                 if first is None:first=clock
+        if on_tick is not None:
+            label=label_map.get(clock)
+            assumed=(datetime.fromisoformat(label)+timedelta(minutes=1)).isoformat() if label else None
+            is_current=left.get("current_semantics_observed") is True
+            on_tick({
+                "schemaId":STATE9_ASOF_SCHEMA,
+                "scheduledClock":clock,
+                "researchAssumedBarEnd":assumed,
+                "sourceLabel":label,
+                "originalNumericStatus":left.get("numeric_status"),
+                "state9CurrentObserved":is_current,
+                "formalPrimary":left.get("primary") if is_current else None,
+                "basis":left.get("basis") if is_current else None,
+                "directionBasis":left.get("direction_basis") if is_current else None,
+                "activity":left.get("activity") if is_current else None,
+                "originalSource":SOURCE_TAG if label else None,
+                "missingSourceBar":label is None,
+                "actualBrokerKnownAtCertified":False,
+                "firstEntryP1NativeFeatureRowCertified":False,
+                "eligibleForNativeSelectorOrFirstEntry":False,
+                "futureOutcomeIncluded":False,
+                "productionReady":False,"orderTransmission":False
+            })
     require(counts["dualEngineMatchedClockCalls"]==len(SCHEDULE) and
             counts["nativeMissingTickCalls"]+
             counts["nativeAcceptedOneMinuteInputs"]==len(SCHEDULE),
@@ -170,7 +199,7 @@ def technical_sparse_replay(previous,current,source_sha,modules):
 
 def inspect_complete_capture(args):
     require(args.max_symbols==CHECKED_SYMBOLS and
-            args.max_replayed>=1 and args.max_replayed<=200 and
+            args.max_replayed>=1 and args.max_replayed<=MAX_REPLAYS_IN_FIXED_SCOPE and
             args.previous==EARLIER_DAY and args.day==TODAY,
             "NO11_RC2_SPARSE_SCOPE_OR_REPLAY_LIMIT_CHANGED")
     # No future labels, no symbol sorting by observed State/outcome, no source
@@ -206,6 +235,7 @@ def main(args):
     errors=Counter()
     first=None
     cap=args.max_replayed
+    asof_rows=[] if args.export_asof else None
     cumulativePairs=0
     run_ends=(20,1400,4327)
     for pos in range(args.max_symbols):
@@ -254,7 +284,12 @@ def main(args):
         # Before calling engines, original normalization may have too few
         # consecutive positive prior candles for stable quantitative state.
         try:
-            evidence=technical_sparse_replay(previous,current,row["sha256"],modules)
+            callback=(lambda item,sym=symbol,source_sha=row["sha256"]: asof_rows.append({
+                **item,"symbol":sym,"session":args.day,
+                "sourceArchiveSha256":source_sha
+            })) if asof_rows is not None else None
+            evidence=technical_sparse_replay(
+                previous,current,row["sha256"],modules,on_tick=callback)
         except (ValueError,RuntimeError,ArithmeticError,AssertionError,KeyError) as exc:
             msg=str(exc)
             if "PREVIOUS_PAIRS_TOO_FEW" in msg:
@@ -287,6 +322,22 @@ def main(args):
             outcomes["totalOriginalDualEngineTickAgreements"]==
             seen["replayedPairs"]*len(SCHEDULE),
             "NO11_RC2_SPARSE_ACCOUNTING_INVALID")
+    require(seen["meetsSourceAnchorAndCurrentFloor"]==MAX_REPLAYS_IN_FIXED_SCOPE,
+            "NO11_RC2_SPARSE_FIXED_950_ELIGIBILITY_CHANGED")
+    asof_filename=None
+    asof_sha=None
+    if asof_rows is not None and not errors and seen["replayedPairs"]>0:
+        require(len(asof_rows)==seen["replayedPairs"]*len(SCHEDULE),
+                "NO11_RC2_SPARSE_ASOF_ROW_COUNT_INVALID")
+        compressed=io.BytesIO()
+        with gzip.GzipFile(fileobj=compressed,mode="wb",filename="",mtime=0) as out:
+            for item in asof_rows:
+                out.write((json.dumps(item,sort_keys=True,separators=(",",":"),
+                                      allow_nan=False)+"\n").encode("utf8"))
+        compressed_bytes=compressed.getvalue()
+        asof_sha=sha(compressed_bytes)
+        asof_filename="no11-2026-state9-asof-research-"+asof_sha[:16]+".jsonl.gz"
+        parent.immutable(args.output_dir/asof_filename,compressed_bytes)
     classification=("TECHNICAL_SPARSE_DUAL_ENGINE_DISAGREEMENT_BLOCKED"
                     if errors else
                     "TECHNICAL_SPARSE_DUAL_ENGINE_PASS_RESEARCH_ONLY"
@@ -298,6 +349,13 @@ def main(args):
       "inspectedOriginalFirstSymbols":CHECKED_SYMBOLS,
       "actualReplayedOriginalFirstEligibleCount":seen["replayedPairs"],
       "maxNativeRc2TechnicalReplays":cap,
+      "eligibleSourcePairsInFixedScope":MAX_REPLAYS_IN_FIXED_SCOPE,
+      "eligibleNotReplayed":reasons["REPLAY_CAP_REACHED_NOT_SELECTED_FIRST_ELIGIBLE"],
+      "fullEligibleSetTechnicalReplayed":seen["replayedPairs"]==MAX_REPLAYS_IN_FIXED_SCOPE and not errors,
+      "privateState9AsOfGzipFilename":asof_filename,
+      "privateState9AsOfGzipSha256":asof_sha,
+      "privateState9AsOfEventRows":len(asof_rows) if asof_rows is not None and not errors else 0,
+      "state9AsOfExportIsResearchOnly":True,
       "sourceCoverageCounters":dict(sorted(seen.items())),
       "sourceExclusions":dict(sorted(reasons.items())),
       "researchTechnicalTickCounts":dict(sorted(outcomes.items())),
@@ -334,6 +392,10 @@ def main(args):
         "PASS_RESEARCH_ONLY" if seen["replayedPairs"]>0 and not errors else
         "BLOCKED" if errors else "NO_ELIGIBLE_INPUT"))
     print("NO11_RC2_SPARSE_OBSERVED_SYMBOLS="+str(seen["replayedPairs"]))
+    print("NO11_RC2_SPARSE_ELIGIBLE_REPLAY_COVERAGE="+
+          str(seen["replayedPairs"])+"/"+str(MAX_REPLAYS_IN_FIXED_SCOPE))
+    if asof_filename is not None:
+        print("NO11_RC2_SPARSE_PRIVATE_ASOF_FILE="+str(args.output_dir/asof_filename))
     print("NO11_RC2_SPARSE_ORIGINAL_DUAL_ENGINE_CLOCKS="+str(
         outcomes["totalOriginalDualEngineTickAgreements"]))
     print("NO11_RC2_SPARSE_REPORT="+str(path))
@@ -394,6 +456,7 @@ if __name__=="__main__":
     p.add_argument("--day",default=TODAY)
     p.add_argument("--max-symbols",type=int,default=CHECKED_SYMBOLS)
     p.add_argument("--max-replayed",type=int,default=40)
+    p.add_argument("--export-asof",action="store_true")
     a=p.parse_args()
     try:
         if a.offline_self_test:

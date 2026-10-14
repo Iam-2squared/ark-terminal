@@ -24,3 +24,12 @@ test('No11 source proxy integration synthetic 3-runs: SHA, deterministic 5M, ide
  assert.equal(result.status,0,'integration: '+String(result.stderr||result.stdout||result.error));
  assert.match(result.stdout,/NO11_RSS_SELECTOR_PROXY_SYNTHETIC_THREE_RUNS=PASS/);
 });
+
+test('No11 4327-symbol source index larger than 5MB passes SHA, tamper and 32MiB limit fail closed',()=>{
+ const dir=path.dirname(filename);
+ const py="import hashlib,importlib, json, sys, tempfile\nfrom pathlib import Path\nsys.dont_write_bytecode=True\nsys.path.insert(0,sys.argv[1])\nm=importlib.import_module('no11_rss_2026_frozen_selector_source_proxy')\nwith tempfile.TemporaryDirectory() as temp:\n    p=Path(temp)/'index.jsonl'\n    with p.open('wb') as out:\n        for i in range(4327):\n            row={'symbol':f'{i:04d}.T',\n                 'sourceSha256':'a'*64,\n                 'sessions':{'2026-10-01':327, '2026-10-02':327},\n                 'firstSeenBarLabels':{'2026-10-01':'2026-10-01T09:00:00+09:00'},\n                 'lastSeenBarLabels':{'2026-10-01':'2026-10-01T15:30:00+09:00'},\n                 'paddingForRealistic8SessionCoverage':'S'*1280}\n            out.write((json.dumps(row,separators=(',',':'))+'\\n').encode())\n    n=p.stat().st_size\n    assert 5_000_000 < n < m.MAX_SOURCE_INDEX_BYTES, n\n    digest=hashlib.sha256(p.read_bytes()).hexdigest()\n    rows=m.strict_index(p,digest)\n    assert len(rows)==4327 and rows[0]['symbol']=='0000.T'\n    with p.open('r+b') as out:\n        out.write(b'X')\n    try:\n        m.strict_index(p,digest)\n    except RuntimeError as e:\n        assert 'INDEX_HASH_MISMATCH' in str(e),str(e)\n    else:\n        raise AssertionError('same-size content tamper passed')\n    with p.open('wb') as out:\n        out.truncate(m.MAX_SOURCE_INDEX_BYTES+1)\n    try:\n        m.strict_index(p,digest)\n    except RuntimeError as e:\n        assert 'FILE_SIZE_INVALID' in str(e),str(e)\n    else:\n        raise AssertionError('unbounded oversized file passed')\nprint('NO11_RSS_INDEX_5MB_BOUNDARY_SHA256_AND_SIZE_CAP=PASS')\n";
+ const exe=process.platform==='win32'?'python':'python3';
+ const result=spawnSync(exe,['-B','-c',py,dir],{encoding:'utf8',timeout:60000});
+ assert.equal(result.status,0,'oversize regression: '+String(result.stderr||result.stdout||result.error));
+ assert.match(result.stdout,/NO11_RSS_INDEX_5MB_BOUNDARY_SHA256_AND_SIZE_CAP=PASS/);
+});

@@ -17,7 +17,7 @@ test('2026 Frozen RC2 original technical engines accept full-source clock prefix
  assert.match(src,/actualBrokerFirstSeenTimeCertified/);
  assert.match(src,/NO11_RC2_FULL_SESSION_REQUIRED/);
  assert.match(src,/sourceBarLabelIntervalCertified/);
- assert.doesNotMatch(src,/RssStockOrder\\s*\\(|RssCancelOrder\\s*\\(|Excel\\.Application|requests\\.|urllib\\.|socket\\./);
+ assert.doesNotMatch(src,/RssStockOrder|RssCancelOrder|Excel.Application|requests[.]|urllib[.]|socket[.]/);
  const p=run([name,'--offline-self-test']);
  assert.equal(p.status,0,p.stderr||String(p.error||p.stdout));
  assert.match(p.stdout,/NO11_RC2_2026_SYNTHETIC_TECHNICAL_SELFTEST=PASS/);

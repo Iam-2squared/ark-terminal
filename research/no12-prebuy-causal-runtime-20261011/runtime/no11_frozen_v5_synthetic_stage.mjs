@@ -8,7 +8,7 @@ import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 
 const EXECUTABLE=new URL(
-  '../../../integration/no1-1-msii/tools/no11_capital_v5_shadow.py',import.meta.url);
+  '../tools/no11_capital_v5_crlf_safe_synthetic.py',import.meta.url);
 const FREEZE='10c94c92c4bd2a59a22744667fd0210252602df4';
 const AUTHORITY='710656491be06235901b45c50a8b5cbd714ba4eb';
 const bad=s=>{throw Error(s)};

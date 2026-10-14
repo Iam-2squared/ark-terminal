@@ -1,11 +1,164 @@
 {
-  "schema": "ARK_SOURCE_RECOUNT_NOT_MARKET_RECOUNT_V3",
-  "sourceSqliteQuickCheck": "PASS",
-  "completedNormalRows": 1093473,
-  "compactRows": 289904,
-  "sourceRowCountsAreNotFeatureOrSelectedCounts": true,
-  "marketRecountStatus": "NOT_MEASURED",
-  "thirdPartyBlindAudit": false,
+  "schema": "ARK_MARKET_MULTIPATH_RECOUNT_AUDIT_V1",
+  "status": "PASS",
+  "productionDecimalRecount": {
+    "arithmetic": "DECIMAL_INTEGER_RATIOS_AND_CROSS_MULTIPLICATION",
+    "blindIndependentAuthorAudit": false,
+    "exactZeroN": 28,
+    "exclusiveBuckets": {
+      "0..<1": 68,
+      "1..<2": 18,
+      "2..<3": 6,
+      "3..<4": 7,
+      "4..<5": 1,
+      ">=5": 2
+    },
+    "independentCodePath": true,
+    "knownN": 102,
+    "schema": "ARK_PREOPEN_INDEPENDENT_RECOUNT_V1",
+    "selectedN": 105,
+    "status": "PASS",
+    "unknownN": 3
+  },
+  "originalSourceCrossMultiplicationRecount": {
+    "schema": "ARK_ORIGINAL_SOURCE_SEPARATE_RECOUNT_V1",
+    "status": "PASS",
+    "authorIsSameImplementer": true,
+    "blindThirdPartyAudit": false,
+    "readProductionOutcomeEvaluator": false,
+    "originalSourceHashes": [
+      "378e8d28575f2bc5242752b6508e15d5aa6c37ba4c9613d7a375a8942b3dc187",
+      "e59202a55edb8d090e741193139deec293d45bdb3d02ea7c3a33e2120b5944e0"
+    ],
+    "methods": {
+      "candidate": {
+        "selectedN": 105,
+        "knownN": 102,
+        "unknownN": 3,
+        "buckets": {
+          "3..<4": 7,
+          "0..<1": 68,
+          "1..<2": 18,
+          "2..<3": 6,
+          ">=5": 2,
+          "4..<5": 1
+        },
+        "lowBuckets": {
+          "-1..<0": 41,
+          "EXACT_ZERO": 41,
+          "-2..<-1": 14,
+          "-4..<-3": 5,
+          "-3..<-2": 1
+        },
+        "closeBuckets": {
+          "3..<4": 3,
+          "-1..<0": 23,
+          "2..<3": 4,
+          "0..<1": 26,
+          "EXACT_ZERO": 22,
+          "-2..<-1": 8,
+          "1..<2": 11,
+          "-3..<-2": 3,
+          "5..<6": 1,
+          "-4..<-3": 1
+        },
+        "exactZeroN": 28,
+        "closeNegativeN": 35,
+        "highHitN": {
+          "1": 34,
+          "2": 16,
+          "3": 10,
+          "4": 3,
+          "5": 2
+        },
+        "lowHitN": {
+          "1": 20,
+          "2": 7,
+          "3": 5,
+          "5": 0
+        },
+        "closeHitN": {
+          "1": 12,
+          "2": 5,
+          "3": 1,
+          "5": 0
+        }
+      },
+      "previousSessionTurnoverTopK": {
+        "selectedN": 105,
+        "knownN": 105,
+        "unknownN": 0,
+        "buckets": {
+          "0..<1": 49,
+          "1..<2": 27,
+          ">=5": 5,
+          "2..<3": 16,
+          "4..<5": 3,
+          "3..<4": 5
+        },
+        "lowBuckets": {
+          "-3..<-2": 20,
+          "-1..<0": 39,
+          "-2..<-1": 29,
+          "-4..<-3": 8,
+          "-5..<-4": 8,
+          "-6..<-5": 1
+        },
+        "closeBuckets": {
+          "-2..<-1": 13,
+          "0..<1": 20,
+          "-1..<0": 18,
+          "1..<2": 14,
+          "5..<6": 2,
+          "-3..<-2": 13,
+          "2..<3": 10,
+          "6..<7": 1,
+          "3..<4": 2,
+          "-4..<-3": 7,
+          "-5..<-4": 4,
+          "EXACT_ZERO": 1
+        },
+        "exactZeroN": 1,
+        "closeNegativeN": 55,
+        "highHitN": {
+          "1": 56,
+          "2": 29,
+          "3": 13,
+          "4": 8,
+          "5": 5
+        },
+        "lowHitN": {
+          "1": 66,
+          "2": 37,
+          "3": 17,
+          "5": 1
+        },
+        "closeHitN": {
+          "1": 37,
+          "2": 24,
+          "3": 11,
+          "5": 0
+        }
+      }
+    },
+    "exactRandomBuckets": {
+      "0..<1": "5242992576292676243/77430736574621136",
+      "1..<2": "1686527883197256541/77430736574621136",
+      "2..<3": "307340048053905109/38715368287310568",
+      "3..<4": "251985873880849873/77430736574621136",
+      "4..<5": "109304998333170655/77430736574621136",
+      ">=5": "135728861862419/58837945725396"
+    },
+    "exactRandomUnknown": "23058365156256173/38715368287310568",
+    "allFixedSelectionHashesVerified": true,
+    "allSevenReportDatesPreserved": true
+  },
+  "frozenRawMinuteEncodingParityFieldN": 34144,
+  "frozenExactPriceBoundaryRecount": "PASS",
+  "sameImplementer": true,
+  "blindThirdPartyAudit": false,
+  "watchlistHash": "b7b3382fec3ffa02b65cb4f51304b1d03223cb916112209bb6f67f4c4dc41ee0",
+  "baselineHash": "da2c2499bd95ae44bd3c32a2831ec9ceaf896ea50b36810ca18e3303d4dcbeea",
   "executionAllowed": false,
   "brokerWriteAllowed": false,
   "excelOrderWriteAllowed": false,

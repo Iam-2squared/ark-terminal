@@ -1,90 +1,36 @@
-# Label-free watchlist handoff - 2026-10-12
+# MA4寄り前Selector — RSS入力契約（2026-10-14）
 
-predict_preopen_watchlist.py accepts a trusted private model directory, independently
-retained model/schema hashes, a verified columnar input and exchange calendar,
-target/previous session, current reuse evidence and an explicit live feature profile.
-It does not accept outcome/label inputs. It writes one private immutable export.
+実市場学習・較正・7日の監視リスト・OHLC測定は完了。LIVE_READINESS=NOT_CERTIFIED。Windows/RSS/Workbook/証券口座への接続・操作実績はない。
 
-The default live path rejects non-session days, wrong previous session, stale
-cache, after-cutoff generation, missing required sources, unverified live refresh,
-changed schema or corrupt model. Synthetic models cannot score real rows.
-Historical replay is explicitly historicalResearchOnly and remains WATCHLIST_ONLY.
-Empty admitted universes receive a separate no-candidate receipt; this is not a
-learned safety/quality gate. The selected set is never enlarged after the cutoff.
+日足独立SMA/EMA5/15/25/75、前日分足MA5/15/30/60分、週/月独立MAなし。数百の指標は取得した元系列からArk側で計算し、個別RSS関数で直取りしない。登録554/FIT観測464/fit使用463。90全欠測＋1定数はFITのみで除外。板、本文ニュース、真のaggressor等の未観測値を0にしていない。
 
-Output includes selector/model/schema hashes, session/cutoff/generated time,
-source latest session/manifest/universe/watchlist hashes, ordinary RSS code,
-rankScoreNotExpectedReturn, each separately calibrated head, data quality,
-missing reasons and live profile. All11 execution/safety flags are false.
-No Excel file, broker session, order function or transmission is opened.
-
-| Required family | Research source | Every-morning supply |
+| 必須family | 過去研究 | 将来の毎朝の供給・停止条件 |
 | --- | --- | --- |
-| Daily/calendar/dated master | E originals | Not verified after saved2026-10-05 coverage |
-| Enterprise facts | E native originals | PIT units/revisions/publication and update route required |
-| Prior minutes | C/D complete native scope | Schedule is an assumption, not a receive receipt |
-| Prior full Tick windows | A/B complete originals | RSS last300 prints are not the same profile |
-| Market/sector cross section | As-of peers and prior prices | Full preopen cache update required |
-| State/Dictionary | Not joined | Artifact/fit lineage required |
+| 日足MA4/出来高/売買代金/下落 | RAW OHLC/Vo/Va・比較可能suffix | MA75 slopeは通常76 closes、EMA/Wilder固定seed、週/月統計別依存。最新D-1更新未確認・basis不一致・不正OHLCで停止、履歴不足Noneと理由保持 |
+| calendar/dated ordinary master/100株lot | 過去時点の証券種別と市場を照合 | 毎朝のcalendar/master/種別/lot根拠が必要。今日の一覧や末尾のみで代用しない |
+| 財務/valuation/決算予定 | PIT出版＋保守的schedule仮定、単位分離 | 訂正/version、knownAtの継続供給が必要。Git保存時刻を過去公開時刻へ置換しない。実受信は未確認 |
+| 前日分足/全Tick | 各3原本、各197,509 raw security-days、日足OHLC/Vo/Va不一致0 | 実D-1全sessionが必要。RSS300本窓との意味差、欠落/遅延/再接続、timestamp/列schemaを検査 |
+| 市場/業種/部門別フロー | TOPIX、dated sector、過去breadth、公表section結合 | 寄り前全市場cacheの毎日更新が必要。15監視銘柄だけで全JPX realtime breadthは作らない |
+| State/Dictionary | Frozen RC2因果的D-1 State、formal観測69,250/197,509 raw security-days | 旧rules/profile・上流fit0。初回D-1未マウント・formal非観測を理由付きNone。Dictionary歴史fit lineage未確認は未接続 |
 
-Official RSS help currently lists market information500 symbols, Tick/chart/SMA
-50 functions each. A future15-symbol plan with one1M chart and one Tick list per
-symbol uses15 of each; other workbooks/sheets/indices also consume the limits.
-RssTickList's maximum300 prints is not a complete full-day tape.
+全市場の寄り前cacheと候補15の寄り後監視は別母集団。保存済み2024原本は将来D-1を供給しない。継続更新元、取得完了時刻、実受信、欠損時停止/代替条件は未認証。縮小live profileは別の事前契約が必要。
 
-https://marketspeed.jp/ms2_rss/onlinehelp/ohm_002/ohm_002_08.html
-https://marketspeed.jp/ms2_rss/onlinehelp/ohm_002/ohm_002_03.html
-https://marketspeed.jp/ms2_rss/onlinehelp/ohm_002/ohm_002_07.html
+楽天公式を2026-10-14確認：市況関連合計500銘柄、chart50関数、歩み値50関数。15候補に各1chart/1tickなら各15だが、他Workbook/sheet/指数の使用分を含める。RssTickList表示1〜300本。完全Tick、全板履歴、全ニュースを保証する仕様ではない。
 
-Windows processing time, receive latency and continuous collection have not
-been measured. LIVE_READINESS=NOT_CERTIFIED. No reduced feature profile or zero
-substitution is silently deployed; it needs a new prior contract. Entry/EXIT/
-cash rotation/concentrated orders remain outside this implementation.
+添付RSS関数PDF SHA256 `298145f74a3cf147859a1d6c0bdb954ba1398d0fb052f7390b09e6e92c022d1a` のRssMarket/RssChart/RssTickList引数と1〜300本を照合。実機動作証明ではない。始値・出来高・売買代金、歩み値時刻/出来高/約定値のsymbol/session・単位・受信timestampを別保存。遅い寄りを09:00に置換しない。
 
-# MA4 V2 source/cache contract — checked 2026-10-13
+predict_preopen_watchlist.pyはtrusted private model/hash、固定schema、labelなしfeature store、calendar、target/D-1、利用根拠と明示profileを検査。非営業日、D-1不一致、stale cache、cutoff超過、必須source欠落、未確認liveRefresh、schema/hash破損を拒否。今回の歴史watchlistはhistoricalResearchOnly、将来朝の実行PASSではない。
 
-The effective full preopen schema has554 registered columns. The real-source
-canary observed100 of138 price/volume/regime columns, with no market model or
-verified ordinary-stock universe. This does not certify all554 inputs or the
-future morning update route. Old V1 columnar caches and stale model policies
-are rejected. V2 binds code, feature-policy, schema, source input, calendar and
-basis hashes. Financial/valuation direct aliases have one canonical output.
+session/cutoff、canonical/RSS code、市場/sector/rank、score/10head、model/config/schema/input hash、quality/missing理由をprivate保存。scoreは費用後EVではない。entryAllowedを含む全11 flags=false。空母集団はno-candidate receipt、寄り後差し替え禁止。
 
-| Family | Needed morning history/update | Current parity and stop rule |
-| --- | --- | --- |
-| Daily MA4/technical | At least76 comparable closes for MA75 slope; actual suffix seed for EMA/Wilder; D-1 complete | Old saved data cannot supply a future D-1; stop on stale/invalid required history, keep explicit indicator None |
-| Week/month regime |13 known calendar buckets for the fixed12-bucket return; no MA grid | Daily reference history dependency is separate from30 FIT teacher days; protection must be reconciled |
-| Eligible master/lot | Effective dated master plus independent common-stock classification and100-lot evidence before08:50 | ProdCat011 and suffix alone do not certify all common stocks; unverified class blocks native admission |
-| Finance/valuation/earnings | Latest publication/version known before cutoff, source-specific units and receive/schedule distinction | Financial yen/per-share/ratio units separated; published corrections cannot be backdated; TBD earnings cancels prior schedule |
-| Prior minute/Tick | Actual D-1 auction/continuous hours and admitted complete native coverage, preserving duplicate prints | RSS300-print window is a different profile; no silent substitute for full native Tick input |
-| Market/sector/flows | D-1 full peer-universe cache, dated sectors, published flow section/units | Monitoring15 names cannot certify all-JPX realtime breadth |
-| State/Dictionary | Causal generation rule and permitted upstream fit/source lineage | Remains unjoined; no future-fit profile at historical dates |
+後半補助診断09:30/11:00/13:00/14:00は参照以後のHighのみ、known32/27/27/25、UNKNOWN73/78/78/80。多くが固定5分以内の参照価格なし。bar終了時刻を過去市場テープ可用時刻とする再構成仮定を明記、providerのEOD16:30保存可用性を場中実受信へ戻していない。主Open→High不変更、Entry/EXIT/資金回転・約定性能ではない。
 
-Official RSS limits were checked on2026-10-13: market information500 symbols,
-chart and Tick50 functions each; one per15 candidates uses15 each before
-other workbook consumption. RssTickList permits at most300 prints. These are
-specifications, with no Windows/RSS execution evidence. No transmission or
-order call occurred. All execution flags remain false.
+最終構想は現物LONG、同時1銘柄現金集中、全SELL約定確認後の順次回転、第2回以降慎重。差金決済、残注文、余力、容量、実約定、Entry/EXIT/Capitalは後工程。MAX3へ戻さず、注文/paper/Excel/RSS注文関数/自動promotionは0。
 
-Official source update times are a historical reconstruction assumption,
-not actual receive/version receipts. Current JPX guidance allows updates and
-corrections and does not promise update-completion notification. Neither the
-saved Git timestamp nor today's documentation proves historical delivery.
+公式資料：
 
-References checked: https://jpx-jquants.com/en/spec/eq-bars-daily,
-https://jpx-jquants.com/en/spec/data-update,
-https://jpx-jquants.com/en/spec/eq-master/product-category,
-https://jpx-jquants.com/en/spec/fin-summary,
-https://jpx-jquants.com/en/spec/fin-earnings-date,
-https://docs.github.com/en/actions/concepts/security/github_token,
-and the three RSS URLs above. The Japanese J-Quants URL returned403 here;
-the official English v2 pages supplied the matching field/unit/revision rules.
-LIVE_READINESS remains NOT_CERTIFIED. Final one-symbol cash concentration and
-sequential rotation belong to later Entry/EXIT/execution work.
-
-Financial-period EPS/BPS/ROE stay in native financial fields; they are not silently overwritten or aliased to daily valuation EPS/BPS/ROE.
-
-
-## 2026-10-14 Work 状態
-
-正式sourceは全分足と10月Tickを処理済みで、11/12月Tick・全47入力結合・実市場fitは未完。RSS/Windows/既存Workbookへ接続・操作していません。実機PASSではありません。公式上限（市況関連合計500、chart50関数、tick50関数、歩み値最大300本）を2026-10-14に再確認。候補15への各1chart/1tick案は既存Workbook使用量の確認が必要です。完全な過去TickとRSS300本を同じ入力として認証しません。寄り前全市場の継続日次更新元/時刻/欠損時停止は未認証で、保存済み2024原本から将来D-1を供給できるとはしません。LONG一銘柄集中・売却後回転のEntry/EXIT/Capitalは後工程、watchlist entryAllowed=falseを維持。
+- https://marketspeed.jp/ms2_rss/onlinehelp/ohm_002/ohm_002_08.html
+- https://marketspeed.jp/ms2_rss/onlinehelp/ohm_002/ohm_002_03.html
+- https://marketspeed.jp/ms2_rss/onlinehelp/ohm_002/ohm_002_07.html
+- https://jpx-jquants.com/ja/spec/eq-bars-daily
+- https://docs.github.com/en/actions/concepts/security/github_token

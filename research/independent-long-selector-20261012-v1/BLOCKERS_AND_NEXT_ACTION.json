@@ -1,39 +1,28 @@
 {
-  "schema": "ARK_PREOPEN_BLOCKERS_20261014_V3",
-  "blocker": "EXECUTION_SESSION_INTERRUPTED; SOURCE_CHECKPOINT_VALID",
-  "historyFourApprovalPending": false,
-  "additionalOriginalUploadNeeded": false,
-  "additionalHistoryApprovalNeeded": false,
-  "completedStage": "SOURCE_PARTIAL_67_ORIGINALS",
-  "remainingOriginalN": 32,
-  "nextSourceObjects": [
-    "A equities_trades_202411.csv.gz",
-    "A equities_trades_202412.csv.gz",
-    "E dated-master Oct/Nov/Dec",
-    "E valuation Oct/Nov/Dec",
-    "E financial/earnings/TOPIX/flow December",
-    "E remaining corporate/market reference history"
+  "schema": "ARK_MEASUREMENT_DONE_LIVE_UNCERTIFIED_V1",
+  "marketMeasurementBlocked": false,
+  "legacyComparisonBlocked": false,
+  "marketJobRunning": false,
+  "qualityApproval": false,
+  "remaining": [
+    {
+      "item": "LIVE_INPUT_UPDATE_AND_RSS_DEVICE",
+      "status": "NOT_CERTIFIED",
+      "reason": "Future D-1 full-universe data route and complete Tick parity not verified; no Windows/RSS execution"
+    },
+    {
+      "item": "PREDICTIVE_QUALITY",
+      "status": "NOT_APPROVED",
+      "reason": "Up>=1 is34 vs56 for turnover baseline; low-liquidity selected87/105; seven exposed Development days"
+    },
+    {
+      "item": "DICT_NEWS_ORDERBOOK",
+      "status": "NOT_JOINED_OR_UNAVAILABLE",
+      "reason": "Not supplied/verified PIT input; all-missing FIT columns explicitly excluded, no zero substitution"
+    }
   ],
-  "nextOperations": [
-    "Resume bound completed-source receipts in a verified private directory",
-    "Complete nine-family source admission and formal prior State",
-    "Build full554-schema FIT/calibration/Report features; coverage/resource/class support checks",
-    "One candidate:10 head fits and10 calibrations; trusted reload",
-    "Freeze all7 watchlists before Report label evaluation",
-    "High six buckets/Low/Close; A/B/exact C; formal Frozen D two interpretations; independent recount"
-  ],
-  "doNotRepeat": [
-    "User source download/upload",
-    "Same four-day permission request",
-    "Corrupt shared-workspace cache reuse",
-    "Market fit from one-day canary or silently reduced daily-only candidate"
-  ],
-  "modelBudgetRemaining": {
-    "candidates": 1,
-    "baseHeadFits": 10,
-    "calibrationFits": 10
-  },
-  "jobsRunning": 0,
+  "newFitOrCandidateAuthorizedByThisResult": false,
+  "ownerUploadOrSameFourDayPermissionNeededAgain": false,
   "executionAllowed": false,
   "brokerWriteAllowed": false,
   "excelOrderWriteAllowed": false,

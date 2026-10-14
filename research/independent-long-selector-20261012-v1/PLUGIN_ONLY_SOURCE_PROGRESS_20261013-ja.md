@@ -117,3 +117,8 @@ H>=Oは構造上の性質であり、下落損失や資金集中の安全性の�
 全11安全flags false。注文・main merge・force push・保護解除・新provider取得0。
 RSS/cacheの継続更新とWindows実機は未認証。Entry/EXIT/Capitalへ進んでいない。
 今回のCIは終了済みで、外部の市場学習jobを稼働中とは説明しない。
+
+
+## 2026-10-14 実市場工程完了（以前の未実施記録を更新）
+
+必要99原本、feature175,897行、登録554/FIT観測464/fit使用463。1candidate/10head/10較正、7日105候補を事前固定。主6bucket68/18/6/7/1/2、UNKNOWN3無約定。High≥1%=34は基準56以下、Low≤−1%=20、Close負35、品質未承認。旧350events/268銘柄日の2表、元原本別経路再計数と保存先復元PASS。市場job0、注文/実機PASSなし。WORK_HANDOFF_MA4_20261014-ja.mdとREPORT_AGGREGATE.jsonを参照。

@@ -121,3 +121,8 @@ Research quality/Live readinessはNOT_CERTIFIED。Windows/RSS実機、毎朝更�
 流動性/下落tail/較正・selection bias・過学習を未認証のまま保持。
 全11フラグfalse。main merge/force push/provider新規取得/注文/本番昇格0。
 自動freeze・main merge・Entry/EXIT/資金回転へ進まない。
+
+
+## 2026-10-14 実市場工程完了（以前の未実施記録を更新）
+
+必要99原本、feature175,897行、登録554/FIT観測464/fit使用463。1candidate/10head/10較正、7日105候補を事前固定。主6bucket68/18/6/7/1/2、UNKNOWN3無約定。High≥1%=34は基準56以下、Low≤−1%=20、Close負35、品質未承認。旧350events/268銘柄日の2表、元原本別経路再計数と保存先復元PASS。市場job0、注文/実機PASSなし。WORK_HANDOFF_MA4_20261014-ja.mdとREPORT_AGGREGATE.jsonを参照。

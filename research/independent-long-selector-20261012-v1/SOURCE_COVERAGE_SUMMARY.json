@@ -1,26 +1,204 @@
 {
-  "sourceOriginalsVerifiedAvailable": 103,
-  "sourceOriginalBytesVerifiedAvailable": 2455811237,
-  "sourceRequestOriginalN": 99,
-  "originalByteCountInRequest": 2455472420,
-  "sourceCompletedInThisPipeline": 67,
-  "sourceCompletedNewDatabase": 26,
-  "sharedDailyOriginals": 41,
-  "completedSourceInputRowsIncludingReusedDaily": 86619430,
-  "sourceRowsAreEligibleOrFeatureRows": false,
-  "sourceStoredRecordN": 1093473,
-  "sharedDailySourceRows": 180161,
-  "sourceCompactRecordN": 289904,
-  "minuteAdmittedRecordN": 19439987,
-  "tickAdmittedRecordN": 65905809,
-  "quickCheck": "PASS",
-  "featureRows": 0,
+  "schema": "ARK_REAL_SOURCE_COVERAGE_COMPLETE_V1",
+  "updatedAt": "2026-10-14T07:10:59.281929+00:00",
+  "immutableOriginalsVerified": 103,
+  "immutableOriginalBytesVerified": 2455811237,
+  "neededSourceOriginals": 99,
+  "neededSourceOriginalBytes": 2455472420,
+  "completedSourceOriginals": 99,
+  "sourceInputRows": 178945640,
+  "sourceInputRowsAreEligibleFeatureOrIndependentTrialCounts": false,
+  "sqliteStoredNormalRecords": 1531418,
+  "sqliteCompletedLedgerEntries": 58,
+  "readonlySharedDailyOriginals": 41,
+  "sqliteCompactSecurityDays": 395018,
+  "minuteRawSecurityDays": 197509,
+  "tickRawSecurityDays": 197509,
+  "minuteTickDailyOHLCVolumeTurnoverMismatchN": 0,
+  "protectedFinancialIdentityTimeOnlyRecords": 196,
+  "originalFamilyCounts": {
+    "DAILY": 55,
+    "INVESTOR_TYPES": 4,
+    "EARNINGS_DATE": 3,
+    "FIN_SUMMARY": 18,
+    "TOPIX": 7,
+    "MINUTE": 3,
+    "TICK": 3,
+    "DATED_MASTER": 3,
+    "VALUATION": 3
+  },
+  "sourceFamilyCounts": {
+    "DAILY": {
+      "admittedRows": 1268038,
+      "lexicallyTraversedRows": 1422046,
+      "numericPriceRowsParsed": 1268038,
+      "nonAdmittedLexicallyTraversedRows": 154008
+    },
+    "INVESTOR_TYPES": {
+      "admittedRows": 52,
+      "lexicallyTraversedRows": 72,
+      "nonAdmittedLexicallyTraversedRows": 20
+    },
+    "EARNINGS_DATE": {
+      "admittedRows": 2406,
+      "lexicallyTraversedRows": 3856,
+      "nonAdmittedLexicallyTraversedRows": 1450
+    },
+    "FIN_SUMMARY": {
+      "admittedRows": 27841,
+      "lexicallyTraversedRows": 28416,
+      "blockedPublicationMetadataOnlyRows": 196,
+      "nonAdmittedLexicallyTraversedRows": 575
+    },
+    "TOPIX": {
+      "admittedRows": 125,
+      "lexicallyTraversedRows": 145,
+      "numericPriceRowsParsed": 125,
+      "nonAdmittedLexicallyTraversedRows": 20
+    },
+    "MINUTE": {
+      "admittedRows": 19439987,
+      "completeAgainstSavedDailySecurityDays": 197509,
+      "compressedDerivedBytes": 432052885,
+      "derivedSecurityDays": 197509,
+      "inconsistentAgainstSavedDailySecurityDays": 0,
+      "lexicallyTraversedRows": 26336636,
+      "nonAdmittedLexicallyTraversedRows": 6896649
+    },
+    "TICK": {
+      "admittedRows": 157794074,
+      "completeAgainstSavedDailySecurityDays": 197509,
+      "compressedDerivedBytes": 188806088,
+      "derivedSecurityDays": 197509,
+      "inconsistentAgainstSavedDailySecurityDays": 0,
+      "lexicallyTraversedRows": 207392552,
+      "nonAdmittedLexicallyTraversedRows": 49598478
+    },
+    "DATED_MASTER": {
+      "admittedRows": 206562,
+      "lexicallyTraversedRows": 277073,
+      "nonAdmittedLexicallyTraversedRows": 70511
+    },
+    "VALUATION": {
+      "admittedRows": 206555,
+      "lexicallyTraversedRows": 277073,
+      "nonAdmittedLexicallyTraversedRows": 70518
+    }
+  },
+  "featureRows": {
+    "fit": 112144,
+    "calibration": 37484,
+    "report": 26269
+  },
+  "featureRowsTotal": 175897,
   "registeredFeatureN": 554,
-  "fitObservedFeatureN": null,
-  "fitUsedFeatureN": 0,
-  "schema": "ARK_SOURCE_COVERAGE_INTERRUPTED_V3",
-  "fullNineFamilyJoinComplete": false,
-  "featureSourceCoverageComplete": false,
+  "fitObservedFeatureN": 464,
+  "fitUsedFeatureN": 463,
+  "allMissingFitFeatureN": 90,
+  "constantFitFeatureN": 1,
+  "familyColumnUsage": {
+    "PRICE_CANDLE_TREND": {
+      "registered": 92,
+      "fitObserved": 92,
+      "fitUsed": 92,
+      "calibrationObserved": 92,
+      "reportObserved": 92
+    },
+    "RISK_LIQUIDITY": {
+      "registered": 19,
+      "fitObserved": 18,
+      "fitUsed": 18,
+      "calibrationObserved": 18,
+      "reportObserved": 18
+    },
+    "VOLUME_VALUE_SUPPLY_PROXY": {
+      "registered": 30,
+      "fitObserved": 28,
+      "fitUsed": 28,
+      "calibrationObserved": 28,
+      "reportObserved": 28
+    },
+    "UNAVAILABLE_EXTERNAL": {
+      "registered": 37,
+      "fitObserved": 0,
+      "fitUsed": 0,
+      "calibrationObserved": 0,
+      "reportObserved": 0
+    },
+    "EARNINGS_CALENDAR": {
+      "registered": 5,
+      "fitObserved": 3,
+      "fitUsed": 3,
+      "calibrationObserved": 3,
+      "reportObserved": 3
+    },
+    "FINANCIAL": {
+      "registered": 103,
+      "fitObserved": 91,
+      "fitUsed": 90,
+      "calibrationObserved": 91,
+      "reportObserved": 91
+    },
+    "MARKET_SECTOR": {
+      "registered": 26,
+      "fitObserved": 11,
+      "fitUsed": 11,
+      "calibrationObserved": 11,
+      "reportObserved": 11
+    },
+    "MARKET": {
+      "registered": 17,
+      "fitObserved": 9,
+      "fitUsed": 9,
+      "calibrationObserved": 9,
+      "reportObserved": 9
+    },
+    "VALUATION": {
+      "registered": 17,
+      "fitObserved": 9,
+      "fitUsed": 9,
+      "calibrationObserved": 9,
+      "reportObserved": 9
+    },
+    "INVESTOR_FLOW": {
+      "registered": 52,
+      "fitObserved": 52,
+      "fitUsed": 52,
+      "calibrationObserved": 52,
+      "reportObserved": 52
+    },
+    "MINUTE": {
+      "registered": 85,
+      "fitObserved": 85,
+      "fitUsed": 85,
+      "calibrationObserved": 85,
+      "reportObserved": 85
+    },
+    "STATE": {
+      "registered": 9,
+      "fitObserved": 9,
+      "fitUsed": 9,
+      "calibrationObserved": 9,
+      "reportObserved": 9
+    },
+    "TICK": {
+      "registered": 62,
+      "fitObserved": 57,
+      "fitUsed": 57,
+      "calibrationObserved": 52,
+      "reportObserved": 52
+    }
+  },
+  "stateRawSecurityDayRows": 197509,
+  "formalStateObservedRawSecurityDays": 69250,
+  "formalStateSourceConnected": true,
+  "dictionaryProfileFeatures": "NOT_JOINED_UNVERIFIED_HISTORICAL_FIT_LINEAGE",
+  "allRegisteredColumnsClaimedConnected": false,
+  "officialScheduleIsActualHistoricalReceiveProof": false,
+  "sourceSqliteBytes": 1608687616,
+  "sourceSqliteSha256": "e51f8e7431e892559a9455cec4947c6e8987a436d5dcece81cf5d5ef7e1d1c97",
+  "sourceCodeHash": "3a2fb32dfad9e2ea4f9956038709f2a640a3380213f68ca7af8f1c9c621950ab",
+  "sourcePolicyHash": "c9294e40ab8024618b0858bb4c9ccd1f388a22575765f2f761da4ac8099edc7a",
   "executionAllowed": false,
   "brokerWriteAllowed": false,
   "excelOrderWriteAllowed": false,

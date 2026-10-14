@@ -33,8 +33,9 @@ jobs:
       OPENBLAS_NUM_THREADS: '1'
       MKL_NUM_THREADS: '1'
       PYTHONDONTWRITEBYTECODE: '1'
-      PYTHONPYCACHEPREFIX: ${{ runner.temp }}/v2-pycache
     steps:
+      - name: Keep Python bytecode outside checkout
+        run: echo "PYTHONPYCACHEPREFIX=$RUNNER_TEMP/v2-pycache" >> "$GITHUB_ENV"
       - uses: actions/checkout@v4
         with:
           persist-credentials: false

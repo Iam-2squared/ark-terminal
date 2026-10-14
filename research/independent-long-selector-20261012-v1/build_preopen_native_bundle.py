@@ -413,13 +413,24 @@ def snapshot_rows(store, sessions, calendar, ineligible):
                    "sizeCategory":master.get("ScaleCat")}
 
 
-def build_bundle(request, output, *, source_only=False, resume_source=None):
+def build_bundle(request, output, *, source_only=False, resume_source=None, resume_interrupted=None):
     root = Path(request["privateRoot"]).resolve()
     output = private_path(output,root)
     if request.get("intendedUse") == "SOURCE_CANARY_ONLY":
         raise PreopenError("SOURCE_CANARY_CANNOT_BE_PROMOTED_TO_FULL_NATIVE_BUNDLE")
-    if output.exists():
+    continuing_source = source_only and resume_interrupted is not None
+    if output.exists() and not continuing_source:
         raise PreopenError("REFUSE_OVERWRITE_NATIVE_BUNDLE")
+    if continuing_source:
+        interruption=json.loads(verify_entry(resume_interrupted,root).read_text())
+        original=json.loads(verify_entry(interruption["buildStarted"],root).read_text())
+        if (interruption.get("schema")!="ARK_PREOPEN_SOURCE_INTERRUPTION_V1"
+                or interruption.get("requestHash")!=digest(request)
+                or original.get("requestHash")!=digest(request)
+                or interruption.get("marketFits")!=0
+                or interruption.get("reportLabelsEvaluated") is not False
+                or verify_entry(interruption["database"],root).parent!=output/"native_shards"):
+            raise PreopenError("INTERRUPTED_SOURCE_RESUME_BINDING")
     admission = validate_native_request(request,root)
     present = {s["dataset"] for s in request["sources"]}
     if request["mode"] == "AUTHORIZED_DEVELOPMENT" and not REQUIRED_NATIVE_MARKET_DATASETS <= present:
@@ -432,8 +443,9 @@ def build_bundle(request, output, *, source_only=False, resume_source=None):
         calendar = exchange_sessions(list(csv.DictReader(stream)))
     from preopen_reference_admission import enforce_reference_admission
     enforce_reference_admission({**request,"exchangeSessions":calendar},admission)
-    output.mkdir(parents=True,mode=0o700)
-    write_json(output/"BUILD_STARTED.json",{"requestHash":digest(request),"startedAt":utc_now(),**SAFE_FLAGS})
+    if not continuing_source:
+        output.mkdir(parents=True,mode=0o700)
+        write_json(output/"BUILD_STARTED.json",{"requestHash":digest(request),"startedAt":utc_now(),**SAFE_FLAGS})
     if request.get("intradayStorageMode") == "LOSSLESS_MINUTE_AND_EXACT_TICK_AGGREGATES_V1":
         from preopen_compact_source import CompactNativeStore
         store_class = CompactNativeStore
@@ -451,7 +463,10 @@ def build_bundle(request, output, *, source_only=False, resume_source=None):
         source_directory = verify_entry(receipt["database"],root).parent
     store = store_class(source_directory,private_root=root,request=request)
     receipts=[]
-    for i,s in enumerate(request["sources"],1):
+    # Intraday reconciliation depends on all admitted daily references, including
+    # the causal earlier Report days. Storage/incoming-file order is arbitrary.
+    ingestion_order=sorted(request["sources"],key=lambda s:s["dataset"]!="DAILY")
+    for i,s in enumerate(ingestion_order,1):
         if source_only:
             print(json.dumps({"sourceIndex":i,"sourceN":len(request["sources"]),"dataset":s["dataset"],"status":"SOURCE_START"}),flush=True)
         receipts.append(store.ingest(s))
@@ -526,10 +541,12 @@ def main():
     p.add_argument("--output",required=True)
     p.add_argument("--source-only",action="store_true",help="Admit source shards without features or market fit")
     p.add_argument("--resume-source",help="JSON descriptor of a verified completed source-stage receipt")
+    p.add_argument("--resume-interrupted-source",help="Verified same-request source interruption; completed originals are reused")
     a = p.parse_args()
     request = json.loads(Path(a.request).read_text())
     resume = json.loads(Path(a.resume_source).read_text()) if a.resume_source else None
-    b = build_bundle(request,Path(a.output),source_only=a.source_only,resume_source=resume)
+    interruption=json.loads(Path(a.resume_interrupted_source).read_text()) if a.resume_interrupted_source else None
+    b = build_bundle(request,Path(a.output),source_only=a.source_only,resume_source=resume,resume_interrupted=interruption)
     if a.source_only:
         print(json.dumps({"status":"PRIVATE_FULL_SOURCE_STAGE_WRITTEN","receipt":b,"marketFits":0}))
         return

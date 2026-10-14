@@ -1,0 +1,64 @@
+name: Preopen Open-High Selector - Synthetic and Source Contracts
+
+on:
+  push:
+    branches: [research/independent-long-selector-20261012-v1]
+    paths:
+      - 'research/independent-long-selector-20261012-v1/**'
+      - 'research/independent-long-selector-20261012-v1/preopen_*.py'
+      - 'research/independent-long-selector-20261012-v1/preopen_tests/**'
+      - 'research/independent-long-selector-20261012-v1/run_preopen_selector.py'
+      - 'research/independent-long-selector-20261012-v1/build_preopen_native_bundle.py'
+      - 'research/independent-long-selector-20261012-v1/predict_preopen_watchlist.py'
+      - 'research/independent-long-selector-20261012-v1/technical_feature_library.py'
+      - '.github/workflows/preopen-open-high-synthetic.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preopen-synthetic-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  preopen-synthetic:
+    if: github.ref == 'refs/heads/research/independent-long-selector-20261012-v1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      OMP_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned engineering dependencies, not market data
+        run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0 joblib==1.5.3 threadpoolctl==3.6.0
+      - name: Compile preopen research code
+        run: python -m compileall -q research/independent-long-selector-20261012-v1
+      - name: Legacy independent-selector synthetic regression
+        run: python -m unittest discover -s research/independent-long-selector-20261012-v1/tests -p 'test_*.py' -v
+      - name: Preopen-only input and rational open-high tests
+        run: python -m unittest discover -s research/independent-long-selector-20261012-v1/preopen_tests -p 'test_*.py' -v
+      - name: Verify fixed V1 research evidence without private data or model fit
+        run: python research/independent-long-selector-20261012-v1/v1_acceptance/verify.py
+      - name: Actual synthetic estimator fit-calibration-forward-score E2E
+        run: python research/independent-long-selector-20261012-v1/preopen_synthetic_smoke.py
+      - name: Save code-only reproducibility bundle, never market originals
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preopen-code-only-${{ github.run_id }}
+          retention-days: 7
+          path: |
+            research/independent-long-selector-20261012-v1/*.py
+            research/independent-long-selector-20261012-v1/PREOPEN_OPEN_HIGH_PRECOMMIT.json
+            research/independent-long-selector-20261012-v1/preopen_tests/*.py
+            research/independent-long-selector-20261012-v1/tests/*.py
+            research/independent-long-selector-20261012-v1/v1_acceptance/verify.py
+            research/independent-long-selector-20261012-v1/V1_RESEARCH_ACCEPTANCE.md

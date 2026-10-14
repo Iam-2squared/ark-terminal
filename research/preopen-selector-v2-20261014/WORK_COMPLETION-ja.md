@@ -1,6 +1,6 @@
 # Work 完了記録 — 新Selector V2 MODE A
 
-対象HEAD / branch / Draft PR: 最新PR headと同HEAD専用CIのdecoded job logを受入identityとする。branch=research/preopen-selector-v2-engineering-20261014-r1、base=research/preopen-selector-v2-design-20261014。具体的なhead/run/job/PR番号はPR本文へ結合する。
+対象HEAD / branch / Draft PR: 最新PR headと同HEAD専用CIのdecoded job logを受入identityとする。branch=research/preopen-selector-v2-engineering-20261014-r1、base=research/preopen-selector-v2-design-20261014。具体的な最新head/run/jobはDraft PR #594本文へ結合する。実装codeの固定HEADはb030c271cecba4cdbc360e11147f5d73ed116a70。文書のみの追記後も最新HEAD専用CIを受入に使う。
 
 実装状態: ENGINEERING_READY / AWAITING_MARKET_APPROVAL。G0/G1/G2、95列純粋関数、RAW教師、日重み、2HGB、2温度、選出、評価、権限/schemaガード、台帳、streaming cache、exclusive保存/安全restore、専用CLI/CIをV2 namespaceで実装した。
 

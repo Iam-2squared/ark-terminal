@@ -45,3 +45,5 @@ MODE Bの正確なFIT120/CAL20/参照日付・元source hash・用途・利用�
 MODE Bのsupport・oracle・観測率・時点・RAM検査がPASSした後、同一の数値案／教師／CORE95／順位・全split・source route・品質目標・code/config/schema・census receipt hashを固定した別MODE C承認を求める。MODE C上限は1 candidate / 2 fit / 2温度。今回の指示・添付在庫・人工test grantは、いずれの承認にもならない。
 
 今回metadataで確認した26元ファイルhashと在庫範囲、保護範囲、未確定項目をパッケージへ記録した。CALENDAR objectは在庫summaryに1件あるが、添付archiveにcalendarはなく、exact営業日リスト・hashは未結合。最新在庫端点2026-10-05は既存protectedHoldout内。保護日を飛ばす／古い期間へ勝手にfallbackする処理はない。原本再送は不要。
+
+次工程は前工程FINISHとMODEL_SEALED／当該WATCHLISTS_SEALEDの独立pinも必須とする。モデルbytesだけ残った途中失敗から評価へ進まない。評価の全教師UNKNOWNでは確率診断をNOT_MEASURED_NO_KNOWN_TEACHERとし、0確率や成功に変換しない。

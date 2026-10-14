@@ -9,8 +9,8 @@
 | 検証 | 対象経路 | 今回ローカル結果 |
 |---|---|---|
 | 必須72＋既存追加25 | 従来の純粋関数／契約／fail-closed | 97 PASS |
-| 新規test_n01～test_n34 | 実native RAW/master → gates → CORE95 → teacher → 2HGB → 2温度 → artifact → watchlist → evaluation → restore、承認偽装・用途・保護・未来毒化・予算・fit spy | 34 PASS |
-| V2合計 | 上記全試験 | 131 PASS |
+| 新規test_n01～test_n36 | 実native RAW/master → gates → CORE95 → teacher → 2HGB → 2温度 → artifact → watchlist → evaluation → restore、承認偽装・用途・保護・未来毒化・予算・fit spy | 36 PASS |
+| V2合計 | 上記全試験 | 133 PASS |
 | V1 read-only回帰 | 元tests／preopen_testsの今回実行 | 32＋125 PASS |
 | type / syntax | V2 srcとtools | mypy28 files PASS / compile PASS |
 | 人工matrix smoke | 従来のfactory専用・別process | 2fit／2cal、1080 trees、復元予測差0 |

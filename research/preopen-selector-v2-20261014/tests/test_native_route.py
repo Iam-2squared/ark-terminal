@@ -253,5 +253,35 @@ class NativeRoute(unittest.TestCase):
         self.assertNotIn('VALIDATION_TEACHER',grant['allowlists'])
         self.assertNotIn('FINAL_TEACHER',grant['allowlists'])
 
+    def test_n35_all_unknown_evaluation_is_not_zero_probability_or_success(self):
+        a=copy.deepcopy(self.authority)
+        a.output=Path(self.temp.name)/'unknown-evaluation';a.output.mkdir()
+        # Copy only independently pinned prior-stage outputs. No model refit,
+        # watchlist replacement or successful-evaluation receipt is created.
+        names=[name for name in a.artifact_pins if 'evaluate-VALIDATION' not in name
+               and name!='evaluation-VALIDATION.json' and 'LABEL_OPENED-VALIDATION' not in name]
+        from ark_selector_v2.artifact_io import exclusive_bytes
+        a.artifact_pins={name:a.artifact_pins[name] for name in names}
+        for name in names:exclusive_bytes(a.output/name,(self.authority.output/name).read_bytes())
+        from ark_selector_v2.contracts import Candle
+        from ark_selector_v2.labels import label
+        from datetime import date
+        forecast=Store(a).get('forecast-VALIDATION.json')
+        unknown={(r['session'],r['canonical_symbol'],r['market']):label(Candle.from_values(date.fromisoformat(r['session']),None,None,None,None,'0','0',status='NO_TRADE')) for r in forecast['layers']['master']}
+        with patch.object(NativeReader,'teachers',return_value=unknown):
+            report=dispatch('evaluate',request_for(a,self.manifest,'C','VALIDATION'),authority=a)
+        self.assertEqual(report['status'],'FAIL')
+        self.assertEqual(report['report']['knownN'],0)
+        self.assertFalse(report['report']['POINT_TARGETS_MET'])
+        self.assertEqual(report['report']['probability_diagnostics']['status'],'NOT_MEASURED_NO_KNOWN_TEACHER')
+
+    def test_n36_missing_prior_stage_seal_blocks_next_stage_before_raw(self):
+        for event in ('MODEL_SEALED','FINISH-calibrate-FIT_CAL'):
+            with self.subTest(event=event):
+                a=copy.deepcopy(self.authority);a.artifact_pins.pop('events/'+event+'.json')
+                self.blocked_before_native(a,self.manifest,'predict','C','VALIDATION',reason='INDEPENDENT_ARTIFACT')
+        a=copy.deepcopy(self.authority);a.artifact_pins.pop('events/WATCHLISTS_SEALED-VALIDATION.json')
+        self.blocked_before_native(a,self.manifest,'evaluate','C','VALIDATION',reason='INDEPENDENT_ARTIFACT')
+
 
 if __name__=='__main__':unittest.main()

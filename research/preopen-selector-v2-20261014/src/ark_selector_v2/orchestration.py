@@ -141,6 +141,14 @@ def stage_gate(stage: str,role: str,authority: Authority,pre: dict[str,Any],stor
         census=store.get("census.json")
         if census["status"]!="CENSUS_COMPLETE" or digest(census)!=pre["census_receipt_sha256"] or census["manifest"]!=authority.manifest_pin or census["hashes"]!=pre["hashes"]:
             raise V2Error("MODE_C_CENSUS_NOT_PASSED_OR_HASH_DRIFT")
+    prerequisites=[]
+    if stage=="calibrate":prerequisites=["FINISH-train-FIT_CAL"]
+    if stage in {"predict","evaluate","restore-verify"}:prerequisites=["FINISH-calibrate-FIT_CAL","MODEL_SEALED"]
+    if stage in {"evaluate","restore-verify"}:prerequisites.append("WATCHLISTS_SEALED-"+role)
+    for event in prerequisites:
+        receipt=store.get("events/"+event+".json")
+        if receipt["precommit"]!=digest(pre) or receipt["event"]!=event:
+            raise V2Error("PRIOR_STAGE_NOT_FINISHED_OR_SEALED")
     if stage in {"predict","evaluate","restore-verify"} and role=="FINAL":
         validation=store.get("evaluation-VALIDATION.json")
         if validation["status"]!="VALIDATION_TARGETS_MET":raise V2Error("FINAL_REMAINS_SEALED_VALIDATION_FAILED")
@@ -243,7 +251,7 @@ def dispatch(stage: str, request: dict[str,Any], *, authority: Authority | None)
             bb=np.asarray([-1 if l.b is None else l.b for l in labs],dtype=np.int64)
             ss=[r["session"] for r in diag_rows]
             report["probability_diagnostics"]={}
-            if len(yy):
+            if len(yy) and (yy>=0).any():
                 from .weights import common_weights
                 weights,_=common_weights(ss,(yy>=0).tolist())
                 selected_mask=np.asarray([(r["session"],r["canonical_symbol"],r["market"]) in layers["selected"] for r in diag_rows])
@@ -252,6 +260,8 @@ def dispatch(stage: str, request: dict[str,Any], *, authority: Authority | None)
                     report["probability_diagnostics"][kind]={"g2_day_uniform":probability_diagnostics(aa,ob,yy,bb,ss,weights),
                           "g2_unweighted":probability_diagnostics(aa,ob,yy,bb,ss),
                           "selected_unweighted":probability_diagnostics(aa[selected_mask],ob[selected_mask],yy[selected_mask],bb[selected_mask],[s for s,m in zip(ss,selected_mask) if m]) if selected_mask.any() else {"status":"NOT_MEASURED"}}
+            else:
+                report["probability_diagnostics"]={"status":"NOT_MEASURED_NO_KNOWN_TEACHER"}
             boot=[]
             for d in pre["split"][role]:
                 ds=[teachers[k] for k in selected_keys if k[0]==d]

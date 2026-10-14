@@ -83,3 +83,8 @@ LIVE_READINESS remains NOT_CERTIFIED. Final one-symbol cash concentration and
 sequential rotation belong to later Entry/EXIT/execution work.
 
 Financial-period EPS/BPS/ROE stay in native financial fields; they are not silently overwritten or aliased to daily valuation EPS/BPS/ROE.
+
+
+## 2026-10-14 Work 状態
+
+正式sourceは全分足と10月Tickを処理済みで、11/12月Tick・全47入力結合・実市場fitは未完。RSS/Windows/既存Workbookへ接続・操作していません。実機PASSではありません。公式上限（市況関連合計500、chart50関数、tick50関数、歩み値最大300本）を2026-10-14に再確認。候補15への各1chart/1tick案は既存Workbook使用量の確認が必要です。完全な過去TickとRSS300本を同じ入力として認証しません。寄り前全市場の継続日次更新元/時刻/欠損時停止は未認証で、保存済み2024原本から将来D-1を供給できるとはしません。LONG一銘柄集中・売却後回転のEntry/EXIT/Capitalは後工程、watchlist entryAllowed=falseを維持。

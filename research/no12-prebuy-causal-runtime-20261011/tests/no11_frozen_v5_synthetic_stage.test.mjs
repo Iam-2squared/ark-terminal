@@ -66,7 +66,12 @@ test('Reject absent H235-based native proof, changed ranking, unfunded lot, fake
 
 test('Only the pinned offline Python Capital V5 bridge is used, no broker imports in new stage',()=>{
  const s=fs.readFileSync(new URL('../runtime/no11_frozen_v5_synthetic_stage.mjs',import.meta.url),'utf8');
- assert.match(s,/no11_capital_v5_shadow\.py/);
+ assert.match(s,/no11_capital_v5_crlf_safe_synthetic\.py/);
+ const adapter=fs.readFileSync(new URL('../tools/no11_capital_v5_crlf_safe_synthetic.py',import.meta.url),'utf8');
+ assert.match(adapter,/no11_capital_v5_shadow\.py/);
+ assert.match(adapter,/ORIGINAL_GIT_BLOB/);
+ assert.match(adapter,/canonical_git_blob/);
+ assert.doesNotMatch(adapter,/RssStockOrder\s*\(|RssCancelOrder\s*\(|Excel\.Application|requests\.|urllib\.|socket\./);
  assert.match(s,/SYNTHETIC_OFFLINE_ONLY/);
  for(const disallowed of [/RssStockOrder\s*\(/,/RssCancelOrder\s*\(/,
    /Excel.Application/,/\bfetch\s*\(/,/node:net/,/node:http/,

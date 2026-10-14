@@ -4,7 +4,7 @@
 
 実装状態: ENGINEERING_READY / AWAITING_MARKET_APPROVAL。G0/G1/G2、95列純粋関数、RAW教師、日重み、2HGB、2温度、選出、評価、権限/schemaガード、台帳、streaming cache、exclusive保存/安全restore、専用CLI/CIをV2 namespaceで実装した。
 
-専用CI run/job/head / 実行テスト数 / PASS・FAIL: ローカルV2 96 tests PASS (必須72 +追加24)、mypy23 source files PASS。V1の今回実行したread-only回帰は32+125=157 PASSで、V2の96へ混ぜない。CIの受入は最新headのPreopen Selector V2 - Synthetic Onlyの成功job logを別途照合する。
+専用CI run/job/head / 実行テスト数 / PASS・FAIL: ローカルV2 97 tests PASS (必須72 +追加25)、mypy23 source files PASS。V1の今回実行したread-only回帰は32+125=157 PASSで、V2の97へ混ぜない。CIの受入は最新headのPreopen Selector V2 - Synthetic Onlyの成功job logを別途照合する。
 
 V1/Frozen保護差分: 0。全許可外Git tree entry、V1直下全Python、既存設計byteを比較。V1 computation SHA256=3a2fb32dfad9e2ea4f9956038709f2a640a3380213f68ca7af8f1c9c621950ab。main/V1/Frozen/PR591を更新する操作なし。
 
@@ -40,7 +40,7 @@ HGB matrix smokeの大部分は仮想特徴行であり、市場で95列が観�
 連結archive全体SHA256=7f1e0a7f4a98bcd613286de5acfa370963ea106ac845502b763de61e526e390fを確認した。
 archive2,403,054,972bytes、中央directory56 entries。compressed bytesのhash検証だけで、
 市場価格/教師の数値parse0、原本payload展開0。直接転送失敗partは代替chunkで補えたため再送不要。
-存存在庫とV2利用権は別。保存期間metadataだけから連続200日やFreshを認定しない。
+保存済み在庫とV2利用権は別。保存期間metadataだけから連続200日やFreshを認定しない。
 
 ## 今回の具体的な未解決事項
 

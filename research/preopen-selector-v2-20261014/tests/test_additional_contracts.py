@@ -235,5 +235,18 @@ class AdditionalContracts(unittest.TestCase):
         empty=watch([]);empty['reason']='MODEL_ERROR';empty['hashes']['watchlist']=watchlist_hash(empty)
         with self.assertRaisesRegex(V2Error,'RUN_ERROR'):validate_watchlist(empty)
 
+    def test_raw_teacher_and_strict_boolean_source_types(self):
+        from ark_selector_v2.labels import label
+        from ark_selector_v2.contracts import Identity
+        d=date(2024,6,3)
+        row=Candle.from_values(d,100,106,96,104,basis='ADJUSTED')
+        with self.assertRaisesRegex(V2Error,'RAW_JPY'):label(row)
+        with self.assertRaisesRegex(V2Error,'RAW_JPY'):label(replace(row,basis='RAW',units=('USD','SHARES','JPY')))
+        identity=Identity('130A','130A.T','PRIME',d,'COMMON_STOCK',100,'1')
+        with self.assertRaisesRegex(V2Error,'CASH_TYPE'):replace(identity,cash='false').eligible(d)
+        with self.assertRaisesRegex(V2Error,'OBSERVATION_TYPE'):state_features('RANGE',formal_observed='false',t=date(2024,6,1),cutoff=cutoff(d),evidence=evidence(),rules_hash=H,profile_hash=H,normalizer_hash=H)
+        frame=FeatureFrame()
+        with self.assertRaisesRegex(V2Error,'BOOLEAN'):frame.put('v2_valuation_per',True)
+
 
 if __name__=='__main__':unittest.main()

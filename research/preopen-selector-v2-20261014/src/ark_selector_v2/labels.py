@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 from fractions import Fraction as F
 from .contracts import Candle, LABEL_ID
+from .exact_math import V2Error
 
 
 @dataclass(frozen=True)
@@ -22,6 +23,8 @@ class Label:
 
 def label(row: Candle) -> Label:
     row.validate()
+    if row.basis!="RAW" or row.units[0]!="JPY":
+        raise V2Error("LABEL_RAW_JPY_BASIS_REQUIRED")
     if row.open is None:
         return Label(row.status, None, None, None, None, None, None, None, None, None, None)
     o, h, l, c = row.open, row.high, row.low, row.close

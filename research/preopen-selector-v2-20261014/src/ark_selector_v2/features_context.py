@@ -123,6 +123,8 @@ def state_features(primary: str | None, *, formal_observed: bool,
                    normalizer_hash: str | None, upstream_fit_end: date | None = None,
                    expected_lineage: tuple[str,str,str] | None = None) -> FeatureFrame:
     out=FeatureFrame()
+    if type(formal_observed) is not bool:
+        raise V2Error("FORMAL_STATE_OBSERVATION_TYPE_ERROR")
     known=formal_observed and evidence is not None
     if known:
         assert evidence is not None

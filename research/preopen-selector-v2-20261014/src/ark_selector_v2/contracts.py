@@ -76,6 +76,8 @@ class Identity:
     cash: bool = True
 
     def eligible(self, session: date) -> bool:
+        if type(self.lot) is not int or type(self.domestic) is not bool or type(self.cash) is not bool:
+            raise V2Error("MASTER_KIND_OR_CASH_TYPE_ERROR")
         if not re.fullmatch(r"[0-9A-Z]{4}", self.canonical_symbol):
             raise V2Error("INVALID_CANONICAL_SYMBOL")
         if self.effective_session != session or not self.rule_version or not self.rss_symbol:
@@ -184,6 +186,8 @@ class FeatureFrame:
 
     def put(self, name: str, value: Any, reason: str = "UNKNOWN_REQUIRED_HISTORY") -> None:
         import math
+        if isinstance(value,bool):
+            raise V2Error("BOOLEAN_IN_NUMERIC_FEATURE")
         if value is None:
             self.values[name] = None
             self.missing[name] = reason

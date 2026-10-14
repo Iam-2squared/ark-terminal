@@ -14,6 +14,7 @@ import {inspectNo11ProspectiveAsOf} from
 import {rankNo12PreBuyResearch} from './prebuy_candidates.mjs';
 import {runNo12SyntheticSession} from './synthetic_cash_lifecycle.mjs';
 import {proposeNo12SyntheticEmergencyExits} from './synthetic_emergency_exit.mjs';
+import {runNo11SyntheticOriginalCapitalV5} from './no11_frozen_v5_synthetic_stage.mjs';
 
 export const NO11_PROVISIONAL_SHADOW_SCHEMA=
   'ARK_NO11_PROVISIONAL_SYNTHETIC_SHADOW_CHAIN_V1';
@@ -219,6 +220,21 @@ export function runNo11ProvisionalSyntheticShadow({
     scenario.provisionalH235SampleReceipts);
   checked(Array.isArray(scenario.entryEvents),
     'NO11_INTEGRATION_ENTRY_EVENT_SEQUENCE_REQUIRED');
+  const frozenV5=scenario.syntheticFrozenV5Request===undefined?null:
+    runNo11SyntheticOriginalCapitalV5({
+      mode:'SYNTHETIC_OFFLINE_ONLY',
+      request:scenario.syntheticFrozenV5Request,
+      rankedCandidates:candidates.eligible,
+      startingCashYen:scenario.startingCashYen
+    });
+  if(frozenV5){
+    const funded=new Set(frozenV5.fundedEntries.map(x=>x.entryId));
+    for(const event of scenario.entryEvents){
+      if(event.kind==='ENTRY_SIGNAL')
+        checked(funded.has(event.entryId),
+          'NO11_INTEGRATION_ENTRY_NOT_FUNDED_BY_ORIGINAL_V5_SYNTHETIC');
+    }
+  }
   const cashBeforeExit=runNo12SyntheticSession({
     mode:'SYNTHETIC_OFFLINE_ONLY',
     candidateInput:input,events:scenario.entryEvents,
@@ -285,11 +301,13 @@ export function runNo11ProvisionalSyntheticShadow({
         nativeExecuted:false}),
       h235:h235,
       capital:Object.freeze({
-        status:'NO12_SYNTHETIC_CASH_MAX3_ONLY_NOT_FROZEN_CAPITAL_V5_SAB',
+        status:frozenV5?'ORIGINAL_V5_PYTHON_SYNTHETIC_SAB_PLUS_NO12_CASH_CHECK':
+          'NO12_SYNTHETIC_CASH_MAX3_ONLY_NOT_FROZEN_CAPITAL_V5_SAB',
         startingCashYen:cashAfterExit.startingCashYen,
         endingCashYen:cashAfterExit.endingCashYen,
         managedPositions:cashAfterExit.positions.length,
         firstSellLatch:cashAfterExit.subsequentBuyProhibited,
+        originalFrozenCapitalV5PythonExecutedOnSynthetic:!!frozenV5,
         nativeCapitalV5Executed:false}),
       exit:Object.freeze({
         status:exitResult===null?'NATIVE_EXIT_NOT_OBSERVED':
@@ -299,6 +317,7 @@ export function runNo11ProvisionalSyntheticShadow({
         pendingControl:exitResult?.pending.length??0,
         originalStructuralExitExecuted:false})
     }),
+    frozenV5SyntheticAllocation:frozenV5,
     preExitLedger:cashBeforeExit,
     exitProposal:exitResult,
     syntheticExitIntents:Object.freeze(syntheticExitIntents),
@@ -307,6 +326,7 @@ export function runNo11ProvisionalSyntheticShadow({
       frozenSelectorExecuted:false,frozenFirstEntryExecuted:false,
       frozenState9Executed:false,originalH235R0Executed:false,
       frozenCapitalV5SabExecuted:false,
+      originalFrozenCapitalV5PythonRunOnSynthetic:!!frozenV5,
       originalStructuralExitExecuted:false,
       realMarketKnownAtCertified:false,realBrokerFillsCertified:false,
       originalNo11EndToEndCertified:false

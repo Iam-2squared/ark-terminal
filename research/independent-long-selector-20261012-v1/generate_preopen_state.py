@@ -94,6 +94,14 @@ def terminal_segment(rows,session):
         segment.append(r);last=t
     return segment
 
+def state_bar(raw, coord, Bar, parse):
+    """Frozen Bar.auction is a nonempty interval tag, never a Boolean."""
+    t=int(raw['Time'][:2])*60+int(raw['Time'][3:5])+1
+    bar=Bar(t=t,o=parse(coord['O']),h=parse(coord['H']),l=parse(coord['L']),c=parse(coord['C']),
+            known_at=t,source='JQUANTS_RAW_CONTINUOUS_1M',auction='CONTINUOUS_PM')
+    if not bar.valid():raise PreopenError('STATE_NORMALIZED_BAR_SCHEMA_REJECTED')
+    return t,bar
+
 def generate_state_ledger(request,source_entry,output):
     root=Path(request['privateRoot']).resolve();output=private_path(output,root)
     if output.exists():raise PreopenError('REFUSE_OVERWRITE_STATE_LEDGER')
@@ -109,7 +117,7 @@ def generate_state_ledger(request,source_entry,output):
     calendar=request['exchangeSessions'];splits=json.loads(verify_entry(request['admission'],root).read_text())['exactSplits']
     sessions=sorted({calendar[calendar.index(d)-1] for dates in splits.values() for d in dates})
     store=CompactNativeStore(db.parent,private_root=root,request=request)
-    counts=Counter();checks=0
+    counts=Counter();checks=0;kernel_checks=0
     with output.open('x',encoding='utf-8') as stream:
         stream.write('{"schema":"ARK_PREOPEN_PRIOR_STATE_LEDGER_V1","rows":[');sep=''
         for session in sessions:
@@ -147,11 +155,18 @@ def generate_state_ledger(request,source_entry,output):
                                 if a[k]!=official80[k] or b[k]!=official120[k]:raise PreopenError('STATE_MEMOIZED_NORMALIZER_CHANGED:'+k)
                             checks+=1
                         engine=Engine(profile);result=None
+                        reference_engine=Engine(profile) if kernel_checks<64 else None
                         for raw,coord in zip(segment,a['coordinates']):
-                            t=int(raw['Time'][:2])*60+int(raw['Time'][3:5])+1
-                            bar=Bar(t=t,o=parse(coord['O']),h=parse(coord['H']),l=parse(coord['L']),c=parse(coord['C']),
-                                    known_at=t,source='JQUANTS_RAW_CONTINUOUS_1M',auction=False)
+                            t,bar=state_bar(raw,coord,Bar,parse)
                             result=engine._step(t,bar)
+                            if result.get('basis')=='INVALID_INPUT':
+                                raise PreopenError('STATE_ENGINE_REJECTED_ADMITTED_BAR')
+                            if reference_engine is not None:
+                                official=reference_engine.step(t,{'t':t,'o':coord['O'],'h':coord['H'],'l':coord['L'],'c':coord['C'],
+                                    'known_at':t,'source':bar.source,'auction':bar.auction})
+                                if any(result[k]!=official[k] for k in ('primary','basis','current_semantics_observed','observed_at')):
+                                    raise PreopenError('STATE_KERNEL_API_SEMANTICS_MISMATCH')
+                        if reference_engine is not None:kernel_checks+=1
                         if result['current_semantics_observed']:
                             row.update(formalObserved=True,primary=result['primary'],
                                 observedAt=session+'T'+cash_clock(session)['continuous_close']+':00+09:00',
@@ -172,6 +187,7 @@ def generate_state_ledger(request,source_entry,output):
     receipt=write_json(output.with_name(output.stem+'_RECEIPT.json'),{'schema':'ARK_CAUSAL_FROZEN_STATE_GENERATION_V1',
         'ledger':entry,'previousStateContract':joined,'rowN':sum(counts.values()),'statesAndMissingReasons':dict(counts),
         'official80AndIndependent120NormalizersCheckedSecurityDays':checks,'retuned':False,'upstreamFits':0,
+        'frozenPublicApiSemanticsCheckedSecurityDays':kernel_checks,'allSubmittedBarsFrozenSchemaValid':True,
         'sourceStageReceiptSha256':source_entry['sha256'],'sourcesHash':digest(request['sources']),'createdAt':utc_now(),**SAFE_FLAGS})
     return receipt
 

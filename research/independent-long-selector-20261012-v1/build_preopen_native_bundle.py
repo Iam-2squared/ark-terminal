@@ -15,6 +15,7 @@ from datetime import timedelta
 from pathlib import Path
 
 from preopen_feature_store import write_feature_store
+from preopen_build_cache import install_build_cache, price_row, indexed_read_copies
 from preopen_history_features import (FIN_COLUMNS, FLOW_COLUMNS, VALUATION_COLUMNS,
                                      FIN_EXTERNAL_ALIASES, VALUATION_EXTERNAL_ALIASES)
 from preopen_io import private_path, write_json, sha_file, utc_now, SAFE_FLAGS, verify_entry
@@ -147,6 +148,57 @@ def ordinary_stock_master(store, session, masters):
     return eligible
 
 
+
+def global_market_facts(store, session):
+    cache = getattr(store,"build_read_cache",None)
+    if cache is not None and session in cache.global_facts:
+        native, external = cache.global_facts[session]
+        return dict(native), dict(external)
+    native, external = {}, {}
+    flows = known_records(store,"INVESTOR_TYPES",session)
+    # Aggregate sections are not added to constituent sections (double counting).
+    flows = [r for r in flows if r.get("Section") == store.request.get("flowSection")]
+    if flows:
+        latest = max(flows,key=lambda r:(r["PubDate"],r["EnDate"],r["StDate"]))
+        for field in FLOW_COLUMNS:
+            source_unit = store.source(latest["_sourceHash"]).get("numericUnits", {}).get(field)
+            multiplier = {"THOUSAND_JPY":1000, "JPY":1}.get(source_unit)
+            f = fact(store,latest,field,scale=multiplier) if multiplier is not None else None
+            if f:
+                native[f"preopen_native_flow_{field}_jpy"] = {**f,"units":"JPY"}
+    topix = known_records(store,"TOPIX",session)
+    topix.sort(key=lambda r:r["Date"])
+    calendar = store.request.get("exchangeSessions")
+    if calendar:
+        cache = getattr(store,"build_read_cache",None)
+        indexes = cache.calendar_index if cache is not None else {d:i for i,d in enumerate(calendar)}
+        reset = -1
+        for i,r in enumerate(topix):
+            if r["Date"] not in indexes:
+                raise PreopenError("TOPIX_DATE_OUTSIDE_EXCHANGE_CALENDAR")
+            if i and indexes[r["Date"]] != indexes[topix[i-1]["Date"]]+1:
+                reset = i-1
+        topix = topix[reset+1:]
+    if topix:
+        for n in (1,5,10,15,20,25,60):
+            if len(topix) > n:
+                f = {"value":100*(number(topix[-1]["C"])/number(topix[-n-1]["C"])-1),
+                     "units":"PERCENT","sourceSha256":topix[-1]["_sourceHash"],
+                     "publicationEvidence":store.source(topix[-1]["_sourceHash"])["availabilityContract"]["evidenceReference"],
+                     "availableAt":store.available_at(topix[-1],"TOPIX")}
+                external[f"topix_return_{n}d"] = f
+        for n in (5,15,25):
+            if len(topix) >= n:
+                external[f"topix_sma{n}_distance"] = {
+                    **external.get("topix_return_1d",{}),
+                    "value":100*(number(topix[-1]["C"])/(sum(number(r["C"]) for r in topix[-n:])/n)-1),
+                    "units":"PERCENT","sourceSha256":topix[-1]["_sourceHash"],
+                    "publicationEvidence":store.source(topix[-1]["_sourceHash"])["availabilityContract"]["evidenceReference"],
+                    "availableAt":store.available_at(topix[-1],"TOPIX")}
+    if cache is not None:
+        cache.global_facts[session] = (dict(native),dict(external))
+    return native, external
+
 def optional_facts(store, session, code):
     native, external = {}, {}
     financial = known_records(store,"FIN_SUMMARY",session,code)
@@ -196,45 +248,9 @@ def optional_facts(store, session, code):
             f = fact(store,latest,field)
             if f:
                 external[name] = f
-    flows = known_records(store,"INVESTOR_TYPES",session)
-    # Aggregate sections are not added to constituent sections (double counting).
-    flows = [r for r in flows if r.get("Section") == store.request.get("flowSection")]
-    if flows:
-        latest = max(flows,key=lambda r:(r["PubDate"],r["EnDate"],r["StDate"]))
-        for field in FLOW_COLUMNS:
-            source_unit = store.source(latest["_sourceHash"]).get("numericUnits", {}).get(field)
-            multiplier = {"THOUSAND_JPY":1000, "JPY":1}.get(source_unit)
-            f = fact(store,latest,field,scale=multiplier) if multiplier is not None else None
-            if f:
-                native[f"preopen_native_flow_{field}_jpy"] = {**f,"units":"JPY"}
-    topix = known_records(store,"TOPIX",session)
-    topix.sort(key=lambda r:r["Date"])
-    calendar = store.request.get("exchangeSessions")
-    if calendar:
-        indexes = {d:i for i,d in enumerate(calendar)}
-        reset = -1
-        for i,r in enumerate(topix):
-            if r["Date"] not in indexes:
-                raise PreopenError("TOPIX_DATE_OUTSIDE_EXCHANGE_CALENDAR")
-            if i and indexes[r["Date"]] != indexes[topix[i-1]["Date"]]+1:
-                reset = i-1
-        topix = topix[reset+1:]
-    if topix:
-        for n in (1,5,10,15,20,25,60):
-            if len(topix) > n:
-                f = {"value":100*(number(topix[-1]["C"])/number(topix[-n-1]["C"])-1),
-                     "units":"PERCENT","sourceSha256":topix[-1]["_sourceHash"],
-                     "publicationEvidence":store.source(topix[-1]["_sourceHash"])["availabilityContract"]["evidenceReference"],
-                     "availableAt":store.available_at(topix[-1],"TOPIX")}
-                external[f"topix_return_{n}d"] = f
-        for n in (5,15,25):
-            if len(topix) >= n:
-                external[f"topix_sma{n}_distance"] = {
-                    **external.get("topix_return_1d",{}),
-                    "value":100*(number(topix[-1]["C"])/(sum(number(r["C"]) for r in topix[-n:])/n)-1),
-                    "units":"PERCENT","sourceSha256":topix[-1]["_sourceHash"],
-                    "publicationEvidence":store.source(topix[-1]["_sourceHash"])["availabilityContract"]["evidenceReference"],
-                    "availableAt":store.available_at(topix[-1],"TOPIX")}
+    market_native, market_external = global_market_facts(store,session)
+    native.update(market_native)
+    external.update(market_external)
     earnings = current_earnings_versions(known_records(store,"EARNINGS_DATE",session,code))
     if earnings:
         upcoming = [r for r in earnings if r.get("SchDate") not in NULLS and r["SchDate"] >= session]
@@ -272,14 +288,14 @@ def previous_market_context(store, session, previous, masters, calendar):
             bad_dates.setdefault(code,[]).append(date)
         for r in records:
             factor = r.get("AdjFactor")
-            if (parse_ohlcv(r)["status"] != "TRADED" or factor in NULLS
+            if (price_row(store,r)["status"] != "TRADED" or factor in NULLS
                     or number(factor) != 1):
                 bad_dates.setdefault(r["Code"],[]).append(date)
     returns = {n:{} for n in periods}
     for n, old in old_maps.items():
         for code in peer:
             a,b = last.get(code),old.get(code)
-            if not a or not b or parse_ohlcv(a)["status"] != "TRADED" or parse_ohlcv(b)["status"] != "TRADED":
+            if not a or not b or price_row(store,a)["status"] != "TRADED" or price_row(store,b)["status"] != "TRADED":
                 continue
             boundary=calendar[ix-n]
             if any(boundary < d <= previous for d in bad_dates.get(code,[])):
@@ -326,6 +342,9 @@ def previous_market_context(store, session, previous, masters, calendar):
 def snapshot_rows(store, sessions, calendar, ineligible):
     previous = dict(zip(calendar[1:],calendar[:-1]))
     config = PreopenConfig()
+    calendar_ix = {d:i for i,d in enumerate(calendar)}
+    calendar_set = set(calendar)
+    cache = getattr(store,"build_read_cache",None)
     for session in sessions:
         if session not in previous:
             raise PreopenError("NO_ACTUAL_PREVIOUS_EXCHANGE_SESSION")
@@ -341,20 +360,20 @@ def snapshot_rows(store, sessions, calendar, ineligible):
         context = previous_market_context(store,session,prev,eligible_master,calendar)
         for master in eligible_master:
             code = master["Code"]
-            history = list(store.records("DAILY",code=code,before=session))
-            history = [r for r in history if r["Date"] in calendar]
+            history = (cache.daily_history(code,session) if cache is not None
+                       else list(store.records("DAILY",code=code,before=session)))
+            history = [r for r in history if r["Date"] in calendar_set]
             if not history or history[-1]["Date"] != prev:
                 ineligible["MISSING_PRIOR_DAY_PRICE"] += 1
                 continue
-            if parse_ohlcv(history[-1])["status"] != "TRADED":
+            if price_row(store,history[-1])["status"] != "TRADED":
                 ineligible["PRIOR_DAY_NULL_NO_PRICE"] += 1
                 continue
             # Reset at gaps, Nulls and un-reconstructable split/rights boundaries.
             # No restated AdjC, no stitched mechanical 50% collapse, no fill.
             last_reset = -1
-            calendar_ix = {d:i for i,d in enumerate(calendar)}
             for i, row in enumerate(history):
-                if (parse_ohlcv(row)["status"] != "TRADED"
+                if (price_row(store,row)["status"] != "TRADED"
                         or (i and calendar_ix[row["Date"]] != calendar_ix[history[i-1]["Date"]]+1)):
                     last_reset = i
                 factor = row.get("AdjFactor")
@@ -364,7 +383,7 @@ def snapshot_rows(store, sessions, calendar, ineligible):
             if not history:
                 ineligible["NO_CAUSAL_COMPARABLE_HISTORY"] += 1
                 continue
-            daily = [{**parse_ohlcv(r),"session":r["Date"],"availableAt":store.available_at(r,"DAILY")}
+            daily = [{**price_row(store,r),"session":r["Date"],"availableAt":store.available_at(r,"DAILY")}
                      for r in history]
             if number(daily[-1]["close"]) <= config.minimum_prior_price_jpy:
                 ineligible["PRIOR_PRICE_NOT_GREATER_THAN_75"] += 1
@@ -491,8 +510,26 @@ def build_bundle(request, output, *, source_only=False, resume_source=None, resu
             "codeHash":source_code_hash(),"featurePolicyHash":policy_hash(),
             "historyReferenceException":request.get("historyReferenceException"),
             "marketFits":0,"reportLabelsEvaluated":False,**SAFE_FLAGS})
+    store.close()
+    indexed_directory,read_request,read_derivation=indexed_read_copies(source_directory,request,output)
+    store=store_class(indexed_directory,private_root=root,request=read_request)
+    install_build_cache(store,calendar)
     inputs, excluded = {}, {}
     splits = admission["exactSplits"]
+    plan = {"contract":CONTRACT,"mode":request["mode"],"splits":splits,
+            "protectedSessions":request.get("protectedSessions",[]),
+            "sourceManifestVerified":True,"existingSealsReconciled":True,
+            "reuseBasisConfirmed":request["mode"] == "AUTHORIZED_DEVELOPMENT",
+            "privateInputsOnly":True,"featureSourceCoverageVerified":True,
+            "liveReadiness":"NOT_CERTIFIED",
+            "sourceManifestSha256":digest(request["sources"]),
+            "exposureLedgerSha256":request["admission"]["sha256"]}
+    if request["mode"] == "AUTHORIZED_DEVELOPMENT":
+        plan["currentReuseEvidence"] = request["currentReuseEvidence"]
+        if request.get("reuseWorkId"):
+            plan["reuseWorkId"] = request["reuseWorkId"]
+    from run_preopen_selector import training_binding
+    train_binding=None
     for role in ("fit","calibration","report"):
         counts = Counter()
         features = (features_with_source_metadata(s) for s in snapshot_rows(store,splits[role],calendar,counts))
@@ -509,6 +546,14 @@ def build_bundle(request, output, *, source_only=False, resume_source=None, resu
                     stream.write(json.dumps(label,ensure_ascii=False,allow_nan=False)+"\n")
             h, size = sha_file(p)
             inputs[role+"_labels"] = {"path":str(p),"sha256":h,"bytes":size}
+        if role == "calibration":
+            train_bundle={"contract":CONTRACT,"privateRoot":str(root),"plan":plan,
+                          "inputs":dict(inputs),"sourceRequestHash":digest(request)}
+            train_binding=training_binding(train_bundle)
+            train_bundle["trainingBindingHash"]=train_binding
+            fixed=write_json(output/"TRAIN_ONLY_BUNDLE.json",train_bundle)
+            print(json.dumps({"status":"TRAIN_ONLY_INPUTS_FIXED","bundle":fixed,
+                              "reportLabelsPassed":False,"marketFits":0}),flush=True)
     # Only a descriptor is written; actual Report price parsing occurs in the
     # runner's outcome stage. History-only reads for later Report snapshots are
     # present in the access receipts and must never be called wholly unopened.
@@ -519,19 +564,12 @@ def build_bundle(request, output, *, source_only=False, resume_source=None, resu
                       "sourceAdmissionHash":request["admission"]["sha256"]}
     inputs["report_labels"] = write_json(output/"REPORT_LABEL_SOURCE_DESCRIPTOR.json",label_manifest)
     inputs["report_labels"]["format"] = "ARK_PREOPEN_NATIVE_LABEL_MANIFEST_V1"
-    plan = {"contract":CONTRACT,"mode":request["mode"],"splits":splits,
-            "protectedSessions":request.get("protectedSessions",[]),
-            "sourceManifestVerified":True,"existingSealsReconciled":True,
-            "reuseBasisConfirmed":request["mode"] == "AUTHORIZED_DEVELOPMENT",
-            "privateInputsOnly":True,"featureSourceCoverageVerified":True,
-            "liveReadiness":"NOT_CERTIFIED",
-            "sourceManifestSha256":digest(request["sources"]),
-            "exposureLedgerSha256":request["admission"]["sha256"]}
-    if request["mode"] == "AUTHORIZED_DEVELOPMENT":
-        plan["currentReuseEvidence"] = request["currentReuseEvidence"]
-        if request.get("reuseWorkId"):
-            plan["reuseWorkId"] = request["reuseWorkId"]
-    bundle = {"contract":CONTRACT,"privateRoot":str(root),"plan":plan,"inputs":inputs}
+    bundle = {"contract":CONTRACT,"privateRoot":str(root),"plan":plan,"inputs":inputs,
+              "sourceReadDerivation":read_derivation,"sourceRequestHash":digest(request),"trainingBindingHash":train_binding}
+    predict_bundle={"contract":CONTRACT,"privateRoot":str(root),"plan":plan,
+                    "sourceRequestHash":digest(request),"trainingBindingHash":train_binding,
+                    "inputs":{"report_snapshots":inputs["report_snapshots"]}}
+    write_json(output/"PREDICT_ONLY_BUNDLE.json",predict_bundle)
     write_json(output/"bundle.json",bundle)
     write_json(output/"NATIVE_ACCESS_LEDGER.json",{
         "schema":"ARK_PREOPEN_NATIVE_BUILD_ACCESS_V1","requestHash":digest(request),

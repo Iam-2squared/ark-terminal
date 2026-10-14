@@ -120,6 +120,35 @@ def _logit(p):
     return np.log(p/(1-p)).reshape(-1, 1)
 
 
+def probability_diagnostics(probabilities, teachers):
+    """Fixed ten equal-width ECE bins; descriptive, never column/model choice."""
+    import numpy as np
+    if not teachers:
+        return {"status":"NOT_MEASURED","labelN":0}
+    result={}
+    for h in HEADS:
+        p=np.asarray(probabilities[h],dtype=np.float64)
+        y=np.asarray([r[h] for r in teachers],dtype=np.float64)
+        if p.shape!=y.shape or not np.isfinite(p).all() or np.any((p<0)|(p>1)):
+            raise PreopenError("INVALID_PROBABILITY_DIAGNOSTIC_INPUT")
+        indexes=np.minimum((p*10).astype(int),9)
+        bins=[];ece=0.0
+        for i in range(10):
+            mask=indexes==i;n=int(mask.sum())
+            mean=float(p[mask].mean()) if n else None
+            observed=float(y[mask].mean()) if n else None
+            if n:ece+=n/len(y)*abs(mean-observed)
+            bins.append({"left":i/10,"right":(i+1)/10,"rightInclusive":i==9,
+                         "N":n,"meanProbability":mean,"observedRate":observed})
+        q=np.clip(p,1e-15,1-1e-15)
+        result[h]={"N":len(y),"positiveN":int(y.sum()),"brier":float(np.mean((p-y)**2)),
+                   "logLoss":float(np.mean(-y*np.log(q)-(1-y)*np.log1p(-q))),
+                   "ece10":ece,"bins":bins}
+    return {"status":"MEASURED_DESCRIPTIVE","labelN":len(teachers),
+            "binPolicy":"TEN_EQUAL_WIDTH_PROBABILITY_BINS_FIXED_BEFORE_FIT","heads":result,
+            "absoluteProbabilityCertified":False}
+
+
 @dataclass
 class PreopenModel:
     models: dict[str, Any]
@@ -242,6 +271,7 @@ def train_preopen_model(fit_rows: list[dict], fit_labels: dict,
         available = None
     X, C = matrix(known_fit, names), matrix(known_cal, names)
     models, calibrators = {}, {}
+    raw_calibration, calibrated_calibration = {}, {}
     with threadpool_limits(limits=1):
         for h in HEADS:
             if execution_event: execution_event("BASE_ESTIMATOR_START",h)
@@ -250,9 +280,15 @@ def train_preopen_model(fit_rows: list[dict], fit_labels: dict,
             if execution_event: execution_event("BASE_ESTIMATOR_COMPLETE",h)
             calibration = LogisticRegression(C=1.0, solver="lbfgs", max_iter=1000)
             if execution_event: execution_event("CALIBRATION_START",h)
-            calibration.fit(_logit(estimator.predict_proba(C)[:, 1]), [y[h] for y in cal_y])
+            raw_calibration[h]=estimator.predict_proba(C)[:, 1]
+            calibration.fit(_logit(raw_calibration[h]), [y[h] for y in cal_y])
             if execution_event: execution_event("CALIBRATION_COMPLETE",h)
             models[h], calibrators[h] = estimator, calibration
+            calibrated_calibration[h]=calibration.predict_proba(_logit(raw_calibration[h]))[:,1]
+    final_calibration=dict(calibrated_calibration)
+    for heads in ([f"up{k}" for k in UP],[f"down{k}" for k in DOWN]):
+        final=np.minimum.accumulate(np.column_stack([calibrated_calibration[h] for h in heads]),axis=1)
+        for j,h in enumerate(heads):final_calibration[h]=final[:,j]
     receipt = {"schema": "ARK_PREOPEN_TRAINING_RECEIPT_V1", "contract": CONTRACT,
                "labelId": LABEL, "mode": plan["mode"], "planHash": digest(plan),
                "featureSchemaHash": digest(all_names), "usedFeatureSchemaHash": digest(names),
@@ -275,6 +311,12 @@ def train_preopen_model(fit_rows: list[dict], fit_labels: dict,
                "syntheticFits": 10 if plan["mode"] == "SYNTHETIC" else 0,
                "sklearnVersion": sklearn.__version__, "numpyVersion": np.__version__,
                "rankIsExpectedReturn": False, "productionReady": False,
+               "calibrationDiagnostics":{
+                   "rawBaseProbabilities":probability_diagnostics(raw_calibration,cal_y),
+                   "separateCalibratorsBeforeEnvelope":probability_diagnostics(calibrated_calibration,cal_y),
+                   "finalAfterMinEnvelope":probability_diagnostics(final_calibration,cal_y),
+                   "sameCalibrationLabelsUsedToFitCalibrators":True,
+                   "heldOutGeneralizationAssessment":False},
                "reportConsumedByFit": False, "executionAllowed": False,
                "monotonicity": "MIN_ENVELOPE_AFTER_SEPARATE_CALIBRATION"}
     from preopen_feature_policy import policy_hash

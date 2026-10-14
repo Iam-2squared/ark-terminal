@@ -12,6 +12,7 @@ import gzip
 import hashlib
 import json
 import random
+import uuid
 from collections import defaultdict
 from pathlib import Path
 from fractions import Fraction
@@ -24,6 +25,38 @@ from preopen_model import load_private_model
 from preopen_io import private_path, verify_entry, read_jsonl, write_json, utc_now, SAFE_FLAGS
 
 ROLES = tuple(f"{s}_{t}" for s in ("fit","calibration","report") for t in ("snapshots","labels"))
+PROCESS_INSTANCE_ID = uuid.uuid4().hex
+
+
+def training_binding(bundle):
+    learning={k:v for k,v in bundle["inputs"].items() if k.startswith(("fit_","calibration_"))}
+    if not learning:
+        value=bundle.get("trainingBindingHash")
+        if not isinstance(value,str) or len(value)!=64:
+            raise PreopenError("PREDICTION_TRAINING_BINDING_REQUIRED")
+        return value
+    value=digest({"contract":bundle["contract"],"privateRoot":bundle["privateRoot"],
+                   "plan":bundle["plan"],"inputs":learning,
+                   "sourceRequestHash":bundle.get("sourceRequestHash")})
+    if "trainingBindingHash" in bundle and bundle["trainingBindingHash"]!=value:
+        raise PreopenError("TRAINING_BINDING_HASH_DRIFT")
+    return value
+
+
+def bind_watchlist_provenance(watch, rows, model_receipt, input_entry):
+    """Bind selection metadata after ranking; it never changes eligibility."""
+    bykey={row_key(r):r for r in rows}
+    for item in watch["items"]:
+        row=bykey[row_key(item)]
+        item.update({"sector":row.get("sector","UNKNOWN"),"cutoff":watch["cutoff"],
+            "modelHash":model_receipt["modelFileSha256"],"codeHash":model_receipt["codeHash"],
+            "inputManifestHash":input_entry["sha256"],
+            "qualityState":"RESEARCH_SOURCE_COMPLETE" if not row.get("missingRequiredSources") else "RESEARCH_SOURCE_MISSING",
+            "missingRequiredSources":row.get("missingRequiredSources",[])})
+    watch.update(modelHash=model_receipt["modelFileSha256"],codeHash=model_receipt["codeHash"],
+                 inputManifestHash=input_entry["sha256"])
+    watch["watchlistHash"]=digest({k:v for k,v in watch.items() if k!="watchlistHash"})
+    return watch
 
 
 def load_verified_input(entry: dict, private_root: Path) -> list[dict]:
@@ -90,8 +123,14 @@ def bootstrap_day_deltas(daily: list[dict], draws=2000, seed=20261012) -> dict:
             "allSelectedHitRateDelta95PctPoints":result}
 
 
-def preflight_bundle(bundle: dict, output: Path) -> Path:
-    if bundle.get("contract") != CONTRACT or set(bundle.get("inputs",{})) != set(ROLES):
+def preflight_bundle(bundle: dict, output: Path, *, stage=None) -> Path:
+    roles=set(bundle.get("inputs",{}))
+    expected={"train":{"fit_snapshots","fit_labels","calibration_snapshots","calibration_labels"},
+              "predict":{"report_snapshots"},"evaluate":set(ROLES)}.get(stage,set(ROLES))
+    market=bundle.get("plan",{}).get("mode")=="AUTHORIZED_DEVELOPMENT"
+    if market and stage in ("train","predict") and roles!=expected:
+        raise PreopenError("REPORT_LABEL_INPUTS_FORBIDDEN_IN_MARKET_TRAIN_OR_PREDICT")
+    if bundle.get("contract") != CONTRACT or roles not in (expected,set(ROLES)):
         raise PreopenError("INCOMPLETE_PREOPEN_BUNDLE")
     root = Path(bundle["privateRoot"]).resolve()
     private_path(output, root)
@@ -113,7 +152,7 @@ def preflight_bundle(bundle: dict, output: Path) -> Path:
 
 
 def train_bundle(bundle: dict, output: Path) -> dict:
-    private_root = preflight_bundle(bundle, output)
+    private_root = preflight_bundle(bundle, output,stage="train")
     output = private_path(output, private_root)
     if output.exists():
         raise PreopenError("REFUSE_OVERWRITE_RESULT")
@@ -138,6 +177,9 @@ def train_bundle(bundle: dict, output: Path) -> dict:
                              execution_event=execution_event)
     receipt=save_private_model(model,output/"private_model")
     stage={"schema":"ARK_PREOPEN_TRAINING_STAGE_V1","bundleHash":digest(bundle),
+           "processInstanceId":PROCESS_INSTANCE_ID,
+           "trainingBindingHash":training_binding(bundle),"planHash":digest(plan),
+           "sourceRequestHash":bundle.get("sourceRequestHash"),
            "model":receipt,"completedAt":utc_now(),"reportLabelsOpened":False,
            "reportFeatureInputOpened":False, **SAFE_FLAGS}
     write_json(output/"TRAINING_STAGE.json",stage)
@@ -145,10 +187,12 @@ def train_bundle(bundle: dict, output: Path) -> dict:
 
 
 def predict_bundle(bundle: dict, output: Path) -> dict:
-    private_root = preflight_bundle(bundle, output)
+    private_root = preflight_bundle(bundle, output,stage="predict")
     output = private_path(output, private_root)
     stage=json.loads((output/"TRAINING_STAGE.json").read_text())
-    if stage["bundleHash"] != digest(bundle):
+    if (stage.get("trainingBindingHash")!=training_binding(bundle)
+            or stage.get("planHash")!=digest(bundle["plan"])
+            or stage.get("sourceRequestHash")!=bundle.get("sourceRequestHash")):
         raise PreopenError("TRAINING_BUNDLE_CHANGED")
     receipt=stage["model"]
     model=load_private_model(output/"private_model",private_root=private_root,
@@ -160,8 +204,9 @@ def predict_bundle(bundle: dict, output: Path) -> dict:
     for r in rows:groups[r["session"]].append(r)
     watchlists, baselines, universe_keys = [], [], []
     for session, rs in sorted(groups.items()):
-        watchlists.append(model.watchlist(rs))
-        baselines.append(make_watchlist(rs,{row_key(r):r["priorTurnover"] for r in rs}))
+        entry=bundle["inputs"]["report_snapshots"]
+        watchlists.append(bind_watchlist_provenance(model.watchlist(rs),rs,receipt,entry))
+        baselines.append(bind_watchlist_provenance(make_watchlist(rs,{row_key(r):r["priorTurnover"] for r in rs}),rs,receipt,entry))
         universe_keys.append({"session":session,"items":[
             {"key":row_key(r),"featureHash":r["featureHash"]} for r in rs]})
     c=write_json(output/"PRIVATE_WATCHLISTS.json",watchlists)
@@ -169,17 +214,26 @@ def predict_bundle(bundle: dict, output: Path) -> dict:
     u=write_json(output/"PRIVATE_UNIVERSE_KEYS.json",universe_keys)
     prediction={"schema":"ARK_PREOPEN_PREDICTION_STAGE_V1","bundleHash":digest(bundle),
                 "completedAt":utc_now(),"watchlists":c,"baselineWatchlists":b,
-                "eligibleKeys":u,"reportLabelsOpened":False, **SAFE_FLAGS}
+                "eligibleKeys":u,"reportLabelsOpened":False,
+                "trainingBindingHash":training_binding(bundle),
+                "processInstanceId":PROCESS_INSTANCE_ID,
+                "separateProcessTrustedReload":stage.get("processInstanceId")!=PROCESS_INSTANCE_ID,
+                "trustedReload":{"modelFileSha256":receipt["modelFileSha256"],
+                    "featureSchemaHash":receipt["featureSchemaHash"],"codeHash":receipt["codeHash"],
+                    "hashesVerifiedBeforeLocalModelLoad":True}, **SAFE_FLAGS}
     write_json(output/"PREDICTION_STAGE.json",prediction)
     return prediction
 
 
 def evaluate_bundle(bundle: dict, output: Path) -> dict:
-    private_root = preflight_bundle(bundle, output)
+    private_root = preflight_bundle(bundle, output,stage="evaluate")
     output = private_path(output, private_root)
     stage=json.loads((output/"TRAINING_STAGE.json").read_text())
     prediction=json.loads((output/"PREDICTION_STAGE.json").read_text())
-    if stage["bundleHash"] != digest(bundle) or prediction["bundleHash"] != digest(bundle):
+    if (stage.get("trainingBindingHash")!=training_binding(bundle)
+            or prediction.get("trainingBindingHash")!=training_binding(bundle)
+            or stage.get("planHash")!=digest(bundle["plan"])
+            or stage.get("sourceRequestHash")!=bundle.get("sourceRequestHash")):
         raise PreopenError("FIXED_BUNDLE_CHANGED")
     fixed={}
     for role in ("watchlists","baselineWatchlists","eligibleKeys"):
@@ -209,6 +263,8 @@ def evaluate_bundle(bundle: dict, output: Path) -> dict:
     random_up_hits={str(k):Fraction(0) for k in (1,2,3,4,5)}
     random_low_hits={str(k):Fraction(0) for k in (1,2,3,5)}
     random_close_negative=Fraction(0)
+    random_exact_zero=Fraction(0)
+    random_close_hits={str(k):Fraction(0) for k in (1,2,3,5)}
     for candidate in fixed["watchlists"]:
         session=candidate["session"]
         rs=groups[session]
@@ -226,11 +282,25 @@ def evaluate_bundle(bundle: dict, output: Path) -> dict:
                 for k in random_up_hits:random_up_hits[k]+=scale*lab["upHits"][k]
                 for k in random_low_hits:random_low_hits[k]+=scale*lab["lowHits"][k]
                 random_close_negative+=scale*lab["closeNegative"]
+                random_exact_zero+=scale*lab["exactZero"]
+                for k in random_close_hits:random_close_hits[k]+=scale*lab["closeHits"][k]
             else:random_unknown+=scale
     if sum(random_expected.values())+random_unknown != sum(w["selectedN"] for w in fixed["watchlists"]):
         raise PreopenError("EXACT_RANDOM_EXPECTATION_CARDINALITY_MISMATCH")
     from preopen_report import extended_diagnostics, independent_recount, paired_day_uncertainty
     recount=independent_recount(fixed["watchlists"],labels,candidate_rows)
+    metadata={row_key(r):r for r in rows}
+    for row in candidate_rows+baseline_rows:
+        row["sector"]=metadata[row_key(row)].get("sector","UNKNOWN")
+    model=load_private_model(output/"private_model",private_root=private_root,
+        expected_model_sha256=stage["model"]["modelFileSha256"],
+        expected_schema_sha256=stage["model"]["featureSchemaHash"])
+    probabilities=model.probabilities(rows)
+    population=list(evaluate_population(rows,labels).values())
+    from preopen_model import _teacher,probability_diagnostics,HEADS
+    known=[r for r in population if r["status"]=="KNOWN"]
+    final_probability_diagnostics=probability_diagnostics(
+        {h:[probabilities[row_key(r)][h] for r in known] for h in HEADS},[_teacher(r) for r in known])
     summary={"schema":"ARK_PREOPEN_FULL_BATCH_REPORT_V2","contract":CONTRACT,
              "bundleHash":digest(bundle),"mode":bundle["plan"]["mode"],
              "training":stage["model"],"sessions":len(daily),
@@ -244,12 +314,15 @@ def evaluate_bundle(bundle: dict, output: Path) -> dict:
                  "expectedUpHitN":{k:float(v) for k,v in random_up_hits.items()},
                  "expectedLowHitN":{k:float(v) for k,v in random_low_hits.items()},
                  "expectedCloseNegativeN":float(random_close_negative),
+                 "expectedExactZeroN":float(random_exact_zero),
+                 "expectedCloseDownHitN":{k:float(v) for k,v in random_close_hits.items()},
                  "exactBucketRationals":{k:{"numerator":v.numerator,"denominator":v.denominator}
                                          for k,v in random_expected.items()},
                  "exactUnknownRational":{"numerator":random_unknown.numerator,
                                          "denominator":random_unknown.denominator},
                  "expectationsAreNotIntegerRealizedSelections":True},
              "pairedUncertainty":paired_day_uncertainty(daily),
+             "finalReportProbabilityDiagnostics":final_probability_diagnostics,
              "diagnostics":extended_diagnostics(candidate_rows),
              "independentRecount":recount,
              "legacyFrozenComparison":"NOT_EXECUTED_NATIVE_INTRADAY_EVENTS_REQUIRED_LATER_INFO_NOT_FAIR_PREOPEN",
@@ -270,7 +343,7 @@ def run_bundle(bundle: dict, output: Path) -> dict:
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--bundle",required=True)
+    parser.add_argument("--bundle",required=True,help="Market: TRAIN_ONLY_BUNDLE.json / PREDICT_ONLY_BUNDLE.json / bundle.json for the matching stage")
     parser.add_argument("--output",required=True)
     parser.add_argument("--stage", choices=("all","train","predict","evaluate"), default="all")
     args=parser.parse_args()

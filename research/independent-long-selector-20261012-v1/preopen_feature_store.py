@@ -125,6 +125,9 @@ def write_feature_store(rows, directory, *, private_root, input_manifest_hash,
             body = {k:v for k,v in row.items() if k != "features"}
             meta.write(json.dumps(body,ensure_ascii=False,allow_nan=False,sort_keys=True)+"\n")
             count += 1
+            if count % 5000 == 0:
+                print(json.dumps({"featurePartition":directory.name,"completedRows":count,
+                    "schemaColumns":len(columns),"dtype":"FLOAT64"}),flush=True)
     columns = columns or tuple(schema_if_empty)
     for p in (matrix_file, metadata_file):
         with p.open("rb") as stream:

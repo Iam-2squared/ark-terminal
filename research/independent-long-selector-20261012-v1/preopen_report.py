@@ -99,7 +99,7 @@ def extended_diagnostics(rows):
             "meanHitsPerSession": sum(hits)/len(hits) if hits else None,
             "allSelectedRatePctDistribution": sorted(rates)}
     strata={}
-    for field in ("marketSegment","sizeCategory","priorLiquidityGroup","priorRegime"):
+    for field in ("marketSegment","sector","sizeCategory","priorLiquidityGroup","priorRegime"):
         groups=defaultdict(list)
         for r in rows:groups[str(r.get(field,"UNKNOWN"))].append(r)
         strata[field]={k:{**summarize_open_high(v),

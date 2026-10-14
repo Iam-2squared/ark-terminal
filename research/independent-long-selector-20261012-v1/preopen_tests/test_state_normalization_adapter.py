@@ -2,10 +2,27 @@ import unittest
 import sys
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from generate_preopen_state import normalized_coordinates,terminal_segment
+from generate_preopen_state import normalized_coordinates,terminal_segment,state_bar
 from preopen_selector import PreopenError
 
 class CausalNormalization(unittest.TestCase):
+    def test_frozen_bar_receives_interval_tag_and_valid_closed_time(self):
+        from dataclasses import dataclass
+        from decimal import Decimal
+        @dataclass
+        class StrictBar:
+            t:int;o:Decimal;h:Decimal;l:Decimal;c:Decimal;known_at:int;source:str;auction:str
+            def valid(self):
+                return (type(self.t) is int and self.known_at==self.t
+                        and self.l<=min(self.o,self.c)<=max(self.o,self.c)<=self.h
+                        and isinstance(self.auction,str) and bool(self.auction))
+        t,bar=state_bar({'Time':'15:24'}, {'O':'-1','H':'2','L':'-2','C':'1'},StrictBar,Decimal)
+        self.assertEqual(t,925)
+        self.assertEqual(bar.auction,'CONTINUOUS_PM')
+        self.assertTrue(bar.valid())
+        with self.assertRaisesRegex(PreopenError,'STATE_NORMALIZED_BAR_SCHEMA_REJECTED'):
+            state_bar({'Time':'15:24'}, {'O':'-1','H':'0','L':'-2','C':'1'},StrictBar,Decimal)
+
     def test_constant_series_has_fixed_positive_scale_and_exact_origin(self):
         previous=[{'Date':'2024-11-13','Time':t,'O':'100','H':'100','L':'100','C':'100'} for t in ('12:30','12:31','12:32','12:33','15:30')]
         current=[{'O':'100','H':'101','L':'99','C':'100'}]

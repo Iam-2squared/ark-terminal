@@ -180,6 +180,9 @@ class CompactNativeStore(NativeStore):
             self.connection.execute("INSERT INTO compact_intraday VALUES(?,?,?,?,?)",
                 (ds,key[0],key[1],source["sha256"],packed))
             counts["compressedDerivedBytes"] += len(packed)
+            if counts["derivedSecurityDays"] % 5000 == 0:
+                print(json.dumps({"dataset":ds,"completedSecurityDays":counts["derivedSecurityDays"],
+                                  "admittedRecords":counts["admittedRows"]}),flush=True)
         with self.connection:
             with open_original_records(path,source) as (reader, integrity):
                 for ordinal, row in enumerate(reader,2):

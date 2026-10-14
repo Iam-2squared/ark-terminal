@@ -61,7 +61,24 @@ class FeatureStore(Sequence):
         self.indexes = {k: i for i,k in enumerate(self.columns)}
         data_path = verify_entry(self.manifest["matrix"], private_root)
         meta_path = verify_entry(self.manifest["metadata"], private_root)
-        self.rows = [json.loads(x) for x in meta_path.read_text().splitlines() if x.strip()]
+        # Avoid simultaneously holding a full metadata string, split copies and
+        # parsed dictionaries. Repeated missingness patterns share one mapping;
+        # values, reason names and row identity are unchanged.
+        import sys
+        patterns = {}
+        self.rows = []
+        def shared_keys(pairs):
+            return {sys.intern(k):v for k,v in pairs}
+        with meta_path.open(encoding="utf-8") as stream:
+            for line in stream:
+                if not line.strip():
+                    continue
+                row = json.loads(line, object_pairs_hook=shared_keys)
+                missing = row.get("missingReasons")
+                if missing is not None:
+                    key = tuple(sorted((k,sys.intern(v)) for k,v in missing.items()))
+                    row["missingReasons"] = patterns.setdefault(key,dict(key))
+                self.rows.append(row)
         count = self.manifest["rowN"]
         if len(self.rows) != count or self.manifest["matrix"]["bytes"] != count*len(self.columns)*8:
             raise PreopenError("COLUMNAR_CARDINALITY_OR_BYTES")

@@ -84,6 +84,22 @@ def current_earnings_versions(rows):
     return list(latest.values())
 
 
+def latest_financial_record(rows):
+    """DiscNo is an identifier, not an ordering guarantee.
+
+    Simultaneous disclosures may contain different document/period payloads.
+    Preserve uncertainty instead of choosing the lexicographically largest id.
+    Only exact business-payload duplicates can share one current observation.
+    """
+    if not rows:
+        return None
+    timestamp = max((r["DiscDate"],r["DiscTime"]) for r in rows)
+    candidates = [r for r in rows if (r["DiscDate"],r["DiscTime"]) == timestamp]
+    ignored = {"DiscNo", "_sourceHash", "_ordinal", "_sourceCode"}
+    payloads = {digest({k:v for k,v in r.items() if k not in ignored}) for r in candidates}
+    return candidates[0] if len(payloads) == 1 else None
+
+
 def ordinary_stock_master(store, session, masters):
     domestic = [r for r in masters if r.get("Mkt") in MARKETS and r.get("ProdCat") == "011"]
     if store.request["mode"] == "SYNTHETIC":
@@ -125,8 +141,8 @@ def ordinary_stock_master(store, session, masters):
 def optional_facts(store, session, code):
     native, external = {}, {}
     financial = known_records(store,"FIN_SUMMARY",session,code)
-    if financial:
-        latest = max(financial,key=lambda r:(r["DiscDate"],r["DiscTime"],r.get("DiscNo","")))
+    latest = latest_financial_record(financial)
+    if latest is not None:
         for field in FIN_COLUMNS:
             if field in FIN_EXTERNAL_ALIASES:
                 continue
@@ -149,8 +165,8 @@ def optional_facts(store, session, code):
             prior = [r for r in financial if r.get("CurPerEn") == target_prefix
                      and r.get("CurPerType") == latest.get("CurPerType")
                      and r.get("DocType") == latest.get("DocType")]
-            if prior:
-                earlier = max(prior,key=lambda r:(r["DiscDate"],r["DiscTime"],r.get("DiscNo","")))
+            earlier = latest_financial_record(prior)
+            if earlier is not None:
                 for col, name in (("Sales","fin_sales_yoy_pct"),("OP","fin_operating_profit_yoy_pct"),
                                   ("OdP","fin_ordinary_profit_yoy_pct"),("NP","fin_net_profit_yoy_pct"),
                                   ("EPS","fin_eps_growth_pct")):
@@ -388,7 +404,7 @@ def snapshot_rows(store, sessions, calendar, ineligible):
                    "sizeCategory":master.get("ScaleCat")}
 
 
-def build_bundle(request, output):
+def build_bundle(request, output, *, source_only=False, resume_source=None):
     root = Path(request["privateRoot"]).resolve()
     output = private_path(output,root)
     if request.get("intendedUse") == "SOURCE_CANARY_ONLY":
@@ -414,8 +430,36 @@ def build_bundle(request, output):
         store_class = CompactNativeStore
     else:
         store_class = NativeStore
-    store = store_class(output/"native_shards",private_root=root,request=request)
-    receipts = [store.ingest(s) for s in request["sources"]]
+    source_directory = output/"native_shards"
+    if resume_source is not None:
+        receipt = json.loads(verify_entry(resume_source,root).read_text())
+        if (receipt.get("schema") != "ARK_PREOPEN_FULL_SOURCE_STAGE_V1"
+                or receipt.get("sourcesHash") != digest(request["sources"])
+                or receipt.get("admissionSha256") != request["admission"]["sha256"]
+                or receipt.get("calendarSha256") != request["calendar"]["sha256"]
+                or receipt.get("completedSourceN") != len(request["sources"])):
+            raise PreopenError("RESUME_SOURCE_STAGE_BINDING_MISMATCH")
+        source_directory = verify_entry(receipt["database"],root).parent
+    store = store_class(source_directory,private_root=root,request=request)
+    receipts=[]
+    for i,s in enumerate(request["sources"],1):
+        if source_only:
+            print(json.dumps({"sourceIndex":i,"sourceN":len(request["sources"]),"dataset":s["dataset"],"status":"SOURCE_START"}),flush=True)
+        receipts.append(store.ingest(s))
+        if source_only:
+            print(json.dumps({"sourceIndex":i,"dataset":s["dataset"],"status":"SOURCE_COMPLETE", "counts":receipts[-1].get("counts",{})}),flush=True)
+    if source_only:
+        store.close()
+        h,size=sha_file(source_directory/"sources.sqlite")
+        from preopen_feature_policy import source_code_hash,policy_hash
+        return write_json(output/"SOURCE_STAGE_RECEIPT.json",{
+            "schema":"ARK_PREOPEN_FULL_SOURCE_STAGE_V1","sourcesHash":digest(request["sources"]),
+            "admissionSha256":request["admission"]["sha256"],"calendarSha256":request["calendar"]["sha256"],
+            "completedSourceN":len(receipts),"originals":receipts,
+            "database":{"path":str(source_directory/"sources.sqlite"),"sha256":h,"bytes":size},
+            "codeHash":source_code_hash(),"featurePolicyHash":policy_hash(),
+            "historyReferenceException":request.get("historyReferenceException"),
+            "marketFits":0,"reportLabelsEvaluated":False,**SAFE_FLAGS})
     inputs, excluded = {}, {}
     splits = admission["exactSplits"]
     for role in ("fit","calibration","report"):
@@ -471,9 +515,15 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--request",required=True)
     p.add_argument("--output",required=True)
+    p.add_argument("--source-only",action="store_true",help="Admit source shards without features or market fit")
+    p.add_argument("--resume-source",help="JSON descriptor of a verified completed source-stage receipt")
     a = p.parse_args()
     request = json.loads(Path(a.request).read_text())
-    b = build_bundle(request,Path(a.output))
+    resume = json.loads(Path(a.resume_source).read_text()) if a.resume_source else None
+    b = build_bundle(request,Path(a.output),source_only=a.source_only,resume_source=resume)
+    if a.source_only:
+        print(json.dumps({"status":"PRIVATE_FULL_SOURCE_STAGE_WRITTEN","receipt":b,"marketFits":0}))
+        return
     print(json.dumps({"status":"PRIVATE_NATIVE_BUNDLE_WRITTEN","mode":request["mode"],
                       "roleDays":{k:len(v) for k,v in b["plan"]["splits"].items()},
                       "marketFitN":0,"reportLabelEvaluationOpened":False},sort_keys=True))

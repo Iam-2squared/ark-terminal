@@ -179,7 +179,7 @@ def main(args):
     require(args.out_dir.is_dir() and not args.out_dir.is_symlink(),
             "NO11_SELECTOR_PROXY_OUTPUT_DIR_UNSAFE")
     original = safe_file(args.original_symbols,250000)
-    full=original.decode("utf8-sig").splitlines()
+    full=original.decode("utf-8-sig").splitlines()
     require(len(full)==EXPECTED_TOTAL[0] and full[20:]==load_symbols(args.original_symbols),
             "NO11_SELECTOR_PROXY_MASTER_INVALID")
     audit=strict_json(args.audit_report,AUDIT_SHA256,200000)

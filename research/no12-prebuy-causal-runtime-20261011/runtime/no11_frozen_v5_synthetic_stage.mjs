@@ -55,30 +55,39 @@ export function runNo11SyntheticOriginalCapitalV5({
      'NO11_CAPITAL_V5_UNBOUND_OR_INCONSISTENT_PREBUY_RANK');
    sourceById.set(row.entry_id,row);
  }
- const executable=pythonExecutable||
-   (process.platform==='win32'?'python':'python3');
- checked(typeof executable==='string'&&
-   /^[A-Za-z0-9._:-]{2,32}$/.test(executable),
+ checked(pythonExecutable===null||
+   (typeof pythonExecutable==='string'&&
+    /^[A-Za-z0-9._:-]{2,32}$/.test(pythonExecutable)),
    'NO11_CAPITAL_V5_PYTHON_EXECUTABLE_UNSAFE');
- const run=spawnSync(executable,['-B',fileURLToPath(EXECUTABLE)],{
-   input:JSON.stringify(request)+'\n',encoding:'utf8',
-   timeout:30000,maxBuffer:1024*1024,windowsHide:true
- });
- if(run.status!==0){
+ // User Windows machines commonly have only the py -3.12 launcher; CI
+ // machines may instead expose python. No shell and no arbitrary commands.
+ const choices=pythonExecutable!==null
+   ? [{exe:pythonExecutable,base:['-B']}]
+   : process.platform==='win32'
+     ? [{exe:'py',base:['-3.12','-B']},{exe:'python',base:['-B']}]
+     : [{exe:'python3',base:['-B']},{exe:'python',base:['-B']}];
+ let run=null,output=null;
+ for(const choice of choices){
+   run=spawnSync(choice.exe,[...choice.base,fileURLToPath(EXECUTABLE)],{
+     input:JSON.stringify(request)+'\n',encoding:'utf8',
+     timeout:30000,maxBuffer:1024*1024,windowsHide:true
+   });
+   try{output=JSON.parse(run.stdout);}catch{output=null;}
+   if(output?.status==='BLOCKED')break; // real fail-closed result; no fallback
+   if(run.status===0&&
+      output?.schemaId==='ARK_NO11_FROZEN_CAPITAL_V5_OFFLINE_RESULT_V1')
+     break;
+ }
+ if(run?.status!==0){
    // The frozen synthetic bridge emits a bounded code, never private values.
    let reason='UNKNOWN';
-   try{
-     const e=JSON.parse(run.stdout);
-     if(e.status==='BLOCKED'&&typeof e.reason==='string'&&
-        /^[A-Z][A-Z0-9_]{2,100}$/.test(e.reason))
-       reason=e.reason;
-   }catch{}
+   if(output?.status==='BLOCKED'&&typeof output.reason==='string'&&
+      /^[A-Z][A-Z0-9_]{2,100}$/.test(output.reason))
+     reason=output.reason;
    bad('NO11_CAPITAL_V5_ORIGINAL_PYTHON_GATE_FAILED:'+reason);
  }
- let output;
- try{output=JSON.parse(run.stdout);}catch{
-   bad('NO11_CAPITAL_V5_PYTHON_RESULT_NOT_JSON');
- }
+ checked(output&&typeof output==='object',
+   'NO11_CAPITAL_V5_PYTHON_RESULT_NOT_JSON');
  checked(output?.schemaId==='ARK_NO11_FROZEN_CAPITAL_V5_OFFLINE_RESULT_V1'&&
    output.status==='SYNTHETIC_SHADOW_ONLY'&&
    output.strategyFreezeCommit===FREEZE&&

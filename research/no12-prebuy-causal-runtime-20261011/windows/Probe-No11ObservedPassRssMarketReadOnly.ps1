@@ -97,7 +97,7 @@ if($now.TimeOfDay -lt [timespan]::Parse('09:00:00') -or
    $now.TimeOfDay -gt [timespan]::Parse('15:30:00')){
  throw 'NO11_QWATCH_MARKET_SESSION_ONLY'
 }
-$planExpression='import {lastCompletedSession,jstNow} from "./research/no12-prebuy-causal-runtime-20261011/runtime/no11_rss_daily_trend_census.mjs";console.log(lastCompletedSession(jstNow()));'
+$planExpression='import {lastCompletedSession,jstNow} from "./research/no12-prebuy-causal-runtime-20261011/runtime/no11_rss_daily_trend_census.mjs";import {isJpxCashTradingDay} from "./research/no12-prebuy-causal-runtime-20261011/runtime/jpx_cash_calendar_2026_2027.mjs";const now=jstNow();if(!isJpxCashTradingDay(now.slice(0,10)))throw Error("NO11_QWATCH_NOT_CASH_TRADING_DAY");console.log(lastCompletedSession(now));'
 Push-Location $rootRepo
 try{$expectedPrior=[string](& node --input-type=module -e $planExpression)}
 finally{Pop-Location}
@@ -170,9 +170,11 @@ public static class No11QuoteWatchWindow {
   throw 'NO11_QWATCH_ORIGINAL_WORKBOOK_IDENTITY_INVALID'
  }
  $stage='RSS_CAPACITY'
- # Conservative upper bound: one occupied quote symbol per original RssMarket formula.
- # Account cell VALUES are never read. This can overcount and safely block.
- $existing=0
+ # Count unique quoted symbols, not formula cells, to avoid three-field overcount.
+ # Unknown/dynamic formula codes each reserve one conservative extra slot.
+ # Account cell VALUES are never read.
+ $existingSymbols=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+ $opaque=0
  foreach($wb in @($account,$market)){
   foreach($ws in $wb.Worksheets){
    $used=$ws.UsedRange
@@ -184,11 +186,19 @@ public static class No11QuoteWatchWindow {
    }
    if($null -ne $cells){
     foreach($cell in $cells.Cells){
-     if([string]$cell.Formula -match '(?i)RssMarket\s*\('){$existing++}
+     $formula=[string]$cell.Formula
+     if($formula -match '(?i)RssMarket\s*\('){
+      if($formula -match '(?i)RssMarket\s*\(\s*"([0-9A-Z]{4}\.T)"\s*,'){
+       [void]$existingSymbols.Add($Matches[1])
+      }else{$opaque++}
+     }
     }
    }
   }
  }
+ $existing=0
+ foreach($sym in $existingSymbols){if($sym -notin $symbols){$existing++}}
+ $existing+=$opaque
  if($existing+$symbols.Count -gt 500){throw 'NO11_QWATCH_EXISTING_MARKET_LIMIT'}
  $stage='TEMP_WORKBOOK'
  $book=$excel.Workbooks.Add()
@@ -196,13 +206,17 @@ public static class No11QuoteWatchWindow {
  $sheet.Name='ARK_NO11_PASS_QUOTES'
  $sheet.Cells.Item(1,1).Value2='PUBLIC_SYMBOL'
  for($j=0;$j -lt $fields.Count;$j++){$sheet.Cells.Item(1,$j+2).Value2=('FIELD_'+$j)}
+ # Populate 348x4 worksheet entries with ONE bulk COM assignment, not
+ # 1,000+ individual COM writes. This also reduces RSS-startup lag/overhead.
+ $grid=[Array]::CreateInstance([object],$symbols.Count,4)
  for($i=0;$i -lt $symbols.Count;$i++){
-  $row=$i+2;$symbol=$symbols[$i]
-  $sheet.Cells.Item($row,1).Value2=$symbol
+  $symbol=$symbols[$i]
+  $grid.SetValue($symbol,$i,0)
   for($j=0;$j -lt $fields.Count;$j++){
-   $sheet.Cells.Item($row,$j+2).Formula=(QuoteFormula $symbol $fields[$j])
+   $grid.SetValue((QuoteFormula $symbol $fields[$j]),$i,$j+1)
   }
  }
+ $sheet.Range(('A2:D{0}' -f ($symbols.Count+1))).Formula=$grid
  $stage='RSS_WARMUP'
  Start-Sleep -Seconds $WarmupSeconds
  $stage='CAPTURE_QUOTES'

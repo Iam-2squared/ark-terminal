@@ -1,52 +1,47 @@
 {
-  "schema": "ARK_V2_MODE_A_REMAINING_APPROVAL_BLOCKERS_V1",
-  "engineering_implementation": "CONNECTED_APPROVED_CONTRACT_ROUTE_WITH_ARTIFICIAL_TESTS",
-  "market_execution_ready": false,
-  "market_candidates": 0,
-  "market_fits": 0,
-  "market_calibrations": 0,
-  "not_adopted": [
-    "REAL_DAILY_MASTER_SOURCE_PROFILE",
-    "OPTIONAL_SOURCE_JOINS"
+  "after_blockers": [
+    "Run header/date/identity-only source inspection for fixed scope.",
+    "Confirm exact units/RAW/dated master/lot/corporate-action suffix and SCHEDULE_ASSUMED knownAt separately from capture time.",
+    "Pin actual source profiles and full MODE B precommit in the OS owner runtime channel.",
+    "Run FIT120/CAL20 census with zero market fits.",
+    "Only after PASS bind MODE C to census and reserve at most 1 candidate/2 fits/2 calibrations."
   ],
-  "not_installed": [
-    "OS_OWNER_CHANNEL_FOR_DEDICATED_NONROOT_WORKER"
-  ],
-  "not_authorized": [
-    "MODE_B",
-    "MODE_C"
-  ],
-  "not_measured": [
-    "GATE_CENSUS",
-    "TEACHER_SUPPORT",
-    "VALIDATION",
-    "FINAL",
-    "PREDICTIVE_QUALITY"
-  ],
+  "automaticPromotionAllowed": false,
   "blockers": [
     {
-      "id": "PROTECTED_LATEST_WINDOW",
-      "kind": "APPROVAL_REQUIRED",
-      "detail": "Proposed study200/reference45 overlap existing protectedHoldout. No gap skip, fallback or release."
+      "bytes": 51429816,
+      "evidence": "Connector returns empty base64 for >1MiB files; blob route is UTF8-only. Private CLI clone lacks credentials.",
+      "id": "PRIVATE_SAVED_BINARY_TRANSPORT",
+      "kind": "ACTUAL_TRANSPORT_FAILURE",
+      "objects": 24,
+      "resolution": "Use an already-authenticated owner GitHub CLI/SDK or authorized private filesystem mount to restore the exact saved 24 blobs; no provider acquisition or repeat upload."
     },
     {
-      "id": "SOURCE_MEANING_AND_COVERAGE",
-      "kind": "AUTHORIZED_INSPECTION_REQUIRED",
-      "detail": "42 object hashes bound; actual record dates, exact CSV profiles, dated type/lot/identity, RAW suffix and historical knownAt need verified contracts."
-    },
-    {
-      "id": "V2_RIGHTS_EXPOSURE_SEALS",
-      "kind": "APPROVAL_METADATA_REQUIRED",
-      "detail": "V2 purpose allowlists/current use basis, REPORT19 exact map, other seals and cross-research human/model exposure unresolved."
-    },
-    {
-      "id": "OWNER_HOST_DEPLOYMENT",
-      "kind": "OWNER_INSTALLATION_REQUIRED",
-      "detail": "Fixed root-owned OS config and dedicated nonroot worker not installed. Request JSON/environment cannot grant authority."
+      "command": "useradd --system --no-create-home --shell /usr/sbin/nologin ark-v2-worker",
+      "error": "Cannot open audit interface - aborting.",
+      "exit_code": 1,
+      "id": "OWNER_WORKER_OS_INSTALL",
+      "kind": "ACTUAL_OS_FAILURE",
+      "resolution": "An owner administrator on a host supporting normal account management installs the dedicated worker, read-only root code/source metadata, and an independent durable journal; verify across restart before runtime admission."
     }
   ],
-  "next_mode_B": "Separate explicit owner approval for exact FIT120/CAL20/reference census; fit0; VALIDATION/FINAL teachers remain sealed.",
-  "next_mode_C": "Only after MODE B PASS and separately pinned owner approval:1 candidate/2 fits/2 calibrations.",
+  "brokerWriteAllowed": false,
+  "entryAllowed": false,
+  "excelOrderWriteAllowed": false,
+  "executionAllowed": false,
+  "liveTradingAllowed": false,
+  "market_calibrations": 0,
+  "market_candidates": 0,
+  "market_fits": 0,
+  "new_conversational_scope_approval_required": false,
+  "owner_intent": "REGISTERED_NOT_ANOTHER_CONSENT_REQUEST",
+  "paperTradingAllowed": false,
+  "productionReady": false,
+  "productionUpdateAllowed": false,
   "raw_reupload_required": false,
-  "source_reference": "MODE_A_CONNECTION_COMPLETION-ja.md"
+  "rssOrderFunctionAllowed": false,
+  "runtime_owner_channel_installed": false,
+  "schema": "ARK_V2_MODE_B_ACTUAL_BOOTSTRAP_BLOCKERS_V1",
+  "transmitted": false,
+  "unknown_exposure_policy": "UNKNOWN_EXPOSURE_FRESH_OOS_CREDIT_ZERO_NOT_A_CENSUS_STOP"
 }

@@ -58,7 +58,7 @@ jobs:
         run: |
           python -m compileall -q research/preopen-selector-v2-20261014
           cd research/preopen-selector-v2-20261014
-          python -m mypy --ignore-missing-imports --follow-imports=silent --cache-dir="$RUNNER_TEMP/v2-mypy" src/ark_selector_v2 tools/v2_cli.py tools/protection_audit.py tools/ci_receipt.py tools/isolated_host_stage.py tools/metadata_window.py
+          python -m mypy --ignore-missing-imports --follow-imports=silent --cache-dir="$RUNNER_TEMP/v2-mypy" src/ark_selector_v2 tools/v2_cli.py tools/protection_audit.py tools/ci_receipt.py tools/isolated_host_stage.py tools/metadata_window.py tools/restore_mode_b_sources.py
       - name: V2 required matrix and additional synthetic contracts
         run: python -m unittest discover -s research/preopen-selector-v2-20261014/tests -p 'test_*.py' -v
       - name: Read-only V1 regressions, separate from V2 counts

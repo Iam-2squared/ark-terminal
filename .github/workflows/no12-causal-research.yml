@@ -106,6 +106,36 @@ jobs:
         run: |
           node --version
           node --test research/no12-prebuy-causal-runtime-20261011/tests/*.test.mjs
+      - name: Set up frozen P1 inference test runtime
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test original P1 scoring and first-cross without private data or fitting
+        shell: bash
+        run: |
+          python -m pip install --quiet --disable-pip-version-check --only-binary=:all: numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0
+          python -B research/no12-prebuy-causal-runtime-20261011/tools/no11_frozen_p1_score_replay.py --self-test
+          python -B -m unittest discover -s research/no12-prebuy-causal-runtime-20261011/tests -p 'test_no11_frozen_p1_*.py' -v
+      - name: Validate frozen P1 Windows launcher without artifacts or network
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Run-No11FrozenP1ScoreReplayReadOnly.ps1 -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO11_FROZEN_P1_WINDOWS_SELFTEST_FAILED' }
+      - name: Exercise Windows P1 missing-artifact report without installing or scoring
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $p1PrivateTest = Join-Path $env:RUNNER_TEMP ('no11-p1-' + [guid]::NewGuid().ToString('N'))
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Run-No11FrozenP1ScoreReplayReadOnly.ps1 -RuntimeOnly -NoDialog -PrivateRoot $p1PrivateTest
+          if ($LASTEXITCODE -ne 2) { throw 'NO11_P1_MISSING_ARTIFACT_MUST_BLOCK' }
+          $p1Reports = @(Get-ChildItem -LiteralPath $p1PrivateTest -Filter 'no11-frozen-p1-score-replay-*.json' -File)
+          if ($p1Reports.Count -ne 1) { throw 'NO11_P1_MISSING_RECEIPT_COUNT' }
+          $p1Receipt = Get-Content -Raw -LiteralPath $p1Reports[0].FullName | ConvertFrom-Json
+          if ($p1Receipt.originalP1ModelsExecuted -ne 0 -or $p1Receipt.orderTransmission -ne $false -or $p1Receipt.productionReady -ne $false) { throw 'NO11_P1_MISSING_RECEIPT_FLAGS' }
+          exit 0
       - name: Validate source contains no Excel order writes, network or live enable
         shell: bash
         run: |

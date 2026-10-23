@@ -1,51 +1,44 @@
-# 新Selector V2 — 市場再開前の接続実装・承認パッケージ
+# 新Selector V2 — MODE A 接続実装完了記録
 
-対象branchは research/preopen-selector-v2-engineering-20261014-r1、Draft PR #594。開始時live HEADは57c7d7f03a44ae7d668e0c973d399ddd773e6071で指定基準と一致。Open/Draft・base V2設計branchを維持する。最終対象HEAD・専用CI run/job/event/headとdecoded log証跡はPR本文へ結合する。
+今回の継続開始HEADは `37eb703065dc1698757dd320e40629dab2e40448`。live PR #594はOpen/Draft、baseはV2設計branchで一致した。以前の57c7d7f…からの工学履歴を保持し、V2専用directoryと専用workflowだけを更新する。最終対象HEAD・専用CI run/job/event/head・decoded logはPR本文へ結合する。
 
-実装状態：旧人工matrix経路を維持し、別のnormalized native経路へ census → train → calibrate → predict → evaluate → restore-verify を接続した。自己宣言JSONは権限にならない。owner原文・承認全体・親承認・precommit・manifest・用途別日付・code/config/schema・budget・artifact producer pinを独立Authorityで照合する。既定CLIはownerチャネルなしでrequest／原本／教師／モデルopen前に拒否する。
+対象HEAD / branch / Draft PR: CURRENT_PR_HEAD / research/preopen-selector-v2-engineering-20261014-r1 / #594 Open/Draft。
+実装状態: normalized nativeに加え、承認profile付き月次CSV.gz slice、固定OS ownerチャネル、独立host journalを実装。通常6工程を別processで試験。実source profileは未採用、OS設定は未設置。
+専用CI run/job/head / テスト数 / PASS・FAIL: CURRENT_PR_HEADの専用runとdecoded job logをPR本文へ記録。V2予定155（既存133＋追加22）、V1 read-only32＋125、mypy33 source files。過去のrunを今回の受入へ流用しない。
+V1/Frozen保護差分: 本作業のwrite0。専用CIで全tree差分・V1 computation hash・旧V2設計byteを検査する。
+parameters_adopted: false。
+V2用途データ許可: MODE B / MODE CともNOT_GRANTED。利用承認済み日数0。
+ゲート実測日数 / 教師support: NOT_MEASURED。
+市場candidate / estimator fit / calibration: 0 / 0 / 0。
+VALIDATION / FINAL: 市場区分ともUNOPENED。
+上昇raw/clean1/3/5・Low3/5: NOT_MEASURED。
+ENGINEERING_PASS: 接続・人工経路の試験と最新専用CIに限定。
+MARKET_MEASUREMENT_COMPLETE: false。
+POINT_TARGETS_MET: NOT_MEASURED。
+STATISTICAL_SUPPORT_ESTABLISHED: false。
+PREDICTIVE_QUALITY: NOT_MEASURED。
+LIVE_READINESS: NOT_CERTIFIED。
+orders / paper / provider requests / main merge / force push: 0 / 0 / 0 / 0 / 0。
+全11安全flag: false。
 
-**市場実行準備完了とは報告しない。** 実在庫の月次CSV.gz正規化adapter、owner管理チャネル実配備、別process間の独立artifact pin永続化、optional44列実sourceは未接続。ORCHESTRATION-ja.mdに工程ごとの接続・未接続範囲とhost interfaceを記録した。
+## 接続・検証
 
-| 検証 | 対象経路 | 今回ローカル結果 |
-|---|---|---|
-| 必須72＋既存追加25 | 従来の純粋関数／契約／fail-closed | 97 PASS |
-| 新規test_n01～test_n36 | 実native RAW/master → gates → CORE95 → teacher → 2HGB → 2温度 → artifact → watchlist → evaluation → restore、承認偽装・用途・保護・未来毒化・予算・fit spy | 36 PASS |
-| V2合計 | 上記全試験 | 133 PASS |
-| V1 read-only回帰 | 元tests／preopen_testsの今回実行 | 32＋125 PASS |
-| type / syntax | V2 srcとtools | mypy28 files PASS / compile PASS |
-| 人工matrix smoke | 従来のfactory専用・別process | 2fit／2cal、1080 trees、復元予測差0 |
-| 人工native CLI E2E | 通常の6 CLI subcommand＋隔離host権限で全工程 | 720 FIT／360 CAL、1予約／2fit／2cal、1080 trees、復元予測差0 |
-| native人工VALIDATION／FINAL | 元点目標を変更しない停止経路 | VALIDATION FAIL、FINAL未開封。試験自体はPASS |
-| 保護diff | V2領域＋専用workflow以外・V1 hash・旧設計bytes | PASS、保護source差分0 |
+`CONNECTION_TEST_MATRIX.json` が追加22試験と月次6process E2Eの対象・期待結果を結ぶ。前日RAW → G0/G1/G2 → 95列 → 別teacher → Risk/Opportunity fit → 較正 → 保存 → 予測 → 評価 → 復元を同じstage実装で通す。test hostは固定factoryを独立再生成してreal row混入を拒否する。
 
-NATIVE_ROUTE_TEST_MATRIX.jsonで試験名と対象経路を対応付けた。SYNTHETIC_TEST_LOG.txt、LOCAL_VERIFICATION_RECEIPT.json、NATIVE_ROUTE_ENGINEERING_RECEIPT.jsonに結果を記録した。開発途中の失敗と修正はVERIFICATION_HISTORY_R2.jsonに残した。実市場再試行は0。
+月次CSVは対象date/purposeを確認してから数値parseする。他日付のpoison価格は数値化0、元ordinalを保持する。独立journalからproducer pinを再読込し、未知pickle、source/outputとの重複、権限不正、symlink、再試行・上書きを拒否する。人工VALIDATIONの目標未達とFINAL未開封は成功経路へ書き換えない。
 
-metadata監査：添付archiveのdirectory、元ファイルmanifest／転送receiptだけを読み、26元ファイルのsource identity・SHA256・bytesを承認パッケージへ結合した。価格payloadの展開・数値parseは0。高水準在庫はDAILY／MASTERが2021-10以後とされるが、正確なrecord日付coverage・calendar object hash／全営業日リストを証明していない。添付masterは2024-10～12の3か月で、この部分集合だけでは200営業日を満たせない。これを全保存原本の欠落とは扱わない。
+ローカルはconnectorから復元したsparse snapshotで、全repoのgit treeとV1実体を備えない。そのため保護全tree試験1本はローカルでは実行不能、full checkoutを備えた専用CIで実行する。これをローカルPASSとして数えない。新しいCIが155全件・保護差分・V1回帰を検証する。
 
-最新在庫端点2026-10-05は既存protectedHoldout（2025-10-01～2026-10-05）内。REPORT19の未解放、V1 30/10/7日のhuman exposureも別区分で残した。保護日を飛ばした200日や、勝手な古い代替windowを作らない。原本再送は要求しない。
+## 承認パッケージと残件
 
-次の承認は二段階：
+`MARKET_APPROVAL_PACKAGE_DRAFT.json` と `INVENTORY_WINDOW_METADATA.json` に、保存済みcalendar identity/hash、全350営業日、42原本のhash/bytes/commit/blobと用途別日付案を結合した。前の26添付原本metadataも監査履歴として維持する。calendar以外の市場原本は数値parse0、原本再送は不要。
 
-1. **MODE B**：不足metadataを結合したexact FIT120／CAL20／先行reference、用途別allowlist、source hash、V2利用根拠・seal・露出を提示して別途owner承認。G1/G2候補数、FIT clean3/5 oracle上限、教師support、95列観測／欠測を確認する。fit0、VALIDATION/FINAL教師未開封。
-2. **MODE C**：MODE BがPASSした後、同一の数値案／教師／CORE95／順位／全split／source route／品質目標とcode/config/schema／census／precommit hashを固定して、別のowner原文承認。上限1 candidate／2fit／2温度。MODE B承認だけでは実行できない。
+在庫案: 先行参照2025-04-28〜12-05の150日、FIT2025-12-08〜2026-06-08の120日、CAL2026-06-09〜07-06の20日、VALIDATION2026-07-07〜08-04の20日、FINAL2026-08-05〜10-05の40日。最新在庫に依存した一案で、成績を使って選んでいない。
 
-完了報告の固定値：
+具体的な未解決事項:
+- 研究200日全てと先行参照45日が既存保護範囲内。解除・代用はしていない。
+- 原本各日の実record coverage、当時版/knownAt、RAW suffix、dated普通株/lot分類と実source profileは未確認・未採用。
+- V2用途別利用根拠・owner原文・exact allowlist、REPORT19/その他seal、他研究の人間/モデル露出対応が必要。
+- owner管理OS設定と専用非root workerの実配置が必要。実source44 optional joinは未検証で、初期routeはSOURCE_NOT_JOINEDのNoneを固定。
 
-- parameters_adopted：false。
-- V2用途データ許可：未成立、exact approved teacher/history日付0。
-- ゲート実測日数／教師support：NOT_MEASURED（上の720/360は隔離人工試験だけ）。
-- 市場candidate／estimator fit／calibration：0／0／0。
-- 市場VALIDATION／FINAL：未開封。
-- 市場raw/clean1/3/5・Low3/5：NOT_MEASURED。
-- ENGINEERING_PASS：ローカルPASS。専用CIは最終HEADのrun/job/decoded logをPR本文で確認。
-- MARKET_MEASUREMENT_COMPLETE：false。
-- POINT_TARGETS_MET：NOT_MEASURED。
-- STATISTICAL_SUPPORT_ESTABLISHED：false。
-- PREDICTIVE_QUALITY：NOT_MEASURED。
-- LIVE_READINESS：NOT_CERTIFIED。
-- 全11安全flag：false。
-- orders／paper／provider requests／main merge／force push：すべて0。
-
-今回の未解決事項は、MARKET_APPROVAL_PACKAGE_DRAFT.jsonの6つの不足metadata、実原本adapter／ownerチャネル配備、V2用途MODE B承認、census後の別MODE C承認。承認ファイルだけで市場経路完成・性能完成とはしない。
-
-最終native E2Eは通常のcensus/train/calibrate/predict/evaluate/restore-verifyのCLI分岐を使用した。request JSONとは別のhost権限を引数で注入する隔離試験であり、CLIにauthority-file／approved／unsafeの権限生成optionはない。最後の型注釈修正後の完全suiteは最終HEAD専用CIを受入根拠にする。
+次のMODE Bは、上記を解決したexact FIT120/CAL20/referenceの調査だけを別承認し、fit0のままgate供給・FIT clean3/5上限・teacher support・95列観測を確認する。MODE CはB PASS後に別承認し、親承認・全条件・全split・全hashを固定して1 candidate / 2 fit / 2較正に限る。現在の完了状態はENGINEERING_READY / AWAITING_MARKET_APPROVAL。

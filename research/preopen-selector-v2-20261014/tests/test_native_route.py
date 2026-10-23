@@ -210,10 +210,13 @@ class NativeRoute(unittest.TestCase):
         self.assertEqual(plan['status'],'BLOCKED_PROTECTED_LATEST_INVENTORY_WINDOW')
         self.assertEqual(plan['split']['FINAL'][-1],days[-1]);self.assertEqual(plan['authorized_teacher_days'],0)
 
-    def test_n30_approval_package_precise_missing_calendar_and_no_false_permission(self):
+    def test_n30_approval_package_exact_calendar_window_without_false_permission(self):
         package=json.loads((ROOT/'MARKET_APPROVAL_PACKAGE_DRAFT.json').read_text())
         self.assertEqual(package_hash(package),package['package_sha256'])
-        self.assertIsNone(package['exact_window']['fit_120'])
+        self.assertEqual(len(package['exact_window']['fit_120']),120)
+        self.assertEqual(package['exact_window']['status'],'INVENTORY_PROPOSAL_BLOCKED_PROTECTED_NOT_AUTHORIZED')
+        self.assertEqual(package['exact_window']['protected_study_sessions'],200)
+        self.assertFalse(package['exact_window']['record_date_coverage_verified'])
         self.assertEqual(package['exact_window']['teacher_dates_approved'],[])
         self.assertEqual(len(package['source_inventory_objects']),26)
         self.assertEqual(package['mode_B']['market_fits'],0)

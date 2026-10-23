@@ -48,7 +48,7 @@ class Store:
         # The host must persist this pin via its independent channel before a
         # later process is allowed to read. The disk sidecar cannot grant trust.
         exclusive_json(path.with_suffix(path.suffix+".receipt.json"),pin)
-        self.authority.artifact_pins[name]=pin
+        self.authority.record_artifact_pin(name,pin)
         return pin
 
     def get(self,name: str, *, model: bool=False) -> Any:
@@ -287,6 +287,8 @@ def dispatch(stage: str, request: dict[str,Any], *, authority: Authority | None)
             result={"status":"RESTORE_VERIFIED","prediction_max_abs_difference":delta,"fits":0,"test_only":authority.test_only}
             store.put("restore-"+role+".json",result)
         store.put("access-"+stage+"-"+role+".json",reader.access)
+        if reader.source_slices:
+            store.put("source-slices-"+stage+"-"+role+".json",reader.source_slices)
         store.event("FINISH-"+stage+"-"+role,pre)
         return result
     except Exception as error:

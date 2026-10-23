@@ -50,6 +50,9 @@ class Authority:
     test_only: bool = False
     fixture_pins: dict[str, tuple[str, int]] = field(default_factory=dict)
 
+    def record_artifact_pin(self, name: str, pin: dict[str, Any]) -> None:
+        self.artifact_pins[name] = pin
+
     def authorize(self, stage: str, request: dict[str, Any]) -> dict[str, Any]:
         if any((p/".git").exists() for p in (self.output.resolve(),*self.output.resolve().parents)):
             raise V2Error("PRIVATE_MODEL_OUTPUT_INSIDE_GIT_CHECKOUT")
@@ -117,7 +120,11 @@ class Authority:
         if (set(limits)!={"universe_rows_upper_bound","ram_bytes","max_native_object_bytes"}
                 or any(type(v) is not int or v<=0 for v in limits.values())):
             raise V2Error("PINNED_RESOURCE_LIMITS_REQUIRED")
-        if pre["source_routes"]!={"daily":"NATIVE_RAW_SESSION_V1","master":"NATIVE_DATED_MASTER_V1","optional":"SOURCE_NOT_JOINED"}:
+        from .source_adapter import CSV_ROUTES
+        routes=pre["source_routes"]
+        if (set(routes)!={"daily","master","optional"} or routes["optional"]!="SOURCE_NOT_JOINED" or
+                routes["daily"] not in {"NATIVE_RAW_SESSION_V1",CSV_ROUTES["DAILY"]} or
+                routes["master"] not in {"NATIVE_DATED_MASTER_V1",CSV_ROUTES["MASTER"]}):
             raise V2Error("UNIMPLEMENTED_SOURCE_ROUTE")
         if mode=="C":
             parent=self.grants.get("B")
@@ -133,7 +140,13 @@ class Authority:
         if set(manifest)!={"schema","entries"} or manifest["schema"]!="ARK_V2_NATIVE_MANIFEST_V1":
             raise V2Error("NATIVE_MANIFEST_SCHEMA")
         entries=manifest["entries"]
-        if len({e["path"] for e in entries})!=len(entries): raise V2Error("DUPLICATE_NATIVE_PATH")
+        if len({(e["path"],e["dataset"],e["session"]) for e in entries})!=len(entries): raise V2Error("DUPLICATE_NATIVE_PATH")
+        identities: dict[str,tuple[Any,...]]={}
+        for e in entries:
+            identity=(e["sha256"],e["bytes"],e["dataset"],e["format"])
+            if e["path"] in identities and identities[e["path"]]!=identity:
+                raise V2Error("MONTHLY_OBJECT_IDENTITY_DRIFT")
+            identities[e["path"]]=identity
         limits=pre["resource_limits"]
         if any(e["bytes"]>limits["max_native_object_bytes"] for e in entries):
             raise V2Error("NATIVE_OBJECT_MEMORY_PREFLIGHT_EXCEEDED")
@@ -151,6 +164,8 @@ class Authority:
                 raise V2Error("PROTECTED_OR_TEST_NATIVE_SOURCE")
             if session not in pre["allowlists"].get(purpose,[]): raise V2Error("PURPOSE_DATE_NOT_ALLOWLISTED")
             if e["format"]!=pre["source_routes"][dataset.lower()]: raise V2Error("SOURCE_FORMAT_NOT_APPROVED")
+            from .source_adapter import CSV_ROUTES,validate_profile
+            if e["format"] in CSV_ROUTES.values():validate_profile(e,pre)
             safe_path(self.root,e["path"])
             if self.test_only and self.fixture_pins.get(e["path"])!=(e["sha256"],e["bytes"]):
                 raise V2Error("REAL_ROWS_OR_CHANGED_BYTES_IN_TEST_AUTHORITY")
@@ -162,15 +177,13 @@ class Authority:
                     or purpose not in original["allowed_purposes"] or not original["rights_reference"]
                     or len(original["sha256"])!=64 or type(original["bytes"]) is not int):
                 raise V2Error("ORIGINAL_MANIFEST_RIGHTS_DATE_PURPOSE_MISMATCH")
+            if e["format"] in CSV_ROUTES.values() and (original["sha256"]!=e["sha256"] or original["bytes"]!=e["bytes"]):
+                raise V2Error("MONTHLY_ORIGINAL_BYTES_IDENTITY_MISMATCH")
             matched.append(e|{"authorized_purpose":purpose})
         return matched
 
 
 def production_authority() -> Authority | None:
-    """No owner channel is installed in this MODE A checkout.
-
-    Host integration must supply independently authenticated OwnerGrant records
-    to dispatch, including original text, complete precommit and artifact pins.
-    Do not replace this with reading a user-supplied 'trusted=true' JSON file.
-    """
-    return None
+    """Fixed OS owner channel; absent deployment remains fail-closed in MODE A."""
+    from .host_channel import installed_owner_channel
+    return installed_owner_channel()

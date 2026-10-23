@@ -58,7 +58,7 @@ jobs:
         run: |
           python -m compileall -q research/preopen-selector-v2-20261014
           cd research/preopen-selector-v2-20261014
-          python -m mypy --ignore-missing-imports --follow-imports=silent --cache-dir="$RUNNER_TEMP/v2-mypy" src/ark_selector_v2 tools/v2_cli.py tools/protection_audit.py tools/ci_receipt.py
+          python -m mypy --ignore-missing-imports --follow-imports=silent --cache-dir="$RUNNER_TEMP/v2-mypy" src/ark_selector_v2 tools/v2_cli.py tools/protection_audit.py tools/ci_receipt.py tools/isolated_host_stage.py tools/metadata_window.py
       - name: V2 required matrix and additional synthetic contracts
         run: python -m unittest discover -s research/preopen-selector-v2-20261014/tests -p 'test_*.py' -v
       - name: Read-only V1 regressions, separate from V2 counts
@@ -69,8 +69,10 @@ jobs:
         run: python research/preopen-selector-v2-20261014/tools/v2_cli.py synthetic-test --output "$RUNNER_TEMP/v2-synthetic-${{ github.run_id }}-${{ github.run_attempt }}"
       - name: Same admitted native route with isolated test authority
         run: python research/preopen-selector-v2-20261014/tools/v2_cli.py native-route-test --output "$RUNNER_TEMP/v2-native-${{ github.run_id }}-${{ github.run_attempt }}"
+      - name: Monthly CSV slices and durable host pins across six stage processes
+        run: python research/preopen-selector-v2-20261014/tools/v2_cli.py monthly-host-test --output "$RUNNER_TEMP/v2-monthly-${{ github.run_id }}-${{ github.run_attempt }}"
       - name: Whole-tree protected scope and public artifact audit
         run: python research/preopen-selector-v2-20261014/tools/v2_cli.py public-audit
       - name: Bind acceptance to this exact head
         run: |
-          python research/preopen-selector-v2-20261014/tools/ci_receipt.py --head "${{ github.sha }}" --run "${{ github.run_id }}" --event "${{ github.event_name }}" --synthetic-receipt "$RUNNER_TEMP/v2-synthetic-${{ github.run_id }}-${{ github.run_attempt }}/receipt.json" --native-receipt "$RUNNER_TEMP/v2-native-${{ github.run_id }}-${{ github.run_attempt }}/native-route-receipt.json"
+          python research/preopen-selector-v2-20261014/tools/ci_receipt.py --head "${{ github.sha }}" --run "${{ github.run_id }}" --event "${{ github.event_name }}" --synthetic-receipt "$RUNNER_TEMP/v2-synthetic-${{ github.run_id }}-${{ github.run_attempt }}/receipt.json" --native-receipt "$RUNNER_TEMP/v2-native-${{ github.run_id }}-${{ github.run_attempt }}/native-route-receipt.json" --monthly-receipt "$RUNNER_TEMP/v2-monthly-${{ github.run_id }}-${{ github.run_attempt }}/monthly-host-receipt.json"

@@ -43,14 +43,20 @@ class NativeReader:
         self.calendar=ExchangeCalendar(tuple(date.fromisoformat(d) for d in pre["calendar_sessions"]),
                                       digest(pre["calendar_sessions"]),"SYNTHETIC" if authority.test_only else "OFFICIAL")
         self.access: list[dict[str,Any]]=[]
+        self.source_slices: list[dict[str,Any]]=[]
 
     def read(self, e: dict[str,Any]) -> tuple[dict[str,Any],SourceEvidence]:
         # Descriptors are already approved as one batch. Verify bytes BEFORE JSON.
         path=safe_path(self.authority.root,e["path"])
-        data=path.read_bytes()
-        if len(data)!=e["bytes"] or hashlib.sha256(data).hexdigest()!=e["sha256"]:
-            raise V2Error("NATIVE_SOURCE_HASH_OR_SIZE_MISMATCH")
-        value=json.loads(data)
+        from .source_adapter import CSV_ROUTES,read_csv_session
+        if e["format"] in CSV_ROUTES.values():
+            value,slice_receipt=read_csv_session(path,e,self.pre)
+            self.source_slices.append(slice_receipt)
+        else:
+            data=path.read_bytes()
+            if len(data)!=e["bytes"] or hashlib.sha256(data).hexdigest()!=e["sha256"]:
+                raise V2Error("NATIVE_SOURCE_HASH_OR_SIZE_MISMATCH")
+            value=json.loads(data)
         ev=dict(e["evidence"])
         for k in ("event_at","published_at","available_at","captured_at"):ev[k]=datetime.fromisoformat(ev[k])
         ev["effective_session"]=date.fromisoformat(ev["effective_session"])

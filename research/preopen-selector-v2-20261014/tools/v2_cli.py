@@ -23,6 +23,7 @@ def main(argv: list[str] | None = None, *, authority: "Authority | None" = None)
     meta=sub.add_parser("metadata-audit");meta.add_argument("--request",required=True);meta.add_argument("--output")
     synth=sub.add_parser("synthetic-test");synth.add_argument("--output",required=True)
     native=sub.add_parser("native-route-test");native.add_argument("--output",required=True)
+    monthly=sub.add_parser("monthly-host-test");monthly.add_argument("--output",required=True)
     audit=sub.add_parser("public-audit");audit.add_argument("--base",default="4b02c4eb6fed0b75bfc7a6e8afc49d7868696159")
     for name in ("census","train","calibrate","predict","evaluate","restore-verify"):
         cmd=sub.add_parser(name)
@@ -36,6 +37,9 @@ def main(argv: list[str] | None = None, *, authority: "Authority | None" = None)
         elif args.command=="native-route-test":
             from ark_selector_v2.native_fixture import run_native_fixture
             result=run_native_fixture(Path(args.output).resolve())
+        elif args.command=="monthly-host-test":
+            from ark_selector_v2.monthly_fixture import run_monthly_fixture
+            result=run_monthly_fixture(Path(args.output).resolve())
         elif args.command=="metadata-audit":
             result=metadata_audit(json.loads(Path(args.request).read_text(encoding="utf8")))
             if args.output:exclusive_json(Path(args.output),result)

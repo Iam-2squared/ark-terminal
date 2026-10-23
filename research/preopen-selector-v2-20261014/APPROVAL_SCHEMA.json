@@ -25,5 +25,38 @@
   ],
   "modeA_authorized_market_days": 0,
   "pins_now": {},
-  "self_generated_approval_accepted": false
+  "self_generated_approval_accepted": false,
+  "production_channel_path": "/etc/ark-selector-v2/owner-channel.json",
+  "production_channel_ownership": "ROOT_OWNED_NOT_WORKER_WRITABLE_WITH_DEDICATED_NONROOT_WORKER",
+  "artifact_trust": "SEPARATE_0700_HOST_PRODUCER_PIN_JOURNAL_NOT_OUTPUT_SIDECAR",
+  "runtime_grant_schema": "ARK_V2_NATIVE_OWNER_GRANT_V1",
+  "runtime_grant_required": [
+    "schema",
+    "candidate_id",
+    "mode",
+    "owner_original_sha256",
+    "owner_reference",
+    "owner_approved_at",
+    "precommit_sha256",
+    "manifest_sha256",
+    "allowlists",
+    "split",
+    "parent_approval_sha256",
+    "census_receipt_sha256",
+    "test_only",
+    "budget"
+  ],
+  "mode_B_budget": {
+    "candidates": 0,
+    "fits": 0,
+    "calibrations": 0
+  },
+  "mode_C_budget_after_separate_approval": {
+    "candidates": 1,
+    "fits": 2,
+    "calibrations": 2
+  },
+  "mode_B_scope": "FIT_CAL_AND_EXACT_REFERENCE_ONLY_NO_VALIDATION_FINAL_TEACHERS",
+  "mode_C_requires": "INDEPENDENT_PARENT_MODE_B_AND_PASSED_CENSUS_AND_PINNED_PRECOMMIT",
+  "market_grants_installed_now": 0
 }

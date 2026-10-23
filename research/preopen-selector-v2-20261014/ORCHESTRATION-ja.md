@@ -1,51 +1,39 @@
 # 新Selector V2：承認接続とnative経路（MODE A）
 
-旧matrix smokeは人工専用のまま維持した。新経路は `authority.py` → `native.py` → `orchestration.py`。承認JSONのtrueやCLI引数だけで市場利用できない。今回、市場承認は成立しておらず、市場candidate / fit / calibrationは0 / 0 / 0。
+市場candidate / fit / calibrationは0 / 0 / 0。最新の詳細・停止理由は [MODE_A_CONNECTION_COMPLETION-ja.md](MODE_A_CONNECTION_COMPLETION-ja.md)、工程別試験対応は [CONNECTION_TEST_MATRIX.json](CONNECTION_TEST_MATRIX.json)。
 
-## 接続した範囲と残る接続
-
-| 項目 | 状態 |
-|---|---|
-| 旧固定人工行列・別process smoke | 人工専用guard維持。市場入力を受け付けない |
-| session別RAW／dated master native形式 → G0/G1/G2 → CORE95 → RAW教師 | 新しい同一経路で接続。人工native fixtureで検証 |
-| census → train → calibrate → predict → evaluate → restore-verify | 独立したstageとして接続。各stageが承認を再照合し、前工程の自己生成artifactを独立pinで検証 |
-| owner原文と承認・precommit・manifest・用途日付・親承認・予算 | hostが保持する独立Authorityとの完全一致を要求。既定はAuthorityなし |
-| owner管理チャネルの実配備・別process間の信頼pin永続化 | **未設定／未接続**。requestや環境変数で代用する入口はない |
-| 既存在庫の月次J-Quants CSV.gz → session別native正規化 | **未接続**。本経路はNATIVE_RAW_SESSION_V1／NATIVE_DATED_MASTER_V1のみ。元source契約・分類ルール・時点lineage未確認のため推測adapterを作らない |
-| optional44列の実source接続 | **未接続**。固定95列内でSOURCE_NOT_JOINED / None。自動代替なし |
-| 実市場実行・市場性能・live認証 | 未実施／未認証 |
-
-したがって、承認ファイルの用意だけで現存在庫を市場実行できる状態ではない。normalized native入力に対するオーケストレーションと、実在庫adapter／ownerチャネルの配備を分けて扱う。将来のhost配備は認証済みownerチャネルから `Authority` を渡して `dispatch(...)` または `v2_cli.main(..., authority=...)` を起動する。Authorityの原文・承認全体・precommit・親承認・manifest・自己生成artifact pinは、実行requestとは独立に永続化する必要がある。
-
-## 承認の照合順序
-
-既定CLIはrequestを開く前にAuthority不在で停止する。独立Authorityがある場合も、request schema、owner原文SHA256と参照・日時、承認全体pin、candidate ID、MODE B/C、precommit pin、code/config/schema、manifest全体pin、用途別exact allowlist、連続calendar／split、教師成熟時点、source route、resource上限を確認してから原本を開く。
-
-元ファイルidentity、hash、bytes、record date、用途、利用根拠もnative manifestへ結合する。native sourceと元原本を同一と捏造しない。人工権限はfactory生成root・各byte hash・SYNTHETIC provenanceだけに限定し、市場descriptorや変更byteを拒否する。人工短縮split／support緩和はtest_only Authority内部だけ。実市場は150 reference + 120/20/20/40と元のsupport基準を要求する。
-
-## 工程と入力
-
-| stage | 入力・境界 | 主出力 |
+| 接続 | 実装状態 | 今回の検証 |
 |---|---|---|
-| census / MODE B | FIT/CALとその150-close参照だけ。全descriptorを最初のpayload open前に検査。VALIDATION/FINAL教師を許可allowlistへ含めない | G0～G2日別数、FIT oracle clean3/5上限、Risk3／R0-B6 support、95列観測・欠測、CAL support shift、RAM preflight。fit0 |
-| train / MODE C | 別のMODE C owner承認＋MODE B親承認＋PASS census hash。FIT/CAL preflight再現一致後に候補予約。FITだけをfit | 独立2HGB、FIT別used-columns、共通日重み、base model |
-| calibrate / MODE C | 自己生成base model pin、CAL入力とCAL教師だけ | 2温度、optimizer回数、固定model。追加estimator.fitなし |
-| predict / MODE C | 固定modelと当該区分featureだけ。教師を開かない | 各日0～15件watchlist、全区分watchlist seal、全G2予測／feature hash |
-| evaluate / MODE C | 全当該区分watchlist固定・hash照合後だけ教師open | UNKNOWN下限／最悪上限、raw/clean供給、捕捉／除外、raw・較正確率診断、固定bootstrap、不確実性と点目標を分離 |
-| restore-verify / MODE C | 自己生成モデルの独立pin、固定feature、元予測 | 再fitなしの再読込と予測差検証 |
+| 元の固定人工matrix | 人工専用guardを保持 | 既存smoke |
+| session別RAW / dated master → gates → CORE95 → teacher | normalized native reader | 既存36経路試験 |
+| 月次CSV.gz → 承認済み日別slice | exact header・単位係数・dated identity・RAW suffixをpin | 追加22試験と生成月次原本 |
+| census → train → calibrate → predict → evaluate → restore-verify | 通常6 CLIへ接続 | 6つの独立process、人工2fit/2cal、復元予測差0 |
+| owner原文・承認・precommit・manifest・用途・hash・予算 | 独立OS owner設定と照合 | 既定拒否、偽承認・権限・symlink・用途外入力の拒否 |
+| artifact producer pin | source/outputとは別の0700 journalへexclusive保存 | process間再読込、sidecarだけでのpickle拒否 |
+| optional44列 | 固定SOURCE_NOT_JOINEDルートのNone | 95列を保ち、FIT全欠測/定数除外を記録 |
 
-START、候補予約、各fit／calibration START/FINISH、MODEL_SEALED、WATCHLISTS_SEALED、LABEL_OPENEDをexclusive作成する。stage全体を排他的lockで保持し、途中失敗もSTART／failure receiptを残す。同じstageや候補を再試行して予算を回復できない。出力はgit外のprivate root。自己生成receiptファイル内のhashだけではpickleをloadしない。再起動後も独立host pinがなければ停止する。
+市場で使用する具体的source profileは未採用、OS ownerチャネルは未設置。実sourceの44列joinも未検証である。実在原本のheader / units / dated普通株type / lot / RAW corporate-action suffix / knownAtを推測して埋めない。必要な意味契約が欠ければ、原本open前に停止する。
 
-VALIDATIONがFAILならFINALは未開封で停止する。人工fixtureにも点目標変更・成功overrideを設けていない。人工VALIDATIONのFAILは市場品質のFAILではなく、固定条件での停止経路試験である。
+## 各工程の入力境界
 
-## MODE BとMODE Cの次の承認
+censusはMODE Bのみで、FIT/CAL feature・teacherと必要なhistoryを使う。fit0、VALIDATION/FINAL teacher descriptorを渡さない。gate後のknown/unknown、Risk3 / R0内B6、FIT供給上限、95列観測とCAL support shiftをfit前に調べる。
 
-MODE Bの正確なFIT120/CAL20/参照日付・元source hash・用途・利用根拠・seal／露出を、MARKET_APPROVAL_PACKAGE_DRAFT.jsonの不足metadata解決後に提示する。MODE Bはfit0、VALIDATION/FINAL教師開封0。
+trainはMODE Cと親MODE B、PASS census receiptを必要とする。FIT全knownをRiskへ、同じ日weightを継承したR0だけをOpportunityへ渡す。CALはsupport確認までで、推定器fitは2回だけ。失敗時もSTARTと予約を残す。
 
-MODE Bのsupport・oracle・観測率・時点・RAM検査がPASSした後、同一の数値案／教師／CORE95／順位・全split・source route・品質目標・code/config/schema・census receipt hashを固定した別MODE C承認を求める。MODE C上限は1 candidate / 2 fit / 2温度。今回の指示・添付在庫・人工test grantは、いずれの承認にもならない。
+calibrateは同じbase modelとCALだけを使う。温度は各head1個、追加estimator fit0。失敗をT=1で成功扱いしない。MODEL_SEALED後に予測へ進む。
 
-今回metadataで確認した26元ファイルhashと在庫範囲、保護範囲、未確定項目をパッケージへ記録した。CALENDAR objectは在庫summaryに1件あるが、添付archiveにcalendarはなく、exact営業日リスト・hashは未結合。最新在庫端点2026-10-05は既存protectedHoldout内。保護日を飛ばす／古い期間へ勝手にfallbackする処理はない。原本再送は不要。
+predictは全対象日のlabel-free featureだけを使い、全watchlistを固定する。evaluateは対応する全watchlist sealを検査してから、その区分の教師を開く。VALIDATIONの目標未達ならFINALを開かない。restore-verifyは独立producer pinに結合した自作modelをloadし、保存featureへの再予測差を検査する。load失敗を再fitで修復しない。
 
-次工程は前工程FINISHとMODEL_SEALED／当該WATCHLISTS_SEALEDの独立pinも必須とする。モデルbytesだけ残った途中失敗から評価へ進まない。評価の全教師UNKNOWNでは確率診断をNOT_MEASURED_NO_KNOWN_TEACHERとし、0確率や成功に変換しない。
+## production入口
 
-人工native E2Eは通常6 subcommandのv2_cli.mainを隔離host権限で起動する。CLI failureの0 reads/fit表示はauthority不在／test-only時に限る。将来の実市場承認下での失敗はSTART/access receiptによる確認を要求し、失敗時に0を捏造しない。
+固定パス `/etc/ark-selector-v2/owner-channel.json` をrootがowner管理下で設置し、専用の非root workerへ読み取りだけ許す。親directory、owner、permission、symlink、code hashを検査する。request JSONやCLI引数・環境変数ではtrust rootを選択できない。OS設定がなければ、request / 原本 / 教師 / modelをopenする前に拒否する。
+
+owner設定はsource_root、output_root、別のjournal_root、worker UID、owner原文と参照・日時、approval / precommit / manifestの独立pinを結合する。artifact journalは信頼した専用workerが自身で生成したpinを保存する領域であり、同一OS accountやrootを侵害した攻撃まで防ぐ契約ではない。
+
+## 日付・sourceの承認パッケージ
+
+保存済みcalendarのhashとDate/HolDiv metadataを確認し、最新の連続350営業日を列挙した。`INVENTORY_WINDOW_METADATA.json` が42原本の保存hash・bytes・commit・blobと全日付を結ぶ。月次object-key coverageは実record coverageではない。
+
+先行参照2025-04-28〜12-05の150日、FIT2025-12-08〜2026-06-08の120日、CAL2026-06-09〜07-06の20日、VALIDATION2026-07-07〜08-04の20日、FINAL2026-08-05〜10-05の40日が在庫候補。研究200日すべてと先行参照45日が既存protectedHoldout内で、利用承認済み日数は0。古い期間への自動fallbackや保護日を飛ばす代用は行わない。
+
+MODE Bはexact FIT/CAL/reference、原本利用根拠、保護・REPORT19・他研究露出、実source意味契約の解決後に別承認。MODE CはB PASS後に全条件とhashを固定する別承認で、上限1candidate/2fit/2cal。現時点はENGINEERING_READY / AWAITING_MARKET_APPROVAL。

@@ -26,10 +26,12 @@ function jstInstant(value) {
   if (typeof value !== 'string' || !JST_TIME_RE.test(value) ||
       !validDate(value.slice(0, 10))) return null;
   const parsed = Date.parse(value);
-  return Number.isFinite(parsed) ? parsed : null;
+  return Number.isFinite(parsed) &&
+    new Date(parsed + 9 * 3600000).toISOString().slice(0, 19) + '+09:00' === value
+    ? parsed : null;
 }
 function positiveDecimal(value) {
-  if (typeof value !== 'string' || !CLOSE_RE.test(value)) return null;
+  if (typeof value !== 'string' || value.length > 96 || !CLOSE_RE.test(value)) return null;
   const parts = value.split('.');
   const digits = parts[0] + (parts[1] ?? '');
   const coefficient = BigInt(digits);
@@ -61,6 +63,9 @@ export function evaluateOriginalSelectorTrendG1({
     fail('EXPECTED_SESSIONS_INVALID');
   const cutoff = jstInstant(decisionCutoffJst);
   if (cutoff === null) fail('DECISION_CUTOFF_INVALID');
+  if (expectedSessions.some((day, i) => !validDate(day) ||
+      day >= decisionCutoffJst.slice(0, 10) ||
+      (i > 0 && day <= expectedSessions[i - 1]))) fail('EXPECTED_SESSIONS_INVALID');
   const unknown = reason => ({
     status: 'UNKNOWN', reason, axes: {long: null, medium: null, short: null},
     dailySmaUp: null,
@@ -89,28 +94,7 @@ export function evaluateOriginalSelectorTrendG1({
     if (value === null) return unknown('CLOSE_INVALID_OR_NOT_ORIGINAL_DECIMAL');
     observed.push(value);
   }
-  const precision = Math.max(...observed.map(x => x.precision));
-  const prices = observed.map(x =>
-    x.coefficient * 10n ** BigInt(precision - x.precision));
-  const newest = prices[WINDOW - 1];
-  const up = n => {
-    const old = prices[WINDOW - 1 - n];
-    const smaSum = prices.slice(WINDOW - n).reduce((a, b) => a + b, 0n);
-    return newest > old && BigInt(n) * newest > smaSum;
-  };
-  const smaUp = {
-    5: up(5), 15: up(15), 25: up(25), 75: up(75),
-  };
-  const axes = {
-    long: smaUp[75],
-    medium: smaUp[25] && smaUp[15],
-    short: smaUp[5],
-  };
-  const numberUp = Object.values(axes).filter(Boolean).length;
-  const status = numberUp === 3 ? 'PASS' : numberUp === 0 ? 'REJECT' : 'WAIT';
-  return {status, reason: status === 'PASS' ? 'ALL_AXES_UP' :
-    status === 'WAIT' ? 'MIXED_TREND_NOT_ADMITTED' : 'NO_UP_AXES',
-  axes, dailySmaUp: smaUp};
+  return classifyDailySmaStructure(expectedSessions.map(day => mapped.get(day).close));
 }
 
 /**
@@ -154,4 +138,34 @@ export function prefilterOriginalSelectorUniverse({
     actualProviderReceiptCertified: false, productionReady: false,
     orderTransmission: false,
   };
+}
+
+/** Arithmetic only; no price-basis, corporate-action or timestamp certification.
+ * Used by the RSS census WITHOUT fabricating corporateActionsCleared/knownAt. */
+export function classifyDailySmaStructure(closes) {
+  if (!Array.isArray(closes) || closes.length !== WINDOW) fail('CLOSE_WINDOW_INVALID');
+  const observed = closes.map(positiveDecimal);
+  if (observed.some(value => value === null)) fail('CLOSE_WINDOW_INVALID');
+  const precision = Math.max(...observed.map(x => x.precision));
+  const prices = observed.map(x =>
+    x.coefficient * 10n ** BigInt(precision - x.precision));
+  const newest = prices[WINDOW - 1];
+  const up = n => {
+    const old = prices[WINDOW - 1 - n];
+    const smaSum = prices.slice(WINDOW - n).reduce((a, b) => a + b, 0n);
+    return newest > old && BigInt(n) * newest > smaSum;
+  };
+  const smaUp = {
+    5: up(5), 15: up(15), 25: up(25), 75: up(75),
+  };
+  const axes = {
+    long: smaUp[75],
+    medium: smaUp[25] && smaUp[15],
+    short: smaUp[5],
+  };
+  const numberUp = Object.values(axes).filter(Boolean).length;
+  const status = numberUp === 3 ? 'PASS' : numberUp === 0 ? 'REJECT' : 'WAIT';
+  return {status, reason: status === 'PASS' ? 'ALL_AXES_UP' :
+    status === 'WAIT' ? 'MIXED_TREND_NOT_ADMITTED' : 'NO_UP_AXES',
+  axes, dailySmaUp: smaUp};
 }

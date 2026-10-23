@@ -1,0 +1,427 @@
+ARK TERMINAL — 新Selector V2
+Work実行指示書：承認意思の反映 → 実データcensus → 条件付き1候補学習・評価
+2026-10-24 JST / UTF-8 / revision 2
+文書ID：ARK_V2_WORK_MARKET_CONTINUATION_20261024_R2
+
+対象repository：Iam-2squared/ark-terminal
+対象PR：#594（Open / Draftを維持）
+対象branch：research/preopen-selector-v2-engineering-20261014-r1
+対象directory：research/preopen-selector-v2-20261014/
+確認基準HEAD：43e0d3f0177d3123805e1ff41ee1da18e16fe12b
+直前の工学検証HEAD：ca8f15c6c29743cb8f8fde3249a20c060d4e7d2b
+
+============================================================
+0. 最初に読む：今回は「承認待ちの説明」を繰り返すWorkではない
+============================================================
+
+ユーザーは、既に提示した200営業日の分割を採用し、そのデータをV2研究へ使用する意思を明確に示し、同じ承認質問を繰り返さず完成へ進むよう指示している。
+今回のWorkは、その指示を正規の用途別記録・実行環境へ反映し、第1・第2層の実測を最優先に進める。
+
+前の「MODE Aの準備ができたので、あらためて同じ利用意思を質問する」という終了方法へ戻らない。
+既存の3層設計・CORE95・教師・順位・品質目標・期間を再設計しない。
+追加の人工テスト件数だけを増やして実データ調査を先送りしない。
+原本の再アップロードを要求しない。
+
+達成順序：
+  1. 既にあるowner指示を、用途別の研究利用と信頼できる実行記録へ結合する。
+  2. 保存原本の必要部分を検査し、実source契約・実行hostを整える。
+  3. MODE BでG0/G1/G2の銘柄数、Winner/Loser残存、教師supportを実測する。fit0。
+  4. MODE Bが既定条件を満たせば、固定precommit・実行権限を結合しMODE Cへ進む。
+  5. 1candidate / 2fit / 2較正。VALIDATION合格時だけ、同じモデルでFINAL評価。
+
+本書は、既存のユーザー指示を実装担当へ引き継ぐ作業指示である。
+第三者データ提供者の利用権、OS管理権限、暗号学的owner署名を本書が新しく作るものではない。
+ただし「ユーザーがV2利用を許可していない」とは報告しない。
+実際に不足するものがあれば、利用意思・データの技術的根拠・OS権限・実行pinを区別する。
+
+============================================================
+1. 確認済みの出発点と資料の優先関係
+============================================================
+
+本書作成時にGitHubで確認：
+  PR #594 = Open / Draft / 未merge
+  PR head = 43e0d3f0177d3123805e1ff41ee1da18e16fe12b
+  base branch = research/preopen-selector-v2-design-20261014
+  base SHA = 4b02c4eb6fed0b75bfc7a6e8afc49d7868696159
+
+PR本文に残る工学受入記録はca8f15c6...のもの。
+  専用CI run 40031454803 / job 120680432404
+  V2 163、V1 read-only回帰32+125=157、mypy34ファイルPASSとの記録。
+  月次人工経路は6別process、独立pin44、人工2fit/2較正、restore差0。
+  人工VALIDATIONは固定点目標FAIL、FINAL未開封。これは市場性能の測定ではない。
+本書作成時にこのCIを再実行したわけではない。過去HEADのPASSを別HEADの実行証拠に読み替えない。
+
+43e0d3f...ではOWNER_V2_DATE_REUSE_INSTRUCTION_20261024.mdが追加されている。
+この記録はユーザーの利用意思を保存する文書であり、それ単独では実行grantではない。
+その意味は「利用意思をもう一度質問する」ではなく、「既存の意思を信頼できるowner経路へ結合する」である。
+
+優先関係：
+  a. 現在のユーザーによる、固定分割の採用・V2研究利用・継続実行の明示指示。
+  b. 本書の具体的な工程・制限。
+  c. 既存の固定数値・教師・feature schema・品質基準。
+  d. 過去のMODE A完了記録と当時のNOT_GRANTED状態。
+過去の「未承認」を履歴として残すことと、現在の許可意思を無視して停止し続けることは別である。
+
+開始時はlive HEADと差分を再確認する。進んでいたら巻き戻さず、既存作業と重複しない。
+実行済みcensus・fit・較正があればreceipt/ledgerを検証し、同じ候補を再学習しない。
+
+============================================================
+2. 絶対に変更・実行しないもの
+============================================================
+
+Frozen No.1 / No.1.1、旧Selector、新Selector V1、State9原本、既存Entry/EXIT/Capital、main、PR #591を変更しない。
+V1の直下Pythonへファイルを追加しない。既存学習済み重み・結果・原本を上書きしない。
+V2設計branchを移動せず、PR #594の作業branchとV2専用領域だけを使う。
+必要な専用CI修正もV2 workflowに限定する。
+
+禁止：実注文、paper運用、RSS注文関数、Excel/口座への書込み、main merge、force push、Ready化、自動merge、新規provider取得、新規有料契約。
+既に保存された許可済み原本の復元・取得と、providerからの新規データ取得を区別する。
+private原本、個別銘柄行、候補行、モデル、秘密情報をpublic GitHub/CIへ出さない。
+実市場処理を公開CIの人工fixtureとして偽装しない。
+
+以下11flagは全工程でfalse：
+executionAllowed / brokerWriteAllowed / excelOrderWriteAllowed /
+rssOrderFunctionAllowed / liveTradingAllowed / paperTradingAllowed /
+automaticPromotionAllowed / productionUpdateAllowed / transmitted /
+productionReady / entryAllowed。
+market_fit_allowedはこれら執行flagと別。MODE C成立時だけ用途限定で扱う。
+
+============================================================
+3. 固定分割：決め直さない
+============================================================
+
+HISTORY先行150営業日：2025-04-28 ～ 2025-12-05
+FIT 120営業日       ：2025-12-08 ～ 2026-06-08
+CAL 20営業日        ：2026-06-09 ～ 2026-07-06
+VALIDATION 20営業日 ：2026-07-07 ～ 2026-08-04
+FINAL 40営業日      ：2026-08-05 ～ 2026-10-05
+
+MARKET_APPROVAL_PACKAGE_DRAFT.json / INVENTORY_WINDOW_METADATA.jsonに保存済みのexact session arraysと公式calendar hashを使用する。
+端点から平日を生成し直さない。保護日や都合の悪い日を飛ばさない。期間短縮・古い期間へのfallbackをしない。
+
+「先行150日」と「rolling HISTORYの実使用日集合」を混同しない。
+既存MODE B scopeはFIT教師120/CAL教師20、rolling HISTORY289日、必要24原本を記録している。
+rolling HISTORYには後続判定日の過去になったFIT/CAL日が含まれる。独立した先行履歴が289日必要という意味ではない。
+各判定日Dについて、使うfeatureは08:50 JSTまでに利用可能なDより前の情報だけ。
+同じ日が過去履歴と別日の教師に現れる場合は、用途・対象判定日・knownAtを分離して記録する。
+
+============================================================
+4. ユーザー許可と保護データを、正しく実行へ反映する
+============================================================
+
+ユーザーはこの200日分割とV2研究利用を繰り返し明示している。
+同じ「この分割でよいか」「V2で使ってよいか」を再質問しない。
+完了へ進める依頼を、既定の一候補を調査・学習・評価する範囲の継続指示として引き継ぐ。
+無制限の追加候補・閾値探索・再学習・実売買の許可へ拡張しない。
+
+実施：
+  ・会話で実際に与えられたowner指示の原文参照を保存する。
+  ・分割、source ID、用途、候補予算、禁止事項と結合する。
+  ・原文を参照可能なtrusted owner/control planeへ正規の手順で登録する。
+  ・正確なメッセージ日時が取得できない場合は捏造しない。記録時刻とは別にする。
+  ・実行requestと独立したAuthority/pinで照合する。試験Authorityを流用しない。
+
+保護台帳の扱い：
+  ・研究200日全部、先行参照45日が旧protectedHoldout内である履歴は消さない。
+  ・V2用途の再割当てをappend-onlyのpurpose-scoped reuse記録で重ねる。
+  ・旧研究の台帳やFrozenファイルを直接書き換えない。
+  ・REPORT19等の過去sealに重なる場合も、このV2の指定日・指定用途へのowner利用指示と旧用途を併記する。指定期間外は開かない。
+  ・旧研究の「未見」資格を保持したと偽らない。他研究での閲覧・学習履歴は別途追記する。
+
+他研究の露出が完全に追跡できない場合：
+  UNKNOWN_EXPOSURE / freshOosCredit=0を保守的に記録する。
+  ownerが使用を許可した研究データについて、Freshと呼べないことだけを理由に記述的census・開発評価を永久停止しない。
+  別主体のアクセス制限、利用終了・消去義務など具体的な権利矛盾があれば、それは別の実在するblockerとして処理する。
+
+工程上の封印は維持：
+  MODE BではVALIDATION/FINAL教師を開かない。
+  VALIDATIONはモデル・較正・その区分の全watchlist固定後。
+  FINALはVALIDATION既定条件合格・FINAL全watchlist固定後。
+  過去データの研究再利用許可と、未来教師を早く見てよい許可を混同しない。
+
+============================================================
+5. owner環境とsourceのbootstrapを解決する
+============================================================
+
+既存owner設置手順、source採用表、authority/host実装を実在のファイル一覧から確認する。
+存在しない予定ファイル名を何度もfetchすることはしない。
+
+OS環境：
+  ・現在の正規権限で、owner管理設定と専用非root worker、独立pin journalを設置する。
+  ・権限、所有者、symlink、journal永続化、再起動後の照合を検証する。
+  ・worker自身がrequestから権限を昇格したり、owner設定を書き換えたりしない。
+  ・--unsafe、--ignore-hash、環境変数の自己申告、テストgrantで代替しない。
+  ・権限のある正規手段で設置できなければ、失敗した操作・エラー・必要な管理者作業を一つにまとめる。一般的な利用許可の再質問へ戻さない。
+
+source契約：
+  ・42原本の既存metadataとMODE B用24原本scopeを再利用する。
+  ・会話の利用指示を用途別に反映後、header・record identity/date・単位・RAW basis・dated master・lot・corporate action・knownAtを検査する。
+  ・元の権利資料・所有者申告・契約条件を保存する。根拠のないprovider認証や新しい有効期限を作らない。
+  ・object名から推定した月と、実record coverageが一致するかを区別する。
+  ・CSV.gzはstreamingで扱い、日付・用途を検査してから対象行を数値化する。
+  ・月次ファイルに同居するVALIDATION/FINAL/対象外行は、censusで価格・教師として数値化しない。
+  ・元ファイルhash・byte数、解凍上限、重複identity、価格と売買代金の単位を検査する。
+
+source profileを検査するための調査と、完成profileを使う市場学習を分ける。
+「profile未採用なのでheaderを見られず、headerを見ないので永遠にprofileを採用できない」という循環を作らない。
+既に許可された指定原本・日付・用途に限定したsource検査工程を独立記録し、結果のprofile/hashをowner管理記録へ結合する。
+これを未指定原本への探索や学習前のFINAL閲覧に広げない。
+
+============================================================
+6. 既存数値・モデル仕様の扱い
+============================================================
+
+固定するもの：G0/G1/G2、CORE95、RAW教師、共通日重み、Risk3class、R0条件付きOpportunity6class、2温度較正、順位式、0～15候補、品質目標、support停止基準、固定分割。
+
+設定の正本は現在のV2_PARAM_PROPOSAL.json、FEATURE_REGISTRY.json、LABEL_CONTRACT.json、QUALITY_TARGETS.jsonおよび計算実装。
+本書で別の閾値や列profileを発明しない。
+
+ユーザーが「この既存案で完成まで進める」と指示した範囲を採用根拠として束ねる。
+parameters_adopted=trueは、実際に採用したparameter/config/schema hashとowner指示の結合を保存した段階でのみ記録する。結果を見て採用値を変えない。
+ユーザーが将来の生成hashそのものを見て署名したと捏造しない。
+条件を満たす場合の一候補実行委任と、Workがその条件へ機械的に結合した事実を分けて記録する。
+
+参照hash（変更があれば差分の理由を確認）：
+  code（ca8f15c6...）：bfba6b3197253ed1dd5eb01c307e14e6466980e61fd3e2777d82b314ed7413da
+  config：ef43d34cc8b2c61489beb7f29a6a558515f7ced902a660c08ee6a402163ceabe
+  CORE95 schema：15c4cebbf5cba48b3d727421885b5c00d791db9d0551c19eb4a5e818f2c4aea0
+  旧承認package canonical：d84b7efa999b5aeee967ed501c6d562defba388555fcdf518f6462b3d7150bd2
+  V1 computation：3a2fb32dfad9e2ea4f9956038709f2a640a3380213f68ca7af8f1c9c621950ab
+
+旧packageは未承認時点の履歴。現在の用途反映後のpackageを別version/hashとして保存する。
+旧hashを保持したまま内容だけ変更したり、最新の計算code hashを古い値で固定したりしない。
+
+============================================================
+7. MODE B：最初に実数を出す。学習しない
+============================================================
+
+正規の用途検証、source検査、owner環境が成立したらcensusを実行する。
+FIT120・CAL20と必要なrolling参照に限定し、市場fit/較正は0。
+候補を生成してから、許可された教師と結合する。教師をgate引数へ渡さない。
+
+まずFITについて、次の表を完成する。
+
+行：G0対象 → G1通過 → G2通過 → 各除外/WAIT/UNKNOWN理由群
+列：
+  対象営業日数、銘柄日数、日平均・中央値・最小・最大、0件日数
+  raw Winner +1/+3/+5件数・率・営業日当たり件数
+  clean Winner +1/+3/+5件数・率・営業日当たり件数
+  Low -3/-5件数・率
+  UNKNOWN件数・率
+  Winner残存率・取りこぼし率
+
+定義：
+  raw Winner_k：当日RAW始値→当日高値が+k%以上。
+  Low_j：当日RAW始値→当日安値が-j%以下。
+  clean Winner_k：raw Winner_k、かつ当日安値が始値の-3%以下に到達していない。
+  raw WinnerとLowは同一銘柄日で両方成立し得る。互いの補集合ではない。
+  これらは到達機会の教師であり、実現勝率・約定利益ではない。
+
+取りこぼしを分ける：
+  G1/G2残存率 = G2内clean Winner / G0内clean Winner
+  G1での除外、G2での除外、データUNKNOWNを別計数。
+  分母0はN/A、0%や100%に置換しない。
+  元マスター、価格gate、履歴不足による母集団変化も明記する。
+
+学習前の必要条件：
+  FITの全営業日を分母に、sum(min(15, 日別clean Winner3数))/営業日数を計算。
+  clean Winner5も同様に計算。
+  既定oracle供給上限の停止条件を満たさなければ、fit0で止めて実測値を報告する。
+  層の条件を緩めて通過させたり、Winnerの多い日だけで分母を作ったりしない。
+  このoracleは未来を知る上限であり、AIが実現できる精度ではない。
+
+教師support：
+  Risk R0/R1/R2、OpportunityのR0内B0～B5について、行数・営業日数・銘柄数を保存。
+  Riskに失敗例を残し、OpportunityにもR0内の伸びなかったB0を残す。
+  真のUNKNOWNを安全・不上昇として埋めない。
+  class不足・極端な集中・入力不整合があれば既定基準どおり停止。
+
+CORE95：
+  列ごとにsource、FIT/CAL観測・欠測、理由、使用見込み、knownAt、式versionを保存。
+  optional44列が人工経路で未接続だったことは、実市場で観測済みという意味ではない。
+  許可済み既存sourceで正しく接続できるものを接続し、接続できないものは理由付きNone。
+  95列を勝手に51列へ設計変更しない。実使用列の全欠測/定数除外は既存FIT-only規則を守る。
+  optional列が欠測というだけでG1/G2の必須日足調査まで停止しない。
+  学習前には実際のsource profileと欠測状態を固定し、無言の縮小profileで学習しない。
+
+CALは較正用の教師support・入力の意味/欠測変化の検査に使う。
+CALのWinner分布でgate/閾値/列/期間を選ばない。oracle成立性の主判定はFITのみ。
+VALIDATION/FINAL教師はcensusから隔離する。
+
+============================================================
+8. MODE Bの結果で分岐する
+============================================================
+
+PASS：source整合、必須input、既定teacher support、FIT oracle、CAL support、resource見積りがすべて成立。
+  → 実測census receiptと全条件を固定し、既定一候補のMODE Cへ進む。
+
+FAIL / NOT_ESTABLISHED：
+  → 実測できた診断を保存し、fit0で停止。
+  → 「承認待ち」ではなく、どの層で何件落ち、どの教師/日数/列/条件が足りないかを報告。
+  → 自動的な閾値緩和、別期間、候補追加、seed巡回をしない。
+
+ユーザーが既に与えた範囲内の作業について、MODE B完了のたびに「続けてよいか」を聞かない。
+次工程に必要なhash結合・用途別記録は、同じ継続指示に基づく条件付き実行として処理する。
+正規host側の権限が足りない場合だけ、具体的な設置障害を報告する。workerの保護検査を削除して通さない。
+
+============================================================
+9. MODE C：一候補だけ学習・較正
+============================================================
+
+前提：MODE B PASS、source/profile/parameter/quality採用、用途別splitと露出記録、正規Authority、独立artifact pinが成立していること。
+
+市場candidate上限：1。
+  Risk：FITのG2通過かつ教師known全行で1fit。
+  Opportunity：同集合のR0行で1fit。
+  CAL：固定した各モデルへ温度較正各1回、計2回。
+
+候補ID、code/config/schema/source/allowlist/quality/census/precommit hashを学習前に保存。
+MODE B親記録とMODE C実行記録は別に持つが、同じ利用意思を再質問する手続きにはしない。
+実行予算はSTART時点で予約し、失敗・中断・再起動で回復させない。
+既存の学習済みartifactがあればhash照合で復元し、再学習を復元の代わりにしない。
+
+期間・モデルfamily・seed・木の設定・class weight・温度方式・数値gate・順位式を変更しない。
+V1やFrozenの重みを流用しない。
+学習processへVALIDATION/FINALの教師descriptorを渡さない。
+不具合修正が予測や教師を変える場合は、新しい候補identityと追加判断が必要。修正という名目で学習を無制限に繰り返さない。
+
+============================================================
+10. VALIDATION → FINALの評価順序
+============================================================
+
+VALIDATION：
+  固定モデルを別processでtrusted reload。
+  20日分すべてのfeature-only予測・watchlist・input hashを先に固定。
+  その後だけ教師を開き、既定QUALITY_TARGETSの点目標と診断を計算する。
+  選出後UNKNOWNを差し替えない。候補0日を営業日分母から消さない。
+
+VALIDATION FAIL / NOT_ESTABLISHED：
+  FINALは未開封で停止。
+  失敗した目標の実数と理由を残す。FINALを見て取り返す行為をしない。
+
+VALIDATION PASS：
+  再fit・再較正・閾値変更なしでFINAL40日を同じ順序で予測固定→評価する。
+
+全期間の履歴参照と、評価教師の閲覧は区別する。
+後続日を予測する際に過去日を履歴として使用した場合、その数値閲覧を記録する。
+「全Report原本が最後まで未開封」と偽らない。一方、未来の結果を過去日のfeatureへ混ぜない。
+
+結果：
+  raw/clean +1/+2/+3/+4/+5、Low -1/-2/-3/-5、Close、UNKNOWN、選出数、日別供給。
+  各層の機会残存・最終model capture・end-to-end captureを別に出す。
+  確率較正と推定対象、日単位/固定blockの不確実性を既定仕様どおり評価。
+  点目標を満たしたこと、統計的な証拠、未見性、live認証を別判定にする。
+  保護期間を研究利用へ再割当てした履歴と他研究露出は、評価結果にも残す。
+
+売買代金上位を超えることを主合格条件にしない。
+V1の古い7日や旧日中Selectorの学習内結果と、別期間・別起点の数字を同条件比較にしない。
+
+============================================================
+11. 実行効率と保存
+============================================================
+
+既存adapter、scope、census診断、6工程、registryを再利用する。
+必要24原本からMODE Bを開始し、42原本全部の再構築を前提にしない。
+メモリ上限・threads・float64・streaming方針は既存のresource契約を維持。
+source cacheをcode/profile/schema/calendar/inputへ結合し、V1 cacheを上書きしない。
+
+試験/CI待ちには、学習結果やhashに影響しない資料整備・readonly契約調査を行ってよい。
+学習開始後に同じ計算code/configを並行編集しない。
+自動retry、重複candidate、バックグラウンド実行中でないのに「進行中」とする報告は禁止。
+途中停止時は、完了artifact・run ID・予約予算・失敗位置・再開可能範囲を保存する。
+
+市場原本・教師・特徴行・候補・モデルはprivate保存。
+GitHubへは非復元集計、hash、metadata、理由、試験結果のみ。
+archive復元時はhash/CRC/entry/path traversal/symlinkを検査し、再予測差を測る。
+
+============================================================
+12. Entry / EXIT / Capitalへの後工程
+============================================================
+
+今回の最優先はSelectorの市場censusと一候補評価。統合設計を先に広げない。
+既存の独立adapter案とFrozen契約監査はread-onlyで再利用する。
+Selector評価が終わった後に、独立した統合比較用の作業へ引き継ぐ。
+
+既存Entry/EXIT/Capitalのルールを維持した比較と、将来の1銘柄集中・順次回転案を区別する。
+PRの既存監査記録ではNo.1.1にSELL fill後の当日BUY停止がある。これを新Selector接続のついでに変更しない。
+旧システムの売買機能を直接有効化しない。実注文・paperは禁止のまま。
+
+============================================================
+13. 納品物と終了報告
+============================================================
+
+既存の同等成果物がある場合は流用し、新規ファイル名はWorkで明示する。
+最低限、以下を保存する：
+  ・owner指示参照、用途別reuse overlay、露出記録、採用したsource/config/allowlistのhash。
+  ・host設置/権限検証結果。未設置なら正確な一箇所の不足と作業手順。
+  ・実source coverage/単位/basis/knownAt検査結果。
+  ・MODE B実測表：G0/G1/G2件数、raw/clean1/3/5、Low3/5、除外理由、UNKNOWN。
+  ・FIT oracle供給上限、Risk/Opportunity class/day/symbol support、95列coverage。
+  ・実行した場合のみ市場学習・較正台帳、モデルreceipt、固定予測、VALIDATION/FINAL結果。
+  ・保存復元と再予測差、同HEAD専用CIのrun/job/decoded log、保護差分。
+  ・CURRENT_STATUSと具体的な残件。歴史的なMODE A文書を上書きして過去を消さない。
+
+最終報告の先頭には必ず次を記載：
+  実市場データ読取日数／用途
+  MODE B実施済みか
+  G1/G2の平均通過数
+  G2内clean +3/+5の営業日当たり残存数
+  市場candidate / fit / calibration回数
+  VALIDATION/FINALの開封状態
+  未完了なら、最後に成功した操作と止まった実際の理由
+
+状態を偽装しない：
+  ENGINEERING_PASS
+  MARKET_MEASUREMENT_COMPLETE
+  POINT_TARGETS_MET
+  STATISTICAL_SUPPORT_ESTABLISHED
+  PREDICTIVE_QUALITY
+  LIVE_READINESS=NOT_CERTIFIED
+  全11flag=false
+
+実測していない数字はNOT_MEASURED。
+学習・評価が終わっていないのにSelector完成とは書かない。
+過去の人工2fit/2calを市場学習へ計上しない。
+資料だけ更新した場合は「資料更新のみ」と明記する。
+
+============================================================
+14. 停止すべき実在の障害と、停止理由にしないもの
+============================================================
+
+実際に停止する例：
+  正規host管理権限がなく設置不能、原本を取得/復元できない、hash不一致、
+  利用禁止・期限・消去義務など具体的な第三者権利矛盾、必須sourceの意味を確定不能、
+  class/日数不足、FIT oracle不足、CAL support不成立、VALIDATION不合格、予算消費済み。
+該当時は不足1件ごとに証拠・エラー・解消操作を列挙する。
+できる処理まで済ませ、重複fitや別期間への置換で隠さない。
+
+停止理由にしない：
+  ・旧statusにNOT_GRANTEDと書いてあるだけ。
+  ・ユーザーが既に許可した同じ分割を、もう一度確認したい。
+  ・自分たちの過去研究でprotectedと呼んでいたため、ownerも再割当てできないと思い込む。
+  ・Fresh評価を保証できないことだけで、許可済み開発censusも実行しない。
+  ・optional列が未接続なので、必須日足によるG1/G2調査まで延期する。
+  ・原本が既にあるのに同じZIPの再送を要求する。
+
+============================================================
+15. 参照した根拠
+============================================================
+
+[S1] 本書作成時のlive PR #594 metadata/body。
+https://github.com/Iam-2squared/ark-terminal/pull/594
+bodyはca8f15c6...の工学完了記録、live headは43e0d3f...。
+
+[S2] owner利用意思の既存記録（実行grantとは別）。
+https://github.com/Iam-2squared/ark-terminal/blob/43e0d3f0177d3123805e1ff41ee1da18e16fe12b/research/preopen-selector-v2-20261014/OWNER_V2_DATE_REUSE_INSTRUCTION_20261024.md
+
+[S3] MODE B準備の既存実装・scope・残件記録。
+https://github.com/Iam-2squared/ark-terminal/blob/43e0d3f0177d3123805e1ff41ee1da18e16fe12b/research/preopen-selector-v2-20261014/MODE_B_PREPARATION_COMPLETION-ja.md
+
+[S4] 会話で確認済みの固定分割と継続指示。
+ユーザーは分割を採用し、その指定データのV2研究利用を明示し、同じ承認質問を繰り返さず次工程へ進むよう指示した。
+本書の作業順序は、その指示を具体化したものであり、新しい市場測定結果ではない。
+
+このTXT作成では市場原本の数値読取、census、学習、較正、評価、OS設置を行っていない。
+Workは実際に実行した工程と結果だけを報告すること。
+
+最優先：説明と人工試験の反復から、G1/G2の実市場の数値へ進む。

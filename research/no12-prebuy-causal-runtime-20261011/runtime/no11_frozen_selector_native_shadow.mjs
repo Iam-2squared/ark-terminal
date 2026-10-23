@@ -13,6 +13,8 @@ import {createHash} from 'node:crypto';
 import {isJpxCashTradingDay,previousJpxCashTradingDays} from './jpx_cash_calendar_2026_2027.mjs';
 import {OBSERVED_PASS_GATE_ID,checkObservedPassBeforeBuy}
   from './no11_observed_pass_watch_gate.mjs';
+import {validateNo11Chart50Plan}
+  from './no11_rss_chart_50_prescreen.mjs';
 import {normalizeAndAggregateMinuteRows}
   from '../../../predict/long-only/phase57-long-only-integrated-dataset.js';
 import {normalizeMinuteProvenance}
@@ -156,11 +158,22 @@ function validatePreviousWatches(previous,session,maskSet,decisionAt){
 }
 export function runOriginalFrozenSelectorShadow({
   sessionDate,decisionTimeJst,mask,sourceReceipt,datedMaster,
-  nativeMinuteRows,previousWatches=[]
+  nativeMinuteRows,previousWatches=[],chartPlan=null
 }={}){
   const decisionAt=checkClock(sessionDate,decisionTimeJst);
   const asset=inspectFrozenSelectorAsset();
-  const codes=maskCheck(mask,sessionDate);
+  const g1Codes=maskCheck(mask,sessionDate);
+  const selectorSymbols=chartPlan===null?mask.observedPassSymbols:
+    validateNo11Chart50Plan({chartPlan,mask,sessionDate});
+  const codes=new Set(selectorSymbols);
+  assert([...codes].every(s=>g1Codes.has(s)),
+    'CHART50_SYMBOL_OUTSIDE_ORIGINAL_G1_PASS');
+  if(chartPlan!==null){
+    assert(previousWatches.every(w=>
+      chartPlan.activeWatchSymbols.includes(w.symbol)&&
+      chartPlan.protectedChartSymbols.includes(w.symbol)),
+      'PERSISTENT_WATCH_NOT_PINNED_IN_CHART50');
+  }
   checkReceipt(sourceReceipt,decisionAt);
   const by=validateMaster(datedMaster,codes,sessionDate);
   const used=validateRawMinuteRows(nativeMinuteRows,codes,sessionDate,decisionAt);
@@ -169,7 +182,7 @@ export function runOriginalFrozenSelectorShadow({
   const minutes=normalizeMinuteProvenance(nativeMinuteRows);
   assert(agg.audit.rejectedRows===0,'NORMALIZER_DROPPED_MINUTES');
   const grouped=new Map(),rawFeatures=[],rejectReasons={};
-  for(const symbol of mask.observedPassSymbols){
+  for(const symbol of selectorSymbols){
     const bars=agg.bars.filter(x=>x.symbol===symbol&&x.sessionDate===sessionDate);
     const frame=minutes.get(sessionDate+'|'+symbol)??[];
     if(!bars.length||!frame.length){
@@ -254,7 +267,9 @@ export function runOriginalFrozenSelectorShadow({
   // in real-time by RSS.
   return {
     schemaId:INTENT,sessionDate,decisionTimestamp:decisionAt,
-    sourceScope:'FILTERED_G1_348_USER_DIRECTED_STRATEGY_OVERLAY',
+    sourceScope:chartPlan===null?
+      'FILTERED_G1_PASS_USER_DIRECTED_STRATEGY_OVERLAY':
+      'FILTERED_G1_PASS_PLUS_CHART50_USER_DIRECTED_STRATEGY_OVERLAY',
     frozenRidgeParametersUnchanged:true,
     frozenDecisionClocksUnchanged:true,
     frozenModelArtifactSha256:asset.spec.model.configuration.artifactSha256,
@@ -262,6 +277,10 @@ export function runOriginalFrozenSelectorShadow({
     fullMarketEquivalent:false,
     nativeMinuteRowsInspected:used,
     observedCandidatePool:mask.observedPassCount,
+    allocatedChartSelectorCandidates:selectorSymbols.length,
+    chart50PrescreenApplied:chartPlan!==null,
+    chartFunctionsReserved:chartPlan?.totalChartFunctionsBudgeted??null,
+    nativeFull348ChartCoverageCertified:false,
     rawFeatureCandidates:rawFeatures.length,
     rankableCandidates:eligible.length,
     skippedCandidates:rejectReasons,

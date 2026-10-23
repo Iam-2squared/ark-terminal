@@ -4,6 +4,7 @@ import {
  inspectFrozenSelectorAsset,runOriginalFrozenSelectorShadow
 } from '../runtime/no11_frozen_selector_native_shadow.mjs';
 import {OBSERVED_PASS_GATE_ID} from '../runtime/no11_observed_pass_watch_gate.mjs';
+import {makeNo11G1Chart50Plan} from '../runtime/no11_rss_chart_50_prescreen.mjs';
 
 const day='2026-10-26', prior='2026-10-23';
 const codes=['1111.T','2222.T','3333.T'];
@@ -124,4 +125,53 @@ test('missing dated master, wrong market decision clock, duplicate minute fails 
  assert.throws(()=>runOriginalFrozenSelectorShadow(c),/NOT_ORIGINAL_DECISION_TIME/);
  const d=input();d.nativeMinuteRows.push({...d.nativeMinuteRows[0]});
  assert.throws(()=>runOriginalFrozenSelectorShadow(d),/MINUTE_DUPLICATE/);
+});
+
+test('G1 prescreen feeds at most allocated charts into the original Frozen scorer',()=>{
+ const args=input();
+ const chartPlan=makeNo11G1Chart50Plan({
+   mask:args.mask,sessionDate:day,
+   priorityRows:[
+     {symbol:'1111.T',minMarginPct:0.2,meanMarginPct:1},
+     {symbol:'2222.T',minMarginPct:0.5,meanMarginPct:2},
+     {symbol:'3333.T',minMarginPct:0.1,meanMarginPct:3}
+   ],
+   otherChartFunctions:48,emptySafetySlots:0
+ });
+ assert.deepEqual(chartPlan.selectorInputSymbols,['2222.T','1111.T']);
+ const allowed=new Set(chartPlan.selectorInputSymbols);
+ args.chartPlan=chartPlan;
+ args.nativeMinuteRows=args.nativeMinuteRows.filter(x=>allowed.has(x.Code));
+ const result=runOriginalFrozenSelectorShadow(args);
+ assert.equal(result.observedCandidatePool,3);
+ assert.equal(result.allocatedChartSelectorCandidates,2);
+ assert.equal(result.chart50PrescreenApplied,true);
+ assert.equal(result.chartFunctionsReserved,50);
+ assert.ok(result.selected.length<=2);
+ assert.ok(result.selected.every(x=>allowed.has(x.symbol)));
+ assert.equal(result.orderTransmission,false);
+ const bad={...args,nativeMinuteRows:[...args.nativeMinuteRows,
+   ...raws(['3333.T'],1)]};
+ assert.throws(()=>runOriginalFrozenSelectorShadow(bad),
+  /MINUTE_IDENTITY_INVALID/);
+});
+test('previous Watch that is not chart-pinned cannot disappear silently',()=>{
+ const args=input();
+ const chartPlan=makeNo11G1Chart50Plan({
+  mask:args.mask,sessionDate:day,
+  priorityRows:[
+   {symbol:'1111.T',minMarginPct:0.2,meanMarginPct:1},
+   {symbol:'2222.T',minMarginPct:0.5,meanMarginPct:2},
+   {symbol:'3333.T',minMarginPct:0.1,meanMarginPct:3}],
+  otherChartFunctions:48,emptySafetySlots:0
+ });
+ args.chartPlan=chartPlan;
+ args.previousWatches=[{
+  sessionDate:day,symbol:'1111.T',
+  firstSelectedAtJst:day+'T09:30:00+09:00',
+  lastSelectedAtJst:day+'T09:30:00+09:00',
+  refreshCount:0
+ }];
+ assert.throws(()=>runOriginalFrozenSelectorShadow(args),
+  /PERSISTENT_WATCH_NOT_PINNED_IN_CHART50/);
 });

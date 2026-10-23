@@ -8,7 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date,datetime,timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 import hashlib
 import io
 import json
@@ -106,7 +106,7 @@ class NativeBundle:
         return a,b
 
 
-def support(reader: NativeReader) -> tuple[dict[str,NativeRows],dict[str,TrainingData],dict[str,Any]]:
+def support(reader: NativeReader, diagnostic_sink: Callable[[str,dict[str,Any]],Any] | None = None) -> tuple[dict[str,NativeRows],dict[str,TrainingData],dict[str,Any]]:
     # Validate FIT/CAL inputs and teachers as a complete descriptor batch,
     # before opening even a history object. VAL/FINAL teachers are excluded.
     wanted=[]
@@ -118,8 +118,13 @@ def support(reader: NativeReader) -> tuple[dict[str,NativeRows],dict[str,Trainin
     for role in ("FIT","CAL"):
         rows[role]=reader.forecast(role)
         teachers=reader.teachers(role)
+        from .census import census_diagnostics
+        diagnostics=census_diagnostics(rows[role],teachers)
+        # Preserve counts before support can block the first fit; private only.
+        if diagnostic_sink is not None:diagnostic_sink(role,diagnostics)
         data[role]=rows[role].training(teachers,reader.authority.test_only)
         stats[role]=teacher_support(data[role],synthetic=reader.authority.test_only)
+        stats[role]["diagnostics"]=diagnostics
         stats[role]["gate_counts"]=rows[role].counts
         stats[role]["observation_counts"]={name:int(sum(r["values"][name] is not None for r in rows[role].rows)) for name in rows[role].rows[0]["values"]}
         if role=="FIT":
@@ -174,7 +179,7 @@ def dispatch(stage: str, request: dict[str,Any], *, authority: Authority | None)
         store.event("START-"+stage+"-"+role,pre)
         reader=NativeReader(authority,request["manifest"],pre)
         if stage=="census":
-            _,_,stats=support(reader)
+            _,_,stats=support(reader,lambda role,value:store.put("census-diagnostics-"+role+".json",value))
             result={"status":"CENSUS_COMPLETE","manifest":authority.manifest_pin,"hashes":pre["hashes"],
                     "stats":stats,"test_only":authority.test_only,"market_fits":0,"access":reader.access}
             store.put("census.json",result)
@@ -294,7 +299,10 @@ def dispatch(stage: str, request: dict[str,Any], *, authority: Authority | None)
     except Exception as error:
         # Preserve start/budget evidence, never auto retry or silently report zero.
         if "START-"+stage+"-"+role+".json" in {Path(k).name for k in authority.artifact_pins}:
-            try:store.put("failure-"+stage+"-"+role+".json",{"reason":str(error),"retry_allowed":False})
+            try:store.put("failure-"+stage+"-"+role+".json",{"reason":str(error),"retry_allowed":False,
+                          "access":reader.access if "reader" in locals() else [],
+                          "source_slices":reader.source_slices if "reader" in locals() else [],
+                          "access_receipt_scope":"COMPLETED_VERIFIED_READS_NOT_ALL_ATTEMPTED_OPENS"})
             except FileExistsError:pass
         raise
     finally:

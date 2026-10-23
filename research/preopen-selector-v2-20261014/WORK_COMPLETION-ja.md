@@ -1,5 +1,9 @@
 # 新Selector V2 — MODE A 接続実装完了記録
 
+最新の継続作業（開始HEAD 6eb002f…）は **MODE_B_PREPARATION_COMPLETION-ja.md**。
+以下は37eb703…を開始点とした前回接続実装の記録であり、155件/33files等は当時の値。
+最新のテスト数・run/job/HEADは新しい完了記録とPR #594本文を参照する。
+
 今回の継続開始HEADは `37eb703065dc1698757dd320e40629dab2e40448`。live PR #594はOpen/Draft、baseはV2設計branchで一致した。以前の57c7d7f…からの工学履歴を保持し、V2専用directoryと専用workflowだけを更新する。最終対象HEAD・専用CI run/job/event/head・decoded logはPR本文へ結合する。
 
 対象HEAD / branch / Draft PR: CURRENT_PR_HEAD / research/preopen-selector-v2-engineering-20261014-r1 / #594 Open/Draft。

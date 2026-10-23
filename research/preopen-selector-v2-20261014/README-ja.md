@@ -3,6 +3,11 @@
 詳細契約はV2_DESIGN_DETAIL-ja.md、95列はFEATURE_REGISTRY.json。
 市場数値読取・市場fit・実行は許可されていない。
 
+最新のMODE B準備: MODE_B_PREPARATION_COMPLETION-ja.md。
+用途別24原本scopeはMODE_B_SOURCE_SCOPE_DRAFT.json、実source採用条件は
+REAL_SOURCE_ADMISSION-ja.md、owner環境手順はOWNER_CHANNEL_DEPLOYMENT-ja.md。
+統合比較はINTEGRATION_ADAPTER_PROPOSAL-ja.mdの独立案に限定する。
+
 Python3.12、requirements-engineering.lockの5依存版を使用する。
 人工E2Eは外部ファイルを入力せず、自作fixtureのみから2モデル/2温度を実行し、
 別processで信頼済み自作artifactをrestore、候補固定後に別processで評価する。

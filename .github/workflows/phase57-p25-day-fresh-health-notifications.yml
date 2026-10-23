@@ -1,0 +1,92 @@
+name: Phase57 P25 DAY Fresh Health Notifications
+
+on:
+  workflow_run:
+    workflows: ['Phase57 P25 Four-Track Durable Persistence']
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-p25-day-fresh-health-notifications
+  cancel-in-progress: false
+
+jobs:
+  health:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Resolve latest four-track durable artifact
+        id: src
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          run_id="${{ github.event.workflow_run.id }}"
+          if [ -z "${run_id:-}" ]; then
+            run_id="$(gh run list --repo "$GH_REPO" --workflow phase57-p25-four-track-durable-persistence.yml --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId')"
+          fi
+          test -n "$run_id"
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+      - name: Download four-track manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_ID: ${{ steps.src.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/health/four
+          name="$(gh api "repos/$GH_REPO/actions/runs/$RUN_ID/artifacts" --jq '.artifacts[] | select(.name|startswith("phase57-p25-four-track-durable-")) | .name' | head -1)"
+          test -n "$name"
+          gh run download "$RUN_ID" --repo "$GH_REPO" --name "$name" --dir /tmp/health/four
+          test -f /tmp/health/four/manifest.json
+          key="$(node -e "const x=require('/tmp/health/four/manifest.json');process.stdout.write(x.durableKey)")"
+          test -n "$key"
+          echo "DURABLE_KEY=$key" >> "$GITHUB_ENV"
+      - name: Fetch exact durable snapshot and measurement
+        run: |
+          set -euo pipefail
+          git fetch origin automation/p25-four-track-data
+          base="data/p25-four-track/$DURABLE_KEY"
+          git show "FETCH_HEAD:$base/dynamic5m-measurement.json" > /tmp/health/measurement.json
+          git show "FETCH_HEAD:$base/marketwide-snapshot.ndjson" > /tmp/health/snapshot.ndjson
+      - name: Build health report
+        id: report
+        continue-on-error: true
+        run: |
+          mkdir -p /tmp/health/out
+          node scripts/phase57_p25_day_fresh_health_report.mjs --manifest /tmp/health/four/manifest.json --measurement /tmp/health/measurement.json --snapshot /tmp/health/snapshot.ndjson --output /tmp/health/out
+      - name: Write GitHub notification summary
+        if: always()
+        run: |
+          echo '## Ark DAY Fresh Pipeline Health' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat /tmp/health/out/health-summary.txt >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Performance is intentionally not used for alerting; this is plumbing/lineage/safety health only.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload health notification artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-p25-day-fresh-health-${{ env.DURABLE_KEY }}
+          path: /tmp/health/out/
+          retention-days: 90
+      - name: Fail closed on health alert
+        if: steps.report.outcome != 'success'
+        run: exit 1
+      - name: Safety boundary
+        if: always()
+        run: |
+          echo 'Monitoring only. No broker/RSS/Excel/order/live/paper execution.'
+          echo 'No retuning, winner selection, promotion, or fresh holdout consumption.'

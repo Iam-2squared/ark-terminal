@@ -1,0 +1,21 @@
+{
+  "schema": "phase57-r54-cycle1-preperformance-mechanical-integrity-disposition-v1",
+  "savedUtc": "2026-09-28T00:14:31Z",
+  "oldSourceHead": "0a5bdb6fc996fc185643332b7ee944d07c5da273",
+  "oldReadinessRun": 36360421232,
+  "oldReadinessTeacherSha256": "0f1a8ad8e385ca9ccb9ec46db8dcc61b6003fae475a266ca061611465101cd7e",
+  "oldPrecommitSha256": "8d3e7594d7cc14748e08ed00a6a0c02e81c10ec056e4fc058c6f039ce99055ae",
+  "oldPreflightRun": 36361419774,
+  "status": "SUPERSEDED_BEFORE_ANY_NEW_REAL_ESTIMATOR_FIT_OR_EXIT_PERFORMANCE",
+  "realEstimatorFits": 0,
+  "candidateForecastValuesInspected": false,
+  "exitLayerAViewed": false,
+  "integratedReturnViewed": false,
+  "defect": "Teacher D applied 0.9995 to difference of two sell prices, but frozen R34 SELL_COST_PP=0.05 uses the SAME Entry cost basis for both NetSellPerShare values, so fee must algebraically cancel",
+  "correctEquation": "D(t,h)=100*(exact_sell_price_eh-exact_sell_price_e0)/fresh_now_price",
+  "scope": "ONLY_D_TEACHER_NUMERIC_VALUES_AND_THEIR_HASH_CHANGE; A/HIGH/LOW masks features folds model thresholds Gate candidates Capital accounting remain fixed",
+  "disposition": "CYCLE1_NEVER_FIT; APPEND_ONLY_CYCLE2_REGENERATE_ZERO_FIT_LABEL_ARTIFACT_THEN_FREEZE_NEW_HASH_AND_RETEST",
+  "noOldArtifactOverwrite": true,
+  "doNotUseOldPrecommitForFit": true,
+  "safety9AllFalse": true
+}

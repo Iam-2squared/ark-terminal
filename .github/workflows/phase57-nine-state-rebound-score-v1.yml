@@ -1,0 +1,123 @@
+name: Phase57 REBOUND Blind Review Score v1
+
+on:
+  push:
+    branches:
+      - research/phase57-long-only-cash-equity
+    paths:
+      - '.github/workflows/phase57-nine-state-rebound-score-v1.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: phase57-nine-state-rebound-score-v1
+  cancel-in-progress: true
+
+jobs:
+  score-frozen-blind-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen blind review identity
+        run: |
+          set -euo pipefail
+          REVIEW='docs/evidence/phase57-nine-state-entry-audit-v1/REBOUND_BLIND_REVIEW_R1.csv'
+          test -f "$REVIEW"
+          test "$(git hash-object "$REVIEW")" = 'afb66ff0ee9dedc824f558e15d587da1f2390682'
+          test "$(($(wc -l < "$REVIEW") - 1))" -eq 34
+          test "$(grep -c ',YES,' "$REVIEW")" -eq 34
+      - name: Open sealed map only after frozen review
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/10745366281/zip" > "$RUNNER_TEMP/sealed.zip"
+          SEALED_MEMBER="$(unzip -Z1 "$RUNNER_TEMP/sealed.zip" | grep -E '(^|/)sealed-map\.json$' | head -n1)"
+          test -n "$SEALED_MEMBER"
+          unzip -p "$RUNNER_TEMP/sealed.zip" "$SEALED_MEMBER" > "$RUNNER_TEMP/sealed-map.json"
+          test -s "$RUNNER_TEMP/sealed-map.json"
+      - name: Score frozen review without exposing identities
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv, json, os
+          from collections import Counter, defaultdict
+          from pathlib import Path
+
+          review_path = Path('docs/evidence/phase57-nine-state-entry-audit-v1/REBOUND_BLIND_REVIEW_R1.csv')
+          sealed_path = Path(os.environ['RUNNER_TEMP']) / 'sealed-map.json'
+          out_path = Path(os.environ['RUNNER_TEMP']) / 'rebound-blind-review-score-r1.json'
+
+          with review_path.open(newline='', encoding='utf-8') as fh:
+              reviews = list(csv.DictReader(fh))
+          sealed = json.loads(sealed_path.read_text(encoding='utf-8'))
+          by_case = {row['caseId']: row for row in sealed}
+
+          assert len(reviews) == 34
+          assert len(by_case) == 34
+          assert {r['caseId'] for r in reviews} == set(by_case)
+          assert all(r['chartInspected'] == 'YES' for r in reviews)
+
+          confusion = defaultdict(Counter)
+          mismatches = []
+          reviewer_counts = Counter()
+          baseline_counts = Counter()
+          ambiguity_counts = Counter()
+          visual_counts = Counter()
+          data_quality_counts = Counter()
+
+          for r in reviews:
+              s = by_case[r['caseId']]
+              reviewer = r['reviewerState']
+              baseline = s['baselineState']
+              reviewer_counts[reviewer] += 1
+              baseline_counts[baseline] += 1
+              ambiguity_counts[r['ambiguity']] += 1
+              visual_counts[r['visualAssessment']] += 1
+              data_quality_counts[r['dataQuality']] += 1
+              confusion[baseline][reviewer] += 1
+              if reviewer != baseline:
+                  mismatches.append({
+                      'caseId': r['caseId'],
+                      'baselineState': baseline,
+                      'reviewerState': reviewer,
+                      'ambiguity': r['ambiguity'],
+                  })
+
+          score = {
+              'artifactKind': 'phase57_rebound_blind_review_score_r1',
+              'reviewBlobSHA': 'afb66ff0ee9dedc824f558e15d587da1f2390682',
+              'sealedArtifactId': 10745366281,
+              'reviewedCases': len(reviews),
+              'chartInspectedYES': sum(r['chartInspected'] == 'YES' for r in reviews),
+              'exactStateMatches': len(reviews) - len(mismatches),
+              'exactStateMatchRate': (len(reviews) - len(mismatches)) / len(reviews),
+              'reviewerStateCounts': dict(sorted(reviewer_counts.items())),
+              'baselineStateCounts': dict(sorted(baseline_counts.items())),
+              'confusion': {k: dict(sorted(v.items())) for k, v in sorted(confusion.items())},
+              'mismatches': mismatches,
+              'ambiguityCounts': dict(sorted(ambiguity_counts.items())),
+              'visualAssessmentCounts': dict(sorted(visual_counts.items())),
+              'dataQualityCounts': dict(sorted(data_quality_counts.items())),
+              'samplingCaveat': 'Outcome-blind stress/general review sample; not a population accuracy estimator.',
+              'identityFieldsEmitted': 0,
+              'futureOrOutcomeUsedForReview': 0,
+          }
+          out_path.write_text(json.dumps(score, ensure_ascii=False, sort_keys=True, indent=2) + '\n', encoding='utf-8')
+          print(json.dumps(score, ensure_ascii=False, sort_keys=True, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-rebound-blind-review-score-r1-${{ github.sha }}
+          path: ${{ runner.temp }}/rebound-blind-review-score-r1.json
+          if-no-files-found: error
+          retention-days: 90

@@ -1,0 +1,113 @@
+name: Phase57 Entry Ordered Range Scorecard v1
+
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-entry-ordered-range-scorecard-v1.yml
+      - scripts/phase57_entry_ordered_range_scorecard_v1.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-entry-ordered-range-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  range-scorecard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Definition and canonical tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          ARK_TEST_OFFLINE: '1'
+        run: |
+          set -euo pipefail
+          python scripts/phase57_entry_ordered_range_scorecard_v1.py --self-test
+          python -m unittest -v scripts.test_phase57_entry_all_material_evaluator_v1
+      - name: Restore immutable ONE_MINUTE reference
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-drop-pull-1m-state-recheck-v1-8c256ff98d365d01c7150afe193686f020e2026c
+          path: artifacts/one-minute
+          repository: Iam-2squared/ark-terminal
+          run-id: 35818555587
+          github-token: ${{ github.token }}
+      - name: Re-evaluate baselines without changing legacy metrics
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          ARK_TEST_OFFLINE: '1'
+        run: |
+          set -euo pipefail
+          echo 'de8ee035d2c2949e6ecbd5315d393de8794ca7d0e36ace49a6ccfe720a65a844  artifacts/one-minute/replay-a/entry-records.json.gz' | sha256sum -c -
+          python - <<'PY'
+          import json, hashlib
+          from pathlib import Path
+          from scripts import phase57_entry_ordered_range_scorecard_v1 as r
+          from scripts import phase57_entry_all_material_evaluator_v1 as c
+          root=Path('docs/evidence')
+          read=c.base.read_json
+          opp=read(root/'phase57-entry-timing-signal-census-v1/measurement/opportunity-records.json.gz')
+          policies={
+            'IMMEDIATE':read(root/'phase57-state-conditioned-signal-entry-v1/measurement/baseline-immediate-records.json.gz'),
+            'ENTRY_V1':read(root/'phase57-state-conditioned-signal-entry-v1/measurement/entry-records.json.gz'),
+            'ORIGINAL_STATE_V3':read(root/'phase57-state-v3-9pattern-entry-v1/measurement/entry-records.json.gz'),
+            'ONE_MINUTE':read(Path('artifacts/one-minute/replay-a/entry-records.json.gz'))}
+          dest=Path('artifacts/range-scorecard')
+          for name,rec in policies.items():
+              out=r.build(opp,rec,name,policies['ORIGINAL_STATE_V3'],policies['IMMEDIATE'],'IMMEDIATE')
+              old=c.evaluate(opp,rec,name,policies['IMMEDIATE'],'IMMEDIATE')
+              assert all(out[k]==v for k,v in old.items()), 'LEGACY_METRIC_CHANGED'
+              assert sum(v['denominator'] for v in out['orderedLowHighRangeBuckets'].values())==2155
+              second=r.build(opp,rec,name,policies['ORIGINAL_STATE_V3'],policies['IMMEDIATE'],'IMMEDIATE')
+              assert json.dumps(out,sort_keys=True)==json.dumps(second,sort_keys=True)
+              c.base.write_json(dest/(name+'.json'),out)
+          receipt={'status':'PASS','population':2155,'policyCount':4,'legacyMetricsUnchanged':True,'twoRunIdentical':True,'newEntryModelFits':0,'providerRequests':0,'protectedOpens':0}
+          c.base.write_json(dest/'receipt.json',receipt)
+          print(json.dumps(receipt,sort_keys=True))
+          for name in ('IMMEDIATE','ONE_MINUTE'):
+              out=read(dest/(name+'.json'))
+              print(name, {k:{'N':v['denominator'],'meanEP':v['metrics']['entryPosition']['mean']} for k,v in out['orderedLowHighRangeBuckets'].items()})
+          PY
+      - name: Save reproducible source and allowed prefit metadata
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/implementation/scripts
+          cp scripts/*.py artifacts/implementation/scripts/
+          python - <<'PY'
+          import shutil
+          from pathlib import Path
+          names=('phase57-entry-pattern-v2','phase57-entry-timing-signal-census-v1','phase57-state-v3-9pattern-entry-v1','phase57-drop-pull-1m-state-recheck-v1','phase57-entry-all-material-v1')
+          for name in names:
+              src=Path('docs/evidence')/name
+              dst=Path('artifacts/implementation')/src
+              dst.mkdir(parents=True,exist_ok=True)
+              for p in src.iterdir():
+                  if p.is_file() and p.suffix in ('.md','.json'):
+                      shutil.copy2(p,dst/p.name)
+          # Current 2,155 causal signal inputs, not protected partitions.
+          src=Path('docs/evidence/phase57-entry-timing-signal-census-v1/measurement/minute-census')
+          dst=Path('artifacts/implementation')/src
+          shutil.copytree(src,dst)
+          PY
+          git rev-parse HEAD > artifacts/implementation/SOURCE_HEAD.txt
+          find artifacts/range-scorecard artifacts/implementation -type f -print0 | sort -z | xargs -0 sha256sum > artifacts/RANGE_SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: phase57-entry-ordered-range-${{ github.sha }}
+          path: |
+            artifacts/range-scorecard
+            artifacts/implementation
+            artifacts/RANGE_SHA256SUMS.txt
+          retention-days: 30
+          if-no-files-found: error

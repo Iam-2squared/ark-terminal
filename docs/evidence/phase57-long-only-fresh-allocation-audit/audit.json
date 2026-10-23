@@ -1,0 +1,382 @@
+{
+  "schemaVersion": 1,
+  "dateJst": "2026-09-16",
+  "verdict": "PHASE57_LONG_ONLY_DATA_ALLOCATION_AUDIT_COMPLETE",
+  "recommendation": "D.INSUFFICIENT_INFORMATION",
+  "meaning": "Inventory and plan complete within explicit metadata domain; global data sufficiency and Validation release remain unresolved.",
+  "sourceHead": "649ff89fa8542819d14fa3c5a7337f6dd4fab4a8",
+  "latestMain": "6b6c4d522cd1863132185463a0aed74bc819be01",
+  "totalKnownIdentities": 513,
+  "datedIdentities": 412,
+  "unmappedParentIdentities": 101,
+  "classificationCounts": {
+    "RESERVED": 5,
+    "EXPOSED": 375,
+    "SEALED": 32,
+    "UNKNOWN": 101,
+    "FRESH_AVAILABLE": 0
+  },
+  "totalRepositoryUniqueSessions": "UNKNOWN_OUTSIDE_ENUMERATED_METADATA_DOMAIN",
+  "historicalIdentities": 487,
+  "separatelyEnumeratedFreshReservations": 26,
+  "futureRuleOnlyBudgetsNotAddedToIdentityTotal": {
+    "longIntegratedProspective": 25,
+    "capitalIntegratedOos": 20
+  },
+  "classificationRule": "EXPOSED positive evidence first; unmapped dates UNKNOWN; otherwise SEALED, RESERVED, UNKNOWN. Operational seals/reservations retained as orthogonal flags.",
+  "exposureCountLimitation": "Exact mapped exposure lower bound. EXIT_BLOCK_C metadata covers protected June dates without full ordinal/date mapping; UNKNOWN preserves this uncertainty. No invented calendar.",
+  "negativeAttestation": "No globally fresh unreserved sessions certified; absence of an exposure record is not proof of freshness.",
+  "protectedVerification": {
+    "predict/research/phase57-msh-entry-long-v1-validation-candidate-v1.json": {
+      "expected": "4a2f52cd6f25f480fe6d7de9db525860ddf3c1600abed06b6222c0990c055a23",
+      "actual": "4a2f52cd6f25f480fe6d7de9db525860ddf3c1600abed06b6222c0990c055a23",
+      "pass": true
+    },
+    "predict/research/phase57-msh-entry-long-v1-fit-contract-v1.json": {
+      "expected": "64c20d785be5f23b0a9103f419726b191a12a58fd5d3a7ad5185c69f9644a938",
+      "actual": "64c20d785be5f23b0a9103f419726b191a12a58fd5d3a7ad5185c69f9644a938",
+      "pass": true
+    },
+    "docs/evidence/phase57-msh-entry-long-v1-offline-freeze/development-evidence-freeze.json": {
+      "expected": "68d2a02c988a05b3178e903d628a53662b01bb704fa0700ebcb98e3b32547ead",
+      "actual": "68d2a02c988a05b3178e903d628a53662b01bb704fa0700ebcb98e3b32547ead",
+      "pass": true
+    },
+    "docs/evidence/phase57-msh-entry-long-v1-final-validation-model/final-model.json": {
+      "expected": "b053a858edda22bee7b9939162648740507964cc5ed8d613c2d778d15534589e",
+      "actual": "b053a858edda22bee7b9939162648740507964cc5ed8d613c2d778d15534589e",
+      "pass": true
+    },
+    "docs/evidence/phase57-msh-entry-long-v1-final-validation-model/final-scaler.json": {
+      "expected": "1e4865915a2ad1ec51dd4ebf2116d48b9f89b9b884f8dc732fdb2861dbf4fe4b",
+      "actual": "1e4865915a2ad1ec51dd4ebf2116d48b9f89b9b884f8dc732fdb2861dbf4fe4b",
+      "pass": true
+    },
+    "predict/long-only/phase57-long-only-session-allocation-v3.json": {
+      "expected": "07092bb98ee90062f51611e9c5247df22711aa0acb3dc496ad59126208c2fd50",
+      "actual": "07092bb98ee90062f51611e9c5247df22711aa0acb3dc496ad59126208c2fd50",
+      "pass": true
+    },
+    "predict/long-only/phase57-long-only-data-plan.json": {
+      "expected": "3ba4ec47a01510fe2b0de3874132824b2533400eaf4582a688b62306568ec526",
+      "actual": "3ba4ec47a01510fe2b0de3874132824b2533400eaf4582a688b62306568ec526",
+      "pass": true
+    },
+    "selectorPayloadSha256": {
+      "expected": "3dc6d222d4039737c0dcfdcfa4a83372202152e29b582225419ab97c00610d59",
+      "actual": "3dc6d222d4039737c0dcfdcfa4a83372202152e29b582225419ab97c00610d59",
+      "pass": true
+    }
+  },
+  "longAllocationMatrix": {
+    "DEVELOPMENT_A": {
+      "sessions": 25,
+      "first": "2024-09-10",
+      "last": "2024-10-17",
+      "classificationCounts": {
+        "RESERVED": 4,
+        "EXPOSED": 21
+      },
+      "globallyFreshCertified": 0
+    },
+    "DEVELOPMENT_B": {
+      "sessions": 15,
+      "first": "2024-10-18",
+      "last": "2024-11-08",
+      "classificationCounts": {
+        "EXPOSED": 15
+      },
+      "globallyFreshCertified": 0
+    },
+    "DEVELOPMENT_C": {
+      "sessions": 20,
+      "first": "2024-11-11",
+      "last": "2024-12-06",
+      "classificationCounts": {
+        "EXPOSED": 20
+      },
+      "globallyFreshCertified": 0
+    },
+    "DEVELOPMENT_D": {
+      "sessions": 20,
+      "first": "2024-12-09",
+      "last": "2025-01-09",
+      "classificationCounts": {
+        "EXPOSED": 20
+      },
+      "globallyFreshCertified": 0
+    },
+    "VALIDATION": {
+      "sessions": 30,
+      "first": "2025-01-10",
+      "last": "2025-02-25",
+      "classificationCounts": {
+        "EXPOSED": 25,
+        "SEALED": 5
+      },
+      "globallyFreshCertified": 0
+    },
+    "VALIDATION_REPLICATION": {
+      "sessions": 20,
+      "first": "2025-02-26",
+      "last": "2025-03-26",
+      "classificationCounts": {
+        "EXPOSED": 19,
+        "SEALED": 1
+      },
+      "globallyFreshCertified": 0
+    },
+    "PRIMARY_OOS": {
+      "sessions": 30,
+      "first": "2025-03-27",
+      "last": "2026-07-06",
+      "classificationCounts": {
+        "EXPOSED": 30
+      },
+      "globallyFreshCertified": 0
+    },
+    "CONTINGENCY_OOS": {
+      "sessions": 30,
+      "first": "2026-07-07",
+      "last": "2026-08-19",
+      "classificationCounts": {
+        "EXPOSED": 30
+      },
+      "globallyFreshCertified": 0
+    },
+    "RESERVE": {
+      "sessions": 15,
+      "first": "2026-08-20",
+      "last": "2026-09-09",
+      "classificationCounts": {
+        "EXPOSED": 15
+      },
+      "globallyFreshCertified": 0
+    }
+  },
+  "exitAllocationMatrix": {
+    "DEV_A_LOCKED": {
+      "sessions": 70,
+      "first": "2024-09-10",
+      "last": "2024-12-20",
+      "classificationCounts": {
+        "RESERVED": 4,
+        "EXPOSED": 66
+      },
+      "globallyFreshCertified": 0
+    },
+    "DEV_B_LOCKED": {
+      "sessions": 20,
+      "first": "2024-12-23",
+      "last": "2025-01-24",
+      "classificationCounts": {
+        "EXPOSED": 16,
+        "SEALED": 4
+      },
+      "globallyFreshCertified": 0
+    },
+    "DIAGNOSTIC_ONLY": {
+      "sessions": 179,
+      "first": "2025-04-15",
+      "last": "2026-01-07",
+      "classificationCounts": {
+        "EXPOSED": 179
+      },
+      "globallyFreshCertified": 0
+    },
+    "FUTURE_RESERVE_SEALED": {
+      "sessions": 30,
+      "first": "2026-07-29",
+      "last": "2026-09-09",
+      "classificationCounts": {
+        "EXPOSED": 30
+      },
+      "globallyFreshCertified": 0
+    },
+    "HISTORICAL_HOLDOUT_LOCKED": {
+      "sessions": 25,
+      "first": "2025-03-12",
+      "last": "2026-06-15",
+      "classificationCounts": {
+        "EXPOSED": 25
+      },
+      "globallyFreshCertified": 0
+    },
+    "UNTOUCHED_OOS_SEALED": {
+      "sessions": 30,
+      "first": "2026-06-16",
+      "last": "2026-07-28",
+      "classificationCounts": {
+        "EXPOSED": 30
+      },
+      "globallyFreshCertified": 0
+    },
+    "VALIDATION_LOCKED": {
+      "sessions": 30,
+      "first": "2025-01-27",
+      "last": "2025-03-11",
+      "classificationCounts": {
+        "EXPOSED": 28,
+        "SEALED": 2
+      },
+      "globallyFreshCertified": 0
+    }
+  },
+  "conflict30": {
+    "count": 30,
+    "exitDevB": 10,
+    "exitValidation": 20,
+    "confirmedPriorSelectorExposure": 25,
+    "permanentSourceExclusion": 4,
+    "purge": 1,
+    "reallocationAuthorization": "NONE_FOUND_OR_ISSUED",
+    "source": "exitContract + selectorCloseout + oldEntryInventory"
+  },
+  "sources": {
+    "exitInventory": {
+      "ref": "origin/research/phase57-exit-v4-hybrid-msh-large-scale",
+      "commit": "ea15a594103bd6c9146f19a4aebafb83067d869b",
+      "path": "predict/research/phase57-exit-v4-stage2-session-metadata-inventory-v1.json",
+      "blobSha": "2217ffee6b9607f5610d5484bffea884f65b7422",
+      "sha256": "127bc15586301936fcb5806486b2d3f03f9a51790d5e1b051fa918815a019e82"
+    },
+    "exitManifest": {
+      "ref": "origin/research/phase57-exit-v4-hybrid-msh-large-scale",
+      "commit": "ea15a594103bd6c9146f19a4aebafb83067d869b",
+      "path": "predict/research/phase57-exit-v4-stage2-allocation-manifest-v1.json",
+      "blobSha": "7594c73e8ed34e5661be5b804b6b5ad5a3b62764",
+      "sha256": "316d65a051ef62a0917446a910eabd9c46f2b577486fb5ead5743c446075a276"
+    },
+    "exitContract": {
+      "ref": "origin/research/phase57-exit-v4-hybrid-msh-large-scale",
+      "commit": "ea15a594103bd6c9146f19a4aebafb83067d869b",
+      "path": "predict/research/phase57-exit-v4-stage2-data-allocation-contract-v1.json",
+      "blobSha": "302a289578abc89d2949e67752637175de23b744",
+      "sha256": "7e2792dfe35998716535bbbe0c9347adf87c9d6179f004b405bf0afd7240faec"
+    },
+    "selectorCloseout": {
+      "ref": "origin/research/phase57-selector-capacity-v2",
+      "commit": "63edf641f871be20cbd8518cec44392d12e74b16",
+      "path": "predict/research/phase57-selector-closeout-data-use-manifest.json",
+      "blobSha": "b2542b627c14ac0ba3d3d960b164e6c7aaaa8da3",
+      "sha256": "e7e64f37ac038c3e21ed5c2d5ab768f2feeb112c5bb0aa03e0fa236d358252cc"
+    },
+    "oldEntryInventory": {
+      "ref": "origin/research/phase57-hybrid-p21-entry-baseline",
+      "commit": "938338199c861b1cd6345d08b311fbd85442e339",
+      "path": "predict/research/phase57-entry-historical-inventory-2026-09-08.json",
+      "blobSha": "c4b397b5e674aebbed81e34c02b2987fabbb55d7",
+      "sha256": "4287faa36ea9c35e649fb912c20119dcd6a2f2e4c4be65ec9aeca494362bcdb0"
+    },
+    "oldEntryAllocation": {
+      "ref": "origin/research/phase57-hybrid-p21-entry-baseline",
+      "commit": "938338199c861b1cd6345d08b311fbd85442e339",
+      "path": "predict/research/phase57-entry-allocation-freeze-2026-09-08.json",
+      "blobSha": "52cccca3ff17272f5705f90918e4fa5ec8565d35",
+      "sha256": "288d723c9efcd334b571e6950dfb2e569423a11525071e928a2c575323f85d97"
+    },
+    "oldEntryDevelopment": {
+      "ref": "origin/research/phase57-exit-v4-hybrid-msh-large-scale",
+      "commit": "ea15a594103bd6c9146f19a4aebafb83067d869b",
+      "path": "predict/research/phase57-entry-development-allocation-v1.json",
+      "blobSha": "f011fdf964cb92dddcbf5a6ac44df490dd62f053",
+      "sha256": "7df4cb026d966628c9b3fbc91037eb13704397a700c076e865d817a273df00e6"
+    },
+    "oldEntryHoldout": {
+      "ref": "origin/research/phase57-exit-v4-hybrid-msh-large-scale",
+      "commit": "ea15a594103bd6c9146f19a4aebafb83067d869b",
+      "path": "predict/research/phase57-entry-historical-holdout29-source-parity-precommit.json",
+      "blobSha": "ed6655319b86b0d0943c801ca9aef48e2352e91d",
+      "sha256": "ca429cb9587dc11ec8974ec040c2701de4376a3cd17dd7440d2915a219e94170"
+    },
+    "oldEntryFresh": {
+      "ref": "origin/research/phase57-exit-v4-hybrid-msh-large-scale",
+      "commit": "ea15a594103bd6c9146f19a4aebafb83067d869b",
+      "path": "predict/research/phase57-minimal-stateful-entry-fresh-allocation.json",
+      "blobSha": "645415b77724e4557d4deedcd56a4463f41cff95",
+      "sha256": "df2e37358aa6dcc36109e792291cbcf11d2da54eb3be99887f3606093fad4117"
+    },
+    "capitalInventory": {
+      "ref": "origin/research/phase57-capital-allocation-v3-phase-b-integrated",
+      "commit": "84b296102b85ab2909385a8f3ee7ef336c9b6129",
+      "path": "predict/research/phase57-capital-allocation-historical-oos-inventory-v1.json",
+      "blobSha": "65edbc6f4750427c9fdaeb49f0b21f5dc1ea8bce",
+      "sha256": "cb16129377f7ac62c04a64fcc148201715f41561259239a9fc4750358ab0d5d8"
+    },
+    "capitalFuture": {
+      "ref": "origin/research/phase57-capital-allocation-v3-phase-b-integrated",
+      "commit": "84b296102b85ab2909385a8f3ee7ef336c9b6129",
+      "path": "predict/research/phase57-capital-allocation-future-integrated-oos-precommit.json",
+      "blobSha": "d1bfb170189d626b7d729de93eacf05b57237608",
+      "sha256": "8efcb68d498e6c3e02d93c903493eb691336426383ebeae5cd535d6e0a5d00d9"
+    },
+    "capitalValidation": {
+      "ref": "origin/research/phase57-capital-allocation-v3-phase-b-integrated",
+      "commit": "84b296102b85ab2909385a8f3ee7ef336c9b6129",
+      "path": "predict/research/phase57-capital-allocation-validation-contract.json",
+      "blobSha": "6720ef1f86b0d06b7c5e575fc447ee0f126ab25c",
+      "sha256": "72a3cafaeb34bac7c9414d00c463d09ebe3e2dc0151c9c5422dc6e251deb1141"
+    },
+    "longAllocation": {
+      "ref": "649ff89fa8542819d14fa3c5a7337f6dd4fab4a8",
+      "commit": "649ff89fa8542819d14fa3c5a7337f6dd4fab4a8",
+      "path": "predict/long-only/phase57-long-only-session-allocation-v3.json",
+      "blobSha": "4e4814e2ccf7f5a3faf6b1e2686ea8ebcdc1b620",
+      "sha256": "07092bb98ee90062f51611e9c5247df22711aa0acb3dc496ad59126208c2fd50"
+    },
+    "longPlan": {
+      "ref": "649ff89fa8542819d14fa3c5a7337f6dd4fab4a8",
+      "commit": "649ff89fa8542819d14fa3c5a7337f6dd4fab4a8",
+      "path": "predict/long-only/phase57-long-only-data-plan.json",
+      "blobSha": "628703fac4d55057ae6ac402fc71fc3a58265dd0",
+      "sha256": "3ba4ec47a01510fe2b0de3874132824b2533400eaf4582a688b62306568ec526"
+    },
+    "finalTrainingScope": {
+      "ref": "649ff89fa8542819d14fa3c5a7337f6dd4fab4a8",
+      "commit": "649ff89fa8542819d14fa3c5a7337f6dd4fab4a8",
+      "path": "predict/research/phase57-msh-entry-long-v1-final-model-scope-v1.json",
+      "blobSha": "58189ccb96371df6c828f1258e08dd27b26f8a32",
+      "sha256": "e18208a42ac034fde1f746c2f51146660f76080b33abaafe940ac6e85067686b"
+    }
+  },
+  "requests": {
+    "Yahoo": 0,
+    "JQuants": 0,
+    "otherMarketData": 0,
+    "confidence": "CONFIRMED_FOR_THIS_AUDIT_TOOL_CALLS_ONLY_NO_AUTONOMOUS_JOB_CLAIM"
+  },
+  "actions": {
+    "allocationChanges": 0,
+    "candidatePrediction": 0,
+    "validationOutcomeAccess": 0,
+    "oosOutcomeAccess": 0,
+    "exitOutcomeAccess": 0,
+    "modelFit": 0,
+    "scalerFit": 0,
+    "thresholdComparison": 0,
+    "shortEvaluation": 0
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "shortAllowed": false,
+    "marginAllowed": false,
+    "leverageAllowed": false
+  },
+  "unresolved": [
+    "GLOBAL_CROSS_RESEARCH_OWNERSHIP_AND_EXPOSURE_RECONCILIATION",
+    "PROTECTED_103_FULL_CALENDAR_MAPPING",
+    "CURRENT_PRIVATE_PRICE_CACHE_EXISTENCE",
+    "LONG_EXIT_SPECIFIC_SAMPLE_BUDGET",
+    "INDEPENDENT_INTEGRATION_AND_PORTFOLIO_STAGE_BUDGET",
+    "CURRENT_ENTITLEMENT_FOR_FUTURE_WINDOW"
+  ],
+  "nextAction": "Separate metadata-only architecture/allocation decision: reconcile supersession and exposure, retain all seals, define joint later-stage independent budgets and acquisition feasibility. Do not unlock the conflicting30 or select Validation dates."
+}

@@ -1,0 +1,309 @@
+{
+  "authority": "DEVELOPMENT_ONLY_RESEARCH; NO_PRODUCTION_PROMOTION",
+  "basisHead": "50b92f00e91719ccd4888de1599ad07385218b6c",
+  "candidateBudget": [
+    "MG_GUARD_ONLY",
+    "MG_GUARD_SURVIVAL only after Survival skill PASS"
+  ],
+  "evaluationGates": {
+    "allEntry": "IM819/R1_795 standalone100 share; 5 fixed buckets, initial/replacement diagnostic, never Portfolio PnL",
+    "capital": "24/24 certified EOD and measurable Final Equity required to assert PASS; >1m JPY and >=same-arm Control; nonnegative cash, MaxDD; missing leaves MEASUREMENT_BLOCKED and productionReady=false",
+    "economicNull": "LAYER_A_PASS_ECONOMIC_MEASUREMENT_BLOCKED only with full Layer A gates; never productionReady",
+    "focusedTests": "all specified 30 semantics and safety checks before replay",
+    "giveback": "owned observable prefix MFE until exit minus actual exit return, missing=null; >=5 and >=10 known cohort coverage>=80%, median <=Control; insufficient coverage=GIVEBACK_UNMEASURABLE",
+    "layerA": "archived IM79/R1_32 same Entry and quantity exact R34 paired Control/R54/Guard; no synthetic fill",
+    "loser": "<1,1-3,3-5 IM aggregate candidate PnL>=Control; R1 if paired known N>=5 same; R1 N<5 INCONCLUSIVE_SMALL_N; combined <5 known pair aggregate>=Control",
+    "month2x": "report only certified 24-session geometric daily, Final Equity, ¥2m gap and +2.93% daily gap; never select by target",
+    "reproducibility": "two same-input integrated passes byte/hash identical for ledger/trace/fills/buckets/daily/equity/selection/manifest",
+    "retention": "for +3/+5/+10 reached by candidate, known confirmed exit return >=predeclared floor, combined rate>=same-arm-combined Control; arm regression disclosed",
+    "selection": "Guard-only if all Gates PASS; else Guard+Survival only if eligible and all Gates PASS; else null; no PnL ranking",
+    "stress": "0.20 percentage-point fee stress; 24/24 certified, Final Equity >1m and >=stress Control",
+    "winner": "for each IM>=5,IM>=10,R1>=5,R1>=10: exact candidate mean Net>=Control AND exact aggregate currency PnL>=Control; no bootstrap forgiveness"
+  },
+  "exposure": {
+    "freshOpened": 0,
+    "integratedReplayInvocations": 0,
+    "mainMerges": 0,
+    "newEstimatorFits": 0,
+    "oosOpened": 0,
+    "orders": 0,
+    "prospectiveOpened": 0,
+    "protectedOpened": 0,
+    "providerRequests": 0,
+    "validationOpened": 0
+  },
+  "fitBudgetMax": "3*F=12 outer estimator fits, inner=0, calibration=0",
+  "fixed": {
+    "capital": "SAVED_CAPITAL_V3_B_CI_RANK_AND_R37_SIZING_ONE_SHOT_ENTRY",
+    "cashOnly": true,
+    "control": "R50_A_LIFECYCLE",
+    "entry": [
+      "IMMEDIATE",
+      "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF"
+    ],
+    "entryDualFreeze": "4878a1cc53430e816261dea0fb16aeb53b3c238d",
+    "initialCashJpy": 1000000,
+    "longOnly": true,
+    "lot": 100,
+    "maxConcurrent": 3,
+    "selector": "FROZEN"
+  },
+  "forbidden": [
+    "R54 D rescue",
+    "WPSD Damage K rescue",
+    "floor/ladder/confirmation tuning",
+    "WAIT30/WAIT60",
+    "Potential runtime authority",
+    "Pattern187 posthoc selection",
+    "D/A/HIGH/LOW runtime authority",
+    "extra HGB or Survival state model/60m head",
+    "threshold optimization",
+    "extra candidate",
+    "Selector/Entry/Capital alteration",
+    "new provider or Protected/Fresh/Validation/OOS/Prospective",
+    "null imputation/future peak/synthetic fill",
+    "main merge/paper/live/orders"
+  ],
+  "guardFeasibility": {
+    "ambiguousOrMissing": "excluded from rate numerator and denominator but retained in coverage denominator; no favorable imputation",
+    "exactKnownCoverageMin": 0.8,
+    "floorFirstEntryWeightedNoGoStrictGreaterThan": 0.5,
+    "floorFirstSessionWeightedNoGoStrictGreaterThan": 0.5,
+    "ifFail": "GUARD_FEASIBILITY_UNMEASURABLE or GUARD_FEASIBILITY_NO_GO; no Guard implementation, Survival fit, Replay or threshold revision",
+    "knownEntryNMin": 20,
+    "knownSessionsMin": 8,
+    "relevantTransitions": "for >=5 and >=10 Winner, every prior-step transition before next milestone/Control ceiling, first-passage exact known",
+    "winnerGroups": [
+      ">=5",
+      ">=10"
+    ]
+  },
+  "guardOnly": {
+    "execution": "exact next eligible scheduled OPEN; missing fill=null, no cash release; intent never cancel; at Control ceiling use Control terminal",
+    "firstBreach": "fresh closed return < floor => ALERT count 1",
+    "fits": 0,
+    "intact": "fresh closed return >= current floor => ACTIVE/HOLD",
+    "name": "MG_GUARD_ONLY",
+    "preProfit": "below +1 milestone delegate exact R50; no new early sell",
+    "recovery": "next closed return >= floor => ACTIVE reset",
+    "secondBreach": "next consecutive closed return < floor => irreversible SELL_INTENT",
+    "states": [
+      "BASELINE_HOLD",
+      "ACTIVE",
+      "ALERT",
+      "SELL_INTENT",
+      "DATA_UNAVAILABLE",
+      "TERMINAL"
+    ],
+    "unavailable": "never turn missing into breach; preserve state and delegate Control fail closed"
+  },
+  "integrated": {
+    "baseline": [
+      "R50_A_LIFECYCLE",
+      "R54"
+    ],
+    "cashRelease": "confirmed EXIT fill only; missing mark/fill remains null; exact same-timestamp order",
+    "failedRunConsumesBudget": true,
+    "frozen": "Selector/Entry/Capital unchanged; initialCash=1000000 JPY lot=100 MAX3 LONG/CASH only",
+    "withSurvival": "2 arms*4 policies*2 passes +2 arms*3 stress policies=22",
+    "withoutSurvival": "2 arms*3 policies*2 reproducibility passes +2 arms*2 stress policies=16"
+  },
+  "milestones": {
+    "breachPhase0": "bar Low strictly below floor; same-bar upper and lower with unproved order => AMBIGUOUS_SAME_BAR/UNKNOWN; do not count in either order",
+    "breachRuntime": "fresh scheduled closed bar CLOSE return strictly below floor; equal is intact; compare gross 100*(close/effectiveEntryPrice-1), no fee in price guard",
+    "confirmation": 2,
+    "controlCeiling": "R50_A_LIFECYCLE decision/fill terminal; no extension",
+    "highestToFloorPct": {
+      "1": 0,
+      "10": 5,
+      "2": 1,
+      "3": 2,
+      "5": 3
+    },
+    "ladderPct": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      10
+    ],
+    "nextMilestoneTransition": [
+      {
+        "floor": 0,
+        "from": 1,
+        "to": 2
+      },
+      {
+        "floor": 1,
+        "from": 2,
+        "to": 3
+      },
+      {
+        "floor": 2,
+        "from": 3,
+        "to": 5
+      },
+      {
+        "floor": 3,
+        "from": 5,
+        "to": 10
+      },
+      {
+        "floor": 5,
+        "from": 10,
+        "to": null
+      }
+    ],
+    "plus10FloorRemains": 5,
+    "reach": "closed bar High before NOW, at most Control-owned prefix; retain highest state after reached"
+  },
+  "phase0A": {
+    "fits": 0,
+    "milestoneCoverage": "IM/R1/combined/session reached each step, exact-known, upper-first, floor-first, AMBIGUOUS_SAME_BAR, missing, Control-terminal-first",
+    "potentialCoverage": "IM/R1/session >=1,>=2,>=3,>=5,>=10; exact label window/terminal/missing/knownAt audit; report missing separately",
+    "replays": 0,
+    "survivalCoverage": "all first breach ALERT anchors through Control lifecycle; exact t+30 ACTIVE scheduled minutes close >= floor price positive; exact missing UNKNOWN, no interpolation, no 60m head",
+    "unknownTiming": "EARLY/MID/LATE thirds of ordinal scheduled active-minute index in full session; session/arm/highest milestone reported"
+  },
+  "phase0B": {
+    "buckets": [
+      "<1",
+      "1-2",
+      "2-3",
+      "3-5",
+      "5-10",
+      ">=10"
+    ],
+    "neverOptimizeFloor": true,
+    "report": [
+      "time to each milestone",
+      "upper first/floor first/ambiguous/missing/Control terminal first",
+      "max and median giveback",
+      "time to breach",
+      "breach recovery",
+      "next milestone after breach",
+      ">=5 and >=10 entry-weighted and session-weighted winner breach",
+      "2 checkpoint unrecovered",
+      "one-checkpoint noise breach"
+    ],
+    "unit": "one Entry per transition; only exact Control-owned prefix for causal first-passage; final Entry-to-High buckets may include post-Control path and are evaluator-only"
+  },
+  "potential": {
+    "baseline": "train-fold prevalence constant probability, clipping only numerical logloss safety at 1e-15",
+    "family": "sklearn LogisticRegression L2 C=1 solver=liblinear max_iter=1000 tol=0.0001 random_state=570928; train-only median+missing indicator and StandardScaler; no search/calibration refit",
+    "featureSource": "one uniquely identified frozen causal pre-entry feature vector shared across IM and R1; verify every knownAt<=Entry; if multiple plausible sources cannot be resolved without results, POTENTIAL_FEATURE_SCHEMA_AMBIGUOUS and fits 0",
+    "fitBudget": "2 heads * F outer fits max, F=4, only folds with legal train and nonempty score; earlier Development train and frozen 24-session score; no Entry train/test duplicate",
+    "heads": [
+      "postEntryUpsidePct>=5",
+      "postEntryUpsidePct>=10"
+    ],
+    "role": "OOF_DIAGNOSTIC_ONLY; no HOLD veto/SELL/Guard override/Capital sizing/ranking",
+    "skill": "per-head clustered bootstrap ROC-AUC lower95 strictly >0.5, OOF Brier and log loss both strictly below train-prevalence baseline, IM and R1 point AUC >=0.5 when estimable, reproducible OOF; PR-AUC/reliability/per-session diagnostics"
+  },
+  "power": {
+    "actualSkillBootstrap": 10000,
+    "actualSkillBootstrapSeed": 570929,
+    "aucAlternative": 0.6,
+    "bootstrapPerRep": 199,
+    "method": "conditional fixed-layout parametric session-cluster simulation: scores=delta*y+standard_normal_entry+0.25*standard_normal_session, delta=sqrt(2)*NormalPPF(0.60); 1000 independent repetitions, 199 session-bootstrap resamples each; empirical 2.5th percentile ROC-AUC strictly >0.5 declares detection; simulate only label/session geometry, no actual features; if fewer than 95 percent bootstrap draws valid, no-go",
+    "minNegativeN": 30,
+    "minNegativeSessions": 8,
+    "minPositiveN": 30,
+    "minPositiveSessions": 8,
+    "minPower": 0.8,
+    "powerOneSidedGate": "power fraction >=0.80; all count/session conditions also required; no feature fit before gate",
+    "repetitions": 1000,
+    "seed": 570928,
+    "survivalExactEndpointCoverageMin": 0.7
+  },
+  "replayBudgetMax": 22,
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "savedJst": "2026-09-28T23:37:37.717364+09:00",
+  "schema": "phase57-milestone-guard-first-cycle-precommit-v1",
+  "sourceGeometry": {
+    "fees": "R34 exact corrected same-Entry accounting; 0.05pp sell cost; do not use rounded summaries",
+    "folds": "existing R52 PRECOMMIT folds, 4 outer folds; score only their intersection with frozen 24-session scope; train earlier legal Development sessions under original purge and unique Entry grouping",
+    "knownAt": "closed regular bar High/Low known at bar end start+1; endpoint 930 auction known 930; no future High at decision",
+    "label": "existing canonical postEntryUpsidePct=R50_B terminal evaluator entryToPostEntryHighPct, Entry through same-session terminal; may extend beyond an earlier R50_A model exit; never runtime",
+    "primary": "archived R50 funded IM79/R1_32 exact Entry and quantity",
+    "raw": "R45 checkpoint rows 656247; exact R50 control lifecycle and allowlisted Development raw OHLC; no provider calls",
+    "secondary": "all frozen 24-session Entry IM819/R1_795; standalone 100-share only"
+  },
+  "sourcePins": {
+    "imControlLedgerSha256": "857c775f10e8e4991ef71f5ff6f13ea808dabe33d73affb72950bb5f38d37516",
+    "postR54PrimarySha256": "14ac8ac7eb287b3f4a9485c33ce410a3995cf1355df0ec02bccefcf2ec2b7f98",
+    "r1ControlLedgerSha256": "3257b29fa3a07d6292acf40c1630081b437804f22b0b18c7f5a4ba568135dca9",
+    "r34AuditArtifactId": 10964250835,
+    "r34AuditZipSha256": "46c513221e98498c39c19271f8b90bbbef774f45c80aa645be41fe6af0584b47",
+    "r34PairedSha256": "578c17389a771660a7ba306244d3b888531663a979910d0c1feba66fbab2e0b6",
+    "r45ArtifactId": 10909618948,
+    "r45ArtifactZipSha256": "d3936171002e7579e431568b9900ee5fa1fc8ade3dae0bf6de92870c8dbe4b38",
+    "r45FeatureMemberSha256": "45b91faed0ee7ac3dd46d5fa9bdb4f9f5940cfa2c4a9292af468427d551f5b3e",
+    "r45RowIdentityMemberSha256": "41d875a3c7d8d8ebcb6fe6ef2022277143b6b34f9ba34c163395f81f2873ac47",
+    "r45SchemaSha256": "549530ccb29582cc20166497c74ab94a8752fdc8d4108a19a0be9f5aec2d55ba",
+    "r50AllEntryCalendarSha256": "2fbf1df2d7ddfbd5f07fbe87da8daeb37b80cb96bb6bfab60a3aa2496f7ae185",
+    "r54FinalClosureSha256": "5c8bf5d474787372bfd8b1670114f2a11f718c2d22b5f60a25bae81c0ba896f4",
+    "r54ReplayArtifactId": 10964100200,
+    "r54ReplayZipSha256": "894fe6de153e6647cdbc54e81edcae9df7da16f2fa9e416221d5a1c6661ef2f4",
+    "r54TeacherSha256": "a017a10b5b0b6dc0a023ba070a60b0e991d3d98d62a800d36fe743b85c2c759b",
+    "rawPathSha256": "37853e73799544be6fd6eb955de514073dd13671692426291a9fdb6d80056c6b"
+  },
+  "status": "FROZEN_BEFORE_NEW_GUARD_TRAJECTORY_AND_POTENTIAL_PERFORMANCE",
+  "stop": [
+    "source lineage mismatch",
+    "Integrity failure",
+    "Guard Feasibility NO-GO",
+    "fit or replay budget violation",
+    "sealed partition required",
+    "new provider acquisition required",
+    "technical execution impossible",
+    "canonical accounting cannot reproduce"
+  ],
+  "survival": {
+    "family": "sklearn LogisticRegression L2 C=1 solver=liblinear max_iter=1000 tol=0.0001 random_state=570928; train-only median+missing indicator and StandardScaler",
+    "features": [
+      "floorMarginPp",
+      "currentReturnPct",
+      "upRun",
+      "facts.signalFalseN",
+      "signal.HIGHER_LOW tri-state",
+      "signal.CONTINUATION tri-state",
+      "signal.RECLAIM tri-state",
+      "currentStateCode"
+    ],
+    "fitBudget": "F outer fits max, F=4",
+    "fitOnlyIf": "Guard feasibility PASS and power/coverage PASS",
+    "head": "RECOVER_FLOOR_30 exact t+30 active minutes CLOSE>=floor price; missing UNKNOWN",
+    "optionalCandidate": {
+      "firstBreachPAtOrAbove": "retain Guard two-checkpoint rule, no veto",
+      "firstBreachPBelow": "immediate irreversible SELL_INTENT",
+      "name": "MG_GUARD_SURVIVAL",
+      "predictionUNKNOWN": "Guard-only fallback",
+      "threshold": 0.5
+    },
+    "skill": "same 95% session bootstrap AUC lower>0.5, Brier and log loss <train-prevalence baseline, per-arm AUC not reversed, reproducible OOF, prior power PASS",
+    "split": "existing session temporal forward folds with one-session purge/embargo; inverse alertAnchorCountWithinEntry weights; no state-specific model",
+    "stateEncoding": {
+      "DROP": -1,
+      "REBOUND": 1,
+      "RISE": 1,
+      "other_or_UNKNOWN": 0
+    },
+    "triEncoding": {
+      "FALSE": -1,
+      "TRUE": 1,
+      "UNKNOWN": 0
+    }
+  }
+}

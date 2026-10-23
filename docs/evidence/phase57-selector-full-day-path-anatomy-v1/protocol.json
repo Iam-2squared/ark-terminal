@@ -1,0 +1,227 @@
+{
+  "id": "PHASE57_FROZEN_SELECTOR_FULL_DAY_PATH_ANATOMY_V1",
+  "schemaVersion": 1,
+  "status": "PRECOMMITTED_BEFORE_MEASUREMENT",
+  "sourceHead": "90619cca59d4fee4744ef3360eadd052fd30ccdf",
+  "scope": {
+    "selector": "FROZEN_LONG_SELECTOR_WITH_MIN_PRICE_75",
+    "direction": "LONG",
+    "instrument": "JPX_CASH_EQUITY",
+    "developmentOnly": true,
+    "sessions": 76,
+    "selectorCadenceMinutes": 30,
+    "decisionTimestamps": 760,
+    "selectionRows": 3800,
+    "selectorChanged": false,
+    "entryModelUsed": false,
+    "exitModelUsed": false,
+    "capitalModelUsed": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "sealed": {
+    "developmentTestOpened": false,
+    "freshOpened": false,
+    "oosOpened": false,
+    "newProviderRequests": 0,
+    "selectorRetrain": false,
+    "baselineParameterSearch": false,
+    "exitTuning": false,
+    "capitalTuning": false,
+    "portfolioOptimization": false,
+    "automaticPromotion": false,
+    "mainMerge": false
+  },
+  "cost": {
+    "grossPctPoints": 0.0,
+    "canonicalRoundTripPctPoints": 0.05,
+    "sensitivityRoundTripPctPoints": [
+      0.1,
+      0.2
+    ],
+    "canonicalSource": "existing Candidate A and LONG integration cost contract",
+    "commissionSeparated": false,
+    "bidAskAvailable": false,
+    "orderBookAvailable": false,
+    "datedSecurityTickScheduleAvailable": false,
+    "spreadOrSlippageInvented": false,
+    "oneYenPriceQuantumDiagnosticOnly": true
+  },
+  "baselines": {
+    "sharedEligibility": "parent causal freshness AND decisionPrice > 75",
+    "sharedCount": 5,
+    "random": {
+      "id": "RANDOM_TOP5_SHA256_SEED_20260919",
+      "seed": 20260919,
+      "ordering": "SHA256(seed|sessionDate|decisionTimeJst|symbol) ascending, then symbol ascending",
+      "futureAvailabilityUsed": false
+    },
+    "momentum": {
+      "id": "SIMPLE_MOMENTUM30_TOP5",
+      "field": "momentum30Pct",
+      "ordering": "momentum30Pct descending, then symbol ascending",
+      "lookbackSearch": false,
+      "futureAvailabilityUsed": false
+    }
+  },
+  "horizonsMinutes": [
+    0,
+    5,
+    10,
+    15,
+    30,
+    60,
+    90,
+    120
+  ],
+  "optionalHorizons": [],
+  "commonCohortsMinutes": [
+    60,
+    90,
+    120
+  ],
+  "execution": {
+    "entry": "first saved regular-session 5m OPEN at or after selector decision plus intended delay; missing first eligible bar fails closed; no same-bar future HIGH/LOW",
+    "fixedHorizonAnchor": "selector decision wall clock; exact completed close; same AM/PM continuous session; positive holding interval required",
+    "sessionEnd": "same date final regular 5m CLOSE: 15:00 before 2024-11-05, 15:30 thereafter; no auction repair; actual regular bars only across lunch",
+    "zero": "gross reference 0 at decision, no economic trade/PF/net inference",
+    "missing": "no fill, no interpolation, no zero imputation; full path must contain every expected regular 5m slot; sparse observed-minute bars accepted as existing reference marks and counted",
+    "timing": "minutes from decision; first matching 5m bar interval [start,end]; endpoint is a 5m upper bound, never precise first-hit time; lunch is elapsed wall time not trading time",
+    "excursions": "gross relative to immediate OPEN, MFE=max(0,high return), MAE=min(0,low return); earliest tied bar; zero excursion has timing null",
+    "sameBarOrdering": "UNKNOWN_INTRABAR_ORDER",
+    "fillClaim": "REFERENCE_PRICE_DIAGNOSTIC_ONLY_NOT_GUARANTEED_EXECUTION"
+  },
+  "cohorts": {
+    "primary": "COMMON120: per-arm identical row IDs complete at all fixed positive horizons <=120; pair comparison then retains timestamps with all original Top5 complete in BOTH arms; no replacement",
+    "secondary": "COMMON60 and COMMON90 same rule; AVAILABLE is horizon-specific and descriptive only; SESSION_END separate",
+    "armStandalone": "all complete rows in the given arm, with manifest hashes and counts; do not subtract standalone means and call it matched advantage",
+    "coverage": "report eligible/evaluable rows, full5 matched timestamps, missing reasons and sessions; show strict matching attrition; no minimum-N tuning"
+  },
+  "statistics": {
+    "bootstrapSeed": 20260919,
+    "bootstrapReplicates": 10000,
+    "cluster": "sessionDate",
+    "pointEstimate": "session-equal primary and row-weighted descriptive; paired timestamp Top5 means then session means",
+    "confidenceLevel": 0.95,
+    "mde": "(1.959963984540054+0.8416212335729143)*SD(session means)/sqrt(cluster count); normal approximation, 80% power, two-sided 5%",
+    "multiplicity": "pointwise 95% descriptive CIs; primary family across 7 COMMON120 Selector-Random net contrasts also simultaneous Bonferroni 95% bootstrap intervals; no isolated p-value verdict",
+    "minimumDirectionalClusters": 38,
+    "independentRows": false
+  },
+  "metrics": {
+    "thresholdsPct": [
+      1,
+      2,
+      3,
+      5
+    ],
+    "deepLoserPct": [
+      -3,
+      -5,
+      -10
+    ],
+    "asymmetry": "MFE+MAE",
+    "giveback": "MFE-gross terminal",
+    "nearZeroPct": 0.05,
+    "winnerCondition": "reached threshold anywhere through SESSION_END on a completely observed path; terminal at each horizon separately; future-conditioned description only",
+    "peakAfterEndpoint": "full-day peak minus earlier endpoint is NOT post-peak giveback; post-peak giveback only when peak bar end <= endpoint",
+    "tailExclusion": "ceil(fraction*all evaluable rows) largest strictly positive net rows, capped at positive count; worst tail analogous negative; fractions 0.01,0.05; tie break event ID; report removed contribution and remaining mean",
+    "winsor": "1st/99th percentiles descriptive only",
+    "moments": "population skewness and excess kurtosis; outlier sensitive; null if variance=0",
+    "concentration": "symbol selection frequency HHI; exclude three most frequent symbols descriptively, no rerank; session top/bottom5 contribution",
+    "timingBucketsMinutes": [
+      5,
+      10,
+      15,
+      30,
+      60,
+      90,
+      120
+    ]
+  },
+  "stratification": {
+    "price": "(75,100],(100,200],(200,500],(500,1000],(1000,infinity); decimal prices retained",
+    "volatility": "decisionVolatilityPct cross-sectional average percentile rank among eligible universe at same timestamp: <=1/3 LOW, <=2/3 MID, else HIGH; missing UNKNOWN",
+    "scoreDecile": "PIT savedV1Score average percentile rank among same timestamp eligible universe; ceil(10*rank), 1..10; no future-dependent bin boundaries",
+    "preSelection": [
+      "momentum30Pct",
+      "currentReturnPct"
+    ],
+    "liquidity": [
+      "logCumulativeTurnover",
+      "volumeAccelerationRatio",
+      "liquidityBucket",
+      "segment"
+    ],
+    "tick": "actual dated tick NOT_EVALUABLE; 1JPY/price and ceil(price*threshold/100) nominal increments only; never claim exchange ticks",
+    "time": "AM/PM only"
+  },
+  "scoreAnalysis": {
+    "source": "exact deterministic existing corrected Development reconstruction and frozen weights; no fit",
+    "horizonsMinutes": [
+      15,
+      30,
+      60,
+      90,
+      120
+    ],
+    "outcomes": "same immediate-open/exact-close/same-session/full-path contract as Top5",
+    "deciles": "full eligible universe PIT score ranks before outcome availability",
+    "rankIC": "per-timestamp Spearman against terminal gross, MFE, abs(MAE); session-cluster mean IC; constant vector NOT_EVALUABLE",
+    "universePersistence": "aggregate diagnostics only; private intermediate rows purged"
+  },
+  "primaryQuestions": [
+    "direction vs Random",
+    "MFE uplift vs absolute MAE uplift",
+    "terminal retention vs giveback",
+    "delayed edge common60/90/120",
+    "price nominal quantum/PIT volatility dependence",
+    "score economic monotonicity"
+  ],
+  "finalQuestions": [
+    "directionality",
+    "range selection",
+    "winner economic translation",
+    "giveback",
+    "delayed edge",
+    "fat-tail dependence",
+    "price/tick dependence",
+    "score ranking",
+    "redesign rationale",
+    "next-step recommendation only"
+  ],
+  "verdictRules": {
+    "directional": "multiple COMMON120 horizons positive paired terminal lower simultaneous CI, >=38 clusters, positive excursion balance difference; tail and price robustness must be reviewed; relative information separate from absolute net",
+    "delayed": "COMMON120 paired net advantage at120 minus30 has pointwise lower CI>0; late advantage lower simultaneous CI>0; >=38 clusters",
+    "shortLived": "early (5/10/15/30) paired lower simultaneous CI>0 and120 minus30 upper CI<0 with increasing giveback",
+    "range": "positive MFE and absMAE uplifts with weak terminal evidence; score association is supporting description, no causal claim",
+    "tail": "full net mean positive but both top1 and top5 excluded means nonpositive, descriptive tag",
+    "otherwise": "MIXED or INCONCLUSIVE; wide late CI is DELAYED_ALPHA_INCONCLUSIVE, not no alpha; all verdicts diagnostic only"
+  },
+  "noStrategyOptimization": true,
+  "stopAfterDiagnostic": true,
+  "sourcePins": {
+    "predict/research/phase57-long-only-frozen-selector-min-price75-v1.json": "e75a49adb2a35497b6ac4d1afdd2942f87d9e139f04ae98e2478ca564ee874d8",
+    "docs/evidence/phase57-selector-min-price75-v1/measurement/selector/selector-ledger.json.gz": "df9f6a6c728249b2e3fd924fa8803ce01f8c7d7ddcae3b9203effa434ca44a77",
+    "docs/evidence/phase57-selector-min-price75-v1/measurement/new-paths.json.gz": "eeb15545a278a7058a0b40042169df8ad7560077289c7bef3412977decc524d2",
+    "scripts/phase57_selector_min_price75_paths.mjs": "e11dff6b84e19b6026b440ce71ad5a61ad5013b0efb3ac3995dd75830e4dd28e",
+    "scripts/run_phase57_long_only_corrected_measurement.py": "dbfe8359d9ff9315bf8fd7ed3b8d8207d1277ff114341c8f7b72b6be93aef364",
+    "scripts/run_phase57_long_only_eligibility_measurement.py": "1122065f3aa964291b3706c30b36ca3664a1ed8fa7dfef15b985fca3bf895d5d",
+    "docs/evidence/phase57-new-long-exit-candidate-a-freeze-2026-09-18.md": "ba4ea0f8aa3a3c897f05936beb379e7388fba464665ac4b44edc12e36c2a2223",
+    "docs/evidence/phase57-selector-economic-alpha-v1/protocol.json": "ce51f4e5b3ada0e72de3133a437809251e254e57ef12c3f3ac928a7b4835e94b",
+    "docs/evidence/phase57-selector-economic-alpha-v1/measurement/membership-ledger.json.gz": "ffe846802ebbfb9ac65040d78dd5aea8d2222051358fb27cfb315e668cb163b8",
+    "docs/evidence/phase57-selector-economic-alpha-v1/measurement/manifest.json": "87c8b8b9309dd4db1f6670c2c93855d3de0393ca561122acfd21b98f6e1f83a1",
+    "scripts/phase57_selector_economic_alpha.py": "12dfb71767789ce8254ff6b5ef78b02dac3271455da6ec74c7995cf6dd476456",
+    "scripts/phase57_long_exit_paired_paths.mjs": "cb09142c56dcb35047b490fbb995ed3ccc8250807e04f54fc3c1f2ee84cad843",
+    "scripts/prepare_phase57_long_only_top5_hit_distribution.mjs": "4e91d48f550855bc9bc8b8ea624590b89b3addb1da4667daf806a30eda713873"
+  }
+}

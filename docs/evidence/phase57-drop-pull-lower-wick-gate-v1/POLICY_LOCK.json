@@ -1,0 +1,40 @@
+{
+  "artifactKind": "phase57_drop_pullback_lower_wick_gate_v1_policy_lock",
+  "version": "v1.0",
+  "lockedBeforeMeasurement": true,
+  "baseHead": "281f215fa3d86c9ef2dffebce8fd211425b6817c",
+  "population": 2155,
+  "targetInitialStates": ["DROP", "PULLBACK"],
+  "signalGate": "LOWER_WICK",
+  "stateV3Classifier": "FROZEN_UNCHANGED",
+  "stateV3BuyStates": ["RISE", "SHARP_RISE", "REBOUND"],
+  "stateRecheckActiveMinutes": 5,
+  "fixedTimeFallback": false,
+  "signalDefinitions": "FROZEN_UNCHANGED_ALL_SIX",
+  "nonTargetPolicy": "EXACT_STATE_V3_ENTRY_V1",
+  "hypothesis": "Within initial DROP/PULLBACK, the ANY-six signal aggregation admits premature triggers. Restricting the policy-layer signal trigger to the already-frozen LOWER_WICK family while preserving the five-active-minute State-v3 BUY-state recheck will move entries materially closer to the ordered Low without a major Fill/Capture loss.",
+  "successGate": {
+    "targetEntryPositionLE25RateImprovementPpMinimum": 2.0,
+    "targetPairedEntryPositionMeanDeltaMustBeBelow": 0.0,
+    "targetPairedLowToEntryDistancePctMeanDeltaMustBeBelow": 0.0,
+    "targetFillRateDeltaPpMinimum": -2.0,
+    "targetCapture3DeltaPpMinimum": -2.0,
+    "targetCapture5DeltaPpMinimum": -2.0,
+    "causalityLeakageAudit": "PASS_REQUIRED"
+  },
+  "entryPatternArtifactId": 10605887642,
+  "entryPatternArtifactSHA256": "749caf82bbd9d39969f5712ef5a6f2705ac973a2f74483f03307c671586ae05a",
+  "providerRequestsAuthorized": 0,
+  "protectedDataOpened": 0,
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

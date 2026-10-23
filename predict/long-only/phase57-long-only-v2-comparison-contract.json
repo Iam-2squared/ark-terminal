@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "contractId": "PHASE57_LONG_ONLY_CANDIDATE_V2_PHASE1_PRE_FIT_V1",
+  "baseline": "FROZEN_RIDGE_Y30_CANDIDATE_V1",
+  "candidate": "SHALLOW_HISTOGRAM_GRADIENT_BOOSTED_REGRESSION_TREES",
+  "question": "Does shallow nonlinearity repair v1 opportunity ranks without changing target, features, universe, timestamps, or selection budgets?",
+  "target": {
+    "name": "Y30_ENDPOINT_EXPECTED_RETURN_BPS",
+    "horizonBars": 6,
+    "barMinutes": 5,
+    "semantics": "SIX_CLOSED_5M_BARS_EQUALS_30_TRADING_MINUTES"
+  },
+  "featureUniverse": [
+    "currentReturnPct", "momentum30Pct", "vwapDistancePct", "vwapSlope15Pct",
+    "logCumulativeTurnover", "volumeAccelerationRatio", "trendEfficiency",
+    "rangeExpansionPct", "timeOfDayFraction", "segmentStandard", "segmentGrowth",
+    "liquidityLow", "liquidityHigh", "marketBreadthPositivePct", "sectorBreadthPositivePct"
+  ],
+  "topN": [1, 3, 5, 10, 20, 30, 50],
+  "opportunityThresholdsBps": [50, 100, 150, 200],
+  "familyCount": 1,
+  "fixedSeed": 5702,
+  "complexityCap": {"maximumDepth": 3, "maximumTrees": 80, "histogramBins": 16},
+  "hyperparameterCandidates": [
+    {"id": "HGBR_D2_T40", "maxDepth": 2, "trees": 40, "learningRate": 0.05, "minLeaf": 256},
+    {"id": "HGBR_D2_T80", "maxDepth": 2, "trees": 80, "learningRate": 0.05, "minLeaf": 256},
+    {"id": "HGBR_D3_T40", "maxDepth": 3, "trees": 40, "learningRate": 0.05, "minLeaf": 256},
+    {"id": "HGBR_D3_T80", "maxDepth": 3, "trees": 80, "learningRate": 0.05, "minLeaf": 256}
+  ],
+  "modelSelection": {
+    "fitSessions": "FIRST_10_FIXED_V2_DEVELOPMENT_SESSIONS",
+    "selectionSessions": "LAST_10_FIXED_V2_DEVELOPMENT_SESSIONS",
+    "selectionOrder": ["TOP5_MEAN_Y30_BPS", "TOP5_MEDIAN_Y30_BPS", "TOP5_POSITIVE_RATE", "LOWER_COMPLEXITY"],
+    "postSelectionRefit": "SELECTED_CONFIG_ON_ALL_20_FIXED_V2_DEVELOPMENT_SESSIONS"
+  },
+  "pairedEvaluation": {
+    "partition": "DEVELOPMENT_D_DIAGNOSTIC_ALREADY_OBSERVED",
+    "sameRows": true,
+    "sameDecisionTimestamps": true,
+    "samePITUniverse": true,
+    "sameTargetAndHorizon": true,
+    "adaptiveStatus": "DIAGNOSTIC_NOT_VALIDATION"
+  },
+  "prohibitions": [
+    "RESULT_DEPENDENT_CANDIDATE_ADDITION", "FEATURE_ADDITION", "TARGET_CHANGE", "TOP_N_CHANGE",
+    "TWO_HEAD", "ENSEMBLE", "VALIDATION_OPEN", "OOS_OPEN", "ENTRY_EXIT_ALLOCATION_CHANGE"
+  ]
+}

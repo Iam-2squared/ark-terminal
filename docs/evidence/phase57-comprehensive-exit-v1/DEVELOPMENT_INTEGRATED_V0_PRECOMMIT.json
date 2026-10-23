@@ -1,0 +1,100 @@
+{
+  "schema": "phase57-development-integrated-v0-precommit-v1",
+  "status": "FROZEN_BEFORE_ENRICHMENT_AND_PORTFOLIO_PERFORMANCE",
+  "savedJst": "2026-09-27 12:19:27 JST",
+  "basisHead": "079fcb0c21e92ef611a76030124090f5fc1605db",
+  "scope": "Outcome-exposed Development benchmark; not Final EXIT, Fresh/OOS, prospective, or live estimate",
+  "selectorAndEntry": {
+    "dualFreezeCommit": "4878a1cc53430e816261dea0fb16aeb53b3c238d",
+    "freezeFileSha256": "5d7b619694a2d830d366d21429c2465f7214739f3e94a222a3844f6c0f41820a",
+    "arms": ["IMMEDIATE", "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF"],
+    "changesAllowed": false,
+    "entryPopulationPerArm": 2155,
+    "rankingCohort": "All frozen actual Entry fills; NO_ENTRY never receives portfolio cash"
+  },
+  "inputPins": {
+    "selectorOriginPath": "docs/evidence/phase57-entry-pattern-v2/ci-result/substrate/opportunities.json.gz",
+    "selectorOriginSha256": "1138960e489c3403e49f502a7ff7ab1fa1e9ef205910d2d018f2bb938df813ea",
+    "immediateRecordSha256": "4522bea9ac94f597affc8518c4cb25354e27f9e64141152cde8b8a4b9e09df9c",
+    "r1RecordSha256": "15ddb5cfc5169024878ee72d9dbecc6e1d9dec24e78afa2dcdf8dea891117fa6",
+    "rawPathPath": "docs/evidence/phase57-entry-pattern-v2/ci-result/substrate/raw-paths-evaluator-only.json.gz",
+    "rawPathSha256": "37853e73799544be6fd6eb955de514073dd13671692426291a9fdb6d80056c6b",
+    "benchmarkSource": "R50_B_FAILED_RECOVERY-run-a.jsonl.gz",
+    "benchmarkSourceArtifactId": 10921995049,
+    "benchmarkSourceArtifactSha256": "1868b407b4650144c45b5d0b3bf0a9a59a93179614e0b1c856fe0b4a26c2adaa",
+    "benchmarkLedgerSha256": "770f02612cdd97ed2420f14a2fe6ab6ed1f50a96f222afa9b3c376982c8ea476",
+    "benchmarkRunBMustBeByteIdentical": true,
+    "rankLineageSourceSha256": "17747e6de47ea663ab266764e84623677deea143727cc29321e52152f68d817d",
+    "cashBookSourceSha256": "cf18bf5ba506dd8b066792a85bf8b5358333609b7fbf74f532beeebd03ae74f9",
+    "sizingBridgeSourceSha256": "b4287945bf314ffd3822f6bc8dc8d71bbaed38b58de72d08b2b9e1fb5a5cfec8"
+  },
+  "exit": {
+    "status": "BENCHMARK_NOT_FINAL_EXIT",
+    "identity": "R50_B all-row zero-model-exit forced terminal hold; behaviorally equivalent R49_A",
+    "actionAt930": "Exact endpoint-stamped 15:30 single-price auction; no 15:25 substitute",
+    "missingAuction": "CENSORED_UNRESOLVED_NO_CASH_RELEASE_LOCK_POSITION_ACROSS_SESSIONS",
+    "sellCostPpOfFrozenEffectiveEntryNotional": 0.05,
+    "buyCost": "Frozen effective Entry price embeds buy-side 5bps; never double-charge",
+    "r37SelectGuard": "Never call SELECT-only R37 portfolio_scorecard or evaluator_bucket_attribution for this benchmark"
+  },
+  "rank": {
+    "producer": "R35 Frozen Selector origin projection; no new fit or score",
+    "order": ["newEligibleRank ASC", "savedV1Score DESC", "symbol ASC", "entryId ASC"],
+    "inputs": ["origin.newEligibleRank", "origin.savedV1Score", "origin.decisionTimestamp", "frozen entryId", "symbol", "entryMinute", "effectiveEntryPrice"],
+    "knownAt": "origin.decisionTimestamp <= frozen Entry event; explicit assertion each candidate",
+    "missingOrInvalid": "Fail closed, no substitute rank or priority"
+  },
+  "allocation": {
+    "initialCashJpy": 1000000,
+    "side": "LONG",
+    "account": "CASH",
+    "lotShares": 100,
+    "capacities": [3, 4, 5],
+    "primary": 3,
+    "sensitivity": [4, 5],
+    "targetJpy": "fresh current equity after confirmed EXIT / maximum concurrent position count",
+    "quantity": "largest 100-share lot with entry effective price * quantity <= min(targetJpy, actual available cash)",
+    "positions": "same-symbol duplicate blocked; maximum concurrent symbol count is the capacity",
+    "reject": "capacity / duplicate symbol / insufficient 100-share lot / missing fresh mark, record exactly once; no reconsideration",
+    "prohibited": ["margin", "leverage", "short", "borrow", "collateral reuse", "cash<0", "MAX6+", "MAX10"]
+  },
+  "clockAndMarks": {
+    "eventOrder": ["confirmed same-time terminal auction EXIT", "cash release", "fresh known-NOW mark of still-open holdings", "rank same-time Entry intents", "size and admit", "record exact known marks"],
+    "entryEvent": "frozen effective Entry minute and price, no forward search",
+    "heldPositionMark": "only exact completed scheduled 1m bar ending at event NOW, raw CLOSE; knownAt <= NOW; at terminal exact auction price",
+    "newEntryMark": "exact Entry-minute raw OPEN at NOW when available, never same-minute HIGH/CLOSE; otherwise equity unknown",
+    "missingMark": "equity null and new sizing unresolved; never forward fill, cost mark, or zero-PnL imputation",
+    "afterUnresolvedTerminal": "continue carrying locked cash and position; future event sizing blocked whenever any held position has no exact NOW mark; no fictional liquidation",
+    "lunch": "11:30 to 12:30 has no continuous bar; exact completed-bar stamp only",
+    "interval": "event-time point snapshots; duration-weighted utilization only across intervals with both endpoints completely priced; report covered/total duration"
+  },
+  "enrichment": {
+    "evaluationStage": "after protocol Freeze and before portfolio scorecard inspection",
+    "topN": [1, 3, 5],
+    "topNMeaning": "Within each simultaneous exact Entry-time candidate batch, take first N frozen-rank items; independent of cash/capacity; do not rank across future intraday candidates",
+    "denominator": "all frozen filled Entry candidates for each arm; report candidate counts and batch counts",
+    "primaryEvaluator": "POST_ENTRY_UPSIDE_GE5 = entryToPostEntryHighPct >= 5 from frozen benchmark metrics, evaluator only",
+    "secondaryEvaluator": "CANONICAL_L2H_GE5 = frozen canonicalBucket >=5%, evaluator only",
+    "reach": "distinct candidate opportunities in topN meeting bucket divided by all bucket opportunities in that arm",
+    "baselineRate": "bucket count / all filled Entry candidates in arm",
+    "enrichmentMultiple": "topN hitRate / baselineRate",
+    "otherUpsideCutoffsPct": [7.5, 10],
+    "missingUpside": "evaluator null with explicit count, no selection-side filtering",
+    "sessionStability": "per-session selected counts, hit rates and reach, including zero-hit sessions",
+    "concentration": "symbol and session share by selected candidate count",
+    "multiCandidateBatchThreshold": 4
+  },
+  "portfolioScorecard": {
+    "variants": ["IMMEDIATE_MAX3", "IMMEDIATE_MAX4", "IMMEDIATE_MAX5", "R1_MAX3", "R1_MAX4", "R1_MAX5"],
+    "finalEquityAndReturn": "null if any held position has no exact final mark or final unresolved EXIT; never compute return from cash alone",
+    "maxDrawdown": "null as a full-period statistic unless entire defined timeline is completely marked; otherwise provide explicitly partial covered-only drawdown",
+    "required": ["initialCash", "finalEquity", "portfolioReturn", "realizedPnL", "maxDrawdown", "profitFactor", "winRate", "averageWin", "averageLoss", "p05", "p10", "worstTrade", "entries", "exits", "unresolved", "censored", "capacityRejects", "cashRejects", "turnover", "holdingTime", "capitalLock", "utilization", "timeWeightedUtilization", "utilizationAtLeast80PctTimeShare", "minimumCash", "maxGrossExposure", "avgGrossExposure", "symbolConcentration", "sessionConcentration", "topContributors", "runABByteIdentity"],
+    "attribution": "after all capital decisions, evaluator-only on funded vs available POST_ENTRY_UPSIDE_GE5 and CANONICAL_L2H_GE5, with capital amounts/net/capture",
+    "paired": "join IM and R1 by opportunity after independent cash replays; report common candidate/funded counts, price/time/rank/allocation/terminal net/lock",
+    "zeroPassBehavior": "No EXIT SELECT or Entry re-selection implied by benchmark score"
+  },
+  "futureDecisionDenylist": ["futureHigh", "futureLow", "POST_ENTRY_UPSIDE_GE5", "CANONICAL_L2H_GE5", "entryToPostEntryHighPct", "canonicalBucket", "futureReturn", "futureMFE", "futureMAE", "finalPnL", "exitOutcome", "capture", "postExitPath", "futureState", "futurePivot", "oracleExit", "exitMinute", "exitPrice"],
+  "reproducibility": "identical input pins + protocol + source => two byte-identical canonical output runs, no performance-tuned edit",
+  "exposure": {"developmentOpportunities": 2155, "outcomeExposed": true, "protectedOpens": 0, "providerRequests": 0, "r49AllowlistExternalPayloadsDecodedInInitialLoader": 3220, "claimPastZeroOutOfScopeAccess": false},
+  "safety": {"executionAllowed": false, "brokerWriteAllowed": false, "excelOrderWriteAllowed": false, "rssOrderFunctionAllowed": false, "liveTradingAllowed": false, "paperTradingAllowed": false, "automaticPromotionAllowed": false, "productionUpdateAllowed": false, "transmitted": false}
+}

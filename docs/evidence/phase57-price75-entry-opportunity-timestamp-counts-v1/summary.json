@@ -1,0 +1,188 @@
+{
+  "audits": {
+    "allTimestampsOnGrid": true,
+    "eventsConserved": true,
+    "noDecisionReplay": true,
+    "noExitOrCapitalEvaluation": true,
+    "noModelFit": true,
+    "sourceSelectorTimestamps": 760,
+    "symbolTimestampDuplicateEvents": 0
+  },
+  "calendarSessionCounts": {
+    "900": 32,
+    "930": 44
+  },
+  "cohorts": {
+    "DIP_REPRICE_OPPORTUNITY": 667,
+    "INITIAL_ENTRY_OPPORTUNITY": 2841
+  },
+  "definition": {
+    "allEmittedIncluded": true,
+    "bins": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5+"
+    ],
+    "grid": "09:00..11:30 inclusive and 12:30..saved session close inclusive every5m; lunch interior excluded; zero rows are reporting slots, not proof that Entry was invoked",
+    "noCapitalSimulation": true,
+    "notConcurrentPositions": true,
+    "notFirstENTER": true,
+    "panels": "All 5m reporting slots; positive emission times; original760 Selector decision timestamps. Third panel excludes +5m DIP timestamps by definition.",
+    "referenceMissingExcluded": false,
+    "timestamp": "opportunityTimestamp, exact 5m boundary; never inherited t0 decisionTimestamp for DIP",
+    "unit": "unique symbol per session/opportunityTimestamp; no cross-time holding/persistence"
+  },
+  "entry": "phase57-new-long-entry-two-opportunity-v1",
+  "freshOOSOpened": false,
+  "opportunityEvents": 3508,
+  "panels": {
+    "ALL_TRADING_5M_GRID_WITH_BOUNDARIES": {
+      "candidateSymbols": {
+        "max": 5,
+        "mean": 0.704983922829582,
+        "median": 0.0,
+        "min": 0,
+        "n": 4976
+      },
+      "distribution": {
+        "0": {
+          "pct": 76.266077170418,
+          "timestamps": 3795
+        },
+        "1": {
+          "pct": 5.22508038585209,
+          "timestamps": 260
+        },
+        "2": {
+          "pct": 4.501607717041801,
+          "timestamps": 224
+        },
+        "3": {
+          "pct": 4.461414790996785,
+          "timestamps": 222
+        },
+        "4": {
+          "pct": 4.843247588424437,
+          "timestamps": 241
+        },
+        "5+": {
+          "pct": 4.702572347266881,
+          "timestamps": 234
+        }
+      },
+      "opportunityEvents": 3508
+    },
+    "FROZEN_SELECTOR_DECISION_TIMESTAMPS": {
+      "candidateSymbols": {
+        "max": 5,
+        "mean": 3.738157894736842,
+        "median": 4.0,
+        "min": 0,
+        "n": 760
+      },
+      "distribution": {
+        "0": {
+          "pct": 0.13157894736842105,
+          "timestamps": 1
+        },
+        "1": {
+          "pct": 2.236842105263158,
+          "timestamps": 17
+        },
+        "2": {
+          "pct": 13.026315789473685,
+          "timestamps": 99
+        },
+        "3": {
+          "pct": 23.68421052631579,
+          "timestamps": 180
+        },
+        "4": {
+          "pct": 30.13157894736842,
+          "timestamps": 229
+        },
+        "5+": {
+          "pct": 30.789473684210527,
+          "timestamps": 234
+        }
+      },
+      "opportunityEvents": 2841
+    },
+    "OPPORTUNITY_EMISSION_TIMESTAMPS": {
+      "candidateSymbols": {
+        "max": 5,
+        "mean": 2.9703640982218458,
+        "median": 3,
+        "min": 1,
+        "n": 1181
+      },
+      "distribution": {
+        "0": {
+          "pct": 0.0,
+          "timestamps": 0
+        },
+        "1": {
+          "pct": 22.01524132091448,
+          "timestamps": 260
+        },
+        "2": {
+          "pct": 18.966977138018628,
+          "timestamps": 224
+        },
+        "3": {
+          "pct": 18.797629127857746,
+          "timestamps": 222
+        },
+        "4": {
+          "pct": 20.406435224386115,
+          "timestamps": 241
+        },
+        "5+": {
+          "pct": 19.81371718882303,
+          "timestamps": 234
+        }
+      },
+      "opportunityEvents": 3508
+    }
+  },
+  "perSourceEmission": {
+    "DIP_REPRICE_OPPORTUNITY": {
+      "max": 4,
+      "mean": 1.580568720379147,
+      "median": 1.0,
+      "min": 1,
+      "n": 422
+    },
+    "INITIAL_ENTRY_OPPORTUNITY": {
+      "max": 5,
+      "mean": 3.7430830039525693,
+      "median": 4,
+      "min": 1,
+      "n": 759
+    }
+  },
+  "referenceStatus": {
+    "EXPIRED_BOUNDARY": 371,
+    "REFERENCE_OPEN": 2640,
+    "UNKNOWN_REFERENCE_OPEN": 497
+  },
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "scope": "SAVED_OPPORTUNITY_TIMESTAMP_SYMBOL_COUNT_ONLY",
+  "selector": "FROZEN_LONG_SELECTOR_WITH_MIN_PRICE_75",
+  "sessions": 76,
+  "sourceHead": "9a961acb4d5ef3ff41624f239a7e6fe895e2317a",
+  "uniqueSymbols": 1085
+}

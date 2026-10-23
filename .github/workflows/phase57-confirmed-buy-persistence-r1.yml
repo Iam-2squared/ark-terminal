@@ -1,0 +1,116 @@
+name: Phase57 Confirmed BUY Persistence Candidates R1
+
+on:
+  push:
+    branches:
+      - research/phase57-long-only-cash-equity
+    paths:
+      - '.github/workflows/phase57-confirmed-buy-persistence-r1.yml'
+      - 'scripts/phase57_confirmed_buy_persistence_r1.py'
+      - 'docs/evidence/phase57-nine-state-entry-audit-v1/CONFIRMED_BUY_PERSISTENCE_HYPOTHESES_R1.md'
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: phase57-confirmed-buy-persistence-r1
+  cancel-in-progress: true
+
+env:
+  PYTHONDONTWRITEBYTECODE: '1'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Focused syntax and frozen regression tests
+        run: |
+          set -euo pipefail
+          python -m py_compile scripts/phase57_confirmed_buy_persistence_r1.py
+          python -m unittest -v \
+            scripts.test_phase57_drop_pull_1m_state_recheck_v1 \
+            scripts.test_phase57_state_v3_9pattern_entry_v1 \
+            scripts.test_phase57_state_v3_9pattern_contract \
+            scripts.test_phase57_state_conditioned_signal_entry_v1
+      - name: Restore approved evaluator substrate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/10605887642/zip" > "$RUNNER_TEMP/substrate.zip"
+          test "$(sha256sum "$RUNNER_TEMP/substrate.zip" | cut -d ' ' -f1)" = "749caf82bbd9d39969f5712ef5a6f2705ac973a2f74483f03307c671586ae05a"
+          mkdir -p "$RUNNER_TEMP/substrate"
+          for name in raw-paths-evaluator-only.json.gz rows.json.gz outcomes.json.gz; do
+            unzip -p "$RUNNER_TEMP/substrate.zip" "substrate/$name" > "$RUNNER_TEMP/substrate/$name"
+          done
+      - name: Restore accepted ONE_MINUTE baseline
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/10732168448/zip" > "$RUNNER_TEMP/one-minute.zip"
+          test "$(sha256sum "$RUNNER_TEMP/one-minute.zip" | cut -d ' ' -f1)" = "74ff0fb4398f9e2659109103ae73e8a6b27423aa0eb5aee7006c84312488aab8"
+          mkdir -p "$RUNNER_TEMP/one-minute"
+          unzip -p "$RUNNER_TEMP/one-minute.zip" "replay-a/entry-records.json.gz" > "$RUNNER_TEMP/one-minute/entry-records.json.gz"
+      - name: Replay all three precommitted State candidates twice
+        run: |
+          set -euo pipefail
+          replay() {
+            python -m scripts.phase57_confirmed_buy_persistence_r1 \
+              --measurement docs/evidence/phase57-entry-timing-signal-census-v1/measurement \
+              --entry-v1-measurement docs/evidence/phase57-state-conditioned-signal-entry-v1/measurement \
+              --state-v3-measurement docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement \
+              --one-minute-records "$RUNNER_TEMP/one-minute/entry-records.json.gz" \
+              --raw-paths "$RUNNER_TEMP/substrate/raw-paths-evaluator-only.json.gz" \
+              --rows "$RUNNER_TEMP/substrate/rows.json.gz" \
+              --outcomes "$RUNNER_TEMP/substrate/outcomes.json.gz" \
+              --output "$1"
+          }
+          replay "$RUNNER_TEMP/replay-a" | tee "$RUNNER_TEMP/candidate-r1.log"
+          replay "$RUNNER_TEMP/replay-b" >/dev/null
+          diff -qr "$RUNNER_TEMP/replay-a" "$RUNNER_TEMP/replay-b"
+      - name: Guard hypothesis identity, baseline and causal isolation
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, math, os
+          from pathlib import Path
+          root = Path(os.environ['RUNNER_TEMP']) / 'replay-a'
+          data = json.loads((root / 'summary.json').read_text())
+          assert data['population'] == 2155
+          assert data['precommittedTargets'] == ['RISE','DROP','PULLBACK']
+          assert set(data['results']) == {'RISE','DROP','PULLBACK'}
+          audit = data['causality']
+          assert audit['status'] == 'PASS'
+          assert audit['stateFutureViolations'] == 0
+          assert audit['closedBarChecks'] == audit['closedBarPassed']
+          assert audit['signalClosedBarChecks'] == audit['signalClosedBarPassed']
+          assert audit['futureSuffixViolations'] == 0
+          assert audit['oracleLowHighDecisionUse'] == 0
+          assert audit['futureOutcomeDecisionUse'] == 0
+          assert audit['providerRequests'] == audit['protectedDataOpened'] == 0
+          for state, n in {'RISE':111,'DROP':1403,'PULLBACK':354}.items():
+              assert data['results'][state]['targetPopulation'] == n
+              assert data['results'][state]['nonTargetExactParity'] == 2155 - n
+          print('CONFIRMED_BUY_PERSISTENCE_GUARD_PASS')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-confirmed-buy-persistence-r1-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/replay-a
+            ${{ runner.temp }}/candidate-r1.log
+          if-no-files-found: error
+          retention-days: 90

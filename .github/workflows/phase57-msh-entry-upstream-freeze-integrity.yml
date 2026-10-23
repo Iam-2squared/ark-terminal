@@ -1,0 +1,21 @@
+name: Phase57 MSH Entry Upstream Freeze Integrity
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-msh-entry-upstream-freeze-integrity.yml
+      - docs/evidence/phase57-msh-entry-long-v1-upstream-freeze/**
+      - docs/phase57-msh-entry-long-v1-upstream-freeze.md
+      - docs/phase57-msh-entry-long-v1-exit-chat-handoff.md
+      - scripts/test_phase57_msh_entry_upstream_freeze.py
+permissions:
+  contents: read
+jobs:
+  entry-artifact-integrity-only:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Entry freeze schema, hashes, identity, safety offline
+        run: ARK_TEST_OFFLINE=1 python3 scripts/offline/kernel_exec.py python3 scripts/test_phase57_msh_entry_upstream_freeze.py
+      - name: Existing Frozen Selector reproducibility without prediction
+        run: ARK_TEST_OFFLINE=1 python3 scripts/offline/kernel_exec.py python3 scripts/verify_phase57_long_only_frozen_selector_v1.py

@@ -1,0 +1,455 @@
+{
+  "schema": "phase57-r54-cycle2-final-closure-v1",
+  "savedJst": "2026-09-28T19:39:04+09:00",
+  "basisHead": "60c7837a2acc385fcc9a05e8fb433375872142d4",
+  "researchId": "R54",
+  "cycleId": "CYCLE2_CORRECTED_D_TEACHER",
+  "researchCycleComplete": true,
+  "arkTerminalComplete": false,
+  "productionReady": false,
+  "selected": null,
+  "finalStatus": {
+    "integrity_status": "PASS",
+    "measurement_status": "MEASUREMENT_BLOCKED",
+    "forecast_status": "FAIL_D_INCREMENTAL_SKILL",
+    "winner_status": "FAIL",
+    "economic_status": "FULL_PERIOD_UNMEASURABLE",
+    "utilization_target_status": "FULL_PERIOD_UNMEASURABLE",
+    "selection": "MEASUREMENT_BLOCKED"
+  },
+  "fixed": {
+    "selector": "FROZEN",
+    "entries": [
+      "IMMEDIATE",
+      "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF"
+    ],
+    "entryDualFreeze": "4878a1cc53430e816261dea0fb16aeb53b3c238d",
+    "capital": "SAVED_CAPITAL_V3_B_CI_RANK_AND_R37_SIZING_ONE_SHOT_ENTRY",
+    "initialCashJpy": 1000000,
+    "lot": 100,
+    "maxConcurrent": 3,
+    "longOnly": true,
+    "cashOnly": true
+  },
+  "lineage": {
+    "correctedTeacherSha256": "a017a10b5b0b6dc0a023ba070a60b0e991d3d98d62a800d36fe743b85c2c759b",
+    "protocolSha256": "5c9576eee5f7a7d3a9447f3395afcc9eeee95d09998a6754fe2a3539c0e517b3",
+    "finiteRunId": 36382668368,
+    "finiteExecutionHead": "2166772f719bcd947382fa242ec63231c3f91fbe",
+    "forecastArtifact": {
+      "id": 10962884880,
+      "digest": "0b29f4fdc23ac49c83257c482a1ce45e17c4e4a8289df2186bd364aea8458750"
+    },
+    "replayArtifact": {
+      "id": 10964100200,
+      "digest": "894fe6de153e6647cdbc54e81edcae9df7da16f2fa9e416221d5a1c6661ef2f4"
+    },
+    "resultManifestSha256": "91e4d1cb4e20c7764f37fa9060ec93d629dbef9d470a97383ac9f44ae56f13a3",
+    "oofPredictionsSha256": "a69bc09c4b0a534ad2f1e3489eaafe2c4d007511b6f1667cdfed0aedbb84ae63",
+    "independentDRefitPredictionsSha256": "0d9925544d3acb4dcdaff290d683bb107392108a6eff9e4d0dc0c8dc097379fd",
+    "r34AccountingAuditRunId": 36410273844,
+    "r34AccountingAuditArtifact": {
+      "id": 10964250835,
+      "digest": "46c513221e98498c39c19271f8b90bbbef774f45c80aa645be41fe6af0584b47"
+    },
+    "correctedPairedSha256": "578c17389a771660a7ba306244d3b888531663a979910d0c1feba66fbab2e0b6",
+    "correctedSelectionSha256": "f46bf1c22f7b4e6116d05f33b50ac29d93c5f6b2a6f1e486a6bc5e1a926157b4"
+  },
+  "budget": {
+    "realEstimatorFits": 176,
+    "maxRealEstimatorFits": 176,
+    "integratedReplayInvocations": 44,
+    "maxIntegratedReplayInvocations": 44,
+    "providerRequests": 0,
+    "protectedOpened": 0
+  },
+  "reproducibility": {
+    "sameSavedForecastReplayAll": true,
+    "independentDRefitsAll": true,
+    "independentDRefitMaxPredictionDelta": 0
+  },
+  "controller": {
+    "candidates": [
+      "MH_WAIT15",
+      "MH_WAIT5"
+    ],
+    "fullOutputsByteIdenticalWithinArm": true,
+    "graceUsed": {
+      "IM_MH_WAIT15": 0,
+      "IM_MH_WAIT5": 0,
+      "R1_MH_WAIT15": 0,
+      "R1_MH_WAIT5": 0
+    },
+    "modelExits": {
+      "IM_MH_WAIT15": 542,
+      "IM_MH_WAIT5": 542,
+      "R1_MH_WAIT15": 509,
+      "R1_MH_WAIT5": 509
+    },
+    "forcedTerminal": {
+      "IM_MH_WAIT15": 277,
+      "IM_MH_WAIT5": 277,
+      "R1_MH_WAIT15": 286,
+      "R1_MH_WAIT5": 286
+    },
+    "interpretation": "The precommitted long-support grace path was never activated, so WAIT15 and WAIT5 collapsed to the same realized controller behavior."
+  },
+  "forecast": {
+    "A_price_mae": {
+      "IM": {
+        "h1": {
+          "pct": 0.364207,
+          "jpy": 4.6286
+        },
+        "h5": {
+          "pct": 0.671009,
+          "jpy": 8.6662
+        },
+        "h15": {
+          "pct": 1.094918,
+          "jpy": 14.2848
+        },
+        "h30": {
+          "pct": 1.512343,
+          "jpy": 19.6743
+        },
+        "h60": {
+          "pct": 2.074299,
+          "jpy": 26.8235
+        },
+        "EOD": {
+          "pct": 2.745676,
+          "jpy": 36.3688
+        }
+      },
+      "R1": {
+        "h1": {
+          "pct": 0.361866,
+          "jpy": 4.6212
+        },
+        "h5": {
+          "pct": 0.662714,
+          "jpy": 8.5456
+        },
+        "h15": {
+          "pct": 1.087268,
+          "jpy": 14.0952
+        },
+        "h30": {
+          "pct": 1.507346,
+          "jpy": 19.4762
+        },
+        "h60": {
+          "pct": 2.046116,
+          "jpy": 26.1765
+        },
+        "EOD": {
+          "pct": 2.70129,
+          "jpy": 35.7633
+        }
+      }
+    },
+    "A_zeroComparatorFoldWins": {
+      "IM": {
+        "h1": "0/4",
+        "h5": "0/4",
+        "h15": "0/4",
+        "h30": "1/4",
+        "h60": "1/4",
+        "EOD": "1/4"
+      },
+      "R1": {
+        "h1": "0/4",
+        "h5": "0/4",
+        "h15": "0/4",
+        "h30": "1/4",
+        "h60": "1/4",
+        "EOD": "1/4"
+      }
+    },
+    "D_pooledMseVsZero": {
+      "IM": {
+        "h1": [
+          0.412386,
+          0.319593
+        ],
+        "h5": [
+          1.411612,
+          1.330006
+        ],
+        "h15": [
+          3.684462,
+          3.555809
+        ],
+        "h30": [
+          6.870997,
+          6.656254
+        ],
+        "h60": [
+          12.32731,
+          11.931424
+        ],
+        "EOD": [
+          25.374156,
+          24.68171
+        ]
+      },
+      "R1": {
+        "h1": [
+          0.431842,
+          0.319521
+        ],
+        "h5": [
+          1.4203,
+          1.316484
+        ],
+        "h15": [
+          3.727369,
+          3.542776
+        ],
+        "h30": [
+          6.990043,
+          6.683286
+        ],
+        "h60": [
+          12.394177,
+          11.96065
+        ],
+        "EOD": [
+          24.790549,
+          24.532508
+        ]
+      }
+    },
+    "D_zeroComparatorFoldWins": {
+      "IM": {
+        "h1": "0/4",
+        "h5": "0/4",
+        "h15": "0/4",
+        "h30": "1/4",
+        "h60": "1/4",
+        "EOD": "1/4"
+      },
+      "R1": {
+        "h1": "0/4",
+        "h5": "0/4",
+        "h15": "0/4",
+        "h30": "0/4",
+        "h60": "1/4",
+        "EOD": "1/4"
+      }
+    },
+    "conclusion": "D, the only forecast family consumed by the controller, does not beat the frozen D=0 comparator on the precommitted primary h1/h5/h15 condition and fails the frozen forecast skill gate."
+  },
+  "correctedLayerA": {
+    "IM": {
+      "ge5_27": {
+        "controlMeanNetPct": 4.896040482101461,
+        "r54MeanNetPct": 1.8849942935235613,
+        "controlPnlJpy": 329595.7494,
+        "r54PnlJpy": 142895.7494,
+        "pnlDeltaJpy": -186700
+      },
+      "ge10_15": {
+        "controlMeanNetPct": 7.467523,
+        "r54MeanNetPct": 2.669083154692868,
+        "controlPnlJpy": 269377.294575,
+        "r54PnlJpy": 114677.294575,
+        "pnlDeltaJpy": -154700
+      },
+      "threeToFive_17": {
+        "controlMeanNetPct": -1.08886,
+        "r54MeanNetPct": 1.1649066074220857,
+        "pnlDeltaJpy": 105000
+      },
+      "belowOne_20": {
+        "controlMeanNetPct": -4.65999,
+        "r54MeanNetPct": -1.698602324223566,
+        "pnlDeltaJpy": 165900
+      },
+      "all79": {
+        "controlMeanNetPct": -0.30415292388548576,
+        "r54MeanNetPct": 0.195065,
+        "controlPnlJpy": -112868.990875,
+        "r54PnlJpy": 35381.009125,
+        "pnlDeltaJpy": 148250
+      }
+    },
+    "R1": {
+      "ge5_12": {
+        "controlMeanNetPct": 7.114798,
+        "r54MeanNetPct": 0.941315,
+        "controlPnlJpy": 245812.053225,
+        "r54PnlJpy": 36112.053225,
+        "pnlDeltaJpy": -209700
+      },
+      "ge10_8": {
+        "controlMeanNetPct": 9.516947,
+        "r54MeanNetPct": 0.130758,
+        "pnlDeltaJpy": -215200
+      }
+    },
+    "interpretation": "R54 materially improves low-upside and 3-5% IM outcomes versus the same-quantity control, but loses a large amount of >=5% and >=10% winner profit. The frozen winner-preservation gates therefore fail."
+  },
+  "integrated": {
+    "IM_FULL": {
+      "funded": 31,
+      "confirmedExits": 30,
+      "endOpen": 1,
+      "realizedClosedPnlJpy": 18988.6227,
+      "finalEquityJpy": null,
+      "portfolioReturnPct": null,
+      "profitFactor": 1.490016,
+      "winRatePct": 53.3333,
+      "certifiedSessions": 1,
+      "totalSessions": 24,
+      "validMarkMinutes": 650,
+      "totalActiveMinutes": 7800,
+      "utilizationCoveragePct": 8.3333,
+      "validOnlyUtilizationPct": 51.209,
+      "ge80ValidTimeSharePct": 26,
+      "ge5Funded": 7,
+      "ge5Available": 158,
+      "ge5ReachPct": 4.4304,
+      "ge10Funded": 3,
+      "replacementN": 25,
+      "replacementGe5": 4,
+      "replacementUpsideMedianPct": 1.951694,
+      "topSessionNotionalSharePct": 55.2098,
+      "unresolvedEntryId": "2025-07-23|62650|883",
+      "postLockGe5Misses": 146
+    },
+    "IM_CONTROL": {
+      "funded": 79,
+      "confirmedExits": 79,
+      "endOpen": 0,
+      "finalEquityJpy": 887131.009125,
+      "portfolioReturnPct": -11.286899,
+      "certifiedSessions": 24,
+      "validMarkMinutes": 7779,
+      "totalActiveMinutes": 7800,
+      "validOnlyUtilizationPct": 76.8443,
+      "ge80ValidTimeSharePct": 58.2851,
+      "ge5Funded": 27,
+      "ge5Available": 158,
+      "ge5ReachPct": 17.0886,
+      "ge10Funded": 15,
+      "topSessionNotionalSharePct": 5.6293
+    },
+    "R1_FULL": {
+      "funded": 90,
+      "confirmedExits": 89,
+      "endOpen": 1,
+      "realizedClosedPnlJpy": -36440.7211,
+      "finalEquityJpy": null,
+      "portfolioReturnPct": null,
+      "profitFactor": 0.834627,
+      "winRatePct": 51.6854,
+      "certifiedSessions": 9,
+      "totalSessions": 24,
+      "validMarkMinutes": 3233,
+      "totalActiveMinutes": 7800,
+      "utilizationCoveragePct": 41.4487,
+      "validOnlyUtilizationPct": 63.9286,
+      "ge80ValidTimeSharePct": 39.3752,
+      "ge5Funded": 23,
+      "ge5Available": 143,
+      "ge5ReachPct": 16.0839,
+      "ge10Funded": 13,
+      "replacementN": 67,
+      "replacementGe5": 14,
+      "replacementUpsideMedianPct": 2.207932,
+      "topSessionNotionalSharePct": 15.1875,
+      "unresolvedEntryId": "2025-08-04|36700|602"
+    },
+    "R1_CONTROL": {
+      "funded": 32,
+      "confirmedExits": 31,
+      "endOpen": 1,
+      "finalEquityJpy": null,
+      "portfolioReturnPct": null,
+      "certifiedSessions": 9,
+      "totalSessions": 24,
+      "validMarkMinutes": 3232,
+      "totalActiveMinutes": 7800,
+      "validOnlyUtilizationPct": 70.3313,
+      "ge80ValidTimeSharePct": 66.3985,
+      "ge5Funded": 12,
+      "ge5Available": 143,
+      "ge5ReachPct": 8.3916,
+      "ge10Funded": 8,
+      "topSessionNotionalSharePct": 13.0666,
+      "unresolvedEntryId": "2025-08-04|36700|602"
+    }
+  },
+  "stress20bp": {
+    "IM_FULL": {
+      "certifiedDays": 1,
+      "closedPnlJpy": 5964.8094,
+      "finalEquityJpy": null
+    },
+    "IM_CONTROL": {
+      "certifiedDays": 24,
+      "closedPnlJpy": -144828.4028,
+      "finalEquityJpy": 855171.5972
+    },
+    "R1_FULL": {
+      "certifiedDays": 9,
+      "closedPnlJpy": -60682.9131,
+      "finalEquityJpy": null
+    },
+    "R1_CONTROL": {
+      "certifiedDays": 9,
+      "closedPnlJpy": 135290.6998,
+      "finalEquityJpy": null
+    }
+  },
+  "northStar": {
+    "definition": "1 month approximately 2x portfolio, e.g. JPY 1,000,000 -> JPY 2,000,000",
+    "requiredGeometricDailyPctFor24Sessions": 2.93,
+    "measured": false,
+    "reason": "R54 full 24-session final equity and daily geometric return are null because unresolved exact auction/mark paths stop certified capital continuation.",
+    "interpretation": "Do not replace the null with closed PnL or generic market expectations. The measurable forecast and winner gates already fail independently."
+  },
+  "gateConclusion": {
+    "allPass": false,
+    "hardFailures": [
+      "D_FORECAST_SKILL",
+      "WINNER_GE5_MEAN_NET",
+      "WINNER_GE5_CURRENCY_PNL",
+      "WINNER_GE10_MEAN_NET",
+      "GE5_REACH",
+      "TOP_SESSION_CONCENTRATION_IM",
+      "IM_24_CERTIFIED_EOD",
+      "POSITIVE_AND_ABOVE_CONTROL",
+      "EOD_MAX_DRAWDOWN",
+      "COST_STRESS_20BP"
+    ],
+    "passes": [
+      "INTEGRITY",
+      "IM_PAIRED_3_TO_5_MEAN_NET",
+      "IM_PAIRED_BELOW_1_MEAN_NET",
+      "REPLACEMENT_SUPPORT_AND_GE5",
+      "REPLACEMENT_UPSIDE_MEDIAN"
+    ],
+    "disposition": "R54_CYCLE2_CLOSED_NO_SELECTION_MEASUREMENT_BLOCKED"
+  },
+  "nextBoundary": {
+    "currentR54MayNotBeRetuned": true,
+    "newCandidateSearchInsideThisCycle": false,
+    "protectedOrFreshOpening": false,
+    "providerAcquisition": false,
+    "statement": "Any further EXIT architecture research must begin as a new pre-performance cycle using this failure anatomy; do not relax R54 gates or promote an ablation/best-of-failing result."
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

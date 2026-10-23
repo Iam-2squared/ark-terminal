@@ -1,0 +1,8 @@
+# Trait Reliability Census — precommit
+
+Six families, eight definitions in07; T7/T8 deferred, not tested. No trait additions after inspection.
+The audit uses only original FIT38+QUALIFY19 (57 Development sessions); REPORT19 prices/outcomes remain unopened this task. Three19-session windows are exploratory and already exposed; they are not independent D0. Record previous exposure, never reset it to E0.
+Before any trait calculation require exact historical knownAt, stable security mapping, action-safe continuity, unconditional universe coverage and identified missing reasons. If source admission fails, count8 planned/0 tested rather than manufacture null reliability values as failures. Stop building Dictionary; continue all required evidence/tests/regression/CI.
+If inputs are admissible, apply the single predeclared intrinsic comparison and numeric G0-G9 thresholds inprotocol.json. Rate traits use Brier/log score; others use next-window error. Peer comparison and vol/liquidity/price residual incremental information are mandatory. No Entry P&L, winners or Selector-conditioned sample is admitted. One look, no feature expansion to repair G3-G5.
+L0-L3 runtime, empirical Bayes, drift and prospective capture are conditional on gates. Schemas and synthetic boundary tests do not imply validated dictionary traits. G9 freeze and prospective files25/26 exist only on pass; otherwise reasons are recorded in24 andfinal handoff.
+Actual audit wall time/RSS/bytes are separate non-deterministic benchmark receipts; deterministic research evidence hashes exclude timing. Full regeneration must match byte-for-byte.

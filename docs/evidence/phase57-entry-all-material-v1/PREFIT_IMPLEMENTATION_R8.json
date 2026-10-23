@@ -1,0 +1,65 @@
+{
+  "version": "ALL_MATERIAL_R1_EXECUTABLE_INPUT_REALIZATION_R8",
+  "dateJst": "2026-09-25",
+  "scope": "User-requested one-shot R1 result; scheduled automation remains stopped",
+  "sourceHead": "34649f86485c12b24b28115c64ea42afc1fea033",
+  "implementationHead": "c677d250976b38a91926863f2cfa04a6c582805b",
+  "modelFitsBeforeFreeze": 0,
+  "newNearLowTrainingLabelsBeforeFreeze": 0,
+  "priorOutcomeExposure": "Existing Development baselines only; all current2155 are already outcome-exposed, not Fresh/OOS",
+  "realizationNote": "R7 pinned local-only matrices without committing their builder or bytes. This record pins a now-committed executable reconstruction and its exact field names, array order and serialization before the first R1 fit. Do not claim byte equality with R7's unavailable local matrix hashes. The 476 immutable Pattern columns, 90 State/signal/context overlays, windows3/5/10, 58-session outer and floor(n/5) inner split, 36 configs and original preservation constraints remain within the precommitted R1/R7 architecture; no outcome-based feature/config addition or selection occurred.",
+  "codeHashes": {
+    "scripts/phase57_entry_all_material_r1_data.py": "61196610c302e83e40d328c9c8d128db4c1fbe3e347c970498fe619e1786ddcb",
+    "scripts/phase57_entry_all_material_r1_train.py": "b6cca53dfc12d31047151f4f8a014f4acc91924fa816f3fb296e6f984f244fda"
+  },
+  "prefitDataHashes": {
+    "feature-names.json": "57040ed4cb0cc008c3b2b33b32ae71d721c755a2e8a3ffa0455941c83bbd4275",
+    "features.npy": "54bf771f6a090eb3e8035f7ee433ca1fbd617c165d77955ab71054b4e259a3fe",
+    "folds.json": "3342c68cc8a1987e11dda6f6c07757a47ff43d1e7f7f1506cb2e1ca0b3b41021",
+    "rows.json": "54f7dbb8bd0c9f8974ccccb7a949c0b7ebf0bbe46581be7778f1607f9d9d8cb6",
+    "sources.json.gz": "7e8de9df9853d7d66a511db5212a0058a7c32b07e6b362edbc5b965b6f22bbc7",
+    "summary.json": "f3b6e6775c159afc6dc06796858ef4314deea9017e6166c27ba3a1b8366248ec"
+  },
+  "prefitMeasured": {
+    "totalColumns": 566,
+    "patternColumns": 476,
+    "overlayColumns": 90,
+    "combinedDecisionRows": 149900,
+    "currentDecisionRows": 65312,
+    "currentPopulation": 2155,
+    "currentOpportunitySessions": 58,
+    "priorRawOpportunities": 2866,
+    "priorNoFeatureRows": 90,
+    "outerTestN": [442,446,445,412,410],
+    "innerValidationFeatureless": 0,
+    "currentSignalSemanticParityRows": 65910,
+    "currentOriginalStateSemanticParityRows": 14906,
+    "currentONE_MINUTEIntentSHA256": "8e9f1bfaf10884dc140d0cf6243cab7149b64490baa9124b33a64a433e238878",
+    "currentONE_MINUTEFullRecordParity": 2155,
+    "currentONE_MINUTERecordSHA256": "e3044c697d9573b9774f35a7408c90c1610309cb8634ade2bf9bee8aa367a186",
+    "focusedSyntheticAndCanonicalTests": "18/18 PASS locally; dedicated CI required"
+  },
+  "sourceArtifacts": [
+    {"id":10605887642,"sha256":"749caf82bbd9d39969f5712ef5a6f2705ac973a2f74483f03307c671586ae05a","internalManifestMembersVerified":152},
+    {"id":10847751662,"sha256":"a160ac2ba5e4570fe765b0d88ce076e755f29128d9c3d71276b0985fe2242566","internalManifestMembersVerified":129},
+    {"id":10847194724,"sha256":"481a5bf77e156b7e395243ea32fc4e4ddc72da0bbf4b39b14d53c392bcc191bf","internalManifestMembersVerified":383},
+    {"id":10821285611,"sha256":"349dedd781d4aaa3c28168577e2dd8282945dddf22f5e4f432516e081b78505c","currentFullRecordParityVerified":true}
+  ],
+  "fixedNumerics": {"seed":570926,"numpy":"2.3.5","scipy":"1.17.0","sklearn":"1.8.0","M1":"L2 logistic C1 liblinear max_iter1000 tol.0001","M2":"L1 logistic C1 liblinear max_iter1000 tol.0001","M3":"HistGradientBoosting depth3 lr.05 max_iter100 max_leaf_nodes31 min_samples_leaf20 l2_regularization0 early_stoppingfalse","horizons":[5,10,20,30],"thresholds":[0.4,0.5,0.6],"configs":36},
+  "fixedFeatureDetails": {
+    "statePrevious": "previous available original 5m checkpoint, not a future or reclassified minute",
+    "stateHistory": "observed changes since T0; dwell left-censored until first change; last3/5/10 active-minute transition count and count/window churn; partial history keeps count/churn NaN and reports coverage",
+    "signals": "known and tri-state trigger; since-last-true from observed prefix; last3/5/10 count only when all expected signals known, plus known fraction",
+    "prefixPrice": "log latest strictly closed price; no future quote in predictors",
+    "preprocessing": "fit median/scaling only on labeled training rows; all-missing median0 and fixed missing indicators; identical preprocessing specification for all three families"
+  },
+  "performanceBoundaries": {
+    "trainingLabel": "future ordered range only as training target; invalid/missing quote or no strictly later oracle high means missing training label, never test-row deletion",
+    "decision": "causal probabilities and clock only; first threshold hit or exact forced horizon; original next-fill retry semantics preserved",
+    "selection": "inner OOF only; ONE_MINUTE Fill-2pp and +3/+5 Capture-5pp constraints; meanEP then original tolerance/tie-breaks; fail-closed ONE_MINUTE fallback",
+    "outer": "all2155 exactly once; seal candidate intents before aggregate outer scorecard; no additional Entry optimization after one pass",
+    "completion": "report25/15 historical targets; user permits Entry STOP/HOLD regardless of25% alone; no automatic production promotion"
+  },
+  "limitations": ["historical observed-bar causality is not independently certified historical knownAt","frozen upstream same-day metadata limitation remains","missing minute is not certified no-trade","next-open+5bps remains historical fill proxy","PIT profile/Dictionary/market/sector/tick/liquidity excluded","CI and complete determinism still required"],
+  "safety": {"executionAllowed":false,"brokerWriteAllowed":false,"excelOrderWriteAllowed":false,"rssOrderFunctionAllowed":false,"liveTradingAllowed":false,"paperTradingAllowed":false,"automaticPromotionAllowed":false,"productionUpdateAllowed":false,"transmitted":false}
+}

@@ -1,0 +1,37 @@
+{
+  "schema": "phase57-prr-v2-canonical-environment-freeze-v1",
+  "status": "CANONICAL_ENVIRONMENT_FROZEN",
+  "case": "B",
+  "selectedEnvironment": "first diagnostic environment",
+  "selectedEnvironmentSha256": "a4ec6736731e434a8b8f829f1254013364e4060cf8c59c7c3393ed2f2af7232d",
+  "environmentAuditPath": "ENVIRONMENT_AUDIT.json",
+  "python": "3.12.14",
+  "os": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "architecture": "x86_64",
+  "cpu": "Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz",
+  "packages": {
+    "numpy": "2.3.5",
+    "scipy": "1.18.1",
+    "scikitLearn": "1.8.0",
+    "joblib": "1.6.0",
+    "threadpoolctl": "3.7.0",
+    "pandas": "2.2.3"
+  },
+  "threadSettings": {
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "NUMEXPR_NUM_THREADS": "1",
+    "PYTHONHASHSEED": "0"
+  },
+  "blasAndOpenmpDetails": "ENVIRONMENT_AUDIT.json::threadpoolInfo and numpyShowConfig exact contents are included in the selected environment hash",
+  "modelAndPreprocessing": "CYCLE_PRECOMMIT.json::frozenModel, unchanged",
+  "oldOofDiagnosticStatus": "OLD_OOF_EXACT_REPRODUCTION_FAIL",
+  "oldPrRClosureUnchanged": "RANK_REPRODUCTION_FAIL",
+  "diagnosticFitAttempts": 2,
+  "remainingCanonicalFitAttempts": 12,
+  "postFreezeEnvironmentChangesAllowed": false,
+  "economicOutcomesInspected": false,
+  "adaptiveDevelopmentOnly": true,
+  "productionReady": false
+}

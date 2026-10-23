@@ -1,0 +1,153 @@
+# The only performance trigger is a separate launch marker committed AFTER
+# successful exact-source contract CI. Source changes cannot start fitting.
+name: Phase57 Gen2 Finite Learning R41
+
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - 'docs/evidence/phase57-comprehensive-exit-v1/GEN2_LAUNCH_R41.json'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-exit-gen2-r41-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  finite-once:
+    if: github.ref == 'refs/heads/research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      ARK_TEST_OFFLINE: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONPATH: '.'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Initialize evidence and read prerequisite run identity
+        id: prerequisite
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/gen2-logs
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          launch = json.loads(Path('docs/evidence/phase57-comprehensive-exit-v1/GEN2_LAUNCH_R41.json').read_text())
+          run_id = launch['requiredContractRunId']
+          assert isinstance(run_id, (int, str)) and str(run_id).isdigit()
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f'run_id={run_id}\n')
+          receipt = {
+              'schemaVersion': 'phase57-exit-gen2-workflow-start-r41-v1',
+              'status': 'WORKFLOW_STARTED_FITTING_NOT_STARTED',
+              'executionHead': os.environ['GITHUB_SHA'],
+              'runId': os.environ['GITHUB_RUN_ID'],
+              'candidateCount': launch['candidateCount'],
+              'expectedModelFitCount': launch['expectedModelFitCount'],
+              'protocolSha256': launch['protocolSha256'],
+              'artifactPlan': [
+                  'protocol_and_transitive_source_hashes', 'input_manifest_and_raw_path_references',
+                  'row_identity_and_training_label_metadata', 'fitted_models_and_preprocessors',
+                  'single_immutable_out_of_fold_predictions', 'run_a_and_run_b_policy_ledgers',
+                  'byte_identity_manifest', 'receipt_and_partial_failure_evidence'],
+              'scorecardPhase': 'NEXT_WORK_AFTER_ARTIFACT_AUDIT',
+              'selection': None,
+              'safety': launch['safety'],
+              'exposure': launch['exposure'],
+          }
+          Path('artifacts/gen2-logs/workflow-start.json').write_text(json.dumps(receipt, indent=2, sort_keys=True)+'\n')
+          PY
+      - name: Restore successful exact-source pre-performance contract receipt
+        uses: actions/download-artifact@v4
+        with:
+          repository: Iam-2squared/ark-terminal
+          run-id: ${{ steps.prerequisite.outputs.run_id }}
+          name: phase57-exit-gen2-contract-r41-${{ steps.prerequisite.outputs.run_id }}
+          github-token: ${{ github.token }}
+          path: artifacts/gen2-contract
+      - name: Verify launch authorization, exact source and prior CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python -m scripts.phase57_exit_gen2_preflight_r41 \
+            --mode launch --contract-receipt artifacts/gen2-contract/receipt.json \
+            --out artifacts/gen2-logs/launch-verification-initial.json \
+            2>&1 | tee artifacts/gen2-logs/launch-verification-initial.log
+      - name: Install frozen estimator dependencies
+        run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.7.2 pandas==2.2.3 joblib==1.5.2
+      - name: Restore immutable R35 observation preparation
+        uses: actions/download-artifact@v4
+        with:
+          repository: Iam-2squared/ark-terminal
+          run-id: '36220335998'
+          name: phase57-exit-capital-prep-r35-36220335998
+          github-token: ${{ github.token }}
+          path: artifacts/r35
+      - name: Prepare immutable features and isolated labels without model fitting
+        run: |
+          set -euo pipefail
+          python -u -m scripts.phase57_exit_gen2_runner_r41 \
+            --phase prepare --core-root artifacts/r35 --out artifacts/gen2 --workers 2 \
+            --prepared-cache "$RUNNER_TEMP/r41-prepared.pkl" \
+            2>&1 | tee artifacts/gen2-logs/prepare.log
+      - name: Recheck latest HEAD and duplicate jobs immediately before fitting
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python -m scripts.phase57_exit_gen2_preflight_r41 \
+            --mode launch --contract-receipt artifacts/gen2-contract/receipt.json \
+            --out artifacts/gen2-logs/launch-verification-before-fit.json \
+            2>&1 | tee artifacts/gen2-logs/launch-verification-before-fit.log
+      - name: Gen2 finite fitting and causal replay — no selection or performance report
+        run: |
+          set -euo pipefail
+          python -u -m scripts.phase57_exit_gen2_runner_r41 \
+            --phase fit-replay --core-root artifacts/r35 --out artifacts/gen2 --workers 2 \
+            --prepared-cache "$RUNNER_TEMP/r41-prepared.pkl" \
+            2>&1 | tee artifacts/gen2-logs/finite-run.log
+      - name: Verify completion counts and deferred audit boundary
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from scripts.phase57_exit_gen2_preflight_r41 import assert_safety
+          receipt = json.loads(Path('artifacts/gen2/receipt.json').read_text())
+          launch = json.loads(Path('docs/evidence/phase57-comprehensive-exit-v1/GEN2_LAUNCH_R41.json').read_text())
+          assert receipt['status'] == 'AWAITING_POST_RUN_AUDIT'
+          assert receipt['modelFits'] == launch['expectedModelFitCount']
+          assert receipt['candidatePoliciesReplayed'] == launch['candidateCount']
+          assert receipt['runABByteIdentical'] is True
+          assert receipt.get('selection') is None
+          assert receipt['providerRequests'] == receipt['protectedPartitionsOpened'] == 0
+          assert_safety(receipt['safety'])
+          print(json.dumps({'status': receipt['status'], 'modelFits': receipt['modelFits'],
+                            'candidatePoliciesReplayed': receipt['candidatePoliciesReplayed']}, sort_keys=True))
+          PY
+      - name: Preserve full reproducibility evidence and any partial failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-exit-gen2-r41-${{ github.run_id }}
+          path: |
+            artifacts/gen2
+            artifacts/gen2-logs
+            artifacts/gen2-contract
+            artifacts/partial-failure-*.json
+          retention-days: 90
+          overwrite: false
+          if-no-files-found: error

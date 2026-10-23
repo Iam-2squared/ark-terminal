@@ -1,0 +1,205 @@
+TAP version 13
+# Subtest: dry-run plans 205 historical sessions plus one causal warmup Daily without authorizing acquisition
+ok 1 - dry-run plans 205 historical sessions plus one causal warmup Daily without authorizing acquisition
+  ---
+  duration_ms: 5.370566
+  ...
+# Subtest: minute planning is bounded by Development envelope and still performs zero network calls
+ok 2 - minute planning is bounded by Development envelope and still performs zero network calls
+  ---
+  duration_ms: 2.621307
+  ...
+# Subtest: frozen split names exactly 205 unique outcome-unread historical sessions
+ok 3 - frozen split names exactly 205 unique outcome-unread historical sessions
+  ---
+  duration_ms: 2.095426
+  ...
+# Subtest: daily plus dated master is sufficient for formal L0 and audits exclusions
+ok 4 - daily plus dated master is sufficient for formal L0 and audits exclusions
+  ---
+  duration_ms: 7.813836
+  ...
+# Subtest: Formal L0 cache loader verifies immutable pages and preserves every Development A session with causal warmup
+ok 5 - Formal L0 cache loader verifies immutable pages and preserves every Development A session with causal warmup
+  ---
+  duration_ms: 4.974497
+  ...
+# Subtest: sparse minute rows aggregate causally and terminal auction is separate
+ok 6 - sparse minute rows aggregate causally and terminal auction is separate
+  ---
+  duration_ms: 0.876332
+  ...
+# Subtest: L1 decision features cannot see evaluator-only future path
+ok 7 - L1 decision features cannot see evaluator-only future path
+  ---
+  duration_ms: 2.597181
+  ...
+# Subtest: L1 de-adjusts prior close to the raw Minute price scale without changing winner return
+ok 8 - L1 de-adjusts prior close to the raw Minute price scale without changing winner return
+  ---
+  duration_ms: 3.501349
+  ...
+# Subtest: L2 fixed 30m and 60m targets mean exactly 6 and 12 future five-minute bars
+ok 9 - L2 fixed 30m and 60m targets mean exactly 6 and 12 future five-minute bars
+  ---
+  duration_ms: 1.061449
+  ...
+# Subtest: L2 feature contract is causal, compact by family, and excludes outcome fields
+ok 10 - L2 feature contract is causal, compact by family, and excludes outcome fields
+  ---
+  duration_ms: 0.842833
+  ...
+# Subtest: L2 Ridge trains on evaluator targets but returns ranking from causal features only
+ok 11 - L2 Ridge trains on evaluator targets but returns ranking from causal features only
+  ---
+  duration_ms: 7.058492
+  ...
+# Subtest: L1 discovery report compares winners with full-cross-section negative controls
+ok 12 - L1 discovery report compares winners with full-cross-section negative controls
+  ---
+  duration_ms: 2.509037
+  ...
+# Subtest: one immutable dataset identity is reused by selector entry exit allocation and portfolio
+ok 13 - one immutable dataset identity is reused by selector entry exit allocation and portfolio
+  ---
+  duration_ms: 0.44327
+  ...
+# Subtest: replay adapters receive one dataset and enforce cash-only entry intents
+ok 14 - replay adapters receive one dataset and enforce cash-only entry intents
+  ---
+  duration_ms: 0.700754
+  ...
+# Subtest: integrated harness enforces same window/cost and proves zero short or margin
+ok 15 - integrated harness enforces same window/cost and proves zero short or margin
+  ---
+  duration_ms: 2.014224
+  ...
+# Subtest: J-Quants pagination is reusable but formal acquisition fails before any network call when gate is blocked
+ok 16 - J-Quants pagination is reusable but formal acquisition fails before any network call when gate is blocked
+  ---
+  duration_ms: 3.34192
+  ...
+# Subtest: approved physical provider-request budget cannot be exceeded by pagination
+ok 17 - approved physical provider-request budget cannot be exceeded by pagination
+  ---
+  duration_ms: 0.605806
+  ...
+# Subtest: LONG-only contract prohibits every credit, short and leverage path
+ok 18 - LONG-only contract prohibits every credit, short and leverage path
+  ---
+  duration_ms: 1.677367
+  ...
+# Subtest: cash and lot constraints reject impossible or short intents
+ok 19 - cash and lot constraints reject impossible or short intents
+  ---
+  duration_ms: 0.830513
+  ...
+# Subtest: initial partition manifest is disjoint and keeps non-development outcomes sealed
+ok 20 - initial partition manifest is disjoint and keeps non-development outcomes sealed
+  ---
+  duration_ms: 1.598401
+  ...
+# Subtest: L0 census calculates exact market and segment distributions from development rows
+ok 21 - L0 census calculates exact market and segment distributions from development rows
+  ---
+  duration_ms: 10.413403
+  ...
+# Subtest: L0 fails closed on missing point-in-time membership, duplicates or sealed partitions
+ok 22 - L0 fails closed on missing point-in-time membership, duplicates or sealed partitions
+  ---
+  duration_ms: 0.426617
+  ...
+# Subtest: reviewed data plan conserves all 205 clean sessions and reserves 15 for admission failures
+ok 23 - reviewed data plan conserves all 205 clean sessions and reserves 15 for admission failures
+  ---
+  duration_ms: 1.247193
+  ...
+# Subtest: integrated comparison is the research completion target, not selector-only performance
+ok 24 - integrated comparison is the research completion target, not selector-only performance
+  ---
+  duration_ms: 0.36993
+  ...
+# Subtest: acquisition gate remains fail-closed after entitlement and Claude re-attestation
+ok 25 - acquisition gate remains fail-closed after entitlement and Claude re-attestation
+  ---
+  duration_ms: 2.388503
+  ...
+# Subtest: sealed validation and OOS partitions require hashed release evidence and contingency cannot open for poor performance
+ok 26 - sealed validation and OOS partitions require hashed release evidence and contingency cannot open for poor performance
+  ---
+  duration_ms: 0.585033
+  ...
+# Subtest: reserve deployment is mechanical and requires hashed admission-failure evidence
+ok 27 - reserve deployment is mechanical and requires hashed admission-failure evidence
+  ---
+  duration_ms: 0.679459
+  ...
+# Subtest: L2 development fits only C, selects only on D and freezes one refit artifact
+ok 28 - L2 development fits only C, selects only on D and freezes one refit artifact
+  ---
+  duration_ms: 31.263977
+  ...
+# Subtest: selector feature projection rejects evaluator outcomes
+ok 29 - selector feature projection rejects evaluator outcomes
+  ---
+  duration_ms: 1.165131
+  ...
+# Subtest: L1 cross-section refuses sealed partitions before reading outcomes
+ok 30 - L1 cross-section refuses sealed partitions before reading outcomes
+  ---
+  duration_ms: 0.48265
+  ...
+# Subtest: official storage terms are recorded but public or unspecified cache stays blocked
+ok 31 - official storage terms are recorded but public or unspecified cache stays blocked
+  ---
+  duration_ms: 2.170596
+  ...
+# Subtest: gate summary discloses no credential and plans 411 base requests including causal warmup
+ok 32 - gate summary discloses no credential and plans 411 base requests including causal warmup
+  ---
+  duration_ms: 1.069377
+  ...
+# Subtest: storage purge dry-run covers raw and reversible data with separate deadlines
+ok 33 - storage purge dry-run covers raw and reversible data with separate deadlines
+  ---
+  duration_ms: 0.907698
+  ...
+# Subtest: formal acquisition is fail-closed after entitlement end before network
+ok 34 - formal acquisition is fail-closed after entitlement end before network
+  ---
+  duration_ms: 2.386035
+  ...
+# Subtest: causal warmup is one Daily-only request outside the evaluation partition
+ok 35 - causal warmup is one Daily-only request outside the evaluation partition
+  ---
+  duration_ms: 3.307151
+  ...
+# Subtest: Formal L0 workflow reuses repository secret and never uploads plaintext raw cache
+ok 36 - Formal L0 workflow reuses repository secret and never uploads plaintext raw cache
+  ---
+  duration_ms: 0.482291
+  ...
+# Subtest: L0 replication reuses encrypted cache without another provider acquisition
+ok 37 - L0 replication reuses encrypted cache without another provider acquisition
+  ---
+  duration_ms: 0.340408
+  ...
+# Subtest: L1 Minute workflow is limited to fixed first-20 Development A sessions in two checkpoints
+ok 38 - L1 Minute workflow is limited to fixed first-20 Development A sessions in two checkpoints
+  ---
+  duration_ms: 0.529019
+  ...
+# Subtest: L2 Minute workflow is limited to frozen Development C+D in four checkpoints
+ok 39 - L2 Minute workflow is limited to frozen Development C+D in four checkpoints
+  ---
+  duration_ms: 0.79113
+  ...
+1..39
+# tests 39
+# suites 0
+# pass 39
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 212.664677

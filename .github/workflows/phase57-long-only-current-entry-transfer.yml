@@ -1,0 +1,176 @@
+name: Phase57 LONG-only Frozen Selector CURRENT Entry Transfer
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-long-only-current-entry-transfer.yml
+      - predict/research/phase57-long-only-current-entry-transfer-contract-v1.json
+      - predict/research/phase57-long-only-entry-filter-recovery-audit-contract-v1.json
+      - predict/research/phase57-msh-entry-long-v1-preimplementation-feasibility-contract.json
+      - predict/research/phase57-msh-entry-v1-model.json
+      - predict/research/phase57-minimal-stateful-entry-contract.json
+      - scripts/lib/phase57-minimal-stateful-entry.mjs
+      - predict/long-only/phase57-long-only-current-entry-transfer.js
+      - predict/long-only/phase57-long-only-entry-preimplementation-feasibility.js
+      - predict/tests/phase57-long-only-current-entry-transfer.test.mjs
+      - predict/tests/phase57-long-only-entry-preimplementation-feasibility.test.mjs
+      - scripts/run_phase57_long_only_entry_transfer_diagnostic.mjs
+      - scripts/run_phase57_long_only_entry_transfer_report.py
+      - scripts/run_phase57_long_only_entry_filter_recovery_audit.py
+      - scripts/run_phase57_msh_entry_long_v1_preimplementation_feasibility_audit.py
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: phase57-long-only-current-entry-transfer-single-run
+  cancel-in-progress: true
+
+jobs:
+  development-transfer-diagnostic:
+    if: github.ref == 'refs/heads/research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    env:
+      NODE_OPTIONS: --max-old-space-size=6144
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install fixed report libraries
+        run: pip install numpy==2.3.5 pandas==2.2.3
+      - name: Verify frozen Selector and CURRENT Entry transfer code
+        run: |
+          python scripts/verify_phase57_long_only_frozen_selector_v1.py
+          node --test predict/tests/phase57-long-only-current-entry-transfer.test.mjs
+          node --test predict/tests/phase57-long-only-entry-preimplementation-feasibility.test.mjs
+          python -m py_compile scripts/run_phase57_long_only_entry_transfer_report.py
+          python -m py_compile scripts/run_phase57_long_only_entry_filter_recovery_audit.py
+          python -m py_compile scripts/run_phase57_msh_entry_long_v1_preimplementation_feasibility_audit.py
+          node --check scripts/run_phase57_long_only_entry_transfer_diagnostic.mjs
+          while IFS=$'\t' read -r file expected; do
+            test "$(sha256sum "$file" | cut -d' ' -f1)" = "$expected"
+          done < <(jq -r '.auditImplementation | to_entries[] | [.key,.value] | @tsv' predict/research/phase57-msh-entry-long-v1-preimplementation-feasibility-contract.json)
+      - name: Download saved encrypted Development base
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-long-only-l0-replication-34917676944
+          path: ${{ runner.temp }}/entry-transfer-base
+          repository: Iam-2squared/ark-terminal
+          run-id: 34917676944
+          github-token: ${{ github.token }}
+      - name: Download saved L1 Minute checkpoints
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-l1-minute-shard-*-34926225832
+          path: ${{ runner.temp }}/entry-transfer-l1
+          repository: Iam-2squared/ark-terminal
+          run-id: 34926225832
+          github-token: ${{ github.token }}
+      - name: Download saved C+D Minute checkpoints
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-l2-minute-shard-*-34936002178
+          path: ${{ runner.temp }}/entry-transfer-l2
+          repository: Iam-2squared/ark-terminal
+          run-id: 34936002178
+          github-token: ${{ github.token }}
+      - name: Download saved additional Development checkpoints
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-v2-minute-shard-*-34964031692
+          path: ${{ runner.temp }}/entry-transfer-v2
+          repository: Iam-2squared/ark-terminal
+          run-id: 34964031692
+          github-token: ${{ github.token }}
+      - name: Verify and mount existing private cache without provider calls
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        shell: bash
+        run: |
+          test -n "${JQUANTS_API_KEY:-}"
+          test "$(find "$RUNNER_TEMP/entry-transfer-l1" -name acquisition-summary.json | wc -l)" = 2
+          test "$(find "$RUNNER_TEMP/entry-transfer-l2" -name acquisition-summary.json | wc -l)" = 4
+          test "$(find "$RUNNER_TEMP/entry-transfer-v2" -name acquisition-summary.json | wc -l)" = 2
+          cd "$RUNNER_TEMP/entry-transfer-base"
+          test "$(cut -d' ' -f1 private-cache.tar.gz.enc.sha256)" = "$(sha256sum private-cache.tar.gz.enc | cut -d' ' -f1)"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -in private-cache.tar.gz.enc -out "$RUNNER_TEMP/entry-transfer-base.tar.gz"
+          tar -C "$RUNNER_TEMP" -xzf "$RUNNER_TEMP/entry-transfer-base.tar.gz"
+          while IFS= read -r encrypted; do
+            test "$(cut -d' ' -f1 "${encrypted}.sha256")" = "$(sha256sum "$encrypted" | cut -d' ' -f1)"
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -in "$encrypted" | tar -C "$RUNNER_TEMP/phase57-l0-cache" -xzf -
+          done < <(find "$RUNNER_TEMP/entry-transfer-l1" "$RUNNER_TEMP/entry-transfer-l2" "$RUNNER_TEMP/entry-transfer-v2" -name minute-shard.tar.gz.enc | sort)
+      - name: Apply frozen Selector and frozen CURRENT Entry LONG-only
+        run: |
+          node scripts/run_phase57_long_only_entry_transfer_diagnostic.mjs \
+            --cache-root "$RUNNER_TEMP/phase57-l0-cache" \
+            --output-dir "$RUNNER_TEMP/entry-transfer-private"
+      - name: Reconfirm unchanged transfer evidence
+        run: |
+          mkdir -p artifacts/phase57-long-only-current-entry-transfer
+          python scripts/run_phase57_long_only_entry_transfer_report.py \
+            --input-dir "$RUNNER_TEMP/entry-transfer-private" \
+            --contract predict/research/phase57-long-only-current-entry-transfer-contract-v1.json \
+            --output "$RUNNER_TEMP/entry-transfer-recheck-report.json" \
+            --markdown-output "$RUNNER_TEMP/entry-transfer-recheck.md" \
+            --ledger-gzip-output "$RUNNER_TEMP/entry-transfer-recheck-events.ndjson.gz"
+          test "$(jq -r '.dataAudit.eventLedgerSha256' "$RUNNER_TEMP/entry-transfer-recheck-report.json")" = "$(jq -r '.dataAudit.eventLedgerSha256' docs/evidence/phase57-long-only-current-entry-transfer-v1-report.json)"
+          cp docs/evidence/phase57-long-only-current-entry-transfer-v1-report.json artifacts/phase57-long-only-current-entry-transfer/
+          cp docs/phase57-long-only-current-entry-transfer-v1.md artifacts/phase57-long-only-current-entry-transfer/
+          cp docs/evidence/phase57-long-only-current-entry-transfer-v1-events.ndjson.gz artifacts/phase57-long-only-current-entry-transfer/
+      - name: Attribute CURRENT Entry filter recovery without tuning
+        run: |
+          python scripts/run_phase57_long_only_entry_filter_recovery_audit.py \
+            --input-dir "$RUNNER_TEMP/entry-transfer-private" \
+            --contract predict/research/phase57-long-only-entry-filter-recovery-audit-contract-v1.json \
+            --prior-report docs/evidence/phase57-long-only-current-entry-transfer-v1-report.json \
+            --output docs/evidence/phase57-long-only-entry-filter-recovery-audit-v1-report.json \
+            --markdown-output docs/phase57-long-only-entry-filter-recovery-audit-v1.md
+          gzip -n -9 -c "$RUNNER_TEMP/entry-transfer-private/entry-evaluation-ticks.ndjson" > docs/evidence/phase57-long-only-entry-filter-recovery-audit-v1-ticks.ndjson.gz
+          gzip -n -9 -c "$RUNNER_TEMP/entry-transfer-private/first-entry-opportunities.json" > docs/evidence/phase57-long-only-entry-filter-recovery-audit-v1-first-opportunities.json.gz
+          cp docs/evidence/phase57-long-only-entry-filter-recovery-audit-v1-report.json artifacts/phase57-long-only-current-entry-transfer/
+          cp docs/phase57-long-only-entry-filter-recovery-audit-v1.md artifacts/phase57-long-only-current-entry-transfer/
+          cp docs/evidence/phase57-long-only-entry-filter-recovery-audit-v1-ticks.ndjson.gz artifacts/phase57-long-only-current-entry-transfer/
+          cp docs/evidence/phase57-long-only-entry-filter-recovery-audit-v1-first-opportunities.json.gz artifacts/phase57-long-only-current-entry-transfer/
+      - name: Audit MSH-Entry LONG v1 feasibility without training or performance
+        run: |
+          python scripts/run_phase57_msh_entry_long_v1_preimplementation_feasibility_audit.py \
+            --input-dir "$RUNNER_TEMP/entry-transfer-private" \
+            --contract predict/research/phase57-msh-entry-long-v1-preimplementation-feasibility-contract.json \
+            --prior-events docs/evidence/phase57-long-only-current-entry-transfer-v1-events.ndjson.gz \
+            --prior-transfer-report docs/evidence/phase57-long-only-current-entry-transfer-v1-report.json \
+            --prior-filter-report docs/evidence/phase57-long-only-entry-filter-recovery-audit-v1-report.json \
+            --output docs/evidence/phase57-msh-entry-long-v1-preimplementation-feasibility-report.json \
+            --markdown-output docs/phase57-msh-entry-long-v1-preimplementation-feasibility-report.md
+          gzip -n -9 -c "$RUNNER_TEMP/entry-transfer-private/entry-preimplementation-feasibility-events.ndjson" > docs/evidence/phase57-msh-entry-long-v1-preimplementation-feasibility-events.ndjson.gz
+          cp docs/evidence/phase57-msh-entry-long-v1-preimplementation-feasibility-report.json artifacts/phase57-long-only-current-entry-transfer/
+          cp docs/phase57-msh-entry-long-v1-preimplementation-feasibility-report.md artifacts/phase57-long-only-current-entry-transfer/
+          cp docs/evidence/phase57-msh-entry-long-v1-preimplementation-feasibility-events.ndjson.gz artifacts/phase57-long-only-current-entry-transfer/
+      - name: Purge private inputs
+        if: always()
+        shell: bash
+        run: |
+          rm -rf -- "$RUNNER_TEMP/phase57-l0-cache" "$RUNNER_TEMP/entry-transfer-private" "$RUNNER_TEMP/entry-transfer-base.tar.gz" "$RUNNER_TEMP/entry-transfer-base" "$RUNNER_TEMP/entry-transfer-l1" "$RUNNER_TEMP/entry-transfer-l2" "$RUNNER_TEMP/entry-transfer-v2"
+      - name: Upload sanitized diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-long-only-current-entry-transfer-${{ github.run_id }}
+          path: artifacts/phase57-long-only-current-entry-transfer/
+          if-no-files-found: error
+          retention-days: 21
+      - name: Publish compact result in the Actions summary
+        if: success()
+        shell: bash
+        run: |
+          jq '{status,finalVerdict,dataAudit,funnel,opportunityPreservation,opportunityConsumptionBps,stateful}' docs/evidence/phase57-long-only-current-entry-transfer-v1-report.json | tee -a "$GITHUB_STEP_SUMMARY"
+          jq '{status,architectureMismatchVerdict,integrity,funnel,blockedRootCauseAttribution,lostOpportunityAttribution,throughput,precisionPreservationFrontier,recoverableOpportunityPool}' docs/evidence/phase57-long-only-entry-filter-recovery-audit-v1-report.json | tee -a "$GITHUB_STEP_SUMMARY"
+          jq '{status,feasibilityVerdict,integrity,trainingRows,selectorOutputAudit,featureAvailability,ordinalLabelFeasibility,coreScoreability,missingSemanticsRecommendation,chronologicalSplitFeasibility,dataAllocation,finalContractRecommendations}' docs/evidence/phase57-msh-entry-long-v1-preimplementation-feasibility-report.json | tee -a "$GITHUB_STEP_SUMMARY"

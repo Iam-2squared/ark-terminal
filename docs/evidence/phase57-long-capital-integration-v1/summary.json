@@ -1,0 +1,4972 @@
+{
+  "status": "CAPITAL_INTEGRATION_IMPLEMENTED_FULL277_MEASUREMENT_BLOCKED",
+  "exposure": "HISTORICAL_DEVELOPMENT_IN_SAMPLE_OUTCOME_EXPOSED",
+  "upstreamPins": {
+    "docs/evidence/phase57-long-exit-v345-paired/paths.json.gz": "1ffd7e5e3d650a676e06507faf26226ad236ec4de4a0c0446873ee16f7408959",
+    "docs/evidence/phase57-msh-entry-long-v1-upstream-freeze/historical-enter-identities.json": "72224ac9fd073f7da45c488aaf8ca999752b466e715837c21440e7dd93970236",
+    "docs/evidence/phase57-msh-entry-long-v1-historical-remeasurement/frozen-predictions.ndjson.gz": "a11313909248d2c8aa1c39bac807f8a5c476c19c0be75a0e15dde41690cdb8be",
+    "docs/evidence/phase57-long-exit-continuation-v1/measurement.json": "f0757d0f74d5c836ea82cd2ee91ecf68d360708e2e9f47c45c916852c9484e56",
+    "predict/long-only/phase57_long_exit_continuation_v1.py": "b3e8f07086cfa65173524f62b78571f606e5d1c372a4cec1c16343c73d8c6c23",
+    "predict/long-only/phase57_long_exit_development_final.py": "d7b30e6a4419c10bf7cc2821b70159653af1cf0263d6abac09188c0f47a02a00"
+  },
+  "contractSHA256": "a5c28df18cea2e32e4ac1c03b8666f10804c8d889a11179d6e416d5b9bc7e464",
+  "frozenEnterCount": 277,
+  "sessionCount": 76,
+  "primaryFiltering": false,
+  "secondaryCommonCount": 173,
+  "secondaryExcludedCount": 104,
+  "allocationDevelopmentFinalSelected": false,
+  "validationReady": false,
+  "sourcePathAvailability": {
+    "MISSING_BEFORE_EXIT": 65,
+    "NO_REMAINING_REGULAR_BAR": 20,
+    "EXIT_REFERENCE": 192
+  },
+  "providerRequests": 0,
+  "freshConsumption": 0,
+  "oosAccess": 0,
+  "freshBudgetRemaining": 195,
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "reports": {
+    "FULL277": {
+      "ONE_LOT_REFERENCE": {
+        "arm": "ONE_LOT_REFERENCE",
+        "exitMode": "LONG",
+        "scope": "REFERENCE_PRICE_DEVELOPMENT",
+        "status": "FULL_PORTFOLIO_UNPRICED_EXPOSURE",
+        "initialEquityJpy": 1000000,
+        "finalEquityJpy": null,
+        "totalReturnPct": null,
+        "cashBalanceJpy": 5747.649999999874,
+        "realizedLedgerPnlJpy": -1852.3499999999872,
+        "closedTradeNetPnlJpy": -1604.2499999999886,
+        "lockedPurchaseNotionalJpy": 992400,
+        "maxDrawdownPct": null,
+        "maxDrawdownJpy": null,
+        "knownMarkDrawdownNotFullPortfolio": {
+          "pct": 0.009999006348744094,
+          "jpy": 100.0
+        },
+        "firstUnknownValuation": "2024-09-17T13:15:00+09:00",
+        "sessionReturn": {
+          "n": 0,
+          "sum": 0,
+          "mean": null,
+          "median": null,
+          "p05": null,
+          "min": null
+        },
+        "worstSession": null,
+        "maxConsecutiveLosingSessions": null,
+        "trade": {
+          "candidates": 277,
+          "accepted": 45,
+          "closed": 35,
+          "unresolved": 10,
+          "rejected": 232,
+          "rejectionReasons": {
+            "NO_REMAINING_REGULAR_BAR": 20,
+            "SYMBOL_ALREADY_OPEN": 24,
+            "INSUFFICIENT_CASH": 44,
+            "MAX_CONCURRENT_POSITIONS": 144
+          },
+          "closedPnlJpy": {
+            "n": 35,
+            "sum": -1604.2499999999886,
+            "mean": -45.83571428571396,
+            "median": -116.0,
+            "p05": -1424.29,
+            "min": -1657.1
+          },
+          "closedNetPct": {
+            "n": 35,
+            "sum": -24.695881617770933,
+            "mean": -0.7055966176505981,
+            "median": -1.1863636363636365,
+            "p05": -5.690732265446223,
+            "min": -7.742307692307694
+          },
+          "winRate": 0.34285714285714286,
+          "profitFactor": 0.8644366420341485,
+          "largestLossJpy": -1657.1,
+          "largestLossShareOfTotalLoss": 0.1400293224155924,
+          "tailMinus10Count": 0
+        },
+        "capital": {
+          "averageUtilization": null,
+          "peakUtilization": null,
+          "idleCashRatio": null,
+          "maxConcurrent": 10,
+          "averageConcurrent": 8.414593698175787,
+          "averageLockedPurchaseNotionalJpy": 919194.5688225538,
+          "grossTurnoverJpy": 3408400.0,
+          "grossTurnoverTimesInitial": 3.4084,
+          "cashReleaseCount": 35,
+          "sameTimestampRecyclingEntries": 1,
+          "feesJpy": 852.3500000000003,
+          "tradingMinutes": 24120.0
+        },
+        "concentration": {
+          "positiveTradeProfitShares": {
+            "top1": 0.3215441313039482,
+            "top3": 0.7229879664115266,
+            "top5": 0.8738965952080712,
+            "hhi": 0.20381885324513233
+          },
+          "positionNotionalShares": {
+            "top1": 0.34667635967104365,
+            "top3": 0.45517742741605705,
+            "top5": 0.5552274069698759,
+            "hhi": 0.14064611517779807
+          },
+          "symbolNotionalShares": {
+            "top1": 0.34667635967104365,
+            "top3": 0.47589622427188877,
+            "top5": 0.5803534917533736,
+            "hhi": 0.14452596489937333
+          },
+          "symbolPositiveProfitShares": {
+            "top1": 0.2775492976038437,
+            "top3": 0.7126994090781175,
+            "top5": 0.8797755362670187,
+            "hhi": 0.19486628521995805
+          },
+          "sessionPositiveProfitShares": {
+            "top1": 0.3614211624105072,
+            "top3": 0.7746208918202819,
+            "top5": 0.9167582727323977,
+            "hhi": 0.24380466644517215
+          },
+          "groupPnlJpy": {
+            "symbol": {
+              "90820": 2564.5,
+              "39360": 2478.550000000003,
+              "130A0": -1657.1,
+              "190A0": -1616.3000000000002,
+              "56160": 1542.15,
+              "76890": -1480.65,
+              "65520": -1427.4,
+              "70370": 873.6500000000001,
+              "41790": -814.9000000000001,
+              "39080": -740.9000000000058,
+              "33580": 670.1000000000113,
+              "38030": -430.85,
+              "70740": -409.4,
+              "37790": -409.0,
+              "27430": 396.5,
+              "39050": 338.45000000000005,
+              "25860": -307.75,
+              "81070": -304.5,
+              "36640": -302.29999999999995,
+              "48830": -207.2,
+              "81050": -202.39999999999998,
+              "32370": 194.75,
+              "21640": -116.0,
+              "38070": -106.0,
+              "66590": -104.55000000000001,
+              "48330": -104.4,
+              "67860": -102.44999999999999,
+              "51310": 92.05000000000001,
+              "94390": 89.10000000000284
+            },
+            "sessionDate": {
+              "2024-09-27": 2564.5,
+              "2024-10-11": -2427.05,
+              "2024-10-10": 2058.2500000000027,
+              "2024-10-09": -1657.1,
+              "2024-09-30": -1129.9,
+              "2024-09-18": 873.6500000000001,
+              "2024-10-02": -814.9000000000001,
+              "2024-09-19": 670.1000000000113,
+              "2024-10-16": -430.85,
+              "2024-10-01": -413.5,
+              "2024-10-07": 338.45000000000005,
+              "2024-10-17": -319.89999999999714,
+              "2024-10-25": -307.75,
+              "2024-10-18": -302.29999999999995,
+              "2024-11-08": -301.95000000000005,
+              "2024-11-12": 292.1,
+              "2024-10-31": -207.2,
+              "2024-09-20": 200.1500000000001,
+              "2024-09-24": -138.65,
+              "2024-11-13": -113.64999999999998,
+              "2024-11-14": -104.55000000000001,
+              "2024-11-11": 98.4,
+              "2024-10-08": -20.200000000005673,
+              "2024-11-07": -10.399999999999977
+            },
+            "exitReason": {
+              "TWO_LOWER_COMPLETED_CLOSES": -5432.949999999986,
+              "FIXED12_CAP": 3194.699999999997,
+              "CALENDAR_SESSION_CAP": 2564.5,
+              "BAR5_NO_RECLAIM": -1930.5
+            }
+          }
+        },
+        "ledgerAudit": {
+          "maxCashBalanceErrorJpy": 1.9883827917510644e-10,
+          "nonnegativeCash": true,
+          "hundredShareLots": true,
+          "noShortMarginLeverage": true,
+          "futureOutcomeInAllocator": false,
+          "costChargedOnce": true
+        },
+        "exitReasonPerformance": {
+          "TWO_LOWER_COMPLETED_CLOSES": {
+            "pnlJpy": {
+              "n": 22,
+              "sum": -5432.949999999986,
+              "mean": -246.9522727272721,
+              "median": -254.57500000000002,
+              "p05": -1602.5850000000003,
+              "min": -1657.1
+            },
+            "netPct": {
+              "n": 22,
+              "sum": -20.204954785503258,
+              "mean": -0.9184070357046936,
+              "median": -1.1611111111111112,
+              "p05": -4.892432802224479,
+              "min": -7.742307692307694
+            },
+            "winRate": 0.3181818181818182,
+            "profitFactor": 0.41526167092694893
+          },
+          "FIXED12_CAP": {
+            "pnlJpy": {
+              "n": 8,
+              "sum": 3194.699999999997,
+              "mean": 399.33749999999964,
+              "median": -10.100000000002836,
+              "p05": -233.08749999999995,
+              "min": -302.29999999999995
+            },
+            "netPct": {
+              "n": 8,
+              "sum": 4.710078320891091,
+              "mean": 0.5887597901113863,
+              "median": -0.469580419580427,
+              "p05": -6.131235697940502,
+              "min": -6.571739130434781
+            },
+            "winRate": 0.5,
+            "profitFactor": 6.218392682130019
+          },
+          "CALENDAR_SESSION_CAP": {
+            "pnlJpy": {
+              "n": 1,
+              "sum": 2564.5,
+              "mean": 2564.5,
+              "median": 2564.5,
+              "p05": 2564.5,
+              "min": 2564.5
+            },
+            "netPct": {
+              "n": 1,
+              "sum": 3.6119718309859152,
+              "mean": 3.6119718309859152,
+              "median": 3.6119718309859152,
+              "p05": 3.6119718309859152,
+              "min": 3.6119718309859152
+            },
+            "winRate": 1.0,
+            "profitFactor": "INF"
+          },
+          "BAR5_NO_RECLAIM": {
+            "pnlJpy": {
+              "n": 4,
+              "sum": -1930.5,
+              "mean": -482.625,
+              "median": -506.575,
+              "p05": -814.2775000000001,
+              "min": -814.9000000000001
+            },
+            "netPct": {
+              "n": 4,
+              "sum": -12.812976984144681,
+              "mean": -3.2032442460361703,
+              "median": -3.252746995473701,
+              "p05": -4.149806201550388,
+              "min": -4.216666666666667
+            },
+            "winRate": 0.0,
+            "profitFactor": 0.0
+          }
+        },
+        "unresolvedPositions": [
+          {
+            "eventId": "2024-09-17|2024-09-17T13:00:00+09:00|17570",
+            "symbol": "17570",
+            "qty": 100,
+            "notional": 2500,
+            "entryFee": 0.625,
+            "entryTime": "2024-09-17T13:00:00+09:00",
+            "reason": "MISSING_BEFORE_EXIT",
+            "missingTimestamp": "2024-09-17T13:15:00+09:00"
+          },
+          {
+            "eventId": "2024-09-18|2024-09-18T11:00:00+09:00|89180",
+            "symbol": "89180",
+            "qty": 100,
+            "notional": 700,
+            "entryFee": 0.17500000000000002,
+            "entryTime": "2024-09-18T11:00:00+09:00",
+            "reason": "MISSING_BEFORE_EXIT",
+            "missingTimestamp": "2024-09-18T11:15:00+09:00"
+          },
+          {
+            "eventId": "2024-09-19|2024-09-19T10:30:00+09:00|57210",
+            "symbol": "57210",
+            "qty": 100,
+            "notional": 2200,
+            "entryFee": 0.55,
+            "entryTime": "2024-09-19T10:30:00+09:00",
+            "reason": "MISSING_BEFORE_EXIT",
+            "missingTimestamp": "2024-09-19T10:50:00+09:00"
+          },
+          {
+            "eventId": "2024-09-20|2024-09-20T09:30:00+09:00|59390",
+            "symbol": "59390",
+            "qty": 100,
+            "notional": 763000,
+            "entryFee": 190.75,
+            "entryTime": "2024-09-20T09:30:00+09:00",
+            "reason": "MISSING_BEFORE_EXIT",
+            "missingTimestamp": "2024-09-20T09:50:00+09:00"
+          },
+          {
+            "eventId": "2024-09-20|2024-09-20T13:30:00+09:00|66630",
+            "symbol": "66630",
+            "qty": 100,
+            "notional": 26800,
+            "entryFee": 6.7,
+            "entryTime": "2024-09-20T13:30:00+09:00",
+            "reason": "MISSING_BEFORE_EXIT",
+            "missingTimestamp": "2024-09-20T13:40:00+09:00"
+          },
+          {
+            "eventId": "2024-10-01|2024-10-01T10:30:00+09:00|14010",
+            "symbol": "14010",
+            "qty": 100,
+            "notional": 78000,
+            "entryFee": 19.5,
+            "entryTime": "2024-10-01T10:30:00+09:00",
+            "reason": "MISSING_BEFORE_EXIT",
+            "missingTimestamp": "2024-10-01T11:05:00+09:00"
+          },
+          {
+            "eventId": "2024-10-04|2024-10-04T10:00:00+09:00|67400",
+            "symbol": "67400",
+            "qty": 100,
+            "notional": 2200,
+            "entryFee": 0.55,
+            "entryTime": "2024-10-04T10:00:00+09:00",
+            "reason": "MISSING_BEFORE_EXIT",
+            "missingTimestamp": "2024-10-04T10:20:00+09:00"
+          },
+          {
+            "eventId": "2024-10-21|2024-10-21T10:00:00+09:00|71160",
+            "symbol": "71160",
+            "qty": 100,
+            "notional": 106000,
+            "entryFee": 26.5,
+            "entryTime": "2024-10-21T10:00:00+09:00",
+            "reason": "MISSING_BEFORE_EXIT",
+            "missingTimestamp": "2024-10-21T10:10:00+09:00"
+          },
+          {
+            "eventId": "2024-11-08|2024-11-08T13:30:00+09:00|88360",
+            "symbol": "88360",
+            "qty": 100,
+            "notional": 2500,
+            "entryFee": 0.625,
+            "entryTime": "2024-11-08T13:30:00+09:00",
+            "reason": "MISSING_BEFORE_EXIT",
+            "missingTimestamp": "2024-11-08T14:15:00+09:00"
+          },
+          {
+            "eventId": "2024-11-14|2024-11-14T15:00:00+09:00|78360",
+            "symbol": "78360",
+            "qty": 100,
+            "notional": 8500,
+            "entryFee": 2.125,
+            "entryTime": "2024-11-14T15:00:00+09:00",
+            "reason": "MISSING_BEFORE_EXIT",
+            "missingTimestamp": "2024-11-14T15:30:00+09:00"
+          }
+        ],
+        "sessions": [
+          {
+            "sessionDate": "2024-09-17",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-18",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-19",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-20",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-24",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-25",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-26",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-27",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-30",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-01",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-02",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-03",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-04",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-07",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-08",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-09",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-10",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-11",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-15",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-16",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-17",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-18",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-21",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-22",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-23",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-24",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-25",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-28",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-29",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-30",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-31",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-01",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-05",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-06",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-07",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-08",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-11",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-12",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-13",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-14",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-15",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-18",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-19",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-20",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-21",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-22",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-25",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-26",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-27",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-28",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-29",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-02",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-03",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-04",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-05",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-06",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-09",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-10",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-11",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-12",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-13",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-16",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-17",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-18",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-19",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-20",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-23",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-24",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-25",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-26",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-27",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-30",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2025-01-06",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2025-01-07",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2025-01-08",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2025-01-09",
+            "equityJpy": null,
+            "returnPct": null
+          }
+        ],
+        "rejectedOpportunityEvaluatorOnly": {
+          "knownOutcomeCount": 157,
+          "unknownOutcomeCount": 75,
+          "positiveNetCount": 71,
+          "netAtLeast3PctCount": 27,
+          "netAtLeast5PctCount": 18,
+          "netPct": {
+            "n": 157,
+            "sum": 77.54108913356224,
+            "mean": 0.4938922874749187,
+            "median": -0.05,
+            "p05": -6.333500302561685,
+            "min": -23.57941176470589
+          },
+          "usedForDecision": false
+        }
+      },
+      "EQUAL_MAX3": {
+        "arm": "EQUAL_MAX3",
+        "exitMode": "LONG",
+        "scope": "REFERENCE_PRICE_DEVELOPMENT",
+        "status": "FULL_PORTFOLIO_UNPRICED_EXPOSURE",
+        "initialEquityJpy": 1000000,
+        "finalEquityJpy": null,
+        "totalReturnPct": null,
+        "cashBalanceJpy": 667416.875,
+        "realizedLedgerPnlJpy": -83.125,
+        "closedTradeNetPnlJpy": 0,
+        "lockedPurchaseNotionalJpy": 332500,
+        "maxDrawdownPct": null,
+        "maxDrawdownJpy": null,
+        "knownMarkDrawdownNotFullPortfolio": {
+          "pct": 1.3126508576951996,
+          "jpy": 13300.0
+        },
+        "firstUnknownValuation": "2024-09-17T13:15:00+09:00",
+        "sessionReturn": {
+          "n": 0,
+          "sum": 0,
+          "mean": null,
+          "median": null,
+          "p05": null,
+          "min": null
+        },
+        "worstSession": null,
+        "maxConsecutiveLosingSessions": null,
+        "trade": {
+          "candidates": 277,
+          "accepted": 1,
+          "closed": 0,
+          "unresolved": 1,
+          "rejected": 276,
+          "rejectionReasons": {
+            "NO_REMAINING_REGULAR_BAR": 20,
+            "CURRENT_EQUITY_UNKNOWN": 256
+          },
+          "closedPnlJpy": {
+            "n": 0,
+            "sum": 0,
+            "mean": null,
+            "median": null,
+            "p05": null,
+            "min": null
+          },
+          "closedNetPct": {
+            "n": 0,
+            "sum": 0,
+            "mean": null,
+            "median": null,
+            "p05": null,
+            "min": null
+          },
+          "winRate": null,
+          "profitFactor": null,
+          "largestLossJpy": null,
+          "largestLossShareOfTotalLoss": null,
+          "tailMinus10Count": 0
+        },
+        "capital": {
+          "averageUtilization": null,
+          "peakUtilization": null,
+          "idleCashRatio": null,
+          "maxConcurrent": 1,
+          "averageConcurrent": 0.9925373134328358,
+          "averageLockedPurchaseNotionalJpy": 330018.6567164179,
+          "grossTurnoverJpy": 332500.0,
+          "grossTurnoverTimesInitial": 0.3325,
+          "cashReleaseCount": 0,
+          "sameTimestampRecyclingEntries": 0,
+          "feesJpy": 83.125,
+          "tradingMinutes": 24120.0
+        },
+        "concentration": {
+          "positiveTradeProfitShares": {
+            "top1": null,
+            "top3": null,
+            "top5": null,
+            "hhi": null
+          },
+          "positionNotionalShares": {
+            "top1": 1.0,
+            "top3": 1.0,
+            "top5": 1.0,
+            "hhi": 1.0
+          },
+          "symbolNotionalShares": {
+            "top1": 1.0,
+            "top3": 1.0,
+            "top5": 1.0,
+            "hhi": 1.0
+          },
+          "symbolPositiveProfitShares": {
+            "top1": null,
+            "top3": null,
+            "top5": null,
+            "hhi": null
+          },
+          "sessionPositiveProfitShares": {
+            "top1": null,
+            "top3": null,
+            "top5": null,
+            "hhi": null
+          },
+          "groupPnlJpy": {
+            "symbol": {},
+            "sessionDate": {},
+            "exitReason": {}
+          }
+        },
+        "ledgerAudit": {
+          "maxCashBalanceErrorJpy": 0.0,
+          "nonnegativeCash": true,
+          "hundredShareLots": true,
+          "noShortMarginLeverage": true,
+          "futureOutcomeInAllocator": false,
+          "costChargedOnce": true
+        },
+        "exitReasonPerformance": {},
+        "unresolvedPositions": [
+          {
+            "eventId": "2024-09-17|2024-09-17T13:00:00+09:00|17570",
+            "symbol": "17570",
+            "qty": 13300,
+            "notional": 332500,
+            "entryFee": 83.125,
+            "entryTime": "2024-09-17T13:00:00+09:00",
+            "reason": "MISSING_BEFORE_EXIT",
+            "missingTimestamp": "2024-09-17T13:15:00+09:00"
+          }
+        ],
+        "sessions": [
+          {
+            "sessionDate": "2024-09-17",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-18",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-19",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-20",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-24",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-25",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-26",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-27",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-30",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-01",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-02",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-03",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-04",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-07",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-08",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-09",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-10",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-11",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-15",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-16",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-17",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-18",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-21",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-22",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-23",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-24",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-25",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-28",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-29",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-30",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-31",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-01",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-05",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-06",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-07",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-08",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-11",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-12",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-13",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-14",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-15",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-18",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-19",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-20",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-21",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-22",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-25",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-26",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-27",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-28",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-29",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-02",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-03",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-04",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-05",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-06",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-09",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-10",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-11",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-12",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-13",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-16",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-17",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-18",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-19",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-20",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-23",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-24",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-25",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-26",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-27",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-30",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2025-01-06",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2025-01-07",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2025-01-08",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2025-01-09",
+            "equityJpy": null,
+            "returnPct": null
+          }
+        ],
+        "rejectedOpportunityEvaluatorOnly": {
+          "knownOutcomeCount": 192,
+          "unknownOutcomeCount": 84,
+          "positiveNetCount": 83,
+          "netAtLeast3PctCount": 31,
+          "netAtLeast5PctCount": 20,
+          "netPct": {
+            "n": 192,
+            "sum": 52.84520751579129,
+            "mean": 0.27523545581141295,
+            "median": -0.05,
+            "p05": -6.377305973181628,
+            "min": -23.57941176470589
+          },
+          "usedForDecision": false
+        }
+      },
+      "LONG_RANK_MAX3": {
+        "arm": "LONG_RANK_MAX3",
+        "exitMode": "LONG",
+        "scope": "REFERENCE_PRICE_DEVELOPMENT",
+        "status": "FULL_PORTFOLIO_UNPRICED_EXPOSURE",
+        "initialEquityJpy": 1000000,
+        "finalEquityJpy": null,
+        "totalReturnPct": null,
+        "cashBalanceJpy": 667416.875,
+        "realizedLedgerPnlJpy": -83.125,
+        "closedTradeNetPnlJpy": 0,
+        "lockedPurchaseNotionalJpy": 332500,
+        "maxDrawdownPct": null,
+        "maxDrawdownJpy": null,
+        "knownMarkDrawdownNotFullPortfolio": {
+          "pct": 1.3126508576951996,
+          "jpy": 13300.0
+        },
+        "firstUnknownValuation": "2024-09-17T13:15:00+09:00",
+        "sessionReturn": {
+          "n": 0,
+          "sum": 0,
+          "mean": null,
+          "median": null,
+          "p05": null,
+          "min": null
+        },
+        "worstSession": null,
+        "maxConsecutiveLosingSessions": null,
+        "trade": {
+          "candidates": 277,
+          "accepted": 1,
+          "closed": 0,
+          "unresolved": 1,
+          "rejected": 276,
+          "rejectionReasons": {
+            "NO_REMAINING_REGULAR_BAR": 20,
+            "CURRENT_EQUITY_UNKNOWN": 256
+          },
+          "closedPnlJpy": {
+            "n": 0,
+            "sum": 0,
+            "mean": null,
+            "median": null,
+            "p05": null,
+            "min": null
+          },
+          "closedNetPct": {
+            "n": 0,
+            "sum": 0,
+            "mean": null,
+            "median": null,
+            "p05": null,
+            "min": null
+          },
+          "winRate": null,
+          "profitFactor": null,
+          "largestLossJpy": null,
+          "largestLossShareOfTotalLoss": null,
+          "tailMinus10Count": 0
+        },
+        "capital": {
+          "averageUtilization": null,
+          "peakUtilization": null,
+          "idleCashRatio": null,
+          "maxConcurrent": 1,
+          "averageConcurrent": 0.9925373134328358,
+          "averageLockedPurchaseNotionalJpy": 330018.6567164179,
+          "grossTurnoverJpy": 332500.0,
+          "grossTurnoverTimesInitial": 0.3325,
+          "cashReleaseCount": 0,
+          "sameTimestampRecyclingEntries": 0,
+          "feesJpy": 83.125,
+          "tradingMinutes": 24120.0
+        },
+        "concentration": {
+          "positiveTradeProfitShares": {
+            "top1": null,
+            "top3": null,
+            "top5": null,
+            "hhi": null
+          },
+          "positionNotionalShares": {
+            "top1": 1.0,
+            "top3": 1.0,
+            "top5": 1.0,
+            "hhi": 1.0
+          },
+          "symbolNotionalShares": {
+            "top1": 1.0,
+            "top3": 1.0,
+            "top5": 1.0,
+            "hhi": 1.0
+          },
+          "symbolPositiveProfitShares": {
+            "top1": null,
+            "top3": null,
+            "top5": null,
+            "hhi": null
+          },
+          "sessionPositiveProfitShares": {
+            "top1": null,
+            "top3": null,
+            "top5": null,
+            "hhi": null
+          },
+          "groupPnlJpy": {
+            "symbol": {},
+            "sessionDate": {},
+            "exitReason": {}
+          }
+        },
+        "ledgerAudit": {
+          "maxCashBalanceErrorJpy": 0.0,
+          "nonnegativeCash": true,
+          "hundredShareLots": true,
+          "noShortMarginLeverage": true,
+          "futureOutcomeInAllocator": false,
+          "costChargedOnce": true
+        },
+        "exitReasonPerformance": {},
+        "unresolvedPositions": [
+          {
+            "eventId": "2024-09-17|2024-09-17T13:00:00+09:00|17570",
+            "symbol": "17570",
+            "qty": 13300,
+            "notional": 332500,
+            "entryFee": 83.125,
+            "entryTime": "2024-09-17T13:00:00+09:00",
+            "reason": "MISSING_BEFORE_EXIT",
+            "missingTimestamp": "2024-09-17T13:15:00+09:00"
+          }
+        ],
+        "sessions": [
+          {
+            "sessionDate": "2024-09-17",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-18",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-19",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-20",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-24",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-25",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-26",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-27",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-09-30",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-01",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-02",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-03",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-04",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-07",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-08",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-09",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-10",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-11",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-15",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-16",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-17",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-18",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-21",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-22",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-23",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-24",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-25",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-28",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-29",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-30",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-10-31",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-01",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-05",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-06",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-07",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-08",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-11",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-12",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-13",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-14",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-15",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-18",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-19",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-20",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-21",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-22",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-25",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-26",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-27",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-28",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-11-29",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-02",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-03",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-04",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-05",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-06",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-09",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-10",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-11",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-12",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-13",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-16",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-17",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-18",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-19",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-20",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-23",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-24",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-25",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-26",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-27",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2024-12-30",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2025-01-06",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2025-01-07",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2025-01-08",
+            "equityJpy": null,
+            "returnPct": null
+          },
+          {
+            "sessionDate": "2025-01-09",
+            "equityJpy": null,
+            "returnPct": null
+          }
+        ],
+        "rejectedOpportunityEvaluatorOnly": {
+          "knownOutcomeCount": 192,
+          "unknownOutcomeCount": 84,
+          "positiveNetCount": 83,
+          "netAtLeast3PctCount": 31,
+          "netAtLeast5PctCount": 20,
+          "netPct": {
+            "n": 192,
+            "sum": 52.84520751579129,
+            "mean": 0.27523545581141295,
+            "median": -0.05,
+            "p05": -6.377305973181628,
+            "min": -23.57941176470589
+          },
+          "usedForDecision": false
+        }
+      }
+    },
+    "EXPOSED_COMMON173_DIAGNOSTIC": {
+      "ONE_LOT_REFERENCE": {
+        "arm": "ONE_LOT_REFERENCE",
+        "exitMode": "LONG",
+        "scope": "REFERENCE_PRICE_DEVELOPMENT",
+        "status": "COMPLETE_REFERENCE_REPLAY",
+        "initialEquityJpy": 1000000,
+        "finalEquityJpy": 978315.3750000008,
+        "totalReturnPct": -2.1684624999999236,
+        "cashBalanceJpy": 978315.3750000008,
+        "realizedLedgerPnlJpy": -21684.624999999905,
+        "closedTradeNetPnlJpy": -21684.625000000015,
+        "lockedPurchaseNotionalJpy": 0,
+        "maxDrawdownPct": 12.207672963296895,
+        "maxDrawdownJpy": 124990.74999999977,
+        "knownMarkDrawdownNotFullPortfolio": {
+          "pct": 12.207672963296895,
+          "jpy": 124990.74999999977
+        },
+        "firstUnknownValuation": null,
+        "sessionReturn": {
+          "n": 76,
+          "sum": -1.8692618935584497,
+          "mean": -0.024595551231032232,
+          "median": 0.0,
+          "p05": -1.4473242025593303,
+          "min": -4.859091899145385
+        },
+        "worstSession": {
+          "sessionDate": "2024-11-08",
+          "equityJpy": 925039.3749999991,
+          "returnPct": -4.859091899145385
+        },
+        "maxConsecutiveLosingSessions": 4,
+        "trade": {
+          "candidates": 173,
+          "accepted": 173,
+          "closed": 173,
+          "unresolved": 0,
+          "rejected": 0,
+          "rejectionReasons": {},
+          "closedPnlJpy": {
+            "n": 173,
+            "sum": -21684.625000000015,
+            "mean": -125.34465317919083,
+            "median": -0.4,
+            "p05": -5640.255,
+            "min": -49309.0
+          },
+          "closedNetPct": {
+            "n": 173,
+            "sum": 64.14134974280553,
+            "mean": 0.37075924706824004,
+            "median": -0.05,
+            "p05": -6.660885204879573,
+            "min": -23.579411764705885
+          },
+          "winRate": 0.4508670520231214,
+          "profitFactor": 0.8981043486371719,
+          "largestLossJpy": -49309.0,
+          "largestLossShareOfTotalLoss": 0.2317020779953393,
+          "tailMinus10Count": 4
+        },
+        "capital": {
+          "averageUtilization": 0.017943834653127634,
+          "peakUtilization": 0.8282606189980928,
+          "idleCashRatio": 0.9820561653468723,
+          "maxConcurrent": 4,
+          "averageConcurrent": 0.2709369817578773,
+          "averageLockedPurchaseNotionalJpy": 16910.665422885573,
+          "grossTurnoverJpy": 25123100.0,
+          "grossTurnoverTimesInitial": 25.1231,
+          "cashReleaseCount": 173,
+          "sameTimestampRecyclingEntries": 7,
+          "feesJpy": 6284.624999999987,
+          "tradingMinutes": 24120.0
+        },
+        "concentration": {
+          "positiveTradeProfitShares": {
+            "top1": 0.1571985081159195,
+            "top3": 0.4486634442096099,
+            "top5": 0.5564546065988952,
+            "hhi": 0.08064381121271978
+          },
+          "positionNotionalShares": {
+            "top1": 0.049167611432663044,
+            "top3": 0.13071583427809932,
+            "top5": 0.19643176800525092,
+            "hhi": 0.018053547529118027
+          },
+          "symbolNotionalShares": {
+            "top1": 0.0772520237882133,
+            "top3": 0.1751576267478171,
+            "top5": 0.2567058495932534,
+            "hhi": 0.024240926145498984
+          },
+          "symbolPositiveProfitShares": {
+            "top1": 0.17269708811359807,
+            "top3": 0.49289825512135815,
+            "top5": 0.5939783825075867,
+            "hhi": 0.09350937285585374
+          },
+          "sessionPositiveProfitShares": {
+            "top1": 0.23451079899565314,
+            "top3": 0.49213029015447474,
+            "top5": 0.6189444863493084,
+            "hhi": 0.1119145449223317
+          },
+          "groupPnlJpy": {
+            "symbol": {
+              "269A0": -56485.5,
+              "90730": 30044.949999999997,
+              "62540": 28971.449999999997,
+              "48940": 26735.5,
+              "304A0": -23223.0,
+              "95620": -20587.4,
+              "33500": -15909.7,
+              "52470": -11731.399999999954,
+              "61800": 10752.0,
+              "143A0": 6833.4,
+              "70690": -6745.950000000001,
+              "303A0": 6578.549999999999,
+              "168A0": -5870.85,
+              "21750": -5486.525,
+              "55800": -5260.549999999999,
+              "40690": 5227.15,
+              "38250": 4866.85,
+              "92360": -4255.700000000001,
+              "68360": 4062.0499999999997,
+              "49350": -3983.9000000000015,
+              "62280": 3833.6499999999996,
+              "29620": 3678.3500000000004,
+              "87830": -3436.5,
+              "86140": -3326.75,
+              "39810": 2803.399999999977,
+              "52530": 2785.1000000000004,
+              "90820": 2564.5,
+              "39360": 2478.550000000003,
+              "47360": 2451.7500000000114,
+              "73600": 2243.3999999999996,
+              "50250": -2135.8500000000004,
+              "40680": 2128.55,
+              "45060": -2128.55,
+              "276A0": 2040.8000000000002,
+              "21560": 1864.9,
+              "244A0": -1690.0,
+              "30770": 1677.3999999999944,
+              "130A0": -1657.1,
+              "190A0": -1616.3000000000002,
+              "46670": 1605.1,
+              "56160": 1542.15,
+              "31030": 1487.9,
+              "76890": -1480.65,
+              "48850": 1446.35,
+              "65520": -1427.4,
+              "51310": -1410.35,
+              "176A0": -1299.6,
+              "42550": -1229.5500000000002,
+              "46640": 1050.1999999999884,
+              "91650": 1033.25,
+              "38070": -924.5,
+              "70740": -923.8,
+              "70370": 873.6500000000001,
+              "36960": 843.5,
+              "59500": -831.1500000000001,
+              "41790": -814.9000000000001,
+              "64640": 768.8,
+              "39080": -740.9000000000058,
+              "30410": -723.6500000000001,
+              "46570": -723.25,
+              "89180": 691.6000000000003,
+              "25860": 681.9000000000001,
+              "93270": 675.15,
+              "33580": 670.1000000000113,
+              "47840": 666.05,
+              "39610": -648.3499999999999,
+              "41650": 633.5,
+              "76150": -609.45,
+              "45760": 594.95,
+              "31850": -527.3,
+              "66960": -519.15,
+              "46780": -515.6,
+              "27760": -508.35,
+              "78390": 502.9499999999773,
+              "41660": 462.25,
+              "38030": -430.85,
+              "35590": -419.70000000000005,
+              "37790": -409.0,
+              "65780": 384.20000000000005,
+              "39050": 338.45000000000005,
+              "63300": -334.0,
+              "48330": -313.90000000000003,
+              "36640": -302.29999999999995,
+              "67310": 295.3000000000007,
+              "27430": 294.20000000000147,
+              "93480": 272.85,
+              "73590": -227.70000000000002,
+              "97600": -210.39999999999998,
+              "37530": -209.10000000000002,
+              "48830": -207.2,
+              "81070": -206.1,
+              "31130": -204.25,
+              "81050": -202.39999999999998,
+              "32370": 194.75,
+              "65480": 190.60000000000002,
+              "297A0": 186.45,
+              "31920": 183.7,
+              "94390": 177.65,
+              "15140": 147.75,
+              "34750": -140.05,
+              "31370": -121.80000000000001,
+              "66590": -104.55000000000001,
+              "51320": -104.5,
+              "69930": 98.75,
+              "65730": 94.35,
+              "67210": 93.84999999999857,
+              "36390": 88.05000000000001,
+              "50280": 82.35,
+              "29360": -42.40000000000569,
+              "65790": -38.950000000000045,
+              "57590": -22.399999999999693,
+              "36240": -18.5
+            },
+            "sessionDate": {
+              "2024-11-08": -47244.15,
+              "2025-01-07": 33095.7,
+              "2024-11-22": 25915.749999999996,
+              "2024-12-20": -20888.75,
+              "2024-12-05": -15685.0,
+              "2024-11-07": -14963.800000000001,
+              "2024-12-24": -13285.9,
+              "2024-12-11": 10441.2,
+              "2025-01-08": 10044.950000000012,
+              "2024-11-15": -9213.900000000023,
+              "2024-12-30": 7851.899999999997,
+              "2024-10-30": -7615.075,
+              "2024-11-14": -7207.550000000001,
+              "2024-11-20": 6651.349999999998,
+              "2025-01-06": 5325.0,
+              "2024-10-29": -5160.9,
+              "2024-12-03": 4849.100000000046,
+              "2024-11-25": 4681.85,
+              "2024-09-24": 3923.3999999999996,
+              "2024-12-18": -3916.15,
+              "2025-01-09": 3563.7000000000003,
+              "2024-10-31": -3458.1500000000055,
+              "2024-12-16": 3000.8499999999776,
+              "2024-11-26": 2794.2,
+              "2024-09-27": 2564.5,
+              "2024-10-11": -2427.05,
+              "2024-12-02": 2151.100000000001,
+              "2024-10-10": 2058.2500000000027,
+              "2024-10-22": 1834.8999999999974,
+              "2024-11-06": -1690.35,
+              "2024-10-09": -1657.1,
+              "2024-12-17": 1602.85,
+              "2024-10-23": -1229.5500000000002,
+              "2024-10-28": 1049.8499999999885,
+              "2024-09-30": -1013.9000000000001,
+              "2024-12-19": 931.25,
+              "2024-09-18": 873.6500000000001,
+              "2024-11-11": 867.1999999999999,
+              "2024-11-28": -777.1999999999998,
+              "2024-09-19": 769.7500000000113,
+              "2024-11-01": -723.6500000000001,
+              "2024-12-09": 691.0999999999985,
+              "2024-11-13": 670.6500000000001,
+              "2024-11-27": 648.5500000000001,
+              "2024-10-07": 522.1500000000001,
+              "2024-11-19": -515.6,
+              "2024-12-25": -511.75,
+              "2024-12-13": -494.19999999999845,
+              "2024-10-16": -430.85,
+              "2024-10-01": -413.5,
+              "2024-10-25": -412.25,
+              "2024-12-10": 411.8499999999999,
+              "2024-11-29": 364.3499999999999,
+              "2024-12-26": -320.0,
+              "2024-10-17": -319.89999999999714,
+              "2024-12-12": -311.2499999999993,
+              "2024-12-06": -307.25,
+              "2024-10-18": -302.29999999999995,
+              "2024-09-20": 200.1500000000001,
+              "2024-11-18": 173.80000000000007,
+              "2024-10-02": 147.64999999999964,
+              "2024-10-24": -109.55000000000001,
+              "2024-11-12": -104.4,
+              "2024-12-27": -100.25,
+              "2024-09-25": 99.65,
+              "2024-11-21": 93.94999999999999,
+              "2024-12-23": 92.94999999999857,
+              "2024-10-21": 88.05000000000001,
+              "2024-10-08": 79.44999999999433
+            },
+            "exitReason": {
+              "BAR5_NO_RECLAIM": -64487.725,
+              "FIXED12_CAP": 49355.249999999985,
+              "TWO_LOWER_COMPLETED_CLOSES": -9116.650000000029,
+              "CALENDAR_SESSION_CAP": 2564.5
+            }
+          }
+        },
+        "ledgerAudit": {
+          "maxCashBalanceErrorJpy": 1.0040821507573128e-09,
+          "nonnegativeCash": true,
+          "hundredShareLots": true,
+          "noShortMarginLeverage": true,
+          "futureOutcomeInAllocator": false,
+          "costChargedOnce": true
+        },
+        "exitReasonPerformance": {
+          "BAR5_NO_RECLAIM": {
+            "pnlJpy": {
+              "n": 20,
+              "sum": -64487.725000000006,
+              "mean": -3224.38625,
+              "median": -1550.175,
+              "p05": -10191.8825,
+              "min": -20587.4
+            },
+            "netPct": {
+              "n": 20,
+              "sum": -71.93392557498248,
+              "mean": -3.5966962787491243,
+              "median": -3.251002635336059,
+              "p05": -7.5623909681949595,
+              "min": -11.777688787185356
+            },
+            "winRate": 0.0,
+            "profitFactor": 0.0
+          },
+          "FIXED12_CAP": {
+            "pnlJpy": {
+              "n": 50,
+              "sum": 49355.25000000001,
+              "mean": 987.1050000000002,
+              "median": -0.35000000000000003,
+              "p05": -216.61499999999998,
+              "min": -304.95000000000005
+            },
+            "netPct": {
+              "n": 50,
+              "sum": 120.943872294198,
+              "mean": 2.41887744588396,
+              "median": -0.05,
+              "p05": -6.0053775743707085,
+              "min": -20.05
+            },
+            "winRate": 0.48,
+            "profitFactor": 35.20085233178575
+          },
+          "TWO_LOWER_COMPLETED_CLOSES": {
+            "pnlJpy": {
+              "n": 102,
+              "sum": -9116.650000000021,
+              "mean": -89.37892156862766,
+              "median": 85.2,
+              "p05": -5840.335,
+              "min": -49309.0
+            },
+            "netPct": {
+              "n": 102,
+              "sum": 11.5194311926041,
+              "mean": 0.11293559992749118,
+              "median": 0.19646486242508948,
+              "p05": -4.956479126140955,
+              "min": -23.579411764705885
+            },
+            "winRate": 0.5196078431372549,
+            "profitFactor": 0.9379318326879705
+          },
+          "CALENDAR_SESSION_CAP": {
+            "pnlJpy": {
+              "n": 1,
+              "sum": 2564.5,
+              "mean": 2564.5,
+              "median": 2564.5,
+              "p05": 2564.5,
+              "min": 2564.5
+            },
+            "netPct": {
+              "n": 1,
+              "sum": 3.6119718309859152,
+              "mean": 3.6119718309859152,
+              "median": 3.6119718309859152,
+              "p05": 3.6119718309859152,
+              "min": 3.6119718309859152
+            },
+            "winRate": 1.0,
+            "profitFactor": "INF"
+          }
+        },
+        "unresolvedPositions": [],
+        "sessions": [
+          {
+            "sessionDate": "2024-09-17",
+            "equityJpy": 1000000.0,
+            "returnPct": 0.0
+          },
+          {
+            "sessionDate": "2024-09-18",
+            "equityJpy": 1000873.6499999999,
+            "returnPct": 0.08736499999999481
+          },
+          {
+            "sessionDate": "2024-09-19",
+            "equityJpy": 1001643.3999999999,
+            "returnPct": 0.07690780949223264
+          },
+          {
+            "sessionDate": "2024-09-20",
+            "equityJpy": 1001843.5499999998,
+            "returnPct": 0.019982161316089986
+          },
+          {
+            "sessionDate": "2024-09-24",
+            "equityJpy": 1005766.95,
+            "returnPct": 0.39161803257605765
+          },
+          {
+            "sessionDate": "2024-09-25",
+            "equityJpy": 1005866.5999999999,
+            "returnPct": 0.009907861856062183
+          },
+          {
+            "sessionDate": "2024-09-26",
+            "equityJpy": 1005866.5999999999,
+            "returnPct": 0.0
+          },
+          {
+            "sessionDate": "2024-09-27",
+            "equityJpy": 1008431.0999999999,
+            "returnPct": 0.2549542851905118
+          },
+          {
+            "sessionDate": "2024-09-30",
+            "equityJpy": 1007417.2,
+            "returnPct": -0.10054231766551958
+          },
+          {
+            "sessionDate": "2024-10-01",
+            "equityJpy": 1007003.7,
+            "returnPct": -0.04104555689539158
+          },
+          {
+            "sessionDate": "2024-10-02",
+            "equityJpy": 1007151.3499999999,
+            "returnPct": 0.014662309582358368
+          },
+          {
+            "sessionDate": "2024-10-03",
+            "equityJpy": 1007151.3499999999,
+            "returnPct": 0.0
+          },
+          {
+            "sessionDate": "2024-10-04",
+            "equityJpy": 1007151.3499999999,
+            "returnPct": 0.0
+          },
+          {
+            "sessionDate": "2024-10-07",
+            "equityJpy": 1007673.4999999998,
+            "returnPct": 0.05184424366804219
+          },
+          {
+            "sessionDate": "2024-10-08",
+            "equityJpy": 1007752.9499999997,
+            "returnPct": 0.007884498302268561
+          },
+          {
+            "sessionDate": "2024-10-09",
+            "equityJpy": 1006095.8499999996,
+            "returnPct": -0.16443514256149205
+          },
+          {
+            "sessionDate": "2024-10-10",
+            "equityJpy": 1008154.0999999999,
+            "returnPct": 0.20457792366406213
+          },
+          {
+            "sessionDate": "2024-10-11",
+            "equityJpy": 1005727.0499999998,
+            "returnPct": -0.24074196593556474
+          },
+          {
+            "sessionDate": "2024-10-15",
+            "equityJpy": 1005727.0499999998,
+            "returnPct": 0.0
+          },
+          {
+            "sessionDate": "2024-10-16",
+            "equityJpy": 1005296.1999999997,
+            "returnPct": -0.042839655152970835
+          },
+          {
+            "sessionDate": "2024-10-17",
+            "equityJpy": 1004976.2999999998,
+            "returnPct": -0.031821467145698445
+          },
+          {
+            "sessionDate": "2024-10-18",
+            "equityJpy": 1004673.9999999998,
+            "returnPct": -0.03008031134664746
+          },
+          {
+            "sessionDate": "2024-10-21",
+            "equityJpy": 1004762.0499999998,
+            "returnPct": 0.008764036891584226
+          },
+          {
+            "sessionDate": "2024-10-22",
+            "equityJpy": 1006596.9499999997,
+            "returnPct": 0.18262035274918542
+          },
+          {
+            "sessionDate": "2024-10-23",
+            "equityJpy": 1005367.3999999997,
+            "returnPct": -0.12214918791478846
+          },
+          {
+            "sessionDate": "2024-10-24",
+            "equityJpy": 1005257.8499999996,
+            "returnPct": -0.01089651405048464
+          },
+          {
+            "sessionDate": "2024-10-25",
+            "equityJpy": 1004845.5999999996,
+            "returnPct": -0.04100937883747546
+          },
+          {
+            "sessionDate": "2024-10-28",
+            "equityJpy": 1005895.4499999995,
+            "returnPct": 0.10447873782797323
+          },
+          {
+            "sessionDate": "2024-10-29",
+            "equityJpy": 1000734.5499999993,
+            "returnPct": -0.5130652494749977
+          },
+          {
+            "sessionDate": "2024-10-30",
+            "equityJpy": 993119.4749999994,
+            "returnPct": -0.7609485452460873
+          },
+          {
+            "sessionDate": "2024-10-31",
+            "equityJpy": 989661.3249999993,
+            "returnPct": -0.34821087362123526
+          },
+          {
+            "sessionDate": "2024-11-01",
+            "equityJpy": 988937.6749999993,
+            "returnPct": -0.0731209739857075
+          },
+          {
+            "sessionDate": "2024-11-05",
+            "equityJpy": 988937.6749999993,
+            "returnPct": 0.0
+          },
+          {
+            "sessionDate": "2024-11-06",
+            "equityJpy": 987247.3249999993,
+            "returnPct": -0.17092583716158405
+          },
+          {
+            "sessionDate": "2024-11-07",
+            "equityJpy": 972283.5249999992,
+            "returnPct": -1.5157093487186746
+          },
+          {
+            "sessionDate": "2024-11-08",
+            "equityJpy": 925039.3749999991,
+            "returnPct": -4.859091899145385
+          },
+          {
+            "sessionDate": "2024-11-11",
+            "equityJpy": 925906.574999999,
+            "returnPct": 0.09374736075422607
+          },
+          {
+            "sessionDate": "2024-11-12",
+            "equityJpy": 925802.1749999991,
+            "returnPct": -0.011275435645319298
+          },
+          {
+            "sessionDate": "2024-11-13",
+            "equityJpy": 926472.824999999,
+            "returnPct": 0.0724398816626115
+          },
+          {
+            "sessionDate": "2024-11-14",
+            "equityJpy": 919265.2749999992,
+            "returnPct": -0.7779558995699487
+          },
+          {
+            "sessionDate": "2024-11-15",
+            "equityJpy": 910051.3749999991,
+            "returnPct": -1.002311329556116
+          },
+          {
+            "sessionDate": "2024-11-18",
+            "equityJpy": 910225.1749999991,
+            "returnPct": 0.019097822911384732
+          },
+          {
+            "sessionDate": "2024-11-19",
+            "equityJpy": 909709.574999999,
+            "returnPct": -0.05664532405402767
+          },
+          {
+            "sessionDate": "2024-11-20",
+            "equityJpy": 916360.9249999991,
+            "returnPct": 0.7311509280310879
+          },
+          {
+            "sessionDate": "2024-11-21",
+            "equityJpy": 916454.8749999993,
+            "returnPct": 0.010252510494179745
+          },
+          {
+            "sessionDate": "2024-11-22",
+            "equityJpy": 942370.6249999994,
+            "returnPct": 2.8278260836356095
+          },
+          {
+            "sessionDate": "2024-11-25",
+            "equityJpy": 947052.4749999995,
+            "returnPct": 0.4968162075298155
+          },
+          {
+            "sessionDate": "2024-11-26",
+            "equityJpy": 949846.6749999997,
+            "returnPct": 0.29504172934031736
+          },
+          {
+            "sessionDate": "2024-11-27",
+            "equityJpy": 950495.225,
+            "returnPct": 0.06827944099507821
+          },
+          {
+            "sessionDate": "2024-11-28",
+            "equityJpy": 949718.0249999999,
+            "returnPct": -0.08176790156941838
+          },
+          {
+            "sessionDate": "2024-11-29",
+            "equityJpy": 950082.375,
+            "returnPct": 0.03836401862542527
+          },
+          {
+            "sessionDate": "2024-12-02",
+            "equityJpy": 952233.4750000001,
+            "returnPct": 0.22641194664831943
+          },
+          {
+            "sessionDate": "2024-12-03",
+            "equityJpy": 957082.5750000002,
+            "returnPct": 0.5092343555765044
+          },
+          {
+            "sessionDate": "2024-12-04",
+            "equityJpy": 957082.5750000002,
+            "returnPct": 0.0
+          },
+          {
+            "sessionDate": "2024-12-05",
+            "equityJpy": 941397.5750000002,
+            "returnPct": -1.6388345592855402
+          },
+          {
+            "sessionDate": "2024-12-06",
+            "equityJpy": 941090.3250000002,
+            "returnPct": -0.03263764515221146
+          },
+          {
+            "sessionDate": "2024-12-09",
+            "equityJpy": 941781.4250000003,
+            "returnPct": 0.07343609658299055
+          },
+          {
+            "sessionDate": "2024-12-10",
+            "equityJpy": 942193.2750000001,
+            "returnPct": 0.04373095381444703
+          },
+          {
+            "sessionDate": "2024-12-11",
+            "equityJpy": 952634.4750000001,
+            "returnPct": 1.1081802722482825
+          },
+          {
+            "sessionDate": "2024-12-12",
+            "equityJpy": 952323.2250000001,
+            "returnPct": -0.032672552607337924
+          },
+          {
+            "sessionDate": "2024-12-13",
+            "equityJpy": 951829.0249999999,
+            "returnPct": -0.05189414549877647
+          },
+          {
+            "sessionDate": "2024-12-16",
+            "equityJpy": 954829.8749999998,
+            "returnPct": 0.31527195758711546
+          },
+          {
+            "sessionDate": "2024-12-17",
+            "equityJpy": 956432.7249999999,
+            "returnPct": 0.1678676004979618
+          },
+          {
+            "sessionDate": "2024-12-18",
+            "equityJpy": 952516.575,
+            "returnPct": -0.4094537856805247
+          },
+          {
+            "sessionDate": "2024-12-19",
+            "equityJpy": 953447.825,
+            "returnPct": 0.09776732756592299
+          },
+          {
+            "sessionDate": "2024-12-20",
+            "equityJpy": 932559.075,
+            "returnPct": -2.19086450797662
+          },
+          {
+            "sessionDate": "2024-12-23",
+            "equityJpy": 932652.0250000001,
+            "returnPct": 0.009967196984295157
+          },
+          {
+            "sessionDate": "2024-12-24",
+            "equityJpy": 919366.1250000002,
+            "returnPct": -1.4245291538395488
+          },
+          {
+            "sessionDate": "2024-12-25",
+            "equityJpy": 918854.3750000002,
+            "returnPct": -0.05566335174683745
+          },
+          {
+            "sessionDate": "2024-12-26",
+            "equityJpy": 918534.3750000005,
+            "returnPct": -0.034825975552410515
+          },
+          {
+            "sessionDate": "2024-12-27",
+            "equityJpy": 918434.1250000005,
+            "returnPct": -0.010914126104422106
+          },
+          {
+            "sessionDate": "2024-12-30",
+            "equityJpy": 926286.0250000004,
+            "returnPct": 0.8549225019268469
+          },
+          {
+            "sessionDate": "2025-01-06",
+            "equityJpy": 931611.0250000004,
+            "returnPct": 0.5748764265335771
+          },
+          {
+            "sessionDate": "2025-01-07",
+            "equityJpy": 964706.7250000004,
+            "returnPct": 3.552523436484667
+          },
+          {
+            "sessionDate": "2025-01-08",
+            "equityJpy": 974751.6750000006,
+            "returnPct": 1.0412439075720314
+          },
+          {
+            "sessionDate": "2025-01-09",
+            "equityJpy": 978315.3750000008,
+            "returnPct": 0.36560080802119366
+          }
+        ],
+        "rejectedOpportunityEvaluatorOnly": {
+          "knownOutcomeCount": 0,
+          "unknownOutcomeCount": 0,
+          "positiveNetCount": 0,
+          "netAtLeast3PctCount": 0,
+          "netAtLeast5PctCount": 0,
+          "netPct": {
+            "n": 0,
+            "sum": 0,
+            "mean": null,
+            "median": null,
+            "p05": null,
+            "min": null
+          },
+          "usedForDecision": false
+        }
+      },
+      "EQUAL_MAX3": {
+        "arm": "EQUAL_MAX3",
+        "exitMode": "LONG",
+        "scope": "REFERENCE_PRICE_DEVELOPMENT",
+        "status": "COMPLETE_REFERENCE_REPLAY",
+        "initialEquityJpy": 1000000,
+        "finalEquityJpy": 1230530.7000000004,
+        "totalReturnPct": 23.05307000000003,
+        "cashBalanceJpy": 1230530.7000000004,
+        "realizedLedgerPnlJpy": 230530.7000000003,
+        "closedTradeNetPnlJpy": 230530.70000000016,
+        "lockedPurchaseNotionalJpy": 0,
+        "maxDrawdownPct": 20.16916025579663,
+        "maxDrawdownJpy": 258413.10000000033,
+        "knownMarkDrawdownNotFullPortfolio": {
+          "pct": 20.16916025579663,
+          "jpy": 258413.10000000033
+        },
+        "firstUnknownValuation": null,
+        "sessionReturn": {
+          "n": 76,
+          "sum": 23.70546014453314,
+          "mean": 0.3119139492701729,
+          "median": 0.0,
+          "p05": -2.8610622037538223,
+          "min": -8.002490160841546
+        },
+        "worstSession": {
+          "sessionDate": "2024-12-25",
+          "equityJpy": 1027054.4500000002,
+          "returnPct": -8.002490160841546
+        },
+        "maxConsecutiveLosingSessions": 4,
+        "trade": {
+          "candidates": 173,
+          "accepted": 166,
+          "closed": 166,
+          "unresolved": 0,
+          "rejected": 7,
+          "rejectionReasons": {
+            "TARGET_BELOW_LOT": 6,
+            "INSUFFICIENT_CASH": 1
+          },
+          "closedPnlJpy": {
+            "n": 166,
+            "sum": 230530.70000000016,
+            "mean": 1388.7391566265069,
+            "median": -185.575,
+            "p05": -20168.512499999997,
+            "min": -87385.29999999999
+          },
+          "closedNetPct": {
+            "n": 166,
+            "sum": 72.34984487069715,
+            "mean": 0.43584243898010333,
+            "median": -0.05,
+            "p05": -6.483360422592442,
+            "min": -23.579411764705878
+          },
+          "winRate": 0.45180722891566266,
+          "profitFactor": 1.2750471828032144,
+          "largestLossJpy": -87385.29999999999,
+          "largestLossShareOfTotalLoss": 0.10425978224771673,
+          "tailMinus10Count": 4
+        },
+        "capital": {
+          "averageUtilization": 0.08257871037887062,
+          "peakUtilization": 0.9734779043005447,
+          "idleCashRatio": 0.9174212896211293,
+          "maxConcurrent": 3,
+          "averageConcurrent": 0.2595356550580431,
+          "averageLockedPurchaseNotionalJpy": 92011.35986733001,
+          "grossTurnoverJpy": 116136700.0,
+          "grossTurnoverTimesInitial": 116.1367,
+          "cashReleaseCount": 166,
+          "sameTimestampRecyclingEntries": 5,
+          "feesJpy": 28969.30000000001,
+          "tradingMinutes": 24120.0
+        },
+        "concentration": {
+          "positiveTradeProfitShares": {
+            "top1": 0.08434219830092318,
+            "top3": 0.18552745916961985,
+            "top5": 0.28129093980253317,
+            "hhi": 0.03381245923882694
+          },
+          "positionNotionalShares": {
+            "top1": 0.0071523992640484925,
+            "top3": 0.021443390071558512,
+            "top5": 0.03560665946363909,
+            "hhi": 0.00612208552971441
+          },
+          "symbolNotionalShares": {
+            "top1": 0.13981870462869314,
+            "top3": 0.24539081027156334,
+            "top5": 0.2844424960216505,
+            "hhi": 0.03334015983452332
+          },
+          "symbolPositiveProfitShares": {
+            "top1": 0.3782000322960307,
+            "top3": 0.5358043792331999,
+            "top5": 0.6199705377877129,
+            "hhi": 0.16561590677834728
+          },
+          "sessionPositiveProfitShares": {
+            "top1": 0.11291752735540989,
+            "top3": 0.3146259147963026,
+            "top5": 0.4678007357237798,
+            "hhi": 0.06412986211090464
+          },
+          "groupPnlJpy": {
+            "symbol": {
+              "89180": 334449.5500000001,
+              "57590": -120720.99999999988,
+              "90730": 90134.85,
+              "38250": 49237.7,
+              "39360": 41324.60000000006,
+              "95620": -41174.8,
+              "29620": 33105.149999999994,
+              "62540": 28971.449999999997,
+              "51310": -28207.0,
+              "81070": -25237.35,
+              "36640": -24486.300000000003,
+              "67310": 24308.950000000055,
+              "76150": -23748.749999999996,
+              "31030": 20830.6,
+              "38070": -20777.45,
+              "70690": -20237.85,
+              "45760": 20228.300000000003,
+              "86140": -19960.5,
+              "65520": -18556.2,
+              "190A0": -17779.300000000003,
+              "87830": -17182.5,
+              "33500": -15909.7,
+              "69930": 15898.75,
+              "55800": -15781.650000000001,
+              "81050": -14977.599999999999,
+              "70740": -14360.8,
+              "143A0": 13666.8,
+              "90820": 12822.5,
+              "45060": -12771.3,
+              "92360": -12767.099999999999,
+              "93270": 12332.149999999998,
+              "27760": -12200.400000000001,
+              "31850": -11837.95,
+              "30770": 11741.79999999996,
+              "168A0": -11741.7,
+              "52470": -11731.399999999954,
+              "49350": 11526.800000000003,
+              "21750": -10973.05,
+              "48330": -10753.85,
+              "40690": 10454.3,
+              "27430": 10297.00000000005,
+              "47360": 9807.000000000045,
+              "41790": -9778.8,
+              "25860": 9745.800000000003,
+              "21560": 9324.5,
+              "31130": -8987.0,
+              "50250": -8543.400000000001,
+              "37790": -8180.0,
+              "62280": 7667.299999999999,
+              "42550": -7377.299999999999,
+              "73600": 6730.200000000001,
+              "32370": 6621.5,
+              "303A0": 6578.549999999999,
+              "276A0": 6122.4,
+              "76890": -5922.6,
+              "39080": -5846.450000000052,
+              "46570": -5786.0,
+              "46780": -5671.6,
+              "39810": 5606.799999999954,
+              "70370": 5241.9,
+              "48830": -5180.0,
+              "30410": -5065.549999999999,
+              "59500": -4986.9,
+              "130A0": -4971.299999999999,
+              "56160": 4626.450000000001,
+              "37530": -4391.1,
+              "48850": 4339.049999999999,
+              "40680": 4257.1,
+              "66960": -4153.2,
+              "68360": 4062.0499999999997,
+              "66590": -3972.8999999999996,
+              "64640": 3844.0,
+              "65780": 3842.0,
+              "35590": -3777.3,
+              "65480": 3621.3999999999996,
+              "97600": -3366.3999999999996,
+              "33580": 3350.500000000057,
+              "47840": 3330.25,
+              "73590": -3300.85,
+              "46670": 3210.2,
+              "46640": 3150.5999999999663,
+              "91650": 3099.75,
+              "94390": 2931.5000000000027,
+              "65730": 2924.8500000000004,
+              "67210": 2909.3499999999563,
+              "52530": 2785.1000000000004,
+              "39610": -2593.3999999999996,
+              "38030": -2585.1000000000004,
+              "297A0": 2423.8500000000004,
+              "31920": 2020.6999999999998,
+              "93480": 1909.9499999999998,
+              "41660": 1849.0,
+              "63300": -1670.0,
+              "36390": 1320.75,
+              "176A0": -1299.6,
+              "41650": 1267.0,
+              "31370": -1096.2,
+              "36960": 843.5,
+              "34750": -700.25,
+              "39050": 676.9000000000001,
+              "78390": 502.9499999999773,
+              "29360": -457.7500000000455,
+              "15140": 443.25,
+              "51320": -104.5,
+              "36240": -79.0,
+              "65790": -68.55000000000018
+            },
+            "sessionDate": {
+              "2024-12-30": 93402.20000000001,
+              "2024-12-25": -89339.29999999999,
+              "2024-11-25": 89248.1,
+              "2024-12-20": -86980.0,
+              "2024-12-26": 77599.40000000001,
+              "2024-12-09": 75519.39999999994,
+              "2024-12-27": -73784.0,
+              "2024-09-19": 51182.50000000006,
+              "2024-09-25": 50223.600000000006,
+              "2025-01-07": 42552.15,
+              "2024-10-10": 41156.90000000005,
+              "2024-11-20": 38859.75000000001,
+              "2024-10-29": 36335.299999999996,
+              "2024-12-24": -36001.45,
+              "2024-10-08": 32551.449999999953,
+              "2024-10-11": -32372.800000000003,
+              "2025-01-09": 31500.049999999996,
+              "2024-11-15": -25183.85000000002,
+              "2024-11-14": -25036.799999999996,
+              "2024-10-31": -24716.450000000048,
+              "2024-10-18": -24486.300000000003,
+              "2024-10-30": -23744.35,
+              "2024-12-16": 21402.80000000001,
+              "2025-01-06": 18967.25,
+              "2024-11-22": -17021.25,
+              "2024-12-05": -15685.0,
+              "2024-11-07": -14847.85,
+              "2024-11-11": 14766.400000000001,
+              "2025-01-08": 13239.200000000043,
+              "2024-09-30": -13180.7,
+              "2024-09-27": 12822.5,
+              "2024-12-02": 11007.250000000047,
+              "2024-12-10": -10796.400000000001,
+              "2024-10-22": 9674.349999999955,
+              "2024-12-06": -7988.5,
+              "2024-10-02": -7853.700000000001,
+              "2024-11-26": 7397.75,
+              "2024-10-23": -7377.299999999999,
+              "2024-12-11": 7298.200000000001,
+              "2024-10-25": -7182.75,
+              "2024-11-28": 7094.299999999997,
+              "2024-12-19": -7088.7999999999465,
+              "2024-12-13": 7003.3500000000495,
+              "2024-10-17": -6665.299999999952,
+              "2024-12-18": -6468.05,
+              "2024-11-27": 6044.4,
+              "2024-11-19": -5671.6,
+              "2024-10-01": -5375.5,
+              "2024-09-18": 5241.9,
+              "2024-11-01": -5065.549999999999,
+              "2024-10-09": -4971.299999999999,
+              "2024-11-08": 4296.449999999961,
+              "2024-11-12": -4280.4,
+              "2024-09-24": 3507.45,
+              "2024-12-17": 3003.2,
+              "2024-10-28": 2967.549999999966,
+              "2024-11-21": 2748.05,
+              "2024-12-23": 2718.549999999956,
+              "2024-10-07": 2697.6,
+              "2024-10-16": -2585.1000000000004,
+              "2024-10-24": -2081.45,
+              "2024-11-13": -1488.599999999995,
+              "2024-10-21": 1320.75,
+              "2024-11-29": 1028.5499999999993,
+              "2024-09-20": -741.5499999999993,
+              "2024-11-18": 475.60000000000036,
+              "2024-12-12": -399.29999999994106,
+              "2024-12-03": 317.6500000000451,
+              "2024-11-06": -179.9
+            },
+            "exitReason": {
+              "FIXED12_CAP": 404886.7500000003,
+              "BAR5_NO_RECLAIM": -246243.75,
+              "TWO_LOWER_COMPLETED_CLOSES": 59065.19999999994,
+              "CALENDAR_SESSION_CAP": 12822.5
+            }
+          }
+        },
+        "ledgerAudit": {
+          "maxCashBalanceErrorJpy": 4.0745362639427185e-10,
+          "nonnegativeCash": true,
+          "hundredShareLots": true,
+          "noShortMarginLeverage": true,
+          "futureOutcomeInAllocator": false,
+          "costChargedOnce": true
+        },
+        "exitReasonPerformance": {
+          "FIXED12_CAP": {
+            "pnlJpy": {
+              "n": 48,
+              "sum": 404886.75000000023,
+              "mean": 8435.140625000005,
+              "median": -176.0,
+              "p05": -23053.260000000002,
+              "min": -73784.0
+            },
+            "netPct": {
+              "n": 48,
+              "sum": 113.72216060446081,
+              "mean": 2.3692116792596,
+              "median": -0.05,
+              "p05": -6.131235697940504,
+              "min": -20.05
+            },
+            "winRate": 0.4583333333333333,
+            "profitFactor": 3.1481619721504437
+          },
+          "BAR5_NO_RECLAIM": {
+            "pnlJpy": {
+              "n": 19,
+              "sum": -246243.75,
+              "mean": -12960.197368421053,
+              "median": -10973.05,
+              "p05": -29503.78,
+              "min": -41174.8
+            },
+            "netPct": {
+              "n": 19,
+              "sum": -71.48918873287722,
+              "mean": -3.7625888806777485,
+              "median": -3.3315198618307424,
+              "p05": -7.784248748141821,
+              "min": -11.777688787185356
+            },
+            "winRate": 0.0,
+            "profitFactor": 0.0
+          },
+          "TWO_LOWER_COMPLETED_CLOSES": {
+            "pnlJpy": {
+              "n": 98,
+              "sum": 59065.19999999992,
+              "mean": 602.7061224489787,
+              "median": 726.3499999999773,
+              "p05": -15699.497500000001,
+              "min": -87385.29999999999
+            },
+            "netPct": {
+              "n": 98,
+              "sum": 26.504901168127642,
+              "mean": 0.27045817518497595,
+              "median": 0.2643039143552638,
+              "p05": -4.431583452498439,
+              "min": -23.579411764705878
+            },
+            "winRate": 0.5306122448979592,
+            "profitFactor": 1.1464092427508583
+          },
+          "CALENDAR_SESSION_CAP": {
+            "pnlJpy": {
+              "n": 1,
+              "sum": 12822.5,
+              "mean": 12822.5,
+              "median": 12822.5,
+              "p05": 12822.5,
+              "min": 12822.5
+            },
+            "netPct": {
+              "n": 1,
+              "sum": 3.6119718309859152,
+              "mean": 3.6119718309859152,
+              "median": 3.6119718309859152,
+              "p05": 3.6119718309859152,
+              "min": 3.6119718309859152
+            },
+            "winRate": 1.0,
+            "profitFactor": "INF"
+          }
+        },
+        "unresolvedPositions": [],
+        "sessions": [
+          {
+            "sessionDate": "2024-09-17",
+            "equityJpy": 1000000.0,
+            "returnPct": 0.0
+          },
+          {
+            "sessionDate": "2024-09-18",
+            "equityJpy": 1005241.8999999999,
+            "returnPct": 0.524189999999991
+          },
+          {
+            "sessionDate": "2024-09-19",
+            "equityJpy": 1056424.4,
+            "returnPct": 5.091560548759455
+          },
+          {
+            "sessionDate": "2024-09-20",
+            "equityJpy": 1055682.8499999999,
+            "returnPct": -0.07019432720410945
+          },
+          {
+            "sessionDate": "2024-09-24",
+            "equityJpy": 1059190.2999999998,
+            "returnPct": 0.3322446698835746
+          },
+          {
+            "sessionDate": "2024-09-25",
+            "equityJpy": 1109413.9,
+            "returnPct": 4.741697502327957
+          },
+          {
+            "sessionDate": "2024-09-26",
+            "equityJpy": 1109413.9,
+            "returnPct": 0.0
+          },
+          {
+            "sessionDate": "2024-09-27",
+            "equityJpy": 1122236.4,
+            "returnPct": 1.1557904583672451
+          },
+          {
+            "sessionDate": "2024-09-30",
+            "equityJpy": 1109055.7,
+            "returnPct": -1.1745029835068532
+          },
+          {
+            "sessionDate": "2024-10-01",
+            "equityJpy": 1103680.2,
+            "returnPct": -0.48469161648058146
+          },
+          {
+            "sessionDate": "2024-10-02",
+            "equityJpy": 1095826.5,
+            "returnPct": -0.7115919992041086
+          },
+          {
+            "sessionDate": "2024-10-03",
+            "equityJpy": 1095826.5,
+            "returnPct": 0.0
+          },
+          {
+            "sessionDate": "2024-10-04",
+            "equityJpy": 1095826.5,
+            "returnPct": 0.0
+          },
+          {
+            "sessionDate": "2024-10-07",
+            "equityJpy": 1098524.1,
+            "returnPct": 0.24617035634748596
+          },
+          {
+            "sessionDate": "2024-10-08",
+            "equityJpy": 1131075.55,
+            "returnPct": 2.963198531557021
+          },
+          {
+            "sessionDate": "2024-10-09",
+            "equityJpy": 1126104.25,
+            "returnPct": -0.43951971201217077
+          },
+          {
+            "sessionDate": "2024-10-10",
+            "equityJpy": 1167261.1500000001,
+            "returnPct": 3.654803718217048
+          },
+          {
+            "sessionDate": "2024-10-11",
+            "equityJpy": 1134888.35,
+            "returnPct": -2.773398223696555
+          },
+          {
+            "sessionDate": "2024-10-15",
+            "equityJpy": 1134888.35,
+            "returnPct": 0.0
+          },
+          {
+            "sessionDate": "2024-10-16",
+            "equityJpy": 1132303.25,
+            "returnPct": -0.22778452171088315
+          },
+          {
+            "sessionDate": "2024-10-17",
+            "equityJpy": 1125637.95,
+            "returnPct": -0.5886497278887126
+          },
+          {
+            "sessionDate": "2024-10-18",
+            "equityJpy": 1101151.65,
+            "returnPct": -2.175326444883996
+          },
+          {
+            "sessionDate": "2024-10-21",
+            "equityJpy": 1102472.4,
+            "returnPct": 0.11994260736021278
+          },
+          {
+            "sessionDate": "2024-10-22",
+            "equityJpy": 1112146.75,
+            "returnPct": 0.877514031190274
+          },
+          {
+            "sessionDate": "2024-10-23",
+            "equityJpy": 1104769.45,
+            "returnPct": -0.6633387185638995
+          },
+          {
+            "sessionDate": "2024-10-24",
+            "equityJpy": 1102688.0,
+            "returnPct": -0.188405825305904
+          },
+          {
+            "sessionDate": "2024-10-25",
+            "equityJpy": 1095505.25,
+            "returnPct": -0.6513855233756027
+          },
+          {
+            "sessionDate": "2024-10-28",
+            "equityJpy": 1098472.8,
+            "returnPct": 0.2708841422713437
+          },
+          {
+            "sessionDate": "2024-10-29",
+            "equityJpy": 1134808.1,
+            "returnPct": 3.307801522258913
+          },
+          {
+            "sessionDate": "2024-10-30",
+            "equityJpy": 1111063.75,
+            "returnPct": -2.092366982576177
+          },
+          {
+            "sessionDate": "2024-10-31",
+            "equityJpy": 1086347.3,
+            "returnPct": -2.2245753225231146
+          },
+          {
+            "sessionDate": "2024-11-01",
+            "equityJpy": 1081281.75,
+            "returnPct": -0.4662919491768447
+          },
+          {
+            "sessionDate": "2024-11-05",
+            "equityJpy": 1081281.75,
+            "returnPct": 0.0
+          },
+          {
+            "sessionDate": "2024-11-06",
+            "equityJpy": 1081101.85,
+            "returnPct": -0.016637661738017062
+          },
+          {
+            "sessionDate": "2024-11-07",
+            "equityJpy": 1066254.0000000002,
+            "returnPct": -1.3733997402742282
+          },
+          {
+            "sessionDate": "2024-11-08",
+            "equityJpy": 1070550.4500000002,
+            "returnPct": 0.4029480780376904
+          },
+          {
+            "sessionDate": "2024-11-11",
+            "equityJpy": 1085316.85,
+            "returnPct": 1.3793278028139566
+          },
+          {
+            "sessionDate": "2024-11-12",
+            "equityJpy": 1081036.4500000002,
+            "returnPct": -0.39439173914971315
+          },
+          {
+            "sessionDate": "2024-11-13",
+            "equityJpy": 1079547.85,
+            "returnPct": -0.1377011848212928
+          },
+          {
+            "sessionDate": "2024-11-14",
+            "equityJpy": 1054511.05,
+            "returnPct": -2.3191931696219026
+          },
+          {
+            "sessionDate": "2024-11-15",
+            "equityJpy": 1029327.2000000002,
+            "returnPct": -2.3882016219744506
+          },
+          {
+            "sessionDate": "2024-11-18",
+            "equityJpy": 1029802.8000000003,
+            "returnPct": 0.04620493852685037
+          },
+          {
+            "sessionDate": "2024-11-19",
+            "equityJpy": 1024131.2000000002,
+            "returnPct": -0.5507462205385449
+          },
+          {
+            "sessionDate": "2024-11-20",
+            "equityJpy": 1062990.9500000002,
+            "returnPct": 3.794411301989431
+          },
+          {
+            "sessionDate": "2024-11-21",
+            "equityJpy": 1065739.0000000002,
+            "returnPct": 0.25852054525958845
+          },
+          {
+            "sessionDate": "2024-11-22",
+            "equityJpy": 1048717.7500000002,
+            "returnPct": -1.597131192534007
+          },
+          {
+            "sessionDate": "2024-11-25",
+            "equityJpy": 1137965.8500000003,
+            "returnPct": 8.510211637020548
+          },
+          {
+            "sessionDate": "2024-11-26",
+            "equityJpy": 1145363.6000000003,
+            "returnPct": 0.6500854133715928
+          },
+          {
+            "sessionDate": "2024-11-27",
+            "equityJpy": 1151408.0000000002,
+            "returnPct": 0.5277276141829379
+          },
+          {
+            "sessionDate": "2024-11-28",
+            "equityJpy": 1158502.3,
+            "returnPct": 0.6161412809360112
+          },
+          {
+            "sessionDate": "2024-11-29",
+            "equityJpy": 1159530.85,
+            "returnPct": 0.08878273267132197
+          },
+          {
+            "sessionDate": "2024-12-02",
+            "equityJpy": 1170538.1000000003,
+            "returnPct": 0.9492847904823076
+          },
+          {
+            "sessionDate": "2024-12-03",
+            "equityJpy": 1170855.7500000002,
+            "returnPct": 0.027137091906692667
+          },
+          {
+            "sessionDate": "2024-12-04",
+            "equityJpy": 1170855.7500000002,
+            "returnPct": 0.0
+          },
+          {
+            "sessionDate": "2024-12-05",
+            "equityJpy": 1155170.7500000002,
+            "returnPct": -1.3396184799024158
+          },
+          {
+            "sessionDate": "2024-12-06",
+            "equityJpy": 1147182.2500000002,
+            "returnPct": -0.6915427870728186
+          },
+          {
+            "sessionDate": "2024-12-09",
+            "equityJpy": 1222701.6500000001,
+            "returnPct": 6.58303421274169
+          },
+          {
+            "sessionDate": "2024-12-10",
+            "equityJpy": 1211905.2500000002,
+            "returnPct": -0.8829954551872854
+          },
+          {
+            "sessionDate": "2024-12-11",
+            "equityJpy": 1219203.4500000002,
+            "returnPct": 0.602208794788206
+          },
+          {
+            "sessionDate": "2024-12-12",
+            "equityJpy": 1218804.1500000004,
+            "returnPct": -0.032750891575961116
+          },
+          {
+            "sessionDate": "2024-12-13",
+            "equityJpy": 1225807.5000000005,
+            "returnPct": 0.5746083158643778
+          },
+          {
+            "sessionDate": "2024-12-16",
+            "equityJpy": 1247210.3000000005,
+            "returnPct": 1.746016401433348
+          },
+          {
+            "sessionDate": "2024-12-17",
+            "equityJpy": 1250213.5000000005,
+            "returnPct": 0.24079339306288805
+          },
+          {
+            "sessionDate": "2024-12-18",
+            "equityJpy": 1243745.4500000004,
+            "returnPct": -0.5173556356574349
+          },
+          {
+            "sessionDate": "2024-12-19",
+            "equityJpy": 1236656.6500000004,
+            "returnPct": -0.5699558539088545
+          },
+          {
+            "sessionDate": "2024-12-20",
+            "equityJpy": 1149676.6500000004,
+            "returnPct": -7.033480149886384
+          },
+          {
+            "sessionDate": "2024-12-23",
+            "equityJpy": 1152395.2000000002,
+            "returnPct": 0.23646213915884395
+          },
+          {
+            "sessionDate": "2024-12-24",
+            "equityJpy": 1116393.7500000002,
+            "returnPct": -3.1240541439256253
+          },
+          {
+            "sessionDate": "2024-12-25",
+            "equityJpy": 1027054.4500000002,
+            "returnPct": -8.002490160841546
+          },
+          {
+            "sessionDate": "2024-12-26",
+            "equityJpy": 1104653.8500000003,
+            "returnPct": 7.555529310057518
+          },
+          {
+            "sessionDate": "2024-12-27",
+            "equityJpy": 1030869.8500000003,
+            "returnPct": -6.679377435746048
+          },
+          {
+            "sessionDate": "2024-12-30",
+            "equityJpy": 1124272.0500000003,
+            "returnPct": 9.060523013647149
+          },
+          {
+            "sessionDate": "2025-01-06",
+            "equityJpy": 1143239.3000000003,
+            "returnPct": 1.6870694241664985
+          },
+          {
+            "sessionDate": "2025-01-07",
+            "equityJpy": 1185791.4500000002,
+            "returnPct": 3.7220685118154906
+          },
+          {
+            "sessionDate": "2025-01-08",
+            "equityJpy": 1199030.6500000006,
+            "returnPct": 1.1164863770944278
+          },
+          {
+            "sessionDate": "2025-01-09",
+            "equityJpy": 1230530.7000000004,
+            "returnPct": 2.6271263374292975
+          }
+        ],
+        "rejectedOpportunityEvaluatorOnly": {
+          "knownOutcomeCount": 7,
+          "unknownOutcomeCount": 0,
+          "positiveNetCount": 3,
+          "netAtLeast3PctCount": 1,
+          "netAtLeast5PctCount": 1,
+          "netPct": {
+            "n": 7,
+            "sum": -8.208495127891606,
+            "mean": -1.1726421611273723,
+            "median": -0.4447368421052588,
+            "p05": -7.147247014091457,
+            "min": -7.978802588996763
+          },
+          "usedForDecision": false
+        }
+      },
+      "LONG_RANK_MAX3": {
+        "arm": "LONG_RANK_MAX3",
+        "exitMode": "LONG",
+        "scope": "REFERENCE_PRICE_DEVELOPMENT",
+        "status": "COMPLETE_REFERENCE_REPLAY",
+        "initialEquityJpy": 1000000,
+        "finalEquityJpy": 1215413.4000000006,
+        "totalReturnPct": 21.541340000000055,
+        "cashBalanceJpy": 1215413.4000000006,
+        "realizedLedgerPnlJpy": 215413.4000000002,
+        "closedTradeNetPnlJpy": 215413.40000000017,
+        "lockedPurchaseNotionalJpy": 0,
+        "maxDrawdownPct": 22.089613535360154,
+        "maxDrawdownJpy": 284990.37500000047,
+        "knownMarkDrawdownNotFullPortfolio": {
+          "pct": 22.089613535360154,
+          "jpy": 284990.37500000047
+        },
+        "firstUnknownValuation": null,
+        "sessionReturn": {
+          "n": 76,
+          "sum": 22.74896097296676,
+          "mean": 0.29932843385482577,
+          "median": 0.0,
+          "p05": -2.9028809849438537,
+          "min": -10.619139487973673
+        },
+        "worstSession": {
+          "sessionDate": "2024-12-25",
+          "equityJpy": 1007872.7500000006,
+          "returnPct": -10.619139487973673
+        },
+        "maxConsecutiveLosingSessions": 3,
+        "trade": {
+          "candidates": 173,
+          "accepted": 167,
+          "closed": 167,
+          "unresolved": 0,
+          "rejected": 6,
+          "rejectionReasons": {
+            "TARGET_BELOW_LOT": 6
+          },
+          "closedPnlJpy": {
+            "n": 167,
+            "sum": 215413.40000000017,
+            "mean": 1289.9005988023962,
+            "median": -192.8,
+            "p05": -22373.67,
+            "min": -117849.9
+          },
+          "closedNetPct": {
+            "n": 167,
+            "sum": 67.1066914991402,
+            "mean": 0.4018364760427557,
+            "median": -0.05,
+            "p05": -6.4656846810239745,
+            "min": -23.57941176470588
+          },
+          "winRate": 0.4491017964071856,
+          "profitFactor": 1.2415127805176114,
+          "largestLossJpy": -117849.9,
+          "largestLossShareOfTotalLoss": 0.13212853533123955,
+          "tailMinus10Count": 4
+        },
+        "capital": {
+          "averageUtilization": 0.0841438743665188,
+          "peakUtilization": 0.9984356117668481,
+          "idleCashRatio": 0.9158561256334812,
+          "maxConcurrent": 4,
+          "averageConcurrent": 0.2620232172470978,
+          "averageLockedPurchaseNotionalJpy": 93997.96849087893,
+          "grossTurnoverJpy": 117791200.0,
+          "grossTurnoverTimesInitial": 117.7912,
+          "cashReleaseCount": 167,
+          "sameTimestampRecyclingEntries": 5,
+          "feesJpy": 29386.600000000035,
+          "tradingMinutes": 24120.0
+        },
+        "concentration": {
+          "positiveTradeProfitShares": {
+            "top1": 0.08139710297714678,
+            "top3": 0.19461737902156523,
+            "top5": 0.28712694117648657,
+            "hhi": 0.033985255634568654
+          },
+          "positionNotionalShares": {
+            "top1": 0.010018171547576105,
+            "top3": 0.028346253054113098,
+            "top5": 0.04611455561378315,
+            "hhi": 0.006327767461849942
+          },
+          "symbolNotionalShares": {
+            "top1": 0.15026066302328273,
+            "top3": 0.26773937781165563,
+            "top5": 0.3050608100290609,
+            "hhi": 0.03752865984429909
+          },
+          "symbolPositiveProfitShares": {
+            "top1": 0.3741896075711104,
+            "top3": 0.5280052173115757,
+            "top5": 0.6108245306222184,
+            "hhi": 0.16216213592634288
+          },
+          "sessionPositiveProfitShares": {
+            "top1": 0.10589457187615248,
+            "top3": 0.2916034738281574,
+            "top5": 0.44055969555938773,
+            "hhi": 0.059991468541658634
+          },
+          "groupPnlJpy": {
+            "symbol": {
+              "89180": 336284.35,
+              "57590": -127988.8999999999,
+              "90730": 90134.85,
+              "38250": 48099.3,
+              "39360": 41324.60000000006,
+              "95620": -41174.8,
+              "29620": 33105.149999999994,
+              "81070": -30563.399999999994,
+              "86140": -29940.75,
+              "62540": 28971.449999999997,
+              "51310": -28207.0,
+              "36640": -24486.300000000003,
+              "76150": -24152.850000000002,
+              "304A0": -23223.0,
+              "67310": 21275.600000000057,
+              "31030": 20830.6,
+              "45760": 20228.300000000003,
+              "65520": -18556.2,
+              "38070": -17914.8,
+              "190A0": -17779.300000000003,
+              "87830": -17182.5,
+              "92360": -17022.800000000003,
+              "27760": -16267.2,
+              "33500": -15909.7,
+              "69930": 15898.75,
+              "40690": 15681.45,
+              "62280": 15334.599999999999,
+              "25860": 14694.050000000003,
+              "70740": -14360.8,
+              "143A0": 13666.8,
+              "70690": -13491.900000000001,
+              "303A0": 13157.099999999999,
+              "90820": 12822.5,
+              "45060": -12771.3,
+              "31850": -11837.95,
+              "168A0": -11741.7,
+              "52470": -11731.399999999954,
+              "49350": 11526.800000000003,
+              "93270": 11477.55,
+              "48330": -11058.800000000001,
+              "21750": -10973.05,
+              "55800": -10521.099999999999,
+              "27430": 10297.00000000005,
+              "81050": -9917.599999999999,
+              "47360": 9807.000000000045,
+              "41790": -9778.8,
+              "21560": 9324.5,
+              "50250": -8543.400000000001,
+              "30770": 8386.99999999997,
+              "37790": -8180.0,
+              "276A0": 8163.200000000001,
+              "42550": -7377.299999999999,
+              "73600": 6730.200000000001,
+              "32370": 6621.5,
+              "31130": -5923.25,
+              "76890": -5922.6,
+              "39080": -5846.450000000052,
+              "46570": -5786.0,
+              "46780": -5671.6,
+              "39810": 5606.799999999954,
+              "70370": 5241.9,
+              "48830": -5180.0,
+              "30410": -5065.549999999999,
+              "59500": -4986.9,
+              "130A0": -4971.299999999999,
+              "56160": 4626.450000000001,
+              "37530": -4391.1,
+              "65780": 4226.200000000001,
+              "68360": 4062.0499999999997,
+              "64640": 3844.0,
+              "65480": 3621.3999999999996,
+              "97600": -3366.3999999999996,
+              "33580": 3350.500000000057,
+              "47840": 3330.25,
+              "46670": 3210.2,
+              "73590": -3186.2,
+              "46640": 3150.5999999999663,
+              "94390": 2931.5000000000027,
+              "65730": 2924.8500000000004,
+              "67210": 2909.3499999999563,
+              "48850": 2892.7,
+              "52530": 2785.1000000000004,
+              "66590": -2718.3,
+              "66960": -2595.75,
+              "39610": -2593.3999999999996,
+              "38030": -2585.1000000000004,
+              "35590": -2518.2,
+              "63300": -2338.0,
+              "297A0": 2237.3999999999996,
+              "40680": 2128.55,
+              "91650": 2066.5,
+              "31920": 2020.6999999999998,
+              "93480": 1909.9499999999998,
+              "41660": 1386.75,
+              "36390": 1320.75,
+              "176A0": -1299.6,
+              "41650": 1267.0,
+              "31370": -1096.2,
+              "65790": -914.5500000000002,
+              "34750": -700.25,
+              "29360": -686.2000000000285,
+              "39050": 676.9000000000001,
+              "78390": 502.9499999999773,
+              "50280": 329.4,
+              "15140": 295.5,
+              "36240": -185.0,
+              "51320": -104.5
+            },
+            "sessionDate": {
+              "2024-12-25": -119743.09999999999,
+              "2024-12-26": 90605.0,
+              "2024-11-25": 89746.1,
+              "2024-12-20": -87281.35,
+              "2024-12-27": -73383.0,
+              "2024-12-30": 69149.25,
+              "2024-12-09": 68514.24999999991,
+              "2024-10-29": 58934.94999999999,
+              "2024-09-19": 51182.50000000006,
+              "2024-09-25": 50223.600000000006,
+              "2025-01-07": 47022.45,
+              "2024-10-10": 41156.90000000005,
+              "2024-10-31": -34928.65000000003,
+              "2024-11-20": 34141.8,
+              "2024-12-24": -33002.1,
+              "2024-10-08": 32551.449999999953,
+              "2024-10-11": -32372.800000000003,
+              "2025-01-09": 31614.699999999993,
+              "2024-11-15": -25590.750000000025,
+              "2024-10-18": -24486.300000000003,
+              "2024-10-30": -23744.35,
+              "2024-12-16": 21402.80000000001,
+              "2025-01-08": 21371.200000000044,
+              "2025-01-06": 21161.050000000003,
+              "2024-11-14": -18558.850000000002,
+              "2024-11-22": -17328.2,
+              "2024-12-10": -15896.45,
+              "2024-12-05": -15685.0,
+              "2024-11-07": -15058.6,
+              "2024-11-11": 14766.400000000001,
+              "2024-09-30": -13180.7,
+              "2024-09-27": 12822.5,
+              "2024-12-02": 11204.40000000005,
+              "2024-11-28": 11127.5,
+              "2024-10-22": 9674.349999999955,
+              "2024-11-13": 8519.650000000005,
+              "2024-11-08": -8418.800000000025,
+              "2024-12-06": -7988.5,
+              "2024-10-02": -7853.700000000001,
+              "2024-10-23": -7377.299999999999,
+              "2024-12-11": 7298.200000000001,
+              "2024-10-25": -7182.75,
+              "2024-12-13": 7003.3500000000495,
+              "2024-12-19": -6991.799999999945,
+              "2024-10-17": -6665.299999999952,
+              "2024-12-18": -6468.05,
+              "2024-11-19": -5671.6,
+              "2024-12-12": 5394.350000000082,
+              "2024-10-01": -5375.5,
+              "2024-09-18": 5241.9,
+              "2024-11-26": 5203.6,
+              "2024-11-01": -5065.549999999999,
+              "2024-10-09": -4971.299999999999,
+              "2024-11-27": 4323.8,
+              "2024-11-12": -4280.4,
+              "2024-12-03": 3615.200000000046,
+              "2024-09-24": 3507.45,
+              "2024-12-17": 3000.95,
+              "2024-10-28": 2967.549999999966,
+              "2024-11-21": 2746.05,
+              "2024-12-23": 2716.7499999999563,
+              "2024-10-07": 2697.6,
+              "2024-10-16": -2585.1000000000004,
+              "2024-10-24": -2081.45,
+              "2024-10-21": 1320.75,
+              "2024-11-18": 859.8000000000011,
+              "2024-11-29": 825.0499999999993,
+              "2024-09-20": -741.5499999999993,
+              "2024-11-06": -242.9
+            },
+            "exitReason": {
+              "FIXED12_CAP": 423442.45000000024,
+              "BAR5_NO_RECLAIM": -245578.75,
+              "TWO_LOWER_COMPLETED_CLOSES": 24727.19999999994,
+              "CALENDAR_SESSION_CAP": 12822.5
+            }
+          }
+        },
+        "ledgerAudit": {
+          "maxCashBalanceErrorJpy": 9.604264050722122e-10,
+          "nonnegativeCash": true,
+          "hundredShareLots": true,
+          "noShortMarginLeverage": true,
+          "futureOutcomeInAllocator": false,
+          "costChargedOnce": true
+        },
+        "exitReasonPerformance": {
+          "FIXED12_CAP": {
+            "pnlJpy": {
+              "n": 48,
+              "sum": 423442.45000000024,
+              "mean": 8821.717708333339,
+              "median": -175.60000000000002,
+              "p05": -23053.260000000002,
+              "min": -73383.0
+            },
+            "netPct": {
+              "n": 48,
+              "sum": 113.72216060446081,
+              "mean": 2.3692116792596,
+              "median": -0.05,
+              "p05": -6.131235697940504,
+              "min": -20.05
+            },
+            "winRate": 0.4583333333333333,
+            "profitFactor": 3.254719113538009
+          },
+          "BAR5_NO_RECLAIM": {
+            "pnlJpy": {
+              "n": 19,
+              "sum": -245578.75,
+              "mean": -12925.197368421053,
+              "median": -9917.599999999999,
+              "p05": -31064.155,
+              "min": -41174.8
+            },
+            "netPct": {
+              "n": 19,
+              "sum": -71.48918873287722,
+              "mean": -3.7625888806777485,
+              "median": -3.3315198618307424,
+              "p05": -7.784248748141823,
+              "min": -11.777688787185356
+            },
+            "winRate": 0.0,
+            "profitFactor": 0.0
+          },
+          "TWO_LOWER_COMPLETED_CLOSES": {
+            "pnlJpy": {
+              "n": 99,
+              "sum": 24727.19999999992,
+              "mean": 249.76969696969616,
+              "median": 380.7499999999716,
+              "p05": -16378.11,
+              "min": -117849.9
+            },
+            "netPct": {
+              "n": 99,
+              "sum": 21.261747796570695,
+              "mean": 0.21476512925828986,
+              "median": 0.23328611898016993,
+              "p05": -4.931041448451294,
+              "min": -23.57941176470588
+            },
+            "winRate": 0.5252525252525253,
+            "profitFactor": 1.053924498244202
+          },
+          "CALENDAR_SESSION_CAP": {
+            "pnlJpy": {
+              "n": 1,
+              "sum": 12822.5,
+              "mean": 12822.5,
+              "median": 12822.5,
+              "p05": 12822.5,
+              "min": 12822.5
+            },
+            "netPct": {
+              "n": 1,
+              "sum": 3.6119718309859152,
+              "mean": 3.6119718309859152,
+              "median": 3.6119718309859152,
+              "p05": 3.6119718309859152,
+              "min": 3.6119718309859152
+            },
+            "winRate": 1.0,
+            "profitFactor": "INF"
+          }
+        },
+        "unresolvedPositions": [],
+        "sessions": [
+          {
+            "sessionDate": "2024-09-17",
+            "equityJpy": 1000000.0,
+            "returnPct": 0.0
+          },
+          {
+            "sessionDate": "2024-09-18",
+            "equityJpy": 1005241.8999999999,
+            "returnPct": 0.524189999999991
+          },
+          {
+            "sessionDate": "2024-09-19",
+            "equityJpy": 1056424.4,
+            "returnPct": 5.091560548759455
+          },
+          {
+            "sessionDate": "2024-09-20",
+            "equityJpy": 1055682.8499999999,
+            "returnPct": -0.07019432720410945
+          },
+          {
+            "sessionDate": "2024-09-24",
+            "equityJpy": 1059190.2999999998,
+            "returnPct": 0.3322446698835746
+          },
+          {
+            "sessionDate": "2024-09-25",
+            "equityJpy": 1109413.9,
+            "returnPct": 4.741697502327957
+          },
+          {
+            "sessionDate": "2024-09-26",
+            "equityJpy": 1109413.9,
+            "returnPct": 0.0
+          },
+          {
+            "sessionDate": "2024-09-27",
+            "equityJpy": 1122236.4,
+            "returnPct": 1.1557904583672451
+          },
+          {
+            "sessionDate": "2024-09-30",
+            "equityJpy": 1109055.7,
+            "returnPct": -1.1745029835068532
+          },
+          {
+            "sessionDate": "2024-10-01",
+            "equityJpy": 1103680.2,
+            "returnPct": -0.48469161648058146
+          },
+          {
+            "sessionDate": "2024-10-02",
+            "equityJpy": 1095826.5,
+            "returnPct": -0.7115919992041086
+          },
+          {
+            "sessionDate": "2024-10-03",
+            "equityJpy": 1095826.5,
+            "returnPct": 0.0
+          },
+          {
+            "sessionDate": "2024-10-04",
+            "equityJpy": 1095826.5,
+            "returnPct": 0.0
+          },
+          {
+            "sessionDate": "2024-10-07",
+            "equityJpy": 1098524.1,
+            "returnPct": 0.24617035634748596
+          },
+          {
+            "sessionDate": "2024-10-08",
+            "equityJpy": 1131075.55,
+            "returnPct": 2.963198531557021
+          },
+          {
+            "sessionDate": "2024-10-09",
+            "equityJpy": 1126104.25,
+            "returnPct": -0.43951971201217077
+          },
+          {
+            "sessionDate": "2024-10-10",
+            "equityJpy": 1167261.1500000001,
+            "returnPct": 3.654803718217048
+          },
+          {
+            "sessionDate": "2024-10-11",
+            "equityJpy": 1134888.35,
+            "returnPct": -2.773398223696555
+          },
+          {
+            "sessionDate": "2024-10-15",
+            "equityJpy": 1134888.35,
+            "returnPct": 0.0
+          },
+          {
+            "sessionDate": "2024-10-16",
+            "equityJpy": 1132303.25,
+            "returnPct": -0.22778452171088315
+          },
+          {
+            "sessionDate": "2024-10-17",
+            "equityJpy": 1125637.95,
+            "returnPct": -0.5886497278887126
+          },
+          {
+            "sessionDate": "2024-10-18",
+            "equityJpy": 1101151.65,
+            "returnPct": -2.175326444883996
+          },
+          {
+            "sessionDate": "2024-10-21",
+            "equityJpy": 1102472.4,
+            "returnPct": 0.11994260736021278
+          },
+          {
+            "sessionDate": "2024-10-22",
+            "equityJpy": 1112146.75,
+            "returnPct": 0.877514031190274
+          },
+          {
+            "sessionDate": "2024-10-23",
+            "equityJpy": 1104769.45,
+            "returnPct": -0.6633387185638995
+          },
+          {
+            "sessionDate": "2024-10-24",
+            "equityJpy": 1102688.0,
+            "returnPct": -0.188405825305904
+          },
+          {
+            "sessionDate": "2024-10-25",
+            "equityJpy": 1095505.25,
+            "returnPct": -0.6513855233756027
+          },
+          {
+            "sessionDate": "2024-10-28",
+            "equityJpy": 1098472.8,
+            "returnPct": 0.2708841422713437
+          },
+          {
+            "sessionDate": "2024-10-29",
+            "equityJpy": 1157407.75,
+            "returnPct": 5.3651715363366215
+          },
+          {
+            "sessionDate": "2024-10-30",
+            "equityJpy": 1133663.4,
+            "returnPct": -2.0515112327526785
+          },
+          {
+            "sessionDate": "2024-10-31",
+            "equityJpy": 1098734.75,
+            "returnPct": -3.081042397593492
+          },
+          {
+            "sessionDate": "2024-11-01",
+            "equityJpy": 1093669.2,
+            "returnPct": -0.46103484030154407
+          },
+          {
+            "sessionDate": "2024-11-05",
+            "equityJpy": 1093669.2,
+            "returnPct": 0.0
+          },
+          {
+            "sessionDate": "2024-11-06",
+            "equityJpy": 1093426.3,
+            "returnPct": -0.02220964072133791
+          },
+          {
+            "sessionDate": "2024-11-07",
+            "equityJpy": 1078367.7000000002,
+            "returnPct": -1.37719387214299
+          },
+          {
+            "sessionDate": "2024-11-08",
+            "equityJpy": 1069948.9000000001,
+            "returnPct": -0.7806984574927456
+          },
+          {
+            "sessionDate": "2024-11-11",
+            "equityJpy": 1084715.3,
+            "returnPct": 1.380103292783419
+          },
+          {
+            "sessionDate": "2024-11-12",
+            "equityJpy": 1080434.9000000001,
+            "returnPct": -0.39461045677146034
+          },
+          {
+            "sessionDate": "2024-11-13",
+            "equityJpy": 1088954.55,
+            "returnPct": 0.7885389485289496
+          },
+          {
+            "sessionDate": "2024-11-14",
+            "equityJpy": 1070395.7,
+            "returnPct": -1.704281413765163
+          },
+          {
+            "sessionDate": "2024-11-15",
+            "equityJpy": 1044804.95,
+            "returnPct": -2.390774738725132
+          },
+          {
+            "sessionDate": "2024-11-18",
+            "equityJpy": 1045664.75,
+            "returnPct": 0.08229287198533441
+          },
+          {
+            "sessionDate": "2024-11-19",
+            "equityJpy": 1039993.1499999999,
+            "returnPct": -0.5423918134373484
+          },
+          {
+            "sessionDate": "2024-11-20",
+            "equityJpy": 1074134.95,
+            "returnPct": 3.28288700747692
+          },
+          {
+            "sessionDate": "2024-11-21",
+            "equityJpy": 1076881.0,
+            "returnPct": 0.2556522343863721
+          },
+          {
+            "sessionDate": "2024-11-22",
+            "equityJpy": 1059552.8,
+            "returnPct": -1.6091100130840807
+          },
+          {
+            "sessionDate": "2024-11-25",
+            "equityJpy": 1149298.9000000001,
+            "returnPct": 8.47018666743178
+          },
+          {
+            "sessionDate": "2024-11-26",
+            "equityJpy": 1154502.5000000002,
+            "returnPct": 0.45276298445948715
+          },
+          {
+            "sessionDate": "2024-11-27",
+            "equityJpy": 1158826.3000000003,
+            "returnPct": 0.37451629598030944
+          },
+          {
+            "sessionDate": "2024-11-28",
+            "equityJpy": 1169953.8,
+            "returnPct": 0.960238820951842
+          },
+          {
+            "sessionDate": "2024-11-29",
+            "equityJpy": 1170778.85,
+            "returnPct": 0.07051987864821196
+          },
+          {
+            "sessionDate": "2024-12-02",
+            "equityJpy": 1181983.2500000002,
+            "returnPct": 0.9570039636435324
+          },
+          {
+            "sessionDate": "2024-12-03",
+            "equityJpy": 1185598.4500000004,
+            "returnPct": 0.3058588182193178
+          },
+          {
+            "sessionDate": "2024-12-04",
+            "equityJpy": 1185598.4500000004,
+            "returnPct": 0.0
+          },
+          {
+            "sessionDate": "2024-12-05",
+            "equityJpy": 1169913.4500000004,
+            "returnPct": -1.3229605689852209
+          },
+          {
+            "sessionDate": "2024-12-06",
+            "equityJpy": 1161924.9500000004,
+            "returnPct": -0.6828282895627868
+          },
+          {
+            "sessionDate": "2024-12-09",
+            "equityJpy": 1230439.2000000004,
+            "returnPct": 5.896615784005665
+          },
+          {
+            "sessionDate": "2024-12-10",
+            "equityJpy": 1214542.7500000005,
+            "returnPct": -1.2919329943324231
+          },
+          {
+            "sessionDate": "2024-12-11",
+            "equityJpy": 1221840.9500000004,
+            "returnPct": 0.600901038683066
+          },
+          {
+            "sessionDate": "2024-12-12",
+            "equityJpy": 1227235.3000000007,
+            "returnPct": 0.44149363302976585
+          },
+          {
+            "sessionDate": "2024-12-13",
+            "equityJpy": 1234238.6500000008,
+            "returnPct": 0.5706607363722416
+          },
+          {
+            "sessionDate": "2024-12-16",
+            "equityJpy": 1255641.450000001,
+            "returnPct": 1.734089270336825
+          },
+          {
+            "sessionDate": "2024-12-17",
+            "equityJpy": 1258642.4000000008,
+            "returnPct": 0.23899736664474425
+          },
+          {
+            "sessionDate": "2024-12-18",
+            "equityJpy": 1252174.3500000008,
+            "returnPct": -0.5138909987459583
+          },
+          {
+            "sessionDate": "2024-12-19",
+            "equityJpy": 1245182.550000001,
+            "returnPct": -0.5583727218178347
+          },
+          {
+            "sessionDate": "2024-12-20",
+            "equityJpy": 1157901.200000001,
+            "returnPct": -7.0095224190220184
+          },
+          {
+            "sessionDate": "2024-12-23",
+            "equityJpy": 1160617.9500000007,
+            "returnPct": 0.23462709944508386
+          },
+          {
+            "sessionDate": "2024-12-24",
+            "equityJpy": 1127615.8500000006,
+            "returnPct": -2.843493847393974
+          },
+          {
+            "sessionDate": "2024-12-25",
+            "equityJpy": 1007872.7500000006,
+            "returnPct": -10.619139487973673
+          },
+          {
+            "sessionDate": "2024-12-26",
+            "equityJpy": 1098477.7500000005,
+            "returnPct": 8.989726133581822
+          },
+          {
+            "sessionDate": "2024-12-27",
+            "equityJpy": 1025094.7500000005,
+            "returnPct": -6.680426617653379
+          },
+          {
+            "sessionDate": "2024-12-30",
+            "equityJpy": 1094244.0000000005,
+            "returnPct": 6.74564473186503
+          },
+          {
+            "sessionDate": "2025-01-06",
+            "equityJpy": 1115405.0500000005,
+            "returnPct": 1.9338511337507969
+          },
+          {
+            "sessionDate": "2025-01-07",
+            "equityJpy": 1162427.5000000005,
+            "returnPct": 4.215728627013116
+          },
+          {
+            "sessionDate": "2025-01-08",
+            "equityJpy": 1183798.7000000007,
+            "returnPct": 1.8384974546799882
+          },
+          {
+            "sessionDate": "2025-01-09",
+            "equityJpy": 1215413.4000000006,
+            "returnPct": 2.670614522553527
+          }
+        ],
+        "rejectedOpportunityEvaluatorOnly": {
+          "knownOutcomeCount": 6,
+          "unknownOutcomeCount": 0,
+          "positiveNetCount": 3,
+          "netAtLeast3PctCount": 1,
+          "netAtLeast5PctCount": 1,
+          "netPct": {
+            "n": 6,
+            "sum": -2.9653417563346594,
+            "mean": -0.4942236260557765,
+            "median": -0.08762401210694598,
+            "p05": -6.49235264996287,
+            "min": -7.978802588996763
+          },
+          "usedForDecision": false
+        }
+      }
+    },
+    "EXPOSED_COMMON173_FIXED_REFERENCE": {
+      "arm": "EQUAL_MAX3",
+      "exitMode": "FIXED12",
+      "scope": "REFERENCE_PRICE_DEVELOPMENT",
+      "status": "COMPLETE_REFERENCE_REPLAY",
+      "initialEquityJpy": 1000000,
+      "finalEquityJpy": 1220585.6000000008,
+      "totalReturnPct": 22.05856000000008,
+      "cashBalanceJpy": 1220585.6000000008,
+      "realizedLedgerPnlJpy": 220585.6000000004,
+      "closedTradeNetPnlJpy": 220585.6000000005,
+      "lockedPurchaseNotionalJpy": 0,
+      "maxDrawdownPct": 21.374138131188065,
+      "maxDrawdownJpy": 276914.1000000001,
+      "knownMarkDrawdownNotFullPortfolio": {
+        "pct": 21.374138131188065,
+        "jpy": 276914.1000000001
+      },
+      "firstUnknownValuation": null,
+      "sessionReturn": {
+        "n": 76,
+        "sum": 23.191931346225314,
+        "mean": 0.30515699139770147,
+        "median": 0.0,
+        "p05": -3.0026240435391984,
+        "min": -6.858388430631946
+      },
+      "worstSession": {
+        "sessionDate": "2024-12-25",
+        "equityJpy": 1058558.700000001,
+        "returnPct": -6.858388430631946
+      },
+      "maxConsecutiveLosingSessions": 4,
+      "trade": {
+        "candidates": 173,
+        "accepted": 166,
+        "closed": 166,
+        "unresolved": 0,
+        "rejected": 7,
+        "rejectionReasons": {
+          "TARGET_BELOW_LOT": 6,
+          "INSUFFICIENT_CASH": 1
+        },
+        "closedPnlJpy": {
+          "n": 166,
+          "sum": 220585.6000000005,
+          "mean": 1328.8289156626536,
+          "median": -173.075,
+          "p05": -25848.075,
+          "min": -111188.70000000001
+        },
+        "closedNetPct": {
+          "n": 166,
+          "sum": 74.11253307133804,
+          "mean": 0.4464610425984219,
+          "median": -0.05,
+          "p05": -7.091915472749141,
+          "min": -29.461764705882352
+        },
+        "winRate": 0.46987951807228917,
+        "profitFactor": 1.2140763620248194,
+        "largestLossJpy": -111188.70000000001,
+        "largestLossShareOfTotalLoss": 0.10790764399067301,
+        "tailMinus10Count": 6
+      },
+      "capital": {
+        "averageUtilization": 0.1268468297524505,
+        "peakUtilization": 0.9805745933335389,
+        "idleCashRatio": 0.8731531702475495,
+        "maxConcurrent": 3,
+        "averageConcurrent": 0.4092039800995025,
+        "averageLockedPurchaseNotionalJpy": 139570.14925373133,
+        "grossTurnoverJpy": 113506500.0,
+        "grossTurnoverTimesInitial": 113.5065,
+        "cashReleaseCount": 166,
+        "sameTimestampRecyclingEntries": 16,
+        "feesJpy": 28314.39999999998,
+        "tradingMinutes": 24120.0
+      },
+      "concentration": {
+        "positiveTradeProfitShares": {
+          "top1": 0.07205071496274854,
+          "top3": 0.18377235501353226,
+          "top5": 0.26390709610994634,
+          "hhi": 0.031028309359711764
+        },
+        "positionNotionalShares": {
+          "top1": 0.007367276015031221,
+          "top3": 0.021981747803237927,
+          "top5": 0.03650792529596248,
+          "hhi": 0.006129634745665238
+        },
+        "symbolNotionalShares": {
+          "top1": 0.14126204334190376,
+          "top3": 0.24808931144576613,
+          "top5": 0.28633486847681744,
+          "hhi": 0.03393241940174595
+        },
+        "symbolPositiveProfitShares": {
+          "top1": 0.30233264236456164,
+          "top3": 0.4542899960893857,
+          "top5": 0.5622870843786922,
+          "hhi": 0.11725429418823008
+        },
+        "sessionPositiveProfitShares": {
+          "top1": 0.09857097141617396,
+          "top3": 0.2920418180832022,
+          "top5": 0.4415398383684981,
+          "hhi": 0.05978805417998098
+        },
+        "groupPnlJpy": {
+          "symbol": {
+            "89180": 328300.25,
+            "57590": -188411.49999999988,
+            "90730": 90134.85,
+            "25860": 74874.25,
+            "39360": 60835.35000000011,
+            "38250": 56437.7,
+            "49350": 55026.80000000005,
+            "76150": -52933.950000000004,
+            "95620": -39174.8,
+            "190A0": -35379.3,
+            "39810": 35206.8,
+            "70690": -32537.85,
+            "45760": 29533.350000000046,
+            "62540": 28971.449999999997,
+            "51310": -26207.0,
+            "52470": -26131.400000000045,
+            "65520": -25056.2,
+            "45060": -24771.300000000003,
+            "67310": 24010.150000000056,
+            "36640": -23881.699999999997,
+            "76890": -23122.6,
+            "33500": -22409.7,
+            "62280": 20667.300000000003,
+            "81050": -20563.199999999997,
+            "46640": -19949.4,
+            "30770": 18741.800000000003,
+            "86140": -18160.5,
+            "87830": -17182.5,
+            "41790": -16978.800000000003,
+            "30410": -16965.550000000003,
+            "92360": -16367.099999999999,
+            "93270": 16145.8,
+            "81070": -15213.25,
+            "69930": 15108.75,
+            "31850": 15078.850000000042,
+            "38030": -14585.099999999999,
+            "37790": -14180.0,
+            "31030": 14142.7,
+            "31130": -13691.25,
+            "90820": 12822.5,
+            "65730": -12575.150000000001,
+            "94390": 12153.849999999959,
+            "143A0": 11866.8,
+            "42550": -11577.3,
+            "48850": -11560.95,
+            "29620": 11505.14999999995,
+            "48330": -10735.95,
+            "47360": 9807.000000000045,
+            "50250": -9743.400000000001,
+            "27430": 9708.600000000046,
+            "27760": -9392.05,
+            "38070": -9246.95,
+            "67210": 9109.349999999999,
+            "29360": 8966.099999999999,
+            "21560": 8324.5,
+            "56160": 8284.3,
+            "276A0": 8222.400000000001,
+            "46670": 8010.200000000046,
+            "55800": -7921.1,
+            "31920": 7837.0,
+            "39610": 7406.6,
+            "31370": -7396.200000000001,
+            "46570": -7386.0,
+            "36240": -6688.5,
+            "46780": -6156.0,
+            "66960": 6127.65,
+            "65780": 5842.000000000056,
+            "47840": 5830.25,
+            "35590": -5577.299999999999,
+            "168A0": -5541.700000000001,
+            "36390": 5432.700000000001,
+            "65790": -5168.55,
+            "59500": -4986.9,
+            "41650": -4933.0,
+            "52530": 4885.1,
+            "64640": 4844.0,
+            "48830": 4627.200000000001,
+            "37530": -4391.1,
+            "39080": -4246.450000000052,
+            "66590": -3868.3500000000004,
+            "40680": 3857.1000000000004,
+            "41660": 3849.0,
+            "15140": -3756.75,
+            "93480": -3690.05,
+            "65480": 3430.8,
+            "78390": 3202.95,
+            "97600": 3033.6000000000004,
+            "68360": 2362.05,
+            "303A0": 2278.55,
+            "73600": 1930.1999999999998,
+            "33580": 1850.5,
+            "70370": 1641.9,
+            "70740": -1160.7999999999993,
+            "34750": 1039.8000000000002,
+            "63300": -936.0,
+            "51320": -904.5,
+            "21750": 826.95,
+            "73590": 826.850000000074,
+            "39050": 676.9000000000001,
+            "36960": -656.5,
+            "176A0": -399.6,
+            "91650": -333.5,
+            "40690": 254.29999999999995,
+            "297A0": -176.15,
+            "32370": -173.25,
+            "130A0": -171.3
+          },
+          "sessionDate": {
+            "2024-12-26": 90867.65,
+            "2024-12-30": 89302.20000000001,
+            "2024-11-25": 89048.9,
+            "2024-12-20": -85281.35,
+            "2024-12-25": -77945.89999999997,
+            "2024-12-27": -76791.5,
+            "2024-12-09": 75949.95,
+            "2024-11-20": 61864.80000000005,
+            "2025-01-07": 51346.15,
+            "2024-12-16": 50410.450000000055,
+            "2024-09-19": 49383.55,
+            "2024-09-25": 49227.100000000006,
+            "2024-10-10": 42756.90000000005,
+            "2024-10-29": 41306.00000000001,
+            "2024-12-05": -33185.0,
+            "2024-11-14": -32875.2,
+            "2024-10-08": 31860.39999999995,
+            "2024-12-24": -30710.899999999958,
+            "2024-10-11": -30462.049999999956,
+            "2024-10-30": -23944.350000000002,
+            "2024-10-18": -23881.699999999997,
+            "2024-12-02": -20392.749999999996,
+            "2024-10-28": -20122.300000000003,
+            "2024-10-22": 19685.799999999956,
+            "2024-11-13": 19674.449999999997,
+            "2024-11-15": -19173.75,
+            "2024-10-01": -18375.5,
+            "2024-10-24": -18171.9,
+            "2024-12-13": 18155.000000000047,
+            "2024-11-01": -16965.550000000003,
+            "2024-11-07": -15838.75,
+            "2025-01-08": -15673.099999999957,
+            "2024-11-11": 15176.0,
+            "2024-10-16": -14585.099999999999,
+            "2025-01-09": 13914.700000000024,
+            "2024-09-27": 12822.5,
+            "2024-11-21": -12751.550000000001,
+            "2024-10-31": -11775.95,
+            "2024-10-23": -11577.3,
+            "2024-12-10": -11308.25,
+            "2024-09-20": -11083.7,
+            "2024-10-02": -10653.700000000004,
+            "2024-12-12": 10118.85000000006,
+            "2024-10-25": -9875.0,
+            "2024-12-19": -9792.199999999946,
+            "2024-11-26": 9498.95,
+            "2024-11-29": -9071.45,
+            "2025-01-06": 9060.8,
+            "2024-12-23": 8916.749999999998,
+            "2024-11-18": 8875.600000000057,
+            "2024-10-07": 8513.9,
+            "2024-12-17": 7805.450000000046,
+            "2024-11-27": 7245.200000000001,
+            "2024-12-11": 6917.75,
+            "2024-09-30": -6680.700000000001,
+            "2024-10-17": -6354.4,
+            "2024-11-19": -6156.0,
+            "2024-12-18": 6131.95,
+            "2024-10-21": 5432.700000000001,
+            "2024-11-08": 5018.300000000007,
+            "2024-11-12": -4071.6000000000004,
+            "2024-11-22": -3820.0499999999993,
+            "2024-12-03": 2124.699999999957,
+            "2024-11-28": 1794.699999999997,
+            "2024-09-18": 1641.9,
+            "2024-09-24": -1392.5500000000002,
+            "2024-12-06": -181.25,
+            "2024-10-09": -171.3,
+            "2024-11-06": -170.8
+          },
+          "exitReason": {
+            "FIXED12_CAP": 203307.2000000005,
+            "CALENDAR_SESSION_CAP": 17278.4
+          }
+        }
+      },
+      "ledgerAudit": {
+        "maxCashBalanceErrorJpy": 1.1059455573558807e-09,
+        "nonnegativeCash": true,
+        "hundredShareLots": true,
+        "noShortMarginLeverage": true,
+        "futureOutcomeInAllocator": false,
+        "costChargedOnce": true
+      },
+      "exitReasonPerformance": {
+        "FIXED12_CAP": {
+          "pnlJpy": {
+            "n": 163,
+            "sum": 203307.20000000048,
+            "mean": 1247.2834355828252,
+            "median": -174.0,
+            "p05": -26063.43,
+            "min": -111188.70000000001
+          },
+          "netPct": {
+            "n": 163,
+            "sum": 69.21167235146324,
+            "mean": 0.42461148681879285,
+            "median": -0.05,
+            "p05": -7.174997362479692,
+            "min": -29.461764705882352
+          },
+          "winRate": 0.4662576687116564,
+          "profitFactor": 1.197340635487142
+        },
+        "CALENDAR_SESSION_CAP": {
+          "pnlJpy": {
+            "n": 3,
+            "sum": 17278.4,
+            "mean": 5759.466666666667,
+            "median": 4627.200000000001,
+            "p05": 308.55000000000007,
+            "min": -171.3
+          },
+          "netPct": {
+            "n": 3,
+            "sum": 4.900860719874804,
+            "mean": 1.633620239958268,
+            "median": 1.338888888888889,
+            "p05": 0.0888888888888889,
+            "min": -0.05
+          },
+          "winRate": 0.6666666666666666,
+          "profitFactor": 101.86631640396965
+        }
+      },
+      "unresolvedPositions": [],
+      "sessions": [
+        {
+          "sessionDate": "2024-09-17",
+          "equityJpy": 1000000.0,
+          "returnPct": 0.0
+        },
+        {
+          "sessionDate": "2024-09-18",
+          "equityJpy": 1001641.8999999999,
+          "returnPct": 0.1641899999999863
+        },
+        {
+          "sessionDate": "2024-09-19",
+          "equityJpy": 1051025.45,
+          "returnPct": 4.930260006095999
+        },
+        {
+          "sessionDate": "2024-09-20",
+          "equityJpy": 1039941.75,
+          "returnPct": -1.0545605722487417
+        },
+        {
+          "sessionDate": "2024-09-24",
+          "equityJpy": 1038549.2,
+          "returnPct": -0.13390653851526046
+        },
+        {
+          "sessionDate": "2024-09-25",
+          "equityJpy": 1087776.3,
+          "returnPct": 4.739987282258751
+        },
+        {
+          "sessionDate": "2024-09-26",
+          "equityJpy": 1087776.3,
+          "returnPct": 0.0
+        },
+        {
+          "sessionDate": "2024-09-27",
+          "equityJpy": 1100598.8,
+          "returnPct": 1.1787809681089723
+        },
+        {
+          "sessionDate": "2024-09-30",
+          "equityJpy": 1093918.1,
+          "returnPct": -0.6070059316800935
+        },
+        {
+          "sessionDate": "2024-10-01",
+          "equityJpy": 1075542.6,
+          "returnPct": -1.6797875453381739
+        },
+        {
+          "sessionDate": "2024-10-02",
+          "equityJpy": 1064888.9000000001,
+          "returnPct": -0.9905418902049989
+        },
+        {
+          "sessionDate": "2024-10-03",
+          "equityJpy": 1064888.9000000001,
+          "returnPct": 0.0
+        },
+        {
+          "sessionDate": "2024-10-04",
+          "equityJpy": 1064888.9000000001,
+          "returnPct": 0.0
+        },
+        {
+          "sessionDate": "2024-10-07",
+          "equityJpy": 1073402.8,
+          "returnPct": 0.7995106343957392
+        },
+        {
+          "sessionDate": "2024-10-08",
+          "equityJpy": 1105263.2000000002,
+          "returnPct": 2.9681681471298793
+        },
+        {
+          "sessionDate": "2024-10-09",
+          "equityJpy": 1105091.9000000001,
+          "returnPct": -0.0154985708381572
+        },
+        {
+          "sessionDate": "2024-10-10",
+          "equityJpy": 1147848.8000000003,
+          "returnPct": 3.8690809334499754
+        },
+        {
+          "sessionDate": "2024-10-11",
+          "equityJpy": 1117386.7500000002,
+          "returnPct": -2.653838205868231
+        },
+        {
+          "sessionDate": "2024-10-15",
+          "equityJpy": 1117386.7500000002,
+          "returnPct": 0.0
+        },
+        {
+          "sessionDate": "2024-10-16",
+          "equityJpy": 1102801.6500000001,
+          "returnPct": -1.3052866431430332
+        },
+        {
+          "sessionDate": "2024-10-17",
+          "equityJpy": 1096447.2500000002,
+          "returnPct": -0.5762051589240813
+        },
+        {
+          "sessionDate": "2024-10-18",
+          "equityJpy": 1072565.5500000003,
+          "returnPct": -2.1780983991705916
+        },
+        {
+          "sessionDate": "2024-10-21",
+          "equityJpy": 1077998.2500000002,
+          "returnPct": 0.5065144969461199
+        },
+        {
+          "sessionDate": "2024-10-22",
+          "equityJpy": 1097684.0500000003,
+          "returnPct": 1.826143966374727
+        },
+        {
+          "sessionDate": "2024-10-23",
+          "equityJpy": 1086106.7500000002,
+          "returnPct": -1.054702398199192
+        },
+        {
+          "sessionDate": "2024-10-24",
+          "equityJpy": 1067934.8500000003,
+          "returnPct": -1.673122830697804
+        },
+        {
+          "sessionDate": "2024-10-25",
+          "equityJpy": 1058059.8500000003,
+          "returnPct": -0.9246818754908182
+        },
+        {
+          "sessionDate": "2024-10-28",
+          "equityJpy": 1037937.5500000005,
+          "returnPct": -1.9018111310054708
+        },
+        {
+          "sessionDate": "2024-10-29",
+          "equityJpy": 1079243.5500000005,
+          "returnPct": 3.979622858812659
+        },
+        {
+          "sessionDate": "2024-10-30",
+          "equityJpy": 1055299.2000000004,
+          "returnPct": -2.2186234052545495
+        },
+        {
+          "sessionDate": "2024-10-31",
+          "equityJpy": 1043523.2500000005,
+          "returnPct": -1.115887323708764
+        },
+        {
+          "sessionDate": "2024-11-01",
+          "equityJpy": 1026557.7000000004,
+          "returnPct": -1.6257951128544557
+        },
+        {
+          "sessionDate": "2024-11-05",
+          "equityJpy": 1026557.7000000004,
+          "returnPct": 0.0
+        },
+        {
+          "sessionDate": "2024-11-06",
+          "equityJpy": 1026386.9000000004,
+          "returnPct": -0.01663812954693089
+        },
+        {
+          "sessionDate": "2024-11-07",
+          "equityJpy": 1010548.1500000004,
+          "returnPct": -1.5431558995930295
+        },
+        {
+          "sessionDate": "2024-11-08",
+          "equityJpy": 1015566.4500000004,
+          "returnPct": 0.4965918744198383
+        },
+        {
+          "sessionDate": "2024-11-11",
+          "equityJpy": 1030742.4500000004,
+          "returnPct": 1.4943384551547645
+        },
+        {
+          "sessionDate": "2024-11-12",
+          "equityJpy": 1026670.8500000003,
+          "returnPct": -0.39501623320161716
+        },
+        {
+          "sessionDate": "2024-11-13",
+          "equityJpy": 1046345.3000000003,
+          "returnPct": 1.9163347240257034
+        },
+        {
+          "sessionDate": "2024-11-14",
+          "equityJpy": 1013470.1000000003,
+          "returnPct": -3.1419073607918846
+        },
+        {
+          "sessionDate": "2024-11-15",
+          "equityJpy": 994296.3500000002,
+          "returnPct": -1.89189103852202
+        },
+        {
+          "sessionDate": "2024-11-18",
+          "equityJpy": 1003171.9500000004,
+          "returnPct": 0.8926513709921702
+        },
+        {
+          "sessionDate": "2024-11-19",
+          "equityJpy": 997015.9500000004,
+          "returnPct": -0.61365352171181
+        },
+        {
+          "sessionDate": "2024-11-20",
+          "equityJpy": 1058880.7500000005,
+          "returnPct": 6.204996018368614
+        },
+        {
+          "sessionDate": "2024-11-21",
+          "equityJpy": 1046129.2000000007,
+          "returnPct": -1.2042479759878377
+        },
+        {
+          "sessionDate": "2024-11-22",
+          "equityJpy": 1042309.1500000006,
+          "returnPct": -0.3651604409856901
+        },
+        {
+          "sessionDate": "2024-11-25",
+          "equityJpy": 1131358.0500000005,
+          "returnPct": 8.543424952184274
+        },
+        {
+          "sessionDate": "2024-11-26",
+          "equityJpy": 1140857.0000000005,
+          "returnPct": 0.8396059938761136
+        },
+        {
+          "sessionDate": "2024-11-27",
+          "equityJpy": 1148102.2000000004,
+          "returnPct": 0.6350664456632016
+        },
+        {
+          "sessionDate": "2024-11-28",
+          "equityJpy": 1149896.9000000004,
+          "returnPct": 0.1563188364241297
+        },
+        {
+          "sessionDate": "2024-11-29",
+          "equityJpy": 1140825.4500000004,
+          "returnPct": -0.7888924650549023
+        },
+        {
+          "sessionDate": "2024-12-02",
+          "equityJpy": 1120432.7000000007,
+          "returnPct": -1.7875433967571297
+        },
+        {
+          "sessionDate": "2024-12-03",
+          "equityJpy": 1122557.4000000008,
+          "returnPct": 0.1896320948148178
+        },
+        {
+          "sessionDate": "2024-12-04",
+          "equityJpy": 1122557.4000000008,
+          "returnPct": 0.0
+        },
+        {
+          "sessionDate": "2024-12-05",
+          "equityJpy": 1089372.4000000008,
+          "returnPct": -2.956196271121636
+        },
+        {
+          "sessionDate": "2024-12-06",
+          "equityJpy": 1089191.1500000008,
+          "returnPct": -0.016638020203196824
+        },
+        {
+          "sessionDate": "2024-12-09",
+          "equityJpy": 1165141.1000000008,
+          "returnPct": 6.973059779268298
+        },
+        {
+          "sessionDate": "2024-12-10",
+          "equityJpy": 1153832.8500000008,
+          "returnPct": -0.9705476873144381
+        },
+        {
+          "sessionDate": "2024-12-11",
+          "equityJpy": 1160750.6000000008,
+          "returnPct": 0.5995452460900275
+        },
+        {
+          "sessionDate": "2024-12-12",
+          "equityJpy": 1170869.450000001,
+          "returnPct": 0.8717505724313179
+        },
+        {
+          "sessionDate": "2024-12-13",
+          "equityJpy": 1189024.4500000011,
+          "returnPct": 1.550557152208576
+        },
+        {
+          "sessionDate": "2024-12-16",
+          "equityJpy": 1239434.900000001,
+          "returnPct": 4.239647889494602
+        },
+        {
+          "sessionDate": "2024-12-17",
+          "equityJpy": 1247240.350000001,
+          "returnPct": 0.6297587715175634
+        },
+        {
+          "sessionDate": "2024-12-18",
+          "equityJpy": 1253372.300000001,
+          "returnPct": 0.4916414065661012
+        },
+        {
+          "sessionDate": "2024-12-19",
+          "equityJpy": 1243580.1000000008,
+          "returnPct": -0.7812682632287404
+        },
+        {
+          "sessionDate": "2024-12-20",
+          "equityJpy": 1158298.7500000007,
+          "returnPct": -6.857728746222302
+        },
+        {
+          "sessionDate": "2024-12-23",
+          "equityJpy": 1167215.5000000007,
+          "returnPct": 0.7698143505723287
+        },
+        {
+          "sessionDate": "2024-12-24",
+          "equityJpy": 1136504.6000000008,
+          "returnPct": -2.631125100720466
+        },
+        {
+          "sessionDate": "2024-12-25",
+          "equityJpy": 1058558.700000001,
+          "returnPct": -6.858388430631946
+        },
+        {
+          "sessionDate": "2024-12-26",
+          "equityJpy": 1149426.3500000008,
+          "returnPct": 8.584091746636236
+        },
+        {
+          "sessionDate": "2024-12-27",
+          "equityJpy": 1072634.8500000008,
+          "returnPct": -6.680854323550179
+        },
+        {
+          "sessionDate": "2024-12-30",
+          "equityJpy": 1161937.0500000007,
+          "returnPct": 8.325498654085294
+        },
+        {
+          "sessionDate": "2025-01-06",
+          "equityJpy": 1170997.8500000008,
+          "returnPct": 0.7798012809730137
+        },
+        {
+          "sessionDate": "2025-01-07",
+          "equityJpy": 1222344.0000000007,
+          "returnPct": 4.384820177082305
+        },
+        {
+          "sessionDate": "2025-01-08",
+          "equityJpy": 1206670.9000000008,
+          "returnPct": -1.2822167900361836
+        },
+        {
+          "sessionDate": "2025-01-09",
+          "equityJpy": 1220585.6000000008,
+          "returnPct": 1.1531478881275703
+        }
+      ]
+    }
+  }
+}

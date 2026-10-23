@@ -1,0 +1,1033 @@
+{
+  "Breakout": {
+    "limitations": "Historical full-session trait cannot be used as current-session predictor before its outcomes mature",
+    "traits": [
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "or_break",
+        "incremental": null,
+        "lane": "daily",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "or_follow",
+        "incremental": null,
+        "lane": "daily",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "or_fail",
+        "incremental": null,
+        "lane": "daily",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "pdh_break",
+        "incremental": null,
+        "lane": "daily",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": 0.3241411730853098,
+        "ci": [
+          -0.06859504806820242,
+          0.22844812261926356
+        ],
+        "id": "or_break",
+        "incremental": 0.16817703609649917,
+        "lane": "intraday",
+        "pairedSymbols": 149,
+        "raw": 0.4991963663168597,
+        "reasons": [
+          "CI",
+          "calibration",
+          "FDR"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": -0.16581810385557116,
+        "ci": [
+          -0.19133941877794336,
+          0.11840181865999332
+        ],
+        "id": "or_follow",
+        "incremental": -0.061312830239804904,
+        "lane": "intraday",
+        "pairedSymbols": 121,
+        "raw": -0.03782422931512642,
+        "reasons": [
+          "raw",
+          "incremental",
+          "CI",
+          "calibration",
+          "direction",
+          "strata",
+          "timeRandom",
+          "tail",
+          "FDR"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": 0.08833720683620053,
+        "ci": [
+          -0.1102194824549519,
+          0.19773336946213246
+        ],
+        "id": "or_fail",
+        "incremental": 0.12297791627150792,
+        "lane": "intraday",
+        "pairedSymbols": 121,
+        "raw": 0.07632497363172129,
+        "reasons": [
+          "raw",
+          "incremental",
+          "CI",
+          "calibration",
+          "timeRandom",
+          "tail",
+          "FDR"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": 0.7911939980339495,
+        "ci": [
+          0.29602275951456686,
+          0.4807146726163608
+        ],
+        "id": "pdh_break",
+        "incremental": 0.48669185829066663,
+        "lane": "intraday",
+        "pairedSymbols": 265,
+        "raw": 0.8149985159866726,
+        "reasons": [],
+        "status": "USABLE"
+      }
+    ]
+  },
+  "Compression": {
+    "limitations": "range_con is daily range contraction, not a separately validated causal intraday compression trait",
+    "traits": [
+      {
+        "calibrationSlope": 0.33937966863115376,
+        "ci": [
+          0.15195145412909758,
+          0.25824478485436614
+        ],
+        "id": "range_s",
+        "incremental": 0.42616160765757066,
+        "lane": "daily",
+        "pairedSymbols": 3764,
+        "raw": 0.616989789382916,
+        "reasons": [
+          "calibration"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": 0.31881425031189925,
+        "ci": [
+          0.13234564297889898,
+          0.24969962609129082
+        ],
+        "id": "range_exp",
+        "incremental": 0.33376427390934066,
+        "lane": "daily",
+        "pairedSymbols": 3764,
+        "raw": 0.7711792986501436,
+        "reasons": [
+          "calibration"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": 0.48021096821464143,
+        "ci": [
+          0.2788270097974111,
+          0.36496983237484937
+        ],
+        "id": "range_con",
+        "incremental": 0.4476822677775052,
+        "lane": "daily",
+        "pairedSymbols": 3764,
+        "raw": 0.7328421203371974,
+        "reasons": [
+          "calibration"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": 0.20663746588522772,
+        "ci": [
+          0.004647672094846126,
+          0.1268711620219007
+        ],
+        "id": "range_s",
+        "incremental": 0.11691993953863015,
+        "lane": "intraday",
+        "pairedSymbols": 3694,
+        "raw": 0.16633112618306342,
+        "reasons": [
+          "raw",
+          "incremental",
+          "calibration",
+          "tail"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": 0.204193235235975,
+        "ci": [
+          0.024778869942157403,
+          0.11938849271399324
+        ],
+        "id": "range_exp",
+        "incremental": 0.1505410256839791,
+        "lane": "intraday",
+        "pairedSymbols": 3694,
+        "raw": 0.41020437891014866,
+        "reasons": [
+          "calibration",
+          "tail"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": 0.3145713401089725,
+        "ci": [
+          0.09323153678176958,
+          0.16879617027267838
+        ],
+        "id": "range_con",
+        "incremental": 0.22649443918661727,
+        "lane": "intraday",
+        "pairedSymbols": 3694,
+        "raw": 0.5864610730328265,
+        "reasons": [
+          "calibration"
+        ],
+        "status": "WATCH"
+      }
+    ]
+  },
+  "Giveback": {
+    "limitations": "Historical full-session trait cannot be used as current-session predictor before its outcomes mature",
+    "traits": [
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "rally_giveback",
+        "incremental": null,
+        "lane": "daily",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "rally_giveback",
+        "incremental": null,
+        "lane": "intraday",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      }
+    ]
+  },
+  "Rebound": {
+    "limitations": "Historical full-session trait cannot be used as current-session predictor before its outcomes mature",
+    "traits": [
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "selloff_rebound",
+        "incremental": null,
+        "lane": "daily",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "selloff_rebound",
+        "incremental": null,
+        "lane": "intraday",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      }
+    ]
+  },
+  "Reclaim": {
+    "limitations": "Historical full-session trait cannot be used as current-session predictor before its outcomes mature",
+    "traits": [
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "pdl_reclaim",
+        "incremental": null,
+        "lane": "daily",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "vwap_reclaim",
+        "incremental": null,
+        "lane": "daily",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": -0.14525526757695056,
+        "ci": [
+          -0.14079136733309652,
+          0.09411945838866795
+        ],
+        "id": "pdl_reclaim",
+        "incremental": -0.03512654592793966,
+        "lane": "intraday",
+        "pairedSymbols": 246,
+        "raw": 0.014370284916413298,
+        "reasons": [
+          "raw",
+          "incremental",
+          "CI",
+          "calibration",
+          "direction",
+          "timeRandom",
+          "tail",
+          "FDR"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": -0.026895366993753018,
+        "ci": [
+          -0.08129996554996755,
+          0.09730898741992507
+        ],
+        "id": "vwap_reclaim",
+        "incremental": -0.015549508612814063,
+        "lane": "intraday",
+        "pairedSymbols": 366,
+        "raw": 0.1468531088254195,
+        "reasons": [
+          "raw",
+          "incremental",
+          "CI",
+          "calibration",
+          "direction",
+          "strata",
+          "tail",
+          "FDR"
+        ],
+        "status": "WATCH"
+      }
+    ]
+  },
+  "S/R": {
+    "limitations": "Only PDH/PDL/OR proxies; generalized support/resistance touches have no scalar reliability gate",
+    "traits": [
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "or_break",
+        "incremental": null,
+        "lane": "daily",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "or_fail",
+        "incremental": null,
+        "lane": "daily",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "pdh_break",
+        "incremental": null,
+        "lane": "daily",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "pdl_reclaim",
+        "incremental": null,
+        "lane": "daily",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": 0.3241411730853098,
+        "ci": [
+          -0.06859504806820242,
+          0.22844812261926356
+        ],
+        "id": "or_break",
+        "incremental": 0.16817703609649917,
+        "lane": "intraday",
+        "pairedSymbols": 149,
+        "raw": 0.4991963663168597,
+        "reasons": [
+          "CI",
+          "calibration",
+          "FDR"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": 0.08833720683620053,
+        "ci": [
+          -0.1102194824549519,
+          0.19773336946213246
+        ],
+        "id": "or_fail",
+        "incremental": 0.12297791627150792,
+        "lane": "intraday",
+        "pairedSymbols": 121,
+        "raw": 0.07632497363172129,
+        "reasons": [
+          "raw",
+          "incremental",
+          "CI",
+          "calibration",
+          "timeRandom",
+          "tail",
+          "FDR"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": 0.7911939980339495,
+        "ci": [
+          0.29602275951456686,
+          0.4807146726163608
+        ],
+        "id": "pdh_break",
+        "incremental": 0.48669185829066663,
+        "lane": "intraday",
+        "pairedSymbols": 265,
+        "raw": 0.8149985159866726,
+        "reasons": [],
+        "status": "USABLE"
+      },
+      {
+        "calibrationSlope": -0.14525526757695056,
+        "ci": [
+          -0.14079136733309652,
+          0.09411945838866795
+        ],
+        "id": "pdl_reclaim",
+        "incremental": -0.03512654592793966,
+        "lane": "intraday",
+        "pairedSymbols": 246,
+        "raw": 0.014370284916413298,
+        "reasons": [
+          "raw",
+          "incremental",
+          "CI",
+          "calibration",
+          "direction",
+          "timeRandom",
+          "tail",
+          "FDR"
+        ],
+        "status": "WATCH"
+      }
+    ]
+  },
+  "Swing": {
+    "limitations": "Mean swing summaries and all-direction ratios are not an already validated LONG pullback personality",
+    "traits": [
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "swing_amplitude",
+        "incremental": null,
+        "lane": "daily",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "swing_duration",
+        "incremental": null,
+        "lane": "daily",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "pullback_depth",
+        "incremental": null,
+        "lane": "daily",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "swing_amplitude",
+        "incremental": null,
+        "lane": "intraday",
+        "pairedSymbols": 9,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "swing_duration",
+        "incremental": null,
+        "lane": "intraday",
+        "pairedSymbols": 9,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "pullback_depth",
+        "incremental": null,
+        "lane": "intraday",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      }
+    ]
+  },
+  "VWAP": {
+    "limitations": "Historical full-session trait cannot be used as current-session predictor before its outcomes mature",
+    "traits": [
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "vwap_reclaim",
+        "incremental": null,
+        "lane": "daily",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": -0.026895366993753018,
+        "ci": [
+          -0.08129996554996755,
+          0.09730898741992507
+        ],
+        "id": "vwap_reclaim",
+        "incremental": -0.015549508612814063,
+        "lane": "intraday",
+        "pairedSymbols": 366,
+        "raw": 0.1468531088254195,
+        "reasons": [
+          "raw",
+          "incremental",
+          "CI",
+          "calibration",
+          "direction",
+          "strata",
+          "tail",
+          "FDR"
+        ],
+        "status": "WATCH"
+      }
+    ]
+  },
+  "Volume confirmation": {
+    "limitations": "volume/value bucket shares are not breakout volume confirmation; break_value and gap_down_value are descriptive composites without scalar Gate",
+    "traits": [
+      {
+        "calibrationSlope": 0.0579972607606843,
+        "ci": [
+          -0.04388035469246816,
+          0.11472728781720007
+        ],
+        "id": "value_rvol",
+        "incremental": 0.08876761080095916,
+        "lane": "daily",
+        "pairedSymbols": 3764,
+        "raw": 0.16525363008540767,
+        "reasons": [
+          "raw",
+          "incremental",
+          "CI",
+          "calibration",
+          "tail",
+          "FDR"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": 0.47168024692668303,
+        "ci": [
+          0.18795478428906748,
+          0.31597871350089113
+        ],
+        "id": "value_shock",
+        "incremental": 0.4134367633500668,
+        "lane": "daily",
+        "pairedSymbols": 3764,
+        "raw": 0.8616361046218218,
+        "reasons": [
+          "calibration"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "value_O30",
+        "incremental": null,
+        "lane": "daily",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "value_AM",
+        "incremental": null,
+        "lane": "daily",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "value_PM1",
+        "incremental": null,
+        "lane": "daily",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "volume_O30",
+        "incremental": null,
+        "lane": "daily",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "volume_AM",
+        "incremental": null,
+        "lane": "daily",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": null,
+        "ci": null,
+        "id": "volume_PM1",
+        "incremental": null,
+        "lane": "daily",
+        "pairedSymbols": 0,
+        "raw": null,
+        "reasons": [
+          "PAIRED_SAMPLE_BELOW100"
+        ],
+        "status": "INSUFFICIENT"
+      },
+      {
+        "calibrationSlope": 0.05265147433884554,
+        "ci": [
+          -0.06920269786969241,
+          0.0987589620415888
+        ],
+        "id": "value_rvol",
+        "incremental": 0.01886964557940532,
+        "lane": "intraday",
+        "pairedSymbols": 3694,
+        "raw": -0.00882102589797329,
+        "reasons": [
+          "raw",
+          "incremental",
+          "CI",
+          "calibration",
+          "timeRandom",
+          "tail",
+          "FDR"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": 0.3238026561822276,
+        "ci": [
+          0.027933224525496226,
+          0.17274696952167018
+        ],
+        "id": "value_shock",
+        "incremental": 0.19063666332805534,
+        "lane": "intraday",
+        "pairedSymbols": 3694,
+        "raw": 0.5979533139788049,
+        "reasons": [
+          "calibration"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": 0.9695113003288595,
+        "ci": [
+          0.5256995425493706,
+          0.6138111462934193
+        ],
+        "id": "value_O30",
+        "incremental": 0.645969808805108,
+        "lane": "intraday",
+        "pairedSymbols": 1545,
+        "raw": 0.7878447889160209,
+        "reasons": [],
+        "status": "USABLE"
+      },
+      {
+        "calibrationSlope": 1.1544404369157621,
+        "ci": [
+          0.4992644984692968,
+          0.5932196984511794
+        ],
+        "id": "value_AM",
+        "incremental": 0.6424623337296727,
+        "lane": "intraday",
+        "pairedSymbols": 1545,
+        "raw": 0.7822572911522214,
+        "reasons": [],
+        "status": "USABLE"
+      },
+      {
+        "calibrationSlope": 0.9163970733040594,
+        "ci": [
+          0.3431492297681596,
+          0.4541218439934905
+        ],
+        "id": "value_PM1",
+        "incremental": 0.48450247783927497,
+        "lane": "intraday",
+        "pairedSymbols": 1544,
+        "raw": 0.6058850015373307,
+        "reasons": [],
+        "status": "USABLE"
+      },
+      {
+        "calibrationSlope": 0.9695836533044364,
+        "ci": [
+          0.5260589411183456,
+          0.6139765502050667
+        ],
+        "id": "volume_O30",
+        "incremental": 0.6458238090772591,
+        "lane": "intraday",
+        "pairedSymbols": 1545,
+        "raw": 0.7881436930167489,
+        "reasons": [
+          "REDUNDANT_WITH:value_O30"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": 1.1566207675537343,
+        "ci": [
+          0.5004786325477417,
+          0.5939323841485489
+        ],
+        "id": "volume_AM",
+        "incremental": 0.6433981831998209,
+        "lane": "intraday",
+        "pairedSymbols": 1545,
+        "raw": 0.7833818860249401,
+        "reasons": [
+          "REDUNDANT_WITH:value_AM"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": 0.9151849040817893,
+        "ci": [
+          0.34271984969532293,
+          0.4529679702348267
+        ],
+        "id": "volume_PM1",
+        "incremental": 0.48328632882210215,
+        "lane": "intraday",
+        "pairedSymbols": 1544,
+        "raw": 0.607093961891348,
+        "reasons": [
+          "REDUNDANT_WITH:value_PM1"
+        ],
+        "status": "WATCH"
+      }
+    ]
+  },
+  "Wick": {
+    "limitations": "Historical full-session trait cannot be used as current-session predictor before its outcomes mature",
+    "traits": [
+      {
+        "calibrationSlope": 0.4042509189855682,
+        "ci": [
+          0.21754115625396042,
+          0.2796043624562069
+        ],
+        "id": "upper_wick",
+        "incremental": 0.32480374929268885,
+        "lane": "daily",
+        "pairedSymbols": 3764,
+        "raw": 0.5135343880360067,
+        "reasons": [
+          "calibration",
+          "timeRandom"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": 0.39004939221838264,
+        "ci": [
+          0.24115025001166393,
+          0.31304887990491637
+        ],
+        "id": "lower_wick",
+        "incremental": 0.35911108182574547,
+        "lane": "daily",
+        "pairedSymbols": 3764,
+        "raw": 0.4882293038206791,
+        "reasons": [
+          "calibration",
+          "timeRandom"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": 0.35557027233993593,
+        "ci": [
+          0.22230687740250055,
+          0.2939764644247902
+        ],
+        "id": "long_lower",
+        "incremental": 0.3491514345095428,
+        "lane": "daily",
+        "pairedSymbols": 3764,
+        "raw": 0.4611870907073105,
+        "reasons": [
+          "calibration"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": 0.3816213426569945,
+        "ci": [
+          0.21780399183793847,
+          0.28324339937013887
+        ],
+        "id": "long_upper",
+        "incremental": 0.34288839052686443,
+        "lane": "daily",
+        "pairedSymbols": 3764,
+        "raw": 0.4245437425947536,
+        "reasons": [
+          "calibration",
+          "timeRandom"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": 0.37675907627940625,
+        "ci": [
+          0.11225165777248795,
+          0.18663574600382854
+        ],
+        "id": "upper_wick",
+        "incremental": 0.22118762558912805,
+        "lane": "intraday",
+        "pairedSymbols": 3694,
+        "raw": 0.3376562331902916,
+        "reasons": [
+          "calibration",
+          "timeRandom"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": 0.37571309539464864,
+        "ci": [
+          0.12292498725189835,
+          0.18388896305752558
+        ],
+        "id": "lower_wick",
+        "incremental": 0.22428959577995267,
+        "lane": "intraday",
+        "pairedSymbols": 3694,
+        "raw": 0.226553998378129,
+        "reasons": [
+          "raw",
+          "calibration",
+          "timeRandom",
+          "tail"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": 0.2966632698394196,
+        "ci": [
+          0.09172074526020825,
+          0.15018952694680102
+        ],
+        "id": "long_lower",
+        "incremental": 0.19078425670968874,
+        "lane": "intraday",
+        "pairedSymbols": 3694,
+        "raw": 0.2964546261337868,
+        "reasons": [
+          "raw",
+          "calibration",
+          "tail"
+        ],
+        "status": "WATCH"
+      },
+      {
+        "calibrationSlope": 0.22490590334241523,
+        "ci": [
+          0.050628742852872395,
+          0.12224063899993917
+        ],
+        "id": "long_upper",
+        "incremental": 0.14143262253708916,
+        "lane": "intraday",
+        "pairedSymbols": 3694,
+        "raw": 0.2285701973652991,
+        "reasons": [
+          "raw",
+          "incremental",
+          "calibration",
+          "timeRandom",
+          "tail"
+        ],
+        "status": "WATCH"
+      }
+    ]
+  }
+}

@@ -1,0 +1,70 @@
+name: Phase57 LONG-only L0 Replication
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-long-only-l0-replication.yml
+      - scripts/sanitize_phase57_long_only_l0_census.mjs
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  development-b-replication:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SOURCE_RUN_ID: 34916384636
+      SOURCE_ARTIFACT: phase57-long-only-formal-l0-34916384636
+      JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Download the approved encrypted L0 cache
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.SOURCE_ARTIFACT }}
+          path: ${{ runner.temp }}/l0-source
+          repository: Iam-2squared/ark-terminal
+          run-id: ${{ env.SOURCE_RUN_ID }}
+          github-token: ${{ github.token }}
+      - name: Verify, decrypt, and mount the same immutable cache
+        shell: bash
+        run: |
+          test -n "${JQUANTS_API_KEY:-}"
+          cd "$RUNNER_TEMP/l0-source"
+          EXPECTED=$(cut -d' ' -f1 private-cache.tar.gz.enc.sha256)
+          ACTUAL=$(sha256sum private-cache.tar.gz.enc | cut -d' ' -f1)
+          test "$EXPECTED" = "$ACTUAL"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -in private-cache.tar.gz.enc -out "$RUNNER_TEMP/private-cache.tar.gz"
+          tar -tzf "$RUNNER_TEMP/private-cache.tar.gz" | awk '!/^phase57-l0-cache\// {bad=1} END {exit bad}'
+          tar -C "$RUNNER_TEMP" -xzf "$RUNNER_TEMP/private-cache.tar.gz"
+      - name: Run fixed-definition Development B replication
+        shell: bash
+        run: |
+          mkdir -p artifacts/phase57-long-only-l0-replication
+          node scripts/run_phase57_long_only_formal_l0_from_cache.mjs --cache-root "$RUNNER_TEMP/phase57-l0-cache" --partition DEVELOPMENT_B --output "$RUNNER_TEMP/census-development-b.json"
+          node scripts/sanitize_phase57_long_only_l0_census.mjs --input "$RUNNER_TEMP/l0-source/census-development-a.json" --output artifacts/phase57-long-only-l0-replication/census-development-a.sanitized.json
+          node scripts/sanitize_phase57_long_only_l0_census.mjs --input "$RUNNER_TEMP/census-development-b.json" --output artifacts/phase57-long-only-l0-replication/census-development-b.sanitized.json
+          sha256sum artifacts/phase57-long-only-l0-replication/*.json > artifacts/phase57-long-only-l0-replication/census.sha256
+      - name: Remove mounted plaintext and preserve the encrypted integrated cache
+        shell: bash
+        run: |
+          cp "$RUNNER_TEMP/l0-source/private-cache.tar.gz.enc" artifacts/phase57-long-only-l0-replication/private-cache.tar.gz.enc
+          cp "$RUNNER_TEMP/l0-source/private-cache.tar.gz.enc.sha256" artifacts/phase57-long-only-l0-replication/private-cache.tar.gz.enc.sha256
+          rm -rf -- "$RUNNER_TEMP/phase57-l0-cache"
+          rm -f -- "$RUNNER_TEMP/private-cache.tar.gz" "$RUNNER_TEMP/census-development-b.json"
+      - name: Upload encrypted integrated cache and sanitized A/B censuses
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-long-only-l0-replication-${{ github.run_id }}
+          path: artifacts/phase57-long-only-l0-replication/
+          if-no-files-found: error
+          retention-days: 21

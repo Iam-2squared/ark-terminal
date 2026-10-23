@@ -1,0 +1,20 @@
+name: Phase57 CCMG focused contract
+on:
+  pull_request:
+    paths:
+      - 'scripts/phase57_ccmg_*.py'
+      - 'tests/test_phase57_ccmg_guard.py'
+      - '.github/workflows/phase57-ccmg-focused.yml'
+  workflow_dispatch:
+jobs:
+  focused-contract:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check frozen CCMG state, ceiling, fills and safety
+        run: python -m unittest tests.test_phase57_ccmg_guard -v

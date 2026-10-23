@@ -1,0 +1,131 @@
+name: Phase57 LONG-only Eligibility-Aware Measurement
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-long-only-eligibility-measurement.yml
+      - scripts/run_phase57_long_only_eligibility_measurement.py
+      - scripts/test_phase57_long_only_eligibility_measurement.py
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: phase57-eligibility-measurement-single-run
+  cancel-in-progress: false
+
+jobs:
+  eligibility-measurement-only:
+    if: github.ref == 'refs/heads/research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      NODE_OPTIONS: --max-old-space-size=6144
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install fixed aggregation libraries (no model library)
+        run: pip install numpy==2.3.5 pandas==2.2.3 scipy==1.17.0
+      - name: Synthetic eligibility measurement tests only
+        run: |
+          node --test predict/tests/phase57-long-only-corrected-measurement.test.mjs
+          python scripts/test_phase57_long_only_corrected_measurement.py
+          python scripts/test_phase57_long_only_eligibility_measurement.py
+      - name: Download saved encrypted Development base
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-long-only-l0-replication-34917676944
+          path: ${{ runner.temp }}/eligibility-base
+          repository: Iam-2squared/ark-terminal
+          run-id: 34917676944
+          github-token: ${{ github.token }}
+      - name: Download saved L1 Minute checkpoints
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-l1-minute-shard-*-34926225832
+          path: ${{ runner.temp }}/eligibility-l1
+          repository: Iam-2squared/ark-terminal
+          run-id: 34926225832
+          github-token: ${{ github.token }}
+      - name: Download saved C+D Minute checkpoints
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-l2-minute-shard-*-34936002178
+          path: ${{ runner.temp }}/eligibility-l2
+          repository: Iam-2squared/ark-terminal
+          run-id: 34936002178
+          github-token: ${{ github.token }}
+      - name: Download saved additional Development checkpoints
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-v2-minute-shard-*-34964031692
+          path: ${{ runner.temp }}/eligibility-v2
+          repository: Iam-2squared/ark-terminal
+          run-id: 34964031692
+          github-token: ${{ github.token }}
+      - name: Download saved C+D Ridge weights (no fit)
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-long-only-l2-development-34944665187
+          path: ${{ runner.temp }}/eligibility-weights
+          repository: Iam-2squared/ark-terminal
+          run-id: 34944665187
+          github-token: ${{ github.token }}
+      - name: Verify and mount existing private cache (no provider calls)
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        shell: bash
+        run: |
+          test -n "${JQUANTS_API_KEY:-}"
+          test "$(find "$RUNNER_TEMP/eligibility-l1" -name acquisition-summary.json | wc -l)" = 2
+          test "$(find "$RUNNER_TEMP/eligibility-l2" -name acquisition-summary.json | wc -l)" = 4
+          test "$(find "$RUNNER_TEMP/eligibility-v2" -name acquisition-summary.json | wc -l)" = 2
+          mapfile -t summaries < <(find "$RUNNER_TEMP/eligibility-l1" -name acquisition-summary.json | sort)
+          jq -s '[.[].unavailable[].sessionDate] | unique' "${summaries[@]}" > "$RUNNER_TEMP/eligibility-unavailable.json"
+          test "$(jq length "$RUNNER_TEMP/eligibility-unavailable.json")" = 4
+          cd "$RUNNER_TEMP/eligibility-base"
+          test "$(cut -d' ' -f1 private-cache.tar.gz.enc.sha256)" = "$(sha256sum private-cache.tar.gz.enc | cut -d' ' -f1)"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -in private-cache.tar.gz.enc -out "$RUNNER_TEMP/eligibility-base.tar.gz"
+          tar -C "$RUNNER_TEMP" -xzf "$RUNNER_TEMP/eligibility-base.tar.gz"
+          while IFS= read -r encrypted; do
+            test "$(cut -d' ' -f1 "${encrypted}.sha256")" = "$(sha256sum "$encrypted" | cut -d' ' -f1)"
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -in "$encrypted" | tar -C "$RUNNER_TEMP/phase57-l0-cache" -xzf -
+          done < <(find "$RUNNER_TEMP/eligibility-l1" "$RUNNER_TEMP/eligibility-l2" "$RUNNER_TEMP/eligibility-v2" -name minute-shard.tar.gz.enc | sort)
+      - name: Reconstruct evaluator-only rows from saved Development (no fit)
+        run: |
+          node scripts/prepare_phase57_long_only_corrected_measurement.mjs \
+            --cache-root "$RUNNER_TEMP/phase57-l0-cache" \
+            --freeze-report "$RUNNER_TEMP/eligibility-weights/l2-selector-freeze-report.json" \
+            --unavailable-sessions "$RUNNER_TEMP/eligibility-unavailable.json" \
+            --output-dir "$RUNNER_TEMP/eligibility-private-datasets"
+      - name: Apply causal eligibility before Ridge rank and measure once
+        run: |
+          mkdir -p artifacts/phase57-long-only-eligibility-measurement
+          python scripts/run_phase57_long_only_eligibility_measurement.py \
+            --dataset-dir "$RUNNER_TEMP/eligibility-private-datasets" \
+            --contract-sha 2998675a217317e4658272129d8759f16d11cc7e \
+            --output artifacts/phase57-long-only-eligibility-measurement/eligibility-measurement-report.json
+      - name: Purge private inputs
+        if: always()
+        shell: bash
+        run: |
+          rm -rf -- "$RUNNER_TEMP/phase57-l0-cache" "$RUNNER_TEMP/eligibility-private-datasets" "$RUNNER_TEMP/eligibility-base.tar.gz" "$RUNNER_TEMP/eligibility-base" "$RUNNER_TEMP/eligibility-l1" "$RUNNER_TEMP/eligibility-l2" "$RUNNER_TEMP/eligibility-v2" "$RUNNER_TEMP/eligibility-weights"
+      - name: Upload aggregate evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-long-only-eligibility-measurement-${{ github.run_id }}
+          path: artifacts/phase57-long-only-eligibility-measurement/
+          if-no-files-found: error
+          retention-days: 21

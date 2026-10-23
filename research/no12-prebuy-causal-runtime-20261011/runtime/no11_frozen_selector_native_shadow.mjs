@@ -38,7 +38,10 @@ const signature=bytes=>createHash('sha1')
 const minuteOf=time=>Number(time.slice(0,2))*60+Number(time.slice(3,5));
 
 export function inspectFrozenSelectorAsset(){
-  const bytes=fs.readFileSync(FREEZE_FILE);
+  // Windows Git may materialize CRLF. Verify the exact original Git blob
+  // after in-memory LF normalization; never rewrite or change Frozen bytes.
+  const raw=fs.readFileSync(FREEZE_FILE);
+  const bytes=Buffer.from(raw.toString('utf8').replace(/\r\n/g,'\n'));
   assert(signature(bytes)===FROZEN_JSON_BLOB,'FROZEN_JSON_BLOB_MISMATCH');
   const obj=JSON.parse(bytes.toString('utf8')).freezePayload;
   const spec=obj.selectorSpecification;

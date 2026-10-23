@@ -14,7 +14,10 @@ $rootRepo=(Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
 $fields=@(
  (-join [char[]]@(0x73fe,0x5728,0x65e5,0x4ed8)),
  (-join [char[]]@(0x73fe,0x5728,0x5024)),
- (-join [char[]]@(0x73fe,0x5728,0x5024,0x8a73,0x7d30,0x6642,0x523b))
+ (-join [char[]]@(0x73fe,0x5728,0x5024,0x8a73,0x7d30,0x6642,0x523b)),
+ (-join [char[]]@(0x51fa,0x6765,0x9ad8)),
+ (-join [char[]]@(0x58f2,0x8cb7,0x4ee3,0x91d1)),
+ (-join [char[]]@(0x51fa,0x6765,0x9ad8,0x52a0,0x91cd,0x5e73,0x5747))
 )
 function QuoteFormula([string]$symbol,[string]$field) {
  if($symbol -cnotmatch '^[0-9A-Z]{4}\.T$' -or $field -cnotin $fields) {
@@ -59,6 +62,12 @@ function NumberToken([object]$value){
  if([double]::IsNaN($n)-or [double]::IsInfinity($n)-or $n -le 0){return $null}
  return $n.ToString('R',$ci)
 }
+function NonnegativeToken([object]$value){
+ if($value -isnot [ValueType]){return $null}
+ $n=[double]$value
+ if([double]::IsNaN($n)-or [double]::IsInfinity($n)-or $n -lt 0){return $null}
+ return $n.ToString('R',$ci)
+}
 function SaveImmutable([string]$directory,[object]$payload){
  [void][IO.Directory]::CreateDirectory($directory)
  $data=[Text.UTF8Encoding]::new($false).GetBytes((ConvertTo-Json -InputObject $payload -Depth 8 -Compress)+[char]10)
@@ -76,7 +85,9 @@ if($OfflineSelfTest){
  $bad=$false;try{[void](QuoteFormula '7203.T");BAD(' $fields[1])}catch{$bad=$true}
  if(-not $bad){throw 'NO11_QWATCH_OFFLINE_INJECTION_FAILED'}
  $day=DateToken ([datetime]'2026-10-23');$clock=ClockToken ([double](9*3600+30*60+5)/86400)
- if($day -cne '2026-10-23' -or $clock -cne '09:30:05' -or (NumberToken '101') -ne $null){
+ if($day -cne '2026-10-23' -or $clock -cne '09:30:05' -or
+    (NumberToken '101') -ne $null -or
+    (NonnegativeToken ([double]0)) -cne '0' -or $fields.Count -ne 6){
   throw 'NO11_QWATCH_OFFLINE_PARSER_FAILED'
  }
  Write-Host 'NO11_QWATCH_OFFLINE_SELFTEST=PASS'
@@ -206,9 +217,9 @@ public static class No11QuoteWatchWindow {
  $sheet.Name='ARK_NO11_PASS_QUOTES'
  $sheet.Cells.Item(1,1).Value2='PUBLIC_SYMBOL'
  for($j=0;$j -lt $fields.Count;$j++){$sheet.Cells.Item(1,$j+2).Value2=('FIELD_'+$j)}
- # Populate 348x4 worksheet entries with ONE bulk COM assignment, not
- # 1,000+ individual COM writes. This also reduces RSS-startup lag/overhead.
- $grid=[Array]::CreateInstance([object],$symbols.Count,4)
+ # One bulk COM assignment for six vendor market fields + symbol identity.
+ # These are 348 MARKET SYMBOLS, not 348*6 market capacity symbols.
+ $grid=[Array]::CreateInstance([object],$symbols.Count,7)
  for($i=0;$i -lt $symbols.Count;$i++){
   $symbol=$symbols[$i]
   $grid.SetValue($symbol,$i,0)
@@ -216,16 +227,17 @@ public static class No11QuoteWatchWindow {
    $grid.SetValue((QuoteFormula $symbol $fields[$j]),$i,$j+1)
   }
  }
- $sheet.Range(('A2:D{0}' -f ($symbols.Count+1))).Formula=$grid
+ $sheet.Range(('A2:G{0}' -f ($symbols.Count+1))).Formula=$grid
  $stage='RSS_WARMUP'
  Start-Sleep -Seconds $WarmupSeconds
  $stage='CAPTURE_QUOTES'
  $start=NowJst
- $values=$sheet.Range(('A2:D{0}' -f ($symbols.Count+1))).Value2
+ $values=$sheet.Range(('A2:G{0}' -f ($symbols.Count+1))).Value2
  $end=NowJst
  if($values -isnot [array] -or $values.Rank -ne 2){throw 'NO11_QWATCH_EXCEL_VALUES_INVALID'}
  $records=New-Object System.Collections.ArrayList
- $validQuotes=0;$freshQuotes=0
+ $validQuotes=0;$freshQuotes=0;$fullVaFields=0
+ $hintYen=0;$hintThousands=0;$hintUnresolved=0
  $i0=$values.GetLowerBound(0);$j0=$values.GetLowerBound(1)
  for($i=0;$i -lt $symbols.Count;$i++){
   $row=$i0+$i;$symbol=$symbols[$i]
@@ -234,6 +246,24 @@ public static class No11QuoteWatchWindow {
   $day=DateToken $values.GetValue($row,$j0+1)
   $price=NumberToken $values.GetValue($row,$j0+2)
   $clock=ClockToken $values.GetValue($row,$j0+3)
+  $cumVolume=NonnegativeToken $values.GetValue($row,$j0+4)
+  $cumTurnover=NonnegativeToken $values.GetValue($row,$j0+5)
+  $vendorVwap=NumberToken $values.GetValue($row,$j0+6)
+  $unitHint='UNRESOLVED';$ratioResidualPct=$null
+  if($null -ne $cumVolume -and $null -ne $cumTurnover -and
+     $null -ne $vendorVwap -and [double]$cumVolume -gt 0){
+   $fullVaFields++
+   $ratio=[double]$cumTurnover/[double]$cumVolume
+   $quotedVwap=[double]$vendorVwap
+   $errorY=100*[math]::Abs($ratio-$quotedVwap)/$quotedVwap
+   $errorK=100*[math]::Abs(1000*$ratio-$quotedVwap)/$quotedVwap
+   $ratioResidualPct=[math]::Round([math]::Min($errorY,$errorK),6)
+   if($errorY -lt 0.5 -and $errorY -lt $errorK){
+    $unitHint='JPY_RATIO_NEAR_VENDOR_VWAP';$hintYen++
+   }elseif($errorK -lt 0.5 -and $errorK -lt $errorY){
+    $unitHint='THOUSAND_JPY_RATIO_NEAR_VENDOR_VWAP';$hintThousands++
+   }else{$hintUnresolved++}
+  }else{$hintUnresolved++}
   $age=$null;$fresh=$false
   if($null -ne $day -and $null -ne $clock -and $null -ne $price){
    $validQuotes++
@@ -249,6 +279,11 @@ public static class No11QuoteWatchWindow {
   }
   [void]$records.Add([ordered]@{
    symbol=$symbol;marketDate=$day;lastPrice=$price;marketClock=$clock;
+   cumulativeVolumeRaw=$cumVolume;cumulativeTurnoverRaw=$cumTurnover;
+   vendorVolumeWeightedAverage=$vendorVwap;
+   turnoverUnitProximityHint=$unitHint;
+   vwapRatioResidualPct=$ratioResidualPct;
+   turnoverFieldTimestampCertified=$false;
    ageAtReadEndSeconds=$age;observedFresh30s=$fresh
   })
  }
@@ -262,16 +297,22 @@ public static class No11QuoteWatchWindow {
   requestedSymbols=$symbols.Count;quoteValid=$validQuotes;
   quoteFresh30Seconds=$freshQuotes;
   quoteMissingOrMalformed=$symbols.Count-$validQuotes;
+  fullCumulativeVolumeTurnoverVwapFields=$fullVaFields;
+  turnoverUnitHintYenCount=$hintYen;
+  turnoverUnitHintThousandYenCount=$hintThousands;
+  turnoverUnitHintUnresolvedCount=$hintUnresolved;
   rssMarketExistingFormulaUpperBound=$existing;
   quoteRows=@($records.ToArray());
   scanReadAtomic=false;brokerDeliveryTimestampCertified=false;
-  cumulativeTurnoverVaCertified=false;marketBreadthCertified=false;
+  cumulativeTurnoverVaCertified=false;turnoverFieldClockCertified=false;
+   nativeMinuteVaCertified=false;marketBreadthCertified=false;
   originalSelectorNativeConnected=false;
   dailyPriceBasisCertified=false;marketRightsCertified=false;
   shadowOnly=$true;productionReady=$false;orderTransmission=$false
  }
  $report=SaveImmutable (Join-Path $RunDir 'quote-observations') $payload
  Write-Host ('NO11_QWATCH_OBSERVED={0}|VALID={1}|FRESH30S={2}' -f $symbols.Count,$validQuotes,$freshQuotes)
+ Write-Host ('NO11_VA_CUMULATIVE_FIELDS={0}|YEN_HINT={1}|THOUSAND_YEN_HINT={2}|UNKNOWN={3}' -f $fullVaFields,$hintYen,$hintThousands,$hintUnresolved)
  Write-Host ('NO11_QWATCH_PRIVATE_REPORT='+$report)
  Write-Host 'NO11_SELECTOR_READY=False'
  Write-Host 'ORDER_TRANSMISSION=False'

@@ -1,0 +1,129 @@
+name: Phase57 EXIT v4 Large-Scale Pilot
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/phase57-exit-v4-large-scale-pilot.yml'
+      - 'scripts/build_phase57_exit_v4_large_scale_universe.mjs'
+      - 'scripts/fetch_phase57_exit_v4_large_scale_5m_shard.mjs'
+      - 'scripts/run_phase57_exit_v4_large_scale_shard.mjs'
+      - 'scripts/reduce_phase57_exit_v4_large_scale_shards.mjs'
+      - 'predict/daytrade/phase57-exit-v4-large-scale.js'
+      - 'predict/daytrade/phase57-exit-v4-exact-indexed-replay.js'
+      - 'predict/tests/phase57-exit-v4-large-scale.test.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-exit-v4-large-scale-pilot-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+env:
+  TZ: UTC
+  NODE_OPTIONS: --max-old-space-size=6144
+  CANONICAL_SOURCE_RUN_ID: '31785422471'
+  CANONICAL_ARTIFACT_NAME: phase57-p24-9-oos-canonical-candidate
+
+jobs:
+  test-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: cd predict && node --test tests/phase57-exit-v4-large-scale.test.mjs
+
+  evaluate-pilot:
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        shard_index: [0,1,2,3,4,5,6,7,8,9]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Freeze outcome-independent 50-symbol pilot
+        run: node scripts/build_phase57_exit_v4_large_scale_universe.mjs --output /tmp/v4-pilot/universe.json
+      - name: Fetch read-only historical 5m source shard
+        run: |
+          node scripts/fetch_phase57_exit_v4_large_scale_5m_shard.mjs \
+            --manifest /tmp/v4-pilot/universe.json \
+            --tier pilot \
+            --dates 2026-09-01,2026-09-02,2026-09-03,2026-09-04 \
+            --shard-index '${{ matrix.shard_index }}' \
+            --shard-count 10 \
+            --output '/tmp/v4-pilot/source-${{ matrix.shard_index }}.json'
+      - name: Download byte-frozen v4 development history
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/v4-pilot/canonical
+          gh run download "$CANONICAL_SOURCE_RUN_ID" --repo "$GH_REPO" --name "$CANONICAL_ARTIFACT_NAME" --dir /tmp/v4-pilot/canonical
+          snapshot="$(find /tmp/v4-pilot/canonical -type f -name 'phase57-p24-9-oos-byte-snapshot.json' -print -quit)"
+          test -n "$snapshot"
+          node scripts/build_p25_pinned_history_pack.mjs --snapshot "$snapshot" --output /tmp/v4-pilot/p25-pinned-history-pack.json
+      - name: Replay frozen v4 against fixed 24-bar comparator
+        run: |
+          node scripts/run_phase57_exit_v4_large_scale_shard.mjs \
+            --source '/tmp/v4-pilot/source-${{ matrix.shard_index }}.json' \
+            --history-pack /tmp/v4-pilot/p25-pinned-history-pack.json \
+            --output '/tmp/v4-pilot/evaluation-${{ matrix.shard_index }}.json'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-exit-v4-large-scale-pilot-${{ matrix.shard_index }}
+          path: |
+            /tmp/v4-pilot/universe.json
+            /tmp/v4-pilot/source-${{ matrix.shard_index }}.json
+            /tmp/v4-pilot/evaluation-${{ matrix.shard_index }}.json
+          retention-days: 90
+
+  reduce-pilot:
+    needs: evaluate-pilot
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-exit-v4-large-scale-pilot-*
+          path: /tmp/v4-pilot/shards
+      - name: Reduce all paired shards
+        run: |
+          mkdir -p /tmp/v4-pilot/evaluations
+          find /tmp/v4-pilot/shards -type f -name 'evaluation-*.json' -exec cp {} /tmp/v4-pilot/evaluations/ \;
+          node scripts/reduce_phase57_exit_v4_large_scale_shards.mjs --input-dir /tmp/v4-pilot/evaluations --output /tmp/v4-pilot/evidence.json
+      - name: Enforce research-only boundary
+        run: |
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          const e=JSON.parse(fs.readFileSync('/tmp/v4-pilot/evidence.json','utf8'));
+          if(e.status!=='V4_LARGE_SCALE_HISTORICAL_RECONSTRUCTION_READY'||e.pairedCount<1)throw new Error('pilot evidence not ready');
+          if(e.classification?.formalOos!==false||e.classification?.prospective!==false||e.classification?.promotionEligible!==false||e.classification?.currentUniverseSurvivorshipBias!==true)throw new Error('classification boundary violation');
+          if(e.methodology?.analogPoolRefitAllowed!==false||e.methodology?.entryRetuningAllowed!==false||e.methodology?.exitRetuningAllowed!==false||e.methodology?.resultBasedRetuning!==false||e.methodology?.bestResultOnlyReporting!==false)throw new Error('methodology boundary violation');
+          for(const key of ['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted'])if(e.safety?.[key]!==false)throw new Error(`safety violation: ${key}`);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-exit-v4-large-scale-pilot-evidence
+          path: /tmp/v4-pilot/evidence.json
+          retention-days: 90
+      - name: Safety statement
+        run: |
+          echo 'Historical reconstruction stress diagnostic only; not formal OOS or Prospective evidence.'
+          echo 'No broker, Excel, RSS/MarketSpeed order, paper/live trading, promotion, transmission, or production update.'

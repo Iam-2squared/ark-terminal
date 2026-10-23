@@ -32,4 +32,8 @@ V1の47日や旧4日履歴例外は転用しない。添付原本の再送は不
 
 ## 承認接続・native経路の追加
 
-[ORCHESTRATION-ja.md](ORCHESTRATION-ja.md)と[MARKET_APPROVAL_PACKAGE_DRAFT.json](MARKET_APPROVAL_PACKAGE_DRAFT.json)を参照。旧人工matrix smoke、normalized native工程の接続、実在庫adapter／ownerチャネル未接続を区別する。市場candidate/fit/calibration=0/0/0。MODE BとMODE Cは別の承認であり、今回はどちらにも移行しない。
+[MODE_A_CONNECTION_COMPLETION-ja.md](MODE_A_CONNECTION_COMPLETION-ja.md)、[ORCHESTRATION-ja.md](ORCHESTRATION-ja.md)、[MARKET_APPROVAL_PACKAGE_DRAFT.json](MARKET_APPROVAL_PACKAGE_DRAFT.json)を参照。normalized nativeに加え、承認profile付き月次CSV.gz adapterと、POSIX/Linux向け固定ownerチャネル・別process間の独立producer pin journalを実装した。実source profileの採用とOS owner設定の設置は未完了。optional44列の実source joinも未検証で、SOURCE_NOT_JOINEDとしてNoneを保持する。
+
+POSIX/Linuxの人工月次E2Eは、repository外の未使用outputに対し `python tools/v2_cli.py monthly-host-test --output /tmp/ark-v2-unique-run` を実行する。固定factoryを独立再生成し、通常6工程を6つの別processで検証する。test用Authorityでは市場承認が成立せず、任意の実rowも受け付けない。試験対応は[CONNECTION_TEST_MATRIX.json](CONNECTION_TEST_MATRIX.json)。
+
+[INVENTORY_WINDOW_METADATA.json](INVENTORY_WINDOW_METADATA.json)に先行150日とFIT120/CAL20/VALIDATION20/FINAL40の在庫案、42原本のhashを結合した。研究200日全てと参照45日が既存保護範囲内。利用承認済み日数0、市場candidate/fit/calibration=0/0/0。MODE BとMODE Cは別承認であり、今回はどちらにも移行しない。

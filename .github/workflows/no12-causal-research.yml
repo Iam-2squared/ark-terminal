@@ -110,11 +110,12 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Test original P1 scoring and first-cross without private data or fitting
+      - name: Test original P1 raw features scoring and first-cross without private data or fitting
         shell: bash
         run: |
           python -m pip install --quiet --disable-pip-version-check --only-binary=:all: numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0
           python -B research/no12-prebuy-causal-runtime-20261011/tools/no11_frozen_p1_score_replay.py --self-test
+          python -B research/no12-prebuy-causal-runtime-20261011/tools/no11_frozen_p1_raw_replay.py --self-test
           python -B -m unittest discover -s research/no12-prebuy-causal-runtime-20261011/tests -p 'test_no11_frozen_p1_*.py' -v
       - name: Validate frozen P1 Windows launcher without artifacts or network
         if: matrix.os == 'windows-latest'

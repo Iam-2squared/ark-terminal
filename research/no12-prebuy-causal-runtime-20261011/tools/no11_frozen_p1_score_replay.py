@@ -288,14 +288,65 @@ class FrozenP1Fold:
             self.models.append(model)
             self.references.append(ref)
 
-    def score_batch(self, numeric, categorical):
+    def _validate_matrix_shape(self, numeric, categorical):
+        check(getattr(numeric, "ndim", None) == 2 and numeric.shape[1] == 148
+              and getattr(categorical, "shape", None) == (len(numeric), 15)
+              and getattr(getattr(categorical, "dtype", None), "kind", None) in ("i", "u"),
+              "P1_FEATURE_MATRIX_SHAPE")
+
+    def encode_named_categories(self, categorical_strings):
+        """Return int32 codes and 15 per-column global-unseen cell counts.
+
+        Strings match the frozen global vocabulary exactly, without trimming,
+        normalization or source-label substitution. A new string receives the
+        deterministic code len(column_vocab), which the saved fold transform
+        routes to its existing unseen UNKNOWN bucket. Reserved semantic values
+        such as __MISSING__ retain their original codes. The returned counts
+        describe labels absent from the global vocabulary, not globally known
+        labels that happen to be unseen in this fold's training rows.
+        """
         np = self.np
-        check(numeric.ndim == 2 and numeric.shape[1] == 148
-              and categorical.shape == (len(numeric), 15)
-              and categorical.dtype.kind in "iu", "P1_FEATURE_MATRIX_SHAPE")
+        try:
+            # Object dtype preserves invalid numeric/None/bytes cells so that
+            # validation rejects them; dtype=str would silently relabel them.
+            named = np.asarray(categorical_strings, dtype=object)
+        except (TypeError, ValueError):
+            raise ValueError("P1_NAMED_CATEGORY_MATRIX_SHAPE") from None
+        check(named.ndim == 2 and named.shape[1] == 15,
+              "P1_NAMED_CATEGORY_MATRIX_SHAPE")
+        encoded = np.empty(named.shape, dtype=np.int32)
+        unknown_counts = [0] * 15
+        for j, values in enumerate(self.vocab):
+            lookup = {value: code for code, value in enumerate(values)}
+            unseen = len(values)
+            for i, value in enumerate(named[:, j]):
+                check(isinstance(value, str), "P1_NAMED_CATEGORY_CELL_NOT_STRING")
+                code = lookup.get(value, unseen)
+                encoded[i, j] = code
+                unknown_counts[j] += int(code == unseen)
+        return encoded, unknown_counts
+
+    def score_batch(self, numeric, categorical):
+        """Score frozen integer codes; caller-supplied out-of-vocab codes fail."""
+        np = self.np
+        self._validate_matrix_shape(numeric, categorical)
         for j, values in enumerate(self.vocab):
             check(np.all((categorical[:, j] >= 0) & (categorical[:, j] < len(values))),
                   "P1_CATEGORY_CODE_OUTSIDE_FROZEN_VOCAB")
+        return self._predict_validated(numeric, categorical)
+
+    def score_named_batch(self, numeric, categorical_strings):
+        """Score actual category strings, returning the usual pred/pct/score tuple.
+
+        Call encode_named_categories separately when aggregate unknown counts
+        are needed. No vocabulary, preprocessor or estimator is fitted/changed.
+        """
+        encoded, _ = self.encode_named_categories(categorical_strings)
+        self._validate_matrix_shape(numeric, encoded)
+        return self._predict_validated(numeric, encoded)
+
+    def _predict_validated(self, numeric, categorical):
+        np = self.np
         # out=None avoids the original Linux-only memmap/madvise branch.
         matrix = self.prep.transform(numeric, categorical)
         check(np.isfinite(matrix).all(), "P1_TRANSFORM_NOT_FINITE")

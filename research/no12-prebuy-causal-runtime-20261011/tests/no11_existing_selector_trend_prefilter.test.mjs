@@ -83,6 +83,8 @@ test('unexpected duplicate dates or symbol identity fail closed', () => {
   assert.equal(run([dup]).results[0].status, 'UNKNOWN');
   assert.throws(() => run([history(), history()]), /SYMBOL_IDENTITY_INVALID/);
   assert.throws(() => validateExchangeCalendar(session, sessions.slice(1)),
+    /EXCHANGE_CALENDAR_REQUIRED/);
+  assert.throws(() => validateExchangeCalendar(sessions.at(-2), sessions),
     /EXCHANGE_CALENDAR_COVERAGE_INSUFFICIENT/);
 });
 test('RSS limit is reported, not bypassed by arbitrary top-500 truncation', () => {

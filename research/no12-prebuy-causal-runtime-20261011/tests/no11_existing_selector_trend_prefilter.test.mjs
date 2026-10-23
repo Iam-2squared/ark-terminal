@@ -95,6 +95,10 @@ test('RSS limit is reported, not bypassed by arbitrary top-500 truncation', () =
   assert.equal(r.withinRssMarketCap, false);
   assert.equal(r.truncatedForCap, false);
   assert.equal(r.counts.PASS, 501);
+  assert.throws(() => prefilterOriginalSelectorUniverse({
+    session, decisionCutoffJst: cutoff, tradingSessions: sessions,
+    instruments: [history()], rssMarketCap: 501,
+  }), /UNIVERSE_INPUT_INVALID/);
 });
 test('input objects remain unchanged and decision does not require future outcome', () => {
   const input = history();

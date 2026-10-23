@@ -23,7 +23,8 @@ function validDate(value) {
     new Date(value + 'T00:00:00Z').toISOString().slice(0, 10) === value;
 }
 function jstInstant(value) {
-  if (typeof value !== 'string' || !JST_TIME_RE.test(value)) return null;
+  if (typeof value !== 'string' || !JST_TIME_RE.test(value) ||
+      !validDate(value.slice(0, 10))) return null;
   const parsed = Date.parse(value);
   return Number.isFinite(parsed) ? parsed : null;
 }
@@ -82,10 +83,7 @@ export function evaluateOriginalSelectorTrendG1({
     const bar = mapped.get(session);
     const instant = jstInstant(bar.knownAtJst);
     if (instant === null || instant > cutoff ||
-        !bar.knownAtJst.startsWith(session) &&
-        // Corrected/retrieved older histories can be first observed later;
-        // only require receipt <= decision, never invent an earlier time.
-        !validDate(bar.knownAtJst?.slice(0, 10)))
+        bar.knownAtJst.slice(0, 10) < session)
       return unknown('KNOWN_AT_MISSING_OR_LATE');
     const value = positiveDecimal(bar.close);
     if (value === null) return unknown('CLOSE_INVALID_OR_NOT_ORIGINAL_DECIMAL');
@@ -129,7 +127,7 @@ export function prefilterOriginalSelectorUniverse({
       jstInstant(decisionCutoffJst) === null)
     fail('DECISION_CUTOFF_INVALID');
   if (!Array.isArray(instruments) || !Number.isSafeInteger(rssMarketCap) ||
-      rssMarketCap <= 0) fail('UNIVERSE_INPUT_INVALID');
+      rssMarketCap <= 0 || rssMarketCap > 500) fail('UNIVERSE_INPUT_INVALID');
   const eligibleSymbols = [];
   const results = [];
   const counts = {PASS: 0, WAIT: 0, REJECT: 0, UNKNOWN: 0};

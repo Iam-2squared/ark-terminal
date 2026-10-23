@@ -1,0 +1,31 @@
+name: Phase57 P25 Dynamic Management Trigger
+
+on:
+  workflow_run:
+    workflows: ['Phase57 P25 Evidence Lineage Prep']
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: phase57-p25-dynamic-management-trigger
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch Dynamic HOLD/EXIT persistence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh workflow run phase57-p25-dynamic-management-persistence.yml --repo "$GH_REPO" --ref main
+
+      - name: Safety boundary
+        run: echo 'Trigger only. No broker, Excel, RSS, MARKETSPEED, paper/live trading, promotion, or production writes.'

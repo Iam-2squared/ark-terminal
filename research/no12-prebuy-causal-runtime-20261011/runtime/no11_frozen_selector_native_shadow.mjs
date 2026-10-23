@@ -164,7 +164,7 @@ export function runOriginalFrozenSelectorShadow({
   const previous=validatePreviousWatches(previousWatches,sessionDate,codes,decisionAt);
   const agg=normalizeAndAggregateMinuteRows(nativeMinuteRows);
   const minutes=normalizeMinuteProvenance(nativeMinuteRows);
-  assert(agg.rejected.length===0,'NORMALIZER_DROPPED_MINUTES');
+  assert(agg.audit.rejectedRows===0,'NORMALIZER_DROPPED_MINUTES');
   const grouped=new Map(),rawFeatures=[],rejectReasons={};
   for(const symbol of mask.observedPassSymbols){
     const bars=agg.bars.filter(x=>x.symbol===symbol&&x.sessionDate===sessionDate);

@@ -1,0 +1,152 @@
+name: No12 Prospective Pre-BUY Synthetic Research
+
+on:
+  push:
+    branches:
+      - research/no12-prebuy-causal-runtime-20261011
+    paths:
+      - 'research/no12-prebuy-causal-runtime-20261011/**'
+      - '.github/workflows/no12-causal-research.yml'
+  pull_request:
+    paths:
+      - 'research/no12-prebuy-causal-runtime-20261011/**'
+      - '.github/workflows/no12-causal-research.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  no12-synthetic-offline:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 8
+    steps:
+      - name: Checkout candidate branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 10
+      - name: Fetch pinned safety comparison base for either push or PR event
+        shell: bash
+        run: |
+          set -euo pipefail
+          pinned=4110059f30e9e6b984946897a39df677b22df2f1
+          if ! git cat-file -e "${pinned}^{commit}" 2>/dev/null; then
+            git fetch --no-tags --depth=1 origin "${pinned}"
+          fi
+          git cat-file -e "${pinned}^{commit}"
+      - name: Verify original strategy Freeze was not modified
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f research/ark-integrated-no1-1-freeze-20261008/INTEGRATED_NO1_1_FREEZE.json
+          git diff --exit-code 4110059f30e9e6b984946897a39df677b22df2f1 HEAD -- research/ark-integrated-no1-1-freeze-20261008/
+          git diff --exit-code 4110059f30e9e6b984946897a39df677b22df2f1 HEAD -- integration/no1-1-msii/
+      - name: Exercise market probe formula safety without Excel or broker (Windows only)
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Probe-No12MarketRssChartReadOnly.ps1 -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO12_RSS_CHART_SELFTEST_FAILED' }
+      - name: Exercise isolated 1M RSS formula without Excel or broker (Windows only)
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Probe-No12MarketRss1mReadOnly.ps1 -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO12_RSS_1M_SELFTEST_FAILED' }
+      - name: Check holiday-safe 3000-bar 1M archive formula without broker (Windows only)
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Probe-No12MarketRss1mReadOnly.ps1 -OfflineSelfTest -ArchiveHistoricalOnly -HistoryBars 3000
+          if ($LASTEXITCODE -ne 0) { throw 'NO11_RSS_1M_ARCHIVE_OFFLINE_SELFTEST_FAILED' }
+      - name: Verify RSS-enabled existing Excel chart probe formula offline (Windows only)
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Probe-No11SavedExcelChartInputsReadOnly.ps1 -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO11_EXISTING_EXCEL_CHART_OFFLINE_FAILED' }
+      - name: Validate PC first-observed 1M read-only capture logic offline (Windows only)
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Probe-No11Rss1mFirstObservedReadOnly.ps1 -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO11_FIRST_OBSERVED_OFFLINE_FAILED' }
+      - name: Validate private as-of H2/H3/H5 research smoke runner without Excel (Windows only)
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Run-No11AsOfH235ResearchSmokeReadOnly.ps1 -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO11_ASOF_RESEARCH_SMOKE_SELFTEST_FAILED' }
+      - name: Exercise RssMarket seconds source formula without Excel or broker (Windows only)
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Probe-No12RssMarketSecondsReadOnly.ps1 -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO12_RSS_SECONDS_SELFTEST_FAILED' }
+      - name: Exercise one-click Tuesday 5M 1M seconds sequence without broker (Windows only)
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Run-No12TuesdayReadOnly.ps1 -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO12_TUESDAY_RUNNER_OFFLINE_FAILED' }
+      - name: Test synthetic prebuy ranking and life-cycle on real Node runtime
+        shell: bash
+        run: |
+          node --version
+          node --test research/no12-prebuy-causal-runtime-20261011/tests/*.test.mjs
+      - name: Set up frozen P1 inference test runtime
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test original P1 raw features scoring and first-cross without private data or fitting
+        shell: bash
+        run: |
+          python -m pip install --quiet --disable-pip-version-check --only-binary=:all: numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0
+          python -B research/no12-prebuy-causal-runtime-20261011/tools/no11_frozen_p1_score_replay.py --self-test
+          python -B research/no12-prebuy-causal-runtime-20261011/tools/no11_frozen_p1_raw_replay.py --self-test
+          python -B -m unittest discover -s research/no12-prebuy-causal-runtime-20261011/tests -p 'test_no11_frozen_p1_*.py' -v
+      - name: Validate frozen P1 Windows launcher without artifacts or network
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Run-No11FrozenP1ScoreReplayReadOnly.ps1 -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO11_FROZEN_P1_WINDOWS_SELFTEST_FAILED' }
+      - name: Exercise Windows P1 missing-artifact report without installing or scoring
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $p1PrivateTest = Join-Path $env:RUNNER_TEMP ('no11-p1-' + [guid]::NewGuid().ToString('N'))
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Run-No11FrozenP1ScoreReplayReadOnly.ps1 -RuntimeOnly -NoDialog -PrivateRoot $p1PrivateTest
+          if ($LASTEXITCODE -ne 2) { throw 'NO11_P1_MISSING_ARTIFACT_MUST_BLOCK' }
+          $p1Reports = @(Get-ChildItem -LiteralPath $p1PrivateTest -Filter 'no11-frozen-p1-score-replay-*.json' -File)
+          if ($p1Reports.Count -ne 1) { throw 'NO11_P1_MISSING_RECEIPT_COUNT' }
+          $p1Receipt = Get-Content -Raw -LiteralPath $p1Reports[0].FullName | ConvertFrom-Json
+          if ($p1Receipt.originalP1ModelsExecuted -ne 0 -or $p1Receipt.orderTransmission -ne $false -or $p1Receipt.productionReady -ne $false) { throw 'NO11_P1_MISSING_RECEIPT_FLAGS' }
+          exit 0
+      - name: Validate source contains no Excel order writes, network or live enable
+        shell: bash
+        run: |
+          node --input-type=module -e "
+          import fs from 'node:fs';
+          import path from 'node:path';
+          const d='research/no12-prebuy-causal-runtime-20261011/runtime';
+          for(const p of fs.readdirSync(d)) {
+            const src=fs.readFileSync(path.join(d,p),'utf8');
+            if(/RssStockOrder\s*\(|RssCancelOrder\s*\(|fetch\s*\(|Excel\.Application|productionReady\s*:\s*true|orderTransmission\s*:\s*true|explicitSafetyReset\s*\(/i.test(src))throw Error('NO12_LIVE_OPERATION_FORBIDDEN:'+p);
+          }
+          console.log('NO12_ORDER_TRANSMISSION_FORBIDDEN_PASS=True');
+          "

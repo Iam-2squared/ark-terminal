@@ -47,6 +47,10 @@ def git_blob_hash(data: bytes) -> str:
 
 def load_pinned_sources(path: Path = SCOPE) -> list[dict[str, Any]]:
     raw = path.read_bytes()
+    if git_blob_hash(raw) != SCOPE_GIT_BLOB:
+        # Git for Windows may check out text JSON as CRLF. Only accept exact
+        # LF-normalization back to the originally committed Git blob bytes.
+        raw = raw.replace(b"\r\n", b"\n")
     require(git_blob_hash(raw) == SCOPE_GIT_BLOB, "MODE_B_SCOPE_BLOB_DRIFT")
     document = json.loads(raw)
     require(document.get("schema") == "ARK_V2_MODE_B_SOURCE_SCOPE_DRAFT_V1", "MODE_B_SCOPE_SCHEMA")
@@ -59,10 +63,11 @@ def load_pinned_sources(path: Path = SCOPE) -> list[dict[str, Any]]:
         source_id = row["source_id"]
         require(isinstance(source_id, str) and source_id.startswith(REPO + "/"), "UNKNOWN_SOURCE_REPOSITORY")
         relative = source_id[len(REPO) + 1:]
-        path = PurePosixPath(relative)
-        require(bool(path.parts) and not path.is_absolute() and ".." not in path.parts
-                and "\\" not in relative and ":" not in relative and relative.endswith(".csv.gz")
-                and path.parts[0] == "equities", "UNSAFE_OR_UNEXPECTED_SOURCE_PATH")
+        relative_path = PurePosixPath(relative)
+        require(bool(relative_path.parts) and not relative_path.is_absolute()
+                and ".." not in relative_path.parts and "\\" not in relative
+                and ":" not in relative and relative.endswith(".csv.gz")
+                and relative_path.parts[0] == "equities", "UNSAFE_OR_UNEXPECTED_SOURCE_PATH")
         relative = "raw/" + relative
         require(relative not in seen, "DUPLICATE_PINNED_SOURCE")
         seen.add(relative)
@@ -184,7 +189,8 @@ def restore(dest: Path, sources: list[dict[str, Any]], *,
 
 def default_dest() -> Path:
     local = os.environ.get("LOCALAPPDATA")
-    require(bool(local), "WINDOWS_LOCALAPPDATA_NOT_AVAILABLE")
+    if not local:
+        raise RestoreError("WINDOWS_LOCALAPPDATA_NOT_AVAILABLE")
     return Path(local) / "ArkTerminal" / "SelectorV2" / "Sources"
 
 
@@ -192,7 +198,8 @@ def write_private_receipt(dest: Path, receipt: dict[str, Any]) -> Path:
     # The verified source may live in admin-owned ProgramData. Keep transport
     # receipts in the existing user's profile, not next to protected originals.
     home = os.environ.get("LOCALAPPDATA")
-    require(bool(home), "WINDOWS_LOCALAPPDATA_NOT_AVAILABLE")
+    if not home:
+        raise RestoreError("WINDOWS_LOCALAPPDATA_NOT_AVAILABLE")
     root = Path(home) / "ArkTerminal" / "SelectorV2" / "TransportReceipts"
     require(not root.resolve().is_relative_to(ROOT.resolve()), "PRIVATE_RECEIPT_IN_REPOSITORY")
     root.mkdir(parents=True, exist_ok=True)

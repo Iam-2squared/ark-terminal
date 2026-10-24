@@ -390,6 +390,9 @@ def make_received_candidate(*, p1_decision, watch, reference_row, trace, session
     require(type(score) is dict and "score" in score,
             "P1_MODEL_SCORE_REQUIRED")
     bar_end = p1_decision["barEndJst"]
+    require(isinstance(trace, list) and trace and
+            trace[-1].get("bar_end_minute") ==
+            minute(timestamp(bar_end, session)), "P1_TRACE_NOT_AT_FIRST_INTENT")
     require(reference_row.get("knownAtJst") is not None,
             "RSS_REFERENCE_RECEIPT_REQUIRED")
     return {
@@ -407,7 +410,7 @@ def make_received_candidate(*, p1_decision, watch, reference_row, trace, session
         "referencePrice": reference_row["C"],
         "referenceBarEndJst": bar_end,
         "referenceKnownAtJst": reference_row["knownAtJst"],
-        "stateTrace": trace, "sourceKind": "RSS_CUMULATIVE_PROXY",
+        "stateTrace": deepcopy(trace), "sourceKind": "RSS_CUMULATIVE_PROXY",
         "shadowOnly": True, "productionReady": False,
         "orderTransmission": False,
     }

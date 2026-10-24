@@ -137,7 +137,7 @@ class PolicyAndFeatureTests(unittest.TestCase):
             "selector_to_intent_active_delay": 1,
             "selector_to_entry_active_delay": 1,
         }, trace)
-        asof = self.project({
+        asof = type(self).project({
             "asof_minute": 571, "asof_reference_price": 101.25,
             "first_intent": {"score": .75, "threshold": .583, "intent_minute": 571},
             "selector_price": 99.0, "selector_minute": 570,
@@ -199,7 +199,7 @@ class PolicyAndFeatureTests(unittest.TestCase):
             h.validate_input(r)
 
     def test_active_minutes_do_not_count_lunch_break(self):
-        self.assertEqual(h.active_elapsed(690, 751), 0)
+        self.assertEqual(h.active_elapsed(690, 751), 1)
         self.assertEqual(h.active_elapsed(570, 571), 1)
 
     def test_receipt_clock_gates_actual_local_observation(self):

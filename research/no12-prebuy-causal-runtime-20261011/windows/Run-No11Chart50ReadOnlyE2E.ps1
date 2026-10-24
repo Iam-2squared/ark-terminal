@@ -1,6 +1,6 @@
 # One-command No.1.1 chart50 read-only capture -> strict offline proxy Va join.
 param(
- [switch]$OfflineSelfTest,
+ [switch]$OfflineSelfTest,[switch]$Skip348Quote,
  [string]$RunDir,
  [string]$PinsFile,
  [ValidateRange(2,390)][int]$Samples=4,
@@ -11,11 +11,18 @@ $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 $root=Split-Path -Parent $PSScriptRoot
 $probe=Join-Path $PSScriptRoot 'Probe-No11Chart50ContinuousReadOnly.ps1'
+$quoteProbe=Join-Path $PSScriptRoot 'Probe-No11ObservedPassRssMarketReadOnly.ps1'
 $importer=Join-Path $root 'tools\no11_import_chart50_continuous_snapshot.mjs'
 if($OfflineSelfTest){
  $o=@(& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $probe -OfflineSelfTest -HistoryBars $HistoryBars)
  if($LASTEXITCODE -ne 0 -or -not ($o -contains 'NO11_C50_CONTINUOUS_OFFLINE_SELFTEST=PASS')){
   throw 'NO11_C50_E2E_OFFLINE_PROBE_FAILED'
+ }
+ if(-not $Skip348Quote){
+  $q=@(& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $quoteProbe -OfflineSelfTest)
+  if($LASTEXITCODE -ne 0 -or -not ($q -contains 'NO11_QWATCH_OFFLINE_SELFTEST=PASS')){
+   throw 'NO11_C50_E2E_348_QUOTE_OFFLINE_FAILED'
+  }
  }
  Write-Host 'NO11_C50_E2E_OFFLINE_SELFTEST=PASS'
  Write-Host 'ORDER_TRANSMISSION=False'
@@ -63,6 +70,14 @@ $result=@(& node $importer --folder $folder --plan $plan --decision $latest)
 $code=$LASTEXITCODE
 $result | ForEach-Object {Write-Host $_}
 if($code -ne 0){throw 'NO11_C50_E2E_PRIVATE_IMPORT_FAILED'}
+if(-not $Skip348Quote){
+ $quotes=@(& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $quoteProbe -WarmupSeconds 20)
+ $qcode=$LASTEXITCODE
+ $quotes | ForEach-Object {Write-Host $_}
+ if($qcode -ne 0){
+  throw 'NO11_C50_E2E_348_MARKET_READONLY_PROBE_FAILED'
+ }
+}
 Write-Host 'NO11_C50_E2E_READONLY=COMPLETE_NOT_SELECTOR_NOT_TRADING'
 Write-Host 'NO11_PRODUCTION_READY=False'
 Write-Host 'ORDER_TRANSMISSION=False'

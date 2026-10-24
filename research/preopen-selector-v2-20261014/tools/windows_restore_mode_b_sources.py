@@ -212,7 +212,7 @@ def write_private_receipt(dest: Path, receipt: dict[str, Any]) -> Path:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("operation", choices=("plan", "restore", "verify"))
+    parser.add_argument("operation", choices=("plan", "restore", "verify", "inspect-metadata"))
     parser.add_argument("--destination", type=Path)
     args = parser.parse_args(argv)
     try:
@@ -221,8 +221,22 @@ def main(argv: list[str] | None = None) -> int:
         sources = load_pinned_sources()
         destination = args.destination or default_dest()
         receipt = restore(destination, sources, dry_run=args.operation != "restore")
-        if args.operation == "verify":
+        if args.operation in ("verify", "inspect-metadata"):
             require(receipt["objects_verified"] == OBJECT_COUNT, "SOURCE_OBJECTS_NOT_ALL_VERIFIED")
+        if args.operation == "inspect-metadata":
+            # Reuse the established bounded, Date-first scanner. It consumes
+            # Date/Code only in this scope, never OHLC/turnover numeric fields.
+            from restore_mode_b_sources import metadata_scan
+            profiles = []
+            for row in sources:
+                dates = sorted(set(d for subset in row["requested_dates_by_purpose"].values() for d in subset))
+                source = {**row, "inspection_dates": dates}
+                info = metadata_scan(safe_target(destination, row["relative"]), source,
+                                     limit=512 * 1024 * 1024)
+                profiles.append({"source_sha256": row["source_sha256"], **info})
+            receipt["metadata_scan"] = profiles
+            receipt["metadata_only"] = True
+            receipt["market_numeric_price_reads"] = 0
         if args.operation != "plan":
             receipt["private_receipt"] = str(write_private_receipt(destination, receipt))
         print(json.dumps({key: receipt[key] for key in (

@@ -30,6 +30,8 @@ py -3.12 $restore restore --destination $src
 if ($LASTEXITCODE -ne 0) { throw "WIN_V2_SOURCE_RESTORE_FAILED" }
 py -3.12 $restore verify --destination $src
 if ($LASTEXITCODE -ne 0) { throw "WIN_V2_SOURCE_HASH_FAILED" }
+py -3.12 $restore inspect-metadata --destination $src
+if ($LASTEXITCODE -ne 0) { throw "WIN_V2_METADATA_SCAN_FAILED" }
 ```
 
 `C:\Users\Owner\Desktop\ark-terminal` は**例**。実際のcheckoutを指定する。2026-10-24時点の原本24個・51,429,816 bytesを既存GitHub private J-quants-Eから**保存blob identityで取得**する。新provider契約は不要。

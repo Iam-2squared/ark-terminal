@@ -1,0 +1,47 @@
+{
+  "after_blockers": [
+    "Run header/date/identity-only source inspection for fixed scope.",
+    "Confirm exact units/RAW/dated master/lot/corporate-action suffix and SCHEDULE_ASSUMED knownAt separately from capture time.",
+    "Pin actual source profiles and full MODE B precommit in the OS owner runtime channel.",
+    "Run FIT120/CAL20 census with zero market fits.",
+    "Only after PASS bind MODE C to census and reserve at most 1 candidate/2 fits/2 calibrations."
+  ],
+  "automaticPromotionAllowed": false,
+  "blockers": [
+    {
+      "bytes": 51429816,
+      "evidence": "Connector returns empty base64 for >1MiB files; blob route is UTF8-only. Private CLI clone lacks credentials.",
+      "id": "PRIVATE_SAVED_BINARY_TRANSPORT",
+      "kind": "ACTUAL_TRANSPORT_FAILURE",
+      "objects": 24,
+      "resolution": "Use an already-authenticated owner GitHub CLI/SDK or authorized private filesystem mount to restore the exact saved 24 blobs; no provider acquisition or repeat upload."
+    },
+    {
+      "command": "useradd --system --no-create-home --shell /usr/sbin/nologin ark-v2-worker",
+      "error": "Cannot open audit interface - aborting.",
+      "exit_code": 1,
+      "id": "OWNER_WORKER_OS_INSTALL",
+      "kind": "ACTUAL_OS_FAILURE",
+      "resolution": "An owner administrator on a host supporting normal account management installs the dedicated worker, read-only root code/source metadata, and an independent durable journal; verify across restart before runtime admission."
+    }
+  ],
+  "brokerWriteAllowed": false,
+  "entryAllowed": false,
+  "excelOrderWriteAllowed": false,
+  "executionAllowed": false,
+  "liveTradingAllowed": false,
+  "market_calibrations": 0,
+  "market_candidates": 0,
+  "market_fits": 0,
+  "new_conversational_scope_approval_required": false,
+  "owner_intent": "REGISTERED_NOT_ANOTHER_CONSENT_REQUEST",
+  "paperTradingAllowed": false,
+  "productionReady": false,
+  "productionUpdateAllowed": false,
+  "raw_reupload_required": false,
+  "rssOrderFunctionAllowed": false,
+  "runtime_owner_channel_installed": false,
+  "schema": "ARK_V2_MODE_B_ACTUAL_BOOTSTRAP_BLOCKERS_V1",
+  "transmitted": false,
+  "unknown_exposure_policy": "UNKNOWN_EXPOSURE_FRESH_OOS_CREDIT_ZERO_NOT_A_CENSUS_STOP"
+}

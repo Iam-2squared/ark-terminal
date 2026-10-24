@@ -1,0 +1,142 @@
+{
+  "schema": "ARK_V2_CONNECTION_TEST_MATRIX_V1",
+  "mode": "DESIGN_AND_ENGINEERING",
+  "market_numeric_input": "NONE_GENERATED_FIXTURES_ONLY",
+  "tests": [
+    {
+      "test": "test_market_connections.MarketConnections.test_m01_monthly_slice_skips_poison_before_numeric_parse",
+      "path": "MONTHLY_CSV_DATE_FIRST",
+      "expected": "Only 60 approved-day records parsed; poison other dates skipped; original ordinals preserved"
+    },
+    {
+      "test": "test_market_connections.MarketConnections.test_m02_no_allowlist_rejects_before_any_original_open",
+      "path": "ALLOWLIST_BEFORE_OPEN",
+      "expected": "Missing purpose/date rejected before source hash/file open"
+    },
+    {
+      "test": "test_market_connections.MarketConnections.test_m03_source_contract_missing_rejects_before_raw",
+      "path": "SOURCE_CONTRACT_BEFORE_OPEN",
+      "expected": "Absent pinned tabular profile rejected before any native payload"
+    },
+    {
+      "test": "test_market_connections.MarketConnections.test_m04_monthly_original_hash_mismatch_rejects_before_raw",
+      "path": "ORIGINAL_HASH_BEFORE_OPEN",
+      "expected": "Monthly original/hash mismatch rejected before any native payload"
+    },
+    {
+      "test": "test_market_connections.MarketConnections.test_m05_unit_factor_exact_not_float",
+      "path": "EXACT_UNIT_CONVERSION",
+      "expected": "Explicit turnover factor1000 preserves exact 200000000000 JPY"
+    },
+    {
+      "test": "test_market_connections.MarketConnections.test_m06_ambiguous_raw_suffix_rejected_before_open",
+      "path": "RAW_SUFFIX_LINEAGE",
+      "expected": "Missing comparable RAW suffix rejected before payload"
+    },
+    {
+      "test": "test_market_connections.MarketConnections.test_m07_adjusted_column_is_not_raw_fallback",
+      "path": "RAW_COLUMN_POLICY",
+      "expected": "Adjusted Close cannot replace RAW Close"
+    },
+    {
+      "test": "test_market_connections.MarketConnections.test_m08_master_explicit_alpha_identity_and_kind",
+      "path": "DATED_SECURITY_IDENTITY",
+      "expected": "Explicit alpha identity and ETF kind retained without suffix inference"
+    },
+    {
+      "test": "test_market_connections.MarketConnections.test_m09_decompression_limit_blocks",
+      "path": "DECOMPRESSION_LIMIT",
+      "expected": "Compressed source cannot exceed approved uncompressed bound"
+    },
+    {
+      "test": "test_market_connections.MarketConnections.test_m10_protected_slice_blocks_before_hash_read",
+      "path": "PROTECTED_SLICE",
+      "expected": "Protected target date rejected before source hashing"
+    },
+    {
+      "test": "test_market_connections.MarketConnections.test_m11_journal_survives_new_authority_instance",
+      "path": "DURABLE_PRODUCER_PIN",
+      "expected": "New Authority instance reloads pin from separate host journal"
+    },
+    {
+      "test": "test_market_connections.MarketConnections.test_m12_sidecar_never_installs_model_trust",
+      "path": "UNTRUSTED_PICKLE",
+      "expected": "Artifact sidecar cannot grant model-load authority"
+    },
+    {
+      "test": "test_market_connections.MarketConnections.test_m13_overlapping_journal_refused",
+      "path": "SEPARATE_TRUST_ROOT",
+      "expected": "Journal cannot overlap source/output"
+    },
+    {
+      "test": "test_market_connections.MarketConnections.test_m14_world_writable_owner_config_refused",
+      "path": "OS_OWNER_PERMISSIONS",
+      "expected": "Writable untrusted approval config refused"
+    },
+    {
+      "test": "test_market_connections.MarketConnections.test_m15_symlink_owner_config_refused",
+      "path": "OS_SYMLINK",
+      "expected": "Symlink owner config refused"
+    },
+    {
+      "test": "test_market_connections.MarketConnections.test_m16_test_channel_cannot_be_market_channel",
+      "path": "TEST_MARKET_ISOLATION",
+      "expected": "Test-only channel cannot load as market authority"
+    },
+    {
+      "test": "test_market_connections.MarketConnections.test_m17_reconstructed_factory_rejects_changed_or_real_row_pin",
+      "path": "FACTORY_RECONSTRUCTION",
+      "expected": "Changed/real byte pin refused by independent synthetic factory"
+    },
+    {
+      "test": "test_market_connections.MarketConnections.test_m18_journal_event_replay_cannot_overwrite",
+      "path": "IMMUTABLE_START",
+      "expected": "Fit-start journal cannot be overwritten or retried"
+    },
+    {
+      "test": "test_market_connections.MarketConnections.test_m19_calendar_cash_excludes_ose_holiday",
+      "path": "CASH_CALENDAR",
+      "expected": "Cash sessions1/2 retained; OSE-only holiday3 excluded"
+    },
+    {
+      "test": "test_market_connections.MarketConnections.test_m20_calendar_prices_not_accepted_as_metadata",
+      "path": "CALENDAR_SCHEMA",
+      "expected": "Price-bearing input not accepted as calendar metadata"
+    },
+    {
+      "test": "test_market_connections.MarketConnections.test_m21_latest_inventory_keeps_protected_days_and_zero_permission",
+      "path": "LATEST_WINDOW",
+      "expected": "Latest protected dates retained; all700 dataset/date bindings stay unapproved"
+    },
+    {
+      "test": "test_market_connections.MarketConnections.test_m22_calendar_gaps_are_not_exchange_holidays",
+      "path": "CALENDAR_CONTINUITY",
+      "expected": "Missing calendar-day metadata is an error, not an assumed holiday"
+    }
+  ],
+  "e2e": {
+    "command": "monthly-host-test",
+    "entrypoint": "NORMAL_SIX_STAGE_CLI_WITH_OS_CHANNEL_TEST_DOUBLE",
+    "input": "GENERATED_MONTHLY_CSV_GZIP",
+    "stages": [
+      "census",
+      "train",
+      "calibrate",
+      "predict",
+      "evaluate",
+      "restore-verify"
+    ],
+    "expected": {
+      "separate_stage_processes": 6,
+      "isolated_candidates": 1,
+      "isolated_fits": 2,
+      "isolated_calibrations": 2,
+      "restore_difference": 0,
+      "market_candidates": 0,
+      "market_fits": 0,
+      "market_calibrations": 0,
+      "final": "UNOPENED_AFTER_ARTIFICIAL_VALIDATION_FAIL"
+    }
+  },
+  "ci_required": "LATEST_HEAD_DEDICATED_WORKFLOW_AND_DECODED_JOB_LOG"
+}

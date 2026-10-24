@@ -1,0 +1,18 @@
+{
+  "schema": "ARK_V2_MODE_B_PREPARATION_TEST_MATRIX_V1",
+  "test_file": "tests/test_mode_b_preparation.py",
+  "market_approval_established": false,
+  "tests": {
+    "test_b01_layer_winners_losers_unknown": "各層のraw/clean1/3/5・Low3/5・UNKNOWNと教師class support。独立2 known/1 unknown fixture",
+    "test_b02_big_winner_exclusion_baselines": "master/price/G0別の大Winner取りこぼし率",
+    "test_b03_feature_zero_observed_missing_not_zero": "95列の0実測とNone欠測の分離",
+    "test_b04_oracle_calendar_denominator_and_cal_not_optimized": "候補0日もoracle分母に含む。CALはoracle最適化なし",
+    "test_b05_evaluation_role_rejected": "VALIDATION/FINALをcensus対象にしない",
+    "test_b06_teacher_date_leak_rejected": "対象区分外教師の日付混入拒否",
+    "test_b07_empty_denominators_none_and_no_fit": "分母0=N/A、fit call0",
+    "test_b08_support_block_preserves_private_diagnostics_and_zero_fit": "同じnative→G0/G1/G2→特徴→教師→診断保存経路でsupport停止。fit0、VAL/FINAL未開封、失敗access保持"
+  },
+  "retained_owner_tests": "tests/test_market_connections.py: OS所有権・symlink拒否、独立journal再接続、偽artifact/承認拒否",
+  "retained_e2e": "monthly-host-test: 通常6工程を6別processで実行。隔離人工承認のみ",
+  "acceptance": "最新PR HEADの専用CI decoded logとrun/jobをPR本文に結合"
+}

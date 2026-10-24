@@ -189,8 +189,12 @@ def default_dest() -> Path:
 
 
 def write_private_receipt(dest: Path, receipt: dict[str, Any]) -> Path:
-    root = dest.resolve().parent / "TransportReceipts"
-    require(not root.is_relative_to(ROOT.resolve()), "PRIVATE_RECEIPT_IN_REPOSITORY")
+    # The verified source may live in admin-owned ProgramData. Keep transport
+    # receipts in the existing user's profile, not next to protected originals.
+    home = os.environ.get("LOCALAPPDATA")
+    require(bool(home), "WINDOWS_LOCALAPPDATA_NOT_AVAILABLE")
+    root = Path(home) / "ArkTerminal" / "SelectorV2" / "TransportReceipts"
+    require(not root.resolve().is_relative_to(ROOT.resolve()), "PRIVATE_RECEIPT_IN_REPOSITORY")
     root.mkdir(parents=True, exist_ok=True)
     name = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
     path = root / f"win-source-{name}.json"

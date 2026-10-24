@@ -1,3 +1,20 @@
+# V2の現在の実行対象はWindows（2026-10-24更新）
+
+**Linux / WSL / Docker / useradd は不要で、今後の実行手順には使用しない。**
+Windows用の最新手順は [WINDOWS_FIRST_RUNBOOK-ja.md](WINDOWS_FIRST_RUNBOOK-ja.md)。
+認証済みGitHub CLIから保存済み24個の月次原本を復元する
+[windows_restore_mode_b_sources.py](tools/windows_restore_mode_b_sources.py) と、
+Windows標準NTFS ACLを使って**既存ユーザーをworkerにする**
+[Install-ArkV2Windows.ps1](tools/Install-ArkV2Windows.ps1) を追加した。
+
+このWindows移植は実市場fit/較正の実行や原本24件の転送成功を意味しない。
+ownerの既存200日研究利用指示は維持し、分割を再質問しない。
+原本取得・OS設定が整った後もsource profileと用途別grantの証拠検証を行い、
+MODE BでG1/G2の通過数・Clean Winner残存を先に計測する。
+V1/Frozenへの変更・注文・paper・自動昇格は一切しない。
+
+---
+
 # 新Selector V2 — MODE A
 
 詳細契約はV2_DESIGN_DETAIL-ja.md、95列はFEATURE_REGISTRY.json。

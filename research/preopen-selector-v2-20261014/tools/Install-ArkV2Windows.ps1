@@ -61,7 +61,8 @@ New-SafeDirectory $private
 New-SafeDirectory $outputRoot
 New-SafeDirectory $journalRoot
 
-Lock-Directory $programRoot $false $true
+# The shared ArkTerminal parent may belong to other frozen applications.
+# NEVER rewrite its owner or ACL; only secure this V2-specific child.
 Lock-Directory $control $false $true
 Lock-Directory $sourceRoot $false $true
 Lock-Directory $outputRoot $true $false

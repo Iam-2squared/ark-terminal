@@ -114,7 +114,7 @@ def read_acl(path: Path) -> dict[str, Any]:
     try:
         process = subprocess.run(
             ["powershell.exe", "-NoProfile", "-NonInteractive", "-EncodedCommand", encoded],
-            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             timeout=20, check=False,
         )
     except (OSError, subprocess.TimeoutExpired) as exc:

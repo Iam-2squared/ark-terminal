@@ -15,6 +15,8 @@ import {OBSERVED_PASS_GATE_ID,checkObservedPassBeforeBuy}
   from './no11_observed_pass_watch_gate.mjs';
 import {validateNo11Chart50Plan}
   from './no11_rss_chart_50_prescreen.mjs';
+import {RSS_VA_PROXY_RECEIPT}
+  from './no11_rss_vendor_va_shadow_adapter.mjs';
 import {normalizeAndAggregateMinuteRows}
   from '../../../predict/long-only/phase57-long-only-integrated-dataset.js';
 import {normalizeMinuteProvenance}
@@ -63,7 +65,30 @@ function checkClock(session,time){
   assert(L1_DECISION_TIMES_JST.includes(time),'NOT_ORIGINAL_DECISION_TIME');
   return session+'T'+time+':00+09:00';
 }
-function checkReceipt(r,decisionAt){
+function checkReceipt(r,decisionAt,nativeMinuteRows,selectorSymbols){
+  if(r?.schemaId===RSS_VA_PROXY_RECEIPT){
+    const sourceHash=createHash('sha256')
+      .update(JSON.stringify(nativeMinuteRows)).digest('hex');
+    assert(r.readOnly===true&&r.shadowOnly===true&&
+      r.productionReady===false&&r.orderTransmission===false&&
+      r.modelInputDistributionChanged===true&&
+      r.historicalOriginalVaParityNotRequired===true&&
+      r.nativeExactMinuteVaCertified===false&&
+      r.marketTurnoverFieldTimestampCertified===false&&
+      r.inputKind==='RSS_MARKET_OBSERVED_60S_CUMULATIVE_DELTA_PROXY'&&
+      r.decisionAtJst===decisionAt&&
+      r.sessionDate===decisionAt.slice(0,10)&&
+      r.validOneMinuteProxyRows===nativeMinuteRows.length&&
+      r.hasAnyUsableRows===true&&
+      r.derivedMinuteRowsSha256===sourceHash&&
+      Array.isArray(r.selectedSymbols)&&
+      JSON.stringify(r.selectedSymbols)===JSON.stringify(selectorSymbols)&&
+      nativeMinuteRows.every(row=>
+        row.vaProvenance===
+          'RSS_MARKET_CUMULATIVE_60S_ESTIMATE_NOT_VENDOR_MINUTE_VA'),
+      'RSS_APPROX_VA_SOURCE_UNUSABLE');
+    return 'RSS_MARKET_APPROX_60S';
+  }
   assert(r?.schemaId==='ARK_NO11_NATIVE_MINUTE_VA_INPUT_RECEIPT_V1',
     'SOURCE_RECEIPT_REQUIRED');
   assert(r.readOnly===true&&r.orderTransmission===false&&
@@ -77,6 +102,7 @@ function checkReceipt(r,decisionAt){
     r.observedAtJst&&TIME.test(r.observedAtJst)&&
     r.observedAtJst<=decisionAt,'SOURCE_INCOMPLETE_OR_UNVERIFIED');
   // Caller certification is not broker delivery proof. Do not expose green readiness.
+  return 'NATIVE_MINUTE_EXACT_RESEARCH_RECEIPT';
 }
 function maskCheck(mask,session){
   const prior=previousJpxCashTradingDays(session,1)[0];
@@ -174,7 +200,8 @@ export function runOriginalFrozenSelectorShadow({
       chartPlan.protectedChartSymbols.includes(w.symbol)),
       'PERSISTENT_WATCH_NOT_PINNED_IN_CHART50');
   }
-  checkReceipt(sourceReceipt,decisionAt);
+  const minuteVaMode=checkReceipt(sourceReceipt,decisionAt,
+    nativeMinuteRows,selectorSymbols);
   const by=validateMaster(datedMaster,codes,sessionDate);
   const used=validateRawMinuteRows(nativeMinuteRows,codes,sessionDate,decisionAt);
   const previous=validatePreviousWatches(previousWatches,sessionDate,codes,decisionAt);
@@ -276,6 +303,11 @@ export function runOriginalFrozenSelectorShadow({
     originalCrossSectionReferenceUnchanged:false,
     fullMarketEquivalent:false,
     nativeMinuteRowsInspected:used,
+    minuteVaMode,
+    rssApproximateSourceAdopted:minuteVaMode==='RSS_MARKET_APPROX_60S',
+    rssMinuteVaIsNotOriginalExact:minuteVaMode==='RSS_MARKET_APPROX_60S',
+    frozenSourceFeatureDistributionUnchanged:
+      minuteVaMode==='NATIVE_MINUTE_EXACT_RESEARCH_RECEIPT',
     observedCandidatePool:mask.observedPassCount,
     allocatedChartSelectorCandidates:selectorSymbols.length,
     chart50PrescreenApplied:chartPlan!==null,

@@ -23,14 +23,26 @@ def sha_file(path: Path) -> tuple[str,int]:
     return h.hexdigest(),size
 
 
+def _unsafe_link(path: Path) -> bool:
+    # On Windows NTFS, junctions/reparse points are not necessarily symlinks.
+    if path.is_symlink() or (hasattr(path, "is_junction") and path.is_junction()):
+        return True
+    if os.name == "nt":
+        try:
+            return bool(getattr(path.stat(), "st_file_attributes", 0) & 0x400)
+        except FileNotFoundError:
+            return False
+    return False
+
+
 def safe_path(root: Path, relative: str) -> Path:
     rel=PurePosixPath(relative)
     if rel.is_absolute() or ".." in rel.parts or "\\" in relative or ":" in relative or not rel.parts:
         raise V2Error("PATH_TRAVERSAL")
-    if root.is_symlink() or any(p.is_symlink() for p in root.parents):
+    if _unsafe_link(root) or any(_unsafe_link(p) for p in root.parents):
         raise V2Error("SYMLINK_ESCAPE")
     path=root/relative
-    if any(p.is_symlink() for p in (path,*path.parents) if p==root or p.is_relative_to(root)):
+    if any(_unsafe_link(p) for p in (path,*path.parents) if p==root or p.is_relative_to(root)):
         raise V2Error("SYMLINK_ESCAPE")
     if not path.resolve().is_relative_to(root.resolve()):
         raise V2Error("PATH_OUTSIDE_PRIVATE_ROOT")
@@ -38,7 +50,7 @@ def safe_path(root: Path, relative: str) -> Path:
 
 
 def exclusive_bytes(path: Path, data: bytes) -> None:
-    if path.is_symlink() or any(p.is_symlink() for p in path.parents):
+    if _unsafe_link(path) or any(_unsafe_link(p) for p in path.parents):
         raise V2Error("SYMLINK_ESCAPE")
     path.parent.mkdir(parents=True,exist_ok=True)
     fd,tmp=tempfile.mkstemp(prefix=".v2-tmp-",dir=path.parent)

@@ -239,7 +239,7 @@ public static class No11C50Attach {
  $quote.Range(('A2:E{0}' -f ($symbols.Count+1))).Formula=$grid
  for($i=0;$i -lt $charts.Count;$i++){
   $ws=$book.Worksheets.Add()
-  $ws.Name='Q'+String($i+1).PadLeft(2,'0')
+  $ws.Name=('Q{0:D2}' -f ($i+1))
   for($j=0;$j -lt 10;$j++){$ws.Cells.Item(2,$j+1).Value2=$headers[$j]}
   $ws.Range('A1').Formula=(ChartFormula $charts[$i])
   $sheets+=@([pscustomobject]@{symbol=$charts[$i];sheet=$ws})

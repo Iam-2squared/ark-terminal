@@ -12,7 +12,9 @@ import {makeNo11RssVaProxyMinuteFeed}
  from '../runtime/no11_rss_vendor_va_shadow_adapter.mjs';
 
 export const CAPTURE_SCHEMA='ARK_NO11_RSS_CHART50_1M_CAPTURE_V1';
-const SHA=x=>createHash('sha256').update(x).digest('hex');
+const SHA=x=>createHash('sha256')
+ .update(typeof x==='string'||Buffer.isBuffer(x)?x:JSON.stringify(x))
+ .digest('hex');
 const NAME=/^snapshot-([a-f0-9]{64})\.json$/;
 const SYM=/^[0-9A-Z]{4}\.T$/;
 const DATE=/^20\d{2}-\d{2}-\d{2}$/;

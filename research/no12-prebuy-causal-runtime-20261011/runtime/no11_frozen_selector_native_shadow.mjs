@@ -1,12 +1,9 @@
 /**
  * ORIGINAL frozen Phase57 No.1.1 Selector native READ-ONLY runtime.
- * Uses actual frozen Phase57 Ridge parameters and causal feature code.
- * No retrain, fallback score, model refit, RSS order, or broker calls.
- *
- * This is an engineering bridge: an explicit 348-symbol prefilter changes the
- * reference population and is NOT certified to preserve the original
- * all-market selector's economics.  Exact 1M Va, dated master and reference
- * metadata are mandatory; unknown input BLOCKS rather than silently becomes 0.
+ * Fixed Ridge weights, feature math, ten scheduled cutoffs and Top5 unchanged.
+ * Explicit RSS proxy receipts may be processed after a cutoff, within 90s.
+ * Scheduled bar cutoff and actual PC receipt/evaluation time remain distinct.
+ * No fitting, broker calls, orders or economic-parity certification.
  */
 import fs from 'node:fs';
 import {createHash} from 'node:crypto';
@@ -34,16 +31,16 @@ const FREEZE_FILE=new URL('../../../predict/research/phase57-long-only-frozen-se
 const FROZEN_JSON_BLOB='6c707566eb074ce89656be1626bd5aed63d044a8';
 const INTENT='ARK_NO11_NATIVE_FROZEN_SELECTOR_OBSERVED_PREFILTER_SHADOW_V1';
 const SYM=/^[0-9A-Z]{4}\.T$/;
-const TIME=/^20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+09:00$/;
+const TIME=/^20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?\+09:00$/;
 const failure=msg=>{throw Error('NO11_NATIVE_SELECTOR_'+msg);};
 const assert=(ok,msg)=>{if(!ok)failure(msg);};
 const signature=bytes=>createHash('sha1')
   .update(Buffer.from('blob '+bytes.length+'\0')).update(bytes).digest('hex');
 const minuteOf=time=>Number(time.slice(0,2))*60+Number(time.slice(3,5));
+const instant=x=>typeof x==='string'&&TIME.test(x)?Date.parse(x):NaN;
 
 export function inspectFrozenSelectorAsset(){
-  // Windows Git may materialize CRLF. Verify the exact original Git blob
-  // after in-memory LF normalization; never rewrite or change Frozen bytes.
+  // Canonicalize checkout CRLF only in memory; never rewrite Frozen bytes.
   const raw=fs.readFileSync(FREEZE_FILE);
   const bytes=Buffer.from(raw.toString('utf8').replace(/\r\n/g,'\n'));
   assert(signature(bytes)===FROZEN_JSON_BLOB,'FROZEN_JSON_BLOB_MISMATCH');
@@ -65,7 +62,7 @@ function checkClock(session,time){
   assert(L1_DECISION_TIMES_JST.includes(time),'NOT_ORIGINAL_DECISION_TIME');
   return session+'T'+time+':00+09:00';
 }
-function checkReceipt(r,decisionAt,nativeMinuteRows,selectorSymbols){
+function checkReceipt(r,decisionAt,nativeMinuteRows,selectorSymbols,receivedBy){
   if(r?.schemaId===RSS_VA_PROXY_RECEIPT){
     const sourceHash=createHash('sha256')
       .update(JSON.stringify(nativeMinuteRows)).digest('hex');
@@ -76,16 +73,15 @@ function checkReceipt(r,decisionAt,nativeMinuteRows,selectorSymbols){
       r.nativeExactMinuteVaCertified===false&&
       r.marketTurnoverFieldTimestampCertified===false&&
       r.inputKind==='RSS_MARKET_OBSERVED_60S_CUMULATIVE_DELTA_PROXY'&&
-      r.decisionAtJst===decisionAt&&
+      r.decisionAtJst===receivedBy&&
       r.sessionDate===decisionAt.slice(0,10)&&
       r.validOneMinuteProxyRows===nativeMinuteRows.length&&
       r.hasAnyUsableRows===true&&
       r.derivedMinuteRowsSha256===sourceHash&&
       Array.isArray(r.selectedSymbols)&&
       JSON.stringify(r.selectedSymbols)===JSON.stringify(selectorSymbols)&&
-      nativeMinuteRows.every(row=>
-        row.vaProvenance===
-          'RSS_MARKET_CUMULATIVE_60S_ESTIMATE_NOT_VENDOR_MINUTE_VA'),
+      nativeMinuteRows.every(row=>row.vaProvenance===
+        'RSS_MARKET_CUMULATIVE_60S_ESTIMATE_NOT_VENDOR_MINUTE_VA'),
       'RSS_APPROX_VA_SOURCE_UNUSABLE');
     return 'RSS_MARKET_APPROX_60S';
   }
@@ -99,9 +95,9 @@ function checkReceipt(r,decisionAt,nativeMinuteRows,selectorSymbols){
     r.completeFilteredUniverseCoverage===true&&
     r.datedMasterCertified===true&&
     r.corporateActionsCertified===true&&
-    r.observedAtJst&&TIME.test(r.observedAtJst)&&
-    r.observedAtJst<=decisionAt,'SOURCE_INCOMPLETE_OR_UNVERIFIED');
-  // Caller certification is not broker delivery proof. Do not expose green readiness.
+    Number.isFinite(instant(r.observedAtJst))&&
+    instant(r.observedAtJst)<=instant(receivedBy),
+    'SOURCE_INCOMPLETE_OR_UNVERIFIED');
   return 'NATIVE_MINUTE_EXACT_RESEARCH_RECEIPT';
 }
 function maskCheck(mask,session){
@@ -112,8 +108,7 @@ function maskCheck(mask,session){
     mask.strictNoUnknownFallback===true,'DAYPASS_MASK_STALE_OR_UNSAFE');
   assert(Array.isArray(mask.observedPassSymbols)&&
     mask.observedPassCount===mask.observedPassSymbols.length&&
-    mask.observedPassSymbols.length>0&&
-    mask.observedPassSymbols.length<=500&&
+    mask.observedPassSymbols.length>0&&mask.observedPassSymbols.length<=500&&
     new Set(mask.observedPassSymbols).size===mask.observedPassSymbols.length&&
     mask.observedPassSymbols.every(x=>SYM.test(x)),'DAYPASS_MASK_INVALID');
   return new Set(mask.observedPassSymbols);
@@ -122,7 +117,7 @@ function validateMaster(master,codes,session){
   assert(Array.isArray(master),'DATED_MASTER_REQUIRED');
   const by=new Map();
   for(const row of master){
-    assert(row&&SYM.test(row.symbol)&&!by.has(row.symbol) &&
+    assert(row&&SYM.test(row.symbol)&&!by.has(row.symbol)&&
       row.asOfSession===session,'DATED_MASTER_ROW_INVALID');
     const ok=['PRIME','STANDARD','GROWTH'].includes(row.segment)&&
       typeof row.sector==='string'&&row.sector.length>0&&
@@ -136,21 +131,20 @@ function validateMaster(master,codes,session){
   for(const code of codes)assert(by.has(code),'PASS_SYMBOL_MISSING_FROM_MASTER');
   return by;
 }
-function validateRawMinuteRows(raw,codes,session,decisionAt){
+function validateRawMinuteRows(raw,codes,session,decisionAt,receivedBy){
   assert(Array.isArray(raw),'RAW_MINUTE_SOURCE_REQUIRED');
-  const unique=new Set();
-  let used=0;
+  const unique=new Set();let used=0;
   for(const row of raw){
-    assert(row&&SYM.test(row.Code)&&codes.has(row.Code)&&row.Date===session &&
-      typeof row.Time==='string'&&/^\d\d:\d\d(?::\d\d)?$/.test(row.Time),
+    assert(row&&SYM.test(row.Code)&&codes.has(row.Code)&&row.Date===session&&
+      typeof row.Time==='string'&&/^(?:[01]\d|2[0-3]):[0-5]\d(?::00)?$/.test(row.Time),
       'MINUTE_IDENTITY_INVALID');
-    const t=minuteOf(row.Time),start=session+'T'+row.Time.slice(0,5)+':00+09:00';
+    const t=minuteOf(row.Time);
     const end=session+'T'+String(Math.floor((t+1)/60)).padStart(2,'0')+':'+
       String((t+1)%60).padStart(2,'0')+':00+09:00';
-    const maxAllowed=Number(decisionAt.slice(11,13))*60+
-      Number(decisionAt.slice(14,16));
-    assert(t+1<=maxAllowed && TIME.test(row.knownAtJst)&&
-      row.knownAtJst>=end&&row.knownAtJst<=decisionAt,
+    const cutoff=Number(decisionAt.slice(11,13))*60+Number(decisionAt.slice(14,16));
+    assert(t+1<=cutoff&&Number.isFinite(instant(row.knownAtJst))&&
+      instant(row.knownAtJst)>=instant(end)&&
+      instant(row.knownAtJst)<=instant(receivedBy),
       'MINUTE_NOT_CAUSAL_OR_NOT_OBSERVED');
     for(const field of ['O','H','L','C','Vo','Va']){
       assert(typeof row[field]==='number'&&Number.isFinite(row[field]),
@@ -158,8 +152,7 @@ function validateRawMinuteRows(raw,codes,session,decisionAt){
     }
     assert(row.O>0&&row.H>=Math.max(row.O,row.C)&&
       row.L>0&&row.L<=Math.min(row.O,row.C)&&row.Vo>=0&&row.Va>=0&&
-      (row.Vo===0 ? row.Va===0:row.Va>0),
-      'MINUTE_OHLCV_VA_INVALID');
+      (row.Vo===0?row.Va===0:row.Va>0),'MINUTE_OHLCV_VA_INVALID');
     const key=row.Code+'|'+row.Time.slice(0,5);
     assert(!unique.has(key),'MINUTE_DUPLICATE');
     unique.add(key);used++;
@@ -170,13 +163,12 @@ function validatePreviousWatches(previous,session,maskSet,decisionAt){
   assert(Array.isArray(previous),'WATCH_STATE_REQUIRED');
   const seen=new Set();
   for(const w of previous){
-    assert(w.sessionDate===session&&
-      maskSet.has(w.symbol)&&SYM.test(w.symbol)&&
-      typeof w.firstSelectedAtJst==='string'&&
-      typeof w.lastSelectedAtJst==='string'&&
-      TIME.test(w.firstSelectedAtJst)&&TIME.test(w.lastSelectedAtJst)&&
-      w.firstSelectedAtJst<=w.lastSelectedAtJst&&
-      w.lastSelectedAtJst<=decisionAt&&
+    assert(w.sessionDate===session&&maskSet.has(w.symbol)&&SYM.test(w.symbol)&&
+      Number.isFinite(instant(w.firstSelectedAtJst))&&
+      Number.isFinite(instant(w.lastSelectedAtJst))&&
+      instant(w.firstSelectedAtJst)<=instant(w.lastSelectedAtJst)&&
+      instant(w.lastSelectedAtJst)<=instant(decisionAt)&&
+      (w.refreshCount===undefined||Number.isInteger(w.refreshCount)&&w.refreshCount>=0)&&
       !seen.has(w.symbol),'WATCH_STATE_INVALID');
     seen.add(w.symbol);
   }
@@ -184,26 +176,28 @@ function validatePreviousWatches(previous,session,maskSet,decisionAt){
 }
 export function runOriginalFrozenSelectorShadow({
   sessionDate,decisionTimeJst,mask,sourceReceipt,datedMaster,
-  nativeMinuteRows,previousWatches=[],chartPlan=null
+  nativeMinuteRows,previousWatches=[],chartPlan=null,evaluatedAtJst=null
 }={}){
   const decisionAt=checkClock(sessionDate,decisionTimeJst);
+  const receivedBy=evaluatedAtJst??decisionAt;
+  const lag=instant(receivedBy)-instant(decisionAt);
+  assert(Number.isFinite(lag)&&receivedBy.slice(0,10)===sessionDate&&
+    lag>=0&&lag<=90_000,'EVALUATION_CLOCK_INVALID');
   const asset=inspectFrozenSelectorAsset();
   const g1Codes=maskCheck(mask,sessionDate);
   const selectorSymbols=chartPlan===null?mask.observedPassSymbols:
     validateNo11Chart50Plan({chartPlan,mask,sessionDate});
   const codes=new Set(selectorSymbols);
-  assert([...codes].every(s=>g1Codes.has(s)),
-    'CHART50_SYMBOL_OUTSIDE_ORIGINAL_G1_PASS');
+  assert([...codes].every(s=>g1Codes.has(s)),'CHART50_SYMBOL_OUTSIDE_ORIGINAL_G1_PASS');
   if(chartPlan!==null){
-    assert(previousWatches.every(w=>
-      chartPlan.activeWatchSymbols.includes(w.symbol)&&
+    assert(previousWatches.every(w=>chartPlan.activeWatchSymbols.includes(w.symbol)&&
       chartPlan.protectedChartSymbols.includes(w.symbol)),
       'PERSISTENT_WATCH_NOT_PINNED_IN_CHART50');
   }
   const minuteVaMode=checkReceipt(sourceReceipt,decisionAt,
-    nativeMinuteRows,selectorSymbols);
+    nativeMinuteRows,selectorSymbols,receivedBy);
   const by=validateMaster(datedMaster,codes,sessionDate);
-  const used=validateRawMinuteRows(nativeMinuteRows,codes,sessionDate,decisionAt);
+  const used=validateRawMinuteRows(nativeMinuteRows,codes,sessionDate,decisionAt,receivedBy);
   const previous=validatePreviousWatches(previousWatches,sessionDate,codes,decisionAt);
   const agg=normalizeAndAggregateMinuteRows(nativeMinuteRows);
   const minutes=normalizeMinuteProvenance(nativeMinuteRows);
@@ -212,116 +206,79 @@ export function runOriginalFrozenSelectorShadow({
   for(const symbol of selectorSymbols){
     const bars=agg.bars.filter(x=>x.symbol===symbol&&x.sessionDate===sessionDate);
     const frame=minutes.get(sessionDate+'|'+symbol)??[];
-    if(!bars.length||!frame.length){
-      rejectReasons[symbol]='NO_CAUSAL_MINUTE_BARS';continue;
-    }
+    if(!bars.length||!frame.length){rejectReasons[symbol]='NO_CAUSAL_MINUTE_BARS';continue;}
     const detail=by.get(symbol);
-    const feature=buildCausalL1Features({
-      sessionDate,symbol,decisionTimeJst,bars5m:bars,
-      previousAdjustedClose:detail.rawPreviousClose,
-      segment:detail.segment,corporateActionFlag:false
-    });
+    const feature=buildCausalL1Features({sessionDate,symbol,decisionTimeJst,bars5m:bars,
+      previousAdjustedClose:detail.rawPreviousClose,segment:detail.segment,corporateActionFlag:false});
     if(!feature){rejectReasons[symbol]='NO_CAUSAL_FEATURE';continue;}
     const prefix=frame.filter(x=>x.availableMinute<=minuteOf(decisionTimeJst));
     const oldest=bars.filter(x=>x.availableAtJst<=decisionAt);
-    const measured=measureCorrectedRow({
-      feature,bars:oldest,minutes:prefix
-    });
-    if(measured.decisionPriceValid!==1||
-       !(measured.decisionPrice>75)||
-       measured.referenceAgeMin<0||measured.referenceAgeMin>5){
+    const measured=measureCorrectedRow({feature,bars:oldest,minutes:prefix});
+    if(measured.decisionPriceValid!==1||!(measured.decisionPrice>75)||
+      measured.referenceAgeMin<0||measured.referenceAgeMin>5){
       rejectReasons[symbol]='PRICE_OR_FRESHNESS_INELIGIBLE';continue;
     }
-    rawFeatures.push(feature);
-    grouped.set(symbol,{measured,feature});
+    rawFeatures.push(feature);grouped.set(symbol,{measured,feature});
   }
-  // Apply EXACT existing native cross-sectional transformations before scoring.
-  // Filtered universe is a user-directed overlay and NOT equal to original L1.
   const sectors=Object.fromEntries([...by.entries()].map(([sym,row])=>
     [sessionDate+'|'+sym,row.sector]));
   const breadth=addCausalBreadthContext(rawFeatures,{sectorBySymbol:sectors});
   const features=assignCausalLiquidityBuckets(breadth);
   const eligible=[];
-  const requiredNumeric=[
-    'currentReturnPct','momentum30Pct','vwapDistancePct',
-    'vwapSlope15Pct','cumulativeTurnover','volumeAccelerationRatio',
-    'trendEfficiency','rangeExpansionPct','marketBreadthPositivePct',
-    'sectorBreadthPositivePct'
-  ];
+  const requiredNumeric=['currentReturnPct','momentum30Pct','vwapDistancePct',
+    'vwapSlope15Pct','cumulativeTurnover','volumeAccelerationRatio','trendEfficiency',
+    'rangeExpansionPct','marketBreadthPositivePct','sectorBreadthPositivePct'];
   for(const f of features){
-    if(requiredNumeric.some(key=>typeof f[key]!=='number'||
-        !Number.isFinite(f[key]))){
+    if(requiredNumeric.some(key=>typeof f[key]!=='number'||!Number.isFinite(f[key]))){
       rejectReasons[f.symbol]='ORIGINAL_REQUIRED_FEATURE_NOT_OBSERVED';continue;
     }
     let score;
-    try {score=scoreL2Candidate(f,asset.spec.model.configuration);}
+    try{score=scoreL2Candidate(f,asset.spec.model.configuration);}
     catch(e){rejectReasons[f.symbol]='ORIGINAL_FEATURE_INPUT_MISSING';continue;}
-    if(!Number.isFinite(score)){
-      rejectReasons[f.symbol]='SCORE_NONFINITE';continue;
-    }
+    if(!Number.isFinite(score)){rejectReasons[f.symbol]='SCORE_NONFINITE';continue;}
     const measured=grouped.get(f.symbol).measured;
-    eligible.push({
-      sessionDate,symbol:f.symbol,decisionTimestamp:decisionAt,
+    eligible.push({sessionDate,symbol:f.symbol,decisionTimestamp:decisionAt,
       decisionTimeJst,decisionPrice:measured.decisionPrice,
       referenceAgeMin:measured.referenceAgeMin,savedV1Score:score,
-      selectorEventId:sessionDate+'|'+decisionAt+'|'+f.symbol
-    });
+      selectorEventId:sessionDate+'|'+decisionAt+'|'+f.symbol});
   }
-  eligible.sort((a,b)=>b.savedV1Score-a.savedV1Score||
-    a.symbol.localeCompare(b.symbol));
-  const selected=eligible.slice(0,asset.spec.ranking.topN).map((x,i)=>({
-    ...x,newEligibleRank:i+1
-  }));
+  eligible.sort((a,b)=>b.savedV1Score-a.savedV1Score||a.symbol.localeCompare(b.symbol));
+  const selected=eligible.slice(0,asset.spec.ranking.topN).map((x,i)=>({...x,newEligibleRank:i+1}));
   const watches=[...previous.values()].map(v=>({...v}));
   const events=[];
   for(const s of selected){
     const old=previous.get(s.symbol);
+    if(old?.lastSelectedAtJst===decisionAt)continue;
     const eventType=old?'WATCH_REFRESH':'WATCH_FIRST_SELECTION';
-    const current={
-      sessionDate,symbol:s.symbol,
+    const current={sessionDate,symbol:s.symbol,
       firstSelectedAtJst:old?.firstSelectedAtJst??decisionAt,
-      lastSelectedAtJst:decisionAt,
-      refreshCount:old?.refreshCount?old.refreshCount+1:0
-    };
-    if(old?.lastSelectedAtJst===decisionAt)continue; // same-clock retry is idempotent
+      lastSelectedAtJst:decisionAt,refreshCount:old?(old.refreshCount??0)+1:0};
     if(old)watches[watches.findIndex(w=>w.symbol===s.symbol)]=current;
     else watches.push(current);
-    events.push({...s,watchEventType:eventType,
-      firstWatchIdentity:sessionDate+'|'+s.symbol});
+    events.push({...s,watchEventType:eventType,firstWatchIdentity:sessionDate+'|'+s.symbol});
   }
-  // Explicitly NO native runtime or economic parity certification:
-  // cross-section narrowed from original full market and Va not yet supplied
-  // in real-time by RSS.
   return {
     schemaId:INTENT,sessionDate,decisionTimestamp:decisionAt,
-    sourceScope:chartPlan===null?
-      'FILTERED_G1_PASS_USER_DIRECTED_STRATEGY_OVERLAY':
+    sourceCutoffAtJst:decisionAt,evaluatedAtJst:receivedBy,
+    sourceScope:chartPlan===null?'FILTERED_G1_PASS_USER_DIRECTED_STRATEGY_OVERLAY':
       'FILTERED_G1_PASS_PLUS_CHART50_USER_DIRECTED_STRATEGY_OVERLAY',
-    frozenRidgeParametersUnchanged:true,
-    frozenDecisionClocksUnchanged:true,
+    frozenRidgeParametersUnchanged:true,frozenDecisionClocksUnchanged:true,
     frozenModelArtifactSha256:asset.spec.model.configuration.artifactSha256,
-    originalCrossSectionReferenceUnchanged:false,
-    fullMarketEquivalent:false,
-    nativeMinuteRowsInspected:used,
-    minuteVaMode,
+    originalCrossSectionReferenceUnchanged:false,fullMarketEquivalent:false,
+    nativeMinuteRowsInspected:used,minuteVaMode,
     rssApproximateSourceAdopted:minuteVaMode==='RSS_MARKET_APPROX_60S',
     rssMinuteVaIsNotOriginalExact:minuteVaMode==='RSS_MARKET_APPROX_60S',
-    frozenSourceFeatureDistributionUnchanged:
-      minuteVaMode==='NATIVE_MINUTE_EXACT_RESEARCH_RECEIPT',
+    frozenSourceFeatureDistributionUnchanged:minuteVaMode==='NATIVE_MINUTE_EXACT_RESEARCH_RECEIPT',
     observedCandidatePool:mask.observedPassCount,
     allocatedChartSelectorCandidates:selectorSymbols.length,
     chart50PrescreenApplied:chartPlan!==null,
     chartFunctionsReserved:chartPlan?.totalChartFunctionsBudgeted??null,
-    nativeFull348ChartCoverageCertified:false,
-    rawFeatureCandidates:rawFeatures.length,
-    rankableCandidates:eligible.length,
-    skippedCandidates:rejectReasons,
-    selected,watchEvents:events,nextWatches:watches,
-    watchRefreshIdentityPreserved:true,
-    firstEntryP1Executed:false,state9Executed:false,
-    h235Executed:false,capitalExecuted:false,exitExecuted:false,
-    brokerOrderPrepared:false,liveSourceCertified:false,
-    forwardEconomicValidationComplete:false,
+    nativeFull348ChartCoverageCertified:false,rawFeatureCandidates:rawFeatures.length,
+    rankableCandidates:eligible.length,skippedCandidates:rejectReasons,
+    selected,watchEvents:events,nextWatches:watches,watchRefreshIdentityPreserved:true,
+    firstEntryP1Executed:false,state9Executed:false,h235Executed:false,
+    capitalExecuted:false,exitExecuted:false,brokerOrderPrepared:false,
+    liveSourceCertified:false,forwardEconomicValidationComplete:false,
     shadowOnly:true,productionReady:false,orderTransmission:false
   };
 }

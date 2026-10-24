@@ -209,7 +209,12 @@ def run_tick(request, root):
     return payload, str(path)
 
 
-def main(argv=None):
+def main(argv=None, *, should_stop=None):
+    """Optional supervisor callback: True drains once; exceptions stop immediately.
+
+    Standalone CLI behavior is unchanged. The bootstrap owns the collector and
+    uses this hook rather than killing Excel or weakening the data-time gates.
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--session', required=True)
     parser.add_argument('--capture-folder', type=Path)
@@ -224,6 +229,7 @@ def main(argv=None):
     parser.add_argument('--once', action='store_true')
     parser.add_argument('--poll-seconds', type=float, default=2)
     args = parser.parse_args(argv)
+    need(should_stop is None or callable(should_stop), 'SUPERVISOR_CALLBACK_INVALID')
     need(1 <= args.poll_seconds <= 30, 'POLL_INTERVAL_INVALID')
     root = private_path(args.private_root, True)
     for p in (args.plan, args.mask, args.dated_master, args.previous_context):
@@ -253,6 +259,7 @@ def main(argv=None):
         last_summary = None
         try:
             while True:
+                stop_after_tick = bool(should_stop()) if should_stop is not None else False
                 current = now_jst()
                 need(current[:10] == args.session, 'NOT_SELECTED_SESSION_TODAY')
                 if current[11:16] >= '15:26':
@@ -261,7 +268,7 @@ def main(argv=None):
                 new_signature = source_signature(folder)
                 if len(new_signature) < 2:
                     need(time.monotonic() - started <= 300, 'CAPTURE_START_TIMEOUT')
-                    if args.once:
+                    if args.once or stop_after_tick:
                         print('NO11_SERVICE_WAIT=NEEDS_TWO_COMPLETE_SNAPSHOTS')
                         break
                     time.sleep(args.poll_seconds)
@@ -275,6 +282,7 @@ def main(argv=None):
                         'productionReady': False, 'orderTransmission': False}
                     tick = run_tick(request, root)
                     if tick is None:
+                        need(not stop_after_tick, 'COLLECTOR_ENDED_WITH_PARTIAL_CAPTURE')
                         time.sleep(args.poll_seconds)
                         continue
                     payload, checkpoint = tick
@@ -296,7 +304,7 @@ def main(argv=None):
                         'h235Executions': summary.get('h235OriginalModelExecutions', 0),
                         'productionReady': False, 'orderTransmission': False}), flush=True)
                     signature, verify_history = new_signature, False
-                if args.once:
+                if args.once or stop_after_tick:
                     break
                 if last_summary and last_summary.get('lastSourceAtJst'):
                     age = (forward.clock(now_jst(), args.session) -

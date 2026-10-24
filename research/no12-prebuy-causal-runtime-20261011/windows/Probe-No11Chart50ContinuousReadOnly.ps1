@@ -2,6 +2,7 @@
 # Builds one UNSAVED temporary book. Original two Ark workbooks are never changed.
 param(
  [switch]$OfflineSelfTest,[string]$RunDir,[string]$PinsFile,
+ [string]$PreparedPlanFile,[string]$ReadyFile,[string]$StopFile,
  [ValidateRange(2,390)][int]$Samples=4,
  [ValidateRange(50,150)][int]$HistoryBars=120,
  [ValidateRange(5,60)][int]$WarmupSeconds=20
@@ -95,6 +96,52 @@ function SaveSnapshot([string]$folder,[object]$payload){
  finally{$f.Dispose()}
  return $file
 }
+function C50Stopped {
+ return (-not [string]::IsNullOrWhiteSpace($StopFile) -and
+   (Test-Path -LiteralPath $StopFile -PathType Leaf))
+}
+function C50Wait([int]$Milliseconds){
+ $watch=[Diagnostics.Stopwatch]::StartNew()
+ try{
+  while($watch.ElapsedMilliseconds -lt $Milliseconds){
+   if(C50Stopped){return $false}
+   $left=[int]($Milliseconds-$watch.ElapsedMilliseconds)
+   if($left -gt 0){Start-Sleep -Milliseconds ([math]::Min(500,$left))}
+  }
+  return (-not (C50Stopped))
+ }finally{$watch.Stop()}
+}
+function WriteControl([string]$file,[object]$payload){
+ $bytes=[Text.UTF8Encoding]::new($false).GetBytes(
+  (ConvertTo-Json -InputObject $payload -Depth 8 -Compress)+[char]10)
+ $temp=$file+'.pending-'+$PID
+ $f=[IO.File]::Open($temp,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+ try{$f.Write($bytes,0,$bytes.Length);$f.Flush($true)}finally{$f.Dispose()}
+ [IO.File]::Move($temp,$file)
+}
+function CheckControlPath([string]$file){
+ if([string]::IsNullOrWhiteSpace($file)){return}
+ if(-not [IO.Path]::IsPathRooted($file)){throw 'NO11_C50_CONTROL_ABSOLUTE_REQUIRED'}
+ $full=[IO.Path]::GetFullPath($file)
+ if($full.Equals($repo,[StringComparison]::OrdinalIgnoreCase) -or
+    $full.StartsWith($repo+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){
+  throw 'NO11_C50_CONTROL_MUST_BE_PRIVATE'
+ }
+ $parent=Split-Path -Parent $full
+ if(-not (Test-Path -LiteralPath $parent -PathType Container)){
+  throw 'NO11_C50_CONTROL_PARENT_MISSING'
+ }
+ $cursor=$parent
+ while(-not [string]::IsNullOrWhiteSpace($cursor)){
+  $item=Get-Item -LiteralPath $cursor -Force
+  if(($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0){
+   throw 'NO11_C50_CONTROL_REPARSE_FORBIDDEN'
+  }
+  $next=Split-Path -Parent $cursor
+  if($next -ceq $cursor){break};$cursor=$next
+ }
+ if(Test-Path -LiteralPath $full){throw 'NO11_C50_CONTROL_ALREADY_EXISTS'}
+}
 if($OfflineSelfTest){
  if($headers.Count -ne 10 -or $fields.Count -ne 4 -or
     (ChartFormula '7203.T') -cne ('=RssChart($A$2:$J$2,"7203.T","1M",{0})' -f $HistoryBars) -or
@@ -109,6 +156,15 @@ if($OfflineSelfTest){
  Write-Host 'NO11_C50_BROKER_ACCESS=False'
  Write-Host 'ORDER_TRANSMISSION=False'
  exit 0
+}
+CheckControlPath $ReadyFile
+CheckControlPath $StopFile
+if(-not [string]::IsNullOrWhiteSpace($ReadyFile)){
+ CheckControlPath ($ReadyFile+'.closed.json')
+ if(-not [string]::IsNullOrWhiteSpace($StopFile) -and
+    [IO.Path]::GetFullPath($ReadyFile).Equals([IO.Path]::GetFullPath($StopFile),[StringComparison]::OrdinalIgnoreCase)){
+  throw 'NO11_C50_CONTROL_PATHS_OVERLAP'
+ }
 }
 if([string]::IsNullOrWhiteSpace($RunDir)){
  $RunDir=Join-Path $env:LOCALAPPDATA 'ArkTerminal\No12\daily-trend-capture\daily-2026-10-23-3de08f7ea26ae46d'
@@ -129,15 +185,24 @@ finally{Pop-Location}
 if($LASTEXITCODE -ne 0 -or $isDay.Count -ne 1 -or $isDay[0] -cne 'YES'){
  throw 'NO11_C50_NOT_JPX_CASH_TRADING_DAY'
 }
-$arguments=@('--run',$RunDir,'--session',$session)
-if(-not [string]::IsNullOrWhiteSpace($PinsFile)){
- $arguments+=@('--pins-file',$PinsFile)
+if([string]::IsNullOrWhiteSpace($PreparedPlanFile)){
+ $arguments=@('--run',$RunDir,'--session',$session)
+ if(-not [string]::IsNullOrWhiteSpace($PinsFile)){
+  $arguments+=@('--pins-file',$PinsFile)
+ }
+ $lines=@(& node $export @arguments)
+ if($LASTEXITCODE -ne 0){throw 'NO11_C50_PRESCREEN_FAILED'}
+ $match=@($lines | Where-Object {$_ -like 'NO11_CHART50_RECEIPT=*'})
+ if($match.Count -ne 1){throw 'NO11_C50_PRESCREEN_RECEIPT_MISSING'}
+ $planFile=([string]$match[0]).Substring('NO11_CHART50_RECEIPT='.Length)
+}else{
+ if(-not [IO.Path]::IsPathRooted($PreparedPlanFile) -or
+    -not (Test-Path -LiteralPath $PreparedPlanFile -PathType Leaf) -or
+    -not [string]::IsNullOrWhiteSpace($PinsFile)){
+  throw 'NO11_C50_PREPARED_PLAN_INVALID'
+ }
+ $planFile=[IO.Path]::GetFullPath($PreparedPlanFile)
 }
-$lines=@(& node $export @arguments)
-if($LASTEXITCODE -ne 0){throw 'NO11_C50_PRESCREEN_FAILED'}
-$match=@($lines | Where-Object {$_ -like 'NO11_CHART50_RECEIPT=*'})
-if($match.Count -ne 1){throw 'NO11_C50_PRESCREEN_RECEIPT_MISSING'}
-$planFile=([string]$match[0]).Substring('NO11_CHART50_RECEIPT='.Length)
 $receipt=Get-Content -LiteralPath $planFile -Raw -Encoding UTF8 | ConvertFrom-Json
 $plan=$receipt.chartPlan
 if($receipt.schemaId -cne 'ARK_NO11_CHART50_PRIVATE_EXPORT_RECEIPT_V1' -or
@@ -146,6 +211,7 @@ if($receipt.schemaId -cne 'ARK_NO11_CHART50_PRIVATE_EXPORT_RECEIPT_V1' -or
    $plan.orderTransmission -ne $false -or $plan.productionReady -ne $false){
  throw 'NO11_C50_CHART_PLAN_INVALID'
 }
+$planBytesSha=(Get-FileHash -LiteralPath $planFile -Algorithm SHA256).Hash.ToLowerInvariant()
 $charts=@($plan.allRequestedChartSymbols)
 $symbols=@($plan.selectorInputSymbols)
 if($charts.Count -lt 1 -or $symbols.Count -lt 1 -or
@@ -160,6 +226,7 @@ $folder=Join-Path $RunDir ('chart50-shadow-'+$session+'-'+
  $now.ToString('HHmmss',$ci)+'-'+$PID)
 [void][IO.Directory]::CreateDirectory($folder)
 $excel=$null;$book=$null;$quote=$null;$sheets=@();$failed=$false;$stage='PRECHECK'
+$temporaryClosed=$true;$continueCapture=$true
 try{
  $tcp=New-Object Net.Sockets.TcpClient;$ui=$false
  try{$tcp.Connect('127.0.0.1',8767);$ui=$tcp.Connected}
@@ -208,8 +275,7 @@ public static class No11C50Attach {
  }
  $stage='CAPACITY'
  $occupied=0
- # One market subscription budget per unique ticker; if formula uses a
- # dynamic/opaque market symbol, reserve one extra slot per formula.
+ # Keep the original conservative market/chart capacity checks.
  $existingMarket=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
  $unresolvedMarket=0
  foreach($wb in @($account,$market)){
@@ -243,7 +309,8 @@ public static class No11C50Attach {
   throw 'NO11_C50_ACTUAL_MARKET_CAP_EXCEEDED'
  }
  $stage='TEMP_WORKBOOK'
- $book=$excel.Workbooks.Add()
+ if(C50Stopped){throw 'NO11_C50_STOPPED_BEFORE_WORKBOOK'}
+ $book=$excel.Workbooks.Add();$temporaryClosed=$false
  $quote=$book.Worksheets.Item(1)
  $quote.Name='ARK_NO11_CUMULATIVE'
  $grid=[array]::CreateInstance([object],$symbols.Count,5)
@@ -255,43 +322,46 @@ public static class No11C50Attach {
  }
  $quote.Range(('A2:E{0}' -f ($symbols.Count+1))).Formula=$grid
  for($i=0;$i -lt $charts.Count;$i++){
+  if(C50Stopped){throw 'NO11_C50_STOPPED_DURING_WORKBOOK_SETUP'}
   $ws=$book.Worksheets.Add()
   $ws.Name=('Q{0:D2}' -f ($i+1))
   for($j=0;$j -lt 10;$j++){$ws.Cells.Item(2,$j+1).Value2=$headers[$j]}
   $ws.Range('A1').Formula=(ChartFormula $charts[$i])
   $sheets+=@([pscustomobject]@{symbol=$charts[$i];sheet=$ws})
  }
- $stage='WARMUP';Start-Sleep -Seconds $WarmupSeconds
+ $stage='WARMUP';$continueCapture=C50Wait ($WarmupSeconds*1000)
+ if($continueCapture -and -not [string]::IsNullOrWhiteSpace($ReadyFile)){
+  WriteControl $ReadyFile ([ordered]@{
+   schemaId='ARK_NO11_C50_COLLECTOR_READY_V1';sessionDate=$session;
+   processId=$PID;captureFolder=$folder;planFile=$planFile;
+   planFileSha256=$planBytesSha;readyAtJst=(Stamp (NowJst));
+   productionReady=$false;orderTransmission=$false
+  })
+ }
  $stage='SAMPLES'
  $scan=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
  foreach($symbol in $symbols){[void]$scan.Add($symbol)}
  $totalMarkets=0;$totalBars=0;$invalid=0
- for($k=0;$k -lt $Samples;$k++){
+ for($k=0;$k -lt $Samples -and $continueCapture;$k++){
+  if(C50Stopped){$continueCapture=$false;break}
   $t=NowJst
   $due=[datetimeoffset]::new($t.Year,$t.Month,$t.Day,$t.Hour,$t.Minute,8,
     [timespan]::FromHours(9))
   if($due -le $t){$due=$due.AddMinutes(1)}
-  if($due.ToString('HH:mm:ss',$ci) -gt '15:25:00'){
-   break
-  }
+  if($due.ToString('HH:mm:ss',$ci) -gt '15:25:00'){break}
   $delay=[int][math]::Ceiling(($due-$t).TotalMilliseconds)
-  if($delay -gt 0){Start-Sleep -Milliseconds $delay}
+  if($delay -gt 0){$continueCapture=C50Wait $delay}
+  if(-not $continueCapture){break}
   $sampleStart=NowJst
-  if(($sampleStart-$due).TotalSeconds -gt 15){
-   throw 'NO11_C50_SNAPSHOT_OVERRUN'
-  }
+  if(($sampleStart-$due).TotalSeconds -gt 15){throw 'NO11_C50_SNAPSHOT_OVERRUN'}
   $values=$quote.Range(('A2:E{0}' -f ($symbols.Count+1))).Value2
   $marketSeen=NowJst
-  if($values -isnot [array] -or $values.Rank -ne 2){
-   throw 'NO11_C50_MARKET_READ_INVALID'
-  }
+  if($values -isnot [array] -or $values.Rank -ne 2){throw 'NO11_C50_MARKET_READ_INVALID'}
   $mi=New-Object System.Collections.ArrayList
   $r0=$values.GetLowerBound(0);$c0=$values.GetLowerBound(1)
   for($j=0;$j -lt $symbols.Count;$j++){
    $row=$r0+$j;$symbol=$symbols[$j]
-   if([string]$values.GetValue($row,$c0) -cne $symbol){
-    throw 'NO11_C50_MARKET_SYMBOL_CHANGED'
-   }
+   if([string]$values.GetValue($row,$c0) -cne $symbol){throw 'NO11_C50_MARKET_SYMBOL_CHANGED'}
    [void]$mi.Add([ordered]@{
     symbol=$symbol;marketDate=(DateToken $values.GetValue($row,$c0+1));
     cumulativeVolumeRaw=(Nonnegative $values.GetValue($row,$c0+2));
@@ -301,6 +371,7 @@ public static class No11C50Attach {
   }
   $rrs=New-Object System.Collections.ArrayList
   foreach($item in $sheets){
+   if(C50Stopped){$continueCapture=$false;break}
    if(-not $scan.Contains([string]$item.symbol)){continue}
    $series=$item.sheet.Range(('A3:J{0}' -f ($HistoryBars+2))).Value2
    $chartSeen=NowJst
@@ -320,16 +391,12 @@ public static class No11C50Attach {
     }
     if($start.AddMinutes(1) -gt $chartSeen){continue}
     $nums=@();for($p=5;$p -le 9;$p++){$nums+=@($series.GetValue($pos,$x0+$p))}
-    if(@($nums | Where-Object {$_ -isnot [ValueType]}).Count -gt 0){
-     $invalid++;continue
-    }
+    if(@($nums | Where-Object {$_ -isnot [ValueType]}).Count -gt 0){$invalid++;continue}
     $O=[double]$nums[0];$H=[double]$nums[1];$L=[double]$nums[2]
     $C=[double]$nums[3];$V=[double]$nums[4]
     if($O -le 0 -or $C -le 0 -or $H -lt [math]::Max($O,$C) -or
        $L -le 0 -or $L -gt [math]::Min($O,$C) -or
-       $V -lt 0 -or $V -ne [math]::Floor($V)){
-      $invalid++;continue
-    }
+       $V -lt 0 -or $V -ne [math]::Floor($V)){$invalid++;continue}
     [void]$rrs.Add([ordered]@{
       Date=$date;Code=$item.symbol;Time=$time;
       O=$O;H=$H;L=$L;C=$C;Vo=[long]$V;
@@ -337,15 +404,14 @@ public static class No11C50Attach {
     })
    }
   }
+  if(-not $continueCapture){break}
   $payload=[ordered]@{
    schemaId='ARK_NO11_RSS_CHART50_1M_CAPTURE_V1';
    sessionDate=$session;chartPlanSha256=$plan.planSha256;
    selectedSymbols=@($symbols);
    source='RssChart_1M_AND_RssMarket_CUMULATIVE_READONLY';
-   marketObservedAtJst=(Stamp $marketSeen);
-   observedEndJst=(Stamp (NowJst));
-   chartRows=@($rrs.ToArray());
-   marketObservations=@($mi.ToArray());
+   marketObservedAtJst=(Stamp $marketSeen);observedEndJst=(Stamp (NowJst));
+   chartRows=@($rrs.ToArray());marketObservations=@($mi.ToArray());
    shadowOnly=$true;productionReady=$false;orderTransmission=$false
   }
   $saved=SaveSnapshot $folder $payload
@@ -365,13 +431,25 @@ public static class No11C50Attach {
  Write-Host ('NO11_C50_STAGE='+$stage)
  Write-Host 'ORDER_TRANSMISSION=False'
 }finally{
- if($null -ne $book){try{$book.Close($false)}catch{}}
+ if($null -ne $book){
+  try{$book.Close($false);$temporaryClosed=$true}
+  catch{$failed=$true;$temporaryClosed=$false}
+ }
  foreach($item in $sheets){
   try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($item.sheet)}catch{}
  }
  if($null -ne $quote){try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($quote)}catch{}}
  if($null -ne $book){try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($book)}catch{}}
  if($null -ne $excel){try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($excel)}catch{}}
+ if(-not [string]::IsNullOrWhiteSpace($ReadyFile)){
+  try{
+   WriteControl ($ReadyFile+'.closed.json') ([ordered]@{
+    schemaId='ARK_NO11_C50_COLLECTOR_CLOSED_V1';sessionDate=$session;processId=$PID;
+    temporaryWorkbookClosed=$temporaryClosed;collectorFailed=$failed;
+    closedAtJst=(Stamp (NowJst));productionReady=$false;orderTransmission=$false
+   })
+  }catch{$failed=$true}
+ }
 }
 if($failed){exit 2}
 exit 0

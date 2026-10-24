@@ -1,0 +1,135 @@
+name: Phase57 Entry Historical Holdout29 Measurement
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/phase57-minimal-stateful-hybrid-entry]
+    paths:
+      - .github/workflows/phase57-entry-historical-holdout29-measure.yml
+      - scripts/phase57-entry-historical-holdout29-measure.mjs
+      - scripts/phase57-entry-historical-holdout29-features.mjs
+      - scripts/phase57-entry-development-source.mjs
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-entry-historical-holdout29-measure
+  cancel-in-progress: false
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify frozen Entry contracts
+        run: node --test scripts/tests/phase57-minimal-stateful-entry.test.mjs scripts/tests/phase57-entry-development-fit.test.mjs scripts/tests/phase57-entry-development-measure.test.mjs
+      - name: Verify holdout29 precommit remains fixed
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const p=JSON.parse(fs.readFileSync('predict/research/phase57-entry-historical-holdout29-source-parity-precommit.json','utf8'));
+          assert.equal(p.count,29);
+          assert.equal(p.sessions.length,29);
+          assert.equal(p.holdoutRole,'HISTORICAL_HOLDOUT_DIAGNOSTIC_NOT_PROSPECTIVE_NOT_FORMAL_OOS');
+          assert.equal(p.candidatePolicy,'FROZEN_MINIMAL_STATEFUL_ENTRY_NO_RETRAIN_NO_RETUNE');
+          assert.equal(p.outcomeInspectionPerformed,false);
+          NODE
+
+  features:
+    needs: contracts
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        shard: [0, 1, 2]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Read-only pinned Frozen Hybrid source
+        uses: actions/checkout@v4
+        with:
+          ref: 6c1aec0545fa6a77c5435e7cc864f1ea2d71fc26
+          path: frozen-selector
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /package.json
+            /predict/daytrade/phase57-selector-minimal-hybrid.js
+            /predict/daytrade/phase57-selector-minimal-hybrid-model.js
+            /predict/daytrade/phase57-p25-intraday-dynamic-universe.js
+            /predict/daytrade/phase57-p25-jpx-opportunity-universe.js
+            /predict/research/phase57-selector-minimal-hybrid-development-model.json
+            /predict/research/phase57-selector-minimal-hybrid-development-freeze.json
+            /predict/research/phase57-selector-minimal-hybrid-phase-a-amendment-v1.1.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download immutable original admission ancestry
+        uses: actions/download-artifact@v4
+        with:
+          name: capacity-v2-admission-summary-34153192882
+          run-id: 34153192882
+          github-token: ${{ github.token }}
+          path: artifacts/input/admission-v2
+      - name: Reconstruct holdout29 and freeze features before labels
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          SHARD_INDEX: ${{ matrix.shard }}
+          NODE_OPTIONS: --max-old-space-size=5120
+        run: node scripts/phase57-entry-historical-holdout29-features.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: entry-holdout29-features-${{ matrix.shard }}-${{ github.run_id }}
+          path: artifacts/holdout29-features/
+          if-no-files-found: error
+          retention-days: 30
+
+  measure:
+    needs: features
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download all 29 frozen feature bundles
+        uses: actions/download-artifact@v4
+        with:
+          pattern: entry-holdout29-features-*-${{ github.run_id }}
+          path: artifacts/holdout29-input
+          merge-multiple: true
+      - name: Download immutable frozen Development candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: entry58-development-measurement-34292703804
+          run-id: 34292703804
+          github-token: ${{ github.token }}
+          path: artifacts/input/candidate
+      - name: Verify candidate SHA then run inference-only holdout measurement
+        env:
+          NODE_OPTIONS: --max-old-space-size=5120
+        run: |
+          test "$(sha256sum artifacts/input/candidate/candidate-model.json | cut -d' ' -f1)" = "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a"
+          node scripts/phase57-entry-historical-holdout29-measure.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: entry-holdout29-measurement-${{ github.run_id }}
+          path: artifacts/holdout29-measurement/
+          if-no-files-found: error
+          retention-days: 30

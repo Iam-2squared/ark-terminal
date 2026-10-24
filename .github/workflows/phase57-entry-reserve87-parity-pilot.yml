@@ -1,0 +1,143 @@
+name: Phase57 Entry Reserve87 Source Parity Pilot
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/phase57-minimal-stateful-hybrid-entry]
+    paths:
+      - .github/workflows/phase57-entry-reserve87-parity-pilot.yml
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-entry-reserve87-source-parity-pilot
+  cancel-in-progress: false
+
+jobs:
+  source-parity-pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout Entry research branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Checkout pinned J-Quants reconstruction source
+        uses: actions/checkout@v4
+        with:
+          ref: f3543b5a604d25442c28fc3cb475e89274400bd5
+          path: source
+          persist-credentials: false
+
+      - name: Download immutable v2.1 admission summary
+        uses: actions/download-artifact@v4
+        with:
+          name: capacity-v2-1-admission-summary-34189128681
+          path: artifacts/admission
+          run-id: 34189128681
+          github-token: ${{ github.token }}
+
+      - name: Run outcome-blind 3-session source parity pilot
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import path from 'node:path';
+          import { createHash } from 'node:crypto';
+          import { Phase57FreshSessionInternals } from './source/scripts/lib/phase57-selector-jquants-fresh-session.mjs';
+
+          const expected = JSON.parse(fs.readFileSync('artifacts/admission/admission.json', 'utf8'));
+          const byDate = new Map(expected.auditBySession.map((row) => [row.sessionDate, row]));
+          const pilotDates = ['2025-10-09', '2025-11-25', '2026-01-07'];
+          const rows = [];
+
+          for (const sessionDate of pilotDates) {
+            const prior = byDate.get(sessionDate);
+            if (!prior) throw new Error(`MISSING_ADMISSION_REFERENCE_${sessionDate}`);
+            const { structuralAudit } = await Phase57FreshSessionInternals.loadFreshSession({
+              apiKey: process.env.JQUANTS_API_KEY,
+              date: sessionDate,
+              fold: 'PURGE',
+            });
+            const checks = {
+              minuteSha256: structuralAudit.minuteSha256 === prior.minuteSha256,
+              fiveMinuteSha256: structuralAudit.fiveMinuteSha256 === prior.fiveMinuteSha256,
+              memberSetSha256: structuralAudit.memberSetSha256 === prior.memberSetSha256,
+              eligibleJpxSymbolCount: structuralAudit.eligibleJpxSymbolCount === prior.eligibleJpxSymbolCount,
+              normalizedMinuteRows: structuralAudit.normalizedMinuteRows === prior.normalizedMinuteRows,
+              fiveMinuteBars: structuralAudit.fiveMinuteBars === prior.fiveMinuteBars,
+            };
+            const pass = Object.values(checks).every(Boolean);
+            rows.push({
+              sessionDate,
+              pass,
+              checks,
+              expected: {
+                minuteSha256: prior.minuteSha256,
+                fiveMinuteSha256: prior.fiveMinuteSha256,
+                memberSetSha256: prior.memberSetSha256,
+                eligibleJpxSymbolCount: prior.eligibleJpxSymbolCount,
+                normalizedMinuteRows: prior.normalizedMinuteRows,
+                fiveMinuteBars: prior.fiveMinuteBars,
+              },
+              observed: {
+                minuteSha256: structuralAudit.minuteSha256,
+                fiveMinuteSha256: structuralAudit.fiveMinuteSha256,
+                memberSetSha256: structuralAudit.memberSetSha256,
+                eligibleJpxSymbolCount: structuralAudit.eligibleJpxSymbolCount,
+                normalizedMinuteRows: structuralAudit.normalizedMinuteRows,
+                fiveMinuteBars: structuralAudit.fiveMinuteBars,
+              },
+              safeguards: {
+                fold: 'PURGE',
+                featureCalculationPerformed: structuralAudit.featureCalculationPerformed,
+                labelGenerationPerformed: structuralAudit.labelGenerationPerformed,
+                outcomeInspectionPerformed: structuralAudit.outcomeInspectionPerformed,
+                rawPersisted: structuralAudit.rawPersisted,
+              },
+            });
+          }
+
+          const output = {
+            schemaVersion: 1,
+            status: rows.every((row) => row.pass) ? 'RESERVE87_SOURCE_PARITY_PILOT_PASS' : 'RESERVE87_SOURCE_PARITY_PILOT_FAIL',
+            purpose: 'OUTCOME_BLIND_DEVELOPMENT_SOURCE_RECONSTRUCTION_PARITY',
+            sourceCommit: 'f3543b5a604d25442c28fc3cb475e89274400bd5',
+            admissionRunId: 34189128681,
+            admissionArtifactId: 10042627971,
+            pilotReserveRanges: ['121-149', '151-179'],
+            pilotDates,
+            rows,
+            protectedBoundaries: {
+              reserve180To282Opened: false,
+              freshValidationOpened: false,
+              freshOosOpened: false,
+            },
+          };
+
+          fs.mkdirSync('artifacts/phase57-entry-reserve87-source-parity-pilot', { recursive: true });
+          const bytes = JSON.stringify(output, null, 2) + '\n';
+          fs.writeFileSync('artifacts/phase57-entry-reserve87-source-parity-pilot/parity.json', bytes);
+          const digest = createHash('sha256').update(bytes).digest('hex');
+          fs.writeFileSync('artifacts/phase57-entry-reserve87-source-parity-pilot/parity.json.sha256', `${digest}  parity.json\n`);
+
+          if (!rows.every((row) => row.pass)) process.exit(1);
+          for (const row of rows) {
+            if (row.safeguards.featureCalculationPerformed || row.safeguards.labelGenerationPerformed || row.safeguards.outcomeInspectionPerformed || row.safeguards.rawPersisted) {
+              throw new Error(`OUTCOME_BLIND_GUARD_FAILED_${row.sessionDate}`);
+            }
+          }
+          NODE
+
+      - name: Upload parity evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-entry-reserve87-source-parity-pilot-${{ github.run_id }}
+          path: artifacts/phase57-entry-reserve87-source-parity-pilot/
+          if-no-files-found: error
+          retention-days: 30

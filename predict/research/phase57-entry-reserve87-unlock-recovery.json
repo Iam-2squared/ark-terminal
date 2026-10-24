@@ -1,0 +1,122 @@
+{
+  "allocation": {
+    "count": 0,
+    "frozen": false,
+    "manifestSha256": null,
+    "sessionIds": []
+  },
+  "allocationSources": [
+    {
+      "artifactId": 10030056589,
+      "bytesRecovered": false,
+      "digest": "sha256:5f74429a4cd66855c274e2fd6fd98e0df86ac8b56bea1d006591382f7d281986",
+      "name": "capacity-v2-allocation-34153192882",
+      "runId": 34153192882,
+      "status": "ALLOCATION_ARTIFACT_UNAVAILABLE",
+      "thisAttempt": "OFFICIAL_FILE_REFERENCE_RETURNED; MATERIALIZATION_HTTP_403"
+    },
+    {
+      "artifactId": 10041559531,
+      "bytesRecovered": false,
+      "digest": "sha256:dd7a4171659197b9518d44bf3e604fafe9d99783d067b0fff7e874d6be87ad95",
+      "name": "capacity-v2-1-allocation-34189128681",
+      "runId": 34189128681,
+      "status": "ALLOCATION_ARTIFACT_UNAVAILABLE",
+      "thisAttempt": "METADATA_RECHECK_ONLY; PRIOR_403_NOT_RETRIED"
+    }
+  ],
+  "classification": {
+    "additionalRawUnverified": 87,
+    "blockedAllocation": 87,
+    "countsOverlapExplanation": "87 blocked by allocation; those same87 also have unverified raw archives, not174 sessions",
+    "eligible": 0,
+    "remainingUnclassified": 0,
+    "unknownCanonicalMappings": 87
+  },
+  "features": {
+    "contractChanged": false,
+    "daily": "NOT_APPLICABLE_CURRENT10_FEATURES_OMIT_DAILY",
+    "dailyArchiveOpened": false,
+    "featureReadyEstimate": null,
+    "label3Availability": null
+  },
+  "freshValidationGo": false,
+  "mainAtAudit": "46eabb5822381cc752ec143eb2206971ac9e34c2",
+  "parentHead": "e0a742c120810e85a8722776ce845cc0f57719fa",
+  "pitAudit": {
+    "duplicateViolations": null,
+    "stateViolations": null,
+    "status": "NOT_EXECUTED_NO_REPLAY",
+    "violations": null
+  },
+  "previousAudit": "phase57-entry-reserve87-feasibility.json",
+  "protection": {
+    "freshOosNewlyOpened": 0,
+    "freshValidationNewlyOpened": 0,
+    "reserve180To282MarketAccess": 0,
+    "reserve180To282Outcomes": 0,
+    "reserve180To282Performance": 0,
+    "reserve180To282Targets": 0,
+    "target87LabelsGenerated": 0,
+    "target87MarketOpened": 0
+  },
+  "raw": {
+    "decisionPointCoverage": null,
+    "globalAbsenceProven": false,
+    "marketWideReady": 0,
+    "sessionsFound": 0,
+    "sessionsHashVerified": 0,
+    "universeCoverage": null
+  },
+  "requiredNextMetadata": [
+    "Original allocation JSONs from artifacts10030056589 and10041559531, provided through an authorized accessible channel",
+    "Per-session persisted raw manifest: actual path/file sizes/SHA256/source class/historical universe/bar-existence inventory, excluding outcome values"
+  ],
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "schemaVersion": 1,
+  "scope": "OUTCOME_BLIND_ALLOCATION_AND_ARCHIVE_RECOVERY",
+  "searchScope": {
+    "branchMetadataCount": 694,
+    "completeGlobalArchiveSearch": false,
+    "defaultBranchCodeSearchMatches": 0,
+    "fullTreesInspected": [
+      "e0a742c120810e85a8722776ce845cc0f57719fa",
+      "63edf641f871be20cbd8518cec44392d12e74b16",
+      "98ae62f32826b42d1224c5b55a3b3052e21f075d"
+    ],
+    "localSearch": "Filename inventories plus ZIP central-directory metadata; no protected raw content"
+  },
+  "semantics": {
+    "aggregation": "Observed minutes grouped by session-segment-aligned floor-to-five-minute bin; no empty bin synthesized",
+    "contractPath": "predict/research/phase57-selector-jquants-timestamp-contract-v1.json",
+    "firstFiveMinuteAvailableAt": "09:05 JST",
+    "firstFiveMinuteInterval": "09:00 inclusive through09:05 exclusive",
+    "noTrade": "SOURCE_MINUTE_ABSENT_NO_FABRICATION",
+    "perSessionApplicabilityVerified": false,
+    "sourceRef": "63edf641f871be20cbd8518cec44392d12e74b16",
+    "terminalAuctionMinutes": [
+      "11:30",
+      "15:30"
+    ],
+    "terminalAuctionTreatment": "EXCLUDED_FROM_REGULAR_CONTINUOUS_5M_INPUT",
+    "timestamp": "BAR_START_LEFT_CLOSED_RIGHT_OPEN_ASIA_TOKYO",
+    "yahoo0900RootCause": "UNRESOLVED_DO_NOT_INFER_FROM_JQUANTS_SEMANTICS"
+  },
+  "status": "DEVELOPMENT_UNLOCK_NO_GO",
+  "training": {
+    "fitted": false,
+    "p21PriorRequired": false,
+    "performanceComputed": false,
+    "thresholdSelected": null
+  }
+}

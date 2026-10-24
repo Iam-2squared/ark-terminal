@@ -1,0 +1,155 @@
+name: Phase57 Entry Historical Holdout29 Source Parity
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/phase57-minimal-stateful-hybrid-entry]
+    paths:
+      - .github/workflows/phase57-entry-historical-holdout29-source-parity.yml
+      - scripts/phase57-entry-historical-holdout29-source-parity.mjs
+      - predict/research/phase57-entry-historical-holdout29-source-parity-precommit.json
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  source-parity:
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        shard: [0, 1, 2]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download immutable original admission ancestry
+        uses: actions/download-artifact@v4
+        with:
+          name: capacity-v2-admission-summary-34153192882
+          path: artifacts/input/admission
+          run-id: 34153192882
+          github-token: ${{ github.token }}
+      - name: Verify immutable admission hash
+        run: |
+          (cd artifacts/input/admission && sha256sum --check admission.json.sha256)
+          test "$(sha256sum artifacts/input/admission/admission.json | cut -d' ' -f1)" = "9650e9a7f3b0d9ae5d8339879b4571de58681d337785ca4f7715262580b72b08"
+      - name: Run outcome-blind historical holdout source parity shard
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          HOLDOUT_PARITY_PRECOMMIT_PATH: predict/research/phase57-entry-historical-holdout29-source-parity-precommit.json
+          ADMISSION_PATH: artifacts/input/admission/admission.json
+          SHARD_INDEX: ${{ matrix.shard }}
+          SHARD_COUNT: 3
+        run: node scripts/phase57-entry-historical-holdout29-source-parity.mjs
+      - name: Upload holdout source parity shard evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-entry-historical-holdout29-source-parity-shard-${{ matrix.shard }}-${{ github.run_id }}
+          path: artifacts/phase57-entry-historical-holdout29-source-parity/
+          if-no-files-found: error
+          retention-days: 30
+
+  aggregate:
+    needs: source-parity
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Download all holdout parity shard evidence
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-entry-historical-holdout29-source-parity-shard-*-${{ github.run_id }}
+          path: artifacts/shards
+          merge-multiple: true
+      - name: Aggregate and enforce 29/29 fail-closed gate
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import path from 'node:path';
+          import { createHash } from 'node:crypto';
+
+          const precommit = JSON.parse(fs.readFileSync('predict/research/phase57-entry-historical-holdout29-source-parity-precommit.json', 'utf8'));
+          const dir = 'artifacts/shards';
+          const files = fs.existsSync(dir)
+            ? fs.readdirSync(dir).filter((name) => /^source-parity-shard-\d+\.json$/.test(name)).sort()
+            : [];
+          const shards = files.map((name) => JSON.parse(fs.readFileSync(path.join(dir, name), 'utf8')));
+          const results = shards.flatMap((shard) => shard.results ?? []);
+          const resultByDate = new Map(results.map((row) => [row.sessionDate, row]));
+          const missing = precommit.sessions.filter((date) => !resultByDate.has(date));
+          const duplicateCount = results.length - resultByDate.size;
+          const failed = results.filter((row) => row.status !== 'SOURCE_PARITY_PASS');
+          const shardFailures = shards.filter((shard) => shard.status !== 'HISTORICAL_HOLDOUT_SOURCE_PARITY_SHARD_PASS');
+          const safeguardsPass = shards.every((shard) =>
+            shard.holdoutMeasurementUnlocked === false &&
+            shard.featureCalculationPerformed === false &&
+            shard.labelGenerationPerformed === false &&
+            shard.outcomeInspectionPerformed === false &&
+            shard.candidateChanged === false &&
+            shard.rawPersisted === false &&
+            shard.reserve180To282Opened === 0 &&
+            shard.freshValidationOpened === 0 &&
+            shard.freshOosOpened === 0
+          );
+          const pass =
+            files.length === 3 &&
+            shards.length === 3 &&
+            results.length === 29 &&
+            resultByDate.size === 29 &&
+            missing.length === 0 &&
+            duplicateCount === 0 &&
+            failed.length === 0 &&
+            shardFailures.length === 0 &&
+            safeguardsPass;
+
+          const output = {
+            schemaVersion: 1,
+            phase: precommit.phase,
+            status: pass ? 'HISTORICAL_HOLDOUT_SOURCE_PARITY_29_OF_29_PASS' : 'HISTORICAL_HOLDOUT_SOURCE_PARITY_FAIL',
+            purpose: precommit.purpose,
+            holdoutRole: precommit.holdoutRole,
+            expectedSessions: 29,
+            observedSessions: resultByDate.size,
+            missing,
+            duplicateCount,
+            failed,
+            shardCountExpected: 3,
+            shardCountObserved: shards.length,
+            shardFailures: shardFailures.map((row) => row.shardIndex),
+            holdoutMeasurementUnlocked: false,
+            featureCalculationPerformed: false,
+            labelGenerationPerformed: false,
+            outcomeInspectionPerformed: false,
+            candidateChanged: false,
+            rawPersisted: false,
+            reserve180To282Opened: 0,
+            freshValidationOpened: 0,
+            freshOosOpened: 0,
+            safety: precommit.safety,
+          };
+          fs.mkdirSync('artifacts/aggregate', { recursive: true });
+          const text = JSON.stringify(output, null, 2) + '\n';
+          fs.writeFileSync('artifacts/aggregate/historical-holdout29-source-parity-aggregate.json', text);
+          const digest = createHash('sha256').update(text).digest('hex');
+          fs.writeFileSync('artifacts/aggregate/historical-holdout29-source-parity-aggregate.json.sha256', `${digest}  historical-holdout29-source-parity-aggregate.json\n`);
+          if (!pass) process.exit(20);
+          NODE
+      - name: Upload holdout parity aggregate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-entry-historical-holdout29-source-parity-aggregate-${{ github.run_id }}
+          path: artifacts/aggregate/
+          if-no-files-found: error
+          retention-days: 30

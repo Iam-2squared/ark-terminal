@@ -16,10 +16,18 @@ from .authority import Authority, OwnerGrant
 from .contracts import code_hash, digest
 from .exact_math import V2Error
 
-HOST_CONFIG = Path("/etc/ark-selector-v2/owner-channel.json")
+HOST_CONFIG = (Path("C:/ProgramData/ArkTerminal/SelectorV2/owner-channel.json")
+               if os.name == "nt" else Path("/etc/ark-selector-v2/owner-channel.json"))
 
 
 def check_owner_file(path: Path, owner_uid: int, *, directory: bool = False) -> None:
+    if os.name == "nt":
+        # Windows uses an administrator-controlled ACL and SID, not POSIX UIDs.
+        from .windows_security import verify_path
+        if owner_uid != 0:
+            raise V2Error("WIN_CONTROL_FILE_REQUIRES_ADMIN_OWNER")
+        verify_path(path, purpose="control", directory=directory)
+        return
     if not path.is_absolute() or path.is_symlink() or any(p.is_symlink() for p in path.parents):
         raise V2Error("HOST_CHANNEL_SYMLINK_OR_RELATIVE_PATH")
     info = path.stat()
@@ -39,14 +47,22 @@ class JournalAuthority(Authority):
         target = journal.resolve()
         if any(target.is_relative_to(r) or r.is_relative_to(target) for r in roots):
             raise V2Error("ARTIFACT_TRUST_JOURNAL_MUST_BE_SEPARATE")
-        check_owner_file(journal, os.getuid(), directory=True)
-        if stat.S_IMODE(journal.stat().st_mode) != 0o700:
-            raise V2Error("ARTIFACT_TRUST_JOURNAL_MUST_BE_PRIVATE")
+        if os.name == "nt":
+            from .windows_security import verify_path
+            verify_path(journal, purpose="journal", directory=True)
+        else:
+            check_owner_file(journal, os.getuid(), directory=True)
+            if stat.S_IMODE(journal.stat().st_mode) != 0o700:
+                raise V2Error("ARTIFACT_TRUST_JOURNAL_MUST_BE_PRIVATE")
         self.journal = journal
         self.namespace = namespace
         self.artifact_pins = {}
         for path in sorted(journal.glob("*.json")):
-            check_owner_file(path, os.getuid())
+            if os.name == "nt":
+                from .windows_security import verify_path
+                verify_path(path, purpose="journal")
+            else:
+                check_owner_file(path, os.getuid())
             entry = json.loads(path.read_text(encoding="utf8"))
             if (set(entry) != {"schema", "namespace", "name", "pin"} or
                     entry["schema"] != "ARK_V2_HOST_PRODUCER_PIN_V1" or entry["namespace"] != namespace or
@@ -64,14 +80,25 @@ class JournalAuthority(Authority):
 
 
 def channel_snapshot(config: dict[str, Any], *, isolated: bool = False) -> JournalAuthority:
-    expected = {"schema", "worker_uid", "source_root", "output_root", "journal_root", "journal_namespace",
-                "manifest_pin", "precommit", "grants", "test_only", "fixture_pins"}
+    worker_field = "worker_sid" if os.name == "nt" else "worker_uid"
+    expected = {"schema", worker_field, "source_root", "output_root", "journal_root",
+                "journal_namespace", "manifest_pin", "precommit", "grants", "test_only", "fixture_pins"}
     if set(config) != expected or config["schema"] != "ARK_V2_OS_OWNER_CHANNEL_V1":
         raise V2Error("OS_OWNER_CHANNEL_SCHEMA")
-    if config["test_only"] is not isolated or type(config["worker_uid"]) is not int or config["worker_uid"] != os.getuid():
+    if config["test_only"] is not isolated:
         raise V2Error("OS_OWNER_CHANNEL_WORKER_OR_TEST_IDENTITY")
-    if not isolated and (os.getuid() == 0 or config["fixture_pins"]):
-        raise V2Error("MARKET_CHANNEL_REQUIRES_DEDICATED_NONROOT_WORKER")
+    if os.name == "nt":
+        from .windows_security import verify_path
+        # For production the controller has already been probed before reading
+        # its JSON. Isolated fixtures instead use the separately created journal.
+        worker = (verify_path(HOST_CONFIG, purpose="control") if not isolated else
+                  verify_path(Path(config["journal_root"]), purpose="journal", directory=True))
+        if config[worker_field] != worker:
+            raise V2Error("OS_OWNER_CHANNEL_WORKER_OR_TEST_IDENTITY")
+    elif type(config[worker_field]) is not int or config[worker_field] != os.getuid():
+        raise V2Error("OS_OWNER_CHANNEL_WORKER_OR_TEST_IDENTITY")
+    if not isolated and (config["fixture_pins"] or (os.name != "nt" and os.getuid() == 0)):
+        raise V2Error("MARKET_CHANNEL_REQUIRES_UNPRIVILEGED_WORKER")
     if config["precommit"]["hashes"]["code"] != code_hash():
         raise V2Error("HOST_CHANNEL_CODE_DRIFT")
     grants = {k: OwnerGrant(**v) for k, v in config["grants"].items()}
@@ -81,6 +108,10 @@ def channel_snapshot(config: dict[str, Any], *, isolated: bool = False) -> Journ
     if any(not r.is_absolute() or r.is_symlink() or any(p.is_symlink() for p in r.parents) for r in roots):
         raise V2Error("HOST_CHANNEL_ROOT_PATH")
     source, output, journal = roots
+    if os.name == "nt" and not isolated:
+        from .windows_security import verify_path
+        verify_path(source, purpose="control", directory=True)
+        verify_path(output, purpose="journal", directory=True)
     if source.resolve().is_relative_to(output.resolve()) or output.resolve().is_relative_to(source.resolve()):
         raise V2Error("HOST_SOURCE_OUTPUT_MUST_BE_SEPARATE")
     authority = JournalAuthority(source, output, grants, config["manifest_pin"], config["precommit"],
@@ -93,10 +124,14 @@ def installed_owner_channel() -> Authority | None:
     if not HOST_CONFIG.exists() and not HOST_CONFIG.is_symlink():
         return None
     # Never read an untrusted approval JSON and then inspect a true flag.
-    for parent in reversed(HOST_CONFIG.parents):
-        check_owner_file(parent, 0, directory=True)
-    check_owner_file(HOST_CONFIG, 0)
-    if os.getuid() == 0:
-        raise V2Error("MARKET_CHANNEL_REQUIRES_DEDICATED_NONROOT_WORKER")
+    if os.name == "nt":
+        from .windows_security import validate_control_config
+        validate_control_config(HOST_CONFIG)
+    else:
+        for parent in reversed(HOST_CONFIG.parents):
+            check_owner_file(parent, 0, directory=True)
+        check_owner_file(HOST_CONFIG, 0)
+        if os.getuid() == 0:
+            raise V2Error("MARKET_CHANNEL_REQUIRES_DEDICATED_NONROOT_WORKER")
     config = json.loads(HOST_CONFIG.read_text(encoding="utf8"))
     return channel_snapshot(config)

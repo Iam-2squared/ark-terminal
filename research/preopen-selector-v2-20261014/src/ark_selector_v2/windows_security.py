@@ -77,7 +77,7 @@ def no_reparse(path: Path) -> None:
         if candidate.is_symlink() or (hasattr(candidate, "is_junction") and candidate.is_junction()):
             raise V2Error("WIN_CHANNEL_LINK_OR_JUNCTION")
         try:
-            attrs = candidate.stat().st_file_attributes
+            attrs = getattr(candidate.stat(), "st_file_attributes", 0)
         except FileNotFoundError:
             continue
         except AttributeError:

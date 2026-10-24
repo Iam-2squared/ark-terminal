@@ -21,7 +21,7 @@ test('P1 F5/Q70 original public binding, durable Watch and first-entry safety',(
  const child=spawnSync(executable,['-m','unittest','discover','-s',tests,'-p','test_no11_p1_forward_shadow.py','-v'],
   {encoding:'utf8',timeout:60000,windowsHide:true});
  assert.equal(child.status,0,(child.stderr??'')+'\n'+(child.stdout??''));
- assert.match(child.stderr,/Ran 21 tests/);
+ assert.match(child.stderr,/Ran 22 tests/);
  assert.match(child.stderr,/OK/);
  assert.doesNotMatch(child.stderr,/Full repository source not mounted/);
 });

@@ -261,7 +261,7 @@ class ForwardP1Session:
             self.db.execute("BEGIN IMMEDIATE")
             watch = self.db.execute("SELECT * FROM watches WHERE watch_key=?", (key,)).fetchone()
             require(watch is not None, "WATCH_NOT_REGISTERED")
-            require(clock(watch["first_at"], self.session) < bar, "FEATURE_BEFORE_WATCH_ACTIVATION")
+            require(clock(watch["first_at"], self.session) <= bar, "FEATURE_BEFORE_WATCH_ACTIVATION")
             prior = self.db.execute("SELECT fingerprint,result_json FROM evaluations WHERE watch_key=? AND bar_end=?", (key, event["barEndJst"])).fetchone()
             if prior:
                 require(prior[0] == fingerprint, "FEATURE_RETRY_CONFLICT")

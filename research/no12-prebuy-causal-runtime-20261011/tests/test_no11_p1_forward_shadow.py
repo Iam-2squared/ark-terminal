@@ -128,6 +128,12 @@ class LifecycleTests(unittest.TestCase):
         self.assertEqual(self.scorer.calls, 2)
         self.assertEqual(self.engine.summary()['firstEntryCandidates'], 1)
 
+    def test_same_selector_closed_minute_is_first_eligible_original_grid_row(self):
+        self.engine.register_selector(selector())
+        result = self.engine.evaluate(feature('09:30:00', 0.6))
+        self.assertEqual(result['status'], 'FIRST_ENTRY_CANDIDATE')
+        self.assertEqual(self.engine.summary()['firstEntryCandidates'], 1)
+
     def test_refresh_keeps_original_anchor_and_locked_entry(self):
         self.engine.register_selector(selector())
         intent = self.engine.evaluate(feature(value=0.7))
@@ -177,7 +183,7 @@ class LifecycleTests(unittest.TestCase):
     def test_before_activation_and_unscheduled_time_block(self):
         self.engine.register_selector(selector())
         with self.assertRaisesRegex(ValueError, 'FEATURE_BEFORE_WATCH_ACTIVATION'):
-            self.engine.evaluate(feature('09:30:00'))
+            self.engine.evaluate(feature('09:29:00'))
         with self.assertRaisesRegex(ValueError, 'NOT_CLOSED_REGULAR_MINUTE'):
             self.engine.evaluate(feature('12:10:00'))
         with self.assertRaisesRegex(ValueError, 'SELECTOR_CLOCK_INVALID'):

@@ -1,0 +1,56 @@
+name: Phase57 Entry Quality v2 Historical Daily Archive
+
+on:
+  workflow_dispatch:
+    inputs:
+      query_range:
+        description: Yahoo daily-history query range used for Development-only reconstruction
+        required: true
+        default: 2y
+        type: choice
+        options:
+          - 1y
+          - 2y
+          - 5y
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase57-entry-v2-historical-daily-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-development-only-daily-archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build immutable later-fetched daily archive
+        run: |
+          set -euo pipefail
+          node scripts/build_entry_v2_historical_daily_archive.mjs \
+            --selection-symbols predict/daytrade/phase57-entry-quality-v2-market-first-selection-symbols-2026-09-05.json \
+            --universe data/screener-universe.json \
+            --output-dir tmp/entry-v2-historical-daily \
+            --range '${{ inputs.query_range }}' \
+            --concurrency 24
+      - name: Verify Development-only and safety classification
+        run: |
+          set -euo pipefail
+          node -e "const m=require('./tmp/entry-v2-historical-daily/manifest.json'); const keys=['executionAllowed','brokerWriteAllowed','excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed','paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted']; if(m.sourceClass!=='HISTORICAL_RECONSTRUCTION_LATER_FETCHED'||m.classification?.prospective!==false||m.classification?.formalOos!==false||keys.some(k=>m.safety?.[k]!==false)) process.exit(1)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-entry-v2-historical-daily-${{ github.sha }}
+          path: tmp/entry-v2-historical-daily
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+      - name: Research boundary
+        if: always()
+        run: |
+          echo 'Later-fetched historical reconstruction; Development only; non-prospective.'
+          echo 'No broker/RSS write, paper/live trading, model fitting, promotion, or production update.'

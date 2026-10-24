@@ -8,6 +8,7 @@ stream and are never backdated to bar close or called broker timestamps.
 from __future__ import annotations
 
 import argparse
+from copy import deepcopy
 from collections import Counter
 from datetime import datetime
 from decimal import Context, Decimal, ROUND_HALF_EVEN, localcontext
@@ -20,6 +21,7 @@ import subprocess
 
 import no11_frozen_p1_feature_runtime as features
 import no11_p1_forward_shadow as forward
+import no11_h235_asof_forward_shadow as h235_source
 
 PREVIOUS_SCHEMA = "ARK_NO11_RSS_P1_PREVIOUS_CONTEXT_V1"
 VA_SOURCE = "RSS_MARKET_CUMULATIVE_60S_ESTIMATE_NOT_VENDOR_MINUTE_VA"
@@ -122,6 +124,15 @@ class ObservedStateStream:
         self.last_received = None
         self.missing_ticks = self.accepted_ticks = 0
         self.last_state = None
+        self.trace = []
+
+    def append_trace(self, end, actual_received_at, state, previous_event_length):
+        self.trace.append({
+            "bar_end_minute": end, "knownAtJst": actual_received_at,
+            "state": deepcopy(state),
+            "path": deepcopy(self.state_features.path.endpoints[-1]),
+            "path_events": deepcopy(self.state_features.path.events[previous_event_length:]),
+        })
 
     def coordinate(self, price):
         token = str(price)
@@ -148,8 +159,10 @@ class ObservedStateStream:
             missing_end = self.schedule[self.cursor]
             t = missing_end - 540
             state = self.engine.step(t, None, self.key)
+            past_events = len(self.state_features.path.events)
             self.state_features.push(state, {"scheduled_t": t, "bar_end": stamp(self.session, missing_end),
                                             "row_status": "RSS_NO_USABLE_CLOSED_BAR_AT_LOCAL_PROCESSING"})
+            self.append_trace(missing_end, row["knownAtJst"], state, past_events)
             self.cursor += 1
             self.missing_ticks += 1
         if m < 690 and self.first_am is None:
@@ -163,8 +176,10 @@ class ObservedStateStream:
         token = {"t": t, "known_at": t, "source": KERNEL_SOURCE, "auction": auction,
                  **{k.lower(): self.coordinate(row[k]) for k in ("O", "H", "L", "C")}}
         state = self.engine.step(t, token, self.key)
+        past_events = len(self.state_features.path.events)
         sf = self.state_features.push(state, {"scheduled_t": t, "bar_end": stamp(self.session, end),
                                              "row_status": "RSS_LOCAL_RECEIVED_CLOSED_APPROX_VA"})
+        self.append_trace(end, row["knownAtJst"], state, past_events)
         self.cursor += 1
         self.accepted_ticks += int(state["numeric_status"] == "ACCEPTED")
         self.last_received, self.last_state = received, state
@@ -174,7 +189,7 @@ class ObservedStateStream:
 
 
 def consume_received_feed(runtime, p1, feed, selector_envelopes, previous_context,
-                          *, previous_session, through):
+                          *, previous_session, through, h235=None, h235_store=None):
     """Consume full prefixes in actual local receipt order. No orders.
 
     Persisted Watch data must not leak later refreshes into an earlier replay.
@@ -240,6 +255,7 @@ def consume_received_feed(runtime, p1, feed, selector_envelopes, previous_contex
             p1.db.execute("INSERT OR IGNORE INTO rss_minute_inputs VALUES (?,?)", (key, fingerprint))
     streams, blocked, watches, latest = {}, {}, {}, {}
     selector_seen, evaluated_here = set(), set()
+    h235_results = []
     counts, statuses = Counter(), Counter()
 
     def evaluate_latest(code, evaluated_at):
@@ -268,6 +284,18 @@ def consume_received_feed(runtime, p1, feed, selector_envelopes, previous_contex
         counts["p1FeatureRows"] += 1
         statuses[result["status"]] += 1
         counts["idempotentDecisions"] += int(result["idempotentReplay"])
+        if h235 is not None and result["status"] == "FIRST_ENTRY_CANDIDATE":
+            candidate = h235_source.make_received_candidate(
+                p1_decision=result, watch=watch, reference_row=payload,
+                trace=stream.trace, session=day)
+            try:
+                h235_results.append(h235.score(candidate))
+                counts["h235R0Candidates"] += 1
+            except ValueError as exc:
+                # P1 first-cross remains locked; no R0/Capital funding occurs.
+                if str(exc) != "NO11_H235_FROZEN_ENTRY_STATE_EXCLUDED_OR_UNAVAILABLE":
+                    raise
+                counts["h235BlockedUnavailableOrExcludedState"] += 1
 
     for observed, kind, _, code, payload in events:
         if kind == 0:
@@ -310,6 +338,27 @@ def consume_received_feed(runtime, p1, feed, selector_envelopes, previous_contex
         latest[code] = (payload, sf)
         counts["state9Rows"] += 1
         evaluate_latest(code, payload["knownAtJst"])
+    private_h235_sha = None
+    if h235 is not None:
+        need(h235_store is not None, "H235_PRIVATE_RESULT_DIRECTORY_REQUIRED")
+        directory = Path(h235_store).absolute()
+        need(directory.is_dir() and directory != forward.REPO and
+             forward.REPO not in directory.parents and not directory.is_symlink(),
+             "H235_PRIVATE_RESULT_DIRECTORY_INVALID")
+        h235_results.sort(key=h235.stair.candidate_order)
+        h235_document = {"schemaId": "ARK_NO11_H235_ASOF_PRIVATE_RANK_BATCH_V1",
+                         "policy": h235.policy, "results": h235_results,
+                         "capitalV5Executed": False, "brokerOrders": 0,
+                         "productionReady": False, "orderTransmission": False}
+        encoded = h235_source.stable_bytes(h235_document) + b"\n"
+        private_h235_sha = hashlib.sha256(encoded).hexdigest()
+        output = directory / ("h235-asof-" + private_h235_sha[:16] + ".json")
+        if output.exists():
+            need(not output.is_symlink() and output.read_bytes() == encoded,
+                 "H235_PRIVATE_REPLAY_CONFLICT")
+        else:
+            with output.open("xb") as handle:
+                handle.write(encoded)
     return {"schemaId": "ARK_NO11_RSS_STATE9_P1_RECEIVED_STREAM_SUMMARY_V1",
             "sessionDate": day, "throughJst": through,
             "processingScope": "LOCAL_RECEIPT_ORDER_REPLAY_NOT_LIVE_SERVICE",
@@ -322,6 +371,11 @@ def consume_received_feed(runtime, p1, feed, selector_envelopes, previous_contex
             "inputSha256": forward.digest([feed, selector_envelopes, previous_context]),
             "p1Session": p1.summary(),
             "privateModelsExecuted": p1.scorer.model_kind == "ORIGINAL_CORRECTED_P1_F5",
+            "h235ShadowEnabled": h235 is not None,
+            "h235OriginalModelMembersVerified": 24 if h235 is not None else 0,
+            "h235OriginalModelExecutions": 3 * len(h235_results),
+            "h235PrivateResultSha256": private_h235_sha,
+            "h235OriginalHistoricalRankParityCertified": False,
             "newFits": 0, "capitalExecuted": False, "exitExecuted": False,
             "brokerOrders": 0, "productionReady": False, "orderTransmission": False}
 
@@ -335,6 +389,8 @@ def main(argv=None):
     parser.add_argument("--previous-context", required=True, type=Path)
     parser.add_argument("--runtime-root", required=True, type=Path)
     parser.add_argument("--private-root", required=True, type=Path)
+    parser.add_argument("--h235-model-root", type=Path, default=None,
+                        help="optional private, hash-verified 24-model Shadow R0")
     args = parser.parse_args(argv)
     root = args.private_root.absolute()
     need(root != forward.REPO and forward.REPO not in root.parents and not root.is_symlink()
@@ -345,10 +401,13 @@ def main(argv=None):
     prior = previous_cash_session(forward.REPO, args.session)
     runtime = features.load_feature_runtime(forward.REPO)
     scorer = forward.FrozenP1Scorer(args.runtime_root, forward.REPO, args.session)
+    h235 = (h235_source.FrozenH235AsOf(args.h235_model_root, args.session)
+            if args.h235_model_root is not None else None)
     engine = forward.ForwardP1Session(root / ("p1-shadow-" + args.session + ".sqlite"), scorer)
     try:
         summary = consume_received_feed(runtime, engine, feed, selectors, previous,
-                                        previous_session=prior, through=args.through)
+                                        previous_session=prior, through=args.through,
+                                        h235=h235, h235_store=root)
         encoded = (forward.dumps(summary) + "\n").encode("utf-8")
         output = root / ("rss-state9-p1-" + hashlib.sha256(encoded).hexdigest()[:16] + ".json")
         if output.exists():

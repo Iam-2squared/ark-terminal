@@ -120,6 +120,10 @@ def read_acl(path: Path) -> dict[str, Any]:
     except (OSError, subprocess.TimeoutExpired) as exc:
         raise V2Error("WIN_ACL_PROBE_NOT_AVAILABLE") from exc
     if process.returncode:
+        if os.environ.get("GITHUB_ACTIONS") == "true":
+            # Diagnostics in an ephemeral test runner only, never in live logs.
+            detail = process.stderr.decode("utf-8", errors="replace")[-1000:]
+            raise V2Error("WIN_ACL_PROBE_FAILED_TEST_ONLY:" + detail)
         raise V2Error("WIN_ACL_PROBE_FAILED")
     try:
         value = json.loads(process.stdout.decode("utf-8-sig"))

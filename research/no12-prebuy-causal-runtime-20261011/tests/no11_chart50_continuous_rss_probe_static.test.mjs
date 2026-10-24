@@ -9,6 +9,8 @@ const script=path.resolve(path.dirname(fileURLToPath(import.meta.url)),
 const source=fs.readFileSync(script,'utf8');
 test('G1 Chart50 probe uses only permitted market/chart reads, no account or order writes',()=>{
  assert.match(source,/NO11_C50_ACTUAL_CHART_CAP_EXCEEDED/);
+ assert.match(source,/NO11_C50_ACTUAL_MARKET_CAP_EXCEEDED/);
+ assert.match(source,/ValidateRange\(2,390\)/);
  assert.match(source,/NO11_C50_ACCOUNT_UI_MUST_BE_STOPPED/);
  assert.match(source,/NO11_C50_PRESCREEN_RECEIPT_MISSING/);
  assert.match(source,/No11C50Attach/);

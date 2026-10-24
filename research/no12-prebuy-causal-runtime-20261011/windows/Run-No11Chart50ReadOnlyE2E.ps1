@@ -3,7 +3,7 @@ param(
  [switch]$OfflineSelfTest,
  [string]$RunDir,
  [string]$PinsFile,
- [ValidateRange(2,12)][int]$Samples=4,
+ [ValidateRange(2,390)][int]$Samples=4,
  [ValidateRange(50,150)][int]$HistoryBars=120,
  [ValidateRange(5,60)][int]$WarmupSeconds=20
 )

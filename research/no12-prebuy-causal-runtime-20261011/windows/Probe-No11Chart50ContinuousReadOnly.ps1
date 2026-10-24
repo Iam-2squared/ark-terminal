@@ -2,7 +2,7 @@
 # Builds one UNSAVED temporary book. Original two Ark workbooks are never changed.
 param(
  [switch]$OfflineSelfTest,[string]$RunDir,[string]$PinsFile,
- [ValidateRange(2,12)][int]$Samples=4,
+ [ValidateRange(2,390)][int]$Samples=4,
  [ValidateRange(50,150)][int]$HistoryBars=120,
  [ValidateRange(5,60)][int]$WarmupSeconds=20
 )
@@ -208,6 +208,10 @@ public static class No11C50Attach {
  }
  $stage='CAPACITY'
  $occupied=0
+ # One market subscription budget per unique ticker; if formula uses a
+ # dynamic/opaque market symbol, reserve one extra slot per formula.
+ $existingMarket=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+ $unresolvedMarket=0
  foreach($wb in @($account,$market)){
   foreach($ws in $wb.Worksheets){
    $used=$ws.UsedRange
@@ -219,12 +223,25 @@ public static class No11C50Attach {
    }
    if($null -ne $cells){
     foreach($cell in $cells.Cells){
-     if([string]$cell.Formula -match '(?i)RssChart\s*\('){$occupied++}
+     $formula=[string]$cell.Formula
+     if($formula -match '(?i)RssChart\s*\('){$occupied++}
+     if($formula -match '(?i)RssMarket\s*\('){
+      if($formula -match '(?i)RssMarket\s*\(\s*"([0-9A-Z]{4}\.T)"\s*,'){
+       [void]$existingMarket.Add($Matches[1])
+      }else{$unresolvedMarket++}
+     }
     }
    }
   }
  }
  if($occupied+$charts.Count -gt 50){throw 'NO11_C50_ACTUAL_CHART_CAP_EXCEEDED'}
+ $additional=0
+ foreach($sym in $existingMarket){
+  if($sym -notin $symbols){$additional++}
+ }
+ if($additional+$unresolvedMarket+$symbols.Count -gt 500){
+  throw 'NO11_C50_ACTUAL_MARKET_CAP_EXCEEDED'
+ }
  $stage='TEMP_WORKBOOK'
  $book=$excel.Workbooks.Add()
  $quote=$book.Worksheets.Item(1)
@@ -255,7 +272,7 @@ public static class No11C50Attach {
     [timespan]::FromHours(9))
   if($due -le $t){$due=$due.AddMinutes(1)}
   if($due.ToString('HH:mm:ss',$ci) -gt '15:25:00'){
-   throw 'NO11_C50_TRADING_SESSION_ENDED'
+   break
   }
   $delay=[int][math]::Ceiling(($due-$t).TotalMilliseconds)
   if($delay -gt 0){Start-Sleep -Milliseconds $delay}

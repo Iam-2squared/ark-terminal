@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 """Received RSS minute feed -> unchanged RC2/Path/P1 features -> F5/Q70 shadow.
 
-This is a local, deterministic consumer of the existing private approximate-Va
-import, not an Excel collector or an order writer. Both clock domains are kept:
-RC2 uses its original scheduled-bar integer clock; PC receipt times gate the
-outer event stream and are never backdated to bar close or called broker time.
+Local deterministic consumer, not an Excel collector or an order writer.
+RC2 retains its scheduled-bar integer clock. PC receipt times gate the outer
+stream and are never backdated to bar close or called broker timestamps.
 """
 from __future__ import annotations
 
 import argparse
 from collections import Counter
-from copy import deepcopy
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Context, Decimal, ROUND_HALF_EVEN, localcontext
 import hashlib
 import json
@@ -57,7 +55,7 @@ def validate_prices(row, require_va=True):
 
 
 def previous_cash_session(repo, day):
-    """Use the already shipped dated calendar, not an assumed weekday calendar."""
+    """Use the shipped dated calendar, not an assumed weekday calendar."""
     calendar = (Path(repo) / "research/no12-prebuy-causal-runtime-20261011/runtime/jpx_cash_calendar_2026_2027.mjs").as_uri()
     script = ("import {isJpxCashTradingDay,previousJpxCashTradingDays} from " + json.dumps(calendar) + ";"
               "const d=process.argv[1];if(!isJpxCashTradingDay(d))process.exit(2);"
@@ -87,8 +85,7 @@ class ObservedStateStream:
         self.key = session + "|" + code
         need(isinstance(context, dict) and context.get("previousSession") == previous_session
              and context.get("priceBasis") == "COMPARABLE_RAW"
-             and context.get("corporateActionsCleared") is True,
-             "PREVIOUS_BASIS_REQUIRED")
+             and context.get("corporateActionsCleared") is True, "PREVIOUS_BASIS_REQUIRED")
         self.previous_known = forward.clock(context.get("knownAtJst"), session)
         rows = context.get("rows")
         need(isinstance(rows, list) and 2 <= len(rows) <= 400, "PREVIOUS_MINUTES_REQUIRED")
@@ -105,7 +102,7 @@ class ObservedStateStream:
                                     **{k: str(row[k]) for k in ("O", "H", "L", "C")},
                                     "_source": {"kind": "RSS_OBSERVED_PREVIOUS_PRICE_NOT_JQUANTS",
                                                 "rowSha256": forward.digest(row)}})
-            # Missing previous-day Va stays missing; do not create close*volume.
+            # Missing previous-day Va stays missing, never close*volume or zero.
             if row.get("Va") is not None:
                 self.previous_activity.append([m] + [row[k] for k in ("O", "H", "L", "C", "Vo", "Va")])
         previous_tokens.sort(key=lambda r: r["Time"])
@@ -117,6 +114,7 @@ class ObservedStateStream:
         self.engine = runtime.Engine(runtime.profile)
         self.state_features = features.StateFeatureStream(runtime, session, self.key)
         self.schedule = list(runtime.namespace["scheduled_minutes"](session))
+        self.regular = set(runtime.namespace["regular_starts"](session))
         self.cursor = 0
         self.cache = {}
         self.today = []
@@ -161,8 +159,7 @@ class ObservedStateStream:
         auction = ("TERMINAL_AUCTION_MINUTE" if m in (690, 930) else
                    "OPENING_MIXED_MINUTE" if m in (self.first_am, self.first_pm) else "CONTINUOUS")
         t = end - 540
-        # known_at is an integer *logical kernel clock*, NOT PC/exchange time.
-        # The outer consumer has already checked real local reception >= close.
+        # Integer logical kernel clock, not a PC/exchange receipt timestamp.
         token = {"t": t, "known_at": t, "source": KERNEL_SOURCE, "auction": auction,
                  **{k.lower(): self.coordinate(row[k]) for k in ("O", "H", "L", "C")}}
         state = self.engine.step(t, token, self.key)
@@ -171,17 +168,17 @@ class ObservedStateStream:
         self.cursor += 1
         self.accepted_ticks += int(state["numeric_status"] == "ACCEPTED")
         self.last_received, self.last_state = received, state
-        if m in set(self.runtime.namespace["regular_starts"](self.session)):
+        if m in self.regular:
             self.today.append([m] + [row[k] for k in ("O", "H", "L", "C", "Vo", "Va")])
         return sf, state
 
 
 def consume_received_feed(runtime, p1, feed, selector_envelopes, previous_context,
                           *, previous_session, through):
-    """Replay actual local receipt order; full prefix input required on restart.
+    """Consume full prefixes in actual local receipt order. No orders.
 
-    Does not invent Selector events or State9 labels. Errors cannot authorize
-    orders. Individual incomplete previous contexts block only that symbol.
+    Persisted Watch data must not leak later refreshes into an earlier replay.
+    Rebuild the causal Watch prefix from received Selector envelopes instead.
     """
     day = p1.session
     cutoff = forward.clock(through, day)
@@ -227,20 +224,77 @@ def consume_received_feed(runtime, p1, feed, selector_envelopes, previous_contex
         decision = forward.clock(result.get("decisionTimestamp"), day)
         need(decision <= seen <= cutoff and all(e.get("symbol") in selected for e in result.get("watchEvents", [])),
              "SELECTOR_RECEIPT_OR_UNIVERSE_INVALID")
-        events.append((seen, 0, 0, "", result))
+        events.append((seen, 0, 0, "", envelope))
     events.sort(key=lambda e: e[:4])
     contexts_hash = forward.digest(previous_context)
     with p1.db:
         p1.db.execute("INSERT OR IGNORE INTO metadata VALUES ('rss_previous_context',?)", (contexts_hash,))
         saved = p1.db.execute("SELECT value FROM metadata WHERE key='rss_previous_context'").fetchone()[0]
         need(saved == contexts_hash, "PREVIOUS_CONTEXT_CHANGED_ON_RESTART")
-    streams, blocked, active = {}, {}, set()
+        p1.db.execute("CREATE TABLE IF NOT EXISTS rss_minute_inputs (source_key TEXT PRIMARY KEY, fingerprint TEXT NOT NULL)")
+        for row in rows:
+            key = row["Code"] + "|" + row["Time"]
+            fingerprint = forward.digest(row)
+            old = p1.db.execute("SELECT fingerprint FROM rss_minute_inputs WHERE source_key=?", (key,)).fetchone()
+            need(old is None or old[0] == fingerprint, "MINUTE_CHANGED_ON_RESTART")
+            p1.db.execute("INSERT OR IGNORE INTO rss_minute_inputs VALUES (?,?)", (key, fingerprint))
+    streams, blocked, watches, latest = {}, {}, {}, {}
+    selector_seen, evaluated_here = set(), set()
     counts, statuses = Counter(), Counter()
+
+    def evaluate_latest(code, evaluated_at):
+        if code not in watches or code not in latest:
+            return
+        payload, sf = latest[code]
+        stream = streams[code]
+        watch = watches[code]
+        m = minute(payload["Time"])
+        identity = (code, m)
+        if identity in evaluated_here or m + 1 < watch["selector_minute"] or m not in stream.regular:
+            return
+        observed = forward.clock(evaluated_at, day)
+        if (observed - forward.clock(stamp(day, m + 1), day)).total_seconds() > 90:
+            counts["staleCurrentBarsSkipped"] += 1
+            return
+        source_status = ("RSS_PROXY_PREVIOUS_ACTIVITY_PRESENT" if stream.previous_activity else
+                         "RSS_PROXY_PREVIOUS_OHLC_ONLY_ACTIVITY_MISSING")
+        event = forward.assemble_feature_event(
+            runtime, watch, code, stream.today, stream.previous_activity, sf,
+            bar_end=stamp(day, m + 1), evaluated_at=evaluated_at,
+            feature_known_at=evaluated_at, state_known_at=payload["knownAtJst"],
+            source_kind=SOURCE_KIND, source_status=source_status)
+        result = p1.evaluate(event)
+        evaluated_here.add(identity)
+        counts["p1FeatureRows"] += 1
+        statuses[result["status"]] += 1
+        counts["idempotentDecisions"] += int(result["idempotentReplay"])
+
     for observed, kind, _, code, payload in events:
         if kind == 0:
-            result = p1.register_selector(payload)
+            envelope = payload
+            payload = envelope["payload"]
+            p1.register_selector(payload)
             counts["selectorEvents"] += len(payload["watchEvents"])
-            active.update(e["symbol"] for e in payload["watchEvents"])
+            for event in payload["watchEvents"]:
+                eid, code = event["selectorEventId"], event["symbol"]
+                if eid in selector_seen:
+                    continue
+                selector_seen.add(eid)
+                decision = forward.clock(event["decisionTimestamp"], day)
+                dm = decision.hour * 60 + decision.minute
+                newly_active = code not in watches
+                if newly_active:
+                    need(event["watchEventType"] == "WATCH_FIRST_SELECTION", "COMPLETE_SELECTOR_PREFIX_REQUIRED")
+                    watches[code] = {"watch_key": day + "|" + code, "session": day,
+                                     "selector_minute": dm, "selector_price": event["decisionPrice"],
+                                     "refresh_minutes": []}
+                else:
+                    need(event["watchEventType"] == "WATCH_REFRESH", "SELECTOR_PREFIX_CONFLICT")
+                    watches[code]["refresh_minutes"].append(dm)
+                # Same-clock closed bar may arrive just BEFORE the first Selector.
+                # Evaluate it after registration, without waiting another minute.
+                if newly_active and code in latest and minute(latest[code][0]["Time"]) + 1 == dm:
+                    evaluate_latest(code, envelope["receivedAtJst"])
             continue
         counts["receivedMinuteRows"] += 1
         if code in blocked:
@@ -252,42 +306,24 @@ def consume_received_feed(runtime, p1, feed, selector_envelopes, previous_contex
             except (ValueError, KeyError, TypeError):
                 blocked[code] = "PREVIOUS_NORMALIZATION_SOURCE_UNAVAILABLE"
                 continue
-        stream = streams[code]
-        sf, state = stream.push(payload)
+        sf, state = streams[code].push(payload)
+        latest[code] = (payload, sf)
         counts["state9Rows"] += 1
-        if code not in active:
-            continue
-        watch = p1.watch_context(code)
-        m = minute(payload["Time"])
-        if m + 1 < watch["selector_minute"] or m not in set(runtime.namespace["regular_starts"](day)):
-            continue
-        # Never make a fresh candidate from a very late replayed current bar.
-        if (observed - forward.clock(stamp(day, m + 1), day)).total_seconds() > 90:
-            counts["staleCurrentBarsSkipped"] += 1
-            continue
-        source_status = ("RSS_PROXY_PREVIOUS_ACTIVITY_PRESENT" if stream.previous_activity else
-                         "RSS_PROXY_PREVIOUS_OHLC_ONLY_ACTIVITY_MISSING")
-        feature = forward.assemble_feature_event(
-            runtime, watch, code, stream.today, stream.previous_activity, sf,
-            bar_end=stamp(day, m + 1), evaluated_at=payload["knownAtJst"],
-            feature_known_at=payload["knownAtJst"], state_known_at=payload["knownAtJst"],
-            source_kind=SOURCE_KIND, source_status=source_status)
-        result = p1.evaluate(feature)
-        counts["p1FeatureRows"] += 1
-        statuses[result["status"]] += 1
-        counts["idempotentDecisions"] += int(result["idempotentReplay"])
-    summary = {"schemaId": "ARK_NO11_RSS_STATE9_P1_RECEIVED_STREAM_SUMMARY_V1",
-               "sessionDate": day, "throughJst": through, "processingScope": "LOCAL_RECEIPT_ORDER_REPLAY_NOT_LIVE_SERVICE",
-               "counts": dict(counts), "decisionStatusCounts": dict(statuses),
-               "blockedSymbolCounts": dict(Counter(blocked.values())),
-               "state9Symbols": len(streams), "missingScheduledStateTicks": sum(s.missing_ticks for s in streams.values()),
-               "acceptedStateTicks": sum(s.accepted_ticks for s in streams.values()),
-               "logicalKernelClockIsNotReceiptClock": True, "nativeExactMinuteVaCertified": False,
-               "previousContextSha256": contexts_hash, "inputSha256": forward.digest([feed, selector_envelopes, previous_context]),
-               "p1Session": p1.summary(), "privateModelsExecuted": p1.scorer.model_kind == "ORIGINAL_CORRECTED_P1_F5",
-               "newFits": 0, "capitalExecuted": False, "exitExecuted": False,
-               "brokerOrders": 0, "productionReady": False, "orderTransmission": False}
-    return summary
+        evaluate_latest(code, payload["knownAtJst"])
+    return {"schemaId": "ARK_NO11_RSS_STATE9_P1_RECEIVED_STREAM_SUMMARY_V1",
+            "sessionDate": day, "throughJst": through,
+            "processingScope": "LOCAL_RECEIPT_ORDER_REPLAY_NOT_LIVE_SERVICE",
+            "counts": dict(counts), "decisionStatusCounts": dict(statuses),
+            "blockedSymbolCounts": dict(Counter(blocked.values())),
+            "state9Symbols": len(streams), "missingScheduledStateTicks": sum(s.missing_ticks for s in streams.values()),
+            "acceptedStateTicks": sum(s.accepted_ticks for s in streams.values()),
+            "logicalKernelClockIsNotReceiptClock": True, "nativeExactMinuteVaCertified": False,
+            "previousContextSha256": contexts_hash,
+            "inputSha256": forward.digest([feed, selector_envelopes, previous_context]),
+            "p1Session": p1.summary(),
+            "privateModelsExecuted": p1.scorer.model_kind == "ORIGINAL_CORRECTED_P1_F5",
+            "newFits": 0, "capitalExecuted": False, "exitExecuted": False,
+            "brokerOrders": 0, "productionReady": False, "orderTransmission": False}
 
 
 def main(argv=None):
@@ -316,9 +352,10 @@ def main(argv=None):
         encoded = (forward.dumps(summary) + "\n").encode("utf-8")
         output = root / ("rss-state9-p1-" + hashlib.sha256(encoded).hexdigest()[:16] + ".json")
         if output.exists():
-            need(output.read_bytes() == encoded, "OUTPUT_CONFLICT")
+            need(not output.is_symlink() and output.read_bytes() == encoded, "OUTPUT_CONFLICT")
         else:
-            output.write_bytes(encoded)
+            with output.open("xb") as handle:
+                handle.write(encoded)
         print(forward.dumps(summary))
         print("NO11_RSS_STATE9_P1_PRIVATE_REPORT=" + str(output))
         print("ORDER_TRANSMISSION=False")

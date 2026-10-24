@@ -88,7 +88,12 @@ def monthly_authority(root: Path) -> tuple[Authority, dict[str, Any]]:
 
 def host_config(authority: Authority, journal: Path) -> dict[str, Any]:
     if not authority.test_only: raise V2Error("TEST_CONFIG_CANNOT_INSTALL_MARKET_CHANNEL")
-    return {"schema": "ARK_V2_OS_OWNER_CHANNEL_V1", "worker_uid": os.getuid(),
+    if os.name == "nt":
+        from .windows_security import read_acl
+        worker_identity = {"worker_sid": read_acl(journal)["user_sid"]}
+    else:
+        worker_identity = {"worker_uid": os.getuid()}
+    return {"schema": "ARK_V2_OS_OWNER_CHANNEL_V1", **worker_identity,
             "source_root": str(authority.root), "output_root": str(authority.output), "journal_root": str(journal),
             "journal_namespace": digest(["ISOLATED_FACTORY", authority.manifest_pin, code_hash()]),
             "manifest_pin": authority.manifest_pin, "precommit": authority.precommit,

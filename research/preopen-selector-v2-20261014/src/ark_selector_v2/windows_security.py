@@ -12,6 +12,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 from typing import Any
 
@@ -113,7 +114,7 @@ def read_acl(path: Path) -> dict[str, Any]:
     encoded = base64.b64encode(script.encode("utf-16-le")).decode("ascii")
     try:
         process = subprocess.run(
-            ["powershell.exe", "-NoProfile", "-NonInteractive", "-EncodedCommand", encoded],
+            [(shutil.which("pwsh.exe") or "powershell.exe"), "-NoProfile", "-NonInteractive", "-EncodedCommand", encoded],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             timeout=20, check=False,
         )

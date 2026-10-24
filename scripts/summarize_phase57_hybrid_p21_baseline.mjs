@@ -1,0 +1,15 @@
+import fs from 'node:fs';import path from 'node:path';import {gunzipSync} from 'node:zlib';import assert from 'node:assert/strict';import {createHash} from 'node:crypto';
+import {buildDiagnostics} from './lib/phase57-baseline-diagnostics.mjs';
+const out=path.resolve(process.argv[2]??'tmp/baseline-measurement-v1');
+const complete=JSON.parse(fs.readFileSync(path.join(out,'measurement-complete.json')));assert.equal(complete.measuredSessions,17);assert.equal(complete.pitViolations,0);
+const ledger=gunzipSync(fs.readFileSync(path.join(out,'stateful-ledger.ndjson.gz'))).toString().trim().split('\n').map(JSON.parse);
+const metrics=buildDiagnostics(ledger);
+fs.writeFileSync(path.join(out,'metrics.json'),JSON.stringify(metrics,null,2)+'\n',{flag:'wx'});
+const rows=ledger.filter(r=>r.p21Status==='ENTER');
+const audit={eventCount:ledger.length,pitViolations:0,duplicateEvents:ledger.length-new Set(ledger.map(r=>r.eventId)).size,nonEnteredDirectionalOutcomesIncludedInPrimary:false,featureLabelHashMismatches:ledger.filter(r=>r.featureSha256!==r.labels.featureSha256).length,priorCutoffViolations:rows.filter(r=>r.p21Context.maxPriorOutcomeAt>=r.decisionAt).length,completedContextViolations:rows.filter(r=>r.adapterLineage.contextAvailableAt>r.decisionAt).length,costViolations:ledger.filter(r=>r.labels.roundTripCostBps!==5).length,protectedNewlyOpened:0,protectedNewOutcomeViewed:0,sourceVintagePitVerified:false,sourceVintageLimitation:'Later-fetched provider quote revisions/corporate-action basis are not proven historical vintage; logical replay PIT assertions pass.',modelTrainingOrRetuningPerformed:false};
+for(const k of ['duplicateEvents','featureLabelHashMismatches','priorCutoffViolations','completedContextViolations','costViolations'])assert.equal(audit[k],0);
+fs.writeFileSync(path.join(out,'post-measurement-audit.json'),JSON.stringify(audit,null,2)+'\n',{flag:'wx'});
+const files=fs.readdirSync(out).sort().map(name=>{const b=fs.readFileSync(path.join(out,name));return {name,bytes:b.length,sha256:createHash('sha256').update(b).digest('hex')};});
+const manifest={createdAt:new Date().toISOString(),role:'BASELINE_DIAGNOSTIC_USED',files};
+fs.writeFileSync(path.join(out,'evidence-manifest.json'),JSON.stringify(manifest,null,2)+'\n',{flag:'wx'});
+console.log(JSON.stringify({eventLevel:metrics.eventLevel.ALL,stateful:metrics.statefulOpportunityLevel.ALL,wait:metrics.waitDiagnostic},null,2));

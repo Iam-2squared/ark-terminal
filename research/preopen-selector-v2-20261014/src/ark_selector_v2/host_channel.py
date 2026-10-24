@@ -48,8 +48,11 @@ class JournalAuthority(Authority):
         if any(target.is_relative_to(r) or r.is_relative_to(target) for r in roots):
             raise V2Error("ARTIFACT_TRUST_JOURNAL_MUST_BE_SEPARATE")
         if os.name == "nt":
-            from .windows_security import verify_path
-            verify_path(journal, purpose="journal", directory=True)
+            from .windows_security import verify_path, no_reparse
+            if self.test_only:
+                no_reparse(journal)  # synthetic factory; cannot grant market rights
+            else:
+                verify_path(journal, purpose="journal", directory=True)
         else:
             check_owner_file(journal, os.getuid(), directory=True)
             if stat.S_IMODE(journal.stat().st_mode) != 0o700:
@@ -59,8 +62,11 @@ class JournalAuthority(Authority):
         self.artifact_pins = {}
         for path in sorted(journal.glob("*.json")):
             if os.name == "nt":
-                from .windows_security import verify_path
-                verify_path(path, purpose="journal")
+                from .windows_security import verify_path, no_reparse
+                if self.test_only:
+                    no_reparse(path)
+                else:
+                    verify_path(path, purpose="journal")
             else:
                 check_owner_file(path, os.getuid())
             entry = json.loads(path.read_text(encoding="utf8"))
@@ -88,11 +94,11 @@ def channel_snapshot(config: dict[str, Any], *, isolated: bool = False) -> Journ
     if config["test_only"] is not isolated:
         raise V2Error("OS_OWNER_CHANNEL_WORKER_OR_TEST_IDENTITY")
     if os.name == "nt":
-        from .windows_security import verify_path
-        # For production the controller has already been probed before reading
-        # its JSON. Isolated fixtures instead use the separately created journal.
+        from .windows_security import verify_path, read_acl
+        # Production is administrator-owned; synthetic fixtures use a verified
+        # generator and cannot turn the current user account into an owner grant.
         worker = (verify_path(HOST_CONFIG, purpose="control") if not isolated else
-                  verify_path(Path(config["journal_root"]), purpose="journal", directory=True))
+                  read_acl(Path(config["journal_root"]))["user_sid"])
         if config[worker_field] != worker:
             raise V2Error("OS_OWNER_CHANNEL_WORKER_OR_TEST_IDENTITY")
     elif type(config[worker_field]) is not int or config[worker_field] != os.getuid():

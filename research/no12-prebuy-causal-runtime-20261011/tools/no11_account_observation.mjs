@@ -5,6 +5,7 @@ import {createHash,randomUUID} from 'node:crypto';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {inspectReadOnlySnapshot} from '../../../integration/no1-1-msii/runtime/account_gate.mjs';
 import {cashSide,observedCashOrder} from './no11_broker_order_state.mjs';
+import {reconcileAccountExecutions} from './no11_account_execution_reconciliation.mjs';
 export const ENVELOPE='ARK_NO11_ACCOUNT_OBSERVATION_ENVELOPE_V1';
 const STATE='ARK_NO11_ACCOUNT_OBSERVATION_STATE_V1';
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../..');
@@ -49,8 +50,6 @@ export function observe({envelope,sessionDate,throughJst,previous=null}){
   if(!row.terminal)pending++;excluded.add(row.symbol);
   const old=state.orders[r.orderNumber];
   if(old){
-   // The first observer used short Japanese sides. Normalize only this exact
-   // representation during read; all other identity changes remain blocking.
    const oldSide=['BUY','SELL'].includes(old.side)?old.side:cashSide(old.side);
    if(['symbol','account','quantity'].some(k=>old[k]!==row[k])||oldSide!==row.side)anomalies.push('ORDER_IDENTITY_CHANGED');
    if(row.filledQty<old.filledQty)anomalies.push('CUMULATIVE_FILL_REVERSED');
@@ -67,16 +66,22 @@ export function observe({envelope,sessionDate,throughJst,previous=null}){
   excluded.add(symbol(x.symbol));cashSide(x.side);
   need(int(x.quantity,1)&&typeof x.price==='number'&&Number.isFinite(x.price)&&x.price>0&&typeof x.account==='string'&&x.account.length>0,'EXECUTION_INVALID');
  }
+ // Compare actual source lists without converting them to simulated fills or
+ // treating price*quantity as spendable cash. Legacy states acquire a baseline
+ // only now, never retroactively; later source removal is retained as an issue.
+ const reconciliation=reconcileAccountExecutions({snapshot,sessionDate,previous:state.executionConsistency??null});
+ state.executionConsistency=reconciliation.state;
  need(Object.keys(orders).length<=5000,'HISTORY_LIMIT');
  state.latchedBlockers=[...new Set([...state.latchedBlockers,...anomalies])];
  state.excludedSymbols=[...excluded].sort();state.orders=orders;
  Object.assign(state,{sourceAt:snapshot.captureCompletedAt,sourceSha,runId:envelope.runId,sequence:envelope.sequence});
- const blockers=[...state.latchedBlockers,...(pending?['PENDING_OR_UNKNOWN_REAL_ORDER']:[])];
+ const blockers=[...new Set([...state.latchedBlockers,...(pending?['PENDING_OR_UNKNOWN_REAL_ORDER']:[]),...reconciliation.report.blockers])];
  return {state:{...state,stateSha256:sha(state)},report:{schemaId:'ARK_NO11_ACCOUNT_OBSERVATION_REPORT_V1',sessionDate,
   status:blockers.length?'OBSERVED_ENTRY_BLOCKED':'OBSERVED_READONLY',sourceSha256:sourceSha,sourceAt:state.sourceAt,
   blockers,newShadowEntriesAllowed:blockers.length===0,excludedSymbols:state.excludedSymbols,
   observedBuyingPowerJpy:snapshot.buyingPower,positionRows:snapshot.positions.length,orderRows:snapshot.orders.length,
   executionRows:snapshot.executions.length,pendingOrders:pending,fillIncreasedOrders:increased,disappearedOrders:disappeared,
+  executionReconciliation:reconciliation.report,
   actualFeedTimestampCertified:false,realCashUsedForFunding:false,realFillsAppliedToShadow:false,
   arkOrderAttributionAvailable:false,productionReady:false,orderTransmission:false}};
 }

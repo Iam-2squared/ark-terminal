@@ -6,6 +6,7 @@ import {digest} from '../../../integration/no1-1-msii/runtime/locked_intent.mjs'
 import {buildNo12SyntheticMsiiOrderText} from '../runtime/synthetic_msii_draft.mjs';
 import {bindObservedOrder} from './no11_broker_order_state.mjs';
 import {orderInstant,validMsiiOrderId,validateMsiiOrderIds,NS_PER_MS} from '../runtime/no11_order_boundary.mjs';
+import {compileCancelArguments} from '../runtime/no11_msii_argument_contract.mjs';
 const need=(ok,code)=>{if(!ok)throw Error('NO11_CANCEL_'+code)};
 const validId=validMsiiOrderId;
 const clock=x=>orderInstant(x,'NO11_CANCEL_SOURCE_CLOCK',{jstOnly:true});
@@ -38,7 +39,7 @@ export function buildSyntheticCancelText({orderRequest,sourceDraft,origin,source
  need(['ACKNOWLEDGED','PARTIAL'].includes(link.order.phase)&&!link.order.terminal,'TARGET_NOT_CANCELLABLE');
  const number=link.brokerOrderNumber;
  need(/^[1-9]\d{0,14}$/.test(number)&&Number.isSafeInteger(Number(number)),'TARGET_NUMBER_INVALID');
- const args=[String(cancelId),'0',number];
+ const args=compileCancelArguments({rssOrderId:cancelId,orderNumber:number});
  const core={schemaId:'ARK_NO11_MSII_CANCEL_TEXT_PREVIEW_V1',evidenceMode:'SYNTHETIC_OFFLINE_ONLY',
   function:'RssCancelOrder',arguments:args,formulaText:'=RssCancelOrder'+'('+args.join(',')+')',
   formulaCellType:'TEXT',trigger:0,sourceOrderDraftSha256:original.draftSha256,sourceSnapshotSha256:digest(source),

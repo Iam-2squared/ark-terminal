@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Local received RSS -> existing Selector/P1/H235 -> optional Shadow portfolio.
+"""Local received RSS -> existing Selector/P1/H235 -> optional execution adapters.
 
-No broker/account writes. Durable entry-failure isolation keeps the simulated
-position EXIT path available without re-enabling new BUY after a failure.
+The normal bootstrap is read-only. An explicitly configured broker adapter is
+kept separate from the synthetic portfolio; shared entry/source failures halt
+both entry paths while preserving held-position EXIT and its EOD clock.
 """
 from __future__ import annotations
 
@@ -28,6 +29,8 @@ import no11_h235_asof_forward_shadow as h235_module
 ROOT = forward.REPO
 TICK = Path(__file__).with_name('no11_received_pipeline_tick.mjs')
 JST = timezone(timedelta(hours=9))
+PROCESS_ERRORS = (OSError, ValueError, KeyError, TypeError, RuntimeError,
+                  sqlite3.Error, subprocess.SubprocessError)
 
 
 def now_jst():
@@ -103,13 +106,20 @@ def exclusive_service(root):
 class ProcessingTimedP1(forward.ForwardP1Session):
     """Preserve first-receipt time; separately record actual feature processing."""
     def __init__(self, database, scorer, clock=now_jst):
-        super().__init__(database, scorer)
-        self.processing_clock = clock
-        self.db.execute('''CREATE TABLE IF NOT EXISTS received_processing
-          (watch_key TEXT NOT NULL, bar_end TEXT NOT NULL, source_hash TEXT NOT NULL,
-           evaluated_at TEXT NOT NULL, status TEXT NOT NULL,
-           PRIMARY KEY(watch_key,bar_end))''')
-        self.db.commit()
+        try:
+            super().__init__(database, scorer)
+            self.processing_clock = clock
+            self.db.execute('''CREATE TABLE IF NOT EXISTS received_processing
+              (watch_key TEXT NOT NULL, bar_end TEXT NOT NULL, source_hash TEXT NOT NULL,
+               evaluated_at TEXT NOT NULL, status TEXT NOT NULL,
+               PRIMARY KEY(watch_key,bar_end))''')
+            self.db.commit()
+        except BaseException:
+            # A constructor that opened SQLite owns its cleanup even before
+            # main() has received an instance to close.
+            if getattr(self, 'db', None) is not None:
+                self.db.close()
+            raise
 
     def evaluate(self, source_event):
         need(isinstance(source_event, dict), 'FEATURE_OBJECT_REQUIRED')
@@ -203,6 +213,22 @@ def run_tick(request, root):
     return payload, str(path)
 
 
+def broker_report_flags(actual, *, configured=False, mode='DISABLED'):
+    """Describe observed account input and configured transport independently.
+
+    A current broker-shaped snapshot is not certification of a physical
+    connection, a transmitted order, an acknowledgement or a fill.
+    """
+    actual = actual or {}
+    return {'brokerExecutionConfigured': configured,
+            'brokerTransportMode': actual.get('mode', mode),
+            'realAccountConnected': (actual.get('evidenceMode') == 'BROKER_OBSERVATION'
+                                     and actual.get('sourceCurrent') is True),
+            'exitConnected': configured,
+            'brokerConnectionPhysicallyVerified': actual.get('brokerConnectionPhysicallyVerified') is True,
+            'orderTransmission': actual.get('orderTransmission') is True}
+
+
 def main(argv=None, *, should_stop=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--session', required=True)
@@ -214,6 +240,8 @@ def main(argv=None, *, should_stop=None):
     parser.add_argument('--runtime-root', required=True, type=Path)
     parser.add_argument('--h235-model-root', type=Path)
     parser.add_argument('--shadow-account-config', type=Path)
+    parser.add_argument('--broker-execution-config', type=Path)
+    parser.add_argument('--broker-execution-readonly', action='store_true')
     parser.add_argument('--private-root', required=True, type=Path)
     parser.add_argument('--preflight-only', action='store_true')
     parser.add_argument('--once', action='store_true')
@@ -234,14 +262,27 @@ def main(argv=None, *, should_stop=None):
     scorer = forward.FrozenP1Scorer(args.runtime_root, ROOT, args.session)
     h235 = h235_module.FrozenH235AsOf(args.h235_model_root, args.session) if args.h235_model_root else None
     execution_settings = None
+    broker_settings = None
     if args.shadow_account_config is not None:
         need(h235 is not None, 'H235_REQUIRED_FOR_SHADOW_PORTFOLIO')
         import no11_received_failure_isolation as execution_module
         execution_settings = execution_module.settings(private_path(args.shadow_account_config), args.session)
+    if args.broker_execution_config is not None:
+        need(h235 is not None, 'H235_REQUIRED_FOR_BROKER_EXECUTION')
+        import no11_broker_execution_service as broker_module
+        broker_settings = broker_module.settings(private_path(args.broker_execution_config), args.session,
+            read_only=args.broker_execution_readonly)
+        # Enforce the bootstrap promise here as well as inside settings(). A
+        # future adapter must not silently ignore the read-only launch flag.
+        need(not args.broker_execution_readonly or
+             broker_settings[0]['transport']['mode'] in ('DISABLED', 'OBSERVE_ONLY'),
+             'READONLY_BROKER_TRANSPORT_REQUIRED')
     if args.preflight_only:
         print(forward.dumps({'status': 'ASSETS_LOADED_READONLY_NOT_LIVE_VERIFIED',
             'p1Fold': 5, 'h235ModelsVerified': 24 if h235 else 0,
             'shadowPortfolioConfigured': execution_settings is not None,
+            'brokerExecutionConfigured': broker_settings is not None,
+            'brokerTransportMode': broker_settings[0]['transport']['mode'] if broker_settings else 'DISABLED',
             'productionReady': False, 'orderTransmission': False}))
         return
     need(args.capture_folder is not None, 'CAPTURE_FOLDER_REQUIRED')
@@ -250,41 +291,98 @@ def main(argv=None, *, should_stop=None):
         checkpoint = load_checkpoint(root)
         engine = ProcessingTimedP1(root / ('p1-shadow-' + args.session + '.sqlite'), scorer)
         execution = None
+        broker = None
         signature = None
         verify_history = True
         started = time.monotonic()
         last_summary = None
+        final_actual = None
         try:
             if execution_settings is not None:
                 execution = execution_module.ExecutionShadow(root, *execution_settings, runtime, previous, prior)
+            if broker_settings is not None:
+                broker = broker_module.BrokerExecution(root, *broker_settings, runtime, previous, prior)
+
+            def failure_reason(error):
+                return (execution_module.reason_code(error) if execution is not None
+                        else broker_module.safe_reason(error))
+
+            def halt_entry_paths(reason):
+                failures = []
+                for controller in (execution, broker):
+                    if controller is not None:
+                        try:
+                            controller.halt_entry(reason, now_jst())
+                        except PROCESS_ERRORS as error:
+                            failures.append(error)
+                if failures:
+                    # Try both durable halts before propagating a ledger fault;
+                    # never represent an unavailable ledger as healthy.
+                    raise failures[0]
+
+            def held_reports(feed=None, *, clock_only=False):
+                nonlocal final_actual
+                reports, failures = [None, None], []
+                for index, controller in enumerate((execution, broker)):
+                    if controller is None:
+                        continue
+                    try:
+                        if clock_only:
+                            reports[index] = controller.heartbeat(now_jst())
+                        else:
+                            try:
+                                reports[index] = controller.exit_only(feed, now_jst())
+                            except PROCESS_ERRORS as error:
+                                if isinstance(error, sqlite3.Error):
+                                    failures.append(error)
+                                try:
+                                    halt_entry_paths(failure_reason(error))
+                                except PROCESS_ERRORS as halt_error:
+                                    failures.append(halt_error)
+                                reports[index] = controller.heartbeat(now_jst())
+                        filename = 'portfolio-latest-report.json' if index == 0 else 'broker-execution-latest-report.json'
+                        atomic_private(root / filename, reports[index])
+                        if index == 1:
+                            final_actual = reports[index]
+                    except PROCESS_ERRORS as error:
+                        failures.append(error)
+                if failures:
+                    # The other independent held-position clock was attempted
+                    # even when one report/ledger failed. Entry stays halted.
+                    halt_entry_paths(failure_reason(failures[0]))
+                    raise failures[0]
+                return reports
+
+            def halted_summary(reason):
+                return {'schemaId': 'ARK_NO11_ENTRY_PIPELINE_HALTED_V1', 'status': 'ENTRY_PIPELINE_HALTED',
+                        'failureCode': reason, 'p1Session': engine.summary(), 'h235OriginalModelExecutions': 0,
+                        'productionReady': False, 'orderTransmission': False}
 
             def source_blocked(error):
-                if execution is None:
+                if execution is None and broker is None:
                     raise error
-                reason = execution_module.reason_code(error)
-                execution.halt_entry(reason, now_jst())
-                paper = execution.heartbeat(now_jst())
-                atomic_private(root / 'portfolio-latest-report.json', paper)
+                reason = failure_reason(error)
+                halt_entry_paths(reason)
+                paper, actual = held_reports(clock_only=True)
                 atomic_private(root / 'pipeline-source-failure.json', {
                     'schemaId': 'ARK_NO11_SOURCE_HALTED_EXIT_CLOCK_ONLY_V1', 'reason': reason,
                     'actualObservedAtJst': now_jst(), 'entryPipelineHalted': True,
                     'structuralExitSourceAvailable': False, 'shadowPortfolio': paper,
-                    'productionReady': False, 'orderTransmission': False})
+                    'brokerExecution': actual, 'productionReady': False,
+                    **broker_report_flags(actual, configured=broker is not None)})
                 return paper
 
             while True:
                 try:
                     stop_after_tick = bool(should_stop()) if should_stop is not None else False
-                except (OSError, ValueError, TypeError, RuntimeError) as error:
+                except PROCESS_ERRORS as error:
                     # A failed read-only source relay must not bypass the
                     # portfolio halt or silently disable its EOD clock.
                     source_blocked(error)
                     stop_after_tick = False
                 current = now_jst()
                 need(current[:10] == args.session, 'NOT_SELECTED_SESSION_TODAY')
-                if execution is not None:
-                    paper = execution.heartbeat(current)
-                    atomic_private(root / 'portfolio-latest-report.json', paper)
+                held_reports(clock_only=True)
                 if current[11:16] >= '15:26':
                     print('NO11_SERVICE_STOP=SESSION_END_READONLY')
                     break
@@ -312,7 +410,7 @@ def main(argv=None, *, should_stop=None):
                         'productionReady': False, 'orderTransmission': False}
                     try:
                         tick = run_tick(request, root)
-                    except (OSError, ValueError, KeyError, TypeError, RuntimeError, subprocess.SubprocessError) as error:
+                    except PROCESS_ERRORS as error:
                         source_blocked(error)
                         signature = new_signature  # retry only when new source bytes arrive
                         if args.once or stop_after_tick: break
@@ -330,23 +428,44 @@ def main(argv=None, *, should_stop=None):
                         return received.consume_received_feed(runtime, engine, payload['feed'],
                             payload['selectorEnvelopes'], previous, previous_session=prior,
                             through=now_jst(), h235=h235, h235_store=root)
-                    if execution is None:
-                        summary, paper = infer(), None
-                    else:
-                        summary, paper = execution_module.guarded_inference(execution, payload['feed'], infer,
-                            clock=now_jst, p1_summary=engine.summary)
+                    summary, paper, actual = None, None, None
+                    try:
+                        if execution is None:
+                            summary = (halted_summary('NO11_ENTRY_PIPELINE_ALREADY_HALTED')
+                                       if broker is not None and broker.entry_halted else infer())
+                        else:
+                            summary, paper = execution_module.guarded_inference(execution, payload['feed'], infer,
+                                clock=now_jst, p1_summary=engine.summary)
+                        if summary.get('status') == 'ENTRY_PIPELINE_HALTED':
+                            halt_entry_paths(summary.get('failureCode', 'NO11_ENTRY_PIPELINE_FAILURE'))
+                        if broker is not None:
+                            actual = (broker.exit_only(payload['feed'], now_jst()) if broker.entry_halted
+                                      else broker.advance(payload['feed'], summary, now_jst()))
+                    except PROCESS_ERRORS as error:
+                        if execution is None and broker is None:
+                            raise
+                        reason = failure_reason(error)
+                        halt_entry_paths(reason)
+                        paper, actual = held_reports(payload['feed'])
+                        summary = halted_summary(reason)
+                    final_actual = actual
                     last_summary = payload['summary']
                     report = {'schemaId': 'ARK_NO11_CONTINUOUS_RECEIVED_SHADOW_V1',
                         'actualCompletedAtJst': now_jst(), 'source': last_summary,
                         'inference': summary, 'previousContextSha256': previous_hash,
                         'shadowPortfolio': paper, 'collectorLaunchedByThisProcess': False,
-                        'realAccountConnected': False, 'exitConnected': False,
+                        'brokerExecution': actual,
                         'originalExitShadowConnected': execution is not None,
-                        'productionReady': False, 'orderTransmission': False}
+                        'productionReady': False,
+                        **broker_report_flags(actual, configured=broker is not None)}
                     atomic_private(root / 'pipeline-latest-report.json', report)
                     if paper is not None:
                         atomic_private(root / 'portfolio-latest-report.json', paper)
-                    degraded = paper is not None and paper.get('entryPipelineHalted') is True
+                    if actual is not None:
+                        atomic_private(root / 'broker-execution-latest-report.json', actual)
+                    degraded = (summary.get('status') == 'ENTRY_PIPELINE_HALTED'
+                                or paper is not None and paper.get('entryPipelineHalted') is True
+                                or actual is not None and actual.get('entryPipelineHalted') is True)
                     print(forward.dumps({'status': 'DEGRADED_EXIT_ONLY' if degraded else 'RECEIVED_PIPELINE_TICK_COMPLETE',
                         'snapshots': last_summary['snapshots'], 'minuteRows': last_summary['minuteRows'],
                         'selectorRuns': last_summary['executedSlots'], 'missedSlots': last_summary['missedSlots'],
@@ -355,7 +474,8 @@ def main(argv=None, *, should_stop=None):
                         'shadowPositions': paper['positionCount'] if paper else 0,
                         'shadowBuyIntents': paper['buyIntentCount'] if paper else 0,
                         'shadowSellIntents': paper['sellIntentCount'] if paper else 0,
-                        'productionReady': False, 'orderTransmission': False}), flush=True)
+                        'brokerPositions': actual['positionCount'] if actual else 0,
+                        'productionReady': False, 'orderTransmission': actual['orderTransmission'] if actual else False}), flush=True)
                     signature, verify_history = new_signature, False
                 if args.once or stop_after_tick:
                     break
@@ -373,8 +493,15 @@ def main(argv=None, *, should_stop=None):
                     finally:
                         execution.close()
             finally:
-                engine.close()
-    print('ORDER_TRANSMISSION=False')
+                try:
+                    if broker is not None:
+                        try:
+                            atomic_private(root / 'broker-execution-latest-report.json', broker.summary())
+                        finally:
+                            broker.close()
+                finally:
+                    engine.close()
+    print('ORDER_TRANSMISSION=' + str(broker_report_flags(final_actual)['orderTransmission']))
 
 
 if __name__ == '__main__':

@@ -9,6 +9,7 @@ const base=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const collector=path.join(base,'windows/Probe-No11Chart50ContinuousReadOnly.ps1');
 const launcher=path.join(base,'windows/Run-No11ReceivedSessionReadOnly.ps1');
 const py=fs.readFileSync(path.join(base,'tools/no11_received_session_bootstrap.py'),'utf8');
+const powershell=process.platform==='win32'?'powershell.exe':process.env.ARK_NO11_PWSH;
 
 test('paired launch keeps original broker and workbook safety restrictions',()=>{
  const source=fs.readFileSync(collector,'utf8');
@@ -29,17 +30,25 @@ test('paired launch keeps original broker and workbook safety restrictions',()=>
  assert.ok([...source].every(c=>c.charCodeAt(0)<128));
 });
 
-test('Windows one-click launcher parses without models Excel or network',()=>{
- if(process.platform!=='win32')return;
- const r=spawnSync('powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass',
+test('Windows one-click launcher parses without models Excel or network',{skip:!powershell},()=>{
+ const r=spawnSync(powershell,['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass',
   '-File',launcher,'-OfflineSelfTest'],{encoding:'utf8',timeout:20000});
  assert.equal(r.status,0,r.stderr+'\n'+r.stdout);
  assert.match(r.stdout,/NO11_BOOTSTRAP_WINDOWS_OFFLINE_SELFTEST=PASS/);
  assert.match(r.stdout,/NO11_BOOTSTRAP_COLLECTOR_STARTED=False/);
+ assert.match(r.stdout,/NO11_BOOTSTRAP_ORDER_ID_ARGUMENT_SELFTEST=PASS/);
 });
 
-test('Windows collector stop interrupts minute wait and atomically publishes control receipt',()=>{
- if(process.platform!=='win32')return;
+test('supplemental workbook and unsaved temporary identity have offline validation',{skip:!powershell},()=>{
+ const r=spawnSync(powershell,['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass',
+  '-File',collector,'-OfflineSelfTest'],{encoding:'utf8',timeout:25000});
+ assert.equal(r.status,0,r.stderr+'\n'+r.stdout);
+ assert.match(r.stdout,/NO11_C50_SUPPLEMENTAL_BOOK_SELFTEST=PASS/);
+ assert.match(r.stdout,/NO11_C50_TEMPORARY_IDENTITY_SELFTEST=PASS/);
+ assert.match(r.stdout,/NO11_C50_BROKER_ACCESS=False/);
+});
+
+test('Windows collector stop interrupts minute wait and atomically publishes control receipt',{skip:process.platform!=='win32'},()=>{
  const code=String.raw`
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest

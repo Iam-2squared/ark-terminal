@@ -55,6 +55,15 @@ def read(path, limit=25_000_000):
     return json.loads(data.decode('utf-8-sig')), hashlib.sha256(data).hexdigest()
 
 
+def workbook_pin(value):
+    # Excel may save new observed rows to this file. Bind the private workbook
+    # identity, not mutable workbook bytes; live PID/start time is checked by
+    # the account observer for each combined snapshot.
+    p = private(value)
+    need(p.suffix.lower() == '.xlsx', 'ORDER_ID_WORKBOOK_TYPE')
+    return {'path': str(p), 'identitySha256': hashlib.sha256(str(p).lower().encode('utf-8')).hexdigest()}
+
+
 def atomic(path, obj):
     p = private(path, exists=False)
     tmp = p.with_name('.' + p.name + '.' + uuid.uuid4().hex + '.tmp')
@@ -137,13 +146,16 @@ class RunRecovery:
             _, checksum = read(p)
             files[key] = {'path': str(p), 'sha256': checksum}
         extras = {}
-        if self.config.get('shadowAccountConfig'):
-            p = private(self.config['shadowAccountConfig'])
-            _, checksum = read(p, 100_000)
-            extras['shadowAccountConfig'] = {'path': str(p), 'sha256': checksum}
+        for key in ('shadowAccountConfig', 'brokerExecutionConfig'):
+            if self.config.get(key):
+                p = private(self.config[key])
+                _, checksum = read(p, 100_000)
+                extras[key] = {'path': str(p), 'sha256': checksum}
         body = {'schemaId': CONTRACT, 'sessionDate': self.session, 'runRoot': str(run),
                 'configSha256': digest(self.config), 'preparedSha256': prepared_sha,
                 'files': files, 'extras': extras, 'productionReady': False, 'orderTransmission': False}
+        if self.config.get('orderIdWorkbookPath'):
+            body['workbooks'] = {'orderIdWorkbookPath': workbook_pin(self.config['orderIdWorkbookPath'])}
         atomic(run / 'run-contract.json', sealed(body))
         # A crash before this pointer is written still leaves discoverable
         # evidence; check_new must not turn that orphan into a clean run.
@@ -166,9 +178,14 @@ class RunRecovery:
             need(p.parent == run and prepared['files'].get(key) == str(p), 'PREPARED_PATH_CHANGED')
             _, checksum = read(p)
             need(checksum == pin['sha256'], 'PREPARED_INPUT_CHANGED')
-        for pin in body['extras'].values():
+        for key, pin in body['extras'].items():
+            need(key in ('shadowAccountConfig', 'brokerExecutionConfig'), 'EXTRA_CONFIG_UNKNOWN')
             _, checksum = read(pin['path'], 100_000)
-            need(checksum == pin['sha256'], 'SHADOW_CONFIG_CHANGED')
+            need(checksum == pin['sha256'], 'BROKER_CONFIG_CHANGED'
+                 if key == 'brokerExecutionConfig' else 'SHADOW_CONFIG_CHANGED')
+        expected_workbooks = ({'orderIdWorkbookPath': workbook_pin(self.config['orderIdWorkbookPath'])}
+                              if self.config.get('orderIdWorkbookPath') else {})
+        need(body.get('workbooks', {}) == expected_workbooks, 'WORKBOOK_IDENTITY_CHANGED')
         self.history(run)  # refuses all uncertain collector-cleanup states
         return prepared
 

@@ -2,7 +2,7 @@
 # No installation, fitting, workbook changes, order permission or broker sending.
 param(
  [string]$ConfigFile,[string]$PythonExecutable,[string]$ResumeRun,
- [string]$AccountWorkbookPath,
+ [string]$AccountWorkbookPath,[string]$OrderIdWorkbookPath,
  [switch]$PreflightOnly,[switch]$OfflineSelfTest
 )
 $ErrorActionPreference='Stop'
@@ -24,6 +24,43 @@ function QuotedFile([string]$value){
  }
  return '"'+$value+'"'
 }
+function AssertWorkbookPair([string]$accountFile,[string]$idFile){
+ if(-not [string]::IsNullOrWhiteSpace($idFile) -and [string]::IsNullOrWhiteSpace($accountFile)){
+  throw 'NO11_BOOTSTRAP_ORDER_IDS_REQUIRE_ACCOUNT_WORKBOOK'
+ }
+}
+function ConfiguredOrderIdPath([string]$configuredFile,[string]$explicitFile){
+ if([string]::IsNullOrWhiteSpace($configuredFile)){
+  if(-not [string]::IsNullOrWhiteSpace($explicitFile)){throw 'NO11_BOOTSTRAP_ORDER_ID_CONFIG_MATCH_REQUIRED'}
+  return ''
+ }
+ if(-not [IO.Path]::IsPathRooted($configuredFile) -or [IO.Path]::GetExtension($configuredFile) -ine '.xlsx'){
+  throw 'NO11_BOOTSTRAP_ORDER_ID_WORKBOOK_REQUIRED'
+ }
+ $full=[IO.Path]::GetFullPath($configuredFile)
+ if(-not [string]::IsNullOrWhiteSpace($explicitFile)){
+  if(-not [IO.Path]::IsPathRooted($explicitFile) -or
+     -not $full.Equals([IO.Path]::GetFullPath($explicitFile),[StringComparison]::OrdinalIgnoreCase)){
+   throw 'NO11_BOOTSTRAP_ORDER_ID_CONFIG_MATCH_REQUIRED'
+  }
+ }
+ return $full
+}
+function AccountObserverArguments([string]$scriptFile,[string]$accountFile,[string]$outputFile,[string]$stopFile,[string]$idFile=''){
+ AssertWorkbookPair $accountFile $idFile
+ $result=@('-NoProfile','-ExecutionPolicy','Bypass','-File',(QuotedFile $scriptFile),
+  '-WorkbookPath',(QuotedFile $accountFile),'-OutputFile',(QuotedFile $outputFile),
+  '-StopFile',(QuotedFile $stopFile))
+ if(-not [string]::IsNullOrWhiteSpace($idFile)){$result+=@('-OrderIdWorkbookPath',(QuotedFile $idFile))}
+ return $result
+}
+function AssertAccountConfig($value){
+ $names=@($value.PSObject.Properties.Name)
+ if('h235ModelRoot' -notin $names -or
+    ('shadowAccountConfig' -notin $names -and 'brokerExecutionConfig' -notin $names)){
+  throw 'NO11_BOOTSTRAP_ACCOUNT_REQUIRES_PORTFOLIO_CONFIG'
+ }
+}
 if($OfflineSelfTest){
  if(-not (Test-Path -LiteralPath $bootstrap -PathType Leaf)){throw 'NO11_BOOTSTRAP_SCRIPT_MISSING'}
  $a=@(BootstrapArguments 'C:\private path\config.json' $true)
@@ -37,8 +74,36 @@ if($OfflineSelfTest){
  if((QuotedFile 'C:\private path\account.xlsx') -cne '"C:\private path\account.xlsx"'){
   throw 'NO11_BOOTSTRAP_QUOTED_ARGUMENT_FAILED'
  }
+ $old=@(AccountObserverArguments 'observer.ps1' 'C:\private path\account.xlsx' 'out.json' 'stop')
+ $ids=@(AccountObserverArguments 'observer.ps1' 'C:\private path\account.xlsx' 'out.json' 'stop' 'C:\private path\ids.xlsx')
+ if($old.Count -ne 11 -or $old -contains '-OrderIdWorkbookPath' -or
+    $ids.Count -ne 13 -or $ids[11] -cne '-OrderIdWorkbookPath' -or
+    $ids[12] -cne '"C:\private path\ids.xlsx"'){
+  throw 'NO11_BOOTSTRAP_ORDER_ID_ARGUMENT_SELFTEST_FAILED'
+ }
+ $blocked=$false;try{AssertWorkbookPair '' 'ids.xlsx'}catch{
+  if($_.Exception.Message -ceq 'NO11_BOOTSTRAP_ORDER_IDS_REQUIRE_ACCOUNT_WORKBOOK'){$blocked=$true}else{throw}
+ }
+ if(-not $blocked){throw 'NO11_BOOTSTRAP_ORDER_ID_PAIR_SELFTEST_FAILED'}
+ AssertAccountConfig ([pscustomobject]@{h235ModelRoot='model';shadowAccountConfig='shadow.json'})
+ AssertAccountConfig ([pscustomobject]@{h235ModelRoot='model';brokerExecutionConfig='broker.json'})
+ $blocked=$false;try{AssertAccountConfig ([pscustomobject]@{brokerExecutionConfig='broker.json'})}catch{
+  if($_.Exception.Message -ceq 'NO11_BOOTSTRAP_ACCOUNT_REQUIRES_PORTFOLIO_CONFIG'){$blocked=$true}else{throw}
+ }
+ if(-not $blocked){throw 'NO11_BOOTSTRAP_ORDER_ID_CONFIG_SELFTEST_FAILED'}
+ $configured=Join-Path ([IO.Path]::GetTempPath()) 'ark synthetic ids.xlsx'
+ if((ConfiguredOrderIdPath $configured $configured) -cne ([IO.Path]::GetFullPath($configured)) -or
+    (ConfiguredOrderIdPath $configured '') -cne ([IO.Path]::GetFullPath($configured)) -or
+    (ConfiguredOrderIdPath '' '') -cne ''){throw 'NO11_BOOTSTRAP_ORDER_ID_CONFIG_PATH_SELFTEST_FAILED'}
+ foreach($mismatch in @(@('',$configured),@($configured,(Join-Path ([IO.Path]::GetTempPath()) 'different.xlsx')))){
+  $blocked=$false;try{ConfiguredOrderIdPath $mismatch[0] $mismatch[1] | Out-Null}catch{
+   if($_.Exception.Message -ceq 'NO11_BOOTSTRAP_ORDER_ID_CONFIG_MATCH_REQUIRED'){$blocked=$true}else{throw}
+  }
+  if(-not $blocked){throw 'NO11_BOOTSTRAP_ORDER_ID_CONFIG_MATCH_SELFTEST_FAILED'}
+ }
  Write-Host 'NO11_BOOTSTRAP_WINDOWS_OFFLINE_SELFTEST=PASS'
  Write-Host 'NO11_BOOTSTRAP_RESUME_ARGUMENT_SELFTEST=PASS'
+ Write-Host 'NO11_BOOTSTRAP_ORDER_ID_ARGUMENT_SELFTEST=PASS'
  Write-Host 'NO11_BOOTSTRAP_COLLECTOR_STARTED=False'
  Write-Host 'ORDER_TRANSMISSION=False'
  exit 0
@@ -46,6 +111,7 @@ if($OfflineSelfTest){
 $observer=$null;$stop=$null;$code=2
 $oldSource=[Environment]::GetEnvironmentVariable('ARK_NO11_ACCOUNT_OBSERVATION_FILE','Process')
 try{
+ AssertWorkbookPair $AccountWorkbookPath $OrderIdWorkbookPath
  if([string]::IsNullOrWhiteSpace($ConfigFile) -or -not [IO.Path]::IsPathRooted($ConfigFile) -or
     -not (Test-Path -LiteralPath $ConfigFile -PathType Leaf)){
   throw 'NO11_BOOTSTRAP_CONFIG_FILE_REQUIRED'
@@ -56,6 +122,16 @@ try{
  if($config.schemaId -cne 'ARK_NO11_READONLY_BOOTSTRAP_CONFIG_V1' -or
     $config.productionReady -ne $false -or $config.orderTransmission -ne $false){
   throw 'NO11_BOOTSTRAP_CONFIG_NOT_READONLY'
+ }
+ $configuredIds=''
+ if('orderIdWorkbookPath' -in $config.PSObject.Properties.Name){$configuredIds=[string]$config.orderIdWorkbookPath}
+ $OrderIdWorkbookPath=ConfiguredOrderIdPath $configuredIds $OrderIdWorkbookPath
+ AssertWorkbookPair $AccountWorkbookPath $OrderIdWorkbookPath
+ if(-not [string]::IsNullOrWhiteSpace($OrderIdWorkbookPath)){
+  if(-not (Test-Path -LiteralPath $OrderIdWorkbookPath -PathType Leaf)){throw 'NO11_BOOTSTRAP_ORDER_ID_WORKBOOK_REQUIRED'}
+  if(-not [IO.Path]::IsPathRooted($AccountWorkbookPath) -or -not (Test-Path -LiteralPath $AccountWorkbookPath -PathType Leaf)){
+   throw 'NO11_BOOTSTRAP_ACCOUNT_WORKBOOK_REQUIRED'
+  }
  }
  if(-not [string]::IsNullOrWhiteSpace($ResumeRun)){
   if(-not [IO.Path]::IsPathRooted($ResumeRun) -or -not (Test-Path -LiteralPath $ResumeRun -PathType Container)){
@@ -90,9 +166,7 @@ try{
   if(-not [IO.Path]::IsPathRooted($AccountWorkbookPath) -or -not (Test-Path -LiteralPath $AccountWorkbookPath -PathType Leaf)){
    throw 'NO11_BOOTSTRAP_ACCOUNT_WORKBOOK_REQUIRED'
   }
-  if('shadowAccountConfig' -notin $config.PSObject.Properties.Name -or 'h235ModelRoot' -notin $config.PSObject.Properties.Name){
-   throw 'NO11_BOOTSTRAP_ACCOUNT_REQUIRES_SHADOW_CONFIG'
-  }
+  AssertAccountConfig $config
   $private=[IO.Path]::GetFullPath([string]$config.privateRoot)
   $repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..'))
   if(-not (Test-Path -LiteralPath $private -PathType Container) -or
@@ -115,9 +189,7 @@ try{
   $token=[guid]::NewGuid().ToString('N')
   $stop=Join-Path $private ('account-observer-'+$token+'.stop')
   $script=Join-Path $PSScriptRoot 'Observe-No11AccountReadOnly.ps1'
-  $observerArgs=@('-NoProfile','-ExecutionPolicy','Bypass','-File',(QuotedFile $script),
-   '-WorkbookPath',(QuotedFile ([IO.Path]::GetFullPath($AccountWorkbookPath))),
-   '-OutputFile',(QuotedFile $source),'-StopFile',(QuotedFile $stop))
+  $observerArgs=@(AccountObserverArguments $script ([IO.Path]::GetFullPath($AccountWorkbookPath)) $source $stop $OrderIdWorkbookPath)
   $env:ARK_NO11_ACCOUNT_OBSERVATION_FILE=$source
   $observer=Start-Process -FilePath 'powershell.exe' -ArgumentList $observerArgs -PassThru -WindowStyle Hidden `
    -RedirectStandardOutput (Join-Path $private ('account-'+$token+'.log')) `

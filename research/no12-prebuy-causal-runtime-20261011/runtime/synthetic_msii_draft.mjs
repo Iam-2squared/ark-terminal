@@ -6,6 +6,7 @@
  */
 import {digest} from '../../../integration/no1-1-msii/runtime/locked_intent.mjs';
 import {orderInstant,currentOrderInstant,validMsiiOrderId,validateMsiiOrderIds,NS_PER_MS} from './no11_order_boundary.mjs';
+import {compileCashOrderArguments} from './no11_msii_argument_contract.mjs';
 export const NO12_ORDER_INTENT_SCHEMA='ARK_NO12_SYNTHETIC_ORDER_INTENT_V1';
 const fail=x=>{throw Error(x)};
 const txt=x=>{
@@ -52,13 +53,7 @@ export function buildNo12SyntheticMsiiOrderText({intent,orderIdentity,now=new Da
  if(used.has(id))fail('NO12_RSS_ORDER_ID_ALREADY_USED');
  if(orderIdentity.sourceIntentSha256!==intentSha256)fail('NO12_ORDER_ID_TO_INTENT_NOT_MATCHED');
  if(orderIdentity.syntheticUniquenessChecked!==true)fail('NO12_ORDER_ID_DUPLICATE_RISK');
- const args=[
-  String(id),'0',intent.symbol,intent.side==='BUY'?'3':'1','0',
-  intent.sor?'1':'0',String(intent.quantity),
-  intent.orderType==='MARKET'?'0':'1',
-  intent.orderType==='MARKET'?'':String(intent.limitPrice),
-  '1','',String(intent.accountType),'','','','','0','','',''
- ];
+ const args=compileCashOrderArguments({...intent,rssOrderId:id});
  if(args.length!==20)fail('NO12_MSII_ARGUMENT_COUNT_WRONG');
  const core={
   schemaId:'ARK_NO12_MSII_TEXT_DRAFT_V1',evidenceMode:'SYNTHETIC_OFFLINE_ONLY',

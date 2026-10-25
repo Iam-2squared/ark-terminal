@@ -114,6 +114,51 @@ class RecoveryTests(Fixture):
         with self.assertRaisesRegex(ValueError, 'RUN_OR_CONFIG_CHANGED'):
             r.RunRecovery(dict(cfg, runtimeRoot=str(self.private))).restore(self.run)
 
+    def test_broker_config_bytes_pinned_to_same_run(self):
+        broker = self.root / 'broker.json'
+        original = b'{"transport":{"mode":"OBSERVE_ONLY"},"orderTransmission":false}\n'
+        broker.write_bytes(original)
+        cfg = dict(self.config, brokerExecutionConfig=str(broker))
+        store = r.RunRecovery(cfg)
+        store.register(self.run, self.prepared)
+        self.assertEqual(store.restore(self.run), self.prepared)
+        contract = r.unseal(self.run / 'run-contract.json', r.CONTRACT)
+        self.assertEqual(contract['extras']['brokerExecutionConfig'], {
+            'path': str(broker), 'sha256': hashlib.sha256(original).hexdigest()})
+        # Even identical JSON with changed bytes is a different source receipt.
+        broker.write_bytes(original + b' ')
+        with self.assertRaisesRegex(ValueError, 'BROKER_CONFIG_CHANGED'):
+            store.restore(self.run)
+
+    def test_broker_config_cannot_be_added_or_replaced_for_an_existing_run(self):
+        self.register()
+        broker = self.root / 'broker.json'
+        broker.write_text('{"orderTransmission":false}')
+        with self.assertRaisesRegex(ValueError, 'RUN_OR_CONFIG_CHANGED'):
+            r.RunRecovery(dict(self.config, brokerExecutionConfig=str(broker))).restore(self.run)
+
+    def test_broker_config_missing_does_not_register_a_run(self):
+        store = r.RunRecovery(dict(self.config, brokerExecutionConfig=str(self.root / 'missing.json')))
+        with self.assertRaisesRegex(ValueError, 'PRIVATE_SOURCE_MISSING'):
+            store.register(self.run, self.prepared)
+        self.assertFalse(store.pointer.exists())
+        self.assertFalse((self.run / 'run-contract.json').exists())
+
+    def test_supplemental_workbook_identity_is_pinned_without_freezing_observed_rows(self):
+        book = self.root / 'ids.xlsx'; book.write_bytes(b'synthetic-saved-observations-v1')
+        cfg = dict(self.config, orderIdWorkbookPath=str(book))
+        store = r.RunRecovery(cfg); store.register(self.run, self.prepared)
+        contract = r.unseal(self.run / 'run-contract.json', r.CONTRACT)
+        self.assertEqual(contract['workbooks']['orderIdWorkbookPath'], r.workbook_pin(book))
+        book.write_bytes(b'synthetic-saved-observations-v2')
+        self.assertEqual(store.restore(self.run), self.prepared)
+        other = self.root / 'other.xlsx'; other.write_bytes(book.read_bytes())
+        with self.assertRaisesRegex(ValueError, 'RUN_OR_CONFIG_CHANGED'):
+            r.RunRecovery(dict(cfg, orderIdWorkbookPath=str(other))).restore(self.run)
+        book.unlink()
+        with self.assertRaisesRegex(ValueError, 'PRIVATE_SOURCE_MISSING'):
+            store.restore(self.run)
+
     def test_prepared_file_and_pointer_tamper_rejected(self):
         self.register()
         p = Path(self.prepared['files']['master']); p.write_text('{}')

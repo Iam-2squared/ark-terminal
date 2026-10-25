@@ -2,6 +2,7 @@
 """Prepare existing No.1.1 inputs and supervise read-only collector and inference.
 
 Optional shadowAccountConfig connects native V5/EXIT and simulated receipts.
+Optional brokerExecutionConfig observes the broker with transmission disabled.
 It never authorizes a real account, changes model weights or transmits orders.
 """
 from __future__ import annotations
@@ -27,13 +28,15 @@ ROOT = forward.REPO
 HERE = Path(__file__).resolve().parent
 WINDOWS = HERE.parent / 'windows'
 CONFIG = 'ARK_NO11_READONLY_BOOTSTRAP_CONFIG_V1'
+BROKER_CONFIG = 'ARK_NO11_BROKER_EXECUTION_CONFIG_V1'
 CAPTURE = 'ARK_NO11_RSS_CHART50_1M_CAPTURE_V1'
 READY = 'ARK_NO11_C50_COLLECTOR_READY_V1'
 CLOSED = 'ARK_NO11_C50_COLLECTOR_CLOSED_V1'
 REQUIRED = {'schemaId', 'sessionDate', 'dailyRun', 'datedMaster', 'runtimeRoot',
             'privateRoot', 'productionReady', 'orderTransmission'}
 OPTIONAL = {'previousContext', 'previousCaptureFiles', 'h235ModelRoot', 'pinsFile',
-            'samples', 'historyBars', 'warmupSeconds', 'shadowAccountConfig'}
+            'samples', 'historyBars', 'warmupSeconds', 'shadowAccountConfig',
+            'brokerExecutionConfig', 'orderIdWorkbookPath'}
 
 
 def need(ok, code):
@@ -81,6 +84,27 @@ def immutable(root, stem, value):
     return path
 
 
+def validate_readonly_broker_config(path, session):
+    """Enforce the launcher's observation boundary without importing execution.
+
+    The service validates the full ledger/order contract separately. This check
+    runs both at input validation and immediately before making its arguments;
+    the mandatory service flag also keeps its final config read read-only.
+    """
+    obj, checksum = load_json(path, 100_000)
+    required = {'schemaId', 'sessionDate', 'evidenceMode', 'ledger', 'transport',
+                'orderTerms', 'originalArrivalTable', 'orderTransmission'}
+    need(type(obj) is dict and required <= set(obj)
+         and obj.get('schemaId') == BROKER_CONFIG, 'BROKER_CONFIG_CONTRACT_INVALID')
+    need(obj.get('sessionDate') == session, 'BROKER_CONFIG_SESSION_MISMATCH')
+    need(obj.get('evidenceMode') == 'BROKER_OBSERVATION',
+         'BROKER_CONFIG_OBSERVATION_REQUIRED')
+    need(obj.get('orderTransmission') is False and type(obj.get('transport')) is dict
+         and obj['transport'].get('mode') in ('DISABLED', 'OBSERVE_ONLY'),
+         'BROKER_CONFIG_NOT_READONLY')
+    return checksum
+
+
 def validate_config(obj):
     need(type(obj) is dict and REQUIRED <= set(obj) <= REQUIRED | OPTIONAL,
          'CONFIG_FIELDS_INVALID')
@@ -98,13 +122,20 @@ def validate_config(obj):
         c[name] = value
     for key in ('dailyRun', 'runtimeRoot', 'privateRoot'):
         c[key] = str(private(c[key], True))
-    for key in ('datedMaster', 'previousContext', 'pinsFile', 'shadowAccountConfig'):
+    for key in ('datedMaster', 'previousContext', 'pinsFile', 'shadowAccountConfig',
+                'brokerExecutionConfig', 'orderIdWorkbookPath'):
         if key in c:
             c[key] = str(private(c[key]))
+    if 'orderIdWorkbookPath' in c:
+        need(Path(c['orderIdWorkbookPath']).suffix.lower() == '.xlsx', 'ORDER_ID_WORKBOOK_TYPE')
     if 'h235ModelRoot' in c:
         c['h235ModelRoot'] = str(private(c['h235ModelRoot'], True))
     need('shadowAccountConfig' not in c or 'h235ModelRoot' in c,
          'H235_REQUIRED_FOR_SHADOW_PORTFOLIO')
+    need('brokerExecutionConfig' not in c or 'h235ModelRoot' in c,
+         'H235_REQUIRED_FOR_BROKER_OBSERVATION')
+    if 'brokerExecutionConfig' in c:
+        validate_readonly_broker_config(c['brokerExecutionConfig'], c['sessionDate'])
     if 'previousCaptureFiles' in c:
         files = c['previousCaptureFiles']
         need(type(files) is list and 1 <= len(files) <= 8 and
@@ -274,18 +305,26 @@ def service_args(config, prepared, inference_root, capture=None):
         args += ['--h235-model-root', config['h235ModelRoot']]
     if config.get('shadowAccountConfig'):
         args += ['--shadow-account-config', config['shadowAccountConfig']]
+    if config.get('brokerExecutionConfig'):
+        need(bool(config.get('h235ModelRoot')), 'H235_REQUIRED_FOR_BROKER_OBSERVATION')
+        validate_readonly_broker_config(config['brokerExecutionConfig'], config['sessionDate'])
+        args += ['--broker-execution-config', config['brokerExecutionConfig'],
+                 '--broker-execution-readonly']
     if capture is not None:
         args += ['--capture-folder', str(capture)]
     return args
 
 
 def collector_command(config, prepared, ready_path, stop_path):
-    return ['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    args = ['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             str(WINDOWS / 'Probe-No11Chart50ContinuousReadOnly.ps1'),
             '-RunDir', config['dailyRun'], '-PreparedPlanFile', prepared['files']['plan'],
             '-ReadyFile', str(ready_path), '-StopFile', str(stop_path),
             '-Samples', str(config['samples']), '-HistoryBars', str(config['historyBars']),
             '-WarmupSeconds', str(config['warmupSeconds'])]
+    if config.get('orderIdWorkbookPath'):
+        args += ['-OrderIdWorkbookPath', config['orderIdWorkbookPath']]
+    return args
 
 
 def ready_capture(path, process, config, prepared):

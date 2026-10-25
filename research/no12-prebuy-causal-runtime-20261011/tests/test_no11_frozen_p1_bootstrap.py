@@ -116,6 +116,90 @@ class BootstrapTests(unittest.TestCase):
                 b.main(['--config', str(self.write('bad-config.json', c))])
             spawn.assert_not_called()
 
+    def broker_config(self, **changes):
+        # The bootstrap only enforces the observation boundary. The service
+        # validates these nested ledger/order terms before using the config.
+        obj = {'schemaId': b.BROKER_CONFIG, 'sessionDate': DAY,
+               'evidenceMode': 'BROKER_OBSERVATION', 'ledger': {},
+               'transport': {'mode': 'OBSERVE_ONLY'}, 'orderTerms': {},
+               'originalArrivalTable': {}, 'orderTransmission': False}
+        obj.update(changes)
+        return self.write('broker.json', obj)
+
+    def broker_bootstrap(self, **changes):
+        return dict(self.config, h235ModelRoot=str(self.root / 'runtime'),
+                    brokerExecutionConfig=str(self.broker_config(**changes)))
+
+    def test_broker_observation_optional_and_service_always_readonly(self):
+        prepared = {'files': {'plan': str(self.plan), 'mask': str(self.mask),
+                             'master': str(self.master_path), 'previous': str(self.previous)}}
+        args = b.service_args(b.validate_config(self.config), prepared, self.root / 'private')
+        self.assertNotIn('--broker-execution-config', args)
+        self.assertNotIn('--broker-execution-readonly', args)
+        for mode in ('DISABLED', 'OBSERVE_ONLY'):
+            with self.subTest(mode=mode):
+                cfg = b.validate_config(self.broker_bootstrap(transport={'mode': mode}))
+                args = b.service_args(cfg, prepared, self.root / 'private')
+                self.assertEqual(args.count('--broker-execution-config'), 1)
+                self.assertEqual(args[args.index('--broker-execution-config') + 1], cfg['brokerExecutionConfig'])
+                self.assertEqual(args.count('--broker-execution-readonly'), 1)
+                self.assertIn('--h235-model-root', args)
+
+    def test_broker_observation_requires_h235_model(self):
+        cfg = self.broker_bootstrap()
+        del cfg['h235ModelRoot']
+        with self.assertRaisesRegex(ValueError, 'H235_REQUIRED_FOR_BROKER_OBSERVATION'):
+            b.validate_config(cfg)
+
+    def test_broker_bootstrap_rejects_live_replay_wrong_session_or_implicit_flags(self):
+        changes = [({'transport': {'mode': 'LIVE'}}, 'BROKER_CONFIG_NOT_READONLY'),
+                   ({'transport': {'mode': 'OFFLINE_REPLAY'}}, 'BROKER_CONFIG_NOT_READONLY'),
+                   ({'transport': None}, 'BROKER_CONFIG_NOT_READONLY'),
+                   ({'orderTransmission': True}, 'BROKER_CONFIG_NOT_READONLY'),
+                   ({'orderTransmission': 0}, 'BROKER_CONFIG_NOT_READONLY'),
+                   ({'evidenceMode': 'OFFLINE_REPLAY'}, 'BROKER_CONFIG_OBSERVATION_REQUIRED'),
+                   ({'sessionDate': PRIOR}, 'BROKER_CONFIG_SESSION_MISMATCH'),
+                   ({'schemaId': 'OTHER'}, 'BROKER_CONFIG_CONTRACT_INVALID')]
+        for update, reason in changes:
+            with self.subTest(update=update), self.assertRaisesRegex(ValueError, reason):
+                b.validate_config(self.broker_bootstrap(**update))
+        cfg = self.broker_bootstrap()
+        obj = json.loads(Path(cfg['brokerExecutionConfig']).read_text())
+        del obj['orderTransmission']
+        Path(cfg['brokerExecutionConfig']).write_text(json.dumps(obj))
+        with self.assertRaisesRegex(ValueError, 'BROKER_CONFIG_CONTRACT_INVALID'):
+            b.validate_config(cfg)
+
+    def test_broker_config_rechecked_before_service_arguments(self):
+        cfg = b.validate_config(self.broker_bootstrap())
+        self.broker_config(transport={'mode': 'LIVE'}, orderTransmission=True)
+        prepared = {'files': {'plan': str(self.plan), 'mask': str(self.mask),
+                             'master': str(self.master_path), 'previous': str(self.previous)}}
+        with self.assertRaisesRegex(ValueError, 'BROKER_CONFIG_NOT_READONLY'):
+            b.service_args(cfg, prepared, self.root / 'private')
+
+    def test_broker_invalid_launch_never_starts_collector(self):
+        cfg = self.write('bad-broker-bootstrap.json', self.broker_bootstrap(transport={'mode': 'LIVE'}))
+        with mock.patch.object(b.subprocess, 'Popen') as spawn:
+            with self.assertRaisesRegex(ValueError, 'BROKER_CONFIG_NOT_READONLY'):
+                b.main(['--config', str(cfg)])
+            spawn.assert_not_called()
+
+    def test_supplemental_workbook_path_passed_from_pinned_config_only(self):
+        book = self.root / 'read only ids.xlsx'
+        book.write_bytes(b'synthetic-workbook-identity-only')
+        cfg = b.validate_config(dict(self.config, orderIdWorkbookPath=str(book)))
+        prepared = {'files': {'plan': str(self.plan)}}
+        with mock.patch.dict(os.environ, {'ARK_NO11_ORDER_ID_WORKBOOK_PATH': 'UNTRUSTED_OVERRIDE'}):
+            args = b.collector_command(cfg, prepared, self.root / 'ready', self.root / 'stop')
+        self.assertEqual(args[args.index('-OrderIdWorkbookPath') + 1], str(book))
+        plain = b.collector_command(b.validate_config(self.config), prepared,
+                                    self.root / 'ready', self.root / 'stop')
+        self.assertNotIn('-OrderIdWorkbookPath', plain)
+        macro = self.root / 'ids.xlsm'; macro.write_bytes(b'not-an-allowed-template')
+        with self.assertRaisesRegex(ValueError, 'ORDER_ID_WORKBOOK_TYPE'):
+            b.validate_config(dict(self.config, orderIdWorkbookPath=str(macro)))
+
     def test_current_master_is_validated_by_actual_node_pipeline(self):
         self.assertEqual(b.validate_scope(DAY, self.plan, self.mask, self.master_path, NOW), [CODE])
         self.master['rows'][0]['corporateActionsCleared'] = False

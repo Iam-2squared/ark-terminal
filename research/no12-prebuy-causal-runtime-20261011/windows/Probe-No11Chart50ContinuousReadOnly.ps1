@@ -1,14 +1,15 @@
 # Ark No.1.1 continuous 1M chart and cumulative market observation, READ ONLY.
-# Builds one UNSAVED temporary book. Original two Ark workbooks are never changed.
+# Builds one UNSAVED temporary book. Existing workbooks are never changed.
 param(
  [switch]$OfflineSelfTest,[string]$RunDir,[string]$PinsFile,
- [string]$PreparedPlanFile,[string]$ReadyFile,[string]$StopFile,
+ [string]$PreparedPlanFile,[string]$ReadyFile,[string]$StopFile,[string]$OrderIdWorkbookPath,
  [ValidateRange(2,390)][int]$Samples=4,
  [ValidateRange(50,150)][int]$HistoryBars=120,
  [ValidateRange(5,60)][int]$WarmupSeconds=20
 )
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
+. (Join-Path $PSScriptRoot 'Read-No11BrokerSnapshot.ps1')
 $ci=[Globalization.CultureInfo]::InvariantCulture
 $repo=(Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
 $export=Join-Path (Split-Path -Parent $PSScriptRoot) 'tools\no11_export_chart50_prescreen.mjs'
@@ -142,6 +143,76 @@ function CheckControlPath([string]$file){
  }
  if(Test-Path -LiteralPath $full){throw 'NO11_C50_CONTROL_ALREADY_EXISTS'}
 }
+function OriginalBooks([array]$Books,[string]$idPath){
+ $extra=-not [string]::IsNullOrWhiteSpace($idPath)
+ if(-not $extra -and $Books.Count -ne 2){throw 'NO11_C50_TWO_ORIGINAL_WORKBOOKS_REQUIRED'}
+ if($extra -and $Books.Count -ne 3){throw 'NO11_C50_THREE_DECLARED_WORKBOOKS_REQUIRED'}
+ $accounts=@($Books | Where-Object {$_.Name -ceq 'Ark_No11_MSII_RSS.xlsx'})
+ $markets=@($Books | Where-Object {$_.Name -ceq 'Ark_No11_MARKET_RSS.xlsx'})
+ if($accounts.Count -ne 1 -or $markets.Count -ne 1){throw 'NO11_C50_WORKBOOK_IDENTITY_INVALID'}
+ $a=$accounts[0];$m=$markets[0]
+ if($a.Worksheets.Item('ARK_ACCOUNT_READONLY').Name -cne 'ARK_ACCOUNT_READONLY' -or
+    $m.Worksheets.Item('ARK_MARKET_READONLY').Name -cne 'ARK_MARKET_READONLY'){
+  throw 'NO11_C50_WORKBOOK_IDENTITY_INVALID'
+ }
+ if($extra){
+  $ids=@($Books | Where-Object {([IO.Path]::GetFullPath([string]$_.FullName)).Equals($idPath,[StringComparison]::OrdinalIgnoreCase)})
+  if($ids.Count -ne 1 -or $ids[0].Name -in @($a.Name,$m.Name) -or
+     $ids[0].Worksheets.Count -ne 1 -or [bool]$ids[0].Date1904){throw 'NO11_C50_ORDER_ID_BOOK_IDENTITY'}
+  Assert-No11BrokerLayout ($ids[0].Worksheets.Item(1))
+ }
+ return ,$Books
+}
+function OriginalCapacity([array]$Books,[string]$idPath){
+ $occupied=0;$unresolvedMarket=0
+ $existingMarket=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+ $allowed=@{}
+ foreach($d in (Get-No11BrokerTableDefinitions)){$allowed[$d.cell]=$d.formula}
+ foreach($wb in $Books){
+  $isIds=(-not [string]::IsNullOrWhiteSpace($idPath) -and
+    ([IO.Path]::GetFullPath([string]$wb.FullName)).Equals($idPath,[StringComparison]::OrdinalIgnoreCase))
+  $idFormulaCount=0
+  foreach($ws in $wb.Worksheets){
+   $used=$ws.UsedRange;$scanLimit=100000
+   if($isIds){$scanLimit=300000}
+   if([long]$used.CountLarge -gt $scanLimit){throw 'NO11_C50_FORMULA_SCAN_TOO_LARGE'}
+   $cells=$null
+   try{$cells=$used.SpecialCells(-4123)}catch [Runtime.InteropServices.COMException]{
+    if($_.Exception.HResult -ne -2146827284){throw}
+   }
+   if($null -ne $cells){
+    foreach($cell in $cells.Cells){
+     $formula=[string]$cell.Formula
+     if($isIds){
+      $address=[string]$cell.Address($false,$false)
+      if(-not $allowed.ContainsKey($address) -or (Get-No11BrokerFormula $formula) -cne $allowed[$address]){
+       throw 'NO11_C50_ORDER_ID_UNEXPECTED_FORMULA'
+      }
+      $idFormulaCount++
+     }
+     if($formula -match '(?i)RssChart\s*\('){$occupied++}
+     if($formula -match '(?i)RssMarket\s*\('){
+      if($formula -match '(?i)RssMarket\s*\(\s*"([0-9A-Z]{4}\.T)"\s*,'){
+       [void]$existingMarket.Add($Matches[1])
+      }else{$unresolvedMarket++}
+     }
+    }
+   }
+  }
+  if($isIds -and $idFormulaCount -ne 3){throw 'NO11_C50_ORDER_ID_FORMULA_COUNT'}
+ }
+ return @{occupied=$occupied;existingMarket=$existingMarket;unresolvedMarket=$unresolvedMarket}
+}
+function TemporaryDescriptor([string]$name,[string]$bookPath,[string[]]$sheetNames,[string]$token){
+ if([string]::IsNullOrWhiteSpace($name) -or $bookPath -cne '' -or
+    $sheetNames.Count -lt 2 -or $sheetNames -cnotcontains 'ARK_NO11_CUMULATIVE' -or
+    @($sheetNames | Select-Object -Unique).Count -ne $sheetNames.Count -or
+    $token -cnotmatch '^ARK_NO11_C50_TEMP_[a-f0-9]{32}$'){
+  throw 'NO11_C50_TEMPORARY_IDENTITY_INVALID'
+ }
+ return [ordered]@{name=$name;worksheetNames=@($sheetNames | Sort-Object);
+  identitySheet='ARK_NO11_CUMULATIVE';identityCell='G1';identityValue=$token}
+}
 if($OfflineSelfTest){
  if($headers.Count -ne 10 -or $fields.Count -ne 4 -or
     (ChartFormula '7203.T') -cne ('=RssChart($A$2:$J$2,"7203.T","1M",{0})' -f $HistoryBars) -or
@@ -152,13 +223,87 @@ if($OfflineSelfTest){
  $reject=$false
  try{[void](ChartFormula '7203.T");BAD(')}catch{$reject=$true}
  if(-not $reject){throw 'NO11_C50_INJECTION_CHECK_FAILED'}
+ # Mock the exact original-book, supplemental layout and capacity boundaries.
+ # No Excel or real workbook is opened by this selftest.
+ function MockCell([string]$address,[string]$formula){
+  $c=[pscustomobject]@{Ref=$address;Formula=$formula;HasFormula=$true;
+    Value2=(-join [char[]]@(0x914d,0x4fe1,0x4e2d))}
+  $c | Add-Member -MemberType ScriptMethod -Name Address -Value {param($r,$c)return $this.Ref}
+  return $c
+ }
+ function MockBook([string]$name,[string]$sheetName,[string]$full,[object[]]$cells){
+  $used=[pscustomobject]@{CountLarge=200;Formulas=$cells}
+  $used | Add-Member -MemberType ScriptMethod -Name SpecialCells -Value {param($type)return [pscustomobject]@{Cells=$this.Formulas}}
+  $sheet=[pscustomobject]@{Name=$sheetName;UsedRange=$used;Ranges=@{}}
+  $sheet | Add-Member -MemberType ScriptMethod -Name Range -Value {param($a)return $this.Ranges[$a]}
+  $sheets=New-Object Collections.ArrayList;[void]$sheets.Add($sheet)
+  Add-Member -InputObject $sheets -MemberType ScriptMethod -Name Item -Force -Value {param($key)return $this[0]}
+  return [pscustomobject]@{Name=$name;FullName=$full;Date1904=$false;Worksheets=$sheets}
+ }
+ function MustReject([scriptblock]$body,[string]$code){
+  $bad=$false;try{& $body | Out-Null}catch{if($_.Exception.Message -ceq $code){$bad=$true}else{throw}}
+  if(-not $bad){throw 'NO11_C50_SUPPLEMENTAL_REJECTION_SELFTEST_FAILED'}
+ }
+ $base=[IO.Path]::GetTempPath();$idPath=Join-Path $base 'ark-no11-mock-ids.xlsx'
+ $ma=MockBook 'Ark_No11_MSII_RSS.xlsx' 'ARK_ACCOUNT_READONLY' (Join-Path $base 'Ark_No11_MSII_RSS.xlsx') @()
+ $marketCells=@((MockCell 'A1' '=RssMarket("7203.T","test")'),(MockCell 'B1' '=RssChart()'),(MockCell 'C1' '=RssMarket(A1,"test")'))
+ $mm=MockBook 'Ark_No11_MARKET_RSS.xlsx' 'ARK_MARKET_READONLY' (Join-Path $base 'Ark_No11_MARKET_RSS.xlsx') $marketCells
+ $idCells=@();foreach($d in (Get-No11BrokerTableDefinitions)){$idCells+=@(MockCell $d.cell $d.formula)}
+ $mi=MockBook 'ark-no11-mock-ids.xlsx' 'ARK_ORDER_IDS_READONLY' $idPath $idCells
+ foreach($d in (Get-No11BrokerTableDefinitions)){
+  $h=Get-No11BrokerHeaders $d.kind
+  $v=[array]::CreateInstance([object],[int[]]@(1,$h.Count),[int[]]@(1,1))
+  for($c=1;$c -le $h.Count;$c++){$v[1,$c]=$h[$c-1]}
+  $mi.Worksheets[0].Ranges[$d.cell]=@($idCells | Where-Object {$_.Ref -ceq $d.cell})[0]
+  $mi.Worksheets[0].Ranges[$d.first+'2:'+$d.last+'2']=[pscustomobject]@{Value2=$v}
+ }
+ if((OriginalBooks @($ma,$mm) '').Count -ne 2 -or (OriginalBooks @($ma,$mm,$mi) $idPath).Count -ne 3){throw 'NO11_C50_SUPPLEMENTAL_IDENTITY_SELFTEST_FAILED'}
+ MustReject {OriginalBooks @($ma,$mm,$mi) ''} 'NO11_C50_TWO_ORIGINAL_WORKBOOKS_REQUIRED'
+ MustReject {OriginalBooks @($ma,$mm) $idPath} 'NO11_C50_THREE_DECLARED_WORKBOOKS_REQUIRED'
+ MustReject {OriginalBooks @($ma,$mm,$mi) (Join-Path $base 'other.xlsx')} 'NO11_C50_ORDER_ID_BOOK_IDENTITY'
+ $cap=OriginalCapacity @($ma,$mm,$mi) $idPath
+ if($cap.occupied -ne 1 -or $cap.unresolvedMarket -ne 1 -or $cap.existingMarket.Count -ne 1){throw 'NO11_C50_SUPPLEMENTAL_CAPACITY_SELFTEST_FAILED'}
+ $mi.Worksheets[0].UsedRange.Formulas=@($idCells)+(MockCell 'BD4' '=RssChart()')
+ MustReject {OriginalCapacity @($ma,$mm,$mi) $idPath} 'NO11_C50_ORDER_ID_UNEXPECTED_FORMULA'
+ $mi.Worksheets[0].UsedRange.Formulas=@($idCells[0],$idCells[1])
+ MustReject {OriginalCapacity @($ma,$mm,$mi) $idPath} 'NO11_C50_ORDER_ID_FORMULA_COUNT'
+ $mi.Worksheets[0].UsedRange.Formulas=$idCells
+ $mi.Worksheets[0].UsedRange.CountLarge=300001
+ MustReject {OriginalCapacity @($ma,$mm,$mi) $idPath} 'NO11_C50_FORMULA_SCAN_TOO_LARGE'
+ $mi.Worksheets[0].Ranges['A2:F2'].Value2[1,1]='WRONG'
+ MustReject {OriginalBooks @($ma,$mm,$mi) $idPath} 'NO11_BROKER_HEADER'
+ $token='ARK_NO11_C50_TEMP_'+('a'*32)
+ $descriptor=TemporaryDescriptor 'Book1' '' @('Q01','ARK_NO11_CUMULATIVE') $token
+ if($descriptor.identityCell -cne 'G1' -or $descriptor.identityValue -cne $token){throw 'NO11_C50_TEMPORARY_IDENTITY_SELFTEST_FAILED'}
+ MustReject {TemporaryDescriptor 'Book1' $base @('Q01','ARK_NO11_CUMULATIVE') $token} 'NO11_C50_TEMPORARY_IDENTITY_INVALID'
+ MustReject {TemporaryDescriptor 'Book1' '' @('Q01','ARK_NO11_CUMULATIVE') 'WRONG'} 'NO11_C50_TEMPORARY_IDENTITY_INVALID'
  Write-Host 'NO11_C50_CONTINUOUS_OFFLINE_SELFTEST=PASS'
+ Write-Host 'NO11_C50_SUPPLEMENTAL_BOOK_SELFTEST=PASS'
+ Write-Host 'NO11_C50_TEMPORARY_IDENTITY_SELFTEST=PASS'
  Write-Host 'NO11_C50_BROKER_ACCESS=False'
  Write-Host 'ORDER_TRANSMISSION=False'
  exit 0
 }
 CheckControlPath $ReadyFile
 CheckControlPath $StopFile
+if(-not [string]::IsNullOrWhiteSpace($OrderIdWorkbookPath)){
+ if(-not [IO.Path]::IsPathRooted($OrderIdWorkbookPath) -or
+    [IO.Path]::GetExtension($OrderIdWorkbookPath) -ine '.xlsx' -or
+    -not (Test-Path -LiteralPath $OrderIdWorkbookPath -PathType Leaf)){
+  throw 'NO11_C50_ORDER_ID_PATH_INVALID'
+ }
+ $OrderIdWorkbookPath=[IO.Path]::GetFullPath($OrderIdWorkbookPath)
+ if($OrderIdWorkbookPath.StartsWith($repo+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){
+  throw 'NO11_C50_ORDER_ID_PATH_MUST_BE_PRIVATE'
+ }
+ $cursor=$OrderIdWorkbookPath
+ while(-not [string]::IsNullOrWhiteSpace($cursor)){
+  if(((Get-Item -LiteralPath $cursor -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0){
+   throw 'NO11_C50_ORDER_ID_PATH_REPARSE'
+  }
+  $next=Split-Path -Parent $cursor;if($next -ceq $cursor){break};$cursor=$next
+ }
+}
 if(-not [string]::IsNullOrWhiteSpace($ReadyFile)){
  CheckControlPath ($ReadyFile+'.closed.json')
  if(-not [string]::IsNullOrWhiteSpace($StopFile) -and
@@ -234,7 +379,8 @@ try{
  if($ui){throw 'NO11_C50_ACCOUNT_UI_MUST_BE_STOPPED'}
  $stage='ATTACH'
  $processes=@(Get-Process EXCEL -ErrorAction Stop | Where-Object {
-  $_.MainWindowTitle -like 'Ark_No11_*' -and $_.MainWindowHandle -ne [IntPtr]::Zero
+  ($_.MainWindowTitle -like 'Ark_No11_*' -or -not [string]::IsNullOrWhiteSpace($OrderIdWorkbookPath)) -and
+   $_.MainWindowHandle -ne [IntPtr]::Zero
  })
  if($processes.Count -ne 1){throw 'NO11_C50_EXCEL_IDENTITY_NOT_UNIQUE'}
  if(-not ('No11C50Attach' -as [type])){
@@ -266,40 +412,11 @@ public static class No11C50Attach {
   $script:wsWindows[0],[uint32]4294967280,[ref]$iid,[ref]$obj)
  if($hr -ne 0 -or $null -eq $obj){throw 'NO11_C50_COM_ATTACH_FAILED'}
  $excel=$obj.Application
- if($excel.Workbooks.Count -ne 2){throw 'NO11_C50_TWO_ORIGINAL_WORKBOOKS_REQUIRED'}
- $account=$excel.Workbooks.Item('Ark_No11_MSII_RSS.xlsx')
- $market=$excel.Workbooks.Item('Ark_No11_MARKET_RSS.xlsx')
- if($account.Worksheets.Item('ARK_ACCOUNT_READONLY').Name -cne 'ARK_ACCOUNT_READONLY' -or
-    $market.Worksheets.Item('ARK_MARKET_READONLY').Name -cne 'ARK_MARKET_READONLY'){
-  throw 'NO11_C50_WORKBOOK_IDENTITY_INVALID'
- }
+ $originalBooks=OriginalBooks @($excel.Workbooks) $OrderIdWorkbookPath
  $stage='CAPACITY'
- $occupied=0
  # Keep the original conservative market/chart capacity checks.
- $existingMarket=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
- $unresolvedMarket=0
- foreach($wb in @($account,$market)){
-  foreach($ws in $wb.Worksheets){
-   $used=$ws.UsedRange
-   if([long]$used.CountLarge -gt 100000){throw 'NO11_C50_FORMULA_SCAN_TOO_LARGE'}
-   $cells=$null
-   try{$cells=$used.SpecialCells(-4123)}
-   catch [Runtime.InteropServices.COMException]{
-    if($_.Exception.HResult -ne -2146827284){throw}
-   }
-   if($null -ne $cells){
-    foreach($cell in $cells.Cells){
-     $formula=[string]$cell.Formula
-     if($formula -match '(?i)RssChart\s*\('){$occupied++}
-     if($formula -match '(?i)RssMarket\s*\('){
-      if($formula -match '(?i)RssMarket\s*\(\s*"([0-9A-Z]{4}\.T)"\s*,'){
-       [void]$existingMarket.Add($Matches[1])
-      }else{$unresolvedMarket++}
-     }
-    }
-   }
-  }
- }
+ $capacity=OriginalCapacity $originalBooks $OrderIdWorkbookPath
+ $occupied=$capacity.occupied;$existingMarket=$capacity.existingMarket;$unresolvedMarket=$capacity.unresolvedMarket
  if($occupied+$charts.Count -gt 50){throw 'NO11_C50_ACTUAL_CHART_CAP_EXCEEDED'}
  $additional=0
  foreach($sym in $existingMarket){
@@ -311,8 +428,11 @@ public static class No11C50Attach {
  $stage='TEMP_WORKBOOK'
  if(C50Stopped){throw 'NO11_C50_STOPPED_BEFORE_WORKBOOK'}
  $book=$excel.Workbooks.Add();$temporaryClosed=$false
+ if([string]$book.Path -cne ''){throw 'NO11_C50_TEMPORARY_IDENTITY_INVALID'}
  $quote=$book.Worksheets.Item(1)
  $quote.Name='ARK_NO11_CUMULATIVE'
+ $temporaryToken='ARK_NO11_C50_TEMP_'+[guid]::NewGuid().ToString('N')
+ $quote.Range('G1').Value2=$temporaryToken
  $grid=[array]::CreateInstance([object],$symbols.Count,5)
  for($i=0;$i -lt $symbols.Count;$i++){
   $grid.SetValue($symbols[$i],$i,0)
@@ -331,10 +451,12 @@ public static class No11C50Attach {
  }
  $stage='WARMUP';$continueCapture=C50Wait ($WarmupSeconds*1000)
  if($continueCapture -and -not [string]::IsNullOrWhiteSpace($ReadyFile)){
+  $temporaryIdentity=TemporaryDescriptor ([string]$book.Name) ([string]$book.Path) @($book.Worksheets | ForEach-Object {[string]$_.Name}) $temporaryToken
   WriteControl $ReadyFile ([ordered]@{
    schemaId='ARK_NO11_C50_COLLECTOR_READY_V1';sessionDate=$session;
    processId=$PID;captureFolder=$folder;planFile=$planFile;
    planFileSha256=$planBytesSha;readyAtJst=(Stamp (NowJst));
+   temporaryWorkbook=$temporaryIdentity;
    productionReady=$false;orderTransmission=$false
   })
  }

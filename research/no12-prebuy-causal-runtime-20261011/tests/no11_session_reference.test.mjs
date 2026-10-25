@@ -16,8 +16,12 @@ test('reference source is official RssMarket fields and no order or saved book c
 test('input preparation delegates to original scope previous converter and same-run launcher',()=>{
  const src=fs.readFileSync(wrapper,'utf8');
  for(const name of ['no11_export_chart50_prescreen.mjs','no11_previous_archive_context.py','no11_prepare_received_inputs.py','Run-No11ReceivedSessionReadOnly.ps1'])assert.ok(src.includes(name));
- assert.match(src,/if\(-not \$StartShadow\)\{\$launch\+=@\('-PreflightOnly'\)\}/);
- assert.match(src,/\$config\.sessionDate -cne \$session/);
+ // The orchestration moved into a testable function, with explicit Options.
+ // Preserve the actual opt-in and same-day gates, not the former local names.
+ assert.match(src,/if\(-not \$Options\.StartShadow\)\{\$launch\+=@\('-PreflightOnly'\)\}/);
+ assert.match(src,/\$session=\[string\]\$config\.sessionDate/);
+ assert.match(src,/if\(\(\(-not \$Options\.CheckOnly\) -and \$session -cne \$today\) -or \$session -clt \$today\)/);
+ assert.match(src,/if\(\$Options\.CheckOnly\)\{[\s\S]*?return\s*\}/);
  assert.doesNotMatch(src,/RssStockOrder\s*\(|RssCancelOrder\s*\(|\.Formula\s*=|Stop-Process|pip install/);
 });
 test('Windows session-reference formula parser without Excel',{skip:process.platform!=='win32'},()=>{

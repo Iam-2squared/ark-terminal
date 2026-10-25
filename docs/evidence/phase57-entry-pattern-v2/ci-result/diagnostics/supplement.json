@@ -1,0 +1,208 @@
+{
+  "anatomy": {
+    "evaluation": {
+      "bad": 20663,
+      "complete30": 34213,
+      "good": 5139,
+      "sampleRows": 65312
+    },
+    "fit": {
+      "bad": 16895,
+      "complete30": 26471,
+      "good": 3494,
+      "sampleRows": 60253
+    },
+    "selection": {
+      "bad": 5478,
+      "complete30": 9257,
+      "good": 1369,
+      "sampleRows": 24335
+    }
+  },
+  "cadenceMatchedBaseline": [
+    {
+      "BUY": 1020,
+      "baselineBUY": 1963,
+      "baselineCapture3": 85.28252299605782,
+      "cadence": 1,
+      "capture3": 40.73587385019711,
+      "capture3DeltaPp": -44.54664914586071,
+      "capture5DeltaPp": -45.588235294117645,
+      "decisionEvaluations": 40003,
+      "model": "RIDGE_FULL_QUALITY_1m"
+    },
+    {
+      "BUY": 784,
+      "baselineBUY": 1802,
+      "baselineCapture3": 79.7634691195795,
+      "cadence": 5,
+      "capture3": 32.32588699080158,
+      "capture3DeltaPp": -47.43758212877792,
+      "capture5DeltaPp": -49.509803921568626,
+      "decisionEvaluations": 10690,
+      "model": "RIDGE_FULL_QUALITY_5m"
+    }
+  ],
+  "coverage": {
+    "previous": {
+      "FULL_SLOTS": 3412,
+      "MISSING": 1406,
+      "PARTIAL_OBSERVED": 155790
+    },
+    "today": {
+      "FULL_SLOTS": 10748,
+      "PARTIAL_OBSERVED": 149860
+    }
+  },
+  "definitions": {
+    "attribution": "Training-only split gains or standardized linear coefficient weight; not causal contribution",
+    "falseTurning": "Not inferred from gross return alone; source turning state may persist and is not a fresh-signal event"
+  },
+  "noFit": true,
+  "noSelection": true,
+  "noiseAndFreshTurningProxy": [
+    {
+      "BUYAtFreshConfirmedSwingLow": 76,
+      "cadence": 1,
+      "flipPct": 2.75166020119666,
+      "nonpositiveReturn30AfterFreshSwingLowBUY": 35,
+      "proposalAdjacentPairsUntilEntryOrExpiry": 30418,
+      "proposalFlips": 837,
+      "turnFeaturesAvailable": true,
+      "unknownReturn30AfterFreshSwingLowBUY": 9
+    },
+    {
+      "BUYAtFreshConfirmedSwingLow": 108,
+      "cadence": 5,
+      "flipPct": 7.325581395348837,
+      "nonpositiveReturn30AfterFreshSwingLowBUY": 49,
+      "proposalAdjacentPairsUntilEntryOrExpiry": 6880,
+      "proposalFlips": 504,
+      "turnFeaturesAvailable": true,
+      "unknownReturn30AfterFreshSwingLowBUY": 20
+    }
+  ],
+  "selected": "RIDGE_FULL_QUALITY_1m",
+  "selectedAttribution": [
+    {
+      "absoluteBuyUtilityWeight": 3.336357341004925,
+      "feature": "PREV_AM/value"
+    },
+    {
+      "absoluteBuyUtilityWeight": 3.234237510114379,
+      "feature": "RECENT/position_low"
+    },
+    {
+      "absoluteBuyUtilityWeight": 3.2342375101137217,
+      "feature": "SIGNAL/PDLdistance"
+    },
+    {
+      "absoluteBuyUtilityWeight": 3.206237622949296,
+      "feature": "RECENT/position_close"
+    },
+    {
+      "absoluteBuyUtilityWeight": 2.982693815375348,
+      "feature": "PREV/lower"
+    },
+    {
+      "absoluteBuyUtilityWeight": 2.7216122546381367,
+      "feature": "RECENT/lower_wick"
+    },
+    {
+      "absoluteBuyUtilityWeight": 2.290967738511995,
+      "feature": "PREV_AM/volume"
+    },
+    {
+      "absoluteBuyUtilityWeight": 1.9869465892880815,
+      "feature": "PREV_PM/body"
+    },
+    {
+      "absoluteBuyUtilityWeight": 1.8804608274716685,
+      "feature": "LOCAL60/return"
+    },
+    {
+      "absoluteBuyUtilityWeight": 1.8719736452312035,
+      "feature": "PREV/value"
+    },
+    {
+      "absoluteBuyUtilityWeight": 1.822958372231698,
+      "feature": "LOCAL30/timeHigh"
+    },
+    {
+      "absoluteBuyUtilityWeight": 1.7963060644860036,
+      "feature": "LOCAL60/timeHigh"
+    },
+    {
+      "absoluteBuyUtilityWeight": 1.7280193015518783,
+      "feature": "PREV_PM/return"
+    },
+    {
+      "absoluteBuyUtilityWeight": 1.7209192690774362,
+      "feature": "RECENT/body"
+    },
+    {
+      "absoluteBuyUtilityWeight": 1.672884465689499,
+      "feature": "PREV_PM/volume"
+    },
+    {
+      "absoluteBuyUtilityWeight": 1.541661983634069,
+      "feature": "PREV/low"
+    },
+    {
+      "absoluteBuyUtilityWeight": 1.538016278461087,
+      "feature": "PREV_PM/value"
+    },
+    {
+      "absoluteBuyUtilityWeight": 1.4612842527231833,
+      "feature": "TODAY/return"
+    },
+    {
+      "absoluteBuyUtilityWeight": 1.3662040070805446,
+      "feature": "RECENT/previous_L"
+    },
+    {
+      "absoluteBuyUtilityWeight": 1.318406652828494,
+      "feature": "PREV/vwapDistance"
+    },
+    {
+      "absoluteBuyUtilityWeight": 1.2993988690337952,
+      "feature": "LOCAL60/timeLow"
+    },
+    {
+      "absoluteBuyUtilityWeight": 1.264369024725296,
+      "feature": "PREV/volume"
+    },
+    {
+      "absoluteBuyUtilityWeight": 1.1979678674273504,
+      "feature": "PREV/range"
+    },
+    {
+      "absoluteBuyUtilityWeight": 1.1973976256497523,
+      "feature": "LOCAL30/timeLow"
+    },
+    {
+      "absoluteBuyUtilityWeight": 1.0602563675595422,
+      "feature": "RECENT/relative_value5"
+    },
+    {
+      "absoluteBuyUtilityWeight": 1.0072632007314626,
+      "feature": "LOCAL60/body"
+    },
+    {
+      "absoluteBuyUtilityWeight": 0.9793095448449423,
+      "feature": "STRUCT/pullbackFromHOD"
+    },
+    {
+      "absoluteBuyUtilityWeight": 0.965222523874605,
+      "feature": "RECENT/relative_volume5"
+    },
+    {
+      "absoluteBuyUtilityWeight": 0.9638227208530926,
+      "feature": "STRUCT/recoveryFromLOD"
+    },
+    {
+      "absoluteBuyUtilityWeight": 0.9420727918663296,
+      "feature": "SIGNAL_PATH5/return"
+    }
+  ]
+}

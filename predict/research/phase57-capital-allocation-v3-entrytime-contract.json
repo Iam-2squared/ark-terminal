@@ -1,0 +1,49 @@
+{
+  "contractVersion": 2,
+  "architectureId": "PHASE57_CAPITAL_ALLOCATION_V3_ENTRY_TIME_PHASE_A",
+  "mode": "OFFLINE_RESEARCH_ONLY",
+  "upstream": {
+    "selectorModelDigest": "444e296d31b0e59263f268706b4c8a7c7e9e59d6f7c9547e9f90342a24040fc2",
+    "selectorFreezeSHA": "a744d599e430d23efe4dea6600e418d3410d8a18df5055b35e1cc71432bf64da",
+    "mshEntryCandidateSHA": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a",
+    "entryThreshold": 0.60,
+    "entryThresholdComparison": "STRICTLY_GREATER_THAN",
+    "repeatEntryAllowed": false,
+    "opportunityUnit": "FIRST_ENTER_PER_SYMBOL_SESSION"
+  },
+  "phaseA": {
+    "exitIndependent": true,
+    "futureOutcomeFieldsForbidden": true,
+    "realizedPortfolioUtilityPrimary": false,
+    "cashRecyclingEvaluationAllowed": false,
+    "holdingTimeEvaluationAllowed": false,
+    "developmentReplayClass": "IN_SAMPLE_STRUCTURAL_EXPOSURE_ONLY_NO_PERFORMANCE_CLAIM",
+    "developmentReplayPurpose": "Measure First ENTER opportunity-set geometry and allocation concentration only. Final 58-session MSH refit may be replayed on the same label-free frozen feature rows because no outcome metric is opened or interpreted."
+  },
+  "riskFeature": {
+    "id": "RECENT_REALIZED_VOLATILITY",
+    "input": "EXACT_LAST_7_COMPLETED_5M_CLOSES_AVAILABLE_BY_DECISION_TIME",
+    "returnDefinition": "LOG_RETURN",
+    "returnCount": 6,
+    "dispersion": "POPULATION_STANDARD_DEVIATION",
+    "missingBehavior": "FAIL_CLOSED",
+    "rationale": "Uses the same seven-completed-bar minimum already required by Frozen MSH feature availability; no new lookback is tuned from outcomes."
+  },
+  "policies": [
+    {"id":"V3_0_EQUAL","quality":"NONE","risk":"NONE"},
+    {"id":"V3_A_RANK","quality":"MSH_PROBABILITY_ORDINAL_RANK_WITHIN_SIMULTANEOUS_FIRST_ENTER_SET","risk":"NONE"},
+    {"id":"V3_B_RISK","quality":"NONE","risk":"RECENT_REALIZED_VOLATILITY"}
+  ],
+  "deferred": ["V3_C_HYBRID","SECTOR_CAP","DIRECTION_CAP","CASH_RESERVE","FRACTIONAL_KELLY","SCORE_CALIBRATION","EXIT_INTERACTION"],
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

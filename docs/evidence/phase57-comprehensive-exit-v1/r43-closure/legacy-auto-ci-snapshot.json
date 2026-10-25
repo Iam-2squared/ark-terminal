@@ -1,0 +1,342 @@
+{
+  "schemaVersion": "phase57-r43-legacy-auto-ci-observation-v1",
+  "savedAtUtc": "2026-09-26T11:27:02.699283+00:00",
+  "basisHead": "63a123a371d486f58c9c4d726a82a73e9c8a3c3b",
+  "scope": "Automatic historical PR workflows caused by cumulative PR path filters; read-only observation, no manual dispatch/cancel/replay or historical performance-output inspection.",
+  "requiredR43": {
+    "runId": 36238525156,
+    "jobId": 108394625404,
+    "status": "completed",
+    "conclusion": "success",
+    "focusedTests": 35,
+    "frozenContractTests": 18,
+    "modelFitsPerformed": 0,
+    "policyReplaysPerformed": 0,
+    "providerRequests": 0,
+    "protectedPartitionsOpened": 0,
+    "verifiedEvidenceFiles": 15,
+    "artifactId": 10904557327,
+    "artifactSha256": "5edd0581926c26a55939988c3011b3a2d4f95271f2d5d201b22f143104979935"
+  },
+  "headSnapshots": [
+    {
+      "headSha": "63a123a371d486f58c9c4d726a82a73e9c8a3c3b",
+      "totalWorkflowRuns": 89,
+      "r41LearningRestarts": 0,
+      "capitalReplayWorkflowRunsIdentified": 0
+    },
+    {
+      "headSha": "596fc039618b4563313cdab07d6726ff7815d78d",
+      "totalWorkflowRuns": 88,
+      "r41LearningRestarts": 0,
+      "capitalReplayWorkflowRunsIdentified": 0
+    }
+  ],
+  "observedHistoricalReplays": [
+    {
+      "runId": 36238533583,
+      "workflow": ".github/workflows/phase57-new-long-exit-candidate-a.yml",
+      "jobId": 108394649154,
+      "job": "candidate-a",
+      "step": "Run python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_candidate_a --out /tmp/ca-a | tee /tmp/ca.txt",
+      "stepStatus": "completed",
+      "stepConclusion": "success",
+      "command": "python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_candidate_a --out /tmp/ca-a | tee /tmp/ca.txt\npython3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_candidate_a --out /tmp/ca-b >/tmp/cab.txt\ncmp /tmp/ca-a/summary.json /tmp/ca-b/summary.json\ncmp /tmp/ca-a/ledger.json.gz /tmp/ca-b/ledger.json.gz\ncmp /tmp/ca-a/manifest.json /tmp/ca-b/manifest.json\n",
+      "jobIf": null,
+      "stepIf": null
+    },
+    {
+      "runId": 36238533555,
+      "workflow": ".github/workflows/phase57-new-long-exit-profit-protection-v0-fast-fail.yml",
+      "jobId": 108394649193,
+      "job": "profit-protection-v0",
+      "step": "Replay and reproduce",
+      "stepStatus": "completed",
+      "stepConclusion": "success",
+      "command": "python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_profit_protection_v0_fast_fail --out /tmp/pp-a | tee /tmp/pp-result.txt\npython3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_profit_protection_v0_fast_fail --out /tmp/pp-b >/tmp/pp-result-b.txt\ncmp /tmp/pp-a/summary.json /tmp/pp-b/summary.json\ncmp /tmp/pp-a/ledger.json.gz /tmp/pp-b/ledger.json.gz\ncmp /tmp/pp-a/manifest.json /tmp/pp-b/manifest.json\n",
+      "jobIf": null,
+      "stepIf": null
+    },
+    {
+      "runId": 36238533528,
+      "workflow": ".github/workflows/phase57-drop-pull-lower-wick-gate-v1.yml",
+      "jobId": 108394649286,
+      "job": "measure",
+      "step": "Replay frozen hypothesis twice",
+      "stepStatus": "completed",
+      "stepConclusion": "success",
+      "command": "set -euo pipefail\nreplay() {\n  python scripts/offline/kernel_exec.py python -m scripts.phase57_drop_pull_lower_wick_gate_v1 \\\n    --measurement docs/evidence/phase57-entry-timing-signal-census-v1/measurement \\\n    --entry-v1-measurement docs/evidence/phase57-state-conditioned-signal-entry-v1/measurement \\\n    --state-v3-measurement docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement \\\n    --state-checkpoints docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement/state-checkpoints.json.gz \\\n    --raw-paths \"$RUNNER_TEMP/substrate/raw-paths-evaluator-only.json.gz\" \\\n    --rows \"$RUNNER_TEMP/substrate/rows.json.gz\" \\\n    --outcomes \"$RUNNER_TEMP/substrate/outcomes.json.gz\" \\\n    --policy docs/evidence/phase57-drop-pull-lower-wick-gate-v1/POLICY_LOCK.json \\\n    --base-policy docs/evidence/phase57-state-v3-9pattern-entry-v1/POLICY_LOCK.json \\\n    --output \"$1\"\n}\nreplay \"$RUNNER_TEMP/replay-a\"\nreplay \"$RUNNER_TEMP/replay-b\"\ndiff -qr \"$RUNNER_TEMP/replay-a\" \"$RUNNER_TEMP/replay-b\"\n",
+      "jobIf": "github.event_name == 'push' || (github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository)",
+      "stepIf": null
+    },
+    {
+      "runId": 36238533502,
+      "workflow": ".github/workflows/phase57-new-long-exit-profit-protection-v4-fast-fail.yml",
+      "jobId": 108394648870,
+      "job": "profit-protection-v4",
+      "step": "Run python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_profit_protection_v4_fast_fail --out /tmp/pp4-a | tee /tmp/pp4.txt",
+      "stepStatus": "completed",
+      "stepConclusion": "success",
+      "command": "python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_profit_protection_v4_fast_fail --out /tmp/pp4-a | tee /tmp/pp4.txt\npython3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_profit_protection_v4_fast_fail --out /tmp/pp4-b >/tmp/pp4b.txt\ncmp /tmp/pp4-a/summary.json /tmp/pp4-b/summary.json\ncmp /tmp/pp4-a/ledger.json.gz /tmp/pp4-b/ledger.json.gz\ncmp /tmp/pp4-a/manifest.json /tmp/pp4-b/manifest.json\n",
+      "jobIf": null,
+      "stepIf": null
+    },
+    {
+      "runId": 36238533398,
+      "workflow": ".github/workflows/phase57-new-long-exit-profit-protection-v3-fast-fail.yml",
+      "jobId": 108394648793,
+      "job": "profit-protection-v3",
+      "step": "Run python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_profit_protection_v3_fast_fail --out /tmp/pp3-a | tee /tmp/pp3.txt",
+      "stepStatus": "completed",
+      "stepConclusion": "success",
+      "command": "python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_profit_protection_v3_fast_fail --out /tmp/pp3-a | tee /tmp/pp3.txt\npython3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_profit_protection_v3_fast_fail --out /tmp/pp3-b >/tmp/pp3b.txt\ncmp /tmp/pp3-a/summary.json /tmp/pp3-b/summary.json\ncmp /tmp/pp3-a/ledger.json.gz /tmp/pp3-b/ledger.json.gz\ncmp /tmp/pp3-a/manifest.json /tmp/pp3-b/manifest.json\n",
+      "jobIf": null,
+      "stepIf": null
+    },
+    {
+      "runId": 36238533421,
+      "workflow": ".github/workflows/phase57-new-long-exit-candidate-c.yml",
+      "jobId": 108394648854,
+      "job": "candidate-c",
+      "step": "Run python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_candidate_c --out /tmp/cc-a | tee /tmp/cc.txt",
+      "stepStatus": "completed",
+      "stepConclusion": "success",
+      "command": "python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_candidate_c --out /tmp/cc-a | tee /tmp/cc.txt\npython3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_candidate_c --out /tmp/cc-b >/tmp/ccb.txt\ncmp /tmp/cc-a/summary.json /tmp/cc-b/summary.json\ncmp /tmp/cc-a/ledger.json.gz /tmp/cc-b/ledger.json.gz\n",
+      "jobIf": null,
+      "stepIf": null
+    },
+    {
+      "runId": 36238533493,
+      "workflow": ".github/workflows/phase57-new-long-exit-early-failure-protect-v1.yml",
+      "jobId": 108394649013,
+      "job": "early-failure-protect-v1",
+      "step": "Run python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_early_failure_protect_v1_fast_fail --out /tmp/efp1-a | tee /tmp/efp1.txt",
+      "stepStatus": "completed",
+      "stepConclusion": "success",
+      "command": "python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_early_failure_protect_v1_fast_fail --out /tmp/efp1-a | tee /tmp/efp1.txt\npython3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_early_failure_protect_v1_fast_fail --out /tmp/efp1-b >/tmp/efp1b.txt\ncmp /tmp/efp1-a/summary.json /tmp/efp1-b/summary.json\ncmp /tmp/efp1-a/ledger.json.gz /tmp/efp1-b/ledger.json.gz\ncmp /tmp/efp1-a/manifest.json /tmp/efp1-b/manifest.json\n",
+      "jobIf": null,
+      "stepIf": null
+    },
+    {
+      "runId": 36238533888,
+      "workflow": ".github/workflows/phase57-new-long-exit-candidate-b.yml",
+      "jobId": 108394649934,
+      "job": "candidate-b",
+      "step": "Run python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_candidate_b --out /tmp/cb-a | tee /tmp/cb.txt",
+      "stepStatus": "completed",
+      "stepConclusion": "success",
+      "command": "python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_candidate_b --out /tmp/cb-a | tee /tmp/cb.txt\npython3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_candidate_b --out /tmp/cb-b >/tmp/cbb.txt\ncmp /tmp/cb-a/summary.json /tmp/cb-b/summary.json\ncmp /tmp/cb-a/ledger.json.gz /tmp/cb-b/ledger.json.gz\ncmp /tmp/cb-a/manifest.json /tmp/cb-b/manifest.json\n",
+      "jobIf": null,
+      "stepIf": null
+    },
+    {
+      "runId": 36238533591,
+      "workflow": ".github/workflows/phase57-new-long-exit-profit-protection-v2-fast-fail.yml",
+      "jobId": 108394649322,
+      "job": "profit-protection-v2",
+      "step": "Run python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_profit_protection_v2_fast_fail --out /tmp/pp2-a | tee /tmp/pp2.txt",
+      "stepStatus": "completed",
+      "stepConclusion": "success",
+      "command": "python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_profit_protection_v2_fast_fail --out /tmp/pp2-a | tee /tmp/pp2.txt\npython3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_profit_protection_v2_fast_fail --out /tmp/pp2-b >/tmp/pp2b.txt\ncmp /tmp/pp2-a/summary.json /tmp/pp2-b/summary.json\ncmp /tmp/pp2-a/ledger.json.gz /tmp/pp2-b/ledger.json.gz\ncmp /tmp/pp2-a/manifest.json /tmp/pp2-b/manifest.json\n",
+      "jobIf": null,
+      "stepIf": null
+    },
+    {
+      "runId": 36238533640,
+      "workflow": ".github/workflows/phase57-new-long-entry-two-opportunity-parity.yml",
+      "jobId": 108394649492,
+      "job": "parity",
+      "step": "Kernel and replay tests",
+      "stepStatus": "completed",
+      "stepConclusion": "success",
+      "command": "python -m unittest \\\n  scripts.test_phase57_new_long_entry_two_opportunity \\\n  scripts.test_phase57_new_long_entry_two_opportunity_replay\n",
+      "jobIf": null,
+      "stepIf": null
+    },
+    {
+      "runId": 36238533640,
+      "workflow": ".github/workflows/phase57-new-long-entry-two-opportunity-parity.yml",
+      "jobId": 108394649492,
+      "job": "parity",
+      "step": "Generate deterministic parity evidence twice",
+      "stepStatus": "completed",
+      "stepConclusion": "success",
+      "command": "python -m scripts.phase57_new_long_entry_two_opportunity_replay --output-dir \"$RUNNER_TEMP/run-a\" > \"$RUNNER_TEMP/run-a.stdout.json\"\npython -m scripts.phase57_new_long_entry_two_opportunity_replay --output-dir \"$RUNNER_TEMP/run-b\" > \"$RUNNER_TEMP/run-b.stdout.json\"\ncmp \"$RUNNER_TEMP/run-a.stdout.json\" \"$RUNNER_TEMP/run-b.stdout.json\"\ncmp \"$RUNNER_TEMP/run-a/summary.json\" \"$RUNNER_TEMP/run-b/summary.json\"\ncmp \"$RUNNER_TEMP/run-a/ledger.ndjson.gz\" \"$RUNNER_TEMP/run-b/ledger.ndjson.gz\"\ncmp \"$RUNNER_TEMP/run-a/manifest.json\" \"$RUNNER_TEMP/run-b/manifest.json\"\ncat \"$RUNNER_TEMP/run-a/summary.json\"\nsha256sum \"$RUNNER_TEMP/run-a/\"*\n",
+      "jobIf": null,
+      "stepIf": null
+    },
+    {
+      "runId": 36238533912,
+      "workflow": ".github/workflows/phase57-new-long-exit-loss-defense-v3-fast-fail.yml",
+      "jobId": 108394650185,
+      "job": "loss-defense-v3",
+      "step": "Run python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_loss_defense_v3_fast_fail --out /tmp/ld3-a | tee /tmp/ld3.txt",
+      "stepStatus": "completed",
+      "stepConclusion": "success",
+      "command": "python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_loss_defense_v3_fast_fail --out /tmp/ld3-a | tee /tmp/ld3.txt\npython3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_loss_defense_v3_fast_fail --out /tmp/ld3-b >/tmp/ld3b.txt\ncmp /tmp/ld3-a/summary.json /tmp/ld3-b/summary.json\ncmp /tmp/ld3-a/ledger.json.gz /tmp/ld3-b/ledger.json.gz\ncmp /tmp/ld3-a/manifest.json /tmp/ld3-b/manifest.json\n",
+      "jobIf": null,
+      "stepIf": null
+    },
+    {
+      "runId": 36238533986,
+      "workflow": ".github/workflows/phase57-new-long-exit-loss-defense-fast-fail.yml",
+      "jobId": 108394650193,
+      "job": "loss-defense-fast-fail",
+      "step": "Run exactly one frozen FAST-FAIL",
+      "stepStatus": "completed",
+      "stepConclusion": "success",
+      "command": "python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_loss_defense_fast_fail --out /tmp/loss-defense-a | tee /tmp/result.txt\npython3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_loss_defense_fast_fail --out /tmp/loss-defense-b >/tmp/result-b.txt\ncmp /tmp/loss-defense-a/summary.json /tmp/loss-defense-b/summary.json\ncmp /tmp/loss-defense-a/ledger.json.gz /tmp/loss-defense-b/ledger.json.gz\ncmp /tmp/loss-defense-a/manifest.json /tmp/loss-defense-b/manifest.json\n",
+      "jobIf": null,
+      "stepIf": null
+    },
+    {
+      "runId": 36238533425,
+      "workflow": ".github/workflows/phase57-state-v3-9pattern-entry-v1.yml",
+      "jobId": 108394648931,
+      "job": "state-v3-entry",
+      "step": "Replay 2,155 Opportunities twice without network",
+      "stepStatus": "completed",
+      "stepConclusion": "success",
+      "command": "set -euo pipefail\nreplay() {\n  python scripts/offline/kernel_exec.py python -m scripts.phase57_state_v3_9pattern_entry_v1 \\\n    --measurement docs/evidence/phase57-entry-timing-signal-census-v1/measurement \\\n    --entry-v1-measurement docs/evidence/phase57-state-conditioned-signal-entry-v1/measurement \\\n    --raw-paths \"$RUNNER_TEMP/entry-pattern/substrate/raw-paths-evaluator-only.json.gz\" \\\n    --rows \"$RUNNER_TEMP/entry-pattern/substrate/rows.json.gz\" \\\n    --outcomes \"$RUNNER_TEMP/entry-pattern/substrate/outcomes.json.gz\" \\\n    --policy docs/evidence/phase57-state-v3-9pattern-entry-v1/POLICY_LOCK.json \\\n    --contract docs/evidence/phase57-state-v3-9pattern/CONTRACT.json \\\n    --contract-markdown docs/evidence/phase57-state-v3-9pattern/CONTRACT.md \\\n    --signal-detector scripts/phase57_entry_timing_signals.py \\\n    --output \"$1\"\n}\nreplay \"$RUNNER_TEMP/replay-a\"\nreplay \"$RUNNER_TEMP/replay-b\"\ndiff -qr \"$RUNNER_TEMP/replay-a\" \"$RUNNER_TEMP/replay-b\"\ndiff -qr docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement \"$RUNNER_TEMP/replay-a\"\n",
+      "jobIf": "github.event_name == 'workflow_dispatch' || (github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository)",
+      "stepIf": null
+    },
+    {
+      "runId": 36238533264,
+      "workflow": ".github/workflows/phase57-new-long-exit-candidate-a-robustness.yml",
+      "jobId": 108394648513,
+      "job": "candidate-a-robustness",
+      "step": "Run python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_candidate_a_robustness --out /tmp/car-a | tee /tmp/car.txt",
+      "stepStatus": "completed",
+      "stepConclusion": "success",
+      "command": "python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_candidate_a_robustness --out /tmp/car-a | tee /tmp/car.txt\npython3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_candidate_a_robustness --out /tmp/car-b >/tmp/carb.txt\ncmp /tmp/car-a/summary.json /tmp/car-b/summary.json\ncmp /tmp/car-a/ledger.json.gz /tmp/car-b/ledger.json.gz\ncmp /tmp/car-a/manifest.json /tmp/car-b/manifest.json\n",
+      "jobIf": null,
+      "stepIf": null
+    },
+    {
+      "runId": 36238533313,
+      "workflow": ".github/workflows/phase57-new-long-exit-loss-defense-v2-fast-fail.yml",
+      "jobId": 108394648784,
+      "job": "loss-defense-v2",
+      "step": "Run python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_loss_defense_v2_fast_fail --out /tmp/ld2-a | tee /tmp/ld2.txt",
+      "stepStatus": "completed",
+      "stepConclusion": "success",
+      "command": "python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_loss_defense_v2_fast_fail --out /tmp/ld2-a | tee /tmp/ld2.txt\npython3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_loss_defense_v2_fast_fail --out /tmp/ld2-b >/tmp/ld2b.txt\ncmp /tmp/ld2-a/summary.json /tmp/ld2-b/summary.json\ncmp /tmp/ld2-a/ledger.json.gz /tmp/ld2-b/ledger.json.gz\ncmp /tmp/ld2-a/manifest.json /tmp/ld2-b/manifest.json\n",
+      "jobIf": null,
+      "stepIf": null
+    },
+    {
+      "runId": 36238533920,
+      "workflow": ".github/workflows/phase57-new-long-exit-profit-protection-v1-fast-fail.yml",
+      "jobId": 108394650197,
+      "job": "profit-protection-v1",
+      "step": "Run python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_profit_protection_v1_fast_fail --out /tmp/pp1-a | tee /tmp/pp1.txt",
+      "stepStatus": "completed",
+      "stepConclusion": "success",
+      "command": "python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_profit_protection_v1_fast_fail --out /tmp/pp1-a | tee /tmp/pp1.txt\npython3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_profit_protection_v1_fast_fail --out /tmp/pp1-b >/tmp/pp1b.txt\ncmp /tmp/pp1-a/summary.json /tmp/pp1-b/summary.json\ncmp /tmp/pp1-a/ledger.json.gz /tmp/pp1-b/ledger.json.gz\ncmp /tmp/pp1-a/manifest.json /tmp/pp1-b/manifest.json\n",
+      "jobIf": null,
+      "stepIf": null
+    },
+    {
+      "runId": 36238533315,
+      "workflow": ".github/workflows/phase57-state-conditioned-signal-entry-v1.yml",
+      "jobId": 108394648794,
+      "job": "deterministic-entry-v1",
+      "step": "Replay all 2,155 opportunities",
+      "stepStatus": "completed",
+      "stepConclusion": "success",
+      "command": "set -euo pipefail\nmkdir -p \"$RUNNER_TEMP/entry-v1-replay\"\npython scripts/phase57_state_conditioned_signal_entry_v1.py \\\n  --measurement docs/evidence/phase57-entry-timing-signal-census-v1/measurement \\\n  --state-reference \"$RUNNER_TEMP/state-v2/generation/now_state_reference_v2\" \\\n  --state-manifest \"$RUNNER_TEMP/state-v2/generation/manifest.json\" \\\n  --outcomes \"$RUNNER_TEMP/entry-pattern/substrate/outcomes.json.gz\" \\\n  --policy docs/evidence/phase57-state-conditioned-signal-entry-v1/POLICY_LOCK.json \\\n  --signal-detector scripts/phase57_entry_timing_signals.py \\\n  --output \"$RUNNER_TEMP/entry-v1-replay/measurement\"\n",
+      "jobIf": null,
+      "stepIf": null
+    }
+  ],
+  "latestActualHeavySteps": [
+    {
+      "runId": 36237879740,
+      "headSha": "596fc039618b4563313cdab07d6726ff7815d78d",
+      "workflow": ".github/workflows/phase57-state-v2-completion-r3.yml",
+      "jobId": 108392879368,
+      "jobStatus": "in_progress",
+      "step": "Rebuild all77214 rows reverse-order workers3 with full second implementation and suffix checks",
+      "stepStatus": "in_progress",
+      "stepConclusion": null,
+      "command": "set -euo pipefail\npython \"$ARK_V2_COMPLETION_ROOT/work/run_completion_r3_replay.py\" \\\n  --sources \"$ARK_V2_COMPLETION_ROOT/inputs-restored/inputs\" \\\n  --v1 \"$ARK_V2_COMPLETION_ROOT/inputs-restored/v1\" \\\n  --output \"$ARK_V2_COMPLETION_ROOT/generation\" \\\n  --admitted-cache \"$ARK_V2_COMPLETION_ROOT/g-admitted-complete\" \\\n  --workers 3 --reverse \\\n  2>&1 | tee \"$ARK_V2_COMPLETION_ROOT/work/evidence/full-independent-replay.log\"\n",
+      "jobIf": "github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository",
+      "stepIf": null
+    },
+    {
+      "runId": 36237879842,
+      "headSha": "596fc039618b4563313cdab07d6726ff7815d78d",
+      "workflow": ".github/workflows/phase57-state-v2-implementation.yml",
+      "jobId": 108392879632,
+      "jobStatus": "in_progress",
+      "step": "Replay all77214 rows fresh with reversed order and workers2-to-3",
+      "stepStatus": "in_progress",
+      "stepConclusion": null,
+      "command": "python scripts/run_phase57_state_v2.py --sources \"$RUNNER_TEMP/v2-inputs/inputs\" --v1 \"$RUNNER_TEMP/v2-inputs/v1\" --output \"$RUNNER_TEMP/v2-continuation/replay\" --workers 3 --reverse --replay \"$RUNNER_TEMP/v2-baseline/generation\"",
+      "jobIf": "github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository",
+      "stepIf": null
+    },
+    {
+      "runId": 36238533631,
+      "headSha": "63a123a371d486f58c9c4d726a82a73e9c8a3c3b",
+      "workflow": ".github/workflows/phase57-drop-pull-1m-state-recheck-v1.yml",
+      "jobId": 108394649459,
+      "jobStatus": "completed",
+      "step": "Replay precommitted one-minute hypothesis twice",
+      "stepStatus": "completed",
+      "stepConclusion": "success",
+      "command": "set -euo pipefail\nreplay() {\n  python scripts/offline/kernel_exec.py python -m scripts.phase57_drop_pull_1m_state_recheck_v1 \\\n    --measurement docs/evidence/phase57-entry-timing-signal-census-v1/measurement \\\n    --entry-v1-measurement docs/evidence/phase57-state-conditioned-signal-entry-v1/measurement \\\n    --state-v3-measurement docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement \\\n    --state-checkpoints docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement/state-checkpoints.json.gz \\\n    --raw-paths \"$RUNNER_TEMP/substrate/raw-paths-evaluator-only.json.gz\" \\\n    --rows \"$RUNNER_TEMP/substrate/rows.json.gz\" \\\n    --outcomes \"$RUNNER_TEMP/substrate/outcomes.json.gz\" \\\n    --policy docs/evidence/phase57-drop-pull-1m-state-recheck-v1/POLICY_LOCK.json \\\n    --base-policy docs/evidence/phase57-state-v3-9pattern-entry-v1/POLICY_LOCK.json \\\n    --output \"$1\"\n}\nreplay \"$RUNNER_TEMP/replay-a\"\nreplay \"$RUNNER_TEMP/replay-b\"\ndiff -qr \"$RUNNER_TEMP/replay-a\" \"$RUNNER_TEMP/replay-b\"\n",
+      "jobIf": "github.event_name == 'push' || (github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository)",
+      "stepIf": null
+    }
+  ],
+  "latestQueuedSuccessors": [
+    {
+      "id": 36238533530,
+      "headSha": "63a123a371d486f58c9c4d726a82a73e9c8a3c3b",
+      "path": ".github/workflows/phase57-state-v2-completion-r3.yml",
+      "event": "pull_request",
+      "status": "pending",
+      "conclusion": null,
+      "updatedAt": "2026-09-26T11:20:52Z"
+    },
+    {
+      "id": 36238533881,
+      "headSha": "63a123a371d486f58c9c4d726a82a73e9c8a3c3b",
+      "path": ".github/workflows/phase57-state-v2-implementation.yml",
+      "event": "pull_request",
+      "status": "pending",
+      "conclusion": null,
+      "updatedAt": "2026-09-26T11:20:52Z"
+    }
+  ],
+  "providerBoundaryObserved": [
+    {
+      "runId": 36238533532,
+      "workflow": ".github/workflows/phase57-expansion-acquire.yml",
+      "observation": "preflight success; reuse and acquire jobs skipped; exact commit-message gate did not authorize acquisition"
+    },
+    {
+      "runId": 36238533598,
+      "jobId": 108394649234,
+      "workflow": ".github/workflows/phase57-expansion-probe.yml",
+      "observation": "log at 2026-09-26T11:22:06.3437654Z: PRESERVED_EXISTING_METADATA_NO_REQUESTS; source returns before key access/network when saved directory exists"
+    }
+  ],
+  "scopeLimitations": [
+    "Global repository replay=0 would be false. Existing Entry v1, State v3, lower-wick, one-minute and legacy EXIT reproducibility steps ran automatically.",
+    "Historical workflows may restore original approved Development inputs from pinned GitHub artifacts. This is distinct from a new market-provider acquisition.",
+    "The two active 77,214-row State-v2 rebuilds are historical reconstruction/replay, not R41 model fitting; their completion was not awaited.",
+    "No new R41 learning run or Capital replay workflow appears in either exact-head run census.",
+    "Zero fit/replay/provider/protected counters are independently verified for R43 only. Every legacy script import and restored partition was not independently re-audited; no repository-wide zero-exposure assertion is made.",
+    "Snapshot is observational; workflows may finish after recorded statuses. No action was canceled or dispatched by this audit."
+  ],
+  "sourceEvidence": {
+    "workflowSourceRef": "63a123a371d486f58c9c4d726a82a73e9c8a3c3b",
+    "workflowSourceCount": 88,
+    "metadataRunCount": 89,
+    "fullReadOnlyIntermediate": "analysis-work/r43-automatic-ci-observation.json",
+    "mappedCommandIntermediate": "analysis-work/r43-automatic-ci-commands.json"
+  }
+}

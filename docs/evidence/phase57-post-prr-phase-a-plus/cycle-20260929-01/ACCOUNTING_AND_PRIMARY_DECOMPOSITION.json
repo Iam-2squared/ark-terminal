@@ -1,0 +1,109 @@
+{
+  "byArmComparison": {
+    "IM|component": {
+      "all100KnownContributionJpy": "-254400.0",
+      "all100_minus_primary100_minus_outsideResidualJpy": "0.0",
+      "commonPrimaryN": 70,
+      "identityResidualJpy": "0.0",
+      "outside100KnownContributionJpy": "-276800.0",
+      "pricePathMismatchIds": [],
+      "primary100DeltaJpy": "22400.0",
+      "primaryFundedDeltaJpy": "-86100.0",
+      "primaryTotalN": 79,
+      "quantityTermJpy": "-108500.0",
+      "unmatchedPrimaryIds": [
+        "2025-07-22|44120|570",
+        "2025-07-23|40600|639",
+        "2025-07-25|76940|570",
+        "2025-07-28|37870|600",
+        "2025-07-29|21380|570",
+        "2025-08-01|38030|572",
+        "2025-08-19|30770|570",
+        "2025-08-20|38030|570",
+        "2025-08-21|30770|570"
+      ]
+    },
+    "IM|route": {
+      "all100KnownContributionJpy": "65500.0",
+      "all100_minus_primary100_minus_outsideResidualJpy": "0.0",
+      "commonPrimaryN": 78,
+      "identityResidualJpy": "0.0",
+      "outside100KnownContributionJpy": "27600.0",
+      "pricePathMismatchIds": [],
+      "primary100DeltaJpy": "37900.0",
+      "primaryFundedDeltaJpy": "24500.0",
+      "primaryTotalN": 79,
+      "quantityTermJpy": "-13400.0",
+      "unmatchedPrimaryIds": [
+        "2025-07-28|37870|600"
+      ]
+    },
+    "R1|component": {
+      "all100KnownContributionJpy": "-168700.0",
+      "all100_minus_primary100_minus_outsideResidualJpy": "0.0",
+      "commonPrimaryN": 21,
+      "identityResidualJpy": "0.0",
+      "outside100KnownContributionJpy": "-100800.0",
+      "pricePathMismatchIds": [],
+      "primary100DeltaJpy": "-67900.0",
+      "primaryFundedDeltaJpy": "-65100.0",
+      "primaryTotalN": 32,
+      "quantityTermJpy": "2800.0",
+      "unmatchedPrimaryIds": [
+        "2025-07-22|44120|590",
+        "2025-07-23|40600|639",
+        "2025-07-24|37530|590",
+        "2025-07-25|76940|570",
+        "2025-07-28|33410|630",
+        "2025-07-28|37870|620",
+        "2025-07-29|92440|571",
+        "2025-07-30|70670|591",
+        "2025-07-31|79010|650",
+        "2025-08-01|38030|572",
+        "2025-08-04|36700|602"
+      ]
+    },
+    "R1|route": {
+      "all100KnownContributionJpy": "-13200.0",
+      "all100_minus_primary100_minus_outsideResidualJpy": "0.0",
+      "commonPrimaryN": 30,
+      "identityResidualJpy": "0.0",
+      "outside100KnownContributionJpy": "-20700.0",
+      "pricePathMismatchIds": [],
+      "primary100DeltaJpy": "7500.0",
+      "primaryFundedDeltaJpy": "14900.0",
+      "primaryTotalN": 32,
+      "quantityTermJpy": "7400.0",
+      "unmatchedPrimaryIds": [
+        "2025-07-28|33410|630",
+        "2025-08-04|36700|602"
+      ]
+    }
+  },
+  "formula": "funded=primary100+Σ(q−100)*(exitC−exitR); primary and outside common mask separately",
+  "portfolioClaim": false,
+  "r1FiveToTenZeroAudit": {
+    "arm": "R1",
+    "band": "[5,10)",
+    "counts": {
+      "NEG": 26,
+      "POS": 28,
+      "UNKNOWN": 5,
+      "ZERO": 24
+    },
+    "idSetChecksums": {
+      "NEG": "fbfd8c7abc1e1c22c8d7cc74df3efebdd174cf53a5dc2a6fc90da94fd39c3c0e",
+      "POS": "ee46566dc1f662dce9da2b41e7b73a454b15bd672624d80fdf8e63a04e24902e",
+      "UNKNOWN": "123019c5b678ed6e52d5ee831e86ed8a23516e05bc1561bbf455f437d95e31d9",
+      "ZERO": "2346bb66e8ae53e0e8c9cd1030d6fef2d3aa66e80691bb64bf05481211b6c9d0"
+    },
+    "sumsJpy": {
+      "NEG": "-186300.0",
+      "POS": "186300.0",
+      "UNKNOWN": "0",
+      "ZERO": "0.0"
+    }
+  },
+  "sameMaskAndPriceVerified": true,
+  "schema": "phase57-a-plus-world-decomposition-v1"
+}

@@ -1,0 +1,32 @@
+name: Phase57 State v3 Nine-Pattern Contract
+
+on:
+  pull_request:
+    paths:
+      - docs/evidence/phase57-state-v3-9pattern/**
+      - scripts/test_phase57_state_v3_9pattern_contract.py
+      - .github/workflows/phase57-state-v3-9pattern-contract.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONDONTWRITEBYTECODE: '1'
+  ARK_TEST_OFFLINE: '1'
+
+jobs:
+  contract-only:
+    if: github.event_name == 'workflow_dispatch' || (github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify static contract and manifest, without provider or classifier
+        run: python -m unittest -v scripts.test_phase57_state_v3_9pattern_contract

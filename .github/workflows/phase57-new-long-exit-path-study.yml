@@ -1,0 +1,29 @@
+name: Phase57 NEW LONG EXIT Path Study Integrity
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-new-long-exit-path-study.yml'
+      - 'scripts/*phase57_new_long_exit_path_study*'
+      - 'docs/evidence/phase57-new-long-exit-path-study-v1/**'
+permissions:
+  contents: read
+jobs:
+  path-study-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Causality, intrabar order, frozen identities and saved metrics
+        env:
+          ARK_TEST_OFFLINE: '1'
+        run: python3 scripts/offline/kernel_exec.py python3 -m unittest scripts.test_phase57_new_long_exit_path_study
+      - name: Deterministic path evaluator regeneration (no Entry or EXIT replay)
+        env:
+          ARK_TEST_OFFLINE: '1'
+        run: |
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_path_study --out /tmp/path-study-repro
+          cmp docs/evidence/phase57-new-long-exit-path-study-v1/ledger.json.gz /tmp/path-study-repro/ledger.json.gz
+          cmp docs/evidence/phase57-new-long-exit-path-study-v1/summary.json.gz /tmp/path-study-repro/summary.json.gz
+          cmp docs/evidence/phase57-new-long-exit-path-study-v1/manifest.json /tmp/path-study-repro/manifest.json

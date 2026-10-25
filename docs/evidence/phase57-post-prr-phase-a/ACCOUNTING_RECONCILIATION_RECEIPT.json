@@ -1,0 +1,65 @@
+{
+  "byWorldPolicy": {
+    "ALL_100:Ccmg": {
+      "changedN": 1434,
+      "exampleIds": [
+        "IM:2025-07-22|14310|840",
+        "IM:2025-07-22|265A0|630",
+        "IM:2025-07-22|31890|780"
+      ],
+      "knownN": 1434,
+      "totalCorrectionJpy": "-415.124719999994874000"
+    },
+    "ALL_100:Control": {
+      "changedN": 1594,
+      "exampleIds": [
+        "IM:2025-07-22|14310|840",
+        "IM:2025-07-22|23880|752",
+        "IM:2025-07-22|265A0|630"
+      ],
+      "knownN": 1594,
+      "totalCorrectionJpy": "-136.530869999994215000"
+    },
+    "PRIMARY_FUNDED:Ccmg": {
+      "changedN": 53,
+      "exampleIds": [
+        "IM:2025-07-23|27000|570",
+        "IM:2025-07-23|79460|570",
+        "IM:2025-07-23|87460|570"
+      ],
+      "knownN": 91,
+      "totalCorrectionJpy": "29.791800000000340000"
+    },
+    "PRIMARY_FUNDED:Control": {
+      "changedN": 0,
+      "exampleIds": [],
+      "knownN": 110,
+      "totalCorrectionJpy": "0E-18"
+    }
+  },
+  "commonCostCancellation": "normalized paired price-known same Entry and quantity: delta=quantity*(CCMG exit price-R50 exit price); all-100 old delta=0.9995*normalized delta",
+  "frozenFormula": "proceeds=exitPrice*quantity; paidCost=effectiveEntryPrice*quantity (buy cost embedded); sellFee=paidCost*0.0005; pnl=proceeds-sellFee-paidCost; netPct=100*pnl/paidCost",
+  "ledgerHashes": {
+    "IM": "857c775f10e8e4991ef71f5ff6f13ea808dabe33d73affb72950bb5f38d37516",
+    "R1": "3257b29fa3a07d6292acf40c1630081b437804f22b0b18c7f5a4ba568135dca9"
+  },
+  "oldClosureAndReportsUnmodified": true,
+  "oldCode": {
+    "CCMG_candidate": "scripts/phase57_ccmg_guard.py::corrected_pnl_jpy charges 0.0005*sale proceeds; delegated Primary Control is copied",
+    "PRR_all100": "scripts/phase57_prr_v2_economics.py::pnl100 charges 0.0005*sale proceeds on both policies",
+    "PRR_primary": "scripts/phase57_prr_v2_economics.py::join inherits CCMG funded rows",
+    "PRR_winner": "scripts/phase57_prr_v2_economics.py::winner_gate compares mean JPY rather than mean per-entry Net%"
+  },
+  "precommitSha256": "25e6f97b191a8d343a9361f73e48d179dd4ddcd94a229cac5f55c46b210381e9",
+  "rowsSha256": "fe092fa1648cfcc6fed71b49763987694ac9e43ac76fcde99a31027515f7362c",
+  "schema": "phase57-post-prr-accounting-reconciliation-v1",
+  "signChangedRows": [
+    "PRIMARY_FUNDED:IM:2025-07-24|87460|570"
+  ],
+  "sourceContract": [
+    "scripts/phase57_cash_capital_r34.py::CashBook.step",
+    "scripts/phase57_mh_layer_a_accounting_audit_r54.py::corrected_pair",
+    "docs/evidence/phase57-exit-persistent-value-r53/RESULT/{IM,R1}_R50_A_CONTROL_ledger.json.gz"
+  ],
+  "status": "PASS_WITH_APPEND_ONLY_NORMALIZATION"
+}

@@ -1,0 +1,90 @@
+name: Phase57 Capital Endpoint Reconciliation
+
+on:
+  push:
+    branches:
+      - research/phase57-capital-reporting-reconciliation-20260927
+    paths:
+      - .github/workflows/phase57-capital-endpoint-reconciliation.yml
+      - scripts/phase57_capital_endpoint_reconciliation.py
+      - scripts/test_phase57_capital_endpoint_reconciliation.py
+      - docs/evidence/phase57-comprehensive-exit-v1/CAPITAL_ENDPOINT_RECONCILIATION_SPEC.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase57-capital-endpoint-reconciliation-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  cash-endpoint-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.github/workflows/phase57-capital-endpoint-reconciliation.yml
+            /scripts/phase57_capital_endpoint_reconciliation.py
+            /scripts/test_phase57_capital_endpoint_reconciliation.py
+            /docs/evidence/phase57-comprehensive-exit-v1/CAPITAL_ENDPOINT_RECONCILIATION_SPEC.json
+            /docs/evidence/phase57-comprehensive-exit-v1/CAPITAL_RANK_V2_RESULT/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Synthetic accounting and reporting tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/capital-endpoint-reconciliation
+          python -m unittest -v scripts.test_phase57_capital_endpoint_reconciliation 2>&1 | tee /tmp/capital-endpoint-reconciliation/tests.txt
+      - name: Verify pinned results and independently reconcile twice
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE=docs/evidence/phase57-comprehensive-exit-v1/CAPITAL_RANK_V2_RESULT
+          SPEC=docs/evidence/phase57-comprehensive-exit-v1/CAPITAL_ENDPOINT_RECONCILIATION_SPEC.json
+          python -m scripts.phase57_capital_endpoint_reconciliation --source "$SOURCE" --spec "$SPEC" --out /tmp/capital-endpoint-reconciliation/run-a
+          python -m scripts.phase57_capital_endpoint_reconciliation --source "$SOURCE" --spec "$SPEC" --out /tmp/capital-endpoint-reconciliation/run-b
+          diff -qr /tmp/capital-endpoint-reconciliation/run-a /tmp/capital-endpoint-reconciliation/run-b
+      - name: Preserve exact source and audit receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, os, pathlib
+          out=pathlib.Path('/tmp/capital-endpoint-reconciliation')
+          r=json.loads((out/'run-a/endpoint-report.json').read_text())
+          files=['scripts/phase57_capital_endpoint_reconciliation.py',
+                 'scripts/test_phase57_capital_endpoint_reconciliation.py',
+                 '.github/workflows/phase57-capital-endpoint-reconciliation.yml',
+                 'docs/evidence/phase57-comprehensive-exit-v1/CAPITAL_ENDPOINT_RECONCILIATION_SPEC.json']
+          hashes={name:hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest() for name in files}
+          assert r['ranking']['formalSelection']=='NO_SELECTION_STOP'
+          assert all(not x for x in r['safety'].values())
+          assert all(x['audit']['status']=='PASS' for x in r['variants'].values())
+          record={'schema':'phase57-capital-endpoint-ci-receipt-v1','runId':os.environ['GITHUB_RUN_ID'],
+                  'testedSha':os.environ['GITHUB_SHA'],'sourceHashes':hashes,'tests':38,
+                  'regenerationAB':'BYTE_IDENTICAL','cashAudits':6,
+                  'eventsAudited':sum(x['audit']['eventsAudited'] for x in r['variants'].values()),
+                  'newModelFits':0,'newPolicyReplays':0,'newProviderRequests':0,'newProtectedOpened':0,
+                  'status':'REPORTING_ONLY_PASS_NOT_STRATEGY_COMPLETION','safety':r['safety'],
+                  'originalArtifactSha256':r['originalArtifactSha256'],
+                  'outputHashes':json.loads((out/'run-a/output-hashes.json').read_text())}
+          (out/'ci-receipt.json').write_text(json.dumps(record,sort_keys=True,indent=2)+'\n')
+          for name in files:
+              target=out/'source'/name
+              target.parent.mkdir(parents=True,exist_ok=True)
+              target.write_bytes(pathlib.Path(name).read_bytes())
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-capital-endpoint-reconciliation-${{ github.run_id }}
+          path: /tmp/capital-endpoint-reconciliation/
+          if-no-files-found: error
+          retention-days: 30

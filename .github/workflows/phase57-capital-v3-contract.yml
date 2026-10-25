@@ -1,0 +1,81 @@
+name: Phase57 Capital v3 Geometry and Contract
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - scripts/phase57_capital_v3.py
+      - scripts/test_phase57_capital_v3.py
+      - scripts/phase57_capital_v3_geometry.py
+      - docs/evidence/phase57-comprehensive-exit-v1/CAPITAL_V3_*.json
+      - .github/workflows/phase57-capital-v3-contract.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-capital-v3-contract-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  outcome-blind-contract:
+    if: github.ref == 'refs/heads/research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Frozen scientific dependencies
+        run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0 pandas==2.2.3 matplotlib==3.10.8
+      - name: Frozen R1 Entry
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-all-material-r1-afb38b7a5421ca4f6ff6d439bf89096236efd119
+          run-id: 36099497597
+          repository: Iam-2squared/ark-terminal
+          github-token: ${{ github.token }}
+          path: /tmp/phase57-v3-r1
+      - name: Pinned R50 terminal benchmark
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-r50-result-36287943625
+          run-id: 36287943625
+          repository: Iam-2squared/ark-terminal
+          github-token: ${{ github.token }}
+          path: /tmp/phase57-v3-r50
+      - name: Synthetic causal and cash tests
+        run: python -m unittest -v scripts.test_phase57_capital_v3 scripts.test_phase57_cash_capital_r34 scripts.test_phase57_cash_portfolio_r37 scripts.test_phase57_capital_rank_v2
+      - name: Source pinned geometry and zero-fit feature preflight
+        run: |
+          python -m scripts.phase57_capital_v3 \
+            --benchmark-ledger /tmp/phase57-v3-r50/R50_B_FAILED_RECOVERY-run-a.jsonl.gz \
+            --r1-records /tmp/phase57-v3-r1/all-material-r1/ci-run-a/entry-records.json.gz \
+            --mode preflight --out /tmp/phase57-v3-contract-receipt.json
+      - name: Verify exposure and exact source receipt
+        env:
+          TESTED_SHA: ${{ github.sha }}
+        run: |
+          python - <<'PY'
+          import hashlib,json,os,pathlib
+          x=json.loads(pathlib.Path('/tmp/phase57-v3-contract-receipt.json').read_text())
+          assert x['modelFits']==x['portfolioReplays']==x['fundedPerformanceInspected']==x['protectedOpened']==x['providerRequests']==0
+          assert x['featureRowsByArm']=={'IMMEDIATE':1150,'ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF':1107}
+          assert len(x['safety'])==9 and not any(x['safety'].values())
+          paths=['scripts/phase57_capital_v3.py','scripts/test_phase57_capital_v3.py','scripts/phase57_capital_v3_geometry.py',
+                 '.github/workflows/phase57-capital-v3-contract.yml']
+          paths+=['docs/evidence/phase57-comprehensive-exit-v1/CAPITAL_V3_'+x for x in
+                  ('PREGEOMETRY_PRECOMMIT.json','GEOMETRY.json','FEATURE_AUDIT.json','SELECTION_GATE.json')]
+          files={p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest() for p in paths}
+          pathlib.Path('/tmp/phase57-v3-manifest.json').write_text(json.dumps({'testedSha':os.environ['TESTED_SHA'],
+               'sources':files,'featureMatrixSha256':x['featureMatrixSha256'],'fits':0,
+               'performanceInspected':False,'safety':x['safety']},sort_keys=True,indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-capital-v3-outcome-blind-contract
+          path: |
+            /tmp/phase57-v3-contract-receipt.json
+            /tmp/phase57-v3-manifest.json
+          if-no-files-found: error

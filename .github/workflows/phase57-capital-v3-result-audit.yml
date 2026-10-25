@@ -1,0 +1,81 @@
+name: Phase57 Capital v3 Result Audit
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - docs/evidence/phase57-capital-v3/CAPITAL_V3_RESULT_MANIFEST.json
+      - scripts/phase57_capital_v3_audit.py
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-capital-v3-result-audit-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  independent-accounting:
+    if: github.ref == 'refs/heads/research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Frozen dependencies
+        run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0 pandas==2.2.3
+      - name: Frozen R1 Entry
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-all-material-r1-afb38b7a5421ca4f6ff6d439bf89096236efd119
+          run-id: 36099497597
+          repository: Iam-2squared/ark-terminal
+          github-token: ${{ github.token }}
+          path: /tmp/phase57-v3-r1
+      - name: Pinned R50 terminal benchmark
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-r50-result-36287943625
+          run-id: 36287943625
+          repository: Iam-2squared/ark-terminal
+          github-token: ${{ github.token }}
+          path: /tmp/phase57-v3-r50
+      - name: Validate permanent CI-result file hashes and original run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import hashlib,json,pathlib,urllib.request
+          root=pathlib.Path('docs/evidence/phase57-capital-v3')
+          x=json.loads((root/'CAPITAL_V3_RESULT_MANIFEST.json').read_text())
+          assert x['selection']=='NO_SELECTION_STOP' and x['sourceExecutionSha']=='89ab75d7665818c3533963c486a6388d417067c2'
+          for relative,digest in x['filesSha256'].items():
+              assert hashlib.sha256((root/relative).read_bytes()).hexdigest()==digest,relative
+          request=urllib.request.Request('https://api.github.com/repos/Iam-2squared/ark-terminal/actions/runs/'+str(x['finiteRunId']),headers={'Authorization':'Bearer '+__import__('os').environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+          with urllib.request.urlopen(request) as response: run=json.load(response)
+          assert run['conclusion']=='success' and run['head_sha']==x['sourceExecutionSha']
+          PY
+      - name: Independently rejoin funded identities and evaluator outcomes
+        run: |
+          python -m unittest -v scripts.test_phase57_capital_v3
+          python -m scripts.phase57_capital_v3_audit \
+            --source docs/evidence/phase57-capital-v3/RESULT \
+            --r1-records /tmp/phase57-v3-r1/all-material-r1/ci-run-a/entry-records.json.gz \
+            --benchmark-ledger /tmp/phase57-v3-r50/R50_B_FAILED_RECOVERY-run-a.jsonl.gz \
+            --out /tmp/phase57-v3-independent-audit.json
+      - name: Immutable independent audit and no false selection
+        run: |
+          python - <<'PY'
+          import hashlib,json,pathlib
+          root=pathlib.Path('docs/evidence/phase57-capital-v3')
+          actual=pathlib.Path('/tmp/phase57-v3-independent-audit.json').read_bytes()
+          expected=(root/'RESULT/post-run-audit.json').read_bytes()
+          assert actual==expected
+          x=json.loads(actual)
+          assert x['decision']=='NO_SELECTION_STOP' and len(x['variants'])==4
+          assert x['protectedOpened']==x['providerRequests']==0 and not any(x['safety'].values())
+          assert json.loads((root/'CAPITAL_V3_REPRODUCIBILITY_AUDIT.json').read_text())['scoreByteIdentity'] is False
+          print('audit sha256',hashlib.sha256(actual).hexdigest())
+          PY

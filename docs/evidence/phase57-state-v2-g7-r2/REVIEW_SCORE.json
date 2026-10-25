@@ -1,0 +1,81 @@
+{
+  "recordedAtJST": "2026-09-22T13:46:20+09:00",
+  "status": "G7_R2_FORMAL_FAIL_ADJUDICATION_COMPLETE",
+  "reviewerPackageSHA256": "ab1bba0c6e0b8f8f35e53cd395fbc862f92f9a1f2ccdc276c44b07773f4c3822",
+  "submissions": {
+    "A": {
+      "zipSHA256": "1b09d8b704870a3b505b2af37e4ffac885d1f5b00bfcc43fcc743ee75af8b245",
+      "responseSHA256": "440a4d91576f18af739db46de9a9cb59c382c5d1df4b698a1410a873e001bbe1",
+      "pass1SHA256": "e514bb14df899ae797a1262ec2136476e29bb7664e363894b6df7c5d24b907b5",
+      "controls": "8/8",
+      "pass1FieldMismatches": 0,
+      "actualYES": []
+    },
+    "B": {
+      "zipSHA256": "32e6ff0f0510a0b03d7be1f479f62058fc5c361d1b1240db726b97359e41f824",
+      "responseSHA256": "158fdd4a82f4545297b672766f02efd4b43305be10a975b1673349e46bfced48",
+      "pass1SHA256": "0e881954c6de3401435ac864139eb06007a1b448b81289bf04278f9ae9dd2ca9",
+      "controls": "7/8",
+      "missedControls": [
+        "G7R2-016"
+      ],
+      "pass1FieldMismatches": [
+        {
+          "caseId": "G7R2-001",
+          "field": "Phase"
+        },
+        {
+          "caseId": "G7R2-009",
+          "field": "Phase"
+        },
+        {
+          "caseId": "G7R2-018",
+          "field": "Phase"
+        }
+      ],
+      "actualYES": [
+        "G7R2-001",
+        "G7R2-009",
+        "G7R2-018"
+      ],
+      "chartCasesInspected": 0
+    }
+  },
+  "actualN": 36,
+  "rawAgreement": "33/36",
+  "rawAgreementPct": 91.66666666666667,
+  "cohensKappa": 0,
+  "agreementPass": false,
+  "controlsPass": false,
+  "actualFutureLeakClaims": [],
+  "blockingSemanticCases": [],
+  "cleanEvaluatorResponses": {
+    "A": {
+      "G7R2-023": "NO",
+      "G7R2-028": "NO"
+    },
+    "B": {
+      "G7R2-023": "NO",
+      "G7R2-028": "NO"
+    }
+  },
+  "adjudication": {
+    "reviewerBActualClaimsAllExplainedByPhaseMisinterpretation": true,
+    "stateRuleChangeRequired": false,
+    "thresholdChangeRequired": false,
+    "labelsRewritten": false
+  },
+  "freezeGranted": false,
+  "guards": {
+    "v2ImplementationStarted": false,
+    "fullCohortV2Generated": false,
+    "recognitionStarted": false,
+    "signalStarted": false,
+    "buyWaitStarted": false,
+    "entryStarted": false,
+    "exitStarted": false,
+    "protectedDataOpened": 0,
+    "newMarketProviderRequests": 0,
+    "marketThresholdChanges": 0
+  }
+}

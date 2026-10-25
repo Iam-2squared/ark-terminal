@@ -1,0 +1,83 @@
+{
+  "status": "PRECOMMITTED_NOT_EXECUTED",
+  "catalog": "docs/evidence/phase57-behavior-dictionary-v1/07_metric_catalog.json",
+  "catalogSHA256": "562015503ac591e6f490848d372a66d160b8bc768c2f5ff5eadc813ff3ee02fe",
+  "statistics": {
+    "CI": "Bonferroni8,95%; no IID row inference; two-way clustered sensitivity",
+    "bootstrap": 10000,
+    "clusters": [
+      "session_block",
+      "securityId"
+    ],
+    "continuousScore": "squared standardized error",
+    "controlModel": "one linear residualization fitted first19 only, no search",
+    "drift": "EW20/60/250 plus bounded250; compare short20 to nonoverlap prior20; insufficient history => UNKNOWN; drift confidence only",
+    "familywiseAlpha": 0.05,
+    "normalEB": "log-scale where catalog says log; prior equivalent20 observations; prior variance fitted first19 only; weight nEff/(nEff+20)",
+    "peer": "fixed tertiles of log-vol/log-turnover/log-price from first19; min30 securities per cell otherwise overall first19 prior; no sector fallback search",
+    "plannedTests": 8,
+    "rateEB": "Beta prior mean peer first19 with strength20; posterior Beta-binomial; nEff by distinct session events",
+    "ratesScores": [
+      "Brier",
+      "log score with probability clip1e-6"
+    ],
+    "seed": 20260919,
+    "windowSessions": 19
+  },
+  "gates": {
+    "G0": {
+      "requires": "protocol/schema/catalog/state hashes fixed before payload audit"
+    },
+    "G1": {
+      "requires": "all synthetic guard tests and source-knownAt/mapping/action evidence pass; no future admission"
+    },
+    "G2": {
+      "auditSessions": 57,
+      "classifiedMissingReasonCoverageMin": 0.99,
+      "minSymbolsWithNEff": 300,
+      "universeDayCoverageMin": 0.95
+    },
+    "G3": {
+      "adjacentWindowRankCorrMin": 0.3,
+      "adjustedLowerCIMin": 0,
+      "minNEff": 12,
+      "nextWindowSessions": 19,
+      "oddEvenRankCorrMin": 0.5
+    },
+    "G4": {
+      "adjustedLowerCIMin": 0,
+      "peerRelativeProperScoreImprovementMin": 0.01,
+      "rateAbsCalibrationErrorMax": 0.05
+    },
+    "G5": {
+      "adjustedLowerCIMin": 0,
+      "controlResidualRankCorrMin": 0.1,
+      "controls": [
+        "log_vol",
+        "log_turnover",
+        "log_price",
+        "peer_bucket"
+      ]
+    },
+    "G6": {
+      "JSFlagThreshold": 0.1,
+      "driftThresholdZ": 3,
+      "simulations": 1000,
+      "stationaryFalsePositiveMax": 0.05
+    },
+    "G7": {
+      "dailyUpdateSecondsMax": 300,
+      "fullVsIncrementalExactHash": true,
+      "lookupP95MillisMax": 10
+    },
+    "G8": {
+      "newProviderRequests": 0,
+      "outcomeStrategyTraining": 0,
+      "protectedPayloadReads": 0,
+      "report19PayloadReads": 0
+    },
+    "G9": {
+      "requires": "G0-G8 all pass and admitted Tier1 >=1; freeze code/config/catalog/artifacts; no promotion"
+    }
+  }
+}

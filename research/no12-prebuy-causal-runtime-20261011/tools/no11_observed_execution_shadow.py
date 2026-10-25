@@ -1,11 +1,11 @@
-"""Connect received-data service to native Capital/EXIT and synthetic positions.
+"""Received-data Shadow with native Capital/EXIT and optional account observation.
 
-Fresh RSS prices drive explicitly simulated fills, never actual brokerage.
-State9 for held symbols is the existing original ObservedStateStream, consumed
-incrementally; original Structural v3 is called by the durable portfolio.
+Real account rows only restrict synthetic entries. Real cash, positions and
+executions are never copied into the synthetic portfolio or submitted anywhere.
 """
 from __future__ import annotations
 
+from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
 import re
@@ -14,6 +14,7 @@ import no11_h235_asof_forward_shadow as h
 import no11_h235_capital_v5_shadow as cap
 import no11_rss_state9_p1_runner as received
 from no11_shadow_portfolio import ShadowPortfolio, config_check, UPDATE, ACTIVE
+from no11_account_observation import AccountObservation
 
 
 def need(ok, code):
@@ -40,6 +41,7 @@ class ExecutionShadow:
         self.streams, self.input_hashes = {}, {}
         self.feed_pin = h.digest(previous)
         self.blocked = {}
+        self.account = AccountObservation(self.root, self.session)
 
     def close(self):
         self.portfolio.close()
@@ -68,8 +70,6 @@ class ExecutionShadow:
         return quotes
 
     def _verify_held_prefix(self, feed):
-        # Check the entire previously consumed held prefix BEFORE any new mark,
-        # fill or stream update. Detect removals as well as altered old rows.
         current = {(r['Code'], r['Time']): h.digest(r) for r in feed['rows']}
         for code, accepted in self.input_hashes.items():
             for minute, fingerprint in accepted.items():
@@ -88,12 +88,10 @@ class ExecutionShadow:
             status, quantity, value = None, order['filled'], Decimal(order['value'])
             created = h.timestamp(order['createdAt'], self.session)
             if order['status'] == 'CANCEL_REQUESTED' or order['side'] == 'BUY' and current['sellFillLatch']:
-                status = 'CANCELLED'  # only this local simulator acknowledging its own cancel
+                status = 'CANCELLED'  # local simulator only, not a brokerage ack
             elif (quote is not None
                   and h.timestamp(quote['knownAtJst'], self.session) > created
                   and h.timestamp(received.stamp(self.session, received.minute(quote['Time']) + 1), self.session) > created):
-                # A delayed receipt cannot turn a pre-intent closing price into
-                # a post-intent execution. Both clocks must be strictly later.
                 remain = order['quantity'] - order['filled']
                 effective = Decimal(str(quote['C'])) * Decimal('1.0005' if order['side'] == 'BUY' else '0.9995')
                 if order['side'] == 'BUY' and effective > Decimal(order['unitReserve']):
@@ -138,6 +136,27 @@ class ExecutionShadow:
             traces[code] = stream.trace
         return traces
 
+    def _account_guard(self, at):
+        if not self.account.enabled:
+            return True, set()
+        report = self.account.observe()
+        excluded = set(report['excludedSymbols'])
+        allowed = report['newShadowEntriesAllowed'] is True
+        if allowed:
+            # The sidecar may finish a newer capture while inference is running.
+            # It must not retroactively authorize the earlier decision instant.
+            try:
+                source = datetime.fromisoformat(report['sourceAt'])
+                decision = h.timestamp(at, self.session)
+                allowed = source <= decision and 0 <= (decision - source).total_seconds() <= 30
+            except (ValueError, TypeError, KeyError):
+                allowed = False
+        for order in self.portfolio.state()['orders'].values():
+            if (order['side'] == 'BUY' and order['status'] in {'INTENT', 'ACKNOWLEDGED', 'PARTIAL'}
+                    and (not allowed or order['symbol'] in excluded)):
+                self.portfolio.cancel(order['orderId'], at)
+        return allowed, excluded
+
     def advance(self, feed, inference, at):
         now = h.timestamp(at, self.session)
         need(h.digest(self.previous) == self.feed_pin, 'PREVIOUS_SOURCE_CHANGED')
@@ -149,13 +168,15 @@ class ExecutionShadow:
         quotes = self._quotes(feed, now)
         self._verify_held_prefix(feed)
         if h.minute(now) >= 920:
-            # A pre-cutoff pending BUY cannot become a post-cutoff simulated BUY.
             self.heartbeat(at)
+        allowed, excluded = self._account_guard(at)
         self._simulated_updates(quotes, at)
         self.portfolio.mark(quotes, at)
         traces = self._position_traces(feed)
         self.portfolio.evaluate_exits(traces, at)
-        self.portfolio.fund(batch, at)
+        if allowed:
+            eligible = dict(batch, results=[r for r in batch['results'] if r['symbol'] not in excluded])
+            self.portfolio.fund(eligible, at)
         return self.summary()
 
     def heartbeat(self, at):
@@ -164,14 +185,15 @@ class ExecutionShadow:
             for order in self.portfolio.state()['orders'].values():
                 if order['side'] == 'BUY' and order['status'] in {'INTENT', 'ACKNOWLEDGED', 'PARTIAL'}:
                     self.portfolio.cancel(order['orderId'], at)
-            # EOD intent is independent of receipt arrival. UNKNOWN orders stay
-            # unresolved; no acknowledgement or fill is invented by this clock.
             self.portfolio.evaluate_exits({}, at)
         return self.summary()
 
     def summary(self):
         result = self.portfolio.summary()
-        result.update(originalState9ForHeldSymbols=True,
+        result.update(accountReadOnlyConfigured=self.account.enabled,
+                      accountObservation=self.account.report,
+                      realAccountExecutionConnected=False,
+                      originalState9ForHeldSymbols=True,
                       heldStateUnavailableCount=len(self.blocked),
                       fillPolicy='NEXT_FRESH_RECEIVED_CLOSE_SIMULATION',
                       observedPriceIsBrokerFill=False,

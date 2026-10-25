@@ -5,12 +5,9 @@
  * Mirrors the verified 20-argument original No.1.1 draft contract.
  */
 import {digest} from '../../../integration/no1-1-msii/runtime/locked_intent.mjs';
+import {orderInstant,currentOrderInstant,validMsiiOrderId,validateMsiiOrderIds,NS_PER_MS} from './no11_order_boundary.mjs';
 export const NO12_ORDER_INTENT_SCHEMA='ARK_NO12_SYNTHETIC_ORDER_INTENT_V1';
 const fail=x=>{throw Error(x)};
-const when=(v,label)=>{
- if(typeof v!=='string'||!/(Z|[+-]\d{2}:\d{2})$/.test(v)||!Number.isFinite(Date.parse(v)))fail(label);
- return Date.parse(v);
-};
 const txt=x=>{
  const s=String(x);
  return s!==''&&/^-?\d+(?:\.\d+)?$/.test(s)?s:'"'+s.replace(/"/g,'""')+'"';
@@ -44,18 +41,14 @@ export function buildNo12SyntheticMsiiOrderText({intent,orderIdentity,now=new Da
     intent.accountTypeVerified!==true)fail('NO12_BROKER_ACCOUNT_TYPE_NOT_VERIFIED');
  if(!orderIdentity||orderIdentity.schemaId!=='ARK_NO12_SYNTHETIC_ORDER_ID_OBSERVATION_V1'||
     orderIdentity.evidenceMode!=='SYNTHETIC_OFFLINE_ONLY')fail('NO12_REAL_ORDER_ID_NOT_CERTIFIED');
- const time=when(orderIdentity.observedAt,'NO12_ORDER_ID_OBSERVATION_CLOCK_INVALID');
- const current=now instanceof Date?now.getTime():when(now,'NO12_CURRENT_CLOCK_INVALID');
- if(!Number.isFinite(current)||time>current+1000||current-time>30000)
+ const time=orderInstant(orderIdentity.observedAt,'NO12_ORDER_ID_OBSERVATION_CLOCK_INVALID');
+ const current=currentOrderInstant(now,'NO12_CURRENT_CLOCK_INVALID');
+ if(time.ns>current.ns||current.ns-time.ns>30000n*NS_PER_MS)
    fail('NO12_ORDER_ID_SNAPSHOT_STALE');
  const id=orderIdentity.reservedOrderId;
- if(!Number.isSafeInteger(id)||id<1||!Array.isArray(orderIdentity.usedOrderIds))
+ if(!validMsiiOrderId(id)||!Array.isArray(orderIdentity.usedOrderIds))
    fail('NO12_RSS_ID_NOT_AVAILABLE');
- const used=new Set();
- for(const item of orderIdentity.usedOrderIds){
-   if(!Number.isSafeInteger(item)||item<1||used.has(item))fail('NO12_RSS_USED_ORDER_IDS_INVALID');
-   used.add(item);
- }
+ const used=validateMsiiOrderIds(orderIdentity.usedOrderIds,'NO12_RSS_USED_ORDER_IDS_INVALID');
  if(used.has(id))fail('NO12_RSS_ORDER_ID_ALREADY_USED');
  if(orderIdentity.sourceIntentSha256!==intentSha256)fail('NO12_ORDER_ID_TO_INTENT_NOT_MATCHED');
  if(orderIdentity.syntheticUniquenessChecked!==true)fail('NO12_ORDER_ID_DUPLICATE_RISK');

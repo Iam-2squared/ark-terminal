@@ -5,28 +5,29 @@
 import {digest} from '../../../integration/no1-1-msii/runtime/locked_intent.mjs';
 import {buildNo12SyntheticMsiiOrderText} from '../runtime/synthetic_msii_draft.mjs';
 import {bindObservedOrder} from './no11_broker_order_state.mjs';
+import {orderInstant,validMsiiOrderId,validateMsiiOrderIds,NS_PER_MS} from '../runtime/no11_order_boundary.mjs';
 const need=(ok,code)=>{if(!ok)throw Error('NO11_CANCEL_'+code)};
-const validId=x=>Number.isSafeInteger(x)&&x>=1&&x<=2147483647;
-const clock=x=>typeof x==='string'&&/^20\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,3})?\+09:00$/.test(x)?Date.parse(x):NaN;
+const validId=validMsiiOrderId;
+const clock=x=>orderInstant(x,'NO11_CANCEL_SOURCE_CLOCK',{jstOnly:true});
 export function buildSyntheticCancelText({orderRequest,sourceDraft,origin,source,cancelId,nowJst}){
  need(orderRequest&&source?.schemaId==='ARK_NO11_SYNTHETIC_CANCEL_SOURCE_V1'&&
   source.evidenceMode==='SYNTHETIC_OFFLINE_ONLY'&&source.productionReady===false&&source.orderTransmission===false,
   'SYNTHETIC_SOURCE_REQUIRED');
  const now=clock(nowJst),observed=clock(source.observedAtJst),created=clock(orderRequest.orderIdentity?.observedAt);
- need(Number.isFinite(now)&&Number.isFinite(observed)&&Number.isFinite(created)&&observed<=now&&now-observed<=30000&&created<=observed,
+ need(observed.ns<=now.ns&&now.ns-observed.ns<=30000n*NS_PER_MS&&created.ns<=observed.ns,
   'SOURCE_CLOCK');
  need(source.sessionDate===nowJst.slice(0,10)&&source.observedAtJst.slice(0,10)===source.sessionDate&&
   orderRequest.orderIdentity.observedAt.slice(0,10)===source.sessionDate,'SOURCE_SESSION');
  need(validId(cancelId)&&validId(orderRequest.orderIdentity.reservedOrderId),'RSS_ID_RANGE');
- need(Array.isArray(orderRequest.orderIdentity.usedOrderIds)&&orderRequest.orderIdentity.usedOrderIds.every(validId),'RSS_ID_RANGE');
+ validateMsiiOrderIds(orderRequest.orderIdentity.usedOrderIds,'NO11_CANCEL_RSS_ID_RANGE');
  // Reconstruct at the original observation instant, not cancellation time.
  // This checks a synthetic stored preview; it never reserves an actual id.
- const original=buildNo12SyntheticMsiiOrderText({...orderRequest,now:new Date(created)});
+ const original=buildNo12SyntheticMsiiOrderText({...orderRequest,now:orderRequest.orderIdentity.observedAt});
  need(sourceDraft&&digest(sourceDraft)===digest(original),'ORIGINAL_DRAFT_CHANGED');
  need(origin?.intentId===original.sourceIntentSha256&&origin.rssOrderId===original.rssOrderId&&
   origin.symbol===orderRequest.intent.symbol&&origin.side===orderRequest.intent.side&&
   origin.quantity===orderRequest.intent.quantity&&origin.account===source.account&&
-  origin.recordedAtJst===orderRequest.orderIdentity.observedAt,'ORIGIN_MISMATCH');
+  clock(origin.recordedAtJst).ns===created.ns,'ORIGIN_MISMATCH');
  const accountNames=['特定','一般','NISA（NISA成長投資枠）','旧NISA'];
  need(origin.account===accountNames[orderRequest.intent.accountType],'ACCOUNT_MISMATCH');
  need(Array.isArray(source.idRows)&&source.idRows.length<=5000&&Array.isArray(source.orders),'SOURCE_ROWS');

@@ -3,6 +3,7 @@
  * An acknowledgement, cancellation request and terminal cancellation differ.
  * No order function, network, Excel write or portfolio mutation exists here.
  */
+import {orderInstant,validMsiiOrderId,vendorSecondAtOrAfterOrigin} from '../runtime/no11_order_boundary.mjs';
 const need=(ok,code)=>{if(!ok)throw Error('NO11_ACCOUNT_'+code)};
 const integer=(x,min=0)=>Number.isSafeInteger(x)&&x>=min;
 export function cashSide(value){
@@ -40,12 +41,12 @@ export function bindObservedOrder({origin,idRows,orders,sessionDate,throughJst,p
   origin.evidenceMode==='RECORDED_NOT_AUTHORIZATION'&&origin.productionReady===false&&
   origin.orderTransmission===false,'ORDER_ORIGIN_REQUIRED');
  need(origin.sessionDate===sessionDate&&typeof origin.intentId==='string'&&/^[a-f0-9]{64}$/.test(origin.intentId)&&
-  integer(origin.rssOrderId,1)&&origin.rssOrderId<=2147483647&&
+  validMsiiOrderId(origin.rssOrderId)&&
   typeof origin.recordedAtJst==='string'&&origin.recordedAtJst.slice(0,10)===sessionDate,
   'ORDER_ORIGIN_IDENTITY');
- const recorded=Date.parse(origin.recordedAtJst),now=Date.parse(throughJst);
- need(Number.isFinite(recorded)&&Number.isFinite(now)&&recorded<=now&&throughJst.slice(0,10)===sessionDate,
-  'ORDER_ORIGIN_CLOCK');
+ const recorded=orderInstant(origin.recordedAtJst,'NO11_ACCOUNT_ORDER_ORIGIN_CLOCK',{jstOnly:true});
+ const now=orderInstant(throughJst,'NO11_ACCOUNT_ORDER_ORIGIN_CLOCK',{jstOnly:true});
+ need(recorded.ns<=now.ns&&now.localDay===sessionDate,'ORDER_ORIGIN_CLOCK');
  need(Array.isArray(idRows)&&idRows.length<=5000&&Array.isArray(orders)&&orders.length<=5000,'IDENTITY_ROWS_INVALID');
  const ids=idRows.filter(x=>x.rssOrderId===origin.rssOrderId);
  need(ids.length===1,'RSS_ID_NOT_UNIQUE_OR_MISSING');
@@ -54,10 +55,10 @@ export function bindObservedOrder({origin,idRows,orders,sessionDate,throughJst,p
   typeof id.orderNumber==='string'&&/^[0-9]{1,32}$/.test(id.orderNumber)&&
   typeof id.orderTime==='string'&&/^\d\d:\d\d:\d\d$/.test(id.orderTime),
   'RSS_ID_BINDING_INVALID');
- const orderAt=Date.parse(sessionDate+'T'+id.orderTime+'+09:00');
- // Vendor time is second-granularity. Do not discard a same-second mapping,
- // but never accept an order more than 999ms before its recorded local intent.
- need(Number.isFinite(orderAt)&&recorded-999<=orderAt&&orderAt<=now,'RSS_ID_ORDER_CLOCK');
+ const orderAt=orderInstant(sessionDate+'T'+id.orderTime+'+09:00','NO11_ACCOUNT_RSS_ID_ORDER_CLOCK',{jstOnly:true});
+ // Compare the vendor's whole second with floor(local intent), retaining
+ // all seven fractional digits from the actual Windows observation.
+ need(vendorSecondAtOrAfterOrigin(orderAt,recorded)&&orderAt.ns<=now.ns,'RSS_ID_ORDER_CLOCK');
  need(idRows.filter(x=>x.orderNumber===id.orderNumber&&x.functionName==='RssStockOrder').length===1,
   'BROKER_ORDER_BOUND_TO_MULTIPLE_IDS');
  const matches=orders.filter(r=>r.orderNumber===id.orderNumber);

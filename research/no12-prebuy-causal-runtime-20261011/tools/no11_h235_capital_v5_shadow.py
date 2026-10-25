@@ -19,7 +19,7 @@ import re
 import sys
 
 import no11_h235_asof_forward_shadow as h235
-import no11_capital_v5_crlf_safe_synthetic as native_v5
+import no11_capital_v5_batch_capacity as native_v5
 
 sys.dont_write_bytecode = True
 SOURCE_BINDING = h235.ROOT / "research/capital-v5-sharp-drop-exit-reset20-20261007/SOURCE_BINDING.json"
@@ -105,7 +105,7 @@ def build_request(r0_batch, scenario, arrival):
             r0_batch.get("policy") == h235.policy(scenario["sessionDate"]),
             "ORIGINAL_ASOF_R0_BATCH_REQUIRED")
     rows = r0_batch.get("results")
-    require(type(rows) is list and len(rows) <= 20, "RANK_BATCH_INVALID")
+    require(type(rows) is list and len(rows) <= native_v5.MAX_CANDIDATES, "RANK_BATCH_INVALID")
     _, _, stair, _ = h235.original_dependencies()
     require(rows == sorted(rows, key=stair.candidate_order),
             "R0_NOT_FROZEN_NATIVE_PRIORITY_ORDER")
@@ -136,11 +136,10 @@ def build_request(r0_batch, scenario, arrival):
                 type(symbol) is str and h235.SYMBOL.fullmatch(symbol) and
                 identity not in used, "R0_CANDIDATE_IDENTITY_DUPLICATE_OR_INVALID")
         used.add(identity)
-        h235.timestamp(row["decisionAtJst"], scenario["sessionDate"])
-        require(row["decisionAtJst"] <= scenario["decisionAtJst"] and
-                h235.minute(h235.timestamp(row["decisionAtJst"], scenario["sessionDate"]))
-                  == h235.minute(decision) and
-                row["entry_timestamp"] <= row["decisionAtJst"],
+        row_decision = h235.timestamp(row["decisionAtJst"], scenario["sessionDate"])
+        row_intent = h235.timestamp(row["entry_timestamp"], scenario["sessionDate"])
+        require(row_intent <= row_decision <= decision and
+                h235.minute(row_decision) == h235.minute(decision),
                 "R0_BATCH_NOT_SAME_OBSERVED_MINUTE")
         p = row.get("raw_reference")
         ml = row.get("ML")

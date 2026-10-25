@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Prepare saved No.1.1 inputs and launch the two read-only PC processes together.
+"""Prepare existing No.1.1 inputs and supervise read-only collector and inference.
 
-No new model, market download, account read or broker order. Missing master or
-corporate-action evidence is never invented. Private data stay outside Git.
+Optional shadowAccountConfig connects native V5/EXIT and simulated receipts.
+It never authorizes a real account, changes model weights or transmits orders.
 """
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ CLOSED = 'ARK_NO11_C50_COLLECTOR_CLOSED_V1'
 REQUIRED = {'schemaId', 'sessionDate', 'dailyRun', 'datedMaster', 'runtimeRoot',
             'privateRoot', 'productionReady', 'orderTransmission'}
 OPTIONAL = {'previousContext', 'previousCaptureFiles', 'h235ModelRoot', 'pinsFile',
-            'samples', 'historyBars', 'warmupSeconds'}
+            'samples', 'historyBars', 'warmupSeconds', 'shadowAccountConfig'}
 
 
 def need(ok, code):
@@ -65,8 +65,7 @@ def load_json(path, limit=25_000_000):
 
 def immutable(root, stem, value):
     root = private(root, True)
-    # Preserve JSON member order: the existing JS chart-plan pin is intentionally
-    # JSON.stringify(body), not a sorted-key Python representation.
+    # Preserve JS JSON.stringify member order for the original plan checksum.
     data = (json.dumps(value, ensure_ascii=False, separators=(',', ':'),
                        allow_nan=False) + '\n').encode('utf-8')
     digest = hashlib.sha256(data).hexdigest()
@@ -99,11 +98,13 @@ def validate_config(obj):
         c[name] = value
     for key in ('dailyRun', 'runtimeRoot', 'privateRoot'):
         c[key] = str(private(c[key], True))
-    for key in ('datedMaster', 'previousContext', 'pinsFile'):
+    for key in ('datedMaster', 'previousContext', 'pinsFile', 'shadowAccountConfig'):
         if key in c:
             c[key] = str(private(c[key]))
     if 'h235ModelRoot' in c:
         c['h235ModelRoot'] = str(private(c['h235ModelRoot'], True))
+    need('shadowAccountConfig' not in c or 'h235ModelRoot' in c,
+         'H235_REQUIRED_FOR_SHADOW_PORTFOLIO')
     if 'previousCaptureFiles' in c:
         files = c['previousCaptureFiles']
         need(type(files) is list and 1 <= len(files) <= 8 and
@@ -143,7 +144,6 @@ def export_scope(config):
 
 def validate_scope(session, plan_file, mask_file, master_file, now):
     module = (HERE / 'no11_received_pipeline_tick.mjs').as_uri()
-    # Fixed program, arguments are data, no shell or dynamically supplied code.
     script = ('import fs from "node:fs";import {validatePipelineInputs} from '
               + json.dumps(module) + ';const [d,p,m,a,t]=process.argv.slice(1);'
               'const read=f=>JSON.parse(fs.readFileSync(f,"utf8").replace(/^\\uFEFF/,""));'
@@ -160,12 +160,6 @@ def validate_scope(session, plan_file, mask_file, master_file, now):
 
 
 def prior_from_captures(files, selected, session, prior, master, prepared_at):
-    """Convert ONLY existing hash-named prior-session Chart50 receipts to OHLCV.
-
-    Today is the time this prerequisite became available to this new consumer.
-    Original capture/row receipt times remain in source evidence. Missing Va is
-    missing, never close*volume. Conflicting prior rows exclude that symbol.
-    """
     forward.clock(prepared_at, session)
     by_master = {row['symbol']: row for row in master['rows']}
     rows = {code: {} for code in selected}
@@ -192,7 +186,6 @@ def prior_from_captures(files, selected, session, prior, master, prepared_at):
             close = forward.clock(received.stamp(prior, m + 1), prior)
             need(close <= seen <= capture_time, 'PREVIOUS_BAR_NOT_CLOSED_WHEN_READ')
             value = {k: row[k] for k in ('Date', 'Code', 'Time', 'O', 'H', 'L', 'C', 'Vo')}
-            # The Chart50 capture schema has no certified per-minute Va.
             old = rows[code].get(row['Time'])
             if old is not None and old != value:
                 conflicts.add(code)
@@ -209,10 +202,8 @@ def prior_from_captures(files, selected, session, prior, master, prepared_at):
              'PREVIOUS_PRICE_BASIS_NOT_EVIDENCED')
         symbols[code] = {'previousSession': prior, 'priceBasis': 'COMPARABLE_RAW',
                          'corporateActionsCleared': True, 'knownAtJst': prepared_at,
-                         'rows': source_rows,
-                         'basisSource': 'EXISTING_DATED_MASTER_RECEIPT',
-                         'historicalCaptureSha256': sources,
-                         'observedPriorBars': len(source_rows),
+                         'rows': source_rows, 'basisSource': 'EXISTING_DATED_MASTER_RECEIPT',
+                         'historicalCaptureSha256': sources, 'observedPriorBars': len(source_rows),
                          'fullPreviousSessionCoverageCertified': False}
     return {'schemaId': received.PREVIOUS_SCHEMA, 'sessionDate': session,
             'previousSession': prior, 'symbols': symbols,
@@ -263,12 +254,10 @@ def prepare(config, run_root):
     previous['symbols'] = {s: previous['symbols'][s] for s in usable}
     plan, _ = load_json(plan_file)
     mask, _ = load_json(mask_file)
-    paths = {
-        'plan': str(immutable(run_root, 'chart-plan', plan)),
-        'mask': str(immutable(run_root, 'pass-mask', mask)),
-        'master': str(immutable(run_root, 'dated-master', master)),
-        'previous': str(immutable(run_root, 'previous-context', previous)),
-    }
+    paths = {'plan': str(immutable(run_root, 'chart-plan', plan)),
+             'mask': str(immutable(run_root, 'pass-mask', mask)),
+             'master': str(immutable(run_root, 'dated-master', master)),
+             'previous': str(immutable(run_root, 'previous-context', previous))}
     ready = {'schemaId': 'ARK_NO11_BOOTSTRAP_PREPARED_V1', 'sessionDate': session,
              'preparedAtJst': stamp(), 'files': paths, 'sourceCoverage': coverage,
              'modelPreflightComplete': False, 'productionReady': False, 'orderTransmission': False}
@@ -283,6 +272,8 @@ def service_args(config, prepared, inference_root, capture=None):
             '--runtime-root', config['runtimeRoot'], '--private-root', str(inference_root)]
     if config.get('h235ModelRoot'):
         args += ['--h235-model-root', config['h235ModelRoot']]
+    if config.get('shadowAccountConfig'):
+        args += ['--shadow-account-config', config['shadowAccountConfig']]
     if capture is not None:
         args += ['--capture-folder', str(capture)]
     return args

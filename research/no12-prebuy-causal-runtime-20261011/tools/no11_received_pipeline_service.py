@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-"""Local read-only service: incremental RSS capture -> Selector -> P1 -> H235.
+"""Local received RSS -> Selector -> P1/H235 -> optional durable Shadow portfolio.
 
-Runs only when explicitly launched on the PC. No broker or account writes.
-The native P1/H235 models are loaded once. Each new capture replays the saved
-received prefix for State9, while SQLite makes already evaluated bars idempotent.
-New stale bars after downtime never generate retroactive Entry candidates.
+No broker/account writes. Native models load once. SQLite makes already
+processed bars and simulated order updates idempotent across process restarts.
 """
 from __future__ import annotations
 
@@ -103,7 +101,7 @@ def exclusive_service(root):
 
 
 class ProcessingTimedP1(forward.ForwardP1Session):
-    """Keep source receipts intact; record actual feature evaluation time separately."""
+    """Preserve first-receipt time; separately record actual feature processing."""
     def __init__(self, database, scorer, clock=now_jst):
         super().__init__(database, scorer)
         self.processing_clock = clock
@@ -133,8 +131,6 @@ class ProcessingTimedP1(forward.ForwardP1Session):
             evaluation, status = now, 'PENDING'
         completed = self.db.execute('SELECT result_json FROM evaluations WHERE watch_key=? AND bar_end=?',
                                     (key, end)).fetchone()
-        # Completed results retain their original processing instant on replay.
-        # A pre-inference crash cannot revive an unscored stale bar later.
         if status == 'STALE' or completed is None and (process - bar).total_seconds() > 90:
             with self.db:
                 self.db.execute('INSERT INTO received_processing VALUES (?,?,?,?,?) '
@@ -201,8 +197,6 @@ def run_tick(request, root):
     need(payload.get('summary', {}).get('orderTransmission') is False and
          payload.get('state', {}).get('orderTransmission') is False,
          'TICK_OUTPUT_UNSAFE')
-    # Commit source observations and selector envelopes BEFORE P1; a crash after
-    # this point reuses precisely the same received prefix, never reselects.
     atomic_private(Path(root) / 'pipeline-current.json', {
         'schemaId': 'ARK_NO11_PIPELINE_POINTER_V1', 'privateTick': str(path),
         'sha256': digest, 'orderTransmission': False})
@@ -210,11 +204,6 @@ def run_tick(request, root):
 
 
 def main(argv=None, *, should_stop=None):
-    """Optional supervisor callback: True drains once; exceptions stop immediately.
-
-    Standalone CLI behavior is unchanged. The bootstrap owns the collector and
-    uses this hook rather than killing Excel or weakening the data-time gates.
-    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--session', required=True)
     parser.add_argument('--capture-folder', type=Path)
@@ -224,6 +213,7 @@ def main(argv=None, *, should_stop=None):
     parser.add_argument('--previous-context', required=True, type=Path)
     parser.add_argument('--runtime-root', required=True, type=Path)
     parser.add_argument('--h235-model-root', type=Path)
+    parser.add_argument('--shadow-account-config', type=Path)
     parser.add_argument('--private-root', required=True, type=Path)
     parser.add_argument('--preflight-only', action='store_true')
     parser.add_argument('--once', action='store_true')
@@ -243,9 +233,15 @@ def main(argv=None, *, should_stop=None):
     runtime = features.load_feature_runtime(ROOT)
     scorer = forward.FrozenP1Scorer(args.runtime_root, ROOT, args.session)
     h235 = h235_module.FrozenH235AsOf(args.h235_model_root, args.session) if args.h235_model_root else None
+    execution_settings = None
+    if args.shadow_account_config is not None:
+        need(h235 is not None, 'H235_REQUIRED_FOR_SHADOW_PORTFOLIO')
+        import no11_observed_execution_shadow as execution_module
+        execution_settings = execution_module.settings(private_path(args.shadow_account_config), args.session)
     if args.preflight_only:
         print(forward.dumps({'status': 'ASSETS_LOADED_READONLY_NOT_LIVE_VERIFIED',
             'p1Fold': 5, 'h235ModelsVerified': 24 if h235 else 0,
+            'shadowPortfolioConfigured': execution_settings is not None,
             'productionReady': False, 'orderTransmission': False}))
         return
     need(args.capture_folder is not None, 'CAPTURE_FOLDER_REQUIRED')
@@ -253,15 +249,21 @@ def main(argv=None, *, should_stop=None):
     with exclusive_service(root):
         checkpoint = load_checkpoint(root)
         engine = ProcessingTimedP1(root / ('p1-shadow-' + args.session + '.sqlite'), scorer)
+        execution = None
         signature = None
         verify_history = True
         started = time.monotonic()
         last_summary = None
         try:
+            if execution_settings is not None:
+                execution = execution_module.ExecutionShadow(root, *execution_settings, runtime, previous, prior)
             while True:
                 stop_after_tick = bool(should_stop()) if should_stop is not None else False
                 current = now_jst()
                 need(current[:10] == args.session, 'NOT_SELECTED_SESSION_TODAY')
+                if execution is not None:
+                    paper = execution.heartbeat(current)
+                    atomic_private(root / 'portfolio-latest-report.json', paper)
                 if current[11:16] >= '15:26':
                     print('NO11_SERVICE_STOP=SESSION_END_READONLY')
                     break
@@ -289,19 +291,26 @@ def main(argv=None, *, should_stop=None):
                     summary = received.consume_received_feed(runtime, engine, payload['feed'],
                         payload['selectorEnvelopes'], previous, previous_session=prior,
                         through=now_jst(), h235=h235, h235_store=root)
+                    paper = execution.advance(payload['feed'], summary, now_jst()) if execution is not None else None
                     last_summary = payload['summary']
                     report = {'schemaId': 'ARK_NO11_CONTINUOUS_RECEIVED_SHADOW_V1',
                         'actualCompletedAtJst': now_jst(), 'source': last_summary,
                         'inference': summary, 'previousContextSha256': previous_hash,
-                        'collectorLaunchedByThisProcess': False,
+                        'shadowPortfolio': paper, 'collectorLaunchedByThisProcess': False,
                         'realAccountConnected': False, 'exitConnected': False,
+                        'originalExitShadowConnected': execution is not None,
                         'productionReady': False, 'orderTransmission': False}
                     atomic_private(root / 'pipeline-latest-report.json', report)
+                    if paper is not None:
+                        atomic_private(root / 'portfolio-latest-report.json', paper)
                     print(forward.dumps({'status': 'RECEIVED_PIPELINE_TICK_COMPLETE',
                         'snapshots': last_summary['snapshots'], 'minuteRows': last_summary['minuteRows'],
                         'selectorRuns': last_summary['executedSlots'], 'missedSlots': last_summary['missedSlots'],
                         'p1Candidates': summary['p1Session']['firstEntryCandidates'],
                         'h235Executions': summary.get('h235OriginalModelExecutions', 0),
+                        'shadowPositions': paper['positionCount'] if paper else 0,
+                        'shadowBuyIntents': paper['buyIntentCount'] if paper else 0,
+                        'shadowSellIntents': paper['sellIntentCount'] if paper else 0,
                         'productionReady': False, 'orderTransmission': False}), flush=True)
                     signature, verify_history = new_signature, False
                 if args.once or stop_after_tick:
@@ -312,6 +321,9 @@ def main(argv=None, *, should_stop=None):
                     need(age <= 120, 'CAPTURE_STOPPED_OR_STALE')
                 time.sleep(args.poll_seconds)
         finally:
+            if execution is not None:
+                atomic_private(root / 'portfolio-latest-report.json', execution.summary())
+                execution.close()
             engine.close()
     print('ORDER_TRANSMISSION=False')
 

@@ -22,6 +22,8 @@ CONFIG = 'ARK_NO11_OBSERVED_SHADOW_ACCOUNT_V1'
 UPDATE = 'ARK_NO11_SIMULATED_ORDER_UPDATE_V1'
 ACTIVE = {'INTENT', 'ACKNOWLEDGED', 'PARTIAL', 'CANCEL_REQUESTED', 'UNKNOWN'}
 TERMINAL = {'FILLED', 'CANCELLED', 'REJECTED'}
+# A local request is not evidence that an uncertain order became understood.
+CANCELLABLE = ACTIVE - {'UNKNOWN'}
 
 
 def need(ok, reason):
@@ -125,6 +127,8 @@ class ShadowPortfolio:
         for o in s['orders'].values():
             need(type(o['quantity']) is int and o['quantity'] > 0
                  and 0 <= o['filled'] <= o['quantity'], 'ORDER_QUANTITY_INVALID')
+            need(o['status'] != 'UNKNOWN' or s['reconciliationBlocked'] is True,
+                 'UNKNOWN_WITHOUT_RECONCILIATION_BLOCK')
             if o['side'] == 'SELL' and o['status'] in ACTIVE:
                 need(o['entryId'] in s['positions'] and o['quantity'] - o['filled'] <= s['positions'][o['entryId']]['quantity'],
                      'SELL_EXCEEDS_OWNED_QUANTITY')
@@ -248,10 +252,10 @@ class ShadowPortfolio:
                 intent = result['intent']
                 if intent is None:
                     continue
-                # Unfilled BUY remainder must be cancelled; do not abandon the
-                # already owned partial position while waiting for that ack.
+                # Protect the confirmed partial position, but never overwrite
+                # an UNKNOWN remainder with a simulator-acknowledgeable state.
                 for order in s['orders'].values():
-                    if order['entryId'] == eid and order['side'] == 'BUY' and order['status'] in ACTIVE:
+                    if order['entryId'] == eid and order['side'] == 'BUY' and order['status'] in CANCELLABLE:
                         order['status'] = 'CANCEL_REQUESTED'
                 generation = sum(o['entryId'] == eid and o['side'] == 'SELL' for o in s['orders'].values())
                 oid = h.digest([self.session, eid, 'SELL', generation])
@@ -269,6 +273,7 @@ class ShadowPortfolio:
             need(order_id in s['orders'], 'ORDER_UNKNOWN')
             o = s['orders'][order_id]
             need(o['status'] in ACTIVE, 'ORDER_ALREADY_TERMINAL')
+            need(o['status'] in CANCELLABLE, 'ORDER_RECONCILIATION_REQUIRED')
             o['status'] = 'CANCEL_REQUESTED'
             return {'status': 'CANCEL_REQUESTED_NO_RELEASE'}
         return self._event('CANCEL:' + order_id, {'orderId': order_id}, at, apply)
@@ -316,11 +321,11 @@ class ShadowPortfolio:
                     s['cash'] = str(money(s['cash']) + dv)
                     s['sellFillLatch'] = True
                     for buy in s['orders'].values():
-                        if buy['side'] == 'BUY' and buy['status'] in ACTIVE:
+                        if buy['side'] == 'BUY' and buy['status'] in CANCELLABLE:
                             buy['status'] = 'CANCEL_REQUESTED'
             if status == 'UNKNOWN':
                 s['reconciliationBlocked'] = True
-            if o['status'] == 'CANCEL_REQUESTED' and status not in TERMINAL:
+            if o['status'] == 'CANCEL_REQUESTED' and status not in TERMINAL and status != 'UNKNOWN':
                 status = 'CANCEL_REQUESTED'
             o.update(filled=quantity, value=str(value), status=status, updatedAt=event['knownAtJst'])
             return {'status': status, 'filledDelta': dq, 'sellFillLatch': s['sellFillLatch']}

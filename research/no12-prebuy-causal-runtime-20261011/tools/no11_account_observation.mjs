@@ -1,11 +1,10 @@
-/** Existing read-only RSS snapshot -> account observation, never order authority.
- * This keeps real account observations separate from synthetic money/fills.
- */
+/** Existing read-only RSS snapshot -> account observation, never order authority. */
 import fs from 'node:fs';
 import path from 'node:path';
 import {createHash,randomUUID} from 'node:crypto';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {inspectReadOnlySnapshot} from '../../../integration/no1-1-msii/runtime/account_gate.mjs';
+import {cashSide,observedCashOrder} from './no11_broker_order_state.mjs';
 export const ENVELOPE='ARK_NO11_ACCOUNT_OBSERVATION_ENVELOPE_V1';
 const STATE='ARK_NO11_ACCOUNT_OBSERVATION_STATE_V1';
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../..');
@@ -13,7 +12,6 @@ const sha=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
 const need=(x,c)=>{if(!x)throw Error('NO11_ACCOUNT_'+c)};
 const clock=x=>typeof x==='string'&&/^20\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,7})?\+09:00$/.test(x)?Date.parse(x):NaN;
 const int=(x,min=0)=>Number.isSafeInteger(x)&&x>=min;
-const terminal=new Set(['約定','取消済（出来無）','取消済（出来有）','出来ず（出来無）','出来ず（出来有）']);
 function symbol(x){need(typeof x==='string'&&/^[0-9A-Z]{4}(?:\.T)?$/.test(x),'SYMBOL_INVALID');return x.endsWith('.T')?x:x+'.T'}
 function restore(previous,session){
  if(previous===null)return {schemaId:STATE,sessionDate:session,sourceAt:null,sourceSha:null,runId:null,sequence:0,orders:{},excludedSymbols:[],latchedBlockers:[],productionReady:false,orderTransmission:false};
@@ -46,18 +44,17 @@ export function observe({envelope,sessionDate,throughJst,previous=null}){
   const key=code+'|'+p.account;need(!positions.has(key),'DUPLICATE_POSITION');positions.add(key);excluded.add(code);
  }
  for(const r of snapshot.orders){
-  need(typeof r.orderNumber==='string'&&/^[0-9]{1,32}$/.test(r.orderNumber)&&!Object.hasOwn(orders,r.orderNumber),'ORDER_ID_INVALID');
-  need(int(r.quantity,1)&&int(r.filledQty)&&r.filledQty<=r.quantity&&typeof r.account==='string'&&r.account.length>0&&['買','売'].includes(r.side)&&r.trade==='現物','ORDER_FIELDS_INVALID');
-  const code=symbol(r.symbol),status=typeof r.status==='string'?r.status.replaceAll('(','（').replaceAll(')','）'):'';
-  need(status.length>0,'ORDER_STATUS_MISSING');
-  if(status==='約定')need(r.filledQty===r.quantity,'FALSE_COMPLETE_FILL');
-  const done=terminal.has(status);if(!done)pending++;excluded.add(code);
-  const row={symbol:code,side:r.side,account:r.account,quantity:r.quantity,filledQty:r.filledQty,status,terminal:done};
+  need(!Object.hasOwn(orders,r.orderNumber),'ORDER_ID_INVALID');
+  const row=observedCashOrder(r);
+  if(!row.terminal)pending++;excluded.add(row.symbol);
   const old=state.orders[r.orderNumber];
   if(old){
-   if(['symbol','side','account','quantity'].some(k=>old[k]!==row[k]))anomalies.push('ORDER_IDENTITY_CHANGED');
+   // The first observer used short Japanese sides. Normalize only this exact
+   // representation during read; all other identity changes remain blocking.
+   const oldSide=['BUY','SELL'].includes(old.side)?old.side:cashSide(old.side);
+   if(['symbol','account','quantity'].some(k=>old[k]!==row[k])||oldSide!==row.side)anomalies.push('ORDER_IDENTITY_CHANGED');
    if(row.filledQty<old.filledQty)anomalies.push('CUMULATIVE_FILL_REVERSED');
-   if(old.terminal&&!done)anomalies.push('TERMINAL_ORDER_REOPENED');
+   if(old.terminal&&!row.terminal)anomalies.push('TERMINAL_ORDER_REOPENED');
    if(row.filledQty>old.filledQty)increased++;
   }
   orders[r.orderNumber]=row;
@@ -67,7 +64,8 @@ export function observe({envelope,sessionDate,throughJst,previous=null}){
   orders[id]=old;
  }
  for(const x of snapshot.executions){
-  excluded.add(symbol(x.symbol));need(int(x.quantity,1)&&typeof x.price==='number'&&Number.isFinite(x.price)&&x.price>0&&typeof x.account==='string'&&x.account.length>0&&['買','売'].includes(x.side),'EXECUTION_INVALID');
+  excluded.add(symbol(x.symbol));cashSide(x.side);
+  need(int(x.quantity,1)&&typeof x.price==='number'&&Number.isFinite(x.price)&&x.price>0&&typeof x.account==='string'&&x.account.length>0,'EXECUTION_INVALID');
  }
  need(Object.keys(orders).length<=5000,'HISTORY_LIMIT');
  state.latchedBlockers=[...new Set([...state.latchedBlockers,...anomalies])];

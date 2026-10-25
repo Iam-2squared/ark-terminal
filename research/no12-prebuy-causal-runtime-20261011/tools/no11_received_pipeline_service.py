@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Local received RSS -> Selector -> P1/H235 -> optional durable Shadow portfolio.
+"""Local received RSS -> existing Selector/P1/H235 -> optional Shadow portfolio.
 
-No broker/account writes. Native models load once. SQLite makes already
-processed bars and simulated order updates idempotent across process restarts.
+No broker/account writes. Durable entry-failure isolation keeps the simulated
+position EXIT path available without re-enabling new BUY after a failure.
 """
 from __future__ import annotations
 
@@ -236,7 +236,7 @@ def main(argv=None, *, should_stop=None):
     execution_settings = None
     if args.shadow_account_config is not None:
         need(h235 is not None, 'H235_REQUIRED_FOR_SHADOW_PORTFOLIO')
-        import no11_observed_execution_shadow as execution_module
+        import no11_received_failure_isolation as execution_module
         execution_settings = execution_module.settings(private_path(args.shadow_account_config), args.session)
     if args.preflight_only:
         print(forward.dumps({'status': 'ASSETS_LOADED_READONLY_NOT_LIVE_VERIFIED',
@@ -257,8 +257,29 @@ def main(argv=None, *, should_stop=None):
         try:
             if execution_settings is not None:
                 execution = execution_module.ExecutionShadow(root, *execution_settings, runtime, previous, prior)
+
+            def source_blocked(error):
+                if execution is None:
+                    raise error
+                reason = execution_module.reason_code(error)
+                execution.halt_entry(reason, now_jst())
+                paper = execution.heartbeat(now_jst())
+                atomic_private(root / 'portfolio-latest-report.json', paper)
+                atomic_private(root / 'pipeline-source-failure.json', {
+                    'schemaId': 'ARK_NO11_SOURCE_HALTED_EXIT_CLOCK_ONLY_V1', 'reason': reason,
+                    'actualObservedAtJst': now_jst(), 'entryPipelineHalted': True,
+                    'structuralExitSourceAvailable': False, 'shadowPortfolio': paper,
+                    'productionReady': False, 'orderTransmission': False})
+                return paper
+
             while True:
-                stop_after_tick = bool(should_stop()) if should_stop is not None else False
+                try:
+                    stop_after_tick = bool(should_stop()) if should_stop is not None else False
+                except (OSError, ValueError, TypeError, RuntimeError) as error:
+                    # A failed read-only source relay must not bypass the
+                    # portfolio halt or silently disable its EOD clock.
+                    source_blocked(error)
+                    stop_after_tick = False
                 current = now_jst()
                 need(current[:10] == args.session, 'NOT_SELECTED_SESSION_TODAY')
                 if execution is not None:
@@ -267,9 +288,16 @@ def main(argv=None, *, should_stop=None):
                 if current[11:16] >= '15:26':
                     print('NO11_SERVICE_STOP=SESSION_END_READONLY')
                     break
-                new_signature = source_signature(folder)
+                try:
+                    new_signature = source_signature(folder)
+                except (OSError, ValueError, TypeError) as error:
+                    source_blocked(error)
+                    if args.once or stop_after_tick: break
+                    time.sleep(args.poll_seconds)
+                    continue
                 if len(new_signature) < 2:
-                    need(time.monotonic() - started <= 300, 'CAPTURE_START_TIMEOUT')
+                    if time.monotonic() - started > 300:
+                        source_blocked(ValueError('NO11_SERVICE_CAPTURE_START_TIMEOUT'))
                     if args.once or stop_after_tick:
                         print('NO11_SERVICE_WAIT=NEEDS_TWO_COMPLETE_SNAPSHOTS')
                         break
@@ -282,16 +310,31 @@ def main(argv=None, *, should_stop=None):
                         'master': str(args.dated_master.absolute()), 'checkpoint': checkpoint,
                         'verifyHistory': verify_history, 'privateRoot': str(root),
                         'productionReady': False, 'orderTransmission': False}
-                    tick = run_tick(request, root)
+                    try:
+                        tick = run_tick(request, root)
+                    except (OSError, ValueError, KeyError, TypeError, RuntimeError, subprocess.SubprocessError) as error:
+                        source_blocked(error)
+                        signature = new_signature  # retry only when new source bytes arrive
+                        if args.once or stop_after_tick: break
+                        time.sleep(args.poll_seconds)
+                        continue
                     if tick is None:
-                        need(not stop_after_tick, 'COLLECTOR_ENDED_WITH_PARTIAL_CAPTURE')
+                        if stop_after_tick:
+                            source_blocked(ValueError('NO11_SERVICE_COLLECTOR_ENDED_WITH_PARTIAL_CAPTURE'))
+                            break
                         time.sleep(args.poll_seconds)
                         continue
                     payload, checkpoint = tick
-                    summary = received.consume_received_feed(runtime, engine, payload['feed'],
-                        payload['selectorEnvelopes'], previous, previous_session=prior,
-                        through=now_jst(), h235=h235, h235_store=root)
-                    paper = execution.advance(payload['feed'], summary, now_jst()) if execution is not None else None
+
+                    def infer():
+                        return received.consume_received_feed(runtime, engine, payload['feed'],
+                            payload['selectorEnvelopes'], previous, previous_session=prior,
+                            through=now_jst(), h235=h235, h235_store=root)
+                    if execution is None:
+                        summary, paper = infer(), None
+                    else:
+                        summary, paper = execution_module.guarded_inference(execution, payload['feed'], infer,
+                            clock=now_jst, p1_summary=engine.summary)
                     last_summary = payload['summary']
                     report = {'schemaId': 'ARK_NO11_CONTINUOUS_RECEIVED_SHADOW_V1',
                         'actualCompletedAtJst': now_jst(), 'source': last_summary,
@@ -303,7 +346,8 @@ def main(argv=None, *, should_stop=None):
                     atomic_private(root / 'pipeline-latest-report.json', report)
                     if paper is not None:
                         atomic_private(root / 'portfolio-latest-report.json', paper)
-                    print(forward.dumps({'status': 'RECEIVED_PIPELINE_TICK_COMPLETE',
+                    degraded = paper is not None and paper.get('entryPipelineHalted') is True
+                    print(forward.dumps({'status': 'DEGRADED_EXIT_ONLY' if degraded else 'RECEIVED_PIPELINE_TICK_COMPLETE',
                         'snapshots': last_summary['snapshots'], 'minuteRows': last_summary['minuteRows'],
                         'selectorRuns': last_summary['executedSlots'], 'missedSlots': last_summary['missedSlots'],
                         'p1Candidates': summary['p1Session']['firstEntryCandidates'],
@@ -318,13 +362,18 @@ def main(argv=None, *, should_stop=None):
                 if last_summary and last_summary.get('lastSourceAtJst'):
                     age = (forward.clock(now_jst(), args.session) -
                            forward.clock(last_summary['lastSourceAtJst'], args.session)).total_seconds()
-                    need(age <= 120, 'CAPTURE_STOPPED_OR_STALE')
+                    if age > 120:
+                        source_blocked(ValueError('NO11_SERVICE_CAPTURE_STOPPED_OR_STALE'))
                 time.sleep(args.poll_seconds)
         finally:
-            if execution is not None:
-                atomic_private(root / 'portfolio-latest-report.json', execution.summary())
-                execution.close()
-            engine.close()
+            try:
+                if execution is not None:
+                    try:
+                        atomic_private(root / 'portfolio-latest-report.json', execution.summary())
+                    finally:
+                        execution.close()
+            finally:
+                engine.close()
     print('ORDER_TRANSMISSION=False')
 
 

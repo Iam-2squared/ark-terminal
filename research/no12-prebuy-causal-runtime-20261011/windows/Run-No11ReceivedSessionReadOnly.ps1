@@ -1,17 +1,19 @@
-# Start saved-source preparation + RSS collector + inference consumer, READ ONLY.
-# No installation, model fitting, Excel order permission or broker transmission.
+# Start or explicitly resume the existing received-data Shadow, READ ONLY.
+# No installation, fitting, Excel order permission or broker transmission.
 param(
  [string]$ConfigFile,
  [string]$PythonExecutable,
+ [string]$ResumeRun,
  [switch]$PreflightOnly,
  [switch]$OfflineSelfTest
 )
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
-$bootstrap=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\tools\no11_received_session_bootstrap.py'))
-function BootstrapArguments([string]$config,[bool]$preflight){
+$bootstrap=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\tools\no11_received_session_controller.py'))
+function BootstrapArguments([string]$config,[bool]$preflight,[string]$resume=''){
  $result=@('-B',$bootstrap,'--config',$config)
  if($preflight){$result+=@('--preflight-only')}
+ if(-not [string]::IsNullOrWhiteSpace($resume)){$result+=@('--resume-run',$resume)}
  return $result
 }
 function RuntimeReady([string]$exe,[string[]]$prefix){
@@ -25,11 +27,14 @@ if($OfflineSelfTest){
  if(-not (Test-Path -LiteralPath $bootstrap -PathType Leaf)){throw 'NO11_BOOTSTRAP_SCRIPT_MISSING'}
  $a=@(BootstrapArguments 'C:\private path\config.json' $true)
  $b=@(BootstrapArguments 'C:\private path\config.json' $false)
+ $r=@(BootstrapArguments 'C:\private path\config.json' $false 'C:\private path\same-run')
  if($a.Count -ne 5 -or $b.Count -ne 4 -or $a[2] -cne '--config' -or
-    $a[3] -cne 'C:\private path\config.json' -or $a[4] -cne '--preflight-only'){
+    $a[3] -cne 'C:\private path\config.json' -or $a[4] -cne '--preflight-only' -or
+    $r.Count -ne 6 -or $r[4] -cne '--resume-run' -or $r[5] -cne 'C:\private path\same-run'){
   throw 'NO11_BOOTSTRAP_ARGUMENT_SELFTEST_FAILED'
  }
  Write-Host 'NO11_BOOTSTRAP_WINDOWS_OFFLINE_SELFTEST=PASS'
+ Write-Host 'NO11_BOOTSTRAP_RESUME_ARGUMENT_SELFTEST=PASS'
  Write-Host 'NO11_BOOTSTRAP_COLLECTOR_STARTED=False'
  Write-Host 'ORDER_TRANSMISSION=False'
  exit 0
@@ -46,6 +51,13 @@ try{
  if($config.schemaId -cne 'ARK_NO11_READONLY_BOOTSTRAP_CONFIG_V1' -or
     $config.productionReady -ne $false -or $config.orderTransmission -ne $false){
   throw 'NO11_BOOTSTRAP_CONFIG_NOT_READONLY'
+ }
+ if(-not [string]::IsNullOrWhiteSpace($ResumeRun)){
+  if(-not [IO.Path]::IsPathRooted($ResumeRun) -or
+     -not (Test-Path -LiteralPath $ResumeRun -PathType Container)){
+   throw 'NO11_BOOTSTRAP_RESUME_RUN_REQUIRED'
+  }
+  $ResumeRun=[IO.Path]::GetFullPath($ResumeRun)
  }
  $exe='';$prefix=@()
  if(-not [string]::IsNullOrWhiteSpace($PythonExecutable)){
@@ -73,7 +85,7 @@ try{
   }
  }
  if([string]::IsNullOrWhiteSpace($exe)){throw 'NO11_BOOTSTRAP_EXISTING_PINNED_RUNTIME_NOT_FOUND'}
- $arguments=@(BootstrapArguments $ConfigFile ([bool]$PreflightOnly))
+ $arguments=@(BootstrapArguments $ConfigFile ([bool]$PreflightOnly) $ResumeRun)
  & $exe @prefix @arguments
  $code=$LASTEXITCODE
  Write-Host 'ORDER_TRANSMISSION=False'

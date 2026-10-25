@@ -167,7 +167,11 @@ def build_request(r0_batch, scenario, arrival):
         candidates.append({
             "entry_id": identity, "brokerSymbol": symbol, "ML": ml,
             "capital_score": ml, "rank": row["rank"], "block": "8",
-            "raw_reference": p,
+            # Frozen allocation calls Decimal(raw_reference), whereas its
+            # bridge verifies Decimal(str(raw_reference)). Preserve the
+            # received numeric representation as decimal text at this boundary;
+            # do not import binary-float tails or round to a guessed tick size.
+            "raw_reference": str(p),
         })
     # Preserve native frozen R0 multi-key ordering, not P1 score order.
     candidates.sort(key=lambda v: next(i for i, r in enumerate(rows)

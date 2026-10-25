@@ -1,14 +1,14 @@
-"""Connect the existing received-data service to a durable synthetic portfolio.
+"""Connect received-data service to native Capital/EXIT and synthetic positions.
 
-Fresh RSS prices may drive explicitly simulated fills, never actual brokerage.
+Fresh RSS prices drive explicitly simulated fills, never actual brokerage.
 State9 for held symbols is the existing original ObservedStateStream, consumed
 incrementally; original Structural v3 is called by the durable portfolio.
 """
 from __future__ import annotations
 
 from decimal import Decimal
-import hashlib
 from pathlib import Path
+import re
 
 import no11_h235_asof_forward_shadow as h
 import no11_h235_capital_v5_shadow as cap
@@ -67,9 +67,17 @@ class ExecutionShadow:
                 quotes[r['Code']] = r
         return quotes
 
+    def _verify_held_prefix(self, feed):
+        # Check the entire previously consumed held prefix BEFORE any new mark,
+        # fill or stream update. Detect removals as well as altered old rows.
+        current = {(r['Code'], r['Time']): h.digest(r) for r in feed['rows']}
+        for code, accepted in self.input_hashes.items():
+            for minute, fingerprint in accepted.items():
+                need((code, minute) in current, 'HELD_SOURCE_REMOVED')
+                need(current[(code, minute)] == fingerprint, 'HELD_SOURCE_CHANGED')
+
     def _simulated_updates(self, quotes, at):
         initial = self.portfolio.state()
-        # Match SELL before BUY, including the first partial SELL halt rule.
         ordered = sorted(initial['orders'].values(), key=lambda o: (o['side'] != 'SELL', o['createdAt'], o['orderId']))
         for old in ordered:
             current = self.portfolio.state()
@@ -78,14 +86,18 @@ class ExecutionShadow:
                 continue
             quote = quotes.get(order['symbol'])
             status, quantity, value = None, order['filled'], Decimal(order['value'])
+            created = h.timestamp(order['createdAt'], self.session)
             if order['status'] == 'CANCEL_REQUESTED' or order['side'] == 'BUY' and current['sellFillLatch']:
-                # This is ONLY the local simulator acknowledging its own cancel.
-                status = 'CANCELLED'
-            elif quote is not None and h.timestamp(quote['knownAtJst'], self.session) > h.timestamp(order['createdAt'], self.session):
+                status = 'CANCELLED'  # only this local simulator acknowledging its own cancel
+            elif (quote is not None
+                  and h.timestamp(quote['knownAtJst'], self.session) > created
+                  and h.timestamp(received.stamp(self.session, received.minute(quote['Time']) + 1), self.session) > created):
+                # A delayed receipt cannot turn a pre-intent closing price into
+                # a post-intent execution. Both clocks must be strictly later.
                 remain = order['quantity'] - order['filled']
                 effective = Decimal(str(quote['C'])) * Decimal('1.0005' if order['side'] == 'BUY' else '0.9995')
                 if order['side'] == 'BUY' and effective > Decimal(order['unitReserve']):
-                    status = 'CANCELLED'  # never manufacture an affordable fill
+                    status = 'CANCELLED'
                 else:
                     quantity, value, status = order['quantity'], value + effective * remain, 'FILLED'
             if status is None:
@@ -129,23 +141,31 @@ class ExecutionShadow:
     def advance(self, feed, inference, at):
         now = h.timestamp(at, self.session)
         need(h.digest(self.previous) == self.feed_pin, 'PREVIOUS_SOURCE_CHANGED')
+        digest = inference.get('h235PrivateResultSha256')
+        need(type(digest) is str and re.fullmatch(r'[a-f0-9]{64}', digest), 'H235_RESULT_REQUIRED')
+        file = self.root / ('h235-asof-' + digest[:16] + '.json')
+        batch, actual = received.read_json(file, 25000000)
+        need(actual == digest, 'H235_RESULT_HASH_CHANGED')
         quotes = self._quotes(feed, now)
+        self._verify_held_prefix(feed)
+        if h.minute(now) >= 920:
+            # A pre-cutoff pending BUY cannot become a post-cutoff simulated BUY.
+            self.heartbeat(at)
         self._simulated_updates(quotes, at)
         self.portfolio.mark(quotes, at)
         traces = self._position_traces(feed)
         self.portfolio.evaluate_exits(traces, at)
-        digest = inference.get('h235PrivateResultSha256')
-        need(type(digest) is str and len(digest) == 64, 'H235_RESULT_REQUIRED')
-        file = self.root / ('h235-asof-' + digest[:16] + '.json')
-        batch, actual = received.read_json(file, 25000000)
-        need(actual == digest, 'H235_RESULT_HASH_CHANGED')
         self.portfolio.fund(batch, at)
         return self.summary()
 
     def heartbeat(self, at):
         now = h.timestamp(at, self.session)
         if h.minute(now) >= 920:
-            # Wall-clock EOD does not depend on another price receipt arriving.
+            for order in self.portfolio.state()['orders'].values():
+                if order['side'] == 'BUY' and order['status'] in {'INTENT', 'ACKNOWLEDGED', 'PARTIAL'}:
+                    self.portfolio.cancel(order['orderId'], at)
+            # EOD intent is independent of receipt arrival. UNKNOWN orders stay
+            # unresolved; no acknowledgement or fill is invented by this clock.
             self.portfolio.evaluate_exits({}, at)
         return self.summary()
 

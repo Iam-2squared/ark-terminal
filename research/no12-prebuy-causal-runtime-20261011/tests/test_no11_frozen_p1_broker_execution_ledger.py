@@ -720,7 +720,7 @@ process.stdout.write(JSON.stringify(out));
 """
         def run(value):
             r = subprocess.run(['node', '--input-type=module', '-e', program],
-                               input=json.dumps(value), text=True, capture_output=True,
+                               input=json.dumps(value), text=True, encoding='utf-8', capture_output=True,
                                cwd=ledger.ROOT, timeout=10, check=True)
             return json.loads(r.stdout)
         compiled = run({'action': 'compile', 'command': request})

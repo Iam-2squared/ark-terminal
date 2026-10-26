@@ -323,9 +323,11 @@ if($now.ToString('HH:mm:ss',$ci) -lt '09:00:00' -or
    $now.ToString('HH:mm:ss',$ci) -gt '15:20:00'){
  throw 'NO11_C50_MARKET_SESSION_ONLY'
 }
-$calendar='import {isJpxCashTradingDay} from "./research/no12-prebuy-causal-runtime-20261011/runtime/jpx_cash_calendar_2026_2027.mjs";console.log(isJpxCashTradingDay(process.argv[1])?"YES":"NO")'
+# Send JavaScript over stdin: Windows PowerShell 5.1 strips embedded quotes
+# from native -e arguments. With stdin, argv[1] is '-' and date is argv[2].
+$calendar='import {isJpxCashTradingDay} from "./research/no12-prebuy-causal-runtime-20261011/runtime/jpx_cash_calendar_2026_2027.mjs";console.log(isJpxCashTradingDay(process.argv[2])?"YES":"NO")'
 Push-Location $repo
-try{$isDay=@(& node --input-type=module -e $calendar $session)}
+try{$isDay=@($calendar | & node --input-type=module - $session)}
 finally{Pop-Location}
 if($LASTEXITCODE -ne 0 -or $isDay.Count -ne 1 -or $isDay[0] -cne 'YES'){
  throw 'NO11_C50_NOT_JPX_CASH_TRADING_DAY'

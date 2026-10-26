@@ -87,7 +87,9 @@ function Publish([string]$file,$value){
  try{
   $f=[IO.File]::Open($tmp,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
   try{$f.Write($bytes,0,$bytes.Length);$f.Flush($true)}finally{$f.Dispose()}
-  if([IO.File]::Exists($file)){[IO.File]::Replace($tmp,$file,$null)}else{[IO.File]::Move($tmp,$file)}
+  # Windows PowerShell binds ordinary $null to an empty string parameter.
+  # File.Replace needs a real null backup path; keep atomic replacement.
+  if([IO.File]::Exists($file)){[IO.File]::Replace($tmp,$file,[System.Management.Automation.Language.NullString]::Value)}else{[IO.File]::Move($tmp,$file)}
  }finally{if([IO.File]::Exists($tmp)){[IO.File]::Delete($tmp)}}
 }
 function CaptureAccount([string]$target,[scriptblock]$capture){

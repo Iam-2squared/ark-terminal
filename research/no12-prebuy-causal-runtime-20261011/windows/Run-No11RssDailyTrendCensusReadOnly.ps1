@@ -112,7 +112,16 @@ try{
   try{$tcp.Connect('127.0.0.1',8767);$active=$tcp.Connected}catch [Net.Sockets.SocketException]{}finally{$tcp.Close()}
   if($active){throw 'NO11_DAILY_ARK_UI_MUST_BE_STOPPED'}
   $stage='EXCEL_WINDOW'
-  $processes=@(Get-Process EXCEL -ErrorAction Stop | Where-Object {$_.MainWindowTitle -like 'Ark_No11_*' -and $_.MainWindowHandle -ne [IntPtr]::Zero})
+  # Excel changes MainWindowTitle when the active workbook switches.
+  # Prefer one uniquely Ark-labelled visible process, or fall back to the
+  # single visible Excel process. Original workbook/sheet COM checks remain
+  # mandatory before creating a temporary book.
+  $visible=@(Get-Process EXCEL -ErrorAction SilentlyContinue | Where-Object {$_.MainWindowHandle -ne [IntPtr]::Zero})
+  $arkNamed=@($visible | Where-Object {$_.MainWindowTitle -like 'Ark_No11_*'})
+  $processes=@()
+  if($arkNamed.Count -eq 1){$processes=@($arkNamed)}
+  elseif($arkNamed.Count -eq 0 -and $visible.Count -eq 1){$processes=@($visible)}
+  Write-Host ('NO11_DAILY_EXCEL_DISCOVERY=VISIBLE_{0}|ARK_NAMED_{1}|SELECTED_{2}' -f $visible.Count,$arkNamed.Count,$processes.Count)
   if($processes.Count -ne 1){throw 'NO11_DAILY_EXCEL_IDENTITY_NOT_UNIQUE'}
   if(-not ('No11DailyWindow' -as [type])){
    Add-Type -TypeDefinition @'

@@ -29,7 +29,7 @@ $session=[DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9)).ToString('y
 $desktop=[Environment]::GetFolderPath('Desktop')
 if(-not $AccountWorkbookPath){$AccountWorkbookPath=Join-Path $desktop 'Ark_No11_MSII_RSS.xlsx'}
 if(-not $MarketWorkbookPath){$MarketWorkbookPath=Join-Path $desktop 'Ark_No11_MARKET_RSS.xlsx'}
-if(-not $PrivateRoot){$PrivateRoot=Join-Path $env:LOCALAPPDATA 'ArkTerminal\No12\shadow-oneclick'}
+if(-not $PrivateRoot){$PrivateRoot=Join-Path $env:LOCALAPPDATA 'ArkTerminal\No12\shadow-oneclick-classic'}
 $statusFile=Join-Path $PrivateRoot 'launcher-status.json'
 $settingsFile=Join-Path $PrivateRoot 'launcher-settings.json'
 $steps=[ordered]@{marketSpeed='NOT_CHECKED';excel='NOT_CHECKED';account='NOT_CHECKED';shadow='NOT_CONFIGURED'}
@@ -254,6 +254,20 @@ try{
  try{$held=$mutex.WaitOne(0)}
  catch [Threading.AbandonedMutexException]{throw 'ARK_SHADOW_PREVIOUS_LAUNCH_ABANDONED_REVIEW'}
  Need $held 'LAUNCH_ALREADY_IN_PROGRESS'
+ # Never start a second independent account observer or Shadow controller
+ # when the original new-style oneclick is already live on port 8768.
+ if($Port -ne 8768){
+  $other=$null
+  try{$other=Invoke-RestMethod -Uri 'http://127.0.0.1:8768/api/status' -TimeoutSec 2 -ErrorAction Stop}catch{}
+  if($null -ne $other -and $other.schemaId -ceq 'ARK_SHADOW_LOCAL_DASHBOARD_V1' -and
+     $other.orderTransmission -eq $false){
+   $otherSteps=$other.launcher.steps
+   if($null -ne $otherSteps -and
+      [string]$otherSteps.account -in @('START_REQUESTED','ORIGINAL_CONTROLLER_OBSERVER','AWAITING_ORIGINAL_CONTROLLER')){
+    throw 'ARK_SHADOW_OTHER_ACCOUNT_OBSERVER_ALREADY_ACTIVE'
+   }
+  }
+ }
  if(PortBusy){
   $classic=$null
   try{$classic=Invoke-RestMethod -Uri ('http://127.0.0.1:'+$Port+'/api/classic-health') -TimeoutSec 2 -ErrorAction Stop}catch{}

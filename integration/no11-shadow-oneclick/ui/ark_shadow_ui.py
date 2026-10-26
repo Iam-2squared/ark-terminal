@@ -281,6 +281,20 @@ def shadow_view(root: Path | None, session: str):
         return result
 
 
+def select_account(primary: Path, secondary: Path | None):
+    first = account_view(primary)
+    if secondary is None or secondary == primary:
+        return first
+    second = account_view(secondary)
+    candidates = [x for x in (first, second) if x["status"] == "OBSERVED"]
+    if candidates:
+        return max(candidates, key=lambda x: timestamp(x["asOf"]) or
+                   datetime.min.replace(tzinfo=JST))
+    if first["status"] == "STALE" or second["status"] == "STALE":
+        return first if first["status"] == "STALE" else second
+    return first
+
+
 def launcher_view(file: Path):
     status = read_json(file, 250_000)
     if not status or status.get("schemaId") != LAUNCH_SCHEMA or status.get("orderTransmission") is not False:
@@ -302,7 +316,7 @@ def build_status(config):
         "orderTransmission":False,
         "brokerOrdersAuthorized":False,
         "launcher":launcher_view(config.launch_status_file),
-        "account":account_view(config.account_file),
+        "account":select_account(config.account_file, config.account_secondary_file),
         "shadow":shadow_view(config.shadow_root,config.session),
         "disclaimer":"Real account totals unavailable unless confirmed by RSS. Paper-only ledger values never imply broker orders."
     }
@@ -357,16 +371,18 @@ def main(argv=None):
     parser.add_argument("--session",required=True)
     parser.add_argument("--launch-status-file",type=Path,required=True)
     parser.add_argument("--account-file",type=Path,required=True)
+    parser.add_argument("--account-secondary-file",type=Path)
     parser.add_argument("--shadow-root",type=Path)
     parser.add_argument("--open-browser",action="store_true")
     args = parser.parse_args(argv)
     if not SESSION.fullmatch(args.session) or not 1024 <= args.port <= 65535:
         parser.error("Invalid date or port")
-    for p in (args.launch_status_file,args.account_file,args.shadow_root):
+    for p in (args.launch_status_file,args.account_file,args.account_secondary_file,args.shadow_root):
         if p is not None and not p.is_absolute():
             parser.error("Only absolute private data paths are accepted")
     args.launch_status_file = args.launch_status_file.resolve()
     args.account_file = args.account_file.resolve()
+    args.account_secondary_file = args.account_secondary_file.resolve() if args.account_secondary_file else None
     args.shadow_root = args.shadow_root.resolve() if args.shadow_root else None
     server = ThreadingHTTPServer(("127.0.0.1",args.port),Handler)
     server.daemon_threads = True

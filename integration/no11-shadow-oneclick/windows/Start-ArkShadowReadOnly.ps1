@@ -90,6 +90,11 @@ function PortBusy{
   $c.EndConnect($pending);return $true
  }catch{return $false}finally{$c.Close()}
 }
+function SettingValue([object]$record,[string]$key){
+ $property=$record.PSObject.Properties[$key]
+ if($null -eq $property -or $null -eq $property.Value){return ''}
+ return [string]$property.Value
+}
 function ReadSettings {
  if(-not (Test-Path -LiteralPath $settingsFile -PathType Leaf)){return}
  $s=Get-Content -LiteralPath $settingsFile -Raw -Encoding UTF8|ConvertFrom-Json
@@ -97,11 +102,11 @@ function ReadSettings {
  $allowed=@('schemaId','orderTransmission','preparedConfigFile','bootstrapTemplateFile',
   'securityEvidenceFile','evidenceDocumentsDir','previousCaptureDir')
  Need (@($s.PSObject.Properties.Name|Where-Object {$_ -notin $allowed}).Count -eq 0) 'SETTINGS_UNKNOWN_FIELDS'
- if(-not $script:PreparedConfigFile -and $s.preparedConfigFile){$script:PreparedConfigFile=[string]$s.preparedConfigFile}
- if(-not $script:BootstrapTemplateFile -and $s.bootstrapTemplateFile){$script:BootstrapTemplateFile=[string]$s.bootstrapTemplateFile}
- if(-not $script:SecurityEvidenceFile -and $s.securityEvidenceFile){$script:SecurityEvidenceFile=[string]$s.securityEvidenceFile}
- if(-not $script:EvidenceDocumentsDir -and $s.evidenceDocumentsDir){$script:EvidenceDocumentsDir=[string]$s.evidenceDocumentsDir}
- if(-not $script:PreviousCaptureDir -and $s.previousCaptureDir){$script:PreviousCaptureDir=[string]$s.previousCaptureDir}
+ if(-not $script:PreparedConfigFile){$script:PreparedConfigFile=SettingValue $s 'preparedConfigFile'}
+ if(-not $script:BootstrapTemplateFile){$script:BootstrapTemplateFile=SettingValue $s 'bootstrapTemplateFile'}
+ if(-not $script:SecurityEvidenceFile){$script:SecurityEvidenceFile=SettingValue $s 'securityEvidenceFile'}
+ if(-not $script:EvidenceDocumentsDir){$script:EvidenceDocumentsDir=SettingValue $s 'evidenceDocumentsDir'}
+ if(-not $script:PreviousCaptureDir){$script:PreviousCaptureDir=SettingValue $s 'previousCaptureDir'}
 }
 function CheckWorkbook([string]$p){
  $p=CheckPath $p 'WORKBOOK' $false
@@ -160,7 +165,7 @@ function EnsureBooks([string]$account,[string]$market){
  for($i=0;$i -lt 80;$i++){
   $state=BookState $account $market
   if($state -ceq 'READY'){return $state}
-  if($state -ceq 'NO_EXCEL' -and -not $openedA){
+  if($state -in @('NO_EXCEL','NO_WORKBOOK') -and -not $openedA){
    Start-Process -FilePath $account -ErrorAction Stop;$openedA=$true
   }elseif($state -ceq 'NEED_ACCOUNT' -and -not $openedA){
    Start-Process -FilePath $account -ErrorAction Stop;$openedA=$true

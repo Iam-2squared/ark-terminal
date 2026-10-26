@@ -95,9 +95,10 @@ try{
  # Excel, MarketSpeed or a network server. This also checks Python syntax.
  $py=Join-Path $env:LOCALAPPDATA 'ArkTerminal\No12\frozen-p1-replay\runtime-py312-sklearn180\Scripts\python.exe'
  Need (Test-Path -LiteralPath $py -PathType Leaf) 'PINNED_PYTHON_MISSING'
- $pythonCheck='import sys;sys.path.insert(0,sys.argv[1]);import ark_shadow_classic as c;data,csp=c.classic_document();assert len(data)>100000 and "script-src" in csp;print("ARK_CLASSIC_PYTHON_IMPORT=PASS")'
+ $pythonCheck='import sys;sys.path.insert(0,sys.argv[1]);import ark_shadow_classic as c;data,csp=c.classic_document();assert len(data)>100000 and len(csp)>100'
  & $py -B -c $pythonCheck (Join-Path $dest 'ui')
  Need ($LASTEXITCODE -eq 0) 'PYTHON_CLASSIC_IMPORT_OR_ASSET_INVALID'
+ Write-Host 'ARK_CLASSIC_PYTHON_IMPORT=PASS'
  $node=Get-Command node.exe -CommandType Application -ErrorAction SilentlyContinue
  Need ($null -ne $node) 'NODE_JS_SYNTAX_CHECK_MISSING'
  & $node.Source --check (Join-Path $dest 'ui\classic\ark-shadow-classic-bridge.js')

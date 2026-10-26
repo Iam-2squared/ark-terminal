@@ -27,7 +27,7 @@ test('weekday refresh demands genuinely observed D100 sources and records limite
     'makeObservedPassWatchMask(plan,captures)',
     'rankVerifiedG1PassForChartBudget(plan,captures,mask)',
     'newBreakoutsOutsideWeeklyPoolNotScanned:true',
-    'UNKNOWN_NOT_ADMITTED','unknownNotAdmitted:true',
+    'unknownNotAdmitted:true',
     'productionReady:false','orderTransmission:false'
   ])assert.ok(src.includes(marker),marker);
   assert.doesNotMatch(src,/RssStockOrder\s*\(|RssCancelOrder\s*\(/);

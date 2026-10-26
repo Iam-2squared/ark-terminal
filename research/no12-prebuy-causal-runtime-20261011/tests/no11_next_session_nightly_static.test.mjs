@@ -26,3 +26,10 @@ test('nightly preparation runs daily census then pass/Chart50 then previous arch
   assert.match(source, /-PinsFile/);
   assert.match(source, /\$LASTEXITCODE -eq 0/);
 });
+
+test('nightly plan identity selects the active pinned run even when stale as-of folders coexist', () => {
+  assert.match(source, /identityTool=Join-Path \$base/);
+  assert.match(source, /node \$identityTool plan --symbols \$SymbolsFile --root \$DailyRoot/);
+  assert.match(source, /DAILY_G1_RESOLVED_PLAN_INCOMPLETE/);
+  assert.doesNotMatch(source, /Get-ChildItem -LiteralPath \$DailyRoot -Directory -Filter/);
+});

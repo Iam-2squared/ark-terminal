@@ -32,7 +32,9 @@ jobs:
       - name: Read-only dashboard unit tests
         run: python -m unittest discover -s integration/no11-shadow-oneclick/tests -p 'test_*.py' -v
       - name: Inspect one-click safety constraints
-        run: node --test integration/no11-shadow-oneclick/tests/test_launcher_safety.mjs
+        run: |
+          node --test integration/no11-shadow-oneclick/tests/test_launcher_safety.mjs
+          node --test integration/no11-shadow-oneclick/tests/test_classic_launcher_safety.mjs
       - name: Check client JavaScript syntax
         run: |
           node --check integration/no11-shadow-oneclick/ui/app.js
@@ -50,7 +52,8 @@ jobs:
           $ErrorActionPreference='Stop'
           foreach($file in @('integration/no11-shadow-oneclick/windows/Start-ArkShadowReadOnly.ps1',
             'integration/no11-shadow-oneclick/install/Install-ArkShadowReadOnly.ps1',
-            'integration/no11-shadow-oneclick/windows/Start-ArkShadowClassicReadOnly.ps1')) {
+            'integration/no11-shadow-oneclick/windows/Start-ArkShadowClassicReadOnly.ps1',
+            'integration/no11-shadow-oneclick/install/Install-ArkShadowClassicReadOnly.ps1')) {
             $tokens=$null
             $errors=$null
             [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $file).Path,[ref]$tokens,[ref]$errors)

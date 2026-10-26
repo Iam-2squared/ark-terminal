@@ -35,6 +35,7 @@ jobs:
         run: |
           node --test integration/no11-shadow-oneclick/tests/test_launcher_safety.mjs
           node --test integration/no11-shadow-oneclick/tests/test_classic_launcher_safety.mjs
+          node --test integration/no11-shadow-oneclick/tests/test_classic_recovery_safety.mjs
       - name: Check client JavaScript syntax
         run: |
           node --check integration/no11-shadow-oneclick/ui/app.js
@@ -53,7 +54,8 @@ jobs:
           foreach($file in @('integration/no11-shadow-oneclick/windows/Start-ArkShadowReadOnly.ps1',
             'integration/no11-shadow-oneclick/install/Install-ArkShadowReadOnly.ps1',
             'integration/no11-shadow-oneclick/windows/Start-ArkShadowClassicReadOnly.ps1',
-            'integration/no11-shadow-oneclick/install/Install-ArkShadowClassicReadOnly.ps1')) {
+            'integration/no11-shadow-oneclick/install/Install-ArkShadowClassicReadOnly.ps1',
+            'integration/no11-shadow-oneclick/install/Repair-ArkShadowClassicLocalReadOnly.ps1')) {
             $tokens=$null
             $errors=$null
             [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $file).Path,[ref]$tokens,[ref]$errors)

@@ -45,15 +45,17 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $file='integration/no11-shadow-oneclick/windows/Start-ArkShadowReadOnly.ps1'
-          $tokens=$null
-          $errors=$null
-          [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $file).Path,[ref]$tokens,[ref]$errors)
-          if($errors.Count -ne 0) {
-            $errors|ForEach-Object {Write-Host $_}
-            throw 'ARK_SHADOW_PS5_PARSE_FAILED'
+          foreach($file in @('integration/no11-shadow-oneclick/windows/Start-ArkShadowReadOnly.ps1',
+            'integration/no11-shadow-oneclick/install/Install-ArkShadowReadOnly.ps1')) {
+            $tokens=$null
+            $errors=$null
+            [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $file).Path,[ref]$tokens,[ref]$errors)
+            if($errors.Count -ne 0) {
+              $errors|ForEach-Object {Write-Host $_}
+              throw 'ARK_SHADOW_PS5_PARSE_FAILED'
+            }
+            & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $file -OfflineSelfTest
+            if($LASTEXITCODE -ne 0){throw 'ARK_SHADOW_OFFLINE_SELFTEST_FAILED'}
           }
-          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $file -OfflineSelfTest
-          if($LASTEXITCODE -ne 0){throw 'ARK_SHADOW_OFFLINE_SELFTEST_FAILED'}
           Write-Host 'ARK_SHADOW_WINDOWS_OFFLINE=PASS'
           Write-Host 'ORDER_TRANSMISSION=False'

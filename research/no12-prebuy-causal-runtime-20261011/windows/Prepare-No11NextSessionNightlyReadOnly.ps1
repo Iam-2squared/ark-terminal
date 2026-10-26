@@ -96,10 +96,20 @@ try {
   -BatchSize $DailyBatchSize -WaitSeconds $DailyWaitSeconds
  Need ($LASTEXITCODE -eq 0) 'DAILY_G1_CAPTURE_FAILED'
 
- $candidates=@(Get-ChildItem -LiteralPath $DailyRoot -Directory -Filter ('daily-'+$AsOfSession+'-*') |
-   Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'plan.json') -PathType Leaf })
- Need ($candidates.Count -eq 1) 'DAILY_G1_RUN_NOT_UNIQUE'
- $run=$candidates[0].FullName
+ # Resolve the same immutable, code-pinned run used by the daily collector.
+ # Historical as-of folders may coexist after code revisions; their mere
+ # existence must not make a successfully resumed G1 capture unusable.
+ $identityTool=Join-Path $base 'tools\no11_rss_daily_trend_census.mjs'
+ Need (Test-Path -LiteralPath $identityTool -PathType Leaf) 'DAILY_IDENTITY_TOOL_MISSING'
+ $identityLines=@(& node $identityTool plan --symbols $SymbolsFile --root $DailyRoot)
+ Need ($LASTEXITCODE -eq 0 -and $identityLines.Count -eq 1) 'DAILY_IDENTITY_RESOLUTION_FAILED'
+ $identity=([string]$identityLines[0] | ConvertFrom-Json)
+ $run=[string]$identity.run
+ Need ([IO.Path]::IsPathRooted($run) -and
+  (Test-Path -LiteralPath (Join-Path $run 'plan.json') -PathType Leaf) -and
+  $identity.plan.asOfSession -ceq $AsOfSession -and
+  $identity.plan.schemaId -ceq 'ARK_NO11_RSS_DAILY_CENSUS_PLAN_V1' -and
+  @($identity.remaining).Count -eq 0) 'DAILY_G1_RESOLVED_PLAN_INCOMPLETE'
 
  Write-Host '=== NIGHTLY STAGE 2: OBSERVED PASS AND CHART50 PLAN ==='
  $mask=@(& node $maskTool --run $run)

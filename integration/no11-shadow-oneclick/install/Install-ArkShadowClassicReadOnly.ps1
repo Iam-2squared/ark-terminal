@@ -101,7 +101,7 @@ try{
    [IO.File]::Copy($lnk,$backup,$false)
    $update=$shell.CreateShortcut($tmpLink)
    $update.TargetPath=$classic
-   $update.WorkingDirectory=Split-Path -Parent $classic
+   $update.WorkingDirectory=(Split-Path -Parent $classic)
    $update.Description='Original Ark Terminal rich UI + Frozen No.1.1 Shadow; READ ONLY'
    $update.Save()
    Need (Test-Path -LiteralPath $tmpLink -PathType Leaf) 'NEW_SHORTCUT_STAGING_FAILED'

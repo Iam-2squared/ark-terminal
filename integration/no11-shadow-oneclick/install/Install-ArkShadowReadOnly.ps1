@@ -4,12 +4,12 @@ param([switch]$OfflineSelfTest,[switch]$NoShortcut)
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 
-$revision='1bf3aa7ad591bf0346578d69300c59932b85abbb'
+$revision='73d25acf85b5f1b57efa0469c9645740572b29c1'
 $source='https://raw.githubusercontent.com/Iam-2squared/ark-terminal/'+$revision+'/integration/no11-shadow-oneclick/'
 $files=[ordered]@{
  'windows\Ark-Shadow-READ-ONLY.cmd'='ab861a5c31a975b0673081226b449cac75c2891d'
- 'windows\Start-ArkShadowReadOnly.ps1'='063dd44e6c491f009bbc0aa669f72cd1af3e4572'
- 'ui\ark_shadow_ui.py'='d8f9a8c032668ecc5d65a41d9b2ee694c4e9f08f'
+ 'windows\Start-ArkShadowReadOnly.ps1'='4bcb50f2d56038a475052fec04d7791515605caa'
+ 'ui\ark_shadow_ui.py'='4a2d5f66f8ad32c47c16957904ffc86121d1d83a'
  'ui\index.html'='c02a7168a2148dcc3b70af7eb3eac2c3e8a04309'
  'ui\app.css'='3ee513fb3d8eea877172524f81232da4104dee39'
  'ui\app.js'='d1e419ff288464fbff2f4177280807b4a740f16c'

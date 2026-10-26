@@ -17,6 +17,7 @@ import re
 import sqlite3
 import sys
 import threading
+import time
 import webbrowser
 from urllib.parse import urlsplit
 
@@ -393,6 +394,12 @@ def main(argv=None):
     print("ARK_SHADOW_ORDER_TRANSMISSION=False",flush=True)
     if args.open_browser:
         threading.Timer(0.5,lambda:webbrowser.open("http://127.0.0.1:%s/" % args.port)).start()
+    # A prior-date session may never be reused the next trading morning.
+    def end_at_jst_day_rollover():
+        while now().date().isoformat() == args.session:
+            time.sleep(20)
+        server.shutdown()
+    threading.Thread(target=end_at_jst_day_rollover, daemon=True).start()
     try:
         server.serve_forever(poll_interval=0.25)
     except KeyboardInterrupt:

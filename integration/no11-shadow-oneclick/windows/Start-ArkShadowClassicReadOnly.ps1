@@ -331,6 +331,30 @@ try{
   # Critical: an orphaned UI can remain after a previously failed startup.
   # Reuse that verified read-only UI AND CONTINUE to MSII/Excel readiness.
   $script:reuseUi=$true
+  # A healthy already-running Classic UI may have a live observer/controller.
+  # Never start another one on a second desktop double click. Only a failed
+  # INITIAL launch may be resumed into the MSII/Excel startup stage.
+  $savedPath=Join-Path $PrivateRoot 'launcher-status.json'
+  Need (Test-Path -LiteralPath $savedPath -PathType Leaf) 'EXISTING_CLASSIC_STATUS_REQUIRED'
+  $priorStatus=Get-Content -LiteralPath $savedPath -Raw -Encoding UTF8|ConvertFrom-Json
+  Need ($priorStatus.schemaId -ceq 'ARK_SHADOW_ONECLICK_LAUNCH_STATUS_V1' -and
+   $priorStatus.sessionDate -ceq $session -and
+   $priorStatus.orderTransmission -eq $false) 'EXISTING_CLASSIC_STATUS_INVALID'
+  $accountState=''
+  $shadowState=''
+  if($null -ne $priorStatus.steps){
+   $a=$priorStatus.steps.PSObject.Properties['account']
+   $b=$priorStatus.steps.PSObject.Properties['shadow']
+   if($null -ne $a -and $null -ne $a.Value){$accountState=[string]$a.Value}
+   if($null -ne $b -and $null -ne $b.Value){$shadowState=[string]$b.Value}
+  }
+  if($accountState -in @('START_REQUESTED','ORIGINAL_CONTROLLER_OBSERVER','AWAITING_ORIGINAL_CONTROLLER') -or
+     $shadowState -in @('START_REQUESTED','PREPARING','PREFLIGHT')){
+   Write-Host 'ARK_SHADOW_EXISTING_OBSERVER_OR_CONTROLLER=REUSED_NO_DUPLICATE'
+   if(-not $NoBrowser){Start-Process ('http://127.0.0.1:'+$Port+'/')}
+   Write-Host 'ORDER_TRANSMISSION=False'
+   exit 0
+  }
   Write-Host 'ARK_SHADOW_EXISTING_UI_RECOVERY=True'
  }
  Need ([IO.Path]::IsPathRooted($PrivateRoot)) 'PRIVATE_ROOT_ABSOLUTE_REQUIRED'

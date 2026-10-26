@@ -79,7 +79,7 @@ function Spawn([string]$exe,[string[]]$values,[string]$label){
 }
 function LocalUiAlive{
  try{$r=Invoke-RestMethod -Uri ('http://127.0.0.1:'+$Port+'/api/health') -TimeoutSec 2 -ErrorAction Stop
-  return ($r.status -ceq 'READ_ONLY' -and $r.orderTransmission -eq $false)}
+  return ($r.status -ceq 'READ_ONLY' -and $r.sessionDate -ceq $session -and $r.orderTransmission -eq $false)}
  catch{return $false}
 }
 function PortBusy{

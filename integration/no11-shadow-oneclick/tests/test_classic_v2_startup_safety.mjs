@@ -54,7 +54,7 @@ test("installer only installs two NEW V2 files and re-points the owned classic s
 test("PowerShell offline probe is used instead of starting Excel or Shadow",()=>{
   assert.match(installer,/ParseFile\(\$script/);
   assert.match(installer,/\-OfflineSelfTest/);
-  assert.match(installer,/\-VerifyOnly/);
+  assert.match(installer,/\[switch\]\$VerifyOnly/);
   assert.match(launcher,/ARK_SHADOW_EXCEL_STARTED=False/);
   assert.match(launcher,/ARK_SHADOW_OLD_LAUNCHER_TOUCHED=False/);
 });

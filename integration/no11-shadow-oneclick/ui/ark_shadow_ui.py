@@ -354,7 +354,9 @@ class Handler(BaseHTTPRequestHandler):
         if name == "/static/app.js":
             return self.send(200, (BASE/"app.js").read_bytes(), "text/javascript; charset=utf-8")
         if name == "/api/health":
-            return self.send(200,b'{"status":"READ_ONLY","orderTransmission":false}',"application/json; charset=utf-8")
+            health = json.dumps({"status":"READ_ONLY","sessionDate":self.server.config.session,
+                                 "orderTransmission":False}).encode("utf-8")
+            return self.send(200,health,"application/json; charset=utf-8")
         if name == "/api/status":
             result = json.dumps(build_status(self.server.config), ensure_ascii=False, separators=(",",":")).encode("utf-8")
             return self.send(200,result,"application/json; charset=utf-8")

@@ -214,7 +214,7 @@ function StartObserver([string]$account,[string]$output){
  $stop=Join-Path $PrivateRoot ('observer-stop-'+[guid]::NewGuid().ToString('N')+'.flag')
  $argsList=@('-NoProfile','-ExecutionPolicy','Bypass','-File',$observer,
   '-WorkbookPath',$account,'-OutputFile',$output,'-StopFile',$stop,
-  '-Samples','5000','-PollSeconds','5')
+  '-Samples','10000','-PollSeconds','6')
  try{
   $p=Spawn 'powershell.exe' $argsList 'account-observer'
   $steps.account='START_REQUESTED'

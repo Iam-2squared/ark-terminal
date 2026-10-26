@@ -140,7 +140,7 @@ export async function audit(argv){
   };
   return result;
 }
-if(process.argv[1]){
+if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
   try {
     const r=await audit(process.argv.slice(2));
     console.log('NO11_PARALLEL_AUDIT_FULL_G1='+r.fullMarket.count+'/'+4328+'|PASS='+r.fullMarket.observedG1Pass);

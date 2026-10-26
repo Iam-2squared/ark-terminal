@@ -14,8 +14,8 @@ const prior=file("ui/classic/ark-readonly-overlay.js");
 const originalFile=new URL("ui/classic/index.html",root);
 
 test("classic package preserves byte-exact original rich UI assets",()=>{
-  const originalHtml=new URL("../../no1-1-msii/ui/public/index.html",root);
-  const originalOverlay=new URL("../../no1-1-msii/ui/public/ark-readonly-overlay.js",root);
+  const originalHtml=new URL("../no1-1-msii/ui/public/index.html",root);
+  const originalOverlay=new URL("../no1-1-msii/ui/public/ark-readonly-overlay.js",root);
   assert.equal(fs.readFileSync(originalFile).equals(fs.readFileSync(originalHtml)),true);
   assert.equal(fs.readFileSync(new URL("ui/classic/ark-readonly-overlay.js",root))
     .equals(fs.readFileSync(originalOverlay)),true);
@@ -63,7 +63,7 @@ test("installer accepts only exact new Shadow files, adds six new files and back
   assert.match(installer,/CLASSIC_LOCAL_FILE_MODIFIED/);
   assert.match(installer,/SHORTCUT_TARGET_NOT_OURS/);
   assert.match(installer,/original-shadow-shortcut-/);
-  assert.match(installer,/File\]::Replace/);
+  assert.match(installer,/\[IO\.File\]::Replace/);
   assert.match(installer,/Ark Terminal Shadow READ ONLY\.lnk/);
   assert.match(installer,/NEW_CLASSIC_OFFLINE_SELFTEST_FAILED/);
   assert.match(installer,/ARK_CLASSIC_OLD_NO11_LAUNCHER_UNCHANGED=True/);

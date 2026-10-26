@@ -22,6 +22,8 @@ test("exact failure reproduction: original-status first and second publish in te
 
 test("orphaned healthy classic UI is reused AND startup continues to MarketSpeed/Excel",()=>{
   assert.match(launcher,/ARK_SHADOW_EXISTING_UI_RECOVERY=True/);
+  assert.match(launcher,/ARK_SHADOW_EXISTING_OBSERVER_OR_CONTROLLER=REUSED_NO_DUPLICATE/);
+  assert.match(launcher,/EXISTING_CLASSIC_STATUS_REQUIRED/);
   assert.match(launcher,/EXISTING_CLASSIC_UI_NO_LONGER_HEALTHY/);
   assert.match(launcher,/ARK_SHADOW_RESTART_CLASSIC_UI_REQUIRED_FOR_NEW_CONFIG/);
   assert.match(launcher,/PUBLISH_AFTER_CLASSIC_UI/);
@@ -35,7 +37,7 @@ test("orphaned healthy classic UI is reused AND startup continues to MarketSpeed
 
 test("installer only installs two NEW V2 files and re-points the owned classic shortcut",()=>{
   assert.match(cmd,/Start-ArkShadowClassicReadOnly-V2\.ps1/);
-  assert.match(installer,/dca1505025a0c43b9414b7fea00257792e5db56d/);
+  assert.match(installer,/a53c23e983fb39840eda0f874332b169256addd0/);
   assert.match(installer,/77a3a4ba8fb2875dc3aa838417a47578e42689eb/);
   assert.match(installer,/NINE_ORIGINAL_BLOBS=PASS/);
   assert.match(installer,/EXISTING_LOCAL_FILE_CHANGED/);

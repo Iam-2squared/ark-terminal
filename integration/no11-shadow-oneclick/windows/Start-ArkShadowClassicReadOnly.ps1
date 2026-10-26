@@ -237,7 +237,7 @@ function StartObserver([string]$account,[string]$output){
 }
 function Preflight([string]$file,[string]$python){
  $lines=@(& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $runner -ConfigFile $file -PythonExecutable $python -PreflightOnly)
- $good=@($lines|Where-Object {$_ -like 'NO11_BOOTSTRAP_PREFLIGHT=*'}).Count -eq 1
+ $good=@($lines|Where-Object {$_ -ceq 'NO11_BOOTSTRAP_PREFLIGHT=EXISTING_ASSETS_LOADED_NOT_LIVE_VERIFIED'}).Count -eq 1
  return ($LASTEXITCODE -eq 0 -and $good)
 }
 if($OfflineSelfTest){

@@ -242,6 +242,10 @@ function Preflight([string]$file,[string]$python){
 }
 if($OfflineSelfTest){
  Need (Test-Path -LiteralPath $ui -PathType Leaf) 'UI_MISSING'
+ foreach($name in @('index.html','ark-readonly-overlay.js','ark-shadow-classic-bridge.js')){
+  Need (Test-Path -LiteralPath (Join-Path (Split-Path -Parent $ui) ('classic\'+$name)) -PathType Leaf) 'ORIGINAL_CLASSIC_ASSET_MISSING'
+ }
+ Need (Test-Path -LiteralPath (Join-Path (Split-Path -Parent $ui) 'ark_shadow_ui.py') -PathType Leaf) 'READONLY_BACKEND_MISSING'
  Write-Host 'ARK_SHADOW_OFFLINE_SELFTEST=PASS'
  Write-Host 'ARK_SHADOW_OLD_LAUNCHER_TOUCHED=False'
  Write-Host 'ARK_SHADOW_EXCEL_STARTED=False'
@@ -261,9 +265,13 @@ try{
   try{$other=Invoke-RestMethod -Uri 'http://127.0.0.1:8768/api/status' -TimeoutSec 2 -ErrorAction Stop}catch{}
   if($null -ne $other -and $other.schemaId -ceq 'ARK_SHADOW_LOCAL_DASHBOARD_V1' -and
      $other.orderTransmission -eq $false){
-   $otherSteps=$other.launcher.steps
-   if($null -ne $otherSteps -and
-      [string]$otherSteps.account -in @('START_REQUESTED','ORIGINAL_CONTROLLER_OBSERVER','AWAITING_ORIGINAL_CONTROLLER')){
+   $accountState=''
+   if($null -ne $other.launcher -and $null -ne $other.launcher.steps){
+    $stepsOther=$other.launcher.steps
+    $property=$stepsOther.PSObject.Properties['account']
+    if($null -ne $property -and $null -ne $property.Value){$accountState=[string]$property.Value}
+   }
+   if($accountState -in @('START_REQUESTED','ORIGINAL_CONTROLLER_OBSERVER','AWAITING_ORIGINAL_CONTROLLER')){
     throw 'ARK_SHADOW_OTHER_ACCOUNT_OBSERVER_ALREADY_ACTIVE'
    }
   }

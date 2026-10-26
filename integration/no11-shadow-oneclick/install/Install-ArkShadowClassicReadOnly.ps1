@@ -91,6 +91,17 @@ try{
  $entry=Join-Path $dest 'windows\Start-ArkShadowClassicReadOnly.ps1'
  & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $entry -OfflineSelfTest
  Need ($LASTEXITCODE -eq 0) 'NEW_CLASSIC_OFFLINE_SELFTEST_FAILED'
+ # Import and hash-build the ORIGINAL UI with pinned Python, without opening
+ # Excel, MarketSpeed or a network server. This also checks Python syntax.
+ $py=Join-Path $env:LOCALAPPDATA 'ArkTerminal\No12\frozen-p1-replay\runtime-py312-sklearn180\Scripts\python.exe'
+ Need (Test-Path -LiteralPath $py -PathType Leaf) 'PINNED_PYTHON_MISSING'
+ $pythonCheck='import sys;sys.path.insert(0,sys.argv[1]);import ark_shadow_classic as c;data,csp=c.classic_document();assert len(data)>100000 and "script-src" in csp;print("ARK_CLASSIC_PYTHON_IMPORT=PASS")'
+ & $py -B -c $pythonCheck (Join-Path $dest 'ui')
+ Need ($LASTEXITCODE -eq 0) 'PYTHON_CLASSIC_IMPORT_OR_ASSET_INVALID'
+ $node=Get-Command node.exe -CommandType Application -ErrorAction SilentlyContinue
+ Need ($null -ne $node) 'NODE_JS_SYNTAX_CHECK_MISSING'
+ & $node.Source --check (Join-Path $dest 'ui\classic\ark-shadow-classic-bridge.js')
+ Need ($LASTEXITCODE -eq 0) 'CLASSIC_BROWSER_JAVASCRIPT_SYNTAX'
  if(-not $NoShortcutSwitch){
   if(-not $target.Equals([IO.Path]::GetFullPath($classic),[StringComparison]::OrdinalIgnoreCase)){
    [void][IO.Directory]::CreateDirectory($backupRoot)

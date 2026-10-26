@@ -50,9 +50,9 @@ function directory(p,create=false){
   need(stat.isDirectory()&&!stat.isSymbolicLink(),'UNSAFE_DIRECTORY');
   return x;
 }
-function isoFriday(d){return new Date(d+'T00:00:00Z').getUTCDay()===5}
+export function isoFriday(d){return new Date(d+'T00:00:00Z').getUTCDay()===5}
 function advanceDay(d){return new Date(Date.parse(d+'T00:00:00Z')+86_400_000).toISOString().slice(0,10)}
-function tradingGap(anchor,asOf){
+export function tradingGap(anchor,asOf){
   need(isJpxCashTradingDay(anchor)&&isJpxCashTradingDay(asOf)&&anchor<asOf,'TRADING_DATES_INVALID');
   let count=0;
   for(let d=advanceDay(anchor);d<=asOf;d=advanceDay(d))
@@ -244,7 +244,7 @@ export function runCli(args){
     console.log('ORDER_TRANSMISSION=False');
   }
 }
-function nextCashDate(d){
+export function nextCashDate(d){
   for(let cur=new Date(Date.parse(d+'T00:00:00Z')+86_400_000),i=0;i<14;i++,cur=new Date(cur.getTime()+86_400_000)){
     const x=cur.toISOString().slice(0,10);
     if(isJpxCashTradingDay(x))return x;

@@ -67,7 +67,7 @@ test("installer accepts only exact new Shadow files, adds six new files and back
   assert.match(installer,/Ark Terminal Shadow READ ONLY\.lnk/);
   assert.match(installer,/NEW_CLASSIC_OFFLINE_SELFTEST_FAILED/);
   // Native PS5 -> Python -c drops unescaped double quotes. Avoid them entirely.
-  const embeddedPython=installer.match(/\$pythonCheck='([^'\\r\\n]*)'/);
+  const embeddedPython=installer.match(/\$pythonCheck='(.*)'/);
   assert.ok(embeddedPython,"must have a deterministic native Python import check");
   assert.equal(embeddedPython[1].includes('"'),false,"no embedded Python double quotes");
   assert.match(installer,/ARK_CLASSIC_PYTHON_IMPORT=PASS/);

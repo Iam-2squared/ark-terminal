@@ -73,6 +73,31 @@ function TimeToken([object]$v){
  if($s -match '^([01]\d|2[0-3]):[0-5]\d(?::00)?$'){return $s.Substring(0,5)}
  return $null
 }
+function ReadGrowingChart([object]$sheet,[int]$initialBars){
+ # RssChart's fourth argument is INITIAL rows, not a rolling row limit.
+ # Vendor help: new data are appended as time passes. Read room for the
+ # entire 09:00-15:30 wall-clock span, plus two rows, on our own temp sheet.
+ # Keep the formula unchanged and one RssChart function per symbol.
+ if($initialBars -lt 50 -or $initialBars -gt 150){throw 'NO11_C50_INITIAL_ROWS_INVALID'}
+ $limit=$initialBars+390+2
+ $range=$sheet.Range(('A3:J{0}' -f ($limit+3)))
+ try{$values=$range.Value2}
+ finally{
+  if([Runtime.InteropServices.Marshal]::IsComObject($range)){
+   [void][Runtime.InteropServices.Marshal]::ReleaseComObject($range)
+  }
+ }
+ if($values -isnot [array] -or $values.Rank -ne 2 -or
+    $values.GetLength(0) -ne ($limit+1) -or $values.GetLength(1) -ne 10){
+  throw 'NO11_C50_GROWING_CHART_SHAPE'
+ }
+ # One extra fence row detects overflow instead of silently truncating it.
+ $row=$values.GetLowerBound(0)+$limit;$col=$values.GetLowerBound(1)
+ if($null -ne (DateToken $values.GetValue($row,$col+3))){
+  throw 'NO11_C50_GROWING_CHART_OVERFLOW'
+ }
+ return @{values=$values;rowLimit=$limit}
+}
 function Nonnegative([object]$v){
  if($v -isnot [ValueType]){return $null}
  $n=[double]$v
@@ -451,6 +476,7 @@ public static class No11C50Attach {
   $ws.Range('A1').Formula=(ChartFormula $charts[$i])
   $sheets+=@([pscustomobject]@{symbol=$charts[$i];sheet=$ws})
  }
+ Write-Host ('NO11_C50_CHART_READ_ROWS='+($HistoryBars+392))
  $stage='WARMUP';$continueCapture=C50Wait ($WarmupSeconds*1000)
  if($continueCapture -and -not [string]::IsNullOrWhiteSpace($ReadyFile)){
   $temporaryIdentity=TemporaryDescriptor ([string]$book.Name) ([string]$book.Path) @($book.Worksheets | ForEach-Object {[string]$_.Name}) $temporaryToken
@@ -497,11 +523,11 @@ public static class No11C50Attach {
   foreach($item in $sheets){
    if(C50Stopped){$continueCapture=$false;break}
    if(-not $scan.Contains([string]$item.symbol)){continue}
-   $series=$item.sheet.Range(('A3:J{0}' -f ($HistoryBars+2))).Value2
+   $growing=ReadGrowingChart $item.sheet $HistoryBars
+   $series=$growing.values
    $chartSeen=NowJst
-   if($series -isnot [array] -or $series.Rank -ne 2){$invalid++;continue}
    $q0=$series.GetLowerBound(0);$x0=$series.GetLowerBound(1)
-   for($z=0;$z -lt $HistoryBars;$z++){
+   for($z=0;$z -lt $growing.rowLimit;$z++){
     $pos=$q0+$z;$date=DateToken $series.GetValue($pos,$x0+3)
     if($date -cne $session){continue}
     $time=TimeToken $series.GetValue($pos,$x0+4)

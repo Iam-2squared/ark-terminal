@@ -3,6 +3,7 @@ param(
  [switch]$OfflineSelfTest,[switch]$Skip348Quote,
  [string]$RunDir,
  [string]$PinsFile,
+ [string]$ReadyFile,[string]$StopFile,
  [ValidateRange(2,390)][int]$Samples=4,
  [ValidateRange(50,150)][int]$HistoryBars=120,
  [ValidateRange(5,60)][int]$WarmupSeconds=20
@@ -31,41 +32,37 @@ if($OfflineSelfTest){
 $arguments=@('-NoProfile','-ExecutionPolicy','Bypass','-File',$probe,
  '-Samples',[string]$Samples,'-HistoryBars',[string]$HistoryBars,
  '-WarmupSeconds',[string]$WarmupSeconds)
-if(-not [string]::IsNullOrWhiteSpace($RunDir)){
- $arguments+=@('-RunDir',$RunDir)
+if(-not [string]::IsNullOrWhiteSpace($RunDir)){$arguments+=@('-RunDir',$RunDir)}
+if(-not [string]::IsNullOrWhiteSpace($PinsFile)){$arguments+=@('-PinsFile',$PinsFile)}
+if(-not [string]::IsNullOrWhiteSpace($ReadyFile)){$arguments+=@('-ReadyFile',$ReadyFile)}
+if(-not [string]::IsNullOrWhiteSpace($StopFile)){$arguments+=@('-StopFile',$StopFile)}
+# Forward samples as they arrive; retain paths without merging native stderr.
+$captured=New-Object 'System.Collections.Generic.List[string]'
+& powershell.exe @arguments | ForEach-Object {
+ $line=[string]$_;[void]$captured.Add($line);Write-Output $line
 }
-if(-not [string]::IsNullOrWhiteSpace($PinsFile)){
- $arguments+=@('-PinsFile',$PinsFile)
-}
-$out=@(& powershell.exe @arguments)
 $ok=$LASTEXITCODE
-$out | ForEach-Object {Write-Host $_}
+$out=@($captured.ToArray())
 if($ok -ne 0){throw 'NO11_C50_CAPTURE_FAILED_NO_IMPORT'}
+if(-not [string]::IsNullOrWhiteSpace($StopFile) -and (Test-Path -LiteralPath $StopFile)){
+ throw 'NO11_C50_E2E_STOP_REQUESTED_NO_IMPORT'
+}
 $folderLine=@($out | Where-Object {$_ -like 'NO11_C50_PRIVATE_FOLDER=*'})
 $planLine=@($out | Where-Object {$_ -like 'NO11_C50_PRIVATE_CHART_PLAN=*'})
-if($folderLine.Count -ne 1 -or $planLine.Count -ne 1){
- throw 'NO11_C50_E2E_MISSING_PRIVATE_CAPTURE_PATH'
-}
+if($folderLine.Count -ne 1 -or $planLine.Count -ne 1){throw 'NO11_C50_E2E_MISSING_PRIVATE_CAPTURE_PATH'}
 $folder=([string]$folderLine[0]).Substring('NO11_C50_PRIVATE_FOLDER='.Length)
 $plan=([string]$planLine[0]).Substring('NO11_C50_PRIVATE_CHART_PLAN='.Length)
 $files=@(Get-ChildItem -LiteralPath $folder -Filter 'snapshot-*.json' -File)
-if($files.Count -lt 2 -or $files.Count -gt $Samples){
- throw 'NO11_C50_E2E_SNAPSHOT_COUNT_INVALID'
-}
+if($files.Count -lt 2 -or $files.Count -gt $Samples){throw 'NO11_C50_E2E_SNAPSHOT_COUNT_INVALID'}
 $latest=$null
 foreach($file in $files){
  $stamp=Get-Content -LiteralPath $file.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
- if($stamp.schemaId -cne 'ARK_NO11_RSS_CHART50_1M_CAPTURE_V1' -or
-  $stamp.orderTransmission -ne $false){
+ if($stamp.schemaId -cne 'ARK_NO11_RSS_CHART50_1M_CAPTURE_V1' -or $stamp.orderTransmission -ne $false){
   throw 'NO11_C50_E2E_CAPTURE_HEADER_INVALID'
  }
- if($null -eq $latest -or $stamp.observedEndJst -gt $latest){
-  $latest=[string]$stamp.observedEndJst
- }
+ if($null -eq $latest -or $stamp.observedEndJst -gt $latest){$latest=[string]$stamp.observedEndJst}
 }
-if([string]::IsNullOrWhiteSpace($latest)){
- throw 'NO11_C50_E2E_LAST_RECEIVED_AT_MISSING'
-}
+if([string]::IsNullOrWhiteSpace($latest)){throw 'NO11_C50_E2E_LAST_RECEIVED_AT_MISSING'}
 $result=@(& node $importer --folder $folder --plan $plan --decision $latest)
 $code=$LASTEXITCODE
 $result | ForEach-Object {Write-Host $_}
@@ -74,9 +71,7 @@ if(-not $Skip348Quote){
  $quotes=@(& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $quoteProbe -WarmupSeconds 20)
  $qcode=$LASTEXITCODE
  $quotes | ForEach-Object {Write-Host $_}
- if($qcode -ne 0){
-  throw 'NO11_C50_E2E_348_MARKET_READONLY_PROBE_FAILED'
- }
+ if($qcode -ne 0){throw 'NO11_C50_E2E_348_MARKET_READONLY_PROBE_FAILED'}
 }
 Write-Host 'NO11_C50_E2E_READONLY=COMPLETE_NOT_SELECTOR_NOT_TRADING'
 Write-Host 'NO11_PRODUCTION_READY=False'

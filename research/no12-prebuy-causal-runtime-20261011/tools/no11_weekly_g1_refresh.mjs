@@ -149,6 +149,18 @@ function validateRefreshPlan(plan,source,date){
 }
 export function runCli(args){
   const action=args[0], flags={};
+  if(action==='schedule'){
+    need(args.length===1,'USAGE');
+    const now=jstNow(),date=now.slice(0,10);
+    need(isJpxCashTradingDay(date)&&now.slice(11,16)>='18:00'&&
+      lastCompletedSession(now)===date,'CURRENT_COMPLETED_CASH_SESSION_REQUIRED');
+    console.log(JSON.stringify({schemaId:'ARK_NO11_WEEKLY_REFRESH_SCHEDULE_V1',
+      asOfSession:date,sessionDate:nextCashDate(date),
+      mode:isoFriday(date)?'FULL_MARKET_FRIDAY':'WEEKLY_POOL_CANDIDATES_ONLY',
+      completedDailyDataMustBeObserved:true,
+      productionReady:false,orderTransmission:false}));
+    return;
+  }
   need(['plan','report'].includes(action)&&args.length%2===1,'USAGE');
   for(let i=1;i<args.length;i+=2){
     need(['--weekly-run','--root','--run','--pins-file'].includes(args[i])&&!flags[args[i]],'USAGE');

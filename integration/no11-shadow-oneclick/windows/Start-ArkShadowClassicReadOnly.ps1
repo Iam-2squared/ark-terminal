@@ -49,6 +49,23 @@ function Q([string]$s){
  return '"'+$s+'"'
 }
 function ArgLine([string[]]$values){return (($values|ForEach-Object {Q ([string]$_)}) -join ' ')}
+
+function InstallStatusAtomicWriter {
+ # Windows PowerShell's [IO.File]::Replace can be wrapped in a
+ # MethodInvocationException, so a typed [IOException] retry never runs.
+ # Use the Win32 atomic rename primitive with LAST-ERROR retry instead.
+ if(-not ('ArkShadowStatusAtomic' -as [type])){
+  Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class ArkShadowStatusAtomic {
+ [DllImport("kernel32.dll", EntryPoint="MoveFileExW", CharSet=CharSet.Unicode, SetLastError=true)]
+ [return: MarshalAs(UnmanagedType.Bool)]
+ public static extern bool MoveFileEx(string source, string destination, int flags);
+}
+'@ -ErrorAction Stop
+ }
+}
 function Publish([string]$state,[string]$reason){
  if(-not (Test-Path -LiteralPath $PrivateRoot -PathType Container)){return}
  $record=[ordered]@{schemaId='ARK_SHADOW_ONECLICK_LAUNCH_STATUS_V1';status=$state;
@@ -57,24 +74,29 @@ function Publish([string]$state,[string]$reason){
  $tmp=Join-Path $PrivateRoot ('ark-shadow-'+[guid]::NewGuid().ToString('N')+'.tmp')
  try{
   [IO.File]::WriteAllText($tmp,(ConvertTo-Json -InputObject $record -Depth 10 -Compress),[Text.UTF8Encoding]::new($false))
-  # Windows can temporarily hold the destination while the local UI reads it.
-  # Retry ONLY the atomic status-file replacement (never a workbook/order).
-  $stored=$false
-  for($attempt=0;$attempt -lt 8;$attempt++){
-   try{
-    if([IO.File]::Exists($statusFile)){[IO.File]::Replace($tmp,$statusFile,$null)}
-    else{[IO.File]::Move($tmp,$statusFile)}
+  InstallStatusAtomicWriter
+  $stored=$false;$lastCode=0
+  for($attempt=0;$attempt -lt 25;$attempt++){
+   # MOVEFILE_REPLACE_EXISTING(1) | MOVEFILE_WRITE_THROUGH(8) = 9
+   if([ArkShadowStatusAtomic]::MoveFileEx($tmp,$statusFile,9)){
     $stored=$true;break
-   }catch [IO.IOException]{
-    if($attempt -eq 7){throw}
-    Start-Sleep -Milliseconds 90
    }
+   $lastCode=[Runtime.InteropServices.Marshal]::GetLastWin32Error()
+   # Retry *only* transient filesystem sharing/permission conflicts.
+   # No Excel, broker, model or order operation is ever retried here.
+   if($lastCode -notin @(5,32,33,80,183)){
+    throw ('ARK_SHADOW_STATUS_ATOMIC_COMMIT_WIN32_'+$lastCode)
+   }
+   Start-Sleep -Milliseconds 100
   }
-  Need $stored 'STATUS_WRITE_FAILED'
- }finally{if([IO.File]::Exists($tmp)){[IO.File]::Delete($tmp)}}
+  Need $stored ('STATUS_ATOMIC_COMMIT_RETRY_EXHAUSTED_WIN32_'+$lastCode)
+ }finally{
+  if([IO.File]::Exists($tmp)){[IO.File]::Delete($tmp)}
+ }
  Write-Host ('ARK_SHADOW_LAUNCH_STATUS='+$state)
  Write-Host 'ORDER_TRANSMISSION=False'
 }
+
 function PythonExe {
  $pinned=Join-Path $env:LOCALAPPDATA 'ArkTerminal\No12\frozen-p1-replay\runtime-py312-sklearn180\Scripts\python.exe'
  if(Test-Path -LiteralPath $pinned -PathType Leaf){return @{exe=$pinned;prefix=@()}}
@@ -200,14 +222,16 @@ function FindMarketSpeed {
  }
  $roots=@($desktop,[Environment]::GetFolderPath('CommonDesktopDirectory'),
   [Environment]::GetFolderPath('StartMenu'),[Environment]::GetFolderPath('CommonStartMenu'))
- $hits=@()
+ # Prefer a unique desktop shortcut over an identical Start Menu shortcut.
+ # Multiple valid locations must not make MarketSpeed impossible to start.
  foreach($r in $roots|Where-Object {$_ -and (Test-Path -LiteralPath $_ -PathType Container)}){
-  $hits+=@(Get-ChildItem -LiteralPath $r -Recurse -Filter '*.lnk' -File -ErrorAction SilentlyContinue |
+  $hits=@(Get-ChildItem -LiteralPath $r -Recurse -Filter '*.lnk' -File -ErrorAction SilentlyContinue |
    Where-Object {$_.BaseName -match '(?i)(Market\s*Speed\s*(II|2)|マーケットスピード\s*(II|Ⅱ|2|２))' -and
-    $_.BaseName -notmatch '(?i)(Setup|Uninstall|削除|アンインストール)'})
+    $_.BaseName -notmatch '(?i)(Setup|Uninstall|削除|アンインストール)'} |
+   Sort-Object FullName -Unique)
+  if($hits.Count -eq 1){return [string]$hits[0].FullName}
+  if($hits.Count -gt 1){return ''}
  }
- $hits=@($hits|Sort-Object FullName -Unique)
- if($hits.Count -eq 1){return $hits[0].FullName}
  return ''
 }
 function Config([string]$file){
@@ -246,6 +270,27 @@ if($OfflineSelfTest){
   Need (Test-Path -LiteralPath (Join-Path (Split-Path -Parent $ui) ('classic\'+$name)) -PathType Leaf) 'ORIGINAL_CLASSIC_ASSET_MISSING'
  }
  Need (Test-Path -LiteralPath (Join-Path (Split-Path -Parent $ui) 'ark_shadow_ui.py') -PathType Leaf) 'READONLY_BACKEND_MISSING'
+ # Reproduce the PRECISE Windows failure from 2026-10-27: second Publish
+ # when the private status file already exists. Do it in a throwaway folder.
+ $savedRoot=$PrivateRoot;$savedStatus=$statusFile
+ $scratch=Join-Path $env:TEMP ('ark-shadow-atomic-test-'+[guid]::NewGuid().ToString('N'))
+ try{
+  [void][IO.Directory]::CreateDirectory($scratch)
+  $PrivateRoot=$scratch;$statusFile=Join-Path $scratch 'launcher-status.json'
+  Publish 'STARTING' 'OFFLINE_ATOMIC_TEST_FIRST'
+  $steps['excel']='WAITING';$steps['marketSpeed']='WAITING'
+  Publish 'STARTING' 'OFFLINE_ATOMIC_TEST_SECOND'
+  $stored=Get-Content -LiteralPath $statusFile -Raw -Encoding UTF8 | ConvertFrom-Json
+  Need ($stored.message -ceq 'OFFLINE_ATOMIC_TEST_SECOND' -and
+   $stored.steps.excel -ceq 'WAITING' -and $stored.steps.marketSpeed -ceq 'WAITING' -and
+   $stored.orderTransmission -eq $false) 'STATUS_REPUBLISH_OFFLINE_SELFTEST_FAILED'
+  Write-Host 'ARK_SHADOW_STATUS_REPUBLISH_SELFTEST=PASS'
+ }finally{
+  $PrivateRoot=$savedRoot;$statusFile=$savedStatus
+  if(Test-Path -LiteralPath $scratch -PathType Container){
+   Remove-Item -LiteralPath $scratch -Recurse -Force -ErrorAction SilentlyContinue
+  }
+ }
  Write-Host 'ARK_SHADOW_OFFLINE_SELFTEST=PASS'
  Write-Host 'ARK_SHADOW_OLD_LAUNCHER_TOUCHED=False'
  Write-Host 'ARK_SHADOW_EXCEL_STARTED=False'
@@ -276,15 +321,17 @@ try{
    }
   }
  }
+ $script:reuseUi=$false
  if(PortBusy){
   $classic=$null
   try{$classic=Invoke-RestMethod -Uri ('http://127.0.0.1:'+$Port+'/api/classic-health') -TimeoutSec 2 -ErrorAction Stop}catch{}
-  Need ($classic -and $classic.schemaId -ceq 'ARK_SHADOW_CLASSIC_UI_V1' -and $classic.orderTransmission -eq $false) 'CLASSIC_PORT_OCCUPIED_BY_OTHER_SERVICE'
+  Need ($classic -and $classic.schemaId -ceq 'ARK_SHADOW_CLASSIC_UI_V1' -and
+   $classic.sessionDate -ceq $session -and $classic.orderTransmission -eq $false) 'CLASSIC_PORT_OCCUPIED_BY_OTHER_SERVICE'
   Need (LocalUiAlive) 'PORT_OCCUPIED_BY_OTHER_SERVICE'
-  if(-not $NoBrowser){Start-Process ('http://127.0.0.1:'+$Port+'/')}
-  Write-Host 'ARK_SHADOW_EXISTING_UI_REUSED=True'
-  Write-Host 'ORDER_TRANSMISSION=False'
-  exit 0
+  # Critical: an orphaned UI can remain after a previously failed startup.
+  # Reuse that verified read-only UI AND CONTINUE to MSII/Excel readiness.
+  $script:reuseUi=$true
+  Write-Host 'ARK_SHADOW_EXISTING_UI_RECOVERY=True'
  }
  Need ([IO.Path]::IsPathRooted($PrivateRoot)) 'PRIVATE_ROOT_ABSOLUTE_REQUIRED'
  [void][IO.Directory]::CreateDirectory($PrivateRoot)
@@ -307,28 +354,40 @@ try{
   $shadowRoot=Join-Path $PrivateRoot 'unconfigured-simulator'
   [void][IO.Directory]::CreateDirectory($shadowRoot)
  }
+ # Existing UI's --shadow-root is immutable for this process.
+ # Do not launch configured model with an old unconfigured display root.
+ if($script:reuseUi -and $requested){
+  throw 'ARK_SHADOW_RESTART_CLASSIC_UI_REQUIRED_FOR_NEW_CONFIG'
+ }
  $secondary=if($requested){Join-Path $shadowRoot ('account-source-'+$session+'.json')}else{$activeAccount}
  $script:stage='SELECT_LOCAL_PYTHON'
  $py=PythonExe
  $script:stage='PUBLISH_INITIAL'
  Publish 'STARTING' 'Starting original rich read-only Ark UI with Shadow adapter'
- $uiArgs=@($py.prefix)+@($ui,'--port',[string]$Port,'--session',$session,
-  '--launch-status-file',$statusFile,'--account-file',$activeAccount,
-  '--account-secondary-file',$secondary,'--shadow-root',$shadowRoot)
- if(-not $NoBrowser){$uiArgs+=@('--open-browser')}
- $script:stage='START_CLASSIC_UI'
- $uiP=Spawn $py.exe $uiArgs 'classic-dashboard'
- $ready=$false
- for($i=0;$i -lt 50;$i++){
-  if(LocalUiAlive){$ready=$true;break}
-  if($uiP.HasExited){break}
-  Start-Sleep -Milliseconds 250
+ if(-not $script:reuseUi){
+  $uiArgs=@($py.prefix)+@($ui,'--port',[string]$Port,'--session',$session,
+   '--launch-status-file',$statusFile,'--account-file',$activeAccount,
+   '--account-secondary-file',$secondary,'--shadow-root',$shadowRoot)
+  if(-not $NoBrowser){$uiArgs+=@('--open-browser')}
+  $script:stage='START_CLASSIC_UI'
+  $uiP=Spawn $py.exe $uiArgs 'classic-dashboard'
+  $ready=$false
+  for($i=0;$i -lt 50;$i++){
+   if(LocalUiAlive){$ready=$true;break}
+   if($uiP.HasExited){break}
+   Start-Sleep -Milliseconds 250
+  }
+  Need $ready 'DASHBOARD_NOT_RUNNING'
+ }else{
+  Need (LocalUiAlive) 'EXISTING_CLASSIC_UI_NO_LONGER_HEALTHY'
+  if(-not $NoBrowser){Start-Process ('http://127.0.0.1:'+$Port+'/')}
  }
- Need $ready 'DASHBOARD_NOT_RUNNING'
  Write-Host ('ARK_SHADOW_DASHBOARD=http://127.0.0.1:'+$Port+'/')
  Write-Host 'ARK_SHADOW_UI_MODE=ORIGINAL_CLASSIC_READ_ONLY'
  $script:stage='PUBLISH_AFTER_CLASSIC_UI'
- $steps.excel='WAITING';$steps.marketSpeed='WAITING'
+ $script:stage='SET_MARKETSPEED_AND_EXCEL_FLAGS'
+ $steps['excel']='WAITING';$steps['marketSpeed']='WAITING'
+ $script:stage='PUBLISH_AFTER_CLASSIC_UI'
  Publish 'STARTING' 'Opening MarketSpeed II and original Excel RSS books'
  $script:stage='OPEN_MARKETSPEED'
  if($SkipMarketSpeed){$steps.marketSpeed='SKIPPED'}
@@ -407,6 +466,11 @@ try{
  Write-Host ('ARK_SHADOW_FAILURE_STAGE='+$script:stage)
  Write-Host ('ARK_SHADOW_FAILURE_KIND='+$_.Exception.GetType().Name)
  Write-Host ('ARK_SHADOW_FAILURE_HRESULT='+$_.Exception.HResult)
+ $inner=$_.Exception.InnerException
+ if($null -ne $inner){
+  Write-Host ('ARK_SHADOW_FAILURE_INNER_KIND='+$inner.GetType().Name)
+  Write-Host ('ARK_SHADOW_FAILURE_INNER_HRESULT='+$inner.HResult)
+ }
  try{Publish 'BLOCKED' $message}catch{}
  Write-Host ('ARK_SHADOW_LAUNCH_ERROR='+$message)
  Write-Host 'ORDER_TRANSMISSION=False'

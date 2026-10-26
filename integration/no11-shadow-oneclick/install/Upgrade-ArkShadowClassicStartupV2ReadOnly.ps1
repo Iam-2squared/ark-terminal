@@ -6,7 +6,7 @@ param([switch]$OfflineSelfTest,[switch]$VerifyOnly)
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 
-$revision='a2e67940a35df6bb47eed2945329767647ea6070'
+$revision='85c6a51880c73e4711e9535a09bc713132f2ebf0'
 $base='https://raw.githubusercontent.com/Iam-2squared/ark-terminal/'+$revision+'/integration/no11-shadow-oneclick/windows/'
 $required=[ordered]@{
  'windows\Ark-Shadow-READ-ONLY.cmd'='ab861a5c31a975b0673081226b449cac75c2891d'
@@ -22,7 +22,7 @@ $required=[ordered]@{
 # Source file names are different from new local names by design.
 $new=[ordered]@{
  'windows\Start-ArkShadowClassicReadOnly-V2.ps1'=[ordered]@{
-  remote='Start-ArkShadowClassicReadOnly.ps1';sha='dca1505025a0c43b9414b7fea00257792e5db56d'}
+  remote='Start-ArkShadowClassicReadOnly.ps1';sha='a53c23e983fb39840eda0f874332b169256addd0'}
  'windows\Ark-Shadow-CLASSIC-V2-READ-ONLY.cmd'=[ordered]@{
   remote='Ark-Shadow-CLASSIC-V2-READ-ONLY.cmd';sha='77a3a4ba8fb2875dc3aa838417a47578e42689eb'}
 }

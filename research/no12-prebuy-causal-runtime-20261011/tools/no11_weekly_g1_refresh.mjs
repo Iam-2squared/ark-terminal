@@ -16,7 +16,7 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {codeIdentity,loadCaptures,immutable} from './no11_rss_daily_trend_census.mjs';
-import {DAILY_PLAN_SCHEMA,lastCompletedSession,jstNow,requiredDailySessions,
+import {DAILY_PLAN_SCHEMA,ORIGINAL_SYMBOLS_SHA256,lastCompletedSession,jstNow,requiredDailySessions,
   summarizeDailyCaptures} from '../runtime/no11_rss_daily_trend_census.mjs';
 import {isJpxCashTradingDay} from '../runtime/jpx_cash_calendar_2026_2027.mjs';
 import {makeObservedPassWatchMask}
@@ -64,7 +64,9 @@ export function verifyWeeklyPool(weeklyRun){
   const plan=regular(path.join(run,'plan.json'),4_000_000);
   const {planId,...body}=plan;
   need(plan.schemaId===DAILY_PLAN_SCHEMA&&
-    SHA(JSON.stringify(body))===planId&&plan.codeSha256===codeIdentity(),
+    SHA(JSON.stringify(body))===planId&&plan.codeSha256===codeIdentity()&&
+    plan.sourceSymbolsSha256===ORIGINAL_SYMBOLS_SHA256&&
+    Array.isArray(plan.symbols)&&plan.symbols.length===4328,
     'FULL_RUN_CODE_OR_PLAN_PIN_INVALID');
   need(isoFriday(plan.asOfSession)||plan.asOfSession===initialSeed,
     'SOURCE_MUST_BE_FRIDAY_OR_INITIAL_SEED');

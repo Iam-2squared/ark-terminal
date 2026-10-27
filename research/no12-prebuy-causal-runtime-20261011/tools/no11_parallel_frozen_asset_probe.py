@@ -82,7 +82,7 @@ def probe(*, engine_root: Path, private_local_root: Path, session: str) -> dict:
     p1_root = original_p1_root(local)
     print("NO11_PARALLEL_ASSETS_P1=LOADING_ORIGINAL_F5", flush=True)
     from no11_p1_forward_shadow import FrozenP1Scorer
-    p1 = FrozenP1Scorer(p1_root, engine.parents[2], session)
+    p1 = FrozenP1Scorer(p1_root, engine.parents[1], session)
     need(p1.model_kind == "ORIGINAL_CORRECTED_P1_F5"
          and p1.policy["newFits"] == 0
          and p1.policy["orderTransmission"] is False, "P1_POLICY_CHANGED")

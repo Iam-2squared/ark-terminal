@@ -85,12 +85,29 @@ export function nightlyWindow(now){
   need(sameEvening||followingPreopen,'CURRENT_COMPLETED_CASH_SESSION_REQUIRED');
   return {date,now,followingPreopen};
 }
-function currentAsOf(){
-  const {date,now}=nightlyWindow(jstNow());
-  need(!isoFriday(date),'FRIDAY_FULL_MARKET_SWEEP_REQUIRED');
-  return {date,now};
+/**
+ * Deliberate RECOVERY after the 08:30 preopen deadline. The as-of day stays
+ * the REAL completed previous cash day; receipt/plan creation uses current JST.
+ * The unchanged inspector excludes any following-day partial D100 rows.
+ * This never converts a current intraday price into yesterday's close.
+ */
+export function daytimeCatchUpWindow(now,explicitAsOf){
+  need(typeof now==='string'&&typeof explicitAsOf==='string'&&
+    /^20\d{2}-\d{2}-\d{2}$/.test(explicitAsOf),'CATCHUP_ARGUMENT_INVALID');
+  const local=now.slice(0,10),clock=now.slice(11,16);
+  need(isJpxCashTradingDay(local)&&isJpxCashTradingDay(explicitAsOf)&&
+    nextCashDate(explicitAsOf)===local&&lastCompletedSession(now)===explicitAsOf&&
+    clock>='08:30'&&clock<'18:00'&&!isoFriday(explicitAsOf),
+    'CATCHUP_REQUIRES_ACTUAL_PREVIOUS_CASH_DAY');
+  return {date:explicitAsOf,now,daytimeHistoricalRecovery:true};
 }
-function assembleDailyPlan(source,date,now){
+function currentAsOf(catchUpAsOf=''){
+  const {date,now,daytimeHistoricalRecovery=false}=catchUpAsOf?
+    daytimeCatchUpWindow(jstNow(),catchUpAsOf):nightlyWindow(jstNow());
+  need(!isoFriday(date),'FRIDAY_FULL_MARKET_SWEEP_REQUIRED');
+  return {date,now,daytimeHistoricalRecovery};
+}
+function assembleDailyPlan(source,date,now,daytimeHistoricalRecovery=false){
   const gap=tradingGap(source.plan.asOfSession,date);
   need(gap>=1&&gap<=4,'WEEKLY_POOL_EXPIRED_FULL_SWEEP_REQUIRED');
   const symbols=[...source.mask.observedPassSymbols];
@@ -115,17 +132,25 @@ function assembleDailyPlan(source,date,now){
     priceBasisCertified:false,
     productionReady:false,orderTransmission:false
   };
+  if(daytimeHistoricalRecovery){
+    // Source is retrieved NOW, never backdated to yesterday. G1 evaluates
+    // yesterday's 76 CASH sessions, explicitly ignoring today's partial bar.
+    body.daytimeHistoricalRecovery=true;
+    body.recoveryObservedCalendarDay=now.slice(0,10);
+    body.historicalAsOfSession=date;
+    body.futurePartialBarsExcludedFromG1=true;
+  }
   return {planId:SHA(JSON.stringify(body)),...body};
 }
-function stagePlan(weeklyRun,root){
+function stagePlan(weeklyRun,root,catchUpAsOf=''){
   const source=verifyWeeklyPool(weeklyRun);
-  const {date,now}=currentAsOf();
+  const {date,now,daytimeHistoricalRecovery}=currentAsOf(catchUpAsOf);
   const base=directory(root,true);
   const fragment=source.plan.planId.slice(0,16);
   const run=directory(path.join(base,'weekly-refresh-'+date+'-'+fragment),true);
   directory(path.join(run,'sources'),true);
   const planFile=path.join(run,'plan.json');
-  if(!fs.existsSync(planFile))immutable(planFile,assembleDailyPlan(source,date,now));
+  if(!fs.existsSync(planFile))immutable(planFile,assembleDailyPlan(source,date,now,daytimeHistoricalRecovery));
   const plan=regular(planFile);
   validateRefreshPlan(plan,source,date);
   const captures=loadCaptures(run,plan);
@@ -148,6 +173,15 @@ function validateRefreshPlan(plan,source,date){
     plan.newWeeklyBreakoutsIncluded===false&&plan.unknownNotAdmitted===true&&
     plan.productionReady===false&&plan.orderTransmission===false,
     'REFRESH_PLAN_LINEAGE_OR_CONTENT_INVALID');
+  if(plan.daytimeHistoricalRecovery===true){
+    need(plan.recoveryObservedCalendarDay===nextCashDate(date)&&
+      plan.historicalAsOfSession===date&&
+      plan.futurePartialBarsExcludedFromG1===true&&
+      typeof plan.createdAtJst==='string'&&
+      plan.createdAtJst.slice(0,10)===plan.recoveryObservedCalendarDay&&
+      plan.createdAtJst.slice(11,16)>='08:30',
+      'CATCHUP_ACTUAL_RECEIPT_CLOCK_INVALID');
+  }
   need(tradingGap(source.plan.asOfSession,date)>=1&&
     tradingGap(source.plan.asOfSession,date)<=4,'WEEKLY_POOL_EXPIRED');
   return plan;
@@ -166,13 +200,13 @@ export function runCli(args){
   }
   need(['plan','report'].includes(action)&&args.length%2===1,'USAGE');
   for(let i=1;i<args.length;i+=2){
-    need(['--weekly-run','--root','--run','--pins-file'].includes(args[i])&&!flags[args[i]],'USAGE');
+    need(['--weekly-run','--root','--run','--pins-file','--catch-up-asof'].includes(args[i])&&!flags[args[i]],'USAGE');
     flags[args[i]]=args[i+1];
   }
   need(flags['--weekly-run'],'WEEKLY_RUN_REQUIRED');
   if(action==='plan'){
     need(flags['--root']&&!flags['--run']&&!flags['--pins-file'],'USAGE');
-    const staged=stagePlan(flags['--weekly-run'],flags['--root']);
+    const staged=stagePlan(flags['--weekly-run'],flags['--root'],flags['--catch-up-asof']??'');
     console.log(JSON.stringify({run:staged.run,plan:staged.plan,
       resumed:staged.resumed,remaining:staged.remaining,
       weeklyRestrictedUniverse:true}));
@@ -181,7 +215,7 @@ export function runCli(args){
     const source=verifyWeeklyPool(flags['--weekly-run']);
     const run=directory(flags['--run']);
     const plan=regular(path.join(run,'plan.json'));
-    const {date}=currentAsOf();
+    const {date}=currentAsOf(flags['--catch-up-asof']??'');
     validateRefreshPlan(plan,source,date);
     const captures=loadCaptures(run,plan);
     const {summary}=summarizeDailyCaptures(plan,captures);
@@ -202,6 +236,12 @@ export function runCli(args){
     mask.weeklyPoolSourcePlanId=source.plan.planId;
     mask.weeklyPoolPopulation=plan.symbols.length;
     mask.newBreakoutsOutsideWeeklyPoolNotScanned=true;
+    if(plan.daytimeHistoricalRecovery===true){
+      mask.daytimeHistoricalRecovery=true;
+      mask.recoveryObservedCalendarDay=plan.recoveryObservedCalendarDay;
+      mask.historicalAsOfSession=date;
+      mask.futurePartialBarsExcludedFromG1=true;
+    }
     mask.sourceManifestSha256=SHA(JSON.stringify(
       fs.readdirSync(path.join(run,'sources')).filter(n=>n.endsWith('.json')).sort()));
     const mBytes=Buffer.from(JSON.stringify(mask)+'\n');
@@ -231,11 +271,17 @@ export function runCli(args){
       accountPositionsBrokerVerified:false,
       actualChartFunctionOccupancyVerified:false,
       selectedRankingEconomicEquivalenceVerified:false,
-      selectorLiveConnected:false,shadowOnly:true,
+      selectorLiveConnected:false,
+      daytimeHistoricalRecovery:plan.daytimeHistoricalRecovery===true,
+      recoveryObservedCalendarDay:plan.recoveryObservedCalendarDay??null,
+      historicalAsOfSession:date,
+      futurePartialBarsExcludedFromG1:plan.daytimeHistoricalRecovery===true,
+      shadowOnly:true,
       productionReady:false,orderTransmission:false};
     const rBytes=Buffer.from(JSON.stringify(receipt)+'\n');
     const receiptFile=path.join(run,'no11-chart50-private-'+SHA(rBytes).slice(0,16)+'.json');
     immutable(receiptFile,receipt);
+    console.log('NO11_WEEKLY_REFRESH_DAYTIME_CATCHUP='+(plan.daytimeHistoricalRecovery===true?'ACTUAL_RSS_NOW_PRIOR_ASOF_ONLY':'NO'));
     console.log('NO11_WEEKLY_REFRESH_PASS='+mask.observedPassCount);
     console.log('NO11_WEEKLY_REFRESH_CHARTS='+chartPlan.arkChartsUsed);
     console.log('NO11_WEEKLY_REFRESH_WEEKLY_ORIGIN='+source.plan.asOfSession);

@@ -111,7 +111,7 @@ export async function inspect(args){
            within(absolute(a['--mask'],'MASK'),run),
   'MASK_AND_PLAN_MUST_BELONG_TO_DAILY_RUN');
  requireOk(out!==root&&!within(out,root)&&!within(root,out) &&
-           out!==run&&!within(run,out),'OUTPUT_PRIVATE_ROOT');
+           out!==run&&!within(out,run)&&!within(run,out),'OUTPUT_PRIVATE_ROOT');
  if(fs.existsSync(out)){
    requireOk(fs.statSync(out).isDirectory(),'OUTPUT_DIRECTORY_INVALID');
  }else fs.mkdirSync(out,{recursive:true});

@@ -75,11 +75,22 @@ function AssertNoConcurrentCollector{
 }
 try{
  if($OfflineSelfTest){
-  # Offline self-test uses checked-in original scripts only; no C:\ArkTerminal
-  # directory exists on a clean Windows CI runner. Never alter actual launch.
-  $collector=Join-Path $PSScriptRoot 'Capture-No11SessionReferenceReadOnly.ps1'
-  [void](AssertPath $collector 'ORIGINAL_COLLECTOR_SELFTEST' $false)
-  $t=@(& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $collector -OfflineSelfTest)
+  # When this launcher is downloaded into TEMP, use the original engine-root
+  # collector. CI source checkout has an adjacent original collector instead.
+  # Only the ORIGINAL test entrypoint is called, no Excel session is accessed.
+  $installedCollector=Join-Path $EngineRoot 'windows\Capture-No11SessionReferenceReadOnly.ps1'
+  $adjacentCollector=Join-Path $PSScriptRoot 'Capture-No11SessionReferenceReadOnly.ps1'
+  $testCollector=''
+  if(Test-Path -LiteralPath $installedCollector -PathType Leaf){
+   $testCollector=$installedCollector
+  }elseif(Test-Path -LiteralPath $adjacentCollector -PathType Leaf){
+   $testCollector=$adjacentCollector
+  }else{
+   throw 'NO11_ONESHOT_ORIGINAL_COLLECTOR_SELFTEST_SOURCE_MISSING'
+  }
+  [void](AssertPath $testCollector 'ORIGINAL_COLLECTOR_SELFTEST' $false)
+  Write-Host 'NO11_ONESHOT_SELFTEST_COLLECTOR=ORIGINAL_AVAILABLE'
+  $t=@(& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $testCollector -OfflineSelfTest)
   if($LASTEXITCODE -ne 0 -or $t -notcontains 'NO11_REFERENCE_OFFLINE_SELFTEST=PASS'){
    throw 'NO11_ONESHOT_ORIGINAL_COLLECTOR_SELFTEST_FAILED'
   }

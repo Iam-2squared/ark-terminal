@@ -104,6 +104,28 @@ class PreparationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'REVIEWED_PRICE_MISMATCH'):
             self.build()
 
+    def test_fullwidth_rss_section_must_equal_external_reviewed_segment(self):
+        for rss, section in [('東証Ｐ', 'PRIME'), ('東証Ｓ', 'STANDARD'), ('東証Ｇ', 'GROWTH')]:
+            r, e = deepcopy(self.reference), deepcopy(self.evidence)
+            r['rows'][0]['marketSection'] = rss
+            e['rows'][0]['segment'] = section
+            master = self.build(reference=r, evidence=e)
+            self.assertEqual(master['rows'][0]['segment'], section)
+            self.assertEqual(r['rows'][0]['marketSection'], rss)
+            e['rows'][0]['corporateActionsCleared'] = False
+            with self.assertRaisesRegex(ValueError, 'SECURITY_EVIDENCE_NOT_CONFIRMED'):
+                self.build(reference=r, evidence=e)
+        r = deepcopy(self.reference)
+        r['rows'][0]['marketSection'] = '東証Ｐ'
+        with self.assertRaisesRegex(ValueError, 'RSS_IDENTITY_DATE_OR_CLASS_MISMATCH'):
+            e = deepcopy(self.evidence)
+            e['rows'][0]['segment'] = 'STANDARD'
+            self.build(reference=r, evidence=e)
+        for bad in ['東証プライム', '東証Ｘ', '東証Ｐ ', '東証p']:
+            r['rows'][0]['marketSection'] = bad
+            with self.assertRaisesRegex(ValueError, 'RSS_IDENTITY_DATE_OR_CLASS_MISMATCH'):
+                self.build(reference=r)
+
     def test_wrong_previous_day_and_market_class_are_rejected(self):
         for key, value in [('previousDate', '2026-10-22'), ('marketDate', old.PRIOR),
                            ('marketSection', '東証S'), ('lotShares', 1), ('marketCode', 'JNX')]:

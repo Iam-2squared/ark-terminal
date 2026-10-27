@@ -19,6 +19,8 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_oct29_reference_oneshot.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Capture-No11SessionReferenceReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_session_reference.test.mjs
+      - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11Oct29ReadOnlyFiles.ps1
+      - research/no12-prebuy-causal-runtime-20261011/tests/no11_oct29_readonly_stage.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_reference_fields_diagnostic.mjs
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_reference_fields_diagnostic.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_account_connection_diagnostic_readonly.mjs
@@ -43,6 +45,8 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_oct29_reference_oneshot.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Capture-No11SessionReferenceReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_session_reference.test.mjs
+      - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11Oct29ReadOnlyFiles.ps1
+      - research/no12-prebuy-causal-runtime-20261011/tests/no11_oct29_readonly_stage.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_reference_fields_diagnostic.mjs
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_reference_fields_diagnostic.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_account_connection_diagnostic_readonly.mjs
@@ -77,6 +81,7 @@ jobs:
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_oct29_preopen_doctor.test.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_oct29_reference_oneshot.test.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_session_reference.test.mjs
+          node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_oct29_readonly_stage.test.mjs
           node --check research/no12-prebuy-causal-runtime-20261011/tools/no11_account_connection_diagnostic_readonly.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_account_connection_diagnostic_readonly.test.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_parallel_shadow_preflight_audit.test.mjs
@@ -94,7 +99,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $dir = 'research/no12-prebuy-causal-runtime-20261011/windows'
-          foreach ($name in @('Run-No11WeeklyCandidateRefreshReadOnly.ps1','Prepare-No11WeeklyAfterCloseReadOnly.ps1','Prepare-No11PreviousArchiveReadOnly.ps1','Stage-No11Oct28ReadOnlyFiles.ps1','Run-No11Oct29ReferenceOneShotReadOnly.ps1','Capture-No11SessionReferenceReadOnly.ps1')) {
+          foreach ($name in @('Run-No11WeeklyCandidateRefreshReadOnly.ps1','Prepare-No11WeeklyAfterCloseReadOnly.ps1','Prepare-No11PreviousArchiveReadOnly.ps1','Stage-No11Oct28ReadOnlyFiles.ps1','Run-No11Oct29ReferenceOneShotReadOnly.ps1','Capture-No11SessionReferenceReadOnly.ps1','Stage-No11Oct29ReadOnlyFiles.ps1')) {
             $file = Join-Path $dir $name
             $tokens = $null
             $errors = $null
@@ -113,5 +118,7 @@ jobs:
           & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $dir 'Capture-No11SessionReferenceReadOnly.ps1') -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'Excel-bound reference collector parser/self-test failed' }
           if ($LASTEXITCODE -ne 0) { throw 'Oct29 reference collector offline self-test failed' }
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $dir 'Stage-No11Oct29ReadOnlyFiles.ps1') -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'Oct29 source installer self-test failed' }
           Write-Host 'NO11_WEEKLY_WINDOWS_OFFLINE_TESTS=PASS'
           Write-Host 'ORDER_TRANSMISSION=False'

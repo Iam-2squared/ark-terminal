@@ -74,7 +74,7 @@ test('separate diagnosed Chart50 collector preserves original RSS and immutable 
    "ORDER_TRANSMISSION=False",
  ])assert.ok(diag.includes(marker),marker);
  assert.ok(diag.length>original.length);
- for(const marker of ["GetActiveObject","OriginalBooks","OriginalCapacity",
+ for(const marker of ["AccessibleObjectFromWindow","OriginalBooks","OriginalCapacity",
     "EXCEL7","SaveSnapshot","$book.Close($false)"])assert.ok(diag.includes(marker));
  assert.doesNotMatch(diag,/\b(?:RssStockOrder|RssMarginOpenOrder|RssCancelOrder)\s*\(/);
  assert.doesNotMatch(diag,/\.SaveAs\s*\(|\.Save\s*\(\s*\)/i);

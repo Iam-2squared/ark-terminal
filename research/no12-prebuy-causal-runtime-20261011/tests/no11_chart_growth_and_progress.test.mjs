@@ -72,7 +72,7 @@ foreach($initial in @(50,120,150)){
  $count=0
  for($n=0;$n -lt $result.rowLimit;$n++){if($null -ne (DateToken $result.values.GetValue(($n+1),4))){$count++}}
  if($count -ne ($initial+4)){throw 'APPENDED_ROW_COUNT'}
- $data[$limit+1,4]='2026/10/26'
+ $data[($limit+1),4]='2026/10/26'
  $blocked=$false
  try{ReadGrowingChart $sheet $initial|Out-Null}catch{
   if($_.Exception.Message -ceq 'NO11_C50_GROWING_CHART_OVERFLOW'){$blocked=$true}else{throw}

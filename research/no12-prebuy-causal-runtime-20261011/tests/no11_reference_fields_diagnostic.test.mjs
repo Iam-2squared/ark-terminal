@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {auditReference,previousCashDay} from '../tools/no11_reference_fields_diagnostic.mjs';
+import {auditReference,previousCashDay,marketSectionSegment} from '../tools/no11_reference_fields_diagnostic.mjs';
 const day='2026-10-27',prev='2026-10-26';
 function fixture(){
  const selectedSymbols=Array.from({length:47},(_,i)=>String(1000+i)+'.T');
@@ -33,6 +33,26 @@ test('complete RSS reference never authorizes corporate review or Shadow',()=>{
  assert.equal(r.datedMasterCreated,false);
  assert.equal(r.shadowPreflightPassed,false);
  assert.equal(r.orderTransmission,false);
+});
+test('actual Rakuten fullwidth 東証Ｐ／Ｓ／Ｇ counts pass all 47 source-field checks',()=>{
+ const x=fixture();
+ for(let i=0;i<x.rows.length;i++)x.rows[i].marketSection=i<20?'東証Ｐ':i<34?'東証Ｓ':'東証Ｇ';
+ const r=auditReference(x,day);
+ assert.equal(r.completeRows,47);
+ assert.equal(r.present.MARKET_SECTION_RECOGNIZED,47);
+ assert.equal(r.status,'FIELDS_PRESENT_NOT_EXTERNALLY_REVIEWED');
+ assert.equal(r.independentCorporateReview,false);
+ assert.equal(r.datedMasterCreated,false);
+ assert.equal(r.shadowPreflightPassed,false);
+ assert.equal(r.orderTransmission,false);
+ assert.equal(x.rows[0].marketSection,'東証Ｐ'); // preserve immutable raw source
+});
+test('fullwidth/ascii share only exact segment mapping, no arbitrary Unicode folding',()=>{
+ for(const [raw,segment] of Object.entries({'東証P':'PRIME','東証Ｐ':'PRIME',
+  '東証S':'STANDARD','東証Ｓ':'STANDARD','東証G':'GROWTH','東証Ｇ':'GROWTH'}))
+  assert.equal(marketSectionSegment(raw),segment);
+ for(const raw of ['東証プライム','東証Ｐ ','東証Ｐ\u200b','東証Ｘ','東証p','東証'])
+  assert.equal(marketSectionSegment(raw),null);
 });
 test('single missing field exposes the real failing field without fabricated defaults',()=>{
  const x=fixture();

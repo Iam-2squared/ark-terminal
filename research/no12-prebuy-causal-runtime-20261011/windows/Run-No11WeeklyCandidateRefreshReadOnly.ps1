@@ -6,6 +6,7 @@ param(
  [string]$WeeklyRun,
  [string]$PrivateRoot,
  [string]$PinsFile,
+ [string]$CatchUpAsOf='',
  [ValidateRange(1,20)][int]$BatchSize=20,
  [ValidateRange(5,60)][int]$WaitSeconds=15,
  [ValidateRange(0,5000)][int]$MaxSymbols=0
@@ -99,7 +100,12 @@ if(-not [string]::IsNullOrWhiteSpace($PinsFile) -and
  throw 'NO11_WEEKLY_PINS_FILE_INVALID'
 }
 function Get-Plan {
- $text=(& node $tool plan --weekly-run $WeeklyRun --root $PrivateRoot | Out-String)
+ $planArgs=@('plan','--weekly-run',$WeeklyRun,'--root',$PrivateRoot)
+ if(-not [string]::IsNullOrWhiteSpace($CatchUpAsOf)){
+  if($CatchUpAsOf -cnotmatch '^20\d{2}-\d{2}-\d{2}$'){throw 'NO11_DAILY_CATCHUP_DAY_INVALID'}
+  $planArgs+=@('--catch-up-asof',$CatchUpAsOf)
+ }
+ $text=(& node $tool @planArgs | Out-String)
  if($LASTEXITCODE -ne 0){throw 'NO11_WEEKLY_REFRESH_PLAN_FAILED'}
  return ($text | ConvertFrom-Json)
 }
@@ -211,11 +217,17 @@ public static class No11DailyWindow {
  if($null -ne $lock){$lock.Dispose()}
 }
 $reportArgs=@('report','--run',$run,'--weekly-run',$WeeklyRun)
+if(-not [string]::IsNullOrWhiteSpace($CatchUpAsOf)){
+ $reportArgs+=@('--catch-up-asof',$CatchUpAsOf)
+}
 if(-not [string]::IsNullOrWhiteSpace($PinsFile)){$reportArgs+=@('--pins-file',$PinsFile)}
 $output=@(& node $tool @reportArgs)
 $reportExit=$LASTEXITCODE
 $output|ForEach-Object {Write-Host $_}
 if($failed -or $reportExit -ne 0){exit 2}
+if(-not [string]::IsNullOrWhiteSpace($CatchUpAsOf)){
+ Write-Host 'NO11_WEEKLY_DAILY_CAPTURE=HISTORICAL_ASOF_WITH_REAL_CURRENT_RECEIPT'
+}
 Write-Host 'NO11_WEEKLY_DAILY_REFRESH=COMPLETE_NOT_FULL_UNIVERSE'
 Write-Host 'ORDER_TRANSMISSION=False'
 exit 0

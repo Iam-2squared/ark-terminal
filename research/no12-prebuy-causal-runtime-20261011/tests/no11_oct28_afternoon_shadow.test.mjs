@@ -25,6 +25,19 @@ test('no auto trading or fabricated external certification; explicit manual Star
   /orderTransmission\s*=\s*\$true/,/productionReady\s*=\s*\$true/,
   /Stop-Process|\.Kill\s*\(/])assert.doesNotMatch(body,re);
 });
+test('auto discovery never silently accepts arbitrary source or stale day',()=>{
+ for(const marker of [
+  'ResolveDailySource',
+  "'daily-2026-10-26-*' '2026-10-26' 4328 'SEED_20261026'",
+  "'weekly-refresh-2026-10-27-*' '2026-10-27' 429 'REFRESH_20261027'",
+  "'WRONG_'+$role+'_SESSION_OR_SCOPE'",
+  "NO11_TODAY_SHADOW_MISSING=",
+  "NO11_TODAY_SHADOW_MISSING_PATH=",
+  "NO11_TODAY_SHADOW_FOUND_",
+  "AMBIGUOUS_REQUIRE_EXPLICIT_PATH=True",
+ ])assert.ok(body.includes(marker),marker);
+ assert.ok(body.includes('WEEKLY_G1_CHART_NOT_VERIFIED'));
+});
 test('Windows offline selftest is physical-source-free', {skip:process.platform!=='win32'},()=>{
  const p=spawnSync('powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass','-File',file,
  '-OfflineSelfTest'],{encoding:'utf8',timeout:25000});

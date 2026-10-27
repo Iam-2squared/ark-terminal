@@ -58,7 +58,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $dir = 'research/no12-prebuy-causal-runtime-20261011/windows'
-          foreach ($name in @('Run-No11WeeklyCandidateRefreshReadOnly.ps1','Prepare-No11WeeklyAfterCloseReadOnly.ps1')) {
+          foreach ($name in @('Run-No11WeeklyCandidateRefreshReadOnly.ps1','Prepare-No11WeeklyAfterCloseReadOnly.ps1','Prepare-No11PreviousArchiveReadOnly.ps1')) {
             $file = Join-Path $dir $name
             $tokens = $null
             $errors = $null

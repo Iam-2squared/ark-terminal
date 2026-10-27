@@ -59,8 +59,6 @@ try{
  }
  $DailyRoot=PathOutsideRepo $DailyRoot 'DAILY_ROOT'
  $RefreshRoot=PathOutsideRepo $RefreshRoot 'REFRESH_ROOT'
- Need ([IO.Path]::IsPathRooted($FullSymbolsFile) -and
-  (Test-Path -LiteralPath $FullSymbolsFile -PathType Leaf)) 'FULL_SYMBOL_LIST_MISSING'
  Need ([IO.Path]::IsPathRooted($PythonExecutable) -and
   (Test-Path -LiteralPath $PythonExecutable -PathType Leaf)) 'PINNED_PYTHON_MISSING'
  if(-not [string]::IsNullOrWhiteSpace($PinsFile)){
@@ -86,6 +84,9 @@ try{
  Write-Host ('NO11_WEEKLY_NIGHTLY_MODE='+$mode)
 
  if($mode -ceq 'FULL_MARKET_FRIDAY'){
+ Need ([IO.Path]::IsPathRooted($FullSymbolsFile) -and
+  (Test-Path -LiteralPath $FullSymbolsFile -PathType Leaf)) 'FULL_SYMBOL_LIST_MISSING'
+
   # The unchanged full-market path still checks exact source hashes and RSS.
   $arguments=@('-NoProfile','-ExecutionPolicy','Bypass','-File',$full,
    '-SessionDate',$session,'-AsOfSession',$asOf,

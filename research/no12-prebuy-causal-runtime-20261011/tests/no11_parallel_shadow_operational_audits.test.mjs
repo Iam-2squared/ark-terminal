@@ -54,3 +54,28 @@ test('frozen asset verifier loads pinned ORIGINAL components but never the live 
   /\b(?:fit|fit_transform|joblib\.dump|pickle\.dump)\s*\(/
  ])assert.doesNotMatch(py,forbidden);
 });
+
+
+test('separate diagnosed Chart50 collector preserves original RSS and immutable source boundaries',()=>{
+ const original=fs.readFileSync(new URL('../windows/Probe-No11Chart50ContinuousReadOnly.ps1',import.meta.url),'utf8');
+ const diag=fs.readFileSync(new URL('../windows/Probe-No11Chart50DiagnosedReadOnly.ps1',import.meta.url),'utf8');
+ for(const marker of [
+   "return ('=RssChart($A$2:$J$2,",
+   "return ('=RssMarket(",
+   'SaveSnapshot $folder $payload',
+   'NO11_C50_CONTINUOUS_OFFLINE_SELFTEST=PASS',
+   'NO11_C50_DIAGNOSTIC_STEP=',
+   'NO11_C50_LAST_COMPLETED_SAMPLE=',
+   'NO11_C50_FAILED_SAMPLE=',
+   'NO11_C50_FAILED_CHART_INDEX=',
+   'NO11_C50_ERROR_KIND=',
+   'NO11_C50_ERROR_HRESULT=',
+   'NO11_C50_SAVED_SNAPSHOT_COUNT=',
+   "ORDER_TRANSMISSION=False",
+ ])assert.ok(diag.includes(marker),marker);
+ assert.ok(diag.length>original.length);
+ for(const marker of ["GetActiveObject","OriginalBooks","OriginalCapacity",
+    "EXCEL7","SaveSnapshot","$book.Close($false)"])assert.ok(diag.includes(marker));
+ assert.doesNotMatch(diag,/\b(?:RssStockOrder|RssMarginOpenOrder|RssCancelOrder)\s*\(/);
+ assert.doesNotMatch(diag,/\.SaveAs\s*\(|\.Save\s*\(\s*\)/i);
+});

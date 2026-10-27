@@ -9,6 +9,8 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_parallel_saved_chart_watch.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Probe-No11Chart50DiagnosedReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_parallel_shadow_operational_audits.test.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_partial_observed_shadow_rehearsal.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tests/no11_partial_observed_shadow_rehearsal.test.mjs
       - .github/workflows/no11-shadow-parallel-asset-observation.yml
   pull_request:
     paths:
@@ -16,6 +18,8 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_parallel_saved_chart_watch.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Probe-No11Chart50DiagnosedReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_parallel_shadow_operational_audits.test.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_partial_observed_shadow_rehearsal.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tests/no11_partial_observed_shadow_rehearsal.test.mjs
       - .github/workflows/no11-shadow-parallel-asset-observation.yml
 
 permissions:
@@ -41,6 +45,8 @@ jobs:
         run: |
           node --check research/no12-prebuy-causal-runtime-20261011/tools/no11_parallel_saved_chart_watch.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_parallel_shadow_operational_audits.test.mjs
+          node --check research/no12-prebuy-causal-runtime-20261011/tools/no11_partial_observed_shadow_rehearsal.mjs
+          node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_partial_observed_shadow_rehearsal.test.mjs
       - name: Safety statement
         run: |
           echo "NO11_PARALLEL_AUDITS_OFFLINE_TESTS=PASS"

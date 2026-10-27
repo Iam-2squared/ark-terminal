@@ -13,6 +13,16 @@ import {isJpxCashTradingDay} from '../runtime/jpx_cash_calendar_2026_2027.mjs';
 const HERE=path.resolve(new URL('../../..',import.meta.url).pathname);
 const fail=code=>{throw Error('NO11_REFERENCE_DIAG_'+code)};
 const need=(v,code)=>{if(!v)fail(code)};
+// Exact Rakuten RSS section labels: Excel may return ASCII or fullwidth P/S/G.
+// Do not rewrite the immutable RSS source or accept arbitrary Unicode folding.
+const SECTIONS=Object.freeze({
+ '東証P':'PRIME','東証Ｐ':'PRIME',
+ '東証S':'STANDARD','東証Ｓ':'STANDARD',
+ '東証G':'GROWTH','東証Ｇ':'GROWTH'
+});
+export function marketSectionSegment(value){
+ return typeof value==='string'&&Object.hasOwn(SECTIONS,value)?SECTIONS[value]:null;
+}
 const positive=v=>typeof v==='number'&&Number.isFinite(v)&&v>0&&v<=1_000_000_000;
 const validDay=d=>typeof d==='string'&&/^20\d{2}-\d{2}-\d{2}$/.test(d)&&
   !Number.isNaN(Date.parse(d+'T00:00:00Z'))&&
@@ -58,7 +68,7 @@ export function auditReference(raw,session){
   PREVIOUS_DATE_CASH_SESSION:r=>r.previousDate===previous,
   PREVIOUS_CLOSE_POSITIVE:r=>positive(r.previousClose),
   DAY_BASE_PRICE_POSITIVE:r=>positive(r.dayBasePrice),
-  MARKET_SECTION_RECOGNIZED:r=>['東証P','東証S','東証G'].includes(r.marketSection),
+  MARKET_SECTION_RECOGNIZED:r=>marketSectionSegment(r.marketSection)!==null,
   LOT_SHARES_100:r=>typeof r.lotShares==='number'&&r.lotShares===100
  };
  const present=Object.fromEntries(Object.entries(fieldChecks).map(([k,test])=>

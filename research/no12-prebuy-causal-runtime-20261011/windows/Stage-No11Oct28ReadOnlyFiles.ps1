@@ -21,7 +21,13 @@ if($OfflineSelfTest){
 if(-not (Test-Path -LiteralPath $EngineRoot -PathType Container)){
  throw 'NO11_OCT28_ENGINE_ROOT_MISSING'
 }
-$old=$ErrorActionPreference
+$active=@(Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" -ErrorAction Stop |
+ Where-Object {
+  $_.ProcessId -ne $PID -and
+  [string]$_.CommandLine -match '(?i)(Run-No11WeeklyCandidateRefreshReadOnly|Prepare-No11WeeklyAfterCloseReadOnly|Prepare-No11PreviousArchiveReadOnly)\\.ps1'
+ })
+if($active.Count -ne 0){throw 'NO11_OCT28_EXISTING_WEEKLY_TASK_MUST_FINISH'}
+
 $root=Join-Path $env:LOCALAPPDATA 'ArkTerminal\No12\oct28-source-upgrade'
 $tag=[guid]::NewGuid().ToString('N')
 $staging=Join-Path $root ('staged-'+$tag)

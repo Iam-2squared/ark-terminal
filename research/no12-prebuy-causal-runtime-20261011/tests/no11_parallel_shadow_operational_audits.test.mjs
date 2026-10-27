@@ -11,7 +11,7 @@ test('concurrent disk-only C50 observer fails closed before file I/O on bad CLI 
  await assert.rejects(inspect(['--engine-root','a','--daily-run','b','--mask','c','--plan','d']),
    /NO11_PARALLEL_CHART_WATCH_ENGINE_ABSOLUTE_REQUIRED/);
  await assert.rejects(inspect(['--engine-root','/tmp','--daily-run','/tmp',
-   '--mask','/tmp/x','--plan','/tmp/y','--change-mode','LIVE']),
+   '--mask','/tmp/x','--change-mode','LIVE']),
    /NO11_PARALLEL_CHART_WATCH_UNKNOWN_OR_DUPLICATE_ARGUMENT/);
 });
 test('original capture plan and immutable private snapshot checks are non-negotiable',()=>{

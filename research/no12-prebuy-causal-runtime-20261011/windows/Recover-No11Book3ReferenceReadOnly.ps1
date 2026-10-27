@@ -1,4 +1,4 @@
-# Salvage the real 2026-10-27 RssMarket reference already visible in Excel Book3.
+﻿# Salvage the real 2026-10-27 RssMarket reference already visible in Excel Book3.
 # NEVER starts another collector, changes a workbook or contacts broker orders.
 # Requires EXACT three books (the two originals + the orphaned unsaved Book3).
 # The original frozen scope validator supplies the exact selected 47 symbols.

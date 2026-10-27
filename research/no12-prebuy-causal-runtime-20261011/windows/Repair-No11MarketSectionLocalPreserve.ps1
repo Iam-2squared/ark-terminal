@@ -71,7 +71,7 @@ try{
  $staging=Join-Path $root 'stage';$backups=Join-Path $root 'backups'
  [void][IO.Directory]::CreateDirectory($staging)
  [void][IO.Directory]::CreateDirectory($backups)
- $utf8=New-Object Text.UTF8Encoding($false,$true)
+ $utf8=[Text.UTF8Encoding]::new($false,$true)
  $source=$utf8.GetString([IO.File]::ReadAllBytes($local))
  $patched=OneLinePatch $source
  $prepared=Join-Path $staging 'no11_prepare_received_inputs.py'

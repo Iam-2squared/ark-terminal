@@ -78,7 +78,7 @@ function weeklyStage(local,seed,io,missing){
  const run=newest(runs,2);
  const p=read(path.join(run,'plan.json'),3_000_000).data;
  const {planId,...body}=p;
- need(p.schemaId==='ARK_NO11_WEEKLY_G1_DAILY_REFRESH_PLAN_V1'&&
+ need(p.schemaId===DAILY_PLAN_SCHEMA&&p.refreshSchemaId==='ARK_NO11_WEEKLY_G1_DAILY_REFRESH_PLAN_V1'&&
   p.asOfSession===PREV&&p.codeSha256===codeIdentity()&&
   p.weeklySource?.asOfSession===SEED&&
   p.weeklySource?.originalPlanId===seed.plan.planId&&

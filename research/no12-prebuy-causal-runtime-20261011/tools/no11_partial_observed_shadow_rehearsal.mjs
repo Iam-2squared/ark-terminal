@@ -104,7 +104,7 @@ export async function inspect(args){
  const run=directory(a['--daily-run'],'RUN');
  const captures=directory(a['--capture-folder'],'CAPTURE');
  const out=absolute(a['--output-root'],'OUTPUT');
- const root=path.resolve(engine,'../../..');
+ const root=path.resolve(engine,'../..');
  requireOk(root!==run&&!within(run,root)&&!within(root,run),'PRIVATE_SOURCE_IN_REPO');
  requireOk(within(captures,run),'CAPTURE_MUST_BELONG_TO_DAILY_RUN');
  requireOk(within(absolute(a['--plan'],'PLAN'),run)&&

@@ -74,8 +74,11 @@ function AssertNoConcurrentCollector{
  if($other.Count -ne 0){throw 'NO11_ONESHOT_OTHER_EXCEL_COLLECTOR_RUNNING'}
 }
 try{
- foreach($x in @($archive,$collector,$queue)){[void](AssertPath $x 'PINNED_CODE' $false)}
  if($OfflineSelfTest){
+  # Offline self-test uses checked-in original scripts only; no C:\ArkTerminal
+  # directory exists on a clean Windows CI runner. Never alter actual launch.
+  $collector=Join-Path $PSScriptRoot 'Capture-No11SessionReferenceReadOnly.ps1'
+  [void](AssertPath $collector 'ORIGINAL_COLLECTOR_SELFTEST' $false)
   $t=@(& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $collector -OfflineSelfTest)
   if($LASTEXITCODE -ne 0 -or $t -notcontains 'NO11_REFERENCE_OFFLINE_SELFTEST=PASS'){
    throw 'NO11_ONESHOT_ORIGINAL_COLLECTOR_SELFTEST_FAILED'
@@ -85,6 +88,7 @@ try{
   Write-Host 'ORDER_TRANSMISSION=False'
   exit 0
  }
+ foreach($x in @($archive,$collector,$queue)){[void](AssertPath $x 'PINNED_CODE' $false)}
  $date=[DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9)).ToString('yyyy-MM-dd')
  if($date -cne '2026-10-27'){throw 'NO11_ONESHOT_SESSION_DATE_CHANGED'}
  [void](AssertPath $EngineRoot 'ENGINE' $true)

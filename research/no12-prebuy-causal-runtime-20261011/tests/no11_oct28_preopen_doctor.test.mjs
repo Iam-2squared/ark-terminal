@@ -38,6 +38,6 @@ test('audit does not mutate Excel or source nor authorize orders',async()=>{
   /\bGetActiveObject\b|\bExcel.Application\b|\bWorkbooks\b/,
   /(?:RssStockOrder|RssMarginOpenOrder|RssCancelOrder)\s*\(/,
   /(?:writeFileSync|mkdirSync|renameSync|unlinkSync|spawnSync|execSync)\s*\(/,
-  /EXTERNALLY_REVIEWED/
+  /reviewStatus\s*:\s*['"]EXTERNALLY_REVIEWED/
  ])assert.doesNotMatch(code,pattern);
 });

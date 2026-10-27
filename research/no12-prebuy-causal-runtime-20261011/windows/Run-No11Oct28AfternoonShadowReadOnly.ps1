@@ -9,16 +9,21 @@ param(
  [string]$EvidenceDocuments='',
  [string]$BootstrapTemplate='',
  [string]$PreviousCaptureDir='',
+ [string]$SeedRun='',
+ [string]$RefreshRun='',
  [switch]$CaptureReference,[switch]$Preflight,[switch]$StartShadow,
  [switch]$OfflineSelfTest
 )
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 function Need([bool]$yes,[string]$code){if(-not $yes){throw ('NO11_TODAY_SHADOW_'+$code)}}
-function P([string]$filename,[bool]$folder=$false){
+function P([string]$filename,[bool]$folder=$false,[string]$role='SOURCE'){
  Need (-not [string]::IsNullOrWhiteSpace($filename) -and [IO.Path]::IsPathRooted($filename)) 'ABSOLUTE_PATH'
  $name=[IO.Path]::GetFullPath($filename)
- Need (Test-Path -LiteralPath $name -PathType $(if($folder){'Container'}else{'Leaf'})) 'SOURCE_MISSING'
+ if(-not (Test-Path -LiteralPath $name -PathType $(if($folder){'Container'}else{'Leaf'}))){
+  Write-Host ('NO11_TODAY_SHADOW_MISSING_PATH='+$role+'|'+$name)
+  Need $false ('MISSING_'+$role)
+ }
  $cursor=$name
  while(-not [string]::IsNullOrWhiteSpace($cursor)){
   Need (((Get-Item -LiteralPath $cursor -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0) 'REPARSE_SOURCE'
@@ -31,6 +36,44 @@ function Single([string]$folder,[string]$pattern,[string]$code,[bool]$directorie
   Where-Object {if($directories){$_.PSIsContainer}else{-not $_.PSIsContainer}})
  Need ($list.Count -eq 1) $code
  return [string]$list[0].FullName
+}
+function ResolveDailySource([string]$base,[string]$explicit,[string]$pattern,
+ [string]$session,[int]$members,[string]$role){
+ if(-not [string]::IsNullOrWhiteSpace($explicit)){
+  $folder=P $explicit $true $role
+  $planFile=P (Join-Path $folder 'plan.json') $false ('PLAN_'+$role)
+  $plan=Get-Content -LiteralPath $planFile -Raw -Encoding UTF8|ConvertFrom-Json
+  Need ([string]$plan.asOfSession -ceq $session -and @($plan.symbols).Count -eq $members) ('WRONG_'+$role+'_SESSION_OR_SCOPE')
+  return $folder
+ }
+ if(-not (Test-Path -LiteralPath $base -PathType Container)){
+  Write-Host ('NO11_TODAY_SHADOW_MISSING='+$role+'_ROOT')
+  Write-Host ('NO11_TODAY_SHADOW_LOOKED_IN='+$base)
+  Need $false ('MISSING_'+$role+'_ROOT')
+ }
+ $entries=@(Get-ChildItem -LiteralPath $base -Directory -Filter $pattern -ErrorAction Stop)
+ $valid=@()
+ foreach($entry in $entries){
+  $planFile=Join-Path $entry.FullName 'plan.json'
+  if(-not (Test-Path -LiteralPath $planFile -PathType Leaf)){continue}
+  try{
+   $plan=Get-Content -LiteralPath $planFile -Raw -Encoding UTF8 | ConvertFrom-Json
+   if([string]$plan.asOfSession -cne $session -or @($plan.symbols).Count -ne $members){continue}
+   $sources=Join-Path $entry.FullName 'sources'
+   if(-not (Test-Path -LiteralPath $sources -PathType Container)){continue}
+   # This is only discovery. Original immutable SHA and full observation
+   # checks are performed by the mandatory weekly verifier later.
+   $valid+=@($entry.FullName)
+  }catch{continue}
+ }
+ if($valid.Count -ne 1){
+  Write-Host ('NO11_TODAY_SHADOW_DISCOVERY_'+$role+'='+$valid.Count+'|CANDIDATES='+$entries.Count)
+  if($valid.Count -gt 1){Write-Host ('NO11_TODAY_SHADOW_'+$role+'_AMBIGUOUS_REQUIRE_EXPLICIT_PATH=True')}
+  else{Write-Host ('NO11_TODAY_SHADOW_MISSING='+$role+'_COMPLETE_PLAN')}
+  Need $false ('UNRESOLVED_'+$role)
+ }
+ Write-Host ('NO11_TODAY_SHADOW_FOUND_'+$role+'='+$valid[0])
+ return P $valid[0] $true $role
 }
 function FromOutput([object[]]$lines,[string]$prefix){
  $match=@($lines|Where-Object {([string]$_).StartsWith($prefix,[StringComparison]::Ordinal)})
@@ -51,9 +94,9 @@ try{
  if(-not $LocalRoot){$LocalRoot=Join-Path $env:LOCALAPPDATA 'ArkTerminal\No12'}
  $root=P $LocalRoot $true;$engine=P $EngineRoot $true
  [void](Get-Command node -ErrorAction Stop)
- $python=P (Join-Path $root 'frozen-p1-replay\runtime-py312-sklearn180\Scripts\python.exe')
- $seed=P (Join-Path $root 'daily-trend-capture\daily-2026-10-26-e84a2ec53b0fdf41') $true
- $run=Single (Join-Path $root 'weekly-pool-refresh') 'weekly-refresh-2026-10-27-*' 'G1_RUN_MISSING_OR_AMBIGUOUS' $true
+ $python=P (Join-Path $root 'frozen-p1-replay\runtime-py312-sklearn180\Scripts\python.exe') $false 'PINNED_PYTHON'
+ $seed=ResolveDailySource (Join-Path $root 'daily-trend-capture') $SeedRun 'daily-2026-10-26-*' '2026-10-26' 4328 'SEED_20261026'
+ $run=ResolveDailySource (Join-Path $root 'weekly-pool-refresh') $RefreshRun 'weekly-refresh-2026-10-27-*' '2026-10-27' 429 'REFRESH_20261027'
  $mask=Single $run 'no11-observed-pass-watch-*.json' 'G1_MASK_MISSING_OR_AMBIGUOUS'
  $chart=Single $run 'no11-chart50-private-*.json' 'CHART_PLAN_MISSING_OR_AMBIGUOUS'
  $verify=P (Join-Path $engine 'tools\no11_verified_weekly_shadow_scope.mjs')

@@ -69,5 +69,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Weekly orchestration offline self-test failed' }
           & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $dir 'Run-No11WeeklyCandidateRefreshReadOnly.ps1') -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'Weekly daily-collector offline self-test failed' }
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $dir 'Prepare-No11PreviousArchiveReadOnly.ps1') -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'Previous archive adapter offline self-test failed' }
           Write-Host 'NO11_WEEKLY_WINDOWS_OFFLINE_TESTS=PASS'
           Write-Host 'ORDER_TRANSMISSION=False'

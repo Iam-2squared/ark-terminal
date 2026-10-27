@@ -44,6 +44,10 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_oct28_afternoon_stage.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Run-No11Oct28QuickStartReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_oct28_quickstart.test.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_patch_weekly_bootstrap_local.py
+      - research/no12-prebuy-causal-runtime-20261011/tests/test_no11_patch_weekly_bootstrap_local.py
+      - research/no12-prebuy-causal-runtime-20261011/windows/Repair-No11Oct28BridgeLocalPreserve.ps1
+      - research/no12-prebuy-causal-runtime-20261011/tests/no11_local_bridge_preserve_stage.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_account_connection_diagnostic_readonly.mjs
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_account_connection_diagnostic_readonly.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11Oct28ReadOnlyFiles.ps1
@@ -91,6 +95,10 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_oct28_afternoon_stage.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Run-No11Oct28QuickStartReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_oct28_quickstart.test.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_patch_weekly_bootstrap_local.py
+      - research/no12-prebuy-causal-runtime-20261011/tests/test_no11_patch_weekly_bootstrap_local.py
+      - research/no12-prebuy-causal-runtime-20261011/windows/Repair-No11Oct28BridgeLocalPreserve.ps1
+      - research/no12-prebuy-causal-runtime-20261011/tests/no11_local_bridge_preserve_stage.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_account_connection_diagnostic_readonly.mjs
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_account_connection_diagnostic_readonly.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11Oct28ReadOnlyFiles.ps1
@@ -130,6 +138,8 @@ jobs:
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_oct28_afternoon_shadow.test.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_oct28_afternoon_stage.test.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_oct28_quickstart.test.mjs
+          node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_local_bridge_preserve_stage.test.mjs
+          python -m unittest discover -s research/no12-prebuy-causal-runtime-20261011/tests -p 'test_no11_patch_weekly_bootstrap_local.py' -v
           python -m unittest discover -s research/no12-prebuy-causal-runtime-20261011/tests -p 'test_no11_weekly_shadow_bootstrap.py' -v
           python -m unittest discover -s research/no12-prebuy-causal-runtime-20261011/tests -p 'test_no11_actual_rss_review_queue.py' -v
           python -m unittest discover -s research/no12-prebuy-causal-runtime-20261011/tests -p 'test_no11_market_section_contract.py' -v
@@ -155,7 +165,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $dir = 'research/no12-prebuy-causal-runtime-20261011/windows'
-          foreach ($name in @('Run-No11WeeklyCandidateRefreshReadOnly.ps1','Prepare-No11WeeklyAfterCloseReadOnly.ps1','Prepare-No11PreviousArchiveReadOnly.ps1','Stage-No11Oct28ReadOnlyFiles.ps1','Run-No11Oct29ReferenceOneShotReadOnly.ps1','Capture-No11SessionReferenceReadOnly.ps1','Stage-No11Oct29ReadOnlyFiles.ps1','Stage-No11MarketSectionReadOnly.ps1','Repair-No11MarketSectionLocalPreserve.ps1','Run-No11Oct28DaytimeReviewPrepReadOnly.ps1','Run-No11Oct28AfternoonShadowReadOnly.ps1','Stage-No11Oct28AfternoonReadOnly.ps1','Run-No11Oct28QuickStartReadOnly.ps1')) {
+          foreach ($name in @('Run-No11WeeklyCandidateRefreshReadOnly.ps1','Prepare-No11WeeklyAfterCloseReadOnly.ps1','Prepare-No11PreviousArchiveReadOnly.ps1','Stage-No11Oct28ReadOnlyFiles.ps1','Run-No11Oct29ReferenceOneShotReadOnly.ps1','Capture-No11SessionReferenceReadOnly.ps1','Stage-No11Oct29ReadOnlyFiles.ps1','Stage-No11MarketSectionReadOnly.ps1','Repair-No11MarketSectionLocalPreserve.ps1','Run-No11Oct28DaytimeReviewPrepReadOnly.ps1','Run-No11Oct28AfternoonShadowReadOnly.ps1','Stage-No11Oct28AfternoonReadOnly.ps1','Run-No11Oct28QuickStartReadOnly.ps1','Repair-No11Oct28BridgeLocalPreserve.ps1')) {
             $file = Join-Path $dir $name
             $tokens = $null
             $errors = $null
@@ -188,5 +198,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Same-day Shadow installer self-test failed' }
           & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $dir 'Run-No11Oct28QuickStartReadOnly.ps1') -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'Oct28 same-day quickstart offline test failed' }
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $dir 'Repair-No11Oct28BridgeLocalPreserve.ps1') -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'Local-preserving Shadow bridge offline self-test failed' }
           Write-Host 'NO11_WEEKLY_WINDOWS_OFFLINE_TESTS=PASS'
           Write-Host 'ORDER_TRANSMISSION=False'

@@ -28,7 +28,10 @@ STAMP = re.compile(r"^2026-10-27T\d\d:\d\d:\d\d(?:\.\d{3})?\+09:00$")
 SYMBOL = re.compile(r"^[0-9A-Z]{4}\.T$")
 SHA256 = re.compile(r"^[a-f0-9]{64}$")
 REFERENCE_FILENAME = re.compile(r"^session-reference-([a-f0-9]{64})\.json$")
-SECTIONS = {"東証P": "PRIME", "東証S": "STANDARD", "東証G": "GROWTH"}
+# Accept only the six actual supported market labels; leave immutable raw RSS untouched.
+SECTIONS = {"東証P": "PRIME", "東証Ｐ": "PRIME",
+            "東証S": "STANDARD", "東証Ｓ": "STANDARD",
+            "東証G": "GROWTH", "東証Ｇ": "GROWTH"}
 QUEUE_SCHEMA = "ARK_NO11_20261027_EXTERNAL_SECURITY_REVIEW_QUEUE_UNREVIEWED_V1"
 
 

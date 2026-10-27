@@ -20,7 +20,11 @@ import no11_received_session_bootstrap as bootstrap
 REFERENCE = 'ARK_NO11_RSS_SESSION_REFERENCE_CAPTURE_V1'
 EVIDENCE = 'ARK_NO11_SESSION_SECURITY_EVIDENCE_V1'
 MASTER = 'ARK_NO11_DATED_MASTER_RECEIPT_V1'
-SECTIONS = {'東証P': 'PRIME', '東証S': 'STANDARD', '東証G': 'GROWTH'}
+# Exact observed RSS labels (halfwidth/fullwidth Latin P,S,G); raw values remain unchanged.
+# No broad Unicode normalization: unknown market strings are rejected.
+SECTIONS = {'東証P': 'PRIME', '東証Ｐ': 'PRIME',
+            '東証S': 'STANDARD', '東証Ｓ': 'STANDARD',
+            '東証G': 'GROWTH', '東証Ｇ': 'GROWTH'}
 SYMBOL = re.compile(r'[0-9A-Z]{4}\.T')
 
 

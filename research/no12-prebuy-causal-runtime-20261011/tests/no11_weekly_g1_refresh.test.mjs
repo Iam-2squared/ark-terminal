@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {isoFriday, tradingGap, nextCashDate} from '../tools/no11_weekly_g1_refresh.mjs';
+import {isoFriday, tradingGap, nextCashDate, nightlyWindow} from '../tools/no11_weekly_g1_refresh.mjs';
 
 test('full universe is Friday and initial 2026-10-26 is only a manual seed',()=>{
   assert.equal(isoFriday('2026-10-30'),true);
@@ -48,4 +48,23 @@ test('after-close runner selects full Friday or limited weekly candidates and ne
   assert.ok(refresh.includes('Ark_No11_MSII_RSS.xlsx'));
   for(const forbidden of [/RssStockOrder\s*\(/,/RssCancelOrder\s*\(/,/Stop-Process/,/taskkill/,/git\s+pull/])
     assert.doesNotMatch(src,forbidden);
+});
+
+test('Oct27 evening and Oct28 early morning use the SAME ACTUAL OCT27 close without future data',()=>{
+ const night=nightlyWindow('2026-10-27T23:15:00.000+09:00');
+ assert.equal(night.date,'2026-10-27');
+ assert.equal(night.followingPreopen,false);
+ const early=nightlyWindow('2026-10-28T01:03:00.000+09:00');
+ assert.equal(early.date,'2026-10-27');
+ assert.equal(early.followingPreopen,true);
+ const late=nightlyWindow('2026-10-28T08:29:59.000+09:00');
+ assert.equal(late.date,'2026-10-27');
+ assert.throws(()=>nightlyWindow('2026-10-28T08:30:00.000+09:00'),
+  /NO11_WEEKLY_CURRENT_COMPLETED_CASH_SESSION_REQUIRED/);
+ assert.throws(()=>nightlyWindow('2026-10-27T17:59:00.000+09:00'),
+  /NO11_WEEKLY_CURRENT_COMPLETED_CASH_SESSION_REQUIRED/);
+ assert.throws(()=>nightlyWindow('2026-10-28T09:00:00.000+09:00'),
+  /NO11_WEEKLY_CURRENT_COMPLETED_CASH_SESSION_REQUIRED/);
+ assert.throws(()=>nightlyWindow('2026-11-02T07:55:00.000+09:00'),
+  /NO11_WEEKLY_CURRENT_COMPLETED_CASH_SESSION_REQUIRED/); // Friday full sweep only
 });

@@ -82,7 +82,7 @@ function SaveReference([object]$record,[string]$root){
  finally{$algorithm.Dispose()}
  $file=Join-Path $root ('session-reference-'+$digest+'.json')
  if([IO.File]::Exists($file)){
-  Need ([Linq.Enumerable]::SequenceEqual([byte[]]([IO.File]::ReadAllBytes($file)),[byte[]]$bytes)) 'EXISTING_REFERENCE_CHANGED'
+  Need (([Convert]::ToBase64String([IO.File]::ReadAllBytes($file))) -ceq ([Convert]::ToBase64String($bytes))) 'EXISTING_REFERENCE_CHANGED'
  }else{
   $stream=[IO.File]::Open($file,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
   try{$stream.Write($bytes,0,$bytes.Length);$stream.Flush($true)}

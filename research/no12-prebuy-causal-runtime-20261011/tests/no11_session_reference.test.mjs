@@ -11,6 +11,11 @@ test('reference source is official RssMarket fields and no order or saved book c
  assert.match(src,/\$symbols\.Count -le 50/);assert.match(src,/MARKET_CAPACITY_EXCEEDED/);
  assert.match(src,/corporateActionReviewPerformed=\$false/);
  assert.match(src,/\$book\.Close\(\$false\)/);
+ assert.match(src,/AccessibleObjectFromWindow/);
+ assert.match(src,/EXCEL_WINDOW_NOT_UNIQUE/);
+ assert.match(src,/EXCEL7_NOT_UNIQUE/);
+ assert.match(src,/EXCEL_WINDOW_COM_ATTACH_FAILED/);
+ assert.doesNotMatch(src,/GetActiveObject\s*\(/);
  assert.doesNotMatch(src,/RssStockOrder\s*\(|RssCancelOrder\s*\(|\.SaveAs\s*\(|\.Save\s*\(|\.Quit\s*\(|Stop-Process/);
 });
 test('input preparation delegates to original scope previous converter and same-run launcher',()=>{

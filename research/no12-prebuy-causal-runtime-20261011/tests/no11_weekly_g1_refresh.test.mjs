@@ -26,7 +26,7 @@ test('weekday refresh demands genuinely observed D100 sources and records limite
     'loadCaptures(run,plan)','summarizeDailyCaptures(plan,captures)',
     'makeObservedPassWatchMask(plan,captures)',
     'rankVerifiedG1PassForChartBudget(plan,captures,mask)',
-    'newBreakoutsOutsideWeeklyPoolNotScanned:true',
+    'mask.newBreakoutsOutsideWeeklyPoolNotScanned=true;',
     'unknownNotAdmitted:true',
     'productionReady:false','orderTransmission:false'
   ])assert.ok(src.includes(marker),marker);

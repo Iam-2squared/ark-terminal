@@ -72,11 +72,12 @@ assert len(BEFORE) == len(AFTER) == 5
 def patch_text(text: str) -> tuple[str, bool]:
     """Return (patched, changed) or fail; refuse partial/mismatched weekly wiring."""
     if 'precomputedChartReceipt' in text:
-        if all(text.count(marker) == 1 for marker in (
+        if all(marker in text for marker in (
             "weekly_supplied = weekly_keys & set(obj)",
             "'precomputedChartReceipt', 'precomputedG1Mask', 'weeklySourceRun'",
             "def export_scope(config):\n    if 'precomputedChartReceipt' in config:",
             "NO11_WEEKLY_SHADOW_SCOPE=PASS_OBSERVED_NOT_EXTERNALLY_REVIEWED",
+            "WEEKLY_SCOPE_RECEIPTS_AND_DAILY_RUN_MUST_MATCH",
         )):
             # One earlier integration can already exist with private local changes.
             ast.parse(text)

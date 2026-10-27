@@ -16,6 +16,8 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/windows/Run-No11TodayReferenceOneShotReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_review_queue_from_actual_rss.py
       - research/no12-prebuy-causal-runtime-20261011/tests/test_no11_actual_rss_review_queue.py
+      - research/no12-prebuy-causal-runtime-20261011/windows/Recover-No11Book3ReferenceReadOnly.ps1
+      - research/no12-prebuy-causal-runtime-20261011/tests/no11_book3_reference_salvage_static.test.mjs
       - .github/workflows/no11-shadow-parallel-asset-observation.yml
   pull_request:
     paths:
@@ -30,6 +32,8 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/windows/Run-No11TodayReferenceOneShotReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_review_queue_from_actual_rss.py
       - research/no12-prebuy-causal-runtime-20261011/tests/test_no11_actual_rss_review_queue.py
+      - research/no12-prebuy-causal-runtime-20261011/windows/Recover-No11Book3ReferenceReadOnly.ps1
+      - research/no12-prebuy-causal-runtime-20261011/tests/no11_book3_reference_salvage_static.test.mjs
       - .github/workflows/no11-shadow-parallel-asset-observation.yml
 
 permissions:
@@ -60,6 +64,7 @@ jobs:
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_parallel_shadow_operational_audits.test.mjs
           node --check research/no12-prebuy-causal-runtime-20261011/tools/no11_partial_observed_shadow_rehearsal.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_partial_observed_shadow_rehearsal.test.mjs
+          node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_book3_reference_salvage_static.test.mjs
       - name: Safety statement
         run: |
           echo "NO11_PARALLEL_AUDITS_OFFLINE_TESTS=PASS"
@@ -93,5 +98,14 @@ jobs:
           if ($errors.Count -gt 0) { throw 'ONE_SHOT_REFERENCE_POWERSHELL_PARSE_FAILED' }
           & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $oneShot -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'ONE_SHOT_REFERENCE_SELFTEST_FAILED' }
+          $salvage = 'research/no12-prebuy-causal-runtime-20261011/windows/Recover-No11Book3ReferenceReadOnly.ps1'
+          $tokens = $null
+          $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path $salvage).Path, [ref]$tokens, [ref]$errors)
+          if ($errors.Count -gt 0) { throw 'BOOK3_SALVAGE_POWERSHELL_PARSE_FAILED' }
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $salvage -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'BOOK3_SALVAGE_SELFTEST_FAILED' }
+          Write-Host 'NO11_BOOK3_SALVAGE_OFFLINE_SELFTEST=PASS'
           Write-Host 'NO11_ONESHOT_REFERENCE_OFFLINE_SELFTEST=PASS'
           Write-Host 'ORDER_TRANSMISSION=False'

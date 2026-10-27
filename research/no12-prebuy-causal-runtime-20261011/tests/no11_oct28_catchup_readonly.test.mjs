@@ -52,7 +52,7 @@ test('new collector is separate from original and invokes only explicit opt-in r
  assert.ok(source.includes("'--catch-up-asof',$CatchUpAsOf"));
  assert.ok(source.includes('ONLY_TWO_ORIGINAL_WORKBOOKS_REQUIRED'));
  assert.ok(source.includes('RssChart($A$2:$J$2'));
- assert.ok(source.includes('NO11_DAILY_CAPTURE=HISTORICAL_ASOF_WITH_REAL_CURRENT_RECEIPT'));
+ assert.ok(source.includes('NO11_WEEKLY_DAILY_CAPTURE=HISTORICAL_ASOF_WITH_REAL_CURRENT_RECEIPT'));
  for(const forbidden of [/RssStockOrder\s*\(/,/RssCancelOrder\s*\(/,/Stop-Process|taskkill/])assert.doesNotMatch(source,forbidden);
 });
 test('one-shot uses exactly original 429, real 27-asof and previous 1M with strict verification',()=>{

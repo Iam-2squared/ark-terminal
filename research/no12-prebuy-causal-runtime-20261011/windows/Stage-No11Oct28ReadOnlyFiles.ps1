@@ -4,9 +4,9 @@ param([string]$EngineRoot='C:\ArkTerminal\no12-launcher\research\no12-prebuy-cau
       [switch]$OfflineSelfTest)
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
-$revision='729a7e93163529bdb0df224b9196a098479756e3'
+$revision='6894f5c8dbd5c0b8b0f4bbfe850d1ddceda36def'
 $pins=@(
-  @('tools\no11_weekly_g1_refresh.mjs','8b9d1ed70284be8fb2a41aec711482417c1e15a7'),
+  @('tools\no11_weekly_g1_refresh.mjs','cb552dc9997ce072bdf535293adfc08178a1d266'),
   @('windows\Run-No11WeeklyCandidateRefreshReadOnly.ps1','b4dfbc4556e3cc54002d5d16c62f465b4f463975'),
   @('windows\Prepare-No11WeeklyAfterCloseReadOnly.ps1','15204f78a9b03f1db9094072597f0243b7991ece'),
   @('windows\Prepare-No11PreviousArchiveReadOnly.ps1','513593167bd92761a0f19c2b4609ae82d85a8519'),

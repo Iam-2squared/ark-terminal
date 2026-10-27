@@ -157,14 +157,26 @@ try{
   @($result.remaining).Count -eq 0 -and
   $result.weeklyRestrictedUniverse -eq $true) 'REFRESH_CAPTURE_INCOMPLETE'
 
+ $reportArgs=@('report','--run',[string]$result.run,'--weekly-run',$WeeklyRun)
+ if($PinsFile){$reportArgs+=@('--pins-file',$PinsFile)}
+ $reportLines=@(& node $tool @reportArgs)
+ Need ($LASTEXITCODE -eq 0) 'WEEKLY_DAILY_REPORT_FAILED'
+ $m=@($reportLines | Where-Object {$_ -like 'NO11_WEEKLY_REFRESH_MASK=*'})
+ $c=@($reportLines | Where-Object {$_ -like 'NO11_WEEKLY_REFRESH_CHART50=*'})
+ Need ($m.Count -eq 1 -and $c.Count -eq 1) 'WEEKLY_REPORT_RECEIPTS_MISSING'
+ $weeklyMask=([string]$m[0]).Substring('NO11_WEEKLY_REFRESH_MASK='.Length)
+ $weeklyChart=([string]$c[0]).Substring('NO11_WEEKLY_REFRESH_CHART50='.Length)
+ Need ([IO.Path]::IsPathRooted($weeklyMask) -and
+  [IO.Path]::IsPathRooted($weeklyChart) -and
+  (Test-Path -LiteralPath $weeklyMask -PathType Leaf) -and
+  (Test-Path -LiteralPath $weeklyChart -PathType Leaf)) 'WEEKLY_REPORT_RECEIPTS_NOT_FILES'
+ Write-Host ('NO11_WEEKLY_NIGHTLY_CURRENT_MASK='+$weeklyMask)
+ Write-Host ('NO11_WEEKLY_NIGHTLY_CURRENT_CHART50='+$weeklyChart)
  $pargs=@('-NoProfile','-ExecutionPolicy','Bypass','-File',$previous,
-  '-SessionDate',$session,
-  '-RunDir',[string]$result.run,
-  '-PrivateRoot',$OutputRoot,
-  '-PythonExecutable',$PythonExecutable,
-  '-BatchSize',[string]$MinuteBatchSize,
-  '-WaitSeconds',[string]$MinuteWaitSeconds)
- if(-not [string]::IsNullOrWhiteSpace($PinsFile)){$pargs+=@('-PinsFile',$PinsFile)}
+  '-SessionDate',$session,'-RunDir',[string]$result.run,
+  '-PrivateRoot',$OutputRoot,'-PythonExecutable',$PythonExecutable,
+  '-PrecomputedChartPlanFile',$weeklyChart,'-PrecomputedMaskFile',$weeklyMask,
+  '-BatchSize',[string]$MinuteBatchSize,'-WaitSeconds',[string]$MinuteWaitSeconds)
  & powershell.exe @pargs
  Need ($LASTEXITCODE -eq 0) 'SELECTED_PREVIOUS_1M_FAILED'
 

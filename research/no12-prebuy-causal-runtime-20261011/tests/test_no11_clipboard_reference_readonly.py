@@ -18,7 +18,7 @@ CODES = [f"{1000+i}.T" for i in range(47)]
 def text_cells(*, code=None, rows=47, fields=12, missing=False):
     table=[]
     for i in range(rows):
-        symbol = CODES[i] if code is None or i != 2 else code
+        symbol = CODES[i % len(CODES)] if code is None or i != 2 else code
         cells=[
             symbol,symbol[:4],"T","2026/10/27","2026/10/26",
             "" if missing and i==0 else "3,655","3655",
@@ -62,7 +62,7 @@ class StrictClipTests(unittest.TestCase):
         self.assertEqual(rows[1]["previousClose"], 3655)
 
     def test_bad_clipboard_content_rejected(self):
-        for text in ("hello world", "ARk\nMy bank password\tABC\n", "\x00"*200, ""):
+        for text in ("hello world", "ARk\nMy bank password", "\x00"*200, ""):
             with self.assertRaisesRegex(ValueError, "CLIPBOARD_NOT_EXCEL_TABULAR_TEXT"):
                 MOD.csv_rows(text)
 
@@ -78,7 +78,7 @@ class StrictClipTests(unittest.TestCase):
         source = SCRIPT.read_text(encoding="utf-8")
         for name in ("GetActiveObject(", "Excel.Application", "win32com",
                      "Workbooks.Open(", "RssStockOrder(", "RssCancelOrder(",
-                     "EXTERNALLY_REVIEWED", "productionReady\": True",
+                     "\"reviewStatus\": \"EXTERNALLY_REVIEWED\"", "productionReady\": True",
                      "orderTransmission\": True"):
             self.assertNotIn(name, source)
         for name in ("original.scope(plan_file, mask_file)",

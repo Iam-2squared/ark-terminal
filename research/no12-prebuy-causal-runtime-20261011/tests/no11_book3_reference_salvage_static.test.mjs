@@ -13,14 +13,14 @@ test('salvage preserves original contract, no workbook changes and no fake safet
    "no11_previous_archive_context.py",
    "no11_review_queue_from_actual_rss.py",
    "--symbols-only",
-   "NO11_BOOK3_COMPETING_COLLECTOR_STILL_RUNNING",
+   "COMPETING_COLLECTOR_STILL_RUNNING",
    "Workbooks.Item('Book3')",
    "$sheet.Name -ceq 'Sheet1'",
    "GetActiveObject('Excel.Application')",
    "$formulaRange.Formula",
    "$valueRange.Value2",
-   "NO11_BOOK3_ORIGINAL_RSS_FORMULA_DIFFERENT",
-   "NO11_BOOK3_RSS_VALUES_SHAPE",
+   "BOOK3_ORIGINAL_RSS_FORMULA_DIFFERENT",
+   "RSS_VALUES_SHAPE",
    "capturedAtJst=$start;completedAtJst=$end",
    "corporateActionReviewPerformed=$false",
    "readOnly=$true;productionReady=$false;orderTransmission=$false",
@@ -53,7 +53,7 @@ test('Book3 salvage reads same immutable original source schema and no predated 
  assert.match(recovery,/SourcePath \$planFile/);
  assert.match(recovery,/SourcePath \$maskFile/);
  assert.match(recovery,/SourcePath \$PythonExecutable/);
- assert.match(recovery,/NO11_BOOK3_RSS_BULK_READ_TIMED_OUT_30S/);
+ assert.match(recovery,/RSS_BULK_READ_TIMED_OUT_30S/);
  assert.match(recovery,/NO11_BOOK3_SCOPE_AND_FORMULAS=VERIFIED_47_OF_47/);
  assert.match(recovery,/NO11_BOOK3_REFERENCE_ROWS=47/);
 });

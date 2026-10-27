@@ -98,6 +98,14 @@ jobs:
           if ($errors.Count -gt 0) { throw 'ONE_SHOT_REFERENCE_POWERSHELL_PARSE_FAILED' }
           & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $oneShot -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'ONE_SHOT_REFERENCE_SELFTEST_FAILED' }
+          # Reproduce the user's actual failure: downloaded launcher in TEMP,
+          # original reference collector available only under -EngineRoot.
+          $tempOneShot = Join-Path $env:RUNNER_TEMP 'Run-No11TodayReferenceOneShotReadOnly.ps1'
+          Copy-Item -LiteralPath $oneShot -Destination $tempOneShot -ErrorAction Stop
+          $engineRoot = (Resolve-Path 'research/no12-prebuy-causal-runtime-20261011').Path
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $tempOneShot -OfflineSelfTest -EngineRoot $engineRoot
+          if ($LASTEXITCODE -ne 0) { throw 'ONE_SHOT_TEMP_DOWNLOAD_SELFTEST_FAILED' }
+          Write-Host 'NO11_ONESHOT_TEMP_DOWNLOAD_SELFTEST=PASS'
           $salvage = 'research/no12-prebuy-causal-runtime-20261011/windows/Recover-No11Book3ReferenceReadOnly.ps1'
           $tokens = $null
           $errors = $null

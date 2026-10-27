@@ -20,6 +20,9 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_book3_reference_salvage_static.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Recover-No11UnsavedReferenceReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_unsaved_reference_recovery_static.test.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_import_clipboard_reference_readonly.py
+      - research/no12-prebuy-causal-runtime-20261011/windows/Import-No11ClipboardReferenceReadOnly.ps1
+      - research/no12-prebuy-causal-runtime-20261011/tests/test_no11_clipboard_reference_readonly.py
       - .github/workflows/no11-shadow-parallel-asset-observation.yml
   pull_request:
     paths:
@@ -38,6 +41,9 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_book3_reference_salvage_static.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Recover-No11UnsavedReferenceReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_unsaved_reference_recovery_static.test.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_import_clipboard_reference_readonly.py
+      - research/no12-prebuy-causal-runtime-20261011/windows/Import-No11ClipboardReferenceReadOnly.ps1
+      - research/no12-prebuy-causal-runtime-20261011/tests/test_no11_clipboard_reference_readonly.py
       - .github/workflows/no11-shadow-parallel-asset-observation.yml
 
 permissions:
@@ -62,6 +68,7 @@ jobs:
           python -B research/no12-prebuy-causal-runtime-20261011/tools/no11_parallel_original_inference_smoke.py --offline-self-test
           python -B -m unittest discover -s research/no12-prebuy-causal-runtime-20261011/tests -p test_no11_parallel_original_inference_smoke.py -v
           python -B -m unittest discover -s research/no12-prebuy-causal-runtime-20261011/tests -p test_no11_actual_rss_review_queue.py -v
+          python -B -m unittest discover -s research/no12-prebuy-causal-runtime-20261011/tests -p test_no11_clipboard_reference_readonly.py -v
       - name: Node syntax and fail-closed safety contract
         run: |
           node --check research/no12-prebuy-causal-runtime-20261011/tools/no11_parallel_saved_chart_watch.mjs
@@ -137,6 +144,20 @@ jobs:
           }
           & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $generic -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'BOOKN_SALVAGE_SELFTEST_FAILED' }
+          $clipboardScript = 'research/no12-prebuy-causal-runtime-20261011/windows/Import-No11ClipboardReferenceReadOnly.ps1'
+          $tokens = $null
+          $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path $clipboardScript).Path,[ref]$tokens,[ref]$errors)
+          if ($errors.Count -gt 0) {
+            foreach ($e in $errors) {
+              Write-Host ("CLIPBOARD_PS_PARSE_ERROR=" + $e.ErrorId + "|LINE=" + $e.Extent.StartLineNumber)
+            }
+            throw 'CLIPBOARD_POWERSHELL_PARSE_FAILED'
+          }
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $clipboardScript -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'CLIPBOARD_POWERSHELL_OFFLINE_SELFTEST_FAILED' }
+          Write-Host 'NO11_CLIPBOARD_POWERSHELL_OFFLINE_SELFTEST=PASS'
           Write-Host 'NO11_BOOKN_SALVAGE_OFFLINE_SELFTEST=PASS'
           Write-Host 'NO11_BOOK3_SALVAGE_OFFLINE_SELFTEST=PASS'
           Write-Host 'NO11_ONESHOT_REFERENCE_OFFLINE_SELFTEST=PASS'

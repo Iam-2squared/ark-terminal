@@ -57,8 +57,43 @@ try{
    $plan.sessionDate -ceq $session -and $plan.productionReady -eq $false -and $plan.orderTransmission -eq $false) 'PLAN_SESSION'
  Need (($symbols -join '|') -ceq (@($plan.selectorInputSymbols) -join '|')) 'SELECTED_SCOPE_DIFFERS'
  foreach($symbol in $symbols){Need ($symbol -cmatch '^[0-9A-Z]{4}\.T$') 'SYMBOL_INVALID'}
- Need (@(Get-Process EXCEL -ErrorAction SilentlyContinue).Count -eq 1) 'EXCEL_NOT_UNIQUE'
- $excel=[Runtime.InteropServices.Marshal]::GetActiveObject('Excel.Application')
+ # Bind the single visible original Excel window. Avoid an ambiguous/stale ROT
+ # GetActiveObject pointer, which cannot identify the intended physical window.
+ $visible=@(Get-Process EXCEL -ErrorAction SilentlyContinue | Where-Object {$_.MainWindowHandle -ne [IntPtr]::Zero})
+ $ark=@($visible | Where-Object {$_.MainWindowTitle -like 'Ark_No11_*'})
+ $selected=@()
+ if($ark.Count -eq 1){$selected=@($ark)}
+ elseif($ark.Count -eq 0 -and $visible.Count -eq 1){$selected=@($visible)}
+ Need ($selected.Count -eq 1) 'EXCEL_WINDOW_NOT_UNIQUE'
+ if(-not ('No11ReferenceWindow' -as [type])){
+  Add-Type -TypeDefinition @'
+using System;
+using System.Text;
+using System.Runtime.InteropServices;
+public static class No11ReferenceWindow {
+ public delegate bool Callback(IntPtr h,IntPtr p);
+ [DllImport("user32.dll")] public static extern bool EnumChildWindows(IntPtr h,Callback cb,IntPtr p);
+ [DllImport("user32.dll",CharSet=CharSet.Unicode)] public static extern int GetClassName(IntPtr h,StringBuilder b,int n);
+ [DllImport("oleacc.dll")] public static extern int AccessibleObjectFromWindow(IntPtr h,uint id,ref Guid iid,[MarshalAs(UnmanagedType.Interface)] out object o);
+}
+'@ -ErrorAction Stop
+ }
+ $script:referenceWindows=@()
+ $callback=[No11ReferenceWindow+Callback]{
+  param($h,$p)
+  $buffer=New-Object Text.StringBuilder 128
+  [void][No11ReferenceWindow]::GetClassName($h,$buffer,128)
+  if($buffer.ToString() -ceq 'EXCEL7'){$script:referenceWindows+=@($h)}
+  return $true
+ }
+ [void][No11ReferenceWindow]::EnumChildWindows($selected[0].MainWindowHandle,$callback,[IntPtr]::Zero)
+ Need ($script:referenceWindows.Count -eq 1) 'EXCEL7_NOT_UNIQUE'
+ $iid=[guid]'00020400-0000-0000-C000-000000000046'
+ $windowObject=$null
+ $hresult=[No11ReferenceWindow]::AccessibleObjectFromWindow(
+  $script:referenceWindows[0],[uint32]4294967280,[ref]$iid,[ref]$windowObject)
+ Need ($hresult -eq 0 -and $null -ne $windowObject) 'EXCEL_WINDOW_COM_ATTACH_FAILED'
+ $excel=$windowObject.Application
  Need ($excel.Workbooks.Count -eq 2) 'TWO_ORIGINAL_BOOKS_REQUIRED'
  $account=$excel.Workbooks.Item('Ark_No11_MSII_RSS.xlsx')
  $market=$excel.Workbooks.Item('Ark_No11_MARKET_RSS.xlsx')

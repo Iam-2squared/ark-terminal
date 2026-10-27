@@ -1,0 +1,46 @@
+name: No11 Concurrent Shadow Source and Frozen Asset Audits
+
+on:
+  push:
+    branches:
+      - research/no12-prebuy-causal-runtime-20261011
+    paths:
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_parallel_frozen_asset_probe.py
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_parallel_saved_chart_watch.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tests/no11_parallel_shadow_operational_audits.test.mjs
+      - .github/workflows/no11-shadow-parallel-asset-observation.yml
+  pull_request:
+    paths:
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_parallel_frozen_asset_probe.py
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_parallel_saved_chart_watch.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tests/no11_parallel_shadow_operational_audits.test.mjs
+      - .github/workflows/no11-shadow-parallel-asset-observation.yml
+
+permissions:
+  contents: read
+
+jobs:
+  offline-independent-audits:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Python syntax and audit-only self test, no frozen private files
+        run: |
+          python -B -c "import ast,pathlib;ast.parse(pathlib.Path('research/no12-prebuy-causal-runtime-20261011/tools/no11_parallel_frozen_asset_probe.py').read_text())"
+          python -B research/no12-prebuy-causal-runtime-20261011/tools/no11_parallel_frozen_asset_probe.py --offline-self-test
+      - name: Node syntax and fail-closed safety contract
+        run: |
+          node --check research/no12-prebuy-causal-runtime-20261011/tools/no11_parallel_saved_chart_watch.mjs
+          node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_parallel_shadow_operational_audits.test.mjs
+      - name: Safety statement
+        run: |
+          echo "NO11_PARALLEL_AUDITS_OFFLINE_TESTS=PASS"
+          echo "LIVE_RSS_ORIGINALS_TESTED=False"
+          echo "ORDER_TRANSMISSION=False"

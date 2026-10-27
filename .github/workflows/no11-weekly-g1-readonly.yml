@@ -23,6 +23,10 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_oct29_readonly_stage.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_reference_fields_diagnostic.mjs
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_reference_fields_diagnostic.test.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_prepare_received_inputs.py
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_review_queue_from_actual_rss.py
+      - research/no12-prebuy-causal-runtime-20261011/tests/test_no11_frozen_p1_prepare_inputs.py
+      - research/no12-prebuy-causal-runtime-20261011/tests/test_no11_actual_rss_review_queue.py
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_account_connection_diagnostic_readonly.mjs
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_account_connection_diagnostic_readonly.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11Oct28ReadOnlyFiles.ps1
@@ -49,6 +53,10 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_oct29_readonly_stage.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_reference_fields_diagnostic.mjs
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_reference_fields_diagnostic.test.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_prepare_received_inputs.py
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_review_queue_from_actual_rss.py
+      - research/no12-prebuy-causal-runtime-20261011/tests/test_no11_frozen_p1_prepare_inputs.py
+      - research/no12-prebuy-causal-runtime-20261011/tests/test_no11_actual_rss_review_queue.py
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_account_connection_diagnostic_readonly.mjs
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_account_connection_diagnostic_readonly.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11Oct28ReadOnlyFiles.ps1
@@ -68,6 +76,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Weekly calendar and parallel no-Excel Shadow preflight audits
         run: |
           node --check research/no12-prebuy-causal-runtime-20261011/tools/no11_parallel_shadow_preflight_audit.mjs
@@ -77,6 +88,8 @@ jobs:
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_oct28_preopen_doctor.test.mjs
           node --check research/no12-prebuy-causal-runtime-20261011/tools/no11_reference_fields_diagnostic.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_reference_fields_diagnostic.test.mjs
+          python -m unittest discover -s research/no12-prebuy-causal-runtime-20261011/tests -p 'test_no11_actual_rss_review_queue.py' -v
+          python -m unittest discover -s research/no12-prebuy-causal-runtime-20261011/tests -p 'test_no11_frozen_p1_prepare_inputs.py' -v
           node --check research/no12-prebuy-causal-runtime-20261011/tools/no11_oct29_preopen_doctor.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_oct29_preopen_doctor.test.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_oct29_reference_oneshot.test.mjs

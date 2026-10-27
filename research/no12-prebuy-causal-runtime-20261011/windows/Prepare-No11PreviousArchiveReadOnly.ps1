@@ -9,6 +9,8 @@ param(
  [string]$DatedMaster,
  [string]$BootstrapConfig,
  [string]$PythonExecutable,
+ [string]$PrecomputedChartPlanFile,
+ [string]$PrecomputedMaskFile,
  [ValidateRange(1,20)][int]$BatchSize=20,
  [ValidateRange(5,60)][int]$WaitSeconds=25,
  [switch]$OfflineSelfTest
@@ -83,14 +85,45 @@ try{
  if(-not [string]::IsNullOrWhiteSpace($BootstrapConfig) -and [string]::IsNullOrWhiteSpace($DatedMaster)){
   throw 'NO11_PREVIOUS_MASTER_REQUIRED_FOR_CONFIG'
  }
- $maskLines=@(& node (Join-Path $base 'tools\no11_export_observed_pass_watch_mask.mjs') --run $RunDir)
- if($LASTEXITCODE -ne 0){throw 'NO11_PREVIOUS_MASK_EXPORT_FAILED'}
- $mask=UniquePath $maskLines 'NO11_DAILY_PASS_WATCH_FILE='
- $planArgs=@('--run',$RunDir,'--session',$SessionDate)
- if(-not [string]::IsNullOrWhiteSpace($PinsFile)){$planArgs+=@('--pins-file',$PinsFile)}
- $planLines=@(& node (Join-Path $base 'tools\no11_export_chart50_prescreen.mjs') @planArgs)
- if($LASTEXITCODE -ne 0){throw 'NO11_PREVIOUS_PLAN_EXPORT_FAILED'}
- $plan=UniquePath $planLines 'NO11_CHART50_RECEIPT='
+ # Weekday 429-pool refresh has a DIFFERENT plan schema from the
+ # 4328-member Friday full-market daily census. The original full-market
+ # exporters are incapable of exporting its mask/Chart50 receipt. Accept
+ # explicitly pinned, immutable weekly refresh receipts, then let the shipped
+ # Python scope(...) validator re-check original Chart50 hashes, session,
+ # previous cash date and G1 membership before ANY Excel collector starts.
+ $usingPrecomputed=(-not [string]::IsNullOrWhiteSpace($PrecomputedChartPlanFile) -or
+                    -not [string]::IsNullOrWhiteSpace($PrecomputedMaskFile))
+ if($usingPrecomputed){
+  if([string]::IsNullOrWhiteSpace($PrecomputedChartPlanFile) -or
+     [string]::IsNullOrWhiteSpace($PrecomputedMaskFile) -or
+     -not [string]::IsNullOrWhiteSpace($PinsFile)){
+   throw 'NO11_PREVIOUS_PRECOMPUTED_BOTH_RECEIPTS_REQUIRED'
+  }
+  foreach($inputFile in @($PrecomputedChartPlanFile,$PrecomputedMaskFile)){
+   if(-not [IO.Path]::IsPathRooted($inputFile) -or
+      -not (Test-Path -LiteralPath $inputFile -PathType Leaf) -or
+      ([IO.File]::GetAttributes($inputFile) -band [IO.FileAttributes]::ReparsePoint) -ne 0){
+    throw 'NO11_PREVIOUS_PRECOMPUTED_PRIVATE_FILE_INVALID'
+   }
+   $f=[IO.Path]::GetFullPath($inputFile)
+   if(-not $f.StartsWith(([IO.Path]::GetFullPath($RunDir)).TrimEnd('\')+'\',
+     [StringComparison]::OrdinalIgnoreCase)){
+    throw 'NO11_PREVIOUS_PRECOMPUTED_WRONG_SOURCE_RUN'
+   }
+  }
+  $mask=[IO.Path]::GetFullPath($PrecomputedMaskFile)
+  $plan=[IO.Path]::GetFullPath($PrecomputedChartPlanFile)
+  Write-Host 'NO11_PREVIOUS_INPUT_SCOPE=WEEKLY_PINNED_RECEIPTS_VALIDATION_REQUIRED'
+ }else{
+  $maskLines=@(& node (Join-Path $base 'tools\no11_export_observed_pass_watch_mask.mjs') --run $RunDir)
+  if($LASTEXITCODE -ne 0){throw 'NO11_PREVIOUS_MASK_EXPORT_FAILED'}
+  $mask=UniquePath $maskLines 'NO11_DAILY_PASS_WATCH_FILE='
+  $planArgs=@('--run',$RunDir,'--session',$SessionDate)
+  if(-not [string]::IsNullOrWhiteSpace($PinsFile)){$planArgs+=@('--pins-file',$PinsFile)}
+  $planLines=@(& node (Join-Path $base 'tools\no11_export_chart50_prescreen.mjs') @planArgs)
+  if($LASTEXITCODE -ne 0){throw 'NO11_PREVIOUS_PLAN_EXPORT_FAILED'}
+  $plan=UniquePath $planLines 'NO11_CHART50_RECEIPT='
+ }
  $common=@('-B',$adapter,'--plan',$plan,'--mask',$mask,'--output-root',$PrivateRoot)
  $symbolLines=@(& $py @prefix @common --symbols-only)
  if($LASTEXITCODE -ne 0){throw 'NO11_PREVIOUS_SYMBOL_EXPORT_FAILED'}

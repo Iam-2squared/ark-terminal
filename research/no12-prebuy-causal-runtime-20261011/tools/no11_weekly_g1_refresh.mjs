@@ -77,13 +77,16 @@ export function verifyWeeklyPool(weeklyRun){
     'WEEKLY_PASS_POPULATION_OUTSIDE_RSS_CAP');
   return {run,plan,mask};
 }
+export function nightlyWindow(now){
+  const local=now.slice(0,10),clock=now.slice(11,16);
+  const date=lastCompletedSession(now);
+  const sameEvening=isJpxCashTradingDay(local)&&date===local&&clock>='18:00';
+  const followingPreopen=nextCashDate(date)===local&&clock<'08:30'&&!isoFriday(date);
+  need(sameEvening||followingPreopen,'CURRENT_COMPLETED_CASH_SESSION_REQUIRED');
+  return {date,now,followingPreopen};
+}
 function currentAsOf(){
-  const now=jstNow();
-  const date=now.slice(0,10);
-  need(isJpxCashTradingDay(date)&&now.slice(11,16)>='18:00',
-    'CURRENT_COMPLETED_CASH_SESSION_REQUIRED');
-  need(lastCompletedSession(now)===date,'AFTER_CLOSE_DAY_MISMATCH');
-  // Friday always uses the original FULL market census, not a reduced refresh.
+  const {date,now}=nightlyWindow(jstNow());
   need(!isoFriday(date),'FRIDAY_FULL_MARKET_SWEEP_REQUIRED');
   return {date,now};
 }
@@ -153,9 +156,7 @@ export function runCli(args){
   const action=args[0], flags={};
   if(action==='schedule'){
     need(args.length===1,'USAGE');
-    const now=jstNow(),date=now.slice(0,10);
-    need(isJpxCashTradingDay(date)&&now.slice(11,16)>='18:00'&&
-      lastCompletedSession(now)===date,'CURRENT_COMPLETED_CASH_SESSION_REQUIRED');
+    const {date,now,followingPreopen}=nightlyWindow(jstNow());
     console.log(JSON.stringify({schemaId:'ARK_NO11_WEEKLY_REFRESH_SCHEDULE_V1',
       asOfSession:date,sessionDate:nextCashDate(date),
       mode:isoFriday(date)?'FULL_MARKET_FRIDAY':'WEEKLY_POOL_CANDIDATES_ONLY',

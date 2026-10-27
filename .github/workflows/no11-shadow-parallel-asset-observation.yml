@@ -7,12 +7,14 @@ on:
     paths:
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_parallel_frozen_asset_probe.py
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_parallel_saved_chart_watch.mjs
+      - research/no12-prebuy-causal-runtime-20261011/windows/Probe-No11Chart50DiagnosedReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_parallel_shadow_operational_audits.test.mjs
       - .github/workflows/no11-shadow-parallel-asset-observation.yml
   pull_request:
     paths:
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_parallel_frozen_asset_probe.py
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_parallel_saved_chart_watch.mjs
+      - research/no12-prebuy-causal-runtime-20261011/windows/Probe-No11Chart50DiagnosedReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_parallel_shadow_operational_audits.test.mjs
       - .github/workflows/no11-shadow-parallel-asset-observation.yml
 
@@ -44,3 +46,23 @@ jobs:
           echo "NO11_PARALLEL_AUDITS_OFFLINE_TESTS=PASS"
           echo "LIVE_RSS_ORIGINALS_TESTED=False"
           echo "ORDER_TRANSMISSION=False"
+
+  windows-c50-diagnostic-parser:
+    runs-on: windows-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse additive diagnosed read-only collector (no Excel)
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $scriptFile = 'research/no12-prebuy-causal-runtime-20261011/windows/Probe-No11Chart50DiagnosedReadOnly.ps1'
+          $tokens = $null
+          $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path $scriptFile).Path, [ref]$tokens, [ref]$errors)
+          if ($errors.Count -gt 0) { throw 'C50_DIAGNOSTIC_POWERSHELL_PARSE_FAILED' }
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $scriptFile -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'C50_DIAGNOSTIC_SELFTEST_FAILED' }
+          Write-Host 'NO11_C50_DIAGNOSTIC_OFFLINE_SELFTEST=PASS'
+          Write-Host 'ORDER_TRANSMISSION=False'

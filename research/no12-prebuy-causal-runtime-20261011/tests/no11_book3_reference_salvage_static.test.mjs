@@ -9,7 +9,7 @@ const original=fs.readFileSync(
 
 test('salvage preserves original contract, no workbook changes and no fake safety review',()=>{
   for(const marker of [
-   "Capture-No11SessionReferenceReadOnly.ps1",
+   "Capture-No11SessionReferenceReadOnly",
    "no11_previous_archive_context.py",
    "no11_review_queue_from_actual_rss.py",
    "--symbols-only",
@@ -20,7 +20,7 @@ test('salvage preserves original contract, no workbook changes and no fake safet
    "$formulaRange.Formula",
    "$valueRange.Value2",
    "BOOK3_ORIGINAL_RSS_FORMULA_DIFFERENT",
-   "RSS_VALUES_SHAPE",
+   "ExpectedArray $values 47 12",
    "capturedAtJst=$start;completedAtJst=$end",
    "corporateActionReviewPerformed=$false",
    "readOnly=$true;productionReady=$false;orderTransmission=$false",

@@ -36,7 +36,8 @@ REQUIRED = {'schemaId', 'sessionDate', 'dailyRun', 'datedMaster', 'runtimeRoot',
             'privateRoot', 'productionReady', 'orderTransmission'}
 OPTIONAL = {'previousContext', 'previousCaptureFiles', 'h235ModelRoot', 'pinsFile',
             'samples', 'historyBars', 'warmupSeconds', 'shadowAccountConfig',
-            'brokerExecutionConfig', 'orderIdWorkbookPath'}
+            'brokerExecutionConfig', 'orderIdWorkbookPath',
+            'precomputedChartReceipt', 'precomputedG1Mask', 'weeklySourceRun'}
 
 
 def need(ok, code):
@@ -113,6 +114,15 @@ def validate_config(obj):
     forward.day(obj['sessionDate'])
     need(('previousContext' in obj) != ('previousCaptureFiles' in obj),
          'EXACTLY_ONE_PREVIOUS_SOURCE_REQUIRED')
+    # Either the original full-market exporter or an explicitly pinned weekly
+    # G1 mask and Chart50 from the completed prior JPX cash session. Never
+    # silently substitute a stale weekly plan for a full-universe source.
+    weekly_keys = {'precomputedChartReceipt', 'precomputedG1Mask', 'weeklySourceRun'}
+    weekly_supplied = weekly_keys & set(obj)
+    need(not weekly_supplied or weekly_supplied == weekly_keys,
+         'WEEKLY_SCOPE_ALL_THREE_REQUIRED')
+    need(not weekly_supplied or 'pinsFile' not in obj,
+         'WEEKLY_SCOPE_ALREADY_PINNED_NO_SECOND_PINS')
     c = deepcopy(obj)
     for name, low, high, default in [('samples', 2, 390, 390),
                                    ('historyBars', 50, 150, 120),
@@ -123,9 +133,17 @@ def validate_config(obj):
     for key in ('dailyRun', 'runtimeRoot', 'privateRoot'):
         c[key] = str(private(c[key], True))
     for key in ('datedMaster', 'previousContext', 'pinsFile', 'shadowAccountConfig',
-                'brokerExecutionConfig', 'orderIdWorkbookPath'):
+                'brokerExecutionConfig', 'orderIdWorkbookPath',
+                'precomputedChartReceipt', 'precomputedG1Mask'):
         if key in c:
             c[key] = str(private(c[key]))
+    if weekly_supplied:
+        c['weeklySourceRun'] = str(private(c['weeklySourceRun'], True))
+        run = Path(c['dailyRun'])
+        need(Path(c['precomputedChartReceipt']).parent == run and
+             Path(c['precomputedG1Mask']).parent == run and
+             Path(c['weeklySourceRun']) != run,
+             'WEEKLY_SCOPE_RECEIPTS_AND_DAILY_RUN_MUST_MATCH')
     if 'orderIdWorkbookPath' in c:
         need(Path(c['orderIdWorkbookPath']).suffix.lower() == '.xlsx', 'ORDER_ID_WORKBOOK_TYPE')
     if 'h235ModelRoot' in c:
@@ -161,6 +179,21 @@ def output_path(text, prefix):
 
 
 def export_scope(config):
+    if 'precomputedChartReceipt' in config:
+        # The validator checks the original 4,328-member source hash, all
+        # weekly PASS descendants, the complete actual prior-day G1, the
+        # private immutable receipt hashes, original Chart50 budget and JPX
+        # cash calendar. It does NOT need the 18:00 nighttime refresh window.
+        output = command_output(['node', str(HERE / 'no11_verified_weekly_shadow_scope.mjs'),
+                                 '--run-dir', config['dailyRun'],
+                                 '--weekly-source-run', config['weeklySourceRun'],
+                                 '--mask', config['precomputedG1Mask'],
+                                 '--chart', config['precomputedChartReceipt'],
+                                 '--session', config['sessionDate']])
+        need('NO11_WEEKLY_SHADOW_SCOPE=PASS_OBSERVED_NOT_EXTERNALLY_REVIEWED' in output,
+             'WEEKLY_SCOPE_G1_CHART_NOT_VERIFIED')
+        return (private(config['precomputedChartReceipt']),
+                private(config['precomputedG1Mask']))
     run = config['dailyRun']
     mask_text = command_output(['node', str(HERE / 'no11_export_observed_pass_watch_mask.mjs'),
                                 '--run', run])

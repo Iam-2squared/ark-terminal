@@ -111,6 +111,22 @@ class ReviewQueueTests(unittest.TestCase):
             filename.stem.split("-")[-1],
         )
 
+    def test_fullwidth_market_labels_are_present_not_independently_reviewed(self):
+        for market, valid in [('東証Ｐ', True), ('東証Ｓ', True), ('東証Ｇ', True),
+                              ('東証Ｘ', False), ('東証プライム', False)]:
+            self.reference['rows'][0]['marketSection'] = market
+            self.raw = (json.dumps(self.reference, ensure_ascii=False,
+                                   separators=(",", ":")) + "\n").encode()
+            self.ref = self.folder / ("session-reference-" +
+                                      hashlib.sha256(self.raw).hexdigest() + ".json")
+            result = self.build()
+            self.assertEqual(result['rssReferenceFieldsPresent'], 2 if valid else 1)
+            self.assertEqual(result['rows'][0]['actualRssObservation']['marketSection'], market)
+            self.assertEqual(result['independentlyClearedCount'], 0)
+            self.assertFalse(result['datedMasterCreated'])
+            self.assertFalse(result['fullIntegratedShadowAuthorized'])
+            self.assertFalse(result['orderTransmission'])
+
     def test_missing_vendor_price_never_becomes_zero_or_verified(self):
         self.reference["rows"][0]["previousClose"] = None
         self.raw = json.dumps(self.reference).encode()

@@ -15,6 +15,7 @@ import {verifyWeeklyPool} from './no11_weekly_g1_refresh.mjs';
 import {DAILY_PLAN_SCHEMA,requiredDailySessions,summarizeDailyCaptures} from '../runtime/no11_rss_daily_trend_census.mjs';
 import {makeObservedPassWatchMask} from '../runtime/no11_observed_pass_watch_gate.mjs';
 import {validateNo11Chart50Plan} from '../runtime/no11_rss_chart_50_prescreen.mjs';
+import {marketSectionSegment} from './no11_reference_fields_diagnostic.mjs';
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../..');
 const PREV='2026-10-27',TARGET='2026-10-28',SEED='2026-10-26';
@@ -61,7 +62,7 @@ function diagRssReference(p){
   previousDateOct26:rows.filter(r=>r.previousDate===SEED).length,
   previousClosePositive:rows.filter(r=>isPrice(r.previousClose)).length,
   dayBasePricePositive:rows.filter(r=>isPrice(r.dayBasePrice)).length,
-  segmentRecognized:rows.filter(r=>['東証P','東証S','東証G'].includes(r.marketSection)).length,
+  segmentRecognized:rows.filter(r=>marketSectionSegment(r.marketSection)!==null).length,
   lotShares100:rows.filter(r=>r.lotShares===100).length,
  };
  const allValid=Object.values(present).every(x=>x===47);

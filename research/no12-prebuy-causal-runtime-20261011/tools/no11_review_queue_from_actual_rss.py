@@ -93,7 +93,11 @@ def check_reference(data: dict, payload: bytes, filename: Path,
          and all(type(s) is str and SYMBOL.fullmatch(s) for s in selected)
          and len(set(selected)) == len(selected),
          "SELECTED_SYMBOLS_INVALID")
-    need(mask.get("asOfSession") == PRIOR
+    need(mask.get("schemaId") == "ARK_NO11_DAILY_OBSERVED_PASS_ONLY_SHADOW_V1"
+         and mask.get("shadowOnly") is True
+         and mask.get("strictNoUnknownFallback") is True
+         and mask.get("asOfSession") == PRIOR
+         and mask.get("planId") == plan.get("sourcePlanId")
          and mask.get("productionReady") is False
          and mask.get("orderTransmission") is False
          and mask.get("observedPassCount") == len(mask.get("observedPassSymbols", []))

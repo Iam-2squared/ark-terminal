@@ -398,7 +398,7 @@ $folder=Join-Path $RunDir ('chart50-shadow-'+$session+'-'+
  $now.ToString('HHmmss',$ci)+'-'+$PID)
 [void][IO.Directory]::CreateDirectory($folder)
 $excel=$null;$book=$null;$quote=$null;$sheets=@();$failed=$false;$stage='PRECHECK'
-# Additive diagnostics only; all source formulas and save semantics unchanged.
+# Read-only sanitized diagnostics; original RSS formulas/immutability unchanged.
 $lastCompletedSample=0;$sampleInProgress=0;$chartIndex=0;$script:diagnosticStep='NONE'
 $temporaryClosed=$true;$continueCapture=$true
 try{
@@ -586,30 +586,7 @@ public static class No11C50Attach {
  Write-Host 'ORDER_TRANSMISSION=False'
 }catch{
  $failed=$true;$errorObject=$_.Exception;$reason=$errorObject.Message
- if($reason -notmatch '^NO11_[A-Z0-9_]+
- if($null -ne $book){
-  try{$book.Close($false);$temporaryClosed=$true}
-  catch{$failed=$true;$temporaryClosed=$false}
- }
- foreach($item in $sheets){
-  try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($item.sheet)}catch{}
- }
- if($null -ne $quote){try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($quote)}catch{}}
- if($null -ne $book){try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($book)}catch{}}
- if($null -ne $excel){try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($excel)}catch{}}
- if(-not [string]::IsNullOrWhiteSpace($ReadyFile)){
-  try{
-   WriteControl ($ReadyFile+'.closed.json') ([ordered]@{
-    schemaId='ARK_NO11_C50_COLLECTOR_CLOSED_V1';sessionDate=$session;processId=$PID;
-    temporaryWorkbookClosed=$temporaryClosed;collectorFailed=$failed;
-    closedAtJst=(Stamp (NowJst));productionReady=$false;orderTransmission=$false
-   })
-  }catch{$failed=$true}
- }
-}
-if($failed){exit 2}
-exit 0
-){$reason='NO11_C50_COM_OR_IO_FAILURE'}
+ if($reason -notmatch '^NO11_[A-Z0-9_]+$'){$reason='NO11_C50_COM_OR_IO_FAILURE'}
  Write-Host ('NO11_C50_CAPTURE=BLOCKED|'+$reason)
  Write-Host ('NO11_C50_STAGE='+$stage)
  Write-Host ('NO11_C50_DIAGNOSTIC_STEP='+$script:diagnosticStep)
@@ -623,31 +600,8 @@ exit 0
   $leaf=$leaf.InnerException
  }
  $type=([string]$leaf.GetType().Name)
- if($type -notmatch '^[A-Za-z][A-Za-z0-9]{0,80}
- if($null -ne $book){
-  try{$book.Close($false);$temporaryClosed=$true}
-  catch{$failed=$true;$temporaryClosed=$false}
- }
- foreach($item in $sheets){
-  try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($item.sheet)}catch{}
- }
- if($null -ne $quote){try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($quote)}catch{}}
- if($null -ne $book){try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($book)}catch{}}
- if($null -ne $excel){try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($excel)}catch{}}
- if(-not [string]::IsNullOrWhiteSpace($ReadyFile)){
-  try{
-   WriteControl ($ReadyFile+'.closed.json') ([ordered]@{
-    schemaId='ARK_NO11_C50_COLLECTOR_CLOSED_V1';sessionDate=$session;processId=$PID;
-    temporaryWorkbookClosed=$temporaryClosed;collectorFailed=$failed;
-    closedAtJst=(Stamp (NowJst));productionReady=$false;orderTransmission=$false
-   })
-  }catch{$failed=$true}
- }
-}
-if($failed){exit 2}
-exit 0
-){$type='OTHER_EXCEPTION'}
- $hresult=('0x{0:X8}' -f [uint32]([int64]$leaf.HResult -band 0xFFFFFFFFL))
+ if($type -notmatch '^[A-Za-z][A-Za-z0-9]{0,80}$'){$type='OTHER_EXCEPTION'}
+ $hresult=('0x{0:X8}' -f [uint32]([int64]$leaf.HResult -band 4294967295))
  Write-Host ('NO11_C50_ERROR_KIND='+$type)
  Write-Host ('NO11_C50_ERROR_HRESULT='+$hresult)
  if($null -ne $folder -and (Test-Path -LiteralPath $folder -PathType Container)){

@@ -13,6 +13,8 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_weekly_oct28_pipeline_wiring.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_oct28_preopen_doctor.mjs
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_oct28_preopen_doctor.test.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_account_connection_diagnostic_readonly.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tests/no11_account_connection_diagnostic_readonly.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11Oct28ReadOnlyFiles.ps1
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_parallel_shadow_preflight_audit.mjs
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_parallel_shadow_preflight_audit.test.mjs
@@ -27,6 +29,8 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_weekly_oct28_pipeline_wiring.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_oct28_preopen_doctor.mjs
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_oct28_preopen_doctor.test.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_account_connection_diagnostic_readonly.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tests/no11_account_connection_diagnostic_readonly.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11Oct28ReadOnlyFiles.ps1
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_parallel_shadow_preflight_audit.mjs
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_parallel_shadow_preflight_audit.test.mjs
@@ -51,6 +55,8 @@ jobs:
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_weekly_oct28_pipeline_wiring.test.mjs
           node --check research/no12-prebuy-causal-runtime-20261011/tools/no11_oct28_preopen_doctor.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_oct28_preopen_doctor.test.mjs
+          node --check research/no12-prebuy-causal-runtime-20261011/tools/no11_account_connection_diagnostic_readonly.mjs
+          node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_account_connection_diagnostic_readonly.test.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_parallel_shadow_preflight_audit.test.mjs
 
   weekly-windows:

@@ -10,7 +10,7 @@ test('local-only bootstrap source is patched, not replaced with an assumed Git b
   'no11_patch_weekly_bootstrap_local.py',
   'no11_verified_weekly_shadow_scope.mjs',
   'Run-No11Oct28AfternoonShadowReadOnly.ps1',
-  'STAGED_GIT_BLOB_MISMATCH',
+  'GIT_HASH_FAILED',
   'DOWNLOADED_SOURCE_HASH_MISMATCH',
   'ALREADY_EXISTING_NEW_FILE_DIVERGED',
   'SHADOW_RUNNING_DO_NOT_PATCH',

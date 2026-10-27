@@ -58,7 +58,7 @@ test('diagnostic code is read-only, no fake review, Excel or order dispatch',()=
  const code=fs.readFileSync(new URL('../tools/no11_reference_fields_diagnostic.mjs',import.meta.url),'utf8');
  for(const marker of [
   /RssStockOrder\s*\(/,/RssCancelOrder\s*\(/,/GetActiveObject\s*\(/,
-  /writeFileSync\s*\(/,/renameSync\s*\(/,/EXTERNALLY_REVIEWED['"]\s*:/,
+  /writeFileSync\s*\(/,/renameSync\s*\(/,/reviewStatus\s*:\s*['"]EXTERNALLY_REVIEWED/,
   /orderTransmission\s*:\s*true/,
  ])assert.doesNotMatch(code,marker);
 });

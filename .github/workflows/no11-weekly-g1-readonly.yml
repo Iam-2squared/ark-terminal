@@ -30,6 +30,8 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/tests/test_no11_market_section_contract.py
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11MarketSectionReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_market_section_stage.test.mjs
+      - research/no12-prebuy-causal-runtime-20261011/windows/Repair-No11MarketSectionLocalPreserve.ps1
+      - research/no12-prebuy-causal-runtime-20261011/tests/no11_market_section_local_preserve.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_account_connection_diagnostic_readonly.mjs
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_account_connection_diagnostic_readonly.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11Oct28ReadOnlyFiles.ps1
@@ -63,6 +65,8 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/tests/test_no11_market_section_contract.py
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11MarketSectionReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_market_section_stage.test.mjs
+      - research/no12-prebuy-causal-runtime-20261011/windows/Repair-No11MarketSectionLocalPreserve.ps1
+      - research/no12-prebuy-causal-runtime-20261011/tests/no11_market_section_local_preserve.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_account_connection_diagnostic_readonly.mjs
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_account_connection_diagnostic_readonly.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11Oct28ReadOnlyFiles.ps1
@@ -95,6 +99,7 @@ jobs:
           node --check research/no12-prebuy-causal-runtime-20261011/tools/no11_reference_fields_diagnostic.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_reference_fields_diagnostic.test.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_market_section_stage.test.mjs
+          node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_market_section_local_preserve.test.mjs
           python -m unittest discover -s research/no12-prebuy-causal-runtime-20261011/tests -p 'test_no11_actual_rss_review_queue.py' -v
           python -m unittest discover -s research/no12-prebuy-causal-runtime-20261011/tests -p 'test_no11_market_section_contract.py' -v
           node --check research/no12-prebuy-causal-runtime-20261011/tools/no11_oct29_preopen_doctor.mjs
@@ -119,7 +124,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $dir = 'research/no12-prebuy-causal-runtime-20261011/windows'
-          foreach ($name in @('Run-No11WeeklyCandidateRefreshReadOnly.ps1','Prepare-No11WeeklyAfterCloseReadOnly.ps1','Prepare-No11PreviousArchiveReadOnly.ps1','Stage-No11Oct28ReadOnlyFiles.ps1','Run-No11Oct29ReferenceOneShotReadOnly.ps1','Capture-No11SessionReferenceReadOnly.ps1','Stage-No11Oct29ReadOnlyFiles.ps1','Stage-No11MarketSectionReadOnly.ps1')) {
+          foreach ($name in @('Run-No11WeeklyCandidateRefreshReadOnly.ps1','Prepare-No11WeeklyAfterCloseReadOnly.ps1','Prepare-No11PreviousArchiveReadOnly.ps1','Stage-No11Oct28ReadOnlyFiles.ps1','Run-No11Oct29ReferenceOneShotReadOnly.ps1','Capture-No11SessionReferenceReadOnly.ps1','Stage-No11Oct29ReadOnlyFiles.ps1','Stage-No11MarketSectionReadOnly.ps1','Repair-No11MarketSectionLocalPreserve.ps1')) {
             $file = Join-Path $dir $name
             $tokens = $null
             $errors = $null
@@ -142,5 +147,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Oct29 source installer self-test failed' }
           & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $dir 'Stage-No11MarketSectionReadOnly.ps1') -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'Market section pinned updater self-test failed' }
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $dir 'Repair-No11MarketSectionLocalPreserve.ps1') -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'Local-preserving section repair offline self-test failed' }
           Write-Host 'NO11_WEEKLY_WINDOWS_OFFLINE_TESTS=PASS'
           Write-Host 'ORDER_TRANSMISSION=False'

@@ -16,6 +16,18 @@ $pins=@(
 function Need([bool]$ok,[string]$reason){
  if(-not $ok){throw ('NO11_OCT29_STAGE_'+$reason)}
 }
+function Assert-NoReparse([string]$p){
+ $cur=[IO.Path]::GetFullPath($p)
+ while(-not [string]::IsNullOrWhiteSpace($cur)){
+  if(Test-Path -LiteralPath $cur){
+   $entry=Get-Item -LiteralPath $cur -Force
+   Need (($entry.Attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0) 'REPARSE_PATH_REFUSED'
+  }
+  $parent=Split-Path -Parent $cur
+  if($parent -ceq $cur){break}
+  $cur=$parent
+ }
+}
 if($OfflineSelfTest){
  Need ($pins.Count -eq 4 -and $revision -cmatch '^[a-f0-9]{40}$') 'PINS'
  foreach($pin in $pins){Need ([string]$pin[1] -cmatch '^[a-f0-9]{40}$') 'BLOB_PIN'}
@@ -51,6 +63,7 @@ try{
   Need ($LASTEXITCODE -eq 0 -and $actual.Trim() -ceq $expected) 'DOWNLOAD_BLOB_HASH'
   $dest=Join-Path $EngineRoot $relative
   Need (Test-Path -LiteralPath (Split-Path -Parent $dest) -PathType Container) 'DESTINATION_PARENT_MISSING'
+  Assert-NoReparse $dest
   Need (-not (Test-Path -LiteralPath $dest -PathType Container)) 'DESTINATION_IS_DIRECTORY'
   $exists=Test-Path -LiteralPath $dest -PathType Leaf
   if($exists -and $relative -cne 'windows\Capture-No11SessionReferenceReadOnly.ps1'){
@@ -66,8 +79,8 @@ try{
  $touched=New-Object 'System.Collections.Generic.List[object]'
  try{
   foreach($entry in $records){
-   [IO.File]::Copy($entry.source,$entry.dest,$true)
    $touched.Add($entry)
+   [IO.File]::Copy($entry.source,$entry.dest,$true)
    $installed=(& git hash-object --no-filters $entry.dest)
    Need ($LASTEXITCODE -eq 0 -and $installed.Trim() -ceq $entry.expected) 'INSTALL_BLOB_HASH'
   }

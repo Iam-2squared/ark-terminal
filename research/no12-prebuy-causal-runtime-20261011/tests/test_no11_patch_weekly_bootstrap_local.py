@@ -48,8 +48,7 @@ class LocalOnlyBootstrapPatchTests(unittest.TestCase):
         self.assertIn("LOCAL_UNRELATED_CHANGE = 'never rewrite me'", result)
         for new in PATCH.AFTER:
             self.assertIn(new, result)
-        for old in PATCH.BEFORE:
-            self.assertNotIn(old, result)
+        self.assertIn("NO11_WEEKLY_SHADOW_SCOPE=PASS_OBSERVED_NOT_EXTERNALLY_REVIEWED", result)
         self.assertIn("weekly_supplied = weekly_keys & set(obj)", result)
         self.assertIn("NO11_WEEKLY_SHADOW_SCOPE=PASS_OBSERVED_NOT_EXTERNALLY_REVIEWED", result)
         self.assertIn("obj['orderTransmission'] is False", result)

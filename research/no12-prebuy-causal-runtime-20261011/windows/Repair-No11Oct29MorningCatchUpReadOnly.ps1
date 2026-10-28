@@ -49,7 +49,8 @@ function SafePath([string]$path,[bool]$directory=$false){
  return $p
 }
 function AssertReservedScope($plan,[string]$run,[string]$seedPlanId){
- Need ($plan.schemaId -ceq 'ARK_NO11_WEEKLY_G1_DAILY_REFRESH_PLAN_V1' -and
+ Need ($plan.schemaId -ceq 'ARK_NO11_RSS_DAILY_CENSUS_PLAN_V1' -and
+  $plan.refreshSchemaId -ceq 'ARK_NO11_WEEKLY_G1_DAILY_REFRESH_PLAN_V1' -and
   $plan.asOfSession -ceq $targetAsOf -and
   @($plan.symbols).Count -eq 429 -and
   $plan.weeklySource.originalPlanId -ceq $seedPlanId -and

@@ -122,7 +122,16 @@ try{
   $collector=P (Join-Path $engine 'windows\Capture-No11SessionReferenceReadOnly.ps1')
   $args=@('-NoProfile','-ExecutionPolicy','Bypass','-File',$collector,
    '-SymbolsFile',$symbols,'-ChartPlanFile',$chart,'-OutputRoot',$refRoot)
-  $output=@(& powershell.exe @args)
+  # Relay only diagnostic progress to the user WHILE retaining the exact
+  # receipt lines for FromOutput. The previous full capture swallowed all
+  # child stdout, making a slow COM step look like a complete freeze.
+  $output=@(& powershell.exe @args | ForEach-Object {
+   $line=[string]$_
+   if($line -match '^(NO11_REFERENCE_STAGE=|NO11_REFERENCE_FORMULA_SCAN_SHEET=|NO11_SESSION_REFERENCE=BLOCKED)'){
+    Write-Host $line
+   }
+   $line
+  })
   Need ($LASTEXITCODE -eq 0) 'ACTUAL_RSS_REFERENCE_FAILED'
   $reference=FromOutput $output 'NO11_SESSION_REFERENCE_FILE='
   $diag=P (Join-Path $engine 'tools\no11_reference_fields_diagnostic.mjs')

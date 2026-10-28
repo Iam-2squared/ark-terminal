@@ -210,7 +210,8 @@ public static class No11DailyWindow {
    }
   }
   $physical=SafePhysicalBatch $existing $BatchSize
-  Write-Host ('NO11_DAILY_BATCH_POLICY=GROUP_{0}|PHYSICAL_MAX_{1}|ORIGINAL_CHARTS_{2}|RESERVE_3|LIMIT_50' -f $GroupSize,$physical,$existing)
+  $ceiling=$physical;$fullWaves=0
+  Write-Host ('NO11_DAILY_BATCH_POLICY=GROUP_{0}|PHYSICAL_MAX_{1}|ORIGINAL_CHARTS_{2}|RESERVE_3|LIMIT_50' -f $GroupSize,$ceiling,$existing)
   for($offset=0;$offset -lt $remaining.Count;){
    $waveEnd=NextWaveEnd $offset $remaining.Count $GroupSize $physical
    $batch=@($remaining[$offset..($waveEnd-1)]);$sheets=@();$stage='TEMPORARY_WORKBOOK'
@@ -255,6 +256,21 @@ public static class No11DailyWindow {
    # Canary runs automatically; avoid collecting thousands of unusable snapshots.
    if($complete -eq 0){throw 'NO11_DAILY_NO_FULL_HISTORY_IN_WAVE_REVIEW_PARTIAL_REPORT'}
    $offset=$waveEnd
+   # An RSS partial wave is an observed source gap, NOT a success for its
+   # missing symbols. Reduce concurrency for subsequent waves; ramp back up
+   # only after repeated fully observed waves.
+   if($usable -lt $batch.Count){
+    $fullWaves=0
+    $physical=[Math]::Max(1,[int][Math]::Floor($physical/2))
+    Write-Host ('NO11_DAILY_BATCH_TUNE=PARTIAL_REDUCED_TO_{0}|MISSING_NOT_G1_PASS' -f $physical)
+   }elseif($physical -lt $ceiling){
+    $fullWaves++
+    if($fullWaves -ge 2){
+     $physical=[Math]::Min($ceiling,$physical+5)
+     $fullWaves=0
+     Write-Host ('NO11_DAILY_BATCH_TUNE=FULL_WAVES_RAISED_TO_{0}' -f $physical)
+    }
+   }
    if($offset -eq $remaining.Count -or $offset % $GroupSize -eq 0){
     Write-Host ('NO11_DAILY_GROUP_COMPLETE={0}/{1}|GROUP_SIZE={2}|NEXT_WAVE_AUTO=True' -f ($work.resumed+$offset),$work.plan.symbols.Count,$GroupSize)
    }

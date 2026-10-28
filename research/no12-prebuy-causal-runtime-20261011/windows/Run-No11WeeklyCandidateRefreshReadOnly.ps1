@@ -7,6 +7,7 @@ param(
  [string]$PrivateRoot,
  [string]$PinsFile,
  [string]$CatchUpAsOf='',
+ [switch]$ConfirmYahooFridayRss,
  [ValidateRange(1,20)][int]$BatchSize=20,
  [ValidateRange(5,60)][int]$WaitSeconds=15,
  [ValidateRange(0,5000)][int]$MaxSymbols=0
@@ -105,6 +106,7 @@ function Get-Plan {
   if($CatchUpAsOf -cnotmatch '^20\d{2}-\d{2}-\d{2}$'){throw 'NO11_DAILY_CATCHUP_DAY_INVALID'}
   $planArgs+=@('--catch-up-asof',$CatchUpAsOf)
  }
+ if($ConfirmYahooFridayRss){$planArgs+=@('--yahoo-friday-rss-confirm','true')}
  $text=(& node $tool @planArgs | Out-String)
  if($LASTEXITCODE -ne 0){throw 'NO11_WEEKLY_REFRESH_PLAN_FAILED'}
  return ($text | ConvertFrom-Json)
@@ -220,6 +222,7 @@ $reportArgs=@('report','--run',$run,'--weekly-run',$WeeklyRun)
 if(-not [string]::IsNullOrWhiteSpace($CatchUpAsOf)){
  $reportArgs+=@('--catch-up-asof',$CatchUpAsOf)
 }
+if($ConfirmYahooFridayRss){$reportArgs+=@('--yahoo-friday-rss-confirm','true')}
 if(-not [string]::IsNullOrWhiteSpace($PinsFile)){$reportArgs+=@('--pins-file',$PinsFile)}
 $output=@(& node $tool @reportArgs)
 $reportExit=$LASTEXITCODE

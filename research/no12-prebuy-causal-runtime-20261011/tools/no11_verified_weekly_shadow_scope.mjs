@@ -55,6 +55,13 @@ export function verifyWeeklyShadowScope({runDir,seedDir,maskFile,chartFile,sessi
  const asOf=previousJpxCashTradingDays(sessionDate,1)[0];
  const weekly=verifyWeeklySource(seed);
  const plan=read(path.join(run,'plan.json')).value;
+ // Friday Yahoo seed can select the same Friday's 429 source symbols, but
+ // every returned daily candle in this run MUST still come from the RSS
+ // source files below; no Yahoo OHLCV is promoted to real-time execution.
+ const fridayConfirmed=plan.yahooFridayRssConfirmation===true;
+ const lineageGap=fridayConfirmed?
+   (weekly.plan.sourceProvider===YAHOO_SOURCE&&weekly.plan.asOfSession===asOf?0:NaN):
+   tradingGap(weekly.plan.asOfSession,asOf);
  const {planId,...body}=plan;
  need(plan.schemaId===DAILY_PLAN_SCHEMA&&
   plan.refreshSchemaId==='ARK_NO11_WEEKLY_G1_DAILY_REFRESH_PLAN_V1'&&
@@ -69,6 +76,14 @@ export function verifyWeeklyShadowScope({runDir,seedDir,maskFile,chartFile,sessi
   plan.weeklySource?.observedPassCount===weekly.mask.observedPassCount&&
   plan.weeklySource?.observedPassSymbolsSha256===sha(JSON.stringify(plan.symbols))&&
   plan.weeklySource?.originalFullUniverseCount===4328&&
+  plan.weeklySource?.elapsedCashSessions===lineageGap&&
+  (fridayConfirmed?
+   (weekly.plan.sourceProvider===YAHOO_SOURCE&&
+    plan.weeklySource?.sourceWasYahooButDailyCandlesAreRss===true&&
+    typeof plan.createdAtJst==='string'&&
+    plan.createdAtJst.slice(0,10)===asOf&&
+    plan.createdAtJst.slice(11,16)>='19:00'):
+   plan.weeklySource?.sourceWasYahooButDailyCandlesAreRss===undefined)&&
   (weekly.plan.sourceProvider===YAHOO_SOURCE?
     (plan.weeklySource?.originProvider===YAHOO_SOURCE&&
      plan.weeklySource?.yahooSourcePriceBasisCertified===false&&

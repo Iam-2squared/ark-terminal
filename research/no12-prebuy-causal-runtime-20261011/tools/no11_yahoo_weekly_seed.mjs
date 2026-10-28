@@ -9,8 +9,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {fileURLToPath,pathToFileURL} from 'node:url';
-import {verifyWeeklyPool} from './no11_weekly_g1_refresh.mjs';
-import {requiredDailySessions,ORIGINAL_SYMBOLS_SHA256,validInstant,jstNow}
+import {codeIdentity,loadCaptures} from './no11_rss_daily_trend_census.mjs';
+import {makeObservedPassWatchMask} from '../runtime/no11_observed_pass_watch_gate.mjs';
+import {DAILY_PLAN_SCHEMA,requiredDailySessions,ORIGINAL_SYMBOLS_SHA256,validInstant,jstNow}
   from '../runtime/no11_rss_daily_trend_census.mjs';
 import {classifyDailySmaStructure}
   from '../runtime/no11_existing_selector_trend_prefilter.mjs';
@@ -92,6 +93,29 @@ export function assessYahooSymbol(payload,expected,asOf){
  if(values.size!==expected.length)return {status:'UNKNOWN',reason:'REQUIRED_76_SESSIONS_UNAVAILABLE'};
  return classifyDailySmaStructure(expected.map(d=>values.get(d)));
 }
+
+/** Validate the immutable original 4328-member RSS universe as a PIN ONLY.
+ * Do not use any of its stale prices in the new Yahoo weekly G1 arithmetic.
+ * Separate implementation avoids circular dependency on the daily RSS scheduler.
+ */
+function originalFrozenUniverse(folder){
+ const run=privatePath(folder,true),plan=read(path.join(run,'plan.json')).value;
+ const {planId,...body}=plan;
+ need(plan.schemaId===DAILY_PLAN_SCHEMA&&plan.asOfSession==='2026-10-26'&&
+   plan.sourceSymbolsSha256===ORIGINAL_SYMBOLS_SHA256&&
+   Array.isArray(plan.symbols)&&plan.symbols.length===4328&&
+   new Set(plan.symbols).size===4328&&
+   plan.codeSha256===codeIdentity()&&
+   hash(JSON.stringify(body))===planId,
+   'ORIGINAL_4328_PLAN_NOT_PINNED');
+ const captures=loadCaptures(run,plan);
+ need(captures.length===4328,'ORIGINAL_4328_ACTUAL_SOURCE_INCOMPLETE');
+ const mask=makeObservedPassWatchMask(plan,captures);
+ need(mask.observedPassCount>=1&&mask.observedPassCount<=500,
+   'ORIGINAL_4328_MASK_INVALID');
+ return {run,plan,mask};
+}
+
 function namesAndAssessment(folder,symbols,asOf){
  const expected=requiredDailySessions(asOf),dir=privatePath(path.join(folder,'sources'),true);
  const names=fs.readdirSync(dir).sort();
@@ -194,7 +218,7 @@ function validatePlan(plan,weekly,asOf,folder,manifest){
 }
 export function buildYahooWeeklySeed(folder,originalRun){
  const {seed,asOf,originalPrefix}=seedRoot(folder);
- const weekly=verifyWeeklyPool(privatePath(originalRun,true));
+ const weekly=originalFrozenUniverse(originalRun);
  need(weekly.plan.planId.startsWith(originalPrefix),'ORIGINAL_PLAN_PIN_MISMATCH');
  const scan=namesAndAssessment(seed,weekly.plan.symbols,asOf);
  const planFile=path.join(seed,'plan.json');
@@ -212,7 +236,7 @@ export function buildYahooWeeklySeed(folder,originalRun){
 export function verifyYahooWeeklySeed(folder){
  const {seed,asOf,originalPrefix}=seedRoot(folder);
  const plan=read(path.join(seed,'plan.json')).value;
- const weekly=verifyWeeklyPool(privatePath(plan.originalRssSeedRun,true));
+ const weekly=originalFrozenUniverse(plan.originalRssSeedRun);
  need(weekly.plan.planId.startsWith(originalPrefix),'ORIGINAL_PLAN_PIN_MISMATCH');
  const scan=namesAndAssessment(seed,weekly.plan.symbols,asOf);
  validatePlan(plan,weekly,asOf,seed,scan.manifest);

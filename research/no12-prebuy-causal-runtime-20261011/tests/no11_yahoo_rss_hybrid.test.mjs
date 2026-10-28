@@ -22,7 +22,7 @@ test('on Fridays, opt-in Yahoo 4328 seed is confirmed with real 429 RSS D100, no
   'YAHOO_FRIDAY_REAL_RSS_PLAN_CONTRACT','sourceWasYahooButDailyCandlesAreRss',
   'source.plan.sourceProvider===YAHOO_SOURCE','verifyYahooWeeklySeed(run)'])
   assert.ok(weekly.includes(value),value);
- assert.ok(collector.includes('-ConfirmYahooFridayRss'));
+ assert.ok(collector.includes('[switch]$ConfirmYahooFridayRss'));
  assert.ok(after.includes('-ConfirmYahooFridayRss'));
  for(const m of ['NO11_WEEKLY_NIGHTLY_FRIDAY_FULL_RSS_SCAN=SKIPPED_YAHOO_SOURCE_ONLY',
   'NO11_WEEKLY_NIGHTLY_FRIDAY_RSS_CONFIRMATION=429_CANDIDATES_ONLY',

@@ -19,6 +19,7 @@ import {codeIdentity,loadCaptures,immutable} from './no11_rss_daily_trend_census
 import {DAILY_PLAN_SCHEMA,ORIGINAL_SYMBOLS_SHA256,lastCompletedSession,jstNow,requiredDailySessions,
   summarizeDailyCaptures} from '../runtime/no11_rss_daily_trend_census.mjs';
 import {isJpxCashTradingDay} from '../runtime/jpx_cash_calendar_2026_2027.mjs';
+import {verifyYahooWeeklySeed,YAHOO_SEED_SCHEMA,YAHOO_SOURCE} from './no11_yahoo_weekly_seed.mjs';
 import {makeObservedPassWatchMask}
   from '../runtime/no11_observed_pass_watch_gate.mjs';
 import {rankVerifiedG1PassForChartBudget,makeNo11G1Chart50Plan}
@@ -77,6 +78,17 @@ export function verifyWeeklyPool(weeklyRun){
     'WEEKLY_PASS_POPULATION_OUTSIDE_RSS_CAP');
   return {run,plan,mask};
 }
+/** Explicit provider seam: original RSS weekly seed OR verified Yahoo source.
+ * The subsequent daily D100 candidate refresh remains physical RSS.
+ * Do not relabel Yahoo daily prices as RSS captures.
+ */
+export function verifyWeeklySource(weeklyRun){
+  const run=directory(weeklyRun);
+  const plan=regular(path.join(run,'plan.json'));
+  if(plan.schemaId===YAHOO_SEED_SCHEMA)return verifyYahooWeeklySeed(run);
+  need(plan.schemaId===DAILY_PLAN_SCHEMA,'UNKNOWN_WEEKLY_SOURCE_PROVIDER');
+  return verifyWeeklyPool(run);
+}
 export function nightlyWindow(now){
   const local=now.slice(0,10),clock=now.slice(11,16);
   const date=lastCompletedSession(now);
@@ -132,6 +144,11 @@ function assembleDailyPlan(source,date,now,daytimeHistoricalRecovery=false){
     priceBasisCertified:false,
     productionReady:false,orderTransmission:false
   };
+  if(source.plan.sourceProvider===YAHOO_SOURCE){
+    body.weeklySource.originProvider=YAHOO_SOURCE;
+    body.weeklySource.yahooSourcePriceBasisCertified=false;
+    body.weeklySource.requiresIndependentPriceReview=true;
+  }
   if(daytimeHistoricalRecovery){
     // Source is retrieved NOW, never backdated to yesterday. G1 evaluates
     // yesterday's 76 CASH sessions, explicitly ignoring today's partial bar.
@@ -143,7 +160,7 @@ function assembleDailyPlan(source,date,now,daytimeHistoricalRecovery=false){
   return {planId:SHA(JSON.stringify(body)),...body};
 }
 function stagePlan(weeklyRun,root,catchUpAsOf=''){
-  const source=verifyWeeklyPool(weeklyRun);
+  const source=verifyWeeklySource(weeklyRun);
   const {date,now,daytimeHistoricalRecovery}=currentAsOf(catchUpAsOf);
   const base=directory(root,true);
   const fragment=source.plan.planId.slice(0,16);
@@ -170,6 +187,11 @@ function validateRefreshPlan(plan,source,date){
     plan.weeklySource.asOfSession===source.plan.asOfSession&&
     plan.weeklySource.observedPassCount===source.mask.observedPassCount&&
     plan.weeklySource.observedPassSymbolsSha256===SHA(JSON.stringify(plan.symbols))&&
+    (source.plan.sourceProvider===YAHOO_SOURCE?
+      (plan.weeklySource.originProvider===YAHOO_SOURCE&&
+       plan.weeklySource.yahooSourcePriceBasisCertified===false&&
+       plan.weeklySource.requiresIndependentPriceReview===true):
+      !Object.hasOwn(plan.weeklySource,'originProvider'))&&
     plan.newWeeklyBreakoutsIncluded===false&&plan.unknownNotAdmitted===true&&
     plan.productionReady===false&&plan.orderTransmission===false,
     'REFRESH_PLAN_LINEAGE_OR_CONTENT_INVALID');
@@ -212,7 +234,7 @@ export function runCli(args){
       weeklyRestrictedUniverse:true}));
   } else {
     need(flags['--run']&&!flags['--root'],'USAGE');
-    const source=verifyWeeklyPool(flags['--weekly-run']);
+    const source=verifyWeeklySource(flags['--weekly-run']);
     const run=directory(flags['--run']);
     const plan=regular(path.join(run,'plan.json'));
     const {date}=currentAsOf(flags['--catch-up-asof']??'');
@@ -235,6 +257,10 @@ export function runCli(args){
     mask.originalWeeklyFullUniverseCount=source.plan.symbols.length;
     mask.weeklyPoolSourcePlanId=source.plan.planId;
     mask.weeklyPoolPopulation=plan.symbols.length;
+    if(source.plan.sourceProvider===YAHOO_SOURCE){
+      mask.weeklyOriginalProvider=YAHOO_SOURCE;
+      mask.yahooWeeklySourceUnverifiedForTrading=true;
+    }
     mask.newBreakoutsOutsideWeeklyPoolNotScanned=true;
     if(plan.daytimeHistoricalRecovery===true){
       mask.daytimeHistoricalRecovery=true;
@@ -267,6 +293,7 @@ export function runCli(args){
       source:'WEEKLY_POOL_DAILY_REFRESH_ONLY_NOT_CURRENT_FULL_MARKET',
       chartPlan,originalSourceCaptured:captures.length,noRecapture:true,
       weeklyG1Policy:contract,weeklyFullAsOfSession:source.plan.asOfSession,
+      weeklyOriginalProvider:source.plan.sourceProvider??'MSII_RSS_ORIGINAL_WEEKLY',
       currentRefreshAsOfSession:date,weeklyCandidateCount:plan.symbols.length,
       accountPositionsBrokerVerified:false,
       actualChartFunctionOccupancyVerified:false,

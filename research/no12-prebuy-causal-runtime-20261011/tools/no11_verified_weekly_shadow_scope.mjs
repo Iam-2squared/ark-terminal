@@ -109,7 +109,10 @@ export function verifyWeeklyShadowScope({runDir,seedDir,maskFile,chartFile,sessi
   chart.currentRefreshAsOfSession===asOf&&
   chart.weeklyFullAsOfSession===weekly.plan.asOfSession&&
   chart.weeklyCandidateCount===plan.symbols.length&&
-  chart.weeklyOriginalProvider===(weekly.plan.sourceProvider??'MSII_RSS_ORIGINAL_WEEKLY')&&
+  (weekly.plan.sourceProvider===YAHOO_SOURCE?
+    chart.weeklyOriginalProvider===YAHOO_SOURCE:
+    (chart.weeklyOriginalProvider===undefined||
+     chart.weeklyOriginalProvider==='MSII_RSS_ORIGINAL_WEEKLY'))&&
   chart.productionReady===false&&chart.orderTransmission===false,
   'CURRENT_CHART_RECEIPT_WRONG_SOURCE');
  const selected=validateNo11Chart50Plan({chartPlan:chart.chartPlan,mask,sessionDate});

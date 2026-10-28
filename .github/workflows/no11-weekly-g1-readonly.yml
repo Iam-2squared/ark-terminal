@@ -56,6 +56,10 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_oct28_catchup_stage.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Upgrade-No11Oct28EmptyWaveRetryReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_oct28_empty_wave_upgrade.test.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_yahoo_weekly_history.py
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_yahoo_weekly_seed.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tests/test_no11_yahoo_weekly_history.py
+      - research/no12-prebuy-causal-runtime-20261011/tests/no11_yahoo_weekly_seed.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_account_connection_diagnostic_readonly.mjs
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_account_connection_diagnostic_readonly.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11Oct28ReadOnlyFiles.ps1
@@ -115,6 +119,10 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_oct28_catchup_stage.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Upgrade-No11Oct28EmptyWaveRetryReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_oct28_empty_wave_upgrade.test.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_yahoo_weekly_history.py
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_yahoo_weekly_seed.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tests/test_no11_yahoo_weekly_history.py
+      - research/no12-prebuy-causal-runtime-20261011/tests/no11_yahoo_weekly_seed.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_account_connection_diagnostic_readonly.mjs
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_account_connection_diagnostic_readonly.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11Oct28ReadOnlyFiles.ps1
@@ -159,6 +167,8 @@ jobs:
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_oct28_catchup_readonly.test.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_oct28_catchup_stage.test.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_oct28_empty_wave_upgrade.test.mjs
+          node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_yahoo_weekly_seed.test.mjs
+          python -m unittest discover -s research/no12-prebuy-causal-runtime-20261011/tests -p 'test_no11_yahoo_weekly_history.py' -v
           python -m unittest discover -s research/no12-prebuy-causal-runtime-20261011/tests -p 'test_no11_patch_weekly_bootstrap_local.py' -v
           python -m unittest discover -s research/no12-prebuy-causal-runtime-20261011/tests -p 'test_no11_weekly_shadow_bootstrap.py' -v
           python -m unittest discover -s research/no12-prebuy-causal-runtime-20261011/tests -p 'test_no11_actual_rss_review_queue.py' -v

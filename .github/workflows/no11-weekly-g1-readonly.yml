@@ -23,6 +23,8 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/windows/Capture-No11SessionReferenceReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_session_reference.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_reference_bulk_formula_capture.test.mjs
+      - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11ReferenceBulkReadReadOnly.ps1
+      - research/no12-prebuy-causal-runtime-20261011/tests/no11_reference_bulk_stage.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11Oct29ReadOnlyFiles.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_oct29_readonly_stage.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_reference_fields_diagnostic.mjs
@@ -93,6 +95,8 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/windows/Capture-No11SessionReferenceReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_session_reference.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_reference_bulk_formula_capture.test.mjs
+      - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11ReferenceBulkReadReadOnly.ps1
+      - research/no12-prebuy-causal-runtime-20261011/tests/no11_reference_bulk_stage.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11Oct29ReadOnlyFiles.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_oct29_readonly_stage.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_reference_fields_diagnostic.mjs
@@ -196,6 +200,7 @@ jobs:
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_oct29_reference_oneshot.test.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_session_reference.test.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_reference_bulk_formula_capture.test.mjs
+          node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_reference_bulk_stage.test.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_oct29_readonly_stage.test.mjs
           node --check research/no12-prebuy-causal-runtime-20261011/tools/no11_account_connection_diagnostic_readonly.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_account_connection_diagnostic_readonly.test.mjs
@@ -214,7 +219,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $dir = 'research/no12-prebuy-causal-runtime-20261011/windows'
-          foreach ($name in @('Run-No11WeeklyCandidateRefreshReadOnly.ps1','Prepare-No11WeeklyAfterCloseReadOnly.ps1','Prepare-No11PreviousArchiveReadOnly.ps1','Stage-No11Oct28ReadOnlyFiles.ps1','Run-No11Oct29ReferenceOneShotReadOnly.ps1','Capture-No11SessionReferenceReadOnly.ps1','Stage-No11Oct29ReadOnlyFiles.ps1','Stage-No11MarketSectionReadOnly.ps1','Repair-No11MarketSectionLocalPreserve.ps1','Run-No11Oct28DaytimeReviewPrepReadOnly.ps1','Run-No11Oct28AfternoonShadowReadOnly.ps1','Stage-No11Oct28AfternoonReadOnly.ps1','Run-No11Oct28QuickStartReadOnly.ps1','Repair-No11Oct28BridgeLocalPreserve.ps1','Run-No11WeeklyCandidateCatchUpReadOnly.ps1','Run-No11Oct28CatchUpReadOnly.ps1','Stage-No11Oct28CatchUpReadOnly.ps1','Upgrade-No11Oct28EmptyWaveRetryReadOnly.ps1','Run-No11YahooWeeklySeedReadOnly.ps1','Stage-No11FutureRssAutoGroupsReadOnly.ps1')) {
+          foreach ($name in @('Run-No11WeeklyCandidateRefreshReadOnly.ps1','Prepare-No11WeeklyAfterCloseReadOnly.ps1','Prepare-No11PreviousArchiveReadOnly.ps1','Stage-No11Oct28ReadOnlyFiles.ps1','Run-No11Oct29ReferenceOneShotReadOnly.ps1','Capture-No11SessionReferenceReadOnly.ps1','Stage-No11Oct29ReadOnlyFiles.ps1','Stage-No11MarketSectionReadOnly.ps1','Repair-No11MarketSectionLocalPreserve.ps1','Run-No11Oct28DaytimeReviewPrepReadOnly.ps1','Run-No11Oct28AfternoonShadowReadOnly.ps1','Stage-No11Oct28AfternoonReadOnly.ps1','Run-No11Oct28QuickStartReadOnly.ps1','Repair-No11Oct28BridgeLocalPreserve.ps1','Run-No11WeeklyCandidateCatchUpReadOnly.ps1','Run-No11Oct28CatchUpReadOnly.ps1','Stage-No11Oct28CatchUpReadOnly.ps1','Upgrade-No11Oct28EmptyWaveRetryReadOnly.ps1','Run-No11YahooWeeklySeedReadOnly.ps1','Stage-No11FutureRssAutoGroupsReadOnly.ps1','Stage-No11ReferenceBulkReadReadOnly.ps1')) {
             $file = Join-Path $dir $name
             $tokens = $null
             $errors = $null
@@ -261,5 +266,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Yahoo weekly source Windows offline test failed' }
           & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $dir 'Stage-No11FutureRssAutoGroupsReadOnly.ps1') -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'Future RSS 100-group installer offline test failed' }
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $dir 'Stage-No11ReferenceBulkReadReadOnly.ps1') -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'RSS bulk reference one-time stage offline test failed' }
           Write-Host 'NO11_WEEKLY_WINDOWS_OFFLINE_TESTS=PASS'
           Write-Host 'ORDER_TRANSMISSION=False'

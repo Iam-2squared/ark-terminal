@@ -47,7 +47,9 @@ try{
   [Globalization.CultureInfo]::InvariantCulture,
   [Globalization.DateTimeStyles]::None,[ref]$date) -and
   $date.DayOfWeek -eq [DayOfWeek]::Friday) 'FRIDAY_ASOF_REQUIRED'
- $engine=SafePrivate $EngineRoot $true
+ Need ([IO.Path]::IsPathRooted($EngineRoot) -and
+  (Test-Path -LiteralPath $EngineRoot -PathType Container)) 'ENGINE_ROOT_MISSING'
+ $engine=[IO.Path]::GetFullPath($EngineRoot)
  $original=if($OriginalSeedRun){$OriginalSeedRun}else{
   Join-Path $env:LOCALAPPDATA 'ArkTerminal\No12\daily-trend-capture\daily-2026-10-26-e84a2ec53b0fdf41'
  }

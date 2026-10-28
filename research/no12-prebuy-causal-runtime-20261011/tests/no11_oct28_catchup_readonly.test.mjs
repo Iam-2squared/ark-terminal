@@ -55,6 +55,17 @@ test('new collector is separate from original and invokes only explicit opt-in r
  assert.ok(source.includes('NO11_WEEKLY_DAILY_CAPTURE=HISTORICAL_ASOF_WITH_REAL_CURRENT_RECEIPT'));
  for(const forbidden of [/RssStockOrder\s*\(/,/RssCancelOrder\s*\(/,/Stop-Process|taskkill/])assert.doesNotMatch(source,forbidden);
 });
+test('an all-empty real RSS wave gets only bounded same-formula retries, never a fake capture',()=>{
+ assert.ok(source.includes('$emptyRetry=0'));
+ assert.ok(source.includes('$emptyRetry -ge 2'));
+ assert.ok(source.includes('NO11_DAILY_EMPTY_WAVE_RETRY='));
+ assert.ok(source.includes('NO11_DAILY_EMPTY_WAVE_EXHAUSTED=NO_CAPTURE_WRITTEN'));
+ const bad=source.indexOf('if($usable -eq 0){');
+ const save=source.indexOf('foreach($payload in $payloads){Save-Capture');
+ assert.ok(bad>0 && save>bad,'must refuse empty wave before saving any payload');
+ assert.ok(source.includes('NO11_DAILY_ALL_EMPTY_WAVE_RETRY_AFTER_RECONNECT'));
+ assert.doesNotMatch(source,/if\(\$usable -eq 0\)\{\s*\$usable\+\+/);
+});
 test('one-shot uses exactly original 429, real 27-asof and previous 1M with strict verification',()=>{
  for(const marker of [
   'daily-2026-10-26-e84a2ec53b0fdf41',

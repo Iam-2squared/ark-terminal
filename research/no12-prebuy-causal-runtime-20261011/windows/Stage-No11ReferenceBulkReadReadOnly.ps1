@@ -19,6 +19,7 @@ $files=@(
  @{
   relative='windows\Run-No11Oct28AfternoonShadowReadOnly.ps1'
   accepted=@('b73141c81c31b5493aaee5df0dbca019429c930f',
+             'c1d8514fa17b8169576427403dd687acbf62b5f5',
              'b253086835cf76ab6bfe0fbe9f7f4c0c3cc36b74')
   target='b253086835cf76ab6bfe0fbe9f7f4c0c3cc36b74'
  }
@@ -45,11 +46,41 @@ function SafePath([string]$candidate){
   $cursor=$p
  }
 }
+
+# Exactly one line in a KNOWN GitHub legacy parent is changed. All other
+# content, including custom original Shadow control, remains untouched.
+function PatchKnownLegacyParent([string]$src,[string]$dest){
+ $old='  $output=@(& powershell.exe @args)'
+ $new=@'
+  $output=@(& powershell.exe @args | ForEach-Object {
+   $line=[string]$_
+   if($line -match '^(NO11_REFERENCE_STAGE=|NO11_REFERENCE_FORMULA_SCAN_SHEET=|NO11_SESSION_REFERENCE=BLOCKED)'){
+    Write-Host $line
+   }
+   $line
+  })
+'@
+ $raw=[IO.File]::ReadAllText($src,[Text.UTF8Encoding]::new($false))
+ $i=$raw.IndexOf($old,[StringComparison]::Ordinal)
+ Need ($i -ge 0 -and $raw.LastIndexOf($old,[StringComparison]::Ordinal) -eq $i) 'LEGACY_PARENT_EXACT_ANCHOR_REQUIRED'
+ Need ($raw.Contains('ACTUAL_RSS_REFERENCE_FAILED') -and
+  $raw.Contains('NO11_SESSION_REFERENCE_FILE=') -and
+  $raw.Contains('NO11_TODAY_SHADOW_REFERENCE=OBSERVED_NOT_EXTERNALLY_REVIEWED') -and
+  $raw.Contains('ORDER_TRANSMISSION=False') -and
+  $raw.Contains('if($CaptureReference){')) 'LEGACY_PARENT_SAFETY_ANCHORS_MISSING'
+ $patched=$raw.Replace($old,$new)
+ Need (($patched.Length-$raw.Length) -eq ($new.Length-$old.Length) -and
+  $patched.Contains($new)) 'LEGACY_PARENT_PATCH_SCOPE_CHANGED'
+ [IO.File]::WriteAllText($dest,$patched,[Text.UTF8Encoding]::new($false))
+ Write-Host 'NO11_REFERENCE_BULK_LEGACY_PARENT=EXACT_ONE_ANCHOR_PATCHED_OTHER_TEXT_PRESERVED'
+}
+
 if($OfflineSelfTest){
  Need ($files.Count -eq 2) 'SOURCE_COUNT'
  foreach($f in $files){
   Need ($f.target -cin $f.accepted -and $f.target -cmatch '^[0-9a-f]{40}$') 'BAD_PINS'
  }
+ Need ('c1d8514fa17b8169576427403dd687acbf62b5f5' -cin $files[1].accepted) 'PINNED_KNOWN_LEGACY_REQUIRED'
  Write-Host 'NO11_REFERENCE_BULK_INSTALL_OFFLINE_SELFTEST=PASS'
  Write-Host 'NO11_REFERENCE_BULK_INSTALL_EXCEL_TOUCHED=False'
  Write-Host 'ORDER_TRANSMISSION=False'
@@ -72,6 +103,7 @@ try{
  [void][IO.Directory]::CreateDirectory($staging)
  [void][IO.Directory]::CreateDirectory($backup)
  $changes=@()
+ $finalHashes=@{}
  foreach($item in $files){
   $original=Join-Path $EngineRoot ([string]$item.relative)
   SafePath $original
@@ -79,12 +111,25 @@ try{
   $actual=GitBlob $original
   Write-Host ('NO11_REFERENCE_BULK_ORIGINAL_BLOB_'+[IO.Path]::GetFileName($original)+'='+$actual)
   Need ($actual -cin $item.accepted) 'LOCAL_FILE_DIFFERENT_NO_OVERWRITE'
-  if($actual -ceq $item.target){continue}
+  if($actual -ceq $item.target){
+   $finalHashes[$original]=$item.target
+   continue
+  }
   $new=Join-Path $staging ([IO.Path]::GetFileName($original))
-  $uri='https://raw.githubusercontent.com/Iam-2squared/ark-terminal/'+$revision+
-   '/research/no12-prebuy-causal-runtime-20261011/'+([string]$item.relative).Replace('\','/')
-  Invoke-WebRequest -UseBasicParsing -Uri $uri -OutFile $new
-  Need ((GitBlob $new) -ceq $item.target) 'DOWNLOADED_SHA_MISMATCH'
+  $expected=$item.target
+  if($actual -ceq 'c1d8514fa17b8169576427403dd687acbf62b5f5' -and
+    $original.EndsWith('Run-No11Oct28AfternoonShadowReadOnly.ps1',
+      [StringComparison]::OrdinalIgnoreCase)){
+   # Old working-tree Shadow code is a verified GitHub blob: preserve it.
+   PatchKnownLegacyParent $original $new
+   $expected=GitBlob $new
+  }else{
+   $uri='https://raw.githubusercontent.com/Iam-2squared/ark-terminal/'+$revision+
+    '/research/no12-prebuy-causal-runtime-20261011/'+([string]$item.relative).Replace('\','/')
+   Invoke-WebRequest -UseBasicParsing -Uri $uri -OutFile $new
+   Need ((GitBlob $new) -ceq $item.target) 'DOWNLOADED_SHA_MISMATCH'
+  }
+  $finalHashes[$original]=$expected
   $tokens=$null;$parseErrors=$null
   [void][Management.Automation.Language.Parser]::ParseFile($new,[ref]$tokens,[ref]$parseErrors)
   Need ($parseErrors.Count -eq 0) 'POWERSHELL_PARSE_ERRORS'
@@ -93,7 +138,7 @@ try{
    Need ($LASTEXITCODE -eq 0) 'COLLECTOR_OFFLINE_SELFTEST_FAILED'
   }
   $changes+=@([pscustomobject]@{
-    from=$original;new=$new;sha=$item.target
+    from=$original;new=$new;sha=$expected
     backup=(Join-Path $backup ([IO.Path]::GetFileName($original)+'.bak'))
   })
  }
@@ -107,7 +152,7 @@ try{
   }
   foreach($item in $files){
    $path=Join-Path $EngineRoot ([string]$item.relative)
-   Need ((GitBlob $path) -ceq $item.target) 'FINAL_TARGET_HASH_FAILED'
+   Need ((GitBlob $path) -ceq $finalHashes[$path]) 'FINAL_TARGET_HASH_FAILED'
   }
   $collector=Join-Path $EngineRoot 'windows\Capture-No11SessionReferenceReadOnly.ps1'
   & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $collector -OfflineSelfTest
@@ -122,6 +167,7 @@ try{
  Write-Host ('NO11_REFERENCE_BULK_BACKUPS='+$backup)
  Write-Host 'NO11_REFERENCE_BULK_FORMULA_MODE=PER_SHEET_BULK_READ'
  Write-Host 'NO11_REFERENCE_BULK_DIAGNOSTICS=LIVE_CHILD_STAGES'
+ Write-Host 'NO11_REFERENCE_BULK_LOCAL_PARENT_CHANGES=PINNED_LEGACY_PRESERVED'
  Write-Host 'NO11_REFERENCE_BULK_EXCEL_TOUCHED=False'
  Write-Host 'NO11_REFERENCE_BULK_PREVIOUS_ARCHIVE_TOUCHED=False'
  Write-Host 'ORDER_TRANSMISSION=False'

@@ -31,8 +31,8 @@ test('avoid unbounded per-formula COM cell enumerations; use one Excel Formula s
 test('source errors are fail-closed and immutable receipts and source checks stay intact',()=>{
  for(const marker of [
   'NO11_REFERENCE_EXCEL_COM_OR_SOURCE_FAILURE',
-  'NO11_REFERENCE_EXCEL_COM_ATTACH_FAILED',
-  'NO11_REFERENCE=','NO11_SESSION_REFERENCE_FILE=',
+  'EXCEL_WINDOW_COM_ATTACH_FAILED',
+  'NO11_SESSION_REFERENCE=BLOCKED','NO11_SESSION_REFERENCE_FILE=',
   'corporateActionReviewPerformed=$false','productionReady=$false',
   'orderTransmission=$false',"$book.Close($false)",
   "Read-DailyRows" // not present; no dependence on RSS daily historical capture

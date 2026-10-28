@@ -28,11 +28,43 @@ function NumberValue($v){
  $n=[double]$v;if([double]::IsNaN($n) -or [double]::IsInfinity($n)){return $null};return $n
 }
 function Stamp{return [datetimeoffset]::UtcNow.ToOffset([timespan]::FromHours(9)).ToString('yyyy-MM-ddTHH:mm:ss.fffzzz',$ci)}
+# Pure, offline-testable scan of one Excel UsedRange.Formula snapshot.
+# The caller retains unknown-formula counting and the full original 500 cap.
+function ScanMarketFormulaSnapshot([object]$snapshot){
+ $results=New-Object 'System.Collections.Generic.List[string]'
+ if($snapshot -is [array]){$iterator=$snapshot.GetEnumerator()}
+ else{$iterator=@($snapshot).GetEnumerator()}
+ while($iterator.MoveNext()){
+  $f=[string]$iterator.Current
+  # Excel normalizes actual formulas to a leading '='. Ordinary user text
+  # in a workbook must not be mistaken for an active market subscription.
+  if(-not $f.StartsWith('=') -or $f -notmatch '(?i)RssMarket\s*\('){continue}
+  if($f -match '(?i)RssMarket\s*\(\s*"([0-9A-Z]{4}\.T)"\s*,'){
+   $results.Add($Matches[1])
+  }else{
+   $results.Add('!UNKNOWN!')
+  }
+ }
+ return $results
+}
+
 if($OfflineSelfTest){
  Need ((Formula '7203.T' '前日終値') -ceq '=RssMarket("7203.T","前日終値")') 'SELFTEST_FORMULA'
  Need ((DateValue '2026/10/23') -ceq '2026-10-23') 'SELFTEST_DATE'
  $reject=$false;try{Formula '7203.T")' '前日終値'|Out-Null}catch{$reject=$true}
  Need $reject 'SELFTEST_INJECTION'
+ $test=[array]::CreateInstance([object],2,3)
+ $test.SetValue('=RssMarket("7203.T","前日終値")',0,0)
+ $test.SetValue('=IFERROR(RssMarket("6758.T","前日終値"),0)',0,1)
+ $test.SetValue('ordinary text RssMarket("9999.T","前日終値")',0,2)
+ $test.SetValue('=RssMarket(A1,"前日終値")',1,0)
+ $test.SetValue(10,1,1)
+ $test.SetValue('=SUM(1,2)',1,2)
+ $scan=@(ScanMarketFormulaSnapshot $test)
+ Need ($scan.Count -eq 3 -and $scan -contains '7203.T' -and
+   $scan -contains '6758.T' -and $scan -contains '!UNKNOWN!' -and
+   $scan -notcontains '9999.T') 'BULK_FORMULA_SELFTEST'
+ Write-Host 'NO11_REFERENCE_BULK_FORMULA_SELFTEST=PASS'
  Write-Host 'NO11_REFERENCE_OFFLINE_SELFTEST=PASS';Write-Host 'ORDER_TRANSMISSION=False';exit 0
 }
 $excel=$null;$book=$null;$sheet=$null;$failed=$false
@@ -101,20 +133,24 @@ public static class No11ReferenceWindow {
        $market.Worksheets.Item('ARK_MARKET_READONLY').Name -ceq 'ARK_MARKET_READONLY') 'ORIGINAL_BOOK_IDENTITY'
  $existing=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
  $unknown=0
+ Write-Host 'NO11_REFERENCE_STAGE=ORIGINAL_WORKBOOK_FORMULA_SCAN_START'
  foreach($wb in @($account,$market)){foreach($ws in $wb.Worksheets){
-  Need ([long]$ws.UsedRange.CountLarge -le 100000) 'FORMULA_SCAN_LIMIT'
-  $cells=$null;try{$cells=$ws.UsedRange.SpecialCells(-4123)}catch [Runtime.InteropServices.COMException]{
-   if($_.Exception.HResult -ne -2146827284){throw}
+  $used=$ws.UsedRange
+  $cellCount=[long]$used.CountLarge
+  Need ($cellCount -le 100000) 'FORMULA_SCAN_LIMIT'
+  Write-Host ('NO11_REFERENCE_FORMULA_SCAN_SHEET='+$ws.Name+'|CELLS='+$cellCount)
+  # ONE bulk read of the formulas per sheet, instead of a COM round-trip
+  # per formula cell; inspect the resulting in-memory array only.
+  $snapshot=$used.Formula
+  foreach($candidate in (ScanMarketFormulaSnapshot $snapshot)){
+   if($candidate -ceq '!UNKNOWN!'){$unknown++}
+   else{[void]$existing.Add($candidate)}
   }
-  if($null -ne $cells){foreach($cell in $cells.Cells){
-   $f=[string]$cell.Formula
-   if($f -match '(?i)RssMarket\s*\('){
-    if($f -match '(?i)RssMarket\s*\(\s*"([0-9A-Z]{4}\.T)"\s*,'){[void]$existing.Add($Matches[1])}else{$unknown++}
-   }
-  }}
  }}
  foreach($symbol in $symbols){[void]$existing.Add($symbol)}
  Need ($existing.Count+$unknown -le 500) 'MARKET_CAPACITY_EXCEEDED'
+ Write-Host ('NO11_REFERENCE_STAGE=ORIGINAL_FORMULAS_CHECKED|RSS_MARKET_SYMBOLS='+$existing.Count+'|UNKNOWN='+$unknown)
+ Write-Host 'NO11_REFERENCE_STAGE=CREATE_UNSAVED_TEMP_WORKBOOK'
  $book=$excel.Workbooks.Add();$sheet=$book.Worksheets.Item(1)
  $grid=[array]::CreateInstance([object],$symbols.Count,12)
  for($i=0;$i -lt $symbols.Count;$i++){
@@ -122,8 +158,11 @@ public static class No11ReferenceWindow {
   for($j=0;$j -lt $fields.Count;$j++){$grid.SetValue((Formula $symbols[$i] $fields[$j]),$i,$j+1)}
  }
  $range='A1:L'+$symbols.Count
+ Write-Host ('NO11_REFERENCE_STAGE=WRITE_MARKET_FORMULAS|SYMBOLS='+$symbols.Count+'|FIELDS_PER_SYMBOL='+$fields.Count)
  $sheet.Range($range).Formula=$grid
+ Write-Host ('NO11_REFERENCE_STAGE=WAIT_RSS_FORMULAS|SECONDS='+$WarmupSeconds)
  Start-Sleep -Seconds $WarmupSeconds
+ Write-Host 'NO11_REFERENCE_STAGE=READ_RSS_MARKET_VALUES'
  $start=Stamp;$values=$sheet.Range($range).Value2;$end=Stamp
  Need ($values -is [array] -and $values.Rank -eq 2 -and $values.GetLength(0) -eq $symbols.Count -and $values.GetLength(1) -eq 12) 'READ_SHAPE'
  $rows=@();$r0=$values.GetLowerBound(0);$c0=$values.GetLowerBound(1)
@@ -146,12 +185,18 @@ public static class No11ReferenceWindow {
  $bytes=[Text.UTF8Encoding]::new($false).GetBytes((ConvertTo-Json -InputObject $obj -Depth 10 -Compress)+[char]10)
  $hash=[Security.Cryptography.SHA256]::Create()
  try{$sha=([BitConverter]::ToString($hash.ComputeHash($bytes))).Replace('-','').ToLowerInvariant()}finally{$hash.Dispose()}
+ Write-Host 'NO11_REFERENCE_STAGE=WRITE_IMMUTABLE_RECEIPT'
  $file=Join-Path $root ('session-reference-'+$sha+'.json')
  $stream=[IO.File]::Open($file,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
  try{$stream.Write($bytes,0,$bytes.Length);$stream.Flush($true)}finally{$stream.Dispose()}
  Write-Host ('NO11_SESSION_REFERENCE_FILE='+$file)
  Write-Host ('NO11_SESSION_REFERENCE_ROWS='+$rows.Count)
-}catch{$failed=$true;Write-Host 'NO11_SESSION_REFERENCE=BLOCKED'}finally{
+ }catch{
+  $failed=$true
+  $msg=[string]$_.Exception.Message
+  if($msg -cnotmatch '^NO11_REFERENCE_[A-Z0-9_]+$'){$msg='NO11_REFERENCE_EXCEL_COM_OR_SOURCE_FAILURE'}
+  Write-Host ('NO11_SESSION_REFERENCE=BLOCKED|'+$msg)
+ }finally{
  if($null -ne $book){try{$book.Close($false)}catch{$failed=$true}}
  foreach($o in @($sheet,$book,$excel)){if($null -ne $o -and [Runtime.InteropServices.Marshal]::IsComObject($o)){
   try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($o)}catch{}

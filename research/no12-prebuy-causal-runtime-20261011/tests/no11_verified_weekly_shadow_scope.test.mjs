@@ -5,7 +5,7 @@ import {verifyWeeklyShadowScope} from '../tools/no11_verified_weekly_shadow_scop
 const code=fs.readFileSync(new URL('../tools/no11_verified_weekly_shadow_scope.mjs',import.meta.url),'utf8');
 test('original weekly seeded daily refresh must have genuine complete source and real next-session chart receipts',()=>{
  for(const must of [
-  'verifyWeeklyPool(seed)','tradingGap(weekly.plan.asOfSession,asOf)',
+  'verifyWeeklySource(seed)','tradingGap(weekly.plan.asOfSession,asOf)',
   'loadCaptures(run,plan)','summarizeDailyCaptures(plan,observed)',
   'makeObservedPassWatchMask(plan,observed)',
   'validateNo11Chart50Plan({chartPlan:chart.chartPlan,mask,sessionDate})',

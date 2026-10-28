@@ -15,8 +15,9 @@ param(
  [string]$PinsFile='',
  [ValidateRange(1,20)][int]$FullBatchSize=10,
  [ValidateRange(5,60)][int]$FullWaitSeconds=15,
- [ValidateRange(1,20)][int]$RefreshBatchSize=10,
- [ValidateRange(5,60)][int]$RefreshWaitSeconds=15,
+ [ValidateSet(50,100)][int]$RefreshGroupSize=100,
+ [ValidateRange(1,47)][int]$RefreshBatchSize=30,
+ [ValidateRange(5,60)][int]$RefreshWaitSeconds=25,
  [ValidateRange(1,20)][int]$MinuteBatchSize=5,
  [ValidateRange(5,60)][int]$MinuteWaitSeconds=20,
  [switch]$OfflineSelfTest
@@ -199,6 +200,7 @@ try{
  $rargs=@('-NoProfile','-ExecutionPolicy','Bypass','-File',$refresh,
   '-WeeklyRun',$WeeklyRun,
   '-PrivateRoot',$RefreshRoot,
+  '-GroupSize',[string]$RefreshGroupSize,
   '-BatchSize',[string]$RefreshBatchSize,
   '-WaitSeconds',[string]$RefreshWaitSeconds)
  if(-not [string]::IsNullOrWhiteSpace($PinsFile)){$rargs+=@('-PinsFile',$PinsFile)}

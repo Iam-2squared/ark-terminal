@@ -31,7 +31,7 @@ test('restore only known version of missing --catch-up-asof G1 tool, not downloa
   'PINNED_DOWNLOAD_HASH_MISMATCH',
   'EXISTING_260_RECEIPTS_MISSING',
   'RESUMED_PLAN_NOT_SAME_260_RECEIPTS',
-  "('--catch-up-asof',$targetAsOf)",
+  "'--catch-up-asof',$targetAsOf",
   'RSS_FAILED_RECEIPTS_PRESERVED',
   'ORDER_TRANSMISSION=False',
  ])assert.ok(body.includes(marker),marker);

@@ -9,6 +9,9 @@ param(
  [string]$OutputRoot='',
  [string]$PythonExecutable='',
  [string]$WeeklyRun='',
+ [ValidateSet('RSS_FULL_FRIDAY','YAHOO_WEEKLY_RSS_DAILY')]
+ [string]$WeeklySourcePolicy='RSS_FULL_FRIDAY',
+ [string]$YahooSeedRoot='',
  [string]$PinsFile='',
  [ValidateRange(1,20)][int]$FullBatchSize=10,
  [ValidateRange(5,60)][int]$FullWaitSeconds=15,
@@ -82,7 +85,18 @@ try{
  Write-Host ('NO11_WEEKLY_NIGHTLY_ASOF='+$asOf)
  Write-Host ('NO11_WEEKLY_NIGHTLY_NEXT_SESSION='+$session)
  Write-Host ('NO11_WEEKLY_NIGHTLY_MODE='+$mode)
-
+ Write-Host ('NO11_WEEKLY_NIGHTLY_SOURCE_POLICY='+$WeeklySourcePolicy)
+ $yahooFriday=($mode -ceq 'FULL_MARKET_FRIDAY' -and
+              $WeeklySourcePolicy -ceq 'YAHOO_WEEKLY_RSS_DAILY')
+ if($yahooFriday){
+  $now=[datetimeoffset]::UtcNow.ToOffset([timespan]::FromHours(9))
+  Need ($now.ToString('HH:mm') -ge '19:00') 'YAHOO_FRIDAY_SOURCE_AVAILABLE_AFTER_1900'
+  # Only the Friday 4328-Yahoo seed comes from outside RSS; ALL candidate
+  # actual D100 prices and previous-minute context still use original RSS.
+  $mode='WEEKLY_POOL_CANDIDATES_ONLY'
+  Write-Host 'NO11_WEEKLY_NIGHTLY_FRIDAY_FULL_RSS_SCAN=SKIPPED_YAHOO_SOURCE_ONLY'
+  Write-Host 'NO11_WEEKLY_NIGHTLY_FRIDAY_RSS_CONFIRMATION=429_CANDIDATES_ONLY'
+ }
  if($mode -ceq 'FULL_MARKET_FRIDAY'){
  Need ([IO.Path]::IsPathRooted($FullSymbolsFile) -and
   (Test-Path -LiteralPath $FullSymbolsFile -PathType Leaf)) 'FULL_SYMBOL_LIST_MISSING'
@@ -108,8 +122,50 @@ try{
  }
  Need ($mode -ceq 'WEEKLY_POOL_CANDIDATES_ONLY') 'UNKNOWN_SCHEDULE_MODE'
 
- # Use an explicit pinned source if supplied. Otherwise choose the most recent
- # complete Friday full sweep; Monday 2026-10-26 seed is a one-time exception.
+ # Yahoo week: accept ONLY an explicitly validated Yahoo source, not an
+ # automatic fallback to the hours-long RSS 4328 scanner.
+ if($WeeklySourcePolicy -ceq 'YAHOO_WEEKLY_RSS_DAILY'){
+  if([string]::IsNullOrWhiteSpace($YahooSeedRoot)){
+   $YahooSeedRoot=Join-Path $env:LOCALAPPDATA 'ArkTerminal\No12\yahoo-weekly-cache'
+  }
+  $YahooSeedRoot=PathOutsideRepo $YahooSeedRoot 'YAHOO_SEED_ROOT'
+  if([string]::IsNullOrWhiteSpace($WeeklyRun)){
+   Need (Test-Path -LiteralPath $YahooSeedRoot -PathType Container) 'YAHOO_SEED_ROOT_MISSING_NO_RSS_FALLBACK'
+   $valid=@(
+    foreach($dir in @(Get-ChildItem -LiteralPath $YahooSeedRoot -Directory -Filter 'yahoo-weekly-*' -ErrorAction Stop)){
+     $planFile=Join-Path $dir.FullName 'plan.json'
+     if(-not (Test-Path -LiteralPath $planFile -PathType Leaf)){continue}
+     try{
+      $candidate=Get-Content -LiteralPath $planFile -Raw -Encoding UTF8|ConvertFrom-Json
+      if($candidate.schemaId -cne 'ARK_NO11_YAHOO_WEEKLY_SOURCE_PLAN_V1' -or
+         $candidate.sourceProvider -cne 'YFINANCE_UNOFFICIAL_PERSONAL_RESEARCH_DAILY' -or
+         [string]$candidate.asOfSession -cgt $asOf -or
+         ($yahooFriday -and [string]$candidate.asOfSession -cne $asOf)){continue}
+      [pscustomobject]@{run=$dir.FullName;date=[string]$candidate.asOfSession}
+     }catch{continue}
+    }
+   )
+   Need ($valid.Count -ge 1) 'YAHOO_WEEKLY_SOURCE_NOT_READY_NO_RSS_FALLBACK'
+   $maxDate=@($valid|Sort-Object date -Descending|Select-Object -First 1)
+   Need ($maxDate.Count -eq 1) 'YAHOO_WEEKLY_SOURCE_SELECTION_FAILED'
+   $maxValue=$maxDate[0].date
+   Need (@($valid|Where-Object {$_.date -ceq $maxValue}).Count -eq 1) 'YAHOO_WEEKLY_SOURCE_AMBIGUOUS'
+   $WeeklyRun=[string]$maxDate[0].run
+  }
+  $yahooPlan=Join-Path $WeeklyRun 'plan.json'
+  Need (Test-Path -LiteralPath $yahooPlan -PathType Leaf) 'YAHOO_WEEKLY_PLAN_NOT_PRESENT'
+  $yy=Get-Content -LiteralPath $yahooPlan -Raw -Encoding UTF8|ConvertFrom-Json
+  Need ($yy.schemaId -ceq 'ARK_NO11_YAHOO_WEEKLY_SOURCE_PLAN_V1' -and
+   $yy.sourceProvider -ceq 'YFINANCE_UNOFFICIAL_PERSONAL_RESEARCH_DAILY' -and
+   @($yy.symbols).Count -eq 4328 -and
+   [string]$yy.asOfSession -cle $asOf -and
+   (-not $yahooFriday -or [string]$yy.asOfSession -ceq $asOf)) 'YAHOO_WEEKLY_SOURCE_INVALID'
+  Write-Host 'NO11_WEEKLY_NIGHTLY_UNIVERSE=YAHOO_4328_ONLY_PROVISIONAL'
+  Write-Host 'NO11_WEEKLY_NIGHTLY_WEEKDAY_CANDIDATES=ORIGINAL_RSS'
+ }
+ # Existing RSS-only mode remains the default and unchanged.
+ # Use an explicit pinned source if supplied; otherwise select the most recent
+ # complete Friday full sweep (or the original one-time Oct26 RSS seed).
  if([string]::IsNullOrWhiteSpace($WeeklyRun)){
   $choices=@(
    foreach($dir in @(Get-ChildItem -LiteralPath $DailyRoot -Directory -Filter 'daily-*' -ErrorAction SilentlyContinue)){
@@ -146,11 +202,14 @@ try{
   '-BatchSize',[string]$RefreshBatchSize,
   '-WaitSeconds',[string]$RefreshWaitSeconds)
  if(-not [string]::IsNullOrWhiteSpace($PinsFile)){$rargs+=@('-PinsFile',$PinsFile)}
+ if($yahooFriday){$rargs+=@('-ConfirmYahooFridayRss')}
  & powershell.exe @rargs
  Need ($LASTEXITCODE -eq 0) 'DAILY_POOL_REFRESH_FAILED'
 
  # Return to the exact code-pinned, immutable daily refresh run we just wrote.
- $details=@(& node $tool plan --weekly-run $WeeklyRun --root $RefreshRoot)
+ $planArgs=@('plan','--weekly-run',$WeeklyRun,'--root',$RefreshRoot)
+ if($yahooFriday){$planArgs+=@('--yahoo-friday-rss-confirm','true')}
+ $details=@(& node $tool @planArgs)
  Need ($LASTEXITCODE -eq 0 -and $details.Count -eq 1) 'REFRESH_RUN_IDENTITY_FAILED'
  $result=([string]$details[0]|ConvertFrom-Json)
  Need ($result.plan.asOfSession -ceq $asOf -and
@@ -159,6 +218,7 @@ try{
 
  $reportArgs=@('report','--run',[string]$result.run,'--weekly-run',$WeeklyRun)
  if($PinsFile){$reportArgs+=@('--pins-file',$PinsFile)}
+ if($yahooFriday){$reportArgs+=@('--yahoo-friday-rss-confirm','true')}
  $reportLines=@(& node $tool @reportArgs)
  Need ($LASTEXITCODE -eq 0) 'WEEKLY_DAILY_REPORT_FAILED'
  $m=@($reportLines | Where-Object {$_ -like 'NO11_WEEKLY_REFRESH_MASK=*'})
@@ -181,7 +241,7 @@ try{
  Need ($LASTEXITCODE -eq 0) 'SELECTED_PREVIOUS_1M_FAILED'
 
  Write-Host ('NO11_WEEKLY_NIGHTLY_REFRESH_RUN='+[string]$result.run)
- Write-Host 'NO11_WEEKLY_NIGHTLY_STAGE=CANDIDATE_ONLY_FRESH_G1_AND_PREVIOUS_COMPLETE'
+ Write-Host ('NO11_WEEKLY_NIGHTLY_STAGE='+$(if($yahooFriday){'YAHOO_WEEKLY_AND_RSS_429_G1_PREVIOUS_COMPLETE'}else{'CANDIDATE_ONLY_FRESH_G1_AND_PREVIOUS_COMPLETE'}))
  Write-Host 'NO11_WEEKLY_NIGHTLY_NEW_BREAKOUTS_OUTSIDE_POOL=NOT_SCANNED'
  Write-Host 'NO11_WEEKLY_NIGHTLY_STILL_REQUIRED=DATED_MASTER_SECURITY_REVIEW_AND_SHADOW_PREFLIGHT'
  Write-Host 'ORDER_TRANSMISSION=False'

@@ -144,11 +144,16 @@ def main(argv=None):
     ap.add_argument("--asof", required=True)
     ap.add_argument("--private-root", required=True)
     ap.add_argument("--personal-research-terms-acknowledged", action="store_true")
+    # The public Yahoo Terms also restrict automated collection absent express
+    # prior permission. Personal/research use alone does not grant that right.
+    ap.add_argument("--yahoo-automated-access-permission-confirmed", action="store_true")
     ap.add_argument("--batch-size", type=int, default=16)
     ap.add_argument("--pause-seconds", type=float, default=5.0)
     args = ap.parse_args(argv)
     need(args.personal_research_terms_acknowledged,
       "UNOFFICIAL_PERSONAL_RESEARCH_RIGHTS_ACKNOWLEDGEMENT_REQUIRED")
+    need(args.yahoo_automated_access_permission_confirmed,
+      "EXPRESS_YAHOO_AUTOMATED_ACCESS_PERMISSION_REQUIRED")
     need(ASOF.fullmatch(args.asof), "ASOF_INVALID")
     asof = date.fromisoformat(args.asof)
     now = datetime.now(JST)

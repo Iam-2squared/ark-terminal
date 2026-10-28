@@ -177,7 +177,9 @@ public static class No11DailyWindow {
     $ws.Range('A1').Formula=(New-DailyFormula $symbol);$sheets+=@($ws)
    }
    $stage='WAIT_FOR_RSS';Start-Sleep -Seconds $WaitSeconds
-   $payloads=New-Object System.Collections.ArrayList;$usable=0;$complete=0;$stage='DAILY_CAPTURE'
+   $emptyRetry=0
+   do {
+    $payloads=New-Object System.Collections.ArrayList;$usable=0;$complete=0;$stage='DAILY_CAPTURE'
    for($k=0;$k -lt $batch.Count;$k++){
     $symbol=$batch[$k];$ws=$sheets[$k];$formula=New-DailyFormula $symbol
     if([string]$ws.Range('A1').Formula -cne $formula){throw 'NO11_DAILY_FORMULA_CHANGED'}
@@ -194,8 +196,17 @@ public static class No11DailyWindow {
      productionReady=$false;orderTransmission=$false
     })
    }
-   # Do not checkpoint an all-empty wave as completed when the feed may be disconnected.
-   if($usable -eq 0){throw 'NO11_DAILY_ALL_EMPTY_WAVE_RETRY_AFTER_RECONNECT'}
+    if($usable -gt 0 -or $emptyRetry -ge 2){break}
+    $emptyRetry++
+    $extraWait=[Math]::Min(60,$WaitSeconds*(1+$emptyRetry))
+    Write-Host ('NO11_DAILY_EMPTY_WAVE_RETRY={0}/2|WAIT_SECONDS={1}|PERSISTED=False' -f $emptyRetry,$extraWait)
+    $stage='WAIT_FOR_RSS';Start-Sleep -Seconds $extraWait
+   }while($true)
+   # Fail closed: never commit an all-empty RSS wave.
+   if($usable -eq 0){
+    Write-Host 'NO11_DAILY_EMPTY_WAVE_EXHAUSTED=NO_CAPTURE_WRITTEN'
+    throw 'NO11_DAILY_ALL_EMPTY_WAVE_RETRY_AFTER_RECONNECT'
+   }
    foreach($payload in $payloads){Save-Capture (Join-Path $run 'sources') $payload}
    $book.Close($false);foreach($ws in $sheets){[void][Runtime.InteropServices.Marshal]::ReleaseComObject($ws)}
    $sheets=@();[void][Runtime.InteropServices.Marshal]::ReleaseComObject($book);$book=$null

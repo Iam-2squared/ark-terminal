@@ -8,8 +8,11 @@ param(
  [string]$PinsFile,
  [string]$CatchUpAsOf='',
  [switch]$ConfirmYahooFridayRss,
- [ValidateRange(1,20)][int]$BatchSize=20,
- [ValidateRange(5,60)][int]$WaitSeconds=15,
+ # Logical progress every 100 or 50 symbols. Physical RSS calls never exceed
+ # the observed 50-function Excel cap, minus three reserved safety slots.
+ [ValidateSet(50,100)][int]$GroupSize=100,
+ [ValidateRange(1,47)][int]$BatchSize=30,
+ [ValidateRange(5,60)][int]$WaitSeconds=25,
  [ValidateRange(0,5000)][int]$MaxSymbols=0
 )
 $ErrorActionPreference='Stop'
@@ -22,6 +25,23 @@ $headers=@(
  (-join [char[]]@(0x59cb,0x5024)),(-join [char[]]@(0x9ad8,0x5024)),(-join [char[]]@(0x5b89,0x5024)),
  (-join [char[]]@(0x7d42,0x5024)),(-join [char[]]@(0x51fa,0x6765,0x9ad8))
 )
+function SafePhysicalBatch([int]$originalCharts,[int]$requested){
+ if($originalCharts -lt 0 -or $originalCharts -gt 50 -or
+    $requested -lt 1 -or $requested -gt 47){throw 'NO11_DAILY_CHART_BUDGET_ARGS_INVALID'}
+ # Reserve three chart functions for unrelated, held and recovery use.
+ # Each temporary workbook is closed before opening the next wave.
+ $capacity=50-$originalCharts-3
+ if($capacity -lt 1){throw 'NO11_DAILY_CHART_CAPACITY_EXHAUSTED'}
+ return [Math]::Min($requested,$capacity)
+}
+function NextWaveEnd([int]$offset,[int]$remaining,[int]$groupSize,[int]$physical){
+ if($offset -lt 0 -or $remaining -lt 1 -or $offset -ge $remaining -or
+    $groupSize -notin @(50,100) -or $physical -lt 1 -or $physical -gt 47){
+  throw 'NO11_DAILY_WAVE_ARGUMENT_INVALID'
+ }
+ $groupEnd=[int]([Math]::Floor($offset/$groupSize)+1)*$groupSize
+ return [Math]::Min($remaining,[Math]::Min($offset+$physical,$groupEnd))
+}
 function New-DailyFormula([string]$symbol){
  if($symbol -cnotmatch '^[0-9A-Z]{4}\.T$'){throw 'NO11_DAILY_SYMBOL_INVALID'}
  return ('=RssChart($A$2:$J$2,"{0}","D",100)' -f $symbol)
@@ -85,6 +105,26 @@ if($OfflineSelfTest){
  $a.SetValue('BAD',0,8);$r=Read-DailyRows $a
  if($r.invalidRows -ne 1){throw 'NO11_DAILY_INVALID_SELFTEST'}
  if($null -ne (Date-Token '2026/02/30') -or $null -ne (Number-Token ([double]::NaN))){throw 'NO11_DAILY_TOKEN_SELFTEST'}
+ if((SafePhysicalBatch 0 47) -ne 47 -or (SafePhysicalBatch 19 47) -ne 28 -or
+    (SafePhysicalBatch 39 30) -ne 8 -or
+    (NextWaveEnd 90 429 100 30) -ne 100 -or
+    (NextWaveEnd 100 429 100 30) -ne 130 -or
+    (NextWaveEnd 400 429 100 30) -ne 429){
+  throw 'NO11_DAILY_GROUP_CAPACITY_SELFTEST_FAILED'
+ }
+ $selftestOffset=0;$selftestSizes=@()
+ while($selftestOffset -lt 429){
+  $finish=NextWaveEnd $selftestOffset 429 100 30
+  if($finish -le $selftestOffset -or $finish-$selftestOffset -gt 30){
+   throw 'NO11_DAILY_GROUP_COVERAGE_SELFTEST_FAILED'
+  }
+  $selftestSizes+=@($finish-$selftestOffset)
+  $selftestOffset=$finish
+ }
+ if($selftestOffset -ne 429 -or ($selftestSizes|Measure-Object -Sum).Sum -ne 429){
+  throw 'NO11_DAILY_GROUP_COVERAGE_SELFTEST_FAILED'
+ }
+ Write-Host 'NO11_DAILY_AUTO_100_GROUP_OFFLINE_SELFTEST=PASS'
  Write-Host 'NO11_DAILY_OFFLINE_SELFTEST=PASS';Write-Host 'ORDER_TRANSMISSION=False';exit 0
 }
 $tool=Join-Path (Split-Path $PSScriptRoot -Parent) 'tools\no11_weekly_g1_refresh.mjs'
@@ -169,9 +209,11 @@ public static class No11DailyWindow {
     if($null -ne $cells){foreach($cell in $cells.Cells){if([string]$cell.Formula -match '(?i)Rss(?:Chart|Trend)[A-Za-z]*\s*\('){$existing++}}}
    }
   }
-  if($existing+$BatchSize -gt 50){throw 'NO11_DAILY_CHART_CAPACITY_EXCEEDED'}
-  for($offset=0;$offset -lt $remaining.Count;$offset+=$BatchSize){
-   $batch=@($remaining[$offset..([Math]::Min($offset+$BatchSize-1,$remaining.Count-1))]);$sheets=@();$stage='TEMPORARY_WORKBOOK'
+  $physical=SafePhysicalBatch $existing $BatchSize
+  Write-Host ('NO11_DAILY_BATCH_POLICY=GROUP_{0}|PHYSICAL_MAX_{1}|ORIGINAL_CHARTS_{2}|RESERVE_3|LIMIT_50' -f $GroupSize,$physical,$existing)
+  for($offset=0;$offset -lt $remaining.Count;){
+   $waveEnd=NextWaveEnd $offset $remaining.Count $GroupSize $physical
+   $batch=@($remaining[$offset..($waveEnd-1)]);$sheets=@();$stage='TEMPORARY_WORKBOOK'
    $book=$excel.Workbooks.Add()
    foreach($symbol in $batch){
     $ws=$book.Worksheets.Add();$ws.Name='DAILY_'+$symbol.Replace('.','_')
@@ -179,7 +221,9 @@ public static class No11DailyWindow {
     $ws.Range('A1').Formula=(New-DailyFormula $symbol);$sheets+=@($ws)
    }
    $stage='WAIT_FOR_RSS';Start-Sleep -Seconds $WaitSeconds
-   $payloads=New-Object System.Collections.ArrayList;$usable=0;$complete=0;$stage='DAILY_CAPTURE'
+   $emptyRetry=0
+   do{
+    $payloads=New-Object System.Collections.ArrayList;$usable=0;$complete=0;$stage='DAILY_CAPTURE'
    for($k=0;$k -lt $batch.Count;$k++){
     $symbol=$batch[$k];$ws=$sheets[$k];$formula=New-DailyFormula $symbol
     if([string]$ws.Range('A1').Formula -cne $formula){throw 'NO11_DAILY_FORMULA_CHANGED'}
@@ -196,14 +240,24 @@ public static class No11DailyWindow {
      productionReady=$false;orderTransmission=$false
     })
    }
-   # Do not checkpoint an all-empty wave as completed when the feed may be disconnected.
+    if($usable -gt 0 -or $emptyRetry -ge 2){break}
+    $emptyRetry++
+    $extraWait=[Math]::Min(60,$WaitSeconds*(1+$emptyRetry))
+    Write-Host ('NO11_DAILY_EMPTY_WAVE_RETRY={0}/2|WAIT_SECONDS={1}|PERSISTED=False' -f $emptyRetry,$extraWait)
+    $stage='WAIT_FOR_RSS';Start-Sleep -Seconds $extraWait
+   }while($true)
+   # Never checkpoint an entirely empty wave, even after retries.
    if($usable -eq 0){throw 'NO11_DAILY_ALL_EMPTY_WAVE_RETRY_AFTER_RECONNECT'}
    foreach($payload in $payloads){Save-Capture (Join-Path $run 'sources') $payload}
    $book.Close($false);foreach($ws in $sheets){[void][Runtime.InteropServices.Marshal]::ReleaseComObject($ws)}
    $sheets=@();[void][Runtime.InteropServices.Marshal]::ReleaseComObject($book);$book=$null
-   Write-Host ('NO11_DAILY_PROGRESS={0}/{1}|WAVE_OBSERVED={2}|WAVE_FULL76={3}' -f ($work.resumed+$offset+$batch.Count),$work.plan.symbols.Count,$usable,$complete)
+   Write-Host ('NO11_DAILY_PROGRESS={0}/{1}|WAVE_OBSERVED={2}|WAVE_FULL76={3}' -f ($work.resumed+$waveEnd),$work.plan.symbols.Count,$usable,$complete)
    # Canary runs automatically; avoid collecting thousands of unusable snapshots.
    if($complete -eq 0){throw 'NO11_DAILY_NO_FULL_HISTORY_IN_WAVE_REVIEW_PARTIAL_REPORT'}
+   $offset=$waveEnd
+   if($offset -eq $remaining.Count -or $offset % $GroupSize -eq 0){
+    Write-Host ('NO11_DAILY_GROUP_COMPLETE={0}/{1}|GROUP_SIZE={2}|NEXT_WAVE_AUTO=True' -f ($work.resumed+$offset),$work.plan.symbols.Count,$GroupSize)
+   }
   }
  }
 }catch{

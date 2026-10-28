@@ -8,7 +8,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {fileURLToPath,pathToFileURL} from 'node:url';
-import {verifyWeeklyPool,tradingGap} from './no11_weekly_g1_refresh.mjs';
+import {verifyWeeklySource,tradingGap} from './no11_weekly_g1_refresh.mjs';
+import {YAHOO_SOURCE} from './no11_yahoo_weekly_seed.mjs';
 import {codeIdentity,loadCaptures} from './no11_rss_daily_trend_census.mjs';
 import {DAILY_PLAN_SCHEMA,requiredDailySessions,summarizeDailyCaptures}
  from '../runtime/no11_rss_daily_trend_census.mjs';
@@ -52,7 +53,7 @@ export function verifyWeeklyShadowScope({runDir,seedDir,maskFile,chartFile,sessi
   'DAILY_RUN_RECEIPT_SCOPE_MISMATCH');
  need(typeof sessionDate==='string'&&isJpxCashTradingDay(sessionDate),'SESSION_NOT_CASH_DAY');
  const asOf=previousJpxCashTradingDays(sessionDate,1)[0];
- const weekly=verifyWeeklyPool(seed);
+ const weekly=verifyWeeklySource(seed);
  const plan=read(path.join(run,'plan.json')).value;
  const {planId,...body}=plan;
  need(plan.schemaId===DAILY_PLAN_SCHEMA&&
@@ -68,6 +69,11 @@ export function verifyWeeklyShadowScope({runDir,seedDir,maskFile,chartFile,sessi
   plan.weeklySource?.observedPassCount===weekly.mask.observedPassCount&&
   plan.weeklySource?.observedPassSymbolsSha256===sha(JSON.stringify(plan.symbols))&&
   plan.weeklySource?.originalFullUniverseCount===4328&&
+  (weekly.plan.sourceProvider===YAHOO_SOURCE?
+    (plan.weeklySource?.originProvider===YAHOO_SOURCE&&
+     plan.weeklySource?.yahooSourcePriceBasisCertified===false&&
+     plan.weeklySource?.requiresIndependentPriceReview===true):
+    !Object.hasOwn(plan.weeklySource,'originProvider'))&&
   plan.weeklySource?.elapsedCashSessions===tradingGap(weekly.plan.asOfSession,asOf)&&
   plan.newWeeklyBreakoutsIncluded===false&&plan.unknownNotAdmitted===true&&
   plan.priceBasisCertified===false&&plan.productionReady===false&&plan.orderTransmission===false,
@@ -85,6 +91,10 @@ export function verifyWeeklyShadowScope({runDir,seedDir,maskFile,chartFile,sessi
   mask.planId===plan.planId&&mask.weeklyOriginalAsOfSession===weekly.plan.asOfSession&&
   mask.weeklyPoolSourcePlanId===weekly.plan.planId&&
   mask.weeklyPoolPopulation===plan.symbols.length&&
+  (weekly.plan.sourceProvider===YAHOO_SOURCE?
+    (mask.weeklyOriginalProvider===YAHOO_SOURCE&&
+     mask.yahooWeeklySourceUnverifiedForTrading===true):
+    !Object.hasOwn(mask,'weeklyOriginalProvider'))&&
   mask.newBreakoutsOutsideWeeklyPoolNotScanned===true&&
   mask.strictNoUnknownFallback===true&&mask.shadowOnly===true&&
   mask.priceBasisCertified===false&&mask.corporateActionsCertified===false&&
@@ -99,6 +109,7 @@ export function verifyWeeklyShadowScope({runDir,seedDir,maskFile,chartFile,sessi
   chart.currentRefreshAsOfSession===asOf&&
   chart.weeklyFullAsOfSession===weekly.plan.asOfSession&&
   chart.weeklyCandidateCount===plan.symbols.length&&
+  chart.weeklyOriginalProvider===(weekly.plan.sourceProvider??'MSII_RSS_ORIGINAL_WEEKLY')&&
   chart.productionReady===false&&chart.orderTransmission===false,
   'CURRENT_CHART_RECEIPT_WRONG_SOURCE');
  const selected=validateNo11Chart50Plan({chartPlan:chart.chartPlan,mask,sessionDate});
@@ -106,7 +117,9 @@ export function verifyWeeklyShadowScope({runDir,seedDir,maskFile,chartFile,sessi
  return Object.freeze({status:'CURRENT_COMPLETED_G1_CHART50_VERIFIED_NOT_SECURITY_REVIEW',
   sessionDate,previousSession:asOf,selectedCount:selected.length,
   passCount:mask.observedPassCount,weeklyPopulation:plan.symbols.length,
-  weeklyScope:'FRIDAY_OR_OCT26_PINNED_PASS_POOL_ONLY',
+  weeklyScope:weekly.plan.sourceProvider===YAHOO_SOURCE?
+    'YAHOO_WEEKLY_UNOFFICIAL_PLUS_REAL_DAILY_RSS_NOT_PRICE_CERTIFIED':
+    'FRIDAY_OR_OCT26_PINNED_PASS_POOL_ONLY',
   precomputedChartReceipt:chartPath,precomputedG1Mask:maskPath,
   dailyRun:run,weeklySourceRun:seed,externalReviewCertified:false,
   fullShadowPreflightPassed:false,readOnly:true,productionReady:false,orderTransmission:false});

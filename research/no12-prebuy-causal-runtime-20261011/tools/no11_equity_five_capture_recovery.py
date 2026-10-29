@@ -27,6 +27,9 @@ REQUEST = 'ARK_NO11_PROVISIONAL_FIVE_CAPTURE_REQUEST_V1'
 CHART = 'ARK_NO11_CHART50_PRIVATE_EXPORT_RECEIPT_V1'
 EXCLUDED = frozenset({'1671.T', '1690.T', '1699.T', '2014.T', '2038.T'})
 ERROR = 'NO11_EQUITY_FIVE_RECOVERY_'
+# Production CLI is pinned to the exact private audit receipt reported by
+# the user. Tests patch this *module-only* constant with a synthetic digest.
+EXPECTED_AUDIT_SHA_PREFIX = '304f08b2eed20c63'
 
 
 def need(ok, code):
@@ -61,7 +64,7 @@ def recover(*, audit_file, stage_file, chart_file, request_file,
     chart, _ = bootstrap.load_json(chart_file, 5_000_000)
     marker, _ = bootstrap.load_json(request_file, 100_000)
     need(re.fullmatch(r'equity-type-provisional-([a-f0-9]{16})\.json', audit_file.name)
-         and review_sha.startswith('304f08b2eed20c63')
+         and review_sha.startswith(EXPECTED_AUDIT_SHA_PREFIX)
          and audit_file.name.endswith(review_sha[:16] + '.json'),
          'AUDIT_FILE_HASH_NAME')
     need(type(review) is dict and review.get('schemaId') == AUDIT

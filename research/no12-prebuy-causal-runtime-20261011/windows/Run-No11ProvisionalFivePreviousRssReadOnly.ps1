@@ -234,20 +234,12 @@ try{
  Write-Host 'ORDER_TRANSMISSION=False'
 }catch{
  $reason=$_.Exception.Message
- if($reason -cnotmatch '^NO11_EQUITY_FIVE_[A-Z0-9_]+
- Write-Host 'NO11_EQUITY_FIVE_NO_RETRY_WITHOUT_REVIEW=True'
- Write-Host 'ORDER_TRANSMISSION=False'
- exit 2
-}
-){$reason='NO11_EQUITY_FIVE_LOCAL_SOURCE_OR_RUNTIME_FAILURE'}
- # Do not print account, symbol or command-line data in errors.
+ if($reason -cnotmatch '^NO11_EQUITY_FIVE_[A-Z0-9_]+$'){
+  $reason='NO11_EQUITY_FIVE_LOCAL_SOURCE_OR_RUNTIME_FAILURE'
+ }
+ # Diagnostic outputs disclose only a stage name and exception class.
  $kind=$_.Exception.GetType().Name
- if($kind -cnotmatch '^[A-Za-z0-9_]{1,80}
- Write-Host 'NO11_EQUITY_FIVE_NO_RETRY_WITHOUT_REVIEW=True'
- Write-Host 'ORDER_TRANSMISSION=False'
- exit 2
-}
-){$kind='UNRECOGNIZED_EXCEPTION'}
+ if($kind -cnotmatch '^[A-Za-z0-9_]{1,80}$'){$kind='UNRECOGNIZED_EXCEPTION'}
  Write-Host ('NO11_EQUITY_FIVE_FAILURE_STAGE='+$phase)
  Write-Host ('NO11_EQUITY_FIVE_FAILURE_KIND='+$kind)
  Write-Host ('NO11_EQUITY_FIVE=BLOCKED|'+$reason)

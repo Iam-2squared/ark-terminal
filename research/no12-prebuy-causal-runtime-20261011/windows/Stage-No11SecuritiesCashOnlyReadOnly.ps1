@@ -108,7 +108,7 @@ try{
   if(-not (Test-Path -LiteralPath $service -PathType Leaf)){
    $fullState='SERVICE_NOT_INSTALLED'
   }elseif(@($dependencies | Where-Object {
-    -not (Test-Path -LiteralPath (Join-Path $full 'tools' $_) -PathType Leaf)
+    -not (Test-Path -LiteralPath (Join-Path (Join-Path $full 'tools') $_) -PathType Leaf)
    }).Count -gt 0){
    $fullState='DEPENDENCIES_MISSING'
   }elseif(-not (Test-PinnedExisting $service $live[0].Old $live[0].New)){

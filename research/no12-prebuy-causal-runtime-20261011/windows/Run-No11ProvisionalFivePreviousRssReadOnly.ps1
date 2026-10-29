@@ -10,8 +10,11 @@ $local=Join-Path $env:LOCALAPPDATA 'ArkTerminal\No12'
 $repo='C:\ArkTerminal\no12-launcher'
 $engine=Join-Path $repo 'research\no12-prebuy-causal-runtime-20261011'
 $sourceRel='research/no12-prebuy-causal-runtime-20261011/windows/Capture-No11RssTrainingBatchReadOnly.ps1'
-$collector=Join-Path $repo ($sourceRel.Replace('/','\'))
+$originalCollector=Join-Path $repo ($sourceRel.Replace('/','\'))
 $collectorPin='efc73171ba24a1879541bf1714ba5e5f7d284bda'
+$collectorRevision='06c4039a01b219b269122d0cea76161dcee13cc3'
+# Runs a separate pinned copy, never executes or edits locally patched collector.
+$collector=Join-Path $local 'equity-type-backfill\2026-10-30\pinned-original\Capture-No11RssTrainingBatchReadOnly.ps1'
 $report=Join-Path $local 'external-security-review\2026-10-30\equity-type-provisional-304f08b2eed20c63.json'
 $stageFolder=Join-Path $local 'previous-source\2026-10-30'
 $daily=Join-Path $local 'weekly-pool-refresh\weekly-refresh-2026-10-29-862f03a3cdfa7d8f'
@@ -45,12 +48,44 @@ if($OfflineSelfTest){
 try{
  [void](Get-Command git -ErrorAction Stop)
  [void](Get-Command powershell.exe -ErrorAction Stop)
- Need (Test-Path -LiteralPath $collector -PathType Leaf) 'ORIGINAL_RSS_COLLECTOR_MISSING'
- $status=@(& git -C $repo status --porcelain -- $sourceRel)
- Need ($LASTEXITCODE -eq 0 -and $status.Count -eq 0) 'LOCAL_COLLECTOR_MODIFIED'
- $blob=@(& git -C $repo hash-object --path=$sourceRel $collector)
+ # The existing collector may carry essential Excel window-discovery fixes.
+ # Never overwrite, reset or execute that unknown modified source. Instead
+ # retrieve the exact audited GitHub source as a standalone private script.
+ # The original collector has no PSScriptRoot imports or sibling dependencies.
+ Need (Test-Path -LiteralPath $originalCollector -PathType Leaf) 'LOCAL_ORIGINAL_COLLECTOR_MISSING'
+ $localStatus=@(& git -C $repo status --porcelain -- $sourceRel)
+ Need ($LASTEXITCODE -eq 0) 'LOCAL_GIT_STATUS_FAILED'
+ Write-Host ('NO11_EQUITY_FIVE_LOCAL_COLLECTOR_CHANGED='+($localStatus.Count -gt 0))
+ $stageRoot=Join-Path $base 'pinned-original'
+ [void][IO.Directory]::CreateDirectory($stageRoot)
+ $rootInfo=Get-Item -LiteralPath $stageRoot -Force
+ Need (($rootInfo.Attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0) 'PRIVATE_PIN_DIRECTORY_REPARSE'
+ $sourceTmp=Join-Path $stageRoot ('source-'+[guid]::NewGuid().ToString('N')+'.tmp')
+ if(-not (Test-Path -LiteralPath $collector -PathType Leaf)){
+  Need (-not (Test-Path -LiteralPath $collector -PathType Container)) 'PRIVATE_COLLECTOR_IS_DIRECTORY'
+  try{
+   $uri='https://raw.githubusercontent.com/Iam-2squared/ark-terminal/'+$collectorRevision+'/'+$sourceRel
+   Invoke-WebRequest -UseBasicParsing -Uri $uri -OutFile $sourceTmp
+   $newHash=@(& git hash-object --no-filters $sourceTmp)
+   Need ($LASTEXITCODE -eq 0 -and $newHash.Count -eq 1 -and
+       [string]$newHash[0] -ceq $collectorPin) 'DOWNLOADED_COLLECTOR_HASH_MISMATCH'
+   $tokens=$null;$parseErrors=$null
+   [void][Management.Automation.Language.Parser]::ParseFile($sourceTmp,[ref]$tokens,[ref]$parseErrors)
+   Need ($parseErrors.Count -eq 0) 'PINNED_SOURCE_PARSE_FAILED'
+   [IO.File]::Copy($sourceTmp,$collector,$false)
+  }finally{
+   if(Test-Path -LiteralPath $sourceTmp -PathType Leaf){[IO.File]::Delete($sourceTmp)}
+  }
+ }
+ Need (Test-Path -LiteralPath $collector -PathType Leaf) 'PRIVATE_COLLECTOR_MISSING'
+ $collectorInfo=Get-Item -LiteralPath $collector -Force
+ Need (($collectorInfo.Attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0) 'PRIVATE_COLLECTOR_REPARSE'
+ $blob=@(& git hash-object --no-filters $collector)
  Need ($LASTEXITCODE -eq 0 -and $blob.Count -eq 1 -and
-       [string]$blob[0] -ceq $collectorPin) 'ORIGINAL_RSS_COLLECTOR_HASH_UNEXPECTED'
+       [string]$blob[0] -ceq $collectorPin) 'PINNED_PRIVATE_COLLECTOR_CHANGED'
+ & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $collector -OfflineSelfTest
+ Need ($LASTEXITCODE -eq 0) 'PINNED_COLLECTOR_SELFTEST_FAILED'
+ Write-Host 'NO11_EQUITY_FIVE_COLLECTOR=PINNED_PRIVATE_COPY_LOCAL_SOURCE_PRESERVED'
  $stageFile=One $stageFolder 'previous-archive-stage-*.json'
  $chartFile=One $daily 'no11-chart50-private-*.json'
  $review=Json $report

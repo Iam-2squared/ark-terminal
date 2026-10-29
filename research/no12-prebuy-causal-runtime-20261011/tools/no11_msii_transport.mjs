@@ -51,6 +51,12 @@ export function compileTransportCommand(input){
  return frozenCopy(command);
 }
 
+// Independently reject the same JPX-confirmed non-common securities even if a
+// caller bypasses the broker Python service. Not an exhaustive eligibility list.
+// 1671/1690/1699 oil ETFs, 2014 dividend ETF, 2038 leveraged oil ETN.
+// https://www.jpx.co.jp/news/1070/20200424-01.html
+// https://www.jpx.co.jp/equities/products/etfs/issues/01.html
+const CONFIRMED_NON_COMMON_EQUITY=new Set(['1671.T','1690.T','1699.T','2014.T','2038.T']);
 export function validateTransportCommand(command){
  sameKeys(command,['schemaId','commandId','kind','sessionDate','rssSessionKey','rssOrderId','intentId',
   'symbol','side','quantity','account','targetOrderNumber','createdAtJst','evidenceMode','orderTerms','functionName','arguments','commandSha256'],'COMMAND_FIELDS');
@@ -60,6 +66,7 @@ export function validateTransportCommand(command){
  const at=stamp(command.createdAtJst,'COMMAND_CLOCK');need(command.sessionDate===at.localDay,'COMMAND_SESSION');
  need(['SYNTHETIC_OFFLINE_ONLY','LIVE_OBSERVED'].includes(command.evidenceMode),'EVIDENCE_MODE');
  need(typeof command.symbol==='string'&&/^[0-9A-Z]{4}\.T$/.test(command.symbol)&&['BUY','SELL'].includes(command.side),'COMMAND_SIDE_OR_SYMBOL');
+ if(command.side==='BUY')need(!CONFIRMED_NON_COMMON_EQUITY.has(command.symbol),'CONFIRMED_NON_COMMON_EQUITY_BUY_BLOCKED');
  need(Number.isSafeInteger(command.quantity)&&command.quantity>=100&&command.quantity%100===0&&MSII_CASH_ACCOUNTS.includes(command.account),'COMMAND_QUANTITY_OR_ACCOUNT');
  let expected;
  if(command.kind==='ORDER'){

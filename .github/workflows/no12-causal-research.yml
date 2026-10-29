@@ -52,6 +52,8 @@ jobs:
           $ErrorActionPreference='Stop'
           & ./research/no12-prebuy-causal-runtime-20261011/windows/New-No11SecuritiesCashEvidenceReadOnly.ps1 -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'NO11_SECURITIES_CASH_EVIDENCE_OFFLINE_SELFTEST_FAILED' }
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11SecuritiesCashOnlyReadOnly.ps1 -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO11_SECURITIES_CASH_STAGE_OFFLINE_SELFTEST_FAILED' }
       - name: Exercise market probe formula safety without Excel or broker (Windows only)
         if: matrix.os == 'windows-latest'
         shell: powershell

@@ -430,6 +430,17 @@ class CoordinatorTests(unittest.TestCase):
             self.e._sell_safe({'symbol': '7203.T', 'account': '特定',
                                'quantity': 100}, self.current)
 
+    def test_confirmed_etfs_and_leveraged_etn_are_rejected_before_any_order(self):
+        # Cash-only trading does NOT turn a leveraged ETN into ordinary shares.
+        for symbol in sorted(s.CONFIRMED_NON_COMMON_EQUITY):
+            with self.subTest(symbol=symbol):
+                with self.assertRaisesRegex(ValueError,
+                        'CONFIRMED_NON_COMMON_EQUITY_BUY_BLOCKED'):
+                    self.e.submit_intents([{'side': 'BUY', 'symbol': symbol}], self.current)
+        self.assertEqual(self.calls, [])
+        self.assertEqual(self.e.drafts, [])
+        self.assertEqual(self.e.book.snapshot(self.current)['orders'], {})
+
     def test_whole_batch_validation_precedes_any_submission(self):
         account = self.e._capital_input({}, self.current)
         intents = s.decisions.calculate_capital(deepcopy(self.batch), account, arrival())['intents']

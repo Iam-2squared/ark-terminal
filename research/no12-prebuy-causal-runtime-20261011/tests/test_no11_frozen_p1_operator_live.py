@@ -53,6 +53,7 @@ class OrdinaryLiveBridgeTests(unittest.TestCase):
         config = {
             'sessionDate': '2026-11-02',
             'h235ModelRoot': str(self.root),
+            'runtimeRoot': str(self.root),
             'brokerExecutionConfig': str(self.broker_file)
         }
         files = {k: str(self.root / (k + '.json'))

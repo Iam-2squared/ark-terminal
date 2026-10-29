@@ -299,5 +299,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Physical account one shot offline selftest failed' }
           & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $dir 'Stage-No11PhysicalAccountIsolatedReadOnly.ps1') -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'Isolated real-account RSS source stage offline selftest failed' }
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $dir 'Observe-No11AccountReadOnly.ps1') -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'Original pinned physical account observer offline mock failed' }
           Write-Host 'NO11_WEEKLY_WINDOWS_OFFLINE_TESTS=PASS'
           Write-Host 'ORDER_TRANSMISSION=False'

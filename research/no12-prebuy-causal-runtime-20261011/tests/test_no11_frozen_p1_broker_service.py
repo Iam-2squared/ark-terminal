@@ -408,6 +408,28 @@ class CoordinatorTests(unittest.TestCase):
         self.assertEqual(self.calls, [])
         self.assertEqual(self.e.book.snapshot(self.current)['positions'], {})
 
+    def test_personal_manual_order_on_ark_owned_symbol_blocks_automatic_sell(self):
+        command = self.buy()
+        ident, buy, fills = broker_rows(command, filled=100)
+        holding = {'symbol': '7203', 'account': '特定', 'quantity': 100}
+        self.current = at(second=22)
+        self.e.observe_envelope(envelope(second=20, ids=[ident],
+            orders=[buy], executions=fills, positions=[holding]), self.current)
+        self.assertEqual(self.e.book.snapshot(self.current)['positionCount'], 1)
+        # Manual order has a distinct broker number and NO Ark RSS ID.
+        # Even if currently unfilled, its later execution could mingle shares.
+        manual = dict(buy, orderNumber='9002', status='執行中',
+                      filledQty=0, orderReceivedAt=at(second=24),
+                      inputRoute='MANUAL_TRADING_SCREEN')
+        self.current = at(second=32)
+        self.e.observe_envelope(envelope(second=30, ids=[ident],
+            orders=[buy, manual], executions=fills, positions=[holding]), self.current)
+        self.assertIn('7203.T', self.e.book.source_checkpoint('broker.externalSymbols') or [])
+        self.assertTrue(self.e.entry_halted)
+        with self.assertRaisesRegex(ValueError, 'PERSONAL_POSITION_CONFLICT'):
+            self.e._sell_safe({'symbol': '7203.T', 'account': '特定',
+                               'quantity': 100}, self.current)
+
     def test_whole_batch_validation_precedes_any_submission(self):
         account = self.e._capital_input({}, self.current)
         intents = s.decisions.calculate_capital(deepcopy(self.batch), account, arrival())['intents']

@@ -33,6 +33,7 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11PhysicalAccountOneShotReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11PhysicalAccountIsolatedReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11PhysicalAccountSafeReasonReadOnly.ps1
+      - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11PhysicalAccountFastVerifiedReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/windows/Run-No11PhysicalAccountOneShotReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_reference_bulk_stage.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11Oct29ReadOnlyFiles.ps1
@@ -115,6 +116,7 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11PhysicalAccountOneShotReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11PhysicalAccountIsolatedReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11PhysicalAccountSafeReasonReadOnly.ps1
+      - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11PhysicalAccountFastVerifiedReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/windows/Run-No11PhysicalAccountOneShotReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_reference_bulk_stage.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11Oct29ReadOnlyFiles.ps1
@@ -242,7 +244,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $dir = 'research/no12-prebuy-causal-runtime-20261011/windows'
-          foreach ($name in @('Run-No11WeeklyCandidateRefreshReadOnly.ps1','Prepare-No11WeeklyAfterCloseReadOnly.ps1','Prepare-No11PreviousArchiveReadOnly.ps1','Stage-No11Oct28ReadOnlyFiles.ps1','Run-No11Oct29ReferenceOneShotReadOnly.ps1','Capture-No11SessionReferenceReadOnly.ps1','Stage-No11Oct29ReadOnlyFiles.ps1','Stage-No11MarketSectionReadOnly.ps1','Repair-No11MarketSectionLocalPreserve.ps1','Run-No11Oct28DaytimeReviewPrepReadOnly.ps1','Run-No11Oct28AfternoonShadowReadOnly.ps1','Stage-No11Oct28AfternoonReadOnly.ps1','Run-No11Oct28QuickStartReadOnly.ps1','Repair-No11Oct28BridgeLocalPreserve.ps1','Run-No11WeeklyCandidateCatchUpReadOnly.ps1','Run-No11Oct28CatchUpReadOnly.ps1','Stage-No11Oct28CatchUpReadOnly.ps1','Upgrade-No11Oct28EmptyWaveRetryReadOnly.ps1','Run-No11YahooWeeklySeedReadOnly.ps1','Stage-No11FutureRssAutoGroupsReadOnly.ps1','Stage-No11ReferenceBulkReadReadOnly.ps1','Stage-No11PhysicalAccountOneShotReadOnly.ps1','Stage-No11PhysicalAccountIsolatedReadOnly.ps1','Stage-No11PhysicalAccountSafeReasonReadOnly.ps1','Run-No11PhysicalAccountOneShotReadOnly.ps1','Repair-No11Oct29MorningCatchUpReadOnly.ps1','Diagnose-No11D100RawRowCanaryReadOnly.ps1')) {
+          foreach ($name in @('Run-No11WeeklyCandidateRefreshReadOnly.ps1','Prepare-No11WeeklyAfterCloseReadOnly.ps1','Prepare-No11PreviousArchiveReadOnly.ps1','Stage-No11Oct28ReadOnlyFiles.ps1','Run-No11Oct29ReferenceOneShotReadOnly.ps1','Capture-No11SessionReferenceReadOnly.ps1','Stage-No11Oct29ReadOnlyFiles.ps1','Stage-No11MarketSectionReadOnly.ps1','Repair-No11MarketSectionLocalPreserve.ps1','Run-No11Oct28DaytimeReviewPrepReadOnly.ps1','Run-No11Oct28AfternoonShadowReadOnly.ps1','Stage-No11Oct28AfternoonReadOnly.ps1','Run-No11Oct28QuickStartReadOnly.ps1','Repair-No11Oct28BridgeLocalPreserve.ps1','Run-No11WeeklyCandidateCatchUpReadOnly.ps1','Run-No11Oct28CatchUpReadOnly.ps1','Stage-No11Oct28CatchUpReadOnly.ps1','Upgrade-No11Oct28EmptyWaveRetryReadOnly.ps1','Run-No11YahooWeeklySeedReadOnly.ps1','Stage-No11FutureRssAutoGroupsReadOnly.ps1','Stage-No11ReferenceBulkReadReadOnly.ps1','Stage-No11PhysicalAccountOneShotReadOnly.ps1','Stage-No11PhysicalAccountIsolatedReadOnly.ps1','Stage-No11PhysicalAccountSafeReasonReadOnly.ps1','Stage-No11PhysicalAccountFastVerifiedReadOnly.ps1','Run-No11PhysicalAccountOneShotReadOnly.ps1','Repair-No11Oct29MorningCatchUpReadOnly.ps1','Diagnose-No11D100RawRowCanaryReadOnly.ps1')) {
             $file = Join-Path $dir $name
             $tokens = $null
             $errors = $null
@@ -305,5 +307,9 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Original pinned physical account observer offline mock failed' }
           & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $dir 'Stage-No11PhysicalAccountSafeReasonReadOnly.ps1') -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'Pinned account reason overlay upgrade offline selftest failed' }
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $dir 'Read-No11BrokerSnapshot.ps1') -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'Fast 50 broker tables with full tail guard offline test failed' }
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $dir 'Stage-No11PhysicalAccountFastVerifiedReadOnly.ps1') -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'Private fast broker reader stage offline selftest failed' }
           Write-Host 'NO11_WEEKLY_WINDOWS_OFFLINE_TESTS=PASS'
           Write-Host 'ORDER_TRANSMISSION=False'

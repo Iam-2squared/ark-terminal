@@ -155,9 +155,12 @@ function CaptureAccount([string]$target,[scriptblock]$capture){
    # A nonempty or uncheckable tail MUST fail closed (not certify a full book).
    return Read-No11BrokerSnapshot $sheet $idSheet $capture $session $verify 50
   }catch{
+   # Do not hide a bounded-tail or real table mismatch as a generic
+   # unavailable workbook. Preserve an allowlisted code only.
+   $reason=Sanitized-No11AccountReason $_
    $observed=& $capture $sheet
    return @{snapshot=$observed.snapshot;health=$observed.health;
-    brokerObservation=(New-No11UnavailableBrokerObservation 'BROKER_WORKBOOK_UNAVAILABLE')}
+    brokerObservation=(New-No11UnavailableBrokerObservation $reason)}
   }
  }finally{
   foreach($o in @($idSheet,$idBook,$sheet,$book,$excel)){

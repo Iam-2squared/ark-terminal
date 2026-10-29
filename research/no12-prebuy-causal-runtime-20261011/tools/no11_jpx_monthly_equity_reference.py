@@ -26,6 +26,7 @@ REPORT = "NO11_JPX_EQUITY_REFERENCE_"
 DATE = "20260930"  # Latest September month-end evidence for 2026-10-30.
 SESSION = "2026-10-30"
 EXPECTED_EXCLUDED = frozenset({"1671.T","1690.T","1699.T","2014.T","2038.T"})
+EXPECTED_AUDIT_PREFIX = "304f08b2eed20c63"
 HEADERS = ("日付","コード","銘柄名","市場・商品区分","33業種コード",
            "33業種区分","17業種コード","17業種区分","規模コード","規模区分")
 NS = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
@@ -152,8 +153,8 @@ def verify(audit_file,jpx_file,output_root):
     a,audit_sha=load_json(audit_file)
     # Same immutable local audit receipt already validated on the PC.
     need(Path(audit_file).name ==
-         "equity-type-provisional-304f08b2eed20c63.json"
-         and audit_sha.startswith("304f08b2eed20c63"),
+         ("equity-type-provisional-"+EXPECTED_AUDIT_PREFIX+".json")
+         and audit_sha.startswith(EXPECTED_AUDIT_PREFIX),
          "ORIGINAL_AUDIT_RECEIPT_CHANGED")
     need(type(a) is dict and a.get("schemaId")==AUDIT and
          a.get("status")=="PROVISIONAL_REVIEW_REQUIRED_NOT_A_TRADING_PLAN" and

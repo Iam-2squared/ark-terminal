@@ -207,8 +207,8 @@ try{
  Need ($paths.Count -eq 1) 'CAPTURE_DIR_NOT_REPORTED'
  $dir=([string]$paths[0]).Substring('NO11_RSS_TRAINING_CAPTURE_DIR='.Length)
  $fullDir=[IO.Path]::GetFullPath($dir)
- $fullBase=[IO.Path]::GetFullPath($base).TrimEnd([char]'\\')
- $isPrivate=$fullDir.StartsWith(($fullBase+'\\'),[StringComparison]::OrdinalIgnoreCase)
+ $fullBase=[IO.Path]::GetFullPath($base).TrimEnd([IO.Path]::DirectorySeparatorChar)
+ $isPrivate=$fullDir.StartsWith(($fullBase+[IO.Path]::DirectorySeparatorChar),[StringComparison]::OrdinalIgnoreCase)
  Need ([IO.Path]::IsPathRooted($dir) -and $isPrivate -and
        (Test-Path -LiteralPath $dir -PathType Container)) 'CAPTURE_DIR_NOT_PRIVATE'
  $file=Join-Path $dir 'progress-00005.json'

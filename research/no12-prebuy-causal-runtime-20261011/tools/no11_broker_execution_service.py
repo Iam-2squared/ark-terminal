@@ -20,6 +20,7 @@ import subprocess
 import no11_broker_execution_ledger as ledger
 import no11_broker_fill_attribution as attribution
 import no11_broker_decision_bridge as decisions
+import no11_securities_cash_only as securities_cash
 import no11_h235_asof_forward_shadow as h
 import no11_h235_capital_v5_shadow as capital
 import no11_rss_state9_p1_runner as received
@@ -107,6 +108,14 @@ def validate_config(config, session, *, read_only=False):
     need(not live or (transport.get('orderTransmission') is True and transport.get('operatorEnabled') is True
          and transport.get('approvedForSession') is True and transport.get('sessionDate') == session), 'LIVE_OPERATOR_CONFIGURATION')
     need(live or transport.get('orderTransmission', False) is False, 'DISABLED_TRANSMISSION')
+    # A bank-inclusive RssCapacityList observation cannot seed the Ark cash
+    # ledger. LIVE requires an immutable, operator-reviewed *securities-only*
+    # opening balance, with the actual number resolved from private evidence.
+    if live:
+        source_file = config.get('securitiesCashEvidenceFile')
+        need(book.get('allocatedCashJpy') == securities_cash.AUTO
+             and type(source_file) is str and Path(source_file).is_absolute(),
+             'LIVE_SECURITIES_CASH_ONLY_EVIDENCE_REQUIRED')
     terms = config.get('orderTerms')
     need(type(terms) is dict and set(terms) == {'orderType', 'limitPrice', 'timeInForce', 'sor', 'accountType', 'accountTypeVerified'}
          and terms['orderType'] == 'MARKET' and terms['limitPrice'] is None
@@ -121,7 +130,8 @@ def validate_config(config, session, *, read_only=False):
 def settings(path, session, *, read_only=False):
     config, _ = read_private(path, 100_000)
     config = validate_config(config, session, read_only=read_only)
-    for name in ('accountObservationFile', 'feesEvidenceFile', 'buyingPowerEvidenceFile'):
+    for name in ('accountObservationFile', 'feesEvidenceFile', 'buyingPowerEvidenceFile',
+                 'securitiesCashEvidenceFile'):
         if config.get(name):
             # The observer's atomic output may not exist before startup.
             p = Path(config[name])
@@ -146,9 +156,32 @@ class BrokerExecution:
         need(replay_dispatch is None or (callable(replay_dispatch)
              and config['evidenceMode'] == 'OFFLINE_REPLAY' and config['transport']['mode'] != 'LIVE'),
              'REPLAY_SINK_ONLY_FOR_OFFLINE_EVIDENCE')
-        self.book = ledger.BrokerExecutionLedger(self.root / ('broker-execution-' + self.session + '.sqlite'), config['ledger'])
+        database = self.root / ('broker-execution-' + self.session + '.sqlite')
+        ledger_config = config['ledger']
+        self.opening_cash_proof = None
+        self.opening_cash_evidence_sha256 = None
+        if config['transport']['mode'] == 'LIVE':
+            # Resolve the opening allocation only from a reviewed, locally
+            # retained securities-account summary. Never from RSS buying power
+            # (which can include Rakuten Bank), a fixed guessed number, or a
+            # synthetic portfolio. On recovery reuse the exact pinned source.
+            proof, proof_sha = read_private(config['securitiesCashEvidenceFile'], 100_000)
+            document_path = private_path(proof.get('sourceDocumentPath'))
+            size = document_path.stat().st_size
+            need(100 <= size <= 10_000_000, 'SECURITIES_SOURCE_DOCUMENT_SIZE')
+            reviewed = securities_cash.verify_opening_evidence(
+                proof, session=self.session, account=config['ledger']['account'],
+                now_jst=self.clock(), document_bytes=document_path.read_bytes(),
+                require_fresh=not database.exists())
+            ledger_config = deepcopy(config['ledger'])
+            ledger_config['allocatedCashJpy'] = reviewed['allocatedCashJpy']
+            self.opening_cash_proof = reviewed
+            self.opening_cash_evidence_sha256 = proof_sha
+        self.book = ledger.BrokerExecutionLedger(database, ledger_config)
         try:
             identity = {'configSha256': ledger.digest(config), 'previousContextSha256': h.digest(previous)}
+            if self.opening_cash_evidence_sha256 is not None:
+                identity['securitiesCashEvidenceSha256'] = self.opening_cash_evidence_sha256
             old = self.book.source_checkpoint('controller.identity')
             need(old is None or old == identity, 'RECOVERY_CONFIG_OR_PREVIOUS_CHANGED')
             if old is None:
@@ -641,4 +674,7 @@ class BrokerExecution:
             'capital': self.last_decision, 'exit': self.last_exit, 'drafts': self.drafts,
             'positionCount': state['positionCount'], 'realFillsAppliedToShadow': False,
             'brokerConnectionPhysicallyVerified': False, 'brokerFeedAtomicityCertified': False,
+            'securitiesOnlyOpeningCashReviewed': self.opening_cash_proof is not None,
+            'openingCashScope': (self.opening_cash_proof['basis'] if self.opening_cash_proof
+                                 else 'NOT_MACHINE_CERTIFIED'),
             'productionReady': False, 'orderTransmission': self.config['transport']['mode'] == 'LIVE'}

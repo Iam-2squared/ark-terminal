@@ -150,7 +150,10 @@ function CaptureAccount([string]$target,[scriptblock]$capture){
       [string]$sheet.Name -ceq 'ARK_ACCOUNT_READONLY' -and [string]$idSheet.Name -ceq 'ARK_ORDER_IDS_READONLY') 'WORKBOOK_CHANGED'
     return New-No11ExcelSession $p[0].Id $p[0].StartTime.ToUniversalTime().ToString('o') $target $idTarget
    }
-   return Read-No11BrokerSnapshot $sheet $idSheet $capture $session $verify
+   # Read only 50 rows from each broker table, but assert that the entire
+   # remainder through row 5003 is blank via Excel-native CountA.
+   # A nonempty or uncheckable tail MUST fail closed (not certify a full book).
+   return Read-No11BrokerSnapshot $sheet $idSheet $capture $session $verify 50
   }catch{
    $observed=& $capture $sheet
    return @{snapshot=$observed.snapshot;health=$observed.health;
@@ -170,6 +173,8 @@ if($OfflineSelfTest){
  Need ((Sanitized-No11AccountReason $fakeA) -ceq 'NO11_ACCOUNT_CAPTURE_RSS_INITIAL_STATUS_INVALID_L1') 'REASON_KNOWN'
  $fakeB=[pscustomobject]@{Exception=[Exception]::new('private-account=123456; password=secret')}
  Need ((Sanitized-No11AccountReason $fakeB) -ceq 'NO11_ACCOUNT_CAPTURE_UNEXPECTED_EXCEPTION') 'REASON_REDACTED'
+ Need ($capture.ToString().Contains('Read-BulkRange')) 'ORIGINAL_BULK_READ_REQUIRED'
+ Write-Host 'NO11_ACCOUNT_CAPTURE_LIMITED_READ_FULL_TAIL_GUARD=ENABLED'
  Write-Host 'NO11_ACCOUNT_CAPTURE_SAFE_REASON_SELFTEST=PASS'
  $text=$capture.ToString()
  Need ($text.Contains('Read-BulkRange') -and $text.Contains('account=(Trim-Value (Bulk-Value $ordersBlock $idx 4))')) 'OFFLINE_CAPTURE_SHAPE'

@@ -3,7 +3,7 @@
 # and never modifies original saved 47-symbol RSS archive or original books.
 # The true-source 47/47 RSS completion and 5 provisional absences came from
 # the separately SHA-pinned, disk-only G1 preselection audit.
-param([switch]$OfflineSelfTest)
+param([switch]$OfflineSelfTest,[switch]$PreflightOnly)
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 $local=Join-Path $env:LOCALAPPDATA 'ArkTerminal\No12'
@@ -20,6 +20,7 @@ $stageFolder=Join-Path $local 'previous-source\2026-10-30'
 $daily=Join-Path $local 'weekly-pool-refresh\weekly-refresh-2026-10-29-862f03a3cdfa7d8f'
 $base=Join-Path $local 'equity-type-backfill\2026-10-30'
 $prefix='304f08b2eed20c63'
+$phase='START'
 function Need([bool]$pass,[string]$code){
  if(-not $pass){throw ('NO11_EQUITY_FIVE_'+$code)}
 }
@@ -37,6 +38,7 @@ function Hash([string]$file){
  return (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash.ToLowerInvariant()
 }
 if($OfflineSelfTest){
+ Need (-not $PreflightOnly) 'MODES_CONFLICT'
  Need ($collectorPin -cmatch '^[a-f0-9]{40}$' -and
        $prefix -cmatch '^[a-f0-9]{16}$') 'STATIC_CONTRACT'
  Write-Host 'NO11_EQUITY_FIVE_OFFLINE_SELFTEST=PASS'
@@ -46,6 +48,7 @@ if($OfflineSelfTest){
  exit 0
 }
 try{
+ $phase='COMMANDS'
  [void](Get-Command git -ErrorAction Stop)
  [void](Get-Command powershell.exe -ErrorAction Stop)
  # The existing collector may carry essential Excel window-discovery fixes.
@@ -56,6 +59,7 @@ try{
  $localStatus=@(& git -C $repo status --porcelain -- $sourceRel)
  Need ($LASTEXITCODE -eq 0) 'LOCAL_GIT_STATUS_FAILED'
  Write-Host ('NO11_EQUITY_FIVE_LOCAL_COLLECTOR_CHANGED='+($localStatus.Count -gt 0))
+ $phase='PINNED_COLLECTOR_STAGING'
  $stageRoot=Join-Path $base 'pinned-original'
  [void][IO.Directory]::CreateDirectory($stageRoot)
  $rootInfo=Get-Item -LiteralPath $stageRoot -Force
@@ -86,11 +90,14 @@ try{
  & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $collector -OfflineSelfTest
  Need ($LASTEXITCODE -eq 0) 'PINNED_COLLECTOR_SELFTEST_FAILED'
  Write-Host 'NO11_EQUITY_FIVE_COLLECTOR=PINNED_PRIVATE_COPY_LOCAL_SOURCE_PRESERVED'
+ $phase='REVIEW_FILES_DISCOVERY'
  $stageFile=One $stageFolder 'previous-archive-stage-*.json'
  $chartFile=One $daily 'no11-chart50-private-*.json'
+ $phase='REVIEW_FILES_PARSE'
  $review=Json $report
  $stage=Json $stageFile
  $chart=Json $chartFile
+ $phase='PREVIEW_AND_SOURCE_PINS'
  Need ((Hash $report).StartsWith($prefix) -and
        (Hash $stageFile) -ceq $review.sourceStageSha256 -and
        $review.sourceChartPlanSha256 -ceq $chart.chartPlan.planSha256 -and
@@ -107,6 +114,7 @@ try{
        $stage.sessionDate -ceq '2026-10-30' -and
        $stage.chartPlanSha256 -ceq $review.sourceChartPlanSha256 -and
        $stage.orderTransmission -eq $false) 'PROVISIONAL_REPORT_NOT_PINNED'
+ $phase='FIVE_SYMBOLS'
  $extra=@($review.replacementPriorArchiveMissing|ForEach-Object {[string]$_})
  $alternates=@($review.provisionalReplacementCandidates|ForEach-Object {[string]$_})
  $excluded=@($review.knownExcludedFromG1|ForEach-Object {[string]$_})
@@ -123,11 +131,13 @@ try{
  # Do not overlap prior account observation, chart collection, or an existing
  # market reader. The original collector separately enforces Excel workbook
  # identity, RSS formula capacity, and local account UI shutdown.
+ $phase='WORKER_AND_EXCEL_PROCESS_GUARDS'
  $running=@(Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" -ErrorAction Stop |
    Where-Object {$_.ProcessId -ne $PID -and [string]$_.CommandLine -match
     '(?i)(Capture-No11RssTrainingBatchReadOnly|Prepare-No11PreviousArchiveReadOnly|Run-No11WeeklyCandidateRefreshReadOnly|Probe-No11Chart50ContinuousReadOnly|Run-No11ReceivedSessionReadOnly|Observe-No11AccountReadOnly)\.ps1'})
  Need ($running.Count -eq 0) 'OTHER_RSS_READER_ALREADY_RUNNING'
  Need (@(Get-Process EXCEL -ErrorAction SilentlyContinue).Count -eq 1) 'EXCEL_PROCESS_NOT_UNIQUE'
+ $phase='CAPTURE_ATTEMPT_CHECKPOINT'
  [void][IO.Directory]::CreateDirectory($base)
  $done=Join-Path $base ('capture-complete-'+$prefix+'.json')
  $marker=Join-Path $base ('capture-started-'+$prefix+'.json')
@@ -142,6 +152,15 @@ try{
   exit 0
  }
  Need (-not (Test-Path -LiteralPath $marker)) 'PREVIOUS_ATTEMPT_REQUIRES_REVIEW'
+ if($PreflightOnly){
+  Write-Host 'NO11_EQUITY_FIVE_PREFLIGHT=PASS_NO_EXCEL_COM_NO_RSS_NO_ORDERS'
+  Write-Host 'NO11_EQUITY_FIVE_REQUIRED_SYMBOLS=5'
+  Write-Host 'NO11_EQUITY_FIVE_EXISTING_CAPTURE_MODIFIED=False'
+  Write-Host 'EXCEL_TOUCHED=False'
+  Write-Host 'ORDER_TRANSMISSION=False'
+  exit 0
+ }
+ $phase='PREPARING_FIVE_SOURCE_LIST'
  $names=Join-Path $base ('missing-five-'+$prefix+'.txt')
  $list=([string]::Join([char]10,$extra)+[char]10)
  if(Test-Path -LiteralPath $names -PathType Leaf){
@@ -154,6 +173,7 @@ try{
   expected=5;startedAtJst=[DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9)).ToString('o')
   productionReady=$false;orderTransmission=$false}
  $data=[Text.UTF8Encoding]::new($false).GetBytes((ConvertTo-Json -InputObject $receipt -Compress)+[char]10)
+ $phase='CAPTURE_ATTEMPT_COMMIT'
  $stream=[IO.File]::Open($marker,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
  try{$stream.Write($data,0,$data.Length);$stream.Flush($true)}finally{$stream.Dispose()}
  Write-Host 'NO11_EQUITY_FIVE=START_REAL_RSS_PREVIOUS_1M_ONLY'
@@ -163,6 +183,7 @@ try{
  # Stream all original collector progress; NEVER buffer the entire Excel COM
  # work before the operator can see a progress receipt.
  $lines=@()
+ $phase='RUNNING_FIVE_RSS_COLLECTOR'
  & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $collector -SymbolsFile $names -PrivateRoot $base -BatchSize 5 -WaitSeconds 25 -Bars 3000 -Period '1M' | Tee-Object -Variable lines
  $code=$LASTEXITCODE
  Need ($code -eq 0) 'COLLECTOR_FAILED_KEEP_RECEIPTS_FOR_REVIEW'
@@ -175,6 +196,7 @@ try{
  Need ([IO.Path]::IsPathRooted($dir) -and $isPrivate -and
        (Test-Path -LiteralPath $dir -PathType Container)) 'CAPTURE_DIR_NOT_PRIVATE'
  $file=Join-Path $dir 'progress-00005.json'
+ $phase='CAPTURE_RECEIPT_PROOF'
  $progress=Json $file
  Need ($progress.schemaId -ceq 'ARK_NO11_RSS_TRAINING_CAPTURE_PROGRESS_V1' -and
        $progress.completed -eq 5 -and $progress.requested -eq 5 -and
@@ -182,6 +204,7 @@ try{
        $progress.productionReady -eq $false -and $progress.orderTransmission -eq $false -and
        (@($progress.files).Count -eq 5)) 'CAPTURE_CHECKPOINT_NOT_COMPLETE'
  $totalPriorRows=0
+ $phase='FIVE_PREVIOUS_SESSION_ROW_PROOF'
  foreach($item in $progress.files){
   Need ($item.symbol -in $extra -and $item.status -ceq 'OBSERVED_ARCHIVE_NOT_TRAINING_CERTIFIED') 'ARCHIVE_MEMBER_STATUS'
   $f=Join-Path $dir ([string]$item.file)
@@ -199,6 +222,7 @@ try{
    previousSession='2026-10-29';symbols=5;previousMinuteRows=$totalPriorRows
    status='COMPLETE_SOURCE_ONLY';productionReady=$false;orderTransmission=$false}
  $doneBytes=[Text.UTF8Encoding]::new($false).GetBytes((ConvertTo-Json -InputObject $completed -Compress)+[char]10)
+ $phase='COMPLETION_COMMIT'
  $out=[IO.File]::Open($done,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
  try{$out.Write($doneBytes,0,$doneBytes.Length);$out.Flush($true)}finally{$out.Dispose()}
  Write-Host 'NO11_EQUITY_FIVE=CAPTURE_COMPLETE_FIVE_PRIOR_MINUTES_PRESENT'
@@ -210,7 +234,22 @@ try{
  Write-Host 'ORDER_TRANSMISSION=False'
 }catch{
  $reason=$_.Exception.Message
- if($reason -cnotmatch '^NO11_EQUITY_FIVE_[A-Z0-9_]+$'){$reason='NO11_EQUITY_FIVE_LOCAL_SOURCE_OR_RUNTIME_FAILURE'}
+ if($reason -cnotmatch '^NO11_EQUITY_FIVE_[A-Z0-9_]+
+ Write-Host 'NO11_EQUITY_FIVE_NO_RETRY_WITHOUT_REVIEW=True'
+ Write-Host 'ORDER_TRANSMISSION=False'
+ exit 2
+}
+){$reason='NO11_EQUITY_FIVE_LOCAL_SOURCE_OR_RUNTIME_FAILURE'}
+ # Do not print account, symbol or command-line data in errors.
+ $kind=$_.Exception.GetType().Name
+ if($kind -cnotmatch '^[A-Za-z0-9_]{1,80}
+ Write-Host 'NO11_EQUITY_FIVE_NO_RETRY_WITHOUT_REVIEW=True'
+ Write-Host 'ORDER_TRANSMISSION=False'
+ exit 2
+}
+){$kind='UNRECOGNIZED_EXCEPTION'}
+ Write-Host ('NO11_EQUITY_FIVE_FAILURE_STAGE='+$phase)
+ Write-Host ('NO11_EQUITY_FIVE_FAILURE_KIND='+$kind)
  Write-Host ('NO11_EQUITY_FIVE=BLOCKED|'+$reason)
  Write-Host 'NO11_EQUITY_FIVE_NO_RETRY_WITHOUT_REVIEW=True'
  Write-Host 'ORDER_TRANSMISSION=False'

@@ -17,6 +17,14 @@ import uuid
 from no11_received_run_recovery import RunRecovery, CaptureRelay, read, need, atomic
 
 
+def consumer_args(bootstrap, config, prepared, infer, capture=None, *, live=False):
+    """Keep unchanged read-only service callers and mocks byte-for-byte compatible."""
+    if live:
+        return bootstrap.service_args(
+            config, prepared, infer, capture, allow_explicit_live=True)
+    return bootstrap.service_args(config, prepared, infer, capture)
+
+
 def launch_same_run(config, prepared, run_root, recovery, bootstrap, *,
                     allow_explicit_live=False,
                     popen=subprocess.Popen, monotonic=time.monotonic, sleep=time.sleep):
@@ -65,8 +73,8 @@ def launch_same_run(config, prepared, run_root, recovery, bootstrap, *,
 
             # Immutable originals from all attempts are combined by verified
             # bytes. The consumer sees its original checkpoint and clocks.
-            bootstrap.service.main(bootstrap.service_args(
-                config, prepared, infer, view, allow_explicit_live=allow_explicit_live),
+            bootstrap.service.main(consumer_args(
+                bootstrap, config, prepared, infer, view, live=allow_explicit_live),
                 should_stop=stopped)
         finally:
             if process is not None:
@@ -114,8 +122,8 @@ def execute(config, bootstrap, *, resume_run=None, preflight_only=False,
             infer.mkdir(exist_ok=True)
             # Genuine model and source preflight happens before ANY collector.
             # It does not initialize/reset portfolio or P1 databases.
-            bootstrap.service.main(bootstrap.service_args(
-                config, prepared, infer, allow_explicit_live=allow_explicit_live) +
+            bootstrap.service.main(consumer_args(
+                bootstrap, config, prepared, infer, live=allow_explicit_live) +
                 ['--preflight-only'])
             if preflight_only:
                 print('NO11_BOOTSTRAP_PREFLIGHT=EXISTING_ASSETS_LOADED_NOT_LIVE_VERIFIED')

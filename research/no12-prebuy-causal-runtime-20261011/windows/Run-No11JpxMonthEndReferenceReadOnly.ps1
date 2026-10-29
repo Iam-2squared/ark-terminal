@@ -4,7 +4,7 @@
 param([switch]$OfflineSelfTest,[string]$JpxWorkbook='')
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
-$rev='8f4569fcdb283764a990dc2fc6f536fafd116b26'
+$rev='002ffb2c931202d0b9752e39ede41150fcb56913'
 $expected='ad8b946a360dc87efa214859de9b928c4e54e4fd'
 $sourceRel='research/no12-prebuy-causal-runtime-20261011/tools/no11_jpx_monthly_equity_reference.py'
 $root=Join-Path $env:LOCALAPPDATA 'ArkTerminal\No12'

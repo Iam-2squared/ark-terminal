@@ -5,6 +5,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 TOOLS = Path(__file__).resolve().parents[1] / 'tools'
 sys.path.insert(0, str(TOOLS))
@@ -81,10 +82,6 @@ class FiveArchiveRecoveryTests(unittest.TestCase):
         review_sha = hashlib.sha256(data).hexdigest()
         self.audit = self.root / ('equity-type-provisional-' + review_sha[:16] + '.json')
         self.audit.write_bytes(data)
-        # The recovery is intentionally fixed to one real 2026-10-30 audit
-        # receipt, and a synthetic review cannot share that hash. For tests,
-        # mock the name pin while keeping all independent bytes/lineage checks.
-        self.original_name_pin = None
         marker = {'schemaId': recovery.REQUEST,
                   'expected': 5,
                   'sourceReportSha256': review_sha,
@@ -130,20 +127,36 @@ class FiveArchiveRecoveryTests(unittest.TestCase):
         self.temp.cleanup()
 
     def perform(self):
-        return recovery.recover(audit_file=self.audit, stage_file=self.oldstage,
-                                chart_file=self.chart, request_file=self.request,
-                                capture_dir=self.capture, output_dir=self.out,
-                                checked_at='2026-10-30T01:00:00.000+09:00')
+        # A synthetic receipt cannot have the actual user's 64-bit pinned
+        # digest. Override ONLY in this in-process unit test; the CLI never
+        # exposes such a parameter and stays pinned to the real receipt.
+        digest = recovery.sha_file(self.audit)
+        with patch.object(recovery, 'EXPECTED_AUDIT_SHA_PREFIX', digest[:16]):
+            return recovery.recover(audit_file=self.audit, stage_file=self.oldstage,
+                                    chart_file=self.chart, request_file=self.request,
+                                    capture_dir=self.capture, output_dir=self.out,
+                                    checked_at='2026-10-30T01:00:00.000+09:00')
 
-    def test_source_only_validation_never_certifies_or_changes_frozen_plan(self):
-        # All actual schema/hash checks also run. This is an explicit isolated
-        # fixture exception for the *known* real report hash prefix, not a
-        # relaxation of the production recovery CLI.
-        original = recovery.bootstrap.load_json(self.oldstage)[1]
-        with unittest.mock.patch.object(recovery, 'need', wraps=recovery.need) as gate:
-            self.assertRaisesRegex(ValueError, 'AUDIT_FILE_HASH_NAME', self.perform)
-        self.assertEqual(original, recovery.bootstrap.load_json(self.oldstage)[1])
-        self.assertEqual(list(self.out.glob('equity-five-recovered-source-only-*')), [])
+    def test_valid_archive_is_recovered_without_rss_and_never_authorizes_trading(self):
+        before = {
+            p: recovery.sha_file(p)
+            for p in [self.audit, self.oldstage, self.chart, self.request,
+                      *self.capture.iterdir()]
+        }
+        result, receipt = self.perform()
+        self.assertEqual(result['observedNewSymbols'], 5)
+        self.assertEqual(result['observedAllDatesMinuteRows'], 10)
+        self.assertEqual(result['observedPreviousSessionMinuteRows'], 10)
+        self.assertTrue(result['rssRecollectionPerformed'] is False)
+        self.assertFalse(result['liveOrderAuthorized'])
+        self.assertFalse(result['datedMasterCreated'])
+        self.assertFalse(result['fullPreviousSessionCoverageCertified'])
+        self.assertFalse(result['orderTransmission'])
+        self.assertTrue(receipt.is_file())
+        self.assertEqual({p: recovery.sha_file(p) for p in before}, before)
+        after, second_receipt = self.perform()
+        self.assertEqual(receipt, second_receipt)
+        self.assertEqual(result, after)
 
     def test_original_archive_validator_checks_bars_and_all_their_hashes(self):
         progress, _ = recovery.bootstrap.load_json(self.capture / 'progress-00005.json')
@@ -163,6 +176,8 @@ class FiveArchiveRecoveryTests(unittest.TestCase):
             recovery.archive.previous_rows(
                 value, progress['files'][0], recovery.PRIOR,
                 '2026-10-30T01:00:00.000+09:00')
+        with self.assertRaisesRegex(ValueError, 'FIVE_CAPTURE_MEMBER_HASH_CHANGED'):
+            self.perform()
 
     def test_no_offline_test_writes_locks_excel_or_trading_files(self):
         text = (TOOLS / 'no11_equity_five_capture_recovery.py').read_text()

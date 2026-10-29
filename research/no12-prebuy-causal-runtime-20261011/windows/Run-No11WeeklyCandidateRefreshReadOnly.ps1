@@ -3,6 +3,7 @@
 # The old full-market source collector is unchanged; no orders or model fits.
 param(
  [switch]$OfflineSelfTest,
+ [switch]$FirstBuyFridayLimited,
  [string]$WeeklyRun,
  [string]$PrivateRoot,
  [string]$PinsFile,
@@ -147,6 +148,12 @@ function Get-Plan {
   $planArgs+=@('--catch-up-asof',$CatchUpAsOf)
  }
  if($ConfirmYahooFridayRss){$planArgs+=@('--yahoo-friday-rss-confirm','true')}
+ if($FirstBuyFridayLimited){
+  if($ConfirmYahooFridayRss -or $CatchUpAsOf){
+   throw 'NO11_DAILY_FIRST_BUY_FRIDAY_MODES_CONFLICT'
+  }
+  $planArgs+=@('--first-buy-friday-limited','true')
+ }
  $text=(& node $tool @planArgs | Out-String)
  if($LASTEXITCODE -ne 0){throw 'NO11_WEEKLY_REFRESH_PLAN_FAILED'}
  return ($text | ConvertFrom-Json)
@@ -293,6 +300,7 @@ if(-not [string]::IsNullOrWhiteSpace($CatchUpAsOf)){
  $reportArgs+=@('--catch-up-asof',$CatchUpAsOf)
 }
 if($ConfirmYahooFridayRss){$reportArgs+=@('--yahoo-friday-rss-confirm','true')}
+if($FirstBuyFridayLimited){$reportArgs+=@('--first-buy-friday-limited','true')}
 if(-not [string]::IsNullOrWhiteSpace($PinsFile)){$reportArgs+=@('--pins-file',$PinsFile)}
 $output=@(& node $tool @reportArgs)
 $reportExit=$LASTEXITCODE
@@ -300,6 +308,10 @@ $output|ForEach-Object {Write-Host $_}
 if($failed -or $reportExit -ne 0){exit 2}
 if(-not [string]::IsNullOrWhiteSpace($CatchUpAsOf)){
  Write-Host 'NO11_WEEKLY_DAILY_CAPTURE=HISTORICAL_ASOF_WITH_REAL_CURRENT_RECEIPT'
+}
+if($FirstBuyFridayLimited){
+ Write-Host 'NO11_FIRST_BUY_FRIDAY_SCOPE=LOCKED_ORIGINAL_WEEKLY_POOL_ONLY'
+ Write-Host 'NO11_FIRST_BUY_FRIDAY_NOT_A_TRADING_PERMISSION=True'
 }
 Write-Host 'NO11_WEEKLY_DAILY_REFRESH=COMPLETE_NOT_FULL_UNIVERSE'
 Write-Host 'ORDER_TRANSMISSION=False'

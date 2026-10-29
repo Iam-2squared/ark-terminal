@@ -80,8 +80,15 @@ try{
   $envelope.status -ceq 'OBSERVED' -and
   $envelope.brokerObservation.status -ceq 'OBSERVED') 'REAL_BROKER_ORDER_AND_ACCOUNT_NOT_VERIFIED'
  Write-Host 'NO11_PHYSICAL_ACCOUNT_STAGE=REAL_ORDER_EXECUTION_HOLDINGS_CROSSCHECK'
- & node $diag --observer-file $output
+ # Hold the real buying-power amount in the private observed JSON.
+ # Console output contains only diagnostic statuses and aggregate counts.
+ $lines=@(& node $diag --observer-file $output)
  Need ($LASTEXITCODE -eq 0) 'DIAGNOSTIC_FAILED'
+ foreach($line in $lines){
+  if(([string]$line).StartsWith('NO11_ACCOUNT_DIAG_RSS_AVAILABLE_FOR_CASH_STOCK_JPY=',[StringComparison]::Ordinal)){
+   Write-Host 'NO11_ACCOUNT_DIAG_RSS_AVAILABLE_FOR_CASH_STOCK_JPY=REDACTED_PRIVATE'
+  }else{Write-Host $line}
+ }
  Write-Host 'NO11_PHYSICAL_ACCOUNT=REAL_RSS_BROKER_READ_PASS_NOT_ORDER_AUTHORIZED'
  Write-Host 'NO11_PHYSICAL_ACCOUNT_PRIVATE_ACCOUNT_DATA=LOCAL_ONLY'
  Write-Host 'ORDER_TRANSMISSION=False'

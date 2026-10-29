@@ -18,6 +18,7 @@ from no11_received_run_recovery import RunRecovery, CaptureRelay, read, need, at
 
 
 def launch_same_run(config, prepared, run_root, recovery, bootstrap, *,
+                    allow_explicit_live=False,
                     popen=subprocess.Popen, monotonic=time.monotonic, sleep=time.sleep):
     """Use the original collector/consumer and the SAME inference database path."""
     bootstrap.need(bootstrap.os.name == 'nt', 'WINDOWS_REQUIRED_FOR_EXCEL_COLLECTOR')
@@ -64,8 +65,9 @@ def launch_same_run(config, prepared, run_root, recovery, bootstrap, *,
 
             # Immutable originals from all attempts are combined by verified
             # bytes. The consumer sees its original checkpoint and clocks.
-            bootstrap.service.main(bootstrap.service_args(config, prepared, infer, view),
-                                   should_stop=stopped)
+            bootstrap.service.main(bootstrap.service_args(
+                config, prepared, infer, view, allow_explicit_live=allow_explicit_live),
+                should_stop=stopped)
         finally:
             if process is not None:
                 try:
@@ -79,9 +81,19 @@ def launch_same_run(config, prepared, run_root, recovery, bootstrap, *,
 
 
 def execute(config, bootstrap, *, resume_run=None, preflight_only=False,
-            popen=subprocess.Popen, sleep=time.sleep):
+            allow_explicit_live=False, popen=subprocess.Popen, sleep=time.sleep):
     """Caller supplies validated config and the unchanged bootstrap functions."""
     root = Path(config['privateRoot'])
+    if allow_explicit_live:
+        now = bootstrap.stamp()
+        bootstrap.need(now[:10] == config['sessionDate'],
+                       'LIVE_REQUIRES_ACTUAL_SESSION_DAY')
+        bootstrap.need(config.get('brokerExecutionConfig') is not None and
+                       bool(config.get('h235ModelRoot')),
+                       'LIVE_REQUIRES_BROKER_AND_H235')
+        bootstrap.validate_readonly_broker_config(
+            config['brokerExecutionConfig'], config['sessionDate'],
+            allow_explicit_live=True)
     bootstrap.need(not (root / 'bootstrap-recovery-required.json').exists(),
                    'PREVIOUS_CLEANUP_REQUIRES_REVIEW')
     recovery = RunRecovery(config)
@@ -102,13 +114,16 @@ def execute(config, bootstrap, *, resume_run=None, preflight_only=False,
             infer.mkdir(exist_ok=True)
             # Genuine model and source preflight happens before ANY collector.
             # It does not initialize/reset portfolio or P1 databases.
-            bootstrap.service.main(bootstrap.service_args(config, prepared, infer) + ['--preflight-only'])
+            bootstrap.service.main(bootstrap.service_args(
+                config, prepared, infer, allow_explicit_live=allow_explicit_live) +
+                ['--preflight-only'])
             if preflight_only:
                 print('NO11_BOOTSTRAP_PREFLIGHT=EXISTING_ASSETS_LOADED_NOT_LIVE_VERIFIED')
                 return run_root
             if resume_run is None:
                 recovery.register(run_root, prepared)
             launch_same_run(config, prepared, run_root, recovery, bootstrap,
+                            allow_explicit_live=allow_explicit_live,
                             popen=popen, sleep=sleep)
             return run_root
         except BaseException as exc:
@@ -125,13 +140,20 @@ def main(argv=None):
     parser.add_argument('--config', required=True, type=Path)
     parser.add_argument('--resume-run', type=Path)
     parser.add_argument('--preflight-only', action='store_true')
+    parser.add_argument('--operator-approved-broker-live', action='store_true')
     args = parser.parse_args(argv)
     # Lazy import keeps model-free relay/recovery tests independent of NumPy.
     import no11_received_session_bootstrap as bootstrap
     raw, _ = bootstrap.load_json(args.config, 100_000)
-    config = bootstrap.validate_config(raw)
-    execute(config, bootstrap, resume_run=args.resume_run, preflight_only=args.preflight_only)
-    print('ORDER_TRANSMISSION=False')
+    config = bootstrap.validate_config(
+        raw, allow_explicit_live=args.operator_approved_broker_live)
+    execute(config, bootstrap, resume_run=args.resume_run,
+            preflight_only=args.preflight_only,
+            allow_explicit_live=args.operator_approved_broker_live)
+    print('NO11_LIVE_OPERATOR_MODE=' +
+          ('EXPLICIT_SESSION_ONLY' if args.operator_approved_broker_live else 'DISABLED'))
+    if not args.operator_approved_broker_live:
+        print('ORDER_TRANSMISSION=False')
 
 
 if __name__ == '__main__':

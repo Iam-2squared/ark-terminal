@@ -134,9 +134,11 @@ try{
  $paths=@($lines|Where-Object {([string]$_).StartsWith('NO11_RSS_TRAINING_CAPTURE_DIR=')})
  Need ($paths.Count -eq 1) 'CAPTURE_DIR_NOT_REPORTED'
  $dir=([string]$paths[0]).Substring('NO11_RSS_TRAINING_CAPTURE_DIR='.Length)
- Need ([IO.Path]::IsPathRooted($dir) -and
-       [IO.Path]::GetFullPath($dir).StartsWith([IO.Path]::GetFullPath($base)+'\',[StringComparison]::OrdinalIgnoreCase)
-       -and (Test-Path -LiteralPath $dir -PathType Container)) 'CAPTURE_DIR_NOT_PRIVATE'
+ $fullDir=[IO.Path]::GetFullPath($dir)
+ $fullBase=[IO.Path]::GetFullPath($base).TrimEnd([char]'\\')
+ $isPrivate=$fullDir.StartsWith(($fullBase+'\\'),[StringComparison]::OrdinalIgnoreCase)
+ Need ([IO.Path]::IsPathRooted($dir) -and $isPrivate -and
+       (Test-Path -LiteralPath $dir -PathType Container)) 'CAPTURE_DIR_NOT_PRIVATE'
  $file=Join-Path $dir 'progress-00005.json'
  $progress=Json $file
  Need ($progress.schemaId -ceq 'ARK_NO11_RSS_TRAINING_CAPTURE_PROGRESS_V1' -and

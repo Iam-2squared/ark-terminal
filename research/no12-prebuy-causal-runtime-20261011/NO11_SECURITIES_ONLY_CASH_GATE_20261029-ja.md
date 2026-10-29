@@ -8,6 +8,13 @@ MarketSpeed II「総合サマリー → 余力・維持率 → 国内株式」�
 
 楽天公式：https://marketspeed.jp/ms2/onlinehelp/ohm_004/ohm_004_01.html
 
+## Windows導入先の区別（2026-10-29修正）
+
+- `%LOCALAPPDATA%\\ArkTerminal\\No12\\physical-account-overlay\\source` は、元々10ファイルだけの**口座観測専用の隔離環境**であり、`tools/no11_broker_execution_service.py` は置かれない。これを「ソース破損」と判定した旧導入スクリプトは誤り。旧版が `LOCAL_SOURCE_CHANGED_NO_OVERWRITE` で停止しても、原本や実口座RSS照合の合格は失われない。
+- 修正済み `windows/Stage-No11SecuritiesCashOnlyReadOnly.ps1` は、この隔離環境には**非送信の出典作成PowerShellのみ**を配置する。完全な注文エンジンを数ファイルだけ補充して「接続済み」に見せかけることはしない。
+- `C:\\ArkTerminal\\no12-launcher\\research\\no12-prebuy-causal-runtime-20261011` が、既存`no11_broker_execution_service.py` と必須モジュールを含む**完全なNo12ランタイム**で、既存のファイルハッシュが正確に一致するときだけ、`service.py` と `no11_securities_cash_only.py` の2ファイルを更新する。ソース欠落や独自改変があれば、隔離環境への導入だけ成功させ、フルエンジンは未導入・未認証と明示する。
+- インストーラーが返す `NO11_SECURITIES_CASH_STAGE=PASS_READONLY_EVIDENCE_HELPER` は**資金証拠の記録補助のみが準備できた**という意味。 `NO11_SECURITIES_CASH_STAGE_FULL_ENGINE=PINNED_FULL_ENGINE_READY_TO_STAGE` と `ENGINE_RESULT=PINNED_FULL_ENGINE_CASH_GUARD_STAGED` の両方が出て初めて、フルエンジンのガード更新が済んだと扱う。それでも当日の実口座現金・本番運用・注文送信は未認証。
+
 ## LIVE初期配分のコード契約（発注OFF）
 
 - LIVE設定の `ledger.allocatedCashJpy` は固定金額でなく、**`"AUTO_SECURITIES_ACCOUNT_CASH_ONLY"`** という厳密な指定だけを受け付ける。

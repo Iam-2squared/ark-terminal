@@ -56,7 +56,30 @@ function Test-PinnedExisting($file,$oldHash,$newHash){
   return ($oldHash -ceq '')
  }
  $hash=Blob $file
- return ($hash -ceq $newHash -or ($oldHash -cne '' -and $hash -ceq $oldHash))
+ if($hash -ceq $newHash -or ($oldHash -cne '' -and $hash -ceq $oldHash)){
+  return $true
+ }
+ # Windows Git autocrlf expands the *unchanged* service.py to CRLF. The
+ # observed raw blob df34... normalizes to the pinned old source 370b...
+ # via Git's own path-specific attributes. Permit ONLY this exact verified
+ # pair, on the exact tracked clean file. No generic hash-mismatch bypass.
+ $repo='C:\ArkTerminal\no12-launcher'
+ $rel='research/no12-prebuy-causal-runtime-20261011/tools/no11_broker_execution_service.py'
+ $expected=[IO.Path]::GetFullPath((Join-Path $repo ($rel.Replace('/','\'))))
+ if(-not $file.Equals($expected,[StringComparison]::OrdinalIgnoreCase) -or
+    $oldHash -cne '370b27c98a7ee776dfa8fb9b4c7f99a4c05cd090' -or
+    $hash -cne 'df34b0be715cc517f7fea2f3bca311cda64d1765'){
+  return $false
+ }
+ $tracked=@(& git -C $repo ls-files --stage -- $rel)
+ if($LASTEXITCODE -ne 0 -or $tracked.Count -ne 1){return $false}
+ $status=@(& git -C $repo status --porcelain -- $rel)
+ if($LASTEXITCODE -ne 0 -or $status.Count -ne 0){return $false}
+ $normalized=@(& git -C $repo hash-object --path=$rel $file)
+ if($LASTEXITCODE -ne 0 -or $normalized.Count -ne 1 -or
+    [string]$normalized[0] -cne $oldHash){return $false}
+ Write-Host 'NO11_SECURITIES_CASH_SERVICE_PIN=VERIFIED_CRLF_ONLY'
+ return $true
 }
 function Add-Candidate([System.Collections.ArrayList]$result,$engine,$pin,$scope){
  $target=Safe (Join-Path (Join-Path $engine $pin.Sub) $pin.Name)
@@ -143,7 +166,9 @@ try{
    Need ($errors.Count -eq 0) 'POWERSHELL_PARSE_FAILED'
   }else{
    [void](Get-Command py -ErrorAction Stop)
-   & py -3.12 -B -c 'import ast,sys;ast.parse(open(sys.argv[1],encoding="utf-8-sig").read())' $download
+   # -m py_compile avoids the Windows PowerShell native-argument quoting
+   # problem in inline Python -c strings. Writes bytecode only to staging.
+   & py -3.12 -B -m py_compile $download
    Need ($LASTEXITCODE -eq 0) 'PYTHON_PARSE_FAILED'
   }
   $backup=Join-Path $backups ($plan.scope+'-'+$pin.Name+'.bak')

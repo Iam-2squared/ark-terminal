@@ -140,7 +140,7 @@ class JPXMonthlyReferenceTests(unittest.TestCase):
         self.assertNotEqual(before,hashlib.sha256(self.audit.read_bytes()).hexdigest())
 
     def test_no_rss_excel_order_or_network_calls(self):
-        source=(TOOLS/"no11_jpx_monthly_equity_reference.py").read_text()
+        source=(TOOLS/"no11_jpx_monthly_equity_reference.py").read_text(encoding="utf-8")
         for forbidden in ("RssStockOrder(","Workbooks.Add","Invoke-WebRequest",
                           "urllib.request","requests.get","fetch(","subprocess.run"):
             self.assertNotIn(forbidden,source)

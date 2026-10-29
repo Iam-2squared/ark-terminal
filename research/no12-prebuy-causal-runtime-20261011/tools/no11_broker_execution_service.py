@@ -31,6 +31,17 @@ ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
 ERRORS = (OSError, ValueError, KeyError, TypeError, RuntimeError, subprocess.SubprocessError)
 
+# Defense in depth only: confirmed non-common instruments found in the
+# 2026-10-30 private Chart50 set. JPX identifies 1671/1690/1699 as oil ETFs,
+# 2014 as a US-dividend ETF, and 2038 as a 2x leveraged oil ETN.
+# https://www.jpx.co.jp/news/1070/20200424-01.html
+# https://www.jpx.co.jp/equities/products/etfs/issues/01.html
+# This deny set is NOT a complete stock-type allowlist. Every other BUY still
+# requires verified commonEquity/corporate-action/price-basis dated-master gates.
+CONFIRMED_NON_COMMON_EQUITY = frozenset({
+    '1671.T', '1690.T', '1699.T', '2014.T', '2038.T'
+})
+
 
 def need(ok, code):
     if not ok:
@@ -475,6 +486,11 @@ class BrokerExecution:
         commands, assigned = [], []
         for intent in intents:
             if intent['side'] == 'BUY':
+                # A cash-only order is not necessarily ordinary equity: an ETN
+                # may itself leverage its reference index. Block these confirmed
+                # ETF/ETN instruments before any command, permit or cash reserve.
+                need(intent.get('symbol') not in CONFIRMED_NON_COMMON_EQUITY,
+                     'CONFIRMED_NON_COMMON_EQUITY_BUY_BLOCKED')
                 need(not self.entry_halted and at[11:16] < '15:20' and self._buying_power_verified(at)
                      and not self.book.source_checkpoint('broker.unresolved')
                      and self.book.snapshot(at)['newBuysAllowed'], 'NEW_BUY_ADMISSION')

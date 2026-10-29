@@ -202,13 +202,35 @@ function New-No11UnavailableBrokerObservation([string]$Reason) {
  return [ordered]@{schemaId='ARK_NO11_BROKER_OBSERVATION_V1';status='UNAVAILABLE';reason=$Reason;readOnly=$true;
   actualFeedTimestampCertified=$false;buyingPowerFreshnessCertified=$false;productionReady=$false;orderTransmission=$false}
 }
+
+# A 50-row diagnostic may only declare the broker tables complete when Excel
+# proves that NOTHING at all (including error/formula/placeholder) appears
+# beyond the first 50 plus its overflow sentinel through row 5003.
+# CountA is an in-Excel native range operation (no 250k-cell COM transfer).
+# Conservative: any nonempty tail blocks, even harmless vendor padding.
+function Assert-No11BrokerTailEmpty($Sheet,[int]$MaximumRows){
+ Assert-No11Broker ($MaximumRows -ge 1 -and $MaximumRows -le 5000) 'TAIL_MAX_ROWS'
+ if($MaximumRows -eq 5000){return}
+ $tailFirst=$MaximumRows+4
+ foreach($d in (Get-No11BrokerTableDefinitions)){
+  $address=$d.first+$tailFirst+':'+$d.last+'5003'
+  # No calculation, write or RSS formula reevaluation is requested.
+  $range=$Sheet.Range($address)
+  $count=$Sheet.Application.WorksheetFunction.CountA($range)
+  Assert-No11Broker ($count -is [ValueType] -and [double]$count -eq 0) 'TAIL_NOT_CERTIFIABLY_EMPTY'
+ }
+}
+
 function Read-No11BrokerSnapshot($AccountSheet,$OrderIdSheet,[scriptblock]$CaptureAccount,$ExcelSession,[scriptblock]$VerifySession,[int]$MaximumRows=5000) {
  $first=$null;$started=Get-Date
  try{
+  Assert-No11BrokerTailEmpty $OrderIdSheet $MaximumRows
   $tablesA=Read-No11BrokerTables $OrderIdSheet $MaximumRows
   $first=& $CaptureAccount $AccountSheet
   $second=& $CaptureAccount $AccountSheet
+  Assert-No11BrokerTailEmpty $OrderIdSheet $MaximumRows
   $tablesB=Read-No11BrokerTables $OrderIdSheet $MaximumRows
+  Assert-No11BrokerTailEmpty $OrderIdSheet $MaximumRows
   $finalSession=& $VerifySession
   Assert-No11Broker ($finalSession.sessionKey -ceq $ExcelSession.sessionKey) 'EXCEL_SESSION_CHANGED_DURING_CAPTURE'
   Assert-No11Broker ((ConvertTo-Json -InputObject $tablesA -Depth 20 -Compress) -ceq (ConvertTo-Json -InputObject $tablesB -Depth 20 -Compress)) 'BROKER_TABLE_CHANGED_DURING_CAPTURE'
@@ -232,6 +254,29 @@ function Read-No11BrokerSnapshot($AccountSheet,$OrderIdSheet,[scriptblock]$Captu
  return @{snapshot=$first.snapshot;health=$first.health;brokerObservation=$observation}
 }
 function Test-No11BrokerSnapshotOffline {
+ # Static sandbox-only test: the tail guard must refuse the complete table
+ # when the probe detects any material, and accept a genuine blank tail.
+ $calls=New-Object 'System.Collections.Generic.List[string]'
+ $work=[pscustomobject]@{Ranges=@{};ExpectedCount=0;Calls=$calls}
+ $wf=[pscustomobject]@{Context=$work}
+ $wf | Add-Member -MemberType ScriptMethod -Name CountA -Value {param($arg)
+  $this.Context.Calls.Add([string]$arg)
+  return [int]$this.Context.ExpectedCount
+ }
+ $app=[pscustomobject]@{WorksheetFunction=$wf}
+ $work | Add-Member -MemberType NoteProperty -Name Application -Value $app
+ $work | Add-Member -MemberType ScriptMethod -Name Range -Value {param($addr)
+  return [string]$addr
+ }
+ Assert-No11BrokerTailEmpty $work 50
+ Check ($calls.Count -eq 3 -and $calls[0] -ceq 'A54:F5003' -and
+   $calls[1] -ceq 'H54:AK5003' -and
+   $calls[2] -ceq 'AM54:BA5003') 'TAIL_COUNTED_ALL_THREE_TABLES'
+ $work.ExpectedCount=1
+ Fails {Assert-No11BrokerTailEmpty $work 50} 'TAIL_NOT_CERTIFIABLY_EMPTY'
+ $work.ExpectedCount=0
+ Assert-No11BrokerTailEmpty $work 5000
+
  function Check([bool]$Ok,[string]$Name){Assert-No11Broker $Ok ('SELFTEST_'+$Name)}
  function Fails([scriptblock]$Body,[string]$Code){$failed=$false;try{& $Body | Out-Null}catch{if($_.Exception.Message -eq ('NO11_BROKER_'+$Code)){$failed=$true}else{throw}};Check $failed $Code}
  function Matrix([string]$Kind,[int]$Limit=2){

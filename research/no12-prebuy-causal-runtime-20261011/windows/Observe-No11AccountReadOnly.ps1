@@ -13,6 +13,19 @@ Set-StrictMode -Version Latest
 $repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..'))
 $original=Join-Path $repo 'integration\no1-1-msii\windows\Ark-No11-CaptureReadOnly-v3-CANDIDATE.ps1'
 function Need([bool]$ok,[string]$code){if(-not $ok){throw ('NO11_ACCOUNT_CAPTURE_'+$code)}}
+# Only original parser error CODES are exposed, never exception prose,
+# workbook paths, symbols, account amounts or order numbers.
+function Sanitized-No11AccountReason($failure){
+ $message=[string]$failure.Exception.Message
+ if($message.Length -le 96 -and
+    $message -cmatch '^(?:NO11_[A-Z0-9_]+|(?:RSS|POSITION|ORDER|EXECUTION|BUYING_POWER|INVALID_POSITIVE_QUANTITY|CAPTURE|NO_VERIFIED|EXCEL|ACCOUNT)_[A-Z0-9_]+)(?::[A-Z0-9_]+)?$'){
+  return ('NO11_ACCOUNT_CAPTURE_'+$message.Replace(':','_'))
+ }
+ $category=[string]$failure.Exception.GetType().Name
+ if($category -notmatch '^[A-Za-z0-9_]{1,48}$'){$category='UNCLASSIFIED'}
+ return ('NO11_ACCOUNT_CAPTURE_UNEXPECTED_'+$category.ToUpperInvariant())
+}
+
 function PatchOnce([string]$body,[string]$old,[string]$new){
  Need (([regex]::Matches($body,[regex]::Escape($old))).Count -eq 1) 'PINNED_CONTEXT_CHANGED'
  return $body.Replace($old,$new)
@@ -153,6 +166,11 @@ function CaptureAccount([string]$target,[scriptblock]$capture){
 }
 $capture=LoadPinnedCapture
 if($OfflineSelfTest){
+ $fakeA=[pscustomobject]@{Exception=[Exception]::new('RSS_INITIAL_STATUS_INVALID:L1')}
+ Need ((Sanitized-No11AccountReason $fakeA) -ceq 'NO11_ACCOUNT_CAPTURE_RSS_INITIAL_STATUS_INVALID_L1') 'REASON_KNOWN'
+ $fakeB=[pscustomobject]@{Exception=[Exception]::new('private-account=123456; password=secret')}
+ Need ((Sanitized-No11AccountReason $fakeB) -ceq 'NO11_ACCOUNT_CAPTURE_UNEXPECTED_EXCEPTION') 'REASON_REDACTED'
+ Write-Host 'NO11_ACCOUNT_CAPTURE_SAFE_REASON_SELFTEST=PASS'
  $text=$capture.ToString()
  Need ($text.Contains('Read-BulkRange') -and $text.Contains('account=(Trim-Value (Bulk-Value $ordersBlock $idx 4))')) 'OFFLINE_CAPTURE_SHAPE'
  Need (-not $text.Contains('NO_VERIFIED_BROKER_POSITIONS')) 'EMPTY_ACCOUNT_NOT_SUPPORTED'
@@ -209,7 +227,9 @@ try{
    $observed=CaptureAccount $target $capture
    $value.status='OBSERVED';$value.snapshot=$observed.snapshot;$value.health=$observed.health
    $value.brokerObservation=$observed.brokerObservation
-  }catch{$value.reason='ACCOUNT_CAPTURE_UNAVAILABLE'}
+  }catch{
+   $value.reason=Sanitized-No11AccountReason $_
+  }
   Publish $out $value
   if($i -lt $Samples){
    $until=[datetime]::UtcNow.AddSeconds($PollSeconds)

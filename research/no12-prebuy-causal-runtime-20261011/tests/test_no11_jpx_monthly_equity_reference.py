@@ -5,6 +5,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from xml.sax.saxutils import escape
 from zipfile import ZipFile, ZIP_DEFLATED
 
@@ -68,6 +69,11 @@ class JPXMonthlyReferenceTests(unittest.TestCase):
         self.unresolved=[f"{9000+i}.T" for i in range(73)]
         self.provisional=self.unresolved[:47]
         write_audit(self.audit,self.excluded,self.unresolved,self.provisional)
+        receipt_sha=hashlib.sha256(self.audit.read_bytes()).hexdigest()
+        pinned=self.folder/("equity-type-provisional-"+receipt_sha[:16]+".json")
+        self.audit.rename(pinned)
+        self.audit=pinned
+        self.test_audit_prefix=receipt_sha[:16]
         present=list(self.excluded)+self.unresolved[0:1]+self.unresolved[2:]
         filler=[f"{5000+i}" for i in range(3100)]
         items=[(code[:-2],"ETF・ETN" if code in self.excluded or code==self.unresolved[0]
@@ -78,8 +84,12 @@ class JPXMonthlyReferenceTests(unittest.TestCase):
     def tearDown(self):
         self.temp.cleanup()
 
+    def verify_fixture(self, workbook=None):
+        with patch.object(jpx,"EXPECTED_AUDIT_PREFIX",self.test_audit_prefix):
+            return jpx.verify(self.audit,workbook or self.workbook,self.folder)
+
     def test_only_historical_category_reference_no_live_certification(self):
-        result,receipt=jpx.verify(self.audit,self.workbook,self.folder)
+        result,receipt=self.verify_fixture()
         self.assertEqual(result["g1ExaminedCount"],78)
         self.assertEqual(result["jpxMonthEndDate"],"2026-09-30")
         self.assertEqual(result["categories"],{
@@ -96,7 +106,7 @@ class JPXMonthlyReferenceTests(unittest.TestCase):
         self.assertEqual(sum(r["inProvisionalChart"] for r in result["rows"]),47)
         self.assertEqual(receipt.read_bytes(),
                          (json.dumps(result,ensure_ascii=False,separators=(",",":"))+"\n").encode())
-        second,other=jpx.verify(self.audit,self.workbook,self.folder)
+        second,other=self.verify_fixture()
         self.assertEqual(result,second)
         self.assertEqual(receipt,other)
 
@@ -111,14 +121,14 @@ class JPXMonthlyReferenceTests(unittest.TestCase):
                     data=data.replace(b"20260930",b"20260831")
                 out.writestr(item.filename,data)
         with self.assertRaisesRegex(ValueError,"MONTH_END_DATE_NOT_20260930"):
-            jpx.verify(self.audit,new,self.folder)
+            self.verify_fixture(new)
         bad=self.folder/"macro.xlsx"
         with ZipFile(self.workbook) as z, ZipFile(bad,"w") as out:
             for item in z.infolist():
                 out.writestr(item.filename,z.read(item.filename))
             out.writestr("xl/vbaProject.bin",b"test")
         with self.assertRaisesRegex(ValueError,"XLSX_EXTERNAL_OR_MACRO"):
-            jpx.verify(self.audit,bad,self.folder)
+            self.verify_fixture(bad)
 
     def test_audit_admission_fail_closed_and_original_source_unchanged(self):
         before=hashlib.sha256(self.audit.read_bytes()).hexdigest()
@@ -126,7 +136,7 @@ class JPXMonthlyReferenceTests(unittest.TestCase):
         obj["actualCommonEquityIndependentlyReviewed"]=True
         self.audit.write_text(json.dumps(obj)+"\n")
         with self.assertRaisesRegex(ValueError,"G1_AUDIT_CONTRACT"):
-            jpx.verify(self.audit,self.workbook,self.folder)
+            self.verify_fixture()
         self.assertNotEqual(before,hashlib.sha256(self.audit.read_bytes()).hexdigest())
 
     def test_no_rss_excel_order_or_network_calls(self):

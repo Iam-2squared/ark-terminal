@@ -6,6 +6,7 @@ import copy
 import hashlib
 from pathlib import Path
 import sys
+import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools'))
@@ -108,7 +109,7 @@ class SecuritiesOnlyFundingTests(unittest.TestCase):
         v['ledger']['allocatedCashJpy'] = cash.AUTO
         with self.assertRaisesRegex(ValueError, 'LIVE_SECURITIES_CASH_ONLY'):
             service.validate_config(v, DAY)
-        v['securitiesCashEvidenceFile'] = r'C:\Private\Rakuten\cash-evidence.json'
+        v['securitiesCashEvidenceFile'] = str(Path(tempfile.gettempdir()) / 'cash-evidence.json')
         self.assertEqual(service.validate_config(v, DAY)['ledger']['allocatedCashJpy'], cash.AUTO)
         with self.assertRaisesRegex(ValueError, 'READONLY_LAUNCHER'):
             service.validate_config(v, DAY, read_only=True)

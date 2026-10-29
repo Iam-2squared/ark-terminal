@@ -97,7 +97,10 @@ export function makeNo11G1Chart50Plan({
   mask,priorityRows,sessionDate,
   heldSymbols=[],activeWatchSymbols=[],pendingOrderSymbols=[],
   otherChartFunctions=0,emptySafetySlots=3,
-  otherQuoteCapacity=0,otherQuoteSymbols=[]
+  otherQuoteCapacity=0,otherQuoteSymbols=[],
+  // Optional VERIFIED, session-scoped ordinary-equity source whitelist for
+  // first LIVE admissions. Never a replacement for actual datedMaster proof.
+  reviewedEntrySymbols=null,reviewedEvidenceSha256=null
 }={}){
   check(mask?.schemaId===OBSERVED_PASS_GATE_ID&&
     mask.shadowOnly===true&&mask.productionReady===false&&
@@ -108,6 +111,20 @@ export function makeNo11G1Chart50Plan({
   check(mask.asOfSession===previousJpxCashTradingDays(sessionDate,1)[0],
     'LATEST_PREVIOUS_DAY_MASK_REQUIRED');
   const pass=distinctSymbols(mask.observedPassSymbols,'G1_PASS');
+  const scoped=reviewedEntrySymbols!==null || reviewedEvidenceSha256!==null;
+  if(scoped){
+    check(typeof reviewedEvidenceSha256==='string'&&/^[a-f0-9]{64}$/.test(reviewedEvidenceSha256),
+      'REVIEWED_EQUITY_EVIDENCE_SHA_REQUIRED');
+    check(Array.isArray(reviewedEntrySymbols)&&reviewedEntrySymbols.length>=1,
+      'REVIEWED_EQUITY_SYMBOLS_REQUIRED');
+    distinctSymbols(reviewedEntrySymbols,'REVIEWED_EQUITY');
+    const passSet=new Set(pass);
+    check(reviewedEntrySymbols.every(x=>passSet.has(x)),'REVIEWED_EQUITY_NOT_G1_PASS');
+    // Prevent the known 2026-10-30 ETF/ETN leak independently of the broker
+    // Python + JS transport BUY-deny checks. This is not an exhaustive banlist.
+    const banned=new Set(['1671.T','1690.T','1699.T','2014.T','2038.T']);
+    check(!reviewedEntrySymbols.some(x=>banned.has(x)),'REVIEWED_NON_EQUITY');
+  }
   check(mask.observedPassCount===pass.length&&pass.length>=1&&pass.length<=500,
     'G1_PASS_CAP_INVALID');
   const ranks=priorityRows;
@@ -144,13 +161,17 @@ export function makeNo11G1Chart50Plan({
   const reserved=Math.min(emptySafetySlots,afterProtected);
   const scanBudget=afterProtected-reserved;
   const pinnedSet=new Set(pinned);
+  const reviewed=new Set(scoped?reviewedEntrySymbols:pass);
   const eligible=ranks
-    .filter(p=>!pinnedSet.has(p.symbol))
+    .filter(p=>!pinnedSet.has(p.symbol)&&reviewed.has(p.symbol))
     .sort((a,b)=>b.minMarginPct-a.minMarginPct||
       b.meanMarginPct-a.meanMarginPct||a.symbol.localeCompare(b.symbol));
   const scan=eligible.slice(0,scanBudget).map(p=>p.symbol);
   const charts=[...pinned,...scan];
-  const selectorInput=charts.filter(s=>all.has(s)); // EXIT-only symbols not ranked
+  // Protected holdings/watch remain chart-observed for original EXIT. In the
+  // narrow first-BUY profile, an unreviewed protected symbol is NOT admitted
+  // to the Selector, even if it remains watched for exit continuity.
+  const selectorInput=charts.filter(s=>all.has(s)&&reviewed.has(s));
   check(new Set(charts).size===charts.length &&
     charts.length+otherChartFunctions<=50,
     'CHART_FUNCTION_BUDGET_BREACH');
@@ -159,6 +180,12 @@ export function makeNo11G1Chart50Plan({
     sessionDate,asOfSession:mask.asOfSession,sourcePlanId:mask.planId,
     selectionMethod:'G1_COMPLETE_DAILY_STRENGTH_MIN8_THEN_MEAN8_NO_TRAINING',
     observedG1PassCount:pass.length,
+    ...(scoped?{
+      entryUniverseMode:'EXPLICIT_REVIEWED_EQUITY_ONLY_NOT_AUTOMATICALLY_CERTIFIED',
+      reviewedEntrySymbols:[...reviewedEntrySymbols],
+      reviewedEntryEvidenceSha256:reviewedEvidenceSha256,
+      unreviewedG1SymbolsExcludedFromEntry:pass.filter(x=>!reviewed.has(x)).length
+    }:{}),
     heldSymbols:[...positions],activeWatchSymbols:[...watches],
     pendingOrderSymbols:[...pending],
     protectedChartSymbols:pinned,
@@ -202,6 +229,18 @@ export function validateNo11Chart50Plan({chartPlan,mask,sessionDate}={}){
   const charts=distinctSymbols(chartPlan.allRequestedChartSymbols,'CHART_FUNCTION');
   const pinned=distinctSymbols(chartPlan.protectedChartSymbols,'PINNED');
   const scan=distinctSymbols(chartPlan.scanChartSymbols,'SCAN');
+  const scoped=chartPlan.entryUniverseMode!==undefined;
+  if(scoped){
+    const reviewed=distinctSymbols(chartPlan.reviewedEntrySymbols,'REVIEWED_EQUITY');
+    const denied=new Set(['1671.T','1690.T','1699.T','2014.T','2038.T']);
+    check(chartPlan.entryUniverseMode==='EXPLICIT_REVIEWED_EQUITY_ONLY_NOT_AUTOMATICALLY_CERTIFIED'&&
+      typeof chartPlan.reviewedEntryEvidenceSha256==='string'&&
+      /^[a-f0-9]{64}$/.test(chartPlan.reviewedEntryEvidenceSha256)&&
+      reviewed.length>=1&&reviewed.every(s=>pass.has(s)&&!denied.has(s))&&
+      chartPlan.unreviewedG1SymbolsExcludedFromEntry===pass.size-reviewed.length&&
+      selected.every(s=>reviewed.includes(s))&&
+      scan.every(s=>reviewed.includes(s)),'REVIEWED_EQUITY_SCOPE_OR_EVIDENCE_INVALID');
+  }
   check(selected.length>0&&selected.every(s=>pass.has(s))&&
     selected.every(s=>charts.includes(s))&&
     pinned.every(s=>charts.includes(s))&&

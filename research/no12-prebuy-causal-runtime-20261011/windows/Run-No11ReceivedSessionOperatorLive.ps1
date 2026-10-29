@@ -102,8 +102,8 @@ try{
   Private (Join-Path $root 'frozen-p1-replay\runtime-py312-sklearn180\Scripts\python.exe')
  }
  Need ((Get-Item -LiteralPath $python).Name -ieq 'python.exe') 'PINNED_PYTHON_BINARY'
- Need (Test-Path -LiteralPath $controller -PathType Leaf -and
-       Test-Path -LiteralPath $observer -PathType Leaf) 'LIVE_RUNTIME_NOT_INSTALLED'
+ Need ((Test-Path -LiteralPath $controller -PathType Leaf) -and
+       (Test-Path -LiteralPath $observer -PathType Leaf)) 'LIVE_RUNTIME_NOT_INSTALLED'
  $source=Get-Content -LiteralPath $controller -Raw -Encoding UTF8
  Need ($source.Contains('--operator-approved-broker-live') -and
        $source.Contains('allow_explicit_live=allow_explicit_live')) 'LIVE_CONTROLLER_NOT_STAGED'

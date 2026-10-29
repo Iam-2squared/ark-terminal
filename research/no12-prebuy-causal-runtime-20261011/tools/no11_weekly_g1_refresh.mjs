@@ -119,19 +119,32 @@ export function yahooFridayConfirmationWindow(now){
     lastCompletedSession(now)===date,'YAHOO_FRIDAY_RSS_CONFIRM_AFTER_1900_ONLY');
   return {date,now,yahooFridayRssConfirmation:true};
 }
-function currentAsOf(catchUpAsOf='',confirmYahooFriday=false){
-  need(!(catchUpAsOf&&confirmYahooFriday),'CATCHUP_AND_FRIDAY_MODES_CONFLICT');
+function currentAsOf(catchUpAsOf='',confirmYahooFriday=false,firstFridayLimited=false){
+  need([!!catchUpAsOf,!!confirmYahooFriday,!!firstFridayLimited].filter(Boolean).length<=1,
+    'SESSION_MODES_CONFLICT');
+  if(firstFridayLimited){
+    const now=jstNow(),date=now.slice(0,10),clock=now.slice(11,16);
+    need(date==='2026-10-30'&&clock>='18:00'&&
+      isJpxCashTradingDay(date)&&isoFriday(date),
+      'FIRST_BUY_FRIDAY_RESTRICTED_AFTER_CLOSE_ONLY');
+    return {date,now,fridayRestrictedFirstBuy:true};
+  }
   if(confirmYahooFriday)return yahooFridayConfirmationWindow(jstNow());
   const {date,now,daytimeHistoricalRecovery=false}=catchUpAsOf?
     daytimeCatchUpWindow(jstNow(),catchUpAsOf):nightlyWindow(jstNow());
   need(!isoFriday(date),'FRIDAY_FULL_MARKET_SWEEP_REQUIRED');
   return {date,now,daytimeHistoricalRecovery};
 }
-function assembleDailyPlan(source,date,now,daytimeHistoricalRecovery=false,yahooFridayRssConfirmation=false){
+function assembleDailyPlan(source,date,now,daytimeHistoricalRecovery=false,yahooFridayRssConfirmation=false,fridayRestrictedFirstBuy=false){
   const sameFriday=yahooFridayRssConfirmation&&source.plan.sourceProvider===YAHOO_SOURCE&&
     isoFriday(date)&&date===source.plan.asOfSession;
   need(!yahooFridayRssConfirmation||sameFriday,
     'FRIDAY_CONFIRM_REQUIRES_MATCHING_YAHOO_SEED');
+  if(fridayRestrictedFirstBuy){
+    need(date==='2026-10-30'&&source.plan.asOfSession==='2026-10-26'&&
+      source.plan.sourceProvider!==YAHOO_SOURCE&&source.plan.symbols.length===4328,
+      'FIRST_BUY_FRIDAY_REQUIRES_ORIGINAL_RSS_4328_SEED');
+  }
   const gap=sameFriday?0:tradingGap(source.plan.asOfSession,date);
   need(sameFriday||(gap>=1&&gap<=4),'WEEKLY_POOL_EXPIRED_FULL_SWEEP_REQUIRED');
   const symbols=[...source.mask.observedPassSymbols];
@@ -153,6 +166,12 @@ function assembleDailyPlan(source,date,now,daytimeHistoricalRecovery=false,yahoo
       elapsedCashSessions:gap},
     newWeeklyBreakoutsIncluded:false,
     unknownNotAdmitted:true,
+    ...(fridayRestrictedFirstBuy?{
+      initialLiveCandidateScope:'FRIDAY_RSS_429_LOCKED_POOL_ONLY_NOT_FULL_MARKET',
+      fullFridayMarketSweepPerformed:false,
+      newFridayBreakoutsOutsidePoolMissing:true,
+      firstLiveBuyEligibilityStillNeedsIndependentReview:true
+    }:{}),
     priceBasisCertified:false,
     productionReady:false,orderTransmission:false
   };
@@ -175,16 +194,16 @@ function assembleDailyPlan(source,date,now,daytimeHistoricalRecovery=false,yahoo
   }
   return {planId:SHA(JSON.stringify(body)),...body};
 }
-function stagePlan(weeklyRun,root,catchUpAsOf='',confirmYahooFriday=false){
+function stagePlan(weeklyRun,root,catchUpAsOf='',confirmYahooFriday=false,firstFridayLimited=false){
   const source=verifyWeeklySource(weeklyRun);
-  const {date,now,daytimeHistoricalRecovery=false,yahooFridayRssConfirmation=false}=
-    currentAsOf(catchUpAsOf,confirmYahooFriday);
+  const {date,now,daytimeHistoricalRecovery=false,yahooFridayRssConfirmation=false,fridayRestrictedFirstBuy=false}=
+    currentAsOf(catchUpAsOf,confirmYahooFriday,firstFridayLimited);
   const base=directory(root,true);
   const fragment=source.plan.planId.slice(0,16);
   const run=directory(path.join(base,'weekly-refresh-'+date+'-'+fragment),true);
   directory(path.join(run,'sources'),true);
   const planFile=path.join(run,'plan.json');
-  if(!fs.existsSync(planFile))immutable(planFile,assembleDailyPlan(source,date,now,daytimeHistoricalRecovery,yahooFridayRssConfirmation));
+  if(!fs.existsSync(planFile))immutable(planFile,assembleDailyPlan(source,date,now,daytimeHistoricalRecovery,yahooFridayRssConfirmation,fridayRestrictedFirstBuy));
   const plan=regular(planFile);
   validateRefreshPlan(plan,source,date);
   const captures=loadCaptures(run,plan);
@@ -212,6 +231,16 @@ function validateRefreshPlan(plan,source,date){
     plan.newWeeklyBreakoutsIncluded===false&&plan.unknownNotAdmitted===true&&
     plan.productionReady===false&&plan.orderTransmission===false,
     'REFRESH_PLAN_LINEAGE_OR_CONTENT_INVALID');
+  if(plan.initialLiveCandidateScope!==undefined){
+    need(plan.initialLiveCandidateScope==='FRIDAY_RSS_429_LOCKED_POOL_ONLY_NOT_FULL_MARKET'&&
+      plan.asOfSession==='2026-10-30'&&plan.weeklySource.asOfSession==='2026-10-26'&&
+      plan.weeklySource.originalFullUniverseCount===4328&&
+      plan.fullFridayMarketSweepPerformed===false&&
+      plan.newFridayBreakoutsOutsidePoolMissing===true&&
+      plan.firstLiveBuyEligibilityStillNeedsIndependentReview===true&&
+      source.plan.sourceProvider!==YAHOO_SOURCE,
+      'FIRST_BUY_FRIDAY_RESTRICTED_LINEAGE');
+  }
   if(plan.yahooFridayRssConfirmation===true){
     need(source.plan.sourceProvider===YAHOO_SOURCE&&
       plan.weeklySource.sourceWasYahooButDailyCandlesAreRss===true&&
@@ -251,7 +280,8 @@ export function runCli(args){
   }
   need(['plan','report'].includes(action)&&args.length%2===1,'USAGE');
   for(let i=1;i<args.length;i+=2){
-    need(['--weekly-run','--root','--run','--pins-file','--catch-up-asof','--yahoo-friday-rss-confirm'].includes(args[i])&&!flags[args[i]],'USAGE');
+    need(['--weekly-run','--root','--run','--pins-file','--catch-up-asof',
+      '--yahoo-friday-rss-confirm','--first-buy-friday-limited'].includes(args[i])&&!flags[args[i]],'USAGE');
     flags[args[i]]=args[i+1];
   }
   need(flags['--weekly-run'],'WEEKLY_RUN_REQUIRED');
@@ -259,8 +289,11 @@ export function runCli(args){
     need(flags['--root']&&!flags['--run']&&!flags['--pins-file'],'USAGE');
     need(!flags['--yahoo-friday-rss-confirm']||flags['--yahoo-friday-rss-confirm']==='true',
       'YAHOO_FRIDAY_CONFIRM_FLAG_INVALID');
+    need(!flags['--first-buy-friday-limited']||flags['--first-buy-friday-limited']==='true',
+      'FIRST_BUY_FRIDAY_FLAG_INVALID');
     const staged=stagePlan(flags['--weekly-run'],flags['--root'],
-      flags['--catch-up-asof']??'',flags['--yahoo-friday-rss-confirm']==='true');
+      flags['--catch-up-asof']??'',flags['--yahoo-friday-rss-confirm']==='true',
+      flags['--first-buy-friday-limited']==='true');
     console.log(JSON.stringify({run:staged.run,plan:staged.plan,
       resumed:staged.resumed,remaining:staged.remaining,
       weeklyRestrictedUniverse:true}));
@@ -269,7 +302,8 @@ export function runCli(args){
     const source=verifyWeeklySource(flags['--weekly-run']);
     const run=directory(flags['--run']);
     const plan=regular(path.join(run,'plan.json'));
-    const {date}=currentAsOf(flags['--catch-up-asof']??'',flags['--yahoo-friday-rss-confirm']==='true');
+    const {date}=currentAsOf(flags['--catch-up-asof']??'',flags['--yahoo-friday-rss-confirm']==='true',
+      flags['--first-buy-friday-limited']==='true');
     validateRefreshPlan(plan,source,date);
     const captures=loadCaptures(run,plan);
     const {summary}=summarizeDailyCaptures(plan,captures);
@@ -318,6 +352,13 @@ export function runCli(args){
         requested.every(k=>Object.hasOwn(pins,k)),'PINS_CONTRACT_INVALID');
       slots=Object.fromEntries(requested.map(k=>[k,pins[k]]));
     }
+    if(flags['--first-buy-friday-limited']==='true'){
+      need(plan.initialLiveCandidateScope==='FRIDAY_RSS_429_LOCKED_POOL_ONLY_NOT_FULL_MARKET',
+        'FIRST_BUY_FRIDAY_PLAN_REQUIRED');
+      mask.initialLiveCandidateScope=plan.initialLiveCandidateScope;
+      mask.fullFridayMarketSweepPerformed=false;
+      mask.firstLiveBuyEligibilityStillNeedsIndependentReview=true;
+    }
     const sessionDate=nextCashDate(date);
     const chartPlan=makeNo11G1Chart50Plan({mask,priorityRows:priorities,
       sessionDate,...slots});
@@ -327,6 +368,11 @@ export function runCli(args){
       weeklyG1Policy:contract,weeklyFullAsOfSession:source.plan.asOfSession,
       weeklyOriginalProvider:source.plan.sourceProvider??'MSII_RSS_ORIGINAL_WEEKLY',
       currentRefreshAsOfSession:date,weeklyCandidateCount:plan.symbols.length,
+      ...(plan.initialLiveCandidateScope?{
+        initialLiveCandidateScope:plan.initialLiveCandidateScope,
+        fullFridayMarketSweepPerformed:false,
+        firstLiveBuyEligibilityStillNeedsIndependentReview:true
+      }:{}),
       accountPositionsBrokerVerified:false,
       actualChartFunctionOccupancyVerified:false,
       selectedRankingEconomicEquivalenceVerified:false,
@@ -349,6 +395,10 @@ export function runCli(args){
     console.log('NO11_WEEKLY_REFRESH_MASK='+maskFile);
     console.log('NO11_WEEKLY_REFRESH_CHART50='+receiptFile);
     console.log('NO11_WEEKLY_REFRESH_SCOPE=WEEKLY_POOL_ONLY_EXCLUDES_NEW_BREAKOUTS');
+    if(plan.initialLiveCandidateScope){
+      console.log('NO11_WEEKLY_REFRESH_FRIDAY_FIRST_BUY_SCOPE=LIMITED_POOL_NOT_FULL_MARKET');
+      console.log('NO11_WEEKLY_REFRESH_FRIDAY_FIRST_BUY_REQUIRES_REVIEW=True');
+    }
     console.log('NO11_WEEKLY_REFRESH=COMPLETE_SHADOW_CAPACITY_ONLY');
     console.log('ORDER_TRANSMISSION=False');
   }

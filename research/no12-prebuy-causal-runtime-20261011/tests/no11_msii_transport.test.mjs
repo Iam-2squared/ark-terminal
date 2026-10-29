@@ -74,6 +74,19 @@ test('compile supports BUY, SELL and CANCEL without inventing live evidence',()=
   assert.equal(compileTransportCommand(input).evidenceMode,'SYNTHETIC_OFFLINE_ONLY');
  }
 });
+test('confirmed ETF/ETN ordinary-stock exclusions block BUY even with valid one-shot order hashes',()=>{
+ for(const symbol of ['1671.T','1690.T','1699.T','2014.T','2038.T']){
+  const f=fixture('ORDER','BUY');
+  const adapted={...f.command,symbol,arguments:f.command.arguments.map((x,i)=>i===2?symbol:x)};
+  assert.throws(()=>validateTransportCommand(seal(adapted,'commandSha256')),/CONFIRMED_NON_COMMON_EQUITY_BUY_BLOCKED/);
+  assert.throws(()=>compileTransportCommand({...f.command,symbol}),/CONFIRMED_NON_COMMON_EQUITY_BUY_BLOCKED/);
+ }
+ // Existing sell paths are not disabled by the BUY eligibility restriction:
+ // liquidation still requires all normal Ark ownership and exit safety gates.
+ const f=fixture('ORDER','SELL');
+ const sell={...f.command,symbol:'2038.T',arguments:f.command.arguments.map((x,i)=>i===2?'2038.T':x)};
+ assert.equal(validateTransportCommand(seal(sell,'commandSha256')).symbol,'2038.T');
+});
 test('the default DISABLED mode does not request or instantiate a physical sink',async()=>{
  const f=fixture();delete f.config;delete f.permit;
  const r=await dispatchPreparedCommand(f,{now:()=>now});assert.equal(r.status,'NOT_SENT');assert.equal(r.reason,'DISABLED');assert.equal(r.orderTransmission,false);

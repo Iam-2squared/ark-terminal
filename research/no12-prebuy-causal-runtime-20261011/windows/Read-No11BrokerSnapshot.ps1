@@ -326,6 +326,15 @@ function Test-No11BrokerSnapshotOffline {
   if(-not $this.Ranges.ContainsKey($Address)){throw 'NO11_BROKER_SELFTEST_UNEXPECTED_RANGE'}
   return $this.Ranges[$Address]
  }
+ # The synthetic read mock sees exactly two entries plus a sentinel;
+ # provide an Excel-native CountA stub with an entirely blank tail.
+ $tailMethod=[pscustomobject]@{}
+ $tailMethod | Add-Member -MemberType ScriptMethod -Name CountA -Value {param($range) return [int]0}
+ $mock | Add-Member -MemberType NoteProperty -Name Application -Value ([pscustomobject]@{WorksheetFunction=$tailMethod})
+ foreach($d in (Get-No11BrokerTableDefinitions)){
+  $tail=$d.first+'6:'+$d.last+'5003'
+  $mock.Ranges[$tail]=[pscustomobject]@{Value2=$null}
+ }
  $account=[pscustomobject]@{orders=@([pscustomobject]@{orderNumber='123';status='約定';symbol='7203';account='特定';side='買付';trade='現物';executionCondition='本日中';quantity=100.0;filledQty=100.0});
   executions=@([pscustomobject]@{executionDate='2026/10/26 09:30:04';symbol='7203';account='特定';side='買付';trade='現物';market='東証';quantity=100.0;price=1000.1});
   positions=@([pscustomobject]@{symbol='7203';account='特定';quantity=100.0});buyingPower=100000.0}

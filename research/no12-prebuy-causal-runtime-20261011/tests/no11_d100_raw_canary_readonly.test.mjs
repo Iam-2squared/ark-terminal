@@ -11,7 +11,7 @@ test('five canaries only, preserving full original daily source and original wor
   'MALFORMED_SOURCE_ROWS=403|UNAVAILABLE=26',
   'SOURCE_SHA',
   'PLAN_NOT_OCT28_429',
-  'EXISTING_RECEIPTS',
+  'NO11_RAW_CANARY_SAVED_RECEIPTS',
   'TWO_ORIGINAL_WORKBOOKS_REQUIRED',
   'EXCEL7_NOT_UNIQUE',
   'FORMULA_SCAN_LIMIT',

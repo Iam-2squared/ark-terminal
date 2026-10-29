@@ -101,8 +101,8 @@ def validate_readonly_broker_config(path, session, *, allow_explicit_live=False)
     need(obj.get('evidenceMode') == 'BROKER_OBSERVATION',
          'BROKER_CONFIG_OBSERVATION_REQUIRED')
     transport = obj.get('transport')
-    need(type(transport) is dict, 'BROKER_TRANSPORT_REQUIRED')
     if allow_explicit_live:
+        need(type(transport) is dict, 'BROKER_TRANSPORT_REQUIRED')
         # This is NOT a new permission inferred from the ordinary read-only
         # bootstrapping config. The separate operator entry point must supply
         # an explicit same-session action; the existing broker service verifies
@@ -118,6 +118,7 @@ def validate_readonly_broker_config(path, session, *, allow_explicit_live=False)
              'EXPLICIT_LIVE_APPROVAL_AND_SECURITIES_EVIDENCE_REQUIRED')
     else:
         need(obj.get('orderTransmission') is False and
+             type(transport) is dict and
              transport.get('mode') in ('DISABLED', 'OBSERVE_ONLY'),
              'BROKER_CONFIG_NOT_READONLY')
     return checksum

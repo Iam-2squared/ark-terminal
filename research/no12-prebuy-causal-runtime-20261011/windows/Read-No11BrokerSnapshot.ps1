@@ -254,6 +254,8 @@ function Read-No11BrokerSnapshot($AccountSheet,$OrderIdSheet,[scriptblock]$Captu
  return @{snapshot=$first.snapshot;health=$first.health;brokerObservation=$observation}
 }
 function Test-No11BrokerSnapshotOffline {
+ function Check([bool]$Ok,[string]$Name){Assert-No11Broker $Ok ('SELFTEST_'+$Name)}
+ function Fails([scriptblock]$Body,[string]$Code){$failed=$false;try{& $Body | Out-Null}catch{if($_.Exception.Message -eq ('NO11_BROKER_'+$Code)){$failed=$true}else{throw}};Check $failed $Code}
  # Static sandbox-only test: the tail guard must refuse the complete table
  # when the probe detects any material, and accept a genuine blank tail.
  $calls=New-Object 'System.Collections.Generic.List[string]'
@@ -277,8 +279,6 @@ function Test-No11BrokerSnapshotOffline {
  $work.ExpectedCount=0
  Assert-No11BrokerTailEmpty $work 5000
 
- function Check([bool]$Ok,[string]$Name){Assert-No11Broker $Ok ('SELFTEST_'+$Name)}
- function Fails([scriptblock]$Body,[string]$Code){$failed=$false;try{& $Body | Out-Null}catch{if($_.Exception.Message -eq ('NO11_BROKER_'+$Code)){$failed=$true}else{throw}};Check $failed $Code}
  function Matrix([string]$Kind,[int]$Limit=2){
   $h=Get-No11BrokerHeaders $Kind;$a=[array]::CreateInstance([object],[int[]]@(($Limit+2),$h.Count),[int[]]@(1,1))
   for($i=0;$i -lt $h.Count;$i++){$a.SetValue($h[$i],1,$i+1)};return ,$a

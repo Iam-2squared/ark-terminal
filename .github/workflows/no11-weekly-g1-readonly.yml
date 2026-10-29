@@ -9,6 +9,8 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/windows/Run-No11WeeklyCandidateRefreshReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/windows/Prepare-No11WeeklyAfterCloseReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_weekly_g1_refresh.test.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_d100_unknown_diagnostic.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tests/no11_d100_unknown_diagnostic.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Repair-No11Oct29MorningCatchUpReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_oct29_same_run_260_resume.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_weekly_rss_autogroup_100.test.mjs
@@ -83,6 +85,8 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/windows/Run-No11WeeklyCandidateRefreshReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/windows/Prepare-No11WeeklyAfterCloseReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_weekly_g1_refresh.test.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_d100_unknown_diagnostic.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tests/no11_d100_unknown_diagnostic.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/windows/Repair-No11Oct29MorningCatchUpReadOnly.ps1
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_oct29_same_run_260_resume.test.mjs
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_weekly_rss_autogroup_100.test.mjs
@@ -171,6 +175,7 @@ jobs:
         run: |
           node --check research/no12-prebuy-causal-runtime-20261011/tools/no11_parallel_shadow_preflight_audit.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_weekly_g1_refresh.test.mjs
+          node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_d100_unknown_diagnostic.test.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_oct29_same_run_260_resume.test.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_weekly_rss_autogroup_100.test.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_future_rss_autogroup_stage.test.mjs

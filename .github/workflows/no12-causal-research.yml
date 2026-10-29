@@ -63,6 +63,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'NO11_EQUITY_TYPE_WINDOWS_OFFLINE_SELFTEST_FAILED' }
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Run-No11ProvisionalFivePreviousRssReadOnly.ps1 -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'NO11_EQUITY_FIVE_WINDOWS_OFFLINE_SELFTEST_FAILED' }
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Run-No11JpxMonthEndReferenceReadOnly.ps1 -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO11_JPX_MONTH_END_WINDOWS_OFFLINE_SELFTEST_FAILED' }
       - name: Exercise market probe formula safety without Excel or broker (Windows only)
         if: matrix.os == 'windows-latest'
         shell: powershell

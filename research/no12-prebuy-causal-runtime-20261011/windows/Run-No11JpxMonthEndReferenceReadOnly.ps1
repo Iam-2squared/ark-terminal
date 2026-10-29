@@ -31,8 +31,12 @@ function LinkFromOfficialPage {
  $links=@([regex]::Matches([string]$page.Content,$rx) |
     ForEach-Object {$_.Groups['href'].Value} |
     Where-Object {$_ -match '(?i)data_j\.xlsx(?:\?|$)'} | Select-Object -Unique)
- Need ($links.Count -eq 1) 'JPX_LATEST_XLSX_LINK_NOT_UNIQUE'
- $uri=[Uri]::new([Uri]$original,[string]$links[0])
+ # Official-list HTML sometimes leaves the link to client rendering.
+ # Only accept the exact official JPX-host fallback; the Python parser also
+ # verifies the fixed 2026-09-30 workbook date and rejects stale months.
+ Need ($links.Count -le 1) 'JPX_LATEST_XLSX_LINK_AMBIGUOUS'
+ $known='https://www.jpx.co.jp/markets/statistics-equities/misc/tvdivq0000001vg2-att/data_j.xlsx'
+ $uri=if($links.Count -eq 1){[Uri]::new([Uri]$original,[string]$links[0])}else{[Uri]$known}
  Need ($uri.Scheme -ceq 'https' -and $uri.Host -ceq 'www.jpx.co.jp' -and
        $uri.AbsolutePath -match '(?i)/data_j\.xlsx$') 'JPX_XLSX_ORIGIN_INVALID'
  return $uri.AbsoluteUri
@@ -40,6 +44,7 @@ function LinkFromOfficialPage {
 if($OfflineSelfTest){
  Need (-not $JpxWorkbook -and $rev -cmatch '^[a-f0-9]{40}$' -and
        $expected -cmatch '^[a-f0-9]{40}$') 'OFFLINE_PINS_INVALID'
+ Need (([Uri]'https://www.jpx.co.jp/markets/statistics-equities/misc/tvdivq0000001vg2-att/data_j.xlsx').Host -ceq 'www.jpx.co.jp') 'JPX_FALLBACK_HOST'
  Write-Host 'NO11_JPX_REFERENCE_STAGE_OFFLINE_SELFTEST=PASS'
  Write-Host 'NO11_JPX_OFFICIAL_SITE_ACCESSED=False'
  Write-Host 'EXCEL_TOUCHED=False'

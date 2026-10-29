@@ -4,6 +4,7 @@ Synthetic local documents, no connection to Rakuten, MSII, Excel or an order.
 """
 import copy
 import hashlib
+import json
 from pathlib import Path
 import sys
 import tempfile
@@ -113,6 +114,72 @@ class SecuritiesOnlyFundingTests(unittest.TestCase):
         self.assertEqual(service.validate_config(v, DAY)['ledger']['allocatedCashJpy'], cash.AUTO)
         with self.assertRaisesRegex(ValueError, 'READONLY_LAUNCHER'):
             service.validate_config(v, DAY, read_only=True)
+
+
+class SecuritiesCashLedgerWiringTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.document = self.root / 'source.png'
+        self.document.write_bytes(DOCUMENT)
+        self.proof = self.root / 'reviewed.json'
+        self.write_proof('26893')
+
+    def write_proof(self, amount):
+        self.proof.write_text(json.dumps(evidence(
+            securitiesAvailableJpy=amount, sourceDocumentPath=str(self.document)),
+            ensure_ascii=False), encoding='utf-8')
+
+    def live_config(self):
+        return {'schemaId': service.CONFIG, 'sessionDate': DAY,
+            'evidenceMode': 'BROKER_OBSERVATION',
+            'ledger': {'schemaId': ledger.CONFIG_SCHEMA, 'sessionDate': DAY,
+                       'account': '特定', 'allocatedCashJpy': cash.AUTO,
+                       'evidenceMode': 'BROKER_OBSERVATION'},
+            'transport': {'mode': 'LIVE', 'orderTransmission': True,
+                          'operatorEnabled': True, 'approvedForSession': True,
+                          'sessionDate': DAY},
+            'orderTerms': {'orderType': 'MARKET', 'limitPrice': None,
+                           'timeInForce': 'DAY', 'sor': False,
+                           'accountType': 0, 'accountTypeVerified': True},
+            'securitiesCashEvidenceFile': str(self.proof),
+            'productionReady': False, 'orderTransmission': True}
+
+    def open(self, config=None):
+        return service.BrokerExecution(
+            self.root, config or self.live_config(), {}, None,
+            {'symbols': {}}, '2026-10-29',
+            clock=lambda: DAY + 'T08:50:00+09:00')
+
+    def test_live_ledger_seeds_verified_securities_cash_not_fixed_or_rss_cash(self):
+        e = self.open()
+        try:
+            snapshot = e.book.snapshot(DAY + 'T08:50:00+09:00')
+            self.assertEqual(snapshot['allocatedCashJpy'], '26893')
+            self.assertEqual(snapshot['cashJpy'], '26893')
+            self.assertFalse(snapshot['newBuysAllowed'])
+            self.assertTrue(e.summary()['securitiesOnlyOpeningCashReviewed'])
+            self.assertIn('NOT_MACHINE_CERTIFIED', e.summary()['openingCashScope'])
+            self.assertFalse(e.summary()['brokerConnectionPhysicallyVerified'])
+        finally:
+            e.close()
+
+    def test_session_recovery_rejects_changed_private_opening_cash(self):
+        e = self.open()
+        e.close()
+        self.write_proof('26894')
+        with self.assertRaisesRegex(ValueError, 'STATE_CHANGED_OR_DIFFERENT_CONFIG'):
+            self.open()
+
+    def test_same_pinned_opening_cash_evidence_reopens_without_minting_cash(self):
+        e = self.open()
+        e.close()
+        e = self.open()
+        try:
+            self.assertEqual(e.book.snapshot(DAY + 'T08:50:00+09:00')['cashJpy'], '26893')
+        finally:
+            e.close()
 
 if __name__ == '__main__':
     unittest.main()

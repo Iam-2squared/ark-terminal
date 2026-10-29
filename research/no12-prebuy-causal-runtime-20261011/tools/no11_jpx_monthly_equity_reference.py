@@ -150,6 +150,11 @@ def from_zip(p):
 
 def verify(audit_file,jpx_file,output_root):
     a,audit_sha=load_json(audit_file)
+    # Same immutable local audit receipt already validated on the PC.
+    need(Path(audit_file).name ==
+         "equity-type-provisional-304f08b2eed20c63.json"
+         and audit_sha.startswith("304f08b2eed20c63"),
+         "ORIGINAL_AUDIT_RECEIPT_CHANGED")
     need(type(a) is dict and a.get("schemaId")==AUDIT and
          a.get("status")=="PROVISIONAL_REVIEW_REQUIRED_NOT_A_TRADING_PLAN" and
          a.get("sessionDate")==SESSION and a.get("previousSession")=="2026-10-29" and

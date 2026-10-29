@@ -61,3 +61,25 @@ test('read-only diagnostic does not create cash ledger or transmit',()=>{
  assert.ok(source.includes('normalizeBrokerObservation'));
  assert.ok(source.includes('ORDER_TRANSMISSION=False'));
 });
+
+test('physical-account overlay installs read-only verified sources without touching existing Ark code',()=>{
+ const overlay=fs.readFileSync(new URL('../windows/Stage-No11PhysicalAccountIsolatedReadOnly.ps1',import.meta.url),'utf8');
+ const oneshot=fs.readFileSync(new URL('../windows/Run-No11PhysicalAccountOneShotReadOnly.ps1',import.meta.url),'utf8');
+ const pinned=Array.from(overlay.matchAll(/@\('(?:research\/no12-prebuy-causal-runtime-20261011|integration\/no1-1-msii)\/[^']+','[a-f0-9]{40}'\)/g));
+ assert.equal(pinned.length,10);
+ for(const marker of [
+  'physical-account-overlay\\source',
+  'EXISTING_OVERLAY_CONFLICT_NO_OVERWRITE',
+  'EXISTING_ARK_FILES_TOUCHED=False',
+  'DOWNLOADED_BLOB_DIFFERS',
+  'COPIED_BLOB_CHANGED',
+  'ONE_SHOT_SELFTEST_FAILED',
+  'BROKER_BOOK_SELFTEST_FAILED',
+  'NO11_PHYSICAL_ISOLATED_STAGE=PASS',
+  'ORDER_TRANSMISSION=False'
+ ])assert.ok(overlay.includes(marker),marker);
+ assert.doesNotMatch(overlay,/Remove-Item|Stop-Process|Set-ItemProperty|RssStockOrder\s*\(|RssCancelOrder\s*\(/i);
+ assert.ok(oneshot.includes('-Samples 1 -PollSeconds 2'));
+ assert.ok(oneshot.includes('RSS_AVAILABLE_FOR_CASH_STOCK_JPY=REDACTED_PRIVATE'));
+ assert.ok(oneshot.includes('ORDER_TRANSMISSION=False'));
+});

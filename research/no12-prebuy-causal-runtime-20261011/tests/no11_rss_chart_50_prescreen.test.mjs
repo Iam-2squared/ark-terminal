@@ -143,3 +143,41 @@ test('Tampering with output allocation or candidate set is rejected',()=>{
   chartPlan:p,mask:args.mask,sessionDate:'2026-10-27'
  }),/PLAN_MASK_OR_DAY_MISMATCH/);
 });
+
+
+test('first-live narrow review can screen a few confirmed G1 stocks without reviewing the entire 348-pass universe',()=>{
+ const args=synthetic348();
+ const original=makeNo11G1Chart50Plan({...args,emptySafetySlots:3});
+ const scoped=makeNo11G1Chart50Plan({
+  ...args,heldSymbols:['0001.T'],emptySafetySlots:3,
+  reviewedEntrySymbols:['0003.T','0007.T'],
+  reviewedEvidenceSha256:'a'.repeat(64)
+ });
+ assert.equal(original.selectorInputSymbols.length,47);
+ assert.deepEqual(scoped.allRequestedChartSymbols,['0001.T','0003.T','0007.T']);
+ assert.deepEqual(scoped.selectorInputSymbols,['0003.T','0007.T']);
+ assert.equal(scoped.heldSymbols[0],'0001.T');
+ assert.equal(scoped.unreviewedG1SymbolsExcludedFromEntry,346);
+ assert.equal(scoped.reviewedEntryEvidenceSha256,'a'.repeat(64));
+ assert.equal(scoped.orderTransmission,false);
+ assert.equal(scoped.productionReady,false);
+ assert.deepEqual(validateNo11Chart50Plan({
+  chartPlan:scoped,mask:args.mask,sessionDate:day
+ }),['0003.T','0007.T']);
+});
+test('narrow entry scope fails closed for unreviewed, non-G1, unpinned proof and known ETFs/leveraged ETNs',()=>{
+ const args=synthetic348();
+ for(const patch of [
+  {reviewedEntrySymbols:['0003.T']},
+  {reviewedEvidenceSha256:'b'.repeat(64)},
+  {reviewedEntrySymbols:['9999.T'],reviewedEvidenceSha256:'b'.repeat(64)},
+  {reviewedEntrySymbols:[],reviewedEvidenceSha256:'b'.repeat(64)},
+  {reviewedEntrySymbols:['0003.T','0003.T'],reviewedEvidenceSha256:'b'.repeat(64)}
+ ])assert.throws(()=>makeNo11G1Chart50Plan({...args,...patch}),/NO11_CHART50_/);
+ const changedMask={...args.mask,observedPassSymbols:['2038.T',...args.mask.observedPassSymbols.slice(1)]};
+ const changedRank=[{symbol:'2038.T',...args.priorityRows[0]},...args.priorityRows.slice(1)];
+ assert.throws(()=>makeNo11G1Chart50Plan({
+  ...args,mask:changedMask,priorityRows:changedRank,
+  reviewedEntrySymbols:['2038.T'],reviewedEvidenceSha256:'b'.repeat(64)
+ }),/REVIEWED_NON_EQUITY/);
+});

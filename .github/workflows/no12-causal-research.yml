@@ -135,6 +135,7 @@ jobs:
           python -B research/no12-prebuy-causal-runtime-20261011/tools/no11_frozen_p1_score_replay.py --self-test
           python -B research/no12-prebuy-causal-runtime-20261011/tools/no11_frozen_p1_raw_replay.py --self-test
           python -B -m unittest discover -s research/no12-prebuy-causal-runtime-20261011/tests -p 'test_no11_frozen_p1_*.py' -v
+          python -B -m unittest discover -s research/no12-prebuy-causal-runtime-20261011/tests -p 'test_no11_equity_five_source_recovery.py' -v
       - name: Validate frozen P1 Windows launcher without artifacts or network
         if: matrix.os == 'windows-latest'
         shell: powershell

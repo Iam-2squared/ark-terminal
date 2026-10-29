@@ -111,7 +111,7 @@ class JPXMonthlyReferenceTests(unittest.TestCase):
         self.assertEqual(receipt,other)
 
     def test_month_end_date_and_zip_macro_guard_fail_closed(self):
-        files,_=jpx.from_zip(self.workbook)
+        files,_,_=jpx.from_zip(self.workbook)
         self.assertGreater(len(files),3000)
         new=self.folder/"wrong-month.xlsx"
         with ZipFile(self.workbook) as z, ZipFile(new,"w") as out:
@@ -135,7 +135,7 @@ class JPXMonthlyReferenceTests(unittest.TestCase):
         obj=json.loads(self.audit.read_text())
         obj["actualCommonEquityIndependentlyReviewed"]=True
         self.audit.write_text(json.dumps(obj)+"\n")
-        with self.assertRaisesRegex(ValueError,"G1_AUDIT_CONTRACT"):
+        with self.assertRaisesRegex(ValueError,"ORIGINAL_AUDIT_RECEIPT_CHANGED"):
             self.verify_fixture()
         self.assertNotEqual(before,hashlib.sha256(self.audit.read_bytes()).hexdigest())
 

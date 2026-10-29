@@ -144,8 +144,8 @@ try{
  Need ($progress.schemaId -ceq 'ARK_NO11_RSS_TRAINING_CAPTURE_PROGRESS_V1' -and
        $progress.completed -eq 5 -and $progress.requested -eq 5 -and
        $progress.observedSymbols -eq 5 -and $progress.unavailableSymbols -eq 0 -and
-       $progress.productionReady -eq $false -and $progress.orderTransmission -eq $false
-       -and (@($progress.files).Count -eq 5)) 'CAPTURE_CHECKPOINT_NOT_COMPLETE'
+       $progress.productionReady -eq $false -and $progress.orderTransmission -eq $false -and
+       (@($progress.files).Count -eq 5)) 'CAPTURE_CHECKPOINT_NOT_COMPLETE'
  $totalPriorRows=0
  foreach($item in $progress.files){
   Need ($item.symbol -in $extra -and $item.status -ceq 'OBSERVED_ARCHIVE_NOT_TRAINING_CERTIFIED') 'ARCHIVE_MEMBER_STATUS'

@@ -85,8 +85,8 @@ def immutable(root, stem, value):
     return path
 
 
-def validate_readonly_broker_config(path, session):
-    """Enforce the launcher's observation boundary without importing execution.
+def validate_readonly_broker_config(path, session, *, allow_explicit_live=False):
+    """Enforce read-only by default; explicit LIVE must be independently approved.
 
     The service validates the full ledger/order contract separately. This check
     runs both at input validation and immediately before making its arguments;
@@ -100,13 +100,30 @@ def validate_readonly_broker_config(path, session):
     need(obj.get('sessionDate') == session, 'BROKER_CONFIG_SESSION_MISMATCH')
     need(obj.get('evidenceMode') == 'BROKER_OBSERVATION',
          'BROKER_CONFIG_OBSERVATION_REQUIRED')
-    need(obj.get('orderTransmission') is False and type(obj.get('transport')) is dict
-         and obj['transport'].get('mode') in ('DISABLED', 'OBSERVE_ONLY'),
-         'BROKER_CONFIG_NOT_READONLY')
+    transport = obj.get('transport')
+    need(type(transport) is dict, 'BROKER_TRANSPORT_REQUIRED')
+    if allow_explicit_live:
+        # This is NOT a new permission inferred from the ordinary read-only
+        # bootstrapping config. The separate operator entry point must supply
+        # an explicit same-session action; the existing broker service verifies
+        # cash-only source, workbook ID, RSS session and one-shot permit again.
+        need(obj.get('orderTransmission') is True
+             and transport.get('mode') == 'LIVE'
+             and transport.get('orderTransmission') is True
+             and transport.get('operatorEnabled') is True
+             and transport.get('approvedForSession') is True
+             and transport.get('sessionDate') == session
+             and type(obj.get('securitiesCashEvidenceFile')) is str
+             and Path(obj['securitiesCashEvidenceFile']).is_absolute(),
+             'EXPLICIT_LIVE_APPROVAL_AND_SECURITIES_EVIDENCE_REQUIRED')
+    else:
+        need(obj.get('orderTransmission') is False and
+             transport.get('mode') in ('DISABLED', 'OBSERVE_ONLY'),
+             'BROKER_CONFIG_NOT_READONLY')
     return checksum
 
 
-def validate_config(obj):
+def validate_config(obj, *, allow_explicit_live=False):
     need(type(obj) is dict and REQUIRED <= set(obj) <= REQUIRED | OPTIONAL,
          'CONFIG_FIELDS_INVALID')
     need(obj['schemaId'] == CONFIG and obj['productionReady'] is False
@@ -153,7 +170,8 @@ def validate_config(obj):
     need('brokerExecutionConfig' not in c or 'h235ModelRoot' in c,
          'H235_REQUIRED_FOR_BROKER_OBSERVATION')
     if 'brokerExecutionConfig' in c:
-        validate_readonly_broker_config(c['brokerExecutionConfig'], c['sessionDate'])
+        validate_readonly_broker_config(c['brokerExecutionConfig'], c['sessionDate'],
+                                        allow_explicit_live=allow_explicit_live)
     if 'previousCaptureFiles' in c:
         files = c['previousCaptureFiles']
         need(type(files) is list and 1 <= len(files) <= 8 and
@@ -329,7 +347,7 @@ def prepare(config, run_root):
     return ready
 
 
-def service_args(config, prepared, inference_root, capture=None):
+def service_args(config, prepared, inference_root, capture=None, *, allow_explicit_live=False):
     p = prepared['files']
     args = ['--session', config['sessionDate'], '--plan', p['plan'], '--mask', p['mask'],
             '--dated-master', p['master'], '--previous-context', p['previous'],
@@ -340,9 +358,11 @@ def service_args(config, prepared, inference_root, capture=None):
         args += ['--shadow-account-config', config['shadowAccountConfig']]
     if config.get('brokerExecutionConfig'):
         need(bool(config.get('h235ModelRoot')), 'H235_REQUIRED_FOR_BROKER_OBSERVATION')
-        validate_readonly_broker_config(config['brokerExecutionConfig'], config['sessionDate'])
-        args += ['--broker-execution-config', config['brokerExecutionConfig'],
-                 '--broker-execution-readonly']
+        validate_readonly_broker_config(config['brokerExecutionConfig'], config['sessionDate'],
+                                        allow_explicit_live=allow_explicit_live)
+        args += ['--broker-execution-config', config['brokerExecutionConfig']]
+        if not allow_explicit_live:
+            args += ['--broker-execution-readonly']
     if capture is not None:
         args += ['--capture-folder', str(capture)]
     return args

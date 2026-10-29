@@ -185,9 +185,12 @@ if(-not [string]::IsNullOrWhiteSpace($PinsFile) -and
 # Prove all original 429 receipts still have their original immutable hashes and
 # plan lineage; do not call report, write mask or touch original capture sources.
 $originalPlanArgs=@('plan','--weekly-run',$WeeklyRun,'--root',$originalRoot,
- '-catch-up-asof',$CatchUpAsOf)
-# The original CLI requires --catch-up-asof, not -catch-up-asof.
-$originalPlanArgs[4]='--catch-up-asof'
+ '--catch-up-asof',$CatchUpAsOf)
+# Never race any concurrent Excel RSS collector.
+$active=@(Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" -ErrorAction Stop |
+ Where-Object {$_.ProcessId -ne $PID -and
+  [string]$_.CommandLine -match '(?i)(Run-No11WeeklyCandidateRefreshReadOnly|Run-No11Oct29D100RecoveryReadOnly|Capture-No11RssTrainingBatchReadOnly|Capture-No11SessionReferenceReadOnly|Run-No11Oct29ReferenceOneShotReadOnly|Prepare-No11PreviousArchiveReadOnly)\.ps1'})
+Need ($active.Count -eq 0) 'ANOTHER_RSS_COLLECTOR_RUNNING'
 $originalText=@(& node $tool @originalPlanArgs)
 Need ($LASTEXITCODE -eq 0 -and $originalText.Count -eq 1) 'ORIGINAL_429_VERIFICATION_FAILED'
 $originalState=([string]$originalText[0]|ConvertFrom-Json)

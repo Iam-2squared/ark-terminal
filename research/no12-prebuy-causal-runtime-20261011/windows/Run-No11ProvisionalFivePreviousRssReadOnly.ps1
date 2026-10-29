@@ -37,8 +37,21 @@ function Json([string]$file){
 function Hash([string]$file){
  return (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash.ToLowerInvariant()
 }
+# Windows PowerShell 5.1 under StrictMode does not reliably expose Count as
+# a member on an empty PSObject property collection. Enumerate explicitly.
+function JsonKeys([object]$value){
+ Need ($null -ne $value -and $value -is [pscustomobject]) 'EXPECTED_JSON_OBJECT'
+ foreach($entry in $value.PSObject.Properties){
+  [string]$entry.Name
+ }
+}
 if($OfflineSelfTest){
  Need (-not $PreflightOnly) 'MODES_CONFLICT'
+ $fixture='{"symbols":{"7203.T":{}},"omittedSymbols":{}}' | ConvertFrom-Json
+ $syntheticPresent=@(JsonKeys $fixture.symbols)
+ $syntheticEmpty=@(JsonKeys $fixture.omittedSymbols)
+ Need ($syntheticPresent.Count -eq 1 -and $syntheticPresent[0] -ceq '7203.T' -and
+       $syntheticEmpty.Count -eq 0) 'EMPTY_OBJECT_STRICTMODE_SELFTEST'
  Need ($collectorPin -cmatch '^[a-f0-9]{40}$' -and
        $prefix -cmatch '^[a-f0-9]{16}$') 'STATIC_CONTRACT'
  Write-Host 'NO11_EQUITY_FIVE_OFFLINE_SELFTEST=PASS'
@@ -118,15 +131,18 @@ try{
  $extra=@($review.replacementPriorArchiveMissing|ForEach-Object {[string]$_})
  $alternates=@($review.provisionalReplacementCandidates|ForEach-Object {[string]$_})
  $excluded=@($review.knownExcludedFromG1|ForEach-Object {[string]$_})
+ $originalExcluded=@($review.knownExcludedFromOriginal|ForEach-Object {[string]$_})
+ $stagedSymbols=@(JsonKeys $stage.symbols)
+ $stagedOmitted=@(JsonKeys $stage.omittedSymbols)
  Need ($extra.Count -eq 5 -and
        @($extra|Select-Object -Unique).Count -eq 5 -and
        @($alternates|Select-Object -Unique).Count -eq 5 -and
        @($extra|Where-Object {$_ -notin $alternates -or $_ -in $excluded -or
           $_ -notmatch '^[0-9A-Z]{4}\.T$'}).Count -eq 0 -and
-       $review.knownExcludedFromOriginal.Count -eq 5 -and
-       $stage.symbols.PSObject.Properties.Count -eq 47 -and
-       $stage.omittedSymbols.PSObject.Properties.Count -eq 0 -and
-       @($extra|Where-Object {$_ -in $stage.symbols.PSObject.Properties.Name}).Count -eq 0
+       $originalExcluded.Count -eq 5 -and
+       $stagedSymbols.Count -eq 47 -and
+       $stagedOmitted.Count -eq 0 -and
+       @($extra|Where-Object {$_ -in $stagedSymbols}).Count -eq 0
       ) 'FIVE_NEW_SOURCES_NOT_PROVEN'
  # Do not overlap prior account observation, chart collection, or an existing
  # market reader. The original collector separately enforces Excel workbook

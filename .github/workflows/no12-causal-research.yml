@@ -73,6 +73,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'NO11_UNIFIED_LAUNCHER_WINDOWS_SELFTEST_FAILED' }
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Install-No11UnifiedDesktopShortcut.ps1 -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'NO11_UNIFIED_DESKTOP_SHORTCUT_SELFTEST_FAILED' }
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Install-No11UnifiedFromGitReadOnly.ps1 -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO11_UNIFIED_GIT_INSTALL_SELFTEST_FAILED' }
       - name: Exercise market probe formula safety without Excel or broker (Windows only)
         if: matrix.os == 'windows-latest'
         shell: powershell

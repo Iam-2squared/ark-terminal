@@ -70,7 +70,7 @@ function Settings {
 }
 function RssStatus($cell,[string]$expected,[string]$wanted){
  if($null -eq $cell -or $cell.HasFormula -ne $true){return $false}
- $formula=(([string]$cell.Formula).Trim() -replace '^=@','=' -replace '\\$','')
+ $formula=(([string]$cell.Formula).Trim() -replace '^=@','=').Replace('$','')
  if($formula -cne $expected){return $false}
  $state=([string]$cell.Value2).Trim()
  return ($state -ceq $wanted -or $state -ceq ($formula+' => '+$wanted))

@@ -8,7 +8,7 @@ param(
 )
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
-$pinned='c4f0366a4a8b5c32b6445762421b77f8c7ea465c'
+$pinned='24b906e19a2623e45701311ca3fbb20dafe11c80'
 $branch='research/no12-prebuy-causal-runtime-20261011'
 $relative='research/no12-prebuy-causal-runtime-20261011/windows'
 $stage='BEGIN'

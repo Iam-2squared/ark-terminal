@@ -19,6 +19,8 @@ test('one desktop launcher routes full MAX3 normal cash mode and actual Friday w
   "StartChild 'TRADE'",
   "StartChild 'WEEKLY'",
   "WEEKLY_REAL_ASOF_FRIDAY",
+  "STOP_NEW_ENTRIES_REQUESTED",
+  "NO11_UNIFIED_BROKER_ORDER_CANCELLED=False",
   "No.1.1"
  ]) {
   assert.ok(source.includes(marker),marker);

@@ -10,7 +10,7 @@ test('one desktop launcher routes full MAX3 normal cash mode and actual Friday w
   "Prepare-No11WeeklyAfterCloseReadOnly.ps1",
   "IApproveOrdersForToday",
   "normalMaxPositions=3",
-  "operatorMustApproveDaily",
+  "sameDayApprovalRequired",
   "automaticOrderAuthorization=$false",
   "orderTransmission=$false",
   "CheckExcel $cfg $true",
@@ -18,13 +18,9 @@ test('one desktop launcher routes full MAX3 normal cash mode and actual Friday w
   "if($weekend){$arguments+=@('-WeekendFriday')}",
   "StartChild 'TRADE'",
   "StartChild 'WEEKLY'",
-  "TRADE_ALREADY_STARTED_NO_DUPLICATE",
   "WEEKLY_REAL_ASOF_FRIDAY",
-  "same-day",
   "No.1.1"
  ]) {
-  if(marker==='TRADE_ALREADY_STARTED_NO_DUPLICATE')continue;
-  if(marker==='same-day')continue;
   assert.ok(source.includes(marker),marker);
  }
  assert.doesNotMatch(source,/RssStockOrder\s*\(/i);

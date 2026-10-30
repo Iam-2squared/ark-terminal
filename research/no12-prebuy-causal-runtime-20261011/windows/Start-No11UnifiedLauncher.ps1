@@ -68,6 +68,13 @@ function Settings {
        $cfg.orderTransmission -eq $false) 'SETTINGS_UNSAFE'
  return $cfg
 }
+function RssStatus($cell,[string]$expected,[string]$wanted){
+ if($null -eq $cell -or $cell.HasFormula -ne $true){return $false}
+ $formula=(([string]$cell.Formula).Trim() -replace '^=@','=' -replace '\\$','')
+ if($formula -cne $expected){return $false}
+ $state=([string]$cell.Value2).Trim()
+ return ($state -ceq $wanted -or $state -ceq ($formula+' => '+$wanted))
+}
 function CheckExcel($cfg,[bool]$live){
  Need (@(Get-Process EXCEL -ErrorAction SilentlyContinue).Count -eq 1) 'EXCEL_PROCESS_NOT_UNIQUE'
  $a=LocalFile $cfg.accountWorkbookPath 'ACCOUNT_XLSX'
@@ -89,9 +96,9 @@ function CheckExcel($cfg,[bool]$live){
         $market.Name -ceq 'ARK_MARKET_READONLY') 'RSS_SHEET_IDENTITY'
   $rx=(-join [char[]]@(0x914d,0x4fe1,0x4e2d))
   $done=(-join [char[]]@(0x5b8c,0x4e86))
-  Need ([string]$account.Range('L1').Value2 -ceq $done -and
-        [string]$account.Range('N1').Value2 -ceq $rx -and
-        [string]$account.Range('AA1').Value2 -ceq $rx) 'RSS_NOT_CONNECTED'
+  Need ((RssStatus ($account.Range('L1')) '=RssCapacityList(L2:L2)' $done) -and
+        (RssStatus ($account.Range('N1')) '=RssOrderList(N2:W2,0,1)' $rx) -and
+        (RssStatus ($account.Range('AA1')) '=RssExecutionList(AA2:AI2,1)' $rx)) 'RSS_NOT_CONNECTED'
   if($live){
    $ids=$excel.Workbooks.Item([IO.Path]::GetFileName($cfg.orderIdWorkbookPath))
    Need ($ids.Worksheets.Count -eq 1 -and

@@ -13,6 +13,7 @@ param(
  [string]$WeeklySourcePolicy='RSS_FULL_FRIDAY',
  [string]$YahooSeedRoot='',
  [string]$PinsFile='',
+ [switch]$WeekendFriday,
  [ValidateRange(1,20)][int]$FullBatchSize=10,
  [ValidateRange(5,60)][int]$FullWaitSeconds=15,
  [ValidateSet(50,100)][int]$RefreshGroupSize=100,
@@ -70,11 +71,18 @@ try{
    (Test-Path -LiteralPath $PinsFile -PathType Leaf)) 'PINS_FILE_MISSING'
  }
 
- $scheduleLines=@(& node $tool schedule)
+ if($WeekendFriday){
+  Need ($WeeklySourcePolicy -ceq 'RSS_FULL_FRIDAY') 'WEEKEND_REQUIRES_REAL_RSS_SOURCE'
+ }
+ $scheduleArgs=@('schedule')
+ if($WeekendFriday){$scheduleArgs+=@('--weekend-friday')}
+ $scheduleLines=@(& node $tool @scheduleArgs)
  Need ($LASTEXITCODE -eq 0 -and $scheduleLines.Count -eq 1) 'SCHEDULE_FAILED'
  $schedule=([string]$scheduleLines[0] | ConvertFrom-Json)
  Need ($schedule.schemaId -ceq 'ARK_NO11_WEEKLY_REFRESH_SCHEDULE_V1' -and
-  $schedule.orderTransmission -eq $false) 'SCHEDULE_CONTRACT_INVALID'
+  $schedule.orderTransmission -eq $false -and
+  ((-not $WeekendFriday) -or ($schedule.weekendMaintenance -eq $true -and
+     $schedule.vendorRssConnectionStillRequired -eq $true))) 'SCHEDULE_CONTRACT_INVALID'
  $mode=[string]$schedule.mode
  $session=[string]$schedule.sessionDate
  $asOf=[string]$schedule.asOfSession
@@ -113,11 +121,15 @@ try{
    '-DailyWaitSeconds',[string]$FullWaitSeconds,
    '-MinuteBatchSize',[string]$MinuteBatchSize,
    '-MinuteWaitSeconds',[string]$MinuteWaitSeconds)
+  if($WeekendFriday){$arguments+=@('-WeekendFriday')}
   if(-not [string]::IsNullOrWhiteSpace($PinsFile)){$arguments+=@('-PinsFile',$PinsFile)}
   Write-Host 'NO11_WEEKLY_NIGHTLY_FULL_SCAN=FRIDAY_ONLY'
   & powershell.exe @arguments
   Need ($LASTEXITCODE -eq 0) 'FRIDAY_FULL_SCAN_FAILED'
   Write-Host 'NO11_WEEKLY_NIGHTLY_STAGE=FRIDAY_FULL_UNIVERSE_AND_PREVIOUS_COMPLETE'
+  if($WeekendFriday){
+   Write-Host 'NO11_WEEKLY_NIGHTLY_WEEKEND=SOURCE_CAPTURED_SAT_SUN_FOR_ACTUAL_FRIDAY'
+  }
   Write-Host 'ORDER_TRANSMISSION=False'
   exit 0
  }

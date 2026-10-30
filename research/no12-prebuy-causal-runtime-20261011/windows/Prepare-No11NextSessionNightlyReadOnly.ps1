@@ -10,6 +10,7 @@ param(
  [string]$OutputRoot='',
  [string]$PythonExecutable='',
  [string]$PinsFile='',
+ [switch]$WeekendFriday,
  [ValidateRange(1,20)][int]$DailyBatchSize=20,
  [ValidateRange(5,60)][int]$DailyWaitSeconds=15,
  [ValidateRange(1,20)][int]$MinuteBatchSize=5,
@@ -85,8 +86,23 @@ try {
  }
 
  $now=TodayJst
- # The existing daily source contract only accepts observations after 18 JST.
- Need ($now.ToString('yyyy-MM-dd') -ceq $AsOfSession -and $now.ToString('HH:mm') -cge '18:00') 'DAILY_NOT_YET_ELIGIBLE'
+ # The actual underlying G1/D100 collector uses real current receipts and
+ # requires the same real previous Friday as-of source. On Sat/Sun we can
+ # explicitly resume the prior-Friday scan when RSS remains connected.
+ # Do not pretend any new market close exists on the weekend.
+ if($WeekendFriday){
+  $weekday=$now.DayOfWeek
+  Need ($weekday -eq [DayOfWeek]::Saturday -or
+        $weekday -eq [DayOfWeek]::Sunday) 'WEEKEND_MODE_SAT_SUN_ONLY'
+  $prior=if($weekday -eq [DayOfWeek]::Saturday){$now.AddDays(-1)}else{$now.AddDays(-2)}
+  Need ($prior.ToString('yyyy-MM-dd') -ceq $AsOfSession -and
+        $prior.DayOfWeek -eq [DayOfWeek]::Friday) 'ACTUAL_PRIOR_FRIDAY_REQUIRED'
+  Write-Host ('NO11_NIGHTLY_WEEKEND_ACTUAL_FRIDAY_ASOF='+$AsOfSession)
+  Write-Host 'NO11_NIGHTLY_WEEKEND_RSS_NOT_GUARANTEED=True'
+ }else{
+  Need ($now.ToString('yyyy-MM-dd') -ceq $AsOfSession -and
+        $now.ToString('HH:mm') -cge '18:00') 'DAILY_NOT_YET_ELIGIBLE'
+ }
  [void][IO.Directory]::CreateDirectory($DailyRoot)
  [void][IO.Directory]::CreateDirectory($OutputRoot)
 

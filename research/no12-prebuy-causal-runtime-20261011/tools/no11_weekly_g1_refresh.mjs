@@ -89,6 +89,22 @@ export function verifyWeeklySource(weeklyRun){
   need(plan.schemaId===DAILY_PLAN_SCHEMA,'UNKNOWN_WEEKLY_SOURCE_PROVIDER');
   return verifyWeeklyPool(run);
 }
+/** Saturday/Sunday weekly scan targets the *actual prior Friday* only.
+ * No weekend session or Monday price is claimed. RSS use still needs a live
+ * vendor connection; absence of data must halt the downstream collector.
+ */
+export function weekendFridayWindow(now){
+  need(typeof now==='string'&&/^20\d{2}-\d{2}-\d{2}T/.test(now),
+    'WEEKEND_CLOCK_INVALID');
+  const local=now.slice(0,10);
+  const weekday=new Date(local+'T00:00:00Z').getUTCDay();
+  need(weekday===6||weekday===0,'WEEKEND_FRIDAY_MODE_SAT_SUN_ONLY');
+  const date=lastCompletedSession(now);
+  need(isoFriday(date)&&nextCashDate(date)>local,
+    'WEEKEND_FRIDAY_PRIOR_CLOSE_REQUIRED');
+  return {date,now,sourceObservedOnWeekend:true,reportAsOfActualFriday:true};
+}
+
 export function nightlyWindow(now){
   const local=now.slice(0,10),clock=now.slice(11,16);
   const date=lastCompletedSession(now);
@@ -269,11 +285,18 @@ function validateRefreshPlan(plan,source,date){
 export function runCli(args){
   const action=args[0], flags={};
   if(action==='schedule'){
-    need(args.length===1,'USAGE');
-    const {date,now,followingPreopen}=nightlyWindow(jstNow());
+    need(args.length===1||(args.length===2&&args[1]==='--weekend-friday'),'USAGE');
+    const weekend=args.length===2;
+    const {date,now}=weekend?weekendFridayWindow(jstNow()):nightlyWindow(jstNow());
     console.log(JSON.stringify({schemaId:'ARK_NO11_WEEKLY_REFRESH_SCHEDULE_V1',
       asOfSession:date,sessionDate:nextCashDate(date),
       mode:isoFriday(date)?'FULL_MARKET_FRIDAY':'WEEKLY_POOL_CANDIDATES_ONLY',
+      ...(weekend?{
+        weekendMaintenance:true,
+        actualPriceSession:date,
+        observationMustBeCurrentNotBackdated:true,
+        vendorRssConnectionStillRequired:true
+      }:{}),
       completedDailyDataMustBeObserved:true,
       productionReady:false,orderTransmission:false}));
     return;

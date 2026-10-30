@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {isoFriday, tradingGap, nextCashDate, nightlyWindow} from '../tools/no11_weekly_g1_refresh.mjs';
+import {isoFriday, tradingGap, nextCashDate, nightlyWindow, weekendFridayWindow} from '../tools/no11_weekly_g1_refresh.mjs';
 
 test('full universe is Friday and initial 2026-10-26 is only a manual seed',()=>{
   assert.equal(isoFriday('2026-10-30'),true);
@@ -67,4 +67,31 @@ test('Oct27 evening and Oct28 early morning use the SAME ACTUAL OCT27 close with
   /NO11_WEEKLY_CURRENT_COMPLETED_CASH_SESSION_REQUIRED/);
  assert.throws(()=>nightlyWindow('2026-11-02T07:55:00.000+09:00'),
   /NO11_WEEKLY_CURRENT_COMPLETED_CASH_SESSION_REQUIRED/); // Friday full sweep only
+});
+
+test('Saturday and Sunday weekly scan is explicitly anchored to actual last Friday, not a weekend market',()=>{
+ const saturday=weekendFridayWindow('2026-10-31T09:00:00.000+09:00');
+ const sunday=weekendFridayWindow('2026-11-01T17:00:00.000+09:00');
+ assert.equal(saturday.date,'2026-10-30');
+ assert.equal(sunday.date,'2026-10-30');
+ assert.equal(nextCashDate(saturday.date),'2026-11-02');
+ assert.equal(saturday.sourceObservedOnWeekend,true);
+ assert.equal(sunday.reportAsOfActualFriday,true);
+ assert.throws(()=>weekendFridayWindow('2026-10-30T20:00:00.000+09:00'),
+  /NO11_WEEKLY_WEEKEND_FRIDAY_MODE_SAT_SUN_ONLY/);
+ assert.throws(()=>weekendFridayWindow('2026-11-02T10:00:00.000+09:00'),
+  /NO11_WEEKLY_WEEKEND_FRIDAY_MODE_SAT_SUN_ONLY/);
+});
+test('Weekend weekly runner is read-only and requires original Friday close with actual RSS receipts',()=>{
+ const js=fs.readFileSync(new URL('../tools/no11_weekly_g1_refresh.mjs',import.meta.url),'utf8');
+ const wrapper=fs.readFileSync(new URL('../windows/Prepare-No11WeeklyAfterCloseReadOnly.ps1',import.meta.url),'utf8');
+ const daily=fs.readFileSync(new URL('../windows/Prepare-No11NextSessionNightlyReadOnly.ps1',import.meta.url),'utf8');
+ for(const marker of ["weekendFridayWindow(now)","vendorRssConnectionStillRequired:true",
+  "mode:isoFriday(date)?'FULL_MARKET_FRIDAY'"]) assert.ok(js.includes(marker),marker);
+ assert.ok(wrapper.includes("if($WeekendFriday){$arguments+=@('-WeekendFriday')}"));
+ assert.ok(wrapper.includes("WEEKEND_REQUIRES_REAL_RSS_SOURCE"));
+ assert.ok(daily.includes("ACTUAL_PRIOR_FRIDAY_REQUIRED"));
+ assert.ok(daily.includes("WEEKEND_RSS_NOT_GUARANTEED=True"));
+ assert.doesNotMatch(wrapper,/RssStockOrder\s*\(/);
+ assert.doesNotMatch(daily,/RssStockOrder\s*\(/);
 });

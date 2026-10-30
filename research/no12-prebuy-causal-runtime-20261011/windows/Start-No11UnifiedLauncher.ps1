@@ -2,8 +2,9 @@
 # LIVE means ORIGINAL MAX3; never grants an order merely from Excel being open.
 # Weekend mode uses actual previous-Friday RSS sources; no weekend market data.
 param(
- [ValidateSet('Menu','Trade','Weekly','Status')][string]$Mode='Menu',
+ [ValidateSet('Menu','Trade','Weekly','Status','Stop')][string]$Mode='Menu',
  [switch]$IApproveOrdersForToday,
+ [switch]$IUnderstandStopDoesNotCancelOrders,
  [switch]$OfflineSelfTest
 )
 $ErrorActionPreference='Stop'
@@ -188,6 +189,40 @@ function RunWeekly($cfg){
  Write-Host ('NO11_UNIFIED_WEEKLY_REAL_ASOF_FRIDAY='+$sourceDay)
  Write-Host 'ORDER_TRANSMISSION=False'
 }
+function StopRunningEngine($cfg,[bool]$approved){
+ Need $approved 'STOP_REQUIRES_MANUAL_ORDER_CHECK_CONFIRMATION'
+ $day=(Clock).ToString('yyyy-MM-dd')
+ $config=Get-Content -LiteralPath (LocalFile $cfg.bootstrapConfigFile 'LIVE_BOOTSTRAP_CONFIG') -Raw -Encoding UTF8|ConvertFrom-Json
+ Need ($config.sessionDate -ceq $day) 'STOP_REQUIRES_CURRENT_DAY'
+ $private=[IO.Path]::GetFullPath([string]$config.privateRoot)
+ Need ([IO.Path]::IsPathRooted($private) -and
+       (Test-Path -LiteralPath $private -PathType Container)) 'STOP_PRIVATE_ROOT_INVALID'
+ $pointer=Join-Path $private ('received-session-'+$day+'.active.json')
+ $body=Get-Content -LiteralPath (LocalFile $pointer 'RUN_POINTER') -Raw -Encoding UTF8|ConvertFrom-Json
+ $run=[IO.Path]::GetFullPath([string]$body.runRoot)
+ Need ($body.schemaId -ceq 'ARK_NO11_RECEIVED_ACTIVE_RUN_V1' -and
+       $body.sessionDate -ceq $day -and
+       $run.StartsWith(($private+[IO.Path]::DirectorySeparatorChar),[StringComparison]::OrdinalIgnoreCase) -and
+       (Test-Path -LiteralPath $run -PathType Container)) 'STOP_RUN_IDENTITY_INVALID'
+ $attempts=@(Get-ChildItem -LiteralPath $run -Directory -Filter 'attempt-*'|Sort-Object Name)
+ Need ($attempts.Count -gt 0) 'STOP_ACTIVE_COLLECTOR_NOT_FOUND'
+ $folder=$attempts[$attempts.Count-1].FullName
+ $attempt=Get-Content -LiteralPath (LocalFile (Join-Path $folder 'attempt.json') 'ATTEMPT') -Raw -Encoding UTF8|ConvertFrom-Json
+ $ready=Get-Content -LiteralPath (LocalFile (Join-Path $folder 'collector-ready.json') 'READY_MARKER') -Raw -Encoding UTF8|ConvertFrom-Json
+ Need ($attempt.status -ceq 'CONNECTED' -and $attempt.sessionDate -ceq $day -and
+       $ready.schemaId -ceq 'ARK_NO11_C50_COLLECTOR_READY_V1' -and
+       $ready.sessionDate -ceq $day -and
+       $ready.processId -eq $attempt.pid) 'STOP_RUNNING_COLLECTOR_NOT_PROVEN'
+ $stop=Join-Path $folder 'collector.stop'
+ Need (-not (Test-Path -LiteralPath $stop)) 'STOP_ALREADY_REQUESTED'
+ $data=[Text.UTF8Encoding]::new($false).GetBytes('STOP_NEW_ENTRIES_REQUESTED'+[char]10)
+ $out=[IO.File]::Open($stop,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+ try{$out.Write($data,0,$data.Length);$out.Flush($true)}
+ finally{$out.Dispose()}
+ Write-Host 'NO11_UNIFIED_ENGINE_STOP=REQUESTED_NOT_ACKNOWLEDGED'
+ Write-Host 'NO11_UNIFIED_BROKER_ORDER_CANCELLED=False'
+ Write-Host 'NO11_UNIFIED_MANUAL_OPEN_ORDERS_AND_HOLDINGS_CHECK_REQUIRED=True'
+}
 function Describe($cfg){
  $now=Clock
  $day=$now.ToString('yyyy-MM-dd')
@@ -229,12 +264,16 @@ try{
   RunWeekly $cfg
   exit 0
  }
+ if($Mode -eq 'Stop'){
+  StopRunningEngine $cfg ([bool]$IUnderstandStopDoesNotCancelOrders)
+  exit 0
+ }
  Add-Type -AssemblyName System.Windows.Forms
  Add-Type -AssemblyName System.Drawing
  [System.Windows.Forms.Application]::EnableVisualStyles()
  $form=New-Object System.Windows.Forms.Form
  $form.Text='Ark Terminal No.1.1 - Unified Launcher'
- $form.Size=New-Object System.Drawing.Size(730,370)
+ $form.Size=New-Object System.Drawing.Size(730,430)
  $form.StartPosition='CenterScreen'
  $form.MaximizeBox=$false
  $form.FormBorderStyle='FixedDialog'
@@ -307,9 +346,25 @@ try{
   }catch{& $errorDialog $_.Exception.Message}
  })
  $form.Controls.Add($refresh)
+ $stopBtn=New-Object System.Windows.Forms.Button
+ $stopBtn.Text='STOP ENGINE (NOT BROKER ORDERS)'
+ $stopBtn.Location=New-Object System.Drawing.Point(18,287)
+ $stopBtn.Size=New-Object System.Drawing.Size(678,44)
+ $stopBtn.Add_Click({
+  $yes=[System.Windows.Forms.MessageBox]::Show(
+    'Stopping Ark does NOT cancel open broker orders or sell holdings. Manually check/cancel/sell via MarketSpeed II. Request an engine stop now?',
+    'ARK: STOP IS NOT CANCEL',
+    [System.Windows.Forms.MessageBoxButtons]::YesNo,
+    [System.Windows.Forms.MessageBoxIcon]::Warning)
+  if($yes -eq [System.Windows.Forms.DialogResult]::Yes){
+   try{StopRunningEngine $cfg $true; $status.Text='Engine stop REQUESTED. Check broker orders and holdings manually.'}
+   catch{& $errorDialog $_.Exception.Message}
+  }
+ })
+ $form.Controls.Add($stopBtn)
  $notice=New-Object System.Windows.Forms.Label
  $notice.Text='Weekend: actual Friday source only, RSS connection required. Engine STOP does not automatically cancel existing broker orders.'
- $notice.Location=New-Object System.Drawing.Point(18,292)
+ $notice.Location=New-Object System.Drawing.Point(18,348)
  $notice.Size=New-Object System.Drawing.Size(675,42)
  $form.Controls.Add($notice)
  [void]$form.ShowDialog()

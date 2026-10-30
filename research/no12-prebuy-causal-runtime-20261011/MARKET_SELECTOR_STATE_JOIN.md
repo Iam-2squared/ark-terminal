@@ -1,0 +1,5 @@
+# Ark No.1.2 offline source join, 2026-10-11
+
+The original No.1.2 synthetic pre-BUY research candidate engine had three separately authored source records. This pure source join assembles the RssChart 5-minute read-only market observation, a separately observed Selector/First Entry score/threshold, and a separately observed formal State9 Primary into one timestamp-consistent batch before invoking the existing synthetic candidate ranker. It retains the **latest actual knowledge time**, accepts only the same symbol and same session, rejects incomplete input, and cannot fabricate a live input stream.
+
+Important limitations: the original native Selector/First Entry and State9 real-time producers have not been implemented. The synthetic values in unit tests are not real price evidence or trade predictions. No externally signed/authenticated model-output receipt, original Frozen R0 or independent economic validation exists. Real mode is intentionally rejected; no order, Excel, network, broker, or Safety changes. The source join is the testable glue that can receive a future verified producer rather than designing a new score or guessing State9 from OHLCV.

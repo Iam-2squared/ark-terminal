@@ -71,10 +71,29 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'NO11_MONDAY_ISOLATED_WORKTREE_STAGE_SELFTEST_FAILED' }
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Start-No11UnifiedLauncher.ps1 -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'NO11_UNIFIED_LAUNCHER_WINDOWS_SELFTEST_FAILED' }
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Start-No11LiveUiReadOnly.ps1 -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO11_UI2_LIVE_ONLY_WINDOWS_SELFTEST_FAILED' }
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Install-No11UnifiedDesktopShortcut.ps1 -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'NO11_UNIFIED_DESKTOP_SHORTCUT_SELFTEST_FAILED' }
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Install-No11UnifiedFromGitReadOnly.ps1 -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'NO11_UNIFIED_GIT_INSTALL_SELFTEST_FAILED' }
+      - name: Verify LIVE-only UI2 read model and pinned-view no-demo contract (offline)
+        shell: bash
+        run: |
+          python -B research/no12-prebuy-causal-runtime-20261011/tools/no11_live_ui2_readonly.py --offline-selftest
+          python -B -m unittest discover -s research/no12-prebuy-causal-runtime-20261011/tests -p 'test_no11_live_ui2_readonly.py' -v
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('research/no12-prebuy-causal-runtime-20261011/ui/no11_live_operations.html')
+          src=p.read_text(encoding='utf-8')
+          assert src.count('data-view=')==6 and '7203.T' not in src
+          assert 'SHADOW PORTFOLIO' not in src
+          js=re.findall(r'<script>(.*?)</script>',src,re.S)
+          assert len(js)==1 and '/api/live' in js[0]
+          Path('/tmp/no11-live-ui2.js').write_text(js[0],encoding='utf-8')
+          PY
+          node --check /tmp/no11-live-ui2.js
       - name: Exercise market probe formula safety without Excel or broker (Windows only)
         if: matrix.os == 'windows-latest'
         shell: powershell

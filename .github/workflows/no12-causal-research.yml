@@ -91,9 +91,9 @@ jobs:
           assert 'SHADOW PORTFOLIO' not in src
           js=re.findall(r'<script>(.*?)</script>',src,re.S)
           assert len(js)==1 and '/api/live' in js[0]
-          Path('/tmp/no11-live-ui2.js').write_text(js[0],encoding='utf-8')
+          Path('no11-live-ui2-js-check.js').write_text(js[0],encoding='utf-8')
           PY
-          node --check /tmp/no11-live-ui2.js
+          node --check no11-live-ui2-js-check.js
       - name: Exercise market probe formula safety without Excel or broker (Windows only)
         if: matrix.os == 'windows-latest'
         shell: powershell

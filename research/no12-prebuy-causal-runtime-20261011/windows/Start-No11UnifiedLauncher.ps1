@@ -11,6 +11,8 @@ $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 $trade=Join-Path $PSScriptRoot 'Run-No11ReceivedSessionOperatorLive.ps1'
 $weekly=Join-Path $PSScriptRoot 'Prepare-No11WeeklyAfterCloseReadOnly.ps1'
+$ui=Join-Path $PSScriptRoot 'Start-No11LiveUiReadOnly.ps1'
+$script:UiLaunchStatus='NOT_REQUESTED'
 $store=Join-Path $env:LOCALAPPDATA 'ArkTerminal\No12\unified-launcher'
 $settingsFile=Join-Path $store 'settings.json'
 $schema='ARK_NO11_UNIFIED_LAUNCHER_SETTINGS_V1'
@@ -169,6 +171,24 @@ function RunTrade($cfg,[bool]$approved){
            '-OrderIdWorkbookPath',$cfg.orderIdWorkbookPath,
            '-IApproveFullArkLiveOrdersForThisSession')
  StartChild 'TRADE' $trade $params $sha $day
+ # The trade start is a request, NOT a broker acceptance. Launch a separate
+ # loopback read-only UI only after the unchanged LIVE checks pass.
+ # UI errors cannot imply a broker order was cancelled or never requested.
+ $script:UiLaunchStatus='NOT_STARTED'
+ try {
+  Need (Test-Path -LiteralPath $ui -PathType Leaf) 'LIVE_UI_SOURCE_MISSING'
+  $uiLines=@(& powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $ui -ConfigFile $file)
+  if($LASTEXITCODE -eq 0 -and
+     $uiLines -contains 'NO11_UI2_LIVE_ONLY=LOCAL_BROWSER_OPEN_REQUESTED'){
+   $script:UiLaunchStatus='LIVE_ONLY_UI_BROWSER_REQUESTED'
+  }else{
+   $script:UiLaunchStatus='LIVE_ONLY_UI_FAILED_CHECK_BROKER_AND_LOGS'
+  }
+ }catch{
+  $script:UiLaunchStatus='LIVE_ONLY_UI_FAILED_CHECK_BROKER_AND_LOGS'
+ }
+ Write-Host ('NO11_UNIFIED_UI2_LIVE='+$script:UiLaunchStatus)
+ Write-Host 'NO11_UNIFIED_UI_IS_NOT_BROKER_ACK_OR_FILL=True'
  Write-Host 'NO11_UNIFIED_TRADEX=FROZEN_MAX3_ENGINE_REQUESTED'
 }
 function RunWeekly($cfg){
@@ -256,7 +276,9 @@ if($OfflineSelfTest){
  Need ((NewSettings).normalMaxPositions -eq 3 -and
        (NewSettings).automaticOrderAuthorization -eq $false -and
        (Test-Path -LiteralPath $trade -PathType Leaf) -and
-       (Test-Path -LiteralPath $weekly -PathType Leaf)) 'OFFLINE_CONTRACT'
+       (Test-Path -LiteralPath $weekly -PathType Leaf) -and
+       (Test-Path -LiteralPath $ui -PathType Leaf)) 'OFFLINE_CONTRACT'
+ Write-Host 'NO11_UNIFIED_UI2_LIVE_ONLY_AUTOSTART=AFTER_LIVE_START_REQUEST'
  Write-Host 'NO11_UNIFIED_OFFLINE_SELFTEST=PASS_NO_EXCEL_NO_RSS_NO_ORDERS'
  Write-Host 'NO11_UNIFIED_NORMAL_FULL_MAX3_SAME_DAY_CONFIRMATION_REQUIRED=True'
  Write-Host 'NO11_UNIFIED_WEEKEND_PRIOR_FRIDAY_RSS_OPTION=True'
@@ -322,7 +344,7 @@ try{
     [System.Windows.Forms.MessageBoxIcon]::Warning)
    if($yes -eq [System.Windows.Forms.DialogResult]::Yes){
     RunTrade $cfg $true
-    $status.Text='LIVE ENGINE START REQUESTED. Check private logs; an order/fill is NOT confirmed.'
+    $status.Text='LIVE START REQUESTED; '+$script:UiLaunchStatus+'. Check broker/logs: no ACK/fill confirmed.'
    }
   }catch{& $errorDialog $_.Exception.Message}
  })

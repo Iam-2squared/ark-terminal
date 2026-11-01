@@ -182,11 +182,13 @@ def offline():
       'productionReady':False,'orderTransmission':False,'rows':[]}
     no_rss={'schemaId':'ARK_NO11_RSS_SESSION_REFERENCE_CAPTURE_V1',
       'sessionDate':SESSION,'source':'RssMarket_SELECTED_REFERENCE_READONLY',
-      'selectedSymbols':sorted(EXPECTED),'rows':[{}]*24,'readOnly':True,
+      'selectedSymbols':sorted(EXPECTED),'rows':[{}]*24,
+      'chartPlanSha256':'0'*64,'readOnly':True,
       'productionReady':False,'orderTransmission':False}
     denied = False
     try:verify(bridge,no_rss,not_reviewed,SESSION+'T09:01:00.000+09:00')
-    except ValueError:denied=True
+    except ValueError as exc:
+        denied = str(exc) == 'NO11_NOV02_FINISH_INDEPENDENT_EXTERNAL_REVIEW_REQUIRED'
     need(denied and len(EXPECTED)==24, 'UNREVIEWED_REJECTED_OFFLINE')
     print('NO11_NOV02_FINISH_OFFLINE_SELFTEST=PASS_MISSING_REVIEW_BLOCKED')
     print('ORDER_TRANSMISSION=False')

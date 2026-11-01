@@ -45,14 +45,22 @@ if($OfflineSelfTest){
   @($expected|Select-Object -Unique).Count -eq 24 -and
   @($expected|Where-Object {$_ -notmatch '^[0-9A-Z]{4}\.T$'}).Count -eq 0 -and
   @($expected|Where-Object {$_ -in $knownExcluded}).Count -eq 0) 'STATIC_SCOPE'
+ $empty=[pscustomobject]@{}
+ $emptyNames=@($empty.PSObject.Properties | ForEach-Object { $_.Name })
+ $populated=[pscustomobject]@{ '7203.T'=1 }
+ $names=@($populated.PSObject.Properties | ForEach-Object { $_.Name })
+ Need ($emptyNames.Count -eq 0 -and $names.Count -eq 1 -and $names[0] -ceq '7203.T') 'EMPTY_PROPERTIES_STRICTMODE'
+ Write-Host 'NO11_NOV02_PRELIVE_EMPTY_ARCHIVE_PROPERTIES_SELFTEST=PASS'
  Write-Host 'NO11_NOV02_PRELIVE_OFFLINE_SELFTEST=PASS'
  Write-Host 'ORDER_TRANSMISSION=False'
  exit 0
 }
+ $step='RECEIPT_HASH_VALIDATION'
 try{
  $chartHash=CheckReceipt $sourceChart 'no11-chart50-private' 16
  $maskHash=CheckReceipt $sourceMask 'no11-observed-pass-watch' 16
  $stageHash=CheckReceipt $previous 'previous-archive-stage' 64
+ $step='SOURCE_JSON_CONTRACTS'
  $chart=PrivateJson $sourceChart
  $mask=PrivateJson $sourceMask
  $stage=PrivateJson $previous
@@ -70,17 +78,22 @@ try{
    $stage.productionReady -eq $false -and
    $stage.orderTransmission -eq $false -and
    $stage.chartPlanSha256 -ceq $chart.chartPlan.planSha256) 'STAGE_CONTRACT'
+ $step='SELECTED_24_MEMBERSHIP'
  $selected=@($chart.chartPlan.selectorInputSymbols)
  Need ($selected.Count -eq 24 -and
    (($selected -join '|') -ceq (@($stage.selectedSymbols) -join '|')) -and
    (@($selected|Where-Object {$_ -notin $expected}).Count -eq 0) -and
    (@($expected|Where-Object {$_ -notin $selected}).Count -eq 0) -and
    (@($selected|Where-Object {$_ -in $knownExcluded}).Count -eq 0)) 'SCOPE_NOT_EXACT_24'
- $archived=@($stage.symbols.PSObject.Properties.Name)
- $missed=@($stage.omittedSymbols.PSObject.Properties.Name)
+ # PS 5.1 StrictMode does not safely enumerate .Name on a zero-member
+ # PSObject.Properties collection. The archive is expected to have zero omitted.
+ $step='EMPTY_SAFE_ARCHIVE_MEMBERSHIP'
+ $archived=@($stage.symbols.PSObject.Properties | ForEach-Object { $_.Name })
+ $missed=@($stage.omittedSymbols.PSObject.Properties | ForEach-Object { $_.Name })
  Need ($archived.Count -eq 24 -and $missed.Count -eq 0 -and
    @($selected | Where-Object {$_ -notin $archived}).Count -eq 0) 'ARCHIVE_NOT_24_OF_24'
  Need (Test-Path -LiteralPath $weekly -PathType Container) 'PINNED_WEEKLY_SOURCE_MISSING'
+ $step='LAUNCHER_SETTINGS'
  $cfg=PrivateJson $settings
  Need ($cfg.schemaId -ceq 'ARK_NO11_UNIFIED_LAUNCHER_SETTINGS_V1' -and
    $cfg.normalMaxPositions -eq 3 -and
@@ -92,6 +105,7 @@ try{
  $accountExists=(Test-Path -LiteralPath $cfg.accountWorkbookPath -PathType Leaf)
  $marketExists=(Test-Path -LiteralPath $cfg.marketWorkbookPath -PathType Leaf)
  Need ($orderIdExists -and $accountExists -and $marketExists) 'BROKER_WORKBOOK_SOURCE_MISSING'
+ $step='LIVE_ENGINE_FILES'
  $engine=Join-Path 'C:\ArkTerminal\no11-unified-2026-10-30' 'research\no12-prebuy-causal-runtime-20261011'
  $required=@('tools\no11_received_session_controller.py',
   'tools\no11_received_session_bootstrap.py',
@@ -102,6 +116,7 @@ try{
  $missing=@($required | Where-Object {-not (Test-Path -LiteralPath (Join-Path $engine $_) -PathType Leaf)})
  Need ($missing.Count -eq 0) 'LIVE_SOURCE_NOT_INSTALLED'
  $p1Exists=Test-Path -LiteralPath $p1 -PathType Container
+ $step='PRIVATE_INVENTORY_WRITE'
  $privateOut=Join-Path $root 'nov02-24-prelive'
  [void][IO.Directory]::CreateDirectory($privateOut)
  $body=[ordered]@{
@@ -169,6 +184,9 @@ try{
  if($reason -cnotmatch '^NO11_NOV02_PRELIVE_[A-Z0-9_]+$'){
   $reason='NO11_NOV02_PRELIVE_PRIVATE_SOURCE_OR_RUNTIME_FAILED'
  }
+ Write-Host ('NO11_PRELIVE_FAILED_STAGE='+$step)
+ Write-Host ('NO11_PRELIVE_FAILURE_TYPE='+$_.Exception.GetType().Name)
+ Write-Host ('NO11_PRELIVE_FAILURE_LINE='+[int]$_.InvocationInfo.ScriptLineNumber)
  Write-Host ('NO11_PRELIVE=BLOCKED|'+$reason)
  Write-Host 'ORDER_TRANSMISSION=False'
  exit 2

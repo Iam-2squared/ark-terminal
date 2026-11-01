@@ -1,0 +1,60 @@
+name: No11 selected-master source contracts
+on:
+  push:
+    branches: [research/no12-prebuy-causal-runtime-20261011]
+    paths:
+      - .github/workflows/no11-selected-master.yml
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_auto_master*.py
+      - research/no12-prebuy-causal-runtime-20261011/tests/test_no11_auto_master*.py
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  official-format-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Inspect public JPX formats only (not security clearance)
+        run: |
+          python - <<'PY'
+          from urllib.request import Request, urlopen
+          from html.parser import HTMLParser
+          from urllib.parse import urljoin, urlsplit
+          import re
+          class Table(HTMLParser):
+              def __init__(self):
+                  super().__init__(); self.rows=[]; self.row=None; self.cell=None; self.links=[]
+              def handle_starttag(self,t,a):
+                  attrs=dict(a)
+                  if t=='tr': self.row=[]
+                  if t in ('td','th') and self.row is not None: self.cell=[]
+                  if t=='a' and attrs.get('href'): self.links.append(attrs['href'])
+              def handle_data(self,d):
+                  if self.cell is not None: self.cell.append(d)
+              def handle_endtag(self,t):
+                  if t in ('td','th') and self.row is not None and self.cell is not None:
+                      self.row.append(' '.join(''.join(self.cell).split())); self.cell=None
+                  if t=='tr' and self.row is not None:
+                      self.rows.append(self.row); self.row=None
+          urls=['https://www2.jpx.co.jp/tseHpFront/StockSearch.do?method=topsearch&topSearchStr=7203',
+                'https://www.jpx.co.jp/listing/others/ex-rights/index.html']
+          for url in urls:
+              try:
+                  with urlopen(Request(url,headers={'User-Agent':'ArkTerminal-source-contract/1.0'}),timeout=20) as r:
+                      raw=r.read(3000000); charset=r.headers.get_content_charset() or 'utf-8'
+                  text=raw.decode(charset,errors='replace'); p=Table(); p.feed(text)
+                  print('PUBLIC_SOURCE_HOST='+urlsplit(url).hostname)
+                  print('PUBLIC_BYTES='+str(len(raw)))
+                  for row in p.rows:
+                      if any('72030' in c or '公表分' in c or 'コード'==c for c in row): print('PUBLIC_ROW='+repr(row[:9]))
+                  files=[urljoin(url,a) for a in p.links if re.search(r'\.(?:xls|xlsx|csv|pdf)(?:\?|$)',a,re.I)]
+                  for link in files[:6]: print('PUBLIC_ATTACHMENT='+link)
+                  print('AUTOMATIC_SECURITY_CLEARANCE=False')
+              except Exception as exc:
+                  print('PUBLIC_SOURCE_PROBE_UNAVAILABLE='+type(exc).__name__)
+          print('EXCEL_TOUCHED=False\nORDER_TRANSMISSION=False')
+          PY

@@ -98,6 +98,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'NO11_NOV02_FROZEN_ASSET_DISCOVERY_OFFLINE_SELFTEST_FAILED' }
           python -B research/no12-prebuy-causal-runtime-20261011/tools/no11_nov02_bootstrap_bridge_readonly.py --offline-selftest
           if ($LASTEXITCODE -ne 0) { throw 'NO11_NOV02_BOOTSTRAP_SOURCE_ONLY_SELFTEST_FAILED' }
+          python -B research/no12-prebuy-causal-runtime-20261011/tools/no11_nov02_finish_reviewed_inputs_readonly.py --offline-selftest
+          if ($LASTEXITCODE -ne 0) { throw 'NO11_NOV02_REVIEWED_MASTER_FAIL_CLOSED_SELFTEST_FAILED' }
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Prepare-No11Nov02MorningHandoffReadOnly.ps1 -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'NO11_NOV02_24_MORNING_HANDOFF_OFFLINE_SELFTEST_FAILED' }
           $testHandoff = './research/no12-prebuy-causal-runtime-20261011/windows/Prepare-No11Nov02MorningHandoffReadOnly.ps1'

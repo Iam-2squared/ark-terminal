@@ -405,11 +405,11 @@ public static class No11DailyWindow {
    # only after repeated fully observed waves.
    if($script:DailyExcelComBusyCount -gt $waveComBusyBefore){
     $fullWaves=0
-    $physical=NextAutoMaxBatch $physical $ceiling $false
+    $physical=[Math]::Max(1,[int][Math]::Floor($physical/2))
     Write-Host ('NO11_DAILY_BATCH_TUNE=EXCEL_COM_BUSY_REDUCED_TO_{0}|NO_DATA_FABRICATION' -f $physical)
    }elseif($usable -lt $batch.Count){
     $fullWaves=0
-    $physical=NextAutoMaxBatch $physical $ceiling $false
+    $physical=[Math]::Max(1,[int][Math]::Floor($physical/2))
     Write-Host ('NO11_DAILY_BATCH_TUNE=PARTIAL_REDUCED_TO_{0}|MISSING_NOT_G1_PASS' -f $physical)
    }elseif($physical -lt $ceiling){
     $fullWaves++

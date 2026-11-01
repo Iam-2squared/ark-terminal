@@ -87,6 +87,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'NO11_MAX47_SAFE_SWITCH_SELFTEST_FAILED' }
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11Nov02Known24ReadOnly.ps1 -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'NO11_NOV02_PROVISIONAL_24_STAGER_SELFTEST_FAILED' }
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Prepare-No11Nov02PreLiveInventoryReadOnly.ps1 -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO11_NOV02_PRELIVE_INVENTORY_OFFLINE_SELFTEST_FAILED' }
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Start-No11LiveUiReadOnly.ps1 -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'NO11_UI2_LIVE_ONLY_WINDOWS_SELFTEST_FAILED' }
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Install-No11LiveUi2FromGitReadOnly.ps1 -OfflineSelfTest

@@ -163,15 +163,19 @@ try{
   Need ($extra.Count -le 1 -and $all -contains $required[0] -and
         $all -contains $required[1]) 'EXCEL_ORIGINALS_NOT_UNIQUE'
   if($extra.Count -eq 1){
+   # Construct JP Excel Book/Sheet labels from Unicode points to avoid
+   # Windows PowerShell 5.1 misdecoding UTF-8 source without BOM.
+   $localBook=-join [char[]]@(0x30d6,0x30c3,0x30af)
+   $localSheet=-join [char[]]@(0x30b7,0x30fc,0x30c8)
    $temporary=$excel.Workbooks.Item($extra[0])
    $sheetNames=@(for($j=1;$j -le $temporary.Worksheets.Count;$j++){
     [string]$temporary.Worksheets.Item($j).Name
    })
    $daily=@($sheetNames | Where-Object {$_ -match '^DAILY_[0-9A-Z]{4}_T$'})
    $alien=@($sheetNames | Where-Object {
-    $_ -notmatch '^DAILY_[0-9A-Z]{4}_T$' -and $_ -notmatch '^(Sheet|シート)[0-9]+$'
+    $_ -notmatch '^DAILY_[0-9A-Z]{4}_T$' -and $_ -notmatch ('^(Sheet|'+$localSheet+')[0-9]+$')
    })
-   Need ($extra[0] -match '^(Book|ブック)[0-9]+$' -and $daily.Count -ge 1 -and
+   Need ($extra[0] -match ('^(Book|'+$localBook+')[0-9]+$') -and $daily.Count -ge 1 -and
          $alien.Count -eq 0) 'UNRECOGNIZED_EXTRA_BOOK_CLOSE_MANUALLY'
    $temporary.Close($false)
    Write-Host 'NO11_MAX47_PRIOR_ARK_TEMP_BOOK_CLOSED_WITHOUT_SAVING=True'

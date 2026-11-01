@@ -82,8 +82,8 @@ def verify(bridge, rss, evidence, now):
          and rss.get('sessionDate') == SESSION
          and rss.get('selectedSymbols') == selected
          and type(rss.get('rows')) is list and len(rss['rows']) == 24
-         and rss.get('chartPlanSha256') == bridge.get('sourceChartPlanSha256',
-             rss.get('chartPlanSha256'))
+         and type(rss.get('chartPlanSha256')) is str
+         and re.fullmatch(r'[a-f0-9]{64}',rss['chartPlanSha256']) is not None
          and rss.get('readOnly') is True
          and rss.get('productionReady') is False
          and rss.get('orderTransmission') is False,

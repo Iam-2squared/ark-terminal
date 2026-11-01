@@ -117,7 +117,7 @@ try{
   selectedSymbols=$selected
   archivedCount=$archived.Count
   weeklySourceRun=$weekly
-  pinnedP1Root=if($p1Exists){$p1}else{$null}
+  pinnedP1Root=$(if($p1Exists){$p1}else{$null})
   sourceAccountWorkbook=$cfg.accountWorkbookPath
   sourceMarketWorkbook=$cfg.marketWorkbookPath
   supplementalOrderIdWorkbook=$cfg.orderIdWorkbookPath

@@ -130,3 +130,21 @@ test('2026-11-02 fast-track Friday 429 ONLY accepts actual previous-Friday sourc
  }
  assert.doesNotMatch(runner,/RssStockOrder\s*\(|RssCancelOrder\s*\(/);
 });
+
+test('opt-in adaptive MAX47 physical batches keep 50 chart cap and fail closed',()=>{
+ const reader=fs.readFileSync(new URL('../windows/Run-No11WeeklyCandidateRefreshReadOnly.ps1',import.meta.url),'utf8');
+ const runner=fs.readFileSync(new URL('../windows/Prepare-No11WeeklyAfterCloseReadOnly.ps1',import.meta.url),'utf8');
+ for(const term of ['[switch]$AutoMaxThroughput','function NextAutoMaxBatch(',
+   'NO11_DAILY_AUTOMAX_RAMP_OFFLINE_SELFTEST=PASS','SafePhysicalBatch $existing $BatchSize',
+   'NO11_DAILY_AUTOMAX=ADAPTIVE_5_TO_{0}', 'EXCEL_COM_BUSY_REDUCED_TO_',
+   'MISSING_NOT_G1_PASS', 'NO11_DAILY_EXCEL_ADD_OUTCOME_AMBIGUOUS_NO_DUPLICATE',
+   'NO11_DAILY_NO_FULL_HISTORY_IN_WAVE_REVIEW_PARTIAL_REPORT',
+   'NO11_DAILY_ERROR_OPERATION=', 'ORDER_TRANSMISSION=False']){
+  assert.ok(reader.includes(term),term);
+ }
+ for(const term of ['[switch]$RefreshAutoMaxThroughput', "'-AutoMaxThroughput'",
+   'AUTOMAX_REQUIRES_PHYSICAL_47_CEILING', 'NO11_WEEKLY_NIGHTLY_FULL_FRIDAY_4328_COMPLETED=False']){
+  assert.ok(runner.includes(term),term);
+ }
+ assert.doesNotMatch(reader,/RssStockOrder\s*\(|RssCancelOrder\s*\(/);
+});

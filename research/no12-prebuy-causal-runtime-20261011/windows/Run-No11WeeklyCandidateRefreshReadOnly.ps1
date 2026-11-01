@@ -47,6 +47,7 @@ function NextWaveEnd([int]$offset,[int]$remaining,[int]$groupSize,[int]$physical
 # reads/idempotent writes. For Add/Close verify object counts after a rejected
 # reply; never duplicate a workbook or sheet after an ambiguous COM response.
 $script:DailyExcelComBusyCount=0
+$script:DailyExcelOp='NO_EXCEL_OPERATION'
 function Get-ExcelBusyHresult([System.Exception]$errorValue){
  for($e=$errorValue;$null -ne $e;$e=$e.InnerException){
   if([int]$e.HResult -in @(-2147418111,-2147417846)){return [int]$e.HResult}
@@ -192,6 +193,9 @@ if($OfflineSelfTest){
  }
  Write-Host 'NO11_DAILY_EXCEL_BUSY_BOUNDED_RETRY_SELFTEST=PASS'
  Write-Host 'NO11_DAILY_EXCEL_AMBIGUOUS_ADD_FAILCLOSED_SELFTEST=PASS'
+ if($script:DailyExcelOp -cne 'NO_EXCEL_OPERATION'){
+  throw 'NO11_DAILY_COM_OPERATION_TRACKER_SELFTEST'
+ }
  if((SafePhysicalBatch 0 47) -ne 47 -or (SafePhysicalBatch 19 47) -ne 28 -or
     (SafePhysicalBatch 39 30) -ne 8 -or
     (NextWaveEnd 90 429 100 30) -ne 100 -or
@@ -309,26 +313,33 @@ public static class No11DailyWindow {
    $waveEnd=NextWaveEnd $offset $remaining.Count $GroupSize $physical
    $batch=@($remaining[$offset..($waveEnd-1)]);$sheets=@();$stage='TEMPORARY_WORKBOOK'
    $waveComBusyBefore=$script:DailyExcelComBusyCount
+   $script:DailyExcelOp='TEMP_BOOK_ADD'
    $book=New-ExcelComObjectChecked { $excel.Workbooks.Add() } { $excel.Workbooks.Count } 'WORKBOOK_ADD'
    foreach($symbol in $batch){
+    $script:DailyExcelOp='TEMP_SHEET_ADD'
     $ws=New-ExcelComObjectChecked { $book.Worksheets.Add() } { $book.Worksheets.Count } 'SHEET_ADD'
     $sheetName='DAILY_'+$symbol.Replace('.','_')
+    $script:DailyExcelOp='TEMP_SHEET_RENAME'
     [void](Invoke-ExcelIdempotent { $ws.Name=$sheetName } 'SHEET_NAME')
+    $script:DailyExcelOp='TEMP_SHEET_HEADERS'
     for($j=0;$j -lt 10;$j++){
      [void](Invoke-ExcelIdempotent { $ws.Cells.Item(2,$j+1).Value2=$headers[$j] } 'SHEET_HEADER')
     }
     $formula=New-DailyFormula $symbol
+    $script:DailyExcelOp='TEMP_SHEET_RSS_FORMULA'
     [void](Invoke-ExcelIdempotent { $ws.Range('A1').Formula=$formula } 'RSS_FORMULA')
     $sheets+=@($ws)
    }
-   $stage='WAIT_FOR_RSS';Start-Sleep -Seconds $WaitSeconds
+   $stage='WAIT_FOR_RSS';$script:DailyExcelOp='WAIT_RSS';Start-Sleep -Seconds $WaitSeconds
    $emptyRetry=0
    do{
     $payloads=New-Object System.Collections.ArrayList;$usable=0;$complete=0;$stage='DAILY_CAPTURE'
    for($k=0;$k -lt $batch.Count;$k++){
     $symbol=$batch[$k];$ws=$sheets[$k];$formula=New-DailyFormula $symbol
+    $script:DailyExcelOp='CAPTURE_FORMULA_VERIFY'
     if([string](Invoke-ExcelIdempotent { $ws.Range('A1').Formula } 'RSS_FORMULA_VERIFY') -cne $formula){throw 'NO11_DAILY_FORMULA_CHANGED'}
-    $start=Now-Jst;$values=$ws.Range('A3:J102').Value2;$end=Now-Jst;$parsed=Read-DailyRows $values
+    $script:DailyExcelOp='CAPTURE_RSS_D100_READ'
+    $start=Now-Jst;$values=Invoke-ExcelIdempotent { $ws.Range('A3:J102').Value2 } 'RSS_D100_READ';$end=Now-Jst;$parsed=Read-DailyRows $values
     $status=if($parsed.rows.Count -gt 0){'OBSERVED'}else{'UNAVAILABLE'}
     if($parsed.rows.Count -gt 0){$usable++}
     $dates=@($parsed.rows | ForEach-Object {$_.session})
@@ -349,10 +360,14 @@ public static class No11DailyWindow {
    }while($true)
    # Never checkpoint an entirely empty wave, even after retries.
    if($usable -eq 0){throw 'NO11_DAILY_ALL_EMPTY_WAVE_RETRY_AFTER_RECONNECT'}
+   $script:DailyExcelOp='SAVE_VERIFIED_WAVE'
    foreach($payload in $payloads){Save-Capture (Join-Path $run 'sources') $payload}
+   $script:DailyExcelOp='TEMP_BOOK_CLOSE'
    Close-ExcelTemporaryWorkbook $excel $book
+   $script:DailyExcelOp='TEMP_COM_RELEASE'
    foreach($ws in $sheets){[void][Runtime.InteropServices.Marshal]::ReleaseComObject($ws)}
    $sheets=@();[void][Runtime.InteropServices.Marshal]::ReleaseComObject($book);$book=$null
+   $script:DailyExcelOp='WAVE_COMPLETE'
    # RssChart may still be calculating directly after a workbook closes.
    Start-Sleep -Seconds 2
    Write-Host ('NO11_DAILY_PROGRESS={0}/{1}|WAVE_OBSERVED={2}|WAVE_FULL76={3}' -f ($work.resumed+$waveEnd),$work.plan.symbols.Count,$usable,$complete)
@@ -384,10 +399,20 @@ public static class No11DailyWindow {
   }
  }
 }catch{
- $failed=$true;$reason=$_.Exception.Message
+ $failed=$true
+ $errorRecord=$_
+ $reason=$errorRecord.Exception.Message
  if($reason -notmatch '^NO11_[A-Z0-9_]+$'){$reason='NO11_DAILY_COM_OR_IO_FAILURE'}
+ # Diagnostic only: no error message, file path, symbol or account info in logs.
+ $exceptionType=($errorRecord.Exception.GetType().Name -replace '[^A-Za-z0-9]','_')
+ $inner=$errorRecord.Exception.InnerException
+ $innerType=if($null -eq $inner){'NONE'}else{($inner.GetType().Name -replace '[^A-Za-z0-9]','_')}
+ $innerHr=if($null -eq $inner){0}else{[int]$inner.HResult}
+ $line=[int]$errorRecord.InvocationInfo.ScriptLineNumber
+ Write-Host ('NO11_DAILY_ERROR_OPERATION='+$script:DailyExcelOp)
+ Write-Host ('NO11_DAILY_ERROR_CLASS={0}|INNER={1}|INNER_HRESULT={2}|LINE={3}' -f $exceptionType,$innerType,$innerHr,$line)
  Write-Host ('NO11_DAILY_CAPTURE=BLOCKED|'+$reason);Write-Host ('NO11_DAILY_STAGE='+$stage)
- Write-Host ('NO11_DAILY_HRESULT='+$_.Exception.HResult)
+ Write-Host ('NO11_DAILY_HRESULT='+$errorRecord.Exception.HResult)
 }finally{
  if($null -ne $book){try{$book.Close($false)}catch{}}
  foreach($ws in $sheets){try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($ws)}catch{}}

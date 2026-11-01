@@ -92,8 +92,9 @@ try{
  $testsRel=$prefix+'tests/no11_weekly_g1_refresh.test.mjs'
  & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $staged[$readerRel] -OfflineSelfTest
  Need ($LASTEXITCODE -eq 0) 'NEW_READER_OFFLINE_TEST_FAILED'
- & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $staged[$runnerRel] -OfflineSelfTest -WeekendFridayLimited -RefreshBatchSize 47 -RefreshAutoMaxThroughput
- Need ($LASTEXITCODE -eq 0) 'NEW_RUNNER_OFFLINE_TEST_FAILED'
+ # The runner validates its sibling tools before OfflineSelfTest, so its
+ # offline test runs only AFTER staging into the verified pinned worktree.
+
  # Reject running broker/another scan; only the exact Friday429 read-only
  # collector may be interrupted. Stop the child first, then its parent.
  $powershell=@(Get-CimInstance Win32_Process | Where-Object {
@@ -150,9 +151,9 @@ try{
    })
    $daily=@($sheetNames | Where-Object {$_ -match '^DAILY_[0-9A-Z]{4}_T$'})
    $alien=@($sheetNames | Where-Object {
-    $_ -notmatch '^DAILY_[0-9A-Z]{4}_T$' -and $_ -notmatch '^Sheet[0-9]+$'
+    $_ -notmatch '^DAILY_[0-9A-Z]{4}_T$' -and $_ -notmatch '^(Sheet|シート)[0-9]+$'
    })
-   Need ($extra[0] -match '^Book[0-9]+$' -and $daily.Count -ge 1 -and
+   Need ($extra[0] -match '^(Book|ブック)[0-9]+$' -and $daily.Count -ge 1 -and
          $alien.Count -eq 0) 'UNRECOGNIZED_EXTRA_BOOK_CLOSE_MANUALLY'
    $temporary.Close($false)
    Write-Host 'NO11_MAX47_PRIOR_ARK_TEMP_BOOK_CLOSED_WITHOUT_SAVING=True'
@@ -197,6 +198,8 @@ try{
  Need ($LASTEXITCODE -eq 0) 'MAX47_WEEKLY_TEST_FAILED'
  & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $root $readerRel) -OfflineSelfTest
  Need ($LASTEXITCODE -eq 0) 'MAX47_INSTALLED_READER_TEST_FAILED'
+ & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $root $runnerRel) -OfflineSelfTest -WeekendFridayLimited -RefreshBatchSize 47 -RefreshAutoMaxThroughput
+ Need ($LASTEXITCODE -eq 0) 'MAX47_INSTALLED_RUNNER_TEST_FAILED'
  # No parallel launch or workbook modification. Read-only Friday429 ONLY.
  $logs=Join-Path $env:LOCALAPPDATA 'ArkTerminal/No12/unified-launcher/logs'
  [void][IO.Directory]::CreateDirectory($logs)

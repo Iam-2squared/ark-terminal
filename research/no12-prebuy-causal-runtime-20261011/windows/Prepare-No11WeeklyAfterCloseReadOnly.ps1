@@ -19,6 +19,7 @@ param(
  [ValidateRange(5,60)][int]$FullWaitSeconds=15,
  [ValidateSet(50,100)][int]$RefreshGroupSize=100,
  [ValidateRange(1,47)][int]$RefreshBatchSize=30,
+ [switch]$RefreshAutoMaxThroughput,
  [ValidateRange(5,60)][int]$RefreshWaitSeconds=25,
  [ValidateRange(1,20)][int]$MinuteBatchSize=5,
  [ValidateRange(5,60)][int]$MinuteWaitSeconds=20,
@@ -116,6 +117,10 @@ try{
   Write-Host 'NO11_WEEKLY_NIGHTLY_RECOVERY=EXPLICIT_OCT26_SEED_FRIDAY_429_ONLY'
   Write-Host 'NO11_WEEKLY_NIGHTLY_FULL_FRIDAY_4328_COMPLETED=False'
   Write-Host 'NO11_WEEKLY_NIGHTLY_FRIDAY_RSS_RECEIPTS=REQUIRED_FOR_ALL_429'
+  if($RefreshAutoMaxThroughput){
+   Need ($RefreshBatchSize -eq 47) 'AUTOMAX_REQUIRES_PHYSICAL_47_CEILING'
+   Write-Host 'NO11_WEEKLY_NIGHTLY_AUTOMAX=5_TO_47_ADAPTIVE_LIMIT_50_MINUS_RESERVE_3'
+  }
  }
  if($mode -ceq 'FULL_MARKET_FRIDAY'){
  Need ([IO.Path]::IsPathRooted($FullSymbolsFile) -and
@@ -229,6 +234,7 @@ try{
  if(-not [string]::IsNullOrWhiteSpace($PinsFile)){$rargs+=@('-PinsFile',$PinsFile)}
  if($yahooFriday){$rargs+=@('-ConfirmYahooFridayRss')}
  if($WeekendFridayLimited){$rargs+=@('-FirstBuyFridayLimited')}
+ if($RefreshAutoMaxThroughput){$rargs+=@('-AutoMaxThroughput')}
  & powershell.exe @rargs
  Need ($LASTEXITCODE -eq 0) 'DAILY_POOL_REFRESH_FAILED'
 

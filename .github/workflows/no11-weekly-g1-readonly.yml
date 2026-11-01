@@ -85,6 +85,9 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11Oct28ReadOnlyFiles.ps1
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_parallel_shadow_preflight_audit.mjs
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_parallel_shadow_preflight_audit.test.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_stage_nov02_provisional_24_readonly.mjs
+      - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11Nov02Known24ReadOnly.ps1
+      - research/no12-prebuy-causal-runtime-20261011/tests/no11_nov02_provisional24.test.mjs
       - .github/workflows/no11-weekly-g1-readonly.yml
   pull_request:
     paths:
@@ -168,6 +171,9 @@ on:
       - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11Oct28ReadOnlyFiles.ps1
       - research/no12-prebuy-causal-runtime-20261011/tools/no11_parallel_shadow_preflight_audit.mjs
       - research/no12-prebuy-causal-runtime-20261011/tests/no11_parallel_shadow_preflight_audit.test.mjs
+      - research/no12-prebuy-causal-runtime-20261011/tools/no11_stage_nov02_provisional_24_readonly.mjs
+      - research/no12-prebuy-causal-runtime-20261011/windows/Stage-No11Nov02Known24ReadOnly.ps1
+      - research/no12-prebuy-causal-runtime-20261011/tests/no11_nov02_provisional24.test.mjs
       - .github/workflows/no11-weekly-g1-readonly.yml
 
 permissions:
@@ -189,6 +195,8 @@ jobs:
         run: |
           node --check research/no12-prebuy-causal-runtime-20261011/tools/no11_parallel_shadow_preflight_audit.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_weekly_g1_refresh.test.mjs
+          node --check research/no12-prebuy-causal-runtime-20261011/tools/no11_stage_nov02_provisional_24_readonly.mjs
+          node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_nov02_provisional24.test.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_d100_unknown_diagnostic.test.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_d100_raw_canary_readonly.test.mjs
           node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_oct29_same_run_260_resume.test.mjs
@@ -311,5 +319,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Fast 50 broker tables with full tail guard offline test failed' }
           & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $dir 'Stage-No11PhysicalAccountFastVerifiedReadOnly.ps1') -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'Private fast broker reader stage offline selftest failed' }
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $dir 'Stage-No11Nov02Known24ReadOnly.ps1') -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'Nov02 24-only scope stage Windows offline selftest failed' }
           Write-Host 'NO11_WEEKLY_WINDOWS_OFFLINE_TESTS=PASS'
           Write-Host 'ORDER_TRANSMISSION=False'

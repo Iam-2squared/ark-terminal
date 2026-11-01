@@ -26,10 +26,39 @@ function Blob([string]$file){
  Need ($LASTEXITCODE -eq 0 -and $value.Count -eq 1) 'HASH_COMMAND_FAILED'
  return [string]$value[0]
 }
+# Compare local WORKTREE text as a canonical Git blob (LF) without altering it.
+# git hash-object --no-filters sees Windows CRLF bytes, which differ from the
+# GitHub blob despite identical code. Preserve BOM, do not trim whitespace.
+function CanonicalBlob([string]$file){
+ $strict=[Text.UTF8Encoding]::new($false,$true)
+ $originalBytes=[IO.File]::ReadAllBytes($file)
+ $source=$strict.GetString($originalBytes)
+ $normalized=$source.Replace("`r`n","`n").Replace("`r","`n")
+ $body=$strict.GetBytes($normalized)
+ $header=[Text.Encoding]::ASCII.GetBytes("blob $($body.Length)`0")
+ $sha=[Security.Cryptography.SHA1]::Create()
+ try{
+  $buffer=New-Object byte[] ($header.Length+$body.Length)
+  [Array]::Copy($header,0,$buffer,0,$header.Length)
+  [Array]::Copy($body,0,$buffer,$header.Length,$body.Length)
+  return ([BitConverter]::ToString($sha.ComputeHash($buffer))).Replace('-','').ToLowerInvariant()
+ } finally { $sha.Dispose() }
+}
 if($OfflineSelfTest){
  Need ($revision -match '^[a-f0-9]{40}$' -and
        $originalHead -match '^[a-f0-9]{40}$' -and
        $original.Count -eq 3 -and $updated.Count -eq 3) 'PINS'
+ $testFile=Join-Path $env:TEMP ('ArkFriday429-blob-'+[guid]::NewGuid().ToString('N'))
+ try{
+  $utf8=[Text.UTF8Encoding]::new($false)
+  [IO.File]::WriteAllBytes($testFile,$utf8.GetBytes("hello`n"))
+  $lf=CanonicalBlob $testFile
+  Need ($lf -ceq (Blob $testFile)) 'CANONICAL_LF_MISMATCH'
+  [IO.File]::WriteAllBytes($testFile,$utf8.GetBytes("hello`r`n"))
+  $crlf=CanonicalBlob $testFile
+  Need ($lf -ceq $crlf) 'CANONICAL_CRLF_MISMATCH'
+ }finally{if(Test-Path -LiteralPath $testFile){Remove-Item -LiteralPath $testFile -Force}}
+ Write-Host 'NO11_FRIDAY429_INSTALL_CANONICAL_LF_CRLF=PASS'
  Write-Host 'NO11_FRIDAY429_INSTALL_OFFLINE_SELFTEST=PASS'
  Write-Host 'EXCEL_TOUCHED=False'
  Write-Host 'ORDER_TRANSMISSION=False'
@@ -53,7 +82,12 @@ try{
  foreach($item in $original.GetEnumerator()){
   $target=Join-Path $root $item.Key
   Need (Test-Path -LiteralPath $target -PathType Leaf) 'ORIGINAL_FILE_MISSING'
-  Need ((Blob $target) -ceq [string]$item.Value) 'LOCAL_SOURCE_CHANGED_REVIEW_REQUIRED'
+  $localHash=CanonicalBlob $target
+  if($localHash -cne [string]$item.Value){
+   Write-Host ('NO11_FRIDAY429_LOCAL_CONTENT_DIFF='+$item.Key)
+   Write-Host ('NO11_FRIDAY429_LOCAL_NORMALIZED_BLOB='+$localHash)
+   throw 'NO11_FRIDAY429_INSTALL_LOCAL_SOURCE_CHANGED_REVIEW_REQUIRED'
+  }
  }
  $stageDir=Join-Path $env:TEMP ('ArkFriday429-'+[guid]::NewGuid().ToString('N'))
  [void][IO.Directory]::CreateDirectory($stageDir)

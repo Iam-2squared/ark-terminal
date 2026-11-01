@@ -339,7 +339,7 @@ public static class No11DailyWindow {
     $script:DailyExcelOp='CAPTURE_FORMULA_VERIFY'
     if([string](Invoke-ExcelIdempotent { $ws.Range('A1').Formula } 'RSS_FORMULA_VERIFY') -cne $formula){throw 'NO11_DAILY_FORMULA_CHANGED'}
     $script:DailyExcelOp='CAPTURE_RSS_D100_READ'
-    $start=Now-Jst;$values=Invoke-ExcelIdempotent { $ws.Range('A3:J102').Value2 } 'RSS_D100_READ';$end=Now-Jst;$parsed=Read-DailyRows $values
+    $start=Now-Jst;$values=$ws.Range('A3:J102').Value2;$end=Now-Jst;$parsed=Read-DailyRows $values
     $status=if($parsed.rows.Count -gt 0){'OBSERVED'}else{'UNAVAILABLE'}
     if($parsed.rows.Count -gt 0){$usable++}
     $dates=@($parsed.rows | ForEach-Object {$_.session})

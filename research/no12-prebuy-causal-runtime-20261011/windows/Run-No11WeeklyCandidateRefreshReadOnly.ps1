@@ -13,6 +13,9 @@ param(
  # the observed 50-function Excel cap, minus three reserved safety slots.
  [ValidateSet(50,100)][int]$GroupSize=100,
  [ValidateRange(1,47)][int]$BatchSize=30,
+ # Operator-selected MAX throughput; ramp 5 -> 10 -> 20 -> 40 -> up to 47.
+ # Does not override Excel capacity, source validity or chart safety reserves.
+ [switch]$AutoMaxThroughput,
  [ValidateRange(5,60)][int]$WaitSeconds=25,
  [ValidateRange(0,5000)][int]$MaxSymbols=0
 )
@@ -42,6 +45,13 @@ function NextWaveEnd([int]$offset,[int]$remaining,[int]$groupSize,[int]$physical
  }
  $groupEnd=[int]([Math]::Floor($offset/$groupSize)+1)*$groupSize
  return [Math]::Min($remaining,[Math]::Min($offset+$physical,$groupEnd))
+}
+function NextAutoMaxBatch([int]$current,[int]$ceiling,[bool]$clean){
+ if($current -lt 1 -or $ceiling -lt 1 -or $ceiling -gt 47 -or $current -gt $ceiling){
+  throw 'NO11_DAILY_AUTOMAX_BATCH_ARGS_INVALID'
+ }
+ if(-not $clean){return [Math]::Max(1,[int][Math]::Floor($current/2))}
+ return [Math]::Min($ceiling,[Math]::Max($current+5,$current*2))
 }
 # Excel can briefly reject COM calls during RSS recalculation. Retry only
 # reads/idempotent writes. For Add/Close verify object counts after a rejected
@@ -193,6 +203,18 @@ if($OfflineSelfTest){
  }
  Write-Host 'NO11_DAILY_EXCEL_BUSY_BOUNDED_RETRY_SELFTEST=PASS'
  Write-Host 'NO11_DAILY_EXCEL_AMBIGUOUS_ADD_FAILCLOSED_SELFTEST=PASS'
+ $batch=5
+ foreach($size in @(10,20,40,47)){
+  $batch=NextAutoMaxBatch $batch 47 $true
+  if($batch -ne $size){throw 'NO11_DAILY_AUTOMAX_RAMP_SELFTEST'}
+ }
+ if((NextAutoMaxBatch 47 47 $false) -ne 23 -or
+    (NextAutoMaxBatch 5 47 $false) -ne 2 -or
+    (NextAutoMaxBatch 12 12 $true) -ne 12 -or
+    (SafePhysicalBatch 0 47) -ne 47){
+  throw 'NO11_DAILY_AUTOMAX_SAFETY_SELFTEST'
+ }
+ Write-Host 'NO11_DAILY_AUTOMAX_RAMP_OFFLINE_SELFTEST=PASS'
  if($script:DailyExcelOp -cne 'NO_EXCEL_OPERATION'){
   throw 'NO11_DAILY_COM_OPERATION_TRACKER_SELFTEST'
  }
@@ -306,9 +328,13 @@ public static class No11DailyWindow {
     if($null -ne $cells){foreach($cell in $cells.Cells){if([string]$cell.Formula -match '(?i)Rss(?:Chart|Trend)[A-Za-z]*\s*\('){$existing++}}}
    }
   }
-  $physical=SafePhysicalBatch $existing $BatchSize
-  $ceiling=$physical;$fullWaves=0
+  $ceiling=SafePhysicalBatch $existing $BatchSize
+  $physical=if($AutoMaxThroughput){[Math]::Min(5,$ceiling)}else{$ceiling}
+  $fullWaves=0
   Write-Host ('NO11_DAILY_BATCH_POLICY=GROUP_{0}|PHYSICAL_MAX_{1}|ORIGINAL_CHARTS_{2}|RESERVE_3|LIMIT_50' -f $GroupSize,$ceiling,$existing)
+  if($AutoMaxThroughput){
+   Write-Host ('NO11_DAILY_AUTOMAX=ADAPTIVE_5_TO_{0}|EXCEL_CHART_CAP=50|RESERVED=3|CURRENT_BATCH={1}' -f $ceiling,$physical)
+  }
   for($offset=0;$offset -lt $remaining.Count;){
    $waveEnd=NextWaveEnd $offset $remaining.Count $GroupSize $physical
    $batch=@($remaining[$offset..($waveEnd-1)]);$sheets=@();$stage='TEMPORARY_WORKBOOK'
@@ -379,16 +405,20 @@ public static class No11DailyWindow {
    # only after repeated fully observed waves.
    if($script:DailyExcelComBusyCount -gt $waveComBusyBefore){
     $fullWaves=0
-    $physical=[Math]::Max(1,[int][Math]::Floor($physical/2))
+    $physical=NextAutoMaxBatch $physical $ceiling $false
     Write-Host ('NO11_DAILY_BATCH_TUNE=EXCEL_COM_BUSY_REDUCED_TO_{0}|NO_DATA_FABRICATION' -f $physical)
    }elseif($usable -lt $batch.Count){
     $fullWaves=0
-    $physical=[Math]::Max(1,[int][Math]::Floor($physical/2))
+    $physical=NextAutoMaxBatch $physical $ceiling $false
     Write-Host ('NO11_DAILY_BATCH_TUNE=PARTIAL_REDUCED_TO_{0}|MISSING_NOT_G1_PASS' -f $physical)
    }elseif($physical -lt $ceiling){
     $fullWaves++
-    if($fullWaves -ge 2){
-     $physical=[Math]::Min($ceiling,$physical+5)
+    if($AutoMaxThroughput -or $fullWaves -ge 2){
+     $physical=if($AutoMaxThroughput){
+      NextAutoMaxBatch $physical $ceiling $true
+     }else{
+      [Math]::Min($ceiling,$physical+5)
+     }
      $fullWaves=0
      Write-Host ('NO11_DAILY_BATCH_TUNE=FULL_WAVES_RAISED_TO_{0}' -f $physical)
     }

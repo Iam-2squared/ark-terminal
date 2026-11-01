@@ -9,7 +9,7 @@ param(
 )
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
-$revision='ad1f1cdb3c194961e22686233ec8e5755e9d6177'
+$revision='97ca86890f9cca52a77ecfdfa4f154e9a765a199'
 $rootHead='24b906e19a2623e45701311ca3fbb20dafe11c80'
 $prefix='research/no12-prebuy-causal-runtime-20261011/'
 $baseExpected=[ordered]@{
@@ -18,7 +18,7 @@ $baseExpected=[ordered]@{
  ($prefix+'tests/no11_weekly_g1_refresh.test.mjs')='f4f7649a6ba6eb766c13d2c8ba54c24d16f0ee09'
 }
 $targetExpected=[ordered]@{
- ($prefix+'windows/Run-No11WeeklyCandidateRefreshReadOnly.ps1')='d499edea3787a471f83889fcac16be9bd07892f3'
+ ($prefix+'windows/Run-No11WeeklyCandidateRefreshReadOnly.ps1')='57f22c23ce9f32202d2c16a26b86585120c2141c'
  ($prefix+'windows/Prepare-No11WeeklyAfterCloseReadOnly.ps1')='636eedc0e678ca924d3c5f634918cf230e707035'
  ($prefix+'tests/no11_weekly_g1_refresh.test.mjs')='052b64183c6345910fc3c577eed16d5d9477f7b2'
 }

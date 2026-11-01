@@ -143,7 +143,7 @@ try{
  finally{$hash.Dispose()}
  $dest=Join-Path $privateOut ('source-inventory-'+$digest+'.json')
  if(Test-Path -LiteralPath $dest -PathType Leaf){
-  Need ([Linq.Enumerable]::SequenceEqual([byte[]][IO.File]::ReadAllBytes($dest),[byte[]]$bytes)) 'PRIVATE_OUTPUT_CHANGED'
+  Need (([Convert]::ToBase64String([IO.File]::ReadAllBytes($dest))) -ceq ([Convert]::ToBase64String($bytes))) 'PRIVATE_OUTPUT_CHANGED'
  }else{
   $f=[IO.File]::Open($dest,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
   try{$f.Write($bytes,0,$bytes.Length);$f.Flush($true)}

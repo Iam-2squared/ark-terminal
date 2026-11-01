@@ -169,9 +169,29 @@ if($OfflineSelfTest){
     (Get-ExcelBusyHresult $rpcLater) -ne -2147417846 -or
     (Get-ExcelBusyHresult $other) -ne 0){throw 'NO11_DAILY_COM_BUSY_CLASSIFICATION_SELFTEST'}
  $script:offlineComProbe=0
- $idempotent=Invoke-ExcelIdempotent { $script:offlineComProbe++; return 42 } 'OFFLINE_NO_EXCEL'
- if($idempotent -ne 42 -or $script:offlineComProbe -ne 1){throw 'NO11_DAILY_COM_IDEMPOTENT_SELFTEST'}
+ $idempotent=Invoke-ExcelIdempotent {
+  $script:offlineComProbe++
+  if($script:offlineComProbe -eq 1){
+   throw [Runtime.InteropServices.COMException]::new('synthetic Excel busy',-2147418111)
+  }
+  return 42
+ } 'OFFLINE_TRANSIENT_BUSY'
+ if($idempotent -ne 42 -or $script:offlineComProbe -ne 2){throw 'NO11_DAILY_COM_IDEMPOTENT_RETRY_SELFTEST'}
+ $script:offlineAddCount=1;$script:offlineAddAttempts=0;$ambiguousBlocked=$false
+ try{
+  [void](New-ExcelComObjectChecked {
+   $script:offlineAddAttempts++
+   $script:offlineAddCount=2
+   throw [Runtime.InteropServices.COMException]::new('synthetic Excel busy after add',-2147418111)
+  } { $script:offlineAddCount } 'OFFLINE_ADD_AMBIGUOUS')
+ }catch{
+  $ambiguousBlocked=$_.Exception.Message -ceq 'NO11_DAILY_EXCEL_ADD_OUTCOME_AMBIGUOUS_NO_DUPLICATE'
+ }
+ if(-not $ambiguousBlocked -or $script:offlineAddAttempts -ne 1){
+  throw 'NO11_DAILY_COM_NONIDEMPOTENT_ADD_SELFTEST'
+ }
  Write-Host 'NO11_DAILY_EXCEL_BUSY_BOUNDED_RETRY_SELFTEST=PASS'
+ Write-Host 'NO11_DAILY_EXCEL_AMBIGUOUS_ADD_FAILCLOSED_SELFTEST=PASS'
  if((SafePhysicalBatch 0 47) -ne 47 -or (SafePhysicalBatch 19 47) -ne 28 -or
     (SafePhysicalBatch 39 30) -ne 8 -or
     (NextWaveEnd 90 429 100 30) -ne 100 -or

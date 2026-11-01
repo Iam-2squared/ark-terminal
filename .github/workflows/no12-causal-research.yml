@@ -94,6 +94,13 @@ jobs:
           [void][System.Management.Automation.Language.Parser]::ParseFile(
             (Resolve-Path $testInventory).Path,[ref]$tokens,[ref]$parseErrors)
           if ($parseErrors.Count -ne 0) { throw 'NO11_NOV02_PRELIVE_INVENTORY_PARSE_FAILED' }
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Prepare-No11Nov02MorningHandoffReadOnly.ps1 -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO11_NOV02_24_MORNING_HANDOFF_OFFLINE_SELFTEST_FAILED' }
+          $testHandoff = './research/no12-prebuy-causal-runtime-20261011/windows/Prepare-No11Nov02MorningHandoffReadOnly.ps1'
+          $tokens = $null; $parseErrors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path $testHandoff).Path,[ref]$tokens,[ref]$parseErrors)
+          if ($parseErrors.Count -ne 0) { throw 'NO11_NOV02_24_MORNING_HANDOFF_PARSE_FAILED' }
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Start-No11LiveUiReadOnly.ps1 -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'NO11_UI2_LIVE_ONLY_WINDOWS_SELFTEST_FAILED' }
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Install-No11LiveUi2FromGitReadOnly.ps1 -OfflineSelfTest

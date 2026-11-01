@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {isoFriday, tradingGap, nextCashDate, nightlyWindow, weekendFridayWindow} from '../tools/no11_weekly_g1_refresh.mjs';
+import {isoFriday, tradingGap, nextCashDate, nightlyWindow, weekendFridayWindow,firstBuyFridayLimitedWindow} from '../tools/no11_weekly_g1_refresh.mjs';
 
 test('full universe is Friday and initial 2026-10-26 is only a manual seed',()=>{
   assert.equal(isoFriday('2026-10-30'),true);
@@ -94,4 +94,39 @@ test('Weekend weekly runner is read-only and requires original Friday close with
  assert.ok(daily.includes("WEEKEND_RSS_NOT_GUARANTEED=True"));
  assert.doesNotMatch(wrapper,/RssStockOrder\s*\(/);
  assert.doesNotMatch(daily,/RssStockOrder\s*\(/);
+});
+
+test('2026-11-02 fast-track Friday 429 ONLY accepts actual previous-Friday source on Sat/Sun',()=>{
+ const friday=firstBuyFridayLimitedWindow('2026-10-30T18:00:00.000+09:00');
+ const saturday=firstBuyFridayLimitedWindow('2026-10-31T16:20:00.000+09:00');
+ const sunday=firstBuyFridayLimitedWindow('2026-11-01T23:50:00.000+09:00');
+ for(const result of [friday,saturday,sunday]){
+   assert.equal(result.date,'2026-10-30');
+   assert.equal(result.fridayRestrictedFirstBuy,true);
+ }
+ assert.equal(friday.fridaySourceObservedOnWeekend,false);
+ assert.equal(saturday.fridaySourceObservedOnWeekend,true);
+ assert.equal(sunday.receiptObservedCalendarDay,'2026-11-01');
+ for(const wrong of ['2026-10-30T17:59:59.000+09:00','2026-10-29T20:00:00.000+09:00',
+    '2026-11-02T07:00:00.000+09:00','2026-11-07T12:00:00.000+09:00']){
+  assert.throws(()=>firstBuyFridayLimitedWindow(wrong),
+    /NO11_WEEKLY_FIRST_BUY_FRIDAY_RESTRICTED_AFTER_CLOSE_ONLY/);
+ }
+ const src=fs.readFileSync(new URL('../tools/no11_weekly_g1_refresh.mjs',import.meta.url),'utf8');
+ for(const marker of ['firstBuyFridayLimitedWindow(jstNow())',
+   'fridayActualRssReceiptCalendarDay','fridayWeekendCatchUp',
+   'fullFridayMarketSweepPerformed:false','firstLiveBuyEligibilityStillNeedsIndependentReview:true',
+   'loadCaptures(run,plan)','summarizeDailyCaptures(plan,captures)']){
+  assert.ok(src.includes(marker),marker);
+ }
+ const runner=fs.readFileSync(new URL('../windows/Prepare-No11WeeklyAfterCloseReadOnly.ps1',import.meta.url),'utf8');
+ for(const marker of ['[switch]$WeekendFridayLimited',
+   "FRIDAY_429_FIRST_BUY_TARGET_ONLY", "'-FirstBuyFridayLimited'",
+   "'--first-buy-friday-limited','true'",
+   'NO11_WEEKLY_NIGHTLY_FULL_FRIDAY_4328_COMPLETED=False',
+   'NO11_WEEKLY_NIGHTLY_FRIDAY_RSS_RECEIPTS=REQUIRED_FOR_ALL_429',
+   'ORDER_TRANSMISSION=False']){
+  assert.ok(runner.includes(marker),marker);
+ }
+ assert.doesNotMatch(runner,/RssStockOrder\s*\(|RssCancelOrder\s*\(/);
 });

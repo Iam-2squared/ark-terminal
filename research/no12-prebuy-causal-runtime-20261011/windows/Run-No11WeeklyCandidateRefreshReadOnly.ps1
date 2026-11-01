@@ -43,6 +43,61 @@ function NextWaveEnd([int]$offset,[int]$remaining,[int]$groupSize,[int]$physical
  $groupEnd=[int]([Math]::Floor($offset/$groupSize)+1)*$groupSize
  return [Math]::Min($remaining,[Math]::Min($offset+$physical,$groupEnd))
 }
+# Excel can briefly reject COM calls during RSS recalculation. Retry only
+# reads/idempotent writes. For Add/Close verify object counts after a rejected
+# reply; never duplicate a workbook or sheet after an ambiguous COM response.
+$script:DailyExcelComBusyCount=0
+function Get-ExcelBusyHresult([System.Exception]$errorValue){
+ for($e=$errorValue;$null -ne $e;$e=$e.InnerException){
+  if([int]$e.HResult -in @(-2147418111,-2147417846)){return [int]$e.HResult}
+ }
+ return 0
+}
+function Wait-ExcelComBusy([string]$operation,[int]$attempt,[int]$hr){
+ if($attempt -lt 1 -or $attempt -gt 5){throw 'NO11_DAILY_EXCEL_COM_RETRY_BUDGET_INVALID'}
+ $script:DailyExcelComBusyCount++
+ $seconds=[Math]::Min(5,$attempt)
+ Write-Host ('NO11_DAILY_EXCEL_COM_RETRY={0}|ATTEMPT={1}/5|HRESULT={2}|WAIT_SECONDS={3}' -f $operation,$attempt,$hr,$seconds)
+ Start-Sleep -Seconds $seconds
+}
+function Invoke-ExcelIdempotent([scriptblock]$action,[string]$operation){
+ for($attempt=0;$attempt -le 5;$attempt++){
+  try{return (& $action)}catch{
+   $hr=Get-ExcelBusyHresult $_.Exception
+   if($hr -eq 0 -or $attempt -ge 5){throw}
+   Wait-ExcelComBusy $operation ($attempt+1) $hr
+  }
+ }
+ throw 'NO11_DAILY_EXCEL_COM_RETRY_EXHAUSTED'
+}
+function New-ExcelComObjectChecked([scriptblock]$add,[scriptblock]$count,[string]$operation){
+ $before=[int](Invoke-ExcelIdempotent $count ($operation+'_PRE_COUNT'))
+ for($attempt=0;$attempt -le 5;$attempt++){
+  $current=[int](Invoke-ExcelIdempotent $count ($operation+'_CURRENT_COUNT'))
+  if($current -ne $before){throw 'NO11_DAILY_EXCEL_ADD_COUNT_CHANGED_NO_DUPLICATE'}
+  try{return (& $add)}catch{
+   $hr=Get-ExcelBusyHresult $_.Exception
+   if($hr -eq 0 -or $attempt -ge 5){throw}
+   Wait-ExcelComBusy $operation ($attempt+1) $hr
+   $after=[int](Invoke-ExcelIdempotent $count ($operation+'_AFTER_REJECT'))
+   if($after -ne $before){throw 'NO11_DAILY_EXCEL_ADD_OUTCOME_AMBIGUOUS_NO_DUPLICATE'}
+  }
+ }
+ throw 'NO11_DAILY_EXCEL_ADD_RETRY_EXHAUSTED'
+}
+function Close-ExcelTemporaryWorkbook([object]$application,[object]$temporary){
+ for($attempt=0;$attempt -le 5;$attempt++){
+  try{$temporary.Close($false);return}catch{
+   $hr=Get-ExcelBusyHresult $_.Exception
+   if($hr -eq 0 -or $attempt -ge 5){throw}
+   Wait-ExcelComBusy 'WORKBOOK_CLOSE' ($attempt+1) $hr
+   $count=[int](Invoke-ExcelIdempotent { $application.Workbooks.Count } 'WORKBOOK_CLOSE_COUNT')
+   if($count -eq 2){return} # Closed; COM reply alone was rejected.
+   if($count -ne 3){throw 'NO11_DAILY_EXCEL_CLOSE_OUTCOME_AMBIGUOUS'}
+  }
+ }
+ throw 'NO11_DAILY_EXCEL_CLOSE_RETRY_EXHAUSTED'
+}
 function New-DailyFormula([string]$symbol){
  if($symbol -cnotmatch '^[0-9A-Z]{4}\.T$'){throw 'NO11_DAILY_SYMBOL_INVALID'}
  return ('=RssChart($A$2:$J$2,"{0}","D",100)' -f $symbol)
@@ -106,6 +161,17 @@ if($OfflineSelfTest){
  $a.SetValue('BAD',0,8);$r=Read-DailyRows $a
  if($r.invalidRows -ne 1){throw 'NO11_DAILY_INVALID_SELFTEST'}
  if($null -ne (Date-Token '2026/02/30') -or $null -ne (Number-Token ([double]::NaN))){throw 'NO11_DAILY_TOKEN_SELFTEST'}
+
+ $rpcRejected=[Runtime.InteropServices.COMException]::new('temporary busy',-2147418111)
+ $rpcLater=[Runtime.InteropServices.COMException]::new('retry later',-2147417846)
+ $other=[Runtime.InteropServices.COMException]::new('disconnected',-2147023174)
+ if((Get-ExcelBusyHresult $rpcRejected) -ne -2147418111 -or
+    (Get-ExcelBusyHresult $rpcLater) -ne -2147417846 -or
+    (Get-ExcelBusyHresult $other) -ne 0){throw 'NO11_DAILY_COM_BUSY_CLASSIFICATION_SELFTEST'}
+ $script:offlineComProbe=0
+ $idempotent=Invoke-ExcelIdempotent { $script:offlineComProbe++; return 42 } 'OFFLINE_NO_EXCEL'
+ if($idempotent -ne 42 -or $script:offlineComProbe -ne 1){throw 'NO11_DAILY_COM_IDEMPOTENT_SELFTEST'}
+ Write-Host 'NO11_DAILY_EXCEL_BUSY_BOUNDED_RETRY_SELFTEST=PASS'
  if((SafePhysicalBatch 0 47) -ne 47 -or (SafePhysicalBatch 19 47) -ne 28 -or
     (SafePhysicalBatch 39 30) -ne 8 -or
     (NextWaveEnd 90 429 100 30) -ne 100 -or
@@ -222,11 +288,18 @@ public static class No11DailyWindow {
   for($offset=0;$offset -lt $remaining.Count;){
    $waveEnd=NextWaveEnd $offset $remaining.Count $GroupSize $physical
    $batch=@($remaining[$offset..($waveEnd-1)]);$sheets=@();$stage='TEMPORARY_WORKBOOK'
-   $book=$excel.Workbooks.Add()
+   $waveComBusyBefore=$script:DailyExcelComBusyCount
+   $book=New-ExcelComObjectChecked { $excel.Workbooks.Add() } { $excel.Workbooks.Count } 'WORKBOOK_ADD'
    foreach($symbol in $batch){
-    $ws=$book.Worksheets.Add();$ws.Name='DAILY_'+$symbol.Replace('.','_')
-    for($j=0;$j -lt 10;$j++){$ws.Cells.Item(2,$j+1).Value2=$headers[$j]}
-    $ws.Range('A1').Formula=(New-DailyFormula $symbol);$sheets+=@($ws)
+    $ws=New-ExcelComObjectChecked { $book.Worksheets.Add() } { $book.Worksheets.Count } 'SHEET_ADD'
+    $sheetName='DAILY_'+$symbol.Replace('.','_')
+    [void](Invoke-ExcelIdempotent { $ws.Name=$sheetName } 'SHEET_NAME')
+    for($j=0;$j -lt 10;$j++){
+     [void](Invoke-ExcelIdempotent { $ws.Cells.Item(2,$j+1).Value2=$headers[$j] } 'SHEET_HEADER')
+    }
+    $formula=New-DailyFormula $symbol
+    [void](Invoke-ExcelIdempotent { $ws.Range('A1').Formula=$formula } 'RSS_FORMULA')
+    $sheets+=@($ws)
    }
    $stage='WAIT_FOR_RSS';Start-Sleep -Seconds $WaitSeconds
    $emptyRetry=0
@@ -234,7 +307,7 @@ public static class No11DailyWindow {
     $payloads=New-Object System.Collections.ArrayList;$usable=0;$complete=0;$stage='DAILY_CAPTURE'
    for($k=0;$k -lt $batch.Count;$k++){
     $symbol=$batch[$k];$ws=$sheets[$k];$formula=New-DailyFormula $symbol
-    if([string]$ws.Range('A1').Formula -cne $formula){throw 'NO11_DAILY_FORMULA_CHANGED'}
+    if([string](Invoke-ExcelIdempotent { $ws.Range('A1').Formula } 'RSS_FORMULA_VERIFY') -cne $formula){throw 'NO11_DAILY_FORMULA_CHANGED'}
     $start=Now-Jst;$values=$ws.Range('A3:J102').Value2;$end=Now-Jst;$parsed=Read-DailyRows $values
     $status=if($parsed.rows.Count -gt 0){'OBSERVED'}else{'UNAVAILABLE'}
     if($parsed.rows.Count -gt 0){$usable++}
@@ -257,8 +330,11 @@ public static class No11DailyWindow {
    # Never checkpoint an entirely empty wave, even after retries.
    if($usable -eq 0){throw 'NO11_DAILY_ALL_EMPTY_WAVE_RETRY_AFTER_RECONNECT'}
    foreach($payload in $payloads){Save-Capture (Join-Path $run 'sources') $payload}
-   $book.Close($false);foreach($ws in $sheets){[void][Runtime.InteropServices.Marshal]::ReleaseComObject($ws)}
+   Close-ExcelTemporaryWorkbook $excel $book
+   foreach($ws in $sheets){[void][Runtime.InteropServices.Marshal]::ReleaseComObject($ws)}
    $sheets=@();[void][Runtime.InteropServices.Marshal]::ReleaseComObject($book);$book=$null
+   # RssChart may still be calculating directly after a workbook closes.
+   Start-Sleep -Seconds 2
    Write-Host ('NO11_DAILY_PROGRESS={0}/{1}|WAVE_OBSERVED={2}|WAVE_FULL76={3}' -f ($work.resumed+$waveEnd),$work.plan.symbols.Count,$usable,$complete)
    # Canary runs automatically; avoid collecting thousands of unusable snapshots.
    if($complete -eq 0){throw 'NO11_DAILY_NO_FULL_HISTORY_IN_WAVE_REVIEW_PARTIAL_REPORT'}
@@ -266,7 +342,11 @@ public static class No11DailyWindow {
    # An RSS partial wave is an observed source gap, NOT a success for its
    # missing symbols. Reduce concurrency for subsequent waves; ramp back up
    # only after repeated fully observed waves.
-   if($usable -lt $batch.Count){
+   if($script:DailyExcelComBusyCount -gt $waveComBusyBefore){
+    $fullWaves=0
+    $physical=[Math]::Max(1,[int][Math]::Floor($physical/2))
+    Write-Host ('NO11_DAILY_BATCH_TUNE=EXCEL_COM_BUSY_REDUCED_TO_{0}|NO_DATA_FABRICATION' -f $physical)
+   }elseif($usable -lt $batch.Count){
     $fullWaves=0
     $physical=[Math]::Max(1,[int][Math]::Floor($physical/2))
     Write-Host ('NO11_DAILY_BATCH_TUNE=PARTIAL_REDUCED_TO_{0}|MISSING_NOT_G1_PASS' -f $physical)

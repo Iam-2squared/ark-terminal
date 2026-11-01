@@ -14,6 +14,7 @@ param(
  [string]$YahooSeedRoot='',
  [string]$PinsFile='',
  [switch]$WeekendFriday,
+ [switch]$WeekendFridayLimited,
  [ValidateRange(1,20)][int]$FullBatchSize=10,
  [ValidateRange(5,60)][int]$FullWaitSeconds=15,
  [ValidateSet(50,100)][int]$RefreshGroupSize=100,
@@ -71,18 +72,20 @@ try{
    (Test-Path -LiteralPath $PinsFile -PathType Leaf)) 'PINS_FILE_MISSING'
  }
 
- if($WeekendFriday){
+ Need (-not ($WeekendFriday -and $WeekendFridayLimited)) 'WEEKEND_FULL_VS_429_SCOPE_CONFLICT'
+ if($WeekendFriday -or $WeekendFridayLimited){
   Need ($WeeklySourcePolicy -ceq 'RSS_FULL_FRIDAY') 'WEEKEND_REQUIRES_REAL_RSS_SOURCE'
  }
  $scheduleArgs=@('schedule')
- if($WeekendFriday){$scheduleArgs+=@('--weekend-friday')}
+ if($WeekendFriday -or $WeekendFridayLimited){$scheduleArgs+=@('--weekend-friday')}
  $scheduleLines=@(& node $tool @scheduleArgs)
  Need ($LASTEXITCODE -eq 0 -and $scheduleLines.Count -eq 1) 'SCHEDULE_FAILED'
  $schedule=([string]$scheduleLines[0] | ConvertFrom-Json)
  Need ($schedule.schemaId -ceq 'ARK_NO11_WEEKLY_REFRESH_SCHEDULE_V1' -and
   $schedule.orderTransmission -eq $false -and
-  ((-not $WeekendFriday) -or ($schedule.weekendMaintenance -eq $true -and
-     $schedule.vendorRssConnectionStillRequired -eq $true))) 'SCHEDULE_CONTRACT_INVALID'
+  ((-not ($WeekendFriday -or $WeekendFridayLimited)) -or
+     ($schedule.weekendMaintenance -eq $true -and
+      $schedule.vendorRssConnectionStillRequired -eq $true))) 'SCHEDULE_CONTRACT_INVALID'
  $mode=[string]$schedule.mode
  $session=[string]$schedule.sessionDate
  $asOf=[string]$schedule.asOfSession
@@ -105,6 +108,14 @@ try{
   $mode='WEEKLY_POOL_CANDIDATES_ONLY'
   Write-Host 'NO11_WEEKLY_NIGHTLY_FRIDAY_FULL_RSS_SCAN=SKIPPED_YAHOO_SOURCE_ONLY'
   Write-Host 'NO11_WEEKLY_NIGHTLY_FRIDAY_RSS_CONFIRMATION=429_CANDIDATES_ONLY'
+ }
+ if($WeekendFridayLimited){
+  Need ($mode -ceq 'FULL_MARKET_FRIDAY' -and $asOf -ceq '2026-10-30' -and
+        $session -ceq '2026-11-02') 'FRIDAY_429_FIRST_BUY_TARGET_ONLY'
+  $mode='WEEKLY_POOL_CANDIDATES_ONLY'
+  Write-Host 'NO11_WEEKLY_NIGHTLY_RECOVERY=EXPLICIT_OCT26_SEED_FRIDAY_429_ONLY'
+  Write-Host 'NO11_WEEKLY_NIGHTLY_FULL_FRIDAY_4328_COMPLETED=False'
+  Write-Host 'NO11_WEEKLY_NIGHTLY_FRIDAY_RSS_RECEIPTS=REQUIRED_FOR_ALL_429'
  }
  if($mode -ceq 'FULL_MARKET_FRIDAY'){
  Need ([IO.Path]::IsPathRooted($FullSymbolsFile) -and
@@ -217,12 +228,14 @@ try{
   '-WaitSeconds',[string]$RefreshWaitSeconds)
  if(-not [string]::IsNullOrWhiteSpace($PinsFile)){$rargs+=@('-PinsFile',$PinsFile)}
  if($yahooFriday){$rargs+=@('-ConfirmYahooFridayRss')}
+ if($WeekendFridayLimited){$rargs+=@('-FirstBuyFridayLimited')}
  & powershell.exe @rargs
  Need ($LASTEXITCODE -eq 0) 'DAILY_POOL_REFRESH_FAILED'
 
  # Return to the exact code-pinned, immutable daily refresh run we just wrote.
  $planArgs=@('plan','--weekly-run',$WeeklyRun,'--root',$RefreshRoot)
  if($yahooFriday){$planArgs+=@('--yahoo-friday-rss-confirm','true')}
+ if($WeekendFridayLimited){$planArgs+=@('--first-buy-friday-limited','true')}
  $details=@(& node $tool @planArgs)
  Need ($LASTEXITCODE -eq 0 -and $details.Count -eq 1) 'REFRESH_RUN_IDENTITY_FAILED'
  $result=([string]$details[0]|ConvertFrom-Json)
@@ -233,6 +246,7 @@ try{
  $reportArgs=@('report','--run',[string]$result.run,'--weekly-run',$WeeklyRun)
  if($PinsFile){$reportArgs+=@('--pins-file',$PinsFile)}
  if($yahooFriday){$reportArgs+=@('--yahoo-friday-rss-confirm','true')}
+ if($WeekendFridayLimited){$reportArgs+=@('--first-buy-friday-limited','true')}
  $reportLines=@(& node $tool @reportArgs)
  Need ($LASTEXITCODE -eq 0) 'WEEKLY_DAILY_REPORT_FAILED'
  $m=@($reportLines | Where-Object {$_ -like 'NO11_WEEKLY_REFRESH_MASK=*'})
@@ -261,7 +275,10 @@ try{
   Write-Host 'NO11_WEEKLY_NIGHTLY_STAGE=CANDIDATE_ONLY_FRESH_G1_AND_PREVIOUS_COMPLETE'
  }
  Write-Host 'NO11_WEEKLY_NIGHTLY_NEW_BREAKOUTS_OUTSIDE_POOL=NOT_SCANNED'
- Write-Host 'NO11_WEEKLY_NIGHTLY_STILL_REQUIRED=DATED_MASTER_SECURITY_REVIEW_AND_SHADOW_PREFLIGHT'
+ if($WeekendFridayLimited){
+  Write-Host 'NO11_WEEKLY_NIGHTLY_429_FIRST_BUY=ACTUAL_FRIDAY_RSS_ONLY_REVIEW_PENDING'
+ }
+ Write-Host 'NO11_WEEKLY_NIGHTLY_STILL_REQUIRED=DATED_MASTER_SECURITY_REVIEW_AND_FROZEN_PREFLIGHT'
  Write-Host 'ORDER_TRANSMISSION=False'
  exit 0
 }catch{

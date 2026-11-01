@@ -114,7 +114,7 @@ def execute(*, engine: Path, no12: Path, p1_root: Path,
     # Real model loading verifies all original private model and public source
     # hashes; a preflight PASS does not imply economic model/live parity.
     p1_root = private(p1_root)
-    scorer = FrozenP1Scorer(p1_root, engine.parents[2], SESSION)
+    scorer = FrozenP1Scorer(p1_root, engine.parents[1], SESSION)
     need(scorer.model_kind == "ORIGINAL_CORRECTED_P1_F5"
          and scorer.policy["selectedFold"] == 5,
          "P1_F5_CONTRACT_CHANGED")

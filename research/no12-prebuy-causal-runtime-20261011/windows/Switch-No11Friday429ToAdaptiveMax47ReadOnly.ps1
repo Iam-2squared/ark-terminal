@@ -95,6 +95,24 @@ try{
  # The runner validates its sibling tools before OfflineSelfTest, so its
  # offline test runs only AFTER staging into the verified pinned worktree.
 
+ # Verify current progress BEFORE interruption. If all 429 are already
+ # journaled, leave the running process to finish Chart50/previous minutes.
+ $engine=Join-Path $root $prefix
+ $tool=Join-Path $engine 'tools/no11_weekly_g1_refresh.mjs'
+ $seed=Join-Path $env:LOCALAPPDATA 'ArkTerminal/No12/daily-trend-capture/daily-2026-10-26-e84a2ec53b0fdf41'
+ $refreshRoot=Join-Path $env:LOCALAPPDATA 'ArkTerminal/No12/weekly-pool-refresh'
+ $preOutput=@(& node $tool plan --weekly-run $seed --root $refreshRoot --first-buy-friday-limited true)
+ Need ($LASTEXITCODE -eq 0 -and $preOutput.Count -eq 1) 'PRE_STOP_CAPTURE_VERIFY_FAILED'
+ $pre=[string]$preOutput[0]|ConvertFrom-Json
+ Need ($pre.plan.asOfSession -ceq '2026-10-30' -and
+       @($pre.plan.symbols).Count -eq 429 -and
+       $pre.resumed -ge 78 -and $pre.resumed -le 429) 'PRE_STOP_SOURCE_NOT_EXPECTED_429'
+ Write-Host ('NO11_MAX47_CURRENT_VERIFIED='+$pre.resumed+'/429')
+ if($pre.resumed -eq 429){
+  Write-Host 'NO11_MAX47=ALREADY_429_DO_NOT_INTERRUPT_DOWNSTREAM'
+  Write-Host 'ORDER_TRANSMISSION=False'
+  exit 0
+ }
  # Reject running broker/another scan; only the exact Friday429 read-only
  # collector may be interrupted. Stop the child first, then its parent.
  $powershell=@(Get-CimInstance Win32_Process | Where-Object {

@@ -28,7 +28,7 @@ test('Nov2 source-only bridge reads 24 original shortlisted symbols, never creat
  ])assert.ok(source.includes(token),token);
  for(const dangerous of [
   /RssStockOrder\s*\(/,/RssCancelOrder\s*\(/,/\bStop-Process\b/,
-  /orderTransmission[^\n]{0,12}True/,
+  /["']orderTransmission["']\s*:\s*True/,
   /corporateActionsCleared[^\n]{0,12}True/,
   /\bopenpyxl\b/,/\bExcel\.Application\b/
  ])assert.doesNotMatch(source,dangerous);

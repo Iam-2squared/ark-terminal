@@ -81,6 +81,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'NO11_WEEKEND_429_RPC_RETRY_INSTALLER_SELFTEST_FAILED' }
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Install-No11Friday429ComDiagnosticReadOnly.ps1 -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'NO11_WEEKEND_429_COM_DIAGNOSTIC_INSTALLER_SELFTEST_FAILED' }
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Run-No11WeeklyCandidateRefreshReadOnly.ps1 -OfflineSelfTest -AutoMaxThroughput -BatchSize 47
+          if ($LASTEXITCODE -ne 0) { throw 'NO11_MAX47_ADAPTIVE_RAMP_READER_SELFTEST_FAILED' }
+          & ./research/no12-prebuy-causal-runtime-20261011/windows/Switch-No11Friday429ToAdaptiveMax47ReadOnly.ps1 -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO11_MAX47_SAFE_SWITCH_SELFTEST_FAILED' }
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Start-No11LiveUiReadOnly.ps1 -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'NO11_UI2_LIVE_ONLY_WINDOWS_SELFTEST_FAILED' }
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Install-No11LiveUi2FromGitReadOnly.ps1 -OfflineSelfTest

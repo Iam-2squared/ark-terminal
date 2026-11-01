@@ -89,6 +89,11 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'NO11_NOV02_PROVISIONAL_24_STAGER_SELFTEST_FAILED' }
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Prepare-No11Nov02PreLiveInventoryReadOnly.ps1 -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'NO11_NOV02_PRELIVE_INVENTORY_OFFLINE_SELFTEST_FAILED' }
+          $testInventory = './research/no12-prebuy-causal-runtime-20261011/windows/Prepare-No11Nov02PreLiveInventoryReadOnly.ps1'
+          $tokens = $null; $parseErrors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path $testInventory).Path,[ref]$tokens,[ref]$parseErrors)
+          if ($parseErrors.Count -ne 0) { throw 'NO11_NOV02_PRELIVE_INVENTORY_PARSE_FAILED' }
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Start-No11LiveUiReadOnly.ps1 -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'NO11_UI2_LIVE_ONLY_WINDOWS_SELFTEST_FAILED' }
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Install-No11LiveUi2FromGitReadOnly.ps1 -OfflineSelfTest

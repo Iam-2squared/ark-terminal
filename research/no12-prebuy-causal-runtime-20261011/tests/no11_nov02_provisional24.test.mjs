@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 import {approvedMonthlyBaseline} from '../tools/no11_stage_nov02_provisional_24_readonly.mjs';
 const source=fs.readFileSync(new URL('../tools/no11_stage_nov02_provisional_24_readonly.mjs',import.meta.url),'utf8');
 test('Nov2 provisional shortlist is exactly 24 unique sources, not 17 unknown or 6 held',()=>{
@@ -41,7 +42,7 @@ test('reuses exact saved 47 and JPX month-end but no dishonest same-day review',
 });
 test('refuses missing private evidence and never creates trading or broker files',()=>{
  const proc=spawnSync(process.execPath,[
-  new URL('../tools/no11_stage_nov02_provisional_24_readonly.mjs',import.meta.url).pathname,
+  fileURLToPath(new URL('../tools/no11_stage_nov02_provisional_24_readonly.mjs',import.meta.url)),
   '--engine','/abs/nonexistent','--run','/abs/nonexistent',
   '--seed','/abs/nonexistent','--stage','/abs/nonexistent',
   '--jpx','/abs/nonexistent'

@@ -129,6 +129,23 @@ export function daytimeCatchUpWindow(now,explicitAsOf){
     'CATCHUP_REQUIRES_ACTUAL_PREVIOUS_CASH_DAY');
   return {date:explicitAsOf,now,daytimeHistoricalRecovery:true};
 }
+/** The original Oct26 full-RSS seed + ACTUAL Friday Oct30 D100 for 429
+ * seed-PASS symbols. No all-market Friday coverage is claimed.
+ * Fri after close or the immediately following Sat/Sun only.
+ */
+export function firstBuyFridayLimitedWindow(now){
+  need(typeof now==='string'&&/^20\d{2}-\d{2}-\d{2}T/.test(now),
+    'FIRST_BUY_FRIDAY_LIMITED_CLOCK');
+  const local=now.slice(0,10),clock=now.slice(11,16);
+  const friday=local==='2026-10-30'&&clock>='18:00'&&
+    isJpxCashTradingDay(local)&&isoFriday(local);
+  const weekend=(local==='2026-10-31'||local==='2026-11-01')&&
+    weekendFridayWindow(now).date==='2026-10-30';
+  need(friday||weekend,'FIRST_BUY_FRIDAY_RESTRICTED_AFTER_CLOSE_ONLY');
+  return {date:'2026-10-30',now,fridayRestrictedFirstBuy:true,
+    fridaySourceObservedOnWeekend:weekend,
+    receiptObservedCalendarDay:local};
+}
 export function yahooFridayConfirmationWindow(now){
   const date=now.slice(0,10),clock=now.slice(11,16);
   need(isJpxCashTradingDay(date)&&isoFriday(date)&&clock>='19:00'&&
@@ -138,13 +155,7 @@ export function yahooFridayConfirmationWindow(now){
 function currentAsOf(catchUpAsOf='',confirmYahooFriday=false,firstFridayLimited=false){
   need([!!catchUpAsOf,!!confirmYahooFriday,!!firstFridayLimited].filter(Boolean).length<=1,
     'SESSION_MODES_CONFLICT');
-  if(firstFridayLimited){
-    const now=jstNow(),date=now.slice(0,10),clock=now.slice(11,16);
-    need(date==='2026-10-30'&&clock>='18:00'&&
-      isJpxCashTradingDay(date)&&isoFriday(date),
-      'FIRST_BUY_FRIDAY_RESTRICTED_AFTER_CLOSE_ONLY');
-    return {date,now,fridayRestrictedFirstBuy:true};
-  }
+  if(firstFridayLimited)return firstBuyFridayLimitedWindow(jstNow());
   if(confirmYahooFriday)return yahooFridayConfirmationWindow(jstNow());
   const {date,now,daytimeHistoricalRecovery=false}=catchUpAsOf?
     daytimeCatchUpWindow(jstNow(),catchUpAsOf):nightlyWindow(jstNow());
@@ -186,7 +197,9 @@ function assembleDailyPlan(source,date,now,daytimeHistoricalRecovery=false,yahoo
       initialLiveCandidateScope:'FRIDAY_RSS_429_LOCKED_POOL_ONLY_NOT_FULL_MARKET',
       fullFridayMarketSweepPerformed:false,
       newFridayBreakoutsOutsidePoolMissing:true,
-      firstLiveBuyEligibilityStillNeedsIndependentReview:true
+      firstLiveBuyEligibilityStillNeedsIndependentReview:true,
+      fridayActualRssReceiptCalendarDay:now.slice(0,10),
+      fridayWeekendCatchUp:now.slice(0,10)!==date
     }:{}),
     priceBasisCertified:false,
     productionReady:false,orderTransmission:false
@@ -254,7 +267,14 @@ function validateRefreshPlan(plan,source,date){
       plan.fullFridayMarketSweepPerformed===false&&
       plan.newFridayBreakoutsOutsidePoolMissing===true&&
       plan.firstLiveBuyEligibilityStillNeedsIndependentReview===true&&
-      source.plan.sourceProvider!==YAHOO_SOURCE,
+      source.plan.sourceProvider!==YAHOO_SOURCE&&
+      plan.fridayActualRssReceiptCalendarDay===plan.createdAtJst.slice(0,10)&&
+      plan.fridayWeekendCatchUp===(plan.createdAtJst.slice(0,10)!==date)&&
+      (
+        (plan.createdAtJst.slice(0,10)===date&&plan.createdAtJst.slice(11,16)>='18:00')||
+        ((plan.createdAtJst.slice(0,10)==='2026-10-31'||plan.createdAtJst.slice(0,10)==='2026-11-01')&&
+         nextCashDate(date)>plan.createdAtJst.slice(0,10))
+      ),
       'FIRST_BUY_FRIDAY_RESTRICTED_LINEAGE');
   }
   if(plan.yahooFridayRssConfirmation===true){
@@ -381,6 +401,8 @@ export function runCli(args){
       mask.initialLiveCandidateScope=plan.initialLiveCandidateScope;
       mask.fullFridayMarketSweepPerformed=false;
       mask.firstLiveBuyEligibilityStillNeedsIndependentReview=true;
+      mask.fridayActualRssReceiptCalendarDay=plan.fridayActualRssReceiptCalendarDay;
+      mask.fridayWeekendCatchUp=plan.fridayWeekendCatchUp;
     }
     const sessionDate=nextCashDate(date);
     const chartPlan=makeNo11G1Chart50Plan({mask,priorityRows:priorities,
@@ -394,7 +416,9 @@ export function runCli(args){
       ...(plan.initialLiveCandidateScope?{
         initialLiveCandidateScope:plan.initialLiveCandidateScope,
         fullFridayMarketSweepPerformed:false,
-        firstLiveBuyEligibilityStillNeedsIndependentReview:true
+        firstLiveBuyEligibilityStillNeedsIndependentReview:true,
+        fridayActualRssReceiptCalendarDay:plan.fridayActualRssReceiptCalendarDay,
+        fridayWeekendCatchUp:plan.fridayWeekendCatchUp
       }:{}),
       accountPositionsBrokerVerified:false,
       actualChartFunctionOccupancyVerified:false,
@@ -419,6 +443,7 @@ export function runCli(args){
     console.log('NO11_WEEKLY_REFRESH_CHART50='+receiptFile);
     console.log('NO11_WEEKLY_REFRESH_SCOPE=WEEKLY_POOL_ONLY_EXCLUDES_NEW_BREAKOUTS');
     if(plan.initialLiveCandidateScope){
+      console.log('NO11_WEEKLY_REFRESH_FRIDAY_RECEIPTS_OBSERVED_ON='+plan.fridayActualRssReceiptCalendarDay);
       console.log('NO11_WEEKLY_REFRESH_FRIDAY_FIRST_BUY_SCOPE=LIMITED_POOL_NOT_FULL_MARKET');
       console.log('NO11_WEEKLY_REFRESH_FRIDAY_FIRST_BUY_REQUIRES_REVIEW=True');
     }

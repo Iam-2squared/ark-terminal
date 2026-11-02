@@ -100,6 +100,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'NO11_NOV02_BOOTSTRAP_SOURCE_ONLY_SELFTEST_FAILED' }
           python -B research/no12-prebuy-causal-runtime-20261011/tools/no11_nov02_finish_reviewed_inputs_readonly.py --offline-selftest
           if ($LASTEXITCODE -ne 0) { throw 'NO11_NOV02_REVIEWED_MASTER_FAIL_CLOSED_SELFTEST_FAILED' }
+          python -B research/no12-prebuy-causal-runtime-20261011/tools/no11_nov02_saved_reference_worklist_readonly.py --offline-selftest
+          if ($LASTEXITCODE -ne 0) { throw 'NO11_NOV02_SAVED_REFERENCE_WORKLIST_SELFTEST_FAILED' }
           & powershell.exe -NoProfile -ExecutionPolicy Bypass -File './research/no12-prebuy-causal-runtime-20261011/windows/Test-No11ReferenceValueParsingReadOnly.ps1'
           if ($LASTEXITCODE -ne 0) { throw 'NO11_REFERENCE_24_VALUES_PARSER_CPU_SMOKE_FAILED' }
           & powershell.exe -NoProfile -ExecutionPolicy Bypass -File './research/no12-prebuy-causal-runtime-20261011/windows/Capture-No11SessionReferenceRowwiseReadOnly.ps1' -OfflineSelfTest

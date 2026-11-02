@@ -104,6 +104,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'NO11_REFERENCE_24_VALUES_PARSER_CPU_SMOKE_FAILED' }
           & powershell.exe -NoProfile -ExecutionPolicy Bypass -File './research/no12-prebuy-causal-runtime-20261011/windows/Capture-No11SessionReferenceRowwiseReadOnly.ps1' -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'NO11_REFERENCE_ROWWISE_OFFLINE_SELFTEST_FAILED' }
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File './research/no12-prebuy-causal-runtime-20261011/windows/Rescue-No11Nov02Book3ReferenceReadOnly.ps1' -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO11_NOV02_BOOK3_RESCUE_JSON_SELFTEST_FAILED' }
+          $rescue='research/no12-prebuy-causal-runtime-20261011/windows/Rescue-No11Nov02Book3ReferenceReadOnly.ps1'
+          $rt=$null; $re=$null
+          [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $rescue).Path,[ref]$rt,[ref]$re)
+          if ($re.Count -ne 0) { throw 'NO11_NOV02_BOOK3_RESCUE_PARSE_FAILED' }
           $rowwise='research/no12-prebuy-causal-runtime-20261011/windows/Capture-No11SessionReferenceRowwiseReadOnly.ps1'
           $parseTokens=$null; $parseErrors=$null
           [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $rowwise).Path,[ref]$parseTokens,[ref]$parseErrors)

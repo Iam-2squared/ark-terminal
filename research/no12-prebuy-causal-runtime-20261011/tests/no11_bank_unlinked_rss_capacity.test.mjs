@@ -35,3 +35,11 @@ test('No screenshot reference or LIVE cash balance certification without reviewe
   assert.ok(code.includes("securitiesCashBalanceCertified='false'"));
   assert.ok(code.includes("NO11_RSS_CAPACITY_LIVE_OPENING_LEDGER=NOT_ACTIVATED"));
 });
+
+test('PowerShell case-insensitive ValidateSet Account parameter is never reused for COM workbook',()=>{
+  assert.match(code,/\[ValidateSet\('一般'\)\]\[string\]\$Account='一般'/);
+  assert.match(code,/\$accountWorkbook=\$excel\.Workbooks\.Item\('Ark_No11_MSII_RSS\.xlsx'\)/);
+  assert.match(code,/account=\$Account/);
+  assert.doesNotMatch(code,/\$account\s*=/i);
+  assert.doesNotMatch(code,/\$account\.(?:Worksheets|Range|Cells|Name|Close)/i);
+});

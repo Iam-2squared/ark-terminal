@@ -110,6 +110,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'NO11_NOV02_BOOK3_RESCUE_JSON_SELFTEST_FAILED' }
           & powershell.exe -NoProfile -ExecutionPolicy Bypass -File './research/no12-prebuy-causal-runtime-20261011/windows/Rescue-No11Nov02Book3ReferencePrimitiveJsonReadOnly.ps1' -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'NO11_NOV02_BOOK3_PRIMITIVE_JSON_SELFTEST_FAILED' }
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File './research/no12-prebuy-causal-runtime-20261011/windows/Capture-No11BankUnlinkedRssCapacityReadOnly.ps1' -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO11_NOV02_BANK_UNLINKED_RSS_CAPACITY_SELFTEST_FAILED' }
+          $cashProbe='research/no12-prebuy-causal-runtime-20261011/windows/Capture-No11BankUnlinkedRssCapacityReadOnly.ps1'
+          $cashTokens=$null; $cashErrors=$null
+          [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $cashProbe).Path,[ref]$cashTokens,[ref]$cashErrors)
+          if ($cashErrors.Count -ne 0) { throw 'NO11_NOV02_BANK_UNLINKED_RSS_CAPACITY_PARSER_FAILED' }
           $primitive='research/no12-prebuy-causal-runtime-20261011/windows/Rescue-No11Nov02Book3ReferencePrimitiveJsonReadOnly.ps1'
           $pTokens=$null; $pErrors=$null
           [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $primitive).Path,[ref]$pTokens,[ref]$pErrors)

@@ -1,0 +1,104 @@
+{
+  "schemaId": "ARK_NO11_RSS_SOURCE_AND_2025_ASOF_H235_DEV_RECEIPT_20261014_V1",
+  "recordedJST": "2026-10-14",
+  "purpose": "audit-only research model comparison; original No.1.1 strategy and models unchanged",
+  "sourceAudit": {
+    "reportSha256": "04294e96395361e6f7030b68bd008135cbe296c588858d0e01e8023fe800f0a7",
+    "result": "SOURCE_SHA256_AND_ROW_AUDIT_PASS_NOT_SUPERVISED_TRAINING",
+    "symbolsRequested": 4327,
+    "symbolsObserved": 4071,
+    "symbolsUnavailable": 256,
+    "oneMinuteRows": 3705797,
+    "dates": [
+      "2026-10-01",
+      "2026-10-02",
+      "2026-10-05",
+      "2026-10-06",
+      "2026-10-07",
+      "2026-10-08",
+      "2026-10-09",
+      "2026-10-13"
+    ],
+    "sourceVendorLabelCertified": false,
+    "brokerKnownAtCertified": false,
+    "currentLiveSelectorCovered": false,
+    "dataRowsSupervised2026": 0
+  },
+  "privateStudyInputs": {
+    "inputPreparationKitSha256": "b1ef50dd68e1aba886091c9a6473c76723104b400f473a126ccc3672eaef8ec4",
+    "developmentSourcePeriod": [
+      "2025-05-30",
+      "2025-08-25"
+    ],
+    "sessions": 58,
+    "sourceCandidates": 1600,
+    "originalModelHashCountVerified": 24,
+    "existingSavedSourceMinuteRows": 37288947,
+    "historicalActualReceiveTime": "UNKNOWN"
+  },
+  "modelExperiment": {
+    "localStudyScriptSha256": "6546c6f91b020d53a9168dfe8cd52ed93a676dc001145d31f12ffff31fb03fee",
+    "artifactBundleSha256": "eb7494f622051268a97455a37a05444f17d6f22ab20e20d7e9efb3a5ec1e60b4",
+    "artifactLocation": "PRIVATE_CONVERSATION_ATTACHMENT_NOT_PUBLIC_GITHUB",
+    "sourceFeatures": "BUY_INTENT as-of-only projection, new feature contract; historical bar availability assumed",
+    "target": "original 2025 labels from post-fill potential_return, NOT decision-time future reward",
+    "legacyOriginalFeatureContractReused": false,
+    "frozenModelTouched": false,
+    "algorithm": "LogisticRegression",
+    "parameters": {
+      "C": 1,
+      "penalty": "l2",
+      "solver": "lbfgs",
+      "max_iter": 2000,
+      "random_state": 57,
+      "class_weight": null
+    },
+    "comparisonRecomputedLegacyFolds": 24,
+    "devOofSessions": 38,
+    "devOofCandidates": 1039,
+    "originalVsRecomputedCoefficientsBitwiseIdentical": false,
+    "maxRecomputedReferenceCoefficientDifference": 0.016224860978988342,
+    "sklearnVersion": "1.8.0",
+    "newResearchFoldFits": 24,
+    "newResearchAllDevelopmentFits": 3,
+    "developmentFinalFitRows": 1588,
+    "oofAuc": {
+      "H2": {
+        "recomputedLegacy": 0.6468324791018366,
+        "asofResearch": 0.6814555494539019
+      },
+      "H3": {
+        "recomputedLegacy": 0.6510432265149246,
+        "asofResearch": 0.6707007178705292
+      },
+      "H5": {
+        "recomputedLegacy": 0.6565897244973938,
+        "asofResearch": 0.6525079536993164
+      }
+    },
+    "deterministicInternalArtifactFilesVerified": 7,
+    "sourceCodeScriptNotCommittedToGithub": true,
+    "retrospectiveSelectionConditionalOnHistoricalFilledEntries": true,
+    "independentFreshOos": false,
+    "future2026TrainingRowsAdded": 0,
+    "modelProductionEligible": false
+  },
+  "blockers": [
+    "2026 RSS bars are source-only; native Selector and First Entry results + exact decision-time reward teachers absent",
+    "Historical vendor true known_at unknown; 2025 retrospective observations are assumed",
+    "Research 2025 BUY_INTENT model is NOT unchanged Frozen H2/H3/H5 and requires separate approval after independent prospective validation",
+    "Original frozen selector/entry/state9/EXIT/capital native realtime integration + order reconciliation still gated"
+  ],
+  "github": {
+    "mainMerge": false,
+    "mergeFrozen": false,
+    "productionUpdate": false
+  },
+  "safety": {
+    "orderTransmission": false,
+    "productionReady": false,
+    "excelOrderWriteAllowed": false,
+    "brokerWriteAllowed": false,
+    "automaticPromotionAllowed": false
+  }
+}

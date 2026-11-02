@@ -1,0 +1,7 @@
+# No12 standalone market probe now creates a local-only chart evidence receipt
+
+The original one-shot RssChart 5M probe remains guarded: if No1.1 UI is running, or if any Excel workbook already exists, it refuses to create another workbook. It uses an ephemeral unsaved workbook and only the RssChart READ operation.
+
+After a successful COM range read, the script converts Excel Value2 OLE date and time numbers into explicit JST date/time strings, builds a **temporary local private JSON candidate** in %LOCALAPPDATA%\ArkTerminal\No12, and invokes the Node chart publisher. The publisher reads only this market data, validates the ten official columns/period/OHLCV and closed-bar policy, and publishes a private market observation plus a hash receipt; the temporary candidate is deleted in finally.
+
+No trading permission, Excel order formula, broker order ID, account balance/positions, credentials or connected-app upload is included. These are local market bars, with original broker data-delivery instant UNKNOWN. A receipt is not original State9/Entry/EXIT inference. An incomplete or stale observation remains unavailable and cannot become a live trading signal. Windows CI exercises only offline formula/time conversion and local synthetic files, not real MarketSpeed login or live orders.

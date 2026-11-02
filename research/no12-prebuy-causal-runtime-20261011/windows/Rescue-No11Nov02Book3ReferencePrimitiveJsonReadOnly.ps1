@@ -273,15 +273,16 @@ public static class No11ReferenceWindow {
  $selectedJson=New-Object 'System.Collections.Generic.List[string]'
  foreach($symbol in $symbols){$selectedJson.Add((JsonQuoted ([string]$symbol)))}
  $header=New-Object 'System.Collections.Generic.List[string]'
- foreach($kv in @(
-  @('schemaId','ARK_NO11_RSS_SESSION_REFERENCE_CAPTURE_V1'),
-  @('sessionDate',$session),
-  @('source','RssMarket_SELECTED_REFERENCE_READONLY'),
-  @('capturedAtJst',$start),
-  @('completedAtJst',$end),
-  @('chartPlanSha256',[string]$plan.planSha256)
- )){
-  $header.Add(((JsonQuoted ([string]$kv[0]))+':'+(JsonQuoted ([string]$kv[1]))))
+ $fieldsJson=[ordered]@{
+  schemaId='ARK_NO11_RSS_SESSION_REFERENCE_CAPTURE_V1'
+  sessionDate=$session
+  source='RssMarket_SELECTED_REFERENCE_READONLY'
+  capturedAtJst=$start
+  completedAtJst=$end
+  chartPlanSha256=[string]$plan.planSha256
+ }
+ foreach($key in @($fieldsJson.Keys)){
+  $header.Add(((JsonQuoted ([string]$key))+':'+(JsonQuoted ([string]$fieldsJson[$key]))))
  }
  $header.Add('"selectedSymbols":['+[string]::Join(',',$selectedJson.ToArray())+']')
  $header.Add('"rows":['+[string]::Join(',',$encodedRows.ToArray())+']')

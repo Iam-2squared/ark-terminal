@@ -1,0 +1,105 @@
+name: No11 Weekly Master and SOR Bundle
+
+on:
+  push:
+    branches: [fix/no11-weekly-master-sor-startup-20261102]
+    paths:
+      - 'ops/no11-weekly-sor/**'
+      - 'research/no12-prebuy-causal-runtime-20261011/**'
+      - '.github/workflows/no11-weekly-sor-bundle.yml'
+  pull_request:
+    paths:
+      - 'ops/no11-weekly-sor/**'
+      - 'research/no12-prebuy-causal-runtime-20261011/**'
+      - '.github/workflows/no11-weekly-sor-bundle.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: no11-weekly-sor-${{ github.event.pull_request.head.ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  offline:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 30
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply exact base-pinned source migration to isolated CI worktree
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin 7ee286122b2eaf7e4f9a96797216786f60e567dc
+          python -B ops/no11-weekly-sor/apply_bundle.py
+          python -B ops/no11-weekly-sor/apply_bundle.py --check
+      - name: Frozen strategies and original MSII integration remain unchanged
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --exit-code 7ee286122b2eaf7e4f9a96797216786f60e567dc -- research/ark-integrated-no1-1-freeze-20261008/ integration/no1-1-msii/
+      - name: Weekly metadata, automatic session admission and operating policy tests
+        shell: bash
+        run: |
+          python -B -m unittest discover -s research/no12-prebuy-causal-runtime-20261011/tests -p 'test_no11_weekly_sor_bundle.py' -v
+          python -B -m py_compile research/no12-prebuy-causal-runtime-20261011/tools/no11_weekly_security_policy.py research/no12-prebuy-causal-runtime-20261011/tools/no11_jpx_weekly_sources.py research/no12-prebuy-causal-runtime-20261011/tools/no11_operations_profile.py
+      - name: Existing Node broker, transport and frozen pipeline regression suite
+        shell: bash
+        run: node --test research/no12-prebuy-causal-runtime-20261011/tests/*.test.mjs
+      - name: Windows PowerShell actual parsed-row JSON and localized RSS names
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $w='research/no12-prebuy-causal-runtime-20261011/windows'
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$w/Convert-No11PrimitiveJson.ps1" -PrimitiveJsonOfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'PRIMITIVE_JSON_FAILED'}
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$w/Capture-No11SessionReferenceV2ReadOnly.ps1" -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'REFERENCE_V2_FAILED'}
+          . "$w/Read-No11BrokerSnapshot.ps1"
+          if((Convert-No11RssFunctionName '国内株式 現物注文') -cne 'RssStockOrder'){throw 'JAPANESE_ID_FUNCTION_FAILED'}
+          $bad=$false
+          try {Convert-No11RssFunctionName '未確認の注文'|Out-Null}catch{$bad=$true}
+          if(-not $bad){throw 'UNKNOWN_LABEL_NOT_BLOCKED'}
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$w/Observe-No11AccountReadOnly.ps1" -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'ORIGINAL_OBSERVER_OFFLINE_FAILED'}
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$w/Invoke-No11MsiiOrder.ps1" -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'TRANSPORT_OFFLINE_FAILED'}
+          $all=@("$w/Capture-No11SessionReferenceV2ReadOnly.ps1","$w/Convert-No11PrimitiveJson.ps1")
+          foreach($f in $all){
+            $t=$null;$e=$null
+            [void][Management.Automation.Language.Parser]::ParseFile((Resolve-Path $f).Path,[ref]$t,[ref]$e)
+            if($e.Count -ne 0){throw "POWERSHELL_PARSE_FAILED:$f"}
+          }
+      - name: Save source-only applied patch for review
+        if: always()
+        shell: bash
+        run: git diff --binary > no11-weekly-sor-applied.patch
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: no11-weekly-sor-applied-${{ matrix.os }}
+          path: no11-weekly-sor-applied.patch
+          retention-days: 7
+
+  public-source-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify actual public JPX formats without private files or broker access
+        shell: bash
+        run: |
+          python -B research/no12-prebuy-causal-runtime-20261011/tools/no11_jpx_weekly_sources.py public-source-check --cache "$RUNNER_TEMP/no11-public-only-source-check"

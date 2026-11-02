@@ -68,7 +68,7 @@ if($OfflineSelfTest){
  Write-Host 'ORDER_TRANSMISSION=False'
  exit 0
 }
-$excel=$null;$account=$null;$sheet=$null;$failed=$false
+$excel=$null;$accountWorkbook=$null;$sheet=$null;$failed=$false
 try{
  $script:stage='OPERATOR_SCOPE'
  Need ($IConfirmNoBankLink.IsPresent -and $IConfirmAutoSweepOff.IsPresent) 'UNLINKED_BANK_AND_OFF_SWEEP_ATTESTATION_REQUIRED'
@@ -121,8 +121,8 @@ public static class No11CashRssWindow {
   $script:excelChildren[0],[uint32]4294967280,[ref]$iid,[ref]$windowObject)
  Need ($hr -eq 0 -and $null -ne $windowObject) 'EXCEL_ATTACH_FAILED'
  $excel=$windowObject.Application
- $account=$excel.Workbooks.Item('Ark_No11_MSII_RSS.xlsx')
- $sheet=$account.Worksheets.Item('ARK_ACCOUNT_READONLY')
+ $accountWorkbook=$excel.Workbooks.Item('Ark_No11_MSII_RSS.xlsx')
+ $sheet=$accountWorkbook.Worksheets.Item('ARK_ACCOUNT_READONLY')
  Need ($sheet.Name -ceq 'ARK_ACCOUNT_READONLY') 'ACCOUNT_SHEET_IDENTITY'
  Write-Host 'NO11_RSS_CAPACITY_STAGE=EXISTING_ORIGINAL_ACCOUNT_BOOK_PINNED'
  $script:stage='FIND_ORIGINAL_RSS_CAPACITY_FORMULA'
@@ -221,7 +221,7 @@ public static class No11CashRssWindow {
  Write-Host ('NO11_RSS_CAPACITY_FAILED_STAGE='+$script:stage)
  Write-Host ('NO11_RSS_CAPACITY=BLOCKED|'+$msg)
 }finally{
- foreach($o in @($sheet,$account,$excel)){
+ foreach($o in @($sheet,$accountWorkbook,$excel)){
   if($null -ne $o -and [Runtime.InteropServices.Marshal]::IsComObject($o)){
    try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($o)}catch{}
   }

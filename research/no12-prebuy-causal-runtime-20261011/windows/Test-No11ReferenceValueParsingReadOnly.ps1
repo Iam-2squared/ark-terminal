@@ -57,5 +57,30 @@ if($rows.Count -ne 24 -or $rows[0].marketDate -cne '2026-11-02' -or
  throw 'NO11_REFERENCE_ARRAY_VALUE_PARSER_MISMATCH'
 }
 Write-Host 'NO11_REFERENCE_PURE_24_VALUE_PARSER=PASS'
+Write-Host 'NO11_REFERENCE_PURE_JSON_BEGIN=True'
+$payload=[ordered]@{
+ schemaId='ARK_NO11_RSS_SESSION_REFERENCE_CAPTURE_V1'
+ sessionDate='2026-11-02'
+ source='RssMarket_SELECTED_REFERENCE_READONLY'
+ capturedAtJst='2026-11-02T11:00:00.000+09:00'
+ completedAtJst='2026-11-02T11:00:01.000+09:00'
+ chartPlanSha256=('0'*64)
+ selectedSymbols=@($rows|ForEach-Object {$_.symbol})
+ rows=@($rows)
+ corporateActionReviewPerformed=$false
+ readOnly=$true
+ productionReady=$false
+ orderTransmission=$false
+}
+$utf8=[Text.UTF8Encoding]::new($false)
+$raw=$utf8.GetBytes((ConvertTo-Json -InputObject $payload -Depth 10 -Compress)+[char]10)
+if($raw.Length -lt 3000 -or $raw.Length -gt 100000){
+ throw 'NO11_REFERENCE_PURE_JSON_SIZE_INVALID'
+}
+$roundTrip=$utf8.GetString($raw)|ConvertFrom-Json
+if(@($roundTrip.rows).Count -ne 24 -or $roundTrip.orderTransmission -ne $false){
+ throw 'NO11_REFERENCE_PURE_JSON_ROUND_TRIP_INVALID'
+}
+Write-Host ('NO11_REFERENCE_PURE_JSON_24=PASS|BYTES='+$raw.Length)
 Write-Host 'EXCEL_STARTED=False'
 Write-Host 'ORDER_TRANSMISSION=False'

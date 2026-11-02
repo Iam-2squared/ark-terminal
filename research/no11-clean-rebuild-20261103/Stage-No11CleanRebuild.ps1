@@ -19,6 +19,12 @@ function CanonicalBlob([byte[]]$Bytes){
  try{return ([BitConverter]::ToString($hash.ComputeHash($buffer))).Replace('-','').ToLowerInvariant()}
  finally{$hash.Dispose()}
 }
+function PayloadSha256([string]$Path){
+ $hash=[Security.Cryptography.SHA256]::Create()
+ $stream=[IO.File]::Open($Path,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
+ try{return ([BitConverter]::ToString($hash.ComputeHash($stream))).Replace('-','').ToLowerInvariant()}
+ finally{$stream.Dispose();$hash.Dispose()}
+}
 function SafePath([string]$Value){
  Need ([IO.Path]::IsPathRooted($Value)) 'ABSOLUTE_PATH_REQUIRED'
  $p=[IO.Path]::GetFullPath($Value)
@@ -49,7 +55,7 @@ foreach($entry in $m.files){
  $seen[$relative]=$true
  $payload=SafePath (Join-Path (Join-Path $PSScriptRoot 'payload') $relative)
  Need (Test-Path -LiteralPath $payload -PathType Leaf) 'PAYLOAD_MISSING'
- Need ((Get-FileHash -LiteralPath $payload -Algorithm SHA256).Hash.ToLowerInvariant() -ceq [string]$entry.outputSha256) 'PAYLOAD_HASH'
+ Need ((PayloadSha256 $payload) -ceq [string]$entry.outputSha256) 'PAYLOAD_HASH'
  $target=SafePath (Join-Path $root $relative)
  $exists=Test-Path -LiteralPath $target -PathType Leaf
  if($exists){

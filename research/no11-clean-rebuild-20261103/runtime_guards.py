@@ -1,7 +1,7 @@
-"""New, source-only runtime guards. No order I/O, model changes or cash adoption.
+"""New source-only guards; no broker I/O, cash adoption or model changes.
 
-These helpers are called by the separately generated coordinator. They never
-turn an observer result into a new ARK fill and never clear external exclusions.
+Only the coordinator owns observation and transport. Ownership conflicts are
+latched in its existing durable checkpoint; personal shares are never adopted.
 """
 from __future__ import annotations
 
@@ -12,11 +12,7 @@ def require(ok: bool, reason: str) -> None:
 
 
 def validate_fee_course(config: dict) -> None:
-    """Optional explicit fee profile, keeping old non-profile configs compatible.
-
-ZERO is an internal configuration value, not a claim that broker settings were
-read or changed. Existing transport permission and cash gates remain untouched.
-"""
+    """Validate explicit fee profile without changing existing permissions."""
     course = config.get('feeCourse')
     if course is None:
         return
@@ -25,18 +21,34 @@ read or changed. Existing transport permission and cash gates remain untouched.
             'ZERO_REQUIRES_SOR')
 
 
-def recheck_exit(service, command: dict, at: str) -> str:
-    """Recheck only a prepared SELL, before IN_FLIGHT and any transport call.
+def latch_ownership_conflict(service, symbol: str, at: str) -> None:
+    """Preserve observed ownership uncertainty even if quantity later returns.
 
-Re-reading a local observer is not an atomic broker lock. A manual operation
-not yet observed cannot be detected here; already-sent orders are not cancelled.
+This does not invent a manual fill or its price. The existing checkpoint is
+reused rather than creating a second ownership ledger or clearing old flags.
+"""
+    writer = getattr(service.book, 'checkpoint_source', None)
+    halt = getattr(service, 'halt_entry', None)
+    require(callable(writer) and callable(halt), 'EXIT_DURABLE_LATCH_UNAVAILABLE')
+    old = service.book.source_checkpoint('broker.externalSymbols') or []
+    require(type(old) is list and all(type(x) is str for x in old), 'EXIT_EXTERNAL_CHECKPOINT')
+    current = sorted(set(old) | {symbol})
+    if current != old:
+        writer('broker.externalSymbols', current, at)
+    halt('NO11_CLEAN_OWNERSHIP_MISMATCH', at)
+
+
+def recheck_exit(service, command: dict, at: str) -> str:
+    """Validate a prepared SELL before IN_FLIGHT and irreversible transport.
+
+A local observer read is not an atomic broker lock. Unobserved manual trades
+cannot be detected and already-sent orders are not cancelled by this guard.
 """
     if command.get('kind') != 'ORDER' or command.get('side') != 'SELL':
         return at
     if service.config.get('evidenceMode') == 'BROKER_OBSERVATION':
         require(service.observe_file(at) is True, 'EXIT_OBSERVATION_FAILED')
         newer = service.clock()
-        # The coordinator's source and ledger validators enforce JST syntax.
         from no11_broker_execution_ledger import instant
         require(instant(newer, service.session) >= instant(at, service.session),
                 'EXIT_CLOCK_REVERSED')
@@ -56,20 +68,18 @@ not yet observed cannot be detected here; already-sent orders are not cancelled.
             and position.get('symbol') == order.get('symbol')
             and position.get('account') == order.get('account'),
             'EXIT_REMAINING_OWNERSHIP_REQUIRED')
-    # Existing sticky external-symbol exclusion, same-account holding identity,
-    # and manual pending-SELL reservation checks remain the authority.
-    service._sell_safe(order, at)
-    # A mismatch in total holding, even an excess, is not adopted as ARK stock.
-    # Same-symbol mixed manual ownership is conservatively held for review.
     from no11_broker_fill_attribution import symbol
     holdings = [p for p in service.source['positions']
-                if symbol(p['symbol']) == order['symbol']
-                and p['account'] == order['account']]
+                if symbol(p['symbol']) == order['symbol'] and p['account'] == order['account']]
     owned = [p for p in state['positions'].values()
              if p.get('symbol') == order['symbol'] and p.get('account') == order['account']]
     require(all(type(p.get('quantity')) is int and p['quantity'] >= 0 for p in owned),
             'EXIT_OWNED_QUANTITY_INVALID')
     total = sum(p['quantity'] for p in owned)
-    require(len(holdings) == 1 and holdings[0]['quantity'] == total,
-            'EXIT_MIXED_OR_CHANGED_HOLDING')
+    if len(holdings) != 1 or holdings[0]['quantity'] != total:
+        # Latch before _sell_safe: that existing guard could reject a zero
+        # holding first, losing the evidence of a later same-symbol rebuy.
+        latch_ownership_conflict(service, order['symbol'], at)
+        raise ValueError('NO11_CLEAN_EXIT_MIXED_OR_CHANGED_HOLDING')
+    service._sell_safe(order, at)
     return at

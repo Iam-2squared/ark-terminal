@@ -55,8 +55,10 @@ jobs:
         run: python -B src/research/no11-clean-rebuild-20261103/ci.py build
       - name: Test new code and existing Frozen-P1 Python suite
         run: python -B src/research/no11-clean-rebuild-20261103/ci.py python
-      - name: Test existing Node regressions
-        run: python -B src/research/no11-clean-rebuild-20261103/ci.py node
+      - name: Test existing Node regressions with the new pure dependency
+        run: |
+          python -B src/research/no11-clean-rebuild-20261103/node_harness.py
+          python -B src/research/no11-clean-rebuild-20261103/ci.py node
       - name: Windows PowerShell 5.1 offline tests
         if: matrix.os == 'windows-latest'
         shell: powershell

@@ -102,6 +102,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'NO11_NOV02_REVIEWED_MASTER_FAIL_CLOSED_SELFTEST_FAILED' }
           & powershell.exe -NoProfile -ExecutionPolicy Bypass -File './research/no12-prebuy-causal-runtime-20261011/windows/Test-No11ReferenceValueParsingReadOnly.ps1'
           if ($LASTEXITCODE -ne 0) { throw 'NO11_REFERENCE_24_VALUES_PARSER_CPU_SMOKE_FAILED' }
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File './research/no12-prebuy-causal-runtime-20261011/windows/Capture-No11SessionReferenceRowwiseReadOnly.ps1' -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'NO11_REFERENCE_ROWWISE_OFFLINE_SELFTEST_FAILED' }
+          $rowwise='research/no12-prebuy-causal-runtime-20261011/windows/Capture-No11SessionReferenceRowwiseReadOnly.ps1'
+          $parseTokens=$null; $parseErrors=$null
+          [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $rowwise).Path,[ref]$parseTokens,[ref]$parseErrors)
+          if ($parseErrors.Count -ne 0) { throw 'NO11_REFERENCE_ROWWISE_PARSER_FAILED' }
           & ./research/no12-prebuy-causal-runtime-20261011/windows/Prepare-No11Nov02MorningHandoffReadOnly.ps1 -OfflineSelfTest
           if ($LASTEXITCODE -ne 0) { throw 'NO11_NOV02_24_MORNING_HANDOFF_OFFLINE_SELFTEST_FAILED' }
           $testHandoff = './research/no12-prebuy-causal-runtime-20261011/windows/Prepare-No11Nov02MorningHandoffReadOnly.ps1'

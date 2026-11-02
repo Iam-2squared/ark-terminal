@@ -1,4 +1,4 @@
-# Exact Ark account RSS RssCapacityList observation. No workbook edits,
+﻿# Exact Ark account RSS RssCapacityList observation. No workbook edits,
 # formulas, order calls, bank/account mutations or brokerage connections.
 # The operator explicitly attests that no bank link/autosweep exists.
 # IMPORTANT: RSS buying power is NOT proof of a cash balance; no LIVE permit.

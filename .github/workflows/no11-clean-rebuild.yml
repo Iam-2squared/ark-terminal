@@ -32,9 +32,10 @@ jobs:
         with:
           path: src
           fetch-depth: 1
-      - name: Fetch exact source objects, not old packages
+      - name: Fetch exact Git objects, not old packages
         shell: bash
-        run: git -C src fetch --no-tags --depth=1 origin 24b906e19a2623e45701311ca3fbb20dafe11c80
+        run: |
+          git -C src fetch --no-tags --depth=1 origin 24b906e19a2623e45701311ca3fbb20dafe11c80
       - uses: actions/checkout@v4
         with:
           ref: 24b906e19a2623e45701311ca3fbb20dafe11c80
@@ -47,64 +48,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install the existing offline suite's numeric runtime
-        run: python -m pip install --quiet --disable-pip-version-check --only-binary=:all: numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0
-      - name: Generate package and apply only to isolated CI baseline
-        shell: python
+      - name: Install the existing offline suite runtime
         run: |
-          from pathlib import Path
-          import os, subprocess, sys
-          root = Path.cwd()
-          src = root / 'src'
-          baseline = root / 'baseline'
-          folder = src / 'research/no11-clean-rebuild-20261103'
-          output = Path(os.environ['RUNNER_TEMP']) / 'Ark_No11_Clean_Rebuild_20261103'
-          subprocess.run([sys.executable, '-B', str(folder / 'rebuild.py'), '--repo', str(src), '--output', str(output), '--ci-stage', str(baseline)], check=True)
-          ps = Path(os.environ['RUNNER_TEMP']) / 'test-no11-clean.ps1'
-          ps.write_text((folder / 'test_windows.ps1').read_text(encoding='utf-8-sig'), encoding='utf-8-sig')
-          values = {'NO11_CLEAN_ENGINE': baseline / 'research/no12-prebuy-causal-runtime-20261011', 'NO11_CLEAN_REPO': src, 'NO11_CLEAN_PACKAGE': output, 'NO11_CLEAN_BASELINE': baseline, 'NO11_CLEAN_PS_TEST': ps}
-          with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as env:
-              for name, value in values.items():
-                  env.write(name + '=' + str(value) + '\n')
-      - name: Test new code plus full existing Frozen-P1 Python suite
-        shell: python
-        run: |
-          from pathlib import Path
-          import importlib.util, io, json, os, sys, unittest
-          engine = Path(os.environ['NO11_CLEAN_ENGINE'])
-          folder = Path(os.environ['NO11_CLEAN_REPO']) / 'research/no11-clean-rebuild-20261103'
-          output = Path(os.environ['NO11_CLEAN_PACKAGE'])
-          sys.path.insert(0, str(engine / 'tools'))
-          sys.path.insert(0, str(engine / 'tests'))
-          spec = importlib.util.spec_from_file_location('test_fresh_no11', folder / 'test_rebuild.py')
-          module = importlib.util.module_from_spec(spec)
-          spec.loader.exec_module(module)
-          suites = {'new': unittest.defaultTestLoader.loadTestsFromModule(module), 'existingFrozen': unittest.defaultTestLoader.discover(str(engine / 'tests'), pattern='test_no11_frozen_p1_*.py')}
-          result = {}
-          all_logs = ''
-          for name, suite in suites.items():
-              stream = io.StringIO()
-              run = unittest.TextTestRunner(stream=stream, verbosity=2).run(suite)
-              log = stream.getvalue()
-              all_logs += '\n=== ' + name + ' ===\n' + log
-              print(log)
-              result[name] = {'tests': run.testsRun, 'errors': len(run.errors), 'failures': len(run.failures), 'skipped': len(run.skipped), 'success': run.wasSuccessful()}
-          (output / 'python-tests.log').write_text(all_logs, encoding='utf-8')
-          (output / 'python-tests.json').write_text(json.dumps(result, indent=2), encoding='utf-8')
-          if not all(r['success'] for r in result.values()):
-              raise SystemExit(1)
-      - name: Run existing Node regression tests against rebuilt scripts
-        shell: python
-        run: |
-          from pathlib import Path
-          import os, subprocess
-          engine = Path(os.environ['NO11_CLEAN_ENGINE'])
-          tests = sorted(str(p) for p in (engine / 'tests').glob('*.test.mjs'))
-          result = subprocess.run(['node', '--test'] + tests, cwd=engine.parents[1], text=True, encoding='utf-8', stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-          Path(os.environ['NO11_CLEAN_PACKAGE'], 'node-tests.log').write_text(result.stdout, encoding='utf-8')
-          print(result.stdout)
-          raise SystemExit(result.returncode)
-      - name: PowerShell 5.1 syntax and actual function bodies with fake sinks
+          python -m pip install --quiet --disable-pip-version-check --only-binary=:all: numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0
+      - name: Generate package into isolated CI baseline
+        run: python -B src/research/no11-clean-rebuild-20261103/ci.py build
+      - name: Test new code and existing Frozen-P1 Python suite
+        run: python -B src/research/no11-clean-rebuild-20261103/ci.py python
+      - name: Test existing Node regressions
+        run: python -B src/research/no11-clean-rebuild-20261103/ci.py node
+      - name: Windows PowerShell 5.1 offline tests
         if: matrix.os == 'windows-latest'
         shell: powershell
         run: |
@@ -114,13 +67,13 @@ jobs:
             & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $env:NO11_CLEAN_ENGINE ('windows/'+$name)) -OfflineSelfTest
             if($LASTEXITCODE -ne 0){throw ('NO11_CLEAN_EXISTING_SELFTEST_FAILED_'+$name)}
           }
-      - name: PowerShell Core cross-platform pure helper tests
+      - name: Linux PowerShell Core pure helper tests
         if: matrix.os == 'ubuntu-latest'
         shell: pwsh
         run: |
           $ErrorActionPreference='Stop'
           & $env:NO11_CLEAN_PS_TEST -EngineRoot $env:NO11_CLEAN_ENGINE -PackageRoot $env:NO11_CLEAN_PACKAGE -BaselineRoot $env:NO11_CLEAN_BASELINE | Tee-Object -FilePath (Join-Path $env:NO11_CLEAN_PACKAGE 'powershell-tests.log')
-      - name: Verify source checkout and frozen assets untouched
+      - name: Assert original source checkout and frozen assets unchanged
         shell: bash
         run: |
           git -C src diff --exit-code
@@ -131,7 +84,7 @@ jobs:
           path: ${{ env.NO11_CLEAN_PACKAGE }}/
           retention-days: 14
           if-no-files-found: error
-      - name: Preserve failure diagnostics, not an approved package
+      - name: Preserve failure diagnostics only
         if: failure()
         uses: actions/upload-artifact@v4
         with:
@@ -147,6 +100,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - uses: actions/checkout@v4
+        with:
+          path: src
+          persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
           name: no11-clean-verified-windows-latest
@@ -155,28 +112,8 @@ jobs:
         with:
           name: no11-clean-verified-ubuntu-latest
           path: checked-linux
-      - name: Require identical payloads and successful test records
-        shell: python
-        run: |
-          from pathlib import Path
-          import hashlib, json, shutil
-          win, lin = Path('checked-windows'), Path('checked-linux')
-          assert (win / 'manifest.json').read_bytes() == (lin / 'manifest.json').read_bytes()
-          manifest = json.loads((win / 'manifest.json').read_text())
-          for f in manifest['files']:
-              a, b = (win / 'payload' / f['path']).read_bytes(), (lin / 'payload' / f['path']).read_bytes()
-              assert a == b and hashlib.sha256(a).hexdigest() == f['outputSha256']
-          checks = {}
-          for name, root in [('Windows', win), ('Linux', lin)]:
-              r = json.loads((root / 'python-tests.json').read_text())
-              assert all(v['success'] and v['errors'] == 0 and v['failures'] == 0 for v in r.values())
-              assert 'NO11_CLEAN_POWERSHELL=PASS_OFFLINE_ONLY' in (root / 'powershell-tests.log').read_text(encoding='utf-8-sig')
-              checks[name] = r
-          shutil.copytree(win, 'release')
-          shutil.copytree(lin, 'release/validation-linux', ignore=shutil.ignore_patterns('payload','Stage-No11CleanRebuild.ps1','manifest.json','README.md'))
-          report = {'status': 'PASS_OFFLINE_WINDOWS_LINUX', 'sourcePackagesUsed': False, 'payloadFiles': len(manifest['files']), 'python': checks, 'realExcelTested': False, 'realOrdersSent': False, 'installedOnUserPc': False, 'liveReady': False}
-          Path('release/VALIDATION.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
-          print(json.dumps(report, indent=2))
+      - name: Require identical payloads and passed test records
+        run: python -B src/research/no11-clean-rebuild-20261103/ci.py package
       - uses: actions/upload-artifact@v4
         with:
           name: Ark_No11_Clean_Rebuild_20261103

@@ -156,8 +156,7 @@ public static class No11CashRssWindow {
        $headers.GetLength(0) -eq 1 -and $headers.GetLength(1) -eq 7) 'RSS_CAPACITY_HEADER_SHAPE'
  $col=-1;$hits=0
  for($i=0;$i -lt 7;$i++){
-  $label=([string]$headers.GetValue($headers.GetLowerBound(0),$headers.GetLowerBound(1)+$i)).
-   Replace(' ','').Replace('　','').Trim()
+  $label=([string]$headers.GetValue($headers.GetLowerBound(0),$headers.GetLowerBound(1)+$i)).Replace(' ','').Replace('　','').Trim()
   if($label -ceq '現物買付可能額'){$col=$firstCol+$i;$hits++}
  }
  Need ($hits -eq 1) 'RSS_CAPACITY_FIELD_MISSING_OR_AMBIGUOUS'
@@ -181,7 +180,7 @@ public static class No11CashRssWindow {
   account=$Account
   bankNotLinkedOperatorConfirmed='true'
   autoSweepOffOperatorConfirmed='true'
-  rSSVendorAsOfTimeCertified='false'
+  rssVendorAsOfTimeCertified='false'
   securitiesCashBalanceCertified='false'
   reviewMode='OPERATOR_ATTESTED_BANK_UNLINKED_RSS_BUYING_POWER'
   orderTransmission='false'
@@ -190,7 +189,7 @@ public static class No11CashRssWindow {
  $kv=New-Object 'System.Collections.Generic.List[string]'
  foreach($key in @($properties.Keys)){
   if($key -cin @('bankNotLinkedOperatorConfirmed',
-                'autoSweepOffOperatorConfirmed','rSSVendorAsOfTimeCertified',
+                'autoSweepOffOperatorConfirmed','rssVendorAsOfTimeCertified',
                 'securitiesCashBalanceCertified','orderTransmission','liveApproved')){
    $v=[string]$properties[$key]
   }else{

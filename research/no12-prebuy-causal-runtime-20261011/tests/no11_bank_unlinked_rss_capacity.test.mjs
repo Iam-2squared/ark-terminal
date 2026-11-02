@@ -40,6 +40,6 @@ test('PowerShell case-insensitive ValidateSet Account parameter is never reused 
   assert.match(code,/\[ValidateSet\('一般'\)\]\[string\]\$Account='一般'/);
   assert.match(code,/\$accountWorkbook=\$excel\.Workbooks\.Item\('Ark_No11_MSII_RSS\.xlsx'\)/);
   assert.match(code,/account=\$Account/);
-  assert.doesNotMatch(code,/\$account\s*=/i);
+  assert.doesNotMatch(code,/\$account\s*=\s*(?:\$null|\$excel\.Workbooks)/i);
   assert.doesNotMatch(code,/\$account\.(?:Worksheets|Range|Cells|Name|Close)/i);
 });

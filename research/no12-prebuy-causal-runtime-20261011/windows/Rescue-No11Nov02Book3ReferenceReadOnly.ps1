@@ -66,6 +66,20 @@ if($OfflineSelfTest){
  Need ($scan.Count -eq 3 -and $scan -contains '7203.T' -and
    $scan -contains '6758.T' -and $scan -contains '!UNKNOWN!' -and
    $scan -notcontains '9999.T') 'BULK_FORMULA_SELFTEST'
+ Add-Type -AssemblyName 'System.Web.Extensions' -ErrorAction Stop
+ $jsonSelfTest=New-Object System.Web.Script.Serialization.JavaScriptSerializer
+ $jsonSelfTest.MaxJsonLength=1000000
+ $pureRows=@()
+ for($i=0;$i -lt 24;$i++){
+  $pureRows+=,@{symbol='3753.T';marketCode='T';previousClose=337.0;
+    marketDate='2026-11-02';previousDate='2026-10-30';
+    lotShares=100.0;exRightsDateRaw=''}
+ }
+ $jsonSample=$jsonSelfTest.Serialize(@{rows=@($pureRows);
+    source='RssMarket_SELECTED_REFERENCE_READONLY';orderTransmission=$false})
+ Need ($jsonSample.Length -gt 1500 -and
+       $jsonSample.Contains('"orderTransmission":false')) 'DOTNET_JSON_24_ROWS'
+ Write-Host 'NO11_REFERENCE_RESCUE_JSON_24_DOTNET_SELFTEST=PASS'
  Write-Host 'NO11_REFERENCE_BULK_FORMULA_SELFTEST=PASS'
  Write-Host 'NO11_REFERENCE_OFFLINE_SELFTEST=PASS';Write-Host 'ORDER_TRANSMISSION=False';exit 0
 }

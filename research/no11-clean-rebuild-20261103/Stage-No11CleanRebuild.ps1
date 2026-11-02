@@ -1,6 +1,5 @@
-# New package only. Never load or locate the previous Operational/EXIT archives.
-# This verifies source bytes and optionally stages payload files, not a runnable
-# engine or a LIVE installation. No git reset, checkout, Excel or order changes.
+# Fresh source-only package; no previous Operational/EXIT package is loaded.
+# Default: audit. -Stage: isolated payload only, never live installation.
 param(
  [Parameter(Mandatory=$true)][string]$SourceRoot,
  [switch]$Stage,
@@ -45,8 +44,8 @@ Need ($m.schemaId -ceq 'ARK_NO11_CLEAN_REBUILD_PACKAGE_V1' -and
 $entries=@();$seen=@{};$original=0;$rebuilt=0;$new=0
 foreach($entry in $m.files){
  $relative=[string]$entry.path
- Need ($relative -cmatch '^research/no12-prebuy-causal-runtime-20261011/(tools|windows)/[A-Za-z0-9_.-]+\.(py|ps1)$'
-  -and -not $seen.ContainsKey($relative)) 'TARGET_PATH'
+ $valid=($relative -cmatch '^research/no12-prebuy-causal-runtime-20261011/(tools|windows)/[A-Za-z0-9_.-]+\.(py|ps1)$')
+ Need ($valid -and -not $seen.ContainsKey($relative)) 'TARGET_PATH'
  $seen[$relative]=$true
  $payload=SafePath (Join-Path (Join-Path $PSScriptRoot 'payload') $relative)
  Need (Test-Path -LiteralPath $payload -PathType Leaf) 'PAYLOAD_MISSING'

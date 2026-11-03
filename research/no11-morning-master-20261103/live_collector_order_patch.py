@@ -55,10 +55,19 @@ SENDER_BEFORE = """ $descriptors=@($Config.expectedTemporaryWorkbooks)
 
 SENDER_AFTER = r""" $descriptors=@($Config.expectedTemporaryWorkbooks)
  # ARK_NO11_ORDER_EXPECT_COLLECTOR_TEMPORARY_V1
+ # Offline mocks intentionally omit mode. Access it only when supplied.
+ # In a real LIVE config the mode still has to be explicit and exactly LIVE.
+ $transportMode=''
+ if($Config -is [System.Collections.IDictionary]){
+  if($Config.Contains('mode')){$transportMode=[string]$Config['mode']}
+ }else{
+  $modeProperty=$Config.PSObject.Properties['mode']
+  if($null -ne $modeProperty){$transportMode=[string]$modeProperty.Value}
+ }
  # The original C50 collector starts AFTER the physical transport session pin.
  # Only the owned, READY-pinned temporary workbook can be joined; NEVER allow
  # an arbitrary unsaved book or loosen the saved workbook/broker destination.
- if($Config.mode -ceq 'LIVE' -and $descriptors.Count -eq 0 -and $temporary.Count -eq 1){
+ if($transportMode -ceq 'LIVE' -and $descriptors.Count -eq 0 -and $temporary.Count -eq 1){
   $readyPath=[Environment]::GetEnvironmentVariable('ARK_NO11_PINNED_C50_READY_FILE','Process')
   $readySha=[Environment]::GetEnvironmentVariable('ARK_NO11_PINNED_C50_READY_SHA256','Process')
   Need-No11Transport (-not [string]::IsNullOrWhiteSpace($readyPath) -and

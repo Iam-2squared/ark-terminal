@@ -19,7 +19,7 @@ import sys
 import uuid
 
 PINS={
-    'daily_cycle.py':'fa1e888f98874d7fa4a0056e8e838a82a56dbf90',
+    'daily_cycle.py':'0720dc62ce9625c8e19b43d17c500c6b2c1e4f04',
     'scope_morning_master.py':'7006f673850401d0f3a076f2bf01ba1b25040c48',
     'launcher_automatic_bridge_v4.py':'224766266bfe953bc6dfa1abda28230fae6ff69f',
     'Run-No11NightlyCycle.ps1':'9ca459c9f58238975fe4fe4d1e03664484458a6a',

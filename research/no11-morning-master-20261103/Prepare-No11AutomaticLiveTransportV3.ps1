@@ -138,98 +138,12 @@ public static class No11AutoTransportNative {
  }else{
   Need ([string]::IsNullOrWhiteSpace([string]$formula.Value2)) 'FORMULA_CELL_NOT_EMPTY'
  }
-  # The read-only observer uses this exact original deterministic identity.
- # A synthetic/random ID could never reconcile broker BUY fills or EXIT.
+  # The account observer uses this original deterministic Excel session identity.
+ # Random values cannot correlate broker execution rows to our BUY and EXIT.
  $startedAtUtc=$process.StartTime.ToUniversalTime().ToString('o')
  $observedSession=New-No11ExcelSession ([int]$excelPid) $startedAtUtc $account $order
  $sessionKey=[string]$observedSession.sessionKey
- Need ($sessionKey -cmatch '^[a-f0-9]{64}
- # Session initialization only. The sending write is BD2=1 and is NOT performed here.
- $guard.Value2='ARK_NO11_SEND_ONCE'
- $trigger.Value2=0
- $session.Value2=$sessionKey
- $formula.NumberFormat='General'
- Need ([string]$guard.Value2 -ceq 'ARK_NO11_SEND_ONCE' -and [double]$trigger.Value2 -eq 0 -and
-       [string]$session.Value2 -ceq $sessionKey -and -not $formula.HasFormula -and
-       [string]::IsNullOrWhiteSpace([string]$formula.Value2)) 'SESSION_INITIALIZATION_READBACK'
-
- $saved=@($excel.Workbooks|Where-Object{[string]$_.Path -ne ''})
- $temporary=@($excel.Workbooks|Where-Object{[string]$_.Path -eq ''})
- Need ($temporary.Count -eq 0 -and $saved.Count -eq 3) 'WORKBOOK_SET_AFTER_INITIALIZATION'
- $actual=@($saved|ForEach-Object{[IO.Path]::GetFullPath([string]$_.FullName)})
- foreach($expected in @($account,$market,$order)){
-  Need (@($actual|Where-Object{$_ -ieq $expected}).Count -eq 1) 'WORKBOOK_SET_IDENTITY'
- }
-
- $addinPaths=@()
- foreach($addin in @($excel.AddIns)){
-  try{
-   if($addin.Installed -eq $true -and -not [string]::IsNullOrWhiteSpace([string]$addin.FullName)){
-    $name=[IO.Path]::GetFileName([string]$addin.FullName)
-    if($name -match '^MarketSpeed2_RSS_(?:32|64)bit\.xll$' -or $name -match '^MarketSpeed2_RSS_VBA\.xlam$'){
-     $addinPaths+=@([IO.Path]::GetFullPath([string]$addin.FullName))
-    }
-   }
-  }catch{}
- }
- $addinPaths=@($addinPaths|Sort-Object -Unique)
- Need ($addinPaths.Count -eq 2 -and
-       @($addinPaths|Where-Object{[IO.Path]::GetFileName($_) -match '^MarketSpeed2_RSS_(?:32|64)bit\.xll$'}).Count -eq 1 -and
-       @($addinPaths|Where-Object{[IO.Path]::GetFileName($_) -match '^MarketSpeed2_RSS_VBA\.xlam$'}).Count -eq 1) 'RSS_ADDINS_NOT_UNIQUE'
-
- $dispatch=Join-Path $root 'transport-dispatch'
- [void][IO.Directory]::CreateDirectory($dispatch)
- $dispatch=ReparseFree $dispatch $true
- $expires=[DateTimeOffset]::ParseExact(($SessionDate+'T15:25:00+09:00'),'yyyy-MM-ddTHH:mm:sszzz',[Globalization.CultureInfo]::InvariantCulture)
- $transport=[ordered]@{
-  schemaId='ARK_NO11_MSII_TRANSPORT_CONFIG_V1'
-  sessionDate=$SessionDate
-  mode='LIVE'
-  orderTransmission=$true
-  operatorEnabled=$true
-  approvedForSession=$true
-  rssSessionKey=$sessionKey
-  expiresAtJst=$expires.ToString('yyyy-MM-ddTHH:mm:sszzz')
-  workbookPath=$order
-  dispatchDirectory=$dispatch
-  worksheetName='ARK_ORDER_IDS_READONLY'
-  formulaCell='BD4'
-  triggerCell='BD2'
-  guardCell='BD1'
-  sessionCell='BD3'
-  guardValue='ARK_NO11_SEND_ONCE'
-  expectedExcelPid=[int]$excelPid
-  expectedExcelHwnd=[long]$hwnd
-  expectedExcelStartedAt=$process.StartTime.ToUniversalTime().ToString('o')
-  expectedAddInPaths=@($addinPaths)
-  expectedOpenWorkbooks=@($actual)
-  expectedTemporaryWorkbooks=@()
-  permitMaximumAgeMs=10000
-  responseTimeoutMs=5000
- }
- $file=WriteImmutableJson $root $transport 'automatic-live-transport'
- Write-Host ('AUTOMATIC_TRANSPORT='+$file)
- Write-Host ('AUTOMATIC_TRANSPORT_EXCEL_PID='+$excelPid)
- Write-Host ('AUTOMATIC_TRANSPORT_ORDER_BOOK_OPENED='+$openedByAuto)
- Write-Host 'AUTOMATIC_TRANSPORT_SESSION_INITIALIZED=True'
- Write-Host 'ORDER_TRIGGER_WRITTEN_TO_ONE=False'
- Write-Host 'ORDER_SENT=False'
-}catch{
- $reason=[string]$_.Exception.Message
- if($reason -cnotmatch '^NO11_AUTO_TRANSPORT_[A-Z0-9_]+$'){$reason='NO11_AUTO_TRANSPORT_EXCEL_OR_SESSION_BLOCKED'}
- Write-Host ('AUTOMATIC_TRANSPORT=BLOCKED|'+$reason)
- Write-Host 'ORDER_TRIGGER_WRITTEN_TO_ONE=False'
- Write-Host 'ORDER_SENT=False'
- exit 2
-}finally{
- foreach($o in @($sheet,$orderBook,$excel)){
-  if($null -ne $o -and [Runtime.InteropServices.Marshal]::IsComObject($o)){
-   try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($o)}catch{}
-  }
- }
-}
-exit 0
-) 'OBSERVED_RSS_SESSION_KEY'
+ Need ($sessionKey -cmatch '^[a-f0-9]{64}$') 'OBSERVED_RSS_SESSION_KEY'
  # Session initialization only. The sending write is BD2=1 and is NOT performed here.
  $guard.Value2='ARK_NO11_SEND_ONCE'
  $trigger.Value2=0

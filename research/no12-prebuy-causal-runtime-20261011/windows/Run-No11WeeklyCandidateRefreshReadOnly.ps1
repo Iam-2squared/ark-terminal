@@ -8,6 +8,8 @@ param(
  [string]$PrivateRoot,
  [string]$PinsFile,
  [string]$CatchUpAsOf='',
+ [string]$CarryFridayRun='',
+ [string]$HolidayAsOf='',
  [switch]$ConfirmYahooFridayRss,
  # Logical progress every 100 or 50 symbols. Physical RSS calls never exceed
  # the observed 50-function Excel cap, minus three reserved safety slots.
@@ -259,6 +261,8 @@ function Get-Plan {
   if($CatchUpAsOf -cnotmatch '^20\d{2}-\d{2}-\d{2}$'){throw 'NO11_DAILY_CATCHUP_DAY_INVALID'}
   $planArgs+=@('--catch-up-asof',$CatchUpAsOf)
  }
+ if(-not [string]::IsNullOrWhiteSpace($CarryFridayRun)){$planArgs+=@('--carry-friday-run',$CarryFridayRun)}
+ if(-not [string]::IsNullOrWhiteSpace($HolidayAsOf)){$planArgs+=@('--holiday-asof',$HolidayAsOf)}
  if($ConfirmYahooFridayRss){$planArgs+=@('--yahoo-friday-rss-confirm','true')}
  if($FirstBuyFridayLimited){
   if($ConfirmYahooFridayRss -or $CatchUpAsOf){
@@ -454,6 +458,8 @@ $reportArgs=@('report','--run',$run,'--weekly-run',$WeeklyRun)
 if(-not [string]::IsNullOrWhiteSpace($CatchUpAsOf)){
  $reportArgs+=@('--catch-up-asof',$CatchUpAsOf)
 }
+if(-not [string]::IsNullOrWhiteSpace($CarryFridayRun)){$reportArgs+=@('--carry-friday-run',$CarryFridayRun)}
+if(-not [string]::IsNullOrWhiteSpace($HolidayAsOf)){$reportArgs+=@('--holiday-asof',$HolidayAsOf)}
 if($ConfirmYahooFridayRss){$reportArgs+=@('--yahoo-friday-rss-confirm','true')}
 if($FirstBuyFridayLimited){$reportArgs+=@('--first-buy-friday-limited','true')}
 if(-not [string]::IsNullOrWhiteSpace($PinsFile)){$reportArgs+=@('--pins-file',$PinsFile)}

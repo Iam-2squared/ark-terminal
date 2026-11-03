@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {fileURLToPath,pathToFileURL} from 'node:url';
-import {verifyWeeklySource,tradingGap} from './no11_weekly_g1_refresh.mjs';
+import {verifyWeeklySource,tradingGap,verifyFridayCarry,holidayCompletedSessionWindow} from './no11_weekly_g1_refresh.mjs';
 import {YAHOO_SOURCE} from './no11_yahoo_weekly_seed.mjs';
 import {codeIdentity,loadCaptures} from './no11_rss_daily_trend_census.mjs';
 import {DAILY_PLAN_SCHEMA,requiredDailySessions,summarizeDailyCaptures}
@@ -62,6 +62,21 @@ export function verifyWeeklyShadowScope({runDir,seedDir,maskFile,chartFile,sessi
  const lineageGap=fridayConfirmed?
    (weekly.plan.sourceProvider===YAHOO_SOURCE&&weekly.plan.asOfSession===asOf?0:NaN):
    tradingGap(weekly.plan.asOfSession,asOf);
+ if(plan.fridayCarryForward!==undefined){
+  need(lineageGap>=5&&lineageGap<=8&&
+   JSON.stringify(verifyFridayCarry(weekly,plan.fridayCarryForward.fridayRun,asOf))===
+   JSON.stringify(plan.fridayCarryForward),'CARRY_PROOF_NOT_PINNED_TO_REAL_FRIDAY_429');
+ }else{
+  need(fridayConfirmed||lineageGap<=4,'WEEKLY_SOURCE_TOO_OLD_WITHOUT_FRIDAY_429_PROOF');
+ }
+ if(plan.holidayHistoricalRecovery===true){
+  need(plan.holidayObservedCalendarDay==='2026-11-03'&&
+   plan.historicalAsOfSession==='2026-11-02'&&
+   plan.futurePartialBarsExcludedFromG1===true&&
+   plan.createdAtJst.slice(0,10)==='2026-11-03'&&
+   holidayCompletedSessionWindow(plan.createdAtJst,asOf).date===asOf,
+   'HOLIDAY_SOURCE_DATE_FABRICATED');
+ }
  const {planId,...body}=plan;
  need(plan.schemaId===DAILY_PLAN_SCHEMA&&
   plan.refreshSchemaId==='ARK_NO11_WEEKLY_G1_DAILY_REFRESH_PLAN_V1'&&

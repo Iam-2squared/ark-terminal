@@ -89,6 +89,60 @@ export function verifyWeeklySource(weeklyRun){
   need(plan.schemaId===DAILY_PLAN_SCHEMA,'UNKNOWN_WEEKLY_SOURCE_PROVIDER');
   return verifyWeeklyPool(run);
 }
+/** This week's explicit carry uses the original 429 symbols, NEVER a substituted
+ * 2960/4328 partial sweep. It is backed by the real Friday 429 D100 receipts.
+ * The next day's 429 D100 must be recaptured separately; no prices are retagged.
+ */
+export function carryWindow(seedDate,fridayDate,targetDate){
+  need(seedDate==='2026-10-26'&&fridayDate==='2026-10-30',
+    'CARRY_ORIGINAL_WEEK_NOT_PINNED');
+  need(isJpxCashTradingDay(targetDate)&&
+    tradingGap(seedDate,fridayDate)===4&&
+    tradingGap(fridayDate,targetDate)>=1&&tradingGap(fridayDate,targetDate)<=4,
+    'CARRY_ONLY_ONE_WEEK_FROM_REAL_FRIDAY');
+  return true;
+}
+export function verifyFridayCarry(source,fridayRun,targetDate){
+  need(source.plan.sourceProvider!==YAHOO_SOURCE&&
+       source.plan.asOfSession==='2026-10-26'&&
+       source.plan.symbols.length===4328&&source.mask.observedPassCount===429,
+       'CARRY_REQUIRES_ORIGINAL_FULL_RSS_429');
+  carryWindow(source.plan.asOfSession,'2026-10-30',targetDate);
+  const run=directory(fridayRun),plan=regular(path.join(run,'plan.json'));
+  need(plan.asOfSession==='2026-10-30'&&
+       plan.initialLiveCandidateScope==='FRIDAY_RSS_429_LOCKED_POOL_ONLY_NOT_FULL_MARKET'&&
+       plan.weeklySource?.originalPlanId===source.plan.planId&&
+       plan.weeklySource?.elapsedCashSessions===4&&
+       plan.symbols?.length===429,'CARRY_FRIDAY_429_SOURCE_MISMATCH');
+  validateRefreshPlan(plan,source,'2026-10-30');
+  const captures=loadCaptures(run,plan);
+  need(captures.length===429&&
+       summarizeDailyCaptures(plan,captures).summary.status==='COMPLETE_OBSERVED_STRUCTURE_ONLY',
+       'CARRY_FRIDAY_429_NOT_COMPLETE');
+  const names=fs.readdirSync(path.join(run,'sources')).filter(x=>x.endsWith('.json')).sort();
+  need(names.length===429,'CARRY_FRIDAY_MANIFEST_INCOMPLETE');
+  return Object.freeze({
+    schemaId:'ARK_NO11_WEEK429_EXPLICIT_CARRY_V1',
+    originalFullSession:source.plan.asOfSession,fridaySession:'2026-10-30',
+    fridayRun:run,fridayPlanId:plan.planId,
+    fridayManifestSha256:SHA(JSON.stringify(names)),
+    original429Sha256:SHA(JSON.stringify(plan.symbols)),
+    carriedOriginalSymbols:429,forwardDatesLimitedToWeek:true,
+    productionReady:false,orderTransmission:false
+  });
+}
+/** Source observation on Nov 3 holiday still targets real Nov 2 closes.
+ * This is NOT an authority to trade on the holiday or to backdate receipts.
+ */
+export function holidayCompletedSessionWindow(now,explicitAsOf){
+  const local=now.slice(0,10);
+  need(local==='2026-11-03'&&explicitAsOf==='2026-11-02'&&
+       !isJpxCashTradingDay(local)&&isJpxCashTradingDay(explicitAsOf)&&
+       lastCompletedSession(now)===explicitAsOf&&
+       nextCashDate(explicitAsOf)==='2026-11-04',
+       'HOLIDAY_ONLY_REAL_NOV2_CLOSE');
+  return {date:explicitAsOf,now,holidayHistoricalRecovery:true};
+}
 /** Saturday/Sunday weekly scan targets the *actual prior Friday* only.
  * No weekend session or Monday price is claimed. RSS use still needs a live
  * vendor connection; absence of data must halt the downstream collector.
@@ -152,17 +206,18 @@ export function yahooFridayConfirmationWindow(now){
     lastCompletedSession(now)===date,'YAHOO_FRIDAY_RSS_CONFIRM_AFTER_1900_ONLY');
   return {date,now,yahooFridayRssConfirmation:true};
 }
-function currentAsOf(catchUpAsOf='',confirmYahooFriday=false,firstFridayLimited=false){
-  need([!!catchUpAsOf,!!confirmYahooFriday,!!firstFridayLimited].filter(Boolean).length<=1,
+function currentAsOf(catchUpAsOf='',confirmYahooFriday=false,firstFridayLimited=false,holidayAsOf='',allowFridayCarry=false){
+  need([!!catchUpAsOf,!!confirmYahooFriday,!!firstFridayLimited,!!holidayAsOf].filter(Boolean).length<=1,
     'SESSION_MODES_CONFLICT');
   if(firstFridayLimited)return firstBuyFridayLimitedWindow(jstNow());
   if(confirmYahooFriday)return yahooFridayConfirmationWindow(jstNow());
+  if(holidayAsOf)return holidayCompletedSessionWindow(jstNow(),holidayAsOf);
   const {date,now,daytimeHistoricalRecovery=false}=catchUpAsOf?
     daytimeCatchUpWindow(jstNow(),catchUpAsOf):nightlyWindow(jstNow());
-  need(!isoFriday(date),'FRIDAY_FULL_MARKET_SWEEP_REQUIRED');
+  need(!isoFriday(date)||allowFridayCarry,'FRIDAY_FULL_MARKET_SWEEP_REQUIRED');
   return {date,now,daytimeHistoricalRecovery};
 }
-function assembleDailyPlan(source,date,now,daytimeHistoricalRecovery=false,yahooFridayRssConfirmation=false,fridayRestrictedFirstBuy=false){
+function assembleDailyPlan(source,date,now,daytimeHistoricalRecovery=false,yahooFridayRssConfirmation=false,fridayRestrictedFirstBuy=false,carryProof=null,holidayHistoricalRecovery=false){
   const sameFriday=yahooFridayRssConfirmation&&source.plan.sourceProvider===YAHOO_SOURCE&&
     isoFriday(date)&&date===source.plan.asOfSession;
   need(!yahooFridayRssConfirmation||sameFriday,
@@ -173,7 +228,8 @@ function assembleDailyPlan(source,date,now,daytimeHistoricalRecovery=false,yahoo
       'FIRST_BUY_FRIDAY_REQUIRES_ORIGINAL_RSS_4328_SEED');
   }
   const gap=sameFriday?0:tradingGap(source.plan.asOfSession,date);
-  need(sameFriday||(gap>=1&&gap<=4),'WEEKLY_POOL_EXPIRED_FULL_SWEEP_REQUIRED');
+  need(sameFriday||(gap>=1&&gap<=4)||(carryProof!==null&&gap>=5&&gap<=8),
+       'WEEKLY_POOL_EXPIRED_FULL_SWEEP_REQUIRED');
   const symbols=[...source.mask.observedPassSymbols];
   const poolDigest=SHA(JSON.stringify(symbols));
   const body={
@@ -193,6 +249,10 @@ function assembleDailyPlan(source,date,now,daytimeHistoricalRecovery=false,yahoo
       elapsedCashSessions:gap},
     newWeeklyBreakoutsIncluded:false,
     unknownNotAdmitted:true,
+    ...(carryProof===null?{}:{fridayCarryForward:carryProof}),
+    ...(holidayHistoricalRecovery?{holidayHistoricalRecovery:true,
+      holidayObservedCalendarDay:now.slice(0,10),historicalAsOfSession:date,
+      futurePartialBarsExcludedFromG1:true}:{}),
     ...(fridayRestrictedFirstBuy?{
       initialLiveCandidateScope:'FRIDAY_RSS_429_LOCKED_POOL_ONLY_NOT_FULL_MARKET',
       fullFridayMarketSweepPerformed:false,
@@ -223,16 +283,19 @@ function assembleDailyPlan(source,date,now,daytimeHistoricalRecovery=false,yahoo
   }
   return {planId:SHA(JSON.stringify(body)),...body};
 }
-function stagePlan(weeklyRun,root,catchUpAsOf='',confirmYahooFriday=false,firstFridayLimited=false){
+function stagePlan(weeklyRun,root,catchUpAsOf='',confirmYahooFriday=false,firstFridayLimited=false,carryFridayRun='',holidayAsOf=''){
   const source=verifyWeeklySource(weeklyRun);
-  const {date,now,daytimeHistoricalRecovery=false,yahooFridayRssConfirmation=false,fridayRestrictedFirstBuy=false}=
-    currentAsOf(catchUpAsOf,confirmYahooFriday,firstFridayLimited);
+  const {date,now,daytimeHistoricalRecovery=false,yahooFridayRssConfirmation=false,fridayRestrictedFirstBuy=false,holidayHistoricalRecovery=false}=
+    currentAsOf(catchUpAsOf,confirmYahooFriday,firstFridayLimited,holidayAsOf,!!carryFridayRun);
+  const gap=source.plan.asOfSession===date?0:tradingGap(source.plan.asOfSession,date);
+  need(!carryFridayRun||gap>4,'CARRY_NOT_REQUIRED_FOR_FRESH_WEEK');
+  const carryProof=carryFridayRun?verifyFridayCarry(source,carryFridayRun,date):null;
   const base=directory(root,true);
   const fragment=source.plan.planId.slice(0,16);
   const run=directory(path.join(base,'weekly-refresh-'+date+'-'+fragment),true);
   directory(path.join(run,'sources'),true);
   const planFile=path.join(run,'plan.json');
-  if(!fs.existsSync(planFile))immutable(planFile,assembleDailyPlan(source,date,now,daytimeHistoricalRecovery,yahooFridayRssConfirmation,fridayRestrictedFirstBuy));
+  if(!fs.existsSync(planFile))immutable(planFile,assembleDailyPlan(source,date,now,daytimeHistoricalRecovery,yahooFridayRssConfirmation,fridayRestrictedFirstBuy,carryProof,holidayHistoricalRecovery));
   const plan=regular(planFile);
   validateRefreshPlan(plan,source,date);
   const captures=loadCaptures(run,plan);
@@ -296,9 +359,21 @@ function validateRefreshPlan(plan,source,date){
       plan.createdAtJst.slice(11,16)>='08:30',
       'CATCHUP_ACTUAL_RECEIPT_CLOCK_INVALID');
   }
-  if(plan.yahooFridayRssConfirmation!==true){
-    need(tradingGap(source.plan.asOfSession,date)>=1&&
-      tradingGap(source.plan.asOfSession,date)<=4,'WEEKLY_POOL_EXPIRED');
+  if(plan.holidayHistoricalRecovery===true){
+    need(plan.holidayObservedCalendarDay==='2026-11-03'&&
+         plan.historicalAsOfSession==='2026-11-02'&&
+         plan.futurePartialBarsExcludedFromG1===true&&
+         plan.createdAtJst.slice(0,10)==='2026-11-03'&&
+         holidayCompletedSessionWindow(plan.createdAtJst,date).date===date,
+         'HOLIDAY_OBSERVATION_PROVENANCE_INVALID');
+  }
+  const gap=source.plan.asOfSession===date?0:tradingGap(source.plan.asOfSession,date);
+  if(plan.fridayCarryForward!==undefined){
+    need(gap>=5&&gap<=8&&
+         JSON.stringify(verifyFridayCarry(source,plan.fridayCarryForward.fridayRun,date))===
+         JSON.stringify(plan.fridayCarryForward),'FRIDAY_CARRY_PROOF_CHANGED');
+  }else{
+    need(gap<=4,'WEEKLY_POOL_EXPIRED');
   }
   return plan;
 }
@@ -324,7 +399,8 @@ export function runCli(args){
   need(['plan','report'].includes(action)&&args.length%2===1,'USAGE');
   for(let i=1;i<args.length;i+=2){
     need(['--weekly-run','--root','--run','--pins-file','--catch-up-asof',
-      '--yahoo-friday-rss-confirm','--first-buy-friday-limited'].includes(args[i])&&!flags[args[i]],'USAGE');
+      '--yahoo-friday-rss-confirm','--first-buy-friday-limited',
+      '--carry-friday-run','--holiday-asof'].includes(args[i])&&!flags[args[i]],'USAGE');
     flags[args[i]]=args[i+1];
   }
   need(flags['--weekly-run'],'WEEKLY_RUN_REQUIRED');
@@ -336,7 +412,7 @@ export function runCli(args){
       'FIRST_BUY_FRIDAY_FLAG_INVALID');
     const staged=stagePlan(flags['--weekly-run'],flags['--root'],
       flags['--catch-up-asof']??'',flags['--yahoo-friday-rss-confirm']==='true',
-      flags['--first-buy-friday-limited']==='true');
+      flags['--first-buy-friday-limited']==='true',flags['--carry-friday-run']??'',flags['--holiday-asof']??'');
     console.log(JSON.stringify({run:staged.run,plan:staged.plan,
       resumed:staged.resumed,remaining:staged.remaining,
       weeklyRestrictedUniverse:true}));
@@ -346,7 +422,11 @@ export function runCli(args){
     const run=directory(flags['--run']);
     const plan=regular(path.join(run,'plan.json'));
     const {date}=currentAsOf(flags['--catch-up-asof']??'',flags['--yahoo-friday-rss-confirm']==='true',
-      flags['--first-buy-friday-limited']==='true');
+      flags['--first-buy-friday-limited']==='true',flags['--holiday-asof']??'',!!flags['--carry-friday-run']);
+    if(flags['--carry-friday-run']){
+      need(plan.fridayCarryForward?.fridayRun===directory(flags['--carry-friday-run']),
+           'REPORT_CARRY_RUN_MISMATCH');
+    }
     validateRefreshPlan(plan,source,date);
     const captures=loadCaptures(run,plan);
     const {summary}=summarizeDailyCaptures(plan,captures);

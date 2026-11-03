@@ -29,7 +29,14 @@ jobs:
           node-version: '22'
       - name: Synthetic local-file and native chart validation tests
         run: python -B -X utf8 -m unittest discover -s research/no11-morning-master-20261103 -p "test_*.py" -v
-      - name: Windows PowerShell installer syntax and static manifest
+      - name: Windows PowerShell installer and order-session offline syntax
         if: runner.os == 'Windows'
         shell: powershell
-        run: '& .\research\no11-morning-master-20261103\Prepare-MorningMaster.ps1 -OfflineSelfTest'
+        run: |
+          & .\research\no11-morning-master-20261103\Prepare-MorningMaster.ps1 -OfflineSelfTest
+          & .\research\no11-morning-master-20261103\Prepare-No11AutomaticLiveTransportV3.ps1 -OfflineSelfTest
+          $file = '.\research\no11-morning-master-20261103\live_collector_order_patch.py'
+          if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw 'COLLECTOR_PATCH_NOT_FOUND' }
+          python -B -X utf8 -m py_compile $file
+          python -B -X utf8 -m py_compile .\research\no11-morning-master-20261103\upgrade_live_trade_v3.py
+

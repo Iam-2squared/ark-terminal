@@ -231,7 +231,7 @@ def install(folder):
         for name,marker in (
             ('Run-No11RssDailyTrendCensusReadOnly.ps1','NO11_DAILY_OFFLINE_SELFTEST=PASS'),
             ('Run-No11WeeklyCandidateRefreshReadOnly.ps1','NO11_DAILY_OFFLINE_SELFTEST=PASS'),
-            ('Capture-No11RssTrainingBatchReadOnly.ps1','NO11_BATCH_OFFLINE_SELFTEST=PASS')
+            ('Capture-No11RssTrainingBatchReadOnly.ps1','NO11_TRAINING_BATCH_OFFLINE_SELFTEST=PASS')
         ):
             ps_selftest(engine/'windows'/name,marker)
         ps_selftest(launcher,'NO11_UNIFIED_OFFLINE_SELFTEST=PASS')

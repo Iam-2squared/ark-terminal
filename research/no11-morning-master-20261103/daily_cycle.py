@@ -233,7 +233,15 @@ def stage(binding_file,nightly_file):
     sources=safe(sources,True)
     prepared["outputRoot"]=str(sources)
     spec_file=m.immutable(sources,"nightly-spec",prepared)
-    parent=m.prepare(spec_file)
+    # The existing runner keeps XLS parsing in a separate pinned --target folder.
+    # Never install packages into the Frozen model runtime.
+    reader=safe(Path(binding["runner"]).parent/"xls-reader",True)
+    original_sys=list(sys.path)
+    try:
+        sys.path.insert(0,str(reader))
+        parent=m.prepare(spec_file)
+    finally:
+        sys.path[:]=original_sys
     # The saved official source originals are rechecked before entry exclusion.
     scope=native_module("ark_pinned_entry_scope",binding["scopeTool"])
     narrowed=scope.scope(m,parent)

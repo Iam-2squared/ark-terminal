@@ -92,8 +92,13 @@ def install(bridge_file,probe_file):
 
     runlive=safe(Path(binding['engine'])/'windows/Run-No11ReceivedSessionOperatorLive.ps1')
     run_text=runlive.read_text(encoding='utf-8-sig')
-    need('Assert-No11RssFundingContract' in run_text and
-         'AUTO_RSS_BUYING_POWER' in run_text,'RSS_FUNDING_PATCH_NOT_PRESENT')
+    contract=safe(Path(binding['engine'])/'windows/No11RssFundingContract.ps1')
+    contract_text=contract.read_text(encoding='utf-8-sig')
+    need('No11RssFundingContract.ps1' in run_text and
+         'Assert-No11RssFundingContract' in run_text and
+         'RSS_BUYING_POWER' in contract_text and
+         'AUTO_RSS_BUYING_POWER' in contract_text,
+         'RSS_FUNDING_PATCH_NOT_PRESENT')
 
     backup=store/('auto-live-upgrade-'+uuid.uuid4().hex)
     backup.mkdir()

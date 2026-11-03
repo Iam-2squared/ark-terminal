@@ -1,0 +1,28 @@
+name: No11 morning master offline unit tests
+on:
+  push:
+    branches:
+      - repair/no11-morning-master-chain-20261103
+    paths:
+      - 'research/no11-morning-master-20261103/**'
+      - '.github/workflows/no11-morning-master-chain.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  unit:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Synthetic local-file and native-call boundary tests
+        run: python -B -X utf8 -m unittest discover -s research/no11-morning-master-20261103 -p test_morning_master.py -v

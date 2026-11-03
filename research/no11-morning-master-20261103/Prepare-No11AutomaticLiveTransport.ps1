@@ -93,10 +93,10 @@ public static class No11AutoTransportNative {
  Need ($excel.Visible -eq $true -and $excel.Ready -eq $true -and [int]$excel.CalculationState -eq 0) 'EXCEL_NOT_READY'
  [long]$hwnd=[long]$excel.Hwnd
  Need ($hwnd -gt 0) 'EXCEL_HWND'
- [uint32]$pid=0
- [void][No11AutoTransportNative]::GetWindowThreadProcessId([IntPtr]$hwnd,[ref]$pid)
- Need ($pid -gt 0) 'EXCEL_PID'
- $process=Get-Process -Id $pid
+ [uint32]$excelPid=0
+ [void][No11AutoTransportNative]::GetWindowThreadProcessId([IntPtr]$hwnd,[ref]$excelPid)
+ Need ($excelPid -gt 0) 'EXCEL_PID'
+ $process=Get-Process -Id $excelPid
  Need ($process.ProcessName -ieq 'EXCEL') 'EXCEL_PROCESS'
 
  $opened=@{}
@@ -189,7 +189,7 @@ public static class No11AutoTransportNative {
   guardCell='BD1'
   sessionCell='BD3'
   guardValue='ARK_NO11_SEND_ONCE'
-  expectedExcelPid=[int]$pid
+  expectedExcelPid=[int]$excelPid
   expectedExcelHwnd=[long]$hwnd
   expectedExcelStartedAt=$process.StartTime.ToUniversalTime().ToString('o')
   expectedAddInPaths=@($addinPaths)
@@ -200,7 +200,7 @@ public static class No11AutoTransportNative {
  }
  $file=WriteImmutableJson $root $transport 'automatic-live-transport'
  Write-Host ('AUTOMATIC_TRANSPORT='+$file)
- Write-Host ('AUTOMATIC_TRANSPORT_EXCEL_PID='+$pid)
+ Write-Host ('AUTOMATIC_TRANSPORT_EXCEL_PID='+$excelPid)
  Write-Host ('AUTOMATIC_TRANSPORT_ORDER_BOOK_OPENED='+$openedByAuto)
  Write-Host 'AUTOMATIC_TRANSPORT_SESSION_INITIALIZED=True'
  Write-Host 'ORDER_TRIGGER_WRITTEN_TO_ONE=False'

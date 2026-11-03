@@ -75,7 +75,7 @@ class DailyCycleTests(unittest.TestCase):
 
     def test_immutable_pointer_and_trade_selection(self):
         pointer=cycle.publish(self.root,self.record,self.handoff_file,'1'*64,'2'*64)
-        self.assertEqual(pointer,self.root/'prepared-days/2026-11-05.json')
+        self.assertEqual(pointer.resolve(),(self.root/'prepared-days/2026-11-05.json').resolve())
         self.assertEqual(pointer,cycle.publish(self.root,self.record,self.handoff_file,'1'*64,'2'*64))
         with self.assertRaisesRegex(ValueError,'DAY_ALREADY_PINNED'):
             cycle.publish(self.root,self.record,self.handoff_file,'3'*64,'2'*64)
@@ -84,7 +84,7 @@ class DailyCycleTests(unittest.TestCase):
                  'dailyCycleTool':str(tool),'dailyCycleToolSha256':sha(tool.read_bytes())}
         active=bridge.resolve_daily_binding(binding,'2026-11-05')
         self.assertEqual(active['sessionDate'],'2026-11-05')
-        self.assertEqual(active['handoff'],str(self.handoff_file))
+        self.assertEqual(Path(active['handoff']).resolve(),self.handoff_file.resolve())
         self.assertEqual(bridge.resolve_daily_binding(binding,'2026-11-04'),binding)
 
     def test_edit_protection(self):

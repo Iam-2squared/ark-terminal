@@ -26,3 +26,7 @@ jobs:
           python-version: '3.12'
       - name: Synthetic local-file and native-call boundary tests
         run: python -B -X utf8 -m unittest discover -s research/no11-morning-master-20261103 -p test_morning_master.py -v
+      - name: Windows PowerShell installer syntax and static manifest
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: '& .\research\no11-morning-master-20261103\Prepare-MorningMaster.ps1 -OfflineSelfTest'

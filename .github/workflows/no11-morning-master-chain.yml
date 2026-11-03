@@ -1,0 +1,46 @@
+name: No11 morning master offline unit tests
+on:
+  push:
+    branches:
+      - repair/no11-morning-master-chain-20261103
+    paths:
+      - 'research/no11-morning-master-20261103/**'
+      - '.github/workflows/no11-morning-master-chain.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  unit:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Synthetic local-file and native chart validation tests
+        run: python -B -X utf8 -m unittest discover -s research/no11-morning-master-20261103 -p "test_*.py" -v
+      - name: Windows PowerShell installer and order-session offline syntax
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          & .\research\no11-morning-master-20261103\Prepare-MorningMaster.ps1 -OfflineSelfTest
+          & .\research\no11-morning-master-20261103\Prepare-No11AutomaticLiveTransportV3.ps1 -OfflineSelfTest
+          & .\research\no12-prebuy-causal-runtime-20261011\windows\Prepare-No11WeeklyAfterCloseReadOnly.ps1 -OfflineSelfTest
+          & .\research\no12-prebuy-causal-runtime-20261011\windows\Prepare-No11PreviousArchiveReadOnly.ps1 -OfflineSelfTest
+          Copy-Item -LiteralPath .\research\no11-morning-master-20261103\Run-No11NightlyCycle.ps1 -Destination .\research\no12-prebuy-causal-runtime-20261011\windows\Run-No11NightlyCycle.ps1
+          & .\research\no12-prebuy-causal-runtime-20261011\windows\Run-No11NightlyCycle.ps1 -OfflineSelfTest
+          $file = '.\research\no11-morning-master-20261103\live_collector_order_patch.py'
+          if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw 'COLLECTOR_PATCH_NOT_FOUND' }
+          python -B -X utf8 -m py_compile $file
+          python -B -X utf8 -m py_compile .\research\no11-morning-master-20261103\upgrade_live_trade_v3.py
+

@@ -24,7 +24,7 @@ PINS={
     'scope_morning_master.py':'7006f673850401d0f3a076f2bf01ba1b25040c48',
     'launcher_automatic_bridge_v4.py':'224766266bfe953bc6dfa1abda28230fae6ff69f',
     'Run-No11NightlyCycle.ps1':'9ca459c9f58238975fe4fe4d1e03664484458a6a',
-    'nightly_workbook_compat.py':'d1355306a10f86d055966e9f16e1ef8996959e70',
+    'nightly_workbook_compat.py':'dbac5c56403a04da9364c1c5833a0e6bc987aff0',
 }
 OLD = "$weekly=Join-Path $PSScriptRoot 'Prepare-No11WeeklyAfterCloseReadOnly.ps1'"
 NEW = "$weekly=Join-Path $PSScriptRoot 'Run-No11NightlyCycle.ps1'"
@@ -162,6 +162,12 @@ def install(folder):
         after=compat.transform_collector(relative,before)
         need(before!=after,'NIGHTLY_COLLECTOR_ALREADY_PATCHED')
         collector_changes[path]=(before,after)
+    # The first week uses only actual Oct30 Friday 429 RSS receipts; then the
+    # existing weekly full-market Friday path resumes without a special case.
+    original_weekly=old_weekly.read_bytes()
+    carried_weekly=compat.transform_first_week_carry(original_weekly)
+    need(original_weekly!=carried_weekly,'FIRST_WEEK_CARRY_ALREADY_PATCHED')
+    collector_changes[old_weekly]=(original_weekly,carried_weekly)
     root=store/'daily-cycle'
     root.mkdir(exist_ok=True)
     root=safe(root,True)
@@ -228,6 +234,7 @@ def install(folder):
             modified.append((binding_file,before_binding,after_binding))
         ps_selftest(engine/'windows/Run-No11NightlyCycle.ps1',
                     'NO11_NIGHTLY_CYCLE_OFFLINE_SELFTEST=PASS')
+        ps_selftest(old_weekly,'NO11_WEEKLY_NIGHTLY_OFFLINE_SELFTEST=PASS')
         for name,marker in (
             ('Run-No11RssDailyTrendCensusReadOnly.ps1','NO11_DAILY_OFFLINE_SELFTEST=PASS'),
             ('Run-No11WeeklyCandidateRefreshReadOnly.ps1','NO11_DAILY_OFFLINE_SELFTEST=PASS'),
@@ -247,6 +254,7 @@ def install(folder):
     print('TRADE_BUTTON=CURRENT_SESSION_IMMUTABLE_HANDOFF')
     print('ORIGINAL_STRATEGY_FILES_MODIFIED=False')
     print('NIGHTLY_CONFIGURED_THIRD_ORDER_BOOK=SUPPORTED_WITHOUT_TOUCHING_IT')
+    print('FIRST_WEEK_FRIDAY_429_CARRY=ORIGINAL_NATIVE_VERIFICATION')
     print('ORIGINAL_LIVE_ORDER_EXIT_PATCH=PRESERVED')
     print('MANUAL_EVIDENCE_REQUIRED=False')
     print('MANUAL_PRICE_INPUT_REQUIRED=False')

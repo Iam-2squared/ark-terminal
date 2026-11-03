@@ -64,7 +64,12 @@ def pin_sources(folder):
     result={}
     for name,pin in PINS.items():
         p=safe(folder/name)
-        need(blob(p.read_bytes())==pin,'SOURCE_BLOB_'+name.replace('.','_').upper())
+        raw=p.read_bytes()
+        # Windows Git worktrees may check out text with CRLF while Git blobs
+        # and downloaded release sources contain LF. Only this exact EOL
+        # normalization is permitted; all other byte edits are rejected.
+        canonical=raw.replace(b'\r\n',b'\n')
+        need(blob(canonical)==pin,'SOURCE_BLOB_'+name.replace('.','_').upper())
         result[name]=p
     return result
 

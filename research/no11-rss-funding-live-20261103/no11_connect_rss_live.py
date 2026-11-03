@@ -160,9 +160,21 @@ def register(settings_file: Path, bootstrap_file: Path,
          and broker.get("productionReady") is False
          and broker.get("transport", {}).get("mode") == "LIVE"
          and broker.get("transport", {}).get("approvedForSession") is True
+         and broker.get("feeCourse") == "ZERO"
+         and broker.get("evidenceMode") == "BROKER_OBSERVATION"
+         and broker.get("transport", {}).get("orderTransmission") is True
+         and broker.get("transport", {}).get("operatorEnabled") is True
+         and broker.get("transport", {}).get("sessionDate") == now[:10]
          and broker.get("ledger", {}).get("maxSymbols") == 3
          and broker.get("ledger", {}).get("lotSize") == 100
-         and broker.get("ledger", {}).get("account") == "一般",
+         and broker.get("ledger", {}).get("account") == "一般"
+         and broker.get("ledger", {}).get("allocatedCashJpy") ==
+         "AUTO_RSS_BUYING_POWER"
+         and broker.get("orderTerms", {}).get("sor") is True
+         and broker.get("orderTerms", {}).get("accountType") == 1
+         and broker.get("orderTerms", {}).get("accountTypeVerified") is True
+         and broker.get("orderTerms", {}).get("orderType") == "MARKET"
+         and broker.get("orderTerms", {}).get("timeInForce") == "DAY",
          "GENERATED_BROKER_CONFIG_UNSAFE")
     need(same_path(broker["transport"].get("workbookPath"),
                    settings["orderIdWorkbookPath"]),

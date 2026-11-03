@@ -54,8 +54,7 @@ class SessionTransportTests(unittest.TestCase):
         self.assertIn('Get-FileHash -LiteralPath $readyPath -Algorithm SHA256',text)
         self.assertIn("ARK_NO11_C50_COLLECTOR_READY_V1",text)
         self.assertIn("ARK_NO11_C50_TEMP_",text)
-        self.assertIn("TEMPORARY_BOOKWORKS_CHART_CHANGED",text.replace(
-            "TEMPORARY_WORKBOOKS_CHANGED","TEMPORARY_BOOKWORKS_CHART_CHANGED"))
+        self.assertIn("TEMPORARY_WORKBOOKS_CHANGED",text)
         self.assertIn('Get-Process -Id',text)
         self.assertIn('Assert-No11Readback',text)
         self.assertIn("OPEN_WORKBOOKS_CHANGED",text)
@@ -70,7 +69,6 @@ class SessionTransportTests(unittest.TestCase):
         self.assertEqual(source.count(b'--operator-approved-broker-live'),
                          patched.count(b'--operator-approved-broker-live'))
         self.assertEqual(source.count(b'launch_same_run('),patched.count(b'launch_same_run('))
-        self.assertIn('original',b'original'.decode())  # no strategy patched here
         self.assertNotIn('RssStockOrder(',patched.decode('utf-8-sig'))
 
     def test_upgrade_requires_original_rss_funding_helper(self):

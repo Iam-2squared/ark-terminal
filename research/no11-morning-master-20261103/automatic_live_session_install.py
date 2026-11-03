@@ -13,7 +13,7 @@ SCHEMA='ARK_NO11_AUTOMATIC_LAUNCHER_BINDING_V1'
 OLD_CALL=" & $autoPython -B -X utf8 $autoBridge run --binding $autoBinding | ForEach-Object {"
 NEW_CALL=" & $autoPython -B -X utf8 $autoBridge run --binding $autoBinding --same-day-operator-approved | ForEach-Object {"
 BRIDGE_BLOB='7d06ba6986dd6abb7781a215453c2ad4465bf91e'
-PROBE_BLOB='d654c924afb745b6481b5b70802101ea272e1d22'
+PROBE_BLOB='41d484b11aaba684301dd940c130c15274b6256a'
 
 def need(ok, code):
     if not ok: raise ValueError('NO11_AUTO_LIVE_INSTALL_'+code)

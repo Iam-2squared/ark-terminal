@@ -91,7 +91,7 @@ def validate_inputs(settings: dict, prepared: dict, physical: dict,
     need("brokerExecutionConfig" not in prepared
          and "shadowAccountConfig" not in prepared,
          "OLD_BROKER_OR_SHADOW_NOT_ALLOWED")
-    need("previousContext" in prepared != ("previousCaptureFiles" in prepared),
+    need(("previousContext" in prepared) != ("previousCaptureFiles" in prepared),
          "EXACTLY_ONE_PREVIOUS_SOURCE")
     need("datedMaster" in prepared and "runtimeRoot" in prepared
          and "h235ModelRoot" in prepared and "dailyRun" in prepared

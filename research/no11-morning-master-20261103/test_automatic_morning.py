@@ -1,6 +1,5 @@
 """Automatic-input tests use synthetic observations; never call public/broker APIs."""
 from copy import deepcopy
-import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -9,7 +8,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import automatic_morning as a
-from test_entry_scope import EntryScopeTests, ENGINE
+import test_entry_scope as entry_fixtures
 
 DAY, PRIOR = '2026-11-04', '2026-11-02'
 NOW = DAY + 'T08:45:00.000+09:00'
@@ -173,7 +172,7 @@ class AutomaticMasterTests(unittest.TestCase):
 
 class NativePipelineCompatibilityTests(unittest.TestCase):
     def test_automatic_master_is_accepted_by_unchanged_native_pipeline_validator(self):
-        fixture = EntryScopeTests()
+        fixture = entry_fixtures.EntryScopeTests()
         fixture.setUp()
         self.addCleanup(fixture.doCleanups)
         f = AutomaticMasterTests()
@@ -187,14 +186,17 @@ class NativePipelineCompatibilityTests(unittest.TestCase):
         f.reference['rows'] = [{**f.reference['rows'][0], 'symbol': s} for s in selected]
         f.daily = {s: '1234.5' for s in selected}
         master, _ = f.build()
-        module = ENGINE / 'tools/no11_received_pipeline_tick.mjs'
+        module = entry_fixtures.ENGINE / 'tools/no11_received_pipeline_tick.mjs'
+        # argv[1] must identify the harness, not the imported module; otherwise
+        # the native module correctly detects its own CLI and executes main().
         code = '''import {pathToFileURL} from 'node:url';
-const {validatePipelineInputs}=await import(pathToFileURL(process.argv[1]).href);
+const {validatePipelineInputs}=await import(pathToFileURL(process.argv[2]).href);
 let s='';for await(const c of process.stdin)s+=c;
 console.log(JSON.stringify(validatePipelineInputs(JSON.parse(s)).selected));'''
         payload = {'sessionDate': DAY, 'chartPlan': fixture.chart['chartPlan'],
                    'mask': fixture.mask, 'master': master, 'throughJst': NOW}
-        result = subprocess.run(['node', '--input-type=module', '-e', code, str(module)],
+        result = subprocess.run(['node', '--input-type=module', '-e', code,
+                                 'no11-auto-master-test-harness', str(module)],
                                 input=json.dumps(payload), text=True, encoding='utf-8',
                                 capture_output=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stderr)

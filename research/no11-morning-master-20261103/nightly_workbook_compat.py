@@ -91,3 +91,56 @@ def transform_launcher(raw):
     s=s.replace(count,addition+count,1)
     s=s.replace(sheet,"  if($live -or $files.Count -eq 3){\n   $ids=$excel.Workbooks.Item",1)
     return bom+s.replace('\n',line).encode('utf-8')
+
+
+CARRY_MARKER='# ARK_NO11_FIRST_WEEK_429_VERIFIED_FRIDAY_CARRY_V1'
+def transform_first_week_carry(raw):
+    """One-time original Oct26 full scan + ACTUAL Oct30 429 Friday observations.
+
+    Valid only for the original first-buy target window. The native
+    verifyFridayCarry() separately proves every 429 source file. Later weeks
+    run the original ordinary FULL_MARKET_FRIDAY schedule unchanged.
+    """
+    bom=b'\xef\xbb\xbf' if raw.startswith(b'\xef\xbb\xbf') else b''
+    text=raw[len(bom):].decode('utf-8')
+    line='\r\n' if '\r\n' in text else '\n'
+    text=text.replace('\r\n','\n')
+    if CARRY_MARKER in text:
+        need(text.count(CARRY_MARKER)==1,'CARRY_ALREADY_PATCHED')
+        return raw
+    source=" Write-Host ('NO11_WEEKLY_NIGHTLY_POOL_SOURCE='+$WeeklyRun)"
+    rargs=" if($RefreshAutoMaxThroughput){$rargs+=@('-AutoMaxThroughput')}"
+    plan=" if($WeekendFridayLimited){$planArgs+=@('--first-buy-friday-limited','true')}"
+    report=" if($WeekendFridayLimited){$reportArgs+=@('--first-buy-friday-limited','true')}"
+    for anchor in (source,rargs,plan,report):
+        need(text.count(anchor)==1,'CARRY_ORCHESTRATOR_ANCHOR_CHANGED')
+    injected=r"""
+ # ARK_NO11_FIRST_WEEK_429_VERIFIED_FRIDAY_CARRY_V1
+ # Do not silently use an expired October 26 full sweep after its initial
+ # four-session window. The Oct30 Friday 429 refresh is an actual RSS source,
+ # proved by the original native verifyFridayCarry before any selection.
+ $carryFridayRun=''
+ if($WeeklySourcePolicy -ceq 'RSS_FULL_FRIDAY' -and
+    $asOf -in @('2026-11-02','2026-11-04','2026-11-05')){
+  $sourcePlan=Get-Content -LiteralPath (Join-Path $WeeklyRun 'plan.json') -Raw -Encoding UTF8|ConvertFrom-Json
+  if($sourcePlan.schemaId -ceq 'ARK_NO11_RSS_DAILY_CENSUS_PLAN_V1' -and
+     $sourcePlan.asOfSession -ceq '2026-10-26' -and
+     @($sourcePlan.symbols).Count -eq 4328){
+   Need ([string]$sourcePlan.planId -cmatch '^[a-f0-9]{64}$') 'FRIDAY_CARRY_SOURCE_PIN'
+   $candidate=Join-Path $RefreshRoot ('weekly-refresh-2026-10-30-'+([string]$sourcePlan.planId).Substring(0,16))
+   Need (Test-Path -LiteralPath (Join-Path $candidate 'plan.json') -PathType Leaf) 'ACTUAL_FRIDAY_429_NOT_CAPTURED'
+   $fridayPlan=Get-Content -LiteralPath (Join-Path $candidate 'plan.json') -Raw -Encoding UTF8|ConvertFrom-Json
+   Need ($fridayPlan.asOfSession -ceq '2026-10-30' -and
+     $fridayPlan.initialLiveCandidateScope -ceq 'FRIDAY_RSS_429_LOCKED_POOL_ONLY_NOT_FULL_MARKET' -and
+     @($fridayPlan.symbols).Count -eq 429 -and
+     $fridayPlan.weeklySource.originalPlanId -ceq $sourcePlan.planId) 'FRIDAY_429_CARRY_IDENTITY'
+   $carryFridayRun=$candidate
+   Write-Host ('NO11_WEEKLY_NIGHTLY_FRIDAY_429_CARRY='+$carryFridayRun)
+  }
+ }
+"""
+    text=text.replace(source,source+"\n"+injected,1)
+    text=text.replace(rargs,rargs+"\n if($carryFridayRun){$rargs+=@('-CarryFridayRun',$carryFridayRun)}",1)
+    text=text.replace(plan,plan+"\n if($carryFridayRun){$planArgs+=@('--carry-friday-run',$carryFridayRun)}",1)
+    text=text.replace(report,report+"\n if($carryFridayRun){$reportArgs+=@('--carry-friday-run',$carryFridayRun)}",1)
+    return bom+text.replace('\n',line).encode('utf-8')

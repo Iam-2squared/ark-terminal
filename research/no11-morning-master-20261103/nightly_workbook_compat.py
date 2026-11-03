@@ -77,7 +77,7 @@ def transform_launcher(raw):
     if MARKER in s:
         need(s.count(MARKER)==1,'LAUNCHER_ALREADY_PATCHED')
         return raw
-    begin="   $excel=[Runtime.InteropServices.Marshal]::GetActiveObject('Excel.Application')"
+    begin="  $excel=[Runtime.InteropServices.Marshal]::GetActiveObject('Excel.Application')"
     count="  Need ($excel.Workbooks.Count -eq $files.Count) 'EXCEL_BOOK_COUNT'"
     sheet="  if($live){\n   $ids=$excel.Workbooks.Item"
     need(s.count(begin)==1 and s.count(count)==1 and s.count(sheet)==1,

@@ -50,6 +50,11 @@ class DailyCycleTests(unittest.TestCase):
                   'NO11_WEEKLY_NIGHTLY_STAGE=CANDIDATE_ONLY_FRESH_G1_AND_PREVIOUS_COMPLETE']
         return ('\n'.join(out)+'\n').encode()
 
+    def test_installer_pinned_sources_are_exact(self):
+        files=installer.pin_sources(HERE)
+        self.assertEqual(set(files),set(installer.PINS))
+        self.assertTrue(all(files[k].is_file() for k in files))
+
     def test_weekday_completion(self):
         value=cycle.parse_nightly(self.example())
         self.assertEqual(value['sessionDate'],'2026-11-05')

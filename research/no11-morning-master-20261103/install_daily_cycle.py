@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -23,6 +24,7 @@ PINS={
     'scope_morning_master.py':'7006f673850401d0f3a076f2bf01ba1b25040c48',
     'launcher_automatic_bridge_v4.py':'224766266bfe953bc6dfa1abda28230fae6ff69f',
     'Run-No11NightlyCycle.ps1':'9ca459c9f58238975fe4fe4d1e03664484458a6a',
+    'nightly_workbook_compat.py':'d1355306a10f86d055966e9f16e1ef8996959e70',
 }
 OLD = "$weekly=Join-Path $PSScriptRoot 'Prepare-No11WeeklyAfterCloseReadOnly.ps1'"
 NEW = "$weekly=Join-Path $PSScriptRoot 'Run-No11NightlyCycle.ps1'"
@@ -146,7 +148,20 @@ def install(folder):
          'ORDER_COLLECTOR_WIRING_MISSING')
     launcher=safe(engine/'windows/Start-No11UnifiedLauncher.ps1')
     before_launcher=launcher.read_bytes()
-    new_launcher=patch_weekly_launcher(before_launcher)
+    compat_file=sources['nightly_workbook_compat.py']
+    compat_spec=importlib.util.spec_from_file_location('ark_nightly_excel_compat',compat_file)
+    compat=importlib.util.module_from_spec(compat_spec)
+    compat_spec.loader.exec_module(compat)
+    new_launcher=compat.transform_launcher(patch_weekly_launcher(before_launcher))
+    # Accept only the already-configured order-ID workbook on the nightly path.
+    # The separate LIVE order sender remains byte-for-byte unchanged.
+    collector_changes={}
+    for relative in compat.SCRIPTS:
+        path=safe(engine/relative)
+        before=path.read_bytes()
+        after=compat.transform_collector(relative,before)
+        need(before!=after,'NIGHTLY_COLLECTOR_ALREADY_PATCHED')
+        collector_changes[path]=(before,after)
     root=store/'daily-cycle'
     root.mkdir(exist_ok=True)
     root=safe(root,True)
@@ -157,6 +172,7 @@ def install(folder):
         package/'daily_cycle.py': sources['daily_cycle.py'].read_bytes(),
         package/'scope_morning_master.py': sources['scope_morning_master.py'].read_bytes(),
         package/'launcher_automatic_bridge_v4.py':sources['launcher_automatic_bridge_v4.py'].read_bytes(),
+        package/'nightly_workbook_compat.py':sources['nightly_workbook_compat.py'].read_bytes(),
         engine/'windows/Run-No11NightlyCycle.ps1':sources['Run-No11NightlyCycle.ps1'].read_bytes(),
     }
     for path,raw in files.items():
@@ -178,11 +194,21 @@ def install(folder):
     (backup/'launcher.before.ps1').write_bytes(before_launcher)
     (backup/'automatic-inputs.before.json').write_bytes(before_binding)
     import py_compile
-    for key in ('daily_cycle.py','launcher_automatic_bridge_v4.py','scope_morning_master.py'):
+    for key in ('daily_cycle.py','launcher_automatic_bridge_v4.py','scope_morning_master.py','nightly_workbook_compat.py'):
         py_compile.compile(str(sources[key]),doraise=True,
                            cfile=str(backup/(key+'.pyc')))
     candidate=backup/'nightly.candidate.ps1'
     candidate.write_bytes(files[engine/'windows/Run-No11NightlyCycle.ps1'])
+    check_syntax(candidate)
+    candidate.unlink()
+    for p,(original,patched) in collector_changes.items():
+        (backup/(p.name+'.before')).write_bytes(original)
+        candidate=backup/(p.name+'.candidate.ps1')
+        candidate.write_bytes(patched)
+        check_syntax(candidate)
+        candidate.unlink()
+    candidate=backup/'launcher.candidate.ps1'
+    candidate.write_bytes(new_launcher)
     check_syntax(candidate)
     candidate.unlink()
     modified=[]
@@ -191,6 +217,9 @@ def install(folder):
             if not path.exists():
                 atomic(path,raw,None)
                 modified.append((path,None,raw))
+        for p,(before,after) in collector_changes.items():
+            atomic(p,after,before)
+            modified.append((p,before,after))
         if new_launcher!=before_launcher:
             atomic(launcher,new_launcher,before_launcher)
             modified.append((launcher,before_launcher,new_launcher))
@@ -199,6 +228,12 @@ def install(folder):
             modified.append((binding_file,before_binding,after_binding))
         ps_selftest(engine/'windows/Run-No11NightlyCycle.ps1',
                     'NO11_NIGHTLY_CYCLE_OFFLINE_SELFTEST=PASS')
+        for name,marker in (
+            ('Run-No11RssDailyTrendCensusReadOnly.ps1','NO11_DAILY_OFFLINE_SELFTEST=PASS'),
+            ('Run-No11WeeklyCandidateRefreshReadOnly.ps1','NO11_DAILY_OFFLINE_SELFTEST=PASS'),
+            ('Capture-No11RssTrainingBatchReadOnly.ps1','NO11_BATCH_OFFLINE_SELFTEST=PASS')
+        ):
+            ps_selftest(engine/'windows'/name,marker)
         ps_selftest(launcher,'NO11_UNIFIED_OFFLINE_SELFTEST=PASS')
         need(safe(old_weekly).read_bytes()!=b'','WEEKLY_SOURCE_CHANGED')
     except BaseException:
@@ -211,6 +246,7 @@ def install(folder):
     print('WEEKLY_BUTTON=ORIGINAL_RSS_THEN_NEXT_DAY_HANDOFF')
     print('TRADE_BUTTON=CURRENT_SESSION_IMMUTABLE_HANDOFF')
     print('ORIGINAL_STRATEGY_FILES_MODIFIED=False')
+    print('NIGHTLY_CONFIGURED_THIRD_ORDER_BOOK=SUPPORTED_WITHOUT_TOUCHING_IT')
     print('ORIGINAL_LIVE_ORDER_EXIT_PATCH=PRESERVED')
     print('MANUAL_EVIDENCE_REQUIRED=False')
     print('MANUAL_PRICE_INPUT_REQUIRED=False')

@@ -24,8 +24,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Synthetic local-file and native-call boundary tests
-        run: python -B -X utf8 -m unittest discover -s research/no11-morning-master-20261103 -p test_morning_master.py -v
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Synthetic local-file and native chart validation tests
+        run: python -B -X utf8 -m unittest discover -s research/no11-morning-master-20261103 -p "test_*.py" -v
       - name: Windows PowerShell installer syntax and static manifest
         if: runner.os == 'Windows'
         shell: powershell

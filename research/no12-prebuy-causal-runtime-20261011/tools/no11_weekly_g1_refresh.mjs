@@ -206,7 +206,7 @@ export function yahooFridayConfirmationWindow(now){
     lastCompletedSession(now)===date,'YAHOO_FRIDAY_RSS_CONFIRM_AFTER_1900_ONLY');
   return {date,now,yahooFridayRssConfirmation:true};
 }
-function currentAsOf(catchUpAsOf='',confirmYahooFriday=false,firstFridayLimited=false,holidayAsOf=''){
+function currentAsOf(catchUpAsOf='',confirmYahooFriday=false,firstFridayLimited=false,holidayAsOf='',allowFridayCarry=false){
   need([!!catchUpAsOf,!!confirmYahooFriday,!!firstFridayLimited,!!holidayAsOf].filter(Boolean).length<=1,
     'SESSION_MODES_CONFLICT');
   if(firstFridayLimited)return firstBuyFridayLimitedWindow(jstNow());
@@ -214,7 +214,7 @@ function currentAsOf(catchUpAsOf='',confirmYahooFriday=false,firstFridayLimited=
   if(holidayAsOf)return holidayCompletedSessionWindow(jstNow(),holidayAsOf);
   const {date,now,daytimeHistoricalRecovery=false}=catchUpAsOf?
     daytimeCatchUpWindow(jstNow(),catchUpAsOf):nightlyWindow(jstNow());
-  need(!isoFriday(date),'FRIDAY_FULL_MARKET_SWEEP_REQUIRED');
+  need(!isoFriday(date)||allowFridayCarry,'FRIDAY_FULL_MARKET_SWEEP_REQUIRED');
   return {date,now,daytimeHistoricalRecovery};
 }
 function assembleDailyPlan(source,date,now,daytimeHistoricalRecovery=false,yahooFridayRssConfirmation=false,fridayRestrictedFirstBuy=false,carryProof=null,holidayHistoricalRecovery=false){
@@ -286,7 +286,7 @@ function assembleDailyPlan(source,date,now,daytimeHistoricalRecovery=false,yahoo
 function stagePlan(weeklyRun,root,catchUpAsOf='',confirmYahooFriday=false,firstFridayLimited=false,carryFridayRun='',holidayAsOf=''){
   const source=verifyWeeklySource(weeklyRun);
   const {date,now,daytimeHistoricalRecovery=false,yahooFridayRssConfirmation=false,fridayRestrictedFirstBuy=false,holidayHistoricalRecovery=false}=
-    currentAsOf(catchUpAsOf,confirmYahooFriday,firstFridayLimited,holidayAsOf);
+    currentAsOf(catchUpAsOf,confirmYahooFriday,firstFridayLimited,holidayAsOf,!!carryFridayRun);
   const gap=source.plan.asOfSession===date?0:tradingGap(source.plan.asOfSession,date);
   need(!carryFridayRun||gap>4,'CARRY_NOT_REQUIRED_FOR_FRESH_WEEK');
   const carryProof=carryFridayRun?verifyFridayCarry(source,carryFridayRun,date):null;
@@ -422,7 +422,7 @@ export function runCli(args){
     const run=directory(flags['--run']);
     const plan=regular(path.join(run,'plan.json'));
     const {date}=currentAsOf(flags['--catch-up-asof']??'',flags['--yahoo-friday-rss-confirm']==='true',
-      flags['--first-buy-friday-limited']==='true',flags['--holiday-asof']??'');
+      flags['--first-buy-friday-limited']==='true',flags['--holiday-asof']??'',!!flags['--carry-friday-run']);
     if(flags['--carry-friday-run']){
       need(plan.fridayCarryForward?.fridayRun===directory(flags['--carry-friday-run']),
            'REPORT_CARRY_RUN_MISMATCH');

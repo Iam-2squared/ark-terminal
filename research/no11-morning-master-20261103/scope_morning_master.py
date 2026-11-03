@@ -88,6 +88,18 @@ def eligible_scope(handoff, basis):
     return allowed, excluded
 
 
+def protect_exit_context(chart, excluded):
+    """Do not let an entry-only handoff discard active symbols' prior context."""
+    p = chart['chartPlan']
+    protected = set()
+    for key in ('protectedChartSymbols', 'heldSymbols', 'activeWatchSymbols', 'pendingOrderSymbols'):
+        values = p.get(key, [])
+        need(type(values) is list and all(type(v) is str for v in values), 'PROTECTED_SCOPE_FORMAT')
+        protected.update(values)
+    need(not protected.intersection(r['symbol'] for r in excluded),
+         'ACTIVE_EXCLUDED_SYMBOL_REQUIRES_EXISTING_EXIT_CONTEXT')
+
+
 def verify_documents(m, handoff, basis):
     root = m.safe(Path(handoff['publicSourceBasis']).parent / 'public-source-documents', directory=True)
     docs = basis.get('documents')
@@ -206,6 +218,7 @@ def scope(m, handoff_file, expected_count=None):
     eligible, excluded = eligible_scope(handoff, basis)
     if expected_count is not None:
         need(len(eligible) == expected_count, 'EXPECTED_ENTRY_COUNT_CHANGED')
+    protect_exit_context(objects['chartReceipt'], excluded)
     verify_documents(m, handoff, basis)
     root = m.safe(spec['outputRoot'], directory=True)
     need(root == Path(handoff['publicSourceBasis']).parent, 'OUTPUT_MUST_RETAIN_SOURCE_DOCUMENTS')

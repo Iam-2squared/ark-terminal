@@ -24,7 +24,7 @@ PINS={
     'scope_morning_master.py':'7006f673850401d0f3a076f2bf01ba1b25040c48',
     'launcher_automatic_bridge_v4.py':'224766266bfe953bc6dfa1abda28230fae6ff69f',
     'Run-No11NightlyCycle.ps1':'9ca459c9f58238975fe4fe4d1e03664484458a6a',
-    'nightly_workbook_compat.py':'dbac5c56403a04da9364c1c5833a0e6bc987aff0',
+    'nightly_workbook_compat.py':'c4cd08fcc9cb691469446684761ec657e2cdca96',
 }
 OLD = "$weekly=Join-Path $PSScriptRoot 'Prepare-No11WeeklyAfterCloseReadOnly.ps1'"
 NEW = "$weekly=Join-Path $PSScriptRoot 'Run-No11NightlyCycle.ps1'"

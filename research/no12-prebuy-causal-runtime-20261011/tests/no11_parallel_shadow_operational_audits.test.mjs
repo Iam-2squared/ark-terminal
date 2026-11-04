@@ -73,7 +73,13 @@ test('separate diagnosed Chart50 collector preserves original RSS and immutable 
    'NO11_C50_SAVED_SNAPSHOT_COUNT=',
    "ORDER_TRANSMISSION=False",
  ])assert.ok(diag.includes(marker),marker);
- assert.ok(diag.length>original.length);
+ // The original collector grew after bounded Excel retries; line count is
+ // not a source-preservation or safety guarantee. Check distinct sources and
+ // pinned diagnostic semantics instead of comparing their file sizes.
+ assert.notEqual(diag,original);
+ for(const marker of ['NO11_C50_CONTINUOUS_OFFLINE_SELFTEST=PASS',
+                      'SaveSnapshot $folder $payload', 'ORDER_TRANSMISSION=False'])
+   assert.ok(original.includes(marker),marker);
  for(const marker of ["AccessibleObjectFromWindow","OriginalBooks","OriginalCapacity",
     "EXCEL7","SaveSnapshot","$book.Close($false)"])assert.ok(diag.includes(marker));
  assert.doesNotMatch(diag,/\b(?:RssStockOrder|RssMarginOpenOrder|RssCancelOrder)\s*\(/);

@@ -324,7 +324,9 @@ if($OfflineSelfTest){
    param($address)
    if($address -cne 'A3:J515'){throw 'NO11_C50_MOCK_RANGE_INVALID'}
    $this.Reads++
-   $v=if($this.Reads -eq 1){$this.First}else{$this.Later}
+   # Avoid emitting a multidimensional array from an if-expression: the
+   # PowerShell success stream flattens it into a 1D object[] (5130 cells).
+   if($this.Reads -eq 1){$v=$this.First}else{$v=$this.Later}
    return [pscustomobject]@{Value2=$v}
   }
   return $mock

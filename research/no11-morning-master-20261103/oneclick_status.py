@@ -147,6 +147,14 @@ def inspect(settings_file, binding_file, *, at=None):
                 Path(binding["dailyCycleTool"]).is_file() and
                 Path(binding["dailyCycleRoot"]).is_dir()):
             result.update(canRunNightly=True, reason="NIGHTLY_OPERATOR_BUTTON_AVAILABLE")
+        source = settings.get("bootstrapConfigFile")
+        if isinstance(source, str) and Path(source).is_file():
+            boot, _ = read_json(source)
+            private = boot.get("privateRoot")
+            if isinstance(private, str) and Path(private).is_absolute():
+                health = run_health(private, day)
+                if health["state"] != "NO_RUN_POINTER":
+                    result["runHealth"] = health
         return result
     marker = store / ("TRADE-" + day + ".launch.json")
     if marker.exists():

@@ -64,6 +64,14 @@ foreach($name in $pins.Keys){
 }
 $oneclick=Join-Path $store 'oneclick'
 [void][IO.Directory]::CreateDirectory($oneclick)
+# ARK_NO11_LOCAL_UI_PRESERVE_GUARD_V1
+# The installed user's approved theme may differ from the pinned graphite UI.
+# A backup alone is insufficient: do not replace any locally modified OneClick.
+$installedUi=Join-Path $oneclick 'Start-No11OneClick.ps1'
+if(Test-Path -LiteralPath $installedUi -PathType Leaf){
+ $localUiBytes=[IO.File]::ReadAllBytes($installedUi)
+ Need ((Blob $localUiBytes) -ceq $pins['Start-No11OneClick.ps1']) 'LOCAL_UI_MODIFIED_REQUIRES_REVIEW'
+}
 $backup=Join-Path $store ('oneclick-install-'+[guid]::NewGuid().ToString('N'))
 [void][IO.Directory]::CreateDirectory($backup)
 $old=@{}

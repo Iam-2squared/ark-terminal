@@ -105,22 +105,27 @@ Need ([IO.Path]::IsPathRooted($engine) -and
       [IO.Path]::IsPathRooted($python) -and
       (Test-Path -LiteralPath $python -PathType Leaf)) 'INSTALLED_RUNTIME_MISSING'
 $runtime=Join-Path $engine 'tools\no11_received_run_recovery.py'
-Need (Test-Path -LiteralPath $runtime -PathType Leaf) 'RECOVERY_ENGINE_MISSING'
+$controller=Join-Path $engine 'tools\no11_received_session_controller.py'
+Need ((Test-Path -LiteralPath $runtime -PathType Leaf) -and
+      (Test-Path -LiteralPath $controller -PathType Leaf)) 'RECOVERY_ENGINE_MISSING'
 AssertStopped
-$headRef='e2c96694571e801177f0deb8bc6df3bb49058ddf'
+$headRef='f5562e3fd58f9ebf6487ab11a4a31ab36a09d5ad'
 $baseRef='fb41945877229393b944ac3ce171c9571eaf4134'
 $repo='Iam-2squared/ark-terminal'
 $prefix='research/no11-morning-master-20261103/'
 $enginePath='research/no12-prebuy-causal-runtime-20261011/tools/no11_received_run_recovery.py'
+$controllerPath='research/no12-prebuy-causal-runtime-20261011/tools/no11_received_session_controller.py'
 $pins=[ordered]@{
  'Start-No11OneClick.ps1'='bbb898627f77a62c1d4d0541f5675f067191ab31'
  'Resume-No11SameSession.ps1'='1bb926c746bddcfb5f3d74018c06ee330d9fea28'
  'Close-No11OwnedC50Temporary.ps1'='6cd43faeb745c7a976d763423f30b0e4f2ac0f18'
  'no11_finalize_owned_collector_cleanup.py'='4bad609d0f499cb29f4a8d194fe242550bf36634'
- 'no11_same_session_rearm.py'='515e95f39c40adafa72c3718f453380adb766338'
+ 'no11_same_session_rearm.py'='29d057c63c425015de00fbf972ba010297bb5e7b'
  'no11_manual_reconnect_review.py'='2afc1d60d24c937e1a6dc67d8436c34f40fb509c'
  'new-no11_received_run_recovery.py'='47f87ae69faa9c9168c991b2b583828c38533e91'
  'old-no11_received_run_recovery.py'='8195a1f6970ccca71f1f382403d884447a113003'
+ 'new-no11_received_session_controller.py'='329dbb216025b31c629f6e5fcc64d628edf29e05'
+ 'old-no11_received_session_controller.py'='5a2fe9f6eb785f66412cc4cd09015eb37966c58c'
  'old-Start-No11OneClick.ps1'='e4cb96d6b7192b25ce0298cb91632e3f8db611a7'
 }
 $temp=Join-Path $env:TEMP ('ark-same-run-installer-'+[guid]::NewGuid().ToString('N'))
@@ -133,6 +138,8 @@ try{
   if($useBase){$sourceName=$sourceName.Substring(4)}
   if($name -in @('new-no11_received_run_recovery.py','old-no11_received_run_recovery.py')){
    $path=$enginePath
+  }elseif($name -in @('new-no11_received_session_controller.py','old-no11_received_session_controller.py')){
+   $path=$controllerPath
   }else{$path=$prefix+$sourceName}
   $ref=if($useBase){$baseRef}else{$headRef}
   $url='https://raw.githubusercontent.com/'+$repo+'/'+$ref+'/'+$path
@@ -156,8 +163,10 @@ try{
  $LF=[string][char]10
  $oldUiOriginal=[IO.File]::ReadAllBytes($ui)
  $oldEngineOriginal=[IO.File]::ReadAllBytes($runtime)
+ $oldControllerOriginal=[IO.File]::ReadAllBytes($controller)
  $uiPin=Sha256 $oldUiOriginal
  $enginePin=Sha256 $oldEngineOriginal
+ $controllerPin=Sha256 $oldControllerOriginal
  $localUi=(TextOf $oldUiOriginal).Replace($crlf,$LF)
  $baseUi=(TextOf ([IO.File]::ReadAllBytes((Join-Path $temp 'old-Start-No11OneClick.ps1')))).Replace($crlf,$LF)
  $newUi=(TextOf ([IO.File]::ReadAllBytes((Join-Path $temp 'Start-No11OneClick.ps1')))).Replace($crlf,$LF)
@@ -189,24 +198,58 @@ try{
  Need ($patchedEngine.Contains('POSTMORTEM_CLEANUP_NOT_VERIFIED') -and
        $patchedEngine.Contains('COLLECTOR_CLEANUP_UNCONFIRMED')) 'RECOVERY_RUNTIME_UNSAFE'
  $engineBytes=BytesLike $oldEngineOriginal $patchedEngine
+ # Patch operational collector-marker resolution only; never replace the
+ # locally customized or frozen order/strategy controller as a whole.
+ $localController=(TextOf $oldControllerOriginal).Replace($crlf,$LF)
+ $baseController=(TextOf ([IO.File]::ReadAllBytes((Join-Path $temp 'old-no11_received_session_controller.py')))).Replace($crlf,$LF)
+ $newController=(TextOf ([IO.File]::ReadAllBytes((Join-Path $temp 'new-no11_received_session_controller.py')))).Replace($crlf,$LF)
+ $oldImport='from no11_received_run_recovery import RunRecovery, CaptureRelay, read, need, atomic'
+ $newImport='from no11_received_run_recovery import RunRecovery, CaptureRelay, read, need, atomic, unseal, ATTEMPT, POSTMORTEM'
+ Need ($baseController.Contains($oldImport) -and $newController.Contains($newImport) -and
+       $localController.Contains($oldImport) -and -not $localController.Contains('def marked_cleanup_proven(')) 'CONTROLLER_IMPORT_CHANGED'
+ $markerFunction=OnlySlice $newController 'def marked_cleanup_proven(' 'def execute('
+ Need ($markerFunction.Contains('recovery.history(run)') -and
+       $markerFunction.Contains("COLLECTOR_CLEANUP_NOT_CONFIRMED") -and
+       $markerFunction.Contains('return len(claims) == 1')) 'CONTROLLER_PROOF_FUNCTION_INVALID'
+ $oldGate="    bootstrap.need(not (root / 'bootstrap-recovery-required.json').exists(),"+$LF+
+          "                   'PREVIOUS_CLEANUP_REQUIRES_REVIEW')"+$LF+
+          "    recovery = RunRecovery(config)"
+ $newGate="    recovery = RunRecovery(config)"+$LF+
+          "    bootstrap.need(marked_cleanup_proven(root, resume_run, config['sessionDate'], recovery),"+$LF+
+          "                   'PREVIOUS_CLEANUP_REQUIRES_REVIEW')"
+ Need ($baseController.Contains($oldGate) -and $newController.Contains($newGate) -and
+       $localController.Contains($oldGate)) 'CONTROLLER_MARKER_GATE_DIFFERENT'
+ $patchedController=$localController.Replace($oldImport,$newImport)
+ $patchedController=$patchedController.Replace('def execute(',$markerFunction+'def execute(')
+ $patchedController=$patchedController.Replace($oldGate,$newGate)
+ Need ($patchedController.Contains("marked_cleanup_proven(root, resume_run, config['sessionDate'], recovery)") -and
+       $patchedController.Contains('COLLECTOR_CLEANUP_NOT_CONFIRMED')) 'CONTROLLER_PATCH_INVALID'
+ $controllerBytes=BytesLike $oldControllerOriginal $patchedController
  $candidateUi=Join-Path $helperFolder ('Start-No11OneClick.recovery-candidate-'+[guid]::NewGuid().ToString('N')+'.ps1')
  $candidateEngine=Join-Path (Split-Path $runtime -Parent) ('no11_received_run_recovery.recovery-candidate-'+[guid]::NewGuid().ToString('N')+'.py')
+ $candidateController=Join-Path (Split-Path $controller -Parent) ('no11_received_session_controller.recovery-candidate-'+[guid]::NewGuid().ToString('N')+'.py')
  [IO.File]::WriteAllBytes($candidateUi,$uiBytes)
  [IO.File]::WriteAllBytes($candidateEngine,$engineBytes)
+ [IO.File]::WriteAllBytes($candidateController,$controllerBytes)
  ParsePS $candidateUi
  & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $candidateUi -OfflineSelfTest | Out-Null
  Need ($LASTEXITCODE -eq 0) 'ONECLICK_OFFLINE_SELFTEST'
  & $python -B -m py_compile $candidateEngine
  Need ($LASTEXITCODE -eq 0) 'ENGINE_PYTHON_COMPILE'
+ & $python -B -m py_compile $candidateController
+ Need ($LASTEXITCODE -eq 0) 'CONTROLLER_PYTHON_COMPILE'
  AssertStopped
  Need ((Sha256 ([IO.File]::ReadAllBytes($ui))) -ceq $uiPin -and
-       (Sha256 ([IO.File]::ReadAllBytes($runtime))) -ceq $enginePin) 'INSTALLED_FILE_CHANGED_DURING_REVIEW'
+       (Sha256 ([IO.File]::ReadAllBytes($runtime))) -ceq $enginePin -and
+       (Sha256 ([IO.File]::ReadAllBytes($controller))) -ceq $controllerPin) 'INSTALLED_FILE_CHANGED_DURING_REVIEW'
  $backup=Join-Path $store ('same-run-recovery-backup-'+[guid]::NewGuid().ToString('N'))
  [void][IO.Directory]::CreateDirectory($backup)
  [IO.File]::WriteAllBytes((Join-Path $backup 'WhiteOneClick.before.ps1'),$oldUiOriginal)
  [IO.File]::WriteAllBytes((Join-Path $backup 'no11_received_run_recovery.before.py'),$oldEngineOriginal)
+ [IO.File]::WriteAllBytes((Join-Path $backup 'no11_received_session_controller.before.py'),$oldControllerOriginal)
  $placed=@()
  $engineReplaced=$false
+ $controllerReplaced=$false
  $uiReplaced=$false
  try{
   foreach($name in @('Resume-No11SameSession.ps1','Close-No11OwnedC50Temporary.ps1',
@@ -220,11 +263,15 @@ try{
   $engineReplaceBackup=Join-Path (Split-Path $runtime -Parent) ('no11_received_run_recovery.before-same-run-'+[guid]::NewGuid().ToString('N')+'.py')
   [IO.File]::Replace($candidateEngine,$runtime,$engineReplaceBackup)
   $engineReplaced=$true
+  $controllerReplaceBackup=Join-Path (Split-Path $controller -Parent) ('no11_received_session_controller.before-same-run-'+[guid]::NewGuid().ToString('N')+'.py')
+  [IO.File]::Replace($candidateController,$controller,$controllerReplaceBackup)
+  $controllerReplaced=$true
   $uiReplaceBackup=Join-Path $backup 'WhiteOneClick.atomic-before.ps1'
   [IO.File]::Replace($candidateUi,$ui,$uiReplaceBackup)
   $uiReplaced=$true
   Need ((Sha256 ([IO.File]::ReadAllBytes($ui))) -ceq (Sha256 $uiBytes) -and
-        (Sha256 ([IO.File]::ReadAllBytes($runtime))) -ceq (Sha256 $engineBytes)) 'POST_INSTALL_HASH'
+        (Sha256 ([IO.File]::ReadAllBytes($runtime))) -ceq (Sha256 $engineBytes) -and
+        (Sha256 ([IO.File]::ReadAllBytes($controller))) -ceq (Sha256 $controllerBytes)) 'POST_INSTALL_HASH'
   Write-Host 'NO11_SAME_RUN_RECOVERY_INSTALL=PASS'
   Write-Host 'REVIEW_BUTTON=READONLY_OR_MANUAL_CONFIRMED_SAME_RUN_RESUME'
   Write-Host 'ORIGINAL_RUN_AND_LEDGER_REUSED=True'
@@ -238,6 +285,7 @@ try{
   Write-Host ('BACKUP_ROOT='+$backup)
  }catch{
   if($uiReplaced){[IO.File]::WriteAllBytes($ui,$oldUiOriginal)}
+  if($controllerReplaced){[IO.File]::WriteAllBytes($controller,$oldControllerOriginal)}
   if($engineReplaced){[IO.File]::WriteAllBytes($runtime,$oldEngineOriginal)}
   foreach($dest in $placed){Remove-Item -LiteralPath $dest -Force -ErrorAction SilentlyContinue}
   throw

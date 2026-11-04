@@ -185,10 +185,33 @@ function UiReason([string]$raw){
   default {return $raw.Replace('_',' ')}
  }
 }
+# ARK_NO11_ONECLICK_PREOPEN_STANDBY_0830_V1
+# Status is read-only: only same-day, source-verified 08:30-08:59 can queue.
+# Normal Trade is always launched by the original native 09:00+ path.
+function PreopenReserved($s){
+ $day=[DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9)).ToString('yyyy-MM-dd')
+ if($s.sessionDate -cne $day){return $false}
+ return (Test-Path -LiteralPath (Join-Path $store ('PREOPEN-'+$day+'.request.json')) -PathType Leaf)
+}
+function CanQueuePreopen($s){
+ $now=[DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9))
+ if($now.DayOfWeek -in @([DayOfWeek]::Saturday,[DayOfWeek]::Sunday) -or
+    $now.ToString('HH:mm:ss') -lt '08:30:00' -or
+    $now.ToString('HH:mm:ss') -ge '09:00:00'){return $false}
+ if($s.sessionDate -cne $now.ToString('yyyy-MM-dd') -or
+    $s.mode -cne 'OUTSIDE_ENTRY_WINDOW' -or
+    $s.reason -cne 'NEW_ENTRY_WINDOW_CLOSED' -or
+    $s.canRequestTrade -eq $true -or (PreopenReserved $s)){return $false}
+ return (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'Start-No11PreopenStandby.ps1') -PathType Leaf)
+}
 function RefreshUi{
  try{
   $s=GetStatus
   $trading=if($s.mode -ceq 'AFTER_CLOSE'){'Closed for today'}elseif($s.canRequestTrade -eq $true){'Awaiting same-day approval'}else{'Not available'}
+  $preopen=CanQueuePreopen $s
+  $reserved=PreopenReserved $s
+  if($preopen){$trading='08:30 STANDBY READY - 09:00 AUTO START'}
+  if($reserved){$trading=if($s.reason -ceq 'ALREADY_STARTED_TODAY'){'TRADE REQUESTED - check logs'}else{'09:00 START RESERVED - check logs'}}
   $recovery='No current recovery request'
   if($s.PSObject.Properties.Name -contains 'runHealth'){
    $rh=$s.runHealth
@@ -200,7 +223,7 @@ function RefreshUi{
                 'TRADING     '+$trading+[Environment]::NewLine+
                 'DATA        '+(UiReason ([string]$s.reason))+[Environment]::NewLine+
                 'RECOVERY    '+$recovery)
-  $trade.Enabled=($s.canRequestTrade -eq $true)
+  $trade.Enabled=(($s.canRequestTrade -eq $true) -or $preopen) -and (-not $reserved)
   $nightly.Enabled=($s.canRunNightly -eq $true)
   $review.Enabled=($s.PSObject.Properties.Name -contains 'runHealth' -and $s.runHealth.state -ne 'NO_RUN_POINTER')
  }catch{
@@ -213,6 +236,25 @@ function RefreshUi{
 $refresh.Add_Click({RefreshUi})
 $trade.Add_Click({
  $s=GetStatus
+ if(CanQueuePreopen $s){
+  $approval=[System.Windows.Forms.MessageBox]::Show(
+   'Authorize REAL broker cash LONG orders for TODAY ONLY, with a SINGLE automatic 09:00 start request? No order before 09:00. Existing RSS, broker, cash, MAX3, one-shot and strategy safety checks remain mandatory. Keep Windows awake and logged in with Excel and Market Speed II connected.',
+   'ARK - 08:30 STANDBY FOR 09:00',
+   [System.Windows.Forms.MessageBoxButtons]::YesNo,
+   [System.Windows.Forms.MessageBoxIcon]::Warning)
+  if($approval -ne [System.Windows.Forms.DialogResult]::Yes){return}
+  try{
+   $standby=Join-Path $PSScriptRoot 'Start-No11PreopenStandby.ps1'
+   Need (Test-Path -LiteralPath $standby -PathType Leaf) 'PREOPEN_SCRIPT_MISSING'
+   $trade.Enabled=$false
+   $result=@(& powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $standby -Mode Arm -IApproveOrdersForToday)
+   Need ($LASTEXITCODE -eq 0 -and ($result -contains 'NO11_PREOPEN_STANDBY=ARMED')) 'PREOPEN_RESERVATION_FAILED'
+   $status.Text='PREOPEN STANDBY ARMED for TODAY. Native Trade will be requested once at 09:00 JST if all checks pass. Keep PC awake; check OneClick logs.'
+  }catch{
+   $status.Text='PREOPEN STANDBY FAILED; no Trade retry. Review OneClick logs and existing reservation.'
+  }
+  return
+ }
  if($s.canRequestTrade -ne $true){RefreshUi;return}
  $answer=[System.Windows.Forms.MessageBox]::Show('Authorize REAL broker cash LONG orders for TODAY ONLY (normal MAX3 / 100 shares) subject to ALL existing RSS, strategy, cash and broker gates? No order or fill is guaranteed.','ARK - explicit same-day trade approval',[System.Windows.Forms.MessageBoxButtons]::YesNo,[System.Windows.Forms.MessageBoxIcon]::Warning)
  if($answer -ne [System.Windows.Forms.DialogResult]::Yes){return}

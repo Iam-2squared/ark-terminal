@@ -105,9 +105,9 @@ def do_reconcile(args):
          and external.get("sameSnapshotVerified") is True
          and external.get("rowsTruncated") is False, "BROKER_NOT_OBSERVED")
     for field in ("idRows", "orders", "executions"):
-        need(external.get(field) == [] and fresh.get("snapshot", {}).get(
-            "orders" if field == "orders" else "executions" if field == "executions" else "orders") == [],
-            "BROKER_HAS_" + field.upper())
+        need(external.get(field) == [], "BROKER_HAS_" + field.upper())
+    need(fresh.get("snapshot", {}).get("orders") == [] and
+         fresh.get("snapshot", {}).get("executions") == [], "ACCOUNT_HAS_ORDER_OR_EXECUTION")
     obs_time = datetime.fromisoformat(external["captureCompletedAt"])
     need(obs_time.utcoffset() == timedelta(hours=9)
          and 0 <= (jst_now()-obs_time).total_seconds() <= 60, "BROKER_OBSERVATION_STALE")
@@ -131,7 +131,7 @@ def do_reconcile(args):
             print("FRESH_BROKER_ORDERS=0")
             print("OLD_HALT_REASONS=" + ",".join(reasons))
             if not args.apply:
-                print("FILES_MODIFIED=False")
+                print("TRADING_LEDGER_EVENTS_UNCHANGED=True")
                 print("ORDER_TRANSMISSION=False")
                 return
             need(args.i_approve_today, "EXPLICIT_APPROVAL_REQUIRED")
@@ -141,7 +141,7 @@ def do_reconcile(args):
                 archive = attempt_root / "attempt.pre-reconciliation.json"
                 need(not archive.exists(), "BACKUP_ALREADY_EXISTS")
                 archive.write_bytes((attempt_root / "attempt.json").read_bytes())
-                assert hash(archive.read_bytes()) == hash((attempt_root / "attempt.json").read_bytes())
+                need(hashlib.sha256(archive.read_bytes()).digest() == hashlib.sha256((attempt_root / "attempt.json").read_bytes()).digest(), "ATTEMPT_BACKUP_MISMATCH")
                 item = recovery.Attempt(attempt_root, args.session)
                 item._write({"CONNECTED"}, status="CLOSED", exitCode=2, closedSha256=closed_sha)
             restored = run.restore(run_root)
@@ -179,6 +179,7 @@ if __name__ == "__main__":
         do_reconcile(p.parse_args())
     except (OSError, ValueError, TypeError, KeyError, RuntimeError) as e:
         text = str(e)
-        code = text if text.startswith("NO11_SAMEDAY_RECOVERY_") else "NO11_SAMEDAY_RECOVERY_REVIEW_FAILED"
+        import re
+        code = text if re.fullmatch(r"(?:NO11|P1_RSS|P1_FORWARD)_[A-Z0-9_]+", text) else "NO11_SAMEDAY_RECOVERY_REVIEW_FAILED"
         print(code, file=sys.stderr)
         raise SystemExit(2)

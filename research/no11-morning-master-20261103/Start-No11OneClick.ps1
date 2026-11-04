@@ -284,14 +284,36 @@ $review.Add_Click({
  try{
   $s=GetStatus
   if($s.PSObject.Properties.Name -notcontains 'runHealth'){RefreshUi;return}
-  $tool=Join-Path $PSScriptRoot 'Review-No11RecoveryReadOnly.ps1'
+  # ARK_NO11_ONECLICK_SAME_RUN_RESUME_BUTTON_V1
+  # Keep the exact approved white controls, layout and button name.
+  # A stopped, source-halted LIVE run may be resumed only after the operator
+  # explicitly confirms current broker orders/holdings with Market Speed II.
+  $jst=[DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9))
+  $time=$jst.ToString('HH:mm:ss')
+  $canOffer=($s.runHealth.PSObject.Properties.Name -contains 'entryHalted' -and
+             $s.runHealth.entryHalted -eq $true -and
+             $time -ge '09:00:00' -and $time -lt '15:20:00' -and
+             $s.sessionDate -ceq $jst.ToString('yyyy-MM-dd') -and
+             (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'Resume-No11SameSession.ps1') -PathType Leaf))
+  $resuming=$false
+  if($canOffer){
+   $answer=[System.Windows.Forms.MessageBox]::Show(
+    'Have you checked the CURRENT same-day orders, executions and holdings in Market Speed II? YES: attempt one reviewed SAME-RUN collector/EXIT resume, with exact broker/ledger matching; NEVER resend existing orders. NO: run read-only review only. CANCEL: do nothing. Unknown orders or uncertain holdings block recovery.',
+    'ARK - SAME-DAY DISCONNECT RECOVERY',
+    [System.Windows.Forms.MessageBoxButtons]::YesNoCancel,
+    [System.Windows.Forms.MessageBoxIcon]::Warning)
+   if($answer -eq [System.Windows.Forms.DialogResult]::Cancel){return}
+   $resuming=($answer -eq [System.Windows.Forms.DialogResult]::Yes)
+  }
+  $tool=Join-Path $PSScriptRoot (if($resuming){'Resume-No11SameSession.ps1'}else{'Review-No11RecoveryReadOnly.ps1'})
   Need (Test-Path -LiteralPath $tool -PathType Leaf) 'REVIEW_HELPER_MISSING'
   $args=@('-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',(Quote $tool))
-  $out=LogFiles 'Review'
+  if($resuming){$args+=@('-Apply','-IConfirmSameDayBrokerOrdersAndPositions')}
+  $out=LogFiles (if($resuming){'Recovery'}else{'Review'})
   $proc=Start-Process -FilePath 'powershell.exe' -ArgumentList ($args -join ' ') -WorkingDirectory $PSScriptRoot -RedirectStandardOutput $out[0] -RedirectStandardError $out[1] -PassThru -WindowStyle Hidden
-  $status.Text='READ-ONLY RECOVERY REVIEW PID='+$proc.Id+'; open logs for results'
+  $status.Text=if($resuming){'RECOVERY REQUEST PID='+$proc.Id+'; see Recovery log for confirmed result (NOT a broker ACK)'}else{'READ-ONLY RECOVERY REVIEW PID='+$proc.Id+'; open logs for results'}
  }catch{
-  $status.Text='RECOVERY REVIEW NOT STARTED; no trading controls changed'
+  $status.Text='RECOVERY/REVIEW NOT STARTED; no trading controls changed'
  }
 })
 $logsButton.Add_Click({

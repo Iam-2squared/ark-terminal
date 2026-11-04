@@ -11,11 +11,17 @@ from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 import hashlib
 import json
+import os
 from pathlib import Path
 import sqlite3
 import sys
 
-ROOT = Path(__file__).resolve().parents[1] / "no12-prebuy-causal-runtime-20261011"
+# A pinned helper may run from a temporary download path on Windows.
+# Resolve the installed engine explicitly rather than assuming script location.
+ROOT = Path(os.environ.get("ARK_NO11_ENGINE_PATH") or
+            (Path(__file__).resolve().parents[1] / "no12-prebuy-causal-runtime-20261011")).resolve()
+if not (ROOT / "tools" / "no11_received_session_bootstrap.py").is_file():
+    raise SystemExit("NO11_SAMEDAY_RECOVERY_ENGINE_NOT_FOUND")
 sys.path.insert(0, str(ROOT / "tools"))
 import no11_received_session_bootstrap as bootstrap
 import no11_received_run_recovery as recovery

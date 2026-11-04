@@ -38,6 +38,7 @@ jobs:
         shell: bash
         run: |
           python -m unittest discover -s research/no11-morning-master-20261103 -p test_oneclick_status.py -v
+          python -m unittest discover -s research/no11-morning-master-20261103 -p test_oneclick_installer_ui_guard.py -v
           python -m unittest discover -s research/no11-morning-master-20261103 -p test_nightly_workbook_compat.py -v
           node research/no11-morning-master-20261103/verify_oct26_legacy_code.mjs --self-test
           node research/no11-morning-master-20261103/attest_oct26_win_checkout.mjs --self-test

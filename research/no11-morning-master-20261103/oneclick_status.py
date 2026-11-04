@@ -154,6 +154,14 @@ def inspect(settings_file, binding_file, *, at=None):
         result["reason"] = ("ALREADY_STARTED_TODAY" if
                             receipt.get("kind") == "TRADE" and receipt.get("asOfDate") == day
                             else "UNKNOWN_TRADE_MARKER")
+        # A launch marker is NOT a fill or an active-engine indicator. Inspect
+        # preserved run evidence if available, never clear the marker here.
+        source_file = settings.get("bootstrapConfigFile")
+        if isinstance(source_file, str) and Path(source_file).is_file():
+            bootstrap, _ = read_json(source_file)
+            root = bootstrap.get("privateRoot")
+            if isinstance(root, str) and Path(root).is_absolute():
+                result["runHealth"] = run_health(root, day)
         return result
     bootstrap_file = settings.get("bootstrapConfigFile")
     if not isinstance(bootstrap_file, str) or not bootstrap_file:

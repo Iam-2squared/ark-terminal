@@ -27,7 +27,9 @@ class OneClickWhiteUiGuardTests(unittest.TestCase):
 
     def test_bootstrap_pins_updated_installer(self):
         installer = (HERE / "Install-No11OneClick.ps1").read_bytes()
-        blob = b"blob " + str(len(installer)).encode("ascii") + b"\x00" + installer
+        # Git blob identity uses LF in the repository; Windows checkout may be CRLF.
+        canonical = installer.replace(b"\r\n", b"\n")
+        blob = b"blob " + str(len(canonical)).encode("ascii") + b"\x00" + canonical
         actual = hashlib.sha1(blob).hexdigest()
         bootstrap = (HERE / "Bootstrap-No11OneClick.ps1").read_text(encoding="utf-8-sig")
         found = re.search(r"'Install-No11OneClick\.ps1'='([a-f0-9]{40})'", bootstrap)

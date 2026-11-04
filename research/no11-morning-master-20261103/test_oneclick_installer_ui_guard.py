@@ -27,10 +27,10 @@ class OneClickWhiteUiGuardTests(unittest.TestCase):
 
     def test_bootstrap_pins_updated_installer(self):
         installer = (HERE / "Install-No11OneClick.ps1").read_bytes()
-        blob = b"blob " + str(len(installer)).encode("ascii") + b"\\x00" + installer
+        blob = b"blob " + str(len(installer)).encode("ascii") + b"\x00" + installer
         actual = hashlib.sha1(blob).hexdigest()
         bootstrap = (HERE / "Bootstrap-No11OneClick.ps1").read_text(encoding="utf-8-sig")
-        found = re.search(r"'Install-No11OneClick\\.ps1'='([a-f0-9]{40})'", bootstrap)
+        found = re.search(r"'Install-No11OneClick\.ps1'='([a-f0-9]{40})'", bootstrap)
         self.assertIsNotNone(found)
         self.assertEqual(actual, found.group(1))
         self.assertIn("$commit='610dbe0e3f16572230aa38d889b8306cbd1ad69b'", bootstrap)

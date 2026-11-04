@@ -38,6 +38,10 @@ Need ((Test-Path -LiteralPath $settingsPath -PathType Leaf) -and
       [IO.Path]::IsPathRooted($Finalizer) -and
       (Test-Path -LiteralPath $Finalizer -PathType Leaf)) 'INPUT_PATHS'
 $settings=Get-Content -LiteralPath $settingsPath -Raw -Encoding UTF8|ConvertFrom-Json
+$binding=Get-Content -LiteralPath (Join-Path $store 'automatic-inputs.json') -Raw -Encoding UTF8|ConvertFrom-Json
+Need ($binding.schemaId -ceq 'ARK_NO11_AUTOMATIC_LAUNCHER_BINDING_V1' -and
+      $binding.orderTransmission -eq $false -and
+      [IO.Path]::IsPathRooted([string]$binding.engine)) 'ENGINE_BINDING_UNSAFE'
 $cfg=Get-Content -LiteralPath $Bootstrap -Raw -Encoding UTF8|ConvertFrom-Json
 Need ($settings.schemaId -ceq 'ARK_NO11_UNIFIED_LAUNCHER_SETTINGS_V1' -and
       $settings.orderTransmission -eq $false -and

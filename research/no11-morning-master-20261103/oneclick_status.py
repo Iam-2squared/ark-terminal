@@ -74,6 +74,41 @@ def validated_handoff(binding, day):
     return True, "TODAY_HANDOFF_PINNED"
 
 
+def run_health(private, day):
+    """Display only coarse same-day halt/ledger state, never personal positions."""
+    root = Path(private)
+    pointer = root / ("received-session-" + day + ".active.json")
+    if not pointer.exists():
+        return {"state": "NO_RUN_POINTER"}
+    summary = {"state": "RUN_EXISTS_REVIEW_REQUIRED"}
+    try:
+        obj, _ = read_json(pointer, root=root)
+        run = Path(obj.get("runRoot", ""))
+        if (not run.is_absolute() or run.parent != root
+                or not re.fullmatch(r"session-" + re.escape(day) + r"-[a-f0-9]{32}", run.name)):
+            return summary
+        attempts = sorted(run.glob("attempt-*"))
+        if attempts:
+            attempt, _ = read_json(attempts[-1] / "attempt.json", root=root)
+            summary["collectorAttempt"] = attempt.get("status", "UNVERIFIED")
+            summary["collectorClosureRecorded"] = (attempts[-1] / "collector-ready.json.closed.json").is_file()
+        path = run / "inference" / "broker-execution-latest-report.json"
+        if path.is_file():
+            b, _ = read_json(path, root=root)
+            led = b.get("ledger", {})
+            summary["entryHalted"] = b.get("entryPipelineHalted") is True
+            for k, field in (("orderCount", "orders"), ("positionCount", "positions"),
+                             ("commandCount", "commands")):
+                value = led.get(field, {})
+                summary[k] = len(value) if isinstance(value, dict) else -1
+            reason = b.get("entryHaltReasons", [])
+            summary["haltReasonCodes"] = [x for x in reason
+                                          if isinstance(x, str) and re.fullmatch(r"[A-Z0-9_]{1,96}", x)][:20]
+    except (OSError, ValueError, KeyError, TypeError):
+        summary["state"] = "RUN_EVIDENCE_UNVERIFIED"
+    return summary
+
+
 def inspect(settings_file, binding_file, *, at=None):
     now = at or datetime.now(JST)
     if now.utcoffset() != timedelta(hours=9):
@@ -138,6 +173,7 @@ def inspect(settings_file, binding_file, *, at=None):
         pointer = root / ("received-session-" + day + ".active.json")
         if pointer.exists() or (root / "bootstrap-recovery-required.json").exists():
             result["reason"] = "EXISTING_RUN_REQUIRES_REVIEW"
+            result["runHealth"] = run_health(root, day)
             return result
     pinned, why = validated_handoff(binding, day)
     if not pinned:

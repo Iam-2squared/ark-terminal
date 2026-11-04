@@ -159,9 +159,9 @@ def assess(ledger, fresh, session: str, *, manual_confirmed=False, now=None):
                 k = (sym, o.get("account"), side)
                 execution_need[k] = execution_need.get(k, 0) + o["cumulativeQuantity"]
         for r in ext["orders"]:
-            if r["orderNumber"] not in seen_numbers and
-               r.get("status") not in {"約定", "取消済（出来無）",
-                                      "取消済（出来有）", "出来ず（出来無）", "出来ず（出来有）"}:
+            if (r["orderNumber"] not in seen_numbers and
+                r.get("status") not in {"約定", "取消済（出来無）",
+                                       "取消済（出来有）", "出来ず（出来無）", "出来ず（出来有）"}):
                 need(False, "EXTERNAL_ACTIVE_ORDER_NEEDS_REVIEW")
         sums = {}
         for row in ext["executions"]:

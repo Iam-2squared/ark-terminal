@@ -33,6 +33,17 @@ $day=[DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9)).ToString('yyyy-
 $clock=[DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9)).ToString('HH:mm:ss')
 Need ($clock -ge '09:00:00' -and $clock -lt '15:20:00') 'RECOVERY_WITHIN_ENTRY_WINDOW'
 $store=Join-Path $env:LOCALAPPDATA 'ArkTerminal\No12\unified-launcher'
+# One operator recovery per attempt at a time. The OS releases the handle
+# on crash, without deleting original evidence or resetting any order marker.
+$guardPath=Join-Path $store ('RESUME-'+$day+'.lock')
+$guard=$null
+try {
+ try {
+  $guard=[IO.File]::Open($guardPath,[IO.FileMode]::OpenOrCreate,
+                         [IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
+ }catch{
+  throw 'NO11_ONECLICK_RESUME_ALREADY_IN_PROGRESS'
+ }
 $settingsFile=Join-Path $store 'settings.json'
 $bindingFile=Join-Path $store 'automatic-inputs.json'
 $settings=Get-Content -LiteralPath $settingsFile -Raw -Encoding UTF8|ConvertFrom-Json
@@ -81,6 +92,10 @@ foreach($p in @($native,$observer,$closeTool,$finalizer,$rearmTool)){
 $attempts=@(Get-ChildItem -LiteralPath $run -Directory -Filter 'attempt-*'|Sort-Object Name)
 Need ($attempts.Count -ge 1 -and $attempts.Count -le 16) 'ATTEMPTS_MISSING'
 $attemptPath=$attempts[-1].FullName
+# Same failed attempt cannot produce two native LIVE start requests.
+# A later, distinct failed collector attempt may recover independently.
+$launchMarker=Join-Path $store ('RESUME-'+$day+'-'+$attempts[-1].Name+'.launch.json')
+Need (-not (Test-Path -LiteralPath $launchMarker)) 'RESUME_ALREADY_REQUESTED_FOR_ATTEMPT'
 $attempt=Get-Content -LiteralPath (Join-Path $attemptPath 'attempt.json') -Raw -Encoding UTF8|ConvertFrom-Json
 if($attempt.status -ceq 'CONNECTED'){
  # Fail-closed until the uniquely tokened ARK-owned unsaved workbook is
@@ -97,18 +112,12 @@ $stop=Join-Path $root ('oneclick-reconnect-'+$day+'-'+$id+'.stop')
 & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $observer -WorkbookPath ([string]$settings.accountWorkbookPath) -OrderIdWorkbookPath ([string]$settings.orderIdWorkbookPath) -OutputFile $observation -StopFile $stop -Samples 1 | Out-Null
 Need ($LASTEXITCODE -eq 0 -and
       (Test-Path -LiteralPath $observation -PathType Leaf)) 'BROKER_OBSERVATION_FAILED'
-# Separate read-only preview and comparison, then immutable ledger proof &
-# source-only CAS rearm. Never delete/rewrite the original ledger/start marker.
+# Exactly ONE broker/ledger validation under the existing exclusive service
+# lock. OneClick's explicit manual confirmation already occurred. No second
+# data capture, no preview+apply duplication, no re-transmission.
 $arguments=@('--engine',$engine,'--bootstrap',$bootstrap,
              '--observation',$observation,'--launcher-store',$store,
              '--run',$run,'--manual-confirmed')
-$preflight=@(& $python -B -X utf8 $rearmTool @arguments)
-Need ($LASTEXITCODE -eq 0 -and $preflight.Count -eq 1) 'BROKER_COMPARISON_NOT_ELIGIBLE'
-$review=$preflight[0]|ConvertFrom-Json
-Need ($review.schemaId -ceq 'ARK_NO11_SAME_RUN_SOURCE_REARM_V1' -and
-      $review.status -ceq 'READ_ONLY_ELIGIBLE' -and
-      $review.orderResent -eq $false -and
-      $review.tradeRelaunched -eq $false) 'PREVIEW_REJECTED'
 $applyResult=@(& $python -B -X utf8 $rearmTool @arguments --apply)
 Need ($LASTEXITCODE -eq 0 -and $applyResult.Count -eq 1) 'REARM_NOT_COMMITTED'
 $applied=$applyResult[0]|ConvertFrom-Json
@@ -119,7 +128,6 @@ Need ($applied.schemaId -ceq 'ARK_NO11_SAME_RUN_SOURCE_REARM_V1' -and
         $applied.entryHaltPreserved -eq $true -and $applied.exitOnlyContinuation -eq $true) -or
        ($applied.status -ceq 'SOURCE_HALT_REARMED_FOR_NATIVE_RESUME' -and
         $applied.entryHaltClearedAfterReconciliation -eq $true))) 'REARM_RESULT_INVALID'
-$launchMarker=Join-Path $store ('RESUME-'+$day+'-'+$id+'.launch.json')
 $body=[ordered]@{
  schemaId='ARK_NO11_SAME_RUN_NATIVE_RESUME_LAUNCH_V1'
  sessionDate=$day
@@ -155,3 +163,7 @@ Write-Host 'OLD_TRADE_START_MARKER_PRESERVED=True'
 Write-Host 'ORIGINAL_COLLECTOR_RECEIPTS_MODIFIED=False'
 Write-Host 'PREVIOUS_ORDER_RESENT=False'
 Write-Host 'NATIVE_RESUME_REQUEST_IS_NOT_BROKER_ACK=True'
+
+} finally {
+ if($null -ne $guard){$guard.Dispose()}
+}

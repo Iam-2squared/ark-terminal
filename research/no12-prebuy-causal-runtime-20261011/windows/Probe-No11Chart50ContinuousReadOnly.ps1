@@ -80,17 +80,37 @@ function ReadGrowingChart([object]$sheet,[int]$initialBars){
  # Keep the formula unchanged and one RssChart function per symbol.
  if($initialBars -lt 50 -or $initialBars -gt 150){throw 'NO11_C50_INITIAL_ROWS_INVALID'}
  $limit=$initialBars+390+2
- $range=$sheet.Range(('A3:J{0}' -f ($limit+3)))
- try{$values=$range.Value2}
- finally{
-  if([Runtime.InteropServices.Marshal]::IsComObject($range)){
-   [void][Runtime.InteropServices.Marshal]::ReleaseComObject($range)
+ # ARK_NO11_C50_BOUNDED_GROWING_SHAPE_RETRY_V1
+ # Exact same fixed rectangle; never resize or infer a missing chart.
+ # A transient Excel/RSS recalculation may return a non-matrix value.
+ $values=$null;$shapeOK=$false
+ for($attempt=1;$attempt -le 12;$attempt++){
+  if(C50Stopped){throw 'NO11_C50_STOPPED_DURING_CHART_RETRY'}
+  $range=$null;$values=$null
+  try{
+   $range=$sheet.Range(('A3:J{0}' -f ($limit+3)))
+   $values=$range.Value2
+  }catch [Runtime.InteropServices.COMException]{
+   # Only rejected/busy Excel RPC calls are eligible for another read.
+   if($_.Exception.HResult -notin @(-2147418111,-2147417846)){throw}
+   Write-Host ('NO11_C50_CHART_RPC_RETRY={0}|HRESULT={1}' -f $attempt,($_.Exception.HResult.ToString('X8')))
+  }finally{
+   if($null -ne $range -and [Runtime.InteropServices.Marshal]::IsComObject($range)){
+    try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($range)}catch{}
+   }
   }
+  $rank=if($values -is [array]){$values.Rank}else{0}
+  $rows=if($rank -ge 1){$values.GetLength(0)}else{0}
+  $cols=if($rank -eq 2){$values.GetLength(1)}else{0}
+  if($rank -eq 2 -and $rows -eq ($limit+1) -and $cols -eq 10){
+   $shapeOK=$true
+   if($attempt -gt 1){Write-Host ('NO11_C50_CHART_SHAPE_RECOVERED=TRUE|ATTEMPTS={0}' -f $attempt)}
+   break
+  }
+  Write-Host ('NO11_C50_CHART_SHAPE_RETRY={0}|RANK={1}|ROWS={2}|COLS={3}' -f $attempt,$rank,$rows,$cols)
+  if($attempt -lt 12){Start-Sleep -Milliseconds 450}
  }
- if($values -isnot [array] -or $values.Rank -ne 2 -or
-    $values.GetLength(0) -ne ($limit+1) -or $values.GetLength(1) -ne 10){
-  throw 'NO11_C50_GROWING_CHART_SHAPE'
- }
+ if(-not $shapeOK){throw 'NO11_C50_GROWING_CHART_SHAPE'}
  # One extra fence row detects overflow instead of silently truncating it.
  $row=$values.GetLowerBound(0)+$limit;$col=$values.GetLowerBound(1)
  if($null -ne (DateToken $values.GetValue($row,$col+3))){
@@ -172,12 +192,19 @@ function OriginalBooks([array]$Books,[string]$idPath){
  $extra=-not [string]::IsNullOrWhiteSpace($idPath)
  if(-not $extra -and $Books.Count -ne 2){throw 'NO11_C50_TWO_ORIGINAL_WORKBOOKS_REQUIRED'}
  if($extra -and $Books.Count -ne 3){throw 'NO11_C50_THREE_DECLARED_WORKBOOKS_REQUIRED'}
- $accounts=@($Books | Where-Object {$_.Name -ceq 'Ark_No11_MSII_RSS.xlsx'})
- $markets=@($Books | Where-Object {$_.Name -ceq 'Ark_No11_MARKET_RSS.xlsx'})
- if($accounts.Count -ne 1 -or $markets.Count -ne 1){throw 'NO11_C50_WORKBOOK_IDENTITY_INVALID'}
+ # ARK_NO11_C50_BOOK_MATCH_DIAGNOSTICS_V1
+ # Counts only; no account data or private paths.
+ $accounts=@($Books | Where-Object {[string]$_.Name -ceq 'Ark_No11_MSII_RSS.xlsx'})
+ $markets=@($Books | Where-Object {[string]$_.Name -ceq 'Ark_No11_MARKET_RSS.xlsx'})
+ if($accounts.Count -ne 1 -or $markets.Count -ne 1){
+  Write-Host ('NO11_C50_WORKBOOK_MATCH=NAME_MISMATCH|TOTAL={0}|ACCOUNT={1}|MARKET={2}' -f $Books.Count,$accounts.Count,$markets.Count)
+  throw 'NO11_C50_WORKBOOK_IDENTITY_INVALID'
+ }
  $a=$accounts[0];$m=$markets[0]
- if($a.Worksheets.Item('ARK_ACCOUNT_READONLY').Name -cne 'ARK_ACCOUNT_READONLY' -or
-    $m.Worksheets.Item('ARK_MARKET_READONLY').Name -cne 'ARK_MARKET_READONLY'){
+ $accountSheet=[string]$a.Worksheets.Item('ARK_ACCOUNT_READONLY').Name
+ $marketSheet=[string]$m.Worksheets.Item('ARK_MARKET_READONLY').Name
+ if($accountSheet -cne 'ARK_ACCOUNT_READONLY' -or $marketSheet -cne 'ARK_MARKET_READONLY'){
+  Write-Host ('NO11_C50_WORKBOOK_MATCH=SHEET_MISMATCH|ACCOUNT={0}|MARKET={1}' -f ($accountSheet -ceq 'ARK_ACCOUNT_READONLY'),($marketSheet -ceq 'ARK_MARKET_READONLY'))
   throw 'NO11_C50_WORKBOOK_IDENTITY_INVALID'
  }
  if($extra){
@@ -302,6 +329,33 @@ if($OfflineSelfTest){
  if($descriptor.identityCell -cne 'G1' -or $descriptor.identityValue -cne $token){throw 'NO11_C50_TEMPORARY_IDENTITY_SELFTEST_FAILED'}
  MustReject {TemporaryDescriptor 'Book1' $base @('Q01','ARK_NO11_CUMULATIVE') $token} 'NO11_C50_TEMPORARY_IDENTITY_INVALID'
  MustReject {TemporaryDescriptor 'Book1' '' @('Q01','ARK_NO11_CUMULATIVE') 'WRONG'} 'NO11_C50_TEMPORARY_IDENTITY_INVALID'
+ # The read-only chart reader must recover from exactly one malformed bulk read
+ # and reject three malformed bulk reads; never use partial or resized data.
+ function MockGrowingSheet($first,$later){
+  $mock=[pscustomobject]@{Reads=0;First=$first;Later=$later}
+  $mock|Add-Member -MemberType ScriptMethod -Name Range -Value {
+   param($address)
+   if($address -cne 'A3:J515'){throw 'NO11_C50_MOCK_RANGE_INVALID'}
+   $this.Reads++
+   # Avoid emitting a multidimensional array from an if-expression: the
+   # PowerShell success stream flattens it into a 1D object[] (5130 cells).
+   if($this.Reads -eq 1){$v=$this.First}else{$v=$this.Later}
+   return [pscustomobject]@{Value2=$v}
+  }
+  return $mock
+ }
+ $shapeBad=[array]::CreateInstance([object],[int[]]@(512,10),[int[]]@(1,1))
+ $shapeGood=[array]::CreateInstance([object],[int[]]@(513,10),[int[]]@(1,1))
+ $recover=MockGrowingSheet $shapeBad $shapeGood
+ $read=ReadGrowingChart $recover 120
+ if($recover.Reads -ne 2 -or $read.rowLimit -ne 512 -or
+    $read.values.GetLength(0) -ne 513 -or $read.values.GetLength(1) -ne 10){
+  throw 'NO11_C50_GROWING_SHAPE_RECOVERY_SELFTEST_FAILED'
+ }
+ $persistent=MockGrowingSheet $shapeBad $shapeBad
+ MustReject {ReadGrowingChart $persistent 120} 'NO11_C50_GROWING_CHART_SHAPE'
+ if($persistent.Reads -ne 12){throw 'NO11_C50_GROWING_SHAPE_BOUNDED_SELFTEST_FAILED'}
+ Write-Host 'NO11_C50_GROWING_SHAPE_RETRY_SELFTEST=PASS'
  Write-Host 'NO11_C50_CONTINUOUS_OFFLINE_SELFTEST=PASS'
  Write-Host 'NO11_C50_SUPPLEMENTAL_BOOK_SELFTEST=PASS'
  Write-Host 'NO11_C50_TEMPORARY_IDENTITY_SELFTEST=PASS'
@@ -439,7 +493,27 @@ public static class No11C50Attach {
   $script:wsWindows[0],[uint32]4294967280,[ref]$iid,[ref]$obj)
  if($hr -ne 0 -or $null -eq $obj){throw 'NO11_C50_COM_ATTACH_FAILED'}
  $excel=$obj.Application
- $originalBooks=OriginalBooks @($excel.Workbooks) $OrderIdWorkbookPath
+ # ARK_NO11_C50_BOUNDED_ATTACH_RETRY_V1
+ # Same Excel instance, fresh inventory each attempt. No identity bypass.
+ $originalBooks=$null
+ for($attachTry=1;$attachTry -le 12;$attachTry++){
+  if(C50Stopped){throw 'NO11_C50_STOPPED_DURING_ATTACH_RETRY'}
+  try{
+   $originalBooks=OriginalBooks @($excel.Workbooks) $OrderIdWorkbookPath
+   if($attachTry -gt 1){Write-Host ('NO11_C50_ATTACH_RECOVERED=TRUE|ATTEMPTS={0}' -f $attachTry)}
+   break
+  }catch{
+   $reason=[string]$_.Exception.Message
+   $retryable=$reason -cin @('NO11_C50_WORKBOOK_IDENTITY_INVALID','NO11_BROKER_RSS_STATUS')
+   if($_.Exception -is [Runtime.InteropServices.COMException]){
+    $retryable=$_.Exception.HResult -in @(-2147418111,-2147417846)
+    if($retryable){$reason='EXCEL_RPC_BUSY'}
+   }
+   if(-not $retryable -or $attachTry -ge 12){throw}
+   Write-Host ('NO11_C50_ATTACH_RETRY={0}|REASON={1}' -f $attachTry,$reason)
+   Start-Sleep -Milliseconds 450
+  }
+ }
  $stage='CAPACITY'
  # Keep the original conservative market/chart capacity checks.
  $capacity=OriginalCapacity $originalBooks $OrderIdWorkbookPath
@@ -504,9 +578,26 @@ public static class No11C50Attach {
   if(-not $continueCapture){break}
   $sampleStart=NowJst
   if(($sampleStart-$due).TotalSeconds -gt 15){throw 'NO11_C50_SNAPSHOT_OVERRUN'}
-  $values=$quote.Range(('A2:E{0}' -f ($symbols.Count+1))).Value2
+  # ARK_NO11_C50_MARKET_BOUNDED_RETRY_V1
+  $values=$null;$marketOK=$false
+  for($marketTry=1;$marketTry -le 12;$marketTry++){
+   if(C50Stopped){throw 'NO11_C50_STOPPED_DURING_MARKET_RETRY'}
+   $values=$null
+   try{$values=$quote.Range(('A2:E{0}' -f ($symbols.Count+1))).Value2}
+   catch [Runtime.InteropServices.COMException]{
+    if($_.Exception.HResult -notin @(-2147418111,-2147417846)){throw}
+    Write-Host ('NO11_C50_MARKET_RPC_RETRY={0}' -f $marketTry)
+   }
+   if($values -is [array] -and $values.Rank -eq 2 -and
+      $values.GetLength(0) -eq $symbols.Count -and $values.GetLength(1) -eq 5){
+    $marketOK=$true
+    if($marketTry -gt 1){Write-Host ('NO11_C50_MARKET_RECOVERED=TRUE|ATTEMPTS={0}' -f $marketTry)}
+    break
+   }
+   if($marketTry -lt 12){Start-Sleep -Milliseconds 450}
+  }
+  if(-not $marketOK){throw 'NO11_C50_MARKET_READ_INVALID'}
   $marketSeen=NowJst
-  if($values -isnot [array] -or $values.Rank -ne 2){throw 'NO11_C50_MARKET_READ_INVALID'}
   $mi=New-Object System.Collections.ArrayList
   $r0=$values.GetLowerBound(0);$c0=$values.GetLowerBound(1)
   for($j=0;$j -lt $symbols.Count;$j++){
@@ -582,8 +673,17 @@ public static class No11C50Attach {
  Write-Host 'ORDER_TRANSMISSION=False'
 }finally{
  if($null -ne $book){
-  try{$book.Close($false);$temporaryClosed=$true}
-  catch{$failed=$true;$temporaryClosed=$false}
+  if($failed){
+   # ARK_NO11_C50_PRESERVE_UNSAVED_ON_FAILURE_V1
+   # Preserve the temporary chart workbook for forensic inspection.
+   # Closed acknowledgement stays false so controller recovery remains fail-closed.
+   $temporaryClosed=$false
+   Write-Host 'NO11_C50_TEMP_WORKBOOK_PRESERVATION_REQUESTED=True'
+  }else{
+   # Normal completion or intentional STOP retains the original cleanup.
+   try{$book.Close($false);$temporaryClosed=$true}
+   catch{$failed=$true;$temporaryClosed=$false}
+  }
  }
  foreach($item in $sheets){
   try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($item.sheet)}catch{}

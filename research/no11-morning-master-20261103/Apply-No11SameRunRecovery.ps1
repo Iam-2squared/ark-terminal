@@ -109,7 +109,7 @@ $controller=Join-Path $engine 'tools\no11_received_session_controller.py'
 Need ((Test-Path -LiteralPath $runtime -PathType Leaf) -and
       (Test-Path -LiteralPath $controller -PathType Leaf)) 'RECOVERY_ENGINE_MISSING'
 AssertStopped
-$headRef='4452adecdd5915e4678a7ba3a63686ff9cca99f2'
+$headRef='3f00e2971e0802052780cb87d0f25880cbee0ed6'
 $baseRef='fb41945877229393b944ac3ce171c9571eaf4134'
 $repo='Iam-2squared/ark-terminal'
 $prefix='research/no11-morning-master-20261103/'
@@ -120,7 +120,7 @@ $pins=[ordered]@{
  'Resume-No11SameSession.ps1'='39112b03c255d62834050952f80625b206acee4d'
  'Close-No11OwnedC50Temporary.ps1'='6cd43faeb745c7a976d763423f30b0e4f2ac0f18'
  'no11_finalize_owned_collector_cleanup.py'='4bad609d0f499cb29f4a8d194fe242550bf36634'
- 'no11_same_session_rearm.py'='29d057c63c425015de00fbf972ba010297bb5e7b'
+ 'no11_same_session_rearm.py'='c00817149703d7199f024c87c03d5e16537882bb'
  'no11_manual_reconnect_review.py'='ba5e0133d1c3b7fb75b6b91cb212e48ae079d6d1'
  'new-no11_received_run_recovery.py'='8ded9d67f0b5187eaa1fa52bdd0d03aea0512fa8'
  'old-no11_received_run_recovery.py'='8195a1f6970ccca71f1f382403d884447a113003'

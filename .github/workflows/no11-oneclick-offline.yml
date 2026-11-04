@@ -9,6 +9,9 @@ on:
       - "research/no11-morning-master-20261103/Update-No11OneClickTheme.ps1"
       - "research/no11-morning-master-20261103/Review-No11RecoveryReadOnly.ps1"
       - "research/no11-morning-master-20261103/no11_same_day_reconcile.py"
+      - "research/no11-morning-master-20261103/nightly_workbook_compat.py"
+      - "research/no11-morning-master-20261103/install_daily_cycle.py"
+      - "research/no11-morning-master-20261103/test_nightly_workbook_compat.py"
       - ".github/workflows/no11-oneclick-offline.yml"
   workflow_dispatch:
 
@@ -30,6 +33,7 @@ jobs:
         shell: bash
         run: |
           python -m unittest discover -s research/no11-morning-master-20261103 -p test_oneclick_status.py -v
+          python -m unittest discover -s research/no11-morning-master-20261103 -p test_nightly_workbook_compat.py -v
 
   windows-powershell:
     runs-on: windows-latest

@@ -96,14 +96,13 @@ $tokens=$null;$errors=$null
 Need ($errors.Count -eq 0) 'REVIEW_POWERSHELL_PARSE'
 & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $reviewCandidate -OfflineSelfTest | Out-Null
 Need ($LASTEXITCODE -eq 0) 'REVIEW_POWERSHELL_SELFTEST'
-$pythonSyntax='import ast,sys; ast.parse(open(sys.argv[1],encoding="utf-8-sig").read())'
 $pythonCandidate=Join-Path $backup 'oneclick-status.candidate.py'
 [IO.File]::WriteAllBytes($pythonCandidate,$source['oneclick_status.py'])
-& $python -B -c $pythonSyntax $pythonCandidate
+& $python -B -m py_compile $pythonCandidate
 Need ($LASTEXITCODE -eq 0) 'PYTHON_SYNTAX'
 $reconcileCandidate=Join-Path $backup 'reconcile.candidate.py'
 [IO.File]::WriteAllBytes($reconcileCandidate,$source['no11_same_day_reconcile.py'])
-& $python -B -c $pythonSyntax $reconcileCandidate
+& $python -B -m py_compile $reconcileCandidate
 Need ($LASTEXITCODE -eq 0) 'RECOVERY_PYTHON_SYNTAX'
 if($EnableNightlyTask){
  Need ($binding.PSObject.Properties.Name -contains 'dailyCycleTool' -and

@@ -148,7 +148,7 @@ $body=[ordered]@{
 $bytes=[Text.UTF8Encoding]::new($false).GetBytes((ConvertTo-Json -InputObject $body -Compress -Depth 8)+[char]10)
 $f=[IO.File]::Open($reportFile,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
 try{$f.Write($bytes,0,$bytes.Length);$f.Flush($true)}finally{$f.Dispose()}
-& $Python -B -X utf8 $Finalizer --bootstrap $Bootstrap --run $run --report $reportFile --engine ([string]$cfg.engineRoot) --operator-approved
+& $Python -B -X utf8 $Finalizer --bootstrap $Bootstrap --run $run --report $reportFile --engine ([string]$binding.engine) --operator-approved
 Need ($LASTEXITCODE -eq 0) 'POSTMORTEM_FINALIZATION_FAILED'
 Write-Host 'NO11_OWNED_C50_CLEANUP=PASS'
 Write-Host 'ORIGINAL_EXCEL_BOOKS_CLOSED=False'

@@ -93,7 +93,7 @@ class OneClickOffline(unittest.TestCase):
     def test_pinned_next_day_handoff(self):
         self.bind.update(dailyCycleRoot=str(self.private))
         write(self.binding, self.bind)
-        self.assertEqual(self.state()["reason"], "PRELIMINARY_INPUTS_READY")
+        self.assertEqual(self.state()["reason"], "TODAY_HANDOFF_MISSING")
         p = self.private / "prepared-days" / (DAY + ".json")
         sha = hashlib.sha256(self.handoff.read_bytes()).hexdigest()
         write(p, {"schemaId": "ARK_NO11_NIGHTLY_LAUNCHER_HANDOFF_V1",

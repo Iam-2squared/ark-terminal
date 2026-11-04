@@ -62,6 +62,25 @@ function AssertStopped {
 }
 if($OfflineSelfTest){
  Need (-not $Apply) 'SELFTEST_FLAGS'
+ # Verify on actual Windows PowerShell 5.1 that File.Replace uses a real
+ # same-volume backup destination (a prior installer used $null and failed).
+ $sandbox=Join-Path $env:TEMP ('no11-atomic-probe-'+[guid]::NewGuid().ToString('N'))
+ [void][IO.Directory]::CreateDirectory($sandbox)
+ try{
+  $original=Join-Path $sandbox 'original.txt'
+  $candidate=Join-Path $sandbox 'candidate.txt'
+  $backup=Join-Path $sandbox 'original.before.txt'
+  [IO.File]::WriteAllText($original,'WHITE_UI_BEFORE')
+  [IO.File]::WriteAllText($candidate,'PATCHED_CANDIDATE')
+  [IO.File]::Replace($candidate,$original,$backup)
+  Need ([IO.File]::ReadAllText($original) -ceq 'PATCHED_CANDIDATE' -and
+        [IO.File]::ReadAllText($backup) -ceq 'WHITE_UI_BEFORE') 'ATOMIC_REPLACE_SELFTEST'
+ }finally{
+  if(Test-Path -LiteralPath $sandbox -PathType Container){
+   Remove-Item -LiteralPath $sandbox -Recurse -Force -ErrorAction SilentlyContinue
+  }
+ }
+ Write-Host 'NO11_SAME_RUN_ATOMIC_REPLACE_OFFLINE_SELFTEST=PASS'
  Write-Host 'NO11_SAME_RUN_INSTALL_OFFLINE_SELFTEST=PASS'
  Write-Host 'WHITE_THEME_MODIFIED=False'
  Write-Host 'ORIGINAL_TRADING_STRATEGY_MODIFIED=False'

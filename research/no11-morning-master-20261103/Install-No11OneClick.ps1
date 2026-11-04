@@ -49,8 +49,8 @@ function Blob([byte[]]$raw) {
  finally{$sha.Dispose()}
 }
 $pins=[ordered]@{
- 'oneclick_status.py'='bc85e427eaf4f96b5fb87f3f698c64f4f5309a4f'
- 'Start-No11OneClick.ps1'='2afa12d4b97f5ccbe42e58433fd5dd7b47c67008'
+ 'oneclick_status.py'='1c8a2639aa0f6d8a833287bc5103a1f4dbaf97c5'
+ 'Start-No11OneClick.ps1'='54834f055156f15a561902328209210920177802'
 }
 $source=@{}
 foreach($name in $pins.Keys){

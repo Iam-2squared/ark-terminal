@@ -280,7 +280,7 @@ if __name__=="__main__":
     try:main()
     except Exception as e:
         code=str(e)
-        if not re.fullmatch(r'NO11_DAILY_CYCLE_INSTALL_[A-Z0-9_]+',code):
+        if not re.fullmatch(r'NO11_(?:DAILY_CYCLE_INSTALL|NIGHTLY_BOOK)_[A-Z0-9_]+',code):
             code='NO11_DAILY_CYCLE_INSTALL_UNVERIFIED_LOCAL_CHANGE'
         print('NO11_DAILY_WEEKLY_LAUNCHER_INSTALL=BLOCKED|'+code,file=sys.stderr)
         print('ORDER_TRANSMISSION=False',file=sys.stderr)

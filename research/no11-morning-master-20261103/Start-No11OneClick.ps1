@@ -81,7 +81,7 @@ Add-Type -AssemblyName System.Drawing
 [System.Windows.Forms.Application]::EnableVisualStyles()
 $form=New-Object System.Windows.Forms.Form
 $form.Text='ARK Terminal - OneClick'
-$form.ClientSize=New-Object System.Drawing.Size(680,326)
+$form.ClientSize=New-Object System.Drawing.Size(680,360)
 $form.FormBorderStyle='FixedDialog'
 $form.MaximizeBox=$false
 $form.StartPosition='CenterScreen'
@@ -95,34 +95,41 @@ $title.Location=New-Object System.Drawing.Point(24,24)
 $form.Controls.Add($title)
 $status=New-Object System.Windows.Forms.Label
 $status.AutoSize=$false
-$status.Size=New-Object System.Drawing.Size(630,62)
+$status.Size=New-Object System.Drawing.Size(630,94)
 $status.Location=New-Object System.Drawing.Point(26,76)
 $status.Font=New-Object System.Drawing.Font('Consolas',10)
 $form.Controls.Add($status)
 $trade=New-Object System.Windows.Forms.Button
 $trade.Text='START NORMAL MAX3 TRADING'
 $trade.Size=New-Object System.Drawing.Size(628,46)
-$trade.Location=New-Object System.Drawing.Point(26,148)
+$trade.Location=New-Object System.Drawing.Point(26,180)
 $form.Controls.Add($trade)
 $nightly=New-Object System.Windows.Forms.Button
 $nightly.Text='AFTER-CLOSE RSS UPDATE (NO ORDERS)'
 $nightly.Size=New-Object System.Drawing.Size(310,36)
-$nightly.Location=New-Object System.Drawing.Point(26,204)
+$nightly.Location=New-Object System.Drawing.Point(26,236)
 $form.Controls.Add($nightly)
 $refresh=New-Object System.Windows.Forms.Button
 $refresh.Text='REFRESH STATUS'
 $refresh.Size=New-Object System.Drawing.Size(308,36)
-$refresh.Location=New-Object System.Drawing.Point(346,204)
+$refresh.Location=New-Object System.Drawing.Point(346,236)
 $form.Controls.Add($refresh)
 $notice=New-Object System.Windows.Forms.Label
 $notice.Text='Opening this window never authorizes orders. Real trading needs explicit same-day YES.'
 $notice.Size=New-Object System.Drawing.Size(625,45)
-$notice.Location=New-Object System.Drawing.Point(26,255)
+$notice.Location=New-Object System.Drawing.Point(26,288)
 $form.Controls.Add($notice)
 function RefreshUi{
  try{
   $s=GetStatus
-  $status.Text=('SESSION: '+$s.sessionDate+[Environment]::NewLine+'STATUS: '+$s.mode+' / '+$s.reason+[Environment]::NewLine+'Preliminary only: Excel/RSS verified by native launcher')
+  $detail=''
+  if($s.PSObject.Properties.Name -contains 'runHealth'){
+   $rh=$s.runHealth
+   $attempt=if($rh.PSObject.Properties.Name -contains 'collectorAttempt'){$rh.collectorAttempt}else{'UNVERIFIED'}
+   $halt=if($rh.PSObject.Properties.Name -contains 'entryHalted'){$rh.entryHalted}else{'UNVERIFIED'}
+   $detail=[Environment]::NewLine+'RUN: '+$rh.state+' / COLLECTOR: '+$attempt+' / ENTRY HALT: '+$halt
+  }
+  $status.Text=('SESSION: '+$s.sessionDate+[Environment]::NewLine+'STATUS: '+$s.mode+' / '+$s.reason+$detail+[Environment]::NewLine+'Preliminary only: Excel/RSS verified by native launcher')
   $trade.Enabled=($s.canRequestTrade -eq $true)
   $nightly.Enabled=($s.canRunNightly -eq $true)
  }catch{

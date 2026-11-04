@@ -578,9 +578,26 @@ public static class No11C50Attach {
   if(-not $continueCapture){break}
   $sampleStart=NowJst
   if(($sampleStart-$due).TotalSeconds -gt 15){throw 'NO11_C50_SNAPSHOT_OVERRUN'}
-  $values=$quote.Range(('A2:E{0}' -f ($symbols.Count+1))).Value2
+  # ARK_NO11_C50_MARKET_BOUNDED_RETRY_V1
+  $values=$null;$marketOK=$false
+  for($marketTry=1;$marketTry -le 12;$marketTry++){
+   if(C50Stopped){throw 'NO11_C50_STOPPED_DURING_MARKET_RETRY'}
+   $values=$null
+   try{$values=$quote.Range(('A2:E{0}' -f ($symbols.Count+1))).Value2}
+   catch [Runtime.InteropServices.COMException]{
+    if($_.Exception.HResult -notin @(-2147418111,-2147417846)){throw}
+    Write-Host ('NO11_C50_MARKET_RPC_RETRY={0}' -f $marketTry)
+   }
+   if($values -is [array] -and $values.Rank -eq 2 -and
+      $values.GetLength(0) -eq $symbols.Count -and $values.GetLength(1) -eq 5){
+    $marketOK=$true
+    if($marketTry -gt 1){Write-Host ('NO11_C50_MARKET_RECOVERED=TRUE|ATTEMPTS={0}' -f $marketTry)}
+    break
+   }
+   if($marketTry -lt 12){Start-Sleep -Milliseconds 450}
+  }
+  if(-not $marketOK){throw 'NO11_C50_MARKET_READ_INVALID'}
   $marketSeen=NowJst
-  if($values -isnot [array] -or $values.Rank -ne 2){throw 'NO11_C50_MARKET_READ_INVALID'}
   $mi=New-Object System.Collections.ArrayList
   $r0=$values.GetLowerBound(0);$c0=$values.GetLowerBound(1)
   for($j=0;$j -lt $symbols.Count;$j++){

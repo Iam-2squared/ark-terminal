@@ -12,14 +12,14 @@ if($OfflineSelfTest){
 }
 if(-not $Apply){throw 'NO11_ONECLICK_BOOTSTRAP_EXPLICIT_APPLY_REQUIRED'}
 $repo='Iam-2squared/ark-terminal'
-$commit='dcf38ac0ed807e118decac13e789dce9c42956f1'
+$commit='d2922981bd9562d9c1c1240dfccb866e74d995b8'
 $path='research/no11-morning-master-20261103'
 $pins=[ordered]@{
  'oneclick_status.py'='1f5611336abc8d68731a44243fa67a6c6a4ebf9f'
- 'Start-No11OneClick.ps1'='6d1f91d2470e96df28a181f5ebd89b0151fabf67'
+ 'Start-No11OneClick.ps1'='4a8c299cfc80d7c116b5b997c5f3aa27f074ab48'
  'Review-No11RecoveryReadOnly.ps1'='e0ba60daa329a4c301ac0db62ab980d55096feec'
  'no11_same_day_reconcile.py'='e26e0cdf8d6af186cc1d1ec40aca75f02e71589f'
- 'Install-No11OneClick.ps1'='b8d6146a8dba5d9a42a885fde162f3fd92f560e3'
+ 'Install-No11OneClick.ps1'='b0f10661274a72363f6ccda70145904273b81749'
 }
 function BlobHash([byte[]]$bytes){
  $header=[Text.Encoding]::ASCII.GetBytes(('blob '+$bytes.Length)+[char]0)

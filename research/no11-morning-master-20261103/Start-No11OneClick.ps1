@@ -52,6 +52,24 @@ function StartOriginal([string]$runMode){
  $files=LogFiles $runMode
  $p=Start-Process -FilePath 'powershell.exe' -ArgumentList ($args -join ' ') -WorkingDirectory (Split-Path -Parent $launcher) -RedirectStandardOutput $files[0] -RedirectStandardError $files[1] -PassThru -WindowStyle Hidden
  Need ($null -ne $p -and $p.Id -gt 0) 'CHILD_NOT_STARTED'
+ # ARK_NO11_ONECLICK_TRADE_UI2_AUTOOPEN_WATCH_V1
+ # The native Trade launcher opens UI2 once. Observe its result and retry
+ # ONLY the independent read-only UI helper if native reported UI failure.
+ if($runMode -eq 'Trade'){
+  $watch=Join-Path $PSScriptRoot 'Watch-No11OneClickTradeUi.ps1'
+  $script:LastUi2Monitor='NOT_INSTALLED'
+  if(Test-Path -LiteralPath $watch -PathType Leaf){
+   $watchArgs=@('-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass',
+                '-File',(Quote $watch),'-NativeLog',(Quote $files[0]))
+   $watchLogs=LogFiles 'Ui2'
+   try{
+    $monitor=Start-Process -FilePath 'powershell.exe' -ArgumentList ($watchArgs -join ' ') -WorkingDirectory $PSScriptRoot -RedirectStandardOutput $watchLogs[0] -RedirectStandardError $watchLogs[1] -PassThru -WindowStyle Hidden
+    $script:LastUi2Monitor=if($null -ne $monitor -and $monitor.Id -gt 0){'STARTED'}else{'MONITOR_UNAVAILABLE'}
+   }catch{
+    $script:LastUi2Monitor='MONITOR_UNAVAILABLE'
+   }
+  }
+ }
  return $p.Id
 }
 if($Mode -eq 'Status'){
@@ -202,7 +220,7 @@ $trade.Add_Click({
   # Native Trade checks are repeated and owns the one-shot trade marker.
   $trade.Enabled=$false
   $id=StartOriginal 'Trade'
-  $status.Text='TRADE REQUESTED PID='+$id+'; inspect logs and MSII for actual broker orders'
+  $status.Text='TRADE REQUESTED PID='+$id+'; ARK Terminal 2.0 auto-open via native launcher; UI2 monitor '+$script:LastUi2Monitor+'. Check logs.'
  }catch{
   $status.Text='TRADE REQUEST FAILED; inspect logs before further action'
  }

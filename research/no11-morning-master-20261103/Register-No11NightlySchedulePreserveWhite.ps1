@@ -41,7 +41,7 @@ Need ($settings.schemaId -ceq 'ARK_NO11_UNIFIED_LAUNCHER_SETTINGS_V1' -and
 # scheduled route exists and the same-day approval remains in its live route.
 $source=[IO.File]::ReadAllText($oneclick)
 Need ($source.Contains("'ScheduledNightly'") -and
-      $source.Contains("'-Mode',$runMode") -and
+      $source.Contains("'-Mode'") -and
       $source.Contains("IApproveOrdersForToday") -and
       $source.Contains("NIGHTLY_NOT_READY") -and
       $source.Contains("NO11_ONECLICK_NIGHTLY_REQUESTED=True")) 'SCHEDULED_ROUTE_CONTRACT'

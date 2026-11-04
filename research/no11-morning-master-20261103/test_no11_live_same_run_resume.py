@@ -72,8 +72,18 @@ class PostmortemOriginalReceiptTests(unittest.TestCase):
         })
 
     def cleanup_proof(self, **overrides):
+        report_sha = write(self.attempt / "owned-temp-closure-observed.json", {
+            "schemaId": "ARK_NO11_C50_OWNED_TEMP_CLOSURE_OBSERVED_V1",
+            "sessionDate": self.day, "collectorPid": 991,
+            "ownedTemporaryToken": self.token,
+            "ownedUnsavedWorkbookClosed": True,
+            "originalBooksUnchanged": True,
+            "noBrokerOrdersTouched": True,
+            "orderTransmission": False,
+        })
         p = {
             "schemaId": recovery.POSTMORTEM,
+            "closureReportSha256": report_sha,
             "sessionDate": self.day, "collectorPid": 991,
             "originalClosedReceiptSha256": self.closed_sha,
             "originalReadyReceiptSha256": self.ready_sha,
@@ -129,6 +139,13 @@ class PostmortemOriginalReceiptTests(unittest.TestCase):
     def test_wrong_token_blocks(self):
         self.cleanup_proof(ownedTemporaryToken="ARK_NO11_C50_TEMP_" + "f" * 32)
         with self.assertRaisesRegex(ValueError, "POSTMORTEM_CLEANUP_NOT_VERIFIED"):
+            self.manager.history(self.run)
+
+    def test_altered_cleanup_report_stays_blocked(self):
+        self.cleanup_proof()
+        report = self.attempt / "owned-temp-closure-observed.json"
+        report.write_bytes(report.read_bytes() + b" ")
+        with self.assertRaisesRegex(ValueError, "POSTMORTEM_CLOSURE_REPORT_CHANGED"):
             self.manager.history(self.run)
 
     def test_wrong_source_hash_blocks(self):

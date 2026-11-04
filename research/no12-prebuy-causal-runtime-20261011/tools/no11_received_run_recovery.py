@@ -217,6 +217,14 @@ class RunRecovery:
                 # collector while an unknown workbook survives.
                 proof = unseal(path / 'collector-postmortem-cleanup.json', POSTMORTEM)
                 ready, ready_sha = read(path / 'collector-ready.json', 100_000)
+                cleanup_report, report_sha = read(path / 'owned-temp-closure-observed.json', 100_000)
+                need(proof.get('closureReportSha256') == report_sha
+                     and cleanup_report.get('ownedUnsavedWorkbookClosed') is True
+                     and cleanup_report.get('originalBooksUnchanged') is True
+                     and cleanup_report.get('noBrokerOrdersTouched') is True
+                     and cleanup_report.get('collectorPid') == a['pid']
+                     and cleanup_report.get('sessionDate') == self.session,
+                     'POSTMORTEM_CLOSURE_REPORT_CHANGED')
                 need(proof.get('sessionDate') == self.session
                      and proof.get('collectorPid') == a['pid']
                      and proof.get('originalClosedReceiptSha256') == checksum
@@ -227,7 +235,8 @@ class RunRecovery:
                      and proof.get('productionReady') is False
                      and ready.get('temporaryWorkbook', {}).get('identityValue') ==
                          proof.get('ownedTemporaryToken')
-                     and proof.get('claimedByOneClickRecovery') is True,
+                     and proof.get('claimedByOneClickRecovery') is True
+                     and proof.get('operatorApproved') is True,
                      'POSTMORTEM_CLEANUP_NOT_VERIFIED')
             if a.get('captureFolder') is not None:
                 ready, checksum = read(path / 'collector-ready.json', 100_000)

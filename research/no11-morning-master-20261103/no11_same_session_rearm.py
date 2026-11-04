@@ -48,6 +48,16 @@ def now_jst():
     return datetime.now(JST)
 
 
+def closed_collector_proven(attempt):
+    """Exit 0 does not override a persisted source-only halt.
+
+    Only a verified CLOSED attempt is eligible. The broker/ledger source-halt
+    and complete cleanup checks run separately before any rearm.
+    """
+    return (type(attempt) is dict and attempt.get("status") == "CLOSED"
+            and type(attempt.get("exitCode")) is int)
+
+
 def rearm(*, engine_root, bootstrap_file, observation_file, launcher_store,
           run_root, manual_confirmed=False, at=None, apply=False):
     at = at or now_jst()
@@ -125,9 +135,7 @@ def rearm(*, engine_root, bootstrap_file, observation_file, launcher_store,
         # cooperative STOP. The original proof of its complete closure and a
         # persisted SOURCE-ONLY entry halt are decisive, not the exit code.
         # A healthy voluntary STOP with no source halt cannot be rearmed below.
-        need(last.get("status") == "CLOSED" and
-             type(last.get("exitCode")) is int,
-             "RECOVERY_REQUIRES_CLOSED_COLLECTOR")
+        need(closed_collector_proven(last), "RECOVERY_REQUIRES_CLOSED_COLLECTOR")
         db = run / "inference" / ("broker-execution-" + day + ".sqlite")
         need(db.is_file() and not db.is_symlink(), "BROKER_LEDGER_MISSING")
         # The same funds evidence is reused, not re-approved, guessed from

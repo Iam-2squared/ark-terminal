@@ -214,6 +214,21 @@ class ManualReconnectionTests(unittest.TestCase):
         self.assertEqual(self.review(l=x,s=r,approved=True)["state"],
                          "COLLECTOR_RESTART_REVIEW_ELIGIBLE")
 
+    def test_supported_vendor_side_aliases_are_reconciled(self):
+        x = snapshot()
+        x["brokerObservation"]["orders"][0]["side"] = "買"
+        x["snapshot"]["orders"][0]["side"] = "買"
+        x["brokerObservation"]["executions"][0]["side"] = "買"
+        x["snapshot"]["executions"][0]["side"] = "買"
+        self.assertEqual(self.review(s=x, approved=True)["state"],
+                         "COLLECTOR_RESTART_REVIEW_ELIGIBLE")
+
+    def test_reverse_broker_side_never_matches_ark_buy(self):
+        x = snapshot()
+        x["brokerObservation"]["orders"][0]["side"] = "売付"
+        x["snapshot"]["orders"][0]["side"] = "売付"
+        self.assertEqual(self.review(s=x, approved=True)["state"], "BLOCKED")
+
     def test_unverified_rss_order_function_or_date_blocks(self):
         for name, value in (("functionName", "RssCancelOrder"),
                             ("orderDate", "2026-11-04"),

@@ -81,65 +81,107 @@ Add-Type -AssemblyName System.Drawing
 [System.Windows.Forms.Application]::EnableVisualStyles()
 $form=New-Object System.Windows.Forms.Form
 $form.Text='ARK Terminal - OneClick'
-$form.ClientSize=New-Object System.Drawing.Size(680,412)
+$form.ClientSize=New-Object System.Drawing.Size(760,444)
 $form.FormBorderStyle='FixedDialog'
 $form.MaximizeBox=$false
 $form.StartPosition='CenterScreen'
-$form.BackColor=[System.Drawing.Color]::FromArgb(19,27,39)
-$form.ForeColor=[System.Drawing.Color]::White
+$form.BackColor=[System.Drawing.Color]::FromArgb(29,32,38)
+$form.ForeColor=[System.Drawing.Color]::FromArgb(236,241,246)
 $title=New-Object System.Windows.Forms.Label
-$title.Text='ARK TERMINAL | NORMAL MAX3 | STATUS FIRST'
-$title.Font=New-Object System.Drawing.Font('Segoe UI',14,[System.Drawing.FontStyle]::Bold)
+$title.Text='ARK TERMINAL   /   ONECLICK'
+$title.Font=New-Object System.Drawing.Font('Segoe UI',16,[System.Drawing.FontStyle]::Bold)
 $title.AutoSize=$true
 $title.Location=New-Object System.Drawing.Point(24,24)
 $form.Controls.Add($title)
 $status=New-Object System.Windows.Forms.Label
 $status.AutoSize=$false
-$status.Size=New-Object System.Drawing.Size(630,94)
-$status.Location=New-Object System.Drawing.Point(26,76)
-$status.Font=New-Object System.Drawing.Font('Consolas',10)
+$status.Size=New-Object System.Drawing.Size(708,108)
+$status.Location=New-Object System.Drawing.Point(26,82)
+$status.Font=New-Object System.Drawing.Font('Segoe UI',10.5,[System.Drawing.FontStyle]::Regular)
 $form.Controls.Add($status)
 $trade=New-Object System.Windows.Forms.Button
-$trade.Text='START NORMAL MAX3 TRADING'
-$trade.Size=New-Object System.Drawing.Size(628,46)
-$trade.Location=New-Object System.Drawing.Point(26,180)
+$trade.Text='START TRADING   /   NORMAL MAX3'
+$trade.Size=New-Object System.Drawing.Size(708,52)
+$trade.Location=New-Object System.Drawing.Point(26,204)
 $form.Controls.Add($trade)
 $nightly=New-Object System.Windows.Forms.Button
-$nightly.Text='AFTER-CLOSE RSS UPDATE (NO ORDERS)'
-$nightly.Size=New-Object System.Drawing.Size(310,36)
-$nightly.Location=New-Object System.Drawing.Point(26,236)
+$nightly.Text='UPDATE NEXT SESSION DATA'
+$nightly.Size=New-Object System.Drawing.Size(347,42)
+$nightly.Location=New-Object System.Drawing.Point(26,269)
 $form.Controls.Add($nightly)
 $refresh=New-Object System.Windows.Forms.Button
 $refresh.Text='REFRESH STATUS'
-$refresh.Size=New-Object System.Drawing.Size(308,36)
-$refresh.Location=New-Object System.Drawing.Point(346,236)
+$refresh.Size=New-Object System.Drawing.Size(347,42)
+$refresh.Location=New-Object System.Drawing.Point(387,269)
 $form.Controls.Add($refresh)
 $notice=New-Object System.Windows.Forms.Label
-$notice.Text='Opening this window never authorizes orders. Real trading needs explicit same-day YES.'
-$notice.Size=New-Object System.Drawing.Size(625,45)
-$notice.Location=New-Object System.Drawing.Point(26,338)
+$notice.Text='Real orders require explicit daily approval. Original broker safety checks remain active.'
+$notice.Size=New-Object System.Drawing.Size(708,40)
+$notice.Location=New-Object System.Drawing.Point(26,393)
 $form.Controls.Add($notice)
 $review=New-Object System.Windows.Forms.Button
-$review.Text='REVIEW FAILED RUN (READ ONLY)'
-$review.Size=New-Object System.Drawing.Size(310,36)
-$review.Location=New-Object System.Drawing.Point(26,283)
+$review.Text='REVIEW STOPPED SESSION'
+$review.Size=New-Object System.Drawing.Size(347,42)
+$review.Location=New-Object System.Drawing.Point(26,322)
 $form.Controls.Add($review)
 $logsButton=New-Object System.Windows.Forms.Button
-$logsButton.Text='OPEN ARK LOGS'
-$logsButton.Size=New-Object System.Drawing.Size(308,36)
-$logsButton.Location=New-Object System.Drawing.Point(346,283)
+$logsButton.Text='OPEN LOGS'
+$logsButton.Size=New-Object System.Drawing.Size(347,42)
+$logsButton.Location=New-Object System.Drawing.Point(387,322)
 $form.Controls.Add($logsButton)
+# ARK_NO11_ONECLICK_GRAPHITE_ICEBLUE_THEME_V2
+# Display-only. Never change existing order approval, collector, or broker routes.
+$title.ForeColor=[System.Drawing.Color]::FromArgb(244,247,250)
+$status.ForeColor=[System.Drawing.Color]::FromArgb(228,234,241)
+$status.BackColor=[System.Drawing.Color]::FromArgb(40,45,53)
+$status.Padding=New-Object System.Windows.Forms.Padding(14,8,12,7)
+$notice.ForeColor=[System.Drawing.Color]::FromArgb(170,182,196)
+$notice.Font=New-Object System.Drawing.Font('Segoe UI',9,[System.Drawing.FontStyle]::Regular)
+foreach($b in @($trade,$nightly,$refresh,$review,$logsButton)){
+ $b.FlatStyle=[System.Windows.Forms.FlatStyle]::Flat
+ $b.UseVisualStyleBackColor=$false
+ $b.BackColor=[System.Drawing.Color]::FromArgb(51,58,68)
+ $b.ForeColor=[System.Drawing.Color]::FromArgb(237,242,247)
+ $b.FlatAppearance.BorderSize=1
+ $b.FlatAppearance.BorderColor=[System.Drawing.Color]::FromArgb(82,97,112)
+ $b.FlatAppearance.MouseOverBackColor=[System.Drawing.Color]::FromArgb(63,73,86)
+ $b.FlatAppearance.MouseDownBackColor=[System.Drawing.Color]::FromArgb(43,53,64)
+ $b.Font=New-Object System.Drawing.Font('Segoe UI',10.5,[System.Drawing.FontStyle]::Bold)
+ $b.Cursor=[System.Windows.Forms.Cursors]::Hand
+}
+$trade.BackColor=[System.Drawing.Color]::FromArgb(43,106,132)
+$trade.FlatAppearance.BorderColor=[System.Drawing.Color]::FromArgb(90,151,176)
+$trade.FlatAppearance.MouseOverBackColor=[System.Drawing.Color]::FromArgb(54,121,146)
+function UiReason([string]$raw){
+ switch -CaseSensitive ($raw){
+  'NIGHTLY_NOT_INSTALLED' {return 'Nightly update not configured'}
+  'NIGHTLY_OPERATOR_BUTTON_AVAILABLE' {return 'Nightly update available'}
+  'ALREADY_STARTED_TODAY' {return 'Already started today'}
+  'PRELIMINARY_INPUTS_READY' {return 'Inputs found - live checks pending'}
+  'EXISTING_RUN_REQUIRES_REVIEW' {return 'Existing session requires review'}
+  'NEW_ENTRY_WINDOW_CLOSED' {return 'New entries closed (15:20)'}
+  'TODAY_HANDOFF_MISSING' {return 'Today data not ready'}
+  'HANDOFF_HASH_CHANGED' {return 'Data verification failed'}
+  'NON_TRADING_DAY' {return 'No scheduled trading'}
+  'CONFIG_UNSAFE' {return 'Configuration needs review'}
+  default {return $raw.Replace('_',' ')}
+ }
+}
 function RefreshUi{
  try{
   $s=GetStatus
-  $detail=''
+  $trading=if($s.mode -ceq 'AFTER_CLOSE'){'Closed for today'}elseif($s.canRequestTrade -eq $true){'Awaiting same-day approval'}else{'Not available'}
+  $recovery='No current recovery request'
   if($s.PSObject.Properties.Name -contains 'runHealth'){
    $rh=$s.runHealth
-   $attempt=if($rh.PSObject.Properties.Name -contains 'collectorAttempt'){$rh.collectorAttempt}else{'UNVERIFIED'}
-   $halt=if($rh.PSObject.Properties.Name -contains 'entryHalted'){$rh.entryHalted}else{'UNVERIFIED'}
-   $detail=[Environment]::NewLine+'RUN: '+$rh.state+' / COLLECTOR: '+$attempt+' / ENTRY HALT: '+$halt
+   $attempt=if($rh.PSObject.Properties.Name -contains 'collectorAttempt'){$rh.collectorAttempt}else{'Unknown'}
+   $recovery='Review required - collector: '+$attempt
+   if($rh.PSObject.Properties.Name -contains 'entryHalted' -and $rh.entryHalted -eq $true){$trading='ENTRY HALTED - review required'}
   }
-  $status.Text=('SESSION: '+$s.sessionDate+[Environment]::NewLine+'STATUS: '+$s.mode+' / '+$s.reason+$detail+[Environment]::NewLine+'Preliminary only: Excel/RSS verified by native launcher')
+  $status.Text=('SESSION     '+$s.sessionDate+[Environment]::NewLine+
+                'TRADING     '+$trading+[Environment]::NewLine+
+                'DATA        '+(UiReason ([string]$s.reason))+[Environment]::NewLine+
+                'RECOVERY    '+$recovery)
   $trade.Enabled=($s.canRequestTrade -eq $true)
   $nightly.Enabled=($s.canRunNightly -eq $true)
   $review.Enabled=($s.PSObject.Properties.Name -contains 'runHealth' -and $s.runHealth.state -ne 'NO_RUN_POINTER')

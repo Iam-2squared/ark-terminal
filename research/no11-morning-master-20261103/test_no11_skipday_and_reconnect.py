@@ -114,7 +114,11 @@ def snapshot(*, positions=None, orders=None, executions=None, ids=None):
     executions = executions if executions is not None else [{
         "symbol": "7203", "account": "一般", "side": "買付", "quantity": 100
     }]
-    ids = ids if ids is not None else [{"rssOrderId": 77, "orderNumber": "123"}]
+    ids = ids if ids is not None else [{
+        "rssOrderId": 77, "orderNumber": "123",
+        "functionName": "RssStockOrder", "orderDate": SESSION,
+        "orderTime": "09:10:00",
+    }]
     ext = {
         "schemaId": "ARK_NO11_BROKER_OBSERVATION_V1",
         "status": "OBSERVED", "completeTables": True, "sameSnapshotVerified": True,
@@ -167,6 +171,62 @@ class ManualReconnectionTests(unittest.TestCase):
         self.assertFalse(b["newBuyAuthorized"])
         self.assertFalse(b["orderResendAllowed"])
         self.assertFalse(b["haltMarkerCleared"])
+
+    def test_original_vendor_status_semantics_and_partial_fill(self):
+        from pathlib import Path
+        import sys
+        engine = str(HERE.parent / "no12-prebuy-causal-runtime-20261011" / "tools")
+        if engine not in sys.path:
+            sys.path.insert(0, engine)
+        from no11_broker_fill_attribution import order_phase as original
+        samples = [
+            ("約定", 100, "FILLED"),
+            ("出来有", 20, "PARTIAL"),
+            ("執行待ち", 0, "ACKNOWLEDGED"),
+            ("執行待ち", 20, "PARTIAL"),
+            ("執行中", 20, "PARTIAL"),
+            ("訂正済", 20, "PARTIAL"),
+            ("取消済（出来有）", 20, "CANCELLED"),
+            ("取消済(出来無)", 0, "CANCELLED"),
+            ("出来ず（出来無）", 0, "EXPIRED"),
+            ("取消中（出来無）", 0, "CANCEL_PENDING"),
+        ]
+        for raw, filled, wanted in samples:
+            row = {"status": raw, "quantity": 100.0,
+                   "filledQty": float(filled)}
+            self.assertEqual(recovery.broker_order_phase(row), wanted)
+            normalized = dict(row, quantity=100, filledQty=filled)
+            self.assertEqual(recovery.broker_order_phase(row),
+                             original(normalized))
+
+    def test_partial_fill_uses_order_phase_not_raw_word(self):
+        x = ledger()
+        x["orders"]["entry-order"]["phase"] = "PARTIAL"
+        x["orders"]["entry-order"]["cumulativeQuantity"] = 20
+        x["positions"]["entry"]["quantity"] = 20
+        r = snapshot()
+        r["brokerObservation"]["orders"][0].update(status="執行中", filledQty=20)
+        r["snapshot"]["orders"][0].update(status="執行中", filledQty=20)
+        r["brokerObservation"]["executions"][0]["quantity"] = 20
+        r["snapshot"]["executions"][0]["quantity"] = 20
+        r["brokerObservation"]["positions"][0]["quantity"] = 20
+        r["snapshot"]["positions"][0]["quantity"] = 20
+        self.assertEqual(self.review(l=x,s=r,approved=True)["state"],
+                         "COLLECTOR_RESTART_REVIEW_ELIGIBLE")
+
+    def test_unverified_rss_order_function_or_date_blocks(self):
+        for name, value in (("functionName", "RssCancelOrder"),
+                            ("orderDate", "2026-11-04"),
+                            ("orderTime", "INVALID")):
+            x = snapshot()
+            x["brokerObservation"]["idRows"][0][name] = value
+            self.assertEqual(self.review(s=x, approved=True)["state"], "BLOCKED")
+
+    def test_invalid_five_digit_symbol_never_truncated(self):
+        x = snapshot()
+        x["brokerObservation"]["orders"][0]["symbol"] = "72030"
+        x["snapshot"]["orders"][0]["symbol"] = "72030"
+        self.assertEqual(self.review(s=x, approved=True)["state"], "BLOCKED")
 
     def test_broker_position_quantity_mismatch(self):
         x = snapshot(positions=[{"symbol": "7203", "account": "一般",

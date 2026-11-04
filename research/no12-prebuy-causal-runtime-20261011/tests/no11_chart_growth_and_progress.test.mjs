@@ -15,6 +15,7 @@ test('growing chart read retains the initial RSS formula, causal bar filter, and
  assert.ok(s.includes('$z -lt $growing.rowLimit'));
  assert.ok(s.includes('$limit=$initialBars+390+2'));
  assert.ok(s.includes("throw 'NO11_C50_GROWING_CHART_OVERFLOW'"));
+ assert.ok(s.includes("if(C50Stopped){throw 'NO11_C50_STOPPED_DURING_CHART_RETRY'}"));
  assert.ok(s.includes('if($start.AddMinutes(1) -gt $chartSeen){continue}'));
  assert.ok(s.includes("throw 'NO11_C50_ACTUAL_CHART_CAP_EXCEEDED'"));
  assert.ok(!s.includes("$series=$item.sheet.Range(('A3:J{0}' -f ($HistoryBars+2))).Value2"));
@@ -55,6 +56,10 @@ $names=@('DateToken','ReadGrowingChart')
 $fns=@($ast.FindAll({param($n)$n -is [Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -in $names},$false))
 if($fns.Count -ne 2){throw 'GROWING_HELPER_MISSING'}
 foreach($f in $fns){. ([scriptblock]::Create($f.Extent.Text))}
+# The isolated mock extracts only DateToken/ReadGrowingChart. Real sessions
+# provide C50Stopped from the full collector; this mock is NEVER signalled
+# to stop. Keep testing the actual bounded read and overflow logic.
+function C50Stopped{return $false}
 foreach($initial in @(50,120,150)){
  $limit=$initial+392
  $data=[array]::CreateInstance([object],[int[]]@(($limit+1),10),[int[]]@(1,1))

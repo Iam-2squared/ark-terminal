@@ -63,6 +63,15 @@ def symbol(v):
     return v.split(".")[0]
 
 
+def broker_side(value):
+    # The original attribution engine accepts these four physical RSS labels.
+    # Never accept a mismatched BUY/SELL side by comparing translated strings.
+    values = {"買付": "BUY", "買": "BUY", "売付": "SELL", "売": "SELL",
+              "BUY": "BUY", "SELL": "SELL"}
+    need(type(value) is str and value in values, "ORDER_SIDE")
+    return values[value]
+
+
 def date_jst(v):
     need(type(v) is str, "BROKER_CLOCK")
     dt = datetime.fromisoformat(v)
@@ -170,13 +179,14 @@ def assess(ledger, fresh, session: str, *, manual_confirmed=False, now=None):
             seen_numbers.add(number)
             need(number in broker_by_number, "BROKER_ORDER_MISSING")
             observed = broker_by_number[number]
-            side = "買付" if o.get("side") == "BUY" else "売付"
+            need(o.get("side") in {"BUY", "SELL"}, "LEDGER_SIDE")
+            side = o["side"]
             sym = symbol(o.get("symbol"))
             ark_symbols.add(sym)
-            need(o.get("side") in ("BUY", "SELL") and
-                 symbol(observed.get("symbol")) == sym and
+            need(symbol(observed.get("symbol")) == sym and
                  observed.get("account") == o.get("account") and
-                 observed.get("side") == side and observed.get("trade") == "現物" and
+                 broker_side(observed.get("side")) == side and
+                 observed.get("trade") == "現物" and
                  num(observed.get("quantity")) == o.get("quantity") and
                  num(observed.get("filledQty")) == o.get("cumulativeQuantity") and
                  broker_order_phase(observed) == phase,
@@ -201,7 +211,8 @@ def assess(ledger, fresh, session: str, *, manual_confirmed=False, now=None):
         sums = {}
         for row in ext["executions"]:
             need(type(row) is dict, "EXECUTION_SHAPE")
-            key = (symbol(row.get("symbol")), row.get("account"), row.get("side"))
+            key = (symbol(row.get("symbol")), row.get("account"),
+                   broker_side(row.get("side")))
             sums[key] = sums.get(key, 0) + num(row.get("quantity"))
         for k, q in execution_need.items():
             need(sums.get(k) == q, "EXECUTION_QUANTITY_MISMATCH")

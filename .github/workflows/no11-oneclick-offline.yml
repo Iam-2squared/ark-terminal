@@ -52,6 +52,5 @@ jobs:
           if($LASTEXITCODE -ne 0){throw 'INSTALLER_SELFTEST'}
           & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $root 'Review-No11RecoveryReadOnly.ps1') -OfflineSelfTest
           if($LASTEXITCODE -ne 0){throw 'RECOVERY_REVIEW_SELFTEST'}
-          $tokens=$null;$errors=$null
-          & python -B -c 'import ast,sys;ast.parse(open(sys.argv[1],encoding="utf-8-sig").read())' (Join-Path $root 'no11_same_day_reconcile.py')
+          & python -B -m py_compile (Join-Path $root 'no11_same_day_reconcile.py')
           if($LASTEXITCODE -ne 0){throw 'RECOVERY_PYTHON_PARSE'}

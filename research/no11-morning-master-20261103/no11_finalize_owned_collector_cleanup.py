@@ -90,50 +90,58 @@ def finalize(*, config, run_path, observation_path, engine, now=None, approved=F
          observed.utcoffset() == timedelta(hours=9) and
          0 <= (now - observed).total_seconds() <= 120,
          "CLOSURE_REPORT_NOT_FRESH")
-    post = attempt_dir / "collector-postmortem-cleanup.json"
-    archive = attempt_dir / "attempt.before-postmortem.json"
-    need(not post.exists() and not archive.exists(), "RECOVERY_ALREADY_USED")
-    # The immutable original bytes are retained before writing any new state.
-    old = (attempt_dir / "attempt.json").read_bytes()
-    with archive.open("xb") as f:
-        f.write(old)
-        f.flush()
-        os.fsync(f.fileno())
-    need(archive.read_bytes() == old, "BACKUP_NOT_EXACT")
-    proof = {
-        "schemaId": r.POSTMORTEM,
-        "sessionDate": session,
-        "collectorPid": a["pid"],
-        "originalClosedReceiptSha256": closed_sha,
-        "originalReadyReceiptSha256": ready_sha,
-        "ownedTemporaryToken": expected["identityValue"],
-        "ownedUnsavedWorkbookClosed": True,
-        "originalBooksUnchanged": True,
-        "claimedByOneClickRecovery": True,
-        "operatorApproved": True,
-        "closureReportSha256": hashlib.sha256(cleanup.read_bytes()).hexdigest(),
-        "productionReady": False,
-        "orderTransmission": False,
-    }
-    # Original receipt NEVER rewritten; this is a new, independently sealed
-    # attestation using the same recovery schema hash.
-    with post.open("xb") as f:
-        f.write(r.encoded(r.sealed(proof)) + b"\n")
-        f.flush()
-        os.fsync(f.fileno())
-    item = r.Attempt(attempt_dir, session)
-    item._write({"CONNECTED"}, status="CLOSED", exitCode=2, closedSha256=closed_sha)
-    need(manager.history(run) is not None, "POSTMORTEM_REPLAY_FAILED")
-    return {
-        "schemaId": r.POSTMORTEM,
-        "status": "OWNED_C50_CLEANUP_PROVEN",
-        "sessionDate": session,
-        "entryHaltStillActive": True,
-        "ledgerModified": False,
-        "brokerOrdersModified": False,
-        "historicalReceiptModified": False,
-        "orderTransmission": False,
-    }
+    # Serialize postmortem proof with the original controller's service lock.
+    # Prevent racing another same-run launch while the old attempt is patched.
+    sys.path.insert(0, str(Path(engine).resolve() / "tools"))
+    try:
+        import no11_received_pipeline_service as service
+    finally:
+        sys.path.pop(0)
+    with service.exclusive_service(root):
+        post = attempt_dir / "collector-postmortem-cleanup.json"
+        archive = attempt_dir / "attempt.before-postmortem.json"
+        need(not post.exists() and not archive.exists(), "RECOVERY_ALREADY_USED")
+        # The immutable original bytes are retained before writing any new state.
+        old = (attempt_dir / "attempt.json").read_bytes()
+        with archive.open("xb") as f:
+            f.write(old)
+            f.flush()
+            os.fsync(f.fileno())
+        need(archive.read_bytes() == old, "BACKUP_NOT_EXACT")
+        proof = {
+            "schemaId": r.POSTMORTEM,
+            "sessionDate": session,
+            "collectorPid": a["pid"],
+            "originalClosedReceiptSha256": closed_sha,
+            "originalReadyReceiptSha256": ready_sha,
+            "ownedTemporaryToken": expected["identityValue"],
+            "ownedUnsavedWorkbookClosed": True,
+            "originalBooksUnchanged": True,
+            "claimedByOneClickRecovery": True,
+            "operatorApproved": True,
+            "closureReportSha256": hashlib.sha256(cleanup.read_bytes()).hexdigest(),
+            "productionReady": False,
+            "orderTransmission": False,
+        }
+        # Original receipt NEVER rewritten; this is a new, independently sealed
+        # attestation using the same recovery schema hash.
+        with post.open("xb") as f:
+            f.write(r.encoded(r.sealed(proof)) + b"\n")
+            f.flush()
+            os.fsync(f.fileno())
+        item = r.Attempt(attempt_dir, session)
+        item._write({"CONNECTED"}, status="CLOSED", exitCode=2, closedSha256=closed_sha)
+        need(manager.history(run) is not None, "POSTMORTEM_REPLAY_FAILED")
+        return {
+            "schemaId": r.POSTMORTEM,
+            "status": "OWNED_C50_CLEANUP_PROVEN",
+            "sessionDate": session,
+            "entryHaltStillActive": True,
+            "ledgerModified": False,
+            "brokerOrdersModified": False,
+            "historicalReceiptModified": False,
+            "orderTransmission": False,
+        }
 
 
 def main(argv=None):

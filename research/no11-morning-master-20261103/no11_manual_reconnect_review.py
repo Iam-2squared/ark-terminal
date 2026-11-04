@@ -19,13 +19,30 @@ from urllib.parse import quote
 JST = timezone(timedelta(hours=9))
 SHA = re.compile(r"[a-f0-9]{64}\Z")
 DAY = re.compile(r"20\d\d-\d\d-\d\d\Z")
-PHASES = {
-    "ACKNOWLEDGED": {"執行待ち", "執行中", "受付", "待機中"},
-    "PARTIAL": {"出来有", "取消中（出来有）"},
-    "FILLED": {"約定"},
-    "CANCELLED": {"取消済（出来無）", "取消済（出来有）"},
-    "EXPIRED": {"出来ず（出来無）", "出来ず（出来有）"},
-}
+# Mirror the original no11_broker_fill_attribution.order_phase semantics.
+# Ledger phases are NOT simply the vendor raw status words. In particular,
+# 執行待ち/執行中/訂正済 with a partial fill is PARTIAL, not ACKNOWLEDGED.
+def broker_order_phase(row):
+    q, filled = num(row.get("quantity")), num(row.get("filledQty"))
+    need(q > 0 and filled <= q, "ORDER_QUANTITY_OR_FILL")
+    raw = row.get("status")
+    need(type(raw) is str and bool(raw), "ORDER_STATUS")
+    raw = raw.replace("(", "（").replace(")", "）")
+    if raw == "約定":
+        need(filled == q, "FALSE_FULL_FILL")
+        return "FILLED"
+    for prefix, phase in (("取消済", "CANCELLED"), ("出来ず", "EXPIRED"),
+                          ("取消中", "CANCEL_PENDING")):
+        if raw in (prefix + "（出来有）", prefix + "（出来無）"):
+            need(0 < filled < q if raw.endswith("（出来有）") else filled == 0,
+                 "FALSE_PARTIAL_FILL")
+            return phase
+    if raw == "出来有":
+        need(0 < filled < q, "FALSE_PARTIAL_FILL")
+        return "PARTIAL"
+    if raw in ("執行待ち", "執行中", "訂正済"):
+        return "PARTIAL" if filled else "ACKNOWLEDGED"
+    return "UNKNOWN"
 
 
 def need(ok: bool, reason: str):
@@ -40,10 +57,10 @@ def num(v):
 
 
 def symbol(v):
-    need(type(v) is str and re.fullmatch(r"(?:[0-9A-Z]{4}|[0-9A-Z]{5})(?:\.T)?", v) is not None,
+    # Original No11 symbols are exactly four digits/letters, never truncate.
+    need(type(v) is str and re.fullmatch(r"[0-9A-Z]{4}(?:\.T)?", v) is not None,
          "BROKER_SYMBOL")
-    s = v.split(".")[0]
-    return s[:-1] if len(s) == 5 and s.endswith("0") else s
+    return v.split(".")[0]
 
 
 def date_jst(v):
@@ -144,7 +161,9 @@ def assess(ledger, fresh, session: str, *, manual_confirmed=False, now=None):
                 need(o.get("brokerOrderNumber") is None and
                      o.get("cumulativeQuantity") == 0, "LOCAL_WITHDRAW_CONFLICT")
                 continue
-            need(phase in PHASES, "ORDER_PHASE_UNSETTLED")
+            need(phase in {"ACKNOWLEDGED", "PARTIAL", "FILLED",
+                           "CANCELLED", "EXPIRED", "CANCEL_PENDING"},
+                 "ORDER_PHASE_UNSETTLED")
             number = o.get("brokerOrderNumber")
             need(type(number) is str and re.fullmatch(r"[1-9]\d{0,31}", number) and
                  number not in seen_numbers, "LEDGER_ORDER_NOT_BOUND")
@@ -160,10 +179,16 @@ def assess(ledger, fresh, session: str, *, manual_confirmed=False, now=None):
                  observed.get("side") == side and observed.get("trade") == "現物" and
                  num(observed.get("quantity")) == o.get("quantity") and
                  num(observed.get("filledQty")) == o.get("cumulativeQuantity") and
-                 observed.get("status") in PHASES[phase],
+                 broker_order_phase(observed) == phase,
                  "ORDER_NOT_MATCHED")
             rss = rss_by_id.get(o.get("rssOrderId"))
-            need(rss is not None and rss.get("orderNumber") == number,
+            need(rss is not None and rss.get("orderNumber") == number and
+                 rss.get("functionName") in {"RssStockOrder", "RssStockOrder_V",
+                                            "RssStockOrder_v"} and
+                 rss.get("orderDate") == session and
+                 type(rss.get("orderTime")) is str and
+                 re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d",
+                              rss["orderTime"]) is not None,
                  "RSS_ID_TO_ORDER_UNVERIFIED")
             if o["cumulativeQuantity"] > 0:
                 k = (sym, o.get("account"), side)

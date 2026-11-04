@@ -121,9 +121,13 @@ def rearm(*, engine_root, bootstrap_file, observation_file, launcher_store,
         attempts = sorted(run.glob("attempt-*"))
         need(attempts, "COLLECTOR_ATTEMPT_MISSING")
         last = recovery.unseal(attempts[-1] / "attempt.json", recovery.ATTEMPT)
+        # A source-halted collector may close with exit code 0 after
+        # cooperative STOP. The original proof of its complete closure and a
+        # persisted SOURCE-ONLY entry halt are decisive, not the exit code.
+        # A healthy voluntary STOP with no source halt cannot be rearmed below.
         need(last.get("status") == "CLOSED" and
-             type(last.get("exitCode")) is int and last["exitCode"] != 0,
-             "RECOVERY_REQUIRES_FAILED_CLOSED_COLLECTOR")
+             type(last.get("exitCode")) is int,
+             "RECOVERY_REQUIRES_CLOSED_COLLECTOR")
         db = run / "inference" / ("broker-execution-" + day + ".sqlite")
         need(db.is_file() and not db.is_symlink(), "BROKER_LEDGER_MISSING")
         # The same funds evidence is reused, not re-approved, guessed from

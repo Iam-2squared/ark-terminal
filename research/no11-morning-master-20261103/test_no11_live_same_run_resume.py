@@ -134,7 +134,8 @@ class LiveResumeSourceContracts(unittest.TestCase):
         cls.controller = (ENGINE / "tools" / "no11_received_session_controller.py").read_text(encoding="utf-8-sig")
 
     def test_original_live_resume_preserved(self):
-        self.assertIn("'-ResumeRun'", self.orig.replace('"', "'") if '"-ResumeRun"' in self.orig else self.orig)
+        self.assertIn("[string]$ResumeRun=''", self.orig)
+        self.assertIn("'--resume-run'", self.orig)
         self.assertIn("--resume-run", self.controller)
         self.assertIn("recovery.restore(run_root)", self.controller)
         self.assertIn("self.history(run)", (RECOVERY_FILE).read_text())

@@ -80,17 +80,31 @@ function ReadGrowingChart([object]$sheet,[int]$initialBars){
  # Keep the formula unchanged and one RssChart function per symbol.
  if($initialBars -lt 50 -or $initialBars -gt 150){throw 'NO11_C50_INITIAL_ROWS_INVALID'}
  $limit=$initialBars+390+2
- $range=$sheet.Range(('A3:J{0}' -f ($limit+3)))
- try{$values=$range.Value2}
- finally{
-  if([Runtime.InteropServices.Marshal]::IsComObject($range)){
-   [void][Runtime.InteropServices.Marshal]::ReleaseComObject($range)
+ # ARK_NO11_C50_BOUNDED_GROWING_SHAPE_RETRY_V1
+ # Exact same fixed rectangle; never resize or infer a missing chart.
+ # A transient Excel/RSS recalculation may return a non-matrix value.
+ $values=$null;$shapeOK=$false
+ for($attempt=1;$attempt -le 3;$attempt++){
+  $range=$sheet.Range(('A3:J{0}' -f ($limit+3)))
+  try{$values=$range.Value2}
+  finally{
+   if([Runtime.InteropServices.Marshal]::IsComObject($range)){
+    [void][Runtime.InteropServices.Marshal]::ReleaseComObject($range)
+   }
   }
+  $rank=if($values -is [array]){$values.Rank}else{0}
+  $rows=if($rank -ge 1){$values.GetLength(0)}else{0}
+  $cols=if($rank -eq 2){$values.GetLength(1)}else{0}
+  if($rank -eq 2 -and $rows -eq ($limit+1) -and $cols -eq 10){
+   $shapeOK=$true
+   if($attempt -gt 1){Write-Host ('NO11_C50_CHART_SHAPE_RECOVERED=TRUE|ATTEMPTS={0}' -f $attempt)}
+   break
+  }
+  # Counts only: never print private cell contents or account data.
+  Write-Host ('NO11_C50_CHART_SHAPE_RETRY={0}|RANK={1}|ROWS={2}|COLS={3}' -f $attempt,$rank,$rows,$cols)
+  if($attempt -lt 3){Start-Sleep -Milliseconds 250}
  }
- if($values -isnot [array] -or $values.Rank -ne 2 -or
-    $values.GetLength(0) -ne ($limit+1) -or $values.GetLength(1) -ne 10){
-  throw 'NO11_C50_GROWING_CHART_SHAPE'
- }
+ if(-not $shapeOK){throw 'NO11_C50_GROWING_CHART_SHAPE'}
  # One extra fence row detects overflow instead of silently truncating it.
  $row=$values.GetLowerBound(0)+$limit;$col=$values.GetLowerBound(1)
  if($null -ne (DateToken $values.GetValue($row,$col+3))){
@@ -302,6 +316,31 @@ if($OfflineSelfTest){
  if($descriptor.identityCell -cne 'G1' -or $descriptor.identityValue -cne $token){throw 'NO11_C50_TEMPORARY_IDENTITY_SELFTEST_FAILED'}
  MustReject {TemporaryDescriptor 'Book1' $base @('Q01','ARK_NO11_CUMULATIVE') $token} 'NO11_C50_TEMPORARY_IDENTITY_INVALID'
  MustReject {TemporaryDescriptor 'Book1' '' @('Q01','ARK_NO11_CUMULATIVE') 'WRONG'} 'NO11_C50_TEMPORARY_IDENTITY_INVALID'
+ # The read-only chart reader must recover from exactly one malformed bulk read
+ # and reject three malformed bulk reads; never use partial or resized data.
+ function MockGrowingSheet($first,$later){
+  $mock=[pscustomobject]@{Reads=0;First=$first;Later=$later}
+  $mock|Add-Member -MemberType ScriptMethod -Name Range -Value {
+   param($address)
+   if($address -cne 'A3:J515'){throw 'NO11_C50_MOCK_RANGE_INVALID'}
+   $this.Reads++
+   $v=if($this.Reads -eq 1){$this.First}else{$this.Later}
+   return [pscustomobject]@{Value2=$v}
+  }
+  return $mock
+ }
+ $shapeBad=[array]::CreateInstance([object],[int[]]@(512,10),[int[]]@(1,1))
+ $shapeGood=[array]::CreateInstance([object],[int[]]@(513,10),[int[]]@(1,1))
+ $recover=MockGrowingSheet $shapeBad $shapeGood
+ $read=ReadGrowingChart $recover 120
+ if($recover.Reads -ne 2 -or $read.rowLimit -ne 512 -or
+    $read.values.GetLength(0) -ne 513 -or $read.values.GetLength(1) -ne 10){
+  throw 'NO11_C50_GROWING_SHAPE_RECOVERY_SELFTEST_FAILED'
+ }
+ $persistent=MockGrowingSheet $shapeBad $shapeBad
+ MustReject {ReadGrowingChart $persistent 120} 'NO11_C50_GROWING_CHART_SHAPE'
+ if($persistent.Reads -ne 3){throw 'NO11_C50_GROWING_SHAPE_BOUNDED_SELFTEST_FAILED'}
+ Write-Host 'NO11_C50_GROWING_SHAPE_RETRY_SELFTEST=PASS'
  Write-Host 'NO11_C50_CONTINUOUS_OFFLINE_SELFTEST=PASS'
  Write-Host 'NO11_C50_SUPPLEMENTAL_BOOK_SELFTEST=PASS'
  Write-Host 'NO11_C50_TEMPORARY_IDENTITY_SELFTEST=PASS'

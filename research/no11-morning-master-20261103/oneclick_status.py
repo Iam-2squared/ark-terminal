@@ -141,6 +141,11 @@ def inspect(settings_file, binding_file, *, at=None):
             return result
     pinned, why = validated_handoff(binding, day)
     if not pinned:
+        # If nightly is installed, a missing/altered dated pointer is a hard
+        # block. Do not fall back to an older seed handoff.
+        if why != "NIGHTLY_NOT_INSTALLED":
+            result["reason"] = why
+            return result
         # Legacy same-day direct handoff: never silently redate old inputs.
         hand = binding.get("handoff")
         if not isinstance(hand, str):

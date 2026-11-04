@@ -47,6 +47,27 @@ class NightlyBookTests(unittest.TestCase):
         self.assertNotIn(b'RssStockOrder(',new)
         self.assertEqual(c.transform_launcher(new),new)
 
+    def test_weekly_carry_supports_missing_optional_throughput_argument(self):
+        weekly=(ENGINE/'windows/Prepare-No11WeeklyAfterCloseReadOnly.ps1').read_bytes()
+        optional=b" if($RefreshAutoMaxThroughput){$rargs+=@('-AutoMaxThroughput')}"
+        self.assertEqual(weekly.count(optional),1)
+        customized=weekly.replace(optional,b'')
+        result=c.transform_first_week_carry(customized)
+        self.assertIn(c.CARRY_MARKER.encode(),result)
+        self.assertNotIn(optional,result)
+        self.assertEqual(result.count(b" if($carryFridayRun){$rargs+=@('-CarryFridayRun',$carryFridayRun)}"),1)
+        self.assertIn(b" if($WeekendFridayLimited){$rargs+=@('-FirstBuyFridayLimited')}",result)
+        self.assertEqual(c.transform_first_week_carry(result),result)
+
+    def test_weekly_carry_rejects_missing_both_argument_anchors(self):
+        weekly=(ENGINE/'windows/Prepare-No11WeeklyAfterCloseReadOnly.ps1').read_bytes()
+        missing_optional=weekly.replace(
+            b" if($RefreshAutoMaxThroughput){$rargs+=@('-AutoMaxThroughput')}",b'')
+        missing_both=missing_optional.replace(
+            b" if($WeekendFridayLimited){$rargs+=@('-FirstBuyFridayLimited')}",b'')
+        with self.assertRaisesRegex(ValueError,'CARRY_ORCHESTRATOR_RARGS_CHANGED'):
+            c.transform_first_week_carry(missing_both)
+
     @unittest.skipUnless(os.name=='nt','Windows PowerShell parser')
     def test_patched_powershell_syntax(self):
         for name in c.SCRIPTS:

@@ -49,8 +49,10 @@ function Blob([byte[]]$raw) {
  finally{$sha.Dispose()}
 }
 $pins=[ordered]@{
- 'oneclick_status.py'='1c8a2639aa0f6d8a833287bc5103a1f4dbaf97c5'
- 'Start-No11OneClick.ps1'='54834f055156f15a561902328209210920177802'
+ 'oneclick_status.py'='1f5611336abc8d68731a44243fa67a6c6a4ebf9f'
+ 'Start-No11OneClick.ps1'='6d1f91d2470e96df28a181f5ebd89b0151fabf67'
+ 'Review-No11RecoveryReadOnly.ps1'='e0ba60daa329a4c301ac0db62ab980d55096feec'
+ 'no11_same_day_reconcile.py'='e26e0cdf8d6af186cc1d1ec40aca75f02e71589f'
 }
 $source=@{}
 foreach($name in $pins.Keys){
@@ -87,11 +89,22 @@ $tokens=$null;$errors=$null
 Need ($errors.Count -eq 0) 'POWERSHELL_PARSE'
 & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $candidate -OfflineSelfTest | Out-Null
 Need ($LASTEXITCODE -eq 0) 'POWERSHELL_SELFTEST'
+$reviewCandidate=Join-Path $backup 'Review.candidate.ps1'
+[IO.File]::WriteAllBytes($reviewCandidate,$source['Review-No11RecoveryReadOnly.ps1'])
+$tokens=$null;$errors=$null
+[void][Management.Automation.Language.Parser]::ParseFile($reviewCandidate,[ref]$tokens,[ref]$errors)
+Need ($errors.Count -eq 0) 'REVIEW_POWERSHELL_PARSE'
+& powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $reviewCandidate -OfflineSelfTest | Out-Null
+Need ($LASTEXITCODE -eq 0) 'REVIEW_POWERSHELL_SELFTEST'
 $pythonSyntax='import ast,sys; ast.parse(open(sys.argv[1],encoding="utf-8-sig").read())'
 $pythonCandidate=Join-Path $backup 'oneclick-status.candidate.py'
 [IO.File]::WriteAllBytes($pythonCandidate,$source['oneclick_status.py'])
 & $python -B -c $pythonSyntax $pythonCandidate
 Need ($LASTEXITCODE -eq 0) 'PYTHON_SYNTAX'
+$reconcileCandidate=Join-Path $backup 'reconcile.candidate.py'
+[IO.File]::WriteAllBytes($reconcileCandidate,$source['no11_same_day_reconcile.py'])
+& $python -B -c $pythonSyntax $reconcileCandidate
+Need ($LASTEXITCODE -eq 0) 'RECOVERY_PYTHON_SYNTAX'
 if($EnableNightlyTask){
  Need ($binding.PSObject.Properties.Name -contains 'dailyCycleTool' -and
        (Test-Path -LiteralPath ([string]$binding.dailyCycleTool) -PathType Leaf) -and

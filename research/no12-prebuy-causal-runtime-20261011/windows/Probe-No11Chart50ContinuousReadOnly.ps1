@@ -84,12 +84,19 @@ function ReadGrowingChart([object]$sheet,[int]$initialBars){
  # Exact same fixed rectangle; never resize or infer a missing chart.
  # A transient Excel/RSS recalculation may return a non-matrix value.
  $values=$null;$shapeOK=$false
- for($attempt=1;$attempt -le 3;$attempt++){
-  $range=$sheet.Range(('A3:J{0}' -f ($limit+3)))
-  try{$values=$range.Value2}
-  finally{
-   if([Runtime.InteropServices.Marshal]::IsComObject($range)){
-    [void][Runtime.InteropServices.Marshal]::ReleaseComObject($range)
+ for($attempt=1;$attempt -le 12;$attempt++){
+  if(C50Stopped){throw 'NO11_C50_STOPPED_DURING_CHART_RETRY'}
+  $range=$null;$values=$null
+  try{
+   $range=$sheet.Range(('A3:J{0}' -f ($limit+3)))
+   $values=$range.Value2
+  }catch [Runtime.InteropServices.COMException]{
+   # Only rejected/busy Excel RPC calls are eligible for another read.
+   if($_.Exception.HResult -notin @(-2147418111,-2147417846)){throw}
+   Write-Host ('NO11_C50_CHART_RPC_RETRY={0}|HRESULT={1}' -f $attempt,($_.Exception.HResult.ToString('X8')))
+  }finally{
+   if($null -ne $range -and [Runtime.InteropServices.Marshal]::IsComObject($range)){
+    try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($range)}catch{}
    }
   }
   $rank=if($values -is [array]){$values.Rank}else{0}
@@ -100,9 +107,8 @@ function ReadGrowingChart([object]$sheet,[int]$initialBars){
    if($attempt -gt 1){Write-Host ('NO11_C50_CHART_SHAPE_RECOVERED=TRUE|ATTEMPTS={0}' -f $attempt)}
    break
   }
-  # Counts only: never print private cell contents or account data.
   Write-Host ('NO11_C50_CHART_SHAPE_RETRY={0}|RANK={1}|ROWS={2}|COLS={3}' -f $attempt,$rank,$rows,$cols)
-  if($attempt -lt 3){Start-Sleep -Milliseconds 250}
+  if($attempt -lt 12){Start-Sleep -Milliseconds 450}
  }
  if(-not $shapeOK){throw 'NO11_C50_GROWING_CHART_SHAPE'}
  # One extra fence row detects overflow instead of silently truncating it.
@@ -348,7 +354,7 @@ if($OfflineSelfTest){
  }
  $persistent=MockGrowingSheet $shapeBad $shapeBad
  MustReject {ReadGrowingChart $persistent 120} 'NO11_C50_GROWING_CHART_SHAPE'
- if($persistent.Reads -ne 3){throw 'NO11_C50_GROWING_SHAPE_BOUNDED_SELFTEST_FAILED'}
+ if($persistent.Reads -ne 12){throw 'NO11_C50_GROWING_SHAPE_BOUNDED_SELFTEST_FAILED'}
  Write-Host 'NO11_C50_GROWING_SHAPE_RETRY_SELFTEST=PASS'
  Write-Host 'NO11_C50_CONTINUOUS_OFFLINE_SELFTEST=PASS'
  Write-Host 'NO11_C50_SUPPLEMENTAL_BOOK_SELFTEST=PASS'

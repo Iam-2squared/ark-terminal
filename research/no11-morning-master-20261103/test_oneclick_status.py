@@ -62,6 +62,26 @@ class OneClickOffline(unittest.TestCase):
         self.assertFalse(self.state()["canRequestTrade"])
         self.assertEqual(self.state()["reason"], "ALREADY_STARTED_TODAY")
 
+    def test_failed_run_surfaces_coarse_recovery_health_not_order_details(self):
+        run = self.private / ("session-" + DAY + "-" + "a" * 32)
+        attempt = run / "attempt-0001"
+        write(self.private / ("received-session-" + DAY + ".active.json"),
+              {"runRoot": str(run)})
+        write(attempt / "attempt.json", {"status": "CONNECTED"})
+        write(attempt / "collector-ready.json.closed.json", {"collectorFailed": True})
+        write(run / "inference" / "broker-execution-latest-report.json",
+              {"entryPipelineHalted": True,
+               "entryHaltReasons": ["NO11_BOOTSTRAP_COLLECTOR_FAILED"],
+               "ledger": {"orders": {}, "commands": {}, "positions": {}}})
+        write(self.store / ("TRADE-" + DAY + ".launch.json"),
+              {"kind": "TRADE", "asOfDate": DAY})
+        result = self.state()
+        self.assertFalse(result["canRequestTrade"])
+        self.assertTrue(result["runHealth"]["entryHalted"])
+        self.assertEqual(result["runHealth"]["collectorAttempt"], "CONNECTED")
+        self.assertEqual(result["runHealth"]["orderCount"], 0)
+        self.assertEqual(result["runHealth"]["positionCount"], 0)
+
     def test_existing_run_blocked_even_without_trade_marker(self):
         write(self.private / ("received-session-" + DAY + ".active.json"), {"x": 1})
         self.assertEqual(self.state()["reason"], "EXISTING_RUN_REQUIRES_REVIEW")

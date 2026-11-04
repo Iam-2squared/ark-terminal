@@ -186,12 +186,19 @@ function OriginalBooks([array]$Books,[string]$idPath){
  $extra=-not [string]::IsNullOrWhiteSpace($idPath)
  if(-not $extra -and $Books.Count -ne 2){throw 'NO11_C50_TWO_ORIGINAL_WORKBOOKS_REQUIRED'}
  if($extra -and $Books.Count -ne 3){throw 'NO11_C50_THREE_DECLARED_WORKBOOKS_REQUIRED'}
- $accounts=@($Books | Where-Object {$_.Name -ceq 'Ark_No11_MSII_RSS.xlsx'})
- $markets=@($Books | Where-Object {$_.Name -ceq 'Ark_No11_MARKET_RSS.xlsx'})
- if($accounts.Count -ne 1 -or $markets.Count -ne 1){throw 'NO11_C50_WORKBOOK_IDENTITY_INVALID'}
+ # ARK_NO11_C50_BOOK_MATCH_DIAGNOSTICS_V1
+ # Counts only; no account data or private paths.
+ $accounts=@($Books | Where-Object {[string]$_.Name -ceq 'Ark_No11_MSII_RSS.xlsx'})
+ $markets=@($Books | Where-Object {[string]$_.Name -ceq 'Ark_No11_MARKET_RSS.xlsx'})
+ if($accounts.Count -ne 1 -or $markets.Count -ne 1){
+  Write-Host ('NO11_C50_WORKBOOK_MATCH=NAME_MISMATCH|TOTAL={0}|ACCOUNT={1}|MARKET={2}' -f $Books.Count,$accounts.Count,$markets.Count)
+  throw 'NO11_C50_WORKBOOK_IDENTITY_INVALID'
+ }
  $a=$accounts[0];$m=$markets[0]
- if($a.Worksheets.Item('ARK_ACCOUNT_READONLY').Name -cne 'ARK_ACCOUNT_READONLY' -or
-    $m.Worksheets.Item('ARK_MARKET_READONLY').Name -cne 'ARK_MARKET_READONLY'){
+ $accountSheet=[string]$a.Worksheets.Item('ARK_ACCOUNT_READONLY').Name
+ $marketSheet=[string]$m.Worksheets.Item('ARK_MARKET_READONLY').Name
+ if($accountSheet -cne 'ARK_ACCOUNT_READONLY' -or $marketSheet -cne 'ARK_MARKET_READONLY'){
+  Write-Host ('NO11_C50_WORKBOOK_MATCH=SHEET_MISMATCH|ACCOUNT={0}|MARKET={1}' -f ($accountSheet -ceq 'ARK_ACCOUNT_READONLY'),($marketSheet -ceq 'ARK_MARKET_READONLY'))
   throw 'NO11_C50_WORKBOOK_IDENTITY_INVALID'
  }
  if($extra){
@@ -480,7 +487,27 @@ public static class No11C50Attach {
   $script:wsWindows[0],[uint32]4294967280,[ref]$iid,[ref]$obj)
  if($hr -ne 0 -or $null -eq $obj){throw 'NO11_C50_COM_ATTACH_FAILED'}
  $excel=$obj.Application
- $originalBooks=OriginalBooks @($excel.Workbooks) $OrderIdWorkbookPath
+ # ARK_NO11_C50_BOUNDED_ATTACH_RETRY_V1
+ # Same Excel instance, fresh inventory each attempt. No identity bypass.
+ $originalBooks=$null
+ for($attachTry=1;$attachTry -le 12;$attachTry++){
+  if(C50Stopped){throw 'NO11_C50_STOPPED_DURING_ATTACH_RETRY'}
+  try{
+   $originalBooks=OriginalBooks @($excel.Workbooks) $OrderIdWorkbookPath
+   if($attachTry -gt 1){Write-Host ('NO11_C50_ATTACH_RECOVERED=TRUE|ATTEMPTS={0}' -f $attachTry)}
+   break
+  }catch{
+   $reason=[string]$_.Exception.Message
+   $retryable=$reason -cin @('NO11_C50_WORKBOOK_IDENTITY_INVALID','NO11_BROKER_RSS_STATUS')
+   if($_.Exception -is [Runtime.InteropServices.COMException]){
+    $retryable=$_.Exception.HResult -in @(-2147418111,-2147417846)
+    if($retryable){$reason='EXCEL_RPC_BUSY'}
+   }
+   if(-not $retryable -or $attachTry -ge 12){throw}
+   Write-Host ('NO11_C50_ATTACH_RETRY={0}|REASON={1}' -f $attachTry,$reason)
+   Start-Sleep -Milliseconds 450
+  }
+ }
  $stage='CAPACITY'
  # Keep the original conservative market/chart capacity checks.
  $capacity=OriginalCapacity $originalBooks $OrderIdWorkbookPath

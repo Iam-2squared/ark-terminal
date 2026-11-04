@@ -81,7 +81,7 @@ Add-Type -AssemblyName System.Drawing
 [System.Windows.Forms.Application]::EnableVisualStyles()
 $form=New-Object System.Windows.Forms.Form
 $form.Text='ARK Terminal - OneClick'
-$form.ClientSize=New-Object System.Drawing.Size(680,360)
+$form.ClientSize=New-Object System.Drawing.Size(680,412)
 $form.FormBorderStyle='FixedDialog'
 $form.MaximizeBox=$false
 $form.StartPosition='CenterScreen'
@@ -117,8 +117,18 @@ $form.Controls.Add($refresh)
 $notice=New-Object System.Windows.Forms.Label
 $notice.Text='Opening this window never authorizes orders. Real trading needs explicit same-day YES.'
 $notice.Size=New-Object System.Drawing.Size(625,45)
-$notice.Location=New-Object System.Drawing.Point(26,288)
+$notice.Location=New-Object System.Drawing.Point(26,338)
 $form.Controls.Add($notice)
+$review=New-Object System.Windows.Forms.Button
+$review.Text='REVIEW FAILED RUN (READ ONLY)'
+$review.Size=New-Object System.Drawing.Size(310,36)
+$review.Location=New-Object System.Drawing.Point(26,283)
+$form.Controls.Add($review)
+$logsButton=New-Object System.Windows.Forms.Button
+$logsButton.Text='OPEN ARK LOGS'
+$logsButton.Size=New-Object System.Drawing.Size(308,36)
+$logsButton.Location=New-Object System.Drawing.Point(346,283)
+$form.Controls.Add($logsButton)
 function RefreshUi{
  try{
   $s=GetStatus
@@ -132,10 +142,12 @@ function RefreshUi{
   $status.Text=('SESSION: '+$s.sessionDate+[Environment]::NewLine+'STATUS: '+$s.mode+' / '+$s.reason+$detail+[Environment]::NewLine+'Preliminary only: Excel/RSS verified by native launcher')
   $trade.Enabled=($s.canRequestTrade -eq $true)
   $nightly.Enabled=($s.canRunNightly -eq $true)
+  $review.Enabled=($s.PSObject.Properties.Name -contains 'runHealth' -and $s.runHealth.state -ne 'NO_RUN_POINTER')
  }catch{
   $status.Text='STATUS: SOURCE_OR_RUNTIME_UNVERIFIED -- Trade is blocked'
   $trade.Enabled=$false
   $nightly.Enabled=$false
+  $review.Enabled=$false
  }
 }
 $refresh.Add_Click({RefreshUi})
@@ -166,5 +178,28 @@ $nightly.Add_Click({
   $status.Text='AFTER-CLOSE REQUEST FAILED; inspect logs'
  }
 })
+$review.Add_Click({
+ try{
+  $s=GetStatus
+  if($s.PSObject.Properties.Name -notcontains 'runHealth'){RefreshUi;return}
+  $tool=Join-Path $PSScriptRoot 'Review-No11RecoveryReadOnly.ps1'
+  Need (Test-Path -LiteralPath $tool -PathType Leaf) 'REVIEW_HELPER_MISSING'
+  $args=@('-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',(Quote $tool))
+  $out=LogFiles 'Review'
+  $proc=Start-Process -FilePath 'powershell.exe' -ArgumentList ($args -join ' ') -WorkingDirectory $PSScriptRoot -RedirectStandardOutput $out[0] -RedirectStandardError $out[1] -PassThru -WindowStyle Hidden
+  $status.Text='READ-ONLY RECOVERY REVIEW PID='+$proc.Id+'; open logs for results'
+ }catch{
+  $status.Text='RECOVERY REVIEW NOT STARTED; no trading controls changed'
+ }
+})
+$logsButton.Add_Click({
+ $folder=Join-Path $store 'oneclick-logs'
+ if(Test-Path -LiteralPath $folder -PathType Container){Start-Process -FilePath 'explorer.exe' -ArgumentList ('"'+$folder+'"')}
+})
+$timer=New-Object System.Windows.Forms.Timer
+$timer.Interval=15000
+$timer.Add_Tick({RefreshUi})
+$form.Add_Shown({$timer.Start()})
+$form.Add_FormClosed({$timer.Stop()})
 RefreshUi
 [void]$form.ShowDialog()

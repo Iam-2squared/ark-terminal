@@ -72,14 +72,24 @@ def observation_ok(fresh, session: str, now: datetime):
          "BROKER_SOURCE_NOT_FRESH")
     account = fresh.get("snapshot")
     need(type(account) is dict, "ACCOUNT_MISSING")
-    for key in ("orders", "executions", "positions"):
+    comparable = {
+        "orders": ("orderNumber", "status", "symbol", "account", "side", "trade",
+                   "executionCondition", "quantity", "filledQty"),
+        "executions": ("executionDate", "symbol", "account", "side", "trade",
+                       "market", "quantity", "price"),
+        "positions": ("symbol", "account", "quantity"),
+    }
+    for key, fields in comparable.items():
         need(type(account.get(key)) is list and type(ext.get(key)) is list,
              "BROKER_TABLE_SHAPE")
-        # This is additionally verified by the original Excel double-read
-        # collector. An exact parsed representation is required again here.
-        def normalize(items):
-            return json.dumps(items, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
-        need(normalize(account[key]) == normalize(ext[key]), "BROKER_SNAPSHOT_CHANGED")
+        # The vendor reader already double-read and compared the two distinct
+        # sheet layouts. Compare its canonical subset, never unrelated columns.
+        def compact(items):
+            need(all(type(x) is dict for x in items), "BROKER_ROW_SHAPE")
+            return sorted(json.dumps({k: v.get(k) for k in fields},
+                                     sort_keys=True, ensure_ascii=False,
+                                     separators=(",", ":")) for v in items)
+        need(compact(account[key]) == compact(ext[key]), "BROKER_SNAPSHOT_CHANGED")
     return ext
 
 

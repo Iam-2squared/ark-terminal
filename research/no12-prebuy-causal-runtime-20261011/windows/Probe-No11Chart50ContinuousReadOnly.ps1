@@ -582,8 +582,17 @@ public static class No11C50Attach {
  Write-Host 'ORDER_TRANSMISSION=False'
 }finally{
  if($null -ne $book){
-  try{$book.Close($false);$temporaryClosed=$true}
-  catch{$failed=$true;$temporaryClosed=$false}
+  if($failed){
+   # ARK_NO11_C50_PRESERVE_UNSAVED_ON_FAILURE_V1
+   # Preserve the temporary chart workbook for forensic inspection.
+   # Closed acknowledgement stays false so controller recovery remains fail-closed.
+   $temporaryClosed=$false
+   Write-Host 'NO11_C50_TEMP_WORKBOOK_PRESERVATION_REQUESTED=True'
+  }else{
+   # Normal completion or intentional STOP retains the original cleanup.
+   try{$book.Close($false);$temporaryClosed=$true}
+   catch{$failed=$true;$temporaryClosed=$false}
+  }
  }
  foreach($item in $sheets){
   try{[void][Runtime.InteropServices.Marshal]::ReleaseComObject($item.sheet)}catch{}

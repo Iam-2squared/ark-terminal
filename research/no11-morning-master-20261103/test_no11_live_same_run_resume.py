@@ -169,6 +169,27 @@ class PostmortemOriginalReceiptTests(unittest.TestCase):
             self.manager.history(self.run)
 
 
+class ClosedCollectorResumptionTests(unittest.TestCase):
+    def test_clean_exit_can_be_source_halted_and_closed(self):
+        import sys
+        local = str(HERE)
+        if local not in sys.path:
+            sys.path.insert(0, local)
+        import no11_same_session_rearm as rearm
+        self.assertTrue(rearm.closed_collector_proven(
+            {"status": "CLOSED", "exitCode": 0}))
+        self.assertTrue(rearm.closed_collector_proven(
+            {"status": "CLOSED", "exitCode": 2}))
+        self.assertFalse(rearm.closed_collector_proven(
+            {"status": "CONNECTED", "exitCode": 2}))
+        self.assertFalse(rearm.closed_collector_proven(
+            {"status": "CLOSED", "exitCode": None}))
+        # The actual rearm still checks broker orders, source-only halt
+        # reasons, original Trade marker and every collector closure receipt.
+        self.assertIn("NOT_SOURCE_ONLY_HALT",
+                      (HERE / "no11_same_session_rearm.py").read_text())
+
+
 class LiveResumeSourceContracts(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -227,6 +248,11 @@ class LiveResumeSourceContracts(unittest.TestCase):
         self.assertIn("-ResumeRun", p)
         self.assertIn("-IApproveFullArkLiveOrdersForThisSession", p)
         self.assertIn("NO11_ONECLICK_SAME_RUN_RESUME=REQUESTED", p)
+        self.assertIn("NO11_ONECLICK_RESUME_ALREADY_IN_PROGRESS", p)
+        self.assertIn("RESUME_ALREADY_REQUESTED_FOR_ATTEMPT", p)
+        self.assertIn("RESUME-'+$day+'-'+$attempts[-1].Name+", p)
+        self.assertIn("$applyResult=@(& $python -B -X utf8 $rearmTool @arguments --apply)", p)
+        self.assertNotIn("$preflight=@(& $python", p)
         self.assertNotIn("'-Mode','Trade'", p)
         self.assertNotIn("TRADE-\"+$day+", p)
         self.assertNotIn("RssStockOrder", p)

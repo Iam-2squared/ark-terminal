@@ -133,7 +133,10 @@ try{
    [IO.File]::WriteAllBytes($watch,$watchBytes)
    $watchInstalled=$true
   }
-  [IO.File]::Replace($candidate,$target,$null)
+  # .NET Framework on Windows PowerShell 5.1 requires a valid backup path.
+  # Never pass $null as File.Replace's third argument.
+  $replaceBackup=Join-Path $backup 'Start-No11OneClick.replace-original.ps1'
+  [IO.File]::Replace($candidate,$target,$replaceBackup)
   $uiInstalled=$true
   $resultHash=(Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash
   $expectedHash=[BitConverter]::ToString(([Security.Cryptography.SHA256]::Create()).ComputeHash($result)).Replace('-','')

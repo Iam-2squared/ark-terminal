@@ -109,7 +109,7 @@ $controller=Join-Path $engine 'tools\no11_received_session_controller.py'
 Need ((Test-Path -LiteralPath $runtime -PathType Leaf) -and
       (Test-Path -LiteralPath $controller -PathType Leaf)) 'RECOVERY_ENGINE_MISSING'
 AssertStopped
-$headRef='f5562e3fd58f9ebf6487ab11a4a31ab36a09d5ad'
+$headRef='952acdc81e4cda4ab4657043f0c59aa83772eb1e'
 $baseRef='fb41945877229393b944ac3ce171c9571eaf4134'
 $repo='Iam-2squared/ark-terminal'
 $prefix='research/no11-morning-master-20261103/'

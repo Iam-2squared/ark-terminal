@@ -113,9 +113,12 @@ $applyResult=@(& $python -B -X utf8 $rearmTool @arguments --apply)
 Need ($LASTEXITCODE -eq 0 -and $applyResult.Count -eq 1) 'REARM_NOT_COMMITTED'
 $applied=$applyResult[0]|ConvertFrom-Json
 Need ($applied.schemaId -ceq 'ARK_NO11_SAME_RUN_SOURCE_REARM_V1' -and
-      $applied.status -ceq 'SOURCE_HALT_REARMED_FOR_NATIVE_RESUME' -and
+      $applied.status -in @('SOURCE_HALT_REARMED_FOR_NATIVE_RESUME','EXIT_ONLY_NATIVE_RESUME_READY') -and
       $applied.orderResent -eq $false -and
-      $applied.entryHaltClearedAfterReconciliation -eq $true) 'REARM_RESULT_INVALID'
+      (($applied.status -ceq 'EXIT_ONLY_NATIVE_RESUME_READY' -and
+        $applied.entryHaltPreserved -eq $true -and $applied.exitOnlyContinuation -eq $true) -or
+       ($applied.status -ceq 'SOURCE_HALT_REARMED_FOR_NATIVE_RESUME' -and
+        $applied.entryHaltClearedAfterReconciliation -eq $true))) 'REARM_RESULT_INVALID'
 $launchMarker=Join-Path $store ('RESUME-'+$day+'-'+$id+'.launch.json')
 $body=[ordered]@{
  schemaId='ARK_NO11_SAME_RUN_NATIVE_RESUME_LAUNCH_V1'
@@ -144,6 +147,7 @@ $err=Join-Path $logDir ('Resume-'+$day+'-'+$id+'.err')
 $process=Start-Process -FilePath 'powershell.exe' -ArgumentList ($arguments -join ' ') -WorkingDirectory (Split-Path $native -Parent) -RedirectStandardOutput $log -RedirectStandardError $err -WindowStyle Hidden -PassThru
 Need ($null -ne $process -and $process.Id -gt 0) 'NATIVE_RESUME_NOT_STARTED'
 Write-Host 'NO11_ONECLICK_SAME_RUN_RESUME=REQUESTED'
+Write-Host ('CONTINUATION_MODE='+$(if($applied.exitOnlyContinuation -eq $true){'EXIT_ONLY_BUY_HALT_PRESERVED'}else{'ORIGINAL_ENTRY_AND_EXIT_SAFETY_GATES'}))
 Write-Host ('NATIVE_RESUME_PID='+$process.Id)
 Write-Host ('NATIVE_RESUME_LOG='+$log)
 Write-Host 'SAME_PREVIOUS_LEDGER_AND_ORDER_IDS=True'

@@ -65,6 +65,7 @@ def rearm(*, engine_root, bootstrap_file, observation_file, launcher_store,
         svc = importlib.import_module("no11_received_pipeline_service")
         led = importlib.import_module("no11_broker_execution_ledger")
         funds = importlib.import_module("no11_securities_cash_only")
+        controller = importlib.import_module("no11_received_session_controller")
     finally:
         sys.path.pop(0)
     # Private source and active run identity are verified against the ORIGINAL
@@ -113,6 +114,8 @@ def rearm(*, engine_root, bootstrap_file, observation_file, launcher_store,
         # RunRecovery.restore checks signed run input, previous snapshots and
         # *all* owned collector cleanup receipts including postmortem proof.
         manager.restore(run)
+        need(controller.marked_cleanup_proven(root, run, day, manager),
+             "UNRESOLVED_COLLECTOR_CLEANUP_MARKER")
         # Prevent a false clean restore after a FAILED process with a preserved
         # unsaved workbook, which would otherwise exceed RSS chart capacity.
         attempts = sorted(run.glob("attempt-*"))

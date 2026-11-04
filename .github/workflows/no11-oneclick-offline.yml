@@ -1,0 +1,50 @@
+name: No11 OneClick offline checks
+on:
+  pull_request:
+    paths:
+      - "research/no11-morning-master-20261103/oneclick_*"
+      - "research/no11-morning-master-20261103/Start-No11OneClick.ps1"
+      - "research/no11-morning-master-20261103/Install-No11OneClick.ps1"
+      - ".github/workflows/no11-oneclick-offline.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python-contract:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: OneClick status contract (synthetic local files only)
+        shell: bash
+        run: |
+          python -m unittest discover -s research/no11-morning-master-20261103 -p test_oneclick_status.py -v
+
+  windows-powershell:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: PowerShell 5.1 syntax for add-on and its installer
+        shell: powershell
+        run: |
+          $root='research/no11-morning-master-20261103'
+          foreach ($name in @('Start-No11OneClick.ps1','Install-No11OneClick.ps1')) {
+            $tokens=$null;$errors=$null
+            [void][Management.Automation.Language.Parser]::ParseFile((Join-Path $root $name),[ref]$tokens,[ref]$errors)
+            if($errors.Count -gt 0){throw ('PARSE_FAILED_'+$name)}
+          }
+      - name: Offline OneClick selftests - no Excel or orders
+        shell: powershell
+        run: |
+          $root='research/no11-morning-master-20261103'
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $root 'Start-No11OneClick.ps1') -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'ONECLICK_SELFTEST'}
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $root 'Install-No11OneClick.ps1') -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'INSTALLER_SELFTEST'}

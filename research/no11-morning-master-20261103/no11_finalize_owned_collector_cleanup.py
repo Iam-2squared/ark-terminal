@@ -82,7 +82,7 @@ def finalize(*, config, run_path, observation_path, engine, now=None, approved=F
          report.get("ownedUnsavedWorkbookClosed") is True and
          report.get("originalBooksUnchanged") is True and
          report.get("collectorProcessNotRunning") is True and
-         report.get("readOnlyBrokerInspection") is True and
+         report.get("noBrokerOrdersTouched") is True and
          report.get("orderTransmission") is False,
          "INDEPENDENT_CLOSURE_REPORT")
     observed = datetime.fromisoformat(report["verifiedAtJst"])

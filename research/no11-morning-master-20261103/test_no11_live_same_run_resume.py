@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+import sys
 
 HERE = Path(__file__).resolve().parent
 ENGINE = HERE.parent / "no12-prebuy-causal-runtime-20261011"
@@ -96,6 +97,34 @@ class PostmortemOriginalReceiptTests(unittest.TestCase):
         self.assertEqual(self.manager.history(self.run), [])
         old = json.loads((self.attempt / "collector-ready.json.closed.json").read_text())
         self.assertIs(old["temporaryWorkbookClosed"], False)
+
+    def test_existing_recovery_marker_accepted_only_by_matching_proof(self):
+        self.cleanup_proof()
+        tools = str(ENGINE / "tools")
+        if tools not in sys.path:
+            sys.path.insert(0, tools)
+        import no11_received_session_controller as controller
+        marker = self.root / "bootstrap-recovery-required.json"
+        marker.write_text(json.dumps({
+            "schemaId": "ARK_NO11_BOOTSTRAP_RECOVERY_REQUIRED_V1",
+            "reason": "COLLECTOR_CLEANUP_NOT_CONFIRMED",
+            "processId": 991,
+            "originalExcelMustNotBeKilled": True,
+            "orderTransmission": False,
+        }), encoding="utf-8")
+        self.assertTrue(controller.marked_cleanup_proven(
+            self.root, self.run, self.day, self.manager))
+        self.assertTrue(marker.exists())  # Failure marker is never deleted.
+        record = json.loads(marker.read_text())
+        record["processId"] = 992
+        marker.write_text(json.dumps(record), encoding="utf-8")
+        self.assertFalse(controller.marked_cleanup_proven(
+            self.root, self.run, self.day, self.manager))
+        record["processId"] = 991
+        record["reason"] = "COLLECTOR_STOP_TIMEOUT"
+        marker.write_text(json.dumps(record), encoding="utf-8")
+        self.assertFalse(controller.marked_cleanup_proven(
+            self.root, self.run, self.day, self.manager))
 
     def test_wrong_token_blocks(self):
         self.cleanup_proof(ownedTemporaryToken="ARK_NO11_C50_TEMP_" + "f" * 32)

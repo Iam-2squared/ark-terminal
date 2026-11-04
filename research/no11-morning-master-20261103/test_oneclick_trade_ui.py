@@ -33,7 +33,7 @@ class OneClickUi2AutoOpenTests(unittest.TestCase):
         self.assertIn("Watch-No11OneClickTradeUi.ps1", subset)
         self.assertIn("return $p.Id", subset)
         self.assertIn("if($answer -ne [System.Windows.Forms.DialogResult]::Yes){return}", self.one)
-        self.assertIn("$trade.Enabled=($s.canRequestTrade -eq $true)", self.one)
+        self.assertIn("$trade.Enabled=(($s.canRequestTrade -eq $true) -or $preopen) -and (-not $reserved)", self.one)
 
     def test_watcher_cannot_launch_trade_or_override_halt(self):
         self.assertIn("NO11_UNIFIED_TRADE_LAUNCHED_PID=", self.watch)

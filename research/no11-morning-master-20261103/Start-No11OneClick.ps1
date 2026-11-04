@@ -305,11 +305,13 @@ $review.Add_Click({
    if($answer -eq [System.Windows.Forms.DialogResult]::Cancel){return}
    $resuming=($answer -eq [System.Windows.Forms.DialogResult]::Yes)
   }
-  $tool=Join-Path $PSScriptRoot (if($resuming){'Resume-No11SameSession.ps1'}else{'Review-No11RecoveryReadOnly.ps1'})
+  $chosenTool=if($resuming){'Resume-No11SameSession.ps1'}else{'Review-No11RecoveryReadOnly.ps1'}
+  $tool=Join-Path $PSScriptRoot $chosenTool
   Need (Test-Path -LiteralPath $tool -PathType Leaf) 'REVIEW_HELPER_MISSING'
   $args=@('-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',(Quote $tool))
   if($resuming){$args+=@('-Apply','-IConfirmSameDayBrokerOrdersAndPositions')}
-  $out=LogFiles (if($resuming){'Recovery'}else{'Review'})
+  $taskType=if($resuming){'Recovery'}else{'Review'}
+  $out=LogFiles $taskType
   $proc=Start-Process -FilePath 'powershell.exe' -ArgumentList ($args -join ' ') -WorkingDirectory $PSScriptRoot -RedirectStandardOutput $out[0] -RedirectStandardError $out[1] -PassThru -WindowStyle Hidden
   $status.Text=if($resuming){'RECOVERY REQUEST PID='+$proc.Id+'; see Recovery log for confirmed result (NOT a broker ACK)'}else{'READ-ONLY RECOVERY REVIEW PID='+$proc.Id+'; open logs for results'}
  }catch{

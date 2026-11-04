@@ -144,10 +144,14 @@ def rearm(*, engine_root, bootstrap_file, observation_file, launcher_store,
                  and evaluation.get("newBuyAuthorized") is False
                  and evaluation.get("orderResendAllowed") is False,
                  "BROKER_AND_LEDGER_NOT_RECONCILED")
-            need(not state.get("firstSellFillBuyHalt"), "FIRST_SELL_HALT_MUST_PERSIST")
+            # An earlier SELL fill permanently halts additional BUY, but
+            # must NOT prevent resumed management of other held EXITs.
+            exit_only = state.get("firstSellFillBuyHalt") is True
             need(not (book.source_checkpoint("broker.unresolved") or {}),
                  "BROKER_UNRESOLVED")
-            need(set(state.get("blockers", [])) <= IGNORABLE_BUY_BLOCKERS,
+            accepted = (IGNORABLE_BUY_BLOCKERS | {"AFTER_FIRST_SELL_FILL"}
+                        if exit_only else IGNORABLE_BUY_BLOCKERS)
+            need(set(state.get("blockers", [])) <= accepted,
                  "LEDGER_ORDER_OR_FUNDS_BLOCKERS")
             reasons = book.source_checkpoint("controller.entryHalt")
             need(type(reasons) is list and bool(reasons) and
@@ -171,23 +175,32 @@ def rearm(*, engine_root, bootstrap_file, observation_file, launcher_store,
                 "matchedOrders": evaluation["matchedOrders"],
                 "matchedArkPositions": evaluation["matchedArkPositions"],
                 "manualConfirmed": True, "rearmedAtJst": now_string,
+                "exitOnlyContinuation": exit_only,
                 "noOrderResend": True, "originalLedgerPreserved": True,
                 "orderTransmission": False,
             }
             result.update(status="READ_ONLY_ELIGIBLE", matchedOrders=evaluation["matchedOrders"],
                           matchedArkPositions=evaluation["matchedArkPositions"],
-                          resumeRun=str(run), previousHaltReasons=sorted(reasons))
+                          resumeRun=str(run), previousHaltReasons=sorted(reasons),
+                          exitOnlyContinuation=exit_only)
             if not apply:
                 return result
-            # No order transport is called here. Only a durable recovery proof
-            # and CAS transition of the explicit source-only entry halt.
+            # No order transport is called here. Preserve BUY halt after an
+            # earlier SELL fill and restart the original EXIT-only consumer.
             book.checkpoint_source("controller.sameRunRearm." + str(index), proof, now_string)
-            book.checkpoint_source("controller.entryHalt", [], now_string,
-                                   expected_sha256=halt_pin)
-            need(book.source_checkpoint("controller.entryHalt") == [], "HALT_TRANSITION_FAILED")
-            result["status"] = "SOURCE_HALT_REARMED_FOR_NATIVE_RESUME"
+            if exit_only:
+                need(book.source_checkpoint("controller.entryHalt") == reasons,
+                     "EXIT_ONLY_HALT_CHANGED")
+                result["status"] = "EXIT_ONLY_NATIVE_RESUME_READY"
+                result["entryHaltPreserved"] = True
+            else:
+                book.checkpoint_source("controller.entryHalt", [], now_string,
+                                       expected_sha256=halt_pin)
+                need(book.source_checkpoint("controller.entryHalt") == [],
+                     "HALT_TRANSITION_FAILED")
+                result["status"] = "SOURCE_HALT_REARMED_FOR_NATIVE_RESUME"
+                result["entryHaltClearedAfterReconciliation"] = True
             result["rearmIndex"] = index
-            result["entryHaltClearedAfterReconciliation"] = True
             result["originalLedgerPreserved"] = True
             return result
         finally:

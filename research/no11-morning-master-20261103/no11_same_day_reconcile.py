@@ -46,7 +46,10 @@ def load(path):
 
 def do_reconcile(args):
     need(args.session == jst_now().date().isoformat(), "NOT_TODAY")
-    need(jst_now().strftime("%H:%M") < "15:20", "ENTRY_CUTOFF")
+    # Read-only after-close inspection remains available; only modifying
+    # reconciliation is restricted to the native same-day entry window.
+    if args.apply:
+        need(jst_now().strftime("%H:%M") < "15:20", "ENTRY_CUTOFF")
     config_raw, _ = load(args.bootstrap)
     config = bootstrap.validate_config(config_raw, allow_explicit_live=True)
     need(config["sessionDate"] == args.session, "CONFIG_DATE")

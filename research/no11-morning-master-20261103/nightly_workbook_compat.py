@@ -110,9 +110,15 @@ def transform_first_week_carry(raw):
         return raw
     source=" Write-Host ('NO11_WEEKLY_NIGHTLY_POOL_SOURCE='+$WeeklyRun)"
     rargs=" if($RefreshAutoMaxThroughput){$rargs+=@('-AutoMaxThroughput')}"
+    # The user engine may already have a locally modified throughput path.
+    # Select a second uniquely-pinned argument anchor instead of requiring the
+    # optional throughput flag. Never reintroduce or override the missing flag.
+    fallback=" if($WeekendFridayLimited){$rargs+=@('-FirstBuyFridayLimited')}"
+    rargs_anchor=rargs if text.count(rargs)==1 else fallback
+    need(text.count(rargs_anchor)==1,'CARRY_ORCHESTRATOR_RARGS_CHANGED')
     plan=" if($WeekendFridayLimited){$planArgs+=@('--first-buy-friday-limited','true')}"
     report=" if($WeekendFridayLimited){$reportArgs+=@('--first-buy-friday-limited','true')}"
-    for anchor in (source,rargs,plan,report):
+    for anchor in (source,rargs_anchor,plan,report):
         need(text.count(anchor)==1,'CARRY_ORCHESTRATOR_ANCHOR_CHANGED')
     injected=r"""
  # ARK_NO11_FIRST_WEEK_429_VERIFIED_FRIDAY_CARRY_V1
@@ -140,7 +146,7 @@ def transform_first_week_carry(raw):
  }
 """
     text=text.replace(source,source+"\n"+injected,1)
-    text=text.replace(rargs,rargs+"\n if($carryFridayRun){$rargs+=@('-CarryFridayRun',$carryFridayRun)}",1)
+    text=text.replace(rargs_anchor,rargs_anchor+"\n if($carryFridayRun){$rargs+=@('-CarryFridayRun',$carryFridayRun)}",1)
     text=text.replace(plan,plan+"\n if($carryFridayRun){$planArgs+=@('--carry-friday-run',$carryFridayRun)}",1)
     text=text.replace(report,report+"\n if($carryFridayRun){$reportArgs+=@('--carry-friday-run',$carryFridayRun)}",1)
     return bom+text.replace('\n',line).encode('utf-8')

@@ -24,7 +24,7 @@ PINS={
     'scope_morning_master.py':'7006f673850401d0f3a076f2bf01ba1b25040c48',
     'launcher_automatic_bridge_v4.py':'224766266bfe953bc6dfa1abda28230fae6ff69f',
     'Run-No11NightlyCycle.ps1':'9ca459c9f58238975fe4fe4d1e03664484458a6a',
-    'nightly_workbook_compat.py':'c4cd08fcc9cb691469446684761ec657e2cdca96',
+    'nightly_workbook_compat.py':'2a91aafdfd41bae90ae553d7ce4e4c17dd76ecea',
 }
 OLD = "$weekly=Join-Path $PSScriptRoot 'Prepare-No11WeeklyAfterCloseReadOnly.ps1'"
 NEW = "$weekly=Join-Path $PSScriptRoot 'Run-No11NightlyCycle.ps1'"
@@ -280,7 +280,7 @@ if __name__=="__main__":
     try:main()
     except Exception as e:
         code=str(e)
-        if not re.fullmatch(r'NO11_DAILY_CYCLE_INSTALL_[A-Z0-9_]+',code):
+        if not re.fullmatch(r'NO11_(?:DAILY_CYCLE_INSTALL|NIGHTLY_BOOK)_[A-Z0-9_]+',code):
             code='NO11_DAILY_CYCLE_INSTALL_UNVERIFIED_LOCAL_CHANGE'
         print('NO11_DAILY_WEEKLY_LAUNCHER_INSTALL=BLOCKED|'+code,file=sys.stderr)
         print('ORDER_TRANSMISSION=False',file=sys.stderr)

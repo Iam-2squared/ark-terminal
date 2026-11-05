@@ -180,6 +180,15 @@ def weekly_info(hand, chart, mask, previous):
     weekly,_=data(weekly_path, max_size=4_000_000)
     refresh,_=data(refresh_path, max_size=4_000_000)
     source = refresh.get("weeklySource")
+    # These immutable JSON plans are authored by JavaScript via
+    # SHA256(JSON.stringify(body)) and a planId field. Recheck the actual
+    # digest, not merely the recorded cross-link between two mutable files.
+    for plan in (weekly, refresh):
+        planid=plan.get("planId")
+        require(type(planid) is str and SHA.fullmatch(planid), "PLAN_ID_FORMAT")
+        body={k:v for k,v in plan.items() if k!="planId"}
+        require(sha(json.dumps(body,separators=(",",":"),ensure_ascii=False).encode())==planid,
+                "PLAN_HASH_MISMATCH")
     require(type(source) is dict and
             weekly.get("schemaId") in (WEEKLY_RSS_SCHEMA, WEEKLY_YAHOO_SCHEMA)
             and type(weekly.get("planId")) is str and SHA.fullmatch(weekly["planId"])

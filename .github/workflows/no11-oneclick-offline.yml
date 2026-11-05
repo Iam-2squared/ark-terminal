@@ -8,6 +8,8 @@ on:
       - "research/no11-morning-master-20261103/launcher_automatic_bridge_v4.py"
       - "research/no11-morning-master-20261103/test_automatic_price_exclusions.py"
       - "research/no11-morning-master-20261103/Recover-No11FilteredMorning.ps1"
+      - "research/no11-morning-master-20261103/Repair-No11MorningRetrySeedDate.ps1"
+      - "research/no11-morning-master-20261103/test_no11_retry_gate_repair_windows.ps1"
       - "research/no11-morning-master-20261103/Apply-No11PriceExclusionRecovery.ps1"
       - "research/no11-morning-master-20261103/test_no11_filter_install_windows.ps1"
       - "research/no11-morning-master-20261103/Start-No11PreopenStandby.ps1"
@@ -66,11 +68,16 @@ jobs:
         shell: powershell
         run: |
           $root='research/no11-morning-master-20261103'
-          foreach ($name in @('Start-No11OneClick.ps1','Recover-No11FilteredMorning.ps1','Apply-No11PriceExclusionRecovery.ps1','Start-No11PreopenStandby.ps1','Apply-No11PreopenStandby.ps1','Watch-No11OneClickTradeUi.ps1','Apply-No11OneClickUi2AutoOpen.ps1','Install-No11OneClick.ps1','Bootstrap-No11OneClick.ps1','Bootstrap-No11NightlyCycleFix.ps1','Repair-No11Oct26HistoricalCodePin.ps1','Repair-No11Oct26CrlfCodePin.ps1','Update-No11OneClickTheme.ps1','Review-No11RecoveryReadOnly.ps1')) {
+          foreach ($name in @('Start-No11OneClick.ps1','Recover-No11FilteredMorning.ps1','Repair-No11MorningRetrySeedDate.ps1','Apply-No11PriceExclusionRecovery.ps1','Start-No11PreopenStandby.ps1','Apply-No11PreopenStandby.ps1','Watch-No11OneClickTradeUi.ps1','Apply-No11OneClickUi2AutoOpen.ps1','Install-No11OneClick.ps1','Bootstrap-No11OneClick.ps1','Bootstrap-No11NightlyCycleFix.ps1','Repair-No11Oct26HistoricalCodePin.ps1','Repair-No11Oct26CrlfCodePin.ps1','Update-No11OneClickTheme.ps1','Review-No11RecoveryReadOnly.ps1')) {
             $tokens=$null;$errors=$null
             [void][Management.Automation.Language.Parser]::ParseFile((Join-Path $root $name),[ref]$tokens,[ref]$errors)
             if($errors.Count -gt 0){throw ('PARSE_FAILED_'+$name)}
           }
+      - name: Actually repair stale seed date on isolated WHITE OneClick (no real Excel)
+        shell: powershell
+        run: |
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/test_no11_retry_gate_repair_windows.ps1
+          if($LASTEXITCODE -ne 0){throw 'RETRY_GATE_MOCK_INSTALL_FAILED'}
       - name: Actually install 39-symbol fix on isolated WHITE OneClick (no real Excel)
         shell: powershell
         run: |
@@ -84,6 +91,8 @@ jobs:
           if($LASTEXITCODE -ne 0){throw 'ONECLICK_SELFTEST'}
           & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $root 'Recover-No11FilteredMorning.ps1') -OfflineSelfTest
           if($LASTEXITCODE -ne 0){throw 'FILTERED_SAME_DAY_RETRY_SELFTEST'}
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $root 'Repair-No11MorningRetrySeedDate.ps1') -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'RETRY_GATE_INSTALL_SELFTEST'}
           & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $root 'Apply-No11PriceExclusionRecovery.ps1') -OfflineSelfTest
           if($LASTEXITCODE -ne 0){throw 'FILTERED_REPAIR_INSTALL_SELFTEST'}
           & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $root 'Start-No11PreopenStandby.ps1') -OfflineSelfTest

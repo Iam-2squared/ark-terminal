@@ -73,7 +73,11 @@ test('separate diagnosed Chart50 collector preserves original RSS and immutable 
    'NO11_C50_SAVED_SNAPSHOT_COUNT=',
    "ORDER_TRANSMISSION=False",
  ])assert.ok(diag.includes(marker),marker);
- assert.ok(diag.length>original.length);
+ // Different audited collectors need semantic isolation, not an arbitrary
+ // relative byte-length condition that changes when the original grows.
+ assert.notEqual(diag,original);
+ assert.ok(diag.includes('NO11_C50_DIAGNOSTIC_STEP='));
+ assert.ok(!original.includes('NO11_C50_DIAGNOSTIC_STEP='));
  for(const marker of ["AccessibleObjectFromWindow","OriginalBooks","OriginalCapacity",
     "EXCEL7","SaveSnapshot","$book.Close($false)"])assert.ok(diag.includes(marker));
  assert.doesNotMatch(diag,/\b(?:RssStockOrder|RssMarginOpenOrder|RssCancelOrder)\s*\(/);

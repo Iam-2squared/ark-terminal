@@ -11,11 +11,17 @@ test('reference source is official RssMarket fields and no order or saved book c
  assert.match(src,/\$symbols\.Count -le 50/);assert.match(src,/MARKET_CAPACITY_EXCEEDED/);
  assert.match(src,/corporateActionReviewPerformed=\$false/);
  assert.match(src,/\$book\.Close\(\$false\)/);
- assert.match(src,/AccessibleObjectFromWindow/);
- assert.match(src,/EXCEL_WINDOW_NOT_UNIQUE/);
- assert.match(src,/EXCEL7_NOT_UNIQUE/);
- assert.match(src,/EXCEL_WINDOW_COM_ATTACH_FAILED/);
- assert.doesNotMatch(src,/GetActiveObject\s*\(/);
+ // The original EXCEL7 child-window pointer is replaced by the SAME
+ // native GetActiveObject API but only after checking exactly one Excel
+ // process, the Ark window, ROT PID identity, and a closed 2/3 book set.
+ for(const marker of [
+  'EXCEL_PROCESS_NOT_UNIQUE','EXCEL_WINDOW_IDENTITY',
+  'GetActiveObject(', 'GetWindowThreadProcessId',
+  'EXCEL_ROT_WINDOW_PID_MISMATCH',
+  'ONLY_TWO_RSS_AND_OPTIONAL_BROKER_READONLY_BOOK',
+  'Ark_No11_BROKER_READONLY.xlsx',
+  'NO11_REFERENCE_DIAGNOSTIC_STAGE=',
+ ])assert.ok(src.includes(marker),marker);
  assert.doesNotMatch(src,/RssStockOrder\s*\(|RssCancelOrder\s*\(|\.SaveAs\s*\(|\.Save\s*\(|\.Quit\s*\(|Stop-Process/);
 });
 test('input preparation delegates to original scope previous converter and same-run launcher',()=>{

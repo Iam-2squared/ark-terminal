@@ -53,7 +53,7 @@ class TestWhitePatch(unittest.TestCase):
 
     def test_crlf_and_unknown_source_safe(self):
         installed=retry.patch_text(white_mock())
-        crlf=installed.replace(b"\n",b"\r\n")
+        crlf=installed.replace(b"\r\n",b"\n").replace(b"\n",b"\r\n")
         patched=display_patch.patch(crlf)
         self.assertIn(b"\r\n",patched)
         self.assertNotIn(b"\r\r\n",patched)

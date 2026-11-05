@@ -106,7 +106,7 @@ try{
   originalRequestNonce=[string]$r.nonce
   blockedSymbols=@('3003.T','7616.T')
   selectedPassed=39
-  previousAttemptProvenNoOrder=True
+  previousAttemptProvenNoOrder=$true
   humanRetryActionApproved=$true
   claimAtJst=$clock.ToString('yyyy-MM-ddTHH:mm:ss.fffzzz')
   orderTransmission=$false

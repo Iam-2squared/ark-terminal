@@ -36,7 +36,7 @@ Need ((Test-Path -LiteralPath $target -PathType Leaf) -and
       (Test-Path -LiteralPath $white -PathType Leaf)) 'INSTALLED_WHITE_ONECLICK_REQUIRED'
 $existing=[IO.File]::ReadAllBytes($target)
 $oldBlob='d844d7a45cb9bbcd247258ca16dc7797cbd4a6b4'
-$newBlob='eeaadeb7e9bb919d0e477588a08f7056bb39aab0'
+$newBlob='a05315c6840fce75c70f96e36d1c7d6a073cc6e6'
 Need ((Blob $existing) -ceq $oldBlob) 'LOCAL_RETRY_HELPER_CHANGED'
 $whiteSha=(Get-FileHash -LiteralPath $white -Algorithm SHA256).Hash
 $base='https://raw.githubusercontent.com/Iam-2squared/ark-terminal/'
@@ -48,7 +48,7 @@ try{
  $oldFile=Join-Path $temp 'old.ps1'
  $newFile=Join-Path $temp 'new.ps1'
  Invoke-WebRequest -UseBasicParsing -Uri ($base+'c592a318ca913fe82f835253dbfc9f1c89ab6f75'+$rel) -OutFile $oldFile
- Invoke-WebRequest -UseBasicParsing -Uri ($base+'1d5ba533c970ca98190736b8d3a0217db0785481'+$rel) -OutFile $newFile
+ Invoke-WebRequest -UseBasicParsing -Uri ($base+'ad05688ee1901e3c1f87d279e27b1bf787853952'+$rel) -OutFile $newFile
  $oldBytes=[IO.File]::ReadAllBytes($oldFile)
  $newBytes=[IO.File]::ReadAllBytes($newFile)
  Need ((Blob $oldBytes) -ceq $oldBlob -and (Blob $newBytes) -ceq $newBlob) 'REMOTE_SOURCE_PIN_INVALID'

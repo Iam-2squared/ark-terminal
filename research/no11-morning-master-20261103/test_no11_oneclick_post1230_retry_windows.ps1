@@ -25,6 +25,15 @@ try{
  Invoke-WebRequest -UseBasicParsing -Uri $oldReferenceUrl -OutFile $reference
  Need ((& git hash-object --no-filters -- $reference).Trim() -ceq
        '26d2a79c912d4bfd2422bcb82562004794b50487') 'ORIGINAL_REFERENCE_MISMATCH'
+ # Reproduce the actual Windows CRLF checkout that previously tripped the
+ # old "hash-object --no-filters" installer despite unchanged source tokens.
+ $sourceBytes=[IO.File]::ReadAllBytes($reference)
+ $asString=([Text.UTF8Encoding]::new($false,$true)).GetString($sourceBytes)
+ Need (-not $asString.Contains([char]13)) 'TEST_SOURCE_NOT_EXPECTED_LF'
+ $windowsBytes=[Text.Encoding]::UTF8.GetBytes($asString.Replace([string][char]10,([string][char]13+[char]10)))
+ [IO.File]::WriteAllBytes($reference,$windowsBytes)
+ Need ((& git hash-object --no-filters -- $reference).Trim() -cne
+       '26d2a79c912d4bfd2422bcb82562004794b50487') 'TEST_WINDOWS_CRLF_NOT_REPRODUCED'
  $mockUi=([IO.File]::ReadAllText($originalUi)).Replace(
   'FromArgb(29,32,38)','FromArgb(251,251,251)').Replace(
   'FromArgb(43,106,132)','FromArgb(25,90,140)')
@@ -52,10 +61,10 @@ try{
        $after.Contains('CanQueuePreopen $s') -and
        $after.Contains('Review-No11RecoveryReadOnly.ps1')) 'WHITE_UI_OR_ACTIONS_BROKEN'
  Need ((& git hash-object --no-filters -- $reference).Trim() -ceq
-       'f6b56c10dfbd25b57ee6e8ca9783204cff3a83d3') 'COLLECTOR_NOT_UPDATED'
+       'f1e9739ccfb8ac520a4484d00ffccc5471264763') 'COLLECTOR_NOT_UPDATED'
  $retry=Join-Path $one 'Retry-No11OneClickPreorder.ps1'
  Need ((& git hash-object --no-filters -- $retry).Trim() -ceq
-       '82cdac68d7725ae97954e0479f2542e9d3ce03c1') 'GUARDED_HELPER_NOT_PINNED'
+       '732d17a8b57b2f597b248f02a43839ff4b839a09') 'GUARDED_HELPER_NOT_PINNED'
  $backup=@(Get-ChildItem -LiteralPath $store -Directory -Filter 'oneclick-preorder-retry-backup-*')
  Need ($backup.Count -eq 1) 'BACKUP_NOT_CREATED'
  Need ([IO.File]::ReadAllText((Join-Path $backup[0].FullName 'Start-No11OneClick.WHITE.before.ps1')) -ceq

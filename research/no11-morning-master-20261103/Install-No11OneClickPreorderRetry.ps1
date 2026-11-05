@@ -11,6 +11,23 @@ function GitBlob([string]$path){
        [string]$hash[0] -cmatch '^[a-f0-9]{40}$') 'GIT_HASH_UNAVAILABLE'
  return [string]$hash[0]
 }
+function CanonicalGitBlob([string]$path){
+ # GitHub source is LF. Windows installations may have same signed bytes
+ # with CRLF line endings; normalize ONLY line endings, never executable
+ # tokens, source fields, permissions or safety checks.
+ $raw=[IO.File]::ReadAllBytes($path)
+ $decoded=([Text.UTF8Encoding]::new($false,$true)).GetString($raw)
+ $decoded=$decoded.Replace(([string][char]13+[char]10),[string][char]10)
+ Need (-not $decoded.Contains([char]13)) 'UNKNOWN_LINE_ENDING'
+ $body=[Text.Encoding]::UTF8.GetBytes($decoded)
+ $header=[Text.Encoding]::ASCII.GetBytes(('blob '+$body.Length)+[char]0)
+ $joined=New-Object byte[] ($header.Length+$body.Length)
+ [array]::Copy($header,0,$joined,0,$header.Length)
+ [array]::Copy($body,0,$joined,$header.Length,$body.Length)
+ $sha=[Security.Cryptography.SHA1]::Create()
+ try{return ([BitConverter]::ToString($sha.ComputeHash($joined))).Replace('-','').ToLowerInvariant()}
+ finally{$sha.Dispose()}
+}
 function ParsePs([string]$p){
  $t=$null;$errors=$null
  [void][Management.Automation.Language.Parser]::ParseFile($p,[ref]$t,[ref]$errors)
@@ -46,7 +63,11 @@ Need ($binding.schemaId -ceq 'ARK_NO11_AUTOMATIC_LAUNCHER_BINDING_V1' -and
       [IO.Path]::IsPathRooted([string]$binding.engine)) 'CURRENT_BINDING_INVALID'
 $reference=Join-Path ([string]$binding.engine) 'windows\Capture-No11SessionReferenceReadOnly.ps1'
 Need (Test-Path -LiteralPath $reference -PathType Leaf) 'REFERENCE_COLLECTOR_MISSING'
-Need ((GitBlob $reference) -ceq '26d2a79c912d4bfd2422bcb82562004794b50487') 'REFERENCE_ORIGINAL_CHANGED'
+$oldRawHash=GitBlob $reference
+$oldCanonicalHash=CanonicalGitBlob $reference
+Write-Host ('LOCAL_REFERENCE_GIT_BLOB='+$oldRawHash)
+Write-Host ('LOCAL_REFERENCE_NORMALIZED_BLOB='+$oldCanonicalHash)
+Need ($oldCanonicalHash -ceq '26d2a79c912d4bfd2422bcb82562004794b50487') 'REFERENCE_CONTENT_UNKNOWN_DO_NOT_OVERWRITE'
 NoLiveOrUiProcesses
 $python=[string]$binding.python
 Need ([IO.Path]::IsPathRooted($python) -and
@@ -56,13 +77,13 @@ $beforeCapture=[IO.File]::ReadAllBytes($reference)
 $work=Join-Path $env:TEMP ('ark-oneclick-retry-install-'+[guid]::NewGuid().ToString('N'))
 [void][IO.Directory]::CreateDirectory($work)
 $patches=[ordered]@{
- 'capture.ps1'=@('research/no12-prebuy-causal-runtime-20261011/windows/Capture-No11SessionReferenceReadOnly.ps1','f6b56c10dfbd25b57ee6e8ca9783204cff3a83d3')
- 'helper.ps1'=@('research/no11-morning-master-20261103/Retry-No11OneClickPreorder.ps1','82cdac68d7725ae97954e0479f2542e9d3ce03c1')
+ 'capture.ps1'=@('research/no12-prebuy-causal-runtime-20261011/windows/Capture-No11SessionReferenceReadOnly.ps1','f1e9739ccfb8ac520a4484d00ffccc5471264763')
+ 'helper.ps1'=@('research/no11-morning-master-20261103/Retry-No11OneClickPreorder.ps1','732d17a8b57b2f597b248f02a43839ff4b839a09')
  'patch.py'=@('research/no11-morning-master-20261103/patch_oneclick_preorder_retry.py','05f574fb8794ad19bc64c9953f042bab5cda439c')
 }
 try{
  [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12
- $base='https://raw.githubusercontent.com/Iam-2squared/ark-terminal/eb41e193cf7c0bca8f3829bd2597c7ebe9b6b0ae/'
+ $base='https://raw.githubusercontent.com/Iam-2squared/ark-terminal/83ee9edfe43d6ed8c6e67bd542256b73f4406bbe/'
  foreach($name in $patches.Keys){
   $url=$base+[string]$patches[$name][0]
   $local=Join-Path $work $name
@@ -84,7 +105,7 @@ try{
  $bytesNewUi=[IO.File]::ReadAllBytes($patchedUi)
  $bytesNewCapture=[IO.File]::ReadAllBytes((Join-Path $work 'capture.ps1'))
  Need ((GitBlob $white) -cne (GitBlob $patchedUi) -and
-       (GitBlob (Join-Path $work 'capture.ps1')) -ceq 'f6b56c10dfbd25b57ee6e8ca9783204cff3a83d3') 'PATCH_OUTPUT_IDENTITY'
+       (GitBlob (Join-Path $work 'capture.ps1')) -ceq 'f1e9739ccfb8ac520a4484d00ffccc5471264763') 'PATCH_OUTPUT_IDENTITY'
  NoLiveOrUiProcesses
  Need (([Convert]::ToBase64String([IO.File]::ReadAllBytes($white))) -ceq
        ([Convert]::ToBase64String($beforeUi)) -and

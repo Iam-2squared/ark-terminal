@@ -68,4 +68,9 @@ class TestPidProbe(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "INSTALLED_CLEAN_COLLECTOR_CHANGED"):
             pid.patch(pid.patch(self.installed))
 if __name__=="__main__":
-    unittest.main()
+    import sys
+    if len(sys.argv)==3 and sys.argv[1]=="--emit-installed-fixture":
+        Path(sys.argv[2]).write_bytes(initial.patch(clean.recreate_clean()))
+        print("NO11_PID_INSTALLED_FIXTURE=CREATED_ONLY")
+    else:
+        unittest.main()

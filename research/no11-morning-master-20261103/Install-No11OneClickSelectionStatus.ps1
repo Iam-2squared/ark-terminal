@@ -59,12 +59,12 @@ $whiteBefore=[IO.File]::ReadAllBytes($white)
 $work=Join-Path $env:TEMP ('no11-selection-ui-'+[guid]::NewGuid().ToString('N'))
 [void][IO.Directory]::CreateDirectory($work)
 $manifest=[ordered]@{
- 'selection.py'=@('research/no11-morning-master-20261103/no11_selection_status.py','02d0a86eafa04f1964b26cf2a84450a7c71250e9')
+ 'selection.py'=@('research/no11-morning-master-20261103/no11_selection_status.py','626d7a7a010967015ae26ccfd0f4d266eb05fe97')
  'patch.py'=@('research/no11-morning-master-20261103/patch_oneclick_selection_display.py','ba2d411556eeccc985d1ae04bdb5fcd23dee8367')
 }
 try{
  [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12
- $commit='7dddfa4cd8cd988abb118464df4769e8a50de1f0'
+ $commit='a03b7445f7aae17c05e8f088c1bc3c145c58ec58'
  $base='https://raw.githubusercontent.com/Iam-2squared/ark-terminal/'+$commit+'/'
  foreach($name in $manifest.Keys){
   $f=Join-Path $work $name

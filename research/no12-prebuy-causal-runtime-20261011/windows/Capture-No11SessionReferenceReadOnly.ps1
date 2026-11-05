@@ -44,9 +44,9 @@ public static class No11RotExcelWindow {
 }
 '@ -ErrorAction Stop
  }
- [uint32]$pid=0
- [void][No11RotExcelWindow]::GetWindowThreadProcessId($h,[ref]$pid)
- return $pid
+ [uint32]$matchedProcessId=0
+ [void][No11RotExcelWindow]::GetWindowThreadProcessId($h,[ref]$matchedProcessId)
+ return $matchedProcessId
 }
 # Pure, offline-testable scan of one Excel UsedRange.Formula snapshot.
 # The caller retains unknown-formula counting and the full original 500 cap.
@@ -88,6 +88,7 @@ if($OfflineSelfTest){
  Need (ExpectedBooks @('Ark_No11_BROKER_READONLY.xlsx','Ark_No11_MSII_RSS.xlsx','Ark_No11_MARKET_RSS.xlsx')) 'SELFTEST_THREE_EXPECTED_BOOKS'
  Need (-not (ExpectedBooks @('Ark_No11_MSII_RSS.xlsx','Ark_No11_MARKET_RSS.xlsx','Other.xlsx'))) 'SELFTEST_UNKNOWN_THIRD_BLOCK'
  Need (-not (ExpectedBooks @('Ark_No11_MSII_RSS.xlsx','Ark_No11_MARKET_RSS.xlsx','Ark_No11_BROKER_READONLY.xlsx','Other.xlsx'))) 'SELFTEST_FOUR_BLOCK'
+ Need ((ExcelProcessFromHwnd ([IntPtr]::Zero)) -eq 0) 'SELFTEST_PID_P_INVOKE'
  Write-Host 'NO11_REFERENCE_BULK_FORMULA_SELFTEST=PASS'
  Write-Host 'NO11_REFERENCE_OFFLINE_SELFTEST=PASS';Write-Host 'ORDER_TRANSMISSION=False';exit 0
 }
@@ -127,8 +128,8 @@ try{
  $script:referenceStage='ATTACH_EXISTING_EXCEL_ROT'
  $excel=[Runtime.InteropServices.Marshal]::GetActiveObject('Excel.Application')
  Need ($null -ne $excel) 'EXCEL_ROT_UNAVAILABLE'
- $pid=ExcelProcessFromHwnd ([IntPtr]([long]$excel.Hwnd))
- Need ($pid -eq [uint32]$processes[0].Id) 'EXCEL_ROT_WINDOW_PID_MISMATCH'
+ $attachedProcessId=ExcelProcessFromHwnd ([IntPtr]([long]$excel.Hwnd))
+ Need ($attachedProcessId -eq [uint32]$processes[0].Id) 'EXCEL_ROT_WINDOW_PID_MISMATCH'
  Write-Host 'NO11_REFERENCE_STAGE=EXCEL_ROT_IDENTITY_OK'
  $script:referenceStage='VERIFY_ALLOWED_OPEN_WORKBOOKS'
  $bookNames=@()

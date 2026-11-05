@@ -39,31 +39,34 @@ class SelectionStatusTests(unittest.TestCase):
                         weekly_schema=sel.WEEKLY_RSS_SCHEMA,
                         target="2026-11-06",prior="2026-11-05"):
         weekly_run=self.root/"weekly-run"
-        source_plan={"schemaId":weekly_schema,"asOfSession":weekly_asof,
-                     "planId":"a"*64,
+        source_body={"schemaId":weekly_schema,"asOfSession":weekly_asof,
                      "symbols":[f"{1000+i:04d}.T" for i in range(4328)]}
+        weekly_id=hashlib.sha256(json.dumps(source_body,separators=(",",":")).encode()).hexdigest()
+        source_plan={"planId":weekly_id,**source_body}
         put(weekly_run/"plan.json",source_plan)
         symbols=[f"{1000+i:04d}.T" for i in range(429)]
         digest=hashlib.sha256(json.dumps(symbols,separators=(",",":")).encode()).hexdigest()
         refreshed=self.root/"refresh"
         plan={"schemaId":sel.WEEKLY_RSS_SCHEMA,
               "refreshSchemaId":sel.REFRESH_SCHEMA,
-              "asOfSession":prior,"planId":"b"*64,
+              "asOfSession":prior,
               "orderTransmission":False,"productionReady":False,
               "symbols":symbols,"sourceSymbolsSha256":digest,
-              "weeklySource":{"asOfSession":weekly_asof,"originalPlanId":"a"*64,
+              "weeklySource":{"asOfSession":weekly_asof,"originalPlanId":weekly_id,
                               "observedPassCount":len(symbols),
                               "observedPassSymbolsSha256":digest,
                               "originalFullUniverseCount":4328}}
+        refresh_id=hashlib.sha256(json.dumps(plan,separators=(",",":")).encode()).hexdigest()
+        plan={"planId":refresh_id,**plan}
         put(refreshed/"plan.json",plan)
         selected=symbols[:45]
         chart={"chartPlan":{"schemaId":sel.CHART_SCHEMA,
                             "sessionDate":target,"asOfSession":prior,
                             "selectorInputSymbols":selected,
-                            "sourcePlanId":"b"*64,
+                            "sourcePlanId":refresh_id,
                             "orderTransmission":False,"productionReady":False}}
         mask={"schemaId":sel.MASK_SCHEMA,"asOfSession":prior,
-              "planId":"b"*64,"orderTransmission":False}
+              "planId":refresh_id,"orderTransmission":False}
         stage={"schemaId":"ARK_NO11_RSS_PREVIOUS_ARCHIVE_V1",
                "selectedSymbols":selected,"orderTransmission":False}
         spec={

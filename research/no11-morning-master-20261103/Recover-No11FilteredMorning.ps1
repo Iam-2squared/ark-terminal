@@ -80,8 +80,100 @@ try{
        $settings.automaticOrderAuthorization -eq $false -and
        $settings.orderTransmission -eq $false -and
        $binding.schemaId -ceq 'ARK_NO11_AUTOMATIC_LAUNCHER_BINDING_V1' -and
-       $binding.sessionDate -ceq $day -and
        $binding.orderTransmission -eq $false) 'INSTALLED_RUNTIME_UNSAFE'
+ # The original binding.sessionDate is an installation SEED, not the active
+ # next-day handoff. Verify TODAY against the exact 08:30-approved pointer SHA.
+ $cycleRoot=[string]$binding.dailyCycleRoot
+ Need ([IO.Path]::IsPathRooted($cycleRoot) -and
+       (Test-Path -LiteralPath $cycleRoot -PathType Container)) 'DAILY_CYCLE_ROOT_MISSING'
+ $pointer=Join-Path $cycleRoot ('prepared-days\'+$day+'.json')
+ Need (Test-Path -LiteralPath $pointer -PathType Leaf) 'TODAY_HANDOFF_MISSING'
+ Need ((Get-FileHash -LiteralPath $pointer -Algorithm SHA256).Hash.ToLowerInvariant() -ceq
+       [string]$r.pointerSha256) 'TODAY_HANDOFF_CHANGED_SINCE_0830_APPROVAL'
+ $ptr=Get-Content -LiteralPath $pointer -Raw -Encoding UTF8|ConvertFrom-Json
+ Need ($ptr.schemaId -ceq 'ARK_NO11_NIGHTLY_LAUNCHER_HANDOFF_V1' -and
+       $ptr.sessionDate -ceq $day -and
+       $ptr.productionReady -eq $false -and
+       $ptr.orderTransmission -eq $false -and
+       $ptr.humanReviewClaimed -eq $false -and
+       $ptr.manualPricesRequired -eq $false -and
+       $ptr.manualEvidenceRequired -eq $false -and
+       [int]$ptr.selectedCount -eq 41 -and
+       [string]$ptr.handoffSha256 -cmatch '^[a-f0-9]{64}
+ $bridgePath=[string]$binding.bridge
+ $automaticPath=[string]$binding.automatic
+ foreach($path in @($bridgePath,$automaticPath)){
+  Need ([IO.Path]::IsPathRooted($path) -and (Test-Path -LiteralPath $path -PathType Leaf)) 'AUTOMATIC_SOURCE_MISSING'
+ }
+ Need ((Get-FileHash -LiteralPath $bridgePath -Algorithm SHA256).Hash.ToLowerInvariant() -ceq
+       [string]$binding.bridgeSha256 -and
+       (Get-FileHash -LiteralPath $automaticPath -Algorithm SHA256).Hash.ToLowerInvariant() -ceq
+       [string]$binding.automaticSha256) 'PATCHED_SOURCE_NOT_PINNED'
+ $native=Join-Path ([string]$binding.engine) 'windows\Start-No11UnifiedLauncher.ps1'
+ Need (Test-Path -LiteralPath $native -PathType Leaf) 'NATIVE_LAUNCHER_MISSING'
+ $active=@(Get-CimInstance Win32_Process | Where-Object {
+  $_.ProcessId -ne $PID -and
+  $_.Name -match '^(powershell|pwsh|python|pythonw)([.]exe)?$' -and
+  [string]$_.CommandLine -match 'Start-No11UnifiedLauncher|Run-No11ReceivedSessionOperatorLive|no11_received_session_controller|Probe-No11Chart50ContinuousReadOnly|Invoke-No11MsiiOrder'
+ })
+ Need ($active.Count -eq 0) 'LIVE_PROCESS_OR_ORDER_DISPATCH_MAY_BE_RUNNING'
+ $retryClaim=Join-Path $store ('MORNING-FILTERED-RETRY-'+$day+'.claim.json')
+ $body=[ordered]@{
+  schemaId='ARK_NO11_SAME_DAY_PREORDER_FILTERED_RETRY_V1'
+  sessionDate=$day
+  originalRequestNonce=[string]$r.nonce
+  blockedSymbols=@('3003.T','7616.T')
+  selectedPassed=39
+  previousAttemptProvenNoOrder=$true
+  humanRetryActionApproved=$true
+  claimAtJst=$clock.ToString('yyyy-MM-ddTHH:mm:ss.fffzzz')
+  orderTransmission=$false
+ }
+ $bytes=[Text.UTF8Encoding]::new($false).GetBytes((ConvertTo-Json -InputObject $body -Compress)+[char]10)
+ $handle=[IO.File]::Open($retryClaim,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+ try{$handle.Write($bytes,0,$bytes.Length);$handle.Flush($true)}
+ finally{$handle.Dispose()}
+ $logs=Join-Path $store 'oneclick-logs'
+ [void][IO.Directory]::CreateDirectory($logs)
+ $stdout=Join-Path $logs ('MorningFilteredRetry-'+$day+'.log')
+ $stderr=Join-Path $logs ('MorningFilteredRetry-'+$day+'.err')
+ $args=@('-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',
+         (Quote $native),'-Mode','Trade','-IApproveOrdersForToday')
+ $process=Start-Process -FilePath 'powershell.exe' -ArgumentList ($args -join ' ') -WorkingDirectory (Split-Path -Parent $native) -WindowStyle Hidden -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+ Need ($null -ne $process -and $process.Id -gt 0) 'RETRY_NOT_STARTED'
+ Write-Host 'NO11_MORNING_FILTERED_RETRY=REQUESTED_ONCE'
+ Write-Host 'PREVIOUS_SUCCESSFUL_SOURCE_SCOPE=39'
+ Write-Host 'PREVIOUS_BLOCKED_SYMBOLS=3003.T,7616.T'
+ Write-Host ('NATIVE_RETRY_PID='+$process.Id)
+ Write-Host ('NATIVE_RETRY_LOG='+$stdout)
+ Write-Host 'THIS_IS_NOT_BROKER_ORDER_ACK=True'
+ Write-Host 'PREOPEN_AND_TRADE_MARKERS_DELETED=False'
+ Write-Host 'OLD_ORDER_RESENT=False'
+ exit 0
+}catch{
+ $reason=[string]$_.Exception.Message
+ if($reason -cnotmatch '^NO11_MORNING_RECOVERY_[A-Z0-9_]+$'){
+  $reason='NO11_MORNING_RECOVERY_UNVERIFIED_SOURCE_OR_RUNTIME'
+ }
+ Write-Host ('NO11_MORNING_FILTERED_RETRY=BLOCKED|'+$reason)
+ Write-Host 'MARKERS_CLEARED=False'
+ Write-Host 'ORDER_TRANSMISSION=False'
+ exit 2
+}
+ -and
+       [IO.Path]::IsPathRooted([string]$ptr.handoff) -and
+       (Test-Path -LiteralPath ([string]$ptr.handoff) -PathType Leaf)) 'TODAY_HANDOFF_SCOPE_INVALID'
+ Need ((Get-FileHash -LiteralPath ([string]$ptr.handoff) -Algorithm SHA256).Hash.ToLowerInvariant() -ceq
+       [string]$ptr.handoffSha256) 'TODAY_HANDOFF_SOURCE_CHANGED'
+ $hand=Get-Content -LiteralPath ([string]$ptr.handoff) -Raw -Encoding UTF8|ConvertFrom-Json
+ Need ($hand.schemaId -ceq 'ARK_NO11_MORNING_MASTER_HANDOFF_V1' -and
+       $hand.sessionDate -ceq $day -and
+       $hand.previousSession -ceq $ptr.previousSession -and
+       $hand.orderTransmission -eq $false -and
+       $hand.productionReady -eq $false -and
+       $hand.datedMasterCreated -eq $false -and
+       @($hand.selectedSymbols).Count -eq 41 -and
+       ((@($hand.selectedSymbols) -join '|') -ceq (@($ptr.selectedSymbols) -join '|'))) 'TODAY_HANDOFF_ORIGINAL_SELECTION_CHANGED'
  $bridgePath=[string]$binding.bridge
  $automaticPath=[string]$binding.automatic
  foreach($path in @($bridgePath,$automaticPath)){

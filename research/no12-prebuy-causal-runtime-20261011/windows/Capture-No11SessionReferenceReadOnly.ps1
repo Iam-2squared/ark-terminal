@@ -28,6 +28,26 @@ function NumberValue($v){
  $n=[double]$v;if([double]::IsNaN($n) -or [double]::IsInfinity($n)){return $null};return $n
 }
 function Stamp{return [datetimeoffset]::UtcNow.ToOffset([timespan]::FromHours(9)).ToString('yyyy-MM-ddTHH:mm:ss.fffzzz',$ci)}
+function ExpectedBooks([string[]]$names){
+ $allowed=@('Ark_No11_MSII_RSS.xlsx','Ark_No11_MARKET_RSS.xlsx')
+ if($names.Count -eq 3){$allowed+=@('Ark_No11_BROKER_READONLY.xlsx')}
+ if($names.Count -ne $allowed.Count){return $false}
+ return (@(Compare-Object -ReferenceObject $allowed -DifferenceObject $names -CaseSensitive).Count -eq 0)
+}
+function ExcelProcessFromHwnd([IntPtr]$h){
+ if(-not ('No11RotExcelWindow' -as [type])){
+  Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class No11RotExcelWindow {
+ [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr h, out uint pid);
+}
+'@ -ErrorAction Stop
+ }
+ [uint32]$matchedProcessId=0
+ [void][No11RotExcelWindow]::GetWindowThreadProcessId($h,[ref]$matchedProcessId)
+ return $matchedProcessId
+}
 # Pure, offline-testable scan of one Excel UsedRange.Formula snapshot.
 # The caller retains unknown-formula counting and the full original 500 cap.
 function ScanMarketFormulaSnapshot([object]$snapshot){
@@ -64,10 +84,15 @@ if($OfflineSelfTest){
  Need ($scan.Count -eq 3 -and $scan -contains '7203.T' -and
    $scan -contains '6758.T' -and $scan -contains '!UNKNOWN!' -and
    $scan -notcontains '9999.T') 'BULK_FORMULA_SELFTEST'
+ Need (ExpectedBooks @('Ark_No11_MARKET_RSS.xlsx','Ark_No11_MSII_RSS.xlsx')) 'SELFTEST_TWO_ORIGINAL_BOOKS'
+ Need (ExpectedBooks @('Ark_No11_BROKER_READONLY.xlsx','Ark_No11_MSII_RSS.xlsx','Ark_No11_MARKET_RSS.xlsx')) 'SELFTEST_THREE_EXPECTED_BOOKS'
+ Need (-not (ExpectedBooks @('Ark_No11_MSII_RSS.xlsx','Ark_No11_MARKET_RSS.xlsx','Other.xlsx'))) 'SELFTEST_UNKNOWN_THIRD_BLOCK'
+ Need (-not (ExpectedBooks @('Ark_No11_MSII_RSS.xlsx','Ark_No11_MARKET_RSS.xlsx','Ark_No11_BROKER_READONLY.xlsx','Other.xlsx'))) 'SELFTEST_FOUR_BLOCK'
+ Need ((ExcelProcessFromHwnd ([IntPtr]::Zero)) -eq 0) 'SELFTEST_PID_P_INVOKE'
  Write-Host 'NO11_REFERENCE_BULK_FORMULA_SELFTEST=PASS'
  Write-Host 'NO11_REFERENCE_OFFLINE_SELFTEST=PASS';Write-Host 'ORDER_TRANSMISSION=False';exit 0
 }
-$excel=$null;$book=$null;$sheet=$null;$failed=$false
+$excel=$null;$book=$null;$sheet=$null;$failed=$false;$script:referenceStage='INITIAL_VALIDATION'
 try{
  foreach($file in @($SymbolsFile,$ChartPlanFile)){
   Need ([IO.Path]::IsPathRooted($file) -and (Test-Path -LiteralPath $file -PathType Leaf)) 'SOURCE_FILE_REQUIRED'
@@ -89,50 +114,35 @@ try{
    $plan.sessionDate -ceq $session -and $plan.productionReady -eq $false -and $plan.orderTransmission -eq $false) 'PLAN_SESSION'
  Need (($symbols -join '|') -ceq (@($plan.selectorInputSymbols) -join '|')) 'SELECTED_SCOPE_DIFFERS'
  foreach($symbol in $symbols){Need ($symbol -cmatch '^[0-9A-Z]{4}\.T$') 'SYMBOL_INVALID'}
- # Bind the single visible original Excel window. Avoid an ambiguous/stale ROT
- # GetActiveObject pointer, which cannot identify the intended physical window.
- $visible=@(Get-Process EXCEL -ErrorAction SilentlyContinue | Where-Object {$_.MainWindowHandle -ne [IntPtr]::Zero})
- $ark=@($visible | Where-Object {$_.MainWindowTitle -like 'Ark_No11_*'})
- $selected=@()
- if($ark.Count -eq 1){$selected=@($ark)}
- elseif($ark.Count -eq 0 -and $visible.Count -eq 1){$selected=@($visible)}
- Need ($selected.Count -eq 1) 'EXCEL_WINDOW_NOT_UNIQUE'
- if(-not ('No11ReferenceWindow' -as [type])){
-  Add-Type -TypeDefinition @'
-using System;
-using System.Text;
-using System.Runtime.InteropServices;
-public static class No11ReferenceWindow {
- public delegate bool Callback(IntPtr h,IntPtr p);
- [DllImport("user32.dll")] public static extern bool EnumChildWindows(IntPtr h,Callback cb,IntPtr p);
- [DllImport("user32.dll",CharSet=CharSet.Unicode)] public static extern int GetClassName(IntPtr h,StringBuilder b,int n);
- [DllImport("oleacc.dll")] public static extern int AccessibleObjectFromWindow(IntPtr h,uint id,ref Guid iid,[MarshalAs(UnmanagedType.Interface)] out object o);
-}
-'@ -ErrorAction Stop
- }
- $script:referenceWindows=@()
- $callback=[No11ReferenceWindow+Callback]{
-  param($h,$p)
-  $buffer=New-Object Text.StringBuilder 128
-  [void][No11ReferenceWindow]::GetClassName($h,$buffer,128)
-  if($buffer.ToString() -ceq 'EXCEL7'){$script:referenceWindows+=@($h)}
-  return $true
- }
- [void][No11ReferenceWindow]::EnumChildWindows($selected[0].MainWindowHandle,$callback,[IntPtr]::Zero)
- Need ($script:referenceWindows.Count -eq 1) 'EXCEL7_NOT_UNIQUE'
- $iid=[guid]'00020400-0000-0000-C000-000000000046'
- $windowObject=$null
- $hresult=[No11ReferenceWindow]::AccessibleObjectFromWindow(
-  $script:referenceWindows[0],[uint32]4294967280,[ref]$iid,[ref]$windowObject)
- Need ($hresult -eq 0 -and $null -ne $windowObject) 'EXCEL_WINDOW_COM_ATTACH_FAILED'
- $excel=$windowObject.Application
- Need ($excel.Workbooks.Count -eq 2) 'TWO_ORIGINAL_BOOKS_REQUIRED'
+ # The original 2 RSS books and the optional known BROKER_READONLY
+ # workbook are already open before the UNSAVED reference book is created.
+ # Never accept any arbitrary extra workbook or a second Excel instance.
+ $script:referenceStage='VERIFY_EXCEL_PROCESS'
+ $processes=@(Get-Process EXCEL -ErrorAction SilentlyContinue)
+ Need ($processes.Count -eq 1) 'EXCEL_PROCESS_NOT_UNIQUE'
+ $visible=@($processes | Where-Object {$_.MainWindowHandle -ne [IntPtr]::Zero})
+ Need ($visible.Count -eq 1 -and $visible[0].MainWindowTitle -like 'Ark_No11_*') 'EXCEL_WINDOW_IDENTITY'
+ Write-Host 'NO11_REFERENCE_STAGE=EXCEL_WINDOW_IDENTITY_OK'
+ # Native Trade already uses GetActiveObject; reuse that single Excel
+ # instance rather than fragile EXCEL7 child-window/oleacc attachment.
+ $script:referenceStage='ATTACH_EXISTING_EXCEL_ROT'
+ $excel=[Runtime.InteropServices.Marshal]::GetActiveObject('Excel.Application')
+ Need ($null -ne $excel) 'EXCEL_ROT_UNAVAILABLE'
+ $attachedProcessId=ExcelProcessFromHwnd ([IntPtr]([long]$excel.Hwnd))
+ Need ($attachedProcessId -eq [uint32]$processes[0].Id) 'EXCEL_ROT_WINDOW_PID_MISMATCH'
+ Write-Host 'NO11_REFERENCE_STAGE=EXCEL_ROT_IDENTITY_OK'
+ $script:referenceStage='VERIFY_ALLOWED_OPEN_WORKBOOKS'
+ $bookNames=@()
+ foreach($wb in $excel.Workbooks){$bookNames+=@([string]$wb.Name)}
+ Need (ExpectedBooks $bookNames) 'ONLY_TWO_RSS_AND_OPTIONAL_BROKER_READONLY_BOOK'
+ Write-Host ('NO11_REFERENCE_STAGE=EXISTING_BOOKS_VALIDATED|COUNT='+$bookNames.Count)
  $account=$excel.Workbooks.Item('Ark_No11_MSII_RSS.xlsx')
  $market=$excel.Workbooks.Item('Ark_No11_MARKET_RSS.xlsx')
  Need ($account.Worksheets.Item('ARK_ACCOUNT_READONLY').Name -ceq 'ARK_ACCOUNT_READONLY' -and
        $market.Worksheets.Item('ARK_MARKET_READONLY').Name -ceq 'ARK_MARKET_READONLY') 'ORIGINAL_BOOK_IDENTITY'
  $existing=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
  $unknown=0
+ $script:referenceStage='READ_EXISTING_FORMULAS'
  Write-Host 'NO11_REFERENCE_STAGE=ORIGINAL_WORKBOOK_FORMULA_SCAN_START'
  foreach($wb in @($account,$market)){foreach($ws in $wb.Worksheets){
   $used=$ws.UsedRange
@@ -150,6 +160,7 @@ public static class No11ReferenceWindow {
  foreach($symbol in $symbols){[void]$existing.Add($symbol)}
  Need ($existing.Count+$unknown -le 500) 'MARKET_CAPACITY_EXCEEDED'
  Write-Host ('NO11_REFERENCE_STAGE=ORIGINAL_FORMULAS_CHECKED|RSS_MARKET_SYMBOLS='+$existing.Count+'|UNKNOWN='+$unknown)
+ $script:referenceStage='CREATE_TEMP_REFERENCE_BOOK'
  Write-Host 'NO11_REFERENCE_STAGE=CREATE_UNSAVED_TEMP_WORKBOOK'
  $book=$excel.Workbooks.Add();$sheet=$book.Worksheets.Item(1)
  $grid=[array]::CreateInstance([object],$symbols.Count,12)
@@ -162,6 +173,7 @@ public static class No11ReferenceWindow {
  $sheet.Range($range).Formula=$grid
  Write-Host ('NO11_REFERENCE_STAGE=WAIT_RSS_FORMULAS|SECONDS='+$WarmupSeconds)
  Start-Sleep -Seconds $WarmupSeconds
+ $script:referenceStage='READ_RSS_MARKET_VALUES'
  Write-Host 'NO11_REFERENCE_STAGE=READ_RSS_MARKET_VALUES'
  $start=Stamp;$values=$sheet.Range($range).Value2;$end=Stamp
  Need ($values -is [array] -and $values.Rank -eq 2 -and $values.GetLength(0) -eq $symbols.Count -and $values.GetLength(1) -eq 12) 'READ_SHAPE'
@@ -195,6 +207,7 @@ public static class No11ReferenceWindow {
   $failed=$true
   $msg=[string]$_.Exception.Message
   if($msg -cnotmatch '^NO11_REFERENCE_[A-Z0-9_]+$'){$msg='NO11_REFERENCE_EXCEL_COM_OR_SOURCE_FAILURE'}
+  Write-Host ('NO11_REFERENCE_DIAGNOSTIC_STAGE='+$script:referenceStage)
   Write-Host ('NO11_SESSION_REFERENCE=BLOCKED|'+$msg)
  }finally{
  if($null -ne $book){try{$book.Close($false)}catch{$failed=$true}}

@@ -26,12 +26,20 @@ test('avoid unbounded per-formula COM cell enumerations; use one Excel Formula s
   'NO11_REFERENCE_BULK_FORMULA_SELFTEST=PASS',
  ])assert.ok(source.includes(marker),marker);
  assert.doesNotMatch(source,/\$cells\.Cells|foreach\(\$cell in \$cells/);
- assert.doesNotMatch(source,/GetActiveObject\s*\(|RssStockOrder\s*\(|RssCancelOrder\s*\(|Stop-Process|\.SaveAs\s*\(|\.Save\s*\(|\.Quit\s*\(/);
+ // The native ROT binding must NEVER be used unless it is verified as
+ // the one existing Ark Excel PID, and no fourth/unknown workbook is accepted.
+ for(const marker of [
+  'EXCEL_PROCESS_NOT_UNIQUE','EXCEL_WINDOW_IDENTITY',
+  'GetActiveObject(', 'GetWindowThreadProcessId',
+  'EXCEL_ROT_WINDOW_PID_MISMATCH',
+  'ONLY_TWO_RSS_AND_OPTIONAL_BROKER_READONLY_BOOK'
+ ])assert.ok(source.includes(marker),marker);
+ assert.doesNotMatch(source,/RssStockOrder\s*\(|RssCancelOrder\s*\(|Stop-Process|\.SaveAs\s*\(|\.Save\s*\(|\.Quit\s*\(/);
 });
 test('source errors are fail-closed and immutable receipts and source checks stay intact',()=>{
  for(const marker of [
   'NO11_REFERENCE_EXCEL_COM_OR_SOURCE_FAILURE',
-  'EXCEL_WINDOW_COM_ATTACH_FAILED',
+  'EXCEL_ROT_WINDOW_PID_MISMATCH','EXCEL_PROCESS_NOT_UNIQUE','NO11_REFERENCE_DIAGNOSTIC_STAGE=',
   'NO11_SESSION_REFERENCE=BLOCKED','NO11_SESSION_REFERENCE_FILE=',
   'corporateActionReviewPerformed=$false','productionReady=$false',
   'orderTransmission=$false',"$book.Close($false)",

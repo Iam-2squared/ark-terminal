@@ -151,7 +151,7 @@ function ProvePreorderFailure{
  # The reference fix is installed and exact pinned, not merely downloaded.
  $captureHash=(& git hash-object --no-filters -- $reference).Trim()
  Need ($LASTEXITCODE -eq 0 -and
-       $captureHash -ceq 'f6b56c10dfbd25b57ee6e8ca9783204cff3a83d3') 'RSS_REFERENCE_FIX_NOT_INSTALLED'
+       $captureHash -ceq 'f1e9739ccfb8ac520a4484d00ffccc5471264763') 'RSS_REFERENCE_FIX_NOT_INSTALLED'
  NoExtraNativeProcess
  return @{Store=$store;Native=$native;Day=$day}
 }

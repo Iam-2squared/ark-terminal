@@ -148,7 +148,10 @@ def build_master(info, public, reference, daily_closes, now, public_sha, referen
               'passedCount': len(rows), 'blockedSymbols': blocked, 'humanReviewPerformed': False,
               'exhaustiveCorporateActionsCertified': False, 'manualEvidenceRequired': False,
               'manualPriceInputRequired': False, 'productionReady': False, 'orderTransmission': False}
-    if blocked:
+    # Individually rejected equities remain EXCLUDED. Do not downgrade a
+    # failed price-basis/right/event check to a BUY admission. The remaining
+    # fully verified symbols may continue as a smaller immutable universe.
+    if not rows:
         return None, report
     master = {'schemaId': 'ARK_NO11_DATED_MASTER_RECEIPT_V1', 'sessionDate': session,
               'knownAtJst': now, 'rows': rows, 'referenceSourceSha256': reference_sha,
@@ -158,6 +161,72 @@ def build_master(info, public, reference, daily_closes, now, public_sha, referen
               'humanReviewPerformed': False, 'exhaustiveCorporateActionsCertified': False,
               'rssFieldTimestampCertified': False, 'productionReady': False, 'orderTransmission': False}
     return master, report
+
+
+FILTER_NODE = r'''import fs from 'node:fs';import {createHash} from 'node:crypto';
+import {pathToFileURL} from 'node:url';
+const [module,originalPath,maskPath,blockedJson,sourceReportSha]=process.argv.slice(2);
+const {validateNo11Chart50Plan}=await import(pathToFileURL(module).href);
+const read=p=>JSON.parse(fs.readFileSync(p,'utf8').replace(/^\uFEFF/,''));
+const original=read(originalPath),mask=read(maskPath),bad=JSON.parse(blockedJson);
+if(!Array.isArray(bad)||bad.length===0||new Set(bad).size!==bad.length)throw Error('NO11_AUTO_INPUT_FILTER_SCOPE');
+const old=original.chartPlan,oldSelected=validateNo11Chart50Plan({
+ chartPlan:old,mask,sessionDate:old.sessionDate});
+if(!bad.every(s=>oldSelected.includes(s)))throw Error('NO11_AUTO_INPUT_FILTER_NOT_SELECTED');
+const denied=new Set(bad);
+const selected=oldSelected.filter(s=>!denied.has(s));
+if(!selected.length)throw Error('NO11_AUTO_INPUT_FILTER_EMPTY');
+const protectedSet=new Set(old.protectedChartSymbols);
+const next={...old,
+ selectorInputSymbols:selected,
+ scanChartSymbols:old.scanChartSymbols.filter(s=>!denied.has(s)),
+ allRequestedChartSymbols:old.allRequestedChartSymbols.filter(s=>!denied.has(s)||protectedSet.has(s)),
+ g1UnscannedCount:old.g1UnscannedCount+bad.length};
+next.arkChartsUsed=next.allRequestedChartSymbols.length;
+next.totalChartFunctionsBudgeted=next.arkChartsUsed+next.occupiedByOtherChartFunctions;
+if(next.entryUniverseMode!==undefined){
+ next.reviewedEntrySymbols=old.reviewedEntrySymbols.filter(s=>!denied.has(s));
+ next.unreviewedG1SymbolsExcludedFromEntry=mask.observedPassCount-next.reviewedEntrySymbols.length;
+}
+delete next.planSha256;
+next.planSha256=createHash('sha256').update(JSON.stringify(next)).digest('hex');
+if(JSON.stringify(validateNo11Chart50Plan({
+ chartPlan:next,mask,sessionDate:next.sessionDate}))!==JSON.stringify(selected))
+ throw Error('NO11_AUTO_INPUT_FILTER_NATIVE_VALIDATION');
+const derived={...original,chartPlan:next,
+ automaticVerifiedExclusion:{
+  schemaId:'ARK_NO11_VERIFIED_INVALID_SYMBOL_EXCLUSION_V1',
+  sessionDate:old.sessionDate,originalChartReceiptSha256:createHash('sha256').update(fs.readFileSync(originalPath)).digest('hex'),
+  automaticResultReportSha256:sourceReportSha,
+  blockedSymbols:bad,
+  passedSymbols:selected,
+  previousSelectionPreserved:false,
+  originalChartReceiptModified:false,
+  orderTransmission:false}};
+console.log(JSON.stringify(derived));'''
+
+def filtered_chart(m, engine, original_chart_file, mask_file, blocked, report_file):
+    """New source-pin-preserving selected universe; never rewrite originals.
+
+    All chart/selector counts and native plan hash are recomputed by the
+    ORIGINAL JS plan validator. Rejected symbols remain absent from LIVE
+    selector inputs. Protected holdings keep their chart for EXIT purposes.
+    """
+    need(len(blocked) >= 1 and len(blocked) <= 46, 'FILTER_SCOPE')
+    symbols = [x['symbol'] for x in blocked]
+    need(len(set(symbols)) == len(symbols)
+         and all(SYMBOL.fullmatch(x) for x in symbols), 'FILTER_SYMBOLS')
+    node = m.safe(Path(engine) / 'runtime/no11_rss_chart_50_prescreen.mjs')
+    report_sha = m.sha(m.safe(report_file).read_bytes())
+    raw = m.run(['node', '--input-type=module', '-', str(node),
+                 str(original_chart_file), str(mask_file),
+                 json.dumps(symbols, separators=(',', ':')), report_sha],
+                'VERIFIED_SYMBOL_FILTER', input_text=FILTER_NODE)
+    derived = json.loads(raw)
+    need(derived['automaticVerifiedExclusion']['blockedSymbols'] == symbols
+         and derived['automaticVerifiedExclusion']['automaticResultReportSha256'] == report_sha,
+         'FILTER_RECEIPT_CHANGED')
+    return m.immutable(Path(original_chart_file).parent, 'no11-chart50-private', derived)
 
 
 DAILY_NODE = r'''import fs from 'node:fs';import {pathToFileURL} from 'node:url';
@@ -239,11 +308,26 @@ def execute(m, handoff_file):
     report_file = m.immutable(root, 'automatic-input-result', report)
     print('AUTOMATIC_INPUT_REPORT=' + str(report_file), flush=True)
     if master is None:
-        print('AUTOMATIC_INPUTS=DATA_UNAVAILABLE_OR_INCONSISTENT')
+        print('AUTOMATIC_INPUTS=ALL_SYMBOLS_BLOCKED')
         print('BLOCKED_SYMBOL_COUNT=' + str(len(report['blockedSymbols'])))
         print('MANUAL_EVIDENCE_REQUIRED=False\nMANUAL_PRICE_INPUT_REQUIRED=False')
         print('TRADE_LAUNCHED=False\nORDER_TRANSMISSION=False')
         return None
+    admitted = [row['symbol'] for row in master['rows']]
+    need(len(admitted) == report['passedCount']
+         and set(admitted).isdisjoint({r['symbol'] for r in report['blockedSymbols']})
+         and len(admitted) + len(report['blockedSymbols']) == len(selected),
+         'FILTER_ADMISSION_PARTITION')
+    original_chart_path = Path(spec['chartReceipt'])
+    chart_file = (filtered_chart(m, engine, original_chart_path, Path(spec['passMask']),
+                                 report['blockedSymbols'], report_file)
+                  if report['blockedSymbols'] else original_chart_path)
+    chartReceipt, _ = m.read(chart_file)
+    narrowed_info = dict(info, selectedSymbols=admitted,
+                         chartPlanSha256=chartReceipt['chartPlan']['planSha256'])
+    need(chartReceipt['chartPlan']['selectorInputSymbols'] == admitted, 'NARROWED_NATIVE_SCOPE')
+    print('AUTOMATIC_FILTER_PASS_COUNT=' + str(len(admitted)), flush=True)
+    print('AUTOMATIC_FILTER_EXCLUDED_COUNT=' + str(len(report['blockedSymbols'])), flush=True)
     master_file = m.immutable(root, 'dated-master', master)
     old_path = list(sys.path)
     try:
@@ -251,21 +335,21 @@ def execute(m, handoff_file):
         import no11_received_session_bootstrap as b
         import no11_previous_archive_context as archive
         now = m.clock()
-        need(archive.scope(Path(spec['chartReceipt']), Path(spec['passMask'])) == info, 'NATIVE_SCOPE')
-        b.validate_scope(info['sessionDate'], Path(spec['chartReceipt']), Path(spec['passMask']), master_file, now)
-        # Local disk replay/normalization of existing 47-symbol receipts only.
-        stage = archive.stage_archive(info, Path(spec['previousCaptureDir']), now)
+        need(archive.scope(chart_file, Path(spec['passMask'])) == narrowed_info, 'NATIVE_SCOPE')
+        b.validate_scope(info['sessionDate'], chart_file, Path(spec['passMask']), master_file, now)
+        # Local disk replay/normalization of original saved archives only.
+        stage = archive.stage_archive(narrowed_info, Path(spec['previousCaptureDir']), now)
         stage_file = b.immutable(root, 'previous-archive-stage', stage)
-        context, context_report = archive.assemble(stage, Path(spec['chartReceipt']),
+        context, context_report = archive.assemble(stage, chart_file,
             Path(spec['passMask']), master_file, root, now)
         ctx, _ = m.read(context)
-        need(set(ctx.get('symbols', {})) == set(selected), 'PREVIOUS_CONTEXT_INCOMPLETE')
+        need(set(ctx.get('symbols', {})) == set(admitted), 'PREVIOUS_CONTEXT_INCOMPLETE')
         config = {'schemaId': b.CONFIG, 'sessionDate': info['sessionDate'],
                   'dailyRun': str(Path(spec['chartReceipt']).parent),
                   'datedMaster': str(master_file), 'previousContext': str(context),
                   'runtimeRoot': spec['runtimeRoot'], 'h235ModelRoot': spec['h235ModelRoot'],
                   'privateRoot': str(root), 'orderIdWorkbookPath': handoff['orderIdWorkbookPath'],
-                  'precomputedChartReceipt': spec['chartReceipt'], 'precomputedG1Mask': spec['passMask'],
+                  'precomputedChartReceipt': str(chart_file), 'precomputedG1Mask': spec['passMask'],
                   'weeklySourceRun': spec['weeklySourceRun'],
                   'productionReady': False, 'orderTransmission': False}
         b.validate_config(config)

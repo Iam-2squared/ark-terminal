@@ -24,7 +24,7 @@ import uuid
 
 SCHEMA = 'ARK_NO11_AUTOMATIC_LAUNCHER_BINDING_V1'
 RUNNER_BLOB = '4887918a01751f5107b6d6f56c4d838d75107ed2'
-AUTOMATIC_BLOB = '2ee5fd79ba8f06372585d2fdb2ea84df29b2f0a4'
+AUTOMATIC_BLOB = 'ac193bb0485ef08f93f1b253c88e42fa92664c5a'
 ARRIVAL_SHA256 = '69f8edafb4708e9a7b61b4f85eb92f353049cf21324e1647602e9973f195f999'
 ARRIVAL_BYTES = 158661
 MARKER = '# ARK_NO11_AUTOMATIC_INPUT_HOOK_V1'
@@ -294,9 +294,40 @@ def merge_current_broker(prepared, old, broker, day):
          and terms.get('sor') is True and terms.get('accountType') == 1
          and terms.get('accountTypeVerified') is True and terms.get('orderType') == 'MARKET'
          and terms.get('timeInForce') == 'DAY', 'ORIGINAL_ACCOUNT_CAPITAL_TERMS')
-    for key in ('orderIdWorkbookPath', 'runtimeRoot', 'h235ModelRoot', 'precomputedChartReceipt',
+    for key in ('orderIdWorkbookPath', 'runtimeRoot', 'h235ModelRoot',
                 'precomputedG1Mask', 'weeklySourceRun'):
         need(prepared.get(key) == old.get(key), 'OLD_AND_PREPARED_INPUT_SCOPE_DIFFERS')
+    # The only permitted chart-source difference is an immutable, native-
+    # validator-checked subset of the ORIGINAL chart receipt created after
+    # documented same-day source mismatches. Never re-label a failed stock or
+    # let the broker trade symbols not present in the smaller dated master.
+    if prepared.get('precomputedChartReceipt') != old.get('precomputedChartReceipt'):
+        original_chart, original_sha = load(old['precomputedChartReceipt'])
+        subset_chart, _ = load(prepared['precomputedChartReceipt'])
+        scope = subset_chart.get('automaticVerifiedExclusion')
+        before = original_chart.get('chartPlan', {}).get('selectorInputSymbols')
+        after = subset_chart.get('chartPlan', {}).get('selectorInputSymbols')
+        dated_master, _ = load(prepared['datedMaster'])
+        need(type(scope) is dict and
+             scope.get('schemaId') == 'ARK_NO11_VERIFIED_INVALID_SYMBOL_EXCLUSION_V1' and
+             scope.get('sessionDate') == day and
+             scope.get('originalChartReceiptSha256') == original_sha and
+             scope.get('originalChartReceiptModified') is False and
+             scope.get('orderTransmission') is False and
+             type(before) is list and type(after) is list and bool(after) and
+             type(scope.get('blockedSymbols')) is list and
+             len(set(scope['blockedSymbols'])) == len(scope['blockedSymbols']) and
+             set(scope['blockedSymbols']).isdisjoint(after) and
+             len(before) == len(after) + len(scope['blockedSymbols']) and
+             set(before) == set(after) | set(scope['blockedSymbols']) and
+             after == scope.get('passedSymbols') and
+             sorted(r['symbol'] for r in dated_master.get('rows', [])) == sorted(after) and
+             subset_chart.get('schemaId') == original_chart.get('schemaId') and
+             subset_chart.get('chartPlan', {}).get('sourcePlanId') ==
+             original_chart.get('chartPlan', {}).get('sourcePlanId') and
+             subset_chart.get('chartPlan', {}).get('sessionDate') ==
+             original_chart.get('chartPlan', {}).get('sessionDate'),
+             'VERIFIED_SYMBOL_EXCLUSION_ONLY')
     need(transport.get('workbookPath') == prepared.get('orderIdWorkbookPath'), 'PHYSICAL_BOOK_DIFFERS')
     merged = dict(prepared)
     # Preserve session/ledger location and collector parameters, not just broker settings.

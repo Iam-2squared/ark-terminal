@@ -5,6 +5,7 @@ Test the NORMALIZED exact b06f Git identity from the user's 58-line diff,
 then the deterministic, reversible PID-safe patch; no Excel or orders.
 """
 import importlib.util
+import sys
 import hashlib
 from pathlib import Path
 import tempfile
@@ -63,7 +64,7 @@ def recreate_clean() -> bytes:
 class CleanReference(unittest.TestCase):
     def test_exact_user_source_and_preservation(self):
         old = recreate_clean()
-        canonical = old.decode("utf-8-sig").replace("\r\n","\n").encode()
+        canonical = b"\xef\xbb\xbf" + old.decode("utf-8-sig").replace("\r\n","\n").encode()
         self.assertEqual(mod.git_blob(canonical), mod.ORIGINAL)
         patched = mod.patch(old)
         self.assertNotEqual(patched, old)
@@ -112,4 +113,8 @@ class CleanReference(unittest.TestCase):
             self.assertEqual(again.returncode,2)
 
 if __name__=="__main__":
-    unittest.main()
+    if len(sys.argv)==3 and sys.argv[1]=="--emit-fixture":
+        Path(sys.argv[2]).write_bytes(recreate_clean())
+        print("NO11_CLEAN_FIXTURE=CREATED_ONLY")
+    else:
+        unittest.main()

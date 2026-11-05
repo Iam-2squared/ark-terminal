@@ -62,6 +62,8 @@ def patch_text(raw: bytes) -> bytes:
     bom = raw.startswith(b"\xef\xbb\xbf")
     text = raw.decode("utf-8-sig")
     nl = "\r\n" if text.count("\r\n") > 4 else "\n"
+    # Normalize internally so a CRLF source never becomes CRCRLF.
+    text = text.replace("\r\n", "\n")
     if MARKER in text:
         raise ValueError("NO11_RETRY_UI_ALREADY_PATCHED")
     for token in ("# ARK_NO11_ONECLICK_PREOPEN_STANDBY_0830_V1",
@@ -106,7 +108,7 @@ def patch_text(raw: bytes) -> bytes:
         if back.count(b) != 1:
             raise ValueError("NO11_RETRY_UI_ROUNDTRIP_ANCHOR_CHANGED")
         back = back.replace(b, a)
-    original = raw.decode("utf-8-sig")
+    original = raw.decode("utf-8-sig").replace("\r\n", "\n")
     if back != original:
         raise ValueError("NO11_RETRY_UI_LAYOUT_OR_CODE_CHANGED")
     text = text.replace("\n", nl) if nl == "\r\n" else text

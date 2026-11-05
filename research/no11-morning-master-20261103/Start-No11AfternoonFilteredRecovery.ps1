@@ -142,7 +142,7 @@ try{
    earliestTradeStartJst=($day+'T12:30:00+09:00')
    expiresAtJst=($day+'T12:35:00+09:00')
    sameDayEarlierApprovalReused=$true
-   0830ApprovedPointerSha256=[string]$r.pointerSha256
+   approvedPointerSha256=[string]$r.pointerSha256
    helperSha256=$sourceHash
    runnerSha256=$runnerHash
    blockedSymbols=@('3003.T','7616.T')
@@ -181,7 +181,7 @@ try{
        $armed.sameDayEarlierApprovalReused -eq $true -and
        $armed.earliestTradeStartJst -ceq ($day+'T12:30:00+09:00') -and
        $armed.expiresAtJst -ceq ($day+'T12:35:00+09:00') -and
-       $armed.0830ApprovedPointerSha256 -ceq $r.pointerSha256 -and
+       $armed.approvedPointerSha256 -ceq $r.pointerSha256 -and
        $armed.orderTransmission -eq $false -and
        $armed.tradeLaunchedAtArm -eq $false) 'AFTERNOON_REQUEST_INVALID'
  $issued=[DateTimeOffset]::Parse([string]$armed.requestedAtJst)
@@ -204,7 +204,11 @@ try{
  Need (-not (Test-Path -LiteralPath $tradeMarker) -and
        -not (Test-Path -LiteralPath $oldRetryClaim)) 'TRADE_ALREADY_ATTEMPTED'
  Need ((Get-FileHash -LiteralPath $pointer -Algorithm SHA256).Hash.ToLowerInvariant() -ceq
-       [string]$armed.0830ApprovedPointerSha256) 'HANDOFF_CHANGED_AT_1230'
+       [string]$armed.approvedPointerSha256 -and
+       (Get-FileHash -LiteralPath $helper -Algorithm SHA256).Hash.ToLowerInvariant() -ceq
+       [string]$armed.helperSha256 -and
+       (Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash.ToLowerInvariant() -ceq
+       [string]$armed.runnerSha256) 'HANDOFF_OR_CODE_CHANGED_AT_1230'
  NoNativeProcesses
  # Only the original guarded retry may create a TRADE request. Never retry
  # it automatically, even if this process dies after the claim.

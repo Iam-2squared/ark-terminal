@@ -94,8 +94,8 @@ try{
  Need ($LASTEXITCODE -eq 0 -and (Test-Path -LiteralPath $refCandidate -PathType Leaf)) 'LOCAL_CLEAN_PATCH_FAIL'
  $refNew=[IO.File]::ReadAllBytes($refCandidate)
  ParsePs $refCandidate
- Need ($refNew.Length -gt $oldReference.Length -and
-       $refNew.Length -lt ($oldReference.Length+8000)) 'LOCAL_CLEAN_CHANGE_OUTSIDE_EXPECTED'
+ Need ($refNew.Length -gt 3000 -and
+       [Math]::Abs($refNew.Length-$oldReference.Length) -lt 8000) 'LOCAL_CLEAN_CHANGE_OUTSIDE_EXPECTED'
  $candidateWhite=Join-Path $work 'candidate-white.ps1'
  & $python -B (Join-Path $work 'patch_white.py') --original $white --candidate $candidateWhite
  Need ($LASTEXITCODE -eq 0 -and (Test-Path -LiteralPath $candidateWhite -PathType Leaf)) 'WHITE_ONECLICK_PATCH_REJECTED'

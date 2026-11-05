@@ -31,8 +31,8 @@ if($OfflineSelfTest){
 }
 Need $Apply.IsPresent 'EXPLICIT_INSTALL_REQUIRED'
 $now=[DateTimeOffset]::UtcNow.ToOffset([timespan]::FromHours(9))
-Need ($now.ToString('yyyy-MM-dd') -ceq '2026-11-05') 'ONLY_TODAY'
 if($ArmToday){
+ Need ($now.ToString('yyyy-MM-dd') -ceq '2026-11-05') 'ARM_ONLY_TODAY'
  Need ($now.ToString('HH:mm:ss') -ge '11:00:00' -and
        $now.ToString('HH:mm:ss') -lt '12:30:00') 'ARM_ONLY_BEFORE_1230'
 }

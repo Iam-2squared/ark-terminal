@@ -135,8 +135,8 @@ const chartPlan=makeNo11G1Chart50Plan({mask,priorityRows,sessionDate:'2026-11-05
 fs.writeFileSync(out,JSON.stringify({
  schemaId:'ARK_NO11_CHART50_PRIVATE_EXPORT_RECEIPT_V1',
  chartPlan,source:'SYNTHETIC',shadowOnly:true,
- productionReady:false,orderTransmission:false})+'\\n');
-fs.writeFileSync(maskfile,JSON.stringify(mask)+'\\n');"""
+ productionReady:false,orderTransmission:false})+'\n');
+fs.writeFileSync(maskfile,JSON.stringify(mask)+'\n');"""
             p = subprocess.run(["node", "--input-type=module", "-", str(module),
                                 str(originals), str(mask_file)],
                                input=js, text=True, capture_output=True)

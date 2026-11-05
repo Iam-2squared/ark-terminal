@@ -24,7 +24,7 @@ try{
  & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $installer -Apply
  Need ($LASTEXITCODE -eq 0) 'ACTUAL_INSTALLER_FAILED'
  $newHash=(& git hash-object --no-filters -- $helper).Trim()
- Need ($newHash -ceq 'eeaadeb7e9bb919d0e477588a08f7056bb39aab0') 'NEW_HELPER_PIN'
+ Need ($newHash -ceq 'a05315c6840fce75c70f96e36d1c7d6a073cc6e6') 'NEW_HELPER_PIN'
  Need ((Get-FileHash -LiteralPath $white -Algorithm SHA256).Hash -ceq $orig) 'WHITE_ONECLICK_CHANGED'
  $backups=@(Get-ChildItem -LiteralPath $store -Directory -Filter 'morning-retry-gate-backup-*')
  Need ($backups.Count -eq 1) 'BACKUP_MISSING'

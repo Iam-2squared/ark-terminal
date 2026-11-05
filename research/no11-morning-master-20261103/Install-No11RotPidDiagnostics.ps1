@@ -19,7 +19,15 @@ function CanonicalBlob([byte[]]$bytes){
  $s=([Text.UTF8Encoding]::new($false,$true)).GetString($bytes)
  $s=$s.Replace(([string][char]13+[char]10),[string][char]10)
  Need (-not $s.Contains([char]13)) 'UNKNOWN_LINE_ENDING'
- return (GitBlob ([Text.Encoding]::UTF8.GetBytes($s)))
+ $newBytes=[Text.Encoding]::UTF8.GetBytes($s)
+ if($bytes.Length -ge 3 -and $bytes[0] -eq 239 -and $bytes[1] -eq 187 -and $bytes[2] -eq 191){
+  $bom=[byte[]]@(239,187,191)
+  $joined=New-Object byte[] ($bom.Length+$newBytes.Length)
+  [array]::Copy($bom,0,$joined,0,$bom.Length)
+  [array]::Copy($newBytes,0,$joined,$bom.Length,$newBytes.Length)
+  $newBytes=$joined
+ }
+ return (GitBlob $newBytes)
 }
 function ParsePs([string]$p){
  $tokens=$null;$errors=$null

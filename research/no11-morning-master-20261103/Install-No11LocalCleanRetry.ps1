@@ -76,13 +76,13 @@ AssertStopped
 $work=Join-Path $env:TEMP ('no11-clean-retry-'+[guid]::NewGuid().ToString('N'))
 [void][IO.Directory]::CreateDirectory($work)
 $manifest=[ordered]@{
- 'patch_clean.py'=@('research/no11-morning-master-20261103/patch_local_clean_reference_20261105.py','cacdb6e5397e8a91aaf6b11300e822675448390b')
+ 'patch_clean.py'=@('research/no11-morning-master-20261103/patch_local_clean_reference_20261105.py','c8849c0f07e69e947cefc27b33da9524b8360675')
  'patch_white.py'=@('research/no11-morning-master-20261103/patch_oneclick_preorder_retry.py','05f574fb8794ad19bc64c9953f042bab5cda439c')
  'retry_template.ps1'=@('research/no11-morning-master-20261103/Retry-No11OneClickPreorder.ps1','732d17a8b57b2f597b248f02a43839ff4b839a09')
 }
 try{
  [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12
- $pinned='8d764a373a0922e71464b7cf7187f0521d11dc11'
+ $pinned='9bcba949b42fd17692408986121838ea2637d857'
  $base='https://raw.githubusercontent.com/Iam-2squared/ark-terminal/'+$pinned+'/'
  foreach($name in $manifest.Keys){
   $candidate=Join-Path $work $name

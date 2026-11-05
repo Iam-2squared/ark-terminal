@@ -65,7 +65,7 @@ def patch(raw: bytes) -> bytes:
     normalized = text.replace("\r\n", "\n")
     if "\r" in normalized:
         raise ValueError("NO11_CLEAN_PATCH_INVALID_LINE_ENDING")
-    if git_blob(normalized.encode("utf-8")) != ORIGINAL:
+    if git_blob((b"\xef\xbb\xbf" if bom else b"") + normalized.encode("utf-8")) != ORIGINAL:
         raise ValueError("NO11_CLEAN_PATCH_UNRECOGNIZED_LOCAL_SOURCE")
     for token in KNOWN_CLEAN:
         if normalized.count(token) != 1:

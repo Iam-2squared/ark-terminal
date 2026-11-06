@@ -55,23 +55,44 @@ def safe(path: Path, name: str | None = None) -> Path:
 
 
 def check_quiet() -> None:
+    """Fail closed and explain which ARK process prevents an atomic patch."""
     if os.name != "nt":
         return
     command = (
         "$ErrorActionPreference='Stop';"
-        "$p=@(Get-CimInstance Win32_Process | Where-Object {"
+        "try {"
+        "$p=@(Get-CimInstance Win32_Process -ErrorAction Stop | Where-Object {"
         "$_.ProcessId -ne $PID -and "
-        "$_.Name -match '^(powershell|pwsh|python|pythonw)(\\.exe)?$' -and "
-        "$_.CommandLine -match '(Start-No11OneClick\\.ps1|Start-No11UnifiedLauncher\\.ps1|"
-        "Start-No11PreopenStandby\\.ps1|Run-No11ReceivedSessionOperatorLive\\.ps1|"
-        "no11_received_session_controller\\.py)'"
-        "});if($p.Count){exit 3}"
+        "$_.Name -match '^(powershell|pwsh|python|pythonw)([.]exe)?$' -and "
+        "$_.CommandLine -match '(Start-No11OneClick[.]ps1|Start-No11UnifiedLauncher[.]ps1|"
+        "Start-No11PreopenStandby[.]ps1|Run-No11ReceivedSessionOperatorLive[.]ps1|"
+        "no11_received_session_controller[.]py)'"
+        "});"
+        "foreach($item in $p){"
+        "$role='ARK_PROCESS';"
+        "if($item.CommandLine -match 'Start-No11OneClick[.]ps1'){$role='ONECLICK_UI'}"
+        "elseif($item.CommandLine -match 'Start-No11PreopenStandby[.]ps1'){$role='PREOPEN_WORKER'}"
+        "elseif($item.CommandLine -match 'Start-No11UnifiedLauncher[.]ps1'){$role='NATIVE_LAUNCHER'}"
+        "elseif($item.CommandLine -match 'Run-No11ReceivedSessionOperatorLive[.]ps1|"
+        "no11_received_session_controller[.]py'){$role='LIVE_ENGINE'};"
+        "Write-Output ('NO11_BLOCKING_PROCESS='+$item.ProcessId+'|'+$role)"
+        "};"
+        "if($p.Count){exit 3};Write-Output 'NO11_BLOCKING_PROCESS_COUNT=0';"
+        "} catch {Write-Output 'NO11_PROCESS_QUERY=FAILED';exit 4}"
     )
     result = subprocess.run(
         ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", command],
-        capture_output=True, timeout=35, check=False,
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
+        timeout=35, check=False,
     )
-    need(result.returncode == 0, "ACTIVE_ARK_PROCESS_OR_CHECK_FAILED")
+    for line in result.stdout.splitlines():
+        if re.fullmatch(r"NO11_BLOCKING_PROCESS=[0-9]+\\|(ONECLICK_UI|PREOPEN_WORKER|NATIVE_LAUNCHER|LIVE_ENGINE|ARK_PROCESS)", line):
+            print(line, flush=True)
+        elif line in ("NO11_BLOCKING_PROCESS_COUNT=0", "NO11_PROCESS_QUERY=FAILED"):
+            print(line, flush=True)
+    if result.returncode == 3:
+        need(False, "ACTIVE_ARK_PROCESS")
+    need(result.returncode == 0, "PROCESS_QUERY_FAILED")
 
 
 def write_atomic(path: Path, content: bytes, previous: bytes) -> None:

@@ -7,6 +7,8 @@ on:
       - "research/no11-morning-master-20261103/automatic_morning.py"
       - "research/no11-morning-master-20261103/launcher_automatic_bridge_v4.py"
       - "research/no11-morning-master-20261103/test_no11_transport_blocked_reason_forwarding.py"
+      - "research/no11-morning-master-20261103/install_no11_transport_error_forwarding.py"
+      - "research/no11-morning-master-20261103/test_no11_transport_log_install.py"
       - "research/no11-morning-master-20261103/test_automatic_price_exclusions.py"
       - "research/no11-morning-master-20261103/Recover-No11FilteredMorning.ps1"
       - "research/no11-morning-master-20261103/Repair-No11MorningRetrySeedDate.ps1"
@@ -81,6 +83,7 @@ jobs:
           python -m unittest discover -s research/no11-morning-master-20261103 -p test_preopen_0830.py -v
           python -m unittest discover -s research/no11-morning-master-20261103 -p test_automatic_price_exclusions.py -v
           python -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_transport_blocked_reason_forwarding.py -v
+          python -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_transport_log_install.py -v
           python -m unittest discover -s research/no11-morning-master-20261103 -p test_local_clean_reference_patch.py -v
           python -m unittest discover -s research/no11-morning-master-20261103 -p test_local_rot_pid_probe.py -v
           python -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_selection_status.py -v

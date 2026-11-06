@@ -28,7 +28,7 @@ function NoNativeProcess {
   [string]$_.CommandLine -match 'Start-No11UnifiedLauncher[.]ps1|Run-No11ReceivedSessionOperatorLive[.]ps1|no11_received_session_controller[.]py|Invoke-No11MsiiOrder[.]ps1|Start-No11PreopenStandby[.]ps1|Request-No11Nov06AfternoonPreorder[.]ps1'
  })
  # Exclude this script's own invocation, but never another live/recovery worker.
- $busy=@($busy|Where-Object{$_.ProcessId -ne $PID -and [string]$_.CommandLine -notmatch 'Request-No11Nov06AfternoonPreorder[.]ps1'})
+ # Do not exempt any competing request process: exactly one manual attempt.
  Need ($busy.Count -eq 0) 'OTHER_LIVE_OR_PREOPEN_PROCESS_ACTIVE'
 }
 function SessionEvidence{

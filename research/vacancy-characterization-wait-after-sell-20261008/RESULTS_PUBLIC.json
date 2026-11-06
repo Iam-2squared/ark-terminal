@@ -1,0 +1,213 @@
+{
+  "document_id": "ARK_VACANCY_CHARACTERIZATION_WAIT_AFTER_SELL_20261008",
+  "status": "FINITE_DEVELOPMENT_RESEARCH_COMPLETED_NO_AUTO_PROMOTION",
+  "base_freeze": {
+    "no1_public_commit": "fee1458ea7a526be3ee1c9819d3b1ade8f178c5a",
+    "no1_private_commit": "92763089a07ce0200cb63b887f1bede0e263ed47",
+    "both_state_filter_freeze_commit": "662042079c51788c0f2e6e6854bd4097dbc17851",
+    "excluded_entry_states": [
+      "PULLBACK",
+      "SHARP_DROP"
+    ],
+    "filter_all_vacancies": true,
+    "any_original_freeze_modified": false
+  },
+  "methodology": {
+    "starting_cash_jpy": "1000000",
+    "windows_20business_days": 9,
+    "window_ids": [
+      "W13",
+      "W14",
+      "W15",
+      "W16",
+      "W17",
+      "W18",
+      "W19",
+      "W20",
+      "W21"
+    ],
+    "overlapping_development": true,
+    "actual_receive_time": "UNKNOWN",
+    "fresh_oos": false
+  },
+  "step1_replacements": {
+    "original_BOTH_vs_old_No1_overlap_replacement_N": 52,
+    "unique_entry_N": 13,
+    "unique_plus": 4,
+    "unique_minus": 9,
+    "overlap_profit_N": 4,
+    "overlap_loss_N": 48,
+    "gross_profit_jpy": "35335.70",
+    "gross_loss_abs_jpy": "259748.00",
+    "net_profit_jpy": "-224412.30",
+    "overlap_state_counts": {
+      "DROP": 14,
+      "DROP_STOP": 9,
+      "UNKNOWN": 29
+    },
+    "unique_state_counts": {
+      "DROP": 6,
+      "DROP_STOP": 1,
+      "UNKNOWN": 6
+    },
+    "overlap_exit_counts": {
+      "SHARP_DROP": 28,
+      "STRUCTURAL": 7,
+      "EOD": 17
+    },
+    "unique_exit_counts": {
+      "SHARP_DROP": 4,
+      "STRUCTURAL": 6,
+      "EOD": 3
+    },
+    "median_hold_minutes": 7.5,
+    "unique_rank_A": 10,
+    "unique_rank_B": 3,
+    "all_52_replacements_respect_original_two_state_filter": true
+  },
+  "step2_policies": {
+    "BASE": {
+      "rule": "frozen BOTH filter + native V5 unchanged",
+      "ending_equity_median_jpy": "1221394.30",
+      "ending_equity_mean_jpy": "1224259.28333333",
+      "min_jpy": "1167197.85",
+      "max_jpy": "1289094.90",
+      "overlap_funded": 749,
+      "overlap_profit_N": 300,
+      "overlap_loss_N": 449,
+      "max_end_day_equity_drawdown_pct": 3.530573186981985
+    },
+    "WAIT_AFTER_FIRST_SELL": {
+      "rule": "after first legally filled SELL within each session, skip all later BUY candidate batches; reset next day",
+      "ending_equity_median_jpy": "1251120.20",
+      "ending_equity_mean_jpy": "1238342.91666667",
+      "min_jpy": "1186195.35",
+      "max_jpy": "1273762.20",
+      "improved_windows": 7,
+      "worsened_windows": 2,
+      "paired_median_delta_jpy": "18997.50",
+      "paired_mean_delta_jpy": "14083.63333333",
+      "difference_of_medians_jpy": "29725.90",
+      "overlapping_9sum_delta_jpy": "126752.70",
+      "overlap_funded": 410,
+      "overlap_profit_N": 163,
+      "overlap_loss_N": 247,
+      "max_end_day_equity_drawdown_pct": 2.467926844856022
+    },
+    "WAIT_AFTER_FULL_SLOT_RELEASE": {
+      "rule": "if before a legally filled SELL there are exactly 3 positions, after that fill block later BUYs until next trading day",
+      "ending_equity_median_jpy": "1205529.70",
+      "ending_equity_mean_jpy": "1207043.17777778",
+      "min_jpy": "1162179.75",
+      "max_jpy": "1265867.80",
+      "improved_windows": 0,
+      "worsened_windows": 9,
+      "paired_median_delta_jpy": "-15212.55",
+      "paired_mean_delta_jpy": "-17216.10555556",
+      "difference_of_medians_jpy": "-15864.60",
+      "overlap_funded": 593,
+      "overlap_profit_N": 226,
+      "overlap_loss_N": 367,
+      "max_end_day_equity_drawdown_pct": 3.519595134316744
+    }
+  },
+  "step2_primary_windows": [
+    {
+      "window": "W13",
+      "base": "1181117.00",
+      "wait_any": "1199976.00",
+      "wait_full": "1176790.45"
+    },
+    {
+      "window": "W14",
+      "base": "1208294.35",
+      "wait_any": "1208521.45",
+      "wait_full": "1182528.70"
+    },
+    {
+      "window": "W15",
+      "base": "1167197.85",
+      "wait_any": "1186195.35",
+      "wait_full": "1162179.75"
+    },
+    {
+      "window": "W16",
+      "base": "1214865.10",
+      "wait_any": "1237207.65",
+      "wait_full": "1205529.70"
+    },
+    {
+      "window": "W17",
+      "base": "1233527.60",
+      "wait_any": "1254606.35",
+      "wait_full": "1223318.65"
+    },
+    {
+      "window": "W18",
+      "base": "1289094.90",
+      "wait_any": "1272885.70",
+      "wait_full": "1265867.80"
+    },
+    {
+      "window": "W19",
+      "base": "1281244.45",
+      "wait_any": "1273762.20",
+      "wait_full": "1250810.75"
+    },
+    {
+      "window": "W20",
+      "base": "1221394.30",
+      "wait_any": "1251120.20",
+      "wait_full": "1189977.35"
+    },
+    {
+      "window": "W21",
+      "base": "1221598.00",
+      "wait_any": "1260811.35",
+      "wait_full": "1206385.45"
+    }
+  ],
+  "step2_wait_any_accounting_9overlap": {
+    "old_funded_not_new_N": 341,
+    "old_funded_not_new_plus_N": 137,
+    "old_funded_not_new_minus_N": 204,
+    "new_funded_not_old_N": 2,
+    "new_funded_not_old_loss_N": 2,
+    "old_not_new_pnl_reversal_jpy": "117746.65",
+    "common_quantity_delta_jpy": "9898.10",
+    "new_funded_pnl_jpy": "-892.05",
+    "asset_delta_jpy": "126752.70"
+  },
+  "audit": {
+    "original_frozen_v5_sha256": "42e229f3816427ca16e6d44acc218d7b044e1a04f74cfd3154ff4aa6da11bb88",
+    "native_fraction_v5_sha256": "f85b614775751b0aa8fd335fb1f5e09ad2be62911d1924628f88cc732d56bf61",
+    "primary_wait_derivative_sha256": "2851404fff064d78faf68ed8bd8146e15fa863eb46c4c9a04d1dfb238acdc373",
+    "independent_fraction_wait_derivative_sha256": "c70461c7af8fb45aaae2ce30df4cfce8fe6c5e4c72a27e860b986628968b99f8",
+    "independent_exact_paths": 27,
+    "independent_accounting_checks": 11213,
+    "paired_exact_cash_decompositions": 18,
+    "original_frozen_both_base_exact_window_parity": 9,
+    "original_no1_exit_plan_shared": true,
+    "no_outcomes_used_as_online_features": true,
+    "productionReady": false
+  },
+  "transport": {
+    "user_private_bundle_sha256": "9b3dc47419df188574efd0a366309023730ea332325cadb86422e099bb8e1b17",
+    "user_private_bundle_bytes": 1221438,
+    "user_public_bundle_sha256": "ba1759eb3a3bedbee83cde84d0e6dd28ce713f14cf43178814f784e266c1aba8",
+    "source_members_contained": false
+  },
+  "conclusion": "Historical development diagnostic not automatic policy promotion. Keep both-State Entry filter frozen; any future vacancy policy or ranking needs separate precommit and independent OOS/asof validation.",
+  "target_JPY_2000000_hit_all_arms_n": 0,
+  "safety": {
+    "original_entry_unchanged": true,
+    "original_exit_unchanged": true,
+    "original_capital_unchanged": true,
+    "original_both_filter_unchanged": true,
+    "model_fits": 0,
+    "productionReady": false,
+    "live_order_n": 0,
+    "paper_order_n": 0,
+    "main_merge_n": 0
+  }
+}

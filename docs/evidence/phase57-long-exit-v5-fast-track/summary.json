@@ -1,0 +1,172 @@
+{
+  "status": "V5_LONG_MEASUREMENT_BLOCKED",
+  "runtimeStatus": "V5_RUNTIME_SEMANTICS_BLOCKED",
+  "adapterStatus": "BAR5_SELECTED_SIMULATOR_MECHANICAL_PARITY_PASS",
+  "onlineStandaloneRuntimeResolved": false,
+  "role": "EXPOSED_HISTORICAL_ENTRY_DEVELOPMENT_IN_SAMPLE_NOT_VALIDATION",
+  "contractSHA": "f3f755b375977308e8f5c2693d72b18d7bc20a18031f54727357bf7755f4552a",
+  "entryIdentitySHA": "72224ac9fd073f7da45c488aaf8ca999752b466e715837c21440e7dd93970236",
+  "entries": 277,
+  "pairedEligibleN": 0,
+  "blocked277Reason": "CAUSAL_V4_CONTINUATION_UNAVAILABLE",
+  "bar5VsBar6Resolved": true,
+  "existingInsufficientV4Fallback": "NO_DEFINED_REPLACEMENT; ORIGINAL_SIMULATOR_RETURNS_NULL_BEFORE_STATE_LOGIC",
+  "rawMarketPrefixDiagnostic": {
+    "notFullV5StateReplay": true,
+    "firstBarObserved": 250,
+    "firstBarAdverse": {
+      "count": 61,
+      "denominator": 250,
+      "ratePct": 24.4
+    },
+    "states": {
+      "NON_ADVERSE_REQUIRES_V4": 189,
+      "NO_RECLAIM_THROUGH_BAR5_OBSERVED": 25,
+      "RECLAIM_OBSERVED_REQUIRES_V4": 33,
+      "UNKNOWN": 30
+    },
+    "unknownReasons": {
+      "FIRST_BAR_MISSING": 7,
+      "MISSING_PREFIX_BAR": 3,
+      "NO_REMAINING_BAR": 20
+    },
+    "defensiveObserved": 61,
+    "reclaimObserved": 33,
+    "noReclaimThroughBar5Observed": 25,
+    "reclaimAmongAllObservedAdverseLowerBound": {
+      "count": 33,
+      "denominator": 61,
+      "ratePct": 54.09836065573771
+    },
+    "reclaimAmongResolvedAdverse": {
+      "count": 33,
+      "denominator": 58,
+      "ratePct": 56.89655172413793
+    },
+    "reclaimBars": {
+      "2": 19,
+      "3": 6,
+      "4": 4,
+      "5": 4
+    },
+    "observedReclaimThenNegativeStrict30mClose": {
+      "count": 9,
+      "denominator": 24,
+      "ratePct": 37.5
+    },
+    "observedNoReclaimThenNonnegativeStrict30mClose": {
+      "count": 4,
+      "denominator": 21,
+      "ratePct": 19.047619047619047
+    },
+    "actualV5RecoveredCount": null,
+    "actualV5ForcedExitCount": null
+  },
+  "arms": {
+    "FIXED": {
+      "eligibleN": 0,
+      "metrics": {
+        "netSum": null,
+        "averageTrade": null,
+        "medianTrade": null,
+        "winRate": null,
+        "profitFactor": null,
+        "worstTrade": null,
+        "maxDrawdown": null,
+        "maeDistribution": null,
+        "badSide5": null,
+        "maeMinus10CohortFinalLoss": null,
+        "downsideTailReductionVsFixed": null,
+        "mfeMedian": null,
+        "mfeCapture": null,
+        "giveback": null,
+        "mfe3FinalNet": null,
+        "mfe5FinalNet": null,
+        "prematureWinnerExit": null,
+        "savedWinners": null,
+        "lostWinners": null,
+        "recoveredFinalWinnerRate": null,
+        "nonRecoveredFinalOutcome": null,
+        "falseRecovery": null,
+        "falseDefensiveExit": null,
+        "top1Contribution": null,
+        "top3Contribution": null,
+        "top5Contribution": null,
+        "symbolConcentration": null,
+        "sessionConcentration": null
+      }
+    },
+    "V5_BAR5": {
+      "eligibleN": 0,
+      "metrics": {
+        "netSum": null,
+        "averageTrade": null,
+        "medianTrade": null,
+        "winRate": null,
+        "profitFactor": null,
+        "worstTrade": null,
+        "maxDrawdown": null,
+        "maeDistribution": null,
+        "badSide5": null,
+        "maeMinus10CohortFinalLoss": null,
+        "downsideTailReductionVsFixed": null,
+        "mfeMedian": null,
+        "mfeCapture": null,
+        "giveback": null,
+        "mfe3FinalNet": null,
+        "mfe5FinalNet": null,
+        "prematureWinnerExit": null,
+        "savedWinners": null,
+        "lostWinners": null,
+        "recoveredFinalWinnerRate": null,
+        "nonRecoveredFinalOutcome": null,
+        "falseRecovery": null,
+        "falseDefensiveExit": null,
+        "top1Contribution": null,
+        "top3Contribution": null,
+        "top5Contribution": null,
+        "symbolConcentration": null,
+        "sessionConcentration": null
+      }
+    }
+  },
+  "fixedStandalonePathAvailability": 173,
+  "limitations": [
+    "All76 sessions are direct Entry Development IN_SAMPLE",
+    "Raw path prefixes cannot replace truncated causal v4 management traces",
+    "Reclaim proxy is not realized final winner or false recovery measurement",
+    "Session-end/auction fallback is not invented",
+    "V5_LONG_MINIMAL_ADAPTATION_REQUIRED cannot be inferred without full v5 performance"
+  ],
+  "nextAction": "Explicitly specify a standalone continuation for LONG as a new Development contract; not a mechanical adapter and not authorized by a measured MINIMAL_ADAPTATION_REQUIRED verdict here. Keep v3/v4 analog construction stopped.",
+  "counts": {
+    "entryPredictions": 0,
+    "entryChanges": 0,
+    "selectorChanges": 0,
+    "v3Replay": 0,
+    "v4Replay": 0,
+    "v5FullReplay": 0,
+    "analogPoolsBuilt": 0,
+    "exitFit": 0,
+    "thresholdSweep": 0,
+    "providerRequests": 0,
+    "freshAccess": 0,
+    "oosAccess": 0,
+    "freshBudgetConsumption": 0,
+    "shortEvaluation": 0,
+    "forwardFill": 0,
+    "interpolation": 0,
+    "futureSubstitution": 0
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

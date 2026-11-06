@@ -1,0 +1,89 @@
+name: Phase57 Gen3 Contract R45
+on:
+  push:
+    branches: ['research/phase57-gen3-r45-ci-*']
+    paths:
+      - 'scripts/phase57_exit_gen3*_r45.py'
+      - 'scripts/test_phase57_exit_gen3*_r45.py'
+      - '.github/workflows/phase57-exit-gen3-contract-r45.yml'
+      - '.github/workflows/phase57-exit-gen3-r45.yml'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-gen3-contract-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  ARK_TEST_OFFLINE: '1'
+  PYTHONDONTWRITEBYTECODE: '1'
+  PYTHONPATH: '.'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  NUMEXPR_NUM_THREADS: '1'
+jobs:
+  contract-no-fit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install exact frozen dependencies
+        run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.7.2 pandas==2.2.3 joblib==1.5.2
+      - name: Focused synthetic and inherited causality tests; no estimator fitting
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/r45-contract
+          python -m unittest -v \
+            scripts.test_phase57_exit_gen3_r45 \
+            scripts.test_phase57_exit_gen3_pattern_r45 \
+            scripts.test_phase57_exit_gen2_runtime_r41 \
+            scripts.test_phase57_exit_gen2_labels_r41 \
+            2>&1 | tee artifacts/r45-contract/focused-tests.log
+      - uses: actions/download-artifact@v4
+        with:
+          repository: Iam-2squared/ark-terminal
+          run-id: 36220335998
+          name: phase57-exit-capital-prep-r35-36220335998
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/r35
+      - name: Verify all 24 support slices on every frozen checkpoint without fitting
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m scripts.phase57_exit_gen3_runner_r45 --phase support \
+            --core-root "$RUNNER_TEMP/r35" --out artifacts/r45-support \
+            --cache "$RUNNER_TEMP/r45-support-unused.pkl" \
+            2>&1 | tee artifacts/r45-contract/support.log
+      - name: Bind tests, source hashes and support to this exact CI SHA
+        run: |
+          python -m scripts.phase57_exit_gen3_preflight_r45 --phase contract \
+            --support-dir artifacts/r45-support \
+            --tests-log artifacts/r45-contract/focused-tests.log \
+            --out artifacts/r45-contract/contract-receipt.json
+      - name: Preserve support and failure evidence without exposing credentials
+        if: always()
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import shutil
+          out = Path('artifacts/r45-contract'); out.mkdir(parents=True, exist_ok=True)
+          support = Path('artifacts/r45-support')
+          if support.exists(): shutil.copytree(support, out / 'support')
+          for failure in Path('artifacts').glob('partial-failure-*.json'):
+              shutil.copyfile(failure, out / failure.name)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-gen3-contract-r45-${{ github.run_id }}
+          path: artifacts/r45-contract
+          retention-days: 90
+          if-no-files-found: error
+          overwrite: false
+          include-hidden-files: true

@@ -1,0 +1,24 @@
+name: Phase57 LONG Entry v2 Predevelopment Contract Integrity
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-msh-entry-v2-predevelopment.yml
+      - scripts/*phase57_msh_entry_v2_predevelopment*
+      - predict/research/phase57-msh-entry-long-v2-predevelopment-contract-v1.json*
+      - docs/evidence/phase57-msh-entry-long-v2-predevelopment/**
+permissions:
+  contents: read
+jobs:
+  contract-only-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Static contract and frozen upstream only; deny network
+        env:
+          ARK_TEST_OFFLINE: '1'
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: python3 scripts/offline/kernel_exec.py python3 -m unittest scripts/test_phase57_msh_entry_v2_predevelopment.py scripts/test_phase57_msh_entry_upstream_freeze.py

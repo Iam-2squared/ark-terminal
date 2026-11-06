@@ -1,0 +1,69 @@
+{
+  "Hard1_extra_fits": 0,
+  "arms": [
+    "STATE_EXIT",
+    "STATE_EXIT_HARD1"
+  ],
+  "basis_head": "4a2d6f35946b16820a13449a9288a6685a5c283c",
+  "before_teacher_computation": true,
+  "consecutive_nonpositive_observed_closed_bars": 2,
+  "cost": {
+    "adverse_rate_per_side_bps": 5,
+    "buy_cost": "already embedded in frozen fill_price, do not double count",
+    "canonical_LONG_sell_formula": "reference*(1-halfSpreadRate-slippageRate)",
+    "commission_per_side": 0,
+    "no_market_impact_or_capacity": true,
+    "reference_module": "predict/trading/backtest-cost-model.js @ Entry HEAD; research override reconciled to frozen Entry5bps, not generic default preset",
+    "slippage_percent_per_side": 0.05,
+    "spread_percent": 0
+  },
+  "counter_reset": "positive prediction, missing raw minute, AM/PM phase boundary",
+  "fill": "next available eligible regular raw open at start>=intent; if none, scheduled same-session closing-auction close",
+  "fit_hard_cap": 5,
+  "folds": 5,
+  "forced_session_close": "preplanned closing-auction liquidation, closing source missing=>UNRESOLVED, never last-observed-close substitution",
+  "formal_arm_selection": 0,
+  "hard1": {
+    "assumption": "OHLC standing stop proxy; raw line is not a guaranteed net -1% loss; unseen gaps/touches remain unobserved",
+    "baseline_pending_market_fill_at_same_open": "executes first, intrabar stop does not override it",
+    "entry_relative_line_pct": -1.0,
+    "gap": "open<=line =>raw open; else low<=line=>raw line",
+    "intrabar_high_low_order": "unknown; stop-bar High excluded from strictly-later later-winner audit",
+    "monitor": "observed eligible regular bars only, including Entry fill bar;540/750 mixed openings and AM/PM terminal auctions excluded",
+    "raw_stop_line": "frozen Entry fill_price*.99",
+    "sell_adjustment_bps": 5,
+    "threshold_touch_not_prediction_feature": true
+  },
+  "heads": 1,
+  "intent": "earliest second consecutive prediction<=0 post Entry fill; lock intent",
+  "model": "HistGradientBoostingRegressor",
+  "new_EXIT_fits": 5,
+  "new_policy_after_results": 0,
+  "old_EXIT_read_or_execution": 0,
+  "parameters": {
+    "early_stopping": false,
+    "l2_regularization": 0.0,
+    "learning_rate": 0.05,
+    "max_depth": 3,
+    "max_iter": 100,
+    "max_leaf_nodes": 31,
+    "min_samples_leaf": 20,
+    "random_state": 570926
+  },
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "saved_at_jst": "2026-10-03T16:56:27.116575+09:00",
+  "searches": 0,
+  "state_machine": "POSITION_OPEN -> HOLD/EXIT_INTENT -> SELL_FILL -> CLOSED; closed arms stop decisions; no reentry",
+  "threshold_pct": 0.0
+}

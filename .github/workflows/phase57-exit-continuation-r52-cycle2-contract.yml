@@ -1,0 +1,98 @@
+name: Phase57 R52 Cycle2 Zero-fit Integrity Contract
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - docs/evidence/phase57-exit-continuation-r52/cycle2/INTEGRITY_CHECKPOINT.json
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-r52-cycle2-contract-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  no-fit-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      PYTHONPATH: '.'
+      PYTHONDONTWRITEBYTECODE: '1'
+      ARK_TEST_OFFLINE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0 pandas==2.2.3 matplotlib==3.10.8 joblib==1.5.2
+      - name: Frozen hashes and new-cycle disposition
+        run: |
+          mkdir -p /tmp/r52-cycle2-contract
+          python - <<'PY'
+          import hashlib,json,pathlib
+          base=pathlib.Path('docs/evidence/phase57-exit-continuation-r52')
+          cycle=base/'cycle2'
+          sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+          checkpoint=json.loads((cycle/'INTEGRITY_CHECKPOINT.json').read_text())
+          exposure=json.loads((cycle/'PERFORMANCE_EXPOSURE_AUDIT.json').read_text())
+          disposition=json.loads((cycle/'RETEST_DISPOSITION.json').read_text())
+          assert sha(cycle/'INTEGRITY_CHECKPOINT.json')==(cycle/'INTEGRITY_CHECKPOINT.sha256').read_text().strip()
+          assert checkpoint['protocolSha256']==sha(base/'PRECOMMIT.json')==disposition['protocolSha256']
+          assert checkpoint['sourceSha256']==sha('scripts/phase57_exit_continuation_r52.py')
+          assert checkpoint['testSha256']==sha('scripts/test_phase57_exit_continuation_r52.py')
+          assert checkpoint['exposureAuditSha256']==sha(cycle/'PERFORMANCE_EXPOSURE_AUDIT.json')
+          assert checkpoint['dispositionSha256']==sha(cycle/'RETEST_DISPOSITION.json')
+          assert checkpoint['workflowSha256']['contract']==sha('.github/workflows/phase57-exit-continuation-r52-cycle2-contract.yml')
+          assert checkpoint['workflowSha256']['finite']==sha('.github/workflows/phase57-exit-continuation-r52-cycle2-finite.yml')
+          assert checkpoint['expectedEstimatorFits']==16 and checkpoint['oldEstimatorFits']==3
+          assert disposition['decision']=='RETEST_ALLOWED_AS_NEW_RESEARCH_EXECUTION_CYCLE'
+          assert exposure['oldRun']['conclusion']=='failure' and not exposure['newCandidateOutput']['postFitCandidateMetricSeenByResearcher']
+          assert all(v is False for v in checkpoint['safety'].values()) and len(checkpoint['safety'])==9
+          PY
+      - name: Zero-fit causality, allocation and accounting tests
+        run: python -m unittest -q scripts.test_phase57_exit_continuation_r52 scripts.test_phase57_capital_exit_integrated scripts.test_phase57_exit_winner_lifecycle_r50 2>&1 | tee /tmp/r52-cycle2-contract/tests.log
+      - name: Exact original R50-A integrated cash ledger parity
+        run: python -m scripts.phase57_exit_continuation_r52 --mode control --out /tmp/r52-cycle2-contract/control-parity.json
+      - uses: actions/download-artifact@v4
+        with:
+          repository: Iam-2squared/ark-terminal
+          run-id: 36251316248
+          name: phase57-exit-gen3-r45-36251316248
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/r45
+      - name: Verify exact eight disjoint OOF slices with zero fits
+        run: |
+          python - <<'PY'
+          import json,numpy as np,os,pathlib,hashlib
+          from scripts import phase57_exit_continuation_r52 as r
+          from scripts import phase57_development_integrated_v0 as v0
+          base=pathlib.Path('docs/evidence/phase57-exit-continuation-r52')
+          c=json.loads((base/'cycle2/INTEGRITY_CHECKPOINT.json').read_text())
+          m=json.loads((base/'CORRECTED_OOF_MASK_AUDIT.json').read_text())
+          p=r.protocol();source=pathlib.Path(os.environ['RUNNER_TEMP'])/'r45/gen3'
+          receipt,arrays,identities,groups=r.load_checkpoints(source)
+          arms=np.asarray([x['arm'] for x in identities]);days=np.asarray([x['session'] for x in identities]);nows=np.asarray([x['now'] for x in identities]);all_rows=[]
+          observed=[]
+          for fold in p['folds']:
+            for arm in v0.ARMS:
+              idx=r.score_rows(arms,days,nows,arm,fold['score']);all_rows.extend(idx.tolist())
+              observed.append({'arm':arm,'fold':fold['fold'],'rows':len(idx),'minDay':min(days[idx]),'maxDay':max(days[idx])})
+          assert observed==m['foldArmSlices'] and len(all_rows)==len(set(all_rows))==381223
+          assert sum(days[i] in p['sessions'] for i in all_rows)==272803
+          assert c['correctedMaskAuditSha256']==hashlib.sha256((base/'CORRECTED_OOF_MASK_AUDIT.json').read_bytes()).hexdigest()
+          parity=json.loads(pathlib.Path('/tmp/r52-cycle2-contract/control-parity.json').read_text())
+          assert parity['controlByteIdentical'] and parity['modelFits']==0 and parity['candidateReplays']==0
+          outcome={'executionSha':os.getenv('GITHUB_SHA'),'status':'PASS','checkpointSha256':hashlib.sha256((base/'cycle2/INTEGRITY_CHECKPOINT.json').read_bytes()).hexdigest(),'sourceSha256':c['sourceSha256'],'testSha256':c['testSha256'],'protocolSha256':c['protocolSha256'],'scoreRowsUnique':len(all_rows),'windowScoreRows':272803,'modelFits':0,'candidateReplays':0,'archivedControlByteIdentical':True,'providerRequests':0,'protectedPartitionsOpened':0,'safety':c['safety']}
+          pathlib.Path('/tmp/r52-cycle2-contract/receipt.json').write_text(json.dumps(outcome,sort_keys=True)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-r52-cycle2-contract-${{ github.sha }}
+          path: /tmp/r52-cycle2-contract/
+          retention-days: 90
+          if-no-files-found: warn

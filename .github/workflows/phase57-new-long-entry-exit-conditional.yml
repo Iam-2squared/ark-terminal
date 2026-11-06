@@ -1,0 +1,26 @@
+name: Phase57 Frozen Entry Conditional EXIT Integrity
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-new-long-entry-exit-conditional.yml'
+      - 'scripts/*phase57_new_long_entry_exit_conditional*'
+      - 'docs/evidence/phase57-new-long-entry-exit-conditional-v1/**'
+permissions:
+  contents: read
+jobs:
+  offline-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Frozen source and conditional transfer tests (no provider or Entry replay)
+        env:
+          ARK_TEST_OFFLINE: '1'
+        run: >-
+          python3 scripts/offline/kernel_exec.py python3 -m unittest
+          scripts.test_phase57_new_long_entry_exit_conditional
+          scripts.test_phase57_long_exit_continuation.RuntimeTests
+          scripts.test_phase57_long_exit_continuation.SavedEvidenceTests.test_final_manifest_and_all_evidence_pins
+          scripts.test_phase57_long_exit_continuation.SavedEvidenceTests.test_final_interface_is_single_cash_long_policy

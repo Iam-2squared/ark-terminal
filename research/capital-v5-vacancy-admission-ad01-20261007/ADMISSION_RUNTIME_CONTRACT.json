@@ -1,0 +1,116 @@
+{
+  "E0": "Default dispatch to baseline_adapter.day_replay copied from immutable8080-byte repaired predecessor; returned tuple and fields unchanged.",
+  "H1": "Native-gate-passed S/A only at all new-buy opportunities; B rejected before picked append.",
+  "H2": "Native admission until own arm SD full fill and actual cash/slot release; thereafter native-gate-passed S/A only for remainder of session.",
+  "H2_activation_order": [
+    "scheduled_confirmed_full_fill",
+    "valid_price_check",
+    "position_pop",
+    "cash_credit_and_recycled_pool_credit",
+    "verify_own_latched_SD_position",
+    "state_true_update",
+    "current_timestamp_new_BUY"
+  ],
+  "H2_rejected_activation_inputs": [
+    "SELL_intent_only",
+    "unfilled_or_blocked_release",
+    "other_arm_release",
+    "future_SD_plan",
+    "old_control_virtual_release"
+  ],
+  "H2_state_fields": {
+    "first_sd_release_known_at": "JST timestamp or null",
+    "sd_full_release_count_today": "integer0 at session start",
+    "sd_full_release_seen_today": "bool false at session start"
+  },
+  "adapter_pin": {
+    "bytes": 14984,
+    "git_blob": "6bebeef1192f6427c269c17d99e8cb6610b9affc",
+    "sha256": "1041c57232c52f946f15c8654838bbdc9760035ab71e779661227e4e395b6646"
+  },
+  "baseline_pin": {
+    "bytes": 8080,
+    "git_blob": "2798add9f23de55fd89fe050b794a6ff12449ce5",
+    "sha256": "fbbf8e2a13fd654e4a5dbdd5816776cc8f84143eec3125dee2cfd158297d9436"
+  },
+  "books_and_exit_plans": "Only execution/MTM engine queries funded existing positions; rejected Entry is never looked up. All future suffix arrays remain quarantined from gate and allocator.",
+  "checkpoint_interface": [
+    "stop_after_minute",
+    "resume_checkpoint",
+    "checkpoint_binding"
+  ],
+  "checkpoint_scope": "H1/H2 midday checkpoint carries complete positions/marks/fill schedule/cash pools/cursor/cumulative payload/H2 state and caller input+code+spec bindings; E0 retains inherited flat-session carrier.",
+  "checkpoint_verification": "Synthetic full tuple serialized bytes match at6 intent/funding/full-release/flat boundaries for both H1 and H2; binding mismatch fails closed.",
+  "decision_extra_fields": [
+    "admission_policy",
+    "native_eligibility",
+    "native_eligibility_reason",
+    "native_gate_action",
+    "native_gate_reason",
+    "overlay_gate_action",
+    "overlay_gate_reason",
+    "funding_action",
+    "sd_full_release_seen_today",
+    "first_sd_release_known_at",
+    "sd_full_release_count_today"
+  ],
+  "direct_guard_signature": "(policy, rank, sd_full_release_seen_today)",
+  "entry_path": [
+    "inherited_entry_cutoff_eligibility_score_and_open_symbol_checks",
+    "fixed_candidate_order_stable_sort",
+    "native_V5_gate_actual_open_plus_picked_occupancy",
+    "AD01_guard",
+    "single_byte_identical_native_allocation",
+    "100share_cash_lot_checks_no_backfill",
+    "funding_cash_and_quantity_fixed",
+    "execution_book_and_compiled_EXIT_plan_lookup"
+  ],
+  "guard_input_allowlist": [
+    "policy",
+    "rank",
+    "sd_full_release_seen_today"
+  ],
+  "malformed_execution_rows": "H adapter catches parsing ArithmeticError/ValueError/TypeError/KeyError around unchanged native valid_market; invalid row cannot mark or EOD fill. Native execution.py remains byte-identical and E0 delegates predecessor.",
+  "policy_ids": [
+    "E0",
+    "H1",
+    "H2"
+  ],
+  "productionReady": false,
+  "research_id": "AD01",
+  "session_reset_contract": "Campaign advances to next session only from COMPLETE and flat; adapter initializes false/null/0 for each new session. Same-session restore preserves exact state.",
+  "sizing_rank_gate_execution_bytes": {
+    "allocation.py": {
+      "bytes": 2267,
+      "git_blob": "c48283ead2c1dc369281c734ee2006d1ea479fac",
+      "sha256": "bbb0f6446cb2c7edd859a2ab97edde03276bda592262c94dacbaa7900ad6b147"
+    },
+    "execution.py": {
+      "bytes": 3327,
+      "git_blob": "311fa97b4dccf5ce74af5a81e17d39c986c97573",
+      "sha256": "7f084415ed92344fb99ef26e27ac48f2beeb868e643fba720bb61355339a8bc8"
+    },
+    "replay.py": {
+      "bytes": 12547,
+      "git_blob": "39f9f73a37bb75b31e9c2d42c0b46dc6936bab1a",
+      "sha256": "42e229f3816427ca16e6d44acc218d7b044e1a04f74cfd3154ff4aa6da11bb88"
+    },
+    "slot_policy.py": {
+      "bytes": 1310,
+      "git_blob": "094e6e798d2884321be67316b7b3342bc048f03a",
+      "sha256": "7088999ffad385051522228f46c97b28ff96d0d34fcdfbb12021e098d31f3a32"
+    },
+    "staircase.py": {
+      "bytes": 1158,
+      "git_blob": "6863b2dded50e4d0caa4e2d470619017fcf0b759",
+      "sha256": "96d3b01749b30de17d3bce811fea771a990a15ee17508f4462c50e35e4650f70"
+    }
+  },
+  "synthetic_test_pin": {
+    "bytes": 15986,
+    "git_blob": "781a97fe63ce12ad9f3abba0d03473ac62f4350b",
+    "sha256": "5621326494fe26fe36bfa3e3faaa3270b2bc017a2899458f232213a461b5b669"
+  },
+  "technical_boundary_additions": "H arm pending same-symbol rejects before native gate; strict positive finite Entry/fill price validation prevents malformed-price funding or release. No native sizing/rank/gate/execution function is edited.",
+  "transmitted": false
+}

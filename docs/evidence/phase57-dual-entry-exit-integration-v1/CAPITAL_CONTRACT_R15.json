@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "phase57-dual-entry-capital-contract-r15",
+  "status": "PREREGISTERED_REFERENCE_INTEGRATION_NOT_PORTFOLIO_PASS",
+  "dateJST": "2026-09-25",
+  "dualFreezeCommit": "4878a1cc53430e816261dea0fb16aeb53b3c238d",
+  "entryPolicies": [
+    "IMMEDIATE",
+    "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF"
+  ],
+  "architectures": [
+    "ONE_LOT_REFERENCE",
+    "EQUAL_MAX3"
+  ],
+  "exitPolicy": "NEW_LONG_EXIT_PROTECT_3_TO_1_FIXED12_V1",
+  "exitSourceRun": 36115061827,
+  "exitSourceArtifact": 10855136419,
+  "exitLedgerSHA256": "0afdb59bc476f7085955b3ac30efdf875402fb1d68b316181f483b3486c8e9c6",
+  "inputPins": {
+    "docs/evidence/phase57-entry-all-material-v1/ENTRY_DUAL_FREEZE_R10.json": "5d7b619694a2d830d366d21429c2465f7214739f3e94a222a3844f6c0f41820a",
+    "docs/evidence/phase57-entry-timing-signal-census-v1/protocol.json": "6b02b3088dd8ea7f8ce53112bc276df442bae3ce0716b8139c92733be4de2994",
+    "scripts/phase57_new_long_exit_candidate_a.py": "082183ee2a1ba5b71cee35e9394401f4b0ff338898fec39263b3e5cbfcd09901",
+    "predict/long-only/phase57_long_exit_continuation_v1.py": "b3e8f07086cfa65173524f62b78571f606e5d1c372a4cec1c16343c73d8c6c23",
+    "scripts/phase57_dual_entry_exit_integration_v1.py": "58409f6acf636c8ee7131318ad385535ca16e904c6a785ac8f466e261d03fc16",
+    "docs/evidence/phase57-dual-entry-exit-integration-v1/ADAPTER_CONTRACT_R13.json": "2189bc5b669abc1c0edaf1356d05aebd06216e92098d7a4080accb09981a6c8d",
+    "predict/research/phase57-long-capital-integration-v1.json": "a5c28df18cea2e32e4ac1c03b8666f10804c8d889a11179d6e416d5b9bc7e464",
+    "scripts/phase57_long_capital_integration.py": "93ae549e6cdbc88180c2c8a304ffd8c739aaa2ccaf0afadc94061816dddc68ae"
+  },
+  "population": "All2155 per Entry, including explicit NO_ENTRY; every frozen fill offered at its own time without future-resolvability filtering",
+  "sessions": "Exact evaluationSessions from frozen timing-signal-census protocol; include flat/no-Entry days, no old76-session substitution",
+  "capitalConstants": {
+    "initialCashJpy": 1000000,
+    "lotSize": 100,
+    "budgetDivisor": 3,
+    "maximumConcurrentPositions": 10
+  },
+  "max3Meaning": "Budget divisor3, NOT max concurrent3. Both constants inherited unchanged from old capital contract.",
+  "sizing": "ONE_LOT_REFERENCE one100-share lot; EQUAL_MAX3 event-start exact known equity/3 * min(current simultaneous candidate count,open slots), equally divided across all simultaneous candidates. Symbol/entryId order, sequential cash cap, no redistribution after rejects.",
+  "cost": "Both legs cost0.025% of original Entry notional (0.05pp round trip), one debit at each leg. Frozen Entry already includes5bps buy slippage; do not alter Entry price or double-charge slippage.",
+  "eventOrder": [
+    "OBSERVED_COMPLETED_BAR",
+    "FIXED12_TERMINAL_CLOSE_EXIT",
+    "KNOWN_NEXT_OPEN_PROTECT_EXIT",
+    "CASH_RELEASE",
+    "ENTRY_SYMBOL_ASC",
+    "OBSERVED_MTM"
+  ],
+  "streamingCandidate": "Call unchanged Candidate A policy on completed prefix plus actual next OPEN-only carrier (neutral h=0,c=2, never observational data). The carrier cannot arm or signal; only an already completed preceding signal can exit at this OPEN. No current HIGH/CLOSE supplied. Assert stream status/time/net parity against all frozen R13 fills after allocation.",
+  "valuation": "Preserve exact timestamp completed-close marks only (plus current new Entry mark). No carry-forward for off-grid Entry sizing. Unknown current equity rejects EQUAL; ONE_LOT may use actual cash. No knownMark drawdown labeled full MDD.",
+  "missing": "First missing expected bar before exit permanently censors position; purchase capital and quantity stay locked, no synthetic EOD liquidation or future cash release. Full portfolio equity/return/MDD null when exposure or required mark history is unpriced.",
+  "allocationIsolation": "Pure allocator sees current Entry identity/time/price/calendar, current public symbol occupancy, cash, current known equity only. Saved EXIT outcomes evaluated only after all allocation decisions; they never select the primary cohort.",
+  "otherArms": "Rank/risk/adaptive not measured and not replaced by equal: no compatible causal score/risk contract introduced.",
+  "forbidden": [
+    "Entry/EXIT tuning",
+    "Capital grid search",
+    "outcome-driven timing filter",
+    "complete-case primary",
+    "old277 performance reuse",
+    "provider acquisition",
+    "new protected partitions",
+    "main merge",
+    "live/paper/production"
+  ],
+  "outputs": "Full causal decision/closed/unresolved/equity ledgers plus explicit summary nulls, cash/lot reconciliation, concentration, Run A/B byte reproducibility. No automatic Entry winner.",
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

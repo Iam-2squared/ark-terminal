@@ -1,0 +1,40 @@
+{
+  "verificationScope": "Official public API specification checked2026-09-16; no authenticated price request and no account-specific availability probe",
+  "minuteCoverageYears": 2,
+  "dailyLightCoverageYears": 5,
+  "minuteUniverse": "TSE-listed equities; frozen Selector PIT domestic common cash-equity eligibility still applies",
+  "minuteEndpoint": "https://api.jquants.com/v2/equities/bars/minute",
+  "minuteFields": [
+    "Date",
+    "Time",
+    "Code",
+    "O",
+    "H",
+    "L",
+    "C",
+    "Vo",
+    "Va"
+  ],
+  "supportingEndpoints": [
+    "/v2/equities/master",
+    "/v2/equities/bars/daily"
+  ],
+  "supportingFields": "Existing dated master identity/market/product eligibility; causal daily history required by frozen Selector. No new fields selected because no admissible window.",
+  "rateLimits": {
+    "LightRequestsPerMinute": 60,
+    "minuteAddonRequestsPerMinute": 60
+  },
+  "noTradePolicy": "No row when there is no trading activity; never fill/interpolate",
+  "sources": [
+    "https://jpx-jquants.com/en/spec/eq-bars-minute",
+    "https://jpx-jquants.com/en/spec/data-spec",
+    "https://jpx-jquants.com/ja/spec/rate-limits"
+  ],
+  "currentEntitlementEvidence": "Repo snapshot reattested2026-09-15: Light+minute addon active through2026-10-06; no new account verification needed to establish the independent freshness stop",
+  "localCredentialPresent": false,
+  "existingGithubExecutionPath": "Repository acquisition workflows reference secrets.JQUANTS_API_KEY; secret presence/value not inspected; absence in local env is NOT asserted to mean unavailable on GitHub",
+  "existingLocalCache": "Historical raw/reconstructable cache identity not established by previous inventory; no raw cache opened. A cache cannot reset outcome exposure.",
+  "actualApiRequests": 0,
+  "reasonNoProbe": "No eligible30-session identity could be frozen. Do not fetch prices to look for a better window.",
+  "broaderProviderProductAvailability": "NOT_ASSESSED; no claim that all JPX/J-Quants products are limited to two years"
+}

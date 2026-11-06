@@ -1,0 +1,14 @@
+{
+  "V1_nonconformance_preserved": true,
+  "V2_solution": "Generate once 1000 global date vectors; reuse stored indices for every task and metric; checker generates0.",
+  "actual": 3000,
+  "by_horizon": {
+    "15": 1000,
+    "30": 1000,
+    "5": 1000
+  },
+  "cause": "Separate rng.integers(1000,date_N) within horizon loop",
+  "excess": 2000,
+  "registered_cap": 1000,
+  "source_SHA256": "784e96d3d7c9db401d29d1a5588bee75c22083e39b09b4e12a06d25fe45d5139"
+}

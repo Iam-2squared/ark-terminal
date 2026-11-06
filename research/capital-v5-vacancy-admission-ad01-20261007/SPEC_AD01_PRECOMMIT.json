@@ -1,0 +1,126 @@
+{
+  "branch": "research/capital-v5-vacancy-admission-ad01-20261007",
+  "budget": {
+    "e0_connection_replay_paths": 2,
+    "fit": 0,
+    "formal_candidate_paths": 20,
+    "independent_paths": 30,
+    "inference": 0,
+    "kernel_build": 0,
+    "new_policies": 2,
+    "reproduction_campaigns": 1,
+    "reproduction_paths": 20,
+    "score_build": 0,
+    "technical_repair_cycles": 20,
+    "threshold_search": 0
+  },
+  "data_scope": "Previously observed adaptive Development; overlapping9 windows, not9 independent months or fresh OOS",
+  "document_id": "ARK_AD01_PRECOMMIT_20261007",
+  "exitChanged": false,
+  "firstLayerChanged": false,
+  "freshValidation": "NOT_RUN",
+  "frozen": {
+    "allocation": "Original byte-identical allocation.py; caps45/35/25%, targets68/56/44%,breadth5.5pp,max92%,100lot,MAX3; no reentry/new tie-break",
+    "exit": "SHARP_DROP_FIRST_OBSERVED_EXIT_V0 with prior/same Control priority and canonical 15:20 EOD",
+    "first_layer_mode": "E0 additionalPreBuyFilterActivated=false; P1=false",
+    "rank": "Original UPWARD_STAIRCASE_SCORE_STREAM H2/H3/H5/PAVA/base/rank/order/arrival; no new score"
+  },
+  "gates": {
+    "DOWNSIDE_PRESERVED": [
+      "red_window_count nonincrease",
+      "minimum_final nondecrease",
+      "aggregate grossloss nonincrease",
+      "R<=-3 lossJPY nonincrease",
+      "R<=-5 lossJPY nonincrease",
+      "max minuteMTMDD nonincrease",
+      "max EODDD nonincrease"
+    ],
+    "INTEGRITY": "All9 complete; E0 exact parity; fixed inputs,time,rank,EXIT,sizing; no cash/lot/MAX3 violations; independent mismatch0; reproduction exact",
+    "WEALTH_PROGRESS": [
+      "median(H)>median(E0)",
+      "mean(H-E0)>0",
+      "median(H-E0)>0"
+    ],
+    "classification": "Instruction section16 exact classifications; partial -> PARTIAL_INCONCLUSIVE; no effect -> NO_EFFECT",
+    "selection": "No auto promotion or main pointer update"
+  },
+  "instruction_sha256": "aa975d9187ea2df08d6cb51793aec95aa3a08a764fd856b00337a743ffa2fcd6",
+  "mainCapital": "CAPITAL_MAX3_SLOT_RESERVE_V1",
+  "mainExit": "SHARP_DROP_FIRST_OBSERVED_EXIT_V0",
+  "parents": {
+    "exit_freeze_commit": "30519cc85042a36097db54a70471de7bc679794e",
+    "exit_freeze_sha256": "a9845422555b478fe1ed34a95b97fa185f83c2c487c19926f72dbe628eec590d",
+    "native_v5_commit": "710656491be06235901b45c50a8b5cbd714ba4eb",
+    "portfolio_adapter_sha256": "fbbf8e2a13fd654e4a5dbdd5816776cc8f84143eec3125dee2cfd158297d9436",
+    "private_commit": "58599251e499076db1fe0c94aff3cc28f0c46faf",
+    "private_repository": "Iam-2squared/ark-capital-private-",
+    "public_commit": "8fe7abe0db871d1a52115a7859219d49581db96f",
+    "public_repository": "Iam-2squared/ark-terminal"
+  },
+  "policies": {
+    "E0": "BASELINE_V5_SHARP_DROP_EXIT",
+    "H1": "ALL_VACANCY_SA_ONLY_V1",
+    "H2": "POST_SD_SESSION_SA_ONLY_V1"
+  },
+  "primary": {
+    "daily_cash_reset": false,
+    "exact_session_lists": "Saved verified E0 RESULT.json planned_sessions per window",
+    "initial_cash": "1000000",
+    "initial_holdings": 0,
+    "initial_pending": 0,
+    "market_sessions_each": 20,
+    "unmeasured_W01_W12": "Remain unmeasured; never zero-impute",
+    "window_ids": [
+      "W13",
+      "W14",
+      "W15",
+      "W16",
+      "W17",
+      "W18",
+      "W19",
+      "W20",
+      "W21"
+    ]
+  },
+  "productionReady": false,
+  "publication": {
+    "append_only": true,
+    "previous_receipt_missing": "Preceding READBACK_RECEIPT_PUBLICATION.json404; do not certify unseen past artifacts",
+    "private_individual_data": true,
+    "readback_then_separate_confirmation": true
+  },
+  "rankChanged": false,
+  "research_id": "AD01",
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "secondary": {
+    "CHAIN38": "Inherited SESSION_SPLIT.OOF38 38 sessions,1000000 start",
+    "L02": "2025-06-30 through2025-07-30; display only",
+    "legacy_normalized20": "All19 rolling 20-session normalized cash ratios; not RESET20"
+  },
+  "selectedAdmissionCandidate": null,
+  "semantics": {
+    "H1": "Native V5 gate first, then reject rank not S/A for every current Frozen Entry, irrespective of occupancy/time/release type; rejected candidate does not occupy picked slot.",
+    "H2": "Native V5 until own arm confirmed SHARP_DROP full fill and cash/slot release; latch session flag then restrict all subsequent admissions to S/A; SELL_INTENT alone is insufficient. Reset only next session after flat confirmed.",
+    "future_information": "Evaluation book/exit plans isolated from admission; only funded or already-held positions access suffix. No future labels, availability, IDs or schedules at admission.",
+    "guard_inputs": [
+      "policy_id",
+      "saved_native_rank",
+      "own_confirmed_sd_full_release_seen_today"
+    ],
+    "release_order": "Original known mark then confirmed fill/cash release then BUY; same timestamp release applies without new delay.",
+    "same_batch": "Inherited stable candidate_order; native gate occupancy=actual positions+accepted picked; allocation once; no backfill after lot/cash failure."
+  },
+  "sizingFunctionChanged": false,
+  "source_gate": "Missing necessary originals block affected path; no RAW recovery, no new State generation, no future availability-based candidate removal",
+  "status": "SEALED_BEFORE_NEW_CANDIDATE_RESULTS"
+}

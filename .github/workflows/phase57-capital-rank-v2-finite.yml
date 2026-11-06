@@ -1,0 +1,76 @@
+name: Phase57 Capital Rank v2 Finite OOF
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - docs/evidence/phase57-comprehensive-exit-v1/CAPITAL_RANK_V2_LAUNCH.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-capital-rank-v2-finite-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  frozen-finite-learning:
+    if: github.ref == 'refs/heads/research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Frozen dependencies
+        run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0 pandas==2.2.3 matplotlib==3.10.8
+      - name: Verify launch marker and source identity
+        env:
+          EXECUTION_SHA: ${{ github.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import hashlib,json,os,pathlib,urllib.request
+          x=json.loads(pathlib.Path('docs/evidence/phase57-comprehensive-exit-v1/CAPITAL_RANK_V2_LAUNCH.json').read_text())
+          assert x['executionShaPolicy']=='THIS_LAUNCH_MARKER_COMMIT' and x['protocolSha256']=='8b5f9eb1753a2967edd4991fc90bbff6e21898764d1fb13d3693572c72d335de'
+          assert x['sourceSha'] != os.environ['EXECUTION_SHA'] and x['expectedFits']==24 and x['candidateCount']==3
+          assert x['entryFreeze']=='4878a1cc53430e816261dea0fb16aeb53b3c238d'
+          assert x['performanceInspectedBeforeLaunch'] is False and x['runAttempt']==1
+          assert len(x['safety'])==9 and not any(x['safety'].values())
+          for name,expected in x['testedSourceManifest'].items():
+              assert hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest()==expected,name
+          req=urllib.request.Request('https://api.github.com/repos/Iam-2squared/ark-terminal/actions/runs/'+str(x['contractRunId']),headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+          with urllib.request.urlopen(req) as r:ci=json.load(r)
+          assert ci['conclusion']=='success' and ci['head_sha']==x['sourceSha']
+          PY
+      - name: Download frozen R1 Entry
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-all-material-r1-afb38b7a5421ca4f6ff6d439bf89096236efd119
+          run-id: 36099497597
+          repository: Iam-2squared/ark-terminal
+          github-token: ${{ github.token }}
+          path: /tmp/phase57-r1-frozen
+      - name: Download pinned R50 terminal benchmark
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-r50-result-36287943625
+          run-id: 36287943625
+          repository: Iam-2squared/ark-terminal
+          github-token: ${{ github.token }}
+          path: /tmp/phase57-r50-control
+      - name: Precommitted 24 fits and OOF ranking scorecard
+        run: |
+          python -m scripts.phase57_capital_rank_v2 \
+            --benchmark-ledger /tmp/phase57-r50-control/R50_B_FAILED_RECOVERY-run-a.jsonl.gz \
+            --r1-records /tmp/phase57-r1-frozen/all-material-r1/ci-run-a/entry-records.json.gz \
+            --mode finite --out /tmp/phase57-rank-v2-finite/report.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-capital-rank-v2-finite-24fit
+          path: /tmp/phase57-rank-v2-finite/
+          if-no-files-found: error

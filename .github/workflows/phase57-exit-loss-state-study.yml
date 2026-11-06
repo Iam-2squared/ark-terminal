@@ -1,0 +1,53 @@
+name: Phase57 EXIT Loss State Study
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-exit-loss-state-study.yml'
+      - 'scripts/phase57_exit_loss_state_study.py'
+      - 'scripts/report_phase57_exit_loss_state_study.py'
+      - 'scripts/test_phase57_exit_loss_state_study.py'
+      - 'docs/evidence/phase57-exit-loss-state-study-v1/**'
+permissions:
+  contents: read
+jobs:
+  audit:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Causal and measurement regression
+        env:
+          ARK_TEST_OFFLINE: '1'
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: python3 scripts/offline/kernel_exec.py python3 -m unittest -v scripts.test_phase57_exit_loss_state_study scripts.test_phase57_new_long_exit_candidate_a scripts.test_phase57_exit_cc_freeze_audit
+      - name: Reproduce only new diagnostic and compare committed evidence
+        env:
+          ARK_TEST_OFFLINE: '1'
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          set -euo pipefail
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_exit_loss_state_study --out /tmp/loss-state-repro
+          for file in summary.json ledger.json.gz coverage.json.gz manifest.json; do
+            cmp /tmp/loss-state-repro/$file docs/evidence/phase57-exit-loss-state-study-v1/measurement/$file
+          done
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.report_phase57_exit_loss_state_study --measurement /tmp/loss-state-repro --out /tmp/loss-state-report
+          for file in REPORT.md feature-robustness-appendix.json manifest.json; do
+            cmp /tmp/loss-state-report/$file docs/evidence/phase57-exit-loss-state-study-v1/decision/$file
+          done
+          python3 scripts/verify_phase57_development_preservation.py
+          git diff --exit-code
+      - name: Retain diagnostic evidence (green is not performance PASS)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-exit-loss-state-study-${{ github.event.pull_request.head.sha }}
+          path: /tmp/loss-state-repro
+          if-no-files-found: error
+          retention-days: 30

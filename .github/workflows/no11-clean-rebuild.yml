@@ -1,0 +1,124 @@
+name: No11 Clean Rebuild From Git
+
+on:
+  push:
+    branches: [repair/no11-clean-rebuild-20261103]
+    paths:
+      - 'research/no11-clean-rebuild-20261103/**'
+      - '.github/workflows/no11-clean-rebuild.yml'
+  pull_request:
+    paths:
+      - 'research/no11-clean-rebuild-20261103/**'
+      - '.github/workflows/no11-clean-rebuild.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: no11-clean-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: src
+          fetch-depth: 1
+      - name: Fetch exact Git objects, not old packages
+        shell: bash
+        run: |
+          git -C src fetch --no-tags --depth=1 origin 24b906e19a2623e45701311ca3fbb20dafe11c80
+      - uses: actions/checkout@v4
+        with:
+          ref: 24b906e19a2623e45701311ca3fbb20dafe11c80
+          path: baseline
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install the existing offline suite runtime
+        run: |
+          python -m pip install --quiet --disable-pip-version-check --only-binary=:all: numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0
+      - name: Generate package into isolated CI baseline
+        run: python -B src/research/no11-clean-rebuild-20261103/ci.py build
+      - name: Test new code and existing Frozen-P1 Python suite
+        run: python -B src/research/no11-clean-rebuild-20261103/ci.py python
+      - name: Test existing Node regressions with the new pure dependency
+        run: |
+          python -B src/research/no11-clean-rebuild-20261103/node_harness.py
+          python -B src/research/no11-clean-rebuild-20261103/ci.py node
+      - name: Windows PowerShell 5.1 offline tests
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & $env:NO11_CLEAN_PS_TEST -EngineRoot $env:NO11_CLEAN_ENGINE -PackageRoot $env:NO11_CLEAN_PACKAGE -BaselineRoot $env:NO11_CLEAN_BASELINE | Tee-Object -FilePath (Join-Path $env:NO11_CLEAN_PACKAGE 'powershell-tests.log')
+          foreach($name in @('Read-No11BrokerSnapshot.ps1','Capture-No11SessionReferenceReadOnly.ps1','Observe-No11AccountReadOnly.ps1','Invoke-No11MsiiOrder.ps1')){
+            & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $env:NO11_CLEAN_ENGINE ('windows/'+$name)) -OfflineSelfTest
+            if($LASTEXITCODE -ne 0){throw ('NO11_CLEAN_EXISTING_SELFTEST_FAILED_'+$name)}
+          }
+      - name: Linux PowerShell Core pure helper tests
+        if: matrix.os == 'ubuntu-latest'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          & $env:NO11_CLEAN_PS_TEST -EngineRoot $env:NO11_CLEAN_ENGINE -PackageRoot $env:NO11_CLEAN_PACKAGE -BaselineRoot $env:NO11_CLEAN_BASELINE | Tee-Object -FilePath (Join-Path $env:NO11_CLEAN_PACKAGE 'powershell-tests.log')
+      - name: Assert original source checkout and frozen assets unchanged
+        shell: bash
+        run: |
+          git -C src diff --exit-code
+          git -C baseline diff --exit-code -- research/ark-integrated-no1-1-freeze-20261008 integration/no1-1-msii
+      - uses: actions/upload-artifact@v4
+        with:
+          name: no11-clean-verified-${{ matrix.os }}
+          path: ${{ env.NO11_CLEAN_PACKAGE }}/
+          retention-days: 14
+          if-no-files-found: error
+      - name: Preserve failure diagnostics only
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: no11-clean-diagnostics-${{ matrix.os }}
+          path: |
+            ${{ runner.temp }}/Ark_No11_Clean_Rebuild_20261103/*tests.log
+            ${{ runner.temp }}/Ark_No11_Clean_Rebuild_20261103/*tests.json
+          if-no-files-found: ignore
+          retention-days: 7
+
+  package:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: src
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: no11-clean-verified-windows-latest
+          path: checked-windows
+      - uses: actions/download-artifact@v4
+        with:
+          name: no11-clean-verified-ubuntu-latest
+          path: checked-linux
+      - name: Require identical payloads and passed test records
+        run: python -B src/research/no11-clean-rebuild-20261103/ci.py package
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Ark_No11_Clean_Rebuild_20261103
+          path: release/
+          if-no-files-found: error
+          retention-days: 14

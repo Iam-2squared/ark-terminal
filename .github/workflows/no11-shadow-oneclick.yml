@@ -1,0 +1,72 @@
+name: No11 Shadow OneClick
+
+on:
+  push:
+    branches:
+      - research/no12-prebuy-causal-runtime-20261011
+    paths:
+      - integration/no11-shadow-oneclick/**
+      - .github/workflows/no11-shadow-oneclick.yml
+  pull_request:
+    paths:
+      - integration/no11-shadow-oneclick/**
+      - .github/workflows/no11-shadow-oneclick.yml
+
+permissions:
+  contents: read
+
+jobs:
+  dashboard-and-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check Python dashboard syntax
+        run: python -m py_compile integration/no11-shadow-oneclick/ui/ark_shadow_ui.py integration/no11-shadow-oneclick/ui/ark_shadow_classic.py
+      - name: Read-only dashboard unit tests
+        run: python -m unittest discover -s integration/no11-shadow-oneclick/tests -p 'test_*.py' -v
+      - name: Inspect one-click safety constraints
+        run: |
+          node --test integration/no11-shadow-oneclick/tests/test_launcher_safety.mjs
+          node --test integration/no11-shadow-oneclick/tests/test_classic_launcher_safety.mjs
+          node --test integration/no11-shadow-oneclick/tests/test_classic_recovery_safety.mjs
+          node --test integration/no11-shadow-oneclick/tests/test_classic_v2_startup_safety.mjs
+      - name: Check client JavaScript syntax
+        run: |
+          node --check integration/no11-shadow-oneclick/ui/app.js
+          node --check integration/no11-shadow-oneclick/ui/classic/ark-readonly-overlay.js
+          node --check integration/no11-shadow-oneclick/ui/classic/ark-shadow-classic-bridge.js
+
+  windows-powershell-offline:
+    runs-on: windows-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse PowerShell and run OFFLINE no-Excel self-test
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          foreach($file in @('integration/no11-shadow-oneclick/windows/Start-ArkShadowReadOnly.ps1',
+            'integration/no11-shadow-oneclick/install/Install-ArkShadowReadOnly.ps1',
+            'integration/no11-shadow-oneclick/windows/Start-ArkShadowClassicReadOnly.ps1',
+            'integration/no11-shadow-oneclick/install/Install-ArkShadowClassicReadOnly.ps1',
+            'integration/no11-shadow-oneclick/install/Repair-ArkShadowClassicLocalReadOnly.ps1',
+            'integration/no11-shadow-oneclick/install/Upgrade-ArkShadowClassicStartupV2ReadOnly.ps1')) {
+            $tokens=$null
+            $errors=$null
+            [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $file).Path,[ref]$tokens,[ref]$errors)
+            if($errors.Count -ne 0) {
+              $errors|ForEach-Object {Write-Host $_}
+              throw 'ARK_SHADOW_PS5_PARSE_FAILED'
+            }
+            & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $file -OfflineSelfTest
+            if($LASTEXITCODE -ne 0){throw 'ARK_SHADOW_OFFLINE_SELFTEST_FAILED'}
+          }
+          Write-Host 'ARK_SHADOW_WINDOWS_OFFLINE=PASS'
+          Write-Host 'ORDER_TRANSMISSION=False'

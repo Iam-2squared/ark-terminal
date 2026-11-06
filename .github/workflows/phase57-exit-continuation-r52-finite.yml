@@ -1,0 +1,71 @@
+name: Phase57 R52 Finite EXIT and Capital Integrated Replay
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - docs/evidence/phase57-exit-continuation-r52/FINITE_LAUNCH.json
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-exit-r52-finite-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  finite-development:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      PYTHONPATH: '.'
+      PYTHONDONTWRITEBYTECODE: '1'
+      ARK_TEST_OFFLINE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0 pandas==2.2.3 matplotlib==3.10.8 joblib==1.5.2
+      - name: Exact CI tested source and finite contract
+        run: |
+          python - <<'PY'
+          import hashlib,json,pathlib
+          x=json.loads(pathlib.Path('docs/evidence/phase57-exit-continuation-r52/FINITE_LAUNCH.json').read_text())
+          sha=lambda p: hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+          assert x['preperformanceCiSuccess'] and x['preperformanceTestedSha']
+          assert x['protocolSha256']==sha('docs/evidence/phase57-exit-continuation-r52/PRECOMMIT.json')
+          assert x['testedSourceSha256']==sha('scripts/phase57_exit_continuation_r52.py')
+          assert x['testedTestSha256']==sha('scripts/test_phase57_exit_continuation_r52.py')
+          assert all(v is False for v in x['safety'].values()) and len(x['safety'])==9
+          PY
+      - uses: actions/download-artifact@v4
+        with:
+          repository: Iam-2squared/ark-terminal
+          run-id: 36251316248
+          name: phase57-exit-gen3-r45-36251316248
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/r45
+      - name: Single finite 16-fit study and identical A/B integrated replays
+        run: |
+          python -m scripts.phase57_exit_continuation_r52 --mode finite --source "$RUNNER_TEMP/r45/gen3" --out /tmp/r52-finite
+      - name: Verify all artifacts, immutable pins and Safety9
+        run: |
+          python - <<'PY'
+          import hashlib,json,pathlib
+          out=pathlib.Path('/tmp/r52-finite');m=json.loads((out/'manifest.json').read_text())
+          assert m['modelFits']==16 and m['candidateCount']==2 and m['sessions']==24
+          assert m['providerRequests']==m['protectedPartitionsOpened']==0
+          assert all(v is False for v in m['safety'].values()) and len(m['safety'])==9
+          assert all(hashlib.sha256((out/k).read_bytes()).hexdigest()==v for k,v in m['filesSha256'].items())
+          assert json.loads((out/'scorecard.json').read_text())['IM']['R50_A_CONTROL']['portfolio']['finalEquityJpy']=='887131.0091250009994995'
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-r52-finite-${{ github.sha }}
+          path: /tmp/r52-finite/
+          retention-days: 90
+          if-no-files-found: warn

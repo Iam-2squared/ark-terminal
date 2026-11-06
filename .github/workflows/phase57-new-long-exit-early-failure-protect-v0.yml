@@ -1,0 +1,24 @@
+name: Phase57 NEW LONG EXIT Early Failure Protect v0 FAST-FAIL
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-new-long-exit-early-failure-protect-v0.yml'
+      - 'scripts/*phase57_new_long_exit_early_failure_protect_v0_fast_fail*'
+      - 'docs/evidence/phase57-new-long-exit-early-failure-protect-v0-contract-2026-09-18.md'
+permissions: {contents: read}
+jobs:
+  early-failure-protect-v0:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - env: {ARK_TEST_OFFLINE: '1'}
+        run: python3 scripts/offline/kernel_exec.py python3 -m unittest scripts.test_phase57_new_long_exit_early_failure_protect_v0_fast_fail
+      - env: {ARK_TEST_OFFLINE: '1'}
+        run: |
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_early_failure_protect_v0_fast_fail --out /tmp/efp-a | tee /tmp/efp.txt
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_early_failure_protect_v0_fast_fail --out /tmp/efp-b >/tmp/efpb.txt
+          cmp /tmp/efp-a/summary.json /tmp/efp-b/summary.json
+          cmp /tmp/efp-a/ledger.json.gz /tmp/efp-b/ledger.json.gz
+          cmp /tmp/efp-a/manifest.json /tmp/efp-b/manifest.json

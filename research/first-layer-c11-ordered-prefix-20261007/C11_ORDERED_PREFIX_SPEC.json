@@ -1,0 +1,15 @@
+{
+  "anchor": "At each chain start use native bar O; subsequent contiguous edges use preceding bar C.",
+  "contiguous": "Consecutive minute timestamps and both in AM 09:00 through native 11:30 inclusive, or both in PM 12:30 through 15:25. A timestamp gap or lunch starts a fresh chain. No gap-price edge is invented.",
+  "flat_empty_zero": "flat direction=0; empty left padding present=0 and all other phase metrics null; zero Vo/Va log1p=0; active duration=0 rates/slope null.",
+  "forbidden": "No State9 RISE/PULLBACK edit, window change, leg count change, smoothing, segmentation search, post-result feature change, label weights, seed/model/ensemble sweep.",
+  "method_count": 1,
+  "native_1130": "Completed observation retained under m+1<=BUY_INTENT cutoff, consistent with repaired C10 prefix_view; active-duration overlap continues to use unchanged C10 regular clock.",
+  "ordered_pattern_information": "The six directions/net returns, lengths, excursions and recovery versus two-back extrema distinguish rise-decline-rise, rise-flat-rise, incomplete high recovery and decline-rebound without State9 redefinition or teacher-derived pattern labels.",
+  "parameter_search": 0,
+  "phase_boundary": "sign(C-anchor) changes or chain changes; exact equality is flat. Each bar belongs to exactly one maximal sign run, assigned in time order.",
+  "phase_slots": 6,
+  "prefix_scope": "Only exact entry identity and previously completed native bars; reject supplied future bars and extra case/identity capabilities. Timestamp-only prefix_view never reads future payload.",
+  "price_deadband": 0,
+  "version": "C11_ORDERED_DIRECTIONAL_PHASES_V1"
+}

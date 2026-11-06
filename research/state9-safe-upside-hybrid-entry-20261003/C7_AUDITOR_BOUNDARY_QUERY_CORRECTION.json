@@ -1,0 +1,15 @@
+{
+  "status": "AUDITOR_ONLY_QUERY_SCHEDULE_CORRECTION",
+  "initial_attempt": "All60 exported models/preprocessing/weights and 1208796 OOF scores independently verified. First family threshold audit verified6740 of6741 points then stopped on one missing initial query boundary.",
+  "cause": "The independent descending-all-score route queried below the global minimum candidate score. The frozen policy initial boundary is below the minimum prefix-record-high score, which can be above lower later-candidate scores.",
+  "correction": "Independently reconstruct the frozen prefix-boundary set from original INNER OOF row timelines. Query that exact set in its ordered position while activating all candidate score groups in descending order. Verify every count and boundary, not only an aggregate.",
+  "main_model_changed": false,
+  "main_label_changed": false,
+  "main_threshold_changed": false,
+  "threshold_contract_changed": false,
+  "source_changed": false,
+  "unknown_excluded_or_zero_filled": false,
+  "new_model_fits": 0,
+  "new_threshold_tuning": 0,
+  "audit_rerun_scope": "Deterministic arithmetic only"
+}

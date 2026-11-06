@@ -1,0 +1,1329 @@
+{
+  "schemaVersion": 1,
+  "status": "CANDIDATE_V2_PAIRED_DIAGNOSTIC_COMPLETE",
+  "assessment": "NO_IMPROVEMENT",
+  "comparisonContract": {
+    "schemaVersion": 1,
+    "contractId": "PHASE57_LONG_ONLY_CANDIDATE_V2_PHASE1_PRE_FIT_V1",
+    "baseline": "FROZEN_RIDGE_Y30_CANDIDATE_V1",
+    "candidate": "SHALLOW_HISTOGRAM_GRADIENT_BOOSTED_REGRESSION_TREES",
+    "question": "Does shallow nonlinearity repair v1 opportunity ranks without changing target, features, universe, timestamps, or selection budgets?",
+    "target": {
+      "name": "Y30_ENDPOINT_EXPECTED_RETURN_BPS",
+      "horizonBars": 6,
+      "barMinutes": 5,
+      "semantics": "SIX_CLOSED_5M_BARS_EQUALS_30_TRADING_MINUTES"
+    },
+    "featureUniverse": [
+      "currentReturnPct",
+      "momentum30Pct",
+      "vwapDistancePct",
+      "vwapSlope15Pct",
+      "logCumulativeTurnover",
+      "volumeAccelerationRatio",
+      "trendEfficiency",
+      "rangeExpansionPct",
+      "timeOfDayFraction",
+      "segmentStandard",
+      "segmentGrowth",
+      "liquidityLow",
+      "liquidityHigh",
+      "marketBreadthPositivePct",
+      "sectorBreadthPositivePct"
+    ],
+    "topN": [
+      1,
+      3,
+      5,
+      10,
+      20,
+      30,
+      50
+    ],
+    "opportunityThresholdsBps": [
+      50,
+      100,
+      150,
+      200
+    ],
+    "familyCount": 1,
+    "fixedSeed": 5702,
+    "complexityCap": {
+      "maximumDepth": 3,
+      "maximumTrees": 80,
+      "histogramBins": 16
+    },
+    "hyperparameterCandidates": [
+      {
+        "id": "HGBR_D2_T40",
+        "maxDepth": 2,
+        "trees": 40,
+        "learningRate": 0.05,
+        "minLeaf": 256
+      },
+      {
+        "id": "HGBR_D2_T80",
+        "maxDepth": 2,
+        "trees": 80,
+        "learningRate": 0.05,
+        "minLeaf": 256
+      },
+      {
+        "id": "HGBR_D3_T40",
+        "maxDepth": 3,
+        "trees": 40,
+        "learningRate": 0.05,
+        "minLeaf": 256
+      },
+      {
+        "id": "HGBR_D3_T80",
+        "maxDepth": 3,
+        "trees": 80,
+        "learningRate": 0.05,
+        "minLeaf": 256
+      }
+    ],
+    "modelSelection": {
+      "fitSessions": "FIRST_10_FIXED_V2_DEVELOPMENT_SESSIONS",
+      "selectionSessions": "LAST_10_FIXED_V2_DEVELOPMENT_SESSIONS",
+      "selectionOrder": [
+        "TOP5_MEAN_Y30_BPS",
+        "TOP5_MEDIAN_Y30_BPS",
+        "TOP5_POSITIVE_RATE",
+        "LOWER_COMPLEXITY"
+      ],
+      "postSelectionRefit": "SELECTED_CONFIG_ON_ALL_20_FIXED_V2_DEVELOPMENT_SESSIONS"
+    },
+    "pairedEvaluation": {
+      "partition": "DEVELOPMENT_D_DIAGNOSTIC_ALREADY_OBSERVED",
+      "sameRows": true,
+      "sameDecisionTimestamps": true,
+      "samePITUniverse": true,
+      "sameTargetAndHorizon": true,
+      "adaptiveStatus": "DIAGNOSTIC_NOT_VALIDATION"
+    },
+    "prohibitions": [
+      "RESULT_DEPENDENT_CANDIDATE_ADDITION",
+      "FEATURE_ADDITION",
+      "TARGET_CHANGE",
+      "TOP_N_CHANGE",
+      "TWO_HEAD",
+      "ENSEMBLE",
+      "VALIDATION_OPEN",
+      "OOS_OPEN",
+      "ENTRY_EXIT_ALLOCATION_CHANGE"
+    ]
+  },
+  "developmentDataAudit": {
+    "v2FitSessions": [
+      "2024-10-10",
+      "2024-10-11",
+      "2024-10-15",
+      "2024-10-16",
+      "2024-10-17",
+      "2024-10-18",
+      "2024-10-21",
+      "2024-10-22",
+      "2024-10-23",
+      "2024-10-24"
+    ],
+    "v2SelectionSessions": [
+      "2024-10-25",
+      "2024-10-28",
+      "2024-10-29",
+      "2024-10-30",
+      "2024-10-31",
+      "2024-11-01",
+      "2024-11-05",
+      "2024-11-06",
+      "2024-11-07",
+      "2024-11-08"
+    ],
+    "v2FitRows": 257721,
+    "v2SelectionRows": 264271,
+    "ridgeFitPartition": "DEVELOPMENT_C",
+    "ridgeFitRows": 526930,
+    "pairedEvaluationPartition": "DEVELOPMENT_D_DIAGNOSTIC_ALREADY_OBSERVED",
+    "pairedEvaluationRows": 550181,
+    "validationOpened": false,
+    "oosOpened": false
+  },
+  "model": {
+    "family": "SHALLOW_HISTOGRAM_GRADIENT_BOOSTED_REGRESSION_TREES",
+    "selectedConfig": {
+      "id": "HGBR_D3_T80",
+      "maxDepth": 3,
+      "trees": 80,
+      "learningRate": 0.05,
+      "minLeaf": 256
+    },
+    "fixedCandidates": [
+      {
+        "config": {
+          "id": "HGBR_D2_T40",
+          "maxDepth": 2,
+          "trees": 40,
+          "learningRate": 0.05,
+          "minLeaf": 256
+        },
+        "top5": {
+          "candidateCount": 450,
+          "meanReturnBps": 93.77250505,
+          "medianReturnBps": 62.12509924,
+          "positiveRatePct": 64.0,
+          "futureMfePct": 1.9125799,
+          "futureMaePct": -0.31634829,
+          "final5PrecisionPct": 4.44444444,
+          "final5RecallPct": 0.27739251,
+          "positiveSessions": 10,
+          "sessionCount": 10,
+          "opportunities": {
+            "50": {
+              "total": 41901,
+              "selected": 243,
+              "recallPct": 0.57993843,
+              "precisionPct": 54.0
+            },
+            "100": {
+              "total": 15156,
+              "selected": 180,
+              "recallPct": 1.18764846,
+              "precisionPct": 40.0
+            },
+            "150": {
+              "total": 6705,
+              "selected": 136,
+              "recallPct": 2.02833706,
+              "precisionPct": 30.22222222
+            },
+            "200": {
+              "total": 3608,
+              "selected": 102,
+              "recallPct": 2.827051,
+              "precisionPct": 22.66666667
+            }
+          }
+        }
+      },
+      {
+        "config": {
+          "id": "HGBR_D2_T80",
+          "maxDepth": 2,
+          "trees": 80,
+          "learningRate": 0.05,
+          "minLeaf": 256
+        },
+        "top5": {
+          "candidateCount": 450,
+          "meanReturnBps": 97.65827534,
+          "medianReturnBps": 72.54858413,
+          "positiveRatePct": 65.11111111,
+          "futureMfePct": 1.99842073,
+          "futureMaePct": -0.23297625,
+          "final5PrecisionPct": 4.88888889,
+          "final5RecallPct": 0.30513176,
+          "positiveSessions": 10,
+          "sessionCount": 10,
+          "opportunities": {
+            "50": {
+              "total": 41901,
+              "selected": 245,
+              "recallPct": 0.58471158,
+              "precisionPct": 54.44444444
+            },
+            "100": {
+              "total": 15156,
+              "selected": 192,
+              "recallPct": 1.26682502,
+              "precisionPct": 42.66666667
+            },
+            "150": {
+              "total": 6705,
+              "selected": 139,
+              "recallPct": 2.07307979,
+              "precisionPct": 30.88888889
+            },
+            "200": {
+              "total": 3608,
+              "selected": 98,
+              "recallPct": 2.71618625,
+              "precisionPct": 21.77777778
+            }
+          }
+        }
+      },
+      {
+        "config": {
+          "id": "HGBR_D3_T40",
+          "maxDepth": 3,
+          "trees": 40,
+          "learningRate": 0.05,
+          "minLeaf": 256
+        },
+        "top5": {
+          "candidateCount": 450,
+          "meanReturnBps": 106.79258212,
+          "medianReturnBps": 76.62947739,
+          "positiveRatePct": 62.44444444,
+          "futureMfePct": 2.28584497,
+          "futureMaePct": -0.23203502,
+          "final5PrecisionPct": 4.88888889,
+          "final5RecallPct": 0.30513176,
+          "positiveSessions": 10,
+          "sessionCount": 10,
+          "opportunities": {
+            "50": {
+              "total": 41901,
+              "selected": 245,
+              "recallPct": 0.58471158,
+              "precisionPct": 54.44444444
+            },
+            "100": {
+              "total": 15156,
+              "selected": 200,
+              "recallPct": 1.3196094,
+              "precisionPct": 44.44444444
+            },
+            "150": {
+              "total": 6705,
+              "selected": 152,
+              "recallPct": 2.26696495,
+              "precisionPct": 33.77777778
+            },
+            "200": {
+              "total": 3608,
+              "selected": 112,
+              "recallPct": 3.10421286,
+              "precisionPct": 24.88888889
+            }
+          }
+        }
+      },
+      {
+        "config": {
+          "id": "HGBR_D3_T80",
+          "maxDepth": 3,
+          "trees": 80,
+          "learningRate": 0.05,
+          "minLeaf": 256
+        },
+        "top5": {
+          "candidateCount": 450,
+          "meanReturnBps": 112.21992738,
+          "medianReturnBps": 77.02194977,
+          "positiveRatePct": 63.55555556,
+          "futureMfePct": 2.33536845,
+          "futureMaePct": -0.17690529,
+          "final5PrecisionPct": 5.11111111,
+          "final5RecallPct": 0.31900139,
+          "positiveSessions": 10,
+          "sessionCount": 10,
+          "opportunities": {
+            "50": {
+              "total": 41901,
+              "selected": 243,
+              "recallPct": 0.57993843,
+              "precisionPct": 54.0
+            },
+            "100": {
+              "total": 15156,
+              "selected": 196,
+              "recallPct": 1.29321721,
+              "precisionPct": 43.55555556
+            },
+            "150": {
+              "total": 6705,
+              "selected": 151,
+              "recallPct": 2.25205071,
+              "precisionPct": 33.55555556
+            },
+            "200": {
+              "total": 3608,
+              "selected": 115,
+              "recallPct": 3.18736142,
+              "precisionPct": 25.55555556
+            }
+          }
+        }
+      }
+    ]
+  },
+  "top5": {
+    "v1": {
+      "candidateCount": 900,
+      "meanReturnBps": 117.21399324,
+      "medianReturnBps": 34.68548619,
+      "positiveRatePct": 53.55555556,
+      "futureMfePct": 3.36197597,
+      "futureMaePct": -1.10719009,
+      "final5PrecisionPct": 12.22222222,
+      "final5RecallPct": 0.94371997,
+      "positiveSessions": 19,
+      "sessionCount": 20,
+      "opportunities": {
+        "50": {
+          "total": 68231,
+          "selected": 435,
+          "recallPct": 0.63754012,
+          "precisionPct": 48.33333333
+        },
+        "100": {
+          "total": 24867,
+          "selected": 374,
+          "recallPct": 1.50400129,
+          "precisionPct": 41.55555556
+        },
+        "150": {
+          "total": 11607,
+          "selected": 323,
+          "recallPct": 2.78280348,
+          "precisionPct": 35.88888889
+        },
+        "200": {
+          "total": 6473,
+          "selected": 288,
+          "recallPct": 4.44925073,
+          "precisionPct": 32.0
+        }
+      }
+    },
+    "v2": {
+      "candidateCount": 900,
+      "meanReturnBps": 97.81331664,
+      "medianReturnBps": 42.7681315,
+      "positiveRatePct": 54.33333333,
+      "futureMfePct": 2.33734193,
+      "futureMaePct": -0.32000244,
+      "final5PrecisionPct": 5.22222222,
+      "final5RecallPct": 0.40322581,
+      "positiveSessions": 20,
+      "sessionCount": 20,
+      "opportunities": {
+        "50": {
+          "total": 68231,
+          "selected": 435,
+          "recallPct": 0.63754012,
+          "precisionPct": 48.33333333
+        },
+        "100": {
+          "total": 24867,
+          "selected": 339,
+          "recallPct": 1.3632525,
+          "precisionPct": 37.66666667
+        },
+        "150": {
+          "total": 11607,
+          "selected": 260,
+          "recallPct": 2.24002757,
+          "precisionPct": 28.88888889
+        },
+        "200": {
+          "total": 6473,
+          "selected": 208,
+          "recallPct": 3.21334775,
+          "precisionPct": 23.11111111
+        }
+      }
+    },
+    "delta": {
+      "meanReturnBps": -19.4006766,
+      "medianReturnBps": 8.08264531,
+      "positiveRatePct": 0.77777777,
+      "futureMfePct": -1.02463404,
+      "futureMaePct": 0.78718765,
+      "final5PrecisionPct": -7.0,
+      "final5RecallPct": -0.54049416
+    }
+  },
+  "capacityCurve": {
+    "v1": {
+      "1": {
+        "candidateCount": 180,
+        "meanReturnBps": 155.17864843,
+        "medianReturnBps": 24.06740609,
+        "positiveRatePct": 52.22222222,
+        "futureMfePct": 4.97654659,
+        "futureMaePct": -1.81679087,
+        "final5PrecisionPct": 12.22222222,
+        "final5RecallPct": 0.18874399,
+        "positiveSessions": 16,
+        "sessionCount": 20,
+        "opportunities": {
+          "50": {
+            "total": 68231,
+            "selected": 87,
+            "recallPct": 0.12750802,
+            "precisionPct": 48.33333333
+          },
+          "100": {
+            "total": 24867,
+            "selected": 79,
+            "recallPct": 0.31769011,
+            "precisionPct": 43.88888889
+          },
+          "150": {
+            "total": 11607,
+            "selected": 75,
+            "recallPct": 0.6461618,
+            "precisionPct": 41.66666667
+          },
+          "200": {
+            "total": 6473,
+            "selected": 71,
+            "recallPct": 1.0968639,
+            "precisionPct": 39.44444444
+          }
+        }
+      },
+      "3": {
+        "candidateCount": 540,
+        "meanReturnBps": 133.11365034,
+        "medianReturnBps": 37.18593428,
+        "positiveRatePct": 52.77777778,
+        "futureMfePct": 3.95643719,
+        "futureMaePct": -1.28526174,
+        "final5PrecisionPct": 12.96296296,
+        "final5RecallPct": 0.60054907,
+        "positiveSessions": 18,
+        "sessionCount": 20,
+        "opportunities": {
+          "50": {
+            "total": 68231,
+            "selected": 262,
+            "recallPct": 0.38398968,
+            "precisionPct": 48.51851852
+          },
+          "100": {
+            "total": 24867,
+            "selected": 228,
+            "recallPct": 0.91687779,
+            "precisionPct": 42.22222222
+          },
+          "150": {
+            "total": 11607,
+            "selected": 203,
+            "recallPct": 1.7489446,
+            "precisionPct": 37.59259259
+          },
+          "200": {
+            "total": 6473,
+            "selected": 188,
+            "recallPct": 2.90437201,
+            "precisionPct": 34.81481481
+          }
+        }
+      },
+      "5": {
+        "candidateCount": 900,
+        "meanReturnBps": 117.21399324,
+        "medianReturnBps": 34.68548619,
+        "positiveRatePct": 53.55555556,
+        "futureMfePct": 3.36197597,
+        "futureMaePct": -1.10719009,
+        "final5PrecisionPct": 12.22222222,
+        "final5RecallPct": 0.94371997,
+        "positiveSessions": 19,
+        "sessionCount": 20,
+        "opportunities": {
+          "50": {
+            "total": 68231,
+            "selected": 435,
+            "recallPct": 0.63754012,
+            "precisionPct": 48.33333333
+          },
+          "100": {
+            "total": 24867,
+            "selected": 374,
+            "recallPct": 1.50400129,
+            "precisionPct": 41.55555556
+          },
+          "150": {
+            "total": 11607,
+            "selected": 323,
+            "recallPct": 2.78280348,
+            "precisionPct": 35.88888889
+          },
+          "200": {
+            "total": 6473,
+            "selected": 288,
+            "recallPct": 4.44925073,
+            "precisionPct": 32.0
+          }
+        }
+      },
+      "10": {
+        "candidateCount": 1800,
+        "meanReturnBps": 79.29433285,
+        "medianReturnBps": 21.75111239,
+        "positiveRatePct": 52.83333333,
+        "futureMfePct": 2.51732698,
+        "futureMaePct": -0.99375267,
+        "final5PrecisionPct": 10.05555556,
+        "final5RecallPct": 1.55284832,
+        "positiveSessions": 20,
+        "sessionCount": 20,
+        "opportunities": {
+          "50": {
+            "total": 68231,
+            "selected": 815,
+            "recallPct": 1.19447172,
+            "precisionPct": 45.27777778
+          },
+          "100": {
+            "total": 24867,
+            "selected": 632,
+            "recallPct": 2.54152089,
+            "precisionPct": 35.11111111
+          },
+          "150": {
+            "total": 11607,
+            "selected": 519,
+            "recallPct": 4.47143965,
+            "precisionPct": 28.83333333
+          },
+          "200": {
+            "total": 6473,
+            "selected": 438,
+            "recallPct": 6.76656882,
+            "precisionPct": 24.33333333
+          }
+        }
+      },
+      "20": {
+        "candidateCount": 3600,
+        "meanReturnBps": 58.48489093,
+        "medianReturnBps": 16.07114954,
+        "positiveRatePct": 52.55555556,
+        "futureMfePct": 1.92919341,
+        "futureMaePct": -0.7992626,
+        "final5PrecisionPct": 8.22222222,
+        "final5RecallPct": 2.53946465,
+        "positiveSessions": 20,
+        "sessionCount": 20,
+        "opportunities": {
+          "50": {
+            "total": 68231,
+            "selected": 1522,
+            "recallPct": 2.23065762,
+            "precisionPct": 42.27777778
+          },
+          "100": {
+            "total": 24867,
+            "selected": 1100,
+            "recallPct": 4.4235332,
+            "precisionPct": 30.55555556
+          },
+          "150": {
+            "total": 11607,
+            "selected": 835,
+            "recallPct": 7.19393469,
+            "precisionPct": 23.19444444
+          },
+          "200": {
+            "total": 6473,
+            "selected": 642,
+            "recallPct": 9.91812143,
+            "precisionPct": 17.83333333
+          }
+        }
+      },
+      "30": {
+        "candidateCount": 5400,
+        "meanReturnBps": 46.95654349,
+        "medianReturnBps": 12.77172538,
+        "positiveRatePct": 51.72222222,
+        "futureMfePct": 1.64074398,
+        "futureMaePct": -0.73135758,
+        "final5PrecisionPct": 6.61111111,
+        "final5RecallPct": 3.06280027,
+        "positiveSessions": 20,
+        "sessionCount": 20,
+        "opportunities": {
+          "50": {
+            "total": 68231,
+            "selected": 2170,
+            "recallPct": 3.18037256,
+            "precisionPct": 40.18518519
+          },
+          "100": {
+            "total": 24867,
+            "selected": 1495,
+            "recallPct": 6.01198375,
+            "precisionPct": 27.68518519
+          },
+          "150": {
+            "total": 11607,
+            "selected": 1044,
+            "recallPct": 8.99457224,
+            "precisionPct": 19.33333333
+          },
+          "200": {
+            "total": 6473,
+            "selected": 769,
+            "recallPct": 11.88011741,
+            "precisionPct": 14.24074074
+          }
+        }
+      },
+      "50": {
+        "candidateCount": 9000,
+        "meanReturnBps": 36.92115105,
+        "medianReturnBps": 9.48766603,
+        "positiveRatePct": 51.12222222,
+        "futureMfePct": 1.3628625,
+        "futureMaePct": -0.65044325,
+        "final5PrecisionPct": 5.21111111,
+        "final5RecallPct": 4.02367879,
+        "positiveSessions": 20,
+        "sessionCount": 20,
+        "opportunities": {
+          "50": {
+            "total": 68231,
+            "selected": 3362,
+            "recallPct": 4.92737905,
+            "precisionPct": 37.35555556
+          },
+          "100": {
+            "total": 24867,
+            "selected": 2181,
+            "recallPct": 8.77065991,
+            "precisionPct": 24.23333333
+          },
+          "150": {
+            "total": 11607,
+            "selected": 1390,
+            "recallPct": 11.97553201,
+            "precisionPct": 15.44444444
+          },
+          "200": {
+            "total": 6473,
+            "selected": 978,
+            "recallPct": 15.10891395,
+            "precisionPct": 10.86666667
+          }
+        }
+      }
+    },
+    "v2": {
+      "1": {
+        "candidateCount": 180,
+        "meanReturnBps": 143.53681636,
+        "medianReturnBps": 75.69709757,
+        "positiveRatePct": 59.44444444,
+        "futureMfePct": 2.86614491,
+        "futureMaePct": -0.00130157,
+        "final5PrecisionPct": 1.11111111,
+        "final5RecallPct": 0.01715854,
+        "positiveSessions": 20,
+        "sessionCount": 20,
+        "opportunities": {
+          "50": {
+            "total": 68231,
+            "selected": 101,
+            "recallPct": 0.14802656,
+            "precisionPct": 56.11111111
+          },
+          "100": {
+            "total": 24867,
+            "selected": 82,
+            "recallPct": 0.32975429,
+            "precisionPct": 45.55555556
+          },
+          "150": {
+            "total": 11607,
+            "selected": 65,
+            "recallPct": 0.56000689,
+            "precisionPct": 36.11111111
+          },
+          "200": {
+            "total": 6473,
+            "selected": 54,
+            "recallPct": 0.83423451,
+            "precisionPct": 30.0
+          }
+        }
+      },
+      "3": {
+        "candidateCount": 540,
+        "meanReturnBps": 114.43041352,
+        "medianReturnBps": 57.09101971,
+        "positiveRatePct": 56.11111111,
+        "futureMfePct": 2.5165338,
+        "futureMaePct": -0.29074141,
+        "final5PrecisionPct": 5.0,
+        "final5RecallPct": 0.23164036,
+        "positiveSessions": 19,
+        "sessionCount": 20,
+        "opportunities": {
+          "50": {
+            "total": 68231,
+            "selected": 284,
+            "recallPct": 0.41623309,
+            "precisionPct": 52.59259259
+          },
+          "100": {
+            "total": 24867,
+            "selected": 227,
+            "recallPct": 0.9128564,
+            "precisionPct": 42.03703704
+          },
+          "150": {
+            "total": 11607,
+            "selected": 170,
+            "recallPct": 1.46463341,
+            "precisionPct": 31.48148148
+          },
+          "200": {
+            "total": 6473,
+            "selected": 137,
+            "recallPct": 2.11648386,
+            "precisionPct": 25.37037037
+          }
+        }
+      },
+      "5": {
+        "candidateCount": 900,
+        "meanReturnBps": 97.81331664,
+        "medianReturnBps": 42.7681315,
+        "positiveRatePct": 54.33333333,
+        "futureMfePct": 2.33734193,
+        "futureMaePct": -0.32000244,
+        "final5PrecisionPct": 5.22222222,
+        "final5RecallPct": 0.40322581,
+        "positiveSessions": 20,
+        "sessionCount": 20,
+        "opportunities": {
+          "50": {
+            "total": 68231,
+            "selected": 435,
+            "recallPct": 0.63754012,
+            "precisionPct": 48.33333333
+          },
+          "100": {
+            "total": 24867,
+            "selected": 339,
+            "recallPct": 1.3632525,
+            "precisionPct": 37.66666667
+          },
+          "150": {
+            "total": 11607,
+            "selected": 260,
+            "recallPct": 2.24002757,
+            "precisionPct": 28.88888889
+          },
+          "200": {
+            "total": 6473,
+            "selected": 208,
+            "recallPct": 3.21334775,
+            "precisionPct": 23.11111111
+          }
+        }
+      },
+      "10": {
+        "candidateCount": 1800,
+        "meanReturnBps": 82.12460819,
+        "medianReturnBps": 37.40203604,
+        "positiveRatePct": 56.0,
+        "futureMfePct": 1.922572,
+        "futureMaePct": -0.34155316,
+        "final5PrecisionPct": 4.61111111,
+        "final5RecallPct": 0.71207962,
+        "positiveSessions": 20,
+        "sessionCount": 20,
+        "opportunities": {
+          "50": {
+            "total": 68231,
+            "selected": 844,
+            "recallPct": 1.2369744,
+            "precisionPct": 46.88888889
+          },
+          "100": {
+            "total": 24867,
+            "selected": 633,
+            "recallPct": 2.54554228,
+            "precisionPct": 35.16666667
+          },
+          "150": {
+            "total": 11607,
+            "selected": 454,
+            "recallPct": 3.91143276,
+            "precisionPct": 25.22222222
+          },
+          "200": {
+            "total": 6473,
+            "selected": 347,
+            "recallPct": 5.36072918,
+            "precisionPct": 19.27777778
+          }
+        }
+      },
+      "20": {
+        "candidateCount": 3600,
+        "meanReturnBps": 62.62405037,
+        "medianReturnBps": 27.100271,
+        "positiveRatePct": 55.11111111,
+        "futureMfePct": 1.5381592,
+        "futureMaePct": -0.3621628,
+        "final5PrecisionPct": 3.16666667,
+        "final5RecallPct": 0.97803706,
+        "positiveSessions": 20,
+        "sessionCount": 20,
+        "opportunities": {
+          "50": {
+            "total": 68231,
+            "selected": 1556,
+            "recallPct": 2.28048834,
+            "precisionPct": 43.22222222
+          },
+          "100": {
+            "total": 24867,
+            "selected": 1079,
+            "recallPct": 4.33908393,
+            "precisionPct": 29.97222222
+          },
+          "150": {
+            "total": 11607,
+            "selected": 704,
+            "recallPct": 6.06530542,
+            "precisionPct": 19.55555556
+          },
+          "200": {
+            "total": 6473,
+            "selected": 505,
+            "recallPct": 7.80163757,
+            "precisionPct": 14.02777778
+          }
+        }
+      },
+      "30": {
+        "candidateCount": 5400,
+        "meanReturnBps": 52.75408079,
+        "medianReturnBps": 24.04093919,
+        "positiveRatePct": 54.72222222,
+        "futureMfePct": 1.36456088,
+        "futureMaePct": -0.37818604,
+        "final5PrecisionPct": 2.83333333,
+        "final5RecallPct": 1.31262869,
+        "positiveSessions": 20,
+        "sessionCount": 20,
+        "opportunities": {
+          "50": {
+            "total": 68231,
+            "selected": 2226,
+            "recallPct": 3.26244669,
+            "precisionPct": 41.22222222
+          },
+          "100": {
+            "total": 24867,
+            "selected": 1461,
+            "recallPct": 5.87525636,
+            "precisionPct": 27.05555556
+          },
+          "150": {
+            "total": 11607,
+            "selected": 926,
+            "recallPct": 7.97794434,
+            "precisionPct": 17.14814815
+          },
+          "200": {
+            "total": 6473,
+            "selected": 642,
+            "recallPct": 9.91812143,
+            "precisionPct": 11.88888889
+          }
+        }
+      },
+      "50": {
+        "candidateCount": 9000,
+        "meanReturnBps": 42.79604148,
+        "medianReturnBps": 16.89189189,
+        "positiveRatePct": 53.37777778,
+        "futureMfePct": 1.20498395,
+        "futureMaePct": -0.40522151,
+        "final5PrecisionPct": 2.56666667,
+        "final5RecallPct": 1.98181194,
+        "positiveSessions": 20,
+        "sessionCount": 20,
+        "opportunities": {
+          "50": {
+            "total": 68231,
+            "selected": 3430,
+            "recallPct": 5.02704049,
+            "precisionPct": 38.11111111
+          },
+          "100": {
+            "total": 24867,
+            "selected": 2134,
+            "recallPct": 8.5816544,
+            "precisionPct": 23.71111111
+          },
+          "150": {
+            "total": 11607,
+            "selected": 1287,
+            "recallPct": 11.08813647,
+            "precisionPct": 14.3
+          },
+          "200": {
+            "total": 6473,
+            "selected": 877,
+            "recallPct": 13.54858644,
+            "precisionPct": 9.74444444
+          }
+        }
+      }
+    }
+  },
+  "blindSpotRepair": {
+    "100": {
+      "n": 21508,
+      "v1MedianRank": 1770.0,
+      "v2MedianRank": 1697.0,
+      "v2P25Rank": 465.0,
+      "v2P75Rank": 2729.0,
+      "medianRankImprovement": 73.0,
+      "v2Rank101PlusPct": 94.22075507,
+      "upgradedTop10Pct": 0.80435187,
+      "upgradedTop20Pct": 1.54361168,
+      "upgradedTop50Pct": 3.13371769
+    },
+    "200": {
+      "n": 5198,
+      "v1MedianRank": 2071.5,
+      "v2MedianRank": 2114.5,
+      "v2P25Rank": 470.25,
+      "v2P75Rank": 2912.0,
+      "medianRankImprovement": -43.0,
+      "v2Rank101PlusPct": 92.61254329,
+      "upgradedTop10Pct": 1.51981531,
+      "upgradedTop20Pct": 2.50096191,
+      "upgradedTop50Pct": 4.54020777
+    }
+  },
+  "archetypeRepair": {
+    "100": {
+      "n": 21508,
+      "archetypes": {
+        "GAP_DOWN_RECOVERY": {
+          "count": 1136,
+          "pct": 5.28175563,
+          "v1MedianRank": 2956.0,
+          "v2MedianRank": 2890.0,
+          "v1Top20CapturePct": 0.0,
+          "v2Top20CapturePct": 0.0,
+          "v1Top50CapturePct": 0.0,
+          "v2Top50CapturePct": 0.0
+        },
+        "HIGH_VOL_ACCELERATION": {
+          "count": 2645,
+          "pct": 12.29774967,
+          "v1MedianRank": 2562.0,
+          "v2MedianRank": 2510.0,
+          "v1Top20CapturePct": 0.0,
+          "v2Top20CapturePct": 0.98298677,
+          "v1Top50CapturePct": 0.0,
+          "v2Top50CapturePct": 3.59168242
+        },
+        "OTHER_UNCLASSIFIED": {
+          "count": 10665,
+          "pct": 49.58620048,
+          "v1MedianRank": 2008.0,
+          "v2MedianRank": 1923.0,
+          "v1Top20CapturePct": 0.0,
+          "v2Top20CapturePct": 1.22831692,
+          "v1Top50CapturePct": 0.0,
+          "v2Top50CapturePct": 2.3347398
+        },
+        "PRE_BREAKOUT_VOLUME_LED": {
+          "count": 3353,
+          "pct": 15.58954808,
+          "v1MedianRank": 723.0,
+          "v2MedianRank": 666.0,
+          "v1Top20CapturePct": 0.0,
+          "v2Top20CapturePct": 2.14733075,
+          "v1Top50CapturePct": 0.0,
+          "v2Top50CapturePct": 4.17536534
+        },
+        "PULLBACK_CONTINUATION": {
+          "count": 1560,
+          "pct": 7.25311512,
+          "v1MedianRank": 1830.0,
+          "v2MedianRank": 1053.5,
+          "v1Top20CapturePct": 0.0,
+          "v2Top20CapturePct": 3.3974359,
+          "v1Top50CapturePct": 0.0,
+          "v2Top50CapturePct": 5.19230769
+        },
+        "SECTOR_BREADTH_LED": {
+          "count": 1238,
+          "pct": 5.75599777,
+          "v1MedianRank": 728.0,
+          "v2MedianRank": 758.5,
+          "v1Top20CapturePct": 0.0,
+          "v2Top20CapturePct": 2.34248788,
+          "v1Top50CapturePct": 0.0,
+          "v2Top50CapturePct": 6.05815832
+        },
+        "VWAP_LED_WEAK_PRICE": {
+          "count": 911,
+          "pct": 4.23563325,
+          "v1MedianRank": 1524.0,
+          "v2MedianRank": 1937.0,
+          "v1Top20CapturePct": 0.0,
+          "v2Top20CapturePct": 2.30515917,
+          "v1Top50CapturePct": 0.0,
+          "v2Top50CapturePct": 3.73216246
+        }
+      }
+    },
+    "200": {
+      "n": 5198,
+      "archetypes": {
+        "GAP_DOWN_RECOVERY": {
+          "count": 256,
+          "pct": 4.92497114,
+          "v1MedianRank": 3013.5,
+          "v2MedianRank": 2977.0,
+          "v1Top20CapturePct": 0.0,
+          "v2Top20CapturePct": 0.0,
+          "v1Top50CapturePct": 0.0,
+          "v2Top50CapturePct": 0.0
+        },
+        "HIGH_VOL_ACCELERATION": {
+          "count": 873,
+          "pct": 16.79492112,
+          "v1MedianRank": 2742.0,
+          "v2MedianRank": 2724.0,
+          "v1Top20CapturePct": 0.0,
+          "v2Top20CapturePct": 1.48911798,
+          "v1Top50CapturePct": 0.0,
+          "v2Top50CapturePct": 3.89461627
+        },
+        "OTHER_UNCLASSIFIED": {
+          "count": 2378,
+          "pct": 45.74836476,
+          "v1MedianRank": 2160.5,
+          "v2MedianRank": 2270.5,
+          "v1Top20CapturePct": 0.0,
+          "v2Top20CapturePct": 2.18671152,
+          "v1Top50CapturePct": 0.0,
+          "v2Top50CapturePct": 4.07905803
+        },
+        "PRE_BREAKOUT_VOLUME_LED": {
+          "count": 720,
+          "pct": 13.85148134,
+          "v1MedianRank": 904.5,
+          "v2MedianRank": 645.0,
+          "v1Top20CapturePct": 0.0,
+          "v2Top20CapturePct": 3.61111111,
+          "v1Top50CapturePct": 0.0,
+          "v2Top50CapturePct": 5.69444444
+        },
+        "PULLBACK_CONTINUATION": {
+          "count": 540,
+          "pct": 10.388611,
+          "v1MedianRank": 2274.5,
+          "v2MedianRank": 1604.5,
+          "v1Top20CapturePct": 0.0,
+          "v2Top20CapturePct": 4.62962963,
+          "v1Top50CapturePct": 0.0,
+          "v2Top50CapturePct": 7.03703704
+        },
+        "SECTOR_BREADTH_LED": {
+          "count": 251,
+          "pct": 4.8287803,
+          "v1MedianRank": 753.0,
+          "v2MedianRank": 677.0,
+          "v1Top20CapturePct": 0.0,
+          "v2Top20CapturePct": 3.98406375,
+          "v1Top50CapturePct": 0.0,
+          "v2Top50CapturePct": 7.56972112
+        },
+        "VWAP_LED_WEAK_PRICE": {
+          "count": 180,
+          "pct": 3.46287033,
+          "v1MedianRank": 1540.5,
+          "v2MedianRank": 1949.0,
+          "v1Top20CapturePct": 0.0,
+          "v2Top20CapturePct": 2.22222222,
+          "v1Top50CapturePct": 0.0,
+          "v2Top50CapturePct": 3.88888889
+        }
+      }
+    }
+  },
+  "distribution": {
+    "v1Top5": {
+      "p1": -714.45993032,
+      "p5": -329.02472495,
+      "p10": -184.30799221,
+      "p25": -15.56810813,
+      "p50": 34.68548619,
+      "p75": 284.47920955,
+      "p90": 526.31578947,
+      "p95": 555.55555556,
+      "p99": 1250.0,
+      "min": -2352.94117647,
+      "max": 3313.37325349,
+      "mean": 117.21399324,
+      "trimTop1Mean": 103.13564052,
+      "trimTop5Mean": 72.77768564,
+      "top1ContributionPct": 13.97785572
+    },
+    "v2Top5": {
+      "p1": -400.16666667,
+      "p5": -133.34818114,
+      "p10": -78.125,
+      "p25": 0.0,
+      "p50": 42.7681315,
+      "p75": 180.54141792,
+      "p90": 357.3160593,
+      "p95": 500.96339114,
+      "p99": 814.65577565,
+      "min": -2007.72200772,
+      "max": 1428.57142857,
+      "mean": 97.81331664,
+      "trimTop1Mean": 86.22661856,
+      "trimTop5Mean": 68.42560334,
+      "top1ContributionPct": 12.72726935
+    }
+  },
+  "rankCalibration": {
+    "v1Spearman": 0.11324217,
+    "v2Spearman": 0.1066816
+  },
+  "sessionStability": {
+    "v1PositiveSessions": 19,
+    "v2PositiveSessions": 20,
+    "meanPairedDifferenceBps": -19.4006766,
+    "medianPairedDifferenceBps": -13.87191497,
+    "v2BetterSessions": 9,
+    "sessions": 20
+  },
+  "negativeControls": {
+    "labelShuffleTop5": {
+      "candidateCount": 900,
+      "meanReturnBps": 18.60077333,
+      "medianReturnBps": 0.0,
+      "positiveRatePct": 41.77777778,
+      "futureMfePct": 0.86983657,
+      "futureMaePct": -0.58708102,
+      "final5PrecisionPct": 8.0,
+      "final5RecallPct": 0.61770762,
+      "positiveSessions": 17,
+      "sessionCount": 20,
+      "opportunities": {
+        "50": {
+          "total": 68231,
+          "selected": 208,
+          "recallPct": 0.30484677,
+          "precisionPct": 23.11111111
+        },
+        "100": {
+          "total": 24867,
+          "selected": 137,
+          "recallPct": 0.55093095,
+          "precisionPct": 15.22222222
+        },
+        "150": {
+          "total": 11607,
+          "selected": 80,
+          "recallPct": 0.68923925,
+          "precisionPct": 8.88888889
+        },
+        "200": {
+          "total": 6473,
+          "selected": 62,
+          "recallPct": 0.95782481,
+          "precisionPct": 6.88888889
+        }
+      }
+    },
+    "randomTop5": {
+      "candidateCount": 900,
+      "meanReturnBps": -0.19075636,
+      "medianReturnBps": 0.0,
+      "positiveRatePct": 40.44444444,
+      "futureMfePct": 0.37125483,
+      "futureMaePct": -0.36459885,
+      "final5PrecisionPct": 2.55555556,
+      "final5RecallPct": 0.19732327,
+      "positiveSessions": 10,
+      "sessionCount": 20,
+      "opportunities": {
+        "50": {
+          "total": 68231,
+          "selected": 102,
+          "recallPct": 0.14949217,
+          "precisionPct": 11.33333333
+        },
+        "100": {
+          "total": 24867,
+          "selected": 37,
+          "recallPct": 0.14879157,
+          "precisionPct": 4.11111111
+        },
+        "150": {
+          "total": 11607,
+          "selected": 19,
+          "recallPct": 0.16369432,
+          "precisionPct": 2.11111111
+        },
+        "200": {
+          "total": 6473,
+          "selected": 13,
+          "recallPct": 0.20083423,
+          "precisionPct": 1.44444444
+        }
+      }
+    },
+    "simpleMomentumTop5": {
+      "candidateCount": 900,
+      "meanReturnBps": -138.03841248,
+      "medianReturnBps": -86.65276329,
+      "positiveRatePct": 23.22222222,
+      "futureMfePct": 1.41450273,
+      "futureMaePct": -3.65727634,
+      "final5PrecisionPct": 48.11111111,
+      "final5RecallPct": 3.71482498,
+      "positiveSessions": 1,
+      "sessionCount": 20,
+      "opportunities": {
+        "50": {
+          "total": 68231,
+          "selected": 169,
+          "recallPct": 0.247688,
+          "precisionPct": 18.77777778
+        },
+        "100": {
+          "total": 24867,
+          "selected": 134,
+          "recallPct": 0.53886677,
+          "precisionPct": 14.88888889
+        },
+        "150": {
+          "total": 11607,
+          "selected": 112,
+          "recallPct": 0.96493495,
+          "precisionPct": 12.44444444
+        },
+        "200": {
+          "total": 6473,
+          "selected": 88,
+          "recallPct": 1.35949328,
+          "precisionPct": 9.77777778
+        }
+      }
+    },
+    "lookAheadAuditPass": true
+  },
+  "safety": {
+    "jquantsRequestsDuringFit": 0,
+    "validationOpened": false,
+    "oosOpened": false,
+    "targetChanged": false,
+    "topNChanged": false,
+    "featureUniverseChanged": false,
+    "entryExitAllocationChanged": false
+  },
+  "reportSha256": "ead502ba4f6a871b811b20755a983372f8438b47c31156cfa06ae84aa39dbf1e"
+}

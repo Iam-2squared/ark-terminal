@@ -1,0 +1,144 @@
+name: Phase57 Gen3 Finite Learning R45
+on:
+  push:
+    branches: ['research/phase57-long-only-cash-equity']
+    paths:
+      - 'docs/evidence/phase57-comprehensive-exit-v1/GEN3_LAUNCH_R45.json'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-gen3-r45-one-shot
+  cancel-in-progress: false
+env:
+  ARK_TEST_OFFLINE: '1'
+  PYTHONDONTWRITEBYTECODE: '1'
+  PYTHONPATH: '.'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  NUMEXPR_NUM_THREADS: '1'
+jobs:
+  finite-once:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Read the separately authorized immutable launch marker
+        id: marker
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, re
+          path = pathlib.Path('docs/evidence/phase57-comprehensive-exit-v1/GEN3_LAUNCH_R45.json')
+          raw = path.read_bytes()
+          marker = json.loads(raw)
+          assert marker['schema'] == 'phase57-gen3-launch-r45-v1'
+          assert marker['authorizedByUser'] is True
+          assert re.fullmatch('[0-9a-f]{40}', marker['executionSha'])
+          assert type(marker['contractRunId']) is int and marker['contractRunId'] > 0
+          assert marker['protocolSha256'] == 'e7b38e7e6aaf909926852467152fffef2532f58f960a95e6f2d18efd66f5d1b5'
+          assert os.environ['GITHUB_RUN_ATTEMPT'] == '1'
+          (pathlib.Path(os.environ['RUNNER_TEMP']) / 'r45-launch.json').write_bytes(raw)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write('executionSha=' + marker['executionSha'] + '\n')
+              f.write('contractRunId=' + str(marker['contractRunId']) + '\n')
+          PY
+      - uses: actions/download-artifact@v4
+        with:
+          repository: Iam-2squared/ark-terminal
+          run-id: ${{ steps.marker.outputs.contractRunId }}
+          name: phase57-gen3-contract-r45-${{ steps.marker.outputs.contractRunId }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/r45-ci
+      - name: Checkout exactly the successfully tested execution source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.marker.outputs.executionSha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install frozen numerical dependencies
+        run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.7.2 pandas==2.2.3 joblib==1.5.2
+      - name: Verify source, prior CI, support, latest HEAD and absence of duplicate learning
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python -m scripts.phase57_exit_gen3_preflight_r45 --phase launch \
+            --marker "$RUNNER_TEMP/r45-launch.json" \
+            --ci-receipt "$RUNNER_TEMP/r45-ci/contract-receipt.json" \
+            --out artifacts/r45-launch/start.json
+      - name: Restore only the immutable R35 preparation artifact
+        uses: actions/download-artifact@v4
+        with:
+          repository: Iam-2squared/ark-terminal
+          run-id: 36220335998
+          name: phase57-exit-capital-prep-r35-36220335998
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/r35
+      - name: Prepare causal features and isolated labels without fitting
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/r45-logs
+          python -m scripts.phase57_exit_gen3_runner_r45 --phase prepare \
+            --core-root "$RUNNER_TEMP/r35" --out artifacts/gen3 \
+            --cache "$RUNNER_TEMP/gen3-prepared.pkl" \
+            2>&1 | tee artifacts/r45-logs/prepare.log
+      - name: Recheck launch authorization and latest HEAD immediately before fitting
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python -m scripts.phase57_exit_gen3_preflight_r45 --phase launch \
+            --marker "$RUNNER_TEMP/r45-launch.json" \
+            --ci-receipt "$RUNNER_TEMP/r45-ci/contract-receipt.json" \
+            --out artifacts/r45-launch/prefit.json
+      - name: Run exactly 24 fits and four fixed policies A/B without selection
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m scripts.phase57_exit_gen3_runner_r45 --phase fit-replay \
+            --core-root "$RUNNER_TEMP/r35" --out artifacts/gen3 \
+            --cache "$RUNNER_TEMP/gen3-prepared.pkl" \
+            --contract-receipt artifacts/r45-launch/prefit.json \
+            2>&1 | tee artifacts/r45-logs/fit-replay.log
+      - name: Verify completed counts and deferred audit boundary
+        run: |
+          python - <<'PY'
+          import json, pathlib
+          r = json.loads(pathlib.Path('artifacts/gen3/receipt.json').read_text())
+          assert r['status'] == 'AWAITING_POST_RUN_AUDIT'
+          assert r['modelFits'] == 24 and r['candidatePoliciesReplayed'] == 4
+          assert r['policyReplayPasses'] == 8 and r['neutralDiagnosticReplayPasses'] == 2
+          assert r['runABByteIdentical'] is True
+          assert r['scorecardsProduced'] == 0 and r['selection'] is None
+          assert r['gen3PerformanceInspected'] is False
+          assert r['providerRequests'] == r['protectedPartitionsOpened'] == 0
+          assert len(r['safety']) == 9 and all(v is False for v in r['safety'].values())
+          print('24_FITS_4_POLICIES_COMPLETE_AWAITING_POST_RUN_AUDIT')
+          PY
+      - name: Preserve exact tested source and launch receipt, including on failure
+        if: always()
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os, pathlib, shutil
+          out = pathlib.Path('artifacts/r45-launch')
+          out.mkdir(parents=True, exist_ok=True)
+          marker = pathlib.Path(os.environ['RUNNER_TEMP']) / 'r45-launch.json'
+          if marker.exists(): shutil.copyfile(marker, out / 'original-launch-marker.json')
+          source = pathlib.Path(os.environ['RUNNER_TEMP']) / 'r45-ci'
+          if source.exists(): shutil.copytree(source, pathlib.Path('artifacts/r45-tested-ci'))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-exit-gen3-r45-${{ github.run_id }}
+          path: artifacts
+          retention-days: 90
+          overwrite: false
+          if-no-files-found: error
+          include-hidden-files: true

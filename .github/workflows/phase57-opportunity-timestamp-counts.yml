@@ -1,0 +1,40 @@
+name: Phase57 Opportunity Timestamp Counts
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-opportunity-timestamp-counts.yml'
+      - 'scripts/phase57_opportunity_timestamp_counts.py'
+      - 'scripts/test_phase57_opportunity_timestamp_counts.py'
+      - 'docs/evidence/phase57-price75-entry-opportunity-timestamp-counts-v1/**'
+permissions:
+  contents: read
+jobs:
+  verify-counts:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      ARK_TEST_OFFLINE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Timestamp and unchanged Entry regression
+        run: python3 scripts/offline/kernel_exec.py python3 -m unittest -v scripts.test_phase57_opportunity_timestamp_counts scripts.test_phase57_new_long_entry_two_opportunity
+      - name: Byte-identical counting from saved opportunities only
+        run: |
+          set -euo pipefail
+          python3 scripts/offline/kernel_exec.py python3 scripts/phase57_opportunity_timestamp_counts.py --out /tmp/opportunity-counts
+          for file in summary.json timestamp-counts.csv REPORT.md manifest.json; do
+            cmp "/tmp/opportunity-counts/$file" "docs/evidence/phase57-price75-entry-opportunity-timestamp-counts-v1/$file"
+          done
+          git diff --exit-code
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-opportunity-counts-${{ github.event.pull_request.head.sha }}
+          path: /tmp/opportunity-counts/
+          if-no-files-found: error

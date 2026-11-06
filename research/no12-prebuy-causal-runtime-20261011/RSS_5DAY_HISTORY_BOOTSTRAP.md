@@ -1,0 +1,9 @@
+# No12 RssChart historical bootstrapping — SOURCE VALIDATION ONLY (2026-10-11)
+
+The 2026-03-30 user-provided MSII RSS function reference p18 permits RssChart 5M with row count 1..3000. The proposed physical Tuesday probe requests 500 rows for one **public test ticker** and checks whether the last 5 *previous* JPX sessions are actually present; target is roughly 5 x 66=330 five-minute candles, allowing 09:00–11:30 and 12:30–15:30 regular sessions. Five calendar days are not equal to five trading days (Oct 12 holiday); this code selects actual session dates, not an inferred Mon–Fri calendar.
+
+The pure normalization rejects wrong row/header schema, unexpected/duplicate time, impossible OHLCV, missing active-session intervals and invalid capture clock. It conservatively excludes bars that may still be forming and counts incomplete current session separately. A past chart observed for the first time on Tuesday is **historical reconstruction**: it must not be marked as genuinely broker-observed during last week's decision time, nor used to certify backtest point-in-time events. This is warmup for a later source-sourced online Selector/State9 engine, not training/entry rules or a replacement for correct native predictors.
+
+No 500-row guarantee: the actual number returned depends on broker support and live Excel environment. 500 is a requested count; an insufficient source returns HISTORY_SOURCE_INCOMPLETE. RssChart does not prove simultaneous data availability across all stocks. Each separate RssChart function consumes provider capacity; no broad all-market 500-chart assumption. The existing No1.1 workbook remains isolated until a new source integration is verified.
+
+No Excel/order calls, no trading permission, no production-ready status in this module. No1.1 Frozen and main unchanged.

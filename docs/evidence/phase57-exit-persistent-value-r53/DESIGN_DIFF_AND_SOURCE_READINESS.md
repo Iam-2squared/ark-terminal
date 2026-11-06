@@ -1,0 +1,21 @@
+# Phase57 R53 — source readiness and one precommitted EXIT candidate
+
+Saved JST: 2026-09-28. Basis HEAD before this research: `c5e387eabc59306ff5b35c4b665825e3595dac8e`. Protocol committed before any new policy performance at `3022bcb039077be5d3c84f1d7d7ca19a3cb90c3c`; SHA256 `d45e9710c23a745219c560b2ff89eb5ddb02b5514a6c7fa5e09db312f854ceea`. This is already outcome-exposed Development. R50-A and R52 remain unselected.
+
+## Archived R52 diagnosis (zero new fits/trials)
+
+The archived R52 prediction hash is `e13f39f420e020349d09d36945d101372e7d67362374a447d8bdaec17b28cda1`. For the 79 originally funded IM positions, 27 have evaluator-only remaining upside ≥5%. At the *first actual R52 CORE sell intent*, 19 of these 27 have positive reconstructed frozen H-minus-S teacher values despite negative model predictions. For PREFIX/PATTERN the count is 16 of 26 with model sell intent. The median predicted/teacher values for CORE are −0.427/+2.548 pp; for PREFIX/PATTERN −0.505/+1.209 pp. These values diagnose imperfect early predictions and do not establish that persistence improves returns. R50 sometimes retained positions that subsequently lost money. The immutable individual cases, timestamps, old/new same-quantity PnL and evaluator-only upside are in `R52_PAIRED_DECISION_DIAGNOSIS.json.gz`.
+
+## One policy trial
+
+The new policy reads the exact saved R52 PREFIX/PATTERN whole-session OOF score. The frozen R50-A state progresses at each *hypothetically held* completed checkpoint. A confirmed R50-A Harvest intent retains priority. Additional SELL_INTENT requires three consecutive fresh, finite NOW negative H-minus-S predictions below the already frozen R52 threshold −0.05 percentage points. Missing NOW data reset the additional-sell counter, while R50-A runs as before. Any intended sale still requires the exact next scheduled OPEN. A missing OPEN does not queue an order or release cash. This adds a persistence decision path in all current return and certified/uncertified MFE states. No new regressor, label, feature, threshold search, model fit, Selector, Entry, or Capital change is allowed. It is one new performance trial using old, already outcome-exposed forecasts; it is **not** a zero-performance replay.
+
+## Data availability before the trial
+
+Across the 24 sessions there are 819 IM and 795 R1 frozen Entry events; 11 IM and 9 R1 terminal auction references are absent. Two IM and one R1 opportunity have neither a certified terminal auction nor any fresh NOW checkpoint followed by its **exact** scheduled next OPEN. For `2025-07-23|62650|883`, the only source bars after entry are at 14:43, 14:58, 15:15. The strictly required following OPENs are missing, and the 15:30 auction is missing. The earlier R52 policies funded this Entry and could not sell it or mark the overnight corporate-action path; 759 later fixed R37 sizing attempts failed closed. The identical R50-A control has all 24 IM end-of-day equities certified, so it is not established that every future EXIT policy necessarily funds this Entry. If the new path does fund it, full-period equity and daily metrics remain null, and **no rerun or post-result rule change** is allowed.
+
+Recovering a funded missing path requires a time-stamped, contract-compatible 2025-07-23 62650 auction or exact contemporaneous OPEN, or, if held overnight, an as-of price and corporate-action/share continuity for each held session. Analogous evidence would be needed for 2025-08-06 90870 and other actually funded missing-auction cases. No new provider fetch, protected partition, fabricated fill or forward mark is authorized in this Work. `READINESS_AUDIT.json` lists the full source census. Runtime selection cannot inspect future missingness.
+
+## Decision gate
+
+The single candidate must pass all integrity, complete 24-session IM equity, positive after-cost portfolio gain above both ¥1,000,000 and the identical ¥887,131.009125 R50-A control, same-quantity ≥5/≥10 Winner protection, 3–5% conversion, combined ≥5/≥10 reach, replacement quality and concentration conditions in `PRECOMMIT.json`. A null portfolio remains measurement blocked and cannot SELECT. The 80% utilization goal is reported separately with explicit mark coverage. All nine execution flags stay false.

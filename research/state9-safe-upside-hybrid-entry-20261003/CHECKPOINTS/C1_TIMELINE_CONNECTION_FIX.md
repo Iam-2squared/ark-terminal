@@ -1,0 +1,91 @@
+# 💾 C1_TIMELINE_CONNECTION_FIX
+
+## 📌 saved_at_jst
+
+"2026-10-03T02:07:57.184290+09:00"
+
+## 📌 basis_head
+
+"269d8071e1de51d46c63c1e8d0540056541b4b87"
+
+## 📌 previous_checkpoint_result_head
+
+"269d8071e1de51d46c63c1e8d0540056541b4b87"
+
+## 📌 current_status
+
+"C1_RC2_WRAPPER_CONNECTION_FIXED_BEFORE_RESTART"
+
+## 📌 completed_this_checkpoint
+
+[
+  "独立120桁原本のregenerate entry pointへwrapper接続を修正",
+  "原本RC2/M0/Pathコード変更0、失敗した不完全出力を破棄",
+  "再開前wrapper SHAを再凍結"
+]
+
+## 📌 key_evidence
+
+{
+  "RC2_source_semantic_changes": 0,
+  "new_labels": 0,
+  "new_fits": 0,
+  "failed_reason": "normalize120 API name mismatch; no semantic mismatch"
+}
+
+## 📌 blockers
+
+[
+  "RC2 timeline接続の計算・監査は未完了"
+]
+
+## 📌 current_direction
+
+"凍結classifier原本と閉じた元tokenだけでState接続。source deficiencyとsemantic nullを分離"
+
+## 📌 next_step
+
+"RC2 timelineを一回計算、C1 Gate確認後にC2 target正式freeze"
+
+## 📌 frozen_boundaries
+
+[
+  "State/Profile/M0/Path意味変更0",
+  "newtarget labelまだ0",
+  "fits0",
+  "provider0",
+  "旧State代用0",
+  "raw/private原本をGitHubへcommitしない",
+  "future current_dailyをclassifierへ渡さない"
+]
+
+## 📌 exposure_and_budget
+
+{
+  "reads": {
+    "saved_encrypted_archives": 19,
+    "original_wrapper_sources": 272,
+    "numeric_value_checks": 8691096
+  },
+  "writes": {
+    "checkpoint_commits_completed_before_save": 2,
+    "saved_source_workflows_completed": 1
+  },
+  "fit": 0,
+  "threshold_selections": 0,
+  "provider_requests": 0,
+  "protected_opens": 0,
+  "holdout_opens": 0,
+  "validation_new_opens": 0,
+  "OOS_opens": 0,
+  "prospective_opens": 0,
+  "bootstrap": 0,
+  "replay": 0,
+  "new_labels": 0,
+  "new_state_rows": 0,
+  "orders": 0,
+  "main_merge": 0,
+  "failed_connection_attempts": 1
+}
+
+Result HEADは保存後のGitHub commitが正本。未来のSHAは本文に記録しない。

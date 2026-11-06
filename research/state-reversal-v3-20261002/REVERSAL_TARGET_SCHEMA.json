@@ -1,0 +1,96 @@
+{
+  "DOWN_confirm": {
+    "context_direction": -1,
+    "destination": [
+      "DROP",
+      "SHARP_DROP",
+      "REBOUND",
+      "DROP_STOP"
+    ],
+    "genuine_TRANSITION": true
+  },
+  "NONE_context_is_NOT_DOWN_structure": true,
+  "UP_confirm": {
+    "context_direction": 1,
+    "destination": [
+      "RISE",
+      "SHARP_RISE"
+    ],
+    "genuine_TRANSITION": true,
+    "local_direction": 1
+  },
+  "classes": {
+    "CONTEXT_REVERSAL": [
+      "UP_CONTINUE",
+      "DOWN_REVERSAL",
+      "RANGE_OR_STOP",
+      "NO_DECISION_WITHIN30"
+    ],
+    "MOTION_REVERSAL": [
+      "UP_MOVE_CONTINUE",
+      "DOWN_MOVE_REVERSAL",
+      "NON_DIRECTIONAL",
+      "NO_DECISION"
+    ],
+    "NEXT_DISTINCT_PRIMARY": [
+      "RISE_STOP",
+      "RISE",
+      "SHARP_RISE",
+      "PULLBACK",
+      "RANGE",
+      "REBOUND",
+      "SHARP_DROP",
+      "DROP",
+      "DROP_STOP"
+    ],
+    "NEXT_OBSERVED_PRIMARY": [
+      "RISE_STOP",
+      "RISE",
+      "SHARP_RISE",
+      "PULLBACK",
+      "RANGE",
+      "REBOUND",
+      "SHARP_DROP",
+      "DROP",
+      "DROP_STOP"
+    ]
+  },
+  "context_families": {
+    "DOWN_CONTEXT": [
+      "DROP",
+      "SHARP_DROP",
+      "REBOUND",
+      "DROP_STOP"
+    ],
+    "RANGE_CONTEXT": [
+      "RANGE"
+    ],
+    "UP_CONTEXT": [
+      "RISE",
+      "SHARP_RISE",
+      "PULLBACK",
+      "RISE_STOP"
+    ]
+  },
+  "early_confirmed_event_available": true,
+  "horizon": 30,
+  "max_shift_bridge": 60,
+  "motion_families": {
+    "DOWN_MOVE": [
+      "DROP",
+      "SHARP_DROP",
+      "PULLBACK"
+    ],
+    "NON_DIRECTIONAL_OR_STOP": [
+      "RANGE",
+      "RISE_STOP",
+      "DROP_STOP"
+    ],
+    "UP_MOVE": [
+      "RISE",
+      "SHARP_RISE",
+      "REBOUND"
+    ]
+  },
+  "unavailable_excluded": true
+}

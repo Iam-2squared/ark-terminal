@@ -1,0 +1,80 @@
+{
+  "artifactKind": "phase57_drop_pullback_1m_state_recheck_result_receipt_r1",
+  "testedImplementationHead": "8c256ff98d365d01c7150afe193686f020e2026c",
+  "sourceRunId": 35818555587,
+  "sourceArtifactId": 10732168448,
+  "sourceSummarySHA256": "8de015aeaf9b80d1d375b409ea597fa6dee24d767a72aeabdd5918faac367ea9",
+  "scope": "DEVELOPMENT_HISTORICAL_REPLAY_ONLY",
+  "status": "PASS_CLEAR_IMPROVEMENT",
+  "promotionApproved": false,
+  "nextHypothesisStarted": false,
+  "population": 2155,
+  "targetPopulation": 1757,
+  "targetStates": ["DROP", "PULLBACK"],
+  "positionDefinition": "(Entry-Low)/(LaterHigh-Low), frozen evaluator-only semantics, not clipped",
+  "positionThresholdDenominator": "FILLED_AND_ORACLE_POSITION_EVALUABLE_PER_POLICY; not all opportunities and not necessarily identical paired sets",
+  "gateChecks": {
+    "primary25RateImprovementAtLeast2pp": true,
+    "pairedEntryPositionImproves": true,
+    "pairedLowToEntryImproves": true,
+    "fillRateNotWorseThan2pp": true,
+    "capture3NotWorseThan2pp": true,
+    "capture5NotWorseThan2pp": true,
+    "causality": true
+  },
+  "targetDeltasVsStateV3": {
+    "entryPositionLE25RatePp": 2.5447476573701167,
+    "fillRatePp": 4.723961297666477,
+    "capture3Pp": 5.967741935483865,
+    "capture5Pp": 6.402439024390247,
+    "fillCount": 83
+  },
+  "targetPositions": {
+    "A_IMMEDIATE": {"evaluable": 1569, "mean": 0.6419378862402821, "median": 0.4088953488372089, "le25Count": 578, "le25RatePct": 36.83875079668579},
+    "C_ENTRY_V1": {"evaluable": 1488, "mean": 0.6426037067218364, "median": 0.4660650420757345, "le25Count": 406, "le25RatePct": 27.28494623655914},
+    "D_STATE_V3": {"evaluable": 1317, "mean": 0.6624451074624073, "median": 0.5083333333333329, "le10Count": 85, "le25Count": 308, "le50Count": 650, "le25RatePct": 23.386484434320426},
+    "E_DROP_PULL_1M_STATE_RECHECK_V1": {"evaluable": 1396, "mean": 0.6655946031552497, "median": 0.5098124999999989, "le10Count": 113, "le25Count": 362, "le50Count": 688, "le25RatePct": 25.931232091690543}
+  },
+  "targetPairedVsStateV3": {
+    "pairStatus": {"BOTH_FILLED": 1323, "CANDIDATE_ONLY": 83, "NEITHER_FILLED": 351},
+    "entryPositionDelta": {"count": 1317, "mean": -0.007470076826005252, "median": 0.0},
+    "lowToEntryDistanceDeltaPct": {"count": 1317, "mean": -0.0512210201529155, "median": 0.0},
+    "priceImprovementPct": {"count": 1323, "mean": 0.0472186432443504, "median": 0.0},
+    "delayDelta": {"count": 1323, "mean": -2.747543461829176, "median": 0.0},
+    "remainingUpsideDeltaPct": {"count": 1243, "mean": 0.05835833533625401, "median": 0.0},
+    "rangeRetentionDeltaPp": {"count": 1243, "mean": 0.9004427599622655, "median": 0.0},
+    "MFE30DeltaPp": {"count": 982, "mean": 0.062213391143344725, "median": 0.0},
+    "MAE30DeltaPp": {"count": 982, "mean": 0.00550641143340607, "median": 0.0},
+    "MFE60DeltaPp": {"count": 791, "mean": 0.06561820349054266, "median": 0.0},
+    "MAE60DeltaPp": {"count": 791, "mean": -0.04590580548901387, "median": 0.0},
+    "sessionEqualPriceBootstrap": {"descriptiveNotConfirmatory": true, "sessionCount": 58, "mean": 0.047261820449623175, "percentile95": [0.004986424933233704, 0.08373973181438364]}
+  },
+  "targetPolicySummaries": {
+    "A_IMMEDIATE": {"fills": 1598, "noEntry": 159, "fillRatePct": 90.95048377916903, "delayMean": 1.472465581977472, "delayMedian": 0.0, "capture3Count": 525, "capture3Denominator": 620, "capture3RatePct": 84.6774193548387, "capture5Count": 288, "capture5Denominator": 328, "capture5RatePct": 87.8048780487805},
+    "C_ENTRY_V1": {"fills": 1504, "noEntry": 253, "fillRatePct": 85.60045532157086, "delayMean": 9.545212765957446, "delayMedian": 10.0, "capture3Count": 430, "capture3Denominator": 620, "capture3RatePct": 69.35483870967742, "capture5Count": 242, "capture5Denominator": 328, "capture5RatePct": 73.78048780487805},
+    "D_STATE_V3": {"fills": 1323, "noEntry": 434, "fillRatePct": 75.2988047808765, "delayMean": 10.895691609977325, "delayMedian": 10.0, "capture3Count": 389, "capture3Denominator": 620, "capture3RatePct": 62.74193548387097, "capture5Count": 211, "capture5Denominator": 328, "capture5RatePct": 64.32926829268293},
+    "E_DROP_PULL_1M_STATE_RECHECK_V1": {"fills": 1406, "noEntry": 351, "fillRatePct": 80.02276607854297, "delayMean": 8.42176386913229, "delayMedian": 7.0, "capture3Count": 426, "capture3Denominator": 620, "capture3RatePct": 68.70967741935483, "capture5Count": 232, "capture5Denominator": 328, "capture5RatePct": 70.73170731707317}
+  },
+  "wholePopulationPolicySummaries": {
+    "A_IMMEDIATE": {"fills": 1963, "noEntry": 192, "fillRatePct": 91.09048723897912, "entryPositionMean": 0.6539927741444302, "entryPositionEvaluable": 1931, "capture3RatePct": 85.28252299605782, "capture5RatePct": 87.5},
+    "C_ENTRY_V1": {"fills": 1857, "noEntry": 298, "fillRatePct": 86.17169373549883, "entryPositionMean": 0.643536375356862, "entryPositionEvaluable": 1839, "capture3RatePct": 71.22207621550591, "capture5RatePct": 75.24509803921569},
+    "D_STATE_V3": {"fills": 1681, "noEntry": 474, "fillRatePct": 78.0046403712297, "entryPositionMean": 0.6728253556004232, "entryPositionEvaluable": 1672, "capture3RatePct": 67.01708278580814, "capture5RatePct": 68.38235294117646},
+    "E_DROP_PULL_1M_STATE_RECHECK_V1": {"fills": 1764, "noEntry": 391, "fillRatePct": 81.85614849187935, "entryPositionMean": 0.6748679920277816, "entryPositionEvaluable": 1751, "capture3RatePct": 71.87910643889619, "capture5RatePct": 73.52941176470588}
+  },
+  "audit": {
+    "status": "PASS",
+    "causalIntentSHA256BeforeEvaluatorOpen": "8e9f1bfaf10884dc140d0cf6243cab7149b64490baa9124b33a64a433e238878",
+    "targetStateDecisionCount": 53712,
+    "stateFutureViolations": 0,
+    "signalClosedBarChecks": 65910,
+    "signalClosedBarPassed": 65910,
+    "targetT0StatesExactParity": 1757,
+    "nonTargetRecordsExactParity": 398,
+    "decisionFunctionProhibitedTokens": [],
+    "evaluatorOpenedAfterAllIntents": true,
+    "providerRequests": 0,
+    "protectedDataOpened": 0,
+    "safety9AllFalse": true
+  },
+  "interpretation": "Precommitted relative-improvement gates vs the rejected 5m State-v3 baseline passed. This is not an absolute EntryPosition<=0.25 success, not an Immediate win, not an independent OOS result, and not production promotion. Unpaired position means are not improved; paired target position and Low-to-Entry improve modestly. Stop for manual review."
+}

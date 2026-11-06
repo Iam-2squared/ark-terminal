@@ -1,0 +1,52 @@
+name: No11 EXIT Ownership Guard
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/no11-exit-ownership-guard.yml'
+      - 'research/no12-prebuy-causal-runtime-20261011/tools/no11_exit_ownership_patch.py'
+      - 'research/no12-prebuy-causal-runtime-20261011/tools/no11_broker_execution_service.py'
+      - 'research/no12-prebuy-causal-runtime-20261011/tools/no11_broker_execution_ledger.py'
+      - 'research/no12-prebuy-causal-runtime-20261011/tools/no11_broker_fill_attribution.py'
+      - 'research/no12-prebuy-causal-runtime-20261011/tests/test_no11_exit_ownership_patch.py'
+      - 'research/no12-prebuy-causal-runtime-20261011/NO11_EXIT_OWNERSHIP_AUDIT_20261102.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ownership-offline:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test actual ownership methods with synthetic observations and no order sink
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -B -m unittest discover -s research/no12-prebuy-causal-runtime-20261011/tests -p 'test_no11_exit_ownership_patch.py' -v 2>&1 | tee exit-ownership-tests.log
+      - name: Stage only the byte-pinned service patch; do not modify installed source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -c "from pathlib import Path; Path('exit-ownership-stage').mkdir()"
+          python -B research/no12-prebuy-causal-runtime-20261011/tools/no11_exit_ownership_patch.py --output "$(pwd)/exit-ownership-stage/no11_broker_execution_service.py"
+          git diff --exit-code -- research/no12-prebuy-causal-runtime-20261011/tools/no11_broker_execution_service.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: no11-exit-ownership-${{ matrix.os }}
+          path: |
+            exit-ownership-tests.log
+            exit-ownership-stage/no11_broker_execution_service.py
+            research/no12-prebuy-causal-runtime-20261011/tools/no11_exit_ownership_patch.py
+            research/no12-prebuy-causal-runtime-20261011/tests/test_no11_exit_ownership_patch.py
+            research/no12-prebuy-causal-runtime-20261011/NO11_EXIT_OWNERSHIP_AUDIT_20261102.md
+          if-no-files-found: error

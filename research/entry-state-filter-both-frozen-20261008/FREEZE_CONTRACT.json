@@ -1,0 +1,76 @@
+{
+  "freeze_id": "ARK_ENTRY_STATE_FILTER_BOTH_FREEZE_20261008_V1",
+  "freeze_status": "FROZEN_NEW_RESEARCH_BASELINE_NOT_PRODUCTION",
+  "authorized_decision": "Exclude formal Entry-time PULLBACK and SHARP_DROP from ALL purchase opportunities, including replacement/recycled vacancies",
+  "immutable_parent_No1": {
+    "public_sha": "fee1458ea7a526be3ee1c9819d3b1ade8f178c5a",
+    "private_sha": "92763089a07ce0200cb63b887f1bede0e263ed47",
+    "modified": false
+  },
+  "research_implementation_commit": "4db5178e06cb1e0ca644295d78052d73dcdd4b72",
+  "research_implementation_contract_path": "research/entry-state-universal-exclusion-v1-20261008/RESEARCH_POLICY_CONTRACT.json",
+  "research_comparison_commit": "88a994378c5c02e66c93bbd4fdb4d40398e3de45",
+  "research_comparison_path": "research/no1-entry-state-filter-reset20-20261008/RESULTS_AGGREGATE.json",
+  "immutable_filter": {
+    "excluded_formal_primary": [
+      "PULLBACK",
+      "SHARP_DROP"
+    ],
+    "evaluation_stage": "every Frozen Entry BUY candidate before Capital V5 slot admission/rank/allocation",
+    "applies_to": [
+      "first_slot",
+      "initially_empty_slot_2_or_3",
+      "same_minute_batch",
+      "vacancy_after_legal_sell_fill",
+      "recycled_cash_purchase"
+    ],
+    "reentry_of_excluded_same_entry_id": false,
+    "forced_backfill": false,
+    "unknown_state": "KEEP tagged as unknown, no inference",
+    "inconsistent_or_future_state": "BLOCKED",
+    "price_state_clock": "original historical as-of assumptions; actual receive time UNKNOWN",
+    "frozen_original_entry": true,
+    "frozen_original_exit": true,
+    "frozen_original_capital": true,
+    "frozen_original_first_layer": true,
+    "frozen_old_R0": true
+  },
+  "development_reset20": {
+    "windows": 9,
+    "overlapping": true,
+    "initial_cash_jpy": 1000000,
+    "business_days": 20,
+    "no1_median_final_jpy": "1216396.70",
+    "filtered_median_final_jpy": "1221394.30",
+    "median_of_paired_differences_jpy": "248.30",
+    "difference_of_medians_jpy": "4997.60",
+    "no1_mean_final_jpy": "1220317.83",
+    "filtered_mean_final_jpy": "1224259.28",
+    "improved_windows": 5,
+    "worsened_windows": 4,
+    "two_x_hits": 0,
+    "baseline_path_reproduced": true,
+    "new_36_paths_replayed": true,
+    "independent_fraction_allocator_paths": 36,
+    "caveat": "Overlapping development paths, not nine independent months; market arrival time unverified."
+  },
+  "next_research": {
+    "scope": "Replacement-slot quality / whether to leave slot vacant; eventual new rank overlay",
+    "fixed_baseline": "FILTER_BOTH_ALWAYS_V1",
+    "primary_objective": "20 business days final wealth from 1,000,000 JPY, distance to 2,000,000 JPY",
+    "may_change": "NEW RANKING RESEARCH ONLY, with separate precommit and comparison",
+    "may_not_change": "Excluded states, original frozen Entry/EXIT/Capital/State/lot/fee/clock/first layer",
+    "no_future_leakage": true
+  },
+  "safety": {
+    "productionReady": false,
+    "automaticPromotionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "brokerWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "mainMerge": 0,
+    "newOrders": 0
+  },
+  "evidence": "Research-only freeze decision; not a promotion of No.1 nor a live trading certification"
+}

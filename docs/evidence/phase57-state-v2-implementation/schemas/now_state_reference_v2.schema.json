@@ -1,0 +1,291 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "artifactKind": {
+      "const": "now_state_reference_v2"
+    },
+    "attributes": {
+      "required": [
+        "choppiness",
+        "range",
+        "volume",
+        "tradingValue"
+      ],
+      "type": "object"
+    },
+    "causalMetadata": {
+      "required": [
+        "maxSourceTimestamp",
+        "maxKnownAt",
+        "availabilityEvidence",
+        "sourceVintageId",
+        "tickSize",
+        "tickSizeStatus",
+        "tickSizeSource",
+        "atDailyLimit",
+        "dailyLimitStatus",
+        "dailyLimitSource"
+      ],
+      "type": "object"
+    },
+    "checkpointAsOf": {
+      "type": "string"
+    },
+    "context": {
+      "required": [
+        "recentDaily",
+        "previousObservedSession",
+        "todayOpenToNow"
+      ],
+      "type": "object"
+    },
+    "definitionVersion": {
+      "const": "state-reference-v2.0"
+    },
+    "direction": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "type": "object"
+        },
+        "primaryReason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reasonCodes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "status": {
+          "enum": [
+            "DEFINED",
+            "INSUFFICIENT",
+            "NOT_EVALUATED",
+            "NOT_APPLICABLE"
+          ]
+        },
+        "value": {}
+      },
+      "required": [
+        "status",
+        "value",
+        "reasonCodes",
+        "primaryReason",
+        "evidence"
+      ],
+      "type": "object"
+    },
+    "elapsedActiveMinutesFromSelector": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "events": {
+      "required": [
+        "fixedLevel",
+        "movingVWAP",
+        "persistence"
+      ],
+      "type": "object"
+    },
+    "observationQuality": {
+      "required": [
+        "currentBarObserved",
+        "scheduled5N",
+        "latest5ObservedK",
+        "latest5Complete",
+        "density5",
+        "density15",
+        "density30",
+        "densityToday",
+        "lastObservedAgeActiveMinutes",
+        "consecutiveMissingRun",
+        "missingFlags",
+        "missingCauseCodes",
+        "evidenceSource",
+        "availabilityEvidence",
+        "maxSourceTimestamp",
+        "maxKnownAt",
+        "sourceVintageId",
+        "sourceHashes"
+      ],
+      "type": "object"
+    },
+    "opportunityId": {
+      "type": "string"
+    },
+    "phase": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "type": "object"
+        },
+        "primaryReason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reasonCodes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "status": {
+          "enum": [
+            "DEFINED",
+            "INSUFFICIENT",
+            "NOT_EVALUATED",
+            "NOT_APPLICABLE"
+          ]
+        },
+        "value": {}
+      },
+      "required": [
+        "status",
+        "value",
+        "reasonCodes",
+        "primaryReason",
+        "evidence"
+      ],
+      "type": "object"
+    },
+    "pivotSignature": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "type": "object"
+        },
+        "primaryReason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reasonCodes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "status": {
+          "enum": [
+            "DEFINED",
+            "INSUFFICIENT",
+            "NOT_EVALUATED",
+            "NOT_APPLICABLE"
+          ]
+        },
+        "value": {}
+      },
+      "required": [
+        "status",
+        "value",
+        "reasonCodes",
+        "primaryReason",
+        "evidence"
+      ],
+      "type": "object"
+    },
+    "safety": {
+      "additionalProperties": {
+        "const": false
+      },
+      "maxProperties": 9,
+      "minProperties": 9,
+      "type": "object"
+    },
+    "scale": {
+      "required": [
+        "scaleSpecId",
+        "scaleStatus",
+        "scaleValue",
+        "scaleSourceDay",
+        "previousComplete5mBlockN",
+        "scaleSource",
+        "scaleProvenance"
+      ],
+      "type": "object"
+    },
+    "securityId": {
+      "type": "string"
+    },
+    "selectorAt": {
+      "type": "string"
+    },
+    "sessionDate": {
+      "type": "string"
+    },
+    "structure": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "type": "object"
+        },
+        "primaryReason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reasonCodes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "status": {
+          "enum": [
+            "DEFINED",
+            "INSUFFICIENT",
+            "NOT_EVALUATED",
+            "NOT_APPLICABLE"
+          ]
+        },
+        "value": {}
+      },
+      "required": [
+        "status",
+        "value",
+        "reasonCodes",
+        "primaryReason",
+        "evidence"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "opportunityId",
+    "sessionDate",
+    "securityId",
+    "selectorAt",
+    "checkpointAsOf",
+    "elapsedActiveMinutesFromSelector",
+    "definitionVersion",
+    "safety",
+    "artifactKind",
+    "direction",
+    "structure",
+    "phase",
+    "pivotSignature",
+    "observationQuality",
+    "scale",
+    "context",
+    "events",
+    "attributes",
+    "causalMetadata",
+    "activeMinutesSinceOpen",
+    "sessionSegment",
+    "inheritedRuleVersion"
+  ],
+  "title": "now_state_reference_v2",
+  "type": "object"
+}

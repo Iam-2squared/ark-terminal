@@ -1,0 +1,256 @@
+{
+  "audit_fit": 0,
+  "audit_gate_items": [
+    {
+      "audit_check_counts": {
+        "Entry_fill_unchanged": 1600,
+        "all_1600_identity_set": 1,
+        "frozen_entry_N": 1,
+        "frozen_entry_exact_bytes": 1
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 1,
+      "requirement": "Frozen Entry identity",
+      "status": "PASS"
+    },
+    {
+      "audit_check_counts": {
+        "frozen_RC2_profile_M0_Path_hash": 6
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 2,
+      "requirement": "RC2/profile/M0/Path hashes",
+      "status": "PASS"
+    },
+    {
+      "audit_check_counts": {
+        "full_dated_slot_coverage": 1600,
+        "full_trace_all_independent_RC2_parity": 1,
+        "trace_hash": 1600
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 3,
+      "requirement": "full State9 trace reconstruction",
+      "status": "PASS"
+    },
+    {
+      "audit_check_counts": {
+        "full_trace_saved_overlap_parity": 1
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 4,
+      "requirement": "saved overlap parity",
+      "status": "PASS"
+    },
+    {
+      "audit_check_counts": {
+        "M0_previous_only": 1600,
+        "causal_cutoff_all_trace_slots": 523200,
+        "strictly_later_high_timestamp": 1600
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 5,
+      "requirement": "causal cutoff",
+      "status": "PASS"
+    },
+    {
+      "audit_check_counts": {
+        "continuity_suspension": 1600,
+        "independent_Path_segment": 523200
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 6,
+      "requirement": "segment continuity",
+      "status": "PASS"
+    },
+    {
+      "audit_check_counts": {
+        "null_has_no_run": 364180,
+        "observed_null_distinction": 523200
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 7,
+      "requirement": "observed/null distinction",
+      "status": "PASS"
+    },
+    {
+      "audit_check_counts": {
+        "UP_arm_timestamp": 1600
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 8,
+      "requirement": "UP arm timestamp",
+      "status": "PASS"
+    },
+    {
+      "audit_check_counts": {
+        "PULLBACK_alone_SELL_zero": 478
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 9,
+      "requirement": "PULLBACK単独SELL=0",
+      "status": "PASS"
+    },
+    {
+      "audit_check_counts": {
+        "RISE_STOP_alone_SELL_zero": 478
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 10,
+      "requirement": "RISE_STOP単独SELL=0",
+      "status": "PASS"
+    },
+    {
+      "audit_check_counts": {
+        "tighten_alone_SELL_zero": 478
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 11,
+      "requirement": "protected tighten単独SELL=0",
+      "status": "PASS"
+    },
+    {
+      "audit_check_counts": {
+        "context_reversal_protected_break": 315,
+        "first_valid_structural_EXIT": 1600
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 12,
+      "requirement": "UP→DOWN structural protection",
+      "status": "PASS"
+    },
+    {
+      "audit_check_counts": {
+        "independent_range_retirement": 163
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 13,
+      "requirement": "independent Range retirement",
+      "status": "PASS"
+    },
+    {
+      "audit_check_counts": {
+        "no_gap_reset_synthetic_transition": 523200
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 14,
+      "requirement": "gap/reset跨ぎtransition=0",
+      "status": "PASS"
+    },
+    {
+      "audit_check_counts": {
+        "first_valid_structural_EXIT": 1600,
+        "independent_Path_event_order": 523200
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 15,
+      "requirement": "first valid EXIT trigger",
+      "status": "PASS"
+    },
+    {
+      "audit_check_counts": {
+        "next_open_5bps_or_exact_session_close": 1600
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 16,
+      "requirement": "next-open sell5bps",
+      "status": "PASS"
+    },
+    {
+      "audit_check_counts": {
+        "next_open_5bps_or_exact_session_close": 1600
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 17,
+      "requirement": "exact session-close source / explicit unresolved",
+      "status": "PASS"
+    },
+    {
+      "audit_check_counts": {
+        "post_exit_decision_zero": 1600
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 18,
+      "requirement": "post-exit decision=0",
+      "status": "PASS"
+    },
+    {
+      "audit_check_counts": {
+        "independent_economics_MFE_realization_pct": 1600,
+        "independent_economics_later_missed_upside_pct": 1600,
+        "independent_economics_peak_giveback_pp": 1600
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 19,
+      "requirement": "MFE / Giveback / later missed upside",
+      "status": "PASS"
+    },
+    {
+      "audit_check_counts": {
+        "group_metric_denominators": 612,
+        "group_metric_mean": 612,
+        "group_metric_median": 612,
+        "winner_and_group_denominators": 36
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 20,
+      "requirement": "Winner denominators",
+      "status": "PASS"
+    },
+    {
+      "audit_check_counts": {
+        "decision_has_no_future_evaluator_import": 1,
+        "no_model_fit_or_provider_call": 6,
+        "zero_budget_boundaries": 27
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 21,
+      "requirement": "model/teacher/audit fit=0",
+      "status": "PASS"
+    },
+    {
+      "audit_check_counts": {
+        "zero_budget_boundaries": 27
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 22,
+      "requirement": "hard stop/trailing=0",
+      "status": "PASS"
+    },
+    {
+      "audit_check_counts": {
+        "zero_budget_boundaries": 27
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 23,
+      "requirement": "old EXIT access/replay/comparison=0",
+      "status": "PASS"
+    },
+    {
+      "audit_check_counts": {
+        "zero_budget_boundaries": 27
+      },
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 24,
+      "requirement": "Re-entry/Capital=0",
+      "status": "PASS"
+    }
+  ],
+  "availability_assumption": "UNKNOWN; leakage gate checks stated causal bar_end assumption",
+  "boundary_scope": "algorithm AST and recorded operation ledger; no external reviewer or brokerage access-log certification",
+  "future_causal_leakage_N": 0,
+  "mismatch_N": 0,
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "saved_at_jst": "2026-10-03T18:41:04.507919+09:00"
+}

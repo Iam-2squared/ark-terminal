@@ -1,0 +1,39 @@
+{
+  "schema": "phase57-development-integrated-v0-loader-recovery-v1",
+  "savedJst": "2026-09-27 12:39:01 JST",
+  "basisHead": "ad605d9b2db125c13b9ab31a0323b19d80303cad",
+  "controllingProtocolSha256": "9b345b3e73214eea0c58caa9509ea0bff8dc6e3c57a9cff646a02566bf4d8fc0",
+  "supersededCi": {
+    "runId": 36291720633,
+    "conclusion": "SUCCESS_BUT_NOT_ADMISSIBLE_FOR_PERFORMANCE",
+    "reason": "Preflight loader decoded raw and origin payloads before the Entry allowlists; no historical performance was replayed",
+    "portfolioReplays": 0,
+    "modelFits": 0
+  },
+  "newlyDisclosedExposure": {
+    "initialLocalPreflightAndSupersededCiDecodedRawPayloads": 5375,
+    "rawRequiredForFrozenScoreWindow": 1150,
+    "rawOutsideThisAllowlistDecoded": 4225,
+    "originPayloadsDecoded": 5375,
+    "originsInFrozenFullEntryPopulation": 2155,
+    "originsOutsideThisAllowlistDecoded": 3220,
+    "usedForRankingSizingScoreDisplayOrTuning": false,
+    "performanceInspected": false,
+    "claimZeroOutOfScopeAccess": false,
+    "separatePriorR49InitialOutsideAllowlistPayloadsDecoded": 3220
+  },
+  "repair": {
+    "kind": "implementation-only JSON structural scanner; skip out-of-allowlist values before json decode",
+    "originDecodedAfterRepair": 2155,
+    "originSkippedBeforeDecode": 3220,
+    "rawDecodedAfterRepair": 1150,
+    "rawSkippedBeforeDecode": 4225,
+    "frozenEntryRankSizingExitProtocolChanged": false,
+    "syntheticAndPriorCashRegressionPass": 47,
+    "portfolioReplaysAfterRepairBeforeRequiredCi": 0
+  },
+  "requiredNextGate": "New exact-source required CI SUCCESS; do not use run 36291720633 as launch authority",
+  "providerRequests": 0,
+  "protectedPartitionsOpened": 0,
+  "safety": {"executionAllowed": false, "brokerWriteAllowed": false, "excelOrderWriteAllowed": false, "rssOrderFunctionAllowed": false, "liveTradingAllowed": false, "paperTradingAllowed": false, "automaticPromotionAllowed": false, "productionUpdateAllowed": false, "transmitted": false}
+}

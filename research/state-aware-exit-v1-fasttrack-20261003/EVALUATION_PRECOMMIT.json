@@ -1,0 +1,30 @@
+{
+  "Capital_Replay": 0,
+  "Hard1_later_winner_cut": "strictly later than Hard1 sell bar, later High reaches Entry+3% or+5%; stop-bar only touch excluded/ambiguous",
+  "Hard1_saved_loss": "Hard1 trigger and both known; baseline negative and HARD1 return greater than STATE_EXIT",
+  "MFE_realization": "100*realized_return/positive opportunity_MFE; report ratio mean/median without clipping",
+  "Peak_Giveback": "held observed MFE through bars strictly before sell minute minus realized_return (pp); fill-bar High excluded; stop-bar intrabar order unknown",
+  "basis_head": "4a2d6f35946b16820a13449a9288a6685a5c283c",
+  "before_teacher_computation": true,
+  "frozen_upstream_changes": 0,
+  "negative_loss_containment": [
+    "loss N",
+    "mean/median negative return",
+    "return<-1% N",
+    "return<-2% N",
+    "worst return"
+  ],
+  "old_EXIT_controls": 0,
+  "opportunity_MFE": "frozen strictly-later observed same-session High relative to fill; observed lower bound when source partial",
+  "opportunity_giveback": "full-session observed MFE minus realized_return, includes upside after early exit; separately named",
+  "paired_primary": "both arms sell-filled; each single arm filled N and unresolved N also reported",
+  "primary_unit": "same frozen filled Entry / WATCH_KEY; same test fold",
+  "return": "100*(sell_fill/frozen_entry_fill-1), commission0; equal-entry mean/median, not portfolio/session capital return",
+  "saved_at_jst": "2026-10-03T16:56:27.116679+09:00",
+  "source_completeness": "scheduled eligible bars from Entry fill through each exit; missing minutes not manufactured; paired complete subset also shown",
+  "winner_basis": "observed Entry-relative opportunity_MFE >= threshold; partial path lower-bound diagnosis separated",
+  "winner_denominators": [
+    3,
+    5
+  ]
+}

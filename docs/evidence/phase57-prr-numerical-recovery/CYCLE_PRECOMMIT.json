@@ -1,0 +1,110 @@
+{
+  "schema": "phase57-prr-numerical-recovery-precommit-v1",
+  "researchId": "PRR_NUMERICAL_RECOVERY_AND_ROUTE_STABILITY",
+  "basisHead": "a4429ae04a93ca8d299bc5ef9322cee09f59172e",
+  "sources": "START_AUDIT.json::sourcePinsSha256; exact CCMG MANIFEST is authoritative for its members",
+  "previousPrRClosureAndOneEminus10GateUnchanged": true,
+  "adaptiveDevelopmentOnly": true,
+  "productionReady": false,
+  "frozenModel": {
+    "featuresNpySha256": "54bf771f6a090eb3e8035f7ee433ca1fbd617c165d77955ab71054b4e259a3fe",
+    "orderedFeatureColumns": 566,
+    "headsPct": [5, 10],
+    "teacher": "postEntryUpsidePct >= head; evaluator only",
+    "family": "LogisticRegression",
+    "penalty": "l2",
+    "C": 1.0,
+    "solver": "liblinear",
+    "maxIter": 1000,
+    "tol": 0.0001,
+    "classWeight": null,
+    "randomState": 570926,
+    "preprocessing": "frozen training-only nanmedian, all-missing to zero, nonfinite fill, training mean/std, zero std to one, append nonfinite indicators",
+    "featureSelection": 0,
+    "hyperparameterSearch": 0,
+    "calibrationRefits": 0
+  },
+  "environment": {
+    "firstDiagnosticSetting": "single thread: OMP_NUM_THREADS=1, OPENBLAS_NUM_THREADS=1, MKL_NUM_THREADS=1, NUMEXPR_NUM_THREADS=1; pinned workflow numpy 2.3.5, scikit-learn 1.8.0, pandas 2.2.3 and Python 3.12; resolved dependency versions captured before fit",
+    "auditFields": ["OS", "architecture", "CPU", "Python exact version and executable", "numpy", "scipy", "scikit-learn", "joblib", "threadpoolctl", "pandas", "numpy show_config", "threadpool_info", "BLAS/OpenMP vendor/version/path", "OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS", "PYTHONHASHSEED", "locale", "timezone"],
+    "originalRecovery": "read-only immutable previous Actions logs/artifacts/workflow and saved package logs only; no internet version search or dependency grid",
+    "caseA": "If original complete package/backend/thread configuration is uniquely identified from immutable evidence before examining numeric mismatch, freeze that exact configuration as CANONICAL_ENVIRONMENT_V2.",
+    "caseB": "Otherwise freeze the first diagnostic environment as CANONICAL_ENVIRONMENT_V2; old OOF may still fail and must not be relabeled.",
+    "sameCycleChangesAfterFreeze": false
+  },
+  "numericalDiagnostic": {
+    "fold": 3,
+    "headsPct": [5, 10],
+    "fitAttempts": 2,
+    "beforeFailFastSave": ["Entry ID", "arm", "session", "fold", "head", "saved probability", "rerun probability", "absolute probability difference", "saved implied logit or null reason", "rerun decision score", "absolute score difference", "within-test-fold saved/rerun rank"],
+    "sourceLineageFailure": "NUMERIC_SOURCE_LINEAGE_ABORT before fit",
+    "identityReceipt": ["feature/feature-name/rows/folds/teacher hash", "train/test Entry ID sequence hash", "row-order hash", "X shape and dtype", "class counts", "sessions", "nanmedian/mean/std/indicator hashes", "transformed train/test hashes", "coef/intercept hashes", "coef summary and n_iter", "convergence warnings", "train/test score/probability hashes"],
+    "mismatchSummary": ["max/mean/median/q95/q99 abs probability difference", "counts >1e-12/>1e-10/>1e-8/>1e-6", "Spearman", "Kendall tau", "order inversion rate", "saved/rerun AUC and delta", "first mismatch", "max mismatch"],
+    "priorTolerance": 1e-10
+  },
+  "canonical": {
+    "relevantFolds": [3, 4, 5],
+    "headsPct": [5, 10],
+    "passCount": 2,
+    "fitAttemptsPerPass": 6,
+    "trainTestIdentity": "original frozen session temporal folds and pinned IM819/R1 795 test IDs, no cross-fold duplication",
+    "binaryIdentityPreferred": true,
+    "numericFallbackAbsTolerance": 1e-12,
+    "require": ["train/test Entry IDs exact", "preprocessing hashes exact", "coef/intercept exact or <=1e-12", "train/test decision scores exact or <=1e-12", "train medians exact or <=1e-12", "OOF ordering identity", "route decisions 1614/1614 exact"],
+    "routeMismatchAllowed": 0,
+    "failure": "CANONICAL_ROUTE_REPRODUCTION_FAIL; do not inspect economics",
+    "oldOofStatusSeparate": ["OLD_OOF_EXACT_REPRODUCTION_PASS", "OLD_OOF_EXACT_REPRODUCTION_FAIL"],
+    "freezeBeforeEconomics": "environment hash, model/scaler hashes, train medians, OOF raw scores/probabilities and 1614 route decisions; save CANONICAL_OOF_FREEZE_SHA256"
+  },
+  "route": {
+    "low5": "test decision score5 < same-fold TRAIN score5 median, strict",
+    "low10": "test decision score10 < same-fold TRAIN score10 median, strict",
+    "tie": "CONTROL_DEFAULT",
+    "defensive": "LOW5 AND LOW10 -> frozen CCMG_GUARD_V1",
+    "default": "otherwise -> R50_A_LIFECYCLE",
+    "freezeTime": "Entry exactly once",
+    "dynamicSwitching": false,
+    "candidate": "PRR_CCMG_M50_AND_V2_CANONICAL",
+    "candidateCount": 1,
+    "r54": "historical comparator only"
+  },
+  "rankSignalGate": {
+    "bootstrap": {"unit": "session", "seed": 570931, "resamples": 1999, "ci": [0.025, 0.975], "invalidSingleClassReplicate": "discard and report valid count"},
+    "require": "each head combined ROC-AUC CI lower >0.5, IM AUC >0.5, R1 AUC >0.5, each relevant fold AUC >=0.5",
+    "report": ["ROC-AUC", "PR-AUC", "Brier", "log loss", "session bootstrap CI", "per-arm/fold AUC"],
+    "previousProbabilitySkill": {"5": "POTENTIAL_SKILL_FAIL", "10": "POTENTIAL_SKILL_FAIL"}
+  },
+  "routeFeasibility": {
+    "support": "each arm Defensive N >=50 and distinct sessions >=12",
+    "direction": "each arm actual >=5 and >=10 rate in Defensive strictly below Default",
+    "bootstrap": {"unit": "session", "seed": 570930, "resamples": 1999, "delta": "Defensive rate minus Default rate", "ci": [0.025, 0.975], "invalidEmptyRouteReplicate": "discard and report valid count"},
+    "separation": "CI upper <0 in all four arm/head comparisons",
+    "rankDecilesAndQuadrants": "descriptive after route freeze, no new threshold"
+  },
+  "economics": {
+    "primary": "archived R50 funded IM79/R1 32, same Entry/quantity, R34 exact corrected accounting; Defensive CCMG outcome, Default Control outcome; null stays null",
+    "coverage": "each arm routed known paired >=80%; four arm >=5/>=10 Winner cohorts >=80%",
+    "winner": "all four cohorts mean net and aggregate exact PnL >= same-arm Control; negative exact delta fails",
+    "defensiveValue": "each arm actual Defensive subset known coverage >=80% and CCMG-Control aggregate delta >0",
+    "lowUpside": "each arm evaluator <5 PRR-Control aggregate delta >=0; at least one strict positive",
+    "overall": "each arm Primary PRR-Control known paired aggregate delta >=0",
+    "allEntry": "IM819/R1 795 each 100-share standalone; four arm Winner cohort mean/aggregate >=Control, each arm <5 aggregate >=Control and Defensive subset CCMG-Control >0",
+    "sessionStability": "report share, label rates and PnL deltas; no post-hoc concentration hard threshold"
+  },
+  "capital": {
+    "eligibility": "source, canonical route, rank signal, route feasibility, Primary, all-entry, Safety all pass",
+    "fixed": "Selector/Entry/Capital freeze, initial JPY1,000,000, 100-share lot, MAX3, LONG/CASH only",
+    "normal": "2 arms x Control/CCMG/PRR x two deterministic passes =12 invocations",
+    "stress": "2 arms x Control/PRR at 0.20pp =4 invocations",
+    "integratedReplayMaximum": 16,
+    "confirmedFillOnlyCashRelease": true,
+    "normalGateIf24Certified": "PRR Final Equity >JPY1M, >=same-arm Control, min cash >=0",
+    "stressGateIf24Certified": "24/24, PRR Final Equity >JPY1M and >=same-arm stress Control",
+    "fullPeriodNull": "MEASUREMENT_BLOCKED, no closed-PnL substitution"
+  },
+  "budget": {"diagnosticFitAttempts": 2, "canonicalPassAFits": 6, "canonicalPassBFits": 6, "newEstimatorFitAttemptsMax": 14, "integratedReplayInvocationsMax": 16, "failedAttemptsCount": true},
+  "independentAudit": "separate calculation path for environment/source/fold/preprocessing/model/score/median/route/gates/PnL/fit and replay counts",
+  "selection": "only if all hard Gates pass, SELECT_DEVELOPMENT_ADAPTIVE; any hard fail NO_SELECTION; productionReady=false regardless",
+  "safety": {"executionAllowed": false, "brokerWriteAllowed": false, "excelOrderWriteAllowed": false, "rssOrderFunctionAllowed": false, "liveTradingAllowed": false, "paperTradingAllowed": false, "automaticPromotionAllowed": false, "productionUpdateAllowed": false, "transmitted": false},
+  "exposure": {"providerRequests": 0, "protectedOpened": 0, "freshOpened": 0, "validationOpened": 0, "oosOpened": 0, "prospectiveOpened": 0, "orders": 0, "mainMerges": 0}
+}

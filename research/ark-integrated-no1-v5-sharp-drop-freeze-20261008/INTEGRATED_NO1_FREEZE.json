@@ -1,0 +1,164 @@
+{
+  "document_id": "ARK_INTEGRATED_NO1_V5_SHARP_DROP_FREEZE_20261008",
+  "identity": "ARK TERMINAL INTEGRATED No.1",
+  "version": "1.0.0-RESEARCH-FROZEN",
+  "user_requested_date_jst": "2026-10-08",
+  "classification": "REFERENCE_RESEARCH_FREEZE_NOT_PRODUCTION",
+  "status": "EXPLICIT_USER_SELECTED_FROZEN_COMBINATION_NO1",
+  "composite_id": "CAPITAL_V5_MAX3__SHARP_DROP_FIRST_OBSERVED_EXIT_V0__NO1",
+  "source_lock": "SOURCE_LOCK.json",
+  "no_new_logic": true,
+  "parents": {
+    "capital_version": "V5",
+    "capital_policy": "CAPITAL_MAX3_SLOT_RESERVE_V1",
+    "capital_capacity_policy": "CAPITAL_MAX_CONCURRENT_3_RESEARCH_POLICY_V1",
+    "exit": "SHARP_DROP_FIRST_OBSERVED_EXIT_V0",
+    "structural_exit": "State9 Structural EXIT v3 Local Guard",
+    "eod": "canonical 15:20",
+    "ranking_inherited": "SAVED_R0_NATIVE_H2_H3_H5_ML",
+    "first_layer": "FROZEN_AS_PREVIOUSLY_SELECTED_NO_OLD_FAILED_LINEAGE_PROMOTION",
+    "prebuy_SHARP_DROP_P1": "OFF_UNCHANGED"
+  },
+  "research_pipeline": {
+    "candidate_IDs": 1039,
+    "OOF_sessions": 38,
+    "context_development_sessions": 58,
+    "max_concurrent": 3,
+    "long_only": true,
+    "margin": false,
+    "slot_reserve": "unchanged_native_V5",
+    "unit_lot_shares": 100,
+    "buy_cutoff_minute": 920,
+    "initial_cash_jpy_reset20": "1000000",
+    "window_size_business_days": 20,
+    "existing_measured_window_ids": [
+      "W13",
+      "W14",
+      "W15",
+      "W16",
+      "W17",
+      "W18",
+      "W19",
+      "W20",
+      "W21"
+    ],
+    "other_planned_windows": "W01-W12 old coverage UNKNOWN/UNMEASURED"
+  },
+  "score_allocation": {
+    "raw": [
+      "p2",
+      "p3",
+      "p5"
+    ],
+    "pava": "m2>=m3>=m5",
+    "ML": "(m2+m3+m5)/(base2+base3+base5)",
+    "admission": "ML>=1; no new First Layer/P1 gate",
+    "rank": "S>=2; A>=1.5; B>=1; C<1",
+    "candidate_order": [
+      "-ML",
+      "-m5",
+      "-m3",
+      "-m2",
+      "entry_timestamp",
+      "symbol"
+    ],
+    "band_equity_cap": {
+      "S": "0.45",
+      "A": "0.35",
+      "B": "0.25"
+    },
+    "band_base_utilization": {
+      "S": "0.68",
+      "A": "0.56",
+      "B": "0.44"
+    },
+    "utilization_ceiling": "0.92",
+    "per_additional_occupied_slot_target_increment": "0.055",
+    "lot_shares": 100
+  },
+  "exit_contract": {
+    "emergency_trigger": "First valid, causally available, post-fill State9 Primary exactly SHARP_DROP, no earlier SELL_INTENT",
+    "priority": "Earlier or same-checkpoint structural/control SELL_INTENT wins",
+    "lifecycle": [
+      "PRE_UP_STRUCTURE",
+      "ACTIVE"
+    ],
+    "profit_guard": "NONE",
+    "confirmation_delay": "NONE",
+    "transition_requirement": "NONE",
+    "intent": "Latched full-position SELL_INTENT",
+    "fill": "Next legal eligible regular raw Open after intent via pinned corrected Decimal adapter; not signal Close",
+    "cash_slot_release": "At legal fill/release only, never SELL_INTENT",
+    "no_valid_sharp_drop": "Delegate frozen structural EXIT and canonical EOD",
+    "unavailable_state": "No fabricated SHARP_DROP; apply original evidence-gap/fail-closed policy",
+    "eod": "canonical 15:20 contract (not legacy 15:30)",
+    "buy_multiplier": "1.0005",
+    "sell_multiplier": "0.9995",
+    "commission": "0",
+    "return_denom": "original buy debit"
+  },
+  "rank_interface": {
+    "frozen_baseline": "R0 is preserved solely as No.1 compatibility/input for historical reproduction",
+    "next_rank_project": "XR00/XR01/XR02 on separate branch, cannot silently mutate No.1 source or change event/funding semantics",
+    "seven_grade_RG01": "NO_INCREMENT, NOT_PROMOTED",
+    "downside_RD02": "NO_INCREMENT, NOT_PROMOTED",
+    "future_rank_use": "Requires a separately specified immutable adapter/new version, no direct reuse of S/A/B caps in S-F"
+  },
+  "evidence": {
+    "status": "COMPLETED_DEVELOPMENT_9_PAIRED_WINDOWS_NOT_PRODUCTION_PASS",
+    "legacy_comparator_arm": "C: native V5 + old structural EXIT",
+    "integrated_no1_arm": "E: same V5 + frozen SHARP_DROP EXIT",
+    "C_final_equity_median_jpy": "1245688.10000",
+    "E_final_equity_median_jpy": "1216396.70000",
+    "difference_of_medians_jpy": "-29291.40000",
+    "paired_median_E_minus_C_jpy": "-14038.50000",
+    "paired_mean_E_minus_C_jpy": "-7924.561111111111111111111111",
+    "better_windows_N": 3,
+    "worse_windows_N": 6,
+    "unmeasured_planned_windows_N": 12,
+    "minutely_maxDD_old_pct": "9.393498010721467410866403989",
+    "minutely_maxDD_new_pct": "9.574711894912869964403126420",
+    "new_EXIT_large_loss_LE_minus3_gross_jpy": "430706.10000",
+    "old_EXIT_large_loss_LE_minus3_gross_jpy": "780507.55000",
+    "new_EXIT_all_minus_N_overlapping_accounts": 549,
+    "old_EXIT_all_minus_N_overlapping_accounts": 403,
+    "evaluation": "Development exposed, overlapping windows; not 9 independent months",
+    "independent_audit": "Previous same-author distinct implementation PASS; not a new independent blind audit",
+    "reproduction": "Previous exactly one campaign, 100 payloads, inherited PASS"
+  },
+  "data_status": {
+    "source_asof": "HISTORICAL_ASSUMED_AVAILABILITY; actual_receive_time UNKNOWN",
+    "live_fill_slippage_liquidity": "NOT_CERTIFIED",
+    "fresh_OOS": "NOT_RUN",
+    "protected_partition": "UNOPENED"
+  },
+  "operations": {
+    "model_fit": 0,
+    "model_refit": 0,
+    "new_model_inference": 0,
+    "new_state_kernel": 0,
+    "new_raw_recovery": 0,
+    "portfolio_replay": 0,
+    "new_teacher": 0,
+    "new_rank": 0,
+    "broker_order": 0,
+    "paper_order": 0,
+    "main_merge": 0,
+    "force_push": 0,
+    "workflow_dispatch": 0,
+    "production_runtime_change": 0
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "productionReady": false
+  },
+  "supersession_policy": "Any modification is a new explicitly authorized No.2 or separately versioned experiment; No.1 pinned original Git commits must remain unchanged."
+}

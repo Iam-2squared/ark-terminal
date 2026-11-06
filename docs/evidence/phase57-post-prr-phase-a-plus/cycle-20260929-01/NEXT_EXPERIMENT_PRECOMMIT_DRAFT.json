@@ -1,0 +1,54 @@
+{
+  "actions": {
+    "ABSTAIN": "one-shot permanent frozen R50 delegation",
+    "ALLOW": "existing CCMG first-sale contract"
+  },
+  "adaptiveDevelopmentOnly": true,
+  "budgetFormula": "B_stage1_if_required + B_stage2 + B_calibration + B_policy_replay + B_capital_replay; all terms null",
+  "comparators": [
+    "frozen R50",
+    "frozen PRR",
+    "future candidate unimplemented"
+  ],
+  "experimentAuthorized": false,
+  "inputSchemaStatus": "BLOCKED_SOURCE",
+  "nestedScoreStatus": "NESTED_LINEAGE_UNPROVEN",
+  "primaryTeacher": "ΔNetPP",
+  "productionReady": false,
+  "question": "At CCMG first SELL_INTENT, can causal State/Signal distinguish ΔNetPP versus frozen R50?",
+  "riskSet": "I; E runtime independent; K outcome-side only",
+  "schema": "phase57-a-plus-next-precommit-draft-v1",
+  "secondaryTeacher": "ΔJPY",
+  "selectedDevelopment": null,
+  "separateGates": [
+    "total JPY",
+    "mean Net%",
+    "winner 5–10 and ≥10",
+    "missingness",
+    "tail",
+    "session",
+    "cost stress",
+    "Capital later"
+  ],
+  "split": "session-forward with label maturity/purge proof",
+  "status": "PROPOSED_NOT_AUTHORIZED_DRAFT_ONLY_NO_LAUNCH",
+  "unresolved": {
+    "StateSignalAvailability": "BLOCKED_ROW_VALUES_KNOWNAT",
+    "calibrationBudget": null,
+    "capitalReplayBudget": null,
+    "fitBudget": null,
+    "futureIndependentEvaluation": "NOT_AUTHORIZED",
+    "interventionThreshold": null,
+    "minimumSupport": null,
+    "modelFamily": null,
+    "nestedLineage": "UNPROVEN",
+    "policyReplayBudget": null,
+    "sameMinuteOrdering": "UNRESOLVED_10_ROWS",
+    "scopeAllIntentVersusDefensive": "UNRESOLVED; E provisional IM370/R1339, DEFENSIVE E IM72/R186; do not choose by observed Δ",
+    "stage1RegenerationBudget": null,
+    "tailTolerance": null,
+    "teacherMissingness": "UNRESOLVED_MECHANISM_FOR_MODELING; exact reference absent after decision",
+    "unknownALLOWPrice": "UNMEASURABLE_80_PER_ARM_NO_NEW_RETRY",
+    "unknownOutcomeTolerance": null
+  }
+}

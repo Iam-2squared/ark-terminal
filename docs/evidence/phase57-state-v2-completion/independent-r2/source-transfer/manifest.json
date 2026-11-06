@@ -1,0 +1,40 @@
+{
+  "status": "SOURCE_ARCHIVE_NOT_ACCEPTANCE",
+  "primarySourceCommit": "f9d4b0a764c91d06fac6d8e867198d3a90b1ec64",
+  "precomparisonLockCommit": "d4c69ca7fab348f0295be98d10a372c34e864808",
+  "independence": "Same-assistant second implementation. Initial r2 prelocked; r2_1 and schema adapter are disclosed post-comparison corrections. NOT external human or Claude.",
+  "encoding": "gzip-base64-json-path-to-utf8-content",
+  "uncompressedSHA256": "d686e5c6ccbacd9d421e8c23425a5606eb515b93e5b84d2b57544e507fcc3f44",
+  "archiveSHA256": "f5a822d7d282255d1afab81c68660a553808aa0cd3dd15759b763fa0740fffce",
+  "fileSHA256": {
+    "independent/spec_engine_r2.py": "10a0cf0c58710e772b3e9d676c055702c0c6646f1cb5312e950c9a9a2af10072",
+    "independent/spec_engine_r2_1.py": "7b3820296b0f93015904a1ee4d67c3c855a93e11741869469d588e8777003add",
+    "independent/test_spec_r2.py": "6f9372cad441889a4697f5f9e9a90a52ead83d8cf087f0781fd5cbb02075fb3b",
+    "independent/test_golden_adapter.py": "ef990ceaa025160ab987cb7d490ad2516a6319bf87d6f5d04ef6493a83f96a69",
+    "independent/independent_v2.py": "729d28fb252bdef134ef531cc3a9e701aee89a53f26bba674083122aeffd8540",
+    "independent/compare_fullschema.py": "cb4fe409722de434985ddc8cecaa550e7e206bc422c39ddef54ee87923890e94",
+    "independent/compare_numerical.py": "d3c9ee928e510941aea52fe322a1ab21773195e9d120f76fabe9af0230be5199",
+    "independent/revise_r2_to_r2_1.py": "54df2d83e7924e0712c94a1fd29398450b338f33b9442e7cea48631456638aa6",
+    "completion/a8_admission_run2.py": "7cd1798a60917733ecdb7f13159005473a31e59e875b39777cb184aa8f8c186a",
+    "completion/test_a8_admission.py": "2b3ef409fd16a2e0c10a5c988b3802e0d1b51fa91333cbf91df7e9709d6d0c24",
+    "completion/run_completion.py": "2ce03b6b709ffb4419f7ef7c10dcc8c9ea1ae3f2f227709ef70f25226a97979b",
+    "completion/verify_numeric_supplement_run2.py": "43b0979bd0378bc7f58277b582e447f7bccb26b11ed4e23ab5bc523535699cfd",
+    "completion/verify_a8_transitions.py": "fac666be73144c6560ab63d721ddba46a2f3b392de51397489f12c41c0529d46",
+    "completion/after_generation.py": "511c0e67980c164215cb3c79b5358f8e773fc812cbe11904da46851a3d03d7df",
+    "completion/run_synthetic_suites.py": "e82fd7f764abdc538460e451a53bfd53484cbea9b5d2084d4c37afe7b5fdf820",
+    "run_admission_local.py": "991be7e9df0d46514a703a1ba8a90adcac90e0dc1cf249ba25971c8d90a13229"
+  },
+  "parts": [
+    {"file":"part00.b64","sha256":"8bb91c70061b914086a0a04bbc32acd4c875808baced40829e09dea588bfb72d","bytes":7000},
+    {"file":"part01.b64","sha256":"f9959175c08bfd300f48266a89ebeec6b5bd560659e604755be4d75af0c2e37a","bytes":7000},
+    {"file":"part02.b64","sha256":"158738573033518ea68857cc6b249294945ed04ca56ae01a0b952041ebe415ca","bytes":7000},
+    {"file":"part03.b64","sha256":"0de4692aec226c8d81c7e491b41e3efdee6f098664c9ab3cbaa0e1746fc00826","bytes":7000},
+    {"file":"part04.b64","sha256":"80ab1f934116ba3ca9e50f69e18e38692ef801519cd3ff4b312ba873ffbd8b9e","bytes":7000},
+    {"file":"part05.b64","sha256":"0a6bdf7cba26fe068a98ee161929f5ad92486ae88a7d63f68a5642a08d434e21","bytes":6808}
+  ],
+  "transportCorrections": {
+    "part03.b64": {"storedGitBlobSHA1":"0acfe9ba4ec1798eaaff2875f4b58fbd16d13786","storedByteN":7007,"old":"VLc7htWN9nUtZWN9nUt2OR","new":"VLc7htWN9nUt2OR","count":1},
+    "part05.b64": {"storedGitBlobSHA1":"dcc348316b9e95f78bdb9d0d7d704511a4b95f55","storedByteN":6817,"old":"PzunROT06p0fnROT06p0fn/Oeh","new":"PzunROT06p0fn/Oeh","count":1}
+  },
+  "transportNote":"Two duplicated ASCII runs introduced during connector text transfer are retained verbatim. The decoder verifies stored Git blob identity, applies the one declared inverse transport operation, and requires original part/archive/source SHA256. No source code or research rule is changed."
+}

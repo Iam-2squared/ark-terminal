@@ -1,0 +1,57 @@
+{
+  "document_id": "WORK_PERSISTENT_WATCHLIST_STATE_UPTREND_FIRST_ENTRY_V2_20261003",
+  "checkpoint": "C3_FEATURE_FREEZE",
+  "saved_at_jst": "2026-10-03T11:57:49.190274+09:00",
+  "basis_head": "82190f39ab93e3e2c5c58b05dee4559c163f9d39",
+  "current_status": "FEATURE_SPLIT_MODEL_SCORE_POLICY_FROZEN_BEFORE_OUTCOMES",
+  "completed_this_checkpoint": [
+    "P0=110 numeric features; P1=148 numeric and 15 categorical features",
+    "Exact R1 5 outer chronological session folds reused",
+    "3 fixed heads, fixed HGB and Q70/Q80/Q90/Q95; 30 fits planned, no searches"
+  ],
+  "key_evidence": [
+    "FEATURE_FREEZE.json",
+    "SPLIT_PRECOMMIT.json",
+    "MODEL_SCORE_POLICY_FREEZE.json"
+  ],
+  "blockers": [],
+  "current_direction": "FIRST ENTRY only; fixed nonlinear P0/P1 multi-head; Development outer OOF",
+  "next_step": "Checkpoint teacher contract before computing new target outcomes.",
+  "frozen_boundaries": {
+    "watch_expiry": "same-session regular close",
+    "entries_per_watch": 1,
+    "EXIT_calls": 0,
+    "R50_calls": 0,
+    "reentry_calls": 0,
+    "capital_calls": 0,
+    "selector_changes": 0,
+    "state_semantic_changes": 0
+  },
+  "exposure_and_budget": {
+    "fits": 0,
+    "fit_cap": 36,
+    "planned_fits": 30,
+    "provider": 0,
+    "protected": 0,
+    "fresh_validation": 0,
+    "OOS": 0,
+    "prospective": 0,
+    "orders": 0,
+    "main_merge": 0,
+    "hyperparameter_search": 0,
+    "weight_search": 0,
+    "bootstrap": 0
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "productionReady": false
+  }
+}

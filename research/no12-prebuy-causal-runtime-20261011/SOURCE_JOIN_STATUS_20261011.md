@@ -1,0 +1,5 @@
+No12 source integration update (2026-10-11)
+
+Two independent source-backed fixes have passed Linux/Windows CI 75/75 each (run 38136867818): (1) don't treat a newly read Excel cell as newly arrived market price when the latest completed RssChart 5-minute bar is over 15 minutes old; its publisher receipt is also considered stale 30 seconds after local capture, (2) retain the maximum known-at timestamp when combining a chart source with Selector and State9 source events. A new isolated synthetic-only source join requires all three same-symbol timestamp-bearing observation rows, with no inferred missing Selector, First Entry or formal State9 primary.
+
+Only timestamp shape/consistency is proven. Source self-reports are not broker authenticity or native decision proof. The input generation code for genuine Selector/First Entry and State9 is still absent, and the new pre-buy ratio has no independent OOS profitability evidence. MarketSpeed II live 5M values have not yet been physically acquired in the current No12 worktree. No new manual permission or broker order capability has been introduced. Frozen No1.1, No1.1 read-only integration and main unchanged.

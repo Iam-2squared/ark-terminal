@@ -1,0 +1,357 @@
+{
+  "category_counts": {
+    "DETERMINISTIC_PREFIX_DERIVATION": 10,
+    "DIRECT_FROZEN_FIELD": 20,
+    "MARKET_RAW_AGGREGATE": 6,
+    "NOT_AVAILABLE_DO_NOT_USE": 7
+  },
+  "field_count": 43,
+  "inferred_fields_used": 0,
+  "mapping": [
+    {
+      "basis_or_contract_derivation": "Exact copy/contract mapping; no lexical normalization or new semantics",
+      "category": "DIRECT_FROZEN_FIELD",
+      "feature_materialized": false,
+      "frozen_source": "Path.Primary_or_null; State9.primary gated by current_semantics_observed",
+      "proposal_field": "Primary",
+      "status": "MAPPED_CONTRACT_ONLY"
+    },
+    {
+      "basis_or_contract_derivation": "Exact copy/contract mapping; no lexical normalization or new semantics",
+      "category": "DIRECT_FROZEN_FIELD",
+      "feature_materialized": false,
+      "frozen_source": "Path.current_semantics_observed / State9.current_semantics_observed",
+      "proposal_field": "observed",
+      "status": "MAPPED_CONTRACT_ONLY"
+    },
+    {
+      "basis_or_contract_derivation": "Exact copy/contract mapping; no lexical normalization or new semantics",
+      "category": "DIRECT_FROZEN_FIELD",
+      "feature_materialized": false,
+      "frozen_source": "Path.activity / State9.activity",
+      "proposal_field": "activity",
+      "status": "MAPPED_CONTRACT_ONLY"
+    },
+    {
+      "basis_or_contract_derivation": "Exact copy/contract mapping; no lexical normalization or new semantics",
+      "category": "DIRECT_FROZEN_FIELD",
+      "feature_materialized": false,
+      "frozen_source": "Path.basis / State9.basis",
+      "proposal_field": "basis",
+      "status": "MAPPED_CONTRACT_ONLY"
+    },
+    {
+      "basis_or_contract_derivation": "Exact copy/contract mapping; no lexical normalization or new semantics",
+      "category": "DIRECT_FROZEN_FIELD",
+      "feature_materialized": false,
+      "frozen_source": "Path.context_direction <- State9.context",
+      "proposal_field": "context",
+      "status": "MAPPED_CONTRACT_ONLY"
+    },
+    {
+      "basis_or_contract_derivation": "Exact copy/contract mapping; no lexical normalization or new semantics",
+      "category": "DIRECT_FROZEN_FIELD",
+      "feature_materialized": false,
+      "frozen_source": "Path.local_direction <- State9.leg_direction",
+      "proposal_field": "local_direction",
+      "status": "MAPPED_CONTRACT_ONLY"
+    },
+    {
+      "basis_or_contract_derivation": "Exact copy/contract mapping; no lexical normalization or new semantics",
+      "category": "DIRECT_FROZEN_FIELD",
+      "feature_materialized": false,
+      "frozen_source": "Path.direction_basis / State9.direction_basis",
+      "proposal_field": "direction_basis",
+      "status": "MAPPED_CONTRACT_ONLY"
+    },
+    {
+      "basis_or_contract_derivation": "Exact copy/contract mapping; no lexical normalization or new semantics",
+      "category": "DIRECT_FROZEN_FIELD",
+      "feature_materialized": false,
+      "frozen_source": "Path.fast <- State9.fast_flag",
+      "proposal_field": "fast",
+      "status": "MAPPED_CONTRACT_ONLY"
+    },
+    {
+      "basis_or_contract_derivation": "Exact copy/contract mapping; no lexical normalization or new semantics",
+      "category": "DIRECT_FROZEN_FIELD",
+      "feature_materialized": false,
+      "frozen_source": "Path.fast_applicable_to_primary",
+      "proposal_field": "fast_applicable_to_primary",
+      "status": "MAPPED_CONTRACT_ONLY"
+    },
+    {
+      "basis_or_contract_derivation": "Exact copy/contract mapping; no lexical normalization or new semantics",
+      "category": "DIRECT_FROZEN_FIELD",
+      "feature_materialized": false,
+      "frozen_source": "Path.stop <- State9.stop",
+      "proposal_field": "Stop",
+      "status": "MAPPED_CONTRACT_ONLY"
+    },
+    {
+      "basis_or_contract_derivation": "Exact copy/contract mapping; no lexical normalization or new semantics",
+      "category": "DIRECT_FROZEN_FIELD",
+      "feature_materialized": false,
+      "frozen_source": "Path.range <- State9.balance",
+      "proposal_field": "Range/balance",
+      "status": "MAPPED_CONTRACT_ONLY"
+    },
+    {
+      "basis_or_contract_derivation": "Exact copy/contract mapping; no lexical normalization or new semantics",
+      "category": "DIRECT_FROZEN_FIELD",
+      "feature_materialized": false,
+      "frozen_source": "Path.scheduled_t <- original slot; row.as_of equality required",
+      "proposal_field": "scheduled_t",
+      "status": "MAPPED_CONTRACT_ONLY"
+    },
+    {
+      "basis_or_contract_derivation": "Exact copy/contract mapping; no lexical normalization or new semantics",
+      "category": "DIRECT_FROZEN_FIELD",
+      "feature_materialized": false,
+      "frozen_source": "Path.bar_end <- original timezone-aware slot.bar_end",
+      "proposal_field": "bar_end",
+      "status": "MAPPED_CONTRACT_ONLY"
+    },
+    {
+      "basis_or_contract_derivation": "Exact copy/contract mapping; no lexical normalization or new semantics",
+      "category": "DIRECT_FROZEN_FIELD",
+      "feature_materialized": false,
+      "frozen_source": "Path.causal_segment_id",
+      "proposal_field": "causal_segment_id",
+      "status": "MAPPED_CONTRACT_ONLY"
+    },
+    {
+      "basis_or_contract_derivation": "Exact copy/contract mapping; no lexical normalization or new semantics",
+      "category": "DIRECT_FROZEN_FIELD",
+      "feature_materialized": false,
+      "frozen_source": "Path.entered_at,entered_bar_end,last_observed_at,last_observed_bar_end,dwell_observed_bars,dwell_scheduled_bars; runs.closed_at,closed_bar_end,closed_reason",
+      "proposal_field": "run timestamps/dwell",
+      "status": "MAPPED_CONTRACT_ONLY"
+    },
+    {
+      "basis_or_contract_derivation": "Exact copy/contract mapping; no lexical normalization or new semantics",
+      "category": "DIRECT_FROZEN_FIELD",
+      "feature_materialized": false,
+      "frozen_source": "Path.events.event_type,scheduled_t,bar_end,from_primary_or_null,to_primary_or_null,causal_segment_id",
+      "proposal_field": "TRANSITION/HOLD/ENTER/EXIT",
+      "status": "MAPPED_CONTRACT_ONLY"
+    },
+    {
+      "basis_or_contract_derivation": "Exact copy/contract mapping; no lexical normalization or new semantics",
+      "category": "DIRECT_FROZEN_FIELD",
+      "feature_materialized": false,
+      "frozen_source": "Path.events RANGE_ENTER/EXIT,STOP_ENTER/EXIT/UPDATE,FAST_AVAILABLE/UNAVAILABLE/ENTER/EXIT,CONTEXT_CHANGE,LOCAL_DIRECTION_CHANGE,DIRECTION_BASIS_CHANGE",
+      "proposal_field": "facet events",
+      "status": "MAPPED_CONTRACT_ONLY"
+    },
+    {
+      "basis_or_contract_derivation": "Exact copy/contract mapping; no lexical normalization or new semantics",
+      "category": "DIRECT_FROZEN_FIELD",
+      "feature_materialized": false,
+      "frozen_source": "Path.quality.numeric_status,reason,reset_reasons,row_status,source,auction; source_events; SEGMENT_BREAK/OBSERVATION_LOST/RESUMED/INITIALIZING",
+      "proposal_field": "quality/reset events",
+      "status": "MAPPED_CONTRACT_ONLY"
+    },
+    {
+      "basis_or_contract_derivation": "Exact copy/contract mapping; no lexical normalization or new semantics",
+      "category": "DIRECT_FROZEN_FIELD",
+      "feature_materialized": false,
+      "frozen_source": "Pinned candidate/api.py literal FIELDS (35), RC2_CONTRACT.txt and NUMERIC_FIELD_SCHEMA.json",
+      "proposal_field": "State9 frozen output schema",
+      "status": "MAPPED_CONTRACT_ONLY"
+    },
+    {
+      "basis_or_contract_derivation": "Exact copy/contract mapping; no lexical normalization or new semantics",
+      "category": "DIRECT_FROZEN_FIELD",
+      "feature_materialized": false,
+      "frozen_source": "Pinned PathBuilder._event dictionary: event_id,scheduled_t,bar_end,causal_segment_id,event_type,from_primary_or_null,to_primary_or_null,reason,details",
+      "proposal_field": "Path event schema",
+      "status": "MAPPED_CONTRACT_ONLY"
+    },
+    {
+      "basis_or_contract_derivation": "runs.closed_at is null at BUY_INTENT prefix snapshot; do not use eventual closure",
+      "category": "DETERMINISTIC_PREFIX_DERIVATION",
+      "feature_materialized": false,
+      "frozen_source": "Frozen prefix endpoint/run/event fields + pinned reused_clock.py",
+      "proposal_field": "open/right-censored",
+      "status": "DERIVABLE_NOT_PRECOMMITTED_OR_COMPUTED"
+    },
+    {
+      "basis_or_contract_derivation": "Frozen dwell_observed_bars count; scheduled count=scheduled_t-entered_at+1 only under mandatory contiguous observed run",
+      "category": "DETERMINISTIC_PREFIX_DERIVATION",
+      "feature_materialized": false,
+      "frozen_source": "Frozen prefix endpoint/run/event fields + pinned reused_clock.py",
+      "proposal_field": "current run observed duration",
+      "status": "DERIVABLE_NOT_PRECOMMITTED_OR_COMPUTED"
+    },
+    {
+      "basis_or_contract_derivation": "Recovered calendar active_minutes(day,entered_bar_end,BUY_INTENT) after verified minute mapping; pending PRECOMMIT representation choice",
+      "category": "DETERMINISTIC_PREFIX_DERIVATION",
+      "feature_materialized": false,
+      "frozen_source": "Frozen prefix endpoint/run/event fields + pinned reused_clock.py",
+      "proposal_field": "current state active elapsed time",
+      "status": "DERIVABLE_NOT_PRECOMMITTED_OR_COMPUTED"
+    },
+    {
+      "basis_or_contract_derivation": "Latest valid Frozen TRANSITION confirmation bar_end to BUY_INTENT using recovered active_minutes; never use retrospective pivot time",
+      "category": "DETERMINISTIC_PREFIX_DERIVATION",
+      "feature_materialized": false,
+      "frozen_source": "Frozen prefix endpoint/run/event fields + pinned reused_clock.py",
+      "proposal_field": "latest transition active elapsed time",
+      "status": "DERIVABLE_NOT_PRECOMMITTED_OR_COMPUTED"
+    },
+    {
+      "basis_or_contract_derivation": "Latest valid same-segment Frozen TRANSITION.from_primary_or_null/to_primary_or_null; missing does not imply State transition",
+      "category": "DETERMINISTIC_PREFIX_DERIVATION",
+      "feature_materialized": false,
+      "frozen_source": "Frozen prefix endpoint/run/event fields + pinned reused_clock.py",
+      "proposal_field": "previous/current State",
+      "status": "DERIVABLE_NOT_PRECOMMITTED_OR_COMPUTED"
+    },
+    {
+      "basis_or_contract_derivation": "Previous closed run dwell fields in prefix only; no future duration",
+      "category": "DETERMINISTIC_PREFIX_DERIVATION",
+      "feature_materialized": false,
+      "frozen_source": "Frozen prefix endpoint/run/event fields + pinned reused_clock.py",
+      "proposal_field": "previous run duration",
+      "status": "DERIVABLE_NOT_PRECOMMITTED_OR_COMPUTED"
+    },
+    {
+      "basis_or_contract_derivation": "Frozen CONTEXT_CHANGE and LOCAL_DIRECTION_CHANGE details only",
+      "category": "DETERMINISTIC_PREFIX_DERIVATION",
+      "feature_materialized": false,
+      "frozen_source": "Frozen prefix endpoint/run/event fields + pinned reused_clock.py",
+      "proposal_field": "main/local context change",
+      "status": "DERIVABLE_NOT_PRECOMMITTED_OR_COMPUTED"
+    },
+    {
+      "basis_or_contract_derivation": "Prefix run/event counts within one continuous observed causal segment; no window or model design fixed here",
+      "category": "DETERMINISTIC_PREFIX_DERIVATION",
+      "feature_materialized": false,
+      "frozen_source": "Frozen prefix endpoint/run/event fields + pinned reused_clock.py",
+      "proposal_field": "transition count/unique/revisit/occupancy",
+      "status": "DERIVABLE_NOT_PRECOMMITTED_OR_COMPUTED"
+    },
+    {
+      "basis_or_contract_derivation": "Verified BUY_INTENT local time plus dated frozen active_minutes; native RAW timestamp mapping prerequisite",
+      "category": "DETERMINISTIC_PREFIX_DERIVATION",
+      "feature_materialized": false,
+      "frozen_source": "Frozen prefix endpoint/run/event fields + pinned reused_clock.py",
+      "proposal_field": "time-of-day/remaining active minutes",
+      "status": "DERIVABLE_NOT_PRECOMMITTED_OR_COMPUTED"
+    },
+    {
+      "basis_or_contract_derivation": "Frozen observed/quality/reset statuses; no tenth State, zero, median or forward-fill substitution",
+      "category": "DETERMINISTIC_PREFIX_DERIVATION",
+      "feature_materialized": false,
+      "frozen_source": "Frozen prefix endpoint/run/event fields + pinned reused_clock.py",
+      "proposal_field": "missingness mask",
+      "status": "DERIVABLE_NOT_PRECOMMITTED_OR_COMPUTED"
+    },
+    {
+      "basis_or_contract_derivation": "Aggregation possible only after binary body/schema/causal join QA. Formulas and normalization remain unfixed until PRECOMMIT.",
+      "category": "MARKET_RAW_AGGREGATE",
+      "feature_materialized": false,
+      "frozen_source": "C four pinned MINUTE ordinary Git originals (native schema/time mapping not readback)",
+      "proposal_field": "OHLC/price progress",
+      "status": "BLOCKED_RAW_BODY_DO_NOT_COMPUTE"
+    },
+    {
+      "basis_or_contract_derivation": "Aggregation possible only after binary body/schema/causal join QA. Formulas and normalization remain unfixed until PRECOMMIT.",
+      "category": "MARKET_RAW_AGGREGATE",
+      "feature_materialized": false,
+      "frozen_source": "C four pinned MINUTE ordinary Git originals (native schema/time mapping not readback)",
+      "proposal_field": "normalized run net progress",
+      "status": "BLOCKED_RAW_BODY_DO_NOT_COMPUTE"
+    },
+    {
+      "basis_or_contract_derivation": "Aggregation possible only after binary body/schema/causal join QA. Formulas and normalization remain unfixed until PRECOMMIT.",
+      "category": "MARKET_RAW_AGGREGATE",
+      "feature_materialized": false,
+      "frozen_source": "C four pinned MINUTE ordinary Git originals (native schema/time mapping not readback)",
+      "proposal_field": "gross movement/excursion/path efficiency",
+      "status": "BLOCKED_RAW_BODY_DO_NOT_COMPUTE"
+    },
+    {
+      "basis_or_contract_derivation": "Aggregation possible only after binary body/schema/causal join QA. Formulas and normalization remain unfixed until PRECOMMIT.",
+      "category": "MARKET_RAW_AGGREGATE",
+      "feature_materialized": false,
+      "frozen_source": "C four pinned MINUTE ordinary Git originals (native schema/time mapping not readback)",
+      "proposal_field": "Volume per observed bar",
+      "status": "BLOCKED_RAW_BODY_DO_NOT_COMPUTE"
+    },
+    {
+      "basis_or_contract_derivation": "Aggregation possible only after binary body/schema/causal join QA. Formulas and normalization remain unfixed until PRECOMMIT.",
+      "category": "MARKET_RAW_AGGREGATE",
+      "feature_materialized": false,
+      "frozen_source": "C four pinned MINUTE ordinary Git originals (native schema/time mapping not readback)",
+      "proposal_field": "Trading Value per observed bar",
+      "status": "BLOCKED_RAW_BODY_DO_NOT_COMPUTE"
+    },
+    {
+      "basis_or_contract_derivation": "Aggregation possible only after binary body/schema/causal join QA. Formulas and normalization remain unfixed until PRECOMMIT.",
+      "category": "MARKET_RAW_AGGREGATE",
+      "feature_materialized": false,
+      "frozen_source": "C four pinned MINUTE ordinary Git originals (native schema/time mapping not readback)",
+      "proposal_field": "state-aligned activity change/trend",
+      "status": "BLOCKED_RAW_BODY_DO_NOT_COMPUTE"
+    },
+    {
+      "basis_or_contract_derivation": "Authority explicitly UNKNOWN; assumed bar_end is not actual receipt time",
+      "category": "NOT_AVAILABLE_DO_NOT_USE",
+      "feature_materialized": false,
+      "frozen_source": "NONE",
+      "proposal_field": "actual receive/known_at chronology",
+      "status": "DO_NOT_USE"
+    },
+    {
+      "basis_or_contract_derivation": "Path implementation has no wall-clock lunch inference; formal ordinal gap/reset/case isolation must come from authenticated routing",
+      "category": "NOT_AVAILABLE_DO_NOT_USE",
+      "feature_materialized": false,
+      "frozen_source": "NONE",
+      "proposal_field": "automatic lunch reset field",
+      "status": "DO_NOT_USE"
+    },
+    {
+      "basis_or_contract_derivation": "Only context/local_direction and frozen Stop/Range metadata recovered; invented semantic object prohibited",
+      "category": "NOT_AVAILABLE_DO_NOT_USE",
+      "feature_materialized": false,
+      "frozen_source": "NONE",
+      "proposal_field": "separate main/local structure object",
+      "status": "DO_NOT_USE"
+    },
+    {
+      "basis_or_contract_derivation": "No formal field/table recovered; do not invent in Recovery",
+      "category": "NOT_AVAILABLE_DO_NOT_USE",
+      "feature_materialized": false,
+      "frozen_source": "NONE",
+      "proposal_field": "transition_family categorical taxonomy",
+      "status": "DO_NOT_USE"
+    },
+    {
+      "basis_or_contract_derivation": "No formal field/taxonomy recovered; any later derivation requires explicit result-independent PRECOMMIT",
+      "category": "NOT_AVAILABLE_DO_NOT_USE",
+      "feature_materialized": false,
+      "frozen_source": "NONE",
+      "proposal_field": "oscillation semantic field",
+      "status": "DO_NOT_USE"
+    },
+    {
+      "basis_or_contract_derivation": "State9.activity is a categorical LIVE/STOPPED/BALANCED/INITIALIZING field; no numeric Volume/Value activity supplied",
+      "category": "NOT_AVAILABLE_DO_NOT_USE",
+      "feature_materialized": false,
+      "frozen_source": "NONE",
+      "proposal_field": "normalized activity numeric State9 field",
+      "status": "DO_NOT_USE"
+    },
+    {
+      "basis_or_contract_derivation": "Excluded by BUY_INTENT cutoff and teacher isolation contract",
+      "category": "NOT_AVAILABLE_DO_NOT_USE",
+      "feature_materialized": false,
+      "frozen_source": "NONE",
+      "proposal_field": "future final duration/Entry-after-State/EXIT/MFE/MAE",
+      "status": "DO_NOT_USE"
+    }
+  ],
+  "scope": "Available contract mapping only; no feature matrix/schema selection or formulas precommitted"
+}

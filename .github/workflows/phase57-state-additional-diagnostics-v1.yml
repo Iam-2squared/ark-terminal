@@ -1,0 +1,20 @@
+name: Phase57 State Additional Diagnostics v1
+on:
+  pull_request:
+    paths:
+      - 'docs/evidence/phase57-state-additional-diagnostics-v1/**'
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run diagnostics
+        run: python docs/evidence/phase57-state-additional-diagnostics-v1/diagnose.py --measurement docs/evidence/phase57-five-minute-reference-g-v1/measurement --output /tmp/phase57-state-additional-diagnostics-v1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-state-additional-diagnostics-v1
+          path: /tmp/phase57-state-additional-diagnostics-v1
+          retention-days: 30

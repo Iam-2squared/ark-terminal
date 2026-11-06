@@ -1,0 +1,140 @@
+{
+  "document_id": "ARK_FIRST_LAYER_STATE9_ONLY_ENTRY_FILTER_WORK_20261007",
+  "status": "STATE9_ONLY_ENTRY_FILTER_DIAGNOSTIC_PARTIAL_STATE_COVERAGE",
+  "diagnostic_branch": "research/first-layer-state9-only-entry-filter-20261007",
+  "diagnostic_directory": "research/first-layer-state9-only-entry-filter-20261007",
+  "prior_census_manifest": {
+    "public_commit": "39dd607a9823bad8e8177e3c2e9b657c497fcaaa",
+    "private_commit": "5972b2ad45e8070ac3e7ebc967d47fd424f5732c",
+    "path": "research/first-layer-big-loser-winner-r-spectrum-20261007/WORK_SCOPE_AND_SOURCE_MANIFEST.json",
+    "local_file": {
+      "bytes": 9516,
+      "sha256": "c95236c92e6e2c0b020d4663b83b54229d184457d5789363f98925cb1cd3a5e3",
+      "git_blob": "f66d7423e969bde333014215f911a2fe8efcf8da"
+    }
+  },
+  "cohort": "S1/S2 DEV_COMPARE Frozen Entry before KEEP/DROP",
+  "date_range": [
+    "2025-07-09",
+    "2025-07-29"
+  ],
+  "expected_and_actual_cohort_counts": {
+    "S1": {
+      "N": 164,
+      "R_known": 159,
+      "R_unknown": 5,
+      "state_usable_N": 72,
+      "state_unavailable_N": 92,
+      "sessions": 6,
+      "symbols": 136
+    },
+    "S2": {
+      "N": 158,
+      "R_known": 157,
+      "R_unknown": 1,
+      "state_usable_N": 73,
+      "state_unavailable_N": 85,
+      "sessions": 6,
+      "symbols": 117
+    },
+    "UNION": {
+      "N": 322,
+      "R_known": 316,
+      "R_unknown": 6,
+      "state_usable_N": 145,
+      "state_unavailable_N": 177,
+      "sessions": 12,
+      "symbols": 223
+    }
+  },
+  "split_overlap_N": 0,
+  "canonical_attribution": "Saved disjoint S1/S2 DEV Entry ID membership; Frozen identity preserved",
+  "exposure": "ADAPTIVE_DEVELOPMENT",
+  "formal_R_original": {
+    "source_commit": "b7fb211ba62e966a4f9dc4d37567851c238cc63c",
+    "source_member": "c11/private/CANONICAL_RETURN_ROWS_322.json",
+    "bytes": 289101,
+    "sha256": "508b3008e3a076359c6168f861d78bc026ada4086628ee4712d7c1d033e3e517",
+    "git_blob": "48ce30e49b7730fb8a40a2bd1b54be59fee40d63",
+    "unit_native": "fraction",
+    "unit_analysis": "percent",
+    "conversion": "saved native fraction x100; primary saved exact R_pct numerator/denominator; no teacher recomputation",
+    "R_unknown_N": 6
+  },
+  "State_source_authority": {
+    "original_archive_filename": "Ark_State9_STRUCTURAL_EXIT_V2_EVIDENCE_20261003_PRIVATE.zip",
+    "archive_sha256": "31a0fd8b8ec9c790b912a8da06ea601127fac0a5936f12181740d20e8627fe89",
+    "archive_bytes": 81463518,
+    "selected_members": "FULL_TRACE/{only 322 exact saved DEV Entry ID}.jsonl.gz",
+    "member_pins_and_ID_list": "private/SOURCE_TRACE_COMPONENT_PINS_322.json",
+    "method": "B saved frozen State time-series as-of",
+    "Frozen_BUY_INTENT_metadata_member": "FROZEN_ENTRY/P1_Q70_FIRST_ENTRY_RECORDS.jsonl.gz",
+    "Frozen_BUY_INTENT_member_sha256": "e7a6140b6b11d8d078a271fad76b75e68a5b2fda9e45c7db43d98ee2f282abeb",
+    "no_Frozen_BUY_INTENT_State_snapshot_A": "Intent stores row pointer, no embedded official State Primary; B authoritative native trace used",
+    "state9_version": "RC2_EXACT_V1",
+    "profile_sha256": "77ee61ba1808a2c17614439fe7d14212a53cbfa7358c032ce16989eeb5248922",
+    "candidate_kernel_sha256": "07c41745427c41ab303e7dd425c49769c0e548c90462bac07032c0069608ff76",
+    "Frozen_Path_adapter_sha256": "ad59222fcc0f9dfed4698efb49a87d66ea4e01b90562cdcaa8b9bc028ffffbf8",
+    "reused_effective_freeze": "Frozen Entry contract final prefix f0ada8940e89ff4c9f3bc84b18f03bb91ece8670; official EXIT V3 receipt1ecbcc43f75279fa302f19fd896add2aac15b537 pins same trace/semantics; no rollback or Freeze re-audit"
+  },
+  "clock_contract": {
+    "t_decision": "original first_intent.intent_timestamp/intent_minute, checked against V1 saved identity and C11 scope metadata",
+    "not_fill_or_selector": true,
+    "same_timestamp_evidence": "Frozen Entry P1 definition/feature manifest uses current RC2 State for each observed closed regular1m before causal BUY_INTENT; native trace state as_of/known_at and original row pointer/cutoff match",
+    "evidence_class": "HISTORICAL_PIT_ASSUMED_BAR_END",
+    "actual_historical_receive_time": "UNKNOWN",
+    "available_at_conversion": "original assumed_available_at; State as_of is integer scheduled_t relative to09:00 JST, mechanically mapped under fixed adapter; no commit timestamp used",
+    "session_lunch_reset_changes": 0
+  },
+  "source_provenance_text_only": [
+    {
+      "local": "CONTRACT_FREEZE_RECEIPT.json.txt",
+      "bytes": 3040,
+      "sha256": "0c1328aee2abdb5a8c684083690d6e53dab4dff0c7a9f201d9600876e40fbf51",
+      "git_blob": "23d5eef7b2da07f158ebc72cbedc72fc565ba3ea",
+      "executed": false
+    },
+    {
+      "local": "EXIT_receipt.txt",
+      "bytes": 3602,
+      "sha256": "893b525d5505901ba1f5a4fd453ca02809cf0e409ff12312348f34597e30a68a",
+      "git_blob": "e216cfd1801ba906935459b1c0dbe3aea6ce130f",
+      "executed": false
+    },
+    {
+      "local": "Entry_contract.txt",
+      "bytes": 17735,
+      "sha256": "a60f604cdcdfe5dc9d673fd502883dc17797cceb06b1c2680b1a7e41cb07a750",
+      "git_blob": "62f10b9f12fc968daa2a9393737f2323cdd99307",
+      "executed": false
+    },
+    {
+      "local": "Entry_receipt.txt",
+      "bytes": 4165,
+      "sha256": "799dfd256b003521b71e89805b59f475f068c11b7dd061164ed6b385d60c6fb0",
+      "git_blob": "a1ab924e2366e0f90b6addd3aa93b52a487371ed",
+      "executed": false
+    },
+    {
+      "local": "PATH_FROZEN.py",
+      "bytes": 11176,
+      "sha256": "ad59222fcc0f9dfed4698efb49a87d66ea4e01b90562cdcaa8b9bc028ffffbf8",
+      "git_blob": "dae64aba39261d8fe3a03409543b306902faf516",
+      "executed": false
+    }
+  ],
+  "decision_scope": "P0 definition only; P1/P2 fixed exact enums, no legacy C11 mask added",
+  "decision_seal": {
+    "bytes": 1202,
+    "sha256": "4da043d88a7dc990ccbe5eeedeec818049d5601f7df9b7976452016f37c6e60d",
+    "git_blob": "3c68d392703353c62d0f4ba4710c5668dcbdeeb3"
+  },
+  "private_row_body_public": false,
+  "TRAIN_CAL_TEST_outcomes_read": 0,
+  "State_unique_Entry_ID_N": 322,
+  "State_kernel_reproduction_N": 0,
+  "newFirstLayerSelected": null,
+  "productionReady": false,
+  "capitalImprovement": "NOT_EVALUATED",
+  "freshValidation": "NOT_RUN"
+}

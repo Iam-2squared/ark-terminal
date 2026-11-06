@@ -1,0 +1,53 @@
+name: State Reversal V3 Fixed Development Completion
+on:
+  push:
+    branches: [state-predictiveness-v3-reversal-20261002-v1]
+    paths: ['.github/workflows/state-reversal-v3-20261002.yml', 'research/state-reversal-v3-20261002/payload.b64']
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: state-reversal-v3-20261002
+  cancel-in-progress: false
+jobs:
+  development-export:
+    if: github.ref == 'refs/heads/state-predictiveness-v3-reversal-20261002-v1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify source package
+        run: |
+          python - <<'PY'
+          import pathlib,os,zipfile,base64,io,hashlib
+          b=base64.b64decode(pathlib.Path('research/state-reversal-v3-20261002/payload.b64').read_bytes())
+          assert hashlib.sha256(b).hexdigest()=='b6131d202f789ad78d2606b6ee22bca1e9292dbb451e07b26993ed0bab614f3c'
+          with zipfile.ZipFile(io.BytesIO(b)) as z:
+              assert all(not n.startswith('/') and '..' not in pathlib.PurePosixPath(n).parts for n in z.namelist())
+              z.extractall(pathlib.Path(os.environ['RUNNER_TEMP'])/'state-reversal-v3-code')
+          PY
+      - name: Authorized Development temporary raw and frozen export
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          STATE9_AUDIT_RAW: ${{ runner.temp }}/state-reversal-v3-raw
+          STATE9_AUDIT_OUT: ${{ runner.temp }}/state-reversal-v3-evidence
+        run: python "$RUNNER_TEMP/state-reversal-v3-code/export_completion.py"
+      - name: Purge exact temporary directory
+        if: always()
+        run: |
+          python - <<'PY'
+          import pathlib,os,shutil,json
+          raw=pathlib.Path(os.environ['RUNNER_TEMP'])/'state-reversal-v3-raw'
+          if raw.exists():shutil.rmtree(raw)
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'state-reversal-v3-evidence';out.mkdir(exist_ok=True)
+          (out/'WORKFLOW_PURGE_RECEIPT.json').write_text(json.dumps({'verified':not raw.exists(),'secret_export':0})+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: state-reversal-v3-development-${{ github.run_id }}
+          path: ${{ runner.temp }}/state-reversal-v3-evidence
+          retention-days: 7
+

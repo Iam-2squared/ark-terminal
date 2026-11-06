@@ -1,0 +1,29 @@
+{
+  "allowed": "as-of join if source ID, barEnd and knownAt <= first intent; or fixed pure deterministic historical source with suffix invariance",
+  "blockedAtThisSnapshot": [
+    "guard trace binary absent",
+    "saved market State/signal rows absent",
+    "no permitted price path to recreate signals",
+    "no future label or exit price as runtime input"
+  ],
+  "causalTestsPending": [
+    "input truncated to tau",
+    "future suffix invariance",
+    "closed bar",
+    "swing recognition knownAt",
+    "lunch/session",
+    "no policy/provider/fit import"
+  ],
+  "requiredMetadata": [
+    "feature_id",
+    "definition_hash",
+    "source_file_hash",
+    "source_row_ids",
+    "bar_end",
+    "knownAt",
+    "availability_class",
+    "inference_role"
+  ],
+  "role": "metadata inventory and supported Entry/clock/rank values only; no State×delta association on absent values",
+  "schema": "phase57-a-plus-causal-feature-plan-v1"
+}

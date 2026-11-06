@@ -130,14 +130,15 @@ def inspect(binding_file: Path) -> tuple[Path, bytes, bytes, bytes, bytes]:
     return bridge, before, after, raw, new_raw
 
 
-def apply(binding_file: Path, *, live: bool = True) -> str:
+def apply(binding_file: Path, *, live: bool = True, _test_mode: bool = False) -> str:
     bridge, original_bridge, updated_bridge, original_binding, updated_binding = inspect(binding_file)
     if original_bridge == updated_bridge:
         return "ALREADY_APPLIED"
     if not live:
         return "READY"
-    need(os.name == "nt", "WINDOWS_ONLY")
-    check_quiet()
+    need(os.name == "nt" or _test_mode, "WINDOWS_ONLY")
+    if not _test_mode:
+        check_quiet()
     store = binding_file.parent
     backup = store / ("transport-log-fix-backup-" + uuid.uuid4().hex)
     backup.mkdir(mode=0o700)

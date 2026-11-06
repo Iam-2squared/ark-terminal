@@ -86,7 +86,7 @@ def check_quiet() -> None:
         timeout=35, check=False,
     )
     for line in result.stdout.splitlines():
-        if re.fullmatch(r"NO11_BLOCKING_PROCESS=[0-9]+\\|(ONECLICK_UI|PREOPEN_WORKER|NATIVE_LAUNCHER|LIVE_ENGINE|ARK_PROCESS)", line):
+        if re.fullmatch(r"NO11_BLOCKING_PROCESS=[0-9]+\|(ONECLICK_UI|PREOPEN_WORKER|NATIVE_LAUNCHER|LIVE_ENGINE|ARK_PROCESS)", line):
             print(line, flush=True)
         elif line in ("NO11_BLOCKING_PROCESS_COUNT=0", "NO11_PROCESS_QUERY=FAILED"):
             print(line, flush=True)

@@ -377,7 +377,7 @@ def capture_transport(binding, settings, prepared, day):
          '-SameDayOperatorApproved'],
         capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=120)
     for line in (result.stdout + '\n' + result.stderr).splitlines():
-        if line.startswith(('AUTOMATIC_TRANSPORT_', 'ORDER_TRIGGER_', 'ORDER_SENT=')):
+        if line.startswith(('AUTOMATIC_TRANSPORT_', 'AUTOMATIC_TRANSPORT=BLOCKED|', 'ORDER_TRIGGER_', 'ORDER_SENT=')):
             print(line, flush=True)
     need(result.returncode == 0, 'PHYSICAL_TRANSPORT_SETUP_FAILED')
     paths = [line.split('=', 1)[1] for line in result.stdout.splitlines()

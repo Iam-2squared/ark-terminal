@@ -25,7 +25,7 @@ function NoNativeProcess {
  $busy=@(Get-CimInstance Win32_Process -ErrorAction Stop|Where-Object{
   $_.ProcessId -ne $PID -and
   $_.Name -match '^(powershell|pwsh|python|pythonw)([.]exe)?$' -and
-  [string]$_.CommandLine -match 'Start-No11UnifiedLauncher[.]ps1|Run-No11ReceivedSessionOperatorLive[.]ps1|no11_received_session_controller[.]py|Invoke-No11MsiiOrder[.]ps1|Start-No11PreopenStandby[.]ps1|Request-No11Nov06AfternoonPreorder[.]ps1'
+  [string]$_.CommandLine -match 'Start-No11OneClick[.]ps1|Start-No11UnifiedLauncher[.]ps1|Run-No11ReceivedSessionOperatorLive[.]ps1|no11_received_session_controller[.]py|Invoke-No11MsiiOrder[.]ps1|Start-No11PreopenStandby[.]ps1|Request-No11Nov06AfternoonPreorder[.]ps1'
  })
  # Exclude this script's own invocation, but never another live/recovery worker.
  # Do not exempt any competing request process: exactly one manual attempt.

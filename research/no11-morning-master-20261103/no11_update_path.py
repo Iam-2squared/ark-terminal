@@ -252,9 +252,20 @@ def transform(kind, raw):
         # full-throughput run: it forced initial 5/10/20/40-call ramps.
         # Start at the physically available ceiling, just like the standard
         # path. Keep automatic reduction ONLY on real busy/partial results.
-        text = once(text,
-            '  $physical=if($AutoMaxThroughput){[Math]::Min(5,$ceiling)}else{$ceiling}',
-            '  $physical=$ceiling')
+        # ARK_NO11_USER_OBSERVED_PLAIN_POOL_START_V1
+        # Local lines 347-348 calculate SafePhysicalBatch directly and have
+        # no AutoMax switch/helper. Recognize that complete paired statement;
+        # do not invent a removed feature or overwrite the rest of the file.
+        plain_start = ('  $physical=SafePhysicalBatch $existing $BatchSize\n'
+                       '  $ceiling=$physical;$fullWaves=0')
+        if _token_matches(text, plain_start):
+            text = once(text, plain_start,
+                '  $ceiling=SafePhysicalBatch $existing $BatchSize\n'
+                '  $physical=$ceiling;$fullWaves=0')
+        else:
+            text = once(text,
+                '  $physical=if($AutoMaxThroughput){[Math]::Min(5,$ceiling)}else{$ceiling}',
+                '  $physical=$ceiling')
         # GroupSize is a reporting interval, NOT a hard RSS call boundary.
         # E.g. positions 94..140 must be a full 47-function wave, rather than
         # 6 functions to finish the first logical 100-symbol group.
@@ -283,7 +294,21 @@ def transform(kind, raw):
     $fullWaves=0
     Write-Host ('NO11_DAILY_BATCH_TUNE=CLEAN_WAVE_RESTORED_MAX_{0}' -f $physical)
    }"""
-        text = once(text, old, new)
+        # User-observed lines 426-433 use a two-clean-wave +5 ramp,
+        # not the AutoMax branch above. Replace either reviewed variant with
+        # the SAME immediate restoration of the current available ceiling.
+        plain_ramp = """   }elseif($physical -lt $ceiling){
+    $fullWaves++
+    if($fullWaves -ge 2){
+     $physical=[Math]::Min($ceiling,$physical+5)
+     $fullWaves=0
+     Write-Host ('NO11_DAILY_BATCH_TUNE=FULL_WAVES_RAISED_TO_{0}' -f $physical)
+    }
+   }"""
+        if _token_matches(text, plain_ramp):
+            text = once(text, plain_ramp, new)
+        else:
+            text = once(text, old, new)
         # Group-complete telemetry may no longer land on a perfect hundred.
         # Keep progress visible whenever a logical group boundary is crossed.
         text = once(text,
@@ -298,22 +323,28 @@ def transform(kind, raw):
         # The legacy grouping/ramp helpers stay available for existing callers,
         # but the actual RUN path must use every available slot immediately.
         # Validate concrete 429-stock batches: 47*9 + a 6-stock tail.
-        text = once(text,
-            " Write-Host 'NO11_DAILY_AUTO_100_GROUP_OFFLINE_SELFTEST=PASS'",
-            """ $maxOffset=0;$maxWaveSizes=@()
- while($maxOffset -lt 429){
-  $end=[Math]::Min(429,$maxOffset+47)
-  $maxWaveSizes+=@($end-$maxOffset)
-  $maxOffset=$end
- }
- if($maxWaveSizes.Count -ne 10 -or
-    @($maxWaveSizes|Where-Object{$_ -eq 47}).Count -ne 9 -or
-    $maxWaveSizes[-1] -ne 6 -or
-    [Math]::Min(429,94+47) -ne 141){
-  throw 'NO11_DAILY_ACTUAL_MAX47_WAVE_SELFTEST_FAILED'
- }
- Write-Host 'NO11_DAILY_ACTUAL_MAX47_WAVE_SELFTEST=PASS'
- Write-Host 'NO11_DAILY_LEGACY_100_GROUP_HELPER_SELFTEST=PASS'""")
+        # ARK_NO11_POOL_SELFTEST_OPTIONAL_V1
+        selftest_line = " Write-Host 'NO11_DAILY_AUTO_100_GROUP_OFFLINE_SELFTEST=PASS'"
+        selftest_matches = _token_matches(text, selftest_line)
+        if len(selftest_matches) > 1:
+            raise SourceAnchorChanged(selftest_line, len(selftest_matches))
+        if selftest_matches:
+            text = once(text,
+                " Write-Host 'NO11_DAILY_AUTO_100_GROUP_OFFLINE_SELFTEST=PASS'",
+                """ $maxOffset=0;$maxWaveSizes=@()
+     while($maxOffset -lt 429){
+      $end=[Math]::Min(429,$maxOffset+47)
+      $maxWaveSizes+=@($end-$maxOffset)
+      $maxOffset=$end
+     }
+     if($maxWaveSizes.Count -ne 10 -or
+        @($maxWaveSizes|Where-Object{$_ -eq 47}).Count -ne 9 -or
+        $maxWaveSizes[-1] -ne 6 -or
+        [Math]::Min(429,94+47) -ne 141){
+      throw 'NO11_DAILY_ACTUAL_MAX47_WAVE_SELFTEST_FAILED'
+     }
+     Write-Host 'NO11_DAILY_ACTUAL_MAX47_WAVE_SELFTEST=PASS'
+     Write-Host 'NO11_DAILY_LEGACY_100_GROUP_HELPER_SELFTEST=PASS'""")
     elif kind == 'daily':
         text = once(text, ' [ValidateRange(1,20)][int]$BatchSize=20,',
                           ' [ValidateRange(1,47)][int]$BatchSize=47,')

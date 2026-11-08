@@ -76,6 +76,7 @@ test('separate diagnosed Chart50 collector preserves original RSS and immutable 
  // Different audited collectors need semantic isolation, not an arbitrary
  // relative byte-length condition that changes when the original grows.
  assert.notEqual(diag,original);
+ for(const marker of ['NO11_C50_CONTINUOUS_OFFLINE_SELFTEST=PASS', 'SaveSnapshot $folder $payload', 'ORDER_TRANSMISSION=False'])assert.ok(original.includes(marker),marker);
  assert.ok(diag.includes('NO11_C50_DIAGNOSTIC_STEP='));
  assert.ok(!original.includes('NO11_C50_DIAGNOSTIC_STEP='));
  for(const marker of ["AccessibleObjectFromWindow","OriginalBooks","OriginalCapacity",

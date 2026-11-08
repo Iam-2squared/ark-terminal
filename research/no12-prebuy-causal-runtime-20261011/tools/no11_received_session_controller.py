@@ -14,7 +14,7 @@ import sys
 import time
 import uuid
 
-from no11_received_run_recovery import RunRecovery, CaptureRelay, read, need, atomic
+from no11_received_run_recovery import RunRecovery, CaptureRelay, read, need, atomic, unseal, ATTEMPT, POSTMORTEM
 
 
 def consumer_args(bootstrap, config, prepared, infer, capture=None, *, live=False):
@@ -88,6 +88,50 @@ def launch_same_run(config, prepared, run_root, recovery, bootstrap, *,
     print('NO11_BOOTSTRAP_STOP=COLLECTOR_AND_CONSUMER_CLOSED', flush=True)
 
 
+def marked_cleanup_proven(root, run_root, session, recovery):
+    """Honor, NEVER delete, an existing cleanup marker only with sealed proof.
+
+    This is not a generic rearm: the exact failed collector PID, session, and
+    postmortem ownership token must match. Restore/history performs the full
+    source/ready/closed workbook proof before any new collector begins.
+    """
+    marker = Path(root) / 'bootstrap-recovery-required.json'
+    if not marker.exists():
+        return True
+    if run_root is None or not Path(run_root).is_dir():
+        return False
+    try:
+        body, _ = read(marker, 100_000)
+        if (body.get('schemaId') != 'ARK_NO11_BOOTSTRAP_RECOVERY_REQUIRED_V1' or
+                body.get('reason') != 'COLLECTOR_CLEANUP_NOT_CONFIRMED' or
+                body.get('originalExcelMustNotBeKilled') is not True or
+                body.get('orderTransmission') is not False or
+                type(body.get('processId')) is not int):
+            return False
+        # Reject any unrelated run and any unclosed collector. The original
+        # marker stays unchanged and remains available for future audits.
+        run = recovery._run(run_root)
+        if Path(run).parent != Path(root):
+            return False
+        recovery.history(run)
+        claims = []
+        for item in sorted(run.glob('attempt-*')):
+            proof_file = item / 'collector-postmortem-cleanup.json'
+            if proof_file.exists():
+                proof = unseal(proof_file, POSTMORTEM)
+                attempt = unseal(item / 'attempt.json', ATTEMPT)
+                if (proof.get('collectorPid') == body['processId'] and
+                        attempt.get('pid') == body['processId'] and
+                        proof.get('sessionDate') == session and
+                        proof.get('ownedUnsavedWorkbookClosed') is True and
+                        proof.get('originalBooksUnchanged') is True and
+                        proof.get('orderTransmission') is False):
+                    claims.append(proof_file)
+        return len(claims) == 1
+    except (OSError, ValueError, KeyError, TypeError):
+        return False
+
+
 def execute(config, bootstrap, *, resume_run=None, preflight_only=False,
             allow_explicit_live=False, popen=subprocess.Popen, sleep=time.sleep):
     """Caller supplies validated config and the unchanged bootstrap functions."""
@@ -102,9 +146,9 @@ def execute(config, bootstrap, *, resume_run=None, preflight_only=False,
         bootstrap.validate_readonly_broker_config(
             config['brokerExecutionConfig'], config['sessionDate'],
             allow_explicit_live=True)
-    bootstrap.need(not (root / 'bootstrap-recovery-required.json').exists(),
-                   'PREVIOUS_CLEANUP_REQUIRES_REVIEW')
     recovery = RunRecovery(config)
+    bootstrap.need(marked_cleanup_proven(root, resume_run, config['sessionDate'], recovery),
+                   'PREVIOUS_CLEANUP_REQUIRES_REVIEW')
     run_root = None
     with bootstrap.service.exclusive_service(root):
         try:

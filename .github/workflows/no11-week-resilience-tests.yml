@@ -31,10 +31,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          root=research/no11-morning-master-20261103
-          for test in test_no11_nightly_resume.py test_no11_transport_resilience.py test_no11_live_same_run_resume.py test_no11_skipday_and_reconnect.py test_automatic_price_exclusions.py test_local_rot_pid_probe.py test_no11_selection_status.py test_no11_transport_blocked_reason_forwarding.py test_no11_transport_log_install.py test_daily_cycle.py; do
-            python -m unittest discover -s "$root" -p "$test" -v
-          done
+          python - <<'PY'
+          import unittest, sys, json
+          root='research/no11-morning-master-20261103'
+          names=['test_no11_nightly_resume.py','test_no11_transport_resilience.py','test_no11_resilience_install.py','test_no11_live_same_run_resume.py','test_no11_skipday_and_reconnect.py','test_automatic_price_exclusions.py','test_local_rot_pid_probe.py','test_no11_selection_status.py','test_no11_transport_blocked_reason_forwarding.py','test_no11_transport_log_install.py','test_daily_cycle.py']
+          totals={'tests':0,'failures':0,'errors':0,'skipped':0}
+          for name in names:
+              suite=unittest.TestLoader().discover(root,pattern=name)
+              assert suite.countTestCases()>0,name
+              result=unittest.TextTestRunner(verbosity=2).run(suite)
+              totals['tests']+=result.testsRun
+              totals['failures']+=len(result.failures)
+              totals['errors']+=len(result.errors)
+              totals['skipped']+=len(result.skipped)
+          print('NO11_RESILIENCE_TEST_TOTAL='+json.dumps(totals),flush=True)
+          if totals['failures'] or totals['errors']:sys.exit(1)
+          PY
       - name: Build exact transport candidate for Windows mock validation
         shell: bash
         run: |
@@ -46,6 +58,8 @@ jobs:
         run: |
           & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/test_no11_transport_readiness_windows.ps1 -Candidate "$env:RUNNER_TEMP\transport-resilient.ps1"
           if($LASTEXITCODE -ne 0){throw 'READINESS_REGRESSION_FAILED'}
+          & python -B -c "import sys;sys.path.insert(0,'research/no11-morning-master-20261103');import install_no11_week_resilience as i;i.quiet();print('REAL_WINDOWS_PROCESS_PROBE=PASS')"
+          if($LASTEXITCODE -ne 0){throw 'PROCESS_PROBE_FALSE_POSITIVE'}
       - name: Existing same-run white-UI installer synthetic acceptance
         if: runner.os == 'Windows'
         shell: powershell

@@ -34,7 +34,7 @@ jobs:
           python - <<'PY'
           import unittest, sys, json
           root='research/no11-morning-master-20261103'
-          names=['test_no11_nightly_resume.py','test_no11_transport_resilience.py','test_no11_resilience_install.py','test_no11_update_path.py','test_no11_launcher_update_install.py','test_no11_live_same_run_resume.py','test_no11_skipday_and_reconnect.py','test_automatic_price_exclusions.py','test_local_rot_pid_probe.py','test_no11_selection_status.py','test_no11_transport_blocked_reason_forwarding.py','test_no11_transport_log_install.py','test_daily_cycle.py']
+          names=['test_no11_nightly_resume.py','test_no11_transport_resilience.py','test_no11_resilience_install.py','test_no11_update_path.py','test_no11_launcher_update_install.py','test_no11_unified_update.py','test_no11_live_same_run_resume.py','test_no11_skipday_and_reconnect.py','test_automatic_price_exclusions.py','test_local_rot_pid_probe.py','test_no11_selection_status.py','test_no11_transport_blocked_reason_forwarding.py','test_no11_transport_log_install.py','test_daily_cycle.py']
           totals={'tests':0,'failures':0,'errors':0,'skipped':0}
           for name in names:
               suite=unittest.TestLoader().discover(root,pattern=name)

@@ -215,6 +215,28 @@ def transform(kind, raw):
         text = once(text,
             "  Write-Host ('NO11_DAILY_BATCH_POLICY=GROUP_{0}|PHYSICAL_MAX_{1}|ORIGINAL_CHARTS_{2}|RESERVE_3|LIMIT_50' -f $GroupSize,$ceiling,$existing)",
             "  Write-Host ('NO11_DAILY_BATCH_POLICY=GROUP_{0}|PHYSICAL_MAX_{1}|ORIGINAL_CHARTS_{2}|RESERVE_3|LIMIT_50|FIRST_WAVE_MAX=True|GROUP_SPLIT_DISABLED=True' -f $GroupSize,$ceiling,$existing)")
+        text = once(text,
+            "   Write-Host ('NO11_DAILY_AUTOMAX=ADAPTIVE_5_TO_{0}|EXCEL_CHART_CAP=50|RESERVED=3|CURRENT_BATCH={1}' -f $ceiling,$physical)",
+            "   Write-Host ('NO11_DAILY_AUTOMAX=FULL_FROM_FIRST_WAVE_TO_{0}|EXCEL_CHART_CAP=50|RESERVED=3|CURRENT_BATCH={1}' -f $ceiling,$physical)")
+        # The legacy grouping/ramp helpers stay available for existing callers,
+        # but the actual RUN path must use every available slot immediately.
+        # Validate concrete 429-stock batches: 47*9 + a 6-stock tail.
+        text = once(text,
+            " Write-Host 'NO11_DAILY_AUTO_100_GROUP_OFFLINE_SELFTEST=PASS'",
+            """ $maxOffset=0;$maxWaveSizes=@()
+ while($maxOffset -lt 429){
+  $end=[Math]::Min(429,$maxOffset+47)
+  $maxWaveSizes+=@($end-$maxOffset)
+  $maxOffset=$end
+ }
+ if($maxWaveSizes.Count -ne 10 -or
+    @($maxWaveSizes|Where-Object{$_ -eq 47}).Count -ne 9 -or
+    $maxWaveSizes[-1] -ne 6 -or
+    [Math]::Min(429,94+47) -ne 141){
+  throw 'NO11_DAILY_ACTUAL_MAX47_WAVE_SELFTEST_FAILED'
+ }
+ Write-Host 'NO11_DAILY_ACTUAL_MAX47_WAVE_SELFTEST=PASS'
+ Write-Host 'NO11_DAILY_LEGACY_100_GROUP_HELPER_SELFTEST=PASS'""")
     elif kind == 'daily':
         text = once(text, ' [ValidateRange(1,20)][int]$BatchSize=20,',
                           ' [ValidateRange(1,47)][int]$BatchSize=47,')

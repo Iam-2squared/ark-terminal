@@ -28,6 +28,7 @@ def run(store,source,apply=False,_test=False):
             frontend=launcher.install(store,do_apply=False,_test=_test) if backend=='ALREADY_APPLIED' else 'WAIT_FOR_BACKEND_INSTALL'
             return backend,frontend
         backend=core.install(store,source,True)
+        print('NO11_BASE_RESUME_INSTALL='+backend,flush=True)
         # Backend is already durable: if launcher installation is interrupted
         # a future invocation sees ALREADY_APPLIED then resumes the launcher.
         frontend=launcher.install(store,do_apply=True,_test=_test)

@@ -9,6 +9,8 @@ All edits are exact-source, BOM/CRLF-preserving and idempotent.
 from __future__ import annotations
 
 from pathlib import Path
+import hashlib
+import re
 
 MARKER = 'ARK_NO11_WEEKEND_WEEKLY_RESUME_V1'
 FILES = {
@@ -26,9 +28,84 @@ def require(v, reason):
     if not v:
         raise ValueError('NO11_UPDATE_PATH_' + reason)
 
+class SourceAnchorChanged(ValueError):
+    def __init__(self, needle, matches=0):
+        super().__init__('NO11_UPDATE_PATH_SOURCE_ANCHOR_CHANGED')
+        self.anchor_id = hashlib.sha256(needle.encode('utf-8')).hexdigest()[:16]
+        self.match_count = matches
+        self.anchor = needle
+
+
+# Formatting equivalence only. Strings and comments remain indivisible tokens;
+# changed literals, statements or inserted comments do NOT disappear here.
+_PS_TOKEN = re.compile(r"'(?:''|[^'])*'|\"(?:`[\s\S]|[^\"`])*\"|#[^\n]*|[^\s]")
+_BATCH_NAMES = frozenset(('FullBatchSize', 'RefreshBatchSize',
+                          'MinuteBatchSize', 'DailyBatchSize', 'BatchSize'))
+_BATCH_VALUES = frozenset((5, 10, 20, 30, 40, 47, 50))
+_BATCH_DECL = re.compile(
+    r'(?m)^(?P<indent>[ \t]*)\[ValidateRange\([ \t]*1[ \t]*,[ \t]*(?P<upper>\d+)[ \t]*\)\]'
+    r'[ \t]*\[int\][ \t]*\$(?P<name>FullBatchSize|RefreshBatchSize|MinuteBatchSize|DailyBatchSize|BatchSize)'
+    r'[ \t]*=[ \t]*(?P<default>\d+)(?P<tail>[ \t]*,?[ \t]*)(?=\n|$)')
+
+
+def _token_matches(text, needle):
+    actual = list(_PS_TOKEN.finditer(text))
+    wanted = [m.group() for m in _PS_TOKEN.finditer(needle)]
+    if not wanted:
+        return []
+    tokens = [m.group() for m in actual]
+    length = len(wanted)
+    return [(actual[i].start(), actual[i + length - 1].end())
+            for i in range(len(tokens) - length + 1)
+            if tokens[i:i + length] == wanted]
+
+
 def once(text, needle, value):
-    require(text.count(needle) == 1, 'SOURCE_ANCHOR_CHANGED')
-    return text.replace(needle, value, 1)
+    count = text.count(needle)
+    if count == 1:
+        return text.replace(needle, value, 1)
+    if count > 1:
+        raise SourceAnchorChanged(needle, count)
+
+    # Accept known, already-used batch defaults/ranges, not one historical
+    # spelling such as FullBatchSize=10. Only this declaration is replaced.
+    requested = _BATCH_DECL.fullmatch(needle.strip('\n'))
+    if requested and requested['name'] in _BATCH_NAMES:
+        name = requested['name']
+        matches = [m for m in _BATCH_DECL.finditer(text) if m['name'] == name]
+        if len(matches) != 1:
+            raise SourceAnchorChanged(needle, len(matches))
+        m = matches[0]
+        if (int(m['upper']) not in _BATCH_VALUES or
+                int(m['default']) not in _BATCH_VALUES or
+                not 1 <= int(m['default']) <= int(m['upper'])):
+            raise SourceAnchorChanged(needle)
+        # Confirm the migration still sets the approved 47-function target.
+        replacement = _BATCH_DECL.search(value)
+        if replacement is None or replacement['name'] != name or replacement['default'] != '47':
+            raise SourceAnchorChanged(needle)
+        if m['tail'].strip() != replacement['tail'].strip():
+            raise SourceAnchorChanged(needle)
+        return text[:m.start()] + value + text[m.end():]
+
+    # Existing Clean collectors can already have the intended startup logic.
+    # An exact replacement present once is an applied operation, not a failure.
+    if text.count(value) == 1:
+        return text
+    if '$' in needle or needle.lstrip().startswith('Write-Host'):
+        matches = _token_matches(text, needle)
+        if len(matches) == 1:
+            start, end = matches[0]
+            # Retain indentation from the existing source outside the span.
+            return text[:start] + value.lstrip(' \t') + text[end:]
+        # The AutoMax telemetry is OPTIONAL in deployed Clean variants.
+        # Do not recreate its deleted feature flag or reject a valid collector
+        # merely because a diagnostic Write-Host line does not exist.
+        if (not matches and needle.lstrip().startswith('Write-Host')
+                and 'NO11_DAILY_AUTOMAX=' in needle and '$AutoMaxThroughput' not in text):
+            return text
+        raise SourceAnchorChanged(needle, len(matches))
+    raise SourceAnchorChanged(needle)
 
 def split_source(raw):
     bom = raw.startswith(b'\xef\xbb\xbf')

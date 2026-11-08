@@ -99,7 +99,30 @@ def plan(store):
     paths, ui = paths_for(store)
     # Never change a runnable collector while a previous instance may live.
     before = {k: path.read_bytes() for k,path in paths.items()}
-    after = {k: patch.transform(k, before[k]) for k in KINDS}
+    after = {}
+    failed = []
+    for kind in KINDS:
+        try:
+            after[kind] = patch.transform(kind, before[kind])
+            print('NO11_UPDATE_SOURCE=' + kind.upper() + '|READY', flush=True)
+        except ValueError as error:
+            failed.append(kind)
+            print('NO11_UPDATE_FAILED_FILE=' + paths[kind].name, flush=True)
+            print('NO11_UPDATE_FAILED_KIND=' + kind.upper(), flush=True)
+            print('NO11_UPDATE_SOURCE_SHA256=' + n.digest(before[kind]), flush=True)
+            if isinstance(error, patch.SourceAnchorChanged):
+                print('NO11_UPDATE_ANCHOR_ID=' + error.anchor_id, flush=True)
+                print('NO11_UPDATE_ANCHOR_MATCHES=' + str(error.match_count), flush=True)
+                # Public EXPECTED source fragment only: never print private
+                # workbook paths, local source contents, keys or account data.
+                label = error.anchor.strip().splitlines()[0][:180]
+                print('NO11_UPDATE_EXPECTED_ANCHOR=' + label, flush=True)
+            reason = str(error)
+            if not reason.startswith('NO11_'):
+                reason = 'NO11_UPDATE_SOURCE_UNRECOGNIZED'
+            print('NO11_UPDATE_SOURCE_REASON=' + reason, flush=True)
+    if failed:
+        raise ValueError('NO11_UPDATE_PATH_' + '_'.join(k.upper() for k in failed) + '_SOURCE_ANCHOR_CHANGED')
     # Retain exact custom UI bytes, even if a generated baseline differs.
     white_sha = n.digest(ui.read_bytes())
     # A genuine codeIdentity change creates a NEW as-of-scoped Friday plan.

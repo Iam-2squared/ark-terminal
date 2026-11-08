@@ -96,7 +96,7 @@ class LauncherInstallTests(unittest.TestCase):
 
     def test_ambiguous_local_change_is_never_clobbered(self):
         before=self.paths['daily'].read_bytes()
-        self.paths['daily'].write_bytes(before+b'# OTHER LOCAL CODE')
+        self.paths['daily'].write_bytes(before.replace(b'$BatchSize=20',b'$BatchSize=19'))
         with self.assertRaisesRegex(ValueError,'SOURCE_ANCHOR_CHANGED|UNKNOWN_SOURCE'):
             inst.install(self.store,do_apply=False,_test=True)
 

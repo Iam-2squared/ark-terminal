@@ -96,6 +96,8 @@ jobs:
             [void][Management.Automation.Language.Parser]::ParseFile($file.FullName,[ref]$tokens,[ref]$errors)
             if($errors.Count -gt 0){foreach($e in $errors){Write-Host ($file.Name+':'+$e.Extent.StartLineNumber+':'+$e.Message)};throw 'MAX47_POWERSHELL_PARSE_FAILED'}
           }
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $PWD 'reviewed-max47-candidates/pool.ps1') -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'MAX47_DAILY_POOL_RUNTIME_SELFTEST_FAILED'}
           Write-Host 'NO11_NATIVE_WEEKEND_AND_MAX47_PARSE=PASS'
           & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/test_no11_weekly_reentry_windows.ps1 -Candidate (Join-Path $PWD 'reviewed-max47-candidates/native.ps1')
           if($LASTEXITCODE -ne 0){throw 'WEEKLY_REENTRY_SEMANTIC_TEST_FAILED'}

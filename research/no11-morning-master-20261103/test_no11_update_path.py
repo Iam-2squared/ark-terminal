@@ -58,6 +58,22 @@ class NativeUpdateTests(unittest.TestCase):
                 if kind in ('native','daily','minutes','pool'):
                     self.assertIn('ARK_NO11_AFTERCLOSE_CONFIGURED_THIRD_BOOK_V1',after)
 
+    def test_daily_pool_calls_full_available_capacity_from_first_wave(self):
+        src=self.originals()['pool']
+        out=patch.transform('pool',src).decode('utf-8-sig')
+        self.assertIn('  $physical=$ceiling',out)
+        self.assertNotIn('$physical=if($AutoMaxThroughput){[Math]::Min(5,$ceiling)}',out)
+        self.assertIn('   $waveEnd=[Math]::Min($remaining.Count,$offset+$physical)',out)
+        self.assertNotIn('   $waveEnd=NextWaveEnd $offset $remaining.Count $GroupSize $physical',out)
+        self.assertIn('FULL_FROM_FIRST_WAVE',out)
+        self.assertIn('CLEAN_WAVE_RESTORED_MAX_',out)
+        self.assertIn('NO11_DAILY_ACTUAL_MAX47_WAVE_SELFTEST=PASS',out)
+        # 429-stock weekly pool means nine full 47-function batches
+        # and only a final 6-symbol batch, never artificial 100-row cuts.
+        sizes=[min(47,429-i) for i in range(0,429,47)]
+        self.assertEqual(sizes,[47]*9+[6])
+        self.assertEqual(sum(sizes),429)
+
     def test_friday_and_every_weekday_use_updated_native_pipeline(self):
         s=self.originals()
         weekly=patch.transform('weekly',s['weekly']).decode('utf-8-sig')

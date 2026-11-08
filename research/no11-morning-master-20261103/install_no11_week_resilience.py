@@ -52,7 +52,7 @@ def quiet():
     n.no_workers()
     # UI must not launch a competing task while binding files are exchanged.
     ps = ("$ErrorActionPreference='Stop';try{$p=@(Get-CimInstance Win32_Process -ErrorAction Stop|Where-Object{"
-          "$_.Name -match '^(powershell|pwsh)([.]exe)?$' -and "
+          "$_.ProcessId -ne $PID -and $_.Name -match '^(powershell|pwsh)([.]exe)?$' -and "
           "[string]$_.CommandLine -match 'Start-No11OneClick[.]ps1|Start-No11UnifiedLauncher[.]ps1|Start-No11PreopenStandby[.]ps1'"
           "});if($p.Count){exit 3};exit 0}catch{exit 4}")
     r = subprocess.run(['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', ps],

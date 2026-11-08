@@ -1,0 +1,148 @@
+name: No11 observed plain pool release
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - '.github/workflows/no11-plain-pool-release.yml'
+      - 'research/no11-morning-master-20261103/dev_repair_no11_plain_pool.py'
+      - 'research/no11-morning-master-20261103/test_no11_plain_pool_compat.py'
+      - 'research/no11-morning-master-20261103/test_no11_plain_pool_windows.ps1'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: no11-plain-pool-release
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.ref == 'refs/heads/fix/no11-week-resilience-20261108'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply reviewed local-variant migration and run complete regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=research/no11-morning-master-20261103
+          python "$root/dev_repair_no11_plain_pool.py"
+          python - <<'PY'
+          import unittest,sys,json
+          root='research/no11-morning-master-20261103'
+          names=['test_no11_plain_pool_compat.py','test_no11_update_source_compat.py','test_no11_nightly_resume.py','test_no11_transport_resilience.py','test_no11_resilience_install.py','test_no11_update_path.py','test_no11_launcher_update_install.py','test_no11_unified_update.py','test_no11_live_same_run_resume.py','test_no11_skipday_and_reconnect.py','test_automatic_price_exclusions.py','test_local_rot_pid_probe.py','test_no11_selection_status.py','test_no11_transport_blocked_reason_forwarding.py','test_no11_transport_log_install.py','test_daily_cycle.py']
+          totals={'tests':0,'failures':0,'errors':0,'skipped':0}
+          for name in names:
+              suite=unittest.TestLoader().discover(root,pattern=name)
+              assert suite.countTestCases()>0,name
+              result=unittest.TextTestRunner(verbosity=2).run(suite)
+              totals['tests']+=result.testsRun
+              totals['failures']+=len(result.failures)
+              totals['errors']+=len(result.errors)
+              totals['skipped']+=len(result.skipped)
+          print('NO11_PLAIN_POOL_TEST_TOTAL='+json.dumps(totals),flush=True)
+          if totals['failures'] or totals['errors']:sys.exit(1)
+          PY
+          git diff --check
+      - name: Build migrated plain and canonical candidates
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import sys
+          sys.path.insert(0,'research/no11-morning-master-20261103')
+          import test_no11_plain_pool_compat as fixture
+          import test_no11_update_path as canonical
+          import no11_update_path as p
+          out=Path('plain-pool-candidates');out.mkdir()
+          for embedded in (True,False):
+              for bom in (True,False):
+                  raw=fixture.observed_plain_fixture(embedded_selftest=embedded,newline='\r\n',bom=bom)
+                  (out/('plain-'+str(embedded)+'-'+str(bom)+'.ps1')).write_bytes(p.transform('pool',raw))
+          (out/'canonical.ps1').write_bytes(p.transform('pool',canonical.NativeUpdateTests().originals()['pool']))
+          PY
+      - name: Execute migrated local math and canonical selftest in PowerShell 5.1
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          foreach($file in @(Get-ChildItem plain-pool-candidates -Filter '*.ps1' -File)){
+            $t=$null;$e=$null
+            [void][Management.Automation.Language.Parser]::ParseFile($file.FullName,[ref]$t,[ref]$e)
+            if($e.Count){$e|ForEach-Object{Write-Host ($file.Name+':'+$_.Message)};throw 'CANDIDATE_PARSE_FAILED'}
+          }
+          foreach($file in @(Get-ChildItem plain-pool-candidates -Filter 'plain-*.ps1' -File)){
+            & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/test_no11_plain_pool_windows.ps1 -Candidate $file.FullName
+            if($LASTEXITCODE -ne 0){throw 'PLAIN_POOL_RUNTIME_REGRESSION'}
+          }
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File plain-pool-candidates/canonical.ps1 -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'CANONICAL_POOL_REGRESSION'}
+          Write-Host 'NO11_PLAIN_POOL_WINDOWS_ACCEPTANCE=PASS'
+  publish:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Publish reviewed transformer and immutable official bootstrap
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected=$(git rev-parse HEAD)
+          git config user.name 'ARK integration CI'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          root=research/no11-morning-master-20261103
+          python "$root/dev_repair_no11_plain_pool.py"
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('.github/workflows/no11-week-resilience-tests.yml')
+          text=p.read_text()
+          old="'test_no11_update_path.py','test_no11_launcher_update_install.py'"
+          new="'test_no11_update_path.py','test_no11_plain_pool_compat.py','test_no11_update_source_compat.py','test_no11_launcher_update_install.py'"
+          if new not in text:
+              assert text.count(old)==1
+              p.write_text(text.replace(old,new),encoding='utf-8',newline='\n')
+          PY
+          git add "$root/no11_update_path.py" .github/workflows/no11-week-resilience-tests.yml
+          git commit -m 'No11: migrate observed non-AutoMax pool startup and recovery without replacing local collector'
+          python - <<'PY'
+          from pathlib import Path
+          import re,subprocess
+          root='research/no11-morning-master-20261103/'
+          path=Path(root+'Bootstrap-No11UnifiedUpdate.ps1')
+          text=path.read_text(encoding='utf-8-sig')
+          release=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          text,n=re.subn(r"\$commit='[a-f0-9]{40}'",lambda m:"$commit='"+release+"'",text)
+          assert n==1
+          pattern=r"(?m)^ '(?P<name>[^']+)'='[a-f0-9]{40}'$"
+          def pin(m):
+              name=m['name']
+              sha=subprocess.check_output(['git','rev-parse',release+':'+root+name],text=True).strip()
+              return " '"+name+"'='"+sha+"'"
+          text,n=re.subn(pattern,pin,text)
+          assert n==8
+          path.write_text(text,encoding='utf-8',newline='\n')
+          print('NO11_PLAIN_POOL_RELEASE='+release)
+          PY
+          git add "$root/Bootstrap-No11UnifiedUpdate.ps1"
+          git commit -m 'No11: deliver tested plain-pool support through existing official installer'
+          actual=$(git ls-remote origin refs/heads/fix/no11-week-resilience-20261108 | cut -f1)
+          test "$actual" = "$expected"
+          git push origin HEAD:refs/heads/fix/no11-week-resilience-20261108
+          echo "NO11_PLAIN_POOL_BOOTSTRAP_COMMIT=$(git rev-parse HEAD)"
+          echo "NO11_PLAIN_POOL_BOOTSTRAP_BLOB=$(git rev-parse HEAD:$root/Bootstrap-No11UnifiedUpdate.ps1)"
+          echo 'USER_PC_CHANGED=False'
+          echo 'ORDER_TRANSMISSION=False'

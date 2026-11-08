@@ -86,6 +86,11 @@ def restore_or_verify(store, journal, do_apply):
     if j['phase'] == 'COMPLETE':
         for k, path in paths.items():
             need(path.read_bytes() == entries[k]['after'], 'COMPLETED_INSTALL_CHANGED')
+        b = n.read(paths['binding'])
+        for field in ('transportProbe', 'nightlyResumeTool'):
+            need(n.digest(n.safe(b[field]).read_bytes()) == b[field + 'Sha256'], 'INSTALLED_PACKAGE_CHANGED')
+        validator = Path(b['nightlyResumeTool']).with_name('no11_selection_status.py')
+        need(n.digest(n.safe(validator).read_bytes()) == b['nightlyResumeValidatorSha256'], 'INSTALLED_VALIDATOR_CHANGED')
         return True
     need(j['phase'] in ('PREPARED', 'RESTORED'), 'JOURNAL_PHASE')
     need(do_apply, 'INTERRUPTED_INSTALL_REQUIRES_EXPLICIT_APPLY')
@@ -133,6 +138,7 @@ def plan(store, source):
                transportProbeSha256=n.digest(candidate),
                nightlyResumeTool=str(package / 'no11_nightly_resume.py'),
                nightlyResumeToolSha256=n.digest(payload['no11_nightly_resume.py']),
+               nightlyResumeValidatorSha256=n.digest(payload['no11_selection_status.py']),
                bridgeSha256=n.digest(bridge))
     wrapper = n.safe(source / 'Run-No11ResumableNightly.ps1').read_bytes()
     after = {'binding': n.encode(new), 'bridge': bridge, 'nightly': wrapper}
@@ -143,12 +149,11 @@ def plan(store, source):
 def parse_powershell(files):
     for path in files:
         # Argument passed separately; no path interpolation into a command body.
-        command = "$t=$null;$e=$null;[void][Management.Automation.Language.Parser]::ParseFile($args[0],[ref]$t,[ref]$e);if($e.Count){exit 2}"
         # Use -File with a tiny parser harness, avoiding -Command argument quoting.
         with tempfile.TemporaryDirectory(prefix='ark-parse-') as tmp:
             harness = Path(tmp) / 'parse.ps1'
             harness.write_text("param([string]$Target)\n$t=$null;$e=$null;[void][Management.Automation.Language.Parser]::ParseFile($Target,[ref]$t,[ref]$e);if($e.Count){exit 2}\n", encoding='utf-8')
-            r = subprocess.run(['powershell.exe', '-NoProfile', '-NonInteractive', '-File', str(harness), '-Target', str(path)], capture_output=True, timeout=30, check=False)
+            r = subprocess.run(['powershell.exe', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', str(harness), '-Target', str(path)], capture_output=True, timeout=30, check=False)
             need(r.returncode == 0, 'POWERSHELL_PARSE_FAILED')
 
 
@@ -170,8 +175,16 @@ def install(store, source, do_apply=False):
             if dest.exists() or dest.is_symlink():
                 need(n.safe(dest).read_bytes() == raw, 'IMMUTABLE_PACKAGE_CONFLICT')
             else:
-                with dest.open('xb') as f:
-                    f.write(raw); f.flush(); os.fsync(f.fileno())
+                candidate = None
+                try:
+                    with tempfile.NamedTemporaryFile('wb', dir=package, delete=False) as f:
+                        candidate = Path(f.name)
+                        f.write(raw); f.flush(); os.fsync(f.fileno())
+                    # Publish complete bytes only. Existing destinations never overwritten.
+                    os.link(candidate, dest)
+                finally:
+                    if candidate is not None:
+                        candidate.unlink(missing_ok=True)
         parse_powershell([package / 'Prepare-No11AutomaticLiveTransportResilient.ps1',
                           n.safe(Path(source) / 'Run-No11ResumableNightly.ps1')])
         quiet()

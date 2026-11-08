@@ -22,7 +22,7 @@ import uuid
 PINS={
     'daily_cycle.py':'0720dc62ce9625c8e19b43d17c500c6b2c1e4f04',
     'scope_morning_master.py':'7006f673850401d0f3a076f2bf01ba1b25040c48',
-    'launcher_automatic_bridge_v4.py':'224766266bfe953bc6dfa1abda28230fae6ff69f',
+    'launcher_automatic_bridge_v4.py':'bedd218525a293dc60b78218cb72a66e69ad3c48',
     'Run-No11NightlyCycle.ps1':'9ca459c9f58238975fe4fe4d1e03664484458a6a',
     'nightly_workbook_compat.py':'2a91aafdfd41bae90ae553d7ce4e4c17dd76ecea',
 }

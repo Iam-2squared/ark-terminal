@@ -221,7 +221,7 @@ def no_workers():
           "$_.Name -match '^(powershell|pwsh|python|pythonw|node)([.]exe)?$' -and "
           "[string]$_.CommandLine -match '(no11_nightly_resume[.]py|Run-No11NightlyCycle|Prepare-No11WeeklyAfterCloseReadOnly|"
           "Prepare-No11NextSessionNightlyReadOnly|Run-No11RssDailyTrendCensusReadOnly|Run-No11WeeklyCandidateRefreshReadOnly|"
-          "Capture-No11RssTrainingBatchReadOnly|Prepare-No11PreviousArchiveReadOnly|"
+          "Capture-No11RssTrainingBatchReadOnly|Prepare-No11PreviousArchiveReadOnly|Start-No11UnifiedLauncher|Start-No11PreopenStandby|"
           "Run-No11ReceivedSessionOperatorLive|no11_received_session_controller|Probe-No11Chart50ContinuousReadOnly|Invoke-No11MsiiOrder)'"
           "});if($p.Count){exit 3};exit 0}catch{exit 4}")
     r = subprocess.run(['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', ps],
@@ -269,6 +269,7 @@ def native(binding_file, symbols_file, weekend=False):
     for key in ('runner', 'scopeTool', 'dailyCycleTool', 'handoff'):
         paths[key] = safe(binding[key])
         need(digest(paths[key].read_bytes()) == binding[key + 'Sha256'], 'BOUND_SOURCE_CHANGED')
+    need(digest(paths['validator'].read_bytes()) == binding.get('nightlyResumeValidatorSha256'), 'VALIDATOR_SOURCE_CHANGED')
     python = safe(binding['python'])
     args = ['node', str(paths['schedule']), 'schedule'] + (['--weekend-friday'] if weekend else [])
     r = subprocess.run(args, capture_output=True, text=True, encoding='utf-8', timeout=30, check=False)

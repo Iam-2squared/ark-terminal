@@ -34,7 +34,7 @@ jobs:
           python - <<'PY'
           import unittest, sys, json
           root='research/no11-morning-master-20261103'
-          names=['test_no11_nightly_resume.py','test_no11_transport_resilience.py','test_no11_resilience_install.py','test_no11_live_same_run_resume.py','test_no11_skipday_and_reconnect.py','test_automatic_price_exclusions.py','test_local_rot_pid_probe.py','test_no11_selection_status.py','test_no11_transport_blocked_reason_forwarding.py','test_no11_transport_log_install.py','test_daily_cycle.py']
+          names=['test_no11_nightly_resume.py','test_no11_transport_resilience.py','test_no11_resilience_install.py','test_no11_update_path.py','test_no11_launcher_update_install.py','test_no11_live_same_run_resume.py','test_no11_skipday_and_reconnect.py','test_automatic_price_exclusions.py','test_local_rot_pid_probe.py','test_no11_selection_status.py','test_no11_transport_blocked_reason_forwarding.py','test_no11_transport_log_install.py','test_daily_cycle.py']
           totals={'tests':0,'failures':0,'errors':0,'skipped':0}
           for name in names:
               suite=unittest.TestLoader().discover(root,pattern=name)
@@ -60,6 +60,42 @@ jobs:
           if($LASTEXITCODE -ne 0){throw 'READINESS_REGRESSION_FAILED'}
           & python -B -c "import sys;sys.path.insert(0,'research/no11-morning-master-20261103');import install_no11_week_resilience as i;i.quiet();print('REAL_WINDOWS_PROCESS_PROBE=PASS')"
           if($LASTEXITCODE -ne 0){throw 'PROCESS_PROBE_FALSE_POSITIVE'}
+      - name: Validate max47 native launcher and collectors in PowerShell 5.1
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $root='research/no11-morning-master-20261103'
+          @'
+import pathlib
+import sys
+sys.path.insert(0,'research/no11-morning-master-20261103')
+import nightly_workbook_compat as c, no11_update_path as p
+base=pathlib.Path('research/no12-prebuy-causal-runtime-20261011/windows')
+out=pathlib.Path('reviewed-max47-candidates')
+out.mkdir(exist_ok=True)
+for k, rel in p.FILES.items():
+    if k=='status':
+        raw=pathlib.Path('research/no11-morning-master-20261103/oneclick_status.py').read_bytes()
+    else:
+        raw=(base/pathlib.Path(rel).name).read_bytes()
+    if k=='native':
+        raw=c.transform_launcher(raw)
+        raw=raw.replace(b"$weekly=Join-Path $PSScriptRoot 'Prepare-No11WeeklyAfterCloseReadOnly.ps1'",b"$weekly=Join-Path $PSScriptRoot 'Run-No11NightlyCycle.ps1'")
+    if k in ('daily','pool','minutes'):
+        raw=c.transform_collector('windows/'+pathlib.Path(rel).name,raw)
+    if k=='weekly':
+        raw=c.transform_first_week_carry(raw)
+    result=p.transform(k,raw)
+    (out/(k+('.py' if k=='status' else '.ps1'))).write_bytes(result)
+'@ | & python -
+          if($LASTEXITCODE -ne 0){throw 'MAX47_CANDIDATE_GENERATION_FAILED'}
+          foreach($file in @(Get-ChildItem reviewed-max47-candidates -Filter '*.ps1' -File)){
+            $tokens=$null;$errors=$null
+            [void][Management.Automation.Language.Parser]::ParseFile($file.FullName,[ref]$tokens,[ref]$errors)
+            if($errors.Count -gt 0){foreach($e in $errors){Write-Host ($file.Name+':'+$e.Extent.StartLineNumber+':'+$e.Message)};throw 'MAX47_POWERSHELL_PARSE_FAILED'}
+          }
+          Write-Host 'NO11_NATIVE_WEEKEND_AND_MAX47_PARSE=PASS'
       - name: Existing same-run white-UI installer synthetic acceptance
         if: runner.os == 'Windows'
         shell: powershell

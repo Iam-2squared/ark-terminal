@@ -1,0 +1,54 @@
+name: No11 week resilience tests
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+  pull_request:
+    paths:
+      - 'research/no11-morning-master-20261103/**'
+      - 'research/no12-prebuy-causal-runtime-20261011/tools/no11_received_run_recovery.py'
+      - 'research/no12-prebuy-causal-runtime-20261011/tools/no11_received_session_controller.py'
+      - '.github/workflows/no11-week-resilience-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: no11-week-tests-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  interruption:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Filesystem, process death, no replay and existing regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=research/no11-morning-master-20261103
+          for test in test_no11_nightly_resume.py test_no11_transport_resilience.py test_no11_live_same_run_resume.py test_no11_skipday_and_reconnect.py test_automatic_price_exclusions.py test_local_rot_pid_probe.py test_no11_selection_status.py test_no11_transport_blocked_reason_forwarding.py test_no11_transport_log_install.py test_daily_cycle.py; do
+            python -m unittest discover -s "$root" -p "$test" -v
+          done
+      - name: Build exact transport candidate for Windows mock validation
+        shell: bash
+        run: |
+          root=research/no11-morning-master-20261103
+          python "$root/patch_no11_transport_resilience.py" --source "$root/Prepare-No11AutomaticLiveTransportV3.ps1" --candidate "$RUNNER_TEMP/transport-resilient.ps1"
+      - name: Windows PowerShell 5.1 readiness execution without Excel
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/test_no11_transport_readiness_windows.ps1 -Candidate "$env:RUNNER_TEMP\transport-resilient.ps1"
+          if($LASTEXITCODE -ne 0){throw 'READINESS_REGRESSION_FAILED'}
+      - name: Existing same-run white-UI installer synthetic acceptance
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/test_no11_same_run_installer_synthetic.ps1
+          if($LASTEXITCODE -ne 0){throw 'SAME_RUN_INSTALLER_REGRESSION_FAILED'}

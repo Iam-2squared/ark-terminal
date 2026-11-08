@@ -20,7 +20,7 @@ $files=[ordered]@{
  'patch_no11_transport_resilience.py'='b74b52111c6c786049623df093623ac4ff0ed92e'
  'Run-No11ResumableNightly.ps1'='5fb604c9316f7f483800c657b0c44306582973ac'
  'install_no11_week_resilience.py'='633e68c8aabf37d61f08dfe36f05af9e9ed33f24'
- 'no11_update_path.py'='f67f214dc672c384707b0c12d37a130481796133'
+ 'no11_update_path.py'='fc109357c56dff383e9e08d774a1c11f5eba4f82'
  'install_no11_launcher_update.py'='df2fe77b08fa30958f63e0070964d980a02706d4'
  'install_no11_unified_update.py'='c20284ae375a31106be5cea4b0715dfe448e6b71'
 }
@@ -43,7 +43,7 @@ Need ($b.schemaId -ceq 'ARK_NO11_AUTOMATIC_LAUNCHER_BINDING_V1' -and
 $python=[string]$b.python
 Need ([IO.Path]::IsPathRooted($python) -and (Test-Path -LiteralPath $python -PathType Leaf)) 'BOUND_PYTHON'
 [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12
-$commit='dcfc9a17727812f9f6440d849f11de12771c3689'
+$commit='e25413e38bc16392f43027f250b8de2bce36b9a7'
 $base='https://raw.githubusercontent.com/Iam-2squared/ark-terminal/'+$commit+'/research/no11-morning-master-20261103/'
 $tmp=Join-Path $env:TEMP ('ARK-No11-Release-'+[guid]::NewGuid().ToString('N'))
 [void][IO.Directory]::CreateDirectory($tmp)

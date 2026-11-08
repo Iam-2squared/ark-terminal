@@ -106,17 +106,8 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           root=research/no11-morning-master-20261103
           python "$root/dev_repair_no11_plain_pool.py"
-          python - <<'PY'
-          from pathlib import Path
-          p=Path('.github/workflows/no11-week-resilience-tests.yml')
-          text=p.read_text()
-          old="'test_no11_update_path.py','test_no11_launcher_update_install.py'"
-          new="'test_no11_update_path.py','test_no11_plain_pool_compat.py','test_no11_update_source_compat.py','test_no11_launcher_update_install.py'"
-          if new not in text:
-              assert text.count(old)==1
-              p.write_text(text.replace(old,new),encoding='utf-8',newline='\n')
-          PY
-          git add "$root/no11_update_path.py" .github/workflows/no11-week-resilience-tests.yml
+          # This token publishes code only; it does not edit workflow files.
+          git add "$root/no11_update_path.py"
           git commit -m 'No11: migrate observed non-AutoMax pool startup and recovery without replacing local collector'
           python - <<'PY'
           from pathlib import Path

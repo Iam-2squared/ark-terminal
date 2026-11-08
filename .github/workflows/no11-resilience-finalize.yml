@@ -29,6 +29,16 @@ jobs:
           git rev-parse HEAD > /tmp/expected-head
           root=research/no11-morning-master-20261103
           python "$root/dev_finalize_week_resilience.py"
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('research/no11-morning-master-20261103/install_no11_week_resilience.py')
+          text=p.read_text()
+          old='"$_.Name -match'
+          new='"$_.ProcessId -ne $PID -and $_.Name -match'
+          if new not in text:
+              assert text.count(old)==1
+              p.write_text(text.replace(old,new,1))
+          PY
           for name in test_no11_nightly_resume.py test_no11_transport_resilience.py test_no11_resilience_install.py test_daily_cycle.py; do
             python -m unittest discover -s "$root" -p "$name" -v
           done
@@ -42,7 +52,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add "$root/install_daily_cycle.py" "$root/no11_nightly_resume.py" "$root/install_no11_week_resilience.py"
           if ! git diff --cached --quiet; then
-            git commit -m 'No11: repair stale bridge pin and harden transitive integrity plus crash-safe staging'
+            git commit -m 'No11: exclude own CIM probe while preserving active-UI and live-process gates'
           fi
           expected=$(cat /tmp/expected-head)
           actual=$(git ls-remote origin refs/heads/fix/no11-week-resilience-20261108 | cut -f1)

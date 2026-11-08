@@ -2,22 +2,20 @@
 import contextlib
 import io
 from pathlib import Path
-import re
 import sys
 import unittest
-from unittest.mock import patch as mock
 
 HERE=Path(__file__).resolve().parent
 sys.path.insert(0,str(HERE))
 import no11_update_path as p
 import install_no11_launcher_update as installer
-from test_no11_update_path import NativeUpdateTests
-from test_no11_launcher_update_install import LauncherInstallTests
+import test_no11_update_path as source_tests
+import test_no11_launcher_update_install as install_tests
 
 
 class CompatibleLocalSourceTests(unittest.TestCase):
     def sources(self):
-        return NativeUpdateTests().originals()
+        return source_tests.NativeUpdateTests().originals()
 
     def test_known_parameter_defaults_and_already_maximum(self):
         original=self.sources()['weekly']
@@ -42,12 +40,20 @@ class CompatibleLocalSourceTests(unittest.TestCase):
         self.assertIn(b'$FullBatchSize=47',out)
 
     def test_deleted_optional_orchestrator_automax_not_recreated(self):
-        source=self.sources()['weekly']
-        local=source.replace(b" if($RefreshAutoMaxThroughput){$rargs+=@('-AutoMaxThroughput')}\n",b'')
-        fixed=p.transform('weekly',local)
-        self.assertNotIn(b"$rargs+=@('-AutoMaxThroughput')",fixed)
-        self.assertIn(b'ARK_NO11_FIRST_WEEK_429_VERIFIED_FRIDAY_CARRY_V1',fixed)
-        self.assertIn(b'$FullBatchSize=47',fixed)
+        original=self.sources()['weekly'].replace(b'\r\n',b'\n')
+        needle=b" if($RefreshAutoMaxThroughput){$rargs+=@('-AutoMaxThroughput')}"
+        for newline in (b'\n',b'\r\n'):
+            with self.subTest(newline=newline):
+                source=original.replace(b'\n',newline)
+                self.assertEqual(source.count(needle),1)
+                local=source.replace(needle,b'',1)
+                self.assertNotIn(b"$rargs+=@('-AutoMaxThroughput')",local)
+                fixed=p.transform('weekly',local)
+                self.assertNotIn(b"$rargs+=@('-AutoMaxThroughput')",fixed)
+                self.assertIn(b'ARK_NO11_FIRST_WEEK_429_VERIFIED_FRIDAY_CARRY_V1',fixed)
+                self.assertIn(b'$FullBatchSize=47',fixed)
+                if newline==b'\r\n':
+                    self.assertNotIn(b'\n',fixed.replace(b'\r\n',b''))
 
     def test_source_anchor_whitespace_not_semantic_change(self):
         source=self.sources()['daily']
@@ -86,7 +92,7 @@ class CompatibleLocalSourceTests(unittest.TestCase):
                          '  $physical=$ceiling\n')
 
     def test_complete_kind_report_precedes_any_native_source_write(self):
-        fixture=LauncherInstallTests(methodName='test_preflight_does_not_modify_launcher_or_engine')
+        fixture=install_tests.LauncherInstallTests(methodName='test_preflight_does_not_modify_launcher_or_engine')
         fixture.setUp()
         try:
             broken=fixture.paths['daily']

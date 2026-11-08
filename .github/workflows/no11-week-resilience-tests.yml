@@ -66,7 +66,7 @@ jobs:
         run: |
           $ErrorActionPreference='Stop'
           $root='research/no11-morning-master-20261103'
-          @'
+          $source=@'
           import pathlib
           import sys
           sys.path.insert(0,'research/no11-morning-master-20261103')
@@ -88,7 +88,8 @@ jobs:
                   raw=c.transform_first_week_carry(raw)
               result=p.transform(k,raw)
               (out/(k+('.py' if k=='status' else '.ps1'))).write_bytes(result)
-          '@ | & python -
+          '@
+          $source | & python -
           if($LASTEXITCODE -ne 0){throw 'MAX47_CANDIDATE_GENERATION_FAILED'}
           foreach($file in @(Get-ChildItem reviewed-max47-candidates -Filter '*.ps1' -File)){
             $tokens=$null;$errors=$null

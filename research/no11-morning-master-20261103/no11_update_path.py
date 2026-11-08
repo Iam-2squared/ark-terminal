@@ -171,6 +171,50 @@ def transform(kind, raw):
     elif kind == 'pool':
         text = once(text, ' [ValidateRange(1,47)][int]$BatchSize=30,',
                           ' # ARK_NO11_WEEKDAY_POOL_MAX47_V1\n [ValidateRange(1,47)][int]$BatchSize=47,')
+        # The optional old AutoMax switch was counterproductive for a normal
+        # full-throughput run: it forced initial 5/10/20/40-call ramps.
+        # Start at the physically available ceiling, just like the standard
+        # path. Keep automatic reduction ONLY on real busy/partial results.
+        text = once(text,
+            '  $physical=if($AutoMaxThroughput){[Math]::Min(5,$ceiling)}else{$ceiling}',
+            '  $physical=$ceiling')
+        # GroupSize is a reporting interval, NOT a hard RSS call boundary.
+        # E.g. positions 94..140 must be a full 47-function wave, rather than
+        # 6 functions to finish the first logical 100-symbol group.
+        text = once(text,
+            '   $waveEnd=NextWaveEnd $offset $remaining.Count $GroupSize $physical',
+            '   $waveEnd=[Math]::Min($remaining.Count,$offset+$physical)')
+        # After an actual degraded wave, restore maximal utilization
+        # immediately after the next clean wave, not through artificial ramps.
+        old = """   }elseif($physical -lt $ceiling){
+    $fullWaves++
+    if($AutoMaxThroughput -or $fullWaves -ge 2){
+     $physical=if($AutoMaxThroughput){
+      NextAutoMaxBatch $physical $ceiling $true
+     }else{
+      [Math]::Min($ceiling,$physical+5)
+     }
+     $fullWaves=0
+     Write-Host ('NO11_DAILY_BATCH_TUNE=FULL_WAVES_RAISED_TO_{0}' -f $physical)
+    }
+   }"""
+        new = """   }elseif($physical -lt $ceiling){
+    # ARK_NO11_POOL_ALWAYS_MAX_AVAILABLE_V1
+    # A verified clean wave means temporary RSS degradation has recovered.
+    # Restore the full available slot budget for the NEXT wave.
+    $physical=$ceiling
+    $fullWaves=0
+    Write-Host ('NO11_DAILY_BATCH_TUNE=CLEAN_WAVE_RESTORED_MAX_{0}' -f $physical)
+   }"""
+        text = once(text, old, new)
+        # Group-complete telemetry may no longer land on a perfect hundred.
+        # Keep progress visible whenever a logical group boundary is crossed.
+        text = once(text,
+            '   if($offset -eq $remaining.Count -or $offset % $GroupSize -eq 0){',
+            '   if($offset -eq $remaining.Count -or [Math]::Floor(($offset-1)/$GroupSize) -ne [Math]::Floor(($offset-$batch.Count)/$GroupSize)){')
+        text = once(text,
+            "  Write-Host ('NO11_DAILY_BATCH_POLICY=GROUP_{0}|PHYSICAL_MAX_{1}|ORIGINAL_CHARTS_{2}|RESERVE_3|LIMIT_50' -f $GroupSize,$ceiling,$existing)",
+            "  Write-Host ('NO11_DAILY_BATCH_POLICY=GROUP_{0}|PHYSICAL_MAX_{1}|ORIGINAL_CHARTS_{2}|RESERVE_3|LIMIT_50|FIRST_WAVE_MAX=True|GROUP_SPLIT_DISABLED=True' -f $GroupSize,$ceiling,$existing)")
     elif kind == 'daily':
         text = once(text, ' [ValidateRange(1,20)][int]$BatchSize=20,',
                           ' [ValidateRange(1,47)][int]$BatchSize=47,')

@@ -97,6 +97,10 @@ jobs:
             if($errors.Count -gt 0){foreach($e in $errors){Write-Host ($file.Name+':'+$e.Extent.StartLineNumber+':'+$e.Message)};throw 'MAX47_POWERSHELL_PARSE_FAILED'}
           }
           Write-Host 'NO11_NATIVE_WEEKEND_AND_MAX47_PARSE=PASS'
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/test_no11_weekly_reentry_windows.ps1 -Candidate (Join-Path $PWD 'reviewed-max47-candidates/native.ps1')
+          if($LASTEXITCODE -ne 0){throw 'WEEKLY_REENTRY_SEMANTIC_TEST_FAILED'}
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/Bootstrap-No11UnifiedUpdate.ps1 -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'ONE_COMMAND_BOOTSTRAP_SELFTEST_FAILED'}
       - name: Existing same-run white-UI installer synthetic acceptance
         if: runner.os == 'Windows'
         shell: powershell

@@ -189,6 +189,24 @@ def weekly_info(hand, chart, mask, previous):
         body={k:v for k,v in plan.items() if k!="planId"}
         require(sha(json.dumps(body,separators=(",",":"),ensure_ascii=False).encode())==planid,
                 "PLAN_HASH_MISMATCH")
+    # Friday's genuine 4,328-symbol RSS sweep is also the daily G1 source.
+    # Unlike Mon-Thu, it intentionally has NO separate weekly-refresh plan.
+    # Do not mislabel a complete Friday-to-Monday handoff UNVERIFIED.
+    if weekly_path == refresh_path:
+        asof = valid_day(weekly.get("asOfSession"))
+        pass_symbols = mask.get("observedPassSymbols")
+        require(weekly.get("schemaId") == WEEKLY_RSS_SCHEMA
+                and asof == valid_day(previous) and asof.weekday() == 4
+                and weekly.get("productionReady") is False
+                and weekly.get("orderTransmission") is False
+                and type(weekly.get("symbols")) is list
+                and len(weekly["symbols"]) == 4328
+                and chart.get("sourcePlanId") == weekly["planId"]
+                and mask.get("planId") == weekly["planId"]
+                and symbols(pass_symbols)
+                and mask.get("observedPassCount") == len(pass_symbols),
+                "FRIDAY_FULL_WEEKLY_SOURCE_NOT_LINKED")
+        return {"state": "DONE", "asOf": str(asof), "pool": len(pass_symbols)}
     require(type(source) is dict and
             weekly.get("schemaId") in (WEEKLY_RSS_SCHEMA, WEEKLY_YAHOO_SCHEMA)
             and type(weekly.get("planId")) is str and SHA.fullmatch(weekly["planId"])

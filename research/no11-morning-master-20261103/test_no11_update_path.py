@@ -105,7 +105,8 @@ class NativeUpdateTests(unittest.TestCase):
         self.assertIn('WEEKLY_PREVIOUS_WORKER_STILL_RUNNING',txt)
         self.assertIn('ORIGINAL_MARKER_PRESERVED=True',txt)
         self.assertIn("if(-not $existingWeekly){",txt)
-        self.assertEqual(txt.count("[IO.FileMode]::CreateNew"),2 if '[IO.FileMode]::CreateNew' in txt else 0)
+        self.assertEqual(txt.count("[IO.FileMode]::CreateNew"),
+                         self.originals()['native'].decode('utf-8-sig').count("[IO.FileMode]::CreateNew"))
         self.assertIn('NO11_UNIFIED_TRADEX=FROZEN_MAX3_ENGINE_REQUESTED',txt)
 
     def test_unknown_source_anchor_never_silent(self):

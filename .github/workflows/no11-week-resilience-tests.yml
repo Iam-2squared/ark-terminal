@@ -67,28 +67,28 @@ jobs:
           $ErrorActionPreference='Stop'
           $root='research/no11-morning-master-20261103'
           @'
-import pathlib
-import sys
-sys.path.insert(0,'research/no11-morning-master-20261103')
-import nightly_workbook_compat as c, no11_update_path as p
-base=pathlib.Path('research/no12-prebuy-causal-runtime-20261011/windows')
-out=pathlib.Path('reviewed-max47-candidates')
-out.mkdir(exist_ok=True)
-for k, rel in p.FILES.items():
-    if k=='status':
-        raw=pathlib.Path('research/no11-morning-master-20261103/oneclick_status.py').read_bytes()
-    else:
-        raw=(base/pathlib.Path(rel).name).read_bytes()
-    if k=='native':
-        raw=c.transform_launcher(raw)
-        raw=raw.replace(b"$weekly=Join-Path $PSScriptRoot 'Prepare-No11WeeklyAfterCloseReadOnly.ps1'",b"$weekly=Join-Path $PSScriptRoot 'Run-No11NightlyCycle.ps1'")
-    if k in ('daily','pool','minutes'):
-        raw=c.transform_collector('windows/'+pathlib.Path(rel).name,raw)
-    if k=='weekly':
-        raw=c.transform_first_week_carry(raw)
-    result=p.transform(k,raw)
-    (out/(k+('.py' if k=='status' else '.ps1'))).write_bytes(result)
-'@ | & python -
+          import pathlib
+          import sys
+          sys.path.insert(0,'research/no11-morning-master-20261103')
+          import nightly_workbook_compat as c, no11_update_path as p
+          base=pathlib.Path('research/no12-prebuy-causal-runtime-20261011/windows')
+          out=pathlib.Path('reviewed-max47-candidates')
+          out.mkdir(exist_ok=True)
+          for k, rel in p.FILES.items():
+              if k=='status':
+                  raw=pathlib.Path('research/no11-morning-master-20261103/oneclick_status.py').read_bytes()
+              else:
+                  raw=(base/pathlib.Path(rel).name).read_bytes()
+              if k=='native':
+                  raw=c.transform_launcher(raw)
+                  raw=raw.replace(b"$weekly=Join-Path $PSScriptRoot 'Prepare-No11WeeklyAfterCloseReadOnly.ps1'",b"$weekly=Join-Path $PSScriptRoot 'Run-No11NightlyCycle.ps1'")
+              if k in ('daily','pool','minutes'):
+                  raw=c.transform_collector('windows/'+pathlib.Path(rel).name,raw)
+              if k=='weekly':
+                  raw=c.transform_first_week_carry(raw)
+              result=p.transform(k,raw)
+              (out/(k+('.py' if k=='status' else '.ps1'))).write_bytes(result)
+          '@ | & python -
           if($LASTEXITCODE -ne 0){throw 'MAX47_CANDIDATE_GENERATION_FAILED'}
           foreach($file in @(Get-ChildItem reviewed-max47-candidates -Filter '*.ps1' -File)){
             $tokens=$null;$errors=$null

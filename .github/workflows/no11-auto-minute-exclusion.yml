@@ -40,3 +40,29 @@ jobs:
           python -m unittest discover -s "$root" -p test_no11_combined_nightly_parser.py -v
           python -m unittest discover -s "$root" -p test_daily_cycle.py -v
           python -m unittest discover -s "$root" -p test_no11_nightly_resume.py -v
+      - name: Validate immutable seven source pins at release commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import re,hashlib,subprocess
+          from pathlib import Path
+          root='research/no11-morning-master-20261103/'
+          b=Path(root+'Bootstrap-No11AutoMinutes.ps1').read_text(encoding='utf-8')
+          commit=re.search(r"(?m)^\$release='([a-f0-9]{40})'$",b).group(1)
+          pins=re.findall(r"(?m)^ '([^']+)'='([a-f0-9]{40})'$",b)
+          assert len(pins)==7
+          subprocess.run(['git','fetch','-q','--depth=1','origin',commit],check=True,timeout=90)
+          for name,sha in pins:
+              raw=subprocess.check_output(['git','show',commit+':'+root+name])
+              value=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+              assert value==sha,(name,value,sha)
+          print('ARK_AUTO_MINUTE_IMMUTABLE_RELEASE_PINS=PASS')
+          PY
+      - name: Windows PowerShell 5.1 offline bootstrap self-test
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/Bootstrap-No11AutoMinutes.ps1 -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'AUTO_MINUTE_RELEASE_BOOTSTRAP_FAILED'}
+

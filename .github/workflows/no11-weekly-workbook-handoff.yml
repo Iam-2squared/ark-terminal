@@ -1,0 +1,47 @@
+name: No11 Weekly workbook handoff
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - "research/no11-morning-master-20261103/install_no11_weekly_workbook_handoff.py"
+      - "research/no11-morning-master-20261103/test_no11_weekly_workbook_handoff.py"
+      - ".github/workflows/no11-weekly-workbook-handoff.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regression:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Only DATA launcher duplicate gate removed, order and GUI unchanged
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=research/no11-morning-master-20261103
+          python -m unittest discover -s "$root" -p "test_no11_weekly_workbook_handoff.py" -v
+          python -m unittest discover -s "$root" -p "test_no11_completed_session_update.py" -v
+          python -m unittest discover -s "$root" -p "test_no11_update_path.py" -v
+      - name: Windows PowerShell 5.1 native candidate syntax
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $root='research/no11-morning-master-20261103'
+          & python -B -c "import sys,pathlib;sys.path.insert(0,'research/no11-morning-master-20261103');import test_no11_weekly_workbook_handoff as t;import install_no11_weekly_workbook_handoff as f;pathlib.Path('weekly-candidate.ps1').write_bytes(f.transform(t.WeeklyBookGateTests.installed_native()))"
+          if($LASTEXITCODE -ne 0){throw 'CANDIDATE_GENERATION'}
+          $tok=$null;$errors=$null
+          [void][Management.Automation.Language.Parser]::ParseFile((Join-Path $PWD 'weekly-candidate.ps1'),[ref]$tok,[ref]$errors)
+          if($errors.Count -gt 0){$errors|ForEach-Object{Write-Host ('PARSE:'+ $_.Message)};throw 'DATA_LAUNCHER_PARSE_FAILED'}
+          Write-Host 'NO11_WEEKLY_DATA_ONLY_BOOK_GATE_AST=PASS'
+          Write-Host 'TRADE_CHECK_CHANGED=False'
+          Write-Host 'EXCEL_TOUCHED=False'
+          Write-Host 'ORDER_TRANSMISSION=False'

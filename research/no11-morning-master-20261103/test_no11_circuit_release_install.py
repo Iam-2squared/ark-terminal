@@ -10,6 +10,7 @@ HERE=Path(__file__).resolve().parent
 sys.path.insert(0,str(HERE))
 import no11_nightly_resume as n
 import install_no11_circuit_audit_release as installer
+from test_no11_circuit_audit import fixed
 
 
 class IntegratedInstallTests(unittest.TestCase):
@@ -91,5 +92,39 @@ class IntegratedInstallTests(unittest.TestCase):
             installer.install(self.store,HERE,True,True)
         self.assertEqual(self.binding.read_bytes(),before)
         self.assertTrue(path.read_bytes().endswith(b'# USER EDIT\n'))
+
+    def test_actual_progress_is_in_normal_open_logs_folder(self):
+        module,_=fixed('worker');console=io.StringIO()
+        with contextlib.redirect_stdout(console):
+            with module.visible_update_output(self.binding) as path:
+                print('NO11_TEST_STAGE=取得開始',flush=True)
+                self.assertEqual(path.parent,self.store/'oneclick-logs')
+                self.assertIn('取得開始',path.read_text(encoding='utf-8'))
+        self.assertIn('取得開始',console.getvalue())
+        self.assertIn('NO11_UPDATE_VISIBLE_LOG=',console.getvalue())
+        self.assertEqual(self.ui.read_bytes(),self.before[self.ui])
+
+    def test_normal_main_failure_saved_without_real_rss(self):
+        module,_=fixed('worker');console=io.StringIO()
+        argv=['worker','--binding',str(self.binding),'--symbols',str(self.root/'symbols.txt')]
+        with patch.object(sys,'argv',argv),patch.object(module,'native',side_effect=ValueError('NO11_MOCK_CAPTURE_FAILURE')),contextlib.redirect_stdout(console):
+            with self.assertRaises(SystemExit) as error:module.main()
+        self.assertEqual(error.exception.code,2)
+        logs=list((self.store/'oneclick-logs').glob('DataUpdate-*.log'))
+        self.assertEqual(len(logs),1)
+        output=logs[0].read_text(encoding='utf-8')
+        self.assertIn('NO11_NIGHTLY_RESUME=BLOCKED|NO11_MOCK_CAPTURE_FAILURE',output)
+        self.assertIn('ORDER_TRANSMISSION=False',output)
+        self.assertIn('NO11_MOCK_CAPTURE_FAILURE',console.getvalue())
+
+    def test_log_context_restores_stream_after_interruption(self):
+        module,_=fixed('worker');previous=sys.stdout
+        with self.assertRaises(KeyboardInterrupt):
+            with module.visible_update_output(self.binding):
+                print('NO11_MOCK_STAGE=BEFORE_INTERRUPTION',flush=True)
+                raise KeyboardInterrupt()
+        self.assertIs(sys.stdout,previous)
+        logs=list((self.store/'oneclick-logs').glob('DataUpdate-*.log'))
+        self.assertIn('BEFORE_INTERRUPTION',logs[0].read_text(encoding='utf-8'))
 
 if __name__=='__main__':unittest.main(verbosity=2)

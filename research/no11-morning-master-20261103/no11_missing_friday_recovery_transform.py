@@ -207,7 +207,7 @@ def weekly(s):
   }
   Need ($choices.Count -gt 0) 'COMPLETE_CURRENT_FRIDAY_FULL_SWEEP_NOT_FOUND'"""
     s=once(s,old,new)
-    return s
+    return '# '+MARK+'\n'+s
 
 def worker(s):
     need('ARK_NO11_CIRCUIT_AUDIT_V1' in s and

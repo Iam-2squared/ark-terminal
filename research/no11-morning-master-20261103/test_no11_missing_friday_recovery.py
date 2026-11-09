@@ -123,6 +123,28 @@ console.log('REAL_JPX_FRIDAY_RECOVERY_WINDOW=PASS');"""
         finally:
             temp.unlink(missing_ok=True)
 
+    def test_actual_node_recovery_window_cli_emits_one_valid_line(self):
+        # Earlier tests called a pure function, not the runtime CLI.
+        import json
+        source=recovery.transform('dailyTool',self.raw['dailyTool'])
+        tools=ENGINE/'tools'
+        temp=tools/'no11_rss_daily_trend_census.test-cli-recovery.mjs'
+        if temp.exists():self.fail('TEST_FIXTURE_ALREADY_EXISTS')
+        try:
+            temp.write_bytes(source)
+            r=subprocess.run(['node',str(temp),'recovery-window'],
+                capture_output=True,text=True,encoding='utf-8',
+                errors='replace',timeout=25)
+            self.assertEqual(r.returncode,0,r.stdout+'\n'+r.stderr)
+            lines=r.stdout.splitlines()
+            self.assertEqual(len(lines),1,r.stdout+'\n'+r.stderr)
+            out=json.loads(lines[0])
+            self.assertEqual(out.get('schemaId'),'ARK_NO11_REAL_RSS_FRIDAY_RECOVERY_WINDOW_V1')
+            self.assertIs(out.get('orderTransmission'),False)
+            self.assertIs(out.get('historicalKnownAtCertified'),False)
+        finally:
+            temp.unlink(missing_ok=True)
+
     def test_no_trade_entry_exit_strategy_or_risk_changed(self):
         for kind in ('weekly','next','dailyCollector'):
             text=recovery.transform(kind,self.raw[kind]).decode('utf-8-sig')

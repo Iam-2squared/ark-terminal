@@ -105,6 +105,7 @@ def plan(store,binding,allow_test=False):
     actual_open_books(binding,registered,allow_test)
     engine=n.safe(binding['engine'],True)
     launcher=n.safe(engine/'windows/Start-No11UnifiedLauncher.ps1')
+    operator=n.safe(engine/'windows/Run-No11ReceivedSessionOperatorLive.ps1')
     settings=n.safe(store/'settings.json')
     original_settings=settings.read_bytes()
     cfg=n.read(settings)
@@ -119,11 +120,15 @@ def plan(store,binding,allow_test=False):
     new_settings=n.encode(revised)
     original_launcher=launcher.read_bytes()
     transformed=c.transform_launcher(original_launcher)
+    original_operator=operator.read_bytes()
+    transformed_operator=c.transform_operator(original_operator)
     need(original_launcher!=transformed or c.MARK in
          original_launcher.decode('utf-8-sig'),'LAUNCHER_EDIT_NOT_NEEDED')
-    if not allow_test:powershell_syntax(transformed)
+    if not allow_test:
+        powershell_syntax(transformed)
+        powershell_syntax(transformed_operator)
     protected=[store/'oneclick/Start-No11OneClick.ps1',
-               engine/'windows/Run-No11ReceivedSessionOperatorLive.ps1']
+               engine/'windows/Observe-No11AccountReadOnly.ps1']
     for file in protected:n.safe(file)
     return {
        'schemaId':n.SCHEMA,'kind':KIND,'phase':'PREPARED',
@@ -131,6 +136,8 @@ def plan(store,binding,allow_test=False):
        'sources':[
            {'path':str(launcher),'before':b64(original_launcher),
             'after':b64(transformed)},
+           {'path':str(operator),'before':b64(original_operator),
+            'after':b64(transformed_operator)},
            {'path':str(settings),'before':b64(original_settings),
             'after':b64(new_settings)}],
        'frozen':{str(p):n.digest(p.read_bytes()) for p in protected},
@@ -144,15 +151,15 @@ def verify(j):
          j.get('orderTransmission') is False and
          j.get('liveOrderAuthorization') is False,'JOURNAL')
     rows=j.get('sources')
-    need(type(rows) is list and len(rows)==2 and
-         len({r['path'] for r in rows})==2,'SOURCE_SET')
+    need(type(rows) is list and len(rows)==3 and
+         len({r['path'] for r in rows})==3,'SOURCE_SET')
     for row in rows:
         p=n.safe(row['path'])
         need(p.read_bytes() in (un64(row['before']),un64(row['after'])),
              'EXTERNAL_CHANGE_DETECTED')
     for file,sha in j['frozen'].items():
         need(n.digest(n.safe(file).read_bytes())==sha,
-             'FROZEN_WHITE_UI_OR_TRADE_CHANGED')
+             'FROZEN_WHITE_UI_OR_ACCOUNT_OBSERVER_CHANGED')
     need(n.digest(n.safe(j['registration']).read_bytes())==j['registryHash']
          and n.digest(n.safe(j['resolver']).read_bytes())==j['resolverHash'],
          'REGISTRATION_EDITED')

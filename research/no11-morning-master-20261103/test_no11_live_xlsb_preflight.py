@@ -32,7 +32,10 @@ class LiveThreeBookTests(unittest.TestCase):
         self.launcher=self.engine/'windows/Start-No11UnifiedLauncher.ps1'
         self.launcher.write_bytes(self.original)
         self.trade=self.engine/'windows/Run-No11ReceivedSessionOperatorLive.ps1'
-        self.trade.write_text('FROZEN LIVE ENTRY EXIT',encoding='utf-8')
+        self.trade.write_bytes((ENGINE/'windows/Run-No11ReceivedSessionOperatorLive.ps1').read_bytes())
+        self.original_trade=self.trade.read_bytes()
+        self.observer=self.engine/'windows/Observe-No11AccountReadOnly.ps1'
+        self.observer.write_text('ORIGINAL ACCOUNT OBSERVER',encoding='utf-8')
         (self.store/'oneclick').mkdir()
         self.white=self.store/'oneclick/Start-No11OneClick.ps1'
         self.white.write_text('FROZEN WHITE ONECLICK UI',encoding='utf-8')
@@ -69,7 +72,7 @@ class LiveThreeBookTests(unittest.TestCase):
           'dataWorkbookResolver':str(self.resolver),
           'dataWorkbookResolverSha256':n.digest(self.resolver.read_bytes())}))
         self.before={f:f.read_bytes() for f in
-               [self.white,self.trade,self.registration,self.resolver,
+               [self.white,self.observer,self.registration,self.resolver,
                 *[Path(s) for s in self.books.values()]]}
 
     def test_transformation_has_no_order_or_dated_gate_mutations(self):
@@ -88,14 +91,23 @@ class LiveThreeBookTests(unittest.TestCase):
         self.assertIn("NO11_UNIFIED_BROKER_ORDER_CANCELLED=False",src)
         self.assertNotIn('RssStockOrder(',src)
         self.assertNotIn('RssCancelOrder(',src)
+        op=c.transform_operator(self.original_trade)
+        self.assertEqual(c.transform_operator(op),op)
+        self.assertIn(c.OPERATOR_MARK.encode(),op)
+        self.assertIn("'.xlsb'",op.decode('utf-8-sig'))
+        self.assertIn("'SAME_DAY_OPERATOR_APPROVAL_REQUIRED'",op.decode('utf-8-sig'))
+        self.assertIn("'REVIEWED_SECURITIES_ONLY_CASH'",op.decode('utf-8-sig'))
+        self.assertIn("'MAX3_AND_SECURITIES_CASH'",op.decode('utf-8-sig'))
         if os.name=='nt':
             i.powershell_syntax(after)
+            i.powershell_syntax(op)
 
     def test_audit_is_completely_read_only(self):
         self.assertEqual(i.install(self.store,False,True),'READY')
         self.assertFalse((self.store/i.JOURNAL).exists())
         self.assertEqual(self.settings.read_bytes(),n.encode(self.config))
         self.assertEqual(self.launcher.read_bytes(),self.original)
+        self.assertEqual(self.trade.read_bytes(),self.original_trade)
         for f,raw in self.before.items():self.assertEqual(f.read_bytes(),raw)
 
     def test_apply_updates_only_three_paths_and_preflight_not_broker_ledger(self):
@@ -109,6 +121,7 @@ class LiveThreeBookTests(unittest.TestCase):
         self.assertEqual(cfg['automaticOrderAuthorization'],False)
         self.assertEqual(cfg['orderTransmission'],False)
         self.assertIn(c.MARK.encode(),self.launcher.read_bytes())
+        self.assertIn(c.OPERATOR_MARK.encode(),self.trade.read_bytes())
         self.assertEqual(i.install(self.store,True,True),'ALREADY_APPLIED')
         for f,raw in self.before.items():self.assertEqual(f.read_bytes(),raw)
 
@@ -138,6 +151,7 @@ class LiveThreeBookTests(unittest.TestCase):
             i.install(self.store,False,True)
         self.assertEqual(self.settings.read_bytes(),n.encode(self.config))
         self.assertEqual(self.launcher.read_bytes(),self.original)
+        self.assertEqual(self.trade.read_bytes(),self.original_trade)
 
     def test_journal_recovery_after_one_atomic_replacement(self):
         original=i.atomic_replace

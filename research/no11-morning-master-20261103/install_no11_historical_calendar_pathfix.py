@@ -162,6 +162,26 @@ def preflight(store):
     amended=patch_next(raw)
     worker=n.safe(b['nightlyResumeTool'])
     old_worker=worker.read_bytes()
+    # The previous successfully installed recovery has a sha-attested journal
+    # of every locally modified engine file. Reject any intervening edits.
+    prior_file=n.safe(store/'missing-friday-real-rss-transaction.json')
+    prior=n.checkpoint(prior_file)
+    need(prior.get('kind')=='ARK_NO11_MISSING_FRIDAY_REAL_RSS_RECOVERY_RELEASE_V1'
+         and prior.get('phase')=='COMPLETE' and
+         prior.get('orderTransmission') is False,
+         'PRIOR_RELEASE_NOT_ATTESTED')
+    expected={'dailyTool':'tools/no11_rss_daily_trend_census.mjs',
+              'dailyCollector':'windows/Run-No11RssDailyTrendCensusReadOnly.ps1',
+              'next':'windows/Prepare-No11NextSessionNightlyReadOnly.ps1',
+              'weekly':'windows/Prepare-No11WeeklyAfterCloseReadOnly.ps1'}
+    for key,rel in expected.items():
+        source=n.safe(engine/rel)
+        row=prior.get('engineUpdates',{}).get(key,{})
+        need(row.get('path')==str(source)
+             and row.get('afterSha256')==n.digest(source.read_bytes()),
+             'ENGINE_CHANGED_SINCE_SIGNED_FRIDAY_INSTALL')
+    need(prior.get('workerSha256')==n.digest(old_worker),
+         'WORKER_CHANGED_SINCE_SIGNED_FRIDAY_INSTALL')
     need(n.digest(old_worker)==b.get('nightlyResumeToolSha256'),
          'BOUND_WORKER_DIGEST')
     validator=n.safe(worker.with_name('no11_selection_status.py'))

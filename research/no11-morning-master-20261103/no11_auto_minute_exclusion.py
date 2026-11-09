@@ -149,9 +149,9 @@ const receipt={...source,chartPlan:updated,
 console.log(JSON.stringify(receipt));
 """
 
-def native_chart(m,record,removed,kept,stage_sha,progress_sha):
+def native_chart(m,record,engine,removed,kept,stage_sha,progress_sha):
     chart_path=m.safe(record['chart'])
-    native=m.safe(Path(record['engine'])/'runtime/no11_rss_chart_50_prescreen.mjs')
+    native=m.safe(Path(engine)/'runtime/no11_rss_chart_50_prescreen.mjs')
     request={
         'removed':removed,'kept':kept,'parentStageSha':stage_sha,
         'parentProgressSha':progress_sha,'originalChartSha':digest(chart_path.read_bytes())}
@@ -184,7 +184,6 @@ def native_chart(m,record,removed,kept,stage_sha,progress_sha):
 
 def prune(m,record,root,binding,previous_checkpoint):
     record=dict(record)
-    record['engine']=binding['engine']
     root=m.safe(root,directory=True)
     stage_file=m.safe(record['stage'])
     chart_file=m.safe(record['chart'])
@@ -298,7 +297,7 @@ def prune(m,record,root,binding,previous_checkpoint):
                             encode(subset))
     need(progress_path.name=='progress-%05d.json'%len(keep),
          'NEW_CHECKPOINT_NAME')
-    chart_record,chart_raw=native_chart(m,record,dropped,keep,digest(sb),progress_sha)
+    chart_record,chart_raw=native_chart(m,record,binding['engine'],dropped,keep,digest(sb),progress_sha)
     # New *chart* must live next to unchanged original mask and refresh-run
     # because the existing pinned MASTER expects all 3 in the same directory.
     run=m.safe(record['run'],directory=True)
@@ -318,7 +317,6 @@ def prune(m,record,root,binding,previous_checkpoint):
     newstage=m.immutable(target,'previous-archive-stage',stage_new)
     newrecord=dict(record)
     newrecord.update(chart=str(newchart),stage=str(newstage),capture=str(target))
-    newrecord.pop('engine',None)
     # Always run the unchanged native chart and morning scope validators; the
     # self-generated proof is not enough to publish a next-session handoff.
     need(m.native_scope(binding['engine'],newchart,mask_file)==keep,

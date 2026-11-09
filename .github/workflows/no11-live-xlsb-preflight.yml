@@ -6,6 +6,7 @@ on:
       - 'research/no11-morning-master-20261103/no11_live_xlsb_contract.py'
       - 'research/no11-morning-master-20261103/install_no11_live_xlsb_preflight.py'
       - 'research/no11-morning-master-20261103/test_no11_live_xlsb_preflight.py'
+      - 'research/no11-morning-master-20261103/Bootstrap-No11ThreeXlsbLivePreflight.ps1'
       - '.github/workflows/no11-live-xlsb-preflight.yml'
   workflow_dispatch:
 permissions:
@@ -31,3 +32,30 @@ jobs:
           python -m unittest discover -s "$root" -p test_no11_live_xlsb_preflight.py -v
           python -m unittest discover -s "$root" -p test_no11_auto_minute_install.py -v
           python -m unittest discover -s "$root" -p test_no11_auto_minutes_connected_audit.py -v
+      - name: Check pinned source bytes from immutable release SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,re,subprocess
+          from pathlib import Path
+          root='research/no11-morning-master-20261103/'
+          txt=Path(root+'Bootstrap-No11ThreeXlsbLivePreflight.ps1').read_text(encoding='utf-8-sig')
+          release=re.search(r"(?m)^\$release='([0-9a-f]{40})'",txt).group(1)
+          pins=re.findall(r"(?m)^ '([^']+)'='([0-9a-f]{40})'",txt)
+          assert len(pins)==3
+          subprocess.run(['git','fetch','-q','--depth=1','origin',release],
+                         check=True,timeout=90)
+          for name,sha in pins:
+              raw=subprocess.check_output(['git','show',release+':'+root+name])
+              calculated=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+              assert calculated==sha,(name,calculated,sha)
+          print('NO11_LIVE_THREE_BOOK_GIT_PIN_CHECK=PASS')
+          PY
+      - name: Windows PowerShell 5.1 pinned preflight bootstrap
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/Bootstrap-No11ThreeXlsbLivePreflight.ps1 -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'NO11_LIVE_XLSB_BOOTSTRAP_TEST_FAILED'}
+

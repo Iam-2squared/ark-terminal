@@ -7,6 +7,7 @@ on:
       - 'research/no11-morning-master-20261103/install_no11_circuit_audit_release.py'
       - 'research/no11-morning-master-20261103/test_no11_circuit_audit.py'
       - 'research/no11-morning-master-20261103/test_no11_circuit_release_install.py'
+      - 'research/no11-morning-master-20261103/Bootstrap-No11IntegratedCircuit.ps1'
       - '.github/workflows/no11-integrated-circuit-audit.yml'
   workflow_dispatch:
 permissions:
@@ -60,7 +61,22 @@ jobs:
           print('NO11_INTEGRATED_CIRCUIT_RESULT='+json.dumps({k:v for k,v in total.items() if k!='suites'}),flush=True)
           sys.exit(bool(total['failedSuites']))
           PY
-      - name: Generate final installed package and syntax-check Windows sources
+      - name: Verify immutable delivery pins
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib,re,subprocess
+          from pathlib import Path
+          root='research/no11-morning-master-20261103/'
+          text=Path(root+'Bootstrap-No11IntegratedCircuit.ps1').read_text(encoding='utf-8-sig')
+          pins=re.findall(r"(?m)^ '([^']+)'='([a-f0-9]{40})'$",text)
+          assert len(pins)==4
+          for name,pin in pins:
+              raw=subprocess.check_output(['git','show','HEAD:'+root+name])
+              assert hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()==pin,name
+          print('NO11_INTEGRATED_DELIVERY_PINS=PASS')
+          PY
+      - name: Generate package and execute actual Windows installer selftest
         if: runner.os == 'Windows'
         shell: powershell
         run: |
@@ -69,6 +85,8 @@ jobs:
           if($LASTEXITCODE -ne 0){throw 'AUDITED_PACKAGE_GENERATION'}
           & python -m compileall -q audited-candidates
           if($LASTEXITCODE -ne 0){throw 'AUDITED_PACKAGE_SYNTAX'}
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/Bootstrap-No11IntegratedCircuit.ps1 -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'DELIVERY_SELFTEST_FAILED'}
           Write-Host 'NO11_INTEGRATED_PACKAGE_SYNTAX=PASS'
       - uses: actions/upload-artifact@v4
         if: always()
@@ -77,14 +95,18 @@ jobs:
           path: circuit-audit-python.json
           if-no-files-found: warn
   frozen-and-runtime:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Generate the installed completed-session calendar fixture
+      - name: Generate installed completed-session calendar fixture
         shell: bash
         run: |
           set -euo pipefail
@@ -94,8 +116,7 @@ jobs:
           sys.path.insert(0,'research/no11-morning-master-20261103')
           import install_no11_completed_session_update as p
           source=Path('research/no12-prebuy-causal-runtime-20261011/tools/no11_weekly_g1_refresh.mjs')
-          candidate=source.with_name('no11_weekly_g1_refresh.completed-test.mjs')
-          candidate.write_bytes(p.transform('planner',source.read_bytes()))
+          source.with_name('no11_weekly_g1_refresh.completed-test.mjs').write_bytes(p.transform('planner',source.read_bytes()))
           print('INSTALLED_CALENDAR_FIXTURE=GENERATED_FROM_REAL_MIGRATION')
           PY
       - name: All No11 runtime Node tests, no real broker connection
@@ -124,7 +145,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: circuit-node-runtime
+          name: circuit-node-runtime-${{ matrix.os }}
           path: |
             circuit-audit-node.json
             circuit-audit-node.log

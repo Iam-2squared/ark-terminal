@@ -37,6 +37,24 @@ jobs:
           python -m unittest discover -s "$root" -p test_no11_update_path.py -v
           python -m unittest discover -s "$root" -p test_no11_circuit_audit.py -v
           git diff --check
+      - name: Immutable release manifest, not an unverified moving branch
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib,re,subprocess
+          from pathlib import Path
+          root='research/no11-morning-master-20261103/'
+          text=Path(root+'Bootstrap-No11DataWorkbookRegistration.ps1').read_text(encoding='utf-8-sig')
+          release=re.search(r"(?m)^\$release='([a-f0-9]{40})'$",text).group(1)
+          subprocess.run(['git','fetch','-q','--no-tags','--depth=1','origin',release],check=True,timeout=90)
+          pins=re.findall(r"(?m)^ '([^']+)'='([a-f0-9]{40})'$",text)
+          assert len(pins)==5
+          for name,expected in pins:
+              raw=subprocess.check_output(['git','show',release+':'+root+name])
+              actual=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+              assert actual==expected,(name,actual,expected)
+          print('NO11_DATA_WORKBOOK_RELEASE_BLOBS=PASS')
+          PY
       - name: Real Windows PowerShell resolver behavior without Excel
         if: runner.os == 'Windows'
         shell: powershell
@@ -46,3 +64,5 @@ jobs:
           if($LASTEXITCODE -ne 0){throw 'REGISTERED_XLSB_BEHAVIOR_FAILED'}
           & python -B -X utf8 -c "import sys;sys.path.insert(0,'research/no11-morning-master-20261103');import test_no11_data_workbook_registration as t;import install_no11_data_workbook_registration as i;from pathlib import Path;rows=[i.transform_collector(v) for k,v in t.installed_sources().items() if k in [s+'.ps1' for s in i.STEMS]];rows.append(Path('research/no11-morning-master-20261103/No11DataWorkbookRegistry.ps1').read_bytes());i.parse_candidates(rows);print('NO11_REGISTERED_COLLECTOR_POWERSHELL_PARSE=PASS')"
           if($LASTEXITCODE -ne 0){throw 'ACTUAL_COLLECTOR_PARSE_FAILED'}
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/Bootstrap-No11DataWorkbookRegistration.ps1 -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'DATA_BOOK_BOOTSTRAP_SELFTEST_FAILED'}

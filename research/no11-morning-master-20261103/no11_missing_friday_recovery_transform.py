@@ -114,7 +114,7 @@ def next_session(s):
     s=once(s,' if($CompletedSessionUpdate){',
        """ if($HistoricalFridayRecovery){
   Need (-not $WeekendFriday -and -not $CompletedSessionUpdate) 'HISTORICAL_MODE_CONFLICT'
-  $calendarTool=Join-Path $base 'tools\no11_rss_daily_trend_census.mjs'
+  $calendarTool=Join-Path $base 'tools\\no11_rss_daily_trend_census.mjs'
   $recoveryLines=@(& node $calendarTool recovery-window)
   Need ($LASTEXITCODE -eq 0 -and $recoveryLines.Count -eq 1) 'HISTORICAL_WINDOW_MISSING'
   $recovery=([string]$recoveryLines[0]|ConvertFrom-Json)

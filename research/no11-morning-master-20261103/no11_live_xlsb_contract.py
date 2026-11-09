@@ -102,3 +102,40 @@ def transform_launcher(raw):
          "StartChild 'TRADE' $trade $params $sha $day" in src and
          "normalMaxPositions=3" in src,'FROZEN_TRADE_GUARDS_CHANGED')
     return (b'\xef\xbb\xbf' if bom else b'')+src.replace('\n',newline).encode('utf-8')
+
+
+OPERATOR_MARK='ARK_NO11_LIVE_XLSB_OPERATOR_FORMAT_V1'
+
+def transform_operator(raw):
+    """Only allow the originally supported Excel formats, including XLSB.
+
+    Existing one-day live operator approval, original MAX3, 100-share lots,
+    non-margin securities cash and frozen controller remain byte-identical.
+    """
+    bom=raw.startswith(b'\xef\xbb\xbf')
+    source=raw.decode('utf-8-sig')
+    newline='\r\n' if '\r\n' in source else '\n'
+    text=source.replace('\r\n','\n')
+    if OPERATOR_MARK in text:return raw
+    before=""" Need ($AccountWorkbookPath -cne $OrderIdWorkbookPath -and
+       $AccountWorkbookPath.EndsWith('.xlsx',[StringComparison]::OrdinalIgnoreCase) -and
+       $OrderIdWorkbookPath.EndsWith('.xlsx',[StringComparison]::OrdinalIgnoreCase)) 'WORKBOOK_PAIR_INVALID'"""
+    after=""" # ARK_NO11_LIVE_XLSB_OPERATOR_FORMAT_V1: accepted Excel container formats
+ # only. Both books must remain different exact local paths with original
+ # saved config, broker, same-day approval and all physical guards unchanged.
+ Need ($AccountWorkbookPath -cne $OrderIdWorkbookPath -and
+       ([IO.Path]::GetExtension($AccountWorkbookPath).ToLowerInvariant() -in @('.xlsx','.xlsb','.xlsm')) -and
+       ([IO.Path]::GetExtension($OrderIdWorkbookPath).ToLowerInvariant() -in @('.xlsx','.xlsb','.xlsm'))) 'WORKBOOK_PAIR_INVALID'"""
+    need(text.count(before)==1,'OPERATOR_FORMAT_SOURCE_CHANGED')
+    output=text.replace(before,after,1)
+    for pin in (
+        "Need $IApproveFullArkLiveOrdersForThisSession.IsPresent 'SAME_DAY_OPERATOR_APPROVAL_REQUIRED'",
+        "'BROKER_LIVE_CONFIG_REQUIRED'","'REVIEWED_SECURITIES_ONLY_CASH'",
+        "'TRANSPORT_SESSION_APPROVAL'","'MAX3_AND_SECURITIES_CASH'",
+        "'FULL_FROZEN_PREFLIGHT_BLOCKED'"):
+        need(pin in output,'OPERATOR_FROZEN_GUARD_MISSING')
+    need(output.count(OPERATOR_MARK)==1 and
+         output.count('--operator-approved-broker-live')>=2 and
+         output.count("if($PreflightOnly)")>=2,
+         'OPERATOR_FROZEN_STATE_CHANGED')
+    return (b'\xef\xbb\xbf' if bom else b'')+output.replace('\n',newline).encode('utf-8')

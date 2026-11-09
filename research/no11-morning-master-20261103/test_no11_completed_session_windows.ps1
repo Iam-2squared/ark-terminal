@@ -11,7 +11,12 @@ $tokens=$null;$errors=$null
 $ast=[Management.Automation.Language.Parser]::ParseFile((Join-Path $CandidateRoot 'native.ps1'),[ref]$tokens,[ref]$errors)
 $fn=@($ast.FindAll({param($n) $n -is [Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq 'RunWeekly'},$true))
 Check ($fn.Count -eq 1) 'RUN_WEEKLY_UNIQUE'
-Invoke-Expression $fn[0].Extent.Text
+# Invoke-Expression has no source file and gives functions an empty
+# PSScriptRoot. Dot-source only the extracted function from a real file,
+# matching the installed native launcher's source-directory semantics.
+$functionFile=Join-Path $CandidateRoot 'runweekly-fixture.ps1'
+[IO.File]::WriteAllText($functionFile,$fn[0].Extent.Text,[Text.UTF8Encoding]::new($false))
+. $functionFile
 function Need([bool]$ok,[string]$reason){Check $ok $reason}
 function LocalFile([string]$path,[string]$name){return $path}
 $script:ClockValue=[datetimeoffset]::Parse('2026-11-09T10:05:00+09:00')

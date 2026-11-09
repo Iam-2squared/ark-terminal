@@ -5,6 +5,7 @@ on:
     paths:
       - 'research/no11-morning-master-20261103/no11_missing_friday_recovery_transform.py'
       - 'research/no11-morning-master-20261103/test_no11_missing_friday_recovery.py'
+      - 'research/no11-morning-master-20261103/test_no11_missing_friday_install.py'
       - 'research/no11-morning-master-20261103/install_no11_missing_friday_recovery.py'
       - 'research/no11-morning-master-20261103/Bootstrap-No11MissingFridayRecovery.ps1'
       - '.github/workflows/no11-real-friday-recovery.yml'
@@ -33,6 +34,7 @@ jobs:
           set -euo pipefail
           root=research/no11-morning-master-20261103
           python -m unittest discover -s "$root" -p test_no11_missing_friday_recovery.py -v
+          python -m unittest discover -s "$root" -p test_no11_missing_friday_install.py -v
           python -m unittest discover -s "$root" -p test_no11_completed_session_update.py -v
           python -m unittest discover -s "$root" -p test_no11_nightly_resume.py -v
       - name: Parse all updated actual Windows PowerShell 5.1 sources

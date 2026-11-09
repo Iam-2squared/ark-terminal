@@ -14,10 +14,10 @@ function GitBlob([byte[]]$raw){
  try{return ([BitConverter]::ToString($sha.ComputeHash($data))).Replace('-','').ToLowerInvariant()}
  finally{$sha.Dispose()}
 }
-$release='ae52a956229e3acf08d81e93c2fa8768f0ff7316'
+$release='feaf90be3d71e1803e8a781d61a7d4b6759e0d4d'
 $files=[ordered]@{
  'no11_nightly_resume.py'='6c3668c47991e1407464c7049cd662ff9985ad35'
- 'no11_nightly_resume_workeraware.py'='9b14f4187296b9e6c0565be2ba726968e283939b'
+ 'no11_nightly_resume_workeraware.py'='5101f03b1b0d289b3d6c722cf39ada3e21a03df8'
  'install_no11_worker_probe_fix.py'='75ed509de3160bbfaf15e6cbbcd8e0074da33244'
  'Run-No11ResumableNightly.ps1'='5fb604c9316f7f483800c657b0c44306582973ac'
 }

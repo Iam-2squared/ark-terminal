@@ -84,24 +84,40 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Generate the installed completed-session calendar fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import sys
+          sys.path.insert(0,'research/no11-morning-master-20261103')
+          import install_no11_completed_session_update as p
+          source=Path('research/no12-prebuy-causal-runtime-20261011/tools/no11_weekly_g1_refresh.mjs')
+          candidate=source.with_name('no11_weekly_g1_refresh.completed-test.mjs')
+          candidate.write_bytes(p.transform('planner',source.read_bytes()))
+          print('INSTALLED_CALENDAR_FIXTURE=GENERATED_FROM_REAL_MIGRATION')
+          PY
       - name: All No11 runtime Node tests, no real broker connection
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
-          import json,pathlib,subprocess,sys
+          import json,pathlib,re,subprocess,sys
           root=pathlib.Path('research/no12-prebuy-causal-runtime-20261011/tests')
           files=sorted(str(p) for p in root.glob('no11_*.test.mjs'))
           assert files
           print('NO11_NODE_TEST_FILES='+str(len(files)),flush=True)
-          r=subprocess.run(['node','--test','--test-concurrency=2',*files],capture_output=True,text=True,encoding='utf-8',errors='replace',timeout=1000)
+          r=subprocess.run(['node','--test','--test-reporter=tap','--test-concurrency=2',*files],capture_output=True,text=True,encoding='utf-8',errors='replace',timeout=1000)
           pathlib.Path('circuit-audit-node.log').write_text(r.stdout+'\n'+r.stderr,encoding='utf-8')
           lines=r.stdout.splitlines()
           print('\n'.join(lines[-35:]))
-          failed=[i for i,s in enumerate(lines) if s.startswith('not ok ')]
+          failed=[i for i,s in enumerate(lines) if s.lstrip().startswith('not ok ')]
           for i in failed:print('\n'.join(lines[max(0,i-2):i+28]))
-          result={'files':files,'returncode':r.returncode,'realRssTested':False,'realBrokerOrdersSent':False}
+          counts={k:int(v) for k,v in re.findall(r'^# (tests|pass|fail|skipped) (\d+)$',r.stdout,re.M)}
+          result={'files':files,'returncode':r.returncode,'counts':counts,'realRssTested':False,'realBrokerOrdersSent':False}
           pathlib.Path('circuit-audit-node.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
+          print('NO11_NODE_AUDIT_COUNTS='+json.dumps(counts),flush=True)
           if r.stderr:print(r.stderr[-3000:])
           sys.exit(r.returncode)
           PY

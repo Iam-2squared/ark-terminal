@@ -13,17 +13,18 @@ def once(s,old,new):
     return s.replace(old,new,1)
 
 FRIDAY_WINDOW="""
+const recoveryNeed=(ok,reason)=>{if(!ok)throw Error('NO11_DAILY_'+reason)};
 /** ARK_NO11_MISSING_PREVIOUS_FRIDAY_REAL_RSS_RECOVERY_V1.
  * Only recent real prior Friday. Never spoof observation time or date.
  */
 export function latestFridayRecoveryWindow(now){
  const completed=lastCompletedSession(now);
- need(!isoFriday(completed),'NORMAL_FRIDAY_FULL_SCAN_REQUIRED');
+ recoveryNeed(!isoFriday(completed),'NORMAL_FRIDAY_FULL_SCAN_REQUIRED');
  const days=previousJpxCashTradingDays(completed,4);
  const index=days.findIndex(isoFriday);
- need(index>=0,'FRIDAY_OUTSIDE_CURRENT_WEEK');
+ recoveryNeed(index>=0,'FRIDAY_OUTSIDE_CURRENT_WEEK');
  const friday=days[index],elapsedCashDays=index+1;
- need(friday<completed&&nextCashDate(friday)<=completed&&
+ recoveryNeed(friday<completed&&nextCashDate(friday)<=completed&&
   elapsedCashDays>=1&&elapsedCashDays<=4,'FRIDAY_RECOVERY_SCOPE');
  return {schemaId:'ARK_NO11_REAL_RSS_FRIDAY_RECOVERY_WINDOW_V1',
   asOfSession:friday,sessionDate:nextCashDate(friday),

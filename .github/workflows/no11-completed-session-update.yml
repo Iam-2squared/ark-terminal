@@ -1,0 +1,84 @@
+name: No11 completed-session data update
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - 'research/no11-morning-master-20261103/*completed*'
+      - 'research/no11-morning-master-20261103/Bootstrap-No11CompletedSessionUpdate.ps1'
+      - 'research/no12-prebuy-causal-runtime-20261011/tests/no11_completed_session_update.test.mjs'
+      - '.github/workflows/no11-completed-session-update.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: no11-completed-data-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Installed-source migration and interruption regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import unittest,sys,json
+          root='research/no11-morning-master-20261103'
+          names=['test_no11_completed_session_update.py','test_no11_plain_pool_compat.py','test_no11_update_source_compat.py','test_no11_nightly_resume.py','test_no11_update_path.py','test_no11_launcher_update_install.py','test_no11_unified_update.py','test_daily_cycle.py','test_no11_selection_status.py']
+          totals={'tests':0,'errors':0,'failures':0,'skipped':0}
+          for name in names:
+              suite=unittest.TestLoader().discover(root,pattern=name)
+              assert suite.countTestCases()>0,name
+              result=unittest.TextTestRunner(verbosity=2).run(suite)
+              totals['tests']+=result.testsRun
+              for key in ('errors','failures','skipped'):totals[key]+=len(getattr(result,key))
+          print('NO11_COMPLETED_UPDATE_PYTHON='+json.dumps(totals),flush=True)
+          if totals['errors'] or totals['failures']:sys.exit(1)
+          PY
+      - name: Build actual installed-style sources and verify release blob manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import sys,re,subprocess,hashlib
+          root=Path('research/no11-morning-master-20261103')
+          sys.path.insert(0,str(root))
+          import test_no11_completed_session_update as t
+          import install_no11_completed_session_update as p
+          folder=Path('completed-session-candidates');folder.mkdir()
+          for kind,raw in t.sources().items():
+              suffix='.mjs' if kind=='planner' else '.py' if kind=='status' else '.ps1'
+              result=p.transform(kind,raw)
+              (folder/(kind+suffix)).write_bytes(result)
+              if kind=='planner':
+                  out=Path('research/no12-prebuy-causal-runtime-20261011/tools/no11_weekly_g1_refresh.completed-test.mjs')
+                  out.write_bytes(result)
+          bootstrap=(root/'Bootstrap-No11CompletedSessionUpdate.ps1').read_text()
+          pins=re.findall(r"(?m)^ '([^']+)'='([a-f0-9]{40})'$",bootstrap)
+          assert len(pins)==3
+          for name,pin in pins:
+              # Git source bytes, not platform-checked-out CRLF text.
+              raw=subprocess.check_output(['git','show','HEAD:'+str(root/name).replace('\\','/')])
+              assert hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()==pin,name
+          print('NO11_COMPLETED_RELEASE_PINS=PASS')
+          PY
+          node --check completed-session-candidates/planner.mjs
+          node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_completed_session_update.test.mjs
+      - name: Windows PowerShell 5.1 installed launcher semantics and bootstrap
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/test_no11_completed_session_windows.ps1 -CandidateRoot (Join-Path $PWD 'completed-session-candidates')
+          if($LASTEXITCODE -ne 0){throw 'COMPLETED_SESSION_LAUNCHER_FAILED'}
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/Bootstrap-No11CompletedSessionUpdate.ps1 -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'COMPLETED_SESSION_BOOTSTRAP_FAILED'}

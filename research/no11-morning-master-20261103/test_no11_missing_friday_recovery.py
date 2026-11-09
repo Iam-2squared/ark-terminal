@@ -145,6 +145,22 @@ console.log('REAL_JPX_FRIDAY_RECOVERY_WINDOW=PASS');"""
         finally:
             temp.unlink(missing_ok=True)
 
+    def test_windows_next_stage_calendar_path_is_one_line_not_python_newline(self):
+        # The parent weekly call used a raw triple string. The child used
+        # a normal triple string, making backslash+n become an actual LF.
+        code=recovery.transform('next',self.raw['next']).decode('utf-8-sig')
+        normalized=code.replace('\r\n','\n')
+        correct="$calendarTool=Join-Path $base 'tools\\no11_rss_daily_trend_census.mjs'"
+        broken="$calendarTool=Join-Path $base 'tools\no11_rss_daily_trend_census.mjs'"
+        self.assertEqual(normalized.count(correct),1)
+        self.assertNotIn(broken,normalized)
+        for line in normalized.splitlines():
+            if '$calendarTool=Join-Path $base' in line:
+                self.assertEqual(line.strip(),correct)
+                break
+        else:
+            self.fail('real child calendar tool line absent')
+
     def test_no_trade_entry_exit_strategy_or_risk_changed(self):
         for kind in ('weekly','next','dailyCollector'):
             text=recovery.transform(kind,self.raw[kind]).decode('utf-8-sig')

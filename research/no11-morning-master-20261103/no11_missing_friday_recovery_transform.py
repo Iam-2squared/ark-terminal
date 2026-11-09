@@ -102,7 +102,7 @@ def daily_collector(s):
   Write-Host 'NO11_DAILY_HISTORICAL_KNOWN_AT_CERTIFIED=False'
  }
  Write-Host ('NO11_DAILY_TARGET='+$work.plan.asOfSession)""")
-    return s
+    return '# '+MARK+'\n'+s
 
 def next_session(s):
     need('ARK_NO11_LATEST_COMPLETED_SESSION_DATA_V1' in s and
@@ -142,7 +142,7 @@ def next_session(s):
        """ $identityArgs=@('plan','--symbols',$SymbolsFile,'--root',$DailyRoot)
  if($HistoricalFridayRecovery){$identityArgs+=@('--recover-last-friday','true')}
  $identityLines=@(& node $identityTool @identityArgs)""")
-    return s
+    return '# '+MARK+'\n'+s
 
 def weekly(s):
     need('ARK_NO11_FRIDAY_AND_WEEKDAY_MAX47_V1' in s and
@@ -213,7 +213,7 @@ def worker(s):
     need('ARK_NO11_CIRCUIT_AUDIT_V1' in s and
          'ARK_NO11_NIGHTLY_RESUME_WORKER_PROBE_V2' in s and
          'DataUpdate-' in s,'WORKER_INTEGRATED_REQUIRED')
-    return once(s,"    work = root / 'resumable-nightly' / (asof + '_' + target)",
+    return '# '+MARK+'\n'+once(s,"    work = root / 'resumable-nightly' / (asof + '_' + target)",
        """    # Old failed as-of checkpoint remains intact for audit, never erased.
     work = root / 'resumable-nightly' / (asof + '_' + target + '-real-friday-v1')""")
 

@@ -6,6 +6,8 @@ on:
       - 'research/no11-morning-master-20261103/no11_auto_minute_exclusion.py'
       - 'research/no11-morning-master-20261103/no11_auto_minute_cycle_transform.py'
       - 'research/no11-morning-master-20261103/test_no11_auto_minute_exclusion.py'
+      - 'research/no11-morning-master-20261103/test_no11_auto_minute_install.py'
+      - 'research/no11-morning-master-20261103/no11_auto_minute_worker_transform.py'
       - 'research/no11-morning-master-20261103/install_no11_auto_minutes_release.py'
       - 'research/no11-morning-master-20261103/Bootstrap-No11AutoMinutes.ps1'
       - '.github/workflows/no11-auto-minute-exclusion.yml'
@@ -34,6 +36,7 @@ jobs:
           set -euo pipefail
           root=research/no11-morning-master-20261103
           python -m unittest discover -s "$root" -p test_no11_auto_minute_exclusion.py -v
+          python -m unittest discover -s "$root" -p test_no11_auto_minute_install.py -v
           python -m unittest discover -s "$root" -p test_no11_combined_nightly_parser.py -v
           python -m unittest discover -s "$root" -p test_daily_cycle.py -v
           python -m unittest discover -s "$root" -p test_no11_nightly_resume.py -v

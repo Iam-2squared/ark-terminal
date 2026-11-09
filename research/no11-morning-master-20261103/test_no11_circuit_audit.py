@@ -1,13 +1,11 @@
 """Integration audit. Synthetic market/broker inputs; never contact Excel/orders.
 
-Unlike unit tests of isolated helpers, these connect actual log parsing,
-pointer publication and the bridge's next-session binding resolution. The
-Windows test launches the actual probe through native PowerShell and a venv.
-This does NOT claim real RSS, broker acceptance, fills or EXIT verification.
+These tests connect actual log parsing, atomic pointer publication and next-day
+bridge resolution. Windows uses real nested PowerShell and venv processes.
+Real RSS, broker order acceptance, fills and live EXIT remain separate checks.
 """
 from __future__ import annotations
 import contextlib
-from datetime import datetime, timedelta, timezone
 import io
 import json
 import os
@@ -120,7 +118,6 @@ class CircuitAudit(unittest.TestCase):
                 record=self.cycle.parse_nightly(raw)
                 self.assertEqual(record['chart'],'C:\\検証\\chart.json')
                 self.assertEqual(record['sessionDate'],'2026-11-09')
-                # Each immutable pointer is in an independent source workspace.
                 root=self.root/encoding;root.mkdir()
                 ptr=self.cycle.publish(root,record,hand,'a'*64,'b'*64)
                 binding={'sessionDate':'2026-11-04','dailyCycleRoot':str(root),
@@ -163,7 +160,6 @@ class CircuitAudit(unittest.TestCase):
         self.assertTrue(lock.exists())
         with self.bridge.lock(lock):pass
         self.assertTrue(lock.exists())
-        # Old logic incorrectly treats the crashed marker as permanent activity.
         with self.assertRaisesRegex(ValueError,'RUNNING_OR_INTERRUPTED'):
             with original_bridge.lock(lock):pass
 
@@ -186,7 +182,8 @@ class CircuitAudit(unittest.TestCase):
         self.assertFalse((self.root/'prepared-days').exists())
 
     def test_existing_active_session_is_checked_before_transport_setup(self):
-        source=self.bridge_raw.decode('utf-8-sig')
+        # Transformer intentionally preserves the source platform's CRLF/BOM.
+        source=self.bridge_raw.decode('utf-8-sig').replace('\r\n','\n')
         start=source.index('        if merged is None:\n            candidate_root')
         end=source.index('            result, broker_path = make_initial_broker(',start)
         self.assertIn('ACTIVE_SESSION_NO_REBIND',source[start:end])

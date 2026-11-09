@@ -69,6 +69,9 @@ class AutoInvalidMinuteTest(unittest.TestCase):
         self.selected=[f'{3000+i:04d}.T' for i in range(8)]
         self.mask,self.chart_path,self.chart=plan_fixture(
             ENGINE,self.run,self.selected,'2026-11-10')
+        # Native strength ranking may reorder PASS candidates; the saved
+        # Chart50 selector order, not lexical input order, is authoritative.
+        self.selected=list(self.chart['chartPlan']['selectorInputSymbols'])
         self.members=[]
         self.kept={}
         self.failed=[self.selected[-1]]

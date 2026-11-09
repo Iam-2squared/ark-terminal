@@ -76,7 +76,7 @@ class FridayReadOnlyRecovery(unittest.TestCase):
         self.assertIn("flags['--recover-last-friday']==='true'",daily)
         self.assertNotIn('Date.now =',daily)
         self.assertNotIn('MOCK',daily)
-        native=(ENGINE/'runtime/no11_rss_daily_trend_census.mjs').read_text()
+        native=(ENGINE/'runtime/no11_rss_daily_trend_census.mjs').read_text(encoding='utf-8')
         self.assertIn('if (row.session > plan.asOfSession) { ignoredLaterRows++; continue; }',native)
         self.assertIn('if (values.size !== 76) return unknown',native)
 

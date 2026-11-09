@@ -35,8 +35,32 @@ jobs:
           root=research/no11-morning-master-20261103
           python -m unittest discover -s "$root" -p test_no11_missing_friday_recovery.py -v
           python -m unittest discover -s "$root" -p test_no11_missing_friday_install.py -v
+          python -m unittest discover -s "$root" -p test_no11_circuit_audit.py -v
           python -m unittest discover -s "$root" -p test_no11_completed_session_update.py -v
           python -m unittest discover -s "$root" -p test_no11_nightly_resume.py -v
+      - name: Verify pinned four release payloads exactly
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,re,subprocess
+          from pathlib import Path
+          root='research/no11-morning-master-20261103/'
+          text=Path(root+'Bootstrap-No11MissingFridayRecovery.ps1').read_text(encoding='utf-8-sig')
+          pinned=re.findall(r"(?m)^ '([^']+)'='([a-f0-9]{40})'$",text)
+          assert len(pinned)==4
+          for name,sha in pinned:
+              source=subprocess.check_output(['git','show','HEAD:'+root+name])
+              actual=hashlib.sha1(b'blob '+str(len(source)).encode()+b'\0'+source).hexdigest()
+              assert actual==sha,(name,actual,sha)
+          print('NO11_REAL_FRIDAY_RELEASE_BLOBS=PASS')
+          PY
+      - name: Offline bootstrap self-test (Windows PowerShell 5.1)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/Bootstrap-No11MissingFridayRecovery.ps1 -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'FRIDAY_BOOTSTRAP_SELFTEST_FAILED'}
       - name: Parse all updated actual Windows PowerShell 5.1 sources
         if: runner.os == 'Windows'
         shell: powershell

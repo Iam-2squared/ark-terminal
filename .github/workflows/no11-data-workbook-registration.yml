@@ -1,0 +1,48 @@
+name: No11 XLSB data workbook registration
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - 'research/no11-morning-master-20261103/No11DataWorkbookRegistry.ps1'
+      - 'research/no11-morning-master-20261103/install_no11_data_workbook_registration.py'
+      - 'research/no11-morning-master-20261103/test_no11_data_workbook_registration.py'
+      - 'research/no11-morning-master-20261103/test_no11_data_workbook_registry_windows.ps1'
+      - 'research/no11-morning-master-20261103/Bootstrap-No11DataWorkbookRegistration.ps1'
+      - '.github/workflows/no11-data-workbook-registration.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: no11-data-books-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  registry:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Source migration, actual XLSB names, and crash-recoverable installation
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=research/no11-morning-master-20261103
+          python -m unittest discover -s "$root" -p test_no11_data_workbook_registration.py -v
+          python -m unittest discover -s "$root" -p test_no11_update_path.py -v
+          python -m unittest discover -s "$root" -p test_no11_circuit_audit.py -v
+          git diff --check
+      - name: Real Windows PowerShell resolver behavior without Excel
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/test_no11_data_workbook_registry_windows.ps1
+          if($LASTEXITCODE -ne 0){throw 'REGISTERED_XLSB_BEHAVIOR_FAILED'}
+          & python -B -X utf8 -c "import sys;sys.path.insert(0,'research/no11-morning-master-20261103');import test_no11_data_workbook_registration as t;import install_no11_data_workbook_registration as i;from pathlib import Path;rows=[i.transform_collector(v) for k,v in t.installed_sources().items() if k in [s+'.ps1' for s in i.STEMS]];rows.append(Path('research/no11-morning-master-20261103/No11DataWorkbookRegistry.ps1').read_bytes());i.parse_candidates(rows);print('NO11_REGISTERED_COLLECTOR_POWERSHELL_PARSE=PASS')"
+          if($LASTEXITCODE -ne 0){throw 'ACTUAL_COLLECTOR_PARSE_FAILED'}

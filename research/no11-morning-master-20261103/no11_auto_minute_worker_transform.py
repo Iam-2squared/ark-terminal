@@ -72,6 +72,10 @@ ADOPT=r'''    # ARK_NO11_AUTO_MINUTE_CAPTURE_ADOPTION_V1
         print('NO11_AUTO_MINUTE_RSS_RECAPTURED=False',flush=True)
     pipe=Pipeline(work, identity, pointer, capture, publish, validate, no_workers)
     adopt_prior_completed_capture(pipe)
+    if os.environ.get('ARK_AUTO_MINUTE_RESUME_ONLY')=='1':
+        need(pipe.state_file.is_file() and
+             checkpoint(pipe.state_file).get('phase') in ('CAPTURED','PUBLISHING','COMPLETE'),
+             'SAVED_CAPTURE_NOT_VERIFIED_NO_RECAPTURE')
     pipe.run()
 '''
 

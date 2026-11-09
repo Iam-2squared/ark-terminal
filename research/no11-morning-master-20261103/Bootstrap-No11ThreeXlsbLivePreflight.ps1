@@ -15,11 +15,11 @@ function GitBlob([byte[]]$data){
  try{return ([BitConverter]::ToString($sha.ComputeHash($combined))).Replace('-','').ToLowerInvariant()}
  finally{$sha.Dispose()}
 }
-$release='1c06ddb36279ec895fbc1cd76c2c6fe5c9c26c9c'
+$release='ac7ff9a9678bb27c2e2d9844e0e7bf70d852ca64'
 $pins=[ordered]@{
  'no11_nightly_resume.py'='6c3668c47991e1407464c7049cd662ff9985ad35'
- 'no11_live_xlsb_contract.py'='c6ce8137d7b00f4aa91a0ed50bd10229a226ceeb'
- 'install_no11_live_xlsb_preflight.py'='7f0909ea43bc3e5b6ddf2ad74a8de0ce40afe9e1'
+ 'no11_live_xlsb_contract.py'='97a34624c2cf46b78dd88f9206fa73649b2f3f3e'
+ 'install_no11_live_xlsb_preflight.py'='f45e21aed20501fc77104fc41e1591d97d3d27dc'
 }
 if($OfflineSelfTest){
  Need (-not $Apply -and $pins.Count -eq 3) 'BAD_OFFLINE_CONTRACT'

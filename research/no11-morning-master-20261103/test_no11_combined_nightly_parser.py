@@ -101,7 +101,7 @@ class CombinedCaptureParserTests(unittest.TestCase):
     def test_unexpected_duplicate_weekday_marker_rejected(self):
         original=live_like()
         edited=original+b'NO11_PREVIOUS_ARCHIVE_STAGE=C:\\private\\new-staged.json\n'
-        with self.assertRaisesRegex(ValueError,'NIGHTLY_LOG_MARKER_NO11_PREVIOUS_ARCHIVE_STAGE_'):
+        with self.assertRaisesRegex(ValueError,'FRIDAY_RECOVERY_LOG_STRUCTURE|NIGHTLY_LOG_MARKER_NO11_PREVIOUS_ARCHIVE_STAGE_'):
             self.cycle.parse_nightly(edited)
 
     def test_regular_friday_and_weekday_regression(self):

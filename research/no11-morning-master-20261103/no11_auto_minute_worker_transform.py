@@ -12,8 +12,10 @@ from __future__ import annotations
 import re
 
 MARK='ARK_NO11_AUTO_MINUTE_CAPTURE_ADOPTION_V1'
+VERSION_MARK='ARK_NO11_AUTO_MINUTE_CAPTURE_ADOPTION_V2'
 
 ADOPT=r'''    # ARK_NO11_AUTO_MINUTE_CAPTURE_ADOPTION_V1
+    # ARK_NO11_AUTO_MINUTE_CAPTURE_ADOPTION_V2
     # A prior DATA capture can end cleanly while the old parser rejects the
     # genuine two-session log. Preserve its old CAPTURING checkpoint and bytes.
     # ONLY adopt once, after full manifest/code/clock/source validation.
@@ -60,9 +62,22 @@ ADOPT=r'''    # ARK_NO11_AUTO_MINUTE_CAPTURE_ADOPTION_V1
         # rejects it. Never mark an archived partial wave as completed.
         no_workers()
         dest=pipe.work / name
-        need(not dest.exists() and not dest.is_symlink(),
-             'SAVED_LOG_COPY_COLLISION')
-        os.link(oldlog,dest)
+        need(not dest.is_symlink(),'SAVED_LOG_COPY_REPARSE')
+        if dest.exists():
+            need(safe(dest).read_bytes()==raw,'SAVED_LOG_COPY_CHANGED')
+        else:
+            temp=None
+            try:
+                with tempfile.NamedTemporaryFile('wb',dir=pipe.work,
+                        prefix='.saved-capture-',delete=False) as stream:
+                    temp=Path(stream.name)
+                    stream.write(raw);stream.flush();os.fsync(stream.fileno())
+                try:
+                    os.link(temp,dest)
+                except FileExistsError:
+                    need(safe(dest).read_bytes()==raw,'SAVED_LOG_COPY_CHANGED')
+            finally:
+                if temp is not None:temp.unlink(missing_ok=True)
         need(digest(dest.read_bytes())==digest(raw),'SAVED_LOG_COPY_CHANGED')
         pipe.save({'schemaId':SCHEMA,
                    'identitySha256':digest(encode(identity)),
@@ -71,7 +86,9 @@ ADOPT=r'''    # ARK_NO11_AUTO_MINUTE_CAPTURE_ADOPTION_V1
         print('NO11_AUTO_MINUTE_REUSED_VERIFIED_SAVED_CAPTURE=True',flush=True)
         print('NO11_AUTO_MINUTE_RSS_RECAPTURED=False',flush=True)
     pipe=Pipeline(work, identity, pointer, capture, publish, validate, no_workers)
-    adopt_prior_completed_capture(pipe)
+    with exclusive(work.parent / 'nightly.lock'):
+        no_workers()
+        adopt_prior_completed_capture(pipe)
     if os.environ.get('ARK_AUTO_MINUTE_RESUME_ONLY')=='1':
         need(pipe.state_file.is_file() and
              checkpoint(pipe.state_file).get('phase') in ('CAPTURED','PUBLISHING','COMPLETE'),
@@ -84,20 +101,27 @@ def transform(raw,helper_sha):
     text=raw.decode('utf-8-sig')
     newline='\r\n' if '\r\n' in text else '\n'
     text=text.replace('\r\n','\n')
-    if MARK in text:return raw
-    match=re.findall(r"'-data-books-v1-[a-f0-9]{16}'",text)
-    if len(match)!=1 or len(helper_sha)!=64 or 'ARK_NO11_CIRCUIT_AUDIT_V1' not in text:
+    if VERSION_MARK in text:return raw
+    match=re.findall(r"(?m)^    work = root / 'resumable-nightly' / \(asof \+ '_' \+ target \+ ('-(?:data-books-v1|auto-minutes-v1)-[a-f0-9]{16}')\)$",text)
+    if len(match)!=1 or not re.fullmatch(r'[a-f0-9]{64}',helper_sha) or 'ARK_NO11_CIRCUIT_AUDIT_V1' not in text:
         raise ValueError('NO11_AUTO_MINUTE_WORKER_SOURCE_NOT_BOUND')
     old_tag=match[0]
-    new_tag="'-auto-minutes-v1-"+helper_sha[:16]+"'"
-    text=text.replace(old_tag,new_tag,1)
-    anchor='    Pipeline(work, identity, pointer, capture, publish, validate, no_workers).run()'
-    if text.count(anchor)!=1:
-        raise ValueError('NO11_AUTO_MINUTE_WORKER_ENTRY_CHANGED')
-    adopted=("    legacy_work = root / 'resumable-nightly' / "
-             "(asof + '_' + target + "+old_tag+")\n")
-    text=text.replace(anchor,adopted+ADOPT,1)
+    old_line="    work = root / 'resumable-nightly' / (asof + '_' + target + "+old_tag+")"
+    new_line="    work = root / 'resumable-nightly' / (asof + '_' + target + '-auto-minutes-v2-"+helper_sha[:16]+"')"
+    text=text.replace(old_line,new_line,1)
+    adopted="    legacy_work = root / 'resumable-nightly' / (asof + '_' + target + "+old_tag+")\n"
+    if MARK in text:
+        a=text.index("    legacy_work = root / 'resumable-nightly'")
+        b=text.index("    print('NO11_DAILY_CYCLE_SESSION=' + target)",a)
+        text=text[:a]+adopted+ADOPT+'\n'+text[b:]
+    else:
+        anchor='    Pipeline(work, identity, pointer, capture, publish, validate, no_workers).run()'
+        if text.count(anchor)!=1:
+            raise ValueError('NO11_AUTO_MINUTE_WORKER_ENTRY_CHANGED')
+        text=text.replace(anchor,adopted+ADOPT,1)
+    text=text.replace("if($parentTime -gt $childTime){throw 'ANCESTOR_PID_REUSED'}",
+        "if($parentTime -gt $childTime){break} # Unrelated reused PID is not exempt from scanning.")
     compile(text,'no11_auto_minute_worker.py','exec')
-    if text.count(MARK)!=1 or 'no_workers()' not in ADOPT:
+    if text.count(VERSION_MARK)!=1:
         raise ValueError('NO11_AUTO_MINUTE_WORKER_GUARDS_CHANGED')
     return (b'\xef\xbb\xbf' if bom else b'')+text.replace('\n',newline).encode('utf-8')

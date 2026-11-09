@@ -219,6 +219,9 @@ class SavedReplayAndInstallerAudit(unittest.TestCase):
     def test_child_failure_is_not_reported_as_success(self):
         fixture=AutoMinuteInstallerTests();fixture.setUp()
         self.addCleanup(fixture.doCleanups)
+        binding=n.read(fixture.binding)
+        binding['python']=str(Path(sys.executable).resolve())
+        fixture.binding.write_bytes(encode(binding))
         _,j=installer.install(fixture.store,HERE,True,True)
         fail=subprocess.CompletedProcess([],2,stdout='NO11_NIGHTLY_RESUME=BLOCKED|TEST\n',stderr='')
         with patch.object(installer,'locate_saved',return_value=('2026-11-10',fixture.root,fixture.root/'capture.log')),\

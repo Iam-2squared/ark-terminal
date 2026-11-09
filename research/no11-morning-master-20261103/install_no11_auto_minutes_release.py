@@ -26,8 +26,8 @@ import no11_nightly_resume_workeraware as process_probe
 import no11_auto_minute_cycle_transform as cycle_patch
 import no11_auto_minute_worker_transform as worker_patch
 
-KIND='ARK_NO11_AUTO_INVALID_MINUTE_ENTRY_EXCLUSION_RELEASE_V1'
-JOURNAL='auto-minute-exclusion-release-v1-transaction.json'
+KIND='ARK_NO11_AUTO_INVALID_MINUTE_ENTRY_EXCLUSION_RELEASE_V2'
+JOURNAL='auto-minute-exclusion-release-v2-transaction.json'
 MODULE='daily_cycle.py'
 HELPER='no11_auto_minute_exclusion.py'
 WORKER='no11_nightly_resume_workeraware.py'
@@ -165,7 +165,7 @@ def build(store,source):
        registry,helperreg]
     payload={MODULE:cycle,HELPER:auto_helper,WORKER:worker,
              VALIDATOR:validator.read_bytes()}
-    previous_work_tag=re.findall(r"'-data-books-v1-[a-f0-9]{16}'",
+    previous_work_tag=re.findall(r"(?m)^    work = root / 'resumable-nightly' / \(asof \+ '_' \+ target \+ ('-(?:data-books-v1|auto-minutes-v1)-[a-f0-9]{16}')\)$",
                                   old_worker_raw.decode('utf-8-sig'))
     need(len(previous_work_tag)==1,'OLD_DATA_WORKER_NAMESPACE_CHANGED')
     return {'schemaId':n.SCHEMA,'kind':KIND,'phase':'PREPARED',
@@ -204,6 +204,10 @@ def verify(j):
         need(n.digest(n.safe(first['dailyCycleTool']).read_bytes())==j['oldCycleSha256'] and
              n.digest(n.safe(first['nightlyResumeTool']).read_bytes())==j['oldWorkerSha256'],
              'OLD_INSTALLED_DATA_SOURCE_CHANGED')
+    if n.safe(j['bindingFile']).read_bytes()==after or j.get('phase')=='COMPLETE':
+        for name,row in payload.items():
+            need(n.digest(n.safe(Path(j['package'])/name).read_bytes())==row['sha256'],
+                 'INSTALLED_PACKAGE_CHANGED')
     return first,latter
 
 def apply(j):
@@ -285,6 +289,7 @@ def resume(store,j):
             print(line,flush=True)
     if result.returncode:
         print('NO11_AUTO_MINUTE_SAVED_STAGE=BLOCKED|VERIFIED_RECEIPT_OR_PUBLIC_SOURCE',flush=True)
+        need(False,'SAVED_STAGE_FAILED')
     else:
         print('NO11_AUTO_MINUTE_SAVED_STAGE=PASS',flush=True)
 

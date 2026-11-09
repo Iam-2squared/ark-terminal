@@ -32,7 +32,7 @@ class SavedWorkerReplay(unittest.TestCase):
         self.worker_path.write_bytes(transform.transform(old,n.digest(self.f.helper.read_bytes())))
         validator=self.worker_path.with_name('no11_selection_status.py');validator.write_bytes((HERE/validator.name).read_bytes())
         self.worker=connected.load_module(self.worker_path)
-        self.f.binding.update(python=sys.executable,
+        self.f.binding.update(python=str(Path(sys.executable).resolve()),
              nightlyResumeTool=str(self.worker_path),nightlyResumeToolSha256=n.digest(self.worker_path.read_bytes()),
              nightlyResumeValidatorSha256=n.digest(validator.read_bytes()))
         self.f.binding_file.write_bytes(connected.encode(self.f.binding))

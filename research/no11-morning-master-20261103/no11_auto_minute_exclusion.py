@@ -74,17 +74,11 @@ def save_once(m,path,raw):
     return m.safe(path)
 
 def hardlink_member(m,source,target,sha):
+    # Compatibility name only: V2 writes an independent byte-identical copy.
+    # An edit to a derived receipt can never alter the original source inode.
     raw=m.safe(source).read_bytes()
     need(digest(raw)==sha,'ORIGINAL_1M_RECEIPT_HASH')
-    need(not Path(target).is_symlink(),'TARGET_MEMBER_REPARSE')
-    if Path(target).exists():
-        need(Path(target).read_bytes()==raw,'TARGET_MEMBER_CHANGED')
-    else:
-        try:
-            os.link(source,target)
-        except FileExistsError:
-            need(Path(target).read_bytes()==raw,'TARGET_MEMBER_RACE')
-    return target
+    return save_once(m,Path(target),raw)
 
 NODE=r"""import fs from 'node:fs';
 import {createHash} from 'node:crypto';
@@ -265,6 +259,7 @@ def prune(m,record,root,binding,previous_checkpoint):
              'KEEP_MEMBER_NOT_PROVEN_USABLE')
     report={
       'schemaId':'ARK_NO11_AUTO_MINUTE_EXCLUSION_EVIDENCE_V1',
+      'independentSourceCopiesVersion':2,
       'sessionDate':record['sessionDate'],
       'previousSession':record['previousSession'],
       'parentChartReceiptSha256':digest(cb),

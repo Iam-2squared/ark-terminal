@@ -250,7 +250,7 @@ try {
     $parentTime=$byId[$next].CreationDate
     $childTime=$byId[$p].CreationDate
     if($null -eq $parentTime -or $null -eq $childTime){throw 'ANCESTOR_CREATION_TIME_MISSING'}
-    if($parentTime -gt $childTime){throw 'ANCESTOR_PID_REUSED'}
+    if($parentTime -gt $childTime){break} # Not an ancestor: still scanned as an unrelated process below.
     $p=$next
   }
   # The PowerShell CIM probe is a descendant of this python; exclude it

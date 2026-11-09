@@ -1,0 +1,33 @@
+name: No11 Live original three XLSB preflight (NO orders)
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - 'research/no11-morning-master-20261103/no11_live_xlsb_contract.py'
+      - 'research/no11-morning-master-20261103/install_no11_live_xlsb_preflight.py'
+      - 'research/no11-morning-master-20261103/test_no11_live_xlsb_preflight.py'
+      - '.github/workflows/no11-live-xlsb-preflight.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  three-book-identity-and-frozen-trading:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Strict original workbook preflight and no-order installer transaction
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=research/no11-morning-master-20261103
+          python -m unittest discover -s "$root" -p test_no11_live_xlsb_preflight.py -v
+          python -m unittest discover -s "$root" -p test_no11_auto_minute_install.py -v
+          python -m unittest discover -s "$root" -p test_no11_auto_minutes_connected_audit.py -v

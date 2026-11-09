@@ -1,0 +1,56 @@
+name: Apply verified No11 connected audit repairs
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - 'research/no11-morning-master-20261103/apply_no11_connected_audit_repairs.py'
+      - '.github/workflows/no11-apply-connected-audit-repairs.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: no11-apply-reviewed-audit-repairs
+  cancel-in-progress: false
+jobs:
+  exact-reviewed-repairs:
+    if: github.repository == 'Iam-2squared/ark-terminal' && github.ref == 'refs/heads/fix/no11-week-resilience-20261108'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/no11-week-resilience-20261108
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify exact reviewed blobs and apply DATA-only fixes
+        run: python research/no11-morning-master-20261103/apply_no11_connected_audit_repairs.py
+      - name: Connected handoff, saved-log replay and existing regressions
+        shell: bash
+        env:
+          PYTHONUTF8: '1'
+        run: |
+          set -euo pipefail
+          root=research/no11-morning-master-20261103
+          for name in test_no11_auto_minutes_connected_audit.py test_no11_saved_replay_connected.py test_no11_auto_minute_exclusion.py test_no11_auto_minute_install.py test_no11_worker_probe_fix.py; do
+            python -m unittest discover -s "$root" -p "$name" -v
+          done
+      - name: Commit only the six reviewed sources to this PR branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import subprocess
+          root='research/no11-morning-master-20261103/'
+          names=['no11_auto_minute_exclusion.py','no11_auto_minute_worker_transform.py',
+            'install_no11_auto_minutes_release.py','no11_nightly_resume_workeraware.py',
+            'test_no11_saved_replay_connected.py','test_no11_auto_minutes_connected_audit.py']
+          actual=set(subprocess.check_output(['git','diff','--name-only'],text=True).splitlines())
+          assert actual=={root+n for n in names},actual
+          subprocess.run(['git','config','user.name','github-actions[bot]'],check=True)
+          subprocess.run(['git','config','user.email','41898282+github-actions[bot]@users.noreply.github.com'],check=True)
+          subprocess.run(['git','add','--',*[root+n for n in names]],check=True)
+          subprocess.run(['git','commit','-m','Fix reproduced DATA replay crash, shared source inode, false-success exit and installed-package audit'],check=True)
+          subprocess.run(['git','push','origin','HEAD:refs/heads/fix/no11-week-resilience-20261108'],check=True)
+          print('VERIFIED_REPAIR_COMMIT='+subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip())
+          PY

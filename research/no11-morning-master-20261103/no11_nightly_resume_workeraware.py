@@ -256,7 +256,7 @@ try {
   # The PowerShell CIM probe is a descendant of this python; exclude it
   # directly by $PID (it is not part of Python's ancestor chain).
   $pattern='(?:no11_nightly_resume[.]py|no11_nightly_resume_workeraware[.]py|Run-No11NightlyCycle|Prepare-No11WeeklyAfterCloseReadOnly|Prepare-No11NextSessionNightlyReadOnly|Run-No11RssDailyTrendCensusReadOnly|Run-No11WeeklyCandidateRefreshReadOnly|Capture-No11RssTrainingBatchReadOnly|Prepare-No11PreviousArchiveReadOnly|Start-No11UnifiedLauncher|Start-No11PreopenStandby|Run-No11ReceivedSessionOperatorLive|no11_received_session_controller|Probe-No11Chart50ContinuousReadOnly|Invoke-No11MsiiOrder)'
-  $matches=@()
+  $busyWorkers=@()
   foreach($r in $rows){
     $id=[int]$r.ProcessId
     if($id -eq $PID -or $ancestors.ContainsKey($id)){continue}
@@ -268,11 +268,11 @@ try {
       $role=if($cmd -match '(?i)Invoke-No11MsiiOrder|Run-No11ReceivedSessionOperatorLive|no11_received_session_controller'){'LIVE'}
       elseif($cmd -match '(?i)Probe-No11Chart50ContinuousReadOnly'){'CHART'}
       else{'DATA'}
-      $matches+=@([pscustomobject]@{pid=$id;parentPid=[int]$r.ParentProcessId;role=$role})
+      $busyWorkers+=@([pscustomobject]@{pid=$id;parentPid=[int]$r.ParentProcessId;role=$role})
     }
   }
-  if($matches.Count -gt 0){
-    [pscustomobject]@{schemaId='ARK_NO11_WORKER_PROBE_V2';workers=$matches} | ConvertTo-Json -Depth 5 -Compress
+  if($busyWorkers.Count -gt 0){
+    [pscustomobject]@{schemaId='ARK_NO11_WORKER_PROBE_V2';workers=$busyWorkers} | ConvertTo-Json -Depth 5 -Compress
     exit 3
   }
   [pscustomobject]@{schemaId='ARK_NO11_WORKER_PROBE_V2';workers=@()} | ConvertTo-Json -Depth 5 -Compress

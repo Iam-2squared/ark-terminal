@@ -149,22 +149,6 @@ const receipt={...source,chartPlan:updated,
 console.log(JSON.stringify(receipt));
 """
 
-def make_chart(m,record,original,mask,removed,kept,stage_sha,progress_sha):
-    source_path=m.safe(record['chart'])
-    module=m.safe(Path(record['engine'])/'runtime/no11_rss_chart_50_prescreen.mjs')
-    script_input=encode({
-        'removed':removed,'kept':kept,'parentStageSha':stage_sha,
-        'parentProgressSha':progress_sha,
-        'originalChartSha':digest(source_path.read_bytes())})
-    cmd=['node','--input-type=module','-',str(module),
-         str(source_path),str(record['mask'])]
-    result=subprocess.run(cmd,input=NODE.encode('utf-8')+b'\n' if False else None,
-                          capture_output=True,timeout=45)
-    # The actual Node script must be given as - stdin. The request is passed
-    # in a separate already-verified temporary JSON file rather than stdin.
-    # Retained for compatibility with Windows Node versions supporting --input.
-    raise AssertionError('unreachable')
-
 def native_chart(m,record,removed,kept,stage_sha,progress_sha):
     chart_path=m.safe(record['chart'])
     native=m.safe(Path(record['engine'])/'runtime/no11_rss_chart_50_prescreen.mjs')

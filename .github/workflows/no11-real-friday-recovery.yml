@@ -1,0 +1,51 @@
+name: No11 real RSS missing-Friday recovery
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - 'research/no11-morning-master-20261103/no11_missing_friday_recovery_transform.py'
+      - 'research/no11-morning-master-20261103/test_no11_missing_friday_recovery.py'
+      - 'research/no11-morning-master-20261103/install_no11_missing_friday_recovery.py'
+      - 'research/no11-morning-master-20261103/Bootstrap-No11MissingFridayRecovery.ps1'
+      - '.github/workflows/no11-real-friday-recovery.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: no11-real-friday-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  history-and-guardrails:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check actual code-pinned RSS backfill calendar and unchanged 47 guardrails
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=research/no11-morning-master-20261103
+          python -m unittest discover -s "$root" -p test_no11_missing_friday_recovery.py -v
+          python -m unittest discover -s "$root" -p test_no11_completed_session_update.py -v
+          python -m unittest discover -s "$root" -p test_no11_nightly_resume.py -v
+      - name: Parse all updated actual Windows PowerShell 5.1 sources
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & python -B -X utf8 -c "import pathlib,sys;sys.path.insert(0,'research/no11-morning-master-20261103');import test_no11_missing_friday_recovery as t;import no11_missing_friday_recovery_transform as f;out=pathlib.Path('friday-candidates');out.mkdir(exist_ok=True);[(out/(kind+'.ps1')).write_bytes(f.transform(kind,t.sources()[kind])) for kind in ('weekly','next','dailyCollector')]"
+          if($LASTEXITCODE -ne 0){throw 'FRIDAY_SOURCE_TRANSFORM_FAILED'}
+          foreach($file in @(Get-ChildItem .\friday-candidates -Filter *.ps1)){
+            $t=$null;$errors=$null
+            [void][Management.Automation.Language.Parser]::ParseFile($file.FullName,[ref]$t,[ref]$errors)
+            if($errors.Count){$errors|ForEach-Object {Write-Host ('PARSE:'+ $_.Message)};throw ('FRIDAY_POWERSHELL_SYNTAX_'+$file.Name)}
+          }
+          Write-Host 'NO11_MISSING_FRIDAY_WINDOWS_POWER_SHELL_AST=PASS'
+          Write-Host 'ORDER_TRANSMISSION=False'

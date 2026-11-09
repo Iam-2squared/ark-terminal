@@ -11,9 +11,8 @@ $tokens=$null;$errors=$null
 $ast=[Management.Automation.Language.Parser]::ParseFile((Join-Path $CandidateRoot 'native.ps1'),[ref]$tokens,[ref]$errors)
 $fn=@($ast.FindAll({param($n) $n -is [Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq 'RunWeekly'},$true))
 Check ($fn.Count -eq 1) 'RUN_WEEKLY_UNIQUE'
-# Invoke-Expression has no source file and gives functions an empty
-# PSScriptRoot. Dot-source only the extracted function from a real file,
-# matching the installed native launcher's source-directory semantics.
+# Dot-source only the extracted function from a real file, matching the
+# installed native launcher's PSScriptRoot semantics. Never run its main body.
 $functionFile=Join-Path $CandidateRoot 'runweekly-fixture.ps1'
 [IO.File]::WriteAllText($functionFile,$fn[0].Extent.Text,[Text.UTF8Encoding]::new($false))
 . $functionFile
@@ -23,7 +22,6 @@ $script:ClockValue=[datetimeoffset]::Parse('2026-11-09T10:05:00+09:00')
 function Clock{return $script:ClockValue}
 $script:ExcelCalls=0
 function CheckExcel($cfg,[bool]$live){Check (-not $live) 'NO_TRADE_CHECK';$script:ExcelCalls++}
-function Get-FileHash {param([string]$LiteralPath,[string]$Algorithm) return [pscustomobject]@{Hash=('a'*64)}}
 $script:AsOf='2026-11-06';$script:Target='2026-11-09';$script:Scope='FULL_MARKET_FRIDAY'
 function node {
  param([string]$Tool,[string]$Action)
@@ -35,10 +33,14 @@ function node {
 }
 $script:Calls=@()
 function StartChild([string]$kind,[string]$file,[string[]]$parts,[string]$digest,[string]$date){
+ Check ($digest -cmatch '^[a-f0-9]{64}$') 'ACTUAL_SYMBOL_FILE_HASH'
  $script:Calls+=@([pscustomobject]@{Kind=$kind;File=$file;Parts=$parts;Date=$date})
 }
-$weekly='C:\fixture\Run-No11NightlyCycle.ps1'
-$cfg=[pscustomobject]@{fullSymbolsFile='C:\fixture\symbols.txt'}
+$weekly=Join-Path $CandidateRoot 'Run-No11NightlyCycle.ps1'
+# Exercise the real Get-FileHash on a fixture, not a nonexistent fake C: path.
+$symbolsFile=Join-Path $CandidateRoot 'symbols-fixture.txt'
+[IO.File]::WriteAllText($symbolsFile,"7203.T`n",[Text.UTF8Encoding]::new($false))
+$cfg=[pscustomobject]@{fullSymbolsFile=$symbolsFile}
 RunWeekly $cfg
 Check ($script:Calls.Count -eq 1 -and $script:Calls[0].Kind -ceq 'WEEKLY') 'MONDAY_DATA_LAUNCH'
 Check ($script:Calls[0].Date -ceq '2026-11-06') 'REAL_FRIDAY_MARKER_DATE'

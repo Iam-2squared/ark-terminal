@@ -47,6 +47,15 @@ class CalendarPathfixTests(unittest.TestCase):
         self.assertEqual(bad.count(hotfix.BROKEN),1)
         self.child=self.engine/'windows/Prepare-No11NextSessionNightlyReadOnly.ps1'
         self.child.write_bytes(bad.encode('utf-8'))
+        self.engine_sources={}
+        for kind,rel in (
+            ('dailyTool','tools/no11_rss_daily_trend_census.mjs'),
+            ('dailyCollector','windows/Run-No11RssDailyTrendCensusReadOnly.ps1'),
+            ('weekly','windows/Prepare-No11WeeklyAfterCloseReadOnly.ps1')):
+            target=self.engine/rel
+            target.write_bytes(transform.transform(kind,original[kind]))
+            self.engine_sources[kind]=target
+        self.engine_sources['next']=self.child
         self.worker_dir=self.store/'real-friday-worker-old';self.worker_dir.mkdir()
         self.worker=self.worker_dir/'no11_nightly_resume_workeraware.py'
         self.worker.write_bytes(transform.transform('worker',original['worker']))
@@ -63,8 +72,20 @@ class CalendarPathfixTests(unittest.TestCase):
            'dailyCycleRoot':str(self.daily_root),
            'liveTradeConfig':'USER_FROZEN'}
         self.binding.write_bytes(n.encode(b))
+        prior={
+          'schemaId':n.SCHEMA,'kind':'ARK_NO11_MISSING_FRIDAY_REAL_RSS_RECOVERY_RELEASE_V1',
+          'orderTransmission':False,'phase':'COMPLETE',
+          'engineUpdates':{
+             kind:{'path':str(path),'afterSha256':n.digest(path.read_bytes())}
+             for kind,path in self.engine_sources.items()
+          },
+          'workerSha256':n.digest(self.worker.read_bytes())
+        }
+        self.previous_journal=self.store/'missing-friday-real-rss-transaction.json'
+        n.atomic(self.previous_journal,prior)
         self.initial={p:p.read_bytes() for p in (
-          self.child,self.worker,self.validator,self.binding,self.settings,self.ui,self.trade)}
+          self.child,self.worker,self.validator,self.binding,self.settings,self.ui,self.trade,
+          self.previous_journal,*self.engine_sources.values())}
         # The previous broken read-only attempt and its receipt log stay intact.
         self.oldwork=self.daily_root/'resumable-nightly/2026-11-09_2026-11-10-real-friday-v1'
         self.oldwork.mkdir(parents=True)
@@ -102,6 +123,9 @@ class CalendarPathfixTests(unittest.TestCase):
         self.assertEqual(self.worker.read_bytes(),self.initial[self.worker])
         for p in (self.ui,self.trade,self.settings,self.validator):
             self.assertEqual(p.read_bytes(),self.initial[p])
+        self.assertEqual(self.previous_journal.read_bytes(),self.initial[self.previous_journal])
+        for kind,p in self.engine_sources.items():
+            if kind!='next':self.assertEqual(p.read_bytes(),self.initial[p])
         self.assertEqual(self.oldlog.read_bytes(),b'HISTORICAL_WINDOW_MISSING, not a successful capture\n')
 
     def test_upgrade_and_repeated_invocation(self):
@@ -138,7 +162,7 @@ class CalendarPathfixTests(unittest.TestCase):
     def test_unknown_user_engine_edit_blocks_fail_closed(self):
         self.child.write_bytes(self.child.read_bytes()+b'\nCUSTOM')
         before=self.binding.read_bytes()
-        with self.assertRaisesRegex(ValueError,'EXACT_CHILD_PATH_BUG_NOT_PRESENT|SOURCE_CONTEXT_CHANGED'):
+        with self.assertRaisesRegex(ValueError,'ENGINE_CHANGED_SINCE_SIGNED_FRIDAY_INSTALL'):
             hotfix.install(self.store,do_apply=True,test=True)
         self.assertEqual(self.binding.read_bytes(),before)
         self.assertFalse((self.store/hotfix.JOURNAL).exists())

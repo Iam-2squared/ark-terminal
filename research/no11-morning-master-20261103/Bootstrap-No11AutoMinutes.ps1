@@ -16,7 +16,7 @@ function GitBlob([byte[]]$data){
  try{return ([BitConverter]::ToString($sha.ComputeHash($all))).Replace('-','').ToLowerInvariant()}
  finally{$sha.Dispose()}
 }
-$release='1d42c5ae9d925832acd380182888c32ee5046bed'
+$release='9bfccb93e27f2e3b9d3894eb57a930641c1991d3'
 $files=[ordered]@{
  'no11_nightly_resume.py'='6c3668c47991e1407464c7049cd662ff9985ad35'
  'no11_nightly_resume_workeraware.py'='2fe73374a372eeaf1bcda0f4d19a5016bbfe0467'
@@ -24,7 +24,7 @@ $files=[ordered]@{
  'no11_auto_minute_cycle_transform.py'='a0a290a2edee4542ee8268fe3eaa7faded88b025'
  'no11_auto_minute_worker_transform.py'='923d3ff99500213d086f4f8a549c8e8901854c85'
  'no11_auto_minute_exclusion.py'='ebd579da83e3d4136d48f4b79b47b6f0cd0c0cb0'
- 'install_no11_auto_minutes_release.py'='6a59bf185a004ef7cc5fea0e1bec5839eb1edab9'
+ 'install_no11_auto_minutes_release.py'='3670aff04bb767fe31e3b109a6b4d96694e6be85'
 }
 if($OfflineSelfTest){
  Need (-not $Apply -and $files.Count -eq 7) 'SELFTEST_OPTIONS'

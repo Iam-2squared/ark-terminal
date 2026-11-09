@@ -279,7 +279,12 @@ try {
   exit 0
 } catch {
   # Never treat a failed CIM check as proof that the machine is quiet.
-  Write-Output 'NO11_WORKER_CIM_QUERY_OR_ANCESTRY_FAILED'
+  $reason=[string]$_.Exception.Message
+  if($reason -notin @('EMPTY_CIM_SNAPSHOT','PYTHON_PID_NOT_IN_CIM_SNAPSHOT',
+      'ANCESTOR_CREATION_TIME_MISSING','ANCESTOR_PID_REUSED')){
+    $reason='CIM_OR_POWERSHELL_EXCEPTION'
+  }
+  Write-Output ('NO11_WORKER_CIM_QUERY_OR_ANCESTRY_FAILED|'+$reason)
   exit 4
 }
 '''
@@ -298,6 +303,12 @@ try {
             need(False, 'WORKER_QUERY_FAILED')
     if result.returncode not in (0, 3) or not result.stdout.strip():
         print('NO11_NIGHTLY_RESUME_WORKER_PROBE=QUERY_UNAVAILABLE', flush=True)
+        print('NO11_NIGHTLY_RESUME_WORKER_PROBE_EXIT='+str(result.returncode), flush=True)
+        reason=result.stdout.strip().split('|')
+        if len(reason)==2 and reason[0]=='NO11_WORKER_CIM_QUERY_OR_ANCESTRY_FAILED' and re.fullmatch(r'[A-Z_]+',reason[1]):
+            print('NO11_NIGHTLY_RESUME_WORKER_PROBE_DIAGNOSTIC='+reason[1], flush=True)
+        else:
+            print('NO11_NIGHTLY_RESUME_WORKER_PROBE_DIAGNOSTIC=NO_SAFE_RESPONSE', flush=True)
         need(False, 'WORKER_QUERY_FAILED')
     try:
         data = json.loads(result.stdout.strip())

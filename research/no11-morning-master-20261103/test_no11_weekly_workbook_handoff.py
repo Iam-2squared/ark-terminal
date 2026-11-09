@@ -99,7 +99,7 @@ class InstallTests(unittest.TestCase):
         self.assertEqual(backups[0].read_bytes(),self.before[self.native])
 
     def test_collector_not_3book_capable_blocks_without_write(self):
-        p=self.collectors['daily']
+        p=self.collectors['Run-No11RssDailyTrendCensusReadOnly.ps1']
         p.write_bytes(b'ORIGINAL WITHOUT THREE BOOKS')
         with self.assertRaisesRegex(ValueError,'COLLECTOR_THREE_BOOK_NOT_INSTALLED'):
             fix.install(self.store,apply=True,synthetic=True)

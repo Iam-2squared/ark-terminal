@@ -124,7 +124,7 @@ class CombinedCaptureParserTests(unittest.TestCase):
         self.assertEqual(a[a.index('def verified_sources('):],b[b.index('def verified_sources('):])
         self.assertIn('not stage.get("omittedSymbols")',b)
         self.assertIn('"PREVIOUS_MINUTES_INCOMPLETE"',b)
-        self.assertIn('productionReady=False',b)
+        self.assertIn('"productionReady":False',b)
 
 if __name__=='__main__':
     unittest.main(verbosity=2)

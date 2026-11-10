@@ -112,7 +112,7 @@ Write-Host ('FORMAT='+[string]$formula.NumberFormat)
                 self.assertEqual(result.returncode,0,result.stderr)
                 if status=='PASS':
                     self.assertIn('RESULT=PASS',result.stdout)
-                    self.assertIn('FORMULA=General',result.stdout)
+                    self.assertIn('FORMAT=General',result.stdout)
                     self.assertIn('BD1=ARK_NO11_SEND_ONCE',result.stdout)
                     self.assertIn('BD2=0',result.stdout)
                     self.assertIn('BD3=SAMESESSION',result.stdout)

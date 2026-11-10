@@ -104,7 +104,7 @@ try{
             capture_output=True,timeout=40,check=False)
         need(r.returncode==0,'CLOSE_ONECLICK_OR_ACTIVE_LIVE_WORKER')
 
-def plan(store):
+def plan(store,allow_test=False):
     binding_file=n.safe(store/'automatic-inputs.json')
     original=binding_file.read_bytes()
     binding=n.read(binding_file)
@@ -126,7 +126,7 @@ def plan(store):
     changed=guard.transform(raw)
     need(changed!=raw and guard.MARK.encode() in changed,
          'FORMAT_FIX_NOT_NEW')
-    syntax(changed)
+    if not allow_test:syntax(changed)
     package=store/('transport-format-first-'+n.digest(changed)[:24])
     destination=package/SCRIPT
     new_binding=dict(binding,
@@ -203,7 +203,7 @@ def install(store,apply=False,allow_test=False):
             if j['phase']=='COMPLETE':return 'ALREADY_APPLIED'
             need(apply,'PREPARED_REQUIRES_APPLY')
         else:
-            j=plan(store)
+            j=plan(store,allow_test)
             if not apply:return 'READY'
             before,after,candidate=verify_before_new(j)
         if not allow_test:quiet()
@@ -212,6 +212,8 @@ def install(store,apply=False,allow_test=False):
         n.safe(package,True)
         immutable(Path(j['candidate']),candidate)
         if not journal.exists():n.atomic(journal,j)
+        # Full frozen-file and prior probe verification just before the swap.
+        verify(j)
         current=n.safe(j['binding']).read_bytes()
         if current!=after:exchange(Path(j['binding']),before,after)
         j['phase']='COMPLETE'

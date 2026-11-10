@@ -7,6 +7,7 @@ from pathlib import Path
 import os
 import subprocess
 import sys
+import tempfile
 import unittest
 
 HERE=Path(__file__).resolve().parent
@@ -20,8 +21,8 @@ class TransportFormulaGuardTests(unittest.TestCase):
         source=(HERE/'Prepare-No11AutomaticLiveTransportV3.ps1').read_bytes()
         cls.old=resilient.transform(source)
         cls.changed=fix.transform(cls.old)
-        cls.old_text=cls.old.decode('utf-8-sig')
-        cls.new_text=cls.changed.decode('utf-8-sig')
+        cls.old_text=cls.old.decode('utf-8-sig').replace('\r\n','\n')
+        cls.new_text=cls.changed.decode('utf-8-sig').replace('\r\n','\n')
 
     def test_real_193_line_is_format_write(self):
         # Guaranteed source line mapping for the unchanged V3 resilient patch.
@@ -100,10 +101,14 @@ Write-Host ('BD2='+[string]$trigger.Value2)
 Write-Host ('BD3='+[string]$session.Value2)
 Write-Host ('FORMAT='+[string]$formula.NumberFormat)
 """%(guard,session,initial,script)
-                result=subprocess.run(['powershell.exe','-NoProfile',
-                    '-NonInteractive','-Command','-'],input=harness,
-                    text=True,encoding='utf-8',capture_output=True,
-                    timeout=25,check=False)
+                with tempfile.TemporaryDirectory(prefix='ark-no11-bd4-mock-') as t:
+                    script_file=Path(t)/'case.ps1'
+                    script_file.write_text(harness,encoding='utf-8-sig')
+                    result=subprocess.run(['powershell.exe','-NoProfile',
+                        '-NonInteractive','-ExecutionPolicy','Bypass',
+                        '-File',str(script_file)],text=True,encoding='utf-8',
+                        errors='replace',capture_output=True,
+                        timeout=25,check=False)
                 self.assertEqual(result.returncode,0,result.stderr)
                 if status=='PASS':
                     self.assertIn('RESULT=PASS',result.stdout)

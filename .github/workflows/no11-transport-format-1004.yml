@@ -1,0 +1,35 @@
+name: No11 Excel 1004 BD4 transport initialization fail-safe
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - 'research/no11-morning-master-20261103/no11_transport_format_guard.py'
+      - 'research/no11-morning-master-20261103/test_no11_transport_format_guard.py'
+      - '.github/workflows/no11-transport-format-1004.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: no11-format-1004-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  no-order-transport-format-and-partial-session:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reproduce true line193 and verify no auto retry/cancel/order
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=research/no11-morning-master-20261103
+          python -m unittest discover -s "$root" -p test_no11_transport_format_guard.py -v
+          python -m unittest discover -s "$root" -p test_no11_transport_resilience.py -v
+          python -m unittest discover -s "$root" -p test_no11_circuit_audit.py -v

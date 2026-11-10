@@ -34,5 +34,5 @@ jobs:
         run: |
           python -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_live_xlsb_preflight.py -v
           if($LASTEXITCODE -ne 0){throw 'XLSB_PREFLIGHT_REGRESSION_FAILED'}
-          python -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_live_book_path_rebind.py -v
+          python -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_open_book_enrollment.py -v
           if($LASTEXITCODE -ne 0){throw 'BOOK_REBIND_REGRESSION_FAILED'}

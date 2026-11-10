@@ -5,12 +5,17 @@ on:
     paths:
       - 'research/no11-morning-master-20261103/no11_live_xlsb_contract.py'
       - 'research/no11-morning-master-20261103/install_no11_live_xlsb_preflight.py'
+      - 'research/no11-morning-master-20261103/no11_live_book_path_rebind.py'
+      - 'research/no11-morning-master-20261103/test_no11_open_book_enrollment.py'
       - 'research/no11-morning-master-20261103/test_no11_live_xlsb_preflight.py'
       - 'research/no11-morning-master-20261103/Bootstrap-No11ThreeXlsbLivePreflight.ps1'
       - '.github/workflows/no11-live-xlsb-preflight.yml'
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: no11-open-books-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   three-book-identity-and-frozen-trading:
     strategy:
@@ -19,16 +24,19 @@ jobs:
         os: [windows-latest, ubuntu-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
+    env:
+      PYTHONUTF8: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Strict original workbook preflight and no-order installer transaction
+      - name: Open-book mismatch and connected no-order migration regressions
         shell: bash
         run: |
           set -euo pipefail
           root=research/no11-morning-master-20261103
+          python -m unittest discover -s "$root" -p test_no11_open_book_enrollment.py -v
           python -m unittest discover -s "$root" -p test_no11_live_xlsb_preflight.py -v
           python -m unittest discover -s "$root" -p test_no11_auto_minute_install.py -v
           python -m unittest discover -s "$root" -p test_no11_auto_minutes_connected_audit.py -v
@@ -58,4 +66,3 @@ jobs:
         run: |
           & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/Bootstrap-No11ThreeXlsbLivePreflight.ps1 -OfflineSelfTest
           if($LASTEXITCODE -ne 0){throw 'NO11_LIVE_XLSB_BOOTSTRAP_TEST_FAILED'}
-

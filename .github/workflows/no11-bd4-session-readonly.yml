@@ -1,0 +1,39 @@
+name: No11 BD4 session-key and locale read-only diagnosis
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - 'research/no11-morning-master-20261103/Inspect-No11BD4SessionIdentityReadOnly.ps1'
+      - '.github/workflows/no11-bd4-session-readonly.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows-offline-safety:
+    runs-on: windows-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Strict no-mutation test of physical session identity probe
+        shell: powershell
+        run: |
+          $file='research/no11-morning-master-20261103/Inspect-No11BD4SessionIdentityReadOnly.ps1'
+          $t=$null;$e=$null
+          [void][Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path $file),[ref]$t,[ref]$e)
+          if($e.Count){throw 'NO11_BD4_DIAG_PARSE'}
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $file -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'NO11_BD4_DIAG_SELFTEST'}
+      - name: Source must never modify Excel or broker control values
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('research/no11-morning-master-20261103/Inspect-No11BD4SessionIdentityReadOnly.ps1')
+          s=p.read_text()
+          for token in ('Workbooks.Open(', '.Save(', '.ClearContents(', '.NumberFormat=', 'RssStockOrder(', 'RssCancelOrder(', 'Start-Process', 'Remove-Item', 'Stop-Process', '.Value2=1', '$sheet.Range(\'BD1\').Value2='):
+              assert token not in s,token
+          for token in ('NO11_BD4_SESSION_DIAG_BD1=', 'NO11_BD4_SESSION_DIAG_BD3=', 'NO11_BD4_SESSION_DIAG_SCOPE_PROVEN=', 'NO11_BD4_SESSION_DIAG_TRADING_AUTHORIZED=False', 'GetWindowThreadProcessId'):
+              assert token in s,token
+          print('NO11_BD4_IDENTITY_DIAG_SOURCE=READ_ONLY')
+          PY

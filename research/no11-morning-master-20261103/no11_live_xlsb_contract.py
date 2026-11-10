@@ -63,7 +63,23 @@ def safe_settings_change(settings,by_role):
              k not in {x[0] for x in ROLE.values()}),'UNRELATED_LIVE_SETTINGS')
     return output
 
+def transform_settings_key_order(raw):
+    """n.encode sorts JSON keys; key order is not a settings value.
+
+    Change only the exact field-name comparison, retaining the same required
+    fields, case sensitivity, MAX3 and all approval/transmission checks.
+    """
+    old=b"(@($cfg.PSObject.Properties.Name) -join '|') -ceq ($required -join '|')"
+    new=b"(@($cfg.PSObject.Properties.Name | Sort-Object -CaseSensitive) -join '|') -ceq (@($required | Sort-Object -CaseSensitive) -join '|')"
+    if raw.count(new)==1 and old not in raw:
+        return raw
+    need(raw.count(old)==1 and new not in raw,'SETTINGS_COMPARATOR_SOURCE_CHANGED')
+    return raw.replace(old,new,1)
+
 def transform_launcher(raw):
+    # Must run before the XLSB idempotence return: already enrolled PCs may
+    # still carry the old order-sensitive comparison.
+    raw=transform_settings_key_order(raw)
     bom=raw.startswith(b'\xef\xbb\xbf')
     source=raw.decode('utf-8-sig')
     newline='\r\n' if '\r\n' in source else '\n'

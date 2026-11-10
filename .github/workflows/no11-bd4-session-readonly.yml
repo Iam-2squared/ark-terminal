@@ -8,32 +8,58 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: no11-bd4-session-encoding-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   windows-offline-safety:
     runs-on: windows-latest
     timeout-minutes: 6
+    env:
+      PYTHONUTF8: '1'
     steps:
       - uses: actions/checkout@v4
-      - name: Strict no-mutation test of physical session identity probe
-        shell: powershell
-        run: |
-          $file='research/no11-morning-master-20261103/Inspect-No11BD4SessionIdentityReadOnly.ps1'
-          $t=$null;$e=$null
-          [void][Management.Automation.Language.Parser]::ParseFile(
-            (Resolve-Path $file),[ref]$t,[ref]$e)
-          if($e.Count){throw 'NO11_BD4_DIAG_PARSE'}
-          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $file -OfflineSelfTest
-          if($LASTEXITCODE -ne 0){throw 'NO11_BD4_DIAG_SELFTEST'}
-      - name: Source must never modify Excel or broker control values
+      - name: Verify exact BOM-less deployment bytes are ASCII and CP932 invariant
         shell: bash
         run: |
           python - <<'PY'
+          import os, subprocess
           from pathlib import Path
-          p=Path('research/no11-morning-master-20261103/Inspect-No11BD4SessionIdentityReadOnly.ps1')
-          s=p.read_text()
-          for token in ('Workbooks.Open(', '.Save(', '.ClearContents(', '.NumberFormat=', 'RssStockOrder(', 'RssCancelOrder(', 'Start-Process', 'Remove-Item', 'Stop-Process', '.Value2=1', '$sheet.Range(\'BD1\').Value2='):
-              assert token not in s,token
+          path='research/no11-morning-master-20261103/Inspect-No11BD4SessionIdentityReadOnly.ps1'
+          raw=subprocess.check_output(['git','show',os.environ['GITHUB_SHA']+':'+path])
+          assert not raw.startswith(b'\xef\xbb\xbf'), 'Unexpected dependency on BOM'
+          text=raw.decode('ascii')
+          for encoding in ('utf-8','cp932','cp1252'):
+              assert raw.decode(encoding)==text,encoding
+          # Reproduce the old decoding mismatch without a non-ASCII test source.
+          old_literal='G/'+chr(0x6A19)+chr(0x6E96)
+          assert old_literal.encode('utf-8').decode('cp932',errors='replace') != old_literal
+          assert '0x6A19,0x6E96' in text
+          destination=Path(os.environ['RUNNER_TEMP'])/'ark-bd4-exact-no-bom.ps1'
+          destination.write_bytes(raw)
+          assert destination.read_bytes()==raw
+          for token in ('Workbooks.Open(', '.Save(', '.ClearContents(', '.NumberFormat=', 'RssStockOrder(', 'RssCancelOrder(', 'Start-Process', 'Remove-Item', 'Stop-Process', '.Value2=1', "$sheet.Range('BD1').Value2="):
+              assert token not in text,token
           for token in ('NO11_BD4_SESSION_DIAG_BD1=', 'NO11_BD4_SESSION_DIAG_BD3=', 'NO11_BD4_SESSION_DIAG_SCOPE_PROVEN=', 'NO11_BD4_SESSION_DIAG_TRADING_AUTHORIZED=False', 'GetWindowThreadProcessId'):
-              assert token in s,token
+              assert token in text,token
+          print('NO11_BD4_SOURCE_ASCII_CP932_UTF8_EQUAL=PASS')
+          print('NO11_BD4_EXACT_BLOB_NO_BOM=PASS')
           print('NO11_BD4_IDENTITY_DIAG_SOURCE=READ_ONLY')
           PY
+      - name: Parse CP932-decoded source and execute exact raw file with Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          if($PSVersionTable.PSVersion.Major -ne 5){throw 'WINDOWS_POWERSHELL_51_REQUIRED'}
+          $file=Join-Path $env:RUNNER_TEMP 'ark-bd4-exact-no-bom.ps1'
+          $raw=[IO.File]::ReadAllBytes($file)
+          $decoded=[Text.Encoding]::GetEncoding(932).GetString($raw)
+          $t=$null;$e=$null
+          [void][Management.Automation.Language.Parser]::ParseInput($decoded,[ref]$t,[ref]$e)
+          if($e.Count){throw 'NO11_BD4_CP932_PARSE_FAILED'}
+          $t=$null;$e=$null
+          [void][Management.Automation.Language.Parser]::ParseFile($file,[ref]$t,[ref]$e)
+          if($e.Count){throw 'NO11_BD4_RAW_FILE_PARSE_FAILED'}
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $file -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'NO11_BD4_RAW_FILE_SELFTEST_FAILED'}
+          Write-Host 'NO11_BD4_WINDOWS_PS51_CP932_AND_RAW_EXECUTION=PASS'

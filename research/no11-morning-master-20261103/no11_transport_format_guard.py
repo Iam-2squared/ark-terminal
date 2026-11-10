@@ -64,7 +64,10 @@ def transform(raw):
         return raw
     need(src.count(BEFORE)==1 and
          '# ARK_NO11_TRANSPORT_RESILIENCE_V1' in src and
-         src.count('$trigger.Value2=1')==0,'EXPECTED_PINNED_V3_RESILIENT_SOURCE')
+         src.count('$trigger.Value2=1')==0 and
+         src.count("ORDER_SENT=False")>=2 and
+         src.count("ORDER_TRIGGER_WRITTEN_TO_ONE=False")>=2,
+         'EXPECTED_PINNED_V3_RESILIENT_SOURCE')
     # Explicit consent and exact source/Excel identity are untouched.
     for anchor in (
         "Need $SameDayOperatorApproved.IsPresent 'SAME_DAY_OPERATOR_APPROVAL_REQUIRED'",

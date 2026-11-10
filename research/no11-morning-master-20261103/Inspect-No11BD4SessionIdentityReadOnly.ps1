@@ -1,5 +1,6 @@
 # Read-only precision follow-up of original three XLSB BD1/BD2/BD3 and BD4.
 # Never changes cells, files, orders, sessions, control state or approval.
+# ASCII-only source: Windows PowerShell 5.1 may read BOM-less files as CP932.
 param([switch]$OfflineSelfTest)
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
@@ -24,9 +25,13 @@ function CellClass($cell,[string]$expected){
  }elseif($raw -is [ValueType]){$status='NONSTRING_VALUE'}
  return [pscustomobject]@{Status=$status;Length=$length;HasFormula=[bool]$cell.HasFormula}
 }
+function Get-No11JapaneseGeneralFormat {
+ return (-join [char[]]@(0x0047,0x002F,0x6A19,0x6E96))
+}
 function FormatClass([string]$normal,[string]$localized){
  if($normal -ceq 'General' -and $localized -ceq 'General'){return 'ENGLISH_GENERAL'}
- if($normal -ceq 'G/標準' -and $localized -ceq 'G/標準'){return 'JAPANESE_GENERAL'}
+ $japanese=Get-No11JapaneseGeneralFormat
+ if($normal -ceq $japanese -and $localized -ceq $japanese){return 'JAPANESE_GENERAL'}
  return 'OTHER_FORMAT'
 }
 if($OfflineSelfTest){
@@ -34,8 +39,14 @@ if($OfflineSelfTest){
  Need ((CellClass $cell 'ARK_NO11_SEND_ONCE').Status -ceq 'EXPECTED_EXACT') 'MOCK_GUARD'
  $cell.Value2='wrong'
  Need ((CellClass $cell 'ARK_NO11_SEND_ONCE').Status -ceq 'UNKNOWN_STRING') 'MOCK_UNKNOWN'
- Need ((FormatClass 'G/標準' 'G/標準') -ceq 'JAPANESE_GENERAL' -and
+ $japanese=Get-No11JapaneseGeneralFormat
+ Need ($japanese.Length -eq 4 -and [int][char]$japanese[2] -eq 0x6A19 -and
+       [int][char]$japanese[3] -eq 0x6E96) 'MOCK_UNICODE_FORMAT'
+ Need ((FormatClass $japanese $japanese) -ceq 'JAPANESE_GENERAL' -and
+       (FormatClass 'General' 'General') -ceq 'ENGLISH_GENERAL' -and
+       (FormatClass $japanese 'General') -ceq 'OTHER_FORMAT' -and
        (FormatClass '@' '@') -ceq 'OTHER_FORMAT') 'MOCK_FORMAT'
+ Write-Host 'NO11_BD4_SESSION_DIAG_SOURCE_ENCODING=ASCII'
  Write-Host 'NO11_BD4_SESSION_DIAG_SELFTEST=PASS'
  Write-Host 'EXCEL_ACCESSED=False'
  Write-Host 'ORDER_TRANSMISSION=False'

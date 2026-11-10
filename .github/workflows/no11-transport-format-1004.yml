@@ -5,6 +5,8 @@ on:
     paths:
       - 'research/no11-morning-master-20261103/no11_transport_format_guard.py'
       - 'research/no11-morning-master-20261103/test_no11_transport_format_guard.py'
+      - 'research/no11-morning-master-20261103/install_no11_transport_format_guard.py'
+      - 'research/no11-morning-master-20261103/test_no11_transport_format_release.py'
       - '.github/workflows/no11-transport-format-1004.yml'
   workflow_dispatch:
 permissions:
@@ -31,5 +33,6 @@ jobs:
           set -euo pipefail
           root=research/no11-morning-master-20261103
           python -m unittest discover -s "$root" -p test_no11_transport_format_guard.py -v
+          python -m unittest discover -s "$root" -p test_no11_transport_format_release.py -v
           python -m unittest discover -s "$root" -p test_no11_transport_resilience.py -v
           python -m unittest discover -s "$root" -p test_no11_circuit_audit.py -v

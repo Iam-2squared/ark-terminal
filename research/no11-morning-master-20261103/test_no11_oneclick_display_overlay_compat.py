@@ -49,7 +49,9 @@ def make_source(*, bom=False, crlf=False):
     assert old_text.count("function RefreshUi{") == 1
     old_text = old_text.replace("function RefreshUi{",
                                 OVERLAY_CREATION + "function RefreshUi{", 1)
-    anchor = "  $trade.Enabled="
+    # The same property is written in normal, catch and click paths. Insert
+    # ONLY before the original native authorization assignment in RefreshUi.
+    anchor = "  $trade.Enabled=(("
     assert old_text.count(anchor) == 1
     old_text = old_text.replace(anchor, EXTRA_OVERLAY + anchor, 1)
     if crlf:

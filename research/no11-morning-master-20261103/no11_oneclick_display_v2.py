@@ -26,6 +26,71 @@ BUTTONS = {'trade': 'START TRADING / MAX3', 'nightly': 'UPDATE DATA / 翌日準�
            'refresh': 'REFRESH / 状態更新', 'review': 'REVIEW / 停止を確認',
            'logs': 'LOGS / ログ'}
 
+# Exact historical DATA-only migrations, reviewed independently of the user's
+# observed hash. Reverse ONLY these byte-exact normalized spans in memory and
+# require the entire remainder to equal the pinned original Git blob. Never
+# install that reconstructed original or weaken the user's existing decisions.
+_WEEKEND_OLD = '''    if now.weekday() >= 5:
+        result["reason"] = "NON_TRADING_DAY"
+        return result'''
+_WEEKEND_NEW = '''    # ARK_NO11_WEEKEND_FRIDAY_ONECLICK_V1
+    # The WEEKLY button is a data collector and is valid on Sat/Sun.
+    # The original native launcher resolves the REAL prior Friday; never
+    # authorize Trade or create a synthetic weekend market session.
+    if now.weekday() >= 5:
+        if (isinstance(binding.get("dailyCycleTool"), str)
+                and isinstance(binding.get("dailyCycleRoot"), str)
+                and Path(binding["dailyCycleTool"]).is_file()
+                and Path(binding["dailyCycleRoot"]).is_dir()):
+            result.update(mode="WEEKEND_FRIDAY_DATA",
+                          reason="PREVIOUS_FRIDAY_RSS_REFRESH_AVAILABLE",
+                          canRunNightly=True)
+        else:
+            result["reason"] = "NIGHTLY_NOT_INSTALLED"
+        return result'''
+_COMPLETED_INSERT = '''    # ARK_NO11_LATEST_COMPLETED_SESSION_DATA_V1
+    # Enable only the DATA button; all existing Trade evaluation below remains.
+    result['canRunNightly'] = (
+        isinstance(binding.get('dailyCycleTool'), str)
+        and isinstance(binding.get('dailyCycleRoot'), str)
+        and Path(binding['dailyCycleTool']).is_file()
+        and Path(binding['dailyCycleRoot']).is_dir())
+'''
+
+
+def native_source_family(raw):
+    """Prove an installed inspector is an exact original/official derivation.
+
+    Returns a family label only; no file writes, imports or authority changes.
+    BOM and CRLF are formatting variants, but comments, literals and statements
+    outside the two recorded migrations are all covered by the original hash.
+    """
+    text = raw.decode('utf-8-sig').replace('\r\n', '\n')
+    if '\r' in text:
+        raise ValueError('DISPLAY_LEGACY_UNKNOWN')
+    weekend = 'ARK_NO11_WEEKEND_FRIDAY_ONECLICK_V1' in text
+    completed = 'ARK_NO11_LATEST_COMPLETED_SESSION_DATA_V1' in text
+    if completed:
+        anchored = _COMPLETED_INSERT + '    if now.weekday() >= 5:'
+        if text.count('ARK_NO11_LATEST_COMPLETED_SESSION_DATA_V1') != 1 or text.count(anchored) != 1:
+            raise ValueError('DISPLAY_LEGACY_UNKNOWN')
+        text = text.replace(anchored, '    if now.weekday() >= 5:', 1)
+    if weekend:
+        if text.count('ARK_NO11_WEEKEND_FRIDAY_ONECLICK_V1') != 1 or text.count(_WEEKEND_NEW) != 1:
+            raise ValueError('DISPLAY_LEGACY_UNKNOWN')
+        text = text.replace(_WEEKEND_NEW, _WEEKEND_OLD, 1)
+    normalized = text.encode('utf-8')
+    actual = hashlib.sha1(b'blob ' + str(len(normalized)).encode() + b'\0' + normalized).hexdigest()
+    if actual != LEGACY_BLOB:
+        raise ValueError('DISPLAY_LEGACY_UNKNOWN')
+    if weekend and completed:
+        return 'WEEKEND_AND_COMPLETED_SESSION_DATA'
+    if weekend:
+        return 'WEEKEND_DATA'
+    if completed:
+        return 'COMPLETED_SESSION_DATA'
+    return 'ORIGINAL'
+
 
 def safe(path, *, root=None, directory=False):
     p = Path(path)
@@ -75,13 +140,12 @@ def native_inspector():
     home = Path(__file__).resolve().parent
     contract = load(home / 'oneclick-display-v2.contract.json', root=home)
     legacy = safe(home / 'oneclick_status.py', root=home)
+    raw = legacy.read_bytes()
     if (contract.get('schemaId') != CONTRACT or contract.get('orderTransmission') is not False
             or contract.get('displaySha256') != sha(Path(__file__).read_bytes())
-            or contract.get('legacyStatusSha256') != sha(legacy.read_bytes())):
+            or contract.get('legacyStatusSha256') != sha(raw)):
         raise ValueError('DISPLAY_DEPENDENCY_CHANGED')
-    raw = legacy.read_bytes().decode('utf-8-sig').replace('\r\n', '\n').encode('utf-8')
-    if hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest() != LEGACY_BLOB:
-        raise ValueError('DISPLAY_LEGACY_UNKNOWN')
+    native_source_family(raw)
     return module(legacy, 'ark_native_oneclick_status_v2').inspect
 
 
@@ -231,7 +295,9 @@ def present(state, now, reserved, run, data, repair):
     day, tm = now.date().isoformat(), now.strftime('%H:%M:%S')
     if now.utcoffset() != timedelta(hours=9):
         raise ValueError('JST_REQUIRED')
-    if state.get('reason') == 'NON_TRADING_DAY':
+    # Historical native variants allow weekend DATA updates. That permission
+    # does not make Saturday/Sunday a trading session in the presentation.
+    if now.weekday() >= 5 or state.get('reason') == 'NON_TRADING_DAY':
         phase, label = 'NO_SESSION', 'NO SESSION / 受付対象外'
     elif tm >= '18:00:00':
         phase, label = 'AFTER_CLOSE', 'CLOSED / 本日終了'

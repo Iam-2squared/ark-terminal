@@ -1,0 +1,136 @@
+name: No11 OneClick V2 overlay compatibility offline
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - 'research/no11-morning-master-20261103/install_no11_oneclick_display_overlay_compat.py'
+      - 'research/no11-morning-master-20261103/test_no11_oneclick_display_overlay_compat.py'
+      - '.github/workflows/no11-oneclick-v2-overlay-compat.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  overlay-regressions:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 8
+    env:
+      PYTHONUTF8: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Existing OneClick V2 plus user-like overlay migration and recorded guard checks
+        shell: bash
+        run: |
+          python -B -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_oneclick_display_overlay_compat.py -v
+      - name: Existing Display V2/native permissions regression
+        shell: bash
+        run: |
+          python -B -m unittest discover -s research/no11-morning-master-20261103 -p 'test_no11_oneclick_display*.py' -v
+      - name: Windows real PowerShell strict-mode RefreshUi execution with no LIVE callbacks
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Add-Type -AssemblyName System.Windows.Forms
+          Add-Type -AssemblyName System.Drawing
+          $code=@'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, str(Path("research/no11-morning-master-20261103").resolve()))
+          import no11_oneclick_display_transform as v2
+          import install_no11_oneclick_display_overlay_compat as overlay
+          import test_no11_oneclick_display_overlay_compat as fixtures
+          raw = v2.transform(fixtures.make_source())
+          Path(sys.argv[1]).write_bytes(overlay.change(raw))
+          '@
+          $launcher=Join-Path $env:RUNNER_TEMP 'overlay.ps1'
+          $code | python -B -X utf8 - $launcher
+          if ($LASTEXITCODE -ne 0){ throw 'OVERLAY_DERIVATION_FAILED' }
+          $t=$null;$e=$null
+          $ast=[Management.Automation.Language.Parser]::ParseFile($launcher,[ref]$t,[ref]$e)
+          if(@($e).Count){throw 'POWERSHELL_PARSE_FAILED'}
+          $refresh=@($ast.FindAll({param($n) $n -is [Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq 'RefreshUi'},$false))
+          if($refresh.Count -ne 1){throw 'MISSING_REFRESH_UI'}
+          . ([ScriptBlock]::Create($refresh[0].Extent.Text))
+          Set-StrictMode -Version Latest
+          function Need([bool]$ok,[string]$why){if(-not $ok){throw $why}}
+          function ReadNo11SelectionDisplay {return 'WEEKLY DONE / DAILY READY'}
+          function CanQueuePreopen($s){return $false}
+          function PreopenReserved($s){return $false}
+          function CanRetryPreorder($s){return $false}
+          function GetStatus{
+            $nl=[Environment]::NewLine
+            return [pscustomobject]@{
+              mode='AFTER_CLOSE';reason='NIGHTLY_OPERATOR_BUTTON_AVAILABLE'
+              canRequestTrade=$false;canRunNightly=$true;sessionDate='2026-11-11'
+              runHealth=[pscustomobject]@{state='RUN_EXISTS_REVIEW_REQUIRED'}
+              presentation=[pscustomobject]@{
+                schemaId='ARK_NO11_ONECLICK_PRESENTATION_V2'
+                readOnly=$true;orderTransmission=$false
+                trading='STOPPED / 停止記録・要確認'
+                text=('TODAY 2026-11-11 | CLOSED / 本日終了'+$nl+'TRADING STOPPED / 停止記録・要確認'+$nl+'DATA NEXT 11/12 READY 41銘柄'+$nl+'CHECK SOURCE FIX APPLIED / 適用済み')
+                details='Offline fixture'
+                buttons=[pscustomobject]@{
+                  trade='START TRADING / MAX3';nightly='UPDATE DATA / 翌日準備'
+                  refresh='REFRESH / 状態更新';review='REVIEW / 停止を確認';logs='LOGS / ログ'
+                }
+              }
+            }
+          }
+          $selectionStatus=New-Object System.Windows.Forms.Label
+          $disabledTradeOverlay=New-Object System.Windows.Forms.Label
+          $status=New-Object System.Windows.Forms.Label
+          $trade=New-Object System.Windows.Forms.Button
+          $nightly=New-Object System.Windows.Forms.Button
+          $refresh=New-Object System.Windows.Forms.Button
+          $review=New-Object System.Windows.Forms.Button
+          $logsButton=New-Object System.Windows.Forms.Button
+          $script:No11DisplayTip=New-Object System.Windows.Forms.ToolTip
+          try{
+            RefreshUi
+            if($status.Text -match 'SOURCE_OR_RUNTIME_UNVERIFIED'){throw 'STILL_FAILS'}
+            if($status.Text -notmatch 'TODAY 2026-11-11'){throw 'NO_STATUS_TEXT'}
+            if($disabledTradeOverlay.Text -cne 'TRADING CLOSED FOR TODAY'){throw 'INCORRECT_OVERLAY'}
+            if($trade.Enabled){throw 'TRADE_ENABLED'}
+            if(-not $nightly.Enabled){throw 'NIGHTLY_SHOULD_RETAIN_NATIVE_PERMISSION'}
+            if($trade.Text -cne 'START TRADING / MAX3'){throw 'V2_CAPTION_REVERTED'}
+            Write-Host 'NO11_ACTUAL_REFRESH_OVERLAY_FIXED=PASS'
+            Write-Host 'TRADE_STARTED=False'
+            Write-Host 'ORDER_TRANSMISSION=False'
+          }finally{
+            foreach($item in @($selectionStatus,$disabledTradeOverlay,$status,$trade,$nightly,$refresh,$review,$logsButton,$script:No11DisplayTip)){
+              if($null -ne $item){$item.Dispose()}
+            }
+          }
+      - name: No source changes or side effects
+        shell: bash
+        run: git diff --exit-code
+  release-hash:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: research/no11-morning-master-20261103
+      - name: Immutable installer and original dependency SHA256
+        shell: bash
+        run: |
+          python3 -B - <<'PY'
+          import hashlib, subprocess
+          base='research/no11-morning-master-20261103/'
+          files=('install_no11_oneclick_display_overlay_compat.py',
+                 'install_no11_oneclick_display_v2.py',
+                 'no11_oneclick_display_transform.py',
+                 'no11_oneclick_display_v2.py',
+                 'no11_nightly_resume.py')
+          for file in files:
+              raw=subprocess.check_output(['git','show','HEAD:'+base+file])
+              print('OVERLAY_RELEASE_SHA256|'+file+'='+hashlib.sha256(raw).hexdigest())
+          PY

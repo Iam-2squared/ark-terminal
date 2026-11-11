@@ -6,7 +6,7 @@
 - Same-day candidate intake 44, machine source-filter PASS 42, excluded 2; the initial broker launch reached a new native process.
 - Engine process exited around 09:02 with `NO11_BOOTSTRAP_SOURCE_EXPORT_OR_VALIDATION_FAILED` and observer cleanup nonzero. The export wrapper intentionally redacts the underlying Node.js stderr.
 - An **independent, unchanged, Git-blob-verified native validator** (`no11_verified_weekly_shadow_scope.mjs` blob `b777b944379c7c6dda15eac10ddda5959ab181c8`) reproduced `NO11_WEEKLY_SHADOW_SCOPE=BLOCKED|NO11_WEEKLY_SHADOW_RECEIPT_HASH_MISMATCH`; exit 2.
-- Separately, installed `no11_received_pipeline_tick.mjs` has raw Git blob `974f3da4473cdcd37cc6218d0b675cff28cfa9ab` rather than unmodified repo `1e7c7353efde2b2a3016ca72dd3ea04673ed2484`. This is **not** proof of a bad file; investigate installed patch provenance, do NOT overwrite or bypass source checks.
+- Separately, the reported installed `no11_received_pipeline_tick.mjs` raw Git blob is `974f3da4473cdcd37cc6218d0b675cff28cfa9ab`. The November 11 follow-up reproduced this exact blob by converting the repository original (`1e7c7353efde2b2a3016ca72dd3ea04673ed2484`) from LF to Windows CRLF, without any content changes. This reported snapshot is therefore explained by line endings; it is not evidence of an unknown code patch or data corruption. Do not overwrite the installed file. A later change on the PC would require a new identity check.
 - Shared logs do not establish whether the broker has any orders, fills, cancellations or positions. Broker/order/position/cash reconciliation remains mandatory.
 
 ## Code-level cause (deterministic naming contract mismatch)
@@ -32,3 +32,10 @@
 2. Verify broker's **actual** November 11 order, execution, cancellation, position and cash history independently; ensure monitoring/EXIT is not assumed active because the engine exited.
 3. After market and when no ARK workers are active, audit the locally installed bootstrap code identity and evaluate the pinned source patch only if exact source compatibility is proven. Do not assume unmodified Git blob if approved local patches exist.
 4. The next session must receive its own legitimately generated, date-correct handoff and explicit same-day operator approval. Do not reuse or redate November 11 materials.
+
+## Follow-up: repair CI execution before deployment
+- The dedicated installer suite previously could not import because its final forbidden-token tuple had an extra closing parenthesis. Remove only that syntax error; preserve every installer assertion.
+- The broader No12 Node suite was missing `no11_weekly_g1_refresh.completed-test.mjs`, a generated test fixture. Generate it with the same real `install_no11_completed_session_update.transform('planner', original)` used by the dedicated completed-session workflow; do not replace the import with the untransformed production planner or skip the tests.
+- Local Linux checks after these two CI-only repairs: lineage 11/11, installer 8/8, transformed completed-session planner 15/15 PASS. Remote Windows/Linux CI must still be checked on the resulting commit. These results do not prove physical deployment or a same-day restart.
+- The reported pipeline CRLF identity was independently reproduced from exact repository bytes. For comparison, the original bootstrap has normalized/LF Git blob `19f006b08f6687db0bfea67b9bd7519d77957ce4` and CRLF Git blob `c6d0ca2417827ed4854d80e094fa096a07b2a14b`; the PC bootstrap identity is still required.
+- Current deployment and restart capabilities remain unchanged: the installer refuses apply from 08:00 through 15:30 JST, and the existing same-run collector recovery does not cover a failure in `bootstrap.prepare()` before `recovery.register()`. A request to resume that failure later the same day needs a separately implemented, reviewed path that retains the original attempt evidence and reconciles current broker state; the CI fixes do not add that path.

@@ -135,7 +135,7 @@ class Installer(unittest.TestCase):
         content=(HERE/'install_no11_weekly_filtered_lineage.py').read_text()
         for token in ('RssStockOrder(', 'RssCancelOrder(', 'START TRADING',
                       'Start-No11UnifiedLauncher.ps1', 'TRADE_LAUNCHED=True',
-                      'ORDER_SENT=True','.Value2=1', 'Remove-Item', 'TRADE-2026-11-11.launch.json')):
+                      'ORDER_SENT=True','.Value2=1', 'Remove-Item', 'TRADE-2026-11-11.launch.json'):
             self.assertNotIn(token,content,token)
 
 

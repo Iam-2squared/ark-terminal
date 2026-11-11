@@ -152,6 +152,43 @@ class FilteredWeeklyLineage(unittest.TestCase):
             self.assertEqual(len(c['derived'].stem.rsplit('-', 1)[-1]), 64)
             self.assertEqual(len(c['orig'].stem.rsplit('-', 1)[-1]), 16)
 
+    def test_actual_export_scope_passes_original_to_native_but_returns_filtered(self):
+        with tempfile.TemporaryDirectory() as d:
+            c = case(Path(d))
+            patched = patch.transform(self.original).decode('utf-8-sig')
+            tree = ast.parse(patched)
+            entry = next(x for x in tree.body
+                         if isinstance(x, ast.FunctionDef) and x.name == 'export_scope')
+            calls = []
+
+            def fake_output(argv):
+                calls.append(list(argv))
+                return 'NO11_WEEKLY_SHADOW_SCOPE=PASS_OBSERVED_NOT_EXTERNALLY_REVIEWED'
+
+            def need(ok, code):
+                if not ok:
+                    raise ValueError('NO11_BOOTSTRAP_' + code)
+
+            def private(file, directory=False):
+                p = Path(file)
+                need(p.is_absolute() and
+                     (p.is_dir() if directory else p.is_file()), 'PRIVATE_SOURCE_MISSING')
+                return p
+
+            scope = {'verified_weekly_original': self.validate,
+                     'command_output': fake_output,
+                     'need': need, 'private': private,
+                     'HERE': Path(d)}
+            ast.fix_missing_locations(entry)
+            exec(compile(ast.Module(body=[entry], type_ignores=[]),
+                         '<pinned-export-scope>', 'exec'), scope)
+            kept_chart, kept_mask = scope['export_scope'](c['cfg'])
+            self.assertEqual(kept_chart, c['derived'])
+            self.assertEqual(kept_mask, c['mask'])
+            self.assertEqual(len(calls), 1)
+            self.assertEqual(calls[0][calls[0].index('--chart') + 1], str(c['orig']))
+            self.assertEqual(calls[0][calls[0].index('--session') + 1], '2026-11-11')
+
     def test_report_must_exist_with_original_hash_not_a_new_claim(self):
         with tempfile.TemporaryDirectory() as d:
             c = case(Path(d))

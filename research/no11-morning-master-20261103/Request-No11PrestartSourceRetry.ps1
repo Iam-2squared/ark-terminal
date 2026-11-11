@@ -47,14 +47,24 @@ function InvokeCore([string]$python,[string]$tool,[string[]]$parts){
  Need ($rows.Count -eq 1) 'CORE_OUTPUT_NOT_UNIQUE'
  return ($rows[0]|ConvertFrom-Json)
 }
-function ProcessProof([string]$day){
+function ProcessSnapshot {
  $all=@(Get-CimInstance Win32_Process -ErrorAction Stop)
  Need ($all.Count -gt 0) 'PROCESS_ENUMERATION_EMPTY'
- $candidates=@($all|Where-Object{
+ return @($all|Where-Object{
   $_.ProcessId -ne $PID -and
   $_.Name -match '^(powershell|pwsh|python|pythonw|node)([.]exe)?$'
  })
- $unreadable=@($candidates|Where-Object{[string]::IsNullOrWhiteSpace([string]$_.CommandLine)})
+}
+function ProcessProof([string]$day){
+ # Win32_Process.CommandLine may briefly be null for a new/exiting process.
+ # Resample the entire process set without waiving unknown live processes.
+ $candidates=@();$unreadable=@()
+ for($attempt=0;$attempt -lt 4;$attempt++){
+  $candidates=@(ProcessSnapshot)
+  $unreadable=@($candidates|Where-Object{[string]::IsNullOrWhiteSpace([string]$_.CommandLine)})
+  if($unreadable.Count -eq 0){break}
+  if($attempt -lt 3){Start-Sleep -Milliseconds 180}
+ }
  Need ($unreadable.Count -eq 0) 'PROCESS_COMMAND_LINE_UNAVAILABLE'
  $pattern='Run-No11ReceivedSession|no11_received_|no11_broker_|no11_prestart_source_retry|prestart-retry[\\/]|prestart-controller|prestart-operator|Observe-No11AccountReadOnly|Probe-No11Chart50ContinuousReadOnly|Invoke-No11MsiiOrder|Run-No11Preopen|Start-No11Preopen|PreopenStandby|launcher_automatic_bridge|no11_nightly|Run-No11.*Nightly|no11_daily_cycle|Run-No11.*Daily|Start-No11Afternoon|Retry-No11|Resume-No11SameSession|Request-No11PrestartSourceRetry'
  $workers=@($candidates|Where-Object{[string]$_.CommandLine -match $pattern})
@@ -199,6 +209,34 @@ if($OfflineSelfTest){
   $blocked=$false;try{WriteNewJson $file @{orderTransmission=$true}}catch{$blocked=$true}
   Need ($blocked -and [Convert]::ToBase64String($before) -ceq [Convert]::ToBase64String([IO.File]::ReadAllBytes($file))) 'NO_OVERWRITE_TEST'
  }finally{[IO.Directory]::Delete($temporary,$true)}
+ # Mock the actual ProcessProof path: no CIM, Excel or broker is touched.
+ $script:proofMode='gone';$script:proofReads=0
+ $script:proofGood=[pscustomobject]@{ProcessId=($PID+100000);Name='powershell.exe';CommandLine='powershell.exe benign'}
+ $script:proofUnknown=[pscustomobject]@{ProcessId=($PID+100001);Name='node.exe';CommandLine=$null}
+ $script:proofResolved=[pscustomobject]@{ProcessId=($PID+100001);Name='node.exe';CommandLine='node.exe benign.js'}
+ $script:proofWorker=[pscustomobject]@{ProcessId=($PID+100002);Name='python.exe';CommandLine='python.exe no11_received_session_controller.py'}
+ function ProcessSnapshot {
+  $script:proofReads++
+  if($script:proofMode -eq 'persistent'){return @($script:proofGood,$script:proofUnknown)}
+  if($script:proofMode -eq 'worker'){return @($script:proofGood,$script:proofWorker)}
+  if($script:proofReads -eq 1){return @($script:proofGood,$script:proofUnknown)}
+  if($script:proofMode -eq 'resolved'){return @($script:proofGood,$script:proofResolved)}
+  return @($script:proofGood)
+ }
+ foreach($mode in @('gone','resolved')){
+  $script:proofMode=$mode;$script:proofReads=0
+  $proof=ProcessProof '2026-11-11'
+  Need ($script:proofReads -eq 2 -and $proof.unreadableWorkers -eq 0 -and $proof.matchingWorkers -eq 0) 'TRANSIENT_PROCESS_RECHECK_TEST'
+ }
+ $script:proofMode='persistent';$script:proofReads=0
+ $blocked=$false
+ try{[void](ProcessProof '2026-11-11')}catch{$blocked=($_.Exception.Message -ceq 'NO11_PRESTART_RETRY_PROCESS_COMMAND_LINE_UNAVAILABLE')}
+ Need ($blocked -and $script:proofReads -eq 4) 'PERSISTENT_UNREADABLE_REJECTION_TEST'
+ $script:proofMode='worker';$script:proofReads=0
+ $blocked=$false
+ try{[void](ProcessProof '2026-11-11')}catch{$blocked=($_.Exception.Message -ceq 'NO11_PRESTART_RETRY_ARK_WORKERS_STILL_RUNNING')}
+ Need $blocked 'ARK_WORKER_REJECTION_TEST'
+ Write-Host 'NO11_PRESTART_RETRY_PROCESS_RACE_TEST=PASS'
  Write-Host 'NO11_PRESTART_RETRY_WINDOWS_SELFTEST=PASS'
  Write-Host 'EXCEL_ACCESSED=False'
  Write-Host 'TRADE_REQUESTED=False'

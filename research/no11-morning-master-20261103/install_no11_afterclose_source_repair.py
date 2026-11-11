@@ -216,6 +216,13 @@ def install(store, *, apply=False):
         make_plan(store)
         return 'READY_NOT_APPLIED'
     gate()
+    # Reject existing incompatibilities without even creating a lock file.
+    # This precheck is NOT authorization: every check runs again under lock.
+    if journal.exists():
+        record = n.checkpoint(journal)
+        verify(store, record, frozen=record['phase'] != 'COMPLETE')
+    else:
+        make_plan(store)
     with n.exclusive(store / 'unified-refresh-install.lock'):
         gate()
         if journal.exists():

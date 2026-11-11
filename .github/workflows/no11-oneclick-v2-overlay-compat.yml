@@ -74,12 +74,12 @@ jobs:
               presentation=[pscustomobject]@{
                 schemaId='ARK_NO11_ONECLICK_PRESENTATION_V2'
                 readOnly=$true;orderTransmission=$false
-                trading='STOPPED / 停止記録・要確認'
-                text=('TODAY 2026-11-11 | CLOSED / 本日終了'+$nl+'TRADING STOPPED / 停止記録・要確認'+$nl+'DATA NEXT 11/12 READY 41銘柄'+$nl+'CHECK SOURCE FIX APPLIED / 適用済み')
+                trading='STOPPED / REVIEW'
+                text=('TODAY 2026-11-11 | CLOSED'+$nl+'TRADING STOPPED / REVIEW'+$nl+'DATA NEXT 11/12 READY 41'+$nl+'CHECK SOURCE FIX APPLIED')
                 details='Offline fixture'
                 buttons=[pscustomobject]@{
-                  trade='START TRADING / MAX3';nightly='UPDATE DATA / 翌日準備'
-                  refresh='REFRESH / 状態更新';review='REVIEW / 停止を確認';logs='LOGS / ログ'
+                  trade='START TRADING / MAX3';nightly='UPDATE DATA'
+                  refresh='REFRESH';review='REVIEW';logs='LOGS'
                 }
               }
             }

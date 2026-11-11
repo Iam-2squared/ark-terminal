@@ -1,15 +1,17 @@
 # Immutable, hash-verified release for the explicit pre-registration retry.
+# Personal account holdings are preserved, not adopted into ARK ownership.
 param(
  [switch]$Start,
+ [Alias('IConfirmNoArkOrdersFillsOrPositions')]
  [switch]$IConfirmNoOrdersFillsOrPositions,
  [switch]$OfflineSelfTest
 )
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
-$SourceCommit='9e84b4b97349d2a221c9fd10d5b1db29498d89f4'
+$SourceCommit='6da33e9b2a436eeaf6470129c7f98875e0262498'
 $Pins=[ordered]@{
  'Request-No11PrestartSourceRetry.ps1'='1c28704e3b942fdbb6aabecb0156f1f3ca34532b0d36df2397c10f62ba97bf01'
- 'no11_prestart_source_retry.py'='2739bd8b6de0802ab99b88b6562d972e1ab5bf9e5f4118c5433cbe9c79606d65'
+ 'no11_prestart_source_retry.py'='50874c230c3793c5d4500fa84b732c23faea576b569dd433a168417836ccf54e'
  'no11_weekly_filtered_lineage.py'='7d2ee90b71316c85a6217e7e08b40f96a7723a2325ed51c9389d7acc77db24c1'
  'no11_manual_reconnect_review.py'='abb1421c328489b3c234309bb58ed42cfa175554ab71306056cb9191b5a9ecf9'
 }

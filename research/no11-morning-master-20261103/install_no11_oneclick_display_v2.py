@@ -21,6 +21,7 @@ import tempfile
 
 import no11_nightly_resume as n
 import no11_oneclick_display_transform as migration
+from no11_oneclick_display_v2 import native_source_family
 
 JOURNAL = 'oneclick-display-v2-install.json'
 KIND = 'ARK_NO11_ONECLICK_DISPLAY_MIGRATION_V2'
@@ -54,7 +55,10 @@ def context(store):
     home = n.safe(store / 'oneclick', True)
     launcher = n.safe(home / 'Start-No11OneClick.ps1')
     legacy = n.safe(home / 'oneclick_status.py')
-    need(blob(legacy.read_bytes()) == LEGACY_BLOB, 'UNKNOWN_NATIVE_STATUS_SOURCE')
+    try:
+        native_source_family(legacy.read_bytes())
+    except (ValueError, UnicodeError):
+        need(False, 'UNKNOWN_NATIVE_STATUS_SOURCE')
     engine = n.safe(binding['engine'], True)
     return home, launcher, legacy, engine, (binding_path, settings_path)
 

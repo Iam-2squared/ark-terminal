@@ -52,3 +52,20 @@
 - A separate create-new retry claim is flushed before requesting one native operator process. A second create-new controller claim prevents re-entry. Neither claim is automatically cleared after failure. The process-start receipt explicitly distinguishes a requested process from collector operation and from any order or fill.
 
 Offline regression coverage is in `test_no11_prestart_source_retry.py`; `.github/workflows/no11-prestart-source-retry.yml` runs it with the lineage/installer suites on Windows and Linux, then parses the actual derived operator and tests the request script in Windows PowerShell 5.1 without Excel or broker access. The pinned release bootstrap downloads only hash-verified immutable source files. Physical readiness still must be observed on the operator's Windows PC.
+
+## Physical audit follow-up: retain the officially installed controller family
+
+The first PC invocation of release `fd247109aae85ef743d6d3db76595fe8305399cf` verified the downloaded source, then stopped with `NO11_PRESTART_RETRY_UNKNOWN_CONTROLLER_SOURCE`. That invocation did not reach the native launch or create its retry claim. This was an incomplete compatibility list, not evidence that the PC controller was corrupt.
+
+The November 3 handoff's physical output records `NO11_ORDER_TO_EXIT_WIRING_INSTALL=PASS` and `C50_TEMPORARY_BOOK=HASH_PINNED_READY`. Its pinned `live_collector_order_patch.py` blob `2c28f12c48d5f0f63729962b72159eb331921443` is identical to the repository recipe. This official V3 recipe adds the verified collector READY path/hash relay to the controller. The later same-run recovery handoff explicitly records that Draft PR #605 had not been applied to the PC. The first retry release incorrectly recognized only the newer unpatched repository controller/recovery pair.
+
+The compatibility correction recognizes only these exact normalized controller/recovery pairs. The actual PC pair must still match one of them during its local audit; the prior install record is not substituted for that check.
+
+| Official controller variant | Controller Git blob | Matching recovery Git blob |
+| --- | --- | --- |
+| Prior original | `5a2fe9f6eb785f66412cc4cd09015eb37966c58c` | `8195a1f6970ccca71f1f382403d884447a113003` |
+| Prior original plus V3 READY relay | `d186384ef5040e55953caacf5deb9a23b8ba134f` | `8195a1f6970ccca71f1f382403d884447a113003` |
+| Current original | `329dbb216025b31c629f6e5fcc64d628edf29e05` | `8ded9d67f0b5187eaa1fa52bdd0d03aea0512fa8` |
+| Current original plus V3 READY relay | `f5dd7c5d6579da498eb1ce9471bc02292a297d1a` | `8ded9d67f0b5187eaa1fa52bdd0d03aea0512fa8` |
+
+The old originals were retrieved from Git objects and independently reconstructed from the exact inverse of the official same-run patch; both reproduce their fixed blob identities. The initial new-run APIs are shared. The V3 relay leaves `execute`, its exclusive service lock, `RunRecovery.check_new`, native preflight and registration intact. The older recovery lacks only the later postmortem collector-cleanup receipt support, which this pre-registration, no-collector route does not use. Mixed old/new pairs and modified sources remain blocked. No controller, recovery, sender or original UI file on the PC is upgraded or overwritten by this correction.

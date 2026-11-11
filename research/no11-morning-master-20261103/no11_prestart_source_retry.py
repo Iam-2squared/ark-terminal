@@ -33,6 +33,19 @@ OPERATORS = frozenset(("ea8441ae08d9918317f65db13d34ddebecd6eec5",
                       "daec623ee9b86426ca228dd412fd28d6768354a1"))
 CONTROLLER = "329dbb216025b31c629f6e5fcc64d628edf29e05"
 RECOVERY = "8ded9d67f0b5187eaa1fa52bdd0d03aea0512fa8"
+# Exact native families before/after the official same-run cleanup installer,
+# each with or without the official collector READY-to-transport relay. Their
+# new-run lock/check_new/prepare/preflight/register APIs are unchanged. This
+# route requires no cleanup marker and never requests same-run resume. Keep
+# each installed family intact; do not mix its controller and recovery module.
+KNOWN_NATIVE_PAIRS = frozenset((
+    (CONTROLLER, RECOVERY),
+    ("f5dd7c5d6579da498eb1ce9471bc02292a297d1a", RECOVERY),
+    ("5a2fe9f6eb785f66412cc4cd09015eb37966c58c",
+     "8195a1f6970ccca71f1f382403d884447a113003"),
+    ("d186384ef5040e55953caacf5deb9a23b8ba134f",
+     "8195a1f6970ccca71f1f382403d884447a113003"),
+))
 WEEKLY = "b777b944379c7c6dda15eac10ddda5959ab181c8"
 FUNDING = "ca466139b984c76ba9a2f2e1bf9cdf94385627e0"
 SHA = re.compile(r"[a-f0-9]{64}\Z")
@@ -271,8 +284,14 @@ def _audit(store, *, now=None, allow_claim=False):
     files = {key: pin(engine / value, sources) for key, value in required.items()}
     need(blob(files["bootstrap"].read_bytes()) in BOOTSTRAPS, "UNKNOWN_BOOTSTRAP_SOURCE")
     need(blob(files["operator"].read_bytes()) in OPERATORS, "UNKNOWN_OPERATOR_SOURCE")
-    need(blob(files["controller"].read_bytes()) == CONTROLLER, "UNKNOWN_CONTROLLER_SOURCE")
-    need(blob(files["recovery"].read_bytes()) == RECOVERY, "UNKNOWN_RECOVERY_SOURCE")
+    controller_blob = blob(files["controller"].read_bytes())
+    recovery_blob = blob(files["recovery"].read_bytes())
+    need(controller_blob in {pair[0] for pair in KNOWN_NATIVE_PAIRS},
+         "UNKNOWN_CONTROLLER_SOURCE")
+    need(recovery_blob in {pair[1] for pair in KNOWN_NATIVE_PAIRS},
+         "UNKNOWN_RECOVERY_SOURCE")
+    need((controller_blob, recovery_blob) in KNOWN_NATIVE_PAIRS,
+         "NATIVE_SOURCE_PAIR_MISMATCH")
     need(blob(files["weekly"].read_bytes()) == WEEKLY, "NATIVE_WEEKLY_SOURCE_CHANGED")
     need(b"import no11_rss_buying_power as rss_funding" in files["bootstrap"].read_bytes()
          and b"No11RssFundingContract.ps1" in files["operator"].read_bytes(),

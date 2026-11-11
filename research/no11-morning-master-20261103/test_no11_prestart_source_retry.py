@@ -5,10 +5,12 @@ RSS-funding transformation. No test starts PowerShell, Excel, RSS, or a broker.
 """
 from __future__ import annotations
 
+import ast
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 import hashlib
 import importlib.util
+import inspect
 import json
 import os
 from pathlib import Path
@@ -17,13 +19,14 @@ import sys
 import tempfile
 from types import SimpleNamespace
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, create_autospec, patch
 
 HERE = Path(__file__).resolve().parent
 ENGINE = HERE.parent / 'no12-prebuy-causal-runtime-20261011'
 FUNDING = HERE.parent / 'no11-rss-funding-live-20261103'
 sys.path.insert(0, str(HERE))
 import no11_prestart_source_retry as retry
+import live_collector_order_patch as c50_patch
 
 spec = importlib.util.spec_from_file_location('prestart_test_rss_patches', FUNDING / 'patches.py')
 funding = importlib.util.module_from_spec(spec)
@@ -32,6 +35,87 @@ spec.loader.exec_module(funding)
 JST = timezone(timedelta(hours=9))
 DAY = '2026-11-11'
 NOW = datetime(2026, 11, 11, 13, 0, 0, tzinfo=JST)
+NATIVE_PINS = {
+    ('old', False): ('5a2fe9f6eb785f66412cc4cd09015eb37966c58c',
+                     '8195a1f6970ccca71f1f382403d884447a113003'),
+    ('old', True): ('d186384ef5040e55953caacf5deb9a23b8ba134f',
+                    '8195a1f6970ccca71f1f382403d884447a113003'),
+    ('current', False): ('329dbb216025b31c629f6e5fcc64d628edf29e05',
+                         '8ded9d67f0b5187eaa1fa52bdd0d03aea0512fa8'),
+    ('current', True): ('f5dd7c5d6579da498eb1ce9471bc02292a297d1a',
+                        '8ded9d67f0b5187eaa1fa52bdd0d03aea0512fa8'),
+}
+
+
+def normalized_blob(raw):
+    raw = raw.decode('utf-8-sig').replace('\r\n', '\n').encode('utf-8')
+    return hashlib.sha1(b'blob ' + str(len(raw)).encode('ascii') + b'\0' + raw).hexdigest()
+
+
+def replace_once(text, before, after):
+    if text.count(before) != 1:
+        raise AssertionError('Historical fixture anchor changed')
+    return text.replace(before, after, 1)
+
+
+def native_sources(family='current', c50=False):
+    """Reconstruct the two published historical blobs, then check exact identity.
+
+    The inverse changes were checked against the original Git objects pinned by
+    Apply-No11SameRunRecovery.ps1. No historical fixture is fetched at test time.
+    """
+    controller = (ENGINE / 'tools/no11_received_session_controller.py').read_text(encoding='utf-8-sig')
+    recovery = (ENGINE / 'tools/no11_received_run_recovery.py').read_text(encoding='utf-8-sig')
+    if family == 'old':
+        controller = replace_once(controller, ', unseal, ATTEMPT, POSTMORTEM\n', '\n')
+        start = controller.index('def marked_cleanup_proven(')
+        end = controller.index('def execute(', start)
+        controller = controller[:start] + controller[end:]
+        controller = replace_once(controller,
+            "    recovery = RunRecovery(config)\n"
+            "    bootstrap.need(marked_cleanup_proven(root, resume_run, config['sessionDate'], recovery),\n"
+            "                   'PREVIOUS_CLEANUP_REQUIRES_REVIEW')\n",
+            "    bootstrap.need(not (root / 'bootstrap-recovery-required.json').exists(),\n"
+            "                   'PREVIOUS_CLEANUP_REQUIRES_REVIEW')\n"
+            "    recovery = RunRecovery(config)\n")
+        recovery = replace_once(recovery, "POSTMORTEM = 'ARK_NO11_C50_POSTMORTEM_CLEANUP_V1'\n", '')
+        start = recovery.index("            need(checksum == a['closedSha256']")
+        end = recovery.index("            if a.get('captureFolder')", start)
+        recovery = recovery[:start] + (
+            "            need(checksum == a['closedSha256'] and ack.get('schemaId') == 'ARK_NO11_C50_COLLECTOR_CLOSED_V1'\n"
+            "                 and ack.get('processId') == a['pid'] and ack.get('temporaryWorkbookClosed') is True\n"
+            "                 and ack.get('orderTransmission') is False and ack.get('sessionDate') == self.session,\n"
+            "                 'COLLECTOR_CLEANUP_UNCONFIRMED')\n"
+        ) + recovery[end:]
+    elif family != 'current':
+        raise AssertionError('Unknown historical fixture family')
+    controller, recovery = controller.encode('utf-8'), recovery.encode('utf-8')
+    if c50:
+        controller = c50_patch.transform_controller(controller)
+    actual = normalized_blob(controller), normalized_blob(recovery)
+    if actual != NATIVE_PINS[(family, c50)]:
+        raise AssertionError(('Historical source identity changed', actual))
+    return controller, recovery
+
+
+def load_native_modules(engine):
+    """Load definitions only; actual execution/collector boundaries remain mocked."""
+    modules = []
+    for name in ('no11_received_run_recovery', 'no11_received_session_controller'):
+        spec = importlib.util.spec_from_file_location(name, engine / 'tools' / (name + '.py'))
+        module = importlib.util.module_from_spec(spec)
+        with patch.dict(sys.modules, {item.__name__: item for item in modules}):
+            spec.loader.exec_module(module)
+        modules.append(module)
+    return modules
+
+
+def named_ast(raw, dotted_name):
+    nodes = ast.parse(raw.decode('utf-8-sig')).body
+    for name in dotted_name.split('.'):
+        node = next(item for item in nodes if getattr(item, 'name', None) == name)
+        nodes = node.body
+    return ast.dump(node, include_attributes=False)
 
 
 def encoded(value):
@@ -48,12 +132,15 @@ def put(path, value):
     return path
 
 
-def fixture(root):
+def fixture(root, *, native_family='current', c50=False, native_newline='\r\n', native_bom=False):
     store = root / 'unified-launcher'
     store.mkdir()
     engine = root / 'engine'
     (engine / 'tools').mkdir(parents=True)
     (engine / 'windows').mkdir()
+    controller_source, recovery_source = native_sources(native_family, c50)
+    native = {'tools/no11_received_session_controller.py': controller_source,
+              'tools/no11_received_run_recovery.py': recovery_source}
     names = (
         'tools/no11_received_session_bootstrap.py',
         'tools/no11_received_session_controller.py',
@@ -65,6 +152,10 @@ def fixture(root):
         'windows/Read-No11BrokerSnapshot.ps1',
     )
     for name in names:
+        if name in native:
+            raw = native[name].replace(b'\n', native_newline.encode('ascii'))
+            (engine / name).write_bytes((b'\xef\xbb\xbf' if native_bom else b'') + raw)
+            continue
         raw = (ENGINE / name).read_bytes()
         text = raw.decode('utf-8-sig').replace('\r\n', '\n')
         if name == 'tools/no11_received_session_bootstrap.py':
@@ -304,6 +395,7 @@ class PrestartRetryTests(unittest.TestCase):
 
     def test_unknown_native_controller_and_operator_do_not_enter_retry(self):
         for name in ('tools/no11_received_session_controller.py',
+                     'tools/no11_received_run_recovery.py',
                      'windows/Run-No11ReceivedSessionOperatorLive.ps1'):
             with self.subTest(source=name):
                 p = self.f['engine'] / name
@@ -312,6 +404,100 @@ class PrestartRetryTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     self.audit()
                 p.write_bytes(before)
+
+    def test_all_four_native_pairs_enter_once_and_preserve_originals_in_windows_encodings(self):
+        for family, c50 in NATIVE_PINS:
+            for newline in ('\n', '\r\n'):
+                for bom in (False, True):
+                    with self.subTest(family=family, c50=c50, newline=newline, bom=bom):
+                        root = self.f['root'] / (family + '-' + str(c50) + '-' +
+                                                str(len(newline)) + '-' + str(bom))
+                        root.mkdir()
+                        f = fixture(root, native_family=family, c50=c50,
+                                    native_newline=newline, native_bom=bom)
+                        with patch.object(self, 'f', f):
+                            originals = {p: p.read_bytes() for p in root.rglob('*') if p.is_file()}
+                            plan = self.audit()
+                            controller_path = f['engine'] / 'tools/no11_received_session_controller.py'
+                            recovery_path = f['engine'] / 'tools/no11_received_run_recovery.py'
+                            self.assertEqual((normalized_blob(controller_path.read_bytes()),
+                                              normalized_blob(recovery_path.read_bytes())),
+                                             NATIVE_PINS[(family, c50)])
+                            for source in (controller_path, recovery_path):
+                                self.assertEqual(plan['sources'][str(source)], sha(source.read_bytes()))
+                            manifest, path = self.staged()
+                            self.assertEqual(manifest['plan'], plan)
+                            _, controller = load_native_modules(f['engine'])
+                            parameters = inspect.signature(controller.execute).parameters
+                            self.assertIsNone(parameters['resume_run'].default)
+                            self.assertIs(parameters['preflight_only'].default, False)
+                            self.assertIs(parameters['allow_explicit_live'].default, False)
+                            # Use the actual historical module and checked API signature;
+                            # only the action boundary is mocked to prohibit a collector.
+                            controller.execute = create_autospec(controller.execute, return_value=None)
+                            self.assert_approved_entry_once(manifest, path, controller=controller)
+                            original_bootstrap = f['engine'] / 'tools/no11_received_session_bootstrap.py'
+                            for function in ('service_args', 'shutdown_collector'):
+                                self.assertEqual(named_ast(original_bootstrap.read_bytes(), function),
+                                                 named_ast(Path(manifest['bootstrapScript']).read_bytes(), function))
+                            for source, raw in originals.items():
+                                self.assertEqual(source.read_bytes(), raw)
+
+    def test_known_native_controller_and_recovery_cannot_mix_generations(self):
+        controller_path = self.f['engine'] / 'tools/no11_received_session_controller.py'
+        recovery_path = self.f['engine'] / 'tools/no11_received_run_recovery.py'
+        for family, c50 in NATIVE_PINS:
+            with self.subTest(family=family, c50=c50):
+                controller, _ = native_sources(family, c50)
+                other = 'old' if family == 'current' else 'current'
+                _, recovery = native_sources(other)
+                controller_path.write_bytes(controller)
+                recovery_path.write_bytes(recovery)
+                with self.assertRaisesRegex(ValueError, 'NATIVE_SOURCE_PAIR_MISMATCH'):
+                    self.audit()
+
+    def test_known_alternative_native_source_cannot_replace_pinned_claim(self):
+        manifest, path = self.staged()
+        retry.claim(path, *self.evidence(), operator_approved=True, now=NOW)
+        controller_path = self.f['engine'] / 'tools/no11_received_session_controller.py'
+        recovery_path = self.f['engine'] / 'tools/no11_received_run_recovery.py'
+        originals = controller_path.read_bytes(), recovery_path.read_bytes()
+        for family, c50 in (('current', True), ('old', False), ('old', True)):
+            with self.subTest(family=family, c50=c50):
+                controller, recovery = native_sources(family, c50)
+                controller_path.write_bytes(controller)
+                recovery_path.write_bytes(recovery)
+                with self.assertRaisesRegex(ValueError, 'ORIGINAL_STATE_CHANGED'):
+                    retry.verify_claim(path, now=NOW)
+                self.assertFalse((path.parent / 'controller-entry.claimed').exists())
+                self.assertTrue(Path(manifest['plan']['claimFile']).is_file())
+                controller_path.write_bytes(originals[0])
+                recovery_path.write_bytes(originals[1])
+
+    def test_official_c50_variants_preserve_relay_new_run_and_exit_handoff_ast(self):
+        self.assertEqual(normalized_blob(Path(c50_patch.__file__).read_bytes()),
+                         '2c28f12c48d5f0f63729962b72159eb331921443')
+        old_controller, old_recovery = native_sources('old')
+        current_controller, current_recovery = native_sources('current')
+        for name in ('RunRecovery.check_new', 'RunRecovery.register',
+                     'RunRecovery.begin_attempt', 'Attempt', 'CaptureRelay'):
+            self.assertEqual(named_ast(old_recovery, name), named_ast(current_recovery, name))
+        self.assertEqual(named_ast(old_controller, 'consumer_args'),
+                         named_ast(current_controller, 'consumer_args'))
+        for family in ('old', 'current'):
+            before, _ = native_sources(family)
+            after, _ = native_sources(family, True)
+            for name in ('consumer_args', 'execute', 'main'):
+                self.assertEqual(named_ast(before, name), named_ast(after, name))
+            # The official patch adds only the READY environment relay around
+            # the original service call. All collector shutdown/EXIT handoff
+            # statements remain the original AST after removing that exact shim.
+            without_shim = replace_once(after.decode('utf-8'),
+                                        c50_patch.CONTROLLER_AFTER, c50_patch.CONTROLLER_BEFORE)
+            without_shim = replace_once(without_shim,
+                                        'import argparse\nimport hashlib\nimport os\n', 'import argparse\n')
+            self.assertEqual(ast.dump(ast.parse(before.decode('utf-8')), include_attributes=False),
+                             ast.dump(ast.parse(without_shim), include_attributes=False))
 
     def test_broker_today_and_explicit_funding_contract_are_required(self):
         original = json.loads(self.f['broker'].read_bytes())
@@ -535,6 +721,9 @@ class PrestartRetryTests(unittest.TestCase):
 
     def test_approved_live_entry_delegates_to_native_controller_only_once(self):
         manifest, path = self.staged()
+        self.assert_approved_entry_once(manifest, path)
+
+    def assert_approved_entry_once(self, manifest, path, *, controller=None):
         retry.claim(path, *self.evidence(), operator_approved=True, now=NOW)
         raw_config = {'sessionDate': DAY, 'offlineFixture': True}
         approved_config = object()
@@ -548,8 +737,9 @@ class PrestartRetryTests(unittest.TestCase):
             spec_from_file_location=Mock(return_value=spec),
             module_from_spec=Mock(return_value=bootstrap),
         ))
-        controller = SimpleNamespace(__file__=manifest['plan']['controllerSource'],
-                                     execute=Mock())
+        if controller is None:
+            controller = SimpleNamespace(__file__=manifest['plan']['controllerSource'],
+                                         execute=Mock())
         windows = SimpleNamespace(name='nt', path=os.path, fsync=os.fsync, getpid=os.getpid)
         argv = ['--config', str(self.f['bootstrap']), '--operator-approved-broker-live']
         with patch.object(retry, 'os', windows), \

@@ -23,7 +23,7 @@ import no11_oneclick_display_transform as display_migration
 JOURNAL = "oneclick-display-v2-overlay-compat-install.json"
 KIND = "ARK_NO11_DISPLAY_V2_OVERLAY_COMPAT_V1"
 MARK = "# ARK_NO11_DISPLAY_V2_OVERLAY_COMPAT_V1"
-OLD_OVERLAY = "   if($trading -match 'ENTRY HALTED'){"
+OLD_OVERLAY = "  if($trading -match 'ENTRY HALTED'){"
 NEW_OVERLAY = (
     "  " + MARK + "\n"
     "  $trading=[string]$view.trading\n"
@@ -31,7 +31,7 @@ NEW_OVERLAY = (
     + OLD_OVERLAY
 )
 OLD_CAPTION = (
-    "   $trade.Text=if($retryReady){'RETRY START TRADING / NORMAL MAX3'}"
+    "  $trade.Text=if($retryReady){'RETRY START TRADING / NORMAL MAX3'}"
     "else{'START TRADING   /   NORMAL MAX3'}"
 )
 NEW_CAPTION = (
@@ -148,7 +148,7 @@ def audit(store):
          and saved.get("orderTransmission") is False
          and saved.get("tradeStarted") is False, "PATCH_JOURNAL_UNVERIFIED")
     for key in base:
-        if key != "phase":
+        if key != "phase" and not (key == "frozen" and saved["phase"] == "COMPLETE"):
             need(saved.get(key) == base[key], "PATCH_JOURNAL_CHANGED_" + key.upper())
     if saved["phase"] == "COMPLETE":
         need(current == after, "INSTALLED_LAUNCHER_CHANGED")

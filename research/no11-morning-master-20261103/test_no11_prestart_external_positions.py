@@ -19,6 +19,8 @@ DAY = fixtures.DAY
 
 def positions_observation(fixture, at=NOW):
     value = fixtures.observation(fixture['transport'], at)
+    value['schemaId'] = 'ARK_NO11_ACCOUNT_OBSERVATION_ENVELOPE_V1'
+    value['productionReady'] = False
     rows = [
         {'symbol': '1111', 'account': '一般', 'quantity': 100, 'orderQuantity': 0},
         {'symbol': '2222', 'account': '特定', 'quantity': 200, 'orderQuantity': 0},

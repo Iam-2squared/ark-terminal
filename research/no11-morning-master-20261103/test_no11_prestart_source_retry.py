@@ -312,7 +312,11 @@ class PrestartRetryTests(unittest.TestCase):
         physical = put(self.f['root'] / 'transport-proof.json', dict(common,
             schemaId='ARK_NO11_PRESTART_RETRY_TRANSPORT_V1', registeredThreeBooksVerified=True,
             controlCellsVerified=True, triggerZero=True, excelPid=transport['expectedExcelPid'],
-            excelHwnd=transport['expectedExcelHwnd'], rssSessionKey=transport['rssSessionKey'],
+            excelHwnd=transport['expectedExcelHwnd'],
+            verifiedWindowHwnd=transport['expectedExcelHwnd'],
+            verifiedWindowProcessId=transport['expectedExcelPid'],
+            originalExcelHwnd=transport['expectedExcelHwnd'],
+            rssSessionKey=transport['rssSessionKey'],
             excelStartedAtUtc='2026-11-10T23:00:00.0000000Z'))
         observed = put(self.f['root'] / 'broker-observation.json', observation(transport))
         return observed, process, physical
@@ -684,13 +688,57 @@ class PrestartRetryTests(unittest.TestCase):
         original = json.loads(physical.read_bytes())
         for field, value in (('registeredThreeBooksVerified', False), ('controlCellsVerified', False),
                              ('triggerZero', False), ('excelPid', 9999), ('excelHwnd', 8888),
-                             ('rssSessionKey', '0' * 64)):
+                             ('verifiedWindowHwnd', 8888), ('verifiedWindowProcessId', 9999),
+                             ('originalExcelHwnd', 8888), ('rssSessionKey', '0' * 64)):
             with self.subTest(field=field):
                 changed = dict(original)
                 changed[field] = value
                 put(physical, changed)
                 with self.assertRaises(ValueError):
                     retry.claim(path, observed, processes, physical, operator_approved=True, now=NOW)
+                self.assertFalse(Path(manifest['plan']['claimFile']).exists())
+
+    def test_new_hwnd_owned_by_original_excel_process_is_accepted(self):
+        manifest, path = self.staged()
+        observed, processes, physical = self.evidence()
+        proof = json.loads(physical.read_bytes())
+        self.assertEqual(proof['excelPid'], self.f['transport']['expectedExcelPid'])
+        self.assertNotEqual(proof['excelHwnd'], 8765)
+        proof['excelHwnd'] = 8765
+        proof['verifiedWindowHwnd'] = 8765
+        put(physical, proof)
+        receipt = retry.claim(path, observed, processes, physical,
+                              operator_approved=True, now=NOW)
+        self.assertEqual(receipt['status'], 'CLAIMED_ONCE')
+        self.assertEqual(retry.verify_claim(path, now=NOW)['plan'], manifest['plan'])
+        self.assertFalse((path.parent / 'controller-entry.claimed').exists())
+
+    def test_recreated_hwnd_cannot_hide_restart_or_wrong_window_owner(self):
+        manifest, path = self.staged()
+        observed, processes, physical = self.evidence()
+        proof = json.loads(physical.read_bytes())
+        proof['excelHwnd'] = 8765
+        proof['verifiedWindowHwnd'] = 8765
+        original = deepcopy(proof)
+        for field, value in (
+            ('verifiedWindowProcessId', 5555),
+            ('excelPid', 9999),
+            ('excelStartedAtUtc', '2026-11-10T23:00:01.0000000Z'),
+            ('rssSessionKey', '0' * 64),
+            ('registeredThreeBooksVerified', False),
+            ('controlCellsVerified', False),
+            ('triggerZero', False),
+            ('originalExcelHwnd', 8765),
+            ('verifiedWindowHwnd', 9999),
+            ('excelHwnd', 0),
+        ):
+            with self.subTest(field=field):
+                changed = deepcopy(original)
+                changed[field] = value
+                put(physical, changed)
+                with self.assertRaises(ValueError):
+                    retry.claim(path, observed, processes, physical,
+                                operator_approved=True, now=NOW)
                 self.assertFalse(Path(manifest['plan']['claimFile']).exists())
 
     def test_claim_evidence_cannot_change_or_expire_before_native_entry(self):

@@ -1,4 +1,4 @@
-"""Candidate source transform only; no installer, restart, Excel or broker I/O.
+"""Source transform; no restart, Excel or broker I/O.
 
 Preserve the historical funding source and all existing session/claim records.
 Only the first opening-observation read is replaced. Existing funding receipt
@@ -68,21 +68,22 @@ def read_opening_source(config, at, read_private, bridge, normalize, get_path, *
     })
     source_path = get_path(config)
     start = monotonic()
-    initial_clock = session_clock(at)
-    last_clock = initial_clock
+    last_clock = session_clock(at)
     prior_run = None
     prior_sequence = None
     attempts = math.ceil(timeout_seconds / poll_seconds) + 1
     for attempt in range(attempts):
-        if attempt and monotonic() - start >= timeout_seconds:
+        if monotonic() - start >= timeout_seconds:
             fail('SOURCE_WAIT_TIMEOUT')
         envelope, source_sha = read_private(source_path)
-        checked_at = at if attempt == 0 else clock()
+        # The caller's initialization timestamp may predate this I/O. Use the
+        # actual read/return clocks on the FIRST attempt as well as retries.
+        checked_at = clock()
         checked_clock = session_clock(checked_at)
         if checked_clock < last_clock:
             fail('CLOCK_REVERSED')
         last_clock = checked_clock
-        if attempt and monotonic() - start >= timeout_seconds:
+        if monotonic() - start >= timeout_seconds:
             fail('SOURCE_WAIT_TIMEOUT')
         if prior_run is not None:
             if (type(envelope) is not dict or envelope.get('runId') != prior_run
@@ -126,12 +127,13 @@ def read_opening_source(config, at, read_private, bridge, normalize, get_path, *
                 fail('SOURCE_WAIT_TIMEOUT')
             sleep(min(poll_seconds, left))
             continue
-        if attempt and monotonic() - start >= timeout_seconds:
+        if monotonic() - start >= timeout_seconds:
             fail('SOURCE_WAIT_TIMEOUT')
+        returned_at = clock()
+        if session_clock(returned_at) < last_clock:
+            fail('CLOCK_REVERSED')
         if prior_sequence is not None and envelope['sequence'] <= prior_sequence:
             fail('OBSERVATION_NOT_ADVANCED')
-        # Native normalization verifies freshness, hash, complete tables and
-        # account comparison; this also binds the physical session to approval.
         identity = source.get('excelSession', {})
         transport = config['transport']
         if (type(identity.get('processId')) is not int
@@ -141,12 +143,14 @@ def read_opening_source(config, at, read_private, bridge, normalize, get_path, *
             fail('EXCEL_SESSION_CHANGED')
         if type(source_sha) is not str or re.fullmatch(r'[a-f0-9]{64}', source_sha) is None:
             fail('OBSERVER_HASH_INVALID')
-        return envelope, source_sha, source, checked_at
+        # resolve_opening revalidates freshness with this post-normalization
+        # timestamp before it can write the immutable opening-funding receipt.
+        return envelope, source_sha, source, returned_at
     fail('SOURCE_WAIT_TIMEOUT')
 
 
 def transform(raw: bytes) -> bytes:
-    """Return a candidate, preserving BOM/newlines. NEVER install it here."""
+    """Return derived bytes, preserving BOM/newlines. Never install here."""
     bom = b'\xef\xbb\xbf' if raw.startswith(b'\xef\xbb\xbf') else b''
     text = raw.decode('utf-8-sig')
     newline = '\r\n' if '\r\n' in text else '\n'

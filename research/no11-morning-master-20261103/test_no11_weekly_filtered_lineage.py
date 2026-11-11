@@ -106,7 +106,8 @@ def case(root):
              'orderTransmission': False}
     derived = dict(orig, chartPlan=new_plan, automaticVerifiedExclusion=scope)
     derived_path, _ = write(run, 'no11-chart50-private', derived)
-    cfg = dict(dailyRun=str(run), precomputedChartReceipt=str(derived_path),
+    cfg = dict(dailyRun=str(run), weeklySourceRun=str(root / 'synthetic-weekly'),
+               precomputedChartReceipt=str(derived_path),
                precomputedG1Mask=str(mask_path), datedMaster=str(master_path),
                sessionDate='2026-11-11')
     return {'cfg': cfg, 'orig': orig_path, 'derived': derived_path,

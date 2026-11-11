@@ -5,6 +5,8 @@ on:
     paths:
       - 'research/no11-morning-master-20261103/no11_weekly_filtered_lineage.py'
       - 'research/no11-morning-master-20261103/test_no11_weekly_filtered_lineage.py'
+      - 'research/no11-morning-master-20261103/install_no11_weekly_filtered_lineage.py'
+      - 'research/no11-morning-master-20261103/test_no11_weekly_filtered_install.py'
       - '.github/workflows/no11-filtered-weekly-receipt-lineage.yml'
   workflow_dispatch:
 permissions:
@@ -28,6 +30,7 @@ jobs:
           PYTHONUTF8: '1'
         run: |
           python -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_weekly_filtered_lineage.py -v
+          python -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_weekly_filtered_install.py -v
       - name: Original native validator, original dispatch and original broker unchanged
         shell: bash
         run: |

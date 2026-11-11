@@ -31,7 +31,7 @@ jobs:
       - name: Display, installer and native authorization equality
         shell: bash
         run: |
-          python -B -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_oneclick_display_v2.py -v
+          python -B -m unittest discover -s research/no11-morning-master-20261103 -p 'test_no11_oneclick_display*.py' -v
       - name: Preserve selection validation and previously applied runtime repairs
         shell: bash
         run: |
@@ -48,6 +48,7 @@ jobs:
           import test_no11_oneclick_display_v2 as t
           rows = [t.presentation(h) for h in ('07:00:00','08:45:00','09:02:00','15:20:00','20:21:00')]
           rows.append(t.presentation(data={'state':'READY','target':'2026-11-12','count':41,'weekly':'UNVERIFIED'}))
+          rows.append(t.presentation(state={'runHealth':{'entryHalted':True}}))
           path = pathlib.Path(os.environ['RUNNER_TEMP']) / 'ark-display-examples.json'
           path.write_text(json.dumps(rows, ensure_ascii=True), encoding='ascii')
           with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as stream:

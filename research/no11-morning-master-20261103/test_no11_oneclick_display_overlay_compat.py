@@ -22,7 +22,7 @@ import patch_oneclick_preorder_retry as retry
 import test_no11_oneclick_display_v2 as fixtures
 
 HERE = Path(__file__).resolve().parent
-EXTRA_OVERLAY = """   if($trading -match 'ENTRY HALTED'){
+EXTRA_OVERLAY = """  if($trading -match 'ENTRY HALTED'){
        $disabledTradeOverlay.Text='TRADING PAUSED  /  RECOVERY REVIEW REQUIRED'
    }
    elseif($s.mode -ceq 'AFTER_CLOSE'){
@@ -180,7 +180,7 @@ class InstalledTests(unittest.TestCase):
     def test_unknown_install_journal_bytes_are_rejected(self):
         self.apply()
         self.receipt.write_bytes(self.receipt.read_bytes().replace(
-            b"APPLIED", b"UNKNOWN"))
+            b'"phase":"COMPLETE"', b'"phase":"CORRUPT"'))
         with self.assertRaises(ValueError):
             repair.audit(self.store)
 

@@ -1,0 +1,90 @@
+name: No11 afterclose source repair offline
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - 'research/no11-morning-master-20261103/install_no11_afterclose_source_repair.py'
+      - 'research/no11-morning-master-20261103/test_no11_afterclose_source_repair.py'
+      - 'research/no11-morning-master-20261103/no11_rss_opening_source_wait.py'
+      - 'research/no11-morning-master-20261103/Bootstrap-No11AfterCloseSourceRepair.ps1'
+      - '.github/workflows/no11-afterclose-source-repair.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  release-identities:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: research/no11-morning-master-20261103
+      - name: Print immutable identities and verify release pins
+        shell: bash
+        run: |
+          python3 -B - <<'PY'
+          import hashlib, pathlib, re, subprocess
+          base = 'research/no11-morning-master-20261103/'
+          names = ('install_no11_afterclose_source_repair.py', 'no11_rss_opening_source_wait.py',
+                   'no11_weekly_filtered_lineage.py', 'no11_nightly_resume.py')
+          raw = {n: subprocess.check_output(['git','show','HEAD:'+base+n]) for n in names}
+          for n, data in raw.items():
+              print('NO11_AFTERCLOSE_SHA256|' + n + '=' + hashlib.sha256(data).hexdigest())
+          release = pathlib.Path(base+'Bootstrap-No11AfterCloseSourceRepair.ps1')
+          if release.exists():
+              data = subprocess.check_output(['git','show','HEAD:'+str(release)])
+              print('NO11_AFTERCLOSE_SHA256|'+release.name+'='+hashlib.sha256(data).hexdigest())
+              text = data.decode('ascii')
+              pins = dict(re.findall(r"'([A-Za-z0-9_.-]+[.]py)'='([a-f0-9]{64})'", text))
+              assert set(pins) == set(names), 'PAYLOAD_PIN_SET'
+              commit = re.search(r"\$SourceCommit='([a-f0-9]{40})'", text).group(1)
+              subprocess.run(['git','fetch','--no-tags','--depth=1','origin',commit], check=True)
+              for n in names:
+                  pinned = subprocess.check_output(['git','show',commit+':'+base+n])
+                  assert pinned == raw[n], 'SOURCE_COMMIT_DIFFERS_FROM_TESTED_HEAD:'+n
+                  assert hashlib.sha256(pinned).hexdigest() == pins[n], 'PAYLOAD_PIN:'+n
+          PY
+  guarded-install:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    timeout-minutes: 10
+    env:
+      PYTHONUTF8: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Source, installer, provenance and ownership regressions
+        shell: bash
+        run: |
+          python -B -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_rss_opening_source_wait.py -v
+          python -B -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_afterclose_source_repair.py -v
+          python -B -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_weekly_filtered_lineage.py -v
+          python -B -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_prestart_source_retry.py -v
+          python -B -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_prestart_external_positions.py -v
+      - name: Windows release parser and no-download self-test
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $path=Join-Path $PWD 'research/no11-morning-master-20261103/Bootstrap-No11AfterCloseSourceRepair.ps1'
+          if(Test-Path -LiteralPath $path){
+            $tokens=$null;$errors=$null
+            [void][Management.Automation.Language.Parser]::ParseFile($path,[ref]$tokens,[ref]$errors)
+            if(@($errors).Count){throw 'RELEASE_PARSE_FAILED'}
+            & $path -OfflineSelfTest
+            if($LASTEXITCODE -ne 0){throw 'RELEASE_SELFTEST_FAILED'}
+          }
+      - name: Verify unchanged repository runtime
+        shell: bash
+        run: |
+          git diff --exit-code
+          echo ORIGINAL_RUNTIME_UNCHANGED_NO_EXCEL_NO_LIVE_ORDERS

@@ -1,0 +1,152 @@
+name: No11 integrated circuit audit
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - 'research/no11-morning-master-20261103/no11_circuit_repair.py'
+      - 'research/no11-morning-master-20261103/install_no11_circuit_audit_release.py'
+      - 'research/no11-morning-master-20261103/test_no11_circuit_audit.py'
+      - 'research/no11-morning-master-20261103/test_no11_circuit_release_install.py'
+      - 'research/no11-morning-master-20261103/Bootstrap-No11IntegratedCircuit.ps1'
+      - '.github/workflows/no11-integrated-circuit-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: no11-integrated-circuit-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  circuits:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute all updater, publication, transport, and recovery layers
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, pathlib, re, subprocess, sys, time
+          root=pathlib.Path('research/no11-morning-master-20261103')
+          names=['test_no11_circuit_audit.py','test_no11_circuit_release_install.py',
+            'test_no11_worker_probe_fix.py','test_no11_nightly_resume.py','test_daily_cycle.py',
+            'test_no11_selection_status.py','test_no11_completed_session_update.py',
+            'test_no11_update_path.py','test_no11_launcher_update_install.py',
+            'test_no11_plain_pool_compat.py','test_no11_update_source_compat.py',
+            'test_no11_unified_update.py','test_no11_resilience_install.py',
+            'test_no11_live_same_run_resume.py','test_no11_skipday_and_reconnect.py',
+            'test_automatic_price_exclusions.py','test_local_rot_pid_probe.py',
+            'test_no11_transport_resilience.py','test_no11_transport_log_install.py',
+            'test_no11_transport_blocked_reason_forwarding.py','test_no11_weekly_workbook_handoff.py']
+          results=[]
+          for name in names:
+              assert (root/name).is_file(),name
+              start=time.monotonic()
+              r=subprocess.run([sys.executable,'-m','unittest','discover','-s',str(root),'-p',name,'-v'],capture_output=True,text=True,encoding='utf-8',errors='replace',timeout=180)
+              text=r.stdout+'\n'+r.stderr
+              count=re.search(r'Ran (\d+) tests?',text)
+              assert count,name+': no executed tests'
+              item={'file':name,'returncode':r.returncode,'tests':int(count[1]),'seconds':round(time.monotonic()-start,2),'skipped':text.count(' ... skipped ')}
+              results.append(item);print(json.dumps(item),flush=True)
+              if r.returncode:print(text[-18000:],flush=True)
+          total={'suites':results,'tests':sum(x['tests'] for x in results),'skipped':sum(x['skipped'] for x in results),'failedSuites':[x['file'] for x in results if x['returncode']],'realRssTested':False,'realBrokerOrdersSent':False,'realFillsOrExitTested':False}
+          pathlib.Path('circuit-audit-python.json').write_text(json.dumps(total,indent=2),encoding='utf-8')
+          print('NO11_INTEGRATED_CIRCUIT_RESULT='+json.dumps({k:v for k,v in total.items() if k!='suites'}),flush=True)
+          sys.exit(bool(total['failedSuites']))
+          PY
+      - name: Verify immutable delivery pins
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib,re,subprocess
+          from pathlib import Path
+          root='research/no11-morning-master-20261103/'
+          text=Path(root+'Bootstrap-No11IntegratedCircuit.ps1').read_text(encoding='utf-8-sig')
+          pins=re.findall(r"(?m)^ '([^']+)'='([a-f0-9]{40})'$",text)
+          assert len(pins)==4
+          for name,pin in pins:
+              raw=subprocess.check_output(['git','show','HEAD:'+root+name])
+              assert hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()==pin,name
+          print('NO11_INTEGRATED_DELIVERY_PINS=PASS')
+          PY
+      - name: Generate package and execute actual Windows installer selftest
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          & python -B -c "import pathlib,sys;sys.path.insert(0,'research/no11-morning-master-20261103');import no11_circuit_repair as f;root=pathlib.Path('research/no11-morning-master-20261103');out=pathlib.Path('audited-candidates');out.mkdir(exist_ok=True);[(out/name).write_bytes(f.transform(kind,(root/name).read_bytes())) for kind,name in [('cycle','daily_cycle.py'),('bridge','launcher_automatic_bridge_v4.py'),('worker','no11_nightly_resume_workeraware.py')]]"
+          if($LASTEXITCODE -ne 0){throw 'AUDITED_PACKAGE_GENERATION'}
+          & python -m compileall -q audited-candidates
+          if($LASTEXITCODE -ne 0){throw 'AUDITED_PACKAGE_SYNTAX'}
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/Bootstrap-No11IntegratedCircuit.ps1 -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'DELIVERY_SELFTEST_FAILED'}
+          Write-Host 'NO11_INTEGRATED_PACKAGE_SYNTAX=PASS'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: circuit-python-${{ matrix.os }}
+          path: circuit-audit-python.json
+          if-no-files-found: warn
+  frozen-and-runtime:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generate installed completed-session calendar fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import sys
+          sys.path.insert(0,'research/no11-morning-master-20261103')
+          import install_no11_completed_session_update as p
+          source=Path('research/no12-prebuy-causal-runtime-20261011/tools/no11_weekly_g1_refresh.mjs')
+          source.with_name('no11_weekly_g1_refresh.completed-test.mjs').write_bytes(p.transform('planner',source.read_bytes()))
+          print('INSTALLED_CALENDAR_FIXTURE=GENERATED_FROM_REAL_MIGRATION')
+          PY
+      - name: All No11 runtime Node tests, no real broker connection
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,pathlib,re,subprocess,sys
+          root=pathlib.Path('research/no12-prebuy-causal-runtime-20261011/tests')
+          files=sorted(str(p) for p in root.glob('no11_*.test.mjs'))
+          assert files
+          print('NO11_NODE_TEST_FILES='+str(len(files)),flush=True)
+          r=subprocess.run(['node','--test','--test-reporter=tap','--test-concurrency=2',*files],capture_output=True,text=True,encoding='utf-8',errors='replace',timeout=1000)
+          pathlib.Path('circuit-audit-node.log').write_text(r.stdout+'\n'+r.stderr,encoding='utf-8')
+          lines=r.stdout.splitlines()
+          print('\n'.join(lines[-35:]))
+          failed=[i for i,s in enumerate(lines) if s.lstrip().startswith('not ok ')]
+          for i in failed:print('\n'.join(lines[max(0,i-2):i+28]))
+          counts={k:int(v) for k,v in re.findall(r'^# (tests|pass|fail|skipped) (\d+)$',r.stdout,re.M)}
+          result={'files':files,'returncode':r.returncode,'counts':counts,'realRssTested':False,'realBrokerOrdersSent':False}
+          pathlib.Path('circuit-audit-node.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
+          print('NO11_NODE_AUDIT_COUNTS='+json.dumps(counts),flush=True)
+          if r.stderr:print(r.stderr[-3000:])
+          sys.exit(r.returncode)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: circuit-node-runtime-${{ matrix.os }}
+          path: |
+            circuit-audit-node.json
+            circuit-audit-node.log
+          if-no-files-found: warn

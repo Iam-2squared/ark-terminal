@@ -1,0 +1,38 @@
+name: No11 settings key order actual Windows regression
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - 'research/no11-morning-master-20261103/Repair-No11SettingsKeyOrder.ps1'
+      - 'research/no11-morning-master-20261103/test_no11_settings_key_order.py'
+      - 'research/no11-morning-master-20261103/no11_live_xlsb_contract.py'
+      - '.github/workflows/no11-settings-key-order.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: no11-settings-order-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  actual-windows-settings-and-scoped-repair:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    env:
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reproduce sorted JSON with actual Settings then validate fixed comparator and atomic installation
+        shell: powershell
+        run: |
+          python -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_settings_key_order.py -v
+          if($LASTEXITCODE -ne 0){throw 'SETTINGS_KEY_ORDER_REGRESSION_FAILED'}
+      - name: Existing XLSB enrollment and path-rebind regression
+        shell: powershell
+        run: |
+          python -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_live_xlsb_preflight.py -v
+          if($LASTEXITCODE -ne 0){throw 'XLSB_PREFLIGHT_REGRESSION_FAILED'}
+          python -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_open_book_enrollment.py -v
+          if($LASTEXITCODE -ne 0){throw 'BOOK_REBIND_REGRESSION_FAILED'}

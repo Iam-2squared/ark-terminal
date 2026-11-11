@@ -1,0 +1,111 @@
+name: No11 week resilience tests
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+  pull_request:
+    paths:
+      - 'research/no11-morning-master-20261103/**'
+      - 'research/no12-prebuy-causal-runtime-20261011/tools/no11_received_run_recovery.py'
+      - 'research/no12-prebuy-causal-runtime-20261011/tools/no11_received_session_controller.py'
+      - '.github/workflows/no11-week-resilience-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: no11-week-tests-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  interruption:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Filesystem, process death, no replay and existing regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import unittest, sys, json
+          root='research/no11-morning-master-20261103'
+          names=['test_no11_nightly_resume.py','test_no11_transport_resilience.py','test_no11_resilience_install.py','test_no11_update_path.py','test_no11_launcher_update_install.py','test_no11_unified_update.py','test_no11_live_same_run_resume.py','test_no11_skipday_and_reconnect.py','test_automatic_price_exclusions.py','test_local_rot_pid_probe.py','test_no11_selection_status.py','test_no11_transport_blocked_reason_forwarding.py','test_no11_transport_log_install.py','test_daily_cycle.py']
+          totals={'tests':0,'failures':0,'errors':0,'skipped':0}
+          for name in names:
+              suite=unittest.TestLoader().discover(root,pattern=name)
+              assert suite.countTestCases()>0,name
+              result=unittest.TextTestRunner(verbosity=2).run(suite)
+              totals['tests']+=result.testsRun
+              totals['failures']+=len(result.failures)
+              totals['errors']+=len(result.errors)
+              totals['skipped']+=len(result.skipped)
+          print('NO11_RESILIENCE_TEST_TOTAL='+json.dumps(totals),flush=True)
+          if totals['failures'] or totals['errors']:sys.exit(1)
+          PY
+      - name: Build exact transport candidate for Windows mock validation
+        shell: bash
+        run: |
+          root=research/no11-morning-master-20261103
+          python "$root/patch_no11_transport_resilience.py" --source "$root/Prepare-No11AutomaticLiveTransportV3.ps1" --candidate "$RUNNER_TEMP/transport-resilient.ps1"
+      - name: Windows PowerShell 5.1 readiness execution without Excel
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/test_no11_transport_readiness_windows.ps1 -Candidate "$env:RUNNER_TEMP\transport-resilient.ps1"
+          if($LASTEXITCODE -ne 0){throw 'READINESS_REGRESSION_FAILED'}
+          & python -B -c "import sys;sys.path.insert(0,'research/no11-morning-master-20261103');import install_no11_week_resilience as i;i.quiet();print('REAL_WINDOWS_PROCESS_PROBE=PASS')"
+          if($LASTEXITCODE -ne 0){throw 'PROCESS_PROBE_FALSE_POSITIVE'}
+      - name: Validate max47 native launcher and collectors in PowerShell 5.1
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $root='research/no11-morning-master-20261103'
+          $source=@'
+          import pathlib
+          import sys
+          sys.path.insert(0,'research/no11-morning-master-20261103')
+          import nightly_workbook_compat as c, no11_update_path as p
+          base=pathlib.Path('research/no12-prebuy-causal-runtime-20261011/windows')
+          out=pathlib.Path('reviewed-max47-candidates')
+          out.mkdir(exist_ok=True)
+          for k, rel in p.FILES.items():
+              if k=='status':
+                  raw=pathlib.Path('research/no11-morning-master-20261103/oneclick_status.py').read_bytes()
+              else:
+                  raw=(base/pathlib.Path(rel).name).read_bytes()
+              if k=='native':
+                  raw=c.transform_launcher(raw)
+                  raw=raw.replace(b"$weekly=Join-Path $PSScriptRoot 'Prepare-No11WeeklyAfterCloseReadOnly.ps1'",b"$weekly=Join-Path $PSScriptRoot 'Run-No11NightlyCycle.ps1'")
+              if k in ('daily','pool','minutes'):
+                  raw=c.transform_collector('windows/'+pathlib.Path(rel).name,raw)
+              if k=='weekly':
+                  raw=c.transform_first_week_carry(raw)
+              result=p.transform(k,raw)
+              (out/(k+('.py' if k=='status' else '.ps1'))).write_bytes(result)
+          '@
+          $source | & python -
+          if($LASTEXITCODE -ne 0){throw 'MAX47_CANDIDATE_GENERATION_FAILED'}
+          foreach($file in @(Get-ChildItem reviewed-max47-candidates -Filter '*.ps1' -File)){
+            $tokens=$null;$errors=$null
+            [void][Management.Automation.Language.Parser]::ParseFile($file.FullName,[ref]$tokens,[ref]$errors)
+            if($errors.Count -gt 0){foreach($e in $errors){Write-Host ($file.Name+':'+$e.Extent.StartLineNumber+':'+$e.Message)};throw 'MAX47_POWERSHELL_PARSE_FAILED'}
+          }
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $PWD 'reviewed-max47-candidates/pool.ps1') -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'MAX47_DAILY_POOL_RUNTIME_SELFTEST_FAILED'}
+          Write-Host 'NO11_NATIVE_WEEKEND_AND_MAX47_PARSE=PASS'
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/test_no11_weekly_reentry_windows.ps1 -Candidate (Join-Path $PWD 'reviewed-max47-candidates/native.ps1')
+          if($LASTEXITCODE -ne 0){throw 'WEEKLY_REENTRY_SEMANTIC_TEST_FAILED'}
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/Bootstrap-No11UnifiedUpdate.ps1 -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'ONE_COMMAND_BOOTSTRAP_SELFTEST_FAILED'}
+      - name: Existing same-run white-UI installer synthetic acceptance
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/test_no11_same_run_installer_synthetic.ps1
+          if($LASTEXITCODE -ne 0){throw 'SAME_RUN_INSTALLER_REGRESSION_FAILED'}

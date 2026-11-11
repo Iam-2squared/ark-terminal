@@ -1,0 +1,44 @@
+name: No11 RSS opening source wait candidate offline
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - 'research/no11-morning-master-20261103/no11_rss_opening_source_wait.py'
+      - 'research/no11-morning-master-20261103/test_no11_rss_opening_source_wait.py'
+      - '.github/workflows/no11-rss-opening-source-wait.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  no-live-source-wait-regression:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    timeout-minutes: 8
+    env:
+      PYTHONUTF8: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Source wait and real native normalization with synthetic fixtures
+        shell: bash
+        run: |
+          python -B -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_rss_opening_source_wait.py -v
+      - name: Original retry and personal-holdings isolation remain intact
+        shell: bash
+        run: |
+          python -B -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_prestart_source_retry.py -v
+          python -B -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_prestart_external_positions.py -v
+      - name: Verify no runtime installation payload was generated
+        shell: bash
+        run: |
+          git diff --exit-code
+          echo CANDIDATE_ONLY_NO_EXCEL_NO_LIVE_ENTRY

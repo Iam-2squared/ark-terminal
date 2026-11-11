@@ -1,0 +1,51 @@
+name: No11 status compatibility source audit
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths: ['.github/workflows/no11-status-compatibility-audit.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  repository-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Locate original and derived OneClick status sources
+        shell: bash
+        run: |
+          python3 -B - <<'PY'
+          import hashlib, pathlib, subprocess
+          targets = {'89034581d9ee797ba76151d62668184942bbad3f', '640fd87e984be22b84043b13750603da62da29bc'}
+          paths = subprocess.check_output(['git','ls-files','research','integration']).decode().splitlines()
+          count = 0
+          for name in paths:
+              p = pathlib.Path(name)
+              if p.suffix not in ('.py','.ps1','.mjs') or not p.is_file() or p.stat().st_size > 2000000:
+                  continue
+              try:
+                  text = p.read_text(encoding='utf-8-sig').replace('\r\n','\n')
+              except UnicodeError:
+                  continue
+              raw = text.encode()
+              blob = hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+              if blob in targets:
+                  print('EXACT_LOCAL_SOURCE_MATCH', blob, name)
+              if 'oneclick_status.py' not in text and not any(h in text for h in targets):
+                  continue
+              print('STATUS_REFERENCE_FILE', name)
+              if '/test' in name or name.endswith('/oneclick_status.py') or 'display_v2' in name:
+                  continue
+              lines = text.splitlines()
+              seen = set()
+              for i,line in enumerate(lines):
+                  if 'oneclick_status.py' in line or any(h in line for h in targets):
+                      for j in range(max(0,i-3),min(len(lines),i+7)):
+                          if j not in seen:
+                              print(str(j+1)+': '+lines[j])
+                              seen.add(j)
+              count += 1
+          print('REFERENCE_FILES_WITH_CONTEXT', count)
+          print('REPOSITORY_ONLY_NO_EXCEL_NO_TRADE')
+          PY

@@ -1,0 +1,52 @@
+name: No11 BD4 exact three-book read-only diagnostic
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - 'research/no11-morning-master-20261103/Inspect-No11BD4ReadOnly.ps1'
+      - '.github/workflows/no11-bd4-readonly-probe.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows-powershell-read-only-bd4:
+    runs-on: windows-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - name: Windows PowerShell 5.1 syntax and mock classification
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $file='research/no11-morning-master-20261103/Inspect-No11BD4ReadOnly.ps1'
+          $tokens=$null
+          $errors=$null
+          [void][Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path $file),[ref]$tokens,[ref]$errors
+          )
+          if($errors.Count -ne 0){throw 'BD4_READONLY_POWERSHELL_SYNTAX_FAILED'}
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $file -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'BD4_READONLY_CLASSIFIER_FAILED'}
+      - name: No data, Excel, broker, startup or cell mutation in diagnostic
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          text=Path('research/no11-morning-master-20261103/Inspect-No11BD4ReadOnly.ps1').read_text()
+          for forbidden in ('$guard.Value2=', '$trigger.Value2=', '$session.Value2=',
+                            '$formula.NumberFormat=', '.ClearContents(', 'StartChild',
+                            'RssStockOrder(', 'RssCancelOrder(', 'Start-Process',
+                            'Workbooks.Open(', '.Save(', 'ORDER_TRIGGER_WRITTEN_TO_ONE=True'):
+              assert forbidden not in text,forbidden
+          for required in ("GetActiveObject('Excel.Application')",
+                           "NO11_BD4_DIAG_BD4_NUMBER_FORMAT",
+                           "NO11_BD4_DIAG_BD4_FORMAT_LOCAL",
+                           "NO11_BD4_DIAG_BD4_MERGED",
+                           "NO11_BD4_DIAG_BD4_LOCKED",
+                           "NO11_BD4_DIAG_BD1_STATE",
+                           "NO11_BD4_DIAG_BD2_STATE",
+                           "NO11_BD4_DIAG_BD3_STATE",
+                           "NO11_BD4_DIAG_EXACT_THREE_ORIGINAL_BOOKS=PASS"):
+              assert required in text,required
+          print('NO11_BD4_DIAGNOSTIC_READ_ONLY_GATES=PASS')
+          PY

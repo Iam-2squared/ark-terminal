@@ -1,0 +1,63 @@
+name: No11 reviewed resilience finalization
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths: [.github/workflows/no11-resilience-finalize.yml]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: no11-resilience-finalize
+  cancel-in-progress: false
+jobs:
+  finalize:
+    if: github.ref == 'refs/heads/fix/no11-week-resilience-20261108'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/no11-week-resilience-20261108
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reviewed edits and real filesystem interruption tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rev-parse HEAD > /tmp/expected-head
+          root=research/no11-morning-master-20261103
+          python "$root/dev_finalize_week_resilience.py"
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('research/no11-morning-master-20261103/install_no11_week_resilience.py')
+          text=p.read_text()
+          old='"$_.Name -match'
+          new='"$_.ProcessId -ne $PID -and $_.Name -match'
+          if new not in text:
+              assert text.count(old)==1
+              p.write_text(text.replace(old,new,1))
+          PY
+          for name in test_no11_nightly_resume.py test_no11_transport_resilience.py test_no11_resilience_install.py test_daily_cycle.py; do
+            python -m unittest discover -s "$root" -p "$name" -v
+          done
+          git diff --check
+      - name: Preserve expected-head lease and commit named reviewed source files only
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=research/no11-morning-master-20261103
+          git config user.name 'ARK integration CI'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$root/install_daily_cycle.py" "$root/no11_nightly_resume.py" "$root/install_no11_week_resilience.py"
+          if ! git diff --cached --quiet; then
+            git commit -m 'No11: exclude own CIM probe while preserving active-UI and live-process gates'
+          fi
+          expected=$(cat /tmp/expected-head)
+          actual=$(git ls-remote origin refs/heads/fix/no11-week-resilience-20261108 | cut -f1)
+          test "$actual" = "$expected"
+          git push origin HEAD:refs/heads/fix/no11-week-resilience-20261108
+          echo "NO11_VERIFIED_HEAD=$(git rev-parse HEAD)"
+          echo 'USER_PC_CHANGED=False'
+          echo 'ORDER_TRANSMISSION=False'

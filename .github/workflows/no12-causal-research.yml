@@ -219,6 +219,18 @@ jobs:
       - name: Test synthetic prebuy ranking and life-cycle on real Node runtime
         shell: bash
         run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import sys
+          root = Path('research/no11-morning-master-20261103')
+          sys.path.insert(0, str(root.resolve()))
+          from install_no11_completed_session_update import transform
+          tools = Path('research/no12-prebuy-causal-runtime-20261011/tools')
+          original = (tools / 'no11_weekly_g1_refresh.mjs').read_bytes()
+          candidate = tools / 'no11_weekly_g1_refresh.completed-test.mjs'
+          candidate.write_bytes(transform('planner', original))
+          PY
           node --version
           node --test research/no12-prebuy-causal-runtime-20261011/tests/*.test.mjs
       - name: Set up frozen P1 inference test runtime

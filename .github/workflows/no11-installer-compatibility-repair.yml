@@ -1,0 +1,124 @@
+name: No11 local installer compatibility repair
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - '.github/workflows/no11-installer-compatibility-repair.yml'
+      - 'research/no11-morning-master-20261103/dev_repair_no11_update_compat.py'
+      - 'research/no11-morning-master-20261103/test_no11_update_source_compat.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: no11-installer-compatibility-repair
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.ref == 'refs/heads/fix/no11-week-resilience-20261108'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply reviewed source edits and test all installer layers
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=research/no11-morning-master-20261103
+          python "$root/dev_repair_no11_update_compat.py"
+          for test in test_no11_update_path.py test_no11_launcher_update_install.py test_no11_unified_update.py test_no11_update_source_compat.py test_no11_resilience_install.py test_no11_nightly_resume.py test_no11_transport_resilience.py; do
+            python -m unittest discover -s "$root" -p "$test" -v
+          done
+          git diff --check
+      - name: Generate actual installed-source candidates including local variants
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import sys
+          sys.path.insert(0,'research/no11-morning-master-20261103')
+          import test_no11_update_path as t
+          import no11_update_path as p
+          out=Path('compat-candidates');out.mkdir()
+          sources=t.NativeUpdateTests().originals()
+          for kind, raw in sources.items():
+              if kind=='status':continue
+              (out/(kind+'.ps1')).write_bytes(p.transform(kind,raw))
+          for value, upper in ((5,20),(20,20),(30,47),(40,47),(47,47),(50,50)):
+              raw=sources['weekly'].replace(b'[ValidateRange(1,20)][int]$FullBatchSize=10,',('[ValidateRange(1,%s)][int]$FullBatchSize=%s,'%(upper,value)).encode())
+              raw=raw.replace(b" if($RefreshAutoMaxThroughput){$rargs+=@('-AutoMaxThroughput')}\n",b'')
+              (out/('local-weekly-'+str(value)+'.ps1')).write_bytes(p.transform('weekly',raw))
+          PY
+      - name: Parse actual PowerShell candidates without touching Excel
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          foreach($file in @(Get-ChildItem compat-candidates -Filter '*.ps1' -File)){
+            $t=$null;$e=$null
+            [void][Management.Automation.Language.Parser]::ParseFile($file.FullName,[ref]$t,[ref]$e)
+            if($e.Count){$e|ForEach-Object{Write-Host ($file.Name+':'+$_.Message)};throw 'COMPATIBILITY_CANDIDATE_PARSE_FAILED'}
+          }
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File compat-candidates/pool.ps1 -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'MAXIMUM_BATCH_REGRESSION'}
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/test_no11_weekly_reentry_windows.ps1 -Candidate (Join-Path $PWD 'compat-candidates/native.ps1')
+          if($LASTEXITCODE -ne 0){throw 'NATIVE_LAUNCHER_REGRESSION'}
+          Write-Host 'LOCAL_SOURCE_COMPATIBILITY_WINDOWS=PASS'
+  publish:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Commit verified sources and pin official bootstrap to new immutable release
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected=$(git rev-parse HEAD)
+          git config user.name 'ARK integration CI'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          root=research/no11-morning-master-20261103
+          python "$root/dev_repair_no11_update_compat.py"
+          git add "$root/no11_update_path.py" "$root/install_no11_launcher_update.py" "$root/install_no11_unified_update.py"
+          git commit -m 'No11: recognize deployed batch settings and report exact incompatible source before launcher writes'
+          python - <<'PY'
+          from pathlib import Path
+          import re,subprocess
+          root='research/no11-morning-master-20261103/'
+          path=Path(root+'Bootstrap-No11UnifiedUpdate.ps1')
+          text=path.read_text(encoding='utf-8-sig')
+          release=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          text,n=re.subn(r"\$commit='[a-f0-9]{40}'",lambda m:"$commit='"+release+"'",text)
+          assert n==1
+          pattern=r"(?m)^ '(?P<name>[^']+)'='[a-f0-9]{40}'$"
+          def pin(m):
+              name=m['name']
+              sha=subprocess.check_output(['git','rev-parse',release+':'+root+name],text=True).strip()
+              return " '"+name+"'='"+sha+"'"
+          text,n=re.subn(pattern,pin,text)
+          assert n==8
+          path.write_text(text,encoding='utf-8',newline='\n')
+          print('NO11_COMPATIBILITY_RELEASE='+release)
+          PY
+          git add "$root/Bootstrap-No11UnifiedUpdate.ps1"
+          git commit -m 'No11: pin official launcher installer to tested local-source compatibility release'
+          actual=$(git ls-remote origin refs/heads/fix/no11-week-resilience-20261108 | cut -f1)
+          test "$actual" = "$expected"
+          git push origin HEAD:refs/heads/fix/no11-week-resilience-20261108
+          echo "NO11_COMPATIBILITY_BOOTSTRAP_COMMIT=$(git rev-parse HEAD)"
+          echo "NO11_COMPATIBILITY_BOOTSTRAP_BLOB=$(git rev-parse HEAD:$root/Bootstrap-No11UnifiedUpdate.ps1)"
+          echo 'USER_PC_CHANGED=False'
+          echo 'ORDER_TRANSMISSION=False'

@@ -1,0 +1,49 @@
+name: No11 current-day prerequisites read-only (NO startup)
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - 'research/no11-morning-master-20261103/Check-No11StartPrerequisitesReadOnly20261111.ps1'
+      - '.github/workflows/no11-start-prerequisites-readonly.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows-read-only-checker:
+    runs-on: windows-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Exact raw Git bytes, CP932 invariance and runtime no-writer assertions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os, subprocess
+          from pathlib import Path
+          relative='research/no11-morning-master-20261103/Check-No11StartPrerequisitesReadOnly20261111.ps1'
+          raw=subprocess.check_output(['git','show','HEAD:'+relative])
+          assert raw.isascii() and raw.decode('ascii')==raw.decode('cp932')
+          text=raw.decode('ascii')
+          runtime=text.split("$stage='CONFIG';$excel=$null",1)[1]
+          for forbidden in ('Start-Process','Stop-Process','Workbooks.Open(','.Save(','.SaveAs(','.ClearContents(','.NumberFormat=', '.NumberFormatLocal=', 'RssStockOrder(', 'RssCancelOrder(', '-SameDayOperatorApproved', '$g.Value2=', '$t.Value2=', '$s.Value2=', '$f.Value2=', 'WriteAllBytes','Remove-Item','Set-Content'):
+              assert forbidden not in runtime, forbidden
+          assert 'NO11_TODAY_PRECHECK=PASS_READ_ONLY_PREREQUISITES' in runtime
+          assert 'LIVE_START_AND_ORDER_EXECUTION_VERIFIED=False' in runtime
+          out=Path(os.environ['RUNNER_TEMP'])/'ark-today-exact-raw.ps1'
+          out.write_bytes(raw)
+          print('NO11_TODAY_RAW_ASCII_AND_NO_MUTATION=PASS')
+          PY
+      - name: Actual Windows PowerShell 5.1 syntax and offline helpers
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $file=Join-Path $env:RUNNER_TEMP 'ark-today-exact-raw.ps1'
+          $tokens=$null;$errors=$null
+          [void][Management.Automation.Language.Parser]::ParseFile($file,[ref]$tokens,[ref]$errors)
+          if($errors.Count){$errors|ForEach-Object {Write-Host $_};throw 'READONLY_CHECKER_PARSE_FAILED'}
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $file -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'READONLY_CHECKER_SELFTEST_FAILED'}

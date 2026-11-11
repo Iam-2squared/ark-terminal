@@ -1,0 +1,88 @@
+name: No11 isolated recovery integration
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths: [.github/workflows/no11-resilience-integration.yml]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: no11-nov08-recovery-integration
+  cancel-in-progress: false
+jobs:
+  integrate:
+    if: github.ref == 'refs/heads/fix/no11-week-resilience-20261108'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: fix/no11-week-resilience-20261108
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Merge pinned recovery source and reviewed test conflicts only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ARK integration CI'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rev-parse HEAD > /tmp/no11-expected-head
+          other=c790a6e2575340d58e09cc0bbe93fb457ca1a968
+          if git merge-base --is-ancestor "$other" HEAD; then
+            echo ALREADY_INTEGRATED
+            exit 0
+          fi
+          set +e
+          git merge --no-commit --no-ff "$other"
+          code=$?
+          set -e
+          if [ "$code" != 0 ]; then
+            git diff --name-only --diff-filter=U > /tmp/no11-conflicts
+            cat /tmp/no11-conflicts
+            python - <<'PY'
+          from pathlib import Path
+          names=Path('/tmp/no11-conflicts').read_text().splitlines()
+          allowed={'.github/workflows/no11-oneclick-offline.yml',
+                   'research/no12-prebuy-causal-runtime-20261011/tests/no11_parallel_shadow_operational_audits.test.mjs'}
+          if not names or set(names)!=allowed:
+              raise SystemExit('UNREVIEWED_SOURCE_MERGE_CONFLICT')
+          PY
+            git checkout --ours .github/workflows/no11-oneclick-offline.yml research/no12-prebuy-causal-runtime-20261011/tests/no11_parallel_shadow_operational_audits.test.mjs
+            python - <<'PY'
+          from pathlib import Path
+          p=Path('research/no12-prebuy-causal-runtime-20261011/tests/no11_parallel_shadow_operational_audits.test.mjs')
+          s=p.read_text()
+          old=' assert.notEqual(diag,original);'
+          new=old+"\n for(const marker of ['NO11_C50_CONTINUOUS_OFFLINE_SELFTEST=PASS', 'SaveSnapshot $folder $payload', 'ORDER_TRANSMISSION=False'])assert.ok(original.includes(marker),marker);"
+          assert s.count(old)==1
+          p.write_text(s.replace(old,new))
+          PY
+            git add .github/workflows/no11-oneclick-offline.yml research/no12-prebuy-causal-runtime-20261011/tests/no11_parallel_shadow_operational_audits.test.mjs
+          fi
+          test -z "$(git diff --name-only --diff-filter=U)"
+          git diff --cached --stat
+      - name: Existing recovery and latest source regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=research/no11-morning-master-20261103
+          for test in test_no11_live_same_run_resume.py test_no11_skipday_and_reconnect.py test_automatic_price_exclusions.py test_local_rot_pid_probe.py test_no11_selection_status.py test_no11_transport_blocked_reason_forwarding.py test_no11_transport_log_install.py; do
+            python -m unittest discover -s "$root" -p "$test" -v
+          done
+          node --test research/no12-prebuy-causal-runtime-20261011/tests/no11_parallel_shadow_operational_audits.test.mjs
+      - name: Commit integration to isolated branch only, with concurrency lease
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f .git/MERGE_HEAD ]; then
+            git commit -m 'No11: integrate audited same-run recovery with price, PID and transport-log fixes'
+          fi
+          expected=$(cat /tmp/no11-expected-head)
+          actual=$(git ls-remote origin refs/heads/fix/no11-week-resilience-20261108 | cut -f1)
+          test "$actual" = "$expected"
+          git push origin HEAD:refs/heads/fix/no11-week-resilience-20261108
+          echo "NO11_INTEGRATION_HEAD=$(git rev-parse HEAD)"
+          echo 'USER_PC_CHANGED=False'
+          echo 'ORDER_TRANSMISSION=False'

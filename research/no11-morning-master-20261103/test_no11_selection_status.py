@@ -161,5 +161,27 @@ class SelectionStatusTests(unittest.TestCase):
         self.assertTrue(value["readOnly"])
         self.assertIs(value["orderTransmission"],False)
 
+    def test_actual_friday_full_rss_source_to_monday_is_done(self):
+        friday=self.root/"actual-friday-rss"
+        source_body={"schemaId":sel.WEEKLY_RSS_SCHEMA,
+                     "asOfSession":"2026-11-06",
+                     "productionReady":False,"orderTransmission":False,
+                     "symbols":[f"{1000+i:04d}.T" for i in range(4328)]}
+        plan_id=hashlib.sha256(json.dumps(source_body,separators=(",",":")).encode()).hexdigest()
+        put(friday/"plan.json",{"planId":plan_id,**source_body})
+        mask={"planId":plan_id,"observedPassCount":3,
+              "observedPassSymbols":["1111.T","2222.T","3333.T"]}
+        hand={"spec":{"weeklySourceRun":str(friday),
+                      "chartReceipt":str(friday/"no11-chart50-private.json")}}
+        chart={"sourcePlanId":plan_id}
+        self.assertEqual(sel.weekly_info(hand,chart,mask,"2026-11-06"),
+                         {"state":"DONE","asOf":"2026-11-06","pool":3})
+        with self.assertRaisesRegex(ValueError,"FRIDAY_FULL_WEEKLY_SOURCE_NOT_LINKED"):
+            sel.weekly_info(hand,{"sourcePlanId":"0"*64},mask,"2026-11-06")
+        with self.assertRaisesRegex(ValueError,"FRIDAY_FULL_WEEKLY_SOURCE_NOT_LINKED"):
+            sel.weekly_info(hand,chart,{**mask,"observedPassCount":4},"2026-11-06")
+        with self.assertRaisesRegex(ValueError,"FRIDAY_FULL_WEEKLY_SOURCE_NOT_LINKED"):
+            sel.weekly_info(hand,chart,mask,"2026-11-05")
+
 if __name__=="__main__":
     unittest.main(verbosity=2)

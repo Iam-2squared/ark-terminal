@@ -1,0 +1,60 @@
+name: No11 Excel locale and original template compatibility
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - 'research/no11-morning-master-20261103/no11_excel_locale_template.py'
+      - 'research/no11-morning-master-20261103/install_no11_excel_locale_template.py'
+      - 'research/no11-morning-master-20261103/test_no11_excel_locale_template.py'
+      - '.github/workflows/no11-excel-locale-template.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: no11-locale-template-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  locale-template-no-orders:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    env:
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Locale template and untouched dispatch regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=research/no11-morning-master-20261103
+          python -m unittest discover -s "$root" -p test_no11_excel_locale_template.py -v
+          python -m unittest discover -s "$root" -p test_no11_transport_format_guard.py -v
+          python -m unittest discover -s "$root" -p test_no11_transport_resilience.py -v
+      - name: Record callers of the actual transport file for pin audit
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          root=Path('research')
+          count=0
+          for p in root.rglob('*'):
+              if p.suffix not in ('.py','.ps1','.mjs','.json') or 'test' in str(p).lower():
+                  continue
+              if p.stat().st_size>1000000:
+                  continue
+              text=p.read_text(encoding='utf-8-sig',errors='replace')
+              for no,line in enumerate(text.splitlines(),1):
+                  if ('Invoke-No11MsiiOrder.ps1' in line or 'no11_msii_transport.mjs' in line) and len(line)<600:
+                      print(str(p)+':'+str(no)+':'+line)
+                      count+=1
+          print('TRANSPORT_CALLER_MATCHES='+str(count))
+          PY

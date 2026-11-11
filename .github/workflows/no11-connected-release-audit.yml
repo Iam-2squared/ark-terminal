@@ -1,0 +1,120 @@
+name: No11 connected release audit
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - 'research/no11-morning-master-20261103/test_no11_auto_minutes_connected_audit.py'
+      - 'research/no11-morning-master-20261103/test_no11_saved_replay_connected.py'
+      - 'research/no11-morning-master-20261103/no11_auto_minute_exclusion.py'
+      - 'research/no11-morning-master-20261103/no11_auto_minute_worker_transform.py'
+      - 'research/no11-morning-master-20261103/install_no11_auto_minutes_release.py'
+      - 'research/no11-morning-master-20261103/Bootstrap-No11AutoMinutes.ps1'
+      - '.github/workflows/no11-connected-release-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: no11-connected-release-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  python-circuits:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: All connected and existing data-stage checks
+        shell: bash
+        env:
+          PYTHONUTF8: '1'
+        run: |
+          python - <<'PY'
+          import pathlib,subprocess,sys,json,re,time
+          root=pathlib.Path('research/no11-morning-master-20261103')
+          names=['test_no11_auto_minutes_connected_audit.py','test_no11_auto_minute_exclusion.py',
+           'test_no11_auto_minute_install.py','test_no11_combined_nightly_parser.py',
+           'test_no11_circuit_audit.py','test_no11_circuit_release_install.py',
+           'test_no11_worker_probe_fix.py','test_no11_nightly_resume.py','test_daily_cycle.py',
+           'test_no11_selection_status.py','test_no11_completed_session_update.py',
+           'test_no11_update_path.py','test_no11_launcher_update_install.py',
+           'test_no11_plain_pool_compat.py','test_no11_update_source_compat.py',
+           'test_no11_unified_update.py','test_no11_resilience_install.py',
+           'test_no11_live_same_run_resume.py','test_no11_skipday_and_reconnect.py',
+           'test_automatic_price_exclusions.py','test_local_rot_pid_probe.py',
+           'test_no11_transport_resilience.py','test_no11_transport_log_install.py',
+           'test_no11_transport_blocked_reason_forwarding.py','test_no11_weekly_workbook_handoff.py']
+          if (root/'test_no11_saved_replay_connected.py').is_file():names.insert(1,'test_no11_saved_replay_connected.py')
+          results=[];logs=pathlib.Path('audit-logs');logs.mkdir()
+          for name in names:
+            start=time.monotonic()
+            if not (root/name).is_file():raise RuntimeError(name)
+            r=subprocess.run([sys.executable,'-m','unittest','discover','-s',str(root),'-p',name,'-v'],capture_output=True,text=True,encoding='utf-8',errors='replace',timeout=180)
+            text=r.stdout+'\n'+r.stderr
+            (logs/(name+'.log')).write_text(text,encoding='utf-8')
+            count=re.search(r'Ran (\d+) tests?',text)
+            row={'suite':name,'code':r.returncode,'tests':int(count[1]) if count else 0,'skipped':text.count(' ... skipped '),'seconds':round(time.monotonic()-start,2)}
+            results.append(row);print(json.dumps(row),flush=True)
+            if r.returncode:print(text[-13000:],flush=True)
+          summary={'suites':results,'registeredTests':sum(x['tests'] for x in results),'skipped':sum(x['skipped'] for x in results),'failures':[x['suite'] for x in results if x['code']],'realExcel':False,'realRss':False,'realOrders':False,'realExit':False}
+          pathlib.Path('audit-python.json').write_text(json.dumps(summary,indent=2),encoding='utf-8')
+          print('CONNECTED_AUDIT_RESULT='+json.dumps({k:v for k,v in summary.items() if k!='suites'}))
+          sys.exit(bool(summary['failures']))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: connected-python-${{ matrix.os }}
+          path: |
+            audit-python.json
+            audit-logs/
+  node-runtime:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generate actual completed-calendar fixture then test all No11 runtime
+        shell: bash
+        env:
+          PYTHONUTF8: '1'
+        run: |
+          python - <<'PY'
+          import pathlib,sys,subprocess,json,re
+          sys.path.insert(0,'research/no11-morning-master-20261103')
+          import install_no11_completed_session_update as p
+          source=pathlib.Path('research/no12-prebuy-causal-runtime-20261011/tools/no11_weekly_g1_refresh.mjs')
+          source.with_name('no11_weekly_g1_refresh.completed-test.mjs').write_bytes(p.transform('planner',source.read_bytes()))
+          tests=sorted(str(x) for x in pathlib.Path('research/no12-prebuy-causal-runtime-20261011/tests').glob('no11_*.test.mjs'))
+          assert tests
+          r=subprocess.run(['node','--test','--test-reporter=tap','--test-concurrency=2',*tests],capture_output=True,text=True,encoding='utf-8',errors='replace',timeout=1000)
+          text=r.stdout+'\n'+r.stderr
+          pathlib.Path('audit-node.log').write_text(text,encoding='utf-8')
+          counts={k:int(v) for k,v in re.findall(r'^# (tests|pass|fail|skipped) (\d+)$',r.stdout,re.M)}
+          summary={'counts':counts,'files':len(tests),'code':r.returncode,'realBrokerOrders':False,'realMarket':False}
+          pathlib.Path('audit-node.json').write_text(json.dumps(summary,indent=2),encoding='utf-8')
+          print('CONNECTED_NODE_RESULT='+json.dumps(summary))
+          lines=text.splitlines()
+          for i,line in enumerate(lines):
+            if line.lstrip().startswith('not ok '):print('\n'.join(lines[i:i+30]))
+          print('\n'.join(lines[-25:]))
+          sys.exit(r.returncode)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: connected-node-${{ matrix.os }}
+          path: |
+            audit-node.json
+            audit-node.log

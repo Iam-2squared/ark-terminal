@@ -56,6 +56,42 @@ try{
   }
  }
  Write-Host ('NO11_ONECLICK_REVIEW_EXIT_CODE='+$code)
+ if($code -ne 0){
+  # ARK_NO11_ONEPASS_NONZERO_MANUAL_RECONNECT_REVIEW_V1
+  # Reuse the SAME freshly captured broker snapshot rather than making the
+  # operator repeat the original broker check. This is audit-only, never rearm.
+  $compare=Join-Path $PSScriptRoot 'no11_manual_reconnect_review.py'
+  $pointerFile=Join-Path $root ('received-session-'+$day+'.active.json')
+  if((Test-Path -LiteralPath $compare -PathType Leaf) -and
+     (Test-Path -LiteralPath $pointerFile -PathType Leaf)){
+   $pointer=Get-Content -LiteralPath $pointerFile -Raw -Encoding UTF8|ConvertFrom-Json
+   $run=[string]$pointer.runRoot
+   if($pointer.schemaId -ceq 'ARK_NO11_RECEIVED_ACTIVE_RUN_V1' -and
+      $pointer.sessionDate -ceq $day -and
+      [IO.Path]::IsPathRooted($run) -and
+      [IO.Path]::GetDirectoryName([IO.Path]::GetFullPath($run)) -ieq [IO.Path]::GetFullPath($root)){
+    $db=Join-Path $run ('inference\broker-execution-'+$day+'.sqlite')
+    if(Test-Path -LiteralPath $db -PathType Leaf){
+     $assessment=@(& $python -B -X utf8 $compare --session $day --ledger-db $db --observation $file --engine $engine)
+     $reviewCode=$LASTEXITCODE
+     if($reviewCode -eq 0 -and $assessment.Count -eq 1){
+      $resultObj=$assessment[0]|ConvertFrom-Json
+      Need ($resultObj.schemaId -ceq 'ARK_NO11_MANUAL_RECONNECT_REVIEW_V1' -and
+            $resultObj.newBuyAuthorized -eq $false -and
+            $resultObj.haltMarkerCleared -eq $false -and
+            $resultObj.orderResendAllowed -eq $false) 'RECONNECT_REVIEW_UNSAFE'
+      Write-Host ('NO11_ONECLICK_MANUAL_RECONNECT_REVIEW='+$resultObj.state)
+      Write-Host ('NO11_ONECLICK_MATCHED_ORDERS='+$resultObj.matchedOrders)
+      Write-Host ('NO11_ONECLICK_MATCHED_ARK_POSITIONS='+$resultObj.matchedArkPositions)
+      Write-Host 'REQUIRES_MANUAL_CONFIRMATION_AND_RESTART_SUPERVISOR=True'
+      Write-Host 'ENTRY_HALT_MARKER_MODIFIED=False'
+      Write-Host 'ORDER_RESENT=False'
+      $code=0
+     }
+    }
+   }
+  }
+ }
  Need ($code -eq 0) 'AUDITOR_REJECTED'
 }finally{
  [Environment]::SetEnvironmentVariable('ARK_NO11_ENGINE_PATH',$envBefore,'Process')

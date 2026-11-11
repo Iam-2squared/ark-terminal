@@ -1,0 +1,103 @@
+name: No11 OneClick bilingual display V2 offline
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - 'research/no11-morning-master-20261103/*oneclick_display*.py'
+      - 'research/no11-morning-master-20261103/ONECLICK_DISPLAY_V2.md'
+      - '.github/workflows/no11-oneclick-display-v2.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-display-regressions:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 8
+    env:
+      PYTHONUTF8: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Display, installer and native authorization equality
+        shell: bash
+        run: |
+          python -B -m unittest discover -s research/no11-morning-master-20261103 -p 'test_no11_oneclick_display*.py' -v
+      - name: Preserve selection validation and previously applied runtime repairs
+        shell: bash
+        run: |
+          python -B -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_selection_status.py -v
+          python -B -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_afterclose_source_repair.py -v
+          python -B -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_rss_opening_source_wait.py -v
+      - name: Generate synthetic bilingual display examples
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          python -B - <<'PY'
+          import json, os, pathlib, sys
+          sys.path.insert(0, str(pathlib.Path('research/no11-morning-master-20261103').resolve()))
+          import test_no11_oneclick_display_v2 as t
+          rows = [t.presentation(h) for h in ('07:00:00','08:45:00','09:02:00','15:20:00','20:21:00')]
+          rows.append(t.presentation(data={'state':'READY','target':'2026-11-12','count':41,'weekly':'UNVERIFIED'}))
+          rows.append(t.presentation(state={'runHealth':{'entryHalted':True}}))
+          path = pathlib.Path(os.environ['RUNNER_TEMP']) / 'ark-display-examples.json'
+          path.write_text(json.dumps(rows, ensure_ascii=True), encoding='ascii')
+          with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as stream:
+              stream.write('ARK_DISPLAY_EXAMPLES=' + str(path) + '\n')
+          PY
+      - name: Windows PowerShell 5.1 Unicode JSON and WinForms layout metrics
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Add-Type -AssemblyName System.Windows.Forms
+          Add-Type -AssemblyName System.Drawing
+          $font=New-Object System.Drawing.Font('Segoe UI',10.5,[System.Drawing.FontStyle]::Regular)
+          $bold=New-Object System.Drawing.Font('Segoe UI',10.5,[System.Drawing.FontStyle]::Bold)
+          try{
+            $examples=Get-Content -LiteralPath $env:ARK_DISPLAY_EXAMPLES -Raw -Encoding UTF8 | ConvertFrom-Json
+            foreach($view in $examples){
+              $text=([string]$view.text).Replace("`n",[Environment]::NewLine)
+              $flags=[System.Windows.Forms.TextFormatFlags]::WordBreak -bor [System.Windows.Forms.TextFormatFlags]::NoPrefix
+              $size=[System.Windows.Forms.TextRenderer]::MeasureText($text,$font,[System.Drawing.Size]::new(682,1000),$flags)
+              if($size.Height -gt 93){throw 'STATUS_TEXT_EXCEEDS_EXISTING_PANEL'}
+              foreach($name in @('trade','nightly','refresh','review','logs')){
+                $caption=[string]$view.buttons.$name
+                $size=[System.Windows.Forms.TextRenderer]::MeasureText($caption,$bold)
+                if($size.Width -gt 327 -or $size.Height -gt 34){throw 'BUTTON_TEXT_EXCEEDS_EXISTING_CONTROL'}
+              }
+            }
+            Write-Host 'NO11_DISPLAY_V2_POWERSHELL_UNICODE_AND_LAYOUT=PASS'
+            Write-Host 'TRADE_STARTED=False'
+          }finally{$font.Dispose();$bold.Dispose()}
+      - name: No changes to repository originals
+        shell: bash
+        run: git diff --exit-code
+  release-identities:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: research/no11-morning-master-20261103
+      - name: Immutable payload hashes
+        shell: bash
+        run: |
+          python3 -B - <<'PY'
+          import hashlib, subprocess
+          base='research/no11-morning-master-20261103/'
+          names=('install_no11_oneclick_display_v2.py','no11_oneclick_display_transform.py',
+                 'no11_oneclick_display_v2.py','no11_nightly_resume.py')
+          for name in names:
+              raw=subprocess.check_output(['git','show','HEAD:'+base+name])
+              print('NO11_DISPLAY_V2_SHA256|'+name+'='+hashlib.sha256(raw).hexdigest())
+          PY

@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[3]
 CONTRACT = 'ARK_NO11_RECEIVED_RUN_CONTRACT_V1'
 POINTER = 'ARK_NO11_RECEIVED_ACTIVE_RUN_V1'
 ATTEMPT = 'ARK_NO11_RECEIVED_ATTEMPT_V1'
+POSTMORTEM = 'ARK_NO11_C50_POSTMORTEM_CLEANUP_V1'
 SNAPSHOT = re.compile(r'^snapshot-([a-f0-9]{64})\.json$')
 
 
@@ -204,9 +205,39 @@ class RunRecovery:
             need(a['status'] == 'CLOSED', 'COLLECTOR_CLEANUP_UNCONFIRMED')
             ack, checksum = read(path / 'collector-ready.json.closed.json', 100_000)
             need(checksum == a['closedSha256'] and ack.get('schemaId') == 'ARK_NO11_C50_COLLECTOR_CLOSED_V1'
-                 and ack.get('processId') == a['pid'] and ack.get('temporaryWorkbookClosed') is True
-                 and ack.get('orderTransmission') is False and ack.get('sessionDate') == self.session,
+                 and ack.get('processId') == a['pid'] and ack.get('orderTransmission') is False
+                 and ack.get('sessionDate') == self.session,
                  'COLLECTOR_CLEANUP_UNCONFIRMED')
+            if ack.get('temporaryWorkbookClosed') is not True:
+                # ARK_NO11_POSTMORTEM_CLEANUP_RECEIPT_V1
+                # Old fail-closed ack is immutable. A separate sealed, operator-
+                # initiated cleanup proof may attest that only the exact owned
+                # UNSAVED temporary workbook has subsequently been closed.
+                # It NEVER edits the old collector receipt or allows a new
+                # collector while an unknown workbook survives.
+                proof = unseal(path / 'collector-postmortem-cleanup.json', POSTMORTEM)
+                ready, ready_sha = read(path / 'collector-ready.json', 100_000)
+                cleanup_report, report_sha = read(path / 'owned-temp-closure-observed.json', 100_000)
+                need(proof.get('closureReportSha256') == report_sha
+                     and cleanup_report.get('ownedUnsavedWorkbookClosed') is True
+                     and cleanup_report.get('originalBooksUnchanged') is True
+                     and cleanup_report.get('noBrokerOrdersTouched') is True
+                     and cleanup_report.get('collectorPid') == a['pid']
+                     and cleanup_report.get('sessionDate') == self.session,
+                     'POSTMORTEM_CLOSURE_REPORT_CHANGED')
+                need(proof.get('sessionDate') == self.session
+                     and proof.get('collectorPid') == a['pid']
+                     and proof.get('originalClosedReceiptSha256') == checksum
+                     and proof.get('originalReadyReceiptSha256') == ready_sha
+                     and proof.get('ownedUnsavedWorkbookClosed') is True
+                     and proof.get('originalBooksUnchanged') is True
+                     and proof.get('orderTransmission') is False
+                     and proof.get('productionReady') is False
+                     and ready.get('temporaryWorkbook', {}).get('identityValue') ==
+                         proof.get('ownedTemporaryToken')
+                     and proof.get('claimedByOneClickRecovery') is True
+                     and proof.get('operatorApproved') is True,
+                     'POSTMORTEM_CLEANUP_NOT_VERIFIED')
             if a.get('captureFolder') is not None:
                 ready, checksum = read(path / 'collector-ready.json', 100_000)
                 need(checksum == a['readySha256'] and ready.get('processId') == a['pid']

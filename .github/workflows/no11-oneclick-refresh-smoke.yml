@@ -1,0 +1,112 @@
+name: No11 actual RefreshUi offline smoke
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - '.github/workflows/no11-oneclick-refresh-smoke.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  actual-refresh-no-live:
+    runs-on: windows-latest
+    timeout-minutes: 8
+    env:
+      PYTHONUTF8: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generate actual transformed launcher and safe synthetic states
+        shell: python
+        run: |
+          import json, os, sys
+          from pathlib import Path
+          from datetime import datetime
+          home = Path('research/no11-morning-master-20261103').resolve()
+          sys.path.insert(0, str(home))
+          import no11_oneclick_display_transform as migration
+          import no11_oneclick_display_v2 as display
+          import patch_oneclick_selection_display as selection
+          root = Path(os.environ['RUNNER_TEMP']) / 'no11-refresh-offline'
+          root.mkdir()
+          raw = selection.patch((home / 'Start-No11OneClick.ps1').read_bytes())
+          (root / 'launcher.ps1').write_bytes(migration.transform(raw))
+          for name, health in [('no-run', None), ('closed-run', {'state':'RUN_EXISTS_REVIEW_REQUIRED','collectorAttempt':'CLOSED','collectorClosureRecorded':True})]:
+              at = datetime.fromisoformat('2026-11-11T23:12:00+09:00')
+              state = {'schemaId':'ARK_NO11_ONECLICK_STATUS_V1', 'sessionDate':'2026-11-11', 'mode':'AFTER_CLOSE', 'reason':'NIGHTLY_OPERATOR_BUTTON_AVAILABLE', 'canRequestTrade':False, 'canRunNightly':True, 'requiresSameDayApproval':True, 'readOnly':True, 'brokerOrderTransmission':False}
+              if health is not None:
+                  state['runHealth'] = health
+              state['presentation'] = display.present(state, at, {'state':'ATTEMPT_RECORDED','tradeRequested':True}, {'state':'FAILED','collector':'CLOSED','reason':'NO11_BROKER_SOURCE_UNAVAILABLE'}, {'state':'READY','target':'2026-11-12','count':41,'weeklyState':'DONE'}, 'APPLIED')
+              (root / (name + '.json')).write_text(json.dumps(state, ensure_ascii=True), encoding='ascii')
+          with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as out:
+              out.write('ARK_REFRESH_SMOKE_ROOT=' + str(root) + '\n')
+      - name: Invoke real RefreshUi only, never callbacks or ShowDialog
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Set-StrictMode -Version Latest
+          Add-Type -AssemblyName System.Windows.Forms
+          Add-Type -AssemblyName System.Drawing
+          $root=$env:ARK_REFRESH_SMOKE_ROOT
+          $source=Join-Path $root 'launcher.ps1'
+          $tokens=$null;$errors=$null
+          $ast=[Management.Automation.Language.Parser]::ParseFile($source,[ref]$tokens,[ref]$errors)
+          if(@($errors).Count){throw 'PARSE_FAILED'}
+          $names=@('Need','PreopenReserved','CanQueuePreopen','RefreshUi')
+          foreach($name in $names){
+            $matches=@($ast.FindAll({param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -ceq $name},$false))
+            if($matches.Count -ne 1){throw ('FUNCTION_NOT_UNIQUE_'+$name)}
+            $definition=$matches[0].Extent.Text
+            if($name -eq 'RefreshUi'){
+              $anchor=" }catch{`n"
+              $canonical=$definition.Replace("`r`n","`n")
+              if(($canonical.Split(@($anchor),[StringSplitOptions]::None)).Count -ne 2){throw 'CATCH_ANCHOR_CHANGED'}
+              $definition=$canonical.Replace($anchor," }catch{`n  `$script:RefreshFailure=`$_`n")
+            }
+            . ([scriptblock]::Create($definition))
+          }
+          function GetStatus { return $script:Fixture }
+          function ReadNo11SelectionDisplay { return 'WEEKLY DONE 11/06 (142) | DAILY READY 11/12 (41)' }
+          $store=$root
+          $form=New-Object System.Windows.Forms.Form
+          $status=New-Object System.Windows.Forms.Label
+          $selectionStatus=New-Object System.Windows.Forms.Label
+          $trade=New-Object System.Windows.Forms.Button
+          $nightly=New-Object System.Windows.Forms.Button
+          $refresh=New-Object System.Windows.Forms.Button
+          $review=New-Object System.Windows.Forms.Button
+          $logsButton=New-Object System.Windows.Forms.Button
+          $script:No11DisplayTip=New-Object System.Windows.Forms.ToolTip
+          foreach($control in @($status,$selectionStatus,$trade,$nightly,$refresh,$review,$logsButton)){
+            $form.Controls.Add($control)
+          }
+          try{
+            foreach($name in @('no-run','closed-run')){
+              $script:Fixture=Get-Content -LiteralPath (Join-Path $root ($name+'.json')) -Raw -Encoding UTF8|ConvertFrom-Json
+              $script:RefreshFailure=$null
+              RefreshUi
+              if($null -ne $script:RefreshFailure){
+                Write-Host ('REFRESH_ERROR_TYPE='+$script:RefreshFailure.Exception.GetType().Name)
+                Write-Host ('REFRESH_ERROR_ID='+$script:RefreshFailure.FullyQualifiedErrorId)
+                Write-Host ('REFRESH_ERROR_LINE='+$script:RefreshFailure.InvocationInfo.ScriptLineNumber)
+                # Only synthetic CI fixtures are used, never user account data.
+                Write-Host ('REFRESH_ERROR_MESSAGE='+$script:RefreshFailure.Exception.Message)
+                throw ('ACTUAL_REFRESH_FAILED_'+$name)
+              }
+              if($status.Text -ne $script:Fixture.presentation.text.Replace("`n",[Environment]::NewLine)){throw 'PRESENTATION_TEXT_MISMATCH'}
+              if($trade.Enabled){throw 'AFTER_CLOSE_TRADE_ENABLED'}
+              if(-not $nightly.Enabled){throw 'NATIVE_DATA_PERMISSION_LOST'}
+              if($review.Enabled -ne ($name -eq 'closed-run')){throw 'REVIEW_GUARD_CHANGED'}
+              if($script:No11DisplayTip.GetToolTip($status) -ne $script:Fixture.presentation.details){throw 'TOOLTIP_MISMATCH'}
+              Write-Host ('ACTUAL_REFRESH_CASE='+$name+'|PASS')
+            }
+            Write-Host 'CLICK_HANDLERS_EXECUTED=False'
+            Write-Host 'EXCEL_ACCESSED=False'
+            Write-Host 'ORDER_TRANSMISSION=False'
+          }finally{
+            $script:No11DisplayTip.Dispose()
+            $form.Dispose()
+          }

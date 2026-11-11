@@ -1,0 +1,46 @@
+name: No11 filtered weekly receipt provenance offline
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - 'research/no11-morning-master-20261103/no11_weekly_filtered_lineage.py'
+      - 'research/no11-morning-master-20261103/test_no11_weekly_filtered_lineage.py'
+      - 'research/no11-morning-master-20261103/install_no11_weekly_filtered_lineage.py'
+      - 'research/no11-morning-master-20261103/test_no11_weekly_filtered_install.py'
+      - '.github/workflows/no11-filtered-weekly-receipt-lineage.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-original-and-filtered-pins:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: No11 strict original 16 / filtered 64 provenance
+        shell: bash
+        env:
+          PYTHONUTF8: '1'
+        run: |
+          python -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_weekly_filtered_lineage.py -v
+          python -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_weekly_filtered_install.py -v
+      - name: Original native validator, original dispatch and original broker unchanged
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          here=Path('research/no11-morning-master-20261103')
+          text=(here/'no11_weekly_filtered_lineage.py').read_text()
+          assert 'NO11_BOOTSTRAP_PINNED_FILTERED_WEEKLY_SOURCE_V1' in text
+          assert "return (private(config['precomputedChartReceipt'])," in text
+          for forbidden in ('.unlink(', '.write_bytes(', '.write_text(', 'RssStockOrder(', 'RssCancelOrder(', '$trigger.Value2=1', 'Start-Process'):
+              assert forbidden not in text, forbidden
+          print('NO11_FILTERED_WEEKLY_ORIGINAL_VALIDATORS_AND_DISPATCH_UNMODIFIED=PASS')
+          PY

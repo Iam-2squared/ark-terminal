@@ -1,0 +1,32 @@
+name: No11 dual-session Friday Monday capture log parser
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - 'research/no11-morning-master-20261103/no11_combined_nightly_parser.py'
+      - 'research/no11-morning-master-20261103/test_no11_combined_nightly_parser.py'
+      - '.github/workflows/no11-combined-capture-log-parser.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-capture-log-lineage:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reproduce user duplicate marker and verify strict dual capture parser
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=research/no11-morning-master-20261103
+          python -m unittest discover -s "$root" -p test_no11_combined_nightly_parser.py -v
+          python -m unittest discover -s "$root" -p test_daily_cycle.py -v
+          python -m unittest discover -s "$root" -p test_no11_circuit_audit.py -v

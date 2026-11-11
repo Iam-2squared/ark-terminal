@@ -1,0 +1,65 @@
+name: No11 Excel 1004 BD4 transport initialization fail-safe
+on:
+  push:
+    branches: [fix/no11-week-resilience-20261108]
+    paths:
+      - 'research/no11-morning-master-20261103/no11_transport_format_guard.py'
+      - 'research/no11-morning-master-20261103/test_no11_transport_format_guard.py'
+      - 'research/no11-morning-master-20261103/install_no11_transport_format_guard.py'
+      - 'research/no11-morning-master-20261103/test_no11_transport_format_release.py'
+      - 'research/no11-morning-master-20261103/Bootstrap-No11TransportBD4FormatFirst.ps1'
+      - '.github/workflows/no11-transport-format-1004.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: no11-format-1004-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  no-order-transport-format-and-partial-session:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reproduce true line193 and verify no auto retry/cancel/order
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=research/no11-morning-master-20261103
+          python -m unittest discover -s "$root" -p test_no11_transport_format_guard.py -v
+          python -m unittest discover -s "$root" -p test_no11_transport_format_release.py -v
+          python -m unittest discover -s "$root" -p test_no11_transport_resilience.py -v
+          python -m unittest discover -s "$root" -p test_no11_circuit_audit.py -v
+      - name: Check pinned 3-file release bytes from immutable commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib,re,subprocess
+          root='research/no11-morning-master-20261103/'
+          bootstrap=Path(root+'Bootstrap-No11TransportBD4FormatFirst.ps1').read_text(encoding='utf-8-sig')
+          ref=re.search(r"(?m)^\$release='([a-f0-9]{40})'",bootstrap).group(1)
+          pins=re.findall(r"(?m)^ '([^']+)'='([a-f0-9]{40})'$",bootstrap)
+          assert len(pins)==3
+          subprocess.run(['git','fetch','-q','--depth=1','origin',ref],check=True,timeout=90)
+          for name,pin in pins:
+              raw=subprocess.check_output(['git','show',ref+':'+root+name])
+              actual=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+              assert actual==pin,(name,pin,actual)
+          print('NO11_BD4_RELEASE_THREE_GIT_PINS=PASS')
+          PY
+      - name: Windows PowerShell 5.1 offline release bootstrap
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File research/no11-morning-master-20261103/Bootstrap-No11TransportBD4FormatFirst.ps1 -OfflineSelfTest
+          if($LASTEXITCODE -ne 0){throw 'NO11_BD4_BOOSTRAP_TEST_FAILED'}
+

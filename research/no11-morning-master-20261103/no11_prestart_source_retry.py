@@ -456,8 +456,24 @@ def audit_broker(plan, observation, *, now=None):
     need(plan.get("schemaId") == PLAN and plan.get("sessionDate") == now.date().isoformat(),
          "BROKER_PLAN_SESSION")
     ext = review.observation_ok(observation, plan["sessionDate"], now)
-    for key in ("orders", "executions", "positions", "idRows"):
+    for key in ("orders", "executions", "idRows"):
         need(type(ext.get(key)) is list and not ext[key], "BROKER_HISTORY_NOT_EMPTY")
+    # This route has already proved there is no registered same-day run or
+    # dispatch history. Account holdings alone are not evidence of an ARK fill.
+    # Preserve every observed position for the unchanged native service, which
+    # excludes holdings without a recorded ARK order from BUY/owned EXIT.
+    # Never empty the observation, seed an ARK position or rewrite the ledger.
+    positions = ext.get("positions")
+    need(type(positions) is list, "BROKER_POSITION_ROWS_INVALID")
+    for row in positions:
+        need(type(row) is dict, "BROKER_POSITION_ROW_INVALID")
+        review.symbol(row.get("symbol"))
+        need(type(row.get("account")) is str and bool(row["account"].strip()),
+             "BROKER_POSITION_ACCOUNT_INVALID")
+        review.num(row.get("quantity"))
+        if "orderQuantity" in row:
+            need(review.num(row["orderQuantity"]) == 0,
+                 "BROKER_POSITION_ORDER_RESERVATION_PRESENT")
     session = ext.get("excelSession")
     transport = plan["transport"]
     need(type(session) is dict
@@ -477,7 +493,8 @@ def audit_broker(plan, observation, *, now=None):
          "BROKER_SESSION_KEY_DERIVATION")
     need(instant(transport["expiresAtJst"]) > now, "TRANSPORT_EXPIRED")
     return {"sessionDate": plan["sessionDate"], "brokerOrders": 0, "brokerExecutions": 0,
-            "brokerPositions": 0, "rssOrderIds": 0, "brokerObservationVerified": True,
+            "brokerPositions": len(positions), "rssOrderIds": 0,
+            "brokerObservationVerified": True, "accountPositionsAdoptedAsArk": False,
             "orderTransmission": False}
 
 

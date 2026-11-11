@@ -6,9 +6,9 @@ param(
 )
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
-$SourceCommit='ce225e06391f885d7f1fd8e699b8f75213366c5d'
+$SourceCommit='d0a5da389e19e77e691c9e0113ed09377de939b2'
 $Pins=[ordered]@{
- 'Request-No11PrestartSourceRetry.ps1'='55dd75aa1e1259be431c48f202990c031d9103f301271043100564bc619b51d9'
+ 'Request-No11PrestartSourceRetry.ps1'='c99dc69b1f46601aa16677eeb8546095716a7c810173a92844415f85c0c5fbbc'
  'no11_prestart_source_retry.py'='fb9d07d15ed5640df2c3637ab8f9008add42ec7549dbea3e8b2543ccac1549d3'
  'no11_weekly_filtered_lineage.py'='7d2ee90b71316c85a6217e7e08b40f96a7723a2325ed51c9389d7acc77db24c1'
  'no11_manual_reconnect_review.py'='abb1421c328489b3c234309bb58ed42cfa175554ab71306056cb9191b5a9ecf9'

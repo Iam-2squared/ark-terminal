@@ -100,6 +100,12 @@ function WriteNativeReasons([string[]]$paths){
   }
  }
 }
+function SameExcelProcess([long]$handle,[uint32]$windowOwner,[int]$actualPid,[int]$expectedPid,[datetime]$actualStartUtc,[datetime]$expectedStartUtc){
+ return ($handle -gt 0 -and $windowOwner -gt 0 -and
+         $actualPid -gt 0 -and $actualPid -eq $expectedPid -and
+         $windowOwner -eq [uint32]$actualPid -and
+         $actualStartUtc.Ticks -eq $expectedStartUtc.Ticks)
+}
 function TransportProof($plan,$settings){
  $transport=$plan.transport
  Need ($transport.guardCell -ceq 'BD1' -and $transport.triggerCell -ceq 'BD2' -and
@@ -120,14 +126,13 @@ public static class No11PrestartRetryPid {
 }
 '@ -ErrorAction Stop
   }
+  [long]$currentHwnd=[long]$excel.Hwnd
   [uint32]$windowPid=0
-  [void][No11PrestartRetryPid]::GetWindowThreadProcessId([IntPtr]([long]$excel.Hwnd),[ref]$windowPid)
+  [void][No11PrestartRetryPid]::GetWindowThreadProcessId([IntPtr]$currentHwnd,[ref]$windowPid)
   $started=$processes[0].StartTime.ToUniversalTime()
   $expected=[DateTimeOffset]::Parse([string]$transport.expectedExcelStartedAt,[Globalization.CultureInfo]::InvariantCulture)
-  Need ($windowPid -eq [uint32]$processes[0].Id -and
-        $windowPid -eq [uint32]$transport.expectedExcelPid -and
-        [long]$excel.Hwnd -eq [long]$transport.expectedExcelHwnd -and
-        $started.Ticks -eq $expected.UtcDateTime.Ticks) 'EXCEL_SESSION_CHANGED'
+  Need ([long]$transport.expectedExcelHwnd -gt 0 -and
+        (SameExcelProcess $currentHwnd $windowPid ([int]$processes[0].Id) ([int]$transport.expectedExcelPid) $started $expected.UtcDateTime)) 'EXCEL_SESSION_CHANGED'
   Need ($excel.Ready -eq $true -and [int]$excel.CalculationState -eq 0 -and
         [int]$excel.Calculation -eq -4105) 'EXCEL_NOT_READY'
   $roles=@(
@@ -165,10 +170,15 @@ public static class No11PrestartRetryPid {
   Need (-not $formula.HasFormula -and -not $formula.HasArray -and -not $formula.MergeCells -and
         [string]::IsNullOrEmpty([string]$formula.Value2)) 'PRIOR_ORDER_FORMULA_PRESENT'
   Need (TestGeneral $formula) 'DEDICATED_ORDER_FORMAT_CHANGED'
+  if($currentHwnd -ne [long]$transport.expectedExcelHwnd){
+   Write-Host 'NO11_PRESTART_RETRY_EXCEL_WINDOW_CHANGED_SAME_PROCESS=True'
+  }
   return [ordered]@{
    schemaId='ARK_NO11_PRESTART_RETRY_TRANSPORT_V1';sessionDate=[string]$plan.sessionDate
    observedAtJst=(Clock).ToString('yyyy-MM-ddTHH:mm:ss.fffzzz')
-   excelPid=[int]$windowPid;excelStartedAtUtc=$started.ToString('o');excelHwnd=[long]$excel.Hwnd
+   excelPid=[int]$windowPid;excelStartedAtUtc=$started.ToString('o');excelHwnd=$currentHwnd
+   verifiedWindowHwnd=$currentHwnd;verifiedWindowProcessId=[int]$windowPid
+   originalExcelHwnd=[long]$transport.expectedExcelHwnd
    rssSessionKey=[string]$transport.rssSessionKey;registeredThreeBooksVerified=$true
    controlCellsVerified=$true;triggerZero=$true;orderTransmission=$false
   }
@@ -195,6 +205,13 @@ if($OfflineSelfTest){
  foreach($pair in @(@($ja,'General'),@('@','@'),@('0.00','0.00'),@($null,'General'),@('General',$true))){
   Need (-not (TestGeneral ([pscustomobject]@{NumberFormat=$pair[0];NumberFormatLocal=$pair[1]}))) 'GENERAL_INVALID_TEST'
  }
+ $at=[datetime]::SpecifyKind(([datetime]'2026-11-10T23:00:00'),[DateTimeKind]::Utc)
+ Need (SameExcelProcess 7800 1234 1234 1234 $at $at) 'SAME_PID_NEW_HWND_ACCEPTANCE_TEST'
+ Need (-not (SameExcelProcess 0 1234 1234 1234 $at $at)) 'ZERO_WINDOW_REJECT_TEST'
+ Need (-not (SameExcelProcess 7800 4321 1234 1234 $at $at)) 'OTHER_PROCESS_WINDOW_REJECT_TEST'
+ Need (-not (SameExcelProcess 7800 1234 9999 1234 $at $at)) 'RESTART_PID_REJECT_TEST'
+ Need (-not (SameExcelProcess 7800 1234 1234 1234 $at.AddSeconds(1) $at)) 'RESTART_TIME_REJECT_TEST'
+ Write-Host 'NO11_PRESTART_RETRY_HWND_DRIFT_SELFTEST=PASS'
  Need ((SafeCoreReason '{"status":"BLOCKED","reason":"NO11_PRESTART_RETRY_EXAMPLE"}') -ceq
        'NO11_PRESTART_RETRY_EXAMPLE') 'CORE_JSON_REASON_TEST'
  foreach($row in @('{"reason":"C:\\private\\account"}','{"status":"BLOCKED"}','not json','{"reason":42}')){

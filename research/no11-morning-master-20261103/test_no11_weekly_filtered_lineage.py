@@ -118,7 +118,7 @@ class FilteredWeeklyLineage(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.original = (ENGINE / 'tools/no11_received_session_bootstrap.py').read_bytes()
-        cls.validate = native_env()
+        cls.validate = staticmethod(native_env())
 
     def test_transform_is_only_original_weekly_source_argument(self):
         out = patch.transform(self.original)

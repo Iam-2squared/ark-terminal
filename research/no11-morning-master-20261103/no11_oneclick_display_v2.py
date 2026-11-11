@@ -205,7 +205,8 @@ def repair_evidence(store, binding):
         r = load(path, root=store)
         checksum = r.pop('checkpointSha256', None)
         raw = (json.dumps(r, sort_keys=True, ensure_ascii=False, allow_nan=False, separators=(',', ':')) + '\n').encode()
-        if checksum != sha(raw) or r.get('kind') != 'ARK_NO11_AFTERCLOSE_SOURCE_REPAIR_V1' or r.get('orderTransmission') is not False:
+        if (checksum != sha(raw) or r.get('schemaId') != 'ARK_NO11_NIGHTLY_RESUME_V1'
+                or r.get('kind') != 'ARK_NO11_AFTERCLOSE_SOURCE_REPAIR_V1' or r.get('orderTransmission') is not False):
             raise ValueError('REPAIR_RECEIPT')
         if r.get('phase') == 'PREPARED':
             return 'INCOMPLETE'
@@ -243,8 +244,14 @@ def present(state, now, reserved, run, data, repair):
     else:
         phase, label = 'SESSION', 'SESSION / 受付時間内'
     rs = run.get('state')
+    health = state.get('runHealth') if type(state.get('runHealth')) is dict else {}
+    halted = health.get('entryHalted') is True
+    halt_codes = health.get('haltReasonCodes', [])
+    halt_codes = [c for c in halt_codes if type(c) is str and CODE.fullmatch(c)][:20] if type(halt_codes) is list else []
     if rs == 'FAILURE_RECORDED':
         trading = 'STOPPED / 停止記録・要確認'
+    elif halted:
+        trading = 'ENTRY HALTED / 新規停止記録・要確認'
     elif rs == 'UNVERIFIED' or reserved.get('state') == 'UNVERIFIED':
         trading = 'UNVERIFIED / 記録を確認'
     elif rs == 'COLLECTOR_CLOSED_RECORD':
@@ -277,6 +284,7 @@ def present(state, now, reserved, run, data, repair):
         f'Native status: {state.get("mode", "UNVERIFIED")} / {state.get("reason", "UNVERIFIED")}',
         f'Reservation record: {reserved.get("state")}', f'Run record: {rs}',
         f'Collector record: {run.get("collector", "UNKNOWN")}', f'Failure code: {run.get("reason") or "NONE"}',
+        'Entry halt codes: ' + (', '.join(halt_codes) or 'NONE'),
         '表示は保存済み証跡です。稼働・実発注・約定の確認ではありません。',
         '予約と承認は当日限り。翌日に持ち越しません。', '操作可否は既存の安全判定に従います。'))
     return {'schemaId': SCHEMA, 'phase': phase, 'trading': trading, 'data': data,
@@ -307,7 +315,8 @@ def main(argv=None):
     try:
         result = inspect(args.settings, args.binding)
         code = 0
-    except (OSError, ValueError, KeyError, TypeError, ImportError):
+    except Exception:
+        # Never print arbitrary private paths or exception text to the UI pipe.
         result = {'schemaId': 'ARK_NO11_ONECLICK_STATUS_V1', 'mode': 'BLOCKED',
                   'reason': 'DISPLAY_SOURCE_UNVERIFIED', 'canRequestTrade': False,
                   'canRunNightly': False, 'readOnly': True, 'brokerOrderTransmission': False}

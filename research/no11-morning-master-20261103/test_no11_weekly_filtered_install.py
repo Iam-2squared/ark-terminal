@@ -1,6 +1,8 @@
 """Offline-only installer tests, NO Excel, NO RSS, NO LIVE approval or orders."""
 from __future__ import annotations
+import ast
 import hashlib
+import importlib.util
 from pathlib import Path
 import sys
 import tempfile
@@ -13,6 +15,17 @@ sys.path.insert(0,str(HERE))
 import no11_nightly_resume as n
 import no11_weekly_filtered_lineage as fix
 import install_no11_weekly_filtered_lineage as installer
+
+
+def rss_funding_source():
+    """Reproduce the approved source from its actual historical transform."""
+    path=HERE.parent/'no11-rss-funding-live-20261103/patches.py'
+    spec=importlib.util.spec_from_file_location('no11_known_rss_funding_patches',path)
+    module=importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    original=(ENGINE/'tools/no11_received_session_bootstrap.py').read_bytes()
+    _, text, _=fix.norm(original)
+    return module.change_bootstrap(text).encode('utf-8')
 
 
 def fixture(root):
@@ -59,6 +72,55 @@ class Installer(unittest.TestCase):
             self.assertEqual(source.read_bytes(),original)
             for p,content in frozen.items():
                 self.assertEqual(p.read_bytes(),content)
+
+    def test_known_rss_funding_source_and_windows_encodings_preserve_contract(self):
+        funding=rss_funding_source()
+        raw_blob=hashlib.sha1(b'blob '+str(len(funding)).encode()+b'\0'+funding).hexdigest()
+        self.assertEqual(raw_blob, '011171c82c960e3b2a8f520439e3e609b2578607')
+        self.assertEqual(raw_blob, installer.KNOWN_RSS_FUNDING_BLOB)
+        contract=next(node for node in ast.parse(funding).body
+                      if isinstance(node, ast.FunctionDef) and
+                      node.name=='validate_readonly_broker_config')
+        for newline in (b'\n',b'\r\n'):
+            for bom in (b'',b'\xef\xbb\xbf'):
+                with self.subTest(newline=newline,bom=bool(bom)), tempfile.TemporaryDirectory() as d:
+                    store, source, frozen=fixture(Path(d))
+                    before=bom+funding.replace(b'\n',newline)
+                    source.write_bytes(before)
+                    self.assertEqual(installer.git_blob(before),raw_blob)
+                    self.assertEqual(installer.install(store),'READY')
+                    self.assertEqual(source.read_bytes(),before)
+                    self.assertFalse((store/installer.JOURNAL).exists())
+                    self.assertEqual(installer.install(store,apply=True,test=True),'PASS')
+                    after=source.read_bytes()
+                    actual_bom, text, actual_newline=fix.norm(after)
+                    self.assertEqual(actual_bom,bom)
+                    self.assertEqual(actual_newline.encode(),newline)
+                    self.assertIn('import no11_rss_buying_power as rss_funding\n',text)
+                    updated=next(node for node in ast.parse(text).body
+                                 if isinstance(node, ast.FunctionDef) and
+                                 node.name=='validate_readonly_broker_config')
+                    self.assertEqual(ast.dump(updated),ast.dump(contract))
+                    journal=n.checkpoint(store/installer.JOURNAL)
+                    self.assertEqual(installer.raw(journal['before']),before)
+                    self.assertEqual(installer.raw(journal['after']),after)
+                    self.assertEqual(installer.install(store,apply=True,test=True),'ALREADY_APPLIED')
+                    self.assertEqual(installer.install(store),'ALREADY_APPLIED')
+                    self.assertEqual(source.read_bytes(),after)
+                    for p,content in frozen.items():
+                        self.assertEqual(p.read_bytes(),content)
+
+    def test_rss_funding_validation_changes_are_not_new_supported_sources(self):
+        with tempfile.TemporaryDirectory() as d:
+            store, source, _=fixture(Path(d))
+            unknown=rss_funding_source().replace(b'rss_funding.validate(obj)',b'pass')
+            source.write_bytes(unknown)
+            with self.assertRaisesRegex(ValueError,'UNKNOWN_INSTALLED_BOOTSTRAP'):
+                installer.install(store)
+            with self.assertRaisesRegex(ValueError,'UNKNOWN_INSTALLED_BOOTSTRAP'):
+                installer.install(store,apply=True,test=True)
+            self.assertEqual(source.read_bytes(),unknown)
+            self.assertFalse((store/installer.JOURNAL).exists())
 
     def test_apply_is_idempotent_and_preserves_workbooks_markers_ui_and_broker(self):
         with tempfile.TemporaryDirectory() as d:

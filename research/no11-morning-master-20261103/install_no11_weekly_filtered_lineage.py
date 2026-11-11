@@ -24,6 +24,11 @@ import no11_weekly_filtered_lineage as patch
 JOURNAL = 'weekly-filtered-lineage-v1-install.json'
 KIND = 'ARK_NO11_WEEKLY_FILTERED_LINEAGE_INSTALL_V1'
 KNOWN_ORIGINAL_BLOB = '19f006b08f6687db0bfea67b9bd7519d77957ce4'
+# Exact original plus the already-installed RSS funding transform from
+# no11-rss-funding-live-20261103/patches.py:change_bootstrap. Never remove that
+# funding contract while repairing the independent weekly-source boundary.
+KNOWN_RSS_FUNDING_BLOB = '011171c82c960e3b2a8f520439e3e609b2578607'
+KNOWN_BOOTSTRAP_BLOBS = frozenset((KNOWN_ORIGINAL_BLOB, KNOWN_RSS_FUNDING_BLOB))
 KNOWN_NATIVE_BLOB = 'b777b944379c7c6dda15eac10ddda5959ab181c8'
 
 
@@ -72,7 +77,7 @@ def safe_source(store):
 def plan(store):
     entry, frozen = safe_source(store)
     current = entry.read_bytes()
-    need(git_blob(current) == KNOWN_ORIGINAL_BLOB, 'UNKNOWN_INSTALLED_BOOTSTRAP')
+    need(git_blob(current) in KNOWN_BOOTSTRAP_BLOBS, 'UNKNOWN_INSTALLED_BOOTSTRAP')
     target = patch.transform(current)
     need(target != current and patch.MARK.encode() in target, 'PATCH_SOURCE_SCOPE')
     ast.parse(target.decode('utf-8-sig'))
@@ -90,7 +95,7 @@ def verify(j):
     before, after = raw(j['before']), raw(j['after'])
     need(n.digest(before) == j['beforeSha256'] and
          n.digest(after) == j['afterSha256'] and
-         git_blob(before) == KNOWN_ORIGINAL_BLOB and
+         git_blob(before) in KNOWN_BOOTSTRAP_BLOBS and
          patch.transform(before) == after and
          patch.transform(after) == after, 'JOURNAL_SOURCE_NOT_PINNED')
     source = n.safe(j['sourcePath'])

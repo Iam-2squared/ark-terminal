@@ -51,6 +51,17 @@ $script:No11DisplayTip.AutoPopDelay=20000
 $script:No11DisplayTip.InitialDelay=300
 $script:No11DisplayTip.ReshowDelay=100
 """
+# Another published launcher shape already contains a historical retry branch.
+# Preserve its exact existing status call and all Enabled/click logic. Never
+# insert the retry function, revive its date window or add any retry authority.
+_RESERVED = '  $reserved=PreopenReserved $s\n'
+_RETRY = '  $retryReady=CanRetryPreorder $s\n'
+_RESERVATION_LINE = "  if($reserved){$trading=if($s.reason -ceq 'ALREADY_STARTED_TODAY'){'TRADE REQUESTED - check logs'}else{'09:00 START RESERVED - check logs'}}\n"
+_RETRY_LABEL = "  if($retryReady){$trading='PRE-ORDER REFERENCE FAILED - VERIFIED RETRY AVAILABLE'}\n"
+OLD_RETRY_DISPLAY = OLD_DISPLAY.replace(_RESERVED, _RESERVED + _RETRY).replace(
+    _RESERVATION_LINE, _RESERVATION_LINE + _RETRY_LABEL)
+NEW_RETRY_DISPLAY = NEW_DISPLAY.replace(_RESERVED, _RESERVED + _RETRY)
+DISPLAY_PAIRS = ((OLD_DISPLAY, NEW_DISPLAY), (OLD_RETRY_DISPLAY, NEW_RETRY_DISPLAY))
 
 
 def norm(raw):
@@ -96,15 +107,22 @@ def replace_regions(source, replacements):
 def transform(raw):
     bom, canonical, _ = norm(raw)
     source = raw.decode('utf-8-sig')
-    reverse_regions = ((NEW_DISPLAY, OLD_DISPLAY), (NEW_TOOL, OLD_TOOL), (TOOLTIP, ''))
-    if MARK in canonical:
-        if canonical.count(MARK) != 1 or canonical.count(NEW_DISPLAY) != 1 or canonical.count(NEW_TOOL) != 1 or canonical.count(TOOLTIP) != 1:
+    installed = MARK in canonical
+    candidates = [pair for pair in DISPLAY_PAIRS if canonical.count(pair[1 if installed else 0]) == 1]
+    if len(candidates) != 1:
+        raise ValueError('NO11_DISPLAY_MIGRATION_UNKNOWN_DISPLAY_SOURCE')
+    old, new = candidates[0]
+    if old == OLD_RETRY_DISPLAY and canonical.count('function CanRetryPreorder($s){') != 1:
+        raise ValueError('NO11_DISPLAY_MIGRATION_CONTROL_SOURCE_CHANGED')
+    reverse_regions = ((new, old), (NEW_TOOL, OLD_TOOL), (TOOLTIP, ''))
+    if installed:
+        if canonical.count(MARK) != 1 or canonical.count(NEW_TOOL) != 1 or canonical.count(TOOLTIP) != 1:
             raise ValueError('NO11_DISPLAY_MIGRATION_CHANGED_INSTALLED_REGION')
         original = replace_regions(source, reverse_regions)
         if transform(bom + original.encode('utf-8')) != raw:
             raise ValueError('NO11_DISPLAY_MIGRATION_DERIVATION_CHANGED')
         return raw
-    if (canonical.count(OLD_TOOL) != 1 or canonical.count(OLD_DISPLAY) != 1
+    if (canonical.count(OLD_TOOL) != 1
             or canonical.count('function RefreshUi{') != 1 or NEW_TOOL in canonical):
         raise ValueError('NO11_DISPLAY_MIGRATION_UNKNOWN_DISPLAY_SOURCE')
     for anchor in ("$trade.Add_Click({", "$nightly.Add_Click({", "$review.Add_Click({",
@@ -114,7 +132,7 @@ def transform(raw):
         if canonical.count(anchor) != 1:
             raise ValueError('NO11_DISPLAY_MIGRATION_CONTROL_SOURCE_CHANGED')
     guards = re.findall(r'^  \$(?:trade|nightly|review)[.]Enabled=.*$', canonical, re.M)
-    changed = replace_regions(source, ((OLD_TOOL, NEW_TOOL), (OLD_DISPLAY, NEW_DISPLAY),
+    changed = replace_regions(source, ((OLD_TOOL, NEW_TOOL), (old, new),
                                       ('function RefreshUi{', TOOLTIP + 'function RefreshUi{')))
     normalized = changed.replace('\r\n', '\n')
     if re.findall(r'^  \$(?:trade|nightly|review)[.]Enabled=.*$', normalized, re.M) != guards:

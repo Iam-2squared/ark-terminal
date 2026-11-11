@@ -59,37 +59,66 @@ def norm(raw):
     newline = '\r\n' if '\r\n' in text else '\n'
     text = text.replace('\r\n', '\n')
     if '\r' in text:
-        raise ValueError('NO11_DISPLAY_MIGRATION_MIXED_NEWLINES')
+        raise ValueError('NO11_DISPLAY_MIGRATION_BARE_CARRIAGE_RETURN')
     return bom, text, newline
 
 
+def replace_regions(source, replacements):
+    """Match canonical anchors, but splice ORIGINAL offsets, never whole-file EOLs."""
+    canonical = source.replace('\r\n', '\n')
+    if '\r' in canonical:
+        raise ValueError('NO11_DISPLAY_MIGRATION_BARE_CARRIAGE_RETURN')
+    offsets, i = [0], 0
+    while i < len(source):
+        i += 2 if source.startswith('\r\n', i) else 1
+        offsets.append(i)
+    edits = []
+    default_eol = '\r\n' if '\r\n' in source else '\n'
+    for before, after in replacements:
+        if canonical.count(before) != 1:
+            raise ValueError('NO11_DISPLAY_MIGRATION_UNKNOWN_DISPLAY_SOURCE')
+        start = canonical.index(before)
+        a, b = offsets[start], offsets[start + len(before)]
+        original_region = source[a:b]
+        eol = '\r\n' if '\r\n' in original_region else '\n' if '\n' in original_region else default_eol
+        # Mixed endings INSIDE a rewritten anchor are unknown; outside are kept.
+        if '\r\n' in original_region and '\n' in original_region.replace('\r\n', ''):
+            raise ValueError('NO11_DISPLAY_MIGRATION_MIXED_ANCHOR_NEWLINES')
+        edits.append((a, b, after.replace('\n', eol)))
+    edits.sort()
+    if any(edits[k][1] > edits[k + 1][0] for k in range(len(edits) - 1)):
+        raise ValueError('NO11_DISPLAY_MIGRATION_OVERLAPPING_REGIONS')
+    for a, b, replacement in reversed(edits):
+        source = source[:a] + replacement + source[b:]
+    return source
+
+
 def transform(raw):
-    bom, text, newline = norm(raw)
-    if MARK in text:
-        if text.count(MARK) != 1 or text.count(NEW_DISPLAY) != 1 or text.count(NEW_TOOL) != 1 or text.count(TOOLTIP) != 1:
+    bom, canonical, _ = norm(raw)
+    source = raw.decode('utf-8-sig')
+    reverse_regions = ((NEW_DISPLAY, OLD_DISPLAY), (NEW_TOOL, OLD_TOOL), (TOOLTIP, ''))
+    if MARK in canonical:
+        if canonical.count(MARK) != 1 or canonical.count(NEW_DISPLAY) != 1 or canonical.count(NEW_TOOL) != 1 or canonical.count(TOOLTIP) != 1:
             raise ValueError('NO11_DISPLAY_MIGRATION_CHANGED_INSTALLED_REGION')
-        old = text.replace(NEW_DISPLAY, OLD_DISPLAY, 1).replace(NEW_TOOL, OLD_TOOL, 1).replace(TOOLTIP, '', 1)
-        restored = bom + old.replace('\n', newline).encode('utf-8')
-        if transform(restored) != raw:
+        original = replace_regions(source, reverse_regions)
+        if transform(bom + original.encode('utf-8')) != raw:
             raise ValueError('NO11_DISPLAY_MIGRATION_DERIVATION_CHANGED')
         return raw
-    if (text.count(OLD_TOOL) != 1 or text.count(OLD_DISPLAY) != 1
-            or text.count('function RefreshUi{') != 1 or NEW_TOOL in text):
+    if (canonical.count(OLD_TOOL) != 1 or canonical.count(OLD_DISPLAY) != 1
+            or canonical.count('function RefreshUi{') != 1 or NEW_TOOL in canonical):
         raise ValueError('NO11_DISPLAY_MIGRATION_UNKNOWN_DISPLAY_SOURCE')
-    # Only an actual OneClick control surface is eligible, not arbitrary scripts.
     for anchor in ("$trade.Add_Click({", "$nightly.Add_Click({", "$review.Add_Click({",
                    "$logsButton.Add_Click({", "$refresh.Add_Click({RefreshUi})",
                    "$timer.Add_Tick({RefreshUi})", "function CanQueuePreopen($s){",
                    "function PreopenReserved($s){", "[void]$form.ShowDialog()"):
-        if text.count(anchor) != 1:
+        if canonical.count(anchor) != 1:
             raise ValueError('NO11_DISPLAY_MIGRATION_CONTROL_SOURCE_CHANGED')
-    guards = re.findall(r'^  \$(?:trade|nightly|review)[.]Enabled=.*$', text, re.M)
-    changed = text.replace(OLD_TOOL, NEW_TOOL, 1).replace(OLD_DISPLAY, NEW_DISPLAY, 1)
-    changed = changed.replace('function RefreshUi{', TOOLTIP + 'function RefreshUi{', 1)
-    if re.findall(r'^  \$(?:trade|nightly|review)[.]Enabled=.*$', changed, re.M) != guards:
+    guards = re.findall(r'^  \$(?:trade|nightly|review)[.]Enabled=.*$', canonical, re.M)
+    changed = replace_regions(source, ((OLD_TOOL, NEW_TOOL), (OLD_DISPLAY, NEW_DISPLAY),
+                                      ('function RefreshUi{', TOOLTIP + 'function RefreshUi{')))
+    normalized = changed.replace('\r\n', '\n')
+    if re.findall(r'^  \$(?:trade|nightly|review)[.]Enabled=.*$', normalized, re.M) != guards:
         raise ValueError('NO11_DISPLAY_MIGRATION_AUTHORIZATION_CHANGED')
-    # Exact reverse proof also protects arbitrary local theme/selection changes.
-    reverse = changed.replace(NEW_DISPLAY, OLD_DISPLAY, 1).replace(NEW_TOOL, OLD_TOOL, 1).replace(TOOLTIP, '', 1)
-    if reverse != text:
+    if replace_regions(changed, reverse_regions) != source:
         raise ValueError('NO11_DISPLAY_MIGRATION_OUTSIDE_SCOPE')
-    return bom + changed.replace('\n', newline).encode('utf-8')
+    return bom + changed.encode('utf-8')

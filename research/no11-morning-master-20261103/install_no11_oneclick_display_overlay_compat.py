@@ -59,6 +59,11 @@ def change(before):
     need(canonical.count(MARK) == 0, "ALREADY_CHANGED")
     need(canonical.count(OLD_OVERLAY) == 1 and canonical.count(OLD_CAPTION) == 1,
          "UNRECOGNIZED_OVERLAY")
+    # Require the exact existing published pre-order-retry Enabled gate. This
+    # compatibility update never accepts a newly weakened authorization line.
+    approved_trade_gate = ("  $trade.Enabled=(($s.canRequestTrade -eq $true) -or "
+                           "$preopen) -and (-not $reserved) -or $retryReady")
+    need(canonical.count(approved_trade_gate) == 1, "UNKNOWN_TRADE_AUTHORIZATION")
     need(canonical.count("$script:No11DisplayTip.SetToolTip($status,[string]$view.details)") == 1,
          "V2_DISPLAY_REGION_CHANGED")
     # A real existing overlay is mandatory: never fabricate one for another UI.

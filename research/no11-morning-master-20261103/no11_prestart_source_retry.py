@@ -501,11 +501,27 @@ def audit_proofs(plan, process, transport, *, now=None):
          "PROCESS_OVERLAP_OR_UNVERIFIED")
     _fresh_proof(transport, "ARK_NO11_PRESTART_RETRY_TRANSPORT_V1", day, now)
     original = plan["transport"]
+    # The Excel top-level HWND may be recreated while the Excel process and
+    # RSS session remain unchanged. The Windows entrypoint independently checks
+    # GetWindowThreadProcessId(current HWND) against the pinned Excel PID,
+    # and checks the registered workbooks, sender cells and session key.
+    # Record BOTH the observed/verified window and original handle: neither an
+    # arbitrary replacement handle nor an Excel process restart is acceptable.
+    observed_hwnd = transport.get("excelHwnd")
+    verified_hwnd = transport.get("verifiedWindowHwnd")
+    observed_owner = transport.get("verifiedWindowProcessId")
+    original_hwnd = original.get("expectedExcelHwnd")
     need(transport.get("registeredThreeBooksVerified") is True
          and transport.get("controlCellsVerified") is True
          and transport.get("triggerZero") is True
-         and transport.get("excelPid") == original["expectedExcelPid"]
-         and str(transport.get("excelHwnd")) == str(original["expectedExcelHwnd"])
+         and type(original_hwnd) is int and original_hwnd > 0
+         and type(observed_hwnd) is int and observed_hwnd > 0
+         and type(verified_hwnd) is int and verified_hwnd == observed_hwnd
+         and type(observed_owner) is int and observed_owner == original["expectedExcelPid"]
+         and type(transport.get("originalExcelHwnd")) is int
+         and transport["originalExcelHwnd"] == original_hwnd
+         and type(transport.get("excelPid")) is int
+         and transport["excelPid"] == original["expectedExcelPid"]
          and transport.get("rssSessionKey") == original["rssSessionKey"]
          and instant(transport["excelStartedAtUtc"]) == instant(original["expectedExcelStartedAt"]),
          "PHYSICAL_SESSION_UNVERIFIED")

@@ -2,10 +2,7 @@
 from __future__ import annotations
 
 import base64
-from copy import deepcopy
 import json
-from pathlib import Path
-import sqlite3
 import subprocess
 import unittest
 from unittest.mock import patch
@@ -20,6 +17,8 @@ import test_no11_oneclick_display_overlay_compat as overlay_fixture
 import test_no11_operational_hardening as operational
 
 
+@unittest.skipUnless('no11_display_install_chain' in old.verify.__code__.co_names,
+                     'Run operational hardening CI to test the staged verifier, not frozen originals')
 class HistoricalPayloadTests(unittest.TestCase):
     def setUp(self):
         self.case = fixture.InstallTests('test_audit_is_readonly_and_does_not_run_processes')

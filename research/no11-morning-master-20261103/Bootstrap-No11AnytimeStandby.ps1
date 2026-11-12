@@ -23,7 +23,7 @@ function Blob([byte[]]$raw){
  finally{$sha.Dispose()}
 }
 # Every downloaded module was reviewed at exactly this source commit.
-$commit='4e6f87480424685524088083ea88768065360834'
+$commit='3b0468f6c05c418da9a36dfb81f0c97b124c98f7'
 $files=[ordered]@{
  'install_no11_anytime_preopen.py'='6488d3aeafd1bc7d2a28d3e67a43c6f8c3623393'
  'no11_anytime_preopen.py'='e5b1c2c5263e525092a1028d9c734c2a14f4efac'
@@ -32,7 +32,7 @@ $files=[ordered]@{
  'no11_oneclick_display_v2.py'='f285ae780e9e2605003c23c3729b5099adbbf3d3'
  'install_no11_oneclick_display_v2.py'='1b4923fb948a0e30fcfe8cb4a281f77a4e4fdef5'
  'install_no11_oneclick_display_overlay_compat.py'='e234c9fee85703329d9cd41444e64660468bee16'
- 'stage_no11_anytime_cmd.py'='1b8cec41464a49c55d638ae69c391816b560e674'
+ 'stage_no11_anytime_cmd.py'='4674174af14241f9f925cff84e7a1071a23c1359'
 }
 if($OfflineSelfTest){
  Need (-not $Apply -and -not $Diagnose -and -not $ProbeGate -and -not $StageForCmd -and -not $IConfirmArkStoppedAndBrokerOrdersPositionsReviewed) 'SELFTEST_FLAGS'

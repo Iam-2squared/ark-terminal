@@ -306,6 +306,15 @@ try {
  $bad=@($p|Where-Object{[string]::IsNullOrWhiteSpace([string]$_.CommandLine)})
  $pattern='(?i)no11_|No11|no12.*(nightly|collector)|OperatorLive[.]ps1|[\\/]controller[.]py|launcher_automatic_bridge|prestart-retry'
  $hits=@($p|Where-Object{[string]$_.CommandLine -match $pattern})
+ $lookup=@{}
+ foreach($item in $all){$lookup[[int]$item.ProcessId]=$item}
+ $ancestors=@();$seen=@();$cur=[int]OWN_PROCESS
+ for($i=0;$i -lt 12;$i++){
+   if($cur -le 0 -or $seen -contains $cur -or -not $lookup.ContainsKey($cur)){break}
+   $seen+=$cur;$ancestors+=$cur
+   $cur=[int]$lookup[$cur].ParentProcessId
+ }
+ Write-Output ('NO11_GATE_ANCESTORS='+$ancestors.Count)
  Write-Output ('NO11_GATE_UNREADABLE='+$bad.Count)
  Write-Output ('NO11_GATE_MATCHES='+$hits.Count)
  foreach($hit in ($hits|Sort-Object ProcessId)){
@@ -315,7 +324,8 @@ try {
      elseif($cmd -match 'Start-No11OneClick|Start-No11PreopenStandby'){'ONECLICK'}
      elseif($cmd -match 'Bootstrap-No11AnytimeStandby|install_no11_anytime_preopen'){'INSTALLER'}
      else{'OTHER'}
-   Write-Output ('NO11_GATE_MATCH=PID='+$hit.ProcessId+'|PPID='+$hit.ParentProcessId+'|CLASS='+$class)
+   $rel=if($ancestors -contains [int]$hit.ProcessId){'ANCESTOR'}else{'NONANCESTOR'}
+   Write-Output ('NO11_GATE_MATCH=PID='+$hit.ProcessId+'|PPID='+$hit.ParentProcessId+'|CLASS='+$class+'|REL='+$rel)
  }
  exit 0
 }catch{exit 4}
@@ -328,8 +338,8 @@ try {
                                 capture_output=True, text=True, timeout=30, check=False)
     need(result.returncode == 0, 'GATE_PROBE_PROCESS_QUERY_FAILED')
     for line in result.stdout.splitlines():
-        need(re.fullmatch(r'NO11_GATE_(?:UNREADABLE|MATCHES)=[0-9]{1,7}', line)
-             or re.fullmatch(r'NO11_GATE_MATCH=PID=[0-9]{1,10}\|PPID=[0-9]{1,10}\|CLASS=(?:LIVE|NIGHTLY|ONECLICK|INSTALLER|OTHER)', line),
+        need(re.fullmatch(r'NO11_GATE_(?:UNREADABLE|MATCHES|ANCESTORS)=[0-9]{1,7}', line)
+             or re.fullmatch(r'NO11_GATE_MATCH=PID=[0-9]{1,10}\|PPID=[0-9]{1,10}\|CLASS=(?:LIVE|NIGHTLY|ONECLICK|INSTALLER|OTHER)\|REL=(?:ANCESTOR|NONANCESTOR)', line),
              'GATE_PROBE_INVALID_OUTPUT')
         print(line)
     print('NO11_GATE_PROBE=READ_ONLY')

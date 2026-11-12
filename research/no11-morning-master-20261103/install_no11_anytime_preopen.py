@@ -172,8 +172,8 @@ def derive(chain, worker_before):
         'orderTransmission': False,
         'authorizationSourceChanged': False,
     })
-    old_tool = " $statusTool=Join-Path $PSScriptRoot 'no11_oneclick_display_v2.py'"
-    new_tool = " $statusTool=Join-Path $PSScriptRoot '" + NEW_DISPLAY + "'"
+    old_tool = "$statusTool=Join-Path $PSScriptRoot 'no11_oneclick_display_v2.py'"
+    new_tool = "$statusTool=Join-Path $PSScriptRoot '" + NEW_DISPLAY + "'"
     canonical_ui = newer_ui.decode('utf-8-sig').replace('\r\n', '\n')
     need(canonical_ui.count(old_tool) == 1 and new_tool not in canonical_ui,
          'LAUNCHER_DISPLAY_SOURCE_CHANGED')

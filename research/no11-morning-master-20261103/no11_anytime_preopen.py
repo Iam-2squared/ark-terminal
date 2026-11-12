@@ -19,12 +19,12 @@ MARK = "ARK_NO11_ANYTIME_SAME_DAY_STANDBY_V1"
 WORKER_EDITS = (
     ("# ARK No.1.1 — operator-approved 08:30-08:59 JST standby.",
      "# ARK No.1.1 — operator-approved same-day 00:00-08:59 JST standby."),
-    ("          $t.ToString('HH:mm:ss') -ge '08:30:00' -and",
-     "          $t.ToString('HH:mm:ss') -ge '00:00:00' -and"),
-    ("  Need (-not (IsArmWindow ([DateTimeOffset]::Parse('2026-11-05T08:29:59+09:00')))) 'SELFTEST_BEFORE_0830'",
-     "  Need (IsArmWindow ([DateTimeOffset]::Parse('2026-11-05T00:00:00+09:00'))) 'SELFTEST_MIDNIGHT'"),
-    ("  Need (IsArmWindow ([DateTimeOffset]::Parse('2026-11-05T08:30:00+09:00'))) 'SELFTEST_0830'",
-     "  Need (IsArmWindow ([DateTimeOffset]::Parse('2026-11-05T08:29:59+09:00'))) 'SELFTEST_EARLY'\n  Need (IsArmWindow ([DateTimeOffset]::Parse('2026-11-05T08:30:00+09:00'))) 'SELFTEST_0830'"),
+    ("         $t.ToString('HH:mm:ss') -ge '08:30:00' -and",
+     "         $t.ToString('HH:mm:ss') -ge '00:00:00' -and"),
+    (" Need (-not (IsArmWindow ([DateTimeOffset]::Parse('2026-11-05T08:29:59+09:00')))) 'SELFTEST_BEFORE_0830'",
+     " Need (IsArmWindow ([DateTimeOffset]::Parse('2026-11-05T00:00:00+09:00'))) 'SELFTEST_MIDNIGHT'"),
+    (" Need (IsArmWindow ([DateTimeOffset]::Parse('2026-11-05T08:30:00+09:00'))) 'SELFTEST_0830'",
+     " Need (IsArmWindow ([DateTimeOffset]::Parse('2026-11-05T08:29:59+09:00'))) 'SELFTEST_EARLY'\n Need (IsArmWindow ([DateTimeOffset]::Parse('2026-11-05T08:30:00+09:00'))) 'SELFTEST_0830'"),
     ("'ARM_WINDOW_0830_TO_0900_ONLY'", "'ARM_WINDOW_SAME_DAY_BEFORE_0900_ONLY'"),
 )
 UI_EDITS = (

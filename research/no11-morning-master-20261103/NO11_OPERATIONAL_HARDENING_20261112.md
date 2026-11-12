@@ -6,7 +6,7 @@ Base: `75f2c43248c4f5b168fb41c2e5f55f8fb7749886`.
 Work branch: `fix/no11-durable-decision-audit-20261112`.
 
 This branch contains reusable runtime helpers, exact reversible source transforms,
-and Windows/Linux integration regressions. The workflow derives four modified
+and Windows/Linux integration regressions. The workflow derives five modified
 sources in an isolated checkout and exports their review patch. Frozen originals
 are retained in the repository. This is NOT a deployment to the user's installed
 runtime, not a same-day rearm, and not permission to send any order.
@@ -99,6 +99,39 @@ The ledger and separately updated pipeline report are explicitly NOT certified
 as one atomic snapshot. SQLite may use shared-memory/WAL machinery during a
 logical read-only query; no database writes, checkpoints or mode changes are
 requested by the diagnostic.
+
+## 6. Redacted Node tick failure provenance (2026-11-12 follow-up)
+
+The 2026-11-12 live session reported `NO11_SERVICE_NODE_TICK_FAILED`
+at 12:53:32. The last published pipeline report was 12:52:45,
+and the collector log continued through 12:53:29. The operator then reported
+closing the window with X. This does **not** prove the window action caused
+the Node failure.
+
+The native service ran `node no11_received_pipeline_tick.mjs` with
+`capture_output=True`. The preexisting nonzero-return path surfaced its
+`stderr` only if it was EXACTLY one `NO11_*` token; empty, multiline,
+runtime-exit and warning-prefixed stderr all collapsed to the same generic
+`NO11_SERVICE_NODE_TICK_FAILED`. The original raw stderr was discarded.
+Therefore this incident's underlying Node process cause cannot honestly
+be reconstructed from the supplied snapshots.
+
+The staged, source-pinned `pipeline_node` transform adds one bounded,
+private, non-overwriting `node-tick-failure-<random>.json` for each
+nonzero Node subprocess result (except the unchanged partial-write retry).
+It records the original return code, stderr/stdout byte lengths and SHA256
+digests, a bounded allowlisted single-line error-code list and timestamp.
+It **never** records raw stdout/stderr, arbitrary exception contents,
+private paths, account contents or securities. Writing failure fails closed.
+The original `NO11_SERVICE_NODE_TICK_FAILED` behavior and exact
+`NO11_PIPELINE_CAPTURE_WRITE_IN_PROGRESS` handling are unchanged.
+This evidence cannot be produced retroactively and cannot survive a process
+being killed before Python's error handler runs.
+
+This is not a blanket fix for arbitrary UI-window termination. The
+observed attempt remained CONNECTED without a closure receipt; it must
+remain unverified until actual owned-workbook/receipt evidence is checked.
+Do not synthesize a CLOSED receipt or rewrite the old claim/ledger.
 
 ## Integration / remaining deployment gate
 

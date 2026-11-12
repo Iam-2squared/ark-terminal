@@ -145,3 +145,50 @@ approval. The operator must approve on the actual session date.
 
 **After 09:00**: use the existing normal Trade entry path only when its original
 approval and order requirements are satisfied; no backdated 09:00 trigger.
+
+## Windows process ancestry false positive: safe operator launch
+
+On 2026-11-13, the operator's **read-only** `-ProbeGate` reported
+`NO11_GATE_UNREADABLE=0`, `NO11_GATE_MATCHES=1` and
+`CLASS=INSTALLER|REL=ANCESTOR`. The original installer quiet gate matches
+a broad `No11` command line in an upstream PowerShell shell. The previous
+separate PowerShell inspection returned zero because the installer command's
+ancestor chain was absent from that inspection; no proof of a current Trade
+process was found. An ancestor classification *alone* is not proof that it
+is safe to ignore; do not modify the original trading/process gate.
+
+**Preferred workaround (no source changes or safety bypass):**
+Start a brand-new `cmd.exe` from **Windows Start / Win+R** (not from the
+currently running PowerShell or an ARK window). The fresh `cmd.exe` should
+have Explorer, not a `No11` PowerShell wrapper, as its parent. Use the
+previously hash-verified bootstrap from that fresh console:
+
+```cmd
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%TEMP%\Bootstrap-No11AnytimeStandby-probe.ps1" -ProbeGate
+```
+
+Proceed only if the **fresh independent** probe says
+`NO11_GATE_UNREADABLE=0` and `NO11_GATE_MATCHES=0`.
+Then, with ARK/OneClick/nightly jobs stopped, within the existing after-hours
+window and after independently checking broker orders/fills/positions, run
+the same known script in **that same fresh cmd.exe**:
+
+```cmd
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%TEMP%\Bootstrap-No11AnytimeStandby-probe.ps1"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%TEMP%\Bootstrap-No11AnytimeStandby-probe.ps1" -Apply -IConfirmArkStoppedAndBrokerOrdersPositionsReviewed
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%TEMP%\Bootstrap-No11AnytimeStandby-probe.ps1"
+```
+
+The first audit must return `READY_NOT_APPLIED`; a successful install is
+`APPLIED_NO_TRADE`, followed by `ALREADY_APPLIED`. Do not combine these
+into an automatic unconditional sequence: **inspect each stage and stop on
+a `BLOCKED` result.** The process gate is run repeatedly during the apply
+and still blocks unreadable command lines, actual ARK workers, and other
+non-exempt processes. Do not use `taskkill`, `Stop-Process`, remove a
+reservation marker, or relabel an unclosed collector receipt to pass it.
+
+An independent cmd launched from the *existing PowerShell* can inherit the
+problematic ancestor. It must be a fresh shell launched independently by
+Explorer or the Windows Start UI. The script must be the already verified,
+unchanged source-pinned bootstrap; otherwise repeat source verification first.
+

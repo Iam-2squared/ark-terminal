@@ -316,6 +316,10 @@ try {
  }
  Write-Output ('NO11_GATE_ANCESTORS='+$ancestors.Count)
  Write-Output ('NO11_GATE_UNREADABLE='+$bad.Count)
+ foreach($item in ($bad|Sort-Object ProcessId)){
+   $relation=if($ancestors -contains [int]$item.ProcessId){'ANCESTOR'}else{'NONANCESTOR'}
+   Write-Output ('NO11_GATE_UNREADABLE_PROCESS=PID='+$item.ProcessId+'|PPID='+$item.ParentProcessId+'|NAME='+$item.Name+'|REL='+$relation)
+ }
  Write-Output ('NO11_GATE_MATCHES='+$hits.Count)
  foreach($hit in ($hits|Sort-Object ProcessId)){
    $cmd=[string]$hit.CommandLine
@@ -339,6 +343,7 @@ try {
     need(result.returncode == 0, 'GATE_PROBE_PROCESS_QUERY_FAILED')
     for line in result.stdout.splitlines():
         need(re.fullmatch(r'NO11_GATE_(?:UNREADABLE|MATCHES|ANCESTORS)=[0-9]{1,7}', line)
+             or re.fullmatch(r'NO11_GATE_UNREADABLE_PROCESS=PID=[0-9]{1,10}\|PPID=[0-9]{1,10}\|NAME=(?:powershell|pwsh|python|pythonw|node)(?:[.]exe)?\|REL=(?:ANCESTOR|NONANCESTOR)', line, flags=re.I)
              or re.fullmatch(r'NO11_GATE_MATCH=PID=[0-9]{1,10}\|PPID=[0-9]{1,10}\|CLASS=(?:LIVE|NIGHTLY|ONECLICK|INSTALLER|OTHER)\|REL=(?:ANCESTOR|NONANCESTOR)', line),
              'GATE_PROBE_INVALID_OUTPUT')
         print(line)

@@ -1,0 +1,168 @@
+"""Reviewed source transformations; apply only to a staging checkout, not LIVE.
+
+Original numerical models, native admission/expiry, actions, account data and
+frozen artifacts remain unchanged. Unknown source spans are rejected. CLI is
+explicit staging only; it is not a PC installer or a restart command.
+"""
+from __future__ import annotations
+
+import argparse
+import ast
+import hashlib
+from pathlib import Path
+
+from no11_oneclick_display_transform import replace_regions
+
+OLD_FUND = '''    def fund(self, batch, quotes, at):
+        need(type(batch) is dict and type(batch.get('results')) is list, 'H235_BATCH')
+        consumed = self.book.source_checkpoint('capital.consumed') or {}
+        changed, fresh = dict(consumed), []
+        for row in batch['results']:
+            key, sha = row.get('candidateId'), h.digest(row)
+            need(type(key) is str and bool(key), 'CANDIDATE_ID')
+            need(key not in consumed or consumed[key] == sha, 'CANDIDATE_CHANGED')
+            if key not in consumed:
+                decision = h.timestamp(row.get('decisionAtJst'), self.session)
+                now = h.timestamp(at, self.session)
+                need(decision <= now, 'CANDIDATE_FROM_FUTURE')
+                if h.minute(decision) == h.minute(now) and (now - decision).total_seconds() <= 90:
+                    fresh.append(row)
+                changed[key] = sha
+        if not fresh:
+            if changed != consumed:
+                self.book.checkpoint_source('capital.consumed', changed, at)
+            return None
+        # Validate the complete fresh batch before consuming a candidate or
+        # reserving funds. Already evaluated rows may never return as new BUY.
+        result = decisions.calculate_capital(dict(batch, results=fresh), self._capital_input(quotes, at), self.arrival)
+        self.book.checkpoint_source('capital.consumed', changed, at)
+        self.last_decision = result
+        self.submit_intents(result['intents'], self.clock())
+        return result
+'''
+NEW_FUND = '''    def fund(self, batch, quotes, at):
+        # ARK_NO11_CAPITAL_DURABLE_DECISION_AUDIT_V1
+        from no11_capital_decision_audit import fund_with_audit
+        return fund_with_audit(self, batch, quotes, at,
+                               time_api=h, decisions=decisions, require=need)
+'''
+OLD_OVERLAY = '''  if($trading -match 'ENTRY HALTED'){
+       $disabledTradeOverlay.Text='TRADING PAUSED  /  RECOVERY REVIEW REQUIRED'
+   }
+   elseif($s.mode -ceq 'AFTER_CLOSE'){
+       $disabledTradeOverlay.Text='TRADING CLOSED FOR TODAY'
+   }
+   elseif($s.reason -ceq 'NEW_ENTRY_WINDOW_CLOSED'){
+       $disabledTradeOverlay.Text='NEW ENTRIES CLOSED'
+   }
+   else{
+       $disabledTradeOverlay.Text='TRADING UNAVAILABLE  /  CHECK STATUS'
+   }
+'''
+NEW_OVERLAY = '''  # ARK_NO11_PREOPEN_OVERLAY_PRESENTATION_ONLY_V1
+  if($view.phase -ceq 'PREOPEN'){
+       $disabledTradeOverlay.Text=[string]$view.trading
+   }
+   elseif($trading -match 'ENTRY HALTED'){
+       $disabledTradeOverlay.Text='TRADING PAUSED  /  RECOVERY REVIEW REQUIRED'
+   }
+   elseif($s.mode -ceq 'AFTER_CLOSE'){
+       $disabledTradeOverlay.Text='TRADING CLOSED FOR TODAY'
+   }
+   elseif($s.reason -ceq 'NEW_ENTRY_WINDOW_CLOSED'){
+       $disabledTradeOverlay.Text='NEW ENTRIES CLOSED'
+   }
+   else{
+       $disabledTradeOverlay.Text='TRADING UNAVAILABLE  /  CHECK STATUS'
+   }
+'''
+
+
+def transform(raw, edits, *, python=True):
+    bom = b'\xef\xbb\xbf' if raw.startswith(b'\xef\xbb\xbf') else b''
+    text = raw.decode('utf-8-sig')
+    new = replace_regions(text, edits)
+    if replace_regions(new, [(after, before) for before, after in edits]) != text:
+        raise ValueError('NO11_HARDENING_NONREVERSIBLE')
+    if python:
+        ast.parse(new)
+    return bom + new.encode('utf-8')
+
+
+def service(raw):
+    before = "            'capital': self.last_decision, 'exit': self.last_exit, 'drafts': self.drafts,"
+    after = "            'capitalAudit': self.book.source_checkpoint('capital.decision.latest'),\n" + before
+    return transform(raw, [(OLD_FUND, NEW_FUND), (before, after)])
+
+
+def display(raw):
+    before = "            if result['collector'] == 'CLOSED' or last_time is None or failure.stat().st_mtime_ns >= last_time:\n                result['state'] = 'FAILURE_RECORDED'\n            else:\n                result['previousFailure'] = True"
+    after = """            if last_time is None or failure.stat().st_mtime_ns >= last_time:
+                result['state'] = 'FAILURE_RECORDED'
+            elif result['collector'] == 'CLOSED':
+                # A rewritten CLOSED attempt is not proof that this older
+                # failure belongs to it. Preserve uncertainty, not success.
+                result['state'] = 'FAILURE_SCOPE_UNVERIFIED'
+                result['failureAttribution'] = 'UNVERIFIED'
+                result['previousFailure'] = True
+            else:
+                result['previousFailure'] = True"""
+    branch = "    elif rs == 'UNVERIFIED' or reserved.get('state') == 'UNVERIFIED':"
+    new_branch = "    elif rs == 'FAILURE_SCOPE_UNVERIFIED':\n        trading = 'CLOSED / 停止理由要確認'\n" + branch
+    return transform(raw, [(before, after), (branch, new_branch)])
+
+
+def base_installer(raw):
+    before = "def verify(store, record, *, frozen=True):\n    home, launcher, legacy, engine, external = context(store)"
+    after = """def verify(store, record, *, frozen=True):
+    # Recognize only a fully proven subsequent overlay; no permissive hash bypass.
+    if record.get('phase') == 'COMPLETE' and (Path(store) / 'oneclick-display-v2-overlay-compat-install.json').exists():
+        from no11_display_install_chain import verify_complete_chain
+        return verify_complete_chain(store, record)
+    home, launcher, legacy, engine, external = context(store)"""
+    return transform(raw, [(before, after)])
+
+
+def overlay_installer(raw):
+    before = '    original_record = journal_io.checkpoint(original_journal)'
+    after = before + "\n    from no11_display_install_chain import validate_v2_dependencies\n    validate_v2_dependencies(store)"
+    return transform(raw, [(before, after)])
+
+
+def launcher_preopen(raw):
+    """A separately journaled final display delta, not an authorization patch.
+
+    Keep old V2/overlay recipes frozen so existing receipts remain provable.
+    This delta belongs in the next consolidated PC installer; never edit an
+    installed launcher in place without its own verified migration receipt.
+    """
+    return transform(raw, [(OLD_OVERLAY, NEW_OVERLAY)], python=False)
+
+
+ENGINE = 'research/no12-prebuy-causal-runtime-20261011/tools/'
+MORNING = 'research/no11-morning-master-20261103/'
+TARGETS = {
+    ENGINE + 'no11_broker_execution_service.py': service,
+    MORNING + 'no11_oneclick_display_v2.py': display,
+    MORNING + 'install_no11_oneclick_display_v2.py': base_installer,
+    MORNING + 'install_no11_oneclick_display_overlay_compat.py': overlay_installer,
+}
+
+
+def stage(root):
+    root = Path(root).resolve()
+    if not (root / '.git').exists():
+        raise ValueError('NO11_HARDENING_STAGING_CHECKOUT_REQUIRED')
+    prepared = [(root / name, change((root / name).read_bytes())) for name, change in TARGETS.items()]
+    for path, data in prepared:
+        path.write_bytes(data)
+        print('STAGED_SOURCE|' + str(path.relative_to(root)) + '=' + hashlib.sha256(data).hexdigest())
+    print('PC_INSTALL_PERFORMED=False')
+    print('TRADE_STARTED=False')
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--staging-checkout', type=Path, required=True)
+    args = parser.parse_args()
+    stage(args.staging_checkout)

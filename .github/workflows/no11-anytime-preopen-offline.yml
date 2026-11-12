@@ -1,0 +1,78 @@
+name: No11 anytime preopen standby offline
+on:
+  push:
+    branches: [feature/no11-anytime-same-day-standby-20261112]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-contracts:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    timeout-minutes: 10
+    env:
+      PYTHONUTF8: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Frozen original 08:30 source contract and new 00:00 transforms
+        shell: bash
+        run: |
+          python -B -m unittest discover -s research/no11-morning-master-20261103 -p 'test_preopen_0830.py' -v
+          python -B -m unittest discover -s research/no11-morning-master-20261103 -p 'test_no11_anytime_preopen.py' -v
+      - name: Stage exact modifications only inside disposable CI checkout
+        shell: bash
+        run: python -B research/no11-morning-master-20261103/no11_anytime_preopen.py --staging-checkout .
+      - name: Check generated sources and untouched broker/EXIT programs
+        shell: bash
+        run: |
+          python -B - <<'PY'
+          import ast, hashlib, subprocess, sys
+          from pathlib import Path
+          sys.path.insert(0,str(Path('research/no11-morning-master-20261103').resolve()))
+          import no11_anytime_preopen as patch
+          changed=set(subprocess.check_output(['git','diff','--name-only'],text=True).splitlines())
+          assert changed==set(patch.TARGETS),(changed,set(patch.TARGETS))
+          for name in patch.TARGETS:
+              raw=Path(name).read_bytes()
+              assert raw!=subprocess.check_output(['git','show','HEAD:'+name])
+              print('STAGED_SHA256|'+name+'='+hashlib.sha256(raw).hexdigest())
+          ast.parse(Path(patch.MORNING+'no11_oneclick_display_v2.py').read_text(encoding='utf-8-sig'))
+          print('TRADING_SOURCE_UNCHANGED=True')
+          print('WHITE_LAYOUT_AND_PERMISSION_LINES_UNCHANGED=True')
+          Path('no11-anytime-preopen-generated.patch').write_bytes(
+              subprocess.check_output(['git','diff','--binary']))
+          print('ORDER_TRANSMISSION=False')
+          PY
+      - name: Actual Windows PowerShell 5.1 parsing and same-day waiting selftest
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Set-StrictMode -Version Latest
+          $root='research/no11-morning-master-20261103'
+          foreach($file in @('Start-No11PreopenStandby.ps1','Start-No11OneClick.ps1')){
+             $tok=$null;$errs=$null
+             [void][Management.Automation.Language.Parser]::ParseFile(
+                 (Join-Path $root $file),[ref]$tok,[ref]$errs)
+             if(@($errs).Count -ne 0){throw ('PS_SYNTAX_'+$file)}
+          }
+          $out=@(& powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $root 'Start-No11PreopenStandby.ps1') -OfflineSelfTest)
+          if($LASTEXITCODE -ne 0 -or $out -notcontains 'NO11_PREOPEN_OFFLINE_SELFTEST=PASS'){throw 'STANDBY_SELFTEST'}
+          $ui=@(& powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $root 'Start-No11OneClick.ps1') -OfflineSelfTest)
+          if($LASTEXITCODE -ne 0 -or $ui -notcontains 'NO11_ONECLICK_OFFLINE_SELFTEST=PASS'){throw 'UI_SELFTEST'}
+          'WINDOWS_0000_TO_0859_WAITING=PASS'
+          'NATIVE_0900_TO_0902_BOUNDARY=UNCHANGED'
+          'TRADE_STARTED=False'
+          'EXCEL_TOUCHED=False'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: no11-anytime-preopen-${{ matrix.os }}
+          path: no11-anytime-preopen-generated.patch
+          retention-days: 14

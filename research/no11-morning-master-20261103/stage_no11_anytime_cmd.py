@@ -102,7 +102,7 @@ if /I "%~1"=="apply" goto CHECK
 goto INVALID
 
 :CHECK
-"{py}" -B -X utf8 "%~dp0{MODULE}" --verify "%~dp0"
+"{py}" -B -X utf8 "%~dp0{MODULE}" --verify "%~dp0."
 if errorlevel 1 exit /b 2
 if /I "%~1"=="probe" goto PROBE
 if /I "%~1"=="audit" goto AUDIT

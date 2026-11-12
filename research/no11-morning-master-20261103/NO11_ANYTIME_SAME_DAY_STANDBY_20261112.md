@@ -192,3 +192,47 @@ problematic ancestor. It must be a fresh shell launched independently by
 Explorer or the Windows Start UI. The script must be the already verified,
 unchanged source-pinned bootstrap; otherwise repeat source verification first.
 
+
+
+## 2026-11-13: no quiet-gate exemption; pinned direct CMD deployment
+
+The operator's latest read-only probe returned one installer ancestor match
+and zero unreadable command lines. The original process gate still blocks
+a quiet check from that chain, even when the outer console is cmd.
+
+Do not waive the original process gate. A running PowerShell bootstrap
+can appear in the installer process ancestry and match the broad historical
+No11 predicate. The new -StageForCmd mode prepares a separate, pinned bundle
+without modifying the installed OneClick, logs, evidence or order records:
+
+* Download exactly eight Git-blob pinned Python sources from one immutable commit.
+* Stage them outside the installed OneClick, under LocalAppData/ArkTerminal/No12/
+  anytime-installer-stage/verified-<nonce> with an SHA256 manifest.
+* Generate a Run-No11Anytime.cmd file that verifies the bundle and current
+  binding/settings then directly invokes the bound Python. The PowerShell
+  downloader has exited before CMD launches Python.
+* Require an explicit action, never trade on opening the console:
+  - probe: read-only. Require NO11_GATE_UNREADABLE=0 and NO11_GATE_MATCHES=0.
+  - audit: read-only. Require READY_NOT_APPLIED before first installation.
+  - apply: after-hours only, Y/N broker/ARK-stop confirmation, and existing
+    original.gate process/time checks repeated throughout. A real ARK worker,
+    unreadable command line or any unrecognized process still blocks.
+
+Preparation command from the latest verified downloaded bootstrap:
+PowerShell: & powershell.exe -NoProfile -ExecutionPolicy Bypass -File
+  $arkGateProbe -StageForCmd
+
+The bootstrap prints NO11_CMD_STAGE_RUNNER=<absolute path>, and
+NO11_ANYTIME_BOOTSTRAP=STAGED_FOR_DIRECT_CMD_NO_INSTALLED_WRITES.
+In a separate fresh CMD shell, run the printed absolute path in double
+quotes, once each with arguments probe, audit and (only after verification)
+apply. Inspect the output between commands and never chain unconditional
+commands. Finish with a fresh audit that reports ALREADY_APPLIED.
+
+Do not delete or rewrite any prior installation receipt, order claim, broker
+record or unclosed collector evidence. This operation changes neither the
+native trading window nor original broker safety gates.
+
+CI validates staged source pins, corrupted bundle rejection and actual
+Windows CMD direct-Python process probing. It cannot prove live broker or
+operator-machine safety; the on-PC probe/audit is still required.

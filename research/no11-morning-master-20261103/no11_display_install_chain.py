@@ -1,8 +1,8 @@
 """Read-only verification of the complete Display V2 -> Overlay source chain.
 
 Keep both original journals unchanged. A valid overlay is not an unknown local
-edit. Conversely ALREADY_APPLIED is never returned with absent/modified Python
-presentation or contract sidecars. No installation, authorization, or Excel I/O.
+edit. ALREADY_APPLIED requires the installed presentation and contract bytes.
+No installation, authorization, or Excel I/O.
 """
 from __future__ import annotations
 
@@ -12,6 +12,10 @@ from pathlib import Path
 import no11_nightly_resume as n
 import no11_oneclick_display_transform as migration
 
+# Exact publicly released presentation payload from a9e0d8ad / 75f2c432.
+# Do not infer authorization from a user's reported hash or an untrusted journal.
+HISTORICAL_DISPLAY = '47e9161e40eaa81294eaa7faa437eeb6a26753ef3c703cebaa3bd0035694dd55'
+
 
 def need(ok, code):
     if not ok:
@@ -19,8 +23,6 @@ def need(ok, code):
 
 
 def validate_v2_dependencies(store):
-    # Import lazily: the older installer delegates to this module, but only
-    # after its function definitions exist. Do not recurse into its verify().
     import install_no11_oneclick_display_v2 as original
     store = n.safe(store, True)
     home, launcher, legacy, engine, external = original.context(store)
@@ -33,14 +35,19 @@ def validate_v2_dependencies(store):
     after = base64.b64decode(record['after'], validate=True)
     need(migration.transform(before) == after and migration.transform(after) == after,
          'BASE_DERIVATION_CHANGED')
-    expected = original.payload(legacy)
     sidecars = record.get('sidecars')
-    need(type(sidecars) is dict and set(sidecars) == set(expected), 'SIDECAR_SET')
-    for name, data in expected.items():
-        need(base64.b64decode(sidecars[name], validate=True) == data, 'SIDECAR_RECEIPT_CHANGED')
-        path = n.safe(home / name)
-        need(path.read_bytes() == data, 'SIDECAR_BYTES_CHANGED')
-    return launcher, before, after, expected, record, journal
+    need(type(sidecars) is dict and set(sidecars) == {original.DISPLAY, original.CONTRACT}, 'SIDECAR_SET')
+    extras = {name: base64.b64decode(value, validate=True) for name, value in sidecars.items()}
+    display_sha = n.digest(extras[original.DISPLAY])
+    current_sha = n.digest(original.payload(legacy)[original.DISPLAY])
+    need(display_sha in {HISTORICAL_DISPLAY, current_sha}, 'UNKNOWN_DISPLAY_RELEASE')
+    contract = {'schemaId': 'ARK_NO11_ONECLICK_DISPLAY_INSTALL_V2',
+                'displaySha256': display_sha, 'legacyStatusSha256': n.digest(legacy.read_bytes()),
+                'orderTransmission': False, 'authorizationSourceChanged': False}
+    need(extras[original.CONTRACT] == n.encode(contract), 'CONTRACT_BINDING_CHANGED')
+    for name, data in extras.items():
+        need(n.safe(home / name).read_bytes() == data, 'SIDECAR_BYTES_CHANGED')
+    return launcher, before, after, extras, record, journal
 
 
 def verify_complete_chain(store, supplied_record=None):
@@ -71,6 +78,6 @@ def verify_complete_chain(store, supplied_record=None):
     need(base64.b64decode(receipt['before'], validate=True) == after
          and base64.b64decode(receipt['after'], validate=True) == derived
          and current == derived, 'OVERLAY_DERIVATION_CHANGED')
-    # Completed chain accepts unrelated legitimate daily updates. Dependency
-    # sidecars, native status and every journal/launcher byte remain pinned.
+    # Completed chains allow legitimate unrelated daily updates, but never
+    # changed/missing presentation, native status, contract or launcher bytes.
     return launcher, before, derived, extras

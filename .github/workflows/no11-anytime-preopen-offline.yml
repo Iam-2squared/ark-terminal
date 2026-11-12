@@ -40,7 +40,7 @@ jobs:
           pins=dict(re.findall(r"^ '([a-z0-9_]+\.py)'='([a-f0-9]{40})'$",text,re.M))
           assert len(pins)==7, pins
           for name,expected in pins.items():
-              raw=subprocess.check_output(['git','show','HEAD:'+str(parent/name)])
+              raw=subprocess.check_output(['git','show','HEAD:'+(parent/name).as_posix()])
               # Windows checkout can normalize local worktree line endings.
               worktree=(parent/name).read_bytes()
               assert worktree.replace(b'\r\n',b'\n')==raw.replace(b'\r\n',b'\n')

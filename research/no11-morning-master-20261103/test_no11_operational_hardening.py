@@ -217,7 +217,8 @@ class NodeTickFailureEvidenceTests(unittest.TestCase):
     """Run the derived native run_tick code with a fake, non-trading Node child."""
 
     def pristine_source(self):
-        raw = (TOOLS / 'no11_received_pipeline_service.py').read_bytes()
+        raw = ((TOOLS / 'no11_received_pipeline_service.py').read_bytes()
+               .decode('utf-8-sig').replace('\r\n', '\n').encode('utf-8'))
         # CI stages the reviewed native edit BEFORE invoking this test suite;
         # local tests may instead run against the original untouched source.
         old = hardening.OLD_NODE_FAILURE.encode('utf-8')

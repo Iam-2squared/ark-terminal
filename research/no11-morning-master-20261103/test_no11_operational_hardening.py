@@ -216,7 +216,7 @@ class DecisionAuditTests(unittest.TestCase):
 class NodeTickFailureEvidenceTests(unittest.TestCase):
     """Run the derived native run_tick code with a fake, non-trading Node child."""
 
-    def invoke(self, stderr, *, stdout='', exit_code=2):
+    def invoke(self, stderr, *, stdout='', exit_code=2, fail_evidence=False):
         source = (TOOLS / 'no11_received_pipeline_service.py').read_bytes()
         generated = hardening.pipeline_node(source)
         parsed = ast.parse(generated)
@@ -224,7 +224,7 @@ class NodeTickFailureEvidenceTests(unittest.TestCase):
                   if isinstance(n, ast.FunctionDef) and n.name == 'run_tick')
         send = Mock(return_value=SimpleNamespace(
             returncode=exit_code, stderr=stderr, stdout=stdout))
-        atomic = Mock()
+        atomic = Mock(side_effect=[None, OSError('disk full')] if fail_evidence else None)
         ns = {
             'Path': Path, 'TICK': Path('offline-no-node.mjs'),
             'subprocess': SimpleNamespace(run=send), 'atomic_private': atomic,
@@ -243,7 +243,7 @@ class NodeTickFailureEvidenceTests(unittest.TestCase):
         return outcome, send, atomic
 
     def test_generic_node_failure_is_persisted_without_private_stderr(self):
-        raw = 'Error: secret-account-path and exception details\\n    at secret.js:4:2\\n'
+        raw = 'Error: secret-account-path and exception details\n    at secret.js:4:2\n'
         (kind, code), child, writes = self.invoke(raw, stdout='broker-private-lines')
         self.assertEqual((kind, code), ('RAISED', 'NO11_SERVICE_NODE_TICK_FAILED'))
         self.assertEqual(writes.call_count, 2)
@@ -270,14 +270,14 @@ class NodeTickFailureEvidenceTests(unittest.TestCase):
         self.assertEqual(record['stderrBytes'], 0)
 
     def test_known_error_code_preserves_original_failure_semantics(self):
-        known = 'NO11_PIPELINE_ACCEPTED_CAPTURE_REMOVED\\n'
+        known = 'NO11_PIPELINE_ACCEPTED_CAPTURE_REMOVED\n'
         (kind, code), _, writes = self.invoke(known)
         self.assertEqual((kind, code), ('RAISED', known.strip()))
         self.assertEqual(writes.call_args.args[1]['stderrShape'], 'SINGLE_SAFE_CODE')
         self.assertEqual(writes.call_args.args[1]['safeCodeLines'], [known.strip()])
 
     def test_warning_plus_safe_line_is_audited_but_still_fails_closed(self):
-        raw = 'node warning: runtime context\\nNO11_PIPELINE_CAPTURE_LIMIT\\n'
+        raw = 'node warning: runtime context\nNO11_PIPELINE_CAPTURE_LIMIT\n'
         (kind, code), _, writes = self.invoke(raw)
         self.assertEqual((kind, code), ('RAISED', 'NO11_SERVICE_NODE_TICK_FAILED'))
         self.assertEqual(writes.call_args.args[1]['safeCodeLines'], ['NO11_PIPELINE_CAPTURE_LIMIT'])
@@ -293,8 +293,9 @@ class NodeTickFailureEvidenceTests(unittest.TestCase):
         self.assertNotEqual(generated, source)
         self.assertIn(b'NO11_SERVICE_NODE_TICK_FAILED', generated)
         self.assertIn(b"'brokerStateChanged': False", generated)
-        self.assertEqual(len(hardening.pipeline_node(source).splitlines()) -
-                         len(source.splitlines()), 19)
+        self.assertEqual(len(generated.splitlines()) - len(source.splitlines()), 18)
+        with self.assertRaisesRegex(OSError, 'disk full'):
+            self.invoke('runtime exited unexpectedly', fail_evidence=True)
 
 
 class DisplayChainTests(unittest.TestCase):

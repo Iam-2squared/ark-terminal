@@ -7,6 +7,9 @@ recipes, including local white-theme customizations and retry permission lines.
 from __future__ import annotations
 
 from datetime import datetime
+import io as io_stream
+from contextlib import redirect_stdout
+import base64
 import hashlib
 import json
 import os
@@ -100,6 +103,52 @@ class UpgradeTests(unittest.TestCase):
                    if token in x]
             new = [x for x in text.splitlines() if token in x]
             self.assertEqual(old, new)
+
+    def test_source_diagnostic_success_and_missing_v2_anchor_is_reported_readonly(self):
+        before = self.snapshots()
+        buf = io_stream.StringIO()
+        with redirect_stdout(buf):
+            self.assertEqual(candidate.diagnose(self.store), 0)
+        self.assertIn('NO11_ANYTIME_DIAG_RESULT=READY_NOT_APPLIED', buf.getvalue())
+        self.assertEqual(self.snapshots(), before)
+        path = self.store / base.JOURNAL
+        saved = io.checkpoint(path)
+        original_before = base64.b64decode(saved['before'], validate=True)
+        self.assertIn(b'08:30 STANDBY READY', original_before)
+        corrupted_before = original_before.replace(
+            b'08:30 STANDBY READY', b'08:33 STANDBY READY', 1)
+        saved['before'] = base64.b64encode(corrupted_before).decode('ascii')
+        io.atomic(path, saved)
+        changed = self.snapshots()
+        buf = io_stream.StringIO()
+        with redirect_stdout(buf):
+            self.assertEqual(candidate.diagnose(self.store), 2)
+        self.assertIn('NO11_ANYTIME_DIAG_V2_BEFORE_DERIVATION=BLOCKED',
+                      buf.getvalue())
+        self.assertNotIn('08:33 STANDBY READY', buf.getvalue())
+        self.assertEqual(self.snapshots(), changed)
+
+    def test_overlay_splices_only_verified_first_line_not_local_body(self):
+        chain = candidate.original_chain(self.store)
+        old = chain['oldLauncher']
+        local = old.replace(
+            b"       $disabledTradeOverlay.Text='TRADING PAUSED",
+            b"          $disabledTradeOverlay.Text='TRADING PAUSED", 1)
+        self.assertNotEqual(old, local)
+        import no11_anytime_preopen as widening
+        import no11_oneclick_display_transform as migration
+        prepared = widening.ui(local).decode('utf-8-sig')
+        self.assertEqual(prepared.count(candidate.OVERLAY_OLD), 1)
+        patched = migration.replace_regions(prepared, [
+            (candidate.OVERLAY_OLD, candidate.OVERLAY_NEW)])
+        self.assertIn("          $disabledTradeOverlay.Text='TRADING PAUSED", patched)
+        self.assertEqual(
+            migration.replace_regions(patched, [
+                (candidate.OVERLAY_NEW, candidate.OVERLAY_OLD)]),
+            prepared)
+        self.assertEqual(
+            [l for l in prepared.splitlines() if '$trade.Enabled=' in l],
+            [l for l in patched.splitlines() if '$trade.Enabled=' in l])
 
     def test_new_read_only_display_has_bound_contract_and_old_sidecars_intact(self):
         self.run_apply()

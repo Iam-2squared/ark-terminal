@@ -7,6 +7,7 @@ recipes, including local white-theme customizations and retry permission lines.
 from __future__ import annotations
 
 from datetime import datetime
+import subprocess
 import io as io_stream
 from contextlib import redirect_stdout
 import base64
@@ -61,6 +62,53 @@ class UpgradeTests(unittest.TestCase):
     def assert_originals(self):
         for p, raw in self.previous.items():
             self.assertEqual(p.read_bytes(), raw, str(p))
+
+    def test_gate_probe_reproduces_strict_quiet_process_filter_without_writes(self):
+        from io import StringIO
+        from contextlib import redirect_stdout
+        old = self.snapshots()
+        native_need = candidate.need
+        def allow_test_host(check, reason):
+            if reason == 'GATE_PROBE_WINDOWS_ONLY':
+                return None
+            return native_need(check, reason)
+        def fake_run(argv, **kwargs):
+            self.assertIn('-File', argv)
+            probe = Path(argv[-1]).read_text(encoding='ascii')
+            self.assertIn("Get-CimInstance Win32_Process", probe)
+            self.assertIn("No11|no12.*(nightly|collector)", probe)
+            self.assertIn("ProcessId -notin @($PID,", probe)
+            self.assertIn("NO11_GATE_MATCH=PID=", probe)
+            self.assertNotIn('OWN_PROCESS', probe)
+            self.assertNotIn('PARENT_PROCESS', probe)
+            return subprocess.CompletedProcess(
+                argv, 0, "NO11_GATE_ANCESTORS=4\nNO11_GATE_UNREADABLE=0\n"
+                "NO11_GATE_MATCHES=1\n"
+                "NO11_GATE_MATCH=PID=1357|PPID=2468|CLASS=INSTALLER|REL=ANCESTOR\n", '')
+        buf = StringIO()
+        with patch.object(candidate, 'need', side_effect=allow_test_host), \
+             patch.object(candidate.subprocess, 'run', side_effect=fake_run), \
+             redirect_stdout(buf):
+            self.assertEqual(candidate.gate_probe(), 0)
+        self.assertIn("NO11_GATE_MATCHES=1", buf.getvalue())
+        self.assertIn("CLASS=INSTALLER|REL=ANCESTOR", buf.getvalue())
+        self.assertEqual(old, self.snapshots())
+
+    def test_probe_rejects_untrusted_raw_process_command_output(self):
+        from io import StringIO
+        from contextlib import redirect_stdout
+        native_need = candidate.need
+        def allow_test_host(check, reason):
+            if reason == 'GATE_PROBE_WINDOWS_ONLY':
+                return None
+            return native_need(check, reason)
+        bad = subprocess.CompletedProcess([], 0,
+            'NO11_GATE_MATCH=PID=1|COMMANDLINE=SECRET ACCOUNT\n', '')
+        with patch.object(candidate, 'need', side_effect=allow_test_host), \
+             patch.object(candidate.subprocess, 'run', return_value=bad), \
+             redirect_stdout(StringIO()):
+            with self.assertRaisesRegex(ValueError, 'GATE_PROBE_INVALID_OUTPUT'):
+                candidate.gate_probe()
 
     def test_audit_does_not_create_journal_or_new_sidecar_or_modify_any_source(self):
         before = self.snapshots()

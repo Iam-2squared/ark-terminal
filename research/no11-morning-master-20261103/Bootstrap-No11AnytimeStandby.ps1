@@ -2,6 +2,7 @@
 # Neither this bootstrap nor the installer can launch Trade or touch Excel.
 param(
  [switch]$Apply,
+ [switch]$Diagnose,
  [switch]$IConfirmArkStoppedAndBrokerOrdersPositionsReviewed,
  [switch]$OfflineSelfTest
 )
@@ -20,9 +21,9 @@ function Blob([byte[]]$raw){
  finally{$sha.Dispose()}
 }
 # Every downloaded module was reviewed at exactly this source commit.
-$commit='c40cae9a242e6218ef84c6209f77dab818385442'
+$commit='9afa17bdb8b47547d9b1ca0d72602aafc3a9b23e'
 $files=[ordered]@{
- 'install_no11_anytime_preopen.py'='837dd1acfd11b7af163011356ef08c66cc810f40'
+ 'install_no11_anytime_preopen.py'='89f6810fbd860612ca2afffb73ce022b396c9976'
  'no11_anytime_preopen.py'='e5b1c2c5263e525092a1028d9c734c2a14f4efac'
  'no11_nightly_resume.py'='6c3668c47991e1407464c7049cd662ff9985ad35'
  'no11_oneclick_display_transform.py'='4c8ce6fb796320c00e80f0385437162925cb3921'
@@ -31,7 +32,7 @@ $files=[ordered]@{
  'install_no11_oneclick_display_overlay_compat.py'='e234c9fee85703329d9cd41444e64660468bee16'
 }
 if($OfflineSelfTest){
- Need (-not $Apply -and -not $IConfirmArkStoppedAndBrokerOrdersPositionsReviewed) 'SELFTEST_FLAGS'
+ Need (-not $Apply -and -not $Diagnose -and -not $IConfirmArkStoppedAndBrokerOrdersPositionsReviewed) 'SELFTEST_FLAGS'
  Need ($commit -cmatch '^[a-f0-9]{40}$' -and $files.Count -eq 7) 'PIN_LIST'
  foreach($entry in $files.GetEnumerator()){
   Need ($entry.Key -cmatch '^[a-z0-9_]+[.]py$' -and
@@ -44,6 +45,7 @@ if($OfflineSelfTest){
  Write-Host 'ORDER_TRANSMISSION=False'
  exit 0
 }
+Need (-not ($Apply -and $Diagnose)) 'DIAGNOSE_CANNOT_APPLY'
 Need (-not $IConfirmArkStoppedAndBrokerOrdersPositionsReviewed -or $Apply) 'CONFIRMATION_ONLY_WITH_APPLY'
 if($Apply){
  Need $IConfirmArkStoppedAndBrokerOrdersPositionsReviewed 'MANUAL_STOP_AND_BROKER_REVIEW_REQUIRED'
@@ -81,10 +83,13 @@ try{
  $installer=Join-Path $temp 'install_no11_anytime_preopen.py'
  $arguments=@('-B','-X','utf8',$installer,'--store',$store)
  if($Apply){$arguments+='--apply'}
+ if($Diagnose){$arguments+='--diagnose'}
  & $python @arguments
  Need ($LASTEXITCODE -eq 0) 'INSTALLER_BLOCKED_PRESERVE_RECEIPTS'
  if($Apply){
   Write-Host 'NO11_ANYTIME_BOOTSTRAP=APPLY_VERIFIED'
+ }elseif($Diagnose){
+  Write-Host 'NO11_ANYTIME_BOOTSTRAP=DIAGNOSTIC_VERIFIED_NO_WRITES'
  }else{
   Write-Host 'NO11_ANYTIME_BOOTSTRAP=AUDIT_VERIFIED_NO_WRITES'
  }

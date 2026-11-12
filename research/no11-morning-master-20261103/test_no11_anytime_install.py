@@ -82,7 +82,8 @@ class UpgradeTests(unittest.TestCase):
             self.assertNotIn('OWN_PROCESS', probe)
             self.assertNotIn('PARENT_PROCESS', probe)
             return subprocess.CompletedProcess(
-                argv, 0, "NO11_GATE_ANCESTORS=4\nNO11_GATE_UNREADABLE=0\n"
+                argv, 0, "NO11_GATE_ANCESTORS=4\nNO11_GATE_UNREADABLE=1\n"
+                "NO11_GATE_UNREADABLE_PROCESS=PID=9753|PPID=1357|NAME=python.exe|REL=NONANCESTOR\n"
                 "NO11_GATE_MATCHES=1\n"
                 "NO11_GATE_MATCH=PID=1357|PPID=2468|CLASS=INSTALLER|REL=ANCESTOR\n", '')
         buf = StringIO()
@@ -91,6 +92,7 @@ class UpgradeTests(unittest.TestCase):
              redirect_stdout(buf):
             self.assertEqual(candidate.gate_probe(), 0)
         self.assertIn("NO11_GATE_MATCHES=1", buf.getvalue())
+        self.assertIn("NO11_GATE_UNREADABLE_PROCESS=PID=9753|PPID=1357|NAME=python.exe|REL=NONANCESTOR", buf.getvalue())
         self.assertIn("CLASS=INSTALLER|REL=ANCESTOR", buf.getvalue())
         self.assertEqual(old, self.snapshots())
 

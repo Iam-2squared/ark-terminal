@@ -365,12 +365,84 @@ def install(store, *, apply=False):
         return 'APPLIED_NO_TRADE'
 
 
+def diagnose(store):
+    """Read-only stage isolation. Never prints receipt bytes, paths or private data."""
+    def probe(label, callback):
+        try:
+            result = callback()
+        except Exception as error:
+            code = str(error)
+            if re.fullmatch(r'NO11_[A-Z0-9_]{1,160}', code) is None:
+                code = 'NO11_ANYTIME_DIAGNOSTIC_UNVERIFIED'
+            print('NO11_ANYTIME_DIAG_' + label + '=BLOCKED|' + code)
+            return None
+        print('NO11_ANYTIME_DIAG_' + label + '=PASS')
+        return result
+
+    store = probe('STORE', lambda: n.safe(store, True))
+    if store is None:
+        return 2
+    original_context = probe('ORIGINAL_CONTEXT', lambda: original.context(store))
+    if original_context is None:
+        return 2
+    home, launcher, legacy, engine, _external = original_context
+    base_path = probe('V2_RECEIPT_PATH', lambda: n.safe(store / original.JOURNAL))
+    if base_path is None:
+        return 2
+    base = probe('V2_RECEIPT_SEAL', lambda: n.checkpoint(base_path))
+    if base is None:
+        return 2
+    first = probe('V2_BEFORE_DECODE', lambda: decode_bytes(base.get('before')))
+    second = probe('V2_AFTER_DECODE', lambda: decode_bytes(base.get('after')))
+    if first is None or second is None:
+        return 2
+    a = probe('V2_BEFORE_DERIVATION', lambda: migration.transform(first))
+    b = probe('V2_AFTER_IDEMPOTENCE', lambda: migration.transform(second))
+    if a is None or b is None:
+        return 2
+    if a != second or b != second:
+        print('NO11_ANYTIME_DIAG_V2_BYTES=BLOCKED|NO11_ANYTIME_DIAGNOSTIC_DERIVATION_CHANGED')
+        return 2
+    print('NO11_ANYTIME_DIAG_V2_BYTES=PASS')
+    chain = probe('HISTORIC_V2_OVERLAY_CHAIN', lambda: original_chain(store))
+    if chain is None:
+        # The stage above already isolated V2 derivation. The remaining
+        # independent receipt/sidecar checks must remain fail-closed.
+        return 2
+    worker_raw = probe('WORKER_FILE', lambda: chain['worker'].read_bytes())
+    if worker_raw is None:
+        return 2
+    old_worker_sha = probe('WORKER_PIN', lambda: git_blob(worker_raw))
+    if old_worker_sha != WORKER_GIT_BLOB:
+        print('NO11_ANYTIME_DIAG_WORKER_RELEASE=BLOCKED|NO11_ANYTIME_INSTALL_WORKER_NOT_PINNED_RELEASE')
+        return 2
+    print('NO11_ANYTIME_DIAG_WORKER_RELEASE=PASS')
+    if probe('WORKER_TRANSFORM', lambda: widening.worker(worker_raw)) is None:
+        return 2
+    if probe('ONECLICK_TRANSFORM', lambda: widening.ui(chain['oldLauncher'])) is None:
+        return 2
+    if probe('DISPLAY_TRANSFORM', lambda: widening.display(chain['originalDisplay'])) is None:
+        return 2
+    if probe('SUCCESSOR_DERIVATION', lambda: derive(chain, worker_raw)) is None:
+        return 2
+    verified = probe('INSTALLED_STATE_AUDIT', lambda: audit(store))
+    if verified is None:
+        return 2
+    print('NO11_ANYTIME_DIAG_RESULT=' + verified[0])
+    return 0
+
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--store', required=True, type=Path)
     p.add_argument('--apply', action='store_true')
+    p.add_argument('--diagnose', action='store_true')
     args = p.parse_args(argv)
     try:
+        if args.diagnose:
+            need(not args.apply, 'DIAGNOSE_CANNOT_APPLY')
+            return diagnose(args.store)
         print('NO11_ANYTIME_STANDBY_INSTALL=' + install(args.store, apply=args.apply))
         print('OLD_V2_AND_OVERLAY_RECEIPTS_PRESERVED=True')
         print('OLD_DISPLAY_AND_CONTRACT_BYTES_PRESERVED=True')

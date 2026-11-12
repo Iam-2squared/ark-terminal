@@ -20,9 +20,9 @@ function Blob([byte[]]$raw){
  finally{$sha.Dispose()}
 }
 # Every downloaded module was reviewed at exactly this source commit.
-$commit='2a33704c3691e0e0ee1bfa69f00f331ecda02656'
+$commit='c40cae9a242e6218ef84c6209f77dab818385442'
 $files=[ordered]@{
- 'install_no11_anytime_preopen.py'='adf41b35bc091caeccc818b551b7e492dd381acd'
+ 'install_no11_anytime_preopen.py'='837dd1acfd11b7af163011356ef08c66cc810f40'
  'no11_anytime_preopen.py'='e5b1c2c5263e525092a1028d9c734c2a14f4efac'
  'no11_nightly_resume.py'='6c3668c47991e1407464c7049cd662ff9985ad35'
  'no11_oneclick_display_transform.py'='4c8ce6fb796320c00e80f0385437162925cb3921'

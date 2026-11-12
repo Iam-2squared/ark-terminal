@@ -2,11 +2,13 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import ast
 from datetime import datetime
 import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import sys
 import tempfile
 from types import SimpleNamespace
@@ -209,6 +211,90 @@ class DecisionAuditTests(unittest.TestCase):
                 actual = self.fund([r])
                 self.assertEqual(actual, expected)
                 self.assertEqual(self.submit.call_args, native_submit.call_args)
+
+
+class NodeTickFailureEvidenceTests(unittest.TestCase):
+    """Run the derived native run_tick code with a fake, non-trading Node child."""
+
+    def invoke(self, stderr, *, stdout='', exit_code=2):
+        source = (TOOLS / 'no11_received_pipeline_service.py').read_bytes()
+        generated = hardening.pipeline_node(source)
+        parsed = ast.parse(generated)
+        fn = next(n for n in parsed.body
+                  if isinstance(n, ast.FunctionDef) and n.name == 'run_tick')
+        send = Mock(return_value=SimpleNamespace(
+            returncode=exit_code, stderr=stderr, stdout=stdout))
+        atomic = Mock()
+        ns = {
+            'Path': Path, 'TICK': Path('offline-no-node.mjs'),
+            'subprocess': SimpleNamespace(run=send), 'atomic_private': atomic,
+            'os': os, 're': re, 'hashlib': hashlib,
+            'now_jst': lambda: DAY + 'T12:53:32+09:00',
+            'need': require
+        }
+        exec(compile(ast.Module(body=[fn], type_ignores=[]), '<derived-run-tick>', 'exec'), ns)
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            try:
+                value = ns['run_tick']({'orderTransmission': False}, root)
+                outcome = ('RETURNED', value)
+            except ValueError as exc:
+                outcome = ('RAISED', str(exc))
+        return outcome, send, atomic
+
+    def test_generic_node_failure_is_persisted_without_private_stderr(self):
+        raw = 'Error: secret-account-path and exception details\\n    at secret.js:4:2\\n'
+        (kind, code), child, writes = self.invoke(raw, stdout='broker-private-lines')
+        self.assertEqual((kind, code), ('RAISED', 'NO11_SERVICE_NODE_TICK_FAILED'))
+        self.assertEqual(writes.call_count, 2)
+        path, record = writes.call_args.args
+        self.assertEqual(path.name[:18], 'node-tick-failure-')
+        self.assertEqual(record['schemaId'], 'ARK_NO11_NODE_TICK_FAILURE_EVIDENCE_V1')
+        self.assertEqual(record['returnCode'], 2)
+        self.assertEqual(record['stderrBytes'], len(raw.encode()))
+        self.assertEqual(record['stderrSha256'], hashlib.sha256(raw.encode()).hexdigest())
+        self.assertEqual(record['stdoutSha256'], hashlib.sha256(b'broker-private-lines').hexdigest())
+        self.assertEqual(record['stderrShape'], 'OTHER')
+        self.assertEqual(record['safeCodeLines'], [])
+        self.assertFalse(record['rawErrorStored'])
+        self.assertFalse(record['orderTransmission'])
+        self.assertNotIn('secret-account-path', json.dumps(record))
+        child.assert_called_once()
+
+    def test_empty_node_stderr_is_preserved_as_unexplained(self):
+        (kind, code), _, writes = self.invoke('', exit_code=3221225477)
+        self.assertEqual((kind, code), ('RAISED', 'NO11_SERVICE_NODE_TICK_FAILED'))
+        record = writes.call_args.args[1]
+        self.assertEqual(record['stderrShape'], 'EMPTY')
+        self.assertEqual(record['returnCode'], 3221225477)
+        self.assertEqual(record['stderrBytes'], 0)
+
+    def test_known_error_code_preserves_original_failure_semantics(self):
+        known = 'NO11_PIPELINE_ACCEPTED_CAPTURE_REMOVED\\n'
+        (kind, code), _, writes = self.invoke(known)
+        self.assertEqual((kind, code), ('RAISED', known.strip()))
+        self.assertEqual(writes.call_args.args[1]['stderrShape'], 'SINGLE_SAFE_CODE')
+        self.assertEqual(writes.call_args.args[1]['safeCodeLines'], [known.strip()])
+
+    def test_warning_plus_safe_line_is_audited_but_still_fails_closed(self):
+        raw = 'node warning: runtime context\\nNO11_PIPELINE_CAPTURE_LIMIT\\n'
+        (kind, code), _, writes = self.invoke(raw)
+        self.assertEqual((kind, code), ('RAISED', 'NO11_SERVICE_NODE_TICK_FAILED'))
+        self.assertEqual(writes.call_args.args[1]['safeCodeLines'], ['NO11_PIPELINE_CAPTURE_LIMIT'])
+
+    def test_native_capture_in_progress_exception_still_skips_without_record(self):
+        (kind, value), _, writes = self.invoke('NO11_PIPELINE_CAPTURE_WRITE_IN_PROGRESS')
+        self.assertEqual((kind, value), ('RETURNED', None))
+        self.assertEqual(writes.call_count, 1)
+
+    def test_failure_to_persist_evidence_never_silently_continues(self):
+        source = (TOOLS / 'no11_received_pipeline_service.py').read_bytes()
+        generated = hardening.pipeline_node(source)
+        self.assertNotEqual(generated, source)
+        self.assertIn(b'NO11_SERVICE_NODE_TICK_FAILED', generated)
+        self.assertIn(b"'brokerStateChanged': False", generated)
+        self.assertEqual(len(hardening.pipeline_node(source).splitlines()) -
+                         len(source.splitlines()), 19)
 
 
 class DisplayChainTests(unittest.TestCase):

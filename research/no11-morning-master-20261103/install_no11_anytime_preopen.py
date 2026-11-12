@@ -289,7 +289,11 @@ def audit(store):
 
 
 def gate_probe():
-    """Read-only copy of the original process predicate, with redacted matched PIDs."""
+    """Reproduce the original process predicate from inside the installer.
+
+    No changes to original.gate, order permissions, filesystem or broker data.
+    Raw process command lines are never reported.
+    """
     need(os.name == 'nt', 'GATE_PROBE_WINDOWS_ONLY')
     script = r"""$ErrorActionPreference='Stop'
 try {
@@ -297,162 +301,7 @@ try {
  if($all.Count -eq 0){exit 5}
  $p=@($all|Where-Object{
    $_.ProcessId -notin @($PID,OWN_PROCESS,PARENT_PROCESS) -and
-   $_.Name -match '^(powershell|pwsh|python|pythonw|node)([.]exe)?
-    # Original gate checks Windows, 08:00–15:40 exclusion and active ARK/OneClick
-    # process command lines. A running broker/execution service must remain OFF.
-
-
-def create_once(path, data):
-    need(not path.exists() and not path.is_symlink(), 'SIDECAR_CONCURRENTLY_CREATED')
-    with path.open('xb') as out:
-        out.write(data)
-        out.flush()
-        os.fsync(out.fileno())
-    need(n.safe(path).read_bytes() == data, 'SIDECAR_READBACK_FAILED')
-
-
-def install(store, *, apply=False):
-    state, record = audit(store)
-    if not apply:
-        return state
-    gate()
-    store = n.safe(store, True)
-    with n.exclusive(store / 'unified-refresh-install.lock'):
-        gate()
-        state, record = audit(store)
-        if state == 'ALREADY_APPLIED':
-            return state
-        chain = original_chain(store)
-        old_worker, after = validate_plan(chain, record)
-        original.parse_launcher(after[LAUNCHER])
-        # Prepare and seal ALL before/after bytes BEFORE modifying installed UI.
-        receipt = store / JOURNAL
-        if not receipt.exists():
-            n.atomic(receipt, record)
-        state, record = audit(store)
-        need(state == 'INTERRUPTED_REQUIRES_APPLY', 'JOURNAL_PREPARE_FAILED')
-        for name in (NEW_DISPLAY, NEW_CONTRACT):
-            gate()
-            state, record = audit(store)
-            path = chain['home'] / name
-            if not path.exists():
-                create_once(path, after[name])
-            need(n.safe(path).read_bytes() == after[name], 'NEW_SIDECAR_CHANGED')
-        for name in (WORKER, LAUNCHER):
-            gate()
-            state, record = audit(store)
-            path = chain['home'] / name
-            before = old_worker if name == WORKER else chain['oldLauncher']
-            if path.read_bytes() == before:
-                original.replace_exact(path, before, after[name])
-            need(n.safe(path).read_bytes() == after[name], 'INSTALLED_READBACK_FAILED')
-        state, record = audit(store)
-        need(state == 'INTERRUPTED_REQUIRES_APPLY', 'PRE_COMPLETE_CHECK_FAILED')
-        finished = dict(record, phase='COMPLETE')
-        n.atomic(receipt, finished)
-        need(audit(store)[0] == 'ALREADY_APPLIED', 'POSTINSTALL_RECHECK_FAILED')
-        return 'APPLIED_NO_TRADE'
-
-
-def diagnose(store):
-    """Read-only stage isolation. Never prints receipt bytes, paths or private data."""
-    def probe(label, callback):
-        try:
-            result = callback()
-        except Exception as error:
-            code = str(error)
-            if re.fullmatch(r'NO11_[A-Z0-9_]{1,160}', code) is None:
-                code = 'NO11_ANYTIME_DIAGNOSTIC_UNVERIFIED'
-            print('NO11_ANYTIME_DIAG_' + label + '=BLOCKED|' + code)
-            return None
-        print('NO11_ANYTIME_DIAG_' + label + '=PASS')
-        return result
-
-    store = probe('STORE', lambda: n.safe(store, True))
-    if store is None:
-        return 2
-    original_context = probe('ORIGINAL_CONTEXT', lambda: original.context(store))
-    if original_context is None:
-        return 2
-    home, launcher, legacy, engine, _external = original_context
-    base_path = probe('V2_RECEIPT_PATH', lambda: n.safe(store / original.JOURNAL))
-    if base_path is None:
-        return 2
-    base = probe('V2_RECEIPT_SEAL', lambda: n.checkpoint(base_path))
-    if base is None:
-        return 2
-    first = probe('V2_BEFORE_DECODE', lambda: decode_bytes(base.get('before')))
-    second = probe('V2_AFTER_DECODE', lambda: decode_bytes(base.get('after')))
-    if first is None or second is None:
-        return 2
-    a = probe('V2_BEFORE_DERIVATION', lambda: migration.transform(first))
-    b = probe('V2_AFTER_IDEMPOTENCE', lambda: migration.transform(second))
-    if a is None or b is None:
-        return 2
-    if a != second or b != second:
-        print('NO11_ANYTIME_DIAG_V2_BYTES=BLOCKED|NO11_ANYTIME_DIAGNOSTIC_DERIVATION_CHANGED')
-        return 2
-    print('NO11_ANYTIME_DIAG_V2_BYTES=PASS')
-    chain = probe('HISTORIC_V2_OVERLAY_CHAIN', lambda: original_chain(store))
-    if chain is None:
-        # The stage above already isolated V2 derivation. The remaining
-        # independent receipt/sidecar checks must remain fail-closed.
-        return 2
-    worker_raw = probe('WORKER_FILE', lambda: chain['worker'].read_bytes())
-    if worker_raw is None:
-        return 2
-    old_worker_sha = probe('WORKER_PIN', lambda: git_blob(worker_raw))
-    if old_worker_sha != WORKER_GIT_BLOB:
-        print('NO11_ANYTIME_DIAG_WORKER_RELEASE=BLOCKED|NO11_ANYTIME_INSTALL_WORKER_NOT_PINNED_RELEASE')
-        return 2
-    print('NO11_ANYTIME_DIAG_WORKER_RELEASE=PASS')
-    if probe('WORKER_TRANSFORM', lambda: widening.worker(worker_raw)) is None:
-        return 2
-    if probe('ONECLICK_TRANSFORM', lambda: widening.ui(chain['oldLauncher'])) is None:
-        return 2
-    if probe('DISPLAY_TRANSFORM', lambda: widening.display(chain['originalDisplay'])) is None:
-        return 2
-    if probe('SUCCESSOR_DERIVATION', lambda: derive(chain, worker_raw)) is None:
-        return 2
-    verified = probe('INSTALLED_STATE_AUDIT', lambda: audit(store))
-    if verified is None:
-        return 2
-    print('NO11_ANYTIME_DIAG_RESULT=' + verified[0])
-    return 0
-
-
-
-def main(argv=None):
-    p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--store', required=True, type=Path)
-    p.add_argument('--apply', action='store_true')
-    p.add_argument('--diagnose', action='store_true')
-    args = p.parse_args(argv)
-    try:
-        if args.diagnose:
-            need(not args.apply, 'DIAGNOSE_CANNOT_APPLY')
-            return diagnose(args.store)
-        print('NO11_ANYTIME_STANDBY_INSTALL=' + install(args.store, apply=args.apply))
-        print('OLD_V2_AND_OVERLAY_RECEIPTS_PRESERVED=True')
-        print('OLD_DISPLAY_AND_CONTRACT_BYTES_PRESERVED=True')
-        print('NATIVE_TRADE_AND_BROKER_SOURCES_UNCHANGED=True')
-        return 0
-    except Exception as error:
-        code = str(error)
-        if re.fullmatch(r'NO11_[A-Z0-9_]+', code) is None:
-            code = 'NO11_ANYTIME_INSTALL_UNVERIFIED_SOURCE_OR_IO'
-        print('NO11_ANYTIME_STANDBY_INSTALL=BLOCKED|' + code)
-        print('DO_NOT_DELETE_OR_RESET_JOURNALS_CLAIMS_LEDGER=True')
-        return 2
-    finally:
-        print('TRADE_STARTED=False')
-        print('EXCEL_TOUCHED=False')
-        print('ORDER_TRANSMISSION=False')
-
-
-if __name__ == '__main__':
-    sys.exit(main())
-
+   $_.Name -match '^(powershell|pwsh|python|pythonw|node)([.]exe)?$'
  })
  $bad=@($p|Where-Object{[string]::IsNullOrWhiteSpace([string]$_.CommandLine)})
  $pattern='(?i)no11_|No11|no12.*(nightly|collector)|OperatorLive[.]ps1|[\\/]controller[.]py|launcher_automatic_bridge|prestart-retry'
@@ -618,8 +467,12 @@ def main(argv=None):
     p.add_argument('--store', required=True, type=Path)
     p.add_argument('--apply', action='store_true')
     p.add_argument('--diagnose', action='store_true')
+    p.add_argument('--probe-gate', action='store_true')
     args = p.parse_args(argv)
     try:
+        if args.probe_gate:
+            need(not args.apply and not args.diagnose, 'PROBE_CANNOT_APPLY')
+            return gate_probe()
         if args.diagnose:
             need(not args.apply, 'DIAGNOSE_CANNOT_APPLY')
             return diagnose(args.store)

@@ -35,6 +35,75 @@ The standalone program **only stages these changes within a disposable Git
 checkout**. It does not update an installed program or attach approval to a
 future date.
 
+## Installer implementation and verification
+
+The reviewed after-hours deployment is now
+\`Bootstrap-No11AnytimeStandby.ps1\` (PowerShell 5.1) and
+\`install_no11_anytime_preopen.py\` (Python 3.12, standard library and pinned
+local migration modules). The bootstrap downloads **seven exact Git-blob
+SHA1-pinned** modules from a fixed commit; unrecognized bytes block.
+
+The Python **default audit** reads and verifies the existing V2/Overlay sealed
+journals, derives their full source transformation and SHA256 sidecar chain,
+checks the pinned old standby worker, confirms the existing native status code
+family, and refuses unrecognized local changes or existing successor sidecars.
+It does not start Excel, Trade or the nightly pipeline.
+
+Explicit \`--apply\` requires a Windows after-hours clock **outside 08:00–15:40
+JST**, no identified active ARK/OneClick processes, an exclusive installer
+lock and a second identical source verification inside the lock. The
+operator-facing bootstrap additionally requires explicit confirmation that
+ARK is stopped and the broker order/position state was reviewed.
+
+It writes a sealed **PREPARED** journal containing exact original UI/worker
+bytes and separately derived successor bytes before any live source change.
+It then creates a **new** versioned display module and contract (leaves
+\`no11_oneclick_display_v2.py\` and
+\`oneclick-display-v2.contract.json\` unchanged), atomically replaces only
+the standby worker and existing white UI, and seals **COMPLETE** after strict
+readback and independent audit. This also fixes the misleading early-hour
+overlay label without touching any \`Enabled\` assignments or callback.
+
+A lost process or power failure at any point leaves an auditable
+\`INTERRUPTED_REQUIRES_APPLY\`; the same pinned release can continue ONLY
+when every old/new byte equals the sealed journal. Unknown concurrent
+changes block. Do not manually clear or modify the journal.
+
+### Operator procedure — after-hours only
+
+Close **OneClick and ARK** first, confirm the broker's actual orders/fills
+and the two existing non-ARK holdings. Do not erase an old attempt marked
+CONNECTED, attempt to reuse its order claims, or edit any Excel books.
+
+Open the **version-pinned bootstrap** file from the reviewed GitHub PR
+using a pinned commit URL, preferably by a verified local checkout. Run:
+
+\`\`\`powershell
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $bootstrap
+\`\`\`
+
+The read-only audit should report
+\`NO11_ANYTIME_STANDBY_INSTALL=READY_NOT_APPLIED\` (first install),
+\`ALREADY_APPLIED\`, or \`INTERRUPTED_REQUIRES_APPLY\`.
+\`BLOCKED|\` means **STOP**; never reset receipts.
+
+After checking the above and the stopped processes, run:
+
+\`\`\`powershell
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $bootstrap -Apply -IConfirmArkStoppedAndBrokerOrdersPositionsReviewed
+\`\`\`
+
+Only \`APPLIED_NO_TRADE\` (or exact \`ALREADY_APPLIED\`) plus a fresh
+audit certifies the installation. **No command here starts Trade, sends an
+order, resumes a stopped session or touches Excel.** Reopen OneClick only
+after confirmation; the native broker and daily source checks still apply.
+
+The old V2 and Overlay migration receipts are historical, not a claim that
+the old verifier alone recognizes the new UI file after a successor
+migration. The new installer verifies the old immutable chain **plus** the
+new versioned receipt and successor bytes. The checked-out PR source alone
+is not the installed executable; do not copy its generated patch directly.
+
 ## Nonnegotiable release gate
 
 The user's installed white OneClick has original, immutable

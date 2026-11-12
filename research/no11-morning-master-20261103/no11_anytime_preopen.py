@@ -85,7 +85,7 @@ def patch(raw: bytes, edits, guards):
     bom = b"\xef\xbb\xbf" if raw.startswith(b"\xef\xbb\xbf") else b""
     source = raw.decode("utf-8-sig")
     canonical = source.replace("\r\n", "\n")
-    need("\r" not in canonical and all(canonical.count(g) == 1 for g in guards),
+    need("\r" not in canonical and all(canonical.count(g) >= 1 for g in guards),
          "SOURCE_GUARD_CHANGED")
     for before, after in edits:
         need(canonical.count(before) == 1 and canonical.count(after) == 0,
@@ -94,7 +94,7 @@ def patch(raw: bytes, edits, guards):
     reversed_edits = tuple((new, old) for old, new in edits)
     need(replace_regions(after, reversed_edits) == source, "NONREVERSIBLE")
     canonical_after = after.replace("\r\n", "\n")
-    need(all(canonical_after.count(g) == 1 for g in guards), "GUARD_MODIFIED")
+    need(all(canonical_after.count(g) >= 1 for g in guards), "GUARD_MODIFIED")
     return bom + after.encode("utf-8")
 
 

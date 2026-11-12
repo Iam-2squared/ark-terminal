@@ -4,6 +4,7 @@ param(
  [switch]$Apply,
  [switch]$Diagnose,
  [switch]$ProbeGate,
+ [switch]$StageForCmd,
  [switch]$IConfirmArkStoppedAndBrokerOrdersPositionsReviewed,
  [switch]$OfflineSelfTest
 )
@@ -22,7 +23,7 @@ function Blob([byte[]]$raw){
  finally{$sha.Dispose()}
 }
 # Every downloaded module was reviewed at exactly this source commit.
-$commit='c663f335adca852eb2ea96cc189213e845a08a11'
+$commit='4e6f87480424685524088083ea88768065360834'
 $files=[ordered]@{
  'install_no11_anytime_preopen.py'='6488d3aeafd1bc7d2a28d3e67a43c6f8c3623393'
  'no11_anytime_preopen.py'='e5b1c2c5263e525092a1028d9c734c2a14f4efac'
@@ -31,10 +32,11 @@ $files=[ordered]@{
  'no11_oneclick_display_v2.py'='f285ae780e9e2605003c23c3729b5099adbbf3d3'
  'install_no11_oneclick_display_v2.py'='1b4923fb948a0e30fcfe8cb4a281f77a4e4fdef5'
  'install_no11_oneclick_display_overlay_compat.py'='e234c9fee85703329d9cd41444e64660468bee16'
+ 'stage_no11_anytime_cmd.py'='1b8cec41464a49c55d638ae69c391816b560e674'
 }
 if($OfflineSelfTest){
- Need (-not $Apply -and -not $Diagnose -and -not $ProbeGate -and -not $IConfirmArkStoppedAndBrokerOrdersPositionsReviewed) 'SELFTEST_FLAGS'
- Need ($commit -cmatch '^[a-f0-9]{40}$' -and $files.Count -eq 7) 'PIN_LIST'
+ Need (-not $Apply -and -not $Diagnose -and -not $ProbeGate -and -not $StageForCmd -and -not $IConfirmArkStoppedAndBrokerOrdersPositionsReviewed) 'SELFTEST_FLAGS'
+ Need ($commit -cmatch '^[a-f0-9]{40}$' -and $files.Count -eq 8) 'PIN_LIST'
  foreach($entry in $files.GetEnumerator()){
   Need ($entry.Key -cmatch '^[a-z0-9_]+[.]py$' -and
         $entry.Value -cmatch '^[a-f0-9]{40}$') 'PIN_SHAPE'
@@ -47,6 +49,7 @@ if($OfflineSelfTest){
  exit 0
 }
 Need (-not (($Apply -and $Diagnose) -or ($Apply -and $ProbeGate) -or ($Diagnose -and $ProbeGate))) 'DIAGNOSTIC_CANNOT_APPLY'
+Need (-not ($StageForCmd -and ($Apply -or $Diagnose -or $ProbeGate -or $IConfirmArkStoppedAndBrokerOrdersPositionsReviewed))) 'STAGE_CANNOT_APPLY_OR_PROBE'
 Need (-not $IConfirmArkStoppedAndBrokerOrdersPositionsReviewed -or $Apply) 'CONFIRMATION_ONLY_WITH_APPLY'
 if($Apply){
  Need $IConfirmArkStoppedAndBrokerOrdersPositionsReviewed 'MANUAL_STOP_AND_BROKER_REVIEW_REQUIRED'
@@ -81,21 +84,34 @@ try{
   Need ($actual -ceq [string]$files[$name]) ('PIN_CHANGED_'+$name.Replace('.','_').ToUpperInvariant())
  }
  Write-Host ('NO11_ANYTIME_PINNED_SOURCE_COMMIT='+$commit)
- $installer=Join-Path $temp 'install_no11_anytime_preopen.py'
- $arguments=@('-B','-X','utf8',$installer,'--store',$store)
- if($Apply){$arguments+='--apply'}
- if($Diagnose){$arguments+='--diagnose'}
- if($ProbeGate){$arguments+='--probe-gate'}
- & $python @arguments
- Need ($LASTEXITCODE -eq 0) 'INSTALLER_BLOCKED_PRESERVE_RECEIPTS'
- if($Apply){
-  Write-Host 'NO11_ANYTIME_BOOTSTRAP=APPLY_VERIFIED'
- }elseif($ProbeGate){
-  Write-Host 'NO11_ANYTIME_BOOTSTRAP=GATE_PROBE_NO_INSTALLED_WRITES'
- }elseif($Diagnose){
-  Write-Host 'NO11_ANYTIME_BOOTSTRAP=DIAGNOSTIC_VERIFIED_NO_WRITES'
+ if($StageForCmd){
+  # Stage only. This PowerShell and its Python child finish before the direct
+  # CMD -> Python install begins. Do not suppress the ORIGINAL quiet gate.
+  $stager=Join-Path $temp 'stage_no11_anytime_cmd.py'
+  $stageRoot=Join-Path $env:LOCALAPPDATA 'ArkTerminal\No12\anytime-installer-stage'
+  $args=@('-B','-X','utf8',$stager,'--stage','--source-dir',$temp,
+          '--store',$store,'--python',$python,'--stage-root',$stageRoot,
+          '--source-commit',$commit)
+  & $python @args
+  Need ($LASTEXITCODE -eq 0) 'STAGE_BUNDLE_CREATION_BLOCKED'
+  Write-Host 'NO11_ANYTIME_BOOTSTRAP=STAGED_FOR_DIRECT_CMD_NO_INSTALLED_WRITES'
  }else{
-  Write-Host 'NO11_ANYTIME_BOOTSTRAP=AUDIT_VERIFIED_NO_WRITES'
+  $installer=Join-Path $temp 'install_no11_anytime_preopen.py'
+  $arguments=@('-B','-X','utf8',$installer,'--store',$store)
+  if($Apply){$arguments+='--apply'}
+  if($Diagnose){$arguments+='--diagnose'}
+  if($ProbeGate){$arguments+='--probe-gate'}
+  & $python @arguments
+  Need ($LASTEXITCODE -eq 0) 'INSTALLER_BLOCKED_PRESERVE_RECEIPTS'
+  if($Apply){
+   Write-Host 'NO11_ANYTIME_BOOTSTRAP=APPLY_VERIFIED'
+  }elseif($ProbeGate){
+   Write-Host 'NO11_ANYTIME_BOOTSTRAP=GATE_PROBE_NO_INSTALLED_WRITES'
+  }elseif($Diagnose){
+   Write-Host 'NO11_ANYTIME_BOOTSTRAP=DIAGNOSTIC_VERIFIED_NO_WRITES'
+  }else{
+   Write-Host 'NO11_ANYTIME_BOOTSTRAP=AUDIT_VERIFIED_NO_WRITES'
+  }
  }
 }catch{
  $reason=[string]$_.Exception.Message

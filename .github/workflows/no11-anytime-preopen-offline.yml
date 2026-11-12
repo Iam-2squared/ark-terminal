@@ -26,6 +26,7 @@ jobs:
         run: |
           python -B -m unittest discover -s research/no11-morning-master-20261103 -p 'test_preopen_0830.py' -v
           python -B -m unittest discover -s research/no11-morning-master-20261103 -p 'test_no11_anytime_preopen.py' -v
+          python -B -m unittest discover -s research/no11-morning-master-20261103 -p 'test_no11_anytime_install.py' -v
       - name: Stage exact modifications only inside disposable CI checkout
         shell: bash
         run: python -B research/no11-morning-master-20261103/no11_anytime_preopen.py --staging-checkout .

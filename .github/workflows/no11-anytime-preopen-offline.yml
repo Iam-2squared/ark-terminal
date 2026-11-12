@@ -93,6 +93,9 @@ jobs:
           if($LASTEXITCODE -ne 0 -or $out -notcontains 'NO11_PREOPEN_OFFLINE_SELFTEST=PASS'){throw 'STANDBY_SELFTEST'}
           $ui=@(& powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $root 'Start-No11OneClick.ps1') -OfflineSelfTest)
           if($LASTEXITCODE -ne 0 -or $ui -notcontains 'NO11_ONECLICK_OFFLINE_SELFTEST=PASS'){throw 'UI_SELFTEST'}
+          $probe=@(& python -B (Join-Path $root 'install_no11_anytime_preopen.py') --store $env:RUNNER_TEMP --probe-gate)
+          if($LASTEXITCODE -ne 0 -or $probe -notcontains 'NO11_GATE_PROBE=READ_ONLY'){throw 'PROCESS_GATE_PROBE'}
+          $probe|ForEach-Object {Write-Host $_}
           'WINDOWS_0000_TO_0859_WAITING=PASS'
           'NATIVE_0900_TO_0902_BOUNDARY=UNCHANGED'
           'TRADE_STARTED=False'

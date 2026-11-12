@@ -121,9 +121,9 @@ exit /b %ERRORLEVEL%
 echo Confirm ALL: ARK, OneClick and nightly are STOPPED.
 echo Confirm broker orders, fills and holdings independently checked.
 echo Only use OUTSIDE 08:00-15:40 JST. Never remove claims or receipts.
-set "ARK_CONFIRM="
-set /p "ARK_CONFIRM=Type I_CONFIRM_BROKER_AND_ARK_STOPPED to apply: "
-if not "%ARK_CONFIRM%"=="I_CONFIRM_BROKER_AND_ARK_STOPPED" exit /b 2
+choice /C YN /N /M "Confirm broker orders/fills/positions reviewed and ARK stopped? Y/N: "
+if errorlevel 2 exit /b 2
+if not errorlevel 1 exit /b 2
 "{py}" -B -X utf8 "%~dp0{INSTALL}" --store "{root}" --apply
 exit /b %ERRORLEVEL%
 

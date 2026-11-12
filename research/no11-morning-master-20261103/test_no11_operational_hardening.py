@@ -216,8 +216,19 @@ class DecisionAuditTests(unittest.TestCase):
 class NodeTickFailureEvidenceTests(unittest.TestCase):
     """Run the derived native run_tick code with a fake, non-trading Node child."""
 
+    def pristine_source(self):
+        raw = (TOOLS / 'no11_received_pipeline_service.py').read_bytes()
+        # CI stages the reviewed native edit BEFORE invoking this test suite;
+        # local tests may instead run against the original untouched source.
+        old = hardening.OLD_NODE_FAILURE.encode('utf-8')
+        new = hardening.NEW_NODE_FAILURE.encode('utf-8')
+        if raw.count(new) == 1:
+            raw = raw.replace(new, old, 1)
+        self.assertEqual(raw.count(old), 1)
+        return raw
+
     def invoke(self, stderr, *, stdout='', exit_code=2, fail_evidence=False):
-        source = (TOOLS / 'no11_received_pipeline_service.py').read_bytes()
+        source = self.pristine_source()
         generated = hardening.pipeline_node(source)
         parsed = ast.parse(generated)
         fn = next(n for n in parsed.body
@@ -288,7 +299,7 @@ class NodeTickFailureEvidenceTests(unittest.TestCase):
         self.assertEqual(writes.call_count, 1)
 
     def test_failure_to_persist_evidence_never_silently_continues(self):
-        source = (TOOLS / 'no11_received_pipeline_service.py').read_bytes()
+        source = self.pristine_source()
         generated = hardening.pipeline_node(source)
         self.assertNotEqual(generated, source)
         self.assertIn(b'NO11_SERVICE_NODE_TICK_FAILED', generated)

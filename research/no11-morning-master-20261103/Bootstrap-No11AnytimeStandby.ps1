@@ -3,6 +3,7 @@
 param(
  [switch]$Apply,
  [switch]$Diagnose,
+ [switch]$ProbeGate,
  [switch]$IConfirmArkStoppedAndBrokerOrdersPositionsReviewed,
  [switch]$OfflineSelfTest
 )
@@ -21,9 +22,9 @@ function Blob([byte[]]$raw){
  finally{$sha.Dispose()}
 }
 # Every downloaded module was reviewed at exactly this source commit.
-$commit='86f3289ee9eee1e8b00308770bb0cf3a6983f945'
+$commit='f82d53a596d1d36a8f6a36827f8191f14d69d7ba'
 $files=[ordered]@{
- 'install_no11_anytime_preopen.py'='26f01ce3977fc45601ecfe89210acb0dca887dda'
+ 'install_no11_anytime_preopen.py'='3ad1ad7c4bb05ffc1e92eec467d904516da95392'
  'no11_anytime_preopen.py'='e5b1c2c5263e525092a1028d9c734c2a14f4efac'
  'no11_nightly_resume.py'='6c3668c47991e1407464c7049cd662ff9985ad35'
  'no11_oneclick_display_transform.py'='4c8ce6fb796320c00e80f0385437162925cb3921'
@@ -32,7 +33,7 @@ $files=[ordered]@{
  'install_no11_oneclick_display_overlay_compat.py'='e234c9fee85703329d9cd41444e64660468bee16'
 }
 if($OfflineSelfTest){
- Need (-not $Apply -and -not $Diagnose -and -not $IConfirmArkStoppedAndBrokerOrdersPositionsReviewed) 'SELFTEST_FLAGS'
+ Need (-not $Apply -and -not $Diagnose -and -not $ProbeGate -and -not $IConfirmArkStoppedAndBrokerOrdersPositionsReviewed) 'SELFTEST_FLAGS'
  Need ($commit -cmatch '^[a-f0-9]{40}$' -and $files.Count -eq 7) 'PIN_LIST'
  foreach($entry in $files.GetEnumerator()){
   Need ($entry.Key -cmatch '^[a-z0-9_]+[.]py$' -and
@@ -45,7 +46,7 @@ if($OfflineSelfTest){
  Write-Host 'ORDER_TRANSMISSION=False'
  exit 0
 }
-Need (-not ($Apply -and $Diagnose)) 'DIAGNOSE_CANNOT_APPLY'
+Need (-not (($Apply -and $Diagnose) -or ($Apply -and $ProbeGate) -or ($Diagnose -and $ProbeGate))) 'DIAGNOSTIC_CANNOT_APPLY'
 Need (-not $IConfirmArkStoppedAndBrokerOrdersPositionsReviewed -or $Apply) 'CONFIRMATION_ONLY_WITH_APPLY'
 if($Apply){
  Need $IConfirmArkStoppedAndBrokerOrdersPositionsReviewed 'MANUAL_STOP_AND_BROKER_REVIEW_REQUIRED'
@@ -84,10 +85,13 @@ try{
  $arguments=@('-B','-X','utf8',$installer,'--store',$store)
  if($Apply){$arguments+='--apply'}
  if($Diagnose){$arguments+='--diagnose'}
+ if($ProbeGate){$arguments+='--probe-gate'}
  & $python @arguments
  Need ($LASTEXITCODE -eq 0) 'INSTALLER_BLOCKED_PRESERVE_RECEIPTS'
  if($Apply){
   Write-Host 'NO11_ANYTIME_BOOTSTRAP=APPLY_VERIFIED'
+ }elseif($ProbeGate){
+  Write-Host 'NO11_ANYTIME_BOOTSTRAP=GATE_PROBE_NO_INSTALLED_WRITES'
  }elseif($Diagnose){
   Write-Host 'NO11_ANYTIME_BOOTSTRAP=DIAGNOSTIC_VERIFIED_NO_WRITES'
  }else{

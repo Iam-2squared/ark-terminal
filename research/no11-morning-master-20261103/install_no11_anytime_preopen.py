@@ -39,36 +39,15 @@ WORKER_GIT_BLOB = 'bc474fdf36c903ccb87018f2549f6a6b7ca398df'
 NAMES = (NEW_DISPLAY, NEW_CONTRACT, WORKER, LAUNCHER)
 BEFORE = (WORKER, LAUNCHER)
 JST = timezone(timedelta(hours=9))
-OVERLAY_OLD = """  if($trading -match 'ENTRY HALTED'){
-       $disabledTradeOverlay.Text='TRADING PAUSED  /  RECOVERY REVIEW REQUIRED'
-   }
-   elseif($s.mode -ceq 'AFTER_CLOSE'){
-       $disabledTradeOverlay.Text='TRADING CLOSED FOR TODAY'
-   }
-   elseif($s.reason -ceq 'NEW_ENTRY_WINDOW_CLOSED'){
-       $disabledTradeOverlay.Text='NEW ENTRIES CLOSED'
-   }
-   else{
-       $disabledTradeOverlay.Text='TRADING UNAVAILABLE  /  CHECK STATUS'
-   }
-"""
+# The previous overlay receipt already proves the complete installed launcher.
+# Never match/overwrite the local body of the original if/elseif chain:
+# only splice the exact first keyword installed by that proven recipe.
+OVERLAY_OLD = overlay.OLD_OVERLAY
 OVERLAY_NEW = """  # ARK_NO11_ANYTIME_STANDBY_OVERLAY_COPY_V1
   if($view.phase -in @('BEFORE_OPEN','PREOPEN') -and ($preopen -or $reserved)){
        $disabledTradeOverlay.Text=if($preopen){'STANDBY READY  /  09:00'}else{[string]$view.trading}
    }
-   elseif($trading -match 'ENTRY HALTED'){
-       $disabledTradeOverlay.Text='TRADING PAUSED  /  RECOVERY REVIEW REQUIRED'
-   }
-   elseif($s.mode -ceq 'AFTER_CLOSE'){
-       $disabledTradeOverlay.Text='TRADING CLOSED FOR TODAY'
-   }
-   elseif($s.reason -ceq 'NEW_ENTRY_WINDOW_CLOSED'){
-       $disabledTradeOverlay.Text='NEW ENTRIES CLOSED'
-   }
-   else{
-       $disabledTradeOverlay.Text='TRADING UNAVAILABLE  /  CHECK STATUS'
-   }
-"""
+   elseif($trading -match 'ENTRY HALTED'){"""
 
 
 def need(ok, code):

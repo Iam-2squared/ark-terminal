@@ -85,6 +85,22 @@ class UpgradeTests(unittest.TestCase):
         self.assertEqual(saved['overlayJournalSha256'], hashlib.sha256(
             self.previous[self.store / overlay.JOURNAL]).hexdigest())
 
+    def test_premarket_overlay_changes_copy_not_trade_permission(self):
+        state, plan = candidate.audit(self.store)
+        self.assertEqual(state, "READY_NOT_APPLIED")
+        chain = candidate.original_chain(self.store)
+        worker, output = candidate.validate_plan(chain, plan)
+        text = output[candidate.LAUNCHER].decode('utf-8-sig')
+        self.assertIn("ARK_NO11_ANYTIME_STANDBY_OVERLAY_COPY_V1", text)
+        self.assertIn("('BEFORE_OPEN','PREOPEN')", text)
+        self.assertIn("'STANDBY READY  /  09:00'", text)
+        self.assertIn("if($preopen)", text)
+        for token in ("$trade.Enabled=", "$nightly.Enabled=", "$review.Enabled="):
+            old = [x for x in chain['oldLauncher'].decode('utf-8-sig').splitlines()
+                   if token in x]
+            new = [x for x in text.splitlines() if token in x]
+            self.assertEqual(old, new)
+
     def test_new_read_only_display_has_bound_contract_and_old_sidecars_intact(self):
         self.run_apply()
         new = self.home / candidate.NEW_DISPLAY

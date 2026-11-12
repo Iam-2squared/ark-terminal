@@ -46,6 +46,45 @@ NEW_FUND = '''    def fund(self, batch, quotes, at):
         return fund_with_audit(self, batch, quotes, at,
                                time_api=h, decisions=decisions, require=need)
 '''
+OLD_NODE_FAILURE = '''    if result.returncode != 0:
+        message = result.stderr.strip()
+        if message == 'NO11_PIPELINE_CAPTURE_WRITE_IN_PROGRESS':
+            return None
+        raise ValueError(message if re.fullmatch(r'NO11_[A-Z0-9_]+', message)
+                         else 'NO11_SERVICE_NODE_TICK_FAILED')
+'''
+NEW_NODE_FAILURE = '''    if result.returncode != 0:
+        message = result.stderr.strip()
+        if message == 'NO11_PIPELINE_CAPTURE_WRITE_IN_PROGRESS':
+            return None
+        # ARK_NO11_NODE_TICK_FAILURE_EVIDENCE_V1: no raw stderr, paths, or account data.
+        # Preserve the native fail-closed result and all retry/dispatch boundaries.
+        stderr_bytes = result.stderr.encode('utf-8', errors='replace')
+        stdout_bytes = result.stdout.encode('utf-8', errors='replace')
+        valid_code = bool(re.fullmatch(r'NO11_[A-Z0-9_]+', message))
+        safe_lines = sorted(set(line for line in result.stderr.splitlines()
+                                if re.fullmatch(r'NO11_[A-Z0-9_]+', line)))[:8]
+        evidence_file = Path(root) / ('node-tick-failure-' + os.urandom(16).hex() + '.json')
+        need(not evidence_file.exists(), 'NODE_FAILURE_EVIDENCE_COLLISION')
+        atomic_private(evidence_file, {
+            'schemaId': 'ARK_NO11_NODE_TICK_FAILURE_EVIDENCE_V1',
+            'observedAtJst': now_jst(), 'returnCode': result.returncode,
+            'stderrBytes': len(stderr_bytes), 'stderrSha256': hashlib.sha256(stderr_bytes).hexdigest(),
+            'stdoutBytes': len(stdout_bytes), 'stdoutSha256': hashlib.sha256(stdout_bytes).hexdigest(),
+            'stderrLineCount': len(result.stderr.splitlines()),
+            'stderrShape': ('EMPTY' if not message else 'SINGLE_SAFE_CODE' if valid_code else 'OTHER'),
+            'safeCodeLines': safe_lines, 'rawErrorStored': False,
+            'orderTransmission': False, 'brokerStateChanged': False
+        })
+        raise ValueError(message if valid_code else 'NO11_SERVICE_NODE_TICK_FAILED')
+'''
+
+
+def pipeline_node(raw):
+    """Only nonzero Node child failure evidence; no trading or retry changes."""
+    return transform(raw, [(OLD_NODE_FAILURE, NEW_NODE_FAILURE)])
+
+
 OLD_OVERLAY = '''  if($trading -match 'ENTRY HALTED'){
        $disabledTradeOverlay.Text='TRADING PAUSED  /  RECOVERY REVIEW REQUIRED'
    }
@@ -146,6 +185,7 @@ TARGETS = {
     MORNING + 'no11_oneclick_display_v2.py': display,
     MORNING + 'install_no11_oneclick_display_v2.py': base_installer,
     MORNING + 'install_no11_oneclick_display_overlay_compat.py': overlay_installer,
+    ENGINE + 'no11_received_pipeline_service.py': pipeline_node,
 }
 
 

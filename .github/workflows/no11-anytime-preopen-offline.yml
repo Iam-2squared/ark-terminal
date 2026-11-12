@@ -27,6 +27,26 @@ jobs:
           python -B -m unittest discover -s research/no11-morning-master-20261103 -p 'test_preopen_0830.py' -v
           python -B -m unittest discover -s research/no11-morning-master-20261103 -p 'test_no11_anytime_preopen.py' -v
           python -B -m unittest discover -s research/no11-morning-master-20261103 -p 'test_no11_anytime_install.py' -v
+      - name: Verify source pins in operator bootstrap
+        shell: bash
+        run: |
+          python -B - <<'PY'
+          import hashlib,re
+          from pathlib import Path
+          parent=Path('research/no11-morning-master-20261103')
+          text=(parent/'Bootstrap-No11AnytimeStandby.ps1').read_text(encoding='utf-8-sig')
+          match=re.search(r"\$commit='([a-f0-9]{40})'",text)
+          assert match and len(match.group(1)) == 40
+          pins=dict(re.findall(r"^ '([a-z0-9_]+\.py)'='([a-f0-9]{40})'$",text,re.M))
+          assert len(pins)==7, pins
+          for name,expected in pins.items():
+              raw=(parent/name).read_bytes()
+              actual=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+              assert actual==expected,(name,actual,expected)
+          assert 'NO11_ANYTIME_BOOTSTRAP=AUDIT_VERIFIED_NO_WRITES' in text
+          assert 'IConfirmArkStoppedAndBrokerOrdersPositionsReviewed' in text
+          print('RELEASE_BOOTSTRAP_ALL_SEVEN_SOURCE_PINS=PASS')
+          PY
       - name: Stage exact modifications only inside disposable CI checkout
         shell: bash
         run: python -B research/no11-morning-master-20261103/no11_anytime_preopen.py --staging-checkout .
@@ -58,6 +78,8 @@ jobs:
           $ErrorActionPreference='Stop'
           Set-StrictMode -Version Latest
           $root='research/no11-morning-master-20261103'
+          $audit=@(& powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $root 'Bootstrap-No11AnytimeStandby.ps1') -OfflineSelfTest)
+          if($LASTEXITCODE -ne 0 -or $audit -notcontains 'NO11_ANYTIME_BOOTSTRAP_OFFLINE_SELFTEST=PASS'){throw 'BOOTSTRAP_SELFTEST'}
           foreach($file in @('Start-No11PreopenStandby.ps1','Start-No11OneClick.ps1')){
              $tok=$null;$errs=$null
              [void][Management.Automation.Language.Parser]::ParseFile(

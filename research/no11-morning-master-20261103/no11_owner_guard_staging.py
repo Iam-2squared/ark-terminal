@@ -52,16 +52,22 @@ def replace_once(src, old, new):
 def transform(raw):
     bom = b'\xef\xbb\xbf' if raw.startswith(b'\xef\xbb\xbf') else b''
     source = raw.decode('utf-8-sig')
-    updated = source
+    # Windows checkout may materialize CRLF. Match reviewed LF spans, then
+    # restore EXACT original newline policy; never silently normalize source.
+    crlf = '\r\n' in source
+    normalized = source.replace('\r\n', '\n')
+    if '\r' in normalized:
+        raise ValueError("NO11_OWNER_STAGING_UNKNOWN_LINE_ENDINGS")
+    updated = normalized
     for old, new in EDITS:
         updated = replace_once(updated, old, new)
     inverted = updated
     for old, new in reversed(EDITS):
         inverted = replace_once(inverted, new, old)
-    if inverted != source:
+    if inverted != normalized:
         raise ValueError("NO11_OWNER_STAGING_NONREVERSIBLE")
     ast.parse(updated)
-    old_ast = ast.parse(source)
+    old_ast = ast.parse(normalized)
     new_ast = ast.parse(updated)
     def methods(tree):
         return {node.name: ast.dump(node) for node in tree.body
@@ -71,7 +77,7 @@ def transform(raw):
         preserved[k] != changed[k] for k in preserved if k != 'launch_same_run'
     ):
         raise ValueError("NO11_OWNER_STAGING_ORIGINAL_CONTROLLER_SCOPE_CHANGED")
-    return bom + updated.encode('utf-8')
+    return bom + (updated.replace('\n', '\r\n') if crlf else updated).encode('utf-8')
 
 
 def stage(root):

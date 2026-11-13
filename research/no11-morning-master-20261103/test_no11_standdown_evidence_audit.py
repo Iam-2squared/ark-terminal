@@ -180,6 +180,22 @@ class StandDownOffline(unittest.TestCase):
         self.assertEqual(v["bridge"], "SOURCE_PIN_MISMATCH")
         self.assertFalse(v["canAuthorizeTrade"])
 
+    def test_portable_preflight_is_pinned_readonly_and_not_local_path_dependent(self):
+        source = (Path(__file__).with_name(
+            "Bootstrap-No11PortablePreflightReadOnly.ps1")).read_text(
+                encoding="utf-8-sig")
+        self.assertIn("Check-No11StartPrerequisitesReadOnly20261111.ps1", source)
+        self.assertIn("b02804545cceb592ea613de7cd8e9b48f5bab1b1", source)
+        self.assertIn("75f2c43248c4f5b168fb41c2e5f55f8fb7749886", source)
+        self.assertIn("NO11_PORTABLE_PREFLIGHT_SOURCE_VERIFIED=True", source)
+        self.assertIn("NO11_PORTABLE_PREFLIGHT=BLOCKED", source)
+        self.assertIn("ORDER_TRANSMISSION=False", source)
+        self.assertNotIn("IApproveOrdersForToday", source)
+        self.assertNotIn("taskkill", source.lower())
+        self.assertNotIn("Stop-Process", source)
+        self.assertNotIn("Invoke-No11MsiiOrder", source)
+        self.assertNotIn("--apply", source)
+
     def test_cli_redacts_private_paths_and_no_synthetic_shutdown(self):
         result = subprocess.run([
             sys.executable, "-B", str(Path(audit.__file__)),

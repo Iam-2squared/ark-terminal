@@ -163,7 +163,9 @@ class WiringStageTests(unittest.TestCase):
             ["git", "show", "HEAD:" + staging.CONTROLLER], cwd=root)
         modified = staging.transform(original)
         live_path = root / staging.CONTROLLER
-        self.assertEqual(live_path.read_bytes(), modified)  # CI stage done
+        # Git blob uses LF; a Windows checkout may use CRLF by policy.
+        self.assertEqual(live_path.read_bytes().replace(b"\r\n", b"\n"),
+                         modified.replace(b"\r\n", b"\n"))  # CI stage done
         self.assertIn(b"guardian = start_guardian", modified)
         self.assertIn(b"guardian.poll() is None", modified)
         self.assertIn(b"guardian.wait(timeout=8) == 0", modified)

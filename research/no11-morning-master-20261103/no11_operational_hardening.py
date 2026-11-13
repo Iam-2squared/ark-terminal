@@ -80,6 +80,39 @@ NEW_NODE_FAILURE = '''    if result.returncode != 0:
 '''
 
 
+# For unknown Node exceptions the old native process printed only a generic
+# NO11_PIPELINE_PRIVATE_SOURCE_OR_RUNTIME_FAILURE. Preserve a finite stage
+# code without ever logging an account path, original thrown message or stack.
+NODE_STAGE_EDITS = (
+    ("export function runPipelineTick(args){",
+     "export function runPipelineTick(args){\n  let failureStage='ARGUMENTS';\n  try{"),
+    ("  const req=readPrivate(args[1],1_000_000);",
+     "  failureStage='REQUEST_LOAD';\n  const req=readPrivate(args[1],1_000_000);"),
+    ("  const chart=readPrivate(req.plan,250_000);",
+     "  failureStage='SOURCE_READ';\n  const chart=readPrivate(req.plan,250_000);"),
+    ("  const folder=safePath(req.captureFolder,true),incoming=[];",
+     "  failureStage='CAPTURE_SCAN';\n  const folder=safePath(req.captureFolder,true),incoming=[];"),
+    ("  const result=advanceReceivedPipeline({sessionDate:req.sessionDate,chartPlan:chart.chartPlan,",
+     "  failureStage='PIPELINE_ADVANCE';\n  const result=advanceReceivedPipeline({sessionDate:req.sessionDate,chartPlan:chart.chartPlan,"),
+    ("  const outDir=safePath(req.privateRoot,true);",
+     "  failureStage='OUTPUT_PERSIST';\n  const outDir=safePath(req.privateRoot,true);"),
+    ("  return result;\n}\nif(process.argv[1]",
+     """  return result;
+  }catch(error){
+    // ARK_NO11_NODE_FAILURE_STAGE_V1: retain exact approved existing NO11 codes.
+    if(error instanceof Error&&/^NO11_[A-Z0-9_]+$/.test(error.message))throw error;
+    throw new Error('NO11_PIPELINE_PRIVATE_'+failureStage+'_FAILURE');
+  }
+}
+if(process.argv[1]"""),
+)
+
+
+def pipeline_node_stage(raw):
+    """Fail-closed classification only; no success route, timeout or order change."""
+    return transform(raw, NODE_STAGE_EDITS, python=False)
+
+
 def pipeline_node(raw):
     """Only nonzero Node child failure evidence; no trading or retry changes."""
     return transform(raw, [(OLD_NODE_FAILURE, NEW_NODE_FAILURE)])
@@ -186,6 +219,7 @@ TARGETS = {
     MORNING + 'install_no11_oneclick_display_v2.py': base_installer,
     MORNING + 'install_no11_oneclick_display_overlay_compat.py': overlay_installer,
     ENGINE + 'no11_received_pipeline_service.py': pipeline_node,
+    ENGINE + 'no11_received_pipeline_tick.mjs': pipeline_node_stage,
 }
 
 

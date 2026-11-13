@@ -26,11 +26,13 @@ import sys
 import time
 import uuid
 
-from no11_received_run_recovery import ATTEMPT, sealed, unseal, encoded
+from no11_received_run_recovery import ATTEMPT, Attempt, read, sealed, unseal, encoded
 
 JST = timezone(timedelta(hours=9))
 ATTACHED = "ARK_NO11_COLLECTOR_OWNER_GUARD_ATTACHED_V1"
 INCIDENT = "ARK_NO11_COLLECTOR_OWNER_GUARD_STOP_V1"
+COLLECTOR_ATTACHED = "ARK_NO11_COLLECTOR_OWNER_GUARD_COLLECTOR_ATTACHED_V1"
+NATIVE_CLOSED = "ARK_NO11_COLLECTOR_OWNER_GUARD_GENUINE_CLOSED_V1"
 STOP_BYTES = b"READ_ONLY_STOP\n"
 NO11_RUN = re.compile(r"session-(20\d\d-\d\d-\d\d)-[a-f0-9]{32}\Z")
 NO11_ATTEMPT = re.compile(r"attempt-\d{4}\Z")
@@ -112,6 +114,31 @@ def stop_if_owner_exited(root, attempt, session, owner_pid):
     return "OWNER_EXIT_STOP_REQUESTED_NOT_CLOSURE"
 
 
+def wait_collector_attached(watcher, attempt, pid, *, timeout=8.0):
+    """Controller waits for a verified C50 PROCESS HANDLE before proceeding.
+
+    Without a durable child attachment, X may race with a recyclable PID.
+    Fail closed rather than letting the broker/consumer start unprotected.
+    """
+    need(type(pid) is int and pid > 0, "COLLECTOR_PID_INVALID")
+    path = Path(attempt)
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        attach = path / "collector-guard-attached.json"
+        if attach.exists():
+            body = unseal(attach, COLLECTOR_ATTACHED)
+            need(body.get("collectorProcessId") == pid and
+                 body.get("guardianProcessId") == watcher.pid and
+                 body.get("collectorHandleAttached") is True and
+                 body.get("orderTransmission") is False,
+                 "COLLECTOR_ATTACH_ACK_CHANGED")
+            need(watcher.poll() is None, "GUARDIAN_EXITED_BEFORE_C50")
+            return
+        need(watcher.poll() is None, "GUARDIAN_EXITED_BEFORE_C50")
+        time.sleep(0.10)
+    raise ValueError("NO11_OWNER_GUARD_COLLECTOR_ATTACH_TIMEOUT")
+
+
 def open_exact_owner_handle(pid):
     """A real process HANDLE prevents PID-reuse false positives."""
     need(os.name == "nt" and sys.platform == "win32", "WINDOWS_ONLY")
@@ -123,10 +150,65 @@ def open_exact_owner_handle(pid):
     kernel.WaitForSingleObject.restype = wintypes.DWORD
     kernel.CloseHandle.argtypes = [wintypes.HANDLE]
     kernel.CloseHandle.restype = wintypes.BOOL
+    kernel.GetExitCodeProcess.argtypes = [wintypes.HANDLE, ctypes.POINTER(wintypes.DWORD)]
+    kernel.GetExitCodeProcess.restype = wintypes.BOOL
     SYNCHRONIZE = 0x00100000
     handle = kernel.OpenProcess(SYNCHRONIZE, False, pid)
     need(bool(handle), "OWNER_ATTACH_FAILED")
     return kernel, handle
+
+
+def _verified_native_closure(path, session, pid, code):
+    """No synthetic receipt. Check the actual native PS C50 close and exit.
+
+    A controller killed by X cannot call Attempt.close_confirmed itself. The
+    guard may call that EXACT original transition only after its previously
+    attached OS handle proves the original Collector PID exited with code 0
+    and the original native CLOSED receipt proves the workbook was closed.
+    """
+    need(type(code) is int and code == 0, "COLLECTOR_EXIT_NOT_CLEAN")
+    body = unseal(path / "attempt.json", ATTEMPT)
+    need(body.get("status") == "CONNECTED" and body.get("pid") == pid,
+         "COLLECTOR_NOT_CONNECTED")
+    original_ready, ready_hash = read(path / "collector-ready.json", 100_000)
+    need(ready_hash == body.get("readySha256") and
+         original_ready.get("processId") == pid and
+         original_ready.get("sessionDate") == session,
+         "NATIVE_READY_NOT_PINNED")
+    original_close, closed_hash = read(
+        path / "collector-ready.json.closed.json", 100_000)
+    need(original_close.get("schemaId") == "ARK_NO11_C50_COLLECTOR_CLOSED_V1"
+         and original_close.get("sessionDate") == session
+         and original_close.get("processId") == pid
+         and original_close.get("temporaryWorkbookClosed") is True
+         and original_close.get("collectorFailed") is False
+         and original_close.get("orderTransmission") is False,
+         "NATIVE_CLOSE_NOT_GENUINE")
+    class Exited:
+        def __init__(self, original_pid, original_code):
+            self.pid, self._code = original_pid, original_code
+
+        def poll(self):
+            return self._code
+
+    Attempt(path, session).close_confirmed(Exited(pid, code))
+    after = unseal(path / "attempt.json", ATTEMPT)
+    need(after.get("status") == "CLOSED" and
+         after.get("closedSha256") == closed_hash and
+         after.get("exitCode") == code, "CLOSE_TRANSITION_NOT_PROVEN")
+    unique_bytes(path / "owner-exit-genuine-close-verified.json", encoded(sealed({
+        "schemaId": NATIVE_CLOSED,
+        "sessionDate": session,
+        "collectorProcessId": pid,
+        "realNativeClosedReceiptSha256": closed_hash,
+        "originalAttemptClosedUsingNativeReceipt": True,
+        "nativeExitCode": code,
+        "ordersCancelled": False,
+        "brokerOrdersTouched": False,
+        "orderTransmission": False,
+        "productionReady": False,
+    })) + b"\n")
+    return "OWNER_EXIT_GENUINE_NATIVE_CLOSE_VERIFIED"
 
 
 def monitor(root, attempt, session, owner_pid, nonce, *, interval_ms=300):
@@ -134,7 +216,9 @@ def monitor(root, attempt, session, owner_pid, nonce, *, interval_ms=300):
     need(100 <= interval_ms <= 2000, "INTERVAL")
     path, body = owned_attempt(root, attempt, session)
     need(body["status"] == "ALLOCATED", "ATTACH_BEFORE_COLLECTOR_SPAWN_REQUIRED")
-    kernel, handle = open_exact_owner_handle(owner_pid)
+    kernel, owner_handle = open_exact_owner_handle(owner_pid)
+    collector_handle = None
+    collector_pid = None
     try:
         ready = {
             "schemaId": ATTACHED, "sessionDate": session,
@@ -145,16 +229,49 @@ def monitor(root, attempt, session, owner_pid, nonce, *, interval_ms=300):
         }
         unique_bytes(path / "owner-guard-attached.json", encoded(sealed(ready)) + b"\n")
         while True:
-            status = unseal(path / "attempt.json", ATTEMPT).get("status")
+            body = unseal(path / "attempt.json", ATTEMPT)
+            status = body.get("status")
             if status == "CLOSED":
                 return "COLLECTOR_CLOSED_BY_ORIGINAL_CONTROLLER"
-            observed = kernel.WaitForSingleObject(handle, interval_ms)
-            if observed == 0x00000102:  # WAIT_TIMEOUT -- owner still alive
+            if status in ("RUNNING", "CONNECTED") and collector_handle is None:
+                pid = body.get("pid")
+                if type(pid) is int and pid > 0:
+                    # Attach only while the original owner is still alive;
+                    # after it exits an OS PID alone may refer to a new process.
+                    if kernel.WaitForSingleObject(owner_handle, 0) == 0x00000102:
+                        collector_handle = kernel.OpenProcess(
+                            0x00100000 | 0x1000, False, pid)
+                        need(bool(collector_handle), "COLLECTOR_HANDLE_ATTACH_FAILED")
+                        collector_pid = pid
+                        unique_bytes(path / "collector-guard-attached.json", encoded(sealed({
+                            "schemaId": COLLECTOR_ATTACHED, "sessionDate": session,
+                            "guardianProcessId": os.getpid(),
+                            "collectorProcessId": pid,
+                            "collectorHandleAttached": True,
+                            "orderTransmission": False, "productionReady": False,
+                        })) + b"\n")
+            observed = kernel.WaitForSingleObject(owner_handle, interval_ms)
+            if observed == 0x00000102:
                 continue
-            need(observed == 0, "OWNER_WAIT_UNVERIFIED")  # WAIT_OBJECT_0
-            return stop_if_owner_exited(root, path, session, owner_pid)
+            need(observed == 0, "OWNER_WAIT_UNVERIFIED")
+            outcome = stop_if_owner_exited(root, path, session, owner_pid)
+            if outcome != "OWNER_EXIT_STOP_REQUESTED_NOT_CLOSURE":
+                return outcome
+            if collector_handle is None:
+                return "OWNER_EXIT_STOP_ONLY_CHILD_NOT_ATTACHED"
+            # The detached C50 child processes its original STOP and closes
+            # its own unsaved workbook; a timeout leaves CONNECTED, NOT CLOSED.
+            native = kernel.WaitForSingleObject(collector_handle, 90_000)
+            if native != 0:
+                return "OWNER_EXIT_STOP_ONLY_NATIVE_CLOSE_UNVERIFIED"
+            code = wintypes.DWORD()
+            need(kernel.GetExitCodeProcess(collector_handle, ctypes.byref(code)),
+                 "COLLECTOR_EXIT_CODE_UNVERIFIED")
+            return _verified_native_closure(path, session, collector_pid, int(code.value))
     finally:
-        kernel.CloseHandle(handle)
+        if collector_handle is not None:
+            kernel.CloseHandle(collector_handle)
+        kernel.CloseHandle(owner_handle)
 
 
 def start_guardian(root, attempt, session, *, timeout=8.0):

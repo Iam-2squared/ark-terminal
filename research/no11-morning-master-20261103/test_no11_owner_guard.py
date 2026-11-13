@@ -187,6 +187,27 @@ class WiringStageTests(unittest.TestCase):
 
 @unittest.skipUnless(sys.platform == "win32", "Windows process-handle test")
 class WindowsKilledControllerSimulation(SyntheticOwnerExit):
+    def test_native_guardian_launcher_attaches_before_spawn_and_exits_on_closed(self):
+        # Exercise the *real* controller -> detached watcher launch helper
+        # without spawning any collector, Excel process or broker connection.
+        watcher = guardian.start_guardian(self.root, self.attempt, DAY, timeout=8.0)
+        try:
+            ready = recovery.unseal(self.attempt / "owner-guard-attached.json",
+                                    guardian.ATTACHED)
+            self.assertEqual(ready["ownerProcessId"], os.getpid())
+            self.assertEqual(ready["guardianProcessId"], watcher.pid)
+            self.assertTrue(ready["ownerHandleAttached"])
+            self.assertIsNone(watcher.poll())
+            self.state("CLOSED")
+            self.assertEqual(watcher.wait(timeout=8), 0)
+            self.assertFalse((self.attempt / "collector.stop").exists())
+            self.assertFalse((self.attempt / "owner-exit-stop-request.json").exists())
+            self.assert_no_closure_fabricated()
+        finally:
+            if watcher.poll() is None:
+                watcher.kill()
+                watcher.wait(timeout=10)
+
     def test_actual_terminated_owner_requests_stop_and_never_marks_closed(self):
         # Synthetic owner process: a sleeping Python, NOT real Excel/controller.
         owner = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(40)"],

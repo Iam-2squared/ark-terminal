@@ -1,0 +1,56 @@
+name: No11 collector owner-exit guardian offline
+on:
+  push:
+    branches: [fix/no11-collector-owner-exit-guardian-20261113]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 9
+    env:
+      PYTHONUTF8: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Derive isolated controller guardian wiring only
+        shell: bash
+        run: python -B research/no11-morning-master-20261103/no11_owner_guard_staging.py --staging-checkout .
+      - name: Synthetic kill/closure invariants and exact source transformations
+        shell: bash
+        run: python -B -m unittest discover -s research/no11-morning-master-20261103 -p 'test_no11_owner_guard.py' -v
+      - name: Stage only controller patch — no live orders
+        shell: bash
+        run: |
+          python -B - <<'PY'
+          import subprocess
+          from pathlib import Path
+          controller='research/no12-prebuy-causal-runtime-20261011/tools/no11_received_session_controller.py'
+          changed=set(subprocess.check_output(['git','diff','--name-only'],text=True).splitlines())
+          assert changed=={controller}, changed
+          content=Path(controller).read_text(encoding='utf-8-sig')
+          assert content.count('start_guardian(')==1
+          assert 'NO11_BOOTSTRAP_STOP=COLLECTOR_AND_CONSUMER_CLOSED' in content
+          assert 'launch_same_run' in content and 'allow_explicit_live' in content
+          assert 'Invoke-No11MsiiOrder' not in content
+          Path('no11-owner-guardian-controller.patch').write_bytes(
+             subprocess.check_output(['git','diff','--binary','--',controller]))
+          print('REVIEWED_PATCH_SCOPE=ONLY_CONTROLLER')
+          print('ORIGINAL_BROKER_AND_ORDERS_UNCHANGED=True')
+          print('ORIGINAL_COLLECTOR_ACK_GENERATION_UNCHANGED=True')
+          print('PC_INSTALL_PERFORMED=False')
+          print('ORDER_TRANSMISSION=False')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: no11-guardian-controller-review-${{ matrix.os }}
+          path: no11-owner-guardian-controller.patch
+          retention-days: 14

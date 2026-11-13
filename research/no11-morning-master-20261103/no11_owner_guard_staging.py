@@ -21,6 +21,15 @@ EDITS = (
         "from no11_collector_owner_guard import start_guardian\n"
     ),
     (
+        "            process = popen(argv, cwd=bootstrap.ROOT, stdout=log, stderr=subprocess.STDOUT)",
+        "            # ARK_NO11_COLLECTOR_CONSOLE_ISOLATION_V1: C50 must survive console X\n"
+        "            # long enough to observe the original STOP and close its OWN workbook.\n"
+        "            process = popen(argv, cwd=bootstrap.ROOT, stdout=log, stderr=subprocess.STDOUT,\n"
+        "                            stdin=subprocess.DEVNULL, close_fds=True,\n"
+        "                            creationflags=(subprocess.DETACHED_PROCESS |\n"
+        "                                           subprocess.CREATE_NEW_PROCESS_GROUP))"
+    ),
+    (
         "    process = None\n    with (attempt.root / 'collector-private.log').open('xb') as log:",
         "    process = None\n"
         "    # ARK_NO11_OWNER_PROCESS_GUARD_V1. Attach to the exact controller OS\n"

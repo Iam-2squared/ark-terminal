@@ -11,12 +11,47 @@ The operator closed the LIVE console window with X. Afterwards, original Collect
 `tools/no11_collector_owner_guard.py` is a separate detached Windows process started **before** the native C50 child is even requested. It opens a Windows `SYNCHRONIZE` **HANDLE** to the exact controller process (immune to PID recycling), creates an exclusive sealed `owner-guard-attached.json`, and only then lets the parent start C50. Failure of attachment/verification is fail-closed: the collector does not start.
 
 - Normal closure: original controller waits for collector STOP, native unsaved workbook close and actual closed receipt; only original `Attempt.close_confirmed` marks status CLOSED. The separate guardian exits after observing sealed CLOSED. Guardian does not write anything after closed.
-- Abnormal owner termination (console X, parent crash, synthetic kill): the guardian observes the **exact** owner handle signaled. If attempt was `SPAWN_REQUESTED`, `RUNNING`, or `CONNECTED`, the guardian creates **only** the original `collector.stop` with exactly `READ_ONLY_STOP\n`; it writes one separate, sealed `owner-exit-stop-request.json` saying closure **not verified**. It does not kill Excel or overwrite a prior stop. It cannot mark the attempt CLOSED or create a `*.closed.json`.
+- Abnormal owner termination (console X, parent crash, synthetic kill): the guardian observes the exact owner handle and requests original STOP; it never creates a native `*.closed.json`. When the detached C50 child produces its **own** valid closed receipt and its saved process HANDLE proves clean exit, the guardian can invoke the original signed `Attempt.close_confirmed` transition. Otherwise it leaves the original attempt unclosed and its stop-only incident record states closure is unverified.
 - If the attempt was `ALLOCATED`, no Collector was even requested and no stop is created.
 - If an existing marker is unknown/corrupt or the attempt is not signed/owned, fail closed. No deletion/cleanup of old ledger, orders, source pins, claim files or previous receipts is permitted.
 - Existing native STOP behavior can exit via its `finally`. **A STOP request is not a guarantee of workbook closure or confirmation of broker cancellation.** If native cleanup fails or guardian itself is killed, the attempt remains unverified and an operator must inspect safely.
 
 `no11_owner_guard_staging.py` derives **only** four exact, reversible edits to the existing Python controller in an **isolated GitHub Actions checkout**: import guardian, start/ack before C50 spawn, fail closed if guardian dies during tick, and require successful guardian completion after native signed CLOSED. The source transformation refuses unknown spans; original controller is unchanged in repository and not patched on the user PC.
+
+## X-button cleanup end-to-end design (reviewed staging)
+
+The first guard prototype requested STOP only. The strengthened staged controller
+now **starts native C50 in a detached process group** (not the owner's console)
+and waits for a **guardian HANDLE handshake for the exact C50 PID before any
+consumer enters LIVE**. Thus a console-X event that kills the parent does not
+necessarily kill the C50 child before its native PowerShell `finally` can run.
+
+After the controller's OS HANDLE signals termination, the guard emits the
+original `collector.stop` or honors either original STOP marker unchanged.
+It then waits up to 90 seconds for its previously attached native C50 HANDLE
+to signal exit. It only transitions the original signed Attempt to `CLOSED`
+using `Attempt.close_confirmed` **if all evidence is genuine**:
+the same native process HANDLE returned exit code 0; the original saved
+`collector-ready.json` SHA matches the existing connected attempt; the native
+C50 code itself wrote `collector-ready.json.closed.json` with the exact
+session/PID, `temporaryWorkbookClosed=true`, `collectorFailed=false`, and
+`orderTransmission=false`. An additional separately signed
+`owner-exit-genuine-close-verified.json` references the real receipt SHA.
+
+A missing native receipt, timeout, nonzero native exit, altered stop file,
+unverified PID/attempt, OS-level termination of the monitor, or loss of I/O
+**does not produce CLOSED**. The original unclosed status is retained for
+manual recovery review. This is not fabrication of historical proof and does
+not replay any orders. Even a clean collector closure does **not** cancel
+outstanding external broker orders or assert that EXIT logic or account
+reconciliation has completed.
+
+Windows CI additionally exercises a fake, detached Collector script that writes
+its own synthetic native-close acknowledgment *only after receiving STOP*.
+Killing only its simulated controller must result in the original signed
+Attempt transitioning to CLOSED with the child PID, clean exit code and
+original mock-native closed receipt hash. This is synthetic, **not proof that
+Excel actually closed on the operator's PC**.
 
 ## Offline verification
 

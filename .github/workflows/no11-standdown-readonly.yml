@@ -1,0 +1,63 @@
+name: No11 standdown read-only incident audit
+on:
+  push:
+    branches: [audit/no11-standdown-readonly-20261113]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit-only:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 8
+    env:
+      PYTHONUTF8: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Read-only current/previous-day evidence regressions
+        shell: bash
+        run: python -B -m unittest discover -s research/no11-morning-master-20261103 -p 'test_no11_standdown_evidence_audit.py' -v
+      - name: PowerShell 5.1 pinned portable full-preflight offline selftest
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $path='research/no11-morning-master-20261103/Bootstrap-No11PortablePreflightReadOnly.ps1'
+          $tokens=$null;$errors=$null
+          [void][Management.Automation.Language.Parser]::ParseFile($path,[ref]$tokens,[ref]$errors)
+          if(@($errors).Count -ne 0){
+            foreach($err in $errors){Write-Host ('PARSE_LINE='+$err.Extent.StartLineNumber+'|ERROR='+$err.ErrorId)}
+            throw 'NO11_PORTABLE_PREFLIGHT_PARSE'
+          }
+          $output=@(& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $path -OfflineSelfTest)
+          if($LASTEXITCODE -ne 0 -or $output -notcontains 'NO11_PORTABLE_PREFLIGHT_OFFLINE_SELFTEST=PASS'){throw 'NO11_PORTABLE_PREFLIGHT_SELFTEST'}
+          'NATIVE_BROKER_AND_EXCEL_NOT_TOUCHED=True'
+      - name: Static proof no order/Excel/process handling by auditor
+        shell: bash
+        run: |
+          python -B - <<'PY'
+          import ast
+          from pathlib import Path
+          src=Path('research/no11-morning-master-20261103/no11_standdown_evidence_audit.py').read_text()
+          tree=ast.parse(src)
+          used_imports=set()
+          for node in ast.walk(tree):
+              if isinstance(node, ast.Import):
+                  used_imports.update(alias.name.split('.')[0] for alias in node.names)
+              elif isinstance(node, ast.ImportFrom):
+                  used_imports.add(node.module.split('.')[0])
+          assert not {'subprocess','win32com','ctypes','sqlite3','requests','urllib','socket'}.intersection(used_imports)
+          assert 'canAuthorizeTrade": False' in src
+          assert 'operatorNoTradeIntent": "DECLARED_IN_CHAT_NOT_LOCAL_ENFORCEMENT"' in src
+          print('NO11_STANDDOWN_READONLY_SOURCE=PASS')
+          print('BROKER_API_CALLED=False')
+          print('EXCEL_TOUCHED=False')
+          print('ORDER_TRANSMISSION=False')
+          PY

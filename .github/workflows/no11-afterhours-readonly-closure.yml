@@ -1,0 +1,49 @@
+name: No11 After-hours No-trade Readonly Census
+
+on:
+  push:
+    branches:
+      - fix/no11-afterhours-readonly-closure-20261113
+    paths:
+      - 'research/no11-morning-master-20261103/no11_afterhours_readonly_census.py'
+      - 'research/no11-morning-master-20261103/test_no11_afterhours_readonly_census.py'
+      - '.github/workflows/no11-afterhours-readonly-closure.yml'
+  pull_request:
+    branches:
+      - fix/no11-week-resilience-20261108
+    paths:
+      - 'research/no11-morning-master-20261103/no11_afterhours_readonly_census.py'
+      - 'research/no11-morning-master-20261103/test_no11_afterhours_readonly_census.py'
+      - '.github/workflows/no11-afterhours-readonly-closure.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  offline-readonly:
+    name: Read-only date/claim/sha regression — ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Standard library synthetic tests — no Excel or broker
+        run: python -m unittest discover -s research/no11-morning-master-20261103 -p 'test_no11_afterhours_readonly_census.py' -v
+      - name: Verify Python source compilation
+        run: |
+          python -m py_compile research/no11-morning-master-20261103/no11_afterhours_readonly_census.py
+          python -m py_compile research/no11-morning-master-20261103/test_no11_afterhours_readonly_census.py
+      - name: Existing 2026-11-11 read-only preflight offline selftest — Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File "research/no11-morning-master-20261103/Check-No11StartPrerequisitesReadOnly20261111.ps1" -OfflineSelfTest
+          if ($LASTEXITCODE -ne 0) { throw "NO11_READONLY_PREFLIGHT_SELFTEST_FAILED" }

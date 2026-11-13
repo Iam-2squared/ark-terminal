@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import re
 import sys
+import subprocess
 import tempfile
 from types import SimpleNamespace
 import unittest
@@ -373,6 +374,80 @@ class DisplayChainTests(unittest.TestCase):
         self.assertIn(b"if($view.phase -ceq 'PREOPEN')", after)
         with self.assertRaises(ValueError):
             hardening.launcher_preopen(after)
+
+
+class NodeStageCodeTests(unittest.TestCase):
+    """Offline actual Node subprocess tests, no capture inputs or broker API."""
+
+    def pristine(self):
+        repo = HERE.parents[1]
+        name = 'research/no12-prebuy-causal-runtime-20261011/tools/no11_received_pipeline_tick.mjs'
+        raw = subprocess.check_output(['git', 'show', 'HEAD:' + name], cwd=repo)
+        return raw
+
+    def test_known_source_and_reversible_stage_delta(self):
+        raw = self.pristine()
+        self.assertNotIn(b'ARK_NO11_NODE_FAILURE_STAGE_V1', raw)
+        generated = hardening.pipeline_node_stage(raw)
+        self.assertNotEqual(generated, raw)
+        from no11_oneclick_display_transform import replace_regions
+        text = generated.decode('utf-8-sig')
+        reversed_text = replace_regions(text, [
+            (after, before) for before, after in hardening.NODE_STAGE_EDITS
+        ])
+        self.assertEqual(reversed_text.encode('utf-8'), raw)
+        for stage in ('ARGUMENTS', 'REQUEST_LOAD', 'SOURCE_READ', 'CAPTURE_SCAN',
+                      'PIPELINE_ADVANCE', 'OUTPUT_PERSIST'):
+            self.assertIn(("failureStage='" + stage + "'").encode(), generated)
+        self.assertIn(b'NO11_PIPELINE_PRIVATE_', generated)
+        self.assertNotIn(b'RssStockOrder', generated)
+        self.assertNotIn(b'Invoke-No11MsiiOrder', generated)
+
+    def exercise_node(self, request_contents=None, *, request_missing=False):
+        generated = hardening.pipeline_node_stage(self.pristine())
+        # Temporary .mjs remains under tools/ so frozen imports are identical.
+        with tempfile.TemporaryDirectory(prefix='ark-node-stage-input-') as tmp:
+            p = Path(tmp) / 'request.json'
+            if not request_missing:
+                p.write_text(json.dumps(request_contents, separators=(',', ':')),
+                             encoding='utf-8')
+            with tempfile.NamedTemporaryFile(dir=TOOLS, prefix='.no11-offline-tick-',
+                                              suffix='.mjs', delete=False) as out:
+                source = Path(out.name)
+                out.write(generated)
+            try:
+                result = subprocess.run(['node', str(source), '--request', str(p)],
+                                        capture_output=True, text=True, timeout=20,
+                                        check=False)
+            finally:
+                source.unlink(missing_ok=True)
+        return result
+
+    def test_missing_request_has_redacted_stage_code_not_private_filename(self):
+        proc = self.exercise_node(request_missing=True)
+        self.assertEqual(proc.returncode, 2, proc.stderr[-1000:])
+        self.assertEqual(proc.stderr.strip(),
+                         'NO11_PIPELINE_PRIVATE_REQUEST_LOAD_FAILURE')
+        self.assertEqual(proc.stdout, '')
+        self.assertNotIn('request.json', proc.stderr)
+
+    def test_known_contract_error_remains_original_code(self):
+        proc = self.exercise_node({'schemaId': 'UNTRUSTED'})
+        self.assertEqual(proc.returncode, 2, proc.stderr[-1000:])
+        self.assertEqual(proc.stderr.strip(), 'NO11_PIPELINE_REQUEST_INVALID')
+        self.assertEqual(proc.stdout, '')
+
+    def test_node_staged_script_passes_syntax_check(self):
+        generated = hardening.pipeline_node_stage(self.pristine())
+        with tempfile.NamedTemporaryFile(suffix='.mjs', delete=False) as out:
+            source = Path(out.name)
+            out.write(generated)
+        try:
+            p = subprocess.run(['node', '--check', str(source)], capture_output=True,
+                               text=True, timeout=15, check=False)
+            self.assertEqual(p.returncode, 0, p.stderr[-1000:])
+        finally:
+            source.unlink(missing_ok=True)
 
 
 if __name__ == '__main__':

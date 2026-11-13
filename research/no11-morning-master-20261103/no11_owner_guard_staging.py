@@ -18,7 +18,7 @@ EDITS = (
     (
         "from no11_received_run_recovery import RunRecovery, CaptureRelay, read, need, atomic, unseal, ATTEMPT, POSTMORTEM\n",
         "from no11_received_run_recovery import RunRecovery, CaptureRelay, read, need, atomic, unseal, ATTEMPT, POSTMORTEM\n"
-        "from no11_collector_owner_guard import start_guardian\n"
+        "from no11_collector_owner_guard import start_guardian, wait_collector_attached\n"
     ),
     (
         "            process = popen(argv, cwd=bootstrap.ROOT, stdout=log, stderr=subprocess.STDOUT)",
@@ -36,6 +36,12 @@ EDITS = (
         "    # handle BEFORE requesting or spawning the Collector; failure blocks.\n"
         "    guardian = start_guardian(config['privateRoot'], attempt.root, config['sessionDate'])\n"
         "    with (attempt.root / 'collector-private.log').open('xb') as log:"
+    ),
+    (
+        "            attempt.started(process.pid)\n",
+        "            attempt.started(process.pid)\n"
+        "            # The detached C50 must be held by the guardian before LIVE.\n"
+        "            wait_collector_attached(guardian, attempt.root, process.pid)\n"
     ),
     (
         "            def stopped():\n                if attempt.stop.exists():",

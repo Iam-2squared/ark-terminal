@@ -71,7 +71,9 @@ class StandDownOffline(unittest.TestCase):
         raw = (json.dumps(self.handoff, sort_keys=True,
                           separators=(",", ":")) + "\n").encode()
         sha = hashlib.sha256(raw).hexdigest()
-        h = self.days / ("morning-handoff-" + sha + ".json")
+        materials = self.daily / "master-materials"
+        materials.mkdir()
+        h = materials / ("morning-handoff-" + sha + ".json")
         h.write_bytes(raw)
         self.pointer = save(self.days / (DAY + ".json"), {
             "schemaId": "ARK_NO11_NIGHTLY_LAUNCHER_HANDOFF_V1",

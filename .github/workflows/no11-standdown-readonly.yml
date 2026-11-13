@@ -24,6 +24,18 @@ jobs:
       - name: Read-only current/previous-day evidence regressions
         shell: bash
         run: python -B -m unittest discover -s research/no11-morning-master-20261103 -p 'test_no11_standdown_evidence_audit.py' -v
+      - name: PowerShell 5.1 pinned portable full-preflight offline selftest
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $path='research/no11-morning-master-20261103/Bootstrap-No11PortablePreflightReadOnly.ps1'
+          $tokens=$null;$errors=$null
+          [void][Management.Automation.Language.Parser]::ParseFile($path,[ref]$tokens,[ref]$errors)
+          if(@($errors).Count -ne 0){throw 'NO11_PORTABLE_PREFLIGHT_PARSE'}
+          $output=@(& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $path -OfflineSelfTest)
+          if($LASTEXITCODE -ne 0 -or $output -notcontains 'NO11_PORTABLE_PREFLIGHT_OFFLINE_SELFTEST=PASS'){throw 'NO11_PORTABLE_PREFLIGHT_SELFTEST'}
+          'NATIVE_BROKER_AND_EXCEL_NOT_TOUCHED=True'
       - name: Static proof no order/Excel/process handling by auditor
         shell: bash
         run: |

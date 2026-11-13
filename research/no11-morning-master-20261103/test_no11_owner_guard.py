@@ -104,6 +104,37 @@ class SyntheticOwnerExit(unittest.TestCase):
         self.assertEqual(stop.read_bytes(), before)
         self.assert_no_closure_fabricated()
 
+    def test_existing_original_operator_stop_is_not_replaced(self):
+        self.state("RUNNING")
+        stop = self.attempt / "collector.stop"
+        stop.write_bytes(guardian.NATIVE_STOP_BYTES)
+        guardian.stop_if_owner_exited(self.root, self.attempt, DAY, 4321)
+        self.assertEqual(stop.read_bytes(), guardian.NATIVE_STOP_BYTES)
+        incident = recovery.unseal(self.attempt / "owner-exit-stop-request.json",
+                                   guardian.INCIDENT)
+        self.assertFalse(incident["stopNewlyCreated"])
+        self.assertFalse(incident["collectorAttemptMarkedClosed"])
+
+    def test_missing_native_closed_receipt_cannot_mark_attempt_closed(self):
+        pid = 12345
+        ready = self.attempt / "collector-ready.json"
+        ready.write_text(json.dumps({
+            "schemaId": "ARK_NO11_C50_COLLECTOR_READY_V1",
+            "sessionDate": DAY, "processId": pid,
+        }) + "\n", encoding="utf-8")
+        sealed_file(self.attempt / "attempt.json", {
+            "schemaId": recovery.ATTEMPT, "sessionDate": DAY,
+            "runRoot": str(self.run), "status": "CONNECTED",
+            "pid": pid, "readySha256": hashlib.sha256(ready.read_bytes()).hexdigest(),
+            "captureFolder": None,
+            "productionReady": False, "orderTransmission": False,
+        })
+        old = (self.attempt / "attempt.json").read_bytes()
+        with self.assertRaises((ValueError, OSError)):
+            guardian._verified_native_closure(self.attempt, DAY, pid, 0)
+        self.assertEqual((self.attempt / "attempt.json").read_bytes(), old)
+        self.assert_no_closure_fabricated()
+
     def test_unknown_stop_marker_never_overwritten(self):
         self.state("CONNECTED")
         stop = self.attempt / "collector.stop"
@@ -169,6 +200,10 @@ class WiringStageTests(unittest.TestCase):
         self.assertIn(b"guardian = start_guardian", modified)
         self.assertIn(b"guardian.poll() is None", modified)
         self.assertIn(b"guardian.wait(timeout=8) == 0", modified)
+        self.assertIn(b"wait_collector_attached(guardian, attempt.root, process.pid)", modified)
+        self.assertIn(b"ARK_NO11_COLLECTOR_CONSOLE_ISOLATION_V1", modified)
+        self.assertIn(b"subprocess.DETACHED_PROCESS", modified)
+        self.assertIn(b"subprocess.CREATE_NEW_PROCESS_GROUP", modified)
         self.assertNotIn(b"import win32com", modified)
         base = ast.parse(original)
         updated = ast.parse(modified)
@@ -207,6 +242,113 @@ class WindowsKilledControllerSimulation(SyntheticOwnerExit):
             if watcher.poll() is None:
                 watcher.kill()
                 watcher.wait(timeout=10)
+
+    def test_console_independent_collector_exits_and_genuine_receipt_closes(self):
+        """Real Windows HANDLE chain and STOP; fake C50 only, no Excel/Broker."""
+        owner = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)"],
+                                 stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL,
+                                 creationflags=(subprocess.DETACHED_PROCESS |
+                                                subprocess.CREATE_NEW_PROCESS_GROUP))
+        child_code = r"""
+import json,os,sys,time
+from pathlib import Path
+stop=Path(sys.argv[1]); close=Path(sys.argv[2]); date=sys.argv[3]
+deadline=time.monotonic()+17
+while time.monotonic()<deadline and not stop.is_file():
+    time.sleep(.05)
+if not stop.is_file():
+    sys.exit(3)
+# SYNTHETIC workbook close: only the fake collector creates the native ack.
+payload={'schemaId':'ARK_NO11_C50_COLLECTOR_CLOSED_V1',
+         'sessionDate':date,'processId':os.getpid(),
+         'temporaryWorkbookClosed':True,'collectorFailed':False,
+         'orderTransmission':False}
+close.write_text(json.dumps(payload)+'\n',encoding='utf-8')
+sys.exit(0)
+"""
+        child = subprocess.Popen(
+            [sys.executable, "-c", child_code,
+             str(self.attempt / "collector.stop"),
+             str(self.attempt / "collector-ready.json.closed.json"), DAY],
+            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            creationflags=(subprocess.DETACHED_PROCESS |
+                           subprocess.CREATE_NEW_PROCESS_GROUP))
+        watcher = None
+        try:
+            watcher = subprocess.Popen(
+                [sys.executable, "-B", str(guardian.Path(guardian.__file__)), "watch",
+                 "--private-root", str(self.root),
+                 "--attempt", str(self.attempt),
+                 "--session", DAY, "--owner-pid", str(owner.pid), "--nonce", "f" * 32],
+                stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                creationflags=(subprocess.DETACHED_PROCESS |
+                               subprocess.CREATE_NEW_PROCESS_GROUP))
+            start = time.monotonic()
+            while not (self.attempt / "owner-guard-attached.json").is_file():
+                self.assertIsNone(watcher.poll(), "GUARDIAN_ATTACH_FAILED")
+                self.assertLess(time.monotonic() - start, 8)
+                time.sleep(.05)
+            ready = self.attempt / "collector-ready.json"
+            ready.write_text(json.dumps({
+                "schemaId": "ARK_NO11_C50_COLLECTOR_READY_V1",
+                "sessionDate": DAY, "processId": child.pid,
+                "orderTransmission": False,
+            }) + "\n", encoding="utf-8")
+            sealed_file(self.attempt / "attempt.json", {
+                "schemaId": recovery.ATTEMPT, "sessionDate": DAY,
+                "runRoot": str(self.run), "status": "RUNNING",
+                "pid": child.pid, "captureFolder": None,
+                "productionReady": False, "orderTransmission": False,
+            })
+            deadline = time.monotonic() + 8
+            while not (self.attempt / "collector-guard-attached.json").is_file():
+                self.assertIsNone(watcher.poll(), "COLLECTOR_HANDLE_NOT_ATTACHED")
+                self.assertLess(time.monotonic(), deadline)
+                time.sleep(.05)
+            # Native controller connected() would pin the exact READY bytes.
+            sealed_file(self.attempt / "attempt.json", {
+                "schemaId": recovery.ATTEMPT, "sessionDate": DAY,
+                "runRoot": str(self.run), "status": "CONNECTED",
+                "pid": child.pid, "captureFolder": None,
+                "readySha256": hashlib.sha256(ready.read_bytes()).hexdigest(),
+                "productionReady": False, "orderTransmission": False,
+            })
+            owner.kill()  # Simulate X interrupting the parent, not its C50 child.
+            owner.wait(timeout=8)
+            output, error = watcher.communicate(timeout=16)
+            self.assertEqual(watcher.returncode, 0,
+                             (output + error)[-2000:].decode(errors="replace"))
+            self.assertIn(b"OWNER_EXIT_GENUINE_NATIVE_CLOSE_VERIFIED", output)
+            self.assertEqual(child.wait(timeout=3), 0)
+            self.assertEqual((self.attempt / "collector.stop").read_bytes(),
+                             guardian.STOP_BYTES)
+            body = recovery.unseal(self.attempt / "attempt.json",
+                                   recovery.ATTEMPT)
+            self.assertEqual(body["status"], "CLOSED")
+            self.assertEqual(body["exitCode"], 0)
+            native = (self.attempt / "collector-ready.json.closed.json")
+            self.assertTrue(native.exists())
+            self.assertEqual(body["closedSha256"], hashlib.sha256(native.read_bytes()).hexdigest())
+            proof = recovery.unseal(self.attempt / "owner-exit-genuine-close-verified.json",
+                                    guardian.NATIVE_CLOSED)
+            self.assertTrue(proof["originalAttemptClosedUsingNativeReceipt"])
+            self.assertFalse(proof["brokerOrdersTouched"])
+            self.assertFalse(proof["ordersCancelled"])
+            self.assertFalse((self.root / "bootstrap-recovery-required.json").exists())
+            self.assertFalse((self.root / "broker.sqlite").exists())
+        finally:
+            if owner.poll() is None:
+                owner.kill()
+                owner.wait(timeout=5)
+            if child.poll() is None:
+                child.kill()
+                child.wait(timeout=5)
+            if watcher is not None and watcher.poll() is None:
+                watcher.kill()
+                watcher.wait(timeout=5)
 
     def test_actual_terminated_owner_requests_stop_and_never_marks_closed(self):
         # Synthetic owner process: a sleeping Python, NOT real Excel/controller.

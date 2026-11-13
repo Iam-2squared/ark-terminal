@@ -1,0 +1,139 @@
+name: No11 operational hardening offline
+on:
+  push:
+    branches: [fix/no11-durable-decision-audit-20261112]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regression:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    env:
+      PYTHONUTF8: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Derive only reviewed source spans in the isolated checkout
+        shell: bash
+        run: python -B research/no11-morning-master-20261103/no11_operational_hardening.py --staging-checkout .
+      - name: New decision-history and chain regressions
+        shell: bash
+        run: python -B -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_operational_hardening.py -v
+      - name: Existing UI, native permissions and applied funding repairs
+        shell: bash
+        run: |
+          python -B -m unittest discover -s research/no11-morning-master-20261103 -p 'test_no11_oneclick_display*.py' -v
+          python -B -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_rss_opening_source_wait.py -v
+          python -B -m unittest discover -s research/no11-morning-master-20261103 -p test_no11_afterclose_source_repair.py -v
+      - name: Generate exact preopen overlay pair and ASCII JSON payload
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          python -B - <<'PY'
+          import json, os, sys
+          from pathlib import Path
+          sys.path.insert(0, str(Path('research/no11-morning-master-20261103').resolve()))
+          import test_no11_oneclick_display_overlay_compat as f
+          import test_no11_oneclick_display_v2 as t
+          import no11_oneclick_display_transform as v2
+          import install_no11_oneclick_display_overlay_compat as overlay
+          import no11_operational_hardening as patch
+          temp=Path(os.environ['RUNNER_TEMP'])
+          before=overlay.change(v2.transform(f.make_source()))
+          (temp/'before.ps1').write_bytes(before)
+          (temp/'after.ps1').write_bytes(patch.launcher_preopen(before))
+          state=dict(mode='OUTSIDE_ENTRY_WINDOW',reason='NEW_ENTRY_WINDOW_CLOSED',
+                     canRequestTrade=False,canRunNightly=True,sessionDate='2026-11-11')
+          state['presentation']=t.presentation('08:40:00',state=state)
+          (temp/'state.json').write_text(json.dumps(state,ensure_ascii=True),encoding='ascii')
+          PY
+      - name: Reproduce old reserved overlay and verify fixed actual RefreshUi
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Set-StrictMode -Version Latest
+          Add-Type -AssemblyName System.Windows.Forms
+          Add-Type -AssemblyName System.Drawing
+          function Need([bool]$ok,[string]$why){if(-not $ok){throw $why}}
+          function ReadNo11SelectionDisplay {return 'OFFLINE'}
+          function CanQueuePreopen($s){return $false}
+          function PreopenReserved($s){return $true}
+          function CanRetryPreorder($s){return $false}
+          $script:State=Get-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'state.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+          function GetStatus {return $script:State}
+          $status=New-Object System.Windows.Forms.Label
+          $selectionStatus=New-Object System.Windows.Forms.Label
+          $disabledTradeOverlay=New-Object System.Windows.Forms.Label
+          $trade=New-Object System.Windows.Forms.Button
+          $nightly=New-Object System.Windows.Forms.Button
+          $refresh=New-Object System.Windows.Forms.Button
+          $review=New-Object System.Windows.Forms.Button
+          $logsButton=New-Object System.Windows.Forms.Button
+          $script:No11DisplayTip=New-Object System.Windows.Forms.ToolTip
+          try{
+            foreach($version in @('before','after')){
+              $text=[IO.File]::ReadAllText((Join-Path $env:RUNNER_TEMP ($version+'.ps1')),[Text.Encoding]::UTF8)
+              $tokens=$null;$errors=$null
+              $tree=[Management.Automation.Language.Parser]::ParseInput($text,[ref]$tokens,[ref]$errors)
+              Need (@($errors).Count -eq 0) 'POWERSHELL_PARSE'
+              $functions=@($tree.FindAll({param($n) $n -is [Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -ceq 'RefreshUi'},$false))
+              Need ($functions.Count -eq 1) 'REFRESH_COUNT'
+              . ([ScriptBlock]::Create($functions[0].Extent.Text))
+              RefreshUi
+              Need ($status.Text -notmatch 'SOURCE_OR_RUNTIME_UNVERIFIED') 'STATUS_FAILED'
+              Need (-not $trade.Enabled) 'RESERVATION_MUST_NOT_REAUTHORIZE'
+              if($version -eq 'before'){
+                Need ($disabledTradeOverlay.Text -ceq 'NEW ENTRIES CLOSED') 'BASELINE_NOT_REPRODUCED'
+              }else{
+                Need ($disabledTradeOverlay.Text -ceq $script:State.presentation.trading) 'PREOPEN_OVERLAY_MISMATCH'
+                Need ($disabledTradeOverlay.Text -match 'RESERVED 09:00') 'RESERVATION_NOT_DISPLAYED'
+              }
+            }
+            'PREOPEN_OVERLAY_BASELINE_REPRODUCED=True'
+            'PREOPEN_OVERLAY_FIXED=PASS'
+            'TRADE_STARTED=False'
+          }finally{
+            foreach($item in @($status,$selectionStatus,$disabledTradeOverlay,$trade,$nightly,$refresh,$review,$logsButton,$script:No11DisplayTip)){$item.Dispose()}
+          }
+      - name: Prove generated source scope and export review patch
+        shell: bash
+        run: |
+          python -B - <<'PY'
+          import ast, hashlib, json, subprocess, sys
+          from pathlib import Path
+          sys.path.insert(0,str(Path('research/no11-morning-master-20261103').resolve()))
+          import no11_operational_hardening as p
+          changed=set(subprocess.check_output(['git','diff','--name-only'],text=True).splitlines())
+          assert changed==set(p.TARGETS), changed
+          native='research/no12-prebuy-causal-runtime-20261011/tools/no11_broker_execution_service.py'
+          old=ast.parse(subprocess.check_output(['git','show','HEAD:'+native]).decode())
+          new=ast.parse(Path(native).read_text(encoding='utf-8-sig'))
+          def methods(tree):
+              cls=next(n for n in tree.body if isinstance(n,ast.ClassDef) and n.name=='BrokerExecution')
+              return {n.name:ast.dump(n) for n in cls.body if isinstance(n,ast.FunctionDef)}
+          a,b=methods(old),methods(new)
+          assert set(a)==set(b)
+          assert all(a[k]==b[k] for k in a if k not in {'fund','summary'})
+          Path('no11-hardening-generated.patch').write_bytes(subprocess.check_output(['git','diff','--binary']))
+          print('GENERATED_SOURCE_SCOPE=PASS')
+          for name in sorted(changed):
+              print('GENERATED_SHA256|'+name+'='+hashlib.sha256(Path(name).read_bytes()).hexdigest())
+          print('FROZEN_STRATEGY_AND_DISPATCH_METHODS=UNCHANGED')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: no11-hardening-reviewed-${{ matrix.os }}
+          path: no11-hardening-generated.patch
+          retention-days: 14

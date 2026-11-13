@@ -6,7 +6,7 @@ Base: `75f2c43248c4f5b168fb41c2e5f55f8fb7749886`.
 Work branch: `fix/no11-durable-decision-audit-20261112`.
 
 This branch contains reusable runtime helpers, exact reversible source transforms,
-and Windows/Linux integration regressions. The workflow derives five modified
+and Windows/Linux integration regressions. The workflow derives six modified
 sources in an isolated checkout and exports their review patch. Frozen originals
 are retained in the repository. This is NOT a deployment to the user's installed
 runtime, not a same-day rearm, and not permission to send any order.
@@ -127,6 +127,28 @@ The original `NO11_SERVICE_NODE_TICK_FAILED` behavior and exact
 `NO11_PIPELINE_CAPTURE_WRITE_IN_PROGRESS` handling are unchanged.
 This evidence cannot be produced retroactively and cannot survive a process
 being killed before Python's error handler runs.
+
+### 2026-11-13 — finite failure-stage classification
+
+The source-checked `pipeline_node_stage` transform now preserves native
+`NO11_*` errors and classifies otherwise unrecognized Node exceptions
+without ever printing private source paths, security balances, symbols,
+stack traces or raw input. Allowed stages are `ARGUMENTS`,
+`REQUEST_LOAD`, `SOURCE_READ`, `CAPTURE_SCAN`,
+`PIPELINE_ADVANCE` and `OUTPUT_PERSIST`.
+
+For example, a missing request file now reports
+`NO11_PIPELINE_PRIVATE_REQUEST_LOAD_FAILURE` instead of the generic
+Node private source/runtime failure; a known
+`NO11_PIPELINE_REQUEST_INVALID` remains exactly unchanged. Python
+will preserve each of these single safe tokens. Failure still halts entry
+and the original no-retry semantics remain. All successful execution
+logic, the selector, thresholds and order paths stay untouched.
+
+An actual Node binary executes synthetic invalid requests in offline CI;
+Windows and Linux must both pass. This is **future-proof provenance**,
+not proof of a fix for the unseen Nov 12 Node root failure. It is not
+installed on the operator PC.
 
 This is not a blanket fix for arbitrary UI-window termination. The
 observed attempt remained CONNECTED without a closure receipt; it must

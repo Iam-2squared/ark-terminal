@@ -32,7 +32,10 @@ jobs:
           $path='research/no11-morning-master-20261103/Bootstrap-No11PortablePreflightReadOnly.ps1'
           $tokens=$null;$errors=$null
           [void][Management.Automation.Language.Parser]::ParseFile($path,[ref]$tokens,[ref]$errors)
-          if(@($errors).Count -ne 0){throw 'NO11_PORTABLE_PREFLIGHT_PARSE'}
+          if(@($errors).Count -ne 0){
+            foreach($err in $errors){Write-Host ('PARSE_LINE='+$err.Extent.StartLineNumber+'|ERROR='+$err.ErrorId)}
+            throw 'NO11_PORTABLE_PREFLIGHT_PARSE'
+          }
           $output=@(& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $path -OfflineSelfTest)
           if($LASTEXITCODE -ne 0 -or $output -notcontains 'NO11_PORTABLE_PREFLIGHT_OFFLINE_SELFTEST=PASS'){throw 'NO11_PORTABLE_PREFLIGHT_SELFTEST'}
           'NATIVE_BROKER_AND_EXCEL_NOT_TOUCHED=True'

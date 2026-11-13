@@ -12,6 +12,7 @@ import unittest
 from unittest.mock import patch
 
 import no11_standdown_evidence_audit as audit
+import no11_return_after_skip as skipped
 
 DAY = "2026-11-13"
 PREV = "2026-11-12"
@@ -199,6 +200,22 @@ class StandDownOffline(unittest.TestCase):
         self.assertNotIn("Stop-Process", source)
         self.assertNotIn("Invoke-No11MsiiOrder", source)
         self.assertNotIn("--apply", source)
+
+    def test_skipped_friday_requires_fresh_monday_data_not_renamed_handoff(self):
+        # No actual trade or nightly update on Fri 11/13. Latest pointer still
+        # refers to genuine 11/13 data on Mon 11/16; it may not be re-dated.
+        prior = self.files()
+        monday = skipped.inspect(self.binding, today="2026-11-16")
+        self.assertEqual(monday["state"], "CATCHUP_REQUIRED")
+        self.assertFalse(monday["canTrade"])
+        self.assertTrue(monday["freshActualRssRequired"])
+        self.assertTrue(monday["requiresNewDailyD100"])
+        self.assertTrue(monday["requiresNewChart50AndG1"])
+        self.assertTrue(monday["requiresRecentPrevious1M"])
+        self.assertFalse(monday["sourceDatesRelabeled"])
+        self.assertEqual(monday["sessionDate"], DAY)
+        self.assertEqual(monday["daysSinceLastHandoff"], 3)
+        self.assertEqual(self.files(), prior)
 
     def test_cli_redacts_private_paths_and_no_synthetic_shutdown(self):
         result = subprocess.run([

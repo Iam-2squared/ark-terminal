@@ -6,9 +6,11 @@ is not guaranteed to run. The guard holds a SYNCHRONIZE handle to that exact
 controller process (not only a recyclable PID), then requests the ORIGINAL
 collector.stop protocol after the owner exits.
 
-It NEVER kills Excel, cancels/sends orders, edits the ledger/claims, or creates
-a collector .closed.json or a CLOSED attempt. A missing genuine closure stays
-UNVERIFIED and still blocks recovery. Failure to attach blocks collector start.
+It NEVER kills Excel, cancels/sends orders, edits broker ledger/claims, or
+creates collector .closed.json. It may use the ORIGINAL Attempt.close_confirmed
+only after a handle-proven clean native C50 exit and the REAL native
+.closed.json with temporaryWorkbookClosed=True; otherwise remains UNVERIFIED.
+Failure to attach blocks collector start.
 """
 from __future__ import annotations
 
@@ -34,6 +36,9 @@ INCIDENT = "ARK_NO11_COLLECTOR_OWNER_GUARD_STOP_V1"
 COLLECTOR_ATTACHED = "ARK_NO11_COLLECTOR_OWNER_GUARD_COLLECTOR_ATTACHED_V1"
 NATIVE_CLOSED = "ARK_NO11_COLLECTOR_OWNER_GUARD_GENUINE_CLOSED_V1"
 STOP_BYTES = b"READ_ONLY_STOP\n"
+# Native operator STOP button uses this ORIGINAL distinct marker; both forms
+# request the same cooperative stop, never rewrite an existing marker.
+NATIVE_STOP_BYTES = b"STOP_NEW_ENTRIES_REQUESTED\n"
 NO11_RUN = re.compile(r"session-(20\d\d-\d\d-\d\d)-[a-f0-9]{32}\Z")
 NO11_ATTEMPT = re.compile(r"attempt-\d{4}\Z")
 TOKEN = re.compile(r"[a-f0-9]{32}\Z")
@@ -94,7 +99,8 @@ def stop_if_owner_exited(root, attempt, session, owner_pid):
     stop = path / "collector.stop"
     if stop.exists():
         need(stop.is_file() and not stop.is_symlink() and
-             stop.read_bytes() == STOP_BYTES, "EXISTING_STOP_UNVERIFIED")
+             stop.read_bytes() in (STOP_BYTES, NATIVE_STOP_BYTES),
+             "EXISTING_STOP_UNVERIFIED")
         created = False
     else:
         unique_bytes(stop, STOP_BYTES)
